@@ -25,8 +25,10 @@
 #include <QDebug>
 #include <QUndoStack>
 
+using namespace EspINA;
+
 //-----------------------------------------------------------------------------
-CircularBrush::CircularBrush(EspinaModel* model,
+CircularBrush::CircularBrush(EspinaModelPtr model,
                              QUndoStack* undoStack,
                              ViewManager* viewManager)
 : Brush(model, undoStack, viewManager)
@@ -35,7 +37,7 @@ CircularBrush::CircularBrush(EspinaModel* model,
 
 
 //-----------------------------------------------------------------------------
-Brush::BrushShape CircularBrush::createBrushShape(PickableItem* item, double center[3], Nm radius, PlaneType plane)
+Brush::BrushShape CircularBrush::createBrushShape(PickableItemPtr item, double center[3], Nm radius, PlaneType plane)
 {
   double spacing[3];
   item->volume()->spacing(spacing);

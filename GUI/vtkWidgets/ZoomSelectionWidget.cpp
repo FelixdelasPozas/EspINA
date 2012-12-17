@@ -17,6 +17,8 @@
 // vtk
 #include <vtkAbstractWidget.h>
 
+using namespace EspINA;
+
 typedef EspinaInteractorAdapter<vtkZoomSelectionWidget> ZoomSelectionWidgetAdapter;
 
 //----------------------------------------------------------------------------

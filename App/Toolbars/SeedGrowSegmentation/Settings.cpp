@@ -23,6 +23,8 @@
 #include <Core/EspinaSettings.h>
 #include <GUI/Pickers/PixelPicker.h>
 
+using namespace EspINA;
+
 const QString BEST_PIXEL     ("SeedGrowSegmentation::BestPixelValue");
 const QString DEFAULT_VOI_X  ("SeedGrowSegmentation::DafaultVOI::X");
 const QString DEFAULT_VOI_Y  ("SeedGrowSegmentation::DafaultVOI::Y");

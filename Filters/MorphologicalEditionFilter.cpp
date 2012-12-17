@@ -23,6 +23,8 @@
 
 #include <QDebug>
 
+using namespace EspINA;
+
 typedef ModelItem::ArgumentId ArgumentId;
 const ArgumentId MorphologicalEditionFilter::RADIUS = "Radius";
 

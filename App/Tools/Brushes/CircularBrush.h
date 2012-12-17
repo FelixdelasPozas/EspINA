@@ -6,7 +6,7 @@
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
-
+    
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -14,7 +14,7 @@
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+    */
 
 
 #ifndef CIRCULARBRUSH_H
@@ -22,20 +22,23 @@
 
 #include "Tools/Brushes/Brush.h"
 
-class CircularBrush
-: public Brush
+namespace EspINA
 {
-public:
-  explicit CircularBrush(EspinaModel* model,
-                         QUndoStack* undoStack,
-                         ViewManager* viewManager);
+  class CircularBrush
+  : public Brush
+  {
+  public:
+    explicit CircularBrush(EspinaModelPtr model,
+                           QUndoStack* undoStack,
+                           ViewManager* viewManager);
 
-protected:
-  virtual BrushShape createBrushShape(PickableItem* item,
-                                      double center[3],
-                                      Nm radius,
-                                      PlaneType plane);
+  protected:
+    virtual BrushShape createBrushShape(PickableItemPtr item,
+                                        double center[3],
+                                        Nm radius,
+                                        PlaneType plane);
 
-};
+  };
+}
 
 #endif // CIRCULARBRUSH_H

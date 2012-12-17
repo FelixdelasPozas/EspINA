@@ -24,6 +24,7 @@
 #include <QString>
 #include <QDebug>
 
+using namespace EspINA;
 
 //------------------------------------------------------------------------
 SeedGrowSegmentation::SettingsPanel::SettingsPanel(SeedGrowSegmentation::Settings* settings)
@@ -80,10 +81,9 @@ bool SeedGrowSegmentation::SettingsPanel::modified() const
 
 
 //------------------------------------------------------------------------
-ISettingsPanel *SeedGrowSegmentation::SettingsPanel::clone()
+ISettingsPanelPtr SeedGrowSegmentation::SettingsPanel::clone()
 {
-  SettingsPanel *panel = new SettingsPanel(m_settings);
-  return panel;
+  return ISettingsPanelPtr(new SettingsPanel(m_settings));
 }
 
 //------------------------------------------------------------------------

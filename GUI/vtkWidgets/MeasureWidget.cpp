@@ -25,6 +25,8 @@
 #include <QMouseEvent>
 #include <QKeyEvent>
 
+using namespace EspINA;
+
 typedef EspinaInteractorAdapter<vtkDistanceWidget> MeasureWidgetAdapter;
 
 //----------------------------------------------------------------------------

@@ -1,20 +1,20 @@
 /*
-    <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ *    <one line to give the program's name and a brief idea of what it does.>
+ *    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
+ *
+ *    This program is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
+ *
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 
 #ifndef DATAVIEW_H
@@ -31,37 +31,43 @@
 class ModelTest;
 #endif
 
-class DataView
-: public QWidget
-, Ui::DataView
+namespace EspINA
 {
-  Q_OBJECT
-public:
-  explicit DataView(EspinaModel *model,
-                    ViewManager *vm,
-                    QWidget *parent = 0,
-                    Qt::WindowFlags f = 0);
-  virtual ~DataView();
+  class DataView
+  : public QWidget
+  , Ui::DataView
+  {
+    Q_OBJECT
+  public:
+    explicit DataView(EspinaModelPtr model,
+                      ViewManager *vm,
+                      QWidget *parent = 0,
+                      Qt::WindowFlags f = 0);
+    virtual ~DataView();
 
-protected:
-  QModelIndex index(ModelItem *item) const;
-  ModelItem *item(QModelIndex index) const;
+  protected:
+    QModelIndex index(ModelItemPtr item) const;
+    ModelItemPtr item(QModelIndex index) const;
 
-protected slots:
-  void defineQuery();
-  void extractInformation();
-  void updateSelection(ViewManager::Selection selection);
-  void updateSelection(QItemSelection selected, QItemSelection deselected);
+  protected slots:
+    void defineQuery();
+    void extractInformation();
+    void updateSelection(ViewManager::Selection selection);
+    void updateSelection(QItemSelection selected, QItemSelection deselected);
 
-private:
-  EspinaModel                          *m_baseModel;
-  ViewManager                          *m_viewManager;
-  QSharedPointer<InformationProxy>      m_model;
-  QSharedPointer<QSortFilterProxyModel> m_sort;
-#ifdef TEST_ESPINA_MODELS
-  QSharedPointer<ModelTest>             m_modelTester;
-#endif
-  QStringList m_query;
-};
+  private:
+    EspinaModelPtr                        m_baseModel;
+    ViewManager                          *m_viewManager;
+    QSharedPointer<InformationProxy>      m_model;
+    QSharedPointer<QSortFilterProxyModel> m_sort;
+
+    #ifdef TEST_ESPINA_MODELS
+    QSharedPointer<ModelTest>             m_modelTester;
+    #endif
+
+    QStringList m_query;
+  };
+
+} // namespace EspINA
 
 #endif // DATAVIEW_H

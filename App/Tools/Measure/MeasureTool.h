@@ -11,13 +11,16 @@
 // EspINA
 #include <GUI/Tools/ITool.h>
 
-class ViewManager;
-class MeasureWidget;
 class QCursor;
 
-class MeasureTool
-: public ITool
+namespace EspINA
 {
+  class ViewManager;
+  class MeasureWidget;
+
+  class MeasureTool
+  : public ITool
+  {
   public:
     explicit MeasureTool(ViewManager *);
     virtual ~MeasureTool();
@@ -34,6 +37,8 @@ class MeasureTool
     bool m_inUse;
     MeasureWidget *m_widget;
     ViewManager *m_viewManager;
-};
+  };
+
+} // namespace EspINA
 
 #endif /* MEASURETOOL_H_ */

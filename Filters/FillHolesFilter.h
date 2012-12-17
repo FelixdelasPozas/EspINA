@@ -24,6 +24,8 @@
 
 #include <itkBinaryFillholeImageFilter.h>
 
+namespace EspINA
+{
 class FillHolesFilter
 : public SegmentationFilter
 {
@@ -50,5 +52,7 @@ protected:
 private:
   FilterType::Pointer m_filter;
 };
+
+} // namespace EspINA
 
 #endif // FILLHOLESFILTER_H

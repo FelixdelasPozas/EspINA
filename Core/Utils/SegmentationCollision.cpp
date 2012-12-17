@@ -24,6 +24,8 @@
 // itk
 #include <itkImageRegionIteratorWithIndex.h>
 
+using namespace EspINA;
+
 //-----------------------------------------------------------------------------
 bool checkCollision(EspinaVolume::Pointer seg1, EspinaVolume::Pointer seg2)
 {

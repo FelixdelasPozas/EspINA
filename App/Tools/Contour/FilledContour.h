@@ -22,38 +22,47 @@
 
 #include <GUI/Tools/ITool.h>
 
-class ContourSelector;
-class ViewManager;
+#include <Core/EspinaTypes.h>
+
 class QUndoStack;
-class EspinaModel;
-class ContourWidget;
-class Filter;
-class Segmentation;
 
-class FilledContour
-: public ITool //NOTE Change to IVOI to use countour as VOI
+namespace EspINA
 {
-public:
-  explicit FilledContour(EspinaModel *, QUndoStack *, ViewManager *);
-  virtual ~FilledContour();
+  class ContourSelector;
+  class ViewManager;
+  class ContourWidget;
 
-  virtual QCursor cursor() const;
-  virtual bool filterEvent(QEvent* e, EspinaRenderView* view = 0);
-  virtual void setInUse(bool enable);
-  virtual void setEnabled(bool enable);
-  virtual bool enabled() const;
+  class FilledContour
+  : public ITool //NOTE Change to IVOI to use countour as VOI
+  {
+  public:
+    explicit FilledContour(EspinaModelPtr model,
+                           QUndoStack    *undoStack,
+                           ViewManager   *viewManager);
+    virtual ~FilledContour();
 
-private:
-  ViewManager *m_viewManager;
-  QUndoStack *m_undoStack;
-  EspinaModel *m_model;
-  ContourSelector *m_picker;
-  bool m_enabled;
-  bool m_inUse;
-  ContourWidget *m_contourWidget;
-  Filter *m_currentSource;
-  Segmentation *m_currentSeg;
+    virtual QCursor cursor() const;
+    virtual bool filterEvent(QEvent* e, EspinaRenderView* view = 0);
+    virtual void setInUse(bool enable);
+    virtual void setEnabled(bool enable);
+    virtual bool enabled() const;
 
-};
+  private:
+    EspinaModelPtr m_model;
+    QUndoStack    *m_undoStack;
+    ViewManager   *m_viewManager;
+
+    ContourSelector *m_picker;
+    bool m_enabled;
+    bool m_inUse;
+
+    ContourWidget *m_contourWidget;
+
+    FilterPtr       m_currentSource;
+    SegmentationPtr m_currentSeg;
+
+  };
+
+} // namespace EspINA
 
 #endif // FILLEDCONTOUR_H

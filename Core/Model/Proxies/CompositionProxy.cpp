@@ -23,6 +23,8 @@
 #include <Core/Model/Segmentation.h>
 #include <QMimeData>
 
+using namespace EspINA;
+
 //------------------------------------------------------------------------
 CompositionProxy::CompositionProxy(QObject* parent)
 : QAbstractProxyModel(parent)
@@ -36,20 +38,20 @@ CompositionProxy::~CompositionProxy()
 }
 
 //------------------------------------------------------------------------
-void CompositionProxy::setSourceModel(EspinaModel *sourceModel)
+void CompositionProxy::setSourceModel(EspinaModelPtr sourceModel)
 {
   m_sourceModel = sourceModel;
 
-  connect(sourceModel, SIGNAL(rowsInserted(const QModelIndex&, int, int)),
+  connect(sourceModel.data(), SIGNAL(rowsInserted(const QModelIndex&, int, int)),
           this, SLOT(sourceRowsInserted(const QModelIndex&, int, int)));
-  connect(sourceModel, SIGNAL(rowsRemoved(const QModelIndex&, int, int)),
+  connect(sourceModel.data(), SIGNAL(rowsRemoved(const QModelIndex&, int, int)),
           this, SLOT(sourceRowsRemoved(QModelIndex,int,int)));
-  connect(sourceModel, SIGNAL(rowsAboutToBeRemoved(const QModelIndex&, int, int)),
+  connect(sourceModel.data(), SIGNAL(rowsAboutToBeRemoved(const QModelIndex&, int, int)),
           this, SLOT(sourceRowsAboutToBeRemoved(QModelIndex,int,int)));
-  connect(sourceModel, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
+  connect(sourceModel.data(), SIGNAL(dataChanged(QModelIndex,QModelIndex)),
           this,SLOT(sourceDataChanged(QModelIndex,QModelIndex)));
 
-  QAbstractProxyModel::setSourceModel(sourceModel);
+  QAbstractProxyModel::setSourceModel(sourceModel.data());
 }
 
 //------------------------------------------------------------------------
@@ -77,9 +79,9 @@ int CompositionProxy::rowCount(const QModelIndex& parent) const
     rows =  m_rootSegmentations.size();
   } else
   {
-    ModelItem *parentItem = indexPtr(parent);
-    Q_ASSERT(ModelItem::SEGMENTATION == parentItem->type());
-    Segmentation *seg = dynamic_cast<Segmentation *>(parentItem);
+    ModelItemPtr parentItem = indexPtr(parent);
+    Q_ASSERT(EspINA::SEGMENTATION == parentItem->type());
+    SegmentationPtr seg = segmentationPtr(parentItem);
     rows = m_components[seg].size();
   }
 
@@ -92,21 +94,20 @@ QModelIndex CompositionProxy::index(int row, int column, const QModelIndex& pare
   if (!hasIndex(row, column, parent))
     return QModelIndex();
 
-  ModelItem *internalPtr;
+  ModelItemPtr internalPtr;
   if (!parent.isValid()) // Root segmentations
   {
     internalPtr = m_rootSegmentations.at(row);
   }
   else
   {
-    ModelItem *parentItem = indexPtr(parent);
-    Q_ASSERT(ModelItem::SEGMENTATION == parentItem->type());
-    Segmentation *seg = dynamic_cast<Segmentation *>(parentItem);
-    Q_ASSERT(seg);
+    ModelItemPtr parentItem = indexPtr(parent);
+    Q_ASSERT(EspINA::SEGMENTATION == parentItem->type());
+    SegmentationPtr seg = segmentationPtr(parentItem);
     internalPtr = m_components[seg][row];
   }
 
-  return createIndex(row, column, internalPtr);
+  return createIndex(row, column, &internalPtr);
 }
 
 // WARNING: Don't use mapFromSource to implement model primitives!
@@ -116,15 +117,14 @@ QModelIndex CompositionProxy::parent(const QModelIndex& child) const
   if (!child.isValid())
     return QModelIndex();
 
-  ModelItem *childItem = indexPtr(child);
-  Q_ASSERT(childItem);
-  Q_ASSERT(ModelItem::SEGMENTATION == childItem->type());
+  ModelItemPtr childItem = indexPtr(child);
+  Q_ASSERT(EspINA::SEGMENTATION == childItem->type());
 
   int i = 0;
-  Segmentation *parentSeg  = NULL;
+  SegmentationPtr parentSeg;
   while(!parentSeg && i < m_components.size())
   {
-    Segmentation *seg = m_components.keys().at(i);
+    SegmentationPtr seg = m_components.keys().at(i);
     if (m_components[seg].contains(childItem))
       parentSeg = seg;
     i++;
@@ -139,8 +139,10 @@ QModelIndex CompositionProxy::parent(const QModelIndex& child) const
     row = m_components[parentSeg].indexOf(childItem);
   }
 
-  ModelItem *parentItem = parentSeg;
-  return createIndex(row, 0, parentItem);
+  ModelItemPtr parentItem = parentSeg;
+  //WARNING 2012-12-17: Se esta creando mal el indice-->parent item se va del scope
+  Q_ASSERT(false);
+  return createIndex(row, 0, &parentItem);
 }
 
 //------------------------------------------------------------------------
@@ -157,19 +159,17 @@ QModelIndex CompositionProxy::mapFromSource(const QModelIndex& sourceIndex) cons
     || sourceIndex == m_sourceModel->segmentationRoot() )
     return QModelIndex();
 
-  ModelItem *sourceItem = indexPtr(sourceIndex);
+  ModelItemPtr sourceItem = indexPtr(sourceIndex);
 
-  if (ModelItem::SEGMENTATION != sourceItem->type())
+  if (EspINA::SEGMENTATION != sourceItem->type())
     return QModelIndex();
 
-  Segmentation *seg = dynamic_cast<Segmentation *>(sourceItem);
-  Q_ASSERT(seg);
+  SegmentationPtr seg = segmentationPtr(sourceItem);
 
-  ModelItem::Vector compositions = seg->relatedItems(ModelItem::IN,
-                                                     Segmentation::COMPOSED_LINK);
+  ModelItemList compositions = seg->relatedItems(EspINA::IN,
+                                                 Segmentation::COMPOSED_LINK);
 
   Q_ASSERT(compositions.size() <= 1);
-
 
   int row = -1;
 
@@ -177,7 +177,7 @@ QModelIndex CompositionProxy::mapFromSource(const QModelIndex& sourceIndex) cons
     row = m_rootSegmentations.indexOf(seg);
   else
   {
-    Segmentation *superSeg = dynamic_cast<Segmentation *>(compositions.first());
+    SegmentationPtr superSeg = segmentationPtr(compositions.first());
     row = m_components[superSeg].indexOf(sourceItem);
   }
 
@@ -190,11 +190,11 @@ QModelIndex CompositionProxy::mapToSource(const QModelIndex& proxyIndex) const
   if (!proxyIndex.isValid())
     return QModelIndex();
 
-  ModelItem *proxyItem = indexPtr(proxyIndex);
+  ModelItemPtr proxyItem = indexPtr(proxyIndex);
   Q_ASSERT(proxyItem);
 
-  Q_ASSERT(ModelItem::SEGMENTATION == proxyItem->type());
-  Segmentation *proxySeg = dynamic_cast<Segmentation *>(proxyItem);
+  Q_ASSERT(EspINA::SEGMENTATION == proxyItem->type());
+  SegmentationPtr proxySeg = segmentationPtr(proxyItem);
   Q_ASSERT(proxySeg);
 
   return m_sourceModel->segmentationIndex(proxySeg);
@@ -215,13 +215,13 @@ Qt::ItemFlags CompositionProxy::flags(const QModelIndex& index) const
 //------------------------------------------------------------------------
 bool CompositionProxy::dropMimeData(const QMimeData* data, Qt::DropAction action, int row, int column, const QModelIndex& parent)
 {
-  Segmentation *newParentSeg = NULL;
+  SegmentationPtr newParentSeg;
   if (parent.isValid())
   {
-    ModelItem *parentItem = indexPtr(parent);
-    Q_ASSERT(ModelItem::SEGMENTATION == parentItem->type());
+    ModelItemPtr parentItem = indexPtr(parent);
+    Q_ASSERT(EspINA::SEGMENTATION == parentItem->type());
 
-    newParentSeg = dynamic_cast<Segmentation *>(parentItem);
+    newParentSeg = segmentationPtr(parentItem);
     Q_ASSERT(newParentSeg);
   }
 
@@ -229,7 +229,7 @@ bool CompositionProxy::dropMimeData(const QMimeData* data, Qt::DropAction action
   QByteArray encoded = data->data("application/x-qabstractitemmodeldatalist");
   QDataStream stream(&encoded, QIODevice::ReadOnly);
 
-  QList<Segmentation *> draggedSegs;
+  SegmentationList draggedSegs;
 
   while (!stream.atEnd())
   {
@@ -238,10 +238,10 @@ bool CompositionProxy::dropMimeData(const QMimeData* data, Qt::DropAction action
     stream >> row >> col >> roleDataMap;
 
     QString segName = roleDataMap[Qt::ToolTipRole].toString();
-    Segmentation *seg = findSegmentation(segName);
+    SegmentationPtr seg = findSegmentation(segName);
     Q_ASSERT(seg);
 
-    Segmentation *prevParentSeg = parentSegmentation(seg);
+    SegmentationPtr prevParentSeg = parentSegmentation(seg);
     if (prevParentSeg)
       m_sourceModel->removeRelation(prevParentSeg, seg, Segmentation::COMPOSED_LINK);
     if (newParentSeg)
@@ -274,10 +274,10 @@ void CompositionProxy::sourceRowsInserted(const QModelIndex& sourceParent, int s
   for (int row=start; row <= end; row++)
   {
     QModelIndex sourceIndex = sourceParent.child(row, 0);
-    ModelItem  *sourceItem  = indexPtr(sourceIndex);
-    Q_ASSERT(ModelItem::SEGMENTATION == sourceItem->type());
+    ModelItemPtr sourceItem = indexPtr(sourceIndex);
+    Q_ASSERT(EspINA::SEGMENTATION == sourceItem->type());
 
-    m_rootSegmentations << dynamic_cast<Segmentation *>(sourceItem);
+    m_rootSegmentations << segmentationPtr(sourceItem);
   }
   endInsertRows();
 }
@@ -300,17 +300,17 @@ void CompositionProxy::sourceRowsAboutToBeRemoved(const QModelIndex& sourceParen
 
   for (int row=start; row <= end; row++)
   {
-    QModelIndex   sourceIndex = sourceParent.child(row, 0);
-    QModelIndex   proxyIndex  = mapFromSource(sourceIndex);
-    ModelItem    *item        = indexPtr(sourceIndex);
-    Segmentation *seg         = dynamic_cast<Segmentation *>(item);
+    QModelIndex     sourceIndex = sourceParent.child(row, 0);
+    QModelIndex     proxyIndex  = mapFromSource(sourceIndex);
+    ModelItemPtr    item        = indexPtr(sourceIndex);
+    SegmentationPtr seg         = segmentationPtr(item);
 
     int proxyRow = proxyIndex.row();
 
     beginRemoveRows(proxyIndex.parent(), proxyRow, proxyRow);
 
     m_rootSegmentations.removeAll(seg);
-    foreach(Segmentation *key, m_components.keys())
+    foreach(SegmentationPtr key, m_components.keys())
     {
       if (key == seg)
         m_components.remove(key);
@@ -339,15 +339,15 @@ void CompositionProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, const
 
   for(int row=sourceTopLeft.row(); row <= sourceBottomRight.row(); row++)
   {
-      ModelItem    *sourceItem  = indexPtr(sourceParent.child(row, 0));
-      Segmentation *seg         = dynamic_cast<Segmentation *>(sourceItem);
-      Segmentation *parentSeg   = parentSegmentation(sourceItem);
+      ModelItemPtr    sourceItem  = indexPtr(sourceParent.child(row, 0));
+      SegmentationPtr seg         = segmentationPtr(sourceItem);
+      SegmentationPtr parentSeg   = parentSegmentation(sourceItem);
 
       int i = 0;
-      Segmentation *prevParentSeg = NULL;
-      while (prevParentSeg == NULL && i < m_components.size())
+      SegmentationPtr prevParentSeg;
+      while (prevParentSeg.isNull() && i < m_components.size())
       {
-        Segmentation *key = m_components.keys().at(i);
+        SegmentationPtr key = m_components.keys().at(i);
         if (m_components[key].contains(sourceItem))
           prevParentSeg = key;
         i++;
@@ -396,13 +396,13 @@ void CompositionProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, const
 }
 
 //------------------------------------------------------------------------
-Segmentation* CompositionProxy::findSegmentation(QString tooltip) const
+SegmentationPtr CompositionProxy::findSegmentation(QString tooltip) const
 {
-  foreach (Segmentation *seg, m_components.keys())
+  foreach (SegmentationPtr seg, m_components.keys())
     if (seg->data(Qt::ToolTipRole) == tooltip)
       return seg;
 
-  return NULL;
+  return SegmentationPtr();
 }
 
 //------------------------------------------------------------------------
@@ -427,16 +427,17 @@ bool CompositionProxy::indices(const QModelIndex& topLeft, const QModelIndex& bo
 }
 
 //------------------------------------------------------------------------
-Segmentation *CompositionProxy::parentSegmentation(ModelItem* segItem) const
+SegmentationPtr CompositionProxy::parentSegmentation(ModelItemPtr segItem) const
 {
-  ModelItem::Vector parentItem = segItem->relatedItems(ModelItem::IN,
+  // TODO 2012-12-17 Usar api del modelo!
+  ModelItemList parentItem = segItem->relatedItems(EspINA::IN,
                                                        Segmentation::COMPOSED_LINK);
 
-  Segmentation *parentSeg = NULL;
+  SegmentationPtr parentSeg;
   if (!parentItem.isEmpty())
   {
     Q_ASSERT(parentItem.size() == 1);
-    parentSeg = dynamic_cast<Segmentation *>(parentItem.first());
+    parentSeg = segmentationPtr(parentItem.first());
   }
 
   return parentSeg;

@@ -19,6 +19,8 @@
 
 #include "EspinaRegion.h"
 
+using namespace EspINA;
+
 //-----------------------------------------------------------------------------
 EspinaRegion::EspinaRegion(const Nm bounds[6])
 {
@@ -60,16 +62,20 @@ EspinaRegion EspinaRegion::intersection(const EspinaRegion &region) const
   return EspinaRegion(res);
 }
 
-//-----------------------------------------------------------------------------
-EspinaRegion BoundingBox(EspinaRegion r1, EspinaRegion r2)
+
+namespace EspINA
 {
-  Nm bounds[6];
-
-  for(unsigned int min = 0, max = 1; min < 6; min += 2, max +=2)
+  //-----------------------------------------------------------------------------
+  EspinaRegion BoundingBox(EspinaRegion r1, EspinaRegion r2)
   {
-    bounds[min] = std::min(r1[min], r2[min]);
-    bounds[max] = std::max(r1[max], r2[max]);
-  }
+    Nm bounds[6];
 
-  return EspinaRegion(bounds);
-}
+    for(unsigned int min = 0, max = 1; min < 6; min += 2, max +=2)
+    {
+      bounds[min] = std::min(r1[min], r2[min]);
+      bounds[max] = std::max(r1[max], r2[max]);
+    }
+
+    return EspinaRegion(bounds);
+  }
+} // namespace EspINA

@@ -51,110 +51,119 @@
 // Qt
 #include <QAction>
 
-//----------------------------------------------------------------------------
-class EditorToolBar::CODECommand :
-public QUndoCommand
+using namespace EspINA;
+
+namespace EspINA
 {
-  static const QString INPUTLINK; //TODO 2012-10-05 Move to CODEFilter ?
-  typedef QPair<Filter *, unsigned int> Connection;
-public:
-  enum Operation
+  //----------------------------------------------------------------------------
+  class EditorToolBar::CODECommand :
+  public QUndoCommand
   {
-    CLOSE,
-    OPEN,
-    DILATE,
-    ERODE
+    static const QString INPUTLINK; //TODO 2012-10-05 Move to CODEFilter ?
+    typedef QPair<FilterPtr, Filter::OutputId> Connection;
+  public:
+    enum Operation
+    {
+      CLOSE,
+      OPEN,
+      DILATE,
+      ERODE
+    };
+
+  public:
+    explicit CODECommand(SegmentationList inputs,
+                         Operation op,
+                         unsigned int radius,
+                         EspinaModelPtr model
+    )
+    : m_model(model)
+    , m_segmentations(inputs)
+    {
+      QApplication::setOverrideCursor(Qt::WaitCursor);
+
+      foreach(SegmentationPtr seg, m_segmentations)
+      {
+        FilterPtr filter;
+        Filter::NamedInputs inputs;
+        Filter::Arguments args;
+        MorphologicalEditionFilter::Parameters params(args);
+        params.setRadius(radius);
+        inputs[INPUTLINK] = seg->filter();
+        args[Filter::INPUTS] = Filter::NamedInput(INPUTLINK, seg->outputId());
+        switch (op)
+        {
+          case CLOSE:
+            filter = FilterPtr(new ClosingFilter(inputs, args));
+            break;
+          case OPEN:
+            filter = FilterPtr(new OpeningFilter(inputs, args));
+            break;
+          case DILATE:
+            filter = FilterPtr(new DilateFilter(inputs, args));
+            break;
+          case ERODE:
+            filter = FilterPtr(new ErodeFilter(inputs, args));
+            break;
+        }
+        filter->update();
+        m_newConnections << Connection(filter, 0);
+        m_oldConnections << Connection(seg->filter(), seg->outputId());
+      }
+
+      QApplication::restoreOverrideCursor();
+    }
+
+    virtual void redo()
+    {
+      for(int i=0; i<m_newConnections.size(); i++)
+      {
+        SegmentationPtr seg      = m_segmentations[i];
+        Connection oldConnection = m_oldConnections[i];
+        Connection newConnection = m_newConnections[i];
+
+        m_model->removeRelation(oldConnection.first, seg, CREATELINK);
+        m_model->addFilter(newConnection.first);
+        m_model->addRelation(oldConnection.first, newConnection.first, INPUTLINK);
+        m_model->addRelation(newConnection.first, seg, CREATELINK);
+        seg->changeFilter(newConnection.first, newConnection.second);
+        seg->notifyModification(true);
+        // TODO 2012-11-05 Extensesions need to be updated when
+        // notifyModification method is called (at least with true)
+      }
+    }
+
+    virtual void undo()
+    {
+      for(int i=0; i<m_newConnections.size(); i++)
+      {
+        SegmentationPtr seg      = m_segmentations[i];
+        Connection oldConnection = m_oldConnections[i];
+        Connection newConnection = m_newConnections[i];
+
+        m_model->removeRelation(newConnection.first, seg, CREATELINK);
+        m_model->removeRelation(oldConnection.first, newConnection.first, INPUTLINK);
+
+        m_model->removeFilter(newConnection.first);
+
+        m_model->addRelation(oldConnection.first, seg, CREATELINK);
+
+        seg->changeFilter(oldConnection.first, oldConnection.second);
+        seg->notifyModification(true);
+      }
+    }
+
+  private:
+    EspinaModelPtr m_model;
+    QList<Connection> m_oldConnections, m_newConnections;
+    SegmentationList  m_segmentations;
   };
 
-public:
-  explicit CODECommand(QList<Segmentation *> inputs,
-                       Operation op,
-                       unsigned int radius,
-                       EspinaModel *model
-                      )
-  : m_model(model)
-  , m_segmentations(inputs)
-  {
-    QApplication::setOverrideCursor(Qt::WaitCursor);
-
-    foreach(Segmentation *seg, m_segmentations)
-    {
-      Filter *filter;
-      Filter::NamedInputs inputs;
-      Filter::Arguments args;
-      MorphologicalEditionFilter::Parameters params(args);
-      params.setRadius(radius);
-      inputs[INPUTLINK] = seg->filter();
-      args[Filter::INPUTS] = Filter::NamedInput(INPUTLINK, seg->outputId());
-      switch (op)
-      {
-        case CLOSE:
-          filter = new ClosingFilter(inputs, args);
-          break;
-        case OPEN:
-          filter = new OpeningFilter(inputs, args);
-          break;
-        case DILATE:
-          filter = new DilateFilter(inputs, args);
-          break;
-        case ERODE:
-          filter = new ErodeFilter(inputs, args);
-          break;
-      }
-      filter->update();
-      m_newConnections << Connection(filter, 0);
-      m_oldConnections << Connection(seg->filter(), seg->outputId());
-    }
-
-    QApplication::restoreOverrideCursor();
-  }
-
-  virtual void redo()
-  {
-    for(int i=0; i<m_newConnections.size(); i++)
-    {
-      Segmentation *seg        = m_segmentations[i];
-      Connection oldConnection = m_oldConnections[i];
-      Connection newConnection = m_newConnections[i];
-
-      m_model->removeRelation(oldConnection.first, seg, CREATELINK);
-      m_model->addFilter(newConnection.first);
-      m_model->addRelation(oldConnection.first, newConnection.first, INPUTLINK);
-      m_model->addRelation(newConnection.first, seg, CREATELINK);
-      seg->changeFilter(newConnection.first, newConnection.second);
-      seg->notifyModification(true);
-      // TODO 2012-11-05 Extensesions need to be updated when
-      // notifyModification method is called (at least with true)
-    }
-  }
-
-  virtual void undo()
-  {
-    for(int i=0; i<m_newConnections.size(); i++)
-    {
-      Segmentation *seg        = m_segmentations[i];
-      Connection oldConnection = m_oldConnections[i];
-      Connection newConnection = m_newConnections[i];
-
-      m_model->removeRelation(newConnection.first, seg, CREATELINK);
-      m_model->removeRelation(oldConnection.first, newConnection.first, INPUTLINK);
-      m_model->removeFilter(newConnection.first);
-      m_model->addRelation(oldConnection.first, seg, CREATELINK);
-      seg->changeFilter(oldConnection.first, oldConnection.second);
-      seg->notifyModification(true);
-    }
-  }
-
-private:
-  EspinaModel *m_model;
-  QList<Connection> m_oldConnections, m_newConnections;
-  QList<Segmentation *> m_segmentations;
-};
+} // namespace EspINA
 
 const QString EditorToolBar::CODECommand::INPUTLINK = "Input";
 
 //----------------------------------------------------------------------------
-EditorToolBar::EditorToolBar(EspinaModel *model,
+EditorToolBar::EditorToolBar(EspinaModelPtr model,
                              QUndoStack  *undoStack,
                              ViewManager *vm,
                              QWidget* parent)
@@ -167,7 +176,8 @@ EditorToolBar::EditorToolBar(EspinaModel *model,
 , m_settings(new Settings())
 {
   setObjectName("EditorToolBar");
-  setWindowTitle("Editor Tool Bar");
+
+  setWindowTitle(tr("Editor Tool Bar"));
 
   initFactoryExtension(m_model->factory());
 
@@ -183,7 +193,7 @@ EditorToolBar::EditorToolBar(EspinaModel *model,
 }
 
 //----------------------------------------------------------------------------
-void EditorToolBar::initFactoryExtension(EspinaFactory* factory)
+void EditorToolBar::initFactoryExtension(EspinaFactoryPtr factory)
 {
   factory->registerFilter(this, SplitFilter::TYPE);
   factory->registerFilter(this, ClosingFilter::TYPE);
@@ -195,34 +205,45 @@ void EditorToolBar::initFactoryExtension(EspinaFactory* factory)
   factory->registerFilter(this, FillHolesFilter::TYPE);
   factory->registerFilter(this, ContourSource::TYPE);
 
-  factory->registerSettingsPanel(new EditorToolBar::SettingsPanel(m_settings));
+  ISettingsPanelPtr editorSettings(new SettingsPanel(m_settings));
+  factory->registerSettingsPanel(editorSettings);
 }
 
 //----------------------------------------------------------------------------
-Filter *EditorToolBar::createFilter(const QString              &filter,
-                                    const Filter::NamedInputs  &inputs,
-                                    const ModelItem::Arguments &args)
+FilterPtr EditorToolBar::createFilter(const QString              &filter,
+                                      const Filter::NamedInputs  &inputs,
+                                      const ModelItem::Arguments &args)
 {
+  Filter *res = NULL;
+
   if (SplitFilter::TYPE == filter)
-    return new SplitFilter(inputs, args);
-  if (ClosingFilter::TYPE == filter)
-    return new ClosingFilter(inputs, args);
-  if (OpeningFilter::TYPE == filter)
-    return new OpeningFilter(inputs, args);
-  if (DilateFilter::TYPE == filter)
-    return new DilateFilter(inputs, args);
-  if (ErodeFilter::TYPE == filter)
-    return new ErodeFilter(inputs, args);
-  if (FreeFormSource::TYPE == filter)
-    return new FreeFormSource(inputs, args);
-  if (ImageLogicFilter::TYPE == filter)
-    return new ImageLogicFilter(inputs, args);
-  if (FillHolesFilter::TYPE == filter)
-    return new FillHolesFilter(inputs, args);
+    res = new SplitFilter(inputs, args);
+
+  else if (ClosingFilter::TYPE == filter)
+    res = new ClosingFilter(inputs, args);
+
+  else if (OpeningFilter::TYPE == filter)
+    res = new OpeningFilter(inputs, args);
+
+  else if (DilateFilter::TYPE == filter)
+    res = new DilateFilter(inputs, args);
+
+  else if (ErodeFilter::TYPE == filter)
+    res = new ErodeFilter(inputs, args);
+
+  else if (FreeFormSource::TYPE == filter)
+    res = new FreeFormSource(inputs, args);
+
+  else if (ImageLogicFilter::TYPE == filter)
+    res = new ImageLogicFilter(inputs, args);
+
+  else if (FillHolesFilter::TYPE == filter)
+    res = new FillHolesFilter(inputs, args);
+
   else
     Q_ASSERT(false);
 
-  return NULL;
+  return FilterPtr(res);
 }
 
 //----------------------------------------------------------------------------

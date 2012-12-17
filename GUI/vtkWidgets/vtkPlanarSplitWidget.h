@@ -16,15 +16,18 @@
 #include <vtkSmartPointer.h>
 
 class vtkHandleWidget;
-class vtkPlanarSplitWidgetCallback;
-class vtkPlanarSplitRepresentation2D;
 class vtkWidgetRepresentation;
 class vtkPoints;
 class vtkLineSource;
 
-class VTK_WIDGETS_EXPORT vtkPlanarSplitWidget
-: public vtkAbstractWidget
+namespace EspINA
 {
+  class vtkPlanarSplitWidgetCallback;
+  class vtkPlanarSplitRepresentation2D;
+
+  class VTK_WIDGETS_EXPORT vtkPlanarSplitWidget
+  : public vtkAbstractWidget
+  {
   public:
 
     static vtkPlanarSplitWidget *New();
@@ -41,7 +44,7 @@ class VTK_WIDGETS_EXPORT vtkPlanarSplitWidget
     // widget in the scene. Note that the representation is a subclass of vtkProp
     // so it can be added to the renderer independent of the widget.
     void SetRepresentation(vtkPlanarSplitRepresentation2D *r)
-      {this->Superclass::SetWidgetRepresentation(reinterpret_cast<vtkWidgetRepresentation*>(r));}
+    {this->Superclass::SetWidgetRepresentation(reinterpret_cast<vtkWidgetRepresentation*>(r));}
 
     // Description:
     // Methods to change the whether the widget responds to interaction.
@@ -75,7 +78,7 @@ class VTK_WIDGETS_EXPORT vtkPlanarSplitWidget
     // Description:
     // Return the current widget state.
     virtual int GetWidgetState()
-      {return this->WidgetState;}
+    {return this->WidgetState;}
 
     // get/set widget data
     virtual void setPoints(vtkSmartPointer<vtkPoints>);
@@ -117,11 +120,13 @@ class VTK_WIDGETS_EXPORT vtkPlanarSplitWidget
     void HandleInteraction(int handleNum);
     void StopHandleInteraction(int handleNum);
 
-  //BTX
+    //BTX
     friend class vtkPlanarSplitWidgetCallback;
-  //ETX
+    //ETX
 
     bool m_permanentlyDisabled;
-};
+  };
+
+} // namespace EspINA
 
 #endif /* VTKPLANARSPLITWIDGET_H_ */

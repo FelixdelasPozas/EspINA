@@ -25,6 +25,8 @@
 
 #include <itkConstantPadImageFilter.h>
 
+using namespace EspINA;
+
 const QString DilateFilter::TYPE = "EditorToolBar::DilateFilter";
 
 DilateFilter::DilateFilter(Filter::NamedInputs inputs,

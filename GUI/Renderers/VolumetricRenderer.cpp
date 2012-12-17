@@ -34,20 +34,22 @@
 
 #include <QApplication>
 
+using namespace EspINA;
+
 //-----------------------------------------------------------------------------
 VolumetricRenderer::VolumetricRenderer(ViewManager* vm, QObject* parent)
-: Renderer(parent)
+: IRenderer(parent)
 , m_viewManager(vm)
 {
 }
 
 //-----------------------------------------------------------------------------
-bool VolumetricRenderer::addItem(ModelItem* item)
+bool VolumetricRenderer::addItem(ModelItemPtr item)
 {
-  if (ModelItem::SEGMENTATION != item->type())
+  if (EspINA::SEGMENTATION != item->type())
     return false;
 
-  Segmentation *seg = dynamic_cast<Segmentation *>(item);
+  SegmentationPtr seg = qSharedPointerDynamicCast<Segmentation>(item);
 
   // duplicated item? addItem again
   if (m_segmentations.contains(item))
@@ -116,14 +118,14 @@ bool VolumetricRenderer::addItem(ModelItem* item)
 }
 
 //-----------------------------------------------------------------------------
-bool VolumetricRenderer::updateItem(ModelItem* item)
+bool VolumetricRenderer::updateItem(ModelItemPtr item)
 {
-  if (ModelItem::SEGMENTATION != item->type())
+  if (EspINA::SEGMENTATION != item->type())
     return false;
 
   bool updated = false;
   bool hierarchiesUpdated = false;
-  Segmentation *seg = dynamic_cast<Segmentation *>(item);
+  SegmentationPtr seg = qSharedPointerDynamicCast<Segmentation>(item);
   if (!m_segmentations.contains(seg))
     return false;
 
@@ -187,12 +189,12 @@ bool VolumetricRenderer::updateItem(ModelItem* item)
 }
 
 //-----------------------------------------------------------------------------
-bool VolumetricRenderer::removeItem(ModelItem* item)
+bool VolumetricRenderer::removeItem(ModelItemPtr item)
 {
-   if (ModelItem::SEGMENTATION != item->type())
+   if (EspINA::SEGMENTATION != item->type())
      return false;
 
-   Segmentation *seg = dynamic_cast<Segmentation *>(item);
+   SegmentationPtr seg = qSharedPointerDynamicCast<Segmentation>(item);
    Q_ASSERT(m_segmentations.contains(seg));
 
    if (m_enable && m_segmentations[seg].visible)
@@ -214,7 +216,7 @@ void VolumetricRenderer::hide()
     return;
 
   m_enable = false;
-  QMap<ModelItem *, Representation>::iterator it;
+  QMap<ModelItemPtr, Representation>::iterator it;
 
   for (it = m_segmentations.begin(); it != m_segmentations.end(); it++)
     if ((*it).visible)
@@ -235,7 +237,7 @@ void VolumetricRenderer::show()
   m_enable = true;
   QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 
-  QMap<ModelItem *, Representation>::iterator it;
+  QMap<ModelItemPtr, Representation>::iterator it;
 
   for (it = m_segmentations.begin(); it != m_segmentations.end(); it++)
     if(!(*it).visible)
@@ -249,7 +251,7 @@ void VolumetricRenderer::show()
 }
 
 //-----------------------------------------------------------------------------
-void VolumetricRenderer::createHierarchyProperties(Segmentation *seg)
+void VolumetricRenderer::createHierarchyProperties(SegmentationPtr seg)
 {
   m_segmentations[seg].actorPropertyBackup = m_segmentations[seg].volume->GetProperty();
   m_segmentations[seg].overridden = true;
@@ -311,7 +313,7 @@ void VolumetricRenderer::createHierarchyProperties(Segmentation *seg)
 }
 
 //-----------------------------------------------------------------------------
-bool VolumetricRenderer::updateHierarchyProperties(Segmentation *seg)
+bool VolumetricRenderer::updateHierarchyProperties(SegmentationPtr seg)
 {
   Q_ASSERT(m_segmentations[seg].actorPropertyBackup != NULL);
   bool updated = false;

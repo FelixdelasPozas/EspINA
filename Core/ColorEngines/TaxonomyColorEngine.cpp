@@ -19,25 +19,28 @@
 #include "TaxonomyColorEngine.h"
 
 #include "Core/Model/Segmentation.h"
+#include "Core/Model/Taxonomy.h"
+
+using namespace EspINA;
 
 const double SELECTED_ALPHA = 1.0;
 const double UNSELECTED_ALPHA = 0.6;
 
 //-----------------------------------------------------------------------------
-QColor TaxonomyColorEngine::color(Segmentation* seg)
+QColor TaxonomyColorEngine::color(SegmentationPtr seg)
 {
-  if (seg && seg->taxonomy())
+  if (!seg.isNull() && seg->taxonomy())
     return seg->taxonomy()->color();
   else
     return Qt::red;
 }
 
 //-----------------------------------------------------------------------------
-LUTPtr TaxonomyColorEngine::lut(Segmentation* seg)
+LUTPtr TaxonomyColorEngine::lut(SegmentationPtr seg)
 {
   // Get (or create if it doesn't exit) the lut for the segmentations' images
   QString lutName;
-  if (seg && seg->taxonomy())
+  if (!seg.isNull() && seg->taxonomy())
     lutName = seg->taxonomy()->qualifiedName();
 
   vtkSmartPointer<vtkLookupTable> seg_lut;
@@ -64,7 +67,7 @@ LUTPtr TaxonomyColorEngine::lut(Segmentation* seg)
 }
 
 //-----------------------------------------------------------------------------
-void TaxonomyColorEngine::updateTaxonomyColor(TaxonomyElement* tax)
+void TaxonomyColorEngine::updateTaxonomyColor(TaxonomyElementPtr tax)
 {
   QString lutName = tax->qualifiedName();
   QColor c = tax->color();

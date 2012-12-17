@@ -38,20 +38,22 @@
 #include <QApplication>
 #include <QDebug>
 
+using namespace EspINA;
+
 //-----------------------------------------------------------------------------
 MeshRenderer::MeshRenderer(ViewManager* vm, QObject* parent)
-: Renderer(parent)
+: IRenderer(parent)
 , m_viewManager(vm)
 {
 }
 
 //-----------------------------------------------------------------------------
-bool MeshRenderer::addItem(ModelItem* item)
+bool MeshRenderer::addItem(ModelItemPtr item)
 {
-  if (ModelItem::SEGMENTATION != item->type())
+  if (EspINA::SEGMENTATION != item->type())
     return false;
 
-  Segmentation *seg = dynamic_cast<Segmentation *>(item);
+  SegmentationPtr seg = qSharedPointerDynamicCast<Segmentation>(item);
 
   // duplicated item? addItem again
   if (m_segmentations.contains(item))
@@ -132,14 +134,14 @@ bool MeshRenderer::addItem(ModelItem* item)
 }
 
 //-----------------------------------------------------------------------------
-bool MeshRenderer::updateItem(ModelItem* item)
+bool MeshRenderer::updateItem(ModelItemPtr item)
 {
-  if (ModelItem::SEGMENTATION != item->type())
+  if (EspINA::SEGMENTATION != item->type())
     return false;
 
   bool updated = false;
   bool hierarchiesUpdated = false;
-  Segmentation *seg = dynamic_cast<Segmentation *>(item);
+  SegmentationPtr seg = qSharedPointerDynamicCast<Segmentation>(item);
   if (!m_segmentations.contains(seg))
     return false;
 
@@ -212,12 +214,12 @@ bool MeshRenderer::updateItem(ModelItem* item)
 }
 
 //-----------------------------------------------------------------------------
-bool MeshRenderer::removeItem(ModelItem* item)
+bool MeshRenderer::removeItem(ModelItemPtr item)
 {
-   if (ModelItem::SEGMENTATION != item->type())
+   if (EspINA::SEGMENTATION != item->type())
      return false;
 
-   Segmentation *seg = dynamic_cast<Segmentation *>(item);
+   SegmentationPtr seg = qSharedPointerDynamicCast<Segmentation>(item);
    Q_ASSERT(m_segmentations.contains(seg));
 
    if (m_segmentations[seg].visible)
@@ -239,7 +241,7 @@ void MeshRenderer::hide()
     return;
 
   m_enable = false;
-  QMap<ModelItem *, Representation>::iterator it;
+  QMap<ModelItemPtr, Representation>::iterator it;
 
   for (it = m_segmentations.begin(); it != m_segmentations.end(); it++)
     if ((*it).visible)
@@ -260,7 +262,7 @@ void MeshRenderer::show()
   m_enable = true;
   QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 
-  QMap<ModelItem *, Representation>::iterator it;
+  QMap<ModelItemPtr, Representation>::iterator it;
 
   for (it = m_segmentations.begin(); it != m_segmentations.end(); it++)
     if (!(*it).visible)
@@ -278,7 +280,7 @@ unsigned int MeshRenderer::getNumberOfvtkActors()
 {
   unsigned int numActors = 0;
 
-  QMap<ModelItem *, Representation>::iterator it;
+  QMap<ModelItemPtr, Representation>::iterator it;
   for (it = m_segmentations.begin(); it != m_segmentations.end(); it++)
     if ((*it).visible)
       numActors++;
@@ -287,7 +289,7 @@ unsigned int MeshRenderer::getNumberOfvtkActors()
 }
 
 //-----------------------------------------------------------------------------
-void MeshRenderer::createHierarchyProperties(Segmentation *seg)
+void MeshRenderer::createHierarchyProperties(SegmentationPtr seg)
 {
   m_segmentations[seg].actorPropertyBackup = m_segmentations[seg].actor->GetProperty();
   m_segmentations[seg].overridden = true;
@@ -339,7 +341,7 @@ void MeshRenderer::createHierarchyProperties(Segmentation *seg)
 }
 
 //-----------------------------------------------------------------------------
-bool MeshRenderer::updateHierarchyProperties(Segmentation *seg)
+bool MeshRenderer::updateHierarchyProperties(SegmentationPtr seg)
 {
   Q_ASSERT(m_segmentations[seg].actorPropertyBackup != NULL);
   bool updated = false;

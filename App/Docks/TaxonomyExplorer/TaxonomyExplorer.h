@@ -29,38 +29,43 @@
 #include <Core/ColorEngines/TaxonomyColorEngine.h>
 #include <QSortFilterProxyModel>
 
-class EspinaModel;
-class ViewManager;
-
-class TaxonomyExplorer
-: public QDockWidget
+namespace EspINA
 {
-  Q_OBJECT
+  class ViewManager;
 
-  class GUI;
-public:
-  explicit TaxonomyExplorer(EspinaModel *model,
-                            ViewManager *vm,
-                            TaxonomyColorEnginePtr engine,
-                            QWidget *parent = 0);
-  virtual ~TaxonomyExplorer();
+  class TaxonomyExplorer
+  : public QDockWidget
+  {
+    Q_OBJECT
 
-protected slots:
-  // Create a new taxonomy at the same level of the selected index
-  void addSameLevelTaxonomy();
-  // Create a new taxonomy as a child of the selected index
-  void addSubTaxonomy();
-  // Change selected taxonomy's color
-  void changeColor();
-  // Remove taxonomy associated with selected index
-  void removeSelectedTaxonomy();
+    class GUI;
+  public:
+    explicit TaxonomyExplorer(EspinaModelPtr         model,
+                              ViewManager           *vm,
+                              TaxonomyColorEnginePtr engine,
+                              QWidget               *parent = 0);
+    virtual ~TaxonomyExplorer();
 
-protected:
-  GUI *m_gui;
-  EspinaModel *m_baseModel;
-  ViewManager *m_viewManager;
-  TaxonomyColorEnginePtr m_engine;
-  QSharedPointer<QSortFilterProxyModel> m_sort;
-};
+  protected slots:
+    // Create a new taxonomy at the same level of the selected index
+    void addSameLevelTaxonomy();
+    // Create a new taxonomy as a child of the selected index
+    void addSubTaxonomy();
+    // Change selected taxonomy's color
+    void changeColor();
+    // Remove taxonomy associated with selected index
+    void removeSelectedTaxonomy();
+
+  protected:
+    EspinaModelPtr m_baseModel;
+    ViewManager   *m_viewManager;
+    TaxonomyColorEnginePtr m_engine;
+
+    GUI *m_gui;
+
+    QSharedPointer<QSortFilterProxyModel> m_sort;
+  };
+
+} // namespace EspINA
 
 #endif // TAXONOMYEXPLORER_H

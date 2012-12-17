@@ -20,14 +20,18 @@
 #include "SplitUndoCommand.h"
 #include <Core/Model/EspinaModel.h>
 #include <Core/Model/EspinaFactory.h>
+#include <Core/Model/Channel.h>
 #include <Core/Model/Segmentation.h>
+#include <Core/Model/Sample.h>
 #include <Filters/SplitFilter.h>
 
+using namespace EspINA;
+
 //----------------------------------------------------------------------------
-SplitUndoCommand::SplitUndoCommand(Segmentation *input,
-                                   SplitFilter  *filter,
-                                   Segmentation *splitSeg[2],
-                                   EspinaModel  *model)
+SplitUndoCommand::SplitUndoCommand(SegmentationPtr input,
+                                   FilterPtr       filter,
+                                   SegmentationPtr splitSeg[2],
+                                   EspinaModelPtr  model)
 : m_model(model)
 , m_channel(input->channel())
 , m_sample(m_channel->sample())
@@ -41,8 +45,8 @@ SplitUndoCommand::SplitUndoCommand(Segmentation *input,
 //----------------------------------------------------------------------------
 SplitUndoCommand::~SplitUndoCommand()
 {
-  for (int i = 0; i < 2;  i++)
-    delete m_subSeg[i];
+//   for (int i = 0; i < 2;  i++) smart pointers
+//     delete m_subSeg[i];
 }
 
 //----------------------------------------------------------------------------

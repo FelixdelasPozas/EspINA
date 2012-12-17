@@ -29,14 +29,16 @@
 #include <QFileDialog>
 #include <QDebug>
 
+using namespace EspINA;
+
 //------------------------------------------------------------------------
-SegmentationInspector::SegmentationInspector(Segmentation *seg,
-                                             EspinaModel *model,
-                                             QUndoStack *undoStack,
-                                             ViewManager *vm,
-                                             QWidget* parent,
-                                             Qt::WindowFlags f)
-: QWidget(parent, f)
+SegmentationInspector::SegmentationInspector(SegmentationPtr seg,
+                                             EspinaModelPtr  model,
+                                             QUndoStack     *undoStack,
+                                             ViewManager    *vm,
+                                             QWidget        *parent,
+                                             Qt::WindowFlags flags)
+: QWidget(parent, flags)
 , m_undoStack(undoStack)
 , m_viewManager(vm)
 , m_seg(seg)
@@ -54,11 +56,11 @@ SegmentationInspector::SegmentationInspector(Segmentation *seg,
   m_view->updateView();
   horizontalLayout->insertWidget(0, m_view);
 
-  connect(seg, SIGNAL(modified(ModelItem*)),
+  connect(seg.data(), SIGNAL(modified(ModelItem*)),
           this, SLOT(updateScene()));
 
-  Filter *filter = seg->filter();
-  Q_ASSERT(filter);
+  FilterPtr filter = seg->filter();
+  Q_ASSERT(!filter.isNull());
   Filter::FilterInspectorPtr inspector = filter->filterInspector();
   if (inspector.get())
   {

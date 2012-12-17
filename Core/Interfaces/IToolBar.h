@@ -18,30 +18,37 @@
 
 #ifndef ITOOLBAR_H
 #define ITOOLBAR_H
+
 #include <QToolBar>
 
-class EspinaModel;
-class ViewManager;
+#include <Core/EspinaTypes.h>
+
 class QUndoStack;
 
-class IToolBar
-: public QToolBar
+namespace EspINA
 {
-public:
-  explicit IToolBar(QWidget* parent = 0)
-  : QToolBar(parent){}
-  explicit IToolBar(const QString& title, QWidget* parent = 0)
-  : QToolBar(title, parent){}
-  virtual ~IToolBar(){}
+  class ViewManager;
 
-  virtual void initToolBar(EspinaModel *model,
-                           QUndoStack  *undoStack,
-                           ViewManager *viewManager) = 0;
-  virtual void reset() = 0;
-public slots:
-  void resetState();
-};
+  class IToolBar
+  : public QToolBar
+  {
+  public:
+    explicit IToolBar(QWidget* parent = 0)
+    : QToolBar(parent){}
+    explicit IToolBar(const QString& title, QWidget* parent = 0)
+    : QToolBar(title, parent){}
+    virtual ~IToolBar(){}
 
-Q_DECLARE_INTERFACE(IToolBar,
-                    "es.upm.cesvima.EspINA.ToolBarInterface/1.1")
+    virtual void initToolBar(EspinaModelPtr model,
+                             QUndoStack  *undoStack,
+                             ViewManager *viewManager) = 0;
+                             virtual void reset() = 0;
+  public slots:
+    void resetState();
+  };
+
+} // namespace EspINA
+
+Q_DECLARE_INTERFACE(EspINA::IToolBar,
+                    "es.upm.cesvima.EspINA.ToolBarInterface/1.2")
 #endif //ITOOLBAR_H

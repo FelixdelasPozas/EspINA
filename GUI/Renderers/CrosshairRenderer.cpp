@@ -31,18 +31,20 @@
 #include <vtkLine.h>
 #include <vtkCellArray.h>
 
+using namespace EspINA;
+
 //-----------------------------------------------------------------------------
-bool CrosshairRenderer::addItem(ModelItem* item)
+bool CrosshairRenderer::addItem(ModelItemPtr item)
 {
-  if (ModelItem::CHANNEL != item->type())
+  if (EspINA::CHANNEL != item->type())
     return false;
 
-  Channel *channel = dynamic_cast<Channel *>(item);
+  ChannelPtr channel = qSharedPointerDynamicCast<Channel>(item);
 
   // duplicated item? addItem again
   if (m_channels.contains(item))
   {
-    QMap<ModelItem *, Representation>::iterator it = m_channels.find(item);
+    QMap<ModelItemPtr, Representation>::iterator it = m_channels.find(item);
 
     if ((*it).visible)
     {
@@ -312,13 +314,13 @@ bool CrosshairRenderer::addItem(ModelItem* item)
 
 
 //-----------------------------------------------------------------------------
-bool CrosshairRenderer::updateItem(ModelItem* item)
+bool CrosshairRenderer::updateItem(ModelItemPtr item)
 {
-  if (ModelItem::CHANNEL != item->type())
+  if (EspINA::CHANNEL != item->type())
     return false;
 
   bool updated = false;
-  Channel *channel = dynamic_cast<Channel *>(item);
+  ChannelPtr channel = qSharedPointerDynamicCast<Channel>(item);
   Q_ASSERT(m_channels.contains(channel));
   Representation &rep = m_channels[channel];
 
@@ -373,15 +375,15 @@ bool CrosshairRenderer::updateItem(ModelItem* item)
 }
 
 //-----------------------------------------------------------------------------
-bool CrosshairRenderer::removeItem(ModelItem* item)
+bool CrosshairRenderer::removeItem(ModelItemPtr item)
 {
-  if (ModelItem::CHANNEL != item->type())
+  if (EspINA::CHANNEL != item->type())
     return false;
 
-  Channel *channel = dynamic_cast<Channel *>(item);
+  ChannelPtr channel = qSharedPointerDynamicCast<Channel>(item);
   Q_ASSERT(m_channels.contains(channel));
 
-  QMap<ModelItem *, Representation>::iterator it = m_channels.find(item);
+  QMap<ModelItemPtr, Representation>::iterator it = m_channels.find(item);
   if ((*it).visible)
   {
     m_renderer->RemoveActor((*it).axial);
@@ -418,7 +420,7 @@ void CrosshairRenderer::hide()
     return;
 
   m_enable = false;
-  QMap<ModelItem *, Representation>::iterator it;
+  QMap<ModelItemPtr, Representation>::iterator it;
   for (it = m_channels.begin(); it != m_channels.end(); it++)
     if ((*it).visible)
     {
@@ -441,7 +443,7 @@ void CrosshairRenderer::show()
     return;
 
   m_enable = true;
-  QMap<ModelItem *, Representation>::iterator it;
+  QMap<ModelItemPtr, Representation>::iterator it;
   for (it = m_channels.begin(); it != m_channels.end(); it++)
     if (!(*it).visible)
     {
@@ -462,7 +464,7 @@ unsigned int CrosshairRenderer::getNumberOfvtkActors()
 {
   unsigned int numActors = 0;
 
-  QMap<ModelItem *, Representation>::iterator it;
+  QMap<ModelItemPtr, Representation>::iterator it;
   for (it = m_channels.begin(); it != m_channels.end(); it++)
     if ((*it).visible)
       numActors += 6;
@@ -473,7 +475,7 @@ unsigned int CrosshairRenderer::getNumberOfvtkActors()
 //-----------------------------------------------------------------------------
 void CrosshairRenderer::setCrosshairColors(double aColor[3], double cColor[3], double sColor[3])
 {
-  QMap<ModelItem *, Representation>::iterator it;
+  QMap<ModelItemPtr, Representation>::iterator it;
   for (it = m_channels.begin(); it != m_channels.end(); it++)
   {
     (*it).axialBorder->GetProperty()->SetColor(aColor);
@@ -485,7 +487,7 @@ void CrosshairRenderer::setCrosshairColors(double aColor[3], double cColor[3], d
 //-----------------------------------------------------------------------------
 void CrosshairRenderer::setCrosshair(Nm point[3])
 {
-  QMap<ModelItem *, Representation>::iterator it;
+  QMap<ModelItemPtr, Representation>::iterator it;
   for (it = m_channels.begin(); it != m_channels.end(); it++)
   {
     if (point[0] != (*it).point[0])

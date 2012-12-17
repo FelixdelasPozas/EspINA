@@ -25,57 +25,56 @@
 
 #include <QAbstractProxyModel>
 
-// Forward declaration
-class EspinaModel;
-class ModelItem;
-class Sample;
-class Segmentation;
+#include <Core/EspinaTypes.h>
 
-/// Group Segmentations by Sample
-class SampleProxy
-: public QAbstractProxyModel
+namespace EspINA
 {
-  Q_OBJECT
-public:
-  SampleProxy(QObject* parent = 0);
-  virtual ~SampleProxy();
+  /// Group Segmentations by Sample
+  class SampleProxy
+  : public QAbstractProxyModel
+  {
+    Q_OBJECT
+  public:
+    SampleProxy(QObject* parent = 0);
+    virtual ~SampleProxy();
 
-  virtual void setSourceModel(EspinaModel *sourceModel);
+    virtual void setSourceModel(EspinaModelPtr sourceModel);
 
-  virtual QVariant data(const QModelIndex& proxyIndex, int role = Qt::DisplayRole) const;
+    virtual QVariant data(const QModelIndex& proxyIndex, int role = Qt::DisplayRole) const;
 
-  virtual bool hasChildren(const QModelIndex& parent = QModelIndex()) const;
-  virtual int rowCount(const QModelIndex& parent = QModelIndex()) const;
-  virtual int columnCount(const QModelIndex& parent = QModelIndex()) const {return 1;}
-  virtual QModelIndex parent(const QModelIndex& child) const;
-  virtual QModelIndex index(int row, int column, const QModelIndex& parent = QModelIndex()) const;
+    virtual bool hasChildren(const QModelIndex& parent = QModelIndex()) const;
+    virtual int rowCount(const QModelIndex& parent = QModelIndex()) const;
+    virtual int columnCount(const QModelIndex& parent = QModelIndex()) const {return 1;}
+    virtual QModelIndex parent(const QModelIndex& child) const;
+    virtual QModelIndex index(int row, int column, const QModelIndex& parent = QModelIndex()) const;
 
-  virtual QModelIndex mapFromSource(const QModelIndex& sourceIndex) const;
-  virtual QModelIndex mapToSource(const QModelIndex& proxyIndex) const;
+    virtual QModelIndex mapFromSource(const QModelIndex& sourceIndex) const;
+    virtual QModelIndex mapToSource(const QModelIndex& proxyIndex) const;
 
-  int numSegmentations(QModelIndex sampleIndex, bool recursive = false) const;
-  int numSubSamples(QModelIndex sampleIndex) const;
-  QModelIndexList segmentations(QModelIndex sampleIndex, bool recursive=false) const;
+    int numSegmentations(QModelIndex sampleIndex, bool recursive = false) const;
+    int numSubSamples(QModelIndex sampleIndex) const;
+    QModelIndexList segmentations(QModelIndex sampleIndex, bool recursive=false) const;
 
-protected slots:
-  void sourceRowsInserted(const QModelIndex & sourceParent, int start, int end);
-  void sourceRowsAboutToBeRemoved(const QModelIndex & sourceParent, int start, int end);
-  void sourceRowsRemoved(const QModelIndex & sourceParent, int start, int end);
-  void sourceDataChanged(const QModelIndex& sourceTopLeft, const QModelIndex& sourceBottomRight);
+  protected slots:
+    void sourceRowsInserted(const QModelIndex & sourceParent, int start, int end);
+    void sourceRowsAboutToBeRemoved(const QModelIndex & sourceParent, int start, int end);
+    void sourceRowsRemoved(const QModelIndex & sourceParent, int start, int end);
+    void sourceDataChanged(const QModelIndex& sourceTopLeft, const QModelIndex& sourceBottomRight);
 
-protected:
-  bool indices(const QModelIndex &topLeft, const QModelIndex &bottomRight, QModelIndexList &result);
-//   QModelIndexList indices(const QModelIndex& parent, int start, int end);
-  QModelIndexList proxyIndices(const QModelIndex& parent, int start, int end) const;
-  void updateSegmentations() const;
-  Sample *origin(Segmentation *seg) const;
-  int numSegmentations(Sample *sample) const;
-  int numSubSamples(Sample *sample) const;
+  protected:
+    bool indices(const QModelIndex &topLeft, const QModelIndex &bottomRight, QModelIndexList &result);
+    //   QModelIndexList indices(const QModelIndex& parent, int start, int end);
+    QModelIndexList proxyIndices(const QModelIndex& parent, int start, int end) const;
+    void updateSegmentations() const;
+    int numSegmentations(SamplePtr sample) const;
+    int numSubSamples(SamplePtr sample) const;
 
-private:
-  EspinaModel *m_model;
-  QList<Sample *> m_samples;
-  mutable QMap<Sample *, QList<ModelItem *> > m_segmentations;
-};
+  private:
+    EspinaModelPtr m_model;
+    SampleList m_samples;
+    mutable QMap<SamplePtr, ModelItemList> m_segmentations;
+  };
+
+} // namespace EspINA
 
 #endif // SAMPLEPROXY_H

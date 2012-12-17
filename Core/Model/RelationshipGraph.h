@@ -21,139 +21,152 @@
 
 #include <boost/graph/adjacency_list.hpp>
 
-#include "ModelItem.h"
+#include "Core/EspinaTypes.h"
 
 #include <QMap>
-#include <QSharedPointer>
 #include <QString>
 #include <QTextStream>
 
 #include <QDebug>
-struct VertexProperty
+
+namespace EspINA
 {
-  VertexProperty() : item(NULL) {}
-  /// A pointer to the object associated with this vertex
-  ModelItem *item;//TODO: Use smart pointers?
-  /// Following members are needed to make the graph persistent
-  std::string name;
-  std::string shape;
-  std::string args;
-  unsigned int vId;
-};
-
-
-struct Edge
-{
-  VertexProperty source;
-  VertexProperty target;
-  std::string    relationship;
-};
-
-typedef QList<VertexProperty> Vertices;
-typedef QList<Edge> Edges;
-
-/// Graph like structure which contains all the relationships
-/// between different elements of the model
-class RelationshipGraph
-{
-public:
-  typedef unsigned int IndexType;
-
-  struct EdgeProperty
+  struct VertexProperty
   {
-    /// Relationships between model items connected by an edge
-    std::string relationship;
+    VertexProperty() {}//: item() {}
+    /// A pointer to the object associated with this vertex
+    ModelItemPtr item;
+    /// Following members are needed to make the graph persistent
+    std::string  name;
+    std::string  shape;
+    std::string  args;
+    unsigned int vId;
   };
 
-  struct GraphPropery
+  struct Edge
   {
-    std::string owner;
+    VertexProperty source;
+    VertexProperty target;
+    std::string    relationship;
   };
 
-  typedef GraphPropery GraphProperties;
+  typedef QList<VertexProperty> Vertices;
+  typedef QList<Edge> Edges;
 
-//   /// SubGraphs REQUIRE vertex and edge properties
-  typedef boost::adjacency_list
-  < boost::listS
-  , boost::vecS
-  , boost::bidirectionalS
-  , VertexProperty
-  , EdgeProperty
-  , GraphProperties
-  > Graph;
+  /// Graph like structure which contains all the relationships
+  /// between different elements of the model
+  class RelationshipGraph
+  {
+  public:
+    typedef unsigned int IndexType;
 
-  typedef Graph::vertex_descriptor VertexId;
+    struct EdgeProperty
+    {
+      /// Relationships between model items connected by an edge
+      std::string relationship;
+    };
 
-//   typedef QList<VertexId> Vertices;
+    struct GraphPropery
+    {
+      std::string owner;
+    };
 
-  typedef Graph::edge_descriptor EdgeId;
+    typedef GraphPropery GraphProperties;
 
-  typedef boost::graph_traits<Graph> GraphTraits;
+    //   /// SubGraphs REQUIRE vertex and edge properties
+    typedef boost::adjacency_list
+    < boost::listS
+    , boost::vecS
+    , boost::bidirectionalS
+    , VertexProperty
+    , EdgeProperty
+    , GraphProperties
+    > Graph;
 
-  typedef GraphTraits::vertex_descriptor VertexDescriptor;
+    typedef Graph::vertex_descriptor VertexId;
 
-  typedef GraphTraits::vertex_iterator VertexIterator;
+    //   typedef QList<VertexId> Vertices;
 
-  typedef GraphTraits::edge_iterator EdgeIterator;
-  typedef GraphTraits::in_edge_iterator InEdgeIterator;
-  typedef GraphTraits::out_edge_iterator OutEdgeIterator;
+    typedef Graph::edge_descriptor EdgeId;
 
-  typedef std::pair<OutEdgeIterator, OutEdgeIterator> EdgeIteratorRange;
+    typedef boost::graph_traits<Graph> GraphTraits;
 
-public:
-  enum PrintFormat
-  { BOOST
-  , GRAPHVIZ
-  , DEBUG
+    typedef GraphTraits::vertex_descriptor VertexDescriptor;
+
+    typedef GraphTraits::vertex_iterator VertexIterator;
+
+    typedef GraphTraits::edge_iterator EdgeIterator;
+    typedef GraphTraits::in_edge_iterator InEdgeIterator;
+    typedef GraphTraits::out_edge_iterator OutEdgeIterator;
+
+    typedef std::pair<OutEdgeIterator, OutEdgeIterator> EdgeIteratorRange;
+
+  public:
+    enum PrintFormat
+    { BOOST
+    , GRAPHVIZ
+    , DEBUG
+    };
+
+    RelationshipGraph();
+    ~RelationshipGraph(){}
+
+    void clear() {m_graph.clear();}
+
+    void addItem   (ModelItemPtr item);
+    void removeItem(ModelItemPtr item);
+
+    void addRelation   (ModelItemPtr  ancestor,
+                        ModelItemPtr  successor,
+                        const QString &description);
+    void removeRelation(ModelItemPtr  ancestor,
+                        ModelItemPtr  successor,
+                        const QString &description);
+    void connect(const QString &ancestor,
+                 ModelItemPtr   successor,
+                 const QString &description);
+
+    //   Vertices rootVertices();
+    Edges edges(const QString &filter = "");
+
+    Edges inEdges (VertexId v, const QString &filter = "");
+    Edges outEdges(VertexId v, const QString &filter = "");
+    Edges edges   (VertexId v, const QString &filter = "");
+
+    Vertices vertices();
+    Vertices ancestors(VertexId v, const QString &filter = "");
+    Vertices succesors(VertexId v, const QString &filter = "");
+
+    bool find(VertexProperty vp, VertexProperty &foundV);
+
+    void setItem(VertexId v, ModelItemPtr item);
+    QString name(VertexId v) const;
+
+    static ModelItemType type(const VertexProperty v);
+
+    QString args(VertexId v) const;
+    VertexProperty properties(VertexId v);
+
+    //   void readTrace(std::istream& content);
+    void load (QTextStream& serialization);
+    void read (std::istream& stream, RelationshipGraph::PrintFormat format = BOOST);
+    void write(std::ostream& stream, RelationshipGraph::PrintFormat format = BOOST);
+
+    /*
+     *  void addSubtrace(const ProcessingTrace *subTrace);
+     *  std::vector<ITraceNode *> inputs(const ITraceNode *node);
+     *  std::vector<ITraceNode *> outputs(const ITraceNode *node);
+     */
+    //   void print(std::ostream& out, PrintFormat format = GRAPHVIZ);
+    /// Update vertex's information with model's items' information
+    void updateVertexInformation();
+
+    //! Retrieve current vertex index of a ModelItem
+    VertexDescriptor vertex(ModelItem   *item);
+    VertexDescriptor vertex(ModelItemPtr item);
+  private:
+    Graph m_graph;
   };
-
-  RelationshipGraph();
-  ~RelationshipGraph(){}
-
-  void clear() {m_graph.clear();}
-
-  void addItem(ModelItem    *item);
-  void removeItem(ModelItem *item);
-
-  void addRelation(ModelItem* ancestor, ModelItem* successor, const QString description);
-  void removeRelation(ModelItem* ancestor, ModelItem* successor, const QString description);
-  void connect(const QString& ancestor, ModelItem* successor, const QString description);
-
-//   Vertices rootVertices();
-  Edges edges(const QString filter = "");
-  Edges inEdges(VertexId v, const QString filter = "");
-  Edges outEdges(VertexId v, const QString filter = "");
-  Edges edges(VertexId v, const QString filter = "");
-  Vertices vertices();
-  Vertices ancestors(VertexId v, const QString filter = "");
-  Vertices succesors(VertexId v, const QString filter = "");
-
-  bool find(VertexProperty vp, VertexProperty &foundV);
-  void setItem(VertexId v, ModelItem *item);
-  QString name(VertexId v) const;
-  static ModelItem::ItemType type(const VertexProperty v);
-  QString args(VertexId v) const;
-  VertexProperty properties(VertexId v);
-
-//   void readTrace(std::istream& content);
-  void load(QTextStream& serialization);
-  void read(std::istream& stream, RelationshipGraph::PrintFormat format = BOOST);
-  void write(std::ostream& stream, RelationshipGraph::PrintFormat format = BOOST);
-
-  /*
-  void addSubtrace(const ProcessingTrace *subTrace);
-  std::vector<ITraceNode *> inputs(const ITraceNode *node);
-  std::vector<ITraceNode *> outputs(const ITraceNode *node);
-  */
-//   void print(std::ostream& out, PrintFormat format = GRAPHVIZ);
-  /// Update vertex's information with model's items' information
-  void updateVertexInformation();
-  //! It retrieves the current vertex index of a ModelItem
-  VertexDescriptor vertex(ModelItem* item);
-private:
-  Graph m_graph;
-};
-
-typedef QSharedPointer<RelationshipGraph> RelationshipGraphPtr;
+}
 
 #endif // RELATIONSHIPGRAPH_H

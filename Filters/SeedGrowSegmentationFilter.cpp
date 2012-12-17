@@ -28,6 +28,8 @@
 #include <vtkAlgorithmOutput.h>
 #include <vtkImageData.h>
 
+using namespace EspINA;
+
 const QString SeedGrowSegmentationFilter::TYPE = "SeedGrowSegmentation::SeedGrowSegmentationFilter";
 const QString SeedGrowSegmentationFilter::INPUTLINK = "Input";
 

@@ -27,76 +27,83 @@ class vtkMatrix4x4;
 class vtkPolyData;
 class vtkProp3D;
 
-class SliceView::State
+namespace EspINA
 {
-public:
-  virtual ~State() {}
 
-  virtual void setCrossHairs(vtkPolyData *hline,
-                             vtkPolyData *vline,
-                             double center[3],
-                             double bounds[6] ) = 0;
+  class SliceView::State
+  {
+  public:
+    virtual ~State() {}
 
-  virtual void setSlicingPosition(vtkMatrix4x4 *matrix,
-                                double value) = 0;
-  virtual void updateActor(vtkProp3D *actor) = 0;
-  virtual void updateCamera(vtkCamera *camera,
-                            double center[3]) = 0;
+    virtual void setCrossHairs(vtkPolyData *hline,
+                               vtkPolyData *vline,
+                               double center[3],
+                               double bounds[6] ) = 0;
 
-  virtual void updateSlicingMatrix(vtkMatrix4x4 *matrix) = 0;
-};
+    virtual void setSlicingPosition(vtkMatrix4x4 *matrix,
+                                    double value) = 0;
 
-class SliceView::AxialState
-: public SliceView::State
-{
-public:
-  explicit AxialState(){}
+    virtual void updateActor(vtkProp3D *actor) = 0;
 
-  virtual void setCrossHairs(vtkPolyData* hline,
-                             vtkPolyData* vline,
-                             double center[3],
-                             double bounds[6]);
-  virtual void setSlicingPosition(vtkMatrix4x4 *matrix,
-                                double value);
-  virtual void updateActor(vtkProp3D *actor) {};
-  virtual void updateCamera(vtkCamera *camera,
-                            double center[3]);
-  virtual void updateSlicingMatrix(vtkMatrix4x4 *matrix);
-};
+    virtual void updateCamera(vtkCamera *camera,
+                              double center[3]) = 0;
 
-class SliceView::SagittalState
-: public SliceView::State
-{
-public:
-  explicit SagittalState(){}
+    virtual void updateSlicingMatrix(vtkMatrix4x4 *matrix) = 0;
+  };
 
-  virtual void setCrossHairs(vtkPolyData* hline,
-                             vtkPolyData* vline,
-                             double center[3],
-                             double bounds[6]);
-  virtual void setSlicingPosition(vtkMatrix4x4 *matrix,
-                                double value);
-  virtual void updateActor(vtkProp3D *actor);
-  virtual void updateCamera(vtkCamera *camera,
-                            double center[3]);
-  virtual void updateSlicingMatrix(vtkMatrix4x4 *matrix);
-};
+  class SliceView::AxialState
+  : public SliceView::State
+  {
+  public:
+    explicit AxialState(){}
 
-class SliceView::CoronalState
-: public SliceView::State
-{
-public:
-  explicit CoronalState(){}
+    virtual void setCrossHairs(vtkPolyData* hline,
+                               vtkPolyData* vline,
+                               double center[3],
+                               double bounds[6]);
+    virtual void setSlicingPosition(vtkMatrix4x4 *matrix,
+                                    double value);
+    virtual void updateActor(vtkProp3D *actor) {};
+    virtual void updateCamera(vtkCamera *camera,
+                              double center[3]);
+    virtual void updateSlicingMatrix(vtkMatrix4x4 *matrix);
+  };
 
-  virtual void setCrossHairs(vtkPolyData* hline,
-                             vtkPolyData* vline,
-                             double center[3],
-                             double bounds[6]);
-  virtual void setSlicingPosition(vtkMatrix4x4 *matrix,
-                                double value);
-  virtual void updateActor(vtkProp3D *actor);
-  virtual void updateCamera(vtkCamera *camera,
-                            double center[3]);
-  virtual void updateSlicingMatrix(vtkMatrix4x4 *matrix);
-};
+  class SliceView::SagittalState
+  : public SliceView::State
+  {
+  public:
+    explicit SagittalState(){}
+
+    virtual void setCrossHairs(vtkPolyData* hline,
+                               vtkPolyData* vline,
+                               double center[3],
+                               double bounds[6]);
+    virtual void setSlicingPosition(vtkMatrix4x4 *matrix,
+                                    double value);
+    virtual void updateActor(vtkProp3D *actor);
+    virtual void updateCamera(vtkCamera *camera,
+                              double center[3]);
+    virtual void updateSlicingMatrix(vtkMatrix4x4 *matrix);
+  };
+
+  class SliceView::CoronalState
+  : public SliceView::State
+  {
+  public:
+    explicit CoronalState(){}
+
+    virtual void setCrossHairs(vtkPolyData* hline,
+                               vtkPolyData* vline,
+                               double center[3],
+                               double bounds[6]);
+    virtual void setSlicingPosition(vtkMatrix4x4 *matrix,
+                                    double value);
+    virtual void updateActor(vtkProp3D *actor);
+    virtual void updateCamera(vtkCamera *camera,
+                              double center[3]);
+    virtual void updateSlicingMatrix(vtkMatrix4x4 *matrix);
+  };
+} // namespace EspINA
+
 #endif // SLICEVIEW_STATE_H

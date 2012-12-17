@@ -25,38 +25,42 @@
 #include <QStringList>
 #include <QVariant>
 
-class ModelItemExtension
-: public QObject
+namespace EspINA
 {
-public:
-  typedef QString ExtId;
-  typedef QString InfoTag;
-  typedef QString RepTag;
-  typedef QList<ExtId>   ExtIdList;
-  typedef QList<InfoTag> InfoList;
-  typedef QList<RepTag>  RepList;
+  class ModelItemExtension
+  : public QObject
+  {
+  public:
+    typedef QString ExtId;
+    typedef QString InfoTag;
+    typedef QString RepTag;
+    typedef QList<ExtId>   ExtIdList;
+    typedef QList<InfoTag> InfoList;
+    typedef QList<RepTag>  RepList;
 
-public:
-  virtual ~ModelItemExtension(){}
+  public:
+    virtual ~ModelItemExtension(){}
 
-  virtual ExtId id() = 0;
-  /// List of extension names which need to be loaded to use the extension
-  virtual ExtIdList dependencies() const  = 0;
-  /// List of information tags provided by the extension
-  virtual InfoList availableInformations()    const = 0;
-  /// List of representation tags provided by the extension
-  virtual RepList availableRepresentations() const = 0;
-  /// Information associated with @tag
-  virtual QVariant information(ModelItemExtension::InfoTag tag)  const = 0;
+    virtual ExtId id() = 0;
+    /// List of extension names which need to be loaded to use the extension
+    virtual ExtIdList dependencies() const  = 0;
+    /// List of information tags provided by the extension
+    virtual InfoList availableInformations()    const = 0;
+    /// List of representation tags provided by the extension
+    virtual RepList availableRepresentations() const = 0;
+    /// Information associated with @tag
+    virtual QVariant information(ModelItemExtension::InfoTag tag)  const = 0;
 
-  virtual void initialize(ModelItem::Arguments args = ModelItem::Arguments()) = 0;
+    virtual void initialize(ModelItem::Arguments args = ModelItem::Arguments()) = 0;
 
-protected:
-  ModelItemExtension() : m_init(false) {}
-  mutable bool m_init;
+  protected:
+    ModelItemExtension() : m_init(false) {}
+    mutable bool m_init;
 
-  InfoList m_availableInformations;
-  RepList  m_availableRepresentations;
-};
+    InfoList m_availableInformations;
+    RepList  m_availableRepresentations;
+  };
+
+} // namespace EspINA
 
 #endif // MODELITEMEXTENSION_H

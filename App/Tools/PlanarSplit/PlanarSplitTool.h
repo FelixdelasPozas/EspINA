@@ -1,58 +1,66 @@
 /*
-    <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2012  <copyright holder> <email>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ *    <one line to give the program's name and a brief idea of what it does.>
+ *    Copyright (C) 2012  <copyright holder> <email>
+ *
+ *    This program is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
+ *
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 
 #ifndef PLANARSPLITTOOL_H
 #define PLANARSPLITTOOL_H
 
 #include <GUI/Tools/ITool.h>
+#include <Core/Model/EspinaModel.h>
 
-class PlanarSplitWidget;
-class ViewManager;
 class QUndoStack;
-class EspinaModel;
 
-class PlanarSplitTool
-: public ITool
+namespace EspINA
 {
-  Q_OBJECT
-public:
-  explicit PlanarSplitTool(EspinaModel *, QUndoStack *, ViewManager *);
+  class PlanarSplitWidget;
+  class ViewManager;
 
-  virtual QCursor cursor() const;
-  virtual bool filterEvent(QEvent* e, EspinaRenderView* view = 0);
-  virtual bool enabled() const;
-  virtual void setEnabled(bool value);
-  virtual void setInUse(bool value);
+  class PlanarSplitTool
+  : public ITool
+  {
+    Q_OBJECT
+  public:
+    explicit PlanarSplitTool(EspinaModelPtr model,
+                             QUndoStack    *undoStack,
+                             ViewManager   *viewManager);
 
-  void splitSegmentation();
+    virtual QCursor cursor() const;
+    virtual bool filterEvent(QEvent* e, EspinaRenderView* view = 0);
+    virtual bool enabled() const;
+    virtual void setEnabled(bool value);
+    virtual void setInUse(bool value);
 
-signals:
-  void splittingStopped();
+    void splitSegmentation();
 
-private:
-  bool m_inUse;
-  bool m_enabled;
+  signals:
+    void splittingStopped();
 
-  PlanarSplitWidget *m_widget;
-  EspinaModel *m_model;
-  QUndoStack *m_undoStack;
-  ViewManager *m_viewManager;
-};
+  private:
+    EspinaModelPtr m_model;
+    QUndoStack    *m_undoStack;
+    ViewManager   *m_viewManager;
+
+    bool m_inUse;
+    bool m_enabled;
+
+    PlanarSplitWidget *m_widget;
+  };
+
+} // namespace EspINA
 
 #endif // PLANARSPLITTOOL_H

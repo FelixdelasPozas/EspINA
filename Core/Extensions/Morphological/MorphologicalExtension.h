@@ -28,6 +28,8 @@
 #include <itkLabelImageToShapeLabelMapFilter.h>
 #include <itkStatisticsLabelObject.h>
 
+namespace EspINA
+{
 class MorphologicalExtension
 : public SegmentationExtension
 {
@@ -55,11 +57,11 @@ public:
 
   virtual QVariant information(InfoTag tag) const;
 
-  virtual SegmentationRepresentation *representation(QString rep);
+  virtual SegmentationRepresentationPtr representation(QString rep);
 
   virtual void initialize(ModelItem::Arguments args = ModelItem::Arguments());
 
-  virtual SegmentationExtension* clone();
+  virtual SegmentationExtensionPtr clone();
 
 private:
   Image2LabelFilterType::Pointer m_labelMap;
@@ -76,5 +78,7 @@ private:
   mutable double m_FeretDiameter;
   mutable double m_EquivalentEllipsoidSize[3];
 };
+
+}// namespace EspINA
 
 #endif // MORPHOLOGICALEXTENSION_H

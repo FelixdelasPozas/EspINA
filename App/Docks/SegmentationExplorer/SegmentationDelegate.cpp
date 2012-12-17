@@ -25,10 +25,13 @@
 #include <Core/Model/Segmentation.h>
 
 #include <QDebug>
+
+using namespace EspINA;
+
 //------------------------------------------------------------------------
-SegmentationDelegate::SegmentationDelegate(EspinaModel *model,
-                                           QUndoStack  *undoStack,
-                                           ViewManager *vm)
+SegmentationDelegate::SegmentationDelegate(EspinaModelPtr model,
+                                           QUndoStack    *undoStack,
+                                           ViewManager   *vm)
 : QStyledItemDelegate()
 , m_model(model)
 , m_undoStack(undoStack)
@@ -41,12 +44,12 @@ QWidget* SegmentationDelegate::createEditor(QWidget* parent,
                                             const QStyleOptionViewItem& option,
                                             const QModelIndex& index) const
 {
-  ModelItem *item =  indexPtr(index);
+  ModelItemPtr item =  indexPtr(index);
   Q_ASSERT(item);
 
-  if (ModelItem::SEGMENTATION == item->type())
+  if (EspINA::SEGMENTATION == item->type())
   {
-    Segmentation *seg = dynamic_cast<Segmentation *>(item);
+    SegmentationPtr seg = segmentationPtr(item);
     if (!m_inspectors.contains(seg))
     {
       m_inspectors[seg] = new SegmentationInspector(seg, m_model, m_undoStack, m_viewManager);
@@ -76,7 +79,7 @@ void SegmentationDelegate::setModelData(QWidget* editor, QAbstractItemModel* mod
 //------------------------------------------------------------------------
 void SegmentationDelegate::freeInspector(SegmentationInspector* inspector)
 {
-  Segmentation *seg = m_inspectors.key(inspector);
+  SegmentationPtr seg = m_inspectors.key(inspector);
   m_inspectors.remove(seg);
   delete inspector;
 }

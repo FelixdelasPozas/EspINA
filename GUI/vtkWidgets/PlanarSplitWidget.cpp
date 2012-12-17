@@ -24,6 +24,8 @@
 #include <vtkImplicitFunctionToImageStencil.h>
 #include <vtkImageStencilData.h>
 
+using namespace EspINA;
+
 typedef EspinaInteractorAdapter<vtkPlanarSplitWidget> PlanarSplitWidgetAdapter;
 typedef EspinaInteractorAdapter<vtkImplicitPlaneWidget2> PlanarSplitWidgetVolumeAdapter;
 

@@ -63,7 +63,7 @@ void SegmhaImporter::UndoCommand::redo()
     }
   }
 
-  ModelItemExtension *countingRegionExt = m_channel->extension("CountingRegionExtension");
+  ModelItemExtension *countingRegionExt = m_channel->extension("CountingFrameExtension");
   if (countingRegionExt)
   {
     Nm inclusive[3], exclusive[3];
@@ -76,12 +76,12 @@ void SegmhaImporter::UndoCommand::redo()
       exclusive[i] = exclusive[i]*spacing[i];
     }
 
-    QString rcb = QString("RectangularBoundingRegion=%1,%2,%3,%4,%5,%6;")
+    QString rcb = QString("RectangularCountingFrame=%1,%2,%3,%4,%5,%6;")
       .arg(inclusive[0]).arg(inclusive[1]).arg(inclusive[2])
       .arg(exclusive[0]).arg(exclusive[1]).arg(exclusive[2]);
     //qDebug() << "Using Counting Region" << rcb;
     ModelItem::Arguments args;
-    args["Regions"] = rcb;
+    args["CFs"] = rcb;
     countingRegionExt->initialize(args);
   }
 

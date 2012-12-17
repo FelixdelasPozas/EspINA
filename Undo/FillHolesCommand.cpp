@@ -24,19 +24,21 @@
 
 #include <QApplication>
 
+using namespace EspINA;
+
 //-----------------------------------------------------------------------------
-FillHolesCommand::FillHolesCommand(SegmentationList inputs, EspinaModel *model)
+FillHolesCommand::FillHolesCommand(SegmentationList inputs, EspinaModelPtr model)
 : m_model(model)
 , m_segmentations(inputs)
 {
   QApplication::setOverrideCursor(Qt::WaitCursor);
-  foreach(Segmentation *seg, m_segmentations)
+  foreach(SegmentationPtr seg, m_segmentations)
   {
     Filter::NamedInputs inputs;
     Filter::Arguments args;
     inputs[FillHolesFilter::INPUTLINK] = seg->filter();
     args[Filter::INPUTS] = Filter::NamedInput(FillHolesFilter::INPUTLINK, seg->outputId());
-    Filter *filter = new FillHolesFilter(inputs, args);
+    FilterPtr filter(new FillHolesFilter(inputs, args));
     filter->update();
     m_newConnections << Connection(filter, 0);
     m_oldConnections << Connection(seg->filter(), seg->outputId());
@@ -55,7 +57,7 @@ void FillHolesCommand::redo()
 {
   for(int i=0; i<m_newConnections.size(); i++)
   {
-    Segmentation *seg        = m_segmentations[i];
+    SegmentationPtr seg        = m_segmentations[i];
     Connection oldConnection = m_oldConnections[i];
     Connection newConnection = m_newConnections[i];
 
@@ -73,7 +75,7 @@ void FillHolesCommand::undo()
 {
   for(int i=0; i<m_newConnections.size(); i++)
   {
-    Segmentation *seg        = m_segmentations[i];
+    SegmentationPtr seg      = m_segmentations[i];
     Connection oldConnection = m_oldConnections[i];
     Connection newConnection = m_newConnections[i];
 

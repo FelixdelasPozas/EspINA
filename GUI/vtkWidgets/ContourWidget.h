@@ -16,37 +16,42 @@
 #include <QObject>
 #include <QColor>
 
-class SliceContourWidget;
 class vtkPolyData;
 
-class ContourWidget
-: public QObject
-, public EspinaWidget
+namespace EspINA
 {
-public:
-  explicit ContourWidget();
-  virtual ~ContourWidget();
+  class SliceContourWidget;
 
-  virtual vtkAbstractWidget *createWidget();
-  virtual void deleteWidget(vtkAbstractWidget *widget);
-  virtual SliceWidget *createSliceWidget(PlaneType plane);
+  class ContourWidget
+  : public QObject
+  , public EspinaWidget
+  {
+  public:
+    explicit ContourWidget();
+    virtual ~ContourWidget();
 
-  virtual bool processEvent(vtkRenderWindowInteractor* iren,
-                            long unsigned int event);
-  virtual void setEnabled(bool enable);
+    virtual vtkAbstractWidget *createWidget();
+    virtual void deleteWidget(vtkAbstractWidget *widget);
+    virtual SliceWidget *createSliceWidget(PlaneType plane);
 
-  virtual QMap<PlaneType, QMap<Nm, vtkPolyData*> > GetContours();
-  virtual void SetContours(QMap<PlaneType, QMap<Nm, vtkPolyData*> >);
-  virtual unsigned int GetContoursNumber();
-  virtual void setPolygonColor(QColor);
-  virtual QColor getPolygonColor();
+    virtual bool processEvent(vtkRenderWindowInteractor* iren,
+                              long unsigned int event);
+    virtual void setEnabled(bool enable);
 
-private:
-  SliceContourWidget *m_axialSliceContourWidget;
-  SliceContourWidget *m_coronalSliceContourWidget;
-  SliceContourWidget *m_sagittalSliceContourWidget;
-  QList<vtkAbstractWidget *> m_widgets;
-  QColor m_color;
-};
+    virtual QMap<PlaneType, QMap<Nm, vtkPolyData*> > GetContours();
+    virtual void SetContours(QMap<PlaneType, QMap<Nm, vtkPolyData*> >);
+    virtual unsigned int GetContoursNumber();
+    virtual void setPolygonColor(QColor);
+    virtual QColor getPolygonColor();
+
+  private:
+    SliceContourWidget *m_axialSliceContourWidget;
+    SliceContourWidget *m_coronalSliceContourWidget;
+    SliceContourWidget *m_sagittalSliceContourWidget;
+    QList<vtkAbstractWidget *> m_widgets;
+    QColor m_color;
+  };
+
+} // namespace EspINA;
 
 #endif /* CONTOURWIDGET_H_ */

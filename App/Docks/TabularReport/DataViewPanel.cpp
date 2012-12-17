@@ -21,8 +21,10 @@
 
 #include "DataView.h"
 
+using namespace EspINA;
+
 //----------------------------------------------------------------------------
-DataViewPanel::DataViewPanel(EspinaModel *model,
+DataViewPanel::DataViewPanel(EspinaModelPtr model,
                              ViewManager *vm,
                              QWidget* parent)
 : QDockWidget(parent)

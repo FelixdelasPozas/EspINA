@@ -23,19 +23,24 @@
 #include <QObject>
 #include <QCursor>
 
-class EspinaRenderView;
 class QEvent;
 
-class ITool
-: public QObject
+namespace EspINA
 {
-public:
-  virtual QCursor cursor() const = 0;
-  virtual bool filterEvent(QEvent *e, EspinaRenderView *view=NULL) = 0;
-  virtual void setInUse(bool value) = 0;
-  virtual void setEnabled(bool value) = 0;
-  virtual bool enabled() const = 0;
-  virtual void lostEvent(EspinaRenderView*) {};
-};
+  class EspinaRenderView;
+
+  class ITool
+  : public QObject
+  {
+  public:
+    virtual QCursor cursor() const = 0;
+    virtual bool filterEvent(QEvent *e, EspinaRenderView *view=NULL) = 0;
+    virtual void setInUse(bool value) = 0;
+    virtual void setEnabled(bool value) = 0;
+    virtual bool enabled() const = 0;
+    virtual void lostEvent(EspinaRenderView*) {};
+  };
+
+} // namespace EspINA
 
 #endif // ITOOL_H

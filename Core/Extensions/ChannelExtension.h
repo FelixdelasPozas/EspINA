@@ -24,31 +24,29 @@
 
 #include <QSharedPointer>
 
-class Channel;
-
-/// Interface to extend channel's behaviour
-class ChannelExtension
-: public ModelItemExtension
+namespace EspINA
 {
-public:
-  typedef QSharedPointer<ChannelExtension> SPtr;
+  /// Interface to extend channel's behaviour
+  class ChannelExtension
+  : public ModelItemExtension
+  {
+  public:
+    virtual ~ChannelExtension(){}
 
-public:
-  virtual ~ChannelExtension(){}
+    void setChannel(Channel *channel) {m_channel = channel;}
+    virtual void initialize(ModelItem::Arguments args = ModelItem::Arguments()) = 0;
+    virtual QString serialize() const = 0;
 
-    void setChannel(Channel* channel) {m_channel = channel;}
-  virtual void initialize(ModelItem::Arguments args = ModelItem::Arguments()) = 0;
-  virtual QString serialize() const = 0;
+    virtual Channel *channel() const {return m_channel;}
 
-  virtual Channel *channel() const {return m_channel;}
+    /// Prototype
+    virtual ChannelExtensionPtr clone() = 0;
 
-  /// Prototype
-  virtual ChannelExtension *clone() = 0;
+  protected:
+    explicit ChannelExtension() : m_channel(NULL){}
 
-protected:
-  explicit ChannelExtension() : m_channel(NULL){}
+    Channel *m_channel;
+  };
 
-  Channel *m_channel;
-};
-
+}
 #endif // CHANNELEXTENSION_H

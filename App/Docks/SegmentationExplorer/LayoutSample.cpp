@@ -21,24 +21,28 @@
 
 #include <Core/Model/Sample.h>
 #include <Core/Model/Segmentation.h>
+#include <Core/Model/EspinaModel.h>
+
 #include <QMessageBox>
+
+using namespace EspINA;
 
 bool SampleLayout::SortFilter::lessThan(const QModelIndex& left, const QModelIndex& right) const
 {
-  ModelItem *leftItem  = indexPtr(left);
-  ModelItem *rightItem = indexPtr(right);
+  ModelItemPtr leftItem  = indexPtr(left);
+  ModelItemPtr rightItem = indexPtr(right);
 
   if (leftItem->type() == rightItem->type())
-    if (ModelItem::SEGMENTATION == leftItem->type())
+    if (EspINA::SEGMENTATION == leftItem->type())
       return sortSegmentationLessThan(leftItem, rightItem);
     else
       return leftItem->data(Qt::DisplayRole).toString() < rightItem->data(Qt::DisplayRole).toString();
     else
-      return leftItem->type() == ModelItem::TAXONOMY;
+      return leftItem->type() == EspINA::TAXONOMY;
 }
 
 //------------------------------------------------------------------------
-SampleLayout::SampleLayout(EspinaModel *model)
+SampleLayout::SampleLayout(EspinaModelPtr model)
 : Layout(model)
 , m_proxy(new SampleProxy())
 , m_sort (new SortFilter())
@@ -49,13 +53,13 @@ SampleLayout::SampleLayout(EspinaModel *model)
 }
 
 //------------------------------------------------------------------------
-ModelItem* SampleLayout::item(const QModelIndex& index) const
+ModelItemPtr SampleLayout::item(const QModelIndex& index) const
 {
   return indexPtr(m_sort->mapToSource(index)); 
 }
 
 //------------------------------------------------------------------------
-QModelIndex SampleLayout::index(ModelItem* item) const
+QModelIndex SampleLayout::index(ModelItemPtr item) const
 {
   return m_sort->mapFromSource(m_proxy->mapFromSource(index(item)));
 }
@@ -63,21 +67,21 @@ QModelIndex SampleLayout::index(ModelItem* item) const
 //------------------------------------------------------------------------
 SegmentationList SampleLayout::deletedSegmentations(QModelIndexList selection)
 {
-  QSet<Segmentation *> toDelete;
+  QSet<SegmentationPtr> toDelete;
   foreach(QModelIndex index, selection)
   {
     index = m_sort->mapToSource(index);
-    ModelItem *item = indexPtr(index);
+    ModelItemPtr item = indexPtr(index);
     switch (item->type())
     {
-      case ModelItem::SEGMENTATION:
+      case EspINA::SEGMENTATION:
       {
-        Segmentation *seg = dynamic_cast<Segmentation *>(item);
+        SegmentationPtr seg = segmentationPtr(item);
         Q_ASSERT(seg);
         toDelete << seg;
         break;
       }
-      case ModelItem::SAMPLE:
+      case EspINA::SAMPLE:
       {
         int totalSeg  = m_proxy->numSegmentations(index, true);
         int directSeg = m_proxy->numSegmentations(index);
@@ -85,7 +89,7 @@ SegmentationList SampleLayout::deletedSegmentations(QModelIndexList selection)
         if (totalSeg == 0)
           continue;
 
-        Sample *sample = dynamic_cast<Sample *>(item);
+        SamplePtr sample = samplePtr(item);
         QMessageBox msgBox;
         msgBox.setText(SEGMENTATION_MESSAGE.arg(sample->id()));
         msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
@@ -114,9 +118,9 @@ SegmentationList SampleLayout::deletedSegmentations(QModelIndexList selection)
             QModelIndexList subSegs = m_proxy->segmentations(index, recursive);
             foreach(QModelIndex subIndex, subSegs)
             {
-              ModelItem *subItem = indexPtr(subIndex);
-              Segmentation *seg = dynamic_cast<Segmentation *>(subItem);
-              Q_ASSERT(seg);
+              ModelItemPtr subItem = indexPtr(subIndex);
+              SegmentationPtr seg = segmentationPtr(subItem);
+              Q_ASSERT(!seg.isNull());
               toDelete << seg;
             }
             break;

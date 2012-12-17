@@ -11,6 +11,8 @@
 // Qt includes
 #include <QtGui>
 
+namespace EspINA
+{
 class QtHuePicker
 : public QWidget
 {
@@ -71,5 +73,7 @@ private:
   QtHuePicker *hp;
   int hue;
 };
+
+} // namespace EspINA
 
 #endif // _QTLABELEDITOR_H_

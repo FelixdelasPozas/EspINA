@@ -20,8 +20,8 @@
 #ifndef TAXONOMY_H
 #define TAXONOMY_H
 
-#include "ModelItem.h"
-#include "HierarchyItem.h"
+#include "Core/Model/ModelItem.h"
+#include "Core/Model/HierarchyItem.h"
 
 // Qt dependencies
 #include <QColor>
@@ -29,114 +29,108 @@
 #include <QString>
 #include <QTextStream>
 #include <QVariant>
-#include <QVector>
 
-// Forward-declaration
-class QXmlStreamReader;
-class QXmlStreamWriter;
-
-static const QString RED = "#00FF00";
-
-class TaxonomyElement
-: public ModelItem
-, public HierarchyItem
+namespace EspINA
 {
-public:
-  static const QString X_DIM;
-  static const QString Y_DIM;
-  static const QString Z_DIM;
+  const QString DEFAULT_TAXONOMY_COLOR = "#00FF00"; //Red
 
-public:
-  explicit TaxonomyElement(const QString name, const QString RGBColor = RED );
-  ~TaxonomyElement();
+  class TaxonomyElement
+  : public ModelItem
+  , public HierarchyItem
+  {
+  public:
+    static const QString X_DIM;
+    static const QString Y_DIM;
+    static const QString Z_DIM;
 
-  /// Add a new node at the location specified by @qualifiedName
-  TaxonomyElement *addElement(const QString qualifiedName);
-  /// Return taxonomy node for qualified taxonomy elements
-  TaxonomyElement* element(const QString qualifiedName);
+  public:
+    ~TaxonomyElement();
 
-  TaxonomyElement *parentNode() const;
-  QVector<TaxonomyElement*> subElements() const {return m_elements;}
+    /// Implements ModelItem
+    virtual void initialize(const Arguments &args = Arguments()){};
+    virtual void initializeExtensions(const Arguments &args = Arguments()){};
+    virtual QVariant data(int role = Qt::UserRole + 1) const; // TODO 2012-12-15 Cambiar esto
+    virtual QString serialize() const {return ModelItem::serialize();}
+    virtual ModelItemType type() const {return TAXONOMY;}
+    virtual bool setData(const QVariant& value, int role = Qt::UserRole + 1);
 
-  void setName(QString name);
-  const QString name() const;
-  /// Return node's qualified name
-  const QString qualifiedName() const;
+    void setName(const QString &name);
+    QString name() const;
 
-  void setColor(const QColor &color) {m_color = color;} 
-  QColor color() const {return m_color;}
+    /// Return the concatenation of the names of all elments from the
+    /// root to this element
+    QString qualifiedName() const;
 
-  void addProperty(const QString &prop, const QVariant &value);
-  void removeProperty(const QString &prop);
-  QVariant property(const QString &prop) const;
-  QStringList properties() const {return m_properties.keys();}
+    void setColor(const QColor &color)
+    {m_color = color;}
 
-  void print(int level=0);
+    QColor color() const {return m_color;}
 
-  // It introduces the subElement string as a subnode of supElement string. If subElement
-  // exists in all the tree that this object has it returns an Error.
-  // Note that to check the existence of the subElement name, it is necesarry to insert all 
-  // the elements through the TaxonoyNode object at the top of the tree.
-  TaxonomyElement* addElement( QString subElement, QString supElement);//, QString RGBColor = "");
-  void removeChild(QString name);
+    void addProperty   (const QString &prop, const QVariant &value);
+    void removeProperty(const QString &prop);
 
-  /// Implements ModelItem
-  virtual void initialize(Arguments args = Arguments()){};
-  virtual void initializeExtensions(Arguments args = Arguments()){};
-  virtual QVariant data(int role = Qt::UserRole + 1) const;
-  virtual QString serialize() const {return ModelItem::serialize();}
-  virtual ItemType type() const {return TAXONOMY;}
-  virtual bool setData(const QVariant& value, int role = Qt::UserRole + 1);
+    QVariant    property(const QString &prop) const;
+    QStringList properties() const
+    {return m_properties.keys();}
 
-private:
-//  TaxonomyNode *insertElement( QString subElement, QString RGBColor ); // Without checking
- TaxonomyElement *insertNode(const QString &name);
+    /// Create a new sub-element
+    TaxonomyElementPtr createElement(const QString &name);
+    /// Delete element only if it is its sub-element
+    void deleteElement(TaxonomyElementPtr element);
 
-private:
- TaxonomyElement *m_parent;
- QVector<TaxonomyElement *> m_elements;
- QMap<QString, QVariant> m_properties;
- QString m_name;
- QColor m_color;
-};
+    /// Return sub-element with given name, otherwise return NULL
+    TaxonomyElementPtr element(const QString &name);
+
+    TaxonomyElementList &subElements()
+    {return m_elements;}
+    const TaxonomyElementList subElements() const
+    {return m_elements;}
+
+    void print(int level=0);
+
+  private:
+    explicit TaxonomyElement(const QString &name,
+                             const QString &RGBColor = DEFAULT_TAXONOMY_COLOR );
+
+  private:
+    TaxonomyElement     *m_parent; // Parent node can't be a shared pointer to avoid circular dependencies
+    TaxonomyElementList  m_elements;
+
+    QString m_name;
+    QColor  m_color;
+    QMap<QString, QVariant> m_properties;
+
+    friend class Taxonomy;
+  };
+
+  TaxonomyElementPtr taxonomyElementPtr(ModelItemPtr &item);
 
 
-class Taxonomy
-{
-public:
-  Taxonomy();
-  ~Taxonomy();
+  /// Tree-like structure representing taxonomical relationships
+  class Taxonomy
+  {
+    static const QString ROOT;
 
-//   QString name() {return m_root->name();}
+  public:
+    explicit Taxonomy();
+    ~Taxonomy();
 
-  TaxonomyElement *addElement(const QString name, const QString parent = QString());
-  void removeElement(const QString qualifiedName);
-  TaxonomyElement *element(const QString qualifiedName);
-  TaxonomyElement *root(){return m_root;}
-  QVector<TaxonomyElement *> elements() {return m_root->subElements();}
+    TaxonomyElementPtr createElement(const QString &name,
+                                     TaxonomyElementPtr parent = TaxonomyElementPtr());
+    void deleteElement(TaxonomyElementPtr element);
 
-  void print(int indent = 0);
 
-private:
-  TaxonomyElement *m_root;
-};
+    TaxonomyElementPtr  &root(){return m_root;}
+    TaxonomyElementPtr   element(const QString &qualifiedName);
+    TaxonomyElementList  elements() {return m_root->subElements();}
+    TaxonomyElementPtr   parent(const TaxonomyElementPtr element) const;
 
-class IOTaxonomy
-{
-public:
-  static Taxonomy *openXMLTaxonomy(QString fileName);
-  static Taxonomy *loadXMLTaxonomy(QString content);
-  static void writeXMLTaxonomy(Taxonomy *tax, QString& destination);
+    void print(int indent = 0);
 
-private:
-  IOTaxonomy();
-  ~IOTaxonomy();
+  private:
+    TaxonomyElementPtr m_root;
+  };
 
-  static void writeTaxonomy(Taxonomy *tax, QXmlStreamWriter& stream);
-  static void writeTaxonomyElement(TaxonomyElement *node, QXmlStreamWriter& stream);
-  static Taxonomy *readXML(QXmlStreamReader &xmlStream);
-
-  //static void writeXMLTaxonomy(TaxonomyNode& tax, QString fileName);
-};
+}// namespace EspINA
 
 #endif // TAXONOMY_H

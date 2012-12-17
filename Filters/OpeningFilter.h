@@ -25,6 +25,8 @@
 #include <itkBinaryBallStructuringElement.h>
 #include <itkBinaryMorphologicalOpeningImageFilter.h>
 
+namespace EspINA
+{
 class OpeningFilter
 : public MorphologicalEditionFilter
 {
@@ -50,6 +52,8 @@ protected:
 private:
   FilterType::Pointer m_filter;
 };
+
+} // namespace EspINA
 
 
 #endif // OPENINGFILTER_H

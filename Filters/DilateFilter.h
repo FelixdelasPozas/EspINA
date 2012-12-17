@@ -28,6 +28,8 @@
 #include <itkDilateObjectMorphologyImageFilter.h>
 
 
+namespace EspINA
+{
 
 class DilateFilter
 : public MorphologicalEditionFilter
@@ -53,6 +55,8 @@ protected:
 private:
   FilterType::Pointer m_filter;
 };
+
+} // namespace EspINA
 
 
 #endif // DILATEFILTER_H

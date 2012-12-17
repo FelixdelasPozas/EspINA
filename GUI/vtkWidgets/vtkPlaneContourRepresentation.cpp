@@ -28,6 +28,8 @@
 
 #include <QtGlobal>
 
+using namespace EspINA;
+
 vtkCxxSetObjectMacro(vtkPlaneContourRepresentation, PointPlacer, vtkPointPlacer);
 vtkCxxSetObjectMacro(vtkPlaneContourRepresentation, LineInterpolator, vtkContourLineInterpolator);
 

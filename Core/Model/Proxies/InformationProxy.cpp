@@ -1,26 +1,28 @@
 /*
-    <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ *    <one line to give the program's name and a brief idea of what it does.>
+ *    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
+ *
+ *    This program is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
+ *
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 
 #include "InformationProxy.h"
 
 #include <Core/Model/EspinaModel.h>
 #include <Core/Model/Segmentation.h>
+
+using namespace EspINA;
 
 //------------------------------------------------------------------------
 InformationProxy::InformationProxy()
@@ -31,28 +33,31 @@ InformationProxy::InformationProxy()
 }
 
 //------------------------------------------------------------------------
-void InformationProxy::setSourceModel(EspinaModel* sourceModel)
+void InformationProxy::setSourceModel(EspinaModelPtr sourceModel)
 {
   if (m_model)
   {
-    disconnect(sourceModel, SIGNAL(rowsInserted(const QModelIndex&, int, int)),
-	       this, SLOT(sourceRowsInserted(const QModelIndex&, int, int)));
-    disconnect(sourceModel, SIGNAL(rowsAboutToBeRemoved(const QModelIndex&, int, int)),
-	       this, SLOT(sourceRowsAboutToBeRemoved(QModelIndex, int, int)));
-    disconnect(sourceModel, SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)),
-	       this, SLOT(sourceDataChanged(const QModelIndex &,const QModelIndex &)));
+    disconnect(sourceModel.data(), SIGNAL(rowsInserted(const QModelIndex&, int, int)),
+               this, SLOT(sourceRowsInserted(const QModelIndex&, int, int)));
+    disconnect(sourceModel.data(), SIGNAL(rowsAboutToBeRemoved(const QModelIndex&, int, int)),
+               this, SLOT(sourceRowsAboutToBeRemoved(QModelIndex, int, int)));
+    disconnect(sourceModel.data(), SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)),
+               this, SLOT(sourceDataChanged(const QModelIndex &,const QModelIndex &)));
   }
+
   m_model = sourceModel;
   m_elements.clear();
-  connect(sourceModel, SIGNAL(rowsInserted(const QModelIndex&, int, int)),
+
+  connect(sourceModel.data(), SIGNAL(rowsInserted(const QModelIndex&, int, int)),
           this, SLOT(sourceRowsInserted(const QModelIndex&, int, int)));
-  connect(sourceModel, SIGNAL(rowsAboutToBeRemoved(const QModelIndex&, int, int)),
+  connect(sourceModel.data(), SIGNAL(rowsAboutToBeRemoved(const QModelIndex&, int, int)),
           this, SLOT(sourceRowsAboutToBeRemoved(QModelIndex, int, int)));
-  connect(sourceModel, SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)),
+  connect(sourceModel.data(), SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)),
           this, SLOT(sourceDataChanged(const QModelIndex &,const QModelIndex &)));
 
   sourceRowsInserted(m_model->segmentationRoot(), 0, m_model->rowCount(m_model->segmentationRoot())-1);
-  QAbstractProxyModel::setSourceModel(sourceModel);
+
+  QAbstractProxyModel::setSourceModel(sourceModel.data());
 }
 
 //------------------------------------------------------------------------
@@ -68,10 +73,13 @@ QModelIndex InformationProxy::mapFromSource(const QModelIndex& sourceIndex) cons
     sourceIndex == m_model->segmentationRoot())
     return QModelIndex();
 
-  ModelItem *sourceItem = indexPtr(sourceIndex);
+  ModelItemPtr sourceItem = indexPtr(sourceIndex);
   Q_ASSERT(sourceItem);
-  if (ModelItem::SEGMENTATION == sourceItem->type())
-    return createIndex(sourceIndex.row(), sourceIndex.column(), sourceItem);
+  if (EspINA::SEGMENTATION == sourceItem->type())
+  {
+    Q_ASSERT(false); // internal pointer
+    return createIndex(sourceIndex.row(), sourceIndex.column(), &sourceItem);
+  }
 
   return QModelIndex();
 }
@@ -82,14 +90,13 @@ QModelIndex InformationProxy::mapToSource(const QModelIndex& proxyIndex) const
   if (!proxyIndex.isValid())
     return QModelIndex();
 
-  ModelItem *proxyItem = indexPtr(proxyIndex);
+  ModelItemPtr proxyItem = indexPtr(proxyIndex);
   Q_ASSERT(proxyItem);
 
   QModelIndex sourceIndex;
-  if (ModelItem::SEGMENTATION == proxyItem->type())
+  if (EspINA::SEGMENTATION == proxyItem->type())
   {
-    Segmentation *proxySeg = dynamic_cast<Segmentation *>(proxyItem);
-    Q_ASSERT(proxySeg);
+    SegmentationPtr proxySeg = segmentationPtr(proxyItem);
     sourceIndex = m_model->segmentationIndex(proxySeg);
   }
 
@@ -125,9 +132,9 @@ QModelIndex InformationProxy::parent(const QModelIndex& child) const
   if (!child.isValid())
     return QModelIndex();
 
-  ModelItem *childItem = indexPtr(child);
+  ModelItemPtr childItem = indexPtr(child);
   Q_ASSERT(childItem);
-  Q_ASSERT(ModelItem::SEGMENTATION == childItem->type());
+  Q_ASSERT(EspINA::SEGMENTATION == childItem->type());
   return mapFromSource(m_model->segmentationRoot());
 }
 
@@ -167,8 +174,8 @@ QVariant InformationProxy::data(const QModelIndex& proxyIndex, int role) const
   if (!proxyIndex.isValid())
     return QVariant();
 
-  ModelItem *proxyItem = indexPtr(proxyIndex);
-  if (ModelItem::SEGMENTATION != proxyItem->type())
+  ModelItemPtr proxyItem = indexPtr(proxyIndex);
+  if (EspINA::SEGMENTATION != proxyItem->type())
     return QVariant();
 
   if (role == Qt::TextAlignmentRole)
@@ -184,7 +191,7 @@ QVariant InformationProxy::data(const QModelIndex& proxyIndex, int role) const
   } else if (proxyIndex.column() > 0)
     return QVariant();//To avoid checkrole or other roles
 
-  return QAbstractProxyModel::data(proxyIndex, role);
+    return QAbstractProxyModel::data(proxyIndex, role);
 }
 
 
@@ -202,7 +209,7 @@ const QStringList InformationProxy::availableInformation() const
   if (m_elements.isEmpty())
     return QStringList();
 
-  ModelItem *item = indexPtr(m_elements.first());
+  ModelItemPtr item = indexPtr(m_elements.first());
   return item->availableInformations();
 }
 
@@ -210,7 +217,7 @@ const QStringList InformationProxy::availableInformation() const
 
 //------------------------------------------------------------------------
 void InformationProxy::sourceRowsInserted(const QModelIndex& sourceParent, int start, int end)
-    // Avoid population the view if no query is selected
+// Avoid population the view if no query is selected
 {
   if (sourceParent == m_model->segmentationRoot())
   {
@@ -219,8 +226,8 @@ void InformationProxy::sourceRowsInserted(const QModelIndex& sourceParent, int s
       QModelIndex sourceIndex = mapFromSource(m_model->index(start, 0, sourceParent));
       if (sourceIndex.isValid())
       {
-	ModelItem *item = indexPtr(sourceIndex);
-	setQuery(item->availableInformations());
+        ModelItemPtr item = indexPtr(sourceIndex);
+        setQuery(item->availableInformations());
       }
     }
     // Avoid populating the view if no query is selected

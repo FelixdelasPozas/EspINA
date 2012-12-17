@@ -23,27 +23,31 @@
 #include <Core/EspinaTypes.h>
 #include <QObject>
 
-class SliceView;
-class SliceSelectorWidget
-: public QObject
+namespace EspINA
 {
-public:
-  virtual ~SliceSelectorWidget() {}
+  class SliceView;
+  class SliceSelectorWidget
+  : public QObject
+  {
+  public:
+    virtual ~SliceSelectorWidget() {}
 
-  virtual void setPlane(const PlaneType plane) { m_plane = plane; }
-  virtual void setView(SliceView *view) { m_view = view; }
+    virtual void setPlane(const PlaneType plane) { m_plane = plane; }
+    virtual void setView(SliceView *view) { m_view = view; }
 
-  virtual QWidget *leftWidget() const = 0;
-  virtual QWidget *rightWidget()   const = 0;
+    virtual QWidget *leftWidget() const = 0;
+    virtual QWidget *rightWidget()   const = 0;
 
-  virtual SliceSelectorWidget *clone() = 0;
+    virtual SliceSelectorWidget *clone() = 0;
 
-protected:
-  explicit SliceSelectorWidget()
-  : m_plane(AXIAL), m_view(NULL) {}
+  protected:
+    explicit SliceSelectorWidget()
+    : m_plane(AXIAL), m_view(NULL) {}
 
-  PlaneType  m_plane;
-  SliceView *m_view;
-};
+    PlaneType  m_plane;
+    SliceView *m_view;
+  };
+
+} // namespace EspINA
 
 #endif // SLICESELECTORWIDGET_H

@@ -24,6 +24,8 @@
 
 #include <QDebug>
 
+using namespace EspINA;
+
 const QString ImageLogicFilter::TYPE = "EditorToolBar::ImageLogicFilter";
 
 //-----------------------------------------------------------------------------

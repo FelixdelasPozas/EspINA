@@ -17,11 +17,14 @@
 
 // forward declarations
 class vtkPoints;
-class vtkPlanarSplitWidget;
 
-class PlanarSplitSliceWidget
-: public SliceWidget
+namespace EspINA
 {
+  class vtkPlanarSplitWidget;
+
+  class PlanarSplitSliceWidget
+  : public SliceWidget
+  {
   public:
     explicit PlanarSplitSliceWidget(vtkAbstractWidget *widget);
     virtual ~PlanarSplitSliceWidget();
@@ -37,9 +40,12 @@ class PlanarSplitSliceWidget
 
     virtual vtkAbstractWidget* getWidget() { return this->m_widget; };
     virtual void disableWidget();
+
   private:
     PlaneType m_plane;
     bool m_mainWidget;
-};
+  };
+
+}// namespace EspINA
 
 #endif /* PLANARSPLITSLICEWIDGET_H_ */

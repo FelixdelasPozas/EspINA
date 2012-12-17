@@ -31,91 +31,91 @@
 #include <itkConnectedThresholdImageFilter.h>
 #include <itkImageToVTKImageFilter.h>
 
-class Channel;
-class DefaultVOIAction;
-class EspinaModel;
-class Sample;
-class SeedGrowSegmentationFilter;
-class Segmentation;
-class TaxonomyElement;
-class ThresholdAction;
-class ViewManager;
 class vtkImageActor;
 class vtkImageMapToColors;
 
-class SeedGrowSegmentationTool
-: public ITool
+namespace EspINA
 {
-  class CreateSegmentation
-  : public QUndoCommand
+  class SeedGrowSegmentationFilter;
+  class ViewManager;
+
+  class SeedGrowSegmentationTool
+  : public ITool
   {
+    class CreateSegmentation
+    : public QUndoCommand
+    {
+    public:
+      explicit CreateSegmentation(ChannelPtr channel,
+                                  FilterPtr filter,
+                                  SegmentationPtr segmentation,
+                                  TaxonomyElementPtr taxonomy,
+                                  EspinaModelPtr model);
+      virtual void redo();
+      virtual void undo();
+    private:
+      EspinaModelPtr     m_model;
+      SamplePtr          m_sample;
+      ChannelPtr         m_channel;
+      FilterPtr          m_filter;
+      SegmentationPtr    m_seg;
+      TaxonomyElementPtr m_taxonomy;
+    };
+
+    Q_OBJECT
   public:
-    explicit CreateSegmentation(Channel * channel,
-                                SeedGrowSegmentationFilter *filter,
-                                Segmentation *segmentation,
-                                TaxonomyElement *taxonomy,
-                                EspinaModel *model);
-    virtual void redo();
-    virtual void undo();
+    explicit SeedGrowSegmentationTool(EspinaModelPtr model,
+                                      QUndoStack  *undoStack,
+                                      ViewManager *viewManager,
+                                      ThresholdAction  *th,
+                                      DefaultVOIAction *voi,
+                                      SeedGrowSegmentation::Settings *settings,
+                                      IPicker *picker = NULL);
+
+    virtual QCursor cursor() const;
+    virtual bool filterEvent(QEvent* e, EspinaRenderView *view = 0);
+    virtual void lostEvent(EspinaRenderView*);
+    virtual bool enabled() const {return m_enabled;}
+    virtual void setEnabled(bool enable);
+    virtual void setInUse(bool value);
+
+    void setChannelPicker(IPicker *picker);
+
+  public slots:
+    void startSegmentation(IPicker::PickList pickedItems);
+
+  signals:
+    void seedSelected(Channel *, itkVolumeType::IndexType);
+    void segmentationStopped();
+
   private:
-    EspinaModel                *m_model;
-    Sample                     *m_sample;
-    Channel                    *m_channel;
-    SeedGrowSegmentationFilter *m_filter;
-    Segmentation               *m_seg;
-    TaxonomyElement            *m_taxonomy;
+    typedef itk::ConnectedThresholdImageFilter<itkVolumeType, itkVolumeType> ConnectedThresholdFilterType;
+    typedef itk::ImageToVTKImageFilter<itkVolumeType> itk2vtkFilterType;
+
+    // helper methods
+    void removePreview(EspinaRenderView*);
+    void addPreview(EspinaRenderView*);
+
+  private:
+    EspinaModelPtr m_model;
+    QUndoStack    *m_undoStack;
+    ViewManager   *m_viewManager;
+
+    SeedGrowSegmentation::Settings *m_settings;
+    DefaultVOIAction *m_defaultVOI;
+    ThresholdAction  *m_threshold;
+    IPicker *m_picker;
+
+    bool m_inUse;
+    bool m_enabled;
+    bool m_validPos;
+
+    ConnectedThresholdFilterType::Pointer connectFilter;
+    itk2vtkFilterType::Pointer i2v;
+    vtkSmartPointer<vtkImageActor> m_actor;
+    EspinaRenderView *m_viewOfPreview;
   };
 
-  Q_OBJECT
-public:
-  explicit SeedGrowSegmentationTool(EspinaModel *model,
-                                    QUndoStack  *undoStack,
-                                    ViewManager *viewManager,
-                                    ThresholdAction  *th,
-                                    DefaultVOIAction *voi,
-                                    SeedGrowSegmentation::Settings *settings,
-                                    IPicker *picker = NULL);
-
-  virtual QCursor cursor() const;
-  virtual bool filterEvent(QEvent* e, EspinaRenderView *view = 0);
-  virtual void lostEvent(EspinaRenderView*);
-  virtual bool enabled() const {return m_enabled;}
-  virtual void setEnabled(bool enable);
-  virtual void setInUse(bool value);
-
-  void setChannelPicker(IPicker *picker);
-
-public slots:
-  void startSegmentation(IPicker::PickList pickedItems);
-
-signals:
-  void seedSelected(Channel *, itkVolumeType::IndexType);
-  void segmentationStopped();
-
-private:
-  typedef itk::ConnectedThresholdImageFilter<itkVolumeType, itkVolumeType> ConnectedThresholdFilterType;
-  typedef itk::ImageToVTKImageFilter<itkVolumeType> itk2vtkFilterType;
-
-  // helper methods
-  void removePreview(EspinaRenderView*);
-  void addPreview(EspinaRenderView*);
-
-  EspinaModel *m_model;
-  QUndoStack  *m_undoStack;
-  ViewManager *m_viewManager;
-
-  SeedGrowSegmentation::Settings *m_settings;
-  DefaultVOIAction *m_defaultVOI;
-  ThresholdAction  *m_threshold;
-  IPicker *m_picker;
-
-  bool m_inUse;
-  bool m_enabled;
-  bool m_validPos;
-  ConnectedThresholdFilterType::Pointer connectFilter;
-  itk2vtkFilterType::Pointer i2v;
-  vtkSmartPointer<vtkImageActor> m_actor;
-  EspinaRenderView *m_viewOfPreview;
-};
+} // namespace EspINA
 
 #endif // SEEDGROWSEGMENTATIONTOOL_H

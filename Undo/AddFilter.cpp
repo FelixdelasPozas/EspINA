@@ -21,12 +21,14 @@
 
 #include <Core/Model/EspinaModel.h>
 
+using namespace EspINA;
+
 //------------------------------------------------------------------------
-AddFilter::AddFilter(Filter* filter,
-                     EspinaModel *model,
-                     QUndoCommand* parent)
+AddFilter::AddFilter(FilterPtr     filter,
+                     EspinaModelPtr model,
+                     QUndoCommand  *parent)
 : QUndoCommand(parent)
-, m_model(model)
+, m_model (model )
 , m_filter(filter)
 {
 

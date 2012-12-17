@@ -28,21 +28,20 @@
 // EspINA
 #include "Core/Model/ModelItem.h"
 
-class EspinaModel;
-class Filter;
-class Segmentation;
+namespace EspINA
+{
 
 class RemoveSegmentation
 : public QUndoCommand
 {
 public:
-  explicit RemoveSegmentation(Segmentation *seg,
-                              EspinaModel  *model,
+  explicit RemoveSegmentation(SegmentationPtr seg,
+                              EspinaModelPtr  model,
                               QUndoCommand *parent=0
                              );
-  explicit RemoveSegmentation(QList<Segmentation *> segs,
-                              EspinaModel          *model,
-                              QUndoCommand         *parent=0
+  explicit RemoveSegmentation(SegmentationList segs,
+                              EspinaModelPtr   model,
+                              QUndoCommand    *parent=0
                              );
 
   virtual void redo();
@@ -52,32 +51,35 @@ private:
   void addRelations(ModelItem::RelationList list);
   void removeRelations(ModelItem::RelationList list);
 
-  QList<Filter *> removeFilterDependencies(Filter *filter);
+  FilterList removeFilterDependencies(FilterPtr filter);
 
 private:
   struct FilterInfo
   {
     FilterInfo () : filter(NULL) {}
-    FilterInfo(Filter *filter, ModelItem::RelationList list) :
+    FilterInfo(FilterPtr filter, ModelItem::RelationList list) :
     filter(filter), relations(list)
     {}
-    Filter *filter;
+    FilterPtr filter;
     ModelItem::RelationList relations;
   };
 
   struct SegInfo
   {
-    SegInfo(Segmentation *seg);
+    SegInfo(SegmentationPtr seg);
 
-    Filter * filter;
+    FilterPtr  filter;
     ModelItem::RelationList relations;
-    Segmentation *segmentation;
+    SegmentationPtr segmentation;
   };
 
 private:
-  EspinaModel      *m_model;
+  EspinaModelPtr    m_model;
+
   QList<FilterInfo> m_removedFilters;
   QList<SegInfo>    m_segmentations;
 };
+
+} // namespace EspINA
 
 #endif // REMOVESEGMENTATION_H

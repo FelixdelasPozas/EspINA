@@ -22,23 +22,25 @@
 
 #include <QUndoStack>
 
-#include <QSharedPointer>
+#include <Core/EspinaTypes.h>
 
-class EspinaModel;
-class Sample;
-
-//------------------------------------------------------------------------
-class AddSample
-: public QUndoCommand
+namespace EspINA
 {
-public:
-  explicit AddSample(Sample *sample, EspinaModel *model);
+  class AddSample
+  : public QUndoCommand
+  {
+  public:
+    explicit AddSample(SamplePtr sample, EspinaModelPtr model);
 
-  virtual void redo();
-  virtual void undo();
+    virtual void redo();
+    virtual void undo();
 
-private:
-  EspinaModel *m_model;
-  Sample      *m_sample;
-};
+  private:
+    EspinaModelPtr m_model;
+
+    SamplePtr      m_sample;
+  };
+
+}// namespace EspINA
+
 #endif // ADDSAMPLE_H

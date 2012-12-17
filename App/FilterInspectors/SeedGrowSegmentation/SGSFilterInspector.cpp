@@ -27,11 +27,12 @@
 #include <QMessageBox>
 #include <QCheckBox>
 
+using namespace EspINA;
+
 //----------------------------------------------------------------------------
 SGSFilterInspector::SGSFilterInspector(SeedGrowSegmentationFilter* filter)
 : m_filter(filter)
 {
-  filter->setFilterInspector(Filter::FilterInspectorPtr(this));
 }
 
 //----------------------------------------------------------------------------

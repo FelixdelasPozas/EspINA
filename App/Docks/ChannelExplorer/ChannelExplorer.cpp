@@ -36,6 +36,8 @@
 // Qt
 #include <QMessageBox>
 
+using namespace EspINA;
+
 //------------------------------------------------------------------------
 class ChannelExplorer::CentralWidget
 : public QWidget
@@ -53,9 +55,9 @@ public:
 };
 
 //------------------------------------------------------------------------
-ChannelExplorer::ChannelExplorer(EspinaModel *model,
-                                 ViewManager *vm,
-                                 QWidget     *parent)
+ChannelExplorer::ChannelExplorer(EspinaModelPtr model,
+                                 ViewManager   *vm,
+                                 QWidget       *parent)
 : QDockWidget(parent)
 , m_gui(new CentralWidget())
 , m_model(model)
@@ -121,10 +123,10 @@ void ChannelExplorer::channelSelected()
     return;
 
   QModelIndex index = m_sort->mapToSource(currentIndex);
-  ModelItem *currentItem = indexPtr(index);
-  if (ModelItem::CHANNEL == currentItem->type())
+  ModelItemPtr currentItem = indexPtr(index);
+  if (EspINA::CHANNEL == currentItem->type())
   {
-    Channel *channel = dynamic_cast<Channel *>(currentItem);
+    ChannelPtr channel = channelPtr(currentItem);
     double pos[3];
     channel->position(pos);
     m_gui->xPos->blockSignals(true);
@@ -145,14 +147,14 @@ void ChannelExplorer::channelSelected()
 void ChannelExplorer::alignLeft()
 {
   QItemSelectionModel *selection = m_gui->view->selectionModel();
-  Channel *lastChannel = NULL;
+  ChannelPtr lastChannel;
   foreach (QModelIndex index, selection->selectedIndexes())
   {
-    ModelItem *item = indexPtr(m_sort->mapToSource(index));
-    if (ModelItem::CHANNEL != item->type())
+    ModelItemPtr item = indexPtr(m_sort->mapToSource(index));
+    if (EspINA::CHANNEL != item->type())
       continue;
 
-    Channel *channel = dynamic_cast<Channel *>(item);
+    ChannelPtr channel = channelPtr(item);
     if (lastChannel)
     {
       double lastPos[3], pos[3];
@@ -174,17 +176,17 @@ void ChannelExplorer::alignLeft()
 void ChannelExplorer::alignCenter()
 {
   QItemSelectionModel *selection = m_gui->view->selectionModel();
-  Channel *lastChannel = NULL;
+  ChannelPtr lastChannel;
   double pos[3], bounds[6], centerMargin;
   int coord = m_gui->coordinateSelector->currentIndex();
 
   foreach (QModelIndex index, selection->selectedIndexes())
   {
-    ModelItem *item = indexPtr(m_sort->mapToSource(index));
-    if (ModelItem::CHANNEL != item->type())
+    ModelItemPtr item = indexPtr(m_sort->mapToSource(index));
+    if (EspINA::CHANNEL != item->type())
       continue;
 
-    Channel *channel = dynamic_cast<Channel *>(item);
+    ChannelPtr channel = channelPtr(item);
     if (lastChannel)
     {
       double pos[3], bounds[6];
@@ -210,17 +212,17 @@ void ChannelExplorer::alignCenter()
 void ChannelExplorer::alignRight()
 {
   QItemSelectionModel *selection = m_gui->view->selectionModel();
-  Channel *lastChannel = NULL;
+  ChannelPtr lastChannel;
   double pos[3], bounds[6], rightMargin;
   int coord = m_gui->coordinateSelector->currentIndex();
 
   foreach (QModelIndex index, selection->selectedIndexes())
   {
-    ModelItem *item = indexPtr(m_sort->mapToSource(index));
-    if (ModelItem::CHANNEL != item->type())
+    ModelItemPtr item = indexPtr(m_sort->mapToSource(index));
+    if (EspINA::CHANNEL != item->type())
       continue;
 
-    Channel *channel = dynamic_cast<Channel *>(item);
+    ChannelPtr channel = channelPtr(item);
     if (lastChannel)
     {
       double pos[3], bounds[6];
@@ -245,72 +247,72 @@ void ChannelExplorer::alignRight()
 //------------------------------------------------------------------------
 void ChannelExplorer::moveLelft()
 {
-  QItemSelectionModel *selection = m_gui->view->selectionModel();
-  Channel *lastChannel = NULL;
-  double pos[3], leftMargin;
-  int coord = m_gui->coordinateSelector->currentIndex();
-
-  foreach (QModelIndex index, selection->selectedIndexes())
-  {
-    ModelItem *item = indexPtr(m_sort->mapToSource(index));
-    if (ModelItem::CHANNEL != item->type())
-      continue;
-
-    Channel *channel = dynamic_cast<Channel *>(item);
-    if (lastChannel)
-    {
-      double pos[3], bounds[6];
-      channel->position(pos);
-      channel->volume()->bounds(bounds);
-      pos[coord] = leftMargin - (bounds[2*coord+1] - bounds[2*coord]);
-      channel->setPosition(pos);
-      channel->notifyModification();
-    }
-
-    if (!lastChannel)
-    {
-      lastChannel = channel;
-      lastChannel->position(pos);
-      leftMargin = pos[coord];
-    }
-  }
-  channelSelected();
+//   QItemSelectionModel *selection = m_gui->view->selectionModel();
+//   Channel *lastChannel = NULL;
+//   double pos[3], leftMargin;
+//   int coord = m_gui->coordinateSelector->currentIndex();
+// 
+//   foreach (QModelIndex index, selection->selectedIndexes())
+//   {
+//     ModelItem *item = indexPtr(m_sort->mapToSource(index));
+//     if (EspINA::CHANNEL != item->type())
+//       continue;
+// 
+//     Channel *channel = dynamic_cast<Channel *>(item);
+//     if (lastChannel)
+//     {
+//       double pos[3], bounds[6];
+//       channel->position(pos);
+//       channel->volume()->bounds(bounds);
+//       pos[coord] = leftMargin - (bounds[2*coord+1] - bounds[2*coord]);
+//       channel->setPosition(pos);
+//       channel->notifyModification();
+//     }
+// 
+//     if (!lastChannel)
+//     {
+//       lastChannel = channel;
+//       lastChannel->position(pos);
+//       leftMargin = pos[coord];
+//     }
+//   }
+//   channelSelected();
 }
 
 //------------------------------------------------------------------------
 void ChannelExplorer::moveRight()
 {
-  QItemSelectionModel *selection = m_gui->view->selectionModel();
-  Channel *lastChannel = NULL;
-  double pos[3], bounds[6], rightMargin;
-  int coord = m_gui->coordinateSelector->currentIndex();
-
-  foreach (QModelIndex index, selection->selectedIndexes())
-  {
-    ModelItem *item = indexPtr(m_sort->mapToSource(index));
-    if (ModelItem::CHANNEL != item->type())
-      continue;
-
-    Channel *channel = dynamic_cast<Channel *>(item);
-    if (lastChannel)
-    {
-      double pos[3], bounds[6];
-      channel->position(pos);
-      channel->volume()->bounds(bounds);
-      pos[coord] = rightMargin;
-      channel->setPosition(pos);
-      channel->notifyModification();
-    }
-
-    if (!lastChannel)
-    {
-      lastChannel = channel;
-      lastChannel->position(pos);
-      lastChannel->volume()->bounds(bounds);
-      rightMargin = pos[coord] + (bounds[2*coord+1] - bounds[2*coord]);
-    }
-  }
-  channelSelected();
+//   QItemSelectionModel *selection = m_gui->view->selectionModel();
+//   Channel *lastChannel = NULL;
+//   double pos[3], bounds[6], rightMargin;
+//   int coord = m_gui->coordinateSelector->currentIndex();
+// 
+//   foreach (QModelIndex index, selection->selectedIndexes())
+//   {
+//     ModelItem *item = indexPtr(m_sort->mapToSource(index));
+//     if (EspINA::CHANNEL != item->type())
+//       continue;
+// 
+//     Channel *channel = dynamic_cast<Channel *>(item);
+//     if (lastChannel)
+//     {
+//       double pos[3], bounds[6];
+//       channel->position(pos);
+//       channel->volume()->bounds(bounds);
+//       pos[coord] = rightMargin;
+//       channel->setPosition(pos);
+//       channel->notifyModification();
+//     }
+// 
+//     if (!lastChannel)
+//     {
+//       lastChannel = channel;
+//       lastChannel->position(pos);
+//       lastChannel->volume()->bounds(bounds);
+//       rightMargin = pos[coord] + (bounds[2*coord+1] - bounds[2*coord]);
+//     }
+//   }
+//   channelSelected();
 }
 
 //------------------------------------------------------------------------
@@ -320,11 +322,11 @@ void ChannelExplorer::changeChannelColor()
   if (!index.isValid())
     return;
 
-  ModelItem *item = indexPtr(index);
-  if (ModelItem::CHANNEL != item->type())
+  ModelItemPtr item = indexPtr(index);
+  if (EspINA::CHANNEL != item->type())
     return;
 
-  Channel *channel = dynamic_cast<Channel *>(item);
+  ChannelPtr channel = channelPtr(item);
 
   HueSelector *hueSelector = new HueSelector(channel->color(), this);
   hueSelector->exec();
@@ -346,10 +348,10 @@ void ChannelExplorer::updateChannelPosition()
     return;
 
   QModelIndex index = m_sort->mapToSource(currentIndex);
-  ModelItem *currentItem = indexPtr(index);
-  if (ModelItem::CHANNEL == currentItem->type())
+  ModelItemPtr currentItem = indexPtr(index);
+  if (EspINA::CHANNEL == currentItem->type())
   {
-    Channel *channel = dynamic_cast<Channel *>(currentItem);
+    ChannelPtr channel = channelPtr(currentItem);
     double pos[3] = {
       static_cast<double>(m_gui->xPos->value()),
       static_cast<double>(m_gui->yPos->value()),
@@ -392,67 +394,68 @@ void ChannelExplorer::updateTooltips(int index)
 //------------------------------------------------------------------------
 void ChannelExplorer::unloadChannel()
 {
-  QModelIndex index = m_sort->mapToSource(m_gui->view->currentIndex());
-  if (!index.isValid())
-    return;
-
-  ModelItem *item = indexPtr(index);
-  if (ModelItem::CHANNEL != item->type())
-    return;
-
-  Channel *channel = dynamic_cast<Channel *>(item);
-  ModelItem::Vector relItems = channel->relatedItems(ModelItem::OUT);
-
-  if (!relItems.empty())
-  {
-    QString msgText;
-    if (relItems.size() > 1)
-    {
-      QString number;
-      number.setNum(relItems.size());
-      msgText = QString("That channel cannot be deleted because there are ") + number + QString(" segmentations that depend on it.");
-    }
-
-    else
-      msgText = QString("That channel cannot be deleted because there is a segmentation that depends on it.");
-    QMessageBox msgBox;
-    msgBox.setIcon(QMessageBox::Information);
-    msgBox.setText(msgText);
-    msgBox.setStandardButtons(QMessageBox::Ok);
-    msgBox.exec();
-    return;
-  }
-  else
-  {
-    relItems = channel->relatedItems(ModelItem::IN);
-    ModelItem::Vector::Iterator it = relItems.begin();
-    Q_ASSERT(relItems.size() == 2);
-    while (it != relItems.end())
-    {
-      if ((*it)->type() == ModelItem::SAMPLE)
-      {
-        ModelItem::Vector relatedItems = (*it)->relatedItems(ModelItem::OUT);
-        if (relatedItems.size() == 1)
-        {
-          m_model->removeRelation((*it), item, Channel::STAINLINK);
-          m_model->removeSample(reinterpret_cast<Sample *>(*it));
-          delete (*it);
-        }
-      }
-      else
-      {
-        m_model->removeRelation((*it), item, Channel::VOLUMELINK);
-        m_model->removeFilter(reinterpret_cast<Filter *>(*it));
-        delete (*it);
-      }
-      it++;
-    }
-
-    m_model->removeChannel(channel);
-
-    if (m_viewManager->activeChannel() == channel)
-      m_viewManager->setActiveChannel(NULL);
-  }
+  //TODO 2012-12-17 
+//   QModelIndex index = m_sort->mapToSource(m_gui->view->currentIndex());
+//   if (!index.isValid())
+//     return;
+// 
+//   ModelItemPtr item = indexPtr(index);
+//   if (EspINA::CHANNEL != item->type())
+//     return;
+// 
+//   ChannelPtr channel = channelPtr(item);
+//   ModelItemList relItems = channel->relatedItems(EspINA::OUT);
+// 
+//   if (!relItems.empty())
+//   {
+//     QString msgText;
+//     if (relItems.size() > 1)
+//     {
+//       QString number;
+//       number.setNum(relItems.size());
+//       msgText = QString("That channel cannot be deleted because there are ") + number + QString(" segmentations that depend on it.");
+//     }
+// 
+//     else
+//       msgText = QString("That channel cannot be deleted because there is a segmentation that depends on it.");
+//     QMessageBox msgBox;
+//     msgBox.setIcon(QMessageBox::Information);
+//     msgBox.setText(msgText);
+//     msgBox.setStandardButtons(QMessageBox::Ok);
+//     msgBox.exec();
+//     return;
+//   }
+//   else
+//   {
+//     relItems = channel->relatedItems(EspINA::IN);
+//     ModelItemList::Iterator it = relItems.begin();
+//     Q_ASSERT(relItems.size() == 2);
+//     while (it != relItems.end())
+//     {
+//       if ((*it)->type() == EspINA::SAMPLE)
+//       {
+//         ModelItemList relatedItems = (*it)->relatedItems(EspINA::OUT);
+//         if (relatedItems.size() == 1)
+//         {
+//           m_model->removeRelation((*it), item, Channel::STAINLINK);
+//           m_model->removeSample(reinterpret_cast<Sample *>(*it));
+//           delete (*it);
+//         }
+//       }
+//       else
+//       {
+//         m_model->removeRelation((*it), item, Channel::VOLUMELINK);
+//         m_model->removeFilter(reinterpret_cast<Filter *>(*it));
+//         delete (*it);
+//       }
+//       it++;
+//     }
+// 
+//     m_model->removeChannel(channel);
+// 
+//     if (m_viewManager->activeChannel() == channel)
+//       m_viewManager->setActiveChannel(NULL);
+//   }
 }
 
 //------------------------------------------------------------------------
@@ -463,10 +466,10 @@ void ChannelExplorer::focusOnChannel()
     return;
 
   QModelIndex index = m_sort->mapToSource(currentIndex);
-  ModelItem *currentItem = indexPtr(index);
-  if (ModelItem::CHANNEL == currentItem->type())
+  ModelItemPtr currentItem = indexPtr(index);
+  if (EspINA::CHANNEL == currentItem->type())
   {
-    Channel *channel = dynamic_cast<Channel *>(currentItem);
+    ChannelPtr channel = channelPtr(currentItem);
     Nm bounds[6];
     channel->volume()->bounds(bounds);
     //TODO 2012-10-04: Use setSelection instead of setCameraFocus
@@ -483,14 +486,14 @@ void ChannelExplorer::showInformation()
   foreach(QModelIndex index, m_gui->view->selectionModel()->selectedIndexes())
   {
     QModelIndex currentIndex = m_sort->mapToSource(index);
-    ModelItem *currentItem = indexPtr(currentIndex);
+    ModelItemPtr currentItem = indexPtr(currentIndex);
     Q_ASSERT(currentItem);
 
-    if (ModelItem::CHANNEL == currentItem->type())
+    if (EspINA::CHANNEL == currentItem->type())
     {
-      Channel *channel = dynamic_cast<Channel *>(currentItem);
-      ChannelInspector *inspector = new ChannelInspector(channel, m_viewManager);
-      inspector->exec();
+      ChannelPtr channel = channelPtr(currentItem);
+      ChannelInspector inspector(channel, m_viewManager);
+      inspector.exec();
     }
   }
 }
@@ -503,10 +506,10 @@ void ChannelExplorer::activateChannel()
     return;
 
   QModelIndex index = m_sort->mapToSource(currentIndex);
-  ModelItem *currentItem = indexPtr(index);
-  if (ModelItem::CHANNEL == currentItem->type())
+  ModelItemPtr currentItem = indexPtr(index);
+  if (EspINA::CHANNEL == currentItem->type())
   {
-    Channel *currentChannel = dynamic_cast<Channel *>(currentItem);
+    ChannelPtr currentChannel = channelPtr(currentItem);
     m_viewManager->setActiveChannel(currentChannel);
   }
 }

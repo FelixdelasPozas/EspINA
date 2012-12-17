@@ -23,6 +23,8 @@
 
 #include <QDebug>
 
+using namespace EspINA;
+
 const QString OpeningFilter::TYPE = "EditorToolBar::OpeningFilter";
 
 OpeningFilter::OpeningFilter(Filter::NamedInputs inputs,

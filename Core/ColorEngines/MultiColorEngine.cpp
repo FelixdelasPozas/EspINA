@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2012  <copyright holder> <email>
+    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,8 +19,10 @@
 
 #include "MultiColorEngine.h"
 
+using namespace EspINA;
+
 //-----------------------------------------------------------------------------
-QColor MultiColorEngine::color(Segmentation* seg)
+QColor MultiColorEngine::color(SegmentationPtr seg)
 {
   if (m_engines.isEmpty())
     return QColor(Qt::red);
@@ -64,7 +66,7 @@ QColor MultiColorEngine::color(Segmentation* seg)
 }
 
 //-----------------------------------------------------------------------------
-LUTPtr MultiColorEngine::lut(Segmentation* seg)
+LUTPtr MultiColorEngine::lut(SegmentationPtr seg)
 {
   if (m_engines.size() == 1)
     return m_engines.first()->lut(seg);

@@ -35,6 +35,7 @@
 #include <QDebug>
 #include <QFileDialog>
 
+using namespace EspINA;
 
 const ModelItem::ArgumentId Channel::ID     = "ID";
 const ModelItem::ArgumentId Channel::COLOR  = "Color";
@@ -48,7 +49,7 @@ const QString Channel::NAME       = "Name";
 const QString Channel::VOLUMETRIC = "Volumetric";
 
 //-----------------------------------------------------------------------------
-Channel::Channel(Filter* filter, Filter::OutputId oId)
+Channel::Channel(FilterPtr filter, Filter::OutputId oId)
 : m_visible(true)
 , m_filter(filter)
 {
@@ -59,10 +60,12 @@ Channel::Channel(Filter* filter, Filter::OutputId oId)
 //-----------------------------------------------------------------------------
 Channel::~Channel()
 {
+  // Extensions may need access channel's information
+  deleteExtensions();
 }
 
 //------------------------------------------------------------------------
-const Filter* Channel::filter() const
+const FilterPtr Channel::filter() const
 {
   return m_filter;
 }
@@ -175,10 +178,10 @@ bool Channel::setData(const QVariant& value, int role)
 QString Channel::serialize() const
 {
   QString extensionArgs;
-  foreach(ModelItemExtension *ext, m_extensions)
+  foreach(ModelItemExtensionPtr ext, m_extensions)
   {
-    ChannelExtension *channelExt = dynamic_cast<ChannelExtension *>(ext);
-    Q_ASSERT(channelExt);
+    ChannelExtensionPtr channelExt = qSharedPointerDynamicCast<ChannelExtension>(ext);
+    Q_ASSERT(!channelExt.isNull());
     QString serializedArgs = channelExt->serialize(); //Independizar los argumentos?
     if (!serializedArgs.isEmpty())
       extensionArgs.append(ext->id()+"=["+serializedArgs+"];");
@@ -190,7 +193,7 @@ QString Channel::serialize() const
 }
 
 //-----------------------------------------------------------------------------
-void Channel::initialize(ModelItem::Arguments args)
+void Channel::initialize(const Arguments &args)
 {
   //qDebug() << "Init" << data().toString() << "with args:" << args;
   foreach(ArgumentId argId, args.keys())
@@ -201,14 +204,15 @@ void Channel::initialize(ModelItem::Arguments args)
 }
 
 //------------------------------------------------------------------------
-void Channel::initializeExtensions(ModelItem::Arguments args)
+void Channel::initializeExtensions(const Arguments &args)
 {
 //   qDebug() << "Initializing" << data().toString() << "extensions:";
-  foreach(ModelItemExtension *ext, m_insertionOrderedExtensions)
+  foreach(ModelItemExtensionPtr ext, m_insertionOrderedExtensions)
   {
-    ChannelExtension *channelExt = dynamic_cast<ChannelExtension *>(ext);
-    Q_ASSERT(channelExt);
-    ModelItem::Arguments extArgs(args.value(channelExt->id(), QString()));
+    ChannelExtensionPtr channelExt = qSharedPointerCast<ChannelExtension>(ext);
+    Q_ASSERT(!channelExt.isNull());
+
+    Arguments extArgs(args.value(channelExt->id(), QString()));
 //     qDebug() << channelExt->id();
 //     if (!args.isEmpty()) qDebug() << "*" << extArgs;
     channelExt->initialize(extArgs);
@@ -225,7 +229,8 @@ QVariant Channel::information(QString name)
   return ModelItem::information(name);
 }
 
-void Channel::addExtension(ChannelExtension* ext)
+//------------------------------------------------------------------------
+void Channel::addExtension(ChannelExtensionPtr ext)
 {
   ModelItem::addExtension(ext);
   ext->setChannel(this);
@@ -240,11 +245,11 @@ void Channel::notifyModification(bool force)
 }
 
 //-----------------------------------------------------------------------------
-Sample *Channel::sample()
+SamplePtr Channel::sample()
 {
-  ModelItem::Vector relatedSamples = relatedItems(ModelItem::IN, Channel::STAINLINK);
+  ModelItemList relatedSamples = relatedItems(IN, Channel::STAINLINK);
   Q_ASSERT(relatedSamples.size() == 1);
-  return dynamic_cast<Sample *>(relatedSamples[0]);
+  return qSharedPointerDynamicCast<Sample>(relatedSamples[0]);
 }
 
 //TODO 2012-11-28 vtkAlgorithmOutput* Channel::vtkVolume()
@@ -262,3 +267,23 @@ Sample *Channel::sample()
 //   return itk2vtk->GetOutput()->GetProducerPort();
 // }
 // 
+
+//-----------------------------------------------------------------------------
+ChannelPtr EspINA::channelPtr(ModelItemPtr& item)
+{
+  Q_ASSERT(CHANNEL == item->type());
+  ChannelPtr ptr = qSharedPointerDynamicCast<Channel>(item);
+  Q_ASSERT(!ptr.isNull());
+
+  return ptr;
+}
+
+//-----------------------------------------------------------------------------
+ChannelPtr EspINA::channelPtr(PickableItemPtr& item)
+{
+  Q_ASSERT(CHANNEL == item->type());
+  ChannelPtr ptr = qSharedPointerDynamicCast<Channel>(item);
+  Q_ASSERT(!ptr.isNull());
+
+  return ptr;
+}

@@ -22,34 +22,33 @@
 
 #include <QUndoCommand>
 
-// Forward declarations
-class Channel;
-class EspinaModel;
-class Filter;
-class Sample;
-class Segmentation;
-class TaxonomyElement;
+#include <Core/EspinaTypes.h>
 
-class AddSegmentation
-: public QUndoCommand
+namespace EspINA
 {
-public:
-  explicit AddSegmentation(Channel         *channel,
-                           Filter          *filter,
-                           Segmentation    *seg,
-                           TaxonomyElement *taxonomy,
-                           EspinaModel     *model
-                          );
-  virtual void redo();
-  virtual void undo();
+  class AddSegmentation
+  : public QUndoCommand
+  {
+  public:
+    explicit AddSegmentation(ChannelPtr         channel,
+                             FilterPtr          filter,
+                             SegmentationPtr    seg,
+                             TaxonomyElementPtr taxonomy,
+                             EspinaModelPtr     model
+    );
+    virtual void redo();
+    virtual void undo();
 
-private:
-  Sample          *m_sample;
-  Channel         *m_channel;
-  Filter          *m_filter;
-  Segmentation    *m_seg;
-  TaxonomyElement *m_taxonomy;
-  EspinaModel     *m_model;
-};
+  private:
+    EspinaModelPtr     m_model;
+
+    SamplePtr          m_sample;
+    ChannelPtr         m_channel;
+    FilterPtr          m_filter;
+    SegmentationPtr    m_seg;
+    TaxonomyElementPtr m_taxonomy;
+  };
+
+} // namespace EspINA
 
 #endif // ADDSEGMENTATION_H

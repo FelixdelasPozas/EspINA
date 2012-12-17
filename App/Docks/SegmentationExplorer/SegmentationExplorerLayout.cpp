@@ -21,6 +21,8 @@
 
 #include <Core/Model/Segmentation.h>
 
+using namespace EspINA;
+
 const QString SegmentationExplorer::Layout::SEGMENTATION_MESSAGE
   = QObject::tr("Delete %1's segmentations");
 const QString SegmentationExplorer::Layout::RECURSIVE_MESSAGE
@@ -47,10 +49,10 @@ QModelIndexList SegmentationExplorer::Layout::indices(const QModelIndex& index, 
 }
 
 //------------------------------------------------------------------------
-bool sortSegmentationLessThan(ModelItem* left, ModelItem* right)
+bool EspINA::sortSegmentationLessThan(ModelItemPtr left, ModelItemPtr right)
 {
-  Segmentation *leftSeg  = dynamic_cast<Segmentation *>(left);
-  Segmentation *rightSeg = dynamic_cast<Segmentation *>(right);
+  SegmentationPtr leftSeg  = segmentationPtr(left);
+  SegmentationPtr rightSeg = segmentationPtr(right);
 
   if (leftSeg->number() == rightSeg->number())
     return left ->data(Qt::ToolTipRole).toString() <

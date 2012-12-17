@@ -19,6 +19,8 @@
 
 #include "SliceViewSettingsPanel.h"
 
+using namespace EspINA;
+
 SliceViewSettingsPanel::SliceViewSettingsPanel(SliceView::SettingsPtr settings)
 : m_settings(settings)
 {
@@ -65,8 +67,8 @@ bool SliceViewSettingsPanel::modified() const
 }
 
 //------------------------------------------------------------------------
-ISettingsPanel* SliceViewSettingsPanel::clone()
+ISettingsPanelPtr SliceViewSettingsPanel::clone()
 {
-  return new SliceViewSettingsPanel(m_settings);
+  return ISettingsPanelPtr(new SliceViewSettingsPanel(m_settings));
 }
 

@@ -18,9 +18,10 @@
  */
 #include "Segmentation.h"
 
+#include "Core/Model/Sample.h"
 #include "Core/Model/Filter.h"
 #include "Core/Model/Channel.h"
-#include "Sample.h"
+#include "Core/Model/Taxonomy.h"
 #include "Core/ColorEngines/IColorEngine.h"
 
 #include <vtkAlgorithm.h>
@@ -30,6 +31,7 @@
 #include <QDebug>
 
 using namespace std;
+using namespace EspINA;
 
 const ModelItem::ArgumentId Segmentation::NUMBER   = "Number";
 const ModelItem::ArgumentId Segmentation::OUTPUT   = "Output";
@@ -39,7 +41,7 @@ const ModelItem::ArgumentId Segmentation::USERS    = "Users";
 const QString Segmentation::COMPOSED_LINK          = "ComposedOf";
 
 //-----------------------------------------------------------------------------
-Segmentation::SArguments::SArguments(const ModelItem::Arguments &args)
+Segmentation::SArguments::SArguments(const Arguments &args)
 : Arguments(args)
 {
   m_number = args[NUMBER].toInt();
@@ -53,7 +55,7 @@ QString Segmentation::SArguments::serialize() const
 }
 
 //-----------------------------------------------------------------------------
-Segmentation::Segmentation(Filter* filter, Filter::OutputId oId)
+Segmentation::Segmentation(FilterPtr filter, const Filter::OutputId &oId)
 : m_filter(filter)
 , m_taxonomy(NULL)
 , m_isVisible(true)
@@ -66,14 +68,14 @@ Segmentation::Segmentation(Filter* filter, Filter::OutputId oId)
   m_args.setNumber(0);
   m_args.setOutputId(oId);
   m_args[TAXONOMY] = "Unknown";
-  connect(filter, SIGNAL(modified(ModelItem *)),
+  connect(filter.data(), SIGNAL(modified(ModelItem *)),
           this, SLOT(notifyModification()));
 }
 
 //------------------------------------------------------------------------
-void Segmentation::changeFilter(Filter* filter, Filter::OutputId oId)
+void Segmentation::changeFilter(FilterPtr filter, const Filter::OutputId &oId)
 {
-  disconnect(m_filter, SIGNAL(modified(ModelItem *)),
+  disconnect(m_filter.data(), SIGNAL(modified(ModelItem *)),
              this, SLOT(notifyModification()));
 //   m_filter->releaseDataFlagOn();
 //   filter->releaseDataFlagOff();
@@ -81,7 +83,7 @@ void Segmentation::changeFilter(Filter* filter, Filter::OutputId oId)
   filter->update();
   m_filter = filter;
   m_args.setOutputId(oId);
-  connect(filter, SIGNAL(modified(ModelItem *)),
+  connect(filter.data(), SIGNAL(modified(ModelItem *)),
           this, SLOT(notifyModification()));
 
   // update modified mesh extent to get a correct representation
@@ -99,18 +101,7 @@ void Segmentation::changeFilter(Filter* filter, Filter::OutputId oId)
 //------------------------------------------------------------------------
 Segmentation::~Segmentation()
 {
-//   int size = m_insertionOrderedExtensions.size()-1;
-//   for (int i = size; i >= 0; i--)
-//     delete m_insertionOrderedExtensions[i];
-//   
-//   foreach(ISegmentationExtension *ext, m_pendingExtensions)
-//     delete ext;
-//   
-//   m_extensions.clear();
-//   m_pendingExtensions.clear();
-//   m_insertionOrderedExtensions.clear();
-//   m_representations.clear();
-//   m_informations.clear();
+  deleteExtensions();
 }
 
 //------------------------------------------------------------------------
@@ -131,7 +122,7 @@ QVariant Segmentation::data(int role) const
     {
       QString boundsInfo;
       QString filterInfo;
-      if (m_filter && outputId() != Filter::Output::INVALID_OUTPUT_ID)
+      if (m_filter && outputId() != EspINA::Filter::Output::INVALID_OUTPUT_ID)
       {
         double bounds[6];
         volume()->bounds(bounds);
@@ -192,23 +183,21 @@ QString Segmentation::serialize() const
 }
 
 //------------------------------------------------------------------------
-void Segmentation::initialize(ModelItem::Arguments args)
+void Segmentation::initialize(const Arguments &args)
 {
   // Prevent overriding segmentation id assigned from model
-  if (ModelItem::Arguments() != args)
+  if (Arguments() != args)
     m_args = SArguments(args);
 }
 
 //------------------------------------------------------------------------
-void Segmentation::initializeExtensions(ModelItem::Arguments args)
+void Segmentation::initializeExtensions(const Arguments &args)
 {
 //   qDebug() << "Initializing" << data().toString() << "extensions:";
-  foreach(ModelItemExtension *ext, m_insertionOrderedExtensions)
+  foreach(ModelItemExtensionPtr ext, m_insertionOrderedExtensions)
   {
     Q_ASSERT(ext);
-    ModelItem::Arguments extArgs(args.value(ext->id(), QString()));
-//     qDebug() << ext->id();
-//     if (!args.isEmpty()) qDebug() << "*" << extArgs;
+    Arguments extArgs(args.value(ext->id(), QString()));
     ext->initialize(extArgs);
   }
 }
@@ -220,24 +209,24 @@ void Segmentation::updateCacheFlag()
 }
 
 //------------------------------------------------------------------------
-Sample* Segmentation::sample()
+SamplePtr Segmentation::sample()
 {
-  ModelItem::Vector relatedSamples = relatedItems(ModelItem::IN, Sample::WHERE);
+  ModelItemList relatedSamples = relatedItems(IN, Sample::WHERE);
   Q_ASSERT(relatedSamples.size() == 1);
 
-  return dynamic_cast<Sample *>(relatedSamples.first());
+  return qSharedPointerDynamicCast<Sample>(relatedSamples.first());
 }
 
 //------------------------------------------------------------------------
-Channel* Segmentation::channel()
+ChannelPtr Segmentation::channel()
 {
   ChannelList channels;
 
-  ModelItem::Vector relatedChannels = relatedItems(ModelItem::IN, Channel::LINK);
-  foreach(ModelItem *item, relatedChannels)
+  ModelItemList relatedChannels = relatedItems(IN, Channel::LINK);
+  foreach(ModelItemPtr item, relatedChannels)
   {
     Q_ASSERT(CHANNEL == item->type());
-    channels << dynamic_cast<Channel *>(item);
+    channels << qSharedPointerDynamicCast<Channel>(item);
   }
   Q_ASSERT(channels.size() == 1);
 
@@ -297,7 +286,7 @@ bool Segmentation::setData(const QVariant& value, int role)
 }
 
 //------------------------------------------------------------------------
-void Segmentation::setTaxonomy(TaxonomyElement* tax)
+void Segmentation::setTaxonomy(TaxonomyElementPtr tax)
 {
   m_taxonomy = tax;
   m_args[TAXONOMY] = Argument(tax->qualifiedName());
@@ -326,12 +315,12 @@ SegmentationList Segmentation::components()
 {
   SegmentationList res;
 
-  ModelItem::Vector subComponents = relatedItems(OUT, COMPOSED_LINK);
+  ModelItemList subComponents = relatedItems(OUT, COMPOSED_LINK);
 
-  foreach(ModelItem *item, subComponents)
+  foreach(ModelItemPtr item, subComponents)
   {
     Q_ASSERT(SEGMENTATION == item->type());
-    res << dynamic_cast<Segmentation *>(item);
+    res << qSharedPointerDynamicCast<Segmentation>(item);
   }
 
   return res;
@@ -342,22 +331,21 @@ SegmentationList Segmentation::componentOf()
 {
   SegmentationList res;
 
-  ModelItem::Vector subComponents = relatedItems(IN, COMPOSED_LINK);
+  ModelItemList subComponents = relatedItems(IN, COMPOSED_LINK);
 
-  foreach(ModelItem *item, subComponents)
+  foreach(ModelItemPtr item, subComponents)
   {
     Q_ASSERT(SEGMENTATION == item->type());
-    res << dynamic_cast<Segmentation *>(item);
+    res << qSharedPointerDynamicCast<Segmentation>(item);
   }
 
   return res;
 }
 
 //------------------------------------------------------------------------
-void Segmentation::addExtension(SegmentationExtension* ext)
+void Segmentation::addExtension(SegmentationExtensionPtr ext)
 {
   ModelItem::addExtension(ext);
-  ext->setSegmentation(this);
 }
 
 //------------------------------------------------------------------------
@@ -383,11 +371,12 @@ QVariant Segmentation::information(QString info)
 }
 
 //------------------------------------------------------------------------
-ModelItemExtension* Segmentation::extension(QString name)
+ModelItemExtensionPtr Segmentation::extension(QString name)
 {
   return ModelItem::extension(name);
 }
 
+//------------------------------------------------------------------------
 vtkAlgorithmOutput* Segmentation::mesh()
 {
   if (NULL == m_padfilter)
@@ -415,5 +404,25 @@ vtkAlgorithmOutput* Segmentation::mesh()
   }
 
   return m_march->GetOutput()->GetProducerPort();
+}
+
+//------------------------------------------------------------------------
+SegmentationPtr EspINA::segmentationPtr(ModelItemPtr &item)
+{
+  Q_ASSERT(SEGMENTATION == item->type());
+  SegmentationPtr ptr = qSharedPointerDynamicCast<Segmentation>(item);
+  Q_ASSERT(!ptr.isNull());
+
+  return ptr;
+}
+
+//------------------------------------------------------------------------
+SegmentationPtr EspINA::segmentationPtr(PickableItemPtr& item)
+{
+  Q_ASSERT(EspINA::SEGMENTATION == item->type());
+  SegmentationPtr ptr = qSharedPointerDynamicCast<Segmentation>(item);
+  Q_ASSERT(!ptr.isNull());
+
+  return ptr;
 }
 

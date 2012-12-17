@@ -25,26 +25,31 @@
 #include <QDir>
 
 class QSettings;
-const QString AUTOSAVE_PATH("Autosave::Path");
-const QString AUTOSAVE_INTERVAL("Autosave::Interval");
-const QString STACK_DIR("StackDirectory");
 
-class GeneralSettings
+namespace EspINA
 {
-public:
-  explicit GeneralSettings();
 
-  //QString stackDirectory() const {return m_stackDir;}
-  //void setStackDirectory(QString path);
+  const QString AUTOSAVE_PATH("Autosave::Path");
+  const QString AUTOSAVE_INTERVAL("Autosave::Interval");
+  const QString STACK_DIR("StackDirectory");
 
-  QString userName() const {return m_userName;}
-  void setUserName(QString name);
 
-  int autosaveInterval() const {return m_autosaveInterval;}
-  void setAutosaveInterval(int min);
+  class GeneralSettings
+  {
+  public:
+    explicit GeneralSettings();
 
-  QDir autosavePath() const {return m_autosavePath;}
-  void setAutosavePath(const QString path);
+    //QString stackDirectory() const {return m_stackDir;}
+    //void setStackDirectory(QString path);
+
+    QString userName() const {return m_userName;}
+    void setUserName(QString name);
+
+    int autosaveInterval() const {return m_autosaveInterval;}
+    void setAutosaveInterval(int min);
+
+    QDir autosavePath() const {return m_autosavePath;}
+    void setAutosavePath(const QString path);
 
 private:
   QSettings *m_settings;
@@ -54,5 +59,7 @@ private:
   int     m_autosaveInterval;
   QDir    m_autosavePath;
 };
+
+} // namespace EspINA
 
 #endif // GENERALSETTINGS_H

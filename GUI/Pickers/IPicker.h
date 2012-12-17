@@ -30,8 +30,11 @@
 #include <vtkSmartPointer.h>
 #include <vtkPoints.h>
 
-class PickableItem;
-class EspinaRenderView;
+#include <Core/EspinaTypes.h>
+
+namespace EspINA
+{
+  class EspinaRenderView;
 
 /// Interface to handle selections
 /// Classes that implement this interface have to specify
@@ -53,7 +56,7 @@ public:
   typedef QList<DisplayRegion>       DisplayRegionList;
   typedef vtkSmartPointer<vtkPoints> WorldRegion;
   typedef QPair<WorldRegion,
-                PickableItem *>      PickedItem;
+                PickableItemPtr>     PickedItem;
   typedef QList<PickedItem>          PickList;
 
 public:
@@ -82,5 +85,7 @@ protected:
   bool          m_multiSelection;
   QCursor       m_cursor;
 };
+
+} // namespace EspINA
 
 #endif // IPICKER_H

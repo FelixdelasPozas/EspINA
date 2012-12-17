@@ -13,6 +13,8 @@
 // vtk
 #include <vtkAbstractWidget.h>
 
+using namespace EspINA;
+
 //----------------------------------------------------------------------------
 ZoomSelectionSliceWidget::ZoomSelectionSliceWidget(vtkAbstractWidget *widget)
 : SliceWidget(widget)

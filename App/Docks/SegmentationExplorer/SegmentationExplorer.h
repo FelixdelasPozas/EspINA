@@ -31,8 +31,6 @@
 
 #include <GUI/ViewManager.h>
 
-class SegmentationInspector;
-class EspinaModel;
 class QUndoStack;
 
 #include "EspinaConfig.h"
@@ -40,63 +38,68 @@ class QUndoStack;
 class ModelTest;
 #endif
 
-class SegmentationExplorer
-: public QDockWidget
-, public IEspinaView
+namespace EspINA
 {
-  Q_OBJECT
-  class GUI;
-public:
-  class Layout;
+  class SegmentationInspector;
 
-public:
-  explicit SegmentationExplorer(EspinaModel *model,
-                                QUndoStack  *undoStack,
-                                ViewManager *vm,
-                                QWidget *parent = 0);
-  virtual ~SegmentationExplorer();
+  class SegmentationExplorer
+  : public QDockWidget
+  , public IEspinaView
+  {
+    Q_OBJECT
+    class GUI;
+  public:
+    class Layout;
 
-protected:
-  void addLayout(const QString id, Layout *proxy);
+  public:
+    explicit SegmentationExplorer(EspinaModelPtr model,
+                                  QUndoStack  *undoStack,
+                                  ViewManager *vm,
+                                  QWidget     *parent = 0);
+    virtual ~SegmentationExplorer();
 
-  virtual bool eventFilter(QObject *sender, QEvent* e);
+  protected:
+    void addLayout(const QString id, Layout *proxy);
 
-protected slots:
-  void changeLayout(int index);
+    virtual bool eventFilter(QObject *sender, QEvent* e);
 
-  void changeTaxonomy(TaxonomyElement *taxonomy);
-  void changeFinalFlag(bool);
-  void deleteSegmentations();
-  void focusOnSegmentation(const QModelIndex &index);
-  void rowsAboutToBeRemoved(const QModelIndex parent, int start, int end);
-  void showInformation();
+  protected slots:
+    void changeLayout(int index);
 
-  void updateSelection(ViewManager::Selection selection);
-  void updateSelection(QItemSelection selected, QItemSelection deselected);
+    void changeTaxonomy(TaxonomyElementPtr taxonomy);
+    void changeFinalFlag(bool);
+    void deleteSegmentations();
+    void focusOnSegmentation(const QModelIndex &index);
+    void rowsAboutToBeRemoved(const QModelIndex parent, int start, int end);
+    void showInformation();
 
-  void releaseInspectorResources(SegmentationInspector *inspector);
+    void updateSelection(ViewManager::Selection selection);
+    void updateSelection(QItemSelection selected, QItemSelection deselected);
 
-  virtual ISettingsPanel* settingsPanel();
-  virtual void updateSegmentationRepresentations(SegmentationList list = SegmentationList());
-  virtual void updateSelection();
+    void releaseInspectorResources(SegmentationInspector *inspector);
 
-protected:
-  GUI *m_gui;
+    virtual ISettingsPanel* settingsPanel();
+    virtual void updateSegmentationRepresentations(SegmentationList list = SegmentationList());
+    virtual void updateSelection();
 
-  EspinaModel    *m_baseModel;
-  QUndoStack     *m_undoStack;
-  ViewManager    *m_viewManager;
+  protected:
+    EspinaModelPtr m_baseModel;
+    QUndoStack    *m_undoStack;
+    ViewManager   *m_viewManager;
 
-  QStringList     m_layoutNames;
-  QList<Layout *> m_layouts;
-  Layout         *m_layout;
+    GUI *m_gui;
+    QStringList     m_layoutNames;
+    QList<Layout *> m_layouts;
+    Layout         *m_layout;
 
-  QMap<Segmentation *, SegmentationInspector *> m_inspectors;
+    QMap<SegmentationPtr, SegmentationInspector *> m_inspectors;
 
-private:
-#ifdef TEST_ESPINA_MODELS
-  QSharedPointer<ModelTest>   m_modelTester;
-#endif
-};
+  private:
+    #ifdef TEST_ESPINA_MODELS
+    QSharedPointer<ModelTest>   m_modelTester;
+    #endif
+  };
+
+} // namespace EspINA
 
 #endif // SEGMENTATIONEXPLORER_H

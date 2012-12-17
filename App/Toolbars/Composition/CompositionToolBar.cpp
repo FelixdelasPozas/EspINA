@@ -21,18 +21,21 @@
 #include <Undo/CompositionCommand.h>
 
 #include <Core/Model/EspinaModel.h>
+#include <Core/Model/EspinaFactory.h>
 #include <GUI/ViewManager.h>
 
 #include <QAction>
 #include <QUndoStack>
 
+using namespace EspINA;
+
 const QString COMPOSE_SEG_TOOLTIP = QObject::tr("Compose Selected Segmentations");
 
 //----------------------------------------------------------------------------
-CompositionToolBar::CompositionToolBar(EspinaModel *model,
-                                       QUndoStack  *undoStack,
-                                       ViewManager *viewManager,
-                                       QWidget     *parent)
+CompositionToolBar::CompositionToolBar(EspinaModelPtr model,
+                                       QUndoStack    *undoStack,
+                                       ViewManager   *viewManager,
+                                       QWidget       *parent)
 : QToolBar     ( parent      )
 , m_model      ( model       )
 , m_undoStack  ( undoStack   )
@@ -58,17 +61,18 @@ CompositionToolBar::~CompositionToolBar()
 }
 
 //----------------------------------------------------------------------------
-void CompositionToolBar::initFactoryExtension(EspinaFactory* factory)
+void CompositionToolBar::initFactoryExtension(EspinaFactoryPtr factory)
 {
-
+  // TODO 2012-12-17
 }
 
 //----------------------------------------------------------------------------
-Filter* CompositionToolBar::createFilter(const QString              &filter,
+FilterPtr CompositionToolBar::createFilter(const QString              &filter,
                                          const Filter::NamedInputs  &inputs,
                                          const ModelItem::Arguments &args)
 {
-  return NULL;
+  Q_ASSERT(false);//TODO 2012-12-17
+  return FilterPtr();
 }
 
 //----------------------------------------------------------------------------

@@ -29,38 +29,42 @@
 
 class vtkAlgorithmOutput;
 
-class PickableItem
-: public ModelItem
+namespace EspINA
 {
-public:
-  typedef QPair<QString, QString> ConditionInfo;
-
-public:
-  ~PickableItem(){}
-
-  virtual bool isSelected() const {return m_isSelected;}
-  virtual void setSelected(bool value) {m_isSelected = value;}
-
-  virtual const Filter *filter() const = 0;
-  virtual Filter *filter() = 0;
-  virtual const Filter::OutputId  outputId() const = 0;
-
-  EspinaVolume::Pointer volume();
-  const EspinaVolume::Pointer volume() const;
-
-  /// Add a new condition to the item:
-  /// Conditions provide extra information about the state of the item
-  /// i.e. Discarted by Counting Region
-  void addCondition(QString state, QString icon, QString description)
+  class PickableItem
+  : public ModelItem
   {
-    m_conditions[state] = ConditionInfo(icon, description);
-  }
+  public:
+    typedef QPair<QString, QString> ConditionInfo;
 
-protected:
-  bool m_isSelected;
-  QMap<QString, ConditionInfo> m_conditions;
-};
+  public:
+    ~PickableItem(){}
 
-typedef QSharedPointer<PickableItem> SelectableItemPtr;
+    virtual bool isSelected() const {return m_isSelected;}
+    virtual void setSelected(bool value) {m_isSelected = value;}
+
+    virtual const FilterPtr filter() const = 0;
+    virtual FilterPtr filter() = 0;
+    virtual const Filter::OutputId  outputId() const = 0;
+
+    EspinaVolume::Pointer volume();
+    const EspinaVolume::Pointer volume() const;
+
+    /// Add a new condition to the item:
+    /// Conditions provide extra information about the state of the item
+    /// i.e. Discarted by Counting Region
+    void addCondition(QString state, QString icon, QString description)
+    {
+      m_conditions[state] = ConditionInfo(icon, description);
+    }
+
+  protected:
+    bool m_isSelected;
+    QMap<QString, ConditionInfo> m_conditions;
+  };
+
+  PickableItemPtr pickableItemPtr(ModelItemPtr item);
+
+} // namespace EspINA
 
 #endif // SELECTABLEITEM_H

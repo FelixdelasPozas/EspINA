@@ -22,17 +22,23 @@
 
 #include <QDockWidget>
 
-class EspinaModel;
-class ViewManager;
+#include <Core/EspinaTypes.h>
 
-class DataViewPanel
-: public QDockWidget
+namespace EspINA
 {
-public:
-  explicit DataViewPanel(EspinaModel *model,
-                         ViewManager *vm,
-                         QWidget* parent = 0);
-  virtual ~DataViewPanel();
-};
+
+  class ViewManager;
+
+  class DataViewPanel
+  : public QDockWidget
+  {
+  public:
+    explicit DataViewPanel(EspinaModelPtr model,
+                           ViewManager   *vm,
+                           QWidget       *parent = 0);
+    virtual ~DataViewPanel();
+  };
+
+} // namespace EspINA
 
 #endif // DATAVIEWPANEL_H

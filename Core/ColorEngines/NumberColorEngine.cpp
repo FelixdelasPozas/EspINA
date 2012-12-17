@@ -19,20 +19,22 @@
 
 #include "Core/Model/Segmentation.h"
 
-const double SELECTED_ALPHA = 1.0;
+using namespace EspINA;
+
+const double SELECTED_ALPHA   = 1.0;
 const double UNSELECTED_ALPHA = 0.6;
 
 //-----------------------------------------------------------------------------
-QColor NumberColorEngine::color(Segmentation* seg)
+QColor NumberColorEngine::color(SegmentationPtr seg)
 {
-  if (seg)
-    return QColor((seg->number() * 25) % 255, (seg->number() * 73) % 255, (seg->number() * 53) % 255);
-  else
+  if (seg.isNull())
     return Qt::red;
+  else
+    return QColor((seg->number() * 25) % 255, (seg->number() * 73) % 255, (seg->number() * 53) % 255);
 }
 
 //-----------------------------------------------------------------------------
-LUTPtr NumberColorEngine::lut(Segmentation* seg)
+LUTPtr NumberColorEngine::lut(SegmentationPtr seg)
 {
   // Get (or create if it doesn't exit) the lut for the segmentations' images
   QString lutName = QString::number(seg->number());

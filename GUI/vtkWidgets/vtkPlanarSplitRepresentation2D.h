@@ -22,9 +22,12 @@ class vtkActor;
 class vtkPointHandleRepresentation2D;
 class vtkHandleRepresentation;
 
-class VTK_WIDGETS_EXPORT vtkPlanarSplitRepresentation2D
-: public vtkWidgetRepresentation
+namespace EspINA
 {
+
+  class VTK_WIDGETS_EXPORT vtkPlanarSplitRepresentation2D
+  : public vtkWidgetRepresentation
+  {
     vtkTypeMacro(vtkPlanarSplitRepresentation2D,vtkWidgetRepresentation);
 
   public:
@@ -110,6 +113,8 @@ class VTK_WIDGETS_EXPORT vtkPlanarSplitRepresentation2D
   private:
     vtkPlanarSplitRepresentation2D(const vtkPlanarSplitRepresentation2D&);  //Not implemented
     void operator=(const vtkPlanarSplitRepresentation2D&);  //Not implemented
-};
+  };
+
+} // namespace EspINA
 
 #endif /* VTKPLANARSPLITREPRESENTATION2D_H_ */

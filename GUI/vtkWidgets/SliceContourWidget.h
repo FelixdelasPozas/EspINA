@@ -16,6 +16,8 @@
 
 #include <vtkPolyData.h>
 
+namespace EspINA
+{
 class SliceContourWidget: public SliceWidget
 {
   public:
@@ -38,5 +40,7 @@ class SliceContourWidget: public SliceWidget
     QMap<Nm, vtkPolyData*> m_contourMap;
     vtkPlaneContourWidget *m_contourWidget;
 };
+
+}// namespace EspINA
 
 #endif /* SLICECONTOURWIDGET_H_ */

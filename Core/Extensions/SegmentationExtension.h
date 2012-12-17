@@ -24,33 +24,33 @@
 
 #include <QSharedPointer>
 
-class Segmentation;
-class SegmentationRepresentation;
-
-/// Interface to extend segmentation's behaviour
-class SegmentationExtension
-: public ModelItemExtension
+namespace EspINA
 {
-public:
-  typedef QSharedPointer<SegmentationExtension> SPtr;
+  class Segmentation;
+  class SegmentationRepresentation;
+  typedef QSharedPointer<SegmentationRepresentation> SegmentationRepresentationPtr;
 
-public:
-  virtual ~SegmentationExtension(){}
+  /// Interface to extend segmentation's behaviour
+  class SegmentationExtension
+  : public ModelItemExtension
+  {
+  public:
+    virtual ~SegmentationExtension(){}
 
-  virtual void setSegmentation(Segmentation *seg) {m_seg = seg;}
+    virtual void setSegmentation(SegmentationPtr seg) {m_seg = seg;}
 
-  virtual SegmentationRepresentation *representation(QString rep) = 0;
+    virtual SegmentationRepresentationPtr representation(QString rep) = 0;
 
-  virtual Segmentation *segmentation() {return m_seg;}
+    virtual SegmentationPtr segmentation() {return m_seg;}
 
-  /// Prototype
-  virtual SegmentationExtension *clone() = 0;
+    /// Prototype
+    virtual SegmentationExtensionPtr clone() = 0;
 
-protected:
-  SegmentationExtension() : m_seg(NULL){}
-  Segmentation *m_seg;
-};
+  protected:
+    SegmentationExtension() : m_seg(NULL){}
+    SegmentationPtr m_seg;
+  };
 
-
+} // namespace EspINA
 
 #endif // SEGMENTATIONEXTENSION_H

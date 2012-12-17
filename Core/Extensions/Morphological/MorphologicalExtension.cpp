@@ -28,6 +28,8 @@
 #include <QApplication>
 #include <QDebug>
 
+using namespace EspINA;
+
 const ModelItemExtension::ExtId MorphologicalExtension::ID = "MorphologicalExtension";
 
 // NOTE: Should it be public?
@@ -91,6 +93,7 @@ MorphologicalExtension::MorphologicalExtension()
 //------------------------------------------------------------------------
 MorphologicalExtension::~MorphologicalExtension()
 {
+  qDebug() << "Deleting Morphological Extension";
 }
 
 //------------------------------------------------------------------------
@@ -112,11 +115,11 @@ void MorphologicalExtension::initialize(ModelItem::Arguments args)
 }
 
 //------------------------------------------------------------------------
-SegmentationRepresentation* MorphologicalExtension::representation(QString rep)
+SegmentationRepresentationPtr MorphologicalExtension::representation(QString rep)
 {
   qWarning() << ID << ":" << rep << " is not provided";
   Q_ASSERT(false);
-  return NULL;
+  return SegmentationRepresentationPtr();
 }
 
 //------------------------------------------------------------------------
@@ -131,9 +134,6 @@ QVariant MorphologicalExtension::information(QString info) const
      )
   {
     QApplication::setOverrideCursor(Qt::WaitCursor);
-//     qDebug() << "Updating morphological extension";
-//     qDebug() << "Volume TS:" << m_seg->volume()->GetTimeStamp().GetMTime();
-//     qDebug() << "LabelMap TS:" << m_labelMap->GetTimeStamp().GetMTime();
     if (info == FD)
     {
       m_labelMap->SetComputeFeretDiameter(true);
@@ -212,8 +212,8 @@ QVariant MorphologicalExtension::information(QString info) const
 }
 
 //------------------------------------------------------------------------
-SegmentationExtension* MorphologicalExtension::clone()
+SegmentationExtensionPtr MorphologicalExtension::clone()
 {
-  return new MorphologicalExtension();
+  return SegmentationExtensionPtr(new MorphologicalExtension());
 }
 

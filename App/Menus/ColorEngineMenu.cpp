@@ -23,6 +23,8 @@
 #include <QActionGroup>
 #include <QSettings>
 
+using namespace EspINA;
+
 const QString COLOR_ENGINE("ColorEngine");
 
 //-----------------------------------------------------------------------------

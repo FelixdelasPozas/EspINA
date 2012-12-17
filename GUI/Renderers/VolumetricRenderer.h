@@ -28,49 +28,53 @@
 
 #include <QMap>
 
-class ViewManager;
-class ModelItem;
-class Segmentation;
 class vtkVolumeProperty;
-
-class VolumetricRenderer
-: public Renderer
+namespace EspINA
 {
-  struct Representation
+  class ViewManager;
+
+  class VolumetricRenderer
+  : public IRenderer
   {
-    vtkVolume *volume;
-    bool visible;
-    bool selected;
-    QColor color;
-    bool overridden;
-    HierarchyItem::HierarchyRenderingType renderingType;
-    vtkSmartPointer<vtkVolumeProperty> actorPropertyBackup;
+    struct Representation
+    {
+      vtkVolume *volume;
+      bool visible;
+      bool selected;
+      QColor color;
+      bool overridden;
+      HierarchyItem::HierarchyRenderingType renderingType;
+      vtkSmartPointer<vtkVolumeProperty> actorPropertyBackup;
+    };
+
+  public:
+    explicit VolumetricRenderer(ViewManager *vm, QObject* parent = 0);
+
+    virtual const QIcon icon() const {return QIcon(":/espina/voxel.png");}
+    virtual const QString name() const {return "Volumetric";}
+    virtual const QString tooltip() const {return "Segmentation's Volumes";}
+
+    virtual bool addItem   (ModelItemPtr item);
+    virtual bool updateItem(ModelItemPtr item);
+    virtual bool removeItem(ModelItemPtr item);
+
+    virtual void hide();
+    virtual void show();
+    virtual unsigned int getNumberOfvtkActors(){Q_ASSERT(false);}
+
+    virtual void clean() {Q_ASSERT(false);}
+    virtual IRendererPtr clone() {return IRendererPtr(new VolumetricRenderer(m_viewManager));}
+
+    virtual bool isASegmentationRenderer() { return true; };
+  private:
+    // helper methods
+    void createHierarchyProperties(SegmentationPtr seg);
+    bool updateHierarchyProperties(SegmentationPtr seg);
+
+    ViewManager *m_viewManager;
+    QMap<ModelItemPtr, Representation> m_segmentations;
   };
 
-public:
-  explicit VolumetricRenderer(ViewManager *vm, QObject* parent = 0);
-
-  virtual const QIcon icon() const {return QIcon(":/espina/voxel.png");}
-  virtual const QString name() const {return "Volumetric";}
-  virtual const QString tooltip() const {return "Segmentation's Volumes";}
-
-  virtual bool addItem(ModelItem* item);
-  virtual bool updateItem(ModelItem* item);
-  virtual bool removeItem(ModelItem* item);
-
-  virtual void hide();
-  virtual void show();
-
-  virtual Renderer* clone() {return new VolumetricRenderer(m_viewManager);}
-
-  virtual bool isASegmentationRenderer() { return true; };
-private:
-  // helper methods
-  void createHierarchyProperties(Segmentation *);
-  bool updateHierarchyProperties(Segmentation *);
-
-  ViewManager *m_viewManager;
-  QMap<ModelItem *, Representation> m_segmentations;
-};
+} // namespace EspINA
 
 #endif // VOLUMETRICRENDERER_H

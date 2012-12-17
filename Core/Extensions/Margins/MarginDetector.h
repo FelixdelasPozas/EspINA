@@ -22,8 +22,11 @@
 
 #include <QThread>
 
+#include <Core/EspinaTypes.h>
+
+namespace EspINA
+{
 class MarginsChannelExtension;
-class Channel;
 
 class MarginDetector
 : public QThread
@@ -38,5 +41,7 @@ protected:
 private:
   MarginsChannelExtension *m_extension;
 };
+
+}// namespace EspINA
 
 #endif // MARGINDETECTOR_H

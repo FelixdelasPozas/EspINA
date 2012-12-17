@@ -23,6 +23,8 @@
 
 #include <QDebug>
 
+using namespace EspINA;
+
 const QString ErodeFilter::TYPE = "EditorToolBar::ErodeFilter";
 
 ErodeFilter::ErodeFilter(Filter::NamedInputs inputs,

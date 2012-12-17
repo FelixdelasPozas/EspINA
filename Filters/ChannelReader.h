@@ -25,37 +25,40 @@
 #include <itkImageIOBase.h>
 #include <itkImageFileReader.h>
 
-
-class ChannelReader
-: public ChannelFilter
+namespace EspINA
 {
-public:
-  static const QString TYPE;
+  class ChannelReader
+  : public ChannelFilter
+  {
+  public:
+    static const QString TYPE;
 
-  static const ArgumentId FILE;
-  static const ArgumentId SPACING;
+    static const ArgumentId FILE;
+    static const ArgumentId SPACING;
 
-public:
-  explicit ChannelReader(NamedInputs inputs, Arguments args);
+  public:
+    explicit ChannelReader(NamedInputs inputs, Arguments args);
 
-  /// Implements Model Item Interface
-  virtual QString id() const {return m_args[ID];}
-  virtual QVariant data(int role=Qt::DisplayRole) const;
-  virtual QString serialize() const;
+    /// Implements Model Item Interface
+    virtual QString id() const {return m_args[ID];}
+    virtual QVariant data(int role=Qt::DisplayRole) const;
+    virtual QString serialize() const;
 
-  /// Implements Filter Interface
-  virtual bool needUpdate() const;
+    /// Implements Filter Interface
+    virtual bool needUpdate() const;
 
-  void setSpacing(itkVolumeType::SpacingType spacing);
+    void setSpacing(itkVolumeType::SpacingType spacing);
 
-protected:
-  virtual void run();
+  protected:
+    virtual void run();
 
-  itkVolumeType::SpacingType spacing();
+    itkVolumeType::SpacingType spacing();
 
-private:
-  itk::ImageIOBase::Pointer   m_io;
-  EspinaVolumeReader::Pointer m_reader;
-};
+  private:
+    itk::ImageIOBase::Pointer   m_io;
+    EspinaVolumeReader::Pointer m_reader;
+  };
+
+}// namespace EspINA
 
 #endif // CHANNELREADER_H

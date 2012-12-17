@@ -29,6 +29,8 @@
 #include <QPushButton>
 #include <QSpinBox>
 
+using namespace EspINA;
+
 //----------------------------------------------------------------------------
 CODESettings::CODESettings(QString title,
                            MorphologicalEditionFilter* filter,

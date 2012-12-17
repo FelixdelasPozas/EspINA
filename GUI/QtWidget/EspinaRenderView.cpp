@@ -28,13 +28,17 @@
 #include <QApplication>
 #include <QDebug>
 
+using namespace EspINA;
+
 //-----------------------------------------------------------------------------
 EspinaRenderView::EspinaRenderView(QWidget* parent)
 : QWidget(parent)
 {
   m_sceneResolution[0] = m_sceneResolution[1] = m_sceneResolution[2] = 1;
+
   m_sceneBounds[0] = m_sceneBounds[2] = m_sceneBounds[4] = 0;
   m_sceneBounds[1] = m_sceneBounds[3] = m_sceneBounds[5] = 0;
+
   m_plane = VOLUME;
 }
 
@@ -47,14 +51,14 @@ EspinaRenderView::~EspinaRenderView()
 void EspinaRenderView::previewBounds(Nm bounds[6])
 {
   vtkMath::UninitializeBounds(bounds);
-  qDebug() << bounds[0] << bounds[1] << bounds[2] << bounds[3] << bounds[4] << bounds[5];
+  //qDebug() << bounds[0] << bounds[1] << bounds[2] << bounds[3] << bounds[4] << bounds[5];
   bounds[0] = bounds[2] = bounds[4] =  0;
   bounds[1] = bounds[3] = bounds[5] = -1;
 }
 
 
 //-----------------------------------------------------------------------------
-void EspinaRenderView::addChannelBounds(Channel* channel)
+void EspinaRenderView::addChannelBounds(ChannelPtr channel)
 {
   Q_ASSERT(!m_channels.contains(channel));
   m_channels << channel;
@@ -62,7 +66,7 @@ void EspinaRenderView::addChannelBounds(Channel* channel)
 }
 
 //-----------------------------------------------------------------------------
-void EspinaRenderView::removeChannelBounds(Channel* channel)
+void EspinaRenderView::removeChannelBounds(ChannelPtr channel)
 {
   Q_ASSERT(m_channels.contains(channel));
   m_channels.removeOne(channel);
@@ -74,7 +78,7 @@ double EspinaRenderView::suggestedChannelOpacity()
 {
   double numVisibleRep = 0;
 
-  foreach(Channel * channel, m_channels)
+  foreach(ChannelPtr  channel, m_channels)
     if (channel->isVisible())
       numVisibleRep++;
 

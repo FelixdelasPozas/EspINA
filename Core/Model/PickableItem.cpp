@@ -18,14 +18,13 @@
 
 #include "PickableItem.h"
 
+using namespace EspINA;
 
 //----------------------------------------------------------------------------
-Filter* PickableItem::filter()
+FilterPtr PickableItem::filter()
 {
-  return const_cast<Filter *>(
-    static_cast<const PickableItem *>(this)->filter()
-  );
-
+  const FilterPtr cp = static_cast<const PickableItem *>(this)->filter();
+  return cp;
 }
 
 //----------------------------------------------------------------------------
@@ -38,4 +37,14 @@ EspinaVolume::Pointer PickableItem::volume()
 const EspinaVolume::Pointer PickableItem::volume() const
 {
   return filter()->volume(outputId());
+}
+
+//----------------------------------------------------------------------------
+PickableItemPtr EspINA::pickableItemPtr(ModelItemPtr item)
+{
+  Q_ASSERT(EspINA::SEGMENTATION == item->type() || EspINA::SAMPLE == item->type());
+  PickableItemPtr ptr = qSharedPointerDynamicCast<PickableItem>(item);
+  Q_ASSERT(!ptr.isNull());
+
+  return ptr;
 }

@@ -36,6 +36,9 @@ class vtkImageData;
 class Channel;
 class PickableItem;
 
+namespace EspINA
+{
+
 class BrushPicker
 : public IPicker
 {
@@ -54,13 +57,13 @@ public:
   void setBrushColor(QColor color);
 
   /// @item is used to specify the spacing of the stroke
-  void setReferenceItem(PickableItem *item);
+  void setReferenceItem(PickableItemPtr item);
   void DrawingOn();
   void DrawingOff();
 
 signals:
-  void stroke(PickableItem *, double, double, double, Nm, PlaneType);
-  void stroke(PickableItem *, IPicker::WorldRegion, Nm, PlaneType);
+  void stroke(PickableItemPtr, double, double, double, Nm, PlaneType);
+  void stroke(PickableItemPtr, IPicker::WorldRegion, Nm, PlaneType);
 
 private:
   void buildCursor();
@@ -74,7 +77,7 @@ private:
   void stopPreview(EspinaRenderView *view);
 
 private:
-  PickableItem *m_referenceItem;
+  PickableItemPtr m_referenceItem;
 
   int    m_displayRadius;//In screen pixels
   QColor m_borderColor;
@@ -99,5 +102,7 @@ private:
 
   static const int MAX_RADIUS = 32;
 };
+
+} // namespace EspINA
 
 #endif // BRUSHPICKER_H

@@ -30,12 +30,13 @@
 #include <vtkOBBTree.h>
 #include "MarginsChannelExtension.h"
 
+using namespace EspINA;
 
 //-----------------------------------------------------------------------------
 vtkSmartPointer<vtkPoints> plane(const double corner[3],
-				 const double max[3],
-				 const double mid[3],
-				 const double min[3])
+                                 const double max[3],
+                                 const double mid[3],
+                                 const double min[3])
 {
   vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
   double x[3];
@@ -66,7 +67,7 @@ vtkSmartPointer<vtkPoints> plane(const double corner[3],
 
 //------------------------------------------------------------------------
 MarginDetector::MarginDetector(MarginsChannelExtension *extension,
-			       QObject* parent)
+                               QObject* parent)
 : QThread(parent)
 , m_extension(extension)
 {
@@ -81,7 +82,7 @@ MarginDetector::~MarginDetector()
 //------------------------------------------------------------------------
 void MarginDetector::run()
 {
-  Channel *channel       = m_extension->channel();
+  Channel *channel      = m_extension->channel();
   vtkAlgorithm *producer = channel->volume()->toVTK()->GetProducer();
   vtkDataObject *output  = producer->GetOutputDataObject(0);
   vtkImageData *image    = vtkImageData::SafeDownCast(output);
@@ -99,8 +100,6 @@ void MarginDetector::run()
 
   m_extension->m_computedVolume = 0;
 
-//   vtkDebugMacro(<< "Dim: " << dim[0] << "," << dim[1] << "," << dim[2]);
-//   vtkDebugMacro(<< "Spacing: " << spacing[0] << "," << spacing[1] << "," << spacing[2]);
 //   vtkDebugMacro( << "Looking for borders");
 
   int numComponets = image->GetNumberOfScalarComponents();

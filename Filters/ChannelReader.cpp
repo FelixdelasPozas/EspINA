@@ -26,6 +26,8 @@
 #include <QFileDialog>
 #include <QFileInfo>
 
+using namespace EspINA;
+
 const QString ChannelReader::TYPE = "Channel Reader";
 
 typedef ModelItem::ArgumentId ArgumentId;
@@ -105,7 +107,7 @@ void ChannelReader::run()
 }
 
 //----------------------------------------------------------------------------
-void ChannelReader::setSpacing(itk::Image< unsigned int, 3 >::SpacingType spacing)
+void ChannelReader::setSpacing(itkVolumeType::SpacingType spacing)
 {
   Q_ASSERT(m_outputs.size() == 1);
 

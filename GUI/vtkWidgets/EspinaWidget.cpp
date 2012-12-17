@@ -28,6 +28,8 @@
 
 #include <QMouseEvent>
 
+using namespace EspINA;
+
 //----------------------------------------------------------------------------
 SliceWidget::SliceWidget(vtkAbstractWidget *widget)
 : m_widget(widget)

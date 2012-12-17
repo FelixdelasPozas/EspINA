@@ -23,7 +23,8 @@
 #include "Core/Extensions/SegmentationExtension.h"
 #include "Core/EspinaTypes.h"
 
-
+namespace EspINA
+{
 class MarginsSegmentationExtension
 : public SegmentationExtension
 {
@@ -53,11 +54,11 @@ public:
 
   virtual QVariant information(InfoTag tag) const;
 
-  virtual SegmentationRepresentation *representation(QString rep);
+  virtual SegmentationRepresentationPtr representation(QString rep);
 
   virtual void initialize(ModelItem::Arguments args = ModelItem::Arguments());
 
-  virtual SegmentationExtension* clone();
+  virtual SegmentationExtensionPtr clone();
 
   void margins(Nm margins[6]) const
   {
@@ -74,5 +75,9 @@ private:
 
   friend class MarginsChannelExtension;
 };
+
+typedef QSharedPointer<MarginsSegmentationExtension> MarginsSegmentationExtensionPtr;
+
+}// namespace EspINA
 
 #endif // MARGINSSEGMENTATIONEXTENSION_H

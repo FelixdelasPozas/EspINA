@@ -23,8 +23,10 @@
 #include <itkImageRegionExclusionIteratorWithIndex.h>
 #include <itkLabelImageToShapeLabelMapFilter.h>
 #include <itkStatisticsLabelObject.h>
-#include <boost/graph/graph_concepts.hpp>
+
 #include <QDebug>
+
+using namespace EspINA;
 
 typedef itk::StatisticsLabelObject<unsigned int, 3> LabelObjectType;
 typedef itk::LabelMap<LabelObjectType> LabelMapType;

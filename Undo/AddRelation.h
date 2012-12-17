@@ -22,27 +22,31 @@
 
 #include <QUndoCommand>
 
-class EspinaModel;
-class ModelItem;
+#include <Core/EspinaTypes.h>
 
-class AddRelation
-: public QUndoCommand
+namespace EspINA
 {
-public:
-  explicit AddRelation(ModelItem *ancestor,
-                       ModelItem *successor,
-                       const QString description,
-                       EspinaModel *model,
-                       QUndoCommand* parent = 0);
+  class AddRelation
+  : public QUndoCommand
+  {
+  public:
+    explicit AddRelation(ModelItemPtr   ancestor,
+                         ModelItemPtr   successor,
+                         const QString  description,
+                         EspinaModelPtr model,
+                         QUndoCommand  *parent = 0);
 
-  virtual void redo();
-  virtual void undo();
+    virtual void redo();
+    virtual void undo();
 
-private:
-  EspinaModel  *m_model;
-  ModelItem    *m_ancester;
-  ModelItem    *m_succesor;
-  const QString m_description;
-};
+  private:
+    EspinaModelPtr m_model;
+
+    ModelItemPtr   m_ancester;
+    ModelItemPtr   m_succesor;
+    const QString  m_description;
+  };
+
+}// namespace EspINA
 
 #endif // ADDRELATION_H

@@ -28,19 +28,19 @@
 
 #include <Core/EspinaTypes.h>
 
-// Forward-declaration
-class EspinaModel;
-class ISettingsPanel;
-class Segmentation;
-
-class IEspinaView
+namespace EspINA
 {
-public:
-  explicit IEspinaView(){}
-  virtual ~IEspinaView(){}
 
-  virtual void updateSelection() = 0;
-  virtual void updateSegmentationRepresentations(SegmentationList list = SegmentationList()) = 0;
-};
+  class IEspinaView
+  {
+  public:
+    explicit IEspinaView(){}
+    virtual ~IEspinaView(){}
+
+    virtual void updateSelection() = 0;
+    virtual void updateSegmentationRepresentations(SegmentationList list = SegmentationList()) = 0;
+  };
+
+} // namespace EspINA
 
 #endif //IESPINAVIEW_H

@@ -27,13 +27,15 @@
 #include <vtkActor.h>
 #include <vtkSmartPointer.h>
 
-class ModelItem;
-class ViewManager;
 class vtkImageConstantPad;
-class Segmentation;
 class vtkProperty;
 
-class MeshRenderer: public Renderer
+namespace EspINA
+{
+class ViewManager;
+
+class MeshRenderer
+: public IRenderer
 {
   struct Representation
   {
@@ -53,23 +55,26 @@ public:
   virtual const QString name() const {return "Mesh";}
   virtual const QString tooltip() const {return "Segmentation's Meshes";}
 
-  virtual bool addItem(ModelItem* item);
-  virtual bool updateItem(ModelItem* item);
-  virtual bool removeItem(ModelItem* item);
+  virtual bool addItem   (ModelItemPtr item);
+  virtual bool updateItem(ModelItemPtr item);
+  virtual bool removeItem(ModelItemPtr item);
 
   virtual void hide();
   virtual void show();
   virtual unsigned int getNumberOfvtkActors();
 
-  virtual Renderer* clone() {return new MeshRenderer(m_viewManager);}
+  virtual void clean() {Q_ASSERT(false);}
+  virtual IRendererPtr clone() {return IRendererPtr(new MeshRenderer(m_viewManager));}
 
   virtual bool isASegmentationRenderer() { return true; };
 private:
-  void createHierarchyProperties(Segmentation *);
-  bool updateHierarchyProperties(Segmentation *);
+  void createHierarchyProperties(SegmentationPtr seg);
+  bool updateHierarchyProperties(SegmentationPtr seg);
 
   ViewManager *m_viewManager;
-  QMap<ModelItem *, Representation> m_segmentations;
+  QMap<ModelItemPtr, Representation> m_segmentations;
 };
+
+} // namespace EspINA
 
 #endif // MESHRENDERER_H

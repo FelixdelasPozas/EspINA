@@ -25,59 +25,58 @@
 #ifndef SAMPLE_H
 #define SAMPLE_H
 
-#include "ModelItem.h"
+#include "Core/Model/ModelItem.h"
 
-#include <QList>
-#include <QString>
-
-class SampleExtension;
-class Channel;
-class Segmentation;
-
-class Sample
-: public ModelItem
+namespace EspINA
 {
-public:
-  static const QString WHERE;
+  class Sample
+  : public ModelItem
+  {
+  public:
+    static const QString WHERE;
 
-public:
-  explicit Sample(const QString id);
-  explicit Sample(const QString id, const QString args);
-  virtual ~Sample();
+  public:
+    explicit Sample(const QString &id);
+    explicit Sample(const QString &id, const QString &args);
+    virtual ~Sample();
 
-  // Relative to brain center (in nm)
-  void position(double pos[3]);
-  void setPosition(double pos[3]);
+    // Relative to brain center (in nm)
+    void position   (double pos[3]);
+    void setPosition(double pos[3]);
 
-  void bounds(double value[6]);   //nm
-  void setBounds(double value[6]);//nm
+    void bounds   (double value[6]);//nm
+    void setBounds(double value[6]);//nm
 
-  void addChannel(Channel *channel);
-  void addSegmentation(Segmentation *seg);
+    void addChannel(ChannelPtr channel);
 
-  /// ModelItem Interface
-  virtual QString id() const {return m_ID;}
-  virtual QVariant data(int role) const;
-  virtual QString serialize() const;
-  virtual ItemType type() const {return SAMPLE;}
-  virtual void initialize(Arguments args = Arguments());
-  virtual void initializeExtensions(Arguments args = Arguments());
+    void addSegmentation(SegmentationPtr seg);
 
-  void setId(const QString &id) {m_ID = id;}
+    /// ModelItem Interface
+    virtual QString id() const {return m_ID;}
+    virtual QVariant data(int role) const;
+    virtual QString serialize() const;
+    virtual ModelItemType type() const {return SAMPLE;}
+    virtual void initialize(const Arguments &args = Arguments());
+    virtual void initializeExtensions(const Arguments &args = Arguments());
 
-  /// Add a new extension to the segmentation
-  /// Extesion won't be available until requirements are satisfied
-  void addExtension(SampleExtension *ext);
+    void setId(const QString &id) {m_ID = id;}
 
-private:
-  mutable Arguments m_args;
+    /// Add a new extension to the segmentation
+    /// Extesion won't be available until requirements are satisfied
+    void addExtension(SampleExtensionPtr ext);
 
-  QString m_ID;
-  double  m_position[3];//nm
-  double  m_bounds[6];//nm
+  private:
+    mutable Arguments m_args;
 
-  QList<Channel *>      m_channels;
-  QList<Segmentation *> m_segmentations;
-};
+    QString m_ID;
+    double  m_position[3];//nm
+    double  m_bounds[6];//nm
+
+    ChannelList      m_channels;
+    SegmentationList m_segmentations;
+  };
+
+  SamplePtr samplePtr(ModelItemPtr &item);
+}// namespace EspINA
 
 #endif // SAMPLE_H

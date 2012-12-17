@@ -28,55 +28,57 @@
 
 #include <QToolBar>
 
+#include <Core/EspinaTypes.h>
 #include <GUI/Pickers/IPicker.h>
 
 #include <QModelIndex>
 
-class QComboTreeView;
-class EspinaModel;
-class PixelSelector;
-class Segmentation;
-class SegRemover;
-class QComboBox;
-class QTreeView;
 class QUndoStack;
-class ViewManager;
-class MeasureTool;
+class QComboTreeView;
 
-class MainToolBar
-: public QToolBar
+namespace EspINA
 {
-  Q_OBJECT
-public:
-  explicit MainToolBar(EspinaModel *model,
-                       QUndoStack  *undoStack,
-                       ViewManager *vm,
-                       QWidget* parent = 0);
+  class PixelSelector;
+  class SegmentationRemover;
+  class ViewManager;
+  class MeasureTool;
 
-public slots:
-  void setShowSegmentations(bool visible);
+  class MainToolBar
+  : public QToolBar
+  {
+    Q_OBJECT
+  public:
+    explicit MainToolBar(EspinaModelPtr model,
+                         QUndoStack    *undoStack,
+                         ViewManager   *vm,
+                         QWidget       *parent = 0);
 
-protected slots:
-  void setActiveTaxonomy(const QModelIndex &index);
-  void updateTaxonomy(QModelIndex left, QModelIndex right);
-  void removeSegmentation(bool active);
-  void removeSegmentation(Segmentation *seg);
-  void toggleCrosshair(bool);
-  void abortRemoval();
-  void toggleMeasureTool(bool);
+  public slots:
+    void setShowSegmentations(bool visible);
 
-signals:
-  void showSegmentations(bool);
+  protected slots:
+    void setActiveTaxonomy(const QModelIndex &index);
+    void updateTaxonomy(QModelIndex left, QModelIndex right);
+    void removeSegmentation(bool active);
+    void removeSegmentation(SegmentationPtr seg);
+    void toggleCrosshair(bool);
+    void abortRemoval();
+    void toggleMeasureTool(bool);
 
-private:
-  EspinaModel   *m_model;
-  QUndoStack    *m_undoStack;
-  ViewManager   *m_viewManager;
+  signals:
+    void showSegmentations(bool);
 
-  QAction        *m_toggleSegVisibility, *m_removeSegmentation, *m_toggleCrosshair, *m_measureButton;
-  QComboTreeView *m_taxonomySelector;
-  SegRemover     *m_segRemover;
-  MeasureTool    *m_measureTool;
-};
+  private:
+    EspinaModelPtr m_model;
+    QUndoStack    *m_undoStack;
+    ViewManager   *m_viewManager;
+
+    QAction             *m_toggleSegVisibility, *m_removeSegmentation, *m_toggleCrosshair, *m_measureButton;
+    QComboTreeView      *m_taxonomySelector;
+    SegmentationRemover *m_segRemover;
+    MeasureTool         *m_measureTool;
+  };
+
+} // namespace EspINA
 
 #endif // MAINTOOLBAR_H

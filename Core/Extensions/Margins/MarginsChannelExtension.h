@@ -27,66 +27,69 @@
 
 #include <QMutex>
 
-class Channel;
-class Segmentation;
-
-class MarginsChannelExtension
-: public ChannelExtension
+namespace EspINA
 {
-public:
-  static const ExtId ID;
+  class MarginsChannelExtension
+  : public ChannelExtension
+  {
+  public:
+    static const ExtId ID;
 
-  static const InfoTag LEFT_MARGIN;
-  static const InfoTag TOP_MARGIN;
-  static const InfoTag UPPER_MARGIN;
-  static const InfoTag RIGHT_MARGIN;
-  static const InfoTag BOTTOM_MARGIN;
-  static const InfoTag LOWER_MARGIN;
+    static const InfoTag LEFT_MARGIN;
+    static const InfoTag TOP_MARGIN;
+    static const InfoTag UPPER_MARGIN;
+    static const InfoTag RIGHT_MARGIN;
+    static const InfoTag BOTTOM_MARGIN;
+    static const InfoTag LOWER_MARGIN;
 
-  static const ModelItem::ArgumentId MARGINTYPE;
+    static const ModelItem::ArgumentId MARGINTYPE;
 
-  explicit MarginsChannelExtension();
-  virtual ~MarginsChannelExtension();
+    explicit MarginsChannelExtension();
+    virtual ~MarginsChannelExtension();
 
-  virtual ExtId id();
-  virtual void initialize(ModelItem::Arguments args = ModelItem::Arguments());
-  virtual QString serialize() const;
+    virtual ExtId id();
+    virtual void initialize(ModelItem::Arguments args = ModelItem::Arguments());
+    virtual QString serialize() const;
 
-  virtual ExtIdList dependencies() const
-  {return ChannelExtension::dependencies();}
+    virtual ExtIdList dependencies() const
+    {return ChannelExtension::dependencies();}
 
-  virtual InfoList availableInformations() const
-  {return ChannelExtension::availableInformations();}
+    virtual InfoList availableInformations() const
+    {return ChannelExtension::availableInformations();}
 
-  virtual RepList availableRepresentations() const
-  {return ChannelExtension::availableRepresentations();}
+    virtual RepList availableRepresentations() const
+    {return ChannelExtension::availableRepresentations();}
 
-  virtual QVariant information(InfoTag tag) const;
+    virtual QVariant information(InfoTag tag) const;
 
-  virtual ChannelExtension* clone();
+    virtual ChannelExtensionPtr clone();
 
-  void computeMarginDistance(Segmentation *seg);
+    void computeMarginDistance(SegmentationPtr seg);
 
-  vtkSmartPointer<vtkPolyData> margins();
-  Nm computedVolume();
+    vtkSmartPointer<vtkPolyData> margins();
+    Nm computedVolume();
 
-protected:
-  void computeMargins();
+  protected:
+    void computeMargins();
 
-private:
-  bool                         m_useChannelBounds;
-  ModelItem::Arguments         m_args;
-  vtkSmartPointer<vtkPolyData> m_borders;
-  QMutex                       m_borderMutex;
-  Nm                           m_computedVolume;
+  private:
+    bool                         m_useChannelBounds;
+    ModelItem::Arguments         m_args;
+    vtkSmartPointer<vtkPolyData> m_borders;
+    QMutex                       m_borderMutex;
+    Nm                           m_computedVolume;
 
-  vtkSmartPointer<vtkPolyData> m_PolyDataFaces[6];
-  std::map<unsigned int, unsigned long int> m_ComputedSegmentations;
+    vtkSmartPointer<vtkPolyData> m_PolyDataFaces[6];
+    std::map<unsigned int, unsigned long int> m_ComputedSegmentations;
 
-  // builds a surface for each face the first time one is needed
-  void ComputeSurfaces();
+    // builds a surface for each face the first time one is needed
+    void ComputeSurfaces();
 
-  friend class MarginDetector;
-};
+    friend class MarginDetector;
+  };
+
+  typedef QSharedPointer<MarginsChannelExtension> MarginsChannelExtensionPtr;
+
+}// namespace EspINA
 
 #endif // MARGINSCHANNELEXTENSION_H

@@ -13,6 +13,8 @@
 
 #include <iostream>
 
+using namespace EspINA;
+
 typedef EspinaInteractorAdapter<vtkPlaneContourWidget> ContourWidgetAdapter;
 
 //----------------------------------------------------------------------------

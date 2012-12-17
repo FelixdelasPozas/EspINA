@@ -24,19 +24,21 @@
 #include <Core/Model/Sample.h>
 #include <Core/Model/Segmentation.h>
 
+using namespace EspINA;
+
 //----------------------------------------------------------------------------
-AddSegmentation::AddSegmentation(Channel         *channel,
-                                 Filter          *filter,
-                                 Segmentation    *seg,
-                                 TaxonomyElement *taxonomy,
-                                 EspinaModel     *model)
+AddSegmentation::AddSegmentation(ChannelPtr channel,
+                                 FilterPtr filter,
+                                 SegmentationPtr seg,
+                                 TaxonomyElementPtr taxonomy,
+                                 EspinaModelPtr model)
 : m_channel (channel)
 , m_filter  (filter)
 , m_seg     (seg)
 , m_taxonomy(taxonomy)
 , m_model   (model)
 {
-  //TODO: Poner punto de interrupcion y comprobar si SIEMPRE se crean segmentacion antes de invocar a este m�todo
+  //TODO: Poner punto de interrupcion y comprobar si SIEMPRE se crean segmentacion antes de invocar a este metodo
   //      en cuyo caso hay que destruirlas en el destructor
   m_sample = m_channel->sample();
   Q_ASSERT(m_sample);

@@ -24,6 +24,8 @@
 
 #include <QPushButton>
 
+using namespace EspINA;
+
 //----------------------------------------------------------------------------
 RectangularRegionSliceSelector::RectangularRegionSliceSelector(RectangularRegion* region)
 : m_region(region)

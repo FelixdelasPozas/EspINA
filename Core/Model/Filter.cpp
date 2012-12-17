@@ -37,11 +37,15 @@
 #include <QWidget>
 #include <boost/graph/graph_concepts.hpp>
 
+using namespace EspINA;
+
 typedef ModelItem::ArgumentId ArgumentId;
 
-const ArgumentId Filter::ID      = "ID";
-const ArgumentId Filter::INPUTS  = "Inputs";
-const ArgumentId Filter::EDIT    = "Edit"; // Backwards compatibility
+const ArgumentId Filter::ID     = "ID";
+const ArgumentId Filter::INPUTS = "Inputs";
+const ArgumentId Filter::EDIT   = "Edit"; // Backwards compatibility
+
+const int EspINA::Filter::Output::INVALID_OUTPUT_ID = -1;
 
 //----------------------------------------------------------------------------
 void Filter::setTmpDir(QDir dir)
@@ -350,58 +354,18 @@ Filter::OutputList Filter::editedOutputs() const
 bool Filter::validOutput(Filter::OutputId oId)
 {
   return m_outputs.contains(oId);
-//   bool res = false;
-//   int i = 0;
-// 
-//   while (!res && i < m_outputs.size())
-//   {
-//     if (m_outputs[i].id == oId)
-//       res = true;
-//     i++;
-//   }
-// 
-//   return res;
-// 
 }
 
 //----------------------------------------------------------------------------
 const Filter::Output Filter::output(OutputId oId) const
 {
   return m_outputs.value(oId, Output());
-
-//   Output res;
-// 
-//   foreach(Output filterOutput, m_outputs)
-//   {
-//     if (filterOutput.id == oId)
-//     {
-//       res = filterOutput;
-//       break;
-//     }
-//   }
-// 
-//   return res;
 }
 
 //----------------------------------------------------------------------------
 Filter::Output &Filter::output(OutputId oId)
 {
   return m_outputs[oId];
-
-//   bool found = false;
-//   int i = 0;
-// 
-//   while (!found && i < m_outputs.size())
-//   {
-//     if (m_outputs[i].id == oId)
-//       found = true;
-//     else
-//       i++;
-//   }
-// 
-//   Q_ASSERT(found);
-// 
-//   return m_outputs[i];
 }
 
 //----------------------------------------------------------------------------
@@ -448,7 +412,7 @@ void Filter::update()
     foreach(QString namedInput, namedInputList)
     {
       QStringList input = namedInput.split("_");
-      Filter *inputFilter = m_namedInputs[input[0]];
+      FilterPtr inputFilter = m_namedInputs[input[0]];
       inputFilter->update();
       OutputId oId = input[1].toInt();
       m_inputs << inputFilter->output(oId).volume;
@@ -536,7 +500,7 @@ void Filter::updateCacheFlags()
   foreach(QString namedInput, namedInputList)
   {
     QStringList input = namedInput.split("_");
-    Filter *filter = m_namedInputs[input[0]];
+    FilterPtr filter = m_namedInputs[input[0]];
     OutputId oId = input[1].toInt();
 
     if (filter->validOutput(oId))

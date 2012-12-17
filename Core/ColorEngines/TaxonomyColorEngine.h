@@ -22,23 +22,27 @@
 #include "Core/ColorEngines/IColorEngine.h"
 #include <QMap>
 
-class TaxonomyElement;
+namespace EspINA
+{
+
 class TaxonomyColorEngine
 : public ColorEngine
 {
 public:
   explicit TaxonomyColorEngine(){}
 
-  virtual QColor color(Segmentation* seg);
-  virtual LUTPtr lut(Segmentation* seg);
+  virtual QColor color(SegmentationPtr seg);
+  virtual LUTPtr lut  (SegmentationPtr seg);
   virtual ColorEngine::Composition supportedComposition() const
   { return ColorEngine::Color; }
 
-  void updateTaxonomyColor(TaxonomyElement *tax);
+  void updateTaxonomyColor(TaxonomyElementPtr tax);
 
   QMap<QString, vtkSmartPointer<vtkLookupTable> > m_LUT;
 };
 
 typedef QSharedPointer<TaxonomyColorEngine> TaxonomyColorEnginePtr;
+
+}// namespace EspINA
 
 #endif // TAXONOMYCOLORENGINE_H

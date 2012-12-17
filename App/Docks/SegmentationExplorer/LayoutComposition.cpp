@@ -22,16 +22,18 @@
 #include <Core/Model/Segmentation.h>
 #include <QMessageBox>
 
+using namespace EspINA;
+
 bool CompositionLayout::SortFilter::lessThan(const QModelIndex& left, const QModelIndex& right) const
 {
-  ModelItem *leftItem  = indexPtr(left);
-  ModelItem *rightItem = indexPtr(right);
+  ModelItemPtr leftItem  = indexPtr(left);
+  ModelItemPtr rightItem = indexPtr(right);
 
   return sortSegmentationLessThan(leftItem, rightItem);
 }
 
 //------------------------------------------------------------------------
-CompositionLayout::CompositionLayout(EspinaModel *model)
+CompositionLayout::CompositionLayout(EspinaModelPtr model)
 : Layout(model)
 , m_proxy(new CompositionProxy())
 , m_sort (new SortFilter())
@@ -42,13 +44,13 @@ CompositionLayout::CompositionLayout(EspinaModel *model)
 }
 
 //------------------------------------------------------------------------
-ModelItem* CompositionLayout::item(const QModelIndex& index) const
+ModelItemPtr CompositionLayout::item(const QModelIndex& index) const
 {
   return indexPtr(m_sort->mapToSource(index));
 }
 
 //------------------------------------------------------------------------
-QModelIndex CompositionLayout::index(ModelItem* item) const
+QModelIndex CompositionLayout::index(ModelItemPtr item) const
 {
   return m_sort->mapFromSource(m_proxy->mapFromSource(Layout::index(item)));
 }
@@ -56,7 +58,7 @@ QModelIndex CompositionLayout::index(ModelItem* item) const
 //------------------------------------------------------------------------
 SegmentationList CompositionLayout::deletedSegmentations(QModelIndexList selection)
 {
-  QSet<Segmentation *> toDelete;
+  QSet<SegmentationPtr> toDelete;
   foreach(QModelIndex sortIndex, selection)
   {
     bool recursive = false;
@@ -70,18 +72,18 @@ SegmentationList CompositionLayout::deletedSegmentations(QModelIndexList selecti
       recursive = msgBox.exec() == QMessageBox::Yes;
     }
 
-    ModelItem    *selectedItem = item(sortIndex);
-    Segmentation *seg          = dynamic_cast<Segmentation *>(selectedItem);
-    Q_ASSERT(seg);
+    ModelItemPtr    selectedItem = item(sortIndex);
+    SegmentationPtr seg          = segmentationPtr(selectedItem);
+    Q_ASSERT(!seg.isNull());
     toDelete << seg;
 
     if (recursive)
     {
       foreach(QModelIndex subIndex, indices(sortIndex, true))
       {
-        ModelItem     *subItem = item(subIndex);
-        Segmentation  *seg     = dynamic_cast<Segmentation *>(subItem);
-        Q_ASSERT(seg);
+        ModelItemPtr     subItem = item(subIndex);
+        SegmentationPtr  seg     = segmentationPtr(subItem);
+        Q_ASSERT(!seg.isNull());
         toDelete << seg;
       }
     }

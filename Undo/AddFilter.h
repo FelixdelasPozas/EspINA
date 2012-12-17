@@ -23,24 +23,26 @@
 #include <QUndoCommand>
 
 #include "Core/Model/Filter.h"
-#include <QSharedPointer>
 
-class EspinaModel;
-
+namespace EspINA
+{
 class AddFilter
 : public QUndoCommand
 {
 public:
-  explicit AddFilter(Filter *filter,
-                     EspinaModel *,
-                     QUndoCommand *parent = 0);
+  explicit AddFilter(FilterPtr      filter,
+                     EspinaModelPtr model,
+                     QUndoCommand  *parent = 0);
 
   virtual void redo();
   virtual void undo();
 
 private:
-  EspinaModel *m_model;
-  Filter *m_filter;
+  EspinaModelPtr m_model;
+
+  FilterPtr m_filter;
 };
+
+} // namespace EspINA
 
 #endif // ADDFILTER_H

@@ -40,6 +40,8 @@
 #include <vtkImageResliceToColors.h>
 #include <vtkMatrix4x4.h>
 
+using namespace EspINA;
+
 //-----------------------------------------------------------------------------
 BrushPicker::BrushPicker(PickableItem* item)
 : m_referenceItem(item)
@@ -115,7 +117,7 @@ void BrushPicker::setBrushColor(QColor color)
 }
 
 //-----------------------------------------------------------------------------
-void BrushPicker::setReferenceItem(PickableItem* item)
+void BrushPicker::setReferenceItem(PickableItemPtr item)
 {
   m_referenceItem = item;
   m_spacing = m_referenceItem->volume()->toITK()->GetSpacing();

@@ -24,19 +24,23 @@
 
 #include <QList>
 
-class MultiColorEngine
-: public ColorEngine
+namespace EspINA
 {
-public:
-  virtual QColor color(Segmentation* seg);
-  virtual LUTPtr lut(Segmentation* seg);
-  virtual ColorEngine::Composition supportedComposition() const;
+  class MultiColorEngine
+  : public ColorEngine
+  {
+  public:
+    virtual QColor color(SegmentationPtr seg);
+    virtual LUTPtr lut  (SegmentationPtr seg);
+    virtual ColorEngine::Composition supportedComposition() const;
 
-  virtual void addColorEngine(ColorEnginePtr engine);
-  virtual void removeColorEngine(ColorEnginePtr engine);
+    virtual void addColorEngine(ColorEnginePtr engine);
+    virtual void removeColorEngine(ColorEnginePtr engine);
 
-protected:
-  QList<ColorEnginePtr> m_engines;
-};
+  protected:
+    QList<ColorEnginePtr> m_engines;
+  };
+
+}// namespace EspINA
 
 #endif // MULTICOLORENGINE_H

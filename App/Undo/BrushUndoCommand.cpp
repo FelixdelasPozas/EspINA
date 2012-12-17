@@ -23,6 +23,8 @@
 
 #include <itkExtractImageFilter.h>
 
+using namespace EspINA;
+
 typedef itk::ExtractImageFilter<itkVolumeType, itkVolumeType> ExtractType;
 
 //-----------------------------------------------------------------------------
@@ -40,7 +42,7 @@ itkVolumeType::Pointer backup(EspinaVolume::Pointer volume)
 }
 
 //-----------------------------------------------------------------------------
-Brush::DrawCommand::DrawCommand(Filter* source,
+Brush::DrawCommand::DrawCommand(FilterPtr source,
                                 Filter::OutputId output,
                                 BrushShapeList brushes,
                                 itkVolumeType::PixelType value)
@@ -97,7 +99,7 @@ void Brush::DrawCommand::undo()
 }
 
 //-----------------------------------------------------------------------------
-Brush::SnapshotCommand::SnapshotCommand(Filter* source,
+Brush::SnapshotCommand::SnapshotCommand(FilterPtr source,
                                 Filter::OutputId output)
 : m_source(source)
 , m_output(output)

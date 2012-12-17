@@ -24,6 +24,8 @@
 #include <vtkRenderer.h>
 #include <vtkProperty2D.h>
 
+using namespace EspINA;
+
 vtkStandardNewMacro(vtkPlanarSplitRepresentation2D);
 
 //----------------------------------------------------------------------

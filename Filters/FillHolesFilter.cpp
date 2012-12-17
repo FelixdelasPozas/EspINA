@@ -19,6 +19,8 @@
 
 #include "FillHolesFilter.h"
 
+using namespace EspINA;
+
 const QString FillHolesFilter::TYPE = "EditorToolBar::FillHolesFilter";
 const QString FillHolesFilter::INPUTLINK = "Input";
 

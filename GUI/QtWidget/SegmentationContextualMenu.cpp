@@ -30,10 +30,12 @@
 #include <QStringListModel>
 #include <QListView>
 
+using namespace EspINA;
+
 //------------------------------------------------------------------------
-SegmentationContextualMenu::SegmentationContextualMenu(EspinaModel *model,
+SegmentationContextualMenu::SegmentationContextualMenu(EspinaModelPtr   model,
                                                        SegmentationList selection,
-                                                       QWidget* parent)
+                                                       QWidget         *parent)
 : QMenu(parent)
 , m_segmentations(selection)
 {
@@ -41,7 +43,7 @@ SegmentationContextualMenu::SegmentationContextualMenu(EspinaModel *model,
   QWidgetAction *taxonomyListAction = new QWidgetAction(changeTaxonomyMenu);
   QTreeView     *taxonomyList       = new QTreeView();
   taxonomyList->header()->setVisible(false);
-  taxonomyList->setModel(model);
+  taxonomyList->setModel(model.data());
   taxonomyList->setRootIndex(model->taxonomyRoot());
   taxonomyList->expandAll();
   connect(taxonomyList, SIGNAL(clicked(QModelIndex)),
@@ -61,14 +63,14 @@ SegmentationContextualMenu::SegmentationContextualMenu(EspinaModel *model,
 
   bool enabled = false;
   SegmentationList ancestors, descendents;
-  foreach (Segmentation *seg, m_segmentations)
+  foreach (SegmentationPtr seg, m_segmentations)
   {
     enabled |= seg->IsFinalNode();
     ancestors.append(seg->componentOf());
     descendents.append(seg->components());
   }
 
-  foreach(Segmentation *seg, ancestors)
+  foreach(SegmentationPtr seg, ancestors)
   {
     if (m_segmentations.contains(seg))
     {
@@ -81,7 +83,7 @@ SegmentationContextualMenu::SegmentationContextualMenu(EspinaModel *model,
     enabled |= seg->IsFinalNode();
   }
 
-  foreach(Segmentation *seg, descendents)
+  foreach(SegmentationPtr seg, descendents)
   {
     if (m_segmentations.contains(seg))
     {
@@ -102,9 +104,9 @@ void SegmentationContextualMenu::changeTaxonomyClicked(const QModelIndex& index)
 {
   this->hide();
 
-  ModelItem *taxItem = indexPtr(index);
-  Q_ASSERT(ModelItem::TAXONOMY == taxItem->type());
-  TaxonomyElement *taxonomy = static_cast<TaxonomyElement *>(taxItem);
+  ModelItemPtr taxItem = indexPtr(index);
+  Q_ASSERT(EspINA::TAXONOMY == taxItem->type());
+  TaxonomyElementPtr taxonomy = qSharedPointerDynamicCast<TaxonomyElement>(taxItem);
   emit changeTaxonomy(taxonomy);
 }
 

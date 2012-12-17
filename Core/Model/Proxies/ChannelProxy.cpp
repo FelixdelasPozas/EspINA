@@ -29,7 +29,9 @@
 #include <QSet>
 #include <QFont>
 
-typedef QSet<ModelItem *> ChannelSet;
+using namespace EspINA;
+
+typedef QSet<ModelItemPtr> ChannelSet;
 
 //------------------------------------------------------------------------
 ChannelProxy::ChannelProxy(ViewManager *vm, QObject* parent)
@@ -46,18 +48,18 @@ ChannelProxy::~ChannelProxy()
 }
 
 //------------------------------------------------------------------------
-void ChannelProxy::setSourceModel(EspinaModel *sourceModel)
+void ChannelProxy::setSourceModel(EspinaModelPtr sourceModel)
 {
   m_model = sourceModel;
-  connect(sourceModel, SIGNAL(rowsInserted(const QModelIndex&, int, int)),
+  connect(sourceModel.data(), SIGNAL(rowsInserted(const QModelIndex&, int, int)),
           this, SLOT(sourceRowsInserted(const QModelIndex&, int, int)));
-  connect(sourceModel, SIGNAL(rowsRemoved(const QModelIndex&, int, int)),
+  connect(sourceModel.data(), SIGNAL(rowsRemoved(const QModelIndex&, int, int)),
           this, SLOT(sourceRowsRemoved(QModelIndex, int, int)));
-  connect(sourceModel, SIGNAL(rowsAboutToBeRemoved(const QModelIndex&, int, int)),
+  connect(sourceModel.data(), SIGNAL(rowsAboutToBeRemoved(const QModelIndex&, int, int)),
           this, SLOT(sourceRowsAboutToBeRemoved(QModelIndex, int, int)));
-  connect(sourceModel, SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)),
+  connect(sourceModel.data(), SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)),
           this, SLOT(sourceDataChanged(const QModelIndex &,const QModelIndex &)));
-  QAbstractProxyModel::setSourceModel(sourceModel);
+  QAbstractProxyModel::setSourceModel(sourceModel.data());
 }
 
 //------------------------------------------------------------------------
@@ -66,35 +68,35 @@ QVariant ChannelProxy::data(const QModelIndex& proxyIndex, int role) const
   if (!proxyIndex.isValid())
     return QVariant();
 
-  ModelItem *item = indexPtr(proxyIndex);
+  ModelItemPtr item = indexPtr(proxyIndex);
   switch (item->type())
   {
-    case ModelItem::SAMPLE:
+    case SAMPLE:
     {
       if (Qt::DisplayRole == role)
       {
-	Sample *sample = dynamic_cast<Sample *>(item);
-	int numSegs = numChannels(sample);
-	QString suffix = (numSegs>0)?QString(" (%1)").arg(numChannels(sample)):QString();
-	return item->data(role).toString() + suffix;
+        SamplePtr sample = qSharedPointerDynamicCast<Sample>(item);
+        int numSegs = numChannels(sample);
+        QString suffix = (numSegs>0)?QString(" (%1)").arg(numChannels(sample)):QString();
+        return item->data(role).toString() + suffix;
       } else if (Qt::DecorationRole == role)
-	return QColor(Qt::blue);
+        return QColor(Qt::blue);
       else
-	return item->data(role);
+        return item->data(role);
     }
-    case ModelItem::CHANNEL:
+    case CHANNEL:
       if (Qt::DecorationRole == role)
       {
-	QPixmap channelIcon(3,16);
-	channelIcon.fill(proxyIndex.parent().data(role).value<QColor>());
-	return channelIcon;
+        QPixmap channelIcon(3,16);
+        channelIcon.fill(proxyIndex.parent().data(role).value<QColor>());
+        return channelIcon;
       }else if (Qt::FontRole == role)
       {
-	QFont myFont;
-	myFont.setBold(m_viewManager->activeChannel() == item);
-	return myFont;
+        QFont myFont;
+        myFont.setBold(m_viewManager->activeChannel() == item);
+        return myFont;
       }else
-	return item->data(role);
+        return item->data(role);
     default:
       Q_ASSERT(false);
   }
@@ -115,11 +117,11 @@ int ChannelProxy::rowCount(const QModelIndex& parent) const
     return m_samples.size();
 
   // Cast to base type
-  ModelItem *parentItem = indexPtr(parent);
+  ModelItemPtr parentItem = indexPtr(parent);
   int rows = 0;
-  if (ModelItem::SAMPLE == parentItem->type())
+  if (SAMPLE == parentItem->type())
   {
-    Sample *sample = dynamic_cast<Sample *>(parentItem);
+    SamplePtr sample = qSharedPointerDynamicCast<Sample>(parentItem);
     rows = numSubSamples(sample) + numChannels(sample);
   }
   return rows;
@@ -134,10 +136,9 @@ QModelIndex ChannelProxy::index(int row, int column, const QModelIndex& parent) 
   if (!parent.isValid())
     return mapFromSource(m_model->index(row, column, m_model->sampleRoot()));
 
-  ModelItem *parentItem = indexPtr(parent);
-  Q_ASSERT(parentItem->type() == ModelItem::SAMPLE);
-  Sample * parentSample = dynamic_cast<Sample *>(parentItem);
-  Q_ASSERT(parentSample);
+  ModelItemPtr parentItem = indexPtr(parent);
+  Q_ASSERT(EspINA::SAMPLE == parentItem->type());
+  SamplePtr parentSample = samplePtr(parentItem);
 
   int subSamples = numSubSamples(parentSample);
   if (row < subSamples)
@@ -145,9 +146,9 @@ QModelIndex ChannelProxy::index(int row, int column, const QModelIndex& parent) 
 
   int channelRow = row - subSamples;
   Q_ASSERT(channelRow < numChannels(parentSample));
-  ModelItem *internalPtr = m_channels[parentSample][channelRow];
+  ModelItemPtr internalPtr = m_channels[parentSample][channelRow];
 
-  return createIndex(row, column, internalPtr);
+  return createIndex(row, column, &internalPtr);
 }
 
 //------------------------------------------------------------------------
@@ -156,25 +157,25 @@ QModelIndex ChannelProxy::parent(const QModelIndex& child) const
   if (!child.isValid())
     return QModelIndex();
 
-  ModelItem *childItem = indexPtr(child);
+  ModelItemPtr childItem = indexPtr(child);
   Q_ASSERT(childItem);
 
   QModelIndex parent;
   // Checks if Sample
   switch (childItem->type())
   {
-    case ModelItem::SAMPLE:
+    case EspINA::SAMPLE:
     {
       //TODO: Support nested samples
       parent = QModelIndex();
       break;
     }
-    case ModelItem::CHANNEL:
+    case EspINA::CHANNEL:
     {
-      foreach(Sample *sample, m_channels.keys())
+      foreach(SamplePtr sample, m_channels.keys())
       {
-	if (m_channels[sample].contains(childItem))
-	  parent = mapFromSource(m_model->sampleIndex(sample));
+        if (m_channels[sample].contains(childItem))
+          parent = mapFromSource(m_model->sampleIndex(sample));
       }
       break;
     }
@@ -199,11 +200,11 @@ QModelIndex ChannelProxy::mapFromSource(const QModelIndex& sourceIndex) const
       sourceIndex == m_model->segmentationRoot())
     return QModelIndex();
 
-  ModelItem *sourceItem = indexPtr(sourceIndex);
+  ModelItemPtr sourceItem = indexPtr(sourceIndex);
   QModelIndex proxyIndex;
   switch (sourceItem->type())
   {
-    case ModelItem::SAMPLE:
+    case EspINA::SAMPLE:
     {
 //       Sample *sample = dynamic_cast<Sample *>(sourceItem);
 //       Q_ASSERT(sample);
@@ -213,21 +214,20 @@ QModelIndex ChannelProxy::mapFromSource(const QModelIndex& sourceIndex) const
                                sourceIndex.internalPointer());
       break;
     }
-    case ModelItem::CHANNEL:
+    case EspINA::CHANNEL:
     {
-      Channel *channel = dynamic_cast<Channel *>(sourceItem);
+      ChannelPtr channel = channelPtr(sourceItem);
       Q_ASSERT(channel);
-      ModelItem::Vector samples = channel->relatedItems(ModelItem::IN,
-                                                        Channel::STAINLINK);
+      ModelItemList samples = channel->relatedItems(EspINA::IN, Channel::STAINLINK);
       if (samples.size() > 0)
       {
-	Sample *sample = dynamic_cast<Sample *>(samples[0]);
-	int row = m_channels[sample].indexOf(sourceItem);
-	if (row >= 0)
-	{
-	  row += numSubSamples(sample);
-	  proxyIndex = createIndex(row, 0, sourceIndex.internalPointer());
-	}
+        SamplePtr sample = samplePtr(samples[0]);
+        int row = m_channels[sample].indexOf(sourceItem);
+        if (row >= 0)
+        {
+          row += numSubSamples(sample);
+          proxyIndex = createIndex(row, 0, sourceIndex.internalPointer());
+        }
       }
       break;
     }
@@ -244,23 +244,23 @@ QModelIndex ChannelProxy::mapToSource(const QModelIndex& proxyIndex) const
   if (!proxyIndex.isValid())
     return QModelIndex();
 
-  ModelItem *proxyItem = indexPtr(proxyIndex);
-  Q_ASSERT(proxyItem);
+  ModelItemPtr proxyItem = indexPtr(proxyIndex);
+  Q_ASSERT(!proxyItem.isNull());
 
   QModelIndex sourceIndex;
   switch (proxyItem->type())
   {
-    case ModelItem::SAMPLE:
+    case SAMPLE:
     {
-      Sample *proxySample = dynamic_cast<Sample *>(proxyItem);
-      Q_ASSERT(proxySample);
+      SamplePtr proxySample = qSharedPointerDynamicCast<Sample>(proxyItem);
+      Q_ASSERT(!proxySample.isNull());
       sourceIndex = m_model->sampleIndex(proxySample);
       break;
     }
-    case ModelItem::CHANNEL:
+    case CHANNEL:
     {
-      Channel *proxyChannel = dynamic_cast<Channel *>(proxyItem);
-      Q_ASSERT(proxyChannel);
+      ChannelPtr proxyChannel = qSharedPointerDynamicCast<Channel>(proxyItem);
+      Q_ASSERT(!proxyChannel.isNull());
       sourceIndex = m_model->channelIndex(proxyChannel);
       break;
     }
@@ -274,11 +274,11 @@ QModelIndex ChannelProxy::mapToSource(const QModelIndex& proxyIndex) const
 //------------------------------------------------------------------------
 int ChannelProxy::numChannels(QModelIndex sampleIndex, bool recursive) const
 {
-  ModelItem *item = indexPtr(sampleIndex);
-  if (ModelItem::SAMPLE != item->type())
+  ModelItemPtr item = indexPtr(sampleIndex);
+  if (SAMPLE != item->type())
     return 0;
 
-  Sample *sample = dynamic_cast<Sample *>(item);
+  SamplePtr sample = qSharedPointerDynamicCast<Sample>(item);
   int total = numChannels(sample);
   return total;
 }
@@ -286,11 +286,11 @@ int ChannelProxy::numChannels(QModelIndex sampleIndex, bool recursive) const
 //------------------------------------------------------------------------
 int ChannelProxy::numSubSamples(QModelIndex sampleIndex) const
 {
-  ModelItem *item = indexPtr(sampleIndex);
-  if (ModelItem::SAMPLE != item->type())
+  ModelItemPtr item = indexPtr(sampleIndex);
+  if (EspINA::SAMPLE != item->type())
     return 0;
 
-  Sample *sample = dynamic_cast<Sample *>(item);
+  SamplePtr sample = samplePtr(item);
   return numSubSamples(sample);
 }
 
@@ -328,10 +328,9 @@ void ChannelProxy::sourceRowsInserted(const QModelIndex& sourceParent, int start
     beginInsertRows(QModelIndex(), start, end);
     for (int row = start; row <= end; row++)
     {
-      ModelItem *sourceRow = indexPtr(m_model->index(row, 0, sourceParent));
-      Q_ASSERT(ModelItem::SAMPLE == sourceRow->type());
-      Sample *sample = dynamic_cast<Sample *>(sourceRow);
-      Q_ASSERT(sample);
+      ModelItemPtr sourceRow = indexPtr(m_model->index(row, 0, sourceParent));
+      Q_ASSERT(EspINA::SAMPLE == sourceRow->type());
+      SamplePtr sample = samplePtr(sourceRow);
       m_samples << sample;
     }
     endInsertRows();
@@ -340,18 +339,18 @@ void ChannelProxy::sourceRowsInserted(const QModelIndex& sourceParent, int start
 
   if (sourceParent == m_model->channelRoot())
   {
-    QMap<Sample *, QList<ModelItem *> > relations;
+    QMap<SamplePtr, ModelItemList> relations;
     for (int child=start; child <= end; child++)
     {
       QModelIndex sourceIndex = m_model->index(child, 0, sourceParent);
-      ModelItem *sourceItem = indexPtr(sourceIndex);
-      Q_ASSERT(ModelItem::CHANNEL == sourceItem->type());
-      Channel *channel = dynamic_cast<Channel *>(sourceItem);
-      Sample *sample = origin(channel);
+      ModelItemPtr sourceItem = indexPtr(sourceIndex);
+      Q_ASSERT(EspINA::CHANNEL == sourceItem->type());
+      ChannelPtr channel = channelPtr(sourceItem);
+      SamplePtr sample = channel->sample();
       if (sample)
-	relations[sample] << sourceItem;
+        relations[sample] << sourceItem;
     }
-    foreach(Sample *sample, relations.keys())
+    foreach(SamplePtr sample, relations.keys())
     {
       int numSamples = numSubSamples(sample);
       int nChannels = numChannels(sample);
@@ -379,14 +378,14 @@ void ChannelProxy::sourceRowsAboutToBeRemoved(const QModelIndex& sourceParent, i
 
   QModelIndex sourceIndex = m_model->index(start, 0, sourceParent);
   QModelIndex proxyIndex = mapFromSource(sourceIndex);
-  ModelItem *item = indexPtr(sourceIndex);
+  ModelItemPtr item = indexPtr(sourceIndex);
 
   switch (item->type())
   {
-    case ModelItem::SAMPLE:
+    case EspINA::SAMPLE:
     {
       beginRemoveRows(proxyIndex.parent(), start,end);
-      Sample *sample = dynamic_cast<Sample *>(item);
+      SamplePtr sample = samplePtr(item);
       m_samples.removeOne(sample);
       m_channels.remove(sample);
       endRemoveRows();
@@ -461,40 +460,40 @@ void ChannelProxy::sourceDataChanged(const QModelIndex& sourceTopLeft,
     QModelIndex proxyIndex = mapFromSource(source);
     if (proxyIndex.isValid())
     {
-      ModelItem *proxyItem = indexPtr(proxyIndex);
-      if (ModelItem::SAMPLE == proxyItem->type())
+      ModelItemPtr proxyItem = indexPtr(proxyIndex);
+      if (EspINA::SAMPLE == proxyItem->type())
       {
-	Sample *sample = dynamic_cast<Sample *>(proxyItem);
-	ModelItem::Vector channels = sample->relatedItems(ModelItem::OUT,
+        SamplePtr sample = samplePtr(proxyItem);
+        ModelItemList channels = sample->relatedItems(EspINA::OUT,
                                                       Channel::STAINLINK);
-	ChannelSet prevChannels = m_channels[sample].toSet();
-// 	debugSet("Previous Channels", prevSegs);
-	ChannelSet currentChannels = channels.toSet();
-// 	debugSet("Current Channels", currentSegs);
-	// We need to copy currentSegs to avoid emptying it
-	ChannelSet newChannels = ChannelSet(currentChannels).subtract(prevChannels);
-// 	debugSet("Channels to be added", newSegs);
-	ChannelSet remChannels = ChannelSet(prevChannels).subtract(currentChannels);
-// 	debugSet("Channels to be removed", remSegs);
-	
-	if (remChannels.size() > 0)
-	{
-	  foreach(ModelItem *seg, remChannels)
-	  {
-	    int row = m_channels[sample].indexOf(seg);
-	    beginRemoveRows(proxyIndex, row, row);
-	    m_channels[sample].removeAt(row);
-	    endRemoveRows();
-	  }
-	}
-	if (newChannels.size() > 0)
-	{
-	  int start = m_channels[sample].size();
-	  int end = start + newChannels.size() - 1;
-	  beginInsertRows(proxyIndex, start, end);
-	  m_channels[sample] << newChannels.toList();
-	  endInsertRows();
-	}
+        ChannelSet prevChannels = m_channels[sample].toSet();
+        // 	debugSet("Previous Channels", prevSegs);
+        ChannelSet currentChannels = channels.toSet();
+        // 	debugSet("Current Channels", currentSegs);
+        // We need to copy currentSegs to avoid emptying it
+        ChannelSet newChannels = ChannelSet(currentChannels).subtract(prevChannels);
+        // 	debugSet("Channels to be added", newSegs);
+        ChannelSet remChannels = ChannelSet(prevChannels).subtract(currentChannels);
+        // 	debugSet("Channels to be removed", remSegs);
+
+        if (remChannels.size() > 0)
+        {
+          foreach(ModelItemPtr seg, remChannels)
+          {
+            int row = m_channels[sample].indexOf(seg);
+            beginRemoveRows(proxyIndex, row, row);
+            m_channels[sample].removeAt(row);
+            endRemoveRows();
+          }
+        }
+        if (newChannels.size() > 0)
+        {
+          int start = m_channels[sample].size();
+          int end = start + newChannels.size() - 1;
+          beginInsertRows(proxyIndex, start, end);
+          m_channels[sample] << newChannels.toList();
+          endInsertRows();
+        }
       }
       emit dataChanged(proxyIndex, proxyIndex);
     }
@@ -502,25 +501,13 @@ void ChannelProxy::sourceDataChanged(const QModelIndex& sourceTopLeft,
 }
 
 //------------------------------------------------------------------------
-Sample* ChannelProxy::origin(Channel* channel) const
-{
-  Sample *sample = NULL;
-  ModelItem::Vector samples = channel->relatedItems(ModelItem::IN,
-                                                    Channel::STAINLINK);
-  if (samples.size() > 0)
-    sample = dynamic_cast<Sample *>(samples[0]);
-
-  return sample;
-}
-
-//------------------------------------------------------------------------
-int ChannelProxy::numChannels(Sample* sample) const
+int ChannelProxy::numChannels(SamplePtr sample) const
 {
   return m_channels[sample].size();
 }
 
 //------------------------------------------------------------------------
-int ChannelProxy::numSubSamples(Sample* sample) const
+int ChannelProxy::numSubSamples(SamplePtr sample) const
 {
   return m_model->rowCount(m_model->sampleIndex(sample));
 }

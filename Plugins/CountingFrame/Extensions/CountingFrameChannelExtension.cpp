@@ -52,7 +52,7 @@ CountingFrameChannelExtension::CountingFrameChannelExtension(CountingFramePanel*
 //-----------------------------------------------------------------------------
 CountingFrameChannelExtension::~CountingFrameChannelExtension()
 {
-
+  qDebug() << "Deleting Counting Frame Channel Extension";
 }
 
 //-----------------------------------------------------------------------------

@@ -30,7 +30,8 @@
 
 // Qt
 #include <QDebug>
-#include <boost/graph/graph_concepts.hpp>
+
+using namespace EspINA;
 
 //----------------------------------------------------------------------------
 ViewManager::ViewManager()
@@ -136,10 +137,10 @@ SegmentationList ViewManager::selectedSegmentations() const
 {
   SegmentationList selection;
 
-  foreach(PickableItem *item, m_selection)
+  foreach(PickableItemPtr item, m_selection)
   {
-    if (ModelItem::SEGMENTATION == item->type())
-      selection << dynamic_cast<Segmentation *>(item);
+    if (EspINA::SEGMENTATION == item->type())
+      selection << qSharedPointerDynamicCast<Segmentation>(item);
   }
 
   return selection;
@@ -258,7 +259,7 @@ void ViewManager::updateViews()
 }
 
 //----------------------------------------------------------------------------
-void ViewManager::setActiveChannel(Channel* channel)
+void ViewManager::setActiveChannel(ChannelPtr channel)
 {
   m_activeChannel = channel;
   emit activeChannelChanged(channel);
@@ -324,7 +325,7 @@ void ViewManager::removeSliceSelectors(SliceSelectorWidget* widget)
 
 
 //----------------------------------------------------------------------------
-QColor ViewManager::color(Segmentation* seg)
+QColor ViewManager::color(SegmentationPtr seg)
 {
   QColor segColor(Qt::blue);
   if (m_colorEngine)
@@ -334,7 +335,7 @@ QColor ViewManager::color(Segmentation* seg)
 }
 
 //----------------------------------------------------------------------------
-LUTPtr ViewManager::lut(Segmentation* seg)
+LUTPtr ViewManager::lut(SegmentationPtr seg)
 {
   // Get (or create if it doesn't exit) the lut for the segmentations' images
   if (m_colorEngine)
@@ -367,3 +368,4 @@ void ViewManager::focusViewsOn(Nm *center)
   foreach(EspinaRenderView *rView, m_renderViews)
     rView->centerViewOn(center, true);
 }
+

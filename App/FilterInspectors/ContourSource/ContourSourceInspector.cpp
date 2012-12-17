@@ -10,6 +10,8 @@
 #include <QFileDialog>
 #include <QTextStream>
 
+using namespace EspINA;
+
 ContourSource::ContourSourceInspector::ContourSourceInspector(ContourSource* source)
 : m_source  (source)
 {

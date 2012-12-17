@@ -13,11 +13,14 @@
 #include <QCursor>
 #include <QColor>
 
-class vtkSliceContourRepresentation;
 class vtkPolyData;
 
-class VTK_WIDGETS_EXPORT vtkPlaneContourWidget : public vtkAbstractWidget
+namespace EspINA
 {
+  class vtkSliceContourRepresentation;
+
+  class VTK_WIDGETS_EXPORT vtkPlaneContourWidget : public vtkAbstractWidget
+  {
   public:
     // Description:
     // Instantiate this class.
@@ -111,8 +114,8 @@ class VTK_WIDGETS_EXPORT vtkPlaneContourWidget : public vtkAbstractWidget
       this->Initialize(NULL);
     }
 
-    virtual void SetOrientation(PlaneType plane);
-    virtual PlaneType GetOrientation();
+    virtual void SetOrientation(EspINA::PlaneType plane);
+    virtual EspINA::PlaneType GetOrientation();
 
     virtual void setPolygonColor(QColor);
     virtual QColor getPolygonColor();
@@ -122,20 +125,20 @@ class VTK_WIDGETS_EXPORT vtkPlaneContourWidget : public vtkAbstractWidget
     virtual ~vtkPlaneContourWidget();
 
     // The state of the widget
-//BTX
+    //BTX
     enum
     {
       Start, Define, Manipulate
     };
 
-//ETX
+    //ETX
     int WidgetState;
     int CurrentHandle;
     int AllowNodePicking;
     int FollowCursor;
     int ContinuousDraw;
     int ContinuousActive;
-    PlaneType Orientation;
+    EspINA::PlaneType Orientation;
     double ContinuousDrawTolerance;
 
     // Callback interface to capture events when placing the widget.
@@ -166,6 +169,8 @@ class VTK_WIDGETS_EXPORT vtkPlaneContourWidget : public vtkAbstractWidget
     QCursor crossMinusCursor, crossPlusCursor;
     bool mouseButtonDown; // to create almost equally spaced points when using continuous drawing
     QColor m_polygonColor;
-};
+  };
+
+} // namespace EspINA
 
 #endif // _VTKPLANECONTOURWIDGET_H_

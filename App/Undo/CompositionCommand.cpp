@@ -20,11 +20,14 @@
 #include "CompositionCommand.h"
 
 #include <Core/Model/Channel.h>
-#include <Core/Model/Segmentation.h>
 #include <Core/Model/EspinaFactory.h>
 #include <Core/Model/EspinaModel.h>
+#include <Core/Model/Sample.h>
+#include <Core/Model/Segmentation.h>
 
 #include <QApplication>
+
+using namespace EspINA;
 
 const QString INPUTLINK     = "Input";
 const QString MERGELINK     = "Merge";
@@ -32,8 +35,8 @@ const QString SUBSTRACTLINK = "Substract";
 
 //----------------------------------------------------------------------------
 CompositionCommand::CompositionCommand(const SegmentationList &segmentations,
-                                       TaxonomyElement        *taxonomy,
-                                       EspinaModel            *model)
+                                       TaxonomyElementPtr      taxonomy,
+                                       EspinaModelPtr          model)
 : m_model(model)
 , m_input(segmentations)
 , m_tax(taxonomy)
@@ -45,14 +48,14 @@ CompositionCommand::CompositionCommand(const SegmentationList &segmentations,
   ImageLogicFilter::Parameters params(args);
   for(int i=0; i<segmentations.size(); i++)
   {
-    Segmentation *seg = segmentations[i];
+    SegmentationPtr seg = segmentations[i];
     if (i>0) args[Filter::INPUTS].append(",");
     args[Filter::INPUTS].append(Filter::NamedInput(link(seg), seg->outputId()));
     inputs[link(seg)] = seg->filter();
     m_infoList << SegInfo(seg);
   }
   params.setOperation(ImageLogicFilter::ADDITION);
-  m_filter = new ImageLogicFilter(inputs, args);
+  m_filter = FilterPtr(new ImageLogicFilter(inputs, args));
   m_filter->update();
   m_seg = m_model->factory()->createSegmentation(m_filter, 0);
 
@@ -60,7 +63,7 @@ CompositionCommand::CompositionCommand(const SegmentationList &segmentations,
 }
 
 //----------------------------------------------------------------------------
-const QString CompositionCommand::link(Segmentation* seg)
+const QString CompositionCommand::link(SegmentationPtr seg)
 {
   unsigned int index = m_input.indexOf(seg);
   QString linkName;
@@ -79,12 +82,12 @@ void CompositionCommand::redo()
 
   // Add new filter
   m_model->addFilter(m_filter);
-  foreach(Segmentation *seg, m_input)
+  foreach(SegmentationPtr seg, m_input)
   {
-    ModelItem::Vector segFilter = seg->relatedItems(ModelItem::IN, CREATELINK);
+    ModelItemList segFilter = seg->relatedItems(EspINA::IN, CREATELINK);
     Q_ASSERT(segFilter.size() == 1);
-    ModelItem *item = segFilter[0];
-    Q_ASSERT(ModelItem::FILTER == item->type());
+    ModelItemPtr item = segFilter[0];
+    Q_ASSERT(EspINA::FILTER == item->type());
     m_model->addRelation(item, m_filter, link(seg));
   }
 
@@ -93,13 +96,13 @@ void CompositionCommand::redo()
   m_model->addSegmentation(m_seg);
 
   //WARNING: This won't work with segmentation belonging to different channels
-  Channel *channel = m_input.first()->channel();
-  Sample *sample = channel->sample();
+  ChannelPtr channel = m_input.first()->channel();
+  SamplePtr  sample  = channel->sample();
   m_model->addRelation(m_filter, m_seg, CREATELINK);
   m_model->addRelation(sample,   m_seg, Sample::WHERE);
   m_model->addRelation(channel,  m_seg, Channel::LINK);
 
-  foreach(Segmentation *part, m_input)
+  foreach(SegmentationPtr part, m_input)
   {
     m_model->addRelation(m_seg, part, Segmentation::COMPOSED_LINK);
   }

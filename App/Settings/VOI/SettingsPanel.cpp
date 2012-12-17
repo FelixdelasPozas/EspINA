@@ -24,8 +24,10 @@
 
 #include <QMessageBox>
 
+using namespace EspINA;
+
 //------------------------------------------------------------------------
-RectangularVOI::SettingsPanel::SettingsPanel(EspinaModel *model,
+RectangularVOI::SettingsPanel::SettingsPanel(EspinaModelPtr model,
                                              RectangularVOI::Settings* settings)
 : m_model(model)
 , m_settings(settings)
@@ -37,7 +39,7 @@ RectangularVOI::SettingsPanel::SettingsPanel(EspinaModel *model,
   m_ySize->setValue(m_settings->ySize());
   m_zSize->setValue(m_settings->zSize());
 
-  m_taxonomySelector->setModel(m_model);
+  m_taxonomySelector->setModel(m_model.data());
 
   connect(m_taxonomySelector, SIGNAL(activated(QModelIndex)),
           this, SLOT(updateTaxonomyVOI(QModelIndex)));
@@ -70,9 +72,9 @@ bool RectangularVOI::SettingsPanel::modified() const
 }
 
 //------------------------------------------------------------------------
-ISettingsPanel* RectangularVOI::SettingsPanel::clone()
+ISettingsPanelPtr RectangularVOI::SettingsPanel::clone()
 {
-  return new SettingsPanel(m_model, m_settings);
+  return ISettingsPanelPtr(new SettingsPanel(m_model, m_settings));
 }
 
 //------------------------------------------------------------------------
@@ -111,13 +113,11 @@ void RectangularVOI::SettingsPanel::updateTaxonomyVOI(const QModelIndex& index)
   if (!index.isValid())
     return;
 
-  ModelItem *item = indexPtr(index);
-  if (ModelItem::TAXONOMY != item->type())
+  ModelItemPtr item = indexPtr(index);
+  if (EspINA::TAXONOMY != item->type())
     return;
 
-  TaxonomyElement *elem = dynamic_cast<TaxonomyElement *>(item);
-  Q_ASSERT(elem);
-
+  TaxonomyElementPtr elem = taxonomyElementPtr(item);
   if (m_activeTaxonomy && m_activeTaxonomy != elem)
   {
     // Check for changes
@@ -148,4 +148,3 @@ void RectangularVOI::SettingsPanel::updateTaxonomyVOI(const QModelIndex& index)
   m_yTaxSize->setValue(ySize.toInt());
   m_zTaxSize->setValue(zSize.toInt());
 }
-

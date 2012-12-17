@@ -23,16 +23,26 @@
 #include <vtkColorTransferFunction.h>
 #include <vtkMath.h>
 
+using namespace EspINA;
+
 //-----------------------------------------------------------------------------
 UserColorEngine::UserColorEngine() :
 m_lastColor(0)
 {
-  m_colors << QColor(31, 120, 180) << QColor(51, 160, 44) << QColor(227, 26, 28) << QColor(255, 127, 0) << QColor(106, 61, 154) << QColor(166, 206, 227)
-  << QColor(178, 223, 138) << QColor(251, 154, 153) << QColor(253, 191, 111) << QColor(202, 178, 214);
+  m_colors << QColor( 31, 120, 180)
+           << QColor( 51, 160,  44)
+           << QColor(227,  26,  28)
+           << QColor(255, 127,   0)
+           << QColor(106,  61, 154)
+           << QColor(166, 206, 227)
+           << QColor(178, 223, 138)
+           << QColor(251, 154, 153)
+           << QColor(253, 191, 111)
+           << QColor(202, 178, 214);
 }
 
 //-----------------------------------------------------------------------------
-QColor UserColorEngine::color(Segmentation* seg)
+QColor UserColorEngine::color(SegmentationPtr seg)
 {
   QString user = seg->users().last();
 
@@ -45,12 +55,10 @@ QColor UserColorEngine::color(Segmentation* seg)
 }
 
 //-----------------------------------------------------------------------------
-LUTPtr UserColorEngine::lut(Segmentation* seg)
+LUTPtr UserColorEngine::lut(SegmentationPtr seg)
 {
   // Get (or create if it doesn't exit) the lut for the segmentations' images
-  QString lutName = seg->taxonomy()->qualifiedName();
-//   if (seg->isSelected())
-//     lutName.append("_selected");
+  QString lutName = seg->users().join("");
 
   vtkSmartPointer<vtkLookupTable> seg_lut;
 
@@ -79,6 +87,5 @@ LUTPtr UserColorEngine::lut(Segmentation* seg)
 //-----------------------------------------------------------------------------
 QColor UserColorEngine::nextColor()
 {
-  return m_colors[m_lastColor++];
+  return m_colors[++m_lastColor%m_colors.size()];
 }
-

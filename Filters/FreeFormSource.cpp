@@ -28,6 +28,8 @@
 // Qt
 #include <QDebug>
 
+using namespace EspINA;
+
 
 const QString FreeFormSource::TYPE = "EditorToolBar::FreeFormSource";
 

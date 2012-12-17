@@ -22,12 +22,14 @@
 
 #include <QtPlugin>
 
-class EspinaModel;
+#include <Core/EspinaTypes.h>
+
 class QFileInfo;
 class QString;
 class QUndoStack;
-class ViewManager;
 
+namespace EspINA
+{
 typedef QString ReaderId;
 
 class IFileReader
@@ -35,14 +37,16 @@ class IFileReader
 public:
   virtual ~IFileReader(){}
 
-  virtual void initFileReader(EspinaModel* model,
+  virtual void initFileReader(EspinaModelPtr model,
                               QUndoStack* undoStack,
                               ViewManager *vm) = 0;
 
   virtual bool readFile(const QFileInfo) = 0;
 };
 
-Q_DECLARE_INTERFACE(IFileReader,
-                    "es.upm.cesvima.EspINA.IFileReader/1.0")
+}// namespace EspINA
+
+Q_DECLARE_INTERFACE(EspINA::IFileReader,
+                    "es.upm.cesvima.EspINA.IFileReader/1.1")
 
 #endif // READERFACTORY_H

@@ -15,6 +15,8 @@
 
 #include <iostream>
 
+using namespace EspINA;
+
 int QtHuePicker::x2val(int x)
 {
   double value = (x * 360)/width();

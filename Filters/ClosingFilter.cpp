@@ -23,6 +23,8 @@
 
 #include <QDebug>
 
+using namespace EspINA;
+
 const QString ClosingFilter::TYPE = "EditorToolBar::ClosingFilter";
 
 ClosingFilter::ClosingFilter(Filter::NamedInputs inputs,

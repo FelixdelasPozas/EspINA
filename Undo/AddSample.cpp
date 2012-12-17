@@ -22,10 +22,12 @@
 #include <Core/Model/Sample.h>
 #include <Core/Model/EspinaModel.h>
 
+using namespace EspINA;
+
 //------------------------------------------------------------------------
-AddSample::AddSample(Sample *sample, EspinaModel *model)
-: m_model(model),
-m_sample(sample)
+AddSample::AddSample(SamplePtr sample, EspinaModelPtr model)
+: m_model(model)
+, m_sample(sample)
 {}
 
 //------------------------------------------------------------------------

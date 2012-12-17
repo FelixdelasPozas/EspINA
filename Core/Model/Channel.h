@@ -35,122 +35,125 @@
 #include <QColor>
 #include <QFileInfo>
 
-class Sample;
-class Filter;
 // Forward declarations
-class ChannelExtension;
 class vtkAlgorithmOutput;
 
-class Channel
-: public PickableItem
-, public HierarchyItem
+namespace EspINA
 {
-  typedef itk::ImageFileReader<itkVolumeType> EspinaVolumeReader;
-public:
-  // Argument Ids
-  static const ArgumentId ID;
-  static const ArgumentId COLOR;
-  static const ArgumentId VOLUME;
-
-  static const QString STAINLINK;
-  static const QString LINK;
-  static const QString VOLUMELINK;
-
-// Extended Information and representation tags
-  static const QString NAME;
-  static const QString VOLUMETRIC;
-
-  class CArguments : public ModelItem::Arguments
+  class Channel
+  : public PickableItem
+  , public HierarchyItem
   {
+    typedef itk::ImageFileReader<itkVolumeType> EspinaVolumeReader; // TODO 2012-12-13: Borrar
   public:
-    explicit CArguments() : m_outputId(0) {}
-    explicit CArguments(const Arguments &args)
-    : Arguments(args), m_outputId(0) {}
+    // Argument Ids
+    static const ArgumentId ID;
+    static const ArgumentId COLOR;
+    static const ArgumentId VOLUME;
 
-    /// Channel dye color. Hue's value in range (0,1)
-    void setColor(double color)
-    {
-      (*this)[COLOR] = QString::number(color);
-    }
-    /// Channel dye color. Hue's value in range (0,1)
-    double color() const
-    {
-      return (*this)[COLOR].toFloat();
-    }
+    static const QString STAINLINK;
+    static const QString LINK;
+    static const QString VOLUMELINK;
 
-    void setOutputId(Filter::OutputId oId)
-    {
-      (*this)[VOLUME] = QString("%1_%2")
-                        .arg(VOLUMELINK)
-                        .arg(oId);
-      m_outputId = oId;
-    }
+    // Extended Information and representation tags
+    static const QString NAME;
+    static const QString VOLUMETRIC;
 
-    Filter::OutputId outputId() const
+    class CArguments : public ModelItem::Arguments
     {
-      return m_outputId;
-    }
+    public:
+      explicit CArguments() : m_outputId(0) {}
+      explicit CArguments(const Arguments &args)
+      : Arguments(args), m_outputId(0) {}
+
+      /// Channel dye color. Hue's value in range (0,1)
+      void setColor(double color)
+      {
+        (*this)[COLOR] = QString::number(color);
+      }
+      /// Channel dye color. Hue's value in range (0,1)
+      double color() const
+      {
+        return (*this)[COLOR].toFloat();
+      }
+
+      void setOutputId(Filter::OutputId oId)
+      {
+        (*this)[VOLUME] = QString("%1_%2")
+        .arg(VOLUMELINK)
+        .arg(oId);
+        m_outputId = oId;
+      }
+
+      Filter::OutputId outputId() const
+      {
+        return m_outputId;
+      }
+
+    private:
+      Filter::OutputId m_outputId;
+      //double m_spacing[3];
+    };
+
+  public:
+    virtual ~Channel();
+
+    void setColor(double color);
+    double color() const;
+
+    void setVisible(bool visible) {m_visible = visible;}
+    bool isVisible() const {return m_visible;}
+
+    /// Model Item Interface
+    virtual QVariant data(int role=Qt::DisplayRole) const;
+    virtual bool setData(const QVariant& value, int role = Qt::UserRole +1);
+    virtual ModelItemType type() const {return CHANNEL;}
+    virtual QString  serialize() const;
+
+    virtual QStringList availableInformations() const;
+    virtual QStringList availableRepresentations() const;
+    virtual QVariant information(QString name);
+
+    virtual void initialize(const Arguments &args = Arguments());
+    virtual void initializeExtensions(const Arguments &args = Arguments());
+
+    /// Get the sample which channel belongs to
+    SamplePtr sample();
+
+    /// Pickable Item Interface
+    virtual const FilterPtr filter() const;
+    virtual FilterPtr filter() { return PickableItem::filter(); }
+    virtual const Filter::OutputId outputId() const;
+
+    ChannelVolume::Pointer volume();
+    const ChannelVolume::Pointer volume() const;
+
+    void setPosition(Nm pos[3]);
+    void position(Nm pos[3]);
+
+    /// Add a new extension to the segmentation
+    /// Extesion won't be available until requirements are satisfied
+    void addExtension(ChannelExtensionPtr ext);
+
+  public slots:
+    virtual void notifyModification(bool force = false);
 
   private:
-    Filter::OutputId m_outputId;
-    //double m_spacing[3];
+    explicit Channel(FilterPtr filter, Filter::OutputId oId);
+    friend class EspinaFactory;
+  private:
+    bool   m_visible;
+    Nm m_pos[3];
+
+    mutable CArguments m_args;
+
+    FilterPtr          m_filter;
   };
 
-public:
-  virtual ~Channel();
+  ChannelPtr channelPtr(ModelItemPtr &item);
+  ChannelPtr channelPtr(PickableItemPtr &item);
 
-  void setColor(double color);
-  double color() const;
 
-  void setVisible(bool visible) {m_visible = visible;}
-  bool isVisible() const {return m_visible;}
+}// namespace EspINA
 
-  /// Model Item Interface
-  virtual QVariant data(int role=Qt::DisplayRole) const;
-  virtual bool setData(const QVariant& value, int role = Qt::UserRole +1);
-  virtual ItemType type() const {return ModelItem::CHANNEL;}
-  virtual QString  serialize() const;
-
-  virtual QStringList availableInformations() const;
-  virtual QStringList availableRepresentations() const;
-  virtual QVariant information(QString name);
-
-  virtual void initialize(Arguments args = Arguments());
-  virtual void initializeExtensions(Arguments args = Arguments());
-
-  /// Get the sample which channel belongs to
-  Sample *sample();
-
-  /// Pickable Item Interface
-  virtual const Filter* filter() const;
-  virtual Filter* filter() { return PickableItem::filter(); }
-  virtual const Filter::OutputId outputId() const;
-
-  ChannelVolume::Pointer volume();
-  const ChannelVolume::Pointer volume() const;
-
-  void setPosition(Nm pos[3]);
-  void position(Nm pos[3]);
-
-  /// Add a new extension to the segmentation
-  /// Extesion won't be available until requirements are satisfied
-  void addExtension(ChannelExtension *ext);
-
-public slots:
-  virtual void notifyModification(bool force = false);
-
-private:
-  explicit Channel(Filter* filter, Filter::OutputId oId);
-  friend class EspinaFactory;
-private:
-  bool   m_visible;
-  Nm m_pos[3];
-
-  Filter            *m_filter;
-  mutable CArguments m_args;
-//   QMap<ExtensionId, IChannelExtension *> m_extensions;
-//   QMap<ExtensionId, IChannelExtension *> m_pendingExtensions;
-//   QList<IChannelExtension *> m_insertionOrderedExtensions;
-//   QMap<IChannelRepresentation::RepresentationId, IChannelExtension *> m_representations;
-};
 #endif // CHANNEL_H

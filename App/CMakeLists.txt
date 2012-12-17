@@ -41,7 +41,7 @@ qt4_wrap_cpp (ESPINA_MOC
   Tools/Brushes/Brush.h
   Tools/PlanarSplit/PlanarSplitTool.h
   Tools/SeedGrowSegmentation/SeedGrowSegmentationTool.h
-  Tools/SegRemover/SegRemover.h
+  Tools/SegmentationRemover/SegmentationRemover.h
   Tools/VOI/RectangularVOI.h
   Views/DefaultEspinaView.h
   Dialogs/Connectomics/ConnectomicsDialog.h
@@ -119,7 +119,7 @@ set (ESPINA_SOURCES
   Tools/Contour/FilledContour.cpp
   Tools/PlanarSplit/PlanarSplitTool.cpp
   Tools/SeedGrowSegmentation/SeedGrowSegmentationTool.cpp
-  Tools/SegRemover/SegRemover.cpp
+  Tools/SegmentationRemover/SegmentationRemover.cpp
   Tools/VOI/RectangularVOI.cpp
   Tools/Zoom/ZoomTool.cpp
   Undo/BrushUndoCommand.cpp

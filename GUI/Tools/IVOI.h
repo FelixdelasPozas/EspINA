@@ -22,14 +22,18 @@
 
 #include "ITool.h"
 
-
-class IVOI
-: public ITool
+namespace EspINA
 {
-public:
-  typedef double * Region;
 
-  virtual Region region() = 0;
-};
+  class IVOI
+  : public ITool
+  {
+  public:
+    typedef double * Region;
+
+    virtual Region region() = 0;
+  };
+
+} // namespace EspINA
 
 #endif // IVOI_H

@@ -26,6 +26,8 @@
 
 #include <QDebug>
 
+using namespace EspINA;
+
 double AxialSliceMatrix[16] =
 {
   1,  0,  0,  0,

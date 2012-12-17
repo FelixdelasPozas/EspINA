@@ -30,6 +30,7 @@
 #include <GUI/QtWidget/EspinaRenderView.h>
 #include <GUI/ViewManager.h>
 #include <Core/Model/PickableItem.h>
+#include <Core/Model/Taxonomy.h>
 #include <Core/EspinaSettings.h>
 #include <GUI/Pickers/PixelPicker.h>
 #include <Filters/SeedGrowSegmentationFilter.h>
@@ -45,14 +46,16 @@
 #include <vtkImageResliceToColors.h>
 #include <vtkMatrix4x4.h>
 
+using namespace EspINA;
+
 const QString SGS_VOI = "SGS VOI";
 
 //-----------------------------------------------------------------------------
-SeedGrowSegmentationTool::CreateSegmentation::CreateSegmentation(Channel* channel,
-                                                                 SeedGrowSegmentationFilter* filter,
-                                                                 Segmentation *segmentation,
-                                                                 TaxonomyElement* taxonomy,
-                                                                 EspinaModel* model)
+SeedGrowSegmentationTool::CreateSegmentation::CreateSegmentation(ChannelPtr channel,
+                                                                 FilterPtr filter,
+                                                                 SegmentationPtr segmentation,
+                                                                 TaxonomyElementPtr taxonomy,
+                                                                 EspinaModelPtr model)
 : m_model   ( model        )
 , m_channel ( channel      )
 , m_filter  ( filter       )
@@ -91,7 +94,7 @@ void SeedGrowSegmentationTool::CreateSegmentation::undo()
 }
 
 //-----------------------------------------------------------------------------
-SeedGrowSegmentationTool::SeedGrowSegmentationTool(EspinaModel *model,
+SeedGrowSegmentationTool::SeedGrowSegmentationTool(EspinaModelPtr model,
                                                    QUndoStack  *undoStack,
                                                    ViewManager *viewManager,
                                                    ThresholdAction  *th,
@@ -258,7 +261,7 @@ void SeedGrowSegmentationTool::startSegmentation(IPicker::PickList pickedItems)
     return;
 
   IPicker::PickedItem element = pickedItems.first();
-  PickableItem *input = element.second;
+  PickableItemPtr input = element.second;
 
   Q_ASSERT(element.first->GetNumberOfPoints() == 1); // with one pixel
   Nm seedPoint[3];
@@ -268,8 +271,8 @@ void SeedGrowSegmentationTool::startSegmentation(IPicker::PickList pickedItems)
   //     qDebug() << "Seed:" << seed;
   //     qDebug() << "Use Default VOI:" << m_useDefaultVOI->useDefaultVOI();
 
-  Q_ASSERT(ModelItem::CHANNEL == input->type()); //TODO Define active channel policy
-  Channel *channel = m_viewManager->activeChannel();
+  Q_ASSERT(EspINA::CHANNEL == input->type()); //TODO Define active channel policy
+  ChannelPtr channel = m_viewManager->activeChannel();
 
   if (!channel)
     return;
@@ -280,7 +283,7 @@ void SeedGrowSegmentationTool::startSegmentation(IPicker::PickList pickedItems)
   double spacing[3];
   channel->volume()->spacing(spacing);
 
-  TaxonomyElement *tax = m_viewManager->activeTaxonomy();
+  TaxonomyElementPtr tax = m_viewManager->activeTaxonomy();
   Q_ASSERT(tax);
 
   Nm voiBounds[6];
@@ -359,15 +362,16 @@ void SeedGrowSegmentationTool::startSegmentation(IPicker::PickList pickedItems)
     params.setCloseValue(m_settings->closing());
     inputs[SeedGrowSegmentationFilter::INPUTLINK] = channel->filter();
     args[Filter::INPUTS] = Filter::NamedInput(SeedGrowSegmentationFilter::INPUTLINK, channel->outputId());
-    SeedGrowSegmentationFilter *filter;
-    filter = new SeedGrowSegmentationFilter(inputs, args);
+    SeedGrowSegmentationFilter *sgsFilter = new SeedGrowSegmentationFilter(inputs, args);
+    FilterPtr filter(sgsFilter);
     filter->update();
     Q_ASSERT(filter->outputs().size() == 1);
 
-    // NOTE: automatically assigns widget to filter on new()
-    new SGSFilterInspector(filter);
+    Filter::FilterInspectorPtr inspector(new SGSFilterInspector(sgsFilter));
+    filter->setFilterInspector(inspector);
 
-    Segmentation *seg = m_model->factory()->createSegmentation(filter, 0);
+
+    SegmentationPtr seg = m_model->factory()->createSegmentation(filter, 0);
 
     double segBounds[6];
     seg->volume()->bounds(segBounds);
@@ -426,7 +430,7 @@ void SeedGrowSegmentationTool::addPreview(EspinaRenderView *view)
 
   IPicker::PickList pickList = view->pick(filter, regions);
 
-  if (pickList.empty() || (pickList.first().second->type() != ModelItem::CHANNEL))
+  if (pickList.empty() || (pickList.first().second->type() != EspINA::CHANNEL))
   {
     removePreview(view);
     return;

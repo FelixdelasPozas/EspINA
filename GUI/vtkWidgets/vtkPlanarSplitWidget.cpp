@@ -24,17 +24,22 @@
 // Qt
 #include <QDebug>
 
+using namespace EspINA;
+
 vtkStandardNewMacro(vtkPlanarSplitWidget);
 
 // The widget observes its two handles.
 // Here we create the command/observer classes to respond to the
 // handle widgets.
-class vtkPlanarSplitWidgetCallback : public vtkCommand
+
+namespace EspINA
 {
-public:
-  static vtkPlanarSplitWidgetCallback *New()
+  class vtkPlanarSplitWidgetCallback : public vtkCommand
+  {
+  public:
+    static vtkPlanarSplitWidgetCallback *New()
     { return new vtkPlanarSplitWidgetCallback; }
-  virtual void Execute(vtkObject*, unsigned long eventId, void*)
+    virtual void Execute(vtkObject*, unsigned long eventId, void*)
     {
       switch(eventId)
       {
@@ -49,9 +54,10 @@ public:
           break;
       }
     }
-  int m_handleNumber;
-  vtkPlanarSplitWidget *m_widget;
-};
+    int m_handleNumber;
+    vtkPlanarSplitWidget *m_widget;
+  };
+}
 
 //----------------------------------------------------------------------
 vtkPlanarSplitWidget::vtkPlanarSplitWidget()

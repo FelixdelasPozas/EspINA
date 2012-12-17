@@ -33,8 +33,10 @@
 #include <QPixmap>
 #include <boost/concept_check.hpp>
 
+using namespace EspINA;
+
 //-----------------------------------------------------------------------------
-RectangularVOI::RectangularVOI(EspinaModel* model,
+RectangularVOI::RectangularVOI(EspinaModelPtr model,
                                ViewManager* viewManager)
 : m_model(model)
 , m_viewManager(viewManager)
@@ -52,13 +54,12 @@ RectangularVOI::RectangularVOI(EspinaModel* model,
           this, SLOT(defineVOI(IPicker::PickList)));
 
   vtkMath::UninitializeBounds(m_bounds);
-  model->factory()->registerSettingsPanel(m_settingsPanel);
+  m_model->factory()->registerSettingsPanel(m_settingsPanel);
 }
 
 //-----------------------------------------------------------------------------
 RectangularVOI::~RectangularVOI()
 {
-  delete m_settingsPanel;
   delete m_settings;
 
   if (m_sliceSelector)
@@ -164,11 +165,11 @@ void RectangularVOI::defineVOI(IPicker::PickList channels)
   double pos[3];
   pickedItem.first->GetPoint(0, pos);
 
-  PickableItem *pItem = pickedItem.second;
-  if (ModelItem::CHANNEL != pItem->type())
+  PickableItemPtr pItem = pickedItem.second;
+  if (EspINA::CHANNEL != pItem->type())
     return;
 
-  Channel *pickedChannel = dynamic_cast<Channel *>(pItem);
+  ChannelPtr pickedChannel = channelPtr(pItem);
   double spacing[3];
   pickedChannel->volume()->spacing(spacing);
 

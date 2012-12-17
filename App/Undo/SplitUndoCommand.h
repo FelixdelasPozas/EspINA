@@ -1,20 +1,20 @@
 /*
-    <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2012  <copyright holder> <email>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ *    <one line to give the program's name and a brief idea of what it does.>
+ *    Copyright (C) 2012  <copyright holder> <email>
+ *
+ *    This program is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
+ *
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 
 #ifndef SPLITUNDOCOMMAND_H
@@ -23,36 +23,35 @@
 #include <QUndoStack>
 #include <Core/Model/ModelItem.h>
 
-class Sample;
-class Channel;
-class EspinaModel;
-class Filter;
-class Segmentation;
-class SplitFilter;
-
-class SplitUndoCommand
-: public QUndoCommand
+namespace EspINA
 {
-public:
-  explicit SplitUndoCommand(Segmentation *input,
-                            SplitFilter  *filter,
-                            Segmentation *splitSeg[2],
-                            EspinaModel  *model);
-  virtual ~SplitUndoCommand();
+  class SplitFilter;
 
-  virtual void redo();
-  virtual void undo();
+  class SplitUndoCommand
+  : public QUndoCommand
+  {
+  public:
+    explicit SplitUndoCommand(SegmentationPtr input,
+                              FilterPtr       filter,
+                              SegmentationPtr splitSeg[2],
+                              EspinaModelPtr  model);
+    virtual ~SplitUndoCommand();
 
-private:
-  EspinaModel  *m_model;
+    virtual void redo();
+    virtual void undo();
 
-  Channel      *m_channel;
-  Sample       *m_sample;
-  Segmentation *m_seg;
-  SplitFilter  *m_filter;
-  Segmentation *m_subSeg[2];
+  private:
+    EspinaModelPtr  m_model;
 
-  ModelItem::RelationList m_relations;
-};
+    ChannelPtr      m_channel;
+    SamplePtr       m_sample;
+    SegmentationPtr m_seg;
+    FilterPtr       m_filter;
+    SegmentationPtr m_subSeg[2];
+
+    ModelItem::RelationList m_relations;
+  };
+
+} // namespace EspINA
 
 #endif // SPLITUNDOCOMMAND_H

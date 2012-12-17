@@ -31,6 +31,8 @@
 #include <QApplication>
 #include <QPixmap>
 
+using namespace EspINA;
+
 vtkStandardNewMacro(vtkPlaneContourWidget);
 
 vtkPlaneContourWidget::vtkPlaneContourWidget()

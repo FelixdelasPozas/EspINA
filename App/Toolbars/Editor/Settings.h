@@ -22,8 +22,7 @@
 
 #include "Toolbars/Editor/EditorToolBar.h"
 
-
-class EditorToolBar::Settings
+class EspINA::EditorToolBar::Settings
 {
 public:
   Settings();

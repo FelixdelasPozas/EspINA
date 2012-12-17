@@ -22,6 +22,8 @@
 
 #include <QSettings>
 
+using namespace EspINA;
+
 const QString BRUSH ("EditorToolBar::BrushRadius" );
 const QString ERODE ("EditorToolBar::ErodeRadius" );
 const QString DILATE("EditorToolBar::DilateRadius");

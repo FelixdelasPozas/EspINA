@@ -20,19 +20,25 @@
 #ifndef FILTERFACTORY_H
 #define FILTERFACTORY_H
 
-#include "Core/Model/Filter.h"
+#include "Core/EspinaTypes.h"
+#include <Core/Model/ModelItem.h>
+#include <Core/Model/Filter.h>
 
-class EspinaFactory;
-
-class IFilterCreator
+namespace EspINA
 {
-public:
-  virtual ~IFilterCreator(){}
+  class IFilterCreator
+  {
+  public:
+    virtual ~IFilterCreator(){}
 
-  virtual Filter *createFilter(const QString              &filter,
-                               const Filter::NamedInputs  &inputs,
-                               const ModelItem::Arguments &args) = 0;
-};
-Q_DECLARE_INTERFACE(IFilterCreator,
-                    "es.upm.cesvima.EspINA.IFilterCreator/1.0")
+    virtual FilterPtr createFilter(const QString              &filter,
+                                   const Filter::NamedInputs  &inputs,
+                                   const ModelItem::Arguments &args) = 0;
+  };
+
+}// namespace EspINA
+
+Q_DECLARE_INTERFACE(EspINA::IFilterCreator,
+                    "es.upm.cesvima.EspINA.IFilterCreator/1.1")
+
 #endif // FILTERFACTORY_H

@@ -19,15 +19,18 @@
 
 class vtkAbstractWidget;
 class vtkDistanceWidget;
-class MeasureSliceWidget;
 class vtkMeasureWidget;
-class EspinaRenderView;
 class QEvent;
 
-class MeasureWidget
-: public EspinaWidget
-, public vtkCommand
+namespace EspINA
 {
+  class MeasureSliceWidget;
+  class EspinaRenderView;
+
+  class MeasureWidget
+  : public EspinaWidget
+  , public vtkCommand
+  {
   public:
     explicit MeasureWidget();
     virtual ~MeasureWidget();
@@ -53,6 +56,8 @@ class MeasureWidget
     vtkDistanceWidget *m_sagittal;
     QList<MeasureSliceWidget*> m_sliceWidgets;
     QList<vtkDistanceWidget*> m_distanceWidgets;
-};
+  };
+
+}// namespace EspINA
 
 #endif /* MEASUREWIDGET_H_ */

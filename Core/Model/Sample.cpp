@@ -21,34 +21,31 @@
 #include "Core/Model/Sample.h"
 #include "Core/Model/Segmentation.h"
 #include "Core/Extensions/SampleExtension.h"
+#include <vtkMath.h>
 
 #include <QDebug>
+
+using namespace EspINA;
 
 const QString Sample::WHERE  = "where";
 
 //------------------------------------------------------------------------
-Sample::Sample(const QString id)
+Sample::Sample(const QString &id)
 : m_ID(id)
 {
   memset(m_position, 0, 3*sizeof(double));
-  //TODO
-  m_bounds[0] = m_bounds[2] = m_bounds[4] = 0;
-  m_bounds[1] = 698;
-  m_bounds[3] = 535;
-  m_bounds[5] = 228;
+
+  vtkMath::UninitializeBounds(m_bounds);
 //   qDebug() << "Created Sample:" << id;
 }
 
 //------------------------------------------------------------------------
-Sample::Sample(const QString id, const QString args)
+Sample::Sample(const QString &id, const QString &args)
 : m_ID(id)
 {
   memset(m_position, 0, 3*sizeof(double));
-  //TODO
-  m_bounds[0] = m_bounds[2] = m_bounds[4] = 0;
-  m_bounds[1] = 698;
-  m_bounds[3] = 535;
-  m_bounds[5] = 228;
+
+  vtkMath::UninitializeBounds(m_bounds);
 //   qDebug() << "Created Sample:" << id;
 }
 
@@ -84,15 +81,15 @@ void Sample::setBounds(double value[6])
 }
 
 //------------------------------------------------------------------------
-void Sample::addChannel(Channel *channel)
+void Sample::addChannel(ChannelPtr channel)
 {
-
+  Q_ASSERT(false); //DEPRECATED
 }
 
 //------------------------------------------------------------------------
-void Sample::addSegmentation(Segmentation *seg)
+void Sample::addSegmentation(SegmentationPtr seg)
 {
-
+  Q_ASSERT(false);//DEPRECATED
 }
 
 //------------------------------------------------------------------------
@@ -108,10 +105,10 @@ QVariant Sample::data(int role) const
 QString Sample::serialize() const
 {
   QString extensionArgs;
-  foreach(ModelItemExtension *ext, m_extensions)
+  foreach(ModelItemExtensionPtr ext, m_extensions)
   {
-    SampleExtension *sampleExt = dynamic_cast<SampleExtension *>(ext);
-    Q_ASSERT(sampleExt);
+    SampleExtensionPtr sampleExt = qSharedPointerDynamicCast<SampleExtension>(ext);
+    Q_ASSERT(!sampleExt.isNull());
     QString serializedArgs = sampleExt->serialize(); //Independizar los argumentos?
     if (!serializedArgs.isEmpty())
       extensionArgs.append(ext->id()+"=["+serializedArgs+"];");
@@ -124,7 +121,7 @@ QString Sample::serialize() const
 }
 
 //------------------------------------------------------------------------
-void Sample::initialize(ModelItem::Arguments args)
+void Sample::initialize(const Arguments &args)
 {
   foreach(ArgumentId argId, args.keys())
   {
@@ -134,25 +131,33 @@ void Sample::initialize(ModelItem::Arguments args)
 }
 
 //------------------------------------------------------------------------
-void Sample::initializeExtensions(ModelItem::Arguments args)
+void Sample::initializeExtensions(const Arguments &args)
 {
-  ModelItem::Arguments extArgs(args[EXTENSIONS]);
-  foreach(ModelItemExtension *ext, m_extensions)
+  Arguments extArgs(args[EXTENSIONS]);
+  foreach(ModelItemExtensionPtr ext, m_extensions)
   {
-    SampleExtension *sampleExt = dynamic_cast<SampleExtension *>(ext);
+    SampleExtensionPtr sampleExt = qSharedPointerDynamicCast<SampleExtension>(ext);
     Q_ASSERT(sampleExt);
     qDebug() << extArgs;
-    ModelItem::Arguments sArgs(extArgs.value(sampleExt->id(), QString()));
+    Arguments sArgs(extArgs.value(sampleExt->id(), QString()));
     qDebug() << sArgs;
-    sampleExt->initialize(this, sArgs);
+    sampleExt->initialize(sArgs);
   }
 
 }
 
-
 //------------------------------------------------------------------------
-void Sample::addExtension(SampleExtension *ext)
+void Sample::addExtension(SampleExtensionPtr ext)
 {
   ModelItem::addExtension(ext);
 }
 
+//------------------------------------------------------------------------
+SamplePtr EspINA::samplePtr(ModelItemPtr& item)
+{
+  Q_ASSERT(SAMPLE == item->type());
+  SamplePtr ptr = qSharedPointerDynamicCast<Sample>(item);
+  Q_ASSERT(!ptr.isNull());
+
+  return ptr;
+}

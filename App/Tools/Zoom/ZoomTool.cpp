@@ -7,12 +7,13 @@
 #include "ZoomTool.h"
 
 // EspINA
-
 #include <GUI/ViewManager.h>
 #include <GUI/vtkWidgets/ZoomSelectionWidget.h>
 
 // Qt
 #include <QPixmap>
+
+using namespace EspINA;
 
 //----------------------------------------------------------------------------
 ZoomTool::ZoomTool(ViewManager* vm)

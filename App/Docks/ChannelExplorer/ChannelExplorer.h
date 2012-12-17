@@ -1,20 +1,20 @@
 /*
-    <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ *    <one line to give the program's name and a brief idea of what it does.>
+ *    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
+ *
+ *    This program is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
+ *
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 
 #ifndef CHANNELEXPLORER_H
@@ -33,47 +33,54 @@
 //Qt
 #include <QSortFilterProxyModel>
 
-class ViewManager;
 #ifdef TEST_ESPINA_MODELS
 class ModelTest;
 #endif
 
-class ChannelExplorer
-: public QDockWidget
+namespace EspINA
 {
-  Q_OBJECT
-  class CentralWidget;
-public:
-  explicit ChannelExplorer(EspinaModel *model,
-                           ViewManager *vm,
-                           QWidget     *parent = 0);
-  virtual ~ChannelExplorer();
+  class ViewManager;
 
-protected slots:
-  void channelSelected();
-  void showInformation();
-  void activateChannel();
-  void unloadChannel();
-  void alignLeft();
-  void alignCenter();
-  void alignRight();
-  void moveRight();
-  void moveLelft();
-  void changeChannelColor();
-  void updateChannelPosition();
-  void updateTooltips(int index);
-  void focusOnChannel();
+  class ChannelExplorer
+  : public QDockWidget
+  {
+    Q_OBJECT
+    class CentralWidget;
+  public:
+    explicit ChannelExplorer(EspinaModelPtr model,
+                             ViewManager   *vm,
+                             QWidget       *parent = 0);
+    virtual ~ChannelExplorer();
 
-private:
-  CentralWidget *m_gui;
-  EspinaModel   *m_model;
-  ViewManager   *m_viewManager;
-  QSharedPointer<ChannelProxy> m_channelProxy;
-  QSharedPointer<QSortFilterProxyModel> m_sort;
+  protected slots:
+    void channelSelected();
+    void showInformation();
+    void activateChannel();
+    void unloadChannel();
+    void alignLeft();
+    void alignCenter();
+    void alignRight();
+    void moveRight();
+    void moveLelft();
+    void changeChannelColor();
+    void updateChannelPosition();
+    void updateTooltips(int index);
+    void focusOnChannel();
 
-#ifdef TEST_ESPINA_MODELS
-  QSharedPointer<ModelTest>   m_modelTester;
-#endif
-};
+  private:
+    EspinaModelPtr m_model;
+    ViewManager   *m_viewManager;
+
+    QSharedPointer<ChannelProxy> m_channelProxy;
+    QSharedPointer<QSortFilterProxyModel> m_sort;
+
+    CentralWidget *m_gui;
+
+    #ifdef TEST_ESPINA_MODELS
+    QSharedPointer<ModelTest>   m_modelTester;
+    #endif
+  };
+
+} // namespace EspINA
 
 #endif // CHANNELEXPLORER_H

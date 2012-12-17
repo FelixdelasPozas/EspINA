@@ -23,39 +23,44 @@
 #include "GUI/QtWidget/SliceSelectorWidget.h"
 
 class QPushButton;
-class RectangularRegion;
 
-class RectangularRegionSliceSelector
-: public SliceSelectorWidget
+namespace EspINA
 {
-  Q_OBJECT
-public:
-  explicit RectangularRegionSliceSelector(RectangularRegion *region);
-  virtual ~RectangularRegionSliceSelector();
+  class RectangularRegion;
 
-  virtual void setPlane(const PlaneType plane);
+  class RectangularRegionSliceSelector
+  : public SliceSelectorWidget
+  {
+    Q_OBJECT
+  public:
+    explicit RectangularRegionSliceSelector(RectangularRegion *region);
+    virtual ~RectangularRegionSliceSelector();
 
-  virtual QWidget *leftWidget () const;
-  virtual QWidget *rightWidget() const;
+    virtual void setPlane(const PlaneType plane);
 
-  void setLeftLabel (const QString &label) {m_leftLabel  = label; update();}
-  void setRightLabel(const QString &label) {m_rightLabel = label; update();}
+    virtual QWidget *leftWidget () const;
+    virtual QWidget *rightWidget() const;
 
-  virtual SliceSelectorWidget *clone();
+    void setLeftLabel (const QString &label) {m_leftLabel  = label; update();}
+    void setRightLabel(const QString &label) {m_rightLabel = label; update();}
 
-protected slots:
-  void update();
-  void leftWidgetClicked();
-  void rightWidgetClicked();
+    virtual SliceSelectorWidget *clone();
 
-private:
-  RectangularRegion *m_region;
+  protected slots:
+    void update();
+    void leftWidgetClicked();
+    void rightWidgetClicked();
 
-  QPushButton *m_leftWidget;
-  QPushButton *m_rightWidget;
+  private:
+    RectangularRegion *m_region;
 
-  QString m_leftLabel;
-  QString m_rightLabel;
-};
+    QPushButton *m_leftWidget;
+    QPushButton *m_rightWidget;
+
+    QString m_leftLabel;
+    QString m_rightLabel;
+  };
+}// namespace EspINA
+
 
 #endif // RECTANGULARREGIONSLICESELECTOR_H

@@ -27,6 +27,8 @@
 #include <QApplication>
 #include <QDebug>
 
+using namespace EspINA;
+
 const ModelItemExtension::ExtId MarginsSegmentationExtension::ID = "MarginsExtension";
 
 const ModelItemExtension::InfoTag MarginsSegmentationExtension::LEFT_MARGIN   = "Left Margin";
@@ -89,16 +91,16 @@ QVariant MarginsSegmentationExtension::information(ModelItemExtension::InfoTag t
 }
 
 //-----------------------------------------------------------------------------
-SegmentationRepresentation* MarginsSegmentationExtension::representation(QString rep)
+SegmentationRepresentationPtr MarginsSegmentationExtension::representation(QString rep)
 {
   Q_ASSERT(false);
-  return NULL;
+  return SegmentationRepresentationPtr();
 }
 
 //-----------------------------------------------------------------------------
-SegmentationExtension* MarginsSegmentationExtension::clone()
+SegmentationExtensionPtr MarginsSegmentationExtension::clone()
 {
-  return new MarginsSegmentationExtension();
+  return SegmentationExtensionPtr(new MarginsSegmentationExtension());
 }
 
 //-----------------------------------------------------------------------------
@@ -108,18 +110,14 @@ void MarginsSegmentationExtension::updateDistances() const
   {
     //qDebug() << m_seg->data().toString() << "Updating Margins";
     QApplication::setOverrideCursor(Qt::WaitCursor);
-    ModelItem::Vector channels = m_seg->relatedItems(ModelItem::IN, Channel::LINK);
-    //Q_ASSERT(!channels.isEmpty());
-    if (!channels.isEmpty())
-    {
-      Channel *channel = dynamic_cast<Channel *>(channels.first());
-      ModelItemExtension *ext = channel->extension(ID);
-      Q_ASSERT(ext);
-      MarginsChannelExtension *marginExt = dynamic_cast<MarginsChannelExtension *>(ext);
-      marginExt->computeMarginDistance(m_seg);
-      QApplication::restoreOverrideCursor();
-      m_init = true;
-    }
+    ChannelPtr channel = m_seg->channel();
+    Q_ASSERT(!channel.isNull());
+    ModelItemExtensionPtr ext = channel->extension(ID);
+    Q_ASSERT(!ext.isNull());
+    MarginsChannelExtensionPtr marginExt = qSharedPointerDynamicCast<MarginsChannelExtension>(ext);
+    marginExt->computeMarginDistance(m_seg);
+    QApplication::restoreOverrideCursor();
+    m_init = true;
   }
 }
 

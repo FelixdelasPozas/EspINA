@@ -12,6 +12,9 @@
 #include <QApplication>
 #include <QVTKWidget.h>
 
+using namespace EspINA;
+
+
 ContourSelector::ContourSelector(IPicker *succesor)
 : m_cursor(Qt::CrossCursor)
 {

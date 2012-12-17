@@ -8,7 +8,6 @@
 #ifndef PLANARSPLITWIDGET_H_
 #define PLANARSPLITWIDGET_H_
 
-class PlanarSplitSliceWidget;
 
 // EspINA
 #include "GUI/vtkWidgets/EspinaWidget.h"
@@ -30,14 +29,18 @@ class vtkImageStencilSource;
 class vtkImplicitPlaneWidget2;
 class vtkAlgorithmOutput;
 class vtkImageStencilData;
-class SliceWidget;
 
-enum WidgetType { AXIAL_WIDGET = 2, CORONAL_WIDGET = 1, SAGITTAL_WIDGET = 0, VOLUME_WIDGET = 3, NONE = 4 };
-
-class PlanarSplitWidget
-: public EspinaWidget
-, public vtkCommand
+namespace EspINA
 {
+  class SliceWidget;
+  class PlanarSplitSliceWidget;
+
+  enum WidgetType { AXIAL_WIDGET = 2, CORONAL_WIDGET = 1, SAGITTAL_WIDGET = 0, VOLUME_WIDGET = 3, NONE = 4 };
+
+  class PlanarSplitWidget
+  : public EspinaWidget
+  , public vtkCommand
+  {
   public:
     explicit PlanarSplitWidget();
     virtual ~PlanarSplitWidget();
@@ -74,6 +77,8 @@ class PlanarSplitWidget
     QList<vtkAbstractWidget*> m_widgets;
     WidgetType m_mainWidget;
     vtkAlgorithmOutput *m_vtkVolumeInformation;
-};
+  };
+
+}// namespace EspINA
 
 #endif /* PLANARSPLITWIDGET_H_ */

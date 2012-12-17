@@ -27,6 +27,8 @@
 #include <QSettings>
 #include <QTime>
 
+using namespace EspINA;
+
 //------------------------------------------------------------------------
 GeneralSettingsPanel::GeneralSettingsPanel(GeneralSettings *settings)
 : m_settings(settings)
@@ -55,25 +57,19 @@ bool GeneralSettingsPanel::modified() const
 }
 
 //------------------------------------------------------------------------
-ISettingsPanel *GeneralSettingsPanel::clone()
+ISettingsPanelPtr GeneralSettingsPanel::clone()
 {
-  return new GeneralSettingsPanel(m_settings);
+  return ISettingsPanelPtr(new GeneralSettingsPanel(m_settings));
 }
 
 //------------------------------------------------------------------------
-SettingsDialog::SettingsDialog(QWidget* parent, Qt::WindowFlags f)
-: QDialog(parent, f)
-, m_activePanel(NULL)
+SettingsDialog::SettingsDialog(QWidget *parent, Qt::WindowFlags flags)
+: QDialog(parent, flags)
 {
   setupUi(this);
 
   connect(components,SIGNAL(currentRowChanged(int)),
-	  this, SLOT(changePreferencePanel(int)));
-
-//   foreach(IPreferencePanel *panel, EspinaPluginManager::instance()->preferencePanels())
-//   {
-//     addPanel(panel);
-//   }
+          this, SLOT(changePreferencePanel(int)));
 }
 
 //------------------------------------------------------------------------
@@ -91,25 +87,26 @@ void SettingsDialog::reject()
 }
 
 //------------------------------------------------------------------------
-void SettingsDialog::addPanel(ISettingsPanel* panel)
+void SettingsDialog::registerPanel(ISettingsPanelPtr panel)
 {
   QListWidgetItem *item = new QListWidgetItem();
   item->setData(Qt::DisplayRole,panel->shortDescription());
   item->setData(Qt::DecorationRole,panel->icon());
 
   components->addItem(item);
-  m_panels.push_back(panel);
+  m_panels << panel;
 }
 
 //------------------------------------------------------------------------
-ISettingsPanel* SettingsDialog::panel(const QString& shortDesc)
+ISettingsPanelPtr SettingsDialog::panel(const QString& shortDesc)
 {
-  foreach(ISettingsPanel *panel, m_panels)
+  foreach(ISettingsPanelPtr panel, m_panels)
   {
     if (panel->shortDescription() == shortDesc)
       return panel;
   }
-  return NULL;
+
+  return ISettingsPanelPtr();
 }
 
 
@@ -130,5 +127,5 @@ void SettingsDialog::changePreferencePanel(int panel)
   m_activePanel = m_panels[panel]->clone();
   longDescription->setText( m_activePanel->longDescription() );
   icon->setPixmap( m_activePanel->icon().pixmap(icon->size()) );
-  scrollArea->setWidget(m_activePanel);
+  scrollArea->setWidget(m_activePanel.data()); //TODO 2012-12-17 Check for memleaks
 }

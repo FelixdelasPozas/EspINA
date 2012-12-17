@@ -47,6 +47,8 @@
 #include <QUndoStack>
 #include <QWidgetAction>
 
+using namespace EspINA;
+
 //------------------------------------------------------------------------
 class SegmentationExplorer::GUI
 : public QWidget
@@ -68,10 +70,10 @@ SegmentationExplorer::GUI::GUI()
 
 
 //------------------------------------------------------------------------
-SegmentationExplorer::SegmentationExplorer(EspinaModel *model,
-                                           QUndoStack  *undoStack,
-                                           ViewManager *vm,
-                                           QWidget* parent)
+SegmentationExplorer::SegmentationExplorer(EspinaModelPtr model,
+                                           QUndoStack    *undoStack,
+                                           ViewManager   *vm,
+                                           QWidget       *parent)
 : QDockWidget(parent)
 , m_gui        (new GUI())
 , m_baseModel  (model)
@@ -79,8 +81,9 @@ SegmentationExplorer::SegmentationExplorer(EspinaModel *model,
 , m_viewManager(vm)
 , m_layout     (NULL)
 {
-  setWindowTitle(tr("Segmentation Explorer"));
   setObjectName("SegmentationExplorer");
+
+  setWindowTitle(tr("Segmentation Explorer"));
 
   //   addLayout("Debug", new Layout(m_baseModel));
   addLayout("Taxonomy",    new TaxonomyLayout   (m_baseModel));
@@ -103,7 +106,7 @@ SegmentationExplorer::SegmentationExplorer(EspinaModel *model,
           this, SLOT(deleteSegmentations()));
   connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection, bool)),
           this, SLOT(updateSelection(ViewManager::Selection)));
-  connect(m_baseModel, SIGNAL(rowsAboutToBeRemoved(QModelIndex, int , int)),
+  connect(m_baseModel.data(), SIGNAL(rowsAboutToBeRemoved(QModelIndex, int , int)),
           this, SLOT(rowsAboutToBeRemoved(QModelIndex, int,int)));
 
   setWidget(m_gui);
@@ -168,10 +171,10 @@ void SegmentationExplorer::changeLayout(int index)
 }
 
 //------------------------------------------------------------------------
-void SegmentationExplorer::changeTaxonomy(TaxonomyElement* taxonomy)
+void SegmentationExplorer::changeTaxonomy(TaxonomyElementPtr taxonomy)
 {
   SegmentationList selectedSegmentations = m_viewManager->selectedSegmentations();
-  foreach(Segmentation *seg, selectedSegmentations)
+  foreach(SegmentationPtr seg, selectedSegmentations)
   {
     m_baseModel->changeTaxonomy(seg, taxonomy);
   }
@@ -192,7 +195,7 @@ void SegmentationExplorer::deleteSegmentations()
       m_viewManager->clearSelection(false);
       m_undoStack->beginMacro("Delete Segmentations");
       // BUG: Temporal Fix until RemoveSegmentation's bug is fixed
-      foreach(Segmentation *seg, toDelete)
+      foreach(SegmentationPtr seg, toDelete)
       {
         m_undoStack->push(new RemoveSegmentation(seg, m_baseModel));
       }
@@ -205,13 +208,13 @@ void SegmentationExplorer::deleteSegmentations()
 //------------------------------------------------------------------------
 void SegmentationExplorer::focusOnSegmentation(const QModelIndex& index)
 {
-  ModelItem *item = m_layout->item(index);
+  ModelItemPtr item = m_layout->item(index);
 
-  if (ModelItem::SEGMENTATION != item->type())
+  if (EspINA::SEGMENTATION != item->type())
     return;
 
   Nm bounds[6];
-  Segmentation *seg = dynamic_cast<Segmentation*>(item);
+  SegmentationPtr seg = segmentationPtr(item);
   seg->volume()->bounds(bounds);
   Nm center[3] = { (bounds[0] + bounds[1])/2, (bounds[2] + bounds[3])/2, (bounds[4] + bounds[5])/2 };
   m_viewManager->focusViewsOn(center);
@@ -232,9 +235,8 @@ void SegmentationExplorer::rowsAboutToBeRemoved(const QModelIndex parent, int st
     for(int row = start; row <= end; row++)
     {
       QModelIndex child = parent.child(row, 0);
-      ModelItem *item = indexPtr(child);
-      Segmentation *seg = dynamic_cast<Segmentation *>(item);
-      Q_ASSERT(seg);
+      ModelItemPtr item = indexPtr(child);
+      SegmentationPtr seg = segmentationPtr(item);
       SegmentationInspector *inspector = m_inspectors.value(seg, NULL);
       if (inspector)
       {
@@ -251,12 +253,10 @@ void SegmentationExplorer::showInformation()
 {
   foreach(QModelIndex index, m_gui->view->selectionModel()->selectedIndexes())
   {
-    ModelItem *item = m_layout->item(index);
-    Q_ASSERT(item);
-
-    if (ModelItem::SEGMENTATION == item->type())
+    ModelItemPtr item = m_layout->item(index);
+    if (EspINA::SEGMENTATION == item->type())
     {
-      Segmentation *seg = dynamic_cast<Segmentation *>(item);
+      SegmentationPtr seg = segmentationPtr(item);
       SegmentationInspector *inspector = m_inspectors.value(seg, NULL);
       if (!inspector)
       {
@@ -281,7 +281,7 @@ void SegmentationExplorer::updateSelection(ViewManager::Selection selection)
   m_gui->view->blockSignals(true);
   m_gui->view->selectionModel()->blockSignals(true);
   m_gui->view->selectionModel()->reset();
-  foreach(PickableItem *item, selection)
+  foreach(PickableItemPtr item, selection)
   {
     QModelIndex index = m_layout->index(item);
     if (index.isValid())
@@ -308,9 +308,9 @@ void SegmentationExplorer::updateSelection(QItemSelection selected, QItemSelecti
 
   foreach(QModelIndex index, m_gui->view->selectionModel()->selection().indexes())
   {
-    ModelItem *item = m_layout->item(index);
-    if (ModelItem::SEGMENTATION == item->type())
-      selection << dynamic_cast<PickableItem *>(item);
+    ModelItemPtr item = m_layout->item(index);
+    if (EspINA::SEGMENTATION == item->type())
+      selection << pickableItemPtr(item);
   }
 
   m_viewManager->setSelection(selection);
@@ -319,7 +319,7 @@ void SegmentationExplorer::updateSelection(QItemSelection selected, QItemSelecti
 //------------------------------------------------------------------------
 void SegmentationExplorer::releaseInspectorResources(SegmentationInspector* inspector)
 {
-  foreach(Segmentation *seg, m_inspectors.keys())
+  foreach(SegmentationPtr seg, m_inspectors.keys())
   {
     if (m_inspectors[seg] == inspector)
     {
@@ -356,7 +356,7 @@ void SegmentationExplorer::changeFinalFlag(bool value)
   SegmentationList dependentSegmentations;
   SegmentationList rootSegmentations;
 
-  foreach(Segmentation *seg, selectedSegmentations)
+  foreach(SegmentationPtr seg, selectedSegmentations)
   {
     seg->setFinalNode(value);
     seg->setDependentNode(false);
@@ -369,7 +369,7 @@ void SegmentationExplorer::changeFinalFlag(bool value)
     rootSegmentations.append(seg->componentOf());
   }
 
-  foreach(Segmentation *seg, dependentSegmentations)
+  foreach(SegmentationPtr seg, dependentSegmentations)
   {
     if (selectedSegmentations.contains(seg))
     {
@@ -388,7 +388,7 @@ void SegmentationExplorer::changeFinalFlag(bool value)
     dependentSegmentations.append(seg->components());
   }
 
-  foreach(Segmentation *seg, rootSegmentations)
+  foreach(SegmentationPtr seg, rootSegmentations)
   {
     if (selectedSegmentations.contains(seg))
     {
@@ -405,7 +405,7 @@ void SegmentationExplorer::changeFinalFlag(bool value)
       seg->setHierarchyRenderingType(HierarchyItem::Undefined, false);
   }
 
-  foreach(Segmentation *seg, selectedSegmentations)
+  foreach(SegmentationPtr seg, selectedSegmentations)
     seg->notifyModification(true);
 
   m_viewManager->updateViews();

@@ -22,8 +22,11 @@
 #ifndef SEGMENTATIONCOLLISION_H
 #define SEGMENTATIONCOLLISION_H
 
-// checks if both volumes collide at the voxel level
-bool checkCollision(EspinaVolume::Pointer seg1,
-                    EspinaVolume::Pointer seg2);
+namespace EspINA
+{
+  // checks if both volumes collide at the voxel level
+  bool checkCollision(EspinaVolume::Pointer seg1,
+                      EspinaVolume::Pointer seg2);
+}
 
 #endif // SEGMENTATIONCOLLISION_H

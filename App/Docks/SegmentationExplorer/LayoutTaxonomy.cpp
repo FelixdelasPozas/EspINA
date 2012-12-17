@@ -20,26 +20,29 @@
 #include "LayoutTaxonomy.h"
 
 #include <Core/Model/Segmentation.h>
+#include <Core/Model/Taxonomy.h>
 
 #include <QMessageBox>
+
+using namespace EspINA;
 
 //------------------------------------------------------------------------
 bool TaxonomyLayout::SortFilter::lessThan(const QModelIndex& left, const QModelIndex& right) const
 {
-  ModelItem *leftItem  = indexPtr(left);
-  ModelItem *rightItem = indexPtr(right);
+  ModelItemPtr leftItem  = indexPtr(left);
+  ModelItemPtr rightItem = indexPtr(right);
 
   if (leftItem->type() == rightItem->type())
-    if (ModelItem::SEGMENTATION == leftItem->type())
+    if (EspINA::SEGMENTATION == leftItem->type())
       return sortSegmentationLessThan(leftItem, rightItem);
     else
       return leftItem->data(Qt::DisplayRole).toString() < rightItem->data(Qt::DisplayRole).toString();
     else
-      return leftItem->type() == ModelItem::TAXONOMY;
+      return leftItem->type() == EspINA::TAXONOMY;
 }
 
 //------------------------------------------------------------------------
-TaxonomyLayout::TaxonomyLayout(EspinaModel *model)
+TaxonomyLayout::TaxonomyLayout(EspinaModelPtr model)
 : Layout(model)
 , m_proxy(new TaxonomyProxy())
 , m_sort (new SortFilter())
@@ -52,21 +55,20 @@ TaxonomyLayout::TaxonomyLayout(EspinaModel *model)
 //------------------------------------------------------------------------
 SegmentationList TaxonomyLayout::deletedSegmentations(QModelIndexList selection)
 {
-  QSet<Segmentation *> toDelete;
+  QSet<SegmentationPtr> toDelete;
   foreach(QModelIndex index, selection)
   {
     index = m_sort->mapToSource(index);
-    ModelItem *item = indexPtr(index);
+    ModelItemPtr item = indexPtr(index);
     switch (item->type())
     {
-      case ModelItem::SEGMENTATION:
+      case EspINA::SEGMENTATION:
       {
-        Segmentation *seg = dynamic_cast<Segmentation *>(item);
-        Q_ASSERT(seg);
+        SegmentationPtr seg = segmentationPtr(item);
         toDelete << seg;
         break;
       }
-      case ModelItem::TAXONOMY:
+      case EspINA::TAXONOMY:
       {
         int totalSeg = m_proxy->numSegmentations(index, true);
         int directSeg = m_proxy->numSegmentations(index);
@@ -74,7 +76,7 @@ SegmentationList TaxonomyLayout::deletedSegmentations(QModelIndexList selection)
         if (totalSeg == 0)
           continue;
 
-        TaxonomyElement *taxonmy = dynamic_cast<TaxonomyElement *>(item);
+        TaxonomyElementPtr taxonmy = taxonomyElementPtr(item);
         QMessageBox msgBox;
         msgBox.setText(SEGMENTATION_MESSAGE.arg(taxonmy->qualifiedName()));
         msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
@@ -103,9 +105,8 @@ SegmentationList TaxonomyLayout::deletedSegmentations(QModelIndexList selection)
             QModelIndexList subSegs = m_proxy->segmentations(index, recursive);
             foreach(QModelIndex subIndex, subSegs)
             {
-              ModelItem *subItem = indexPtr(subIndex);
-              Segmentation *seg = dynamic_cast<Segmentation *>(subItem);
-              Q_ASSERT(seg);
+              ModelItemPtr subItem = indexPtr(subIndex);
+              SegmentationPtr seg = segmentationPtr(subItem);
               toDelete << seg;
             }
             break;
@@ -123,4 +124,3 @@ SegmentationList TaxonomyLayout::deletedSegmentations(QModelIndexList selection)
 
   return toDelete.toList();
 }
-

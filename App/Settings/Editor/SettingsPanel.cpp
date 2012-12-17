@@ -23,6 +23,8 @@
 #include <QSettings>
 #include <QString>
 
+using namespace EspINA;
+
 //------------------------------------------------------------------------
 EditorToolBar::SettingsPanel::SettingsPanel(EditorToolBar::Settings *settings)
 : m_settings(settings)
@@ -57,9 +59,9 @@ bool EditorToolBar::SettingsPanel::modified() const
 }
 
 //------------------------------------------------------------------------
-ISettingsPanel* EditorToolBar::SettingsPanel::clone()
+ISettingsPanelPtr EditorToolBar::SettingsPanel::clone()
 {
-  return new SettingsPanel(m_settings);
+  return ISettingsPanelPtr(new SettingsPanel(m_settings));
 }
 
 

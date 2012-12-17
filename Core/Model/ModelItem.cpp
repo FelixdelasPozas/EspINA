@@ -26,6 +26,21 @@
 #include <QDebug>
 #include <QCryptographicHash>
 
+using namespace EspINA;
+
+template<class T>
+QString arg3(const T val[3])
+{
+  return QString("%1,%2,%3").arg(val[0]).arg(val[1]).arg(val[2]);
+}
+
+template<class T>
+QString arg6(const T val[6])
+{
+  return QString("%1,%2,%3,%4,%5,%6").arg(val[0]).arg(val[1]).arg(val[2]).arg(val[3]).arg(val[4]).arg(val[5]);
+}
+
+
 const ModelItem::ArgumentId ModelItem::EXTENSIONS = "Extensions";
 
 //------------------------------------------------------------------------
@@ -106,9 +121,9 @@ QString ModelItem::serialize() const
 
 
 //------------------------------------------------------------------------
-ModelItem::Vector ModelItem::relatedItems(ModelItem::RelationType rel, const QString filter)
+ModelItemList ModelItem::relatedItems(RelationType rel, const QString &filter)
 {
-  Vector res;
+  ModelItemList res;
 
   Q_ASSERT(m_relations);
   m_vertex = m_relations->vertex(this);
@@ -124,7 +139,7 @@ ModelItem::Vector ModelItem::relatedItems(ModelItem::RelationType rel, const QSt
 }
 
 //------------------------------------------------------------------------
-ModelItem::RelationList ModelItem::relations(const QString filter)
+ModelItem::RelationList ModelItem::relations(const QString &filter)
 {
   RelationList res;
 
@@ -147,7 +162,7 @@ ModelItem::RelationList ModelItem::relations(const QString filter)
 QStringList ModelItem::availableInformations() const
 {
   QStringList informations;
-  foreach (ModelItemExtension *ext, m_insertionOrderedExtensions)
+  foreach (ModelItemExtensionPtr ext, m_insertionOrderedExtensions)
     informations << ext->availableInformations();
 
   return informations;
@@ -157,35 +172,35 @@ QStringList ModelItem::availableInformations() const
 QStringList ModelItem::availableRepresentations() const
 {
   QStringList representations;
-  foreach (ModelItemExtension *ext, m_insertionOrderedExtensions)
+  foreach (ModelItemExtensionPtr ext, m_insertionOrderedExtensions)
     representations << ext->availableRepresentations();
 
   return representations;
 }
 
 //------------------------------------------------------------------------
-QVariant ModelItem::information(QString name)
+QVariant ModelItem::information(const QString &name)
 {
   Q_ASSERT(m_informations.contains(name));
   return m_informations[name]->information(name);
 }
 
 //------------------------------------------------------------------------
-Representation* ModelItem::representation(QString name) const
+ModelItem::RepresentationPtr ModelItem::representation(const QString& name) const
 {
   Q_ASSERT(m_representations.contains(name));
   return m_representations[name];
 }
 
 //------------------------------------------------------------------------
-ModelItemExtension* ModelItem::extension(QString name) const
+ModelItemExtensionPtr ModelItem::extension(const QString &name) const
 {
-  return m_extensions.value(name, NULL);
+  return m_extensions.value(name, ModelItemExtensionPtr());
 }
 
 
 //------------------------------------------------------------------------
-void ModelItem::addExtension(ModelItemExtension *ext)
+void ModelItem::addExtension(ModelItemExtensionPtr ext)
 {
   if (m_extensions.contains(ext->id()))
   {
@@ -209,7 +224,7 @@ void ModelItem::addExtension(ModelItemExtension *ext)
 //       EXTENSION_DEBUG("New Information: " << info);
     }
     // Try to satisfy pending extensions
-    foreach(ModelItemExtension *pending, m_pendingExtensions)
+    foreach(ModelItemExtensionPtr pending, m_pendingExtensions)
       addExtension(pending);
   } 
   else
@@ -220,7 +235,22 @@ void ModelItem::addExtension(ModelItemExtension *ext)
 }
 
 //------------------------------------------------------------------------
-ModelItem* indexPtr(const QModelIndex& index)
+void ModelItem::deleteExtension(ModelItemExtensionPtr ext)
 {
-  return static_cast<ModelItem *>(index.internalPointer());
+  Q_ASSERT(false);
+}
+
+//------------------------------------------------------------------------
+void ModelItem::deleteExtensions()
+{
+  Q_ASSERT(false);
+}
+
+//------------------------------------------------------------------------
+ModelItemPtr EspINA::indexPtr(const QModelIndex& index)
+{
+  ModelItemPtr ptr = *(static_cast<ModelItemPtr *>(index.internalPointer()));
+  Q_ASSERT(!ptr.isNull());
+
+  return ptr;
 }

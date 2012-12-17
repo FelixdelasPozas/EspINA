@@ -41,8 +41,10 @@
 #include <QVBoxLayout>
 #include <QMenu>
 
+using namespace EspINA;
+
 //----------------------------------------------------------------------------
-DefaultEspinaView::DefaultEspinaView(EspinaModel* model, ViewManager* vm, QMainWindow *parent)
+DefaultEspinaView::DefaultEspinaView(EspinaModelPtr model, ViewManager* vm, QMainWindow *parent)
 : QAbstractItemView(parent)
 , m_model(model)
 , m_showProcessing(false)
@@ -94,7 +96,7 @@ DefaultEspinaView::DefaultEspinaView(EspinaModel* model, ViewManager* vm, QMainW
 
   parent->setCentralWidget(this);
 
-  setModel(model);
+  setModel(m_model.data());
 }
 
 //-----------------------------------------------------------------------------
@@ -224,17 +226,18 @@ void DefaultEspinaView::setColorEngine(ColorEngine* engine)
 }*/
 
 //----------------------------------------------------------------------------
-ISettingsPanel* DefaultEspinaView::settingsPanel()
+ISettingsPanelPtr DefaultEspinaView::settingsPanel()
 {
-  return new SettingsPanel(xyView->settings(),
+  return ISettingsPanelPtr(new SettingsPanel(xyView->settings(),
                            yzView->settings(),
                            xzView->settings(),
                            volView->settings(),
-                           m_model->factory());
+                           m_model->factory())
+         );
 }
 
 //-----------------------------------------------------------------------------
-void DefaultEspinaView::addChannel(Channel* channel)
+void DefaultEspinaView::addChannel(ChannelPtr channel)
 {
   xyView->addChannel(channel);
   yzView->addChannel(channel);
@@ -243,7 +246,7 @@ void DefaultEspinaView::addChannel(Channel* channel)
 }
 
 //-----------------------------------------------------------------------------
-void DefaultEspinaView::removeChannel(Channel* channel)
+void DefaultEspinaView::removeChannel(ChannelPtr channel)
 {
   xyView->removeChannel(channel);
   yzView->removeChannel(channel);
@@ -252,7 +255,7 @@ void DefaultEspinaView::removeChannel(Channel* channel)
 }
 
 //-----------------------------------------------------------------------------
-bool DefaultEspinaView::updateChannel(Channel* channel)
+bool DefaultEspinaView::updateChannel(ChannelPtr channel)
 {
   bool modified = false;
   modified |= xyView->updateChannel(channel);
@@ -263,7 +266,7 @@ bool DefaultEspinaView::updateChannel(Channel* channel)
 }
 
 //-----------------------------------------------------------------------------
-void DefaultEspinaView::addSegmentation(Segmentation* seg)
+void DefaultEspinaView::addSegmentation(SegmentationPtr seg)
 {
   xyView->addSegmentation(seg);
   yzView->addSegmentation(seg);
@@ -272,7 +275,7 @@ void DefaultEspinaView::addSegmentation(Segmentation* seg)
 }
 
 //-----------------------------------------------------------------------------
-void DefaultEspinaView::removeSegmentation(Segmentation* seg)
+void DefaultEspinaView::removeSegmentation(SegmentationPtr seg)
 {
   xyView->removeSegmentation(seg);
   yzView->removeSegmentation(seg);
@@ -282,7 +285,7 @@ void DefaultEspinaView::removeSegmentation(Segmentation* seg)
 }
 
 //-----------------------------------------------------------------------------
-bool DefaultEspinaView::updateSegmentation(Segmentation* seg)
+bool DefaultEspinaView::updateSegmentation(SegmentationPtr seg)
 {
   bool modified = false;
   modified |= xyView->updateSegmentation(seg);
@@ -301,23 +304,23 @@ void DefaultEspinaView::rowsInserted(const QModelIndex& parent, int start, int e
   for (int child = start; child <= end; child++)
   {
     QModelIndex index = parent.child(child, 0);
-    ModelItem *item = indexPtr(index);
+    ModelItemPtr item = indexPtr(index);
     switch (item->type())
     {
-      case ModelItem::CHANNEL:
+      case EspINA::CHANNEL:
       {
         Q_ASSERT(start == end);
         // Only 1-row-at-a-time insertions are allowed
-        Channel *channel = dynamic_cast<Channel *>(item);
+        ChannelPtr channel = channelPtr(item);
         //       item.dynamicCast<ChannelPtr>();
         //   qDebug() << "Add Channel:" << channel->data(Qt::DisplayRole).toString();
 
         addChannel(channel);
         break;
       }
-      case ModelItem::SEGMENTATION:
+      case EspINA::SEGMENTATION:
       {
-        Segmentation *seg = dynamic_cast<Segmentation *>(item);
+        SegmentationPtr seg = segmentationPtr(item);
         //   qDebug() << "Add Segmentation:" << seg->data(Qt::DisplayRole).toString();
         addSegmentation(seg);
         break;
@@ -338,19 +341,19 @@ void DefaultEspinaView::rowsAboutToBeRemoved(const QModelIndex& parent, int star
   for (int child = start; child <= end; child++)
   {
     QModelIndex index = parent.child(child, 0);
-    ModelItem *item = indexPtr(index);
+    ModelItemPtr item = indexPtr(index);
     switch (item->type())
     {
-      case ModelItem::CHANNEL:
+      case EspINA::CHANNEL:
       {
-        Channel *channel = dynamic_cast<Channel *>(item);
+        ChannelPtr channel = channelPtr(item);
         //   qDebug() << "Remove Channel:" << channel->data(Qt::DisplayRole).toString();
         removeChannel(channel);
         break;
       }
-      case ModelItem::SEGMENTATION:
+      case EspINA::SEGMENTATION:
       {
-        Segmentation *seg = dynamic_cast<Segmentation *>(item);
+        SegmentationPtr seg = segmentationPtr(item);
         //   qDebug() << "Remove Segmentation:" << seg->data(Qt::DisplayRole).toString();
         removeSegmentation(seg);
         break;
@@ -367,15 +370,15 @@ void DefaultEspinaView::dataChanged(const QModelIndex& topLeft, const QModelInde
   if (!topLeft.isValid() || !topLeft.parent().isValid())
     return;
 
-  ModelItem *item = indexPtr(topLeft);
-  if (ModelItem::CHANNEL == item->type())
+  ModelItemPtr item = indexPtr(topLeft);
+  if (EspINA::CHANNEL == item->type())
   {
-    Channel *channel = dynamic_cast<Channel *>(item);
+    ChannelPtr channel = channelPtr(item);
     updateChannel(channel);
   }
-  else if (ModelItem::SEGMENTATION == item->type())
+  else if (EspINA::SEGMENTATION == item->type())
   {
-    Segmentation *seg = dynamic_cast<Segmentation *>(item);
+    SegmentationPtr seg = segmentationPtr(item);
     updateSegmentation(seg);
   }
 }
@@ -492,7 +495,7 @@ DefaultEspinaView::SettingsPanel::SettingsPanel(SliceView::SettingsPtr xy,
                                                 SliceView::SettingsPtr yz,
                                                 SliceView::SettingsPtr xz,
                                                 VolumeView::SettingsPtr vol,
-                                                EspinaFactory *factory)
+                                                EspinaFactoryPtr factory)
 : m_xy(xy)
 , m_yz(yz)
 , m_xz(xz)
@@ -558,9 +561,9 @@ bool DefaultEspinaView::SettingsPanel::modified() const
 }
 
 //-----------------------------------------------------------------------------
-ISettingsPanel* DefaultEspinaView::SettingsPanel::clone()
+ISettingsPanelPtr DefaultEspinaView::SettingsPanel::clone()
 {
-  return new SettingsPanel(m_xy, m_yz, m_xz, m_vol, m_factory);
+  return ISettingsPanelPtr(new SettingsPanel(m_xy, m_yz, m_xz, m_vol, m_factory));
 }
 
 //-----------------------------------------------------------------------------

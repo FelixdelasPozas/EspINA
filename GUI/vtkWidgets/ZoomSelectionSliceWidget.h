@@ -14,6 +14,8 @@
 class vtkAbstractWidget;
 class ViewManager;
 
+namespace EspINA
+{
 
 class ZoomSelectionSliceWidget
 : public SliceWidget
@@ -24,5 +26,7 @@ class ZoomSelectionSliceWidget
 
     virtual void SetEnabled(int);
 };
+
+}// namespace EspINA
 
 #endif /* ZOOMSELECTIONSLICEWIDGET_H_ */

@@ -25,6 +25,8 @@
 #include <itkImageRegionIteratorWithIndex.h>
 #include <vtkImageStencilData.h>
 
+using namespace EspINA;
+
 const QString SplitFilter::TYPE      = "EditorToolBar::SplitFilter";
 const QString SplitFilter::INPUTLINK = "Segmentation";
 

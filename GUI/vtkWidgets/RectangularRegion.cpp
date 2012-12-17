@@ -33,6 +33,8 @@
 #include <QDebug>
 #include <QMouseEvent>
 
+using namespace EspINA;
+
 typedef EspinaInteractorAdapter<vtkRectangularSliceWidget> SliceWidgetAdapter;
 
 class RectangularSliceWidget

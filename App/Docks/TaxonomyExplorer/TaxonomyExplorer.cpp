@@ -30,6 +30,8 @@
 #include <QColorDialog>
 #include <QMessageBox>
 
+using namespace EspINA;
+
 //------------------------------------------------------------------------
 class TaxonomyExplorer::GUI
 : public QWidget
@@ -40,8 +42,8 @@ public:
 };
 
 //------------------------------------------------------------------------
-TaxonomyExplorer::TaxonomyExplorer(EspinaModel* model,
-                                   ViewManager* vm,
+TaxonomyExplorer::TaxonomyExplorer(EspinaModelPtr model,
+                                   ViewManager *vm,
                                    TaxonomyColorEnginePtr engine,
                                    QWidget* parent)
 : QDockWidget(parent)
@@ -51,9 +53,11 @@ TaxonomyExplorer::TaxonomyExplorer(EspinaModel* model,
 , m_engine(engine)
 , m_sort(new QSortFilterProxyModel())
 {
-  setWindowTitle(tr("Taxonomy Explorer"));
   setObjectName("TaxonomyExplorer");
-  m_sort->setSourceModel(m_baseModel);
+
+  setWindowTitle(tr("Taxonomy Explorer"));
+
+  m_sort->setSourceModel(m_baseModel.data());
   m_sort->setDynamicSortFilter(true);
   m_gui->treeView->setModel(m_sort.data());
   m_gui->treeView->setRootIndex(m_sort->mapFromSource(m_baseModel->taxonomyRoot()));
@@ -113,9 +117,9 @@ void TaxonomyExplorer::changeColor()
     m_baseModel->setData(index,
                          colorSelector.selectedColor(),
                          Qt::DecorationRole);
-    ModelItem *item = indexPtr(index);
-    Q_ASSERT(ModelItem::TAXONOMY == item->type());
-    TaxonomyElement *tax = dynamic_cast<TaxonomyElement *>(item);
+    ModelItemPtr item = indexPtr(index);
+    Q_ASSERT(EspINA::TAXONOMY == item->type());
+    TaxonomyElementPtr tax = taxonomyElementPtr(item);
     m_engine->updateTaxonomyColor(tax);
     m_viewManager->updateSegmentationRepresentations();
     m_viewManager->updateViews();
@@ -128,27 +132,27 @@ void TaxonomyExplorer::removeSelectedTaxonomy()
   if (m_gui->treeView->currentIndex().isValid())
   {
     QModelIndex index = m_sort->mapToSource(m_gui->treeView->currentIndex());
-    ModelItem *item = indexPtr(index);
-    TaxonomyElement *tax = dynamic_cast<TaxonomyElement *>(item);
+    ModelItemPtr item = indexPtr(index);
+    TaxonomyElementPtr tax = taxonomyElementPtr(item);
 
     if (tax->subElements().isEmpty())
     {
       bool inUse = false;
       int i = 0;
       while (!inUse && i < m_baseModel->segmentations().size())
-	inUse = m_baseModel->segmentations()[i++]->taxonomy() == tax;
+        inUse = m_baseModel->segmentations()[i++]->taxonomy() == tax;
 
       if (!inUse)
-	m_baseModel->removeTaxonomyElement(index);
+        m_baseModel->removeTaxonomyElement(index);
       else
-	QMessageBox::warning(this,
-			     tr("Couldn't Remove Taxonomy's Element"),
-			     tr("Selected taxonomical element is assigned to a segmentation."));
+        QMessageBox::warning(this,
+                             tr("Couldn't Remove Taxonomy's Element"),
+                             tr("Selected taxonomical element is assigned to a segmentation."));
     }
     else
       QMessageBox::warning(this,
-			   tr("Couldn't Remove Taxonomy's Element"),
-			   tr("Other taxonomical elements depend on this taxonomy's element.\n"
-			   "If you want to remove it, remove dependent taxonomies first."));
+                           tr("Couldn't Remove Taxonomy's Element"),
+                           tr("Other taxonomical elements depend on this taxonomy's element.\n"
+                           "If you want to remove it, remove dependent taxonomies first."));
   }
 }

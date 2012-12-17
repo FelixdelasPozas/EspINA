@@ -20,77 +20,80 @@
 #ifndef ESPinaFACTORY_H
 #define ESPinaFACTORY_H
 
-#include "Core/Extensions/ChannelExtension.h"
-#include "Core/Extensions/SampleExtension.h"
-#include "Core/Extensions/SegmentationExtension.h"
-#include "Core/Model/Channel.h"
+#include "Core/EspinaTypes.h"
 #include "Core/Model/Filter.h"
-#include "Core/Model/Sample.h"
 
-class IFileReader;
-class IFilterCreator;
+#include <QStringList>
+#include <QMap>
 
-const QString CHANNEL_FILES = QObject::tr("Channel Files (*.mha *.mhd *.tif *.tiff)");
-const QString SEG_FILES     = QObject::tr("Espina Analysis (*.seg)");
-
-class Renderer;
-class ISettingsPanel;
-class EspinaFactory
+namespace EspINA
 {
-public:
-  explicit EspinaFactory();
-  ~EspinaFactory();
+  const QString CHANNEL_FILES = QObject::tr("Channel Files (*.mha *.mhd *.tif *.tiff)");
+  const QString SEG_FILES     = QObject::tr("Espina Analysis (*.seg)");
 
-  QStringList supportedFiles() const;
+  class EspinaFactory
+  {
+  public:
+    explicit EspinaFactory();
+    ~EspinaFactory(){}
 
+    QStringList supportedFiles() const;
 
-  void registerFilter(IFilterCreator *creator, const QString filter);
+    void registerFilter(IFilterCreatorPtr creator, const QString &filter);
 
-  void registerReaderFactory(IFileReader *reader,
-                             const QString description,
-                             const QStringList extensions);
+    void registerReaderFactory(IFileReaderPtr     reader,
+                               const QString     &description,
+                               const QStringList &extensions);
 
-  void registerSampleExtension(SampleExtension::SPtr extension);
+    void registerChannelExtension(ChannelExtensionPtr extension);
 
-  void registerChannelExtension(ChannelExtension::SPtr extension);
+    void registerSampleExtension(SampleExtensionPtr extension);
 
-  void registerSegmentationExtension(SegmentationExtension::SPtr extension);
+    void registerSegmentationExtension(SegmentationExtensionPtr extension);
 
-  void registerSettingsPanel(ISettingsPanel *panel){m_settingsPanels << panel;}
+    void registerSettingsPanel(ISettingsPanelPtr panel)
+    {m_settingsPanels << panel;}
 
-  void registerRenderer(Renderer *renderer);
-
-
-  QList<ISettingsPanel *> settingsPanels() const {return m_settingsPanels;}
-
-  QMap<QString, Renderer *> renderers() const {return m_renderers;}
-
-
-  Filter  *createFilter (const QString filter,
-                         Filter::NamedInputs inputs,
-                         const ModelItem::Arguments args);
-
-  bool readFile(const QString file, const QString ext);
+    void registerRenderer(IRendererPtr renderer);
 
 
-  Sample  *createSample (const QString id, const QString args = "");
+    ISettingsPanelList settingsPanels() const
+    {return m_settingsPanels;}
 
-  Channel *createChannel(Filter *filter, Filter::OutputId oId);
+    QMap<QString, IRendererPtr> renderers() const
+    {return m_renderers;}
 
-  Segmentation *createSegmentation(Filter* parent, Filter::OutputId oId);
+
+    FilterPtr createFilter(const QString              &filter,
+                           const Filter::NamedInputs  &inputs,
+                           const ModelItem::Arguments &args);
+
+    bool readFile(const QString &file, const QString &ext);
 
 
-private:
-  QMap<QString, IFilterCreator *>    m_filterCreators;
-  QMap<QString, IFileReader    *>    m_fileReaders;
+    SamplePtr createSample(const QString &id, const QString &args = "");
 
-  QList<SegmentationExtension::SPtr> m_segExtensions;
-  QList<SampleExtension::SPtr>       m_sampleExtensions;
-  QList<ChannelExtension::SPtr>      m_channelExtensions;
-  QList<ISettingsPanel *>            m_settingsPanels;
-  QMap<QString, Renderer *>          m_renderers;
-  QStringList                        m_supportedFiles;
-  QStringList                        m_supportedExtensions;
-};
+    ChannelPtr createChannel(FilterPtr filter, const Filter::OutputId &oId);
+
+    SegmentationPtr createSegmentation(FilterPtr parent, const Filter::OutputId &oId);
+
+
+  private:
+    QMap<QString, IFilterCreatorPtr> m_filterCreators;
+    QMap<QString, IFileReaderPtr>    m_fileReaders;
+
+    QList<ChannelExtensionPtr>      m_channelExtensions;
+    QList<SampleExtensionPtr>       m_sampleExtensions;
+    QList<SegmentationExtensionPtr> m_segExtensions;
+
+    QMap<QString, IRendererPtr> m_renderers;
+
+    ISettingsPanelList m_settingsPanels;
+
+    QStringList m_supportedFiles;
+    QStringList m_supportedExtensions;
+  };
+
+}// namespace EspINA
 
 #endif // ESPinaFACTORY_H

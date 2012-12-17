@@ -81,6 +81,8 @@
 #include <vtkWidgetRepresentation.h>
 #include <vtkWorldPointPicker.h>
 
+using namespace EspINA;
+
 //-----------------------------------------------------------------------------
 // SLICE VIEW
 //-----------------------------------------------------------------------------
@@ -566,7 +568,7 @@ IPicker::PickList SliceView::pick(IPicker::PickableItems filter,
       {
         if (IPicker::CHANNEL == tag)
         {
-          foreach(Channel *channel, pickChannels(p.x(), p.y(), renderer, multiSelection))
+          foreach(ChannelPtr channel, pickChannels(p.x(), p.y(), renderer, multiSelection))
           {
             IPicker::WorldRegion wRegion = worldRegion(region, channel);
             pickedItems << IPicker::PickedItem(wRegion, channel);
@@ -578,7 +580,7 @@ IPicker::PickList SliceView::pick(IPicker::PickableItems filter,
           }
         } else if (IPicker::SEGMENTATION == tag)
         {
-            foreach(Segmentation *seg, pickSegmentations(p.x(), p.y(), renderer, multiSelection))
+            foreach(SegmentationPtr seg, pickSegmentations(p.x(), p.y(), renderer, multiSelection))
             {
               IPicker::WorldRegion wRegion = worldRegion(region, seg);
               pickedItems << IPicker::PickedItem(wRegion, seg);
@@ -672,7 +674,7 @@ void SliceView::resetCamera()
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::addChannel(Channel* channel)
+void SliceView::addChannel(ChannelPtr channel)
 {
   Q_ASSERT(!m_channelReps.contains(channel));
 
@@ -720,14 +722,14 @@ void SliceView::addChannel(Channel* channel)
     resetCamera();
 
   m_channelPicker->AddPickList(channelRep.slice);
-  connect(channel, SIGNAL(modified(ModelItem*)),
+  connect(channel.data(), SIGNAL(modified(ModelItem*)),
           this, SLOT(updateSceneBounds()));
 
   addChannelBounds(channel);
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::removeChannel(Channel* channel)
+void SliceView::removeChannel(ChannelPtr channel)
 {
   Q_ASSERT(m_channelReps.contains(channel));
 
@@ -742,7 +744,7 @@ void SliceView::removeChannel(Channel* channel)
 }
 
 //-----------------------------------------------------------------------------
-bool SliceView::updateChannel(Channel* channel)
+bool SliceView::updateChannel(ChannelPtr channel)
 {
   Q_ASSERT(m_channelReps.contains(channel));
   SliceRep &rep = m_channelReps[channel];
@@ -796,7 +798,7 @@ bool SliceView::updateChannel(Channel* channel)
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::addSegmentation(Segmentation* seg)
+void SliceView::addSegmentation(SegmentationPtr seg)
 {
   Q_ASSERT(!m_segmentationReps.contains(seg));
 
@@ -871,7 +873,7 @@ void SliceView::addSegmentation(Segmentation* seg)
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::removeSegmentation(Segmentation* seg)
+void SliceView::removeSegmentation(SegmentationPtr seg)
 {
   Q_ASSERT(m_segmentationReps.contains(seg));
 
@@ -888,7 +890,7 @@ void SliceView::removeSegmentation(Segmentation* seg)
 }
 
 //-----------------------------------------------------------------------------
-bool SliceView::updateSegmentation(Segmentation* seg)
+bool SliceView::updateSegmentation(SegmentationPtr seg)
 {
   if (!m_segmentationReps.contains(seg))
     return false;
@@ -1088,7 +1090,7 @@ void SliceView::updateSegmentationRepresentations(SegmentationList list)
     else
       updateSegmentations = list;
 
-    foreach(Segmentation *seg, updateSegmentations)
+    foreach(SegmentationPtr seg, updateSegmentations)
       updateSegmentation(seg);
   }
 }
@@ -1212,7 +1214,7 @@ bool SliceView::eventFilter(QObject* caller, QEvent* e)
     eventPosition(x, y);
     SegmentationList segs = pickSegmentations(x, y, m_renderer);
     QString toopTip;
-    foreach(Segmentation *seg, segs)
+    foreach(SegmentationPtr seg, segs)
     {
       toopTip = toopTip.append("<b>%1</b><br>").arg(seg->data().toString());
       toopTip = toopTip.append(seg->data(Qt::ToolTipRole).toString());
@@ -1313,12 +1315,12 @@ void SliceView::eventPosition(int& x, int& y)
 }
 
 //-----------------------------------------------------------------------------
-QList<Channel *> SliceView::pickChannels(double vx,
+ChannelList SliceView::pickChannels(double vx,
                                          double vy,
                                          vtkRenderer* renderer,
                                          bool repeatable)
 {
-  QList<Channel *> channels;
+  ChannelList channels;
 
   if (m_channelPicker->Pick(vx, vy, 0.1, renderer))
   {
@@ -1326,7 +1328,7 @@ QList<Channel *> SliceView::pickChannels(double vx,
     m_channelPicker->GetProp3Ds()->InitTraversal();
     while ((pickedProp = m_channelPicker->GetProp3Ds()->GetNextProp3D()))
     {
-      Channel *pickedChannel = property3DChannel(pickedProp);
+      ChannelPtr pickedChannel = property3DChannel(pickedProp);
       Q_ASSERT(pickedChannel);
       //       qDebug() << "Picked" << pickedChannel->data().toString();
       channels << pickedChannel;
@@ -1340,12 +1342,12 @@ QList<Channel *> SliceView::pickChannels(double vx,
 }
 
 //-----------------------------------------------------------------------------
-QList<Segmentation *> SliceView::pickSegmentations(double vx,
+SegmentationList SliceView::pickSegmentations(double vx,
                                                    double vy,
                                                    vtkRenderer* renderer,
                                                    bool repeatable)
 {
-  QList<Segmentation *> segmentations;
+  SegmentationList segmentations;
   if (m_segmentationPicker->Pick(vx, vy, 0.1, renderer))
   {
     QPolygonF selectedRegion;
@@ -1363,7 +1365,7 @@ QList<Segmentation *> SliceView::pickSegmentations(double vx,
     // We need to do it in two separate loops to avoid reseting picker on worldRegion call
     foreach(vtkProp3D *pickedProp, pickedProps)
     {
-      Segmentation *pickedSeg = property3DSegmentation(pickedProp);
+      SegmentationPtr pickedSeg = property3DSegmentation(pickedProp);
       Q_ASSERT(pickedSeg);
       Q_ASSERT(pickedSeg->volume().get());
       Q_ASSERT(pickedSeg->volume()->toITK().IsNotNull());
@@ -1397,7 +1399,7 @@ void SliceView::selectPickedItems(bool append)
     selection = m_viewManager->selection();
 
   // If no append, segmentations have priority over channels
-  foreach(Segmentation *seg, pickSegmentations(vx, vy, m_renderer, append))
+  foreach(SegmentationPtr seg, pickSegmentations(vx, vy, m_renderer, append))
   {
     if (selection.contains(seg))
       selection.removeAll(seg);
@@ -1408,7 +1410,7 @@ void SliceView::selectPickedItems(bool append)
       break;
   }
 
-  foreach(Channel *channel, pickChannels(vx, vy, m_renderer, append))
+  foreach(ChannelPtr channel, pickChannels(vx, vy, m_renderer, append))
   {
     selection << channel;
     if (!append)
@@ -1427,25 +1429,25 @@ void SliceView::updateWidgetVisibility()
 }
 
 //-----------------------------------------------------------------------------
-Channel* SliceView::property3DChannel(vtkProp3D* prop)
+ChannelPtr SliceView::property3DChannel(vtkProp3D* prop)
 {
-  foreach(Channel *channel, m_channelReps.keys())
+  foreach(ChannelPtr channel, m_channelReps.keys())
   {
     if (m_channelReps[channel].slice == prop)
       return channel;
   }
-  return NULL;
+  return ChannelPtr();
 }
 
 //-----------------------------------------------------------------------------
-Segmentation* SliceView::property3DSegmentation(vtkProp3D* prop)
+SegmentationPtr SliceView::property3DSegmentation(vtkProp3D* prop)
 {
-  foreach(Segmentation *seg, m_segmentationReps.keys())
+  foreach(SegmentationPtr seg, m_segmentationReps.keys())
   {
     if (m_segmentationReps[seg].slice == prop)
       return seg;
   }
-  return NULL;
+  return SegmentationPtr();
 }
 
 
@@ -1481,15 +1483,15 @@ void SliceView::setShowPreprocessing(bool visible)
   if (m_channelReps.size() < 2)
     return;
 
-  Channel *hiddenChannel = m_channelReps.keys()[visible];
-  Channel *visibleChannel = m_channelReps.keys()[1 - visible];
+  ChannelPtr hiddenChannel = m_channelReps.keys()[visible];
+  ChannelPtr visibleChannel = m_channelReps.keys()[1 - visible];
   hiddenChannel->setData(false, Qt::CheckStateRole);
   hiddenChannel->notifyModification();
   visibleChannel->setData(true, Qt::CheckStateRole);
   visibleChannel->notifyModification();
   for (int i = 2; i < m_channelReps.keys().size(); i++)
   {
-    Channel *otherChannel = m_channelReps.keys()[i];
+    ChannelPtr otherChannel = m_channelReps.keys()[i];
     otherChannel->setData(false, Qt::CheckStateRole);
     otherChannel->notifyModification();
   }
@@ -1676,14 +1678,14 @@ void SliceView::centerViewOnPosition(Nm center[3])
 
 //-----------------------------------------------------------------------------
 IPicker::WorldRegion SliceView::worldRegion(const IPicker::DisplayRegion& region,
-                                            PickableItem *item)
+                                            PickableItemPtr item)
 {
   //Use Render Window Interactor's Picker to find the world coordinates of the stack
   //vtkSMRenderViewProxy* renModule = view->GetRenderWindow()->GetInteractor()->GetRenderView();
   IPicker::WorldRegion wRegion = IPicker::WorldRegion::New();
   vtkPicker *picker;
 
-  if (ModelItem::CHANNEL == item->type())
+  if (EspINA::CHANNEL == item->type())
     picker = m_channelPicker;
   else
     picker = m_segmentationPicker;

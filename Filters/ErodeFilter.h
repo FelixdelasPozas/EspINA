@@ -25,6 +25,8 @@
 #include <itkBinaryBallStructuringElement.h>
 #include <itkErodeObjectMorphologyImageFilter.h>
 
+namespace EspINA
+{
 class ErodeFilter
 : public MorphologicalEditionFilter
 {
@@ -49,6 +51,8 @@ protected:
 private:
   FilterType::Pointer m_filter;
 };
+
+} // namespace EspINA
 
 
 #endif // ERODEFILTER_H

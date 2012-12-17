@@ -22,6 +22,9 @@ class vtkBox;
 class vtkDoubleArray;
 class vtkMatrix4x4;
 
+namespace EspINA
+{
+
 class VTK_WIDGETS_EXPORT vtkRectangularSliceRepresentation
 : public vtkWidgetRepresentation
 {
@@ -178,5 +181,7 @@ private:
   double m_color[3];
   int m_pattern;
 };
+
+} // namespace EspINA
 
 #endif

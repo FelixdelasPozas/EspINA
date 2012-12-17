@@ -22,6 +22,8 @@
 #include <QSettings>
 #include <Core/EspinaSettings.h>
 
+using namespace EspINA;
+
 const QString DEFAULT_VOI_X("RectangularVOI::DefaultVOI::X");
 const QString DEFAULT_VOI_Y("RectangularVOI::DefaultVOI::Y");
 const QString DEFAULT_VOI_Z("RectangularVOI::DefaultVOI::Z");

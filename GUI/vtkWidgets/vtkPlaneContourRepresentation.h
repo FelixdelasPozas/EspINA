@@ -12,33 +12,34 @@
 #include <vtkContourRepresentation.h>
 #include <vtkSmartPointer.h>
 
-
 class vtkContourLineInterpolator;
 class vtkIncrementalOctreePointLocator;
 class vtkPointPlacer;
 class vtkPolyData;
 
-//----------------------------------------------------------------------
-//BTX
-class vtkPlaneContourRepresentationPoint
+namespace EspINA
 {
+  //----------------------------------------------------------------------
+  //BTX
+  class vtkPlaneContourRepresentationPoint
+  {
   public:
     double WorldPosition[3];
     double NormalizedDisplayPosition[2];
-};
+  };
 
-class vtkPlaneContourRepresentationNode
-{
+  class vtkPlaneContourRepresentationNode
+  {
   public:
     double WorldPosition[3];
     double WorldOrientation[9];
     double NormalizedDisplayPosition[2];
     int Selected;
     std::vector<vtkPlaneContourRepresentationPoint*> Points;
-};
+  };
 
-class vtkPlaneContourRepresentationInternals
-{
+  class vtkPlaneContourRepresentationInternals
+  {
   public:
     std::vector<vtkPlaneContourRepresentationNode*> Nodes;
 
@@ -55,11 +56,11 @@ class vtkPlaneContourRepresentationInternals
       }
       this->Nodes.clear();
     }
-};
-//ETX
+  };
+  //ETX
 
-class VTK_WIDGETS_EXPORT vtkPlaneContourRepresentation : public vtkContourRepresentation
-{
+  class VTK_WIDGETS_EXPORT vtkPlaneContourRepresentation : public vtkContourRepresentation
+  {
     //BTX
     friend class vtkPlaneContourWidget;
     //ETX
@@ -240,7 +241,7 @@ class VTK_WIDGETS_EXPORT vtkPlaneContourRepresentation : public vtkContourRepres
     vtkSetClampMacro(WorldTolerance, double, 0.0, VTK_DOUBLE_MAX);
     vtkGetMacro(WorldTolerance, double);
 
-//BTX -- used to communicate about the state of the representation
+    //BTX -- used to communicate about the state of the representation
     enum
     {
       Outside = 0, Nearby, Inside, NearContour, NearPoint
@@ -250,7 +251,7 @@ class VTK_WIDGETS_EXPORT vtkPlaneContourRepresentation : public vtkContourRepres
     {
       Inactive = 0, Translate, Shift, Scale
     };
-//ETX
+    //ETX
 
     // Description:
     // Set / get the current operation. The widget is either
@@ -318,11 +319,11 @@ class VTK_WIDGETS_EXPORT vtkPlaneContourRepresentation : public vtkContourRepres
     virtual void SetShowSelectedNodes(int);vtkGetMacro( ShowSelectedNodes, int );
     vtkBooleanMacro(ShowSelectedNodes, int);
 
-//BTX
+    //BTX
     // Description:
     // Get the points in this contour as a vtkPolyData.
     virtual vtkPolyData *GetContourRepresentationAsPolyData() = 0;
-//ETX
+    //ETX
 
     // Description:
     // Get the nodes and not the intermediate points in this
@@ -364,9 +365,9 @@ class VTK_WIDGETS_EXPORT vtkPlaneContourRepresentation : public vtkContourRepres
     // Given a world position and orientation, this computes the display position
     // using the renderer of this class.
     void GetRendererComputedDisplayPositionFromWorldPosition(double worldPos[3], double worldOrient[9],
-                                                        int displayPos[2]);
+                                                             int displayPos[2]);
     void GetRendererComputedDisplayPositionFromWorldPosition(double worldPos[3], double worldOrient[9],
-                                                        double displayPos[2]);
+                                                             double displayPos[2]);
 
     virtual void UpdateLines(int index);
     void UpdateLine(int idx1, int idx2);
@@ -441,6 +442,8 @@ class VTK_WIDGETS_EXPORT vtkPlaneContourRepresentation : public vtkContourRepres
   private:
     vtkPlaneContourRepresentation(const vtkPlaneContourRepresentation&); //Not implemented
     void operator=(const vtkPlaneContourRepresentation&); //Not implemented
-};
+  };
+
+} // namespace EspINA
 
 #endif // _VTKPLANECONTOURREPRESENTATION_H_

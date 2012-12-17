@@ -56,12 +56,14 @@
 #include <vtkAbstractWidget.h>
 #include <vtkWidgetRepresentation.h>
 
+using namespace EspINA;
+
 //-----------------------------------------------------------------------------
-VolumeView::VolumeView(const EspinaFactory *factory,
-                       ViewManager* vm,
+VolumeView::VolumeView(const EspinaFactoryPtr factory,
+                       ViewManager* viewManager,
                        QWidget* parent)
 : EspinaRenderView(parent)
-, m_viewManager(vm)
+, m_viewManager(viewManager)
 , m_mainLayout      (new QVBoxLayout())
 , m_controlLayout   (new QHBoxLayout())
 , m_settings        (new Settings(factory, QString(), this))
@@ -84,7 +86,7 @@ VolumeView::VolumeView(const EspinaFactory *factory,
   connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection, bool)),
           this, SLOT(updateSelection(ViewManager::Selection,bool)));
 
-  vm->registerView(this);
+  viewManager->registerView(this);
 }
 
 //-----------------------------------------------------------------------------
@@ -95,7 +97,7 @@ VolumeView::~VolumeView()
 
 
 //-----------------------------------------------------------------------------
-void VolumeView::addRendererControls(Renderer* renderer)
+void VolumeView::addRendererControls(IRendererPtr renderer)
 {
   QPushButton *button;
 
@@ -107,15 +109,15 @@ void VolumeView::addRendererControls(Renderer* renderer)
   button->setMaximumSize(QSize(32, 32));
   button->setToolTip(renderer->tooltip());
   button->setObjectName(renderer->name());
-  connect(button, SIGNAL(clicked(bool)), renderer, SLOT(setEnable(bool)));
+  connect(button, SIGNAL(clicked(bool)), renderer.data(), SLOT(setEnable(bool)));
   connect(button, SIGNAL(clicked(bool)), this, SLOT(countEnabledRenderers(bool)));
-  connect(button, SIGNAL(destroyed(QObject*)), renderer, SLOT(deleteLater()));
-  connect(renderer, SIGNAL(renderRequested()), this, SLOT(updateView()));
+  connect(button, SIGNAL(destroyed(QObject*)), renderer.data(), SLOT(deleteLater()));
+  connect(renderer.data(), SIGNAL(renderRequested()), this, SLOT(updateView()));
   m_controlLayout->addWidget(button);
   renderer->setVtkRenderer(this->m_renderer);
 
   // add all model items to the renderer
-  foreach(ModelItem *item, m_addedItems)
+  foreach(ModelItemPtr item, m_addedItems)
     renderer->addItem(item);
 
   m_itemRenderers << renderer;
@@ -154,8 +156,8 @@ void VolumeView::removeRendererControls(const QString name)
     }
   }
 
-  Renderer *removedRenderer = NULL;
-  foreach (Renderer *renderer, m_itemRenderers)
+  IRendererPtr removedRenderer;
+  foreach (IRendererPtr renderer, m_itemRenderers)
   {
     if (renderer->name() == name)
     {
@@ -164,7 +166,7 @@ void VolumeView::removeRendererControls(const QString name)
     }
   }
 
-  if (removedRenderer != NULL)
+  if (!removedRenderer.isNull())
   {
     if (!removedRenderer->isHidden() && removedRenderer->isASegmentationRenderer())
       this->m_numEnabledSegmentationRenders--;
@@ -182,7 +184,7 @@ void VolumeView::removeRendererControls(const QString name)
       }
     }
 
-    QMap<QPushButton*, Renderer *>::iterator it = m_renderers.begin();
+    QMap<QPushButton*, IRendererPtr>::iterator it = m_renderers.begin();
     bool erased = false;
     while(!erased && it != m_renderers.end())
     {
@@ -196,7 +198,6 @@ void VolumeView::removeRendererControls(const QString name)
     }
 
     m_itemRenderers.removeAll(removedRenderer);
-    delete removedRenderer;
   }
 }
 
@@ -235,7 +236,7 @@ void VolumeView::buildControls()
   m_controlLayout->addWidget(&m_export);
   m_controlLayout->addItem(horizontalSpacer);
 
-  foreach(Renderer* renderer, m_settings->renderers())
+  foreach(IRendererPtr renderer, m_settings->renderers())
     this->addRendererControls(renderer->clone());
 
   m_mainLayout->addLayout(m_controlLayout);
@@ -253,11 +254,11 @@ void VolumeView::centerViewOn(Nm *center, bool notUsed)
 
   memcpy(m_center, center, 3*sizeof(double));
 
-  foreach(Renderer* ren, m_itemRenderers)
+  foreach(IRendererPtr ren, m_itemRenderers)
   {
     if (QString("Crosshairs") == ren->name())
     {
-      CrosshairRenderer *crossren = reinterpret_cast<CrosshairRenderer *>(ren);
+      CrosshairRenderer *crossren = reinterpret_cast<CrosshairRenderer *>(ren.data());
       crossren->setCrosshair(center);
     }
   }
@@ -283,68 +284,68 @@ void VolumeView::resetCamera()
 }
 
 //-----------------------------------------------------------------------------
-void VolumeView::addChannel(Channel* channel)
+void VolumeView::addChannel(ChannelPtr channel)
 {
   m_addedItems << channel;
-  foreach(Renderer* renderer, m_itemRenderers)
+  foreach(IRendererPtr renderer, m_itemRenderers)
     renderer->addItem(channel);
 }
 
 //-----------------------------------------------------------------------------
-bool VolumeView::updateChannel(Channel* channel)
+bool VolumeView::updateChannel(ChannelPtr channel)
 {
   if (!isVisible())
     return false;
 
   bool updated = false;
-  foreach(Renderer* renderer, m_itemRenderers)
+  foreach(IRendererPtr renderer, m_itemRenderers)
     updated = renderer->updateItem(channel) | updated;
 
   return updated;
 }
 
 //-----------------------------------------------------------------------------
-void VolumeView::removeChannel(Channel* channel)
+void VolumeView::removeChannel(ChannelPtr channel)
 {
   m_addedItems.removeAll(channel);
 
-  foreach(Renderer* renderer, m_itemRenderers)
+  foreach(IRendererPtr renderer, m_itemRenderers)
     renderer->removeItem(channel);
 }
 
 
 //-----------------------------------------------------------------------------
-void VolumeView::addSegmentation(Segmentation *seg)
+void VolumeView::addSegmentation(SegmentationPtr seg)
 {
   Q_ASSERT(!m_segmentations.contains(seg));
 
   m_addedItems << seg;
-  foreach(Renderer* renderer, m_itemRenderers)
+  foreach(IRendererPtr renderer, m_itemRenderers)
     renderer->addItem(seg);
 
   m_segmentations << seg;
 }
 
 //-----------------------------------------------------------------------------
-bool VolumeView::updateSegmentation(Segmentation* seg)
+bool VolumeView::updateSegmentation(SegmentationPtr seg)
 {
   if (!isVisible())
     return false;
 
   bool updated = false;
-  foreach(Renderer* renderer, m_itemRenderers)
+  foreach(IRendererPtr renderer, m_itemRenderers)
     updated = renderer->updateItem(seg) | updated;
 
   return updated;
 }
 
 //-----------------------------------------------------------------------------
-void VolumeView::removeSegmentation(Segmentation* seg)
+void VolumeView::removeSegmentation(SegmentationPtr seg)
 {
   Q_ASSERT(m_segmentations.contains(seg));
 
   m_addedItems.removeAll(seg);
-  foreach(Renderer* renderer, m_itemRenderers)
+  foreach(IRendererPtr renderer, m_itemRenderers)
     renderer->removeItem(seg);
 
   m_segmentations.removeOne(seg);
@@ -419,7 +420,7 @@ vtkRenderWindow* VolumeView::renderWindow()
 }
 
 //-----------------------------------------------------------------------------
-vtkRenderer* VolumeView::mainRenderer()
+vtkRenderer *VolumeView::mainRenderer()
 {
   return m_renderer;
 }
@@ -526,7 +527,7 @@ void VolumeView::exportScene()
 {
   // only mesh actors are exported in a 3D scene, not volumes
   unsigned int numActors = 0;
-  foreach(Renderer* renderer, m_itemRenderers)
+  foreach(IRendererPtr renderer, m_itemRenderers)
     numActors += renderer->getNumberOfvtkActors();
 
   if (0 == numActors)
@@ -674,7 +675,7 @@ void VolumeView::takeSnapshot()
 }
 
 //-----------------------------------------------------------------------------
-VolumeView::Settings::Settings(const EspinaFactory *factory,
+VolumeView::Settings::Settings(const EspinaFactoryPtr factory,
                                const QString prefix,
                                VolumeView* parent)
 : RENDERERS(prefix + "VolumeView::renderers")
@@ -685,10 +686,10 @@ VolumeView::Settings::Settings(const EspinaFactory *factory,
   if (!settings.contains(RENDERERS))
     settings.setValue(RENDERERS, QStringList() << "Crosshairs" << "Volumetric" << "Mesh");
 
-  QMap<QString, Renderer *> renderers = factory->renderers();
+  QMap<QString, IRendererPtr> renderers = factory->renderers();
   foreach(QString name, settings.value(RENDERERS).toStringList())
   {
-    Renderer *renderer = renderers.value(name, NULL);
+    IRendererPtr renderer = renderers.value(name, IRendererPtr());
     if (renderer)
       m_renderers << renderer;
   }
@@ -696,14 +697,14 @@ VolumeView::Settings::Settings(const EspinaFactory *factory,
 }
 
 //-----------------------------------------------------------------------------
-void VolumeView::Settings::setRenderers(QList<Renderer *> values)
+void VolumeView::Settings::setRenderers(IRendererList values)
 {
   QSettings settings(CESVIMA, ESPINA);
   QStringList activeRenderersNames;
-  QList<Renderer *> activeRenderers;
+  IRendererList activeRenderers;
 
   // remove controls for unused renderers
-  foreach(Renderer *oldRenderer, m_renderers)
+  foreach(IRendererPtr oldRenderer, m_renderers)
   {
     bool selected = false;
     int i = 0;
@@ -725,7 +726,7 @@ void VolumeView::Settings::setRenderers(QList<Renderer *> values)
   }
 
   // add controls for added renderers
-  foreach(Renderer *renderer, values)
+  foreach(IRendererPtr renderer, values)
   {
     activeRenderersNames << renderer->name();
     if (!activeRenderers.contains(renderer))
@@ -741,7 +742,7 @@ void VolumeView::Settings::setRenderers(QList<Renderer *> values)
 }
 
 //-----------------------------------------------------------------------------
-QList<Renderer*> VolumeView::Settings::renderers() const
+QList<IRendererPtr> VolumeView::Settings::renderers() const
 {
   return m_renderers;
 }
@@ -750,11 +751,11 @@ QList<Renderer*> VolumeView::Settings::renderers() const
 void VolumeView::changePlanePosition(PlaneType plane, Nm dist)
 {
   bool needUpdate = false;
-  foreach(Renderer* ren, m_itemRenderers)
+  foreach(IRendererPtr ren, m_itemRenderers)
   {
     if (QString("Crosshairs") == ren->name())
     {
-      CrosshairRenderer *crossren = reinterpret_cast<CrosshairRenderer *>(ren);
+      CrosshairRenderer *crossren = reinterpret_cast<CrosshairRenderer *>(ren.data());
       crossren->setPlanePosition(plane, dist);
       needUpdate = true;
     }
@@ -772,7 +773,7 @@ void VolumeView::countEnabledRenderers(bool value)
     updateView();
   }
 
-  Renderer *renderer = NULL;
+  IRendererPtr renderer;
 
   QPushButton *button = dynamic_cast<QPushButton*>(sender());
   if (button)
@@ -840,7 +841,7 @@ void VolumeView::updateSegmentationRepresentations(SegmentationList list)
     else
       updateSegmentations = list;
 
-    foreach(Segmentation *seg, updateSegmentations)
+    foreach(SegmentationPtr seg, updateSegmentations)
       updateSegmentation(seg);
   }
 }

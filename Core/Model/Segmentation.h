@@ -28,7 +28,7 @@
 #include "Core/Extensions/SegmentationExtension.h"
 #include "Core/Model/PickableItem.h"
 #include "Core/Model/HierarchyItem.h"
-#include "Core/Model/Taxonomy.h"
+//#include "Core/Model/Taxonomy.h"
 
 
 #include <vtkAlgorithmOutput.h>
@@ -38,145 +38,143 @@
 #include <vtkImageConstantPad.h>
 #include <vtkDiscreteMarchingCubes.h>
 
-class Sample;
-class Channel;
-// Forward declarations
-class Sample;
-class Filter;
-class pqPipelineSource;
-
-class Segmentation
-: public PickableItem
-, public HierarchyItem
+namespace EspINA
 {
-  Q_OBJECT
-public:
-  static const ArgumentId NUMBER;
-  static const ArgumentId OUTPUT;
-  static const ArgumentId TAXONOMY;
-  static const ArgumentId USERS;//who have reviewed this segmentation
-
-  static const QString COMPOSED_LINK;
-
-  static const int SelectionRole = Qt::UserRole + 2;
-
-private:
-  class SArguments : public Arguments
+  class Segmentation
+  : public PickableItem
+  , public HierarchyItem
   {
+    Q_OBJECT
   public:
-    explicit SArguments() : m_number(-1), m_outputId(-1){}
-    explicit SArguments(const ModelItem::Arguments &args);
+    static const ArgumentId NUMBER;
+    static const ArgumentId OUTPUT;
+    static const ArgumentId TAXONOMY;
+    static const ArgumentId USERS;//who have reviewed this segmentation
 
-    void setNumber(unsigned int number)
-    {
-      m_number = number;
-      (*this)[NUMBER] = QString::number(m_number);
-    }
-    unsigned int number() const {return m_number;}
+    static const QString COMPOSED_LINK;
 
-    void setOutputId(Filter::OutputId oId)
-    {
-      m_outputId = oId;
-      (*this)[OUTPUT] = QString::number(oId);
-    }
-
-    Filter::OutputId outputId() const {return m_outputId;}
-
-    void addUser(const QString &user)
-    {
-      if ((*this)[USERS].isEmpty())
-        (*this)[USERS] = user;
-      else if (!users().contains(user))
-        (*this)[USERS] += ',' + user;
-    }
-
-    QStringList users() const {return (*this)[USERS].split(',');}
-
-    virtual QString serialize() const;
+    static const int SelectionRole = Qt::UserRole + 2;
 
   private:
-    unsigned int m_number;
-    int m_outputId;
+    class SArguments : public Arguments
+    {
+    public:
+      explicit SArguments() : m_number(-1), m_outputId(-1){}
+      explicit SArguments(const Arguments &args);
+
+      void setNumber(unsigned int number)
+      {
+        m_number = number;
+        (*this)[NUMBER] = QString::number(m_number);
+      }
+      unsigned int number() const {return m_number;}
+
+      void setOutputId(Filter::OutputId oId)
+      {
+        m_outputId = oId;
+        (*this)[OUTPUT] = QString::number(oId);
+      }
+
+      Filter::OutputId outputId() const {return m_outputId;}
+
+      void addUser(const QString &user)
+      {
+        if ((*this)[USERS].isEmpty())
+          (*this)[USERS] = user;
+        else if (!users().contains(user))
+          (*this)[USERS] += ',' + user;
+      }
+
+      QStringList users() const {return (*this)[USERS].split(',');}
+
+      virtual QString serialize() const;
+
+    private:
+      unsigned int m_number;
+      int m_outputId;
+    };
+
+  public:
+    explicit Segmentation(FilterPtr filter, const Filter::OutputId &outputNb);
+    virtual ~Segmentation();
+
+    void changeFilter(FilterPtr filter, const Filter::OutputId &outputNb);
+
+    /// Model Item Interface
+    virtual QVariant data(int role=Qt::DisplayRole) const;
+    virtual bool setData(const QVariant& value, int role = Qt::UserRole +1);
+    virtual ModelItemType type() const {return SEGMENTATION;}
+    virtual QString serialize() const;
+
+    virtual void initialize(const Arguments &args = Arguments());
+    virtual void initializeExtensions(const Arguments &args = Arguments());
+
+    void updateCacheFlag();
+
+    /// Get the sample where the segmentation is located
+    SamplePtr sample();
+    /// Get the channel from where segmentation was created
+    ChannelPtr channel();
+
+    /// Selectable Item Interface
+    virtual const FilterPtr filter() const {return m_filter;}
+    virtual FilterPtr filter() { return PickableItem::filter(); }
+    virtual const Filter::OutputId outputId() const {return m_args.outputId();}
+
+    SegmentationVolume::Pointer volume();
+    const SegmentationVolume::Pointer volume() const;
+
+    vtkAlgorithmOutput* mesh();
+
+    void setNumber(unsigned int number) {m_args.setNumber(number);}
+    unsigned int number() const {return m_args.number();}
+    void setTaxonomy(TaxonomyElementPtr tax);
+    TaxonomyElementPtr taxonomy() const {return m_taxonomy;}
+
+    void modifiedByUser(QString user) { m_args.addUser(user);  }
+
+    // State
+    bool visible() const {return m_isVisible;}
+    void setVisible(bool visible);
+    QStringList users() const {return m_args.users();}
+
+    /// Return the list of segmentations which compose this segmentation
+    SegmentationList components();
+
+    /// Return the list of segmentations which this segmentation is a component
+    SegmentationList componentOf();
+
+
+    /// Add a new extension to the segmentation
+    /// Extesion won't be available until requirements are satisfied
+    void addExtension(SegmentationExtensionPtr ext);
+    //   QStringList availableRepresentations() const;
+    //   ISegmentationRepresentation *representation(QString rep);
+
+    virtual QStringList availableInformations() const;
+    virtual QVariant information(QString info);
+    virtual ModelItemExtensionPtr extension(QString name);
+
+  public slots:
+    virtual void notifyModification(bool force = false);
+
+  private:
+    mutable SArguments m_args;
+
+    FilterPtr          m_filter;
+    TaxonomyElementPtr m_taxonomy;
+
+    bool m_isVisible;
+    QColor m_color;
+
+    // vtkPolydata generation filter
+    vtkSmartPointer<vtkImageConstantPad>      m_padfilter;
+    vtkSmartPointer<vtkDiscreteMarchingCubes> m_march;
+
+    friend class Filter; // DEPRECATED: 2012-12-13 Creo que no se usa ya
   };
 
-public:
-  explicit Segmentation(Filter *filter, Filter::OutputId outputNb);
-  virtual ~Segmentation();
-
-  void changeFilter(Filter *filter, Filter::OutputId outputNb);
-
-  /// Model Item Interface
-  virtual QVariant data(int role=Qt::DisplayRole) const;
-  virtual bool setData(const QVariant& value, int role = Qt::UserRole +1);
-  virtual ItemType type() const {return ModelItem::SEGMENTATION;}
-  virtual QString serialize() const;
-
-  virtual void initialize(Arguments args = Arguments());
-  virtual void initializeExtensions(Arguments args = Arguments());
-
-  void updateCacheFlag();
-
-  /// Get the sample where the segmentation is located
-  Sample *sample();
-  /// Get the channel from where segmentation was created
-  Channel *channel();
-
-  /// Selectable Item Interface
-  virtual const Filter* filter() const {return m_filter;}
-  virtual Filter* filter() { return PickableItem::filter(); }
-  virtual const Filter::OutputId outputId() const {return m_args.outputId();}
-
-  SegmentationVolume::Pointer volume();
-  const SegmentationVolume::Pointer volume() const;
-
-  vtkAlgorithmOutput* mesh();
-
-  void setNumber(unsigned int number) {m_args.setNumber(number);}
-  unsigned int number() const {return m_args.number();}
-  void setTaxonomy(TaxonomyElement *tax);
-  TaxonomyElement *taxonomy() const {return m_taxonomy;}
-
-  void modifiedByUser(QString user) { m_args.addUser(user);  }
-
-  // State
-  bool visible() const {return m_isVisible;}
-  void setVisible(bool visible);
-  QStringList users() const {return m_args.users();}
-
-  /// Return the list of segmentations which compose this segmentation
-  SegmentationList components();
-
-  /// Return the list of segmentations which this segmentation is a component
-  SegmentationList componentOf();
-
-
-  /// Add a new extension to the segmentation
-  /// Extesion won't be available until requirements are satisfied
-  void addExtension(SegmentationExtension *ext);
-  //   QStringList availableRepresentations() const;
-  //   ISegmentationRepresentation *representation(QString rep);
-
-  virtual QStringList availableInformations() const;
-  virtual QVariant information(QString info);
-  virtual ModelItemExtension* extension(QString name);
-
-public slots:
-  virtual void notifyModification(bool force = false);
-
-private:
-  Filter *m_filter;
-  mutable SArguments m_args;
-  TaxonomyElement *m_taxonomy;
-
-  bool m_isVisible;
-  QColor m_color;
-  //   mutable double m_bounds[6];
-
-  // vtkPolydata generation filter
-  vtkSmartPointer<vtkImageConstantPad> m_padfilter;
-  vtkSmartPointer<vtkDiscreteMarchingCubes> m_march;
-
-  friend class Filter;
-};
-
+  SegmentationPtr segmentationPtr(ModelItemPtr &item);
+  SegmentationPtr segmentationPtr(PickableItemPtr &item);
+}
 #endif // PRODUCTS_H

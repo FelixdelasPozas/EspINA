@@ -19,6 +19,8 @@
 
 #include "IPicker.h"
 
+using namespace EspINA;
+
 const IPicker::Tag IPicker::SAMPLE = "EspINA_Sample";
 const IPicker::Tag IPicker::CHANNEL = "EspINA_Channel";
 const IPicker::Tag IPicker::SEGMENTATION = "EspINA_Segmentation";

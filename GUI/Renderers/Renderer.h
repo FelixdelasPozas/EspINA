@@ -16,8 +16,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef RENDERER
-#define RENDERER
+#ifndef IRENDERER
+#define IRENDERER
+
+#include <Core/EspinaTypes.h>
 
 #include <QString>
 #include <QIcon>
@@ -25,68 +27,73 @@
 #include <vtkSmartPointer.h>
 #include <vtkRenderer.h>
 
-class ModelItem;
-
-/// Base class which define the API to render and manage
-/// item visibily in Espina Views (currently only supported
-/// for VolumeView class)
-class Renderer
-: public QObject
+namespace EspINA
 {
-  Q_OBJECT
-public:
-  virtual ~Renderer(){}
-
-  /// Following methods are used by view settings' panel and the
-  /// view itself to create the corresponding UI to manage rendering
-  virtual const QString name() const {return QString();}
-  virtual const QString tooltip() const {return QString();}
-  virtual const QIcon icon() const {return QIcon();}
-
-  virtual void setVtkRenderer(vtkSmartPointer<vtkRenderer> renderer) {m_renderer = renderer;}
-
-  // Return whether the item was rendered or not
-  virtual bool addItem(ModelItem *item) {return false;}
-  virtual bool updateItem(ModelItem *item) {return false;}
-  virtual bool removeItem(ModelItem *item) {return false;}
-
-  // Hide/Show all items rendered by the Renderer
-  virtual void hide() {};
-  virtual void show() {};
-
-  // Remove all items rendered by the Renderer
-  virtual void clean() {}
-
-  virtual Renderer *clone() = 0;
-
-  // get number of vtkActors added to vtkRendered from this Renderer
-  virtual unsigned int getNumberOfvtkActors(void) { return 0; }
-
-  virtual bool isHidden() { return !m_enable; }
-
-  // true if this renderer renders segmentations only
-  virtual bool isASegmentationRenderer() { return false; };
-public slots:
-  virtual void setEnable(bool value)
+  /// Base class which define the API to render and manage
+  /// item visibily in Espina Views (currently only supported
+  /// for VolumeView class)
+  class IRenderer
+  : public QObject
   {
-    if (value)
-      show();
-    else
-      hide();
-    // the subclass will alter the m_enable value
-  }
+    Q_OBJECT
+  public:
+    virtual ~IRenderer(){}
 
-signals:
-  void renderRequested();
+    /// Following methods are used by view settings' panel and the
+    /// view itself to create the corresponding UI to manage rendering
+    virtual const QString name() const {return QString();}
+    virtual const QString tooltip() const {return QString();}
+    virtual const QIcon icon() const {return QIcon();}
 
-protected:
-  explicit Renderer(QObject* parent = 0)
-  : m_enable(false)
-  , m_renderer(NULL) {}
-protected:
-  bool m_enable;
-  vtkSmartPointer<vtkRenderer> m_renderer;
-};
+    virtual void setVtkRenderer(vtkSmartPointer<vtkRenderer> renderer) {m_renderer = renderer;}
 
-#endif // RENDERER
+    // Return whether the item was rendered or not
+    virtual bool addItem   (ModelItemPtr item) = 0;
+    virtual bool updateItem(ModelItemPtr item) = 0;
+    virtual bool removeItem(ModelItemPtr item) = 0;
+
+    // Hide/Show all items rendered by the Renderer
+    virtual void hide() = 0;
+    virtual void show() = 0;
+
+    // Remove all items rendered by the Renderer
+    virtual void clean() = 0;
+
+    virtual IRendererPtr clone() = 0;
+
+    // get number of vtkActors added to vtkRendered from this Renderer
+    virtual unsigned int getNumberOfvtkActors() = 0;
+
+    virtual bool isHidden() { return !m_enable; }
+
+    // true if this renderer renders segmentations only
+    virtual bool isASegmentationRenderer() { return false; };
+
+  public slots:
+    virtual void setEnable(bool value)
+    {
+      if (value)
+        show();
+      else
+        hide();
+      // the subclass will alter the m_enable value
+      // TODO: 2012-12-14 m_enable debería gestionarse en esta clase de forma generica
+    }
+
+  signals:
+    void renderRequested();
+
+  protected:
+    explicit IRenderer(QObject* parent = 0)
+    : m_enable(false)
+    , m_renderer(NULL) {}
+
+  protected:
+    bool m_enable;
+    vtkSmartPointer<vtkRenderer> m_renderer;
+  };
+
+}// namespace EspINA
+
+#endif // IRENDERER
 

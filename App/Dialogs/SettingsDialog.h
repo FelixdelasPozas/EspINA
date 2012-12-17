@@ -27,6 +27,11 @@
 #include "ui_GeneralSettingsPanel.h"
 #include "ui_SettingsDialog.h"
 
+#include <Core/EspinaTypes.h>
+
+namespace EspINA
+{
+
 class GeneralSettings;
 
 class GeneralSettingsPanel
@@ -43,7 +48,7 @@ public:
   virtual void acceptChanges();
   virtual bool modified() const;
 
-  virtual ISettingsPanel *clone();
+  virtual ISettingsPanelPtr clone();
 
 private:
   GeneralSettings *m_settings;
@@ -55,22 +60,24 @@ class SettingsDialog
 {
   Q_OBJECT
 public:
-  explicit SettingsDialog( QWidget* parent = 0,
-                          Qt::WindowFlags f = 0);
+  explicit SettingsDialog(QWidget        *parent = 0,
+                          Qt::WindowFlags flags  = 0);
 
   virtual void accept();
   virtual void reject();
 
-  void addPanel(ISettingsPanel* panel);
-  ISettingsPanel * panel(const QString &shortDesc);
+  void registerPanel(ISettingsPanelPtr panel);
+  ISettingsPanelPtr  panel(const QString &shortDesc);
 
 
 public slots:
   void changePreferencePanel(int panel);
 
 private:
-  ISettingsPanel         *m_activePanel;
-  QList<ISettingsPanel *> m_panels;
+  ISettingsPanelPtr  m_activePanel;
+  ISettingsPanelList m_panels;
 };
+
+} // namespace EspINA
 
 #endif // PREFERENCESDIALOG_H

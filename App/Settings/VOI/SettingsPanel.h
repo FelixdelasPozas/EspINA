@@ -24,42 +24,44 @@
 #include <Tools/VOI/RectangularVOI.h>
 #include <GUI/ISettingsPanel.h>
 
-class TaxonomyElement;
-
-class RectangularVOI::SettingsPanel
-: public ISettingsPanel
-, public Ui::RectangularVOISettings
+namespace EspINA
 {
-  Q_OBJECT
-public:
-  explicit SettingsPanel(EspinaModel *model,
-                         RectangularVOI::Settings *settings);
-  virtual ~SettingsPanel();
+  class RectangularVOI::SettingsPanel
+  : public ISettingsPanel
+  , public Ui::RectangularVOISettings
+  {
+    Q_OBJECT
+  public:
+    explicit SettingsPanel(EspinaModelPtr model,
+                           RectangularVOI::Settings *settings);
+    virtual ~SettingsPanel();
 
-  virtual const QString shortDescription()
-  { return tr("Cuboid VOI"); }
-  virtual const QString longDescription()
-  { return tr("Cuboid Volume Of Interest Settings"); }
-  virtual const QIcon icon()
-  { return QIcon(":/espina/voi.svg"); }
+    virtual const QString shortDescription()
+    { return tr("Cuboid VOI"); }
+    virtual const QString longDescription()
+    { return tr("Cuboid Volume Of Interest Settings"); }
+    virtual const QIcon icon()
+    { return QIcon(":/espina/voi.svg"); }
 
-  virtual void acceptChanges();
+    virtual void acceptChanges();
 
-  virtual bool modified() const;
+    virtual bool modified() const;
 
-  virtual ISettingsPanel* clone();
+    virtual ISettingsPanelPtr clone();
 
-private:
-  bool taxonomyVOIModified() const;
-  void writeTaxonomyProperties();
+  private:
+    bool taxonomyVOIModified() const;
+    void writeTaxonomyProperties();
 
-private slots:
-  void updateTaxonomyVOI(const QModelIndex &index);
+  private slots:
+    void updateTaxonomyVOI(const QModelIndex &index);
 
-private:
-  EspinaModel *m_model;
-  RectangularVOI::Settings *m_settings;
-  TaxonomyElement *m_activeTaxonomy;
-};
+  private:
+    EspinaModelPtr m_model;
+    RectangularVOI::Settings *m_settings;
+    TaxonomyElementPtr m_activeTaxonomy;
+  };
+
+} // namespace EspINA
 
 #endif // SETTINGSPANEL_H

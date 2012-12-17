@@ -47,7 +47,6 @@ set (GUI_SOURCES
   Renderers/MeshRenderer.cpp
   Renderers/VolumetricRenderer.cpp
   vtkWidgets/ContourWidget.cpp
-  vtkWidgets/EspinaInteractorAdapter.cpp
   vtkWidgets/EspinaWidget.cpp
   vtkWidgets/PlanarSplitSliceWidget.cpp
   vtkWidgets/PlanarSplitWidget.cpp

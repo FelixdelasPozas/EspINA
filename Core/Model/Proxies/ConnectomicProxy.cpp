@@ -1,19 +1,19 @@
 /*
- <one line to give the program's name and a brief idea of what it does.>
- Copyright (C) 2012  Laura Fernandez Soria <laura.fernandez@ctb.upm.es>
-
- This program is free software: you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * <one line to give the program's name and a brief idea of what it does.>
+ * Copyright (C) 2012  Laura Fernandez Soria <laura.fernandez@ctb.upm.es>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 // EspINA
@@ -24,6 +24,8 @@
 
 // Qt
 #include <QSortFilterProxyModel>
+
+using namespace EspINA;
 
 //------------------------------------------------------------------------
 ConnectomicProxy::ConnectomicProxy(QObject* parent)
@@ -37,7 +39,7 @@ bool ConnectomicProxy::filterAcceptsRow(int sourceRow, const QModelIndex& source
 {
   if (!m_seg)
     return true;
-  
+
   QAbstractItemModel* source = this->sourceModel();
   EspinaModel *model = dynamic_cast<EspinaModel *>(source);
   QModelIndex index = model->index(sourceRow, 0, sourceParent);
@@ -48,25 +50,25 @@ bool ConnectomicProxy::filterAcceptsRow(int sourceRow, const QModelIndex& source
     || index == model->filterRoot()
     || index == model->taxonomyRoot())
     return false;
-	
+
   if (index == model->segmentationRoot())
     return true;
-    
-  ModelItem *item = indexPtr(index);
-	
-  if (ModelItem::SEGMENTATION != item->type())
+
+  ModelItemPtr item = indexPtr(index);
+
+  if (EspINA::SEGMENTATION != item->type())
     return false;
-    
-//   std::cout << "Check Segmentation " << item->data().toString().toStdString() << std::endl;
-  Segmentation *seg = dynamic_cast<Segmentation *>(item);
-  ModelItem::Vector res = m_seg->relatedItems(ModelItem::OUT, CONECTOMICA); // elementos conectados a la seg de la vista
-  
-  foreach (ModelItem *i_res, res)
+
+  //   std::cout << "Check Segmentation " << item->data().toString().toStdString() << std::endl;
+    SegmentationPtr seg = segmentationPtr(item);
+    ModelItemList res = m_seg->relatedItems(EspINA::OUT, CONECTOMICA); // elementos conectados a la seg de la vista
+
+    foreach (ModelItemPtr i_res, res)
     {
-      Segmentation *seg_i = dynamic_cast<Segmentation *>(i_res);
+      SegmentationPtr seg_i = segmentationPtr(i_res);
       if (seg_i == seg)
         return true;
     }
-   
-   return false;
+
+    return false;
 }

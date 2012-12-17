@@ -25,16 +25,19 @@
 // Qt
 #include <QDebug>
 
+using namespace EspINA;
+
 //-----------------------------------------------------------------------------
-VolumeOfInterest::VolumeOfInterest(EspinaModel* model,
-                                   ViewManager* viewManager,
-                                   QWidget* parent)
-: QToolBar       (parent)
-, m_model        (model)
-, m_viewManager  (viewManager)
-, m_voiSelector  (new ActionSelector(this))
+VolumeOfInterest::VolumeOfInterest(EspinaModelPtr model,
+                                   ViewManager   *viewManager,
+                                   QWidget       *parent)
+: QToolBar     (parent)
+, m_model      (model)
+, m_viewManager(viewManager)
+, m_voiSelector(new ActionSelector(this))
 {
-  setObjectName ("VolumeOfInterest");
+  setObjectName("VolumeOfInterest");
+
   setWindowTitle("Volume Of Interest");
 
   buildVOIs();
@@ -45,7 +48,6 @@ VolumeOfInterest::VolumeOfInterest(EspinaModel* model,
           this, SLOT(changeVOI(QAction*)));
   connect(m_voiSelector, SIGNAL(actionCanceled()),
           this, SLOT(cancelVOI()));
-
 }
 
 //-----------------------------------------------------------------------------

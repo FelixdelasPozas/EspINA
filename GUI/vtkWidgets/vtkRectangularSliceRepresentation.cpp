@@ -29,6 +29,8 @@
 
 const double MIN_SLICE_SPACING = 2;
 
+using namespace EspINA;
+
 vtkStandardNewMacro(vtkRectangularSliceRepresentation);
 
 //----------------------------------------------------------------------------

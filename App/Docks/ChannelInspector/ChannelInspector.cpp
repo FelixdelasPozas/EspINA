@@ -26,12 +26,14 @@
 // Qt
 #include <QDebug>
 
+using namespace EspINA;
+
 //------------------------------------------------------------------------
-ChannelInspector::ChannelInspector(Channel *channel,
-                                   ViewManager *vm,
-                                   QWidget *parent,
-                                   Qt::WindowFlags f)
-: QDialog(parent, f)
+ChannelInspector::ChannelInspector(ChannelPtr      channel,
+                                   ViewManager    *vm,
+                                   QWidget        *parent,
+                                   Qt::WindowFlags flags)
+: QDialog(parent, flags)
 , m_channel(channel)
 , m_viewManager(vm)
 {
@@ -65,16 +67,18 @@ void ChannelInspector::updateSpacing()
   spacing[0] = m_xSize->value()*pow(1000,m_unit->currentIndex());
   spacing[1] = m_ySize->value()*pow(1000,m_unit->currentIndex());
   spacing[2] = m_zSize->value()*pow(1000,m_unit->currentIndex());
-  ChannelReader *reader = dynamic_cast<ChannelReader *>(m_channel->filter());
+
+  FilterPtr filter = m_channel->filter();
+  ChannelReader *reader = dynamic_cast<ChannelReader *>(filter.data());
   Q_ASSERT(reader);
   reader->setSpacing(spacing);
   m_channel->notifyModification();
 
-  foreach(ModelItem *item, m_channel->relatedItems(ModelItem::OUT, Channel::LINK))
+  foreach(ModelItemPtr item, m_channel->relatedItems(EspINA::OUT, Channel::LINK))
   {
-    if (ModelItem::SEGMENTATION == item->type())
+    if (EspINA::SEGMENTATION == item->type())
     {
-      Segmentation *seg = dynamic_cast<Segmentation *>(item);
+      SegmentationPtr seg = segmentationPtr(item);
       double oldSpacing[3];
       seg->volume()->spacing(oldSpacing);
       seg->volume()->toITK()->SetSpacing(spacing);

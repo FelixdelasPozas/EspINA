@@ -14,6 +14,8 @@
 #include <vtkPoints.h>
 
 #include <QDebug>
+using namespace EspINA;
+
 const QString ContourSource::TYPE = "EditorToolBar::ContourSource";
 
 typedef ModelItem::ArgumentId ArgumentId;

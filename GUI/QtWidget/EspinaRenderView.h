@@ -29,83 +29,87 @@
 #include "GUI/Pickers/IPicker.h"
 
 class vtkRenderer;
-class Channel;
-class Segmentation;
-class EspinaWidget;
 class vtkProp3D;
 class vtkRenderWindow;
 
-class EspinaRenderView
-: public QWidget
-, public IEspinaView
+namespace EspINA
 {
-  Q_OBJECT
-public:
-  explicit EspinaRenderView(QWidget* parent = 0);
-  virtual ~EspinaRenderView();
 
-  virtual void addChannel(Channel *channel) = 0;
-  virtual void removeChannel(Channel *channel) = 0;
-  virtual bool updateChannel(Channel *channel) = 0;
+  class EspinaWidget;
 
-  virtual void addSegmentation(Segmentation *seg) = 0;
-  virtual void removeSegmentation(Segmentation *seg) = 0;
-  virtual bool updateSegmentation(Segmentation *seg) = 0;
+  class EspinaRenderView
+  : public QWidget
+  , public IEspinaView
+  {
+    Q_OBJECT
+  public:
+    explicit EspinaRenderView(QWidget* parent = 0);
+    virtual ~EspinaRenderView();
 
-  virtual void addWidget(EspinaWidget *widget) = 0;
-  virtual void removeWidget(EspinaWidget *widget) = 0;
+    virtual void addChannel   (ChannelPtr channel) = 0;
+    virtual void removeChannel(ChannelPtr channel) = 0;
+    virtual bool updateChannel(ChannelPtr channel) = 0;
 
-  virtual void addPreview(vtkProp3D *) = 0;
-  virtual void removePreview(vtkProp3D *) = 0;
-  virtual void previewBounds(Nm bounds[6]);
+    virtual void addSegmentation   (SegmentationPtr seg) = 0;
+    virtual void removeSegmentation(SegmentationPtr seg) = 0;
+    virtual bool updateSegmentation(SegmentationPtr seg) = 0;
 
-  virtual void setCursor(const QCursor& cursor) = 0;
+    virtual void addWidget   (EspinaWidget *widget) = 0;
+    virtual void removeWidget(EspinaWidget *widget) = 0;
 
-  virtual void eventPosition(int &x, int &y) = 0;
-  virtual IPicker::PickList pick(IPicker::PickableItems filter,
-                                 IPicker::DisplayRegionList regions) = 0;
-  virtual void worldCoordinates(const QPoint &displayPos,
-                                double worldPos[3]) = 0;
+    virtual void addPreview   (vtkProp3D *) = 0;
+    virtual void removePreview(vtkProp3D *) = 0;
+    virtual void previewBounds(Nm bounds[6]);
 
-  virtual void setSelectionEnabled(bool enabe) = 0;
+    virtual void setCursor(const QCursor& cursor) = 0;
 
-  virtual vtkRenderWindow *renderWindow() = 0;
-  virtual vtkRenderer *mainRenderer() = 0;
+    virtual void eventPosition(int &x, int &y) = 0;
 
-  virtual void updateView() = 0;
-  virtual void resetCamera() = 0;
+    virtual IPicker::PickList pick(IPicker::PickableItems filter, IPicker::DisplayRegionList regions) = 0;
 
-  const Nm *sceneBounds() const {return m_sceneBounds;}
-  const Nm *sceneResolution() const {return m_sceneResolution;}
+    virtual void worldCoordinates(const QPoint &displayPos, double worldPos[3]) = 0;
 
-  virtual void centerViewOn(Nm *, bool) = 0;
-  virtual void showCrosshairs(bool) = 0;
+    virtual void setSelectionEnabled(bool enabe) = 0;
 
-  virtual void setViewType(PlaneType);
-  virtual PlaneType getViewType();
+    virtual vtkRenderWindow *renderWindow() = 0;
+    virtual vtkRenderer     *mainRenderer() = 0;
 
-  virtual void setContextualMenu(QSharedPointer<SegmentationContextualMenu> contextMenu)
-  { m_contextMenu = contextMenu; }
+    virtual void updateView() = 0;
+    virtual void resetCamera() = 0;
 
-protected slots:
-  virtual void updateSceneBounds();
+    const Nm *sceneBounds() const {return m_sceneBounds;}
+    const Nm *sceneResolution() const {return m_sceneResolution;}
 
-protected:
-  void addChannelBounds(Channel *channel);
-  void removeChannelBounds(Channel *channel);
-  double suggestedChannelOpacity();
+    virtual void centerViewOn(Nm center[3], bool) = 0;
+    virtual void showCrosshairs(bool visible) = 0;
 
-  void resetSceneBounds();
+    virtual void setViewType(PlaneType plane);
+    virtual PlaneType getViewType();
 
+    virtual void setContextualMenu(QSharedPointer<SegmentationContextualMenu> contextMenu)
+    { m_contextMenu = contextMenu; }
 
-protected:
-  QList<Channel *> m_channels;
+  protected slots:
+    virtual void updateSceneBounds();
 
-  Nm m_sceneBounds[6];
-  Nm m_sceneResolution[3];// Min distance between 2 voxels in each axis
-  PlaneType m_plane;
+  protected:
+    void addChannelBounds   (ChannelPtr channel);
+    void removeChannelBounds(ChannelPtr channel);
 
-  QSharedPointer<SegmentationContextualMenu> m_contextMenu;
-};
+    double suggestedChannelOpacity();
+
+    void resetSceneBounds();
+
+  protected:
+    ChannelList m_channels;
+
+    Nm m_sceneBounds[6];
+    Nm m_sceneResolution[3];// Min distance between 2 voxels in each axis
+    PlaneType m_plane;
+
+    QSharedPointer<SegmentationContextualMenu> m_contextMenu;
+  };
+
+} // namespace EspINA
 
 #endif // ESPINARENDERVIEW_H

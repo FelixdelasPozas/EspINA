@@ -39,6 +39,8 @@
 #include <QDebug>
 #include <QMessageBox>
 
+using namespace EspINA;
+
 typedef ModelItem::ArgumentId ArgumentId;
 
 const ModelItemExtension::ExtId MarginsChannelExtension::ID = "MarginsExtension";
@@ -133,15 +135,15 @@ QVariant MarginsChannelExtension::information(ModelItemExtension::InfoTag tag) c
 }
 
 //-----------------------------------------------------------------------------
-ChannelExtension* MarginsChannelExtension::clone()
+ChannelExtensionPtr MarginsChannelExtension::clone()
 {
-  return new MarginsChannelExtension();
+  return ChannelExtensionPtr(new MarginsChannelExtension());
 }
 
 typedef std::pair<unsigned int, unsigned long int> ComputedSegmentation;
 
 //-----------------------------------------------------------------------------
-void MarginsChannelExtension::computeMarginDistance(Segmentation* seg)
+void MarginsChannelExtension::computeMarginDistance(SegmentationPtr seg)
 {
   std::map<unsigned int, unsigned long int>::iterator it = m_ComputedSegmentations.find(seg->number());
   if (it != m_ComputedSegmentations.end())
@@ -155,9 +157,9 @@ void MarginsChannelExtension::computeMarginDistance(Segmentation* seg)
 
   m_ComputedSegmentations.insert(ComputedSegmentation(seg->number(), seg->volume()->toITK()->GetMTime()));
 
-  ModelItemExtension *ext = seg->extension(ID);
+  ModelItemExtensionPtr ext = seg->extension(ID);
   Q_ASSERT(ext);
-  MarginsSegmentationExtension *marginExt = dynamic_cast<MarginsSegmentationExtension *>(ext);
+  MarginsSegmentationExtensionPtr marginExt = qSharedPointerDynamicCast<MarginsSegmentationExtension>(ext);
   Q_ASSERT(marginExt);
   Nm distance[6], smargins[6];
   seg->volume()->bounds(smargins);

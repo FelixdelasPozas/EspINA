@@ -22,28 +22,32 @@
 
 #include <QDialog>
 #include "ui_ChannelInspector.h"
+#include <Core/EspinaTypes.h>
 
-class Channel;
-class ViewManager;
-
-class ChannelInspector
-: public QDialog
-, private Ui::ChannelInspector
+namespace EspINA
 {
- Q_OBJECT
-public:
-  explicit ChannelInspector(Channel *channel,
-                            ViewManager *vm,
-                            QWidget *parent = 0,
-                            Qt::WindowFlags f = 0);
+  class ViewManager;
 
-public slots:
-  void updateSpacing();
-  void unitChanged(int unitIndex);
+  class ChannelInspector
+  : public QDialog
+  , private Ui::ChannelInspector
+  {
+    Q_OBJECT
+  public:
+    explicit ChannelInspector(ChannelPtr      channel,
+                              ViewManager    *vm,
+                              QWidget        *parent = 0,
+                              Qt::WindowFlags flags  = 0);
 
-private:
-  Channel     *m_channel;
-  ViewManager *m_viewManager;
-};
+  public slots:
+    void updateSpacing();
+    void unitChanged(int unitIndex);
+
+  private:
+    ChannelPtr   m_channel;
+    ViewManager *m_viewManager;
+  };
+
+} // namespace EspINA
 
 #endif // CHANNELINSPECTOR_H

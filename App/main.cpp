@@ -24,7 +24,7 @@ int main(int argc, char **argv)
 {
   QApplication app(argc, argv);
 
-  EspinaMainWindow espina;
+  EspINA::EspinaMainWindow espina;
   espina.show();
 
   return app.exec();

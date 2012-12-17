@@ -10,6 +10,8 @@
 #include <GUI/ViewManager.h>
 #include <GUI/vtkWidgets/MeasureWidget.h>
 
+using namespace EspINA;
+
 //----------------------------------------------------------------------------
 MeasureTool::MeasureTool(ViewManager *vm)
 : m_enabled(false)

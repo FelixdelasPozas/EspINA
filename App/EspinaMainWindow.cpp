@@ -58,6 +58,7 @@
 
 #ifdef TEST_ESPINA_MODELS
   #include <Core/Model/ModelTest.h>
+#include <Core/Model/Channel.h>
 #endif
 
 // Std
@@ -65,6 +66,8 @@
 
 // Qt
 #include <QtGui>
+
+using namespace EspINA;
 
 const QString AUTOSAVE_FILE = "espina-autosave.seg";
 
@@ -79,7 +82,7 @@ EspinaMainWindow::EspinaMainWindow()
 , m_busy(false)
 {
 #ifdef TEST_ESPINA_MODELS
-  m_modelTester = QSharedPointer<ModelTest>(new ModelTest(m_model));
+  m_modelTester = QSharedPointer<ModelTest>(new ModelTest(m_model.data()));
 #endif
 
   m_dynamicMenuRoot = new DynamicMenuNode();
@@ -93,9 +96,9 @@ EspinaMainWindow::EspinaMainWindow()
   QIcon openIcon = qApp->style()->standardIcon(QStyle::SP_DialogOpenButton);
   QIcon saveIcon = qApp->style()->standardIcon(QStyle::SP_DialogSaveButton);
 
-  m_factory->registerRenderer(new CrosshairRenderer());
-  m_factory->registerRenderer(new VolumetricRenderer(m_viewManager));
-  m_factory->registerRenderer(new MeshRenderer(m_viewManager));
+  m_factory->registerRenderer(IRendererPtr(new CrosshairRenderer()               ));
+  m_factory->registerRenderer(IRendererPtr(new VolumetricRenderer(m_viewManager) ));
+  m_factory->registerRenderer(IRendererPtr(new MeshRenderer(m_viewManager)       ));
 
   /*** FILE MENU ***/
   QMenu *fileMenu = new QMenu(tr("File"));
@@ -232,9 +235,9 @@ EspinaMainWindow::EspinaMainWindow()
   addDockWidget(Qt::LeftDockWidgetArea, filterInspector);
   m_dockMenu->addAction(filterInspector->toggleViewAction());
 
-  SegmentationExplorer *segExplorer = new SegmentationExplorer(m_model, m_undoStack, m_viewManager, this);
-  addDockWidget(Qt::LeftDockWidgetArea, segExplorer);
-  m_dockMenu->addAction(segExplorer->toggleViewAction());
+  //SegmentationExplorer *segExplorer = new SegmentationExplorer(m_model, m_undoStack, m_viewManager, this);
+  //addDockWidget(Qt::LeftDockWidgetArea, segExplorer);
+  //m_dockMenu->addAction(segExplorer->toggleViewAction());
 
   TaxonomyExplorer *taxExplorer = new TaxonomyExplorer(m_model, m_viewManager, taxonomyEngine, this);
   addDockWidget(Qt::LeftDockWidgetArea, taxExplorer);
@@ -492,8 +495,8 @@ void EspinaMainWindow::closeEvent(QCloseEvent* event)
 //------------------------------------------------------------------------
 void EspinaMainWindow::closeCurrentAnalysis()
 {
-  m_viewManager->setActiveChannel(NULL);
-  m_viewManager->setActiveTaxonomy(NULL);
+  m_viewManager->setActiveChannel(ChannelPtr());
+  m_viewManager->setActiveTaxonomy(TaxonomyElementPtr());
   m_viewManager->setVOI(NULL);
   m_viewManager->unsetActiveTool();
   m_viewManager->clearSelection();
@@ -569,11 +572,14 @@ void EspinaMainWindow::openAnalysis(const QString &file)
     return;
   }
 
-  if (!m_model->taxonomy())
+  if (m_model->taxonomy().isNull())
   {
-    Taxonomy *defaultTaxonomy = IOTaxonomy::openXMLTaxonomy(":/espina/defaultTaxonomy.xml");
+    TaxonomyPtr defaultTaxonomy = IOTaxonomy::openXMLTaxonomy(":/espina/defaultTaxonomy.xml");
     //defaultTaxonomy->print();
     m_model->setTaxonomy(defaultTaxonomy);
+  } else
+  {
+    Q_ASSERT(false); // TODO 2012-12-17 fusionar taxonomias? reemplazar?
   }
 
   m_viewManager->resetViewCameras();
@@ -733,17 +739,16 @@ void EspinaMainWindow::showPreferencesDialog()
 {
   SettingsDialog dialog;
 
-  GeneralSettingsPanel *settingsPanel = new GeneralSettingsPanel(m_settings);
-  dialog.addPanel(settingsPanel);
-  dialog.addPanel(m_view->settingsPanel());
+  ISettingsPanelPtr settingsPanel(new GeneralSettingsPanel(m_settings));
+  dialog.registerPanel(settingsPanel);
+  dialog.registerPanel(m_view->settingsPanel());
 
-  foreach(ISettingsPanel *panel, m_factory->settingsPanels())
+  foreach(ISettingsPanelPtr panel, m_factory->settingsPanels())
   {
-    dialog.addPanel(panel);
+    dialog.registerPanel(panel);
   }
 
   dialog.exec();
-  delete settingsPanel;
 }
 
 //------------------------------------------------------------------------

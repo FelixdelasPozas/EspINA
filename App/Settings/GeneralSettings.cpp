@@ -23,6 +23,8 @@
 #include <QDir>
 #include <QSettings>
 
+using namespace EspINA;
+
 //-----------------------------------------------------------------------------
 GeneralSettings::GeneralSettings()
 : m_settings(new QSettings(CESVIMA, ESPINA))

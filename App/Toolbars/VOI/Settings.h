@@ -22,7 +22,7 @@
 
 #include "Tools/VOI/RectangularVOI.h"
 
-class RectangularVOI::Settings
+class EspINA::RectangularVOI::Settings
 {
 public:
   explicit Settings();

@@ -12,6 +12,8 @@
 
 class QCursor;
 
+namespace EspINA
+{
 class ContourSelector
 : public IPicker
 {
@@ -24,5 +26,7 @@ public:
 private:
   QCursor m_cursor;
 };
+
+} // namespace EspINA
 
 #endif /* _CONTOURSELECTION_H_ */

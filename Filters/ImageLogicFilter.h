@@ -26,6 +26,8 @@
 // #include <itkConstantPadImageFilter.h>
 // #include <itkOrImageFilter.h>
 
+namespace EspINA
+{
 class ImageLogicFilter
 : public SegmentationFilter
 {
@@ -77,6 +79,8 @@ protected:
 private:
   Parameters   m_param;
 };
+
+} // namespace EspINA
 
 
 #endif // IMAGELOGICFILTER_H

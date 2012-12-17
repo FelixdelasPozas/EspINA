@@ -22,7 +22,6 @@
 
 #include <QTreeView>
 
-
 class CheckableTreeView
 : public QTreeView
 {

@@ -32,6 +32,8 @@
   #include "common/model/ModelTest.h"
 #endif
 
+using namespace EspINA;
+
 class DataSortFiler
 : public QSortFilterProxyModel
 {
@@ -50,7 +52,7 @@ protected:
 };
 
 //------------------------------------------------------------------------
-DataView::DataView(EspinaModel *model,
+DataView::DataView(EspinaModelPtr model,
                    ViewManager *vm,
                    QWidget     *parent,
                    Qt::WindowFlags f)
@@ -94,7 +96,7 @@ DataView::~DataView()
 }
 
 //------------------------------------------------------------------------
-QModelIndex DataView::index(ModelItem* item) const
+QModelIndex DataView::index(ModelItemPtr item) const
 {
   QModelIndex baseModelIndex = m_baseModel->index(item);
   QModelIndex informationIndex = m_model->mapFromSource(baseModelIndex);
@@ -102,7 +104,7 @@ QModelIndex DataView::index(ModelItem* item) const
 }
 
 //------------------------------------------------------------------------
-ModelItem* DataView::item(QModelIndex index) const
+ModelItemPtr DataView::item(QModelIndex index) const
 {
   return indexPtr(m_sort->mapToSource(index));
 }
@@ -154,7 +156,7 @@ void DataView::updateSelection(ViewManager::Selection selection)
   tableView->selectionModel()->blockSignals(true);
   tableView->selectionModel()->reset();
   tableView->setSelectionMode(QAbstractItemView::MultiSelection);
-  foreach(PickableItem *item, selection)
+  foreach(PickableItemPtr item, selection)
   {
     QModelIndex selIndex = index(item);
     if (selIndex.isValid())
@@ -183,9 +185,9 @@ void DataView::updateSelection(QItemSelection selected, QItemSelection deselecte
 
   foreach(QModelIndex index, tableView->selectionModel()->selectedRows())
   {
-    ModelItem *sItem = item(index);
-    if (ModelItem::SEGMENTATION == sItem->type())
-      selection << dynamic_cast<PickableItem *>(sItem);
+    ModelItemPtr sItem = item(index);
+    if (EspINA::SEGMENTATION == sItem->type())
+      selection << pickableItemPtr(sItem);
   }
 
   m_viewManager->setSelection(selection);

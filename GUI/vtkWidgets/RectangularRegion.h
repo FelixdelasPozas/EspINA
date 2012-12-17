@@ -29,51 +29,54 @@
 // VTK
 #include <vtkCommand.h>
 
-class ViewManager;
-
-class vtkRectangularSliceWidget;
-
-class RectangularRegion
-: public QObject
-, public EspinaWidget
-, public vtkCommand
+namespace EspINA
 {
-  Q_OBJECT
-public:
-  explicit RectangularRegion(double bounds[6], ViewManager *vm);
-  virtual ~RectangularRegion();
+  class ViewManager;
+  class vtkRectangularSliceWidget;
 
-  virtual vtkAbstractWidget* createWidget();
-  virtual void deleteWidget(vtkAbstractWidget* widget);
-  virtual SliceWidget* createSliceWidget(PlaneType plane);
+  class RectangularRegion
+  : public QObject
+  , public EspinaWidget
+  , public vtkCommand
+  {
+    Q_OBJECT
+  public:
+    explicit RectangularRegion(double bounds[6], ViewManager *vm);
+    virtual ~RectangularRegion();
 
-  virtual bool processEvent(vtkRenderWindowInteractor* iren,
-                            long unsigned int event);
-  virtual void setEnabled(bool enable);
+    virtual vtkAbstractWidget* createWidget();
+    virtual void deleteWidget(vtkAbstractWidget* widget);
+    virtual SliceWidget* createSliceWidget(PlaneType plane);
 
-  virtual void setBounds(Nm bounds[6]);
-  virtual void bounds(Nm bounds[6]);
+    virtual bool processEvent(vtkRenderWindowInteractor* iren,
+                              long unsigned int event);
+    virtual void setEnabled(bool enable);
 
-  void setResolution(Nm resolution[3]);
-  void resolution(Nm resolution[3]) const
-  { memcpy(resolution, m_resolution, 3*sizeof(Nm));}
+    virtual void setBounds(Nm bounds[6]);
+    virtual void bounds(Nm bounds[6]);
 
-  // modify representation methods
-  void setRepresentationColor(double *);
-  void setRepresentationPattern(int);
+    void setResolution(Nm resolution[3]);
+    void resolution(Nm resolution[3]) const
+    { memcpy(resolution, m_resolution, 3*sizeof(Nm));}
 
-  virtual void Execute(vtkObject* caller, long unsigned int eventId, void* callData);
+    // modify representation methods
+    void setRepresentationColor(double *);
+    void setRepresentationPattern(int);
 
-signals:
-  void modified(double *);
+    virtual void Execute(vtkObject* caller, long unsigned int eventId, void* callData);
 
-private:
-  ViewManager *m_viewManager;
-  double m_bounds[6];
-  Nm m_resolution[3];
-  QList<vtkRectangularSliceWidget *> m_widgets;
-  double m_color[3];
-  int m_pattern;
-};
+  signals:
+    void modified(double *);
+
+  private:
+    ViewManager *m_viewManager;
+    double m_bounds[6];
+    Nm m_resolution[3];
+    QList<vtkRectangularSliceWidget *> m_widgets;
+    double m_color[3];
+    int m_pattern;
+  };
+}// namespace EspINA
+
 
 #endif // RECTANGULARREGION_H

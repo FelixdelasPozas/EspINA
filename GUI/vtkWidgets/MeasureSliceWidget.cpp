@@ -13,6 +13,8 @@
 // vtk
 #include <vtkAbstractWidget.h>
 
+using namespace EspINA;
+
 //----------------------------------------------------------------------------
 MeasureSliceWidget::MeasureSliceWidget(vtkAbstractWidget *widget)
 : SliceWidget(widget)

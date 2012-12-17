@@ -19,6 +19,8 @@
 
 #include "ModelItemExtension.h"
 
+using namespace EspINA;
+
 //-----------------------------------------------------------------------------
 ModelItemExtension::ExtIdList ModelItemExtension::dependencies() const
 {

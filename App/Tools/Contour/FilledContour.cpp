@@ -28,6 +28,7 @@
 #include <Core/Model/Channel.h>
 #include <Core/Model/EspinaModel.h>
 #include <Core/Model/EspinaFactory.h>
+#include <Core/Model/Taxonomy.h>
 #include <Filters/FreeFormSource.h>
 #include <Filters/ContourSource.h>
 #include <Undo/AddSegmentation.h>
@@ -36,11 +37,12 @@
 #include <QUndoStack>
 #include <QtGui>
 
+using namespace EspINA;
 
 //-----------------------------------------------------------------------------
-FilledContour::FilledContour(EspinaModel *model,
-                             QUndoStack *undo,
-                             ViewManager *vm)
+FilledContour::FilledContour(EspinaModelPtr model,
+                             QUndoStack    *undo,
+                             ViewManager   *vm)
 : m_viewManager(vm)
 , m_undoStack(undo)
 , m_model(model)
@@ -48,8 +50,6 @@ FilledContour::FilledContour(EspinaModel *model,
 , m_enabled(false)
 , m_inUse(false)
 , m_contourWidget(NULL)
-, m_currentSource(NULL)
-, m_currentSeg(NULL)
 {
   m_picker->setPickable(IPicker::CHANNEL);
 }
@@ -89,10 +89,10 @@ void FilledContour::setInUse(bool enable)
     m_contourWidget = new ContourWidget();
 
     SegmentationList selection;
-    foreach(PickableItem *item, m_viewManager->selection())
+    foreach(PickableItemPtr item, m_viewManager->selection())
     {
-      if (ModelItem::SEGMENTATION == item->type())
-      selection << dynamic_cast<Segmentation *>(item);
+      if (EspINA::SEGMENTATION == item->type())
+      selection << segmentationPtr(item);
     }
 
     if (selection.size() == 1)
@@ -103,8 +103,8 @@ void FilledContour::setInUse(bool enable)
     }
     else
     {
-      m_currentSeg = NULL;
-      m_currentSource = NULL;
+      m_currentSeg.clear();
+      m_currentSource.clear();
       m_contourWidget->setPolygonColor(m_viewManager->activeTaxonomy()->color());
     }
 
@@ -117,7 +117,7 @@ void FilledContour::setInUse(bool enable)
 
     if (0 != m_contourWidget->GetContoursNumber())
     {
-      Channel *channel = m_viewManager->activeChannel();
+      ChannelPtr channel = m_viewManager->activeChannel();
       double spacing[3];
       channel->volume()->spacing(spacing);
 
@@ -127,7 +127,7 @@ void FilledContour::setInUse(bool enable)
         Filter::Arguments args;
         FreeFormSource::Parameters params(args);
         params.setSpacing(spacing);
-        m_currentSource = new ContourSource(inputs, args);
+        m_currentSource = FilterPtr(new ContourSource(inputs, args));
       }
 
       if (!m_currentSeg && m_currentSource)
@@ -178,8 +178,8 @@ void FilledContour::setInUse(bool enable)
     m_viewManager->removeWidget(m_contourWidget);
     m_contourWidget->setEnabled(false);
     delete m_contourWidget;
-    m_currentSeg = NULL;
-    m_currentSource = NULL;
+    m_currentSeg.clear();
+    m_currentSource.clear();
   }
 }
 

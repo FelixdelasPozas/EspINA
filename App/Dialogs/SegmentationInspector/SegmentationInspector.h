@@ -29,41 +29,48 @@
 #include <QSortFilterProxyModel>
 
 class QUndoStack;
-class VolumeView;
-class ViewManager;
-class Segmentation;
 
-class SegmentationInspector
-: public QWidget
-, public Ui::SegmentationInspector
+namespace EspINA
 {
-  Q_OBJECT
-public:
-  SegmentationInspector(Segmentation *seg,
-                        EspinaModel *model,
-                        QUndoStack *undoStack,
-                        ViewManager *vm,
-                        QWidget* parent = 0,
-                        Qt::WindowFlags f = 0);
-  virtual ~SegmentationInspector();
+  class VolumeView;
+  class ViewManager;
 
-public slots:
-  void updateScene();
+  class SegmentationInspector
+  : public QWidget
+  , public Ui::SegmentationInspector
+  {
+    Q_OBJECT
+  public:
+    SegmentationInspector(SegmentationPtr seg,
+                          EspinaModelPtr  model,
+                          QUndoStack     *undoStack,
+                          ViewManager    *vm,
+                          QWidget        *parent = 0,
+                          Qt::WindowFlags flags  = 0);
+    virtual ~SegmentationInspector();
 
-signals:
-  void inspectorClosed(SegmentationInspector *);
+  public slots:
+    void updateScene();
 
-protected:
-  virtual void closeEvent(QCloseEvent *e);
+  signals:
+    void inspectorClosed(SegmentationInspector *);
 
-private:
-  QUndoStack   *m_undoStack;
-  ViewManager  *m_viewManager;
-  Segmentation *m_seg;
-  EspinaModel  *m_model;
-  VolumeView   *m_view;
-  QSharedPointer<InformationProxy> m_info;
-  QSharedPointer<QSortFilterProxyModel> m_sort;
-};
+  protected:
+    virtual void closeEvent(QCloseEvent *e);
+
+  private:
+    EspinaModelPtr m_model;
+    QUndoStack    *m_undoStack;
+    ViewManager   *m_viewManager;
+
+    SegmentationPtr m_seg;
+
+    QSharedPointer<InformationProxy>      m_info;
+    QSharedPointer<QSortFilterProxyModel> m_sort;
+
+    VolumeView *m_view;
+  };
+
+} // namespace EspINA
 
 #endif // SEGMENTATIONINSPECTOR_H

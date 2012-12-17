@@ -22,9 +22,9 @@
 
 #include <Core/Model/Segmentation.h>
 
-//TODO: Make filters use template based configuration widgets
-//      so it is the frontend who decides its gui
-//      or use a setConfiguration widget method
+namespace EspINA
+{
+
 class MorphologicalEditionFilter
 : public SegmentationFilter
 {
@@ -66,6 +66,8 @@ protected:
 
   bool m_paramModified;
 };
+
+} // namespace EspINA
 
 
 #endif // MORPHOLOGICALEDITIONFILTER_H

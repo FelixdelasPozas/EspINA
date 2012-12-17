@@ -12,6 +12,8 @@
 #include <vtkPolyData.h>
 #include <QVector3D>
 
+namespace EspINA
+{
 class ContourSource
 : public SegmentationFilter
 {
@@ -88,6 +90,8 @@ private:
   itkVolumeType::SpacingType   m_spacing;
   QMap< PlaneType, QMap<Nm, vtkPolyData*> > m_contourMap;
 };
+
+} // namespace EspINA
 
 
 #endif /* CONTOURSOURCE_H_ */

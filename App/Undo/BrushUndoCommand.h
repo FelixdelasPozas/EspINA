@@ -24,48 +24,52 @@
 
 #include <Tools/Brushes/Brush.h>
 
-class Filter;
 class vtkImplicitFunction;
 
-class Brush::DrawCommand
-: public QUndoCommand
+namespace EspINA
 {
-public:
-  explicit DrawCommand(Filter *source,
-                       Filter::OutputId output,
-                       BrushShapeList brushes,
-                       itkVolumeType::PixelType value);
-  virtual void redo();
-  virtual void undo();
 
-private:
-  Filter        *m_source;
-  Filter::OutputId   m_output;
-  BrushShapeList m_brushes;
+  class Brush::DrawCommand
+  : public QUndoCommand
+  {
+  public:
+    explicit DrawCommand(FilterPtr source,
+                         Filter::OutputId output,
+                         BrushShapeList brushes,
+                         itkVolumeType::PixelType value);
+    virtual void redo();
+    virtual void undo();
 
-  double m_strokeBounds[6];
+  private:
+    FilterPtr        m_source;
+    Filter::OutputId m_output;
+    BrushShapeList m_brushes;
 
-  itkVolumeType::PixelType m_value;
-  itkVolumeType::Pointer m_prevVolume;
-  itkVolumeType::Pointer m_newVolume;
-};
+    double m_strokeBounds[6];
 
-class Brush::SnapshotCommand
-: public QUndoCommand
-{
-public:
-  explicit SnapshotCommand(Filter *source,
-                       Filter::OutputId output);
+    itkVolumeType::PixelType m_value;
+    itkVolumeType::Pointer m_prevVolume;
+    itkVolumeType::Pointer m_newVolume;
+  };
 
-  virtual void redo();
-  virtual void undo();
+  class Brush::SnapshotCommand
+  : public QUndoCommand
+  {
+  public:
+    explicit SnapshotCommand(FilterPtr source,
+                             Filter::OutputId output);
 
-private:
-  Filter      *m_source;
-  Filter::OutputId m_output;
+    virtual void redo();
+    virtual void undo();
 
-  itkVolumeType::Pointer m_prevVolume;
-  itkVolumeType::Pointer m_newVolume;
-};
+  private:
+    FilterPtr        m_source;
+    Filter::OutputId m_output;
+
+    itkVolumeType::Pointer m_prevVolume;
+    itkVolumeType::Pointer m_newVolume;
+  };
+
+} // namespace EspINA
 
 #endif // BRUSHUNDOCOMMAND_H

@@ -43,16 +43,18 @@
 #include <QStyle>
 #include <QFileDialog>
 
+using namespace EspINA;
+
 const int DEFAULT_THRESHOLD = 30;
 
 const ModelItem::ArgumentId TYPE = "Type";
 
 
 //-----------------------------------------------------------------------------
-SeedGrowSegmentation::SeedGrowSegmentation(EspinaModel *model,
-                                           QUndoStack  *undoStack,
-                                           ViewManager *viewManager,
-                                           QWidget* parent)
+SeedGrowSegmentation::SeedGrowSegmentation(EspinaModelPtr model,
+                                           QUndoStack    *undoStack,
+                                           ViewManager   *viewManager,
+                                           QWidget       *parent)
 : QToolBar(parent)
 , m_model(model)
 , m_undoStack(undoStack)
@@ -97,24 +99,26 @@ SeedGrowSegmentation::~SeedGrowSegmentation()
 }
 
 //-----------------------------------------------------------------------------
-void SeedGrowSegmentation::initFactoryExtension(EspinaFactory* factory)
+void SeedGrowSegmentation::initFactoryExtension(EspinaFactoryPtr factory)
 {
   // Register Factory's filters
   factory->registerFilter(this, SeedGrowSegmentationFilter::TYPE);
 }
 
 //-----------------------------------------------------------------------------
-Filter *SeedGrowSegmentation::createFilter(const QString              &filter,
+FilterPtr SeedGrowSegmentation::createFilter(const QString              &filter,
                                            const Filter::NamedInputs  &inputs,
                                            const ModelItem::Arguments &args)
 {
   Q_ASSERT(SeedGrowSegmentationFilter::TYPE == filter);
 
+  // TODO 2012-12-17 Revisar esto
   SeedGrowSegmentationFilter *sgs = new SeedGrowSegmentationFilter(inputs, args);
-  // NOTE: automatically assigns widget to filter on new()
-  new SGSFilterInspector(sgs);
 
-  return sgs;
+  Filter::FilterInspectorPtr inspector(new SGSFilterInspector(sgs));
+  sgs->setFilterInspector(inspector);
+
+  return FilterPtr(sgs);
 }
 
 
@@ -213,7 +217,7 @@ void SeedGrowSegmentation::buildSelectors()
   action = new QAction(QIcon(":/espina/bestPixelSelector.svg"), tr("Add synapse (Ctrl +). Best Pixel"), m_pickerSelector);
   BestPixelSelector *bestSelector = new BestPixelSelector();
   m_settings = new Settings(bestSelector);
-  m_settingsPanel = new SettingsPanel(m_settings);
+  m_settingsPanel = ISettingsPanelPtr(new SettingsPanel(m_settings));
   m_model->factory()->registerSettingsPanel(m_settingsPanel);
   selector = bestSelector;
   selector->setMultiSelection(false);

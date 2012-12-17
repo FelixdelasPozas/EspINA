@@ -24,6 +24,8 @@
 
 #include <QVector3D>
 
+namespace EspINA
+{
 class FreeFormSource
 : public SegmentationFilter
 {
@@ -100,5 +102,7 @@ protected:
 private:
   Parameters m_param;
 };
+} // namespace EspINA
+
 
 #endif // FREEFORMSOURCE_H

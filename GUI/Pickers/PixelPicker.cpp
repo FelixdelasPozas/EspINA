@@ -19,6 +19,8 @@
 #include <itkImageRegionConstIterator.h>
 #include <itkExtractImageFilter.h>
 
+using namespace EspINA;
+
 //-----------------------------------------------------------------------------
 IPicker::PickList PixelSelector::generatePickList(EspinaRenderView* view)
 {
@@ -44,7 +46,7 @@ void PixelSelector::onMouseDown(const QPoint &pos, EspinaRenderView* view)
 double *PixelSelector::getPickPoint(EspinaRenderView *view)
 {
   PickList pickList = generatePickList(view);
-  if (pickList.empty() || (pickList.first().second->type() != ModelItem::CHANNEL))
+  if (pickList.empty() || (EspINA::CHANNEL != pickList.first().second->type()))
     return NULL;
 
   double *point = new double[3];
@@ -93,7 +95,7 @@ BestPixelSelector::BestPixelSelector()
 void BestPixelSelector::onMouseDown(const QPoint& pos, EspinaRenderView* view)
 {
   PickList pickList = generatePickList(view);
-  if (pickList.empty() || (pickList.first().second->type() != ModelItem::CHANNEL))
+  if (pickList.empty() || (EspINA::CHANNEL != pickList.first().second->type()))
     return;
 
   double *point = getPickPoint(view);
@@ -107,10 +109,10 @@ void BestPixelSelector::onMouseDown(const QPoint& pos, EspinaRenderView* view)
 double *BestPixelSelector::getPickPoint(EspinaRenderView *view)
 {
   PickList pickList = generatePickList(view);
-  if (pickList.empty() || (pickList.first().second->type() != ModelItem::CHANNEL))
+  if (pickList.empty() || (EspINA::CHANNEL != pickList.first().second->type()))
     return NULL;
 
-  PickableItem *pickedItem = pickList.first().second;
+  PickableItemPtr pickedItem = pickList.first().second;
 
   itkVolumeType::Pointer channelVol = pickedItem->volume()->toITK();
   double pickedPoint[3];
@@ -266,7 +268,7 @@ double *BestPixelSelector::getPickPoint(EspinaRenderView *view)
     ++it;
   }
 
-  double *requestedPoint = new double[3];
+  double *requestedPoint = new double[3]; //WARNING  Memory leak!
   requestedPoint[0] = bestPoint[0];
   requestedPoint[1] = bestPoint[1];
   requestedPoint[2] = bestPoint[2];

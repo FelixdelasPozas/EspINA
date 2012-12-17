@@ -25,16 +25,21 @@
 
 #include <Core/ColorEngines/IColorEngine.h>
 
-class IColorEngineProvider
+namespace EspINA
 {
-public:
-  typedef QPair<QString, ColorEnginePtr> Engine;
-  typedef QList<IColorEngineProvider::Engine> EngineList;
+  class IColorEngineProvider
+  {
+  public:
+    typedef QPair<QString, ColorEnginePtr> Engine;
+    typedef QList<IColorEngineProvider::Engine> EngineList;
 
-  virtual ~IColorEngineProvider(){}
+    virtual ~IColorEngineProvider(){}
 
-  virtual EngineList colorEngines() = 0;
-};
-Q_DECLARE_INTERFACE(IColorEngineProvider,
-                    "es.upm.cesvima.EspINA.ColorEngineProviderInterface/1.0")
+    virtual EngineList colorEngines() = 0;
+  };
+} // namespace EspINA
+
+Q_DECLARE_INTERFACE(EspINA::IColorEngineProvider,
+                    "es.upm.cesvima.EspINA.ColorEngineProviderInterface/1.1")
+
 #endif // ICOLORENGINEPROVIDER_H

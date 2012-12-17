@@ -21,8 +21,12 @@
 #define SEEDGROWSEGMENTATIONFILTERINSPECTOR_H
 
 #include <Core/Model/Filter.h>
+#include "ui_SGSFilterInspectorWidget.h"
 
 class QUndoStack;
+
+namespace EspINA
+{
 class SeedGrowSegmentationFilter;
 class ViewManager;
 
@@ -41,7 +45,6 @@ private:
 };
 
 
-#include "ui_SGSFilterInspectorWidget.h"
 
 class RectangularRegion;
 class RectangularRegionSliceSelector;
@@ -73,5 +76,7 @@ private:
 
   Nm m_voiBounds[6];
 };
+
+} // namespace EspINA
 
 #endif // SEEDGROWSEGMENTATIONFILTERINSPECTOR_H

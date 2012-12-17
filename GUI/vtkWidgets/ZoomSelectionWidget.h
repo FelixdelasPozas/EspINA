@@ -19,12 +19,15 @@
 #include <vtkCommand.h>
 
 class vtkAbstractWidget;
-class ZoomSelectionSliceWidget;
 
-class ZoomSelectionWidget
-: public EspinaWidget
-, public vtkCommand
+namespace EspINA
 {
+  class ZoomSelectionSliceWidget;
+
+  class ZoomSelectionWidget
+  : public EspinaWidget
+  , public vtkCommand
+  {
   public:
     explicit ZoomSelectionWidget();
     virtual ~ZoomSelectionWidget();
@@ -48,6 +51,8 @@ class ZoomSelectionWidget
     ZoomSelectionSliceWidget *m_sagittal;
     vtkZoomSelectionWidget   *m_volume;
     QList<vtkAbstractWidget*> m_widgets;
-};
+  };
+
+}// namespace EspINA
 
 #endif /* ZOOMSELECTIONWIDGET_H_ */

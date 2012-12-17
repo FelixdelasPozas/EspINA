@@ -22,8 +22,10 @@
 #include <Core/Model/Segmentation.h>
 #include <Core/Model/EspinaModel.h>
 
+using namespace EspINA;
+
 //------------------------------------------------------------------------
-RemoveSegmentation::SegInfo::SegInfo(Segmentation* seg)
+RemoveSegmentation::SegInfo::SegInfo(SegmentationPtr seg)
 : filter(seg->filter())
 , relations(seg->relations())
 , segmentation(seg)
@@ -31,8 +33,8 @@ RemoveSegmentation::SegInfo::SegInfo(Segmentation* seg)
 }
 
 //------------------------------------------------------------------------
-RemoveSegmentation::RemoveSegmentation(Segmentation *seg,
-                                       EspinaModel  *model,
+RemoveSegmentation::RemoveSegmentation(SegmentationPtr seg,
+                                       EspinaModelPtr  model,
                                        QUndoCommand *parent)
 : QUndoCommand(parent)
 , m_model(model)
@@ -41,13 +43,13 @@ RemoveSegmentation::RemoveSegmentation(Segmentation *seg,
 }
 
 //------------------------------------------------------------------------
-RemoveSegmentation::RemoveSegmentation(QList<Segmentation *> segs,
-                                       EspinaModel          *model,
-                                       QUndoCommand         *parent)
+RemoveSegmentation::RemoveSegmentation(SegmentationList segs,
+                                       EspinaModelPtr   model,
+                                       QUndoCommand    *parent)
 : QUndoCommand(parent)
 , m_model(model)
 {
-  foreach(Segmentation *seg, segs)
+  foreach(SegmentationPtr seg, segs)
     m_segmentations << SegInfo(seg);
 }
 
@@ -55,8 +57,8 @@ RemoveSegmentation::RemoveSegmentation(QList<Segmentation *> segs,
 //------------------------------------------------------------------------
 void RemoveSegmentation::redo()
 {
-  QList<Segmentation *> segsToRemove;
-  QList<Filter *>    filtersToRemove;
+  SegmentationList segsToRemove;
+  FilterList       filtersToRemove;
 
   foreach(SegInfo segInfo, m_segmentations)
   {
@@ -67,7 +69,7 @@ void RemoveSegmentation::redo()
 
   m_model->removeSegmentation(segsToRemove);
 
-  foreach(Filter *filter, filtersToRemove)
+  foreach(FilterPtr filter, filtersToRemove)
     m_model->removeFilter(filter);
 }
 
@@ -85,7 +87,7 @@ void RemoveSegmentation::undo()
 
   m_removedFilters.clear();
 
-  QList<Segmentation *> segsToAdd;
+  SegmentationList segsToAdd;
   foreach(SegInfo segInfo, m_segmentations)
     segsToAdd << segInfo.segmentation;
   m_model->addSegmentation(segsToAdd);
@@ -110,27 +112,27 @@ void RemoveSegmentation::removeRelations(ModelItem::RelationList list)
 }
 
 //------------------------------------------------------------------------
-QList<Filter *> RemoveSegmentation::removeFilterDependencies(Filter* filter)
+FilterList RemoveSegmentation::removeFilterDependencies(FilterPtr filter)
 {
-  QList<Filter *> filtersToRemove;
+  FilterList filtersToRemove;
 
   //qDebug() << "Analyzing Filter" << filter->data().toString();
-  ModelItem::Vector consumers = filter->relatedItems(ModelItem::OUT);
+  ModelItemList consumers = filter->relatedItems(EspINA::OUT);
   if (consumers.isEmpty())
   {
     //qDebug() << "* Can be removed";
     filtersToRemove.push_front(filter);
 
-    ModelItem::Vector ancestors = filter->relatedItems(ModelItem::IN);
+    ModelItemList ancestors = filter->relatedItems(EspINA::IN);
 
     FilterInfo filterInfo(filter, filter->relations());
     m_removedFilters.push_front(filterInfo);
     removeRelations(filterInfo.relations);
 
-    foreach(ModelItem *item, ancestors)
+    foreach(ModelItemPtr item, ancestors)
     {
-      if (ModelItem::FILTER == item->type())
-        filtersToRemove << removeFilterDependencies(dynamic_cast<Filter *>(item));
+      if (EspINA::FILTER == item->type())
+        filtersToRemove << removeFilterDependencies(qSharedPointerDynamicCast<Filter>(item));
       else
         Q_ASSERT(false);
     }

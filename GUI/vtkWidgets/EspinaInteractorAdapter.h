@@ -27,6 +27,8 @@
 
 class QEvent;
 
+namespace EspINA
+{
 template<class T>
 class EspinaInteractorAdapter
 : public T
@@ -43,6 +45,8 @@ public:
   }
 
 };
+
+}// namespace EspINA
 
 //vtkStandardNewMacro(EspinaInteractorAdapter<T>);
 

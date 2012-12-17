@@ -23,6 +23,7 @@
 #include <Core/Model/Channel.h>
 #include <Core/Model/EspinaModel.h>
 #include <Core/Model/EspinaFactory.h>
+#include <Core/Model/Taxonomy.h>
 #include <Core/EspinaSettings.h>
 #include <GUI/Pickers/BrushPicker.h>
 #include <GUI/QtWidget/EspinaRenderView.h>
@@ -38,10 +39,12 @@
 #include <QPainter>
 #include <QPixmap>
 
+using namespace EspINA;
+
 //-----------------------------------------------------------------------------
-Brush::Brush(EspinaModel* model,
-             QUndoStack* undoStack,
-             ViewManager* viewManager)
+Brush::Brush(EspinaModelPtr model,
+             QUndoStack    *undoStack,
+             ViewManager   *viewManager)
 : m_model(model)
 , m_undoStack(undoStack)
 , m_viewManager(viewManager)
@@ -55,10 +58,10 @@ Brush::Brush(EspinaModel* model,
 , m_drawCommand(NULL)
 , m_eraseCommand(NULL)
 {
-  connect(m_brush, SIGNAL(stroke(PickableItem *,IPicker::WorldRegion, Nm, PlaneType)),
-          this,  SLOT(drawStroke(PickableItem *,IPicker::WorldRegion, Nm, PlaneType)));
-  connect(m_brush, SIGNAL(stroke(PickableItem*,double,double,double,Nm,PlaneType)),
-          this,  SLOT(drawStrokeStep(PickableItem*,double,double,double,Nm,PlaneType)));
+  connect(m_brush, SIGNAL(stroke(PickableItemPtr ,IPicker::WorldRegion, Nm, PlaneType)),
+          this,  SLOT(drawStroke(PickableItemPtr ,IPicker::WorldRegion, Nm, PlaneType)));
+  connect(m_brush, SIGNAL(stroke(PickableItemPtr,double,double,double,Nm,PlaneType)),
+          this,  SLOT(drawStrokeStep(PickableItemPtr,double,double,double,Nm,PlaneType)));
 }
 
 //-----------------------------------------------------------------------------
@@ -162,8 +165,8 @@ void Brush::setInUse(bool value)
     }
     else
     {
-      m_currentSeg    = NULL;
-      m_currentSource = NULL;
+      m_currentSeg.clear();
+      m_currentSource.clear();
       m_currentOutput = -1;
 
       m_brush->setBrushColor(m_viewManager->activeTaxonomy()->color());
@@ -187,7 +190,7 @@ bool Brush::enabled() const
 }
 
 //-----------------------------------------------------------------------------
-void Brush::drawStroke(PickableItem* item,
+void Brush::drawStroke(PickableItemPtr item,
                        IPicker::WorldRegion centers,
                        Nm radius,
                        PlaneType plane)
@@ -220,9 +223,9 @@ void Brush::drawStroke(PickableItem* item,
     {
       Q_ASSERT(!m_currentSeg);
 
-      Q_ASSERT(ModelItem::CHANNEL == item->type());
+      Q_ASSERT(EspINA::CHANNEL == item->type());
 
-      Channel *channel = dynamic_cast<Channel *>(item);
+      ChannelPtr channel = channelPtr(item);
       double spacing[3];
       channel->volume()->spacing(spacing);
 
@@ -230,7 +233,7 @@ void Brush::drawStroke(PickableItem* item,
       Filter::Arguments args;
       FreeFormSource::Parameters params(args);
       params.setSpacing(spacing);
-      m_currentSource = new FreeFormSource(inputs, args);
+      m_currentSource = FilterPtr(new FreeFormSource(inputs, args));
       m_currentOutput = 0;
       m_currentSeg = m_model->factory()->createSegmentation(m_currentSource, m_currentOutput);
 
@@ -255,7 +258,7 @@ void Brush::drawStroke(PickableItem* item,
 }
 
 //-----------------------------------------------------------------------------
-void Brush::drawStrokeStep(PickableItem* item,
+void Brush::drawStrokeStep(PickableItemPtr item,
                            double x, double y, double z,
                            Nm radius,
                            PlaneType plane)
@@ -269,9 +272,9 @@ void Brush::drawStrokeStep(PickableItem* item,
       if (!m_currentSeg)
       {
 
-        Q_ASSERT(ModelItem::CHANNEL == item->type());
+        Q_ASSERT(EspINA::CHANNEL == item->type());
 
-        Channel *channel = dynamic_cast<Channel *>(item);
+        ChannelPtr channel = channelPtr(item);
         double spacing[3];
         channel->volume()->spacing(spacing);
 
@@ -279,7 +282,7 @@ void Brush::drawStrokeStep(PickableItem* item,
         Filter::Arguments args;
         FreeFormSource::Parameters params(args);
         params.setSpacing(spacing);
-        m_currentSource = new FreeFormSource(inputs, args);
+        m_currentSource = FilterPtr(new FreeFormSource(inputs, args));
         m_currentOutput = 0;
         m_currentSeg = m_model->factory()->createSegmentation(m_currentSource, m_currentOutput);
         m_currentSource->draw(m_currentOutput,

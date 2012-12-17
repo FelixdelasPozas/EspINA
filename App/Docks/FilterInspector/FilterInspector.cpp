@@ -23,6 +23,8 @@
 
 #include <QDebug>
 
+using namespace EspINA;
+
 //----------------------------------------------------------------------------
 FilterInspector::FilterInspector(QUndoStack *undoStack,
                                  ViewManager* vm,
@@ -58,58 +60,59 @@ void FilterInspector::updatePannel()
   if (!isVisible())
     return;
 
-  Segmentation *seg = NULL;
+  SegmentationPtr seg;
   bool changeWidget = false;
 
   SegmentationList selectedSegs;
-  foreach (PickableItem *item, m_viewManager->selection())
+  foreach (PickableItemPtr item, m_viewManager->selection())
   {
-    if (ModelItem::SEGMENTATION == item->type())
-      selectedSegs << dynamic_cast<Segmentation *>(item);
+    if (EspINA::SEGMENTATION == item->type())
+      selectedSegs << segmentationPtr(item);
   }
 
   if (selectedSegs.size() == 1)
     seg = selectedSegs[0];
 
   // Update if segmentation are different
-  if (seg != m_seg)
-  {
-    if (m_seg)
+    if (seg != m_seg)
     {
-      disconnect(m_seg, SIGNAL(modified(ModelItem*)),
-		 this, SLOT(updatePannel()));
+      if (!m_seg.isNull())
+      {
+        disconnect(m_seg.data(), SIGNAL(modified(ModelItem*)),
+                   this, SLOT(updatePannel()));
+      }
+
+      m_seg = seg;
+
+      if (!m_seg.isNull())
+      {
+        connect(m_seg.data(), SIGNAL(modified(ModelItem*)),
+                this, SLOT(updatePannel()));
+      }
+      changeWidget = true;
+    } else if (!m_filter.isNull() && m_filter != seg->filter())
+    {
+      changeWidget = true;
     }
 
-    if (seg)
+    if (changeWidget)
     {
-      connect(seg, SIGNAL(modified(ModelItem*)),
-	      this, SLOT(updatePannel()));
+      QWidget *prevWidget = widget();
+      if (prevWidget)
+        delete prevWidget;
+
+      if (m_seg)
+      {
+        m_filter = seg->filter();
+        Filter::FilterInspectorPtr inspector = m_filter->filterInspector();
+        if (inspector.get())
+          setWidget(inspector->createWidget(m_undoStack, m_viewManager));
+
+      } else
+      {
+        m_filter.clear();
+        setWidget(NULL);
+      }
     }
-    m_seg = seg;
-    changeWidget = true;
-  } else if (m_filter && m_filter != seg->filter())
-  {
-    changeWidget = true;
-  }
-
-  if (changeWidget)
-  {
-    QWidget *prevWidget = widget();
-    if (prevWidget)
-      delete prevWidget;
-
-    if (m_seg)
-    {
-      m_filter = seg->filter();
-      Filter::FilterInspectorPtr inspector = m_filter->filterInspector();
-      if (inspector.get())
-        setWidget(inspector->createWidget(m_undoStack, m_viewManager));
-
-    } else
-    {
-      m_filter = NULL;
-      setWidget(NULL);
-    }
-  }
 }
 

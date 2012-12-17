@@ -25,27 +25,29 @@
 
 #include <QUndoStack>
 
-class Channel;
-class ChannelReader;
-class EspinaModel;
-class Sample;
+#include <Core/EspinaTypes.h>
 
-class AddChannel
-: public QUndoCommand
+namespace EspINA
 {
-public:
-  explicit AddChannel(ChannelReader *reader,
-                      Channel       *channel,
-                      EspinaModel   *model,
-                      QUndoCommand  *parent=0);
+  class AddChannel
+  : public QUndoCommand
+  {
+  public:
+    explicit AddChannel(FilterPtr      reader,
+                        ChannelPtr     channel,
+                        EspinaModelPtr model,
+                        QUndoCommand   *parent=0);
 
-  virtual void redo();
-  virtual void undo();
+    virtual void redo();
+    virtual void undo();
 
-private:
-  ChannelReader *m_reader;
-  Channel       *m_channel;
-  EspinaModel   *m_model;
-};
+  private:
+    EspinaModelPtr m_model;
+
+    FilterPtr      m_reader;
+    ChannelPtr     m_channel;
+  };
+
+}// namespace EspINA
 
 #endif // ADDCHANNEL_H

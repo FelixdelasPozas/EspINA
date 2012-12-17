@@ -35,14 +35,18 @@
 #include <QApplication>
 #include <QMessageBox>
 
+using namespace EspINA;
+
 //-----------------------------------------------------------------------------
-PlanarSplitTool::PlanarSplitTool(EspinaModel *model, QUndoStack *undo, ViewManager *vm)
+PlanarSplitTool::PlanarSplitTool(EspinaModelPtr model,
+                                 QUndoStack    *undoStack,
+                                 ViewManager   *viewManager)
 : m_inUse(false)
 , m_enabled(true)
 , m_widget(NULL)
 , m_model(model)
-, m_undoStack(undo)
-, m_viewManager(vm)
+, m_undoStack(undoStack)
+, m_viewManager(viewManager)
 {
 }
 
@@ -84,7 +88,7 @@ void PlanarSplitTool::setInUse(bool value)
 
     SegmentationList selectedSegs = m_viewManager->selectedSegmentations();
     Q_ASSERT(selectedSegs.size() == 1);
-    Segmentation *seg = selectedSegs.first();
+    SegmentationPtr seg = selectedSegs.first();
     double bounds[6];
     seg->volume()->bounds(bounds);
     double spacing[3];
@@ -128,7 +132,7 @@ void PlanarSplitTool::splitSegmentation()
   SegmentationList selectedSegs = m_viewManager->selectedSegmentations();
   Q_ASSERT(selectedSegs.size() == 1);
 
-  Segmentation *seg = selectedSegs.first();
+  SegmentationPtr seg = selectedSegs.first();
 
   Filter::NamedInputs inputs;
   Filter::Arguments   args;
@@ -136,14 +140,14 @@ void PlanarSplitTool::splitSegmentation()
   inputs[SplitFilter::INPUTLINK] = seg->filter();
   args[Filter::INPUTS] = Filter::NamedInput(SplitFilter::INPUTLINK, seg->outputId());
 
-  SplitFilter *filter = new SplitFilter(inputs, args);
+  SplitFilterPtr filter(new SplitFilter(inputs, args));
   filter->setStencil(m_widget->getStencilForVolume(seg->volume()));
   filter->update();
 
   if (filter->outputs().size() == 2)
   {
-    Segmentation  *splitSeg[2];
-    EspinaFactory *factory = m_model->factory();
+    SegmentationPtr splitSeg[2];
+    EspinaFactoryPtr factory = m_model->factory();
     for (int i = 0; i < 2;  i++)
     {
       splitSeg[i] = factory->createSegmentation(filter, i);
@@ -155,7 +159,7 @@ void PlanarSplitTool::splitSegmentation()
       m_undoStack->push(new SplitUndoCommand(seg, filter, splitSeg, m_model));
     else
     {
-      delete filter;
+      // delete filter; TODO: Check it is freed by the smart pointer
       QApplication::restoreOverrideCursor();
       QMessageBox warning;
       warning.setWindowModality(Qt::WindowModal);
@@ -173,7 +177,7 @@ void PlanarSplitTool::splitSegmentation()
   }
   else
   {
-    delete filter;
+    //delete filter; // ditto
     QApplication::restoreOverrideCursor();
     QMessageBox warning;
     warning.setWindowModality(Qt::WindowModal);

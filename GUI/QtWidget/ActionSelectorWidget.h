@@ -22,7 +22,8 @@
 
 #include <QToolButton>
 
-class ActionSelectorWidget : public QToolButton
+class ActionSelectorWidget
+: public QToolButton
 {
   Q_OBJECT
 public:

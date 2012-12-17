@@ -10,6 +10,8 @@
 #include <vtkObjectFactory.h>
 #include <QPolygon>
 
+using namespace EspINA;
+
 SliceContourWidget::SliceContourWidget(vtkPlaneContourWidget* widget)
 : SliceWidget(widget)
 , m_initialized(false)

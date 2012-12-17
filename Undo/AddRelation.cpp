@@ -21,12 +21,14 @@
 
 #include <Core/Model/EspinaModel.h>
 
+using namespace EspINA;
+
 //------------------------------------------------------------------------
-AddRelation::AddRelation(ModelItem* ancestor,
-			 ModelItem* successor,
-			 const QString description,
-                         EspinaModel *model,
-			 QUndoCommand* parent)
+AddRelation::AddRelation(ModelItemPtr   ancestor,
+                         ModelItemPtr   successor,
+                         const QString  description,
+                         EspinaModelPtr model,
+                         QUndoCommand  *parent)
 : QUndoCommand(parent)
 , m_model(model)
 , m_ancester(ancestor)

@@ -45,6 +45,7 @@ CountingFrameSegmentationExtension::CountingFrameSegmentationExtension()
 //------------------------------------------------------------------------
 CountingFrameSegmentationExtension::~CountingFrameSegmentationExtension()
 {
+  qDebug() << "Deleting Counting Frame Segmentation Extension";
 }
 
 //------------------------------------------------------------------------

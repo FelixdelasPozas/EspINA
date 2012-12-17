@@ -14,6 +14,8 @@
 
 #include <Filters/ContourSource.h> // NOTE Rquiere linkar gui con filter, alguien mas lo necesita??
 
+namespace EspINA
+{
 class ContourSource;
 
 class ContourSource::ContourSourceInspector
@@ -33,6 +35,6 @@ private:
   ContourSource *m_source;
 };
 
-
+} // namespace EspINA
 
 #endif /* CONTOURSOURCEINSPECTOR_H_ */

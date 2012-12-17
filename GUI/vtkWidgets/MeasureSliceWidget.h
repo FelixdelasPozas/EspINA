@@ -11,6 +11,8 @@
 // EspINA
 #include <GUI/vtkWidgets/EspinaWidget.h>
 
+namespace EspINA
+{
 class MeasureSliceWidget
 : public SliceWidget
 {
@@ -20,5 +22,7 @@ class MeasureSliceWidget
 
     virtual void SetEnabled(int);
 };
+
+}// namespace EspINA
 
 #endif /* MEASURESLICEWIDGET_H_ */

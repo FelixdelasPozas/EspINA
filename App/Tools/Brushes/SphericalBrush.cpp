@@ -24,8 +24,10 @@
 #include <QDebug>
 #include <QUndoStack>
 
+using namespace EspINA;
+
 //-----------------------------------------------------------------------------
-SphericalBrush::SphericalBrush(EspinaModel* model,
+SphericalBrush::SphericalBrush(EspinaModelPtr model,
                                QUndoStack* undoStack,
                                ViewManager* viewManager)
 : Brush(model, undoStack, viewManager)
@@ -33,10 +35,10 @@ SphericalBrush::SphericalBrush(EspinaModel* model,
 }
 
 //-----------------------------------------------------------------------------
-Brush::BrushShape SphericalBrush::createBrushShape(PickableItem* item,
-                                                   double center[3],
-                                                   Nm radius,
-                                                   PlaneType plane)
+Brush::BrushShape SphericalBrush::createBrushShape(PickableItemPtr item,
+                                                   double          center[3],
+                                                   Nm              radius,
+                                                   PlaneType       plane)
 {
   double brushBounds[6];//TODO 2012-10-24 Crop bounds
   brushBounds[0] = center[0] - radius;
