@@ -19,6 +19,11 @@
 #include <vtkDistanceRepresentation2D.h>
 #include <vtkProperty2D.h>
 #include <vtkPointHandleRepresentation2D.h>
+#include <vtkRenderWindowInteractor.h>
+#include <vtkRenderWindow.h>
+#include <vtkRendererCollection.h>
+#include <vtkRenderer.h>
+#include <vtkCamera.h>
 
 // Qt
 #include <QEvent>
@@ -64,6 +69,15 @@ MeasureWidget::~MeasureWidget()
     m_sagittal->SetEnabled(false);
     m_sagittal->Delete();
   }
+
+  foreach(vtkCamera *camera, m_axialCameras)
+    camera->RemoveObserver(this);
+
+  foreach(vtkCamera *camera, m_coronalCameras)
+    camera->RemoveObserver(this);
+
+  foreach(vtkCamera *camera, m_sagittalCameras)
+    camera->RemoveObserver(this);
 }
 
 //----------------------------------------------------------------------------
@@ -142,30 +156,103 @@ void MeasureWidget::setEnabled(bool enable)
 //----------------------------------------------------------------------------
 void MeasureWidget::Execute(vtkObject *caller, unsigned long int eventId, void* callData)
 {
-  vtkDistanceWidget *widget = reinterpret_cast<vtkDistanceWidget*>(caller);
-  vtkDistanceRepresentation2D *rep = reinterpret_cast<vtkDistanceRepresentation2D*>(widget->GetRepresentation());
+  vtkDistanceWidget *widget = NULL;
+  vtkDistanceRepresentation2D *rep = NULL;
+  vtkCamera *camera = NULL;
 
-  if (vtkCommand::StartInteractionEvent == eventId)
+  if (strcmp("vtkOpenGLCamera", caller->GetClassName()) == 0)
+    camera = reinterpret_cast<vtkCamera*>(caller);
+
+  if (strcmp("vtkDistanceWidget", caller->GetClassName()) == 0)
   {
-    rep->SetLabelFormat("%.1f nm");
-    rep->RulerModeOn();
-    rep->SetRulerDistance(ComputeRulerTickDistance(rep->GetDistance()));
-
-    vtkProperty2D *property = reinterpret_cast<vtkPointHandleRepresentation2D*>(rep->GetPoint1Representation())->GetProperty();
-    property->SetColor(0.0, 1.0, 0.0);
-    property->SetLineWidth(2);
-
-    property = reinterpret_cast<vtkPointHandleRepresentation2D*>(rep->GetPoint2Representation())->GetProperty();
-    property->SetColor(0.0, 1.0, 0.0);
-    property->SetLineWidth(2);
+    widget = reinterpret_cast<vtkDistanceWidget*>(caller);
+    rep = reinterpret_cast<vtkDistanceRepresentation2D*>(widget->GetRepresentation());
   }
-  else if (vtkCommand::InteractionEvent == eventId)
+
+  if (widget != NULL)
   {
-    double newTickDistance = ComputeRulerTickDistance(rep->GetDistance());
-    if (rep->GetRulerDistance() != newTickDistance)
+    if (vtkCommand::StartInteractionEvent == eventId)
     {
-      rep->SetRulerDistance(newTickDistance);
-      rep->BuildRepresentation();
+      vtkRendererCollection *renderers = widget->GetInteractor()->GetRenderWindow()->GetRenderers();
+      vtkRenderer *renderer = renderers->GetFirstRenderer();
+
+      if ((widget == m_axial) && (m_axialCameras.empty()))
+        while (renderer != NULL)
+        {
+          vtkCamera *camera = renderer->GetActiveCamera();
+          camera->AddObserver(vtkCommand::AnyEvent, this);
+          m_axialCameras << camera;
+          renderer = renderers->GetNextItem();
+        }
+
+      if ((widget == m_coronal) && (m_coronalCameras.empty()))
+        while (renderer != NULL)
+        {
+          vtkCamera *camera = renderer->GetActiveCamera();
+          camera->AddObserver(vtkCommand::AnyEvent, this);
+          m_coronalCameras << camera;
+          renderer = renderers->GetNextItem();
+        }
+
+      if ((widget == m_sagittal) && (m_sagittalCameras.empty()))
+        while (renderer != NULL)
+        {
+          vtkCamera *camera = renderer->GetActiveCamera();
+          camera->AddObserver(vtkCommand::AnyEvent, this);
+          m_sagittalCameras << camera;
+          renderer = renderers->GetNextItem();
+        }
+
+      rep->SetLabelFormat("%.1f nm");
+      rep->RulerModeOn();
+      rep->SetRulerDistance(ComputeRulerTickDistance(rep->GetDistance()));
+
+      vtkProperty2D *property = reinterpret_cast<vtkPointHandleRepresentation2D*>(rep->GetPoint1Representation())->GetProperty();
+      property->SetColor(0.0, 1.0, 0.0);
+      property->SetLineWidth(2);
+
+      property = reinterpret_cast<vtkPointHandleRepresentation2D*>(rep->GetPoint2Representation())->GetProperty();
+      property->SetColor(0.0, 1.0, 0.0);
+      property->SetLineWidth(2);
+    }
+    else if (vtkCommand::InteractionEvent == eventId)
+    {
+      double newTickDistance = ComputeRulerTickDistance(rep->GetDistance());
+      if (rep->GetRulerDistance() != newTickDistance)
+      {
+        rep->SetRulerDistance(newTickDistance);
+        rep->BuildRepresentation();
+      }
+    }
+    return;
+  }
+
+  if (camera != NULL)
+  {
+    double p1[3], p2[3];
+    if (m_axialCameras.contains(camera))
+    {
+      m_axial->GetDistanceRepresentation()->GetPoint1WorldPosition(p1);
+      m_axial->GetDistanceRepresentation()->SetPoint1WorldPosition(p1);
+      m_axial->GetDistanceRepresentation()->GetPoint2WorldPosition(p2);
+      m_axial->GetDistanceRepresentation()->SetPoint2WorldPosition(p2);
+      m_axial->GetDistanceRepresentation()->BuildRepresentation();
+    }
+    else if (m_coronalCameras.contains(camera))
+    {
+      m_coronal->GetDistanceRepresentation()->GetPoint1WorldPosition(p1);
+      m_coronal->GetDistanceRepresentation()->SetPoint1WorldPosition(p1);
+      m_coronal->GetDistanceRepresentation()->GetPoint2WorldPosition(p2);
+      m_coronal->GetDistanceRepresentation()->SetPoint2WorldPosition(p2);
+      m_coronal->GetDistanceRepresentation()->BuildRepresentation();
+    }
+    else if (m_sagittalCameras.contains(camera))
+    {
+      m_sagittal->GetDistanceRepresentation()->GetPoint1WorldPosition(p1);
+      m_sagittal->GetDistanceRepresentation()->SetPoint1WorldPosition(p1);
+      m_sagittal->GetDistanceRepresentation()->GetPoint2WorldPosition(p2);
+      m_sagittal->GetDistanceRepresentation()->SetPoint2WorldPosition(p2);
+      m_sagittal->GetDistanceRepresentation()->BuildRepresentation();
     }
   }
 }
@@ -174,64 +261,11 @@ void MeasureWidget::Execute(vtkObject *caller, unsigned long int eventId, void* 
 //----------------------------------------------------------------------------
 bool MeasureWidget::filterEvent(QEvent *e, EspinaRenderView *view)
 {
-  static bool zooming = false;
-  static double p1[3];
-  static double p2[3];
-  static vtkDistanceWidget *actual = NULL;
-
-  if (e->type() == QEvent::MouseButtonPress)
-  {
-    QMouseEvent *me = reinterpret_cast<QMouseEvent*>(e);
-    if (me->button() == Qt::RightButton)
-    {
-      Q_ASSERT(actual == NULL);
-      SliceView *slice = reinterpret_cast<SliceView *>(view);
-      switch(slice->getViewType())
-      {
-        case AXIAL:
-          actual = m_axial;
-          break;
-        case CORONAL:
-          actual = m_coronal;
-          break;
-        case SAGITTAL:
-          actual = m_sagittal;
-          break;
-        default:
-          Q_ASSERT(false);
-          break;
-      }
-
-      zooming = true;
-      actual->GetDistanceRepresentation()->GetPoint1WorldPosition(p1);
-      actual->GetDistanceRepresentation()->GetPoint2WorldPosition(p2);
-    }
-  }
-  else if (e->type() == QEvent::MouseButtonRelease)
-  {
-    QMouseEvent *me = reinterpret_cast<QMouseEvent*>(e);
-    if (me->button() == Qt::RightButton)
-    {
-      zooming = false;
-      actual->GetDistanceRepresentation()->SetPoint1WorldPosition(p1);
-      actual->GetDistanceRepresentation()->SetPoint2WorldPosition(p2);
-      actual->GetDistanceRepresentation()->BuildRepresentation();
-      actual = NULL;
-    }
-  }
-  else if (e->type() == QEvent::MouseMove && zooming == true)
-  {
-    actual->GetDistanceRepresentation()->SetPoint1WorldPosition(p1);
-    actual->GetDistanceRepresentation()->SetPoint2WorldPosition(p2);
-    actual->GetDistanceRepresentation()->BuildRepresentation();
-  }
-  else if (e->type() == QEvent::KeyPress)
+  if (e->type() == QEvent::KeyPress)
   {
     QKeyEvent *ke = reinterpret_cast<QKeyEvent*>(e);
     if (ke->key() == Qt::Key_Backspace)
     {
-      zooming = false;
-      actual = NULL;
       foreach(vtkDistanceWidget *widget, m_distanceWidgets)
       {
         widget->SetWidgetStateToStart();
@@ -240,6 +274,10 @@ bool MeasureWidget::filterEvent(QEvent *e, EspinaRenderView *view)
         widget->GetDistanceRepresentation()->GetPoint2Representation()->VisibilityOff();
         widget->Render();
       }
+
+      m_axialCameras.clear();
+      m_coronalCameras.clear();
+      m_sagittalCameras.clear();
     }
   }
 

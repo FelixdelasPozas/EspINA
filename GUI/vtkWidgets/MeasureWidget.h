@@ -22,6 +22,7 @@ class vtkDistanceWidget;
 class MeasureSliceWidget;
 class vtkMeasureWidget;
 class EspinaRenderView;
+class vtkCamera;
 class QEvent;
 
 class MeasureWidget
@@ -56,6 +57,9 @@ class MeasureWidget
     vtkDistanceWidget *m_sagittal;
     QList<MeasureSliceWidget*> m_sliceWidgets;
     QList<vtkDistanceWidget*> m_distanceWidgets;
+    QList<vtkCamera*> m_axialCameras;
+    QList<vtkCamera*> m_coronalCameras;
+    QList<vtkCamera*> m_sagittalCameras;
 };
 
 #endif /* MEASUREWIDGET_H_ */
