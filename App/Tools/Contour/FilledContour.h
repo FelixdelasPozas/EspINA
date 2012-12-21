@@ -23,6 +23,7 @@
 #include <GUI/Tools/ITool.h>
 
 #include <Core/EspinaTypes.h>
+#include <Core/Model/EspinaModel.h>
 
 class QUndoStack;
 
@@ -36,7 +37,7 @@ namespace EspINA
   : public ITool //NOTE Change to IVOI to use countour as VOI
   {
   public:
-    explicit FilledContour(EspinaModelPtr model,
+    explicit FilledContour(EspinaModelSPtr model,
                            QUndoStack    *undoStack,
                            ViewManager   *viewManager);
     virtual ~FilledContour();
@@ -48,7 +49,7 @@ namespace EspINA
     virtual bool enabled() const;
 
   private:
-    EspinaModelPtr m_model;
+    EspinaModelSPtr m_model;
     QUndoStack    *m_undoStack;
     ViewManager   *m_viewManager;
 
@@ -58,10 +59,12 @@ namespace EspINA
 
     ContourWidget *m_contourWidget;
 
-    FilterPtr       m_currentSource;
-    SegmentationPtr m_currentSeg;
+    FilterSPtr       m_currentSource;
+    SegmentationSPtr m_currentSeg;
 
   };
+
+  typedef QSharedPointer<FilledContour> FilledContourSPtr;
 
 } // namespace EspINA
 

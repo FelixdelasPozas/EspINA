@@ -21,9 +21,9 @@
 using namespace EspINA;
 
 //----------------------------------------------------------------------------
-FilterPtr PickableItem::filter()
+FilterSPtr PickableItem::filter()
 {
-  const FilterPtr cp = static_cast<const PickableItem *>(this)->filter();
+  const FilterSPtr cp = static_cast<const PickableItem *>(this)->filter();
   return cp;
 }
 
@@ -43,7 +43,17 @@ const EspinaVolume::Pointer PickableItem::volume() const
 PickableItemPtr EspINA::pickableItemPtr(ModelItemPtr item)
 {
   Q_ASSERT(EspINA::SEGMENTATION == item->type() || EspINA::SAMPLE == item->type());
-  PickableItemPtr ptr = qSharedPointerDynamicCast<PickableItem>(item);
+  PickableItemPtr ptr = dynamic_cast<PickableItemPtr>(item);
+  Q_ASSERT(ptr);
+
+  return ptr;
+}
+
+//----------------------------------------------------------------------------
+SharedPickableItemPtr EspINA::pickableItemPtr(SharedModelItemPtr &item)
+{
+  Q_ASSERT(EspINA::SEGMENTATION == item->type() || EspINA::SAMPLE == item->type());
+  SharedPickableItemPtr ptr = qSharedPointerDynamicCast<PickableItem>(item);
   Q_ASSERT(!ptr.isNull());
 
   return ptr;

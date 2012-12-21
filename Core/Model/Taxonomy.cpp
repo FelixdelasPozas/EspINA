@@ -25,9 +25,10 @@ const QString TaxonomyElement::Y_DIM = "Dim_Y";
 const QString TaxonomyElement::Z_DIM = "Dim_Z";
 
 //------------------------------------------------------------------------
-TaxonomyElement::TaxonomyElement(const QString &name,
+TaxonomyElement::TaxonomyElement(TaxonomyElementPtr parent,
+                                 const QString &name,
                                  const QString &RGBColor)
-: m_parent(NULL)
+: m_parent(parent)
 , m_name(name)
 , m_color(RGBColor)
 {
@@ -63,11 +64,11 @@ QString TaxonomyElement::qualifiedName() const
 
 
 //------------------------------------------------------------------------
-TaxonomyElementPtr TaxonomyElement::createElement(const QString& name)
+SharedTaxonomyElementPtr TaxonomyElement::createElement(const QString& name)
 {
   Q_ASSERT(element(name).isNull());
 
-  TaxonomyElementPtr element(new TaxonomyElement(name));
+  SharedTaxonomyElementPtr element(new TaxonomyElement(this, name));
   element->setColor(m_color);
 
   m_elements << element;
@@ -78,15 +79,25 @@ TaxonomyElementPtr TaxonomyElement::createElement(const QString& name)
 //------------------------------------------------------------------------
 void TaxonomyElement::deleteElement(TaxonomyElementPtr element)
 {
-  Q_ASSERT(m_elements.contains(element));
+  SharedTaxonomyElementPtr subNode;
 
-  m_elements.removeOne(element);
+  int index = 0;
+  while (subNode.isNull() && index < m_elements.size())
+  {
+    if (m_elements[index].data() == element)
+      subNode = m_elements[index];
+    else
+      index++;
+  }
+
+  Q_ASSERT(!subNode.isNull());
+  m_elements.removeAt(index);
 }
 
 //------------------------------------------------------------------------
-TaxonomyElementPtr TaxonomyElement::element(const QString& name)
+SharedTaxonomyElementPtr TaxonomyElement::element(const QString& name)
 {
-  TaxonomyElementPtr res;
+  SharedTaxonomyElementPtr res;
 
   int i = 0;
   while (res.isNull() && i < m_elements.size())
@@ -139,7 +150,7 @@ void TaxonomyElement::print(int level)
     }
   }
 
-  foreach (TaxonomyElementPtr node, m_elements)
+  foreach (SharedTaxonomyElementPtr node, m_elements)
     node->print(level+1);
 }
 
@@ -179,10 +190,20 @@ bool TaxonomyElement::setData(const QVariant& value, int role)
 }
 
 //-----------------------------------------------------------------------------
-TaxonomyElementPtr EspINA::taxonomyElementPtr(ModelItemPtr &item)
+TaxonomyElementPtr EspINA::taxonomyElementPtr(ModelItemPtr item)
 {
   Q_ASSERT(EspINA::TAXONOMY == item->type());
-  TaxonomyElementPtr ptr = qSharedPointerDynamicCast<TaxonomyElement>(item);
+  TaxonomyElementPtr ptr = dynamic_cast<TaxonomyElementPtr>(item);
+  Q_ASSERT(ptr);
+
+  return ptr;
+}
+
+//-----------------------------------------------------------------------------
+SharedTaxonomyElementPtr taxonomyElementPtr(SharedModelItemPtr& item)
+{
+  Q_ASSERT(EspINA::TAXONOMY == item->type());
+  SharedTaxonomyElementPtr ptr = qSharedPointerDynamicCast<TaxonomyElement>(item);
   Q_ASSERT(!ptr.isNull());
 
   return ptr;
@@ -195,7 +216,7 @@ TaxonomyElementPtr EspINA::taxonomyElementPtr(ModelItemPtr &item)
 const QString Taxonomy::ROOT = QString();
 
 Taxonomy::Taxonomy()
-: m_root(new TaxonomyElement(ROOT))
+: m_root(new TaxonomyElement(NULL, ROOT))
 {
 }
 
@@ -206,30 +227,59 @@ Taxonomy::~Taxonomy()
 }
 
 //-----------------------------------------------------------------------------
-TaxonomyElementPtr Taxonomy::createElement(const QString& name, TaxonomyElementPtr parent)
+SharedTaxonomyElementPtr Taxonomy::createElement(const QString& name,
+                                                 TaxonomyElementPtr parent)
 {
   TaxonomyElementPtr parentNode = parent;
 
-  if (parentNode.isNull())
-    parentNode = m_root;
+  if (!parentNode)
+    parentNode = m_root.data();
 
   return parentNode->createElement(name);
 }
 
 //-----------------------------------------------------------------------------
+SharedTaxonomyElementPtr Taxonomy::createElement(const QString& name,
+                                                 SharedTaxonomyElementPtr parent)
+{
+  return createElement(name, parent.data());
+}
+
+
+//-----------------------------------------------------------------------------
 void Taxonomy::deleteElement(TaxonomyElementPtr element)
 {
-  Q_ASSERT(!element.isNull());
+  Q_ASSERT(element);
 
-  TaxonomyElementPtr parentElement = parent(element);
-  parentElement->deleteElement(element);
+  if (element != m_root.data())
+  {
+    TaxonomyElementPtr parentElement = element->parent();
+    parentElement->deleteElement(element);
+  }
+  else
+    m_root.clear();
 }
 
 //-----------------------------------------------------------------------------
-TaxonomyElementPtr Taxonomy::element(const QString& qualifiedName)
+void Taxonomy::deleteElement(SharedTaxonomyElementPtr element)
 {
+  deleteElement(element.data());
+}
+
+
+//-----------------------------------------------------------------------------
+SharedTaxonomyElementPtr Taxonomy::element(const QString& qualifiedName)
+{
+  QStringList path = qualifiedName.split("/", QString::SkipEmptyParts);
+  SharedTaxonomyElementPtr node = m_root;
+  for(int i = 0; i < path.length(); i++)
+  {
+    node = node->element(path[i]);
+    Q_ASSERT(!node.isNull());
+  }
+
+  return node;
   // MEGA TODO 2012-12-15
-  Q_ASSERT(false);
 //   bool exits = false;
 //   foreach(TaxonomyElementPtr sibling, m_parent->m_elements)
 //   {
@@ -253,9 +303,18 @@ TaxonomyElementPtr Taxonomy::element(const QString& qualifiedName)
 }
 
 //-----------------------------------------------------------------------------
-TaxonomyElementPtr Taxonomy::parent(const TaxonomyElementPtr element) const
+SharedTaxonomyElementPtr Taxonomy::parent(const SharedTaxonomyElementPtr element) const
 {
-  Q_ASSERT(false);
+  QStringList path = element->qualifiedName().split("/", QString::SkipEmptyParts);
+
+  SharedTaxonomyElementPtr parent = m_root;
+  for(int i = 0; i < path.length() - 1; i++)
+  {
+    parent = parent->element(path[i]);
+    Q_ASSERT(!parent.isNull());
+  }
+
+  return parent;
 }
 
 //-----------------------------------------------------------------------------

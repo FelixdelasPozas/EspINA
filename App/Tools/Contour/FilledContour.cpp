@@ -40,7 +40,7 @@
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
-FilledContour::FilledContour(EspinaModelPtr model,
+FilledContour::FilledContour(EspinaModelSPtr model,
                              QUndoStack    *undo,
                              ViewManager   *vm)
 : m_viewManager(vm)
@@ -97,9 +97,9 @@ void FilledContour::setInUse(bool enable)
 
     if (selection.size() == 1)
     {
-      m_currentSeg = selection.first();
+      m_currentSeg = m_model->findSegmentation(selection.first());
       m_currentSource = m_currentSeg->filter();
-      m_contourWidget->setPolygonColor(m_viewManager->color(m_currentSeg));
+      m_contourWidget->setPolygonColor(m_viewManager->color(m_currentSeg.data()));
     }
     else
     {
@@ -127,7 +127,7 @@ void FilledContour::setInUse(bool enable)
         Filter::Arguments args;
         FreeFormSource::Parameters params(args);
         params.setSpacing(spacing);
-        m_currentSource = FilterPtr(new ContourSource(inputs, args));
+        m_currentSource = FilterSPtr(new ContourSource(inputs, args));
       }
 
       if (!m_currentSeg && m_currentSource)
@@ -135,10 +135,10 @@ void FilledContour::setInUse(bool enable)
         m_currentSource->draw(0, NULL, 0, AXIAL);
         m_currentSeg = m_model->factory()->createSegmentation(m_currentSource, 0);
         m_undoStack->beginMacro("Draw segmentation using contours");
-        m_undoStack->push(new AddSegmentation(channel,
+        m_undoStack->push(new AddSegmentation(m_model->findChannel(channel),
                                               m_currentSource,
                                               m_currentSeg,
-                                              m_viewManager->activeTaxonomy(),
+                                              m_model->findTaxonomyElement(m_viewManager->activeTaxonomy()),
                                               m_model));
         m_undoStack->endMacro();
       }

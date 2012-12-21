@@ -17,27 +17,43 @@
 */
 
 
-#ifndef IVOI_H
-#define IVOI_H
+#ifndef SEGREMOVER_H
+#define SEGREMOVER_H
 
-#include "ITool.h"
-
-#include <qsharedpointer.h>
+#include <GUI/Tools/ITool.h>
+#include <GUI/Pickers/IPicker.h>
 
 namespace EspINA
 {
+  class PixelPicker;
 
-  class IVOI
+  class SegmentationRemover
   : public ITool
   {
+    Q_OBJECT
   public:
-    typedef double * Region;
+    explicit SegmentationRemover();
+    virtual ~SegmentationRemover();
 
-    virtual Region region() = 0;
+    virtual QCursor cursor() const;
+    virtual bool filterEvent(QEvent* e, EspinaRenderView* view = 0);
+    virtual void setInUse(bool enable);
+    virtual void setEnabled(bool enable);
+    virtual bool enabled() const;
+
+  private slots:
+    void removeSegmentation(IPicker::PickList pickedSeg);
+
+  signals:
+    void removeSegmentation(SegmentationPtr);
+    void removalAborted();
+
+  private:
+    PixelPicker *m_picker;
   };
 
-  typedef QSharedPointer<IVOI> IVOISPtr;
+  typedef QSharedPointer<SegmentationRemover> SegmentationRemoverSPtr;
 
 } // namespace EspINA
 
-#endif // IVOI_H
+#endif // SEGREMOVER_H

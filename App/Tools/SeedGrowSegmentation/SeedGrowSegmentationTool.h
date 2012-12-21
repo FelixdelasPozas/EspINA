@@ -1,20 +1,20 @@
 /*
-    <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ *    <one line to give the program's name and a brief idea of what it does.>
+ *    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
+ *
+ *    This program is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
+ *
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 
 #ifndef SEEDGROWSEGMENTATIONTOOL_H
@@ -22,7 +22,8 @@
 
 #include <GUI/Tools/ITool.h>
 #include <GUI/Pickers/IPicker.h>
-#include <Toolbars/SeedGrowSegmentation/SeedGrowSegmentation.h>
+
+#include <Core/Model/EspinaModel.h>
 
 #include <QUndoCommand>
 
@@ -31,46 +32,29 @@
 #include <itkConnectedThresholdImageFilter.h>
 #include <itkImageToVTKImageFilter.h>
 
+class DefaultVOIAction;
+class ThresholdAction;
 class vtkImageActor;
 class vtkImageMapToColors;
 
 namespace EspINA
 {
+  class SeedGrowSegmentationSettings;
   class SeedGrowSegmentationFilter;
   class ViewManager;
 
   class SeedGrowSegmentationTool
   : public ITool
   {
-    class CreateSegmentation
-    : public QUndoCommand
-    {
-    public:
-      explicit CreateSegmentation(ChannelPtr channel,
-                                  FilterPtr filter,
-                                  SegmentationPtr segmentation,
-                                  TaxonomyElementPtr taxonomy,
-                                  EspinaModelPtr model);
-      virtual void redo();
-      virtual void undo();
-    private:
-      EspinaModelPtr     m_model;
-      SamplePtr          m_sample;
-      ChannelPtr         m_channel;
-      FilterPtr          m_filter;
-      SegmentationPtr    m_seg;
-      TaxonomyElementPtr m_taxonomy;
-    };
-
     Q_OBJECT
   public:
-    explicit SeedGrowSegmentationTool(EspinaModelPtr model,
+    explicit SeedGrowSegmentationTool(EspinaModelSPtr model,
                                       QUndoStack  *undoStack,
                                       ViewManager *viewManager,
                                       ThresholdAction  *th,
                                       DefaultVOIAction *voi,
-                                      SeedGrowSegmentation::Settings *settings,
-                                      IPicker *picker = NULL);
+                                      SeedGrowSegmentationSettings *settings,
+                                      IPickerSPtr picker = IPickerSPtr());
 
     virtual QCursor cursor() const;
     virtual bool filterEvent(QEvent* e, EspinaRenderView *view = 0);
@@ -79,7 +63,7 @@ namespace EspINA
     virtual void setEnabled(bool enable);
     virtual void setInUse(bool value);
 
-    void setChannelPicker(IPicker *picker);
+    void setChannelPicker(IPickerSPtr picker);
 
   public slots:
     void startSegmentation(IPicker::PickList pickedItems);
@@ -97,14 +81,14 @@ namespace EspINA
     void addPreview(EspinaRenderView*);
 
   private:
-    EspinaModelPtr m_model;
+    EspinaModelSPtr m_model;
     QUndoStack    *m_undoStack;
     ViewManager   *m_viewManager;
 
-    SeedGrowSegmentation::Settings *m_settings;
+    SeedGrowSegmentationSettings *m_settings;
     DefaultVOIAction *m_defaultVOI;
     ThresholdAction  *m_threshold;
-    IPicker *m_picker;
+    IPickerSPtr      m_picker;
 
     bool m_inUse;
     bool m_enabled;
@@ -115,6 +99,8 @@ namespace EspINA
     vtkSmartPointer<vtkImageActor> m_actor;
     EspinaRenderView *m_viewOfPreview;
   };
+
+  typedef QSharedPointer<SeedGrowSegmentationTool> SeedGrowSegmentationToolSPtr;
 
 } // namespace EspINA
 

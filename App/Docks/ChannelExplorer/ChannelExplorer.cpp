@@ -55,7 +55,7 @@ public:
 };
 
 //------------------------------------------------------------------------
-ChannelExplorer::ChannelExplorer(EspinaModelPtr model,
+ChannelExplorer::ChannelExplorer(EspinaModelSPtr model,
                                  ViewManager   *vm,
                                  QWidget       *parent)
 : QDockWidget(parent)

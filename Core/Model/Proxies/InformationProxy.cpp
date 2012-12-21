@@ -33,9 +33,9 @@ InformationProxy::InformationProxy()
 }
 
 //------------------------------------------------------------------------
-void InformationProxy::setSourceModel(EspinaModelPtr sourceModel)
+void InformationProxy::setSourceModel(EspinaModelSPtr sourceModel)
 {
-  if (m_model)
+  if (!m_model.isNull())
   {
     disconnect(sourceModel.data(), SIGNAL(rowsInserted(const QModelIndex&, int, int)),
                this, SLOT(sourceRowsInserted(const QModelIndex&, int, int)));
@@ -48,6 +48,7 @@ void InformationProxy::setSourceModel(EspinaModelPtr sourceModel)
   m_model = sourceModel;
   m_elements.clear();
 
+  if (!m_model.isNull())
   connect(sourceModel.data(), SIGNAL(rowsInserted(const QModelIndex&, int, int)),
           this, SLOT(sourceRowsInserted(const QModelIndex&, int, int)));
   connect(sourceModel.data(), SIGNAL(rowsAboutToBeRemoved(const QModelIndex&, int, int)),
@@ -55,7 +56,7 @@ void InformationProxy::setSourceModel(EspinaModelPtr sourceModel)
   connect(sourceModel.data(), SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)),
           this, SLOT(sourceDataChanged(const QModelIndex &,const QModelIndex &)));
 
-  sourceRowsInserted(m_model->segmentationRoot(), 0, m_model->rowCount(m_model->segmentationRoot())-1);
+  sourceRowsInserted(m_model->segmentationRoot(), 0, m_model->segmentations().size()-1);
 
   QAbstractProxyModel::setSourceModel(sourceModel.data());
 }
@@ -66,22 +67,20 @@ QModelIndex InformationProxy::mapFromSource(const QModelIndex& sourceIndex) cons
   if (!sourceIndex.isValid())
     return QModelIndex();
 
-  if (sourceIndex == m_model->taxonomyRoot() ||
-    sourceIndex == m_model->sampleRoot()   ||
-    sourceIndex == m_model->channelRoot()  ||
-    sourceIndex == m_model->filterRoot()   ||
-    sourceIndex == m_model->segmentationRoot())
+  if ( sourceIndex == m_model->taxonomyRoot()
+    || sourceIndex == m_model->sampleRoot()
+    || sourceIndex == m_model->channelRoot()
+    || sourceIndex == m_model->filterRoot()
+    || sourceIndex == m_model->segmentationRoot())
     return QModelIndex();
 
   ModelItemPtr sourceItem = indexPtr(sourceIndex);
-  Q_ASSERT(sourceItem);
-  if (EspINA::SEGMENTATION == sourceItem->type())
-  {
-    Q_ASSERT(false); // internal pointer
-    return createIndex(sourceIndex.row(), sourceIndex.column(), &sourceItem);
-  }
 
-  return QModelIndex();
+  QModelIndex proxyIndex;
+  if (EspINA::SEGMENTATION == sourceItem->type())
+    proxyIndex = createIndex(sourceIndex.row(), sourceIndex.column(), sourceItem);
+
+  return proxyIndex;
 }
 
 //------------------------------------------------------------------------
@@ -91,14 +90,10 @@ QModelIndex InformationProxy::mapToSource(const QModelIndex& proxyIndex) const
     return QModelIndex();
 
   ModelItemPtr proxyItem = indexPtr(proxyIndex);
-  Q_ASSERT(proxyItem);
 
   QModelIndex sourceIndex;
   if (EspINA::SEGMENTATION == proxyItem->type())
-  {
-    SegmentationPtr proxySeg = segmentationPtr(proxyItem);
-    sourceIndex = m_model->segmentationIndex(proxySeg);
-  }
+    sourceIndex = m_model->index(proxyItem);
 
   return sourceIndex;
 }
@@ -133,7 +128,6 @@ QModelIndex InformationProxy::parent(const QModelIndex& child) const
     return QModelIndex();
 
   ModelItemPtr childItem = indexPtr(child);
-  Q_ASSERT(childItem);
   Q_ASSERT(EspINA::SEGMENTATION == childItem->type());
   return mapFromSource(m_model->segmentationRoot());
 }
@@ -146,8 +140,8 @@ QModelIndex InformationProxy::index(int row, int column, const QModelIndex& pare
 
   if (!parent.isValid())
   {
-    // We need to forward all column indices to the same original index while keeping
-    // column correct
+    // We need to forward all column indices to the same
+    // original index while keeping column correct
     return createIndex(row, column, m_elements[row].internalPointer());
   }
 

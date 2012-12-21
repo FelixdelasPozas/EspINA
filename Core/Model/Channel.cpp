@@ -49,7 +49,7 @@ const QString Channel::NAME       = "Name";
 const QString Channel::VOLUMETRIC = "Volumetric";
 
 //-----------------------------------------------------------------------------
-Channel::Channel(FilterPtr filter, Filter::OutputId oId)
+Channel::Channel(FilterSPtr filter, Filter::OutputId oId)
 : m_visible(true)
 , m_filter(filter)
 {
@@ -60,12 +60,13 @@ Channel::Channel(FilterPtr filter, Filter::OutputId oId)
 //-----------------------------------------------------------------------------
 Channel::~Channel()
 {
+  qDebug() << data().toString() << ": Destructor";
   // Extensions may need access channel's information
   deleteExtensions();
 }
 
 //------------------------------------------------------------------------
-const FilterPtr Channel::filter() const
+const FilterSPtr Channel::filter() const
 {
   return m_filter;
 }
@@ -245,11 +246,15 @@ void Channel::notifyModification(bool force)
 }
 
 //-----------------------------------------------------------------------------
-SamplePtr Channel::sample()
+SampleSPtr Channel::sample()
 {
-  ModelItemList relatedSamples = relatedItems(IN, Channel::STAINLINK);
-  Q_ASSERT(relatedSamples.size() == 1);
-  return qSharedPointerDynamicCast<Sample>(relatedSamples[0]);
+  SharedModelItemList relatedSamples = relatedItems(IN, Channel::STAINLINK);
+  SampleSPtr sample;
+
+  if (relatedSamples.size() > 0)
+    sample = samplePtr(relatedSamples.first());
+
+  return sample;
 }
 
 //TODO 2012-11-28 vtkAlgorithmOutput* Channel::vtkVolume()
@@ -269,20 +274,40 @@ SamplePtr Channel::sample()
 // 
 
 //-----------------------------------------------------------------------------
-ChannelPtr EspINA::channelPtr(ModelItemPtr& item)
+ChannelPtr EspINA::channelPtr(ModelItemPtr item)
 {
   Q_ASSERT(CHANNEL == item->type());
-  ChannelPtr ptr = qSharedPointerDynamicCast<Channel>(item);
+  ChannelPtr ptr = dynamic_cast<ChannelPtr>(item);
+  Q_ASSERT(ptr);
+
+  return ptr;
+}
+
+//-----------------------------------------------------------------------------
+ChannelPtr EspINA::channelPtr(PickableItemPtr item)
+{
+  Q_ASSERT(CHANNEL == item->type());
+  ChannelPtr ptr = dynamic_cast<ChannelPtr>(item);
+  Q_ASSERT(ptr);
+
+  return ptr;
+}
+
+//-----------------------------------------------------------------------------
+SharedChannelPtr EspINA::channelPtr(SharedModelItemPtr& item)
+{
+  Q_ASSERT(CHANNEL == item->type());
+  SharedChannelPtr ptr = qSharedPointerDynamicCast<Channel>(item);
   Q_ASSERT(!ptr.isNull());
 
   return ptr;
 }
 
 //-----------------------------------------------------------------------------
-ChannelPtr EspINA::channelPtr(PickableItemPtr& item)
+SharedChannelPtr EspINA::channelPtr(SharedPickableItemPtr& item)
 {
   Q_ASSERT(CHANNEL == item->type());
-  ChannelPtr ptr = qSharedPointerDynamicCast<Channel>(item);
+  SharedChannelPtr ptr = qSharedPointerDynamicCast<Channel>(item);
   Q_ASSERT(!ptr.isNull());
 
   return ptr;

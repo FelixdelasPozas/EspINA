@@ -24,11 +24,12 @@
 
 namespace EspINA
 {
+
   class CircularBrush
   : public Brush
   {
   public:
-    explicit CircularBrush(EspinaModelPtr model,
+    explicit CircularBrush(EspinaModelSPtr model,
                            QUndoStack* undoStack,
                            ViewManager* viewManager);
 
@@ -39,6 +40,8 @@ namespace EspINA
                                         PlaneType plane);
 
   };
+
+  typedef QSharedPointer<CircularBrush> CircularBrushSPtr;
 }
 
 #endif // CIRCULARBRUSH_H

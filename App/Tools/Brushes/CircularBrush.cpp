@@ -28,7 +28,7 @@
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
-CircularBrush::CircularBrush(EspinaModelPtr model,
+CircularBrush::CircularBrush(EspinaModelSPtr model,
                              QUndoStack* undoStack,
                              ViewManager* viewManager)
 : Brush(model, undoStack, viewManager)

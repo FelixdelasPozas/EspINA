@@ -46,7 +46,7 @@ namespace EspINA
     class SettingsPanel;
 
   public:
-    explicit DefaultEspinaView(EspinaModelPtr model,
+    explicit DefaultEspinaView(EspinaModelSPtr model,
                                ViewManager *vm,
                                QMainWindow *parent=0
     );
@@ -54,7 +54,7 @@ namespace EspINA
 
     virtual void createViewMenu(QMenu* menu);
 
-    virtual ISettingsPanelPtr settingsPanel();
+    virtual ISettingsPanelPrototype settingsPanel();
 
     virtual QModelIndex indexAt(const QPoint& point) const
     { return QModelIndex(); }
@@ -107,7 +107,7 @@ namespace EspINA
     void initSliceView(SliceView *view);
 
   private:
-    EspinaModelPtr m_model;
+    EspinaModelSPtr m_model;
 
     bool m_showProcessing;
     bool m_showSegmentations;

@@ -12,7 +12,6 @@ set (UNDO_SOURCES
   AddSample.cpp
   AddSegmentation.cpp
   FillHolesCommand.cpp
-  ImageLogicCommand.cpp
   RemoveSegmentation.cpp
   )
 

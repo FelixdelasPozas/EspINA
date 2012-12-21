@@ -22,6 +22,9 @@
 
 #include "Core/EspinaTypes.h"
 #include "Core/Model/Filter.h"
+#include "Channel.h"
+#include "Segmentation.h"
+#include <GUI/ISettingsPanel.h>
 
 #include <QStringList>
 #include <QMap>
@@ -35,7 +38,7 @@ namespace EspINA
   {
   public:
     explicit EspinaFactory();
-    ~EspinaFactory(){}
+    ~EspinaFactory();
 
     QStringList supportedFiles() const;
 
@@ -51,31 +54,31 @@ namespace EspINA
 
     void registerSegmentationExtension(SegmentationExtensionPtr extension);
 
-    void registerSettingsPanel(ISettingsPanelPtr panel)
+    void registerSettingsPanel(ISettingsPanelPrototype panel)
     {m_settingsPanels << panel;}
 
     void registerRenderer(IRendererPtr renderer);
 
 
-    ISettingsPanelList settingsPanels() const
+    ISettingsPanelPrototypeList settingsPanels() const
     {return m_settingsPanels;}
 
     QMap<QString, IRendererPtr> renderers() const
     {return m_renderers;}
 
 
-    FilterPtr createFilter(const QString              &filter,
-                           const Filter::NamedInputs  &inputs,
-                           const ModelItem::Arguments &args);
+    FilterSPtr createFilter(const QString              &filter,
+                                 const Filter::NamedInputs  &inputs,
+                                 const ModelItem::Arguments &args);
 
     bool readFile(const QString &file, const QString &ext);
 
 
-    SamplePtr createSample(const QString &id, const QString &args = "");
+    SampleSPtr createSample(const QString &id, const QString &args = "");
 
-    ChannelPtr createChannel(FilterPtr filter, const Filter::OutputId &oId);
+    SharedChannelPtr createChannel(FilterSPtr filter, const Filter::OutputId &oId);
 
-    SegmentationPtr createSegmentation(FilterPtr parent, const Filter::OutputId &oId);
+    SegmentationSPtr createSegmentation(FilterSPtr filter, const Filter::OutputId &oId);
 
 
   private:
@@ -88,7 +91,7 @@ namespace EspINA
 
     QMap<QString, IRendererPtr> m_renderers;
 
-    ISettingsPanelList m_settingsPanels;
+    ISettingsPanelPrototypeList m_settingsPanels;
 
     QStringList m_supportedFiles;
     QStringList m_supportedExtensions;

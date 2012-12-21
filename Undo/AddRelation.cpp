@@ -24,10 +24,10 @@
 using namespace EspINA;
 
 //------------------------------------------------------------------------
-AddRelation::AddRelation(ModelItemPtr   ancestor,
-                         ModelItemPtr   successor,
+AddRelation::AddRelation(SharedModelItemPtr   ancestor,
+                         SharedModelItemPtr   successor,
                          const QString  description,
-                         EspinaModelPtr model,
+                         EspinaModelSPtr model,
                          QUndoCommand  *parent)
 : QUndoCommand(parent)
 , m_model(model)

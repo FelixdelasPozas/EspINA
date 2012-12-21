@@ -33,10 +33,10 @@ namespace EspINA
     virtual void initialize(const ModelItem::Arguments &arg = ModelItem::Arguments()) = 0;
     virtual QString serialize() const = 0;
 
-    virtual SampleExtensionPtr clone(SamplePtr sample) = 0;
+    virtual SampleExtensionPtr clone() = 0;
 
   protected:
-    explicit SampleExtension(SamplePtr sample = SamplePtr()) : m_sample(sample) {}
+    explicit SampleExtension() : m_sample(NULL) {}
 
     SamplePtr m_sample;
   };

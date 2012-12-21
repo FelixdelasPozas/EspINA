@@ -30,73 +30,75 @@
 using namespace EspINA;
 
 //----------------------------------------------------------------------------
-ZoomToolBar::ZoomToolBar(ViewManager *vm, QWidget* parent)
-: QToolBar(parent)
-, m_viewManager(vm)
-, m_resetViews(NULL)
-, m_zoomToolAction(NULL)
-, m_zoomTool(NULL)
+ZoomToolBar::ZoomToolBar(ViewManager* viewManager, QWidget* parent)
+: IToolBar(parent)
+, m_viewManager(viewManager)
+, m_zoomTool(new ZoomTool(m_viewManager))
 {
   setObjectName("ZoomToolBar");
-  setWindowTitle("Zoom Tool Bar");
 
-  m_resetViews = new QAction(QIcon(":/espina/zoom_reset.png"), tr("Reset view's cameras"),this);
+  setWindowTitle(tr("Zoom Tool Bar"));
+
+  m_resetViews = addAction(QIcon(":/espina/zoom_reset.png"),
+                           tr("Reset view's cameras"));
   m_resetViews->setStatusTip(tr("Reset views' cameras"));
   m_resetViews->setCheckable(false);
-  connect(m_resetViews, SIGNAL(triggered()), this, SLOT(ResetViews()));
-  addAction(m_resetViews);
+  connect(m_resetViews, SIGNAL(triggered()),
+          this, SLOT(resetViews()));
 
-  m_zoomToolAction = new QAction(QIcon(":/espina/zoom_selection.png"), tr("Zoom selection tool"), this);
+  m_zoomToolAction = addAction(QIcon(":/espina/zoom_selection.png"),
+                               tr("Zoom selection tool"));
   m_zoomToolAction->setStatusTip(tr("Zoom selection tool"));
   m_zoomToolAction->setCheckable(true);
-  connect(m_zoomToolAction, SIGNAL(triggered(bool)), this, SLOT(InitZoomTool(bool)));
-  addAction(m_zoomToolAction);
+  connect(m_zoomToolAction, SIGNAL(triggered(bool)),
+          this, SLOT(initZoomTool(bool)));
 }
 
 //----------------------------------------------------------------------------
 ZoomToolBar::~ZoomToolBar()
 {
+  // NOTE: Lo destruye Qt?
   delete m_resetViews;
   delete m_zoomToolAction;
 }
 
 //----------------------------------------------------------------------------
-void ZoomToolBar::ResetViews()
+// NOTE: Shalle we use this instead of the constructor?
+void ZoomToolBar::initToolBar(EspinaModelSPtr model,
+                              QUndoStack     *undoStack,
+                              ViewManager    *viewManager)
+{
+
+}
+
+//----------------------------------------------------------------------------
+void ZoomToolBar::resetViews()
 {
   m_viewManager->resetViewCameras();
   m_viewManager->updateViews();
 }
 
 //----------------------------------------------------------------------------
-void ZoomToolBar::InitZoomTool(bool value)
+void ZoomToolBar::initZoomTool(bool value)
 {
   if(value)
   {
-    if (m_zoomTool)
-      return;
-
-    m_zoomTool = new ZoomTool(m_viewManager);
     m_viewManager->setActiveTool(m_zoomTool);
     m_viewManager->setSelectionEnabled(false);
   }
   else
   {
-    if(m_zoomTool)
-    {
-      m_viewManager->unsetActiveTool(m_zoomTool);
-      m_viewManager->setSelectionEnabled(true);
-      delete m_zoomTool;
-      m_zoomTool = NULL;
-    }
+    m_viewManager->unsetActiveTool(m_zoomTool);
+    m_viewManager->setSelectionEnabled(true);
   }
 }
 
 //----------------------------------------------------------------------------
-void ZoomToolBar::resetState()
+void ZoomToolBar::reset()
 {
   if (m_zoomToolAction->isChecked())
   {
     m_zoomToolAction->setChecked(false);
-    InitZoomTool(false);
+    initZoomTool(false);
   }
 }

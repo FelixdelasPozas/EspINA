@@ -23,6 +23,7 @@
 #include <QAbstractProxyModel>
 
 #include <Core/EspinaTypes.h>
+#include <Core/Model/EspinaModel.h>
 
 #include <QStringList>
 
@@ -37,7 +38,7 @@ namespace EspINA
     explicit InformationProxy();
     virtual ~InformationProxy(){}
 
-    virtual void setSourceModel(EspinaModelPtr sourceModel);
+    virtual void setSourceModel(EspinaModelSPtr sourceModel);
 
     virtual QModelIndex mapFromSource(const QModelIndex& sourceIndex) const;
     virtual QModelIndex mapToSource(const QModelIndex& proxyIndex) const;
@@ -60,8 +61,8 @@ namespace EspINA
     void sourceDataChanged(const QModelIndex& sourceTopLeft, const QModelIndex& sourceBottomRight);
 
   private:
-    EspinaModelPtr m_model;
-    QStringList    m_query;
+    EspinaModelSPtr     m_model;
+    QStringList        m_query;
     QList<QModelIndex> m_elements;
   };
 

@@ -42,7 +42,7 @@ itkVolumeType::Pointer backup(EspinaVolume::Pointer volume)
 }
 
 //-----------------------------------------------------------------------------
-Brush::DrawCommand::DrawCommand(FilterPtr source,
+Brush::DrawCommand::DrawCommand(FilterSPtr source,
                                 Filter::OutputId output,
                                 BrushShapeList brushes,
                                 itkVolumeType::PixelType value)
@@ -99,7 +99,7 @@ void Brush::DrawCommand::undo()
 }
 
 //-----------------------------------------------------------------------------
-Brush::SnapshotCommand::SnapshotCommand(FilterPtr source,
+Brush::SnapshotCommand::SnapshotCommand(FilterSPtr source,
                                 Filter::OutputId output)
 : m_source(source)
 , m_output(output)

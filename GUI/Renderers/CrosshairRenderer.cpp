@@ -39,7 +39,7 @@ bool CrosshairRenderer::addItem(ModelItemPtr item)
   if (EspINA::CHANNEL != item->type())
     return false;
 
-  ChannelPtr channel = qSharedPointerDynamicCast<Channel>(item);
+  ChannelPtr channel = channelPtr(item);
 
   // duplicated item? addItem again
   if (m_channels.contains(item))
@@ -320,7 +320,7 @@ bool CrosshairRenderer::updateItem(ModelItemPtr item)
     return false;
 
   bool updated = false;
-  ChannelPtr channel = qSharedPointerDynamicCast<Channel>(item);
+  ChannelPtr channel = channelPtr(item);
   Q_ASSERT(m_channels.contains(channel));
   Representation &rep = m_channels[channel];
 
@@ -380,7 +380,7 @@ bool CrosshairRenderer::removeItem(ModelItemPtr item)
   if (EspINA::CHANNEL != item->type())
     return false;
 
-  ChannelPtr channel = qSharedPointerDynamicCast<Channel>(item);
+  ChannelPtr channel = channelPtr(item);
   Q_ASSERT(m_channels.contains(channel));
 
   QMap<ModelItemPtr, Representation>::iterator it = m_channels.find(item);

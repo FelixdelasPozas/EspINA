@@ -4,43 +4,48 @@
 #include <itkImage.h>
 
 #include <QList>
-#include <QString>
+#define QT_SHAREDPOINTER_TRACK_POINTERS
 #include <QSharedPointer>
 
 namespace EspINA
 {
   class   ModelItem;
-  typedef QSharedPointer<ModelItem> ModelItemPtr;
+  typedef ModelItem *               ModelItemPtr;
   typedef QList<ModelItemPtr>       ModelItemList;
+  typedef QSharedPointer<ModelItem> SharedModelItemPtr;
+  typedef QList<SharedModelItemPtr> SharedModelItemList;
 
   class   Taxonomy;
-  typedef QSharedPointer<Taxonomy> TaxonomyPtr;
+  typedef QSharedPointer<Taxonomy> SharedTaxonomyPtr;
 
   class   TaxonomyElement;
-  typedef QSharedPointer<TaxonomyElement> TaxonomyElementPtr;
+  typedef TaxonomyElement *               TaxonomyElementPtr;
   typedef QList<TaxonomyElementPtr>       TaxonomyElementList;
-
-  class   Filter;
-  typedef QSharedPointer<Filter> FilterPtr;
-  typedef QList<FilterPtr>       FilterList;
+  typedef QSharedPointer<TaxonomyElement> SharedTaxonomyElementPtr;
+  typedef QList<SharedTaxonomyElementPtr> SharedTaxonomyElementList;
 
   class   Sample;
-  typedef QSharedPointer<Sample> SamplePtr;
+  typedef Sample *               SamplePtr;
   typedef QList<SamplePtr>       SampleList;
 
   class   Channel;
-  typedef QSharedPointer<Channel> ChannelPtr;
-  typedef QList<ChannelPtr>       ChannelList;
+  typedef Channel *         ChannelPtr;
+  typedef QList<ChannelPtr> ChannelList;
 
   class   Segmentation;
-  typedef QSharedPointer<Segmentation> SegmentationPtr;
-  typedef QList<SegmentationPtr>       SegmentationList;
+  typedef Segmentation *         SegmentationPtr;
+  typedef QList<SegmentationPtr> SegmentationList;
+
+  class   Filter;
+  typedef Filter *         FilterPtr;
+  typedef QList<FilterPtr> FilterList;
 
   class   RelationshipGraph;
   typedef QSharedPointer<RelationshipGraph> RelationshipGraphPtr;
 
   class   PickableItem;
-  typedef QSharedPointer<PickableItem> PickableItemPtr;
+  typedef PickableItem *               PickableItemPtr;
+  typedef QSharedPointer<PickableItem> SharedPickableItemPtr;
 
   class   ModelItemExtension;
   typedef QSharedPointer<ModelItemExtension> ModelItemExtensionPtr;
@@ -60,8 +65,14 @@ namespace EspINA
   class   EspinaFactory;
   typedef QSharedPointer<EspinaFactory> EspinaFactoryPtr;
 
-  class   EspinaModel;
-  typedef QSharedPointer<EspinaModel> EspinaModelPtr;
+  struct Relation
+  {
+    SharedModelItemPtr ancestor;
+    SharedModelItemPtr succesor;
+    QString relation;
+  };
+  typedef QList<Relation> RelationList;
+
 
   class   IFilterCreator;
   typedef IFilterCreator *IFilterCreatorPtr;
@@ -69,13 +80,10 @@ namespace EspINA
   class   IFileReader;
   typedef IFileReader *IFileReaderPtr;
 
+
   class   IRenderer;
   typedef QSharedPointer<IRenderer> IRendererPtr;
   typedef QList<IRendererPtr>       IRendererList;
-
-  class   ISettingsPanel;
-  typedef QSharedPointer<ISettingsPanel> ISettingsPanelPtr;
-  typedef QList<ISettingsPanelPtr>       ISettingsPanelList;
 
   typedef itk::Image<unsigned short, 3> SegmentationLabelMap;
   typedef itk::Image<unsigned char , 3> itkVolumeType;

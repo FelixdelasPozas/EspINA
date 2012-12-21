@@ -39,18 +39,19 @@ namespace EspINA
 {
   class ViewManager;
 
-  const QString CREATELINK = "CreateSegmentation";
+
+  typedef QSharedPointer<Filter> FilterSPtr;
+  typedef QList<FilterSPtr>      FilterSPtrList;
 
   class Filter
   : public ModelItem
   {
-  protected:
-    typedef itk::ImageFileReader<itkVolumeType> EspinaVolumeReader;
-
   public:
+    static const QString CREATELINK;
+
     typedef int OutputId;
 
-    typedef QMap<QString, FilterPtr> NamedInputs;
+    typedef QMap<QString, FilterSPtr> NamedInputs;
 
     static const QString NamedInput(const QString &label, OutputId oId)
     { return QString("%1_%2").arg(label).arg(oId); }
@@ -101,8 +102,11 @@ namespace EspINA
     static const ModelItem::ArgumentId INPUTS;
     static const ModelItem::ArgumentId EDIT;
 
+  protected:
+    typedef itk::ImageFileReader<itkVolumeType> EspinaVolumeReader;
+
   public:
-    virtual ~Filter(){}
+    virtual ~Filter();
 
     void setTmpDir(QDir dir);
 
@@ -243,6 +247,8 @@ namespace EspINA
     virtual void createOutput(OutputId id, const EspinaRegion &region, itkVolumeType::SpacingType spacing);
   };
 
+  FilterPtr filterPtr(ModelItemPtr item);
+  FilterSPtr filterPtr(SharedModelItemPtr &item);
 
 }
 #endif // FILTER_H

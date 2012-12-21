@@ -20,15 +20,14 @@
 #ifndef EDITORTOOLBAR_H
 #define EDITORTOOLBAR_H
 
-#include <QToolBar>
+#include <Core/Interfaces/IToolBar.h>
+#include <Core/Interfaces/IFactoryExtension.h>
+#include <Core/Interfaces/IFilterCreator.h>
 
 #include "Tools/Brushes/Brush.h"
 
 // EspINA
-#include <Core/Interfaces/IFactoryExtension.h>
-#include <Core/Interfaces/IFilterCreator.h>
 #include <Core/Model/Segmentation.h>
-
 
 class ActionSelector;
 class QAction;
@@ -45,30 +44,41 @@ namespace EspINA
   class FreeFormSource;
 
   class EditorToolBar
-  : public QToolBar
+  : public IToolBar
   , public IFactoryExtension
   , public IFilterCreator
   {
     Q_OBJECT
-    Q_INTERFACES(EspINA::IFactoryExtension EspINA::IFilterCreator)
+    Q_INTERFACES
+    (
+      EspINA::IToolBar
+      EspINA::IFactoryExtension
+      EspINA::IFilterCreator
+    )
+
     class FreeFormCommand;
-    class CODECommand;//CloseOpenDilateErode Command
+    class CODECommand;// Close/Open/Dilate/Erode Command
 
   public:
     class Settings;
     class SettingsPanel;
 
   public:
-    explicit EditorToolBar(EspinaModelPtr model,
-                           QUndoStack    *undoStack,
-                           ViewManager   *vm,
-                           QWidget       *parent = 0);
+    explicit EditorToolBar(EspinaModelSPtr model,
+                           QUndoStack     *undoStack,
+                           ViewManager    *vm,
+                           QWidget        *parent = 0);
+    virtual ~EditorToolBar();
+
+    virtual void initToolBar(EspinaModelSPtr model,
+                             QUndoStack     *undoStack,
+                             ViewManager    *viewManager);
 
     virtual void initFactoryExtension(EspinaFactoryPtr factory);
 
-    virtual FilterPtr createFilter(const QString              &filter,
-                                   const Filter::NamedInputs  &inputs,
-                                   const ModelItem::Arguments &args);
+    virtual FilterSPtr createFilter(const QString              &filter,
+                                         const Filter::NamedInputs  &inputs,
+                                         const ModelItem::Arguments &args);
 
   protected slots:
     void changeCircularBrushMode(Brush::BrushMode mode);
@@ -85,7 +95,8 @@ namespace EspINA
     void erodeSegmentations();
     void fillHoles();
     void updateAvailableOperations();
-    void resetState();
+
+    virtual void reset();
 
   private:
     void initDrawTools();
@@ -95,16 +106,16 @@ namespace EspINA
     void initFillTool();
 
   private:
-    EspinaModelPtr m_model;
-    QUndoStack    *m_undoStack;
-    ViewManager   *m_viewManager;
+    EspinaModelSPtr m_model;
+    QUndoStack     *m_undoStack;
+    ViewManager    *m_viewManager;
 
     // GUI
     ActionSelector *m_drawToolSelector;
-    QMap<QAction *, ITool *> m_drawTools;
+    QMap<QAction *, IToolSPtr> m_drawTools;
 
     ActionSelector *m_splitToolSelector;
-    QMap<QAction *, ITool *> m_splitTools;
+    QMap<QAction *, IToolSPtr> m_splitTools;
 
     QAction *m_addition;
     QAction *m_substraction;
@@ -117,7 +128,7 @@ namespace EspINA
     QAction *m_fill;
     ContourWidget *m_contourWidget;
 
-    Settings        *m_settings;
+    Settings      *m_settings;
   };
 
 } // namespace EspINA

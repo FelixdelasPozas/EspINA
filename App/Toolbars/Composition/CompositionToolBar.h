@@ -20,34 +20,40 @@
 #ifndef COMPOSITIONTOOLBAR_H
 #define COMPOSITIONTOOLBAR_H
 
-#include <QToolBar>
+#include <Core/Interfaces/IToolBar.h>
 #include <Core/Interfaces/IFactoryExtension.h>
 #include <Core/Interfaces/IFilterCreator.h>
+#include <Core/Model/EspinaModel.h>
 
 class QUndoStack;
 
 namespace EspINA
 {
   class CompositionToolBar
-  : public QToolBar
+  : public IToolBar
   , public IFactoryExtension
   , public IFilterCreator
   {
     Q_OBJECT
-    Q_INTERFACES(EspINA::IFactoryExtension EspINA::IFilterCreator)
+    Q_INTERFACES
+    (
+      EspINA::IToolBar
+      EspINA::IFactoryExtension
+      EspINA::IFilterCreator
+    )
 
   public:
-    explicit CompositionToolBar(EspinaModelPtr model,
-                                QUndoStack    *undoStack,
-                                ViewManager   *viewManager,
-                                QWidget       *parent = 0);
+    explicit CompositionToolBar(EspinaModelSPtr model,
+                                QUndoStack     *undoStack,
+                                ViewManager    *viewManager,
+                                QWidget        *parent = 0);
     virtual ~CompositionToolBar();
 
     virtual void initFactoryExtension(EspinaFactoryPtr factory);
 
-    virtual FilterPtr createFilter(const QString              &filter,
-                                   const Filter::NamedInputs  &inputs,
-                                   const ModelItem::Arguments &args);
+    virtual FilterSPtr createFilter(const QString              &filter,
+                                         const Filter::NamedInputs  &inputs,
+                                         const ModelItem::Arguments &args);
 
   private slots:
     void createSegmentationFromComponents();
@@ -57,7 +63,7 @@ namespace EspINA
     void initComposeTool();
 
   private:
-    EspinaModelPtr m_model;
+    EspinaModelSPtr m_model;
     QUndoStack    *m_undoStack;
     ViewManager   *m_viewManager;
 

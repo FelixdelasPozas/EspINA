@@ -23,6 +23,7 @@
 #include <QUndoStack>
 
 #include <Core/EspinaTypes.h>
+#include <Core/Model/EspinaModel.h>
 
 namespace EspINA
 {
@@ -30,15 +31,18 @@ namespace EspINA
   : public QUndoCommand
   {
   public:
-    explicit AddSample(SamplePtr sample, EspinaModelPtr model);
+    explicit AddSample(SampleSPtr sample,
+                       EspinaModelSPtr model,
+                       QUndoCommand   *parent = NULL);
+    virtual ~AddSample();
 
     virtual void redo();
     virtual void undo();
 
   private:
-    EspinaModelPtr m_model;
+    EspinaModelSPtr m_model;
 
-    SamplePtr      m_sample;
+    SampleSPtr m_sample;
   };
 
 }// namespace EspINA

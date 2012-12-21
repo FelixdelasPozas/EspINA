@@ -108,7 +108,7 @@ set (ESPINA_SOURCES
   Toolbars/Main/MainToolBar.cpp
   Toolbars/SeedGrowSegmentation/DefaultVOIAction.cpp
   Toolbars/SeedGrowSegmentation/SeedGrowSegmentation.cpp
-  Toolbars/SeedGrowSegmentation/Settings.cpp
+  Toolbars/SeedGrowSegmentation/SeedGrowSegmentationSettings.cpp
   Toolbars/SeedGrowSegmentation/ThresholdAction.cpp
   Toolbars/VOI/Settings.cpp
   Toolbars/VOI/VolumeOfInterest.cpp
@@ -124,6 +124,8 @@ set (ESPINA_SOURCES
   Tools/Zoom/ZoomTool.cpp
   Undo/BrushUndoCommand.cpp
   Undo/CompositionCommand.cpp
+  Undo/ImageLogicCommand.cpp
+  Undo/SeedGrowSegmentationCommand.cpp
   Undo/SplitUndoCommand.cpp
   Views/DefaultEspinaView.cpp
   Dialogs/Connectomics/ConnectomicsDialog.cpp

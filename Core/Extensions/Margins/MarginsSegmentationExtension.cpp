@@ -53,6 +53,7 @@ MarginsSegmentationExtension::MarginsSegmentationExtension()
 //-----------------------------------------------------------------------------
 MarginsSegmentationExtension::~MarginsSegmentationExtension()
 {
+  qDebug() << "Deleting Margins Extension";
 }
 
 //-----------------------------------------------------------------------------
@@ -110,8 +111,8 @@ void MarginsSegmentationExtension::updateDistances() const
   {
     //qDebug() << m_seg->data().toString() << "Updating Margins";
     QApplication::setOverrideCursor(Qt::WaitCursor);
-    ChannelPtr channel = m_seg->channel();
-    Q_ASSERT(!channel.isNull());
+    SharedChannelPtr channel = m_seg->channel();
+    Q_ASSERT(channel);
     ModelItemExtensionPtr ext = channel->extension(ID);
     Q_ASSERT(!ext.isNull());
     MarginsChannelExtensionPtr marginExt = qSharedPointerDynamicCast<MarginsChannelExtension>(ext);

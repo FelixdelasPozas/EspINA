@@ -52,7 +52,7 @@ Sample::Sample(const QString &id, const QString &args)
 //------------------------------------------------------------------------
 Sample::~Sample()
 {
-//   qDebug() << "Deleted Sample:" << m_ID;
+  qDebug() << data().toString() << ": Destructor";
 }
 
 //------------------------------------------------------------------------
@@ -153,10 +153,20 @@ void Sample::addExtension(SampleExtensionPtr ext)
 }
 
 //------------------------------------------------------------------------
-SamplePtr EspINA::samplePtr(ModelItemPtr& item)
+SamplePtr EspINA::samplePtr(ModelItemPtr item)
 {
   Q_ASSERT(SAMPLE == item->type());
-  SamplePtr ptr = qSharedPointerDynamicCast<Sample>(item);
+  SamplePtr ptr = dynamic_cast<SamplePtr>(item);
+  Q_ASSERT(ptr);
+
+  return ptr;
+}
+
+//------------------------------------------------------------------------
+SampleSPtr EspINA::samplePtr(SharedModelItemPtr& item)
+{
+  Q_ASSERT(SAMPLE == item->type());
+  SampleSPtr ptr = qSharedPointerDynamicCast<Sample>(item);
   Q_ASSERT(!ptr.isNull());
 
   return ptr;

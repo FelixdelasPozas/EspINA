@@ -26,30 +26,32 @@ class QSize;
 
 namespace EspINA
 {
-  class PixelSelector
+  class PixelPicker
   : public IPicker
   {
   public:
-    explicit PixelSelector() {}
-    virtual ~PixelSelector(){}
+    explicit PixelPicker() {}
+    virtual ~PixelPicker(){}
 
     virtual void onMouseDown(const QPoint &pos, EspinaRenderView* view);
     virtual bool filterEvent(QEvent* e, EspinaRenderView* view = 0);
+    /// NOTE: It is user responsability to free the pointer returned
     virtual double *getPickPoint(EspinaRenderView *view);
     virtual IPicker::PickList generatePickList(EspinaRenderView*);
   };
 
 
-  class BestPixelSelector
-  : public PixelSelector
+  class BestPixelPicker
+  : public PixelPicker
   {
   public:
-    explicit BestPixelSelector();
-    virtual ~BestPixelSelector(){}
+    explicit BestPixelPicker();
+    virtual ~BestPixelPicker(){}
 
     void setBestPixelValue(int value) {m_bestPixel = value;}
 
     virtual void onMouseDown(const QPoint& pos, EspinaRenderView* view);
+    /// NOTE: It is user responsability to free the pointer returned
     virtual double *getPickPoint(EspinaRenderView *view);
 
   private:

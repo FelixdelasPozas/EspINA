@@ -22,11 +22,8 @@
 
 #include "Core/Extensions/ModelItemExtension.h"
 
-#include <QSharedPointer>
-
 namespace EspINA
 {
-  class Segmentation;
   class SegmentationRepresentation;
   typedef QSharedPointer<SegmentationRepresentation> SegmentationRepresentationPtr;
 

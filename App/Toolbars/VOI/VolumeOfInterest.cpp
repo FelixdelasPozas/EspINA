@@ -28,19 +28,20 @@
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
-VolumeOfInterest::VolumeOfInterest(EspinaModelPtr model,
+VolumeOfInterest::VolumeOfInterest(EspinaModelSPtr model,
                                    ViewManager   *viewManager,
                                    QWidget       *parent)
-: QToolBar     (parent)
+: IToolBar     (parent)
 , m_model      (model)
 , m_viewManager(viewManager)
 , m_voiSelector(new ActionSelector(this))
 {
   setObjectName("VolumeOfInterest");
 
-  setWindowTitle("Volume Of Interest");
+  setWindowTitle(tr("Volume Of Interest"));
 
   buildVOIs();
+
 
   addAction(m_voiSelector);
 
@@ -56,18 +57,26 @@ VolumeOfInterest::~VolumeOfInterest()
 }
 
 //-----------------------------------------------------------------------------
+void VolumeOfInterest::initToolBar(EspinaModelSPtr model,
+                                   QUndoStack     *undoStack,
+                                   ViewManager    *viewManager)
+{
+
+}
+
+
+//-----------------------------------------------------------------------------
 void VolumeOfInterest::buildVOIs()
 {
-  //   IVOI *voi;
   QAction *action;
 
   // Exact Pixel Selector
   action = new QAction(QIcon(":/espina/voi.svg"), tr("Volume Of Interest"), m_voiSelector);
 
   m_voiSelector->addAction(action);
-  RectangularVOI *voi = new RectangularVOI(m_model, m_viewManager);
+  RectangularVOISPtr voi(new RectangularVOI(m_model, m_viewManager));
   m_vois[action] = voi;
-  connect(voi, SIGNAL(voiDeactivated()),
+  connect(voi.data(), SIGNAL(voiDeactivated()),
           this, SLOT(cancelVOI()));
 }
 
@@ -82,5 +91,11 @@ void VolumeOfInterest::changeVOI(QAction* action)
 void VolumeOfInterest::cancelVOI()
 {
   m_voiSelector->cancel();
-  m_viewManager->setVOI(NULL);
+  m_viewManager->unsetActiveVOI();
+}
+
+//-----------------------------------------------------------------------------
+void VolumeOfInterest::reset()
+{
+  cancelVOI();
 }

@@ -23,6 +23,7 @@
 #include <QDockWidget>
 
 #include <Core/EspinaTypes.h>
+#include <Core/Model/EspinaModel.h>
 
 namespace EspINA
 {
@@ -33,7 +34,7 @@ namespace EspINA
   : public QDockWidget
   {
   public:
-    explicit DataViewPanel(EspinaModelPtr model,
+    explicit DataViewPanel(EspinaModelSPtr model,
                            ViewManager   *vm,
                            QWidget       *parent = 0);
     virtual ~DataViewPanel();

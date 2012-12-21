@@ -22,6 +22,7 @@
 
 #include <QUndoStack>
 #include <Core/Model/ModelItem.h>
+#include <Core/Model/EspinaModel.h>
 
 namespace EspINA
 {
@@ -31,25 +32,25 @@ namespace EspINA
   : public QUndoCommand
   {
   public:
-    explicit SplitUndoCommand(SegmentationPtr input,
-                              FilterPtr       filter,
-                              SegmentationPtr splitSeg[2],
-                              EspinaModelPtr  model);
+    explicit SplitUndoCommand(SegmentationSPtr input,
+                              FilterSPtr       filter,
+                              SegmentationSPtr splitSeg[2],
+                              EspinaModelSPtr  model);
     virtual ~SplitUndoCommand();
 
     virtual void redo();
     virtual void undo();
 
   private:
-    EspinaModelPtr  m_model;
+    EspinaModelSPtr  m_model;
 
-    ChannelPtr      m_channel;
-    SamplePtr       m_sample;
-    SegmentationPtr m_seg;
-    FilterPtr       m_filter;
-    SegmentationPtr m_subSeg[2];
+    SharedChannelPtr m_channel;
+    SampleSPtr       m_sample;
+    SegmentationSPtr m_seg;
+    FilterSPtr       m_filter;
+    SegmentationSPtr m_subSeg[2];
 
-    ModelItem::RelationList m_relations;
+    RelationList m_relations;
   };
 
 } // namespace EspINA

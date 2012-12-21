@@ -31,6 +31,8 @@
 #include "Filters/ChannelReader.h"
 #include "GUI/Renderers/Renderer.h"
 
+#include <QDebug>
+
 using namespace EspINA;
 
 //------------------------------------------------------------------------
@@ -47,6 +49,12 @@ EspinaFactory::EspinaFactory()
 
   m_supportedFiles << SEG_FILES;
   m_supportedExtensions << "*.seg";
+}
+
+//------------------------------------------------------------------------
+EspinaFactory::~EspinaFactory()
+{
+  qDebug() << "Destroying Espina Factory";
 }
 
 //------------------------------------------------------------------------
@@ -110,13 +118,12 @@ void EspinaFactory::registerRenderer(IRendererPtr renderer)
 }
 
 //------------------------------------------------------------------------
-FilterPtr EspinaFactory::createFilter(const QString              &filter,
+FilterSPtr EspinaFactory::createFilter(const QString              &filter,
                                       const Filter::NamedInputs  &inputs,
                                       const ModelItem::Arguments &args)
 {
-  // TODO: Register in 
   if (ChannelReader::TYPE == filter)
-    return FilterPtr(new ChannelReader(inputs, args));
+    return FilterSPtr(new ChannelReader(inputs, args));
 
   Q_ASSERT(m_filterCreators.contains(filter));
   return m_filterCreators[filter]->createFilter(filter, inputs, args);
@@ -130,26 +137,26 @@ bool EspinaFactory::readFile(const QString &file, const QString &ext)
 }
 
 //------------------------------------------------------------------------
-SamplePtr EspinaFactory::createSample(const QString &id, const QString &args)
+SampleSPtr EspinaFactory::createSample(const QString &id, const QString &args)
 {
-  SamplePtr sample;
+  SampleSPtr sample;
 
   if (args.isNull())
-    sample = SamplePtr(new Sample(id));
+    sample = SampleSPtr(new Sample(id));
   else
-    sample = SamplePtr(new Sample(id, args));
+    sample = SampleSPtr(new Sample(id, args));
 
   foreach(SampleExtensionPtr ext, m_sampleExtensions)
-    sample->addExtension(ext->clone(sample));
+    sample->addExtension(ext->clone());
 
   return sample;
 }
 
 //------------------------------------------------------------------------
-ChannelPtr EspinaFactory::createChannel(FilterPtr filter,
-                                        const Filter::OutputId &oId)
+SharedChannelPtr EspinaFactory::createChannel(FilterSPtr filter,
+                                              const Filter::OutputId &oId)
 {
-  ChannelPtr channel = ChannelPtr(new Channel(filter, oId));
+  SharedChannelPtr channel(new Channel(filter, oId));
   foreach(ChannelExtensionPtr ext, m_channelExtensions)
     channel->addExtension(ext->clone());
 
@@ -157,16 +164,13 @@ ChannelPtr EspinaFactory::createChannel(FilterPtr filter,
 }
 
 //------------------------------------------------------------------------
-SegmentationPtr EspinaFactory::createSegmentation(FilterPtr parent,
-                                                  const Filter::OutputId &oId)
+SegmentationSPtr EspinaFactory::createSegmentation(FilterSPtr        filter,
+                                                        const Filter::OutputId &oId)
 {
 //   std::cout << "Factory is going to create a segmentation for vtkObject: " << vtkRef->id().toStdString() << std::endl;
-  SegmentationPtr seg = SegmentationPtr(new Segmentation(parent, oId));
+  SegmentationSPtr seg(new Segmentation(filter, oId));
   foreach(SegmentationExtensionPtr ext, m_segExtensions)
-  {
     seg->addExtension(ext->clone());
-    ext->setSegmentation(seg);
-  }
 
   return seg;
 }

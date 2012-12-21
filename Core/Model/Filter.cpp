@@ -35,9 +35,12 @@
 #include <QDir>
 #include <QMessageBox>
 #include <QWidget>
-#include <boost/graph/graph_concepts.hpp>
+
+#include <QDebug>
 
 using namespace EspINA;
+
+const QString EspINA::Filter::CREATELINK = "CreateSegmentation";
 
 typedef ModelItem::ArgumentId ArgumentId;
 
@@ -46,6 +49,12 @@ const ArgumentId Filter::INPUTS = "Inputs";
 const ArgumentId Filter::EDIT   = "Edit"; // Backwards compatibility
 
 const int EspINA::Filter::Output::INVALID_OUTPUT_ID = -1;
+
+//----------------------------------------------------------------------------
+Filter::~Filter()
+{
+  qDebug() << "Destruyendo Filter";
+}
 
 //----------------------------------------------------------------------------
 void Filter::setTmpDir(QDir dir)
@@ -412,7 +421,7 @@ void Filter::update()
     foreach(QString namedInput, namedInputList)
     {
       QStringList input = namedInput.split("_");
-      FilterPtr inputFilter = m_namedInputs[input[0]];
+      FilterSPtr inputFilter = m_namedInputs[input[0]];
       inputFilter->update();
       OutputId oId = input[1].toInt();
       m_inputs << inputFilter->output(oId).volume;
@@ -500,7 +509,7 @@ void Filter::updateCacheFlags()
   foreach(QString namedInput, namedInputList)
   {
     QStringList input = namedInput.split("_");
-    FilterPtr filter = m_namedInputs[input[0]];
+    FilterSPtr filter = m_namedInputs[input[0]];
     OutputId oId = input[1].toInt();
 
     if (filter->validOutput(oId))
@@ -559,4 +568,25 @@ void SegmentationFilter::createOutput(Filter::OutputId id, const EspinaRegion& r
     m_outputs[id].volume->setVolume(volume->toITK());
   else
     m_outputs[id] = Output(this, id, volume);
+}
+
+//----------------------------------------------------------------------------
+FilterPtr EspINA::filterPtr(ModelItemPtr item)
+{
+  Q_ASSERT(EspINA::FILTER == item->type());
+  FilterPtr ptr = dynamic_cast<FilterPtr>(item);
+  Q_ASSERT(ptr);
+
+  return ptr;
+}
+
+//----------------------------------------------------------------------------
+FilterSPtr EspINA::filterPtr(SharedModelItemPtr& item)
+{
+  Q_ASSERT(EspINA::FILTER == item->type());
+  FilterSPtr ptr = qSharedPointerDynamicCast<Filter>(item);
+  Q_ASSERT(!ptr.isNull());
+
+  return ptr;
+
 }

@@ -21,6 +21,7 @@
 #define SEGMENTATIONCONTEXTUALMENU_H
 
 #include <Core/EspinaTypes.h>
+#include <Core/Model/EspinaModel.h>
 
 #include <QMenu>
 #include <QModelIndex>
@@ -32,7 +33,7 @@ namespace EspINA
   {
     Q_OBJECT
   public:
-    explicit SegmentationContextualMenu(EspinaModelPtr model,
+    explicit SegmentationContextualMenu(EspinaModelSPtr model,
                                         SegmentationList selection,
                                         QWidget* parent = 0);
     void setSelection(SegmentationList list);

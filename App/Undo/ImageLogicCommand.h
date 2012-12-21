@@ -22,46 +22,47 @@
 #include <QUndoCommand>
 
 #include <Filters/ImageLogicFilter.h>
+#include <Core/Model/EspinaModel.h>
 
 namespace EspINA
 {
   class ImageLogicCommand
   : public QUndoCommand
   {
-    //TODO REVIEW: This class is also defined in RemoveSegmentationCommand
     struct SegInfo
     {
-      SegInfo(SegmentationPtr seg)
+      SegInfo(SegmentationSPtr seg)
       : filter(seg->filter())
       , relations(seg->relations())
       , segmentation(seg){}
 
-      FilterPtr filter;
-      ModelItem::RelationList relations;
-      SegmentationPtr segmentation;
+      FilterSPtr filter;
+      RelationList relations;
+      SegmentationSPtr segmentation;
     };
 
   public:
-    explicit ImageLogicCommand(SegmentationList  segmentations,
-                               ImageLogicFilter::Operation op,
-                               EspinaModelPtr model,
-                               TaxonomyElementPtr taxonomy);
+    explicit ImageLogicCommand(SegmentationList            inputs,
+                               ImageLogicFilter::Operation operation,
+                               TaxonomyElementPtr          taxonomy,
+                               EspinaModelSPtr             model,
+                               QUndoCommand *              parent = NULL);
 
     virtual void redo();
     virtual void undo();
 
-    const QString link(SegmentationPtr seg);
+    const QString link(SegmentationSPtr seg);
 
   private:
-    EspinaModelPtr m_model;
+    EspinaModelSPtr m_model;
 
-    SegmentationList m_input;
-    ImageLogicFilter::Operation m_op;
+    SharedSegmentationList      m_input;
+    ImageLogicFilter::Operation m_operation;
+    SharedTaxonomyElementPtr    m_taxonomy;
 
     QList<SegInfo>      m_infoList;
-    ImageLogicFilter   *m_filter;
-    SegmentationPtr     m_seg;
-    TaxonomyElementPtr  m_tax;
+    FilterSPtr          m_filter;
+    SegmentationSPtr    m_segmentation;
   };
 
 } // namespace EspINA

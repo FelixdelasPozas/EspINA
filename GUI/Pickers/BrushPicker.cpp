@@ -43,7 +43,7 @@
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
-BrushPicker::BrushPicker(PickableItem* item)
+BrushPicker::BrushPicker(PickableItemPtr item)
 : m_referenceItem(item)
 , m_displayRadius(20)
 , m_borderColor(Qt::blue)

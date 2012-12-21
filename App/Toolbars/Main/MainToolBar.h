@@ -26,10 +26,15 @@
 #ifndef MAINTOOLBAR_H
 #define MAINTOOLBAR_H
 
-#include <QToolBar>
+#include <Core/Interfaces/IToolBar.h>
 
 #include <Core/EspinaTypes.h>
+
+#include <Core/Model/EspinaModel.h>
 #include <GUI/Pickers/IPicker.h>
+
+#include <Tools/SegmentationRemover/SegmentationRemover.h>
+#include <Tools/Measure/MeasureTool.h>
 
 #include <QModelIndex>
 
@@ -38,23 +43,34 @@ class QComboTreeView;
 
 namespace EspINA
 {
-  class PixelSelector;
+  class PixelPicker;
   class SegmentationRemover;
   class ViewManager;
-  class MeasureTool;
 
   class MainToolBar
-  : public QToolBar
+  : public IToolBar
   {
     Q_OBJECT
+    Q_INTERFACES
+    (
+      EspINA::IToolBar
+    )
+
   public:
-    explicit MainToolBar(EspinaModelPtr model,
+    explicit MainToolBar(EspinaModelSPtr model,
                          QUndoStack    *undoStack,
                          ViewManager   *vm,
                          QWidget       *parent = 0);
+    virtual ~MainToolBar();
+
+    virtual void initToolBar(EspinaModelSPtr model,
+                             QUndoStack     *undoStack,
+                             ViewManager    *viewManager);
 
   public slots:
     void setShowSegmentations(bool visible);
+
+    virtual void reset();
 
   protected slots:
     void setActiveTaxonomy(const QModelIndex &index);
@@ -69,14 +85,18 @@ namespace EspINA
     void showSegmentations(bool);
 
   private:
-    EspinaModelPtr m_model;
-    QUndoStack    *m_undoStack;
-    ViewManager   *m_viewManager;
+    EspinaModelSPtr m_model;
+    QUndoStack     *m_undoStack;
+    ViewManager    *m_viewManager;
 
-    QAction             *m_toggleSegVisibility, *m_removeSegmentation, *m_toggleCrosshair, *m_measureButton;
+    QAction             *m_toggleSegVisibility;
+    QAction             *m_removeSegmentation;
+    QAction             *m_toggleCrosshair;
+    QAction             *m_measureButton;
     QComboTreeView      *m_taxonomySelector;
-    SegmentationRemover *m_segRemover;
-    MeasureTool         *m_measureTool;
+
+    SegmentationRemoverSPtr m_segRemover;
+    MeasureToolSPtr         m_measureTool;
   };
 
 } // namespace EspINA

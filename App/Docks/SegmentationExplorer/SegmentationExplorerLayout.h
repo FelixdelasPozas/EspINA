@@ -35,7 +35,7 @@ namespace EspINA
     static const QString MIXED_MESSAGE;
 
   public:
-    explicit Layout(EspinaModelPtr model): m_model(model) {}
+    explicit Layout(EspinaModelSPtr model): m_model(model) {}
     virtual ~Layout(){}
 
     virtual QAbstractItemModel *model()
@@ -50,7 +50,7 @@ namespace EspINA
     QModelIndexList indices(const QModelIndex &index, bool recursive=false);
 
   protected:
-    EspinaModelPtr m_model;
+    EspinaModelSPtr m_model;
   };
 
   bool sortSegmentationLessThan(ModelItemPtr left, ModelItemPtr right);

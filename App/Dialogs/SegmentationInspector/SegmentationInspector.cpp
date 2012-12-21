@@ -33,7 +33,7 @@ using namespace EspINA;
 
 //------------------------------------------------------------------------
 SegmentationInspector::SegmentationInspector(SegmentationPtr seg,
-                                             EspinaModelPtr  model,
+                                             EspinaModelSPtr  model,
                                              QUndoStack     *undoStack,
                                              ViewManager    *vm,
                                              QWidget        *parent,
@@ -56,10 +56,10 @@ SegmentationInspector::SegmentationInspector(SegmentationPtr seg,
   m_view->updateView();
   horizontalLayout->insertWidget(0, m_view);
 
-  connect(seg.data(), SIGNAL(modified(ModelItem*)),
+  connect(seg, SIGNAL(modified(ModelItem*)),
           this, SLOT(updateScene()));
 
-  FilterPtr filter = seg->filter();
+  FilterSPtr filter = seg->filter();
   Q_ASSERT(!filter.isNull());
   Filter::FilterInspectorPtr inspector = filter->filterInspector();
   if (inspector.get())

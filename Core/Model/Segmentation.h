@@ -28,6 +28,7 @@
 #include "Core/Extensions/SegmentationExtension.h"
 #include "Core/Model/PickableItem.h"
 #include "Core/Model/HierarchyItem.h"
+#include "Channel.h"
 //#include "Core/Model/Taxonomy.h"
 
 
@@ -40,6 +41,10 @@
 
 namespace EspINA
 {
+
+  typedef QSharedPointer<Segmentation> SegmentationSPtr;
+  typedef QList<SegmentationSPtr> SharedSegmentationList;
+
   class Segmentation
   : public PickableItem
   , public HierarchyItem
@@ -56,7 +61,8 @@ namespace EspINA
     static const int SelectionRole = Qt::UserRole + 2;
 
   private:
-    class SArguments : public Arguments
+    class SArguments
+    : public Arguments
     {
     public:
       explicit SArguments() : m_number(-1), m_outputId(-1){}
@@ -95,10 +101,11 @@ namespace EspINA
     };
 
   public:
-    explicit Segmentation(FilterPtr filter, const Filter::OutputId &outputNb);
+    explicit Segmentation(FilterSPtr filter,
+                          const Filter::OutputId &outputNb);
     virtual ~Segmentation();
 
-    void changeFilter(FilterPtr filter, const Filter::OutputId &outputNb);
+    void changeFilter(FilterSPtr filter, const Filter::OutputId &outputNb);
 
     /// Model Item Interface
     virtual QVariant data(int role=Qt::DisplayRole) const;
@@ -112,13 +119,13 @@ namespace EspINA
     void updateCacheFlag();
 
     /// Get the sample where the segmentation is located
-    SamplePtr sample();
+    SampleSPtr sample();
     /// Get the channel from where segmentation was created
-    ChannelPtr channel();
+    SharedChannelPtr channel();
 
     /// Selectable Item Interface
-    virtual const FilterPtr filter() const {return m_filter;}
-    virtual FilterPtr filter() { return PickableItem::filter(); }
+    virtual const FilterSPtr filter() const {return m_filter;}
+    virtual FilterSPtr filter() { return PickableItem::filter(); }
     virtual const Filter::OutputId outputId() const {return m_args.outputId();}
 
     SegmentationVolume::Pointer volume();
@@ -128,8 +135,8 @@ namespace EspINA
 
     void setNumber(unsigned int number) {m_args.setNumber(number);}
     unsigned int number() const {return m_args.number();}
-    void setTaxonomy(TaxonomyElementPtr tax);
-    TaxonomyElementPtr taxonomy() const {return m_taxonomy;}
+    void setTaxonomy(SharedTaxonomyElementPtr tax);
+    SharedTaxonomyElementPtr taxonomy() const {return m_taxonomy;}
 
     void modifiedByUser(QString user) { m_args.addUser(user);  }
 
@@ -139,10 +146,10 @@ namespace EspINA
     QStringList users() const {return m_args.users();}
 
     /// Return the list of segmentations which compose this segmentation
-    SegmentationList components();
+    SharedSegmentationList components();
 
     /// Return the list of segmentations which this segmentation is a component
-    SegmentationList componentOf();
+    SharedSegmentationList componentOf();
 
 
     /// Add a new extension to the segmentation
@@ -161,8 +168,8 @@ namespace EspINA
   private:
     mutable SArguments m_args;
 
-    FilterPtr          m_filter;
-    TaxonomyElementPtr m_taxonomy;
+    FilterSPtr          m_filter;
+    SharedTaxonomyElementPtr m_taxonomy;
 
     bool m_isVisible;
     QColor m_color;
@@ -174,7 +181,9 @@ namespace EspINA
     friend class Filter; // DEPRECATED: 2012-12-13 Creo que no se usa ya
   };
 
-  SegmentationPtr segmentationPtr(ModelItemPtr &item);
-  SegmentationPtr segmentationPtr(PickableItemPtr &item);
+  SegmentationPtr segmentationPtr(ModelItemPtr item);
+  SegmentationPtr segmentationPtr(PickableItemPtr item);
+  SegmentationSPtr segmentationPtr(SharedModelItemPtr &item);
+  SegmentationSPtr segmentationPtr(SharedPickableItemPtr &item);
 }
 #endif // PRODUCTS_H

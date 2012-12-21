@@ -40,7 +40,7 @@ namespace EspINA
     };
 
   public:
-    explicit SampleLayout(EspinaModelPtr model);
+    explicit SampleLayout(EspinaModelSPtr model);
     virtual ~SampleLayout(){}
 
     virtual QAbstractItemModel* model() {return m_sort.data();}

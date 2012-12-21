@@ -47,7 +47,7 @@ namespace EspINA
     Q_OBJECT
     class CentralWidget;
   public:
-    explicit ChannelExplorer(EspinaModelPtr model,
+    explicit ChannelExplorer(EspinaModelSPtr model,
                              ViewManager   *vm,
                              QWidget       *parent = 0);
     virtual ~ChannelExplorer();
@@ -68,7 +68,7 @@ namespace EspINA
     void focusOnChannel();
 
   private:
-    EspinaModelPtr m_model;
+    EspinaModelSPtr m_model;
     ViewManager   *m_viewManager;
 
     QSharedPointer<ChannelProxy> m_channelProxy;

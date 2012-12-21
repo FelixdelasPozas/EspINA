@@ -62,6 +62,9 @@ ISettingsPanelPtr GeneralSettingsPanel::clone()
   return ISettingsPanelPtr(new GeneralSettingsPanel(m_settings));
 }
 
+
+
+
 //------------------------------------------------------------------------
 SettingsDialog::SettingsDialog(QWidget *parent, Qt::WindowFlags flags)
 : QDialog(parent, flags)
@@ -87,7 +90,7 @@ void SettingsDialog::reject()
 }
 
 //------------------------------------------------------------------------
-void SettingsDialog::registerPanel(ISettingsPanelPtr panel)
+void SettingsDialog::registerPanel(ISettingsPanelPrototype panel)
 {
   QListWidgetItem *item = new QListWidgetItem();
   item->setData(Qt::DisplayRole,panel->shortDescription());
@@ -98,15 +101,16 @@ void SettingsDialog::registerPanel(ISettingsPanelPtr panel)
 }
 
 //------------------------------------------------------------------------
-ISettingsPanelPtr SettingsDialog::panel(const QString& shortDesc)
+ISettingsPanelPrototype SettingsDialog::panel(const QString& shortDesc)
 {
-  foreach(ISettingsPanelPtr panel, m_panels)
+  foreach(ISettingsPanelPrototype panel, m_panels)
   {
     if (panel->shortDescription() == shortDesc)
       return panel;
   }
 
-  return ISettingsPanelPtr();
+  Q_ASSERT(false);
+  return ISettingsPanelPrototype();
 }
 
 
@@ -127,5 +131,5 @@ void SettingsDialog::changePreferencePanel(int panel)
   m_activePanel = m_panels[panel]->clone();
   longDescription->setText( m_activePanel->longDescription() );
   icon->setPixmap( m_activePanel->icon().pixmap(icon->size()) );
-  scrollArea->setWidget(m_activePanel.data()); //TODO 2012-12-17 Check for memleaks
+  scrollArea->setWidget(m_activePanel);
 }

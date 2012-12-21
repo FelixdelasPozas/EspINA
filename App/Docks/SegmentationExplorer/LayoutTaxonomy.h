@@ -39,7 +39,7 @@ namespace EspINA
     };
 
   public:
-    explicit TaxonomyLayout(EspinaModelPtr model);
+    explicit TaxonomyLayout(EspinaModelSPtr model);
     virtual ~TaxonomyLayout(){}
 
     virtual QAbstractItemModel* model()

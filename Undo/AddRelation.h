@@ -23,6 +23,7 @@
 #include <QUndoCommand>
 
 #include <Core/EspinaTypes.h>
+#include <Core/Model/EspinaModel.h>
 
 namespace EspINA
 {
@@ -30,20 +31,20 @@ namespace EspINA
   : public QUndoCommand
   {
   public:
-    explicit AddRelation(ModelItemPtr   ancestor,
-                         ModelItemPtr   successor,
+    explicit AddRelation(SharedModelItemPtr   ancestor,
+                         SharedModelItemPtr   successor,
                          const QString  description,
-                         EspinaModelPtr model,
+                         EspinaModelSPtr model,
                          QUndoCommand  *parent = 0);
 
     virtual void redo();
     virtual void undo();
 
   private:
-    EspinaModelPtr m_model;
+    EspinaModelSPtr m_model;
 
-    ModelItemPtr   m_ancester;
-    ModelItemPtr   m_succesor;
+    SharedModelItemPtr   m_ancester;
+    SharedModelItemPtr   m_succesor;
     const QString  m_description;
   };
 

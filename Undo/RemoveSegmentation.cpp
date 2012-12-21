@@ -25,7 +25,7 @@
 using namespace EspINA;
 
 //------------------------------------------------------------------------
-RemoveSegmentation::SegInfo::SegInfo(SegmentationPtr seg)
+RemoveSegmentation::SegInfo::SegInfo(SegmentationSPtr seg)
 : filter(seg->filter())
 , relations(seg->relations())
 , segmentation(seg)
@@ -34,31 +34,31 @@ RemoveSegmentation::SegInfo::SegInfo(SegmentationPtr seg)
 
 //------------------------------------------------------------------------
 RemoveSegmentation::RemoveSegmentation(SegmentationPtr seg,
-                                       EspinaModelPtr  model,
+                                       EspinaModelSPtr  model,
                                        QUndoCommand *parent)
 : QUndoCommand(parent)
 , m_model(model)
 {
-  m_segmentations << SegInfo(seg);
+  m_segmentations << SegInfo(m_model->findSegmentation(seg));
 }
 
 //------------------------------------------------------------------------
 RemoveSegmentation::RemoveSegmentation(SegmentationList segs,
-                                       EspinaModelPtr   model,
+                                       EspinaModelSPtr   model,
                                        QUndoCommand    *parent)
 : QUndoCommand(parent)
 , m_model(model)
 {
   foreach(SegmentationPtr seg, segs)
-    m_segmentations << SegInfo(seg);
+    m_segmentations << SegInfo(m_model->findSegmentation(seg));
 }
 
 
 //------------------------------------------------------------------------
 void RemoveSegmentation::redo()
 {
-  SegmentationList segsToRemove;
-  FilterList       filtersToRemove;
+  SharedSegmentationList segsToRemove;
+  FilterSPtrList       filtersToRemove;
 
   foreach(SegInfo segInfo, m_segmentations)
   {
@@ -69,7 +69,7 @@ void RemoveSegmentation::redo()
 
   m_model->removeSegmentation(segsToRemove);
 
-  foreach(FilterPtr filter, filtersToRemove)
+  foreach(FilterSPtr filter, filtersToRemove)
     m_model->removeFilter(filter);
 }
 
@@ -87,7 +87,7 @@ void RemoveSegmentation::undo()
 
   m_removedFilters.clear();
 
-  SegmentationList segsToAdd;
+  SharedSegmentationList segsToAdd;
   foreach(SegInfo segInfo, m_segmentations)
     segsToAdd << segInfo.segmentation;
   m_model->addSegmentation(segsToAdd);
@@ -97,42 +97,42 @@ void RemoveSegmentation::undo()
 }
 
 //------------------------------------------------------------------------
-void RemoveSegmentation::addRelations(ModelItem::RelationList list)
+void RemoveSegmentation::addRelations(RelationList list)
 {
-  foreach(ModelItem::Relation rel, list)
+  foreach(Relation rel, list)
     m_model->addRelation(rel.ancestor, rel.succesor, rel.relation);
 }
 
 
 //------------------------------------------------------------------------
-void RemoveSegmentation::removeRelations(ModelItem::RelationList list)
+void RemoveSegmentation::removeRelations(RelationList list)
 {
-  foreach(ModelItem::Relation rel, list)
+  foreach(Relation rel, list)
     m_model->removeRelation(rel.ancestor, rel.succesor, rel.relation);
 }
 
 //------------------------------------------------------------------------
-FilterList RemoveSegmentation::removeFilterDependencies(FilterPtr filter)
+FilterSPtrList RemoveSegmentation::removeFilterDependencies(FilterSPtr filter)
 {
-  FilterList filtersToRemove;
+  FilterSPtrList filtersToRemove;
 
   //qDebug() << "Analyzing Filter" << filter->data().toString();
-  ModelItemList consumers = filter->relatedItems(EspINA::OUT);
+  SharedModelItemList consumers = filter->relatedItems(EspINA::OUT);
   if (consumers.isEmpty())
   {
     //qDebug() << "* Can be removed";
     filtersToRemove.push_front(filter);
 
-    ModelItemList ancestors = filter->relatedItems(EspINA::IN);
+    SharedModelItemList ancestors = filter->relatedItems(EspINA::IN);
 
     FilterInfo filterInfo(filter, filter->relations());
     m_removedFilters.push_front(filterInfo);
     removeRelations(filterInfo.relations);
 
-    foreach(ModelItemPtr item, ancestors)
+    foreach(SharedModelItemPtr item, ancestors)
     {
       if (EspINA::FILTER == item->type())
-        filtersToRemove << removeFilterDependencies(qSharedPointerDynamicCast<Filter>(item));
+        filtersToRemove << removeFilterDependencies(filterPtr(item));
       else
         Q_ASSERT(false);
     }

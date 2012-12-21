@@ -23,6 +23,8 @@
 #include <GUI/Tools/IVOI.h>
 #include <GUI/Pickers/IPicker.h>
 #include <GUI/Pickers/PixelPicker.h>
+#include <GUI/ISettingsPanel.h>
+#include <Core/Model/EspinaModel.h>
 
 namespace EspINA
 {
@@ -38,8 +40,8 @@ namespace EspINA
 
     Q_OBJECT
   public:
-    explicit RectangularVOI(EspinaModelPtr model,
-                            ViewManager   *viewManager);
+    explicit RectangularVOI(EspinaModelSPtr model,
+                            ViewManager    *viewManager);
     virtual ~RectangularVOI();
 
     virtual QCursor cursor() const;
@@ -57,20 +59,22 @@ namespace EspINA
     void voiDeactivated();
 
   private:
-    EspinaModelPtr m_model;
-    ViewManager   *m_viewManager;
+    EspinaModelSPtr m_model;
+    ViewManager    *m_viewManager;
 
     bool m_inUse;
     bool m_enabled;
 
-    PixelSelector      m_picker;
+    PixelPicker      m_picker;
     RectangularRegion *m_widget;
     double             m_bounds[6];
     RectangularRegionSliceSelector *m_sliceSelector;
 
-    Settings      *m_settings;
-    ISettingsPanelPtr m_settingsPanel;
+    Settings         *m_settings;
+    ISettingsPanelPrototype m_settingsPanel;
   };
+
+  typedef QSharedPointer<RectangularVOI> RectangularVOISPtr;
 
 } // namespace EspINA
 

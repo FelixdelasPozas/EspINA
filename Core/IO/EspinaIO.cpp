@@ -44,14 +44,14 @@ const QString SEG_FILE_VERSION  = "1";
 
 //-----------------------------------------------------------------------------
 EspinaIO::STATUS EspinaIO::loadFile(QFileInfo file,
-                                    EspinaModelPtr model,
+                                    EspinaModelSPtr model,
                                     QUndoStack *undoStack,
                                     QDir tmpDir)
 {
   const QString ext = file.suffix();
   if ("mha" == ext || "mhd" == ext || "tiff" == ext || "tif" == ext)
   {
-    ChannelPtr channel;
+    SharedChannelPtr channel;
     return loadChannel(file, model, undoStack, channel);
   }
 
@@ -63,13 +63,13 @@ EspinaIO::STATUS EspinaIO::loadFile(QFileInfo file,
 
 //-----------------------------------------------------------------------------
 EspinaIO::STATUS EspinaIO::loadChannel(QFileInfo file,
-                                       EspinaModelPtr model,
+                                       EspinaModelSPtr model,
                                        QUndoStack* undoStack,
-                                       ChannelPtr &channelPtr)
+                                       SharedChannelPtr &channelPtr)
 {
   //TODO 2012-10-07
   // Try to recover sample form DB using channel information
-  SamplePtr existingSample(NULL);
+  SampleSPtr existingSample;
 
   EspinaFactoryPtr factory = model->factory();
 
@@ -88,7 +88,7 @@ EspinaIO::STATUS EspinaIO::loadChannel(QFileInfo file,
   Filter::NamedInputs noInputs;
   Filter::Arguments readerArgs;
   readerArgs[ChannelReader::FILE] = file.absoluteFilePath();
-  FilterPtr reader(new ChannelReader(noInputs, readerArgs));
+  FilterSPtr reader(new ChannelReader(noInputs, readerArgs));
   reader->update();
   if (reader->outputs().isEmpty())
     return ERROR;
@@ -97,7 +97,7 @@ EspinaIO::STATUS EspinaIO::loadChannel(QFileInfo file,
   Channel::CArguments args;
   args[Channel::ID] = file.fileName();
   args.setColor(stainColor.hueF());
-  ChannelPtr channel = factory->createChannel(reader, 0);
+  SharedChannelPtr channel = factory->createChannel(reader, 0);
   channel->setColor(stainColor.hueF());// It is needed to display proper stain color
   //file.absoluteFilePath(), args);
 
@@ -122,7 +122,7 @@ EspinaIO::STATUS EspinaIO::loadChannel(QFileInfo file,
 
 //-----------------------------------------------------------------------------
 EspinaIO::STATUS EspinaIO::loadSegFile(QFileInfo file,
-                                       EspinaModelPtr model,
+                                       EspinaModelSPtr model,
                                        QDir tmpDir)
 {
   // Create tmp dir if necessary
@@ -142,7 +142,7 @@ EspinaIO::STATUS EspinaIO::loadSegFile(QFileInfo file,
 
   QuaZipFile espinaFile(&espinaZip);
 
-  TaxonomyPtr taxonomy;
+  SharedTaxonomyPtr taxonomy;
   QString traceContent;
 
   bool hasFile = espinaZip.goToFirstFile();
@@ -256,7 +256,7 @@ bool EspinaIO::zipVolume(Filter::Output output,
 }
 
 //-----------------------------------------------------------------------------
-EspinaIO::STATUS EspinaIO::saveSegFile(QFileInfo file, EspinaModelPtr model)
+EspinaIO::STATUS EspinaIO::saveSegFile(QFileInfo file, EspinaModelSPtr model)
 {
   // Create tmp dir
 //   qDebug() << file.absolutePath();
@@ -292,7 +292,7 @@ EspinaIO::STATUS EspinaIO::saveSegFile(QFileInfo file, EspinaModelPtr model)
   if( !zipFile(QString(TRACE_FILE),  trace.str().c_str(), outFile) )
     return ERROR;
 
-  foreach(FilterPtr filter, model->filters())
+  foreach(FilterSPtr filter, model->filters())
   {
     Filter::OutputList outputs = filter->outputs();
     //qDebug() << "Making" << filter->data().toString() << "snapshot";
@@ -379,12 +379,12 @@ QString concatenate(std::stack<QString> hierarchy)
   return res;
 }
 
-TaxonomyPtr IOTaxonomy::readXML(QXmlStreamReader& xmlStream)
+SharedTaxonomyPtr IOTaxonomy::readXML(QXmlStreamReader& xmlStream)
 {
   // Read the XML
 //   QXmlStreamReader xmlStream(&file);
   QStringRef nodeName, color;
-  TaxonomyPtr tax(new Taxonomy());
+  SharedTaxonomyPtr tax(new Taxonomy());
   std::stack<QString> taxHierarchy;
   while(!xmlStream.atEnd())
   {
@@ -404,8 +404,8 @@ TaxonomyPtr IOTaxonomy::readXML(QXmlStreamReader& xmlStream)
           QString qualified = concatenate(taxHierarchy);
           // TODO 2012-12-15 Cambiar el algoritmo de cargar los nodos, no tiene sentido ir acumulando
           // y calculando los nombres cualificados si siempre se accede de forma secuencial...
-          TaxonomyElementPtr parent =  tax->element(qualified);
-          TaxonomyElementPtr node = tax->createElement( nodeName.toString(), parent);
+          SharedTaxonomyElementPtr parent = tax->element(qualified);
+          SharedTaxonomyElementPtr node   = tax->createElement( nodeName.toString(), parent);
           node->setColor(color.toString());
           QXmlStreamAttribute attrib;
           foreach(attrib, xmlStream.attributes())
@@ -427,7 +427,7 @@ TaxonomyPtr IOTaxonomy::readXML(QXmlStreamReader& xmlStream)
 }
 
 
-TaxonomyPtr IOTaxonomy::openXMLTaxonomy(QString fileName)
+SharedTaxonomyPtr IOTaxonomy::openXMLTaxonomy(QString fileName)
 {
   QFile file( fileName );
   if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
@@ -436,7 +436,7 @@ TaxonomyPtr IOTaxonomy::openXMLTaxonomy(QString fileName)
 //               "Couldn't open the file",
 //               QMessageBox::Ok);
     qDebug() <<"File could not be oppended";
-    return TaxonomyPtr();
+    return SharedTaxonomyPtr();
   }
 
   // Read the XML
@@ -470,12 +470,12 @@ TaxonomyPtr IOTaxonomy::openXMLTaxonomy(QString fileName)
     }
   }
   */
-  TaxonomyPtr tax = readXML(xmlStream);
+  SharedTaxonomyPtr tax = readXML(xmlStream);
   file.close();
   return tax;
 }
 
-TaxonomyPtr IOTaxonomy::loadXMLTaxonomy(QString content)
+SharedTaxonomyPtr IOTaxonomy::loadXMLTaxonomy(QString content)
 {
 
 //   if( content.device() )
@@ -518,14 +518,14 @@ TaxonomyPtr IOTaxonomy::loadXMLTaxonomy(QString content)
   return readXML(xmlStream);
 }
 
-void IOTaxonomy::writeTaxonomy(TaxonomyPtr tax, QXmlStreamWriter& stream)
+void IOTaxonomy::writeTaxonomy(SharedTaxonomyPtr tax, QXmlStreamWriter& stream)
 {
   if( !tax.isNull() )
-    foreach(TaxonomyElementPtr node, tax->elements())
+    foreach(SharedTaxonomyElementPtr node, tax->elements())
       IOTaxonomy::writeTaxonomyElement(node, stream);
 }
 
-void IOTaxonomy::writeTaxonomyElement(TaxonomyElementPtr node, QXmlStreamWriter& stream)
+void IOTaxonomy::writeTaxonomyElement(SharedTaxonomyElementPtr node, QXmlStreamWriter& stream)
 {
   // TODO 2012-12-15 Quitar name y color y usar solo las properties...
   if( node )
@@ -537,8 +537,7 @@ void IOTaxonomy::writeTaxonomyElement(TaxonomyElementPtr node, QXmlStreamWriter&
     {
       stream.writeAttribute(prop, node->property(prop).toString());
     }
-    TaxonomyElementPtr subnode;
-    foreach(subnode, node->subElements())
+    foreach(SharedTaxonomyElementPtr subnode, node->subElements())
     {
       IOTaxonomy::writeTaxonomyElement(subnode, stream );
     }
@@ -547,7 +546,7 @@ void IOTaxonomy::writeTaxonomyElement(TaxonomyElementPtr node, QXmlStreamWriter&
 }
 
 //-----------------------------------------------------------------------------
-void IOTaxonomy::writeXMLTaxonomy(TaxonomyPtr tax, QString& destination)
+void IOTaxonomy::writeXMLTaxonomy(SharedTaxonomyPtr tax, QString& destination)
 {
   QXmlStreamWriter stream(&destination);
 

@@ -26,6 +26,7 @@
 #include <QUndoStack>
 
 #include <Core/EspinaTypes.h>
+#include <Core/Model/EspinaModel.h>
 
 namespace EspINA
 {
@@ -33,19 +34,19 @@ namespace EspINA
   : public QUndoCommand
   {
   public:
-    explicit AddChannel(FilterPtr      reader,
-                        ChannelPtr     channel,
-                        EspinaModelPtr model,
+    explicit AddChannel(FilterSPtr      reader,
+                        SharedChannelPtr     channel,
+                        EspinaModelSPtr model,
                         QUndoCommand   *parent=0);
 
     virtual void redo();
     virtual void undo();
 
   private:
-    EspinaModelPtr m_model;
+    EspinaModelSPtr m_model;
 
-    FilterPtr      m_reader;
-    ChannelPtr     m_channel;
+    FilterSPtr      m_reader;
+    SharedChannelPtr     m_channel;
   };
 
 }// namespace EspINA

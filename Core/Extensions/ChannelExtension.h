@@ -22,8 +22,6 @@
 
 #include "Core/Extensions/ModelItemExtension.h"
 
-#include <QSharedPointer>
-
 namespace EspINA
 {
   /// Interface to extend channel's behaviour

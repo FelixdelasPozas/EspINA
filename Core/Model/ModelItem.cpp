@@ -22,6 +22,7 @@
 #include <QStringList>
 #include "Core/Extensions/ModelItemExtension.h"
 #include "Core/Model/RelationshipGraph.h"
+#include "EspinaModel.h"
 
 #include <QDebug>
 #include <QCryptographicHash>
@@ -112,6 +113,11 @@ QString ModelItem::Arguments::hash() const
   return QString(hasher.result().toHex());
 }
 
+//------------------------------------------------------------------------
+ModelItem::~ModelItem()
+{
+  qDebug() << "Destruyendo ModelItem";
+}
 
 //------------------------------------------------------------------------
 QString ModelItem::serialize() const
@@ -121,40 +127,23 @@ QString ModelItem::serialize() const
 
 
 //------------------------------------------------------------------------
-ModelItemList ModelItem::relatedItems(RelationType rel, const QString &filter)
+SharedModelItemList ModelItem::relatedItems(RelationType relType,
+                                            const QString& relName)
 {
-  ModelItemList res;
-
-  Q_ASSERT(m_relations);
-  m_vertex = m_relations->vertex(this);
-  if (rel == IN || rel == INOUT)
-    foreach(VertexProperty v, m_relations->ancestors(m_vertex, filter))
-      res << v.item;
-
-  if (rel == OUT || rel == INOUT)
-    foreach(VertexProperty v, m_relations->succesors(m_vertex, filter))
-      res << v.item;
+  SharedModelItemList res;
+  if (m_model)
+    res = m_model->relatedItems(this, relType, relName);
 
   return res;
 }
 
 //------------------------------------------------------------------------
-ModelItem::RelationList ModelItem::relations(const QString &filter)
+RelationList ModelItem::relations(const QString &relName)
 {
   RelationList res;
+  if (m_model)
+    res = m_model->relations(this, relName);
 
-  Q_ASSERT(m_relations);
-  m_vertex = m_relations->vertex(this);
-  foreach(Edge edge, m_relations->edges(m_vertex, filter))
-  {
-    Relation rel;
-    rel.ancestor = edge.source.item;
-    rel.succesor = edge.target.item;
-    rel.relation = edge.relationship.c_str();
-    res << rel;
-  }
-
-//   qDebug() << m_vertex<<"Model Relations" << res.size();
   return res;
 }
 
@@ -237,20 +226,18 @@ void ModelItem::addExtension(ModelItemExtensionPtr ext)
 //------------------------------------------------------------------------
 void ModelItem::deleteExtension(ModelItemExtensionPtr ext)
 {
-  Q_ASSERT(false);
 }
 
 //------------------------------------------------------------------------
 void ModelItem::deleteExtensions()
 {
-  Q_ASSERT(false);
 }
 
 //------------------------------------------------------------------------
 ModelItemPtr EspINA::indexPtr(const QModelIndex& index)
 {
-  ModelItemPtr ptr = *(static_cast<ModelItemPtr *>(index.internalPointer()));
-  Q_ASSERT(!ptr.isNull());
+  ModelItemPtr ptr = static_cast<ModelItemPtr>(index.internalPointer());
+  Q_ASSERT(ptr);
 
   return ptr;
 }

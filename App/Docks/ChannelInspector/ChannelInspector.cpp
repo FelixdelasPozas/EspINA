@@ -68,17 +68,17 @@ void ChannelInspector::updateSpacing()
   spacing[1] = m_ySize->value()*pow(1000,m_unit->currentIndex());
   spacing[2] = m_zSize->value()*pow(1000,m_unit->currentIndex());
 
-  FilterPtr filter = m_channel->filter();
+  FilterSPtr filter = m_channel->filter();
   ChannelReader *reader = dynamic_cast<ChannelReader *>(filter.data());
   Q_ASSERT(reader);
   reader->setSpacing(spacing);
   m_channel->notifyModification();
 
-  foreach(ModelItemPtr item, m_channel->relatedItems(EspINA::OUT, Channel::LINK))
+  foreach(SharedModelItemPtr item, m_channel->relatedItems(EspINA::OUT, Channel::LINK))
   {
     if (EspINA::SEGMENTATION == item->type())
     {
-      SegmentationPtr seg = segmentationPtr(item);
+      SegmentationSPtr seg = segmentationPtr(item);
       double oldSpacing[3];
       seg->volume()->spacing(oldSpacing);
       seg->volume()->toITK()->SetSpacing(spacing);

@@ -22,6 +22,7 @@
 #include <QAbstractProxyModel>
 
 #include <Core/EspinaTypes.h>
+#include <Core/Model/EspinaModel.h>
 
 namespace EspINA
 {
@@ -34,7 +35,7 @@ namespace EspINA
     TaxonomyProxy(QObject *parent=0);
     virtual ~TaxonomyProxy();
 
-    virtual void setSourceModel(EspinaModelPtr sourceModel);
+    virtual void setSourceModel(EspinaModelSPtr sourceModel);
 
     virtual QVariant data(const QModelIndex& proxyIndex, int role = Qt::DisplayRole) const;
 
@@ -75,7 +76,7 @@ namespace EspINA
     int numTaxonomies(TaxonomyElementPtr taxonomy) const;
 
   private:
-    EspinaModelPtr m_model;
+    EspinaModelSPtr m_model;
     // Keep a reference to the taxonomies which belong to the root taxonomy
     TaxonomyElementList m_rootTaxonomies;
     // We need to rely on our own row count for each item in the proxy's model

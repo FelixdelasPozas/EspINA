@@ -18,7 +18,8 @@
 #include "SeedGrowSegmentation.h"
 #include "ThresholdAction.h"
 #include "DefaultVOIAction.h"
-#include "Settings.h"
+#include "SeedGrowSegmentationSettings.h"
+
 #include <Tools/SeedGrowSegmentation/SeedGrowSegmentationTool.h>
 #include <Settings/SeedGrowSegmentation/SettingsPanel.h>
 #include <FilterInspectors/SeedGrowSegmentation/SGSFilterInspector.h>
@@ -51,31 +52,36 @@ const ModelItem::ArgumentId TYPE = "Type";
 
 
 //-----------------------------------------------------------------------------
-SeedGrowSegmentation::SeedGrowSegmentation(EspinaModelPtr model,
+SeedGrowSegmentation::SeedGrowSegmentation(EspinaModelSPtr model,
                                            QUndoStack    *undoStack,
                                            ViewManager   *viewManager,
                                            QWidget       *parent)
-: QToolBar(parent)
-, m_model(model)
-, m_undoStack(undoStack)
-, m_viewManager(viewManager)
+: IToolBar        (parent)
+, m_model         (model)
+, m_undoStack     (undoStack)
+, m_viewManager   (viewManager)
 , m_threshold     (new ThresholdAction(this))
 , m_useDefaultVOI (new DefaultVOIAction(this))
 , m_pickerSelector(new ActionSelector(this))
-, m_tool(NULL)
 {
   setObjectName("SeedGrowSegmentation");
-  setWindowTitle("Seed Grow Segmentation Tool Bar");
+
+  setWindowTitle(tr("Seed Grow Segmentation Tool Bar"));
+
+  buildPickers();
+
+  m_settingsPanel = ISettingsPanelPrototype(new SettingsPanel(m_settings));
 
   initFactoryExtension(m_model->factory());
-  buildSelectors();
 
-  m_tool = new SeedGrowSegmentationTool(model,
-                                        undoStack,
-                                        viewManager,
-                                        m_threshold,
-                                        m_useDefaultVOI,
-                                        m_settings);
+
+  m_tool = SeedGrowSegmentationToolSPtr(
+    new SeedGrowSegmentationTool(model,
+                                 undoStack,
+                                 viewManager,
+                                 m_threshold,
+                                 m_useDefaultVOI,
+                                 m_settings) );
 
   addAction(m_threshold);
   addAction(m_useDefaultVOI);
@@ -88,14 +94,22 @@ SeedGrowSegmentation::SeedGrowSegmentation(EspinaModelPtr model,
           this, SLOT(changePicker(QAction*)));
   connect(m_pickerSelector, SIGNAL(actionCanceled()),
           this, SLOT(cancelSegmentationOperation()));
-  connect(m_tool, SIGNAL(segmentationStopped()),
+  connect(m_tool.data(), SIGNAL(segmentationStopped()),
           this, SLOT(cancelSegmentationOperation()));
 }
 
 //-----------------------------------------------------------------------------
 SeedGrowSegmentation::~SeedGrowSegmentation()
 {
-  delete m_tool;
+  delete m_settings;
+}
+
+//-----------------------------------------------------------------------------
+void SeedGrowSegmentation::initToolBar(EspinaModelSPtr model,
+                                       QUndoStack     *undoStack,
+                                       ViewManager    *viewManager)
+{
+
 }
 
 //-----------------------------------------------------------------------------
@@ -103,12 +117,15 @@ void SeedGrowSegmentation::initFactoryExtension(EspinaFactoryPtr factory)
 {
   // Register Factory's filters
   factory->registerFilter(this, SeedGrowSegmentationFilter::TYPE);
+
+  factory->registerSettingsPanel(m_settingsPanel);
+
 }
 
 //-----------------------------------------------------------------------------
-FilterPtr SeedGrowSegmentation::createFilter(const QString              &filter,
-                                           const Filter::NamedInputs  &inputs,
-                                           const ModelItem::Arguments &args)
+FilterSPtr SeedGrowSegmentation::createFilter(const QString              &filter,
+                                                   const Filter::NamedInputs  &inputs,
+                                                   const ModelItem::Arguments &args)
 {
   Q_ASSERT(SeedGrowSegmentationFilter::TYPE == filter);
 
@@ -118,15 +135,15 @@ FilterPtr SeedGrowSegmentation::createFilter(const QString              &filter,
   Filter::FilterInspectorPtr inspector(new SGSFilterInspector(sgs));
   sgs->setFilterInspector(inspector);
 
-  return FilterPtr(sgs);
+  return FilterSPtr(sgs);
 }
 
 
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentation::changePicker(QAction* action)
 {
-  Q_ASSERT(m_selectors.contains(action));
-  m_tool->setChannelPicker(m_selectors[action]);
+  Q_ASSERT(m_pickers.contains(action));
+  m_tool->setChannelPicker(m_pickers[action]);
   m_viewManager->setActiveTool(m_tool);
 }
 
@@ -137,6 +154,11 @@ void SeedGrowSegmentation::cancelSegmentationOperation()
   m_viewManager->unsetActiveTool(m_tool);
 }
 
+//------------------------------------------------------------------------
+void SeedGrowSegmentation::reset()
+{
+  cancelSegmentationOperation();
+}
 
 //------------------------------------------------------------------------
 void SeedGrowSegmentation::batchMode()
@@ -194,34 +216,33 @@ void SeedGrowSegmentation::batchMode()
 
 
 //------------------------------------------------------------------------
-void SeedGrowSegmentation::addPixelSelector(QAction* action, IPicker* handler)
+void SeedGrowSegmentation::addVoxelPicker(QAction* action, IPickerSPtr picker)
 {
   m_pickerSelector->addAction(action);
-  m_selectors[action] = handler;
+  m_pickers[action] = picker;
+  picker->setMultiSelection(false);
+  picker->setPickable(IPicker::CHANNEL);
 }
 
 //-----------------------------------------------------------------------------
-void SeedGrowSegmentation::buildSelectors()
+void SeedGrowSegmentation::buildPickers()
 {
-  IPicker *selector;
   QAction *action;
 
-  // Exact Pixel Selector
-  action = new QAction(QIcon(":/espina/pixelSelector.svg"), tr("Add synapse (Ctrl +). Exact Pixel"), m_pickerSelector);
-  selector = new PixelSelector();
-  selector->setMultiSelection(false);
-  selector->setPickable(IPicker::CHANNEL);
-  addPixelSelector(action, selector);
+  // Exact Pixel Picker
+  action = new QAction(QIcon(":/espina/pixelSelector.svg"),
+                       tr("Add synapse (Ctrl +). Exact Pixel"),
+                       m_pickerSelector);
+  PixelPicker *picker = new PixelPicker();
+  addVoxelPicker(action, IPickerSPtr(picker));
 
-  // Best Pixel Selector
-  action = new QAction(QIcon(":/espina/bestPixelSelector.svg"), tr("Add synapse (Ctrl +). Best Pixel"), m_pickerSelector);
-  BestPixelSelector *bestSelector = new BestPixelSelector();
-  m_settings = new Settings(bestSelector);
-  m_settingsPanel = ISettingsPanelPtr(new SettingsPanel(m_settings));
-  m_model->factory()->registerSettingsPanel(m_settingsPanel);
-  selector = bestSelector;
-  selector->setMultiSelection(false);
-  selector->setPickable(IPicker::CHANNEL);
-  selector->setCursor(QCursor(QPixmap(":/espina/crossRegion.svg")));
-  addPixelSelector(action, selector);
+  // Best Pixel Picker
+  action = new QAction(QIcon(":/espina/bestPixelSelector.svg"),
+                       tr("Add synapse (Ctrl +). Best Pixel"),
+                       m_pickerSelector);
+  BestPixelPicker *bestPicker = new BestPixelPicker();
+  bestPicker->setCursor(QCursor(QPixmap(":/espina/crossRegion.svg")));
+  addVoxelPicker(action, IPickerSPtr(bestPicker));
+
+  m_settings = new SeedGrowSegmentationSettings(bestPicker);
 }

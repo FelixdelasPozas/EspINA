@@ -44,7 +44,7 @@
 using namespace EspINA;
 
 //----------------------------------------------------------------------------
-DefaultEspinaView::DefaultEspinaView(EspinaModelPtr model, ViewManager* vm, QMainWindow *parent)
+DefaultEspinaView::DefaultEspinaView(EspinaModelSPtr model, ViewManager* vm, QMainWindow *parent)
 : QAbstractItemView(parent)
 , m_model(model)
 , m_showProcessing(false)
@@ -102,6 +102,7 @@ DefaultEspinaView::DefaultEspinaView(EspinaModelPtr model, ViewManager* vm, QMai
 //-----------------------------------------------------------------------------
 DefaultEspinaView::~DefaultEspinaView()
 {
+  qDebug() << "Destroy Default EspINA View";
 }
 
 //-----------------------------------------------------------------------------
@@ -226,14 +227,15 @@ void DefaultEspinaView::setColorEngine(ColorEngine* engine)
 }*/
 
 //----------------------------------------------------------------------------
-ISettingsPanelPtr DefaultEspinaView::settingsPanel()
+ISettingsPanelPrototype DefaultEspinaView::settingsPanel()
 {
-  return ISettingsPanelPtr(new SettingsPanel(xyView->settings(),
-                           yzView->settings(),
-                           xzView->settings(),
-                           volView->settings(),
-                           m_model->factory())
-         );
+  return ISettingsPanelPrototype(
+    new SettingsPanel(xyView->settings(),
+                      yzView->settings(),
+                      xzView->settings(),
+                      volView->settings(),
+                      m_model->factory())
+  );
 }
 
 //-----------------------------------------------------------------------------

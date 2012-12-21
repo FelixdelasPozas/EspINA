@@ -28,7 +28,7 @@ using namespace EspINA;
 
 //------------------------------------------------------------------------
 RectangularVOI::SettingsPanel::SettingsPanel(EspinaModelPtr model,
-                                             RectangularVOI::Settings* settings)
+                                             RectangularVOI::Settings *settings)
 : m_model(model)
 , m_settings(settings)
 , m_activeTaxonomy(NULL)
@@ -39,7 +39,7 @@ RectangularVOI::SettingsPanel::SettingsPanel(EspinaModelPtr model,
   m_ySize->setValue(m_settings->ySize());
   m_zSize->setValue(m_settings->zSize());
 
-  m_taxonomySelector->setModel(m_model.data());
+  m_taxonomySelector->setModel(m_model);
 
   connect(m_taxonomySelector, SIGNAL(activated(QModelIndex)),
           this, SLOT(updateTaxonomyVOI(QModelIndex)));
@@ -50,6 +50,7 @@ RectangularVOI::SettingsPanel::SettingsPanel(EspinaModelPtr model,
 //------------------------------------------------------------------------
 RectangularVOI::SettingsPanel::~SettingsPanel()
 {
+//   qDebug() << "Destroy Settings Panel";
 }
 
 //------------------------------------------------------------------------

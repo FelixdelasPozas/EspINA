@@ -33,7 +33,7 @@ namespace EspINA
   : public QUndoCommand
   {
   public:
-    explicit DrawCommand(FilterPtr source,
+    explicit DrawCommand(FilterSPtr source,
                          Filter::OutputId output,
                          BrushShapeList brushes,
                          itkVolumeType::PixelType value);
@@ -41,7 +41,7 @@ namespace EspINA
     virtual void undo();
 
   private:
-    FilterPtr        m_source;
+    FilterSPtr        m_source;
     Filter::OutputId m_output;
     BrushShapeList m_brushes;
 
@@ -56,14 +56,14 @@ namespace EspINA
   : public QUndoCommand
   {
   public:
-    explicit SnapshotCommand(FilterPtr source,
+    explicit SnapshotCommand(FilterSPtr source,
                              Filter::OutputId output);
 
     virtual void redo();
     virtual void undo();
 
   private:
-    FilterPtr        m_source;
+    FilterSPtr        m_source;
     Filter::OutputId m_output;
 
     itkVolumeType::Pointer m_prevVolume;

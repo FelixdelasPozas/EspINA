@@ -23,6 +23,7 @@
 #include <QUndoCommand>
 
 #include <Core/EspinaTypes.h>
+#include <Core/Model/EspinaModel.h>
 
 namespace EspINA
 {
@@ -30,23 +31,23 @@ namespace EspINA
   : public QUndoCommand
   {
   public:
-    explicit AddSegmentation(ChannelPtr         channel,
-                             FilterPtr          filter,
-                             SegmentationPtr    seg,
-                             TaxonomyElementPtr taxonomy,
-                             EspinaModelPtr     model
+    explicit AddSegmentation(SharedChannelPtr         channel,
+                             FilterSPtr          filter,
+                             SegmentationSPtr    seg,
+                             SharedTaxonomyElementPtr taxonomy,
+                             EspinaModelSPtr     model
     );
     virtual void redo();
     virtual void undo();
 
   private:
-    EspinaModelPtr     m_model;
+    EspinaModelSPtr     m_model;
 
-    SamplePtr          m_sample;
-    ChannelPtr         m_channel;
-    FilterPtr          m_filter;
-    SegmentationPtr    m_seg;
-    TaxonomyElementPtr m_taxonomy;
+    SampleSPtr          m_sample;
+    SharedChannelPtr         m_channel;
+    FilterSPtr          m_filter;
+    SegmentationSPtr    m_seg;
+    SharedTaxonomyElementPtr m_taxonomy;
   };
 
 } // namespace EspINA

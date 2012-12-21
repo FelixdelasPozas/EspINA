@@ -162,7 +162,6 @@ namespace EspINA
     void updateVertexInformation();
 
     //! Retrieve current vertex index of a ModelItem
-    VertexDescriptor vertex(ModelItem   *item);
     VertexDescriptor vertex(ModelItemPtr item);
   private:
     Graph m_graph;

@@ -18,13 +18,15 @@
 
 #include <QApplication>
 
+#include <GUI/ViewManager.h>
 #include <EspinaMainWindow.h>
 
 int main(int argc, char **argv)
 {
   QApplication app(argc, argv);
 
-  EspINA::EspinaMainWindow espina;
+  EspINA::ViewManager viewManager;
+  EspINA::EspinaMainWindow espina(&viewManager);
   espina.show();
 
   return app.exec();

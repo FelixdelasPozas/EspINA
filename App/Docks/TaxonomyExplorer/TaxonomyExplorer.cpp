@@ -42,7 +42,7 @@ public:
 };
 
 //------------------------------------------------------------------------
-TaxonomyExplorer::TaxonomyExplorer(EspinaModelPtr model,
+TaxonomyExplorer::TaxonomyExplorer(EspinaModelSPtr model,
                                    ViewManager *vm,
                                    TaxonomyColorEnginePtr engine,
                                    QWidget* parent)
@@ -78,6 +78,7 @@ TaxonomyExplorer::TaxonomyExplorer(EspinaModelPtr model,
 //------------------------------------------------------------------------
 TaxonomyExplorer::~TaxonomyExplorer()
 {
+  qDebug() << "Destroy TaxExplorer";
   delete m_gui;
 }
 

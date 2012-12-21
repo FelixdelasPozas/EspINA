@@ -18,7 +18,7 @@
 
 #include "SettingsPanel.h"
 
-#include <Toolbars/SeedGrowSegmentation/Settings.h>
+#include <Toolbars/SeedGrowSegmentation/SeedGrowSegmentationSettings.h>
 
 #include <QSettings>
 #include <QString>
@@ -27,7 +27,7 @@
 using namespace EspINA;
 
 //------------------------------------------------------------------------
-SeedGrowSegmentation::SettingsPanel::SettingsPanel(SeedGrowSegmentation::Settings* settings)
+SeedGrowSegmentation::SettingsPanel::SettingsPanel(SeedGrowSegmentationSettings *settings)
 : m_settings(settings)
 {
   setupUi(this);

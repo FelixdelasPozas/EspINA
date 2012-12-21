@@ -29,7 +29,7 @@
 using namespace EspINA;
 
 //------------------------------------------------------------------------
-SegmentationDelegate::SegmentationDelegate(EspinaModelPtr model,
+SegmentationDelegate::SegmentationDelegate(EspinaModelSPtr model,
                                            QUndoStack    *undoStack,
                                            ViewManager   *vm)
 : QStyledItemDelegate()

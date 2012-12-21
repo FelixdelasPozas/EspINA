@@ -43,7 +43,7 @@ TaxonomyProxy::~TaxonomyProxy()
 }
 
 //------------------------------------------------------------------------
-void TaxonomyProxy::setSourceModel(EspinaModelPtr sourceModel)
+void TaxonomyProxy::setSourceModel(EspinaModelSPtr sourceModel)
 {
   m_model = sourceModel;
   connect(m_model.data(), SIGNAL(rowsInserted(const QModelIndex&, int, int)),
@@ -214,7 +214,7 @@ QModelIndex TaxonomyProxy::mapFromSource(const QModelIndex& sourceIndex) const
     {
       SegmentationPtr seg = segmentationPtr(sourceItem);
       Q_ASSERT(seg);
-      TaxonomyElementPtr taxonomy = seg->taxonomy();
+      TaxonomyElementPtr taxonomy = seg->taxonomy().data();
       if (taxonomy)
       {
 	int row = m_segmentations[taxonomy].indexOf(seg);
@@ -296,7 +296,7 @@ bool TaxonomyProxy::dropMimeData(const QMimeData *data, Qt::DropAction action, i
   } else if (EspINA::SEGMENTATION == parentItem->type())
   {
     SegmentationPtr seg = segmentationPtr(parentItem);
-    selectedTaxonomy = seg->taxonomy();
+    selectedTaxonomy = seg->taxonomy().data();
   }
   Q_ASSERT(selectedTaxonomy);
 
@@ -315,7 +315,9 @@ bool TaxonomyProxy::dropMimeData(const QMimeData *data, Qt::DropAction action, i
     QString segName = roleDataMap[Qt::ToolTipRole].toString();
     SegmentationPtr seg = findSegmentation(segName);
     Q_ASSERT(seg);
-    m_model->changeTaxonomy(seg, selectedTaxonomy);
+    SegmentationSPtr segPtr = m_model->findSegmentation(seg);
+    SharedTaxonomyElementPtr selectedTaxonomyPtr = m_model->findTaxonomyElement(selectedTaxonomy);
+    m_model->changeTaxonomy(segPtr, selectedTaxonomyPtr);
   }
 
   return true;
@@ -465,7 +467,7 @@ void TaxonomyProxy::sourceRowsInserted(const QModelIndex& sourceParent, int star
       ModelItemPtr sourceItem = indexPtr(sourceIndex);
       Q_ASSERT(EspINA::SEGMENTATION == sourceItem->type());
       SegmentationPtr seg = segmentationPtr(sourceItem);
-      TaxonomyElementPtr taxonomy = seg->taxonomy();
+      TaxonomyElementPtr taxonomy = seg->taxonomy().data();
       if (taxonomy)
         relations[taxonomy] << sourceItem;
     }
@@ -493,7 +495,7 @@ void TaxonomyProxy::sourceRowsInserted(const QModelIndex& sourceParent, int star
         Q_ASSERT(EspINA::TAXONOMY == sourceRow->type());
         TaxonomyElementPtr taxonomy = taxonomyElementPtr(sourceRow);
         Q_ASSERT(taxonomy);
-        TaxonomyElementPtr parentNode = m_model->taxonomy()->parent(taxonomy);
+        TaxonomyElementPtr parentNode = taxonomy->parent();
         if (!parentNode->name().isEmpty()) // TODO usar root?
           m_numTaxonomies[parentNode] += 1;
         m_numTaxonomies[taxonomy] = taxonomy->subElements().size();
@@ -522,7 +524,7 @@ void TaxonomyProxy::sourceRowsAboutToBeRemoved(const QModelIndex& sourceParent, 
       QModelIndex   proxyIndex  = mapFromSource(sourceIndex);
       ModelItemPtr  item = indexPtr(sourceIndex);
       SegmentationPtr seg  = segmentationPtr(item);
-      TaxonomyElementPtr taxonomy = seg->taxonomy();
+      TaxonomyElementPtr taxonomy = seg->taxonomy().data();
       Q_ASSERT(taxonomy);
       int segRow = m_segmentations[taxonomy].indexOf(item);
       if (segRow >= 0)
@@ -635,7 +637,7 @@ void TaxonomyProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, const QM
         int newRow = rowCount(destination);
         beginMoveRows(source, currentRow, currentRow, destination, newRow);
         m_segmentations[prevTaxonomy].removeOne(sourceItem);
-        m_segmentations[seg->taxonomy()] << sourceItem;
+        m_segmentations[seg->taxonomy().data()] << sourceItem;
         endMoveRows();
       }
     }
@@ -657,15 +659,15 @@ bool idOrdered(SegmentationPtr seg1, SegmentationPtr seg2)
 void TaxonomyProxy::removeTaxonomy(TaxonomyElementPtr taxonomy)
 {
   // First remove its subtaxonomies
-  foreach(TaxonomyElementPtr subTax, taxonomy->subElements())
+  foreach(SharedTaxonomyElementPtr subTax, taxonomy->subElements())
   {
-    removeTaxonomy(subTax);
+    removeTaxonomy(subTax.data());
   }
 
   m_rootTaxonomies.removeOne(taxonomy); //Safe even if it's not root taxonomy
   m_numTaxonomies.remove(taxonomy);
   m_segmentations.remove(taxonomy);
-  TaxonomyElementPtr parentNode = m_model->taxonomy()->parent(taxonomy);
+  TaxonomyElementPtr parentNode = taxonomy->parent();
   if (!parentNode->name().isEmpty())
     m_numTaxonomies[parentNode] -= 1;
 }
@@ -675,9 +677,9 @@ int TaxonomyProxy::numSegmentations(TaxonomyElementPtr taxonomy, bool recursive)
 {
   int total = m_segmentations[taxonomy].size();
   if (recursive)
-    foreach(TaxonomyElementPtr subtax, taxonomy->subElements())
+    foreach(SharedTaxonomyElementPtr subtax, taxonomy->subElements())
     {
-      total += numSegmentations(subtax);
+      total += numSegmentations(subtax.data());
     }
 
   return total;

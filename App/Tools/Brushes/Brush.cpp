@@ -42,7 +42,7 @@
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
-Brush::Brush(EspinaModelPtr model,
+Brush::Brush(EspinaModelSPtr model,
              QUndoStack    *undoStack,
              ViewManager   *viewManager)
 : m_model(model)
@@ -155,13 +155,13 @@ void Brush::setInUse(bool value)
     SegmentationList segs = m_viewManager->selectedSegmentations();
     if (segs.size() == 1)
     {
-      m_currentSeg = segs.first();
+      m_currentSeg = m_model->findSegmentation(segs.first());
       m_currentSource = m_currentSeg->filter();
       m_currentOutput = m_currentSeg->outputId();
 
       m_brush->setBrushColor(m_currentSeg->taxonomy()->color());
       m_brush->setBorderColor(QColor(Qt::green));
-      m_brush->setReferenceItem(m_currentSeg);
+      m_brush->setReferenceItem(m_currentSeg.data());
     }
     else
     {
@@ -233,7 +233,7 @@ void Brush::drawStroke(PickableItemPtr item,
       Filter::Arguments args;
       FreeFormSource::Parameters params(args);
       params.setSpacing(spacing);
-      m_currentSource = FilterPtr(new FreeFormSource(inputs, args));
+      m_currentSource = FilterSPtr(new FreeFormSource(inputs, args));
       m_currentOutput = 0;
       m_currentSeg = m_model->factory()->createSegmentation(m_currentSource, m_currentOutput);
 
@@ -241,7 +241,7 @@ void Brush::drawStroke(PickableItemPtr item,
       // We can't add empty segmentations to the model
       m_undoStack->push(new DrawCommand(m_currentSource, m_currentOutput, brushes, SEG_VOXEL_VALUE));
       m_undoStack->push(
-          new AddSegmentation(channel, m_currentSource, m_currentSeg, m_viewManager->activeTaxonomy(), m_model));
+          new AddSegmentation(m_model->findChannel(channel), m_currentSource, m_currentSeg,m_model->findTaxonomyElement(m_viewManager->activeTaxonomy()), m_model));
       m_undoStack->endMacro();
       m_brush->setBorderColor(QColor(Qt::green));
     }
@@ -282,7 +282,7 @@ void Brush::drawStrokeStep(PickableItemPtr item,
         Filter::Arguments args;
         FreeFormSource::Parameters params(args);
         params.setSpacing(spacing);
-        m_currentSource = FilterPtr(new FreeFormSource(inputs, args));
+        m_currentSource = FilterSPtr(new FreeFormSource(inputs, args));
         m_currentOutput = 0;
         m_currentSeg = m_model->factory()->createSegmentation(m_currentSource, m_currentOutput);
         m_currentSource->draw(m_currentOutput,
@@ -292,10 +292,10 @@ void Brush::drawStrokeStep(PickableItemPtr item,
 
         m_undoStack->beginMacro("Draw Segmentation");
         // We can't add empty segmentations to the model
-        m_undoStack->push(new AddSegmentation(channel,
+        m_undoStack->push(new AddSegmentation(m_model->findChannel(channel),
                                               m_currentSource,
                                               m_currentSeg,
-                                              m_viewManager->activeTaxonomy(),
+                                              m_model->findTaxonomyElement(m_viewManager->activeTaxonomy()),
                                               m_model));
         m_undoStack->endMacro();
         m_drawCommand = new SnapshotCommand(m_currentSource,

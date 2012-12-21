@@ -21,6 +21,8 @@
 #define ITOOL_H
 
 #include <QObject>
+
+#include <QSharedPointer>
 #include <QCursor>
 
 class QEvent;
@@ -40,6 +42,8 @@ namespace EspINA
     virtual bool enabled() const = 0;
     virtual void lostEvent(EspinaRenderView*) {};
   };
+
+  typedef QSharedPointer<ITool> IToolSPtr;
 
 } // namespace EspINA
 

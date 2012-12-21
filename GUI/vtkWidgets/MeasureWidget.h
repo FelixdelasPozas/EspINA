@@ -19,7 +19,6 @@
 
 class vtkAbstractWidget;
 class vtkDistanceWidget;
-class vtkMeasureWidget;
 class QEvent;
 
 namespace EspINA
@@ -32,8 +31,12 @@ namespace EspINA
   , public vtkCommand
   {
   public:
-    explicit MeasureWidget();
     virtual ~MeasureWidget();
+
+    vtkTypeMacro(MeasureWidget,vtkCommand);
+
+    static MeasureWidget *New()
+    {return new MeasureWidget;};
 
     // implements EspinaWidget
     void setViewManager(ViewManager *vm) {m_viewManager = vm;}
@@ -49,6 +52,9 @@ namespace EspINA
     void Execute(vtkObject *, unsigned long int, void*);
 
     bool filterEvent(QEvent *e, EspinaRenderView *view);
+
+  private:
+    explicit MeasureWidget();
 
   private:
     vtkDistanceWidget *m_axial;

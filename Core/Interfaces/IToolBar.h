@@ -21,7 +21,7 @@
 
 #include <QToolBar>
 
-#include <Core/EspinaTypes.h>
+#include <Core/Model/EspinaModel.h>
 
 class QUndoStack;
 
@@ -33,18 +33,17 @@ namespace EspINA
   : public QToolBar
   {
   public:
-    explicit IToolBar(QWidget* parent = 0)
+    explicit IToolBar(QWidget *parent = 0)
     : QToolBar(parent){}
-    explicit IToolBar(const QString& title, QWidget* parent = 0)
+    explicit IToolBar(const QString &title, QWidget *parent = 0)
     : QToolBar(title, parent){}
     virtual ~IToolBar(){}
 
-    virtual void initToolBar(EspinaModelPtr model,
-                             QUndoStack  *undoStack,
-                             ViewManager *viewManager) = 0;
-                             virtual void reset() = 0;
+    virtual void initToolBar(EspinaModelSPtr model,
+                             QUndoStack     *undoStack,
+                             ViewManager    *viewManager) = 0;
   public slots:
-    void resetState();
+    virtual void reset() = 0;
   };
 
 } // namespace EspINA

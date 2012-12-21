@@ -29,6 +29,10 @@
 
 namespace EspINA
 {
+
+  typedef QSharedPointer<Sample> SampleSPtr;
+  typedef QList<SampleSPtr>      SampleSPtrList;
+
   class Sample
   : public ModelItem
   {
@@ -53,7 +57,7 @@ namespace EspINA
 
     /// ModelItem Interface
     virtual QString id() const {return m_ID;}
-    virtual QVariant data(int role) const;
+    virtual QVariant data(int role=Qt::DisplayRole) const;
     virtual QString serialize() const;
     virtual ModelItemType type() const {return SAMPLE;}
     virtual void initialize(const Arguments &args = Arguments());
@@ -76,7 +80,8 @@ namespace EspINA
     SegmentationList m_segmentations;
   };
 
-  SamplePtr samplePtr(ModelItemPtr &item);
+  SamplePtr samplePtr(ModelItemPtr item);
+  SampleSPtr samplePtr(SharedModelItemPtr &item);
 }// namespace EspINA
 
 #endif // SAMPLE_H

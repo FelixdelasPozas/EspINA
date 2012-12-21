@@ -46,7 +46,7 @@ class BrushPicker
   typedef itkVolumeType::SpacingType Spacing;
 
 public:
-  explicit BrushPicker(PickableItem *item=NULL);
+  explicit BrushPicker(PickableItemPtr item=NULL);
 
   virtual bool filterEvent(QEvent* e, EspinaRenderView* view = NULL);
 

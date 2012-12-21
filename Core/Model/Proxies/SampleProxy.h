@@ -26,6 +26,7 @@
 #include <QAbstractProxyModel>
 
 #include <Core/EspinaTypes.h>
+#include <Core/Model/EspinaModel.h>
 
 namespace EspINA
 {
@@ -38,7 +39,7 @@ namespace EspINA
     SampleProxy(QObject* parent = 0);
     virtual ~SampleProxy();
 
-    virtual void setSourceModel(EspinaModelPtr sourceModel);
+    virtual void setSourceModel(EspinaModelSPtr sourceModel);
 
     virtual QVariant data(const QModelIndex& proxyIndex, int role = Qt::DisplayRole) const;
 
@@ -70,7 +71,7 @@ namespace EspINA
     int numSubSamples(SamplePtr sample) const;
 
   private:
-    EspinaModelPtr m_model;
+    EspinaModelSPtr m_model;
     SampleList m_samples;
     mutable QMap<SamplePtr, ModelItemList> m_segmentations;
   };

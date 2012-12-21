@@ -29,7 +29,7 @@ const double UNSELECTED_ALPHA = 0.6;
 //-----------------------------------------------------------------------------
 QColor TaxonomyColorEngine::color(SegmentationPtr seg)
 {
-  if (!seg.isNull() && seg->taxonomy())
+  if (seg && seg->taxonomy())
     return seg->taxonomy()->color();
   else
     return Qt::red;
@@ -40,7 +40,7 @@ LUTPtr TaxonomyColorEngine::lut(SegmentationPtr seg)
 {
   // Get (or create if it doesn't exit) the lut for the segmentations' images
   QString lutName;
-  if (!seg.isNull() && seg->taxonomy())
+  if (seg && seg->taxonomy())
     lutName = seg->taxonomy()->qualifiedName();
 
   vtkSmartPointer<vtkLookupTable> seg_lut;

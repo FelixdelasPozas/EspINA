@@ -32,11 +32,11 @@ using namespace EspINA;
 const QString COMPOSE_SEG_TOOLTIP = QObject::tr("Compose Selected Segmentations");
 
 //----------------------------------------------------------------------------
-CompositionToolBar::CompositionToolBar(EspinaModelPtr model,
+CompositionToolBar::CompositionToolBar(EspinaModelSPtr model,
                                        QUndoStack    *undoStack,
                                        ViewManager   *viewManager,
                                        QWidget       *parent)
-: QToolBar     ( parent      )
+: IToolBar     ( parent      )
 , m_model      ( model       )
 , m_undoStack  ( undoStack   )
 , m_viewManager( viewManager )
@@ -57,22 +57,27 @@ CompositionToolBar::CompositionToolBar(EspinaModelPtr model,
 //----------------------------------------------------------------------------
 CompositionToolBar::~CompositionToolBar()
 {
-
+  qDebug() << "********************************************************";
+  qDebug() << "          Destroying Composition ToolbBar";
+  qDebug() << "********************************************************";
 }
 
 //----------------------------------------------------------------------------
 void CompositionToolBar::initFactoryExtension(EspinaFactoryPtr factory)
 {
-  // TODO 2012-12-17
+  // TODO 2012-12-21 El fin del mundo ha llegado a EspINA!!!
+  //                 Esta toolbar registra el mismo filtro que el editor tool bar!
+  //factory->registerFilter(this, CompositionFilter);
+  //Q_ASSERT(false);
 }
 
 //----------------------------------------------------------------------------
-FilterPtr CompositionToolBar::createFilter(const QString              &filter,
-                                         const Filter::NamedInputs  &inputs,
-                                         const ModelItem::Arguments &args)
+FilterSPtr CompositionToolBar::createFilter(const QString              &filter,
+                                                 const Filter::NamedInputs  &inputs,
+                                                 const ModelItem::Arguments &args)
 {
   Q_ASSERT(false);//TODO 2012-12-17
-  return FilterPtr();
+  return FilterSPtr();
 }
 
 //----------------------------------------------------------------------------
@@ -85,7 +90,7 @@ void CompositionToolBar::createSegmentationFromComponents()
   {
     m_viewManager->clearSelection(true);
     m_undoStack->push(new CompositionCommand(input,
-                                             m_viewManager->activeTaxonomy(),
+                                             m_model->findTaxonomyElement(m_viewManager->activeTaxonomy()),
                                              m_model));
   }
 }

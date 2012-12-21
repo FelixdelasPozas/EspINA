@@ -23,6 +23,7 @@
 #include <QStyledItemDelegate>
 
 #include <Core/EspinaTypes.h>
+#include <Core/Model/EspinaModel.h>
 
 class QUndoStack;
 
@@ -35,7 +36,7 @@ namespace EspINA
   : public QStyledItemDelegate
   {
   public:
-    explicit SegmentationDelegate(EspinaModelPtr model,
+    explicit SegmentationDelegate(EspinaModelSPtr model,
                                   QUndoStack *undoStack,
                                   ViewManager *vm);
 
@@ -47,7 +48,7 @@ namespace EspINA
     void freeInspector(SegmentationInspector *inspector);
 
   private:
-    EspinaModelPtr m_model;
+    EspinaModelSPtr m_model;
     QUndoStack  *m_undoStack;
     ViewManager *m_viewManager;
     mutable QMap<SegmentationPtr, SegmentationInspector *> m_inspectors;

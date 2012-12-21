@@ -27,6 +27,7 @@
 
 #include "Core/Model/PickableItem.h"
 #include "Core/Model/HierarchyItem.h"
+#include "Sample.h"
 
 #include <itkImageIOBase.h>
 #include <itkImageFileReader.h>
@@ -40,6 +41,9 @@ class vtkAlgorithmOutput;
 
 namespace EspINA
 {
+  typedef QSharedPointer<Channel> SharedChannelPtr;
+  typedef QList<SharedChannelPtr> SharedChannelList;
+
   class Channel
   : public PickableItem
   , public HierarchyItem
@@ -59,7 +63,8 @@ namespace EspINA
     static const QString NAME;
     static const QString VOLUMETRIC;
 
-    class CArguments : public ModelItem::Arguments
+    class CArguments
+    : public ModelItem::Arguments
     {
     public:
       explicit CArguments() : m_outputId(0) {}
@@ -118,11 +123,11 @@ namespace EspINA
     virtual void initializeExtensions(const Arguments &args = Arguments());
 
     /// Get the sample which channel belongs to
-    SamplePtr sample();
+    SampleSPtr sample();
 
     /// Pickable Item Interface
-    virtual const FilterPtr filter() const;
-    virtual FilterPtr filter() { return PickableItem::filter(); }
+    virtual const FilterSPtr filter() const;
+    virtual FilterSPtr filter() { return PickableItem::filter(); }
     virtual const Filter::OutputId outputId() const;
 
     ChannelVolume::Pointer volume();
@@ -139,7 +144,7 @@ namespace EspINA
     virtual void notifyModification(bool force = false);
 
   private:
-    explicit Channel(FilterPtr filter, Filter::OutputId oId);
+    explicit Channel(FilterSPtr filter, Filter::OutputId oId);
     friend class EspinaFactory;
   private:
     bool   m_visible;
@@ -147,11 +152,13 @@ namespace EspINA
 
     mutable CArguments m_args;
 
-    FilterPtr          m_filter;
+    FilterSPtr    m_filter;
   };
 
-  ChannelPtr channelPtr(ModelItemPtr &item);
-  ChannelPtr channelPtr(PickableItemPtr &item);
+  ChannelPtr       channelPtr(ModelItemPtr           item);
+  ChannelPtr       channelPtr(PickableItemPtr        item);
+  SharedChannelPtr channelPtr(SharedModelItemPtr    &item);
+  SharedChannelPtr channelPtr(SharedPickableItemPtr &item);
 
 
 }// namespace EspINA

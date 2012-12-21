@@ -26,6 +26,7 @@
 #include <QAbstractProxyModel>
 
 #include <Core/EspinaTypes.h>
+#include <Core/Model/EspinaModel.h>
 
 namespace EspINA
 {
@@ -41,7 +42,7 @@ namespace EspINA
     explicit ChannelProxy(ViewManager *vm, QObject* parent = 0);
     virtual ~ChannelProxy();
 
-    virtual void setSourceModel(EspinaModelPtr sourceModel);
+    virtual void setSourceModel(EspinaModelSPtr sourceModel);
 
     virtual QVariant data(const QModelIndex& proxyIndex, int role = Qt::DisplayRole) const;
 
@@ -72,7 +73,7 @@ namespace EspINA
     int numSubSamples(SamplePtr sample) const;
 
   private:
-    EspinaModelPtr m_model;
+    EspinaModelSPtr m_model;
     ViewManager *m_viewManager;
     SampleList m_samples;
     mutable QMap<SamplePtr, ModelItemList> m_channels;

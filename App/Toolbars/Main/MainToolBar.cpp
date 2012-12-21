@@ -42,15 +42,16 @@
 using namespace EspINA;
 
 //----------------------------------------------------------------------------
-MainToolBar::MainToolBar(EspinaModelPtr model,
-                         QUndoStack    *undoStack,
-                         ViewManager   *vm,
-                         QWidget       *parent)
-: QToolBar(parent)
-, m_model(model)
-, m_undoStack(undoStack)
-, m_viewManager(vm)
-, m_measureTool(NULL)
+MainToolBar::MainToolBar(EspinaModelSPtr model,
+                         QUndoStack     *undoStack,
+                         ViewManager    *viewManager,
+                         QWidget        *parent)
+: IToolBar     (parent)
+, m_model      (model)
+, m_undoStack  (undoStack)
+, m_viewManager(viewManager)
+, m_segRemover (new SegmentationRemover())
+, m_measureTool(new MeasureTool(m_viewManager))
 {
   setObjectName("MainToolBar");
 
@@ -83,10 +84,10 @@ MainToolBar::MainToolBar(EspinaModelPtr model,
 
   addWidget(m_taxonomySelector);
 
-  m_segRemover = new SegmentationRemover();
-  connect(m_segRemover, SIGNAL(removalAborted()),
+  // Segmentation Remover
+  connect(m_segRemover.data(), SIGNAL(removalAborted()),
           this, SLOT(abortRemoval()));
-  connect(m_segRemover, SIGNAL(removeSegmentation(SegmentationPtr)),
+  connect(m_segRemover.data(), SIGNAL(removeSegmentation(SegmentationPtr)),
           this, SLOT(removeSegmentation(SegmentationPtr)));
 
   m_removeSegmentation = addAction(QIcon(":/espina/removeSeg.svg"),
@@ -95,6 +96,8 @@ MainToolBar::MainToolBar(EspinaModelPtr model,
   connect(m_removeSegmentation, SIGNAL(toggled(bool)),
           this, SLOT(removeSegmentation(bool)));
 
+  // Distance Tool
+  m_removeSegmentation->setCheckable(true);
   m_measureButton = addAction(QIcon(":/espina/measure.png"),
                                 tr("Measure tool"));
   m_measureButton->setCheckable(true);
@@ -102,6 +105,23 @@ MainToolBar::MainToolBar(EspinaModelPtr model,
   connect(m_measureButton, SIGNAL(toggled(bool)),
           this, SLOT(toggleMeasureTool(bool)));
 }
+
+//----------------------------------------------------------------------------
+MainToolBar::~MainToolBar()
+{
+  qDebug() << "********************************************************";
+  qDebug() << "              Destroying Main ToolbBar";
+  qDebug() << "********************************************************";
+}
+
+//----------------------------------------------------------------------------
+void MainToolBar::initToolBar(EspinaModelSPtr model,
+                              QUndoStack     *undoStack,
+                              ViewManager    *viewManager)
+{
+
+}
+
 
 //----------------------------------------------------------------------------
 void MainToolBar::setShowSegmentations(bool visible)
@@ -120,6 +140,13 @@ void MainToolBar::setShowSegmentations(bool visible)
     m_toggleSegVisibility->setIcon(QIcon(":/espina/hide_all.svg"));
 
   emit showSegmentations(visible);
+}
+
+//----------------------------------------------------------------------------
+void MainToolBar::reset()
+{
+  setShowSegmentations(true);
+  toggleMeasureTool(false);
 }
 
 //----------------------------------------------------------------------------
@@ -188,20 +215,12 @@ void MainToolBar::toggleMeasureTool(bool enable)
 {
   if (enable)
   {
-    if (m_measureTool)
-      return;
-
-    m_measureTool = new MeasureTool(m_viewManager);
     m_viewManager->setActiveTool(m_measureTool);
     m_measureTool->setEnabled(true);
   }
   else
   {
-    if (!m_measureTool)
-      return;
     m_measureTool->setEnabled(false);
     m_viewManager->unsetActiveTool(m_measureTool);
-    delete m_measureTool;
-    m_measureTool = NULL;
   }
 }

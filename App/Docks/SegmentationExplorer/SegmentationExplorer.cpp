@@ -70,7 +70,7 @@ SegmentationExplorer::GUI::GUI()
 
 
 //------------------------------------------------------------------------
-SegmentationExplorer::SegmentationExplorer(EspinaModelPtr model,
+SegmentationExplorer::SegmentationExplorer(EspinaModelSPtr model,
                                            QUndoStack    *undoStack,
                                            ViewManager   *vm,
                                            QWidget       *parent)
@@ -176,7 +176,9 @@ void SegmentationExplorer::changeTaxonomy(TaxonomyElementPtr taxonomy)
   SegmentationList selectedSegmentations = m_viewManager->selectedSegmentations();
   foreach(SegmentationPtr seg, selectedSegmentations)
   {
-    m_baseModel->changeTaxonomy(seg, taxonomy);
+    SegmentationSPtr segPtr = m_baseModel->findSegmentation(seg);
+    SharedTaxonomyElementPtr taxonomyPtr = m_baseModel->findTaxonomyElement(taxonomy);
+    m_baseModel->changeTaxonomy(segPtr, taxonomyPtr);
   }
 }
 
@@ -332,13 +334,6 @@ void SegmentationExplorer::releaseInspectorResources(SegmentationInspector* insp
 }
 
 //------------------------------------------------------------------------
-ISettingsPanel *SegmentationExplorer::settingsPanel()
-{
-  Q_ASSERT(false); //TODO Check if NULL is correct
-  return NULL;
-}
-
-//------------------------------------------------------------------------
 void SegmentationExplorer::updateSegmentationRepresentations(SegmentationList list)
 {
 }
@@ -365,8 +360,11 @@ void SegmentationExplorer::changeFinalFlag(bool value)
     else
       seg->setHierarchyRenderingType(HierarchyItem::Undefined, false);
 
-    dependentSegmentations.append(seg->components());
-    rootSegmentations.append(seg->componentOf());
+    foreach(SegmentationSPtr ancestor, seg->componentOf())
+      rootSegmentations << ancestor.data();
+
+    foreach(SegmentationSPtr successor, seg->components())
+      dependentSegmentations << successor.data();
   }
 
   foreach(SegmentationPtr seg, dependentSegmentations)
@@ -385,7 +383,8 @@ void SegmentationExplorer::changeFinalFlag(bool value)
     else
       seg->setHierarchyRenderingType(HierarchyItem::Undefined, false);
 
-    dependentSegmentations.append(seg->components());
+    foreach(SegmentationSPtr successor, seg->components())
+      dependentSegmentations << successor.data();
   }
 
   foreach(SegmentationPtr seg, rootSegmentations)

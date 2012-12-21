@@ -19,7 +19,8 @@
 #ifndef ZOOMTOOLBAR_H_
 #define ZOOMTOOLBAR_H_
 
-#include <QToolBar>
+#include <Core/Interfaces/IToolBar.h>
+#include <Tools/Zoom/ZoomTool.h>
 
 class QAction;
 
@@ -30,23 +31,28 @@ namespace EspINA
   class ZoomTool;
 
   class ZoomToolBar
-  : public QToolBar
+  : public IToolBar
   {
     Q_OBJECT
 
   public:
-    explicit ZoomToolBar(ViewManager *vm,
-                         QWidget* parent = 0);
+    explicit ZoomToolBar(ViewManager *viewManager,
+                         QWidget     *parent = 0);
     virtual ~ZoomToolBar();
 
+    virtual void initToolBar(EspinaModelSPtr model,
+                             QUndoStack     *undoStack,
+                             ViewManager    *viewManager);
   public slots:
-    virtual void ResetViews();
-    virtual void InitZoomTool(bool);
-    virtual void resetState();
+    virtual void resetViews();
+    virtual void initZoomTool(bool);
+
+    virtual void reset();
 
   private:
     ViewManager *m_viewManager;
-    ZoomTool    *m_zoomTool;
+
+    ZoomToolSPtr m_zoomTool;
 
     QAction     *m_resetViews;
     QAction     *m_zoomToolAction;

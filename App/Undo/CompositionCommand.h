@@ -22,6 +22,7 @@
 #include <QUndoCommand>
 
 #include <Filters/ImageLogicFilter.h>
+#include <Core/Model/EspinaModel.h>
 
 namespace EspINA
 {
@@ -31,35 +32,35 @@ namespace EspINA
   {
     struct SegInfo
     {
-      SegInfo(SegmentationPtr seg)
+      SegInfo(SegmentationSPtr seg)
       : filter(seg->filter())
       , relations(seg->relations())
       , segmentation(seg){}
 
-      FilterPtr filter;
-      ModelItem::RelationList relations;
-      SegmentationPtr segmentation;
+      FilterSPtr filter;
+      RelationList relations;
+      SegmentationSPtr segmentation;
     };
 
   public:
     explicit CompositionCommand(const SegmentationList &segmentations,
-                                TaxonomyElementPtr      taxonomy,
-                                EspinaModelPtr          model);
+                                SharedTaxonomyElementPtr      taxonomy,
+                                EspinaModelSPtr          model);
 
     virtual void redo();
     virtual void undo();
 
-    const QString link(SegmentationPtr seg);
+    const QString link(SegmentationSPtr seg);
 
   private:
-    EspinaModelPtr   m_model;
+    EspinaModelSPtr   m_model;
 
-    SegmentationList   m_input;
-    TaxonomyElementPtr m_tax;
+    SharedSegmentationList   m_input;
+    SharedTaxonomyElementPtr m_tax;
 
     QList<SegInfo>  m_infoList;
-    FilterPtr       m_filter;
-    SegmentationPtr m_seg;
+    FilterSPtr       m_filter;
+    SegmentationSPtr m_seg;
   };
 
 } // namespace EspINA

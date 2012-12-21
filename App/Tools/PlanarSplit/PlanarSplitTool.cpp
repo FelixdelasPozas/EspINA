@@ -38,7 +38,7 @@
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
-PlanarSplitTool::PlanarSplitTool(EspinaModelPtr model,
+PlanarSplitTool::PlanarSplitTool(EspinaModelSPtr model,
                                  QUndoStack    *undoStack,
                                  ViewManager   *viewManager)
 : m_inUse(false)
@@ -146,7 +146,7 @@ void PlanarSplitTool::splitSegmentation()
 
   if (filter->outputs().size() == 2)
   {
-    SegmentationPtr splitSeg[2];
+    SegmentationSPtr splitSeg[2];
     EspinaFactoryPtr factory = m_model->factory();
     for (int i = 0; i < 2;  i++)
     {
@@ -156,7 +156,10 @@ void PlanarSplitTool::splitSegmentation()
     }
 
     if (filter->outputs().size() == 2)
-      m_undoStack->push(new SplitUndoCommand(seg, filter, splitSeg, m_model));
+    {
+      SegmentationSPtr segPtr = m_model->findSegmentation(seg);
+      m_undoStack->push(new SplitUndoCommand(segPtr, filter, splitSeg, m_model));
+    }
     else
     {
       // delete filter; TODO: Check it is freed by the smart pointer
@@ -172,7 +175,7 @@ void PlanarSplitTool::splitSegmentation()
     }
 
     ViewManager::Selection selection;
-    selection << splitSeg[0];
+    selection << splitSeg[0].data();
     m_viewManager->setSelection(selection);
   }
   else

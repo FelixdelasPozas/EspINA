@@ -27,7 +27,7 @@ const double UNSELECTED_ALPHA = 0.6;
 //-----------------------------------------------------------------------------
 QColor NumberColorEngine::color(SegmentationPtr seg)
 {
-  if (seg.isNull())
+  if (!seg)
     return Qt::red;
   else
     return QColor((seg->number() * 25) % 255, (seg->number() * 73) % 255, (seg->number() * 53) % 255);

@@ -42,7 +42,7 @@ bool SampleLayout::SortFilter::lessThan(const QModelIndex& left, const QModelInd
 }
 
 //------------------------------------------------------------------------
-SampleLayout::SampleLayout(EspinaModelPtr model)
+SampleLayout::SampleLayout(EspinaModelSPtr model)
 : Layout(model)
 , m_proxy(new SampleProxy())
 , m_sort (new SortFilter())
@@ -120,7 +120,6 @@ SegmentationList SampleLayout::deletedSegmentations(QModelIndexList selection)
             {
               ModelItemPtr subItem = indexPtr(subIndex);
               SegmentationPtr seg = segmentationPtr(subItem);
-              Q_ASSERT(!seg.isNull());
               toDelete << seg;
             }
             break;

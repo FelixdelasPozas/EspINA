@@ -27,6 +27,7 @@
 
 // EspINA
 #include "Core/Model/ModelItem.h"
+#include <Core/Model/EspinaModel.h>
 
 namespace EspINA
 {
@@ -36,11 +37,11 @@ class RemoveSegmentation
 {
 public:
   explicit RemoveSegmentation(SegmentationPtr seg,
-                              EspinaModelPtr  model,
+                              EspinaModelSPtr  model,
                               QUndoCommand *parent=0
                              );
   explicit RemoveSegmentation(SegmentationList segs,
-                              EspinaModelPtr   model,
+                              EspinaModelSPtr   model,
                               QUndoCommand    *parent=0
                              );
 
@@ -48,33 +49,33 @@ public:
   virtual void undo();
 
 private:
-  void addRelations(ModelItem::RelationList list);
-  void removeRelations(ModelItem::RelationList list);
+  void addRelations(RelationList list);
+  void removeRelations(RelationList list);
 
-  FilterList removeFilterDependencies(FilterPtr filter);
+  FilterSPtrList removeFilterDependencies(FilterSPtr filter);
 
 private:
   struct FilterInfo
   {
     FilterInfo () : filter(NULL) {}
-    FilterInfo(FilterPtr filter, ModelItem::RelationList list) :
+    FilterInfo(FilterSPtr filter, RelationList list) :
     filter(filter), relations(list)
     {}
-    FilterPtr filter;
-    ModelItem::RelationList relations;
+    FilterSPtr filter;
+    RelationList relations;
   };
 
   struct SegInfo
   {
-    SegInfo(SegmentationPtr seg);
+    SegInfo(SegmentationSPtr seg);
 
-    FilterPtr  filter;
-    ModelItem::RelationList relations;
-    SegmentationPtr segmentation;
+    FilterSPtr  filter;
+    RelationList relations;
+    SegmentationSPtr segmentation;
   };
 
 private:
-  EspinaModelPtr    m_model;
+  EspinaModelSPtr    m_model;
 
   QList<FilterInfo> m_removedFilters;
   QList<SegInfo>    m_segmentations;

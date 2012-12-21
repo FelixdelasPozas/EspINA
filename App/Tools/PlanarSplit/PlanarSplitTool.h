@@ -35,7 +35,7 @@ namespace EspINA
   {
     Q_OBJECT
   public:
-    explicit PlanarSplitTool(EspinaModelPtr model,
+    explicit PlanarSplitTool(EspinaModelSPtr model,
                              QUndoStack    *undoStack,
                              ViewManager   *viewManager);
 
@@ -51,7 +51,7 @@ namespace EspINA
     void splittingStopped();
 
   private:
-    EspinaModelPtr m_model;
+    EspinaModelSPtr m_model;
     QUndoStack    *m_undoStack;
     ViewManager   *m_viewManager;
 
@@ -60,6 +60,8 @@ namespace EspINA
 
     PlanarSplitWidget *m_widget;
   };
+
+  typedef QSharedPointer<PlanarSplitTool> PlanarSplitToolSPtr;
 
 } // namespace EspINA
 

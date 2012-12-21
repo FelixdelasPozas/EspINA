@@ -28,6 +28,8 @@
 
 namespace EspINA
 {
+  class EspinaModel;
+
   template<class T>
   QString arg3(const T val[3])
   {
@@ -46,15 +48,6 @@ namespace EspINA
   {
     Q_OBJECT
   public:
-    struct Relation
-    {
-      ModelItemPtr ancestor;
-      ModelItemPtr succesor;
-      QString relation;
-    };
-
-    typedef QList<Relation> RelationList;
-
     typedef QString ArgumentId;
     typedef QString Argument;
 
@@ -81,16 +74,13 @@ namespace EspINA
 
     static const ArgumentId EXTENSIONS;
 
-    ModelItem() : m_modified(false), m_vertex(0), m_relations(NULL) {}
-    virtual ~ModelItem(){}
+    ModelItem() : m_modified(false), m_model(NULL) {}
+    virtual ~ModelItem();
 
     virtual QVariant data(int role=Qt::DisplayRole) const = 0;
     virtual bool setData(const QVariant& value, int role = Qt::UserRole +1) {return false;}
     virtual QString  serialize() const = 0;
     virtual ModelItemType type() const = 0;
-
-    ModelItemList relatedItems(RelationType rel, const QString &filter = "");
-    RelationList  relations(const QString &filter = "");
 
     virtual QStringList availableInformations() const;
     virtual QStringList availableRepresentations() const;
@@ -105,22 +95,24 @@ namespace EspINA
     /// satisfy this condition
     virtual void initializeExtensions(const Arguments &args = Arguments()) = 0;
 
-    bool updateForced() const {return m_modified;}
+    SharedModelItemList relatedItems(RelationType relType, const QString &relName = "");
+    RelationList relations(const QString &relName = "");
+
+    bool updateForced() const {return m_modified;} // NOTE
   public slots:
-    virtual void notifyModification(bool force=false)
+    virtual void notifyModification(bool force=false) // NOTE
     {m_modified = force; emit modified(this);}
 
   signals:
-    void modified(ModelItem *);
+    void modified(ModelItem *); //NOTE
 
   protected:
     void addExtension   (ModelItemExtensionPtr ext);
     void deleteExtension(ModelItemExtensionPtr ext);
     void deleteExtensions();
 
-    bool                 m_modified;
-    size_t               m_vertex;
-    RelationshipGraphPtr m_relations;
+    bool         m_modified;
+    EspinaModel *m_model;
 
     QMap<QString, ModelItemExtensionPtr> m_extensions;
     QMap<QString, ModelItemExtensionPtr> m_pendingExtensions;
@@ -129,7 +121,6 @@ namespace EspINA
     QMap<QString, ModelItemExtensionPtr> m_informations;
 
     friend class EspinaModel;
-    friend class RelationshipGraph;
   };
 
   ModelItemPtr indexPtr(const QModelIndex &index);

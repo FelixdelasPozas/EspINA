@@ -33,7 +33,7 @@
 using namespace EspINA;
 
 //------------------------------------------------------------------------
-SegmentationContextualMenu::SegmentationContextualMenu(EspinaModelPtr   model,
+SegmentationContextualMenu::SegmentationContextualMenu(EspinaModelSPtr   model,
                                                        SegmentationList selection,
                                                        QWidget         *parent)
 : QMenu(parent)
@@ -62,12 +62,14 @@ SegmentationContextualMenu::SegmentationContextualMenu(EspinaModelPtr   model,
            this, SLOT(deleteSementationsClicked()));
 
   bool enabled = false;
-  SegmentationList ancestors, descendents;
+  SegmentationList ancestors, successors;
   foreach (SegmentationPtr seg, m_segmentations)
   {
     enabled |= seg->IsFinalNode();
-    ancestors.append(seg->componentOf());
-    descendents.append(seg->components());
+    foreach(SegmentationSPtr ancestor, seg->componentOf())
+      ancestors <<  ancestor.data();
+    foreach(SegmentationSPtr successor, seg->components())
+      successors << successor.data();
   }
 
   foreach(SegmentationPtr seg, ancestors)
@@ -78,20 +80,22 @@ SegmentationContextualMenu::SegmentationContextualMenu(EspinaModelPtr   model,
       break;
     }
     m_segmentations.append(seg);
-    ancestors.append(seg->componentOf());
+    foreach(SegmentationSPtr ancestor, seg->componentOf())
+      ancestors <<  ancestor.data();
 
     enabled |= seg->IsFinalNode();
   }
 
-  foreach(SegmentationPtr seg, descendents)
+  foreach(SegmentationPtr seg, successors)
   {
     if (m_segmentations.contains(seg))
     {
-      descendents.removeAll(seg);
+      successors.removeAll(seg);
       break;
     }
     m_segmentations.append(seg);
-    descendents.append(seg->components());
+    foreach(SegmentationSPtr successor, seg->components())
+      successors << successor.data();
 
     enabled |= seg->IsFinalNode();
   }
@@ -106,7 +110,7 @@ void SegmentationContextualMenu::changeTaxonomyClicked(const QModelIndex& index)
 
   ModelItemPtr taxItem = indexPtr(index);
   Q_ASSERT(EspINA::TAXONOMY == taxItem->type());
-  TaxonomyElementPtr taxonomy = qSharedPointerDynamicCast<TaxonomyElement>(taxItem);
+  TaxonomyElementPtr taxonomy = taxonomyElementPtr(taxItem);
   emit changeTaxonomy(taxonomy);
 }
 

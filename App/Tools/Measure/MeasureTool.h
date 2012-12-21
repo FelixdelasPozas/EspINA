@@ -39,6 +39,8 @@ namespace EspINA
     ViewManager *m_viewManager;
   };
 
+  typedef QSharedPointer<MeasureTool> MeasureToolSPtr;
+
 } // namespace EspINA
 
 #endif /* MEASURETOOL_H_ */

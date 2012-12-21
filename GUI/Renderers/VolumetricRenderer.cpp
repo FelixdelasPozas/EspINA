@@ -49,7 +49,7 @@ bool VolumetricRenderer::addItem(ModelItemPtr item)
   if (EspINA::SEGMENTATION != item->type())
     return false;
 
-  SegmentationPtr seg = qSharedPointerDynamicCast<Segmentation>(item);
+  SegmentationPtr seg = segmentationPtr(item);
 
   // duplicated item? addItem again
   if (m_segmentations.contains(item))
@@ -125,7 +125,7 @@ bool VolumetricRenderer::updateItem(ModelItemPtr item)
 
   bool updated = false;
   bool hierarchiesUpdated = false;
-  SegmentationPtr seg = qSharedPointerDynamicCast<Segmentation>(item);
+  SegmentationPtr seg = segmentationPtr(item);
   if (!m_segmentations.contains(seg))
     return false;
 
@@ -194,7 +194,7 @@ bool VolumetricRenderer::removeItem(ModelItemPtr item)
    if (EspINA::SEGMENTATION != item->type())
      return false;
 
-   SegmentationPtr seg = qSharedPointerDynamicCast<Segmentation>(item);
+   SegmentationPtr seg = segmentationPtr(item);
    Q_ASSERT(m_segmentations.contains(seg));
 
    if (m_enable && m_segmentations[seg].visible)

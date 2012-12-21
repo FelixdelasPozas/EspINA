@@ -18,9 +18,14 @@
 #ifndef SEEDGROWINGSEGMENTATION_H
 #define SEEDGROWINGSEGMENTATION_H
 
-#include <QToolBar>
+#include <Core/Interfaces/IToolBar.h>
 #include <Core/Interfaces/IFactoryExtension.h>
 #include <Core/Interfaces/IFilterCreator.h>
+
+#include <Core/Model/EspinaModel.h>
+#include <GUI/ISettingsPanel.h>
+#include <GUI/Pickers/IPicker.h>
+#include <Tools/SeedGrowSegmentation/SeedGrowSegmentationTool.h>
 
 class QAction;
 class QUndoStack;
@@ -32,35 +37,38 @@ class ThresholdAction;
 namespace EspINA
 {
   //Forward declarations
-  class SeedGrowSegmentationTool;
-  class IPicker;
+  class SeedGrowSegmentationSettings;
   class ViewManager;
 
   /// Seed Growing Segmenation Plugin
   class SeedGrowSegmentation
-  : public QToolBar
+  : public IToolBar
   , public IFactoryExtension
   , public IFilterCreator
   {
-  public:
-    class Settings;
+    Q_OBJECT
+    Q_INTERFACES
+    (
+      EspINA::IToolBar
+      EspINA::IFactoryExtension
+      EspINA::IFilterCreator
+    )
 
-  private:
     class SettingsPanel;
 
-    Q_OBJECT
-    Q_INTERFACES(EspINA::IFactoryExtension EspINA::IFilterCreator)
-
   public:
-    SeedGrowSegmentation(EspinaModelPtr model,
-                         QUndoStack    *undoStack,
-                         ViewManager   *vm,
-                         QWidget       *parent=NULL);
+    SeedGrowSegmentation(EspinaModelSPtr model,
+                         QUndoStack     *undoStack,
+                         ViewManager    *vm,
+                         QWidget        *parent=NULL);
     virtual ~SeedGrowSegmentation();
 
+    virtual void initToolBar(EspinaModelSPtr model,
+                             QUndoStack     *undoStack,
+                             ViewManager    *viewManager);
     virtual void initFactoryExtension(EspinaFactoryPtr factory);
 
-    virtual FilterPtr createFilter(const QString              &filter,
+    virtual FilterSPtr createFilter(const QString              &filter,
                                    const Filter::NamedInputs  &inputs,
                                    const ModelItem::Arguments &args);
 
@@ -69,26 +77,28 @@ namespace EspINA
     void changePicker(QAction *action);
     void cancelSegmentationOperation();
 
+    virtual void reset();
+
     void batchMode();
 
   private:
-    void addPixelSelector(QAction *action, IPicker *handler);
-    void buildSelectors();
+    void addVoxelPicker(QAction *action, IPickerSPtr picker);
+    void buildPickers();
 
   private:
-    EspinaModelPtr m_model;
-    QUndoStack    *m_undoStack;
-    ViewManager   *m_viewManager;
+    EspinaModelSPtr m_model;
+    QUndoStack     *m_undoStack;
+    ViewManager    *m_viewManager;
 
     ThresholdAction  *m_threshold;
     DefaultVOIAction *m_useDefaultVOI;
     ActionSelector   *m_pickerSelector;
 
-    QMap<QAction *, IPicker *> m_selectors;
-    SeedGrowSegmentationTool * m_tool;
+    QMap<QAction *, IPickerSPtr> m_pickers;
+    SeedGrowSegmentationToolSPtr m_tool;
 
-    Settings      *m_settings;
-    ISettingsPanelPtr m_settingsPanel;
+    SeedGrowSegmentationSettings *m_settings;
+    ISettingsPanelPrototype m_settingsPanel;
   };
 
 } // namespace EspINA

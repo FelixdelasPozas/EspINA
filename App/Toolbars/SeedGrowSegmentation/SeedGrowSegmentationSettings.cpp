@@ -17,7 +17,7 @@
 */
 
 
-#include "Settings.h"
+#include "SeedGrowSegmentationSettings.h"
 
 #include <QSettings>
 #include <Core/EspinaSettings.h>
@@ -32,9 +32,8 @@ const QString DEFAULT_VOI_Z  ("SeedGrowSegmentation::DafaultVOI::Z");
 const QString TAXONOMICAL_VOI("SeedGrowSegmentation::DafaultVOI::USE_TAXONOMY_SIZE");
 const QString CLOSING        ("SeedGrowSegmentation::Closing");
 
-
 //------------------------------------------------------------------------
-SeedGrowSegmentation::Settings::Settings(BestPixelSelector *selector)
+SeedGrowSegmentationSettings::SeedGrowSegmentationSettings(BestPixelPicker *selector)
 : m_selector(selector) 
 {
   QSettings settings(CESVIMA, ESPINA);
@@ -48,7 +47,7 @@ SeedGrowSegmentation::Settings::Settings(BestPixelSelector *selector)
 }
 
 //------------------------------------------------------------------------
-void SeedGrowSegmentation::Settings::setXSize(int value)
+void SeedGrowSegmentationSettings::setXSize(int value)
 {
   QSettings settings(CESVIMA, ESPINA);
 
@@ -57,7 +56,7 @@ void SeedGrowSegmentation::Settings::setXSize(int value)
 }
 
 //------------------------------------------------------------------------
-void SeedGrowSegmentation::Settings::setYSize(int value)
+void SeedGrowSegmentationSettings::setYSize(int value)
 {
   QSettings settings(CESVIMA, ESPINA);
 
@@ -66,7 +65,7 @@ void SeedGrowSegmentation::Settings::setYSize(int value)
 }
 
 //------------------------------------------------------------------------
-void SeedGrowSegmentation::Settings::setZSize(int value)
+void SeedGrowSegmentationSettings::setZSize(int value)
 {
   QSettings settings(CESVIMA, ESPINA);
 
@@ -75,7 +74,7 @@ void SeedGrowSegmentation::Settings::setZSize(int value)
 }
 
 //------------------------------------------------------------------------
-void SeedGrowSegmentation::Settings::setTaxonomicalVOI(bool value)
+void SeedGrowSegmentationSettings::setTaxonomicalVOI(bool value)
 {
   QSettings settings(CESVIMA, ESPINA);
 
@@ -84,7 +83,7 @@ void SeedGrowSegmentation::Settings::setTaxonomicalVOI(bool value)
 }
 
 //------------------------------------------------------------------------
-void SeedGrowSegmentation::Settings::setBestPixelValue(int value)
+void SeedGrowSegmentationSettings::setBestPixelValue(int value)
 {
   QSettings settings(CESVIMA, ESPINA);
 
@@ -93,7 +92,7 @@ void SeedGrowSegmentation::Settings::setBestPixelValue(int value)
 }
 
 //------------------------------------------------------------------------
-int SeedGrowSegmentation::Settings::bestPixelValue() const
+int SeedGrowSegmentationSettings::bestPixelValue() const
 {
   QSettings settings(CESVIMA, ESPINA);
 
@@ -103,7 +102,7 @@ int SeedGrowSegmentation::Settings::bestPixelValue() const
 }
 
 //------------------------------------------------------------------------
-void SeedGrowSegmentation::Settings::setClosing(int value)
+void SeedGrowSegmentationSettings::setClosing(int value)
 {
   QSettings settings(CESVIMA, ESPINA);
 

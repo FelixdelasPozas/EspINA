@@ -26,19 +26,21 @@ class vtkImplicitFunction;
 
 namespace EspINA
 {
-class SphericalBrush
-: public Brush
-{
-public:
-  explicit SphericalBrush(EspinaModelPtr model,
-                          QUndoStack* undoStack,
-                          ViewManager* viewManager);
+  class SphericalBrush
+  : public Brush
+  {
+  public:
+    explicit SphericalBrush(EspinaModelSPtr model,
+                            QUndoStack* undoStack,
+                            ViewManager* viewManager);
 
-protected:
-  virtual BrushShape createBrushShape(PickableItemPtr item,
-                                      double center[3],
-                                      Nm radius, PlaneType plane);
-};
+  protected:
+    virtual BrushShape createBrushShape(PickableItemPtr item,
+                                        double center[3],
+                                        Nm radius, PlaneType plane);
+  };
+
+  typedef QSharedPointer<SphericalBrush> SphericalBrushSPtr;
 
 } // namespace EspINA
 

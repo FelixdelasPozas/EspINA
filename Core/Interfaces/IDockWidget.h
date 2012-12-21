@@ -22,13 +22,12 @@
 #include <QtPlugin>
 #include <QDockWidget>
 
-#include <Core/EspinaTypes.h>
+#include <Core/Model/EspinaModel.h>
 
 class QUndoStack;
 
 namespace EspINA
 {
-  class EspinaModel;
   class ViewManager;
 
   class IDockWidget
@@ -39,9 +38,9 @@ namespace EspINA
     : QDockWidget(parent){}
     virtual ~IDockWidget(){}
 
-    virtual void initDockWidget(EspinaModelPtr model,
-                                QUndoStack    *undoStack,
-                                ViewManager   *viewManager) = 0;
+    virtual void initDockWidget(EspinaModelSPtr model,
+                                QUndoStack     *undoStack,
+                                ViewManager    *viewManager) = 0;
                                 // Reset All Components in the Dock Widget
                                 virtual void reset() = 0;
   public slots:

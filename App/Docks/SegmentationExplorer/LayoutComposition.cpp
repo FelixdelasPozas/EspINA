@@ -33,7 +33,7 @@ bool CompositionLayout::SortFilter::lessThan(const QModelIndex& left, const QMod
 }
 
 //------------------------------------------------------------------------
-CompositionLayout::CompositionLayout(EspinaModelPtr model)
+CompositionLayout::CompositionLayout(EspinaModelSPtr model)
 : Layout(model)
 , m_proxy(new CompositionProxy())
 , m_sort (new SortFilter())
@@ -74,7 +74,7 @@ SegmentationList CompositionLayout::deletedSegmentations(QModelIndexList selecti
 
     ModelItemPtr    selectedItem = item(sortIndex);
     SegmentationPtr seg          = segmentationPtr(selectedItem);
-    Q_ASSERT(!seg.isNull());
+    Q_ASSERT(seg);
     toDelete << seg;
 
     if (recursive)
@@ -83,7 +83,7 @@ SegmentationList CompositionLayout::deletedSegmentations(QModelIndexList selecti
       {
         ModelItemPtr     subItem = item(subIndex);
         SegmentationPtr  seg     = segmentationPtr(subItem);
-        Q_ASSERT(!seg.isNull());
+        Q_ASSERT(seg);
         toDelete << seg;
       }
     }

@@ -43,8 +43,8 @@ namespace EspINA
     virtual bool isSelected() const {return m_isSelected;}
     virtual void setSelected(bool value) {m_isSelected = value;}
 
-    virtual const FilterPtr filter() const = 0;
-    virtual FilterPtr filter() = 0;
+    virtual const FilterSPtr filter() const = 0;
+    virtual FilterSPtr filter() = 0;
     virtual const Filter::OutputId  outputId() const = 0;
 
     EspinaVolume::Pointer volume();
@@ -64,6 +64,7 @@ namespace EspINA
   };
 
   PickableItemPtr pickableItemPtr(ModelItemPtr item);
+  SharedPickableItemPtr pickableItemPtr(SharedModelItemPtr &item);
 
 } // namespace EspINA
 

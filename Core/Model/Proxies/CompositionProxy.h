@@ -23,6 +23,7 @@
 #include <QtGui/QAbstractProxyModel>
 
 #include <Core/EspinaTypes.h>
+#include <Core/Model/EspinaModel.h>
 
 namespace EspINA
 {
@@ -38,7 +39,7 @@ namespace EspINA
     explicit CompositionProxy(QObject* parent = 0);
     virtual ~CompositionProxy();
 
-    virtual void setSourceModel(EspinaModelPtr sourceModel);
+    virtual void setSourceModel(EspinaModelSPtr sourceModel);
 
     virtual QVariant data(const QModelIndex& proxyIndex, int role = Qt::DisplayRole) const;
 
@@ -68,7 +69,7 @@ namespace EspINA
     SegmentationPtr parentSegmentation(ModelItemPtr segItem) const;
 
   private:
-    EspinaModelPtr m_sourceModel;
+    EspinaModelSPtr m_sourceModel;
 
     SegmentationList m_rootSegmentations;
     mutable QMap<SegmentationPtr, ModelItemList> m_components;

@@ -43,7 +43,7 @@
 using namespace EspINA;
 
 //------------------------------------------------------------------------
-ConnectomicsDialog::ConnectomicsDialog(EspinaModelPtr model,
+ConnectomicsDialog::ConnectomicsDialog(EspinaModelSPtr model,
                                        ViewManager *vm,
                                        QWidget *parent,
                                        Qt::WindowFlags flags)

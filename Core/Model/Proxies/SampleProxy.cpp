@@ -44,7 +44,7 @@ SampleProxy::~SampleProxy()
 }
 
 //------------------------------------------------------------------------
-void SampleProxy::setSourceModel(EspinaModelPtr sourceModel)
+void SampleProxy::setSourceModel(EspinaModelSPtr sourceModel)
 {
   m_model = sourceModel;
 
@@ -209,10 +209,10 @@ QModelIndex SampleProxy::mapFromSource(const QModelIndex& sourceIndex) const
     case EspINA::SEGMENTATION:
     {
       SegmentationPtr seg = segmentationPtr(sourceItem);
-      ModelItemList samples = seg->relatedItems(EspINA::IN, Sample::WHERE);
+      SharedModelItemList samples = seg->relatedItems(EspINA::IN, Sample::WHERE);
       if (samples.size() > 0)
       {
-        SamplePtr sample = samplePtr(samples[0]);
+        SamplePtr sample = samplePtr(samples[0].data());
         int row = m_segmentations[sample].indexOf(sourceItem);
         if (row >= 0)
         {
@@ -333,7 +333,7 @@ void SampleProxy::sourceRowsInserted(const QModelIndex& sourceParent, int start,
       ModelItemPtr sourceItem = indexPtr(sourceIndex);
       Q_ASSERT(EspINA::SEGMENTATION == sourceItem->type());
       SegmentationPtr seg = segmentationPtr(sourceItem);
-      SamplePtr sample = seg->sample();
+      SamplePtr sample = seg->sample().data();
       if (sample)
         relations[sample] << sourceItem;
     }
@@ -520,10 +520,14 @@ void SampleProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, const QMod
       if (EspINA::SAMPLE == proxyItem->type())
       {
         SamplePtr sample = samplePtr(proxyItem);
-        ModelItemList segs = sample->relatedItems(EspINA::OUT, Sample::WHERE);
+        SharedModelItemList segs = sample->relatedItems(EspINA::OUT, Sample::WHERE);
         SegSet prevSegs = m_segmentations[sample].toSet();
         // 	debugSet("Previous Segmentations", prevSegs);
-        SegSet currentSegs = segs.toSet();
+        SegSet currentSegs;
+        foreach(SharedModelItemPtr seg, segs)
+        {
+          currentSegs << seg.data();
+        }
         // 	debugSet("Current Segmentations", currentSegs);
         // We need to copy currentSegs to avoid emptying it
         SegSet newSegs = SegSet(currentSegs).subtract(prevSegs);

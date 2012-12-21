@@ -50,7 +50,7 @@ namespace EspINA
     ViewManager  *m_viewManager;
 
     SegmentationPtr m_seg;
-    FilterPtr       m_filter;
+    FilterSPtr m_filter;
   };
 
 } // namespace EspINA

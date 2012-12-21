@@ -46,6 +46,9 @@ ViewManager::ViewManager()
 //----------------------------------------------------------------------------
 ViewManager::~ViewManager()
 {
+  qDebug() << "********************************************************";
+  qDebug() << "              Destroying View Manager";
+  qDebug() << "********************************************************";
 }
 
 //----------------------------------------------------------------------------
@@ -140,7 +143,7 @@ SegmentationList ViewManager::selectedSegmentations() const
   foreach(PickableItemPtr item, m_selection)
   {
     if (EspINA::SEGMENTATION == item->type())
-      selection << qSharedPointerDynamicCast<Segmentation>(item);
+      selection << segmentationPtr(item);
   }
 
   return selection;
@@ -157,32 +160,38 @@ void ViewManager::clearSelection(bool notifyViews)
   }
 }
 
-
-
 //----------------------------------------------------------------------------
-void ViewManager::setVOI(IVOI *voi)
+void ViewManager::setVOI(IVOISPtr voi)
 {
-  if (m_voi && m_voi != voi)
+  if (!m_voi.isNull() && m_voi != voi)
     m_voi->setInUse(false);
 
   m_voi = voi;
 
-  if (m_tool && m_voi)
+  if (m_tool && !m_voi.isNull())
   {
     m_tool->setInUse(false);
-    m_tool = NULL;
+    m_tool.clear();
   }
 
-  if (m_voi)
+  if (!m_voi.isNull())
     m_voi->setInUse(true);
 }
 
 //----------------------------------------------------------------------------
-void ViewManager::setActiveTool(ITool* tool)
+void ViewManager::unsetActiveVOI()
 {
-  Q_ASSERT(tool); 
+  if (!m_voi.isNull())
+    m_voi.clear();
+}
 
-  if (m_tool && m_tool != tool)
+
+//----------------------------------------------------------------------------
+void ViewManager::setActiveTool(IToolSPtr tool)
+{
+  Q_ASSERT(!tool.isNull());
+
+  if (!m_tool.isNull() && m_tool != tool)
     m_tool->setInUse(false);
 
   m_tool = tool;
@@ -193,7 +202,8 @@ void ViewManager::setActiveTool(ITool* tool)
     {
       double *voiBounds = m_voi->region();
       if (!vtkMath::AreBoundsInitialized(voiBounds))
-        setVOI(NULL);
+        unsetActiveVOI();
+        //setVOI(IVOISPtr());
     }
     m_tool->setInUse(true);
   }
@@ -205,17 +215,17 @@ void ViewManager::unsetActiveTool()
   if (m_tool)
   {
     m_tool->setInUse(false);
-    m_tool = NULL;
+    m_tool.clear();
   }
 }
 
 //----------------------------------------------------------------------------
-void ViewManager::unsetActiveTool(ITool* tool)
+void ViewManager::unsetActiveTool(IToolSPtr tool)
 {
   if (m_tool == tool)
   {
     m_tool->setInUse(false);
-    m_tool = NULL;
+    m_tool.clear();
   }
 }
 

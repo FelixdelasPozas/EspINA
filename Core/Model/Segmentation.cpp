@@ -55,7 +55,8 @@ QString Segmentation::SArguments::serialize() const
 }
 
 //-----------------------------------------------------------------------------
-Segmentation::Segmentation(FilterPtr filter, const Filter::OutputId &oId)
+Segmentation::Segmentation(FilterSPtr         filter,
+                           const Filter::OutputId &oId)
 : m_filter(filter)
 , m_taxonomy(NULL)
 , m_isVisible(true)
@@ -73,7 +74,7 @@ Segmentation::Segmentation(FilterPtr filter, const Filter::OutputId &oId)
 }
 
 //------------------------------------------------------------------------
-void Segmentation::changeFilter(FilterPtr filter, const Filter::OutputId &oId)
+void Segmentation::changeFilter(FilterSPtr filter, const Filter::OutputId &oId)
 {
   disconnect(m_filter.data(), SIGNAL(modified(ModelItem *)),
              this, SLOT(notifyModification()));
@@ -101,6 +102,7 @@ void Segmentation::changeFilter(FilterPtr filter, const Filter::OutputId &oId)
 //------------------------------------------------------------------------
 Segmentation::~Segmentation()
 {
+  qDebug() << data().toString() << ": Destructor";
   deleteExtensions();
 }
 
@@ -122,7 +124,7 @@ QVariant Segmentation::data(int role) const
     {
       QString boundsInfo;
       QString filterInfo;
-      if (m_filter && outputId() != EspINA::Filter::Output::INVALID_OUTPUT_ID)
+      if (m_filter && outputId() != Filter::Output::INVALID_OUTPUT_ID)
       {
         double bounds[6];
         volume()->bounds(bounds);
@@ -209,24 +211,24 @@ void Segmentation::updateCacheFlag()
 }
 
 //------------------------------------------------------------------------
-SamplePtr Segmentation::sample()
+SampleSPtr Segmentation::sample()
 {
-  ModelItemList relatedSamples = relatedItems(IN, Sample::WHERE);
+  SharedModelItemList relatedSamples = relatedItems(IN, Sample::WHERE);
   Q_ASSERT(relatedSamples.size() == 1);
 
-  return qSharedPointerDynamicCast<Sample>(relatedSamples.first());
+  return samplePtr(relatedSamples.first());
 }
 
 //------------------------------------------------------------------------
-ChannelPtr Segmentation::channel()
+SharedChannelPtr Segmentation::channel()
 {
-  ChannelList channels;
+  SharedChannelList channels;
 
-  ModelItemList relatedChannels = relatedItems(IN, Channel::LINK);
-  foreach(ModelItemPtr item, relatedChannels)
+  SharedModelItemList relatedChannels = relatedItems(IN, Channel::LINK);
+  foreach(SharedModelItemPtr item, relatedChannels)
   {
     Q_ASSERT(CHANNEL == item->type());
-    channels << qSharedPointerDynamicCast<Channel>(item);
+    channels << channelPtr(item);
   }
   Q_ASSERT(channels.size() == 1);
 
@@ -286,7 +288,7 @@ bool Segmentation::setData(const QVariant& value, int role)
 }
 
 //------------------------------------------------------------------------
-void Segmentation::setTaxonomy(TaxonomyElementPtr tax)
+void Segmentation::setTaxonomy(SharedTaxonomyElementPtr tax)
 {
   m_taxonomy = tax;
   m_args[TAXONOMY] = Argument(tax->qualifiedName());
@@ -311,32 +313,32 @@ void Segmentation::setVisible(bool visible)
 }
 
 //------------------------------------------------------------------------
-SegmentationList Segmentation::components()
+SharedSegmentationList Segmentation::components()
 {
-  SegmentationList res;
+  SharedSegmentationList res;
 
-  ModelItemList subComponents = relatedItems(OUT, COMPOSED_LINK);
+  SharedModelItemList subComponents = relatedItems(OUT, COMPOSED_LINK);
 
-  foreach(ModelItemPtr item, subComponents)
+  foreach(SharedModelItemPtr item, subComponents)
   {
     Q_ASSERT(SEGMENTATION == item->type());
-    res << qSharedPointerDynamicCast<Segmentation>(item);
+    res << segmentationPtr(item);
   }
 
   return res;
 }
 
 //------------------------------------------------------------------------
-SegmentationList Segmentation::componentOf()
+SharedSegmentationList Segmentation::componentOf()
 {
-  SegmentationList res;
+  SharedSegmentationList res;
 
-  ModelItemList subComponents = relatedItems(IN, COMPOSED_LINK);
+  SharedModelItemList subComponents = relatedItems(IN, COMPOSED_LINK);
 
-  foreach(ModelItemPtr item, subComponents)
+  foreach(SharedModelItemPtr item, subComponents)
   {
     Q_ASSERT(SEGMENTATION == item->type());
-    res << qSharedPointerDynamicCast<Segmentation>(item);
+    res << segmentationPtr(item);
   }
 
   return res;
@@ -346,6 +348,8 @@ SegmentationList Segmentation::componentOf()
 void Segmentation::addExtension(SegmentationExtensionPtr ext)
 {
   ModelItem::addExtension(ext);
+
+  ext->setSegmentation(this);
 }
 
 //------------------------------------------------------------------------
@@ -407,20 +411,41 @@ vtkAlgorithmOutput* Segmentation::mesh()
 }
 
 //------------------------------------------------------------------------
-SegmentationPtr EspINA::segmentationPtr(ModelItemPtr &item)
+SegmentationPtr EspINA::segmentationPtr(ModelItemPtr item)
 {
   Q_ASSERT(SEGMENTATION == item->type());
-  SegmentationPtr ptr = qSharedPointerDynamicCast<Segmentation>(item);
-  Q_ASSERT(!ptr.isNull());
+  SegmentationPtr ptr = dynamic_cast<SegmentationPtr>(item);
+  Q_ASSERT(ptr);
 
   return ptr;
 }
 
 //------------------------------------------------------------------------
-SegmentationPtr EspINA::segmentationPtr(PickableItemPtr& item)
+SegmentationPtr EspINA::segmentationPtr(PickableItemPtr item)
 {
   Q_ASSERT(EspINA::SEGMENTATION == item->type());
-  SegmentationPtr ptr = qSharedPointerDynamicCast<Segmentation>(item);
+  SegmentationPtr ptr = dynamic_cast<SegmentationPtr>(item);
+  Q_ASSERT(ptr);
+
+  return ptr;
+}
+
+//------------------------------------------------------------------------
+SegmentationSPtr EspINA::segmentationPtr(SharedModelItemPtr &item)
+{
+  Q_ASSERT(SEGMENTATION == item->type());
+  SegmentationSPtr ptr = qSharedPointerDynamicCast<Segmentation>(item);
+  Q_ASSERT(!ptr.isNull());
+
+  return ptr;
+}
+
+
+//------------------------------------------------------------------------
+SegmentationSPtr EspINA::segmentationPtr(SharedPickableItemPtr &item)
+{
+  Q_ASSERT(SEGMENTATION == item->type());
+  SegmentationSPtr ptr = qSharedPointerDynamicCast<Segmentation>(item);
   Q_ASSERT(!ptr.isNull());
 
   return ptr;

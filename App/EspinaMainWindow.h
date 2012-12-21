@@ -27,6 +27,7 @@
 
 #include <Core/Interfaces/IDynamicMenu.h>
 #include <Core/EspinaTypes.h>
+#include <Core/Model/EspinaModel.h>
 
 #include <QTimer>
 
@@ -53,7 +54,7 @@ namespace EspINA
   {
     Q_OBJECT
   public:
-    explicit EspinaMainWindow();
+    explicit EspinaMainWindow(ViewManager *viewManager);
     virtual ~EspinaMainWindow();
 
   public slots:
@@ -100,16 +101,18 @@ namespace EspINA
   private:
     // EspINA
     EspinaFactoryPtr m_factory;
-    EspinaModelPtr   m_model;
-    QUndoStack      *m_undoStack;
-    ViewManager     *m_viewManager;
-    GeneralSettings *m_settings;
+    EspinaModelSPtr   m_model;
+    QUndoStack       *m_undoStack;
+    ViewManager      *m_viewManager;
+    GeneralSettings  *m_settings;
 
     // GUI
+    QMenu           *m_addMenu;
+    QAction         *m_saveAnalysis;
+    QAction         *m_closeAnalysis;
     QMenu           *m_viewMenu;
     ColorEngineMenu *m_colorEngines;
     QMenu           *m_dockMenu;
-    QMenu           *m_addMenu;
 
     MainToolBar *m_mainToolBar;
     DefaultEspinaView *m_view;

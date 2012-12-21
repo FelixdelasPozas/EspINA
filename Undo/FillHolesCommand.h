@@ -23,6 +23,7 @@
 #include <QUndoStack>
 
 #include <Core/Model/Segmentation.h>
+#include <Core/Model/EspinaModel.h>
 
 namespace EspINA
 {
@@ -31,18 +32,18 @@ class FillHolesCommand
 : public QUndoCommand
 {
 public:
-  explicit FillHolesCommand(SegmentationList inputs, EspinaModelPtr model);
+  explicit FillHolesCommand(SegmentationList inputs, EspinaModelSPtr model);
   virtual ~FillHolesCommand();
 
   virtual void redo();
   virtual void undo();
 
 private:
-  EspinaModelPtr m_model;
+  EspinaModelSPtr m_model;
 
-  typedef QPair<FilterPtr, Filter::OutputId> Connection;
+  typedef QPair<FilterSPtr, Filter::OutputId> Connection;
 
-  SegmentationList  m_segmentations;
+  SharedSegmentationList  m_segmentations;
   QList<Connection> m_oldConnections, m_newConnections;
 };
 

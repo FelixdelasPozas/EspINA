@@ -28,10 +28,10 @@
 using namespace EspINA;
 
 //----------------------------------------------------------------------------
-SplitUndoCommand::SplitUndoCommand(SegmentationPtr input,
-                                   FilterPtr       filter,
-                                   SegmentationPtr splitSeg[2],
-                                   EspinaModelPtr  model)
+SplitUndoCommand::SplitUndoCommand(SegmentationSPtr input,
+                                   FilterSPtr       filter,
+                                   SegmentationSPtr splitSeg[2],
+                                   EspinaModelSPtr  model)
 : m_model(model)
 , m_channel(input->channel())
 , m_sample(m_channel->sample())
@@ -39,7 +39,8 @@ SplitUndoCommand::SplitUndoCommand(SegmentationPtr input,
 , m_filter(filter)
 , m_relations(input->relations())
 {
-  memcpy(m_subSeg, splitSeg, 2*sizeof(Segmentation*));
+  m_subSeg[0] = splitSeg[0];
+  m_subSeg[1] = splitSeg[1];
 }
 
 //----------------------------------------------------------------------------
@@ -57,7 +58,7 @@ void SplitUndoCommand::redo()
 
   m_model->addRelation(m_seg->filter(), m_filter, SplitFilter::INPUTLINK);
   // Remove Segmentation Relations
-  foreach(ModelItem::Relation rel, m_relations)
+  foreach(Relation rel, m_relations)
   {
     m_model->removeRelation(rel.ancestor, rel.succesor, rel.relation);
   }
@@ -70,7 +71,7 @@ void SplitUndoCommand::redo()
   {
     m_model->addSegmentation(m_subSeg[i]);
 
-    m_model->addRelation(m_filter,  m_subSeg[i], CREATELINK);
+    m_model->addRelation(m_filter,  m_subSeg[i], Filter::CREATELINK);
     m_model->addRelation(m_sample,  m_subSeg[i], Sample::WHERE);
     m_model->addRelation(m_channel, m_subSeg[i], Channel::LINK);
 
@@ -84,7 +85,7 @@ void SplitUndoCommand::undo()
   // Remove segmentations
   for (int i = 0; i < 2;  i++)
   {
-    foreach(ModelItem::Relation relation,  m_subSeg[i]->relations())
+    foreach(Relation relation,  m_subSeg[i]->relations())
     {
       m_model->removeRelation(relation.ancestor, relation.succesor, relation.relation);
     }
@@ -93,7 +94,7 @@ void SplitUndoCommand::undo()
   }
 
   // Remove filter
-  foreach(ModelItem::Relation relation,  m_filter->relations())
+  foreach(Relation relation,  m_filter->relations())
   {
     m_model->removeRelation(relation.ancestor, relation.succesor, relation.relation);
   }
@@ -101,7 +102,7 @@ void SplitUndoCommand::undo()
 
   // Restore input segmentation
   m_model->addSegmentation(m_seg);
-  foreach(ModelItem::Relation rel, m_relations)
+  foreach(Relation rel, m_relations)
   {
     m_model->addRelation(rel.ancestor, rel.succesor, rel.relation);
   }

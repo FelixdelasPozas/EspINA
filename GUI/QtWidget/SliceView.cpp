@@ -494,6 +494,9 @@ void SliceView::setupUI()
 //-----------------------------------------------------------------------------
 SliceView::~SliceView()
 {
+  qDebug() << "********************************************************";
+  qDebug() << "              Destroying Slice View" << m_plane;
+  qDebug() << "********************************************************";
   m_viewManager->unregisterView(this);
   delete m_state;
 }
@@ -722,7 +725,7 @@ void SliceView::addChannel(ChannelPtr channel)
     resetCamera();
 
   m_channelPicker->AddPickList(channelRep.slice);
-  connect(channel.data(), SIGNAL(modified(ModelItem*)),
+  connect(channel, SIGNAL(modified(ModelItem*)),
           this, SLOT(updateSceneBounds()));
 
   addChannelBounds(channel);
@@ -1005,6 +1008,9 @@ void SliceView::removeWidget(EspinaWidget *eWidget)
   if (!m_widgets.contains(eWidget))
     return;
 
+  vtkAbstractWidget *widget = *m_widgets[eWidget];
+  widget->Off();
+  widget->SetInteractor(NULL);
   m_widgets.remove(eWidget);
 }
 

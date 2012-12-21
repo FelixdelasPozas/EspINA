@@ -168,7 +168,6 @@ void RelationshipGraph::addItem(ModelItemPtr item)
   // TODO: Check if item's been already added to the graph
   VertexId v = add_vertex(m_graph);
   m_graph[v].item = item;
-  item->m_vertex = vertex(item);
   //   qDebug() << item->data(Qt::DisplayRole) << " = " << v;
 }
 
@@ -190,10 +189,10 @@ void RelationshipGraph::updateVertexInformation()
   {
     VertexProperty &vertex = m_graph[*vi];
     ModelItemPtr item = vertex.item;
-    if (item.isNull())
+    if (!item)
       continue;
-    Q_ASSERT(item.data());
-    vertex.vId  = item->m_vertex;
+    Q_ASSERT(item);
+    //vertex.vId  = item->m_vertex;
     switch (item->type())
     {
       case SAMPLE:
@@ -204,16 +203,14 @@ void RelationshipGraph::updateVertexInformation()
         break;
       case SEGMENTATION:
       {
-        SegmentationPtr seg = qSharedPointerDynamicCast<Segmentation>(item);
-        Q_ASSERT(!seg.isNull());
+        SegmentationPtr seg = segmentationPtr(item);
         seg->updateCacheFlag();
         vertex.shape = SEGMENTATION_SHAPE;
         break;
       }
       case FILTER:
       {
-        FilterPtr filter = qSharedPointerDynamicCast<Filter>(item);
-        Q_ASSERT(!filter.isNull());
+        FilterPtr filter = filterPtr(item);
         filter->setTmpId(id++);
         filter->updateCacheFlags();
         vertex.shape = FILTER_SHAPE;
@@ -228,16 +225,16 @@ void RelationshipGraph::updateVertexInformation()
   {
     VertexProperty &vertex = m_graph[*vi];
     ModelItemPtr item = vertex.item;
-    if (item.isNull())
+    if (!item)
       continue;
-    Q_ASSERT(!item.isNull());
+    Q_ASSERT(item);
     vertex.name = item->data(Qt::DisplayRole).toString().toStdString();
     vertex.args = item->serialize().toStdString();
   }
 }
 
 //-----------------------------------------------------------------------------
-RelationshipGraph::VertexDescriptor RelationshipGraph::vertex(ModelItem* item)
+RelationshipGraph::VertexDescriptor RelationshipGraph::vertex(ModelItemPtr item)
 {
   //   qDebug() << "Previous id" << item->m_vertex;
   VertexIterator vi, vi_end;
@@ -249,12 +246,6 @@ RelationshipGraph::VertexDescriptor RelationshipGraph::vertex(ModelItem* item)
 
   Q_ASSERT(false);
   return *vi;
-}
-
-//-----------------------------------------------------------------------------
-RelationshipGraph::VertexDescriptor RelationshipGraph::vertex(ModelItemPtr item)
-{
-  return vertex(item.data());
 }
 
 //-----------------------------------------------------------------------------

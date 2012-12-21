@@ -24,7 +24,7 @@
 using namespace EspINA;
 
 //----------------------------------------------------------------------------
-DataViewPanel::DataViewPanel(EspinaModelPtr model,
+DataViewPanel::DataViewPanel(EspinaModelSPtr model,
                              ViewManager *vm,
                              QWidget* parent)
 : QDockWidget(parent)

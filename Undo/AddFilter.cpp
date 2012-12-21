@@ -24,8 +24,8 @@
 using namespace EspINA;
 
 //------------------------------------------------------------------------
-AddFilter::AddFilter(FilterPtr     filter,
-                     EspinaModelPtr model,
+AddFilter::AddFilter(FilterSPtr     filter,
+                     EspinaModelSPtr model,
                      QUndoCommand  *parent)
 : QUndoCommand(parent)
 , m_model (model )

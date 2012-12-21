@@ -49,6 +49,7 @@ void QComboTreeView::setModel(QAbstractItemModel* model)
   }
 }
 
+
 //----------------------------------------------------------------------------
 void QComboTreeView::setRootModelIndex(const QModelIndex& index)
 {
@@ -79,6 +80,10 @@ void QComboTreeView::indexEntered(const QModelIndex& index)
 //----------------------------------------------------------------------------
 void QComboTreeView::indexActivated()
 {
-  emit activated(m_currentModelIndex);
+  QModelIndex index;
+  if (count())
+    index = m_currentModelIndex;
+
+  emit activated(index);
 }
 

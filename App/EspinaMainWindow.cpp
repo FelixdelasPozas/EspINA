@@ -72,12 +72,12 @@ using namespace EspINA;
 const QString AUTOSAVE_FILE = "espina-autosave.seg";
 
 //------------------------------------------------------------------------
-EspinaMainWindow::EspinaMainWindow()
+EspinaMainWindow::EspinaMainWindow(ViewManager* viewManager)
 : m_view(NULL)
 , m_factory    (new EspinaFactory())
 , m_model      (new EspinaModel(m_factory))
 , m_undoStack  (new QUndoStack())
-, m_viewManager(new ViewManager())
+, m_viewManager(viewManager)
 , m_settings   (new GeneralSettings())
 , m_busy(false)
 {
@@ -103,7 +103,7 @@ EspinaMainWindow::EspinaMainWindow()
   /*** FILE MENU ***/
   QMenu *fileMenu = new QMenu(tr("File"));
   {
-    QMenu *openMenu = new QMenu(tr("&Open"));
+    QMenu *openMenu = fileMenu->addMenu(tr("&Open"));
     {
       openMenu->setIcon(openIcon);
       openMenu->setToolTip(tr("Open New Analysis"));
@@ -123,7 +123,7 @@ EspinaMainWindow::EspinaMainWindow()
 
     }
 
-    m_addMenu = new QMenu(tr("&Add"),this);
+    m_addMenu = fileMenu->addMenu(tr("&Add"));
     {
       m_addMenu->setIcon(addIcon);
       m_addMenu->setToolTip(tr("Add File to Analysis"));
@@ -136,22 +136,31 @@ EspinaMainWindow::EspinaMainWindow()
       m_addMenu->addActions(m_recentDocuments2.list());
 
       for (int i = 0; i < m_recentDocuments2.list().size(); i++)
-        connect(m_recentDocuments2.list()[i], SIGNAL(triggered()), this, SLOT(openRecentAnalysis()));
+      {
+        connect(m_recentDocuments2.list()[i], SIGNAL(triggered()),
+                this, SLOT(openRecentAnalysis()));
+      }
 
-      connect(m_addMenu, SIGNAL(aboutToShow()), this, SLOT(addState()));
-      connect(addAction, SIGNAL(triggered(bool)), this, SLOT(addToAnalysis()));
+      connect(m_addMenu, SIGNAL(aboutToShow()),
+              this, SLOT(addState()));
+      connect(addAction, SIGNAL(triggered(bool)),
+              this, SLOT(addToAnalysis()));
     }
 
-    QAction *saveAnalysis = new QAction(saveIcon, tr("&Save"),this);
-    connect(saveAnalysis,SIGNAL(triggered(bool)), this,SLOT(saveAnalysis()));
+    m_saveAnalysis = fileMenu->addAction(saveIcon, tr("&Save"));
+    m_saveAnalysis->setEnabled(false);
+    connect(m_saveAnalysis, SIGNAL(triggered(bool)),
+            this,SLOT(saveAnalysis()));
 
-    QAction *exit = new QAction(tr("&Exit"), this);
-    connect(exit, SIGNAL(triggered(bool)), QApplication::instance(), SLOT(quit()));
+    m_closeAnalysis = fileMenu->addAction(tr("&Close"));
+    m_closeAnalysis->setEnabled(false);
+    connect(m_closeAnalysis, SIGNAL(triggered(bool)),
+            this, SLOT(closeCurrentAnalysis()));
 
-    fileMenu->addMenu(openMenu);
-    fileMenu->addMenu(m_addMenu);
-    fileMenu->addAction(saveAnalysis);
-    fileMenu->addAction(exit);
+    QAction *exit = fileMenu->addAction(tr("&Exit"));
+    connect(exit, SIGNAL(triggered(bool)),
+            this, SLOT(close()));
+
   }
 
   connect(fileMenu, SIGNAL(triggered(QAction*)), this, SLOT(openRecentAnalysis()));
@@ -203,59 +212,70 @@ EspinaMainWindow::EspinaMainWindow()
   }
   menuBar()->addMenu(settingsMenu);
 
+
   m_mainToolBar = new MainToolBar(m_model, m_undoStack, m_viewManager);
   addToolBar(m_mainToolBar);
+
   ZoomToolBar *zoomToolBar = new ZoomToolBar(m_viewManager);
-  connect(this, SIGNAL(analysisClosed()), zoomToolBar, SLOT(resetState()));
+  connect(this, SIGNAL(analysisClosed()),
+          zoomToolBar, SLOT(reset()));
   addToolBar(zoomToolBar);
-  VolumeOfInterest *voiBar = new VolumeOfInterest(m_model, m_viewManager);
-  addToolBar(voiBar);
-  SeedGrowSegmentation *seedBar = new SeedGrowSegmentation(m_model, m_undoStack, m_viewManager);
-  connect(this, SIGNAL(analysisClosed()), seedBar, SLOT(cancelSegmentationOperation()));
-  addToolBar(seedBar);
-  EditorToolBar *editorBar = new EditorToolBar(m_model, m_undoStack, m_viewManager);
-  connect(this, SIGNAL(analysisClosed()), editorBar, SLOT(resetState()));
-  addToolBar(editorBar);
-  CompositionToolBar *compositionBar = new CompositionToolBar(m_model, m_undoStack, m_viewManager);
-  addToolBar(compositionBar);
 
-  ChannelExplorer *channelExplorer = new ChannelExplorer(m_model, m_viewManager, this);
-  addDockWidget(Qt::LeftDockWidgetArea, channelExplorer);
-  m_dockMenu->addAction(channelExplorer->toggleViewAction());
+  VolumeOfInterest *voiToolBar = new VolumeOfInterest(m_model, m_viewManager);
+  connect(this, SIGNAL(analysisClosed()),
+          voiToolBar, SLOT(reset()));
+  addToolBar(voiToolBar);
 
-  DataViewPanel *dataView = new DataViewPanel(m_model, m_viewManager, this);
-  addDockWidget(Qt::BottomDockWidgetArea, dataView);
-  m_dynamicMenuRoot->submenus[0]->menu->addAction(dataView->toggleViewAction());
+  SeedGrowSegmentation *seedToolBar = new SeedGrowSegmentation(m_model, m_undoStack, m_viewManager);
+  connect(this, SIGNAL(analysisClosed()),
+          seedToolBar, SLOT(reset()));
+  addToolBar(seedToolBar);
 
-  QAction *connectomicsAction = new QAction(tr("Connectomics Information"), this);
-  m_dynamicMenuRoot->submenus[0]->menu->addAction(connectomicsAction);
-  connect(connectomicsAction, SIGNAL(triggered()), this, SLOT(showConnectomicsInformation()));
+  EditorToolBar *editorToolBar = new EditorToolBar(m_model, m_undoStack, m_viewManager);
+  connect(this, SIGNAL(analysisClosed()),
+          editorToolBar, SLOT(reset()));
+  addToolBar(editorToolBar);
 
-  FilterInspector *filterInspector = new FilterInspector(m_undoStack, m_viewManager, this);
-  addDockWidget(Qt::LeftDockWidgetArea, filterInspector);
-  m_dockMenu->addAction(filterInspector->toggleViewAction());
+//   CompositionToolBar *compositionBar = new CompositionToolBar(m_model, m_undoStack, m_viewManager);
+//   addToolBar(compositionBar);
 
-  //SegmentationExplorer *segExplorer = new SegmentationExplorer(m_model, m_undoStack, m_viewManager, this);
-  //addDockWidget(Qt::LeftDockWidgetArea, segExplorer);
-  //m_dockMenu->addAction(segExplorer->toggleViewAction());
-
-  TaxonomyExplorer *taxExplorer = new TaxonomyExplorer(m_model, m_viewManager, taxonomyEngine, this);
-  addDockWidget(Qt::LeftDockWidgetArea, taxExplorer);
-  m_dockMenu->addAction(taxExplorer->toggleViewAction());
-
-  loadPlugins();
-
+//   ChannelExplorer *channelExplorer = new ChannelExplorer(m_model, m_viewManager, this);
+//   addDockWidget(Qt::LeftDockWidgetArea, channelExplorer);
+//   m_dockMenu->addAction(channelExplorer->toggleViewAction());
+// 
+//   DataViewPanel *dataView = new DataViewPanel(m_model, m_viewManager, this);
+//   addDockWidget(Qt::BottomDockWidgetArea, dataView);
+//   m_dynamicMenuRoot->submenus[0]->menu->addAction(dataView->toggleViewAction());
+// 
+//   QAction *connectomicsAction = new QAction(tr("Connectomics Information"), this);
+//   m_dynamicMenuRoot->submenus[0]->menu->addAction(connectomicsAction);
+//   connect(connectomicsAction, SIGNAL(triggered()), this, SLOT(showConnectomicsInformation()));
+// 
+//   FilterInspector *filterInspector = new FilterInspector(m_undoStack, m_viewManager, this);
+//   addDockWidget(Qt::LeftDockWidgetArea, filterInspector);
+//   m_dockMenu->addAction(filterInspector->toggleViewAction());
+// 
+//   SegmentationExplorer *segExplorer = new SegmentationExplorer(m_model, m_undoStack, m_viewManager, this);
+//   addDockWidget(Qt::LeftDockWidgetArea, segExplorer);
+//   m_dockMenu->addAction(segExplorer->toggleViewAction());
+// 
+//   TaxonomyExplorer *taxExplorer = new TaxonomyExplorer(m_model, m_viewManager, taxonomyEngine, this);
+//   addDockWidget(Qt::LeftDockWidgetArea, taxExplorer);
+//   m_dockMenu->addAction(taxExplorer->toggleViewAction());
+// 
+//   loadPlugins();
+/*
   m_colorEngines->restoreUserSettings();
   m_viewMenu->addMenu(m_dockMenu);
-  m_viewMenu->addSeparator();
+  m_viewMenu->addSeparator();*/
 
   DefaultEspinaView *defaultView = new DefaultEspinaView(m_model, m_viewManager, this);
 
   statusBar()->clearMessage();
 
   defaultView->createViewMenu(m_viewMenu);
-  connect(m_mainToolBar, SIGNAL(showSegmentations(bool)),
-          defaultView, SLOT(showSegmentations(bool)));
+//   connect(m_mainToolBar, SIGNAL(showSegmentations(bool)),
+//           defaultView, SLOT(showSegmentations(bool)));
   m_view = defaultView;
 
   QSettings settings(CESVIMA, ESPINA);
@@ -276,6 +296,10 @@ EspinaMainWindow::EspinaMainWindow()
 //------------------------------------------------------------------------
 EspinaMainWindow::~EspinaMainWindow()
 {
+  qDebug() << "********************************************************";
+  qDebug() << "              Destroying Main Window";
+  qDebug() << "********************************************************";
+  delete m_undoStack;
 }
 
 //------------------------------------------------------------------------
@@ -484,12 +508,10 @@ void EspinaMainWindow::closeEvent(QCloseEvent* event)
   settings.sync();
   event->accept();
 
-  m_model->reset();
+  closeCurrentAnalysis();
 
   QDir autosavePath = m_settings->autosavePath();
   autosavePath.remove(AUTOSAVE_FILE);
-
-  exit(0);
 }
 
 //------------------------------------------------------------------------
@@ -497,11 +519,15 @@ void EspinaMainWindow::closeCurrentAnalysis()
 {
   m_viewManager->setActiveChannel(ChannelPtr());
   m_viewManager->setActiveTaxonomy(TaxonomyElementPtr());
-  m_viewManager->setVOI(NULL);
+  m_viewManager->unsetActiveVOI();
   m_viewManager->unsetActiveTool();
   m_viewManager->clearSelection();
-  m_model->reset();
   m_undoStack->clear();
+  m_model->reset();
+
+  m_addMenu      ->setEnabled(false);
+  m_saveAnalysis ->setEnabled(false);
+  m_closeAnalysis->setEnabled(false);
 
   emit analysisClosed();
 }
@@ -574,7 +600,7 @@ void EspinaMainWindow::openAnalysis(const QString &file)
 
   if (m_model->taxonomy().isNull())
   {
-    TaxonomyPtr defaultTaxonomy = IOTaxonomy::openXMLTaxonomy(":/espina/defaultTaxonomy.xml");
+    SharedTaxonomyPtr defaultTaxonomy = IOTaxonomy::openXMLTaxonomy(":/espina/defaultTaxonomy.xml");
     //defaultTaxonomy->print();
     m_model->setTaxonomy(defaultTaxonomy);
   } else
@@ -602,7 +628,12 @@ void EspinaMainWindow::openAnalysis(const QString &file)
   }
 
   Q_ASSERT(!m_model->channels().isEmpty());
-  m_viewManager->setActiveChannel(m_model->channels().first());
+
+  m_addMenu      ->setEnabled(true);
+  m_saveAnalysis ->setEnabled(true);
+  m_closeAnalysis->setEnabled(true);
+
+  m_viewManager->setActiveChannel(m_model->channels().first().data());
   setWindowTitle(m_viewManager->activeChannel()->data().toString());
   m_viewManager->updateSegmentationRepresentations();
   m_viewManager->updateViews();
@@ -739,11 +770,11 @@ void EspinaMainWindow::showPreferencesDialog()
 {
   SettingsDialog dialog;
 
-  ISettingsPanelPtr settingsPanel(new GeneralSettingsPanel(m_settings));
+  ISettingsPanelPrototype settingsPanel(new GeneralSettingsPanel(m_settings));
   dialog.registerPanel(settingsPanel);
   dialog.registerPanel(m_view->settingsPanel());
 
-  foreach(ISettingsPanelPtr panel, m_factory->settingsPanels())
+  foreach(ISettingsPanelPrototype panel, m_factory->settingsPanels())
   {
     dialog.registerPanel(panel);
   }

@@ -48,7 +48,7 @@ ChannelProxy::~ChannelProxy()
 }
 
 //------------------------------------------------------------------------
-void ChannelProxy::setSourceModel(EspinaModelPtr sourceModel)
+void ChannelProxy::setSourceModel(EspinaModelSPtr sourceModel)
 {
   m_model = sourceModel;
   connect(sourceModel.data(), SIGNAL(rowsInserted(const QModelIndex&, int, int)),
@@ -75,7 +75,7 @@ QVariant ChannelProxy::data(const QModelIndex& proxyIndex, int role) const
     {
       if (Qt::DisplayRole == role)
       {
-        SamplePtr sample = qSharedPointerDynamicCast<Sample>(item);
+        SamplePtr sample = samplePtr(item);
         int numSegs = numChannels(sample);
         QString suffix = (numSegs>0)?QString(" (%1)").arg(numChannels(sample)):QString();
         return item->data(role).toString() + suffix;
@@ -121,7 +121,7 @@ int ChannelProxy::rowCount(const QModelIndex& parent) const
   int rows = 0;
   if (SAMPLE == parentItem->type())
   {
-    SamplePtr sample = qSharedPointerDynamicCast<Sample>(parentItem);
+    SamplePtr sample = samplePtr(parentItem);
     rows = numSubSamples(sample) + numChannels(sample);
   }
   return rows;
@@ -218,10 +218,10 @@ QModelIndex ChannelProxy::mapFromSource(const QModelIndex& sourceIndex) const
     {
       ChannelPtr channel = channelPtr(sourceItem);
       Q_ASSERT(channel);
-      ModelItemList samples = channel->relatedItems(EspINA::IN, Channel::STAINLINK);
+      SharedModelItemList samples = channel->relatedItems(EspINA::IN, Channel::STAINLINK);
       if (samples.size() > 0)
       {
-        SamplePtr sample = samplePtr(samples[0]);
+        SamplePtr sample = samplePtr(samples[0].data());
         int row = m_channels[sample].indexOf(sourceItem);
         if (row >= 0)
         {
@@ -245,22 +245,19 @@ QModelIndex ChannelProxy::mapToSource(const QModelIndex& proxyIndex) const
     return QModelIndex();
 
   ModelItemPtr proxyItem = indexPtr(proxyIndex);
-  Q_ASSERT(!proxyItem.isNull());
 
   QModelIndex sourceIndex;
   switch (proxyItem->type())
   {
     case SAMPLE:
     {
-      SamplePtr proxySample = qSharedPointerDynamicCast<Sample>(proxyItem);
-      Q_ASSERT(!proxySample.isNull());
+      SamplePtr proxySample = samplePtr(proxyItem);
       sourceIndex = m_model->sampleIndex(proxySample);
       break;
     }
     case CHANNEL:
     {
-      ChannelPtr proxyChannel = qSharedPointerDynamicCast<Channel>(proxyItem);
-      Q_ASSERT(!proxyChannel.isNull());
+      ChannelPtr proxyChannel = channelPtr(proxyItem);
       sourceIndex = m_model->channelIndex(proxyChannel);
       break;
     }
@@ -278,7 +275,7 @@ int ChannelProxy::numChannels(QModelIndex sampleIndex, bool recursive) const
   if (SAMPLE != item->type())
     return 0;
 
-  SamplePtr sample = qSharedPointerDynamicCast<Sample>(item);
+  SamplePtr sample = samplePtr(item);
   int total = numChannels(sample);
   return total;
 }
@@ -346,7 +343,7 @@ void ChannelProxy::sourceRowsInserted(const QModelIndex& sourceParent, int start
       ModelItemPtr sourceItem = indexPtr(sourceIndex);
       Q_ASSERT(EspINA::CHANNEL == sourceItem->type());
       ChannelPtr channel = channelPtr(sourceItem);
-      SamplePtr sample = channel->sample();
+      SamplePtr sample = channel->sample().data();
       if (sample)
         relations[sample] << sourceItem;
     }
@@ -464,11 +461,15 @@ void ChannelProxy::sourceDataChanged(const QModelIndex& sourceTopLeft,
       if (EspINA::SAMPLE == proxyItem->type())
       {
         SamplePtr sample = samplePtr(proxyItem);
-        ModelItemList channels = sample->relatedItems(EspINA::OUT,
-                                                      Channel::STAINLINK);
+        SharedModelItemList channels = sample->relatedItems(EspINA::OUT,
+                                                            Channel::STAINLINK);
         ChannelSet prevChannels = m_channels[sample].toSet();
         // 	debugSet("Previous Channels", prevSegs);
-        ChannelSet currentChannels = channels.toSet();
+        ChannelSet currentChannels;
+        foreach(SharedModelItemPtr channel, channels)
+        {
+          currentChannels << channel.data();
+        }
         // 	debugSet("Current Channels", currentSegs);
         // We need to copy currentSegs to avoid emptying it
         ChannelSet newChannels = ChannelSet(currentChannels).subtract(prevChannels);

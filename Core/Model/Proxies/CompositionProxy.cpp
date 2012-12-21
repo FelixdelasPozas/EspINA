@@ -38,7 +38,7 @@ CompositionProxy::~CompositionProxy()
 }
 
 //------------------------------------------------------------------------
-void CompositionProxy::setSourceModel(EspinaModelPtr sourceModel)
+void CompositionProxy::setSourceModel(EspinaModelSPtr sourceModel)
 {
   m_sourceModel = sourceModel;
 
@@ -166,8 +166,8 @@ QModelIndex CompositionProxy::mapFromSource(const QModelIndex& sourceIndex) cons
 
   SegmentationPtr seg = segmentationPtr(sourceItem);
 
-  ModelItemList compositions = seg->relatedItems(EspINA::IN,
-                                                 Segmentation::COMPOSED_LINK);
+  SharedModelItemList compositions = seg->relatedItems(EspINA::IN,
+                                                       Segmentation::COMPOSED_LINK);
 
   Q_ASSERT(compositions.size() <= 1);
 
@@ -177,7 +177,7 @@ QModelIndex CompositionProxy::mapFromSource(const QModelIndex& sourceIndex) cons
     row = m_rootSegmentations.indexOf(seg);
   else
   {
-    SegmentationPtr superSeg = segmentationPtr(compositions.first());
+    SegmentationPtr superSeg = segmentationPtr(compositions.first().data());
     row = m_components[superSeg].indexOf(sourceItem);
   }
 
@@ -240,12 +240,19 @@ bool CompositionProxy::dropMimeData(const QMimeData* data, Qt::DropAction action
     QString segName = roleDataMap[Qt::ToolTipRole].toString();
     SegmentationPtr seg = findSegmentation(segName);
     Q_ASSERT(seg);
+    SegmentationSPtr segPtr = m_sourceModel->findSegmentation(seg);
 
     SegmentationPtr prevParentSeg = parentSegmentation(seg);
     if (prevParentSeg)
-      m_sourceModel->removeRelation(prevParentSeg, seg, Segmentation::COMPOSED_LINK);
+    {
+      SegmentationSPtr prevParentSegPtr = m_sourceModel->findSegmentation(prevParentSeg);
+      m_sourceModel->removeRelation(prevParentSegPtr, segPtr, Segmentation::COMPOSED_LINK);
+    }
     if (newParentSeg)
-      m_sourceModel->addRelation(newParentSeg, seg, Segmentation::COMPOSED_LINK);
+    {
+      SegmentationSPtr newParentSegPtr = m_sourceModel->findSegmentation(newParentSeg);
+      m_sourceModel->addRelation(newParentSegPtr, segPtr, Segmentation::COMPOSED_LINK);
+    }
   }
 
   return true;
@@ -345,7 +352,7 @@ void CompositionProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, const
 
       int i = 0;
       SegmentationPtr prevParentSeg;
-      while (prevParentSeg.isNull() && i < m_components.size())
+      while (!prevParentSeg && i < m_components.size())
       {
         SegmentationPtr key = m_components.keys().at(i);
         if (m_components[key].contains(sourceItem))
@@ -430,14 +437,14 @@ bool CompositionProxy::indices(const QModelIndex& topLeft, const QModelIndex& bo
 SegmentationPtr CompositionProxy::parentSegmentation(ModelItemPtr segItem) const
 {
   // TODO 2012-12-17 Usar api del modelo!
-  ModelItemList parentItem = segItem->relatedItems(EspINA::IN,
-                                                       Segmentation::COMPOSED_LINK);
+  SharedModelItemList parentItem = segItem->relatedItems(EspINA::IN,
+                                                         Segmentation::COMPOSED_LINK);
 
-  SegmentationPtr parentSeg;
+  SegmentationPtr parentSeg = NULL;
   if (!parentItem.isEmpty())
   {
     Q_ASSERT(parentItem.size() == 1);
-    parentSeg = segmentationPtr(parentItem.first());
+    parentSeg = segmentationPtr(parentItem.first().data());
   }
 
   return parentSeg;

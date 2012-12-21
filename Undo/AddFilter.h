@@ -23,6 +23,7 @@
 #include <QUndoCommand>
 
 #include "Core/Model/Filter.h"
+#include <Core/Model/EspinaModel.h>
 
 namespace EspINA
 {
@@ -30,17 +31,17 @@ class AddFilter
 : public QUndoCommand
 {
 public:
-  explicit AddFilter(FilterPtr      filter,
-                     EspinaModelPtr model,
+  explicit AddFilter(FilterSPtr      filter,
+                     EspinaModelSPtr model,
                      QUndoCommand  *parent = 0);
 
   virtual void redo();
   virtual void undo();
 
 private:
-  EspinaModelPtr m_model;
+  EspinaModelSPtr m_model;
 
-  FilterPtr m_filter;
+  FilterSPtr m_filter;
 };
 
 } // namespace EspINA

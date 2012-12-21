@@ -66,8 +66,10 @@ public:
   virtual void accept();
   virtual void reject();
 
-  void registerPanel(ISettingsPanelPtr panel);
-  ISettingsPanelPtr  panel(const QString &shortDesc);
+  void registerPanel(ISettingsPanelPrototype panel);
+
+private:
+  ISettingsPanelPrototype panel(const QString &shortDesc);
 
 
 public slots:
@@ -75,7 +77,7 @@ public slots:
 
 private:
   ISettingsPanelPtr  m_activePanel;
-  ISettingsPanelList m_panels;
+  ISettingsPanelPrototypeList m_panels;
 };
 
 } // namespace EspINA

@@ -36,7 +36,7 @@ namespace EspINA
      * @return Success if no other error is reported.
      */
     static STATUS loadFile(QFileInfo file,
-                           EspinaModelPtr model,
+                           EspinaModelSPtr model,
                            QUndoStack* undoStack,
                            QDir tmpDir);
 
@@ -50,9 +50,9 @@ namespace EspINA
      * @return Success if no other error is reported.
      */
     static STATUS loadChannel(QFileInfo file,
-                              EspinaModelPtr model,
+                              EspinaModelSPtr model,
                               QUndoStack *undoStack,
-                              ChannelPtr &channelPtr);
+                              SharedChannelPtr &channelPtr);
 
     /**
      * Loads a seg file which must contain at least a trace and a taxonomy file.
@@ -62,7 +62,7 @@ namespace EspINA
      * @return Success if no other error is reported.
      */
     static STATUS loadSegFile(QFileInfo file,
-                              EspinaModelPtr model,
+                              EspinaModelSPtr model,
                               QDir tmpDir);
 
     /**
@@ -70,7 +70,7 @@ namespace EspINA
      * @param filepath is the path where the model must be saved
      * @param model is the EspinaModel which is saved in @param file
      */
-    static STATUS saveSegFile(QFileInfo file, EspinaModelPtr model);
+    static STATUS saveSegFile(QFileInfo file, EspinaModelSPtr model);
 
   private:
     /**
@@ -91,17 +91,17 @@ namespace EspINA
   class IOTaxonomy
   {
   public:
-    static TaxonomyPtr openXMLTaxonomy(QString fileName);
-    static TaxonomyPtr loadXMLTaxonomy(QString content);
-    static void writeXMLTaxonomy(TaxonomyPtr tax, QString& destination);
+    static SharedTaxonomyPtr openXMLTaxonomy(QString fileName);
+    static SharedTaxonomyPtr loadXMLTaxonomy(QString content);
+    static void writeXMLTaxonomy(SharedTaxonomyPtr tax, QString& destination);
 
   private:
     IOTaxonomy();
     ~IOTaxonomy();
 
-    static void writeTaxonomy(TaxonomyPtr tax, QXmlStreamWriter& stream);
-    static void writeTaxonomyElement(TaxonomyElementPtr node, QXmlStreamWriter& stream);
-    static TaxonomyPtr readXML(QXmlStreamReader &xmlStream);
+    static void writeTaxonomy(SharedTaxonomyPtr tax, QXmlStreamWriter& stream);
+    static void writeTaxonomyElement(SharedTaxonomyElementPtr node, QXmlStreamWriter& stream);
+    static SharedTaxonomyPtr readXML(QXmlStreamReader &xmlStream);
   };
 
 

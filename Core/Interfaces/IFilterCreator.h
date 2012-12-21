@@ -31,9 +31,9 @@ namespace EspINA
   public:
     virtual ~IFilterCreator(){}
 
-    virtual FilterPtr createFilter(const QString              &filter,
-                                   const Filter::NamedInputs  &inputs,
-                                   const ModelItem::Arguments &args) = 0;
+    virtual FilterSPtr createFilter(const QString              &filter,
+                                         const Filter::NamedInputs  &inputs,
+                                         const ModelItem::Arguments &args) = 0;
   };
 
 }// namespace EspINA

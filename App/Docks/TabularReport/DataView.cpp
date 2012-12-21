@@ -52,7 +52,7 @@ protected:
 };
 
 //------------------------------------------------------------------------
-DataView::DataView(EspinaModelPtr model,
+DataView::DataView(EspinaModelSPtr model,
                    ViewManager *vm,
                    QWidget     *parent,
                    Qt::WindowFlags f)

@@ -20,7 +20,8 @@
 
 #include <QToolBar>
 
-#include <Core/EspinaTypes.h>
+#include <Core/Model/EspinaModel.h>
+#include <Core/Interfaces/IToolBar.h>
 #include <GUI/Pickers/PixelPicker.h>
 #include <GUI/ViewManager.h>
 
@@ -31,33 +32,37 @@ class QAction;
 
 namespace EspINA
 {
-  class IVOI;
   class ViewManager;
 
-  /// Volume Of Interest Plugin
+  /// Volume Of Interest Toolbar
   class VolumeOfInterest
-  : public QToolBar
+  : public IToolBar
   {
     Q_OBJECT
   public:
-    explicit VolumeOfInterest(EspinaModelPtr model,
-                              ViewManager   *viewManager,
-                              QWidget       *parent=NULL);
+    explicit VolumeOfInterest(EspinaModelSPtr model,
+                              ViewManager    *viewManager,
+                              QWidget        *parent=NULL);
     virtual ~VolumeOfInterest();
 
+    virtual void initToolBar(EspinaModelSPtr model,
+                             QUndoStack      *undoStack,
+                             ViewManager     *viewManager);
   protected slots:
     void changeVOI(QAction *action);
     void cancelVOI();
+
+    virtual void reset();
 
   private:
     void buildVOIs();
 
   private:
-    EspinaModelPtr m_model;
-    ViewManager   *m_viewManager;
+    EspinaModelSPtr m_model;
+    ViewManager    *m_viewManager;
 
     ActionSelector  *m_voiSelector;
-    QMap<QAction *, IVOI *> m_vois;
+    QMap<QAction *, IVOISPtr> m_vois;
   };
 
 } // namespace EspINA

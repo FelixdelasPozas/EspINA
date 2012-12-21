@@ -34,6 +34,7 @@
 class QUndoStack;
 
 #include "EspinaConfig.h"
+#include <Core/Model/EspinaModel.h>
 #ifdef TEST_ESPINA_MODELS
 class ModelTest;
 #endif
@@ -52,7 +53,7 @@ namespace EspINA
     class Layout;
 
   public:
-    explicit SegmentationExplorer(EspinaModelPtr model,
+    explicit SegmentationExplorer(EspinaModelSPtr model,
                                   QUndoStack  *undoStack,
                                   ViewManager *vm,
                                   QWidget     *parent = 0);
@@ -78,12 +79,11 @@ namespace EspINA
 
     void releaseInspectorResources(SegmentationInspector *inspector);
 
-    virtual ISettingsPanel* settingsPanel();
     virtual void updateSegmentationRepresentations(SegmentationList list = SegmentationList());
     virtual void updateSelection();
 
   protected:
-    EspinaModelPtr m_baseModel;
+    EspinaModelSPtr m_baseModel;
     QUndoStack    *m_undoStack;
     ViewManager   *m_viewManager;
 

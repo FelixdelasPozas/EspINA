@@ -75,7 +75,7 @@ namespace EspINA
 
     //---------------------------------------------------------------------------
     /*************************** Selection API *********************************/
-    //---------------------------------------------------------------------------?
+    //---------------------------------------------------------------------------
   public:
     typedef QList<PickableItemPtr> Selection; // Ya esta definido en IPicker...
 
@@ -100,16 +100,17 @@ namespace EspINA
     /*************************** Picking API *********************************/
     //---------------------------------------------------------------------------
   public:
-    void setVOI(IVOI *);
-    IVOI *voi() {return m_voi;}
+    void setVOI(IVOISPtr voi);
+    void unsetActiveVOI();
+    IVOISPtr voi() {return m_voi;}
     IVOI::Region voiRegion() {return m_voi?m_voi->region():NULL;}
     /// Set @tool as active tool. If other tool is already active,
     /// it will be disactivated
-    void setActiveTool(ITool *tool);
+    void setActiveTool(IToolSPtr tool);
     /// Unset any active tool
     void unsetActiveTool();
     /// Unset @tool as active tool
-    void unsetActiveTool(ITool *tool);
+    void unsetActiveTool(IToolSPtr tool);
     /// Filter @view's @event.
     /// Delegate active voi event handling. If the event is not filtered by
     /// active voi, then active tool, if any, filter the event. If it neither
@@ -118,8 +119,8 @@ namespace EspINA
     QCursor cursor() const;
 
   private:
-    IVOI   *m_voi;
-    ITool  *m_tool;
+    IVOISPtr  m_voi;
+    IToolSPtr m_tool;
 
     //---------------------------------------------------------------------------
     /***************************** Widget API **********************************/

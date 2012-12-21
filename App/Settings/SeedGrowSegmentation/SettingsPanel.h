@@ -33,7 +33,7 @@ namespace EspINA
   {
     Q_OBJECT
   public:
-    explicit SettingsPanel(SeedGrowSegmentation::Settings *settings);
+    explicit SettingsPanel(SeedGrowSegmentationSettings *settings);
     virtual ~SettingsPanel(){}
 
     virtual const QString shortDescription()
@@ -53,7 +53,7 @@ namespace EspINA
     void displayColor(int value);
 
   private:
-    SeedGrowSegmentation::Settings *m_settings;
+    SeedGrowSegmentationSettings *m_settings;
   };
 
 } // namespace EspINA

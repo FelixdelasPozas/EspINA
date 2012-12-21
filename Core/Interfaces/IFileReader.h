@@ -23,6 +23,7 @@
 #include <QtPlugin>
 
 #include <Core/EspinaTypes.h>
+#include <Core/Model/EspinaModel.h>
 
 class QFileInfo;
 class QString;
@@ -37,7 +38,7 @@ class IFileReader
 public:
   virtual ~IFileReader(){}
 
-  virtual void initFileReader(EspinaModelPtr model,
+  virtual void initFileReader(EspinaModelSPtr model,
                               QUndoStack* undoStack,
                               ViewManager *vm) = 0;
 

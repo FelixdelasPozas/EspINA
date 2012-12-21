@@ -36,7 +36,7 @@
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
-RectangularVOI::RectangularVOI(EspinaModelPtr model,
+RectangularVOI::RectangularVOI(EspinaModelSPtr model,
                                ViewManager* viewManager)
 : m_model(model)
 , m_viewManager(viewManager)
@@ -45,7 +45,7 @@ RectangularVOI::RectangularVOI(EspinaModelPtr model,
 , m_widget (NULL)
 , m_sliceSelector(NULL)
 , m_settings     (new Settings())
-, m_settingsPanel(new SettingsPanel(m_model, m_settings))
+, m_settingsPanel(new SettingsPanel(m_model.data(), m_settings))
 {
   m_picker.setCursor(QCursor(QPixmap(":/espina/roi_go.svg").scaled(32,32)));
   m_picker.setMultiSelection(false);
@@ -60,6 +60,7 @@ RectangularVOI::RectangularVOI(EspinaModelPtr model,
 //-----------------------------------------------------------------------------
 RectangularVOI::~RectangularVOI()
 {
+//   qDebug() << "Destroy RVOI";
   delete m_settings;
 
   if (m_sliceSelector)

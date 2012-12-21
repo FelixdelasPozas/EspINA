@@ -23,6 +23,7 @@
 #include <Core/EspinaRegion.h>
 #include <Core/EspinaTypes.h>
 #include <Core/Model/Segmentation.h>
+#include <Core/Model/EspinaModel.h>
 #include "GUI/Pickers/IPicker.h"
 #include "GUI/Tools/ITool.h"
 
@@ -50,7 +51,7 @@ namespace EspINA
     class SnapshotCommand;
 
   public:
-    explicit Brush(EspinaModelPtr model,
+    explicit Brush(EspinaModelSPtr model,
                    QUndoStack  *undoStack,
                    ViewManager *viewManager);
     virtual ~Brush();
@@ -81,7 +82,7 @@ namespace EspINA
     void stopDrawing();
 
   protected:
-    EspinaModelPtr m_model;
+    EspinaModelSPtr m_model;
     QUndoStack    *m_undoStack;
     ViewManager   *m_viewManager;
 
@@ -90,8 +91,8 @@ namespace EspINA
     bool         m_erasing;
     BrushPicker *m_brush;
 
-    FilterPtr        m_currentSource;
-    SegmentationPtr  m_currentSeg;
+    FilterSPtr        m_currentSource;
+    SegmentationSPtr  m_currentSeg;
     Filter::OutputId m_currentOutput;
 
   private:

@@ -35,10 +35,9 @@ const QString SUBSTRACTLINK = "Substract";
 
 //----------------------------------------------------------------------------
 CompositionCommand::CompositionCommand(const SegmentationList &segmentations,
-                                       TaxonomyElementPtr      taxonomy,
-                                       EspinaModelPtr          model)
+                                       SharedTaxonomyElementPtr      taxonomy,
+                                       EspinaModelSPtr          model)
 : m_model(model)
-, m_input(segmentations)
 , m_tax(taxonomy)
 {
   QApplication::setOverrideCursor(Qt::WaitCursor);
@@ -48,14 +47,15 @@ CompositionCommand::CompositionCommand(const SegmentationList &segmentations,
   ImageLogicFilter::Parameters params(args);
   for(int i=0; i<segmentations.size(); i++)
   {
-    SegmentationPtr seg = segmentations[i];
+    SegmentationSPtr seg = m_model->findSegmentation(segmentations[i]);
     if (i>0) args[Filter::INPUTS].append(",");
     args[Filter::INPUTS].append(Filter::NamedInput(link(seg), seg->outputId()));
     inputs[link(seg)] = seg->filter();
+    m_input    << seg;
     m_infoList << SegInfo(seg);
   }
   params.setOperation(ImageLogicFilter::ADDITION);
-  m_filter = FilterPtr(new ImageLogicFilter(inputs, args));
+  m_filter = FilterSPtr(new ImageLogicFilter(inputs, args));
   m_filter->update();
   m_seg = m_model->factory()->createSegmentation(m_filter, 0);
 
@@ -63,7 +63,7 @@ CompositionCommand::CompositionCommand(const SegmentationList &segmentations,
 }
 
 //----------------------------------------------------------------------------
-const QString CompositionCommand::link(SegmentationPtr seg)
+const QString CompositionCommand::link(SegmentationSPtr seg)
 {
   unsigned int index = m_input.indexOf(seg);
   QString linkName;
@@ -79,16 +79,15 @@ const QString CompositionCommand::link(SegmentationPtr seg)
 //----------------------------------------------------------------------------
 void CompositionCommand::redo()
 {
-
   // Add new filter
   m_model->addFilter(m_filter);
-  foreach(SegmentationPtr seg, m_input)
+  foreach(SegmentationSPtr seg, m_input)
   {
-    ModelItemList segFilter = seg->relatedItems(EspINA::IN, CREATELINK);
-    Q_ASSERT(segFilter.size() == 1);
-    ModelItemPtr item = segFilter[0];
-    Q_ASSERT(EspINA::FILTER == item->type());
-    m_model->addRelation(item, m_filter, link(seg));
+//     SharedModelItemList segFilter = seg->relatedItems(EspINA::IN, CREATELINK);
+//     Q_ASSERT(segFilter.size() == 1);
+//     SharedModelItemPtr item = segFilter[0];
+//     Q_ASSERT(EspINA::FILTER == item->type());
+    m_model->addRelation(seg->filter(), m_filter, link(seg));
   }
 
   // Add new segmentation
@@ -96,13 +95,13 @@ void CompositionCommand::redo()
   m_model->addSegmentation(m_seg);
 
   //WARNING: This won't work with segmentation belonging to different channels
-  ChannelPtr channel = m_input.first()->channel();
-  SamplePtr  sample  = channel->sample();
-  m_model->addRelation(m_filter, m_seg, CREATELINK);
+  SharedChannelPtr channel = m_input.first()->channel();
+  SampleSPtr  sample  = channel->sample();
+  m_model->addRelation(m_filter, m_seg, Filter::CREATELINK);
   m_model->addRelation(sample,   m_seg, Sample::WHERE);
   m_model->addRelation(channel,  m_seg, Channel::LINK);
 
-  foreach(SegmentationPtr part, m_input)
+  foreach(SegmentationSPtr part, m_input)
   {
     m_model->addRelation(m_seg, part, Segmentation::COMPOSED_LINK);
   }
@@ -114,14 +113,14 @@ void CompositionCommand::redo()
 void CompositionCommand::undo()
 {
   // Remove merge segmentation
-  foreach(ModelItem::Relation relation,  m_seg->relations())
+  foreach(Relation relation,  m_seg->relations())
   {
     m_model->removeRelation(relation.ancestor, relation.succesor, relation.relation);
   }
   m_model->removeSegmentation(m_seg);
 
   // Remove filter
-  foreach(ModelItem::Relation relation,  m_filter->relations())
+  foreach(Relation relation,  m_filter->relations())
   {
     m_model->removeRelation(relation.ancestor, relation.succesor, relation.relation);
   }

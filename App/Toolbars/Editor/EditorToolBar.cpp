@@ -60,7 +60,7 @@ namespace EspINA
   public QUndoCommand
   {
     static const QString INPUTLINK; //TODO 2012-10-05 Move to CODEFilter ?
-    typedef QPair<FilterPtr, Filter::OutputId> Connection;
+    typedef QPair<FilterSPtr, Filter::OutputId> Connection;
   public:
     enum Operation
     {
@@ -74,16 +74,18 @@ namespace EspINA
     explicit CODECommand(SegmentationList inputs,
                          Operation op,
                          unsigned int radius,
-                         EspinaModelPtr model
+                         EspinaModelSPtr model
     )
     : m_model(model)
-    , m_segmentations(inputs)
     {
       QApplication::setOverrideCursor(Qt::WaitCursor);
 
-      foreach(SegmentationPtr seg, m_segmentations)
+      foreach(SegmentationPtr seg, inputs)
       {
+        m_segmentations << m_model->findSegmentation(seg);
+
         FilterPtr filter;
+
         Filter::NamedInputs inputs;
         Filter::Arguments args;
         MorphologicalEditionFilter::Parameters params(args);
@@ -93,20 +95,20 @@ namespace EspINA
         switch (op)
         {
           case CLOSE:
-            filter = FilterPtr(new ClosingFilter(inputs, args));
+            filter = new ClosingFilter(inputs, args);
             break;
           case OPEN:
-            filter = FilterPtr(new OpeningFilter(inputs, args));
+            filter = new OpeningFilter(inputs, args);
             break;
           case DILATE:
-            filter = FilterPtr(new DilateFilter(inputs, args));
+            filter = new DilateFilter(inputs, args);
             break;
           case ERODE:
-            filter = FilterPtr(new ErodeFilter(inputs, args));
+            filter = new ErodeFilter(inputs, args);
             break;
         }
         filter->update();
-        m_newConnections << Connection(filter, 0);
+        m_newConnections << Connection(FilterSPtr(filter), 0);
         m_oldConnections << Connection(seg->filter(), seg->outputId());
       }
 
@@ -117,14 +119,14 @@ namespace EspINA
     {
       for(int i=0; i<m_newConnections.size(); i++)
       {
-        SegmentationPtr seg      = m_segmentations[i];
+        SegmentationSPtr seg      = m_segmentations[i];
         Connection oldConnection = m_oldConnections[i];
         Connection newConnection = m_newConnections[i];
 
-        m_model->removeRelation(oldConnection.first, seg, CREATELINK);
+        m_model->removeRelation(oldConnection.first, seg, Filter::CREATELINK);
         m_model->addFilter(newConnection.first);
         m_model->addRelation(oldConnection.first, newConnection.first, INPUTLINK);
-        m_model->addRelation(newConnection.first, seg, CREATELINK);
+        m_model->addRelation(newConnection.first, seg, Filter::CREATELINK);
         seg->changeFilter(newConnection.first, newConnection.second);
         seg->notifyModification(true);
         // TODO 2012-11-05 Extensesions need to be updated when
@@ -136,16 +138,16 @@ namespace EspINA
     {
       for(int i=0; i<m_newConnections.size(); i++)
       {
-        SegmentationPtr seg      = m_segmentations[i];
+        SegmentationSPtr seg      = m_segmentations[i];
         Connection oldConnection = m_oldConnections[i];
         Connection newConnection = m_newConnections[i];
 
-        m_model->removeRelation(newConnection.first, seg, CREATELINK);
+        m_model->removeRelation(newConnection.first, seg, Filter::CREATELINK);
         m_model->removeRelation(oldConnection.first, newConnection.first, INPUTLINK);
 
         m_model->removeFilter(newConnection.first);
 
-        m_model->addRelation(oldConnection.first, seg, CREATELINK);
+        m_model->addRelation(oldConnection.first, seg, Filter::CREATELINK);
 
         seg->changeFilter(oldConnection.first, oldConnection.second);
         seg->notifyModification(true);
@@ -153,9 +155,9 @@ namespace EspINA
     }
 
   private:
-    EspinaModelPtr m_model;
+    EspinaModelSPtr m_model;
     QList<Connection> m_oldConnections, m_newConnections;
-    SegmentationList  m_segmentations;
+    SharedSegmentationList  m_segmentations;
   };
 
 } // namespace EspINA
@@ -163,11 +165,11 @@ namespace EspINA
 const QString EditorToolBar::CODECommand::INPUTLINK = "Input";
 
 //----------------------------------------------------------------------------
-EditorToolBar::EditorToolBar(EspinaModelPtr model,
+EditorToolBar::EditorToolBar(EspinaModelSPtr model,
                              QUndoStack  *undoStack,
                              ViewManager *vm,
                              QWidget* parent)
-: QToolBar(parent)
+: IToolBar(parent)
 , m_drawToolSelector(new ActionSelector(this))
 , m_splitToolSelector(new ActionSelector(this))
 , m_model(model)
@@ -193,6 +195,24 @@ EditorToolBar::EditorToolBar(EspinaModelPtr model,
 }
 
 //----------------------------------------------------------------------------
+EditorToolBar::~EditorToolBar()
+{
+  qDebug() << "********************************************************";
+  qDebug() << "              Destroying Editor ToolbBar";
+  qDebug() << "********************************************************";
+  delete m_settings;
+}
+
+
+//----------------------------------------------------------------------------
+void EditorToolBar::initToolBar(EspinaModelSPtr model,
+                                QUndoStack     *undoStack,
+                                ViewManager    *viewManager)
+{
+
+}
+
+//----------------------------------------------------------------------------
 void EditorToolBar::initFactoryExtension(EspinaFactoryPtr factory)
 {
   factory->registerFilter(this, SplitFilter::TYPE);
@@ -205,12 +225,12 @@ void EditorToolBar::initFactoryExtension(EspinaFactoryPtr factory)
   factory->registerFilter(this, FillHolesFilter::TYPE);
   factory->registerFilter(this, ContourSource::TYPE);
 
-  ISettingsPanelPtr editorSettings(new SettingsPanel(m_settings));
+  ISettingsPanelPrototype editorSettings(new SettingsPanel(m_settings));
   factory->registerSettingsPanel(editorSettings);
 }
 
 //----------------------------------------------------------------------------
-FilterPtr EditorToolBar::createFilter(const QString              &filter,
+FilterSPtr EditorToolBar::createFilter(const QString              &filter,
                                       const Filter::NamedInputs  &inputs,
                                       const ModelItem::Arguments &args)
 {
@@ -243,7 +263,7 @@ FilterPtr EditorToolBar::createFilter(const QString              &filter,
   else
     Q_ASSERT(false);
 
-  return FilterPtr(res);
+  return FilterSPtr(res);
 }
 
 //----------------------------------------------------------------------------
@@ -283,7 +303,7 @@ void EditorToolBar::cancelDrawOperation()
   m_drawToolSelector->cancel();
 
   QAction *activeAction = m_drawToolSelector->getCurrentAction();
-  ITool *activeTool = m_drawTools[activeAction];
+  IToolSPtr activeTool = m_drawTools[activeAction];
   m_viewManager->unsetActiveTool(activeTool);
 }
 
@@ -300,7 +320,7 @@ void EditorToolBar::cancelSplitOperation()
   m_splitToolSelector->cancel();
 
   QAction *activeAction = m_splitToolSelector->getCurrentAction();
-  ITool *activeTool = m_splitTools[activeAction];
+  IToolSPtr activeTool = m_splitTools[activeAction];
   m_viewManager->unsetActiveTool(activeTool);
 }
 
@@ -314,10 +334,11 @@ void EditorToolBar::combineSegmentations()
   {
     m_viewManager->clearSelection(true);
     m_undoStack->beginMacro("Combine Segmentations");
-    m_undoStack->push(new ImageLogicCommand(input,
-                                            ImageLogicFilter::ADDITION,
-                                            m_model,
-                                            m_viewManager->activeTaxonomy()));
+    m_undoStack->push(
+      new ImageLogicCommand(input,
+                            ImageLogicFilter::ADDITION,
+                            m_viewManager->activeTaxonomy(),
+                            m_model));
     m_undoStack->endMacro();
   }
 }
@@ -334,8 +355,8 @@ void EditorToolBar::substractSegmentations()
     m_undoStack->beginMacro("Substract Segmentations");
     m_undoStack->push(new ImageLogicCommand(input,
                                             ImageLogicFilter::SUBSTRACTION,
-                                            m_model,
-                                            m_viewManager->activeTaxonomy()));
+                                            m_viewManager->activeTaxonomy(),
+                                            m_model));
     m_undoStack->endMacro();
   }
 }
@@ -412,14 +433,15 @@ void EditorToolBar::initDrawTools()
                                   tr("Draw segmentations using a disc"),
                                   m_drawToolSelector);
 
-  CircularBrush *circularBrush = new CircularBrush(m_model,
-                                                   m_undoStack,
-                                                   m_viewManager);
-  connect(circularBrush, SIGNAL(stopDrawing()),
+  CircularBrushSPtr circularBrush(new CircularBrush(m_model,
+                                                    m_undoStack,
+                                                    m_viewManager) );
+  connect(circularBrush.data(), SIGNAL(stopDrawing()),
           this, SLOT(cancelDrawOperation()));
-  connect(circularBrush, SIGNAL(brushModeChanged(Brush::BrushMode)),
+  connect(circularBrush.data(), SIGNAL(brushModeChanged(Brush::BrushMode)),
           this, SLOT(changeCircularBrushMode(Brush::BrushMode)));
-  m_drawTools[discTool] = circularBrush;
+
+  m_drawTools[discTool] =  circularBrush;
   m_drawToolSelector->addAction(discTool);
 
   // draw with a sphere
@@ -427,13 +449,14 @@ void EditorToolBar::initDrawTools()
                                     tr("Draw segmentations using a sphere"),
                                     m_drawToolSelector);
 
-  SphericalBrush *sphericalBrush = new SphericalBrush(m_model,
-                                                      m_undoStack,
-                                                      m_viewManager);
-  connect(sphericalBrush, SIGNAL(stopDrawing()),
+  SphericalBrushSPtr sphericalBrush(new SphericalBrush(m_model,
+                                                       m_undoStack,
+                                                       m_viewManager));
+  connect(sphericalBrush.data(), SIGNAL(stopDrawing()),
           this, SLOT(cancelDrawOperation()));
-  connect(sphericalBrush, SIGNAL(brushModeChanged(Brush::BrushMode)),
+  connect(sphericalBrush.data(), SIGNAL(brushModeChanged(Brush::BrushMode)),
           this, SLOT(changeSphericalBrushMode(Brush::BrushMode)));
+
   m_drawTools[sphereTool] = sphericalBrush;
   m_drawToolSelector->addAction(sphereTool);
 
@@ -442,10 +465,13 @@ void EditorToolBar::initDrawTools()
                                        tr("Draw segmentations using contours"),
                                        m_drawToolSelector);
 
-  m_drawTools[contourTool] = new FilledContour(m_model,
-                                               m_undoStack,
-                                               m_viewManager);
+  FilledContourSPtr contour(new FilledContour(m_model,
+                                              m_undoStack,
+                                              m_viewManager));
+
+  m_drawTools[contourTool] = contour;
   m_drawToolSelector->addAction(contourTool);
+
 
   // Add Draw Tool Selector to Editor Tool Bar
   m_drawToolSelector->setCheckable(true);
@@ -465,11 +491,15 @@ void EditorToolBar::initSplitTools()
                                     tr("Split Segmentations using an orthogonal plane"),
                                     m_splitToolSelector);
 
-  PlanarSplitTool *planarSplitTool = new PlanarSplitTool(m_model, m_undoStack, m_viewManager);
-  connect(planarSplitTool, SIGNAL(splittingStopped()),
+  PlanarSplitToolSPtr planarSplitTool(new PlanarSplitTool(m_model,
+                                                          m_undoStack,
+                                                          m_viewManager));
+  connect(planarSplitTool.data(), SIGNAL(splittingStopped()),
           this, SLOT(cancelSplitOperation()));
+
   m_splitTools[planarSplit] = planarSplitTool;
   m_splitToolSelector->addAction(planarSplit);
+
 
   // Add Split Tool Selector to Editor Tool Bar
   addAction(m_splitToolSelector);
@@ -570,7 +600,7 @@ void EditorToolBar::updateAvailableOperations()
 }
 
 //----------------------------------------------------------------------------
-void EditorToolBar::resetState()
+void EditorToolBar::reset()
 {
   if (m_drawToolSelector->isChecked())
     cancelDrawOperation();

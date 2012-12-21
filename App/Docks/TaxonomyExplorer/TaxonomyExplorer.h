@@ -27,6 +27,7 @@
 #include <QDockWidget>
 
 #include <Core/ColorEngines/TaxonomyColorEngine.h>
+#include <Core/Model/EspinaModel.h>
 #include <QSortFilterProxyModel>
 
 namespace EspINA
@@ -40,7 +41,7 @@ namespace EspINA
 
     class GUI;
   public:
-    explicit TaxonomyExplorer(EspinaModelPtr         model,
+    explicit TaxonomyExplorer(EspinaModelSPtr         model,
                               ViewManager           *vm,
                               TaxonomyColorEnginePtr engine,
                               QWidget               *parent = 0);
@@ -57,7 +58,7 @@ namespace EspINA
     void removeSelectedTaxonomy();
 
   protected:
-    EspinaModelPtr m_baseModel;
+    EspinaModelSPtr m_baseModel;
     ViewManager   *m_viewManager;
     TaxonomyColorEnginePtr m_engine;
 

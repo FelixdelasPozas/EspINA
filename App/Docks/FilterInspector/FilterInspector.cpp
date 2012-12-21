@@ -60,7 +60,7 @@ void FilterInspector::updatePannel()
   if (!isVisible())
     return;
 
-  SegmentationPtr seg;
+  SegmentationPtr seg = NULL;
   bool changeWidget = false;
 
   SegmentationList selectedSegs;
@@ -76,17 +76,17 @@ void FilterInspector::updatePannel()
   // Update if segmentation are different
     if (seg != m_seg)
     {
-      if (!m_seg.isNull())
+      if (m_seg)
       {
-        disconnect(m_seg.data(), SIGNAL(modified(ModelItem*)),
+        disconnect(m_seg, SIGNAL(modified(ModelItem*)),
                    this, SLOT(updatePannel()));
       }
 
       m_seg = seg;
 
-      if (!m_seg.isNull())
+      if (m_seg)
       {
-        connect(m_seg.data(), SIGNAL(modified(ModelItem*)),
+        connect(m_seg, SIGNAL(modified(ModelItem*)),
                 this, SLOT(updatePannel()));
       }
       changeWidget = true;
@@ -111,6 +111,7 @@ void FilterInspector::updatePannel()
       } else
       {
         m_filter.clear();
+        m_seg = NULL;
         setWidget(NULL);
       }
     }

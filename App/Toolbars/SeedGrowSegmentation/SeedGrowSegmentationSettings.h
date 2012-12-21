@@ -20,17 +20,15 @@
 #ifndef SEEDGROWSEGMENTATION_SETTINGS_H
 #define SEEDGROWSEGMENTATION_SETTINGS_H
 
-#include "SeedGrowSegmentation.h"
-
 namespace EspINA
 {
-  class BestPixelSelector;
+  class BestPixelPicker;
 
-  class SeedGrowSegmentation::Settings
+  class SeedGrowSegmentationSettings
   {
   public:
-    explicit Settings(BestPixelSelector *selector);
-    ~Settings(){}
+    explicit SeedGrowSegmentationSettings(BestPixelPicker *selector);
+    ~SeedGrowSegmentationSettings(){}
 
     void setXSize(int value);
     int xSize() const {return m_xSize;}
@@ -51,7 +49,7 @@ namespace EspINA
     int closing() const {return m_closing;}
 
   private:
-    BestPixelSelector *m_selector;
+    BestPixelPicker *m_selector;
     int m_xSize, m_ySize, m_zSize, m_closing;
     bool m_taxonomicalVOI;
   };
