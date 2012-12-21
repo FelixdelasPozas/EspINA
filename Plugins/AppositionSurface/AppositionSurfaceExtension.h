@@ -78,6 +78,7 @@ public:
   static const ExtId ID;
   static const InfoTag AREA;
   static const InfoTag PERIMETER;
+  static const InfoTag TORTUOSITY;
 
 public:
   explicit AppositionSurfaceExtension();
@@ -133,16 +134,21 @@ private:
 
   // Apposition Plane Metrics
   double computeArea() const;
+  double computeArea(PolyData mesh) const;
   double computePerimeter() const;
+  double computeTortuosity() const;
   bool isPerimeter(vtkIdType cellId, vtkIdType p1, vtkIdType p2) const;
 
 private:
   int      m_resolution;
   int      m_iterations;
   bool     m_converge;
+  PolyData m_referencePlane;  // Original Plane Template
+  PolyData m_blendedNotClippedPlane;  
 
   mutable double   m_area;
   mutable double   m_perimeter;
+  mutable double   m_tortuosity;
   mutable PolyData m_ap;
 
   mutable itk::TimeStamp m_lastUpdate;

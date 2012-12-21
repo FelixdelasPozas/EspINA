@@ -47,6 +47,7 @@
 /// Information Provided:
 /// - Apposition Plane Area
 /// - Apposition Plane Perimeter
+/// - Apposition Plane Tortuosity
 
 const ModelItemExtension::ExtId   AppositionSurfaceExtension::ID
 = "AppositionSurfaceExtension";
@@ -55,6 +56,8 @@ const ModelItemExtension::InfoTag AppositionSurfaceExtension::AREA
 = "AS Area";
 const ModelItemExtension::InfoTag AppositionSurfaceExtension::PERIMETER
 = "AS Perimeter";
+const ModelItemExtension::InfoTag AppositionSurfaceExtension::TORTUOSITY
+= "AS Tortuosity";
 
 const double UNDEFINED = -1.;
 
@@ -65,10 +68,13 @@ AppositionSurfaceExtension::AppositionSurfaceExtension()
 , m_converge  (true)
 , m_area      (UNDEFINED)
 , m_perimeter (UNDEFINED)
+, m_tortuosity (UNDEFINED)
 {
   m_ap = PolyData::New();
+  m_referencePlane = PolyData::New();
+  m_blendedNotClippedPlane = PolyData::New();
   //m_availableRepresentations << AppositionSurfaceRepresentation::ID;
-  m_availableInformations << AREA << PERIMETER;
+  m_availableInformations << AREA << PERIMETER << TORTUOSITY;
 }
 
 //------------------------------------------------------------------------
@@ -88,17 +94,20 @@ QVariant AppositionSurfaceExtension::information(ModelItemExtension::InfoTag tag
   if (!m_init)
     return QVariant();
 
-  if (updateAppositionSurface() || UNDEFINED == m_area || UNDEFINED == m_perimeter)
+  if (updateAppositionSurface() || UNDEFINED == m_area || UNDEFINED == m_perimeter || UNDEFINED == m_tortuosity)
   {
     //qDebug() << "Update Apposition Plane";
     m_area = computeArea();
     m_perimeter = computePerimeter();
+    m_tortuosity = computeTortuosity();
   }
 
   if (AREA == tag)
     return m_area;
   if (PERIMETER == tag)
     return m_perimeter;
+  if (TORTUOSITY == tag)
+    return m_tortuosity;
 
   qWarning() << ID << ":"  << tag << " is not provided";
   Q_ASSERT(false);
@@ -184,9 +193,7 @@ bool AppositionSurfaceExtension::updateAppositionSurface() const
   planeSource->SetResolution(xResolution, yResolution);
   planeSource->Update();
 
-  
-  PolyData savedPlane = PolyData::New();
-  savedPlane->DeepCopy (planeSource->GetOutput());
+  m_referencePlane->DeepCopy (planeSource->GetOutput());
 
   //   qDebug() << "Create Path with point + min and update min\n"
   //               "Fill vtkthinPlatesplineTransform";
@@ -267,6 +274,7 @@ bool AppositionSurfaceExtension::updateAppositionSurface() const
   }
   pointsList.clear();
 	
+  m_blendedNotClippedPlane->ShallowCopy(auxPlane);
 
   PolyData clippedPlane = clipPlane(transformer->GetOutput(), vtk_padImage);
   //ESPINA_DEBUG(clippedPlane->GetNumberOfCells() << " cells after clip");
@@ -641,12 +649,27 @@ void AppositionSurfaceExtension::vectorImageToVTKImage(itk::Image< AppositionSur
 //------------------------------------------------------------------------
 double AppositionSurfaceExtension::computeArea() const
 {
-  int nc = m_ap->GetNumberOfCells();
+  return computeArea(m_ap);
+}
+
+//------------------------------------------------------------------------
+double AppositionSurfaceExtension::computeArea(PolyData mesh) const
+{
+  int nc = mesh->GetNumberOfCells();
   double totalArea = nc?0.0:UNDEFINED;
   for (int i = 0; i < nc; i++)
-    totalArea += vtkMeshQuality::TriangleArea(m_ap->GetCell(i));
+    totalArea += vtkMeshQuality::TriangleArea(mesh->GetCell(i));
 
   return totalArea;
+}
+
+//------------------------------------------------------------------------
+double AppositionSurfaceExtension::computeTortuosity() const
+{
+  double curved_area = computeArea(m_blendedNotClippedPlane);
+  double reference_area = computeArea(m_referencePlane);
+  
+  return reference_area / curved_area ;
 }
 
 //------------------------------------------------------------------------
