@@ -133,7 +133,7 @@ bool AppositionSurfaceExtension::updateAppositionSurface() const
 {
   if (!m_init || (m_seg->volume()->toITK()->GetTimeStamp() <= m_lastUpdate))
     return false;
-
+  
   QApplication::setOverrideCursor(Qt::WaitCursor);
   //qDebug() << "Updating Apposition Plane:" << m_seg->data().toString();
   //qDebug() << "Padding Image";
@@ -171,12 +171,22 @@ bool AppositionSurfaceExtension::updateAppositionSurface() const
   double avgMaxDistPoint[3];
   maxDistancePoint(distanceMap, maxPoints, avgMaxDistPoint);
 
+
+  int xResolution = m_resolution;
+  int yResolution = m_resolution;
+  
+  computeResolution(max, mid, vtk_padImage->GetSpacing(), xResolution, yResolution);
+  
   PlaneSourceType planeSource = PlaneSourceType::New();
   planeSource->SetOrigin(obbCorners->GetPoint(0));
   planeSource->SetPoint1(obbCorners->GetPoint(1));
   planeSource->SetPoint2(obbCorners->GetPoint(2));
-  planeSource->SetResolution(m_resolution, m_resolution);
+  planeSource->SetResolution(xResolution, yResolution);
   planeSource->Update();
+
+  
+  PolyData savedPlane = PolyData::New();
+  savedPlane->DeepCopy (planeSource->GetOutput());
 
   //   qDebug() << "Create Path with point + min and update min\n"
   //               "Fill vtkthinPlatesplineTransform";
@@ -203,6 +213,11 @@ bool AppositionSurfaceExtension::updateAppositionSurface() const
 
   GradientFilterType::Pointer gradientFilter = GradientFilterType::New();
   gradientFilter->SetInput(distanceMap);
+  /**
+   * SetUseImageSpacingOff: Very important. The DM has already
+   * the phisical coordinates information.
+   */
+  gradientFilter->SetUseImageSpacingOff(); 
   gradientFilter->Update();
 
   vtkSmartPointer<vtkImageData> gradientVectorGrid =
@@ -215,48 +230,48 @@ bool AppositionSurfaceExtension::updateAppositionSurface() const
   GridTransform grid_transform = GridTransform::New();
   grid_transform->SetDisplacementGrid(gradientVectorGrid);
   grid_transform->SetInterpolationModeToCubic();
+  grid_transform->SetDisplacementScale(DISPLACEMENTSCALE);
 
   TransformPolyDataFilter transformer = TransformPolyDataFilter::New();
   PolyData auxPlane = sourcePlane;
 
   int numIterations = m_iterations;
+  double thresholdError = 0;
   if (m_converge)
   {
     double *spacing = vtk_padImage->GetSpacing();
-    double min_in_pixels[3] = {0,0,0};
-    for (unsigned int i=0; i < 3; i++) {
-      min_in_pixels[i] = min[i] / spacing[i];
-    }
-    numIterations = std::max( 1, int(floor(sqrt(vtkMath::Norm(min_in_pixels)))));
+    computeIterationLimits(min, spacing, numIterations, thresholdError);
   }
 
   //   qDebug() << "Number of iterations:" << m_iterations;
 
   transformer->SetTransform(grid_transform);
+  PointsListType pointsList;
   for (int i =0; i <= numIterations; i++) {
     transformer->SetInput(auxPlane);
     transformer->Modified();
     transformer->Update();
 
     auxPlane->DeepCopy(transformer->GetOutput());
+    if (m_converge) {
+      if (hasConverged(auxPlane->GetPoints(), pointsList, thresholdError)) {
+	//   qDebug() << "Total iterations: " << i << std::endl;
+	break;
+      }
+      else {
+	pointsList.push_front(auxPlane->GetPoints());
+	if (pointsList.size() > MAXSAVEDSTATUSES)
+	  pointsList.pop_back();
+      }
+    }
   }
+  pointsList.clear();
+	
 
   PolyData clippedPlane = clipPlane(transformer->GetOutput(), vtk_padImage);
   //ESPINA_DEBUG(clippedPlane->GetNumberOfCells() << " cells after clip");
 
-  //   qDebug() << "Correct Plane's visualization and cell area's computation";
-  vtkSmartPointer<vtkTriangleFilter> triangle_filter =
-  vtkSmartPointer<vtkTriangleFilter>::New();
-  triangle_filter->SetInput(clippedPlane);
-  triangle_filter->Update();
-
-  vtkSmartPointer<vtkPolyDataNormals> normals =
-  vtkSmartPointer<vtkPolyDataNormals>::New();
-  normals->SetInput(triangle_filter->GetOutput());
-  normals->SplittingOff();
-  normals->Update();
-
-  vtkSmartPointer<vtkPolyData> appositionSurface = normals->GetOutput();
+  PolyData appositionSurface = clippedPlane;
   //ESPINA_DEBUG(appositionSurface->GetNumberOfCells() << " cells in apppositionPlane");
 
   //   qDebug() << "Create Mesh";
@@ -271,6 +286,26 @@ bool AppositionSurfaceExtension::updateAppositionSurface() const
   QApplication::restoreOverrideCursor();
 
   return true;
+}
+
+//------------------------------------------------------------------------
+AppositionSurfaceExtension::PolyData AppositionSurfaceExtension::triangulate(AppositionSurfaceExtension::PolyData plane) const
+{
+  vtkSmartPointer<vtkTriangleFilter> triangle_filter =
+  vtkSmartPointer<vtkTriangleFilter>::New();
+  triangle_filter->SetInput(plane);
+  triangle_filter->Update();
+
+  vtkSmartPointer<vtkPolyDataNormals> normals =
+  vtkSmartPointer<vtkPolyDataNormals>::New();
+  normals->SetInput(triangle_filter->GetOutput());
+  normals->SplittingOff();
+  normals->Update();
+
+  PolyData resultPlane = PolyData::New();
+  resultPlane->ShallowCopy(normals->GetOutput());
+  
+  return resultPlane;
 }
 
 //------------------------------------------------------------------------
@@ -289,22 +324,95 @@ AppositionSurfaceExtension::PolyData AppositionSurfaceExtension::clipPlane(Appos
   clipper->Update();
 
   PolyData clippedPlane = PolyData::New();
-  clippedPlane->DeepCopy(clipper->GetOutput());
+
+  //   qDebug() << "Correct Plane's visualization and cell area's computation";
+  clippedPlane = triangulate(clipper->GetOutput());
 
   return clippedPlane;
 }
 
 //------------------------------------------------------------------------
+
+int AppositionSurfaceExtension::computeMeanEuclideanError(vtkPoints * pointsA, vtkPoints * pointsB, double & euclideanError) const
+{
+  double pointA [3];
+  double pointB [3];
+  euclideanError = 0;
+  int pointsCount = 0;
+  if (pointsA->GetNumberOfPoints() != pointsB->GetNumberOfPoints())
+    return -1;
+  pointsCount = pointsA->GetNumberOfPoints();
+  for (int i = 0; i < pointsCount; i++) {
+    pointsA->GetPoint(i, pointA);
+    pointsB->GetPoint(i, pointB);
+    euclideanError += sqrt(vtkMath::Distance2BetweenPoints(pointA, pointB));
+  }
+  euclideanError /= pointsCount;
+  return 0;
+}
+
+
+//------------------------------------------------------------------------
+
+bool AppositionSurfaceExtension::hasConverged( vtkPoints * lastPlanePoints, PointsListType & pointsList, double threshold) const
+{
+  double error = 0;
+  
+  for (PointsListType::iterator it = pointsList.begin();
+       it != pointsList.end(); it++) {
+    computeMeanEuclideanError(lastPlanePoints, *it, error);
+    if (error <= threshold) return true;
+  }
+  return false;
+}
+
+//------------------------------------------------------------------------
+
+void AppositionSurfaceExtension::computeResolution(double * max, double * mid, double * spacing, int & xResolution, int & yResolution) const
+{
+  double max_in_pixels[3] = {0,0,0};
+  double mid_in_pixels[3] = {0,0,0};
+  for (unsigned int i=0; i < 3; i++) {
+    max_in_pixels[i] = max[i] / spacing[i];
+    mid_in_pixels[i] = mid[i] / spacing[i];
+  }
+  yResolution = vtkMath::Norm(max_in_pixels);  // Heads up: Max - y
+  xResolution = vtkMath::Norm(mid_in_pixels);  // Heads up: Mid - x
+}
+
+//------------------------------------------------------------------------
+
+void AppositionSurfaceExtension::computeIterationLimits(double * min, double * spacing, int & iterations, double & thresholdError) const
+{	
+  double min_in_pixels[3] = {0,0,0};
+  double step[3] = {0,0,0};
+  for (unsigned int i=0; i < 3; i++) 
+    step[i] = min[i];
+  vtkMath::Normalize(step);
+  for (unsigned int i=0; i < 3; i++) {
+    min_in_pixels[i] = min[i] / spacing[i];
+    step[i] = step[i] * spacing[i];
+  }
+  iterations = MAXITERATIONSFACTOR*std::max( 1, int(floor(vtkMath::Norm(min_in_pixels))));
+  
+  thresholdError = THRESHOLDFACTOR * vtkMath::Norm(step);
+
+}
+
+
+
+
+//------------------------------------------------------------------------
 AppositionSurfaceExtension::DistanceMapType::Pointer AppositionSurfaceExtension::computeDistanceMap(itkVolumeType::Pointer volume) const
 {
-  SDDistanceMapFilterType::Pointer sddm_filter = SDDistanceMapFilterType::New();
-  sddm_filter->InsideIsPositiveOn();
-  sddm_filter->UseImageSpacingOn();
-  sddm_filter->SquaredDistanceOn();
-  sddm_filter->SetInput(volume);
-  sddm_filter->Update();
+  SMDistanceMapFilterType::Pointer smdm_filter = SMDistanceMapFilterType::New();
+  smdm_filter->InsideIsPositiveOn();
+  smdm_filter->UseImageSpacingOn();
+  smdm_filter->SquaredDistanceOff();
+  smdm_filter->SetInput(volume);
+  smdm_filter->Update();
 
-  return sddm_filter->GetOutput();
+  return smdm_filter->GetOutput();
 }
 
 //------------------------------------------------------------------------
@@ -575,6 +683,17 @@ double AppositionSurfaceExtension::computePerimeter() const
 
         if (isPerimeter(cellId,p1,p2))
         {
+
+	  /**
+	   * VTK BUG: in Vtk5.10.1 without
+	   * clearing the loopuk table, the
+	   * pedigree->LoockupValue(p1) fails
+	   *
+	   * TODO: Check if ClearLookup is
+	   * needed in other version of VTK
+	   */
+	  pedigree->ClearLookup();
+
           vtkIdType i1 = graph->AddVertex(p1);
           vtkIdType i2 = graph->AddVertex(p2);
 
