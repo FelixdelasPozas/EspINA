@@ -239,10 +239,9 @@ void SegmentationExplorer::rowsAboutToBeRemoved(const QModelIndex parent, int st
       if (inspector)
       {
         m_inspectors.remove(seg);
-        inspector->hide();
-        delete inspector;
+        inspector->close();
       }
-      }
+    }
   }
 }
 
@@ -320,16 +319,10 @@ void SegmentationExplorer::updateSelection(QItemSelection selected, QItemSelecti
 void SegmentationExplorer::releaseInspectorResources(SegmentationInspector* inspector)
 {
   foreach(Segmentation *seg, m_inspectors.keys())
-  {
     if (m_inspectors[seg] == inspector)
-    {
       m_inspectors.remove(seg);
-      delete inspector;
-
-      return;
-    }
-  }
 }
+
 
 //------------------------------------------------------------------------
 ISettingsPanel *SegmentationExplorer::settingsPanel()

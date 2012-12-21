@@ -86,10 +86,17 @@ EspinaIO::STATUS EspinaIO::loadChannel(QFileInfo file,
 
   Channel::CArguments args;
   args[Channel::ID] = file.fileName();
-  args.setColor(stainColor.hueF());
+  args.setHue(stainColor.hueF());
   Channel *channel = factory->createChannel(reader, 0);
-  channel->setColor(stainColor.hueF());// It is needed to display proper stain color
+  channel->setHue(stainColor.hueF());// It is needed to display proper stain color
   //file.absoluteFilePath(), args);
+  channel->setOpacity(-1.0);
+  if (channel->hue() != -1.0)
+    channel->setSaturation(1.0);
+  else
+    channel->setSaturation(0.0);
+  channel->setContrast(1.0);
+  channel->setBrightness(0.0);
 
   double pos[3];
   existingSample->position(pos);

@@ -48,6 +48,8 @@ SegmentationInspector::SegmentationInspector(Segmentation *seg,
   m_view->setViewType(VOLUME);
 
   setupUi(this);
+  this->setAttribute(Qt::WA_DeleteOnClose, true);
+  this->setWindowTitle(QString("Segmentation Inspector - ") + seg->information("Name").toString());
 
   m_view->addSegmentation(seg);
   m_view->resetCamera();
@@ -76,8 +78,6 @@ SegmentationInspector::SegmentationInspector(Segmentation *seg,
   m_dataView->setModel(m_sort.data());
   m_dataView->setSortingEnabled(true);// Needed to update values when segmentation is modified
   m_dataView->sortByColumn(0, Qt::AscendingOrder);
-
-  this->setWindowTitle(seg->data().toString());
 }
 
 //------------------------------------------------------------------------

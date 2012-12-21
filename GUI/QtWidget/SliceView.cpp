@@ -65,7 +65,8 @@
 #include <vtkImageActor.h>
 #include <vtkImageMapper3D.h>
 #include <vtkImageProperty.h>
-#include <vtkImageResliceToColors.h>
+#include <vtkImageReslice.h>
+#include <vtkImageMapToColors.h>
 #include <vtkInteractorStyleImage.h>
 #include <vtkLookupTable.h>
 #include <vtkMatrix4x4.h>
@@ -80,6 +81,7 @@
 #include <vtkRenderer.h>
 #include <vtkWidgetRepresentation.h>
 #include <vtkWorldPointPicker.h>
+#include <vtkImageShiftScale.h>
 
 //-----------------------------------------------------------------------------
 // SLICE VIEW
@@ -223,9 +225,6 @@ Nm rulerScale(Nm value)
 //-----------------------------------------------------------------------------
 void SliceView::updateRuler()
 {
-//   if (!m_ruler->GetVisibility())
-//     return;
-
   if (!m_renderer || !m_renderWindow)
     return;
 
@@ -677,14 +676,24 @@ void SliceView::addChannel(Channel* channel)
   Q_ASSERT(!m_channelReps.contains(channel));
 
   SliceRep channelRep;
+  double hue, sat, opacity;
 
   // if hue is -1 then use 0 saturation to make a grayscale image
-  double hue = (channel->color() == -1) ? 0 : channel->color();
-  double sat = channel->color() >= 0 ? 1.0 : 0.0;
+  if (-1.0 == channel->hue())
+  {
+    sat = hue = 0;
+  }
+  else
+  {
+    hue = channel->hue();
+    sat = channel->saturation();
+  }
 
   channelRep.selected = false;
   channelRep.visible = !channel->isVisible();  // Force initialization
-  channelRep.color = channel->color();
+  channelRep.color.setHsvF(hue, sat, 1.0);
+  channelRep.brightness = channel->brightness();
+  channelRep.contrast = channel->contrast();
   channel->position(channelRep.pos);
   channelRep.lut = vtkLookupTable::New();
   channelRep.lut->Allocate();
@@ -697,23 +706,37 @@ void SliceView::addChannel(Channel* channel)
   channelRep.lut->SetRampToLinear();
   channelRep.lut->Build();
 
-  channelRep.resliceToColors = vtkImageResliceToColors::New();
-  channelRep.resliceToColors->SetResliceAxes(m_slicingMatrix);
-  channelRep.resliceToColors->SetInputConnection(channel->volume()->toVTK());
-  channelRep.resliceToColors->SetOutputDimensionality(2);
-  channelRep.resliceToColors->SetLookupTable(channelRep.lut);
-  channelRep.resliceToColors->Update();
+  channelRep.reslice = vtkImageReslice::New();
+  channelRep.reslice->SetResliceAxes(m_slicingMatrix);
+  channelRep.reslice->SetInputConnection(channel->volume()->toVTK());
+  channelRep.reslice->SetOutputDimensionality(2);
+  channelRep.reslice->Update();
+
+  channelRep.shiftScaleFilter = vtkSmartPointer<vtkImageShiftScale>::New();
+  channelRep.shiftScaleFilter->SetInputConnection(channelRep.reslice->GetOutputPort());
+  channelRep.shiftScaleFilter->SetShift(channelRep.brightness);
+  channelRep.shiftScaleFilter->SetScale(channelRep.contrast);
+  channelRep.shiftScaleFilter->SetClampOverflow(true);
+  channelRep.shiftScaleFilter->SetOutputScalarType(channelRep.reslice->GetOutput()->GetScalarType());
+  channelRep.shiftScaleFilter->Update();
+
+  channelRep.mapToColors = vtkSmartPointer<vtkImageMapToColors>::New();
+  channelRep.mapToColors->SetInputConnection(channelRep.shiftScaleFilter->GetOutputPort());
+  channelRep.mapToColors->SetLookupTable(channelRep.lut);
+  channelRep.mapToColors->Update();
 
   channelRep.slice = vtkImageActor::New();
   channelRep.slice->SetInterpolate(false);
   channelRep.slice->GetMapper()->BorderOn();
-  channelRep.slice->GetMapper()->SetInputConnection(channelRep.resliceToColors->GetOutputPort());
-   m_state->updateActor(channelRep.slice);
+  channelRep.slice->GetMapper()->SetInputConnection(channelRep.mapToColors->GetOutputPort());
+  m_state->updateActor(channelRep.slice);
   channelRep.slice->Update();
-
 
   m_channelReps.insert(channel, channelRep);
   addActor(channelRep.slice);
+
+  opacity = (-1 == channel->opacity()) ? this->suggestedChannelOpacity() : channel->opacity();
+  channelRep.slice->GetProperty()->SetOpacity(opacity);
 
   // Prevent displaying channel's corner until app request to reset the camera
   if (m_channelReps.size() == 1)
@@ -736,9 +759,23 @@ void SliceView::removeChannel(Channel* channel)
   m_channelPicker->DeletePickList(rep.slice);
 
   m_channelReps.remove(channel);
-  rep.resliceToColors->Delete();
+  rep.reslice->Delete();
   rep.slice->Delete();
   removeChannelBounds(channel);
+
+  // if there is more than one we must update the visibility
+  double opacity = this->suggestedChannelOpacity();
+  QMap<Channel *, SliceRep>::iterator it = m_channelReps.begin();
+  while (it != m_channelReps.end())
+  {
+    if (it.value().visible)
+    {
+      it.value().slice->GetProperty()->SetOpacity(opacity);
+      it.key()->notifyModification();
+    }
+
+    ++it;
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -752,12 +789,35 @@ bool SliceView::updateChannel(Channel* channel)
 
   bool updated = false;
 
-  if (this->suggestedChannelOpacity() != rep.slice->GetProperty()->GetOpacity())
+  // opacity
+  if ((channel->opacity() == -1.0) && (rep.slice->GetProperty()->GetOpacity() != suggestedChannelOpacity()))
   {
-    rep.slice->GetProperty()->SetOpacity(this->suggestedChannelOpacity());
+    double opacity = this->suggestedChannelOpacity();
+    rep.slice->GetProperty()->SetOpacity(opacity);
+
+    // we must update all channels
+    QMap<Channel *, SliceRep>::iterator it = m_channelReps.begin();
+    while (it != m_channelReps.end())
+    {
+      if (it.key() != channel && it.key()->opacity() != -1 && it.value().visible)
+      {
+        it.value().slice->GetProperty()->SetOpacity(opacity);
+        it.key()->notifyModification();
+      }
+
+      ++it;
+    }
+
     updated = true;
   }
+  else
+    if ((channel->opacity() != -1.0) && (channel->opacity() != rep.slice->GetProperty()->GetOpacity()))
+    {
+      rep.slice->GetProperty()->SetOpacity(channel->opacity());
+      updated = true;
+    }
 
+  // visibility
   if (channel->isVisible() != rep.visible)
   {
     rep.visible = channel->isVisible();
@@ -765,6 +825,7 @@ bool SliceView::updateChannel(Channel* channel)
     updated = true;
   }
 
+  // position
   if (memcmp(pos, rep.pos, 3 * sizeof(double)))
   {
     memcpy(rep.pos, pos, 3 * sizeof(double));
@@ -772,12 +833,13 @@ bool SliceView::updateChannel(Channel* channel)
     updated = true;
   }
 
-  if (((channel->color() != -1) && ((rep.color.hueF() != channel->color()) || (rep.color.saturation() != 1.0))) ||
-     (((channel->color() == -1) && ((rep.color.hue() != 0) || (rep.color.saturation() != 0)))))
+  // hue/saturation
+  if (((channel->hue() != -1) && ((rep.color.hueF() != channel->hue()) || (rep.color.saturation() != channel->saturation()))) ||
+     ((channel->hue() == -1) && ((rep.color.hue() != 0.0) || (rep.color.saturation() != 0.0))))
   {
-    // if hue is -1 then use 0 saturation to make a grayscale image
-    double hue = (channel->color() == -1) ? 0 : channel->color();
-    double sat = (channel->color() >= 0) ? 1.0 : 0.0;
+    double hue = (-1 == channel->hue()) ? 0.0 : channel->hue();
+    double sat = (channel->hue() >= 0) ? channel->saturation() : 1.0;
+
     rep.color.setHsvF(hue, sat, 1.0);
 
     rep.lut->Allocate();
@@ -789,6 +851,24 @@ bool SliceView::updateChannel(Channel* channel)
     rep.lut->SetNumberOfColors(256);
     rep.lut->Build();
     rep.lut->Modified();
+    updated = true;
+  }
+
+  // brightness/contrast (together to avoid calling modified() twice to the filter)
+  if ((channel->contrast() != rep.contrast) || (channel->brightness() != rep.brightness))
+  {
+    if (channel->contrast() != rep.contrast)
+    {
+      rep.contrast = channel->contrast();
+      rep.shiftScaleFilter->SetScale(channel->contrast());
+    }
+
+    if (channel->brightness() != rep.brightness)
+    {
+      rep.brightness = channel->brightness();
+      rep.shiftScaleFilter->SetShift(channel->brightness());
+    }
+    rep.shiftScaleFilter->Modified();
     updated = true;
   }
 
@@ -804,17 +884,23 @@ void SliceView::addSegmentation(Segmentation* seg)
 
   seg->filter()->update();
 
-  segRep.resliceToColors = vtkImageResliceToColors::New();
-  segRep.resliceToColors->SetResliceAxes(m_slicingMatrix);
-  segRep.resliceToColors->SetInputConnection(seg->volume()->toVTK());
-  segRep.resliceToColors->SetOutputDimensionality(2);
-  segRep.resliceToColors->SetLookupTable(m_viewManager->lut(seg));
-  segRep.resliceToColors->Update();
+  segRep.reslice = vtkImageReslice::New();
+  segRep.reslice->SetResliceAxes(m_slicingMatrix);
+  segRep.reslice->SetInputConnection(seg->volume()->toVTK());
+  segRep.reslice->SetOutputDimensionality(2);
+  segRep.reslice->Update();
+
+  segRep.shiftScaleFilter = NULL;
+
+  segRep.mapToColors = vtkSmartPointer<vtkImageMapToColors>::New();
+  segRep.mapToColors->SetInputConnection(segRep.reslice->GetOutputPort());
+  segRep.mapToColors->SetLookupTable(m_viewManager->lut(seg));
+  segRep.mapToColors->Update();
 
   segRep.slice = vtkImageActor::New();
   segRep.slice->SetInterpolate(false);
   segRep.slice->GetMapper()->BorderOn();
-  segRep.slice->GetMapper()->SetInputConnection(segRep.resliceToColors->GetOutputPort());
+  segRep.slice->GetMapper()->SetInputConnection(segRep.mapToColors->GetOutputPort());
   segRep.slice->Update();
   m_state->updateActor(segRep.slice);
 
@@ -881,7 +967,7 @@ void SliceView::removeSegmentation(Segmentation* seg)
   m_segmentationPicker->DeletePickList(rep.slice);
 
   // itkvtk filter is handled by a smartpointer, these two are not
-  rep.resliceToColors->Delete();
+  rep.reslice->Delete();
   rep.slice->Delete();
 
   m_segmentationReps.remove(seg);
@@ -897,10 +983,10 @@ bool SliceView::updateSegmentation(Segmentation* seg)
 
   bool updated = false;
 
-  if (rep.resliceToColors->GetInputConnection(0,0) != seg->volume()->toVTK())
+  if (rep.reslice->GetInputConnection(0,0) != seg->volume()->toVTK())
   {
-    rep.resliceToColors->SetInputConnection(seg->volume()->toVTK());
-    rep.resliceToColors->Update();
+    rep.reslice->SetInputConnection(seg->volume()->toVTK());
+    rep.reslice->Update();
     updated = true;
   }
 
@@ -924,8 +1010,8 @@ bool SliceView::updateSegmentation(Segmentation* seg)
       rep.selected = seg->isSelected();
       rep.color = highlightedColor;
 
-      rep.resliceToColors->SetLookupTable(m_highlighter->lut(segColor, highlight));
-      rep.resliceToColors->Update();
+      rep.mapToColors->SetLookupTable(m_highlighter->lut(segColor, highlight));
+      rep.mapToColors->Update();
       updated = true;
     }
   }

@@ -45,7 +45,9 @@ class Representation;
 class Segmentation;
 class TransparencySelectionHighlighter;
 
-class vtkImageResliceToColors;
+class vtkImageReslice;
+class vtkImageMapToColors;
+class vtkImageShiftScale;
 class vtkImageActor;
 class vtkInteractorStyleEspinaSlice;
 class vtkRenderWindow;
@@ -212,8 +214,10 @@ private:
 private:
   struct SliceRep
   {
-    vtkSmartPointer<vtkImageResliceToColors> resliceToColors;
+    vtkSmartPointer<vtkImageReslice> reslice;
+    vtkSmartPointer<vtkImageMapToColors> mapToColors;
     vtkSmartPointer<vtkLookupTable> lut;
+    vtkSmartPointer<vtkImageShiftScale> shiftScaleFilter;
     vtkImageActor *slice;
     bool visible;
     bool selected;
@@ -221,6 +225,8 @@ private:
     Nm pos[3];
     bool overridden;
     HierarchyItem::HierarchyRenderingType renderingType;
+    double contrast;
+    double brightness;
   };
 
   ViewManager *m_viewManager;
@@ -238,13 +244,13 @@ private:
   QPushButton *m_zoomButton;
 
   // VTK View
-  vtkRenderWindow                *m_renderWindow;
-  vtkSmartPointer<vtkRenderer>    m_renderer;
-  vtkSmartPointer<vtkRenderer>    m_thumbnail;
-  vtkSmartPointer<vtkCellPicker>  m_channelPicker;
-  vtkSmartPointer<vtkCellPicker>  m_segmentationPicker;
-  vtkSmartPointer<vtkAxisActor2D> m_ruler;
-  bool                            m_rulerVisibility;
+  vtkRenderWindow                    *m_renderWindow;
+  vtkSmartPointer<vtkRenderer>        m_renderer;
+  vtkSmartPointer<vtkRenderer>        m_thumbnail;
+  vtkSmartPointer<vtkCellPicker>      m_channelPicker;
+  vtkSmartPointer<vtkCellPicker>      m_segmentationPicker;
+  vtkSmartPointer<vtkAxisActor2D>     m_ruler;
+  bool                                m_rulerVisibility;
 
   // View State
   Nm m_crosshairPoint[3];

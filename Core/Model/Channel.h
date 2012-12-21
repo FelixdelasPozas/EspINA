@@ -49,7 +49,11 @@ class Channel
 public:
   // Argument Ids
   static const ArgumentId ID;
-  static const ArgumentId COLOR;
+  static const ArgumentId HUE;
+  static const ArgumentId OPACITY;
+  static const ArgumentId SATURATION;
+  static const ArgumentId CONTRAST;
+  static const ArgumentId BRIGHTNESS;
   static const ArgumentId VOLUME;
 
   static const QString STAINLINK;
@@ -67,15 +71,59 @@ public:
     explicit CArguments(const Arguments &args)
     : Arguments(args), m_outputId(0) {}
 
-    /// Channel dye color. Hue's value in range (0,1)
-    void setColor(double color)
+    /// Channel's hue range (-1, 359)
+    void setHue(double hue)
     {
-      (*this)[COLOR] = QString::number(color);
+      (*this)[HUE] = QString::number(hue);
     }
-    /// Channel dye color. Hue's value in range (0,1)
-    double color() const
+
+    double hue() const
     {
-      return (*this)[COLOR].toFloat();
+      return (*this)[HUE].toFloat();
+    }
+
+    /// Channel's opacity. Value in range (0,1) U (-1), latter meaning automatically managed
+    void setOpacity(double opacity)
+    {
+      (*this)[OPACITY] = QString::number(opacity);
+    }
+
+    double opacity() const
+    {
+      return (*this)[OPACITY].toFloat();
+    }
+
+    /// Channel's saturation. Value in range (0,1).
+    void setSaturation(double saturation)
+    {
+      (*this)[SATURATION] = QString::number(saturation);
+    }
+
+    double saturation() const
+    {
+      return (*this)[SATURATION].toFloat();
+    }
+
+    /// Channel's contrast. Value in range (0,100).
+    void setContrast(double contrast)
+    {
+      (*this)[CONTRAST] = QString::number(contrast);
+    }
+
+    double contrast() const
+    {
+      return (*this)[CONTRAST].toFloat();
+    }
+
+    /// Channel's brightness. Value in range (0,100).
+    void setBrightness(double brightness)
+    {
+      (*this)[BRIGHTNESS] = QString::number(brightness);
+    }
+
+    double brightness() const
+    {
+      return (*this)[BRIGHTNESS].toFloat();
     }
 
     void setOutputId(Filter::OutputId oId)
@@ -99,8 +147,16 @@ public:
 public:
   virtual ~Channel();
 
-  void setColor(double color);
-  double color() const;
+  void setHue(double hue);
+  double hue() const;
+  void setOpacity(double opacity);
+  double opacity() const;
+  void setSaturation(double saturation);
+  double saturation() const;
+  void setContrast(double contrast);
+  double contrast() const;
+  void setBrightness(double brightness);
+  double brightness() const;
 
   void setVisible(bool visible) {m_visible = visible;}
   bool isVisible() const {return m_visible;}

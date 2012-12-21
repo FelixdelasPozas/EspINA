@@ -118,7 +118,7 @@ bool CrosshairRenderer::addItem(ModelItem* item)
   sagittalReslice->SetResliceAxes(m_channels[channel].matSagittal);
 
   // if hue is -1 then use 0 saturation to make a grayscale image
-  double hue = channel->color();
+  double hue = channel->hue();
   double sat = hue >= 0?1.0:0.0;
 
   m_channels[channel].lut = vtkLookupTable::New();
@@ -179,7 +179,7 @@ bool CrosshairRenderer::addItem(ModelItem* item)
   m_channels[channel].selected = channel->isSelected();
   m_channels[channel].visible = false;
   memset(m_channels[channel].point, 0, 3*sizeof(double));
-  m_channels[channel].color.setHsvF(channel->color(), 1.0, 1.0);
+  m_channels[channel].color.setHsvF(channel->hue(), 1.0, 1.0);
 
   double bounds[6];
   channel->volume()->bounds(bounds);
@@ -322,12 +322,12 @@ bool CrosshairRenderer::updateItem(ModelItem* item)
   Q_ASSERT(m_channels.contains(channel));
   Representation &rep = m_channels[channel];
 
-  if (((channel->color() != -1) && ((rep.color.hueF() != channel->color()) || (rep.color.saturation() != 1.0))) ||
-     (((channel->color() == -1) && ((rep.color.hue() != 0) || (rep.color.saturation() != 0)))))
+  if (((channel->hue() != -1) && ((rep.color.hueF() != channel->hue()) || (rep.color.saturation() != 1.0))) ||
+     (((channel->hue() == -1) && ((rep.color.hue() != 0) || (rep.color.saturation() != 0)))))
   {
     // if hue is -1 then use 0 saturation to make a grayscale image
-    double hue = (channel->color() == -1) ? 0 : channel->color();
-    double sat = channel->color() >= 0 ? 1.0 : 0.0;
+    double hue = (channel->hue() == -1) ? 0 : channel->hue();
+    double sat = channel->hue() >= 0 ? 1.0 : 0.0;
     rep.color.setHsvF(hue, sat, 1.0);
 
     rep.lut->Allocate();

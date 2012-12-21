@@ -33,6 +33,7 @@
 //Qt
 #include <QSortFilterProxyModel>
 
+class ChannelInspector;
 class ViewManager;
 #ifdef TEST_ESPINA_MODELS
 class ModelTest;
@@ -59,10 +60,11 @@ protected slots:
   void alignRight();
   void moveRight();
   void moveLelft();
-  void changeChannelColor();
   void updateChannelPosition();
   void updateTooltips(int index);
   void focusOnChannel();
+  void dialogClosed();
+  void inspectorChangedSpacing();
 
 private:
   CentralWidget *m_gui;
@@ -70,6 +72,7 @@ private:
   ViewManager   *m_viewManager;
   QSharedPointer<ChannelProxy> m_channelProxy;
   QSharedPointer<QSortFilterProxyModel> m_sort;
+  QMap<Channel *, ChannelInspector *> m_informationDialogs;
 
 #ifdef TEST_ESPINA_MODELS
   QSharedPointer<ModelTest>   m_modelTester;

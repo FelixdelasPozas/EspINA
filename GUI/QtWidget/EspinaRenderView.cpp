@@ -79,7 +79,7 @@ double EspinaRenderView::suggestedChannelOpacity()
       numVisibleRep++;
 
   if (numVisibleRep == 0)
-    return 0.0;
+    return 1.0;
 
   return 1.0 / numVisibleRep;
 }

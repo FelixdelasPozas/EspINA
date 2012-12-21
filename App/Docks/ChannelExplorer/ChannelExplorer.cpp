@@ -20,7 +20,7 @@
 #include <ui_ChannelExplorer.h>
 
 #include "EspinaConfig.h"
-#include "Docks/ChannelInspector/ChannelInspector.h"
+#include "Dialogs/ChannelInspector/ChannelInspector.h"
 
 // EspINA
 #include <GUI/QtWidget/HueSelector.h>
@@ -74,8 +74,6 @@ ChannelExplorer::ChannelExplorer(EspinaModel *model,
           this, SLOT(showInformation()));
   connect(m_gui->activeChannel, SIGNAL(clicked(bool)),
           this, SLOT(activateChannel()));
-  connect(m_gui->channelColor, SIGNAL(clicked(bool)),
-          this, SLOT(changeChannelColor()));
   connect(m_gui->alignLeft, SIGNAL(clicked(bool)),
           this, SLOT(alignLeft()));
   connect(m_gui->alignCenter, SIGNAL(clicked(bool)),
@@ -110,7 +108,6 @@ ChannelExplorer::ChannelExplorer(EspinaModel *model,
 //------------------------------------------------------------------------
 ChannelExplorer::~ChannelExplorer()
 {
-
 }
 
 //------------------------------------------------------------------------
@@ -314,31 +311,6 @@ void ChannelExplorer::moveRight()
 }
 
 //------------------------------------------------------------------------
-void ChannelExplorer::changeChannelColor()
-{
-  QModelIndex index = m_sort->mapToSource(m_gui->view->currentIndex());
-  if (!index.isValid())
-    return;
-
-  ModelItem *item = indexPtr(index);
-  if (ModelItem::CHANNEL != item->type())
-    return;
-
-  Channel *channel = dynamic_cast<Channel *>(item);
-
-  HueSelector *hueSelector = new HueSelector(channel->color(), this);
-  hueSelector->exec();
-
-  if(hueSelector->ModifiedData())
-  {
-    double value = (hueSelector->GetHueValue() == -1) ? -1 : (hueSelector->GetHueValue() / 359.);
-    channel->setColor(value);
-    channel->notifyModification();
-  }
-  delete hueSelector;
-}
-
-//------------------------------------------------------------------------
 void ChannelExplorer::updateChannelPosition()
 {
   QModelIndex currentIndex = m_gui->view->currentIndex();
@@ -412,7 +384,6 @@ void ChannelExplorer::unloadChannel()
       number.setNum(relItems.size());
       msgText = QString("That channel cannot be deleted because there are ") + number + QString(" segmentations that depend on it.");
     }
-
     else
       msgText = QString("That channel cannot be deleted because there is a segmentation that depends on it.");
     QMessageBox msgBox;
@@ -422,37 +393,39 @@ void ChannelExplorer::unloadChannel()
     msgBox.exec();
     return;
   }
-  else
+
+  ChannelInspector *inspector = m_informationDialogs.value(channel, NULL);
+  if (inspector)
+    inspector->close();
+
+  relItems = channel->relatedItems(ModelItem::IN);
+  ModelItem::Vector::Iterator it = relItems.begin();
+  Q_ASSERT(relItems.size() == 2);
+  while (it != relItems.end())
   {
-    relItems = channel->relatedItems(ModelItem::IN);
-    ModelItem::Vector::Iterator it = relItems.begin();
-    Q_ASSERT(relItems.size() == 2);
-    while (it != relItems.end())
+    if ((*it)->type() == ModelItem::SAMPLE)
     {
-      if ((*it)->type() == ModelItem::SAMPLE)
+      ModelItem::Vector relatedItems = (*it)->relatedItems(ModelItem::OUT);
+      if (relatedItems.size() == 1)
       {
-        ModelItem::Vector relatedItems = (*it)->relatedItems(ModelItem::OUT);
-        if (relatedItems.size() == 1)
-        {
-          m_model->removeRelation((*it), item, Channel::STAINLINK);
-          m_model->removeSample(reinterpret_cast<Sample *>(*it));
-          delete (*it);
-        }
-      }
-      else
-      {
-        m_model->removeRelation((*it), item, Channel::VOLUMELINK);
-        m_model->removeFilter(reinterpret_cast<Filter *>(*it));
+        m_model->removeRelation((*it), item, Channel::STAINLINK);
+        m_model->removeSample(reinterpret_cast<Sample *>(*it));
         delete (*it);
       }
-      it++;
     }
-
-    m_model->removeChannel(channel);
-
-    if (m_viewManager->activeChannel() == channel)
-      m_viewManager->setActiveChannel(NULL);
+    else
+    {
+      m_model->removeRelation((*it), item, Channel::VOLUMELINK);
+      m_model->removeFilter(reinterpret_cast<Filter *>(*it));
+      delete (*it);
+    }
+    it++;
   }
+
+  m_model->removeChannel(channel);
+
+  if (m_viewManager->activeChannel() == channel)
+    m_viewManager->setActiveChannel(NULL);
 }
 
 //------------------------------------------------------------------------
@@ -489,8 +462,17 @@ void ChannelExplorer::showInformation()
     if (ModelItem::CHANNEL == currentItem->type())
     {
       Channel *channel = dynamic_cast<Channel *>(currentItem);
-      ChannelInspector *inspector = new ChannelInspector(channel, m_viewManager);
-      inspector->exec();
+      ChannelInspector *inspector = m_informationDialogs.value(channel, NULL);
+
+      if (!inspector)
+      {
+        inspector = new ChannelInspector(channel);
+        m_informationDialogs.insert(channel, inspector);
+        connect(inspector, SIGNAL(finished(int)), this, SLOT(dialogClosed()));
+        connect(inspector, SIGNAL(channelUpdated()), this, SLOT(inspectorChangedSpacing()));
+      }
+      inspector->show();
+      inspector->raise();
     }
   }
 }
@@ -509,4 +491,27 @@ void ChannelExplorer::activateChannel()
     Channel *currentChannel = dynamic_cast<Channel *>(currentItem);
     m_viewManager->setActiveChannel(currentChannel);
   }
+}
+
+//------------------------------------------------------------------------
+void ChannelExplorer::dialogClosed()
+{
+  ChannelInspector *dialog = qobject_cast<ChannelInspector*>(sender());
+  QMap<Channel *, ChannelInspector*>::iterator it = m_informationDialogs.begin();
+  while (it != m_informationDialogs.end())
+  {
+    if (it.value() == dialog)
+    {
+      it.key()->notifyModification();
+      m_informationDialogs.erase(it);
+      return;
+    }
+    ++it;
+  }
+}
+
+//------------------------------------------------------------------------
+void ChannelExplorer::inspectorChangedSpacing()
+{
+  m_viewManager->resetViewCameras();
 }
