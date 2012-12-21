@@ -34,7 +34,7 @@ class ChannelInspector
 
   public slots:
     void unitsChanged(int);
-    void spacingChanged(double);
+    void spacingChanged(double unused = 0);
     void changeSpacing();
     void opacityCheckChanged(int);
     void opacityChanged(int);

@@ -837,8 +837,16 @@ bool SliceView::updateChannel(Channel* channel)
   if (((channel->hue() != -1) && ((rep.color.hueF() != channel->hue()) || (rep.color.saturation() != channel->saturation()))) ||
      ((channel->hue() == -1) && ((rep.color.hue() != 0.0) || (rep.color.saturation() != 0.0))))
   {
-    double hue = (-1 == channel->hue()) ? 0.0 : channel->hue();
-    double sat = (channel->hue() >= 0) ? channel->saturation() : 1.0;
+    double hue, sat;
+    if (-1.0 == channel->hue())
+    {
+      sat = hue = 0;
+    }
+    else
+    {
+      hue = channel->hue();
+      sat = channel->saturation();
+    }
 
     rep.color.setHsvF(hue, sat, 1.0);
 

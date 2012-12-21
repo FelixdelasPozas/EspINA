@@ -120,6 +120,7 @@ void ChannelInspector::unitsChanged(int value)
   spacingXBox->setSuffix(unitsBox->currentText());
   spacingYBox->setSuffix(unitsBox->currentText());
   spacingZBox->setSuffix(unitsBox->currentText());
+  spacingChanged();
 }
 
 //------------------------------------------------------------------------
@@ -170,7 +171,7 @@ void ChannelInspector::changeSpacing()
       for (int i=0; i < 3; i++)
         origin[i] = origin[i]/oldSpacing[i]*spacing[i];
       seg->volume()->toITK()->SetOrigin(origin);
-      seg->notifyModification();
+      seg->notifyModification(true);
     }
   }
 
