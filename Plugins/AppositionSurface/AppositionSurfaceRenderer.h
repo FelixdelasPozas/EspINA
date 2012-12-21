@@ -55,6 +55,9 @@ public:
   // updates the color of the actors
   void SetColor(QColor);
 
+  // get number of vtkActors added to vtkRendered from this Renderer
+  virtual unsigned int getNumberOfvtkActors(void) { return m_representations.size(); }
+
 private:
   QColor m_color;
   AppositionSurface* m_plugin;
