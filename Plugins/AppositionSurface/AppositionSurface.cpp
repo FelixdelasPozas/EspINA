@@ -112,10 +112,12 @@ void AppositionSurface::Settings::changeColor()
 {
   QColorDialog colorDialog;
   colorDialog.setOptions(QColorDialog::DontUseNativeDialog);
+  colorDialog.setCurrentColor(m_color);
 
-  QColor color = colorDialog.getColor(m_color);
+  int result = colorDialog.exec();
+  QColor color = colorDialog.selectedColor();
 
-  if (color != m_color)
+  if (result == QColorDialog::Accepted && color != m_color)
   {
     m_color = color;
     m_modified = true;
