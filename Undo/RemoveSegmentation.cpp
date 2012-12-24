@@ -132,7 +132,10 @@ QList<Filter *> RemoveSegmentation::removeFilterDependencies(Filter* filter)
       if (ModelItem::FILTER == item->type())
         filtersToRemove << removeFilterDependencies(dynamic_cast<Filter *>(item));
       else
-        Q_ASSERT(false);
+        if (item->type() == ModelItem::CHANNEL) // 2012-12-24 Bug in pencil erase command?
+          continue;
+        else
+          Q_ASSERT(false);
     }
   }
 

@@ -97,13 +97,11 @@ QString ModelItem::Arguments::hash() const
   return QString(hasher.result().toHex());
 }
 
-
 //------------------------------------------------------------------------
 QString ModelItem::serialize() const
 {
   return QString("none");
 }
-
 
 //------------------------------------------------------------------------
 ModelItem::Vector ModelItem::relatedItems(ModelItem::RelationType rel, const QString filter)

@@ -356,7 +356,7 @@ bool SegmentationVolume::collision(SegmentationVolume v)
 
 
 //----------------------------------------------------------------------------
-void SegmentationVolume::strechToFitContent()
+bool SegmentationVolume::strechToFitContent()
 {
   Image2LabelFilterType::Pointer image2label = Image2LabelFilterType::New();
   image2label->ReleaseDataFlagOn();
@@ -365,6 +365,9 @@ void SegmentationVolume::strechToFitContent()
 
   // Get segmentation's Bounding Box
   LabelMapType            *labelMap = image2label->GetOutput();
+  if (labelMap->GetNumberOfLabelObjects() == 0)
+    return false;
+
   LabelObjectType     *segmentation = labelMap->GetLabelObject(SEG_VOXEL_VALUE);
   LabelObjectType::RegionType segBB = segmentation->GetBoundingBox();
 
@@ -376,4 +379,5 @@ void SegmentationVolume::strechToFitContent()
 
   m_volume = extractor->GetOutput();
   m_volume->DisconnectPipeline();
+  return true;
 }

@@ -186,7 +186,7 @@ void ChannelInspector::changeSpacing()
 //------------------------------------------------------------------------
 void ChannelInspector::checkChanges()
 {
-  if (hueBox->value() == 0)
+  if (hueBox->value() == -1)
     m_channel->setSaturation(0.0);
 
   if (m_spacingModified)
@@ -287,7 +287,8 @@ void ChannelInspector::newHSV(int h)
 void ChannelInspector::saturationChanged(int value)
 {
   m_channel->setSaturation(value/100.);
-  applyModifications();}
+  applyModifications();
+}
 
 //------------------------------------------------------------------------
 void ChannelInspector::contrastChanged(int value)

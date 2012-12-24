@@ -98,7 +98,7 @@ public:
   static const ArgumentId EXTENSIONS;
 
   ModelItem() : m_modified(false), m_vertex(0), m_relations(NULL) {}
-  virtual ~ModelItem(){}
+  virtual ~ModelItem() {};
 
   virtual QVariant data(int role=Qt::DisplayRole) const = 0;
   virtual bool setData(const QVariant& value, int role = Qt::UserRole +1) {return false;}

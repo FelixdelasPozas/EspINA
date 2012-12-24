@@ -29,6 +29,7 @@
 #include <GUI/ViewManager.h>
 #include <Filters/FreeFormSource.h>
 #include <Undo/AddSegmentation.h>
+#include <Undo/RemoveSegmentation.h>
 
 #include <vtkRenderWindow.h>
 
@@ -199,10 +200,25 @@ void Brush::drawStroke(PickableItem* item,
   {
     if (m_eraseCommand)
     {
+      m_undoStack->beginMacro("Erase Segmentation");
       m_undoStack->push(m_eraseCommand);
+      if (!m_currentSeg->volume()->strechToFitContent())
+      {
+        m_undoStack->push(new RemoveSegmentation(m_currentSeg, m_model));
+        // quick reset
+        m_currentSeg    = NULL;
+        m_currentSource = NULL;
+        m_currentOutput = -1;
+
+        m_brush->setBrushColor(m_viewManager->activeTaxonomy()->color());
+        m_brush->setBorderColor(QColor(Qt::blue));
+        m_brush->setReferenceItem(m_viewManager->activeChannel());
+      }
+      m_undoStack->endMacro();
       m_eraseCommand = NULL;
     }
-  }else
+  }
+  else
   {
     if (m_drawCommand)
     {
@@ -245,13 +261,10 @@ void Brush::drawStroke(PickableItem* item,
     else
     {
       Q_ASSERT(m_currentSource && m_currentSeg);
-      itkVolumeType::PixelType value = m_erasing ? SEG_BG_VALUE : SEG_VOXEL_VALUE;
-
-      m_undoStack->push(new DrawCommand(m_currentSource, m_currentOutput, brushes, value));
+      m_undoStack->push(new DrawCommand(m_currentSource, m_currentOutput, brushes, SEG_VOXEL_VALUE));
     }
     m_currentSeg->modifiedByUser(userName());
   }
-
 }
 
 //-----------------------------------------------------------------------------
