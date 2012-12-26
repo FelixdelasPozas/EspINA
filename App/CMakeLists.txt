@@ -45,6 +45,7 @@ qt4_wrap_cpp (ESPINA_MOC
   Views/DefaultEspinaView.h
   Dialogs/Connectomics/ConnectomicsDialog.h
   Dialogs/ChannelInspector/ChannelInspector.h
+  Undo/BrushUndoCommand.h
   )
 
 # Create Interface files

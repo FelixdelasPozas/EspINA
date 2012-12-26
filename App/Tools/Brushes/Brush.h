@@ -25,11 +25,11 @@
 #include <Core/Model/Segmentation.h>
 #include "GUI/Pickers/IPicker.h"
 #include "GUI/Tools/ITool.h"
+#include "GUI/ViewManager.h"
 
 class ModelItem;
 class EspinaModel;
 class QUndoStack;
-class ViewManager;
 class BrushPicker;
 class Channel;
 class Filter;
@@ -78,7 +78,10 @@ protected slots:
                               double x, double y, double z,
                               Nm radius,
                               PlaneType plane);
+
   virtual void segmentationHasBeenModified(ModelItem *);
+
+  virtual void initBrushTool();
 
 signals:
   void brushModeChanged(Brush::BrushMode);

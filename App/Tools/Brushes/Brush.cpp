@@ -33,7 +33,6 @@
 
 #include <vtkRenderWindow.h>
 
-#include <QDebug>
 #include <QUndoStack>
 #include <QMouseEvent>
 #include <QPainter>
@@ -60,6 +59,8 @@ Brush::Brush(EspinaModel* model,
           this,  SLOT(drawStroke(PickableItem *,IPicker::WorldRegion, Nm, PlaneType)));
   connect(m_brush, SIGNAL(stroke(PickableItem*,double,double,double,Nm,PlaneType)),
           this,  SLOT(drawStrokeStep(PickableItem*,double,double,double,Nm,PlaneType)));
+  connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection, bool)),
+          this, SLOT(initBrushTool()));
 }
 
 //-----------------------------------------------------------------------------
@@ -80,51 +81,61 @@ bool Brush::filterEvent(QEvent* e, EspinaRenderView* view)
   {
     if (e->type() == QEvent::KeyRelease)
     {
-    QKeyEvent *ke = static_cast<QKeyEvent *>(e);
-    if (ke->key() == Qt::Key_Control)
-    {
-      m_erasing = false;
-      m_brush->DrawingOn();
-    }
-    } else if (QEvent::MouseMove == e->type())
-    {
-      QMouseEvent *me = static_cast<QMouseEvent *>(e);
-      if (Qt::CTRL != me->modifiers())
+      QKeyEvent *ke = static_cast<QKeyEvent *>(e);
+      if (ke->key() == Qt::Key_Control)
       {
         m_erasing = false;
         m_brush->DrawingOn();
+        if (!m_currentSeg)
+          m_brush->setBorderColor(QColor(Qt::blue));
       }
     }
+    else
+      if (QEvent::MouseMove == e->type())
+      {
+        QMouseEvent *me = static_cast<QMouseEvent *>(e);
+        if (Qt::CTRL != me->modifiers())
+        {
+          m_erasing = false;
+          m_brush->DrawingOn();
+          if (!m_currentSeg)
+            m_brush->setBorderColor(QColor(Qt::blue));
+        }
+      }
     if (!m_erasing)
     {
       m_brush->setBorderColor(QColor(Qt::green));
       emit brushModeChanged(BRUSH);
     }
-  } else if (m_currentSource)
-  {
-    if (QEvent::KeyPress == e->type())
-    {
-      QKeyEvent *ke = static_cast<QKeyEvent *>(e);
-      if (ke->key() == Qt::Key_Control && ke->count() == 1)
-      {
-        m_erasing = true;
-        m_brush->DrawingOff();
-      }
-    } else if (QEvent::MouseMove == e->type())
-    {
-      QMouseEvent *me = static_cast<QMouseEvent *>(e);
-      if (Qt::CTRL == me->modifiers())
-      {
-        m_erasing = true;
-        m_brush->DrawingOff();
-      }
-    }
-    if (m_erasing)
-    {
-      m_brush->setBorderColor(QColor(Qt::red));
-      emit brushModeChanged(ERASER);
-    }
   }
+  else
+    if (m_currentSource)
+    {
+      if (QEvent::KeyPress == e->type())
+      {
+        QKeyEvent *ke = static_cast<QKeyEvent *>(e);
+        if (ke->key() == Qt::Key_Control && ke->count() == 1)
+        {
+          m_erasing = true;
+          m_brush->DrawingOff();
+        }
+      }
+      else
+        if (QEvent::MouseMove == e->type())
+        {
+          QMouseEvent *me = static_cast<QMouseEvent *>(e);
+          if (Qt::CTRL == me->modifiers())
+          {
+            m_erasing = true;
+            m_brush->DrawingOff();
+          }
+        }
+      if (m_erasing)
+      {
+        m_brush->setBorderColor(QColor(Qt::red));
+        emit brushModeChanged(ERASER);
+      }
+    }
   if (e->type() == QEvent::Wheel)
   {
     QWheelEvent* we = dynamic_cast<QWheelEvent*>(e);
@@ -150,28 +161,7 @@ void Brush::setInUse(bool value)
 
   if (value && m_viewManager->activeTaxonomy() && m_viewManager->activeChannel())
   {
-    SegmentationList segs = m_viewManager->selectedSegmentations();
-    if (segs.size() == 1)
-    {
-      m_currentSeg = segs.first();
-      connect(m_currentSeg, SIGNAL(modified(ModelItem*)), this, SLOT(segmentationHasBeenModified(ModelItem*)));
-      m_currentSource = m_currentSeg->filter();
-      m_currentOutput = m_currentSeg->outputId();
-
-      m_brush->setBrushColor(m_currentSeg->taxonomy()->color());
-      m_brush->setBorderColor(QColor(Qt::green));
-      m_brush->setReferenceItem(m_currentSeg);
-    }
-    else
-    {
-      m_currentSeg    = NULL;
-      m_currentSource = NULL;
-      m_currentOutput = -1;
-
-      m_brush->setBrushColor(m_viewManager->activeTaxonomy()->color());
-      m_brush->setBorderColor(QColor(Qt::blue));
-      m_brush->setReferenceItem(m_viewManager->activeChannel());
-    }
+    initBrushTool();
   }
   else
   {
@@ -211,15 +201,7 @@ void Brush::drawStroke(PickableItem* item,
       if (!m_currentSeg->volume()->strechToFitContent())
       {
         m_undoStack->push(new RemoveSegmentation(m_currentSeg, m_model));
-
-        disconnect(m_currentSeg, SIGNAL(modified(ModelItem*)), this, SLOT(segmentationHasBeenModified(ModelItem*)));
-        m_currentSeg    = NULL;
-        m_currentSource = NULL;
-        m_currentOutput = -1;
-
-        m_brush->setBrushColor(m_viewManager->activeTaxonomy()->color());
-        m_brush->setBorderColor(QColor(Qt::blue));
-        m_brush->setReferenceItem(m_viewManager->activeChannel());
+        initBrushTool();
       }
       m_undoStack->endMacro();
       m_eraseCommand = NULL;
@@ -259,7 +241,7 @@ void Brush::drawStroke(PickableItem* item,
 
       m_undoStack->beginMacro("Draw Segmentation");
       // We can't add empty segmentations to the model
-      m_undoStack->push(new DrawCommand(m_currentSource, m_currentOutput, brushes, SEG_VOXEL_VALUE));
+      m_undoStack->push(new DrawCommand(m_currentSource, m_currentOutput, brushes, SEG_VOXEL_VALUE, this));
       m_undoStack->push(
           new AddSegmentation(channel, m_currentSource, m_currentSeg, m_viewManager->activeTaxonomy(), m_model));
       m_undoStack->endMacro();
@@ -269,7 +251,7 @@ void Brush::drawStroke(PickableItem* item,
     else
     {
       Q_ASSERT(m_currentSource && m_currentSeg);
-      m_undoStack->push(new DrawCommand(m_currentSource, m_currentOutput, brushes, SEG_VOXEL_VALUE));
+      m_undoStack->push(new DrawCommand(m_currentSource, m_currentOutput, brushes, SEG_VOXEL_VALUE, this));
     }
     m_currentSeg->modifiedByUser(userName());
   }
@@ -373,4 +355,39 @@ void Brush::segmentationHasBeenModified(ModelItem *item)
     m_brush->setBrushColor(m_currentSeg->taxonomy()->color());
     m_viewManager->updateViews();
   }
+}
+
+//-----------------------------------------------------------------------------
+void Brush::initBrushTool()
+{
+  if (m_currentSeg)
+    disconnect(m_currentSeg, SIGNAL(modified(ModelItem*)), this, SLOT(segmentationHasBeenModified(ModelItem*)));
+
+  SegmentationList segs = m_viewManager->selectedSegmentations();
+  if (segs.size() == 1)
+  {
+    m_currentSeg = segs.first();
+    connect(m_currentSeg, SIGNAL(modified(ModelItem*)), this, SLOT(segmentationHasBeenModified(ModelItem*)));
+    m_currentSource = m_currentSeg->filter();
+    m_currentOutput = m_currentSeg->outputId();
+
+    m_brush->setBrushColor(m_currentSeg->taxonomy()->color());
+    m_brush->setBorderColor(QColor(Qt::green));
+    m_brush->setReferenceItem(m_currentSeg);
+  }
+  else
+  {
+    m_currentSeg    = NULL;
+    m_currentSource = NULL;
+    m_currentOutput = -1;
+
+    m_brush->setBrushColor(m_viewManager->activeTaxonomy()->color());
+    m_brush->setBorderColor(QColor(Qt::blue));
+    m_brush->setReferenceItem(m_viewManager->activeChannel());
+  }
+
+  m_eraseCommand = NULL;
+  m_drawCommand = NULL;
+  m_erasing = false;
+  m_brush->DrawingOn();
 }

@@ -18,7 +18,6 @@
 
 
 #include "BrushUndoCommand.h"
-
 #include <Core/Model/Filter.h>
 
 #include <itkExtractImageFilter.h>
@@ -43,7 +42,8 @@ itkVolumeType::Pointer backup(EspinaVolume::Pointer volume)
 Brush::DrawCommand::DrawCommand(Filter* source,
                                 Filter::OutputId output,
                                 BrushShapeList brushes,
-                                itkVolumeType::PixelType value)
+                                itkVolumeType::PixelType value,
+                                Brush *parent)
 : m_source(source)
 , m_output(output)
 , m_brushes(brushes)
@@ -62,6 +62,9 @@ Brush::DrawCommand::DrawCommand(Filter* source,
         m_strokeBounds[i] = std::max(brush.second.bounds()[i], m_strokeBounds[i]);
     }
   }
+
+  if (parent)
+    connect(this, SIGNAL(initBrushTool()), parent, SLOT(initBrushTool()));
 }
 
 //-----------------------------------------------------------------------------
@@ -94,6 +97,8 @@ void Brush::DrawCommand::undo()
 {
   if (m_prevVolume.IsNotNull())
     m_source->restoreOutput(m_output, m_prevVolume);
+  else
+    emit initBrushTool();
 }
 
 //-----------------------------------------------------------------------------

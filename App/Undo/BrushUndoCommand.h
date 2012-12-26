@@ -21,6 +21,7 @@
 #define BRUSHUNDOCOMMAND_H
 
 #include <QUndoCommand>
+#include <QObject>
 
 #include <Tools/Brushes/Brush.h>
 
@@ -28,15 +29,21 @@ class Filter;
 class vtkImplicitFunction;
 
 class Brush::DrawCommand
-: public QUndoCommand
+: public QObject
+, public QUndoCommand
 {
+  Q_OBJECT
 public:
   explicit DrawCommand(Filter *source,
                        Filter::OutputId output,
                        BrushShapeList brushes,
-                       itkVolumeType::PixelType value);
+                       itkVolumeType::PixelType value,
+                       Brush *parent = 0);
   virtual void redo();
   virtual void undo();
+
+signals:
+  void initBrushTool();
 
 private:
   Filter        *m_source;
@@ -51,7 +58,8 @@ private:
 };
 
 class Brush::SnapshotCommand
-: public QUndoCommand
+: public QObject
+, public QUndoCommand
 {
 public:
   explicit SnapshotCommand(Filter *source,
