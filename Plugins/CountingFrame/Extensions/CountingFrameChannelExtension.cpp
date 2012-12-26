@@ -60,14 +60,17 @@ CountingFrameChannelExtension::~CountingFrameChannelExtension()
 void CountingFrameChannelExtension::initialize(ModelItem::Arguments args)
 {
   ModelItem::Arguments extArgs(args.value(ID, QString()));
+  QStringList countingFrames;
 
   if (extArgs.isEmpty())
+  {
     extArgs = ModelItem::Arguments(args.value(ID_1_2_5, QString()));
-
-  QStringList countingFrames = extArgs.value(COUNTING_FRAMES, "").split(";", QString::SkipEmptyParts);
-
-  if (countingFrames.isEmpty()) // Check previous tag
     countingFrames = extArgs.value(COUNTING_FRAMES_1_2_5, "").split(";", QString::SkipEmptyParts);
+  }
+  else
+  {
+    countingFrames = extArgs.value(COUNTING_FRAMES, "").split(";", QString::SkipEmptyParts);
+  }
 
   foreach (QString countingFrame, countingFrames)
   {

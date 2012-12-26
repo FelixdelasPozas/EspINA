@@ -81,7 +81,7 @@ void SegmhaImporter::UndoCommand::redo()
       .arg(exclusive[0]).arg(exclusive[1]).arg(exclusive[2]);
     //qDebug() << "Using Counting Frame" << rcb;
     ModelItem::Arguments args;
-    args["CFs"] = rcb;
+    args["CountingFrameExtension"] = "CFs=[" + rcb + "];";
     countingFrameExt->initialize(args);
   }
 
