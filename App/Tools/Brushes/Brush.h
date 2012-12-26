@@ -26,6 +26,7 @@
 #include "GUI/Pickers/IPicker.h"
 #include "GUI/Tools/ITool.h"
 
+class ModelItem;
 class EspinaModel;
 class QUndoStack;
 class ViewManager;
@@ -73,10 +74,12 @@ protected slots:
                           Nm radius,
                           PlaneType plane);
 
-virtual void drawStrokeStep(PickableItem *item,
-                            double x, double y, double z,
-                            Nm radius,
-                            PlaneType plane);
+  virtual void drawStrokeStep(PickableItem *item,
+                              double x, double y, double z,
+                              Nm radius,
+                              PlaneType plane);
+  virtual void segmentationHasBeenModified(ModelItem *);
+
 signals:
   void brushModeChanged(Brush::BrushMode);
   void stopDrawing();

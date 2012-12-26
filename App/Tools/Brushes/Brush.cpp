@@ -154,6 +154,7 @@ void Brush::setInUse(bool value)
     if (segs.size() == 1)
     {
       m_currentSeg = segs.first();
+      connect(m_currentSeg, SIGNAL(modified(ModelItem*)), this, SLOT(segmentationHasBeenModified(ModelItem*)));
       m_currentSource = m_currentSeg->filter();
       m_currentOutput = m_currentSeg->outputId();
 
@@ -173,7 +174,12 @@ void Brush::setInUse(bool value)
     }
   }
   else
+  {
+    if (m_currentSeg)
+      disconnect(m_currentSeg, SIGNAL(modified(ModelItem*)), this, SLOT(segmentationHasBeenModified(ModelItem*)));
+
     emit stopDrawing();
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -205,7 +211,8 @@ void Brush::drawStroke(PickableItem* item,
       if (!m_currentSeg->volume()->strechToFitContent())
       {
         m_undoStack->push(new RemoveSegmentation(m_currentSeg, m_model));
-        // quick reset
+
+        disconnect(m_currentSeg, SIGNAL(modified(ModelItem*)), this, SLOT(segmentationHasBeenModified(ModelItem*)));
         m_currentSeg    = NULL;
         m_currentSource = NULL;
         m_currentOutput = -1;
@@ -257,6 +264,7 @@ void Brush::drawStroke(PickableItem* item,
           new AddSegmentation(channel, m_currentSource, m_currentSeg, m_viewManager->activeTaxonomy(), m_model));
       m_undoStack->endMacro();
       m_brush->setBorderColor(QColor(Qt::green));
+      connect(m_currentSeg, SIGNAL(modified(ModelItem *)), this, SLOT(segmentationHasBeenModified(ModelItem *)));
     }
     else
     {
@@ -346,6 +354,23 @@ void Brush::drawStrokeStep(PickableItem* item,
                           brush.first,
                           brush.second.bounds(),
                           SEG_BG_VALUE);
+    m_viewManager->updateViews();
+  }
+}
+
+//-----------------------------------------------------------------------------
+void Brush::segmentationHasBeenModified(ModelItem *item)
+{
+  Segmentation *seg = dynamic_cast<Segmentation *>(item);
+  if (seg != m_currentSeg)
+  {
+    disconnect(seg, SIGNAL(modified(ModelItem*)), this, SLOT(segmentationHasBeenModified(ModelItem*)));
+    return;
+  }
+
+  if (m_currentSeg->taxonomy()->color() != m_brush->getBrushColor())
+  {
+    m_brush->setBrushColor(m_currentSeg->taxonomy()->color());
     m_viewManager->updateViews();
   }
 }

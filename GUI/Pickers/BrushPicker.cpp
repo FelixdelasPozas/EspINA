@@ -461,3 +461,9 @@ void BrushPicker::DrawingOff()
 {
   m_drawing = false;
 }
+
+//-----------------------------------------------------------------------------
+QColor BrushPicker::getBrushColor()
+{
+  return m_brushColor;
+}
