@@ -212,7 +212,7 @@ void CountingFramePanel::createAdaptiveCF(Channel *channel,
   CountingFrameChannelExtension *channelExt = dynamic_cast<CountingFrameChannelExtension *>(ext);
   Q_ASSERT(channelExt);
 
-  AdaptiveCountingFrame *cf(new AdaptiveCountingFrame(m_nextId,
+  AdaptiveCountingFrame *cf(new AdaptiveCountingFrame(m_nextId++,
                                                             channelExt,
                                                             inclusion,
                                                             exclusion,
@@ -233,7 +233,7 @@ void CountingFramePanel::createRectangularCF(Channel *channel,
   double borders[6];
   channel->volume()->bounds(borders);
 
-  RectangularCountingFrame *cf(new RectangularCountingFrame(m_nextId,
+  RectangularCountingFrame *cf(new RectangularCountingFrame(m_nextId++,
                                                                   channelExt,
                                                                   borders,
                                                                   inclusion,
@@ -351,7 +351,6 @@ void CountingFramePanel::createCountingFrame()
       createRectangularCF(channel, inclusion, exclusion);
     else
       Q_ASSERT(false);
-    m_nextId++;
   }
 
   updateSegmentations();
