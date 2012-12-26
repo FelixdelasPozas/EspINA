@@ -35,7 +35,8 @@
 
 typedef ModelItem::ArgumentId ArgumentId;
 
-const ModelItemExtension::ExtId CountingFrameChannelExtension::ID = "CountingFrameExtension";
+const ModelItemExtension::ExtId CountingFrameChannelExtension::ID       = "CountingFrameExtension";
+const ModelItemExtension::ExtId CountingFrameChannelExtension::ID_1_2_5 = "CountingRegionExtension";
 
 const ArgumentId COUNTING_FRAMES_1_2_5 = "Regions"; // Backwards compatibility versions < 1.2.5
 const ArgumentId CountingFrameChannelExtension::COUNTING_FRAMES = "CFs";
@@ -58,16 +59,18 @@ CountingFrameChannelExtension::~CountingFrameChannelExtension()
 //-----------------------------------------------------------------------------
 void CountingFrameChannelExtension::initialize(ModelItem::Arguments args)
 {
-  QStringList countingFrames = args.value(COUNTING_FRAMES, "").split(";");
+  ModelItem::Arguments extArgs(args.value(ID, QString()));
+
+  if (extArgs.isEmpty())
+    extArgs = ModelItem::Arguments(args.value(ID_1_2_5, QString()));
+
+  QStringList countingFrames = extArgs.value(COUNTING_FRAMES, "").split(";", QString::SkipEmptyParts);
 
   if (countingFrames.isEmpty()) // Check previous tag
-    countingFrames = args.value(COUNTING_FRAMES_1_2_5, "").split(";");
+    countingFrames = extArgs.value(COUNTING_FRAMES_1_2_5, "").split(";", QString::SkipEmptyParts);
 
   foreach (QString countingFrame, countingFrames)
   {
-    if (countingFrame.isEmpty())
-      continue;
-
     QString type = countingFrame.section('=',0,0);
     QStringList margins = countingFrame.section('=',-1).split(',');
     Nm inclusion[3], exclusion[3];
@@ -76,11 +79,15 @@ void CountingFrameChannelExtension::initialize(ModelItem::Arguments args)
       inclusion[i] = margins[i].toDouble();
       exclusion[i] = margins[3+i].toDouble();
     }
-    if (RectangularCountingFrame::ID == type)
+    if (RectangularCountingFrame::ID == type
+      ||RectangularCountingFrame::ID_1_2_5 == type)
       m_plugin->createRectangularCF(m_channel, inclusion, exclusion);
-    else if (AdaptiveCountingFrame::ID == type)
+    else if (AdaptiveCountingFrame::ID == type
+      || AdaptiveCountingFrame::ID_1_2_5 == type)
       m_plugin->createAdaptiveCF(m_channel, inclusion, exclusion);
   }
+
+  m_args = extArgs;
 
   m_viewManager->updateSegmentationRepresentations();
   m_viewManager->updateViews();
@@ -144,7 +151,7 @@ void CountingFrameChannelExtension::deleteCountingFrame(CountingFrame* countingF
 
   Sample *sample = m_channel->sample();
   Q_ASSERT(sample);
-  ModelItem::Vector items = sample->relatedItems(ModelItem::OUT, "where");
+  ModelItem::Vector items = sample->relatedItems(ModelItem::OUT, Sample::WHERE);
   foreach(ModelItem *item, items)
   {
     if (ModelItem::SEGMENTATION == item->type())
@@ -165,7 +172,7 @@ void CountingFrameChannelExtension::countinfFrameUpdated(CountingFrame* counting
   QApplication::setOverrideCursor(Qt::WaitCursor);
   Sample *sample = m_channel->sample();
   Q_ASSERT(sample);
-  ModelItem::Vector items = sample->relatedItems(ModelItem::OUT, "where");
+  ModelItem::Vector items = sample->relatedItems(ModelItem::OUT, Sample::WHERE);
   foreach(ModelItem *item, items)
   {
     if (ModelItem::SEGMENTATION == item->type())

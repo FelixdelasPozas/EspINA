@@ -32,6 +32,7 @@ class CountingFrameChannelExtension
   Q_OBJECT
 public:
   static const ExtId ID;
+  static const ExtId ID_1_2_5; //Backwards compatibility
   static const ModelItem::ArgumentId COUNTING_FRAMES;
 
   explicit CountingFrameChannelExtension(CountingFramePanel *plugin, ViewManager *vm);

@@ -275,10 +275,7 @@ void Channel::initializeExtensions(ModelItem::Arguments args)
   {
     ChannelExtension *channelExt = dynamic_cast<ChannelExtension *>(ext);
     Q_ASSERT(channelExt);
-    ModelItem::Arguments extArgs(args.value(channelExt->id(), QString()));
-//     qDebug() << channelExt->id();
-//     if (!args.isEmpty()) qDebug() << "*" << extArgs;
-    channelExt->initialize(extArgs);
+    channelExt->initialize(args);
   }
 
 }

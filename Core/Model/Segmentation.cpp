@@ -206,10 +206,7 @@ void Segmentation::initializeExtensions(ModelItem::Arguments args)
   foreach(ModelItemExtension *ext, m_insertionOrderedExtensions)
   {
     Q_ASSERT(ext);
-    ModelItem::Arguments extArgs(args.value(ext->id(), QString()));
-//     qDebug() << ext->id();
-//     if (!args.isEmpty()) qDebug() << "*" << extArgs;
-    ext->initialize(extArgs);
+    ext->initialize(args);
   }
 }
 

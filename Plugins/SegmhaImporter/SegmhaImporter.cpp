@@ -63,11 +63,11 @@ void SegmhaImporter::UndoCommand::redo()
     }
   }
 
-  ModelItemExtension *countingRegionExt = m_channel->extension("CountingRegionExtension");
-  if (countingRegionExt)
+  ModelItemExtension *countingFrameExt = m_channel->extension("CountingFrameExtension");
+  if (countingFrameExt)
   {
     Nm inclusive[3], exclusive[3];
-    m_filter->countingRegion(inclusive, exclusive);
+    m_filter->countingFrame(inclusive, exclusive);
     double spacing[3];
     m_channel->volume()->spacing(spacing);
     for(int i=0; i<3;i++)
@@ -76,13 +76,13 @@ void SegmhaImporter::UndoCommand::redo()
       exclusive[i] = exclusive[i]*spacing[i];
     }
 
-    QString rcb = QString("RectangularBoundingRegion=%1,%2,%3,%4,%5,%6;")
+    QString rcb = QString("RectangularCountingFrame=%1,%2,%3,%4,%5,%6;")
       .arg(inclusive[0]).arg(inclusive[1]).arg(inclusive[2])
       .arg(exclusive[0]).arg(exclusive[1]).arg(exclusive[2]);
-    //qDebug() << "Using Counting Region" << rcb;
+    //qDebug() << "Using Counting Frame" << rcb;
     ModelItem::Arguments args;
-    args["Regions"] = rcb;
-    countingRegionExt->initialize(args);
+    args["CFs"] = rcb;
+    countingFrameExt->initialize(args);
   }
 
   m_model->addFilter(m_filter);
@@ -92,7 +92,7 @@ void SegmhaImporter::UndoCommand::redo()
   foreach(Segmentation *seg, m_segs)
   {
     m_model->addRelation(m_filter, seg, CREATELINK);
-    m_model->addRelation(m_sample, seg, "where");
+    m_model->addRelation(m_sample, seg, Sample::WHERE);
     m_model->addRelation(m_channel, seg, Channel::LINK);
     seg->initializeExtensions();
   }

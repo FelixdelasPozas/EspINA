@@ -30,7 +30,8 @@
 #include <Core/Model/Channel.h>
 
 
-const QString RectangularCountingFrame::ID = "RectangularCountingFrame";
+const QString RectangularCountingFrame::ID       = "RectangularCountingFrame";
+const QString RectangularCountingFrame::ID_1_2_5 = "RectangularBoundingRegion";
 
 //-----------------------------------------------------------------------------
 RectangularCountingFrame::RectangularCountingFrame(Id id,
