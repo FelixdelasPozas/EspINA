@@ -143,7 +143,7 @@ EspinaMainWindow::EspinaMainWindow()
     connect(saveAnalysis,SIGNAL(triggered(bool)), this,SLOT(saveAnalysis()));
 
     QAction *exit = new QAction(tr("&Exit"), this);
-    connect(exit, SIGNAL(triggered(bool)), QApplication::instance(), SLOT(quit()));
+    connect(exit, SIGNAL(triggered(bool)), this, SLOT(close()));
 
     fileMenu->addMenu(openMenu);
     fileMenu->addMenu(m_addMenu);
@@ -485,8 +485,6 @@ void EspinaMainWindow::closeEvent(QCloseEvent* event)
 
   QDir autosavePath = m_settings->autosavePath();
   autosavePath.remove(AUTOSAVE_FILE);
-
-  exit(0);
 }
 
 //------------------------------------------------------------------------
