@@ -87,6 +87,8 @@ protected slots:
   void channelChanged(Channel *channel);
   void saveCountingFrameDescription();
 
+  void changeUnitMode(bool useSlices);
+
 private:
   /// Find margin values which discard all segmentations that
   /// touch the channel margins
@@ -108,10 +110,11 @@ signals:
   void countingFrameDeleted(CountingFrame *);
 
 private:
-  GUI *m_gui;
-
   EspinaModel *m_espinaModel;
   ViewManager *m_viewManager;
+
+  GUI *m_gui;
+  bool m_useSlices;
 
   CountingFrameList       m_countingFrames;
   CountingFrame          *m_activeCF;
