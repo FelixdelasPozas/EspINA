@@ -111,6 +111,7 @@ SliceView::SliceView(ViewManager* vm, PlaneType plane, QWidget* parent)
   memset(m_crosshairPoint, 0, 3*sizeof(Nm));
   m_plane = plane;
   m_settings = SettingsPtr(new Settings(m_plane));
+  m_slicingStep[0] = m_slicingStep[1] = m_slicingStep[2] = 1;
 
   setupUI();
 
@@ -1659,7 +1660,10 @@ void SliceView::setSlicingStep(Nm steps[3])
 
   Nm slicingPos = slicingPosition();
 
-  memcpy(m_slicingStep, steps, 3*sizeof(Nm));
+  if (AXIAL == m_plane)
+  {
+    memcpy(m_slicingStep, steps, 3*sizeof(Nm));
+  }
   setSlicingBounds(m_sceneBounds);
 
   if (m_slicingStep[0] == 1 && m_slicingStep[1] == 1 && m_slicingStep[2] == 1)

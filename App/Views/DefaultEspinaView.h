@@ -45,7 +45,7 @@ class DefaultEspinaView
 
 public:
   explicit DefaultEspinaView(EspinaModel *model,
-                             ViewManager *vm,
+                             ViewManager *viewManager,
                              QMainWindow *parent=0
                             );
   virtual ~DefaultEspinaView();
@@ -106,6 +106,7 @@ protected:
 
 private:
   EspinaModel *m_model;
+  ViewManager *m_viewManager;
 
   bool m_showProcessing;
   bool m_showSegmentations;

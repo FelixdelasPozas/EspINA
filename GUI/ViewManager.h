@@ -39,6 +39,7 @@
 #include <vtkLookupTable.h>
 #include <vtkSmartPointer.h>
 
+class QAction;
 class SliceSelectorWidget;
 class Channel;
 class EspinaRenderView;
@@ -150,12 +151,16 @@ public:
   /// Unset Slice Selection flags to all registered Slice Views
   void removeSliceSelectors(SliceSelectorWidget *widget);
 
+  QAction *fitToSlices() {return m_fitToSlices;}
+
 public slots:
   /// Update Segmentation Representation
   void updateSegmentationRepresentations(SegmentationList list = SegmentationList());
   /// Request all registered views to update themselves
   void updateViews();
 
+private:
+  QAction *m_fitToSlices;
 
   //---------------------------------------------------------------------------
   /*********************** Active Elements API *******************************/

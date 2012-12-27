@@ -42,9 +42,12 @@
 #include <QMenu>
 
 //----------------------------------------------------------------------------
-DefaultEspinaView::DefaultEspinaView(EspinaModel* model, ViewManager* vm, QMainWindow *parent)
+DefaultEspinaView::DefaultEspinaView(EspinaModel *model,
+                                     ViewManager *viewManager,
+                                     QMainWindow *parent)
 : QAbstractItemView(parent)
 , m_model(model)
+, m_viewManager(viewManager)
 , m_showProcessing(false)
 , m_showSegmentations(true)
 , m_contextMenu(new SegmentationContextualMenu(m_model, SegmentationList()))
@@ -56,10 +59,10 @@ DefaultEspinaView::DefaultEspinaView(EspinaModel* model, ViewManager* vm, QMainW
   setObjectName("xyView");
 
   //   qDebug() << "New Default EspinaView";
-  xyView = new SliceView(vm, AXIAL);
-  xzView = new SliceView(vm, CORONAL);
-  yzView = new SliceView(vm, SAGITTAL);
-  volView = new VolumeView(m_model->factory(), vm, this);
+  xyView = new SliceView(viewManager, AXIAL);
+  xzView = new SliceView(viewManager, CORONAL);
+  yzView = new SliceView(viewManager, SAGITTAL);
+  volView = new VolumeView(m_model->factory(), viewManager, this);
   volView->setViewType(VOLUME);
 
   xyView->setCrosshairColors(blue, magenta);
@@ -160,9 +163,7 @@ void DefaultEspinaView::createViewMenu(QMenu* menu)
   connect(togglePreprocessingVisibility, SIGNAL(triggered(bool)), this, SLOT(switchPreprocessing()));
   menu->addAction(togglePreprocessingVisibility);
 
-  QAction *fitToSlices = new QAction(tr("Fit To Slices"), menu);
-  fitToSlices->setCheckable(true);
-  fitToSlices->setChecked(true);
+  QAction *fitToSlices = m_viewManager->fitToSlices();
   menu->addAction(fitToSlices);
   connect(fitToSlices, SIGNAL(toggled(bool)),
           this, SLOT(setFitToSlices(bool)));
