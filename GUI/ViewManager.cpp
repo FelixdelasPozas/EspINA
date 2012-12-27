@@ -16,7 +16,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #include "ViewManager.h"
 
 // EspINA
@@ -37,10 +36,13 @@ using namespace EspINA;
 ViewManager::ViewManager()
 : m_voi(NULL)
 , m_tool(NULL)
+, m_fitToSlices(new QAction(tr("Fit To Slices"), this))
 , m_activeChannel(NULL)
 , m_activeTaxonomy(NULL)
 , m_colorEngine(NULL)
 {
+  m_fitToSlices->setCheckable(true);
+  m_fitToSlices->setChecked(true);
 }
 
 //----------------------------------------------------------------------------

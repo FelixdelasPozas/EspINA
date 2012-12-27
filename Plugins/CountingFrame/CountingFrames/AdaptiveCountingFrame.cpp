@@ -31,7 +31,8 @@
 #include "vtkCountingFrame3DWidget.h"
 
 //-----------------------------------------------------------------------------
-const QString AdaptiveCountingFrame::ID = "AdaptiveCountingFrame";
+const QString AdaptiveCountingFrame::ID       = "AdaptiveCountingFrame";
+const QString AdaptiveCountingFrame::ID_1_2_5 = "AdaptiveBoundingRegion";
 
 //-----------------------------------------------------------------------------
 AdaptiveCountingFrame::AdaptiveCountingFrame(Id id,

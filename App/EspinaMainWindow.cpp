@@ -160,7 +160,6 @@ EspinaMainWindow::EspinaMainWindow(ViewManager* viewManager)
     QAction *exit = fileMenu->addAction(tr("&Exit"));
     connect(exit, SIGNAL(triggered(bool)),
             this, SLOT(close()));
-
   }
 
   connect(fileMenu, SIGNAL(triggered(QAction*)), this, SLOT(openRecentAnalysis()));

@@ -40,6 +40,9 @@
 
 //Forward declaration
 class vtkImageResliceToColors;
+class vtkImageReslice;
+class vtkImageMapToColors;
+class vtkImageShiftScale;
 class vtkImageActor;
 class vtkInteractorStyleEspinaSlice;
 class vtkRenderWindow;
@@ -213,7 +216,9 @@ namespace EspINA
   private:
     struct SliceRep
     {
-      vtkSmartPointer<vtkImageResliceToColors> resliceToColors;
+      vtkSmartPointer<vtkImageReslice> reslice;
+      vtkSmartPointer<vtkImageMapToColors> mapToColors;
+      vtkSmartPointer<vtkImageShiftScale> shiftScaleFilter;
       vtkSmartPointer<vtkLookupTable> lut;
       vtkImageActor *slice;
       bool visible;
@@ -222,6 +227,8 @@ namespace EspINA
       Nm pos[3];
       bool overridden;
       HierarchyItem::HierarchyRenderingType renderingType;
+      double contrast;
+      double brightness;
     };
 
     ViewManager *m_viewManager;
@@ -280,7 +287,6 @@ namespace EspINA
     QMap<SegmentationPtr, SliceRep>     m_segmentationReps;
     QMap<EspinaWidget *, SliceWidget *> m_widgets;
   };
-
 
   class SliceView::Settings
   {

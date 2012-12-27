@@ -26,6 +26,7 @@
 #include <Core/Model/EspinaModel.h>
 #include "GUI/Pickers/IPicker.h"
 #include "GUI/Tools/ITool.h"
+#include "GUI/ViewManager.h"
 
 class QUndoStack;
 
@@ -77,6 +78,10 @@ namespace EspINA
                                 double x, double y, double z,
                                 Nm              radius,
                                 PlaneType       plane);
+  virtual void segmentationHasBeenModified(ModelItem *);
+
+  virtual void initBrushTool();
+
   signals:
     void brushModeChanged(Brush::BrushMode);
     void stopDrawing();

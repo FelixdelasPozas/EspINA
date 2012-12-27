@@ -39,14 +39,18 @@ IPicker::PickList PixelPicker::generatePickList(EspinaRenderView* view)
 //-----------------------------------------------------------------------------
 void PixelPicker::onMouseDown(const QPoint &pos, EspinaRenderView* view)
 {
-  emit itemsPicked(generatePickList(view));
+  PickList pickList = generatePickList(view);
+  if (pickList.empty() || 0 == pickList.first().first->GetNumberOfPoints())
+    return;
+
+  emit itemsPicked(pickList);
 }
 
 //-----------------------------------------------------------------------------
 double *PixelPicker::getPickPoint(EspinaRenderView *view)
 {
   PickList pickList = generatePickList(view);
-  if (pickList.empty() || (EspINA::CHANNEL != pickList.first().second->type()))
+  if (pickList.empty() || (pickList.first().second->type() != EspINA::CHANNEL) || 0 == pickList.first().first->GetNumberOfPoints())
     return NULL;
 
   double *point = new double[3];
@@ -64,6 +68,14 @@ bool PixelPicker::filterEvent(QEvent* e, EspinaRenderView* view)
     if (me->button() == Qt::LeftButton)
     {
       onMouseDown(me->pos(), view);
+      PickList pickList = generatePickList(view);
+      if (pickList.empty())
+        return false;
+
+      foreach(PickedItem item, pickList)
+        if (0 == item.first->GetNumberOfPoints())
+          return false;
+
       return true;
     }
   }
@@ -95,7 +107,7 @@ BestPixelPicker::BestPixelPicker()
 void BestPixelPicker::onMouseDown(const QPoint& pos, EspinaRenderView* view)
 {
   PickList pickList = generatePickList(view);
-  if (pickList.empty() || (EspINA::CHANNEL != pickList.first().second->type()))
+  if (pickList.empty() || (pickList.first().second->type() != EspINA::CHANNEL)  || 0 == pickList.first().first->GetNumberOfPoints())
     return;
 
   double *point = getPickPoint(view);
@@ -109,7 +121,7 @@ void BestPixelPicker::onMouseDown(const QPoint& pos, EspinaRenderView* view)
 double *BestPixelPicker::getPickPoint(EspinaRenderView *view)
 {
   PickList pickList = generatePickList(view);
-  if (pickList.empty() || (EspINA::CHANNEL != pickList.first().second->type()))
+  if (pickList.empty() || (pickList.first().second->type() != EspINA::CHANNEL) || 0 == pickList.first().first->GetNumberOfPoints())
     return NULL;
 
   PickableItemPtr pickedItem = pickList.first().second;

@@ -481,7 +481,6 @@ void EditorToolBar::initDrawTools()
   connect(m_drawToolSelector, SIGNAL(actionCanceled()),
           this, SLOT(cancelDrawOperation()));
   m_drawToolSelector->setDefaultAction(discTool);
-
 }
 
 //----------------------------------------------------------------------------

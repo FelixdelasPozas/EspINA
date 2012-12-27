@@ -459,7 +459,7 @@
  </customwidgets>
  <resources>
   <include location="rsc/CountingFrame.qrc"/>
-  <include location="rsc/CountingRegion.qrc"/>
+  <include location="rsc/CountingFrame.qrc"/>
  </resources>
  <connections/>
 </ui>

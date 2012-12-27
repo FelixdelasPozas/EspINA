@@ -83,10 +83,12 @@ ModelItemExtension::ExtId MarginsChannelExtension::id()
 //-----------------------------------------------------------------------------
 void MarginsChannelExtension::initialize(ModelItem::Arguments args)
 {
+  ModelItem::Arguments extArgs(args.value(ID, QString()));
+
   bool computeMargin = false;
-  if (args.contains(MARGINTYPE))
+  if (extArgs.contains(MARGINTYPE))
   {
-    computeMargin = args[MARGINTYPE] == "Yes";
+    computeMargin = extArgs[MARGINTYPE] == "Yes";
   } else
   {
     QApplication::setOverrideCursor(Qt::ArrowCursor);
@@ -96,7 +98,7 @@ void MarginsChannelExtension::initialize(ModelItem::Arguments args)
     msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
     msgBox.setDefaultButton(QMessageBox::No);
     computeMargin = msgBox.exec() == QMessageBox::Yes;
-    args[MARGINTYPE] = computeMargin?"Yes":"No";
+    extArgs[MARGINTYPE] = computeMargin?"Yes":"No";
     QApplication::restoreOverrideCursor();
   }
 
@@ -105,7 +107,7 @@ void MarginsChannelExtension::initialize(ModelItem::Arguments args)
 
   m_init = true;
   m_useChannelBounds = !computeMargin;
-  m_args = args;
+  m_args = extArgs;
 }
 
 //-----------------------------------------------------------------------------

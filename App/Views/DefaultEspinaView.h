@@ -47,7 +47,7 @@ namespace EspINA
 
   public:
     explicit DefaultEspinaView(EspinaModelSPtr model,
-                               ViewManager *vm,
+                               ViewManager *viewManager,
                                QMainWindow *parent=0
     );
     virtual ~DefaultEspinaView();
@@ -108,6 +108,7 @@ namespace EspINA
 
   private:
     EspinaModelSPtr m_model;
+    ViewManager    *m_viewManager;
 
     bool m_showProcessing;
     bool m_showSegmentations;

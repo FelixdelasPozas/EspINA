@@ -126,7 +126,7 @@ namespace EspINA
 
     /// Reduce volume dimensions to adjust it to the bounding box of the
     /// contained segmentation
-    void strechToFitContent();
+    bool strechToFitContent();
 
   };
 

@@ -18,9 +18,8 @@
 #ifndef APPOSITIONSURFACEXTENSION_H
 #define APPOSITIONSURFACEXTENSION_H
 
-#include <Core/Extensions/SegmentationExtension.h>
-
 // EspINA
+#include <Core/Extensions/SegmentationExtension.h>
 #include <Core/EspinaTypes.h>
 
 // ITK
@@ -28,7 +27,7 @@
 #include <itkExtractImageFilter.h>
 #include <itkGradientImageFilter.h>
 #include <itkImageRegionConstIterator.h>
-#include <itkSignedDanielssonDistanceMapImageFilter.h>
+#include <itkSignedMaurerDistanceMapImageFilter.h>
 #include <itkImageToVTKImageFilter.h>
 
 // VTK
@@ -40,10 +39,19 @@
 #include <vtkSmartPointer.h>
 #include <vtkTransformPolyDataFilter.h>
 
+// STL
+#include <list>
+
 class vtkImageData;
 class AppositionSurfaceExtension
 : public SegmentationExtension
 {
+	
+  static const double THRESHOLDFACTOR = 0.1; // Percentage of a single step
+  static const unsigned int MAXSAVEDSTATUSES = 10;
+  static const int MAXITERATIONSFACTOR = 100;
+  static const float DISPLACEMENTSCALE = 1;
+
   typedef float DistanceType;
   typedef vtkSmartPointer<vtkPoints>   Points;
   typedef vtkSmartPointer<vtkPolyData> PolyData;
@@ -55,8 +63,8 @@ class AppositionSurfaceExtension
   typedef itk::ConstantPadImageFilter<itkVolumeType, itkVolumeType> PadFilterType;
   typedef itk::Image<DistanceType,3> DistanceMapType;
   typedef itk::ImageRegionConstIterator<DistanceMapType> DistanceIterator;
-  typedef itk::SignedDanielssonDistanceMapImageFilter
-  <itkVolumeType, DistanceMapType>  SDDistanceMapFilterType;
+  typedef itk::SignedMaurerDistanceMapImageFilter
+  <itkVolumeType, DistanceMapType>  SMDistanceMapFilterType;
   typedef vtkSmartPointer<vtkPlaneSource> PlaneSourceType;
   typedef itk::GradientImageFilter<DistanceMapType, float> GradientFilterType;
   typedef vtkSmartPointer<vtkGridTransform> GridTransform;
@@ -64,10 +72,13 @@ class AppositionSurfaceExtension
   typedef itk::CovariantVector<float, 3> CovariantVectorType;
   typedef itk::Image<CovariantVectorType,3> CovariantVectorImageType;
 
+  typedef std::list< vtkSmartPointer<vtkPoints> > PointsListType;
+
 public:
   static const ExtId ID;
   static const InfoTag AREA;
   static const InfoTag PERIMETER;
+  static const InfoTag TORTUOSITY;
 
 public:
   explicit AppositionSurfaceExtension();
@@ -97,10 +108,17 @@ public:
 
   //NOTE: Constness is required by information call
   bool updateAppositionSurface() const;
+
 private:
   // Apposition Plane Auxiliar Functions
-  PolyData clipPlane(AppositionSurfaceExtension::PolyData plane, vtkImageData* image) const;
+  PolyData triangulate(PolyData plane) const;
+  PolyData clipPlane(PolyData plane, vtkImageData* image) const;
   DistanceMapType::Pointer computeDistanceMap(itkVolumeType::Pointer volume) const;
+  int computeMeanEuclideanError(vtkPoints * pointsA, vtkPoints * pointsB, double & euclideanError) const;
+  bool hasConverged( vtkPoints * lastPlanePoints, PointsListType & pointsList, double threshold) const;
+  void computeResolution(double * max, double * mid, double * spacing, int & xResolution, int & yResolution) const;
+  void computeIterationLimits(double * min, double * spacing, int & iterations, double & thresholdError) const;
+
   /// Return the 8 corners of an OBB
   Points corners(double corner[3], double max[3], double mid[3], double min[3]) const;
   void maxDistancePoint(DistanceMapType::Pointer map, Points points, double avgMaxDistPoint[3]) const;
@@ -116,16 +134,21 @@ private:
 
   // Apposition Plane Metrics
   double computeArea() const;
+  double computeArea(PolyData mesh) const;
   double computePerimeter() const;
+  double computeTortuosity() const;
   bool isPerimeter(vtkIdType cellId, vtkIdType p1, vtkIdType p2) const;
 
 private:
   int      m_resolution;
   int      m_iterations;
   bool     m_converge;
+  PolyData m_referencePlane;  // Original Plane Template
+  PolyData m_blendedNotClippedPlane;  
 
   mutable double   m_area;
   mutable double   m_perimeter;
+  mutable double   m_tortuosity;
   mutable PolyData m_ap;
 
   mutable itk::TimeStamp m_lastUpdate;

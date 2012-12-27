@@ -20,7 +20,7 @@
 #include <ui_ChannelExplorer.h>
 
 #include "EspinaConfig.h"
-#include "Docks/ChannelInspector/ChannelInspector.h"
+#include "Dialogs/ChannelInspector/ChannelInspector.h"
 
 // EspINA
 #include <GUI/QtWidget/HueSelector.h>
@@ -76,8 +76,6 @@ ChannelExplorer::ChannelExplorer(EspinaModelSPtr model,
           this, SLOT(showInformation()));
   connect(m_gui->activeChannel, SIGNAL(clicked(bool)),
           this, SLOT(activateChannel()));
-  connect(m_gui->channelColor, SIGNAL(clicked(bool)),
-          this, SLOT(changeChannelColor()));
   connect(m_gui->alignLeft, SIGNAL(clicked(bool)),
           this, SLOT(alignLeft()));
   connect(m_gui->alignCenter, SIGNAL(clicked(bool)),
@@ -112,7 +110,6 @@ ChannelExplorer::ChannelExplorer(EspinaModelSPtr model,
 //------------------------------------------------------------------------
 ChannelExplorer::~ChannelExplorer()
 {
-
 }
 
 //------------------------------------------------------------------------
@@ -316,31 +313,6 @@ void ChannelExplorer::moveRight()
 }
 
 //------------------------------------------------------------------------
-void ChannelExplorer::changeChannelColor()
-{
-  QModelIndex index = m_sort->mapToSource(m_gui->view->currentIndex());
-  if (!index.isValid())
-    return;
-
-  ModelItemPtr item = indexPtr(index);
-  if (EspINA::CHANNEL != item->type())
-    return;
-
-  ChannelPtr channel = channelPtr(item);
-
-  HueSelector *hueSelector = new HueSelector(channel->color(), this);
-  hueSelector->exec();
-
-  if(hueSelector->ModifiedData())
-  {
-    double value = (hueSelector->GetHueValue() == -1) ? -1 : (hueSelector->GetHueValue() / 359.);
-    channel->setColor(value);
-    channel->notifyModification();
-  }
-  delete hueSelector;
-}
-
-//------------------------------------------------------------------------
 void ChannelExplorer::updateChannelPosition()
 {
   QModelIndex currentIndex = m_gui->view->currentIndex();
@@ -492,8 +464,18 @@ void ChannelExplorer::showInformation()
     if (EspINA::CHANNEL == currentItem->type())
     {
       ChannelPtr channel = channelPtr(currentItem);
-      ChannelInspector inspector(channel, m_viewManager);
-      inspector.exec();
+      ChannelInspector *inspector = m_informationDialogs.value(channel, NULL);
+
+      if (!inspector)
+      {
+        inspector = new ChannelInspector(channel);
+      //ChannelInspector inspector(channel, m_viewManager);
+        m_informationDialogs.insert(channel, inspector);
+        connect(inspector, SIGNAL(finished(int)), this, SLOT(dialogClosed()));
+        connect(inspector, SIGNAL(channelUpdated()), this, SLOT(inspectorChangedSpacing()));
+      }
+      inspector->show();
+      inspector->raise();
     }
   }
 }
@@ -512,4 +494,27 @@ void ChannelExplorer::activateChannel()
     ChannelPtr currentChannel = channelPtr(currentItem);
     m_viewManager->setActiveChannel(currentChannel);
   }
+}
+
+//------------------------------------------------------------------------
+void ChannelExplorer::dialogClosed()
+{
+  ChannelInspector *dialog = qobject_cast<ChannelInspector*>(sender());
+  QMap<Channel *, ChannelInspector*>::iterator it = m_informationDialogs.begin();
+  while (it != m_informationDialogs.end())
+  {
+    if (it.value() == dialog)
+    {
+      it.key()->notifyModification();
+      m_informationDialogs.erase(it);
+      return;
+    }
+    ++it;
+  }
+}
+
+//------------------------------------------------------------------------
+void ChannelExplorer::inspectorChangedSpacing()
+{
+  m_viewManager->resetViewCameras();
 }

@@ -5,21 +5,21 @@
  *      Author: Félix de las Pozas Álvarez
  */
 
-#ifndef _HueSelector_H_
-#define _HueSelector_H_
+#ifndef HUESELECTOR_H_
+#define HUESELECTOR_H_
 
 // Qt includes
-#include <QtGui>
+#include <QWidget>
 
 namespace EspINA
 {
-class QtHuePicker
+class HueSelector
 : public QWidget
 {
 Q_OBJECT
 public:
-  QtHuePicker(QWidget* parent = 0);
-  ~QtHuePicker();
+  HueSelector(QWidget* parent = 0);
+  ~HueSelector();
 
 public slots:
   void setHueValue(int h);
@@ -44,36 +44,6 @@ private:
   QPixmap *pix;
 };
 
-class HueSelector
-: public QDialog
-{
-private:
-  class GUI; // Gato de la comarca de chesire ;P
-
-Q_OBJECT
-public:
-  // constructor & destructor
-  HueSelector(double, QWidget *parent = 0, Qt::WindowFlags f = Qt::Dialog);
-  ~HueSelector();
-
-  bool ModifiedData();
-  int GetHueValue();
-  void SetHueValue(int h);
-
-public slots:
-  void AcceptedData();
-  void newHsv(int,int,int);
-  void spinboxChanged(int);
-
-private slots:
-
-private:
-  GUI *m_gui;
-  bool modified;
-  QtHuePicker *hp;
-  int hue;
-};
-
 } // namespace EspINA
 
-#endif // _QTLABELEDITOR_H_
+#endif // HUESELECTOR_H_

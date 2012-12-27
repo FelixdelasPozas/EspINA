@@ -1,0 +1,345 @@
+/*
+ * ChannelInspector.cpp
+ *
+ *  Created on: Dec 16, 2012
+ *      Author: Félix de las Pozas Álvarez
+ */
+
+// EspINA
+#include <GUI/QtWidget/SliceView.h>
+#include <GUI/ViewManager.h>
+#include <Core/Model/Channel.h>
+#include <Core/Model/Segmentation.h>
+#include <Core/EspinaTypes.h>
+#include <Filters/ChannelReader.h>
+
+#include "ChannelInspector.h"
+
+// Qt
+#include <QSizePolicy>
+#include <QMessageBox>
+
+// c++
+#include <cmath>
+
+using namespace EspINA;
+
+//------------------------------------------------------------------------
+ChannelInspector::ChannelInspector(Channel *channel, QWidget *parent)
+: QDialog(parent)
+, m_spacingModified(false)
+, m_channel(channel)
+, m_viewManager(new ViewManager())
+, m_view(new SliceView(m_viewManager, AXIAL))
+{
+  setupUi(this);
+  this->setAttribute(Qt::WA_DeleteOnClose, true);
+  this->setWindowTitle(QString("Channel Inspector - ") + channel->information("Name").toString());
+
+  connect(this, SIGNAL(finished(int)), this, SLOT(checkChanges()));
+  
+  connect(applyButton, SIGNAL(clicked()), this, SLOT(changeSpacing()));
+  connect(unitsBox, SIGNAL(currentIndexChanged(int)), this, SLOT(unitsChanged(int)));
+
+  m_view->addChannel(channel);
+  m_view->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+  m_view->setParent(this);
+
+  mainLayout->insertWidget(0, m_view, 1);
+
+  double spacing[3];
+  channel->volume()->spacing(spacing);
+
+  spacingXBox->setValue(spacing[0]);
+  spacingYBox->setValue(spacing[1]);
+  spacingZBox->setValue(spacing[2]);
+  connect(spacingXBox, SIGNAL(valueChanged(double)), this, SLOT(spacingChanged(double)));
+  connect(spacingYBox, SIGNAL(valueChanged(double)), this, SLOT(spacingChanged(double)));
+  connect(spacingZBox, SIGNAL(valueChanged(double)), this, SLOT(spacingChanged(double)));
+
+  if (m_channel->opacity() == -1.0)
+  {
+    opacityBox->setEnabled(false);
+    opacityCheck->setChecked(true);
+    opacitySlider->setEnabled(false);
+    opacitySlider->setValue(100);
+  }
+  else
+  {
+    opacityBox->setEnabled(true);
+    opacityCheck->setChecked(false);
+    opacitySlider->setValue(m_channel->opacity() * 100);
+  }
+  connect(opacityCheck, SIGNAL(stateChanged(int)), this, SLOT(opacityCheckChanged(int)));
+  connect(opacitySlider, SIGNAL(valueChanged(int)), this, SLOT(opacityChanged(int)));
+
+  m_hueSelector = new HueSelector();
+  m_hueSelector->setFixedHeight(20);
+  hueGroupBox->layout()->addWidget(m_hueSelector);
+  connect(m_hueSelector, SIGNAL(newHsv(int,int,int)), this, SLOT(newHSV(int,int,int)));
+  connect(hueBox, SIGNAL(valueChanged(int)), this, SLOT(newHSV(int)));
+
+  if (m_channel->hue() == -1.0)
+  {
+    hueBox->setValue(-1);
+    saturationBox->setValue(0);
+    saturationBox->setEnabled(false);
+    saturationSlider->setEnabled(false);
+  }
+  else
+  {
+    hueBox->setValue(m_channel->hue() * 359);
+    saturationBox->setValue(m_channel->saturation()*100);
+  }
+  connect(saturationSlider, SIGNAL(valueChanged(int)), this, SLOT(saturationChanged(int)));
+
+  vtkImageData *image = vtkImageData::SafeDownCast(m_channel->volume()->toVTK()->GetProducer()->GetOutputDataObject(0));
+  image->GetScalarRange(m_range);
+
+  connect(contrastSlider, SIGNAL(valueChanged(int)), this, SLOT(contrastChanged(int)));
+  connect(contrastBox, SIGNAL(valueChanged(int)), this, SLOT(contrastChanged(int)));
+  connect(brightnessSlider, SIGNAL(valueChanged(int)), this, SLOT(brightnessChanged(int)));
+  connect(brightnessBox, SIGNAL(valueChanged(int)), this, SLOT(brightnessChanged(int)));
+  brightnessSlider->setValue(m_channel->brightness());
+  contrastSlider->setValue(m_channel->contrast());
+
+  // fix ruler initialization
+  m_view->resetCamera();
+  m_view->setRulerVisibility(true);
+  m_view->updateView();
+}
+
+//------------------------------------------------------------------------
+ChannelInspector::~ChannelInspector()
+{
+  delete m_view;
+  delete m_viewManager;
+}
+
+//------------------------------------------------------------------------
+void ChannelInspector::unitsChanged(int value)
+{
+  spacingXBox->setSuffix(unitsBox->currentText());
+  spacingYBox->setSuffix(unitsBox->currentText());
+  spacingZBox->setSuffix(unitsBox->currentText());
+  spacingChanged();
+}
+
+//------------------------------------------------------------------------
+void ChannelInspector::spacingChanged(double unused)
+{
+  m_spacingModified = true;
+  applyButton->setEnabled(true);
+}
+
+//------------------------------------------------------------------------
+void ChannelInspector::changeSpacing()
+{
+  if (spacingXBox->value() == 0 || spacingYBox->value() == 0 || spacingZBox->value() == 0)
+  {
+    QMessageBox msgBox;
+    msgBox.setText("The spacing specified is invalid and cannot be applied to the channel.");
+    msgBox.setIcon(QMessageBox::Critical);
+    msgBox.setStandardButtons(QMessageBox::Ok);
+    QString detailedText = QString("Spacing was set to:\n  X: ") + QString().number(spacingXBox->value())
+        + unitsBox->currentText() + QString("\n  Y: ")  + QString().number(spacingYBox->value())
+        + unitsBox->currentText() + QString("\n  Z: ")  + QString().number(spacingZBox->value())
+        + unitsBox->currentText();
+    msgBox.setDetailedText (detailedText);
+    msgBox.exec();
+
+    return;
+  }
+
+  itkVolumeType::SpacingType spacing;
+  spacing[0] = spacingXBox->value()*pow(1000,unitsBox->currentIndex());
+  spacing[1] = spacingYBox->value()*pow(1000,unitsBox->currentIndex());
+  spacing[2] = spacingZBox->value()*pow(1000,unitsBox->currentIndex());
+
+  /// WARNING: This won't work with preprocessing
+  ChannelReader *reader = dynamic_cast<ChannelReader *>(m_channel->filter().data());
+  Q_ASSERT(reader);
+  reader->setSpacing(spacing);
+  reader->update();
+
+  foreach(SharedModelItemPtr item, m_channel->relatedItems(EspINA::OUT, Channel::LINK))
+  {
+    if (EspINA::SEGMENTATION == item->type())
+    {
+      SegmentationSPtr seg = segmentationPtr(item);
+      double oldSpacing[3];
+      seg->volume()->spacing(oldSpacing);
+      seg->volume()->toITK()->SetSpacing(spacing);
+      itkVolumeType::PointType origin = seg->volume()->toITK()->GetOrigin();
+      for (int i=0; i < 3; i++)
+        origin[i] = origin[i]/oldSpacing[i]*spacing[i];
+      seg->volume()->toITK()->SetOrigin(origin);
+      seg->notifyModification(true);
+    }
+  }
+
+  m_channel->notifyModification(true);
+  emit channelUpdated();
+  m_view->resetCamera();
+  m_spacingModified = false;
+  applyButton->setEnabled(false);
+  applyModifications();
+}
+
+//------------------------------------------------------------------------
+void ChannelInspector::checkChanges()
+{
+  if (hueBox->value() == -1)
+    m_channel->setSaturation(0.0);
+
+  if (m_spacingModified)
+  {
+    QMessageBox msgBox;
+    msgBox.setText("The spacing has been modified but the changes have not been applied to the channel.");
+    msgBox.setInformativeText("Do you want to apply your changes?");
+    msgBox.setIcon(QMessageBox::Question);
+    msgBox.setStandardButtons(QMessageBox::Apply | QMessageBox::Cancel);
+    msgBox.setDefaultButton(QMessageBox::Apply);
+    QString detailedText = QString("Spacing changed to:\n  X: ") + QString().number(spacingXBox->value())
+        + unitsBox->currentText() + QString("\n  Y: ")  + QString().number(spacingYBox->value())
+        + unitsBox->currentText() + QString("\n  Z: ")  + QString().number(spacingZBox->value())
+        + unitsBox->currentText();
+    msgBox.setDetailedText (detailedText);
+    int ret = msgBox.exec();
+
+    switch(ret)
+    {
+      case QMessageBox::Apply:
+        changeSpacing();
+        break;
+      default:
+        break;
+    }
+  }
+}
+
+//------------------------------------------------------------------------
+void ChannelInspector::opacityCheckChanged(int value)
+{
+  opacityBox->setEnabled(!value);
+  opacitySlider->setEnabled(!value);
+
+  if (value)
+    m_channel->setOpacity(-1.0);
+  else
+    m_channel->setOpacity(opacityBox->value()/100.);
+
+  applyModifications();
+}
+
+//------------------------------------------------------------------------
+void ChannelInspector::opacityChanged(int value)
+{
+  m_channel->setOpacity(value/100.);
+  applyModifications();
+}
+
+//------------------------------------------------------------------------
+void ChannelInspector::newHSV(int h, int s, int v)
+{
+  hueBox->setValue(h-1);
+
+  if (h == 0)
+  {
+    saturationBox->setEnabled(false);
+    saturationSlider->setEnabled(false);
+  }
+  else
+  {
+    if (0.0 == m_channel->saturation() && !saturationBox->isEnabled())
+    {
+      saturationBox->setValue(100);
+      m_channel->setSaturation(1);
+    }
+    saturationBox->setEnabled(true);
+    saturationSlider->setEnabled(true);
+  }
+
+  double value = ((h-1) == -1) ? -1 : ((h-1)/359.);
+  m_channel->setHue(value);
+  applyModifications();
+}
+
+//------------------------------------------------------------------------
+void ChannelInspector::newHSV(int h)
+{
+  m_hueSelector->setHueValue(h+1);
+
+  if (h+1 == 0)
+  {
+    saturationBox->setEnabled(false);
+    saturationSlider->setEnabled(false);
+  }
+  else
+  {
+    saturationBox->setEnabled(true);
+    saturationSlider->setEnabled(true);
+  }
+
+  double value = (h == -1) ? -1 : (h/359.0);
+  m_channel->setHue(value);
+  applyModifications();
+}
+
+//------------------------------------------------------------------------
+void ChannelInspector::saturationChanged(int value)
+{
+  m_channel->setSaturation(value/100.);
+  applyModifications();
+}
+
+//------------------------------------------------------------------------
+void ChannelInspector::contrastChanged(int value)
+{
+  if (QString("contrastSlider").compare(sender()->objectName()) == 0)
+  {
+    contrastBox->blockSignals(true);
+    contrastBox->setValue(value*(100./255.));
+    contrastBox->blockSignals(false);
+    m_channel->setContrast((m_range[1]+value)/(m_range[1]-m_range[0]));
+  }
+  else
+  {
+    contrastSlider->blockSignals(true);
+    contrastSlider->setValue(value*(255./100));
+    contrastSlider->blockSignals(false);
+    m_channel->setContrast((m_range[1]+(value*(255./100)))/(m_range[1]-m_range[0]));
+  }
+
+  applyModifications();}
+
+//------------------------------------------------------------------------
+void ChannelInspector::brightnessChanged(int value)
+{
+  if (QString("brightnessSlider").compare(sender()->objectName()) == 0)
+  {
+    brightnessBox->blockSignals(true);
+    brightnessBox->setValue(value*(100./255.));
+    brightnessBox->blockSignals(false);
+    m_channel->setBrightness(value);
+  }
+  else
+  {
+    brightnessSlider->blockSignals(true);
+    brightnessSlider->setValue(value*(255./100.));
+    brightnessSlider->blockSignals(false);
+    m_channel->setBrightness(value*(255./100.));
+  }
+
+  applyModifications();
+}
+
+//------------------------------------------------------------------------
+void ChannelInspector::applyModifications()
+{
+  if (!this->isVisible())
+    return;
+
+  m_view->updateChannel(m_channel);
+  m_view->updateView();
+}

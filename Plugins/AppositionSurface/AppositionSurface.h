@@ -19,7 +19,19 @@
 #ifndef APPOSITIONSURFACE_H
 #define APPOSITIONSURFACE_H
 
+// EspINA
 #include <Core/Interfaces/IFactoryExtension.h>
+#include <GUI/ISettingsPanel.h>
+
+// plugin
+#include "ui_AppositionSurfaceSettings.h"
+
+// Qt
+#include <QColor>
+#include <QSharedPointer>
+
+class AppositionSurfaceExtension;
+class AppositionSurfaceRenderer;
 
 //! Apposition Surface Plugin
 class AppositionSurface
@@ -34,6 +46,49 @@ public:
   virtual ~AppositionSurface(){}
 
   virtual void initFactoryExtension(EspinaFactory* factory);
+
+  class Settings;
+
+  // to avoid using signals and declaring renderer as a QObject every
+  // renderer registers with the plugin on creation and unregisters
+  // on destruction
+  void registerRenderer(AppositionSurfaceRenderer *);
+  void unregisterRenderer(AppositionSurfaceRenderer *);
+
+public slots:
+  void propagateSettings();
+
+private:
+  QList<AppositionSurfaceRenderer *> m_renderersList;
+
+};
+
+class AppositionSurface::Settings
+: public ISettingsPanel
+, public Ui::AppositionSurfaceSettings
+{
+  Q_OBJECT
+  public:
+    explicit Settings(AppositionSurface *);
+    virtual ~Settings()                      {};
+
+    virtual const QString shortDescription() { return tr("Apposition Surface"); }
+    virtual const QString longDescription()  { return tr("Apposition Surface Settings"); }
+    virtual const QIcon icon()               { return QIcon(":/AppSurface.svg"); }
+    virtual void acceptChanges();
+    virtual bool modified() const;
+    virtual ISettingsPanel *clone();
+
+  signals:
+    void settingsChanged();
+
+  public slots:
+    void changeColor();
+
+  private:
+    QColor m_color;
+    bool m_modified;
+    AppositionSurface *m_plugin;
 };
 
 #endif// APPOSITIONSURFACE_H

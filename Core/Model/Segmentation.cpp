@@ -199,8 +199,7 @@ void Segmentation::initializeExtensions(const Arguments &args)
   foreach(ModelItemExtensionPtr ext, m_insertionOrderedExtensions)
   {
     Q_ASSERT(ext);
-    Arguments extArgs(args.value(ext->id(), QString()));
-    ext->initialize(extArgs);
+    ext->initialize(args);
   }
 }
 

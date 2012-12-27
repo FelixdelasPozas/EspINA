@@ -17,7 +17,6 @@ qt4_wrap_cpp (ESPINA_MOC
   Dialogs/TabularReport/QueryView.h
   Dialogs/SettingsDialog.h
   Docks/ChannelExplorer/ChannelExplorer.h
-  Docks/ChannelInspector/ChannelInspector.h
   Docks/FilterInspector/FilterInspector.h
   Docks/SegmentationExplorer/SegmentationExplorer.h
   Docks/TabularReport/DataView.h
@@ -45,6 +44,8 @@ qt4_wrap_cpp (ESPINA_MOC
   Tools/VOI/RectangularVOI.h
   Views/DefaultEspinaView.h
   Dialogs/Connectomics/ConnectomicsDialog.h
+  Dialogs/ChannelInspector/ChannelInspector.h
+  Undo/BrushUndoCommand.h
   )
 
 # Create Interface files
@@ -54,7 +55,6 @@ qt4_wrap_ui (ESPINA_UI
   Dialogs/AboutDialog.ui
   Dialogs/SettingsDialog.ui
   Docks/ChannelExplorer/ChannelExplorer.ui
-  Docks/ChannelInspector/ChannelInspector.ui
   Docks/SegmentationExplorer/SegmentationExplorer.ui
   Docks/TabularReport/DataView.ui
   Docks/TaxonomyExplorer/TaxonomyExplorer.ui
@@ -67,6 +67,7 @@ qt4_wrap_ui (ESPINA_UI
   Settings/VOI/RectangularVOISettings.ui
   Settings/VolumeView/VolumeViewSettingsPanel.ui
   Dialogs/Connectomics/ConnectomicsDialog.ui
+  Dialogs/ChannelInspector/ChannelInspector.ui
   )
 
 set (ESPINA_SOURCES
@@ -81,7 +82,6 @@ set (ESPINA_SOURCES
   Dialogs/AboutDialog.cpp
   Dialogs/SettingsDialog.cpp #TODO 2012-11-27 Renombrar General Settings Dialog
   Docks/ChannelExplorer/ChannelExplorer.cpp
-  Docks/ChannelInspector/ChannelInspector.cpp
   Docks/FilterInspector/FilterInspector.cpp # TODO 2012-11-27 Renombrar (cuidadin con el Filter::FilterInspector)
   Docks/SegmentationExplorer/LayoutComposition.cpp
   Docks/SegmentationExplorer/LayoutSample.cpp
@@ -130,6 +130,7 @@ set (ESPINA_SOURCES
   Views/DefaultEspinaView.cpp
   Dialogs/Connectomics/ConnectomicsDialog.cpp
   Tools/Measure/MeasureTool.cpp
+  Dialogs/ChannelInspector/ChannelInspector.cpp
   )
 
 set (ESPINA_LIBRARIES

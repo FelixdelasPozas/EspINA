@@ -481,7 +481,6 @@ void EspinaModel::removeSegmentation(SharedSegmentationList segs)
 //------------------------------------------------------------------------
 void EspinaModel::addFilter(FilterSPtr filter)
 {
-
   int row = m_filters.size();
 
   beginInsertRows(filterRoot(), row, row);

@@ -243,10 +243,9 @@ void SegmentationExplorer::rowsAboutToBeRemoved(const QModelIndex parent, int st
       if (inspector)
       {
         m_inspectors.remove(seg);
-        inspector->hide();
-        delete inspector;
+        inspector->close();
       }
-      }
+    }
   }
 }
 
@@ -324,14 +323,10 @@ void SegmentationExplorer::releaseInspectorResources(SegmentationInspector* insp
   foreach(SegmentationPtr seg, m_inspectors.keys())
   {
     if (m_inspectors[seg] == inspector)
-    {
       m_inspectors.remove(seg);
-      delete inspector;
-
-      return;
-    }
   }
 }
+
 
 //------------------------------------------------------------------------
 void SegmentationExplorer::updateSegmentationRepresentations(SegmentationList list)

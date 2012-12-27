@@ -37,9 +37,13 @@
 
 using namespace EspINA;
 
-const ModelItem::ArgumentId Channel::ID     = "ID";
-const ModelItem::ArgumentId Channel::COLOR  = "Color";
-const ModelItem::ArgumentId Channel::VOLUME = "Volume";
+const ModelItem::ArgumentId Channel::ID         = "ID";
+const ModelItem::ArgumentId Channel::HUE        = "Hue";
+const ModelItem::ArgumentId Channel::OPACITY    = "Opacity";
+const ModelItem::ArgumentId Channel::SATURATION = "Saturation";
+const ModelItem::ArgumentId Channel::CONTRAST   = "Contrast";
+const ModelItem::ArgumentId Channel::BRIGHTNESS = "Brightness";
+const ModelItem::ArgumentId Channel::VOLUME     = "Volume";
 
 const QString Channel::LINK       = "Channel";
 const QString Channel::STAINLINK  = "Stain";
@@ -115,15 +119,63 @@ void Channel::position(Nm pos[3])
 }
 
 //------------------------------------------------------------------------
-void Channel::setColor(const double color)
+void Channel::setHue(const double hue)
 {
-  m_args.setColor(color);
+  m_args.setHue(hue);
 }
 
 //------------------------------------------------------------------------
-double Channel::color() const
+double Channel::hue() const
 {
-  return m_args.color();
+  return m_args.hue();
+}
+
+//------------------------------------------------------------------------
+void Channel::setOpacity(const double opacity)
+{
+  m_args.setOpacity(opacity);
+}
+
+//------------------------------------------------------------------------
+double Channel::opacity() const
+{
+  return m_args.opacity();
+}
+
+//------------------------------------------------------------------------
+void Channel::setSaturation(const double saturation)
+{
+  m_args.setSaturation(saturation);
+}
+
+//------------------------------------------------------------------------
+double Channel::saturation() const
+{
+  return m_args.saturation();
+}
+
+//------------------------------------------------------------------------
+void Channel::setBrightness(const double brightness)
+{
+  m_args.setBrightness(brightness);
+}
+
+//------------------------------------------------------------------------
+double Channel::brightness() const
+{
+  return m_args.brightness();
+}
+
+//------------------------------------------------------------------------
+void Channel::setContrast(const double contrast)
+{
+  m_args.setContrast(contrast);
+}
+
+//------------------------------------------------------------------------
+double Channel::contrast() const
+{
+  return m_args.contrast();
 }
 
 //------------------------------------------------------------------------
@@ -199,6 +251,21 @@ void Channel::initialize(const Arguments &args)
   //qDebug() << "Init" << data().toString() << "with args:" << args;
   foreach(ArgumentId argId, args.keys())
   {
+    // changes in seg file format
+    if (QString("Color").compare(argId) == 0)
+    {
+      m_args[HUE] = args[argId];
+
+      setOpacity(-1.0);
+      if (hue() != -1.0)
+        setSaturation(1.0);
+      else
+        setSaturation(0.0);
+      setContrast(1.0);
+      setBrightness(0.0);
+      continue;
+    }
+
     if (argId != EXTENSIONS)
       m_args[argId] = args[argId];
   }
@@ -213,10 +280,7 @@ void Channel::initializeExtensions(const Arguments &args)
     ChannelExtensionPtr channelExt = qSharedPointerCast<ChannelExtension>(ext);
     Q_ASSERT(!channelExt.isNull());
 
-    Arguments extArgs(args.value(channelExt->id(), QString()));
-//     qDebug() << channelExt->id();
-//     if (!args.isEmpty()) qDebug() << "*" << extArgs;
-    channelExt->initialize(extArgs);
+    channelExt->initialize(args);
   }
 
 }

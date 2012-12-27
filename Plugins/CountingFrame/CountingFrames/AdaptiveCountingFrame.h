@@ -29,6 +29,7 @@ class AdaptiveCountingFrame
 {
 public:
   static const QString ID;
+  static const QString ID_1_2_5; // Backwards compatibility
 
   explicit AdaptiveCountingFrame(Id id,
                                   CountingFrameChannelExtension *channelExt,

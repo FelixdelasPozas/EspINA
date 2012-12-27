@@ -55,6 +55,7 @@ public:
   int radius() const {return m_displayRadius;}
   void setBorderColor(QColor color);
   void setBrushColor(QColor color);
+  QColor getBrushColor();
 
   /// @item is used to specify the spacing of the stroke
   void setReferenceItem(PickableItemPtr item);

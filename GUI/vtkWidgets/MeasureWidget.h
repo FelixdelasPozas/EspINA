@@ -19,6 +19,8 @@
 
 class vtkAbstractWidget;
 class vtkDistanceWidget;
+class vtkMeasureWidget;
+class vtkCamera;
 class QEvent;
 
 namespace EspINA
@@ -56,12 +58,18 @@ namespace EspINA
   private:
     explicit MeasureWidget();
 
-  private:
+    // helper methods
+    double ComputeRulerTickDistance(double);
+
     vtkDistanceWidget *m_axial;
     vtkDistanceWidget *m_coronal;
     vtkDistanceWidget *m_sagittal;
     QList<MeasureSliceWidget*> m_sliceWidgets;
     QList<vtkDistanceWidget*> m_distanceWidgets;
+    
+    QList<vtkCamera*> m_axialCameras;
+    QList<vtkCamera*> m_coronalCameras;
+    QList<vtkCamera*> m_sagittalCameras;
   };
 
 }// namespace EspINA

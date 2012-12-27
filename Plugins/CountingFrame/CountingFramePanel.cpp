@@ -32,6 +32,7 @@
 #include <Core/Model/Segmentation.h>
 #include <GUI/ViewManager.h>
 #include <Core/Extensions/Margins/MarginsSegmentationExtension.h>
+#include <vtkMath.h>
 
 #include <QFileDialog>
 
@@ -117,14 +118,17 @@ const QString CountingFramePanel::ID = "CountingFrameExtension";
 //------------------------------------------------------------------------
 CountingFramePanel::CountingFramePanel(QWidget * parent)
 : IDockWidget(parent)
-, m_gui(new GUI())
 , m_espinaModel(NULL)
 , m_viewManager(NULL)
+, m_gui(new GUI())
+, m_useSlices(false)
 , m_activeCF(NULL)
 , m_nextId(1)
 {
   setObjectName("CountingFrameDock");
+
   setWindowTitle(tr("Counting Frame"));
+
   setWidget(m_gui);
 
   QIcon iconSave = qApp->style()->standardIcon(QStyle::SP_DialogSaveButton);
@@ -185,6 +189,10 @@ void CountingFramePanel::initDockWidget(EspinaModel* model, QUndoStack* undoStac
 
   m_gui->taxonomySelector->setModel(m_espinaModel);
   m_gui->taxonomySelector->setRootModelIndex(m_espinaModel->taxonomyRoot());
+
+  connect(m_viewManager->fitToSlices(), SIGNAL(toggled(bool)),
+          this, SLOT(changeUnitMode(bool)));
+  changeUnitMode(m_viewManager->fitToSlices()->isChecked());
 }
 
 //------------------------------------------------------------------------
@@ -212,7 +220,7 @@ void CountingFramePanel::createAdaptiveCF(Channel *channel,
   CountingFrameChannelExtension *channelExt = dynamic_cast<CountingFrameChannelExtension *>(ext);
   Q_ASSERT(channelExt);
 
-  AdaptiveCountingFrame *cf(new AdaptiveCountingFrame(m_nextId,
+  AdaptiveCountingFrame *cf(new AdaptiveCountingFrame(m_nextId++,
                                                             channelExt,
                                                             inclusion,
                                                             exclusion,
@@ -233,7 +241,7 @@ void CountingFramePanel::createRectangularCF(Channel *channel,
   double borders[6];
   channel->volume()->bounds(borders);
 
-  RectangularCountingFrame *cf(new RectangularCountingFrame(m_nextId,
+  RectangularCountingFrame *cf(new RectangularCountingFrame(m_nextId++,
                                                                   channelExt,
                                                                   borders,
                                                                   inclusion,
@@ -351,7 +359,6 @@ void CountingFramePanel::createCountingFrame()
       createRectangularCF(channel, inclusion, exclusion);
     else
       Q_ASSERT(false);
-    m_nextId++;
   }
 
   updateSegmentations();
@@ -420,9 +427,13 @@ void CountingFramePanel::channelChanged(Channel* channel)
 //------------------------------------------------------------------------
 void CountingFramePanel::showInfo(CountingFrame* cf)
 {
+  if (!cf)
+    return;
+
   m_activeCF = cf;
 
   int cfIndex = m_countingFrames.indexOf(cf);
+
   m_gui->countingFrames->setCurrentIndex(cfIndex + NUM_FIXED_ROWS);
 
   m_gui->leftMargin  ->blockSignals(true);
@@ -432,12 +443,20 @@ void CountingFramePanel::showInfo(CountingFrame* cf)
   m_gui->bottomMargin->blockSignals(true);
   m_gui->lowerMargin ->blockSignals(true);
 
-  m_gui->leftMargin  ->setValue(cf->left()  );
-  m_gui->topMargin   ->setValue(cf->top()   );
-  m_gui->upperMargin ->setValue(cf->upper() );
+  double spacing[3] = {1., 1., 1.};
+
+  if (m_useSlices)
+  {
+    Channel *activeChannel = m_viewManager->activeChannel();
+    activeChannel->volume()->spacing(spacing);
+  }
+
+  m_gui->leftMargin  ->setValue(cf->left());
+  m_gui->topMargin   ->setValue(cf->top() );
+  m_gui->upperMargin ->setValue(vtkMath::Round(cf->upper()/spacing[2]));
   m_gui->rightMargin ->setValue(cf->right() );
   m_gui->bottomMargin->setValue(cf->bottom());
-  m_gui->lowerMargin ->setValue(cf->lower() );
+  m_gui->lowerMargin ->setValue(vtkMath::Round(cf->lower()/spacing[2]));
 
   m_gui->leftMargin  ->blockSignals(false);
   m_gui->topMargin   ->blockSignals(false);
@@ -475,6 +494,24 @@ void CountingFramePanel::saveCountingFrameDescription()
     out << m_gui->countingFrameDescription->toPlainText();
     file.close();
   }
+}
+
+//------------------------------------------------------------------------
+void CountingFramePanel::changeUnitMode(bool useSlices)
+{
+  m_useSlices = useSlices;
+
+  if (useSlices)
+  {
+    m_gui->upperMargin->setSuffix("");
+    m_gui->lowerMargin->setSuffix("");
+  } else
+  {
+    m_gui->upperMargin->setSuffix(" nm");
+    m_gui->lowerMargin->setSuffix(" nm");
+  }
+
+  showInfo(m_activeCF);
 }
 
 //------------------------------------------------------------------------

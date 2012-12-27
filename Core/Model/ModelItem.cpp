@@ -125,7 +125,6 @@ QString ModelItem::serialize() const
   return QString("none");
 }
 
-
 //------------------------------------------------------------------------
 SharedModelItemList ModelItem::relatedItems(RelationType relType,
                                             const QString& relName)

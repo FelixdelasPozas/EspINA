@@ -39,6 +39,7 @@
 #include <vtkLookupTable.h>
 #include <vtkSmartPointer.h>
 
+class QAction;
 class QCursor;
 class QEvent;
 
@@ -151,11 +152,15 @@ namespace EspINA
     /// Unset Slice Selection flags to all registered Slice Views
     void removeSliceSelectors(SliceSelectorWidget *widget);
 
+    QAction *fitToSlices() {return m_fitToSlices;}
   public slots:
     /// Update Segmentation Representation
     void updateSegmentationRepresentations(SegmentationList list = SegmentationList());
     /// Request all registered views to update themselves
     void updateViews();
+
+private:
+  QAction *m_fitToSlices;
 
 
     //---------------------------------------------------------------------------

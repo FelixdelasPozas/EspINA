@@ -39,6 +39,8 @@ class ModelTest;
 
 namespace EspINA
 {
+
+  class ChannelInspector;
   class ViewManager;
 
   class ChannelExplorer
@@ -62,10 +64,11 @@ namespace EspINA
     void alignRight();
     void moveRight();
     void moveLelft();
-    void changeChannelColor();
     void updateChannelPosition();
     void updateTooltips(int index);
     void focusOnChannel();
+    void dialogClosed();
+    void inspectorChangedSpacing();
 
   private:
     EspinaModelSPtr m_model;
@@ -75,6 +78,7 @@ namespace EspINA
     QSharedPointer<QSortFilterProxyModel> m_sort;
 
     CentralWidget *m_gui;
+  QMap<Channel *, ChannelInspector *> m_informationDialogs;
 
     #ifdef TEST_ESPINA_MODELS
     QSharedPointer<ModelTest>   m_modelTester;

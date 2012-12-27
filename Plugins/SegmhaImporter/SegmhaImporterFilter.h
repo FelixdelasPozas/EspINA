@@ -109,8 +109,8 @@ public:
   Taxonomy *taxonomy() {return m_taxonomy;}
   /// Return the taxonomy associated with the i-th output
   TaxonomyElement *taxonomy(OutputId i);
-  /// Return Counting Region Definition
-  void countingRegion(double inclusive[3], double exclusive[3])
+  /// Return Counting Frame Definition
+  void countingFrame(double inclusive[3], double exclusive[3])
   {
     memcpy(inclusive, m_inclusive, 3*sizeof(Nm));
     memcpy(exclusive, m_exclusive, 3*sizeof(Nm));
