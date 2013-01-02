@@ -26,7 +26,7 @@
 vtkStandardNewMacro(vtkCountingFrameCoronalSliceRepresentation);
 
 //----------------------------------------------------------------------------
-void vtkCountingFrameCoronalSliceRepresentation::SetSlice(Nm pos)
+void vtkCountingFrameCoronalSliceRepresentation::SetSlice(EspINA::Nm pos)
 {
   Slice = pos;
 
@@ -173,7 +173,7 @@ void vtkCountingFrameCoronalSliceRepresentation::MoveLeftEdge(double* p1, double
 {
   double shift = p2[0] - p1[0];
 
-  Nm offset   = InclusionOffset[0] + shift;
+  EspINA::Nm offset   = InclusionOffset[0] + shift;
 
   if (offset < 0)
     offset = 0;
@@ -213,7 +213,7 @@ void vtkCountingFrameCoronalSliceRepresentation::MoveRightEdge(double* p1, doubl
 
   double shift = p2[0] - p1[0];
 
-  Nm offset = ExclusionOffset[0] - shift;
+  EspINA::Nm offset = ExclusionOffset[0] - shift;
 
   if (offset < 0)
     offset = 0;
@@ -252,14 +252,14 @@ void vtkCountingFrameCoronalSliceRepresentation::MoveTopEdge(double* p1, double*
 {
 
   double shift = p2[2] - p1[2];
-  Nm offset = InclusionOffset[2] + shift;
+  EspINA::Nm offset = InclusionOffset[2] + shift;
 
   if (offset < 0)
     offset = 0;
   else
   {
-    Nm nextTopEdge = realTopEdge() + offset;
-    Nm bottomEdgeLimit  = bottomEdge() - Resolution[2];
+    EspINA::Nm nextTopEdge = realTopEdge() + offset;
+    EspINA::Nm bottomEdgeLimit  = bottomEdge() - Resolution[2];
 
     if (nextTopEdge > bottomEdgeLimit)
       offset = bottomEdgeLimit - realTopEdge();
@@ -301,14 +301,14 @@ void vtkCountingFrameCoronalSliceRepresentation::MoveBottomEdge(double* p1, doub
 
   double shift = p2[2] - p1[2];
 
-  Nm offset = ExclusionOffset[2] - shift;
+  EspINA::Nm offset = ExclusionOffset[2] - shift;
 
   if (offset < 0)
     offset = 0;
   else
   {
-    Nm nextBottomEdge = realBottomEdge() - offset;
-    Nm topEdgeLimit = topEdge() + Resolution[2];
+    EspINA::Nm nextBottomEdge = realBottomEdge() - offset;
+    EspINA::Nm topEdgeLimit = topEdge() + Resolution[2];
 
     if (topEdgeLimit > nextBottomEdge)
       offset = realBottomEdge() - topEdgeLimit;

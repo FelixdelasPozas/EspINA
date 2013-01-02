@@ -118,8 +118,7 @@ void SeedGrowSegmentation::initFactoryExtension(EspinaFactoryPtr factory)
   // Register Factory's filters
   factory->registerFilter(this, SeedGrowSegmentationFilter::TYPE);
 
-  factory->registerSettingsPanel(m_settingsPanel);
-
+  factory->registerSettingsPanel(m_settingsPanel.data());
 }
 
 //-----------------------------------------------------------------------------

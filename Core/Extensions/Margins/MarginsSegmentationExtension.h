@@ -76,7 +76,10 @@ private:
   friend class MarginsChannelExtension;
 };
 
-typedef QSharedPointer<MarginsSegmentationExtension> MarginsSegmentationExtensionPtr;
+typedef MarginsSegmentationExtension                *MarginsSegmentationExtensionPtr;
+typedef QSharedPointer<MarginsSegmentationExtension> MarginsSegmentationExtensionSPtr;
+
+MarginsSegmentationExtensionPtr marginsSegmentationExtensionPtr(ModelItemExtensionPtr extension);
 
 }// namespace EspINA
 

@@ -15,6 +15,8 @@ qt4_wrap_cpp(CORE_MOC
   Model/Proxies/TaxonomyProxy.h
   Model/Proxies/InformationProxy.h
   Model/Proxies/ConnectomicProxy.h
+  Interfaces/IDockWidget.h
+  Interfaces/IToolBar.h
   )
 
 # qt4_wrap_ui (CORE_UI
@@ -34,6 +36,7 @@ set (CORE_SOURCES
   ColorEngines/TaxonomyColorEngine.cpp
   ColorEngines/UserColorEngine.cpp
   IO/EspinaIO.cpp
+  Extensions/ChannelExtension.cpp
   Extensions/Margins/MarginDetector.cpp
   Extensions/Margins/MarginsChannelExtension.cpp
   Extensions/Margins/MarginsSegmentationExtension.cpp

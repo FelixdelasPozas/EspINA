@@ -54,7 +54,7 @@ namespace EspINA
 
     virtual void createViewMenu(QMenu* menu);
 
-    virtual ISettingsPanelPrototype settingsPanel();
+    virtual ISettingsPanelPtr settingsPanel();
 
     virtual QModelIndex indexAt(const QPoint& point) const
     { return QModelIndex(); }
@@ -119,6 +119,7 @@ namespace EspINA
     QDockWidget *volDock, *yzDock, *xzDock;
     QAction     *m_showRuler, *m_showThumbnail;
 
+    ISettingsPanelPrototype m_settingsPanel;
     QSharedPointer<SegmentationContextualMenu> m_contextMenu;
   };
 

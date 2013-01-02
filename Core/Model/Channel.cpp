@@ -233,8 +233,8 @@ QString Channel::serialize() const
   QString extensionArgs;
   foreach(ModelItemExtensionPtr ext, m_extensions)
   {
-    ChannelExtensionPtr channelExt = qSharedPointerDynamicCast<ChannelExtension>(ext);
-    Q_ASSERT(!channelExt.isNull());
+    ChannelExtensionPtr channelExt = channelExtensionPtr(ext);
+
     QString serializedArgs = channelExt->serialize(); //Independizar los argumentos?
     if (!serializedArgs.isEmpty())
       extensionArgs.append(ext->id()+"=["+serializedArgs+"];");
@@ -277,8 +277,7 @@ void Channel::initializeExtensions(const Arguments &args)
 //   qDebug() << "Initializing" << data().toString() << "extensions:";
   foreach(ModelItemExtensionPtr ext, m_insertionOrderedExtensions)
   {
-    ChannelExtensionPtr channelExt = qSharedPointerCast<ChannelExtension>(ext);
-    Q_ASSERT(!channelExt.isNull());
+    ChannelExtensionPtr channelExt = channelExtensionPtr(ext);
 
     channelExt->initialize(args);
   }
@@ -312,7 +311,7 @@ void Channel::notifyModification(bool force)
 //-----------------------------------------------------------------------------
 SampleSPtr Channel::sample()
 {
-  SharedModelItemList relatedSamples = relatedItems(IN, Channel::STAINLINK);
+  ModelItemSList relatedSamples = relatedItems(IN, Channel::STAINLINK);
   SampleSPtr sample;
 
   if (relatedSamples.size() > 0)
@@ -358,20 +357,20 @@ ChannelPtr EspINA::channelPtr(PickableItemPtr item)
 }
 
 //-----------------------------------------------------------------------------
-SharedChannelPtr EspINA::channelPtr(SharedModelItemPtr& item)
+ChannelSPtr EspINA::channelPtr(ModelItemSPtr& item)
 {
   Q_ASSERT(CHANNEL == item->type());
-  SharedChannelPtr ptr = qSharedPointerDynamicCast<Channel>(item);
+  ChannelSPtr ptr = qSharedPointerDynamicCast<Channel>(item);
   Q_ASSERT(!ptr.isNull());
 
   return ptr;
 }
 
 //-----------------------------------------------------------------------------
-SharedChannelPtr EspINA::channelPtr(SharedPickableItemPtr& item)
+ChannelSPtr EspINA::channelPtr(PickableItemSPtr& item)
 {
   Q_ASSERT(CHANNEL == item->type());
-  SharedChannelPtr ptr = qSharedPointerDynamicCast<Channel>(item);
+  ChannelSPtr ptr = qSharedPointerDynamicCast<Channel>(item);
   Q_ASSERT(!ptr.isNull());
 
   return ptr;

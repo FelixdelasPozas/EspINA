@@ -111,11 +111,11 @@ void MarginsSegmentationExtension::updateDistances() const
   {
     //qDebug() << m_seg->data().toString() << "Updating Margins";
     QApplication::setOverrideCursor(Qt::WaitCursor);
-    SharedChannelPtr channel = m_seg->channel();
+    ChannelSPtr channel = m_seg->channel();
     Q_ASSERT(channel);
-    ModelItemExtensionPtr ext = channel->extension(ID);
-    Q_ASSERT(!ext.isNull());
-    MarginsChannelExtensionPtr marginExt = qSharedPointerDynamicCast<MarginsChannelExtension>(ext);
+    ModelItemExtensionPtr ext = channelExtensionPtr(channel->extension(ID));
+    Q_ASSERT(ext);
+    MarginsChannelExtensionPtr marginExt = marginsChannelExtensionPtr(ext);
     marginExt->computeMarginDistance(m_seg);
     QApplication::restoreOverrideCursor();
     m_init = true;
@@ -127,4 +127,14 @@ void MarginsSegmentationExtension::setMargins(Nm distances[6])
 {
   memcpy(m_distances, distances, 6*sizeof(Nm));
   m_init = true;
+}
+
+//-----------------------------------------------------------------------------
+MarginsSegmentationExtensionPtr EspINA::marginsSegmentationExtensionPtr(ModelItemExtensionPtr extension)
+{
+  MarginsSegmentationExtensionPtr res;
+  res = dynamic_cast<MarginsSegmentationExtensionPtr>(extension);
+  Q_ASSERT(res);
+
+  return res;
 }

@@ -29,6 +29,8 @@
 
 namespace EspINA
 {
+
+  typedef QSharedPointer<IRenderer> IRendererSPtr;
   /// Base class which define the API to render and manage
   /// item visibily in Espina Views (currently only supported
   /// for VolumeView class)
@@ -59,7 +61,7 @@ namespace EspINA
     // Remove all items rendered by the Renderer
     virtual void clean() = 0;
 
-    virtual IRendererPtr clone() = 0;
+    virtual IRendererSPtr clone() = 0;
 
     // get number of vtkActors added to vtkRendered from this Renderer
     virtual unsigned int getNumberOfvtkActors() = 0;
@@ -92,6 +94,8 @@ namespace EspINA
     bool m_enable;
     vtkSmartPointer<vtkRenderer> m_renderer;
   };
+
+  typedef QList<IRendererSPtr>       IRendererSList;
 
 }// namespace EspINA
 

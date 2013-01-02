@@ -44,6 +44,12 @@ CompositionLayout::CompositionLayout(EspinaModelSPtr model)
 }
 
 //------------------------------------------------------------------------
+CompositionLayout::~CompositionLayout()
+{
+  qDebug() << "Destroying Composition Layout";
+}
+
+//------------------------------------------------------------------------
 ModelItemPtr CompositionLayout::item(const QModelIndex& index) const
 {
   return indexPtr(m_sort->mapToSource(index));

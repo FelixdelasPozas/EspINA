@@ -33,22 +33,22 @@ class VTK_WIDGETS_EXPORT vtkCountingFrameWidget
 public:
   vtkTypeMacro(vtkCountingFrameWidget, vtkAbstractWidget);
 
-  vtkGetVector3Macro(InclusionOffset, Nm);
-  vtkGetVector3Macro(ExclusionOffset, Nm);
+  vtkGetVector3Macro(InclusionOffset, EspINA::Nm);
+  vtkGetVector3Macro(ExclusionOffset, EspINA::Nm);
 
   virtual void SetCountingFrame(vtkSmartPointer<vtkPolyData> region,
-                                 Nm inclusionOffset[3],
-                                 Nm exclusionOffset[3]) = 0;
+                                 EspINA::Nm inclusionOffset[3],
+                                 EspINA::Nm exclusionOffset[3]) = 0;
 
 protected:
-  Nm InclusionOffset[3];
-  Nm ExclusionOffset[3];
+  EspINA::Nm InclusionOffset[3];
+  EspINA::Nm ExclusionOffset[3];
 
 protected:
   vtkCountingFrameWidget()
   {
-    memset(InclusionOffset, 0, 3*sizeof(Nm));
-    memset(ExclusionOffset, 0, 3*sizeof(Nm));
+    memset(InclusionOffset, 0, 3*sizeof(EspINA::Nm));
+    memset(ExclusionOffset, 0, 3*sizeof(EspINA::Nm));
   }
 };
 

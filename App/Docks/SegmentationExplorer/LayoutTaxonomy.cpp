@@ -53,6 +53,12 @@ TaxonomyLayout::TaxonomyLayout(EspinaModelSPtr model)
 }
 
 //------------------------------------------------------------------------
+TaxonomyLayout::~TaxonomyLayout()
+{
+  qDebug() << "Destroying Taxonomy Layout";
+}
+
+//------------------------------------------------------------------------
 SegmentationList TaxonomyLayout::deletedSegmentations(QModelIndexList selection)
 {
   QSet<SegmentationPtr> toDelete;

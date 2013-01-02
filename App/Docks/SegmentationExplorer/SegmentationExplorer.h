@@ -24,7 +24,7 @@
 // File:    SegmentationExplorer.h
 // Purpose: Dock widget to manage segmentations in the model
 //----------------------------------------------------------------------------
-#include <QDockWidget>
+#include <Core/Interfaces/IDockWidget.h>
 
 #include "GUI/QtWidget/IEspinaView.h"
 #include <ui_SegmentationExplorer.h>
@@ -35,6 +35,8 @@ class QUndoStack;
 
 #include "EspinaConfig.h"
 #include <Core/Model/EspinaModel.h>
+#include <QStringListModel>
+
 #ifdef TEST_ESPINA_MODELS
 class ModelTest;
 #endif
@@ -44,7 +46,7 @@ namespace EspINA
   class SegmentationInspector;
 
   class SegmentationExplorer
-  : public QDockWidget
+  : public IDockWidget
   , public IEspinaView
   {
     Q_OBJECT
@@ -55,9 +57,15 @@ namespace EspINA
   public:
     explicit SegmentationExplorer(EspinaModelSPtr model,
                                   QUndoStack  *undoStack,
-                                  ViewManager *vm,
+                                  ViewManager *viewManager,
                                   QWidget     *parent = 0);
     virtual ~SegmentationExplorer();
+
+    virtual void initDockWidget(EspinaModelSPtr model,
+                                QUndoStack     *undoStack,
+                                ViewManager    *viewManager);
+
+    virtual void reset(); // slot
 
   protected:
     void addLayout(const QString id, Layout *proxy);
@@ -84,13 +92,14 @@ namespace EspINA
 
   protected:
     EspinaModelSPtr m_baseModel;
-    QUndoStack    *m_undoStack;
-    ViewManager   *m_viewManager;
+    QUndoStack     *m_undoStack;
+    ViewManager    *m_viewManager;
 
     GUI *m_gui;
-    QStringList     m_layoutNames;
-    QList<Layout *> m_layouts;
-    Layout         *m_layout;
+    QStringList      m_layoutNames;
+    QStringListModel m_layoutModel;
+    QList<Layout *>  m_layouts;
+    Layout          *m_layout;
 
     QMap<SegmentationPtr, SegmentationInspector *> m_inspectors;
 

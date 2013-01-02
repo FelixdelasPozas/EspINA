@@ -32,6 +32,7 @@ namespace EspINA
   class IToolBar
   : public QToolBar
   {
+    Q_OBJECT
   public:
     explicit IToolBar(QWidget *parent = 0)
     : QToolBar(parent){}

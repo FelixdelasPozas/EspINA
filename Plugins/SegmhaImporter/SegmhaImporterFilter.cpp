@@ -21,6 +21,7 @@
 
 // EspINA
 #include <Core/Model/Segmentation.h>
+#include <Core/Model/Taxonomy.h>
 
 // Qt
 #include <QApplication>
@@ -39,6 +40,8 @@
 #include <itkMetaImageIO.h>
 #include <itkShapeLabelObject.h>
 #include <itkVTKImageToImageFilter.h>
+
+using namespace EspINA;
 
 typedef itk::ImageFileReader<SegmentationLabelMap> LabelMapReader;
 typedef itk::ImageToVTKImageFilter<SegmentationLabelMap> ImageToVTKImageFilterType;
@@ -152,7 +155,7 @@ void SegmhaImporterFilter::run()
 
   qDebug() << "Reading segmentation's meta data from file:";
   QList<SegmentationObject> metaData;
-  QList<TaxonomyElement *> taxonomies;
+  TaxonomyElementSList taxonomies;
 
   QFile metaDataReader(m_args[FILE]);
   metaDataReader.open(QIODevice::ReadOnly);
@@ -171,7 +174,7 @@ void SegmhaImporterFilter::run()
     else if (infoType == "Segment")
     {
       TaxonomyObject tax(line);
-      TaxonomyElement *taxonomy = m_taxonomy->addElement(tax.name);
+      TaxonomyElementSPtr taxonomy = m_taxonomy->createElement(tax.name);
       //QColor color(tax.color[0], tax.color[1], tax.color[1]);
       taxonomy->setColor(tax.color);
       taxonomies << taxonomy;
@@ -279,13 +282,13 @@ void SegmhaImporterFilter::run()
 }
 
 //-----------------------------------------------------------------------------
-TaxonomyElement* SegmhaImporterFilter::taxonomy(OutputId i)
+TaxonomyElementSPtr SegmhaImporterFilter::taxonomy(OutputId i)
 {
-  return m_taxonomies.value(i, NULL);
+  return m_taxonomies.value(i, TaxonomyElementSPtr());
 }
 
 //-----------------------------------------------------------------------------
-void SegmhaImporterFilter::initSegmentation(Segmentation* seg, Filter::OutputId i)
+void SegmhaImporterFilter::initSegmentation(SegmentationSPtr seg, Filter::OutputId i)
 {
   seg->setTaxonomy(taxonomy(i));
 

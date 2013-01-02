@@ -49,8 +49,8 @@ namespace EspINA
     EspinaModelSPtr m_model;
 
     SampleSPtr               m_sample;
-    SharedChannelPtr         m_channel;
-    SharedTaxonomyElementPtr m_taxonomy;
+    ChannelSPtr         m_channel;
+    TaxonomyElementSPtr m_taxonomy;
 
     FilterSPtr       m_filter;
     SegmentationSPtr m_segmentation;

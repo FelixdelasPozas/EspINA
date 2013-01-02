@@ -109,8 +109,8 @@ vtkCountingFrameSliceRepresentation::~vtkCountingFrameSliceRepresentation()
 void vtkCountingFrameSliceRepresentation::reset()
 {
 //   std::cout << "Shift's been reset" << std::endl;
-  memset(this->InclusionOffset, 0, 3*sizeof(Nm));
-  memset(this->ExclusionOffset, 0, 3*sizeof(Nm));
+  memset(this->InclusionOffset, 0, 3*sizeof(EspINA::Nm));
+  memset(this->ExclusionOffset, 0, 3*sizeof(EspINA::Nm));
   CreateRegion();
 }
 
@@ -222,7 +222,7 @@ void vtkCountingFrameSliceRepresentation::CreateDefaultProperties()
 
 //----------------------------------------------------------------------------
 void vtkCountingFrameSliceRepresentation::regionBounds(int regionSlice,
-                                                        Nm bounds[6])
+                                                        EspINA::Nm bounds[6])
 {
   if (regionSlice < 0)
     vtkMath::UninitializeBounds(bounds);
@@ -241,7 +241,7 @@ void vtkCountingFrameSliceRepresentation::regionBounds(int regionSlice,
 }
 
 //----------------------------------------------------------------------------
-int vtkCountingFrameSliceRepresentation::sliceNumber(Nm pos) const
+int vtkCountingFrameSliceRepresentation::sliceNumber(EspINA::Nm pos) const
 {
   double point[3];
   for (int number = 0; number < NumSlices; number++)
@@ -276,7 +276,7 @@ int vtkCountingFrameSliceRepresentation::sliceNumber(Nm pos) const
 // }
 
 //----------------------------------------------------------------------------
-void vtkCountingFrameSliceRepresentation::SetSlice(Nm pos)
+void vtkCountingFrameSliceRepresentation::SetSlice(EspINA::Nm pos)
 {
   Slice = pos;
 //   std::cout << "Plane: " << Plane << ", Slice: " << pos << /*", Spacing: " << spacing[0] << " " << spacing[1] << " " << spacing[2] <<*/ std::endl;
@@ -297,14 +297,14 @@ void vtkCountingFrameSliceRepresentation::SetSlice(Nm pos)
 
 //----------------------------------------------------------------------------
 void vtkCountingFrameSliceRepresentation::SetCountingFrame(vtkSmartPointer<vtkPolyData> region,
-                                                             Nm inclusionOffset[3],
-                                                             Nm exclusionOffset[3],
-                                                             Nm slicingStep[3])
+                                                             EspINA::Nm inclusionOffset[3],
+                                                             EspINA::Nm exclusionOffset[3],
+                                                             EspINA::Nm slicingStep[3])
 {
   Region = region;
-  memcpy(InclusionOffset, inclusionOffset, 3*sizeof(Nm));
-  memcpy(ExclusionOffset, exclusionOffset, 3*sizeof(Nm));
-  memcpy(Resolution, slicingStep, 3*sizeof(Nm));
+  memcpy(InclusionOffset, inclusionOffset, 3*sizeof(EspINA::Nm));
+  memcpy(ExclusionOffset, exclusionOffset, 3*sizeof(EspINA::Nm));
+  memcpy(Resolution, slicingStep, 3*sizeof(EspINA::Nm));
 
   this->Region->Update();
   this->NumPoints = this->Region->GetPoints()->GetNumberOfPoints();

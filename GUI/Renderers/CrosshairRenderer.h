@@ -73,7 +73,7 @@ namespace EspINA
     void setCrosshair(Nm point[3]);
     void setPlanePosition(PlaneType plane, Nm dist);
 
-    virtual IRendererPtr clone() {return IRendererPtr(new CrosshairRenderer());}
+    virtual IRendererSPtr clone() {return IRendererSPtr(new CrosshairRenderer());}
 
     virtual void clean() {Q_ASSERT(false);}
 

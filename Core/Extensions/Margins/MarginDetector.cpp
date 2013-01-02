@@ -25,6 +25,7 @@
 
 //VTK
 #include <vtkCellArray.h>
+#include <vtkAlgorithmOutput.h>
 #include <vtkSmartPointer.h>
 #include <vtkPoints.h>
 #include <vtkOBBTree.h>
@@ -82,7 +83,7 @@ MarginDetector::~MarginDetector()
 //------------------------------------------------------------------------
 void MarginDetector::run()
 {
-  Channel *channel      = m_extension->channel();
+  Channel *channel       = m_extension->channel();
   vtkAlgorithm *producer = channel->volume()->toVTK()->GetProducer();
   vtkDataObject *output  = producer->GetOutputDataObject(0);
   vtkImageData *image    = vtkImageData::SafeDownCast(output);

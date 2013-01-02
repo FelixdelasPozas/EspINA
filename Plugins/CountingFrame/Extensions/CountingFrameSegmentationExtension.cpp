@@ -32,6 +32,8 @@
 #include <QDebug>
 #include <QApplication>
 
+using namespace EspINA;
+
 const ModelItemExtension::ExtId CountingFrameSegmentationExtension::ID = "CountingFrameExtension";
 const ModelItemExtension::InfoTag CountingFrameSegmentationExtension::DISCARTED = "Discarded By CF";
 
@@ -57,18 +59,18 @@ ModelItemExtension::ExtId CountingFrameSegmentationExtension::id()
 //------------------------------------------------------------------------
 void CountingFrameSegmentationExtension::initialize(ModelItem::Arguments args)
 {
-  Sample *sample = m_seg->sample();
+  SampleSPtr sample = m_seg->sample();
 
-  ModelItem::Vector relatedChannels = sample->relatedItems(ModelItem::OUT, Channel::STAINLINK);
+  ModelItemSList relatedChannels = sample->relatedItems(EspINA::OUT, Channel::STAINLINK);
   Q_ASSERT(relatedChannels.size() > 0);
 
   CountingFrameList countingFrames;
   for (int i = 0; i < relatedChannels.size(); i++)
   {
-    Channel *channel = dynamic_cast<Channel *>(relatedChannels[i]);
-    ModelItemExtension *ext = channel->extension(CountingFrameChannelExtension::ID);
+    ChannelSPtr channel = channelPtr(relatedChannels[i]);
+    ModelItemExtensionPtr ext = channel->extension(CountingFrameChannelExtension::ID);
     Q_ASSERT(ext);
-    CountingFrameChannelExtension *channelExt = dynamic_cast<CountingFrameChannelExtension *>(ext);
+    CountingFrameChannelExtension *channelExt = dynamic_cast<CountingFrameChannelExtension *>(ext.data());
     countingFrames << channelExt->countingFrames();
   }
 
@@ -108,12 +110,14 @@ QVariant CountingFrameSegmentationExtension::information(ModelItemExtension::Inf
   return QVariant();
 }
 
+// DEPRECATED ????
 //------------------------------------------------------------------------
-SegmentationRepresentation* CountingFrameSegmentationExtension::representation(QString rep)
+SegmentationRepresentationPtr CountingFrameSegmentationExtension::representation(QString representation)
 {
-  qWarning() << ID << ":" << rep << " is not provided";
+  SegmentationRepresentationPtr rep;
+  qWarning() << ID << ":" << representation << " is not provided";
   Q_ASSERT(false);
-  return NULL;
+  return rep;
 }
 
 
@@ -139,9 +143,9 @@ foreach(CountingFrame *countingFrame, newCF.subtract(prevCF))
 }
 
 //------------------------------------------------------------------------
-SegmentationExtension* CountingFrameSegmentationExtension::clone()
+SegmentationExtensionPtr CountingFrameSegmentationExtension::clone()
 {
-  return new CountingFrameSegmentationExtension();
+  return SegmentationExtensionPtr(new CountingFrameSegmentationExtension());
 }
 
 //------------------------------------------------------------------------
@@ -262,8 +266,8 @@ bool CountingFrameSegmentationExtension::isOnEdge()
 {
   bool discarted = false;
 
-  ModelItemExtension *ext = m_seg->extension(MarginsSegmentationExtension::ID);
-  MarginsSegmentationExtension *marginExt = dynamic_cast<MarginsSegmentationExtension *>(ext);
+  ModelItemExtensionPtr ext = m_seg->extension(MarginsSegmentationExtension::ID);
+  MarginsSegmentationExtension *marginExt = dynamic_cast<MarginsSegmentationExtension *>(ext.data());
   if (marginExt)
   {
     InfoList tags = marginExt->availableInformations();

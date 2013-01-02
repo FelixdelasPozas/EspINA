@@ -25,18 +25,33 @@ using namespace EspINA;
 
 //----------------------------------------------------------------------------
 DataViewPanel::DataViewPanel(EspinaModelSPtr model,
-                             ViewManager *vm,
-                             QWidget* parent)
-: QDockWidget(parent)
+                             ViewManager    *viewManager,
+                             QWidget        *parent)
+  : IDockWidget(parent)
 {
-  setWindowTitle(tr("Segmentation Information"));
   setObjectName("Data View Panel");
-  DataView *view = new DataView(model, vm);
-  setWidget(view);
+
+  setWindowTitle(tr("Segmentation Information"));
+
+  setWidget(new DataView(model, viewManager));
 }
 
 //----------------------------------------------------------------------------
 DataViewPanel::~DataViewPanel()
+{
+
+}
+
+//----------------------------------------------------------------------------
+void DataViewPanel::initDockWidget(EspinaModelSPtr model,
+                                   QUndoStack     *undoStack,
+                                   ViewManager    *viewManager)
+{
+
+}
+
+//----------------------------------------------------------------------------
+void DataViewPanel::reset()
 {
 
 }

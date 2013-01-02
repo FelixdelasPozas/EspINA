@@ -64,11 +64,11 @@ QString TaxonomyElement::qualifiedName() const
 
 
 //------------------------------------------------------------------------
-SharedTaxonomyElementPtr TaxonomyElement::createElement(const QString& name)
+TaxonomyElementSPtr TaxonomyElement::createElement(const QString& name)
 {
   Q_ASSERT(element(name).isNull());
 
-  SharedTaxonomyElementPtr element(new TaxonomyElement(this, name));
+  TaxonomyElementSPtr element(new TaxonomyElement(this, name));
   element->setColor(m_color);
 
   m_elements << element;
@@ -79,7 +79,7 @@ SharedTaxonomyElementPtr TaxonomyElement::createElement(const QString& name)
 //------------------------------------------------------------------------
 void TaxonomyElement::deleteElement(TaxonomyElementPtr element)
 {
-  SharedTaxonomyElementPtr subNode;
+  TaxonomyElementSPtr subNode;
 
   int index = 0;
   while (subNode.isNull() && index < m_elements.size())
@@ -95,9 +95,9 @@ void TaxonomyElement::deleteElement(TaxonomyElementPtr element)
 }
 
 //------------------------------------------------------------------------
-SharedTaxonomyElementPtr TaxonomyElement::element(const QString& name)
+TaxonomyElementSPtr TaxonomyElement::element(const QString& name)
 {
-  SharedTaxonomyElementPtr res;
+  TaxonomyElementSPtr res;
 
   int i = 0;
   while (res.isNull() && i < m_elements.size())
@@ -150,7 +150,7 @@ void TaxonomyElement::print(int level)
     }
   }
 
-  foreach (SharedTaxonomyElementPtr node, m_elements)
+  foreach (TaxonomyElementSPtr node, m_elements)
     node->print(level+1);
 }
 
@@ -200,10 +200,10 @@ TaxonomyElementPtr EspINA::taxonomyElementPtr(ModelItemPtr item)
 }
 
 //-----------------------------------------------------------------------------
-SharedTaxonomyElementPtr taxonomyElementPtr(SharedModelItemPtr& item)
+TaxonomyElementSPtr taxonomyElementPtr(ModelItemSPtr& item)
 {
   Q_ASSERT(EspINA::TAXONOMY == item->type());
-  SharedTaxonomyElementPtr ptr = qSharedPointerDynamicCast<TaxonomyElement>(item);
+  TaxonomyElementSPtr ptr = qSharedPointerDynamicCast<TaxonomyElement>(item);
   Q_ASSERT(!ptr.isNull());
 
   return ptr;
@@ -227,7 +227,7 @@ Taxonomy::~Taxonomy()
 }
 
 //-----------------------------------------------------------------------------
-SharedTaxonomyElementPtr Taxonomy::createElement(const QString& name,
+TaxonomyElementSPtr Taxonomy::createElement(const QString& name,
                                                  TaxonomyElementPtr parent)
 {
   TaxonomyElementPtr parentNode = parent;
@@ -239,8 +239,8 @@ SharedTaxonomyElementPtr Taxonomy::createElement(const QString& name,
 }
 
 //-----------------------------------------------------------------------------
-SharedTaxonomyElementPtr Taxonomy::createElement(const QString& name,
-                                                 SharedTaxonomyElementPtr parent)
+TaxonomyElementSPtr Taxonomy::createElement(const QString& name,
+                                                 TaxonomyElementSPtr parent)
 {
   return createElement(name, parent.data());
 }
@@ -261,17 +261,17 @@ void Taxonomy::deleteElement(TaxonomyElementPtr element)
 }
 
 //-----------------------------------------------------------------------------
-void Taxonomy::deleteElement(SharedTaxonomyElementPtr element)
+void Taxonomy::deleteElement(TaxonomyElementSPtr element)
 {
   deleteElement(element.data());
 }
 
 
 //-----------------------------------------------------------------------------
-SharedTaxonomyElementPtr Taxonomy::element(const QString& qualifiedName)
+TaxonomyElementSPtr Taxonomy::element(const QString& qualifiedName)
 {
   QStringList path = qualifiedName.split("/", QString::SkipEmptyParts);
-  SharedTaxonomyElementPtr node = m_root;
+  TaxonomyElementSPtr node = m_root;
   for(int i = 0; i < path.length(); i++)
   {
     node = node->element(path[i]);
@@ -279,7 +279,6 @@ SharedTaxonomyElementPtr Taxonomy::element(const QString& qualifiedName)
   }
 
   return node;
-  // MEGA TODO 2012-12-15
 //   bool exits = false;
 //   foreach(TaxonomyElementPtr sibling, m_parent->m_elements)
 //   {
@@ -303,11 +302,11 @@ SharedTaxonomyElementPtr Taxonomy::element(const QString& qualifiedName)
 }
 
 //-----------------------------------------------------------------------------
-SharedTaxonomyElementPtr Taxonomy::parent(const SharedTaxonomyElementPtr element) const
+TaxonomyElementSPtr Taxonomy::parent(const TaxonomyElementSPtr element) const
 {
   QStringList path = element->qualifiedName().split("/", QString::SkipEmptyParts);
 
-  SharedTaxonomyElementPtr parent = m_root;
+  TaxonomyElementSPtr parent = m_root;
   for(int i = 0; i < path.length() - 1; i++)
   {
     parent = parent->element(path[i]);
@@ -323,5 +322,6 @@ void Taxonomy::print(int indent)
   m_root->print(indent);
 }
 
+//-----------------------------------------------------------------------------
 
 

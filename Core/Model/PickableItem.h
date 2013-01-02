@@ -31,6 +31,7 @@ class vtkAlgorithmOutput;
 
 namespace EspINA
 {
+
   class PickableItem
   : public ModelItem
   {
@@ -63,8 +64,10 @@ namespace EspINA
     QMap<QString, ConditionInfo> m_conditions;
   };
 
+  typedef QSharedPointer<PickableItem> PickableItemSPtr;
+
   PickableItemPtr pickableItemPtr(ModelItemPtr item);
-  SharedPickableItemPtr pickableItemPtr(SharedModelItemPtr &item);
+  PickableItemSPtr pickableItemPtr(ModelItemSPtr &item);
 
 } // namespace EspINA
 

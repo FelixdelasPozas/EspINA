@@ -23,6 +23,8 @@
 #include <Core/Extensions/ModelItemExtension.h>
 #include <Core/Model/Segmentation.h>
 
+using namespace EspINA;
+
 //-----------------------------------------------------------------------------
 CountingFrameColorEngine::CountingFrameColorEngine()
 {
@@ -47,9 +49,9 @@ CountingFrameColorEngine::CountingFrameColorEngine()
 //-----------------------------------------------------------------------------
 QColor CountingFrameColorEngine::color(Segmentation* seg)
 {
-  ModelItemExtension *ext = seg->extension(CountingFrameSegmentationExtension::ID);
+  ModelItemExtensionPtr ext = seg->extension(CountingFrameSegmentationExtension::ID);
   Q_ASSERT(ext);
-  CountingFrameSegmentationExtension *segExt = dynamic_cast<CountingFrameSegmentationExtension *>(ext);
+  CountingFrameSegmentationExtension *segExt = dynamic_cast<CountingFrameSegmentationExtension *>(ext.data());
 
   if (segExt->isDiscarded())
     return QColor(255, 0, 0, 50);
@@ -60,9 +62,9 @@ QColor CountingFrameColorEngine::color(Segmentation* seg)
 //-----------------------------------------------------------------------------
 LUTPtr CountingFrameColorEngine::lut(Segmentation* seg)
 {
-  ModelItemExtension *ext = seg->extension(CountingFrameSegmentationExtension::ID);
+  ModelItemExtensionPtr ext = seg->extension(CountingFrameSegmentationExtension::ID);
   Q_ASSERT(ext);
-  CountingFrameSegmentationExtension *segExt = dynamic_cast<CountingFrameSegmentationExtension *>(ext);
+  CountingFrameSegmentationExtension *segExt = dynamic_cast<CountingFrameSegmentationExtension *>(ext.data());
 
   if (segExt->isDiscarded())
     return m_discardedLUT;

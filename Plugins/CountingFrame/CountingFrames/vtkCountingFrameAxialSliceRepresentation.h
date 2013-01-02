@@ -32,7 +32,7 @@ public:
   vtkTypeMacro(vtkCountingFrameAxialSliceRepresentation,
                vtkCountingFrameSliceRepresentation);
 
-  virtual void SetSlice(Nm pos);
+  virtual void SetSlice(EspINA::Nm pos);
 
 protected:
   static const int hCoord = 0;
@@ -40,15 +40,15 @@ protected:
 
   virtual void CreateRegion();
 
-  virtual Nm realLeftEdge  (int slice=0) { return Region->GetPoint(slice*4+0)[hCoord];}
-  virtual Nm realTopEdge   (int slice=0) { return Region->GetPoint(slice*4+1)[vCoord];}
-  virtual Nm realRightEdge (int slice=0) { return Region->GetPoint(slice*4+2)[hCoord];}
-  virtual Nm realBottomEdge(int slice=0) { return Region->GetPoint(slice*4+0)[vCoord];}
+  virtual EspINA::Nm realLeftEdge  (int slice=0) { return Region->GetPoint(slice*4+0)[hCoord];}
+  virtual EspINA::Nm realTopEdge   (int slice=0) { return Region->GetPoint(slice*4+1)[vCoord];}
+  virtual EspINA::Nm realRightEdge (int slice=0) { return Region->GetPoint(slice*4+2)[hCoord];}
+  virtual EspINA::Nm realBottomEdge(int slice=0) { return Region->GetPoint(slice*4+0)[vCoord];}
 
-  virtual Nm leftEdge  (int slice=0) {return realLeftEdge  (slice) + InclusionOffset[hCoord];}
-  virtual Nm topEdge   (int slice=0) {return realTopEdge   (slice) + InclusionOffset[vCoord];}
-  virtual Nm rightEdge (int slice=0) {return realRightEdge (slice) - ExclusionOffset[hCoord];}
-  virtual Nm bottomEdge(int slice=0) {return realBottomEdge(slice) - ExclusionOffset[vCoord];}
+  virtual EspINA::Nm leftEdge  (int slice=0) {return realLeftEdge  (slice) + InclusionOffset[hCoord];}
+  virtual EspINA::Nm topEdge   (int slice=0) {return realTopEdge   (slice) + InclusionOffset[vCoord];}
+  virtual EspINA::Nm rightEdge (int slice=0) {return realRightEdge (slice) - ExclusionOffset[hCoord];}
+  virtual EspINA::Nm bottomEdge(int slice=0) {return realBottomEdge(slice) - ExclusionOffset[vCoord];}
 
   virtual void MoveLeftEdge  (double* p1, double* p2);
   virtual void MoveRightEdge (double* p1, double* p2);

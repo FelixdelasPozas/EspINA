@@ -54,7 +54,7 @@ RectangularVOI::RectangularVOI(EspinaModelSPtr model,
           this, SLOT(defineVOI(IPicker::PickList)));
 
   vtkMath::UninitializeBounds(m_bounds);
-  m_model->factory()->registerSettingsPanel(m_settingsPanel);
+  m_model->factory()->registerSettingsPanel(m_settingsPanel.data());
 }
 
 //-----------------------------------------------------------------------------

@@ -52,7 +52,7 @@ namespace EspINA
     static STATUS loadChannel(QFileInfo file,
                               EspinaModelSPtr model,
                               QUndoStack *undoStack,
-                              SharedChannelPtr &channelPtr);
+                              ChannelSPtr &channelPtr);
 
     /**
      * Loads a seg file which must contain at least a trace and a taxonomy file.
@@ -91,17 +91,17 @@ namespace EspINA
   class IOTaxonomy
   {
   public:
-    static SharedTaxonomyPtr openXMLTaxonomy(QString fileName);
-    static SharedTaxonomyPtr loadXMLTaxonomy(QString content);
-    static void writeXMLTaxonomy(SharedTaxonomyPtr tax, QString& destination);
+    static TaxonomySPtr openXMLTaxonomy(QString fileName);
+    static TaxonomySPtr loadXMLTaxonomy(QString content);
+    static void writeXMLTaxonomy(TaxonomySPtr tax, QString& destination);
 
   private:
     IOTaxonomy();
     ~IOTaxonomy();
 
-    static void writeTaxonomy(SharedTaxonomyPtr tax, QXmlStreamWriter& stream);
-    static void writeTaxonomyElement(SharedTaxonomyElementPtr node, QXmlStreamWriter& stream);
-    static SharedTaxonomyPtr readXML(QXmlStreamReader &xmlStream);
+    static void writeTaxonomy(TaxonomySPtr tax, QXmlStreamWriter& stream);
+    static void writeTaxonomyElement(TaxonomyElementSPtr node, QXmlStreamWriter& stream);
+    static TaxonomySPtr readXML(QXmlStreamReader &xmlStream);
   };
 
 

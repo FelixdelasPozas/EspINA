@@ -44,7 +44,7 @@ namespace EspINA
 
   public:
     explicit CompositionCommand(const SegmentationList &segmentations,
-                                SharedTaxonomyElementPtr      taxonomy,
+                                TaxonomyElementSPtr      taxonomy,
                                 EspinaModelSPtr          model);
 
     virtual void redo();
@@ -56,7 +56,7 @@ namespace EspINA
     EspinaModelSPtr   m_model;
 
     SharedSegmentationList   m_input;
-    SharedTaxonomyElementPtr m_tax;
+    TaxonomyElementSPtr m_tax;
 
     QList<SegInfo>  m_infoList;
     FilterSPtr       m_filter;

@@ -107,7 +107,7 @@ QModelIndex CompositionProxy::index(int row, int column, const QModelIndex& pare
     internalPtr = m_components[seg][row];
   }
 
-  return createIndex(row, column, &internalPtr);
+  return createIndex(row, column, internalPtr);
 }
 
 // WARNING: Don't use mapFromSource to implement model primitives!
@@ -140,9 +140,7 @@ QModelIndex CompositionProxy::parent(const QModelIndex& child) const
   }
 
   ModelItemPtr parentItem = parentSeg;
-  //WARNING 2012-12-17: Se esta creando mal el indice-->parent item se va del scope
-  Q_ASSERT(false);
-  return createIndex(row, 0, &parentItem);
+  return createIndex(row, 0, parentItem);
 }
 
 //------------------------------------------------------------------------
@@ -166,7 +164,7 @@ QModelIndex CompositionProxy::mapFromSource(const QModelIndex& sourceIndex) cons
 
   SegmentationPtr seg = segmentationPtr(sourceItem);
 
-  SharedModelItemList compositions = seg->relatedItems(EspINA::IN,
+  ModelItemSList compositions = seg->relatedItems(EspINA::IN,
                                                        Segmentation::COMPOSED_LINK);
 
   Q_ASSERT(compositions.size() <= 1);
@@ -437,7 +435,7 @@ bool CompositionProxy::indices(const QModelIndex& topLeft, const QModelIndex& bo
 SegmentationPtr CompositionProxy::parentSegmentation(ModelItemPtr segItem) const
 {
   // TODO 2012-12-17 Usar api del modelo!
-  SharedModelItemList parentItem = segItem->relatedItems(EspINA::IN,
+  ModelItemSList parentItem = segItem->relatedItems(EspINA::IN,
                                                          Segmentation::COMPOSED_LINK);
 
   SegmentationPtr parentSeg = NULL;

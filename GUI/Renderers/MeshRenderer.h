@@ -64,7 +64,7 @@ public:
   virtual unsigned int getNumberOfvtkActors();
 
   virtual void clean() {Q_ASSERT(false);}
-  virtual IRendererPtr clone() {return IRendererPtr(new MeshRenderer(m_viewManager));}
+  virtual IRendererSPtr clone() {return IRendererSPtr(new MeshRenderer(m_viewManager));}
 
   virtual bool isASegmentationRenderer() { return true; };
 private:

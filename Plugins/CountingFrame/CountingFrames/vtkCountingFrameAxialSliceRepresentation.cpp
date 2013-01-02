@@ -26,7 +26,7 @@
 vtkStandardNewMacro(vtkCountingFrameAxialSliceRepresentation);
 
 //----------------------------------------------------------------------------
-void vtkCountingFrameAxialSliceRepresentation::SetSlice(Nm pos)
+void vtkCountingFrameAxialSliceRepresentation::SetSlice(EspINA::Nm pos)
 {
   Slice = pos;
 
@@ -74,7 +74,7 @@ void vtkCountingFrameAxialSliceRepresentation::CreateRegion()
 
   double LB[3], LT[3], RT[3], RB[3];
 
-  Nm slice = sliceNumber(Slice);
+  EspINA::Nm slice = sliceNumber(Slice);
   // Get original Region Points
   Region->GetPoint(slice*4+0, LB);
   Region->GetPoint(slice*4+1, LT);
@@ -112,7 +112,7 @@ void vtkCountingFrameAxialSliceRepresentation::MoveLeftEdge(double* p1, double* 
 {
   double shift = p2[hCoord] - p1[hCoord];
 
-  Nm offset   = InclusionOffset[hCoord] + shift;
+  EspINA::Nm offset   = InclusionOffset[hCoord] + shift;
 
   if (offset < 0)
     offset = 0;
@@ -151,7 +151,7 @@ void vtkCountingFrameAxialSliceRepresentation::MoveRightEdge(double* p1, double*
 {
   double shift = p2[hCoord] - p1[hCoord];
 
-  Nm offset = ExclusionOffset[hCoord] - shift;
+  EspINA::Nm offset = ExclusionOffset[hCoord] - shift;
 
   if (offset < 0)
     offset = 0;
@@ -189,7 +189,7 @@ void vtkCountingFrameAxialSliceRepresentation::MoveRightEdge(double* p1, double*
 void vtkCountingFrameAxialSliceRepresentation::MoveTopEdge(double* p1, double* p2)
 {
   double shift = p2[vCoord] - p1[vCoord];
-  Nm offset = InclusionOffset[vCoord] + shift;
+  EspINA::Nm offset = InclusionOffset[vCoord] + shift;
 
   if (offset < 0)
     offset = 0;
@@ -228,7 +228,7 @@ void vtkCountingFrameAxialSliceRepresentation::MoveBottomEdge(double* p1, double
 {
   double shift = p2[vCoord] - p1[vCoord];
 
-  Nm offset = ExclusionOffset[vCoord] - shift;
+  EspINA::Nm offset = ExclusionOffset[vCoord] - shift;
 
   if (offset < 0)
     offset = 0;

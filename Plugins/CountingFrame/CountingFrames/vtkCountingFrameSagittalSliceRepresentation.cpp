@@ -26,7 +26,7 @@
 vtkStandardNewMacro(vtkCountingFrameSagittalSliceRepresentation);
 
 //----------------------------------------------------------------------------
-void vtkCountingFrameSagittalSliceRepresentation::SetSlice(Nm pos)
+void vtkCountingFrameSagittalSliceRepresentation::SetSlice(EspINA::Nm pos)
 {
   Slice = pos;
 
@@ -173,14 +173,14 @@ void vtkCountingFrameSagittalSliceRepresentation::MoveLeftEdge(double* p1, doubl
 {
   double shift = p2[2] - p1[2];
 
-  Nm offset   = InclusionOffset[2] + shift;
+  EspINA::Nm offset   = InclusionOffset[2] + shift;
 
   if (offset < 0)
     offset = 0;
   else
   {
-    Nm nextLeftEdge = realLeftEdge() + offset;
-    Nm rightEdgeLimit  = rightEdge() - Resolution[2];
+    EspINA::Nm nextLeftEdge = realLeftEdge() + offset;
+    EspINA::Nm rightEdgeLimit  = rightEdge() - Resolution[2];
 
     if (nextLeftEdge > rightEdgeLimit)
       offset = rightEdgeLimit - realLeftEdge();
@@ -220,14 +220,14 @@ void vtkCountingFrameSagittalSliceRepresentation::MoveRightEdge(double* p1, doub
 {
   double shift = p2[2] - p1[2];
 
-  Nm offset = ExclusionOffset[2] - shift;
+  EspINA::Nm offset = ExclusionOffset[2] - shift;
 
   if (offset < 0)
     offset = 0;
   else
   {
-    Nm nextRightEdge = realRightEdge() - offset;
-    Nm leftEdgeLimit = leftEdge() + Resolution[2];
+    EspINA::Nm nextRightEdge = realRightEdge() - offset;
+    EspINA::Nm leftEdgeLimit = leftEdge() + Resolution[2];
 
     if (leftEdgeLimit > nextRightEdge)
       offset = realRightEdge() - leftEdgeLimit;
@@ -268,7 +268,7 @@ void vtkCountingFrameSagittalSliceRepresentation::MoveTopEdge(double* p1, double
 {
 
   double shift = p2[1] - p1[1];
-  Nm offset = InclusionOffset[1] + shift;
+  EspINA::Nm offset = InclusionOffset[1] + shift;
 
   if (offset < 0)
     offset = 0;
@@ -308,7 +308,7 @@ void vtkCountingFrameSagittalSliceRepresentation::MoveBottomEdge(double* p1, dou
 {
   double shift = p2[1] - p1[1];
 
-  Nm offset = ExclusionOffset[1] - shift;
+  EspINA::Nm offset = ExclusionOffset[1] - shift;
 
   if (offset < 0)
     offset = 0;

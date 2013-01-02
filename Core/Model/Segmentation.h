@@ -27,6 +27,7 @@
 
 #include "Core/Extensions/SegmentationExtension.h"
 #include "Core/Model/PickableItem.h"
+#include "Core/Model/Taxonomy.h"
 #include "Core/Model/HierarchyItem.h"
 #include "Channel.h"
 //#include "Core/Model/Taxonomy.h"
@@ -121,7 +122,7 @@ namespace EspINA
     /// Get the sample where the segmentation is located
     SampleSPtr sample();
     /// Get the channel from where segmentation was created
-    SharedChannelPtr channel();
+    ChannelSPtr channel();
 
     /// Selectable Item Interface
     virtual const FilterSPtr filter() const {return m_filter;}
@@ -135,8 +136,8 @@ namespace EspINA
 
     void setNumber(unsigned int number) {m_args.setNumber(number);}
     unsigned int number() const {return m_args.number();}
-    void setTaxonomy(SharedTaxonomyElementPtr tax);
-    SharedTaxonomyElementPtr taxonomy() const {return m_taxonomy;}
+    void setTaxonomy(TaxonomyElementSPtr tax);
+    TaxonomyElementSPtr taxonomy() const {return m_taxonomy;}
 
     void modifiedByUser(QString user) { m_args.addUser(user);  }
 
@@ -169,7 +170,7 @@ namespace EspINA
     mutable SArguments m_args;
 
     FilterSPtr          m_filter;
-    SharedTaxonomyElementPtr m_taxonomy;
+    TaxonomyElementSPtr m_taxonomy;
 
     bool m_isVisible;
     QColor m_color;
@@ -181,9 +182,9 @@ namespace EspINA
     friend class Filter; // DEPRECATED: 2012-12-13 Creo que no se usa ya
   };
 
-  SegmentationPtr segmentationPtr(ModelItemPtr item);
-  SegmentationPtr segmentationPtr(PickableItemPtr item);
-  SegmentationSPtr segmentationPtr(SharedModelItemPtr &item);
-  SegmentationSPtr segmentationPtr(SharedPickableItemPtr &item);
+  SegmentationPtr  segmentationPtr(ModelItemPtr     item);
+  SegmentationPtr  segmentationPtr(PickableItemPtr  item);
+  SegmentationSPtr segmentationPtr(ModelItemSPtr   &item);
+  SegmentationSPtr segmentationPtr(PickableItemSPtr &item);
 }
 #endif // PRODUCTS_H

@@ -21,7 +21,7 @@
 #define IEXTENSIONPROVIDER_H
 
 #include <QtPlugin>
-#include <Core/EspinaTypes.h>
+#include <Core/Model/EspinaFactory.h>
 
 namespace EspINA
 {

@@ -53,6 +53,12 @@ SampleLayout::SampleLayout(EspinaModelSPtr model)
 }
 
 //------------------------------------------------------------------------
+SampleLayout::~SampleLayout()
+{
+  qDebug() << "Destroying Sample Layout";
+}
+
+//------------------------------------------------------------------------
 ModelItemPtr SampleLayout::item(const QModelIndex& index) const
 {
   return indexPtr(m_sort->mapToSource(index)); 

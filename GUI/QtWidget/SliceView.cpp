@@ -498,6 +498,9 @@ SliceView::~SliceView()
   qDebug() << "              Destroying Slice View" << m_plane;
   qDebug() << "********************************************************";
   m_viewManager->unregisterView(this);
+
+  m_slicingMatrix->Delete();
+  delete m_highlighter;
   delete m_state;
 }
 

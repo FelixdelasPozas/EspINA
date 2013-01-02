@@ -161,8 +161,8 @@ void MarginsChannelExtension::computeMarginDistance(SegmentationPtr seg)
 
   ModelItemExtensionPtr ext = seg->extension(ID);
   Q_ASSERT(ext);
-  MarginsSegmentationExtensionPtr marginExt = qSharedPointerDynamicCast<MarginsSegmentationExtension>(ext);
-  Q_ASSERT(marginExt);
+  MarginsSegmentationExtensionPtr marginExt = marginsSegmentationExtensionPtr(ext);
+
   Nm distance[6], smargins[6];
   seg->volume()->bounds(smargins);
   if (m_useChannelBounds)
@@ -297,4 +297,10 @@ void MarginsChannelExtension::ComputeSurfaces(void)
     m_PolyDataFaces[face] = poly;
   }
   m_borderMutex.unlock();
+}
+
+
+MarginsChannelExtensionPtr EspINA::marginsChannelExtensionPtr(ModelItemExtensionPtr extension)
+{
+  return dynamic_cast<MarginsChannelExtensionPtr>(extension);
 }

@@ -27,10 +27,10 @@
 using namespace EspINA;
 
 //----------------------------------------------------------------------------
-AddSegmentation::AddSegmentation(SharedChannelPtr channel,
+AddSegmentation::AddSegmentation(ChannelSPtr channel,
                                  FilterSPtr filter,
                                  SegmentationSPtr seg,
-                                 SharedTaxonomyElementPtr taxonomy,
+                                 TaxonomyElementSPtr taxonomy,
                                  EspinaModelSPtr model)
 : m_channel (channel)
 , m_filter  (filter)

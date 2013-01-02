@@ -104,6 +104,12 @@ BestPixelPicker::BestPixelPicker()
 {}
 
 //-----------------------------------------------------------------------------
+BestPixelPicker::~BestPixelPicker()
+{
+  delete m_window;
+}
+
+//-----------------------------------------------------------------------------
 void BestPixelPicker::onMouseDown(const QPoint& pos, EspinaRenderView* view)
 {
   PickList pickList = generatePickList(view);

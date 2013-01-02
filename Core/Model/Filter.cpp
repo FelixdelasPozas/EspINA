@@ -581,7 +581,7 @@ FilterPtr EspINA::filterPtr(ModelItemPtr item)
 }
 
 //----------------------------------------------------------------------------
-FilterSPtr EspINA::filterPtr(SharedModelItemPtr& item)
+FilterSPtr EspINA::filterPtr(ModelItemSPtr& item)
 {
   Q_ASSERT(EspINA::FILTER == item->type());
   FilterSPtr ptr = qSharedPointerDynamicCast<Filter>(item);

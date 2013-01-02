@@ -61,6 +61,8 @@ namespace EspINA
     RepList  m_availableRepresentations;
   };
 
+  typedef QSharedPointer<ModelItemExtension> ModelItemExtensionSPtr;
+
 } // namespace EspINA
 
 #endif // MODELITEMEXTENSION_H

@@ -1,20 +1,20 @@
 /*
-    <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ *    <one line to give the program's name and a brief idea of what it does.>
+ *    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
+ *
+ *    This program is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
+ *
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 
 #ifndef RECTANGULARBOUNDINGFRAME_H
@@ -22,49 +22,53 @@
 
 #include "CountingFrames/CountingFrame.h"
 
-class CountingFrameChannelExtension;
-
-class RectangularCountingFrame
-: public CountingFrame
+namespace EspINA
 {
-public:
-  static const QString ID;
-  static const QString ID_1_2_5; //Backward compatibility
+  class CountingFrameChannelExtension;
 
-  explicit RectangularCountingFrame(Id id,
-                                    CountingFrameChannelExtension *channelExt,
-                                    Nm borders[6],
-                                    Nm inclusion[3],
-                                    Nm exclusion[3],
-                                    ViewManager *vm);
-  virtual ~RectangularCountingFrame();
+  class RectangularCountingFrame
+  : public CountingFrame
+  {
+  public:
+    static const QString ID;
+    static const QString ID_1_2_5; //Backward compatibility
 
-  // Implements QStandardItem interface
-  virtual QVariant data(int role = Qt::UserRole + 1) const;
-  virtual QString serialize() const;
-  virtual QString name() const { return tr("Rectangular CF"); }
+    explicit RectangularCountingFrame(Id id,
+                                      CountingFrameChannelExtension *channelExt,
+                                      Nm borders[6],
+                                      Nm inclusion[3],
+                                      Nm exclusion[3],
+                                      ViewManager *vm);
+    virtual ~RectangularCountingFrame();
 
-  // Implements EspinaWidget interface
-  virtual vtkAbstractWidget *createWidget();
-  virtual void deleteWidget(vtkAbstractWidget* widget);
-  virtual SliceWidget *createSliceWidget(PlaneType plane);
+    // Implements QStandardItem interface
+    virtual QVariant data(int role = Qt::UserRole + 1) const;
+    virtual QString serialize() const;
+    virtual QString name() const { return tr("Rectangular CF"); }
 
-  virtual bool processEvent(vtkRenderWindowInteractor* iren,
-                            long unsigned int event);
-  virtual void setEnabled(bool enable);
+    // Implements EspinaWidget interface
+    virtual vtkAbstractWidget *createWidget();
+    virtual void deleteWidget(vtkAbstractWidget* widget);
+    virtual SliceWidget *createSliceWidget(PlaneType plane);
 
-  virtual void updateCountingFrameImplementation();
+    virtual bool processEvent(vtkRenderWindowInteractor* iren,
+                              long unsigned int event);
+    virtual void setEnabled(bool enable);
 
-protected:
-  vtkSmartPointer<vtkPolyData> createRectangularRegion(Nm left,
-                                                       Nm top,
-                                                       Nm upper,
-                                                       Nm right,
-                                                       Nm bottom,
-                                                       Nm lower);
+    virtual void updateCountingFrameImplementation();
 
-private:
-  Nm m_borders[6];
-};
+  protected:
+    vtkSmartPointer<vtkPolyData> createRectangularRegion(Nm left,
+                                                         Nm top,
+                                                         Nm upper,
+                                                         Nm right,
+                                                         Nm bottom,
+                                                         Nm lower);
+
+  private:
+    Nm m_borders[6];
+  };
+
+} // namespace EspINA
 
 #endif // RECTANGULARBOUNDINGFRAME_H

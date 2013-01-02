@@ -41,6 +41,11 @@ namespace EspINA
     SamplePtr m_sample;
   };
 
+  typedef QSharedPointer<SampleExtension> SampleExtensionSPtr;
+  typedef QList<SampleExtensionPtr>       SampleExtensionSList;
+
+  SampleExtensionPtr sampleExtensionPtr(ModelItemExtensionPtr extension);
+
 }// namespace EspINA
 
 #endif // SAMPLEEXTENSION_H

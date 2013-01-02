@@ -39,6 +39,7 @@ namespace EspINA
     explicit SegmentationDelegate(EspinaModelSPtr model,
                                   QUndoStack *undoStack,
                                   ViewManager *vm);
+    virtual ~SegmentationDelegate();
 
     virtual QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const;
     virtual void setEditorData(QWidget* editor, const QModelIndex& index) const;

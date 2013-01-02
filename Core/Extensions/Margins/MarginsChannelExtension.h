@@ -88,7 +88,10 @@ namespace EspINA
     friend class MarginDetector;
   };
 
-  typedef QSharedPointer<MarginsChannelExtension> MarginsChannelExtensionPtr;
+  typedef MarginsChannelExtension *MarginsChannelExtensionPtr;
+  typedef QSharedPointer<MarginsChannelExtension> MarginsChannelExtensionSPtr;
+
+  MarginsChannelExtensionPtr marginsChannelExtensionPtr(ModelItemExtensionPtr extension);
 
 }// namespace EspINA
 

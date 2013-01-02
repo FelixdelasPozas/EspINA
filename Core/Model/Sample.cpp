@@ -107,8 +107,7 @@ QString Sample::serialize() const
   QString extensionArgs;
   foreach(ModelItemExtensionPtr ext, m_extensions)
   {
-    SampleExtensionPtr sampleExt = qSharedPointerDynamicCast<SampleExtension>(ext);
-    Q_ASSERT(!sampleExt.isNull());
+    SampleExtensionPtr sampleExt = sampleExtensionPtr(ext);
     QString serializedArgs = sampleExt->serialize(); //Independizar los argumentos?
     if (!serializedArgs.isEmpty())
       extensionArgs.append(ext->id()+"=["+serializedArgs+"];");
@@ -136,8 +135,7 @@ void Sample::initializeExtensions(const Arguments &args)
   Arguments extArgs(args[EXTENSIONS]);
   foreach(ModelItemExtensionPtr ext, m_extensions)
   {
-    SampleExtensionPtr sampleExt = qSharedPointerDynamicCast<SampleExtension>(ext);
-    Q_ASSERT(sampleExt);
+    SampleExtensionPtr sampleExt = sampleExtensionPtr(ext);
     qDebug() << extArgs;
     Arguments sArgs(extArgs.value(sampleExt->id(), QString()));
     qDebug() << sArgs;
@@ -163,7 +161,7 @@ SamplePtr EspINA::samplePtr(ModelItemPtr item)
 }
 
 //------------------------------------------------------------------------
-SampleSPtr EspINA::samplePtr(SharedModelItemPtr& item)
+SampleSPtr EspINA::samplePtr(ModelItemSPtr& item)
 {
   Q_ASSERT(SAMPLE == item->type());
   SampleSPtr ptr = qSharedPointerDynamicCast<Sample>(item);

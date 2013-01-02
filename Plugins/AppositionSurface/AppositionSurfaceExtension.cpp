@@ -41,6 +41,8 @@
 #include <QDebug>
 #include <QApplication>
 
+using namespace EspINA;
+
 ///-----------------------------------------------------------------------
 /// APPOSITION PLANE EXTENSION-
 ///-----------------------------------------------------------------------
@@ -115,14 +117,15 @@ QVariant AppositionSurfaceExtension::information(ModelItemExtension::InfoTag tag
 }
 
 //------------------------------------------------------------------------
-SegmentationRepresentation* AppositionSurfaceExtension::representation(QString rep)
+SegmentationRepresentationPtr AppositionSurfaceExtension::representation(QString representation)
 {
+  SegmentationRepresentationPtr rep;
   //   if (rep == AppositionSurfaceRepresentation::ID)
   //     return m_planeRep;
   //
-  qWarning() << ID << ":" << rep << " is not provided";
+  qWarning() << ID << ":" << representation << " is not provided";
   Q_ASSERT(false);
-  return NULL;
+  return rep;
 }
 
 //------------------------------------------------------------------------
@@ -132,9 +135,9 @@ void AppositionSurfaceExtension::initialize(ModelItem::Arguments args)
 }
 
 //------------------------------------------------------------------------
-SegmentationExtension* AppositionSurfaceExtension::clone()
+SegmentationExtensionPtr AppositionSurfaceExtension::clone()
 {
-  return new AppositionSurfaceExtension();
+  return SegmentationExtensionPtr(new AppositionSurfaceExtension());
 }
 
 //------------------------------------------------------------------------

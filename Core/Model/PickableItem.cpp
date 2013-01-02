@@ -50,10 +50,10 @@ PickableItemPtr EspINA::pickableItemPtr(ModelItemPtr item)
 }
 
 //----------------------------------------------------------------------------
-SharedPickableItemPtr EspINA::pickableItemPtr(SharedModelItemPtr &item)
+PickableItemSPtr EspINA::pickableItemPtr(ModelItemSPtr &item)
 {
   Q_ASSERT(EspINA::SEGMENTATION == item->type() || EspINA::SAMPLE == item->type());
-  SharedPickableItemPtr ptr = qSharedPointerDynamicCast<PickableItem>(item);
+  PickableItemSPtr ptr = qSharedPointerDynamicCast<PickableItem>(item);
   Q_ASSERT(!ptr.isNull());
 
   return ptr;

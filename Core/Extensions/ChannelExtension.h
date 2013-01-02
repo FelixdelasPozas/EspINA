@@ -46,5 +46,10 @@ namespace EspINA
     Channel *m_channel;
   };
 
+  typedef QSharedPointer<ChannelExtension> ChannelExtensionSPtr;
+  typedef QList<ChannelExtensionSPtr>      ChannelExtensionSList;
+
+  ChannelExtensionPtr channelExtensionPtr(ModelItemExtensionPtr extension);
+
 }
 #endif // CHANNELEXTENSION_H

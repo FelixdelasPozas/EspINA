@@ -72,13 +72,15 @@ using namespace EspINA;
 const QString AUTOSAVE_FILE = "espina-autosave.seg";
 
 //------------------------------------------------------------------------
-EspinaMainWindow::EspinaMainWindow(ViewManager* viewManager)
+EspinaMainWindow::EspinaMainWindow(ViewManager* viewManager,
+                                   QList<QObject *> &plugins)
 : m_view(NULL)
 , m_factory    (new EspinaFactory())
 , m_model      (new EspinaModel(m_factory))
 , m_undoStack  (new QUndoStack())
 , m_viewManager(viewManager)
 , m_settings   (new GeneralSettings())
+, m_settingsPanel(new GeneralSettingsPanel(m_settings))
 , m_busy(false)
 {
 #ifdef TEST_ESPINA_MODELS
@@ -96,12 +98,12 @@ EspinaMainWindow::EspinaMainWindow(ViewManager* viewManager)
   QIcon openIcon = qApp->style()->standardIcon(QStyle::SP_DialogOpenButton);
   QIcon saveIcon = qApp->style()->standardIcon(QStyle::SP_DialogSaveButton);
 
-  m_factory->registerRenderer(IRendererPtr(new CrosshairRenderer()               ));
-  m_factory->registerRenderer(IRendererPtr(new VolumetricRenderer(m_viewManager) ));
-  m_factory->registerRenderer(IRendererPtr(new MeshRenderer(m_viewManager)       ));
+  m_factory->registerRenderer(IRendererSPtr(new CrosshairRenderer()               ));
+  m_factory->registerRenderer(IRendererSPtr(new VolumetricRenderer(m_viewManager) ));
+  m_factory->registerRenderer(IRendererSPtr(new MeshRenderer(m_viewManager)       ));
 
   /*** FILE MENU ***/
-  QMenu *fileMenu = new QMenu(tr("File"));
+  QMenu *fileMenu = new QMenu(tr("File"), this);
   {
     QMenu *openMenu = fileMenu->addMenu(tr("&Open"));
     {
@@ -171,7 +173,7 @@ EspinaMainWindow::EspinaMainWindow(ViewManager* viewManager)
   m_dynamicMenuRoot->submenus << subnode;
 
   /*** EDIT MENU ***/
-  QMenu *editMenu = new QMenu(tr("Edit"));
+  QMenu *editMenu = new QMenu(tr("Edit"), this);
   QAction *undo = m_undoStack->createUndoAction(editMenu);
   undo->setShortcut(QString("Ctrl+Z"));
   undo->setIcon(QIcon(":espina/edit-undo.svg"));
@@ -213,60 +215,48 @@ EspinaMainWindow::EspinaMainWindow(ViewManager* viewManager)
 
 
   m_mainToolBar = new MainToolBar(m_model, m_undoStack, m_viewManager);
-  addToolBar(m_mainToolBar);
+  registerToolBar(m_mainToolBar);
 
   ZoomToolBar *zoomToolBar = new ZoomToolBar(m_viewManager);
-  connect(this, SIGNAL(analysisClosed()),
-          zoomToolBar, SLOT(reset()));
-  addToolBar(zoomToolBar);
+  registerToolBar(zoomToolBar);
 
   VolumeOfInterest *voiToolBar = new VolumeOfInterest(m_model, m_viewManager);
-  connect(this, SIGNAL(analysisClosed()),
-          voiToolBar, SLOT(reset()));
-  addToolBar(voiToolBar);
+  registerToolBar(voiToolBar);
 
   SeedGrowSegmentation *seedToolBar = new SeedGrowSegmentation(m_model, m_undoStack, m_viewManager);
-  connect(this, SIGNAL(analysisClosed()),
-          seedToolBar, SLOT(reset()));
-  addToolBar(seedToolBar);
+  registerToolBar(seedToolBar);
 
   EditorToolBar *editorToolBar = new EditorToolBar(m_model, m_undoStack, m_viewManager);
-  connect(this, SIGNAL(analysisClosed()),
-          editorToolBar, SLOT(reset()));
-  addToolBar(editorToolBar);
+  registerToolBar(editorToolBar);
 
-//   CompositionToolBar *compositionBar = new CompositionToolBar(m_model, m_undoStack, m_viewManager);
-//   addToolBar(compositionBar);
+  CompositionToolBar *compositionBar = new CompositionToolBar(m_model, m_undoStack, m_viewManager);
+  registerToolBar(compositionBar);
 
-//   ChannelExplorer *channelExplorer = new ChannelExplorer(m_model, m_viewManager, this);
-//   addDockWidget(Qt::LeftDockWidgetArea, channelExplorer);
-//   m_dockMenu->addAction(channelExplorer->toggleViewAction());
-// 
-//   DataViewPanel *dataView = new DataViewPanel(m_model, m_viewManager, this);
-//   addDockWidget(Qt::BottomDockWidgetArea, dataView);
-//   m_dynamicMenuRoot->submenus[0]->menu->addAction(dataView->toggleViewAction());
-// 
+  ChannelExplorer *channelExplorer = new ChannelExplorer(m_model, m_viewManager, this);
+  registerDockWidget(Qt::LeftDockWidgetArea, channelExplorer);
+
+  SegmentationExplorer *segExplorer = new SegmentationExplorer(m_model, m_undoStack, m_viewManager, this);
+  registerDockWidget(Qt::LeftDockWidgetArea, segExplorer);
+
+  FilterInspector *filterInspector = new FilterInspector(m_undoStack, m_viewManager, this);
+  registerDockWidget(Qt::LeftDockWidgetArea, filterInspector);
+
+  DataViewPanel *dataView = new DataViewPanel(m_model, m_viewManager, this);
+  registerDockWidget(Qt::BottomDockWidgetArea, dataView);
+
 //   QAction *connectomicsAction = new QAction(tr("Connectomics Information"), this);
 //   m_dynamicMenuRoot->submenus[0]->menu->addAction(connectomicsAction);
 //   connect(connectomicsAction, SIGNAL(triggered()), this, SLOT(showConnectomicsInformation()));
 // 
-//   FilterInspector *filterInspector = new FilterInspector(m_undoStack, m_viewManager, this);
-//   addDockWidget(Qt::LeftDockWidgetArea, filterInspector);
-//   m_dockMenu->addAction(filterInspector->toggleViewAction());
-// 
-//   SegmentationExplorer *segExplorer = new SegmentationExplorer(m_model, m_undoStack, m_viewManager, this);
-//   addDockWidget(Qt::LeftDockWidgetArea, segExplorer);
-//   m_dockMenu->addAction(segExplorer->toggleViewAction());
-// 
 //   TaxonomyExplorer *taxExplorer = new TaxonomyExplorer(m_model, m_viewManager, taxonomyEngine, this);
 //   addDockWidget(Qt::LeftDockWidgetArea, taxExplorer);
 //   m_dockMenu->addAction(taxExplorer->toggleViewAction());
-// 
-//   loadPlugins();
-/*
+
+  loadPlugins(plugins);
+
   m_colorEngines->restoreUserSettings();
   m_viewMenu->addMenu(m_dockMenu);
-  m_viewMenu->addSeparator();*/
+  m_viewMenu->addSeparator();
 
   DefaultEspinaView *defaultView = new DefaultEspinaView(m_model, m_viewManager, this);
 
@@ -298,92 +288,65 @@ EspinaMainWindow::~EspinaMainWindow()
   qDebug() << "********************************************************";
   qDebug() << "              Destroying Main Window";
   qDebug() << "********************************************************";
+
+  delete m_dynamicMenuRoot;
   delete m_undoStack;
 }
 
 //------------------------------------------------------------------------
-void EspinaMainWindow::loadPlugins()
+void EspinaMainWindow::loadPlugins(QList<QObject *> &plugins)
 {
-  QDir pluginsDir = QDir(qApp->applicationDirPath());
-
-  #if defined(Q_OS_WIN)
-  if (pluginsDir.dirName().toLower() == "debug" || pluginsDir.dirName().toLower() == "release")
-    pluginsDir.cdUp();
-  #elif defined(Q_OS_MAC)
-    if (pluginsDir.dirName() == "MacOS")
-    {
-      pluginsDir.cdUp();
-      pluginsDir.cdUp();
-      pluginsDir.cdUp();
-    }
-  #endif
-
-  pluginsDir.cd("plugins");
-
-  qDebug() << "Loading Plugins: ";
-  foreach (QString fileName, pluginsDir.entryList(QDir::Files))
+  foreach (QObject *plugin, plugins)
   {
-    QPluginLoader loader(pluginsDir.absoluteFilePath(fileName));
-    QObject *plugin = loader.instance();
-
-    // for debuggin plugins
-    // qDebug() << loader.errorString();
-
-    if (plugin)
+    IFactoryExtension *factoryExtension = qobject_cast<IFactoryExtension *>(plugin);
+    if (factoryExtension)
     {
-      qDebug() << "Found plugin " << fileName;;
-      IFactoryExtension *factoryExtension = qobject_cast<IFactoryExtension *>(plugin);
-      if (factoryExtension)
-      {
-        qDebug() << "- Factory Extension...... OK";
-        factoryExtension->initFactoryExtension(m_factory);
-      }
+      qDebug() << plugin << "- Factory Extension...... OK";
+      factoryExtension->initFactoryExtension(m_factory);
+    }
 
-      IToolBar *toolbar = qobject_cast<IToolBar *>(plugin);
-      if (toolbar)
-      {
-        qDebug() << "- ToolBar ... OK";
-        addToolBar(toolbar);
-        toolbar->initToolBar(m_model, m_undoStack, m_viewManager);
-        connect(this, SIGNAL(analysisClosed()), toolbar, SLOT(resetState()));
-      }
+    IToolBar *toolbar = qobject_cast<IToolBar *>(plugin);
+    if (toolbar)
+    {
+      qDebug() << plugin << "- ToolBar ... OK";
+      toolbar->initToolBar(m_model, m_undoStack, m_viewManager);
+      registerToolBar(toolbar);
+    }
 
-      IDynamicMenu *menu = qobject_cast<IDynamicMenu *>(plugin);
-      if (menu)
-      {
-        qDebug() << "- Menus ..... OK";
-        foreach(MenuEntry entry, menu->menuEntries())
-          createDynamicMenu(entry);
-      }
+    IDynamicMenu *menu = qobject_cast<IDynamicMenu *>(plugin);
+    if (menu)
+    {
+      qDebug() << plugin << "- Menus ..... OK";
+      foreach(MenuEntry entry, menu->menuEntries())
+        createDynamicMenu(entry);
+    }
 
-      IColorEngineProvider *provider = qobject_cast<IColorEngineProvider *>(plugin);
-      if (provider)
-      {
-        qDebug() << "- Color Engine Provider ..... OK";
-        foreach(IColorEngineProvider::Engine engine, provider->colorEngines())
-          m_colorEngines->addColorEngine(engine.first, engine.second);
-      }
+    IColorEngineProvider *provider = qobject_cast<IColorEngineProvider *>(plugin);
+    if (provider)
+    {
+      qDebug() << plugin << "- Color Engine Provider ..... OK";
+      foreach(IColorEngineProvider::Engine engine, provider->colorEngines())
+        m_colorEngines->addColorEngine(engine.first, engine.second);
+    }
 
-      IDockWidget *dock = qobject_cast<IDockWidget *>(plugin);
-      if (dock)
-      {
-        qDebug() << "- Dock ...... OK";
-        addDockWidget(Qt::LeftDockWidgetArea, dock);
-        m_dockMenu->addAction(dock->toggleViewAction());
-        dock->initDockWidget(m_model, m_undoStack, m_viewManager);
-        connect(this, SIGNAL(analysisClosed()), dock, SLOT(resetState()));
-      }
+    IDockWidget *dock = qobject_cast<IDockWidget *>(plugin);
+    if (dock)
+    {
+      qDebug() << plugin << "- Dock ...... OK";
+      addDockWidget(Qt::LeftDockWidgetArea, dock);
+      m_dockMenu->addAction(dock->toggleViewAction());
+      dock->initDockWidget(m_model, m_undoStack, m_viewManager);
+      connect(this, SIGNAL(analysisClosed()), dock, SLOT(resetState()));
+    }
 
-      IFileReader *fileReader = qobject_cast<IFileReader *>(plugin);
-      if (fileReader)
-      {
-        qDebug() << "- File Reader ...... OK";
-        fileReader->initFileReader(m_model, m_undoStack, m_viewManager);
-      }
+    IFileReader *fileReader = qobject_cast<IFileReader *>(plugin);
+    if (fileReader)
+    {
+      qDebug() << plugin << "- File Reader ...... OK";
+      fileReader->initFileReader(m_model, m_undoStack, m_viewManager);
     }
   }
 }
-
 
 //------------------------------------------------------------------------
 void EspinaMainWindow::createActivityMenu()
@@ -445,12 +408,6 @@ void EspinaMainWindow::createDynamicMenu(MenuEntry entry)
 
 
 //------------------------------------------------------------------------
-void EspinaMainWindow::createLODMenu()
-{
-}
-
-
-//------------------------------------------------------------------------
 void EspinaMainWindow::checkAutosave()
 {
   QDir autosavePath = m_settings->autosavePath();
@@ -467,6 +424,25 @@ void EspinaMainWindow::checkAutosave()
     }
   }
 }
+
+//------------------------------------------------------------------------
+void EspinaMainWindow::registerDockWidget(Qt::DockWidgetArea area, IDockWidget* dock)
+{
+  connect(this, SIGNAL(analysisClosed()),
+          dock, SLOT(reset()));
+
+  m_dockMenu->addAction(dock->toggleViewAction());
+  addDockWidget(area, dock);
+}
+
+//------------------------------------------------------------------------
+void EspinaMainWindow::registerToolBar(IToolBar* toolbar)
+{
+  connect(this, SIGNAL(analysisClosed()),
+          toolbar, SLOT(reset()));
+  addToolBar(toolbar);
+}
+
 
 //------------------------------------------------------------------------
 void EspinaMainWindow::closeEvent(QCloseEvent* event)
@@ -599,7 +575,7 @@ void EspinaMainWindow::openAnalysis(const QString &file)
 
   if (m_model->taxonomy().isNull())
   {
-    SharedTaxonomyPtr defaultTaxonomy = IOTaxonomy::openXMLTaxonomy(":/espina/defaultTaxonomy.xml");
+    TaxonomySPtr defaultTaxonomy = IOTaxonomy::openXMLTaxonomy(":/espina/defaultTaxonomy.xml");
     //defaultTaxonomy->print();
     m_model->setTaxonomy(defaultTaxonomy);
   } else
@@ -769,11 +745,10 @@ void EspinaMainWindow::showPreferencesDialog()
 {
   SettingsDialog dialog;
 
-  ISettingsPanelPrototype settingsPanel(new GeneralSettingsPanel(m_settings));
-  dialog.registerPanel(settingsPanel);
+  dialog.registerPanel(m_settingsPanel.data());
   dialog.registerPanel(m_view->settingsPanel());
 
-  foreach(ISettingsPanelPrototype panel, m_factory->settingsPanels())
+  foreach(ISettingsPanelPtr panel, m_factory->settingsPanels())
   {
     dialog.registerPanel(panel);
   }

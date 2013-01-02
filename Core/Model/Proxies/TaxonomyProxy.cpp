@@ -40,6 +40,7 @@ TaxonomyProxy::TaxonomyProxy(QObject* parent)
 //------------------------------------------------------------------------
 TaxonomyProxy::~TaxonomyProxy()
 {
+  qDebug() << "Destroying Taxonomy Proxy";
 }
 
 //------------------------------------------------------------------------
@@ -145,8 +146,7 @@ QModelIndex TaxonomyProxy::index(int row, int column, const QModelIndex& parent)
   Q_ASSERT(segRow < numSegmentations(parentTaxonomy));
   ModelItemPtr internalPtr = m_segmentations[parentTaxonomy][segRow];
 
-  Q_ASSERT(false); // internalPointer
-  return createIndex(row, column, &internalPtr);
+  return createIndex(row, column, internalPtr);
 }
 
 //------------------------------------------------------------------------
@@ -316,7 +316,7 @@ bool TaxonomyProxy::dropMimeData(const QMimeData *data, Qt::DropAction action, i
     SegmentationPtr seg = findSegmentation(segName);
     Q_ASSERT(seg);
     SegmentationSPtr segPtr = m_model->findSegmentation(seg);
-    SharedTaxonomyElementPtr selectedTaxonomyPtr = m_model->findTaxonomyElement(selectedTaxonomy);
+    TaxonomyElementSPtr selectedTaxonomyPtr = m_model->findTaxonomyElement(selectedTaxonomy);
     m_model->changeTaxonomy(segPtr, selectedTaxonomyPtr);
   }
 
@@ -659,7 +659,7 @@ bool idOrdered(SegmentationPtr seg1, SegmentationPtr seg2)
 void TaxonomyProxy::removeTaxonomy(TaxonomyElementPtr taxonomy)
 {
   // First remove its subtaxonomies
-  foreach(SharedTaxonomyElementPtr subTax, taxonomy->subElements())
+  foreach(TaxonomyElementSPtr subTax, taxonomy->subElements())
   {
     removeTaxonomy(subTax.data());
   }
@@ -677,7 +677,7 @@ int TaxonomyProxy::numSegmentations(TaxonomyElementPtr taxonomy, bool recursive)
 {
   int total = m_segmentations[taxonomy].size();
   if (recursive)
-    foreach(SharedTaxonomyElementPtr subtax, taxonomy->subElements())
+    foreach(TaxonomyElementSPtr subtax, taxonomy->subElements())
     {
       total += numSegmentations(subtax.data());
     }

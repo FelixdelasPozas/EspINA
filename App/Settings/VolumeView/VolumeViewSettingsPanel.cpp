@@ -35,14 +35,14 @@ VolumeViewSettingsPanel::VolumeViewSettingsPanel(const EspinaFactoryPtr factory,
   active    = new QStandardItemModel(this);
   available = new QStandardItemModel(this);
 
-  foreach(IRendererPtr renderer, m_factory->renderers())
+  foreach(IRendererSPtr renderer, m_factory->renderers())
   {
     QStandardItem *item = new QStandardItem(renderer->icon(), renderer->name());
     item->setDropEnabled(false);
     item->setDragEnabled(true);
     item->setToolTip(renderer->tooltip());
     bool isActive = false;
-    foreach(IRendererPtr activeRenderer, m_settings->renderers())
+    foreach(IRendererSPtr activeRenderer, m_settings->renderers())
     {
       if (renderer->name() == activeRenderer->name())
         isActive = true;
@@ -60,8 +60,8 @@ VolumeViewSettingsPanel::VolumeViewSettingsPanel(const EspinaFactoryPtr factory,
 //-----------------------------------------------------------------------------
 void VolumeViewSettingsPanel::acceptChanges()
 {
-  IRendererList renderers;
-  QMap<QString, IRendererPtr> rendererFactory = m_factory->renderers();
+  IRendererSList renderers;
+  QMap<QString, IRendererSPtr> rendererFactory = m_factory->renderers();
 
   QAbstractItemModel *activeModel = activeRenderers->model();
   for(int i=0; i < activeModel->rowCount(); i++)
@@ -81,7 +81,7 @@ bool VolumeViewSettingsPanel::modified() const
   for(int i=0; i < activeModel->rowCount(); i++)
     current << activeModel->index(i,0).data().toString();
 
-  foreach(IRendererPtr activeRenderer, m_settings->renderers())
+  foreach(IRendererSPtr activeRenderer, m_settings->renderers())
     previous << activeRenderer->name();
 
   return current != previous;

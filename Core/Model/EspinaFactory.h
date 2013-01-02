@@ -25,6 +25,7 @@
 #include "Channel.h"
 #include "Segmentation.h"
 #include <GUI/ISettingsPanel.h>
+#include <GUI/Renderers/Renderer.h>
 
 #include <QStringList>
 #include <QMap>
@@ -54,16 +55,18 @@ namespace EspINA
 
     void registerSegmentationExtension(SegmentationExtensionPtr extension);
 
-    void registerSettingsPanel(ISettingsPanelPrototype panel)
+    void registerSettingsPanel(ISettingsPanelPtr panel)
     {m_settingsPanels << panel;}
+//     void unregisterSettingsPanel(ISettingsPanelPrototype panel)
+//     {m_settingsPanels.removeAll(panel);}
 
-    void registerRenderer(IRendererPtr renderer);
+    void registerRenderer(IRendererSPtr renderer);
 
 
-    ISettingsPanelPrototypeList settingsPanels() const
+    ISettingsPanelList settingsPanels() const
     {return m_settingsPanels;}
 
-    QMap<QString, IRendererPtr> renderers() const
+    QMap<QString, IRendererSPtr> renderers() const
     {return m_renderers;}
 
 
@@ -76,7 +79,7 @@ namespace EspINA
 
     SampleSPtr createSample(const QString &id, const QString &args = "");
 
-    SharedChannelPtr createChannel(FilterSPtr filter, const Filter::OutputId &oId);
+    ChannelSPtr createChannel(FilterSPtr filter, const Filter::OutputId &oId);
 
     SegmentationSPtr createSegmentation(FilterSPtr filter, const Filter::OutputId &oId);
 
@@ -89,13 +92,15 @@ namespace EspINA
     QList<SampleExtensionPtr>       m_sampleExtensions;
     QList<SegmentationExtensionPtr> m_segExtensions;
 
-    QMap<QString, IRendererPtr> m_renderers;
+    QMap<QString, IRendererSPtr> m_renderers;
 
-    ISettingsPanelPrototypeList m_settingsPanels;
+    ISettingsPanelList m_settingsPanels;
 
     QStringList m_supportedFiles;
     QStringList m_supportedExtensions;
   };
+
+  typedef QSharedPointer<EspinaFactory> EspinaFactoryPtr;
 
 }// namespace EspINA
 

@@ -74,7 +74,7 @@ SegmentationExplorer::SegmentationExplorer(EspinaModelSPtr model,
                                            QUndoStack    *undoStack,
                                            ViewManager   *vm,
                                            QWidget       *parent)
-: QDockWidget(parent)
+: IDockWidget(parent)
 , m_gui        (new GUI())
 , m_baseModel  (model)
 , m_undoStack  (undoStack)
@@ -90,8 +90,8 @@ SegmentationExplorer::SegmentationExplorer(EspinaModelSPtr model,
   addLayout("Composition", new CompositionLayout(m_baseModel));
   addLayout("Location",    new SampleLayout     (m_baseModel));
 
-  QStringListModel *layoutModel = new QStringListModel(m_layoutNames);
-  m_gui->groupList->setModel(layoutModel);
+  m_layoutModel.setStringList(m_layoutNames);
+  m_gui->groupList->setModel(&m_layoutModel);
   changeLayout(0);
 
   connect(m_gui->groupList, SIGNAL(currentIndexChanged(int)),
@@ -117,6 +117,25 @@ SegmentationExplorer::SegmentationExplorer(EspinaModelSPtr model,
 //------------------------------------------------------------------------
 SegmentationExplorer::~SegmentationExplorer()
 {
+  qDebug() << "********************************************************";
+  qDebug() << "          Destroying Segmentation Explorer";
+  qDebug() << "********************************************************";
+  foreach(Layout *layout, m_layouts)
+    delete layout;
+}
+
+//------------------------------------------------------------------------
+void SegmentationExplorer::initDockWidget(EspinaModelSPtr model,
+                                          QUndoStack     *undoStack,
+                                          ViewManager    *viewManager)
+{
+
+}
+
+//------------------------------------------------------------------------
+void SegmentationExplorer::reset()
+{
+
 }
 
 //------------------------------------------------------------------------
@@ -164,7 +183,6 @@ void SegmentationExplorer::changeLayout(int index)
   m_modelTester = QSharedPointer<ModelTest>(new ModelTest(m_layout->model()));
 #endif
   m_gui->view->setModel(m_layout->model());
-  m_gui->view->setItemDelegate(new SegmentationDelegate(m_baseModel, m_undoStack, m_viewManager)); //TODO 2012-10-05 Sigue sirviendo para algo??
 
   connect(m_gui->view->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
           this, SLOT(updateSelection(QItemSelection, QItemSelection)));
@@ -177,7 +195,7 @@ void SegmentationExplorer::changeTaxonomy(TaxonomyElementPtr taxonomy)
   foreach(SegmentationPtr seg, selectedSegmentations)
   {
     SegmentationSPtr segPtr = m_baseModel->findSegmentation(seg);
-    SharedTaxonomyElementPtr taxonomyPtr = m_baseModel->findTaxonomyElement(taxonomy);
+    TaxonomyElementSPtr taxonomyPtr = m_baseModel->findTaxonomyElement(taxonomy);
     m_baseModel->changeTaxonomy(segPtr, taxonomyPtr);
   }
 }

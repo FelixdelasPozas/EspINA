@@ -42,7 +42,7 @@ namespace EspINA
 
   public:
     explicit CompositionLayout(EspinaModelSPtr model);
-    virtual ~CompositionLayout(){}
+    virtual ~CompositionLayout();
 
     virtual QAbstractItemModel* model() {return m_sort.data();}
     virtual ModelItemPtr item(const QModelIndex& index) const;

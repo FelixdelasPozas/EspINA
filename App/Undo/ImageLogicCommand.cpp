@@ -99,7 +99,7 @@ const QString ImageLogicCommand::link(SegmentationSPtr seg)
 void ImageLogicCommand::redo()
 {
   //TODO: Combine segmentations from different channels
-  SharedChannelPtr channel = m_input.first()->channel();
+  ChannelSPtr channel = m_input.first()->channel();
 
   // Add new filter
   m_model->addFilter(m_filter);

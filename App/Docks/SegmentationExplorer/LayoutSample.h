@@ -41,7 +41,7 @@ namespace EspINA
 
   public:
     explicit SampleLayout(EspinaModelSPtr model);
-    virtual ~SampleLayout(){}
+    virtual ~SampleLayout();
 
     virtual QAbstractItemModel* model() {return m_sort.data();}
     virtual ModelItemPtr item(const QModelIndex& index) const;

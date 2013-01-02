@@ -33,6 +33,7 @@ namespace EspINA
   class IDockWidget
   : public QDockWidget
   {
+    Q_OBJECT
   public:
     explicit IDockWidget(QWidget* parent = 0)
     : QDockWidget(parent){}
@@ -41,10 +42,8 @@ namespace EspINA
     virtual void initDockWidget(EspinaModelSPtr model,
                                 QUndoStack     *undoStack,
                                 ViewManager    *viewManager) = 0;
-                                // Reset All Components in the Dock Widget
-                                virtual void reset() = 0;
   public slots:
-    void resetState();
+    virtual void reset() = 0;
   };
 }
 

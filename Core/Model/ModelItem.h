@@ -42,6 +42,17 @@ namespace EspINA
     return QString("%1,%2,%3,%4,%5,%6").arg(val[0]).arg(val[1]).arg(val[2]).arg(val[3]).arg(val[4]).arg(val[5]);
   }
 
+  typedef QSharedPointer<ModelItem> ModelItemSPtr;
+  typedef QList<ModelItemSPtr> ModelItemSList;
+
+  struct Relation
+  {
+    ModelItemSPtr ancestor;
+    ModelItemSPtr succesor;
+    QString relation;
+  };
+  typedef QList<Relation> RelationList;
+
   /// Base class for every item in EspinaModel
   class ModelItem
   : public QObject
@@ -95,7 +106,7 @@ namespace EspINA
     /// satisfy this condition
     virtual void initializeExtensions(const Arguments &args = Arguments()) = 0;
 
-    SharedModelItemList relatedItems(RelationType relType, const QString &relName = "");
+    ModelItemSList relatedItems(RelationType relType, const QString &relName = "");
     RelationList relations(const QString &relName = "");
 
     bool updateForced() const {return m_modified;} // NOTE

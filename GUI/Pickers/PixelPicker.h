@@ -46,7 +46,7 @@ namespace EspINA
   {
   public:
     explicit BestPixelPicker();
-    virtual ~BestPixelPicker(){}
+    virtual ~BestPixelPicker();
 
     void setBestPixelValue(int value) {m_bestPixel = value;}
 

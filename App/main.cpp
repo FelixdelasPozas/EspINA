@@ -17,6 +17,7 @@
 */
 
 #include <QApplication>
+#include <QPluginLoader>
 
 #include <GUI/ViewManager.h>
 #include <EspinaMainWindow.h>
@@ -25,9 +26,58 @@ int main(int argc, char **argv)
 {
   QApplication app(argc, argv);
 
-  EspINA::ViewManager viewManager;
-  EspINA::EspinaMainWindow espina(&viewManager);
-  espina.show();
+//   EspINA::EspinaFactory factory;
+//   EspINA::EspinaModel   model;
+  EspINA::ViewManager   viewManager;
 
-  return app.exec();
+  QDir pluginsDir = QDir(app.applicationDirPath());
+
+  #if defined(Q_OS_WIN)
+  if (pluginsDir.dirName().toLower() == "debug" || pluginsDir.dirName().toLower() == "release")
+    pluginsDir.cdUp();
+  #elif defined(Q_OS_MAC)
+    if (pluginsDir.dirName() == "MacOS")
+    {
+      pluginsDir.cdUp();
+      pluginsDir.cdUp();
+      pluginsDir.cdUp();
+    }
+  #endif
+
+  pluginsDir.cd("plugins");
+
+  QList<QPluginLoader *> loaders;
+  QList<QObject *>       plugins;
+
+  qDebug() << "Loading Plugins: ";
+  foreach (QString fileName, pluginsDir.entryList(QDir::Files))
+  {
+    QPluginLoader *loader = new QPluginLoader(pluginsDir.absoluteFilePath(fileName));
+    QObject *plugin = loader->instance();
+    if (plugin)
+    {
+      qDebug() << "Found plugin " << fileName;;
+      plugins << plugin;
+      loaders << loader;
+    } else
+    {
+      delete loader;
+    }
+  }
+
+  int res = 0;
+  {
+    EspINA::EspinaMainWindow espina(&viewManager, plugins);
+    espina.show();
+
+    res = app.exec();
+  }
+
+  foreach(QPluginLoader *plugin, loaders)
+  {
+    plugin->unload();
+    delete plugin;
+  }
+
+  return res;
 }

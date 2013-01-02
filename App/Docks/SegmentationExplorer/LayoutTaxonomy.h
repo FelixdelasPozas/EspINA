@@ -40,7 +40,7 @@ namespace EspINA
 
   public:
     explicit TaxonomyLayout(EspinaModelSPtr model);
-    virtual ~TaxonomyLayout(){}
+    virtual ~TaxonomyLayout();
 
     virtual QAbstractItemModel* model()
     { return m_sort.data(); }

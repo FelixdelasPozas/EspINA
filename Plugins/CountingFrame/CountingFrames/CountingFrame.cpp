@@ -23,6 +23,8 @@
 #include <Core/Model/Channel.h>
 #include <GUI/ViewManager.h>
 
+using namespace EspINA;
+
 //-----------------------------------------------------------------------------
 CountingFrame::CountingFrame(Id id,
                                CountingFrameChannelExtension *channelExt,
@@ -114,7 +116,7 @@ void CountingFrame::Execute(vtkObject* caller, long unsigned int eventId, void* 
 }
 
 //-----------------------------------------------------------------------------
-void CountingFrame::setTaxonomicalConstraint(const TaxonomyElement* taxonomy)
+void CountingFrame::setTaxonomicalConstraint(const TaxonomyElementPtr taxonomy)
 {
   m_taxonomicalConstraint = taxonomy;
 

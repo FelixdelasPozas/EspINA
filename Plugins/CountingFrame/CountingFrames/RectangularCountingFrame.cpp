@@ -29,6 +29,7 @@
 #include "vtkCountingFrame3DWidget.h"
 #include <Core/Model/Channel.h>
 
+using namespace EspINA;
 
 const QString RectangularCountingFrame::ID       = "RectangularCountingFrame";
 const QString RectangularCountingFrame::ID_1_2_5 = "RectangularBoundingRegion";

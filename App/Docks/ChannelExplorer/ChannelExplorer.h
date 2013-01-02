@@ -24,7 +24,7 @@
 // File:    ChannelExplorer.h
 // Purpose: Dock widget to manage channels in the model
 //----------------------------------------------------------------------------
-#include <QDockWidget>
+#include <Core/Interfaces/IDockWidget.h>
 
 // EspINA
 #include <Core/Model/EspinaModel.h>
@@ -44,15 +44,21 @@ namespace EspINA
   class ViewManager;
 
   class ChannelExplorer
-  : public QDockWidget
+  : public IDockWidget
   {
     Q_OBJECT
     class CentralWidget;
   public:
     explicit ChannelExplorer(EspinaModelSPtr model,
-                             ViewManager   *vm,
+                             ViewManager   *viewManager,
                              QWidget       *parent = 0);
     virtual ~ChannelExplorer();
+
+    virtual void initDockWidget(EspinaModelSPtr model,
+                                QUndoStack     *undoStack,
+                                ViewManager    *viewManager);
+
+    virtual void reset(); // slot
 
   protected slots:
     void channelSelected();

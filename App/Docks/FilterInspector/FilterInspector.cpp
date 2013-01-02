@@ -29,14 +29,15 @@ using namespace EspINA;
 FilterInspector::FilterInspector(QUndoStack *undoStack,
                                  ViewManager* vm,
                                  QWidget* parent)
-: QDockWidget(parent)
+: IDockWidget(parent)
 , m_undoStack(undoStack)
 , m_viewManager(vm)
 , m_filter(NULL)
 , m_seg   (NULL)
 {
-  setWindowTitle("Filter Inspector");
   setObjectName("Filter Inspector Panel");
+
+  setWindowTitle(tr("Filter Inspector"));
 
   connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection,bool)),
           this, SLOT(updatePannel()));
@@ -45,6 +46,20 @@ FilterInspector::FilterInspector(QUndoStack *undoStack,
 //----------------------------------------------------------------------------
 FilterInspector::~FilterInspector()
 {
+}
+
+//----------------------------------------------------------------------------
+void FilterInspector::initDockWidget(EspinaModelSPtr model,
+                                     QUndoStack     *undoStack,
+                                     ViewManager    *viewManager)
+{
+
+}
+
+//----------------------------------------------------------------------------
+void FilterInspector::reset()
+{
+
 }
 
 //----------------------------------------------------------------------------

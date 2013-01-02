@@ -31,10 +31,10 @@ namespace EspINA
   : public QUndoCommand
   {
   public:
-    explicit AddSegmentation(SharedChannelPtr         channel,
+    explicit AddSegmentation(ChannelSPtr         channel,
                              FilterSPtr          filter,
                              SegmentationSPtr    seg,
-                             SharedTaxonomyElementPtr taxonomy,
+                             TaxonomyElementSPtr taxonomy,
                              EspinaModelSPtr     model
     );
     virtual void redo();
@@ -44,10 +44,10 @@ namespace EspINA
     EspinaModelSPtr     m_model;
 
     SampleSPtr          m_sample;
-    SharedChannelPtr         m_channel;
+    ChannelSPtr         m_channel;
     FilterSPtr          m_filter;
     SegmentationSPtr    m_seg;
-    SharedTaxonomyElementPtr m_taxonomy;
+    TaxonomyElementSPtr m_taxonomy;
   };
 
 } // namespace EspINA

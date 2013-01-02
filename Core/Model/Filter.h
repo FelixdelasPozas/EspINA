@@ -248,7 +248,7 @@ namespace EspINA
   };
 
   FilterPtr filterPtr(ModelItemPtr item);
-  FilterSPtr filterPtr(SharedModelItemPtr &item);
+  FilterSPtr filterPtr(ModelItemSPtr &item);
 
 }
 #endif // FILTER_H

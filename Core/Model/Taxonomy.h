@@ -34,6 +34,9 @@ namespace EspINA
 {
   const QString DEFAULT_TAXONOMY_COLOR = "#00FF00"; //Red
 
+  typedef QSharedPointer<TaxonomyElement> TaxonomyElementSPtr;
+  typedef QList<TaxonomyElementSPtr>      TaxonomyElementSList;
+
   class TaxonomyElement
   : public ModelItem
   , public HierarchyItem
@@ -49,7 +52,7 @@ namespace EspINA
     /// Implements ModelItem
     virtual void initialize(const Arguments &args = Arguments()){};
     virtual void initializeExtensions(const Arguments &args = Arguments()){};
-    virtual QVariant data(int role = Qt::UserRole + 1) const; // TODO 2012-12-15 Cambiar esto
+    virtual QVariant data(int role = Qt::DisplayRole) const;
     virtual QString serialize() const {return ModelItem::serialize();}
     virtual ModelItemType type() const {return TAXONOMY;}
     virtual bool setData(const QVariant& value, int role = Qt::UserRole + 1);
@@ -74,16 +77,16 @@ namespace EspINA
     {return m_properties.keys();}
 
     /// Create a new sub-element
-    SharedTaxonomyElementPtr createElement(const QString &name);
+    TaxonomyElementSPtr createElement(const QString &name);
     /// Delete element only if it is its sub-element
     void deleteElement(TaxonomyElementPtr element);
 
     /// Return sub-element with given name, otherwise return NULL
-    SharedTaxonomyElementPtr element(const QString &name);
+    TaxonomyElementSPtr element(const QString &name);
 
-    SharedTaxonomyElementList subElements()
+    TaxonomyElementSList subElements()
     {return m_elements;}
-    const SharedTaxonomyElementList subElements() const
+    const TaxonomyElementSList subElements() const
     {return m_elements;}
     TaxonomyElementPtr parent() {return m_parent;}
 
@@ -96,7 +99,7 @@ namespace EspINA
 
   private:
     TaxonomyElementPtr         m_parent; // Parent node can't be a shared pointer to avoid circular dependencies
-    SharedTaxonomyElementList  m_elements;
+    TaxonomyElementSList  m_elements;
 
     QString m_name;
     QColor  m_color;
@@ -106,9 +109,10 @@ namespace EspINA
   };
 
   TaxonomyElementPtr taxonomyElementPtr(ModelItemPtr item);
-  SharedTaxonomyElementPtr taxonomyElementPtr(SharedModelItemPtr &item);
+  TaxonomyElementSPtr taxonomyElementPtr(ModelItemSPtr &item);
 
 
+  typedef QSharedPointer<Taxonomy> TaxonomySPtr;
   /// Tree-like structure representing taxonomical relationships
   class Taxonomy
   {
@@ -118,24 +122,24 @@ namespace EspINA
     explicit Taxonomy();
     ~Taxonomy();
 
-    SharedTaxonomyElementPtr createElement(const QString &name,
-                                           TaxonomyElementPtr parent = NULL);
-    SharedTaxonomyElementPtr createElement(const QString &name,
-                                           SharedTaxonomyElementPtr parent = SharedTaxonomyElementPtr());
+    TaxonomyElementSPtr createElement(const QString &name,
+                                           TaxonomyElementPtr parent);
+    TaxonomyElementSPtr createElement(const QString &name,
+                                           TaxonomyElementSPtr parent = TaxonomyElementSPtr());
 
     void deleteElement(TaxonomyElementPtr element);
-    void deleteElement(SharedTaxonomyElementPtr element);
+    void deleteElement(TaxonomyElementSPtr element);
 
 
-    SharedTaxonomyElementPtr  root(){return m_root;}
-    SharedTaxonomyElementPtr  element(const QString &qualifiedName);
-    SharedTaxonomyElementList elements() {return m_root->subElements();}
-    SharedTaxonomyElementPtr  parent(const SharedTaxonomyElementPtr element) const;
+    TaxonomyElementSPtr  root(){return m_root;}
+    TaxonomyElementSPtr  element(const QString &qualifiedName);
+    TaxonomyElementSList elements() {return m_root->subElements();}
+    TaxonomyElementSPtr  parent(const TaxonomyElementSPtr element) const;
 
     void print(int indent = 0);
 
   private:
-    SharedTaxonomyElementPtr m_root;
+    TaxonomyElementSPtr m_root;
   };
 
 }// namespace EspINA

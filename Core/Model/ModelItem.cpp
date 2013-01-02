@@ -126,10 +126,10 @@ QString ModelItem::serialize() const
 }
 
 //------------------------------------------------------------------------
-SharedModelItemList ModelItem::relatedItems(RelationType relType,
+ModelItemSList ModelItem::relatedItems(RelationType relType,
                                             const QString& relName)
 {
-  SharedModelItemList res;
+  ModelItemSList res;
   if (m_model)
     res = m_model->relatedItems(this, relType, relName);
 

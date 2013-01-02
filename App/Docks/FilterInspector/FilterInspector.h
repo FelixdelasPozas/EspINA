@@ -20,7 +20,7 @@
 #ifndef MODIFYFILTERPANEL_H
 #define MODIFYFILTERPANEL_H
 
-#include <QDockWidget>
+#include <Core/Interfaces/IDockWidget.h>
 
 #include <Core/Model/EspinaModel.h>
 
@@ -31,7 +31,7 @@ namespace EspINA
   class ViewManager;
 
   class FilterInspector
-  : public QDockWidget
+  : public IDockWidget
   {
     Q_OBJECT
   public:
@@ -40,7 +40,13 @@ namespace EspINA
                              QWidget* parent = 0);
     virtual ~FilterInspector();
 
+    virtual void initDockWidget(EspinaModelSPtr model,
+                                QUndoStack     *undoStack,
+                                ViewManager    *viewManager);
+
     virtual void showEvent(QShowEvent* e);
+
+    virtual void reset(); // slot
 
   protected slots:
     void updatePannel();
@@ -50,7 +56,7 @@ namespace EspINA
     ViewManager  *m_viewManager;
 
     SegmentationPtr m_seg;
-    FilterSPtr m_filter;
+    FilterSPtr      m_filter;
   };
 
 } // namespace EspINA

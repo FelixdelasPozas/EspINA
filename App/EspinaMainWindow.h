@@ -28,9 +28,11 @@
 #include <Core/Interfaces/IDynamicMenu.h>
 #include <Core/EspinaTypes.h>
 #include <Core/Model/EspinaModel.h>
+#include <GUI/ISettingsPanel.h>
 
 #include <QTimer>
 
+class QPluginLoader;
 class QAction;
 class QFrame;
 class QUndoStack;
@@ -42,6 +44,10 @@ class ModelTest;
 
 namespace EspINA
 {
+
+class IDockWidget;
+
+class IToolBar;
   class ColorEngineMenu;
   class DefaultEspinaView;
   class SelectionManager;
@@ -54,7 +60,8 @@ namespace EspINA
   {
     Q_OBJECT
   public:
-    explicit EspinaMainWindow(ViewManager *viewManager);
+    explicit EspinaMainWindow(ViewManager *viewManager,
+                              QList<QObject *> &plugins);
     virtual ~EspinaMainWindow();
 
   public slots:
@@ -88,15 +95,17 @@ namespace EspINA
     void analysisClosed();
 
   protected:
-    void createActivityMenu();
-    void createDynamicMenu(MenuEntry entry);
-    void createLODMenu();
-
-    void checkAutosave();
-
     virtual void closeEvent(QCloseEvent* );
 
-    void loadPlugins();
+  private:
+    void createActivityMenu();
+    void createDynamicMenu(MenuEntry entry);
+    void checkAutosave();
+    void registerDockWidget(Qt::DockWidgetArea area, IDockWidget *dock);
+    void registerToolBar(IToolBar *toolbar);
+
+
+    void loadPlugins(QList<QObject *> &plugins);
 
   private:
     // EspINA
@@ -114,11 +123,15 @@ namespace EspINA
     ColorEngineMenu *m_colorEngines;
     QMenu           *m_dockMenu;
 
+    ISettingsPanelPrototype m_settingsPanel;
+
     MainToolBar *m_mainToolBar;
     DefaultEspinaView *m_view;
 
     RecentDocuments m_recentDocuments1;
     RecentDocuments m_recentDocuments2; // fixes duplicated actions warning in some systems
+
+    QList<QPluginLoader *> m_plugins;
 
     #ifdef TEST_ESPINA_MODELS
     QSharedPointer<ModelTest>   m_modelTester;

@@ -24,8 +24,8 @@
 using namespace EspINA;
 
 //------------------------------------------------------------------------
-AddRelation::AddRelation(SharedModelItemPtr   ancestor,
-                         SharedModelItemPtr   successor,
+AddRelation::AddRelation(ModelItemSPtr   ancestor,
+                         ModelItemSPtr   successor,
                          const QString  description,
                          EspinaModelSPtr model,
                          QUndoCommand  *parent)

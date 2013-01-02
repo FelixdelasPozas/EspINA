@@ -29,24 +29,36 @@
 // Qt
 #include <QColorDialog>
 #include <QSettings>
+#include <QDebug>
+
+using namespace EspINA;
 
 //-----------------------------------------------------------------------------
 AppositionSurface::AppositionSurface()
+: m_settings(new AppositionSurface::Settings(this))
+, m_segExtension(new AppositionSurfaceExtension())
 {
 }
 
 //-----------------------------------------------------------------------------
-void AppositionSurface::initFactoryExtension(EspinaFactory* factory)
+AppositionSurface::~AppositionSurface()
 {
-  factory->registerSettingsPanel(new AppositionSurface::Settings(this));
+  qDebug() << "********************************************************";
+  qDebug() << "              Destroying Apposition Surface Plugin";
+  qDebug() << "********************************************************";
+}
+
+//-----------------------------------------------------------------------------
+void AppositionSurface::initFactoryExtension(EspinaFactoryPtr factory)
+{
+  factory->registerSettingsPanel(m_settings.data());
 
   QSettings settings(CESVIMA, ESPINA);
   settings.beginGroup("Apposition Surface");
   QColor color = settings.value("Surface Color").value<QColor>();
 
-  SegmentationExtension::SPtr segExtension(new AppositionSurfaceExtension());
-  factory->registerSegmentationExtension(segExtension);
-  factory->registerRenderer(new AppositionSurfaceRenderer(color, this));
+  factory->registerSegmentationExtension(m_segExtension);
+  factory->registerRenderer(IRendererSPtr(new AppositionSurfaceRenderer(color, this)));
 }
 
 //-----------------------------------------------------------------------------
@@ -151,6 +163,6 @@ ISettingsPanel *AppositionSurface::Settings::clone()
   return new AppositionSurface::Settings(m_plugin);
 }
 
-Q_EXPORT_PLUGIN2(AppositionSurfacePlugin, AppositionSurface)
+Q_EXPORT_PLUGIN2(AppositionSurfacePlugin, EspINA::AppositionSurface)
 
 

@@ -60,11 +60,11 @@ namespace EspINA
                         const QString prefix=QString(),
                         VolumeView *parent=NULL);
 
-      void setRenderers(IRendererList values);
-      IRendererList renderers() const;
+      void setRenderers(IRendererSList values);
+      IRendererSList renderers() const;
 
     private:
-      IRendererList m_renderers;
+      IRendererSList m_renderers;
       VolumeView *parent;
     };
 
@@ -114,7 +114,7 @@ namespace EspINA
     SettingsPtr settings() {return m_settings;}
 
     void changePlanePosition(PlaneType, Nm);
-    void addRendererControls(IRendererPtr renderer);
+    void addRendererControls(IRendererSPtr renderer);
     void removeRendererControls(const QString name);
 
     void showCrosshairs(bool) {};
@@ -171,11 +171,11 @@ namespace EspINA
     unsigned int m_numEnabledSegmentationRenders;
     ColorEngine *m_colorEngine;
     QMap<EspinaWidget *, vtkAbstractWidget *> m_widgets;
-    QMap<QPushButton *, IRendererPtr> m_renderers;
+    QMap<QPushButton *, IRendererSPtr> m_renderers;
 
     SegmentationList m_segmentations;
     ModelItemList    m_addedItems;
-    IRendererList    m_itemRenderers;
+    IRendererSList   m_itemRenderers;
   };
 
 } // namespace EspINA

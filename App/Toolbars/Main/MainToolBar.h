@@ -67,10 +67,11 @@ namespace EspINA
                              QUndoStack     *undoStack,
                              ViewManager    *viewManager);
 
+    virtual void reset(); // slot
+
   public slots:
     void setShowSegmentations(bool visible);
 
-    virtual void reset();
 
   protected slots:
     void setActiveTaxonomy(const QModelIndex &index);

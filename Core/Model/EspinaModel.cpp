@@ -44,9 +44,9 @@ EspinaModel::EspinaModel(EspinaFactoryPtr factory)
 //------------------------------------------------------------------------
 EspinaModel::~EspinaModel()
 {
-  qDebug() << "********************************************************";
+  qDebug() << "########################################################";
   qDebug() << "            Destroying EspINA Model";
-  qDebug() << "********************************************************";
+  qDebug() << "########################################################";
 }
 
 //------------------------------------------------------------------------
@@ -77,7 +77,7 @@ void EspinaModel::reset()
     endRemoveRows();
   }
 
-  setTaxonomy(SharedTaxonomyPtr());
+  setTaxonomy(TaxonomySPtr());
 
   m_relations->clear();//NOTE: Should we remove every item in the previous blocks?
 
@@ -377,7 +377,7 @@ void EspinaModel::removeSample(SampleSPtr sample)
 }
 
 //------------------------------------------------------------------------
-void EspinaModel::addChannel(SharedChannelPtr channel)
+void EspinaModel::addChannel(ChannelSPtr channel)
 {
   int row = m_channels.size();
 
@@ -391,14 +391,14 @@ void EspinaModel::addChannel(SharedChannelPtr channel)
 }
 
 //------------------------------------------------------------------------
-void EspinaModel::addChannel(SharedChannelList channels)
+void EspinaModel::addChannel(ChannelSList channels)
 {
   int start = m_channels.size();
   int end   = start + channels.size() - 1;
 
   beginInsertRows(channelRoot(), start, end);
   {
-    foreach(SharedChannelPtr channel, channels)
+    foreach(ChannelSPtr channel, channels)
       addChannelImplementation(channel);
   }
   endInsertRows();
@@ -407,7 +407,7 @@ void EspinaModel::addChannel(SharedChannelList channels)
 }
 
 //------------------------------------------------------------------------
-void EspinaModel::removeChannel(SharedChannelPtr channel)
+void EspinaModel::removeChannel(ChannelSPtr channel)
 {
   Q_ASSERT(m_channels.contains(channel));
 
@@ -524,7 +524,7 @@ void EspinaModel::removeFilter(FilterSPtr filter)
 }
 
 //------------------------------------------------------------------------
-void EspinaModel::changeTaxonomy(SegmentationSPtr seg, SharedTaxonomyElementPtr taxonomy)
+void EspinaModel::changeTaxonomy(SegmentationSPtr seg, TaxonomyElementSPtr taxonomy)
 {
   seg->setTaxonomy(taxonomy);
 
@@ -537,8 +537,8 @@ void EspinaModel::changeTaxonomy(SegmentationSPtr seg, SharedTaxonomyElementPtr 
 
 
 //------------------------------------------------------------------------
-void EspinaModel::addRelation(SharedModelItemPtr   ancestor,
-                              SharedModelItemPtr   successor,
+void EspinaModel::addRelation(ModelItemSPtr  ancestor,
+                              ModelItemSPtr  successor,
                               const QString &relation)
 {
   m_relations->addRelation(ancestor.data(), successor.data(), relation);
@@ -553,8 +553,8 @@ void EspinaModel::addRelation(SharedModelItemPtr   ancestor,
 }
 
 //------------------------------------------------------------------------
-void EspinaModel::removeRelation(SharedModelItemPtr   ancestor,
-                                 SharedModelItemPtr   successor,
+void EspinaModel::removeRelation(ModelItemSPtr  ancestor,
+                                 ModelItemSPtr  successor,
                                  const QString &relation)
 {
   m_relations->removeRelation(ancestor.data(), successor.data(), relation);
@@ -569,11 +569,11 @@ void EspinaModel::removeRelation(SharedModelItemPtr   ancestor,
 }
 
 //------------------------------------------------------------------------
-SharedModelItemList EspinaModel::relatedItems(ModelItemPtr   item,
-                                              RelationType   relType,
-                                              const QString &relName)
+ModelItemSList EspinaModel::relatedItems(ModelItemPtr   item,
+                                         RelationType   relType,
+                                         const QString &relName)
 {
-  SharedModelItemList res;
+  ModelItemSList res;
 
   RelationshipGraph::VertexId vertex = m_relations->vertex(item);
 
@@ -628,7 +628,7 @@ bool EspinaModel::loadSerialization(istream& stream,
 //   qDebug() << "Check";
 //   input->write(std::cout, RelationshipGraph::GRAPHVIZ);
 
-  typedef QPair<SharedModelItemPtr , ModelItem::Arguments> NonInitilizedItem;
+  typedef QPair<ModelItemSPtr , ModelItem::Arguments> NonInitilizedItem;
   QList<NonInitilizedItem> nonInitializedItems;
   QList<VertexProperty> segmentationNodes;
   SharedSegmentationList newSegmentations;
@@ -668,7 +668,7 @@ bool EspinaModel::loadSerialization(istream& stream,
           FilterSPtr filter = findFilter(item);
           Q_ASSERT(!filter.isNull());
           filter->update();
-          SharedChannelPtr channel = m_factory->createChannel(filter, link[1].toInt());
+          ChannelSPtr channel = m_factory->createChannel(filter, link[1].toInt());
           channel->initialize(args);
           if (channel->volume()->toITK().IsNull())
             return false;
@@ -728,7 +728,7 @@ bool EspinaModel::loadSerialization(istream& stream,
     args.remove(ModelItem::EXTENSIONS);
     SegmentationSPtr seg = m_factory->createSegmentation(filter, args[Segmentation::OUTPUT].toInt());
     seg->setNumber(args[Segmentation::NUMBER].toInt());
-    SharedTaxonomyElementPtr taxonomy = m_tax->element(args[Segmentation::TAXONOMY]);
+    TaxonomyElementSPtr taxonomy = m_tax->element(args[Segmentation::TAXONOMY]);
     if (!taxonomy.isNull())
       seg->setTaxonomy(taxonomy);
     newSegmentations << seg;
@@ -780,7 +780,7 @@ QModelIndex EspinaModel::index(ModelItemPtr item) const
 }
 
 //------------------------------------------------------------------------
-QModelIndex EspinaModel::index(SharedModelItemPtr item) const
+QModelIndex EspinaModel::index(ModelItemSPtr item) const
 {
   return index(item.data());
 }
@@ -802,21 +802,21 @@ QModelIndex EspinaModel::taxonomyIndex(TaxonomyElementPtr node) const
   TaxonomyElementPtr parentNode = node->parent();
   Q_ASSERT(parentNode);
 
-  SharedTaxonomyElementPtr subNode = parentNode->element(node->name());
+  TaxonomyElementSPtr subNode = parentNode->element(node->name());
   int row = parentNode->subElements().indexOf(subNode);
   ModelItemPtr internalPtr = node;
   return createIndex(row, 0, internalPtr);
 }
 
 //------------------------------------------------------------------------
-QModelIndex EspinaModel::taxonomyIndex(SharedTaxonomyElementPtr node) const
+QModelIndex EspinaModel::taxonomyIndex(TaxonomyElementSPtr node) const
 {
   return taxonomyIndex(node.data());
 }
 
 
 //------------------------------------------------------------------------
-void EspinaModel::setTaxonomy(SharedTaxonomyPtr tax)
+void EspinaModel::setTaxonomy(TaxonomySPtr tax)
 {
   if (m_tax)
   {
@@ -834,7 +834,7 @@ void EspinaModel::setTaxonomy(SharedTaxonomyPtr tax)
 }
 
 //------------------------------------------------------------------------
-void EspinaModel::addTaxonomy(SharedTaxonomyPtr tax)
+void EspinaModel::addTaxonomy(TaxonomySPtr tax)
 {
   if (m_tax)
     addTaxonomy(tax->root());
@@ -850,10 +850,10 @@ void EspinaModel::itemModified(ModelItemPtr item)
 }
 
 //------------------------------------------------------------------------
-void EspinaModel::addTaxonomy(SharedTaxonomyElementPtr root)
+void EspinaModel::addTaxonomy(TaxonomyElementSPtr root)
 {
   Q_ASSERT(false);//DEPRECATED?
-  foreach (SharedTaxonomyElementPtr node, root->subElements())
+  foreach (TaxonomyElementSPtr node, root->subElements())
   {
     addTaxonomyElement(taxonomyRoot(), node->qualifiedName());
     addTaxonomy(node);
@@ -884,7 +884,7 @@ void EspinaModel::removeSampleImplementation(SampleSPtr sample)
 }
 
 //------------------------------------------------------------------------
-void EspinaModel::addChannelImplementation(SharedChannelPtr channel)
+void EspinaModel::addChannelImplementation(ChannelSPtr channel)
 {
   Q_ASSERT(!channel.isNull());
   Q_ASSERT(!m_channels.contains(channel));
@@ -895,7 +895,7 @@ void EspinaModel::addChannelImplementation(SharedChannelPtr channel)
 }
 
 //------------------------------------------------------------------------
-void EspinaModel::removeChannelImplementation(SharedChannelPtr channel)
+void EspinaModel::removeChannelImplementation(ChannelSPtr channel)
 {
   Q_ASSERT(!channel.isNull());
 
@@ -955,9 +955,9 @@ void EspinaModel::removeFilterImplementation(FilterSPtr filter)
 
 
 //------------------------------------------------------------------------
-SharedModelItemPtr EspinaModel::find(ModelItemPtr item)
+ModelItemSPtr EspinaModel::find(ModelItemPtr item)
 {
-  SharedModelItemPtr res;
+  ModelItemSPtr res;
   switch (item->type())
   {
     case EspINA::TAXONOMY:
@@ -981,13 +981,13 @@ SharedModelItemPtr EspinaModel::find(ModelItemPtr item)
 }
 
 //------------------------------------------------------------------------
-SharedTaxonomyElementPtr EspinaModel::findTaxonomyElement(ModelItemPtr item)
+TaxonomyElementSPtr EspinaModel::findTaxonomyElement(ModelItemPtr item)
 {
   return findTaxonomyElement(taxonomyElementPtr(item));
 }
 
 //------------------------------------------------------------------------
-SharedTaxonomyElementPtr EspinaModel::findTaxonomyElement(TaxonomyElementPtr taxonomyElement)
+TaxonomyElementSPtr EspinaModel::findTaxonomyElement(TaxonomyElementPtr taxonomyElement)
 {
   TaxonomyElementPtr parent = taxonomyElement->parent();
   return parent->element(taxonomyElement->name());
@@ -1016,15 +1016,15 @@ SampleSPtr EspinaModel::findSample(SamplePtr sample)
 }
 
 //------------------------------------------------------------------------
-SharedChannelPtr EspinaModel::findChannel(ModelItemPtr item)
+ChannelSPtr EspinaModel::findChannel(ModelItemPtr item)
 {
   return findChannel(channelPtr(item));
 }
 
 //------------------------------------------------------------------------
-SharedChannelPtr EspinaModel::findChannel(ChannelPtr channel)
+ChannelSPtr EspinaModel::findChannel(ChannelPtr channel)
 {
-  SharedChannelPtr res;
+  ChannelSPtr res;
 
   int i=0;
   while (res.isNull() && i < m_channels.size())
@@ -1094,7 +1094,7 @@ QModelIndex EspinaModel::addTaxonomyElement(const QModelIndex& parent, QString n
     parentNode = taxonomyElementPtr(item);
   }
   Q_ASSERT(parentNode);
-  SharedTaxonomyElementPtr requestedNode;
+  TaxonomyElementSPtr requestedNode;
   requestedNode = parentNode->element(name);
   if (!requestedNode)
   {
@@ -1178,7 +1178,7 @@ QModelIndex EspinaModel::channelIndex(ChannelPtr channel) const
   QModelIndex index;
 
   int row = 0;
-  foreach(SharedChannelPtr ptr, m_channels)
+  foreach(ChannelSPtr ptr, m_channels)
   {
     if (ptr.data() == channel)
     {
@@ -1192,7 +1192,7 @@ QModelIndex EspinaModel::channelIndex(ChannelPtr channel) const
 }
 
 //------------------------------------------------------------------------
-QModelIndex EspinaModel::channelIndex(SharedChannelPtr channel) const
+QModelIndex EspinaModel::channelIndex(ChannelSPtr channel) const
 {
   return channelIndex(channel.data());
 }

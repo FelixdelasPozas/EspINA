@@ -28,6 +28,7 @@
 
 // EspINA
 #include <Core/Model/Segmentation.h>
+#include <GUI/ISettingsPanel.h>
 
 class ActionSelector;
 class QAction;
@@ -129,6 +130,7 @@ namespace EspINA
     ContourWidget *m_contourWidget;
 
     Settings      *m_settings;
+    ISettingsPanelPrototype editorSettings;
   };
 
 } // namespace EspINA

@@ -30,6 +30,8 @@
 #include <vtkCellData.h>
 #include "vtkCountingFrame3DWidget.h"
 
+using namespace EspINA;
+
 //-----------------------------------------------------------------------------
 const QString AdaptiveCountingFrame::ID       = "AdaptiveCountingFrame";
 const QString AdaptiveCountingFrame::ID_1_2_5 = "AdaptiveBoundingRegion";
@@ -173,9 +175,9 @@ void AdaptiveCountingFrame::updateCountingFrameImplementation()
 
   m_inclusionVolume = 0;
 
-  ModelItemExtension *ext = m_channel->extension(MarginsChannelExtension::ID);
+  ModelItemExtensionPtr ext = m_channel->extension(MarginsChannelExtension::ID);
   Q_ASSERT(ext);
-  MarginsChannelExtension *marginsExt = dynamic_cast<MarginsChannelExtension *>(ext);
+  MarginsChannelExtension *marginsExt = dynamic_cast<MarginsChannelExtension *>(ext.data());
   Q_ASSERT(marginsExt);
   m_totalVolume = marginsExt->computedVolume();
 

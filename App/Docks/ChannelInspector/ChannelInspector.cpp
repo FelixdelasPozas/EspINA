@@ -74,7 +74,7 @@ void ChannelInspector::updateSpacing()
   reader->setSpacing(spacing);
   m_channel->notifyModification();
 
-  foreach(SharedModelItemPtr item, m_channel->relatedItems(EspINA::OUT, Channel::LINK))
+  foreach(ModelItemSPtr item, m_channel->relatedItems(EspINA::OUT, Channel::LINK))
   {
     if (EspINA::SEGMENTATION == item->type())
     {

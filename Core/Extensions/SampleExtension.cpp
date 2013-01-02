@@ -19,4 +19,14 @@
 
 #include "SampleExtension.h"
 
+using namespace EspINA;
+
+SampleExtensionPtr EspINA::sampleExtensionPtr(ModelItemExtensionPtr extension)
+{
+  SampleExtensionPtr res;
+  res = dynamic_cast<SampleExtensionPtr>(extension);
+  Q_ASSERT(res);
+
+  return res;
+}
 

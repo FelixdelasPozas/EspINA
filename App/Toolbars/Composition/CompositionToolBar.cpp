@@ -63,6 +63,14 @@ CompositionToolBar::~CompositionToolBar()
 }
 
 //----------------------------------------------------------------------------
+void CompositionToolBar::initToolBar(EspinaModelSPtr model,
+                                     QUndoStack     *undoStack,
+                                     ViewManager    *viewManager)
+{
+
+}
+
+//----------------------------------------------------------------------------
 void CompositionToolBar::initFactoryExtension(EspinaFactoryPtr factory)
 {
   // TODO 2012-12-21 El fin del mundo ha llegado a EspINA!!!
@@ -78,6 +86,12 @@ FilterSPtr CompositionToolBar::createFilter(const QString              &filter,
 {
   Q_ASSERT(false);//TODO 2012-12-17
   return FilterSPtr();
+}
+
+//----------------------------------------------------------------------------
+void CompositionToolBar::reset()
+{
+  updateAvailableOperations();
 }
 
 //----------------------------------------------------------------------------

@@ -117,19 +117,19 @@ FilterSPtrList RemoveSegmentation::removeFilterDependencies(FilterSPtr filter)
   FilterSPtrList filtersToRemove;
 
   //qDebug() << "Analyzing Filter" << filter->data().toString();
-  SharedModelItemList consumers = filter->relatedItems(EspINA::OUT);
+  ModelItemSList consumers = filter->relatedItems(EspINA::OUT);
   if (consumers.isEmpty())
   {
     //qDebug() << "* Can be removed";
     filtersToRemove.push_front(filter);
 
-    SharedModelItemList ancestors = filter->relatedItems(EspINA::IN);
+    ModelItemSList ancestors = filter->relatedItems(EspINA::IN);
 
     FilterInfo filterInfo(filter, filter->relations());
     m_removedFilters.push_front(filterInfo);
     removeRelations(filterInfo.relations);
 
-    foreach(SharedModelItemPtr item, ancestors)
+    foreach(ModelItemSPtr item, ancestors)
     {
       if (EspINA::FILTER == item->type())
         filtersToRemove << removeFilterDependencies(filterPtr(item));

@@ -52,18 +52,18 @@ public:
   // and which slice (in case of planar views) is selected
 //   vtkSetMacro(ViewType,int);
 //   vtkSetMacro(Slice,int);
-  virtual void SetSlice(Nm pos);
+  virtual void SetSlice(EspINA::Nm pos);
   virtual void SetCountingFrame(vtkSmartPointer<vtkPolyData> region,
-                                 Nm inclusionOffset[3],
-                                 Nm exclusionOffset[3],
-                                 Nm slicingStep[3]);
+                                 EspINA::Nm inclusionOffset[3],
+                                 EspINA::Nm exclusionOffset[3],
+                                 EspINA::Nm slicingStep[3]);
 
   // Description:
   // These are methods to communicate with the 3d_widget
   vtkSetVector3Macro(InclusionOffset, double);
   vtkGetVector3Macro(InclusionOffset, double);
-  vtkSetVector3Macro(ExclusionOffset, Nm);
-  vtkGetVector3Macro(ExclusionOffset, Nm);
+  vtkSetVector3Macro(ExclusionOffset, EspINA::Nm);
+  vtkGetVector3Macro(ExclusionOffset, EspINA::Nm);
 
   // Description:
   // These are methods that satisfy vtkWidgetRepresentation's API.
@@ -127,20 +127,20 @@ protected:
 
   virtual void CreateDefaultProperties();
 
-  void regionBounds(int regionSlice, Nm bounds[6]);
+  void regionBounds(int regionSlice, EspINA::Nm bounds[6]);
 
-  virtual Nm realLeftEdge  (int slice=0) = 0;
-  virtual Nm realTopEdge   (int slice=0) = 0;
-  virtual Nm realRightEdge (int slice=0) = 0;
-  virtual Nm realBottomEdge(int slice=0) = 0;
+  virtual EspINA::Nm realLeftEdge  (int slice=0) = 0;
+  virtual EspINA::Nm realTopEdge   (int slice=0) = 0;
+  virtual EspINA::Nm realRightEdge (int slice=0) = 0;
+  virtual EspINA::Nm realBottomEdge(int slice=0) = 0;
 
-  virtual Nm leftEdge  (int slice=0) = 0;
-  virtual Nm topEdge   (int slice=0) = 0;
-  virtual Nm rightEdge (int slice=0) = 0;
-  virtual Nm bottomEdge(int slice=0) = 0;
+  virtual EspINA::Nm leftEdge  (int slice=0) = 0;
+  virtual EspINA::Nm topEdge   (int slice=0) = 0;
+  virtual EspINA::Nm rightEdge (int slice=0) = 0;
+  virtual EspINA::Nm bottomEdge(int slice=0) = 0;
 
   /// @pos in Z dir
-  int sliceNumber(Nm pos) const;
+  int sliceNumber(EspINA::Nm pos) const;
 
   // Helper methods to create face representations
   virtual void CreateRegion() = 0;
@@ -153,12 +153,12 @@ protected:
 
 protected:
   vtkSmartPointer<vtkPolyData> Region;
-  Nm Slice;
-  Nm Resolution[3];
+  EspINA::Nm Slice;
+  EspINA::Nm Resolution[3];
 
   bool Init;
-  Nm InclusionOffset[3];
-  Nm ExclusionOffset[3];
+  EspINA::Nm InclusionOffset[3];
+  EspINA::Nm ExclusionOffset[3];
 
   int NumPoints;
   int NumSlices;

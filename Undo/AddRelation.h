@@ -31,8 +31,8 @@ namespace EspINA
   : public QUndoCommand
   {
   public:
-    explicit AddRelation(SharedModelItemPtr   ancestor,
-                         SharedModelItemPtr   successor,
+    explicit AddRelation(ModelItemSPtr   ancestor,
+                         ModelItemSPtr   successor,
                          const QString  description,
                          EspinaModelSPtr model,
                          QUndoCommand  *parent = 0);
@@ -43,8 +43,8 @@ namespace EspINA
   private:
     EspinaModelSPtr m_model;
 
-    SharedModelItemPtr   m_ancester;
-    SharedModelItemPtr   m_succesor;
+    ModelItemSPtr   m_ancester;
+    ModelItemSPtr   m_succesor;
     const QString  m_description;
   };
 

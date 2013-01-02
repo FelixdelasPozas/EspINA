@@ -141,8 +141,7 @@ QModelIndex SampleProxy::index(int row, int column, const QModelIndex& parent) c
   Q_ASSERT(segRow < numSegmentations(parentSample));
   ModelItemPtr internalPtr = m_segmentations[parentSample][segRow];
 
-  Q_ASSERT(false);//arreglar Interanl pointer
-  return createIndex(row, column, &internalPtr);
+  return createIndex(row, column, internalPtr);
 }
 
 //------------------------------------------------------------------------
@@ -209,7 +208,7 @@ QModelIndex SampleProxy::mapFromSource(const QModelIndex& sourceIndex) const
     case EspINA::SEGMENTATION:
     {
       SegmentationPtr seg = segmentationPtr(sourceItem);
-      SharedModelItemList samples = seg->relatedItems(EspINA::IN, Sample::WHERE);
+      ModelItemSList samples = seg->relatedItems(EspINA::IN, Sample::WHERE);
       if (samples.size() > 0)
       {
         SamplePtr sample = samplePtr(samples[0].data());
@@ -520,11 +519,11 @@ void SampleProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, const QMod
       if (EspINA::SAMPLE == proxyItem->type())
       {
         SamplePtr sample = samplePtr(proxyItem);
-        SharedModelItemList segs = sample->relatedItems(EspINA::OUT, Sample::WHERE);
+        ModelItemSList segs = sample->relatedItems(EspINA::OUT, Sample::WHERE);
         SegSet prevSegs = m_segmentations[sample].toSet();
         // 	debugSet("Previous Segmentations", prevSegs);
         SegSet currentSegs;
-        foreach(SharedModelItemPtr seg, segs)
+        foreach(ModelItemSPtr seg, segs)
         {
           currentSegs << seg.data();
         }

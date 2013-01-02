@@ -212,19 +212,22 @@ void Segmentation::updateCacheFlag()
 //------------------------------------------------------------------------
 SampleSPtr Segmentation::sample()
 {
-  SharedModelItemList relatedSamples = relatedItems(IN, Sample::WHERE);
-  Q_ASSERT(relatedSamples.size() == 1);
+  ModelItemSList relatedSamples = relatedItems(IN, Sample::WHERE);
 
-  return samplePtr(relatedSamples.first());
+  SampleSPtr sample;
+  if (relatedSamples.size() == 1)
+    sample = samplePtr(relatedSamples.first());
+
+  return sample;
 }
 
 //------------------------------------------------------------------------
-SharedChannelPtr Segmentation::channel()
+ChannelSPtr Segmentation::channel()
 {
-  SharedChannelList channels;
+  ChannelSList channels;
 
-  SharedModelItemList relatedChannels = relatedItems(IN, Channel::LINK);
-  foreach(SharedModelItemPtr item, relatedChannels)
+  ModelItemSList relatedChannels = relatedItems(IN, Channel::LINK);
+  foreach(ModelItemSPtr item, relatedChannels)
   {
     Q_ASSERT(CHANNEL == item->type());
     channels << channelPtr(item);
@@ -287,7 +290,7 @@ bool Segmentation::setData(const QVariant& value, int role)
 }
 
 //------------------------------------------------------------------------
-void Segmentation::setTaxonomy(SharedTaxonomyElementPtr tax)
+void Segmentation::setTaxonomy(TaxonomyElementSPtr tax)
 {
   m_taxonomy = tax;
   m_args[TAXONOMY] = Argument(tax->qualifiedName());
@@ -316,9 +319,9 @@ SharedSegmentationList Segmentation::components()
 {
   SharedSegmentationList res;
 
-  SharedModelItemList subComponents = relatedItems(OUT, COMPOSED_LINK);
+  ModelItemSList subComponents = relatedItems(OUT, COMPOSED_LINK);
 
-  foreach(SharedModelItemPtr item, subComponents)
+  foreach(ModelItemSPtr item, subComponents)
   {
     Q_ASSERT(SEGMENTATION == item->type());
     res << segmentationPtr(item);
@@ -332,9 +335,9 @@ SharedSegmentationList Segmentation::componentOf()
 {
   SharedSegmentationList res;
 
-  SharedModelItemList subComponents = relatedItems(IN, COMPOSED_LINK);
+  ModelItemSList subComponents = relatedItems(IN, COMPOSED_LINK);
 
-  foreach(SharedModelItemPtr item, subComponents)
+  foreach(ModelItemSPtr item, subComponents)
   {
     Q_ASSERT(SEGMENTATION == item->type());
     res << segmentationPtr(item);
@@ -430,7 +433,7 @@ SegmentationPtr EspINA::segmentationPtr(PickableItemPtr item)
 }
 
 //------------------------------------------------------------------------
-SegmentationSPtr EspINA::segmentationPtr(SharedModelItemPtr &item)
+SegmentationSPtr EspINA::segmentationPtr(ModelItemSPtr &item)
 {
   Q_ASSERT(SEGMENTATION == item->type());
   SegmentationSPtr ptr = qSharedPointerDynamicCast<Segmentation>(item);
@@ -441,7 +444,7 @@ SegmentationSPtr EspINA::segmentationPtr(SharedModelItemPtr &item)
 
 
 //------------------------------------------------------------------------
-SegmentationSPtr EspINA::segmentationPtr(SharedPickableItemPtr &item)
+SegmentationSPtr EspINA::segmentationPtr(PickableItemSPtr &item)
 {
   Q_ASSERT(SEGMENTATION == item->type());
   SegmentationSPtr ptr = qSharedPointerDynamicCast<Segmentation>(item);

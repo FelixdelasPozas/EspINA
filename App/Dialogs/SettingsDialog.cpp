@@ -90,7 +90,7 @@ void SettingsDialog::reject()
 }
 
 //------------------------------------------------------------------------
-void SettingsDialog::registerPanel(ISettingsPanelPrototype panel)
+void SettingsDialog::registerPanel(ISettingsPanelPtr panel)
 {
   QListWidgetItem *item = new QListWidgetItem();
   item->setData(Qt::DisplayRole,panel->shortDescription());
@@ -101,16 +101,16 @@ void SettingsDialog::registerPanel(ISettingsPanelPrototype panel)
 }
 
 //------------------------------------------------------------------------
-ISettingsPanelPrototype SettingsDialog::panel(const QString& shortDesc)
+ISettingsPanelPtr SettingsDialog::panel(const QString& shortDesc)
 {
-  foreach(ISettingsPanelPrototype panel, m_panels)
+  foreach(ISettingsPanelPtr panel, m_panels)
   {
     if (panel->shortDescription() == shortDesc)
       return panel;
   }
 
   Q_ASSERT(false);
-  return ISettingsPanelPrototype();
+  return NULL;
 }
 
 

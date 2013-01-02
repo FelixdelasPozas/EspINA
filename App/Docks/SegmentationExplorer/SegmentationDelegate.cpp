@@ -40,6 +40,12 @@ SegmentationDelegate::SegmentationDelegate(EspinaModelSPtr model,
 }
 
 //------------------------------------------------------------------------
+SegmentationDelegate::~SegmentationDelegate()
+{
+  qDebug() << "Destroy Segmentation Delegate";
+}
+
+//------------------------------------------------------------------------
 QWidget* SegmentationDelegate::createEditor(QWidget* parent,
                                             const QStyleOptionViewItem& option,
                                             const QModelIndex& index) const

@@ -63,7 +63,7 @@ namespace EspINA
     virtual unsigned int getNumberOfvtkActors(){Q_ASSERT(false);}
 
     virtual void clean() {Q_ASSERT(false);}
-    virtual IRendererPtr clone() {return IRendererPtr(new VolumetricRenderer(m_viewManager));}
+    virtual IRendererSPtr clone() {return IRendererSPtr(new VolumetricRenderer(m_viewManager));}
 
     virtual bool isASegmentationRenderer() { return true; };
   private:

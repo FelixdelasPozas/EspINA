@@ -58,7 +58,7 @@ namespace EspINA
 
     SharedSegmentationList      m_input;
     ImageLogicFilter::Operation m_operation;
-    SharedTaxonomyElementPtr    m_taxonomy;
+    TaxonomyElementSPtr    m_taxonomy;
 
     QList<SegInfo>      m_infoList;
     FilterSPtr          m_filter;

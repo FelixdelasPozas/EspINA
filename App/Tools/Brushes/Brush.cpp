@@ -365,6 +365,9 @@ void Brush::segmentationHasBeenModified(ModelItem *item)
 //-----------------------------------------------------------------------------
 void Brush::initBrushTool()
 {
+  if (!m_inUse)
+    return;
+
   if (m_currentSeg)
     disconnect(m_currentSeg.data(), SIGNAL(modified(ModelItem*)),
                this, SLOT(segmentationHasBeenModified(ModelItem*)));

@@ -173,7 +173,7 @@ void vtkCountingFrame3DWidget::EndSelectAction(vtkAbstractWidget *w)
 }
 
 //----------------------------------------------------------------------
-void vtkCountingFrame3DWidget::SetCountingFrame(vtkSmartPointer< vtkPolyData > region, Nm inclusionOffset[3], Nm exclusionOffset[3])
+void vtkCountingFrame3DWidget::SetCountingFrame(vtkSmartPointer< vtkPolyData > region, EspINA::Nm inclusionOffset[3], EspINA::Nm exclusionOffset[3])
 {
   if (!this->WidgetRep)
     CreateDefaultRepresentation();

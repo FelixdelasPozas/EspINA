@@ -30,11 +30,14 @@
 #include <Core/Model/EspinaModel.h>
 #include <Core/Model/EspinaFactory.h>
 #include <Core/Model/Segmentation.h>
+#include <Core/Model/Taxonomy.h>
 #include <GUI/ViewManager.h>
 #include <Core/Extensions/Margins/MarginsSegmentationExtension.h>
 #include <vtkMath.h>
 
 #include <QFileDialog>
+
+using namespace EspINA;
 
 const int ADAPTIVE = 0;
 const int RECTANGULAR = 1;
@@ -173,26 +176,35 @@ CountingFramePanel::~CountingFramePanel()
 }
 
 //------------------------------------------------------------------------
-void CountingFramePanel::initDockWidget(EspinaModel* model, QUndoStack* undoStack, ViewManager* viewManager)
+void CountingFramePanel::initDockWidget(EspinaModelSPtr model,
+                                        QUndoStack     *undoStack,
+                                        ViewManager    *viewManager)
 {
   m_espinaModel = model;
   m_viewManager = viewManager;
-  connect(m_viewManager, SIGNAL(activeChannelChanged(Channel*)),
-          this, SLOT(channelChanged(Channel*)));
+  connect(m_viewManager, SIGNAL(activeChannelChanged(ChannelPtr)),
+          this, SLOT(channelChanged(ChannelPtr)));
 
-  ChannelExtension::SPtr channelExtension(new CountingFrameChannelExtension(this, m_viewManager));
+  ChannelExtensionPtr channelExtension(new CountingFrameChannelExtension(this, m_viewManager));
   m_espinaModel->factory()->registerChannelExtension(channelExtension);
-  SegmentationExtension::SPtr segExtension(new CountingFrameSegmentationExtension());
+  SegmentationExtensionPtr segExtension(new CountingFrameSegmentationExtension());
   m_espinaModel->factory()->registerSegmentationExtension(segExtension);
-  m_espinaModel->factory()->registerRenderer(new CountingFrameRenderer(this));
+  m_espinaModel->factory()->registerRenderer(IRendererPtr(new CountingFrameRenderer(this)));
 
 
-  m_gui->taxonomySelector->setModel(m_espinaModel);
+  m_gui->taxonomySelector->setModel(m_espinaModel.data());
   m_gui->taxonomySelector->setRootModelIndex(m_espinaModel->taxonomyRoot());
 
   connect(m_viewManager->fitToSlices(), SIGNAL(toggled(bool)),
           this, SLOT(changeUnitMode(bool)));
   changeUnitMode(m_viewManager->fitToSlices()->isChecked());
+}
+
+//------------------------------------------------------------------------
+void CountingFramePanel::reset()
+{
+  clearCountingFrames();
+  m_nextId = 1;
 }
 
 //------------------------------------------------------------------------
@@ -205,26 +217,21 @@ IColorEngineProvider::EngineList CountingFramePanel::colorEngines()
 }
 
 //------------------------------------------------------------------------
-void CountingFramePanel::reset()
-{
-  clearCountingFrames();
-}
-
-//------------------------------------------------------------------------
 void CountingFramePanel::createAdaptiveCF(Channel *channel,
                                           Nm inclusion[3],
                                           Nm exclusion[3])
 {
-  ModelItemExtension *ext = channel->extension(CountingFrameChannelExtension::ID);
+  ModelItemExtensionPtr ext = channel->extension(CountingFrameChannelExtension::ID);
   Q_ASSERT(ext);
-  CountingFrameChannelExtension *channelExt = dynamic_cast<CountingFrameChannelExtension *>(ext);
+  CountingFrameChannelExtension *channelExt = dynamic_cast<CountingFrameChannelExtension *>(ext.data());
   Q_ASSERT(channelExt);
 
+  // TODO 2012-12-29 Revisar memory leaks
   AdaptiveCountingFrame *cf(new AdaptiveCountingFrame(m_nextId++,
-                                                            channelExt,
-                                                            inclusion,
-                                                            exclusion,
-                                                            m_viewManager));
+                                                      channelExt,
+                                                      inclusion,
+                                                      exclusion,
+                                                      m_viewManager));
   registerCF(channelExt, cf);
 }
 
@@ -233,20 +240,20 @@ void CountingFramePanel::createRectangularCF(Channel *channel,
                                              Nm inclusion[3],
                                              Nm exclusion[3])
 {
-  ModelItemExtension *ext = channel->extension(CountingFrameChannelExtension::ID);
+  ModelItemExtensionPtr ext = channel->extension(CountingFrameChannelExtension::ID);
   Q_ASSERT(ext);
-  CountingFrameChannelExtension *channelExt = dynamic_cast<CountingFrameChannelExtension *>(ext);
+  CountingFrameChannelExtension *channelExt = dynamic_cast<CountingFrameChannelExtension *>(ext.data());
   Q_ASSERT(channelExt);
 
   double borders[6];
   channel->volume()->bounds(borders);
 
   RectangularCountingFrame *cf(new RectangularCountingFrame(m_nextId++,
-                                                                  channelExt,
-                                                                  borders,
-                                                                  inclusion,
-                                                                  exclusion,
-                                                                  m_viewManager));
+                                                            channelExt,
+                                                            borders,
+                                                            inclusion,
+                                                            exclusion,
+                                                            m_viewManager));
   registerCF(channelExt, cf);
 }
 
@@ -258,10 +265,10 @@ void CountingFramePanel::applyTaxonomicalConstraint()
     QModelIndex taxonomyIndex = m_gui->taxonomySelector->currentModelIndex();
     if (taxonomyIndex.isValid())
     {
-      ModelItem *item = indexPtr(taxonomyIndex);
-      Q_ASSERT(ModelItem::TAXONOMY == item->type());
+      ModelItemPtr item = indexPtr(taxonomyIndex);
+      Q_ASSERT(EspINA::TAXONOMY == item->type());
 
-      TaxonomyElement *taxonomy = dynamic_cast<TaxonomyElement *>(item);
+      TaxonomyElementPtr taxonomy = taxonomyElementPtr(item);
       m_activeCF->setTaxonomicalConstraint(taxonomy);
     }
   }
@@ -400,7 +407,7 @@ void CountingFramePanel::deleteSelectedCountingFrame()
 }
 
 //------------------------------------------------------------------------
-void CountingFramePanel::channelChanged(Channel* channel)
+void CountingFramePanel::channelChanged(ChannelPtr channel)
 {
   m_gui->taxonomySelector->setRootModelIndex(m_espinaModel->taxonomyRoot());
 
@@ -527,18 +534,18 @@ void CountingFramePanel::computeOptimalMargins(Channel* channel,
   memset(inclusion, 0, 3*sizeof(Nm));
   memset(exclusion, 0, 3*sizeof(Nm));
 
-  ModelItem::Vector items = channel->relatedItems(ModelItem::OUT, Channel::LINK);
-  SegmentationList channelSegs;
-  foreach(ModelItem *item, items)
+  ModelItemSList items = channel->relatedItems(EspINA::OUT, Channel::LINK);
+  SharedSegmentationList channelSegs;
+  foreach(ModelItemSPtr item, items)
   {
-    if (ModelItem::SEGMENTATION == item->type())
-      channelSegs << dynamic_cast<Segmentation *>(item);
+    if (EspINA::SEGMENTATION == item->type())
+      channelSegs << segmentationPtr(item);
   }
 
-  foreach(Segmentation *seg, channelSegs)
+  foreach(SegmentationSPtr seg, channelSegs)
   {
-    ModelItemExtension *ext = seg->extension(MarginsSegmentationExtension::ID);
-    MarginsSegmentationExtension *marginExt = dynamic_cast<MarginsSegmentationExtension *>(ext);
+    ModelItemExtensionPtr ext = seg->extension(MarginsSegmentationExtension::ID);
+    MarginsSegmentationExtension *marginExt = dynamic_cast<MarginsSegmentationExtension *>(ext.data());
     if (marginExt)
     {
       Nm dist2Margin[6];
@@ -599,13 +606,6 @@ void CountingFramePanel::registerCF(CountingFrameChannelExtension* ext,
   applyTaxonomicalConstraint();
 
   showInfo(cf);
-}
-
-//------------------------------------------------------------------------
-void CountingFramePanel::resetState()
-{
-  clearCountingFrames();
-  m_nextId = 1;
 }
 
 Q_EXPORT_PLUGIN2(CountingFramePlugin, CountingFramePanel)

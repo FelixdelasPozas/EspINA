@@ -148,7 +148,7 @@ QModelIndex ChannelProxy::index(int row, int column, const QModelIndex& parent) 
   Q_ASSERT(channelRow < numChannels(parentSample));
   ModelItemPtr internalPtr = m_channels[parentSample][channelRow];
 
-  return createIndex(row, column, &internalPtr);
+  return createIndex(row, column, internalPtr);
 }
 
 //------------------------------------------------------------------------
@@ -218,7 +218,7 @@ QModelIndex ChannelProxy::mapFromSource(const QModelIndex& sourceIndex) const
     {
       ChannelPtr channel = channelPtr(sourceItem);
       Q_ASSERT(channel);
-      SharedModelItemList samples = channel->relatedItems(EspINA::IN, Channel::STAINLINK);
+      ModelItemSList samples = channel->relatedItems(EspINA::IN, Channel::STAINLINK);
       if (samples.size() > 0)
       {
         SamplePtr sample = samplePtr(samples[0].data());
@@ -461,12 +461,12 @@ void ChannelProxy::sourceDataChanged(const QModelIndex& sourceTopLeft,
       if (EspINA::SAMPLE == proxyItem->type())
       {
         SamplePtr sample = samplePtr(proxyItem);
-        SharedModelItemList channels = sample->relatedItems(EspINA::OUT,
+        ModelItemSList channels = sample->relatedItems(EspINA::OUT,
                                                             Channel::STAINLINK);
         ChannelSet prevChannels = m_channels[sample].toSet();
         // 	debugSet("Previous Channels", prevSegs);
         ChannelSet currentChannels;
-        foreach(SharedModelItemPtr channel, channels)
+        foreach(ModelItemSPtr channel, channels)
         {
           currentChannels << channel.data();
         }

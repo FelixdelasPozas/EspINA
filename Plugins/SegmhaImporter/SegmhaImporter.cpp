@@ -18,8 +18,6 @@
 
 #include "SegmhaImporter.h"
 
-#include "SegmhaImporterFilter.h"
-
 #include <Core/IO/EspinaIO.h>
 #include <Core/Model/EspinaFactory.h>
 #include <Core/Model/EspinaModel.h>
@@ -32,14 +30,18 @@
 #include <QFileDialog>
 #include <QDebug>
 
+using namespace EspINA;
+
 const QString INPUTLINK = "Input";
 
 //-----------------------------------------------------------------------------
-SegmhaImporter::UndoCommand::UndoCommand(Sample* sample,
-                                         Channel* channel,
-                                         SegmhaImporterFilter* filter,
-                                         EspinaModel *model)
-: m_model(model)
+SegmhaImporter::UndoCommand::UndoCommand(SampleSPtr               sample,
+                                         ChannelSPtr         channel,
+                                         SegmhaImporterFilterSPtr filter,
+                                         EspinaModelSPtr          model,
+                                         QUndoCommand            *parent)
+: QUndoCommand(parent)
+, m_model(model)
 , m_sample (sample)
 , m_channel(channel)
 , m_filter(filter)
@@ -54,7 +56,7 @@ void SegmhaImporter::UndoCommand::redo()
 
   if (m_segs.isEmpty())
   {
-    Segmentation *seg;
+    SegmentationSPtr seg;
     foreach(Filter::Output output, m_filter->outputs())
     {
       seg = m_model->factory()->createSegmentation(m_filter, output.id);
@@ -63,7 +65,7 @@ void SegmhaImporter::UndoCommand::redo()
     }
   }
 
-  ModelItemExtension *countingFrameExt = m_channel->extension("CountingFrameExtension");
+  ModelItemExtensionPtr countingFrameExt = m_channel->extension("CountingFrameExtension");
   if (countingFrameExt)
   {
     Nm inclusive[3], exclusive[3];
@@ -89,10 +91,10 @@ void SegmhaImporter::UndoCommand::redo()
   m_model->addSegmentation(m_segs);
 
   m_model->addRelation(m_channel, m_filter, Channel::LINK);
-  foreach(Segmentation *seg, m_segs)
+  foreach(SegmentationSPtr seg, m_segs)
   {
-    m_model->addRelation(m_filter, seg, CREATELINK);
-    m_model->addRelation(m_sample, seg, Sample::WHERE);
+    m_model->addRelation(m_filter,  seg, Filter::CREATELINK);
+    m_model->addRelation(m_sample,  seg, Sample::WHERE);
     m_model->addRelation(m_channel, seg, Channel::LINK);
     seg->initializeExtensions();
   }
@@ -102,16 +104,18 @@ void SegmhaImporter::UndoCommand::redo()
 void SegmhaImporter::UndoCommand::undo()
 {
   m_model->removeRelation(m_channel, m_filter, Channel::LINK);
-  foreach(Segmentation *seg, m_segs)
+  foreach(SegmentationSPtr seg, m_segs)
   {
-    m_model->removeRelation(m_filter, seg, CREATELINK);
-    m_model->removeRelation(m_sample, seg, "where");
+    m_model->removeRelation(m_filter,  seg, Filter::CREATELINK);
+    m_model->removeRelation(m_sample,  seg, Sample::WHERE);
     m_model->removeRelation(m_channel, seg, Channel::LINK);
   }
 
   m_model->removeSegmentation(m_segs);
   m_model->removeFilter(m_filter);
 }
+
+
 
 static const QString SEGMHA = "segmha";
 
@@ -124,29 +128,28 @@ SegmhaImporter::SegmhaImporter()
 }
 
 //-----------------------------------------------------------------------------
-void SegmhaImporter::initFactoryExtension(EspinaFactory* factory)
+void SegmhaImporter::initFactoryExtension(EspinaFactoryPtr factory)
 {
   factory->registerFilter(this, SegmhaImporterFilter::TYPE);
 }
 
 //-----------------------------------------------------------------------------
-Filter *SegmhaImporter::createFilter(const QString              &filter,
-                                     const Filter::NamedInputs  &inputs,
-                                     const ModelItem::Arguments &args)
+FilterSPtr SegmhaImporter::createFilter(const QString              &filter,
+                                        const Filter::NamedInputs  &inputs,
+                                        const ModelItem::Arguments &args)
 {
   Q_ASSERT(SegmhaImporterFilter::TYPE == filter);
-
-  return new SegmhaImporterFilter(inputs, args);
+  return FilterSPtr(new SegmhaImporterFilter(inputs, args));
 }
 
 //-----------------------------------------------------------------------------
-void SegmhaImporter::initFileReader(EspinaModel* model,
-                                    QUndoStack* undoStack,
-                                    ViewManager* vm)
+void SegmhaImporter::initFileReader(EspinaModelSPtr model,
+                                    QUndoStack     *undoStack,
+                                    ViewManager    *viewManager)
 {
   m_model = model;
   m_undoStack = undoStack;
-  m_viewManager = vm;
+  m_viewManager = viewManager;
   // Register filter and reader factories
   QStringList supportedExtensions;
   supportedExtensions << SEGMHA;
@@ -177,8 +180,9 @@ bool SegmhaImporter::readFile(const QFileInfo file)
   if (QDialog::Accepted != res)
     return false;
 
-  Channel *channel;
-  if (EspinaIO::SUCCESS != EspinaIO::loadChannel(fileDialog.selectedFiles().first(), m_model, m_undoStack, &channel))
+  // TODO 2012-12-29: Como gestionar las dependecias? dentro del undo command?
+  ChannelSPtr channel;
+  if (EspinaIO::SUCCESS != EspinaIO::loadChannel(fileDialog.selectedFiles().first(), m_model, m_undoStack, channel))
     return false;
 
   Filter::NamedInputs inputs;
@@ -188,14 +192,12 @@ bool SegmhaImporter::readFile(const QFileInfo file)
   params.setSpacing(channel->volume()->toITK()->GetSpacing());
 
   QApplication::setOverrideCursor(Qt::WaitCursor);
-  SegmhaImporterFilter *filter = new SegmhaImporterFilter(inputs, args);
+  SegmhaImporterFilterSPtr filter(new SegmhaImporterFilter(inputs, args));
   filter->update();
   if (filter->outputs().isEmpty())
-  {
-    delete filter;
     return false;
-  }
-  Sample *sample = channel->sample();
+
+  SampleSPtr sample = channel->sample();
   m_undoStack->push(new UndoCommand(sample, channel, filter, m_model));
   m_undoStack->endMacro();
   QApplication::restoreOverrideCursor();
@@ -203,4 +205,4 @@ bool SegmhaImporter::readFile(const QFileInfo file)
   return true;
 }
 
-Q_EXPORT_PLUGIN2(SegmhaImporterPlugin, SegmhaImporter)
+Q_EXPORT_PLUGIN2(SegmhaImporterPlugin, EspINA::SegmhaImporter)

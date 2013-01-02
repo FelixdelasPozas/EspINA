@@ -32,6 +32,7 @@
 #include "Filter.h"
 #include "Channel.h"
 #include "Segmentation.h"
+#include "EspinaFactory.h"
 
 namespace EspINA
 {
@@ -79,12 +80,12 @@ namespace EspINA
     virtual QModelIndex parent(const QModelIndex& child) const;
     virtual QModelIndex index(int row, int column, const QModelIndex& parent = QModelIndex()) const;
     QModelIndex index(ModelItemPtr item) const;
-    QModelIndex index(SharedModelItemPtr item) const;
+    QModelIndex index(ModelItemSPtr item) const;
 
     // Special Nodes of the model to refer different roots
     QModelIndex taxonomyRoot() const;
     QModelIndex taxonomyIndex(TaxonomyElementPtr node) const;
-    QModelIndex taxonomyIndex(SharedTaxonomyElementPtr node) const;
+    QModelIndex taxonomyIndex(TaxonomyElementSPtr node) const;
 
     QModelIndex sampleRoot() const;
     QModelIndex sampleIndex(SamplePtr       sample) const;
@@ -92,7 +93,7 @@ namespace EspINA
 
     QModelIndex channelRoot() const;
     QModelIndex channelIndex(ChannelPtr       channel) const;
-    QModelIndex channelIndex(SharedChannelPtr channel) const;
+    QModelIndex channelIndex(ChannelSPtr channel) const;
 
     QModelIndex segmentationRoot() const;
     QModelIndex segmentationIndex(SegmentationPtr       seg) const;
@@ -110,9 +111,9 @@ namespace EspINA
 
     // Taxonomies
     /// Returns the taxonomy used by the analyzer
-    void setTaxonomy(SharedTaxonomyPtr tax);
-    const SharedTaxonomyPtr taxonomy() const {return m_tax;}
-    void addTaxonomy(SharedTaxonomyPtr tax);
+    void setTaxonomy(TaxonomySPtr tax);
+    const TaxonomySPtr taxonomy() const {return m_tax;}
+    void addTaxonomy(TaxonomySPtr tax);
     QModelIndex addTaxonomyElement(const QModelIndex &parent, QString name);
     void addTaxonomyElement(QString qualifiedName);
     void removeTaxonomyElement(const QModelIndex &index);
@@ -126,10 +127,10 @@ namespace EspINA
     { return m_samples; }
 
     // Channels
-    void addChannel   (SharedChannelPtr   channel  );
-    void addChannel   (SharedChannelList  channels );
-    void removeChannel(SharedChannelPtr   channel  );
-    SharedChannelList channels() const
+    void addChannel   (ChannelSPtr   channel  );
+    void addChannel   (ChannelSList  channels );
+    void removeChannel(ChannelSPtr   channel  );
+    ChannelSList channels() const
     { return m_channels; }
 
     // Segmentations
@@ -148,20 +149,20 @@ namespace EspINA
     { return m_filters; }
 
     // TODO: Undoable
-    void changeTaxonomy(SegmentationSPtr seg, SharedTaxonomyElementPtr taxonomy);
+    void changeTaxonomy(SegmentationSPtr seg, TaxonomyElementSPtr taxonomy);
 
 
     //---------------------------------------------------------------------------
     /************************* Relationships API *******************************/
     //---------------------------------------------------------------------------
-    void addRelation   (SharedModelItemPtr   ancestor,
-                        SharedModelItemPtr   succesor,
+    void addRelation   (ModelItemSPtr   ancestor,
+                        ModelItemSPtr   succesor,
                         const QString &relation);
-    void removeRelation(SharedModelItemPtr   ancestor,
-                        SharedModelItemPtr   succesor,
+    void removeRelation(ModelItemSPtr   ancestor,
+                        ModelItemSPtr   succesor,
                         const QString &relation);
 
-    SharedModelItemList relatedItems(ModelItemPtr   item,
+    ModelItemSList relatedItems(ModelItemPtr   item,
                                      RelationType   relType,
                                      const QString &relName = "");
     RelationList relations(ModelItemPtr   item,
@@ -180,16 +181,16 @@ namespace EspINA
     //---------------------------------------------------------------------------
     /************************** SmartPointer API *******************************/
     //---------------------------------------------------------------------------
-    SharedModelItemPtr find(ModelItemPtr item);
+    ModelItemSPtr find(ModelItemPtr item);
 
-    SharedTaxonomyElementPtr findTaxonomyElement(ModelItemPtr       item           );
-    SharedTaxonomyElementPtr findTaxonomyElement(TaxonomyElementPtr taxonomyElement);
+    TaxonomyElementSPtr findTaxonomyElement(ModelItemPtr       item           );
+    TaxonomyElementSPtr findTaxonomyElement(TaxonomyElementPtr taxonomyElement);
 
     SampleSPtr findSample(ModelItemPtr item  );
     SampleSPtr findSample(SamplePtr    sample);
 
-    SharedChannelPtr findChannel(ModelItemPtr item   );
-    SharedChannelPtr findChannel(ChannelPtr   channel);
+    ChannelSPtr findChannel(ModelItemPtr item   );
+    ChannelSPtr findChannel(ChannelPtr   channel);
 
     SegmentationSPtr findSegmentation(ModelItemPtr    item        );
     SegmentationSPtr findSegmentation(SegmentationPtr segmentation);
@@ -198,17 +199,17 @@ namespace EspINA
     FilterSPtr findFilter(FilterPtr    filter);
 
   signals:
-    void itemAdded  (SharedModelItemPtr items);
-    void itemRemoved(SharedModelItemPtr items);
+    void itemAdded  (ModelItemSPtr items);
+    void itemRemoved(ModelItemSPtr items);
 
-    void taxonomyAdded  (SharedTaxonomyPtr taxonomy);
-    void taxonomyRemoved(SharedTaxonomyPtr taxonomy);
+    void taxonomyAdded  (TaxonomySPtr taxonomy);
+    void taxonomyRemoved(TaxonomySPtr taxonomy);
 
     void sampleAdded  (SampleSPtr samples);
     void sampleRemoved(SampleSPtr samples);
 
-    void channelAdded  (SharedChannelPtr channel);
-    void channelRemoved(SharedChannelPtr channel);
+    void channelAdded  (ChannelSPtr channel);
+    void channelRemoved(ChannelSPtr channel);
 
     void segmentationAdded  (SegmentationSPtr segmentations);
     void segmentationRemoved(SegmentationSPtr segmentations);
@@ -221,13 +222,13 @@ namespace EspINA
     void itemModified(ModelItemPtr item);
 
   private:
-    void addTaxonomy(SharedTaxonomyElementPtr root);
+    void addTaxonomy(TaxonomyElementSPtr root);
 
     void addSampleImplementation   (SampleSPtr sample);
     void removeSampleImplementation(SampleSPtr sample);
 
-    void addChannelImplementation   (SharedChannelPtr channel);
-    void removeChannelImplementation(SharedChannelPtr channel);
+    void addChannelImplementation   (ChannelSPtr channel);
+    void removeChannelImplementation(ChannelSPtr channel);
 
     void addSegmentationImplementation   (SegmentationSPtr segmentation);
     void removeSegmentationImplementation(SegmentationSPtr segmentation);
@@ -238,11 +239,11 @@ namespace EspINA
   private:
     EspinaFactoryPtr m_factory;
 
-    SharedChannelList      m_channels;
+    ChannelSList      m_channels;
     FilterSPtrList       m_filters;
     SampleSPtrList       m_samples;
     SharedSegmentationList m_segmentations;
-    SharedTaxonomyPtr      m_tax;
+    TaxonomySPtr      m_tax;
 
     QList<QDir>          m_tmpDirs;
     RelationshipGraphPtr m_relations;

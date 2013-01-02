@@ -35,7 +35,7 @@ const QString SUBSTRACTLINK = "Substract";
 
 //----------------------------------------------------------------------------
 CompositionCommand::CompositionCommand(const SegmentationList &segmentations,
-                                       SharedTaxonomyElementPtr      taxonomy,
+                                       TaxonomyElementSPtr      taxonomy,
                                        EspinaModelSPtr          model)
 : m_model(model)
 , m_tax(taxonomy)
@@ -95,7 +95,7 @@ void CompositionCommand::redo()
   m_model->addSegmentation(m_seg);
 
   //WARNING: This won't work with segmentation belonging to different channels
-  SharedChannelPtr channel = m_input.first()->channel();
+  ChannelSPtr channel = m_input.first()->channel();
   SampleSPtr  sample  = channel->sample();
   m_model->addRelation(m_filter, m_seg, Filter::CREATELINK);
   m_model->addRelation(sample,   m_seg, Sample::WHERE);

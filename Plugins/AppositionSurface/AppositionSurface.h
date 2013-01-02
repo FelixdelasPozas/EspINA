@@ -30,44 +30,51 @@
 #include <QColor>
 #include <QSharedPointer>
 
-class AppositionSurfaceExtension;
-class AppositionSurfaceRenderer;
-
-//! Apposition Surface Plugin
-class AppositionSurface
-: public QObject
-, public IFactoryExtension
+namespace EspINA
 {
-  Q_OBJECT
-  Q_INTERFACES(IFactoryExtension)
+  class AppositionSurfaceExtension;
+  class AppositionSurfaceRenderer;
 
-public:
-  explicit AppositionSurface();
-  virtual ~AppositionSurface(){}
+  //! Apposition Surface Plugin
+  class AppositionSurface
+  : public QObject
+  , public IFactoryExtension
+  {
+    Q_OBJECT
+    Q_INTERFACES
+    (
+      EspINA::IFactoryExtension
+    )
 
-  virtual void initFactoryExtension(EspinaFactory* factory);
+  public:
+    explicit AppositionSurface();
+    virtual ~AppositionSurface();
 
-  class Settings;
+    virtual void initFactoryExtension(EspinaFactoryPtr factory);
 
-  // to avoid using signals and declaring renderer as a QObject every
-  // renderer registers with the plugin on creation and unregisters
-  // on destruction
-  void registerRenderer(AppositionSurfaceRenderer *);
-  void unregisterRenderer(AppositionSurfaceRenderer *);
+    class Settings;
 
-public slots:
-  void propagateSettings();
+    // to avoid using signals and declaring renderer as a QObject every
+    // renderer registers with the plugin on creation and unregisters
+    // on destruction
+    void registerRenderer(AppositionSurfaceRenderer *);
+    void unregisterRenderer(AppositionSurfaceRenderer *);
 
-private:
-  QList<AppositionSurfaceRenderer *> m_renderersList;
+  public slots:
+    void propagateSettings();
 
-};
+  private:
+    QList<AppositionSurfaceRenderer *> m_renderersList;
 
-class AppositionSurface::Settings
-: public ISettingsPanel
-, public Ui::AppositionSurfaceSettings
-{
-  Q_OBJECT
+    ISettingsPanelPrototype  m_settings;
+    SegmentationExtensionPtr m_segExtension;
+  };
+
+  class AppositionSurface::Settings
+  : public ISettingsPanel
+  , public Ui::AppositionSurfaceSettings
+  {
+    Q_OBJECT
   public:
     explicit Settings(AppositionSurface *);
     virtual ~Settings()                      {};
@@ -88,7 +95,10 @@ class AppositionSurface::Settings
   private:
     QColor m_color;
     bool m_modified;
+
     AppositionSurface *m_plugin;
-};
+  };
+
+} // namespace EspINA
 
 #endif// APPOSITIONSURFACE_H

@@ -42,6 +42,8 @@
 // plugin
 #include "AppositionSurface.h"
 
+using namespace EspINA;
+
 typedef vtkSmartPointer<vtkPolyDataMapper> PolyDataMapper;
 typedef vtkSmartPointer<vtkDecimatePro> DecimatePro;
 typedef vtkSmartPointer<vtkWindowedSincPolyDataFilter> Smoother;
@@ -63,7 +65,7 @@ struct AppositionSurfaceRenderer::Representation
   itk::TimeStamp timeStamp;
 };
 
-QMap<ModelItem *, AppositionSurfaceRenderer::Representation *> AppositionSurfaceRenderer::m_representations;
+QMap<ModelItemPtr, AppositionSurfaceRenderer::Representation *> AppositionSurfaceRenderer::m_representations;
 
 //-----------------------------------------------------------------------------
 AppositionSurfaceRenderer::AppositionSurfaceRenderer(QColor color, AppositionSurface *plugin)
@@ -76,14 +78,14 @@ AppositionSurfaceRenderer::AppositionSurfaceRenderer(QColor color, AppositionSur
 //-----------------------------------------------------------------------------
 AppositionSurfaceRenderer::~AppositionSurfaceRenderer()
 {
-  m_plugin->unregisterRenderer(this);
+  //TODO 2013-01-02: No puede haber una relacion con el plugin ya que se destruye antes m_plugin->unregisterRenderer(this);
 }
 
 
 //-----------------------------------------------------------------------------
-bool AppositionSurfaceRenderer::addItem(ModelItem* item)
+bool AppositionSurfaceRenderer::addItem(ModelItemPtr item)
 {
-  if (ModelItem::SEGMENTATION != item->type())
+  if (EspINA::SEGMENTATION != item->type())
     return false;
 
   Q_ASSERT(!m_state.contains(item));
@@ -91,8 +93,9 @@ bool AppositionSurfaceRenderer::addItem(ModelItem* item)
   Representation *rep;
   if (!m_representations.contains(item))
   {
-    Segmentation *seg = dynamic_cast<Segmentation *>(item);
-    ModelItemExtension       *mie = seg->extension(AppositionSurfaceExtension::ID);
+    SegmentationPtr seg = segmentationPtr(item);
+
+    ModelItemExtensionPtr       mie = seg->extension(AppositionSurfaceExtension::ID);
     AppositionSurfaceExtension *ape = dynamic_cast<AppositionSurfaceExtension*>(mie);
 
     rep = new Representation();
@@ -148,9 +151,9 @@ bool AppositionSurfaceRenderer::addItem(ModelItem* item)
 }
 
 //-----------------------------------------------------------------------------
-bool AppositionSurfaceRenderer::updateItem(ModelItem* item)
+bool AppositionSurfaceRenderer::updateItem(ModelItemPtr item)
 {
-  if (ModelItem::SEGMENTATION != item->type())
+  if (EspINA::SEGMENTATION != item->type())
     return false;
 
   if (!m_representations.contains(item))
@@ -159,7 +162,7 @@ bool AppositionSurfaceRenderer::updateItem(ModelItem* item)
   Q_ASSERT(m_state.contains(item));
 
   bool updated = false;
-  Segmentation *seg = dynamic_cast<Segmentation *>(item);
+  SegmentationPtr seg = segmentationPtr(item);
   State        *state = m_state[item];
 
   if (m_enable && seg->visible())
@@ -169,7 +172,7 @@ bool AppositionSurfaceRenderer::updateItem(ModelItem* item)
       Representation *rep = m_representations[item];
       if (rep->timeStamp != seg->volume()->toITK()->GetTimeStamp())
       {
-        ModelItemExtension       *mie = seg->extension(AppositionSurfaceExtension::ID);
+        ModelItemExtensionPtr       mie = seg->extension(AppositionSurfaceExtension::ID);
         AppositionSurfaceExtension *ape = dynamic_cast<AppositionSurfaceExtension*>(mie);
         ape->updateAppositionSurface();
 
@@ -191,9 +194,9 @@ bool AppositionSurfaceRenderer::updateItem(ModelItem* item)
 }
 
 //-----------------------------------------------------------------------------
-bool AppositionSurfaceRenderer::removeItem(ModelItem* item)
+bool AppositionSurfaceRenderer::removeItem(ModelItemPtr item)
 {
-  if (ModelItem::SEGMENTATION != item->type())
+  if (EspINA::SEGMENTATION != item->type())
     return false;
 
   Q_ASSERT(m_representations.contains(item));
@@ -218,7 +221,7 @@ void AppositionSurfaceRenderer::hide()
 {
   if (!this->m_enable)
     return;
-  
+
   m_enable = false;
   foreach(State *state, m_state)
   {
@@ -228,7 +231,7 @@ void AppositionSurfaceRenderer::hide()
       state->visible = false;
     }
   }
-  
+
   emit renderRequested();
 }
 
@@ -241,16 +244,16 @@ void AppositionSurfaceRenderer::show()
   m_enable = true;
   QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 
-  foreach(ModelItem *item, m_state.keys())
+  foreach(ModelItemPtr item, m_state.keys())
   {
     State *state = m_state[item];
     if (!state->visible)
     {
       Representation *rep = m_representations[item];
-      Segmentation *seg = dynamic_cast<Segmentation *>(item);
+      SegmentationPtr seg = segmentationPtr(item);
       if (rep->timeStamp != seg->volume()->toITK()->GetTimeStamp())
       {
-        ModelItemExtension       *mie = item->extension(AppositionSurfaceExtension::ID);
+        ModelItemExtensionPtr       mie = item->extension(AppositionSurfaceExtension::ID);
         AppositionSurfaceExtension *ape = dynamic_cast<AppositionSurfaceExtension*>(mie);
         ape->updateAppositionSurface();
 
@@ -266,9 +269,15 @@ void AppositionSurfaceRenderer::show()
 }
 
 //-----------------------------------------------------------------------------
-Renderer* AppositionSurfaceRenderer::clone()
+void AppositionSurfaceRenderer::clean()
 {
-  return new AppositionSurfaceRenderer(m_color, m_plugin);
+  //TODO 2012-12-29 : what's for?
+}
+
+//-----------------------------------------------------------------------------
+IRendererSPtr AppositionSurfaceRenderer::clone()
+{
+  return IRendererSPtr(new AppositionSurfaceRenderer(m_color, m_plugin));
 }
 
 //-----------------------------------------------------------------------------
@@ -276,12 +285,10 @@ void AppositionSurfaceRenderer::SetColor(QColor color)
 {
   if (color != m_color)
   {
-    QMap<ModelItem *, State *>::iterator it = m_state.begin();
-    while (it != m_state.end())
+    foreach(State *state, m_state)
     {
-      (*it)->actor->GetProperty()->SetColor(color.redF(), color.greenF(), color.blueF());
-      (*it)->actor->Modified();
-      ++it;
+      state->actor->GetProperty()->SetColor(color.redF(), color.greenF(), color.blueF());
+      state->actor->Modified();
     }
     m_color = color;
   }

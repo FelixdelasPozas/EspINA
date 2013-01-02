@@ -29,10 +29,6 @@
 #include "Core/Model/HierarchyItem.h"
 #include "Sample.h"
 
-#include <itkImageIOBase.h>
-#include <itkImageFileReader.h>
-#include <vtkAlgorithmOutput.h>
-
 #include <QColor>
 #include <QFileInfo>
 
@@ -41,14 +37,10 @@ class vtkAlgorithmOutput;
 
 namespace EspINA
 {
-  typedef QSharedPointer<Channel> SharedChannelPtr;
-  typedef QList<SharedChannelPtr> SharedChannelList;
-
   class Channel
   : public PickableItem
   , public HierarchyItem
   {
-    typedef itk::ImageFileReader<itkVolumeType> EspinaVolumeReader; // TODO 2012-12-13: Borrar
   public:
     // Argument Ids
     static const ArgumentId ID;
@@ -213,10 +205,14 @@ namespace EspINA
     FilterSPtr    m_filter;
   };
 
-  ChannelPtr       channelPtr(ModelItemPtr           item);
-  ChannelPtr       channelPtr(PickableItemPtr        item);
-  SharedChannelPtr channelPtr(SharedModelItemPtr    &item);
-  SharedChannelPtr channelPtr(SharedPickableItemPtr &item);
+  typedef QSharedPointer<Channel> ChannelSPtr;
+  typedef QList<ChannelSPtr>      ChannelSList;
+
+
+  ChannelPtr  channelPtr(ModelItemPtr      item);
+  ChannelPtr  channelPtr(PickableItemPtr   item);
+  ChannelSPtr channelPtr(ModelItemSPtr    &item);
+  ChannelSPtr channelPtr(PickableItemSPtr &item);
 
 
 }// namespace EspINA

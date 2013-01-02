@@ -44,7 +44,7 @@ namespace EspINA
   private:
     EspinaModelSPtr  m_model;
 
-    SharedChannelPtr m_channel;
+    ChannelSPtr m_channel;
     SampleSPtr       m_sample;
     SegmentationSPtr m_seg;
     FilterSPtr       m_filter;

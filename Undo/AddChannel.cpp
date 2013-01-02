@@ -26,7 +26,7 @@ using namespace EspINA;
 
 //------------------------------------------------------------------------
 AddChannel::AddChannel(FilterSPtr      reader,
-                       SharedChannelPtr     channel,
+                       ChannelSPtr     channel,
                        EspinaModelSPtr model,
                        QUndoCommand  *parent)
 : QUndoCommand(parent)

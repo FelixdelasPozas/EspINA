@@ -53,6 +53,9 @@ namespace EspINA
   typedef QList<VertexProperty> Vertices;
   typedef QList<Edge> Edges;
 
+  class   RelationshipGraph;
+  typedef QSharedPointer<RelationshipGraph> RelationshipGraphPtr;
+
   /// Graph like structure which contains all the relationships
   /// between different elements of the model
   class RelationshipGraph

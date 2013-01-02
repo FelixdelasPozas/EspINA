@@ -27,6 +27,8 @@
 #include <vtkAbstractWidget.h>
 #include <vtkWidgetRepresentation.h>
 
+using namespace EspINA;
+
 //-----------------------------------------------------------------------------
 CountingFrameRenderer::CountingFrameRenderer(CountingFramePanel* plugin)
 : m_plugin(plugin)
@@ -109,8 +111,13 @@ void CountingFrameRenderer::countingFrameDeleted(CountingFrame* cf)
 }
 
 //-----------------------------------------------------------------------------
-Renderer* CountingFrameRenderer::clone()
+void CountingFrameRenderer::clean()
 {
-  CountingFrameRenderer *rr = new CountingFrameRenderer(m_plugin);
-  return rr;
+  // TODO 2012-12-29
+}
+
+//-----------------------------------------------------------------------------
+IRendererSPtr CountingFrameRenderer::clone()
+{
+  return IRendererPtr(new CountingFrameRenderer(m_plugin));
 }

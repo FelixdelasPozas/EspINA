@@ -58,15 +58,16 @@ public:
 ChannelExplorer::ChannelExplorer(EspinaModelSPtr model,
                                  ViewManager   *vm,
                                  QWidget       *parent)
-: QDockWidget(parent)
+: IDockWidget(parent)
 , m_gui(new CentralWidget())
 , m_model(model)
 , m_viewManager(vm)
 , m_channelProxy(new ChannelProxy(vm))
 , m_sort(new QSortFilterProxyModel())
 {
-  setWindowTitle(tr("Channel Explorer"));
   setObjectName("ChannelExplorer");
+
+  setWindowTitle(tr("Channel Explorer"));
 
   m_channelProxy->setSourceModel(m_model);
   m_sort->setSourceModel(m_channelProxy.data());
@@ -110,6 +111,23 @@ ChannelExplorer::ChannelExplorer(EspinaModelSPtr model,
 //------------------------------------------------------------------------
 ChannelExplorer::~ChannelExplorer()
 {
+  qDebug() << "********************************************************";
+  qDebug() << "          Destroying Channel Explorer";
+  qDebug() << "********************************************************";
+}
+
+//------------------------------------------------------------------------
+void ChannelExplorer::initDockWidget(EspinaModelSPtr model,
+                                     QUndoStack     *undoStack,
+                                     ViewManager    *viewManager)
+{
+
+}
+
+//------------------------------------------------------------------------
+void ChannelExplorer::reset()
+{
+
 }
 
 //------------------------------------------------------------------------

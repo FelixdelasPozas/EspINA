@@ -1,20 +1,20 @@
 /*
-    <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2011  Jorge Peña <jorge.pena.pastor@gmail.com>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ *    <one line to give the program's name and a brief idea of what it does.>
+ *    Copyright (C) 2011  Jorge Peña <jorge.pena.pastor@gmail.com>
+ *
+ *    This program is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
+ *
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 
 #ifndef FRAMERENDERER_H
@@ -23,38 +23,49 @@
 #include <QMap>
 #include <GUI/Renderers/Renderer.h>
 
-class CountingFrame;
-class CountingFramePanel;
-class Sample;
 class vtkAbstractWidget;
 
-class CountingFrameRenderer
-: public Renderer
+namespace EspINA
 {
-  Q_OBJECT
-public:
-  explicit CountingFrameRenderer(CountingFramePanel *plugin);
-  virtual ~CountingFrameRenderer();
 
-  virtual const QIcon icon() const
-  { return QIcon(":/apply.svg"); }
-  virtual const QString name() const
-  { return tr("Counting Frame");}
-  virtual const QString tooltip() const
-  { return tr("Stereological Counting Frame");}
+  class CountingFrame;
+  class CountingFramePanel;
 
-  virtual void hide();
-  virtual void show();
+  class CountingFrameRenderer
+  : public IRenderer
+  {
+    Q_OBJECT
+  public:
+    explicit CountingFrameRenderer(CountingFramePanel *plugin);
+    virtual ~CountingFrameRenderer();
 
-  virtual Renderer* clone();
+    virtual const QIcon icon() const
+    { return QIcon(":/apply.svg"); }
+    virtual const QString name() const
+    { return tr("Counting Frame");}
+    virtual const QString tooltip() const
+    { return tr("Stereological Counting Frame");}
 
-public slots:
-  void countingFrameCreated(CountingFrame *cf);
-  void countingFrameDeleted(CountingFrame *cf);
+    virtual void hide();
+    virtual void show();
+    virtual unsigned int getNumberOfvtkActors();
 
-private:
-  CountingFramePanel *m_plugin;
-  QMap<CountingFrame *, vtkAbstractWidget *> m_widgets;
-};
+    virtual bool addItem   (ModelItemPtr item){}
+    virtual bool updateItem(ModelItemPtr item){}
+    virtual bool removeItem(ModelItemPtr item){}
+
+    virtual void clean();
+    virtual IRendererSPtr clone();
+
+  public slots:
+    void countingFrameCreated(CountingFrame *cf);
+    void countingFrameDeleted(CountingFrame *cf);
+
+  private:
+    CountingFramePanel *m_plugin;
+    QMap<CountingFrame *, vtkAbstractWidget *> m_widgets;
+  };
+
+} // namespace EspINA
 
 #endif // FRAMERENDERER_H

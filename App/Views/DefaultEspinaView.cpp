@@ -91,7 +91,13 @@ DefaultEspinaView::DefaultEspinaView(EspinaModelSPtr model,
   initSliceView(xzView);
   xzDock->setWidget(xzView);
 
-  //   setColorEngine(new TaxonomyColorEngine());
+  m_settingsPanel = ISettingsPanelPrototype(
+    new SettingsPanel(xyView->settings(),
+                      yzView->settings(),
+                      xzView->settings(),
+                      volView->settings(),
+                      m_model->factory())
+  );
 
   parent->addDockWidget(Qt::RightDockWidgetArea, volDock);
   parent->addDockWidget(Qt::RightDockWidgetArea, yzDock);
@@ -228,15 +234,9 @@ void DefaultEspinaView::setColorEngine(ColorEngine* engine)
 }*/
 
 //----------------------------------------------------------------------------
-ISettingsPanelPrototype DefaultEspinaView::settingsPanel()
+ISettingsPanelPtr DefaultEspinaView::settingsPanel()
 {
-  return ISettingsPanelPrototype(
-    new SettingsPanel(xyView->settings(),
-                      yzView->settings(),
-                      xzView->settings(),
-                      volView->settings(),
-                      m_model->factory())
-  );
+  return m_settingsPanel.data();
 }
 
 //-----------------------------------------------------------------------------

@@ -81,7 +81,7 @@ namespace EspINA
   };
 
   SamplePtr samplePtr(ModelItemPtr item);
-  SampleSPtr samplePtr(SharedModelItemPtr &item);
+  SampleSPtr samplePtr(ModelItemSPtr &item);
 }// namespace EspINA
 
 #endif // SAMPLE_H

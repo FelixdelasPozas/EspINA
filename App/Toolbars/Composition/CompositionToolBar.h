@@ -49,11 +49,17 @@ namespace EspINA
                                 QWidget        *parent = 0);
     virtual ~CompositionToolBar();
 
+    virtual void initToolBar(EspinaModelSPtr model,
+                             QUndoStack     *undoStack,
+                             ViewManager    *viewManager);
+
     virtual void initFactoryExtension(EspinaFactoryPtr factory);
 
     virtual FilterSPtr createFilter(const QString              &filter,
-                                         const Filter::NamedInputs  &inputs,
-                                         const ModelItem::Arguments &args);
+                                    const Filter::NamedInputs  &inputs,
+                                    const ModelItem::Arguments &args);
+
+    virtual void reset(); // slot
 
   private slots:
     void createSegmentationFromComponents();

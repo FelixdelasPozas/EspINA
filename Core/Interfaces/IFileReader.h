@@ -39,8 +39,8 @@ public:
   virtual ~IFileReader(){}
 
   virtual void initFileReader(EspinaModelSPtr model,
-                              QUndoStack* undoStack,
-                              ViewManager *vm) = 0;
+                              QUndoStack     *undoStack,
+                              ViewManager    *viewManager) = 0;
 
   virtual bool readFile(const QFileInfo) = 0;
 };

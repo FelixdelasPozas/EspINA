@@ -112,7 +112,7 @@ void EspinaFactory::registerSegmentationExtension(SegmentationExtensionPtr exten
 }
 
 //------------------------------------------------------------------------
-void EspinaFactory::registerRenderer(IRendererPtr renderer)
+void EspinaFactory::registerRenderer(IRendererSPtr renderer)
 {
   m_renderers[renderer->name()] = renderer;
 }
@@ -153,10 +153,10 @@ SampleSPtr EspinaFactory::createSample(const QString &id, const QString &args)
 }
 
 //------------------------------------------------------------------------
-SharedChannelPtr EspinaFactory::createChannel(FilterSPtr filter,
+ChannelSPtr EspinaFactory::createChannel(FilterSPtr filter,
                                               const Filter::OutputId &oId)
 {
-  SharedChannelPtr channel(new Channel(filter, oId));
+  ChannelSPtr channel(new Channel(filter, oId));
   foreach(ChannelExtensionPtr ext, m_channelExtensions)
     channel->addExtension(ext->clone());
 

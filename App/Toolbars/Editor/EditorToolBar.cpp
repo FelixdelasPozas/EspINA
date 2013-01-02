@@ -176,6 +176,7 @@ EditorToolBar::EditorToolBar(EspinaModelSPtr model,
 , m_undoStack(undoStack)
 , m_viewManager(vm)
 , m_settings(new Settings())
+, editorSettings(new SettingsPanel(m_settings))
 {
   setObjectName("EditorToolBar");
 
@@ -225,8 +226,7 @@ void EditorToolBar::initFactoryExtension(EspinaFactoryPtr factory)
   factory->registerFilter(this, FillHolesFilter::TYPE);
   factory->registerFilter(this, ContourSource::TYPE);
 
-  ISettingsPanelPrototype editorSettings(new SettingsPanel(m_settings));
-  factory->registerSettingsPanel(editorSettings);
+  factory->registerSettingsPanel(editorSettings.data());
 }
 
 //----------------------------------------------------------------------------

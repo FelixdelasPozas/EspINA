@@ -35,7 +35,7 @@ namespace EspINA
   {
   public:
     explicit AddChannel(FilterSPtr      reader,
-                        SharedChannelPtr     channel,
+                        ChannelSPtr     channel,
                         EspinaModelSPtr model,
                         QUndoCommand   *parent=0);
 
@@ -46,7 +46,7 @@ namespace EspINA
     EspinaModelSPtr m_model;
 
     FilterSPtr      m_reader;
-    SharedChannelPtr     m_channel;
+    ChannelSPtr     m_channel;
   };
 
 }// namespace EspINA

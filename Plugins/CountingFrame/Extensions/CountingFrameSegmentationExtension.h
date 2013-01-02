@@ -1,20 +1,20 @@
 /*
-    <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2011  Jorge Peña <jorge.pena.pastor@gmail.com>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ *    <one line to give the program's name and a brief idea of what it does.>
+ *    Copyright (C) 2011  Jorge Peña <jorge.pena.pastor@gmail.com>
+ *
+ *    This program is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
+ *
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 
 #ifndef COUNTINGFRAMESEGMENTATIONEXTENSION_H
@@ -26,60 +26,62 @@
 #include <Core/EspinaTypes.h>
 #include <Core/EspinaRegion.h>
 
-class vtkPoints;
-
 // Forward declaration
-class Segmentation;
+class vtkPoints;
 class vtkPolyData;
 
-class CountingFrameSegmentationExtension
-: public SegmentationExtension
+namespace EspINA
 {
-  Q_OBJECT
-public:
-  static const ExtId ID;
-  static const InfoTag DISCARTED;
 
-public:
-  explicit CountingFrameSegmentationExtension();
-  virtual ~CountingFrameSegmentationExtension();
+  class CountingFrameSegmentationExtension
+  : public SegmentationExtension
+  {
+    Q_OBJECT
+  public:
+    static const ExtId ID;
+    static const InfoTag DISCARTED;
 
-  virtual ExtId id();
+  public:
+    explicit CountingFrameSegmentationExtension();
+    virtual ~CountingFrameSegmentationExtension();
 
-  virtual ExtIdList dependencies() const;
+    virtual ExtId id();
 
-  virtual InfoList availableInformations() const
-  { return SegmentationExtension::availableInformations(); }
+    virtual ExtIdList dependencies() const;
 
-  virtual RepList availableRepresentations() const
-  { return SegmentationExtension::availableRepresentations(); }
+    virtual InfoList availableInformations() const
+    { return SegmentationExtension::availableInformations(); }
 
-  virtual QVariant information(InfoTag tag) const;
+    virtual RepList availableRepresentations() const
+    { return SegmentationExtension::availableRepresentations(); }
 
-  virtual SegmentationRepresentation *representation(QString rep);
+    virtual QVariant information(InfoTag tag) const;
 
-  void setCountingFrames(CountingFrameList regions);
+    virtual SegmentationRepresentationPtr representation(QString representation);
 
-  virtual void initialize(ModelItem::Arguments args = ModelItem::Arguments());
+    void setCountingFrames(CountingFrameList regions);
 
-  virtual SegmentationExtension* clone();
+    virtual void initialize(ModelItem::Arguments args = ModelItem::Arguments());
 
+    virtual SegmentationExtensionPtr clone();
 
-  bool isDiscarded() const;
+    bool isDiscarded() const;
 
-  void evaluateCountingFrame(CountingFrame *cf);
+    void evaluateCountingFrame(CountingFrame *cf);
 
-public slots:
-  void evaluateCountingFrames();
+  public slots:
+    void evaluateCountingFrames();
 
-protected:
-  bool isDiscardedByCountingFrame(CountingFrame *cf);
-  bool isOnEdge();
-  bool realCollision(EspinaRegion interscetion);
+  protected:
+    bool isDiscardedByCountingFrame(CountingFrame *cf);
+    bool isOnEdge();
+    bool realCollision(EspinaRegion interscetion);
 
-private:
-  bool m_isOnEdge;
-  QMap<CountingFrame *, bool> m_isDiscardedBy;
-};
+  private:
+    bool m_isOnEdge;
+    QMap<CountingFrame *, bool> m_isDiscardedBy;
+  };
+
+} // namespace EspINA
 
 #endif // COUNTINGFRAMESEGMENTATIONEXTENSION_H

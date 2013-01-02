@@ -33,6 +33,8 @@
 #include <QDebug>
 #include <QApplication>
 
+using namespace EspINA;
+
 typedef ModelItem::ArgumentId ArgumentId;
 
 const ModelItemExtension::ExtId CountingFrameChannelExtension::ID = "CountingFrameExtension";
@@ -106,9 +108,9 @@ ModelItemExtension::ExtIdList CountingFrameChannelExtension::dependencies() cons
 }
 
 //-----------------------------------------------------------------------------
-ChannelExtension* CountingFrameChannelExtension::clone()
+ChannelExtensionPtr CountingFrameChannelExtension::clone()
 {
-  return new CountingFrameChannelExtension(m_plugin, m_viewManager);
+  return ChannelExtensionPtr(new CountingFrameChannelExtension(m_plugin, m_viewManager));
 }
 
 //-----------------------------------------------------------------------------
@@ -117,16 +119,16 @@ void CountingFrameChannelExtension::addCountingFrame(CountingFrame* countingFram
   Q_ASSERT(!m_countingFrames.contains(countingFrame));
   m_countingFrames << countingFrame;
 
-  Sample *sample = m_channel->sample();
+  SampleSPtr sample = m_channel->sample();
   Q_ASSERT(sample);
-  ModelItem::Vector items = sample->relatedItems(ModelItem::OUT, "where");
-  foreach(ModelItem *item, items)
+  ModelItemSList items = sample->relatedItems(EspINA::OUT, "where");
+  foreach(ModelItemSPtr item, items)
   {
-    if (ModelItem::SEGMENTATION == item->type())
+    if (EspINA::SEGMENTATION == item->type())
     {
-      ModelItemExtension *ext = item->extension(CountingFrameSegmentationExtension::ID);
+      ModelItemExtensionPtr ext = item->extension(CountingFrameSegmentationExtension::ID);
       Q_ASSERT(ext);
-      CountingFrameSegmentationExtension *segExt = dynamic_cast<CountingFrameSegmentationExtension *>(ext);
+      CountingFrameSegmentationExtension *segExt = dynamic_cast<CountingFrameSegmentationExtension *>(ext.data());
       segExt->setCountingFrames(m_countingFrames);
     }
   }
@@ -142,16 +144,16 @@ void CountingFrameChannelExtension::deleteCountingFrame(CountingFrame* countingF
   Q_ASSERT(m_countingFrames.contains(countingFrame));
   m_countingFrames.removeOne(countingFrame);
 
-  Sample *sample = m_channel->sample();
+  SampleSPtr sample = m_channel->sample();
   Q_ASSERT(sample);
-  ModelItem::Vector items = sample->relatedItems(ModelItem::OUT, "where");
-  foreach(ModelItem *item, items)
+  ModelItemSList items = sample->relatedItems(EspINA::OUT, Sample::WHERE);
+  foreach(ModelItemSPtr item, items)
   {
-    if (ModelItem::SEGMENTATION == item->type())
+    if (EspINA::SEGMENTATION == item->type())
     {
-      ModelItemExtension *ext = item->extension(CountingFrameSegmentationExtension::ID);
+      ModelItemExtensionPtr ext = item->extension(CountingFrameSegmentationExtension::ID);
       Q_ASSERT(ext);
-      CountingFrameSegmentationExtension *segExt = dynamic_cast<CountingFrameSegmentationExtension *>(ext);
+      CountingFrameSegmentationExtension *segExt = dynamic_cast<CountingFrameSegmentationExtension *>(ext.data());
       segExt->setCountingFrames(m_countingFrames);
     }
   }
@@ -163,16 +165,16 @@ void CountingFrameChannelExtension::deleteCountingFrame(CountingFrame* countingF
 void CountingFrameChannelExtension::countinfFrameUpdated(CountingFrame* countingFrame)
 {
   QApplication::setOverrideCursor(Qt::WaitCursor);
-  Sample *sample = m_channel->sample();
+  SampleSPtr sample = m_channel->sample();
   Q_ASSERT(sample);
-  ModelItem::Vector items = sample->relatedItems(ModelItem::OUT, "where");
-  foreach(ModelItem *item, items)
+  ModelItemSList items = sample->relatedItems(EspINA::OUT, Sample::WHERE);
+  foreach(ModelItemSPtr item, items)
   {
-    if (ModelItem::SEGMENTATION == item->type())
+    if (EspINA::SEGMENTATION == item->type())
     {
-      ModelItemExtension *ext = item->extension(CountingFrameSegmentationExtension::ID);
+      ModelItemExtensionPtr ext = item->extension(CountingFrameSegmentationExtension::ID);
       Q_ASSERT(ext);
-      CountingFrameSegmentationExtension *segExt = dynamic_cast<CountingFrameSegmentationExtension *>(ext);
+      CountingFrameSegmentationExtension *segExt = dynamic_cast<CountingFrameSegmentationExtension *>(ext.data());
       segExt->evaluateCountingFrame(countingFrame);
     }
   }
