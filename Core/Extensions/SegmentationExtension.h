@@ -24,7 +24,13 @@
 
 namespace EspINA
 {
-  class SegmentationRepresentation;
+  // TODO: 2013-01-03 move representations to model
+  class SegmentationRepresentation
+  {
+    public:
+      explicit SegmentationRepresentation() {};
+      virtual ~SegmentationRepresentation() {};
+  };
   typedef QSharedPointer<SegmentationRepresentation> SegmentationRepresentationPtr;
 
   /// Interface to extend segmentation's behaviour

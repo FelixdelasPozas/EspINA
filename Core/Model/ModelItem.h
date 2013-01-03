@@ -79,8 +79,13 @@ namespace EspINA
       { return QString("%1=%2;").arg(name).arg(value); }
     };
 
-
-    class   Representation;
+    // TODO: 2013-01-03 move representations here
+    class   Representation
+    {
+      public:
+        explicit Representation() {};
+        virtual ~Representation() {};
+    };
     typedef QSharedPointer<Representation> RepresentationPtr;
 
     static const ArgumentId EXTENSIONS;
