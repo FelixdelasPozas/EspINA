@@ -156,6 +156,8 @@ namespace EspINA
   public slots:
     /// Update Segmentation Representation
     void updateSegmentationRepresentations(SegmentationList list = SegmentationList());
+    /// Update Channel Representation
+    void updateChannelRepresentations(ChannelList list = ChannelList());
     /// Request all registered views to update themselves
     void updateViews();
 

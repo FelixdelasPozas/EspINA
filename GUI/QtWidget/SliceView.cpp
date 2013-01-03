@@ -1200,6 +1200,23 @@ void SliceView::updateSegmentationRepresentations(SegmentationList list)
 }
 
 //-----------------------------------------------------------------------------
+void SliceView::updateChannelRepresentations(ChannelList list)
+{
+  if (isVisible())
+  {
+    ChannelList updateChannels;
+
+    if (list.empty())
+      updateChannels = m_channelReps.keys();
+    else
+      updateChannels = list;
+
+    foreach(ChannelPtr channel, updateChannels)
+      this->updateChannel(channel);
+  }
+}
+
+//-----------------------------------------------------------------------------
 vtkRenderWindow *SliceView::renderWindow()
 {
   return m_renderWindow;

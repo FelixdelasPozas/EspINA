@@ -119,6 +119,7 @@ namespace EspINA
 
     void showCrosshairs(bool) {};
     virtual void updateSegmentationRepresentations(SegmentationList list = SegmentationList());
+    virtual void updateChannelRepresentations(ChannelList list = ChannelList());
     virtual void updateSelection(){}
 
   public slots:

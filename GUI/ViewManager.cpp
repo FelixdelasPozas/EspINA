@@ -314,6 +314,15 @@ void ViewManager::updateSegmentationRepresentations(SegmentationList list)
 }
 
 //----------------------------------------------------------------------------
+void ViewManager::updateChannelRepresentations(ChannelList list)
+{
+  foreach(IEspinaView *view, m_espinaViews)
+  {
+    view->updateChannelRepresentations(list);
+  }
+}
+
+//----------------------------------------------------------------------------
 void ViewManager::showCrosshair(bool value)
 {
   foreach(EspinaRenderView *rView, m_renderViews)

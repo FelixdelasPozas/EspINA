@@ -133,6 +133,7 @@ namespace EspINA
     SettingsPtr settings() { return m_settings; }
 
     virtual void updateSegmentationRepresentations(SegmentationList list = SegmentationList());
+    virtual void updateChannelRepresentations(ChannelList list = ChannelList());
     void updateCrosshairPoint(PlaneType plane, Nm slicepos);
 
   public slots:

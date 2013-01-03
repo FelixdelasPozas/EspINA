@@ -400,8 +400,6 @@ void ChannelInspector::rejectedChanges()
         seg->notifyModification(true);
       }
     }
-
-    emit spacingUpdated();
   }
 
   if (m_opacity != m_channel->opacity())

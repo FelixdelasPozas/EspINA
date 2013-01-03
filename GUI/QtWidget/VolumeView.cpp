@@ -850,6 +850,23 @@ void VolumeView::updateSegmentationRepresentations(SegmentationList list)
 }
 
 //-----------------------------------------------------------------------------
+void VolumeView::updateChannelRepresentations(ChannelList list)
+{
+  if (isVisible())
+  {
+    ChannelList updateChannels;
+
+    if (list.empty())
+      updateChannels = m_channels;
+    else
+      updateChannels = list;
+
+    foreach(ChannelPtr channel, updateChannels)
+      this->updateChannel(channel);
+  }
+}
+
+//-----------------------------------------------------------------------------
 void VolumeView::resetView()
 {
   resetCamera();

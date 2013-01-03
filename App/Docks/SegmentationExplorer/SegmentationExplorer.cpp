@@ -345,9 +345,13 @@ void SegmentationExplorer::releaseInspectorResources(SegmentationInspector* insp
   }
 }
 
-
 //------------------------------------------------------------------------
 void SegmentationExplorer::updateSegmentationRepresentations(SegmentationList list)
+{
+}
+
+//------------------------------------------------------------------------
+void SegmentationExplorer::updateChannelRepresentations(ChannelList list)
 {
 }
 

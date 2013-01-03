@@ -522,8 +522,11 @@ void ChannelExplorer::dialogClosed(QObject *dialog)
     if (it.value() == dialog)
     {
       it.key()->notifyModification(true);
-      m_informationDialogs.erase(it);
+      ChannelList list;
+      list.append(it.key());
+      m_viewManager->updateChannelRepresentations(list);
       m_viewManager->updateViews();
+      m_informationDialogs.erase(it);
       return;
     }
     ++it;
