@@ -157,6 +157,8 @@ namespace EspINA
     mutable itk::TimeStamp m_lastUpdate;
   };
 
+  typedef QSharedPointer<AppositionSurfaceExtension> AppositionSurfaceExtensionSPtr;
+
 } // namespace EspINA
 
 #endif // APPOSITIONSURFACEEXTENSION_H

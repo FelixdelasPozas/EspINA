@@ -41,8 +41,8 @@ namespace EspINA
 
     class GUI;
   public:
-    explicit TaxonomyExplorer(EspinaModelSPtr         model,
-                              ViewManager           *vm,
+    explicit TaxonomyExplorer(EspinaModel *model,
+                              ViewManager *vm,
                               TaxonomyColorEnginePtr engine,
                               QWidget               *parent = 0);
     virtual ~TaxonomyExplorer();
@@ -58,8 +58,8 @@ namespace EspINA
     void removeSelectedTaxonomy();
 
   protected:
-    EspinaModelSPtr m_baseModel;
-    ViewManager   *m_viewManager;
+    EspinaModel *m_baseModel;
+    ViewManager *m_viewManager;
     TaxonomyColorEnginePtr m_engine;
 
     GUI *m_gui;

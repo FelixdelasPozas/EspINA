@@ -38,7 +38,7 @@ namespace EspINA
     explicit InformationProxy();
     virtual ~InformationProxy(){}
 
-    virtual void setSourceModel(EspinaModelSPtr sourceModel);
+    virtual void setSourceModel(EspinaModel *sourceModel);
 
     virtual QModelIndex mapFromSource(const QModelIndex& sourceIndex) const;
     virtual QModelIndex mapToSource(const QModelIndex& proxyIndex) const;
@@ -61,8 +61,8 @@ namespace EspINA
     void sourceDataChanged(const QModelIndex& sourceTopLeft, const QModelIndex& sourceBottomRight);
 
   private:
-    EspinaModelSPtr     m_model;
-    QStringList        m_query;
+    EspinaModel *m_model;
+    QStringList  m_query;
     QList<QModelIndex> m_elements;
   };
 

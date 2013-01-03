@@ -52,10 +52,10 @@ const ModelItem::ArgumentId TYPE = "Type";
 
 
 //-----------------------------------------------------------------------------
-SeedGrowSegmentation::SeedGrowSegmentation(EspinaModelSPtr model,
-                                           QUndoStack    *undoStack,
-                                           ViewManager   *viewManager,
-                                           QWidget       *parent)
+SeedGrowSegmentation::SeedGrowSegmentation(EspinaModel *model,
+                                           QUndoStack  *undoStack,
+                                           ViewManager *viewManager,
+                                           QWidget     *parent)
 : IToolBar        (parent)
 , m_model         (model)
 , m_undoStack     (undoStack)
@@ -105,15 +105,15 @@ SeedGrowSegmentation::~SeedGrowSegmentation()
 }
 
 //-----------------------------------------------------------------------------
-void SeedGrowSegmentation::initToolBar(EspinaModelSPtr model,
-                                       QUndoStack     *undoStack,
-                                       ViewManager    *viewManager)
+void SeedGrowSegmentation::initToolBar(EspinaModel *model,
+                                       QUndoStack  *undoStack,
+                                       ViewManager *viewManager)
 {
 
 }
 
 //-----------------------------------------------------------------------------
-void SeedGrowSegmentation::initFactoryExtension(EspinaFactoryPtr factory)
+void SeedGrowSegmentation::initFactoryExtension(EspinaFactory *factory)
 {
   // Register Factory's filters
   factory->registerFilter(this, SeedGrowSegmentationFilter::TYPE);

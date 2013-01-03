@@ -24,9 +24,9 @@ namespace EspINA
 
     virtual void addPanel(ISettingsPanel *panel){}
 
-    virtual void acceptChanges(){}; //TODO: Make abstract
-    virtual void rejectChanges(){};
-    virtual bool modified() const {return false;}
+    virtual void acceptChanges()  = 0;
+    virtual void rejectChanges()  = 0;
+    virtual bool modified() const = 0;
 
     virtual ISettingsPanelPtr clone() = 0;
   };

@@ -334,7 +334,7 @@ AppositionSurfaceExtension::PolyData AppositionSurfaceExtension::clipPlane(Appos
   clipper->SetValue(0);
   clipper->Update();
 
-  PolyData clippedPlane = PolyData::New();
+  PolyData clippedPlane;// = PolyData::New();
 
   //   qDebug() << "Correct Plane's visualization and cell area's computation";
   clippedPlane = triangulate(clipper->GetOutput());
@@ -368,9 +368,9 @@ int AppositionSurfaceExtension::computeMeanEuclideanError(vtkPoints * pointsA, v
 bool AppositionSurfaceExtension::hasConverged( vtkPoints * lastPlanePoints, PointsListType & pointsList, double threshold) const
 {
   double error = 0;
-  
+
   for (PointsListType::iterator it = pointsList.begin();
-       it != pointsList.end(); it++) {
+       it != pointsList.end(); ++it) {
     computeMeanEuclideanError(lastPlanePoints, *it, error);
     if (error <= threshold) return true;
   }
@@ -768,13 +768,11 @@ double AppositionSurfaceExtension::computePerimeter() const
       //perimeters[components->GetValue(edge.Source)] += 1;
     }
 
-    double sum_per = 0.0;
     double max_per = 0.0;
     //  std::cout << "myvector contains:";
     for (unsigned int i=0;i<perimeters.size();i++)
     {
       //      std::cout << " " << perimeters[i];
-      sum_per += perimeters[i];
       max_per = std::max(perimeters[i], max_per);
     }
     totalPerimeter = max_per;

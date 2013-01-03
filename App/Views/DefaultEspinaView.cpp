@@ -44,8 +44,8 @@
 using namespace EspINA;
 
 //----------------------------------------------------------------------------
-DefaultEspinaView::DefaultEspinaView(EspinaModelSPtr model,
-                                     ViewManager* viewManager,
+DefaultEspinaView::DefaultEspinaView(EspinaModel *model,
+                                     ViewManager *viewManager,
                                      QMainWindow *parent)
 : QAbstractItemView(parent)
 , m_model(model)
@@ -105,7 +105,7 @@ DefaultEspinaView::DefaultEspinaView(EspinaModelSPtr model,
 
   parent->setCentralWidget(this);
 
-  setModel(m_model.data());
+  setModel(m_model);
 }
 
 //-----------------------------------------------------------------------------
@@ -552,6 +552,12 @@ void DefaultEspinaView::SettingsPanel::acceptChanges()
   m_yzPanel->acceptChanges();
   m_xzPanel->acceptChanges();
   m_volPanel->acceptChanges();
+}
+
+//-----------------------------------------------------------------------------
+void DefaultEspinaView::SettingsPanel::rejectChanges()
+{
+
 }
 
 //-----------------------------------------------------------------------------

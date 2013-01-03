@@ -43,22 +43,22 @@
 using namespace EspINA;
 
 //------------------------------------------------------------------------
-ConnectomicsDialog::ConnectomicsDialog(EspinaModelSPtr model,
-                                       ViewManager *vm,
+ConnectomicsDialog::ConnectomicsDialog(EspinaModel *model,
+                                       ViewManager *viewManager,
                                        QWidget *parent,
                                        Qt::WindowFlags flags)
 : QDialog(parent, flags)
 , m_model(model)
-, m_viewManager(vm)
+, m_viewManager(viewManager)
 {
   setObjectName("ConnectomicsInformationDialog");
   setWindowTitle("Connectomics Information");
   setupUi(this);
-  listView1->setModel(m_model.data());
+  listView1->setModel(m_model);
   listView1->setRootIndex(m_model->segmentationRoot());
 
   // generar grafo conectomica
-  generateConectomicGraph(m_model.data());
+  generateConectomicGraph(m_model);
   m_listView << listView1;
 
   connect(listView1, SIGNAL(clicked(QModelIndex)), this, SLOT(showGraphConnectomicsInformation(QModelIndex)));

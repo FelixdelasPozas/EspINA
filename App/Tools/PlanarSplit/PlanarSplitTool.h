@@ -35,9 +35,9 @@ namespace EspINA
   {
     Q_OBJECT
   public:
-    explicit PlanarSplitTool(EspinaModelSPtr model,
-                             QUndoStack    *undoStack,
-                             ViewManager   *viewManager);
+    explicit PlanarSplitTool(EspinaModel *model,
+                             QUndoStack  *undoStack,
+                             ViewManager *viewManager);
 
     virtual QCursor cursor() const;
     virtual bool filterEvent(QEvent* e, EspinaRenderView* view = 0);
@@ -51,9 +51,9 @@ namespace EspINA
     void splittingStopped();
 
   private:
-    EspinaModelSPtr m_model;
-    QUndoStack    *m_undoStack;
-    ViewManager   *m_viewManager;
+    EspinaModel *m_model;
+    QUndoStack  *m_undoStack;
+    ViewManager *m_viewManager;
 
     bool m_inUse;
     bool m_enabled;

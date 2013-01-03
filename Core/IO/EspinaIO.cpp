@@ -44,8 +44,8 @@ const QString SEG_FILE_VERSION  = "1";
 
 //-----------------------------------------------------------------------------
 EspinaIO::STATUS EspinaIO::loadFile(QFileInfo file,
-                                    EspinaModelSPtr model,
-                                    QUndoStack *undoStack,
+                                    EspinaModel *model,
+                                    QUndoStack  *undoStack,
                                     QDir tmpDir)
 {
   const QString ext = file.suffix();
@@ -63,15 +63,15 @@ EspinaIO::STATUS EspinaIO::loadFile(QFileInfo file,
 
 //-----------------------------------------------------------------------------
 EspinaIO::STATUS EspinaIO::loadChannel(QFileInfo file,
-                                       EspinaModelSPtr model,
-                                       QUndoStack* undoStack,
+                                       EspinaModel *model,
+                                       QUndoStack  *undoStack,
                                        ChannelSPtr &channelPtr)
 {
   //TODO 2012-10-07
   // Try to recover sample form DB using channel information
   SampleSPtr existingSample;
 
-  EspinaFactoryPtr factory = model->factory();
+  EspinaFactory *factory = model->factory();
 
   if (existingSample.isNull())
   {
@@ -129,7 +129,7 @@ EspinaIO::STATUS EspinaIO::loadChannel(QFileInfo file,
 
 //-----------------------------------------------------------------------------
 EspinaIO::STATUS EspinaIO::loadSegFile(QFileInfo file,
-                                       EspinaModelSPtr model,
+                                       EspinaModel *model,
                                        QDir tmpDir)
 {
   // Create tmp dir if necessary
@@ -263,7 +263,7 @@ bool EspinaIO::zipVolume(Filter::Output output,
 }
 
 //-----------------------------------------------------------------------------
-EspinaIO::STATUS EspinaIO::saveSegFile(QFileInfo file, EspinaModelSPtr model)
+EspinaIO::STATUS EspinaIO::saveSegFile(QFileInfo file, EspinaModel *model)
 {
   // Create tmp dir
 //   qDebug() << file.absolutePath();

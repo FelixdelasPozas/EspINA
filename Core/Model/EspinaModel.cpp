@@ -32,7 +32,7 @@
 using namespace EspINA;
 
 //------------------------------------------------------------------------
-EspinaModel::EspinaModel(EspinaFactoryPtr factory)
+EspinaModel::EspinaModel(EspinaFactory *factory)
 : m_factory   (factory)
 , m_tax       (NULL)
 , m_relations (new RelationshipGraph())
@@ -387,6 +387,7 @@ void EspinaModel::addChannel(ChannelSPtr channel)
   }
   endInsertRows();
 
+  emit channelAdded(channel);
   markAsChanged();
 }
 
@@ -438,7 +439,7 @@ void EspinaModel::addSegmentation(SegmentationSPtr segmentation)
 }
 
 //------------------------------------------------------------------------
-void EspinaModel::addSegmentation(SharedSegmentationList segmentations)
+void EspinaModel::addSegmentation(SegmentationSList segmentations)
 {
   int start = m_segmentations.size();
   int end   = start + segmentations.size() - 1;
@@ -472,7 +473,7 @@ void EspinaModel::removeSegmentation(SegmentationSPtr segmentation)
 }
 
 //------------------------------------------------------------------------
-void EspinaModel::removeSegmentation(SharedSegmentationList segs)
+void EspinaModel::removeSegmentation(SegmentationSList segs)
 {
   foreach(SegmentationSPtr seg, segs)
     removeSegmentation(seg);
@@ -631,7 +632,7 @@ bool EspinaModel::loadSerialization(istream& stream,
   typedef QPair<ModelItemSPtr , ModelItem::Arguments> NonInitilizedItem;
   QList<NonInitilizedItem> nonInitializedItems;
   QList<VertexProperty> segmentationNodes;
-  SharedSegmentationList newSegmentations;
+  SegmentationSList newSegmentations;
 
   foreach(VertexProperty v, input->vertices())
   {
@@ -830,7 +831,10 @@ void EspinaModel::setTaxonomy(TaxonomySPtr tax)
     beginInsertRows(taxonomyRoot(), 0, tax->elements().size() - 1);
     m_tax = tax;
     endInsertRows();
+
+    emit taxonomyAdded(m_tax);
   }
+  markAsChanged();
 }
 
 //------------------------------------------------------------------------
@@ -840,6 +844,8 @@ void EspinaModel::addTaxonomy(TaxonomySPtr tax)
     addTaxonomy(tax->root());
   else
     setTaxonomy(tax);
+
+  markAsChanged();
 }
 
 //------------------------------------------------------------------------

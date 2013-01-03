@@ -42,9 +42,9 @@
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
-Brush::Brush(EspinaModelSPtr model,
-             QUndoStack    *undoStack,
-             ViewManager   *viewManager)
+Brush::Brush(EspinaModel *model,
+             QUndoStack  *undoStack,
+             ViewManager *viewManager)
 : m_model(model)
 , m_undoStack(undoStack)
 , m_viewManager(viewManager)
@@ -69,6 +69,11 @@ Brush::Brush(EspinaModelSPtr model,
 //-----------------------------------------------------------------------------
 Brush::~Brush()
 {
+  delete m_brush;
+  if (m_drawCommand)
+    delete m_drawCommand;
+  if (m_eraseCommand)
+    delete m_eraseCommand;
 }
 
 //-----------------------------------------------------------------------------

@@ -52,13 +52,13 @@ protected:
 };
 
 //------------------------------------------------------------------------
-DataView::DataView(EspinaModelSPtr model,
-                   ViewManager *vm,
+DataView::DataView(EspinaModel *model,
+                   ViewManager *viewmManager,
                    QWidget     *parent,
                    Qt::WindowFlags f)
 : QWidget(parent, f)
 , m_baseModel(model)
-, m_viewManager(vm)
+, m_viewManager(viewmManager)
 , m_model(new InformationProxy())
 , m_sort (new DataSortFiler())
 {

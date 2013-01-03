@@ -33,7 +33,7 @@ namespace EspINA
   {
     Q_OBJECT
   public:
-    explicit SegmentationContextualMenu(EspinaModelSPtr model,
+    explicit SegmentationContextualMenu(EspinaModel *model,
                                         SegmentationList selection,
                                         QWidget* parent = 0);
     void setSelection(SegmentationList list);

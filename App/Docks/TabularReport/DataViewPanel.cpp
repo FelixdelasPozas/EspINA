@@ -24,9 +24,9 @@
 using namespace EspINA;
 
 //----------------------------------------------------------------------------
-DataViewPanel::DataViewPanel(EspinaModelSPtr model,
-                             ViewManager    *viewManager,
-                             QWidget        *parent)
+DataViewPanel::DataViewPanel(EspinaModel *model,
+                             ViewManager *viewManager,
+                             QWidget     *parent)
   : IDockWidget(parent)
 {
   setObjectName("Data View Panel");
@@ -43,7 +43,7 @@ DataViewPanel::~DataViewPanel()
 }
 
 //----------------------------------------------------------------------------
-void DataViewPanel::initDockWidget(EspinaModelSPtr model,
+void DataViewPanel::initDockWidget(EspinaModel *model,
                                    QUndoStack     *undoStack,
                                    ViewManager    *viewManager)
 {

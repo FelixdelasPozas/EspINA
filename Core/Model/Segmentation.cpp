@@ -315,9 +315,9 @@ void Segmentation::setVisible(bool visible)
 }
 
 //------------------------------------------------------------------------
-SharedSegmentationList Segmentation::components()
+SegmentationSList Segmentation::components()
 {
-  SharedSegmentationList res;
+  SegmentationSList res;
 
   ModelItemSList subComponents = relatedItems(OUT, COMPOSED_LINK);
 
@@ -331,9 +331,9 @@ SharedSegmentationList Segmentation::components()
 }
 
 //------------------------------------------------------------------------
-SharedSegmentationList Segmentation::componentOf()
+SegmentationSList Segmentation::componentOf()
 {
-  SharedSegmentationList res;
+  SegmentationSList res;
 
   ModelItemSList subComponents = relatedItems(IN, COMPOSED_LINK);
 

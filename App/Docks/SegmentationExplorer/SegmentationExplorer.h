@@ -55,15 +55,15 @@ namespace EspINA
     class Layout;
 
   public:
-    explicit SegmentationExplorer(EspinaModelSPtr model,
+    explicit SegmentationExplorer(EspinaModel *model,
                                   QUndoStack  *undoStack,
                                   ViewManager *viewManager,
                                   QWidget     *parent = 0);
     virtual ~SegmentationExplorer();
 
-    virtual void initDockWidget(EspinaModelSPtr model,
-                                QUndoStack     *undoStack,
-                                ViewManager    *viewManager);
+    virtual void initDockWidget(EspinaModel *model,
+                                QUndoStack  *undoStack,
+                                ViewManager *viewManager);
 
     virtual void reset(); // slot
 
@@ -91,9 +91,9 @@ namespace EspINA
     virtual void updateSelection();
 
   protected:
-    EspinaModelSPtr m_baseModel;
-    QUndoStack     *m_undoStack;
-    ViewManager    *m_viewManager;
+    EspinaModel *m_baseModel;
+    QUndoStack  *m_undoStack;
+    ViewManager *m_viewManager;
 
     GUI *m_gui;
     QStringList      m_layoutNames;

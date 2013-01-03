@@ -43,17 +43,17 @@ namespace EspINA
     )
 
   public:
-    explicit CompositionToolBar(EspinaModelSPtr model,
-                                QUndoStack     *undoStack,
-                                ViewManager    *viewManager,
-                                QWidget        *parent = 0);
+    explicit CompositionToolBar(EspinaModel *model,
+                                QUndoStack  *undoStack,
+                                ViewManager *viewManager,
+                                QWidget     *parent = 0);
     virtual ~CompositionToolBar();
 
-    virtual void initToolBar(EspinaModelSPtr model,
-                             QUndoStack     *undoStack,
-                             ViewManager    *viewManager);
+    virtual void initToolBar(EspinaModel *model,
+                             QUndoStack  *undoStack,
+                             ViewManager *viewManager);
 
-    virtual void initFactoryExtension(EspinaFactoryPtr factory);
+    virtual void initFactoryExtension(EspinaFactory *factory);
 
     virtual FilterSPtr createFilter(const QString              &filter,
                                     const Filter::NamedInputs  &inputs,
@@ -69,9 +69,9 @@ namespace EspINA
     void initComposeTool();
 
   private:
-    EspinaModelSPtr m_model;
-    QUndoStack    *m_undoStack;
-    ViewManager   *m_viewManager;
+    EspinaModel *m_model;
+    QUndoStack  *m_undoStack;
+    ViewManager *m_viewManager;
 
     QAction *m_compose;
   };

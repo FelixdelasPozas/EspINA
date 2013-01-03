@@ -28,7 +28,7 @@ using namespace EspINA;
 
 //------------------------------------------------------------------------
 AddSample::AddSample(SampleSPtr  sample,
-                     EspinaModelSPtr  model,
+                     EspinaModel *model,
                      QUndoCommand    *parent)
 : QUndoCommand(parent)
 , m_model(model)

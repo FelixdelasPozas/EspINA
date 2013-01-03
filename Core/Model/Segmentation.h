@@ -44,7 +44,7 @@ namespace EspINA
 {
 
   typedef QSharedPointer<Segmentation> SegmentationSPtr;
-  typedef QList<SegmentationSPtr> SharedSegmentationList;
+  typedef QList<SegmentationSPtr> SegmentationSList;
 
   class Segmentation
   : public PickableItem
@@ -147,10 +147,10 @@ namespace EspINA
     QStringList users() const {return m_args.users();}
 
     /// Return the list of segmentations which compose this segmentation
-    SharedSegmentationList components();
+    SegmentationSList components();
 
     /// Return the list of segmentations which this segmentation is a component
-    SharedSegmentationList componentOf();
+    SegmentationSList componentOf();
 
 
     /// Add a new extension to the segmentation

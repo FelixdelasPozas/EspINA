@@ -57,15 +57,15 @@ namespace EspINA
     )
 
   public:
-    explicit MainToolBar(EspinaModelSPtr model,
-                         QUndoStack    *undoStack,
-                         ViewManager   *vm,
-                         QWidget       *parent = 0);
+    explicit MainToolBar(EspinaModel *model,
+                         QUndoStack  *undoStack,
+                         ViewManager *viewManager,
+                         QWidget     *parent = 0);
     virtual ~MainToolBar();
 
-    virtual void initToolBar(EspinaModelSPtr model,
-                             QUndoStack     *undoStack,
-                             ViewManager    *viewManager);
+    virtual void initToolBar(EspinaModel *model,
+                             QUndoStack  *undoStack,
+                             ViewManager *viewManager);
 
     virtual void reset(); // slot
 
@@ -75,7 +75,7 @@ namespace EspINA
 
   protected slots:
     void setActiveTaxonomy(const QModelIndex &index);
-    void updateTaxonomy(QModelIndex left, QModelIndex right);
+    void updateTaxonomy(TaxonomySPtr taxonomy);
     void removeSegmentation(bool active);
     void removeSegmentation(SegmentationPtr seg);
     void toggleCrosshair(bool);
@@ -86,9 +86,9 @@ namespace EspINA
     void showSegmentations(bool);
 
   private:
-    EspinaModelSPtr m_model;
-    QUndoStack     *m_undoStack;
-    ViewManager    *m_viewManager;
+    EspinaModel *m_model;
+    QUndoStack  *m_undoStack;
+    ViewManager *m_viewManager;
 
     QAction             *m_toggleSegVisibility;
     QAction             *m_removeSegmentation;

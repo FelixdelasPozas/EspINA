@@ -35,7 +35,7 @@ namespace EspINA
     TaxonomyProxy(QObject *parent=0);
     virtual ~TaxonomyProxy();
 
-    virtual void setSourceModel(EspinaModelSPtr sourceModel);
+    virtual void setSourceModel(EspinaModel *sourceModel);
 
     virtual QVariant data(const QModelIndex& proxyIndex, int role = Qt::DisplayRole) const;
 
@@ -76,7 +76,7 @@ namespace EspINA
     int numTaxonomies(TaxonomyElementPtr taxonomy) const;
 
   private:
-    EspinaModelSPtr m_model;
+    EspinaModel *m_model;
     // Keep a reference to the taxonomies which belong to the root taxonomy
     TaxonomyElementList m_rootTaxonomies;
     // We need to rely on our own row count for each item in the proxy's model

@@ -42,10 +42,10 @@
 using namespace EspINA;
 
 //----------------------------------------------------------------------------
-MainToolBar::MainToolBar(EspinaModelSPtr model,
-                         QUndoStack     *undoStack,
-                         ViewManager    *viewManager,
-                         QWidget        *parent)
+MainToolBar::MainToolBar(EspinaModel *model,
+                         QUndoStack  *undoStack,
+                         ViewManager *viewManager,
+                         QWidget     *parent)
 : IToolBar     (parent)
 , m_model      (model)
 , m_undoStack  (undoStack)
@@ -74,12 +74,12 @@ MainToolBar::MainToolBar(EspinaModelSPtr model,
           this, SLOT(toggleCrosshair(bool)));
 
   m_taxonomySelector = new QComboTreeView(this);
-  m_taxonomySelector->setModel(model.data());
+  m_taxonomySelector->setModel(model);
   m_taxonomySelector->setRootModelIndex(model->taxonomyRoot());
   connect(m_taxonomySelector,SIGNAL(activated(QModelIndex)),
           this, SLOT(setActiveTaxonomy(QModelIndex)));
-  connect(model.data(), SIGNAL(dataChanged(QModelIndex,QModelIndex)),
-          this,  SLOT(updateTaxonomy(QModelIndex,QModelIndex)));
+  connect(model, SIGNAL(taxonomyAdded(TaxonomySPtr)),
+          this,  SLOT(updateTaxonomy(TaxonomySPtr)));
   m_taxonomySelector->setToolTip( tr("Type of new segmentation") );
 
   addWidget(m_taxonomySelector);
@@ -115,9 +115,9 @@ MainToolBar::~MainToolBar()
 }
 
 //----------------------------------------------------------------------------
-void MainToolBar::initToolBar(EspinaModelSPtr model,
-                              QUndoStack     *undoStack,
-                              ViewManager    *viewManager)
+void MainToolBar::initToolBar(EspinaModel *model,
+                              QUndoStack  *undoStack,
+                              ViewManager *viewManager)
 {
 
 }
@@ -163,12 +163,12 @@ void MainToolBar::setActiveTaxonomy(const QModelIndex& index)
 }
 
 //----------------------------------------------------------------------------
-void MainToolBar::updateTaxonomy(QModelIndex left, QModelIndex right)
+void MainToolBar::updateTaxonomy(TaxonomySPtr taxonomy)
 {
-  if (left == m_taxonomySelector->view()->rootIndex())
+  if (taxonomy && !taxonomy->elements().isEmpty())
   {
     m_taxonomySelector->setCurrentIndex(0);
-    setActiveTaxonomy(left.child(0,0));
+  m_viewManager->setActiveTaxonomy(taxonomy->elements().first().data());
   }
 }
 

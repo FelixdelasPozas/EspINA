@@ -83,6 +83,12 @@ void CountingFrameRenderer::show()
   emit renderRequested();
 }
 
+//-----------------------------------------------------------------------------
+unsigned int CountingFrameRenderer::getNumberOfvtkActors()
+{
+  return 0;
+}
+
 
 //-----------------------------------------------------------------------------
 void CountingFrameRenderer::countingFrameCreated(CountingFrame* cf)
@@ -119,5 +125,5 @@ void CountingFrameRenderer::clean()
 //-----------------------------------------------------------------------------
 IRendererSPtr CountingFrameRenderer::clone()
 {
-  return IRendererPtr(new CountingFrameRenderer(m_plugin));
+  return IRendererSPtr(new CountingFrameRenderer(m_plugin));
 }

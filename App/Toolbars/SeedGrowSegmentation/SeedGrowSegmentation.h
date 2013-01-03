@@ -22,7 +22,6 @@
 #include <Core/Interfaces/IFactoryExtension.h>
 #include <Core/Interfaces/IFilterCreator.h>
 
-#include <Core/Model/EspinaModel.h>
 #include <GUI/ISettingsPanel.h>
 #include <GUI/Pickers/IPicker.h>
 #include <Tools/SeedGrowSegmentation/SeedGrowSegmentationTool.h>
@@ -57,18 +56,18 @@ namespace EspINA
     class SettingsPanel;
 
   public:
-    SeedGrowSegmentation(EspinaModelSPtr model,
-                         QUndoStack     *undoStack,
-                         ViewManager    *vm,
-                         QWidget        *parent=NULL);
+    SeedGrowSegmentation(EspinaModel *model,
+                         QUndoStack  *undoStack,
+                         ViewManager *vm,
+                         QWidget     *parent=NULL);
     virtual ~SeedGrowSegmentation();
 
-    virtual void initToolBar(EspinaModelSPtr model,
-                             QUndoStack     *undoStack,
-                             ViewManager    *viewManager);
-    virtual void initFactoryExtension(EspinaFactoryPtr factory);
+    virtual void initToolBar(EspinaModel *model,
+                             QUndoStack  *undoStack,
+                             ViewManager *viewManager);
+    virtual void initFactoryExtension(EspinaFactory *factory);
 
-    virtual FilterSPtr createFilter(const QString              &filter,
+    virtual FilterSPtr createFilter(const QString             &filter,
                                    const Filter::NamedInputs  &inputs,
                                    const ModelItem::Arguments &args);
 
@@ -86,9 +85,9 @@ namespace EspINA
     void buildPickers();
 
   private:
-    EspinaModelSPtr m_model;
-    QUndoStack     *m_undoStack;
-    ViewManager    *m_viewManager;
+    EspinaModel *m_model;
+    QUndoStack  *m_undoStack;
+    ViewManager *m_viewManager;
 
     ThresholdAction  *m_threshold;
     DefaultVOIAction *m_useDefaultVOI;

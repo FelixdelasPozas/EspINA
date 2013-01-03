@@ -44,18 +44,18 @@ TaxonomyProxy::~TaxonomyProxy()
 }
 
 //------------------------------------------------------------------------
-void TaxonomyProxy::setSourceModel(EspinaModelSPtr sourceModel)
+void TaxonomyProxy::setSourceModel(EspinaModel *sourceModel)
 {
   m_model = sourceModel;
-  connect(m_model.data(), SIGNAL(rowsInserted(const QModelIndex&, int, int)),
+  connect(m_model, SIGNAL(rowsInserted(const QModelIndex&, int, int)),
           this, SLOT(sourceRowsInserted(const QModelIndex&, int, int)));
-  connect(m_model.data(), SIGNAL(rowsRemoved(const QModelIndex&, int, int)),
+  connect(m_model, SIGNAL(rowsRemoved(const QModelIndex&, int, int)),
           this, SLOT(sourceRowsRemoved(QModelIndex,int,int)));
-  connect(m_model.data(), SIGNAL(rowsAboutToBeRemoved(const QModelIndex&, int, int)),
+  connect(m_model, SIGNAL(rowsAboutToBeRemoved(const QModelIndex&, int, int)),
           this, SLOT(sourceRowsAboutToBeRemoved(QModelIndex,int,int)));
-  connect(m_model.data(), SIGNAL(dataChanged(QModelIndex,QModelIndex)),
+  connect(m_model, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
           this,SLOT(sourceDataChanged(QModelIndex,QModelIndex)));
-  QAbstractProxyModel::setSourceModel(m_model.data());
+  QAbstractProxyModel::setSourceModel(m_model);
 }
 
 //------------------------------------------------------------------------

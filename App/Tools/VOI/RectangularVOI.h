@@ -40,8 +40,8 @@ namespace EspINA
 
     Q_OBJECT
   public:
-    explicit RectangularVOI(EspinaModelSPtr model,
-                            ViewManager    *viewManager);
+    explicit RectangularVOI(EspinaModel *model,
+                            ViewManager *viewManager);
     virtual ~RectangularVOI();
 
     virtual QCursor cursor() const;
@@ -59,8 +59,8 @@ namespace EspINA
     void voiDeactivated();
 
   private:
-    EspinaModelSPtr m_model;
-    ViewManager    *m_viewManager;
+    EspinaModel *m_model;
+    ViewManager *m_viewManager;
 
     bool m_inUse;
     bool m_enabled;

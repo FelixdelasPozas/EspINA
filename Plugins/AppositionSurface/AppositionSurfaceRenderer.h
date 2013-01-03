@@ -39,7 +39,7 @@ namespace EspINA
     struct State;
 
   public:
-    explicit AppositionSurfaceRenderer(QColor color, AppositionSurface *plugin);
+    explicit AppositionSurfaceRenderer(AppositionSurface *plugin);
     virtual ~AppositionSurfaceRenderer();
 
     virtual const QIcon   icon()    const { return QIcon(":/AppSurface.svg"); }
@@ -68,6 +68,8 @@ namespace EspINA
     static QMap<ModelItemPtr, Representation*> m_representations;
     QMap<ModelItemPtr , State *> m_state;
   };
+
+  typedef QSharedPointer<AppositionSurfaceRenderer> AppositionSurfaceRendererSPtr;
 }
 
 #endif // APPOSITIONSURFACERENDERER_H

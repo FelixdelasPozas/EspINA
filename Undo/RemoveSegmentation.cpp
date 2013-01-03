@@ -34,7 +34,7 @@ RemoveSegmentation::SegInfo::SegInfo(SegmentationSPtr seg)
 
 //------------------------------------------------------------------------
 RemoveSegmentation::RemoveSegmentation(SegmentationPtr seg,
-                                       EspinaModelSPtr  model,
+                                       EspinaModel  *model,
                                        QUndoCommand *parent)
 : QUndoCommand(parent)
 , m_model(model)
@@ -44,7 +44,7 @@ RemoveSegmentation::RemoveSegmentation(SegmentationPtr seg,
 
 //------------------------------------------------------------------------
 RemoveSegmentation::RemoveSegmentation(SegmentationList segs,
-                                       EspinaModelSPtr   model,
+                                       EspinaModel *model,
                                        QUndoCommand    *parent)
 : QUndoCommand(parent)
 , m_model(model)
@@ -57,7 +57,7 @@ RemoveSegmentation::RemoveSegmentation(SegmentationList segs,
 //------------------------------------------------------------------------
 void RemoveSegmentation::redo()
 {
-  SharedSegmentationList segsToRemove;
+  SegmentationSList segsToRemove;
   FilterSPtrList       filtersToRemove;
 
   foreach(SegInfo segInfo, m_segmentations)
@@ -87,7 +87,7 @@ void RemoveSegmentation::undo()
 
   m_removedFilters.clear();
 
-  SharedSegmentationList segsToAdd;
+  SegmentationSList segsToAdd;
   foreach(SegInfo segInfo, m_segmentations)
     segsToAdd << segInfo.segmentation;
   m_model->addSegmentation(segsToAdd);

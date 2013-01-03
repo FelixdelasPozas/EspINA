@@ -190,7 +190,7 @@ namespace EspINA
 
 
     /// Convenience function to get vtkProp3D's channel
-    ChannelPtr property3DChannel(vtkProp3D *prop); // TODO: Renombrar
+    ChannelPtr property3DChannel(vtkProp3D *prop);
     /// Convenience function to get vtkProp3D's segmentation
     SegmentationPtr property3DSegmentation(vtkProp3D *prop);
 

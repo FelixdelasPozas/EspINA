@@ -48,18 +48,18 @@ ChannelProxy::~ChannelProxy()
 }
 
 //------------------------------------------------------------------------
-void ChannelProxy::setSourceModel(EspinaModelSPtr sourceModel)
+void ChannelProxy::setSourceModel(EspinaModel *sourceModel)
 {
   m_model = sourceModel;
-  connect(sourceModel.data(), SIGNAL(rowsInserted(const QModelIndex&, int, int)),
+  connect(sourceModel, SIGNAL(rowsInserted(const QModelIndex&, int, int)),
           this, SLOT(sourceRowsInserted(const QModelIndex&, int, int)));
-  connect(sourceModel.data(), SIGNAL(rowsRemoved(const QModelIndex&, int, int)),
+  connect(sourceModel, SIGNAL(rowsRemoved(const QModelIndex&, int, int)),
           this, SLOT(sourceRowsRemoved(QModelIndex, int, int)));
-  connect(sourceModel.data(), SIGNAL(rowsAboutToBeRemoved(const QModelIndex&, int, int)),
+  connect(sourceModel, SIGNAL(rowsAboutToBeRemoved(const QModelIndex&, int, int)),
           this, SLOT(sourceRowsAboutToBeRemoved(QModelIndex, int, int)));
-  connect(sourceModel.data(), SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)),
+  connect(sourceModel, SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)),
           this, SLOT(sourceDataChanged(const QModelIndex &,const QModelIndex &)));
-  QAbstractProxyModel::setSourceModel(sourceModel.data());
+  QAbstractProxyModel::setSourceModel(sourceModel);
 }
 
 //------------------------------------------------------------------------

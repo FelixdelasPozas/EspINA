@@ -38,6 +38,7 @@ namespace EspINA
   {
   public:
     explicit GeneralSettings();
+    ~GeneralSettings();
 
     //QString stackDirectory() const {return m_stackDir;}
     //void setStackDirectory(QString path);

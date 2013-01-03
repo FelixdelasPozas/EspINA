@@ -48,7 +48,7 @@ namespace EspINA
   {
     Q_OBJECT
   public:
-    explicit SeedGrowSegmentationTool(EspinaModelSPtr model,
+    explicit SeedGrowSegmentationTool(EspinaModel *model,
                                       QUndoStack  *undoStack,
                                       ViewManager *viewManager,
                                       ThresholdAction  *th,
@@ -81,9 +81,9 @@ namespace EspINA
     void addPreview(EspinaRenderView*);
 
   private:
-    EspinaModelSPtr m_model;
-    QUndoStack    *m_undoStack;
-    ViewManager   *m_viewManager;
+    EspinaModel *m_model;
+    QUndoStack  *m_undoStack;
+    ViewManager *m_viewManager;
 
     SeedGrowSegmentationSettings *m_settings;
     DefaultVOIAction *m_defaultVOI;

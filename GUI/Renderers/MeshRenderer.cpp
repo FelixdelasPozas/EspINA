@@ -243,7 +243,7 @@ void MeshRenderer::hide()
   m_enable = false;
   QMap<ModelItemPtr, Representation>::iterator it;
 
-  for (it = m_segmentations.begin(); it != m_segmentations.end(); it++)
+  for (it = m_segmentations.begin(); it != m_segmentations.end(); ++it)
     if ((*it).visible)
     {
       m_renderer->RemoveActor((*it).actor);
@@ -264,7 +264,7 @@ void MeshRenderer::show()
 
   QMap<ModelItemPtr, Representation>::iterator it;
 
-  for (it = m_segmentations.begin(); it != m_segmentations.end(); it++)
+  for (it = m_segmentations.begin(); it != m_segmentations.end(); ++it)
     if (!(*it).visible)
     {
       m_renderer->AddActor((*it).actor);
@@ -281,7 +281,7 @@ unsigned int MeshRenderer::getNumberOfvtkActors()
   unsigned int numActors = 0;
 
   QMap<ModelItemPtr, Representation>::iterator it;
-  for (it = m_segmentations.begin(); it != m_segmentations.end(); it++)
+  for (it = m_segmentations.begin(); it != m_segmentations.end(); ++it)
     if ((*it).visible)
       numActors++;
 

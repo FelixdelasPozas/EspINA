@@ -74,7 +74,7 @@ namespace EspINA
     explicit CODECommand(SegmentationList inputs,
                          Operation op,
                          unsigned int radius,
-                         EspinaModelSPtr model
+                         EspinaModel *model
     )
     : m_model(model)
     {
@@ -155,9 +155,9 @@ namespace EspINA
     }
 
   private:
-    EspinaModelSPtr m_model;
+    EspinaModel *m_model;
     QList<Connection> m_oldConnections, m_newConnections;
-    SharedSegmentationList  m_segmentations;
+    SegmentationSList  m_segmentations;
   };
 
 } // namespace EspINA
@@ -165,16 +165,16 @@ namespace EspINA
 const QString EditorToolBar::CODECommand::INPUTLINK = "Input";
 
 //----------------------------------------------------------------------------
-EditorToolBar::EditorToolBar(EspinaModelSPtr model,
+EditorToolBar::EditorToolBar(EspinaModel *model,
                              QUndoStack  *undoStack,
                              ViewManager *vm,
                              QWidget* parent)
 : IToolBar(parent)
-, m_drawToolSelector(new ActionSelector(this))
-, m_splitToolSelector(new ActionSelector(this))
 , m_model(model)
 , m_undoStack(undoStack)
 , m_viewManager(vm)
+, m_drawToolSelector(new ActionSelector(this))
+, m_splitToolSelector(new ActionSelector(this))
 , m_settings(new Settings())
 , editorSettings(new SettingsPanel(m_settings))
 {
@@ -206,9 +206,9 @@ EditorToolBar::~EditorToolBar()
 
 
 //----------------------------------------------------------------------------
-void EditorToolBar::initToolBar(EspinaModelSPtr model,
-                                QUndoStack     *undoStack,
-                                ViewManager    *viewManager)
+void EditorToolBar::initToolBar(EspinaModel *model,
+                                QUndoStack  *undoStack,
+                                ViewManager *viewManager)
 {
 
 }

@@ -128,7 +128,7 @@ void CountingFrameChannelExtension::addCountingFrame(CountingFrame* countingFram
     {
       ModelItemExtensionPtr ext = item->extension(CountingFrameSegmentationExtension::ID);
       Q_ASSERT(ext);
-      CountingFrameSegmentationExtension *segExt = dynamic_cast<CountingFrameSegmentationExtension *>(ext.data());
+      CountingFrameSegmentationExtension *segExt = dynamic_cast<CountingFrameSegmentationExtension *>(ext);
       segExt->setCountingFrames(m_countingFrames);
     }
   }
@@ -153,7 +153,7 @@ void CountingFrameChannelExtension::deleteCountingFrame(CountingFrame* countingF
     {
       ModelItemExtensionPtr ext = item->extension(CountingFrameSegmentationExtension::ID);
       Q_ASSERT(ext);
-      CountingFrameSegmentationExtension *segExt = dynamic_cast<CountingFrameSegmentationExtension *>(ext.data());
+      CountingFrameSegmentationExtension *segExt = dynamic_cast<CountingFrameSegmentationExtension *>(ext);
       segExt->setCountingFrames(m_countingFrames);
     }
   }
@@ -174,7 +174,7 @@ void CountingFrameChannelExtension::countinfFrameUpdated(CountingFrame* counting
     {
       ModelItemExtensionPtr ext = item->extension(CountingFrameSegmentationExtension::ID);
       Q_ASSERT(ext);
-      CountingFrameSegmentationExtension *segExt = dynamic_cast<CountingFrameSegmentationExtension *>(ext.data());
+      CountingFrameSegmentationExtension *segExt = dynamic_cast<CountingFrameSegmentationExtension *>(ext);
       segExt->evaluateCountingFrame(countingFrame);
     }
   }

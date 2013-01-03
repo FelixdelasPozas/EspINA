@@ -65,21 +65,21 @@ namespace EspINA
     class SettingsPanel;
 
   public:
-    explicit EditorToolBar(EspinaModelSPtr model,
-                           QUndoStack     *undoStack,
-                           ViewManager    *vm,
-                           QWidget        *parent = 0);
+    explicit EditorToolBar(EspinaModel *model,
+                           QUndoStack  *undoStack,
+                           ViewManager *viewManager,
+                           QWidget     *parent = 0);
     virtual ~EditorToolBar();
 
-    virtual void initToolBar(EspinaModelSPtr model,
-                             QUndoStack     *undoStack,
-                             ViewManager    *viewManager);
+    virtual void initToolBar(EspinaModel *model,
+                             QUndoStack  *undoStack,
+                             ViewManager *viewManager);
 
-    virtual void initFactoryExtension(EspinaFactoryPtr factory);
+    virtual void initFactoryExtension(EspinaFactory *factory);
 
     virtual FilterSPtr createFilter(const QString              &filter,
-                                         const Filter::NamedInputs  &inputs,
-                                         const ModelItem::Arguments &args);
+                                    const Filter::NamedInputs  &inputs,
+                                    const ModelItem::Arguments &args);
 
   protected slots:
     void changeCircularBrushMode(Brush::BrushMode mode);
@@ -107,9 +107,9 @@ namespace EspINA
     void initFillTool();
 
   private:
-    EspinaModelSPtr m_model;
-    QUndoStack     *m_undoStack;
-    ViewManager    *m_viewManager;
+    EspinaModel *m_model;
+    QUndoStack  *m_undoStack;
+    ViewManager *m_viewManager;
 
     // GUI
     ActionSelector *m_drawToolSelector;

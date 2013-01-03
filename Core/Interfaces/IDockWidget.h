@@ -39,14 +39,14 @@ namespace EspINA
     : QDockWidget(parent){}
     virtual ~IDockWidget(){}
 
-    virtual void initDockWidget(EspinaModelSPtr model,
-                                QUndoStack     *undoStack,
-                                ViewManager    *viewManager) = 0;
+    virtual void initDockWidget(EspinaModel *model,
+                                QUndoStack  *undoStack,
+                                ViewManager *viewManager) = 0;
   public slots:
     virtual void reset() = 0;
   };
 }
 
 Q_DECLARE_INTERFACE(EspINA::IDockWidget,
-                    "es.upm.cesvima.EspINA.DockWidgetInterface/1.3")
+                    "es.upm.cesvima.EspINA.DockWidgetInterface/1.4")
 #endif //IDOCKWIDGET_H

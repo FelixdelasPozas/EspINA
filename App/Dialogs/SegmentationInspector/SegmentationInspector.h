@@ -42,8 +42,8 @@ namespace EspINA
     Q_OBJECT
   public:
     SegmentationInspector(SegmentationPtr seg,
-                          EspinaModelSPtr  model,
-                          QUndoStack     *undoStack,
+                          EspinaModel *model,
+                          QUndoStack  *undoStack,
                           ViewManager    *vm,
                           QWidget        *parent = 0,
                           Qt::WindowFlags flags  = 0);
@@ -59,9 +59,9 @@ namespace EspINA
     virtual void closeEvent(QCloseEvent *e);
 
   private:
-    EspinaModelSPtr m_model;
-    QUndoStack    *m_undoStack;
-    ViewManager   *m_viewManager;
+    EspinaModel *m_model;
+    QUndoStack  *m_undoStack;
+    ViewManager *m_viewManager;
 
     SegmentationPtr m_seg;
 

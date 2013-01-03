@@ -35,14 +35,14 @@ namespace EspINA
     explicit SplitUndoCommand(SegmentationSPtr input,
                               FilterSPtr       filter,
                               SegmentationSPtr splitSeg[2],
-                              EspinaModelSPtr  model);
+                              EspinaModel *model);
     virtual ~SplitUndoCommand();
 
     virtual void redo();
     virtual void undo();
 
   private:
-    EspinaModelSPtr  m_model;
+    EspinaModel *m_model;
 
     ChannelSPtr m_channel;
     SampleSPtr       m_sample;

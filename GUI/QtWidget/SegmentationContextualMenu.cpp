@@ -33,7 +33,7 @@
 using namespace EspINA;
 
 //------------------------------------------------------------------------
-SegmentationContextualMenu::SegmentationContextualMenu(EspinaModelSPtr   model,
+SegmentationContextualMenu::SegmentationContextualMenu(EspinaModel *model,
                                                        SegmentationList selection,
                                                        QWidget         *parent)
 : QMenu(parent)
@@ -43,7 +43,7 @@ SegmentationContextualMenu::SegmentationContextualMenu(EspinaModelSPtr   model,
   QWidgetAction *taxonomyListAction = new QWidgetAction(changeTaxonomyMenu);
   QTreeView     *taxonomyList       = new QTreeView();
   taxonomyList->header()->setVisible(false);
-  taxonomyList->setModel(model.data());
+  taxonomyList->setModel(model);
   taxonomyList->setRootIndex(model->taxonomyRoot());
   taxonomyList->expandAll();
   connect(taxonomyList, SIGNAL(clicked(QModelIndex)),

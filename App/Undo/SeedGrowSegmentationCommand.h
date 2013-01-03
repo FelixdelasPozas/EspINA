@@ -37,7 +37,7 @@ namespace EspINA
                                          int                      upperThreshold,
                                          bool                     applyClosing,
                                          TaxonomyElementPtr       taxonomy,
-                                         EspinaModelSPtr          model,
+                                         EspinaModel          *model,
                                          QUndoCommand *           parent= NULL);
 
     virtual ~SeedGrowSegmentationCommand();
@@ -46,7 +46,7 @@ namespace EspINA
     virtual void undo();
 
   private:
-    EspinaModelSPtr m_model;
+    EspinaModel *m_model;
 
     SampleSPtr               m_sample;
     ChannelSPtr         m_channel;

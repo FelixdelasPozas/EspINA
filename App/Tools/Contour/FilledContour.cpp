@@ -40,12 +40,12 @@
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
-FilledContour::FilledContour(EspinaModelSPtr model,
-                             QUndoStack    *undo,
-                             ViewManager   *vm)
-: m_viewManager(vm)
+FilledContour::FilledContour(EspinaModel *model,
+                             QUndoStack  *undo,
+                             ViewManager *viewManager)
+: m_model(model)
 , m_undoStack(undo)
-, m_model(model)
+, m_viewManager(viewManager)
 , m_picker(new ContourSelector())
 , m_enabled(false)
 , m_inUse(false)

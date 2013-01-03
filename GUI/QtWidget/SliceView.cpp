@@ -189,12 +189,12 @@ SliceView::SliceView(ViewManager* vm, PlaneType plane, QWidget* parent)
   m_renderWindow->AddRenderer(m_thumbnail);
   m_view->GetInteractor()->SetInteractorStyle(interactor);
 
-  m_channelBorderData = vtkPolyData::New();
-  m_channelBorder     = vtkActor::New();
+  m_channelBorderData = vtkPolyData::New(); // leak
+  m_channelBorder     = vtkActor::New(); // leak
   initBorder(m_channelBorderData, m_channelBorder);
 
-  m_viewportBorderData = vtkPolyData::New();
-  m_viewportBorder     = vtkActor::New();
+  m_viewportBorderData = vtkPolyData::New(); // leak
+  m_viewportBorder     = vtkActor::New(); // leak
   initBorder(m_viewportBorderData, m_viewportBorder);
 
   buildCrosshairs();
@@ -204,6 +204,19 @@ SliceView::SliceView(ViewManager* vm, PlaneType plane, QWidget* parent)
 
   connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection, bool)),
           this, SLOT(updateSelection(ViewManager::Selection, bool)));
+}
+
+//-----------------------------------------------------------------------------
+SliceView::~SliceView()
+{
+  qDebug() << "********************************************************";
+  qDebug() << "              Destroying Slice View" << m_plane;
+  qDebug() << "********************************************************";
+  m_viewManager->unregisterView(this);
+
+  m_slicingMatrix->Delete();
+  delete m_highlighter;
+  delete m_state;
 }
 
 
@@ -489,19 +502,6 @@ void SliceView::setupUI()
   m_controlLayout->addLayout(m_toLayout);
 
   m_mainLayout->addLayout(m_controlLayout);
-}
-
-//-----------------------------------------------------------------------------
-SliceView::~SliceView()
-{
-  qDebug() << "********************************************************";
-  qDebug() << "              Destroying Slice View" << m_plane;
-  qDebug() << "********************************************************";
-  m_viewManager->unregisterView(this);
-
-  m_slicingMatrix->Delete();
-  delete m_highlighter;
-  delete m_state;
 }
 
 //-----------------------------------------------------------------------------

@@ -49,9 +49,9 @@ FilterInspector::~FilterInspector()
 }
 
 //----------------------------------------------------------------------------
-void FilterInspector::initDockWidget(EspinaModelSPtr model,
-                                     QUndoStack     *undoStack,
-                                     ViewManager    *viewManager)
+void FilterInspector::initDockWidget(EspinaModel *model,
+                                     QUndoStack  *undoStack,
+                                     ViewManager *viewManager)
 {
 
 }

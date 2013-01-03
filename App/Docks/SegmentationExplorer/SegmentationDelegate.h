@@ -36,8 +36,8 @@ namespace EspINA
   : public QStyledItemDelegate
   {
   public:
-    explicit SegmentationDelegate(EspinaModelSPtr model,
-                                  QUndoStack *undoStack,
+    explicit SegmentationDelegate(EspinaModel *model,
+                                  QUndoStack  *undoStack,
                                   ViewManager *vm);
     virtual ~SegmentationDelegate();
 
@@ -49,7 +49,7 @@ namespace EspINA
     void freeInspector(SegmentationInspector *inspector);
 
   private:
-    EspinaModelSPtr m_model;
+    EspinaModel *m_model;
     QUndoStack  *m_undoStack;
     ViewManager *m_viewManager;
     mutable QMap<SegmentationPtr, SegmentationInspector *> m_inspectors;

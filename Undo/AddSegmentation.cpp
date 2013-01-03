@@ -31,12 +31,12 @@ AddSegmentation::AddSegmentation(ChannelSPtr channel,
                                  FilterSPtr filter,
                                  SegmentationSPtr seg,
                                  TaxonomyElementSPtr taxonomy,
-                                 EspinaModelSPtr model)
-: m_channel (channel)
+                                 EspinaModel *model)
+: m_model   (model)
+, m_channel (channel)
 , m_filter  (filter)
 , m_seg     (seg)
 , m_taxonomy(taxonomy)
-, m_model   (model)
 {
   m_sample = m_channel->sample();
   Q_ASSERT(m_sample);

@@ -35,7 +35,6 @@ namespace EspINA
   typedef Filter *         FilterPtr;
   typedef QList<FilterPtr> FilterList;
 
-
   class   PickableItem;
   typedef PickableItem *               PickableItemPtr;
 

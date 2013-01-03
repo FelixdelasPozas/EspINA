@@ -39,7 +39,7 @@ namespace EspINA
     explicit CompositionProxy(QObject* parent = 0);
     virtual ~CompositionProxy();
 
-    virtual void setSourceModel(EspinaModelSPtr sourceModel);
+    virtual void setSourceModel(EspinaModel *sourceModel);
 
     virtual QVariant data(const QModelIndex& proxyIndex, int role = Qt::DisplayRole) const;
 
@@ -69,7 +69,7 @@ namespace EspINA
     SegmentationPtr parentSegmentation(ModelItemPtr segItem) const;
 
   private:
-    EspinaModelSPtr m_sourceModel;
+    EspinaModel *m_sourceModel;
 
     SegmentationList m_rootSegmentations;
     mutable QMap<SegmentationPtr, ModelItemList> m_components;

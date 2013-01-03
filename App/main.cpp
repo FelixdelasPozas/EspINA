@@ -21,13 +21,16 @@
 
 #include <GUI/ViewManager.h>
 #include <EspinaMainWindow.h>
+#include <Core/Extensions/Margins/MarginsChannelExtension.h>
+#include <Core/Extensions/Margins/MarginsSegmentationExtension.h>
+#include <Core/Extensions/Morphological/MorphologicalExtension.h>
 
 int main(int argc, char **argv)
 {
   QApplication app(argc, argv);
 
-//   EspINA::EspinaFactory factory;
-//   EspINA::EspinaModel   model;
+  EspINA::EspinaFactory factory;
+  EspINA::EspinaModel   model(&factory);
   EspINA::ViewManager   viewManager;
 
   QDir pluginsDir = QDir(app.applicationDirPath());
@@ -67,12 +70,25 @@ int main(int argc, char **argv)
 
   int res = 0;
   {
-    EspINA::EspinaMainWindow espina(&viewManager, plugins);
+    EspINA::MarginsChannelExtension      marginChannelExtension;
+    EspINA::MarginsSegmentationExtension marginSegmentationExtension;
+    EspINA::MorphologicalExtension       morphologicalExtension;
+
+    factory.registerChannelExtension     (&marginChannelExtension);
+    factory.registerSegmentationExtension(&marginSegmentationExtension);
+    factory.registerSegmentationExtension(&morphologicalExtension);
+
+    EspINA::EspinaMainWindow espina(&model, &viewManager, plugins);
     espina.show();
 
     res = app.exec();
+
+    factory.unregisterChannelExtension     (&marginChannelExtension);
+    factory.unregisterSegmentationExtension(&marginSegmentationExtension);
+    factory.unregisterSegmentationExtension(&morphologicalExtension);
   }
 
+  qDebug() << "\nUnloading Plugins: \n";
   foreach(QPluginLoader *plugin, loaders)
   {
     plugin->unload();

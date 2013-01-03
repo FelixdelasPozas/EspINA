@@ -49,14 +49,14 @@ namespace EspINA
     Q_OBJECT
     class CentralWidget;
   public:
-    explicit ChannelExplorer(EspinaModelSPtr model,
-                             ViewManager   *viewManager,
-                             QWidget       *parent = 0);
+    explicit ChannelExplorer(EspinaModel *model,
+                             ViewManager *viewManager,
+                             QWidget     *parent = 0);
     virtual ~ChannelExplorer();
 
-    virtual void initDockWidget(EspinaModelSPtr model,
-                                QUndoStack     *undoStack,
-                                ViewManager    *viewManager);
+    virtual void initDockWidget(EspinaModel *model,
+                                QUndoStack  *undoStack,
+                                ViewManager *viewManager);
 
     virtual void reset(); // slot
 
@@ -77,14 +77,14 @@ namespace EspINA
     void inspectorChangedSpacing();
 
   private:
-    EspinaModelSPtr m_model;
-    ViewManager   *m_viewManager;
+    EspinaModel *m_model;
+    ViewManager *m_viewManager;
 
     QSharedPointer<ChannelProxy> m_channelProxy;
     QSharedPointer<QSortFilterProxyModel> m_sort;
 
     CentralWidget *m_gui;
-  QMap<Channel *, ChannelInspector *> m_informationDialogs;
+    QMap<Channel *, ChannelInspector *> m_informationDialogs;
 
     #ifdef TEST_ESPINA_MODELS
     QSharedPointer<ModelTest>   m_modelTester;

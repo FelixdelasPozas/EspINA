@@ -70,7 +70,7 @@ void CountingFrameSegmentationExtension::initialize(ModelItem::Arguments args)
     ChannelSPtr channel = channelPtr(relatedChannels[i]);
     ModelItemExtensionPtr ext = channel->extension(CountingFrameChannelExtension::ID);
     Q_ASSERT(ext);
-    CountingFrameChannelExtension *channelExt = dynamic_cast<CountingFrameChannelExtension *>(ext.data());
+    CountingFrameChannelExtension *channelExt = dynamic_cast<CountingFrameChannelExtension *>(ext);
     countingFrames << channelExt->countingFrames();
   }
 
@@ -267,7 +267,7 @@ bool CountingFrameSegmentationExtension::isOnEdge()
   bool discarted = false;
 
   ModelItemExtensionPtr ext = m_seg->extension(MarginsSegmentationExtension::ID);
-  MarginsSegmentationExtension *marginExt = dynamic_cast<MarginsSegmentationExtension *>(ext.data());
+  MarginsSegmentationExtension *marginExt = dynamic_cast<MarginsSegmentationExtension *>(ext);
   if (marginExt)
   {
     InfoList tags = marginExt->availableInformations();

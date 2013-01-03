@@ -34,14 +34,14 @@ class DataViewPanel
   : public IDockWidget
 {
 public:
-  explicit DataViewPanel(EspinaModelSPtr model,
-                         ViewManager    *vm,
-                         QWidget        *parent = 0);
+  explicit DataViewPanel(EspinaModel *model,
+                         ViewManager *vm,
+                         QWidget     *parent = 0);
   virtual ~DataViewPanel();
 
-  virtual void initDockWidget(EspinaModelSPtr model,
-                              QUndoStack     *undoStack,
-                              ViewManager    *viewManager);
+  virtual void initDockWidget(EspinaModel *model,
+                              QUndoStack  *undoStack,
+                              ViewManager *viewManager);
 
   virtual void reset(); // slot
 };

@@ -28,9 +28,9 @@
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
-VolumeOfInterest::VolumeOfInterest(EspinaModelSPtr model,
-                                   ViewManager   *viewManager,
-                                   QWidget       *parent)
+VolumeOfInterest::VolumeOfInterest(EspinaModel *model,
+                                   ViewManager *viewManager,
+                                   QWidget     *parent)
 : IToolBar     (parent)
 , m_model      (model)
 , m_viewManager(viewManager)
@@ -57,9 +57,9 @@ VolumeOfInterest::~VolumeOfInterest()
 }
 
 //-----------------------------------------------------------------------------
-void VolumeOfInterest::initToolBar(EspinaModelSPtr model,
-                                   QUndoStack     *undoStack,
-                                   ViewManager    *viewManager)
+void VolumeOfInterest::initToolBar(EspinaModel *model,
+                                   QUndoStack  *undoStack,
+                                   ViewManager *viewManager)
 {
 
 }

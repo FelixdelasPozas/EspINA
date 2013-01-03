@@ -72,35 +72,57 @@ using namespace EspINA;
 const QString AUTOSAVE_FILE = "espina-autosave.seg";
 
 //------------------------------------------------------------------------
-EspinaMainWindow::EspinaMainWindow(ViewManager* viewManager,
+EspinaMainWindow::DynamicMenuNode::DynamicMenuNode()
+: menu(NULL)
+{
+
+}
+
+//------------------------------------------------------------------------
+EspinaMainWindow::DynamicMenuNode::~DynamicMenuNode()
+{
+  foreach(DynamicMenuNode *node, submenus)
+  {
+    delete node;
+  }
+}
+
+//------------------------------------------------------------------------
+EspinaMainWindow::EspinaMainWindow(EspinaModel      *model,
+                                   ViewManager      *viewManager,
                                    QList<QObject *> &plugins)
-: m_view(NULL)
-, m_factory    (new EspinaFactory())
-, m_model      (new EspinaModel(m_factory))
+: QMainWindow()
+, m_model      (model)
 , m_undoStack  (new QUndoStack())
 , m_viewManager(viewManager)
-, m_settings   (new GeneralSettings())
+, m_settings     (new GeneralSettings())
 , m_settingsPanel(new GeneralSettingsPanel(m_settings))
+, m_view(NULL)
 , m_busy(false)
 {
 #ifdef TEST_ESPINA_MODELS
-  m_modelTester = QSharedPointer<ModelTest>(new ModelTest(m_model.data()));
+  m_modelTester = QSharedPointer<ModelTest>(new ModelTest(m_model));
 #endif
 
   m_dynamicMenuRoot = new DynamicMenuNode();
   m_dynamicMenuRoot->menu = NULL;
 
-  connect(m_undoStack, SIGNAL(indexChanged(int)),
-          m_viewManager, SLOT(updateViews()));
+  connect(m_undoStack,   SIGNAL(indexChanged(int)),
+          m_viewManager, SLOT  (updateViews()));
 
   QIcon addIcon = QIcon(":espina/add.svg");
   QIcon fileIcon = qApp->style()->standardIcon(QStyle::SP_FileIcon);
   QIcon openIcon = qApp->style()->standardIcon(QStyle::SP_DialogOpenButton);
   QIcon saveIcon = qApp->style()->standardIcon(QStyle::SP_DialogSaveButton);
 
-  m_factory->registerRenderer(IRendererSPtr(new CrosshairRenderer()               ));
-  m_factory->registerRenderer(IRendererSPtr(new VolumetricRenderer(m_viewManager) ));
-  m_factory->registerRenderer(IRendererSPtr(new MeshRenderer(m_viewManager)       ));
+  EspinaFactory *factory = m_model->factory();
+
+  m_defaultRenderers << IRendererSPtr(new CrosshairRenderer());
+  m_defaultRenderers << IRendererSPtr(new VolumetricRenderer(m_viewManager));
+  m_defaultRenderers << IRendererSPtr(new MeshRenderer(m_viewManager));
+
+  foreach(IRendererSPtr renderer, m_defaultRenderers)
+    factory->registerRenderer(renderer.data());
 
   /*** FILE MENU ***/
   QMenu *fileMenu = new QMenu(tr("File"), this);
@@ -289,8 +311,12 @@ EspinaMainWindow::~EspinaMainWindow()
   qDebug() << "              Destroying Main Window";
   qDebug() << "********************************************************";
 
-  delete m_dynamicMenuRoot;
+  foreach(IRendererSPtr renderer, m_defaultRenderers)
+    m_model->factory()->unregisterRenderer(renderer.data());
+
+  delete m_settings;
   delete m_undoStack;
+  delete m_dynamicMenuRoot;
 }
 
 //------------------------------------------------------------------------
@@ -302,7 +328,7 @@ void EspinaMainWindow::loadPlugins(QList<QObject *> &plugins)
     if (factoryExtension)
     {
       qDebug() << plugin << "- Factory Extension...... OK";
-      factoryExtension->initFactoryExtension(m_factory);
+      factoryExtension->initFactoryExtension(m_model->factory());
     }
 
     IToolBar *toolbar = qobject_cast<IToolBar *>(plugin);
@@ -333,10 +359,8 @@ void EspinaMainWindow::loadPlugins(QList<QObject *> &plugins)
     if (dock)
     {
       qDebug() << plugin << "- Dock ...... OK";
-      addDockWidget(Qt::LeftDockWidgetArea, dock);
-      m_dockMenu->addAction(dock->toggleViewAction());
+      registerDockWidget(Qt::LeftDockWidgetArea, dock);
       dock->initDockWidget(m_model, m_undoStack, m_viewManager);
-      connect(this, SIGNAL(analysisClosed()), dock, SLOT(resetState()));
     }
 
     IFileReader *fileReader = qobject_cast<IFileReader *>(plugin);
@@ -515,7 +539,7 @@ void EspinaMainWindow::openAnalysis()
 
   fileDialog.setObjectName("OpenAnalysisFileDialog");
   fileDialog.setFileMode(QFileDialog::ExistingFiles);
-  fileDialog.setFilters(m_factory->supportedFiles());
+  fileDialog.setFilters(m_model->factory()->supportedFiles());
   fileDialog.setWindowTitle("Analyse Data");
   fileDialog.setAcceptMode(QFileDialog::AcceptOpen);
 
@@ -578,9 +602,6 @@ void EspinaMainWindow::openAnalysis(const QString &file)
     TaxonomySPtr defaultTaxonomy = IOTaxonomy::openXMLTaxonomy(":/espina/defaultTaxonomy.xml");
     //defaultTaxonomy->print();
     m_model->setTaxonomy(defaultTaxonomy);
-  } else
-  {
-    Q_ASSERT(false); // TODO 2012-12-17 fusionar taxonomias? reemplazar?
   }
 
   m_viewManager->resetViewCameras();
@@ -637,7 +658,7 @@ void EspinaMainWindow::addToAnalysis()
   QFileDialog fileDialog(this, tr("Analyse:"));
   fileDialog.setObjectName("AddToAnalysisFileDialog");
   fileDialog.setFileMode(QFileDialog::ExistingFiles);
-  fileDialog.setFilters(m_factory->supportedFiles());
+  fileDialog.setFilters(m_model->factory()->supportedFiles());
   fileDialog.setWindowTitle("Add data to Analysis");
   fileDialog.setAcceptMode(QFileDialog::AcceptOpen);
   if (fileDialog.exec() != QDialog::Accepted)
@@ -748,7 +769,7 @@ void EspinaMainWindow::showPreferencesDialog()
   dialog.registerPanel(m_settingsPanel.data());
   dialog.registerPanel(m_view->settingsPanel());
 
-  foreach(ISettingsPanelPtr panel, m_factory->settingsPanels())
+  foreach(ISettingsPanelPtr panel, m_model->factory()->settingsPanels())
   {
     dialog.registerPanel(panel);
   }

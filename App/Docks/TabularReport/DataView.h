@@ -39,7 +39,7 @@ namespace EspINA
   {
     Q_OBJECT
   public:
-    explicit DataView(EspinaModelSPtr model,
+    explicit DataView(EspinaModel *model,
                       ViewManager *vm,
                       QWidget *parent = 0,
                       Qt::WindowFlags f = 0);
@@ -56,7 +56,7 @@ namespace EspINA
     void updateSelection(QItemSelection selected, QItemSelection deselected);
 
   private:
-    EspinaModelSPtr                        m_baseModel;
+    EspinaModel                          *m_baseModel;
     ViewManager                          *m_viewManager;
     QSharedPointer<InformationProxy>      m_model;
     QSharedPointer<QSortFilterProxyModel> m_sort;

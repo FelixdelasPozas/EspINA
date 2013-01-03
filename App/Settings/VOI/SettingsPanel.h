@@ -44,7 +44,7 @@ namespace EspINA
     { return QIcon(":/espina/voi.svg"); }
 
     virtual void acceptChanges();
-
+    virtual void rejectChanges();
     virtual bool modified() const;
 
     virtual ISettingsPanelPtr clone();
@@ -57,7 +57,7 @@ namespace EspINA
     void updateTaxonomyVOI(const QModelIndex &index);
 
   private:
-    EspinaModelPtr m_model;
+    EspinaModel *m_model;
     RectangularVOI::Settings *m_settings;
     TaxonomyElementPtr m_activeTaxonomy;
   };

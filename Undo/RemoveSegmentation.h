@@ -37,11 +37,11 @@ class RemoveSegmentation
 {
 public:
   explicit RemoveSegmentation(SegmentationPtr seg,
-                              EspinaModelSPtr  model,
-                              QUndoCommand *parent=0
+                              EspinaModel    *model,
+                              QUndoCommand   *parent=0
                              );
   explicit RemoveSegmentation(SegmentationList segs,
-                              EspinaModelSPtr   model,
+                              EspinaModel     *model,
                               QUndoCommand    *parent=0
                              );
 
@@ -75,7 +75,7 @@ private:
   };
 
 private:
-  EspinaModelSPtr    m_model;
+  EspinaModel *m_model;
 
   QList<FilterInfo> m_removedFilters;
   QList<SegInfo>    m_segmentations;

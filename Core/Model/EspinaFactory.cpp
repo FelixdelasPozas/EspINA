@@ -39,11 +39,6 @@ using namespace EspINA;
 EspinaFactory::EspinaFactory()
 {
   // Register Default Extensions
-  registerChannelExtension(ChannelExtensionPtr(new MarginsChannelExtension()));
-
-  registerSegmentationExtension(SegmentationExtensionPtr(new MarginsSegmentationExtension()));
-  registerSegmentationExtension(SegmentationExtensionPtr(new MorphologicalExtension())      );
-
   m_supportedFiles << CHANNEL_FILES;
   m_supportedExtensions << "*.mhd" << "*.mha" << "*.tif";
 
@@ -105,6 +100,13 @@ void EspinaFactory::registerChannelExtension(ChannelExtensionPtr extension)
 }
 
 //------------------------------------------------------------------------
+void EspinaFactory::unregisterChannelExtension(ChannelExtensionPtr extension)
+{
+  Q_ASSERT(m_channelExtensions.contains(extension));
+  m_channelExtensions.removeOne(extension);
+}
+
+//------------------------------------------------------------------------
 void EspinaFactory::registerSegmentationExtension(SegmentationExtensionPtr extension)
 {
   Q_ASSERT(m_segExtensions.contains(extension) == false);
@@ -112,9 +114,25 @@ void EspinaFactory::registerSegmentationExtension(SegmentationExtensionPtr exten
 }
 
 //------------------------------------------------------------------------
-void EspinaFactory::registerRenderer(IRendererSPtr renderer)
+void EspinaFactory::unregisterSegmentationExtension(SegmentationExtensionPtr extension)
 {
+  Q_ASSERT(m_segExtensions.contains(extension));
+  m_segExtensions.removeOne(extension);
+}
+
+
+//------------------------------------------------------------------------
+void EspinaFactory::registerRenderer(IRenderer *renderer)
+{
+  Q_ASSERT(!m_renderers.contains(renderer->name()));
   m_renderers[renderer->name()] = renderer;
+}
+
+//------------------------------------------------------------------------
+void EspinaFactory::unregisterRenderer(IRenderer *renderer)
+{
+  Q_ASSERT(m_renderers.contains(renderer->name()));
+  m_renderers.remove(renderer->name());
 }
 
 //------------------------------------------------------------------------

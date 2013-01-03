@@ -60,7 +60,8 @@ class IToolBar;
   {
     Q_OBJECT
   public:
-    explicit EspinaMainWindow(ViewManager *viewManager,
+    explicit EspinaMainWindow(EspinaModel      *model,
+                              ViewManager      *viewManager,
                               QList<QObject *> &plugins);
     virtual ~EspinaMainWindow();
 
@@ -109,11 +110,10 @@ class IToolBar;
 
   private:
     // EspINA
-    EspinaFactoryPtr m_factory;
-    EspinaModelSPtr   m_model;
-    QUndoStack       *m_undoStack;
-    ViewManager      *m_viewManager;
-    GeneralSettings  *m_settings;
+    EspinaModel     *m_model;
+    QUndoStack      *m_undoStack;
+    ViewManager     *m_viewManager;
+    GeneralSettings *m_settings;
 
     // GUI
     QMenu           *m_addMenu;
@@ -143,8 +143,13 @@ class IToolBar;
     bool m_busy;
     QShortcut *cancel;
 
+    QList<IRendererSPtr> m_defaultRenderers;
+
     struct DynamicMenuNode
     {
+      explicit DynamicMenuNode();
+      ~DynamicMenuNode();
+
       QMenu *menu;
       QList<DynamicMenuNode *> submenus;
     };

@@ -32,10 +32,10 @@ using namespace EspINA;
 const QString COMPOSE_SEG_TOOLTIP = QObject::tr("Compose Selected Segmentations");
 
 //----------------------------------------------------------------------------
-CompositionToolBar::CompositionToolBar(EspinaModelSPtr model,
-                                       QUndoStack    *undoStack,
-                                       ViewManager   *viewManager,
-                                       QWidget       *parent)
+CompositionToolBar::CompositionToolBar(EspinaModel *model,
+                                       QUndoStack  *undoStack,
+                                       ViewManager *viewManager,
+                                       QWidget     *parent)
 : IToolBar     ( parent      )
 , m_model      ( model       )
 , m_undoStack  ( undoStack   )
@@ -63,9 +63,9 @@ CompositionToolBar::~CompositionToolBar()
 }
 
 //----------------------------------------------------------------------------
-void CompositionToolBar::initToolBar(EspinaModelSPtr model,
-                                     QUndoStack     *undoStack,
-                                     ViewManager    *viewManager)
+void CompositionToolBar::initToolBar(EspinaModel *model,
+                                     QUndoStack  *undoStack,
+                                     ViewManager *viewManager)
 {
 
 }
@@ -81,8 +81,8 @@ void CompositionToolBar::initFactoryExtension(EspinaFactoryPtr factory)
 
 //----------------------------------------------------------------------------
 FilterSPtr CompositionToolBar::createFilter(const QString              &filter,
-                                                 const Filter::NamedInputs  &inputs,
-                                                 const ModelItem::Arguments &args)
+                                            const Filter::NamedInputs  &inputs,
+                                            const ModelItem::Arguments &args)
 {
   Q_ASSERT(false);//TODO 2012-12-17
   return FilterSPtr();

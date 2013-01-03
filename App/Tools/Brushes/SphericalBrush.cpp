@@ -27,9 +27,9 @@
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
-SphericalBrush::SphericalBrush(EspinaModelSPtr model,
-                               QUndoStack* undoStack,
-                               ViewManager* viewManager)
+SphericalBrush::SphericalBrush(EspinaModel *model,
+                               QUndoStack  *undoStack,
+                               ViewManager *viewManager)
 : Brush(model, undoStack, viewManager)
 {
 }

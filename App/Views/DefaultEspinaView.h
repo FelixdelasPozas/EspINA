@@ -46,7 +46,7 @@ namespace EspINA
     class SettingsPanel;
 
   public:
-    explicit DefaultEspinaView(EspinaModelSPtr model,
+    explicit DefaultEspinaView(EspinaModel *model,
                                ViewManager *viewManager,
                                QMainWindow *parent=0
     );
@@ -107,8 +107,8 @@ namespace EspINA
     void initSliceView(SliceView *view);
 
   private:
-    EspinaModelSPtr m_model;
-    ViewManager    *m_viewManager;
+    EspinaModel *m_model;
+    ViewManager *m_viewManager;
 
     bool m_showProcessing;
     bool m_showSegmentations;
@@ -138,14 +138,14 @@ namespace EspINA
     virtual const QIcon icon() {return QIcon(":/espina/show_all.svg");}
 
     virtual void acceptChanges();
-
+    virtual void rejectChanges();
     virtual bool modified() const;
 
     virtual ISettingsPanelPtr clone();
 
   private:
     SliceView::SettingsPtr m_xy, m_yz, m_xz;
-    EspinaFactoryPtr m_factory;
+    EspinaFactory *m_factory;
 
     Nm m_slicingStep;
 

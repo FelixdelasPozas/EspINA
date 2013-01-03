@@ -39,7 +39,7 @@ namespace EspINA
     virtual const QIcon icon() {return QIcon();}
 
     virtual void acceptChanges();
-
+    virtual void rejectChanges();
     virtual bool modified() const;
 
     virtual ISettingsPanelPtr clone();

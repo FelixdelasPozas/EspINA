@@ -40,9 +40,9 @@ namespace EspINA
                              QWidget* parent = 0);
     virtual ~FilterInspector();
 
-    virtual void initDockWidget(EspinaModelSPtr model,
-                                QUndoStack     *undoStack,
-                                ViewManager    *viewManager);
+    virtual void initDockWidget(EspinaModel *model,
+                                QUndoStack  *undoStack,
+                                ViewManager *viewManager);
 
     virtual void showEvent(QShowEvent* e);
 
@@ -55,8 +55,8 @@ namespace EspINA
     QUndoStack   *m_undoStack;
     ViewManager  *m_viewManager;
 
-    SegmentationPtr m_seg;
     FilterSPtr      m_filter;
+    SegmentationPtr m_seg;
   };
 
 } // namespace EspINA

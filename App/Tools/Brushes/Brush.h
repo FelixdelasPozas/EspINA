@@ -52,7 +52,7 @@ namespace EspINA
     class SnapshotCommand;
 
   public:
-    explicit Brush(EspinaModelSPtr model,
+    explicit Brush(EspinaModel *model,
                    QUndoStack  *undoStack,
                    ViewManager *viewManager);
     virtual ~Brush();
@@ -87,9 +87,9 @@ namespace EspINA
     void stopDrawing();
 
   protected:
-    EspinaModelSPtr m_model;
-    QUndoStack    *m_undoStack;
-    ViewManager   *m_viewManager;
+    EspinaModel *m_model;
+    QUndoStack  *m_undoStack;
+    ViewManager *m_viewManager;
 
     bool         m_inUse;
     DrawMode     m_mode;

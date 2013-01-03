@@ -59,8 +59,8 @@
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
-VolumeView::VolumeView(const EspinaFactoryPtr factory,
-                       ViewManager* viewManager,
+VolumeView::VolumeView(const EspinaFactory *factory,
+                       ViewManager *viewManager,
                        QWidget* parent)
 : EspinaRenderView(parent)
 , m_viewManager(viewManager)
@@ -239,7 +239,7 @@ void VolumeView::buildControls()
   m_controlLayout->addWidget(&m_export);
   m_controlLayout->addItem(horizontalSpacer);
 
-  foreach(IRendererSPtr renderer, m_settings->renderers())
+  foreach(IRenderer *renderer, m_settings->renderers())
     this->addRendererControls(renderer->clone());
 
   m_mainLayout->addLayout(m_controlLayout);
@@ -678,9 +678,9 @@ void VolumeView::takeSnapshot()
 }
 
 //-----------------------------------------------------------------------------
-VolumeView::Settings::Settings(const EspinaFactoryPtr factory,
-                               const QString prefix,
-                               VolumeView* parent)
+VolumeView::Settings::Settings(const EspinaFactory *factory,
+                               const QString        prefix,
+                               VolumeView          *parent)
 : RENDERERS(prefix + "VolumeView::renderers")
 {
   this->parent = parent;
@@ -689,10 +689,10 @@ VolumeView::Settings::Settings(const EspinaFactoryPtr factory,
   if (!settings.contains(RENDERERS))
     settings.setValue(RENDERERS, QStringList() << "Crosshairs" << "Volumetric" << "Mesh");
 
-  QMap<QString, IRendererSPtr> renderers = factory->renderers();
+  QMap<QString, IRenderer *> renderers = factory->renderers();
   foreach(QString name, settings.value(RENDERERS).toStringList())
   {
-    IRendererSPtr renderer = renderers.value(name, IRendererSPtr());
+    IRenderer *renderer = renderers.value(name, NULL);
     if (renderer)
       m_renderers << renderer;
   }
@@ -700,14 +700,14 @@ VolumeView::Settings::Settings(const EspinaFactoryPtr factory,
 }
 
 //-----------------------------------------------------------------------------
-void VolumeView::Settings::setRenderers(IRendererSList values)
+void VolumeView::Settings::setRenderers(IRendererList values)
 {
   QSettings settings(CESVIMA, ESPINA);
   QStringList activeRenderersNames;
-  IRendererSList activeRenderers;
+  IRendererList activeRenderers;
 
   // remove controls for unused renderers
-  foreach(IRendererSPtr oldRenderer, m_renderers)
+  foreach(IRenderer *oldRenderer, m_renderers)
   {
     bool selected = false;
     int i = 0;
@@ -729,7 +729,7 @@ void VolumeView::Settings::setRenderers(IRendererSList values)
   }
 
   // add controls for added renderers
-  foreach(IRendererSPtr renderer, values)
+  foreach(IRenderer *renderer, values)
   {
     activeRenderersNames << renderer->name();
     if (!activeRenderers.contains(renderer))
@@ -745,7 +745,7 @@ void VolumeView::Settings::setRenderers(IRendererSList values)
 }
 
 //-----------------------------------------------------------------------------
-QList<IRendererSPtr> VolumeView::Settings::renderers() const
+IRendererList VolumeView::Settings::renderers() const
 {
   return m_renderers;
 }

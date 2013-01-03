@@ -42,7 +42,7 @@ bool SampleLayout::SortFilter::lessThan(const QModelIndex& left, const QModelInd
 }
 
 //------------------------------------------------------------------------
-SampleLayout::SampleLayout(EspinaModelSPtr model)
+SampleLayout::SampleLayout(EspinaModel *model)
 : Layout(model)
 , m_proxy(new SampleProxy())
 , m_sort (new SortFilter())

@@ -31,20 +31,20 @@ namespace EspINA
   : public QUndoCommand
   {
   public:
-    explicit AddRelation(ModelItemSPtr   ancestor,
-                         ModelItemSPtr   successor,
+    explicit AddRelation(ModelItemSPtr  ancestor,
+                         ModelItemSPtr  successor,
                          const QString  description,
-                         EspinaModelSPtr model,
+                         EspinaModel   *model,
                          QUndoCommand  *parent = 0);
 
     virtual void redo();
     virtual void undo();
 
   private:
-    EspinaModelSPtr m_model;
+    EspinaModel   *m_model;
 
-    ModelItemSPtr   m_ancester;
-    ModelItemSPtr   m_succesor;
+    ModelItemSPtr  m_ancester;
+    ModelItemSPtr  m_succesor;
     const QString  m_description;
   };
 

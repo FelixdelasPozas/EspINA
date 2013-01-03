@@ -44,7 +44,7 @@ namespace EspINA
     { return QIcon(":/espina/bestPixelSelector.svg"); }
 
     virtual void acceptChanges();
-
+  virtual void rejectChanges();
     virtual bool modified() const;
 
     virtual ISettingsPanelPtr clone();

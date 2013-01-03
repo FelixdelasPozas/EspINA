@@ -55,15 +55,15 @@ public:
 };
 
 //------------------------------------------------------------------------
-ChannelExplorer::ChannelExplorer(EspinaModelSPtr model,
-                                 ViewManager   *vm,
-                                 QWidget       *parent)
+ChannelExplorer::ChannelExplorer(EspinaModel *model,
+                                 ViewManager *viewManager,
+                                 QWidget     *parent)
 : IDockWidget(parent)
-, m_gui(new CentralWidget())
 , m_model(model)
-, m_viewManager(vm)
-, m_channelProxy(new ChannelProxy(vm))
+, m_viewManager(viewManager)
+, m_channelProxy(new ChannelProxy(viewManager))
 , m_sort(new QSortFilterProxyModel())
+, m_gui(new CentralWidget())
 {
   setObjectName("ChannelExplorer");
 
@@ -117,9 +117,9 @@ ChannelExplorer::~ChannelExplorer()
 }
 
 //------------------------------------------------------------------------
-void ChannelExplorer::initDockWidget(EspinaModelSPtr model,
-                                     QUndoStack     *undoStack,
-                                     ViewManager    *viewManager)
+void ChannelExplorer::initDockWidget(EspinaModel *model,
+                                     QUndoStack  *undoStack,
+                                     ViewManager *viewManager)
 {
 
 }

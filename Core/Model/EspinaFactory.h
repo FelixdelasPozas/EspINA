@@ -50,23 +50,26 @@ namespace EspINA
                                const QStringList &extensions);
 
     void registerChannelExtension(ChannelExtensionPtr extension);
+    void unregisterChannelExtension(ChannelExtensionPtr extension);
 
     void registerSampleExtension(SampleExtensionPtr extension);
 
     void registerSegmentationExtension(SegmentationExtensionPtr extension);
+    void unregisterSegmentationExtension(SegmentationExtensionPtr extension);
 
     void registerSettingsPanel(ISettingsPanelPtr panel)
     {m_settingsPanels << panel;}
-//     void unregisterSettingsPanel(ISettingsPanelPrototype panel)
-//     {m_settingsPanels.removeAll(panel);}
+    void unregisterSettingsPanel(ISettingsPanelPtr panel)
+    {m_settingsPanels.removeOne(panel);}
 
-    void registerRenderer(IRendererSPtr renderer);
+    void registerRenderer  (IRenderer *renderer);
+    void unregisterRenderer(IRenderer *renderer);
 
 
     ISettingsPanelList settingsPanels() const
     {return m_settingsPanels;}
 
-    QMap<QString, IRendererSPtr> renderers() const
+    QMap<QString, IRenderer *> renderers() const
     {return m_renderers;}
 
 
@@ -92,7 +95,7 @@ namespace EspINA
     QList<SampleExtensionPtr>       m_sampleExtensions;
     QList<SegmentationExtensionPtr> m_segExtensions;
 
-    QMap<QString, IRendererSPtr> m_renderers;
+    QMap<QString, IRenderer *> m_renderers;
 
     ISettingsPanelList m_settingsPanels;
 
@@ -100,7 +103,8 @@ namespace EspINA
     QStringList m_supportedExtensions;
   };
 
-  typedef QSharedPointer<EspinaFactory> EspinaFactoryPtr;
+  typedef EspinaFactory *EspinaFactoryPtr;
+  //typedef QSharedPointer<EspinaFactory> EspinaFactorySPtr;
 
 }// namespace EspINA
 

@@ -64,9 +64,9 @@ ZoomToolBar::~ZoomToolBar()
 
 //----------------------------------------------------------------------------
 // NOTE: Shalle we use this instead of the constructor?
-void ZoomToolBar::initToolBar(EspinaModelSPtr model,
-                              QUndoStack     *undoStack,
-                              ViewManager    *viewManager)
+void ZoomToolBar::initToolBar(EspinaModel *model,
+                              QUndoStack  *undoStack,
+                              ViewManager *viewManager)
 {
 
 }

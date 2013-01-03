@@ -22,6 +22,7 @@
 
 #include <QDir>
 #include <QSettings>
+#include <QDebug>
 
 using namespace EspINA;
 
@@ -33,6 +34,12 @@ GeneralSettings::GeneralSettings()
   m_userName         = m_settings->value(USER_NAME, "User").toString();
   m_autosaveInterval = m_settings->value(AUTOSAVE_INTERVAL, 10).toInt();
   m_autosavePath     = m_settings->value(AUTOSAVE_PATH, QDir::homePath()+"/.espina").toString();
+}
+
+//-----------------------------------------------------------------------------
+GeneralSettings::~GeneralSettings()
+{
+  qDebug() << "Destroying General Settings";
 }
 
 ////-----------------------------------------------------------------------------

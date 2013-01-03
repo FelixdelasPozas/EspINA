@@ -79,7 +79,7 @@ namespace EspINA
       else
         hide();
       // the subclass will alter the m_enable value
-      // TODO: 2012-12-14 m_enable debería gestionarse en esta clase de forma generica
+      // TODO: 2012-12-14 m_enable deberia gestionarse en esta clase de forma generica
     }
 
   signals:
@@ -95,7 +95,8 @@ namespace EspINA
     vtkSmartPointer<vtkRenderer> m_renderer;
   };
 
-  typedef QList<IRendererSPtr>       IRendererSList;
+  typedef QList<IRenderer *>   IRendererList;
+  typedef QList<IRendererSPtr> IRendererSList;
 
 }// namespace EspINA
 

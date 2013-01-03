@@ -37,9 +37,9 @@ namespace EspINA
   : public ITool //NOTE Change to IVOI to use countour as VOI
   {
   public:
-    explicit FilledContour(EspinaModelSPtr model,
-                           QUndoStack    *undoStack,
-                           ViewManager   *viewManager);
+    explicit FilledContour(EspinaModel *model,
+                           QUndoStack  *undoStack,
+                           ViewManager *viewManager);
     virtual ~FilledContour();
 
     virtual QCursor cursor() const;
@@ -49,9 +49,9 @@ namespace EspINA
     virtual bool enabled() const;
 
   private:
-    EspinaModelSPtr m_model;
-    QUndoStack    *m_undoStack;
-    ViewManager   *m_viewManager;
+    EspinaModel *m_model;
+    QUndoStack  *m_undoStack;
+    ViewManager *m_viewManager;
 
     ContourSelector *m_picker;
     bool m_enabled;

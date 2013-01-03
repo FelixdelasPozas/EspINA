@@ -218,7 +218,7 @@ void VolumetricRenderer::hide()
   m_enable = false;
   QMap<ModelItemPtr, Representation>::iterator it;
 
-  for (it = m_segmentations.begin(); it != m_segmentations.end(); it++)
+  for (it = m_segmentations.begin(); it != m_segmentations.end(); ++it)
     if ((*it).visible)
     {
       m_renderer->RemoveVolume((*it).volume);
@@ -239,7 +239,7 @@ void VolumetricRenderer::show()
 
   QMap<ModelItemPtr, Representation>::iterator it;
 
-  for (it = m_segmentations.begin(); it != m_segmentations.end(); it++)
+  for (it = m_segmentations.begin(); it != m_segmentations.end(); ++it)
     if(!(*it).visible)
     {
       m_renderer->AddVolume((*it).volume);

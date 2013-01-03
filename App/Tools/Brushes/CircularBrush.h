@@ -29,9 +29,10 @@ namespace EspINA
   : public Brush
   {
   public:
-    explicit CircularBrush(EspinaModelSPtr model,
-                           QUndoStack* undoStack,
-                           ViewManager* viewManager);
+    explicit CircularBrush(EspinaModel *model,
+                           QUndoStack  *undoStack,
+                           ViewManager *viewManager);
+    virtual ~CircularBrush();
 
   protected:
     virtual BrushShape createBrushShape(PickableItemPtr item,

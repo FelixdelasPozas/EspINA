@@ -38,15 +38,15 @@
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
-PlanarSplitTool::PlanarSplitTool(EspinaModelSPtr model,
-                                 QUndoStack    *undoStack,
-                                 ViewManager   *viewManager)
-: m_inUse(false)
-, m_enabled(true)
-, m_widget(NULL)
-, m_model(model)
+PlanarSplitTool::PlanarSplitTool(EspinaModel *model,
+                                 QUndoStack  *undoStack,
+                                 ViewManager *viewManager)
+: m_model(model)
 , m_undoStack(undoStack)
 , m_viewManager(viewManager)
+, m_inUse(false)
+, m_enabled(true)
+, m_widget(NULL)
 {
 }
 

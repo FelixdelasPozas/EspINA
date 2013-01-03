@@ -44,7 +44,7 @@ namespace EspINA
     { return QIcon(":/espina/pencil.png"); }
 
     virtual void acceptChanges();
-
+    virtual void rejectChanges();
     virtual bool modified() const;
 
     virtual ISettingsPanelPtr clone();

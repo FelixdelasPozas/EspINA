@@ -47,11 +47,11 @@ CountingFrameColorEngine::CountingFrameColorEngine()
 
 
 //-----------------------------------------------------------------------------
-QColor CountingFrameColorEngine::color(Segmentation* seg)
+QColor CountingFrameColorEngine::color(SegmentationPtr seg)
 {
   ModelItemExtensionPtr ext = seg->extension(CountingFrameSegmentationExtension::ID);
   Q_ASSERT(ext);
-  CountingFrameSegmentationExtension *segExt = dynamic_cast<CountingFrameSegmentationExtension *>(ext.data());
+  CountingFrameSegmentationExtension *segExt = dynamic_cast<CountingFrameSegmentationExtension *>(ext);
 
   if (segExt->isDiscarded())
     return QColor(255, 0, 0, 50);
@@ -60,11 +60,11 @@ QColor CountingFrameColorEngine::color(Segmentation* seg)
 }
 
 //-----------------------------------------------------------------------------
-LUTPtr CountingFrameColorEngine::lut(Segmentation* seg)
+LUTPtr CountingFrameColorEngine::lut(SegmentationPtr seg)
 {
   ModelItemExtensionPtr ext = seg->extension(CountingFrameSegmentationExtension::ID);
   Q_ASSERT(ext);
-  CountingFrameSegmentationExtension *segExt = dynamic_cast<CountingFrameSegmentationExtension *>(ext.data());
+  CountingFrameSegmentationExtension *segExt = dynamic_cast<CountingFrameSegmentationExtension *>(ext);
 
   if (segExt->isDiscarded())
     return m_discardedLUT;

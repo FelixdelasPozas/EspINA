@@ -30,7 +30,7 @@ namespace EspINA
   public:
     virtual ~IFactoryExtension(){}
 
-    virtual void initFactoryExtension(EspinaFactoryPtr factory) = 0;
+    virtual void initFactoryExtension(EspinaFactory *factory) = 0;
   };
 
 } // namespace EspINA

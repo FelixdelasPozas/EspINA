@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2012  <copyright holder> <email>
+    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,29 +17,15 @@
 */
 
 
-#ifndef ICOLORENGINEPROVIDER_H
-#define ICOLORENGINEPROVIDER_H
+#include "ChannelExtension.h"
 
-#include <QtPlugin>
-#include <QPair>
+using namespace EspINA;
 
-#include <Core/ColorEngines/IColorEngine.h>
-
-namespace EspINA
+ChannelExtensionPtr EspINA::channelExtensionPtr(ModelItemExtensionPtr extension)
 {
-  class IColorEngineProvider
-  {
-  public:
-    typedef QPair<QString, ColorEnginePtr> Engine;
-    typedef QList<IColorEngineProvider::Engine> EngineList;
+  ChannelExtensionPtr res;
+  res = dynamic_cast<ChannelExtensionPtr>(extension);
+  Q_ASSERT(res);
 
-    virtual ~IColorEngineProvider(){}
-
-    virtual EngineList colorEngines() = 0;
-  };
-} // namespace EspINA
-
-Q_DECLARE_INTERFACE(EspINA::IColorEngineProvider,
-                    "es.upm.cesvima.EspINA.ColorEngineProviderInterface/1.2")
-
-#endif // ICOLORENGINEPROVIDER_H
+  return res;
+}

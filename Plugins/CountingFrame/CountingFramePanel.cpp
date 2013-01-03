@@ -172,13 +172,16 @@ CountingFramePanel::CountingFramePanel(QWidget * parent)
 //------------------------------------------------------------------------
 CountingFramePanel::~CountingFramePanel()
 {
+  qDebug() << "********************************************************";
+  qDebug() << "              Destroying Counting Frame Panel Plugin";
+  qDebug() << "********************************************************";
   clearCountingFrames();
 }
 
 //------------------------------------------------------------------------
-void CountingFramePanel::initDockWidget(EspinaModelSPtr model,
-                                        QUndoStack     *undoStack,
-                                        ViewManager    *viewManager)
+void CountingFramePanel::initDockWidget(EspinaModel *model,
+                                        QUndoStack  *undoStack,
+                                        ViewManager *viewManager)
 {
   m_espinaModel = model;
   m_viewManager = viewManager;
@@ -189,10 +192,10 @@ void CountingFramePanel::initDockWidget(EspinaModelSPtr model,
   m_espinaModel->factory()->registerChannelExtension(channelExtension);
   SegmentationExtensionPtr segExtension(new CountingFrameSegmentationExtension());
   m_espinaModel->factory()->registerSegmentationExtension(segExtension);
-  m_espinaModel->factory()->registerRenderer(IRendererPtr(new CountingFrameRenderer(this)));
+  m_espinaModel->factory()->registerRenderer(new CountingFrameRenderer(this));
 
 
-  m_gui->taxonomySelector->setModel(m_espinaModel.data());
+  m_gui->taxonomySelector->setModel(m_espinaModel);
   m_gui->taxonomySelector->setRootModelIndex(m_espinaModel->taxonomyRoot());
 
   connect(m_viewManager->fitToSlices(), SIGNAL(toggled(bool)),
@@ -223,7 +226,7 @@ void CountingFramePanel::createAdaptiveCF(Channel *channel,
 {
   ModelItemExtensionPtr ext = channel->extension(CountingFrameChannelExtension::ID);
   Q_ASSERT(ext);
-  CountingFrameChannelExtension *channelExt = dynamic_cast<CountingFrameChannelExtension *>(ext.data());
+  CountingFrameChannelExtension *channelExt = dynamic_cast<CountingFrameChannelExtension *>(ext);
   Q_ASSERT(channelExt);
 
   // TODO 2012-12-29 Revisar memory leaks
@@ -242,7 +245,7 @@ void CountingFramePanel::createRectangularCF(Channel *channel,
 {
   ModelItemExtensionPtr ext = channel->extension(CountingFrameChannelExtension::ID);
   Q_ASSERT(ext);
-  CountingFrameChannelExtension *channelExt = dynamic_cast<CountingFrameChannelExtension *>(ext.data());
+  CountingFrameChannelExtension *channelExt = dynamic_cast<CountingFrameChannelExtension *>(ext);
   Q_ASSERT(channelExt);
 
   double borders[6];
@@ -535,7 +538,7 @@ void CountingFramePanel::computeOptimalMargins(Channel* channel,
   memset(exclusion, 0, 3*sizeof(Nm));
 
   ModelItemSList items = channel->relatedItems(EspINA::OUT, Channel::LINK);
-  SharedSegmentationList channelSegs;
+  SegmentationSList channelSegs;
   foreach(ModelItemSPtr item, items)
   {
     if (EspINA::SEGMENTATION == item->type())
@@ -545,7 +548,7 @@ void CountingFramePanel::computeOptimalMargins(Channel* channel,
   foreach(SegmentationSPtr seg, channelSegs)
   {
     ModelItemExtensionPtr ext = seg->extension(MarginsSegmentationExtension::ID);
-    MarginsSegmentationExtension *marginExt = dynamic_cast<MarginsSegmentationExtension *>(ext.data());
+    MarginsSegmentationExtension *marginExt = dynamic_cast<MarginsSegmentationExtension *>(ext);
     if (marginExt)
     {
       Nm dist2Margin[6];
@@ -608,4 +611,4 @@ void CountingFramePanel::registerCF(CountingFrameChannelExtension* ext,
   showInfo(cf);
 }
 
-Q_EXPORT_PLUGIN2(CountingFramePlugin, CountingFramePanel)
+Q_EXPORT_PLUGIN2(CountingFramePlugin, EspINA::CountingFramePanel)

@@ -36,7 +36,7 @@ const QString SUBSTRACTLINK = "Substract";
 //----------------------------------------------------------------------------
 CompositionCommand::CompositionCommand(const SegmentationList &segmentations,
                                        TaxonomyElementSPtr      taxonomy,
-                                       EspinaModelSPtr          model)
+                                       EspinaModel          *model)
 : m_model(model)
 , m_tax(taxonomy)
 {

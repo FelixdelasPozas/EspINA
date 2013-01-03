@@ -36,8 +36,8 @@ namespace EspINA
      * @return Success if no other error is reported.
      */
     static STATUS loadFile(QFileInfo file,
-                           EspinaModelSPtr model,
-                           QUndoStack* undoStack,
+                           EspinaModel *model,
+                           QUndoStack  *undoStack,
                            QDir tmpDir);
 
     /**
@@ -50,8 +50,8 @@ namespace EspINA
      * @return Success if no other error is reported.
      */
     static STATUS loadChannel(QFileInfo file,
-                              EspinaModelSPtr model,
-                              QUndoStack *undoStack,
+                              EspinaModel *model,
+                              QUndoStack  *undoStack,
                               ChannelSPtr &channelPtr);
 
     /**
@@ -62,7 +62,7 @@ namespace EspINA
      * @return Success if no other error is reported.
      */
     static STATUS loadSegFile(QFileInfo file,
-                              EspinaModelSPtr model,
+                              EspinaModel *model,
                               QDir tmpDir);
 
     /**
@@ -70,7 +70,7 @@ namespace EspINA
      * @param filepath is the path where the model must be saved
      * @param model is the EspinaModel which is saved in @param file
      */
-    static STATUS saveSegFile(QFileInfo file, EspinaModelSPtr model);
+    static STATUS saveSegFile(QFileInfo file, EspinaModel *model);
 
   private:
     /**

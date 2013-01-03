@@ -27,7 +27,7 @@
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
-FillHolesCommand::FillHolesCommand(SegmentationList inputs, EspinaModelSPtr model)
+FillHolesCommand::FillHolesCommand(SegmentationList inputs, EspinaModel *model)
 : m_model(model)
 {
   QApplication::setOverrideCursor(Qt::WaitCursor);

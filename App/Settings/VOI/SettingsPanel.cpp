@@ -64,6 +64,12 @@ void RectangularVOI::SettingsPanel::acceptChanges()
 }
 
 //------------------------------------------------------------------------
+void RectangularVOI::SettingsPanel::rejectChanges()
+{
+
+}
+
+//------------------------------------------------------------------------
 bool RectangularVOI::SettingsPanel::modified() const
 {
   return m_xSize->value() != m_settings->xSize()

@@ -27,7 +27,7 @@ using namespace EspINA;
 AddRelation::AddRelation(ModelItemSPtr   ancestor,
                          ModelItemSPtr   successor,
                          const QString  description,
-                         EspinaModelSPtr model,
+                         EspinaModel   *model,
                          QUndoCommand  *parent)
 : QUndoCommand(parent)
 , m_model(model)

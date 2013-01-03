@@ -27,12 +27,12 @@ using namespace EspINA;
 //------------------------------------------------------------------------
 AddChannel::AddChannel(FilterSPtr      reader,
                        ChannelSPtr     channel,
-                       EspinaModelSPtr model,
+                       EspinaModel  *model,
                        QUndoCommand  *parent)
 : QUndoCommand(parent)
+, m_model  (model)
 , m_reader (reader)
 , m_channel(channel)
-, m_model  (model)
 {
 }
 

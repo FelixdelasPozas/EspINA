@@ -49,6 +49,12 @@ void EditorToolBar::SettingsPanel::acceptChanges()
 }
 
 //------------------------------------------------------------------------
+void EditorToolBar::SettingsPanel::rejectChanges()
+{
+
+}
+
+//------------------------------------------------------------------------
 bool EditorToolBar::SettingsPanel::modified() const
 {
   return m_brushRadius->value()  != m_settings->brushRadius()

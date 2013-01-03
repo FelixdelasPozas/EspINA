@@ -177,7 +177,7 @@ void AdaptiveCountingFrame::updateCountingFrameImplementation()
 
   ModelItemExtensionPtr ext = m_channel->extension(MarginsChannelExtension::ID);
   Q_ASSERT(ext);
-  MarginsChannelExtension *marginsExt = dynamic_cast<MarginsChannelExtension *>(ext.data());
+  MarginsChannelExtension *marginsExt = dynamic_cast<MarginsChannelExtension *>(ext);
   Q_ASSERT(marginsExt);
   m_totalVolume = marginsExt->computedVolume();
 

@@ -42,7 +42,7 @@ bool TaxonomyLayout::SortFilter::lessThan(const QModelIndex& left, const QModelI
 }
 
 //------------------------------------------------------------------------
-TaxonomyLayout::TaxonomyLayout(EspinaModelSPtr model)
+TaxonomyLayout::TaxonomyLayout(EspinaModel *model)
 : Layout(model)
 , m_proxy(new TaxonomyProxy())
 , m_sort (new SortFilter())

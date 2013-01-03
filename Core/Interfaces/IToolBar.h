@@ -21,12 +21,11 @@
 
 #include <QToolBar>
 
-#include <Core/Model/EspinaModel.h>
-
 class QUndoStack;
 
 namespace EspINA
 {
+  class EspinaModel;
   class ViewManager;
 
   class IToolBar
@@ -40,9 +39,9 @@ namespace EspINA
     : QToolBar(title, parent){}
     virtual ~IToolBar(){}
 
-    virtual void initToolBar(EspinaModelSPtr model,
-                             QUndoStack     *undoStack,
-                             ViewManager    *viewManager) = 0;
+    virtual void initToolBar(EspinaModel *model,
+                             QUndoStack  *undoStack,
+                             ViewManager *viewManager) = 0;
   public slots:
     virtual void reset() = 0;
   };
@@ -50,5 +49,5 @@ namespace EspINA
 } // namespace EspINA
 
 Q_DECLARE_INTERFACE(EspINA::IToolBar,
-                    "es.upm.cesvima.EspINA.ToolBarInterface/1.2")
+                    "es.upm.cesvima.EspINA.ToolBarInterface/1.3")
 #endif //ITOOLBAR_H

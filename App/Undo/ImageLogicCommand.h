@@ -45,7 +45,7 @@ namespace EspINA
     explicit ImageLogicCommand(SegmentationList            inputs,
                                ImageLogicFilter::Operation operation,
                                TaxonomyElementPtr          taxonomy,
-                               EspinaModelSPtr             model,
+                               EspinaModel                *model,
                                QUndoCommand *              parent = NULL);
 
     virtual void redo();
@@ -54,9 +54,9 @@ namespace EspINA
     const QString link(SegmentationSPtr seg);
 
   private:
-    EspinaModelSPtr m_model;
+    EspinaModel *m_model;
 
-    SharedSegmentationList      m_input;
+    SegmentationSList      m_input;
     ImageLogicFilter::Operation m_operation;
     TaxonomyElementSPtr    m_taxonomy;
 

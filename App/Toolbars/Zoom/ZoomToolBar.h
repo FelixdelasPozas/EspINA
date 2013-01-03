@@ -40,9 +40,9 @@ namespace EspINA
                          QWidget     *parent = 0);
     virtual ~ZoomToolBar();
 
-    virtual void initToolBar(EspinaModelSPtr model,
-                             QUndoStack     *undoStack,
-                             ViewManager    *viewManager);
+    virtual void initToolBar(EspinaModel *model,
+                             QUndoStack  *undoStack,
+                             ViewManager *viewManager);
   public slots:
     virtual void resetViews();
     virtual void initZoomTool(bool);

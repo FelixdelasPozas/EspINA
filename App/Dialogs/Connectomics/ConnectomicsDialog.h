@@ -42,9 +42,9 @@ namespace EspINA
   {
     Q_OBJECT
   public:
-    explicit ConnectomicsDialog(EspinaModelSPtr  model,
-                                ViewManager    *vm,
-                                QWidget        *parent = 0,
+    explicit ConnectomicsDialog(EspinaModel *model,
+                                ViewManager *viewManager,
+                                QWidget     *parent = 0,
                                 Qt::WindowFlags flags  = 0);
     virtual ~ConnectomicsDialog() {};
 
@@ -61,7 +61,7 @@ namespace EspINA
     //   void showGraphConnectomicsInformationAux(QModelIndex index);
 
   private:
-    EspinaModelSPtr m_model;
+    EspinaModel *m_model;
 
     QStringListModel connectedSegModel;
     ViewManager    *m_viewManager;

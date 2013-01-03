@@ -18,6 +18,7 @@
 
 #include "AppositionSurfaceRenderer.h"
 
+#include "AppositionSurface.h"
 #include "AppositionSurfaceExtension.h"
 
 // EspINA
@@ -39,8 +40,7 @@
 #include <QSettings>
 #include <QColor>
 
-// plugin
-#include "AppositionSurface.h"
+#include <QDebug>
 
 using namespace EspINA;
 
@@ -68,8 +68,8 @@ struct AppositionSurfaceRenderer::Representation
 QMap<ModelItemPtr, AppositionSurfaceRenderer::Representation *> AppositionSurfaceRenderer::m_representations;
 
 //-----------------------------------------------------------------------------
-AppositionSurfaceRenderer::AppositionSurfaceRenderer(QColor color, AppositionSurface *plugin)
-: m_color(color)
+AppositionSurfaceRenderer::AppositionSurfaceRenderer(AppositionSurface *plugin)
+: m_color(Qt::red)
 , m_plugin(plugin)
 {
   m_plugin->registerRenderer(this);
@@ -78,7 +78,8 @@ AppositionSurfaceRenderer::AppositionSurfaceRenderer(QColor color, AppositionSur
 //-----------------------------------------------------------------------------
 AppositionSurfaceRenderer::~AppositionSurfaceRenderer()
 {
-  //TODO 2013-01-02: No puede haber una relacion con el plugin ya que se destruye antes m_plugin->unregisterRenderer(this);
+  qDebug() << "Destroying AppositionSurfaceRenderer";
+  m_plugin->unregisterRenderer(this);
 }
 
 
@@ -277,7 +278,10 @@ void AppositionSurfaceRenderer::clean()
 //-----------------------------------------------------------------------------
 IRendererSPtr AppositionSurfaceRenderer::clone()
 {
-  return IRendererSPtr(new AppositionSurfaceRenderer(m_color, m_plugin));
+  AppositionSurfaceRenderer *renderer = new AppositionSurfaceRenderer(m_plugin);
+  renderer->SetColor(m_color);
+
+  return IRendererSPtr(renderer);
 }
 
 //-----------------------------------------------------------------------------

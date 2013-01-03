@@ -33,19 +33,19 @@ using namespace EspINA;
 
 //------------------------------------------------------------------------
 SegmentationInspector::SegmentationInspector(SegmentationPtr seg,
-                                             EspinaModelSPtr  model,
-                                             QUndoStack     *undoStack,
-                                             ViewManager    *vm,
-                                             QWidget        *parent,
+                                             EspinaModel *model,
+                                             QUndoStack  *undoStack,
+                                             ViewManager *vm,
+                                             QWidget     *parent,
                                              Qt::WindowFlags flags)
 : QWidget(parent, flags)
+, m_model(model)
 , m_undoStack(undoStack)
 , m_viewManager(vm)
 , m_seg(seg)
-, m_model(model)
-, m_view(new VolumeView(model->factory(), vm))
 , m_info(new InformationProxy())
 , m_sort(new QSortFilterProxyModel())
+, m_view(new VolumeView(model->factory(), vm))
 {
   m_view->setViewType(VOLUME);
 

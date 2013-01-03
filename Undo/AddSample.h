@@ -31,16 +31,16 @@ namespace EspINA
   : public QUndoCommand
   {
   public:
-    explicit AddSample(SampleSPtr sample,
-                       EspinaModelSPtr model,
-                       QUndoCommand   *parent = NULL);
+    explicit AddSample(SampleSPtr    sample,
+                       EspinaModel  *model,
+                       QUndoCommand *parent = NULL);
     virtual ~AddSample();
 
     virtual void redo();
     virtual void undo();
 
   private:
-    EspinaModelSPtr m_model;
+    EspinaModel *m_model;
 
     SampleSPtr m_sample;
   };

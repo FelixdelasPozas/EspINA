@@ -42,22 +42,22 @@ public:
 };
 
 //------------------------------------------------------------------------
-TaxonomyExplorer::TaxonomyExplorer(EspinaModelSPtr model,
+TaxonomyExplorer::TaxonomyExplorer(EspinaModel *model,
                                    ViewManager *vm,
                                    TaxonomyColorEnginePtr engine,
                                    QWidget* parent)
 : QDockWidget(parent)
-, m_gui(new GUI())
 , m_baseModel(model)
 , m_viewManager(vm)
 , m_engine(engine)
+, m_gui(new GUI())
 , m_sort(new QSortFilterProxyModel())
 {
   setObjectName("TaxonomyExplorer");
 
   setWindowTitle(tr("Taxonomy Explorer"));
 
-  m_sort->setSourceModel(m_baseModel.data());
+  m_sort->setSourceModel(m_baseModel);
   m_sort->setDynamicSortFilter(true);
   m_gui->treeView->setModel(m_sort.data());
   m_gui->treeView->setRootIndex(m_sort->mapFromSource(m_baseModel->taxonomyRoot()));

@@ -48,42 +48,42 @@ namespace EspINA
     : public QUndoCommand
     {
     public:
-      explicit UndoCommand(SampleSPtr               sample,
+      explicit UndoCommand(SampleSPtr          sample,
                            ChannelSPtr         channel,
                            SegmhaImporterFilterSPtr filter,
-                           EspinaModelSPtr          model,
-                           QUndoCommand            *parent = NULL);
+                           EspinaModel         *model,
+                           QUndoCommand        *parent = NULL);
       virtual void redo();
       virtual void undo();
 
     private:
-      EspinaModelSPtr          m_model;
+      EspinaModel          *m_model;
       SampleSPtr               m_sample;
       ChannelSPtr         m_channel;
       SegmhaImporterFilterSPtr m_filter;
-      SharedSegmentationList   m_segs;
+      SegmentationSList   m_segs;
     };
 
   public:
     explicit SegmhaImporter();
-    virtual ~SegmhaImporter(){}
+    virtual ~SegmhaImporter();
 
-    virtual void initFactoryExtension(EspinaFactoryPtr factory);
+    virtual void initFactoryExtension(EspinaFactory *factory);
 
     virtual FilterSPtr createFilter(const QString              &filter,
                                     const Filter::NamedInputs  &inputs,
                                     const ModelItem::Arguments &args);
 
-    virtual void initFileReader(EspinaModelSPtr model,
-                                QUndoStack     *undoStack,
-                                ViewManager    *viewManager);
+    virtual void initFileReader(EspinaModel *model,
+                                QUndoStack  *undoStack,
+                                ViewManager *viewManager);
 
     virtual bool readFile(const QFileInfo file);
 
   private:
-    EspinaModelSPtr m_model;
-    QUndoStack     *m_undoStack;
-    ViewManager    *m_viewManager;
+    EspinaModel *m_model;
+    QUndoStack  *m_undoStack;
+    ViewManager *m_viewManager;
   };
 
 } // namespace EspINA

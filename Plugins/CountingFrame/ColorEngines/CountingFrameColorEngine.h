@@ -32,8 +32,8 @@ namespace EspINA
   public:
     explicit CountingFrameColorEngine();
 
-    virtual QColor color(Segmentation* seg);
-    virtual LUTPtr lut(Segmentation* seg);
+    virtual QColor color(SegmentationPtr seg);
+    virtual LUTPtr lut(SegmentationPtr seg);
     virtual ColorEngine::Composition supportedComposition() const
     { return ColorEngine::Transparency; }
 

@@ -83,11 +83,7 @@ namespace EspINA
 
   public:
     vtkTypeMacro(CountingFrame, vtkCommand);
-    explicit CountingFrame(Id id,
-                           CountingFrameChannelExtension *channelExt,
-                           Nm inclusion[3],
-                           Nm exclusion[3],
-                           ViewManager *vm);
+
 
     virtual ~CountingFrame(){}
 
@@ -128,6 +124,12 @@ namespace EspINA
     void modified(CountingFrame *);
 
   protected:
+    explicit CountingFrame(Id id,
+                           CountingFrameChannelExtension *channelExt,
+                           Nm inclusion[3],
+                           Nm exclusion[3],
+                           ViewManager *vm);
+
     void updateCountingFrame();
     virtual void updateCountingFrameImplementation() = 0;
 

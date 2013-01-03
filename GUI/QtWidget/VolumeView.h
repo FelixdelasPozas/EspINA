@@ -56,22 +56,22 @@ namespace EspINA
     {
       const QString RENDERERS;
     public:
-      explicit Settings(const EspinaFactoryPtr factory,
-                        const QString prefix=QString(),
-                        VolumeView *parent=NULL);
+      explicit Settings(const EspinaFactory *factory,
+                        const QString        prefix=QString(),
+                        VolumeView          *parent=NULL);
 
-      void setRenderers(IRendererSList values);
-      IRendererSList renderers() const;
+      void setRenderers(IRendererList values);
+      IRendererList renderers() const;
 
     private:
-      IRendererSList m_renderers;
+      IRendererList m_renderers;
       VolumeView *parent;
     };
 
     typedef QSharedPointer<Settings> SettingsPtr;
 
   public:
-    explicit VolumeView(const EspinaFactoryPtr factory,
+    explicit VolumeView(const EspinaFactory *factory,
                         ViewManager* viewManager,
                         QWidget* parent = 0);
     virtual ~VolumeView();

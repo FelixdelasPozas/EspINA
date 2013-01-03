@@ -25,6 +25,8 @@
 
 // plugin
 #include "ui_AppositionSurfaceSettings.h"
+#include "AppositionSurfaceExtension.h"
+#include "AppositionSurfaceRenderer.h"
 
 // Qt
 #include <QColor>
@@ -64,10 +66,12 @@ namespace EspINA
     void propagateSettings();
 
   private:
+    EspinaFactory *m_factory;
     QList<AppositionSurfaceRenderer *> m_renderersList;
 
-    ISettingsPanelPrototype  m_settings;
-    SegmentationExtensionPtr m_segExtension;
+    ISettingsPanelPrototype        m_settings;
+    AppositionSurfaceExtensionSPtr m_segmentationExtension;
+    AppositionSurfaceRendererSPtr  m_renderer;
   };
 
   class AppositionSurface::Settings
@@ -82,7 +86,9 @@ namespace EspINA
     virtual const QString shortDescription() { return tr("Apposition Surface"); }
     virtual const QString longDescription()  { return tr("Apposition Surface Settings"); }
     virtual const QIcon icon()               { return QIcon(":/AppSurface.svg"); }
+
     virtual void acceptChanges();
+    virtual void rejectChanges();
     virtual bool modified() const;
     virtual ISettingsPanel *clone();
 

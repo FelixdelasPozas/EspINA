@@ -28,6 +28,8 @@
 
 #include <QStandardItemModel>
 
+// TODO 2013-01-02 Create dock widgets inside this plugins, not as the plugin itself
+// do the same for the toolbars (and all other qwidgets)
 namespace EspINA
 {
   // Forward declaration
@@ -53,9 +55,9 @@ namespace EspINA
     explicit CountingFramePanel(QWidget* parent=NULL);
     virtual ~CountingFramePanel();
 
-    virtual void initDockWidget(EspinaModelSPtr model,
-                                QUndoStack     *undoStack,
-                                ViewManager    *viewManager);
+    virtual void initDockWidget(EspinaModel *model,
+                                QUndoStack  *undoStack,
+                                ViewManager *viewManager);
 
     virtual void reset(); // slot
 
@@ -112,14 +114,14 @@ namespace EspINA
     void countingFrameDeleted(CountingFrame *);
 
   private:
-    EspinaModelSPtr m_espinaModel;
-    ViewManager    *m_viewManager;
+    EspinaModel *m_espinaModel;
+    ViewManager *m_viewManager;
 
     GUI *m_gui;
     bool m_useSlices;
 
-    CountingFrameList       m_countingFrames;
-    CountingFrame          *m_activeCF;
+    CountingFrameList m_countingFrames;
+    CountingFrame    *m_activeCF;
     CountingFrame::Id m_nextId;
 
     static const int NUM_FIXED_ROWS = 2;

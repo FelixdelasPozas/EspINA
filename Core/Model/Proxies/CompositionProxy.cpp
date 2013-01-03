@@ -38,20 +38,20 @@ CompositionProxy::~CompositionProxy()
 }
 
 //------------------------------------------------------------------------
-void CompositionProxy::setSourceModel(EspinaModelSPtr sourceModel)
+void CompositionProxy::setSourceModel(EspinaModel *sourceModel)
 {
   m_sourceModel = sourceModel;
 
-  connect(sourceModel.data(), SIGNAL(rowsInserted(const QModelIndex&, int, int)),
+  connect(sourceModel, SIGNAL(rowsInserted(const QModelIndex&, int, int)),
           this, SLOT(sourceRowsInserted(const QModelIndex&, int, int)));
-  connect(sourceModel.data(), SIGNAL(rowsRemoved(const QModelIndex&, int, int)),
+  connect(sourceModel, SIGNAL(rowsRemoved(const QModelIndex&, int, int)),
           this, SLOT(sourceRowsRemoved(QModelIndex,int,int)));
-  connect(sourceModel.data(), SIGNAL(rowsAboutToBeRemoved(const QModelIndex&, int, int)),
+  connect(sourceModel, SIGNAL(rowsAboutToBeRemoved(const QModelIndex&, int, int)),
           this, SLOT(sourceRowsAboutToBeRemoved(QModelIndex,int,int)));
-  connect(sourceModel.data(), SIGNAL(dataChanged(QModelIndex,QModelIndex)),
+  connect(sourceModel, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
           this,SLOT(sourceDataChanged(QModelIndex,QModelIndex)));
 
-  QAbstractProxyModel::setSourceModel(sourceModel.data());
+  QAbstractProxyModel::setSourceModel(sourceModel);
 }
 
 //------------------------------------------------------------------------

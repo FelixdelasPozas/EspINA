@@ -38,7 +38,7 @@ namespace EspINA
     vtkTypeMacro(MeasureWidget,vtkCommand);
 
     static MeasureWidget *New()
-    {return new MeasureWidget;};
+    {return new MeasureWidget();};
 
     // implements EspinaWidget
     void setViewManager(ViewManager *vm) {m_viewManager = vm;}
@@ -66,7 +66,7 @@ namespace EspINA
     vtkDistanceWidget *m_sagittal;
     QList<MeasureSliceWidget*> m_sliceWidgets;
     QList<vtkDistanceWidget*> m_distanceWidgets;
-    
+
     QList<vtkCamera*> m_axialCameras;
     QList<vtkCamera*> m_coronalCameras;
     QList<vtkCamera*> m_sagittalCameras;

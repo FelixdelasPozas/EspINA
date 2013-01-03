@@ -69,6 +69,12 @@ void SeedGrowSegmentation::SettingsPanel::acceptChanges()
 }
 
 //------------------------------------------------------------------------
+void SeedGrowSegmentation::SettingsPanel::rejectChanges()
+{
+}
+
+
+//------------------------------------------------------------------------
 bool SeedGrowSegmentation::SettingsPanel::modified() const
 {
   return m_xSize->value() != m_settings->xSize()

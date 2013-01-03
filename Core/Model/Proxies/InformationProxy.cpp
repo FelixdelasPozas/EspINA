@@ -33,32 +33,32 @@ InformationProxy::InformationProxy()
 }
 
 //------------------------------------------------------------------------
-void InformationProxy::setSourceModel(EspinaModelSPtr sourceModel)
+void InformationProxy::setSourceModel(EspinaModel *sourceModel)
 {
-  if (!m_model.isNull())
+  if (m_model)
   {
-    disconnect(sourceModel.data(), SIGNAL(rowsInserted(const QModelIndex&, int, int)),
+    disconnect(sourceModel, SIGNAL(rowsInserted(const QModelIndex&, int, int)),
                this, SLOT(sourceRowsInserted(const QModelIndex&, int, int)));
-    disconnect(sourceModel.data(), SIGNAL(rowsAboutToBeRemoved(const QModelIndex&, int, int)),
+    disconnect(sourceModel, SIGNAL(rowsAboutToBeRemoved(const QModelIndex&, int, int)),
                this, SLOT(sourceRowsAboutToBeRemoved(QModelIndex, int, int)));
-    disconnect(sourceModel.data(), SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)),
+    disconnect(sourceModel, SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)),
                this, SLOT(sourceDataChanged(const QModelIndex &,const QModelIndex &)));
   }
 
   m_model = sourceModel;
   m_elements.clear();
 
-  if (!m_model.isNull())
-  connect(sourceModel.data(), SIGNAL(rowsInserted(const QModelIndex&, int, int)),
+  if (m_model)
+  connect(sourceModel, SIGNAL(rowsInserted(const QModelIndex&, int, int)),
           this, SLOT(sourceRowsInserted(const QModelIndex&, int, int)));
-  connect(sourceModel.data(), SIGNAL(rowsAboutToBeRemoved(const QModelIndex&, int, int)),
+  connect(sourceModel, SIGNAL(rowsAboutToBeRemoved(const QModelIndex&, int, int)),
           this, SLOT(sourceRowsAboutToBeRemoved(QModelIndex, int, int)));
-  connect(sourceModel.data(), SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)),
+  connect(sourceModel, SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)),
           this, SLOT(sourceDataChanged(const QModelIndex &,const QModelIndex &)));
 
   sourceRowsInserted(m_model->segmentationRoot(), 0, m_model->segmentations().size()-1);
 
-  QAbstractProxyModel::setSourceModel(sourceModel.data());
+  QAbstractProxyModel::setSourceModel(sourceModel);
 }
 
 //------------------------------------------------------------------------

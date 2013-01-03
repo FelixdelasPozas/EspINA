@@ -70,15 +70,15 @@ SegmentationExplorer::GUI::GUI()
 
 
 //------------------------------------------------------------------------
-SegmentationExplorer::SegmentationExplorer(EspinaModelSPtr model,
-                                           QUndoStack    *undoStack,
-                                           ViewManager   *vm,
-                                           QWidget       *parent)
+SegmentationExplorer::SegmentationExplorer(EspinaModel *model,
+                                           QUndoStack  *undoStack,
+                                           ViewManager *vm,
+                                           QWidget     *parent)
 : IDockWidget(parent)
-, m_gui        (new GUI())
 , m_baseModel  (model)
 , m_undoStack  (undoStack)
 , m_viewManager(vm)
+, m_gui        (new GUI())
 , m_layout     (NULL)
 {
   setObjectName("SegmentationExplorer");
@@ -106,7 +106,7 @@ SegmentationExplorer::SegmentationExplorer(EspinaModelSPtr model,
           this, SLOT(deleteSegmentations()));
   connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection, bool)),
           this, SLOT(updateSelection(ViewManager::Selection)));
-  connect(m_baseModel.data(), SIGNAL(rowsAboutToBeRemoved(QModelIndex, int , int)),
+  connect(m_baseModel, SIGNAL(rowsAboutToBeRemoved(QModelIndex, int , int)),
           this, SLOT(rowsAboutToBeRemoved(QModelIndex, int,int)));
 
   setWidget(m_gui);
@@ -125,9 +125,9 @@ SegmentationExplorer::~SegmentationExplorer()
 }
 
 //------------------------------------------------------------------------
-void SegmentationExplorer::initDockWidget(EspinaModelSPtr model,
-                                          QUndoStack     *undoStack,
-                                          ViewManager    *viewManager)
+void SegmentationExplorer::initDockWidget(EspinaModel *model,
+                                          QUndoStack  *undoStack,
+                                          ViewManager *viewManager)
 {
 
 }

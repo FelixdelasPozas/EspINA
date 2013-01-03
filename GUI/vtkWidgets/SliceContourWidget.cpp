@@ -29,7 +29,7 @@ SliceContourWidget::~SliceContourWidget()
     vtkPolyData *value = it.value();
     if (NULL != value)
       value->Delete();
-    it++;
+    ++it;
   }
   m_contourMap.clear();
   m_contourWidget->Delete();
@@ -68,7 +68,7 @@ void SliceContourWidget::SetContours(QMap<Nm, vtkPolyData*> contours)
     vtkPolyData *value = it.value();
     if (NULL != value)
       value->Delete();
-    it++;
+    ++it;
   }
   m_contourMap.clear();
 

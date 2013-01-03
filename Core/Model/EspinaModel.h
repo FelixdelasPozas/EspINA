@@ -62,10 +62,10 @@ namespace EspINA
   {
     Q_OBJECT
   public:
-    explicit EspinaModel(EspinaFactoryPtr factory);
+    explicit EspinaModel(EspinaFactory *factory);
     virtual ~EspinaModel();
 
-    EspinaFactoryPtr factory() const
+    EspinaFactory *factory() const
     { return m_factory; }
 
     void reset();
@@ -135,10 +135,10 @@ namespace EspINA
 
     // Segmentations
     void addSegmentation   (SegmentationSPtr   segmentation  );
-    void addSegmentation   (SharedSegmentationList  segmentations );
+    void addSegmentation   (SegmentationSList  segmentations );
     void removeSegmentation(SegmentationSPtr   segmentation  );
-    void removeSegmentation(SharedSegmentationList  segmentations );
-    SharedSegmentationList segmentations() const
+    void removeSegmentation(SegmentationSList  segmentations );
+    SegmentationSList segmentations() const
     { return m_segmentations; }
 
     // Filters
@@ -237,12 +237,12 @@ namespace EspINA
     void removeFilterImplementation(FilterSPtr filter);
 
   private:
-    EspinaFactoryPtr m_factory;
+    EspinaFactory *m_factory;
 
     ChannelSList      m_channels;
-    FilterSPtrList       m_filters;
-    SampleSPtrList       m_samples;
-    SharedSegmentationList m_segmentations;
+    FilterSPtrList    m_filters;
+    SampleSPtrList    m_samples;
+    SegmentationSList m_segmentations;
     TaxonomySPtr      m_tax;
 
     QList<QDir>          m_tmpDirs;

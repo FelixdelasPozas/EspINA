@@ -36,7 +36,8 @@ using namespace EspINA;
 //-----------------------------------------------------------------------------
 AppositionSurface::AppositionSurface()
 : m_settings(new AppositionSurface::Settings(this))
-, m_segExtension(new AppositionSurfaceExtension())
+, m_segmentationExtension(new AppositionSurfaceExtension())
+, m_renderer(new AppositionSurfaceRenderer(this))
 {
 }
 
@@ -46,19 +47,26 @@ AppositionSurface::~AppositionSurface()
   qDebug() << "********************************************************";
   qDebug() << "              Destroying Apposition Surface Plugin";
   qDebug() << "********************************************************";
+  m_factory->unregisterSettingsPanel(m_settings.data());
+  m_factory->unregisterSegmentationExtension(m_segmentationExtension.data());
+  m_factory->unregisterRenderer(m_renderer.data());
 }
 
 //-----------------------------------------------------------------------------
 void AppositionSurface::initFactoryExtension(EspinaFactoryPtr factory)
 {
+  m_factory = factory;
+
   factory->registerSettingsPanel(m_settings.data());
+
+  factory->registerSegmentationExtension(m_segmentationExtension.data());
 
   QSettings settings(CESVIMA, ESPINA);
   settings.beginGroup("Apposition Surface");
   QColor color = settings.value("Surface Color").value<QColor>();
+  m_renderer->SetColor(color);
 
-  factory->registerSegmentationExtension(m_segExtension);
-  factory->registerRenderer(IRendererSPtr(new AppositionSurfaceRenderer(color, this)));
+  factory->registerRenderer(m_renderer.data());
 }
 
 //-----------------------------------------------------------------------------
@@ -149,6 +157,12 @@ void AppositionSurface::Settings::acceptChanges()
   settings.sync();
 
   emit settingsChanged();
+}
+
+//-----------------------------------------------------------------------------
+void AppositionSurface::Settings::rejectChanges()
+{
+
 }
 
 //-----------------------------------------------------------------------------

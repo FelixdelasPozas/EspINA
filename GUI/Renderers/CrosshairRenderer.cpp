@@ -421,7 +421,7 @@ void CrosshairRenderer::hide()
 
   m_enable = false;
   QMap<ModelItemPtr, Representation>::iterator it;
-  for (it = m_channels.begin(); it != m_channels.end(); it++)
+  for (it = m_channels.begin(); it != m_channels.end(); ++it)
     if ((*it).visible)
     {
       m_renderer->RemoveActor((*it).axial);
@@ -444,7 +444,7 @@ void CrosshairRenderer::show()
 
   m_enable = true;
   QMap<ModelItemPtr, Representation>::iterator it;
-  for (it = m_channels.begin(); it != m_channels.end(); it++)
+  for (it = m_channels.begin(); it != m_channels.end(); ++it)
     if (!(*it).visible)
     {
       m_renderer->AddActor((*it).axial);
@@ -465,7 +465,7 @@ unsigned int CrosshairRenderer::getNumberOfvtkActors()
   unsigned int numActors = 0;
 
   QMap<ModelItemPtr, Representation>::iterator it;
-  for (it = m_channels.begin(); it != m_channels.end(); it++)
+  for (it = m_channels.begin(); it != m_channels.end(); ++it)
     if ((*it).visible)
       numActors += 6;
 
@@ -476,7 +476,7 @@ unsigned int CrosshairRenderer::getNumberOfvtkActors()
 void CrosshairRenderer::setCrosshairColors(double aColor[3], double cColor[3], double sColor[3])
 {
   QMap<ModelItemPtr, Representation>::iterator it;
-  for (it = m_channels.begin(); it != m_channels.end(); it++)
+  for (it = m_channels.begin(); it != m_channels.end(); ++it)
   {
     (*it).axialBorder->GetProperty()->SetColor(aColor);
     (*it).coronalBorder->GetProperty()->SetColor(cColor);
@@ -488,7 +488,7 @@ void CrosshairRenderer::setCrosshairColors(double aColor[3], double cColor[3], d
 void CrosshairRenderer::setCrosshair(Nm point[3])
 {
   QMap<ModelItemPtr, Representation>::iterator it;
-  for (it = m_channels.begin(); it != m_channels.end(); it++)
+  for (it = m_channels.begin(); it != m_channels.end(); ++it)
   {
     if (point[0] != (*it).point[0])
     {

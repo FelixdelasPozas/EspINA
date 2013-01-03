@@ -50,7 +50,7 @@
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
-SeedGrowSegmentationTool::SeedGrowSegmentationTool(EspinaModelSPtr model,
+SeedGrowSegmentationTool::SeedGrowSegmentationTool(EspinaModel *model,
                                                    QUndoStack  *undoStack,
                                                    ViewManager *viewManager,
                                                    ThresholdAction  *th,

@@ -37,7 +37,7 @@ SeedGrowSegmentationCommand::SeedGrowSegmentationCommand(ChannelPtr             
                                                          int                      upperThreshold,
                                                          bool                     applyClosing,
                                                          TaxonomyElementPtr       taxonomy,
-                                                         EspinaModelSPtr          model,
+                                                         EspinaModel          *model,
                                                          QUndoCommand *           parent)
 : QUndoCommand(parent)
 , m_model   (model)

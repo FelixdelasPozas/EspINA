@@ -27,6 +27,7 @@
 #include <QSettings>
 #include <QTime>
 
+#include <QDebug>
 using namespace EspINA;
 
 //------------------------------------------------------------------------
@@ -41,11 +42,23 @@ GeneralSettingsPanel::GeneralSettingsPanel(GeneralSettings *settings)
 }
 
 //------------------------------------------------------------------------
+GeneralSettingsPanel::~GeneralSettingsPanel()
+{
+  qDebug() << "Destroying General Settings Panel";
+}
+
+//------------------------------------------------------------------------
 void GeneralSettingsPanel::acceptChanges()
 {
   m_settings->setUserName(userName->text());
   m_settings->setAutosavePath(autosavePath->text());
   m_settings->setAutosaveInterval(autosaveInterval->value());
+}
+
+//------------------------------------------------------------------------
+void GeneralSettingsPanel::rejectChanges()
+{
+
 }
 
 //------------------------------------------------------------------------

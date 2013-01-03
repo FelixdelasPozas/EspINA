@@ -34,16 +34,16 @@ namespace EspINA
   : public QUndoCommand
   {
   public:
-    explicit AddChannel(FilterSPtr      reader,
-                        ChannelSPtr     channel,
-                        EspinaModelSPtr model,
-                        QUndoCommand   *parent=0);
+    explicit AddChannel(FilterSPtr    reader,
+                        ChannelSPtr   channel,
+                        EspinaModel  *model,
+                        QUndoCommand *parent=0);
 
     virtual void redo();
     virtual void undo();
 
   private:
-    EspinaModelSPtr m_model;
+    EspinaModel *m_model;
 
     FilterSPtr      m_reader;
     ChannelSPtr     m_channel;

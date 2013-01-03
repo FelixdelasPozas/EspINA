@@ -40,14 +40,14 @@ namespace EspINA
   {
     Q_OBJECT
   public:
-    explicit VolumeOfInterest(EspinaModelSPtr model,
-                              ViewManager    *viewManager,
-                              QWidget        *parent=NULL);
+    explicit VolumeOfInterest(EspinaModel *model,
+                              ViewManager *viewManager,
+                              QWidget     *parent=NULL);
     virtual ~VolumeOfInterest();
 
-    virtual void initToolBar(EspinaModelSPtr model,
-                             QUndoStack      *undoStack,
-                             ViewManager     *viewManager);
+    virtual void initToolBar(EspinaModel *model,
+                             QUndoStack  *undoStack,
+                             ViewManager *viewManager);
   protected slots:
     void changeVOI(QAction *action);
     void cancelVOI();
@@ -58,8 +58,8 @@ namespace EspINA
     void buildVOIs();
 
   private:
-    EspinaModelSPtr m_model;
-    ViewManager    *m_viewManager;
+    EspinaModel *m_model;
+    ViewManager *m_viewManager;
 
     ActionSelector  *m_voiSelector;
     QMap<QAction *, IVOISPtr> m_vois;

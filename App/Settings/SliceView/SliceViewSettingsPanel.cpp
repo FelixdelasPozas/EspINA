@@ -59,6 +59,12 @@ void SliceViewSettingsPanel::acceptChanges()
 }
 
 //------------------------------------------------------------------------
+void SliceViewSettingsPanel::rejectChanges()
+{
+
+}
+
+//------------------------------------------------------------------------
 bool SliceViewSettingsPanel::modified() const
 {
   return invertSliceOrder->isChecked() != m_settings->invertSliceOrder()

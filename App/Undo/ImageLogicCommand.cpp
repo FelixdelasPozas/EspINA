@@ -37,7 +37,7 @@ using namespace EspINA;
 ImageLogicCommand::ImageLogicCommand(SegmentationList            input,
                                      ImageLogicFilter::Operation operation,
                                      TaxonomyElementPtr          taxonomy,
-                                     EspinaModelSPtr             model,
+                                     EspinaModel                *model,
                                      QUndoCommand *              parent)
 : QUndoCommand(parent)
 , m_model(model)
@@ -103,7 +103,7 @@ void ImageLogicCommand::redo()
 
   // Add new filter
   m_model->addFilter(m_filter);
-  SharedSegmentationList oldSegmentations;
+  SegmentationSList oldSegmentations;
   foreach(SegInfo info, m_infoList)
   {
     m_model->addRelation(info.filter, m_filter, link(info.segmentation));

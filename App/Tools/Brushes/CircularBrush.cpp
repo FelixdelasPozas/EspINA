@@ -28,13 +28,19 @@
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
-CircularBrush::CircularBrush(EspinaModelSPtr model,
-                             QUndoStack* undoStack,
-                             ViewManager* viewManager)
+CircularBrush::CircularBrush(EspinaModel *model,
+                             QUndoStack  *undoStack,
+                             ViewManager *viewManager)
 : Brush(model, undoStack, viewManager)
 {
 }
 
+
+//-----------------------------------------------------------------------------
+CircularBrush::~CircularBrush()
+{
+
+}
 
 //-----------------------------------------------------------------------------
 Brush::BrushShape CircularBrush::createBrushShape(PickableItemPtr item, double center[3], Nm radius, PlaneType plane)

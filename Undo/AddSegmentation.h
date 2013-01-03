@@ -35,13 +35,13 @@ namespace EspINA
                              FilterSPtr          filter,
                              SegmentationSPtr    seg,
                              TaxonomyElementSPtr taxonomy,
-                             EspinaModelSPtr     model
+                             EspinaModel     *model
     );
     virtual void redo();
     virtual void undo();
 
   private:
-    EspinaModelSPtr     m_model;
+    EspinaModel *m_model;
 
     SampleSPtr          m_sample;
     ChannelSPtr         m_channel;

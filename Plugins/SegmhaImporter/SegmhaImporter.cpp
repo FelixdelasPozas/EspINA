@@ -38,7 +38,7 @@ const QString INPUTLINK = "Input";
 SegmhaImporter::UndoCommand::UndoCommand(SampleSPtr               sample,
                                          ChannelSPtr         channel,
                                          SegmhaImporterFilterSPtr filter,
-                                         EspinaModelSPtr          model,
+                                         EspinaModel          *model,
                                          QUndoCommand            *parent)
 : QUndoCommand(parent)
 , m_model(model)
@@ -128,7 +128,15 @@ SegmhaImporter::SegmhaImporter()
 }
 
 //-----------------------------------------------------------------------------
-void SegmhaImporter::initFactoryExtension(EspinaFactoryPtr factory)
+SegmhaImporter::~SegmhaImporter()
+{
+  qDebug() << "********************************************************";
+  qDebug() << "              Destroying SegmhaImporter Plugin";
+  qDebug() << "********************************************************";
+}
+
+//-----------------------------------------------------------------------------
+void SegmhaImporter::initFactoryExtension(EspinaFactory *factory)
 {
   factory->registerFilter(this, SegmhaImporterFilter::TYPE);
 }
@@ -143,9 +151,9 @@ FilterSPtr SegmhaImporter::createFilter(const QString              &filter,
 }
 
 //-----------------------------------------------------------------------------
-void SegmhaImporter::initFileReader(EspinaModelSPtr model,
-                                    QUndoStack     *undoStack,
-                                    ViewManager    *viewManager)
+void SegmhaImporter::initFileReader(EspinaModel *model,
+                                    QUndoStack  *undoStack,
+                                    ViewManager *viewManager)
 {
   m_model = model;
   m_undoStack = undoStack;
@@ -154,8 +162,8 @@ void SegmhaImporter::initFileReader(EspinaModelSPtr model,
   QStringList supportedExtensions;
   supportedExtensions << SEGMHA;
   m_model->factory()->registerReaderFactory(this,
-                                            SegmhaImporterFilter::SUPPORTED_FILES,
-                                            supportedExtensions);
+                                           SegmhaImporterFilter::SUPPORTED_FILES,
+                                           supportedExtensions);
 }
 
 //-----------------------------------------------------------------------------

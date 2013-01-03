@@ -29,9 +29,9 @@
 using namespace EspINA;
 
 //------------------------------------------------------------------------
-SegmentationDelegate::SegmentationDelegate(EspinaModelSPtr model,
-                                           QUndoStack    *undoStack,
-                                           ViewManager   *vm)
+SegmentationDelegate::SegmentationDelegate(EspinaModel *model,
+                                           QUndoStack  *undoStack,
+                                           ViewManager *vm)
 : QStyledItemDelegate()
 , m_model(model)
 , m_undoStack(undoStack)

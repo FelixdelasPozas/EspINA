@@ -32,18 +32,19 @@ class FillHolesCommand
 : public QUndoCommand
 {
 public:
-  explicit FillHolesCommand(SegmentationList inputs, EspinaModelSPtr model);
+  explicit FillHolesCommand(SegmentationList inputs,
+                            EspinaModel     *model);
   virtual ~FillHolesCommand();
 
   virtual void redo();
   virtual void undo();
 
 private:
-  EspinaModelSPtr m_model;
+  EspinaModel *m_model;
 
   typedef QPair<FilterSPtr, Filter::OutputId> Connection;
 
-  SharedSegmentationList  m_segmentations;
+  SegmentationSList  m_segmentations;
   QList<Connection> m_oldConnections, m_newConnections;
 };
 

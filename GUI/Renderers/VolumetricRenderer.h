@@ -60,7 +60,7 @@ namespace EspINA
 
     virtual void hide();
     virtual void show();
-    virtual unsigned int getNumberOfvtkActors(){Q_ASSERT(false);}
+    virtual unsigned int getNumberOfvtkActors(){return 0;}
 
     virtual void clean() {Q_ASSERT(false);}
     virtual IRendererSPtr clone() {return IRendererSPtr(new VolumetricRenderer(m_viewManager));}

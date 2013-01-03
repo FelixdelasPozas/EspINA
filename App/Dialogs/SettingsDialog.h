@@ -40,12 +40,14 @@ class GeneralSettingsPanel
 {
 public:
   GeneralSettingsPanel(GeneralSettings *settings);
+  virtual ~GeneralSettingsPanel();
 
   virtual const QString shortDescription() {return "General";}
   virtual const QString longDescription() {return "General Settings";}
   virtual const QIcon icon() {return QIcon(":/espina/editor.ico");}
 
   virtual void acceptChanges();
+  virtual void rejectChanges();
   virtual bool modified() const;
 
   virtual ISettingsPanelPtr clone();

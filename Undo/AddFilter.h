@@ -31,15 +31,15 @@ class AddFilter
 : public QUndoCommand
 {
 public:
-  explicit AddFilter(FilterSPtr      filter,
-                     EspinaModelSPtr model,
-                     QUndoCommand  *parent = 0);
+  explicit AddFilter(FilterSPtr   filter,
+                     EspinaModel  *model,
+                     QUndoCommand *parent = 0);
 
   virtual void redo();
   virtual void undo();
 
 private:
-  EspinaModelSPtr m_model;
+  EspinaModel *m_model;
 
   FilterSPtr m_filter;
 };

@@ -31,7 +31,7 @@ using namespace EspINA;
 SplitUndoCommand::SplitUndoCommand(SegmentationSPtr input,
                                    FilterSPtr       filter,
                                    SegmentationSPtr splitSeg[2],
-                                   EspinaModelSPtr  model)
+                                   EspinaModel  *model)
 : m_model(model)
 , m_channel(input->channel())
 , m_sample(m_channel->sample())
