@@ -38,8 +38,8 @@ namespace EspINA
     { return ColorEngine::Transparency; }
 
   private:
-    LUTPtr m_discardedLUT;
-    LUTPtr m_nonDiscartedLUT;
+    LUTPtr m_excludedLUT;
+    LUTPtr m_nonExcludedLUT;
   };
 
 } // namespace EspINA

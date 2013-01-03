@@ -65,7 +65,7 @@ namespace EspINA
 
     virtual SegmentationExtensionPtr clone();
 
-    bool isDiscarded() const;
+    bool isExcluded() const;
 
     void evaluateCountingFrame(CountingFrame *cf);
 
@@ -73,7 +73,7 @@ namespace EspINA
     void evaluateCountingFrames();
 
   protected:
-    bool isDiscardedByCountingFrame(CountingFrame *cf);
+    bool isExcludedFromCountingFrame(CountingFrame *cf);
     bool isOnEdge();
     bool realCollision(EspinaRegion interscetion);
 

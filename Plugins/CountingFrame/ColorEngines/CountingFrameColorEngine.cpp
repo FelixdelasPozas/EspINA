@@ -28,21 +28,21 @@ using namespace EspINA;
 //-----------------------------------------------------------------------------
 CountingFrameColorEngine::CountingFrameColorEngine()
 {
-  m_discardedLUT = LUTPtr::New();
-  m_discardedLUT->Allocate();
-  m_discardedLUT->SetNumberOfTableValues(2);
-  m_discardedLUT->Build();
-  m_discardedLUT->SetTableValue(0, 0.0, 0.0, 0.0, 0.0);
-  m_discardedLUT->SetTableValue(1, 1.0, 0.0, 0.0, 0.2);
-  m_discardedLUT->Modified();
+  m_excludedLUT = LUTPtr::New();
+  m_excludedLUT->Allocate();
+  m_excludedLUT->SetNumberOfTableValues(2);
+  m_excludedLUT->Build();
+  m_excludedLUT->SetTableValue(0, 0.0, 0.0, 0.0, 0.0);
+  m_excludedLUT->SetTableValue(1, 1.0, 0.0, 0.0, 0.2);
+  m_excludedLUT->Modified();
 
-  m_nonDiscartedLUT = LUTPtr::New();
-  m_nonDiscartedLUT->Allocate();
-  m_nonDiscartedLUT->SetNumberOfTableValues(2);
-  m_nonDiscartedLUT->Build();
-  m_nonDiscartedLUT->SetTableValue(0, 0.0, 0.0, 0.0, 0.0);
-  m_nonDiscartedLUT->SetTableValue(1, 0.0, 1.0, 0.0, 1.0);
-  m_nonDiscartedLUT->Modified();
+  m_nonExcludedLUT = LUTPtr::New();
+  m_nonExcludedLUT->Allocate();
+  m_nonExcludedLUT->SetNumberOfTableValues(2);
+  m_nonExcludedLUT->Build();
+  m_nonExcludedLUT->SetTableValue(0, 0.0, 0.0, 0.0, 0.0);
+  m_nonExcludedLUT->SetTableValue(1, 0.0, 1.0, 0.0, 1.0);
+  m_nonExcludedLUT->Modified();
 }
 
 
@@ -53,7 +53,7 @@ QColor CountingFrameColorEngine::color(SegmentationPtr seg)
   Q_ASSERT(ext);
   CountingFrameSegmentationExtension *segExt = dynamic_cast<CountingFrameSegmentationExtension *>(ext);
 
-  if (segExt->isDiscarded())
+  if (segExt->isExcluded())
     return QColor(255, 0, 0, 50);
   else
     return QColor(0, 255, 0, 255);
@@ -66,10 +66,10 @@ LUTPtr CountingFrameColorEngine::lut(SegmentationPtr seg)
   Q_ASSERT(ext);
   CountingFrameSegmentationExtension *segExt = dynamic_cast<CountingFrameSegmentationExtension *>(ext);
 
-  if (segExt->isDiscarded())
-    return m_discardedLUT;
+  if (segExt->isExcluded())
+    return m_excludedLUT;
   else
-    return m_nonDiscartedLUT;
+    return m_nonExcludedLUT;
 }
 
 

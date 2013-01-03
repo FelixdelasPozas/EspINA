@@ -149,24 +149,24 @@ SegmentationExtensionPtr CountingFrameSegmentationExtension::clone()
 }
 
 //------------------------------------------------------------------------
-bool CountingFrameSegmentationExtension::isDiscarded() const
+bool CountingFrameSegmentationExtension::isExcluded() const
 {
-  bool discarded = false;
+  bool excluded = false;
 
   if (!m_isExcludedFrom.isEmpty())
   {
-    discarded = true;
+    excluded = true;
 
     int i = 0;
     CountingFrameList countingFrames = m_isExcludedFrom.keys();
-    while (discarded && i < countingFrames.size())
+    while (excluded && i < countingFrames.size())
     {
-      discarded = discarded && m_isExcludedFrom[countingFrames[i]];
+      excluded = excluded && m_isExcludedFrom[countingFrames[i]];
       i++;
     }
   }
 
-  return discarded;
+  return excluded;
 }
 
 //------------------------------------------------------------------------
@@ -182,12 +182,12 @@ void CountingFrameSegmentationExtension::evaluateCountingFrames()
 //------------------------------------------------------------------------
 void CountingFrameSegmentationExtension::evaluateCountingFrame(CountingFrame* countingFrame)
 {
-  bool discarded = m_isOnEdge || isDiscardedByCountingFrame(countingFrame);
+  bool excluded = m_isOnEdge || isExcludedFromCountingFrame(countingFrame);
 
-  m_isExcludedFrom[countingFrame] = discarded;
+  m_isExcludedFrom[countingFrame] = excluded;
 
   QString tag       = "CountingFrameCondition %1";
-  QString condition = discarded?
+  QString condition = excluded?
                       "<font color=\"red\">"   + tr("Excluded from Counting Frame %1").arg(countingFrame->id()) + "</font>":
                       "<font color=\"green\">" + tr("Included in Counting Frame %1"   ).arg(countingFrame->id()) + "</font>";
   m_seg->addCondition(tag.arg(countingFrame->id()), ":/apply.svg", condition);
@@ -195,16 +195,16 @@ void CountingFrameSegmentationExtension::evaluateCountingFrame(CountingFrame* co
 
 
 //------------------------------------------------------------------------
-bool CountingFrameSegmentationExtension::isDiscardedByCountingFrame(CountingFrame* countingFame)
+bool CountingFrameSegmentationExtension::isExcludedFromCountingFrame(CountingFrame* countingFrame)
 {
-  const TaxonomyElement *taxonomicalConstraint = countingFame->taxonomicalConstraint();
+  const TaxonomyElement *taxonomicalConstraint = countingFrame->taxonomicalConstraint();
 
   if (taxonomicalConstraint && m_seg->taxonomy() != taxonomicalConstraint)
     return true;
 
   EspinaRegion inputBB = m_seg->volume()->espinaRegion();
 
-  vtkPolyData  *region       = countingFame->region();
+  vtkPolyData  *region       = countingFrame->region();
   vtkPoints    *regionPoints = region->GetPoints();
   vtkCellArray *regionFaces  = region->GetPolys();
   vtkCellData  *faceData     = region->GetCellData();
@@ -213,7 +213,7 @@ bool CountingFrameSegmentationExtension::isDiscardedByCountingFrame(CountingFram
   regionPoints->GetBounds(bounds);
   EspinaRegion regionBB(bounds);
 
-  // If there is no intersection (nor is inside), then it is discarted
+  // If there is no intersection (nor is inside), then it is excluded
   if (!inputBB.intersect(regionBB))
     return true;
 
@@ -264,7 +264,7 @@ bool CountingFrameSegmentationExtension::isDiscardedByCountingFrame(CountingFram
 //------------------------------------------------------------------------
 bool CountingFrameSegmentationExtension::isOnEdge()
 {
-  bool discarted = false;
+  bool excluded = false;
 
   ModelItemExtensionPtr ext = m_seg->extension(MarginsSegmentationExtension::ID);
   MarginsSegmentationExtension *marginExt = dynamic_cast<MarginsSegmentationExtension *>(ext);
@@ -272,15 +272,15 @@ bool CountingFrameSegmentationExtension::isOnEdge()
   {
     InfoList tags = marginExt->availableInformations();
     int i = 0;
-    while (!discarted && i < tags.size())
+    while (!excluded && i < tags.size())
     {
       bool ok = false;
       double dist = m_seg->information(tags[i++]).toDouble(&ok);
-      discarted = ok && dist < 1.0;
+      excluded = ok && dist < 1.0;
     }
   }
 
-  return discarted;
+  return excluded;
 }
 
 //------------------------------------------------------------------------
