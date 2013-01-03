@@ -39,7 +39,7 @@ namespace EspINA
     Q_OBJECT
   public:
     static const ExtId ID;
-    static const InfoTag DISCARTED;
+    static const InfoTag EXCLUDED;
 
   public:
     explicit CountingFrameSegmentationExtension();
@@ -79,7 +79,7 @@ namespace EspINA
 
   private:
     bool m_isOnEdge;
-    QMap<CountingFrame *, bool> m_isDiscardedBy;
+    QMap<CountingFrame *, bool> m_isExcludedFrom;
   };
 
 } // namespace EspINA

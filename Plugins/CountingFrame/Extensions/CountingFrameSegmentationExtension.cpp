@@ -35,13 +35,13 @@
 using namespace EspINA;
 
 const ModelItemExtension::ExtId CountingFrameSegmentationExtension::ID = "CountingFrameExtension";
-const ModelItemExtension::InfoTag CountingFrameSegmentationExtension::DISCARTED = "Discarded By CF";
+const ModelItemExtension::InfoTag CountingFrameSegmentationExtension::EXCLUDED = "Excluded from CF";
 
 //------------------------------------------------------------------------
 CountingFrameSegmentationExtension::CountingFrameSegmentationExtension()
 : m_isOnEdge(false)
 {
-  m_availableInformations << DISCARTED;
+  m_availableInformations << EXCLUDED;
 }
 
 //------------------------------------------------------------------------
@@ -94,15 +94,15 @@ ModelItemExtension::ExtIdList CountingFrameSegmentationExtension::dependencies()
 //------------------------------------------------------------------------
 QVariant CountingFrameSegmentationExtension::information(ModelItemExtension::InfoTag tag) const
 {
-  if (DISCARTED == tag)
+  if (EXCLUDED == tag)
   {
-    QStringList discardingCFs;
-    foreach(CountingFrame *countingFrame, m_isDiscardedBy.keys())
+    QStringList excludingCFs;
+    foreach(CountingFrame *countingFrame, m_isExcludedFrom.keys())
     {
-      if (m_isDiscardedBy[countingFrame])
-        discardingCFs << QString::number(countingFrame->id());
+      if (m_isExcludedFrom[countingFrame])
+        excludingCFs << QString::number(countingFrame->id());
     }
-    return discardingCFs.join(", ");
+    return excludingCFs.join(", ");
   }
 
   qWarning() << ID << ":"  << tag << " is not provided";
@@ -126,13 +126,13 @@ void CountingFrameSegmentationExtension::setCountingFrames(CountingFrameList cou
 {
 //   EXTENSION_DEBUG("Updating " << m_seg->id() << " bounding regions...");
 //   EXTENSION_DEBUG("\tNumber of regions applied:" << regions.size());
-QSet<CountingFrame *> prevCF = m_isDiscardedBy.keys().toSet();
+QSet<CountingFrame *> prevCF = m_isExcludedFrom.keys().toSet();
 QSet<CountingFrame *> newCF  = countingFrames.toSet();
 
 // Remove regions that doesn't exist anymore
 foreach(CountingFrame *cf, prevCF.subtract(newCF))
 {
-  m_isDiscardedBy.remove(cf);
+  m_isExcludedFrom.remove(cf);
 }
 
 foreach(CountingFrame *countingFrame, newCF.subtract(prevCF))
@@ -153,15 +153,15 @@ bool CountingFrameSegmentationExtension::isDiscarded() const
 {
   bool discarded = false;
 
-  if (!m_isDiscardedBy.isEmpty())
+  if (!m_isExcludedFrom.isEmpty())
   {
     discarded = true;
 
     int i = 0;
-    CountingFrameList countingFrames = m_isDiscardedBy.keys();
+    CountingFrameList countingFrames = m_isExcludedFrom.keys();
     while (discarded && i < countingFrames.size())
     {
-      discarded = discarded && m_isDiscardedBy[countingFrames[i]];
+      discarded = discarded && m_isExcludedFrom[countingFrames[i]];
       i++;
     }
   }
@@ -174,7 +174,7 @@ void CountingFrameSegmentationExtension::evaluateCountingFrames()
 {
   m_isOnEdge = isOnEdge();
 
-  foreach(CountingFrame *cf, m_isDiscardedBy.keys())
+  foreach(CountingFrame *cf, m_isExcludedFrom.keys())
     evaluateCountingFrame(cf);
 
 }
@@ -184,12 +184,12 @@ void CountingFrameSegmentationExtension::evaluateCountingFrame(CountingFrame* co
 {
   bool discarded = m_isOnEdge || isDiscardedByCountingFrame(countingFrame);
 
-  m_isDiscardedBy[countingFrame] = discarded;
+  m_isExcludedFrom[countingFrame] = discarded;
 
   QString tag       = "CountingFrameCondition %1";
   QString condition = discarded?
-                      "<font color=\"red\">"   + tr("Discarded by Counting Frame %1").arg(countingFrame->id()) + "</font>":
-                      "<font color=\"green\">" + tr("Inside of Counting Frame %1"   ).arg(countingFrame->id()) + "</font>";
+                      "<font color=\"red\">"   + tr("Excluded from Counting Frame %1").arg(countingFrame->id()) + "</font>":
+                      "<font color=\"green\">" + tr("Included in Counting Frame %1"   ).arg(countingFrame->id()) + "</font>";
   m_seg->addCondition(tag.arg(countingFrame->id()), ":/apply.svg", condition);
 }
 
