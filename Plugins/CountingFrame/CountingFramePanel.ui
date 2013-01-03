@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>280</width>
-    <height>776</height>
+    <height>757</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -22,10 +22,10 @@
      <widget class="QWidget" name="scrollAreaWidgetContents">
       <property name="geometry">
        <rect>
-        <x>0</x>
+        <x>-22</x>
         <y>0</y>
-        <width>268</width>
-        <height>747</height>
+        <width>282</width>
+        <height>721</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
@@ -127,7 +127,7 @@
             </size>
            </property>
            <property name="toolTip">
-            <string>Create Counting Region</string>
+            <string>Create Counting Frame</string>
            </property>
            <property name="text">
             <string/>
@@ -165,7 +165,7 @@
             </size>
            </property>
            <property name="toolTip">
-            <string>Remove Selected Counting Region</string>
+            <string>Remove Selected Counting Frame</string>
            </property>
            <property name="text">
             <string/>
@@ -416,7 +416,7 @@
             </size>
            </property>
            <property name="toolTip">
-            <string>Save Counting Region Description to File</string>
+            <string>Save Counting Frame Description to File</string>
            </property>
            <property name="text">
             <string/>

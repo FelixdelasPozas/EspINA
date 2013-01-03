@@ -71,7 +71,7 @@ RectangularCountingFrame::~RectangularCountingFrame()
 QVariant RectangularCountingFrame::data(int role) const
 {
   if (role == Qt::DisplayRole)
-    return tr("%1 - Region %2: Rectangular")
+    return tr("%1 - CF %2: Rectangular")
              .arg(m_channelExt->channel()->data().toString())
              .arg(m_id);
 
