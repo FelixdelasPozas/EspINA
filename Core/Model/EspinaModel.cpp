@@ -339,6 +339,7 @@ void EspinaModel::addSample(SampleSPtr sample)
   }
   endInsertRows();
 
+  emit sampleAdded(sample);
   markAsChanged();
 }
 
@@ -355,6 +356,8 @@ void EspinaModel::addSample(SampleSPtrList samples)
   }
   endInsertRows();
 
+  foreach(SampleSPtr sample, samples)
+    emit sampleAdded(sample);
   markAsChanged();
 }
 
@@ -371,8 +374,8 @@ void EspinaModel::removeSample(SampleSPtr sample)
   }
   endRemoveRows();
 
+  emit sampleRemoved(sample);
   markAsChanged();
-
   Q_ASSERT (!m_samples.contains(sample));
 }
 
@@ -404,6 +407,8 @@ void EspinaModel::addChannel(ChannelSList channels)
   }
   endInsertRows();
 
+  foreach(ChannelSPtr channel, channels)
+    emit channelAdded(channel);
   markAsChanged();
 }
 
@@ -419,6 +424,7 @@ void EspinaModel::removeChannel(ChannelSPtr channel)
   }
   endRemoveRows();
 
+  emit channelRemoved(channel);
   markAsChanged();
 
   Q_ASSERT (!m_channels.contains(channel));
@@ -435,6 +441,7 @@ void EspinaModel::addSegmentation(SegmentationSPtr segmentation)
   }
   endInsertRows();
 
+  emit segmentationAdded(segmentation);
   markAsChanged();
 }
 
@@ -445,12 +452,14 @@ void EspinaModel::addSegmentation(SegmentationSList segmentations)
   int end   = start + segmentations.size() - 1;
 
   beginInsertRows(segmentationRoot(), start, end);
-
-  foreach(SegmentationSPtr seg, segmentations)
-    addSegmentationImplementation(seg);
-
+  {
+    foreach(SegmentationSPtr seg, segmentations)
+      addSegmentationImplementation(seg);
+  }
   endInsertRows();
 
+  foreach(SegmentationSPtr seg, segmentations)
+    emit segmentationAdded(seg);
   markAsChanged();
 }
 
@@ -467,6 +476,7 @@ void EspinaModel::removeSegmentation(SegmentationSPtr segmentation)
   }
   endRemoveRows();
 
+  emit segmentationRemoved(segmentation);
   markAsChanged();
 
   Q_ASSERT (!m_segmentations.contains(segmentation));
@@ -476,7 +486,10 @@ void EspinaModel::removeSegmentation(SegmentationSPtr segmentation)
 void EspinaModel::removeSegmentation(SegmentationSList segs)
 {
   foreach(SegmentationSPtr seg, segs)
+  {
     removeSegmentation(seg);
+    emit segmentationRemoved(seg);
+  }
 }
 
 //------------------------------------------------------------------------
@@ -490,6 +503,7 @@ void EspinaModel::addFilter(FilterSPtr filter)
   }
   endInsertRows();
 
+  emit filterAdded(filter);
   markAsChanged();
 }
 
@@ -506,6 +520,8 @@ void EspinaModel::addFilter(FilterSPtrList filters)
   }
   endInsertRows();
 
+  foreach(FilterSPtr filter, filters)
+    emit filterAdded(filter);
   markAsChanged();
 }
 
@@ -521,6 +537,7 @@ void EspinaModel::removeFilter(FilterSPtr filter)
   }
   endRemoveRows();
 
+  emit filterRemoved(filter);
   markAsChanged();
 }
 
@@ -821,9 +838,12 @@ void EspinaModel::setTaxonomy(TaxonomySPtr tax)
 {
   if (m_tax)
   {
+    TaxonomySPtr oldTax = tax;
     beginRemoveRows(taxonomyRoot(), 0, rowCount(taxonomyRoot()) - 1);
     m_tax.clear();
     endRemoveRows();
+
+    emit taxonomyRemoved(oldTax);
   }
 
   if (tax)

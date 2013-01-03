@@ -88,13 +88,13 @@ endif()
 
 ### TODO: Review from previous version
 # TRANSLATIONS
-#set( DEFAULT_TRANSLATION_DIR "/usr/share/espina/translations/" )
-# Generate translation file
-# add_custom_command( OUTPUT es_ES.qm #TARGET DEFAULT_TRANSLATION_DIR POST_BUILD
-#       COMMAND lrelease ${PROJECT_SOURCE_DIR}/frontend/translationFiles/translation_es.ts -qm ${CMAKE_BINARY_DIR}/es_ES.qm
-# )
-# add_custom_target(es DEPENDS es_ES.qm)
-# add_dependencies(Espina es)
+# set( DEFAULT_TRANSLATION_DIR "/home/lokifacio/tmp" )
+# # Generate translation file
+#  add_custom_command( OUTPUT es_ES.qm #TARGET DEFAULT_TRANSLATION_DIR POST_BUILD
+#        COMMAND lrelease ${PROJECT_SOURCE_DIR}/frontend/translationFiles/translation_es.ts -qm ${CMAKE_BINARY_DIR}/es_ES.qm
+#  )
+#  add_custom_target(es DEPENDS es_ES.qm)
+#  add_dependencies(espina es)
 
 
 #LINUX INSTALATION

@@ -18,6 +18,7 @@
 
 #include <QApplication>
 #include <QPluginLoader>
+#include <QTranslator>
 
 #include <GUI/ViewManager.h>
 #include <EspinaMainWindow.h>
@@ -28,6 +29,10 @@
 int main(int argc, char **argv)
 {
   QApplication app(argc, argv);
+
+  QTranslator translator;
+  translator.load("espina_es");
+  app.installTranslator(&translator);
 
   EspINA::EspinaFactory factory;
   EspINA::EspinaModel   model(&factory);
