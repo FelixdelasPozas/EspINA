@@ -36,6 +36,7 @@
 #ifdef TEST_ESPINA_MODELS
 class ModelTest;
 #endif
+class QObject;
 
 namespace EspINA
 {
@@ -73,7 +74,7 @@ namespace EspINA
     void updateChannelPosition();
     void updateTooltips(int index);
     void focusOnChannel();
-    void dialogClosed();
+    void dialogClosed(QObject *);
     void inspectorChangedSpacing();
 
   private:

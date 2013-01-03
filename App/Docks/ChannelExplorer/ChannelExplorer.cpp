@@ -487,10 +487,9 @@ void ChannelExplorer::showInformation()
       if (!inspector)
       {
         inspector = new ChannelInspector(channel);
-      //ChannelInspector inspector(channel, m_viewManager);
         m_informationDialogs.insert(channel, inspector);
-        connect(inspector, SIGNAL(finished(int)), this, SLOT(dialogClosed()));
-        connect(inspector, SIGNAL(channelUpdated()), this, SLOT(inspectorChangedSpacing()));
+        connect(inspector, SIGNAL(destroyed(QObject *)), this, SLOT(dialogClosed(QObject *)));
+        connect(inspector, SIGNAL(spacingUpdated()), this, SLOT(inspectorChangedSpacing()));
       }
       inspector->show();
       inspector->raise();
@@ -515,16 +514,16 @@ void ChannelExplorer::activateChannel()
 }
 
 //------------------------------------------------------------------------
-void ChannelExplorer::dialogClosed()
+void ChannelExplorer::dialogClosed(QObject *dialog)
 {
-  ChannelInspector *dialog = qobject_cast<ChannelInspector*>(sender());
   QMap<Channel *, ChannelInspector*>::iterator it = m_informationDialogs.begin();
   while (it != m_informationDialogs.end())
   {
     if (it.value() == dialog)
     {
-      it.key()->notifyModification();
+      it.key()->notifyModification(true);
       m_informationDialogs.erase(it);
+      m_viewManager->updateViews();
       return;
     }
     ++it;

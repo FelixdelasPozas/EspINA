@@ -32,7 +32,7 @@ namespace EspINA
     virtual ~ChannelInspector();
 
   signals:
-    void channelUpdated();
+    void spacingUpdated();
 
   public slots:
     void unitsChanged(int);
@@ -40,12 +40,13 @@ namespace EspINA
     void changeSpacing();
     void opacityCheckChanged(int);
     void opacityChanged(int);
-    void checkChanges();
     void newHSV(int,int,int);
     void newHSV(int);
     void saturationChanged(int);
     void contrastChanged(int);
     void brightnessChanged(int);
+    void acceptedChanges();
+    void rejectedChanges();
 
   private:
     // helpher methods
@@ -59,6 +60,14 @@ namespace EspINA
 
     SliceView   *m_view;
     HueSelector *m_hueSelector;
+
+    // properties backup
+    double m_spacing[3];
+    double m_opacity;
+    double m_hue;
+    double m_saturation;
+    double m_brightness;
+    double m_contrast;
   };
 
 } // namespace EspINA

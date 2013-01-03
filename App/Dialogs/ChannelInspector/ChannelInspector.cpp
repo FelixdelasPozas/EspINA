@@ -34,9 +34,12 @@ ChannelInspector::ChannelInspector(Channel *channel, QWidget *parent)
 {
   setupUi(this);
   this->setAttribute(Qt::WA_DeleteOnClose, true);
+  this->setWindowFlags( ( (this->windowFlags() | Qt::CustomizeWindowHint) & ~Qt::WindowCloseButtonHint) );
+
   this->setWindowTitle(QString("Channel Inspector - ") + channel->information("Name").toString());
 
-  connect(this, SIGNAL(finished(int)), this, SLOT(checkChanges()));
+  connect(okCancelBox, SIGNAL(accepted()), this, SLOT(acceptedChanges()));
+  connect(okCancelBox, SIGNAL(rejected()), this, SLOT(rejectedChanges()));
   
   connect(applyButton, SIGNAL(clicked()), this, SLOT(changeSpacing()));
   connect(unitsBox, SIGNAL(currentIndexChanged(int)), this, SLOT(unitsChanged(int)));
@@ -50,6 +53,7 @@ ChannelInspector::ChannelInspector(Channel *channel, QWidget *parent)
   double spacing[3];
   channel->volume()->spacing(spacing);
 
+  memcpy(m_spacing, spacing, sizeof(double)*3);
   spacingXBox->setValue(spacing[0]);
   spacingYBox->setValue(spacing[1]);
   spacingZBox->setValue(spacing[2]);
@@ -63,12 +67,14 @@ ChannelInspector::ChannelInspector(Channel *channel, QWidget *parent)
     opacityCheck->setChecked(true);
     opacitySlider->setEnabled(false);
     opacitySlider->setValue(100);
+    m_opacity = -1.0;
   }
   else
   {
     opacityBox->setEnabled(true);
     opacityCheck->setChecked(false);
     opacitySlider->setValue(m_channel->opacity() * 100);
+    m_opacity = m_channel->opacity();
   }
   connect(opacityCheck, SIGNAL(stateChanged(int)), this, SLOT(opacityCheckChanged(int)));
   connect(opacitySlider, SIGNAL(valueChanged(int)), this, SLOT(opacityChanged(int)));
@@ -85,11 +91,15 @@ ChannelInspector::ChannelInspector(Channel *channel, QWidget *parent)
     saturationBox->setValue(0);
     saturationBox->setEnabled(false);
     saturationSlider->setEnabled(false);
+    m_hue = -1.0;
+    m_saturation = 0.0;
   }
   else
   {
     hueBox->setValue(m_channel->hue() * 359);
     saturationBox->setValue(m_channel->saturation()*100);
+    m_hue = m_channel->hue();
+    m_saturation = m_channel->saturation();
   }
   connect(saturationSlider, SIGNAL(valueChanged(int)), this, SLOT(saturationChanged(int)));
 
@@ -102,6 +112,8 @@ ChannelInspector::ChannelInspector(Channel *channel, QWidget *parent)
   connect(brightnessBox, SIGNAL(valueChanged(int)), this, SLOT(brightnessChanged(int)));
   brightnessSlider->setValue(m_channel->brightness());
   contrastSlider->setValue(m_channel->contrast());
+  m_brightness = m_channel->brightness();
+  m_contrast = m_channel->contrast();
 
   // fix ruler initialization
   m_view->resetCamera();
@@ -179,43 +191,10 @@ void ChannelInspector::changeSpacing()
   }
 
   m_channel->notifyModification(true);
-  emit channelUpdated();
   m_view->resetCamera();
   m_spacingModified = false;
   applyButton->setEnabled(false);
   applyModifications();
-}
-
-//------------------------------------------------------------------------
-void ChannelInspector::checkChanges()
-{
-  if (hueBox->value() == -1)
-    m_channel->setSaturation(0.0);
-
-  if (m_spacingModified)
-  {
-    QMessageBox msgBox;
-    msgBox.setText("The spacing has been modified but the changes have not been applied to the channel.");
-    msgBox.setInformativeText("Do you want to apply your changes?");
-    msgBox.setIcon(QMessageBox::Question);
-    msgBox.setStandardButtons(QMessageBox::Apply | QMessageBox::Cancel);
-    msgBox.setDefaultButton(QMessageBox::Apply);
-    QString detailedText = QString("Spacing changed to:\n  X: ") + QString().number(spacingXBox->value())
-        + unitsBox->currentText() + QString("\n  Y: ")  + QString().number(spacingYBox->value())
-        + unitsBox->currentText() + QString("\n  Z: ")  + QString().number(spacingZBox->value())
-        + unitsBox->currentText();
-    msgBox.setDetailedText (detailedText);
-    int ret = msgBox.exec();
-
-    switch(ret)
-    {
-      case QMessageBox::Apply:
-        changeSpacing();
-        break;
-      default:
-        break;
-    }
-  }
 }
 
 //------------------------------------------------------------------------
@@ -342,4 +321,121 @@ void ChannelInspector::applyModifications()
 
   m_view->updateChannel(m_channel);
   m_view->updateView();
+}
+
+//------------------------------------------------------------------------
+void ChannelInspector::acceptedChanges()
+{
+  if (hueBox->value() == -1)
+    m_channel->setSaturation(0.0);
+
+  if (m_spacingModified)
+  {
+    QMessageBox msgBox;
+    msgBox.setText("The spacing has been modified but the changes have not been applied to the channel.");
+    msgBox.setInformativeText("Do you want to apply your changes?");
+    msgBox.setIcon(QMessageBox::Question);
+    msgBox.setStandardButtons(QMessageBox::Apply | QMessageBox::Cancel);
+    msgBox.setDefaultButton(QMessageBox::Apply);
+    QString detailedText = QString("Spacing changed to:\n  X: ") + QString().number(spacingXBox->value())
+        + unitsBox->currentText() + QString("\n  Y: ")  + QString().number(spacingYBox->value())
+        + unitsBox->currentText() + QString("\n  Z: ")  + QString().number(spacingZBox->value())
+        + unitsBox->currentText();
+    msgBox.setDetailedText (detailedText);
+    int ret = msgBox.exec();
+
+    switch(ret)
+    {
+      case QMessageBox::Apply:
+        changeSpacing();
+        emit spacingUpdated();
+        break;
+      default:
+        break;
+    }
+  }
+
+  double spacing[3];
+  m_channel->volume()->spacing(spacing);
+  if (m_spacing[0] != spacing[0] || m_spacing[1] != spacing[1] || m_spacing[2] != m_spacing[2])
+    emit spacingUpdated();
+
+  m_channel->notifyModification(true);
+}
+
+//------------------------------------------------------------------------
+void ChannelInspector::rejectedChanges()
+{
+  bool modified = false;
+
+  double spacing[3];
+  m_channel->volume()->spacing(spacing);
+
+  if (m_spacing[0] != spacing[0] || m_spacing[1] != spacing[1] || m_spacing[2] != spacing[2])
+  {
+    modified = true;
+    itkVolumeType::SpacingType newSpacing;
+    newSpacing[0] = m_spacing[0];
+    newSpacing[1] = m_spacing[1];
+    newSpacing[2] = m_spacing[2];
+
+    /// WARNING: This won't work with preprocessing
+    ChannelReader *reader = dynamic_cast<ChannelReader *>(m_channel->filter().data());
+    Q_ASSERT(reader);
+    reader->setSpacing(newSpacing);
+    reader->update();
+
+    foreach(ModelItemSPtr item, m_channel->relatedItems(EspINA::OUT, Channel::LINK))
+    {
+      if (EspINA::SEGMENTATION == item->type())
+      {
+        SegmentationSPtr seg = segmentationPtr(item);
+        double oldSpacing[3];
+        seg->volume()->spacing(oldSpacing);
+        seg->volume()->toITK()->SetSpacing(newSpacing);
+        itkVolumeType::PointType origin = seg->volume()->toITK()->GetOrigin();
+        for (int i=0; i < 3; i++)
+        origin[i] = origin[i]/oldSpacing[i]*newSpacing[i];
+        seg->volume()->toITK()->SetOrigin(origin);
+        seg->notifyModification(true);
+      }
+    }
+
+    emit spacingUpdated();
+  }
+
+  if (m_opacity != m_channel->opacity())
+  {
+    modified = true;
+    m_channel->setOpacity(m_opacity);
+  }
+
+  if (m_hue != m_channel->hue())
+  {
+    modified = true;
+    m_channel->setHue(m_hue);
+  }
+
+  if (m_saturation != m_channel->saturation())
+  {
+    modified = true;
+    m_channel->setSaturation(m_saturation);
+  }
+
+  if (m_brightness != m_channel->brightness())
+  {
+    modified = true;
+    m_channel->setBrightness(m_brightness);
+  }
+
+  if (m_contrast != m_channel->contrast())
+  {
+    modified = true;
+    m_channel->setContrast(m_contrast);
+  }
+
+  if (modified)
+  {
+    m_channel->notifyModification(true);
+  }
 }
