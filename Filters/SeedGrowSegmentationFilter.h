@@ -49,7 +49,6 @@ namespace EspINA
     typedef itk::BinaryMorphologicalClosingImageFilter<itkVolumeType, itkVolumeType, StructuringElementType> bmcifType;
 
   public:
-    static const QString TYPE;
     static const QString INPUTLINK;
 
     static const ModelItem::ArgumentId SEED;
@@ -112,7 +111,8 @@ namespace EspINA
 
   public:
     explicit SeedGrowSegmentationFilter(NamedInputs inputs,
-                                        Arguments args);
+                                        Arguments   args,
+                                        FilterType  type);
     virtual ~SeedGrowSegmentationFilter();
 
     void setLowerThreshold(int th);
@@ -136,9 +136,6 @@ namespace EspINA
 
     unsigned int closeValue() {return m_param.closeValue();}
     void setCloseValue(unsigned int value) {m_param.setCloseValue(value);}
-
-    // Implements Model Item Interface
-    virtual QVariant data(int role=Qt::DisplayRole) const;
 
     // Implements Filter Interface
     virtual bool needUpdate() const;

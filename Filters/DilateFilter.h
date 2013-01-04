@@ -35,25 +35,20 @@ class DilateFilter
 : public MorphologicalEditionFilter
 {
   typedef itk::BinaryBallStructuringElement<itkVolumeType::PixelType, 3> StructuringElementType;
-  typedef itk::DilateObjectMorphologyImageFilter<itkVolumeType, itkVolumeType, StructuringElementType> FilterType;
-
-public:
-  static const QString TYPE;
+  typedef itk::DilateObjectMorphologyImageFilter<itkVolumeType, itkVolumeType, StructuringElementType> BinaryDilateFilter;
 
 public:
   explicit DilateFilter(NamedInputs inputs,
-                         Arguments args);
+                        Arguments   args,
+                        FilterType  type);
   virtual ~DilateFilter();
-
-  /// Implements Model Item Interface
-  virtual QVariant data(int role=Qt::DisplayRole) const;
 
 protected:
   /// Implements Filter Interface
   void run();
 
 private:
-  FilterType::Pointer m_filter;
+  BinaryDilateFilter::Pointer m_filter;
 };
 
 } // namespace EspINA

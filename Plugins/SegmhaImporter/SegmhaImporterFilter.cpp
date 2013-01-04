@@ -88,13 +88,13 @@ SegmhaImporterFilter::TaxonomyObject::TaxonomyObject(const QString& line)
 }
 
 //---------------------------------------------------------------------------
-const QString SegmhaImporterFilter::TYPE = "Segmha Importer";
 const QString SegmhaImporterFilter::SUPPORTED_FILES = tr("Segmentation LabelMaps (*.segmha)");
 
 //-----------------------------------------------------------------------------
-SegmhaImporterFilter::SegmhaImporterFilter(Filter::NamedInputs inputs,
-                                           ModelItem::Arguments args)
-: SegmentationFilter(inputs, args)
+SegmhaImporterFilter::SegmhaImporterFilter(NamedInputs inputs,
+                                           Arguments   args,
+                                           FilterType  type)
+: SegmentationFilter(inputs, args, type)
 , m_param           (m_args)
 , m_taxonomy        (new Taxonomy())
 {
@@ -105,15 +105,6 @@ SegmhaImporterFilter::SegmhaImporterFilter(Filter::NamedInputs inputs,
 //-----------------------------------------------------------------------------
 SegmhaImporterFilter::~SegmhaImporterFilter()
 {
-}
-
-//-----------------------------------------------------------------------------
-QVariant SegmhaImporterFilter::data(int role) const
-{
-  if (role == Qt::DisplayRole)
-    return TYPE;
-  else
-    return QVariant();
 }
 
 //-----------------------------------------------------------------------------

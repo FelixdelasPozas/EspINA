@@ -25,13 +25,15 @@
 
 using namespace EspINA;
 
-const QString ClosingFilter::TYPE = "EditorToolBar::ClosingFilter";
 
-ClosingFilter::ClosingFilter(Filter::NamedInputs inputs,
-                             ModelItem::Arguments args)
-: MorphologicalEditionFilter(inputs, args)
+
+//-----------------------------------------------------------------------------
+ClosingFilter::ClosingFilter(NamedInputs inputs,
+                             Arguments   args,
+                             FilterType  type)
+: MorphologicalEditionFilter(inputs, args, type)
 {
-//   qDebug() << TYPE << "arguments" << m_args;
+
 }
 
 
@@ -51,7 +53,7 @@ void ClosingFilter::run()
   ball.SetRadius(m_params.radius());
   ball.CreateStructuringElement();
 
-  m_filter = FilterType::New();
+  m_filter = BinaryClosingFilter::New();
   m_filter->SetInput(m_input);
   m_filter->SetKernel(ball);
   m_filter->SetForegroundValue(SEG_VOXEL_VALUE);
@@ -60,13 +62,4 @@ void ClosingFilter::run()
   createOutput(0, m_filter->GetOutput());
 
   emit modified(this);
-}
-
-//-----------------------------------------------------------------------------
-QVariant ClosingFilter::data(int role) const
-{
-  if (role == Qt::DisplayRole)
-    return TYPE;
-  else
-    return QVariant();
 }

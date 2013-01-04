@@ -51,6 +51,8 @@ namespace EspINA
     class DrawCommand;
     class SnapshotCommand;
 
+    static const Filter::FilterType FREEFORM_SOURCE_TYPE;
+
   public:
     explicit Brush(EspinaModel *model,
                    QUndoStack  *undoStack,

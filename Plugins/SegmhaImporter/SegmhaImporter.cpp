@@ -34,12 +34,14 @@ using namespace EspINA;
 
 const QString INPUTLINK = "Input";
 
+const QString SegmhaImporter::UndoCommand::FILTER_TYPE = "Segmha Importer";
+
 //-----------------------------------------------------------------------------
 SegmhaImporter::UndoCommand::UndoCommand(SampleSPtr               sample,
-                                         ChannelSPtr         channel,
+                                         ChannelSPtr              channel,
                                          SegmhaImporterFilterSPtr filter,
-                                         EspinaModel          *model,
-                                         QUndoCommand            *parent)
+                                         EspinaModel              *model,
+                                         QUndoCommand             *parent)
 : QUndoCommand(parent)
 , m_model(model)
 , m_sample (sample)
@@ -138,7 +140,7 @@ SegmhaImporter::~SegmhaImporter()
 //-----------------------------------------------------------------------------
 void SegmhaImporter::initFactoryExtension(EspinaFactory *factory)
 {
-  factory->registerFilter(this, SegmhaImporterFilter::TYPE);
+  factory->registerFilter(this, UndoCommand::FILTER_TYPE);
 }
 
 //-----------------------------------------------------------------------------
@@ -146,8 +148,8 @@ FilterSPtr SegmhaImporter::createFilter(const QString              &filter,
                                         const Filter::NamedInputs  &inputs,
                                         const ModelItem::Arguments &args)
 {
-  Q_ASSERT(SegmhaImporterFilter::TYPE == filter);
-  return FilterSPtr(new SegmhaImporterFilter(inputs, args));
+  Q_ASSERT(UndoCommand::FILTER_TYPE == filter);
+  return FilterSPtr(new SegmhaImporterFilter(inputs, args, UndoCommand::FILTER_TYPE));
 }
 
 //-----------------------------------------------------------------------------
@@ -200,7 +202,7 @@ bool SegmhaImporter::readFile(const QFileInfo file)
   params.setSpacing(channel->volume()->toITK()->GetSpacing());
 
   QApplication::setOverrideCursor(Qt::WaitCursor);
-  SegmhaImporterFilterSPtr filter(new SegmhaImporterFilter(inputs, args));
+  SegmhaImporterFilterSPtr filter(new SegmhaImporterFilter(inputs, args, UndoCommand::FILTER_TYPE));
   filter->update();
   if (filter->outputs().isEmpty())
     return false;

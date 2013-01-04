@@ -27,13 +27,13 @@
 
 using namespace EspINA;
 
-const QString DilateFilter::TYPE = "EditorToolBar::DilateFilter";
-
-DilateFilter::DilateFilter(Filter::NamedInputs inputs,
-                             ModelItem::Arguments args)
-: MorphologicalEditionFilter(inputs, args)
+//-----------------------------------------------------------------------------
+DilateFilter::DilateFilter(NamedInputs inputs,
+                           Arguments   args,
+                           FilterType  type)
+: MorphologicalEditionFilter(inputs, args, type)
 {
-//   qDebug() << TYPE << "arguments" << m_args;
+
 }
 
 
@@ -41,15 +41,6 @@ DilateFilter::DilateFilter(Filter::NamedInputs inputs,
 DilateFilter::~DilateFilter()
 {
 //   qDebug() << "Destroying" << TYPE;
-}
-
-//-----------------------------------------------------------------------------
-QVariant DilateFilter::data(int role) const
-{
-  if (Qt::DisplayRole == role)
-    return TYPE;
-  else
-    return QVariant();
 }
 
 //-----------------------------------------------------------------------------
@@ -79,7 +70,7 @@ void DilateFilter::run()
   ball.SetRadius(m_params.radius());
   ball.CreateStructuringElement();
 
-  m_filter = FilterType::New();
+  m_filter = BinaryDilateFilter::New();
   m_filter->SetInput(padFilter->GetOutput());
   m_filter->SetKernel(ball);
   m_filter->SetObjectValue(SEG_VOXEL_VALUE);

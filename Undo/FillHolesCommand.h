@@ -32,6 +32,9 @@ class FillHolesCommand
 : public QUndoCommand
 {
 public:
+  static const QString FILTER_TYPE;
+
+public:
   explicit FillHolesCommand(SegmentationList inputs,
                             EspinaModel     *model);
   virtual ~FillHolesCommand();

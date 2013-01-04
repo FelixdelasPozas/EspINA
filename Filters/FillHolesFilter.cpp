@@ -21,28 +21,19 @@
 
 using namespace EspINA;
 
-const QString FillHolesFilter::TYPE = "EditorToolBar::FillHolesFilter";
 const QString FillHolesFilter::INPUTLINK = "Input";
 
 //-----------------------------------------------------------------------------
-FillHolesFilter::FillHolesFilter(Filter::NamedInputs inputs,
-                                 ModelItem::Arguments args)
-: SegmentationFilter(inputs, args)
+FillHolesFilter::FillHolesFilter(NamedInputs inputs,
+                                 Arguments   args,
+                                 FilterType  type)
+: SegmentationFilter(inputs, args, type)
 {
 }
 
 //-----------------------------------------------------------------------------
 FillHolesFilter::~FillHolesFilter()
 {
-}
-
-//-----------------------------------------------------------------------------
-QVariant FillHolesFilter::data(int role) const
-{
-  if (Qt::DisplayRole == role)
-    return TYPE;
-  else
-    return QVariant();
 }
 
 //-----------------------------------------------------------------------------
@@ -71,7 +62,7 @@ void FillHolesFilter::run()
 {
   Q_ASSERT(m_inputs.size() == 1);
 
-  m_filter = FilterType::New();
+  m_filter = BinaryFillholeFilter::New();
   m_filter->SetInput(m_inputs[0]->toITK());
   m_filter->Update();
 

@@ -29,6 +29,8 @@ using namespace EspINA;
 
 const QString SGS_VOI = "SGS VOI";
 
+const Filter::FilterType SeedGrowSegmentationCommand::FILTER_TYPE = "SeedGrowSegmentation::SeedGrowSegmentationFilter";
+
 //-----------------------------------------------------------------------------
 SeedGrowSegmentationCommand::SeedGrowSegmentationCommand(ChannelPtr               channel,
                                                          itkVolumeType::IndexType seed,
@@ -58,7 +60,7 @@ SeedGrowSegmentationCommand::SeedGrowSegmentationCommand(ChannelPtr             
   inputs[SeedGrowSegmentationFilter::INPUTLINK] = channel->filter();
   args[Filter::INPUTS] = Filter::NamedInput(SeedGrowSegmentationFilter::INPUTLINK, channel->outputId());
 
-  SeedGrowSegmentationFilter *sgsFilter = new SeedGrowSegmentationFilter(inputs, args);
+  SeedGrowSegmentationFilter *sgsFilter = new SeedGrowSegmentationFilter(inputs, args, FILTER_TYPE);
   sgsFilter->update();
   Q_ASSERT(sgsFilter->outputs().size() == 1);
 

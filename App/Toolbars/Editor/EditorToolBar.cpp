@@ -46,6 +46,7 @@
 #include <Undo/AddSegmentation.h>
 #include <Undo/FillHolesCommand.h>
 #include <Undo/ImageLogicCommand.h>
+#include <Undo/SplitUndoCommand.h>
 #include <Undo/RemoveSegmentation.h>
 
 // Qt
@@ -59,8 +60,16 @@ namespace EspINA
   class EditorToolBar::CODECommand :
   public QUndoCommand
   {
+  public:
+    static const Filter::FilterType CLOSING_FILTER_TYPE;
+    static const Filter::FilterType OPENING_FILTER_TYPE;
+    static const Filter::FilterType DILATE_FILTER_TYPE;
+    static const Filter::FilterType ERODE_FILTER_TYPE;
+
+  private:
     static const QString INPUTLINK; //TODO 2012-10-05 Move to CODEFilter ?
     typedef QPair<FilterSPtr, Filter::OutputId> Connection;
+
   public:
     enum Operation
     {
@@ -95,16 +104,16 @@ namespace EspINA
         switch (op)
         {
           case CLOSE:
-            filter = new ClosingFilter(inputs, args);
+            filter = new ClosingFilter(inputs, args, CLOSING_FILTER_TYPE);
             break;
           case OPEN:
-            filter = new OpeningFilter(inputs, args);
+            filter = new OpeningFilter(inputs, args, OPENING_FILTER_TYPE);
             break;
           case DILATE:
-            filter = new DilateFilter(inputs, args);
+            filter = new DilateFilter(inputs, args, DILATE_FILTER_TYPE);
             break;
           case ERODE:
-            filter = new ErodeFilter(inputs, args);
+            filter = new ErodeFilter(inputs, args, ERODE_FILTER_TYPE);
             break;
         }
         filter->update();
@@ -159,6 +168,11 @@ namespace EspINA
     QList<Connection> m_oldConnections, m_newConnections;
     SegmentationSList  m_segmentations;
   };
+
+  const Filter::FilterType EditorToolBar::CODECommand::CLOSING_FILTER_TYPE = "EditorToolBar::ClosingFilter";
+  const Filter::FilterType EditorToolBar::CODECommand::OPENING_FILTER_TYPE = "EditorToolBar::OpeningFilter";
+  const Filter::FilterType EditorToolBar::CODECommand::DILATE_FILTER_TYPE  = "EditorToolBar::DilateFilter";
+  const Filter::FilterType EditorToolBar::CODECommand::ERODE_FILTER_TYPE   = "EditorToolBar::ErodeFilter";
 
 } // namespace EspINA
 
@@ -216,15 +230,15 @@ void EditorToolBar::initToolBar(EspinaModel *model,
 //----------------------------------------------------------------------------
 void EditorToolBar::initFactoryExtension(EspinaFactoryPtr factory)
 {
-  factory->registerFilter(this, SplitFilter::TYPE);
-  factory->registerFilter(this, ClosingFilter::TYPE);
-  factory->registerFilter(this, OpeningFilter::TYPE);
-  factory->registerFilter(this, DilateFilter::TYPE);
-  factory->registerFilter(this, ErodeFilter::TYPE);
-  factory->registerFilter(this, FreeFormSource::TYPE);
-  factory->registerFilter(this, ImageLogicFilter::TYPE);
-  factory->registerFilter(this, FillHolesFilter::TYPE);
-  factory->registerFilter(this, ContourSource::TYPE);
+  factory->registerFilter(this, SplitUndoCommand::FILTER_TYPE);
+  factory->registerFilter(this, CODECommand::CLOSING_FILTER_TYPE);
+  factory->registerFilter(this, CODECommand::OPENING_FILTER_TYPE);
+  factory->registerFilter(this, CODECommand::DILATE_FILTER_TYPE);
+  factory->registerFilter(this, CODECommand::ERODE_FILTER_TYPE);
+  factory->registerFilter(this, Brush::FREEFORM_SOURCE_TYPE);
+  factory->registerFilter(this, ImageLogicCommand::FILTER_TYPE);
+  factory->registerFilter(this, FillHolesCommand::FILTER_TYPE);
+  factory->registerFilter(this, FilledContour::FILTER_TYPE);
 
   factory->registerSettingsPanel(editorSettings.data());
 }
@@ -236,29 +250,32 @@ FilterSPtr EditorToolBar::createFilter(const QString              &filter,
 {
   Filter *res = NULL;
 
-  if (SplitFilter::TYPE == filter)
-    res = new SplitFilter(inputs, args);
+  if (SplitUndoCommand::FILTER_TYPE == filter)
+    res = new SplitFilter(inputs, args, SplitUndoCommand::FILTER_TYPE);
 
-  else if (ClosingFilter::TYPE == filter)
-    res = new ClosingFilter(inputs, args);
+  else if (CODECommand::CLOSING_FILTER_TYPE == filter)
+    res = new ClosingFilter(inputs, args, CODECommand::CLOSING_FILTER_TYPE);
 
-  else if (OpeningFilter::TYPE == filter)
-    res = new OpeningFilter(inputs, args);
+  else if (CODECommand::OPENING_FILTER_TYPE == filter)
+    res = new OpeningFilter(inputs, args, CODECommand::OPENING_FILTER_TYPE);
 
-  else if (DilateFilter::TYPE == filter)
-    res = new DilateFilter(inputs, args);
+  else if (CODECommand::DILATE_FILTER_TYPE == filter)
+    res = new DilateFilter(inputs, args, CODECommand::DILATE_FILTER_TYPE);
 
-  else if (ErodeFilter::TYPE == filter)
-    res = new ErodeFilter(inputs, args);
+  else if (CODECommand::ERODE_FILTER_TYPE == filter)
+    res = new ErodeFilter(inputs, args, CODECommand::ERODE_FILTER_TYPE);
 
-  else if (FreeFormSource::TYPE == filter)
-    res = new FreeFormSource(inputs, args);
+  else if (Brush::FREEFORM_SOURCE_TYPE == filter)
+    res = new FreeFormSource(inputs, args, Brush::FREEFORM_SOURCE_TYPE);
 
-  else if (ImageLogicFilter::TYPE == filter)
-    res = new ImageLogicFilter(inputs, args);
+  else if (ImageLogicCommand::FILTER_TYPE == filter)
+    res = new ImageLogicFilter(inputs, args, ImageLogicCommand::FILTER_TYPE);
 
-  else if (FillHolesFilter::TYPE == filter)
-    res = new FillHolesFilter(inputs, args);
+  else if (FillHolesCommand::FILTER_TYPE == filter)
+    res = new FillHolesFilter(inputs, args, FillHolesCommand::FILTER_TYPE);
+
+  else if (FilledContour::FILTER_TYPE == filter)
+    res = new ContourSource(inputs, args, FilledContour::FILTER_TYPE);
 
   else
     Q_ASSERT(false);

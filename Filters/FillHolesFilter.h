@@ -29,19 +29,16 @@ namespace EspINA
 class FillHolesFilter
 : public SegmentationFilter
 {
-  typedef itk::BinaryFillholeImageFilter<itkVolumeType> FilterType;
+  typedef itk::BinaryFillholeImageFilter<itkVolumeType> BinaryFillholeFilter;
 
 public:
-  static const QString TYPE;
   static const QString INPUTLINK;
 
 public:
   explicit FillHolesFilter(NamedInputs inputs,
-                           Arguments args);
+                           Arguments   args,
+                           FilterType  type);
   virtual ~FillHolesFilter();
-
-  /// Implements Model Item Interface
-  virtual QVariant data(int role = Qt::DisplayRole) const;
 
   /// Implements Filter Interface
   virtual bool needUpdate() const;
@@ -50,7 +47,7 @@ protected:
   virtual void run();
 
 private:
-  FilterType::Pointer m_filter;
+  BinaryFillholeFilter::Pointer m_filter;
 };
 
 } // namespace EspINA

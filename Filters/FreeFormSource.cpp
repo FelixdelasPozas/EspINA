@@ -30,16 +30,14 @@
 
 using namespace EspINA;
 
-
-const QString FreeFormSource::TYPE = "EditorToolBar::FreeFormSource";
-
 typedef ModelItem::ArgumentId ArgumentId;
 const ArgumentId FreeFormSource::SPACING = "SPACING";
 
 //-----------------------------------------------------------------------------
-FreeFormSource::FreeFormSource(Filter::NamedInputs inputs,
-                               ModelItem::Arguments args)
-: SegmentationFilter(inputs, args)
+FreeFormSource::FreeFormSource(NamedInputs inputs,
+                               Arguments   args,
+                               FilterType  type)
+: SegmentationFilter(inputs, args, type)
 , m_param(m_args)
 {
   Q_ASSERT(inputs.isEmpty());
@@ -108,15 +106,6 @@ void FreeFormSource::draw(OutputId oId,
     createOutput(0, volume);
   }
   Filter::draw(oId, x, y, z, value);
-}
-
-//-----------------------------------------------------------------------------
-QVariant FreeFormSource::data(int role) const
-{
-  if (role == Qt::DisplayRole)
-    return TYPE;
-  else
-    return QVariant();
 }
 
 //-----------------------------------------------------------------------------

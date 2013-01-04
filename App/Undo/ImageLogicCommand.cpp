@@ -33,6 +33,8 @@ const QString SUBSTRACTLINK = "Substract";
 
 using namespace EspINA;
 
+const Filter::FilterType ImageLogicCommand::FILTER_TYPE = "EditorToolBar::ImageLogicFilter";
+
 //----------------------------------------------------------------------------
 ImageLogicCommand::ImageLogicCommand(SegmentationList            input,
                                      ImageLogicFilter::Operation operation,
@@ -65,7 +67,7 @@ ImageLogicCommand::ImageLogicCommand(SegmentationList            input,
   }
   params.setOperation(m_operation);
 
-  m_filter = FilterSPtr(new ImageLogicFilter(inputs, args));
+  m_filter = FilterSPtr(new ImageLogicFilter(inputs, args, ImageLogicCommand::FILTER_TYPE));
   m_filter->update();
   Q_ASSERT(m_filter->outputs().size() == 1);
   m_segmentation = m_model->factory()->createSegmentation(m_filter, 0);

@@ -43,6 +43,9 @@ namespace EspINA
     };
 
   public:
+    static const Filter::FilterType FILTER_TYPE;
+
+  public:
     explicit CompositionCommand(const SegmentationList &segmentations,
                                 TaxonomyElementSPtr      taxonomy,
                                 EspinaModel          *model);

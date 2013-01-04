@@ -30,6 +30,9 @@ namespace EspINA
   : public QUndoCommand
   {
   public:
+    static const Filter::FilterType FILTER_TYPE;
+
+  public:
     explicit SeedGrowSegmentationCommand(ChannelPtr               channel,
                                          itkVolumeType::IndexType seed,
                                          int                      voiExtent[6],

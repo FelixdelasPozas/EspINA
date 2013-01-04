@@ -34,15 +34,13 @@ namespace EspINA
   : public SegmentationFilter
   {
   public:
-    static const QString TYPE;
     static const QString INPUTLINK;
 
   public:
-    explicit SplitFilter(NamedInputs inputs, Arguments args);
+    explicit SplitFilter(NamedInputs inputs,
+                         Arguments   args,
+                         FilterType  type);
     virtual ~SplitFilter();
-
-    // Implements Model Item Interface
-    virtual QVariant data(int role=Qt::DisplayRole) const;
 
     // Implements Filter Interface
     virtual bool needUpdate() const;

@@ -73,10 +73,7 @@ void CompositionToolBar::initToolBar(EspinaModel *model,
 //----------------------------------------------------------------------------
 void CompositionToolBar::initFactoryExtension(EspinaFactoryPtr factory)
 {
-  // TODO 2012-12-21 El fin del mundo ha llegado a EspINA!!!
-  //                 Esta toolbar registra el mismo filtro que el editor tool bar!
-  //factory->registerFilter(this, CompositionFilter);
-  //Q_ASSERT(false);
+  factory->registerFilter(this, CompositionCommand::FILTER_TYPE);
 }
 
 //----------------------------------------------------------------------------
@@ -84,8 +81,8 @@ FilterSPtr CompositionToolBar::createFilter(const QString              &filter,
                                             const Filter::NamedInputs  &inputs,
                                             const ModelItem::Arguments &args)
 {
-  Q_ASSERT(false);//TODO 2012-12-17
-  return FilterSPtr();
+  Q_ASSERT(CompositionCommand::FILTER_TYPE == filter);
+  return FilterSPtr(new ImageLogicFilter(inputs, args, CompositionCommand::FILTER_TYPE));
 }
 
 //----------------------------------------------------------------------------

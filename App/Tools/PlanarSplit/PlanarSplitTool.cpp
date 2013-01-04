@@ -140,7 +140,7 @@ void PlanarSplitTool::splitSegmentation()
   inputs[SplitFilter::INPUTLINK] = seg->filter();
   args[Filter::INPUTS] = Filter::NamedInput(SplitFilter::INPUTLINK, seg->outputId());
 
-  SplitFilterPtr filter(new SplitFilter(inputs, args));
+  SplitFilterPtr filter(new SplitFilter(inputs, args, SplitUndoCommand::FILTER_TYPE));
   filter->setStencil(m_widget->getStencilForVolume(seg->volume()));
   filter->update();
 

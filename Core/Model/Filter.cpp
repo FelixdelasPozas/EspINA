@@ -91,12 +91,23 @@ void Filter::setTmpDir(QDir dir)
 
 //----------------------------------------------------------------------------
 Filter::Filter(Filter::NamedInputs  namedInputs,
-               ModelItem::Arguments args)
+               ModelItem::Arguments args,
+               FilterType           type)
 : m_namedInputs(namedInputs)
 , m_args(args)
+, m_type(type)
 {
   if (!m_args.contains(ID))
     m_args[ID] = "-1";
+}
+
+//----------------------------------------------------------------------------
+QVariant Filter::data(int role) const
+{
+  if (Qt::DisplayRole == role)
+    return m_type;
+  else
+    return QVariant();
 }
 
 //----------------------------------------------------------------------------

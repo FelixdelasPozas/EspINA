@@ -42,6 +42,9 @@ namespace EspINA
     };
 
   public:
+    static const Filter::FilterType FILTER_TYPE;
+
+  public:
     explicit ImageLogicCommand(SegmentationList            inputs,
                                ImageLogicFilter::Operation operation,
                                TaxonomyElementPtr          taxonomy,

@@ -25,15 +25,14 @@
 
 using namespace EspINA;
 
-const QString OpeningFilter::TYPE = "EditorToolBar::OpeningFilter";
-
-OpeningFilter::OpeningFilter(Filter::NamedInputs inputs,
-                             ModelItem::Arguments args)
-: MorphologicalEditionFilter(inputs, args)
+//-----------------------------------------------------------------------------
+OpeningFilter::OpeningFilter(NamedInputs inputs,
+                             Arguments   args,
+                             FilterType  type)
+: MorphologicalEditionFilter(inputs, args, type)
 {
-//   qDebug() << TYPE << "arguments" << m_args;
-}
 
+}
 
 //-----------------------------------------------------------------------------
 OpeningFilter::~OpeningFilter()
@@ -52,7 +51,7 @@ void OpeningFilter::run()
   ball.SetRadius(m_params.radius());
   ball.CreateStructuringElement();
 
-  m_filter = FilterType::New();
+  m_filter = BinaryOpenFilter::New();
   m_filter->SetInput(m_input);
   m_filter->SetKernel(ball);
   m_filter->SetForegroundValue(SEG_VOXEL_VALUE);
@@ -61,13 +60,4 @@ void OpeningFilter::run()
   createOutput(0, m_filter->GetOutput());
 
   emit modified(this);
-}
-
-//-----------------------------------------------------------------------------
-QVariant OpeningFilter::data(int role) const
-{
-  if (role == Qt::DisplayRole)
-    return TYPE;
-  else
-    return QVariant();
 }

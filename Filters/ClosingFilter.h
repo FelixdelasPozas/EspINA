@@ -32,25 +32,20 @@ class ClosingFilter
 : public MorphologicalEditionFilter
 {
   typedef itk::BinaryBallStructuringElement<itkVolumeType::PixelType, 3> StructuringElementType;
-  typedef itk::BinaryMorphologicalClosingImageFilter<itkVolumeType, itkVolumeType, StructuringElementType> FilterType;
-
-public:
-  static const QString TYPE;
+  typedef itk::BinaryMorphologicalClosingImageFilter<itkVolumeType, itkVolumeType, StructuringElementType> BinaryClosingFilter;
 
 public:
   explicit ClosingFilter(NamedInputs inputs,
-                         Arguments args);
+                         Arguments   args,
+                         FilterType  type);
   virtual ~ClosingFilter();
-
-  /// Implements Model Item Interface
-  virtual QVariant data(int role=Qt::DisplayRole) const;
 
 protected:
   /// Implements Filter Interface
   void run();
 
 private:
-  FilterType::Pointer m_filter;
+  BinaryClosingFilter::Pointer m_filter;
 };
 
 } // namespace EspINA

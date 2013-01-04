@@ -32,6 +32,9 @@ namespace EspINA
   : public QUndoCommand
   {
   public:
+    static const Filter::FilterType FILTER_TYPE;
+
+  public:
     explicit SplitUndoCommand(SegmentationSPtr input,
                               FilterSPtr       filter,
                               SegmentationSPtr splitSeg[2],

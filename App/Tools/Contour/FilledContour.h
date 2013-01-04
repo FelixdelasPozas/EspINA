@@ -37,6 +37,9 @@ namespace EspINA
   : public ITool //NOTE Change to IVOI to use countour as VOI
   {
   public:
+    static const Filter::FilterType FILTER_TYPE;
+
+  public:
     explicit FilledContour(EspinaModel *model,
                            QUndoStack  *undoStack,
                            ViewManager *viewManager);

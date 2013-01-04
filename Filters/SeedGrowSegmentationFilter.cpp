@@ -30,7 +30,6 @@
 
 using namespace EspINA;
 
-const QString SeedGrowSegmentationFilter::TYPE = "SeedGrowSegmentation::SeedGrowSegmentationFilter";
 const QString SeedGrowSegmentationFilter::INPUTLINK = "Input";
 
 typedef ModelItem::ArgumentId ArgumentId;
@@ -49,9 +48,11 @@ SeedGrowSegmentationFilter::Parameters::Parameters(ModelItem::Arguments &args)
 {
 }
 
-SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(Filter::NamedInputs inputs,
-                                                       ModelItem::Arguments args)
-: SegmentationFilter(inputs, args)
+//-----------------------------------------------------------------------------
+SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(NamedInputs inputs,
+                                                       Arguments   args,
+                                                       FilterType  type)
+: SegmentationFilter(inputs, args, type)
 , m_paramModified   (false)
 , m_param           (m_args)
 , m_input           (EspinaVolume::Pointer())
@@ -222,15 +223,6 @@ void SeedGrowSegmentationFilter::setSeed(itkVolumeType::IndexType seed)
 itkVolumeType::IndexType SeedGrowSegmentationFilter::seed() const
 {
   return m_param.seed();
-}
-
-//-----------------------------------------------------------------------------
-QVariant SeedGrowSegmentationFilter::data(int role) const
-{
-  if (role == Qt::DisplayRole)
-    return TYPE;
-  else
-    return QVariant();
 }
 
 //-----------------------------------------------------------------------------

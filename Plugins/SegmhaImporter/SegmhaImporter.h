@@ -48,6 +48,8 @@ namespace EspINA
     : public QUndoCommand
     {
     public:
+      static const Filter::FilterType FILTER_TYPE;
+    public:
       explicit UndoCommand(SampleSPtr          sample,
                            ChannelSPtr         channel,
                            SegmhaImporterFilterSPtr filter,
@@ -57,8 +59,8 @@ namespace EspINA
       virtual void undo();
 
     private:
-      EspinaModel          *m_model;
-      SampleSPtr               m_sample;
+      EspinaModel         *m_model;
+      SampleSPtr          m_sample;
       ChannelSPtr         m_channel;
       SegmhaImporterFilterSPtr m_filter;
       SegmentationSList   m_segs;

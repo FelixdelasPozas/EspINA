@@ -23,6 +23,7 @@
 #include <Tools/SeedGrowSegmentation/SeedGrowSegmentationTool.h>
 #include <Settings/SeedGrowSegmentation/SettingsPanel.h>
 #include <FilterInspectors/SeedGrowSegmentation/SGSFilterInspector.h>
+#include <Undo/SeedGrowSegmentationCommand.h>
 
 #include <QDebug>
 
@@ -116,7 +117,7 @@ void SeedGrowSegmentation::initToolBar(EspinaModel *model,
 void SeedGrowSegmentation::initFactoryExtension(EspinaFactory *factory)
 {
   // Register Factory's filters
-  factory->registerFilter(this, SeedGrowSegmentationFilter::TYPE);
+  factory->registerFilter(this, SeedGrowSegmentationCommand::FILTER_TYPE);
 
   factory->registerSettingsPanel(m_settingsPanel.data());
 }
@@ -126,10 +127,10 @@ FilterSPtr SeedGrowSegmentation::createFilter(const QString              &filter
                                                    const Filter::NamedInputs  &inputs,
                                                    const ModelItem::Arguments &args)
 {
-  Q_ASSERT(SeedGrowSegmentationFilter::TYPE == filter);
+  Q_ASSERT(SeedGrowSegmentationCommand::FILTER_TYPE == filter);
 
   // TODO 2012-12-17 Revisar esto
-  SeedGrowSegmentationFilter *sgs = new SeedGrowSegmentationFilter(inputs, args);
+  SeedGrowSegmentationFilter *sgs = new SeedGrowSegmentationFilter(inputs, args, SeedGrowSegmentationCommand::FILTER_TYPE);
 
   Filter::FilterInspectorPtr inspector(new SGSFilterInspector(sgs));
   sgs->setFilterInspector(inspector);

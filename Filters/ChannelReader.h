@@ -37,11 +37,12 @@ namespace EspINA
     static const ArgumentId SPACING;
 
   public:
-    explicit ChannelReader(NamedInputs inputs, Arguments args);
+    explicit ChannelReader(NamedInputs inputs,
+                           Arguments   args,
+                           FilterType  type);
 
     /// Implements Model Item Interface
     virtual QString id() const {return m_args[ID];}
-    virtual QVariant data(int role=Qt::DisplayRole) const;
     virtual QString serialize() const;
 
     /// Implements Filter Interface

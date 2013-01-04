@@ -88,6 +88,8 @@ namespace EspINA
 
     typedef QList<Output> OutputList;
 
+    typedef QString FilterType;
+
     class FilterInspector
     {
     public:
@@ -114,10 +116,14 @@ namespace EspINA
     QString tmpId() const {return m_args[ID];}
 
     // Implements Model Item Interface common to filters
+    virtual QVariant data(int role = Qt::DisplayRole) const;
+    virtual QString serialize() const;
     virtual ModelItemType type() const {return FILTER;}
+
     virtual void initialize(const Arguments &args = Arguments()){};
     virtual void initializeExtensions(const Arguments &args = Arguments()){};
-    virtual QString serialize() const;
+
+    FilterType filterType() { return m_type; }
 
     struct Link
     {
@@ -186,7 +192,8 @@ namespace EspINA
 
   protected:
     explicit Filter(NamedInputs namedInputs,
-                    Arguments args);
+                    Arguments   args,
+                    FilterType  type);
 
     /// Subclasses need to specify which subtype of EspinaVolume they use
     virtual void createOutput(OutputId id, itkVolumeType::Pointer volume = NULL) = 0;
@@ -209,8 +216,9 @@ namespace EspINA
     QList<EspinaVolume::Pointer> m_inputs;
     NamedInputs                  m_namedInputs;
     mutable Arguments            m_args;
+    FilterType                   m_type;
 
-    QMap<OutputId, Output> m_outputs;
+    QMap<OutputId, Output>       m_outputs;
 
   private:
     FilterInspectorPtr m_filterInspector;
@@ -224,8 +232,10 @@ namespace EspINA
     virtual ~ChannelFilter(){}
 
   protected:
-    explicit ChannelFilter(NamedInputs namedInputs, Arguments args)
-    : Filter(namedInputs, args){}
+    explicit ChannelFilter(NamedInputs namedInputs,
+                           Arguments   args,
+                           FilterType  type)
+    : Filter(namedInputs, args, type){}
 
     virtual void createOutput(OutputId id, itkVolumeType::Pointer volume = NULL);
     virtual void createOutput(OutputId id, EspinaVolume::Pointer volume);
@@ -239,8 +249,10 @@ namespace EspINA
     virtual ~SegmentationFilter(){}
 
   protected:
-    explicit SegmentationFilter(NamedInputs namedInputs, Arguments args)
-    : Filter(namedInputs, args){}
+    explicit SegmentationFilter(NamedInputs namedInputs,
+                                Arguments   args,
+                                FilterType  type)
+    : Filter(namedInputs, args, type){}
 
     virtual void createOutput(OutputId id, itkVolumeType::Pointer volume = NULL);
     virtual void createOutput(OutputId id, EspinaVolume::Pointer volume);
@@ -250,5 +262,6 @@ namespace EspINA
   FilterPtr filterPtr(ModelItemPtr item);
   FilterSPtr filterPtr(ModelItemSPtr &item);
 
-}
+} // namespace EspINA
+
 #endif // FILTER_H

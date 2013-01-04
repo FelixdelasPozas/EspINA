@@ -40,7 +40,6 @@ public:
     SUBSTRACTION,
     NOSIGN
   };
-  static const QString TYPE;
 
   static const ModelItem::ArgumentId OPERATION;
 
@@ -59,11 +58,10 @@ public:
   };
 
 public:
-  explicit ImageLogicFilter(NamedInputs inputs, Arguments args);
+  explicit ImageLogicFilter(NamedInputs inputs,
+                            Arguments   args,
+                            FilterType  type);
   virtual ~ImageLogicFilter();
-
-  /// Implements Model Item Interface
-  virtual QVariant data(int role=Qt::DisplayRole) const;
 
   /// Implements Filter Interface
   virtual bool needUpdate() const;

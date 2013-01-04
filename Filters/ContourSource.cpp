@@ -16,15 +16,15 @@
 #include <QDebug>
 using namespace EspINA;
 
-const QString ContourSource::TYPE = "EditorToolBar::ContourSource";
 
 typedef ModelItem::ArgumentId ArgumentId;
 const ArgumentId ContourSource::SPACING = "SPACING";
 
 //-----------------------------------------------------------------------------
-ContourSource::ContourSource(Filter::NamedInputs inputs,
-                               ModelItem::Arguments args)
-: SegmentationFilter(inputs, args)
+ContourSource::ContourSource(NamedInputs inputs,
+                             Arguments   args,
+                             FilterType  type)
+: SegmentationFilter(inputs, args, type)
 , m_param(m_args)
 {
   Q_ASSERT(inputs.isEmpty());
@@ -85,15 +85,6 @@ void ContourSource::draw(OutputId oId,
     m_contourMap[plane].insert(slice, newContour);
     Filter::draw(oId, newContour, slice, plane);
   }
-}
-
-//-----------------------------------------------------------------------------
-QVariant ContourSource::data(int role) const
-{
-  if (role == Qt::DisplayRole)
-    return TYPE;
-  else
-    return QVariant();
 }
 
 //-----------------------------------------------------------------------------

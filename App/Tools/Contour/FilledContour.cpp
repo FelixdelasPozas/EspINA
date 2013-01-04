@@ -39,6 +39,8 @@
 
 using namespace EspINA;
 
+const Filter::FilterType FilledContour::FILTER_TYPE = "EditorToolBar::ContourSource";
+
 //-----------------------------------------------------------------------------
 FilledContour::FilledContour(EspinaModel *model,
                              QUndoStack  *undo,
@@ -127,7 +129,7 @@ void FilledContour::setInUse(bool enable)
         Filter::Arguments args;
         FreeFormSource::Parameters params(args);
         params.setSpacing(spacing);
-        m_currentSource = FilterSPtr(new ContourSource(inputs, args));
+        m_currentSource = FilterSPtr(new ContourSource(inputs, args, FILTER_TYPE));
       }
 
       if (!m_currentSeg && m_currentSource)

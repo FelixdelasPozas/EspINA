@@ -26,7 +26,6 @@
 
 using namespace EspINA;
 
-const QString ImageLogicFilter::TYPE = "EditorToolBar::ImageLogicFilter";
 
 //-----------------------------------------------------------------------------
 typedef ModelItem::ArgumentId ArgumentId;
@@ -34,9 +33,10 @@ const ArgumentId ImageLogicFilter::OPERATION = "Operation";
 
 
 //-----------------------------------------------------------------------------
-ImageLogicFilter::ImageLogicFilter(Filter::NamedInputs inputs,
-                                   ModelItem::Arguments args)
-: SegmentationFilter(inputs, args)
+ImageLogicFilter::ImageLogicFilter(NamedInputs inputs,
+                                   Arguments   args,
+                                   FilterType  type)
+: SegmentationFilter(inputs, args, type)
 , m_param(m_args)
 {
 }
@@ -46,14 +46,6 @@ ImageLogicFilter::~ImageLogicFilter()
 {
 }
 
-//-----------------------------------------------------------------------------
-QVariant ImageLogicFilter::data(int role) const
-{
-  if (role == Qt::DisplayRole)
-    return TYPE;
-  else
-    return QVariant();
-}
 
 //-----------------------------------------------------------------------------
 bool ImageLogicFilter::needUpdate() const

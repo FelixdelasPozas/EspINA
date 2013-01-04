@@ -48,7 +48,8 @@ public:
 
 public:
   explicit MorphologicalEditionFilter(NamedInputs inputs,
-                                      Arguments args);
+                                      Arguments   args,
+                                      FilterType  type);
   virtual ~MorphologicalEditionFilter();
 
   unsigned int radius() const {return m_params.radius();}

@@ -49,7 +49,6 @@ namespace EspINA
     };
 
   public:
-    static const QString TYPE;
     static const QString SUPPORTED_FILES;
 
     static const ArgumentId FILE;
@@ -94,11 +93,11 @@ namespace EspINA
 
   public:
     explicit SegmhaImporterFilter(NamedInputs inputs,
-                                  Arguments args);
+                                  Arguments   args,
+                                  FilterType  type);
     virtual ~SegmhaImporterFilter();
 
     // Implements Model Item Interface
-    virtual QVariant data(int role=Qt::DisplayRole) const;
     virtual QString serialize() const;
 
     // Implements Filter Interface

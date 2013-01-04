@@ -30,7 +30,7 @@ class FreeFormSource
 : public SegmentationFilter
 {
 public:
-  static const QString TYPE;
+  static const FilterType FILTER_TYPE;
   static const ModelItem::ArgumentId SPACING;
 
   class Parameters
@@ -76,9 +76,11 @@ public:
 
 public:
   explicit FreeFormSource(NamedInputs inputs,
-                          Arguments args);
+                          Arguments   args,
+                          FilterType  type);
   virtual ~FreeFormSource();
 
+  /// Implements Filter Interface
   virtual void draw(OutputId oId,
                     vtkImplicitFunction* brush,
                     const Nm bounds[6],
@@ -90,10 +92,6 @@ public:
                     Nm x, Nm y, Nm z,
                     itkVolumeType::PixelType value = SEG_VOXEL_VALUE);
 
-  /// Implements Model Item Interface
-  virtual QVariant data(int role=Qt::DisplayRole) const;
-
-  /// Implements Filter Interface
   virtual bool needUpdate() const;
 
 protected:

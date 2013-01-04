@@ -140,8 +140,9 @@ FilterSPtr EspinaFactory::createFilter(const QString              &filter,
                                       const Filter::NamedInputs  &inputs,
                                       const ModelItem::Arguments &args)
 {
+  // TODO 2013-01-04 --> Register outside the factory
   if (ChannelReader::TYPE == filter)
-    return FilterSPtr(new ChannelReader(inputs, args));
+    return FilterSPtr(new ChannelReader(inputs, args, ChannelReader::TYPE));
 
   Q_ASSERT(m_filterCreators.contains(filter));
   return m_filterCreators[filter]->createFilter(filter, inputs, args);

@@ -35,19 +35,11 @@ const ArgumentId ChannelReader::FILE    = "File";
 const ArgumentId ChannelReader::SPACING = "Spacing";
 
 //----------------------------------------------------------------------------
-ChannelReader::ChannelReader(Filter::NamedInputs inputs,
-                             ModelItem::Arguments args)
-: ChannelFilter(inputs, args)
+ChannelReader::ChannelReader(NamedInputs  inputs,
+                             Arguments    args,
+                             FilterType   type)
+: ChannelFilter(inputs, args, type)
 {
-}
-
-//----------------------------------------------------------------------------
-QVariant ChannelReader::data(int role) const
-{
-  if (Qt::DisplayRole == role)
-    return TYPE;
-  else
-    return QVariant();
 }
 
 //----------------------------------------------------------------------------

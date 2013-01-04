@@ -27,6 +27,8 @@
 
 using namespace EspINA;
 
+ const Filter::FilterType SplitUndoCommand::FILTER_TYPE = "EditorToolBar::SplitFilter";
+
 //----------------------------------------------------------------------------
 SplitUndoCommand::SplitUndoCommand(SegmentationSPtr input,
                                    FilterSPtr       filter,

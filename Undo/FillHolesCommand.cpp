@@ -26,6 +26,8 @@
 
 using namespace EspINA;
 
+const QString FillHolesCommand::FILTER_TYPE = "EditorToolBar::FillHolesFilter";
+
 //-----------------------------------------------------------------------------
 FillHolesCommand::FillHolesCommand(SegmentationList inputs, EspinaModel *model)
 : m_model(model)
@@ -37,7 +39,7 @@ FillHolesCommand::FillHolesCommand(SegmentationList inputs, EspinaModel *model)
     Filter::Arguments args;
     inputs[FillHolesFilter::INPUTLINK] = seg->filter();
     args[Filter::INPUTS] = Filter::NamedInput(FillHolesFilter::INPUTLINK, seg->outputId());
-    FilterSPtr filter(new FillHolesFilter(inputs, args));
+    FilterSPtr filter(new FillHolesFilter(inputs, args, FILTER_TYPE));
     filter->update();
     m_segmentations  << m_model->findSegmentation(seg);
     m_newConnections << Connection(filter, 0);

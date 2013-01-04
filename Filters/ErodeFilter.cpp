@@ -25,15 +25,15 @@
 
 using namespace EspINA;
 
-const QString ErodeFilter::TYPE = "EditorToolBar::ErodeFilter";
 
-ErodeFilter::ErodeFilter(Filter::NamedInputs inputs,
-                             ModelItem::Arguments args)
-: MorphologicalEditionFilter(inputs, args)
+//-----------------------------------------------------------------------------
+ErodeFilter::ErodeFilter(NamedInputs inputs,
+                         Arguments   args,
+                         FilterType  type)
+: MorphologicalEditionFilter(inputs, args, type)
 {
-//   qDebug() << TYPE << "arguments" << m_args;
-}
 
+}
 
 //-----------------------------------------------------------------------------
 ErodeFilter::~ErodeFilter()
@@ -52,7 +52,7 @@ void ErodeFilter::run()
   ball.SetRadius(m_params.radius());
   ball.CreateStructuringElement();
 
-  m_filter = FilterType::New();
+  m_filter = BinaryErodeFilter::New();
   m_filter->SetInput(m_input);
   m_filter->SetKernel(ball);
   m_filter->SetObjectValue(SEG_VOXEL_VALUE);
@@ -61,13 +61,4 @@ void ErodeFilter::run()
   createOutput(0, m_filter->GetOutput());
 
   emit modified(this);
-}
-
-//-----------------------------------------------------------------------------
-QVariant ErodeFilter::data(int role) const
-{
-  if (role == Qt::DisplayRole)
-    return TYPE;
-  else
-    return QVariant();
 }

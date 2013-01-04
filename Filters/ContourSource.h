@@ -20,8 +20,6 @@ class ContourSource
 public:
   class ContourSourceInspector;
 
-  static const QString TYPE;
-
   static const ModelItem::ArgumentId SPACING;
 
   class Parameters
@@ -58,16 +56,14 @@ public:
 
 public:
   explicit ContourSource(NamedInputs inputs,
-                          Arguments args);
+                         Arguments   args,
+                         FilterType  type);
   virtual ~ContourSource();
 
   virtual void draw(OutputId oId,
                     vtkPolyData *contour,
                     Nm slice, PlaneType plane,
                     itkVolumeType::PixelType value = SEG_VOXEL_VALUE);
-
-  /// Implements Model Item Interface
-  virtual QVariant data(int role=Qt::DisplayRole) const;
 
   /// Implements Filter Interface
   virtual bool needUpdate() const;

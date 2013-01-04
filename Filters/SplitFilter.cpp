@@ -27,12 +27,13 @@
 
 using namespace EspINA;
 
-const QString SplitFilter::TYPE      = "EditorToolBar::SplitFilter";
 const QString SplitFilter::INPUTLINK = "Segmentation";
 
 //-----------------------------------------------------------------------------
-SplitFilter::SplitFilter(Filter::NamedInputs inputs, ModelItem::Arguments args)
-: SegmentationFilter(inputs, args)
+SplitFilter::SplitFilter(NamedInputs inputs,
+                         Arguments   args,
+                         FilterType  type)
+: SegmentationFilter(inputs, args, type)
 , m_stencil(NULL)
 {
 }
@@ -41,15 +42,6 @@ SplitFilter::SplitFilter(Filter::NamedInputs inputs, ModelItem::Arguments args)
 SplitFilter::~SplitFilter()
 {
 
-}
-
-//-----------------------------------------------------------------------------
-QVariant SplitFilter::data(int role) const
-{
-  if (role == Qt::DisplayRole)
-    return TYPE;
-  else
-    return QVariant();
 }
 
 //-----------------------------------------------------------------------------

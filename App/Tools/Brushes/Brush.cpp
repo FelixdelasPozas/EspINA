@@ -41,6 +41,8 @@
 
 using namespace EspINA;
 
+const Filter::FilterType Brush::FREEFORM_SOURCE_TYPE = "EditorToolBar::FreeFormSource";
+
 //-----------------------------------------------------------------------------
 Brush::Brush(EspinaModel *model,
              QUndoStack  *undoStack,
@@ -244,7 +246,7 @@ void Brush::drawStroke(PickableItemPtr item,
       Filter::Arguments args;
       FreeFormSource::Parameters params(args);
       params.setSpacing(spacing);
-      m_currentSource = FilterSPtr(new FreeFormSource(inputs, args));
+      m_currentSource = FilterSPtr(new FreeFormSource(inputs, args, FREEFORM_SOURCE_TYPE));
       m_currentOutput = 0;
       m_currentSeg = m_model->factory()->createSegmentation(m_currentSource, m_currentOutput);
 
@@ -292,7 +294,7 @@ void Brush::drawStrokeStep(PickableItemPtr item,
         Filter::Arguments args;
         FreeFormSource::Parameters params(args);
         params.setSpacing(spacing);
-        m_currentSource = FilterSPtr(new FreeFormSource(inputs, args));
+        m_currentSource = FilterSPtr(new FreeFormSource(inputs, args, FREEFORM_SOURCE_TYPE));
         m_currentOutput = 0;
         m_currentSeg = m_model->factory()->createSegmentation(m_currentSource, m_currentOutput);
         m_currentSource->draw(m_currentOutput,

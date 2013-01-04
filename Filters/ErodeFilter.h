@@ -31,25 +31,20 @@ class ErodeFilter
 : public MorphologicalEditionFilter
 {
   typedef itk::BinaryBallStructuringElement<itkVolumeType::PixelType, 3> StructuringElementType;
-  typedef itk::ErodeObjectMorphologyImageFilter<itkVolumeType, itkVolumeType, StructuringElementType> FilterType;
-
-public:
-  static const QString TYPE;
+  typedef itk::ErodeObjectMorphologyImageFilter<itkVolumeType, itkVolumeType, StructuringElementType> BinaryErodeFilter;
 
 public:
   explicit ErodeFilter(NamedInputs inputs,
-                         Arguments args);
+                       Arguments   args,
+                       FilterType  type);
   virtual ~ErodeFilter();
-
-  /// Implements Model Item Interface
-  virtual QVariant data(int role=Qt::DisplayRole) const;
 
 protected:
   /// Implements Filter Interface
   void run();
 
 private:
-  FilterType::Pointer m_filter;
+  BinaryErodeFilter::Pointer m_filter;
 };
 
 } // namespace EspINA

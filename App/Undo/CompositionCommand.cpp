@@ -33,6 +33,8 @@ const QString INPUTLINK     = "Input";
 const QString MERGELINK     = "Merge";
 const QString SUBSTRACTLINK = "Substract";
 
+const Filter::FilterType CompositionCommand::FILTER_TYPE = "CompositionToolbar::CompositionFilter";
+
 //----------------------------------------------------------------------------
 CompositionCommand::CompositionCommand(const SegmentationList &segmentations,
                                        TaxonomyElementSPtr      taxonomy,
@@ -55,7 +57,7 @@ CompositionCommand::CompositionCommand(const SegmentationList &segmentations,
     m_infoList << SegInfo(seg);
   }
   params.setOperation(ImageLogicFilter::ADDITION);
-  m_filter = FilterSPtr(new ImageLogicFilter(inputs, args));
+  m_filter = FilterSPtr(new ImageLogicFilter(inputs, args, FILTER_TYPE));
   m_filter->update();
   m_seg = m_model->factory()->createSegmentation(m_filter, 0);
 
