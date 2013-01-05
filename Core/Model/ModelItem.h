@@ -53,6 +53,9 @@ namespace EspINA
   };
   typedef QList<Relation> RelationList;
 
+  const int RawPointerRole = Qt::UserRole+1;
+  const int TypeRole       = Qt::UserRole+2;
+
   /// Base class for every item in EspinaModel
   class ModelItem
   : public QObject

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>402</width>
+    <width>301</width>
     <height>404</height>
    </rect>
   </property>
@@ -45,6 +45,16 @@
     </layout>
    </item>
    <item>
+    <widget class="QLineEdit" name="searchText">
+     <property name="inputMethodHints">
+      <set>Qt::ImhNone</set>
+     </property>
+     <property name="placeholderText">
+      <string>Search . . .</string>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="CheckableTreeView" name="view">
      <property name="acceptDrops">
       <bool>true</bool>
@@ -63,7 +73,7 @@ QTreeView::indicator:unchecked {
 </string>
      </property>
      <property name="editTriggers">
-      <set>QAbstractItemView::NoEditTriggers</set>
+      <set>QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed</set>
      </property>
      <property name="dragEnabled">
       <bool>true</bool>

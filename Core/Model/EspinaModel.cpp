@@ -153,6 +153,18 @@ bool EspinaModel::setData ( const QModelIndex& index, const QVariant& value, int
 }
 
 //------------------------------------------------------------------------
+QMap<int, QVariant> EspinaModel::itemData(const QModelIndex &index) const
+{
+  QMap<int, QVariant> data = QAbstractItemModel::itemData(index);
+
+  if (index.isValid() && index.parent().isValid())
+    data[RawPointerRole] = QVariant::fromValue(reinterpret_cast<quintptr>(indexPtr(index)));
+  data[TypeRole]       = index.data(TypeRole);
+
+  return data;
+}
+
+//------------------------------------------------------------------------
 Qt::ItemFlags EspinaModel::flags(const QModelIndex& index) const
 {
   if (!index.isValid())
@@ -168,9 +180,9 @@ Qt::ItemFlags EspinaModel::flags(const QModelIndex& index) const
 
   ModelItemPtr item = indexPtr(index);
   if (SEGMENTATION == item->type() || CHANNEL == item->type())
-    return QAbstractItemModel::flags(index) | Qt::ItemIsUserCheckable | Qt::ItemIsEditable;
+    return QAbstractItemModel::flags(index) | Qt::ItemIsUserCheckable;
   else
-    return QAbstractItemModel::flags(index) | Qt::ItemIsEditable;
+    return QAbstractItemModel::flags(index);
 }
 
 

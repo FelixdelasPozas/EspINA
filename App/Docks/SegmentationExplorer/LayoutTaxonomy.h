@@ -43,11 +43,11 @@ namespace EspINA
     virtual ~TaxonomyLayout();
 
     virtual QAbstractItemModel* model()
-    { return m_sort.data(); }
+    { return m_proxy.data(); }
     virtual ModelItemPtr item(const QModelIndex& index) const
-    { return indexPtr(m_sort->mapToSource(index)); }
+    { return indexPtr(m_proxy->mapToSource(index)); }
     virtual QModelIndex index(ModelItemPtr item) const
-    { return m_sort->mapFromSource(m_proxy->mapFromSource(Layout::index(item))); }
+    { return m_proxy->mapFromSource(Layout::index(item)); }
     virtual SegmentationList deletedSegmentations(QModelIndexList selection);
 
   private:

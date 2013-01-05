@@ -30,6 +30,16 @@ using namespace EspINA;
 
 typedef QSet<ModelItemPtr > SegSet;
 
+enum DragSourceEnum {
+  NoSource           = 0x0,
+  SegmentationSource = 0x1,
+  TaxonomySource     = 0x2,
+  InvalidSource      = 0x3
+};
+Q_DECLARE_FLAGS(DragSource, DragSourceEnum);
+
+Q_DECLARE_OPERATORS_FOR_FLAGS(DragSource)
+
 //------------------------------------------------------------------------
 TaxonomyProxy::TaxonomyProxy(QObject* parent)
 : QAbstractProxyModel(parent)
@@ -71,22 +81,24 @@ QVariant TaxonomyProxy::data(const QModelIndex& proxyIndex, int role) const
     {
       if (Qt::DisplayRole == role)
       {
-	TaxonomyElementPtr taxonomy = taxonomyElementPtr(item);
-	int numSegs = numSegmentations(taxonomy, true);
-	QString suffix = (numSegs>0)?QString(" (%1)").arg(numSegs):QString();
-	return item->data(role).toString() + suffix;
-      } else
-	return item->data(role);
+        TaxonomyElementPtr taxonomy = taxonomyElementPtr(item);
+        int numSegs = numSegmentations(taxonomy, true);
+        QString suffix = (numSegs>0)?QString(" (%1)").arg(numSegs):QString();
+        return item->data(role).toString() + suffix;
+      }
+      else
+        return item->data(role);
     }
     case EspINA::SEGMENTATION:
       if (Qt::DecorationRole == role)
       {
-	SegmentationPtr seg = segmentationPtr(item);
-	QPixmap segIcon(3,16);
-	segIcon.fill(seg->data(role).value<QColor>());
-	return segIcon;
-      }else
-	return item->data(role);
+        SegmentationPtr seg = segmentationPtr(item);
+        QPixmap segIcon(3,16);
+        segIcon.fill(seg->data(role).value<QColor>());
+        return segIcon;
+      }
+      else
+        return item->data(role);
     default:
       Q_ASSERT(false);
   }
@@ -94,7 +106,16 @@ QVariant TaxonomyProxy::data(const QModelIndex& proxyIndex, int role) const
   return QAbstractProxyModel::data(proxyIndex, role);
 }
 
+//------------------------------------------------------------------------
+bool TaxonomyProxy::setData(const QModelIndex &index, const QVariant &value, int role)
+{
+  bool result = false;
 
+  if (index.isValid())
+    result = m_model->setData(mapToSource(index), value, role);
+
+  return result;
+}
 
 //------------------------------------------------------------------------
 bool TaxonomyProxy::hasChildren(const QModelIndex& parent) const
@@ -173,10 +194,10 @@ QModelIndex TaxonomyProxy::parent(const QModelIndex& child) const
     {
       foreach(TaxonomyElementPtr taxonomy, m_segmentations.keys())
       {
-	if (m_segmentations[taxonomy].contains(childItem))
-	{
-	  parent = mapFromSource(m_model->taxonomyIndex(taxonomy));
-	}
+        if (m_segmentations[taxonomy].contains(childItem))
+        {
+          parent = mapFromSource(m_model->taxonomyIndex(taxonomy));
+        }
       }
       break;
     }
@@ -194,10 +215,10 @@ QModelIndex TaxonomyProxy::mapFromSource(const QModelIndex& sourceIndex) const
     return QModelIndex();
 
   if (sourceIndex == m_model->taxonomyRoot() ||
-      sourceIndex == m_model->sampleRoot()   ||
-      sourceIndex == m_model->channelRoot()  ||
-      sourceIndex == m_model->filterRoot()   || 
-      sourceIndex == m_model->segmentationRoot())
+    sourceIndex == m_model->sampleRoot()   ||
+    sourceIndex == m_model->channelRoot()  ||
+    sourceIndex == m_model->filterRoot()   ||
+    sourceIndex == m_model->segmentationRoot())
     return QModelIndex();
 
   QModelIndex proxyIndex;
@@ -217,12 +238,12 @@ QModelIndex TaxonomyProxy::mapFromSource(const QModelIndex& sourceIndex) const
       TaxonomyElementPtr taxonomy = seg->taxonomy().data();
       if (taxonomy)
       {
-	int row = m_segmentations[taxonomy].indexOf(seg);
-	if (row >= 0)
-	{
-	  row += numTaxonomies(taxonomy);
-	  proxyIndex = createIndex(row, 0, sourceIndex.internalPointer());
-	}
+        int row = m_segmentations[taxonomy].indexOf(seg);
+        if (row >= 0)
+        {
+          row += numTaxonomies(taxonomy);
+          proxyIndex = createIndex(row, 0, sourceIndex.internalPointer());
+        }
       }
       break;
     }
@@ -273,9 +294,10 @@ Qt::ItemFlags TaxonomyProxy::flags(const QModelIndex& index) const
     return QAbstractProxyModel::flags(index);
 
   Qt::ItemFlags f = QAbstractProxyModel::flags(index);
+
   ModelItemPtr sourceItem = indexPtr(index);
   if (EspINA::TAXONOMY == sourceItem->type())
-      f = f | Qt::ItemIsDropEnabled;
+    f = f | Qt::ItemIsDropEnabled | Qt::ItemIsDragEnabled | Qt::ItemIsEditable;
   else if (EspINA::SEGMENTATION == sourceItem->type())
     f = f | Qt::ItemIsDropEnabled | Qt::ItemIsDragEnabled;
 
@@ -288,37 +310,57 @@ bool TaxonomyProxy::dropMimeData(const QMimeData *data, Qt::DropAction action, i
 {
   ModelItemPtr parentItem = indexPtr(parent);
 
-
-  TaxonomyElementPtr selectedTaxonomy;
-  if (EspINA::TAXONOMY == parentItem->type())
-  {
-    selectedTaxonomy = taxonomyElementPtr(parentItem);
-  } else if (EspINA::SEGMENTATION == parentItem->type())
-  {
-    SegmentationPtr seg = segmentationPtr(parentItem);
-    selectedTaxonomy = seg->taxonomy().data();
-  }
-  Q_ASSERT(selectedTaxonomy);
+  DragSource source = NoSource;
 
   // Recover dragged item information
   QByteArray encoded = data->data("application/x-qabstractitemmodeldatalist");
   QDataStream stream(&encoded, QIODevice::ReadOnly);
 
-  QList<SegmentationPtr > draggedSegs;
+  QList<QMap<int,  QVariant> > draggedItems;
 
   while (!stream.atEnd())
   {
     int row, col;
-    QMap<int,  QVariant> roleDataMap;
-    stream >> row >> col >> roleDataMap;
+    QMap<int,  QVariant> itemData;
+    stream >> row >> col >> itemData;
 
-    QString segName = roleDataMap[Qt::ToolTipRole].toString();
-    SegmentationPtr seg = findSegmentation(segName);
-    Q_ASSERT(seg);
-    SegmentationSPtr segPtr = m_model->findSegmentation(seg);
-    TaxonomyElementSPtr selectedTaxonomyPtr = m_model->findTaxonomyElement(selectedTaxonomy);
-    m_model->changeTaxonomy(segPtr, selectedTaxonomyPtr);
+    switch (itemData[TypeRole].toInt())
+    {
+      case EspINA::SEGMENTATION:
+        source |= SegmentationSource;
+        break;
+      case EspINA::TAXONOMY:
+        source |= TaxonomySource;
+        break;
+      default:
+        source = InvalidSource;
+    }
+
+    draggedItems << itemData;
   }
+
+  // Change Taxonomy
+  if (SegmentationSource == source)
+  {
+    qDebug() << "Segmentation Source";
+    TaxonomyElementPtr newTaxonomy;
+    if (EspINA::TAXONOMY == parentItem->type())
+    {
+      newTaxonomy = taxonomyElementPtr(parentItem);
+    }
+    else if (EspINA::SEGMENTATION == parentItem->type())
+    {
+      SegmentationPtr seg = segmentationPtr(parentItem);
+      newTaxonomy = seg->taxonomy().data();
+    }
+  }
+  // Change taxonomy parent
+  else if (TaxonomySource == source && EspINA::TAXONOMY == parentItem->type())
+  {
+    qDebug() << "Move taxonomy";
+  }
+  else
+    return false;
 
   return true;
 }

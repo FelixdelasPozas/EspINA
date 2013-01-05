@@ -40,6 +40,8 @@ const ModelItem::ArgumentId Segmentation::USERS    = "Users";
 
 const QString Segmentation::COMPOSED_LINK          = "ComposedOf";
 
+const int SegmentationNumberRole = TypeRole+1;
+
 //-----------------------------------------------------------------------------
 Segmentation::SArguments::SArguments(const Arguments &args)
 : Arguments(args)
@@ -169,7 +171,9 @@ QVariant Segmentation::data(int role) const
       // //          }
       // //       return myFont;
       // //     }
-    case Qt::UserRole + 1:
+    case TypeRole: // TODO 2013-01-03 remove or add to others (now is only availabe for seg and tax)
+      return EspINA::SEGMENTATION;
+    case SegmentationNumberRole:
       return number();
     default:
       return QVariant();

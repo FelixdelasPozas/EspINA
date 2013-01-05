@@ -38,6 +38,7 @@ namespace EspINA
     virtual void setSourceModel(EspinaModel *sourceModel);
 
     virtual QVariant data(const QModelIndex& proxyIndex, int role = Qt::DisplayRole) const;
+    virtual bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole);
 
     virtual bool hasChildren(const QModelIndex& parent = QModelIndex()) const;
     virtual int rowCount(const QModelIndex& parent = QModelIndex()) const;

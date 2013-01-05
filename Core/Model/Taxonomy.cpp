@@ -168,6 +168,8 @@ QVariant TaxonomyElement::data(int role) const
       icon.fill(color());
       return icon;
     }
+    case TypeRole:
+      return EspINA::TAXONOMY;
     default:
       return QVariant();
   }
