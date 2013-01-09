@@ -42,8 +42,12 @@ namespace EspINA
     };
 
   public:
-    explicit TaxonomyLayout(EspinaModel *model, QUndoStack *undoStack);
+    explicit TaxonomyLayout(CheckableTreeView *view,
+                            EspinaModel *model,
+                            QUndoStack *undoStack);
     virtual ~TaxonomyLayout();
+
+    virtual void createSpecificControls(QHBoxLayout *specificControlLayout);
 
     virtual QAbstractItemModel* model()
     { return m_sort.data(); }
@@ -57,6 +61,10 @@ namespace EspINA
     virtual SegmentationList deletedSegmentations(QModelIndexList selection);
 
   private slots:
+    void createTaxonomy();
+
+    void createSubTaxonomy();
+
     void segmentationsDragged(SegmentationList    segmentations,
                               TaxonomyElementPtr  taxonomy);
 

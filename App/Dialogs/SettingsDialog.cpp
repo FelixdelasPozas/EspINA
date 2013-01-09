@@ -81,6 +81,7 @@ ISettingsPanelPtr GeneralSettingsPanel::clone()
 //------------------------------------------------------------------------
 SettingsDialog::SettingsDialog(QWidget *parent, Qt::WindowFlags flags)
 : QDialog(parent, flags)
+, m_activePanel(NULL)
 {
   setupUi(this);
 

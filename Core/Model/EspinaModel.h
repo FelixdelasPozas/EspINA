@@ -115,10 +115,10 @@ namespace EspINA
     void setTaxonomy(TaxonomySPtr tax);
     const TaxonomySPtr taxonomy() const {return m_tax;}
     void addTaxonomy(TaxonomySPtr tax);
-    QModelIndex addTaxonomyElement(const QModelIndex &parent, QString name);
-    void addTaxonomyElement(QString qualifiedName);
-    void removeTaxonomyElement(const QModelIndex &index);
-    void removeTaxonomyElement(QString qualifiedName);
+    TaxonomyElementSPtr createTaxonomyElement(TaxonomyElementPtr  parent, const QString &name);
+    TaxonomyElementSPtr createTaxonomyElement(TaxonomyElementSPtr parent, const QString &name);
+    void addTaxonomyElement   (TaxonomyElementSPtr parent, TaxonomyElementSPtr element);
+    void removeTaxonomyElement(TaxonomyElementSPtr parent, TaxonomyElementSPtr element);
 
     // Samples
     void addSample(SampleSPtr    sample  );

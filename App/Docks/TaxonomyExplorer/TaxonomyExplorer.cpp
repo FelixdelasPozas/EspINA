@@ -85,27 +85,27 @@ TaxonomyExplorer::~TaxonomyExplorer()
 //------------------------------------------------------------------------
 void TaxonomyExplorer::addSameLevelTaxonomy()
 {
-  QModelIndex currentIndex = m_gui->treeView->currentIndex();
-  QModelIndex parent = currentIndex.parent();
-
-  if (!parent.isValid())
-    parent = m_gui->treeView->rootIndex();
-
-  QModelIndex index = m_sort->mapToSource(parent);
-  QModelIndex tax = m_baseModel->addTaxonomyElement(index,"Undefined");
-  m_gui->treeView->setCurrentIndex(tax);
+//   QModelIndex currentIndex = m_gui->treeView->currentIndex();
+//   QModelIndex parent = currentIndex.parent();
+// 
+//   if (!parent.isValid())
+//     parent = m_gui->treeView->rootIndex();
+// 
+//   QModelIndex index = m_sort->mapToSource(parent);
+//   QModelIndex tax = m_baseModel->addTaxonomyElement(index,"Undefined");
+//   m_gui->treeView->setCurrentIndex(tax);
 }
 
 //------------------------------------------------------------------------
 void TaxonomyExplorer::addSubTaxonomy()
 {
-  QModelIndex currentIndex = m_gui->treeView->currentIndex();
-  if (!currentIndex.isValid())
-    currentIndex = m_gui->treeView->rootIndex();
-
-  QModelIndex index = m_sort->mapToSource(currentIndex);
-  QModelIndex tax = m_baseModel->addTaxonomyElement(index,"Undefined");
-  m_gui->treeView->setCurrentIndex(tax);
+//   QModelIndex currentIndex = m_gui->treeView->currentIndex();
+//   if (!currentIndex.isValid())
+//     currentIndex = m_gui->treeView->rootIndex();
+// 
+//   QModelIndex index = m_sort->mapToSource(currentIndex);
+//   QModelIndex tax = m_baseModel->addTaxonomyElement(index,"Undefined");
+//   m_gui->treeView->setCurrentIndex(tax);
 }
 
 //------------------------------------------------------------------------
@@ -130,30 +130,30 @@ void TaxonomyExplorer::changeColor()
 //------------------------------------------------------------------------
 void TaxonomyExplorer::removeSelectedTaxonomy()
 {
-  if (m_gui->treeView->currentIndex().isValid())
-  {
-    QModelIndex index = m_sort->mapToSource(m_gui->treeView->currentIndex());
-    ModelItemPtr item = indexPtr(index);
-    TaxonomyElementPtr tax = taxonomyElementPtr(item);
-
-    if (tax->subElements().isEmpty())
-    {
-      bool inUse = false;
-      int i = 0;
-      while (!inUse && i < m_baseModel->segmentations().size())
-        inUse = m_baseModel->segmentations()[i++]->taxonomy() == tax;
-
-      if (!inUse)
-        m_baseModel->removeTaxonomyElement(index);
-      else
-        QMessageBox::warning(this,
-                             tr("Couldn't Remove Taxonomy's Element"),
-                             tr("Selected taxonomical element is assigned to a segmentation."));
-    }
-    else
-      QMessageBox::warning(this,
-                           tr("Couldn't Remove Taxonomy's Element"),
-                           tr("Other taxonomical elements depend on this taxonomy's element.\n"
-                           "If you want to remove it, remove dependent taxonomies first."));
-  }
+//   if (m_gui->treeView->currentIndex().isValid())
+//   {
+//     QModelIndex index = m_sort->mapToSource(m_gui->treeView->currentIndex());
+//     ModelItemPtr item = indexPtr(index);
+//     TaxonomyElementPtr tax = taxonomyElementPtr(item);
+// 
+//     if (tax->subElements().isEmpty())
+//     {
+//       bool inUse = false;
+//       int i = 0;
+//       while (!inUse && i < m_baseModel->segmentations().size())
+//         inUse = m_baseModel->segmentations()[i++]->taxonomy() == tax;
+// 
+//       if (!inUse)
+//         m_baseModel->removeTaxonomyElement(index);
+//       else
+//         QMessageBox::warning(this,
+//                              tr("Couldn't Remove Taxonomy's Element"),
+//                              tr("Selected taxonomical element is assigned to a segmentation."));
+//     }
+//     else
+//       QMessageBox::warning(this,
+//                            tr("Couldn't Remove Taxonomy's Element"),
+//                            tr("Other taxonomical elements depend on this taxonomy's element.\n"
+//                            "If you want to remove it, remove dependent taxonomies first."));
+//   }
 }

@@ -41,7 +41,9 @@ namespace EspINA
     };
 
   public:
-    explicit CompositionLayout(EspinaModel *model, QUndoStack *undoStack);
+    explicit CompositionLayout(CheckableTreeView *view,
+                               EspinaModel       *model,
+                               QUndoStack        *undoStack);
     virtual ~CompositionLayout();
 
     virtual QAbstractItemModel* model() {return m_sort.data();}

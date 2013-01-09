@@ -263,13 +263,8 @@ void CompositionProxy::sourceRowsInserted(const QModelIndex& sourceParent, int s
     return;
 
   // Ignore all non-segmentation items
-  if ( sourceParent == m_sourceModel->taxonomyRoot()
-    || sourceParent == m_sourceModel->sampleRoot()
-    || sourceParent == m_sourceModel->channelRoot()
-    || sourceParent == m_sourceModel->filterRoot() )
+  if ( sourceParent != m_sourceModel->segmentationRoot())
     return;
-
-  Q_ASSERT(sourceParent == m_sourceModel->segmentationRoot());
 
   // Inserted segmentations don't have relationships
   // thus we just add them to the root list
@@ -295,13 +290,8 @@ void CompositionProxy::sourceRowsAboutToBeRemoved(const QModelIndex& sourceParen
     return;
 
   // Ignore all non-segmentation items
-  if ( sourceParent == m_sourceModel->taxonomyRoot()
-    || sourceParent == m_sourceModel->sampleRoot()
-    || sourceParent == m_sourceModel->channelRoot()
-    || sourceParent == m_sourceModel->filterRoot() )
+  if ( sourceParent != m_sourceModel->segmentationRoot())
     return;
-
-  Q_ASSERT(sourceParent == m_sourceModel->segmentationRoot());
 
   for (int row=start; row <= end; row++)
   {

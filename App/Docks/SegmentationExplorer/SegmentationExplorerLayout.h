@@ -35,21 +35,29 @@ namespace EspINA
     static const QString MIXED_MESSAGE;
 
   public:
-    explicit Layout(EspinaModel *model,
+    explicit Layout(CheckableTreeView *view,
+                    EspinaModel *model,
                     QUndoStack  *undoStack)
     : m_model    (model    )
     , m_undoStack(undoStack)
+    , m_view     (view     )
     {}
 
     virtual ~Layout(){}
 
+    virtual void createSpecificControls(QHBoxLayout *specificControlLayout);
+
     virtual QAbstractItemModel *model()
     {return m_model; }
+
     virtual ModelItemPtr item(const QModelIndex &index) const {return indexPtr(index);}
+
     virtual QModelIndex index(ModelItemPtr item) const
     { return m_model->index(item); }
+
     virtual SegmentationList deletedSegmentations(QModelIndexList selection)
     { return SegmentationList(); }
+
 
   protected:
     QModelIndexList indices(const QModelIndex &index, bool recursive=false);
@@ -57,6 +65,8 @@ namespace EspINA
   protected:
     EspinaModel *m_model;
     QUndoStack  *m_undoStack;
+
+    CheckableTreeView *m_view;
   };
 
   bool sortSegmentationLessThan(ModelItemPtr left, ModelItemPtr right);

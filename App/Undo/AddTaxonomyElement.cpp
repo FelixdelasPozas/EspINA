@@ -18,6 +18,7 @@
 
 
 #include "AddTaxonomyElement.h"
+#include <Core/Model/EspinaModel.h>
 
 using namespace EspINA;
 
@@ -27,8 +28,10 @@ AddTaxonomyElement::AddTaxonomyElement(TaxonomyElementPtr parentTaxonomy,
                                        EspinaModel       *model,
                                        QUndoCommand      *parent)
 : QUndoCommand(parent)
+, m_model(model)
+, m_name (name)
+, m_parentTaxonomy(m_model->findTaxonomyElement(parentTaxonomy))
 {
-
 }
 
 //------------------------------------------------------------------------
@@ -40,11 +43,19 @@ AddTaxonomyElement::~AddTaxonomyElement()
 //------------------------------------------------------------------------
 void AddTaxonomyElement::redo()
 {
-  QUndoCommand::redo();
+  // if it has been used before, we should use the same object in case other
+  // commands keep its reference
+  if (m_taxonomy.isNull())
+  {
+    m_taxonomy = m_model->createTaxonomyElement(m_parentTaxonomy, m_name);
+  } else
+  {
+    m_model->addTaxonomyElement(m_parentTaxonomy, m_taxonomy);
+  }
 }
 
 //------------------------------------------------------------------------
 void AddTaxonomyElement::undo()
 {
-  QUndoCommand::undo();
+  m_model->removeTaxonomyElement(m_parentTaxonomy, m_taxonomy);
 }

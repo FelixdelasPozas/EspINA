@@ -33,8 +33,10 @@ bool CompositionLayout::SortFilter::lessThan(const QModelIndex& left, const QMod
 }
 
 //------------------------------------------------------------------------
-CompositionLayout::CompositionLayout(EspinaModel *model, QUndoStack *undoStack)
-: Layout(model, undoStack)
+CompositionLayout::CompositionLayout(CheckableTreeView *view,
+                                     EspinaModel       *model,
+                                     QUndoStack        *undoStack)
+: Layout (view, model, undoStack)
 , m_proxy(new CompositionProxy())
 , m_sort (new SortFilter())
 {

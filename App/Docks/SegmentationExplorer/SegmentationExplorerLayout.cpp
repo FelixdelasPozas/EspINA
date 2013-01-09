@@ -32,6 +32,11 @@ const QString SegmentationExplorer::Layout::MIXED_MESSAGE
   = QObject::tr("Delete recursively %1's segmentations");
 
 //------------------------------------------------------------------------
+void SegmentationExplorer::Layout::createSpecificControls(QHBoxLayout *specificControlLayout)
+{
+}
+
+//------------------------------------------------------------------------
 QModelIndexList SegmentationExplorer::Layout::indices(const QModelIndex& index, bool recursive)
 {
   QModelIndexList res;

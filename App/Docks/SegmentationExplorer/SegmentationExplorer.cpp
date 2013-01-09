@@ -64,8 +64,10 @@ SegmentationExplorer::GUI::GUI()
   view->setSortingEnabled(true);
   view->sortByColumn(0, Qt::AscendingOrder);
 
-  showInformation->setIcon(
+  showInformationButton->setIcon(
     qApp->style()->standardIcon(QStyle::SP_MessageBoxInformation));
+
+  searchText->setVisible(false);
 }
 
 
@@ -86,9 +88,9 @@ SegmentationExplorer::SegmentationExplorer(EspinaModel *model,
   setWindowTitle(tr("Segmentation Explorer"));
 
   //   addLayout("Debug", new Layout(m_baseModel));
-  addLayout("Taxonomy",    new TaxonomyLayout   (m_baseModel, m_undoStack));
-  addLayout("Composition", new CompositionLayout(m_baseModel, m_undoStack));
-  addLayout("Location",    new SampleLayout     (m_baseModel, m_undoStack));
+  addLayout("Taxonomy",    new TaxonomyLayout   (m_gui->view, m_baseModel, m_undoStack));
+  addLayout("Composition", new CompositionLayout(m_gui->view, m_baseModel, m_undoStack));
+  addLayout("Location",    new SampleLayout     (m_gui->view, m_baseModel, m_undoStack));
 
   m_layoutModel.setStringList(m_layoutNames);
   m_gui->groupList->setModel(&m_layoutModel);
@@ -100,9 +102,9 @@ SegmentationExplorer::SegmentationExplorer(EspinaModel *model,
           this, SLOT(focusOnSegmentation(QModelIndex)));
   connect(m_gui->view, SIGNAL(itemStateChanged(QModelIndex)),
           m_viewManager, SLOT(updateViews()));
-  connect(m_gui->showInformation, SIGNAL(clicked(bool)),
+  connect(m_gui->showInformationButton, SIGNAL(clicked(bool)),
           this, SLOT(showInformation()));
-  connect(m_gui->deleteSegmentation, SIGNAL(clicked(bool)),
+  connect(m_gui->deleteButton, SIGNAL(clicked(bool)),
           this, SLOT(deleteSegmentations()));
   connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection, bool)),
           this, SLOT(updateSelection(ViewManager::Selection)));
@@ -176,6 +178,13 @@ void SegmentationExplorer::changeLayout(int index)
   {
     disconnect(m_gui->view->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
                this, SLOT(updateSelection(QItemSelection, QItemSelection)));
+
+    QLayoutItem *specificControl;
+    while ((specificControl = m_gui->specificControlLayout->takeAt(0)) != 0)
+    {
+      delete specificControl->widget();
+      delete specificControl;
+    }
   }
 
   m_layout = m_layouts[index];
@@ -186,6 +195,8 @@ void SegmentationExplorer::changeLayout(int index)
 
   connect(m_gui->view->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
           this, SLOT(updateSelection(QItemSelection, QItemSelection)));
+
+  m_layout->createSpecificControls(m_gui->specificControlLayout);
 }
 
 //------------------------------------------------------------------------

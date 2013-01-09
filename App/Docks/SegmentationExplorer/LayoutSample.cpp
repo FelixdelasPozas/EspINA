@@ -42,8 +42,10 @@ bool SampleLayout::SortFilter::lessThan(const QModelIndex& left, const QModelInd
 }
 
 //------------------------------------------------------------------------
-SampleLayout::SampleLayout(EspinaModel *model, QUndoStack *undoStack)
-: Layout(model, undoStack)
+SampleLayout::SampleLayout(CheckableTreeView *view,
+                           EspinaModel       *model,
+                           QUndoStack        *undoStack)
+: Layout (view, model, undoStack)
 , m_proxy(new SampleProxy())
 , m_sort (new SortFilter())
 {

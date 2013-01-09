@@ -18,9 +18,9 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_2">
+    <layout class="QHBoxLayout" name="groupLayout">
      <item>
-      <widget class="QLabel" name="label">
+      <widget class="QLabel" name="groupLabel">
        <property name="text">
         <string>Group by:</string>
        </property>
@@ -30,7 +30,7 @@
       <widget class="QComboBox" name="groupList"/>
      </item>
      <item>
-      <spacer name="horizontalSpacer_2">
+      <spacer name="groupSpacer">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>
@@ -96,9 +96,9 @@ QTreeView::indicator:unchecked {
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout">
+    <layout class="QHBoxLayout" name="controlLayout">
      <item>
-      <spacer name="horizontalSpacer">
+      <spacer name="controlSpacer">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>
@@ -111,7 +111,10 @@ QTreeView::indicator:unchecked {
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="showInformation">
+      <layout class="QHBoxLayout" name="specificControlLayout"/>
+     </item>
+     <item>
+      <widget class="QPushButton" name="showInformationButton">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
@@ -137,7 +140,7 @@ QTreeView::indicator:unchecked {
         </size>
        </property>
        <property name="toolTip">
-        <string>Show Segmentation Information</string>
+        <string>Show Information</string>
        </property>
        <property name="text">
         <string/>
@@ -154,7 +157,7 @@ QTreeView::indicator:unchecked {
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="deleteSegmentation">
+      <widget class="QPushButton" name="deleteButton">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
@@ -180,7 +183,7 @@ QTreeView::indicator:unchecked {
         </size>
        </property>
        <property name="toolTip">
-        <string>Delete selected segmentation</string>
+        <string>Delete selected items</string>
        </property>
        <property name="text">
         <string/>

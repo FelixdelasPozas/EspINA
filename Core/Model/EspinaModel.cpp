@@ -915,13 +915,13 @@ void EspinaModel::itemModified(ModelItemPtr item)
 void EspinaModel::addTaxonomy(TaxonomyElementSPtr root)
 {
   Q_ASSERT(false);//DEPRECATED?
-  foreach (TaxonomyElementSPtr node, root->subElements())
-  {
-    addTaxonomyElement(taxonomyRoot(), node->qualifiedName());
-    addTaxonomy(node);
-  }
-
-  markAsChanged();
+//   foreach (TaxonomyElementSPtr node, root->subElements())
+//   {
+//     addTaxonomyElement(node->qualifiedName(), m_tax->root());
+//     addTaxonomy(node);
+//   }
+// 
+//   markAsChanged();
 }
 
 //------------------------------------------------------------------------
@@ -1146,57 +1146,68 @@ SegmentationSPtr EspinaModel::findSegmentation(SegmentationPtr segmentation)
   return res;
 }
 
-
 //------------------------------------------------------------------------
-QModelIndex EspinaModel::addTaxonomyElement(const QModelIndex& parent, QString name)
+TaxonomyElementSPtr EspinaModel::createTaxonomyElement(TaxonomyElementPtr parent, const QString &name)
 {
-  // NOTE 2012-12-18 Modificado
   TaxonomyElementPtr parentNode = m_tax->root().data();
-  if (parent != taxonomyRoot())
-  {
-    ModelItemPtr item = indexPtr(parent);
-    Q_ASSERT(TAXONOMY == item->type());
-    parentNode = taxonomyElementPtr(item);
-  }
-  Q_ASSERT(parentNode);
+  if (parent)
+    parentNode = parent;
+
+  Q_ASSERT(parentNode->element(name).isNull());
+
   TaxonomyElementSPtr requestedNode;
-  requestedNode = parentNode->element(name);
-  if (!requestedNode)
+  QModelIndex parentItem = taxonomyIndex(parentNode);
+  int newTaxRow = rowCount(parentItem);
+  beginInsertRows(parentItem, newTaxRow, newTaxRow);
   {
-    QModelIndex parentItem = taxonomyIndex(parentNode);
-    int newTaxRow = rowCount(parentItem);
-    beginInsertRows(parentItem, newTaxRow, newTaxRow);
     requestedNode = m_tax->createElement(name, parentNode);
-    endInsertRows();
-    markAsChanged();
   }
-  return taxonomyIndex(requestedNode); // Optimizar creando el indice aqui?
+  endInsertRows();
+
+  markAsChanged();
+
+  return requestedNode;
 }
 
 //------------------------------------------------------------------------
-void EspinaModel::addTaxonomyElement(QString qualifiedName)
+TaxonomyElementSPtr EspinaModel::createTaxonomyElement(TaxonomyElementSPtr parent, const QString &name)
 {
-  Q_ASSERT(false);//TODO 2012-12-1: No se usa
+  return createTaxonomyElement(parent.data(), name);
 }
 
 //------------------------------------------------------------------------
-void EspinaModel::removeTaxonomyElement(const QModelIndex &index)
+void EspinaModel::addTaxonomyElement(TaxonomyElementSPtr parent, TaxonomyElementSPtr element)
 {
-    ModelItemPtr item = indexPtr(index);
-    Q_ASSERT(TAXONOMY == item->type());
+  TaxonomyElementPtr parentNode = m_tax->root().data();
+  if (parent)
+    parentNode = parent.data();
 
-    TaxonomyElementPtr node = taxonomyElementPtr(item);
-    beginRemoveRows(index.parent(), index.row(), index.row());
-    m_tax->deleteElement(node);
-    endRemoveRows();
-    markAsChanged();
+  Q_ASSERT(!parentNode->subElements().contains(element));
+
+  TaxonomyElementSPtr requestedNode;
+  QModelIndex parentItem = taxonomyIndex(parentNode);
+  int newTaxRow = rowCount(parentItem);
+  beginInsertRows(parentItem, newTaxRow, newTaxRow);
+  {
+    parentNode->addElement(element);
+  }
+  endInsertRows();
+
+  markAsChanged();
 }
 
 //------------------------------------------------------------------------
-void EspinaModel::removeTaxonomyElement(QString qualifiedName)
+void EspinaModel::removeTaxonomyElement(TaxonomyElementSPtr parent, TaxonomyElementSPtr element)
 {
-  // DEPRECATED
-  Q_ASSERT(false);
+  QModelIndex elementIndex = index(element);
+
+  beginRemoveRows(elementIndex.parent(), elementIndex.row(), elementIndex.row());
+  {
+    parent->deleteElement(element.data());
+  }
+  endRemoveRows();
+
+  markAsChanged();
 }
 
 //------------------------------------------------------------------------

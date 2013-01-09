@@ -22,6 +22,7 @@
 
 #include <QUndoCommand>
 #include <Core/EspinaTypes.h>
+#include <Core/Model/Taxonomy.h>
 
 namespace EspINA
 {
@@ -39,6 +40,13 @@ namespace EspINA
 
     virtual void redo();
     virtual void undo();
+
+  private:
+    EspinaModel *m_model;
+
+    QString m_name;
+    TaxonomyElementSPtr  m_parentTaxonomy;
+    TaxonomyElementSPtr m_taxonomy;
   };
 
 } // namespace EspINA

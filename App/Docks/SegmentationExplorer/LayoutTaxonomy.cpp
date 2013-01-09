@@ -20,6 +20,7 @@
 #include "LayoutTaxonomy.h"
 #include <Undo/ChangeTaxonomyCommand.h>
 #include <Undo/MoveTaxonomiesCommand.h>
+#include <Undo/AddTaxonomyElement.h>
 
 #include <Core/Model/Segmentation.h>
 #include <Core/Model/Taxonomy.h>
@@ -45,8 +46,10 @@ bool TaxonomyLayout::SortFilter::lessThan(const QModelIndex& left, const QModelI
 }
 
 //------------------------------------------------------------------------
-TaxonomyLayout::TaxonomyLayout(EspinaModel *model, QUndoStack *undoStack)
-: Layout(model, undoStack)
+TaxonomyLayout::TaxonomyLayout(CheckableTreeView *view,
+                               EspinaModel       *model,
+                               QUndoStack        *undoStack)
+: Layout (view, model, undoStack)
 , m_proxy(new TaxonomyProxy())
 , m_sort (new SortFilter())
 {
@@ -64,6 +67,36 @@ TaxonomyLayout::TaxonomyLayout(EspinaModel *model, QUndoStack *undoStack)
 TaxonomyLayout::~TaxonomyLayout()
 {
   qDebug() << "Destroying Taxonomy Layout";
+}
+
+//------------------------------------------------------------------------
+void TaxonomyLayout::createSpecificControls(QHBoxLayout *specificControlLayout)
+{
+  QPushButton *createTaxonomy = new QPushButton();
+  createTaxonomy->setIcon(QIcon(":espina/create_node.png"));
+  createTaxonomy->setIconSize(QSize(22,22));
+  createTaxonomy->setBaseSize(32, 32);
+  createTaxonomy->setMaximumSize(32, 32);
+  createTaxonomy->setMinimumSize(32, 32);
+  createTaxonomy->setFlat(true);
+
+  connect(createTaxonomy, SIGNAL(clicked(bool)),
+          this, SLOT(createTaxonomy()));
+
+  specificControlLayout->addWidget(createTaxonomy);
+
+  QPushButton *createSubTaxonomy = new QPushButton();
+  createSubTaxonomy->setIcon(QIcon(":espina/create_subnode.png"));
+  createSubTaxonomy->setIconSize(QSize(22,22));
+  createSubTaxonomy->setBaseSize(32, 32);
+  createSubTaxonomy->setMaximumSize(32, 32);
+  createSubTaxonomy->setMinimumSize(32, 32);
+  createSubTaxonomy->setFlat(true);
+
+  connect(createSubTaxonomy, SIGNAL(clicked(bool)),
+          this, SLOT(createSubTaxonomy()));
+
+  specificControlLayout->addWidget(createSubTaxonomy);
 }
 
 //------------------------------------------------------------------------
@@ -137,6 +170,44 @@ SegmentationList TaxonomyLayout::deletedSegmentations(QModelIndexList selection)
   }
 
   return toDelete.toList();
+}
+
+//------------------------------------------------------------------------
+void TaxonomyLayout::createTaxonomy()
+{
+  ModelItemPtr taxonomyItem = item(m_view->currentIndex());
+
+  if (EspINA::TAXONOMY == taxonomyItem->type())
+  {
+    QString name = tr("New Taxonomy");
+
+    TaxonomyElementPtr taxonomy = taxonomyElementPtr(taxonomyItem);
+    if (taxonomy->element(name).isNull())
+    {
+      m_undoStack->beginMacro("Create Taxonomy");
+      m_undoStack->push(new AddTaxonomyElement(taxonomy->parent(), name, m_model));
+      m_undoStack->endMacro();
+    }
+  }
+}
+
+//------------------------------------------------------------------------
+void TaxonomyLayout::createSubTaxonomy()
+{
+  ModelItemPtr taxonomyItem = item(m_view->currentIndex());
+
+  if (EspINA::TAXONOMY == taxonomyItem->type())
+  {
+    QString name = tr("New Taxonomy");
+
+    TaxonomyElementPtr taxonomy = taxonomyElementPtr(taxonomyItem);
+    if (taxonomy->element(name).isNull())
+    {
+      m_undoStack->beginMacro("Create Taxonomy");
+      m_undoStack->push(new AddTaxonomyElement(taxonomy, name, m_model));
+      m_undoStack->endMacro();
+    }
+  }
 }
 
 //------------------------------------------------------------------------
