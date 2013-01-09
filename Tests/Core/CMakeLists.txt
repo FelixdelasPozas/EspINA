@@ -24,11 +24,5 @@ set(LIB_DEPENDECIES
   ${ITK_LIBRARIES}
 )
 
-include_directories(
-  ${CMAKE_SOURCE_DIR}
-  ${CMAKE_SOURCE_DIR}/common
-  ${CMAKE_SOURCE_DIR}/common/IO
-)
-
 add_subdirectory(IO)
 add_subdirectory(Model)

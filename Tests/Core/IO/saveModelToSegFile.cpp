@@ -6,11 +6,13 @@
  */
 
 // Espina
-#include "common/model/EspinaModel.h"
-#include "common/model/EspinaFactory.h"
-#include "common/IO/EspinaIO.h"
-#include "common/gui/ViewManager.h"
-#include "frontend/toolbar/seedgrow/SeedGrowSegmentation.h"
+#include <Core/Model/EspinaModel.h>
+#include <Core/Model/EspinaFactory.h>
+#include <Core/IO/EspinaIO.h>
+#include <GUI/ViewManager.h>
+#include <Core/Interfaces/IFilterCreator.h>
+#include <Filters/SeedGrowSegmentationFilter.h>
+#include <App/Undo/SeedGrowSegmentationCommand.h>
 
 // Qt
 #include <QString>
@@ -18,26 +20,42 @@
 #include <QDir>
 #include <QUndoStack>
 
+using namespace EspINA;
+
+const Filter::FilterType TEST_FILTER_TYPE = "SeedGrowSegmentation::SeedGrowSegmentationFilter";
+
+class SeedGrowSegmentationCreator
+: public IFilterCreator
+{
+public:
+  virtual ~SeedGrowSegmentationCreator(){}
+  virtual FilterSPtr createFilter(const QString& filter, const Filter::NamedInputs& inputs, const ModelItem::Arguments& args)
+  {
+    return FilterSPtr(new SeedGrowSegmentationFilter(inputs, args, TEST_FILTER_TYPE));
+  }
+};
+
 int saveModelToSegFile(int argc, char** argv)
 {
-  QString filename1 = QString("../../test images/test1.seg");
+  QString filename1 = QString(argv[1]) + QString("test1.seg");
   QFileInfo file(filename1);
 
-  ViewManager* vm = new ViewManager();
-  QUndoStack *undo = new QUndoStack;
   EspinaFactory *factory = new EspinaFactory();
   EspinaModel *model = new EspinaModel(factory);
-  SeedGrowSegmentation *seedFilterCreator = new SeedGrowSegmentation(model, undo, vm);
-  factory->registerFilter(seedFilterCreator, SeedGrowSegmentationFilter::TYPE);
-  QDir fileDir(QString(argv[1]));
+  SeedGrowSegmentationCreator seedFilterCreator;
+  factory->registerFilter(&seedFilterCreator, TEST_FILTER_TYPE);
 
-  if(EspinaIO::loadSegFile(file, model, fileDir) == EspinaIO::SUCCESS)
-  {
-    QString filename2 = QString(argv[1]) + QString("../../test images/test2.seg");
-    QFileInfo file2(filename2);
-    if (EspinaIO::saveSegFile(file2, model) == EspinaIO::SUCCESS)
-      return 1;
-  }
+  if (EspinaIO::loadSegFile(file, model, QDir::current()) != EspinaIO::SUCCESS)
+    return 1;
+
+  QString filename2 = QString("test2.seg");
+  QFileInfo file2(filename2);
+
+  if (EspinaIO::saveSegFile(file2, model) != EspinaIO::SUCCESS)
+    return 1;
+
+  if (std::system(NULL))
+    std::system("rm -f test2.seg");
 
   return 0;
 }

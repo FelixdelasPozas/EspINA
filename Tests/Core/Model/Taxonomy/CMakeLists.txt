@@ -14,10 +14,9 @@ create_test_sourcelist(TESTS
    ${TEST_NAME}.cpp
    CreateTaxonomy
    TaxonomyProperties
+   RemoveParent
+   WriteToFile
 )
-#   insertInANonExistentSupElement.cpp
-#   repeatedElement.cpp
-#   writing_reading.cpp
 
 add_executable(${TEST_NAME} ${TESTS})
 target_link_libraries(${TEST_NAME} ${LIB_DEPENDECIES} ${QT_QTCORE_LIBRARY})

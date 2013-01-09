@@ -24,7 +24,7 @@
 
 #include <GUI/ISettingsPanel.h>
 #include <GUI/Pickers/IPicker.h>
-#include <Tools/SeedGrowSegmentation/SeedGrowSegmentationTool.h>
+#include <App/Tools/SeedGrowSegmentation/SeedGrowSegmentationTool.h>
 
 class QAction;
 class QUndoStack;
@@ -39,7 +39,7 @@ namespace EspINA
   class SeedGrowSegmentationSettings;
   class ViewManager;
 
-  /// Seed Growing Segmenation Plugin
+  /// Seed Growing Segmentation Plugin
   class SeedGrowSegmentation
   : public IToolBar
   , public IFactoryExtension

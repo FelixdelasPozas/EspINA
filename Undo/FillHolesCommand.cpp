@@ -32,7 +32,10 @@ const QString FillHolesCommand::FILTER_TYPE = "EditorToolBar::FillHolesFilter";
 FillHolesCommand::FillHolesCommand(SegmentationList inputs, EspinaModel *model)
 : m_model(model)
 {
-  QApplication::setOverrideCursor(Qt::WaitCursor);
+  // when this filter is called from the tests there is no qApp, as there isn't a gui
+  if (QApplication::instance() != NULL)
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+
   foreach(SegmentationPtr seg, inputs)
   {
     Filter::NamedInputs inputs;
@@ -45,7 +48,9 @@ FillHolesCommand::FillHolesCommand(SegmentationList inputs, EspinaModel *model)
     m_newConnections << Connection(filter, 0);
     m_oldConnections << Connection(seg->filter(), seg->outputId());
   }
-  QApplication::restoreOverrideCursor();
+
+  if (QApplication::instance() != NULL)
+    QApplication::restoreOverrideCursor();
 }
 
 //-----------------------------------------------------------------------------

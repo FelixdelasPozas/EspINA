@@ -7,14 +7,17 @@
 
 int composition_InsertRows(int argc, char** argv)
 {
-  EspinaModel model(NULL);
-  CompositionProxy compositionProxy;
+  EspINA::EspinaModel model(NULL);
+  EspINA::CompositionProxy compositionProxy;
   compositionProxy.setSourceModel(&model);
 
   ModelTest modelTester(&compositionProxy);
 
   insertRowsTest(&model);
   insertRowsTest(&model);
+
+  if (model.segmentations().size() != 2)
+    return 1;
 
   return 0;
 }

@@ -6,10 +6,13 @@
 
 int model_InsertRows(int argc, char** argv)
 {
-  EspinaModel model(NULL);
+  EspINA::EspinaModel model(NULL);
   ModelTest modelTester(&model);
 
   insertRowsTest(&model);
+
+  if (model.segmentations().size() != 1)
+    return 1;
 
   return 0;
 }

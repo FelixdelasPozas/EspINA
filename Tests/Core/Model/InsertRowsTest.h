@@ -16,11 +16,11 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #ifndef INSERTROWSTEST_H
 #define INSERTROWSTEST_H
 
-class EspinaModel;
-void insertRowsTest(EspinaModel *model);
+#include <Core/Model/EspinaModel.h>
+
+void insertRowsTest(EspINA::EspinaModel *model);
 
 #endif // INSERTROWSTEST_H

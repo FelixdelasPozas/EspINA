@@ -17,6 +17,6 @@ QStringList recursiveFilePaths(QDir searchPath);
 
 
 int saveSimpleFile(QString referenceSegFile, QString destination="save.seg");
-int loadSimpleFile( QDir fileDir, QString referenceFileName );
+int loadSimpleFile(QDir fileDir, QString referenceFileName );
 
 #endif

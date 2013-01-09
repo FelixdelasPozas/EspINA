@@ -21,9 +21,10 @@
 
 #include <Core/Model/EspinaModel.h>
 #include <Core/Model/Segmentation.h>
+#include <Core/EspinaTypes.h>
 #include <Filters/FreeFormSource.h>
 
-void insertRowsTest(EspinaModel* model)
+void insertRowsTest(EspINA::EspinaModel* model)
 {
 //   Filter::NamedInputs inputs;
 //   Filter::Arguments args;
@@ -36,7 +37,10 @@ void insertRowsTest(EspinaModel* model)
 //   source.draw(0, 50., 50., 50.);
 //   source.update();
 
-  Segmentation *s1 = new Segmentation(NULL, -1);
+  EspINA::Filter::OutputId outputId = -1;
+  EspINA::FilterSPtr filterp = EspINA::FilterSPtr(NULL);
+  EspINA::SegmentationPtr p1 = new EspINA::Segmentation(filterp, outputId);
+  EspINA::SegmentationSPtr sharedp1 = EspINA::SegmentationSPtr(p1);
 
-  model->addSegmentation(s1);
+  model->addSegmentation(sharedp1);
 }

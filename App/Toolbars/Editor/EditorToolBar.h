@@ -24,7 +24,7 @@
 #include <Core/Interfaces/IFactoryExtension.h>
 #include <Core/Interfaces/IFilterCreator.h>
 
-#include "Tools/Brushes/Brush.h"
+#include "App/Tools/Brushes/Brush.h"
 
 // EspINA
 #include <Core/Model/Segmentation.h>
