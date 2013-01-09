@@ -86,9 +86,9 @@ SegmentationExplorer::SegmentationExplorer(EspinaModel *model,
   setWindowTitle(tr("Segmentation Explorer"));
 
   //   addLayout("Debug", new Layout(m_baseModel));
-  addLayout("Taxonomy",    new TaxonomyLayout   (m_baseModel));
-  addLayout("Composition", new CompositionLayout(m_baseModel));
-  addLayout("Location",    new SampleLayout     (m_baseModel));
+  addLayout("Taxonomy",    new TaxonomyLayout   (m_baseModel, m_undoStack));
+  addLayout("Composition", new CompositionLayout(m_baseModel, m_undoStack));
+  addLayout("Location",    new SampleLayout     (m_baseModel, m_undoStack));
 
   m_layoutModel.setStringList(m_layoutNames);
   m_gui->groupList->setModel(&m_layoutModel);
@@ -155,8 +155,8 @@ bool SegmentationExplorer::eventFilter(QObject *sender, QEvent *e)
     SegmentationContextualMenu contextMenu(m_baseModel, m_viewManager->selectedSegmentations());
     connect(&contextMenu, SIGNAL(deleteSegmentations()),
             this, SLOT(deleteSegmentations()));
-    connect(&contextMenu, SIGNAL(changeTaxonomy(TaxonomyElement*)),
-            this, SLOT(changeTaxonomy(TaxonomyElement*)));
+    connect(&contextMenu, SIGNAL(changeTaxonomy(TaxonomyElementPtr)),
+            this, SLOT(changeTaxonomy(TaxonomyElementPtr)));
     connect(&contextMenu, SIGNAL(changeFinalNode(bool)),
             this, SLOT(changeFinalFlag(bool)));
 

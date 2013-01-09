@@ -29,8 +29,11 @@
 namespace EspINA
 {
   class TaxonomyLayout
-  : public SegmentationExplorer::Layout
+  : public QObject
+  , public SegmentationExplorer::Layout
   {
+    Q_OBJECT
+
     class SortFilter
     : public QSortFilterProxyModel
     {
@@ -39,16 +42,26 @@ namespace EspINA
     };
 
   public:
-    explicit TaxonomyLayout(EspinaModel *model);
+    explicit TaxonomyLayout(EspinaModel *model, QUndoStack *undoStack);
     virtual ~TaxonomyLayout();
 
     virtual QAbstractItemModel* model()
-    { return m_proxy.data(); }
+    { return m_sort.data(); }
+
     virtual ModelItemPtr item(const QModelIndex& index) const
-    { return indexPtr(m_proxy->mapToSource(index)); }
+    { return indexPtr(m_sort->mapToSource(index)); }
+
     virtual QModelIndex index(ModelItemPtr item) const
-    { return m_proxy->mapFromSource(Layout::index(item)); }
+    { return m_sort->mapFromSource(m_proxy->mapFromSource(Layout::index(item))); }
+
     virtual SegmentationList deletedSegmentations(QModelIndexList selection);
+
+  private slots:
+    void segmentationsDragged(SegmentationList    segmentations,
+                              TaxonomyElementPtr  taxonomy);
+
+    void taxonomiesDragged(TaxonomyElementList subTaxonomies,
+                           TaxonomyElementPtr  taxonomy);
 
   private:
     QSharedPointer<TaxonomyProxy> m_proxy;

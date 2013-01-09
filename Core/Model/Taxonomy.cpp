@@ -77,6 +77,16 @@ TaxonomyElementSPtr TaxonomyElement::createElement(const QString& name)
 }
 
 //------------------------------------------------------------------------
+void TaxonomyElement::addElement(TaxonomyElementSPtr element)
+{
+  Q_ASSERT(!m_elements.contains(element));
+
+  element->m_parent = this;
+
+  m_elements << element;
+}
+
+//------------------------------------------------------------------------
 void TaxonomyElement::deleteElement(TaxonomyElementPtr element)
 {
   TaxonomyElementSPtr subNode;

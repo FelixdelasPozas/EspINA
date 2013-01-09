@@ -65,6 +65,11 @@ void TaxonomyProxy::setSourceModel(EspinaModel *sourceModel)
           this, SLOT(sourceRowsAboutToBeRemoved(QModelIndex,int,int)));
   connect(m_model, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
           this,SLOT(sourceDataChanged(QModelIndex,QModelIndex)));
+  connect(m_model, SIGNAL(rowsAboutToBeMoved(const QModelIndex &, int, int, const QModelIndex &, int)),
+          this, SLOT(sourceRowsAboutToBeMoved(QModelIndex,int,int,QModelIndex,int)));
+  connect(m_model, SIGNAL(rowsMoved(const QModelIndex &, int, int, const QModelIndex &, int)),
+          this, SLOT(sourceRowsMoved(QModelIndex,int,int,QModelIndex,int)));
+
   QAbstractProxyModel::setSourceModel(m_model);
 }
 
@@ -82,8 +87,12 @@ QVariant TaxonomyProxy::data(const QModelIndex& proxyIndex, int role) const
       if (Qt::DisplayRole == role)
       {
         TaxonomyElementPtr taxonomy = taxonomyElementPtr(item);
-        int numSegs = numSegmentations(taxonomy, true);
-        QString suffix = (numSegs>0)?QString(" (%1)").arg(numSegs):QString();
+        //int numSegs   = numSegmentations(taxonomy, false);
+        int totalSegs = numSegmentations(taxonomy, true);
+        QString suffix;
+        if (totalSegs > 0)
+          suffix += QString(" (%1)").arg(totalSegs);
+
         return item->data(role).toString() + suffix;
       }
       else
@@ -165,7 +174,7 @@ QModelIndex TaxonomyProxy::index(int row, int column, const QModelIndex& parent)
 
   int segRow = row - subTaxonomies;
   Q_ASSERT(segRow < numSegmentations(parentTaxonomy));
-  ModelItemPtr internalPtr = m_segmentations[parentTaxonomy][segRow];
+  ModelItemPtr internalPtr = m_numSegmentations[parentTaxonomy][segRow];
 
   return createIndex(row, column, internalPtr);
 }
@@ -177,7 +186,6 @@ QModelIndex TaxonomyProxy::parent(const QModelIndex& child) const
     return QModelIndex();
 
   ModelItemPtr childItem = indexPtr(child);
-  Q_ASSERT(childItem);
 
   QModelIndex parent;
   switch (childItem->type())
@@ -185,16 +193,15 @@ QModelIndex TaxonomyProxy::parent(const QModelIndex& child) const
     case EspINA::TAXONOMY:
     {
       TaxonomyElementPtr childTaxonmy = taxonomyElementPtr(childItem);
-      QModelIndex sourceIndex  = m_model->taxonomyIndex(childTaxonmy);
-      QModelIndex sourceParent = m_model->parent(sourceIndex);
+      QModelIndex sourceParent = m_model->taxonomyIndex(childTaxonmy->parent());
       parent = mapFromSource(sourceParent);
       break;
     }
     case EspINA::SEGMENTATION:
     {
-      foreach(TaxonomyElementPtr taxonomy, m_segmentations.keys())
+      foreach(TaxonomyElementPtr taxonomy, m_numSegmentations.keys())
       {
-        if (m_segmentations[taxonomy].contains(childItem))
+        if (m_numSegmentations[taxonomy].contains(childItem))
         {
           parent = mapFromSource(m_model->taxonomyIndex(taxonomy));
         }
@@ -238,7 +245,7 @@ QModelIndex TaxonomyProxy::mapFromSource(const QModelIndex& sourceIndex) const
       TaxonomyElementPtr taxonomy = seg->taxonomy().data();
       if (taxonomy)
       {
-        int row = m_segmentations[taxonomy].indexOf(seg);
+        int row = m_numSegmentations[taxonomy].indexOf(seg);
         if (row >= 0)
         {
           row += numTaxonomies(taxonomy);
@@ -290,25 +297,33 @@ QModelIndex TaxonomyProxy::mapToSource(const QModelIndex& proxyIndex) const
 //------------------------------------------------------------------------
 Qt::ItemFlags TaxonomyProxy::flags(const QModelIndex& index) const
 {
-  if (!index.isValid())
-    return QAbstractProxyModel::flags(index);
+  Qt::ItemFlags f = QAbstractProxyModel::flags(index) | Qt::ItemIsDropEnabled;
 
-  Qt::ItemFlags f = QAbstractProxyModel::flags(index);
-
-  ModelItemPtr sourceItem = indexPtr(index);
-  if (EspINA::TAXONOMY == sourceItem->type())
-    f = f | Qt::ItemIsDropEnabled | Qt::ItemIsDragEnabled | Qt::ItemIsEditable;
-  else if (EspINA::SEGMENTATION == sourceItem->type())
-    f = f | Qt::ItemIsDropEnabled | Qt::ItemIsDragEnabled;
+  if (index.isValid())
+  {
+    ModelItemPtr sourceItem = indexPtr(index);
+    if (EspINA::TAXONOMY == sourceItem->type())
+      f = f | Qt::ItemIsDropEnabled | Qt::ItemIsDragEnabled | Qt::ItemIsEditable;
+    else if (EspINA::SEGMENTATION == sourceItem->type())
+      f = f | Qt::ItemIsDropEnabled | Qt::ItemIsDragEnabled;
+  }
 
   return f;
 }
 
+typedef QMap<int, QVariant> DraggedItem;
 
 //------------------------------------------------------------------------
 bool TaxonomyProxy::dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex& parent)
 {
-  ModelItemPtr parentItem = indexPtr(parent);
+
+  TaxonomyElementPtr root = m_model->taxonomy()->root().data();
+
+  ModelItemPtr parentItem = NULL;
+  if (parent.isValid())
+    parentItem = indexPtr(parent);
+  else
+    parentItem = root;
 
   DragSource source = NoSource;
 
@@ -316,12 +331,12 @@ bool TaxonomyProxy::dropMimeData(const QMimeData *data, Qt::DropAction action, i
   QByteArray encoded = data->data("application/x-qabstractitemmodeldatalist");
   QDataStream stream(&encoded, QIODevice::ReadOnly);
 
-  QList<QMap<int,  QVariant> > draggedItems;
+  QList<DraggedItem> draggedItems;
 
   while (!stream.atEnd())
   {
     int row, col;
-    QMap<int,  QVariant> itemData;
+    DraggedItem itemData;
     stream >> row >> col >> itemData;
 
     switch (itemData[TypeRole].toInt())
@@ -340,9 +355,15 @@ bool TaxonomyProxy::dropMimeData(const QMimeData *data, Qt::DropAction action, i
   }
 
   // Change Taxonomy
-  if (SegmentationSource == source)
+  if (SegmentationSource == source && parentItem != root)
   {
-    qDebug() << "Segmentation Source";
+    SegmentationList sources;
+    foreach(DraggedItem draggedItem , draggedItems)
+    {
+      ModelItemPtr item = reinterpret_cast<ModelItemPtr>(draggedItem[RawPointerRole].value<quintptr>());
+      sources << segmentationPtr(item);
+    }
+
     TaxonomyElementPtr newTaxonomy;
     if (EspINA::TAXONOMY == parentItem->type())
     {
@@ -353,13 +374,22 @@ bool TaxonomyProxy::dropMimeData(const QMimeData *data, Qt::DropAction action, i
       SegmentationPtr seg = segmentationPtr(parentItem);
       newTaxonomy = seg->taxonomy().data();
     }
+    Q_ASSERT(newTaxonomy);
+
+    emit segmentationsDragged(sources, newTaxonomy);
   }
   // Change taxonomy parent
   else if (TaxonomySource == source && EspINA::TAXONOMY == parentItem->type())
   {
-    qDebug() << "Move taxonomy";
+    TaxonomyElementList sources;
+    foreach(DraggedItem draggedItem , draggedItems)
+    {
+      ModelItemPtr item = reinterpret_cast<ModelItemPtr>(draggedItem[RawPointerRole].value<quintptr>());
+      sources << taxonomyElementPtr(item);
+    }
+    emit taxonomiesDragged(sources, taxonomyElementPtr(parentItem));
   }
-  else
+  else if (InvalidSource == source)
     return false;
 
   return true;
@@ -491,13 +521,12 @@ void TaxonomyProxy::sourceRowsInserted(const QModelIndex& sourceParent, int star
     beginInsertRows(QModelIndex(), start, end);
     for (int row = start; row <= end; row++)
     {
-      ModelItemPtr sourceRow = indexPtr(m_model->index(row, 0, sourceParent));
-      Q_ASSERT(EspINA::TAXONOMY == sourceRow->type());
-      TaxonomyElementPtr taxonomy = taxonomyElementPtr(sourceRow);
-      Q_ASSERT(taxonomy);
-      m_rootTaxonomies << taxonomy;
-      m_numTaxonomies[taxonomy] = taxonomy->subElements().size();
-//        m_taxonomies << indexTaxonomies(row, 0, sourceParent);
+      ModelItemPtr       insertedItem     = indexPtr(m_model->index(row, 0, sourceParent));
+      TaxonomyElementPtr insertedElement = taxonomyElementPtr(insertedItem);
+
+      m_rootTaxonomies << insertedElement;
+
+      addTaxonomicalElement(insertedElement);
     }
     endInsertRows();
   } else if (sourceParent == m_model->segmentationRoot())
@@ -507,7 +536,6 @@ void TaxonomyProxy::sourceRowsInserted(const QModelIndex& sourceParent, int star
     {
       QModelIndex sourceIndex = m_model->index(row, 0, sourceParent);
       ModelItemPtr sourceItem = indexPtr(sourceIndex);
-      Q_ASSERT(EspINA::SEGMENTATION == sourceItem->type());
       SegmentationPtr seg = segmentationPtr(sourceItem);
       TaxonomyElementPtr taxonomy = seg->taxonomy().data();
       if (taxonomy)
@@ -521,7 +549,7 @@ void TaxonomyProxy::sourceRowsInserted(const QModelIndex& sourceParent, int star
       int endRow = startRow + relations[taxonomy].size() - 1;
       QModelIndex proxyTaxonomy = mapFromSource(m_model->taxonomyIndex(taxonomy));
       beginInsertRows(proxyTaxonomy, startRow, endRow);
-      m_segmentations[taxonomy] << relations[taxonomy];
+      m_numSegmentations[taxonomy] << relations[taxonomy];
       endInsertRows();
     }
   } else
@@ -534,9 +562,7 @@ void TaxonomyProxy::sourceRowsInserted(const QModelIndex& sourceParent, int star
       for (int row = start; row <= end; row++)
       {
         ModelItemPtr sourceRow = indexPtr(m_model->index(row, 0, sourceParent));
-        Q_ASSERT(EspINA::TAXONOMY == sourceRow->type());
         TaxonomyElementPtr taxonomy = taxonomyElementPtr(sourceRow);
-        Q_ASSERT(taxonomy);
         TaxonomyElementPtr parentNode = taxonomy->parent();
         if (!parentNode->name().isEmpty()) // TODO usar root?
           m_numTaxonomies[parentNode] += 1;
@@ -568,12 +594,12 @@ void TaxonomyProxy::sourceRowsAboutToBeRemoved(const QModelIndex& sourceParent, 
       SegmentationPtr seg  = segmentationPtr(item);
       TaxonomyElementPtr taxonomy = seg->taxonomy().data();
       Q_ASSERT(taxonomy);
-      int segRow = m_segmentations[taxonomy].indexOf(item);
+      int segRow = m_numSegmentations[taxonomy].indexOf(item);
       if (segRow >= 0)
       {
         int row = numTaxonomies(taxonomy) + segRow;
         beginRemoveRows(proxyIndex.parent(), row, row);
-        m_segmentations[taxonomy].removeAt(segRow);
+        m_numSegmentations[taxonomy].removeAt(segRow);
         endRemoveRows();
       }
     }
@@ -613,6 +639,50 @@ void TaxonomyProxy::sourceRowsRemoved(const QModelIndex& sourceParent, int start
 }
 
 //------------------------------------------------------------------------
+void TaxonomyProxy::sourceRowsAboutToBeMoved(const QModelIndex &sourceParent, int sourceStart, int sourceEnd,
+                                             const QModelIndex &destinationParent, int destinationRow)
+{
+  Q_ASSERT(sourceStart == sourceEnd);
+
+  QModelIndex proxySourceParent       = mapFromSource(sourceParent);
+  QModelIndex proxyDestionationParent = mapFromSource(destinationParent);
+
+  beginMoveRows(proxySourceParent, sourceStart, sourceEnd,
+                proxyDestionationParent, destinationRow);
+
+  ModelItemPtr movingItem = indexPtr(sourceParent.child(sourceStart, 0));
+  TaxonomyElementPtr movingTaxonomy = taxonomyElementPtr(movingItem);
+
+  if (proxySourceParent.isValid())
+  {
+    ModelItemPtr sourceItem = indexPtr(proxySourceParent);
+    TaxonomyElementPtr sourceTaxonomy = taxonomyElementPtr(sourceItem);
+    m_numTaxonomies[sourceTaxonomy] -=1;
+  } else
+  {
+    m_rootTaxonomies.removeOne(movingTaxonomy);
+  }
+
+  if (proxyDestionationParent.isValid())
+  {
+    ModelItemPtr destinationItem = indexPtr(destinationParent);
+    TaxonomyElementPtr destinationTaxonomy = taxonomyElementPtr(destinationItem);
+
+    m_numTaxonomies[destinationTaxonomy] +=1;
+  } else
+  {
+    m_rootTaxonomies << movingTaxonomy;
+  }
+}
+
+//------------------------------------------------------------------------
+void TaxonomyProxy::sourceRowsMoved(const QModelIndex &sourceParent, int sourceStart, int sourceEnd, const QModelIndex &destinationParent, int destinationRow)
+{
+  endMoveRows();
+}
+
+
+//------------------------------------------------------------------------
 bool TaxonomyProxy::indices(const QModelIndex& topLeft, const QModelIndex& bottomRight, QModelIndexList& result)
 {
   result << topLeft;
@@ -636,9 +706,9 @@ bool TaxonomyProxy::indices(const QModelIndex& topLeft, const QModelIndex& botto
 //------------------------------------------------------------------------
 SegmentationPtr TaxonomyProxy::findSegmentation(QString tooltip)
 {
-  foreach (TaxonomyElementPtr tax, m_segmentations.keys())
+  foreach (TaxonomyElementPtr tax, m_numSegmentations.keys())
   {
-    foreach(ModelItemPtr seg, m_segmentations[tax])
+    foreach(ModelItemPtr seg, m_numSegmentations[tax])
       if (seg->data(Qt::ToolTipRole) == tooltip)
         return segmentationPtr(seg);
   }
@@ -662,9 +732,9 @@ void TaxonomyProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, const QM
       ModelItemPtr sourceItem = indexPtr(source);
       SegmentationPtr seg = segmentationPtr(sourceItem);
       TaxonomyElementPtr prevTaxonomy;
-      foreach(TaxonomyElementPtr taxonomy, m_segmentations.keys())
+      foreach(TaxonomyElementPtr taxonomy, m_numSegmentations.keys())
       {
-        if (m_segmentations[taxonomy].contains(sourceItem))
+        if (m_numSegmentations[taxonomy].contains(sourceItem))
         {
           indexChanged = taxonomy != seg->taxonomy();
           prevTaxonomy = taxonomy;
@@ -675,11 +745,11 @@ void TaxonomyProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, const QM
       {
         QModelIndex source = mapFromSource(m_model->taxonomyIndex(prevTaxonomy));
         QModelIndex destination = mapFromSource(m_model->taxonomyIndex(seg->taxonomy()));
-        int currentRow = numTaxonomies(prevTaxonomy) + m_segmentations[prevTaxonomy].indexOf(sourceItem);
+        int currentRow = numTaxonomies(prevTaxonomy) + m_numSegmentations[prevTaxonomy].indexOf(sourceItem);
         int newRow = rowCount(destination);
         beginMoveRows(source, currentRow, currentRow, destination, newRow);
-        m_segmentations[prevTaxonomy].removeOne(sourceItem);
-        m_segmentations[seg->taxonomy().data()] << sourceItem;
+        m_numSegmentations[prevTaxonomy].removeOne(sourceItem);
+        m_numSegmentations[seg->taxonomy().data()] << sourceItem;
         endMoveRows();
       }
     }
@@ -698,6 +768,17 @@ bool idOrdered(SegmentationPtr seg1, SegmentationPtr seg2)
 }
 
 //------------------------------------------------------------------------
+void TaxonomyProxy::addTaxonomicalElement(TaxonomyElementPtr taxonomicalElement)
+{
+  m_numTaxonomies[taxonomicalElement] = taxonomicalElement->subElements().size();
+
+  foreach(TaxonomyElementSPtr subTaxonomcialElement, taxonomicalElement->subElements())
+  {
+    addTaxonomicalElement(subTaxonomcialElement.data());
+  }
+}
+
+//------------------------------------------------------------------------
 void TaxonomyProxy::removeTaxonomy(TaxonomyElementPtr taxonomy)
 {
   // First remove its subtaxonomies
@@ -708,7 +789,7 @@ void TaxonomyProxy::removeTaxonomy(TaxonomyElementPtr taxonomy)
 
   m_rootTaxonomies.removeOne(taxonomy); //Safe even if it's not root taxonomy
   m_numTaxonomies.remove(taxonomy);
-  m_segmentations.remove(taxonomy);
+  m_numSegmentations.remove(taxonomy);
   TaxonomyElementPtr parentNode = taxonomy->parent();
   if (!parentNode->name().isEmpty())
     m_numTaxonomies[parentNode] -= 1;
@@ -717,11 +798,11 @@ void TaxonomyProxy::removeTaxonomy(TaxonomyElementPtr taxonomy)
 //------------------------------------------------------------------------
 int TaxonomyProxy::numSegmentations(TaxonomyElementPtr taxonomy, bool recursive) const
 {
-  int total = m_segmentations[taxonomy].size();
+  int total = m_numSegmentations[taxonomy].size();
   if (recursive)
     foreach(TaxonomyElementSPtr subtax, taxonomy->subElements())
     {
-      total += numSegmentations(subtax.data());
+      total += numSegmentations(subtax.data(), recursive);
     }
 
   return total;

@@ -149,8 +149,11 @@ namespace EspINA
     FilterSPtrList filters() const
     { return m_filters; }
 
-    // TODO: Undoable
-    void changeTaxonomy(SegmentationSPtr seg, TaxonomyElementSPtr taxonomy);
+    void changeTaxonomy(SegmentationSPtr    segmentation,
+                        TaxonomyElementSPtr taxonomy);
+
+    void changeTaxonomyParent(TaxonomyElementSPtr subTaxonomy,
+                              TaxonomyElementSPtr parent);
 
 
     //---------------------------------------------------------------------------

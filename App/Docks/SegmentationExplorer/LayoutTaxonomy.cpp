@@ -18,11 +18,14 @@
 
 
 #include "LayoutTaxonomy.h"
+#include <Undo/ChangeTaxonomyCommand.h>
+#include <Undo/MoveTaxonomiesCommand.h>
 
 #include <Core/Model/Segmentation.h>
 #include <Core/Model/Taxonomy.h>
 
 #include <QMessageBox>
+#include <QUndoStack>
 
 using namespace EspINA;
 
@@ -42,14 +45,19 @@ bool TaxonomyLayout::SortFilter::lessThan(const QModelIndex& left, const QModelI
 }
 
 //------------------------------------------------------------------------
-TaxonomyLayout::TaxonomyLayout(EspinaModel *model)
-: Layout(model)
+TaxonomyLayout::TaxonomyLayout(EspinaModel *model, QUndoStack *undoStack)
+: Layout(model, undoStack)
 , m_proxy(new TaxonomyProxy())
 , m_sort (new SortFilter())
 {
   m_proxy->setSourceModel(m_model);
   m_sort->setSourceModel(m_proxy.data());
   m_sort->setDynamicSortFilter(true);
+
+  connect(m_proxy.data(), SIGNAL(segmentationsDragged(SegmentationList,TaxonomyElementPtr)),
+          this,           SLOT  (segmentationsDragged(SegmentationList,TaxonomyElementPtr)));
+  connect(m_proxy.data(), SIGNAL(taxonomiesDragged(TaxonomyElementList,TaxonomyElementPtr)),
+          this,           SLOT  (taxonomiesDragged(TaxonomyElementList,TaxonomyElementPtr)));
 }
 
 //------------------------------------------------------------------------
@@ -129,4 +137,23 @@ SegmentationList TaxonomyLayout::deletedSegmentations(QModelIndexList selection)
   }
 
   return toDelete.toList();
+}
+
+//------------------------------------------------------------------------
+void TaxonomyLayout::segmentationsDragged(SegmentationList   segmentations,
+                                          TaxonomyElementPtr taxonomy)
+{
+  m_undoStack->beginMacro(tr("Change Segmentation's Taxonomy"));
+  m_undoStack->push(new ChangeTaxonomyCommand(segmentations, taxonomy, m_model));
+  m_undoStack->endMacro();
+}
+
+
+//------------------------------------------------------------------------
+void TaxonomyLayout::taxonomiesDragged(TaxonomyElementList subTaxonomies,
+                                       TaxonomyElementPtr  taxonomy)
+{
+  m_undoStack->beginMacro(tr("Modify Taxonomy"));
+  m_undoStack->push(new MoveTaxonomiesCommand(subTaxonomies, taxonomy, m_model));
+  m_undoStack->endMacro();
 }

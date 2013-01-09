@@ -19,6 +19,7 @@ qt4_wrap_cpp (ESPINA_MOC
   Docks/ChannelExplorer/ChannelExplorer.h
   Docks/FilterInspector/FilterInspector.h
   Docks/SegmentationExplorer/SegmentationExplorer.h
+  Docks/SegmentationExplorer/LayoutTaxonomy.h
   Docks/TabularReport/DataView.h
   Docks/TaxonomyExplorer/TaxonomyExplorer.h
   FilterInspectors/CODE/CODEFilterInspector.h
@@ -124,8 +125,10 @@ set (ESPINA_SOURCES
   Tools/Zoom/ZoomTool.cpp
   Undo/AddTaxonomyElement.cpp
   Undo/BrushUndoCommand.cpp
+  Undo/ChangeTaxonomyCommand.cpp
   Undo/CompositionCommand.cpp
   Undo/ImageLogicCommand.cpp
+  Undo/MoveTaxonomiesCommand.cpp
   Undo/SeedGrowSegmentationCommand.cpp
   Undo/SplitUndoCommand.cpp
   Views/DefaultEspinaView.cpp

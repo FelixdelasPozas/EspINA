@@ -78,6 +78,8 @@ namespace EspINA
 
     /// Create a new sub-element
     TaxonomyElementSPtr createElement(const QString &name);
+    /// Add sub-element
+    void addElement(TaxonomyElementSPtr element);
     /// Delete element only if it is its sub-element
     void deleteElement(TaxonomyElementPtr element);
 
@@ -108,7 +110,7 @@ namespace EspINA
     friend class Taxonomy;
   };
 
-  TaxonomyElementPtr taxonomyElementPtr(ModelItemPtr item);
+  TaxonomyElementPtr  taxonomyElementPtr(ModelItemPtr   item);
   TaxonomyElementSPtr taxonomyElementPtr(ModelItemSPtr &item);
 
 

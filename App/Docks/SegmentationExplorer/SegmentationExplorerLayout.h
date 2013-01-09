@@ -35,7 +35,12 @@ namespace EspINA
     static const QString MIXED_MESSAGE;
 
   public:
-    explicit Layout(EspinaModel *model): m_model(model) {}
+    explicit Layout(EspinaModel *model,
+                    QUndoStack  *undoStack)
+    : m_model    (model    )
+    , m_undoStack(undoStack)
+    {}
+
     virtual ~Layout(){}
 
     virtual QAbstractItemModel *model()
@@ -51,6 +56,7 @@ namespace EspINA
 
   protected:
     EspinaModel *m_model;
+    QUndoStack  *m_undoStack;
   };
 
   bool sortSegmentationLessThan(ModelItemPtr left, ModelItemPtr right);

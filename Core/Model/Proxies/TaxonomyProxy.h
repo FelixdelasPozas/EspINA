@@ -62,16 +62,21 @@ namespace EspINA
     void sourceRowsInserted(const QModelIndex & sourceParent, int start, int end);
     void sourceRowsAboutToBeRemoved(const QModelIndex & sourceParent, int start, int end);
     void sourceRowsRemoved(const QModelIndex & sourceParent, int start, int end);
+    void sourceRowsAboutToBeMoved(const QModelIndex &sourceParent, int sourceStart, int sourceEnd, const QModelIndex & destinationParent, int destinationRow);
+    void sourceRowsMoved(const QModelIndex &sourceParent, int sourceStart, int sourceEnd, const QModelIndex & destinationParent, int destinationRow);
     void sourceDataChanged(const QModelIndex &sourceTopLeft, const QModelIndex &sourceBottomRight);
 
   signals:
-    void itemsDropped();
+    void taxonomiesDragged(TaxonomyElementList sources, TaxonomyElementPtr parent);
+    void segmentationsDragged(SegmentationList sources, TaxonomyElementPtr taxonomy);
 
   protected:
     bool indices(const QModelIndex& topLeft, const QModelIndex& bottomRight, QModelIndexList& result);
     SegmentationPtr findSegmentation(QString tooltip);
     QModelIndexList sourceIndices(const QModelIndex& parent, int start, int end) const;
     QModelIndexList proxyIndices(const QModelIndex& parent, int start, int end) const;
+
+    void addTaxonomicalElement(TaxonomyElementPtr taxonomy);
     void removeTaxonomy(TaxonomyElementPtr taxonomy);
     int numSegmentations(TaxonomyElementPtr taxonomy, bool recursive = false) const;
     int numTaxonomies(TaxonomyElementPtr taxonomy) const;
@@ -83,8 +88,8 @@ namespace EspINA
     // We need to rely on our own row count for each item in the proxy's model
     // If we rely on the source's model, there are some inconsistencies during
     // rows insertion/deletion
-    mutable QMap<TaxonomyElementPtr, int> m_numTaxonomies;
-    mutable QMap<TaxonomyElementPtr, ModelItemList> m_segmentations;
+    mutable QMap<TaxonomyElementPtr, int          > m_numTaxonomies;
+    mutable QMap<TaxonomyElementPtr, ModelItemList> m_numSegmentations;
   };
 
 } // namespace EspINA

@@ -33,8 +33,8 @@ bool CompositionLayout::SortFilter::lessThan(const QModelIndex& left, const QMod
 }
 
 //------------------------------------------------------------------------
-CompositionLayout::CompositionLayout(EspinaModel *model)
-: Layout(model)
+CompositionLayout::CompositionLayout(EspinaModel *model, QUndoStack *undoStack)
+: Layout(model, undoStack)
 , m_proxy(new CompositionProxy())
 , m_sort (new SortFilter())
 {

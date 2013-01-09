@@ -554,16 +554,40 @@ void EspinaModel::removeFilter(FilterSPtr filter)
 }
 
 //------------------------------------------------------------------------
-void EspinaModel::changeTaxonomy(SegmentationSPtr seg, TaxonomyElementSPtr taxonomy)
+void EspinaModel::changeTaxonomy(SegmentationSPtr    segmentation,
+                                 TaxonomyElementSPtr taxonomy)
 {
-  seg->setTaxonomy(taxonomy);
+  segmentation->setTaxonomy(taxonomy);
 
-  QModelIndex segIndex = segmentationIndex(seg.data());
+  QModelIndex segIndex = segmentationIndex(segmentation.data());
   emit dataChanged(segIndex, segIndex);
 
   markAsChanged();
 }
 
+
+//------------------------------------------------------------------------
+void EspinaModel::changeTaxonomyParent(TaxonomyElementSPtr subTaxonomy,
+                                       TaxonomyElementSPtr parent)
+{
+  TaxonomyElementPtr oldParent = subTaxonomy->parent();
+
+  if (oldParent == parent)
+    return;
+
+  QModelIndex oldIndex = index(subTaxonomy).parent();
+  QModelIndex newIndex = index(parent);
+
+  int oldRow = oldParent->subElements().indexOf(subTaxonomy);
+  int newRow = parent->subElements().size();
+
+  beginMoveRows(oldIndex, oldRow, oldRow, newIndex, newRow);
+  {
+    oldParent->deleteElement(subTaxonomy.data());
+    parent->addElement(subTaxonomy);
+  }
+  endMoveRows();
+}
 
 
 //------------------------------------------------------------------------
@@ -1027,6 +1051,9 @@ TaxonomyElementSPtr EspinaModel::findTaxonomyElement(ModelItemPtr item)
 //------------------------------------------------------------------------
 TaxonomyElementSPtr EspinaModel::findTaxonomyElement(TaxonomyElementPtr taxonomyElement)
 {
+  if (taxonomyElement == m_tax->root())
+    return m_tax->root();
+
   TaxonomyElementPtr parent = taxonomyElement->parent();
   return parent->element(taxonomyElement->name());
 }
