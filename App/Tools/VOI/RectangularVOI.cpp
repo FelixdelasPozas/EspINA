@@ -174,14 +174,14 @@ void RectangularVOI::defineVOI(IPicker::PickList channels)
   double spacing[3];
   pickedChannel->volume()->spacing(spacing);
 
-  const Nm XHSIZE = m_settings->xSize();
-  const Nm YHSIZE = m_settings->ySize();
-  const Nm ZHSIZE = m_settings->zSize();
+  const Nm xRadius = vtkMath::Round(m_settings->xSize() / 2.0);
+  const Nm yRadius = vtkMath::Round(m_settings->ySize() / 2.0);
+  const Nm zRadius = vtkMath::Round(m_settings->zSize() / 2.0);
 
   Nm bounds[6] = {
-     pos[0] - XHSIZE, pos[0] + XHSIZE,
-     pos[1] - YHSIZE, pos[1] + YHSIZE,
-     pos[2] - ZHSIZE, pos[2] + ZHSIZE};
+     pos[0] - xRadius, pos[0] + xRadius,
+     pos[1] - yRadius, pos[1] + yRadius,
+     pos[2] - zRadius, pos[2] + zRadius};
 
   m_widget = new RectangularRegion(bounds, m_viewManager);
   Q_ASSERT(m_widget);

@@ -46,6 +46,7 @@
 #include <vtkImageMapper3D.h>
 #include <vtkImageResliceToColors.h>
 #include <vtkMatrix4x4.h>
+#include <vtkMath.h>
 
 using namespace EspINA;
 
@@ -272,9 +273,9 @@ void SeedGrowSegmentationTool::startSegmentation(IPicker::PickList pickedItems)
     }
     else
     {
-      xSize = m_settings->xSize();
-      ySize = m_settings->ySize();
-      zSize = m_settings->zSize();
+      xSize = m_settings->xSize()/2.0;
+      ySize = m_settings->ySize()/2.0;
+      zSize = m_settings->zSize()/2.0;
     }
 
     voiBounds[0] -= xSize;
@@ -400,12 +401,12 @@ void SeedGrowSegmentationTool::addPreview(EspinaRenderView *view)
     if (m_defaultVOI->useDefaultVOI())
     {
       int voiExtent[6];
-      voiExtent[0] = seed[0] - (m_settings->xSize()/spacing[0]);
-      voiExtent[1] = seed[0] + (m_settings->xSize()/spacing[0]);
-      voiExtent[2] = seed[1] - (m_settings->ySize()/spacing[1]);
-      voiExtent[3] = seed[1] + (m_settings->ySize()/spacing[1]);
-      voiExtent[4] = seed[2] - (m_settings->zSize()/spacing[2]);
-      voiExtent[5] = seed[2] + (m_settings->zSize()/spacing[2]);
+      voiExtent[0] = seed[0] - vtkMath::Round((m_settings->xSize()/spacing[0])/2.0);
+      voiExtent[1] = seed[0] + vtkMath::Round((m_settings->xSize()/spacing[0])/2.0);
+      voiExtent[2] = seed[1] - vtkMath::Round((m_settings->ySize()/spacing[1])/2.0);
+      voiExtent[3] = seed[1] + vtkMath::Round((m_settings->ySize()/spacing[1])/2.0);
+      voiExtent[4] = seed[2] - vtkMath::Round((m_settings->zSize()/spacing[2])/2.0);
+      voiExtent[5] = seed[2] + vtkMath::Round((m_settings->zSize()/spacing[2])/2.0);
 
       extent[0] = (voiExtent[0] > extent[0]) ? voiExtent[0] : extent[0];
       extent[1] = (voiExtent[1] < extent[1]) ? voiExtent[1] : extent[1];
