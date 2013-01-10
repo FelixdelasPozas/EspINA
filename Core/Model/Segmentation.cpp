@@ -66,8 +66,6 @@ Segmentation::Segmentation(FilterSPtr         filter,
 , m_march(NULL)
 {
   m_isSelected = false;
-  //   memset(m_bounds, 0, 6*sizeof(double));
-  //   m_bounds[1] = -1;
   m_args.setNumber(0);
   m_args.setOutputId(oId);
   m_args[TAXONOMY] = "Unknown";
@@ -369,21 +367,15 @@ QStringList Segmentation::availableInformations() const
 }
 
 //------------------------------------------------------------------------
-QVariant Segmentation::information(QString info)
+QVariant Segmentation::information(const QString &name)
 {
-  if (info == "Name")
+  if (name == "Name")
     return data(Qt::DisplayRole);
-  if (info == "Taxonomy")
+  if (name == "Taxonomy")
     return m_taxonomy->qualifiedName();
 
-  Q_ASSERT(m_informations.contains(info));
-  return m_informations[info]->information(info);
-}
-
-//------------------------------------------------------------------------
-ModelItemExtensionPtr Segmentation::extension(QString name)
-{
-  return ModelItem::extension(name);
+  Q_ASSERT(m_informations.contains(name));
+  return m_informations[name]->information(name);
 }
 
 //------------------------------------------------------------------------
