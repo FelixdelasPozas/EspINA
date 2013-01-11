@@ -65,12 +65,12 @@ namespace EspINA
     bool m_inUse;
     bool m_enabled;
 
-    PixelPicker      m_picker;
+    PixelPicker        m_picker;
     RectangularRegion *m_widget;
     double             m_bounds[6];
     RectangularRegionSliceSelector *m_sliceSelector;
 
-    Settings         *m_settings;
+    Settings          *m_settings;
     ISettingsPanelPrototype m_settingsPanel;
   };
 

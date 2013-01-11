@@ -45,7 +45,7 @@ RectangularVOI::RectangularVOI(EspinaModel *model,
 , m_widget (NULL)
 , m_sliceSelector(NULL)
 , m_settings     (new Settings())
-, m_settingsPanel(new SettingsPanel(m_model, m_settings))
+, m_settingsPanel(new SettingsPanel(m_model, m_settings, m_viewManager))
 {
   m_picker.setCursor(QCursor(QPixmap(":/espina/roi_go.svg").scaled(32,32)));
   m_picker.setMultiSelection(false);

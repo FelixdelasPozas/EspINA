@@ -24,13 +24,18 @@
 #include <Core/Model/Segmentation.h>
 #include <GUI/QtWidget/SliceView.h>
 #include <GUI/Tools/IVOI.h>
+#include <Core/EspinaSettings.h>
 
 #include <vtkMath.h>
 
 // Qt
+#include <QSettings>
+#include <QString>
 #include <QDebug>
 
 using namespace EspINA;
+
+const QString FIT_TO_SLICES ("ViewManager::FitToSlices");
 
 //----------------------------------------------------------------------------
 ViewManager::ViewManager()
@@ -41,8 +46,22 @@ ViewManager::ViewManager()
 , m_activeTaxonomy(NULL)
 , m_colorEngine(NULL)
 {
+  QSettings settings(CESVIMA, ESPINA);
+  bool fitEnabled;
+
+  if (!settings.allKeys().contains(FIT_TO_SLICES))
+  {
+    settings.setValue(FIT_TO_SLICES, true);
+    fitEnabled = true;
+  }
+  else
+    fitEnabled = settings.value(FIT_TO_SLICES, true).toBool();
+
   m_fitToSlices->setCheckable(true);
-  m_fitToSlices->setChecked(true);
+  m_fitToSlices->setChecked(fitEnabled);
+
+  connect(m_fitToSlices, SIGNAL(toggled(bool)), this, SLOT(toggleFitToSlices(bool)));
+  m_viewResolution[0] = m_viewResolution[1] = m_viewResolution[2] = 1.0;
 }
 
 //----------------------------------------------------------------------------
@@ -271,6 +290,14 @@ void ViewManager::updateViews()
 }
 
 //----------------------------------------------------------------------------
+void ViewManager::toggleFitToSlices(bool enabled)
+{
+  QSettings settings(CESVIMA, ESPINA);
+  settings.setValue(FIT_TO_SLICES, enabled);
+  settings.sync();
+}
+
+//----------------------------------------------------------------------------
 void ViewManager::setActiveChannel(ChannelPtr channel)
 {
   m_activeChannel = channel;
@@ -390,3 +417,15 @@ void ViewManager::focusViewsOn(Nm *center)
     rView->centerViewOn(center, true);
 }
 
+//----------------------------------------------------------------------------
+Nm *ViewManager::viewResolution()
+{
+  if (m_renderViews.empty())
+    return NULL;
+
+  // ASSERT: the first view is not from type VOLUME and all the views have to
+  // have the same view resolution, so we can get the correct resolution from
+  // any of them
+  memcpy(m_viewResolution, m_renderViews.first()->sceneResolution(), sizeof(Nm)*3);
+  return m_viewResolution;
+}

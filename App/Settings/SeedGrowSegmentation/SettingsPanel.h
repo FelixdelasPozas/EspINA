@@ -27,13 +27,15 @@
 
 namespace EspINA
 {
+  class ViewManager;
+
   class SeedGrowSegmentation::SettingsPanel
   : public ISettingsPanel
   , public Ui::SettingsPanel
   {
     Q_OBJECT
   public:
-    explicit SettingsPanel(SeedGrowSegmentationSettings *settings);
+    explicit SettingsPanel(SeedGrowSegmentationSettings *settings, ViewManager *viewManager);
     virtual ~SettingsPanel(){}
 
     virtual const QString shortDescription()
@@ -54,6 +56,7 @@ namespace EspINA
 
   private:
     SeedGrowSegmentationSettings *m_settings;
+    ViewManager                  *m_viewManager;
   };
 
 } // namespace EspINA

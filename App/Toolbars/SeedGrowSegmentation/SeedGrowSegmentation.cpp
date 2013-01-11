@@ -71,18 +71,18 @@ SeedGrowSegmentation::SeedGrowSegmentation(EspinaModel *model,
 
   buildPickers();
 
-  m_settingsPanel = ISettingsPanelPrototype(new SettingsPanel(m_settings));
+  m_settingsPanel = ISettingsPanelPrototype(new SettingsPanel(m_settings, m_viewManager));
 
   initFactoryExtension(m_model->factory());
 
 
   m_tool = SeedGrowSegmentationToolSPtr(
-    new SeedGrowSegmentationTool(model,
-                                 undoStack,
-                                 viewManager,
-                                 m_threshold,
-                                 m_useDefaultVOI,
-                                 m_settings) );
+  new SeedGrowSegmentationTool(model,
+                               undoStack,
+                               viewManager,
+                               m_threshold,
+                               m_useDefaultVOI,
+                               m_settings) );
 
   addAction(m_threshold);
   addAction(m_useDefaultVOI);

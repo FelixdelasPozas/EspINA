@@ -20,6 +20,8 @@
 #ifndef SEEDGROWSEGMENTATION_SETTINGS_H
 #define SEEDGROWSEGMENTATION_SETTINGS_H
 
+#include <Core/EspinaTypes.h>
+
 namespace EspINA
 {
   class BestPixelPicker;

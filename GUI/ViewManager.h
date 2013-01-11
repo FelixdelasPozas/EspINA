@@ -153,6 +153,8 @@ namespace EspINA
     void removeSliceSelectors(SliceSelectorWidget *widget);
 
     QAction *fitToSlices() {return m_fitToSlices;}
+
+    Nm *viewResolution();
   public slots:
     /// Update Segmentation Representation
     void updateSegmentationRepresentations(SegmentationList list = SegmentationList());
@@ -160,9 +162,12 @@ namespace EspINA
     void updateChannelRepresentations(ChannelList list = ChannelList());
     /// Request all registered views to update themselves
     void updateViews();
+    /// Change fit to slice settings
+    void toggleFitToSlices(bool);
 
 private:
   QAction *m_fitToSlices;
+  Nm m_viewResolution[3];
 
 
     //---------------------------------------------------------------------------

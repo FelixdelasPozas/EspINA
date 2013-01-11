@@ -16,21 +16,31 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// EspINA
 #include "SettingsPanel.h"
-
 #include <Toolbars/SeedGrowSegmentation/SeedGrowSegmentationSettings.h>
+#include <Core/EspinaSettings.h>
+#include <GUI/ViewManager.h>
 
+// Qt
 #include <QSettings>
 #include <QString>
 #include <QDebug>
 
+// VTK
+#include <vtkMath.h>
+
 using namespace EspINA;
 
+const QString FIT_TO_SLICES ("ViewManager::FitToSlices");
+
 //------------------------------------------------------------------------
-SeedGrowSegmentation::SettingsPanel::SettingsPanel(SeedGrowSegmentationSettings *settings)
+SeedGrowSegmentation::SettingsPanel::SettingsPanel(SeedGrowSegmentationSettings *settings, ViewManager *viewManager)
 : m_settings(settings)
+, m_viewManager(viewManager)
 {
   setupUi(this);
+  QSettings espinaSettings(CESVIMA, ESPINA);
 
   connect(m_pixelValue,SIGNAL(valueChanged(int)),
           this, SLOT(displayColor(int)));
@@ -40,7 +50,21 @@ SeedGrowSegmentation::SettingsPanel::SettingsPanel(SeedGrowSegmentationSettings 
 
   m_xSize->setValue(settings->xSize());
   m_ySize->setValue(settings->ySize());
-  m_zSize->setValue(settings->zSize());
+  if (espinaSettings.value(FIT_TO_SLICES).toBool())
+  {
+    double zSpacing = 1.0;
+    if (m_viewManager->viewResolution() != NULL)
+      zSpacing = m_viewManager->viewResolution()[2];
+
+    m_zSize->setValue(vtkMath::Round(settings->zSize()/zSpacing));
+    m_zSize->setSuffix(QString(" slices"));
+  }
+  else
+  {
+    m_zSize->setValue(settings->zSize());
+    m_zSize->setSuffix(QString(" nm"));
+  }
+
   m_taxonomicalVOI->setChecked(settings->taxonomicalVOI());
 
   bool closingActive = settings->closing()>0;
@@ -89,7 +113,7 @@ bool SeedGrowSegmentation::SettingsPanel::modified() const
 //------------------------------------------------------------------------
 ISettingsPanelPtr SeedGrowSegmentation::SettingsPanel::clone()
 {
-  return ISettingsPanelPtr(new SettingsPanel(m_settings));
+  return ISettingsPanelPtr(new SettingsPanel(m_settings, m_viewManager));
 }
 
 //------------------------------------------------------------------------

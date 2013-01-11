@@ -16,9 +16,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+// EspINA
 #include "SeedGrowSegmentationSettings.h"
 
+// Qt
 #include <QSettings>
 #include <Core/EspinaSettings.h>
 #include <GUI/Pickers/PixelPicker.h>
@@ -44,7 +45,7 @@ const QString TAXONOMICAL_VOI_USAGE("SeedGrowSegmentation::DefaultVOI::USE_TAXON
 
 //------------------------------------------------------------------------
 SeedGrowSegmentationSettings::SeedGrowSegmentationSettings(BestPixelPicker *selector)
-: m_selector(selector) 
+: m_selector(selector)
 {
   QSettings settings(CESVIMA, ESPINA);
 

@@ -26,6 +26,8 @@
 
 namespace EspINA
 {
+  class ViewManager;
+
   class RectangularVOI::SettingsPanel
   : public ISettingsPanel
   , public Ui::RectangularVOISettings
@@ -33,7 +35,8 @@ namespace EspINA
     Q_OBJECT
   public:
     explicit SettingsPanel(EspinaModelPtr model,
-                           RectangularVOI::Settings *settings);
+                           RectangularVOI::Settings *settings,
+                           ViewManager *viewManager);
     virtual ~SettingsPanel();
 
     virtual const QString shortDescription()
@@ -60,6 +63,8 @@ namespace EspINA
     EspinaModel *m_model;
     RectangularVOI::Settings *m_settings;
     TaxonomyElementPtr m_activeTaxonomy;
+    ViewManager *m_viewManager;
+    Nm m_zSpacing;
   };
 
 } // namespace EspINA
