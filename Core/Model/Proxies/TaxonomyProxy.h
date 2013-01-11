@@ -88,8 +88,9 @@ namespace EspINA
     // We need to rely on our own row count for each item in the proxy's model
     // If we rely on the source's model, there are some inconsistencies during
     // rows insertion/deletion
-    mutable QMap<TaxonomyElementPtr, int          > m_numTaxonomies;
-    mutable QMap<TaxonomyElementPtr, ModelItemList> m_numSegmentations;
+    mutable QMap<TaxonomyElementPtr, int          >  m_numTaxonomies;
+    mutable QMap<TaxonomyElementPtr, ModelItemList>  m_numSegmentations;
+    mutable QMap<TaxonomyElementPtr, Qt::CheckState> m_taxonomyVisibility;
   };
 
 } // namespace EspINA

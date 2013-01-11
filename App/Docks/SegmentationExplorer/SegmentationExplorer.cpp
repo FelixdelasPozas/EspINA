@@ -101,7 +101,7 @@ SegmentationExplorer::SegmentationExplorer(EspinaModel *model,
   connect(m_gui->view, SIGNAL(doubleClicked(QModelIndex)),
           this, SLOT(focusOnSegmentation(QModelIndex)));
   connect(m_gui->view, SIGNAL(itemStateChanged(QModelIndex)),
-          m_viewManager, SLOT(updateViews()));
+          this, SLOT(updateSegmentationRepresentations()));
   connect(m_gui->showInformationButton, SIGNAL(clicked(bool)),
           this, SLOT(showInformation()));
   connect(m_gui->deleteButton, SIGNAL(clicked(bool)),
@@ -359,6 +359,8 @@ void SegmentationExplorer::releaseInspectorResources(SegmentationInspector* insp
 //------------------------------------------------------------------------
 void SegmentationExplorer::updateSegmentationRepresentations(SegmentationList list)
 {
+  m_viewManager->updateSegmentationRepresentations();
+  m_viewManager->updateViews();
 }
 
 //------------------------------------------------------------------------

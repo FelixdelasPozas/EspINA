@@ -67,6 +67,9 @@
 QTreeView::indicator:checked {
      image: url(:/espina/show_all.svg);
  } 
+QTreeView::indicator:indeterminate {
+     image: url(:/espina/show_partially.svg);
+ } 
 QTreeView::indicator:unchecked {
      image: url(:/espina/hide_all.svg);
  } 

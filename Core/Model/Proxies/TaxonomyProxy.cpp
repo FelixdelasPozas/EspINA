@@ -84,9 +84,9 @@ QVariant TaxonomyProxy::data(const QModelIndex& proxyIndex, int role) const
   {
     case EspINA::TAXONOMY:
     {
+      TaxonomyElementPtr taxonomy = taxonomyElementPtr(item);
       if (Qt::DisplayRole == role)
       {
-        TaxonomyElementPtr taxonomy = taxonomyElementPtr(item);
         //int numSegs   = numSegmentations(taxonomy, false);
         int totalSegs = numSegmentations(taxonomy, true);
         QString suffix;
@@ -95,6 +95,8 @@ QVariant TaxonomyProxy::data(const QModelIndex& proxyIndex, int role) const
 
         return item->data(role).toString() + suffix;
       }
+      else if (Qt::CheckStateRole == role)
+        return m_taxonomyVisibility[taxonomy];
       else
         return item->data(role);
     }
@@ -121,7 +123,54 @@ bool TaxonomyProxy::setData(const QModelIndex &index, const QVariant &value, int
   bool result = false;
 
   if (index.isValid())
-    result = m_model->setData(mapToSource(index), value, role);
+  {
+    ModelItemPtr item = indexPtr(index);
+    if (Qt::CheckStateRole == role)
+    {
+      if (EspINA::TAXONOMY == item->type())
+      {
+        TaxonomyElementPtr taxonomy = taxonomyElementPtr(item);
+        m_taxonomyVisibility[taxonomy] = value.toBool()?Qt::Checked:Qt::Unchecked;
+
+        int rows = rowCount(index);
+        for (int r=0; r<rows; r++)
+        {
+          setData(index.child(r,0), value, role);
+        }
+        emit dataChanged(index, index);
+
+        result = true;
+      } else if (EspINA::SEGMENTATION == item->type())
+      {
+        result = m_model->setData(mapToSource(index), value, role);
+      }
+
+      QModelIndex parentIndex = parent(index);
+      if (parentIndex.isValid())
+      {
+        ModelItemPtr parentItem = indexPtr(parentIndex);
+        TaxonomyElementPtr parentTaxonomy = taxonomyElementPtr(parentItem);
+        int parentRows = rowCount(parentIndex);
+        Qt::CheckState checkState;
+        for(int r=0; r < parentRows; r++)
+        {
+          Qt::CheckState rowState = parentIndex.child(r, 0).data(Qt::CheckStateRole).toBool()?Qt::Checked:Qt::Unchecked;
+          if (0 == r)
+            checkState = rowState;
+          else
+            if (checkState != rowState)
+            {
+              checkState = Qt::PartiallyChecked;
+              break;
+            }
+        }
+        m_taxonomyVisibility[parentTaxonomy] = checkState;
+        emit dataChanged(parentIndex, parentIndex);
+      }
+    }
+    else
+      result = m_model->setData(mapToSource(index), value, role);
+  }
 
   return result;
 }
@@ -303,7 +352,7 @@ Qt::ItemFlags TaxonomyProxy::flags(const QModelIndex& index) const
   {
     ModelItemPtr sourceItem = indexPtr(index);
     if (EspINA::TAXONOMY == sourceItem->type())
-      f = f | Qt::ItemIsDropEnabled | Qt::ItemIsDragEnabled | Qt::ItemIsEditable;
+      f = f | Qt::ItemIsDropEnabled | Qt::ItemIsDragEnabled | Qt::ItemIsEditable | Qt::ItemIsUserCheckable;
     else if (EspINA::SEGMENTATION == sourceItem->type())
       f = f | Qt::ItemIsDropEnabled | Qt::ItemIsDragEnabled;
   }
@@ -770,7 +819,8 @@ bool idOrdered(SegmentationPtr seg1, SegmentationPtr seg2)
 //------------------------------------------------------------------------
 void TaxonomyProxy::addTaxonomicalElement(TaxonomyElementPtr taxonomicalElement)
 {
-  m_numTaxonomies[taxonomicalElement] = taxonomicalElement->subElements().size();
+  m_numTaxonomies[taxonomicalElement]      = taxonomicalElement->subElements().size();
+  m_taxonomyVisibility[taxonomicalElement] = Qt::Checked;
 
   foreach(TaxonomyElementSPtr subTaxonomcialElement, taxonomicalElement->subElements())
   {
