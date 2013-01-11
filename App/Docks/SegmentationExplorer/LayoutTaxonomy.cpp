@@ -224,7 +224,25 @@ void TaxonomyLayout::segmentationsDragged(SegmentationList   segmentations,
 void TaxonomyLayout::taxonomiesDragged(TaxonomyElementList subTaxonomies,
                                        TaxonomyElementPtr  taxonomy)
 {
-  m_undoStack->beginMacro(tr("Modify Taxonomy"));
-  m_undoStack->push(new MoveTaxonomiesCommand(subTaxonomies, taxonomy, m_model));
-  m_undoStack->endMacro();
+  TaxonomyElementList validSubTaxonomies;
+  foreach(TaxonomyElementPtr subTaxonomy, subTaxonomies)
+  {
+    if (taxonomy->element(subTaxonomy->name()).isNull())
+    {
+      bool nameConflict = false;
+      foreach (TaxonomyElementPtr validSubTaxonomy, validSubTaxonomies)
+      {
+        if (validSubTaxonomy->name() == subTaxonomy->name())
+          nameConflict = true;
+      }
+      if (!nameConflict)
+        validSubTaxonomies << subTaxonomy;
+    }
+  }
+  if (!validSubTaxonomies.isEmpty())
+  {
+    m_undoStack->beginMacro(tr("Modify Taxonomy"));
+    m_undoStack->push(new MoveTaxonomiesCommand(validSubTaxonomies, taxonomy, m_model));
+    m_undoStack->endMacro();
+  }
 }
