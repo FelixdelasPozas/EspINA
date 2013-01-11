@@ -285,7 +285,7 @@ void Channel::initializeExtensions(const Arguments &args)
 }
 
 //------------------------------------------------------------------------
-QVariant Channel::information(QString name)
+QVariant Channel::information(const QString &name)
 {
   if (name == NAME)
     return data(Qt::DisplayRole);

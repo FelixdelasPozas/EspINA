@@ -60,6 +60,7 @@ namespace EspINA
     virtual QVariant data(int role=Qt::DisplayRole) const;
     virtual QString serialize() const;
     virtual ModelItemType type() const {return SAMPLE;}
+
     virtual void initialize(const Arguments &args = Arguments());
     virtual void initializeExtensions(const Arguments &args = Arguments());
 

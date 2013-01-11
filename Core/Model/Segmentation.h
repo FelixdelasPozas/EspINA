@@ -160,8 +160,7 @@ namespace EspINA
     //   ISegmentationRepresentation *representation(QString rep);
 
     virtual QStringList availableInformations() const;
-    virtual QVariant information(QString info);
-    virtual ModelItemExtensionPtr extension(QString name);
+    virtual QVariant information(const QString &name);
 
   public slots:
     virtual void notifyModification(bool force = false);
