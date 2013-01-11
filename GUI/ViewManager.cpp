@@ -25,6 +25,7 @@
 #include <GUI/QtWidget/SliceView.h>
 #include <GUI/Tools/IVOI.h>
 #include <Core/EspinaSettings.h>
+#include <Core/Utils/Measure.h>
 
 #include <vtkMath.h>
 
@@ -42,6 +43,7 @@ ViewManager::ViewManager()
 : m_voi(NULL)
 , m_tool(NULL)
 , m_fitToSlices(new QAction(tr("Fit To Slices"), this))
+, m_resolutionUnits(QString("nm"))
 , m_activeChannel(NULL)
 , m_activeTaxonomy(NULL)
 , m_colorEngine(NULL)
@@ -427,5 +429,18 @@ Nm *ViewManager::viewResolution()
   // have the same view resolution, so we can get the correct resolution from
   // any of them
   memcpy(m_viewResolution, m_renderViews.first()->sceneResolution(), sizeof(Nm)*3);
+
+  double smaller = std::min(m_viewResolution[0], std::min(m_viewResolution[1], m_viewResolution[2]));
+  m_resolutionUnits = Measure(smaller).getUnits();
   return m_viewResolution;
+}
+
+//----------------------------------------------------------------------------
+MeasureSPtr ViewManager::measure(Nm distance)
+{
+  MeasurePtr measure = new Measure(distance);
+  viewResolution();
+  measure->toUnits(m_resolutionUnits);
+
+  return MeasureSPtr(measure);
 }

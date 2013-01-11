@@ -64,6 +64,7 @@ set (CORE_SOURCES
   VTK/vtkTube.cxx
   Utils/SegmentationCollision.cpp
   Model/HierarchyItem.cpp
+  Utils/Measure.cpp
   )
 
 set(CORE_EXTERNAL_LIBS

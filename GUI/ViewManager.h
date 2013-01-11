@@ -29,6 +29,7 @@
 #include "Core/ColorEngines/IColorEngine.h"
 #include "GUI/Tools/IVOI.h"
 #include "GUI/vtkWidgets/EspinaWidget.h"
+#include <Core/Utils/Measure.h>
 
 // Qt
 #include <QList>
@@ -52,6 +53,7 @@ namespace EspINA
   class ITool;
   class IVOI;
   class SliceView;
+  class Measure;
 
   class ViewManager
   : public QObject
@@ -155,6 +157,7 @@ namespace EspINA
     QAction *fitToSlices() {return m_fitToSlices;}
 
     Nm *viewResolution();
+    MeasureSPtr measure(Nm distance);
   public slots:
     /// Update Segmentation Representation
     void updateSegmentationRepresentations(SegmentationList list = SegmentationList());
@@ -168,6 +171,7 @@ namespace EspINA
 private:
   QAction *m_fitToSlices;
   Nm m_viewResolution[3];
+  QString m_resolutionUnits;
 
 
     //---------------------------------------------------------------------------
