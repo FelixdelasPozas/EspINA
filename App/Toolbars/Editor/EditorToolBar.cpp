@@ -81,11 +81,12 @@ namespace EspINA
 
   public:
     explicit CODECommand(SegmentationList inputs,
-                         Operation op,
-                         unsigned int radius,
-                         EspinaModel *model
-    )
-    : m_model(model)
+                         Operation        op,
+                         unsigned int     radius,
+                         EspinaModel      *model,
+                         ViewManager      *viewManager)
+    : m_model      (model      )
+    , m_viewManager(viewManager)
     {
       QApplication::setOverrideCursor(Qt::WaitCursor);
 
@@ -126,30 +127,37 @@ namespace EspINA
 
     virtual void redo()
     {
+      SegmentationList segmentations;
       for(int i=0; i<m_newConnections.size(); i++)
       {
         SegmentationSPtr seg      = m_segmentations[i];
         Connection oldConnection = m_oldConnections[i];
         Connection newConnection = m_newConnections[i];
+
+        segmentations << seg.data();
 
         m_model->removeRelation(oldConnection.first, seg, Filter::CREATELINK);
         m_model->addFilter(newConnection.first);
         m_model->addRelation(oldConnection.first, newConnection.first, INPUTLINK);
         m_model->addRelation(newConnection.first, seg, Filter::CREATELINK);
         seg->changeFilter(newConnection.first, newConnection.second);
-        seg->notifyModification(true);
         // TODO 2012-11-05 Extensesions need to be updated when
         // notifyModification method is called (at least with true)
+        // seg->notifyModification();
       }
+      m_viewManager->updateSegmentationRepresentations(segmentations);
     }
 
     virtual void undo()
     {
+      SegmentationList segmentations;
       for(int i=0; i<m_newConnections.size(); i++)
       {
         SegmentationSPtr seg      = m_segmentations[i];
         Connection oldConnection = m_oldConnections[i];
         Connection newConnection = m_newConnections[i];
+
+        segmentations << seg.data();
 
         m_model->removeRelation(newConnection.first, seg, Filter::CREATELINK);
         m_model->removeRelation(oldConnection.first, newConnection.first, INPUTLINK);
@@ -161,10 +169,13 @@ namespace EspINA
         seg->changeFilter(oldConnection.first, oldConnection.second);
         seg->notifyModification(true);
       }
+      m_viewManager->updateSegmentationRepresentations(segmentations);
     }
 
   private:
     EspinaModel *m_model;
+    ViewManager *m_viewManager;
+
     QList<Connection> m_oldConnections, m_newConnections;
     SegmentationSList  m_segmentations;
   };
@@ -387,7 +398,7 @@ void EditorToolBar::closeSegmentations()
   if (input.size() > 0)
   {
     int r = m_settings->closeRadius();
-    m_undoStack->push(new CODECommand(input, CODECommand::CLOSE, r, m_model));
+    m_undoStack->push(new CODECommand(input, CODECommand::CLOSE, r, m_model, m_viewManager));
   }
 }
 
@@ -400,7 +411,7 @@ void EditorToolBar::openSegmentations()
   if (input.size() > 0)
   {
     int r = m_settings->openRadius();
-    m_undoStack->push(new CODECommand(input, CODECommand::OPEN, r, m_model));
+    m_undoStack->push(new CODECommand(input, CODECommand::OPEN, r, m_model, m_viewManager));
   }
 }
 
@@ -413,7 +424,7 @@ void EditorToolBar::dilateSegmentations()
   if (input.size() > 0)
   {
     int r = m_settings->dilateRadius();
-    m_undoStack->push(new CODECommand(input, CODECommand::DILATE, r, m_model));
+    m_undoStack->push(new CODECommand(input, CODECommand::DILATE, r, m_model, m_viewManager));
   }
 }
 
@@ -426,7 +437,7 @@ void EditorToolBar::erodeSegmentations()
   if (input.size() > 0)
   {
     int r = m_settings->erodeRadius();
-    m_undoStack->push(new CODECommand(input, CODECommand::ERODE, r, m_model));
+    m_undoStack->push(new CODECommand(input, CODECommand::ERODE, r, m_model, m_viewManager));
   }
 }
 

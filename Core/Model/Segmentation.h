@@ -163,6 +163,7 @@ namespace EspINA
     virtual QVariant information(const QString &name);
 
   public slots:
+    // DEPRECATED??
     virtual void notifyModification(bool force = false);
 
   private:
