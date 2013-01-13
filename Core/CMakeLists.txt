@@ -5,10 +5,12 @@ include_directories(
 
 qt4_wrap_cpp(CORE_MOC
   ColorEngines/IColorEngine.h
+  ColorEngines/TaxonomyColorEngine.h
   Model/EspinaModel.h
   Model/ModelTest.h
   Model/ModelItem.h
   Model/Segmentation.h
+  Model/Taxonomy.h
   Model/Proxies/ChannelProxy.h
   Model/Proxies/CompositionProxy.h
   Model/Proxies/SampleProxy.h

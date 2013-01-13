@@ -28,6 +28,7 @@ namespace EspINA
 class TaxonomyColorEngine
 : public ColorEngine
 {
+  Q_OBJECT
 public:
   explicit TaxonomyColorEngine(){}
 
@@ -36,8 +37,10 @@ public:
   virtual ColorEngine::Composition supportedComposition() const
   { return ColorEngine::Color; }
 
+protected slots:
   void updateTaxonomyColor(TaxonomyElementPtr tax);
 
+private:
   QMap<QString, vtkSmartPointer<vtkLookupTable> > m_LUT;
 };
 

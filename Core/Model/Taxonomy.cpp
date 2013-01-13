@@ -62,6 +62,17 @@ QString TaxonomyElement::qualifiedName() const
     return m_name;
 }
 
+//------------------------------------------------------------------------
+void TaxonomyElement::setColor(const QColor &color)
+{
+  if (m_color != color)
+  {
+    m_color = color;
+
+    emit colorChanged(this);
+  }
+}
+
 
 //------------------------------------------------------------------------
 TaxonomyElementSPtr TaxonomyElement::createElement(const QString& name)

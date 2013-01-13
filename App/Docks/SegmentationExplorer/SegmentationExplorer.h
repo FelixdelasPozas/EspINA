@@ -77,15 +77,15 @@ namespace EspINA
 
     void changeTaxonomy(TaxonomyElementPtr taxonomy);
     void changeFinalFlag(bool);
-    void deleteSegmentations();
+
+    void deleteSelectedItems();
+    void showSelectedItemsInformation();
+
     void focusOnSegmentation(const QModelIndex &index);
-    void rowsAboutToBeRemoved(const QModelIndex parent, int start, int end);
-    void showInformation();
 
     void updateSelection(ViewManager::Selection selection);
     void updateSelection(QItemSelection selected, QItemSelection deselected);
 
-    void releaseInspectorResources(SegmentationInspector *inspector);
 
     virtual void updateSegmentationRepresentations(SegmentationList list = SegmentationList());
     virtual void updateChannelRepresentations(ChannelList list = ChannelList());
@@ -101,8 +101,6 @@ namespace EspINA
     QStringListModel m_layoutModel;
     QList<Layout *>  m_layouts;
     Layout          *m_layout;
-
-    QMap<SegmentationPtr, SegmentationInspector *> m_inspectors;
 
   private:
     #ifdef TEST_ESPINA_MODELS

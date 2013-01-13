@@ -23,6 +23,7 @@
 #include "SegmentationExplorerLayout.h"
 
 #include <Core/Model/Proxies/TaxonomyProxy.h>
+#include <Core/ColorEngines/TaxonomyColorEngine.h>
 
 #include <QSortFilterProxyModel>
 
@@ -31,8 +32,7 @@
 namespace EspINA
 {
   class TaxonomyLayout
-  : public QObject
-  , public SegmentationExplorer::Layout
+  : public SegmentationExplorer::Layout
   {
     Q_OBJECT
 
@@ -44,9 +44,10 @@ namespace EspINA
     };
 
   public:
-    explicit TaxonomyLayout(CheckableTreeView *view,
-                            EspinaModel *model,
-                            QUndoStack *undoStack);
+    explicit TaxonomyLayout(CheckableTreeView     *view,
+                            EspinaModel           *model,
+                            QUndoStack            *undoStack,
+                            ViewManager           *viewManager);
     virtual ~TaxonomyLayout();
 
     virtual void createSpecificControls(QHBoxLayout *specificControlLayout);

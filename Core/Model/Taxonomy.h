@@ -41,6 +41,7 @@ namespace EspINA
   : public ModelItem
   , public HierarchyItem
   {
+    Q_OBJECT
   public:
     static const QString X_DIM;
     static const QString Y_DIM;
@@ -64,8 +65,7 @@ namespace EspINA
     /// root to this element
     QString qualifiedName() const;
 
-    void setColor(const QColor &color)
-    {m_color = color;}
+    void setColor(const QColor &color);
 
     QColor color() const {return m_color;}
 
@@ -93,6 +93,9 @@ namespace EspINA
     TaxonomyElementPtr parent() {return m_parent;}
 
     void print(int level=0);
+
+  signals:
+    void colorChanged(TaxonomyElementPtr);
 
   private:
     explicit TaxonomyElement(TaxonomyElementPtr parent,

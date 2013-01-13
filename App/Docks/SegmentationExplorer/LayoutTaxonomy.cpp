@@ -28,6 +28,7 @@
 
 #include <QMessageBox>
 #include <QUndoStack>
+#include <QColorDialog>
 
 using namespace EspINA;
 
@@ -47,10 +48,11 @@ bool TaxonomyLayout::SortFilter::lessThan(const QModelIndex& left, const QModelI
 }
 
 //------------------------------------------------------------------------
-TaxonomyLayout::TaxonomyLayout(CheckableTreeView *view,
-                               EspinaModel       *model,
-                               QUndoStack        *undoStack)
-: Layout (view, model, undoStack)
+TaxonomyLayout::TaxonomyLayout(CheckableTreeView     *view,
+                               EspinaModel           *model,
+                               QUndoStack            *undoStack,
+                               ViewManager           *viewManager)
+: Layout (view, model, undoStack, viewManager)
 , m_proxy(new TaxonomyProxy())
 , m_sort (new SortFilter())
 {
@@ -107,6 +109,10 @@ void TaxonomyLayout::deleteSelectedItems()
   QSet<Segmentation *> segmentations;
 
   QModelIndexList selectedIndexes = m_view->selectionModel()->selectedIndexes();
+
+  if (selectedIndexes.isEmpty())
+    return;
+
   foreach(QModelIndex index, selectedIndexes)
   {
     ModelItemPtr item = TaxonomyLayout::item(index);
@@ -123,11 +129,15 @@ void TaxonomyLayout::deleteSelectedItems()
     }
   }
 
-  if (!taxonomies.isEmpty())
+  if (taxonomies.isEmpty())
+  {
+    deleteSegmentations(segmentations.toList());
+  }
+  else
   {
     foreach(TaxonomyElementPtr taxonomy, taxonomies)
     {
-      foreach(SegmentationPtr segmentation, m_proxy->segmentations(taxonomy))
+      foreach(SegmentationPtr segmentation, m_proxy->segmentations(taxonomy, true))
       {
         segmentations << segmentation;
       }
@@ -138,9 +148,9 @@ void TaxonomyLayout::deleteSelectedItems()
     if (!segmentations.isEmpty())
     {
       QMessageBox msg;
-      msg.setText(tr("Delete Selected Items"));
+      msg.setText(tr("Delete Selected Items. Warning: all elements under selected items will also be deleted"));
+      QPushButton *recursiveTax = msg.addButton(tr("Taxonomies"), QMessageBox::AcceptRole);
       QPushButton *onlySeg      = msg.addButton(tr("Only Segmemtations"), QMessageBox::AcceptRole);
-      QPushButton *recursiveTax = msg.addButton(tr("Taxonomies: Warning! this also remove children segmentations"), QMessageBox::AcceptRole);
       QPushButton *none         = msg.addButton(tr("Cancel"), QMessageBox::RejectRole);
 
       msg.exec();
@@ -176,81 +186,46 @@ void TaxonomyLayout::deleteSelectedItems()
   }
 }
 
-// SegmentationList TaxonomyLayout::deletedSegmentations(QModelIndexList selection)
-// {
-//   QSet<SegmentationPtr> toDelete;
-//   foreach(QModelIndex index, selection)
-//   {
-//     index = m_sort->mapToSource(index);
-//     ModelItemPtr item = indexPtr(index);
-//     switch (item->type())
-//     {
-//       case EspINA::SEGMENTATION:
-//       {
-//         SegmentationPtr seg = segmentationPtr(item);
-//         toDelete << seg;
-//         break;
-//       }
-//       case EspINA::TAXONOMY:
-//       {
-//         int totalSeg = m_proxy->numSegmentations(index, true);
-//         int directSeg = m_proxy->numSegmentations(index);
-// 
-//         if (totalSeg == 0)
-//           continue;
-// 
-//         TaxonomyElementPtr taxonmy = taxonomyElementPtr(item);
-//         QMessageBox msgBox;
-//         msgBox.setText(SEGMENTATION_MESSAGE.arg(taxonmy->qualifiedName()));
-//         msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-//         msgBox.setDefaultButton(QMessageBox::No);
-// 
-//         if (directSeg > 0)
-//         {
-//           if (directSeg < totalSeg)
-//           {
-//             msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::YesAll |  QMessageBox::No);
-//             msgBox.setText(MIXED_MESSAGE.arg(taxonmy->qualifiedName()));
-//           }
-//         } else
-//         {
-//           msgBox.setText(RECURSIVE_MESSAGE.arg(taxonmy->qualifiedName()));
-//           msgBox.setStandardButtons(QMessageBox::YesAll |  QMessageBox::No);
-//         }
-// 
-//         bool recursive = false;
-//         switch (msgBox.exec())
-//         {
-//           case QMessageBox::YesAll:
-//             recursive = true;
-//           case QMessageBox::Yes:
-//           {
-//             QModelIndexList subSegs = m_proxy->segmentations(index, recursive);
-//             foreach(QModelIndex subIndex, subSegs)
-//             {
-//               ModelItemPtr subItem = indexPtr(subIndex);
-//               SegmentationPtr seg = segmentationPtr(subItem);
-//               toDelete << seg;
-//             }
-//             break;
-//           }
-//           default:
-//             break;
-//         }
-//         break;
-//       }
-//           default:
-//             Q_ASSERT(false);
-//             break;
-//     }
-//   }
-// 
-//   return toDelete.toList();
-// }
-
 //------------------------------------------------------------------------
 void TaxonomyLayout::showSelectedItemsInformation()
 {
+  TaxonomyElementList  taxonomies;
+  QSet<Segmentation *> segmentations;
+
+  QModelIndexList selectedIndexes = m_view->selectionModel()->selectedIndexes();
+  foreach(QModelIndex index, selectedIndexes)
+  {
+    ModelItemPtr item = TaxonomyLayout::item(index);
+    switch (item->type())
+    {
+      case EspINA::SEGMENTATION:
+        segmentations << segmentationPtr(item);
+        break;
+      case EspINA::TAXONOMY:
+        taxonomies << taxonomyElementPtr(item);
+        break;
+      default:
+        Q_ASSERT(false);
+    }
+  }
+
+  if (taxonomies.size() == 1 && segmentations.isEmpty())
+  {
+    // Change Taxonomy Color
+    QColorDialog colorSelector;
+    if( colorSelector.exec() == QDialog::Accepted)
+    {
+      TaxonomyElementPtr taxonomy = taxonomies.first();
+      taxonomy->setData(colorSelector.selectedColor(),
+                        Qt::DecorationRole);
+
+      m_viewManager->updateSegmentationRepresentations();
+      m_viewManager->updateViews();
+    }
+  } else if (!segmentations.isEmpty())
+  {
+    showSegmentationInformation(segmentations.toList());
+  }
 
 }
 

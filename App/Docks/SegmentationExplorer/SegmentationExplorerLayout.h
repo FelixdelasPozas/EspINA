@@ -27,8 +27,13 @@
 
 namespace EspINA
 {
+
+  class SegmentationInspector;
+
   class SegmentationExplorer::Layout
+  : public QObject
   {
+    Q_OBJECT
   protected:
     static const QString SEGMENTATION_MESSAGE;
     static const QString RECURSIVE_MESSAGE;
@@ -36,12 +41,9 @@ namespace EspINA
 
   public:
     explicit Layout(CheckableTreeView *view,
-                    EspinaModel *model,
-                    QUndoStack  *undoStack)
-    : m_model    (model    )
-    , m_undoStack(undoStack)
-    , m_view     (view     )
-    {}
+                    EspinaModel       *model,
+                    QUndoStack        *undoStack,
+                    ViewManager       *viewManager);
 
     virtual ~Layout(){}
 
@@ -60,15 +62,22 @@ namespace EspINA
 
   protected:
     void deleteSegmentations(SegmentationList segmentations);
-    void showSegmentationInformation();
+    void showSegmentationInformation(SegmentationList segmentations);
 
     QModelIndexList indices(const QModelIndex &index, bool recursive=false);
+
+  protected slots:
+    void releaseInspectorResources(SegmentationInspector *inspector);
+    void rowsAboutToBeRemoved(const QModelIndex parent, int start, int end);
 
   protected:
     EspinaModel *m_model;
     QUndoStack  *m_undoStack;
+    ViewManager *m_viewManager;
 
     CheckableTreeView *m_view;
+
+    QMap<SegmentationPtr, SegmentationInspector *> m_inspectors;
   };
 
   bool sortSegmentationLessThan(ModelItemPtr left, ModelItemPtr right);

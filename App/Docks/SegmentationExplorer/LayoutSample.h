@@ -42,7 +42,8 @@ namespace EspINA
   public:
     explicit SampleLayout(CheckableTreeView *view,
                           EspinaModel       *model,
-                          QUndoStack        *undoStack);
+                          QUndoStack        *undoStack,
+                          ViewManager       *viewManager);
     virtual ~SampleLayout();
 
     virtual QAbstractItemModel* model() {return m_sort.data();}

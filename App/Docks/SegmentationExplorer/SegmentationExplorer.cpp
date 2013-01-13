@@ -88,7 +88,7 @@ SegmentationExplorer::SegmentationExplorer(EspinaModel *model,
   setWindowTitle(tr("Segmentation Explorer"));
 
   //   addLayout("Debug", new Layout(m_baseModel));
-  addLayout("Taxonomy",    new TaxonomyLayout   (m_gui->view, m_baseModel, m_undoStack));
+  addLayout("Taxonomy",    new TaxonomyLayout   (m_gui->view, m_baseModel, m_undoStack, m_viewManager));
 //   addLayout("Composition", new CompositionLayout(m_gui->view, m_baseModel, m_undoStack));
 //   addLayout("Location",    new SampleLayout     (m_gui->view, m_baseModel, m_undoStack));
 
@@ -103,13 +103,11 @@ SegmentationExplorer::SegmentationExplorer(EspinaModel *model,
   connect(m_gui->view, SIGNAL(itemStateChanged(QModelIndex)),
           this, SLOT(updateSegmentationRepresentations()));
   connect(m_gui->showInformationButton, SIGNAL(clicked(bool)),
-          this, SLOT(showInformation()));
+          this, SLOT(showSelectedItemsInformation()));
   connect(m_gui->deleteButton, SIGNAL(clicked(bool)),
-          this, SLOT(deleteSegmentations()));
+          this, SLOT(deleteSelectedItems()));
   connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection, bool)),
           this, SLOT(updateSelection(ViewManager::Selection)));
-  connect(m_baseModel, SIGNAL(rowsAboutToBeRemoved(QModelIndex, int , int)),
-          this, SLOT(rowsAboutToBeRemoved(QModelIndex, int,int)));
 
   setWidget(m_gui);
 
@@ -156,7 +154,7 @@ bool SegmentationExplorer::eventFilter(QObject *sender, QEvent *e)
 
     SegmentationContextualMenu contextMenu(m_baseModel, m_viewManager->selectedSegmentations());
     connect(&contextMenu, SIGNAL(deleteSegmentations()),
-            this, SLOT(deleteSegmentations()));
+            this, SLOT(deleteSelectedItems()));
     connect(&contextMenu, SIGNAL(changeTaxonomy(TaxonomyElementPtr)),
             this, SLOT(changeTaxonomy(TaxonomyElementPtr)));
     connect(&contextMenu, SIGNAL(changeFinalNode(bool)),
@@ -212,35 +210,42 @@ void SegmentationExplorer::changeTaxonomy(TaxonomyElementPtr taxonomy)
 }
 
 //------------------------------------------------------------------------
-void SegmentationExplorer::deleteSegmentations()
+void SegmentationExplorer::deleteSelectedItems()
 {
   if (m_layout)
   {
     m_layout->deleteSelectedItems();
   }
+}
 
-  if (!m_layout)
-    return;
+//------------------------------------------------------------------------
+void SegmentationExplorer::showSelectedItemsInformation()
+{
+  if (m_layout)
+  {
+    m_layout->showSelectedItemsInformation();
+  }
 
-  
-//   if (m_layout)
-//   {
-//     SegmentationList toDelete = m_layout->deletedSegmentations(selected);
-//     if (!toDelete.isEmpty())
-//     {
-//       m_gui->view->selectionModel()->blockSignals(true);
-//       m_gui->view->selectionModel()->clear();
-//       m_gui->view->selectionModel()->blockSignals(false);
-//       m_viewManager->clearSelection(false);
-//       m_undoStack->beginMacro("Delete Segmentations");
-//       // BUG: Temporal Fix until RemoveSegmentation's bug is fixed
-//       foreach(SegmentationPtr seg, toDelete)
-//       {
-//         m_undoStack->push(new RemoveSegmentation(seg, m_baseModel));
-//       }
-//       m_undoStack->endMacro();
-//     }
-//   }
+  return;
+/*
+  foreach(QModelIndex index, m_gui->view->selectionModel()->selectedIndexes())
+  {
+    ModelItemPtr item = m_layout->item(index);
+    if (EspINA::SEGMENTATION == item->type())
+    {
+      SegmentationPtr seg = segmentationPtr(item);
+      SegmentationInspector *inspector = m_inspectors.value(seg, NULL);
+      if (!inspector)
+      {
+        inspector = new SegmentationInspector(seg, m_baseModel, m_undoStack, m_viewManager);
+        connect(inspector, SIGNAL(inspectorClosed(SegmentationInspector*)),
+                this, SLOT(releaseInspectorResources(SegmentationInspector*)));
+        m_inspectors[seg] = inspector;
+      }
+      inspector->show();
+      inspector->raise();
+    }*/
+  //}
 }
 
 
@@ -264,49 +269,6 @@ void SegmentationExplorer::focusOnSegmentation(const QModelIndex& index)
   view->setCrosshairPoint(p[0], p[1], p[2]);
   view->setCameraFocus(p);                     cbbp
   */
-}
-
-//------------------------------------------------------------------------
-void SegmentationExplorer::rowsAboutToBeRemoved(const QModelIndex parent, int start, int end)
-{
-  if (m_baseModel->segmentationRoot() == parent)
-  {
-    for(int row = start; row <= end; row++)
-    {
-      QModelIndex child = parent.child(row, 0);
-      ModelItemPtr item = indexPtr(child);
-      SegmentationPtr seg = segmentationPtr(item);
-      SegmentationInspector *inspector = m_inspectors.value(seg, NULL);
-      if (inspector)
-      {
-        m_inspectors.remove(seg);
-        inspector->close();
-      }
-    }
-  }
-}
-
-//------------------------------------------------------------------------
-void SegmentationExplorer::showInformation()
-{
-  foreach(QModelIndex index, m_gui->view->selectionModel()->selectedIndexes())
-  {
-    ModelItemPtr item = m_layout->item(index);
-    if (EspINA::SEGMENTATION == item->type())
-    {
-      SegmentationPtr seg = segmentationPtr(item);
-      SegmentationInspector *inspector = m_inspectors.value(seg, NULL);
-      if (!inspector)
-      {
-        inspector = new SegmentationInspector(seg, m_baseModel, m_undoStack, m_viewManager);
-        connect(inspector, SIGNAL(inspectorClosed(SegmentationInspector*)),
-                this, SLOT(releaseInspectorResources(SegmentationInspector*)));
-        m_inspectors[seg] = inspector;
-      }
-      inspector->show();
-      inspector->raise();
-    }
-  }
 }
 
 //------------------------------------------------------------------------
@@ -352,16 +314,6 @@ void SegmentationExplorer::updateSelection(QItemSelection selected, QItemSelecti
   }
 
   m_viewManager->setSelection(selection);
-}
-
-//------------------------------------------------------------------------
-void SegmentationExplorer::releaseInspectorResources(SegmentationInspector* inspector)
-{
-  foreach(SegmentationPtr seg, m_inspectors.keys())
-  {
-    if (m_inspectors[seg] == inspector)
-      m_inspectors.remove(seg);
-  }
 }
 
 //------------------------------------------------------------------------
