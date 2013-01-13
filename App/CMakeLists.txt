@@ -131,6 +131,7 @@ set (ESPINA_SOURCES
   Undo/MoveTaxonomiesCommand.cpp
   Undo/SeedGrowSegmentationCommand.cpp
   Undo/SplitUndoCommand.cpp
+  Undo/RemoveTaxonomyElementCommand.cpp
   Views/DefaultEspinaView.cpp
   Dialogs/Connectomics/ConnectomicsDialog.cpp
   Tools/Measure/MeasureTool.cpp

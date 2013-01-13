@@ -290,6 +290,9 @@ TaxonomyElementSPtr Taxonomy::element(const QString& qualifiedName)
     Q_ASSERT(!node.isNull());
   }
 
+  if (node == m_root)
+    node.clear();
+
   return node;
 //   bool exits = false;
 //   foreach(TaxonomyElementPtr sibling, m_parent->m_elements)

@@ -21,6 +21,7 @@
 #include <Undo/ChangeTaxonomyCommand.h>
 #include <Undo/MoveTaxonomiesCommand.h>
 #include <Undo/AddTaxonomyElement.h>
+#include <Undo/RemoveTaxonomyElementCommand.h>
 
 #include <Core/Model/Segmentation.h>
 #include <Core/Model/Taxonomy.h>
@@ -100,76 +101,157 @@ void TaxonomyLayout::createSpecificControls(QHBoxLayout *specificControlLayout)
 }
 
 //------------------------------------------------------------------------
-SegmentationList TaxonomyLayout::deletedSegmentations(QModelIndexList selection)
+void TaxonomyLayout::deleteSelectedItems()
 {
-  QSet<SegmentationPtr> toDelete;
-  foreach(QModelIndex index, selection)
+  TaxonomyElementList  taxonomies;
+  QSet<Segmentation *> segmentations;
+
+  QModelIndexList selectedIndexes = m_view->selectionModel()->selectedIndexes();
+  foreach(QModelIndex index, selectedIndexes)
   {
-    index = m_sort->mapToSource(index);
-    ModelItemPtr item = indexPtr(index);
+    ModelItemPtr item = TaxonomyLayout::item(index);
     switch (item->type())
     {
       case EspINA::SEGMENTATION:
-      {
-        SegmentationPtr seg = segmentationPtr(item);
-        toDelete << seg;
+        segmentations << segmentationPtr(item);
         break;
-      }
       case EspINA::TAXONOMY:
-      {
-        int totalSeg = m_proxy->numSegmentations(index, true);
-        int directSeg = m_proxy->numSegmentations(index);
-
-        if (totalSeg == 0)
-          continue;
-
-        TaxonomyElementPtr taxonmy = taxonomyElementPtr(item);
-        QMessageBox msgBox;
-        msgBox.setText(SEGMENTATION_MESSAGE.arg(taxonmy->qualifiedName()));
-        msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-        msgBox.setDefaultButton(QMessageBox::No);
-
-        if (directSeg > 0)
-        {
-          if (directSeg < totalSeg)
-          {
-            msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::YesAll |  QMessageBox::No);
-            msgBox.setText(MIXED_MESSAGE.arg(taxonmy->qualifiedName()));
-          }
-        } else
-        {
-          msgBox.setText(RECURSIVE_MESSAGE.arg(taxonmy->qualifiedName()));
-          msgBox.setStandardButtons(QMessageBox::YesAll |  QMessageBox::No);
-        }
-
-        bool recursive = false;
-        switch (msgBox.exec())
-        {
-          case QMessageBox::YesAll:
-            recursive = true;
-          case QMessageBox::Yes:
-          {
-            QModelIndexList subSegs = m_proxy->segmentations(index, recursive);
-            foreach(QModelIndex subIndex, subSegs)
-            {
-              ModelItemPtr subItem = indexPtr(subIndex);
-              SegmentationPtr seg = segmentationPtr(subItem);
-              toDelete << seg;
-            }
-            break;
-          }
-          default:
-            break;
-        }
+        taxonomies << taxonomyElementPtr(item);
         break;
-      }
-          default:
-            Q_ASSERT(false);
-            break;
+      default:
+        Q_ASSERT(false);
     }
   }
 
-  return toDelete.toList();
+  if (!taxonomies.isEmpty())
+  {
+    foreach(TaxonomyElementPtr taxonomy, taxonomies)
+    {
+      foreach(SegmentationPtr segmentation, m_proxy->segmentations(taxonomy))
+      {
+        segmentations << segmentation;
+      }
+    }
+
+    bool recursiveRemoval = false;
+
+    if (!segmentations.isEmpty())
+    {
+      QMessageBox msg;
+      msg.setText(tr("Delete Selected Items"));
+      QPushButton *onlySeg      = msg.addButton(tr("Only Segmemtations"), QMessageBox::AcceptRole);
+      QPushButton *recursiveTax = msg.addButton(tr("Taxonomies: Warning! this also remove children segmentations"), QMessageBox::AcceptRole);
+      QPushButton *none         = msg.addButton(tr("Cancel"), QMessageBox::RejectRole);
+
+      msg.exec();
+
+      if (msg.clickedButton() == none)
+        return;
+
+      recursiveRemoval = msg.clickedButton() == recursiveTax;
+
+      if (recursiveRemoval)
+        m_undoStack->beginMacro("Remove Taxonomy");
+
+      // Delete Segmentations
+      deleteSegmentations(segmentations.toList());
+
+      if (recursiveRemoval)
+        segmentations.clear();
+    }
+
+    if (segmentations.isEmpty())
+    {
+      // Remove Taxonomies
+      if (!recursiveRemoval)
+        m_undoStack->beginMacro(tr("Remove Taxonomy"));
+
+      foreach(TaxonomyElementPtr taxonomy, taxonomies)
+      {
+        if (!m_model->taxonomy()->element(taxonomy->qualifiedName()).isNull())
+          m_undoStack->push(new RemoveTaxonomyElementCommand(taxonomy, m_model));
+      }
+      m_undoStack->endMacro();
+    }
+  }
+}
+
+// SegmentationList TaxonomyLayout::deletedSegmentations(QModelIndexList selection)
+// {
+//   QSet<SegmentationPtr> toDelete;
+//   foreach(QModelIndex index, selection)
+//   {
+//     index = m_sort->mapToSource(index);
+//     ModelItemPtr item = indexPtr(index);
+//     switch (item->type())
+//     {
+//       case EspINA::SEGMENTATION:
+//       {
+//         SegmentationPtr seg = segmentationPtr(item);
+//         toDelete << seg;
+//         break;
+//       }
+//       case EspINA::TAXONOMY:
+//       {
+//         int totalSeg = m_proxy->numSegmentations(index, true);
+//         int directSeg = m_proxy->numSegmentations(index);
+// 
+//         if (totalSeg == 0)
+//           continue;
+// 
+//         TaxonomyElementPtr taxonmy = taxonomyElementPtr(item);
+//         QMessageBox msgBox;
+//         msgBox.setText(SEGMENTATION_MESSAGE.arg(taxonmy->qualifiedName()));
+//         msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+//         msgBox.setDefaultButton(QMessageBox::No);
+// 
+//         if (directSeg > 0)
+//         {
+//           if (directSeg < totalSeg)
+//           {
+//             msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::YesAll |  QMessageBox::No);
+//             msgBox.setText(MIXED_MESSAGE.arg(taxonmy->qualifiedName()));
+//           }
+//         } else
+//         {
+//           msgBox.setText(RECURSIVE_MESSAGE.arg(taxonmy->qualifiedName()));
+//           msgBox.setStandardButtons(QMessageBox::YesAll |  QMessageBox::No);
+//         }
+// 
+//         bool recursive = false;
+//         switch (msgBox.exec())
+//         {
+//           case QMessageBox::YesAll:
+//             recursive = true;
+//           case QMessageBox::Yes:
+//           {
+//             QModelIndexList subSegs = m_proxy->segmentations(index, recursive);
+//             foreach(QModelIndex subIndex, subSegs)
+//             {
+//               ModelItemPtr subItem = indexPtr(subIndex);
+//               SegmentationPtr seg = segmentationPtr(subItem);
+//               toDelete << seg;
+//             }
+//             break;
+//           }
+//           default:
+//             break;
+//         }
+//         break;
+//       }
+//           default:
+//             Q_ASSERT(false);
+//             break;
+//     }
+//   }
+// 
+//   return toDelete.toList();
+// }
+
+//------------------------------------------------------------------------
+void TaxonomyLayout::showSelectedItemsInformation()
+{
+
 }
 
 //------------------------------------------------------------------------

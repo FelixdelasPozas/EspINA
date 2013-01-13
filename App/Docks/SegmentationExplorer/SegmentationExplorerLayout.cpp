@@ -20,6 +20,8 @@
 #include "SegmentationExplorerLayout.h"
 
 #include <Core/Model/Segmentation.h>
+#include <Undo/RemoveSegmentation.h>
+#include <QUndoStack>
 
 using namespace EspINA;
 
@@ -34,6 +36,24 @@ const QString SegmentationExplorer::Layout::MIXED_MESSAGE
 //------------------------------------------------------------------------
 void SegmentationExplorer::Layout::createSpecificControls(QHBoxLayout *specificControlLayout)
 {
+}
+
+//------------------------------------------------------------------------
+void SegmentationExplorer::Layout::deleteSegmentations(SegmentationList segmentations)
+{
+  m_undoStack->beginMacro("Delete Segmentations");
+  // BUG: Temporal Fix until RemoveSegmentation's bug is fixed
+  foreach(SegmentationPtr seg, segmentations)
+  {
+    m_undoStack->push(new RemoveSegmentation(seg, m_model));
+  }
+  m_undoStack->endMacro();
+}
+
+//------------------------------------------------------------------------
+void SegmentationExplorer::Layout::showSegmentationInformation()
+{
+
 }
 
 //------------------------------------------------------------------------

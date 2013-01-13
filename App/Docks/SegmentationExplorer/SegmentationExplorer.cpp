@@ -89,8 +89,8 @@ SegmentationExplorer::SegmentationExplorer(EspinaModel *model,
 
   //   addLayout("Debug", new Layout(m_baseModel));
   addLayout("Taxonomy",    new TaxonomyLayout   (m_gui->view, m_baseModel, m_undoStack));
-  addLayout("Composition", new CompositionLayout(m_gui->view, m_baseModel, m_undoStack));
-  addLayout("Location",    new SampleLayout     (m_gui->view, m_baseModel, m_undoStack));
+//   addLayout("Composition", new CompositionLayout(m_gui->view, m_baseModel, m_undoStack));
+//   addLayout("Location",    new SampleLayout     (m_gui->view, m_baseModel, m_undoStack));
 
   m_layoutModel.setStringList(m_layoutNames);
   m_gui->groupList->setModel(&m_layoutModel);
@@ -216,23 +216,31 @@ void SegmentationExplorer::deleteSegmentations()
 {
   if (m_layout)
   {
-    QModelIndexList selected = m_gui->view->selectionModel()->selectedIndexes();
-    SegmentationList toDelete = m_layout->deletedSegmentations(selected);
-    if (!toDelete.isEmpty())
-    {
-      m_gui->view->selectionModel()->blockSignals(true);
-      m_gui->view->selectionModel()->clear();
-      m_gui->view->selectionModel()->blockSignals(false);
-      m_viewManager->clearSelection(false);
-      m_undoStack->beginMacro("Delete Segmentations");
-      // BUG: Temporal Fix until RemoveSegmentation's bug is fixed
-      foreach(SegmentationPtr seg, toDelete)
-      {
-        m_undoStack->push(new RemoveSegmentation(seg, m_baseModel));
-      }
-      m_undoStack->endMacro();
-    }
+    m_layout->deleteSelectedItems();
   }
+
+  if (!m_layout)
+    return;
+
+  
+//   if (m_layout)
+//   {
+//     SegmentationList toDelete = m_layout->deletedSegmentations(selected);
+//     if (!toDelete.isEmpty())
+//     {
+//       m_gui->view->selectionModel()->blockSignals(true);
+//       m_gui->view->selectionModel()->clear();
+//       m_gui->view->selectionModel()->blockSignals(false);
+//       m_viewManager->clearSelection(false);
+//       m_undoStack->beginMacro("Delete Segmentations");
+//       // BUG: Temporal Fix until RemoveSegmentation's bug is fixed
+//       foreach(SegmentationPtr seg, toDelete)
+//       {
+//         m_undoStack->push(new RemoveSegmentation(seg, m_baseModel));
+//       }
+//       m_undoStack->endMacro();
+//     }
+//   }
 }
 
 

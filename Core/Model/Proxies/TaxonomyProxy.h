@@ -24,6 +24,8 @@
 #include <Core/EspinaTypes.h>
 #include <Core/Model/EspinaModel.h>
 
+// TODO 2013-01-12: Invalid model when undo (remove synapse with segmentations in sub taxonomies)
+
 namespace EspINA
 {
   /// Group by Taxonomy Espina Proxy
@@ -55,8 +57,13 @@ namespace EspINA
     virtual bool dropMimeData(const QMimeData* data, Qt::DropAction action, int row, int column, const QModelIndex& parent);
 
     int numSegmentations(QModelIndex taxIndex, bool recursive = false) const;
+    int numSegmentations(TaxonomyElementPtr taxonomy, bool recursive = false) const;
+
     int numTaxonomies(QModelIndex taxIndex) const;
+    int numTaxonomies(TaxonomyElementPtr taxonomy) const;
+
     QModelIndexList segmentations(QModelIndex taxIndex, bool recursive=false) const;
+    SegmentationList segmentations(TaxonomyElementPtr taxonomy, bool recursive = false) const;
 
   protected slots:
     void sourceRowsInserted(const QModelIndex & sourceParent, int start, int end);
@@ -78,8 +85,6 @@ namespace EspINA
 
     void addTaxonomicalElement(TaxonomyElementPtr taxonomy);
     void removeTaxonomy(TaxonomyElementPtr taxonomy);
-    int numSegmentations(TaxonomyElementPtr taxonomy, bool recursive = false) const;
-    int numTaxonomies(TaxonomyElementPtr taxonomy) const;
 
   private:
     EspinaModel *m_model;
@@ -89,7 +94,7 @@ namespace EspINA
     // If we rely on the source's model, there are some inconsistencies during
     // rows insertion/deletion
     mutable QMap<TaxonomyElementPtr, int          >  m_numTaxonomies;
-    mutable QMap<TaxonomyElementPtr, ModelItemList>  m_numSegmentations;
+    mutable QMap<TaxonomyElementPtr, ModelItemList>  m_taxonomySegmentations;
     mutable QMap<TaxonomyElementPtr, Qt::CheckState> m_taxonomyVisibility;
   };
 

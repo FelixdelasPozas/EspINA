@@ -55,11 +55,13 @@ namespace EspINA
     virtual QModelIndex index(ModelItemPtr item) const
     { return m_model->index(item); }
 
-    virtual SegmentationList deletedSegmentations(QModelIndexList selection)
-    { return SegmentationList(); }
-
+    virtual void deleteSelectedItems() = 0;
+    virtual void showSelectedItemsInformation() = 0;
 
   protected:
+    void deleteSegmentations(SegmentationList segmentations);
+    void showSegmentationInformation();
+
     QModelIndexList indices(const QModelIndex &index, bool recursive=false);
 
   protected:
