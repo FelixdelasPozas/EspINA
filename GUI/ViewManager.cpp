@@ -205,7 +205,11 @@ void ViewManager::setVOI(IVOISPtr voi)
 void ViewManager::unsetActiveVOI()
 {
   if (!m_voi.isNull())
+  {
+    m_voi->setEnabled(false);
+    m_voi->setInUse(false);
     m_voi.clear();
+  }
 }
 
 

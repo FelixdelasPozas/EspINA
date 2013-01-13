@@ -18,6 +18,8 @@
 // Qt
 #include <QSizePolicy>
 #include <QMessageBox>
+#include <QCloseEvent>
+#include <QDialog>
 
 // c++
 #include <cmath>
@@ -34,8 +36,6 @@ ChannelInspector::ChannelInspector(Channel *channel, QWidget *parent)
 {
   setupUi(this);
   this->setAttribute(Qt::WA_DeleteOnClose, true);
-  this->setWindowFlags( ( (this->windowFlags() | Qt::CustomizeWindowHint) & ~Qt::WindowCloseButtonHint) );
-
   this->setWindowTitle(QString("Channel Inspector - ") + channel->information("Name").toString());
 
   connect(okCancelBox, SIGNAL(accepted()), this, SLOT(acceptedChanges()));
@@ -436,4 +436,11 @@ void ChannelInspector::rejectedChanges()
   {
     m_channel->notifyModification(true);
   }
+}
+
+//------------------------------------------------------------------------
+void ChannelInspector::closeEvent(QCloseEvent *event)
+{
+  rejectedChanges();
+  QDialog::closeEvent(event);
 }

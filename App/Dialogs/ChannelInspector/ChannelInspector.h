@@ -15,12 +15,15 @@
 // Qt
 #include <QDialog>
 
+class QCloseEvent;
+
 namespace EspINA
 {
   class Channel;
   class ViewManager;
   class SliceView;
   class HueSelector;
+
 
   class ChannelInspector
   : public QDialog
@@ -30,6 +33,10 @@ namespace EspINA
   public:
     explicit ChannelInspector(Channel *, QWidget *parent = 0);
     virtual ~ChannelInspector();
+
+    // re-implemented from base class because we need to reset channel
+    // properties before the dialog gets destroyed.
+    void closeEvent(QCloseEvent *event);
 
   signals:
     void spacingUpdated();
