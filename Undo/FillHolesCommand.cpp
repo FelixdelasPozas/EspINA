@@ -21,6 +21,7 @@
 
 #include <Filters/FillHolesFilter.h>
 #include <Core/Model/EspinaModel.h>
+#include <GUI/ViewManager.h>
 
 #include <QApplication>
 
@@ -29,8 +30,9 @@ using namespace EspINA;
 const QString FillHolesCommand::FILTER_TYPE = "EditorToolBar::FillHolesFilter";
 
 //-----------------------------------------------------------------------------
-FillHolesCommand::FillHolesCommand(SegmentationList inputs, EspinaModel *model)
+FillHolesCommand::FillHolesCommand(SegmentationList inputs, EspinaModel *model, ViewManager* vm)
 : m_model(model)
+, m_viewManager(vm)
 {
   // when this filter is called from the tests there is no qApp, as there isn't a gui
   if (QApplication::instance() != NULL)
@@ -62,35 +64,45 @@ FillHolesCommand::~FillHolesCommand()
 //-----------------------------------------------------------------------------
 void FillHolesCommand::redo()
 {
+  SegmentationList segmentations;
+
   for(int i=0; i<m_newConnections.size(); i++)
   {
     SegmentationSPtr seg = m_segmentations[i];
     Connection oldConnection  = m_oldConnections[i];
     Connection newConnection  = m_newConnections[i];
+
+    segmentations << seg.data();
 
     m_model->removeRelation(oldConnection.first, seg, Filter::CREATELINK);
     m_model->addFilter(newConnection.first);
     m_model->addRelation(oldConnection.first, newConnection.first, FillHolesFilter::INPUTLINK);
     m_model->addRelation(newConnection.first, seg, Filter::CREATELINK);
     seg->changeFilter(newConnection.first, newConnection.second);
-    seg->notifyModification(true);
+    //seg->notifyModification(true);
   }
+  m_viewManager->updateSegmentationRepresentations(segmentations);
 }
 
 //-----------------------------------------------------------------------------
 void FillHolesCommand::undo()
 {
+  SegmentationList segmentations;
+
   for(int i=0; i<m_newConnections.size(); i++)
   {
     SegmentationSPtr seg = m_segmentations[i];
     Connection oldConnection  = m_oldConnections[i];
     Connection newConnection  = m_newConnections[i];
 
+    segmentations << seg.data();
+
     m_model->removeRelation(newConnection.first, seg, Filter::CREATELINK);
     m_model->removeRelation(oldConnection.first, newConnection.first, FillHolesFilter::INPUTLINK);
     m_model->removeFilter(newConnection.first);
     m_model->addRelation(oldConnection.first, seg, Filter::CREATELINK);
     seg->changeFilter(oldConnection.first, oldConnection.second);
-    seg->notifyModification(true);
+    //seg->notifyModification(true);
   }
+  m_viewManager->updateSegmentationRepresentations(segmentations);
 }

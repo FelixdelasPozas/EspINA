@@ -32,7 +32,7 @@
 #include <Filters/FreeFormSource.h>
 #include <Filters/ContourSource.h>
 #include <Undo/AddSegmentation.h>
-
+#include <App/FilterInspectors/ContourSource/ContourInspector.h>
 
 #include <QUndoStack>
 #include <QtGui>
@@ -130,6 +130,8 @@ void FilledContour::setInUse(bool enable)
         FreeFormSource::Parameters params(args);
         params.setSpacing(spacing);
         m_currentSource = FilterSPtr(new ContourSource(inputs, args, FILTER_TYPE));
+        Filter::FilterInspectorPtr filterInspector(new ContourFilterInspector(m_currentSource.data()));
+        m_currentSource->setFilterInspector(filterInspector);
       }
 
       if (!m_currentSeg && m_currentSource)

@@ -27,6 +27,7 @@
 #include "Tools/PlanarSplit/PlanarSplitTool.h"
 
 // EspINA
+#include <App/FilterInspectors/CODE/CODEFilterInspector.h>
 #include <Core/Model/Channel.h>
 #include <Core/Model/EspinaFactory.h>
 #include <Core/Model/EspinaModel.h>
@@ -95,6 +96,7 @@ namespace EspINA
         m_segmentations << m_model->findSegmentation(seg);
 
         FilterPtr filter;
+        Filter::FilterInspectorPtr filterInspector;
 
         Filter::NamedInputs inputs;
         Filter::Arguments args;
@@ -106,17 +108,22 @@ namespace EspINA
         {
           case CLOSE:
             filter = new ClosingFilter(inputs, args, CLOSING_FILTER_TYPE);
+            filterInspector = Filter::FilterInspectorPtr(new CODEFilterInspector("Close", filter));
             break;
           case OPEN:
             filter = new OpeningFilter(inputs, args, OPENING_FILTER_TYPE);
+            filterInspector = Filter::FilterInspectorPtr(new CODEFilterInspector("Open", filter));
             break;
           case DILATE:
             filter = new DilateFilter(inputs, args, DILATE_FILTER_TYPE);
+            filterInspector = Filter::FilterInspectorPtr(new CODEFilterInspector("Dilate", filter));
             break;
           case ERODE:
             filter = new ErodeFilter(inputs, args, ERODE_FILTER_TYPE);
+            filterInspector = Filter::FilterInspectorPtr(new CODEFilterInspector("Erode", filter));
             break;
         }
+        filter->setFilterInspector(filterInspector);
         filter->update();
         m_newConnections << Connection(FilterSPtr(filter), 0);
         m_oldConnections << Connection(seg->filter(), seg->outputId());
@@ -260,24 +267,39 @@ FilterSPtr EditorToolBar::createFilter(const QString              &filter,
                                       const ModelItem::Arguments &args)
 {
   Filter *res = NULL;
+  Filter::FilterInspector *filterInspector = NULL;
 
   if (SplitUndoCommand::FILTER_TYPE == filter)
     res = new SplitFilter(inputs, args, SplitUndoCommand::FILTER_TYPE);
 
   else if (CODECommand::CLOSING_FILTER_TYPE == filter)
+  {
     res = new ClosingFilter(inputs, args, CODECommand::CLOSING_FILTER_TYPE);
+    filterInspector = new CODEFilterInspector("Close", res);
+  }
 
   else if (CODECommand::OPENING_FILTER_TYPE == filter)
+  {
     res = new OpeningFilter(inputs, args, CODECommand::OPENING_FILTER_TYPE);
+    filterInspector = new CODEFilterInspector("Open", res);
+  }
 
   else if (CODECommand::DILATE_FILTER_TYPE == filter)
+  {
     res = new DilateFilter(inputs, args, CODECommand::DILATE_FILTER_TYPE);
+    filterInspector = new CODEFilterInspector("Dilate", res);
+  }
 
   else if (CODECommand::ERODE_FILTER_TYPE == filter)
+  {
     res = new ErodeFilter(inputs, args, CODECommand::ERODE_FILTER_TYPE);
+    filterInspector = new CODEFilterInspector("Erode", res);
+  }
 
   else if (Brush::FREEFORM_SOURCE_TYPE == filter)
+  {
     res = new FreeFormSource(inputs, args, Brush::FREEFORM_SOURCE_TYPE);
+  }
 
   else if (ImageLogicCommand::FILTER_TYPE == filter)
     res = new ImageLogicFilter(inputs, args, ImageLogicCommand::FILTER_TYPE);
@@ -286,7 +308,13 @@ FilterSPtr EditorToolBar::createFilter(const QString              &filter,
     res = new FillHolesFilter(inputs, args, FillHolesCommand::FILTER_TYPE);
 
   else if (FilledContour::FILTER_TYPE == filter)
+  {
     res = new ContourSource(inputs, args, FilledContour::FILTER_TYPE);
+    filterInspector = new ContourFilterInspector(res);
+  }
+
+  if (filterInspector != NULL)
+    res->setFilterInspector(Filter::FilterInspectorPtr(filterInspector));
 
   else
     Q_ASSERT(false);
@@ -449,7 +477,7 @@ void EditorToolBar::fillHoles()
   SegmentationList input = m_viewManager->selectedSegmentations();
   if (input.size() > 0)
   {
-    m_undoStack->push(new FillHolesCommand(input, m_model));
+    m_undoStack->push(new FillHolesCommand(input, m_model, m_viewManager));
   }
 }
 

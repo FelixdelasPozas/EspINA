@@ -85,3 +85,16 @@ void CODESettings::modifyFilter()
   m_viewManager->updateViews();
   QApplication::restoreOverrideCursor();
 }
+
+//----------------------------------------------------------------------------
+CODEFilterInspector::CODEFilterInspector(QString title, FilterPtr filter)
+: m_title(title)
+, m_filter(filter)
+{
+}
+
+//----------------------------------------------------------------------------
+QWidget *CODEFilterInspector::createWidget(QUndoStack *stack, ViewManager *viewManager)
+{
+  return new CODESettings(m_title, reinterpret_cast<MorphologicalEditionFilter*>(m_filter), viewManager);
+}

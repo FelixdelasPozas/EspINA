@@ -11,6 +11,7 @@
 #include <Core/Model/Filter.h>
 #include <vtkPolyData.h>
 #include <QVector3D>
+#include <App/FilterInspectors/ContourSource/ContourInspector.h>
 
 namespace EspINA
 {
@@ -18,8 +19,6 @@ class ContourSource
 : public SegmentationFilter
 {
 public:
-  class ContourSourceInspector;
-
   static const ModelItem::ArgumentId SPACING;
 
   class Parameters
@@ -76,7 +75,7 @@ protected:
 
 
 private:
-  friend class ContourSourceInspector;
+  friend class ContourFilterInspector::Widget;
 
   // helper method to rotate the vtkPolyData to the axial plane. actually
   // contours are stored this way in the filter

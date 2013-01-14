@@ -6,7 +6,6 @@
  */
 
 #include "ContourSource.h"
-
 #include <Core/Model/EspinaFactory.h>
 
 #include <itkImageRegionIteratorWithIndex.h>

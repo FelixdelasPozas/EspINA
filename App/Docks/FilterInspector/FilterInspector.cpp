@@ -89,46 +89,47 @@ void FilterInspector::updatePannel()
     seg = selectedSegs[0];
 
   // Update if segmentation are different
-    if (seg != m_seg)
+  if (seg != m_seg)
+  {
+    if (m_seg)
     {
-      if (m_seg)
-      {
-        disconnect(m_seg, SIGNAL(modified(ModelItem*)),
-                   this, SLOT(updatePannel()));
-      }
+      disconnect(m_seg, SIGNAL(modified(ModelItem*)), this, SLOT(updatePannel()));
+    }
 
-      m_seg = seg;
+    m_seg = seg;
 
-      if (m_seg)
-      {
-        connect(m_seg, SIGNAL(modified(ModelItem*)),
-                this, SLOT(updatePannel()));
-      }
-      changeWidget = true;
-    } else if (!m_filter.isNull() && m_filter != seg->filter())
+    if (m_seg)
+    {
+      connect(m_seg, SIGNAL(modified(ModelItem*)), this, SLOT(updatePannel()));
+    }
+    changeWidget = true;
+  }
+  else
+    if (!m_filter.isNull() && m_filter != seg->filter())
     {
       changeWidget = true;
     }
 
-    if (changeWidget)
+  if (changeWidget)
+  {
+    QWidget *prevWidget = widget();
+    if (prevWidget)
+      delete prevWidget;
+
+    if (m_seg)
     {
-      QWidget *prevWidget = widget();
-      if (prevWidget)
-        delete prevWidget;
+      m_filter = seg->filter();
+      Filter::FilterInspectorPtr inspector = m_filter->filterInspector();
+      if (inspector.get())
+        setWidget(inspector->createWidget(m_undoStack, m_viewManager));
 
-      if (m_seg)
-      {
-        m_filter = seg->filter();
-        Filter::FilterInspectorPtr inspector = m_filter->filterInspector();
-        if (inspector.get())
-          setWidget(inspector->createWidget(m_undoStack, m_viewManager));
-
-      } else
-      {
-        m_filter.clear();
-        m_seg = NULL;
-        setWidget(NULL);
-      }
     }
+    else
+    {
+      m_filter.clear();
+      m_seg = NULL;
+      setWidget(NULL);
+    }
+  }
 }
 

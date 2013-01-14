@@ -20,6 +20,7 @@
 #ifndef CODESETTINGS_H
 #define CODESETTINGS_H
 
+#include <Core/Model/Filter.h>
 #include <QWidget>
 #include <boost/graph/graph_concepts.hpp>
 
@@ -48,6 +49,20 @@ namespace EspINA
     MorphologicalEditionFilter *m_filter;
     ViewManager *m_viewManager;
     QSpinBox *m_spinbox;
+  };
+
+  class CODEFilterInspector
+  : public Filter::FilterInspector
+  {
+    public:
+      CODEFilterInspector(QString title, FilterPtr filter);
+
+      virtual QWidget *createWidget(QUndoStack *stack, ViewManager *viewManager);
+
+    private:
+      QString    m_title;
+      FilterPtr  m_filter;
+
   };
 
 } // namespace EspINA
