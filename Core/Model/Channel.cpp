@@ -274,12 +274,14 @@ void Channel::initialize(const Arguments &args)
 //------------------------------------------------------------------------
 void Channel::initializeExtensions(const Arguments &args)
 {
+  qDebug() << args;
 //   qDebug() << "Initializing" << data().toString() << "extensions:";
   foreach(ModelItemExtensionPtr ext, m_insertionOrderedExtensions)
   {
-    ChannelExtensionPtr channelExt = channelExtensionPtr(ext);
-
-    channelExt->initialize(args);
+    ext->initialize(args);
+//     ChannelExtensionPtr channelExt = channelExtensionPtr(ext);
+// 
+//     channelExt->initialize(args);
   }
 
 }

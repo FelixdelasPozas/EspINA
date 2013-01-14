@@ -38,9 +38,10 @@ using namespace EspINA;
 typedef ModelItem::ArgumentId ArgumentId;
 
 const ModelItemExtension::ExtId CountingFrameChannelExtension::ID = "CountingFrameExtension";
+const ModelItemExtension::ExtId ID_1_2_5 = "CountingRegionExtension"; //Backwards compatibility
 
-const ArgumentId COUNTING_FRAMES_1_2_5 = "Regions"; // Backwards compatibility versions < 1.2.5
 const ArgumentId CountingFrameChannelExtension::COUNTING_FRAMES = "CFs";
+const ArgumentId COUNTING_FRAMES_1_2_5 = "Regions"; // Backwards compatibility versions < 1.2.5
 
 //-----------------------------------------------------------------------------
 CountingFrameChannelExtension::CountingFrameChannelExtension(CountingFramePanel* plugin,
@@ -60,10 +61,18 @@ CountingFrameChannelExtension::~CountingFrameChannelExtension()
 //-----------------------------------------------------------------------------
 void CountingFrameChannelExtension::initialize(ModelItem::Arguments args)
 {
-  QStringList countingFrames = args.value(COUNTING_FRAMES, "").split(";");
+  ModelItem::Arguments extArgs(args.value(ID, QString()));
+  QStringList countingFrames;
 
-  if (countingFrames.isEmpty()) // Check previous tag
-    countingFrames = args.value(COUNTING_FRAMES_1_2_5, "").split(";");
+  if (extArgs.isEmpty())
+  {
+    extArgs = ModelItem::Arguments(args.value(ID_1_2_5, QString()));
+    countingFrames = extArgs.value(COUNTING_FRAMES_1_2_5, "").split(";", QString::SkipEmptyParts);
+  }
+  else
+  {
+    countingFrames = extArgs.value(COUNTING_FRAMES, "").split(";", QString::SkipEmptyParts);
+  }
 
   foreach (QString countingFrame, countingFrames)
   {

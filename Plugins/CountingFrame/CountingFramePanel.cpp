@@ -437,7 +437,7 @@ void CountingFramePanel::channelChanged(ChannelPtr channel)
 //------------------------------------------------------------------------
 void CountingFramePanel::showInfo(CountingFrame* cf)
 {
-  if (!cf)
+  if (!cf || !m_viewManager->activeChannel())
     return;
 
   m_activeCF = cf;
