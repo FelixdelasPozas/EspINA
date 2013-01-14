@@ -32,7 +32,6 @@
 #include <Core/Model/Segmentation.h>
 #include <Core/Model/HierarchyItem.h>
 #include <GUI/ISettingsPanel.h>
-#include <GUI/QtWidget/SegmentationContextualMenu.h>
 #include <Undo/RemoveSegmentation.h>
 
 #ifdef TEST_ESPINA_MODELS
@@ -148,19 +147,11 @@ void SegmentationExplorer::addLayout(const QString id, SegmentationExplorer::Lay
 //------------------------------------------------------------------------
 bool SegmentationExplorer::eventFilter(QObject *sender, QEvent *e)
 {
-  if (sender == m_gui->view && QEvent::ContextMenu == e->type())
+  if (sender == m_gui->view && QEvent::ContextMenu == e->type() && m_layout)
   {
     QContextMenuEvent *cme = static_cast<QContextMenuEvent *>(e);
 
-    SegmentationContextualMenu contextMenu(m_baseModel, m_viewManager->selectedSegmentations());
-    connect(&contextMenu, SIGNAL(deleteSegmentations()),
-            this, SLOT(deleteSelectedItems()));
-    connect(&contextMenu, SIGNAL(changeTaxonomy(TaxonomyElementPtr)),
-            this, SLOT(changeTaxonomy(TaxonomyElementPtr)));
-    connect(&contextMenu, SIGNAL(changeFinalNode(bool)),
-            this, SLOT(changeFinalFlag(bool)));
-
-    contextMenu.exec(cme->globalPos());
+    m_layout->contextMenu(cme->globalPos());
 
     return true;
   }
@@ -198,18 +189,6 @@ void SegmentationExplorer::changeLayout(int index)
 }
 
 //------------------------------------------------------------------------
-void SegmentationExplorer::changeTaxonomy(TaxonomyElementPtr taxonomy)
-{
-  SegmentationList selectedSegmentations = m_viewManager->selectedSegmentations();
-  foreach(SegmentationPtr seg, selectedSegmentations)
-  {
-    SegmentationSPtr segPtr = m_baseModel->findSegmentation(seg);
-    TaxonomyElementSPtr taxonomyPtr = m_baseModel->findTaxonomyElement(taxonomy);
-    m_baseModel->changeTaxonomy(segPtr, taxonomyPtr);
-  }
-}
-
-//------------------------------------------------------------------------
 void SegmentationExplorer::deleteSelectedItems()
 {
   if (m_layout)
@@ -227,25 +206,6 @@ void SegmentationExplorer::showSelectedItemsInformation()
   }
 
   return;
-/*
-  foreach(QModelIndex index, m_gui->view->selectionModel()->selectedIndexes())
-  {
-    ModelItemPtr item = m_layout->item(index);
-    if (EspINA::SEGMENTATION == item->type())
-    {
-      SegmentationPtr seg = segmentationPtr(item);
-      SegmentationInspector *inspector = m_inspectors.value(seg, NULL);
-      if (!inspector)
-      {
-        inspector = new SegmentationInspector(seg, m_baseModel, m_undoStack, m_viewManager);
-        connect(inspector, SIGNAL(inspectorClosed(SegmentationInspector*)),
-                this, SLOT(releaseInspectorResources(SegmentationInspector*)));
-        m_inspectors[seg] = inspector;
-      }
-      inspector->show();
-      inspector->raise();
-    }*/
-  //}
 }
 
 
@@ -332,70 +292,4 @@ void SegmentationExplorer::updateChannelRepresentations(ChannelList list)
 void SegmentationExplorer::updateSelection()
 {
   std::cout << "update selection\n" << std::flush;
-}
-
-//------------------------------------------------------------------------
-void SegmentationExplorer::changeFinalFlag(bool value)
-{
-  SegmentationList selectedSegmentations = m_viewManager->selectedSegmentations();
-  SegmentationList dependentSegmentations;
-  SegmentationList rootSegmentations;
-
-  foreach(SegmentationPtr seg, selectedSegmentations)
-  {
-    seg->setFinalNode(value);
-    seg->setDependentNode(false);
-    if (value)
-      seg->setHierarchyRenderingType(HierarchyItem::Opaque, true);
-    else
-      seg->setHierarchyRenderingType(HierarchyItem::Undefined, false);
-
-    foreach(SegmentationSPtr ancestor, seg->componentOf())
-      rootSegmentations << ancestor.data();
-
-    foreach(SegmentationSPtr successor, seg->components())
-      dependentSegmentations << successor.data();
-  }
-
-  foreach(SegmentationPtr seg, dependentSegmentations)
-  {
-    if (selectedSegmentations.contains(seg))
-    {
-      dependentSegmentations.removeAll(seg);
-      break;
-    }
-
-    selectedSegmentations.append(seg);
-    seg->setDependentNode(value);
-
-    if (value)
-      seg->setHierarchyRenderingType(HierarchyItem::Hidden, true);
-    else
-      seg->setHierarchyRenderingType(HierarchyItem::Undefined, false);
-
-    foreach(SegmentationSPtr successor, seg->components())
-      dependentSegmentations << successor.data();
-  }
-
-  foreach(SegmentationPtr seg, rootSegmentations)
-  {
-    if (selectedSegmentations.contains(seg))
-    {
-      rootSegmentations.removeAll(seg);
-      break;
-    }
-
-    selectedSegmentations.append(seg);
-    seg->setDependentNode(value);
-
-    if (value)
-      seg->setHierarchyRenderingType(HierarchyItem::Translucent, true);
-    else
-      seg->setHierarchyRenderingType(HierarchyItem::Undefined, false);
-  }
-
-  foreach(SegmentationPtr seg, selectedSegmentations)
-    seg->notifyModification(true);
-
-  m_viewManager->updateViews();
 }

@@ -45,6 +45,7 @@ using namespace EspINA;
 
 //----------------------------------------------------------------------------
 DefaultEspinaView::DefaultEspinaView(EspinaModel *model,
+                                     QUndoStack  *undoStack,
                                      ViewManager *viewManager,
                                      QMainWindow *parent)
 : QAbstractItemView(parent)
@@ -52,7 +53,7 @@ DefaultEspinaView::DefaultEspinaView(EspinaModel *model,
 , m_viewManager(viewManager)
 , m_showProcessing(false)
 , m_showSegmentations(true)
-, m_contextMenu(new SegmentationContextualMenu(m_model, SegmentationList()))
+, m_contextMenu(new SegmentationContextualMenu(SegmentationList(), model, undoStack, viewManager))
 {
   double cyan[3] = { 0, 1, 1 };
   double blue[3] = { 0, 0, 1 };

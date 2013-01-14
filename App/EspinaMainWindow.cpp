@@ -280,7 +280,7 @@ EspinaMainWindow::EspinaMainWindow(EspinaModel      *model,
   m_viewMenu->addMenu(m_dockMenu);
   m_viewMenu->addSeparator();
 
-  DefaultEspinaView *defaultView = new DefaultEspinaView(m_model, m_viewManager, this);
+  DefaultEspinaView *defaultView = new DefaultEspinaView(m_model, m_undoStack, m_viewManager, this);
 
   statusBar()->clearMessage();
 

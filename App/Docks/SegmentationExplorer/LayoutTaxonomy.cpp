@@ -25,6 +25,7 @@
 
 #include <Core/Model/Segmentation.h>
 #include <Core/Model/Taxonomy.h>
+#include <GUI/QtWidget/SegmentationContextualMenu.h>
 
 #include <QMessageBox>
 #include <QUndoStack>
@@ -103,31 +104,50 @@ void TaxonomyLayout::createSpecificControls(QHBoxLayout *specificControlLayout)
 }
 
 //------------------------------------------------------------------------
+void TaxonomyLayout::contextMenu(const QPoint &pos)
+{
+  TaxonomyElementList taxonomies;
+  SegmentationSet     segmentations;
+
+  if (!selectedItems(taxonomies, segmentations))
+    return;
+
+  if (taxonomies.isEmpty())
+  {
+    SegmentationContextualMenu contextMenu(segmentations.toList(),
+                                           m_model,
+                                           m_undoStack,
+                                           m_viewManager);
+
+    contextMenu.exec(pos);
+  }
+
+  if (segmentations.isEmpty())
+  {
+    QMenu contextMenu;
+
+    QAction *createNode = contextMenu.addAction(tr("Create Taxonomy"));
+    createNode->setIcon(QIcon(":espina/create_node.png"));
+    connect(createNode, SIGNAL(triggered(bool)),
+            this, SLOT(createTaxonomy()));
+
+    QAction *createSubNode = contextMenu.addAction(tr("Create SubTaxonomy"));
+    createSubNode->setIcon(QIcon(":espina/create_subnode.png"));
+    connect(createSubNode, SIGNAL(triggered(bool)),
+            this, SLOT(createSubTaxonomy()));
+
+    contextMenu.exec(pos);
+  }
+}
+
+//------------------------------------------------------------------------
 void TaxonomyLayout::deleteSelectedItems()
 {
   TaxonomyElementList  taxonomies;
-  QSet<Segmentation *> segmentations;
+  SegmentationSet      segmentations;
 
-  QModelIndexList selectedIndexes = m_view->selectionModel()->selectedIndexes();
-
-  if (selectedIndexes.isEmpty())
+  if (!selectedItems(taxonomies, segmentations))
     return;
-
-  foreach(QModelIndex index, selectedIndexes)
-  {
-    ModelItemPtr item = TaxonomyLayout::item(index);
-    switch (item->type())
-    {
-      case EspINA::SEGMENTATION:
-        segmentations << segmentationPtr(item);
-        break;
-      case EspINA::TAXONOMY:
-        taxonomies << taxonomyElementPtr(item);
-        break;
-      default:
-        Q_ASSERT(false);
-    }
-  }
 
   if (taxonomies.isEmpty())
   {
@@ -190,24 +210,10 @@ void TaxonomyLayout::deleteSelectedItems()
 void TaxonomyLayout::showSelectedItemsInformation()
 {
   TaxonomyElementList  taxonomies;
-  QSet<Segmentation *> segmentations;
+  SegmentationSet      segmentations;
 
-  QModelIndexList selectedIndexes = m_view->selectionModel()->selectedIndexes();
-  foreach(QModelIndex index, selectedIndexes)
-  {
-    ModelItemPtr item = TaxonomyLayout::item(index);
-    switch (item->type())
-    {
-      case EspINA::SEGMENTATION:
-        segmentations << segmentationPtr(item);
-        break;
-      case EspINA::TAXONOMY:
-        taxonomies << taxonomyElementPtr(item);
-        break;
-      default:
-        Q_ASSERT(false);
-    }
-  }
+  if (!selectedItems(taxonomies, segmentations))
+    return;
 
   if (taxonomies.size() == 1 && segmentations.isEmpty())
   {
@@ -227,6 +233,29 @@ void TaxonomyLayout::showSelectedItemsInformation()
     showSegmentationInformation(segmentations.toList());
   }
 
+}
+
+//------------------------------------------------------------------------
+bool TaxonomyLayout::selectedItems(TaxonomyElementList &taxonomies, SegmentationSet &segmentations)
+{
+  QModelIndexList selectedIndexes = m_view->selectionModel()->selectedIndexes();
+  foreach(QModelIndex index, selectedIndexes)
+  {
+    ModelItemPtr item = TaxonomyLayout::item(index);
+    switch (item->type())
+    {
+      case EspINA::SEGMENTATION:
+        segmentations << segmentationPtr(item);
+        break;
+      case EspINA::TAXONOMY:
+        taxonomies << taxonomyElementPtr(item);
+        break;
+      default:
+        Q_ASSERT(false);
+    }
+  }
+
+  return !taxonomies.isEmpty() || !segmentations.isEmpty();
 }
 
 //------------------------------------------------------------------------

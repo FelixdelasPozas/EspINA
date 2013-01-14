@@ -75,9 +75,6 @@ namespace EspINA
   protected slots:
     void changeLayout(int index);
 
-    void changeTaxonomy(TaxonomyElementPtr taxonomy);
-    void changeFinalFlag(bool);
-
     void deleteSelectedItems();
     void showSelectedItemsInformation();
 

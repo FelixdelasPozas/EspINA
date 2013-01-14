@@ -61,9 +61,13 @@ namespace EspINA
     virtual QModelIndex index(ModelItemPtr item) const
     { return m_sort->mapFromSource(m_proxy->mapFromSource(Layout::index(item))); }
 
+    virtual void contextMenu(const QPoint &pos);
     virtual void deleteSelectedItems();
     virtual void showSelectedItemsInformation();
     //virtual SegmentationList deletedSegmentations(QModelIndexList selection);
+
+  private:
+    bool selectedItems(TaxonomyElementList &taxonomies, SegmentationSet &segmentations);
 
   private slots:
     void createTaxonomy();

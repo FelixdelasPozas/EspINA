@@ -6,6 +6,7 @@
 #include <QList>
 //#define QT_SHAREDPOINTER_TRACK_POINTERS
 #include <QSharedPointer>
+#include <QSet>
 
 namespace EspINA
 {
@@ -30,6 +31,7 @@ namespace EspINA
   class   Segmentation;
   typedef Segmentation *         SegmentationPtr;
   typedef QList<SegmentationPtr> SegmentationList;
+  typedef QSet<SegmentationPtr>  SegmentationSet;
 
   class   Filter;
   typedef Filter *         FilterPtr;

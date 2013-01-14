@@ -57,6 +57,7 @@ namespace EspINA
     virtual QModelIndex index(ModelItemPtr item) const
     { return m_model->index(item); }
 
+    virtual void contextMenu(const QPoint &pos) = 0;
     virtual void deleteSelectedItems() = 0;
     virtual void showSelectedItemsInformation() = 0;
 

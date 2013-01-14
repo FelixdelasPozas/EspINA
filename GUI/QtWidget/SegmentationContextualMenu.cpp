@@ -18,10 +18,13 @@
 
 
 #include "SegmentationContextualMenu.h"
+#include <GUI/ViewManager.h>
 
 #include <Core/Model/EspinaModel.h>
 #include <Core/Model/Taxonomy.h>
 #include <Core/Model/Segmentation.h>
+#include <App/Undo/ChangeTaxonomyCommand.h>
+#include <Undo/RemoveSegmentation.h>
 
 #include <QWidgetAction>
 #include <QTreeView>
@@ -33,21 +36,27 @@
 using namespace EspINA;
 
 //------------------------------------------------------------------------
-SegmentationContextualMenu::SegmentationContextualMenu(EspinaModel *model,
-                                                       SegmentationList selection,
+SegmentationContextualMenu::SegmentationContextualMenu(SegmentationList selection,
+                                                       EspinaModel     *model,
+                                                       QUndoStack      *undoStack,
+                                                       ViewManager     *viewManager,
                                                        QWidget         *parent)
-: QMenu(parent)
-, m_segmentations(selection)
+: QMenu          (parent     )
+, m_model        (model      )
+, m_undoStack    (undoStack  )
+, m_viewManager  (viewManager)
+, m_segmentations(selection  )
 {
   QMenu         *changeTaxonomyMenu = new QMenu(tr("Change Taxonomy"));
   QWidgetAction *taxonomyListAction = new QWidgetAction(changeTaxonomyMenu);
   QTreeView     *taxonomyList       = new QTreeView();
+
   taxonomyList->header()->setVisible(false);
   taxonomyList->setModel(model);
   taxonomyList->setRootIndex(model->taxonomyRoot());
   taxonomyList->expandAll();
   connect(taxonomyList, SIGNAL(clicked(QModelIndex)),
-          this, SLOT(changeTaxonomyClicked(QModelIndex)));
+          this, SLOT(changeSegmentationsTaxonomy(QModelIndex)));
   taxonomyListAction->setDefaultWidget(taxonomyList);
   changeTaxonomyMenu->addAction(taxonomyListAction);
   this->addMenu(changeTaxonomyMenu);
@@ -58,8 +67,9 @@ SegmentationContextualMenu::SegmentationContextualMenu(EspinaModel *model,
           this, SLOT(changeFinalFlag()));
 
   QAction *deleteSegs = this->addAction(tr("Delete"));
+  deleteSegs->setIcon(QIcon(":espina/trash-full.svg"));
   connect (deleteSegs, SIGNAL(triggered(bool)),
-           this, SLOT(deleteSementationsClicked()));
+           this, SLOT(deleteSelectedSementations()));
 
   bool enabled = false;
   SegmentationList ancestors, successors;
@@ -104,13 +114,19 @@ SegmentationContextualMenu::SegmentationContextualMenu(EspinaModel *model,
 }
 
 //------------------------------------------------------------------------
-void SegmentationContextualMenu::changeTaxonomyClicked(const QModelIndex& index)
+void SegmentationContextualMenu::changeSegmentationsTaxonomy(const QModelIndex& index)
 {
   this->hide();
 
   ModelItemPtr taxItem = indexPtr(index);
   Q_ASSERT(EspINA::TAXONOMY == taxItem->type());
+
   TaxonomyElementPtr taxonomy = taxonomyElementPtr(taxItem);
+
+  m_undoStack->beginMacro(tr("Change Segmentation's Taxonomy"));
+  m_undoStack->push(new ChangeTaxonomyCommand(m_segmentations, taxonomy, m_model));
+  m_undoStack->endMacro();
+
   emit changeTaxonomy(taxonomy);
 }
 
@@ -118,14 +134,88 @@ void SegmentationContextualMenu::changeTaxonomyClicked(const QModelIndex& index)
 void SegmentationContextualMenu::changeFinalFlag()
 {
   this->hide();
-  emit changeFinalNode(m_changeFinalNode->isChecked());
+
+  bool value = m_changeFinalNode->isChecked();
+
+  SegmentationList selectedSegmentations = m_segmentations;
+  SegmentationList dependentSegmentations;
+  SegmentationList rootSegmentations;
+
+  foreach(SegmentationPtr seg, selectedSegmentations)
+  {
+    seg->setFinalNode(value);
+    seg->setDependentNode(false);
+    if (value)
+      seg->setHierarchyRenderingType(HierarchyItem::Opaque, true);
+    else
+      seg->setHierarchyRenderingType(HierarchyItem::Undefined, false);
+
+    foreach(SegmentationSPtr ancestor, seg->componentOf())
+      rootSegmentations << ancestor.data();
+
+    foreach(SegmentationSPtr successor, seg->components())
+      dependentSegmentations << successor.data();
+  }
+
+  foreach(SegmentationPtr seg, dependentSegmentations)
+  {
+    if (selectedSegmentations.contains(seg))
+    {
+      dependentSegmentations.removeAll(seg);
+      break;
+    }
+
+    selectedSegmentations.append(seg);
+    seg->setDependentNode(value);
+
+    if (value)
+      seg->setHierarchyRenderingType(HierarchyItem::Hidden, true);
+    else
+      seg->setHierarchyRenderingType(HierarchyItem::Undefined, false);
+
+    foreach(SegmentationSPtr successor, seg->components())
+      dependentSegmentations << successor.data();
+  }
+
+  foreach(SegmentationPtr seg, rootSegmentations)
+  {
+    if (selectedSegmentations.contains(seg))
+    {
+      rootSegmentations.removeAll(seg);
+      break;
+    }
+
+    selectedSegmentations.append(seg);
+    seg->setDependentNode(value);
+
+    if (value)
+      seg->setHierarchyRenderingType(HierarchyItem::Translucent, true);
+    else
+      seg->setHierarchyRenderingType(HierarchyItem::Undefined, false);
+  }
+
+  foreach(SegmentationPtr seg, selectedSegmentations)
+    seg->notifyModification(true);
+
+  m_viewManager->updateViews();
+
+  emit changeFinalNode(value);
 }
 
 
 //------------------------------------------------------------------------
-void SegmentationContextualMenu::deleteSementationsClicked()
+void SegmentationContextualMenu::deleteSelectedSementations()
 {
   this->hide();
+
+  m_undoStack->beginMacro("Delete Segmentations");
+  // BUG: Temporal Fix until RemoveSegmentation's bug is fixed
+  foreach(SegmentationPtr seg, m_segmentations)
+  {
+    m_undoStack->push(new RemoveSegmentation(seg, m_model));
+  }
+  m_undoStack->endMacro();
+
   emit deleteSegmentations();
 }
 

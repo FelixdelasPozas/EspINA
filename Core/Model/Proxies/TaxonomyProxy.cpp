@@ -637,7 +637,8 @@ void TaxonomyProxy::sourceRowsInserted(const QModelIndex& sourceParent, int star
         TaxonomyElementPtr parentNode = taxonomy->parent();
         if (!parentNode->name().isEmpty()) // TODO usar root?
           m_numTaxonomies[parentNode] += 1;
-        m_numTaxonomies[taxonomy] = taxonomy->subElements().size();
+        m_numTaxonomies[taxonomy]      = taxonomy->subElements().size();
+        m_taxonomyVisibility[taxonomy] = Qt::Checked;
       }
       endInsertRows();
     }

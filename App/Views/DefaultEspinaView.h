@@ -47,6 +47,7 @@ namespace EspINA
 
   public:
     explicit DefaultEspinaView(EspinaModel *model,
+                               QUndoStack  *undoStack,
                                ViewManager *viewManager,
                                QMainWindow *parent=0
     );

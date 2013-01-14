@@ -33,14 +33,16 @@ namespace EspINA
   {
     Q_OBJECT
   public:
-    explicit SegmentationContextualMenu(EspinaModel *model,
-                                        SegmentationList selection,
-                                        QWidget* parent = 0);
+    explicit SegmentationContextualMenu(SegmentationList selection,
+                                        EspinaModel     *model,
+                                        QUndoStack      *undoStack,
+                                        ViewManager     *viewManager,
+                                        QWidget         *parent = 0);
     void setSelection(SegmentationList list);
 
   private slots:
-    void changeTaxonomyClicked(const QModelIndex &index);
-    void deleteSementationsClicked();
+    void changeSegmentationsTaxonomy(const QModelIndex &index);
+    void deleteSelectedSementations();
     void changeFinalFlag();
 
   signals:
@@ -49,6 +51,10 @@ namespace EspINA
     void changeFinalNode(bool);
 
   private:
+    EspinaModel *m_model;
+    QUndoStack  *m_undoStack;
+    ViewManager *m_viewManager;
+
     QAction *m_changeFinalNode;
     SegmentationList m_segmentations;
   };
