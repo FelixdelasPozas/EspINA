@@ -112,7 +112,8 @@ QVariant Segmentation::data(int role) const
   switch (role)
   {
     case Qt::DisplayRole:
-      return QString("Segmentation %1").arg(m_args.number());
+      return QString("%1 %2").arg(m_taxonomy->name())
+                             .arg(m_args.number());
     case Qt::DecorationRole:
     {
       if (m_taxonomy)
