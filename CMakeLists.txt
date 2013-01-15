@@ -77,14 +77,14 @@ add_subdirectory( Undo    )
 add_subdirectory( App     )
 add_subdirectory( Plugins )
 
-# TODO: 2013-01-14 reenable tests
+
 #if (BUILD_TESTING)
-#
+
 #  include (CTest)
 #  enable_testing()
-#
+
 #  add_subdirectory(Tests)
-#
+
 #endif()
 
 ### TODO: Review from previous version

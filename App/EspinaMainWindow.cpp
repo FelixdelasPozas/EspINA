@@ -266,13 +266,9 @@ EspinaMainWindow::EspinaMainWindow(EspinaModel      *model,
   DataViewPanel *dataView = new DataViewPanel(m_model, m_viewManager, this);
   registerDockWidget(Qt::BottomDockWidgetArea, dataView);
 
-//   QAction *connectomicsAction = new QAction(tr("Connectomics Information"), this);
-//   m_dynamicMenuRoot->submenus[0]->menu->addAction(connectomicsAction);
-//   connect(connectomicsAction, SIGNAL(triggered()), this, SLOT(showConnectomicsInformation()));
-// 
-//   TaxonomyExplorer *taxExplorer = new TaxonomyExplorer(m_model, m_viewManager, taxonomyEngine, this);
-//   addDockWidget(Qt::LeftDockWidgetArea, taxExplorer);
-//   m_dockMenu->addAction(taxExplorer->toggleViewAction());
+  QAction *connectomicsAction = new QAction(tr("Connectomics Information"), this);
+  m_dynamicMenuRoot->submenus[0]->menu->addAction(connectomicsAction);
+  connect(connectomicsAction, SIGNAL(triggered()), this, SLOT(showConnectomicsInformation()));
 
   loadPlugins(plugins);
 
@@ -285,8 +281,8 @@ EspinaMainWindow::EspinaMainWindow(EspinaModel      *model,
   statusBar()->clearMessage();
 
   defaultView->createViewMenu(m_viewMenu);
-//   connect(m_mainToolBar, SIGNAL(showSegmentations(bool)),
-//           defaultView, SLOT(showSegmentations(bool)));
+  connect(m_mainToolBar, SIGNAL(showSegmentations(bool)),
+          defaultView, SLOT(showSegmentations(bool)));
   m_view = defaultView;
 
   QSettings settings(CESVIMA, ESPINA);
