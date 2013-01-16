@@ -36,6 +36,8 @@
 #include <vtkMutableUndirectedGraph.h>
 #include <vtkEdgeListIterator.h>
 #include <vtkBoostConnectedComponents.h>
+#include <vtkTransform.h>
+#include <vtkTransformPolyDataFilter.h>
 
 // Qt
 #include <QDebug>
@@ -168,6 +170,8 @@ bool AppositionSurfaceExtension::updateAppositionSurface() const
   itk2vtk_filter->Update();
   vtkSmartPointer<vtkImageData> vtk_padImage = itk2vtk_filter->GetOutput();
 
+  double *spacing = vtk_padImage->GetSpacing();
+
   //qDebug() << "Computing Distance Map";
   Points points = segmentationPoints(padImage);
   //qDebug() << points->GetNumberOfPoints() << " segmentation points");
@@ -231,7 +235,7 @@ bool AppositionSurfaceExtension::updateAppositionSurface() const
   gradientFilter->Update();
 
   vtkSmartPointer<vtkImageData> gradientVectorGrid =
-  vtkSmartPointer<vtkImageData>::New();
+	  vtkSmartPointer<vtkImageData>::New();
   vectorImageToVTKImage(gradientFilter->GetOutput(), gradientVectorGrid);
   //gradientVectorGrid->Print(std::cout);
 
@@ -249,7 +253,6 @@ bool AppositionSurfaceExtension::updateAppositionSurface() const
   double thresholdError = 0;
   if (m_converge)
   {
-    double *spacing = vtk_padImage->GetSpacing();
     computeIterationLimits(min, spacing, numIterations, thresholdError);
   }
 
@@ -282,8 +285,23 @@ bool AppositionSurfaceExtension::updateAppositionSurface() const
   PolyData clippedPlane = clipPlane(transformer->GetOutput(), vtk_padImage);
   //ESPINA_DEBUG(clippedPlane->GetNumberOfCells() << " cells after clip");
 
-  PolyData appositionSurface = clippedPlane;
+  /**
+   * Traslate 
+   */
+  vtkSmartPointer<vtkTransformPolyDataFilter> transformFilter =
+    vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+  vtkSmartPointer<vtkTransform> transform =
+	  vtkSmartPointer<vtkTransform>::New();
+  transform->Translate (-spacing[0]*bounds[0], -spacing[1]*bounds[0], -spacing[2]*bounds[0]);
+  transformFilter->SetTransform(transform);
+  transformFilter->SetInput(clippedPlane);
+  transformFilter->Update();
+  
+  PolyData appositionSurface = transformFilter->GetOutput();
+//  PolyData appositionSurface = clippedPlane;
   //ESPINA_DEBUG(appositionSurface->GetNumberOfCells() << " cells in apppositionPlane");
+
+  
 
   //   qDebug() << "Create Mesh";
   //m_ap->DeepCopy(appositionSurface);
