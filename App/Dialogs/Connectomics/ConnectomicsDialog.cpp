@@ -57,7 +57,6 @@ ConnectomicsDialog::ConnectomicsDialog(EspinaModel *model,
   listView1->setModel(m_model);
   listView1->setRootIndex(m_model->segmentationRoot());
 
-  // generar grafo conectomica
   generateConectomicGraph(m_model);
   m_listView << listView1;
 
@@ -91,7 +90,7 @@ void ConnectomicsDialog::generateConectomicGraph(EspinaModel *m_model)
           }
 
           if (no_existe)
-          m_model->addRelation(seg, seg_others, CONECTOMICA);
+            m_model->addRelation(seg, seg_others, CONECTOMICA);
         }
       }
     }
@@ -110,13 +109,11 @@ void ConnectomicsDialog::showGraphConnectomicsInformation(QModelIndex index)
     if (!index.isValid())
       return;
     else
-    {
       for (int j = (m_listView.size() - 1); j > 0; j--)
       {
         delete (m_listView.takeAt((m_listView.indexOf(list_sender)) + 1));
         selection.removeAt((m_listView.indexOf(list_sender)) + 1);
       }
-    }
   }
   else
   {
@@ -160,107 +157,3 @@ void ConnectomicsDialog::showGraphConnectomicsInformation(QModelIndex index)
 
   connect(m_listView.at(m_listView.size() - 1), SIGNAL(clicked(QModelIndex)), this, SLOT(showGraphConnectomicsInformation(QModelIndex)));
 }
-
-//------------------------------------------------------------------------
-void ConnectomicsDialog::updateSelection(ViewManager::Selection selection)
-{
-  if (!isVisible())
-    return;
-
-  listView1->blockSignals(true);
-  listView1->selectionModel()->blockSignals(true);
-  listView1->selectionModel()->reset();
-  listView1->setSelectionMode(QAbstractItemView::MultiSelection);
-  foreach(PickableItem *p_item, selection)
-  {
-    if (EspINA::SEGMENTATION != p_item->type())
-    return;
-    Segmentation *seg = dynamic_cast<Segmentation *>(p_item);
-    QModelIndex selIndex = m_model->segmentationIndex(seg);
-    if (selIndex.isValid())
-    {
-      listView1->setCurrentIndex(selIndex);
-      //tableView->selectRow(selIndex.row());
-    }
-  }
-
-  listView1->setSelectionMode(QAbstractItemView::ExtendedSelection);
-  listView1->selectionModel()->blockSignals(false);
-  listView1->blockSignals(false);
-
-  // Center the view at the first selected item
-  /*
-   if (!selection.isEmpty())
-   {
-   QModelIndex currentIndex = index(selection.first());
-   tableView->selectionModel()->setCurrentIndex(currentIndex, QItemSelectionModel::Select);
-   tableView->scrollTo(currentIndex);
-   }
-   // Update all visible items*/
-  listView1->viewport()->update();
-}
-
-//------------------------------------------------------------------------
-void ConnectomicsDialog::updateSelection(QItemSelection selected, QItemSelection deselected)
-{
-  ViewManager::Selection selection;
-  foreach(QModelIndex index, listView1->selectionModel()->selectedRows())
-  {
-    ModelItem *item = indexPtr(index);
-    //Segmentation *seg = dynamic_cast<Segmentation *>(item);
-    if (EspINA::SEGMENTATION != item->type())
-    return;
-    selection << dynamic_cast<PickableItem *>(item);
-  }
-  m_viewManager->setSelection(selection);
-}
-
-//------------------------------------------------------------------------
-void ConnectomicsDialog::updateSelectionAux(ViewManager::Selection selection)
-{
-  std::cout << "entre" << std::endl;
-  return;
-  QListView *list_sender = dynamic_cast<QListView *>(sender());
-  if (!isVisible())
-    return;
-
-  list_sender->blockSignals(true);
-  list_sender->selectionModel()->blockSignals(true);
-  list_sender->selectionModel()->reset();
-  list_sender->setSelectionMode(QAbstractItemView::MultiSelection);
-  foreach(PickableItem *p_item, selection)
-  {
-    if (EspINA::SEGMENTATION != p_item->type())
-    return;
-    Segmentation *seg = dynamic_cast<Segmentation *>(p_item);
-    QModelIndex selIndex = m_model->segmentationIndex(seg);
-    if (selIndex.isValid())
-    {
-      list_sender->setCurrentIndex(selIndex);
-      //tableView->selectRow(selIndex.row());
-    }
-  }
-
-  list_sender->setSelectionMode(QAbstractItemView::ExtendedSelection);
-  list_sender->selectionModel()->blockSignals(false);
-  list_sender->blockSignals(false);
-  list_sender->viewport()->update();
-}
-
-//------------------------------------------------------------------------
-void ConnectomicsDialog::updateSelectionAux(QItemSelection selected, QItemSelection deselected)
-{
-  QListView *list_sender = dynamic_cast<QListView *>(sender());
-  ViewManager::Selection selection;
-  foreach(QModelIndex index, list_sender->selectionModel()->selectedRows())
-  {
-    ModelItem *item = indexPtr(index);
-    //Segmentation *seg = dynamic_cast<Segmentation *>(item);
-    if (EspINA::SEGMENTATION != item->type())
-    return;
-    selection << dynamic_cast<PickableItem *>(item);
-  }
-
-  m_viewManager->setSelection(selection);
-}
-

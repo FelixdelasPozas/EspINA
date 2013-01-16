@@ -49,16 +49,9 @@ namespace EspINA
     virtual ~ConnectomicsDialog() {};
 
     void generateConectomicGraph(EspinaModel *m_model);
-    Segmentation itemSelectedProxy(int row, const QModelIndex& sourceParent) const;
-    //   QModelIndex mapToSource(const QModelIndex &proxy) const;
 
   protected slots:
     void showGraphConnectomicsInformation (QModelIndex index);
-    void updateSelection(ViewManager::Selection selection);
-    void updateSelection(QItemSelection selected, QItemSelection deselected);
-    void updateSelectionAux(ViewManager::Selection selection);
-    void updateSelectionAux(QItemSelection selected, QItemSelection deselected);
-    //   void showGraphConnectomicsInformationAux(QModelIndex index);
 
   private:
     EspinaModel *m_model;
