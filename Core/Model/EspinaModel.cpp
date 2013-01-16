@@ -800,7 +800,9 @@ bool EspinaModel::loadSerialization(istream& stream,
   }
 
   foreach(NonInitilizedItem item, nonInitializedItems)
+  {
     item.first->initializeExtensions(item.second);
+  }
 
   return true;
 }

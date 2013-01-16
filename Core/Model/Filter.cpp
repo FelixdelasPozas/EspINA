@@ -71,7 +71,7 @@ void Filter::setTmpDir(QDir dir)
     foreach(QString cachedFile, m_tmpDir.entryList())
     {
       QString filterIdTag = tmpId() + "_";
-      if (cachedFile.contains(filterIdTag))
+      if (cachedFile.startsWith(filterIdTag))
       {
         QString id = cachedFile.split("_").last();
         id = id.split(".").first();
@@ -385,6 +385,7 @@ const Filter::Output Filter::output(OutputId oId) const
 //----------------------------------------------------------------------------
 Filter::Output &Filter::output(OutputId oId)
 {
+  Q_ASSERT(m_outputs.contains(oId));
   return m_outputs[oId];
 }
 
@@ -534,6 +535,8 @@ void Filter::updateCacheFlags()
 //----------------------------------------------------------------------------
 void ChannelFilter::createOutput(Filter::OutputId id, itkVolumeType::Pointer volume)
 {
+  if (id != 0)
+    qDebug() << id;
   if (m_outputs.contains(id))
     m_outputs[id].volume->setVolume(volume);
   else

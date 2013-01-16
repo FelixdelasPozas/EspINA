@@ -316,9 +316,6 @@ FilterSPtr EditorToolBar::createFilter(const QString              &filter,
   if (filterInspector != NULL)
     res->setFilterInspector(Filter::FilterInspectorPtr(filterInspector));
 
-  else
-    Q_ASSERT(false);
-
   return FilterSPtr(res);
 }
 
