@@ -718,6 +718,7 @@ void SliceView::addChannel(ChannelPtr channel)
   channelRep.reslice = vtkImageReslice::New();
   channelRep.reslice->SetResliceAxes(m_slicingMatrix);
   channelRep.reslice->SetInputConnection(channel->volume()->toVTK());
+  channelRep.reslice->SetNumberOfThreads(1);
   channelRep.reslice->SetOutputDimensionality(2);
   channelRep.reslice->Update();
 
@@ -732,6 +733,7 @@ void SliceView::addChannel(ChannelPtr channel)
   channelRep.mapToColors = vtkSmartPointer<vtkImageMapToColors>::New();
   channelRep.mapToColors->SetInputConnection(channelRep.shiftScaleFilter->GetOutputPort());
   channelRep.mapToColors->SetLookupTable(channelRep.lut);
+  channelRep.mapToColors->SetNumberOfThreads(1);
   channelRep.mapToColors->Update();
 
   channelRep.slice = vtkImageActor::New();
@@ -905,6 +907,7 @@ void SliceView::addSegmentation(SegmentationPtr seg)
   segRep.reslice->SetResliceAxes(m_slicingMatrix);
   segRep.reslice->SetInputConnection(seg->volume()->toVTK());
   segRep.reslice->SetOutputDimensionality(2);
+  segRep.reslice->SetNumberOfThreads(1);
   segRep.reslice->Update();
 
   segRep.shiftScaleFilter = NULL;
@@ -912,6 +915,7 @@ void SliceView::addSegmentation(SegmentationPtr seg)
   segRep.mapToColors = vtkSmartPointer<vtkImageMapToColors>::New();
   segRep.mapToColors->SetInputConnection(segRep.reslice->GetOutputPort());
   segRep.mapToColors->SetLookupTable(m_viewManager->lut(seg));
+  segRep.mapToColors->SetNumberOfThreads(1);
   segRep.mapToColors->Update();
 
   segRep.slice = vtkImageActor::New();
