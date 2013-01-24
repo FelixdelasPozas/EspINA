@@ -32,11 +32,12 @@ namespace EspINA
     static const QString ID;
     static const QString ID_1_2_5; // Backwards compatibility
 
-    explicit AdaptiveCountingFrame(Id id,
-                                   CountingFrameChannelExtension *channelExt,
-                                   Nm inclusion[3],
-                                   Nm exclusion[3],
-                                   ViewManager *vm);
+    static AdaptiveCountingFrame *New(Id id,
+                                      CountingFrameExtension *channelExt,
+                                      Nm inclusion[3],
+                                      Nm exclusion[3],
+                                      ViewManager *vm)
+    { return new AdaptiveCountingFrame(id, channelExt, inclusion, exclusion, vm); }
 
     virtual ~AdaptiveCountingFrame();
 
@@ -55,6 +56,14 @@ namespace EspINA
     virtual void setEnabled(bool enable);
 
     virtual void updateCountingFrameImplementation();
+
+  protected:
+
+    explicit AdaptiveCountingFrame(Id id,
+                                   CountingFrameExtension *channelExt,
+                                   Nm inclusion[3],
+                                   Nm exclusion[3],
+                                   ViewManager *vm);
 
   protected:
     double leftOffset()   const {return  m_inclusion[0];}

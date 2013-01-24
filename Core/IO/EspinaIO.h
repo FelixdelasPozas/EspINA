@@ -29,6 +29,7 @@ namespace EspINA
     , ERROR
     };
 
+    static bool isChannelExtension(const QString &fileExtension);
     /**
      * Loads any file supported by EspINA.
      * @param file is the absolute path to be loaded

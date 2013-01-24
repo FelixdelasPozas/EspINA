@@ -19,7 +19,7 @@
 
 #include "CountingFrames/RectangularCountingFrame.h"
 
-#include "Extensions/CountingFrameChannelExtension.h"
+#include "Extensions/CountingFrameExtension.h"
 #include "CountingFrames/vtkCountingFrameSliceWidget.h"
 
 #include <vtkCellArray.h>
@@ -36,11 +36,11 @@ const QString RectangularCountingFrame::ID_1_2_5 = "RectangularBoundingRegion";
 
 //-----------------------------------------------------------------------------
 RectangularCountingFrame::RectangularCountingFrame(Id id,
-                                                     CountingFrameChannelExtension *channelExt,
-                                                     Nm borders[6],
-                                                     Nm inclusion[3],
-                                                     Nm exclusion[3],
-                                                     ViewManager *vm)
+                                                   CountingFrameExtension *channelExt,
+                                                   Nm borders[6],
+                                                   Nm inclusion[3],
+                                                   Nm exclusion[3],
+                                                   ViewManager *vm)
 : CountingFrame(id, channelExt, inclusion, exclusion, vm)
 {
   memcpy(m_borders, borders, 6*sizeof(Nm));

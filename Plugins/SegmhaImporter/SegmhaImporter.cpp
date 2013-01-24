@@ -26,6 +26,8 @@
 #include <Undo/AddRelation.h>
 #include <Undo/AddSample.h>
 
+#include <Plugins/CountingFrame/Extensions/CountingFrameExtension.h>
+
 #include <QApplication>
 #include <QFileDialog>
 #include <QDebug>
@@ -67,8 +69,18 @@ void SegmhaImporter::UndoCommand::redo()
     }
   }
 
-  ModelItemExtensionPtr countingFrameExt = m_channel->extension("CountingFrameExtension");
-  if (countingFrameExt)
+  Channel::ExtensionPtr cfExtension = m_channel->extension(CountingFrameExtensionID);
+  if (!cfExtension)
+  {
+    Channel::ExtensionPtr prototype = m_model->factory()->channelExtension(CountingFrameExtensionID);
+    if (prototype)
+    {
+      cfExtension = prototype->clone();
+      m_channel->addExtension(cfExtension);
+    }
+  }
+
+ if (cfExtension)
   {
     Nm inclusive[3], exclusive[3];
     m_filter->countingFrame(inclusive, exclusive);
@@ -86,7 +98,7 @@ void SegmhaImporter::UndoCommand::redo()
     //qDebug() << "Using Counting Frame" << rcb;
     ModelItem::Arguments args;
     args["CountingFrameExtension"] = "CFs=[" + rcb + "];";
-    countingFrameExt->initialize(args);
+    cfExtension->initialize(args);
   }
 
   m_model->addFilter(m_filter);

@@ -51,9 +51,9 @@ namespace EspINA
     virtual QVariant headerData(int section, Qt::Orientation orientation, int role) const;
     virtual QVariant data(const QModelIndex& proxyIndex, int role = Qt::DisplayRole) const;
 
-    void setQuery(const QStringList query);
+    void setQuery(const Segmentation::InfoTagList query);
     const QStringList query() const {return m_query;}
-    const QStringList availableInformation() const;
+    const Segmentation::InfoTagList availableInformation() const;
 
   protected slots:
     void sourceRowsInserted(const QModelIndex & sourceParent, int start, int end);
@@ -62,7 +62,7 @@ namespace EspINA
 
   private:
     EspinaModel *m_model;
-    QStringList  m_query;
+    QStringList m_query;
     QList<QModelIndex> m_elements;
   };
 

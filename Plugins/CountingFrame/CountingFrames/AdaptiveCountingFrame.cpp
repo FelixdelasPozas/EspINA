@@ -21,8 +21,8 @@
 
 #include <Core/Model/Channel.h>
 #include "vtkCountingFrameSliceWidget.h"
-#include <Core/Extensions/Margins/MarginsChannelExtension.h>
-#include "Extensions/CountingFrameChannelExtension.h"
+#include <Core/Extensions/EdgeDistances/AdaptiveEdges.h>
+#include "Extensions/CountingFrameExtension.h"
 
 #include <vtkPolyData.h>
 #include <vtkSmartPointer.h>
@@ -38,10 +38,10 @@ const QString AdaptiveCountingFrame::ID_1_2_5 = "AdaptiveBoundingRegion";
 
 //-----------------------------------------------------------------------------
 AdaptiveCountingFrame::AdaptiveCountingFrame(Id id,
-                                               CountingFrameChannelExtension *channelExt,
-                                               Nm inclusion[3],
-                                               Nm exclusion[3],
-                                               ViewManager *vm)
+                                             CountingFrameExtension *channelExt,
+                                             Nm inclusion[3],
+                                             Nm exclusion[3],
+                                             ViewManager *vm)
 : CountingFrame(id, channelExt, inclusion, exclusion, vm)
 , m_channel(channelExt->channel())
 {
@@ -175,13 +175,21 @@ void AdaptiveCountingFrame::updateCountingFrameImplementation()
 
   m_inclusionVolume = 0;
 
-  ModelItemExtensionPtr ext = m_channel->extension(MarginsChannelExtension::ID);
-  Q_ASSERT(ext);
-  MarginsChannelExtension *marginsExt = dynamic_cast<MarginsChannelExtension *>(ext);
-  Q_ASSERT(marginsExt);
-  m_totalVolume = marginsExt->computedVolume();
+  AdaptiveEdgesPtr edgesExtension = NULL;
+  Channel::ExtensionPtr extension = m_channel->extension(AdaptiveEdges::ID);
+  if (extension)
+  {
+    edgesExtension = dynamic_cast<AdaptiveEdgesPtr>(extension);
+  }
+  else
+  {
+    edgesExtension = new AdaptiveEdges(true);
+    m_channel->addExtension(edgesExtension);
+  }
+  Q_ASSERT(edgesExtension);
+  m_totalVolume = edgesExtension->computedVolume();
 
-  vtkSmartPointer<vtkPolyData> margins = marginsExt->margins();
+  vtkSmartPointer<vtkPolyData> margins = edgesExtension->channelEdges();
   Q_ASSERT(margins.GetPointer());
 
   int inSliceOffset = upperOffset() / spacing[2];

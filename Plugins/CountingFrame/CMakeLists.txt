@@ -41,8 +41,8 @@ qt4_wrap_ui (UI_BUILT_SOURCES
 qt4_wrap_cpp(MOC_SRCS 
   CountingFramePanel.h
   CountingFrameRenderer.h
-  Extensions/CountingFrameChannelExtension.h
-  Extensions/CountingFrameSegmentationExtension.h
+  Extensions/CountingFrameExtension.h
+  Extensions/StereologicalInclusion.h
   CountingFrames/CountingFrame.h
   )
 
@@ -51,8 +51,8 @@ qt4_wrap_cpp(MOC_SRCS
 set (LOCAL_SOURCES
   CountingFramePanel.cpp
   CountingFrameRenderer.cpp
-  Extensions/CountingFrameChannelExtension.cpp
-  Extensions/CountingFrameSegmentationExtension.cpp
+  Extensions/CountingFrameExtension.cpp
+  Extensions/StereologicalInclusion.cpp
   )
 
 set (REGION_SOURCES

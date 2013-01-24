@@ -1,20 +1,20 @@
 /*
-    <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ *    <one line to give the program's name and a brief idea of what it does.>
+ *    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
+ *
+ *    This program is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
+ *
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 
 #include "DataView.h"
@@ -24,12 +24,13 @@
 // Espina
 #include <Core/Model/EspinaModel.h>
 #include <Core/Model/Segmentation.h>
+#include <Core/Extensions/SegmentationExtension.h>
 
 // Qt
 #include <QFileDialog>
 
 #ifdef TEST_ESPINA_MODELS
-  #include "common/model/ModelTest.h"
+#include "common/model/ModelTest.h"
 #endif
 
 using namespace EspINA;
@@ -68,26 +69,35 @@ DataView::DataView(EspinaModel *model,
   m_sort->setSourceModel(m_model.data());
   m_sort->setDynamicSortFilter(true);
 
-#ifdef TEST_ESPINA_MODELS
+  #ifdef TEST_ESPINA_MODELS
   m_modelTester = QSharedPointer<ModelTest>(new ModelTest(m_model.data()));
-#endif
+  #endif
 
   tableView->setModel(m_sort.data());
   tableView->setSortingEnabled(true);
   tableView->sortByColumn(0, Qt::AscendingOrder);
-//   tableView->horizontalHeader()->setMovable(true);
+  //   tableView->horizontalHeader()->setMovable(true);
   tableView->setSelectionBehavior(QAbstractItemView::SelectRows);
 
   QIcon iconSave = qApp->style()->standardIcon(QStyle::SP_DialogSaveButton);
   writeDataToFile->setIcon(iconSave);
   connect(writeDataToFile, SIGNAL(clicked()),
-	  this,SLOT(extractInformation()));
+          this,SLOT(extractInformation()));
   connect(changeQuery, SIGNAL(clicked()),
-	  this,SLOT(defineQuery()));
+          this,SLOT(defineQuery()));
   connect(tableView->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
-	  this, SLOT(updateSelection(QItemSelection,QItemSelection)));
+          this, SLOT(updateSelection(QItemSelection,QItemSelection)));
   connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection, bool)),
-	  this, SLOT(updateSelection(ViewManager::Selection)));
+          this, SLOT(updateSelection(ViewManager::Selection)));
+
+  Segmentation::InfoTagList tags;
+  tags << tr("Name") << tr("Taxonomy");
+  foreach(Segmentation::InformationExtension extension, m_baseModel->factory()->segmentationExtensions())
+  {
+    tags << extension->availableInformations();
+  }
+
+  m_model->setQuery(tags);
 }
 
 //------------------------------------------------------------------------
@@ -151,31 +161,31 @@ void DataView::updateSelection(ViewManager::Selection selection)
   if (!isVisible())
     return;
 
-//   qDebug() << "Update Data Selection from Selection Manager";
-  tableView->blockSignals(true);
-  tableView->selectionModel()->blockSignals(true);
-  tableView->selectionModel()->reset();
-  tableView->setSelectionMode(QAbstractItemView::MultiSelection);
-  foreach(PickableItemPtr item, selection)
-  {
-    QModelIndex selIndex = index(item);
-    if (selIndex.isValid())
+  //   qDebug() << "Update Data Selection from Selection Manager";
+    tableView->blockSignals(true);
+    tableView->selectionModel()->blockSignals(true);
+    tableView->selectionModel()->reset();
+    tableView->setSelectionMode(QAbstractItemView::MultiSelection);
+    foreach(PickableItemPtr item, selection)
     {
-      tableView->selectRow(selIndex.row());
+      QModelIndex selIndex = index(item);
+      if (selIndex.isValid())
+      {
+        tableView->selectRow(selIndex.row());
+      }
     }
-  }
-  tableView->setSelectionMode(QAbstractItemView::ExtendedSelection);
-  tableView->selectionModel()->blockSignals(false);
-  tableView->blockSignals(false);
-  // Center the view at the first selected item
-  if (!selection.isEmpty())
-  {
-    QModelIndex currentIndex = index(selection.first());
-    tableView->selectionModel()->setCurrentIndex(currentIndex, QItemSelectionModel::Select);
-    tableView->scrollTo(currentIndex);
-  }
-  // Update all visible items
-  tableView->viewport()->update();
+    tableView->setSelectionMode(QAbstractItemView::ExtendedSelection);
+    tableView->selectionModel()->blockSignals(false);
+    tableView->blockSignals(false);
+    // Center the view at the first selected item
+    if (!selection.isEmpty())
+    {
+      QModelIndex currentIndex = index(selection.first());
+      tableView->selectionModel()->setCurrentIndex(currentIndex, QItemSelectionModel::Select);
+      tableView->scrollTo(currentIndex);
+    }
+    // Update all visible items
+    tableView->viewport()->update();
 }
 
 //------------------------------------------------------------------------

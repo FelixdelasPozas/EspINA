@@ -17,8 +17,8 @@
  */
 
 
-#ifndef COUNTINGFRAMESEGMENTATIONEXTENSION_H
-#define COUNTINGFRAMESEGMENTATIONEXTENSION_H
+#ifndef STEREOLOGICALINCLUSION_H
+#define STEREOLOGICALINCLUSION_H
 
 #include <CountingFrames/CountingFrame.h>
 
@@ -33,37 +33,45 @@ class vtkPolyData;
 namespace EspINA
 {
 
-  class CountingFrameSegmentationExtension
-  : public SegmentationExtension
+  class StereologicalInclusion
+  : public Segmentation::Information
   {
     Q_OBJECT
-  public:
-    static const ExtId ID;
-    static const InfoTag EXCLUDED;
+
+    static const QString EXTENSION_FILE;
+
+    typedef QSet<int> CacheEntry;
+    static QMap<SegmentationPtr, CacheEntry> s_cache;
 
   public:
-    explicit CountingFrameSegmentationExtension();
-    virtual ~CountingFrameSegmentationExtension();
+    static const ModelItem::ExtId ID;
 
-    virtual ExtId id();
+    static const Segmentation::InfoTag EXCLUDED;
 
-    virtual ExtIdList dependencies() const;
+  public:
+    explicit StereologicalInclusion();
+    virtual ~StereologicalInclusion();
 
-    virtual InfoList availableInformations() const
-    { return SegmentationExtension::availableInformations(); }
+    virtual ModelItem::ExtId id();
 
-    virtual RepList availableRepresentations() const
-    { return SegmentationExtension::availableRepresentations(); }
+    virtual ModelItem::ExtIdList dependencies() const;
 
-    virtual QVariant information(InfoTag tag) const;
+    virtual Segmentation::InfoTagList availableInformations() const;
 
-    virtual SegmentationRepresentationPtr representation(QString representation);
-
-    void setCountingFrames(CountingFrameList regions);
+    virtual QVariant information(const Segmentation::InfoTag &tag);
 
     virtual void initialize(ModelItem::Arguments args = ModelItem::Arguments());
 
-    virtual SegmentationExtensionPtr clone();
+    virtual bool isCacheFile(const QString &file) const
+    { return EXTENSION_FILE == file; }
+
+    virtual bool loadCache(QuaZipFile &file, const QDir &tmpDir, EspinaModel *model);
+
+    virtual bool saveCache(CacheList &cacheList);
+
+    virtual Segmentation::InformationExtension clone();
+
+    void setCountingFrames(CountingFrameList regions);
 
     bool isExcluded() const;
 
@@ -74,14 +82,18 @@ namespace EspINA
 
   protected:
     bool isExcludedFromCountingFrame(CountingFrame *cf);
+    bool isRealCollision(EspinaRegion interscetion);
     bool isOnEdge();
-    bool realCollision(EspinaRegion interscetion);
 
   private:
     bool m_isOnEdge;
     QMap<CountingFrame *, bool> m_isExcludedFrom;
   };
 
+  typedef StereologicalInclusion * StereologicalInclusionPtr;
+
+  StereologicalInclusionPtr stereologicalInclusionPtr(Segmentation::InformationExtension extension);
+
 } // namespace EspINA
 
-#endif // COUNTINGFRAMESEGMENTATIONEXTENSION_H
+#endif // STEREOLOGICALINCLUSION_H

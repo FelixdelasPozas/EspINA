@@ -261,7 +261,15 @@ bool TaxonomyLayout::selectedItems(TaxonomyElementList &taxonomies, Segmentation
 //------------------------------------------------------------------------
 void TaxonomyLayout::createTaxonomy()
 {
-  ModelItemPtr taxonomyItem = item(m_view->currentIndex());
+  QModelIndex currentIndex = m_view->currentIndex();
+  ModelItemPtr taxonomyItem;
+  if (currentIndex.isValid())
+    taxonomyItem = item(currentIndex);
+  else if (m_view->model()->rowCount() > 0)
+    taxonomyItem = m_model->taxonomy()->elements().first().data();
+  else
+    return;
+
 
   if (EspINA::TAXONOMY == taxonomyItem->type())
   {
@@ -280,7 +288,11 @@ void TaxonomyLayout::createTaxonomy()
 //------------------------------------------------------------------------
 void TaxonomyLayout::createSubTaxonomy()
 {
-  ModelItemPtr taxonomyItem = item(m_view->currentIndex());
+  QModelIndex currentIndex = m_view->currentIndex();
+  if (!currentIndex.isValid())
+    return;
+
+  ModelItemPtr taxonomyItem = item(currentIndex);
 
   if (EspINA::TAXONOMY == taxonomyItem->type())
   {

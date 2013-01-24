@@ -104,18 +104,18 @@ QVariant Sample::data(int role) const
 //------------------------------------------------------------------------
 QString Sample::serialize() const
 {
-  QString extensionArgs;
-  foreach(ModelItemExtensionPtr ext, m_extensions)
-  {
-    SampleExtensionPtr sampleExt = sampleExtensionPtr(ext);
-    QString serializedArgs = sampleExt->serialize(); //Independizar los argumentos?
-    if (!serializedArgs.isEmpty())
-      extensionArgs.append(ext->id()+"=["+serializedArgs+"];");
-  }
-  if (!extensionArgs.isEmpty())
-  {
-    m_args[EXTENSIONS] = QString("[%1]").arg(extensionArgs);
-  }
+//   QString extensionArgs;
+//   foreach(ModelItemExtensionPtr ext, m_extensions)
+//   {
+//     SampleExtensionPtr sampleExt = sampleExtensionPtr(ext);
+//     QString serializedArgs = sampleExt->serialize(); //Independizar los argumentos?
+//     if (!serializedArgs.isEmpty())
+//       extensionArgs.append(ext->id()+"=["+serializedArgs+"];");
+//   }
+//   if (!extensionArgs.isEmpty())
+//   {
+//     m_args[EXTENSIONS] = QString("[%1]").arg(extensionArgs);
+//   }
   return m_args.serialize();
 }
 
@@ -132,22 +132,16 @@ void Sample::initialize(const Arguments &args)
 //------------------------------------------------------------------------
 void Sample::initializeExtensions(const Arguments &args)
 {
-  Arguments extArgs(args[EXTENSIONS]);
-  foreach(ModelItemExtensionPtr ext, m_extensions)
-  {
-    SampleExtensionPtr sampleExt = sampleExtensionPtr(ext);
-    qDebug() << extArgs;
-    Arguments sArgs(extArgs.value(sampleExt->id(), QString()));
-    qDebug() << sArgs;
-    sampleExt->initialize(sArgs);
-  }
+//   Arguments extArgs(args[EXTENSIONS]);
+//   foreach(ModelItemExtensionPtr ext, m_extensions)
+//   {
+//     SampleExtensionPtr sampleExt = sampleExtensionPtr(ext);
+//     qDebug() << extArgs;
+//     Arguments sArgs(extArgs.value(sampleExt->id(), QString()));
+//     qDebug() << sArgs;
+//     sampleExt->initialize(sArgs);
+//   }
 
-}
-
-//------------------------------------------------------------------------
-void Sample::addExtension(SampleExtensionPtr ext)
-{
-  ModelItem::addExtension(ext);
 }
 
 //------------------------------------------------------------------------

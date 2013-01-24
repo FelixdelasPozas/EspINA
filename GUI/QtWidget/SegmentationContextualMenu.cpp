@@ -195,8 +195,9 @@ void SegmentationContextualMenu::changeFinalFlag()
   }
 
   foreach(SegmentationPtr seg, selectedSegmentations)
-    seg->notifyModification(true);
+    seg->volume()->update();
 
+  m_viewManager->updateSegmentationRepresentations(selectedSegmentations);
   m_viewManager->updateViews();
 
   emit changeFinalNode(value);

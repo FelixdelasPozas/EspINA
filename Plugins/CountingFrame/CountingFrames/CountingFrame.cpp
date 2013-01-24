@@ -19,18 +19,18 @@
 
 #include "CountingFrames/CountingFrame.h"
 #include "vtkCountingFrameSliceWidget.h"
-#include "Extensions/CountingFrameChannelExtension.h"
+#include "Extensions/CountingFrameExtension.h"
 #include <Core/Model/Channel.h>
 #include <GUI/ViewManager.h>
 
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
-CountingFrame::CountingFrame(Id id,
-                               CountingFrameChannelExtension *channelExt,
-                               Nm inclusion[3],
-                               Nm exclusion[3],
-                               ViewManager *vm)
+CountingFrame::CountingFrame(Id                      id,
+                             CountingFrameExtension *channelExt,
+                             Nm                      inclusion[3],
+                             Nm                      exclusion[3],
+                             ViewManager            *vm)
 : QStandardItem()
 , INCLUSION_FACE(255)
 , EXCLUSION_FACE(0)
@@ -52,6 +52,13 @@ void CountingFrame::setMargins(Nm inclusion[3], Nm exclusion[3])
   memcpy(m_exclusion, exclusion, 3*sizeof(Nm));
 
   updateCountingFrame();
+}
+
+//-----------------------------------------------------------------------------
+void CountingFrame::margins(Nm inclusion[3], Nm exclusion[3])
+{
+  memcpy(inclusion, m_inclusion, 3*sizeof(Nm));
+  memcpy(exclusion, m_exclusion, 3*sizeof(Nm));
 }
 
 //-----------------------------------------------------------------------------

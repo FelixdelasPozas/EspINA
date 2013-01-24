@@ -65,6 +65,12 @@ namespace EspINA
     typedef QString ArgumentId;
     typedef QString Argument;
 
+    class Extension;
+    typedef Extension * ExtensionPtr;
+
+    typedef QString      ExtId;
+    typedef QList<ExtId> ExtIdList;
+
     class Arguments
     : public QMap<ArgumentId, Argument>
     {
@@ -82,30 +88,15 @@ namespace EspINA
       { return QString("%1=%2;").arg(name).arg(value); }
     };
 
-    // TODO: 2013-01-03 move representations here
-    class   Representation
-    {
-      public:
-        explicit Representation() {};
-        virtual ~Representation() {};
-    };
-    typedef QSharedPointer<Representation> RepresentationPtr;
-
     static const ArgumentId EXTENSIONS;
 
-    ModelItem() : m_modified(false), m_model(NULL) {}
+    ModelItem() : m_model(NULL) {}
     virtual ~ModelItem();
 
     virtual QVariant data(int role=Qt::DisplayRole) const = 0;
     virtual bool setData(const QVariant& value, int role = Qt::UserRole +1) {return false;}
     virtual QString  serialize() const = 0;
     virtual ModelItemType type() const = 0;
-
-    virtual QStringList availableInformations() const;
-    virtual QStringList availableRepresentations() const;
-    virtual QVariant information(const QString &name);
-    virtual RepresentationPtr representation(const QString &name) const;
-    ModelItemExtensionPtr extension(const QString &name) const;
 
     virtual void initialize(const Arguments &args = Arguments()) = 0;
     /// Used to initialize its extension
@@ -117,27 +108,15 @@ namespace EspINA
     ModelItemSList relatedItems(RelationType relType, const QString &relName = "");
     RelationList relations(const QString &relName = "");
 
-    bool updateForced() const {return m_modified;} // NOTE
   public slots:
-    virtual void notifyModification(bool force=false) // NOTE
-    {m_modified = force; emit modified(this);}
+    virtual void notifyModification()
+    {emit modified(this);}
 
   signals:
-    void modified(ModelItem *); //NOTE
+    void modified(ModelItem *);
 
   protected:
-    void addExtension   (ModelItemExtensionPtr ext);
-    void deleteExtension(ModelItemExtensionPtr ext);
-    void deleteExtensions();
-
-    bool         m_modified;
     EspinaModel *m_model;
-
-    QMap<QString, ModelItemExtensionPtr> m_extensions;
-    QMap<QString, ModelItemExtensionPtr> m_pendingExtensions;
-    QList<ModelItemExtensionPtr>         m_insertionOrderedExtensions;
-    QMap<QString, RepresentationPtr>     m_representations;
-    QMap<QString, ModelItemExtensionPtr> m_informations;
 
     friend class EspinaModel;
   };

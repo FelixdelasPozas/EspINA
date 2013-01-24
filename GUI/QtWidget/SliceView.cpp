@@ -651,7 +651,7 @@ void SliceView::updateView()
 {
   if (isVisible())
   {
-    //qDebug() << "Updating View";
+    qDebug() << "Updating View";
     updateRuler();
     updateWidgetVisibility();
     updateThumbnail();
@@ -901,11 +901,9 @@ void SliceView::addSegmentation(SegmentationPtr seg)
 
   SliceRep segRep;
 
-  if (seg->filter()->needUpdate())
-    seg->filter()->update();
+  seg->filter()->update();
 
   segRep.reslice = vtkImageReslice::New();
-  segRep.reslice->SetNumberOfThreads(1);
   segRep.reslice->SetResliceAxes(m_slicingMatrix);
   segRep.reslice->SetInputConnection(seg->volume()->toVTK());
   segRep.reslice->SetOutputDimensionality(2);
@@ -927,9 +925,9 @@ void SliceView::addSegmentation(SegmentationPtr seg)
   segRep.slice->Update();
   m_state->updateActor(segRep.slice);
 
-  segRep.selected = seg->isSelected();
-  segRep.visible = seg->visible() && m_showSegmentations;
-  segRep.color = m_viewManager->color(seg);
+  segRep.selected = !seg->isSelected(); // Force First Update
+  segRep.visible  = seg->visible() && m_showSegmentations;
+  //segRep.color = m_viewManager->color(seg);
 
   m_segmentationReps.insert(seg, segRep);
   addActor(segRep.slice);
@@ -1027,8 +1025,7 @@ bool SliceView::updateSegmentation(SegmentationPtr seg)
     QColor highlightedColor = m_highlighter->color(segColor, highlight);
 
     if ((seg->isSelected() != rep.selected)
-      || (highlightedColor != rep.color)
-      || seg->updateForced())
+      || (highlightedColor != rep.color))
     {
       rep.selected = seg->isSelected();
       rep.color = highlightedColor;

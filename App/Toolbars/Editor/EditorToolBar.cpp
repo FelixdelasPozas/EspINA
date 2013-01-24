@@ -174,7 +174,7 @@ namespace EspINA
         m_model->addRelation(oldConnection.first, seg, Filter::CREATELINK);
 
         seg->changeFilter(oldConnection.first, oldConnection.second);
-        seg->notifyModification(true);
+        seg->volume()->update();
       }
       m_viewManager->updateSegmentationRepresentations(segmentations);
     }

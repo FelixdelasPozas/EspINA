@@ -22,46 +22,40 @@
 
 #include "Core/Model/ModelItem.h"
 
+#include <QDir>
 #include <QStringList>
 #include <QVariant>
 
+#include <quazipfile.h>
+
 namespace EspINA
 {
-  class ModelItemExtension
+
+  class ModelItem::Extension
   : public QObject
   {
   public:
-    typedef QString ExtId;
-    typedef QString InfoTag;
-    typedef QString RepTag;
-    typedef QList<ExtId>   ExtIdList;
-    typedef QList<InfoTag> InfoList;
-    typedef QList<RepTag>  RepList;
+    typedef QList<QPair<QString, QByteArray> > CacheList;
 
   public:
-    virtual ~ModelItemExtension(){}
+    virtual ~Extension(){}
 
-    virtual ExtId id() = 0;
+    virtual ModelItem::ExtId id() = 0;
     /// List of extension names which need to be loaded to use the extension
-    virtual ExtIdList dependencies() const  = 0;
-    /// List of information tags provided by the extension
-    virtual InfoList availableInformations()    const = 0;
-    /// List of representation tags provided by the extension
-    virtual RepList availableRepresentations() const = 0;
-    /// Information associated with @tag
-    virtual QVariant information(ModelItemExtension::InfoTag tag)  const = 0;
+    virtual ModelItem::ExtIdList dependencies() const  = 0;
 
     virtual void initialize(ModelItem::Arguments args = ModelItem::Arguments()) = 0;
 
+    virtual bool isCacheFile(const QString &file) const = 0;
+
+    virtual bool loadCache(QuaZipFile &file, const QDir &tmpDir, EspinaModel *model) = 0;
+
+    virtual bool saveCache(CacheList &cacheList) = 0;
+
   protected:
-    ModelItemExtension() : m_init(false) {}
+    Extension() : m_init(false) {}
     mutable bool m_init;
-
-    InfoList m_availableInformations;
-    RepList  m_availableRepresentations;
   };
-
-  typedef QSharedPointer<ModelItemExtension> ModelItemExtensionSPtr;
 
 } // namespace EspINA
 

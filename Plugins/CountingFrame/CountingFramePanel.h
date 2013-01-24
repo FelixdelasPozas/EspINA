@@ -34,7 +34,7 @@ namespace EspINA
 {
   // Forward declaration
   class Channel;
-  class CountingFrameChannelExtension;
+  class CountingFrameExtension;
 
   /// Counting Frame Plugin
   class CountingFramePanel
@@ -71,6 +71,8 @@ namespace EspINA
                              Nm inclusion[3],
                              Nm exclusion[3]);
 
+    void deleteCountingFrame(CountingFrame *cf);
+
     CountingFrameList countingFrames() const {return m_countingFrames;}
 
   protected slots:
@@ -106,7 +108,7 @@ namespace EspINA
     void exclusionMargins(double values[3]);
 
 
-    void registerCF(CountingFrameChannelExtension *ext,
+    void registerCF(CountingFrameExtension *ext,
                     CountingFrame *cf);
 
   signals:

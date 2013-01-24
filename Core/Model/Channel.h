@@ -42,6 +42,11 @@ namespace EspINA
   , public HierarchyItem
   {
   public:
+    class Extension;
+    typedef Extension *               ExtensionPtr;
+    typedef QList<ExtensionPtr>       ExtensionList;
+    typedef QMap<ExtId, ExtensionPtr> ExtensionProvider;
+
     // Argument Ids
     static const ArgumentId ID;
     static const ArgumentId HUE;
@@ -143,9 +148,6 @@ namespace EspINA
   public:
     virtual ~Channel();
 
-    void setColor(double color);
-    double color() const;
-
     void setVisible(bool visible) {m_visible = visible;}
     bool isVisible() const {return m_visible;}
 
@@ -170,10 +172,6 @@ namespace EspINA
     virtual ModelItemType type() const {return CHANNEL;}
     virtual QString  serialize() const;
 
-    virtual QStringList availableInformations() const;
-    virtual QStringList availableRepresentations() const;
-    virtual QVariant information(const QString &name);
-
     virtual void initialize(const Arguments &args = Arguments());
     virtual void initializeExtensions(const Arguments &args = Arguments());
 
@@ -193,10 +191,8 @@ namespace EspINA
 
     /// Add a new extension to the segmentation
     /// Extesion won't be available until requirements are satisfied
-    void addExtension(ChannelExtensionPtr ext);
-
-  public slots:
-    virtual void notifyModification(bool force = false);
+    void addExtension(Channel::ExtensionPtr extension);
+    Channel::ExtensionPtr extension(ModelItem::ExtId extensionId);
 
   private:
     explicit Channel(FilterSPtr filter, Filter::OutputId oId);
@@ -207,18 +203,17 @@ namespace EspINA
 
     mutable CArguments m_args;
 
-    FilterSPtr    m_filter;
+    FilterSPtr        m_filter;
+    ExtensionProvider m_extensions;
   };
 
   typedef QSharedPointer<Channel> ChannelSPtr;
   typedef QList<ChannelSPtr>      ChannelSList;
 
-
   ChannelPtr  channelPtr(ModelItemPtr      item);
   ChannelPtr  channelPtr(PickableItemPtr   item);
   ChannelSPtr channelPtr(ModelItemSPtr    &item);
   ChannelSPtr channelPtr(PickableItemSPtr &item);
-
 
 }// namespace EspINA
 

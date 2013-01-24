@@ -17,9 +17,9 @@
 */
 
 
-#include "MarginDetector.h"
+#include "EdgeDetector.h"
 
-#include <QDebug>
+#include "AdaptiveEdges.h"
 
 #include "Core/Model/Channel.h"
 
@@ -29,7 +29,8 @@
 #include <vtkSmartPointer.h>
 #include <vtkPoints.h>
 #include <vtkOBBTree.h>
-#include "MarginsChannelExtension.h"
+
+#include <QDebug>
 
 using namespace EspINA;
 
@@ -67,21 +68,21 @@ vtkSmartPointer<vtkPoints> plane(const double corner[3],
 
 
 //------------------------------------------------------------------------
-MarginDetector::MarginDetector(MarginsChannelExtension *extension,
-                               QObject* parent)
+EdgeDetector::EdgeDetector(AdaptiveEdges *extension,
+                           QObject* parent)
 : QThread(parent)
 , m_extension(extension)
 {
-  m_extension->m_borderMutex.lock();
+  m_extension->m_mutex.lock();
 }
 
 //------------------------------------------------------------------------
-MarginDetector::~MarginDetector()
+EdgeDetector::~EdgeDetector()
 {
 }
 
 //------------------------------------------------------------------------
-void MarginDetector::run()
+void EdgeDetector::run()
 {
   Channel *channel       = m_extension->channel();
   vtkAlgorithm *producer = channel->volume()->toVTK()->GetProducer();
@@ -241,8 +242,8 @@ void MarginDetector::run()
       m_extension->m_computedVolume += ((RT[0] - LT[0] + 1)*(LB[1] - LT[1] + 1))*spacing[2];
   }
 
-  m_extension->m_borders->SetPoints(borderVertices);
-  m_extension->m_borders->SetPolys(faces);
+  m_extension->m_edges->SetPoints(borderVertices);
+  m_extension->m_edges->SetPolys(faces);
 
-  m_extension->m_borderMutex.unlock();
+  m_extension->m_mutex.unlock();
 }

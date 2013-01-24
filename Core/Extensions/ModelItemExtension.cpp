@@ -21,26 +21,7 @@
 
 using namespace EspINA;
 
-//-----------------------------------------------------------------------------
-ModelItemExtension::ExtIdList ModelItemExtension::dependencies() const
+ModelItem::ExtIdList ModelItem::Extension::dependencies() const
 {
-  return QStringList();
-}
-
-//-----------------------------------------------------------------------------
-ModelItemExtension::RepList ModelItemExtension::availableRepresentations() const
-{
-  return m_availableRepresentations;
-}
-
-//-----------------------------------------------------------------------------
-ModelItemExtension::InfoList ModelItemExtension::availableInformations() const
-{
-  return m_availableInformations;
-}
-
-//-----------------------------------------------------------------------------
-QVariant ModelItemExtension::information(ModelItemExtension::InfoTag tag) const
-{
-  return QVariant();
+  return ExtIdList();
 }

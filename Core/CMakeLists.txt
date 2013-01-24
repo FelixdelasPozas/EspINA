@@ -39,11 +39,11 @@ set (CORE_SOURCES
   ColorEngines/UserColorEngine.cpp
   IO/EspinaIO.cpp
   Extensions/ChannelExtension.cpp
-  Extensions/Margins/MarginDetector.cpp
-  Extensions/Margins/MarginsChannelExtension.cpp
-  Extensions/Margins/MarginsSegmentationExtension.cpp
+  Extensions/EdgeDistances/EdgeDetector.cpp
+  Extensions/EdgeDistances/AdaptiveEdges.cpp
+  Extensions/EdgeDistances/EdgeDistance.cpp
   Extensions/ModelItemExtension.cpp
-  Extensions/Morphological/MorphologicalExtension.cpp
+  Extensions/Morphological/MorphologicalInformation.cpp
   Extensions/SampleExtension.cpp
   Model/Channel.cpp
   Model/EspinaFactory.cpp

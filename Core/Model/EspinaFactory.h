@@ -49,13 +49,18 @@ namespace EspINA
                                const QString     &description,
                                const QStringList &extensions);
 
-    void registerChannelExtension(ChannelExtensionPtr extension);
-    void unregisterChannelExtension(ChannelExtensionPtr extension);
+    void registerChannelExtension(Channel::ExtensionPtr extension);
+    void unregisterChannelExtension(Channel::ExtensionPtr extension);
+    Channel::ExtensionList channelExtensions() const
+    { return m_channelExtensions; }
+    Channel::ExtensionPtr channelExtension(ModelItem::ExtId extensionId) const;
 
-    void registerSampleExtension(SampleExtensionPtr extension);
-
-    void registerSegmentationExtension(SegmentationExtensionPtr extension);
-    void unregisterSegmentationExtension(SegmentationExtensionPtr extension);
+    void registerSegmentationExtension(Segmentation::InformationExtension extension);
+    void unregisterSegmentationExtension(Segmentation::InformationExtension extension);
+    Segmentation::InformationExtensionList segmentationExtensions() const
+    { return m_segmentationExtensions; }
+    Segmentation::InformationExtension segmentationExtension(ModelItem::ExtId extensionId) const;
+    Segmentation::InformationExtension informationProvider(Segmentation::InfoTag tag) const;
 
     void registerSettingsPanel(ISettingsPanelPtr panel)
     {m_settingsPanels << panel;}
@@ -91,9 +96,8 @@ namespace EspINA
     QMap<QString, IFilterCreatorPtr> m_filterCreators;
     QMap<QString, IFileReaderPtr>    m_fileReaders;
 
-    QList<ChannelExtensionPtr>      m_channelExtensions;
-    QList<SampleExtensionPtr>       m_sampleExtensions;
-    QList<SegmentationExtensionPtr> m_segExtensions;
+    Channel::ExtensionList                 m_channelExtensions;
+    Segmentation::InformationExtensionList m_segmentationExtensions;
 
     QMap<QString, IRenderer *> m_renderers;
 

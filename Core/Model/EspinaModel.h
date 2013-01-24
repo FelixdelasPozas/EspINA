@@ -175,7 +175,7 @@ namespace EspINA
     RelationshipGraphPtr relationships()
     { return m_relations; }
 
-    // TODO 2012-12-17 Mover a EspinaIO
+    // TODO 2012-12-17 Move to EspinaIO
     void serializeRelations(std::ostream& stream,
                             RelationshipGraph::PrintFormat format = RelationshipGraph::BOOST);
     bool loadSerialization (std::istream &stream,

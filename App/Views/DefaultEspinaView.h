@@ -83,7 +83,6 @@ namespace EspINA
   protected slots:
     virtual void rowsInserted(const QModelIndex& parent, int start, int end);
     virtual void rowsAboutToBeRemoved(const QModelIndex& parent, int start, int end);
-    virtual void dataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight);
 
     void showCrosshair(bool visible);
     void setRulerVisibility(bool visible);

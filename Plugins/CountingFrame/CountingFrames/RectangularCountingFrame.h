@@ -24,7 +24,7 @@
 
 namespace EspINA
 {
-  class CountingFrameChannelExtension;
+  class CountingFrameExtension;
 
   class RectangularCountingFrame
   : public CountingFrame
@@ -33,12 +33,14 @@ namespace EspINA
     static const QString ID;
     static const QString ID_1_2_5; //Backward compatibility
 
-    explicit RectangularCountingFrame(Id id,
-                                      CountingFrameChannelExtension *channelExt,
-                                      Nm borders[6],
-                                      Nm inclusion[3],
-                                      Nm exclusion[3],
-                                      ViewManager *vm);
+    static RectangularCountingFrame *New(Id id,
+                                         CountingFrameExtension *channelExt,
+                                         Nm borders[6],
+                                         Nm inclusion[3],
+                                         Nm exclusion[3],
+                                         ViewManager *vm)
+    { return new RectangularCountingFrame(id, channelExt, borders, inclusion, exclusion,vm);}
+
     virtual ~RectangularCountingFrame();
 
     // Implements QStandardItem interface
@@ -58,6 +60,13 @@ namespace EspINA
     virtual void updateCountingFrameImplementation();
 
   protected:
+    explicit RectangularCountingFrame(Id id,
+                                      CountingFrameExtension *channelExt,
+                                      Nm borders[6],
+                                      Nm inclusion[3],
+                                      Nm exclusion[3],
+                                      ViewManager *vm);
+
     vtkSmartPointer<vtkPolyData> createRectangularRegion(Nm left,
                                                          Nm top,
                                                          Nm upper,

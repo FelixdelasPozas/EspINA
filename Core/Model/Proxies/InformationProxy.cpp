@@ -21,6 +21,7 @@
 
 #include <Core/Model/EspinaModel.h>
 #include <Core/Model/Segmentation.h>
+#include <Core/Extensions/SegmentationExtension.h>
 
 using namespace EspINA;
 
@@ -172,16 +173,20 @@ QVariant InformationProxy::data(const QModelIndex& proxyIndex, int role) const
   if (EspINA::SEGMENTATION != proxyItem->type())
     return QVariant();
 
+  SegmentationPtr segmentation = segmentationPtr(proxyItem);
+
   if (role == Qt::TextAlignmentRole)
     return Qt::AlignRight;
 
   if (role == Qt::DisplayRole && !m_query.isEmpty())
   {
-    QString query = m_query[proxyIndex.column()];
-    if ("Name" == query)
-      return proxyItem->data(Qt::DisplayRole);
-    else
-      return proxyItem->information(query);
+    Segmentation::InfoTag tag = m_query[proxyIndex.column()];
+    if (!segmentation->availableInformations().contains(tag))
+    {
+      Segmentation::InformationExtension prototype = m_model->factory()->informationProvider(tag);
+      segmentation->addExtension(prototype->clone());
+    }
+    return segmentation->information(tag);
   } else if (proxyIndex.column() > 0)
     return QVariant();//To avoid checkrole or other roles
 
@@ -190,7 +195,7 @@ QVariant InformationProxy::data(const QModelIndex& proxyIndex, int role) const
 
 
 //------------------------------------------------------------------------
-void InformationProxy::setQuery(const QStringList query)
+void InformationProxy::setQuery(const Segmentation::InfoTagList query)
 {
   beginResetModel();
   m_query = query;
@@ -198,13 +203,13 @@ void InformationProxy::setQuery(const QStringList query)
 }
 
 //------------------------------------------------------------------------
-const QStringList InformationProxy::availableInformation() const
+const Segmentation::InfoTagList InformationProxy::availableInformation() const
 {
   if (m_elements.isEmpty())
     return QStringList();
 
   ModelItemPtr item = indexPtr(m_elements.first());
-  return item->availableInformations();
+  return segmentationPtr(item)->availableInformations();
 }
 
 
@@ -217,12 +222,12 @@ void InformationProxy::sourceRowsInserted(const QModelIndex& sourceParent, int s
   {
     if (m_query.isEmpty())
     {
-      QModelIndex sourceIndex = mapFromSource(m_model->index(start, 0, sourceParent));
-      if (sourceIndex.isValid())
-      {
-        ModelItemPtr item = indexPtr(sourceIndex);
-        setQuery(item->availableInformations());
-      }
+//       QModelIndex sourceIndex = mapFromSource(m_model->index(start, 0, sourceParent));
+//       if (sourceIndex.isValid())
+//       {
+//         ModelItemPtr item = indexPtr(sourceIndex);
+//         setQuery(item->availableInformations());
+//       }
     }
     // Avoid populating the view if no query is selected
     if (!m_query.isEmpty())

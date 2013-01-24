@@ -7,6 +7,8 @@
 #include "Core/Model/Channel.h"
 #include "Core/Model/Segmentation.h"
 #include <Core/Model/Taxonomy.h>
+#include <Core/Extensions/ChannelExtension.h>
+#include <Core/Extensions/SegmentationExtension.h>
 
 #include "Filters/ChannelReader.h"
 #include "Undo/AddChannel.h"
@@ -43,13 +45,22 @@ const QString EspinaIO::VERSION = "version";
 const QString SEG_FILE_VERSION  = "1";
 
 //-----------------------------------------------------------------------------
+bool EspinaIO::isChannelExtension(const QString &fileExtension)
+{
+  return ("mha"  == fileExtension
+       || "mhd"  == fileExtension
+       || "tiff" == fileExtension
+       || "tif"  == fileExtension);
+}
+
+//-----------------------------------------------------------------------------
 EspinaIO::STATUS EspinaIO::loadFile(QFileInfo file,
                                     EspinaModel *model,
                                     QUndoStack  *undoStack,
                                     QDir tmpDir)
 {
   const QString ext = file.suffix();
-  if ("mha" == ext || "mhd" == ext || "tiff" == ext || "tif" == ext)
+  if (isChannelExtension(ext))
   {
     ChannelSPtr channel;
     return loadChannel(file, model, undoStack, channel);
@@ -113,11 +124,11 @@ EspinaIO::STATUS EspinaIO::loadChannel(QFileInfo file,
   channel->setPosition(pos);
 
   undoStack->beginMacro("Add Data To Analysis");
+  // TODO: Remove Undo Actions, that should be app level stuff
   undoStack->push(new AddChannel(reader, channel, model));
   undoStack->push(new AddRelation(existingSample, channel, Channel::STAINLINK, model));
   undoStack->endMacro();
 
-  //existingSample->initialize();//TODO: Review if needed
   channel->initialize(args);
   channel->initializeExtensions();
 
@@ -128,9 +139,9 @@ EspinaIO::STATUS EspinaIO::loadChannel(QFileInfo file,
 
 
 //-----------------------------------------------------------------------------
-EspinaIO::STATUS EspinaIO::loadSegFile(QFileInfo file,
+EspinaIO::STATUS EspinaIO::loadSegFile(QFileInfo    file,
                                        EspinaModel *model,
-                                       QDir tmpDir)
+                                       QDir         tmpDir)
 {
   // Create tmp dir if necessary
   if (!tmpDir.exists())
@@ -151,6 +162,7 @@ EspinaIO::STATUS EspinaIO::loadSegFile(QFileInfo file,
 
   TaxonomySPtr taxonomy;
   QString traceContent;
+  QMap<QString, ModelItem::ExtensionPtr> extensionFiles;
 
   bool hasFile = espinaZip.goToFirstFile();
   while(hasFile)
@@ -187,17 +199,57 @@ EspinaIO::STATUS EspinaIO::loadSegFile(QFileInfo file,
       traceStream << espinaFile.readAll();
     } else
     {
-      // Espina Volumes
-      QFile destination(tmpDir.filePath(file.fileName()));
-      /*qDebug()<< "Permissions set" <<
-       *       destination.setPermissions(QFile::ReadOwner | QFile::WriteOwner |
-       *                                  QFile::ReadGroup | QFile::ReadOther);*/
-      if(!destination.open(QIODevice::WriteOnly | QIODevice::Truncate))
+      bool extensionFile = false;
+
+      // Check whether is a Channel Extension
       {
-        qWarning() << "IOEspinaFile::loadFile: could not create file " << file.filePath();
+        int i = 0;
+        Channel::ExtensionList extensions = model->factory()->channelExtensions();
+        while(!extensionFile && i < extensions.size())
+        {
+          Channel::ExtensionPtr extension = extensions[i];
+
+          if (extension->isCacheFile(file.filePath()))
+          {
+            extensionFile = true;
+            extensionFiles[file.filePath()] = extension;
+          }
+          i++;
+        }
       }
-      destination.write(espinaFile.readAll());
-      destination.close();
+
+      // Check whether is a Segmentation Extension
+      if (!extensionFile)
+      {
+        int i = 0;
+        Segmentation::InformationExtensionList extensions = model->factory()->segmentationExtensions();
+        while(!extensionFile && i < extensions.size())
+        {
+          Segmentation::InformationExtension extension = extensions[i];
+
+          if (extension->isCacheFile(file.filePath()))
+          {
+            extensionFile = true;
+            extensionFiles[file.filePath()] = extension;
+          }
+          i++;
+        }
+      }
+
+      // Otherwise is an Espina Volumes
+      if (!extensionFile)
+      {
+        QFile destination(tmpDir.filePath(file.fileName()));
+        /*qDebug()<< "Permissions set" <<
+         *       destination.setPermissions(QFile::ReadOwner | QFile::WriteOwner |
+         *                                  QFile::ReadGroup | QFile::ReadOther);*/
+        if(!destination.open(QIODevice::WriteOnly | QIODevice::Truncate))
+        {
+          qWarning() << "IOEspinaFile::loadFile: could not create file " << file.filePath();
+        }
+        destination.write(espinaFile.readAll());
+        destination.close();
+      }
     }
     espinaFile.close();
     hasFile = espinaZip.goToNextFile();
@@ -213,6 +265,15 @@ EspinaIO::STATUS EspinaIO::loadSegFile(QFileInfo file,
   model->addTaxonomy(taxonomy);
   std::istringstream trace(traceContent.toStdString().c_str());
   status = model->loadSerialization(trace, tmpDir)?SUCCESS:ERROR;
+
+  // Load Extensions' cache
+  foreach(QString file, extensionFiles.keys())
+  {
+    espinaZip.setCurrentFile(file);
+    espinaFile.open(QuaZipFile::ReadOnly);
+    extensionFiles[file]->loadCache(espinaFile, tmpDir, model);
+    espinaFile.close();
+  }
 
   espinaZip.close();
   return status;
@@ -320,6 +381,35 @@ EspinaIO::STATUS EspinaIO::saveSegFile(QFileInfo file, EspinaModel *model)
   {
     //qDebug() << "Removing" << tmpFile.fileName();
     Q_ASSERT(tmpDir.remove(tmpFile.fileName()));
+  }
+
+  // Save Extensions' Information
+  foreach(Channel::ExtensionPtr extension, model->factory()->channelExtensions())
+  {
+    ModelItem::Extension::CacheList cacheList;
+    if (extension->saveCache(cacheList))
+    {
+      QPair<QString, QByteArray> entry;
+      foreach(entry, cacheList)
+      {
+        if( !zipFile(entry.first, entry.second, outFile) )
+          return ERROR;
+      }
+    }
+  }
+
+  foreach(Segmentation::InformationExtension extension, model->factory()->segmentationExtensions())
+  {
+    ModelItem::Extension::CacheList cacheList;
+    if (extension->saveCache(cacheList))
+    {
+      QPair<QString, QByteArray> entry;
+      foreach(entry, cacheList)
+      {
+        if( !zipFile(entry.first, entry.second, outFile) )
+          return ERROR;
+      }
+    }
   }
 
   if (!file.baseName().isEmpty())

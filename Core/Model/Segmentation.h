@@ -25,7 +25,6 @@
 #ifndef SEGMENTATION_H
 #define SEGMENTATION_H
 
-#include "Core/Extensions/SegmentationExtension.h"
 #include "Core/Model/PickableItem.h"
 #include "Core/Model/Taxonomy.h"
 #include "Core/Model/HierarchyItem.h"
@@ -60,6 +59,18 @@ namespace EspINA
     static const QString COMPOSED_LINK;
 
     static const int SelectionRole = Qt::UserRole + 2;
+
+    typedef QString InfoTag;
+    typedef QList<InfoTag> InfoTagList;
+
+    class Extension;
+    class Information;
+    typedef Information *                       InformationExtension;
+    typedef QList<InformationExtension>         InformationExtensionList;
+
+    typedef QMap<ExtId, InformationExtension>   InformationExtensionProvider;
+    typedef QMap<InfoTag, InformationExtension> InformationTagProvider;
+
 
   private:
     class SArguments
@@ -153,16 +164,11 @@ namespace EspINA
 
     /// Add a new extension to the segmentation
     /// Extesion won't be available until requirements are satisfied
-    void addExtension(SegmentationExtensionPtr ext);
-    //   QStringList availableRepresentations() const;
-    //   ISegmentationRepresentation *representation(QString rep);
+    void addExtension(Segmentation::InformationExtension extension);
+    Segmentation::InformationExtension informationExtension(const ModelItem::ExtId &name) const;
 
-    virtual QStringList availableInformations() const;
-    virtual QVariant information(const QString &name);
-
-  public slots:
-    // DEPRECATED??
-    virtual void notifyModification(bool force = false);
+    virtual InfoTagList availableInformations() const;
+    virtual QVariant information(const InfoTag &tag) const;
 
   private:
     mutable SArguments m_args;
@@ -173,7 +179,8 @@ namespace EspINA
     bool m_isVisible;
     QColor m_color;
 
-    friend class Filter; // DEPRECATED: 2012-12-13 Creo que no se usa ya
+    InformationExtensionProvider m_informationExtensions;
+    InformationTagProvider       m_informationTagProvider;
   };
 
   SegmentationPtr  segmentationPtr(ModelItemPtr     item);

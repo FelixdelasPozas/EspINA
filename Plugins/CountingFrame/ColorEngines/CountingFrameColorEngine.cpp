@@ -18,7 +18,7 @@
 
 
 #include "CountingFrameColorEngine.h"
-#include "Extensions/CountingFrameSegmentationExtension.h"
+#include "Extensions/StereologicalInclusion.h"
 
 #include <Core/Extensions/ModelItemExtension.h>
 #include <Core/Model/Segmentation.h>
@@ -49,11 +49,23 @@ CountingFrameColorEngine::CountingFrameColorEngine()
 //-----------------------------------------------------------------------------
 QColor CountingFrameColorEngine::color(SegmentationPtr seg)
 {
-  ModelItemExtensionPtr ext = seg->extension(CountingFrameSegmentationExtension::ID);
-  Q_ASSERT(ext);
-  CountingFrameSegmentationExtension *segExt = dynamic_cast<CountingFrameSegmentationExtension *>(ext);
+  if (seg->channel().isNull())
+    return QColor(0, 255, 0, 255);
 
-  if (segExt->isExcluded())
+  StereologicalInclusion *stereologicalExtentsion;
+  Segmentation::InformationExtension extension = seg->informationExtension(StereologicalInclusion::ID);
+  if (extension)
+  {
+    stereologicalExtentsion = stereologicalInclusionPtr(extension);
+  }
+  else
+  {
+    stereologicalExtentsion = new StereologicalInclusion();
+    seg->addExtension(stereologicalExtentsion);
+  }
+  Q_ASSERT(stereologicalExtentsion);
+
+  if (stereologicalExtentsion->isExcluded())
     return QColor(255, 0, 0, 50);
   else
     return QColor(0, 255, 0, 255);
@@ -62,14 +74,24 @@ QColor CountingFrameColorEngine::color(SegmentationPtr seg)
 //-----------------------------------------------------------------------------
 LUTPtr CountingFrameColorEngine::lut(SegmentationPtr seg)
 {
-  ModelItemExtensionPtr ext = seg->extension(CountingFrameSegmentationExtension::ID);
-  Q_ASSERT(ext);
-  CountingFrameSegmentationExtension *segExt = dynamic_cast<CountingFrameSegmentationExtension *>(ext);
+  if (seg->channel().isNull())
+    return m_nonExcludedLUT;
 
-  if (segExt->isExcluded())
+  StereologicalInclusion *stereologicalExtentsion;
+  Segmentation::InformationExtension extension = seg->informationExtension(StereologicalInclusion::ID);
+  if (extension)
+  {
+    stereologicalExtentsion = stereologicalInclusionPtr(extension);
+  }
+  else
+  {
+    stereologicalExtentsion = new StereologicalInclusion();
+    seg->addExtension(stereologicalExtentsion);
+  }
+  Q_ASSERT(stereologicalExtentsion);
+
+  if (stereologicalExtentsion->isExcluded())
     return m_excludedLUT;
   else
     return m_nonExcludedLUT;
 }
-
-

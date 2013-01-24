@@ -22,7 +22,9 @@
 #include "Core/Model/Filter.h"
 #include "Core/Model/Channel.h"
 #include "Core/Model/Taxonomy.h"
+#include "EspinaModel.h"
 #include "Core/ColorEngines/IColorEngine.h"
+#include <Core/Extensions/SegmentationExtension.h>
 
 #include <vtkAlgorithm.h>
 #include <vtkAlgorithmOutput.h>
@@ -90,7 +92,8 @@ void Segmentation::changeFilter(FilterSPtr filter, const Filter::OutputId &oId)
 Segmentation::~Segmentation()
 {
   qDebug() << data().toString() << ": Destructor";
-  deleteExtensions();
+  foreach(InformationExtension extension, m_informationExtensions)
+    delete extension;
 }
 
 //------------------------------------------------------------------------
@@ -186,8 +189,9 @@ void Segmentation::initialize(const Arguments &args)
 void Segmentation::initializeExtensions(const Arguments &args)
 {
 //   qDebug() << "Initializing" << data().toString() << "extensions:";
-  foreach(ModelItemExtensionPtr ext, m_insertionOrderedExtensions)
+  foreach(ModelItem::ExtensionPtr ext, m_informationExtensions)
   {
+    qDebug() << "Initializing" << data().toString() << ext->id() << "extension";
     Q_ASSERT(ext);
     ext->initialize(args);
   }
@@ -217,14 +221,15 @@ ChannelSPtr Segmentation::channel()
   ChannelSList channels;
 
   ModelItemSList relatedChannels = relatedItems(IN, Channel::LINK);
-  foreach(ModelItemSPtr item, relatedChannels)
-  {
-    Q_ASSERT(CHANNEL == item->type());
-    channels << channelPtr(item);
-  }
-  Q_ASSERT(channels.size() == 1);
 
-  return channels.first();
+  ChannelSPtr channel;
+  // NOTE: Decide how to deal with segmentations created from various channels in a future
+  if (relatedChannels.size() == 1)
+  {
+    channel = channelPtr(relatedChannels.first());
+  }
+
+  return channel;
 }
 
 //------------------------------------------------------------------------
@@ -252,13 +257,13 @@ const SegmentationVolume::Pointer Segmentation::volume() const
 
 }
 
-//------------------------------------------------------------------------
-void Segmentation::notifyModification(bool force)
-{
-  m_filter->volume(m_args.outputId())->update();
-
-  ModelItem::notifyModification(force);
-}
+// //------------------------------------------------------------------------
+// void Segmentation::notifyModification(bool force)
+// {
+//   m_filter->volume(m_args.outputId())->update();
+// 
+//   ModelItem::notifyModification(force);
+// }
 
 
 //------------------------------------------------------------------------
@@ -337,34 +342,90 @@ SegmentationSList Segmentation::componentOf()
 }
 
 //------------------------------------------------------------------------
-void Segmentation::addExtension(SegmentationExtensionPtr ext)
+void Segmentation::addExtension(Segmentation::InformationExtension extension)
 {
-  ModelItem::addExtension(ext);
+  if (m_informationExtensions.contains(extension->id()))
+  {
+         qWarning() << "Extension already registered";
+     Q_ASSERT(false);
+  }
 
-  ext->setSegmentation(this);
+  EspinaFactory *factory = m_model->factory();
+  foreach(ModelItem::ExtId requiredExtensionId, extension->dependencies())
+  {
+    InformationExtension requiredExtension = informationExtension(requiredExtensionId);
+    if (!requiredExtension)
+    {
+      InformationExtension prototype = factory->segmentationExtension(requiredExtensionId);
+      if (!prototype)
+      {
+        qWarning() << "Failed to load extension's dependency" << requiredExtensionId;
+        Q_ASSERT(false);
+      }
+
+      addExtension(prototype->clone());
+    }
+  }
+
+  extension->setSegmentation(this);
+  m_informationExtensions[extension->id()] = extension;
+
+  foreach(InfoTag tag, extension->availableInformations())
+  {
+    Q_ASSERT(!m_informationTagProvider.contains(tag));
+    m_informationTagProvider.insert(tag, extension);
+  }
+
+  extension->initialize();
 }
 
 //------------------------------------------------------------------------
-QStringList Segmentation::availableInformations() const
+Segmentation::InformationExtension Segmentation::informationExtension(const ModelItem::ExtId &name) const
 {
-  QStringList informations;
-  informations << "Name" << "Taxonomy";
-  informations << ModelItem::availableInformations();
-
-  return informations;
+  return m_informationExtensions.value(name, NULL);
 }
 
 //------------------------------------------------------------------------
-QVariant Segmentation::information(const QString &name)
+Segmentation::InfoTagList Segmentation::availableInformations() const
 {
-  if (name == "Name")
+  InfoTagList tags;
+
+  tags << tr("Name") << tr("Taxonomy");
+
+  foreach (InformationExtension ext, m_informationExtensions)
+    tags << ext->availableInformations();
+
+  return tags;
+}
+
+//------------------------------------------------------------------------
+QVariant Segmentation::information(const Segmentation::InfoTag &tag) const
+{
+  if (tag == tr("Name"))
     return data(Qt::DisplayRole);
-  if (name == "Taxonomy")
+  if (tag == tr("Taxonomy"))
     return m_taxonomy->qualifiedName();
 
-  Q_ASSERT(m_informations.contains(name));
-  return m_informations[name]->information(name);
+  Q_ASSERT(m_informationTagProvider.contains(tag));
+  return m_informationTagProvider[tag]->information(tag);
 }
+
+// //------------------------------------------------------------------------
+// void Segmentation::deleteExtension(Segmentation::InformationExtension extension)
+// {
+// 
+// }
+
+// //------------------------------------------------------------------------
+// void Segmentation::checkExtensionCompability()
+// {
+// //   foreach(InformationExtension extension, m_informationExtensions)
+// //   {
+// //     if (!extension->isCompatible())
+// //       deleteExtension(extension);
+// //   }
+// }
+
 
 //------------------------------------------------------------------------
 SegmentationPtr EspINA::segmentationPtr(ModelItemPtr item)

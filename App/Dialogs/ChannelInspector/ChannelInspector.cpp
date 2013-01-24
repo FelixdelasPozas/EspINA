@@ -36,7 +36,7 @@ ChannelInspector::ChannelInspector(Channel *channel, QWidget *parent)
 {
   setupUi(this);
   this->setAttribute(Qt::WA_DeleteOnClose, true);
-  this->setWindowTitle(QString("Channel Inspector - ") + channel->information("Name").toString());
+  this->setWindowTitle(QString("Channel Inspector - ") + channel->data().toString());
 
   connect(okCancelBox, SIGNAL(accepted()), this, SLOT(acceptedChanges()));
   connect(okCancelBox, SIGNAL(rejected()), this, SLOT(rejectedChanges()));
@@ -186,11 +186,11 @@ void ChannelInspector::changeSpacing()
       for (int i=0; i < 3; i++)
         origin[i] = origin[i]/oldSpacing[i]*spacing[i];
       seg->volume()->toITK()->SetOrigin(origin);
-      seg->notifyModification(true);
+      seg->volume()->update();
     }
   }
 
-  m_channel->notifyModification(true);
+  m_channel->volume()->update();
   m_view->resetCamera();
   m_spacingModified = false;
   applyButton->setEnabled(false);
@@ -360,7 +360,7 @@ void ChannelInspector::acceptedChanges()
   if (m_spacing[0] != spacing[0] || m_spacing[1] != spacing[1] || m_spacing[2] != m_spacing[2])
     emit spacingUpdated();
 
-  m_channel->notifyModification(true);
+  m_channel->volume()->update();
 }
 
 //------------------------------------------------------------------------
@@ -397,7 +397,7 @@ void ChannelInspector::rejectedChanges()
         for (int i=0; i < 3; i++)
         origin[i] = origin[i]/oldSpacing[i]*newSpacing[i];
         seg->volume()->toITK()->SetOrigin(origin);
-        seg->notifyModification(true);
+        seg->volume()->update();
       }
     }
   }
@@ -434,7 +434,7 @@ void ChannelInspector::rejectedChanges()
 
   if (modified)
   {
-    m_channel->notifyModification(true);
+    m_channel->volume()->update();
   }
 }
 

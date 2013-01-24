@@ -26,20 +26,20 @@
 
 namespace EspINA
 {
-class MarginsChannelExtension;
+class AdaptiveEdges;
 
-class MarginDetector
+class EdgeDetector
 : public QThread
 {
 public:
-  explicit MarginDetector(MarginsChannelExtension *extension, QObject* parent = 0);
-  virtual ~MarginDetector();
+  explicit EdgeDetector(AdaptiveEdges *extension, QObject* parent = 0);
+  virtual ~EdgeDetector();
 
 protected:
   virtual void run();
 
 private:
-  MarginsChannelExtension *m_extension;
+  AdaptiveEdges *m_extension;
 };
 
 }// namespace EspINA

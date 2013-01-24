@@ -21,8 +21,8 @@
 
 #include "CountingFrames/RectangularCountingFrame.h"
 #include "CountingFrames/AdaptiveCountingFrame.h"
-#include "Extensions/CountingFrameSegmentationExtension.h"
-#include "Extensions/CountingFrameChannelExtension.h"
+#include "Extensions/StereologicalInclusion.h"
+#include "Extensions/CountingFrameExtension.h"
 #include "CountingFrameRenderer.h"
 #include "ColorEngines/CountingFrameColorEngine.h"
 
@@ -32,7 +32,7 @@
 #include <Core/Model/Segmentation.h>
 #include <Core/Model/Taxonomy.h>
 #include <GUI/ViewManager.h>
-#include <Core/Extensions/Margins/MarginsSegmentationExtension.h>
+#include <Core/Extensions/EdgeDistances/EdgeDistance.h>
 #include <vtkMath.h>
 
 #include <QFileDialog>
@@ -188,9 +188,9 @@ void CountingFramePanel::initDockWidget(EspinaModel *model,
   connect(m_viewManager, SIGNAL(activeChannelChanged(ChannelPtr)),
           this, SLOT(channelChanged(ChannelPtr)));
 
-  ChannelExtensionPtr channelExtension(new CountingFrameChannelExtension(this, m_viewManager));
+  Channel::ExtensionPtr channelExtension = new CountingFrameExtension(this, m_viewManager);
   m_espinaModel->factory()->registerChannelExtension(channelExtension);
-  SegmentationExtensionPtr segExtension(new CountingFrameSegmentationExtension());
+  Segmentation::InformationExtension segExtension = new StereologicalInclusion();
   m_espinaModel->factory()->registerSegmentationExtension(segExtension);
   m_espinaModel->factory()->registerRenderer(new CountingFrameRenderer(this));
 
@@ -224,18 +224,25 @@ void CountingFramePanel::createAdaptiveCF(Channel *channel,
                                           Nm inclusion[3],
                                           Nm exclusion[3])
 {
-  ModelItemExtensionPtr ext = channel->extension(CountingFrameChannelExtension::ID);
-  Q_ASSERT(ext);
-  CountingFrameChannelExtension *channelExt = dynamic_cast<CountingFrameChannelExtension *>(ext);
-  Q_ASSERT(channelExt);
+  Channel::ExtensionPtr extension = channel->extension(CountingFrameExtensionID);
+  CountingFrameExtension *cfExtension;
+  if (extension)
+  {
+    cfExtension = dynamic_cast<CountingFrameExtension *>(extension);
+  }
+  else
+  {
+    cfExtension = new CountingFrameExtension(this, m_viewManager);
+    channel->addExtension(cfExtension);
+  }
+  Q_ASSERT(cfExtension);
 
-  // TODO 2012-12-29 Revisar memory leaks
-  AdaptiveCountingFrame *cf(new AdaptiveCountingFrame(m_nextId++,
-                                                      channelExt,
-                                                      inclusion,
-                                                      exclusion,
-                                                      m_viewManager));
-  registerCF(channelExt, cf);
+  AdaptiveCountingFrame *cf = AdaptiveCountingFrame::New(m_nextId++,
+                                                         cfExtension,
+                                                         inclusion,
+                                                         exclusion,
+                                                         m_viewManager);
+  registerCF(cfExtension, cf);
 }
 
 //------------------------------------------------------------------------
@@ -243,21 +250,51 @@ void CountingFramePanel::createRectangularCF(Channel *channel,
                                              Nm inclusion[3],
                                              Nm exclusion[3])
 {
-  ModelItemExtensionPtr ext = channel->extension(CountingFrameChannelExtension::ID);
-  Q_ASSERT(ext);
-  CountingFrameChannelExtension *channelExt = dynamic_cast<CountingFrameChannelExtension *>(ext);
-  Q_ASSERT(channelExt);
+  Channel::ExtensionPtr extension = channel->extension(CountingFrameExtensionID);
+  CountingFrameExtension *cfExtension;
+  if (extension)
+  {
+    cfExtension = dynamic_cast<CountingFrameExtension *>(extension);
+  }
+  else
+  {
+    cfExtension = new CountingFrameExtension(this, m_viewManager);
+    channel->addExtension(cfExtension);
+  }
+  Q_ASSERT(cfExtension);
 
   double borders[6];
   channel->volume()->bounds(borders);
 
-  RectangularCountingFrame *cf(new RectangularCountingFrame(m_nextId++,
-                                                            channelExt,
-                                                            borders,
-                                                            inclusion,
-                                                            exclusion,
-                                                            m_viewManager));
-  registerCF(channelExt, cf);
+  RectangularCountingFrame *cf = RectangularCountingFrame::New(m_nextId++,
+                                                               cfExtension,
+                                                               borders,
+                                                               inclusion,
+                                                               exclusion,
+                                                               m_viewManager);
+  registerCF(cfExtension, cf);
+}
+
+//------------------------------------------------------------------------
+void CountingFramePanel::deleteCountingFrame(CountingFrame *cf)
+{
+  Q_ASSERT(m_countingFrames.contains(cf));
+  m_countingFrames.removeOne(cf);
+
+  if (cf == m_activeCF)
+    m_activeCF = NULL;
+
+  for(int i = 0; i < m_gui->countingFrames->model()->rowCount(); i++)
+  {
+    if (m_gui->countingFrames->model()->index(i,0).data(Qt::DisplayRole) == cf->data(Qt::DisplayRole))
+    {
+      m_gui->countingFrames->removeItem(i);
+      break;
+    }
+  }
+
+  m_viewManager->removeWidget(cf);
+  cf->Delete();
 }
 
 //------------------------------------------------------------------------
@@ -287,11 +324,10 @@ void CountingFramePanel::clearCountingFrames()
   m_gui->createCF->setEnabled(false);
   m_gui->deleteCF->setEnabled(false);
 
-  // TODO 2012-11-06 It should be removed due to channel being destroyed
   foreach(CountingFrame *cf, m_countingFrames)
   {
     m_viewManager->removeWidget(cf);
-    delete cf;
+    cf->Delete();
   }
 
   m_countingFrames.clear();
@@ -398,13 +434,7 @@ void CountingFramePanel::deleteSelectedCountingFrame()
   if (!m_activeCF)
     return;
 
-  m_viewManager->removeWidget(m_activeCF);
-  m_countingFrames.removeAll(m_activeCF);
-
-  delete m_activeCF;
-  m_activeCF = NULL;
-
-  m_gui->countingFrames->removeItem(m_gui->countingFrames->currentIndex());
+  deleteCountingFrame(m_activeCF);
 
   updateSegmentations();
 }
@@ -547,12 +577,12 @@ void CountingFramePanel::computeOptimalMargins(Channel* channel,
 
   foreach(SegmentationSPtr seg, channelSegs)
   {
-    ModelItemExtensionPtr ext = seg->extension(MarginsSegmentationExtension::ID);
-    MarginsSegmentationExtension *marginExt = dynamic_cast<MarginsSegmentationExtension *>(ext);
+    Segmentation::InformationExtension ext = seg->informationExtension(EdgeDistance::ID);
+    EdgeDistancePtr marginExt = dynamic_cast<EdgeDistancePtr>(ext);
     if (marginExt)
     {
       Nm dist2Margin[6];
-      marginExt->margins(dist2Margin);
+      marginExt->edgeDistance(dist2Margin);
 
       double segBounds[6];
       seg->volume()->bounds(segBounds);
@@ -591,10 +621,10 @@ void CountingFramePanel::exclusionMargins(double values[3])
 }
 
 //------------------------------------------------------------------------
-void CountingFramePanel::registerCF(CountingFrameChannelExtension* ext,
+void CountingFramePanel::registerCF(CountingFrameExtension* cfExtension,
                                     CountingFrame* cf)
 {
-  ext->addCountingFrame(cf);
+  cfExtension->addCountingFrame(cf);
   m_viewManager->addWidget(cf);
   m_countingFrames << cf;
 

@@ -368,25 +368,6 @@ void DefaultEspinaView::rowsAboutToBeRemoved(const QModelIndex& parent, int star
   }
 }
 
-//-----------------------------------------------------------------------------
-void DefaultEspinaView::dataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight)
-{
-  if (!topLeft.isValid() || !topLeft.parent().isValid())
-    return;
-
-  ModelItemPtr item = indexPtr(topLeft);
-  if (EspINA::CHANNEL == item->type())
-  {
-    ChannelPtr channel = channelPtr(item);
-    updateChannel(channel);
-  }
-  else if (EspINA::SEGMENTATION == item->type())
-  {
-    SegmentationPtr seg = segmentationPtr(item);
-    updateSegmentation(seg);
-  }
-}
-
 //----------------------------------------------------------------------------
 void DefaultEspinaView::showCrosshair(bool visible)
 {

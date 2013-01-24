@@ -23,6 +23,7 @@
 #include "Core/Extensions/ModelItemExtension.h"
 #include "Core/Model/RelationshipGraph.h"
 #include "Core/Model/Sample.h"
+#include "EspinaModel.h"
 
 #include <itkImageFileReader.h>
 #include <itkMetaImageIO.h>
@@ -66,7 +67,10 @@ Channel::~Channel()
 {
   qDebug() << data().toString() << ": Destructor";
   // Extensions may need access channel's information
-  deleteExtensions();
+  foreach(ExtensionPtr extension, m_extensions)
+  {
+    delete extension;
+  }
 }
 
 //------------------------------------------------------------------------
@@ -179,26 +183,6 @@ double Channel::contrast() const
 }
 
 //------------------------------------------------------------------------
-QStringList Channel::availableInformations() const
-{
-  QStringList informations;
-  informations << NAME;
-  informations << ModelItem::availableInformations();
-
-  return informations;
-}
-
-//------------------------------------------------------------------------
-QStringList Channel::availableRepresentations() const
-{
-  QStringList representations;
-  representations << VOLUME;
-  representations << ModelItem::availableInformations();
-
-  return representations;
-}
-
-//------------------------------------------------------------------------
 QVariant Channel::data(int role) const
 {
   switch (role)
@@ -230,17 +214,17 @@ bool Channel::setData(const QVariant& value, int role)
 //------------------------------------------------------------------------
 QString Channel::serialize() const
 {
-  QString extensionArgs;
-  foreach(ModelItemExtensionPtr ext, m_extensions)
-  {
-    ChannelExtensionPtr channelExt = channelExtensionPtr(ext);
-
-    QString serializedArgs = channelExt->serialize(); //Independizar los argumentos?
-    if (!serializedArgs.isEmpty())
-      extensionArgs.append(ext->id()+"=["+serializedArgs+"];");
-  }
-  if (!extensionArgs.isEmpty())
-    m_args[EXTENSIONS] = QString("[%1]").arg(extensionArgs);
+//   QString extensionArgs;
+//   foreach(ModelItemExtensionPtr ext, m_extensions)
+//   {
+//     ChannelExtensionPtr channelExt = channelExtensionPtr(ext);
+// 
+//     QString serializedArgs = channelExt->serialize(); //Independizar los argumentos?
+//     if (!serializedArgs.isEmpty())
+//       extensionArgs.append(ext->id()+"=["+serializedArgs+"];");
+//   }
+//   if (!extensionArgs.isEmpty())
+//     m_args[EXTENSIONS] = QString("[%1]").arg(extensionArgs);
 
   return m_args.serialize();
 }
@@ -274,40 +258,56 @@ void Channel::initialize(const Arguments &args)
 //------------------------------------------------------------------------
 void Channel::initializeExtensions(const Arguments &args)
 {
-  qDebug() << args;
-//   qDebug() << "Initializing" << data().toString() << "extensions:";
-  foreach(ModelItemExtensionPtr ext, m_insertionOrderedExtensions)
-  {
-    ext->initialize(args);
-//     ChannelExtensionPtr channelExt = channelExtensionPtr(ext);
+  // TODO: Hay que quitar esto, pero hace falta que se carguen las extensiones
+  // que esten guardadas en trazas de .seg antiguos
+//   qDebug() << args;
+// //   qDebug() << "Initializing" << data().toString() << "extensions:";
+//   foreach(ModelItemExtensionPtr ext, m_insertionOrderedExtensions)
+//   {
+//     ext->initialize(args);
+// //     ChannelExtensionPtr channelExt = channelExtensionPtr(ext);
+// // 
+// //     channelExt->initialize(args);
+//   }
 // 
-//     channelExt->initialize(args);
+}
+
+//------------------------------------------------------------------------
+void Channel::addExtension(Channel::ExtensionPtr extension)
+{
+  if (m_extensions.contains(extension->id()))
+  {
+    qWarning() << "Extension already registered";
+    Q_ASSERT(false);
   }
 
+  foreach(ModelItem::ExtId requiredExtensionId, extension->dependencies())
+  {
+    ExtensionPtr requiredExtension = Channel::extension(requiredExtensionId);
+    if (!requiredExtension)
+    {
+      EspinaFactory *factory = m_model->factory();
+      ExtensionPtr prototype = factory->channelExtension(requiredExtensionId);
+      if (!prototype)
+      {
+        qWarning() << "Failed to load extension's dependency" << requiredExtensionId;
+        Q_ASSERT(false);
+      }
+
+      addExtension(prototype->clone());
+    }
+  }
+
+  extension->setChannel(this);
+  m_extensions[extension->id()] = extension;
+
+  extension->initialize();
 }
-
-//------------------------------------------------------------------------
-QVariant Channel::information(const QString &name)
-{
-  if (name == NAME)
-    return data(Qt::DisplayRole);
-
-  return ModelItem::information(name);
-}
-
-//------------------------------------------------------------------------
-void Channel::addExtension(ChannelExtensionPtr ext)
-{
-  ModelItem::addExtension(ext);
-  ext->setChannel(this);
-}
-
 
 //-----------------------------------------------------------------------------
-void Channel::notifyModification(bool force)
+Channel::ExtensionPtr Channel::extension(ModelItem::ExtId extensionId)
 {
-  m_filter->volume(outputId())->update();
-  ModelItem::notifyModification(force);
+  return m_extensions.value(extensionId, NULL);
 }
 
 //-----------------------------------------------------------------------------

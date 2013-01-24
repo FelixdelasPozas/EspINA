@@ -21,10 +21,10 @@
 
 using namespace EspINA;
 
-ChannelExtensionPtr EspINA::channelExtensionPtr(ModelItemExtensionPtr extension)
+Channel::ExtensionPtr EspINA::channelExtensionPtr(ModelItem::Extension *extension)
 {
-  ChannelExtensionPtr res;
-  res = dynamic_cast<ChannelExtensionPtr>(extension);
+  Channel::ExtensionPtr res;
+  res = dynamic_cast<Channel::ExtensionPtr>(extension);
   Q_ASSERT(res);
 
   return res;

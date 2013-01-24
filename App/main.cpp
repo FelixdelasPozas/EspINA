@@ -22,9 +22,9 @@
 
 #include <GUI/ViewManager.h>
 #include <EspinaMainWindow.h>
-#include <Core/Extensions/Margins/MarginsChannelExtension.h>
-#include <Core/Extensions/Margins/MarginsSegmentationExtension.h>
-#include <Core/Extensions/Morphological/MorphologicalExtension.h>
+#include <Core/Extensions/EdgeDistances/AdaptiveEdges.h>
+#include <Core/Extensions/EdgeDistances/EdgeDistance.h>
+#include <Core/Extensions/Morphological/MorphologicalInformation.h>
 
 int main(int argc, char **argv)
 {
@@ -77,12 +77,12 @@ int main(int argc, char **argv)
 
   int res = 0;
   {
-    EspINA::MarginsChannelExtension      marginChannelExtension;
-    EspINA::MarginsSegmentationExtension marginSegmentationExtension;
-    EspINA::MorphologicalExtension       morphologicalExtension;
+    EspINA::AdaptiveEdges            adaptiveEdgesExtension;
+    EspINA::EdgeDistance             edgeDistanceExtension;
+    EspINA::MorphologicalInformation morphologicalExtension;
 
-    factory.registerChannelExtension     (&marginChannelExtension);
-    factory.registerSegmentationExtension(&marginSegmentationExtension);
+    factory.registerChannelExtension     (&adaptiveEdgesExtension);
+    factory.registerSegmentationExtension(&edgeDistanceExtension);
     factory.registerSegmentationExtension(&morphologicalExtension);
 
     EspINA::EspinaMainWindow espina(&model, &viewManager, plugins);
@@ -90,8 +90,8 @@ int main(int argc, char **argv)
 
     res = app.exec();
 
-    factory.unregisterChannelExtension     (&marginChannelExtension);
-    factory.unregisterSegmentationExtension(&marginSegmentationExtension);
+    factory.unregisterChannelExtension     (&adaptiveEdgesExtension);
+    factory.unregisterSegmentationExtension(&edgeDistanceExtension);
     factory.unregisterSegmentationExtension(&morphologicalExtension);
   }
 

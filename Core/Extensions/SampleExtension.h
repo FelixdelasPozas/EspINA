@@ -22,30 +22,30 @@
 
 #include "Core/Extensions/ModelItemExtension.h"
 
-namespace EspINA
-{
-  class SampleExtension
-  : public ModelItemExtension
-  {
-  public:
-    virtual ~SampleExtension(){}
-
-    virtual void initialize(const ModelItem::Arguments &arg = ModelItem::Arguments()) = 0;
-    virtual QString serialize() const = 0;
-
-    virtual SampleExtensionPtr clone() = 0;
-
-  protected:
-    explicit SampleExtension() : m_sample(NULL) {}
-
-    SamplePtr m_sample;
-  };
-
-  typedef QSharedPointer<SampleExtension> SampleExtensionSPtr;
-  typedef QList<SampleExtensionPtr>       SampleExtensionSList;
-
-  SampleExtensionPtr sampleExtensionPtr(ModelItemExtensionPtr extension);
-
-}// namespace EspINA
+// namespace EspINA
+// {
+//   class SampleExtension
+//   : public ModelItemExtension
+//   {
+//   public:
+//     virtual ~SampleExtension(){}
+// 
+//     virtual void initialize(const ModelItem::Arguments &arg = ModelItem::Arguments()) = 0;
+//     virtual QString serialize() const = 0;
+// 
+//     virtual SampleExtensionPtr clone() = 0;
+// 
+//   protected:
+//     explicit SampleExtension() : m_sample(NULL) {}
+// 
+//     SamplePtr m_sample;
+//   };
+// 
+//   typedef QSharedPointer<SampleExtension> SampleExtensionSPtr;
+//   typedef QList<SampleExtensionPtr>       SampleExtensionSList;
+// 
+//   SampleExtensionPtr sampleExtensionPtr(ModelItemExtensionPtr extension);
+// 
+// }// namespace EspINA
 
 #endif // SAMPLEEXTENSION_H

@@ -20,16 +20,17 @@
 #ifndef CHANNELEXTENSION_H
 #define CHANNELEXTENSION_H
 
-#include "Core/Extensions/ModelItemExtension.h"
+#include <Core/Model/Channel.h>
+#include <Core/Extensions/ModelItemExtension.h>
 
 namespace EspINA
 {
   /// Interface to extend channel's behaviour
-  class ChannelExtension
-  : public ModelItemExtension
+  class Channel::Extension
+  : public ModelItem::Extension
   {
   public:
-    virtual ~ChannelExtension(){}
+    virtual ~Extension(){}
 
     void setChannel(Channel *channel) {m_channel = channel;}
     virtual void initialize(ModelItem::Arguments args = ModelItem::Arguments()) = 0;
@@ -38,18 +39,18 @@ namespace EspINA
     virtual Channel *channel() const {return m_channel;}
 
     /// Prototype
-    virtual ChannelExtensionPtr clone() = 0;
+    virtual Channel::ExtensionPtr clone() = 0;
 
   protected:
-    explicit ChannelExtension() : m_channel(NULL){}
+    explicit Extension() : m_channel(NULL){}
 
     Channel *m_channel;
   };
 
-  typedef QSharedPointer<ChannelExtension> ChannelExtensionSPtr;
+  typedef QSharedPointer<Channel::Extension> ChannelExtensionSPtr;
   typedef QList<ChannelExtensionSPtr>      ChannelExtensionSList;
 
-  ChannelExtensionPtr channelExtensionPtr(ModelItemExtensionPtr extension);
+  Channel::ExtensionPtr channelExtensionPtr(ModelItem::Extension *extension);
 
 }
 #endif // CHANNELEXTENSION_H

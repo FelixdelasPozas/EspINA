@@ -19,15 +19,13 @@
 
 #include "EspinaFactory.h"
 
-#include "Core/Extensions/Margins/MarginsChannelExtension.h"
-#include "Core/Extensions/Margins/MarginsSegmentationExtension.h"
-#include "Core/Extensions/Morphological/MorphologicalExtension.h"
-#include "Core/Extensions/SampleExtension.h"
 #include "Core/Interfaces/IFileReader.h"
 #include "Core/Interfaces/IFilterCreator.h"
 #include "Core/Model/Sample.h"
 #include "Core/Model/Channel.h"
 #include "Core/Model/Segmentation.h"
+#include <Core/Extensions/ChannelExtension.h>
+#include <Core/Extensions/SegmentationExtension.h>
 #include "Filters/ChannelReader.h"
 #include "GUI/Renderers/Renderer.h"
 
@@ -86,40 +84,83 @@ void EspinaFactory::registerReaderFactory(IFileReaderPtr     reader,
 }
 
 //------------------------------------------------------------------------
-void EspinaFactory::registerSampleExtension(SampleExtensionPtr extension)
-{
-  Q_ASSERT(m_sampleExtensions.contains(extension) == false);
-  m_sampleExtensions << extension;
-}
-
-//------------------------------------------------------------------------
-void EspinaFactory::registerChannelExtension(ChannelExtensionPtr extension)
+void EspinaFactory::registerChannelExtension(Channel::ExtensionPtr extension)
 {
   Q_ASSERT(m_channelExtensions.contains(extension) == false);
   m_channelExtensions << extension;
 }
 
 //------------------------------------------------------------------------
-void EspinaFactory::unregisterChannelExtension(ChannelExtensionPtr extension)
+void EspinaFactory::unregisterChannelExtension(Channel::ExtensionPtr extension)
 {
   Q_ASSERT(m_channelExtensions.contains(extension));
   m_channelExtensions.removeOne(extension);
 }
 
 //------------------------------------------------------------------------
-void EspinaFactory::registerSegmentationExtension(SegmentationExtensionPtr extension)
+Channel::ExtensionPtr EspinaFactory::channelExtension(ModelItem::ExtId extensionId) const
 {
-  Q_ASSERT(m_segExtensions.contains(extension) == false);
-  m_segExtensions << extension;
+  Channel::ExtensionPtr extension = NULL;
+
+  int i = 0;
+  while (!extension && i < m_channelExtensions.size())
+  {
+    Channel::ExtensionPtr tmp = m_channelExtensions[i];
+    if (tmp->id() == extensionId)
+      extension = tmp;
+    ++i;
+  }
+
+  return extension;
 }
 
 //------------------------------------------------------------------------
-void EspinaFactory::unregisterSegmentationExtension(SegmentationExtensionPtr extension)
+void EspinaFactory::registerSegmentationExtension(Segmentation::InformationExtension extension)
 {
-  Q_ASSERT(m_segExtensions.contains(extension));
-  m_segExtensions.removeOne(extension);
+  Q_ASSERT(m_segmentationExtensions.contains(extension) == false);
+  m_segmentationExtensions << extension;
 }
 
+//------------------------------------------------------------------------
+void EspinaFactory::unregisterSegmentationExtension(Segmentation::InformationExtension extension)
+{
+  Q_ASSERT(m_segmentationExtensions.contains(extension));
+  m_segmentationExtensions.removeOne(extension);
+}
+
+//------------------------------------------------------------------------
+Segmentation::InformationExtension EspinaFactory::segmentationExtension(ModelItem::ExtId extensionId) const
+{
+  Segmentation::InformationExtension extension = NULL;
+
+  int i = 0;
+  while (!extension && i < m_segmentationExtensions.size())
+  {
+    Segmentation::InformationExtension tmp = m_segmentationExtensions[i];
+    if (tmp->id() == extensionId)
+      extension = tmp;
+    ++i;
+  }
+
+  return extension;
+}
+
+//------------------------------------------------------------------------
+Segmentation::InformationExtension EspinaFactory::informationProvider(Segmentation::InfoTag tag) const
+{
+  Segmentation::InformationExtension extension = NULL;
+
+  int i = 0;
+  while (!extension && i < m_segmentationExtensions.size())
+  {
+    Segmentation::InformationExtension tmp = m_segmentationExtensions[i];
+    if (tmp->availableInformations().contains(tag))
+      extension = tmp;
+    ++i;
+  }
+
+  return extension;
+}
 
 //------------------------------------------------------------------------
 void EspinaFactory::registerRenderer(IRenderer *renderer)
@@ -165,9 +206,6 @@ SampleSPtr EspinaFactory::createSample(const QString &id, const QString &args)
   else
     sample = SampleSPtr(new Sample(id, args));
 
-  foreach(SampleExtensionPtr ext, m_sampleExtensions)
-    sample->addExtension(ext->clone());
-
   return sample;
 }
 
@@ -176,8 +214,8 @@ ChannelSPtr EspinaFactory::createChannel(FilterSPtr filter,
                                               const Filter::OutputId &oId)
 {
   ChannelSPtr channel(new Channel(filter, oId));
-  foreach(ChannelExtensionPtr ext, m_channelExtensions)
-    channel->addExtension(ext->clone());
+//   foreach(ChannelExtensionPtr ext, m_channelExtensions)
+//     channel->addExtension(ext->clone());
 
   return channel;
 }
@@ -188,8 +226,8 @@ SegmentationSPtr EspinaFactory::createSegmentation(FilterSPtr        filter,
 {
 //   std::cout << "Factory is going to create a segmentation for vtkObject: " << vtkRef->id().toStdString() << std::endl;
   SegmentationSPtr seg(new Segmentation(filter, oId));
-  foreach(SegmentationExtensionPtr ext, m_segExtensions)
-    seg->addExtension(ext->clone());
+//   foreach(SegmentationExtensionPtr ext, m_segExtensions)
+//     seg->addExtension(ext->clone());
 
   return seg;
 }

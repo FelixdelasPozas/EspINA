@@ -111,6 +111,7 @@ namespace EspINA
     virtual ~Filter();
 
     void setTmpDir(QDir dir);
+    QDir tmpDir() const { return m_tmpDir; }
 
     void setTmpId(int id) {m_args[ID] = QString::number(id);}
     QString tmpId() const {return m_args[ID];}
@@ -154,7 +155,7 @@ namespace EspINA
     virtual void draw(OutputId oId,
                       itkVolumeType::Pointer volume);
 
-    //TODO 2012-11-20 cambiar nombre y usar FilterOutput
+    //NOTE 2012-11-20 suggest a better name
     virtual void restoreOutput(OutputId oId,
                                itkVolumeType::Pointer volume);
 

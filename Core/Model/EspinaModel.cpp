@@ -799,10 +799,10 @@ bool EspinaModel::loadSerialization(istream& stream,
     addRelation(find(e.source.item), find(e.target.item), e.relationship.c_str());
   }
 
-  foreach(NonInitilizedItem item, nonInitializedItems)
-  {
-    item.first->initializeExtensions(item.second);
-  }
+//   foreach(NonInitilizedItem item, nonInitializedItems)
+//   {
+//     item.first->initializeExtensions(item.second);
+//   }
 
   return true;
 }

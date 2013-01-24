@@ -611,6 +611,7 @@ void EspinaMainWindow::openAnalysis(const QString &file)
   }
 
   updateStatus(QString("File Loaded in %1m%2s").arg(mins).arg(secs));
+  qDebug() << "File Loaded in " << mins << "mins" << secs << "secs";
   QApplication::restoreOverrideCursor();
   if (file != m_settings->autosavePath().absoluteFilePath(AUTOSAVE_FILE))
   {

@@ -35,10 +35,9 @@
 
 namespace EspINA
 {
-  class CountingFrameChannelExtension;
+  class CountingFrameExtension;
   class ViewManager;
 
-  // TODO 2012-12-29 Hacerlo como con la regla
   /// Bounding Regions' base class
   class CountingFrame
   : public QObject
@@ -84,10 +83,10 @@ namespace EspINA
   public:
     vtkTypeMacro(CountingFrame, vtkCommand);
 
-
     virtual ~CountingFrame(){}
 
     void setMargins(Nm inclusion[3], Nm exclusion[3]);
+    void margins(Nm inclusion[3], Nm exclusion[3]);
 
     virtual QVariant data(int role = Qt::UserRole + 1) const;
     virtual QString serialize() const = 0;
@@ -125,7 +124,7 @@ namespace EspINA
 
   protected:
     explicit CountingFrame(Id id,
-                           CountingFrameChannelExtension *channelExt,
+                           CountingFrameExtension *channelExt,
                            Nm inclusion[3],
                            Nm exclusion[3],
                            ViewManager *vm);
@@ -135,7 +134,7 @@ namespace EspINA
 
   protected:
     ViewManager *m_viewManager;
-    CountingFrameChannelExtension *m_channelExt;
+    CountingFrameExtension *m_channelExt;
 
     vtkSmartPointer<vtkPolyData> m_boundingRegion;
     vtkSmartPointer<vtkPolyData> m_representation;

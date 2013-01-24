@@ -66,10 +66,6 @@ namespace EspINA
 
     void setId(const QString &id) {m_ID = id;}
 
-    /// Add a new extension to the segmentation
-    /// Extesion won't be available until requirements are satisfied
-    void addExtension(SampleExtensionPtr ext);
-
   private:
     mutable Arguments m_args;
 
