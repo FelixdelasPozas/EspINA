@@ -32,25 +32,35 @@ include_directories (
 )
 
 qt4_add_resources (RCC_BUILT_SOURCES 
-  rsc/AppositionSurface.qrc
+  GUI/rsc/AppositionSurface.qrc
   )
 
 # Create Interface files
 qt4_wrap_ui (UI_BUILT_SOURCES
-  AppositionSurfaceSettings.ui
+  GUI/Settings/AppositionSurfaceSettings.ui
+  GUI/FilterInspector/AppositionSurfaceFilterInspector.ui
   )
 
 QT4_WRAP_CPP(MOC_SOURCES
-  AppositionSurface.h
+  AppositionSurfacePlugin.h
+  GUI/Renderer/AppositionSurfaceRenderer.h
+  GUI/Settings/AppositionSurfaceSettings.h
+  GUI/FilterInspector/AppositionSurfaceFilterInspector.h
+  GUI/AppositionSurfaceAction.h
 )
 
 set (PLUGIN_SOURCES
   ${RCC_BUILT_SOURCES}
   ${MOC_SOURCES}
   ${UI_BUILT_SOURCES}
-  AppositionSurface.cpp
-  AppositionSurfaceExtension.cpp
-  AppositionSurfaceRenderer.cpp
+  AppositionSurfacePlugin.cpp
+  Core/Extensions/AppositionSurfaceExtension.cpp
+  Core/AppositionSurfaceVolume.cpp
+  GUI/Settings/AppositionSurfaceSettings.cpp
+  GUI/FilterInspector/AppositionSurfaceFilterInspector.cpp
+  Undo/AppositionSurfaceCommand.cpp
+  GUI/AppositionSurfaceAction.cpp
+  Filter/AppositionSurfaceFilter.cpp
 )
 
 set (PLUGIN_LIBRARIES

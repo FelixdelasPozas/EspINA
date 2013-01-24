@@ -53,6 +53,9 @@ bool MeshRenderer::addItem(ModelItemPtr item)
   if (EspINA::SEGMENTATION != item->type())
     return false;
 
+  if (!itemCanBeRendered(item))
+    return false;
+
   SegmentationPtr seg = segmentationPtr(item);
 
   // duplicated item? addItem again
@@ -73,7 +76,7 @@ bool MeshRenderer::addItem(ModelItemPtr item)
   decimate->SetTargetReduction(0.95);
   decimate->PreserveTopologyOn();
   decimate->SplittingOff();
-  decimate->SetInputConnection(seg->mesh());
+  decimate->SetInputConnection(seg->volume()->toMesh());
 
   vtkSmartPointer<vtkWindowedSincPolyDataFilter> smoother = vtkSmartPointer<vtkWindowedSincPolyDataFilter>::New();
   smoother->ReleaseDataFlagOn();
@@ -120,7 +123,7 @@ bool MeshRenderer::addItem(ModelItemPtr item)
   image->GetExtent(extent);
   memcpy(m_segmentations[seg].extent, extent, 6*sizeof(int));
 
-  if (this->m_enable)
+  if (m_enable)
   {
     m_segmentations[seg].visible = true;
     m_renderer->AddActor(actor);
@@ -144,6 +147,12 @@ bool MeshRenderer::updateItem(ModelItemPtr item)
   SegmentationPtr seg = segmentationPtr(item);
   if (!m_segmentations.contains(seg))
     return false;
+
+  if (!itemCanBeRendered(item))
+  {
+    removeItem(item);
+    return false;
+  }
 
   Representation &rep = m_segmentations[seg];
   vtkSmartPointer<vtkProperty> actorProperty = NULL;
@@ -220,7 +229,8 @@ bool MeshRenderer::removeItem(ModelItemPtr item)
      return false;
 
    SegmentationPtr seg = segmentationPtr(item);
-   Q_ASSERT(m_segmentations.contains(seg));
+   if(!m_segmentations.contains(seg))
+     return false;
 
    if (m_segmentations[seg].visible)
      m_renderer->RemoveActor(m_segmentations[seg].actor);
@@ -237,10 +247,9 @@ bool MeshRenderer::removeItem(ModelItemPtr item)
 //-----------------------------------------------------------------------------
 void MeshRenderer::hide()
 {
-  if (!this->m_enable)
+  if (!m_enable)
     return;
 
-  m_enable = false;
   QMap<ModelItemPtr, Representation>::iterator it;
 
   for (it = m_segmentations.begin(); it != m_segmentations.end(); ++it)
@@ -256,10 +265,9 @@ void MeshRenderer::hide()
 //-----------------------------------------------------------------------------
 void MeshRenderer::show()
 {
-  if (this->m_enable)
+  if (m_enable)
     return;
 
-  m_enable = true;
   QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 
   QMap<ModelItemPtr, Representation>::iterator it;
@@ -309,7 +317,7 @@ void MeshRenderer::createHierarchyProperties(SegmentationPtr seg)
   {
     case HierarchyItem::Opaque:
       actorProperty->SetOpacity(1.0);
-      if (this->m_enable && !m_segmentations[seg].visible)
+      if (m_enable && !m_segmentations[seg].visible)
       {
         m_segmentations[seg].visible = true;
         m_renderer->AddActor(m_segmentations[seg].actor);
@@ -317,14 +325,14 @@ void MeshRenderer::createHierarchyProperties(SegmentationPtr seg)
       break;
     case HierarchyItem::Translucent:
       actorProperty->SetOpacity(0.3);
-      if (this->m_enable && !m_segmentations[seg].visible)
+      if (m_enable && !m_segmentations[seg].visible)
       {
         m_segmentations[seg].visible = true;
         m_renderer->AddActor(m_segmentations[seg].actor);
       }
       break;
     case HierarchyItem::Hidden:
-      if (this->m_enable && m_segmentations[seg].visible)
+      if (m_enable && m_segmentations[seg].visible)
       {
         m_segmentations[seg].visible = false;
         m_renderer->RemoveActor(m_segmentations[seg].actor);
@@ -381,7 +389,7 @@ bool MeshRenderer::updateHierarchyProperties(SegmentationPtr seg)
     {
       case HierarchyItem::Opaque:
         actorProperty->SetOpacity(1.0);
-        if (this->m_enable && !m_segmentations[seg].visible)
+        if (m_enable && !m_segmentations[seg].visible)
         {
           m_segmentations[seg].visible = true;
           m_renderer->AddActor(m_segmentations[seg].actor);
@@ -389,14 +397,14 @@ bool MeshRenderer::updateHierarchyProperties(SegmentationPtr seg)
         break;
       case HierarchyItem::Translucent:
         actorProperty->SetOpacity(0.3);
-        if (this->m_enable && !m_segmentations[seg].visible)
+        if (m_enable && !m_segmentations[seg].visible)
         {
           m_segmentations[seg].visible = true;
           m_renderer->AddActor(m_segmentations[seg].actor);
         }
         break;
       case HierarchyItem::Hidden:
-        if (this->m_enable && m_segmentations[seg].visible)
+        if (m_enable && m_segmentations[seg].visible)
         {
           m_segmentations[seg].visible = false;
           m_renderer->RemoveActor(m_segmentations[seg].actor);

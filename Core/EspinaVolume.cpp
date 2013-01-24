@@ -19,11 +19,18 @@
 
 #include "EspinaVolume.h"
 
+// ITK
 #include <itkExtractImageFilter.h>
 #include <itkImageRegionExclusionIteratorWithIndex.h>
 #include <itkLabelImageToShapeLabelMapFilter.h>
 #include <itkStatisticsLabelObject.h>
 
+// VTK
+#include <vtkAlgorithmOutput.h>
+#include <vtkDiscreteMarchingCubes.h>
+#include <vtkImageConstantPad.h>
+
+// Qt
 #include <QDebug>
 
 using namespace EspINA;
@@ -366,7 +373,7 @@ bool SegmentationVolume::strechToFitContent()
   image2label->Update();
 
   // Get segmentation's Bounding Box
-  LabelMapType            *labelMap = image2label->GetOutput();
+  LabelMapType *labelMap = image2label->GetOutput();
   if (labelMap->GetNumberOfLabelObjects() == 0)
     return false;
 
@@ -382,4 +389,34 @@ bool SegmentationVolume::strechToFitContent()
   m_volume = extractor->GetOutput();
   m_volume->DisconnectPipeline();
   return true;
+}
+
+//------------------------------------------------------------------------
+vtkAlgorithmOutput* SegmentationVolume::toMesh()
+{
+  if (NULL == m_padfilter)
+  {
+    vtkAlgorithmOutput *vtkVolume = toVTK();
+    // segmentation image need to be padded to avoid segmentation voxels from touching the edges of the
+    // image (and create morphologically correct actors)
+    int extent[6];
+    vtkImageData *image = vtkImageData::SafeDownCast(vtkVolume->GetProducer()->GetOutputDataObject(0));
+    image->GetExtent(extent);
+
+    m_padfilter = vtkSmartPointer<vtkImageConstantPad>::New();
+    m_padfilter->SetInputConnection(vtkVolume);
+    m_padfilter->SetOutputWholeExtent(extent[0]-1, extent[1]+1, extent[2]-1, extent[3]+1, extent[4]-1, extent[5]+1);
+    m_padfilter->SetConstant(0);
+
+    m_march = vtkSmartPointer<vtkDiscreteMarchingCubes>::New();
+    m_march->ReleaseDataFlagOn();
+    m_march->SetNumberOfContours(1);
+    m_march->GenerateValues(1, 255, 255);
+    m_march->ComputeScalarsOff();
+    m_march->ComputeNormalsOff();
+    m_march->ComputeGradientsOff();
+    m_march->SetInputConnection(m_padfilter->GetOutputPort());
+  }
+  m_march->Update();
+  return m_march->GetOutput()->GetProducerPort();
 }

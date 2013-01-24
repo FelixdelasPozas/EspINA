@@ -181,7 +181,7 @@ void MarginsChannelExtension::computeMarginDistance(SegmentationPtr seg)
     {
       vtkSmartPointer<vtkDistancePolyDataFilter> distanceFilter = vtkSmartPointer<vtkDistancePolyDataFilter>::New();
       distanceFilter->SignedDistanceOff();
-      distanceFilter->SetInputConnection( 0,  seg->mesh());
+      distanceFilter->SetInputConnection( 0,  seg->volume()->toMesh());
       distanceFilter->SetInputConnection( 1, m_PolyDataFaces[face]->GetProducerPort());
       distanceFilter->Update();
       distance[face] = distanceFilter->GetOutput()->GetPointData()->GetScalars()->GetRange()[0];

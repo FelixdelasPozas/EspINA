@@ -1184,6 +1184,9 @@ void EspinaModel::addTaxonomyElement(TaxonomyElementSPtr parent, TaxonomyElement
   if (parent)
     parentNode = parent.data();
 
+  foreach(TaxonomyElementSPtr elem, parentNode->subElements())
+    qDebug() << elem->name();
+
   Q_ASSERT(!parentNode->subElements().contains(element));
 
   TaxonomyElementSPtr requestedNode;

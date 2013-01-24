@@ -23,20 +23,20 @@
 #include <GUI/ISettingsPanel.h>
 #include "ui_SettingsPanel.h"
 
-#include "Toolbars/SeedGrowSegmentation/SeedGrowSegmentation.h"
+#include "Toolbars/Segmentation/SegmentationToolBar.h"
 
 namespace EspINA
 {
   class ViewManager;
 
-  class SeedGrowSegmentation::SettingsPanel
+  class SeedGrowSegmentationsSettingsPanel
   : public ISettingsPanel
   , public Ui::SettingsPanel
   {
     Q_OBJECT
   public:
-    explicit SettingsPanel(SeedGrowSegmentationSettings *settings, ViewManager *viewManager);
-    virtual ~SettingsPanel(){}
+    explicit SeedGrowSegmentationsSettingsPanel(SeedGrowSegmentationSettings *settings, ViewManager *viewManager);
+    virtual ~SeedGrowSegmentationsSettingsPanel(){}
 
     virtual const QString shortDescription()
     { return tr("Seed Grow Segmentation"); }

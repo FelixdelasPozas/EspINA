@@ -51,8 +51,8 @@ class MeshRenderer
 public:
   explicit MeshRenderer(ViewManager *vm, QObject* parent = 0);
 
-  virtual const QIcon icon() const {return QIcon(":/espina/mesh.png");}
-  virtual const QString name() const {return "Mesh";}
+  virtual const QIcon icon() const      {return QIcon(":/espina/mesh.png");}
+  virtual const QString name() const    {return "Mesh";}
   virtual const QString tooltip() const {return "Segmentation's Meshes";}
 
   virtual bool addItem   (ModelItemPtr item);
@@ -67,11 +67,14 @@ public:
   virtual IRendererSPtr clone() {return IRendererSPtr(new MeshRenderer(m_viewManager));}
 
   virtual bool isASegmentationRenderer() { return true; };
+
+protected:
+  ViewManager *m_viewManager;
+
 private:
   void createHierarchyProperties(SegmentationPtr seg);
   bool updateHierarchyProperties(SegmentationPtr seg);
 
-  ViewManager *m_viewManager;
   QMap<ModelItemPtr, Representation> m_segmentations;
 };
 

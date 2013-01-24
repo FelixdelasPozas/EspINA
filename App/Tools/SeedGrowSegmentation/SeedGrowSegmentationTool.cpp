@@ -17,9 +17,9 @@
 */
 
 #include "SeedGrowSegmentationTool.h"
-#include <Toolbars/SeedGrowSegmentation/ThresholdAction.h>
-#include <Toolbars/SeedGrowSegmentation/DefaultVOIAction.h>
-#include <Toolbars/SeedGrowSegmentation/SeedGrowSegmentationSettings.h>
+#include <Toolbars/Segmentation/ThresholdAction.h>
+#include <Toolbars/Segmentation/DefaultVOIAction.h>
+#include <Toolbars/Segmentation/SeedGrowSegmentationSettings.h>
 #include <FilterInspectors/SeedGrowSegmentation/SGSFilterInspector.h>
 #include <Undo/SeedGrowSegmentationCommand.h>
 

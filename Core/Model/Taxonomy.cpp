@@ -295,11 +295,9 @@ TaxonomyElementSPtr Taxonomy::element(const QString& qualifiedName)
 {
   QStringList path = qualifiedName.split("/", QString::SkipEmptyParts);
   TaxonomyElementSPtr node = m_root;
+
   for(int i = 0; i < path.length(); i++)
-  {
     node = node->element(path[i]);
-    Q_ASSERT(!node.isNull());
-  }
 
   if (node == m_root)
     node.clear();

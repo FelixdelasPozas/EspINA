@@ -20,15 +20,23 @@
 #ifndef ESPINAVOLUME_H
 #define ESPINAVOLUME_H
 
+// EspINA
 #include "Core/EspinaTypes.h"
 #include "Core/EspinaRegion.h"
 
+// ITK
 #include <itkImageRegionIteratorWithIndex.h>
 #include <itkImageToVTKImageFilter.h>
 
+// VTK
+#include <vtkSmartPointer.h>
+
+// boost
 #include <boost/shared_ptr.hpp>
 
 class vtkAlgorithmOutput;
+class vtkImageConstantPad;
+class vtkDiscreteMarchingCubes;
 
 namespace EspINA
 {
@@ -88,7 +96,7 @@ namespace EspINA
     VolumeRegion volumeRegion(EspinaRegion region, itkVolumeType::SpacingType spacing);
 
   protected:
-    itkVolumeType::Pointer m_volume;
+    mutable itkVolumeType::Pointer m_volume;
 
     // itk to vtk filter
     typedef itk::ImageToVTKImageFilter<itkVolumeType> itk2vtkFilterType;
@@ -128,6 +136,13 @@ namespace EspINA
     /// contained segmentation
     bool strechToFitContent();
 
+    // get mesh representation of the volume
+    vtkAlgorithmOutput* toMesh();
+
+  private:
+    // vtkPolydata generation filter
+    vtkSmartPointer<vtkImageConstantPad>      m_padfilter;
+    vtkSmartPointer<vtkDiscreteMarchingCubes> m_march;
   };
 
 } // namespace EspINA

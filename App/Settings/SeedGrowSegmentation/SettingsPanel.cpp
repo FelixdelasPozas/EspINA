@@ -18,7 +18,7 @@
 
 // EspINA
 #include "SettingsPanel.h"
-#include <Toolbars/SeedGrowSegmentation/SeedGrowSegmentationSettings.h>
+#include <Toolbars/Segmentation/SeedGrowSegmentationSettings.h>
 #include <Core/EspinaSettings.h>
 #include <GUI/ViewManager.h>
 
@@ -35,7 +35,7 @@ using namespace EspINA;
 const QString FIT_TO_SLICES ("ViewManager::FitToSlices");
 
 //------------------------------------------------------------------------
-SeedGrowSegmentation::SettingsPanel::SettingsPanel(SeedGrowSegmentationSettings *settings, ViewManager *viewManager)
+SeedGrowSegmentationsSettingsPanel::SeedGrowSegmentationsSettingsPanel(SeedGrowSegmentationSettings *settings, ViewManager *viewManager)
 : m_settings(settings)
 , m_viewManager(viewManager)
 {
@@ -77,7 +77,7 @@ SeedGrowSegmentation::SettingsPanel::SettingsPanel(SeedGrowSegmentationSettings 
 }
 
 //------------------------------------------------------------------------
-void SeedGrowSegmentation::SettingsPanel::acceptChanges()
+void SeedGrowSegmentationsSettingsPanel::acceptChanges()
 {
   m_settings->setBestPixelValue(m_pixelValue->value());
 
@@ -93,13 +93,12 @@ void SeedGrowSegmentation::SettingsPanel::acceptChanges()
 }
 
 //------------------------------------------------------------------------
-void SeedGrowSegmentation::SettingsPanel::rejectChanges()
+void SeedGrowSegmentationsSettingsPanel::rejectChanges()
 {
 }
 
-
 //------------------------------------------------------------------------
-bool SeedGrowSegmentation::SettingsPanel::modified() const
+bool SeedGrowSegmentationsSettingsPanel::modified() const
 {
   return m_xSize->value() != m_settings->xSize()
       || m_ySize->value() != m_settings->ySize()
@@ -111,13 +110,13 @@ bool SeedGrowSegmentation::SettingsPanel::modified() const
 
 
 //------------------------------------------------------------------------
-ISettingsPanelPtr SeedGrowSegmentation::SettingsPanel::clone()
+ISettingsPanelPtr SeedGrowSegmentationsSettingsPanel::clone()
 {
-  return ISettingsPanelPtr(new SettingsPanel(m_settings, m_viewManager));
+  return ISettingsPanelPtr(new SeedGrowSegmentationsSettingsPanel(m_settings, m_viewManager));
 }
 
 //------------------------------------------------------------------------
-void SeedGrowSegmentation::SettingsPanel::displayColor(int value)
+void SeedGrowSegmentationsSettingsPanel::displayColor(int value)
 {
   QPixmap pic(32,32);
   pic.fill(QColor(value,value,value));

@@ -21,52 +21,32 @@
 #define APPOSITIONSURFACERENDERER_H
 
 // EspINA
-#include <GUI/Renderers/Renderer.h>
-
-// Qt
-#include <QMap>
-
-class QColor;
+#include <GUI/Renderers/MeshRenderer.h>
 
 namespace EspINA
 {
-  class AppositionSurface;
+  class ViewManager;
 
   class AppositionSurfaceRenderer
-  : public IRenderer
+  : public MeshRenderer
   {
-    struct Representation;
-    struct State;
 
   public:
-    explicit AppositionSurfaceRenderer(AppositionSurface *plugin);
-    virtual ~AppositionSurfaceRenderer();
+    explicit AppositionSurfaceRenderer(ViewManager *vm, QObject *parent = 0): MeshRenderer(vm, parent) {};
+    virtual ~AppositionSurfaceRenderer() {};
 
     virtual const QIcon   icon()    const { return QIcon(":/AppSurface.svg"); }
-    virtual const QString name()    const { return tr("Apposition Surface");}
-    virtual const QString tooltip() const { return tr("Segmentation's Apposition Surface");}
+    virtual const QString name()    const { return tr("Apposition Surface"); }
+    virtual const QString tooltip() const { return tr("Apposition Surfaces Renderer"); }
 
-    virtual bool addItem   (ModelItemPtr item);
-    virtual bool updateItem(ModelItemPtr item);
-    virtual bool removeItem(ModelItemPtr item);
+    virtual IRendererSPtr clone() { return IRendererSPtr(new AppositionSurfaceRenderer(m_viewManager)); }
 
-    virtual void hide();
-    virtual void show();
-
-    virtual void clean();
-    virtual IRendererSPtr clone();
-
-    // updates the color of the actors
-    void SetColor(QColor);
-
-    // get number of vtkActors added to vtkRendered from this Renderer
-    virtual unsigned int getNumberOfvtkActors() { return m_representations.size(); }
-
-  private:
-    QColor m_color;
-    AppositionSurface* m_plugin;
-    static QMap<ModelItemPtr, Representation*> m_representations;
-    QMap<ModelItemPtr , State *> m_state;
+  protected:
+    virtual bool itemCanBeRendered(ModelItemPtr item)
+    {
+      QString fullTaxonomy = SegmentationPtr(item)->taxonomy()->qualifiedName();
+      return (fullTaxonomy.contains("PSD"));
+    }
   };
 
   typedef QSharedPointer<AppositionSurfaceRenderer> AppositionSurfaceRendererSPtr;

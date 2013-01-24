@@ -33,9 +33,9 @@ qt4_wrap_cpp (ESPINA_MOC
   Toolbars/Composition/CompositionToolBar.h
   Toolbars/Editor/EditorToolBar.h
   Toolbars/Main/MainToolBar.h
-  Toolbars/SeedGrowSegmentation/DefaultVOIAction.h
-  Toolbars/SeedGrowSegmentation/SeedGrowSegmentation.h
-  Toolbars/SeedGrowSegmentation/ThresholdAction.h
+  Toolbars/Segmentation/DefaultVOIAction.h
+  Toolbars/Segmentation/SegmentationToolBar.h
+  Toolbars/Segmentation/ThresholdAction.h
   Toolbars/VOI/VolumeOfInterest.h
   Toolbars/Zoom/ZoomToolBar.h
   Tools/Brushes/Brush.h
@@ -106,10 +106,10 @@ set (ESPINA_SOURCES
   Toolbars/Editor/EditorToolBar.cpp
   Toolbars/Editor/Settings.cpp
   Toolbars/Main/MainToolBar.cpp
-  Toolbars/SeedGrowSegmentation/DefaultVOIAction.cpp
-  Toolbars/SeedGrowSegmentation/SeedGrowSegmentation.cpp
-  Toolbars/SeedGrowSegmentation/SeedGrowSegmentationSettings.cpp
-  Toolbars/SeedGrowSegmentation/ThresholdAction.cpp
+  Toolbars/Segmentation/DefaultVOIAction.cpp
+  Toolbars/Segmentation/SegmentationToolBar.cpp
+  Toolbars/Segmentation/SeedGrowSegmentationSettings.cpp
+  Toolbars/Segmentation/ThresholdAction.cpp
   Toolbars/VOI/Settings.cpp
   Toolbars/VOI/VolumeOfInterest.cpp
   Toolbars/Zoom/ZoomToolBar.cpp

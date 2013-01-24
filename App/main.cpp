@@ -69,6 +69,8 @@ int main(int argc, char **argv)
       loaders << loader;
     } else
     {
+      // DO NOT DELETE, THIS IS TO DEBUG PLUGINS
+      // qDebug() << fileName << "not loaded -> Error:" << loader->errorString();
       delete loader;
     }
   }

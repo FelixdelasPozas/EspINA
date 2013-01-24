@@ -899,9 +899,11 @@ void SliceView::addSegmentation(SegmentationPtr seg)
 
   SliceRep segRep;
 
-  seg->filter()->update();
+  if (seg->filter()->needUpdate())
+    seg->filter()->update();
 
   segRep.reslice = vtkImageReslice::New();
+  segRep.reslice->SetNumberOfThreads(1);
   segRep.reslice->SetResliceAxes(m_slicingMatrix);
   segRep.reslice->SetInputConnection(seg->volume()->toVTK());
   segRep.reslice->SetOutputDimensionality(2);

@@ -62,8 +62,6 @@ Segmentation::Segmentation(FilterSPtr         filter,
 : m_filter(filter)
 , m_taxonomy(NULL)
 , m_isVisible(true)
-, m_padfilter(NULL)
-, m_march(NULL)
 {
   m_isSelected = false;
   m_args.setNumber(0);
@@ -86,17 +84,6 @@ void Segmentation::changeFilter(FilterSPtr filter, const Filter::OutputId &oId)
   m_args.setOutputId(oId);
   connect(filter.data(), SIGNAL(modified(ModelItem *)),
           this, SLOT(notifyModification()));
-
-  // update modified mesh extent to get a correct representation
-  if (NULL != m_padfilter)
-  {
-    int extent[6];
-    vtkImageData *image = vtkImageData::SafeDownCast(output.volume->toVTK()->GetProducer()->GetOutputDataObject(0));
-    image->GetExtent(extent);
-    m_padfilter->SetInputConnection(output.volume->toVTK());
-    m_padfilter->SetOutputWholeExtent(extent[0]-1, extent[1]+1, extent[2]-1, extent[3]+1, extent[4]-1, extent[5]+1);
-    m_padfilter->Update();
-  }
 }
 
 //------------------------------------------------------------------------
@@ -377,36 +364,6 @@ QVariant Segmentation::information(const QString &name)
 
   Q_ASSERT(m_informations.contains(name));
   return m_informations[name]->information(name);
-}
-
-//------------------------------------------------------------------------
-vtkAlgorithmOutput* Segmentation::mesh()
-{
-  if (NULL == m_padfilter)
-  {
-    vtkAlgorithmOutput *vtkVolume = volume()->toVTK();
-    // segmentation image need to be padded to avoid segmentation voxels from touching the edges of the
-    // image (and create morphologically correct actors)
-    int extent[6];
-    vtkImageData *image = vtkImageData::SafeDownCast(vtkVolume->GetProducer()->GetOutputDataObject(0));
-    image->GetExtent(extent);
-
-    m_padfilter = vtkSmartPointer<vtkImageConstantPad>::New();
-    m_padfilter->SetInputConnection(vtkVolume);
-    m_padfilter->SetOutputWholeExtent(extent[0]-1, extent[1]+1, extent[2]-1, extent[3]+1, extent[4]-1, extent[5]+1);
-    m_padfilter->SetConstant(0);
-
-    m_march = vtkSmartPointer<vtkDiscreteMarchingCubes>::New();
-    m_march->ReleaseDataFlagOn();
-    m_march->SetNumberOfContours(1);
-    m_march->GenerateValues(1, 255, 255);
-    m_march->ComputeScalarsOff();
-    m_march->ComputeNormalsOff();
-    m_march->ComputeGradientsOff();
-    m_march->SetInputConnection(m_padfilter->GetOutputPort());
-  }
-
-  return m_march->GetOutput()->GetProducerPort();
 }
 
 //------------------------------------------------------------------------

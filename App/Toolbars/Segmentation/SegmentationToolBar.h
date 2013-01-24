@@ -25,8 +25,10 @@
 #include <GUI/ISettingsPanel.h>
 #include <GUI/Pickers/IPicker.h>
 #include <App/Tools/SeedGrowSegmentation/SeedGrowSegmentationTool.h>
+#include <GUI/ViewManager.h>
 
-class QAction;
+#include <QAction>
+
 class QUndoStack;
 
 class ActionSelector;
@@ -37,10 +39,9 @@ namespace EspINA
 {
   //Forward declarations
   class SeedGrowSegmentationSettings;
-  class ViewManager;
 
   /// Seed Growing Segmentation Plugin
-  class SeedGrowSegmentation
+  class SegmentationToolBar
   : public IToolBar
   , public IFactoryExtension
   , public IFilterCreator
@@ -53,14 +54,12 @@ namespace EspINA
       EspINA::IFilterCreator
     )
 
-    class SettingsPanel;
-
   public:
-    SeedGrowSegmentation(EspinaModel *model,
-                         QUndoStack  *undoStack,
-                         ViewManager *vm,
-                         QWidget     *parent=NULL);
-    virtual ~SeedGrowSegmentation();
+    SegmentationToolBar(EspinaModel *model,
+                        QUndoStack  *undoStack,
+                        ViewManager *vm,
+                        QWidget     *parent=NULL);
+    virtual ~SegmentationToolBar();
 
     virtual void initToolBar(EspinaModel *model,
                              QUndoStack  *undoStack,
@@ -94,10 +93,10 @@ namespace EspINA
     ActionSelector   *m_pickerSelector;
 
     QMap<QAction *, IPickerSPtr> m_pickers;
-    SeedGrowSegmentationToolSPtr m_tool;
+    SeedGrowSegmentationToolSPtr m_SGStool;
 
     SeedGrowSegmentationSettings *m_settings;
-    ISettingsPanelPrototype m_settingsPanel;
+    ISettingsPanelPrototype m_SeedGrowSettingsPanel;
   };
 
 } // namespace EspINA

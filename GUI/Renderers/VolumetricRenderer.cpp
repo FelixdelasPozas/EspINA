@@ -49,6 +49,9 @@ bool VolumetricRenderer::addItem(ModelItemPtr item)
   if (EspINA::SEGMENTATION != item->type())
     return false;
 
+  if (!itemCanBeRendered(item))
+    return false;
+
   SegmentationPtr seg = segmentationPtr(item);
 
   // duplicated item? addItem again
@@ -104,7 +107,7 @@ bool VolumetricRenderer::addItem(ModelItemPtr item)
   m_segmentations[seg].overridden = seg->getHierarchyRenderingType();
   m_segmentations[seg].actorPropertyBackup = NULL;
 
-  if (this->m_enable)
+  if (m_enable)
   {
     m_segmentations[seg].visible = true;
     m_renderer->AddVolume(volume);
@@ -128,6 +131,12 @@ bool VolumetricRenderer::updateItem(ModelItemPtr item)
   SegmentationPtr seg = segmentationPtr(item);
   if (!m_segmentations.contains(seg))
     return false;
+
+  if (!itemCanBeRendered(item))
+  {
+    removeItem(item);
+    return false;
+  }
 
   Representation &rep = m_segmentations[seg];
   vtkSmartPointer<vtkVolumeProperty> volumeProperty = NULL;
@@ -212,10 +221,9 @@ bool VolumetricRenderer::removeItem(ModelItemPtr item)
 //-----------------------------------------------------------------------------
 void VolumetricRenderer::hide()
 {
-  if (!this->m_enable)
+  if (!m_enable)
     return;
 
-  m_enable = false;
   QMap<ModelItemPtr, Representation>::iterator it;
 
   for (it = m_segmentations.begin(); it != m_segmentations.end(); ++it)
@@ -231,10 +239,9 @@ void VolumetricRenderer::hide()
 //-----------------------------------------------------------------------------
 void VolumetricRenderer::show()
 {
-  if (this->m_enable)
+  if (m_enable)
     return;
 
-  m_enable = true;
   QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 
   QMap<ModelItemPtr, Representation>::iterator it;
@@ -273,7 +280,7 @@ void VolumetricRenderer::createHierarchyProperties(SegmentationPtr seg)
   {
     case HierarchyItem::Opaque:
       hierarchyPiecewise->AddPoint(255, 1.0);
-      if (this->m_enable && !m_segmentations[seg].visible)
+      if (m_enable && !m_segmentations[seg].visible)
       {
         m_segmentations[seg].visible = true;
         m_renderer->AddVolume(m_segmentations[seg].volume);
@@ -281,14 +288,14 @@ void VolumetricRenderer::createHierarchyProperties(SegmentationPtr seg)
       break;
     case HierarchyItem::Translucent:
       hierarchyPiecewise->AddPoint(255, 0.3);
-      if (this->m_enable && !m_segmentations[seg].visible)
+      if (m_enable && !m_segmentations[seg].visible)
       {
         m_segmentations[seg].visible = true;
         m_renderer->AddVolume(m_segmentations[seg].volume);
       }
       break;
     case HierarchyItem::Hidden:
-      if (this->m_enable && m_segmentations[seg].visible)
+      if (m_enable && m_segmentations[seg].visible)
       {
         m_segmentations[seg].visible = false;
         m_renderer->RemoveVolume(m_segmentations[seg].volume);
@@ -353,7 +360,7 @@ bool VolumetricRenderer::updateHierarchyProperties(SegmentationPtr seg)
     {
       case HierarchyItem::Opaque:
         hierarchyPiecewise->AddPoint(255, 1.0);
-        if (this->m_enable && !m_segmentations[seg].visible)
+        if (m_enable && !m_segmentations[seg].visible)
         {
           m_segmentations[seg].visible = true;
           m_renderer->AddVolume(m_segmentations[seg].volume);
@@ -361,14 +368,14 @@ bool VolumetricRenderer::updateHierarchyProperties(SegmentationPtr seg)
         break;
       case HierarchyItem::Translucent:
         hierarchyPiecewise->AddPoint(255, 0.3);
-        if (this->m_enable && !m_segmentations[seg].visible)
+        if (m_enable && !m_segmentations[seg].visible)
         {
           m_segmentations[seg].visible = true;
           m_renderer->AddVolume(m_segmentations[seg].volume);
         }
         break;
       case HierarchyItem::Hidden:
-        if (this->m_enable && m_segmentations[seg].visible)
+        if (m_enable && m_segmentations[seg].visible)
         {
           m_segmentations[seg].visible = false;
           m_renderer->RemoveVolume(m_segmentations[seg].volume);

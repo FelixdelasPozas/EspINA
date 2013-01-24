@@ -4,5 +4,6 @@
     <node name="Asymetric" color="#00FF00" Dim_X="500" Dim_Y="500" Dim_Z="500"/>
     <node name="Symetric" color="#FF0000"  Dim_X="500" Dim_Y="500" Dim_Z="500"/>
   </node>
+  <node name="PSD" color="#FFFF00" Dim_X="500" Dim_Y="500" Dim_Z="500"/>
   <node name="Vesicles" color="#A5E024" Dim_X="100" Dim_Y="100" Dim_Z="100"/>
 </Taxonomy>

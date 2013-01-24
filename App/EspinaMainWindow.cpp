@@ -31,7 +31,7 @@
 #include "Settings/GeneralSettings.h"
 #include "Toolbars/Editor/EditorToolBar.h"
 #include "Toolbars/Main/MainToolBar.h"
-#include "Toolbars/SeedGrowSegmentation/SeedGrowSegmentation.h"
+#include "Toolbars/Segmentation/SegmentationToolBar.h"
 #include "Toolbars/VOI/VolumeOfInterest.h"
 #include "Toolbars/Zoom/ZoomToolBar.h"
 #include "Toolbars/Composition/CompositionToolBar.h"
@@ -235,7 +235,6 @@ EspinaMainWindow::EspinaMainWindow(EspinaModel      *model,
   }
   menuBar()->addMenu(settingsMenu);
 
-
   m_mainToolBar = new MainToolBar(m_model, m_undoStack, m_viewManager);
   registerToolBar(m_mainToolBar);
 
@@ -245,7 +244,7 @@ EspinaMainWindow::EspinaMainWindow(EspinaModel      *model,
   VolumeOfInterest *voiToolBar = new VolumeOfInterest(m_model, m_viewManager);
   registerToolBar(voiToolBar);
 
-  SeedGrowSegmentation *seedToolBar = new SeedGrowSegmentation(m_model, m_undoStack, m_viewManager);
+  SegmentationToolBar *seedToolBar = new SegmentationToolBar(m_model, m_undoStack, m_viewManager);
   registerToolBar(seedToolBar);
 
   EditorToolBar *editorToolBar = new EditorToolBar(m_model, m_undoStack, m_viewManager);

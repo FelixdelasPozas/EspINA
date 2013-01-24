@@ -15,7 +15,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "SeedGrowSegmentation.h"
+#include "SegmentationToolBar.h"
 #include "ThresholdAction.h"
 #include "DefaultVOIAction.h"
 #include "SeedGrowSegmentationSettings.h"
@@ -53,10 +53,10 @@ const ModelItem::ArgumentId TYPE = "Type";
 
 
 //-----------------------------------------------------------------------------
-SeedGrowSegmentation::SeedGrowSegmentation(EspinaModel *model,
-                                           QUndoStack  *undoStack,
-                                           ViewManager *viewManager,
-                                           QWidget     *parent)
+SegmentationToolBar::SegmentationToolBar(EspinaModel *model,
+                                         QUndoStack  *undoStack,
+                                         ViewManager *viewManager,
+                                         QWidget     *parent)
 : IToolBar        (parent)
 , m_model         (model)
 , m_undoStack     (undoStack)
@@ -65,29 +65,28 @@ SeedGrowSegmentation::SeedGrowSegmentation(EspinaModel *model,
 , m_useDefaultVOI (new DefaultVOIAction(this))
 , m_pickerSelector(new ActionSelector(this))
 {
-  setObjectName("SeedGrowSegmentation");
+  setObjectName("SegmentationToolBar");
 
-  setWindowTitle(tr("Seed Grow Segmentation Tool Bar"));
+  setWindowTitle(tr("Segmentation Tool Bar"));
 
   buildPickers();
 
-  m_settingsPanel = ISettingsPanelPrototype(new SettingsPanel(m_settings, m_viewManager));
+  m_SeedGrowSettingsPanel = ISettingsPanelPrototype(new SeedGrowSegmentationsSettingsPanel(m_settings, m_viewManager));
 
   initFactoryExtension(m_model->factory());
 
-
-  m_tool = SeedGrowSegmentationToolSPtr(
-  new SeedGrowSegmentationTool(model,
-                               undoStack,
-                               viewManager,
-                               m_threshold,
-                               m_useDefaultVOI,
-                               m_settings) );
+  m_SGStool = SeedGrowSegmentationToolSPtr(new SeedGrowSegmentationTool(model,
+                                                                     undoStack,
+                                                                     viewManager,
+                                                                     m_threshold,
+                                                                     m_useDefaultVOI,
+                                                                     m_settings) );
 
   addAction(m_threshold);
   addAction(m_useDefaultVOI);
   addAction(m_pickerSelector);
   m_threshold->setSymmetricalThreshold(true);
+
   //QAction *batch = addAction(tr("Batch"));
   //connect(batch, SIGNAL(triggered(bool)), this, SLOT(batchMode()));
 
@@ -95,73 +94,71 @@ SeedGrowSegmentation::SeedGrowSegmentation(EspinaModel *model,
           this, SLOT(changePicker(QAction*)));
   connect(m_pickerSelector, SIGNAL(actionCanceled()),
           this, SLOT(cancelSegmentationOperation()));
-  connect(m_tool.data(), SIGNAL(segmentationStopped()),
+  connect(m_SGStool.data(), SIGNAL(segmentationStopped()),
           this, SLOT(cancelSegmentationOperation()));
 }
 
 //-----------------------------------------------------------------------------
-SeedGrowSegmentation::~SeedGrowSegmentation()
+SegmentationToolBar::~SegmentationToolBar()
 {
   delete m_settings;
 }
 
 //-----------------------------------------------------------------------------
-void SeedGrowSegmentation::initToolBar(EspinaModel *model,
+void SegmentationToolBar::initToolBar(EspinaModel *model,
                                        QUndoStack  *undoStack,
                                        ViewManager *viewManager)
 {
-
 }
 
 //-----------------------------------------------------------------------------
-void SeedGrowSegmentation::initFactoryExtension(EspinaFactory *factory)
+void SegmentationToolBar::initFactoryExtension(EspinaFactory *factory)
 {
   // Register Factory's filters
   factory->registerFilter(this, SeedGrowSegmentationCommand::FILTER_TYPE);
 
-  factory->registerSettingsPanel(m_settingsPanel.data());
+  // Register settings panels
+  factory->registerSettingsPanel(m_SeedGrowSettingsPanel.data());
 }
 
 //-----------------------------------------------------------------------------
-FilterSPtr SeedGrowSegmentation::createFilter(const QString              &filter,
+FilterSPtr SegmentationToolBar::createFilter(const QString              &filter,
                                                    const Filter::NamedInputs  &inputs,
                                                    const ModelItem::Arguments &args)
 {
   Q_ASSERT(SeedGrowSegmentationCommand::FILTER_TYPE == filter);
 
-  // TODO 2012-12-17 Revisar esto
-  SeedGrowSegmentationFilter *sgs = new SeedGrowSegmentationFilter(inputs, args, SeedGrowSegmentationCommand::FILTER_TYPE);
+  SeedGrowSegmentationFilter *sgsFilter = new SeedGrowSegmentationFilter(inputs, args, SeedGrowSegmentationCommand::FILTER_TYPE);
 
-  Filter::FilterInspectorPtr inspector(new SGSFilterInspector(sgs));
-  sgs->setFilterInspector(inspector);
+  Filter::FilterInspectorPtr sgsInspector(new SGSFilterInspector(sgsFilter));
+  sgsFilter->setFilterInspector(sgsInspector);
 
-  return FilterSPtr(sgs);
+  return FilterSPtr(sgsFilter);
 }
 
-
 //-----------------------------------------------------------------------------
-void SeedGrowSegmentation::changePicker(QAction* action)
+void SegmentationToolBar::changePicker(QAction* action)
 {
   Q_ASSERT(m_pickers.contains(action));
-  m_tool->setChannelPicker(m_pickers[action]);
-  m_viewManager->setActiveTool(m_tool);
+  m_SGStool->setChannelPicker(m_pickers[action]);
+  m_viewManager->setActiveTool(m_SGStool);
 }
 
 //-----------------------------------------------------------------------------
-void SeedGrowSegmentation::cancelSegmentationOperation()
+void SegmentationToolBar::cancelSegmentationOperation()
 {
   m_pickerSelector->cancel();
-  m_viewManager->unsetActiveTool(m_tool);
+  m_viewManager->unsetActiveTool(m_SGStool);
 }
 
 //------------------------------------------------------------------------
-void SeedGrowSegmentation::reset()
+void SegmentationToolBar::reset()
 {
   cancelSegmentationOperation();
 }
 
 //------------------------------------------------------------------------
-void SeedGrowSegmentation::batchMode()
+void SegmentationToolBar::batchMode()
 {
 //   QFileDialog dialog;
 //   if (dialog.exec())
@@ -216,7 +213,7 @@ void SeedGrowSegmentation::batchMode()
 
 
 //------------------------------------------------------------------------
-void SeedGrowSegmentation::addVoxelPicker(QAction* action, IPickerSPtr picker)
+void SegmentationToolBar::addVoxelPicker(QAction* action, IPickerSPtr picker)
 {
   m_pickerSelector->addAction(action);
   m_pickers[action] = picker;
@@ -225,7 +222,7 @@ void SeedGrowSegmentation::addVoxelPicker(QAction* action, IPickerSPtr picker)
 }
 
 //-----------------------------------------------------------------------------
-void SeedGrowSegmentation::buildPickers()
+void SegmentationToolBar::buildPickers()
 {
   QAction *action;
 

@@ -132,8 +132,6 @@ namespace EspINA
     SegmentationVolume::Pointer volume();
     const SegmentationVolume::Pointer volume() const;
 
-    vtkAlgorithmOutput* mesh();
-
     void setNumber(unsigned int number) {m_args.setNumber(number);}
     unsigned int number() const {return m_args.number();}
     void setTaxonomy(TaxonomyElementSPtr tax);
@@ -174,10 +172,6 @@ namespace EspINA
 
     bool m_isVisible;
     QColor m_color;
-
-    // vtkPolydata generation filter
-    vtkSmartPointer<vtkImageConstantPad>      m_padfilter;
-    vtkSmartPointer<vtkDiscreteMarchingCubes> m_march;
 
     friend class Filter; // DEPRECATED: 2012-12-13 Creo que no se usa ya
   };

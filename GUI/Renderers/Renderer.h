@@ -43,10 +43,11 @@ namespace EspINA
 
     /// Following methods are used by view settings' panel and the
     /// view itself to create the corresponding UI to manage rendering
-    virtual const QString name() const {return QString();}
-    virtual const QString tooltip() const {return QString();}
-    virtual const QIcon icon() const {return QIcon();}
+    virtual const QString name() const       { return QString(); }
+    virtual const QString tooltip() const    { return QString(); }
+    virtual const QIcon icon() const         { return QIcon(); }
 
+    /// sets renderer
     virtual void setVtkRenderer(vtkSmartPointer<vtkRenderer> renderer) {m_renderer = renderer;}
 
     // Return whether the item was rendered or not
@@ -71,6 +72,9 @@ namespace EspINA
     // true if this renderer renders segmentations only
     virtual bool isASegmentationRenderer() { return false; };
 
+    // naive item filtering, to be modified/enhanced in the future
+    virtual bool itemCanBeRendered(ModelItemPtr item) { return true; }
+
   public slots:
     virtual void setEnable(bool value)
     {
@@ -78,8 +82,8 @@ namespace EspINA
         show();
       else
         hide();
-      // the subclass will alter the m_enable value
-      // TODO: 2012-12-14 m_enable deberia gestionarse en esta clase de forma generica
+
+      m_enable = value;
     }
 
   signals:
@@ -87,12 +91,13 @@ namespace EspINA
 
   protected:
     explicit IRenderer(QObject* parent = 0)
-    : m_enable(false)
-    , m_renderer(NULL) {}
+    : m_renderer(NULL)
+    , m_enable(false) {}
 
   protected:
-    bool m_enable;
     vtkSmartPointer<vtkRenderer> m_renderer;
+    bool m_enable;
+
   };
 
   typedef QList<IRenderer *>   IRendererList;
@@ -101,4 +106,3 @@ namespace EspINA
 }// namespace EspINA
 
 #endif // IRENDERER
-
