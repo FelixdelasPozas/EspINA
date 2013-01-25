@@ -6,6 +6,7 @@ include_directories(
 qt4_wrap_cpp(CORE_MOC
   ColorEngines/IColorEngine.h
   ColorEngines/TaxonomyColorEngine.h
+  EspinaVolume.h
   Model/EspinaModel.h
   Model/ModelTest.h
   Model/ModelItem.h

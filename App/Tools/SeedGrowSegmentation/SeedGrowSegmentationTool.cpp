@@ -307,7 +307,7 @@ void SeedGrowSegmentationTool::startSegmentation(IPicker::PickList pickedItems)
     voiExtent[4] <= seed[2] && seed[2] <= voiExtent[5])
   {
     QApplication::setOverrideCursor(Qt::WaitCursor);
-
+    m_undoStack->beginMacro(tr("Seed Grow Segmentation"));
     m_undoStack->push(new SeedGrowSegmentationCommand(channel,
                                                       seed,
                                                       voiExtent,
@@ -316,7 +316,7 @@ void SeedGrowSegmentationTool::startSegmentation(IPicker::PickList pickedItems)
                                                       m_settings->closing(),
                                                       m_viewManager->activeTaxonomy(),
                                                       m_model));
-
+    m_undoStack->endMacro();
     QApplication::restoreOverrideCursor();
   }
 }

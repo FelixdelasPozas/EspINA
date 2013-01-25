@@ -297,13 +297,13 @@ namespace EspINA
     return m_filter->m_ap->GetProducerPort();
   }
 
-  //----------------------------------------------------------------------------
-  AppositionSurfaceVolume AppositionSurfaceVolume::operator=(itkVolumeType::Pointer volume)
-  {
-    m_volume = volume;
-    m_volume->DisconnectPipeline();
-
-    return *this;
-  }
+//   //----------------------------------------------------------------------------
+//   AppositionSurfaceVolume AppositionSurfaceVolume::operator=(itkVolumeType::Pointer volume)
+//   {
+//     m_volume = volume;
+//     m_volume->DisconnectPipeline();
+// 
+//     return *this;
+//   }
 
 } /* namespace EspINA */

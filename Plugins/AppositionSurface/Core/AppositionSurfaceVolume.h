@@ -35,7 +35,7 @@ namespace EspINA
       explicit AppositionSurfaceVolume(AppositionSurfaceFilter *filter);
       virtual ~AppositionSurfaceVolume();
 
-      AppositionSurfaceVolume operator=(itkVolumeType::Pointer volume);
+      //AppositionSurfaceVolume operator=(itkVolumeType::Pointer volume);
 
       /// Volume's voxel's index at given spatial position
       /// It doesn't check whether the index is valid or not

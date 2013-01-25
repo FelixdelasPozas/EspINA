@@ -43,7 +43,7 @@ const ModelItem::ExtId ID_1_2_5 = "CountingRegionExtension"; //Backwards compati
 const ArgumentId CountingFrameExtension::COUNTING_FRAMES = "CFs";
 const ArgumentId COUNTING_FRAMES_1_2_5 = "Regions"; // Backwards compatibility versions < 1.2.5
 
-const QString CountingFrameExtension::EXTENSION_FILE = CountingFrameExtensionID + "/StereologicalInclusion.csv";
+const QString CountingFrameExtension::EXTENSION_FILE = CountingFrameExtensionID + "/CountingFrameExtension.ext";
 
 QMap<ChannelPtr, CountingFrameExtension::CacheEntry> CountingFrameExtension::s_cache;
 
@@ -129,7 +129,69 @@ bool CountingFrameExtension::loadCache(QuaZipFile  &file,
                                        const QDir  &tmpDir,
                                        EspinaModel *model)
 {
-  return false;
+  QString header(file.readLine());
+  if (header.toStdString() != FILE_VERSION)
+    return false;
+
+  ChannelPtr extensionChannel = NULL;
+  CountingFrameExtensionPtr cfExtension = NULL;
+
+  char buffer[1024];
+  while (file.readLine(buffer, sizeof(buffer)) > 0)
+  {
+    QString line(buffer);
+    QStringList fields = line.split(SEP);
+
+    if (fields.size() == 2)
+    {
+      int i = 0;
+      while (!extensionChannel && i < model->channels().size())
+      {
+        ChannelSPtr channel = model->channels()[i];
+        if ( channel->filter()->tmpId()  == fields[0]
+          && channel->outputId()         == fields[1].toInt()
+          && channel->filter()->tmpDir() == tmpDir)
+        {
+          extensionChannel = channel.data();
+        }
+        i++;
+      }
+      Q_ASSERT(extensionChannel);
+
+      cfExtension = new CountingFrameExtension(m_plugin, m_viewManager);
+      extensionChannel->addExtension(cfExtension);
+    }
+    else if (fields.size() == 8)
+    {
+      CF cf;
+      CountingFrame::Id id = fields[0].toInt();
+
+      cf.Type = static_cast<CFType>(fields[1].toInt());
+      for(int i=0; i<3; i++)
+        cf.Inclusion[i] = fields[2+i].toDouble();
+      for(int i=0; i<3; i++)
+        cf.Exclusion[i] = fields[5+i].toDouble();
+
+      s_cache[extensionChannel].insert(id, cf);
+
+      switch(s_cache[extensionChannel][id].Type)
+      {
+        case ADAPTIVE:
+          cfExtension->addCountingFrame(AdaptiveCountingFrame::New(id, cfExtension, cf.Inclusion, cf.Exclusion, m_viewManager));
+          break;
+        case RECTANGULAR:
+          double borders[6];
+          extensionChannel->volume()->bounds(borders);
+          cfExtension->addCountingFrame(RectangularCountingFrame::New(id, cfExtension, borders, cf.Inclusion, cf.Exclusion, m_viewManager));
+          break;
+      };
+    }
+    else
+      Q_ASSERT(false);
+
+  }
+
+  return true;
 }
 
 // File Output:
@@ -155,12 +217,12 @@ bool CountingFrameExtension::saveCache(ModelItem::Extension::CacheList &cacheLis
     cache << SEP << channel->outputId();
     cache << std::endl;
 
-    CacheEntry &channelCache = s_cache[m_channel];
+    CacheEntry &channelCache = s_cache[channel];
     CacheEntry::iterator cf = channelCache.begin();
     while(cf != channelCache.end())
     {
       cache << cf.key();
-      cache << cf->Type;
+      cache << SEP << cf->Type;
 
       for(int i=0; i<3; i++)
         cache << SEP << cf->Inclusion[i];

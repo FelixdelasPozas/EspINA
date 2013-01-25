@@ -69,14 +69,14 @@ Segmentation::Segmentation(FilterSPtr         filter,
   m_args.setNumber(0);
   m_args.setOutputId(oId);
   m_args[TAXONOMY] = "Unknown";
-  connect(filter.data(), SIGNAL(modified(ModelItem *)),
+  connect(volume().get(), SIGNAL(modified()),
           this, SLOT(notifyModification()));
 }
 
 //------------------------------------------------------------------------
 void Segmentation::changeFilter(FilterSPtr filter, const Filter::OutputId &oId)
 {
-  disconnect(m_filter.data(), SIGNAL(modified(ModelItem *)),
+  disconnect(volume().get(), SIGNAL(modified()),
              this, SLOT(notifyModification()));
 //   m_filter->releaseDataFlagOn();
 //   filter->releaseDataFlagOff();
@@ -84,7 +84,7 @@ void Segmentation::changeFilter(FilterSPtr filter, const Filter::OutputId &oId)
   filter->update();
   m_filter = filter;
   m_args.setOutputId(oId);
-  connect(filter.data(), SIGNAL(modified(ModelItem *)),
+  connect(volume().get(), SIGNAL(modified()),
           this, SLOT(notifyModification()));
 }
 

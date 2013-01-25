@@ -53,14 +53,14 @@ using namespace EspINA;
 /// - Apposition Plane Perimeter
 /// - Apposition Plane Tortuosity
 
-const ModelItemExtension::ExtId   AppositionSurfaceExtension::ID
+const ModelItem::ExtId   AppositionSurfaceExtension::ID
 = "AppositionSurfaceExtension";
 
-const ModelItemExtension::InfoTag AppositionSurfaceExtension::AREA
+const Segmentation::InfoTag AppositionSurfaceExtension::AREA
 = "AS Area";
-const ModelItemExtension::InfoTag AppositionSurfaceExtension::PERIMETER
+const Segmentation::InfoTag AppositionSurfaceExtension::PERIMETER
 = "AS Perimeter";
-const ModelItemExtension::InfoTag AppositionSurfaceExtension::TORTUOSITY
+const Segmentation::InfoTag AppositionSurfaceExtension::TORTUOSITY
 = "AS Tortuosity";
 
 const double UNDEFINED = -1.;
@@ -72,13 +72,11 @@ AppositionSurfaceExtension::AppositionSurfaceExtension()
 , m_converge  (true)
 , m_area      (UNDEFINED)
 , m_perimeter (UNDEFINED)
-, m_tortuosity (UNDEFINED)
+, m_tortuosity(UNDEFINED)
 {
   m_ap = PolyData::New();
   m_referencePlane = PolyData::New();
   m_blendedNotClippedPlane = PolyData::New();
-  //m_availableRepresentations << AppositionSurfaceRepresentation::ID;
-  m_availableInformations << AREA << PERIMETER << TORTUOSITY;
 }
 
 //------------------------------------------------------------------------
@@ -87,13 +85,23 @@ AppositionSurfaceExtension::~AppositionSurfaceExtension()
 }
 
 //------------------------------------------------------------------------
-ModelItemExtension::ExtId AppositionSurfaceExtension::id()
+ModelItem::ExtId AppositionSurfaceExtension::id()
 {
   return ID;
 }
 
 //------------------------------------------------------------------------
-QVariant AppositionSurfaceExtension::information(ModelItemExtension::InfoTag tag) const
+Segmentation::InfoTagList AppositionSurfaceExtension::availableInformations() const
+{
+  Segmentation::InfoTagList tags;
+
+  tags << AREA << PERIMETER << TORTUOSITY;
+
+  return tags;
+}
+
+//------------------------------------------------------------------------
+QVariant AppositionSurfaceExtension::information(const Segmentation::InfoTag &tag)
 {
   if (!m_init)
     return QVariant();
@@ -101,8 +109,8 @@ QVariant AppositionSurfaceExtension::information(ModelItemExtension::InfoTag tag
   if (updateAppositionSurface() || UNDEFINED == m_area || UNDEFINED == m_perimeter || UNDEFINED == m_tortuosity)
   {
     //qDebug() << "Update Apposition Plane";
-    m_area = computeArea();
-    m_perimeter = computePerimeter();
+    m_area       = computeArea();
+    m_perimeter  = computePerimeter();
     m_tortuosity = computeTortuosity();
   }
 
@@ -119,27 +127,15 @@ QVariant AppositionSurfaceExtension::information(ModelItemExtension::InfoTag tag
 }
 
 //------------------------------------------------------------------------
-SegmentationRepresentationPtr AppositionSurfaceExtension::representation(QString representation)
-{
-  SegmentationRepresentationPtr rep;
-  //   if (rep == AppositionSurfaceRepresentation::ID)
-  //     return m_planeRep;
-  //
-  qWarning() << ID << ":" << representation << " is not provided";
-  Q_ASSERT(false);
-  return rep;
-}
-
-//------------------------------------------------------------------------
 void AppositionSurfaceExtension::initialize(ModelItem::Arguments args)
 {
   m_init = true;
 }
 
 //------------------------------------------------------------------------
-SegmentationExtensionPtr AppositionSurfaceExtension::clone()
+Segmentation::InformationExtension AppositionSurfaceExtension::clone()
 {
-  return SegmentationExtensionPtr(new AppositionSurfaceExtension());
+  return new AppositionSurfaceExtension();
 }
 
 //------------------------------------------------------------------------

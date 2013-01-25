@@ -20,7 +20,7 @@ namespace EspINA
 {
   class EspinaModel;
   class ViewManager;
-  
+
   class AppositionSurfaceCommand
   : public QUndoCommand
   {
@@ -28,7 +28,7 @@ namespace EspINA
       static const Filter::FilterType FILTER_TYPE;
 
     public:
-      AppositionSurfaceCommand(SegmentationList inputs, EspinaModel *model, ViewManager *vm);
+      explicit AppositionSurfaceCommand(SegmentationList inputs, EspinaModel *model, ViewManager *vm);
       virtual ~AppositionSurfaceCommand() {};
 
       virtual void redo();
@@ -37,13 +37,13 @@ namespace EspINA
     private:
       EspinaModel *m_model;
       ViewManager *m_viewManager;
-      bool         m_createPSDTaxonomy;
+      bool         m_createTaxonomy;
 
-      SegmentationSList   m_segmentations;
-      ChannelSList        m_channels;
+      TaxonomyElementSPtr m_taxonomy;
       SampleSPtrList      m_samples;
+      ChannelSList        m_channels;
       FilterSPtrList      m_filters;
-      TaxonomyElementSPtr m_psdElement;
+      SegmentationSList   m_segmentations;
   };
 
 } /* namespace EspINA */

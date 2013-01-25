@@ -68,19 +68,19 @@ EspinaVolume::EspinaVolume(const VolumeRegion& region, itkVolumeType::SpacingTyp
   m_volume->FillBuffer(0);
 }
 
-//----------------------------------------------------------------------------
-EspinaVolume EspinaVolume::operator=(itkVolumeType::Pointer volume)
-{
-  m_volume = volume;
-
-  if (itk2vtk.IsNotNull())
-  {
-    itk2vtk->SetInput(m_volume);
-    itk2vtk->Update();
-  }
-
-  return *this;
-}
+// //----------------------------------------------------------------------------
+// EspinaVolume EspinaVolume::operator=(itkVolumeType::Pointer volume)
+// {
+//   m_volume = volume;
+// 
+//   if (itk2vtk.IsNotNull())
+//   {
+//     itk2vtk->SetInput(m_volume);
+//     itk2vtk->Update();
+//   }
+// 
+//   return *this;
+// }
 
 //----------------------------------------------------------------------------
 void EspinaVolume::setVolume(itkVolumeType::Pointer volume, bool disconnect)
@@ -245,6 +245,14 @@ const vtkAlgorithmOutput* EspinaVolume::toVTK() const
   }
 
   return itk2vtk->GetOutput()->GetProducerPort();
+}
+
+//----------------------------------------------------------------------------
+void EspinaVolume::markAsModified()
+{
+  toITK()->Modified();
+
+  emit modified();
 }
 
 //----------------------------------------------------------------------------

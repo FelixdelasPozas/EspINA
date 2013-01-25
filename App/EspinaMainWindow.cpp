@@ -50,6 +50,7 @@
 #include <Core/Interfaces/IToolBar.h>
 #include <Core/Model/EspinaFactory.h>
 #include <Core/Model/EspinaModel.h>
+#include <Core/Extensions/EdgeDistances/AdaptiveEdges.h>
 #include <GUI/QtWidget/IEspinaView.h>
 #include <GUI/Renderers/CrosshairRenderer.h>
 #include <GUI/Renderers/MeshRenderer.h>
@@ -599,6 +600,7 @@ void EspinaMainWindow::openAnalysis(const QString &file)
     m_model->setTaxonomy(defaultTaxonomy);
   }
 
+
   m_viewManager->resetViewCameras();
   m_addMenu->setEnabled(true);
 
@@ -625,8 +627,23 @@ void EspinaMainWindow::openAnalysis(const QString &file)
   m_saveAnalysis ->setEnabled(true);
   m_closeAnalysis->setEnabled(true);
 
-  m_viewManager->setActiveChannel(m_model->channels().first().data());
-  setWindowTitle(m_viewManager->activeChannel()->data().toString());
+  ChannelPtr channel = m_model->channels().first().data();
+  m_viewManager->setActiveChannel(channel);
+  setWindowTitle(channel->data().toString());
+
+  if (EspinaIO::isChannelExtension(fileInfo.suffix()))
+  {
+    QMessageBox msgBox;
+    msgBox.setWindowTitle("Adaptive Edges Extension");
+    msgBox.setText(tr("Compute %1's edges").arg(channel->data().toString()));
+    msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+    msgBox.setDefaultButton(QMessageBox::No);
+    if (msgBox.exec() == QMessageBox::Yes)
+    {
+      channel->addExtension(new AdaptiveEdges(true));
+    }
+  }
+
   m_viewManager->updateSegmentationRepresentations();
   m_viewManager->updateViews();
 }

@@ -22,88 +22,67 @@ namespace EspINA
   const Filter::FilterType AppositionSurfaceCommand::FILTER_TYPE = "AppositionSurface::AppositionSurfaceFilter";
 
   //-----------------------------------------------------------------------------
-  AppositionSurfaceCommand::AppositionSurfaceCommand(SegmentationList inputs, EspinaModel *model, ViewManager *vm)
+  AppositionSurfaceCommand::AppositionSurfaceCommand(SegmentationList inputs,
+                                                     EspinaModel     *model,
+                                                     ViewManager     *vm)
   : m_model(model)
   , m_viewManager(vm)
-  , m_createPSDTaxonomy(false)
-  , m_psdElement(NULL)
+  , m_taxonomy(m_model->taxonomy()->element(QObject::tr("AS")))
   {
-    // when this filter is called from the tests there is no qApp, as there isn't a gui
-    if (QApplication::instance() != NULL)
-      QApplication::setOverrideCursor(Qt::WaitCursor);
-
-    m_psdElement = m_model->taxonomy()->element(QString("PSD"));
-    if (NULL == m_psdElement)
-      m_createPSDTaxonomy = true;
+    Q_ASSERT(m_taxonomy);
 
     foreach(SegmentationPtr seg, inputs)
     {
       Filter::NamedInputs inputs;
       Filter::Arguments args;
       inputs[AppositionSurfaceFilter::INPUTLINK] = seg->filter();
-      args[AppositionSurfaceFilter::ORIGIN] = seg->information("Name").toString();
+      args[AppositionSurfaceFilter::ORIGIN] = seg->data().toString();
       args[Filter::INPUTS] = Filter::NamedInput(AppositionSurfaceFilter::INPUTLINK, seg->outputId());
+
       FilterSPtr filter(new AppositionSurfaceFilter(inputs, args, FILTER_TYPE));
       filter->update();
+      Q_ASSERT(filter->outputs().size() == 1);
 
-      SegmentationSPtr filterSeg = m_model->factory()->createSegmentation(filter, 0);
-      filterSeg->modifiedByUser(userName());
+      SegmentationSPtr asSegmentation = m_model->factory()->createSegmentation(filter, 0);
+      asSegmentation->modifiedByUser(userName());
 
-      m_segmentations << filterSeg;
-      m_channels      << seg->channel();
       m_samples       << seg->sample();
+      m_channels      << seg->channel();
       m_filters       << filter;
+      m_segmentations << asSegmentation;
     }
-
-    if (QApplication::instance() != NULL)
-      QApplication::restoreOverrideCursor();
-  }
-  
-  //-----------------------------------------------------------------------------
-  void AppositionSurfaceCommand::undo()
-  {
-    for (int i = 0; i < m_segmentations.size(); ++i)
-    {
-      foreach(Relation relation, m_segmentations[i]->relations())
-        m_model->removeRelation(relation.ancestor, relation.succesor, relation.relation);
-
-      foreach(Relation relation, m_filters[i]->relations())
-        m_model->removeRelation(relation.ancestor, relation.succesor, relation.relation);
-    }
-
-    m_model->removeSegmentation(m_segmentations);
-    foreach(FilterSPtr filter, m_filters)
-      m_model->removeFilter(filter);
-
-    if (m_createPSDTaxonomy)
-      m_model->taxonomy()->deleteElement(m_psdElement);
   }
 
   //-----------------------------------------------------------------------------
   void AppositionSurfaceCommand::redo()
   {
-    if (m_createPSDTaxonomy)
+    for(int i = 0; i < m_filters.size(); ++i)
     {
-      m_psdElement = m_model->taxonomy()->createElement(QString("PSD"), m_model->taxonomy()->root());
-      m_psdElement->setColor(QColor(255,255,0));
-    }
+      m_model->addFilter(m_filters[i]);
+      m_model->addRelation(m_channels[i]->filter(), m_filters[i], AppositionSurfaceFilter::INPUTLINK);
 
-    foreach(SegmentationSPtr seg, m_segmentations)
-      seg->setTaxonomy(m_psdElement);
+      m_segmentations[i]->setTaxonomy(m_taxonomy);
+      m_model->addSegmentation(m_segmentations[i]);
 
-    m_model->addSegmentation(m_segmentations);
-    m_model->addFilter(m_filters);
-
-    /////////////////////////////////////
-    // BUG: taxonomy add element bug here
-    /////////////////////////////////////
-
-    for (int i = 0; i < m_segmentations.size(); ++i)
-    {
-      m_model->addRelation(m_filters[i], m_segmentations[i], Filter::CREATELINK);
-      m_model->addRelation(m_samples[i], m_segmentations[i], Sample::WHERE);
+      m_model->addRelation(m_filters[i] , m_segmentations[i], Filter::CREATELINK);
+      m_model->addRelation(m_samples[i] , m_segmentations[i], Sample::WHERE);
       m_model->addRelation(m_channels[i], m_segmentations[i], Channel::LINK);
     }
   }
+  //-----------------------------------------------------------------------------
+  void AppositionSurfaceCommand::undo()
+  {
+    for(int i = 0; i < m_filters.size(); ++i)
+    {
+      m_model->removeRelation(m_channels[i], m_segmentations[i], Channel::LINK);
+      m_model->removeRelation(m_samples[i] , m_segmentations[i], Sample::WHERE);
+      m_model->removeRelation(m_filters[i] , m_segmentations[i], Filter::CREATELINK);
+      m_model->removeSegmentation(m_segmentations[i]);
+
+      m_model->removeRelation(m_channels[i]->filter(), m_filters[i], AppositionSurfaceFilter::INPUTLINK);
+      m_model->removeFilter(m_filters[i]);
+    }
+  }
+
 
 } /* namespace EspINA */

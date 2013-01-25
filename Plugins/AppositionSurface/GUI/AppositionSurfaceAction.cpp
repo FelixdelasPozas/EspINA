@@ -7,14 +7,18 @@
 
 #include "AppositionSurfaceAction.h"
 
+#include "Undo/AppositionSurfaceCommand.h"
+
 // EspINA
 #include <Core/Model/PickableItem.h>
 #include <Core/Model/Segmentation.h>
+#include <Core/Model/EspinaModel.h>
 #include <GUI/ViewManager.h>
-#include <Undo/AppositionSurfaceCommand.h>
+#include <Undo/AddTaxonomyElement.h>
 
 // Qt
 #include <QDebug>
+#include <QApplication>
 
 namespace EspINA
 {
@@ -33,7 +37,7 @@ namespace EspINA
 
     connect(this, SIGNAL(triggered()), this, SLOT(computeASurfaces()));
   }
-  
+
   //------------------------------------------------------------------------
   AppositionSurfaceAction::~AppositionSurfaceAction()
   {
@@ -49,9 +53,19 @@ namespace EspINA
       if (seg->taxonomy()->qualifiedName().contains("Synapse"))
         validSegs << seg;
 
-    m_undoStack->beginMacro("Compute apposition surfaces");
-    m_undoStack->push(new AppositionSurfaceCommand(validSegs, m_model, m_viewManager));
-    m_undoStack->endMacro();
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+    {
+      m_undoStack->beginMacro(tr("Apposition Surface"));
+      {
+        TaxonomySPtr taxonomy = m_model->taxonomy();
+        if (taxonomy->element(tr("AS")).isNull()) {
+          m_undoStack->push(new AddTaxonomyElement(taxonomy->root().data(), tr("AS"), m_model));
+        }
+        m_undoStack->push(new AppositionSurfaceCommand(validSegs, m_model, m_viewManager));
+        m_undoStack->endMacro();
+      }
+    }
+    QApplication::restoreOverrideCursor();
   }
 
 } /* namespace EspINA */

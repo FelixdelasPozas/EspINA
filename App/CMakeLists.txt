@@ -122,7 +122,6 @@ set (ESPINA_SOURCES
   Tools/SegmentationRemover/SegmentationRemover.cpp
   Tools/VOI/RectangularVOI.cpp
   Tools/Zoom/ZoomTool.cpp
-  Undo/AddTaxonomyElement.cpp
   Undo/BrushUndoCommand.cpp
   Undo/ChangeTaxonomyCommand.cpp
   Undo/CompositionCommand.cpp

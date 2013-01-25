@@ -44,7 +44,9 @@ namespace EspINA
   typedef itk::ImageRegionConstIteratorWithIndex<itkVolumeType> itkVolumeConstIterator;
 
   class EspinaVolume
+  : public QObject
   {
+    Q_OBJECT
   public:
     typedef itkVolumeType::RegionType       VolumeRegion;
     typedef boost::shared_ptr<EspinaVolume> Pointer;
@@ -54,7 +56,7 @@ namespace EspINA
     explicit EspinaVolume(const EspinaRegion &region, itkVolumeType::SpacingType spacing);
     virtual ~EspinaVolume(){}
 
-    EspinaVolume operator=(itkVolumeType::Pointer volume);
+    //EspinaVolume operator=(itkVolumeType::Pointer volume);
     void setVolume(itkVolumeType::Pointer volume, bool disconnect=false);
 
     /// Volume's voxel's index at given spatial position
@@ -85,10 +87,14 @@ namespace EspINA
     vtkAlgorithmOutput *toVTK();
     const vtkAlgorithmOutput *toVTK() const;
 
+    void markAsModified();
     void update();
 
     /// Expands the volume to contain @region.
     void expandToFitRegion(EspinaRegion region);
+
+  signals:
+    void modified();
 
   private:
     explicit EspinaVolume(const VolumeRegion &region, itkVolumeType::SpacingType spacing);

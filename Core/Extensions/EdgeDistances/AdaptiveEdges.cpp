@@ -101,6 +101,7 @@ void AdaptiveEdges::initialize(ModelItem::Arguments args)
 //-----------------------------------------------------------------------------
 void AdaptiveEdges::computeAdaptiveEdges()
 {
+  qDebug() << "Computing Adaptive Edges";
   m_edges = vtkSmartPointer<vtkPolyData>::New();
 
   EdgeDetector *marginDetector = new EdgeDetector(this);

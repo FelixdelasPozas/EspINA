@@ -525,7 +525,7 @@ void EspinaModel::addFilter(FilterSPtrList filters)
   int start = m_filters.size();
   int end   = start + filters.size() - 1;
 
-  beginInsertRows(segmentationRoot(), start, end);
+  beginInsertRows(filterRoot(), start, end);
   {
     foreach(FilterSPtr filter, filters)
       addFilterImplementation(filter);

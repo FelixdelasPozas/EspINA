@@ -16,7 +16,7 @@ namespace EspINA
 {
   class ViewManager;
   class EspinaModel;
-  
+
   class AppositionSurfaceAction
   : public QAction
   {

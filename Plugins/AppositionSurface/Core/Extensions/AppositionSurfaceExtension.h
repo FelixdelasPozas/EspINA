@@ -47,7 +47,7 @@ class vtkImageData;
 namespace EspINA
 {
   class AppositionSurfaceExtension
-  : public SegmentationExtension
+  : public Segmentation::Information
   {
 
     static const double THRESHOLDFACTOR = 0.1; // Percentage of a single step
@@ -78,33 +78,37 @@ namespace EspINA
     typedef std::list< vtkSmartPointer<vtkPoints> > PointsListType;
 
   public:
-    static const ExtId ID;
-    static const InfoTag AREA;
-    static const InfoTag PERIMETER;
-    static const InfoTag TORTUOSITY;
+    static const ModelItem::ExtId ID;
+
+    static const Segmentation::InfoTag AREA;
+    static const Segmentation::InfoTag PERIMETER;
+    static const Segmentation::InfoTag TORTUOSITY;
 
   public:
     explicit AppositionSurfaceExtension();
     virtual ~AppositionSurfaceExtension();
 
-    virtual ExtId id();
+    virtual ModelItem::ExtId id();
 
-    virtual ExtIdList dependencies() const
-    { return SegmentationExtension::dependencies(); }
+    virtual ModelItem::ExtIdList dependencies() const
+    { return Segmentation::Extension::dependencies(); }
 
-    virtual InfoList availableInformations() const
-    { return SegmentationExtension::availableInformations(); }
+    virtual Segmentation::InfoTagList availableInformations() const;
 
-    virtual RepList availableRepresentations() const
-    { return SegmentationExtension::availableRepresentations(); }
-
-    virtual QVariant information(InfoTag tag) const;
-
-    virtual SegmentationRepresentationPtr representation(QString representation);
+    virtual QVariant information(const Segmentation::InfoTag &tag);
 
     virtual void initialize(ModelItem::Arguments args = ModelItem::Arguments());
 
-    virtual SegmentationExtensionPtr clone();
+    virtual bool isCacheFile(const QString &file) const
+    {return false;}
+
+    virtual bool loadCache(QuaZipFile &file, const QDir &tmpDir, EspinaModel *model)
+    {return false;}
+
+    virtual bool saveCache(CacheList &cacheList)
+    {return false;}
+
+    virtual Segmentation::InformationExtension clone();
 
     PolyData appositionSurface() const
     { return m_ap; }

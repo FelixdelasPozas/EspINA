@@ -151,7 +151,7 @@ void Filter::draw(OutputId oId,
     if (brush->FunctionValue(tx, ty, tz) <= 0)
       it.Set(value);
   }
-  volume->toITK()->Modified();
+  volume->markAsModified();
 
   markAsEdited(oId);
 
@@ -181,6 +181,7 @@ void Filter::draw(OutputId oId,
   volume->expandToFitRegion(voxelRegion);
 
   volume->toITK()->SetPixel(volume->index(x, y, z), value);
+  volume->markAsModified();
 
   markAsEdited(oId);
 
@@ -308,7 +309,7 @@ void Filter::draw(OutputId oId,
     ++init;
   }
 
-  volume->toITK()->Modified();
+  volume->markAsModified();
 
   markAsEdited(oId);
 
@@ -336,7 +337,7 @@ void Filter::draw(OutputId oId,
     ot.Set(it.Get());
   }
 
-  filterVolume->toITK()->Modified();
+  filterVolume->markAsModified();
 
   markAsEdited(oId);
 
@@ -348,8 +349,8 @@ void Filter::restoreOutput(OutputId oId, itkVolumeType::Pointer volume)
 {
   Output &filterOutput = output(oId);
 
-  *filterOutput.volume = volume;
-  filterOutput.volume->toITK()->Modified();
+  filterOutput.volume->setVolume(volume);
+  filterOutput.volume->markAsModified();
 
   markAsEdited(oId);
 
