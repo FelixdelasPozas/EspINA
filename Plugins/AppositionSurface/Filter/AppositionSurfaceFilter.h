@@ -42,8 +42,6 @@ namespace EspINA
   class AppositionSurfaceFilter
   : public SegmentationFilter
   {
-      typedef boost::shared_ptr<AppositionSurfaceFilter> Pointer;
-
       static const double THRESHOLDFACTOR = 0.1; // Percentage of a single step
       static const unsigned int MAXSAVEDSTATUSES = 10;
       static const int MAXITERATIONSFACTOR = 100;
@@ -74,6 +72,9 @@ namespace EspINA
     public:
       static const QString INPUTLINK;
       static const ArgumentId ORIGIN;
+
+      typedef AppositionSurfaceFilter *               Pointer;
+      typedef QSharedPointer<AppositionSurfaceFilter> SPointer;
 
     public:
       AppositionSurfaceFilter(NamedInputs inputs,

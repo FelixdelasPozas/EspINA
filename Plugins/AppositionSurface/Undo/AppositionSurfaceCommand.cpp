@@ -7,6 +7,7 @@
 
 #include "AppositionSurfaceCommand.h"
 #include <Filter/AppositionSurfaceFilter.h>
+#include <GUI/FilterInspector/AppositionSurfaceFilterInspector.h>
 
 // EspINA
 #include <Core/Model/EspinaModel.h>
@@ -41,6 +42,10 @@ namespace EspINA
 
       FilterSPtr filter(new AppositionSurfaceFilter(inputs, args, FILTER_TYPE));
       filter->update();
+
+      Filter::FilterInspectorPtr filterInspector(new AppositionSurfaceFilterInspector(filter));
+      filter->setFilterInspector(filterInspector);
+
       Q_ASSERT(filter->outputs().size() == 1);
 
       SegmentationSPtr asSegmentation = m_model->factory()->createSegmentation(filter, 0);

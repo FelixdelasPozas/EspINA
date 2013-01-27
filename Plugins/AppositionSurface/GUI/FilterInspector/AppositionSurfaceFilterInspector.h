@@ -26,7 +26,7 @@ namespace EspINA
   : public Filter::FilterInspector
   {
     public:
-      explicit AppositionSurfaceFilterInspector(FilterPtr filter);
+      explicit AppositionSurfaceFilterInspector(FilterSPtr filter);
       virtual ~AppositionSurfaceFilterInspector() {};
 
       virtual QWidget *createWidget(QUndoStack *stack, ViewManager *viewManager);
@@ -34,7 +34,7 @@ namespace EspINA
       class Widget;
 
     private:
-      FilterPtr m_filter;
+      FilterSPtr m_filter;
   };
 
   /// Filter Inspector Widget
@@ -45,11 +45,11 @@ namespace EspINA
   {
       Q_OBJECT
     public:
-      Widget(AppositionSurfaceFilter *filter);
+      Widget(FilterSPtr filter);
       ~Widget() {};
 
     private:
-      AppositionSurfaceFilter *m_filter;
+      AppositionSurfaceFilter::Pointer m_filter;
   };
 
 

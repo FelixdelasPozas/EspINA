@@ -106,7 +106,7 @@ namespace EspINA
     AppositionSurfaceFilter *asFilter = new AppositionSurfaceFilter(inputs, args,
         AppositionSurfaceCommand::FILTER_TYPE);
 
-    Filter::FilterInspectorPtr asInspector(new AppositionSurfaceFilterInspector(asFilter));
+    Filter::FilterInspectorPtr asInspector(new AppositionSurfaceFilterInspector(AppositionSurfaceFilter::SPointer(asFilter)));
     asFilter->setFilterInspector(asInspector);
 
     return FilterSPtr(asFilter);

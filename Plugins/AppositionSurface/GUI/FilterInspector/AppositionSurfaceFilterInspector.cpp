@@ -9,11 +9,10 @@
 
 namespace EspINA
 {
-
   /// Filter Inspector
   //
   //----------------------------------------------------------------------------
-  AppositionSurfaceFilterInspector::AppositionSurfaceFilterInspector(FilterPtr filter)
+  AppositionSurfaceFilterInspector::AppositionSurfaceFilterInspector(FilterSPtr filter)
   : m_filter(filter)
   {
   }
@@ -21,18 +20,17 @@ namespace EspINA
   //----------------------------------------------------------------------------
   QWidget *AppositionSurfaceFilterInspector::createWidget(QUndoStack *stack, ViewManager *viewManager)
   {
-    // TODO
-    return new AppositionSurfaceFilterInspector::Widget(reinterpret_cast<AppositionSurfaceFilter *>(m_filter));
+    return new AppositionSurfaceFilterInspector::Widget(m_filter);
   }
 
   /// Filter Inspector Widget
   //
   //----------------------------------------------------------------------------
-  AppositionSurfaceFilterInspector::Widget::Widget(AppositionSurfaceFilter *filter)
-  : m_filter(filter)
+  AppositionSurfaceFilterInspector::Widget::Widget(FilterSPtr filter)
   {
     setupUi(this);
 
+    m_filter = AppositionSurfaceFilter::Pointer(filter.data());
     m_origin->setText(m_filter->getOriginSegmentation());
     m_area->setText(QString().number(m_filter->getArea()));
     m_perimeter->setText(QString().number(m_filter->getPerimeter()));

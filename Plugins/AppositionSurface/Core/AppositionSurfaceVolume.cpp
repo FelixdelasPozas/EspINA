@@ -69,6 +69,8 @@ namespace EspINA
     m_emptyImage->AllocateScalars();
     m_emptyImage->Update();
 
+    memset(m_emptyImage->GetScalarPointer(), SEG_BG_VALUE, m_emptyImage->GetNumberOfPoints());
+
     m_distance = vtkSmartPointer<vtkImplicitPolyDataDistance>::New();
     m_distance->SetInput(m_filter->m_ap);
 
@@ -77,13 +79,11 @@ namespace EspINA
         for (int z = extent[4]; z <= extent[5]; z++)
         {
           double point[3] = { (x+0.5)*spacing[0], (y+0.5)*spacing[1], (z+0.5)*spacing[2] };
-          double distance = std::abs(m_distance->EvaluateFunction(point));
-          unsigned char *pixel = reinterpret_cast<unsigned char*>(m_emptyImage->GetScalarPointer(x,y,z));
-
-          if (distance < minSpacing)
+          if (std::abs(m_distance->EvaluateFunction(point)) <= minSpacing)
+          {
+            unsigned char *pixel = reinterpret_cast<unsigned char*>(m_emptyImage->GetScalarPointer(x,y,z));
             *pixel = SEG_VOXEL_VALUE;
-          else
-            *pixel = SEG_BG_VALUE;
+          }
         }
 
     m_vtkVolume = m_emptyImage->GetProducerPort();
