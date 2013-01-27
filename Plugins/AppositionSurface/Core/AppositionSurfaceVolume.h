@@ -19,9 +19,8 @@
 // VTK
 #include <vtkSmartPointer.h>
 
-class vtkPolyDataToImageStencil;
-class vtkImageStencil;
 class vtkImageExport;
+class vtkImplicitPolyDataDistance;
 
 namespace EspINA
 {
@@ -34,8 +33,6 @@ namespace EspINA
     public:
       explicit AppositionSurfaceVolume(AppositionSurfaceFilter *filter);
       virtual ~AppositionSurfaceVolume();
-
-      //AppositionSurfaceVolume operator=(itkVolumeType::Pointer volume);
 
       /// Volume's voxel's index at given spatial position
       /// It doesn't check whether the index is valid or not
@@ -54,43 +51,42 @@ namespace EspINA
       itkVolumeConstIterator constIterator();
       itkVolumeConstIterator constIterator(const EspinaRegion &region);
 
-      itkVolumeType::Pointer toITK();
-      const itkVolumeType::Pointer toITK() const;
+      virtual itkVolumeType::Pointer toITK();
+      virtual const itkVolumeType::Pointer toITK() const;
 
-      vtkAlgorithmOutput *toVTK();
-      const vtkAlgorithmOutput *toVTK() const;
+      virtual vtkAlgorithmOutput *toVTK();
+      virtual const vtkAlgorithmOutput *toVTK() const;
 
-      vtkAlgorithmOutput *toMesh();
+      virtual vtkAlgorithmOutput *toMesh();
 
       void update();
 
       /// Expands the volume to contain @region.
-      void expandToFitRegion(EspinaRegion region);
+      virtual void expandToFitRegion(EspinaRegion region);
 
       /// Reduce volume dimensions to adjust it to the bounding box of the
       /// contained segmentation
-      bool strechToFitContent();
+      virtual bool strechToFitContent();
 
     protected:
-      void rasterize() const;
-      void transformVtk2Itk() const;
+      void rasterize(double *bounds) const;
+      void transformVTK2ITK() const;
 
     private:
       // not allowed
       void setVolume(itkVolumeType::Pointer volume, bool disconnect=false);
 
       // private attributes
-      mutable vtkSmartPointer<vtkAlgorithmOutput>        m_vtkVolume;
+      mutable vtkSmartPointer<vtkAlgorithmOutput>          m_vtkVolume;
 
-      AppositionSurfaceFilter                           *m_filter;
+      AppositionSurfaceFilter                             *m_filter;
 
-      mutable vtkSmartPointer<vtkImageData>              m_emptyImage;
-      mutable vtkSmartPointer<vtkPolyDataToImageStencil> m_mesh2stencil;
-      mutable vtkSmartPointer<vtkImageStencil>           m_stencil2image;
+      mutable vtkSmartPointer<vtkImageData>                m_emptyImage;
+      mutable vtkSmartPointer<vtkImplicitPolyDataDistance> m_distance;
 
       typedef itk::VTKImageImport<itkVolumeType> itkImageImporter;
-      mutable itkImageImporter::Pointer                  m_itkImporter;
-      mutable vtkSmartPointer<vtkImageExport>            m_vtkExporter;
+      mutable itkImageImporter::Pointer                    m_itkImporter;
+      mutable vtkSmartPointer<vtkImageExport>              m_vtkExporter;
   };
 
 } /* namespace EspINA */

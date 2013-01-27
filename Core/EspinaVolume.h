@@ -81,17 +81,17 @@ namespace EspINA
     itkVolumeConstIterator constIterator();
     itkVolumeConstIterator constIterator(const EspinaRegion &region);
 
-    itkVolumeType::Pointer toITK();
-    const itkVolumeType::Pointer toITK() const;
+    virtual itkVolumeType::Pointer toITK();
+    virtual const itkVolumeType::Pointer toITK() const;
 
-    vtkAlgorithmOutput *toVTK();
-    const vtkAlgorithmOutput *toVTK() const;
+    virtual vtkAlgorithmOutput *toVTK();
+    virtual const vtkAlgorithmOutput *toVTK() const;
 
     void markAsModified();
     void update();
 
     /// Expands the volume to contain @region.
-    void expandToFitRegion(EspinaRegion region);
+    virtual void expandToFitRegion(EspinaRegion region);
 
   signals:
     void modified();
@@ -140,10 +140,10 @@ namespace EspINA
 
     /// Reduce volume dimensions to adjust it to the bounding box of the
     /// contained segmentation
-    bool strechToFitContent();
+    virtual bool strechToFitContent();
 
     // get mesh representation of the volume
-    vtkAlgorithmOutput* toMesh();
+    virtual vtkAlgorithmOutput* toMesh();
 
   private:
     // vtkPolydata generation filter

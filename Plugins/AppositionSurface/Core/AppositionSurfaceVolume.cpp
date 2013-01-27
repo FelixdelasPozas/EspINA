@@ -11,10 +11,11 @@
 #include <Core/EspinaTypes.h>
 
 // VTK
-#include <vtkPolyDataToImageStencil.h>
-#include <vtkImageStencil.h>
 #include <vtkImageExport.h>
 #include <vtkAlgorithmOutput.h>
+#include <vtkMath.h>
+#include <vtkImplicitPolyDataDistance.h>
+
 
 // ITK
 #include <itkVTKImageImport.h>
@@ -31,14 +32,10 @@ namespace EspINA
   , m_vtkVolume(NULL)
   , m_filter(filter)
   , m_emptyImage(NULL)
-  , m_mesh2stencil(NULL)
-  , m_stencil2image(NULL)
+  , m_distance(NULL)
   , m_itkImporter(NULL)
   , m_vtkExporter(NULL)
   {
-    // TODO: remove this to make it lazy
-    rasterize();
-    transformVtk2Itk();
   }
   
   //----------------------------------------------------------------------------
@@ -47,68 +44,65 @@ namespace EspINA
   }
 
   //----------------------------------------------------------------------------
-  void AppositionSurfaceVolume::rasterize() const
+  void AppositionSurfaceVolume::rasterize(double *imageBounds) const
   {
-    if (m_emptyImage != NULL)
-    {
-      m_stencil2image->Update();
-      return;
-    }
     itkVolumeType::SpacingType spacing = m_filter->getOriginSpacing();
-    itkVolumeType::RegionType region = m_filter->getOriginRegion();
-    itkVolumeType::IndexType index = region.GetIndex();
-    itkVolumeType::SizeType size = region.GetSize();
-    double maxSpacing = std::max(spacing[0], std::max(spacing[1], spacing[2]));
+    double minSpacing = std::min(spacing[0], std::min(spacing[1], spacing[2]));
+
+    double bounds[6];
+    if (imageBounds != NULL)
+      memcpy(bounds, imageBounds, 6*sizeof(double));
+    else
+      m_filter->m_ap->GetBounds(bounds);
+
+    int extent[6] = { vtkMath::Round(bounds[0]/spacing[0]),
+                      vtkMath::Round(bounds[1]/spacing[0]),
+                      vtkMath::Round(bounds[2]/spacing[1]),
+                      vtkMath::Round(bounds[3]/spacing[1]),
+                      vtkMath::Round(bounds[4]/spacing[2]),
+                      vtkMath::Round(bounds[5]/spacing[2]) };
 
     m_emptyImage = vtkSmartPointer<vtkImageData>::New();
     m_emptyImage->SetSpacing(spacing[0], spacing[1], spacing[2]);
-    m_emptyImage->SetExtent(index[0], index[0]+size[0], index[1], index[1]+size[1], index[2], index[2]+size[2]);
+    m_emptyImage->SetExtent(extent);
     m_emptyImage->SetScalarTypeToUnsignedChar();
     m_emptyImage->AllocateScalars();
+    m_emptyImage->Update();
 
-    m_mesh2stencil = vtkSmartPointer<vtkPolyDataToImageStencil>::New();
-    m_mesh2stencil->SetTolerance(maxSpacing);
-    m_mesh2stencil->SetInputConnection(m_filter->m_ap->GetProducerPort());
-    m_mesh2stencil->Update();
+    m_distance = vtkSmartPointer<vtkImplicitPolyDataDistance>::New();
+    m_distance->SetInput(m_filter->m_ap);
 
-    m_stencil2image = vtkSmartPointer<vtkImageStencil>::New();
-    m_stencil2image->SetBackgroundValue(SEG_BG_VALUE);
-    m_stencil2image->SetInputConnection(m_emptyImage->GetProducerPort());
-    m_stencil2image->SetStencil(m_mesh2stencil->GetOutput());
-    m_stencil2image->Update();
+    for (int x = extent[0]; x <= extent[1]; x++)
+      for (int y = extent[2]; y <= extent[3]; y++)
+        for (int z = extent[4]; z <= extent[5]; z++)
+        {
+          double point[3] = { (x+0.5)*spacing[0], (y+0.5)*spacing[1], (z+0.5)*spacing[2] };
+          double distance = std::abs(m_distance->EvaluateFunction(point));
+          unsigned char *pixel = reinterpret_cast<unsigned char*>(m_emptyImage->GetScalarPointer(x,y,z));
 
-    m_vtkVolume = m_stencil2image->GetOutputPort();
+          if (distance < minSpacing)
+            *pixel = SEG_VOXEL_VALUE;
+          else
+            *pixel = SEG_BG_VALUE;
+        }
+
+    m_vtkVolume = m_emptyImage->GetProducerPort();
   }
 
   //----------------------------------------------------------------------------
   vtkAlgorithmOutput *AppositionSurfaceVolume::toVTK()
   {
-    qDebug() << "entrada en toVTK" << "vtkVolume" << m_vtkVolume;
     if (m_vtkVolume == NULL)
-      rasterize();
+      rasterize(NULL);
 
-    qDebug() << "salida de toVTK" << "vtkVolume" << m_vtkVolume;
-
-    if (m_vtkVolume != NULL)
-      m_vtkVolume->Print(std::cout);
-    else
-      qDebug() << "vtkVolume es NULL!!!!!!";
     return m_vtkVolume.GetPointer();
   }
 
   //----------------------------------------------------------------------------
   const vtkAlgorithmOutput *AppositionSurfaceVolume::toVTK() const
   {
-    qDebug() << "entrada en const toVTK" << "vtkVolume" << m_vtkVolume;
     if (m_vtkVolume == NULL)
-      rasterize();
-
-    qDebug() << "salida de const toVTK" << "vtkVolume" << m_vtkVolume;
-
-    if (m_vtkVolume != NULL)
-      m_vtkVolume->Print(std::cout);
-    else
-      qDebug() << "vtkVolume es NULL!!!!!!";
+      rasterize(NULL);
 
     return m_vtkVolume.GetPointer();
   }
@@ -117,7 +111,7 @@ namespace EspINA
   itkVolumeType::Pointer AppositionSurfaceVolume::toITK()
   {
     if (m_volume.IsNull())
-      transformVtk2Itk();
+      transformVTK2ITK();
 
     return m_volume;
   }
@@ -126,13 +120,13 @@ namespace EspINA
   const itkVolumeType::Pointer AppositionSurfaceVolume::toITK() const
   {
     if (m_volume.IsNull())
-      transformVtk2Itk();
+      transformVTK2ITK();
 
     return m_volume;
   }
 
   //----------------------------------------------------------------------------
-  void AppositionSurfaceVolume::transformVtk2Itk() const
+  void AppositionSurfaceVolume::transformVTK2ITK() const
   {
     if (m_itkImporter.IsNotNull())
     {
@@ -165,15 +159,14 @@ namespace EspINA
     m_volume = m_itkImporter->GetOutput();
     m_volume->Update();
 
-    if (m_volume.IsNull())
-      Q_ASSERT(false);
+    Q_ASSERT(!m_volume.IsNull());
   }
 
   //----------------------------------------------------------------------------
   itkVolumeType::IndexType AppositionSurfaceVolume::index(Nm x, Nm y, Nm z)
   {
     if (m_volume.IsNull())
-      transformVtk2Itk();
+      transformVTK2ITK();
 
     return EspinaVolume::index(x,y,z);
   }
@@ -182,7 +175,7 @@ namespace EspINA
   void AppositionSurfaceVolume::extent(int out[6]) const
   {
     if (m_volume.IsNull())
-      transformVtk2Itk();
+      transformVTK2ITK();
 
     return EspinaVolume::extent(out);
   }
@@ -191,7 +184,7 @@ namespace EspINA
   void AppositionSurfaceVolume::bounds(double out[6]) const
   {
     if (m_volume.IsNull())
-      transformVtk2Itk();
+      transformVTK2ITK();
 
     return EspinaVolume::bounds(out);
   }
@@ -201,7 +194,7 @@ namespace EspINA
   void AppositionSurfaceVolume::spacing(double out[3]) const
   {
     if (m_volume.IsNull())
-      transformVtk2Itk();
+      transformVTK2ITK();
 
     return EspinaVolume::spacing(out);
   }
@@ -210,7 +203,7 @@ namespace EspINA
   itkVolumeIterator AppositionSurfaceVolume::iterator(const EspinaRegion &region)
   {
     if (m_volume.IsNull())
-      transformVtk2Itk();
+      transformVTK2ITK();
 
     return EspinaVolume::iterator(region);
   }
@@ -219,7 +212,7 @@ namespace EspINA
   itkVolumeConstIterator AppositionSurfaceVolume::constIterator(const EspinaRegion &region)
   {
     if (m_volume.IsNull())
-      transformVtk2Itk();
+      transformVTK2ITK();
 
     return EspinaVolume::constIterator(region);
   }
@@ -228,7 +221,7 @@ namespace EspINA
   void AppositionSurfaceVolume::update()
   {
     if (m_volume.IsNull())
-      transformVtk2Itk();
+      transformVTK2ITK();
     else
       m_volume->Update();
   }
@@ -238,47 +231,14 @@ namespace EspINA
   //----------------------------------------------------------------------------
   void AppositionSurfaceVolume::expandToFitRegion(EspinaRegion region)
   {
-    itkVolumeType::SpacingType spacing = m_filter->getOriginSpacing();
     double bounds[6];
     region.bounds(bounds);
+    rasterize(bounds);
 
-    if (m_volume.IsNull())
+    if (!m_volume.IsNull())
     {
-      m_emptyImage = vtkSmartPointer<vtkImageData>::New();
-      m_emptyImage->SetSpacing(spacing[0], spacing[1], spacing[2]);
-      m_emptyImage->SetExtent(bounds[0]/spacing[0],
-                              bounds[1]/spacing[0],
-                              bounds[2]/spacing[1],
-                              bounds[3]/spacing[1],
-                              bounds[4]/spacing[2],
-                              bounds[5]/spacing[2]);
-      m_emptyImage->AllocateScalars();
-
-      m_mesh2stencil = vtkSmartPointer<vtkPolyDataToImageStencil>::New();
-      m_mesh2stencil->SetInputConnection(m_filter->m_ap->GetProducerPort());
-      m_mesh2stencil->Update();
-
-      m_stencil2image = vtkSmartPointer<vtkImageStencil>::New();
-      m_stencil2image->SetBackgroundValue(SEG_BG_VALUE);
-      m_stencil2image->SetInputConnection(m_emptyImage->GetProducerPort());
-      m_stencil2image->SetStencil(m_mesh2stencil->GetOutput());
-      m_stencil2image->Update();
-
-      m_vtkVolume = m_stencil2image->GetOutputPort();
-
-      transformVtk2Itk();
-    }
-    else
-    {
-      m_emptyImage->SetExtent(bounds[0]/spacing[0],
-                              bounds[1]/spacing[0],
-                              bounds[2]/spacing[1],
-                              bounds[3]/spacing[1],
-                              bounds[4]/spacing[2],
-                              bounds[5]/spacing[2]);
-      m_emptyImage->AllocateScalars();
-      m_emptyImage->Modified();
-      m_volume->Update();
+      m_volume = NULL;
+      transformVTK2ITK();
     }
   }
 
@@ -286,7 +246,7 @@ namespace EspINA
   bool AppositionSurfaceVolume::strechToFitContent()
   {
     if (m_volume.IsNull())
-      transformVtk2Itk();
+      transformVTK2ITK();
 
     return SegmentationVolume::strechToFitContent();
   }
@@ -296,14 +256,5 @@ namespace EspINA
   {
     return m_filter->m_ap->GetProducerPort();
   }
-
-//   //----------------------------------------------------------------------------
-//   AppositionSurfaceVolume AppositionSurfaceVolume::operator=(itkVolumeType::Pointer volume)
-//   {
-//     m_volume = volume;
-//     m_volume->DisconnectPipeline();
-// 
-//     return *this;
-//   }
 
 } /* namespace EspINA */

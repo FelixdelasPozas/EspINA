@@ -37,7 +37,6 @@ namespace EspINA
     private:
       EspinaModel *m_model;
       ViewManager *m_viewManager;
-      bool         m_createTaxonomy;
 
       TaxonomyElementSPtr m_taxonomy;
       SampleSPtrList      m_samples;

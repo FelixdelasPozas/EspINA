@@ -24,6 +24,8 @@
 #include <Core/EspinaTypes.h>
 #include <Core/Model/Taxonomy.h>
 
+#include <QColor>
+
 namespace EspINA
 {
   class EspinaModel;
@@ -35,6 +37,7 @@ namespace EspINA
     explicit AddTaxonomyElement(TaxonomyElementPtr parentTaxonomy,
                                 const QString     &name,
                                 EspinaModel       *model,
+                                QColor            color,
                                 QUndoCommand      *parent = NULL);
     virtual ~AddTaxonomyElement();
 
@@ -47,6 +50,7 @@ namespace EspINA
     QString m_name;
     TaxonomyElementSPtr  m_parentTaxonomy;
     TaxonomyElementSPtr m_taxonomy;
+    QColor m_color;
   };
 
 } // namespace EspINA

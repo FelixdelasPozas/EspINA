@@ -26,11 +26,13 @@ using namespace EspINA;
 AddTaxonomyElement::AddTaxonomyElement(TaxonomyElementPtr parentTaxonomy,
                                        const QString     &name,
                                        EspinaModel       *model,
+                                       QColor            color,
                                        QUndoCommand      *parent)
 : QUndoCommand(parent)
 , m_model(model)
 , m_name (name)
 , m_parentTaxonomy(m_model->findTaxonomyElement(parentTaxonomy))
+, m_color(color)
 {
 }
 
@@ -48,7 +50,9 @@ void AddTaxonomyElement::redo()
   if (m_taxonomy.isNull())
   {
     m_taxonomy = m_model->createTaxonomyElement(m_parentTaxonomy, m_name);
-  } else
+    m_taxonomy->setColor(m_color);
+  }
+  else
   {
     m_model->addTaxonomyElement(m_parentTaxonomy, m_taxonomy);
   }

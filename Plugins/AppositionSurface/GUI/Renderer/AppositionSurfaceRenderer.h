@@ -45,7 +45,7 @@ namespace EspINA
     virtual bool itemCanBeRendered(ModelItemPtr item)
     {
       QString fullTaxonomy = SegmentationPtr(item)->taxonomy()->qualifiedName();
-      return (fullTaxonomy.contains("PSD"));
+      return (fullTaxonomy.contains("AS"));
     }
   };
 

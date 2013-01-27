@@ -279,7 +279,7 @@ void TaxonomyLayout::createTaxonomy()
     if (taxonomy->element(name).isNull())
     {
       m_undoStack->beginMacro("Create Taxonomy");
-      m_undoStack->push(new AddTaxonomyElement(taxonomy->parent(), name, m_model));
+      m_undoStack->push(new AddTaxonomyElement(taxonomy->parent(), name, m_model, taxonomy->parent()->color()));
       m_undoStack->endMacro();
     }
   }
@@ -302,7 +302,7 @@ void TaxonomyLayout::createSubTaxonomy()
     if (taxonomy->element(name).isNull())
     {
       m_undoStack->beginMacro("Create Taxonomy");
-      m_undoStack->push(new AddTaxonomyElement(taxonomy, name, m_model));
+      m_undoStack->push(new AddTaxonomyElement(taxonomy, name, m_model, taxonomy->color()));
       m_undoStack->endMacro();
     }
   }
