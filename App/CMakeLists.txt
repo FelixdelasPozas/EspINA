@@ -123,7 +123,6 @@ set (ESPINA_SOURCES
   Tools/VOI/RectangularVOI.cpp
   Tools/Zoom/ZoomTool.cpp
   Undo/BrushUndoCommand.cpp
-  Undo/ChangeTaxonomyCommand.cpp
   Undo/CompositionCommand.cpp
   Undo/ImageLogicCommand.cpp
   Undo/MoveTaxonomiesCommand.cpp

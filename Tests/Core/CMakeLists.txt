@@ -16,12 +16,14 @@
 set(LIB_DEPENDECIES
   EspinaCore
   EspinaFilters
+  EspinaGUI
   EspinaUndo
   QtTest
   ${QT_LIBRARIES}
   ${Boost_LIBRARIES}
   ${VTK_LIBRARIES}
   ${ITK_LIBRARIES}
+  QVTK
 )
 
 add_subdirectory(IO)

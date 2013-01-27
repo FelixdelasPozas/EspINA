@@ -10,7 +10,7 @@ create_test_sourcelist(TESTS
   saveModelToSegFile.cpp
   )
 
-add_executable(${TEST_NAME} ${TESTS}) #helpers.cpp)
+add_executable(${TEST_NAME} ${TESTS} ${HELPER_SOURCES})
 target_link_libraries(${TEST_NAME} ${LIB_DEPENDECIES} )
 
 # Remove the test driver source file

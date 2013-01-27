@@ -12,7 +12,7 @@ set (ESPINA_VERSION_PATCH 7)
 
 
 set (TEST_ESPINA_MODELS CACHE BOOL "Build EspINA Model Test wrappers")
-#set (BUILD_TESTING OFF  CACHE BOOL "Build EspINA Unitary Tests")
+set (BUILD_TESTING OFF  CACHE BOOL "Build EspINA Unitary Tests")
 set (USE_DASHBOARD OFF  CACHE BOOL "Use EspINA Unitary Tests Dashboard")
 
 set (COMPILING_ESPINA 1)
@@ -78,14 +78,14 @@ add_subdirectory( App     )
 add_subdirectory( Plugins )
 
 
-#if (BUILD_TESTING)
+if (BUILD_TESTING)
 
-#  include (CTest)
-#  enable_testing()
+ include (CTest)
+ enable_testing()
 
-#  add_subdirectory(Tests)
+ add_subdirectory(Tests)
 
-#endif()
+endif()
 
 ### TODO: Review from previous version
 # TRANSLATIONS

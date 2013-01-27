@@ -23,7 +23,7 @@
 #include <Core/Model/EspinaModel.h>
 #include <Core/Model/Taxonomy.h>
 #include <Core/Model/Segmentation.h>
-#include <App/Undo/ChangeTaxonomyCommand.h>
+#include <Undo/ChangeTaxonomyCommand.h>
 #include <Undo/RemoveSegmentation.h>
 
 #include <QWidgetAction>
