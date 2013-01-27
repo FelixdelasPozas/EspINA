@@ -330,7 +330,7 @@ Segmentation::InformationExtension MorphologicalInformation::clone()
 }
 
 //------------------------------------------------------------------------
-void MorphologicalInformation::updateInformation() const
+void MorphologicalInformation::updateInformation()
 {
   qDebug() << "Updating" << m_seg->data().toString() << ID;
   m_labelMap->SetInput(m_seg->volume()->toITK());

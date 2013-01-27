@@ -86,7 +86,7 @@ namespace EspINA
     virtual Segmentation::InformationExtension clone();
 
   private:
-    void updateInformation() const;
+    void updateInformation();
 
   private:
     Image2LabelFilterType::Pointer m_labelMap;

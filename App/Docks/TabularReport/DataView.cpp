@@ -122,7 +122,13 @@ ModelItemPtr DataView::item(QModelIndex index) const
 //------------------------------------------------------------------------
 void DataView::defineQuery()
 {
-  QStringList query = m_model->availableInformation();
+  QStringList query;
+  query << tr("Name") << tr("Taxonomy");
+  foreach(Segmentation::InformationExtension extension, m_baseModel->factory()->segmentationExtensions())
+  {
+    query << extension->availableInformations();
+  }
+
   QueryView *querySelector = new QueryView(query, this);
   querySelector->exec();
   m_model->setQuery(query);
