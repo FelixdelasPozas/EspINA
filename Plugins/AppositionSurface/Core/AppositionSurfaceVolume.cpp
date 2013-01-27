@@ -235,9 +235,9 @@ namespace EspINA
     region.bounds(bounds);
     rasterize(bounds);
 
-    if (!m_volume.IsNull())
+    if (!m_itkImporter.IsNull())
     {
-      m_volume = NULL;
+      m_itkImporter = NULL;
       transformVTK2ITK();
     }
   }
