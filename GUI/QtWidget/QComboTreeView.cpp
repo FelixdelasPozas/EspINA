@@ -19,6 +19,8 @@
 
 #include "QComboTreeView.h"
 
+#include <Core/Model/QtModelUtils.h>
+
 //----------------------------------------------------------------------------
 QComboTreeView::QComboTreeView(QWidget* parent)
 : QComboBox(parent)
@@ -70,7 +72,6 @@ void QComboTreeView::showPopup()
   QComboBox::showPopup();
 }
 
-#include <QDebug>
 //----------------------------------------------------------------------------
 void QComboTreeView::indexEntered(const QModelIndex& index)
 {
@@ -82,8 +83,13 @@ void QComboTreeView::indexActivated()
 {
   QModelIndex index;
   if (count())
-    index = m_currentModelIndex;
+  {
+    index = QtModelUtils::findChildIndex(rootModelIndex(), currentText());
+    m_currentModelIndex = index;
+  }
 
-  emit activated(index);
+  if (index.isValid())
+  {
+    emit activated(index);
+  }
 }
-

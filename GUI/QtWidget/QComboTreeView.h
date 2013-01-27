@@ -38,9 +38,9 @@ public:
 protected:
   virtual void showPopup();
 
-  virtual void keyPressEvent(QKeyEvent* e){}
-  virtual void keyReleaseEvent(QKeyEvent* e){}
-  virtual void wheelEvent(QWheelEvent* e){}
+  //virtual void keyPressEvent(QKeyEvent* e){}
+  //virtual void keyReleaseEvent(QKeyEvent* e){}
+  //virtual void wheelEvent(QWheelEvent* e){}
 
 private slots:
   void indexEntered(const QModelIndex &index);

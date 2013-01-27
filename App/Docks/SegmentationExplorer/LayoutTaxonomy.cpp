@@ -199,7 +199,9 @@ void TaxonomyLayout::deleteSelectedItems()
       foreach(TaxonomyElementPtr taxonomy, taxonomies)
       {
         if (!m_model->taxonomy()->element(taxonomy->qualifiedName()).isNull())
+        {
           m_undoStack->push(new RemoveTaxonomyElementCommand(taxonomy, m_model));
+        }
       }
       m_undoStack->endMacro();
     }

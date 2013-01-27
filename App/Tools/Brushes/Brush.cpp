@@ -248,11 +248,13 @@ void Brush::drawStroke(PickableItemPtr item,
       params.setSpacing(spacing);
       m_currentSource = FilterSPtr(new FreeFormSource(inputs, args, FREEFORM_SOURCE_TYPE));
       m_currentOutput = 0;
-      m_currentSeg = m_model->factory()->createSegmentation(m_currentSource, m_currentOutput);
 
       m_undoStack->beginMacro("Draw Segmentation");
       // We can't add empty segmentations to the model
       m_undoStack->push(new DrawCommand(m_currentSource, m_currentOutput, brushes, SEG_VOXEL_VALUE, this));
+
+      m_currentSeg = m_model->factory()->createSegmentation(m_currentSource, m_currentOutput);
+
       m_undoStack->push(
           new AddSegmentation(m_model->findChannel(channel), m_currentSource, m_currentSeg,m_model->findTaxonomyElement(m_viewManager->activeTaxonomy()), m_model));
       m_undoStack->endMacro();

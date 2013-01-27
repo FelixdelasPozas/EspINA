@@ -148,9 +148,7 @@ namespace EspINA
         m_model->addRelation(oldConnection.first, newConnection.first, INPUTLINK);
         m_model->addRelation(newConnection.first, seg, Filter::CREATELINK);
         seg->changeFilter(newConnection.first, newConnection.second);
-        // TODO 2012-11-05 Extensesions need to be updated when
-        // notifyModification method is called (at least with true)
-        // seg->notifyModification();
+        seg->volume()->markAsModified();
       }
       m_viewManager->updateSegmentationRepresentations(segmentations);
     }
@@ -174,7 +172,7 @@ namespace EspINA
         m_model->addRelation(oldConnection.first, seg, Filter::CREATELINK);
 
         seg->changeFilter(oldConnection.first, oldConnection.second);
-        seg->volume()->update();
+        seg->volume()->markAsModified();
       }
       m_viewManager->updateSegmentationRepresentations(segmentations);
     }
@@ -423,7 +421,9 @@ void EditorToolBar::closeSegmentations()
   if (input.size() > 0)
   {
     int r = m_settings->closeRadius();
+    m_undoStack->beginMacro(tr("Close Segmentation"));
     m_undoStack->push(new CODECommand(input, CODECommand::CLOSE, r, m_model, m_viewManager));
+    m_undoStack->endMacro();
   }
 }
 
@@ -436,7 +436,9 @@ void EditorToolBar::openSegmentations()
   if (input.size() > 0)
   {
     int r = m_settings->openRadius();
+    m_undoStack->beginMacro(tr("Open Segmentation"));
     m_undoStack->push(new CODECommand(input, CODECommand::OPEN, r, m_model, m_viewManager));
+    m_undoStack->endMacro();
   }
 }
 
@@ -449,7 +451,9 @@ void EditorToolBar::dilateSegmentations()
   if (input.size() > 0)
   {
     int r = m_settings->dilateRadius();
+    m_undoStack->beginMacro(tr("Dilate Segmentation"));
     m_undoStack->push(new CODECommand(input, CODECommand::DILATE, r, m_model, m_viewManager));
+    m_undoStack->endMacro();
   }
 }
 
@@ -462,7 +466,9 @@ void EditorToolBar::erodeSegmentations()
   if (input.size() > 0)
   {
     int r = m_settings->erodeRadius();
+    m_undoStack->beginMacro(tr("Erode Segmentation"));
     m_undoStack->push(new CODECommand(input, CODECommand::ERODE, r, m_model, m_viewManager));
+    m_undoStack->endMacro();
   }
 }
 

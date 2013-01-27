@@ -168,7 +168,7 @@ void MainToolBar::updateTaxonomy(TaxonomySPtr taxonomy)
   if (taxonomy && !taxonomy->elements().isEmpty())
   {
     m_taxonomySelector->setCurrentIndex(0);
-  m_viewManager->setActiveTaxonomy(taxonomy->elements().first().data());
+    m_viewManager->setActiveTaxonomy(taxonomy->elements().first().data());
   }
 }
 

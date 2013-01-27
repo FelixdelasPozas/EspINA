@@ -79,5 +79,6 @@ void DilateFilter::run()
 
   createOutput(0, m_filter->GetOutput());
 
+  m_outputs[0].volume->markAsModified();
   emit modified(this);
 }

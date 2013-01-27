@@ -50,6 +50,7 @@ set (CORE_SOURCES
   Model/EspinaFactory.cpp
   Model/EspinaModel.cpp
   Model/Filter.cpp
+  Model/QtModelUtils.cpp
   Model/ModelItem.cpp
   Model/ModelTest.cpp
   Model/PickableItem.cpp

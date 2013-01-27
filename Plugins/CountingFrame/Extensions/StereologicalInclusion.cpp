@@ -213,7 +213,6 @@ bool StereologicalInclusion::isExcluded() const
 //------------------------------------------------------------------------
 void StereologicalInclusion::evaluateCountingFrames()
 {
-  qDebug() << "Evaluating CF" << m_seg->data().toString();
   m_isOnEdge = isOnEdge();
 
   foreach(CountingFrame *cf, m_isExcludedFrom.keys())

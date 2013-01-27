@@ -651,7 +651,7 @@ void SliceView::updateView()
 {
   if (isVisible())
   {
-    qDebug() << "Updating View";
+    //qDebug() << "Updating View";
     updateRuler();
     updateWidgetVisibility();
     updateThumbnail();
@@ -925,7 +925,7 @@ void SliceView::addSegmentation(SegmentationPtr seg)
   segRep.slice->Update();
   m_state->updateActor(segRep.slice);
 
-  segRep.selected = !seg->isSelected(); // Force First Update
+  segRep.selected = seg->isSelected();
   segRep.visible  = seg->visible() && m_showSegmentations;
   //segRep.color = m_viewManager->color(seg);
 
@@ -1020,8 +1020,8 @@ bool SliceView::updateSegmentation(SegmentationPtr seg)
 
   if (rep.visible)
   {
-    QColor segColor =  m_viewManager->color(seg);
-    bool highlight = seg->isSelected();
+    bool   highlight        = seg->isSelected();
+    QColor segColor         = m_viewManager->color(seg);
     QColor highlightedColor = m_highlighter->color(segColor, highlight);
 
     if ((seg->isSelected() != rep.selected)
