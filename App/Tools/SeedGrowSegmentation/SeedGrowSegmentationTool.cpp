@@ -315,7 +315,8 @@ void SeedGrowSegmentationTool::startSegmentation(IPicker::PickList pickedItems)
                                                       m_threshold->upperThreshold(),
                                                       m_settings->closing(),
                                                       m_viewManager->activeTaxonomy(),
-                                                      m_model));
+                                                      m_model,
+                                                      m_viewManager));
     m_undoStack->endMacro();
     QApplication::restoreOverrideCursor();
   }

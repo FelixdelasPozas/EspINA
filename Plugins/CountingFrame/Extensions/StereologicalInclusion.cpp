@@ -155,6 +155,7 @@ foreach(CountingFrame *countingFrame, newCF.subtract(prevCF))
 //------------------------------------------------------------------------
 bool StereologicalInclusion::loadCache(QuaZipFile &file, const QDir &tmpDir, EspinaModel *model)
 {
+  // TODO: 
   return false;
 }
 

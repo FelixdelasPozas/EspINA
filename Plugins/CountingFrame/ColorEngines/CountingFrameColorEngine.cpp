@@ -36,13 +36,13 @@ CountingFrameColorEngine::CountingFrameColorEngine()
   m_excludedLUT->SetTableValue(1, 1.0, 0.0, 0.0, 0.2);
   m_excludedLUT->Modified();
 
-  m_nonExcludedLUT = LUTPtr::New();
-  m_nonExcludedLUT->Allocate();
-  m_nonExcludedLUT->SetNumberOfTableValues(2);
-  m_nonExcludedLUT->Build();
-  m_nonExcludedLUT->SetTableValue(0, 0.0, 0.0, 0.0, 0.0);
-  m_nonExcludedLUT->SetTableValue(1, 0.0, 1.0, 0.0, 1.0);
-  m_nonExcludedLUT->Modified();
+  m_includedLUT = LUTPtr::New();
+  m_includedLUT->Allocate();
+  m_includedLUT->SetNumberOfTableValues(2);
+  m_includedLUT->Build();
+  m_includedLUT->SetTableValue(0, 0.0, 0.0, 0.0, 0.0);
+  m_includedLUT->SetTableValue(1, 0.0, 1.0, 0.0, 1.0);
+  m_includedLUT->Modified();
 }
 
 
@@ -50,7 +50,7 @@ CountingFrameColorEngine::CountingFrameColorEngine()
 QColor CountingFrameColorEngine::color(SegmentationPtr seg)
 {
   if (seg->channel().isNull())
-    return QColor(0, 255, 0, 255);
+    return QColor(0, 0, 0, 255);
 
   StereologicalInclusion *stereologicalExtentsion;
   Segmentation::InformationExtension extension = seg->informationExtension(StereologicalInclusion::ID);
@@ -75,7 +75,7 @@ QColor CountingFrameColorEngine::color(SegmentationPtr seg)
 LUTPtr CountingFrameColorEngine::lut(SegmentationPtr seg)
 {
   if (seg->channel().isNull())
-    return m_nonExcludedLUT;
+    return m_includedLUT;
 
   StereologicalInclusion *stereologicalExtentsion;
   Segmentation::InformationExtension extension = seg->informationExtension(StereologicalInclusion::ID);
@@ -93,5 +93,5 @@ LUTPtr CountingFrameColorEngine::lut(SegmentationPtr seg)
   if (stereologicalExtentsion->isExcluded())
     return m_excludedLUT;
   else
-    return m_nonExcludedLUT;
+    return m_includedLUT;
 }

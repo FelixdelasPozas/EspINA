@@ -39,7 +39,7 @@ namespace EspINA
 
   private:
     LUTPtr m_excludedLUT;
-    LUTPtr m_nonExcludedLUT;
+    LUTPtr m_includedLUT;
   };
 
 } // namespace EspINA

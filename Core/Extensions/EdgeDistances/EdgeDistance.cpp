@@ -146,10 +146,14 @@ bool EdgeDistance::loadCache(QuaZipFile  &file,
       }
       i++;
     }
-    Q_ASSERT(extensionSegmentation);
+    //TODO: Remove extensions when removed inside undo commands
+    //Q_ASSERT(extensionSegmentation);
 
-    for(i=0; i<6; i++)
-      s_cache[extensionSegmentation].Distances[i] = fields[2+i].toDouble();
+    if (extensionSegmentation)
+    {
+      for(i=0; i<6; i++)
+        s_cache[extensionSegmentation].Distances[i] = fields[2+i].toDouble();
+    }
   }
 
   return true;

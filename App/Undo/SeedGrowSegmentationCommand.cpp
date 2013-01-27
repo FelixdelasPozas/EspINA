@@ -23,6 +23,7 @@
 #include <Filters/SeedGrowSegmentationFilter.h>
 #include <Core/Model/EspinaFactory.h>
 #include <Core/EspinaSettings.h>
+#include <GUI/ViewManager.h>
 #include <QMessageBox>
 
 using namespace EspINA;
@@ -39,13 +40,15 @@ SeedGrowSegmentationCommand::SeedGrowSegmentationCommand(ChannelPtr             
                                                          int                      upperThreshold,
                                                          bool                     applyClosing,
                                                          TaxonomyElementPtr       taxonomy,
-                                                         EspinaModel          *model,
+                                                         EspinaModel             *model,
+                                                         ViewManager             *viewManager,
                                                          QUndoCommand *           parent)
 : QUndoCommand(parent)
-, m_model   (model)
-, m_sample  (channel->sample())
-, m_channel (m_model->findChannel(channel))
-, m_taxonomy(m_model->findTaxonomyElement(taxonomy))
+, m_model      (model)
+, m_viewManager(viewManager)
+, m_sample     (channel->sample())
+, m_channel    (m_model->findChannel(channel))
+, m_taxonomy   (m_model->findTaxonomyElement(taxonomy))
 {
   Filter::NamedInputs inputs;
   Filter::Arguments   args;
@@ -114,7 +117,9 @@ void SeedGrowSegmentationCommand::redo()
   m_model->addRelation(m_sample , m_segmentation, Sample::WHERE     );
   m_model->addRelation(m_channel, m_segmentation, Channel::LINK     );
 
-  m_segmentation->initializeExtensions();
+  SegmentationList segmentations;
+  segmentations << m_segmentation.data();
+  m_viewManager->updateSegmentationRepresentations(segmentations);
 }
 
 //-----------------------------------------------------------------------------

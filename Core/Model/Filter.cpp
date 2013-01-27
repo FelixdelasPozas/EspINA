@@ -572,10 +572,7 @@ void SegmentationFilter::createOutput(Filter::OutputId id, itkVolumeType::Pointe
   if (m_outputs.contains(id))
     m_outputs[id].volume->setVolume(volume);
   else
-  {
     m_outputs[id] = Output(this, id, SegmentationVolume::Pointer(new SegmentationVolume(volume)));
-    m_outputs[id].volume->update();
-  }
 }
 
 //----------------------------------------------------------------------------

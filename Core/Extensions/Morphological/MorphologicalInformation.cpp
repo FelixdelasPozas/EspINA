@@ -229,35 +229,39 @@ bool MorphologicalInformation::loadCache(QuaZipFile  &file,
       }
       i++;
     }
-    Q_ASSERT(extensionSegmentation);
+    //TODO: Remove extensions when removed inside undo commands
+    //Q_ASSERT(extensionSegmentation);
 
-    s_cache[extensionSegmentation].Size = fields[2].toDouble();
+    if (extensionSegmentation)
+    {
+      s_cache[extensionSegmentation].Size = fields[2].toDouble();
 
-    s_cache[extensionSegmentation].PhysicalSize = fields[3].toDouble();
+      s_cache[extensionSegmentation].PhysicalSize = fields[3].toDouble();
 
-    s_cache[extensionSegmentation].Centroid[0] = fields[4].toDouble();
-    s_cache[extensionSegmentation].Centroid[1] = fields[5].toDouble();
-    s_cache[extensionSegmentation].Centroid[2] = fields[6].toDouble();
+      s_cache[extensionSegmentation].Centroid[0] = fields[4].toDouble();
+      s_cache[extensionSegmentation].Centroid[1] = fields[5].toDouble();
+      s_cache[extensionSegmentation].Centroid[2] = fields[6].toDouble();
 
-    s_cache[extensionSegmentation].BinaryPrincipalMoments[0] = fields[7].toDouble();
-    s_cache[extensionSegmentation].BinaryPrincipalMoments[1] = fields[8].toDouble();
-    s_cache[extensionSegmentation].BinaryPrincipalMoments[2] = fields[9].toDouble();
+      s_cache[extensionSegmentation].BinaryPrincipalMoments[0] = fields[7].toDouble();
+      s_cache[extensionSegmentation].BinaryPrincipalMoments[1] = fields[8].toDouble();
+      s_cache[extensionSegmentation].BinaryPrincipalMoments[2] = fields[9].toDouble();
 
-    s_cache[extensionSegmentation].BinaryPrincipalAxes[0][0] = fields[10].toDouble();
-    s_cache[extensionSegmentation].BinaryPrincipalAxes[0][1] = fields[11].toDouble();
-    s_cache[extensionSegmentation].BinaryPrincipalAxes[0][2] = fields[12].toDouble();
-    s_cache[extensionSegmentation].BinaryPrincipalAxes[1][0] = fields[13].toDouble();
-    s_cache[extensionSegmentation].BinaryPrincipalAxes[1][1] = fields[14].toDouble();
-    s_cache[extensionSegmentation].BinaryPrincipalAxes[1][2] = fields[15].toDouble();
-    s_cache[extensionSegmentation].BinaryPrincipalAxes[2][0] = fields[16].toDouble();
-    s_cache[extensionSegmentation].BinaryPrincipalAxes[2][1] = fields[17].toDouble();
-    s_cache[extensionSegmentation].BinaryPrincipalAxes[2][2] = fields[18].toDouble();
+      s_cache[extensionSegmentation].BinaryPrincipalAxes[0][0] = fields[10].toDouble();
+      s_cache[extensionSegmentation].BinaryPrincipalAxes[0][1] = fields[11].toDouble();
+      s_cache[extensionSegmentation].BinaryPrincipalAxes[0][2] = fields[12].toDouble();
+      s_cache[extensionSegmentation].BinaryPrincipalAxes[1][0] = fields[13].toDouble();
+      s_cache[extensionSegmentation].BinaryPrincipalAxes[1][1] = fields[14].toDouble();
+      s_cache[extensionSegmentation].BinaryPrincipalAxes[1][2] = fields[15].toDouble();
+      s_cache[extensionSegmentation].BinaryPrincipalAxes[2][0] = fields[16].toDouble();
+      s_cache[extensionSegmentation].BinaryPrincipalAxes[2][1] = fields[17].toDouble();
+      s_cache[extensionSegmentation].BinaryPrincipalAxes[2][2] = fields[18].toDouble();
 
-    s_cache[extensionSegmentation].FeretDiameter = fields[19].toDouble();
+      s_cache[extensionSegmentation].FeretDiameter = fields[19].toDouble();
 
-    s_cache[extensionSegmentation].EquivalentEllipsoidSize[0] = fields[20].toDouble();
-    s_cache[extensionSegmentation].EquivalentEllipsoidSize[1] = fields[21].toDouble();
-    s_cache[extensionSegmentation].EquivalentEllipsoidSize[2] = fields[22].toDouble();
+      s_cache[extensionSegmentation].EquivalentEllipsoidSize[0] = fields[20].toDouble();
+      s_cache[extensionSegmentation].EquivalentEllipsoidSize[1] = fields[21].toDouble();
+      s_cache[extensionSegmentation].EquivalentEllipsoidSize[2] = fields[22].toDouble();
+    }
   };
 
 

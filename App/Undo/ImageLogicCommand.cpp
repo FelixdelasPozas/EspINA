@@ -127,8 +127,6 @@ void ImageLogicCommand::redo()
   m_model->addRelation(m_filter, m_segmentation, Filter::CREATELINK);
   m_model->addRelation(sample  , m_segmentation, Sample::WHERE);
   m_model->addRelation(channel , m_segmentation, Channel::LINK);
-
-  m_segmentation->initializeExtensions();
 }
 
 //----------------------------------------------------------------------------

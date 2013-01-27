@@ -925,7 +925,7 @@ void SliceView::addSegmentation(SegmentationPtr seg)
   segRep.slice->Update();
   m_state->updateActor(segRep.slice);
 
-  segRep.selected = seg->isSelected();
+  segRep.selected = false;
   segRep.visible  = seg->visible() && m_showSegmentations;
   //segRep.color = m_viewManager->color(seg);
 
