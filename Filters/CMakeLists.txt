@@ -18,6 +18,7 @@ set (FILTERS_SOURCES
   OpeningFilter.cpp
   SeedGrowSegmentationFilter.cpp
   SplitFilter.cpp
+  TubularSegmentationFilter.cpp
   )
 
 set(FILTERS_EXTERNAL_LIBS

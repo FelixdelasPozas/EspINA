@@ -1,6 +1,6 @@
 /*
  <one line to give the program's name and a brief idea of what it does.>
- Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
+ Copyright (C) 2012  <copyright holder> <email>
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -16,32 +16,27 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef IDYNAMICMENU_H
-#define IDYNAMICMENU_H
+#ifndef SLICEDTUBULARWIDGET_H
+#define SLICEDTUBULARWIDGET_H
 
-#include <QPair>
-#include <QStringList>
-
-class QAction;
+// EspINA
+#include <GUI/vtkWidgets/EspinaWidget.h>
 
 namespace EspINA
 {
-  typedef QPair<QStringList, QAction *> MenuEntry;
+  //Forward Declarations
+  class vtkTubularWidget;
 
-  class IDynamicMenu
+  class TubularSliceWidget
+  : public SliceWidget
   {
     public:
-      virtual ~IDynamicMenu()
-      {
-      }
+      explicit TubularSliceWidget(vtkTubularWidget *widget);
 
-      virtual QList<MenuEntry> menuEntries() = 0;
+      virtual void setSlice(Nm pos, PlaneType plane);
 
-      virtual void reset() = 0;
+    private:
+      vtkTubularWidget *m_sliceWidget;
   };
 }
-
-Q_DECLARE_INTERFACE(EspINA::IDynamicMenu,
-                    "es.upm.cesvima.EspINA.DynamicMenuInterface/1.0")
-
-#endif //IDYNAMICMENU_H
+#endif // SLICEDTUBULARWIDGET_H

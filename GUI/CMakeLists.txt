@@ -19,6 +19,7 @@ qt4_wrap_cpp(GUI_MOC
   vtkWidgets/RectangularRegion.h
   vtkWidgets/RectangularRegionSliceSelector.h
   ViewManager.h
+  vtkWidgets/TubularWidget.h
   )
 
 qt4_wrap_ui (GUI_UI
@@ -71,6 +72,11 @@ set (GUI_SOURCES
   ViewManager.cpp
   vtkWidgets/MeasureWidget.cpp
   vtkWidgets/MeasureSliceWidget.cpp
+  vtkWidgets/TubularWidget.cpp
+  vtkWidgets/TubularSliceWidget.cpp
+  vtkWidgets/vtkTubeSource.cxx
+  vtkWidgets/vtkTubularRepresentation.cpp
+  vtkWidgets/vtkTubularWidget.cpp
   )
 
 set(GUI_EXTERNAL_LIBS

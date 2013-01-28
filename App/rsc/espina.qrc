@@ -67,5 +67,6 @@
         <file>create_seg_from_parts.svg</file>
         <file>measure.png</file>
         <file>show_partially.svg</file>
+        <file>tubular.svg</file>
     </qresource>
 </RCC>

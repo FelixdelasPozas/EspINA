@@ -47,6 +47,9 @@ qt4_wrap_cpp (ESPINA_MOC
   Dialogs/Connectomics/ConnectomicsDialog.h
   Dialogs/ChannelInspector/ChannelInspector.h
   Undo/BrushUndoCommand.h
+  Tools/TubularSegmentation/TubularTool.h
+  FilterInspectors/TubularSegmentation/TubularFilterInspector.h
+  FilterInspectors/TubularSegmentation/NodesInformationDialog.h
   )
 
 # Create Interface files
@@ -68,6 +71,8 @@ qt4_wrap_ui (ESPINA_UI
   Settings/VolumeView/VolumeViewSettingsPanel.ui
   Dialogs/Connectomics/ConnectomicsDialog.ui
   Dialogs/ChannelInspector/ChannelInspector.ui
+  FilterInspectors/TubularSegmentation/TubularFilterInspector.ui
+  FilterInspectors/TubularSegmentation/NodesInformationDialog.ui
   )
 
 set (ESPINA_SOURCES
@@ -133,6 +138,9 @@ set (ESPINA_SOURCES
   Dialogs/Connectomics/ConnectomicsDialog.cpp
   Tools/Measure/MeasureTool.cpp
   Dialogs/ChannelInspector/ChannelInspector.cpp
+  Tools/TubularSegmentation/TubularTool.cpp
+  FilterInspectors/TubularSegmentation/TubularFilterInspector.cpp
+  FilterInspectors/TubularSegmentation/NodesInformationDialog.cpp
   )
 
 set (ESPINA_LIBRARIES

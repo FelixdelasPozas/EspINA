@@ -21,10 +21,12 @@
 #include <Core/Interfaces/IToolBar.h>
 #include <Core/Interfaces/IFactoryExtension.h>
 #include <Core/Interfaces/IFilterCreator.h>
+#include <Core/Interfaces/IDynamicMenu.h>
 
 #include <GUI/ISettingsPanel.h>
 #include <GUI/Pickers/IPicker.h>
 #include <App/Tools/SeedGrowSegmentation/SeedGrowSegmentationTool.h>
+#include <App/Tools/TubularSegmentation/TubularTool.h>
 #include <GUI/ViewManager.h>
 
 #include <QAction>
@@ -45,6 +47,7 @@ namespace EspINA
   : public IToolBar
   , public IFactoryExtension
   , public IFilterCreator
+  , public IDynamicMenu
   {
     Q_OBJECT
     Q_INTERFACES
@@ -52,6 +55,7 @@ namespace EspINA
       EspINA::IToolBar
       EspINA::IFactoryExtension
       EspINA::IFilterCreator
+      EspINA::IDynamicMenu
     )
 
   public:
@@ -70,10 +74,15 @@ namespace EspINA
                                    const Filter::NamedInputs  &inputs,
                                    const ModelItem::Arguments &args);
 
+    virtual QList<MenuEntry> menuEntries();
+
   protected slots:
     /// Change picker
     void changePicker(QAction *action);
     void cancelSegmentationOperation();
+    void tubularActionStateChanged(bool segmenting);
+    void showNodesInformation();
+    void cancelTubularSegmentationOperation();
 
     virtual void reset();
 
@@ -91,6 +100,9 @@ namespace EspINA
     ThresholdAction  *m_threshold;
     DefaultVOIAction *m_useDefaultVOI;
     ActionSelector   *m_pickerSelector;
+    QAction          *m_tubularAction;
+
+    TubularToolSPtr   m_tubularTool;
 
     QMap<QAction *, IPickerSPtr> m_pickers;
     SeedGrowSegmentationToolSPtr m_SGStool;

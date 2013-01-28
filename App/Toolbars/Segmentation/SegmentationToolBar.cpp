@@ -24,6 +24,7 @@
 #include <Settings/SeedGrowSegmentation/SettingsPanel.h>
 #include <FilterInspectors/SeedGrowSegmentation/SGSFilterInspector.h>
 #include <Undo/SeedGrowSegmentationCommand.h>
+#include <App/FilterInspectors/TubularSegmentation/TubularFilterInspector.h>
 
 #include <QDebug>
 
@@ -64,6 +65,8 @@ SegmentationToolBar::SegmentationToolBar(EspinaModel *model,
 , m_threshold     (new ThresholdAction(this))
 , m_useDefaultVOI (new DefaultVOIAction(this))
 , m_pickerSelector(new ActionSelector(this))
+, m_tubularAction (new QAction(this))
+, m_tubularTool   (NULL)
 {
   setObjectName("SegmentationToolBar");
 
@@ -82,10 +85,16 @@ SegmentationToolBar::SegmentationToolBar(EspinaModel *model,
                                                                      m_useDefaultVOI,
                                                                      m_settings) );
 
+  m_tubularTool = TubularToolSPtr(new TubularTool(m_viewManager, m_undoStack, m_model));
+
   addAction(m_threshold);
   addAction(m_useDefaultVOI);
   addAction(m_pickerSelector);
   m_threshold->setSymmetricalThreshold(true);
+
+  m_tubularAction->setIcon(QIcon(":espina/tubular.svg"));
+  m_tubularAction->setCheckable(true);
+  this->addAction(m_tubularAction);
 
   //QAction *batch = addAction(tr("Batch"));
   //connect(batch, SIGNAL(triggered(bool)), this, SLOT(batchMode()));
@@ -96,18 +105,25 @@ SegmentationToolBar::SegmentationToolBar(EspinaModel *model,
           this, SLOT(cancelSegmentationOperation()));
   connect(m_SGStool.data(), SIGNAL(segmentationStopped()),
           this, SLOT(cancelSegmentationOperation()));
+  connect(m_tubularAction, SIGNAL(toggled(bool)),
+          this, SLOT(tubularActionStateChanged(bool)));
+  connect(m_tubularTool.data(), SIGNAL(segmentationStopped()),
+          this, SLOT(cancelTubularSegmentationOperation()));
 }
 
 //-----------------------------------------------------------------------------
 SegmentationToolBar::~SegmentationToolBar()
 {
   delete m_settings;
+
+  if (m_tubularTool != NULL)
+    m_tubularTool.clear();
 }
 
 //-----------------------------------------------------------------------------
 void SegmentationToolBar::initToolBar(EspinaModel *model,
-                                       QUndoStack  *undoStack,
-                                       ViewManager *viewManager)
+                                      QUndoStack  *undoStack,
+                                      ViewManager *viewManager)
 {
 }
 
@@ -116,6 +132,8 @@ void SegmentationToolBar::initFactoryExtension(EspinaFactory *factory)
 {
   // Register Factory's filters
   factory->registerFilter(this, SeedGrowSegmentationCommand::FILTER_TYPE);
+  factory->registerFilter(this, TubularSegmentationFilter::FILTER_TYPE);
+
 
   // Register settings panels
   factory->registerSettingsPanel(m_SeedGrowSettingsPanel.data());
@@ -126,14 +144,28 @@ FilterSPtr SegmentationToolBar::createFilter(const QString              &filter,
                                                    const Filter::NamedInputs  &inputs,
                                                    const ModelItem::Arguments &args)
 {
-  Q_ASSERT(SeedGrowSegmentationCommand::FILTER_TYPE == filter);
+  if (SeedGrowSegmentationCommand::FILTER_TYPE == filter)
+  {
+    SeedGrowSegmentationFilter *sgsFilter = new SeedGrowSegmentationFilter(inputs, args, SeedGrowSegmentationCommand::FILTER_TYPE);
 
-  SeedGrowSegmentationFilter *sgsFilter = new SeedGrowSegmentationFilter(inputs, args, SeedGrowSegmentationCommand::FILTER_TYPE);
+    Filter::FilterInspectorPtr sgsInspector(new SGSFilterInspector(sgsFilter));
+    sgsFilter->setFilterInspector(sgsInspector);
 
-  Filter::FilterInspectorPtr sgsInspector(new SGSFilterInspector(sgsFilter));
-  sgsFilter->setFilterInspector(sgsInspector);
+    return FilterSPtr(sgsFilter);
+  }
 
-  return FilterSPtr(sgsFilter);
+  if (TubularSegmentationFilter::FILTER_TYPE == filter)
+  {
+    TubularSegmentationFilter::Pointer tubularFilter = TubularSegmentationFilter::Pointer(new TubularSegmentationFilter(inputs, args, TubularSegmentationFilter::FILTER_TYPE));
+    Q_ASSERT(m_tubularTool);
+
+    Filter::FilterInspectorPtr inspector = Filter::FilterInspectorPtr(new TubularFilterInspector(tubularFilter, m_undoStack, m_viewManager, m_tubularTool));
+    tubularFilter->setFilterInspector(inspector);
+
+    return FilterSPtr(tubularFilter);
+  }
+
+  return FilterSPtr(NULL);
 }
 
 //-----------------------------------------------------------------------------
@@ -155,6 +187,24 @@ void SegmentationToolBar::cancelSegmentationOperation()
 void SegmentationToolBar::reset()
 {
   cancelSegmentationOperation();
+  cancelTubularSegmentationOperation();
+}
+
+//-----------------------------------------------------------------------------
+QList<MenuEntry> SegmentationToolBar::menuEntries()
+{
+  QList<MenuEntry> entries;
+
+  QStringList hierarchy;
+  hierarchy << "Analysis" << "Tubular Segmentation Nodes";
+
+  QAction *action = new QAction(tr("Tubular Segmentation Nodes"), this);
+  connect(action, SIGNAL(triggered(bool)),
+          this, SLOT(showNodesInformation()));
+
+  entries << MenuEntry(hierarchy, action);
+
+  return entries;
 }
 
 //------------------------------------------------------------------------
@@ -242,4 +292,42 @@ void SegmentationToolBar::buildPickers()
   addVoxelPicker(action, IPickerSPtr(bestPicker));
 
   m_settings = new SeedGrowSegmentationSettings(bestPicker);
+}
+
+//-----------------------------------------------------------------------------
+void SegmentationToolBar::tubularActionStateChanged(bool segmenting)
+{
+  if (segmenting)
+  {
+    m_viewManager->setActiveTool(m_tubularTool);
+    m_viewManager->setSelectionEnabled(false);
+  }
+  else
+  {
+    m_viewManager->unsetActiveTool(m_tubularTool);
+    m_viewManager->setSelectionEnabled(true);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void SegmentationToolBar::showNodesInformation()
+{
+  if (m_tubularTool == NULL)
+    return;
+
+  m_tubularTool->showSpineInformation();
+}
+
+//-----------------------------------------------------------------------------
+void SegmentationToolBar::cancelTubularSegmentationOperation()
+{
+  if (m_tubularAction->isChecked())
+  {
+    m_tubularAction->setChecked(false);
+    if (m_tubularTool != NULL)
+    {
+      m_tubularTool->Reset();
+      m_viewManager->unsetActiveTool(m_tubularTool);
+    }
+  }
 }
