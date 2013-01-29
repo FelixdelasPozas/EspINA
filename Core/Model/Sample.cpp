@@ -145,6 +145,19 @@ void Sample::initializeExtensions(const Arguments &args)
 }
 
 //------------------------------------------------------------------------
+ChannelList Sample::channels()
+{
+  ChannelList channels;
+
+  foreach(ModelItemSPtr item, relatedItems(EspINA::OUT, Channel::STAINLINK))
+  {
+    channels << channelPtr(item.data());
+  }
+
+  return channels;
+}
+
+//------------------------------------------------------------------------
 SamplePtr EspINA::samplePtr(ModelItemPtr item)
 {
   Q_ASSERT(SAMPLE == item->type());

@@ -66,6 +66,8 @@ namespace EspINA
 
     void setId(const QString &id) {m_ID = id;}
 
+    ChannelList channels();
+
   private:
     mutable Arguments m_args;
 

@@ -309,6 +309,8 @@ QModelIndexList ChannelProxy::channels(QModelIndex sampleIndex, bool recursive) 
   return res;
 }
 
+// In order to have relations between elements it is necessary
+// to insert then first, thus we don't consider related items here
 //------------------------------------------------------------------------
 void ChannelProxy::sourceRowsInserted(const QModelIndex& sourceParent, int start, int end)
 {
@@ -323,43 +325,45 @@ void ChannelProxy::sourceRowsInserted(const QModelIndex& sourceParent, int start
   if (sourceParent == m_model->sampleRoot())
   {
     beginInsertRows(QModelIndex(), start, end);
-    for (int row = start; row <= end; row++)
     {
-      ModelItemPtr sourceRow = indexPtr(m_model->index(row, 0, sourceParent));
-      Q_ASSERT(EspINA::SAMPLE == sourceRow->type());
-      SamplePtr sample = samplePtr(sourceRow);
-      m_samples << sample;
+      for (int row = start; row <= end; row++)
+      {
+        ModelItemPtr sourceRow = indexPtr(m_model->index(row, 0, sourceParent));
+        Q_ASSERT(EspINA::SAMPLE == sourceRow->type());
+        SamplePtr sample = samplePtr(sourceRow);
+        m_samples << sample;
+      }
     }
     endInsertRows();
-    return;
-  }
 
-  if (sourceParent == m_model->channelRoot())
-  {
-    QMap<SamplePtr, ModelItemList> relations;
-    for (int child=start; child <= end; child++)
-    {
-      QModelIndex sourceIndex = m_model->index(child, 0, sourceParent);
-      ModelItemPtr sourceItem = indexPtr(sourceIndex);
-      Q_ASSERT(EspINA::CHANNEL == sourceItem->type());
-      ChannelPtr channel = channelPtr(sourceItem);
-      SamplePtr sample = channel->sample().data();
-      if (sample)
-        relations[sample] << sourceItem;
-    }
-    foreach(SamplePtr sample, relations.keys())
-    {
-      int numSamples = numSubSamples(sample);
-      int nChannels = numChannels(sample);
-      int startRow = numSamples + nChannels;
-      int endRow = startRow + relations[sample].size() - 1;
-      QModelIndex proxySample = mapFromSource(m_model->sampleIndex(sample));
-      beginInsertRows(proxySample, startRow, endRow);
-      m_channels[sample] << relations[sample];
-      endInsertRows();
-    }
     return;
   }
+//   if (sourceParent == m_model->channelRoot())
+//   {
+//     QMap<SamplePtr, ModelItemList> relations;
+//     for (int child=start; child <= end; child++)
+//     {
+//       QModelIndex sourceIndex = m_model->index(child, 0, sourceParent);
+//       ModelItemPtr sourceItem = indexPtr(sourceIndex);
+//       Q_ASSERT(EspINA::CHANNEL == sourceItem->type());
+//       ChannelPtr channel = channelPtr(sourceItem);
+//       SamplePtr sample = channel->sample().data();
+//       if (sample)
+//         relations[sample] << sourceItem;
+//     }
+//     foreach(SamplePtr sample, relations.keys())
+//     {
+//       int numSamples = numSubSamples(sample);
+//       int nChannels = numChannels(sample);
+//       int startRow = numSamples + nChannels;
+//       int endRow = startRow + relations[sample].size() - 1;
+//       QModelIndex proxySample = mapFromSource(m_model->sampleIndex(sample));
+//       beginInsertRows(proxySample, startRow, endRow);
+//       m_channels[sample] << relations[sample];
+//       endInsertRows();
+//     }
+//     return;
+//   }
 }
 
 //------------------------------------------------------------------------
@@ -377,19 +381,13 @@ void ChannelProxy::sourceRowsAboutToBeRemoved(const QModelIndex& sourceParent, i
   QModelIndex proxyIndex = mapFromSource(sourceIndex);
   ModelItemPtr item = indexPtr(sourceIndex);
 
-  switch (item->type())
+  if (EspINA::SAMPLE == item->type())
   {
-    case EspINA::SAMPLE:
-    {
-      beginRemoveRows(proxyIndex.parent(), start,end);
-      SamplePtr sample = samplePtr(item);
-      m_samples.removeOne(sample);
-      m_channels.remove(sample);
-      endRemoveRows();
-      break;
-    }
-    default:
-      break;
+    beginRemoveRows(proxyIndex.parent(), start,end);
+    SamplePtr sample = samplePtr(item);
+    m_samples.removeOne(sample);
+    m_channels.remove(sample);
+    endRemoveRows();
   }
 }
 
@@ -438,12 +436,12 @@ QModelIndexList ChannelProxy::proxyIndices(const QModelIndex& parent, int start,
 }
 
 //------------------------------------------------------------------------
-// void debugSet(QString name, QSet<ModelItem *> set)
-// {
-//   qDebug() << name;
-//   foreach(ModelItem *item, set)
-//     qDebug() << item->data(Qt::DisplayRole).toString();
-// }
+void debugChannelSets(QString name, QSet<ModelItem *> set)
+{
+  qDebug() << name;
+  foreach(ModelItem *item, set)
+    qDebug() << item->data(Qt::DisplayRole).toString();
+}
 
 //------------------------------------------------------------------------
 void ChannelProxy::sourceDataChanged(const QModelIndex& sourceTopLeft,
@@ -462,20 +460,21 @@ void ChannelProxy::sourceDataChanged(const QModelIndex& sourceTopLeft,
       {
         SamplePtr sample = samplePtr(proxyItem);
         ModelItemSList channels = sample->relatedItems(EspINA::OUT,
-                                                            Channel::STAINLINK);
+                                                       Channel::STAINLINK);
         ChannelSet prevChannels = m_channels[sample].toSet();
-        // 	debugSet("Previous Channels", prevSegs);
+        // debugChannelSets("Previous Channels", prevChannels);
         ChannelSet currentChannels;
         foreach(ModelItemSPtr channel, channels)
         {
           currentChannels << channel.data();
         }
-        // 	debugSet("Current Channels", currentSegs);
+        // debugChannelSets("Current Channels", currentChannels);
+
         // We need to copy currentSegs to avoid emptying it
         ChannelSet newChannels = ChannelSet(currentChannels).subtract(prevChannels);
-        // 	debugSet("Channels to be added", newSegs);
+        // debugChannelSets("Channels to be added", newChannels);
         ChannelSet remChannels = ChannelSet(prevChannels).subtract(currentChannels);
-        // 	debugSet("Channels to be removed", remSegs);
+        // debugChannelSets("Channels to be removed", remChannels);
 
         if (remChannels.size() > 0)
         {
@@ -490,7 +489,7 @@ void ChannelProxy::sourceDataChanged(const QModelIndex& sourceTopLeft,
         if (newChannels.size() > 0)
         {
           int start = m_channels[sample].size();
-          int end = start + newChannels.size() - 1;
+          int end   = start + newChannels.size() - 1;
           beginInsertRows(proxyIndex, start, end);
           m_channels[sample] << newChannels.toList();
           endInsertRows();

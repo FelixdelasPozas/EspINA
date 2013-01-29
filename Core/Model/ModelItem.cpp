@@ -127,7 +127,7 @@ QString ModelItem::serialize() const
 
 //------------------------------------------------------------------------
 ModelItemSList ModelItem::relatedItems(RelationType relType,
-                                            const QString& relName)
+                                       const QString& relName)
 {
   ModelItemSList res;
   if (m_model)

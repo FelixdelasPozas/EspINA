@@ -51,6 +51,7 @@ namespace EspINA
     class CentralWidget;
   public:
     explicit ChannelExplorer(EspinaModel *model,
+                             QUndoStack  *undoStack,
                              ViewManager *viewManager,
                              QWidget     *parent = 0);
     virtual ~ChannelExplorer();
@@ -79,6 +80,7 @@ namespace EspINA
 
   private:
     EspinaModel *m_model;
+    QUndoStack  *m_undoStack;
     ViewManager *m_viewManager;
 
     QSharedPointer<ChannelProxy> m_channelProxy;

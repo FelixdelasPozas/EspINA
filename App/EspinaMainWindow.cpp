@@ -254,7 +254,7 @@ EspinaMainWindow::EspinaMainWindow(EspinaModel      *model,
   CompositionToolBar *compositionBar = new CompositionToolBar(m_model, m_undoStack, m_viewManager);
   registerToolBar(compositionBar);
 
-  ChannelExplorer *channelExplorer = new ChannelExplorer(m_model, m_viewManager, this);
+  ChannelExplorer *channelExplorer = new ChannelExplorer(m_model, m_undoStack, m_viewManager, this);
   registerDockWidget(Qt::LeftDockWidgetArea, channelExplorer);
 
   SegmentationExplorer *segExplorer = new SegmentationExplorer(m_model, m_undoStack, m_viewManager, this);

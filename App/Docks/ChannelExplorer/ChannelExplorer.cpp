@@ -21,6 +21,8 @@
 
 #include "EspinaConfig.h"
 #include "Dialogs/ChannelInspector/ChannelInspector.h"
+#include <Undo/UnloadChannelCommand.h>
+#include <Undo/UnloadSampleCommand.h>
 
 // EspINA
 #include <GUI/QtWidget/HueSelector.h>
@@ -31,10 +33,12 @@
 
 #ifdef TEST_ESPINA_MODELS
   #include <Core/Model/ModelTest.h>
+#include <Core/Model/Sample.h>
 #endif
 
 // Qt
 #include <QMessageBox>
+#include <QUndoStack>
 
 using namespace EspINA;
 
@@ -56,10 +60,12 @@ public:
 
 //------------------------------------------------------------------------
 ChannelExplorer::ChannelExplorer(EspinaModel *model,
+                                 QUndoStack  *undoStack,
                                  ViewManager *viewManager,
                                  QWidget     *parent)
 : IDockWidget(parent)
 , m_model(model)
+, m_undoStack(undoStack)
 , m_viewManager(viewManager)
 , m_channelProxy(new ChannelProxy(viewManager))
 , m_sort(new QSortFilterProxyModel())
@@ -121,7 +127,6 @@ void ChannelExplorer::initDockWidget(EspinaModel *model,
                                      QUndoStack  *undoStack,
                                      ViewManager *viewManager)
 {
-
 }
 
 //------------------------------------------------------------------------
@@ -384,68 +389,49 @@ void ChannelExplorer::updateTooltips(int index)
 //------------------------------------------------------------------------
 void ChannelExplorer::unloadChannel()
 {
-  //TODO 2012-12-17 
-//   QModelIndex index = m_sort->mapToSource(m_gui->view->currentIndex());
-//   if (!index.isValid())
-//     return;
-// 
-//   ModelItemPtr item = indexPtr(index);
-//   if (EspINA::CHANNEL != item->type())
-//     return;
-// 
-//   ChannelPtr channel = channelPtr(item);
-//   ModelItemList relItems = channel->relatedItems(EspINA::OUT);
-// 
-//   if (!relItems.empty())
-//   {
-//     QString msgText;
-//     if (relItems.size() > 1)
-//     {
-//       QString number;
-//       number.setNum(relItems.size());
-//       msgText = QString("That channel cannot be deleted because there are ") + number + QString(" segmentations that depend on it.");
-//     }
-// 
-//     else
-//       msgText = QString("That channel cannot be deleted because there is a segmentation that depends on it.");
-//     QMessageBox msgBox;
-//     msgBox.setIcon(QMessageBox::Information);
-//     msgBox.setText(msgText);
-//     msgBox.setStandardButtons(QMessageBox::Ok);
-//     msgBox.exec();
-//     return;
-//   }
-//   else
-//   {
-//     relItems = channel->relatedItems(EspINA::IN);
-//     ModelItemList::Iterator it = relItems.begin();
-//     Q_ASSERT(relItems.size() == 2);
-//     while (it != relItems.end())
-//     {
-//       if ((*it)->type() == EspINA::SAMPLE)
-//       {
-//         ModelItemList relatedItems = (*it)->relatedItems(EspINA::OUT);
-//         if (relatedItems.size() == 1)
-//         {
-//           m_model->removeRelation((*it), item, Channel::STAINLINK);
-//           m_model->removeSample(reinterpret_cast<Sample *>(*it));
-//           delete (*it);
-//         }
-//       }
-//       else
-//       {
-//         m_model->removeRelation((*it), item, Channel::VOLUMELINK);
-//         m_model->removeFilter(reinterpret_cast<Filter *>(*it));
-//         delete (*it);
-//       }
-//       it++;
-//     }
-// 
-//     m_model->removeChannel(channel);
-// 
-//     if (m_viewManager->activeChannel() == channel)
-//       m_viewManager->setActiveChannel(NULL);
-//   }
+  QModelIndex index = m_sort->mapToSource(m_gui->view->currentIndex());
+  if (!index.isValid())
+    return;
+
+  ModelItemPtr item = indexPtr(index);
+  if (EspINA::CHANNEL != item->type())
+    return;
+
+  ChannelPtr channel = channelPtr(item);
+  ModelItemSList relItems = channel->relatedItems(EspINA::OUT);
+
+  if (!relItems.empty())
+  {
+    QString msgText;
+    if (relItems.size() > 1)
+    {
+      QString number;
+      number.setNum(relItems.size());
+      msgText = QString("That channel cannot be unloaded because there are ") + number + QString(" segmentations that depend on it.");
+    }
+
+    else
+      msgText = QString("That channel cannot be unloaded because there is a segmentation that depends on it.");
+    QMessageBox msgBox;
+    msgBox.setIcon(QMessageBox::Information);
+    msgBox.setText(msgText);
+    msgBox.setStandardButtons(QMessageBox::Ok);
+    msgBox.exec();
+    return;
+  }
+  else
+  {
+    SampleSPtr sample = channel->sample();
+    m_undoStack->beginMacro("Unload Channel");
+    {
+      m_undoStack->push(new UnloadChannelCommand(channel, m_model));
+      if (sample->channels().isEmpty())
+      {
+        m_undoStack->push(new UnloadSampleCommand(sample, m_model));
+      }
+    }
+    m_undoStack->endMacro();
+  }
 }
 
 //------------------------------------------------------------------------

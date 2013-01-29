@@ -175,7 +175,7 @@ QTreeView::indicator:unchecked {
         </size>
        </property>
        <property name="toolTip">
-        <string>Delete selected segmentation</string>
+        <string>Unload selected channels</string>
        </property>
        <property name="text">
         <string/>
