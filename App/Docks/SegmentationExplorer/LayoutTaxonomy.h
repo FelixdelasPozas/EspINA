@@ -27,8 +27,8 @@
 
 #include <QSortFilterProxyModel>
 
+class TaxonomyItemDelegate;
 // TODO 2013-01-12: Disable taxonomy buttons if no taxonomy is selected
-
 namespace EspINA
 {
   class TaxonomyLayout
@@ -64,7 +64,8 @@ namespace EspINA
     virtual void contextMenu(const QPoint &pos);
     virtual void deleteSelectedItems();
     virtual void showSelectedItemsInformation();
-    //virtual SegmentationList deletedSegmentations(QModelIndexList selection);
+
+    virtual QItemDelegate *itemDelegate() const;
 
   private:
     bool selectedItems(TaxonomyElementList &taxonomies, SegmentationSet &segmentations);
@@ -83,6 +84,8 @@ namespace EspINA
   private:
     QSharedPointer<TaxonomyProxy> m_proxy;
     QSharedPointer<SortFilter>    m_sort;
+
+    TaxonomyItemDelegate *m_delegate;
   };
 
 } // namespace EspINA

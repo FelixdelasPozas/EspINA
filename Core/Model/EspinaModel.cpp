@@ -146,8 +146,22 @@ bool EspinaModel::setData ( const QModelIndex& index, const QVariant& value, int
     // Other elements can set their own data
     ModelItemPtr indexItem = indexPtr(index);
     result = indexItem->setData(value, role);
-    if (result) //NOTE: is emit required?
+    if (result)
+    {
       emit dataChanged(index,index);
+      if (EspINA::TAXONOMY == indexItem->type())
+      {
+        TaxonomyElementPtr taxonomy = taxonomyElementPtr(indexItem);
+        foreach(SegmentationSPtr segmentation, m_segmentations)
+        {
+          if (segmentation->taxonomy().data() == taxonomy)
+          {
+            QModelIndex index = segmentationIndex(segmentation);
+            emit dataChanged(index, index);
+          }
+        }
+      }
+    }
   }
   return result;
 }

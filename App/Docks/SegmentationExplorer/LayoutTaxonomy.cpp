@@ -33,6 +33,88 @@
 
 using namespace EspINA;
 
+
+//------------------------------------------------------------------------
+class RenameTaxonomyCommand
+: public QUndoCommand
+{
+public:
+  explicit RenameTaxonomyCommand(TaxonomyElementPtr taxonomyItem,
+                                 const QString &name,
+                                 EspinaModel   *model,
+                                 QUndoCommand  *parent = 0)
+  : QUndoCommand(parent)
+  , m_model(model)
+  , m_taxonomyItem(taxonomyItem)
+  , m_name(name)
+  {}
+
+  virtual void redo() { swapName(); }
+
+  virtual void undo() { swapName(); }
+
+private:
+  void swapName()
+  {
+    QString     tmp   = m_taxonomyItem->name();
+    QModelIndex index = m_model->taxonomyIndex(m_taxonomyItem);
+
+    m_model->setData(index, m_name, Qt::EditRole);
+
+    m_name = tmp;
+  }
+
+private:
+  EspinaModel       *m_model;
+  TaxonomyElementPtr m_taxonomyItem;
+  QString            m_name;
+};
+
+
+
+//------------------------------------------------------------------------
+class TaxonomyItemDelegate
+: public QItemDelegate
+{
+public:
+  explicit TaxonomyItemDelegate(EspinaModel *model,
+                                QUndoStack  *undoStack,
+                                QObject     *parent = 0)
+  : QItemDelegate(parent)
+  , m_model(model)
+  , m_undoStack(undoStack)
+  {
+  }
+
+  virtual void setModelData(QWidget            *editor,
+                            QAbstractItemModel *model,
+                            const QModelIndex  &index) const
+  {
+    QSortFilterProxyModel *proxy = static_cast<QSortFilterProxyModel *>(model);
+    ModelItemPtr item = indexPtr(proxy->mapToSource(index));
+    if (EspINA::TAXONOMY == item->type())
+    {
+      QLineEdit *textEditor = static_cast<QLineEdit *>(editor);
+      QString name = textEditor->text();
+
+      TaxonomyElementPtr taxonomy = taxonomyElementPtr(item);
+
+      if (taxonomy->parent()->element(name).isNull())
+      {
+        m_undoStack->beginMacro("Rename Taxonomy");
+        m_undoStack->push(new RenameTaxonomyCommand(taxonomy, name, m_model));
+        m_undoStack->endMacro();
+      }
+    }
+  }
+
+private:
+  EspinaModel *m_model;
+  QUndoStack  *m_undoStack;
+};
+
+
+
 //------------------------------------------------------------------------
 bool TaxonomyLayout::SortFilter::lessThan(const QModelIndex& left, const QModelIndex& right) const
 {
@@ -53,9 +135,10 @@ TaxonomyLayout::TaxonomyLayout(CheckableTreeView     *view,
                                EspinaModel           *model,
                                QUndoStack            *undoStack,
                                ViewManager           *viewManager)
-: Layout (view, model, undoStack, viewManager)
-, m_proxy(new TaxonomyProxy())
-, m_sort (new SortFilter())
+: Layout    (view, model, undoStack, viewManager)
+, m_proxy   (new TaxonomyProxy())
+, m_sort    (new SortFilter())
+, m_delegate(new TaxonomyItemDelegate(model, undoStack, this))
 {
   m_proxy->setSourceModel(m_model);
   m_sort->setSourceModel(m_proxy.data());
@@ -235,6 +318,12 @@ void TaxonomyLayout::showSelectedItemsInformation()
     showSegmentationInformation(segmentations.toList());
   }
 
+}
+
+//------------------------------------------------------------------------
+QItemDelegate *TaxonomyLayout::itemDelegate() const
+{
+  return m_delegate;
 }
 
 //------------------------------------------------------------------------

@@ -25,6 +25,8 @@
 #include <Core/Model/ModelItem.h>
 #include <Core/Model/EspinaModel.h>
 
+#include <QItemDelegate>
+
 namespace EspINA
 {
 
@@ -60,6 +62,8 @@ namespace EspINA
     virtual void contextMenu(const QPoint &pos) = 0;
     virtual void deleteSelectedItems() = 0;
     virtual void showSelectedItemsInformation() = 0;
+
+    virtual QItemDelegate *itemDelegate() const = 0;
 
   protected:
     void deleteSegmentations(SegmentationList segmentations);
