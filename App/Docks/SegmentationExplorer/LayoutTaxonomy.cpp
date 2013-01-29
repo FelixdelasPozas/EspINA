@@ -277,11 +277,12 @@ void TaxonomyLayout::createTaxonomy()
   {
     QString name = tr("New Taxonomy");
 
-    TaxonomyElementPtr taxonomy = taxonomyElementPtr(taxonomyItem);
-    if (taxonomy->element(name).isNull())
+    TaxonomyElementPtr selectedTaxonomy = taxonomyElementPtr(taxonomyItem);
+    TaxonomyElementPtr parentTaxonomy   = selectedTaxonomy->parent();
+    if (parentTaxonomy->element(name).isNull())
     {
       m_undoStack->beginMacro("Create Taxonomy");
-      m_undoStack->push(new AddTaxonomyElement(taxonomy->parent(), name, m_model, taxonomy->parent()->color()));
+      m_undoStack->push(new AddTaxonomyElement(parentTaxonomy, name, m_model, parentTaxonomy->color()));
       m_undoStack->endMacro();
     }
   }
