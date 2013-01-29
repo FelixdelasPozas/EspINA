@@ -44,43 +44,36 @@ typedef itk::ExtractImageFilter<itkVolumeType, itkVolumeType> ExtractType;
 EspinaVolume::EspinaVolume(itkVolumeType::Pointer volume)
 : m_volume(volume)
 , itk2vtk(NULL)
+, m_VTKGenerationTime(0)
+, m_ITKGenerationTime(0)
 {
 }
-
 
 //----------------------------------------------------------------------------
 EspinaVolume::EspinaVolume(const EspinaRegion& region, itkVolumeType::SpacingType spacing)
 : m_volume(itkVolumeType::New())
+, m_VTKGenerationTime(0)
+, m_ITKGenerationTime(0)
 {
   m_volume->SetRegions(volumeRegion(region, spacing));
   m_volume->SetSpacing(spacing);
   m_volume->Allocate();
   m_volume->FillBuffer(0);
+  m_volume->Update();
 }
 
 //----------------------------------------------------------------------------
 EspinaVolume::EspinaVolume(const VolumeRegion& region, itkVolumeType::SpacingType spacing)
 : m_volume(itkVolumeType::New())
+, m_VTKGenerationTime(0)
+, m_ITKGenerationTime(0)
 {
   m_volume->SetRegions(region);
   m_volume->SetSpacing(spacing);
   m_volume->Allocate();
   m_volume->FillBuffer(0);
+  m_volume->Update();
 }
-
-// //----------------------------------------------------------------------------
-// EspinaVolume EspinaVolume::operator=(itkVolumeType::Pointer volume)
-// {
-//   m_volume = volume;
-// 
-//   if (itk2vtk.IsNotNull())
-//   {
-//     itk2vtk->SetInput(m_volume);
-//     itk2vtk->Update();
-//   }
-// 
-//   return *this;
-// }
 
 //----------------------------------------------------------------------------
 void EspinaVolume::setVolume(itkVolumeType::Pointer volume, bool disconnect)
@@ -93,6 +86,7 @@ void EspinaVolume::setVolume(itkVolumeType::Pointer volume, bool disconnect)
   {
     itk2vtk->SetInput(m_volume);
     itk2vtk->Update();
+    m_VTKGenerationTime = m_volume->GetMTime();
   }
 }
 
@@ -225,8 +219,17 @@ vtkAlgorithmOutput* EspinaVolume::toVTK()
     itk2vtk = itk2vtkFilterType::New();
     itk2vtk->ReleaseDataFlagOn();
     itk2vtk->SetInput(m_volume);
+    itk2vtk->Update();
+    m_VTKGenerationTime = m_volume->GetMTime();
   }
-  itk2vtk->Update();
+  else
+  {
+    if (m_volume->GetMTime() != m_VTKGenerationTime)
+    {
+      itk2vtk->Update();
+      m_VTKGenerationTime = m_volume->GetMTime();
+    }
+  }
 
   return itk2vtk->GetOutput()->GetProducerPort();
 }
@@ -239,8 +242,17 @@ const vtkAlgorithmOutput* EspinaVolume::toVTK() const
     itk2vtk = itk2vtkFilterType::New();
     itk2vtk->ReleaseDataFlagOn();
     itk2vtk->SetInput(m_volume);
+    itk2vtk->Update();
+    m_VTKGenerationTime = m_volume->GetMTime();
   }
-  itk2vtk->Update();
+  else
+  {
+    if (m_volume->GetMTime() != m_VTKGenerationTime)
+    {
+      itk2vtk->Update();
+      m_VTKGenerationTime = m_volume->GetMTime();
+    }
+  }
 
   return itk2vtk->GetOutput()->GetProducerPort();
 }
@@ -257,9 +269,11 @@ void EspinaVolume::markAsModified()
 void EspinaVolume::update()
 {
   m_volume->Update();
-  if (itk2vtk.IsNotNull())
+
+  if (itk2vtk.IsNotNull() && m_VTKGenerationTime != m_volume->GetMTime())
   {
     itk2vtk->Update();
+    m_VTKGenerationTime = m_volume->GetMTime();
   }
 }
 
@@ -394,6 +408,13 @@ bool SegmentationVolume::strechToFitContent()
 
   m_volume = extractor->GetOutput();
   m_volume->DisconnectPipeline();
+
+  if (itk2vtk.IsNotNull())
+  {
+    itk2vtk->SetInput(m_volume);
+    itk2vtk->Update();
+    m_VTKGenerationTime = m_volume->GetMTime();
+  }
   return true;
 }
 
@@ -424,5 +445,6 @@ vtkAlgorithmOutput* SegmentationVolume::toMesh()
     m_march->SetInputConnection(m_padfilter->GetOutputPort());
   }
   m_march->Update();
+
   return m_march->GetOutput()->GetProducerPort();
 }

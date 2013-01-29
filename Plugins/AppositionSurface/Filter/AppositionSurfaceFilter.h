@@ -179,7 +179,6 @@ namespace EspINA
       mutable double m_perimeter;
       mutable double m_tortuosity;
 
-      mutable itk::TimeStamp m_lastUpdate;
       itkVolumeType::Pointer m_input;
 
       friend class AppositionSurfaceVolume;

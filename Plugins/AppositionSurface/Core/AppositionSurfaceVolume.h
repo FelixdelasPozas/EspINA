@@ -59,7 +59,7 @@ namespace EspINA
 
       virtual vtkAlgorithmOutput *toMesh();
 
-      void update();
+      virtual void update();
 
       /// Expands the volume to contain @region.
       virtual void expandToFitRegion(EspinaRegion region);
@@ -87,6 +87,10 @@ namespace EspINA
       typedef itk::VTKImageImport<itkVolumeType> itkImageImporter;
       mutable itkImageImporter::Pointer                    m_itkImporter;
       mutable vtkSmartPointer<vtkImageExport>              m_vtkExporter;
+
+      mutable unsigned long int m_rasterizationTime;
+      mutable double            m_rasterizationBounds[6];
+      mutable double           *m_bounds;
   };
 
 } /* namespace EspINA */

@@ -81,6 +81,7 @@ namespace EspINA
   {
     Q_ASSERT(m_inputs.size() == 1);
     m_input = m_inputs.first()->toITK();
+    m_input->SetBufferedRegion(m_input->GetLargestPossibleRegion());
 
     itkVolumeType::SizeType bounds;
     bounds[0] = bounds[1] = bounds[2] = 1;
@@ -221,7 +222,7 @@ namespace EspINA
      */
     vtkSmartPointer<vtkTransformPolyDataFilter> transformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
     vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
-    transform->Translate (-spacing[0]*bounds[0], -spacing[1]*bounds[0], -spacing[2]*bounds[0]);
+    transform->Translate (-spacing[0], -spacing[1], -spacing[2]);
     transformFilter->SetTransform(transform);
     transformFilter->SetInput(clippedPlane);
     transformFilter->Update();
@@ -238,8 +239,6 @@ namespace EspINA
     m_ap->SetPolys(appositionSurface->GetPolys());
     m_ap->SetLines(appositionSurface->GetLines());
     m_ap->Modified();
-
-    m_lastUpdate = m_input->GetTimeStamp();
 
     createOutput();
   }

@@ -88,7 +88,7 @@ namespace EspINA
     virtual const vtkAlgorithmOutput *toVTK() const;
 
     void markAsModified();
-    void update();
+    virtual void update();
 
     /// Expands the volume to contain @region.
     virtual void expandToFitRegion(EspinaRegion region);
@@ -107,6 +107,9 @@ namespace EspINA
     // itk to vtk filter
     typedef itk::ImageToVTKImageFilter<itkVolumeType> itk2vtkFilterType;
     mutable itk2vtkFilterType::Pointer itk2vtk;
+
+    mutable unsigned long int m_VTKGenerationTime;
+    mutable unsigned long int m_ITKGenerationTime;
   };
 
 
