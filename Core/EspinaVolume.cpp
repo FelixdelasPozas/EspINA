@@ -220,14 +220,13 @@ const itkVolumeType::Pointer EspinaVolume::toITK() const
 //----------------------------------------------------------------------------
 vtkAlgorithmOutput* EspinaVolume::toVTK()
 {
-  if (itk2vtk.IsNull())
+  if (itk2vtk.IsNull() || itk2vtk->GetInput() != m_volume)
   {
-    //qDebug() << "Converting from ITK to VTK";
     itk2vtk = itk2vtkFilterType::New();
     itk2vtk->ReleaseDataFlagOn();
     itk2vtk->SetInput(m_volume);
-    itk2vtk->Update();
   }
+  itk2vtk->Update();
 
   return itk2vtk->GetOutput()->GetProducerPort();
 }
@@ -235,14 +234,13 @@ vtkAlgorithmOutput* EspinaVolume::toVTK()
 //----------------------------------------------------------------------------
 const vtkAlgorithmOutput* EspinaVolume::toVTK() const
 {
-  if (itk2vtk.IsNull())
+  if (itk2vtk.IsNull() || itk2vtk->GetInput() != m_volume)
   {
-    //qDebug() << "Converting from ITK to VTK";
     itk2vtk = itk2vtkFilterType::New();
     itk2vtk->ReleaseDataFlagOn();
     itk2vtk->SetInput(m_volume);
-    itk2vtk->Update();
   }
+  itk2vtk->Update();
 
   return itk2vtk->GetOutput()->GetProducerPort();
 }

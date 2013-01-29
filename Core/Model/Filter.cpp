@@ -35,7 +35,6 @@
 #include <QDir>
 #include <QMessageBox>
 #include <QWidget>
-
 #include <QDebug>
 
 using namespace EspINA;
@@ -427,6 +426,7 @@ void Filter::update()
     }
 
     m_inputs.clear();
+
     foreach(OutputId oId, m_outputs.keys())
       m_outputs[oId].isEdited = false;
 
@@ -441,6 +441,13 @@ void Filter::update()
     }
 
     run();
+
+    // update output(s) volumes, this *fucks* lazy volumes
+    foreach(Output output, m_outputs)
+    {
+      output.volume->toITK();
+      output.volume->toVTK();
+    }
   }
 }
 

@@ -61,7 +61,7 @@ void DilateFilter::run()
   upperExtendRegion[2] = m_params.radius();
 
   itk::SmartPointer<itk::ConstantPadImageFilter<itkVolumeType,itkVolumeType> > padFilter = itk::ConstantPadImageFilter<itkVolumeType,itkVolumeType>::New();
-  padFilter->SetConstant(0);
+  padFilter->SetConstant(SEG_BG_VALUE);
   padFilter->SetInput(m_input);
   padFilter->SetPadLowerBound(lowerExtendRegion);
   padFilter->SetPadUpperBound(upperExtendRegion);
