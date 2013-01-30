@@ -27,6 +27,8 @@
 
 using namespace EspINA;
 
+typedef itk::ConstantPadImageFilter<itkVolumeType,itkVolumeType> PadFilterType;
+
 //-----------------------------------------------------------------------------
 DilateFilter::DilateFilter(NamedInputs inputs,
                            Arguments   args,
@@ -60,7 +62,7 @@ void DilateFilter::run()
   upperExtendRegion[1] = m_params.radius();
   upperExtendRegion[2] = m_params.radius();
 
-  itk::SmartPointer<itk::ConstantPadImageFilter<itkVolumeType,itkVolumeType> > padFilter = itk::ConstantPadImageFilter<itkVolumeType,itkVolumeType>::New();
+  PadFilterType::Pointer padFilter = PadFilterType::New();
   padFilter->SetConstant(SEG_BG_VALUE);
   padFilter->SetInput(m_input);
   padFilter->SetPadLowerBound(lowerExtendRegion);
@@ -74,10 +76,12 @@ void DilateFilter::run()
   m_filter->SetInput(padFilter->GetOutput());
   m_filter->SetKernel(ball);
   m_filter->SetObjectValue(SEG_VOXEL_VALUE);
-  m_filter->SetReleaseDataFlag(false);
+  m_filter->ReleaseDataFlagOff();
   m_filter->Update();
 
   createOutput(0, m_filter->GetOutput());
+
+  m_outputs[0].volume->toITK()->DisconnectPipeline();
 
   m_outputs[0].volume->markAsModified();
   emit modified(this);

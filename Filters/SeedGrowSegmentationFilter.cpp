@@ -144,8 +144,8 @@ void SeedGrowSegmentationFilter::run()
 
 //   qDebug() << "Getting Segmentation Region";
   // Get the roi of the object
-  LabelMapType *    labelMap = image2label->GetOutput();
-  LabelObjectType * object   = labelMap->GetLabelObject(LABEL_VALUE);
+  LabelMapType    *labelMap  = image2label->GetOutput();
+  LabelObjectType *object    = labelMap->GetLabelObject(LABEL_VALUE);
   LabelObjectType::RegionType objectROI = object->GetBoundingBox();
 //   vtkDebugMacro(<< "Extracting Segmentation Region");
   extractFilter = ExtractType::New();

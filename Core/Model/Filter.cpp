@@ -441,13 +441,6 @@ void Filter::update()
     }
 
     run();
-
-    // update output(s) volumes, this *fucks* lazy volumes
-    foreach(Output output, m_outputs)
-    {
-      output.volume->toITK();
-      output.volume->toVTK();
-    }
   }
 }
 

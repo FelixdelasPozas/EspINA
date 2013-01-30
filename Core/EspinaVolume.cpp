@@ -43,7 +43,6 @@ typedef itk::ExtractImageFilter<itkVolumeType, itkVolumeType> ExtractType;
 //----------------------------------------------------------------------------
 EspinaVolume::EspinaVolume(itkVolumeType::Pointer volume)
 : m_volume(volume)
-, itk2vtk(NULL)
 , m_VTKGenerationTime(0)
 , m_ITKGenerationTime(0)
 {
@@ -79,6 +78,7 @@ EspinaVolume::EspinaVolume(const VolumeRegion& region, itkVolumeType::SpacingTyp
 void EspinaVolume::setVolume(itkVolumeType::Pointer volume, bool disconnect)
 {
   m_volume = volume;
+
   if (disconnect)
     m_volume->DisconnectPipeline();
 
@@ -214,24 +214,8 @@ const itkVolumeType::Pointer EspinaVolume::toITK() const
 //----------------------------------------------------------------------------
 vtkAlgorithmOutput* EspinaVolume::toVTK()
 {
-  if (itk2vtk.IsNull() || itk2vtk->GetInput() != m_volume)
-  {
-    itk2vtk = itk2vtkFilterType::New();
-    itk2vtk->ReleaseDataFlagOn();
-    itk2vtk->SetInput(m_volume);
-    itk2vtk->Update();
-    m_VTKGenerationTime = m_volume->GetMTime();
-  }
-  else
-  {
-    if (m_volume->GetMTime() != m_VTKGenerationTime)
-    {
-      itk2vtk->Update();
-      m_VTKGenerationTime = m_volume->GetMTime();
-    }
-  }
-
-  return itk2vtk->GetOutput()->GetProducerPort();
+  return const_cast<vtkAlgorithmOutput *>(
+    static_cast<const EspinaVolume *>(this)->toVTK());
 }
 
 //----------------------------------------------------------------------------
@@ -245,13 +229,10 @@ const vtkAlgorithmOutput* EspinaVolume::toVTK() const
     itk2vtk->Update();
     m_VTKGenerationTime = m_volume->GetMTime();
   }
-  else
+  else if (m_volume->GetMTime() != m_VTKGenerationTime)
   {
-    if (m_volume->GetMTime() != m_VTKGenerationTime)
-    {
-      itk2vtk->Update();
-      m_VTKGenerationTime = m_volume->GetMTime();
-    }
+    itk2vtk->Update();
+    m_VTKGenerationTime = m_volume->GetMTime();
   }
 
   return itk2vtk->GetOutput()->GetProducerPort();
@@ -406,15 +387,8 @@ bool SegmentationVolume::strechToFitContent()
   extractor->SetExtractionRegion(segBB);
   extractor->Update();
 
-  m_volume = extractor->GetOutput();
-  m_volume->DisconnectPipeline();
+  setVolume(extractor->GetOutput(), true);
 
-  if (itk2vtk.IsNotNull())
-  {
-    itk2vtk->SetInput(m_volume);
-    itk2vtk->Update();
-    m_VTKGenerationTime = m_volume->GetMTime();
-  }
   return true;
 }
 

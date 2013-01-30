@@ -80,7 +80,6 @@ void Segmentation::changeFilter(FilterSPtr filter, const Filter::OutputId &oId)
              this, SLOT(notifyModification()));
 //   m_filter->releaseDataFlagOn();
 //   filter->releaseDataFlagOff();
-  Filter::Output output = filter->output(oId);
   filter->update();
   m_filter = filter;
   m_args.setOutputId(oId);

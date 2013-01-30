@@ -147,6 +147,7 @@ namespace EspINA
         m_model->addFilter(newConnection.first);
         m_model->addRelation(oldConnection.first, newConnection.first, INPUTLINK);
         m_model->addRelation(newConnection.first, seg, Filter::CREATELINK);
+
         seg->changeFilter(newConnection.first, newConnection.second);
         seg->volume()->markAsModified();
       }
@@ -166,9 +167,7 @@ namespace EspINA
 
         m_model->removeRelation(newConnection.first, seg, Filter::CREATELINK);
         m_model->removeRelation(oldConnection.first, newConnection.first, INPUTLINK);
-
         m_model->removeFilter(newConnection.first);
-
         m_model->addRelation(oldConnection.first, seg, Filter::CREATELINK);
 
         seg->changeFilter(oldConnection.first, oldConnection.second);

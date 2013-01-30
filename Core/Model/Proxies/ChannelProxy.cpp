@@ -338,32 +338,6 @@ void ChannelProxy::sourceRowsInserted(const QModelIndex& sourceParent, int start
 
     return;
   }
-//   if (sourceParent == m_model->channelRoot())
-//   {
-//     QMap<SamplePtr, ModelItemList> relations;
-//     for (int child=start; child <= end; child++)
-//     {
-//       QModelIndex sourceIndex = m_model->index(child, 0, sourceParent);
-//       ModelItemPtr sourceItem = indexPtr(sourceIndex);
-//       Q_ASSERT(EspINA::CHANNEL == sourceItem->type());
-//       ChannelPtr channel = channelPtr(sourceItem);
-//       SamplePtr sample = channel->sample().data();
-//       if (sample)
-//         relations[sample] << sourceItem;
-//     }
-//     foreach(SamplePtr sample, relations.keys())
-//     {
-//       int numSamples = numSubSamples(sample);
-//       int nChannels = numChannels(sample);
-//       int startRow = numSamples + nChannels;
-//       int endRow = startRow + relations[sample].size() - 1;
-//       QModelIndex proxySample = mapFromSource(m_model->sampleIndex(sample));
-//       beginInsertRows(proxySample, startRow, endRow);
-//       m_channels[sample] << relations[sample];
-//       endInsertRows();
-//     }
-//     return;
-//   }
 }
 
 //------------------------------------------------------------------------
