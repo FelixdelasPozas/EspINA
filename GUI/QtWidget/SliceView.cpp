@@ -724,7 +724,7 @@ void SliceView::addChannel(ChannelPtr channel)
 
   channelRep.shiftScaleFilter = vtkSmartPointer<vtkImageShiftScale>::New();
   channelRep.shiftScaleFilter->SetInputConnection(channelRep.reslice->GetOutputPort());
-  channelRep.shiftScaleFilter->SetShift(channelRep.brightness);
+  channelRep.shiftScaleFilter->SetShift(static_cast<int>(channelRep.brightness*255));
   channelRep.shiftScaleFilter->SetScale(channelRep.contrast);
   channelRep.shiftScaleFilter->SetClampOverflow(true);
   channelRep.shiftScaleFilter->SetOutputScalarType(channelRep.reslice->GetOutput()->GetScalarType());
@@ -885,7 +885,7 @@ bool SliceView::updateChannel(ChannelPtr channel)
     if (channel->brightness() != rep.brightness)
     {
       rep.brightness = channel->brightness();
-      rep.shiftScaleFilter->SetShift(channel->brightness());
+      rep.shiftScaleFilter->SetShift(static_cast<int>(channel->brightness()*255));
     }
     rep.shiftScaleFilter->Modified();
     updated = true;

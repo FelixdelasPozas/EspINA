@@ -16,12 +16,11 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// EspINA
 #include "CrosshairRenderer.h"
+#include <Core/Model/Channel.h>
 
-#include <QDebug>
-
-#include "Core/Model/Channel.h"
-
+// VTK
 #include <vtkSmartPointer.h>
 #include <vtkImageReslice.h>
 #include <vtkImageMapToColors.h>
@@ -30,6 +29,12 @@
 #include <vtkProperty.h>
 #include <vtkLine.h>
 #include <vtkCellArray.h>
+#include <vtkImageActor.h>
+#include <vtkActor.h>
+#include <vtkPolyData.h>
+#include <vtkMatrix4x4.h>
+#include <vtkLookupTable.h>
+#include <vtkImageShiftScale.h>
 
 using namespace EspINA;
 
@@ -65,6 +70,9 @@ bool CrosshairRenderer::addItem(ModelItemPtr item)
     (*it).axialBorder->Delete();
     (*it).coronalBorder->Delete();
     (*it).sagittalBorder->Delete();
+    (*it).axialScaler->Delete();
+    (*it).coronalScaler->Delete();
+    (*it).sagittalScaler->Delete();
 
     m_channels.remove(item);
   }
@@ -135,21 +143,47 @@ bool CrosshairRenderer::addItem(ModelItemPtr item)
   m_channels[channel].lut->Build();
   channel->volume()->bounds(m_channels[channel].bounds);
 
+  m_channels[channel].contrast = channel->contrast();
+  m_channels[channel].brightness = channel->brightness();
+
+  m_channels[channel].axialScaler = vtkImageShiftScale::New();
+  m_channels[channel].axialScaler->SetInputConnection(axialReslice->GetOutputPort());
+  m_channels[channel].axialScaler->SetShift(static_cast<int>(channel->brightness()*255));
+  m_channels[channel].axialScaler->SetScale(channel->contrast());
+  m_channels[channel].axialScaler->SetClampOverflow(true);
+  m_channels[channel].axialScaler->SetOutputScalarType(axialReslice->GetOutput()->GetScalarType());
+  m_channels[channel].axialScaler->Update();
+
   vtkSmartPointer<vtkImageMapToColors> axialImagemap = vtkSmartPointer<vtkImageMapToColors>::New();
   axialImagemap->SetLookupTable(m_channels[channel].lut);
   axialImagemap->SetOutputFormatToRGBA();
-  axialImagemap->SetInputConnection(axialReslice->GetOutputPort());
+  axialImagemap->SetInputConnection(m_channels[channel].axialScaler->GetOutputPort());
+
+  m_channels[channel].coronalScaler = vtkImageShiftScale::New();
+  m_channels[channel].coronalScaler->SetInputConnection(coronalReslice->GetOutputPort());
+  m_channels[channel].coronalScaler->SetShift(static_cast<int>(channel->brightness()*255));
+  m_channels[channel].coronalScaler->SetScale(channel->contrast());
+  m_channels[channel].coronalScaler->SetClampOverflow(true);
+  m_channels[channel].coronalScaler->SetOutputScalarType(coronalReslice->GetOutput()->GetScalarType());
+  m_channels[channel].coronalScaler->Update();
 
   vtkSmartPointer<vtkImageMapToColors> coronalImagemap = vtkSmartPointer<vtkImageMapToColors>::New();
   coronalImagemap->SetLookupTable(m_channels[channel].lut);
   coronalImagemap->SetOutputFormatToRGBA();
-  coronalImagemap->SetInputConnection(coronalReslice->GetOutputPort());
+  coronalImagemap->SetInputConnection(m_channels[channel].coronalScaler->GetOutputPort());
+
+  m_channels[channel].sagittalScaler = vtkImageShiftScale::New();
+  m_channels[channel].sagittalScaler->SetInputConnection(sagittalReslice->GetOutputPort());
+  m_channels[channel].sagittalScaler->SetShift(static_cast<int>(channel->brightness()*255));
+  m_channels[channel].sagittalScaler->SetScale(channel->contrast());
+  m_channels[channel].sagittalScaler->SetClampOverflow(true);
+  m_channels[channel].sagittalScaler->SetOutputScalarType(sagittalReslice->GetOutput()->GetScalarType());
+  m_channels[channel].sagittalScaler->Update();
 
   vtkSmartPointer<vtkImageMapToColors> sagittalImagemap = vtkSmartPointer<vtkImageMapToColors>::New();
   sagittalImagemap->SetLookupTable(m_channels[channel].lut);
   sagittalImagemap->SetOutputFormatToRGBA();
-  sagittalImagemap->SetInputConnection(sagittalReslice->GetOutputPort());
-
+  sagittalImagemap->SetInputConnection(m_channels[channel].sagittalScaler->GetOutputPort());
 
   m_channels[channel].axial = vtkImageActor::New();
   m_channels[channel].axial->SetInput(axialImagemap->GetOutput());
@@ -345,6 +379,24 @@ bool CrosshairRenderer::updateItem(ModelItemPtr item)
     updated = true;
   }
 
+  if (rep.brightness != channel->brightness() || rep.contrast != channel->contrast())
+  {
+    rep.axialScaler->SetShift(static_cast<int>(channel->brightness()*255));
+    rep.axialScaler->SetScale(channel->contrast());
+    rep.axialScaler->Update();
+    rep.coronalScaler->SetShift(static_cast<int>(channel->brightness()*255));
+    rep.coronalScaler->SetScale(channel->contrast());
+    rep.coronalScaler->Update();
+    rep.sagittalScaler->SetShift(static_cast<int>(channel->brightness()*255));
+    rep.sagittalScaler->SetScale(channel->contrast());
+    rep.sagittalScaler->Update();
+
+    rep.contrast = channel->contrast();
+    rep.brightness = channel->brightness();
+
+    updated = true;
+  }
+
   if (m_enable && channel->isVisible())
   {
     if (!rep.visible)
@@ -406,6 +458,9 @@ bool CrosshairRenderer::removeItem(ModelItemPtr item)
   (*it).axialSquare->Delete();
   (*it).coronalSquare->Delete();
   (*it).sagittalSquare->Delete();
+  (*it).axialScaler->Delete();
+  (*it).coronalScaler->Delete();
+  (*it).sagittalScaler->Delete();
 
   m_channels.remove(channel);
 

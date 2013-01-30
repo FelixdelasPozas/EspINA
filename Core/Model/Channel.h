@@ -72,7 +72,7 @@ namespace EspINA
       explicit CArguments(const Arguments &args)
       : Arguments(args), m_outputId(0) {}
 
-      /// Channel's hue range (-1, 359)
+      /// Channel's hue. Value in range (0,1) U (-1), latter meaning not stained
       void setHue(double hue)
       {
         (*this)[HUE] = QString::number(hue);
@@ -105,7 +105,7 @@ namespace EspINA
         return (*this)[SATURATION].toFloat();
       }
 
-      /// Channel's contrast. Value in range (0,100).
+      /// Channel's contrast. Value in range (0,2).
       void setContrast(double contrast)
       {
         (*this)[CONTRAST] = QString::number(contrast);
@@ -116,7 +116,7 @@ namespace EspINA
         return (*this)[CONTRAST].toFloat();
       }
 
-      /// Channel's brightness. Value in range (0,100).
+      /// Channel's brightness. Value in range (-1,1).
       void setBrightness(double brightness)
       {
         (*this)[BRIGHTNESS] = QString::number(brightness);

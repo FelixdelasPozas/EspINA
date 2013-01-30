@@ -23,11 +23,12 @@
 
 #include <QMap>
 
-#include <vtkImageActor.h>
-#include <vtkActor.h>
-#include <vtkPolyData.h>
-#include <vtkMatrix4x4.h>
-#include <vtkLookupTable.h>
+class vtkImageActor;
+class vtkActor;
+class vtkPolyData;
+class vtkMatrix4x4;
+class vtkLookupTable;
+class vtkImageShiftScale;
 
 namespace EspINA
 {
@@ -55,6 +56,11 @@ namespace EspINA
       bool selected;
       QColor color;
       Nm point[3];
+      vtkImageShiftScale *axialScaler;
+      vtkImageShiftScale *coronalScaler;
+      vtkImageShiftScale *sagittalScaler;
+      double contrast;
+      double brightness;
     };
 
   public:

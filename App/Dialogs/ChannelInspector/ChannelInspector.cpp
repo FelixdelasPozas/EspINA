@@ -35,6 +35,7 @@ ChannelInspector::ChannelInspector(Channel *channel, QWidget *parent)
 , m_view(new SliceView(m_viewManager, AXIAL))
 {
   setupUi(this);
+
   this->setAttribute(Qt::WA_DeleteOnClose, true);
   this->setWindowTitle(QString("Channel Inspector - ") + channel->data().toString());
 
@@ -61,20 +62,19 @@ ChannelInspector::ChannelInspector(Channel *channel, QWidget *parent)
   connect(spacingYBox, SIGNAL(valueChanged(double)), this, SLOT(spacingChanged(double)));
   connect(spacingZBox, SIGNAL(valueChanged(double)), this, SLOT(spacingChanged(double)));
 
+  m_opacity = m_channel->opacity();
   if (m_channel->opacity() == -1.0)
   {
     opacityBox->setEnabled(false);
     opacityCheck->setChecked(true);
     opacitySlider->setEnabled(false);
     opacitySlider->setValue(100);
-    m_opacity = -1.0;
   }
   else
   {
     opacityBox->setEnabled(true);
     opacityCheck->setChecked(false);
     opacitySlider->setValue(m_channel->opacity() * 100);
-    m_opacity = m_channel->opacity();
   }
   connect(opacityCheck, SIGNAL(stateChanged(int)), this, SLOT(opacityCheckChanged(int)));
   connect(opacitySlider, SIGNAL(valueChanged(int)), this, SLOT(opacityChanged(int)));
@@ -82,38 +82,42 @@ ChannelInspector::ChannelInspector(Channel *channel, QWidget *parent)
   m_hueSelector = new HueSelector();
   m_hueSelector->setFixedHeight(20);
   hueGroupBox->layout()->addWidget(m_hueSelector);
-  connect(m_hueSelector, SIGNAL(newHsv(int,int,int)), this, SLOT(newHSV(int,int,int)));
-  connect(hueBox, SIGNAL(valueChanged(int)), this, SLOT(newHSV(int)));
 
+  m_hue = m_channel->hue();
   if (m_channel->hue() == -1.0)
   {
+    m_saturation = 0.0;
     hueBox->setValue(-1);
+    m_hueSelector->setHueValue(0);
     saturationBox->setValue(0);
     saturationBox->setEnabled(false);
     saturationSlider->setEnabled(false);
-    m_hue = -1.0;
-    m_saturation = 0.0;
   }
   else
   {
-    hueBox->setValue(m_channel->hue() * 359);
-    saturationBox->setValue(m_channel->saturation()*100);
-    m_hue = m_channel->hue();
     m_saturation = m_channel->saturation();
+    hueBox->setValue(m_channel->hue() * 359);
+    m_hueSelector->setHueValue(m_channel->hue() * 359);
+    saturationBox->setValue(m_channel->saturation()*100);
   }
+
+  connect(m_hueSelector, SIGNAL(newHsv(int,int,int)), this, SLOT(newHSV(int,int,int)));
+  connect(hueBox, SIGNAL(valueChanged(int)), this, SLOT(newHSV(int)));
   connect(saturationSlider, SIGNAL(valueChanged(int)), this, SLOT(saturationChanged(int)));
 
   vtkImageData *image = vtkImageData::SafeDownCast(m_channel->volume()->toVTK()->GetProducer()->GetOutputDataObject(0));
   image->GetScalarRange(m_range);
 
+  m_brightness = m_channel->brightness();
+  m_contrast = m_channel->contrast();
+  brightnessSlider->setValue(m_channel->brightness()*255);
+  brightnessBox->setValue(m_channel->brightness()*100);
+  contrastSlider->setValue((m_channel->contrast()-1.0)*255);
+  contrastBox->setValue((m_channel->contrast()-1.0)*100);
   connect(contrastSlider, SIGNAL(valueChanged(int)), this, SLOT(contrastChanged(int)));
   connect(contrastBox, SIGNAL(valueChanged(int)), this, SLOT(contrastChanged(int)));
   connect(brightnessSlider, SIGNAL(valueChanged(int)), this, SLOT(brightnessChanged(int)));
   connect(brightnessBox, SIGNAL(valueChanged(int)), this, SLOT(brightnessChanged(int)));
-  brightnessSlider->setValue(m_channel->brightness());
-  contrastSlider->setValue(m_channel->contrast());
-  m_brightness = m_channel->brightness();
-  m_contrast = m_channel->contrast();
 
   // fix ruler initialization
   m_view->resetCamera();
@@ -239,7 +243,7 @@ void ChannelInspector::newHSV(int h, int s, int v)
     saturationSlider->setEnabled(true);
   }
 
-  double value = ((h-1) == -1) ? -1 : ((h-1)/359.);
+  double value = ((h-1) == -1) ? -1 : ((h-1)/359.0);
   m_channel->setHue(value);
   applyModifications();
 }
@@ -275,22 +279,27 @@ void ChannelInspector::saturationChanged(int value)
 //------------------------------------------------------------------------
 void ChannelInspector::contrastChanged(int value)
 {
+  int rangediff = m_range[1]-m_range[0];
+  double tick;
+
   if (QString("contrastSlider").compare(sender()->objectName()) == 0)
   {
+    tick = rangediff / 255.0;
     contrastBox->blockSignals(true);
     contrastBox->setValue(value*(100./255.));
     contrastBox->blockSignals(false);
-    m_channel->setContrast((m_range[1]+value)/(m_range[1]-m_range[0]));
   }
   else
   {
+    tick = rangediff / 100.0;
     contrastSlider->blockSignals(true);
     contrastSlider->setValue(value*(255./100));
     contrastSlider->blockSignals(false);
-    m_channel->setContrast((m_range[1]+(value*(255./100)))/(m_range[1]-m_range[0]));
   }
+  m_channel->setContrast(((value * tick)/rangediff)+1);
 
-  applyModifications();}
+  applyModifications();
+}
 
 //------------------------------------------------------------------------
 void ChannelInspector::brightnessChanged(int value)
@@ -300,14 +309,14 @@ void ChannelInspector::brightnessChanged(int value)
     brightnessBox->blockSignals(true);
     brightnessBox->setValue(value*(100./255.));
     brightnessBox->blockSignals(false);
-    m_channel->setBrightness(value);
+    m_channel->setBrightness(value/255.);
   }
   else
   {
     brightnessSlider->blockSignals(true);
     brightnessSlider->setValue(value*(255./100.));
     brightnessSlider->blockSignals(false);
-    m_channel->setBrightness(value*(255./100.));
+    m_channel->setBrightness(value/100.);
   }
 
   applyModifications();
