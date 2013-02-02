@@ -65,18 +65,20 @@ bool MeshRenderer::addItem(ModelItemPtr item)
         m_renderer->RemoveActor(this->m_segmentations[seg].actor);
       m_segmentations[seg].actor->Delete();
       m_segmentations[seg].actorPropertyBackup = NULL;
+      m_segmentations[seg].decimate = NULL;
       m_segmentations.remove(item);
     }
 
   QColor color = m_viewManager->color(seg);
 
-  vtkSmartPointer<vtkDecimatePro> decimate = vtkSmartPointer<vtkDecimatePro>::New();
-  decimate->ReleaseDataFlagOn();
-  decimate->SetGlobalWarningDisplay(false);
-  decimate->SetTargetReduction(0.95);
-  decimate->PreserveTopologyOn();
-  decimate->SplittingOff();
-  decimate->SetInputConnection(seg->volume()->toMesh());
+  m_segmentations[seg].decimate = vtkSmartPointer<vtkDecimatePro>::New();
+  m_segmentations[seg].decimate->ReleaseDataFlagOn();
+  m_segmentations[seg].decimate->SetGlobalWarningDisplay(false);
+  m_segmentations[seg].decimate->SetTargetReduction(0.95);
+  m_segmentations[seg].decimate->PreserveTopologyOn();
+  m_segmentations[seg].decimate->SplittingOff();
+  m_segmentations[seg].decimate->SetInputConnection(seg->volume()->toMesh());
+
 
   vtkSmartPointer<vtkWindowedSincPolyDataFilter> smoother = vtkSmartPointer<vtkWindowedSincPolyDataFilter>::New();
   smoother->ReleaseDataFlagOn();
@@ -86,7 +88,7 @@ bool MeshRenderer::addItem(ModelItemPtr item)
   smoother->SetNumberOfIterations(15);
   smoother->SetFeatureAngle(120);
   smoother->SetEdgeAngle(90);
-  smoother->SetInputConnection(decimate->GetOutputPort());
+  smoother->SetInputConnection(m_segmentations[seg].decimate->GetOutputPort());
 
   vtkSmartPointer<vtkPolyDataNormals> normals = vtkSmartPointer<vtkPolyDataNormals>::New();
   normals->ReleaseDataFlagOn();
@@ -145,17 +147,31 @@ bool MeshRenderer::updateItem(ModelItemPtr item)
   bool updated = false;
   bool hierarchiesUpdated = false;
   SegmentationPtr seg = segmentationPtr(item);
-  if (!m_segmentations.contains(seg))
-    return false;
 
-  if (!itemCanBeRendered(item))
+  if (!m_segmentations.contains(seg))
   {
-    removeItem(item);
+    if (itemCanBeRendered(item))
+      return addItem(item);
+
     return false;
+  }
+  else
+  {
+    if (!itemCanBeRendered(item))
+      return removeItem(item);
   }
 
   Representation &rep = m_segmentations[seg];
   vtkSmartPointer<vtkProperty> actorProperty = NULL;
+
+  // check if the beginning of the pipeline has changed
+  if (m_segmentations[seg].decimate->GetInputConnection(0,0) != seg->volume()->toMesh())
+  {
+    m_segmentations[seg].decimate->SetInputConnection(seg->volume()->toMesh());
+    m_segmentations[seg].decimate->Update();
+
+    updated = true;
+  }
 
   // deal with hierarchies first
   if (seg->OverridesRendering())
@@ -418,9 +434,6 @@ bool MeshRenderer::updateHierarchyProperties(SegmentationPtr seg)
     }
     updated = true;
   }
-
-  if (updated)
-    m_segmentations[seg].actor->Modified();
 
   return updated;
 }

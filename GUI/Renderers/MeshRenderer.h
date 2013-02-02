@@ -29,6 +29,7 @@
 
 class vtkImageConstantPad;
 class vtkProperty;
+class vtkDecimatePro;
 
 namespace EspINA
 {
@@ -47,6 +48,9 @@ class MeshRenderer
     bool overridden;
     HierarchyItem::HierarchyRenderingType renderingType;
     vtkSmartPointer<vtkProperty> actorPropertyBackup;
+    // the beginning of the pipeline, needed to check if the mesh
+    // of the segmentation has changed
+    vtkSmartPointer<vtkDecimatePro> decimate;
   };
 public:
   explicit MeshRenderer(ViewManager *vm, QObject* parent = 0);

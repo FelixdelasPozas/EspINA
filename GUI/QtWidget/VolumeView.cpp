@@ -828,8 +828,6 @@ void VolumeView::countEnabledRenderers(bool value)
 void VolumeView::updateSelection(ViewManager::Selection selection, bool render)
 {
   updateSegmentationRepresentations();
-  if (render)
-    updateView();
 }
 
 //-----------------------------------------------------------------------------
@@ -844,8 +842,12 @@ void VolumeView::updateSegmentationRepresentations(SegmentationList list)
     else
       updateSegmentations = list;
 
+    bool updated = false;
     foreach(SegmentationPtr seg, updateSegmentations)
-      updateSegmentation(seg);
+      updated |= updateSegmentation(seg);
+
+    if (updated)
+      updateView();
   }
 }
 
@@ -861,8 +863,12 @@ void VolumeView::updateChannelRepresentations(ChannelList list)
     else
       updateChannels = list;
 
+    bool updated = false;
     foreach(ChannelPtr channel, updateChannels)
-      this->updateChannel(channel);
+      updated |= this->updateChannel(channel);
+
+    if (updated)
+      updateView();
   }
 }
 

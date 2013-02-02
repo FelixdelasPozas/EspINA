@@ -418,7 +418,12 @@ vtkAlgorithmOutput* SegmentationVolume::toMesh()
     m_march->ComputeGradientsOff();
     m_march->SetInputConnection(m_padfilter->GetOutputPort());
   }
-  m_march->Update();
+  else
+  {
+    if (m_padfilter->GetInputConnection(0,0) != toVTK())
+      m_padfilter->SetInputConnection(toVTK());
+  }
 
+  m_march->Update();
   return m_march->GetOutput()->GetProducerPort();
 }

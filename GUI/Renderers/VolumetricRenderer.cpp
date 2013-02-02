@@ -59,9 +59,12 @@ bool VolumetricRenderer::addItem(ModelItemPtr item)
     {
       if (this->m_segmentations[seg].visible)
         m_renderer->RemoveVolume(this->m_segmentations[seg].volume);
+
       m_segmentations[seg].volume->Delete();
+
       if (m_segmentations[seg].actorPropertyBackup)
         m_segmentations[seg].actorPropertyBackup = NULL;
+
       m_segmentations.remove(item);
     }
 
@@ -128,18 +131,32 @@ bool VolumetricRenderer::updateItem(ModelItemPtr item)
 
   bool updated = false;
   bool hierarchiesUpdated = false;
+
   SegmentationPtr seg = segmentationPtr(item);
   if (!m_segmentations.contains(seg))
-    return false;
-
-  if (!itemCanBeRendered(item))
   {
-    removeItem(item);
+    if (itemCanBeRendered(item))
+      return addItem(item);
+
     return false;
+  }
+  else
+  {
+    if (!itemCanBeRendered(item))
+      return removeItem(item);
   }
 
   Representation &rep = m_segmentations[seg];
   vtkSmartPointer<vtkVolumeProperty> volumeProperty = NULL;
+
+  // has the beginning of the pipeline changed?
+  if (rep.volume->GetMapper()->GetInputConnection(0,0) != seg->volume()->toVTK())
+  {
+    rep.volume->GetMapper()->SetInputConnection(seg->volume()->toVTK());
+    rep.volume->Update();
+
+    updated = true;
+  }
 
   // deal with hierarchies first
   if (seg->OverridesRendering())
