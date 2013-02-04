@@ -39,13 +39,15 @@ double AxialSliceMatrix[16] =
 //-----------------------------------------------------------------------------
 void SliceView::AxialState::setCrossHairs(vtkPolyData* hline, vtkPolyData* vline, double center[3], double bounds[6])
 {
-  //   qDebug() << "Crosshair Center: " << center[0] << center[1] << center[2];
-  hline->GetPoints()->SetPoint ( 0,bounds[0],center[1],0 );
-  hline->GetPoints()->SetPoint ( 1,bounds[1],center[1],0 );
+  // the -0.1 is needed to draw the crosshair over the actors, right now the
+  // segmentation's actors are been drawn -0.05 over the channel's actors at
+  // the axial view
+  hline->GetPoints()->SetPoint ( 0,bounds[0],center[1],-0.1 );
+  hline->GetPoints()->SetPoint ( 1,bounds[1],center[1],-0.1 );
   hline->Modified();
 
-  vline->GetPoints()->SetPoint ( 0,center[0],bounds[2],0 );
-  vline->GetPoints()->SetPoint ( 1,center[0],bounds[3],0 );
+  vline->GetPoints()->SetPoint ( 0,center[0],bounds[2],-0.1 );
+  vline->GetPoints()->SetPoint ( 1,center[0],bounds[3],-0.1 );
   vline->Modified();
 }
 
@@ -89,12 +91,15 @@ void SliceView::SagittalState::setCrossHairs(vtkPolyData* hline,
                                              double center[3],
                                              double bounds[6])
 {
-  hline->GetPoints()->SetPoint ( 0,0,center[1],bounds[4] );
-  hline->GetPoints()->SetPoint ( 1,0,center[1],bounds[5] );
+  // the +0.1 is needed to draw the crosshair over the actors, right now the
+  // segmentation's actors are been drawn +0.05 over the channel's actors at
+  // the sagittal view
+  hline->GetPoints()->SetPoint ( 0, 0.1,center[1],bounds[4] );
+  hline->GetPoints()->SetPoint ( 1, 0.1,center[1],bounds[5] );
   hline->Modified();
 
-  vline->GetPoints()->SetPoint ( 0,0,bounds[2],center[2] );
-  vline->GetPoints()->SetPoint ( 1,0,bounds[3],center[2] );
+  vline->GetPoints()->SetPoint ( 0, 0.1,bounds[2],center[2] );
+  vline->GetPoints()->SetPoint ( 1, 0.1,bounds[3],center[2] );
   vline->Modified();
 }
 
@@ -142,12 +147,15 @@ void SliceView::CoronalState::setCrossHairs(vtkPolyData* hline,
                                             double center[3],
                                             double bounds[6])
 {
-  hline->GetPoints()->SetPoint ( 0,bounds[0],0,center[2] );
-  hline->GetPoints()->SetPoint ( 1,bounds[1],0,center[2] );
+  // the +0.1 is needed to draw the crosshair over the actors, right now the
+  // segmentation's actors are been drawn -0.05 over the channel's actors at
+  // the coronal view
+  hline->GetPoints()->SetPoint ( 0,bounds[0], 0.1,center[2] );
+  hline->GetPoints()->SetPoint ( 1,bounds[1], 0.1,center[2] );
   hline->Modified();
 
-  vline->GetPoints()->SetPoint ( 0,center[0],0,bounds[4] );
-  vline->GetPoints()->SetPoint ( 1,center[0],0,bounds[5] );
+  vline->GetPoints()->SetPoint ( 0,center[0], 0.1,bounds[4] );
+  vline->GetPoints()->SetPoint ( 1,center[0], 0.1,bounds[5] );
   vline->Modified();
 }
 

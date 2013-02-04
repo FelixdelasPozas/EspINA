@@ -1899,7 +1899,6 @@ void SliceView::Settings::setShowAxis(bool value)
 //-----------------------------------------------------------------------------
 void SliceView::updateCrosshairPoint(PlaneType plane, Nm slicepos)
 {
-
   this->m_crosshairPoint[plane] = slicepos;
   m_state->setCrossHairs(m_HCrossLineData, m_VCrossLineData,
                          m_crosshairPoint, m_sceneBounds);
