@@ -31,6 +31,8 @@
 #include <vtkImageStencilToImage.h>
 #include <vtkImageExport.h>
 #include <vtkMath.h>
+#include <vtkCellArray.h>
+#include <vtkPolyData.h>
 
 #include <QDir>
 #include <QMessageBox>
@@ -191,18 +193,86 @@ void Filter::draw(OutputId oId,
 void Filter::draw(OutputId oId,
                   vtkPolyData *contour,
                   Nm slice, PlaneType plane,
-      itkVolumeType::PixelType value)
+                  itkVolumeType::PixelType value)
 {
+  if (contour->GetPoints()->GetNumberOfPoints() == 0)
+    return;
+
   EspinaVolume::Pointer volume = output(oId).volume;
+  double bounds[6];
+  contour->ComputeBounds();
+  contour->GetBounds(bounds);
+  EspinaRegion polyDataRegion(bounds);
+
+  if(!polyDataRegion.isInside(volume->espinaRegion()))
+    volume->expandToFitRegion(polyDataRegion);
+
+  // vtkPolyDataToImageStencil filter only works in XY plane so we must rotate the contour to that plane
+  itkVolumeType::SpacingType spacing = volume->toITK()->GetSpacing();
+  int count = contour->GetPoints()->GetNumberOfPoints();
+  vtkSmartPointer<vtkPolyData> rotatedContour = vtkSmartPointer<vtkPolyData>::New();
+  vtkPoints *points = vtkPoints::New();
+  vtkCellArray *lines = vtkCellArray::New();
+  vtkIdType index = 0;
+
+  points->SetNumberOfPoints(count);
+  vtkIdType numLines = count + 1;
+
+  if (numLines > 0)
+  {
+    double pos[3];
+    vtkIdType *lineIndices = new vtkIdType[numLines];
+
+    for (int i = 0; i < count; i++)
+    {
+      double temporal;
+      contour->GetPoint(i, pos);
+      switch (plane)
+      {
+        case AXIAL:
+          pos[2] -= 0.5 * spacing[2];
+          break;
+        case CORONAL:
+          temporal = pos[1];
+          pos[1] = pos[2];
+          pos[2] = temporal - 0.5 * spacing[1];
+          break;
+        case SAGITTAL:
+          temporal = pos[0];
+          pos[0] = pos[1];
+          pos[1] = pos[2];
+          pos[2] = temporal - 0.5 * spacing[0];
+          break;
+        default:
+          Q_ASSERT(false);
+          break;
+      }
+      points->InsertPoint(index, pos);
+      lineIndices[index] = index;
+      index++;
+    }
+
+    lineIndices[index] = 0;
+
+    lines->InsertNextCell(numLines, lineIndices);
+    delete[] lineIndices;
+  }
+
+  rotatedContour->SetPoints(points);
+  rotatedContour->SetLines(lines);
+
+  points->Delete();
+  lines->Delete();
+
+  rotatedContour->Update();
 
   int extent[6];
   volume->extent(extent);
-  itkVolumeType::SpacingType spacing = volume->toITK()->GetSpacing();
-
   double temporal;
   int temporalvalues[2];
-  // extent and spacing should be changed because vtkPolyDataToImageStencil filter only works in XY plane.
-  // the contour already has been rotated in the ContourSource part of this filter.
+
+  // extent and spacing should be changed because vtkPolyDataToImageStencil filter only works in XY plane
+  // and we've rotated the contour to that plane
   switch(plane)
   {
     case AXIAL:
@@ -238,7 +308,7 @@ void Filter::draw(OutputId oId,
   }
 
   vtkSmartPointer<vtkPolyDataToImageStencil> polyDataToStencil = vtkSmartPointer<vtkPolyDataToImageStencil>::New();
-  polyDataToStencil->SetInputConnection(contour->GetProducerPort());
+  polyDataToStencil->SetInputConnection(rotatedContour->GetProducerPort());
   polyDataToStencil->SetOutputOrigin(0,0,0);
   polyDataToStencil->SetOutputSpacing(spacing[0], spacing[1], spacing[2]);
   polyDataToStencil->SetOutputWholeExtent(extent[0], extent[1], extent[2], extent[3], vtkMath::Round(slice/spacing[2]), vtkMath::Round(slice/spacing[2]));
@@ -269,9 +339,20 @@ void Filter::draw(OutputId oId,
   importer->SetCallbackUserData(exporter->GetCallbackUserData());
   importer->Update();
 
-  //VolumeExtent(importer->GetOutput(), extent);
+  // we have to check the image index to know if there is a discrepancy between bounds and index
+  spacing = volume->toITK()->GetSpacing();
+  itkVolumeType::IndexType temporalIndex = volume->toITK()->GetLargestPossibleRegion().GetIndex();
+  volume->bounds(bounds);
+  bool transformIndex = false;
+  if (bounds[0]/spacing[0] != temporalIndex[0] || bounds[2]/spacing[1] != temporalIndex[1] || bounds[4]/spacing[2] != temporalIndex[2])
+  {
+    transformIndex = true;
+    temporalIndex[0] = bounds[0]/spacing[0];
+    temporalIndex[1] = bounds[2]/spacing[1];
+    temporalIndex[2] = bounds[4]/spacing[2];
+  }
 
-  itk::Index<3> index;
+  itk::Index<3> imageIndex;
   itk::ImageRegionIteratorWithIndex<itkVolumeType> init(importer->GetOutput(), importer->GetOutput()->GetLargestPossibleRegion());
   init.GoToBegin();
   while(!init.IsAtEnd())
@@ -279,31 +360,39 @@ void Filter::draw(OutputId oId,
     if (1 == init.Value())
     {
       int temporal;
-      index[0] = init.GetIndex()[0];
-      index[1] = init.GetIndex()[1];
-      index[2] = init.GetIndex()[2];
+      imageIndex[0] = init.GetIndex()[0];
+      imageIndex[1] = init.GetIndex()[1];
+      imageIndex[2] = init.GetIndex()[2];
 
       switch(plane)
       {
         case AXIAL:
           break;
         case CORONAL:
-          temporal = index[2];
-          index[2] = index[1];
-          index[1] = temporal;
+          temporal = imageIndex[2];
+          imageIndex[2] = imageIndex[1];
+          imageIndex[1] = temporal;
           break;
         case SAGITTAL:
-          temporal = index[2];
-          index[2] = index[1];
-          index[1] = index[0];
-          index[0] = temporal;
+          temporal = imageIndex[2];
+          imageIndex[2] = imageIndex[1];
+          imageIndex[1] = imageIndex[0];
+          imageIndex[0] = temporal;
           break;
         default:
           Q_ASSERT(false);
           break;
       }
-      Q_ASSERT(volume->toITK()->GetLargestPossibleRegion().IsInside(index));
-      volume->toITK()->SetPixel(index, value);
+
+      if (transformIndex)
+      {
+        imageIndex[0] -= temporalIndex[0];
+        imageIndex[1] -= temporalIndex[1];
+        imageIndex[2] -= temporalIndex[2];
+      }
+
+      Q_ASSERT(volume->toITK()->GetLargestPossibleRegion().IsInside(imageIndex));
+      volume->toITK()->SetPixel(imageIndex, value);
     }
     ++init;
   }

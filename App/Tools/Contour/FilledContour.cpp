@@ -175,6 +175,35 @@ void FilledContour::setInUse(bool enable)
         ++it;
       }
 
+      // only ContourFilter stores the vtkPolyDatas, the others do not
+      if (m_currentSource.data()->data().toString().compare(FilledContour::FILTER_TYPE) != 0)
+      {
+        it = contours[AXIAL].begin();
+        while (it != contours[AXIAL].end())
+        {
+          it.value()->Delete();
+          it = contours[AXIAL].erase(it);
+        }
+
+        it = contours[CORONAL].begin();
+        while (it != contours[CORONAL].end())
+        {
+          it.value()->Delete();
+          it = contours[CORONAL].erase(it);
+        }
+
+        it = contours[SAGITTAL].begin();
+        while (it != contours[SAGITTAL].end())
+        {
+          it.value()->Delete();
+          it = contours[SAGITTAL].erase(it);
+        }
+      }
+
+      SegmentationList list;
+      list.append(m_currentSeg.data());
+      m_viewManager->updateSegmentationRepresentations(list);
+
       m_currentSource->notifyModification();
     }
 

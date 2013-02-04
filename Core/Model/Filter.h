@@ -28,12 +28,12 @@
 #include <boost/shared_ptr.hpp>
 
 #include <itkImageFileReader.h>
-#include <vtkPolyData.h>
 
 #include <QDir>
 
 class QUndoStack;
 class vtkImplicitFunction;
+class vtkPolyData;
 
 namespace EspINA
 {

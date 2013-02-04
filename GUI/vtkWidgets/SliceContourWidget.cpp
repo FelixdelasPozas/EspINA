@@ -23,14 +23,9 @@ SliceContourWidget::SliceContourWidget(vtkPlaneContourWidget* widget)
 
 SliceContourWidget::~SliceContourWidget()
 {
-  QMap<Nm, vtkPolyData*>::iterator it = m_contourMap.begin();
-  while (it != m_contourMap.end())
-  {
-    vtkPolyData *value = it.value();
-    if (NULL != value)
-      value->Delete();
-    ++it;
-  }
+  // vtkPolyDatas are not deleted here: some filters store it (ContourFilter)
+  // some do not, so they are deleted in the destructor of those filters or
+  // in FilledContour.cpp right now.
   m_contourMap.clear();
   m_contourWidget->Delete();
 }
@@ -92,7 +87,10 @@ QMap<Nm, vtkPolyData*> SliceContourWidget::GetContours()
   while(it != this->m_contourMap.end())
   {
     if (0 == it.value()->GetPoints()->GetNumberOfPoints())
+    {
+      it.value()->Delete();
       it = m_contourMap.erase(it);
+    }
     else
       ++it;
   }

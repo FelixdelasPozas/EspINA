@@ -67,9 +67,6 @@ public:
   /// Implements Filter Interface
   virtual bool needUpdate() const;
 
-  // to emit modified(this) after the last contour has been drawn to update views
-  virtual void signalAsModified();
-
 protected:
   virtual void run(){}
 
@@ -77,12 +74,7 @@ protected:
 private:
   friend class ContourFilterInspector::Widget;
 
-  // helper method to rotate the vtkPolyData to the axial plane. actually
-  // contours are stored this way in the filter
-  vtkPolyData* TransformContour(PlaneType, vtkPolyData*);
-
   Parameters m_param;
-  itkVolumeType::SpacingType   m_spacing;
   QMap< PlaneType, QMap<Nm, vtkPolyData*> > m_contourMap;
 };
 
