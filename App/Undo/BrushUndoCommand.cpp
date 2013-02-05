@@ -19,6 +19,7 @@
 
 #include "BrushUndoCommand.h"
 #include <Core/Model/Filter.h>
+#include <GUI/ViewManager.h>
 
 #include <itkExtractImageFilter.h>
 
@@ -41,14 +42,16 @@ itkVolumeType::Pointer backup(EspinaVolume::Pointer volume)
 }
 
 //-----------------------------------------------------------------------------
-Brush::DrawCommand::DrawCommand(FilterSPtr source,
+Brush::DrawCommand::DrawCommand(SegmentationSPtr seg,
                                 Filter::OutputId output,
                                 BrushShapeList brushes,
                                 itkVolumeType::PixelType value,
+                                ViewManager *vm,
                                 Brush *parent)
-: m_source(source)
+: m_seg(seg)
 , m_output(output)
 , m_brushes(brushes)
+, m_viewManager(vm)
 , m_value(value)
 {
   for (int i = 0; i < m_brushes.size(); i++)
@@ -74,56 +77,74 @@ void Brush::DrawCommand::redo()
 {
   if (m_newVolume.IsNotNull())
   {
-    m_source->restoreOutput(m_output, m_newVolume);
-  }else
+    m_seg->filter()->restoreOutput(m_output, m_newVolume);
+  }
+  else
   {
-    if (!m_source->outputs().isEmpty())
-      m_prevVolume = backup(m_source->volume(m_output));
+    if (!m_seg->filter()->outputs().isEmpty())
+      m_prevVolume = backup(m_seg->filter()->volume(m_output));
 
     for (int i=0; i<m_brushes.size(); i++)
     {
       BrushShape &brush = m_brushes[i];
       if (0 == i) // Prevent resizing on each brush
-        m_source->draw(m_output, brush.first, m_strokeBounds, m_value);
+        m_seg->filter()->draw(m_output, brush.first, m_strokeBounds, m_value);
       else
-        m_source->draw(m_output, brush.first, brush.second.bounds(), m_value);
+        m_seg->filter()->draw(m_output, brush.first, brush.second.bounds(), m_value);
     }
-    if (!m_source->outputs().isEmpty())
-      m_newVolume = backup(m_source->volume(m_output));
+    if (!m_seg->filter()->outputs().isEmpty())
+      m_newVolume = backup(m_seg->filter()->volume(m_output));
   }
-}
 
+  SegmentationList list;
+  list.append(m_seg.data());
+  m_viewManager->updateSegmentationRepresentations(list);
+}
 
 //-----------------------------------------------------------------------------
 void Brush::DrawCommand::undo()
 {
   if (m_prevVolume.IsNotNull())
-    m_source->restoreOutput(m_output, m_prevVolume);
+    m_seg->filter()->restoreOutput(m_output, m_prevVolume);
   else
     emit initBrushTool();
+
+  SegmentationList list;
+  list.append(m_seg.data());
+  m_viewManager->updateSegmentationRepresentations(list);
 }
 
 //-----------------------------------------------------------------------------
-Brush::SnapshotCommand::SnapshotCommand(FilterSPtr source,
-                                Filter::OutputId output)
-: m_source(source)
+Brush::SnapshotCommand::SnapshotCommand(SegmentationSPtr seg,
+                                        Filter::OutputId output,
+                                        ViewManager *vm)
+: m_seg(seg)
 , m_output(output)
+, m_viewManager(vm)
 {
-  m_prevVolume = backup(source->volume(output));
+  m_prevVolume = backup(m_seg->filter()->volume(output));
 }
 
 //-----------------------------------------------------------------------------
 void Brush::SnapshotCommand::redo()
 {
   if (m_newVolume.IsNotNull())
-    m_source->restoreOutput(m_output, m_newVolume);
+    m_seg->filter()->restoreOutput(m_output, m_newVolume);
+
+  SegmentationList list;
+  list.append(m_seg.data());
+  m_viewManager->updateSegmentationRepresentations(list);
 }
 
 //-----------------------------------------------------------------------------
 void Brush::SnapshotCommand::undo()
 {
   if (m_newVolume.IsNull())
-    m_newVolume = backup(m_source->volume(m_output));
+    m_newVolume = backup(m_seg->filter()->volume(m_output));
   if (m_prevVolume.IsNotNull())
-    m_source->restoreOutput(m_output, m_prevVolume);
+    m_seg->filter()->restoreOutput(m_output, m_prevVolume);
+
+  SegmentationList list;
+  list.append(m_seg.data());
+  m_viewManager->updateSegmentationRepresentations(list);
 }

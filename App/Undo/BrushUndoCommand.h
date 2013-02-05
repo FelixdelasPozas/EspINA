@@ -28,16 +28,19 @@ class vtkImplicitFunction;
 
 namespace EspINA
 {
+  class ViewManager;
+
   class Brush::DrawCommand
   : public QObject
   , public QUndoCommand
   {
     Q_OBJECT
   public:
-    explicit DrawCommand(FilterSPtr source,
+    explicit DrawCommand(SegmentationSPtr seg,
                          Filter::OutputId output,
                          BrushShapeList brushes,
                          itkVolumeType::PixelType value,
+                         ViewManager *vm,
                          Brush *parent);
     virtual void redo();
     virtual void undo();
@@ -47,9 +50,10 @@ namespace EspINA
 
 
   private:
-    FilterSPtr        m_source;
+    SegmentationSPtr m_seg;
     Filter::OutputId m_output;
-    BrushShapeList m_brushes;
+    BrushShapeList   m_brushes;
+    ViewManager     *m_viewManager;
 
     double m_strokeBounds[6];
 
@@ -62,15 +66,17 @@ namespace EspINA
   : public QUndoCommand
   {
   public:
-    explicit SnapshotCommand(FilterSPtr source,
-                             Filter::OutputId output);
+    explicit SnapshotCommand(SegmentationSPtr seg,
+                             Filter::OutputId output,
+                             ViewManager *vm);
 
     virtual void redo();
     virtual void undo();
 
   private:
-    FilterSPtr        m_source;
+    SegmentationSPtr m_seg;
     Filter::OutputId m_output;
+    ViewManager     *m_viewManager;
 
     itkVolumeType::Pointer m_prevVolume;
     itkVolumeType::Pointer m_newVolume;

@@ -250,14 +250,13 @@ void Brush::drawStroke(PickableItemPtr item,
       m_currentOutput = 0;
 
       m_undoStack->beginMacro("Draw Segmentation");
-      // We can't add empty segmentations to the model
-      m_undoStack->push(new DrawCommand(m_currentSource, m_currentOutput, brushes, SEG_VOXEL_VALUE, this));
-
       m_currentSeg = m_model->factory()->createSegmentation(m_currentSource, m_currentOutput);
 
-      m_undoStack->push(
-          new AddSegmentation(m_model->findChannel(channel), m_currentSource, m_currentSeg,m_model->findTaxonomyElement(m_viewManager->activeTaxonomy()), m_model));
+      // We can't add empty segmentations to the model
+      m_undoStack->push(new DrawCommand(m_currentSeg, m_currentOutput, brushes, SEG_VOXEL_VALUE, m_viewManager, this));
+      m_undoStack->push(new AddSegmentation(m_model->findChannel(channel), m_currentSource, m_currentSeg,m_model->findTaxonomyElement(m_viewManager->activeTaxonomy()), m_model));
       m_undoStack->endMacro();
+
       m_brush->setBorderColor(QColor(Qt::green));
       connect(m_currentSeg.data(), SIGNAL(modified(ModelItem *)),
               this, SLOT(segmentationHasBeenModified(ModelItem *)));
@@ -265,8 +264,11 @@ void Brush::drawStroke(PickableItemPtr item,
     else
     {
       Q_ASSERT(m_currentSource && m_currentSeg);
-      m_undoStack->push(new DrawCommand(m_currentSource, m_currentOutput, brushes, SEG_VOXEL_VALUE, this));
+      m_undoStack->beginMacro("Draw Segmentation");
+      m_undoStack->push(new DrawCommand(m_currentSeg, m_currentOutput, brushes, SEG_VOXEL_VALUE, m_viewManager, this));
+      m_undoStack->endMacro();
     }
+
     m_currentSeg->modifiedByUser(userName());
   }
 }
@@ -299,41 +301,25 @@ void Brush::drawStrokeStep(PickableItemPtr item,
         m_currentSource = FilterSPtr(new FreeFormSource(inputs, args, FREEFORM_SOURCE_TYPE));
         m_currentOutput = 0;
         m_currentSeg = m_model->factory()->createSegmentation(m_currentSource, m_currentOutput);
-        m_currentSource->draw(m_currentOutput,
-                              brush.first,
-                              brush.second.bounds(),
-                              SEG_VOXEL_VALUE);
+        m_currentSource->draw(m_currentOutput, brush.first, brush.second.bounds(), SEG_VOXEL_VALUE);
 
-        m_undoStack->beginMacro("Draw Segmentation");
         // We can't add empty segmentations to the model
-        m_undoStack->push(new AddSegmentation(m_model->findChannel(channel),
-                                              m_currentSource,
-                                              m_currentSeg,
-                                              m_model->findTaxonomyElement(m_viewManager->activeTaxonomy()),
-                                              m_model));
+        m_undoStack->beginMacro("Draw Segmentation");
+        m_undoStack->push(new AddSegmentation(m_model->findChannel(channel), m_currentSource, m_currentSeg, m_model->findTaxonomyElement(m_viewManager->activeTaxonomy()), m_model));
         m_undoStack->endMacro();
-        m_drawCommand = new SnapshotCommand(m_currentSource,
-                                          m_currentOutput);
+        m_drawCommand = new SnapshotCommand(m_currentSeg, m_currentOutput, m_viewManager);
       }
       else
       {
-        m_drawCommand = new SnapshotCommand(m_currentSource,
-                                            m_currentOutput);
-        m_currentSource->draw(m_currentOutput,
-                              brush.first,
-                              brush.second.bounds(),
-                              SEG_VOXEL_VALUE);
+        m_drawCommand = new SnapshotCommand(m_currentSeg, m_currentOutput, m_viewManager);
+        m_currentSource->draw(m_currentOutput, brush.first, brush.second.bounds(), SEG_VOXEL_VALUE);
       }
     }
     else
     {
       Q_ASSERT(m_currentSeg);
-      m_currentSource->draw(m_currentOutput,
-                            brush.first,
-                            brush.second.bounds(),
-                            SEG_VOXEL_VALUE);
+      m_currentSource->draw(m_currentOutput, brush.first, brush.second.bounds(), SEG_VOXEL_VALUE);
     }
-    m_viewManager->updateViews();
   }
   else
   {
@@ -341,16 +327,11 @@ void Brush::drawStrokeStep(PickableItemPtr item,
 
     if (!m_eraseCommand)
     {
-      m_eraseCommand = new SnapshotCommand(m_currentSource,
-                                           m_currentOutput);
+      m_eraseCommand = new SnapshotCommand(m_currentSeg, m_currentOutput, m_viewManager);
     }
-    double center[3] = {x, y, z};
+    double center[3] = { x, y, z };
     BrushShape brush = createBrushShape(item, center, radius, plane);
-    m_currentSource->draw(m_currentOutput,
-                          brush.first,
-                          brush.second.bounds(),
-                          SEG_BG_VALUE);
-    m_viewManager->updateViews();
+    m_currentSource->draw(m_currentOutput, brush.first, brush.second.bounds(), SEG_BG_VALUE);
   }
 }
 

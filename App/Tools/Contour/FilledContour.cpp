@@ -149,7 +149,7 @@ void FilledContour::setInUse(bool enable)
       else
       {
         m_undoStack->beginMacro("Modify segmentation using contours");
-        m_undoStack->push(new Brush::SnapshotCommand(m_currentSource, 0));
+        m_undoStack->push(new Brush::SnapshotCommand(m_currentSeg, 0, m_viewManager));
         m_undoStack->endMacro();
       }
 
