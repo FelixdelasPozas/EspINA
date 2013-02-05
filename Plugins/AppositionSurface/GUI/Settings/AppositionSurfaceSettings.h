@@ -28,7 +28,7 @@ namespace EspINA
 
     virtual const QString shortDescription() { return tr("Apposition Surface"); }
     virtual const QString longDescription()  { return tr("Apposition Surface Settings"); }
-    virtual const QIcon icon()               { return QIcon(":espina/AppSurface.svg"); }
+    virtual const QIcon icon()               { return QIcon(":/AppSurface.svg"); }
 
     virtual void acceptChanges();
     virtual void rejectChanges();
