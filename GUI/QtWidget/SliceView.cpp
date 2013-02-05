@@ -659,6 +659,17 @@ void SliceView::updateView()
     m_view->update();
   }
 }
+
+//-----------------------------------------------------------------------------
+void SliceView::forceRender(SegmentationList updatedSegs)
+{
+  foreach(SegmentationPtr seg, updatedSegs)
+    m_segmentationReps[seg].slice->Update();
+
+  m_view->GetRenderWindow()->Render();
+  m_view->update();
+}
+
 //-----------------------------------------------------------------------------
 void SliceView::resetCamera()
 {

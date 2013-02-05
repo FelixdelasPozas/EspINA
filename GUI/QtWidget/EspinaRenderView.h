@@ -89,6 +89,8 @@ namespace EspINA
     virtual void setContextualMenu(QSharedPointer<SegmentationContextualMenu> contextMenu)
     { m_contextMenu = contextMenu; }
 
+    // WARNING: Only used in Brush.cpp to update the view while erasing voxels. Very taxing.
+    virtual void forceRender(SegmentationList updatedSegs = SegmentationList()) = 0;
   protected slots:
     virtual void updateSceneBounds();
 

@@ -407,7 +407,7 @@ void BrushPicker::updatePreview(double brush[3], EspinaRenderView* view)
           if (vtkMath::Distance2BetweenPoints(brush,pixel) < r2)
           {
             unsigned char *pixel = static_cast<unsigned char*>(m_preview->GetScalarPointer(x,y,m_pBounds[4]/m_spacing[2]));
-            *pixel = 1;
+            *pixel = SEG_VOXEL_VALUE;
           }
         }
         break;
@@ -419,7 +419,7 @@ void BrushPicker::updatePreview(double brush[3], EspinaRenderView* view)
           if (vtkMath::Distance2BetweenPoints(brush,pixel) < r2)
           {
             unsigned char *pixel = static_cast<unsigned char*>(m_preview->GetScalarPointer(x,m_pBounds[2]/m_spacing[1],z));
-            *pixel = 1;
+            *pixel = SEG_VOXEL_VALUE;
           }
         }
         break;
@@ -431,7 +431,7 @@ void BrushPicker::updatePreview(double brush[3], EspinaRenderView* view)
           if (vtkMath::Distance2BetweenPoints(brush,pixel) < r2)
           {
             unsigned char *pixel = static_cast<unsigned char*>(m_preview->GetScalarPointer(m_pBounds[0]/m_spacing[0],y,z));
-            *pixel = 1;
+            *pixel = SEG_VOXEL_VALUE;
           }
         }
         break;

@@ -122,6 +122,7 @@ namespace EspINA
     virtual void updateChannelRepresentations(ChannelList list = ChannelList());
     virtual void updateSelection(){}
 
+    virtual void forceRender(SegmentationList updatedSegs = SegmentationList());
   public slots:
     void countEnabledRenderers(bool);
     /// Update Selected Items

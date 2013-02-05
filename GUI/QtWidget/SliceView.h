@@ -136,6 +136,8 @@ namespace EspINA
     virtual void updateChannelRepresentations(ChannelList list = ChannelList());
     void updateCrosshairPoint(PlaneType plane, Nm slicepos);
 
+    virtual void forceRender(SegmentationList updatedSegs = SegmentationList());
+
   public slots:
     /// Show/Hide segmentations
     void setSegmentationVisibility(bool visible);

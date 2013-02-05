@@ -332,6 +332,10 @@ void Brush::drawStrokeStep(PickableItemPtr item,
     double center[3] = { x, y, z };
     BrushShape brush = createBrushShape(item, center, radius, plane);
     m_currentSource->draw(m_currentOutput, brush.first, brush.second.bounds(), SEG_BG_VALUE);
+
+    SegmentationList list;
+    list.append(m_currentSeg.data());
+    m_viewManager->forceRender(list);
   }
 }
 

@@ -878,3 +878,13 @@ void VolumeView::resetView()
   resetCamera();
   updateView();
 }
+
+//-----------------------------------------------------------------------------
+void VolumeView::forceRender(SegmentationList updatedSegs)
+{
+  foreach(SegmentationPtr seg, updatedSegs)
+    updateSegmentation(seg);
+
+  m_view->GetRenderWindow()->Render();
+  m_view->update();
+}
