@@ -496,7 +496,7 @@ bool Filter::needUpdate() const
 }
 
 //----------------------------------------------------------------------------
-void Filter::update()
+void Filter::update(bool silent)
 {
   if (!needUpdate())
     return;
@@ -505,6 +505,9 @@ void Filter::update()
   {
     if (!editedOutputs().isEmpty())
     {
+      if (silent) // assumes that the user wants to keep the changes
+        return;
+
       QMessageBox msg;
       msg.setText(tr("Filter contains segmentations that have been modified by the user."
                      "Updating this filter will result in losing user modifications."
@@ -524,7 +527,7 @@ void Filter::update()
     {
       QStringList input = namedInput.split("_");
       FilterSPtr inputFilter = m_namedInputs[input[0]];
-      inputFilter->update();
+      inputFilter->update(silent);
       OutputId oId = input[1].toInt();
       m_inputs << inputFilter->output(oId).volume;
     }

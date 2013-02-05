@@ -177,7 +177,9 @@ namespace EspINA
     virtual bool needUpdate() const = 0;
     /// Updates filter outputs.
     /// If a snapshot exits it will try to load it from disk
-    void update();
+    /// The silent parameter avoids triggering the modified filter dialog, assuming that
+    /// the user wants to keep the changes
+    void update(bool silent = false);
 
     /// Turn on internal filters' release data flags
     virtual void releaseDataFlagOn(){}

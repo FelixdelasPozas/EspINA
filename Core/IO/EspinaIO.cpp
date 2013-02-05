@@ -368,7 +368,8 @@ EspinaIO::STATUS EspinaIO::saveSegFile(QFileInfo file, EspinaModel *model)
     {
       if (output.isCached)
       {
-        filter->update(); // TODO 2012-11-20 Recuperar los .mhd editados sin tener q cargarlos del filtro...
+        // NOTE: silent filter update to avoid triggering dialogs.
+        filter->update(true); // TODO 2012-11-20 Recuperar los .mhd editados sin tener q cargarlos del filtro...
         //NOTE: In case the filter is updated the output is not (it's just a copy of the old one)
         zipVolume(filter->output(output.id), tmpDir, outFile);
       }
