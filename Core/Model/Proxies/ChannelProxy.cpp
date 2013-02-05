@@ -44,7 +44,6 @@ ChannelProxy::ChannelProxy(ViewManager *vm, QObject* parent)
 //------------------------------------------------------------------------
 ChannelProxy::~ChannelProxy()
 {
-
 }
 
 //------------------------------------------------------------------------
@@ -99,6 +98,7 @@ QVariant ChannelProxy::data(const QModelIndex& proxyIndex, int role) const
         return item->data(role);
     default:
       Q_ASSERT(false);
+      break;
   }
 
   return QAbstractProxyModel::data(proxyIndex, role);
@@ -181,6 +181,7 @@ QModelIndex ChannelProxy::parent(const QModelIndex& child) const
     }
     default:
       Q_ASSERT(false);
+      break;
   }
 
   return parent;
@@ -233,6 +234,7 @@ QModelIndex ChannelProxy::mapFromSource(const QModelIndex& sourceIndex) const
     }
     default:
       proxyIndex = QModelIndex();
+      break;
   }
 
   return proxyIndex;
@@ -263,6 +265,7 @@ QModelIndex ChannelProxy::mapToSource(const QModelIndex& proxyIndex) const
     }
     default:
       Q_ASSERT(false);
+      break;
   }
 
   return sourceIndex;

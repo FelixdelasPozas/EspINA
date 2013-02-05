@@ -757,7 +757,29 @@ void SliceView::addChannel(ChannelPtr channel)
   m_channelReps.insert(channel, channelRep);
   addActor(channelRep.slice);
 
-  opacity = (-1 == channel->opacity()) ? this->suggestedChannelOpacity() : channel->opacity();
+  // need to manage other channels' opacity too. addChannelBounds adds the channel to m_channels
+  addChannelBounds(channel);
+  if (-1 == channel->opacity())
+  {
+    opacity = this->suggestedChannelOpacity();
+    ChannelList updatedChannels;
+    foreach(ChannelPtr otherChannel, m_channels)
+    {
+      if (otherChannel == channel)
+        continue;
+
+      // other channel's opacity is also automatically managed?
+      if (otherChannel->opacity() == -1 && m_channelReps.contains(otherChannel))
+      {
+        m_channelReps[otherChannel].slice->GetProperty()->SetOpacity(opacity);
+        updatedChannels << otherChannel;
+      }
+    }
+    updateChannelRepresentations(updatedChannels);
+  }
+  else
+    opacity = channel->opacity();
+
   channelRep.slice->GetProperty()->SetOpacity(opacity);
 
   // Prevent displaying channel's corner until app request to reset the camera
@@ -767,8 +789,6 @@ void SliceView::addChannel(ChannelPtr channel)
   m_channelPicker->AddPickList(channelRep.slice);
   connect(channel, SIGNAL(modified(ModelItem*)),
           this, SLOT(updateSceneBounds()));
-
-  addChannelBounds(channel);
 }
 
 //-----------------------------------------------------------------------------
@@ -1208,8 +1228,15 @@ void SliceView::updateSegmentationRepresentations(SegmentationList list)
     else
       updateSegmentations = list;
 
+    bool updated = false;
     foreach(SegmentationPtr seg, updateSegmentations)
-      updateSegmentation(seg);
+      updated |= updateSegmentation(seg);
+
+    if (updated)
+    {
+      m_view->GetRenderWindow()->Render();
+      m_view->update();
+    }
   }
 }
 
@@ -1225,8 +1252,15 @@ void SliceView::updateChannelRepresentations(ChannelList list)
     else
       updateChannels = list;
 
+    bool updated = false;
     foreach(ChannelPtr channel, updateChannels)
-      this->updateChannel(channel);
+      updated |= updateChannel(channel);
+
+    if (updated)
+    {
+      m_view->GetRenderWindow()->Render();
+      m_view->update();
+    }
   }
 }
 
@@ -1631,6 +1665,7 @@ void SliceView::setShowPreprocessing(bool visible)
     otherChannel->setData(false, Qt::CheckStateRole);
     otherChannel->notifyModification();
   }
+  this->updateChannelRepresentations();
 }
 
 //-----------------------------------------------------------------------------

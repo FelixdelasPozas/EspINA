@@ -98,7 +98,7 @@ ChannelExplorer::ChannelExplorer(EspinaModel *model,
   connect(m_gui->view, SIGNAL(doubleClicked(QModelIndex)),
           this, SLOT(focusOnChannel()));
   connect(m_gui->view, SIGNAL(itemStateChanged(QModelIndex)),
-          m_viewManager, SLOT(updateViews()));
+          m_viewManager, SLOT(updateChannelRepresentations()));
   connect(m_gui->xPos, SIGNAL(valueChanged(int)),
           this, SLOT(updateChannelPosition()));
   connect(m_gui->yPos, SIGNAL(valueChanged(int)),
@@ -486,7 +486,7 @@ void ChannelExplorer::showInformation()
 //------------------------------------------------------------------------
 void ChannelExplorer::activateChannel()
 {
-    QModelIndex currentIndex = m_gui->view->currentIndex();
+  QModelIndex currentIndex = m_gui->view->currentIndex();
   if (!currentIndex.parent().isValid())
     return;
 
