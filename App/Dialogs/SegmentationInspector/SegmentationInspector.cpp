@@ -21,6 +21,7 @@
 // EspINA
 #include <Core/Model/ModelItem.h>
 #include <Core/Model/Segmentation.h>
+#include <Core/Extensions/SegmentationExtension.h>
 #include <Core/Model/Filter.h>
 #include <GUI/QtWidget/VolumeView.h>
 #include <GUI/ViewManager.h>
@@ -71,7 +72,14 @@ SegmentationInspector::SegmentationInspector(SegmentationPtr seg,
     m_filterInspector->setMinimumWidth(widget->minimumSize().width());;
   }
 
-  m_info->setQuery(seg->availableInformations());
+  Segmentation::InfoTagList tags;
+  tags << tr("Name") << tr("Taxonomy");
+  foreach(Segmentation::InformationExtension extension, m_model->factory()->segmentationExtensions())
+  {
+    tags << extension->availableInformations();
+  }
+
+  m_info->setQuery(tags);
   m_info->setSourceModel(m_model);
   m_sort->setSourceModel(m_info.data());
   m_sort->setFilterRegExp("^"+seg->data().toString()+"$");

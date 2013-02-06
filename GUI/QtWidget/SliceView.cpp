@@ -769,7 +769,7 @@ void SliceView::addChannel(ChannelPtr channel)
         continue;
 
       // other channel's opacity is also automatically managed?
-      if (otherChannel->opacity() == -1 && m_channelReps.contains(otherChannel))
+      if (otherChannel->opacity() == -1 && m_channelReps.contains(otherChannel) && m_channelReps[otherChannel].visible)
       {
         m_channelReps[otherChannel].slice->GetProperty()->SetOpacity(opacity);
         updatedChannels << otherChannel;
