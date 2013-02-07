@@ -22,6 +22,7 @@
 
 // EspINA
 #include <GUI/Renderers/MeshRenderer.h>
+#include <QDebug>
 
 namespace EspINA
 {
@@ -45,7 +46,7 @@ namespace EspINA
     virtual bool itemCanBeRendered(ModelItemPtr item)
     {
       QString fullTaxonomy = SegmentationPtr(item)->taxonomy()->qualifiedName();
-      return (fullTaxonomy.contains("AS"));
+      return (fullTaxonomy.startsWith("AS/") || (fullTaxonomy.compare("AS") == 0));
     }
   };
 

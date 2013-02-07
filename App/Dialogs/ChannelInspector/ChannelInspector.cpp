@@ -20,6 +20,7 @@
 #include <QMessageBox>
 #include <QCloseEvent>
 #include <QDialog>
+#include <QLocale>
 
 // c++
 #include <cmath>
@@ -53,6 +54,12 @@ ChannelInspector::ChannelInspector(Channel *channel, QWidget *parent)
 
   double spacing[3];
   channel->volume()->spacing(spacing);
+
+  // prefer dots instead of commas
+  QLocale localeUSA = QLocale(QLocale::English, QLocale::UnitedStates);
+  spacingXBox->setLocale(localeUSA);
+  spacingYBox->setLocale(localeUSA);
+  spacingZBox->setLocale(localeUSA);
 
   memcpy(m_spacing, spacing, sizeof(double)*3);
   spacingXBox->setValue(spacing[0]);
