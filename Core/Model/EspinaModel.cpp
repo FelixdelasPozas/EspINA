@@ -958,6 +958,8 @@ void EspinaModel::removeSampleImplementation(SampleSPtr sample)
   Q_ASSERT(relations(sample.data()).isEmpty());
 
   m_samples.removeOne(sample);
+  m_relations->removeItem(sample.data());
+
   sample->m_model = NULL;
 }
 
