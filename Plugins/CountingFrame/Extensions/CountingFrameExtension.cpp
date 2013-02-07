@@ -148,9 +148,9 @@ bool CountingFrameExtension::loadCache(QuaZipFile  &file,
       while (!extensionChannel && i < model->channels().size())
       {
         ChannelSPtr channel = model->channels()[i];
-        if ( channel->filter()->tmpId()  == fields[0]
-          && channel->outputId()         == fields[1].toInt()
-          && channel->filter()->tmpDir() == tmpDir)
+        if ( channel->filter()->id()       == fields[0]
+          && channel->outputId()           == fields[1].toInt()
+          && channel->filter()->cacheDir() == tmpDir)
         {
           extensionChannel = channel.data();
         }
@@ -213,7 +213,7 @@ bool CountingFrameExtension::saveCache(ModelItem::Extension::CacheList &cacheLis
   ChannelPtr channel;
   foreach(channel, s_cache.keys())
   {
-    cache << channel->filter()->tmpId().toStdString();
+    cache << channel->filter()->id().toStdString();
     cache << SEP << channel->outputId();
     cache << std::endl;
 

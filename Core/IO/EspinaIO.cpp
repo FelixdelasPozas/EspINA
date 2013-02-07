@@ -287,7 +287,7 @@ bool EspinaIO::zipVolume(Filter::Output output,
   itk::MetaImageIO::Pointer io = itk::MetaImageIO::New();
   EspinaVolumeWriter::Pointer writer = EspinaVolumeWriter::New();
   FilterPtr filter = output.filter;
-  QString volumeName = QString("%1_%2").arg(filter->tmpId()).arg(output.id);
+  QString volumeName = QString("%1_%2").arg(filter->id()).arg(output.id);
   QString mhd = tmpDir.absoluteFilePath(volumeName + ".mhd");
   QString raw = tmpDir.absoluteFilePath(volumeName + ".raw");
   io->SetFileName(mhd.toStdString());
@@ -334,7 +334,7 @@ EspinaIO::STATUS EspinaIO::saveSegFile(QFileInfo file, EspinaModel *model)
     tmpDir.mkdir(file.baseName());
     tmpDir.cd(file.baseName());
   }
-//   qDebug() << "Temporal Dir" << tmpDir;
+  //qDebug() << "Temporal Dir" << tmpDir;
 
   QFile zFile(file.filePath());
   QuaZip zip(&zFile);
@@ -363,13 +363,13 @@ EspinaIO::STATUS EspinaIO::saveSegFile(QFileInfo file, EspinaModel *model)
   foreach(FilterSPtr filter, model->filters())
   {
     Filter::OutputList outputs = filter->outputs();
-    //qDebug() << "Making" << filter->data().toString() << "snapshot";
+    //qDebug() << "Processing Filter" << filter->id() << filter->data().toString();
     foreach(Filter::Output output, outputs)
     {
       if (output.isCached)
       {
-        // NOTE: silent filter update to avoid triggering dialogs.
-        filter->update(true); // TODO 2012-11-20 Recuperar los .mhd editados sin tener q cargarlos del filtro...
+        //qDebug() << "Making Snapshot of output" << output.id;
+        // TODO 2012-11-20 Recuperar los .mhd editados sin tener q cargarlos del filtro...
         //NOTE: In case the filter is updated the output is not (it's just a copy of the old one)
         zipVolume(filter->output(output.id), tmpDir, outFile);
       }

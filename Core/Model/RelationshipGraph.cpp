@@ -211,7 +211,7 @@ void RelationshipGraph::updateVertexInformation()
       case FILTER:
       {
         FilterPtr filter = filterPtr(item);
-        filter->setTmpId(id++);
+        filter->setId(id++);
         filter->updateCacheFlags();
         vertex.shape = FILTER_SHAPE;
         break;

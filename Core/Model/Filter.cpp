@@ -58,9 +58,9 @@ Filter::~Filter()
 }
 
 //----------------------------------------------------------------------------
-void Filter::setTmpDir(QDir dir)
+void Filter::setCacheDir(QDir dir)
 {
-  m_tmpDir = dir;
+  m_cacheDir = dir;
 
   // Load cached outputs
   if (m_outputs.isEmpty())
@@ -69,9 +69,9 @@ void Filter::setTmpDir(QDir dir)
     if (m_args.contains(EDIT))
       editList = m_args[EDIT].split(",");
 
-    foreach(QString cachedFile, m_tmpDir.entryList())
+    foreach(QString cachedFile, m_cacheDir.entryList())
     {
-      QString filterIdTag = tmpId() + "_";
+      QString filterIdTag = QString("%1_").arg(m_cacheId);
       if (cachedFile.startsWith(filterIdTag))
       {
         QString id = cachedFile.split("_").last();
@@ -97,9 +97,13 @@ Filter::Filter(Filter::NamedInputs  namedInputs,
 : m_namedInputs(namedInputs)
 , m_args(args)
 , m_type(type)
+, m_cacheId(-1)
 {
-  if (!m_args.contains(ID))
+  if (m_args.contains(ID)) {
+    m_cacheId = m_args[ID].toInt();
+  } else {
     m_args[ID] = "-1";
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -496,7 +500,7 @@ bool Filter::needUpdate() const
 }
 
 //----------------------------------------------------------------------------
-void Filter::update(bool silent)
+void Filter::update()
 {
   if (!needUpdate())
     return;
@@ -505,9 +509,6 @@ void Filter::update(bool silent)
   {
     if (!editedOutputs().isEmpty())
     {
-      if (silent) // assumes that the user wants to keep the changes
-        return;
-
       QMessageBox msg;
       msg.setText(tr("Filter contains segmentations that have been modified by the user."
                      "Updating this filter will result in losing user modifications."
@@ -527,7 +528,7 @@ void Filter::update(bool silent)
     {
       QStringList input = namedInput.split("_");
       FilterSPtr inputFilter = m_namedInputs[input[0]];
-      inputFilter->update(silent);
+      inputFilter->update();
       OutputId oId = input[1].toInt();
       m_inputs << inputFilter->output(oId).volume;
     }
@@ -557,7 +558,7 @@ bool Filter::prefetchFilter()
 
   foreach(OutputId oId, m_outputs.keys())
   {
-    QString tmpFile = QString("%1_%2.mhd").arg(tmpId()).arg(oId);
+    QString tmpFile = QString("%1_%2.mhd").arg(m_cacheId).arg(oId);
     reader = tmpFileReader(tmpFile);
     if (reader.IsNull())
       return false;
@@ -575,12 +576,12 @@ Filter::EspinaVolumeReader::Pointer Filter::tmpFileReader(const QString file)
 {
   EspinaVolumeReader::Pointer reader;
 
-  if (m_tmpDir.exists(file))
+  if (m_cacheDir.exists(file))
   {
     itk::MetaImageIO::Pointer io = itk::MetaImageIO::New();
     reader = EspinaVolumeReader::New();
 
-    std::string tmpFile = m_tmpDir.absoluteFilePath(file).toStdString();
+    std::string tmpFile = m_cacheDir.absoluteFilePath(file).toStdString();
     io->SetFileName(tmpFile.c_str());
     reader->SetImageIO(io);
     reader->SetFileName(tmpFile);

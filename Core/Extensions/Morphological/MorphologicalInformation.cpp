@@ -221,7 +221,7 @@ bool MorphologicalInformation::loadCache(QuaZipFile  &file,
     while (!extensionSegmentation && i < model->segmentations().size())
     {
       SegmentationSPtr segmentation = model->segmentations()[i];
-      if ( segmentation->filter()->tmpId()  == fields[0]
+      if ( segmentation->filter()->id()  == fields[0]
         && segmentation->outputId()         == fields[1].toInt()
         && segmentation->filter()->tmpDir() == tmpDir)
       {
@@ -280,7 +280,7 @@ bool MorphologicalInformation::saveCache(CacheList &cacheList)
   SegmentationPtr segmentation;
   foreach(segmentation, s_cache.keys())
   {
-    cache << segmentation->filter()->tmpId().toStdString();
+    cache << segmentation->filter()->id().toStdString();
     cache << SEP << segmentation->outputId();
 
     cache << SEP << s_cache[segmentation].Size;

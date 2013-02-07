@@ -136,7 +136,7 @@ bool AdaptiveEdges::loadCache(QuaZipFile &file, const QDir &tmpDir, EspinaModel 
     while (!extensionChannel && i < model->channels().size())
     {
       ChannelSPtr channel = model->channels()[i];
-      if ( channel->filter()->tmpId()  == fields[0]
+      if ( channel->filter()->id()  == fields[0]
         && channel->outputId()         == fields[1].toInt()
         && channel->filter()->tmpDir() == tmpDir)
       {
@@ -165,7 +165,7 @@ bool AdaptiveEdges::saveCache(ModelItem::Extension::CacheList &cacheList)
   ChannelPtr channel;
   foreach(channel, s_cache.keys())
   {
-    cache << channel->filter()->tmpId().toStdString();
+    cache << channel->filter()->id().toStdString();
     cache << SEP << channel->outputId();
 
     cache << SEP << s_cache[channel].UseAdaptiveEdges;

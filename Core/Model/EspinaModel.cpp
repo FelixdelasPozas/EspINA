@@ -763,7 +763,7 @@ bool EspinaModel::loadSerialization(istream& stream,
             inputs[link[0]] = filter;
           }
           FilterSPtr filter = m_factory->createFilter(v.name.c_str(), inputs, args);
-          filter->setTmpDir(tmpDir);
+          filter->setCacheDir(tmpDir);
           //filter->update();
           addFilter(filter);
           input->setItem(v.vId, filter.data());

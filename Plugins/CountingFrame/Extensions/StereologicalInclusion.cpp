@@ -171,7 +171,7 @@ bool StereologicalInclusion::saveCache(CacheList &cacheList)
   SegmentationPtr segmentation;
   foreach(segmentation, s_cache.keys())
   {
-    cache << segmentation->filter()->tmpId().toStdString();
+    cache << segmentation->filter()->id().toStdString();
     cache << SEP << segmentation->outputId();
 
     cache << SEP << segmentation->information(EXCLUDED).toString().toStdString();

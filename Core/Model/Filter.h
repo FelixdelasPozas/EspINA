@@ -110,11 +110,11 @@ namespace EspINA
   public:
     virtual ~Filter();
 
-    void setTmpDir(QDir dir);
-    QDir tmpDir() const { return m_tmpDir; }
+    void setCacheDir(QDir dir);
+    QDir cacheDir() const { return m_cacheDir; }
 
-    void setTmpId(int id) {m_args[ID] = QString::number(id);}
-    QString tmpId() const {return m_args[ID];}
+    void setId(int id) {m_args[ID] = QString::number(id);}
+    QString id() const {return m_args[ID];}
 
     // Implements Model Item Interface common to filters
     virtual QVariant data(int role = Qt::DisplayRole) const;
@@ -177,9 +177,7 @@ namespace EspINA
     virtual bool needUpdate() const = 0;
     /// Updates filter outputs.
     /// If a snapshot exits it will try to load it from disk
-    /// The silent parameter avoids triggering the modified filter dialog, assuming that
-    /// the user wants to keep the changes
-    void update(bool silent = false);
+    void update();
 
     /// Turn on internal filters' release data flags
     virtual void releaseDataFlagOn(){}
@@ -224,8 +222,10 @@ namespace EspINA
     QMap<OutputId, Output>       m_outputs;
 
   private:
+    int  m_cacheId;
+    QDir m_cacheDir;
+
     FilterInspectorPtr m_filterInspector;
-    QDir m_tmpDir;
   };
 
   class ChannelFilter
