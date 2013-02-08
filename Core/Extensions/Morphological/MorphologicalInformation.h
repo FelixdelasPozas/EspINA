@@ -42,6 +42,7 @@ namespace EspINA
     {
       CacheEntry();
 
+      bool   Modified;
       double Size;
       double PhysicalSize;
       double Centroid[3];
@@ -85,6 +86,9 @@ namespace EspINA
 
     virtual Segmentation::InformationExtension clone();
 
+  protected:
+    virtual void invalidate();
+
   private:
     void updateInformation();
 
@@ -92,9 +96,7 @@ namespace EspINA
     Image2LabelFilterType::Pointer m_labelMap;
     mutable LabelObjectType       *m_statistic;
 
-    mutable bool m_validInfo;
     mutable bool m_validFeret;
-    // Variable to cache filter results
   };
 
 }// namespace EspINA

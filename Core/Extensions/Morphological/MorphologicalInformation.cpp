@@ -68,7 +68,8 @@ const Segmentation::InfoTag EEDz  = "Equivalent Ellipsoid Diameter Z";
 
 //------------------------------------------------------------------------
 MorphologicalInformation::CacheEntry::CacheEntry()
-: Size(-1)
+: Modified(false)
+, Size(-1)
 , PhysicalSize(-1)
 , FeretDiameter(-1)
 {
@@ -88,7 +89,6 @@ MorphologicalInformation::CacheEntry::CacheEntry()
 //------------------------------------------------------------------------
 MorphologicalInformation::MorphologicalInformation()
 : m_statistic(NULL)
-, m_validInfo(false)
 {
   m_labelMap = Image2LabelFilterType::New();
   m_labelMap->SetComputeFeretDiameter(false);
@@ -97,7 +97,8 @@ MorphologicalInformation::MorphologicalInformation()
 //------------------------------------------------------------------------
 MorphologicalInformation::~MorphologicalInformation()
 {
-  qDebug() << "Deleting Morphological Extension";
+  //qDebug() << "Deleting Morphological Extension";
+  invalidate();
 }
 
 //------------------------------------------------------------------------
@@ -109,8 +110,7 @@ ModelItem::ExtId MorphologicalInformation::id()
 //------------------------------------------------------------------------
 void MorphologicalInformation::initialize(ModelItem::Arguments args)
 {
-  //qDebug() << "Initialize" << m_seg->data().toString() << ID;
-
+  //qDebug() << "Initialize (empty)" << m_seg->data().toString() << ID;
 }
 
 //------------------------------------------------------------------------
@@ -136,10 +136,9 @@ Segmentation::InfoTagList MorphologicalInformation::availableInformations() cons
 QVariant MorphologicalInformation::information(const Segmentation::InfoTag &tag)
 {
   bool cached = s_cache.contains(m_seg);
-  bool outdatedVolume = (m_seg->volume()->toITK()->GetTimeStamp() > m_labelMap->GetTimeStamp());
   bool requestedInvalidFeret = cached && (tag == FD && s_cache[m_seg].FeretDiameter == -1);
-  //TODO 2013-01-22: Doesn't work with undo/redo 
-  if (!cached || outdatedVolume || requestedInvalidFeret)
+
+  if (!cached || requestedInvalidFeret)
   {
     if (tag == FD)
       m_labelMap->SetComputeFeretDiameter(true);
@@ -221,47 +220,45 @@ bool MorphologicalInformation::loadCache(QuaZipFile  &file,
     while (!extensionSegmentation && i < model->segmentations().size())
     {
       SegmentationSPtr segmentation = model->segmentations()[i];
-      if ( segmentation->filter()->id()  == fields[0]
-        && segmentation->outputId()         == fields[1].toInt()
-        && segmentation->filter()->tmpDir() == tmpDir)
+      if ( segmentation->filter()->id()       == fields[0]
+        && segmentation->outputId()           == fields[1].toInt()
+        && segmentation->filter()->cacheDir() == tmpDir)
       {
         extensionSegmentation = segmentation.data();
       }
       i++;
     }
-    //TODO: Remove extensions when removed inside undo commands
-    //Q_ASSERT(extensionSegmentation);
+    // NOTE: This assert means someone's removing an extension from the model
+    //       without invalidating its extensions
+    Q_ASSERT(extensionSegmentation);
 
-    if (extensionSegmentation)
-    {
-      s_cache[extensionSegmentation].Size = fields[2].toDouble();
+    s_cache[extensionSegmentation].Size = fields[2].toDouble();
 
-      s_cache[extensionSegmentation].PhysicalSize = fields[3].toDouble();
+    s_cache[extensionSegmentation].PhysicalSize = fields[3].toDouble();
 
-      s_cache[extensionSegmentation].Centroid[0] = fields[4].toDouble();
-      s_cache[extensionSegmentation].Centroid[1] = fields[5].toDouble();
-      s_cache[extensionSegmentation].Centroid[2] = fields[6].toDouble();
+    s_cache[extensionSegmentation].Centroid[0] = fields[4].toDouble();
+    s_cache[extensionSegmentation].Centroid[1] = fields[5].toDouble();
+    s_cache[extensionSegmentation].Centroid[2] = fields[6].toDouble();
 
-      s_cache[extensionSegmentation].BinaryPrincipalMoments[0] = fields[7].toDouble();
-      s_cache[extensionSegmentation].BinaryPrincipalMoments[1] = fields[8].toDouble();
-      s_cache[extensionSegmentation].BinaryPrincipalMoments[2] = fields[9].toDouble();
+    s_cache[extensionSegmentation].BinaryPrincipalMoments[0] = fields[7].toDouble();
+    s_cache[extensionSegmentation].BinaryPrincipalMoments[1] = fields[8].toDouble();
+    s_cache[extensionSegmentation].BinaryPrincipalMoments[2] = fields[9].toDouble();
 
-      s_cache[extensionSegmentation].BinaryPrincipalAxes[0][0] = fields[10].toDouble();
-      s_cache[extensionSegmentation].BinaryPrincipalAxes[0][1] = fields[11].toDouble();
-      s_cache[extensionSegmentation].BinaryPrincipalAxes[0][2] = fields[12].toDouble();
-      s_cache[extensionSegmentation].BinaryPrincipalAxes[1][0] = fields[13].toDouble();
-      s_cache[extensionSegmentation].BinaryPrincipalAxes[1][1] = fields[14].toDouble();
-      s_cache[extensionSegmentation].BinaryPrincipalAxes[1][2] = fields[15].toDouble();
-      s_cache[extensionSegmentation].BinaryPrincipalAxes[2][0] = fields[16].toDouble();
-      s_cache[extensionSegmentation].BinaryPrincipalAxes[2][1] = fields[17].toDouble();
-      s_cache[extensionSegmentation].BinaryPrincipalAxes[2][2] = fields[18].toDouble();
+    s_cache[extensionSegmentation].BinaryPrincipalAxes[0][0] = fields[10].toDouble();
+    s_cache[extensionSegmentation].BinaryPrincipalAxes[0][1] = fields[11].toDouble();
+    s_cache[extensionSegmentation].BinaryPrincipalAxes[0][2] = fields[12].toDouble();
+    s_cache[extensionSegmentation].BinaryPrincipalAxes[1][0] = fields[13].toDouble();
+    s_cache[extensionSegmentation].BinaryPrincipalAxes[1][1] = fields[14].toDouble();
+    s_cache[extensionSegmentation].BinaryPrincipalAxes[1][2] = fields[15].toDouble();
+    s_cache[extensionSegmentation].BinaryPrincipalAxes[2][0] = fields[16].toDouble();
+    s_cache[extensionSegmentation].BinaryPrincipalAxes[2][1] = fields[17].toDouble();
+    s_cache[extensionSegmentation].BinaryPrincipalAxes[2][2] = fields[18].toDouble();
 
-      s_cache[extensionSegmentation].FeretDiameter = fields[19].toDouble();
+    s_cache[extensionSegmentation].FeretDiameter = fields[19].toDouble();
 
-      s_cache[extensionSegmentation].EquivalentEllipsoidSize[0] = fields[20].toDouble();
-      s_cache[extensionSegmentation].EquivalentEllipsoidSize[1] = fields[21].toDouble();
-      s_cache[extensionSegmentation].EquivalentEllipsoidSize[2] = fields[22].toDouble();
-    }
+    s_cache[extensionSegmentation].EquivalentEllipsoidSize[0] = fields[20].toDouble();
+    s_cache[extensionSegmentation].EquivalentEllipsoidSize[1] = fields[21].toDouble();
+    s_cache[extensionSegmentation].EquivalentEllipsoidSize[2] = fields[22].toDouble();
   };
 
 
@@ -271,14 +268,21 @@ bool MorphologicalInformation::loadCache(QuaZipFile  &file,
 //------------------------------------------------------------------------
 bool MorphologicalInformation::saveCache(CacheList &cacheList)
 {
+  foreach(SegmentationPtr segmentation, s_cache.keys())
+  {
+    if (segmentation->isVolumeModified() && !s_cache[segmentation].Modified)
+    {
+      s_cache.remove(segmentation);
+    }
+  }
+
   if (s_cache.isEmpty())
     return false;
 
   std::ostringstream cache;
   cache << FILE_VERSION;
 
-  SegmentationPtr segmentation;
-  foreach(segmentation, s_cache.keys())
+  foreach(SegmentationPtr segmentation, s_cache.keys())
   {
     cache << segmentation->filter()->id().toStdString();
     cache << SEP << segmentation->outputId();
@@ -330,9 +334,16 @@ Segmentation::InformationExtension MorphologicalInformation::clone()
 }
 
 //------------------------------------------------------------------------
+void MorphologicalInformation::invalidate()
+{
+  //qDebug() << "Invalidate" << m_seg->data().toString() << ID;
+  s_cache.remove(m_seg);
+}
+
+//------------------------------------------------------------------------
 void MorphologicalInformation::updateInformation()
 {
-  qDebug() << "Updating" << m_seg->data().toString() << ID;
+  //qDebug() << "Updating" << m_seg->data().toString() << ID;
   m_labelMap->SetInput(m_seg->volume()->toITK());
   m_labelMap->Update();
   m_labelMap->Modified();
@@ -340,11 +351,13 @@ void MorphologicalInformation::updateInformation()
   LabelMapType *labelMap = m_labelMap->GetOutput();
   labelMap->Update();
 
-  m_validInfo = labelMap->GetNumberOfLabelObjects() == 1;
+  bool validInfo = labelMap->GetNumberOfLabelObjects() == 1;
 
-  if (m_validInfo)
+  if (validInfo)
   {
     m_statistic = labelMap->GetNthLabelObject(0);
+
+    s_cache[m_seg].Modified     = true;
 
     s_cache[m_seg].Size         = static_cast<unsigned int>(m_statistic->GetNumberOfPixels());
 

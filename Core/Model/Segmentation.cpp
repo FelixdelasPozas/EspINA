@@ -70,21 +70,21 @@ Segmentation::Segmentation(FilterSPtr         filter,
   m_args.setOutputId(oId);
   m_args[TAXONOMY] = "Unknown";
   connect(volume().get(), SIGNAL(modified()),
-          this, SLOT(notifyModification()));
+          this, SLOT(onVolumeModified()));
 }
 
 //------------------------------------------------------------------------
 void Segmentation::changeFilter(FilterSPtr filter, const Filter::OutputId &oId)
 {
   disconnect(volume().get(), SIGNAL(modified()),
-             this, SLOT(notifyModification()));
+             this, SLOT(onVolumeModified()));
 //   m_filter->releaseDataFlagOn();
 //   filter->releaseDataFlagOff();
   filter->update();
   m_filter = filter;
   m_args.setOutputId(oId);
   connect(volume().get(), SIGNAL(modified()),
-          this, SLOT(notifyModification()));
+          this, SLOT(onVolumeModified()));
 }
 
 //------------------------------------------------------------------------
@@ -382,6 +382,15 @@ void Segmentation::addExtension(Segmentation::InformationExtension extension)
 Segmentation::InformationExtension Segmentation::informationExtension(const ModelItem::ExtId &name) const
 {
   return m_informationExtensions.value(name, NULL);
+}
+
+//------------------------------------------------------------------------
+void Segmentation::invalidateExtensions()
+{
+  foreach(InformationExtension infoExtension, m_informationExtensions)
+  {
+    infoExtension->invalidate();
+  }
 }
 
 //------------------------------------------------------------------------

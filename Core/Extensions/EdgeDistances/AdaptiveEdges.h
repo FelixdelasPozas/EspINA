@@ -27,12 +27,15 @@
 
 #include <QMutex>
 
+//TODO: Invalidate information and seg's distance information due to spacing modification
 namespace EspINA
 {
   class AdaptiveEdges
   : public Channel::Extension
   {
     static const QString EXTENSION_FILE;
+    static const QString EDGES_FILE;
+    static const QString FACES_FILE;
 
     struct CacheEntry
     {

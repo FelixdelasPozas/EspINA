@@ -161,11 +161,13 @@ namespace EspINA
     /// Return the list of segmentations which this segmentation is a component
     SegmentationSList componentOf();
 
-
     /// Add a new extension to the segmentation
     /// Extesion won't be available until requirements are satisfied
     void addExtension(Segmentation::InformationExtension extension);
+
     Segmentation::InformationExtension informationExtension(const ModelItem::ExtId &name) const;
+
+    void invalidateExtensions();
 
     virtual InfoTagList availableInformations() const;
     virtual QVariant information(const InfoTag &tag) const;

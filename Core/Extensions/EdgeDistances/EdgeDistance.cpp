@@ -73,7 +73,7 @@ ModelItem::ExtId EdgeDistance::id()
 //-----------------------------------------------------------------------------
 void EdgeDistance::initialize(ModelItem::Arguments args)
 {
-
+  qDebug() << "Initialize (empty)" << m_seg->data().toString() << ID;
 }
 
 Segmentation::InfoTagList EdgeDistance::availableInformations() const
@@ -140,7 +140,7 @@ bool EdgeDistance::loadCache(QuaZipFile  &file,
       SegmentationSPtr segmentation = model->segmentations()[i];
       if ( segmentation->filter()->id()  == fields[0]
         && segmentation->outputId()         == fields[1].toInt()
-        && segmentation->filter()->tmpDir() == tmpDir)
+        && segmentation->filter()->cacheDir() == tmpDir)
       {
         extensionSegmentation = segmentation.data();
       }

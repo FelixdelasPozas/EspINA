@@ -70,6 +70,7 @@ CountingFrameExtension::~CountingFrameExtension()
 //-----------------------------------------------------------------------------
 void CountingFrameExtension::initialize(ModelItem::Arguments args)
 {
+  qDebug() << "Initialize" << m_channel->data().toString() << CountingFrameExtensionID;
   ModelItem::Arguments extArgs(args.value(CountingFrameExtensionID, QString()));
   QStringList countingFrames;
 
@@ -108,6 +109,9 @@ void CountingFrameExtension::initialize(ModelItem::Arguments args)
 //-----------------------------------------------------------------------------
 QString CountingFrameExtension::serialize() const
 {
+  qDebug() << "Deprecated serialize" << m_channel->data().toString() << CountingFrameExtensionID;
+  return QString();
+
   QStringList cfValue;
   foreach(CountingFrame *countingFrame, m_countingFrames)
     cfValue << countingFrame->serialize();

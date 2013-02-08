@@ -102,7 +102,7 @@ void EdgeDetector::run()
 
   m_extension->m_computedVolume = 0;
 
-//   vtkDebugMacro( << "Looking for borders");
+  //   vtkDebugMacro( << "Looking for borders");
 
   int numComponets = image->GetNumberOfScalarComponents();
   unsigned char *imagePtr = static_cast<unsigned char *>(image->GetScalarPointer());
@@ -130,35 +130,35 @@ void EdgeDetector::run()
       bool singlePixel = true;;
       for (unsigned long x = 0; x < xMax; x++)
       {
-	bool nonBlackPixel = false;
-	unsigned long pxId = x*numComponets + y * dim[0]*numComponets + z * dim[0] * dim[1]*numComponets; //check numComponents
-	for (int c = 0; c < numComponets; c++)
-	  nonBlackPixel = nonBlackPixel || (imagePtr[pxId+c] > blackThreshold);
+        bool nonBlackPixel = false;
+        unsigned long pxId = x*numComponets + y * dim[0]*numComponets + z * dim[0] * dim[1]*numComponets; //check numComponents
+        for (int c = 0; c < numComponets; c++)
+          nonBlackPixel = nonBlackPixel || (imagePtr[pxId+c] > blackThreshold);
 
-	if (nonBlackPixel)
-	{
-	  if (nonBlackPixelDetected)
-	  {
-	    // First border pixel
-	    p2[0] = x * spacing[0];
-	    p2[1] = y * spacing[1];
-	    p2[2] = z * spacing[2];
-	    singlePixel = false;
-	  }
-	  else
-	  {
-	    // Last border pixel
-	    p1[0] = x * spacing[0];
-	    p1[1] = y * spacing[1];
-	    p1[2] = z * spacing[2];
-	    nonBlackPixelDetected = true;
-	    nonBlackPixels->InsertNextPoint(p1);
-	  }
-	}
+        if (nonBlackPixel)
+        {
+          if (nonBlackPixelDetected)
+          {
+            // First border pixel
+            p2[0] = x * spacing[0];
+            p2[1] = y * spacing[1];
+            p2[2] = z * spacing[2];
+            singlePixel = false;
+          }
+          else
+          {
+            // Last border pixel
+            p1[0] = x * spacing[0];
+            p1[1] = y * spacing[1];
+            p1[2] = z * spacing[2];
+            nonBlackPixelDetected = true;
+            nonBlackPixels->InsertNextPoint(p1);
+          }
+        }
       }
       if (nonBlackPixelDetected && !singlePixel)
       {
-	nonBlackPixels->InsertNextPoint(p2);
+        nonBlackPixels->InsertNextPoint(p2);
       }
     }
     // Now we have to simplify the slice's borders to 4

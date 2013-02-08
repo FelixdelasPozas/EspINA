@@ -44,7 +44,7 @@ namespace EspINA
   public:
     virtual ~Information(){}
 
-    virtual void setSegmentation(SegmentationPtr seg) {m_seg = seg;}
+    virtual void setSegmentation(SegmentationPtr seg);
 
     virtual SegmentationPtr segmentation() {return m_seg;}
 

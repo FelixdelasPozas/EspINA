@@ -66,6 +66,8 @@ ModelItem::ExtId StereologicalInclusion::id()
 //------------------------------------------------------------------------
 void StereologicalInclusion::initialize(ModelItem::Arguments args)
 {
+  qDebug() << "Initialize (ignore args)" << m_seg->data().toString() << ID;
+
   SampleSPtr sample = m_seg->sample();
 
   ModelItemSList relatedChannels = sample->relatedItems(EspINA::OUT, Channel::STAINLINK);
@@ -214,6 +216,7 @@ bool StereologicalInclusion::isExcluded() const
 //------------------------------------------------------------------------
 void StereologicalInclusion::evaluateCountingFrames()
 {
+  qDebug() << "Evaluate Counting Frames" << m_seg->data().toString() << ID;
   m_isOnEdge = isOnEdge();
 
   foreach(CountingFrame *cf, m_isExcludedFrom.keys())

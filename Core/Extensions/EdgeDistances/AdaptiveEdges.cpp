@@ -25,17 +25,18 @@
 #include "Core/Model/Segmentation.h"
 #include <Core/Model/EspinaModel.h>
 
-#include <vtkDistancePolyDataFilter.h>
-#include <vtkPointData.h>
-#include <vtkSurfaceReconstructionFilter.h>
-#include <vtkXMLPolyDataWriter.h>
-#include <vtkContourFilter.h>
-#include <vtkReverseSense.h>
-#include <vtkPolyDataNormals.h>
-#include <vtkRuledSurfaceFilter.h>
-#include <vtkLine.h>
 #include <vtkAppendPolyData.h>
 #include <vtkCellArray.h>
+#include <vtkContourFilter.h>
+#include <vtkDistancePolyDataFilter.h>
+#include <vtkLine.h>
+#include <vtkPointData.h>
+#include <vtkPolyDataNormals.h>
+#include <vtkPolyDataWriter.h>
+#include <vtkReverseSense.h>
+#include <vtkRuledSurfaceFilter.h>
+#include <vtkSurfaceReconstructionFilter.h>
+#include <vtkXMLPolyDataWriter.h>
 
 #include <QApplication>
 #include <QDebug>
@@ -46,6 +47,8 @@ using namespace EspINA;
 typedef ModelItem::ArgumentId ArgumentId;
 
 const QString AdaptiveEdges::EXTENSION_FILE = "AdaptiveEdges/AdaptiveEdges.ext";
+const QString AdaptiveEdges::EDGES_FILE     = "AdaptiveEdges/ChannelEdges.vtk";
+const QString AdaptiveEdges::FACES_FILE     = "AdaptiveEdges/ChannelFaces.vtk";
 
 QMap<ChannelPtr, AdaptiveEdges::CacheEntry> AdaptiveEdges::s_cache;
 
@@ -79,7 +82,7 @@ ModelItem::ExtId AdaptiveEdges::id()
 //-----------------------------------------------------------------------------
 void AdaptiveEdges::initialize(ModelItem::Arguments args)
 {
-  qDebug() << "Initialize" << ID;
+  qDebug() << "Initialize" << m_channel->data().toString() << ID;
   ModelItem::Arguments extArgs(args.value(ID, QString()));
 
   if (extArgs.contains(EDGETYPE))
@@ -101,7 +104,7 @@ void AdaptiveEdges::initialize(ModelItem::Arguments args)
 //-----------------------------------------------------------------------------
 void AdaptiveEdges::computeAdaptiveEdges()
 {
-  qDebug() << "Computing Adaptive Edges";
+  qDebug() << "Computing Adaptive Edges" << m_channel->data().toString() << ID;
   m_edges = vtkSmartPointer<vtkPolyData>::New();
 
   EdgeDetector *marginDetector = new EdgeDetector(this);
@@ -136,9 +139,9 @@ bool AdaptiveEdges::loadCache(QuaZipFile &file, const QDir &tmpDir, EspinaModel 
     while (!extensionChannel && i < model->channels().size())
     {
       ChannelSPtr channel = model->channels()[i];
-      if ( channel->filter()->id()  == fields[0]
-        && channel->outputId()         == fields[1].toInt()
-        && channel->filter()->tmpDir() == tmpDir)
+      if ( channel->filter()->id()       == fields[0]
+        && channel->outputId()           == fields[1].toInt()
+        && channel->filter()->cacheDir() == tmpDir)
       {
         extensionChannel = channel.data();
       }
@@ -174,6 +177,11 @@ bool AdaptiveEdges::saveCache(ModelItem::Extension::CacheList &cacheList)
   }
 
   cacheList << QPair<QString, QByteArray>(EXTENSION_FILE, cache.str().c_str());
+
+//   vtkSmartPointer<vtkPolyDataWriter> edgesWriter = vtkSmartPointer<vtkPolyDataWriter>::New();
+//   edgesWriter->WriteToOutputStringOn();
+//   //edgesWriter->SetFileTypeToBinary();
+
 
   return true;
 }
@@ -260,7 +268,7 @@ Nm AdaptiveEdges::computedVolume()
 
 
 //-----------------------------------------------------------------------------
-void AdaptiveEdges::ComputeSurfaces(void)
+void AdaptiveEdges::ComputeSurfaces()
 {
   m_mutex.lock();
 

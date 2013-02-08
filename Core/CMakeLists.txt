@@ -7,9 +7,11 @@ qt4_wrap_cpp(CORE_MOC
   ColorEngines/IColorEngine.h
   ColorEngines/TaxonomyColorEngine.h
   EspinaVolume.h
+  Extensions/ModelItemExtension.h
   Model/EspinaModel.h
   Model/ModelTest.h
   Model/ModelItem.h
+  Model/PickableItem.h
   Model/Segmentation.h
   Model/Taxonomy.h
   Model/Proxies/ChannelProxy.h
@@ -46,6 +48,7 @@ set (CORE_SOURCES
   Extensions/ModelItemExtension.cpp
   Extensions/Morphological/MorphologicalInformation.cpp
   Extensions/SampleExtension.cpp
+  Extensions/SegmentationExtension.cpp
   Model/Channel.cpp
   Model/EspinaFactory.cpp
   Model/EspinaModel.cpp

@@ -35,6 +35,7 @@ namespace EspINA
   class PickableItem
   : public ModelItem
   {
+    Q_OBJECT
   public:
     typedef QPair<QString, QString> ConditionInfo;
 
@@ -59,9 +60,21 @@ namespace EspINA
       m_conditions[state] = ConditionInfo(icon, description);
     }
 
+    /// Return whether item's volume has been modified or not after its creation
+    bool isVolumeModified() {return m_isVolumeModified; }
+
+  protected slots:
+    void onVolumeModified() { m_isVolumeModified = true; emit volumeModified(); }
+
+  signals:
+    void volumeModified();
+
   protected:
-    bool m_isSelected;
     QMap<QString, ConditionInfo> m_conditions;
+
+    bool m_isSelected;
+    bool m_isVolumeModified; // sticky bit
+
   };
 
   typedef QSharedPointer<PickableItem> PickableItemSPtr;

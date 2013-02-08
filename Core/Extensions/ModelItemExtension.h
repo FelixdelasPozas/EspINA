@@ -34,6 +34,7 @@ namespace EspINA
   class ModelItem::Extension
   : public QObject
   {
+    Q_OBJECT
   public:
     typedef QList<QPair<QString, QByteArray> > CacheList;
 
@@ -51,6 +52,9 @@ namespace EspINA
     virtual bool loadCache(QuaZipFile &file, const QDir &tmpDir, EspinaModel *model) = 0;
 
     virtual bool saveCache(CacheList &cacheList) = 0;
+
+  public slots:
+    virtual void invalidate() {};//TODO: Change to pure abstract
 
   protected:
     Extension() : m_init(false) {}
