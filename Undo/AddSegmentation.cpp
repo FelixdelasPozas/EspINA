@@ -59,7 +59,7 @@ void AddSegmentation::redo()
 void AddSegmentation::undo()
 {
   m_model->removeRelation(m_channel, m_seg, Channel::LINK);
-  m_model->removeRelation(m_sample, m_seg, "where");
+  m_model->removeRelation(m_sample, m_seg, Sample::WHERE);
   m_model->removeRelation(m_filter, m_seg, Filter::CREATELINK);
   m_model->removeSegmentation(m_seg);
   m_model->removeRelation(m_channel, m_filter, Channel::LINK);

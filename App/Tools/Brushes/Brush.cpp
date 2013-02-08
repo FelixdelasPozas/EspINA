@@ -19,6 +19,7 @@
 
 #include "Brush.h"
 #include <Undo/BrushUndoCommand.h>
+#include <Undo/StrokeSegmentationCommand.h>
 
 #include <Core/Model/Channel.h>
 #include <Core/Model/EspinaModel.h>
@@ -237,25 +238,20 @@ void Brush::drawStroke(PickableItemPtr item,
       Q_ASSERT(!m_currentSeg);
 
       Q_ASSERT(EspINA::CHANNEL == item->type());
-
       ChannelPtr channel = channelPtr(item);
-      double spacing[3];
-      channel->volume()->spacing(spacing);
-
-      Filter::NamedInputs inputs;
-      Filter::Arguments args;
-      FreeFormSource::Parameters params(args);
-      params.setSpacing(spacing);
-      m_currentSource = FilterSPtr(new FreeFormSource(inputs, args, FREEFORM_SOURCE_TYPE));
-      m_currentOutput = 0;
 
       m_undoStack->beginMacro("Draw Segmentation");
-      m_currentSeg = m_model->factory()->createSegmentation(m_currentSource, m_currentOutput);
-
-      // We can't add empty segmentations to the model
-      m_undoStack->push(new DrawCommand(m_currentSeg, m_currentOutput, brushes, SEG_VOXEL_VALUE, m_viewManager, this));
-      m_undoStack->push(new AddSegmentation(m_model->findChannel(channel), m_currentSource, m_currentSeg,m_model->findTaxonomyElement(m_viewManager->activeTaxonomy()), m_model));
+      {
+        m_undoStack->push(new StrokeSegmentationCommand(channel,
+                                                        m_viewManager->activeTaxonomy(),
+                                                        brushes,
+                                                        m_currentSeg,
+                                                        m_model));
+      }
       m_undoStack->endMacro();
+
+      m_currentSource = m_currentSeg->filter();
+      m_currentOutput = m_currentSeg->outputId();
 
       m_brush->setBorderColor(QColor(Qt::green));
       connect(m_currentSeg.data(), SIGNAL(modified(ModelItem *)),

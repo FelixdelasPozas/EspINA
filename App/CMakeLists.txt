@@ -134,6 +134,7 @@ set (ESPINA_SOURCES
   Undo/SeedGrowSegmentationCommand.cpp
   Undo/SplitUndoCommand.cpp
   Undo/RemoveTaxonomyElementCommand.cpp
+  Undo/StrokeSegmentationCommand.cpp
   Undo/UnloadChannelCommand.cpp
   Undo/UnloadSampleCommand.cpp
   Views/DefaultEspinaView.cpp
