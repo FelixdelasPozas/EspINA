@@ -45,7 +45,7 @@ int saveModelToSegFile(int argc, char** argv)
   SeedGrowSegmentationCreator seedFilterCreator;
   factory->registerFilter(&seedFilterCreator, TEST_FILTER_TYPE);
 
-  if (EspinaIO::loadSegFile(file, model, QDir::current()) != EspinaIO::SUCCESS)
+  if (EspinaIO::loadSegFile(file, model) != EspinaIO::SUCCESS)
     return 1;
 
   QString filename2 = QString("test2.seg");

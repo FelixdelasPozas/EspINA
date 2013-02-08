@@ -47,7 +47,7 @@ int loadModelFromSegFile(int argc, char** argv)
   factory->registerFilter(&creator, TEST_FILTER_TYPE);
 
   // check model
-  if(EspinaIO::loadSegFile(file, model, QDir::current()) != EspinaIO::SUCCESS)
+  if(EspinaIO::loadSegFile(file, model) != EspinaIO::SUCCESS)
   {
     qDebug() << "couldn't load test file";
     return 1;

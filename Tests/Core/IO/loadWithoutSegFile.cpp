@@ -4,7 +4,7 @@ int loadWithoutSegFile(int argc, char** argv)
 {
   QFileInfo file("NoneFile.seg");
 
-  if(EspINA::EspinaIO::loadSegFile(file, NULL, QDir::current()) == EspINA::EspinaIO::SUCCESS)
+  if(EspINA::EspinaIO::loadSegFile(file, NULL) == EspINA::EspinaIO::SUCCESS)
     return 1;
 
   return 0;

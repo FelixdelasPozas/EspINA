@@ -58,7 +58,7 @@ int deletePartialFiltersWhenDeletingSeg(int argc, char** argv)
   SeedGrowSegmentationCreator creator;
   factory->registerFilter(&creator, TEST_FILTER_TYPE);
 
-  if (EspinaIO::loadSegFile(file, model, QDir::current()) != EspinaIO::SUCCESS)
+  if (EspinaIO::loadSegFile(file, model) != EspinaIO::SUCCESS)
   {
     qDebug() << "couldn't load test file";
     return 1;
