@@ -38,8 +38,7 @@ namespace EspINA
      */
     static STATUS loadFile(QFileInfo file,
                            EspinaModel *model,
-                           QUndoStack  *undoStack,
-                           QDir tmpDir);
+                           QUndoStack  *undoStack);
 
     /**
      * Load channel files supported by EspINA. Current implementation
@@ -63,8 +62,7 @@ namespace EspINA
      * @return Success if no other error is reported.
      */
     static STATUS loadSegFile(QFileInfo file,
-                              EspinaModel *model,
-                              QDir tmpDir);
+                              EspinaModel *model);
 
     /**
      * Create a new seg file containing all information provided by @param model
@@ -87,6 +85,9 @@ namespace EspINA
     static bool zipFile(QString fileName,
                         QByteArray content,
                         QuaZipFile& zFile);
+
+    // deletes all files inside the temporal dir and removes it
+    static STATUS removeTemporalDir(QDir temporalDir);
   };
 
   class IOTaxonomy
