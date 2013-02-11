@@ -949,6 +949,9 @@ void EspinaModel::addSampleImplementation(SampleSPtr sample)
   sample->m_model = this;
   m_samples << sample;
   m_relations->addItem(sample.data());
+
+  connect(sample.data(), SIGNAL(modified(ModelItemPtr)),
+          this, SLOT(itemModified(ModelItemPtr)));
 }
 
 //------------------------------------------------------------------------
@@ -972,6 +975,9 @@ void EspinaModel::addChannelImplementation(ChannelSPtr channel)
   channel->m_model = this;
   m_channels << channel;
   m_relations->addItem(channel.data());
+
+  connect(channel.data(), SIGNAL(modified(ModelItemPtr)),
+          this, SLOT(itemModified(ModelItemPtr)));
 }
 
 //------------------------------------------------------------------------
@@ -1000,6 +1006,9 @@ void EspinaModel::addSegmentationImplementation(SegmentationSPtr seg)
 
   m_segmentations << seg;
   m_relations->addItem(seg.data());
+
+  connect(seg.data(), SIGNAL(modified(ModelItemPtr)),
+          this, SLOT(itemModified(ModelItemPtr)));
 }
 
 //------------------------------------------------------------------------
@@ -1211,6 +1220,9 @@ void EspinaModel::addTaxonomyElement(TaxonomyElementSPtr parent, TaxonomyElement
   beginInsertRows(parentItem, newTaxRow, newTaxRow);
   {
     parentNode->addElement(element);
+
+    connect(element.data(), SIGNAL(modified(ModelItemPtr)),
+            this, SLOT(itemModified(ModelItemPtr)));
   }
   endInsertRows();
 

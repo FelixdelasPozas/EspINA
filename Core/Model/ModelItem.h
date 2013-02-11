@@ -113,7 +113,7 @@ namespace EspINA
     {emit modified(this);}
 
   signals:
-    void modified(ModelItem *);
+    void modified(ModelItemPtr);
 
   protected:
     EspinaModel *m_model;

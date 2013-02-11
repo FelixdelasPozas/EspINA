@@ -64,7 +64,7 @@ namespace EspINA
     bool isVolumeModified() {return m_isVolumeModified; }
 
   protected slots:
-    void onVolumeModified() { m_isVolumeModified = true; emit volumeModified(); }
+    void onVolumeModified() { m_isVolumeModified = true; emit volumeModified(); emit modified(this);}
 
   signals:
     void volumeModified();
