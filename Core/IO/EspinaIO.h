@@ -36,22 +36,19 @@ namespace EspINA
      * @param model is the EspinaModel in which the file is loaded into
      * @return Success if no other error is reported.
      */
-    static STATUS loadFile(QFileInfo file,
-                           EspinaModel *model,
-                           QUndoStack  *undoStack);
+    static STATUS loadFile(QFileInfo    file,
+                           EspinaModel *model);
 
     /**
      * Load channel files supported by EspINA. Current implementation
      * supports the following extensions: mha, mhd, tiff, tif
      * @param file is the absolute path to be loaded
      * @param model is the EspinaModel in which the file is loaded into
-     * @param undosktack loaded channels command are added to the undo stack
      * @param channelPtr is used to retrieve loaded channel if loading was successful
      * @return Success if no other error is reported.
      */
     static STATUS loadChannel(QFileInfo file,
                               EspinaModel *model,
-                              QUndoStack  *undoStack,
                               ChannelSPtr &channelPtr);
 
     /**

@@ -11,9 +11,6 @@
 #include <Core/Extensions/SegmentationExtension.h>
 
 #include "Filters/ChannelReader.h"
-#include "Undo/AddChannel.h"
-#include "Undo/AddRelation.h"
-#include "Undo/AddSample.h"
 
 // ITK
 #include <itkImageFileWriter.h>
@@ -26,7 +23,6 @@
 // Qt
 #include <QDebug>
 #include <QDir>
-#include <QUndoStack>
 #include <QXmlStreamReader>
 
 // Quazip
@@ -55,14 +51,13 @@ bool EspinaIO::isChannelExtension(const QString &fileExtension)
 
 //-----------------------------------------------------------------------------
 EspinaIO::STATUS EspinaIO::loadFile(QFileInfo file,
-                                    EspinaModel *model,
-                                    QUndoStack  *undoStack)
+                                    EspinaModel *model)
 {
   const QString ext = file.suffix();
   if (isChannelExtension(ext))
   {
     ChannelSPtr channel;
-    return loadChannel(file, model, undoStack, channel);
+    return loadChannel(file, model, channel);
   }
 
   if ("seg" == ext)
@@ -74,7 +69,6 @@ EspinaIO::STATUS EspinaIO::loadFile(QFileInfo file,
 //-----------------------------------------------------------------------------
 EspinaIO::STATUS EspinaIO::loadChannel(QFileInfo file,
                                        EspinaModel *model,
-                                       QUndoStack  *undoStack,
                                        ChannelSPtr &channelPtr)
 {
   //TODO 2012-10-07
@@ -89,7 +83,7 @@ EspinaIO::STATUS EspinaIO::loadChannel(QFileInfo file,
     // Try to recover sample form DB using channel information
     existingSample = factory->createSample(file.baseName());
 
-    undoStack->push(new AddSample(existingSample, model));
+    model->addSample(existingSample);
   }
 
   //TODO: Check for channel information in DB
@@ -122,11 +116,10 @@ EspinaIO::STATUS EspinaIO::loadChannel(QFileInfo file,
   existingSample->position(pos);
   channel->setPosition(pos);
 
-  undoStack->beginMacro("Add Data To Analysis");
-  // TODO: Remove Undo Actions, that should be app level stuff
-  undoStack->push(new AddChannel(reader, channel, model));
-  undoStack->push(new AddRelation(existingSample, channel, Channel::STAINLINK, model));
-  undoStack->endMacro();
+  model->addFilter(reader);
+  model->addChannel(channel);
+  model->addRelation(reader, channel, Channel::VOLUMELINK);
+  model->addRelation(existingSample, channel, Channel::STAINLINK);
 
   channel->initialize(args);
   channel->initializeExtensions();

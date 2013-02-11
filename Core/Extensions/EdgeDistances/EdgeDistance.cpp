@@ -47,10 +47,12 @@ const Segmentation::InfoTag EdgeDistance::LOWER_DISTANCE  = "Lower Distance";
 
 //-----------------------------------------------------------------------------
 EdgeDistance::CacheEntry::CacheEntry()
+: Modified(false)
 {
   for(int i=0; i<3; i++)
     Distances[i] = -1;
 }
+
 
 //-----------------------------------------------------------------------------
 EdgeDistance::EdgeDistance()
@@ -62,6 +64,7 @@ EdgeDistance::EdgeDistance()
 EdgeDistance::~EdgeDistance()
 {
   qDebug() << "Deleting EdgeDistance Extension";
+  invalidate();
 }
 
 //-----------------------------------------------------------------------------
@@ -76,6 +79,7 @@ void EdgeDistance::initialize(ModelItem::Arguments args)
   qDebug() << "Initialize (empty)" << m_seg->data().toString() << ID;
 }
 
+//-----------------------------------------------------------------------------
 Segmentation::InfoTagList EdgeDistance::availableInformations() const
 {
   Segmentation::InfoTagList tags;
@@ -146,13 +150,11 @@ bool EdgeDistance::loadCache(QuaZipFile  &file,
       }
       i++;
     }
-    //TODO: Remove extensions when removed inside undo commands
-    //Q_ASSERT(extensionSegmentation);
+    Q_ASSERT(extensionSegmentation);
 
-    if (extensionSegmentation)
+    for(i=0; i<6; i++)
     {
-      for(i=0; i<6; i++)
-        s_cache[extensionSegmentation].Distances[i] = fields[2+i].toDouble();
+      s_cache[extensionSegmentation].Distances[i] = fields[2+i].toDouble();
     }
   }
 
@@ -162,14 +164,22 @@ bool EdgeDistance::loadCache(QuaZipFile  &file,
 //-----------------------------------------------------------------------------
 bool EdgeDistance::saveCache(CacheList &cacheList)
 {
+  // NOTE: This could be factorized using some kind of template...
+  foreach(SegmentationPtr segmentation, s_cache.keys())
+  {
+    if (segmentation->isVolumeModified() && !s_cache[segmentation].Modified)
+    {
+      s_cache.remove(segmentation);
+    }
+  }
+
   if (s_cache.isEmpty())
     return false;
 
   std::ostringstream cache;
   cache << FILE_VERSION;
 
-  SegmentationPtr segmentation;
-  foreach(segmentation, s_cache.keys())
+  foreach(SegmentationPtr segmentation, s_cache.keys())
   {
     cache << segmentation->filter()->id().toStdString();
     cache << SEP << segmentation->outputId();
@@ -189,6 +199,13 @@ bool EdgeDistance::saveCache(CacheList &cacheList)
 Segmentation::Information * EdgeDistance::clone()
 {
   return new EdgeDistance();
+}
+
+//-----------------------------------------------------------------------------
+void EdgeDistance::invalidate()
+{
+    qDebug() << "Invalidate" << m_seg->data().toString() << ID;
+  s_cache.remove(m_seg);
 }
 
 //-----------------------------------------------------------------------------
@@ -216,6 +233,7 @@ void EdgeDistance::updateDistances() const
 void EdgeDistance::setDistances(Nm distances[6])
 {
   memcpy(s_cache[m_seg].Distances, distances, 6*sizeof(Nm));
+  s_cache[m_seg].Modified = true;
 }
 
 //-----------------------------------------------------------------------------

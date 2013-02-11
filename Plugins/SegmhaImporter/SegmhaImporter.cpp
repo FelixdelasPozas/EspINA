@@ -204,7 +204,7 @@ bool SegmhaImporter::readFile(const QFileInfo file)
 
   // TODO 2012-12-29: Como gestionar las dependecias? dentro del undo command?
   ChannelSPtr channel;
-  if (EspinaIO::SUCCESS != EspinaIO::loadChannel(fileDialog.selectedFiles().first(), m_model, m_undoStack, channel))
+  if (EspinaIO::SUCCESS != EspinaIO::loadChannel(fileDialog.selectedFiles().first(), m_model, channel))
     return false;
 
   Filter::NamedInputs inputs;

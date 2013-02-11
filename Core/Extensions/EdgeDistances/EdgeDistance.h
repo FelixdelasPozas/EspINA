@@ -32,7 +32,8 @@ namespace EspINA
     {
       CacheEntry();
 
-      Nm Distances[6];
+      bool Modified;
+      Nm   Distances[6];
     };
 
     static const QString EXTENSION_FILE;
@@ -77,6 +78,9 @@ namespace EspINA
       updateDistances();
       memcpy(distances, m_distances, 6*sizeof(Nm));
     }
+
+  protected:
+    virtual void invalidate();
 
   private:
     void updateDistances() const;

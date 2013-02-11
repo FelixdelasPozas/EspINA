@@ -569,8 +569,7 @@ void EspinaMainWindow::openAnalysis(const QString &file)
     closeCurrentAnalysis();
 
     loaded =  EspinaIO::loadFile(file,
-                                 m_model,
-                                 m_undoStack);
+                                 m_model);
     QApplication::restoreOverrideCursor();
   }
 
@@ -706,8 +705,7 @@ void EspinaMainWindow::addFileToAnalysis(const QString &file)
   timer.start();
 
   if (EspinaIO::SUCCESS == EspinaIO::loadFile(file,
-                                              m_model,
-                                              m_undoStack))
+                                              m_model))
   {
     int secs = timer.elapsed()/1000.0;
     int mins = 0;

@@ -240,7 +240,7 @@ void Brush::drawStroke(PickableItemPtr item,
       Q_ASSERT(EspINA::CHANNEL == item->type());
       ChannelPtr channel = channelPtr(item);
 
-      m_undoStack->beginMacro("Draw Segmentation");
+      m_undoStack->beginMacro("Draw New Segmentation");
       {
         m_undoStack->push(new StrokeSegmentationCommand(channel,
                                                         m_viewManager->activeTaxonomy(),

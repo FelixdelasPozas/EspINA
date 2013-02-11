@@ -233,8 +233,10 @@ void AdaptiveEdges::computeDistanceToEdge(SegmentationPtr seg)
   {
     double cmargins[6];
     m_channel->volume()->bounds(cmargins);
-    for (int i = 0; i < 6; i++)
-      distance[i] = fabs(smargins[i] - cmargins[i]);
+    for (int i = 0; i < 6; i+=2)
+      distance[i] = smargins[i] - cmargins[i];
+    for (int i = 1; i < 6; i+=2)
+      distance[i] = cmargins[i] - smargins[i];
   }
 
   distanceExt->setDistances(distance);
