@@ -254,8 +254,8 @@ void Brush::drawStroke(PickableItemPtr item,
       m_currentOutput = m_currentSeg->outputId();
 
       m_brush->setBorderColor(QColor(Qt::green));
-      connect(m_currentSeg.data(), SIGNAL(modified(ModelItem *)),
-              this, SLOT(segmentationHasBeenModified(ModelItem *)));
+      connect(m_currentSeg.data(), SIGNAL(modified(ModelItemPtr)),
+              this, SLOT(segmentationHasBeenModified(ModelItemPtr)));
     }
     else
     {
@@ -336,7 +336,7 @@ void Brush::drawStrokeStep(PickableItemPtr item,
 }
 
 //-----------------------------------------------------------------------------
-void Brush::segmentationHasBeenModified(ModelItem *item)
+void Brush::segmentationHasBeenModified(ModelItemPtr item)
 {
   Segmentation *seg = dynamic_cast<Segmentation *>(item);
   if (seg != m_currentSeg)

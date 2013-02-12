@@ -22,6 +22,8 @@
 #include <GUI/ViewManager.h>
 
 #include <QDebug>
+#include <QLayout>
+#include <QLabel>
 
 using namespace EspINA;
 
@@ -53,7 +55,7 @@ void FilterInspector::initDockWidget(EspinaModel *model,
                                      QUndoStack  *undoStack,
                                      ViewManager *viewManager)
 {
-
+  updatePannel();
 }
 
 //----------------------------------------------------------------------------
@@ -105,7 +107,7 @@ void FilterInspector::updatePannel()
     changeWidget = true;
   }
   else
-    if (!m_filter.isNull() && m_filter != seg->filter())
+    if ((!m_filter.isNull() && m_filter != seg->filter())|| (m_seg == NULL && seg == NULL && widget() == NULL))
     {
       changeWidget = true;
     }
@@ -122,13 +124,49 @@ void FilterInspector::updatePannel()
       Filter::FilterInspectorPtr inspector = m_filter->filterInspector();
       if (inspector.get())
         setWidget(inspector->createWidget(m_undoStack, m_viewManager));
+      else
+      {
+        QWidget *defaultWidgetInspector = new QWidget();
+        defaultWidgetInspector->setLayout(new QVBoxLayout());
+        defaultWidgetInspector->layout()->setSpacing(10);
 
+        QLabel *typeLabel = new QLabel(defaultWidgetInspector);
+        typeLabel->setText(QString("<b>Segmentation: </b>") + m_seg->data().toString());
+        typeLabel->setWordWrap(true);
+        typeLabel->setTextInteractionFlags(Qt::NoTextInteraction);
+        defaultWidgetInspector->layout()->addWidget(typeLabel);
+
+        QLabel *infoLabel = new QLabel(defaultWidgetInspector);
+        infoLabel->setText(QLabel::tr("The filter of this segmentation doesn't have configurable parameters."));
+        infoLabel->setWordWrap(true);
+        infoLabel->setTextInteractionFlags(Qt::NoTextInteraction);
+        defaultWidgetInspector->layout()->addWidget(infoLabel);
+
+        QSpacerItem* spacer = new QSpacerItem(-1, -1, QSizePolicy::Minimum, QSizePolicy::Expanding);
+        defaultWidgetInspector->layout()->addItem(spacer);
+
+        setWidget(defaultWidgetInspector);
+      }
     }
     else
     {
       m_filter.clear();
       m_seg = NULL;
-      setWidget(NULL);
+
+      QWidget *noWidgetInspector = new QWidget();
+      noWidgetInspector->setLayout(new QVBoxLayout());
+      noWidgetInspector->layout()->setSpacing(10);
+
+      QLabel *infoLabel = new QLabel(noWidgetInspector);
+      infoLabel->setText(QLabel::tr("No filter selected."));
+      infoLabel->setWordWrap(true);
+      infoLabel->setTextInteractionFlags(Qt::NoTextInteraction);
+      noWidgetInspector->layout()->addWidget(infoLabel);
+
+      QSpacerItem* spacer = new QSpacerItem(-1, -1, QSizePolicy::Minimum, QSizePolicy::Expanding);
+      noWidgetInspector->layout()->addItem(spacer);
+
+      setWidget(noWidgetInspector);
     }
   }
 }

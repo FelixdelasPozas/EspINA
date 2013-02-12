@@ -134,7 +134,7 @@ void ConnectomicsDialog::showGraphConnectomicsInformation(QModelIndex index)
   }
 
   m_proxy_aux->setSourceModel(m_model);
-  ModelItem *item = indexPtr(index_proxy);
+  ModelItemPtr item = indexPtr(index_proxy);
   Segmentation *seg = dynamic_cast<Segmentation *>(item);
 
   if (EspINA::SEGMENTATION != item->type())
@@ -149,7 +149,7 @@ void ConnectomicsDialog::showGraphConnectomicsInformation(QModelIndex index)
   int row = index_proxy.row();
   QModelIndex indexEspinaModel = m_model->index(row, 0, m_model->segmentationRoot());
 
-  ModelItem *item2 = indexPtr(indexEspinaModel);
+  ModelItemPtr item2 = indexPtr(indexEspinaModel);
   if (EspINA::SEGMENTATION != item2->type())
     return;
   selection << dynamic_cast<PickableItem *>(item2);

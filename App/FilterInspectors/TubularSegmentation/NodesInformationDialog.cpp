@@ -39,7 +39,7 @@ namespace EspINA
           return true;
 
         QModelIndex index = source_parent.child(source_row, 0);
-        ModelItem *item = indexPtr(index);
+        ModelItemPtr item = indexPtr(index);
         if (item == NULL)
           return false;
 
@@ -131,7 +131,7 @@ namespace EspINA
     if (!index.isValid())
       return;
 
-    ModelItem *item = indexPtr(m_sort->mapToSource(index));
+    ModelItemPtr item = indexPtr(m_sort->mapToSource(index));
     if (SEGMENTATION == item->type())
     {
       if (m_lastWidget)

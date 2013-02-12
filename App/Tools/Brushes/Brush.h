@@ -80,7 +80,7 @@ namespace EspINA
                                 double x, double y, double z,
                                 Nm              radius,
                                 PlaneType       plane);
-  virtual void segmentationHasBeenModified(ModelItem *);
+  virtual void segmentationHasBeenModified(ModelItemPtr);
 
   virtual void initBrushTool();
 
