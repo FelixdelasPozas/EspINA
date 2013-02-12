@@ -78,6 +78,7 @@ class IToolBar;
     void addFileToAnalysis(const QString &file);
     /// Save Current Analysis
     void saveAnalysis();
+    void saveSessionAnalysis();
 
   protected slots:
     void updateStatus(QString msg);
@@ -118,6 +119,7 @@ class IToolBar;
     // GUI
     QMenu           *m_addMenu;
     QAction         *m_saveAnalysis;
+    QAction         *m_saveSessionAnalysis;
     QAction         *m_closeAnalysis;
     QMenu           *m_viewMenu;
     ColorEngineMenu *m_colorEngines;
@@ -156,6 +158,7 @@ class IToolBar;
     DynamicMenuNode *m_dynamicMenuRoot;
 
     QTimer m_autosave;
+    QString m_sessionFile;
   };
 
 } // namespace EspINA

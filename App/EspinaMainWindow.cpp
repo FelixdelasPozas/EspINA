@@ -172,10 +172,15 @@ EspinaMainWindow::EspinaMainWindow(EspinaModel      *model,
               this, SLOT(addToAnalysis()));
     }
 
-    m_saveAnalysis = fileMenu->addAction(saveIcon, tr("&Save"));
+    m_saveAnalysis = fileMenu->addAction(saveIcon, tr("Save &As..."));
     m_saveAnalysis->setEnabled(false);
     connect(m_saveAnalysis, SIGNAL(triggered(bool)),
             this,SLOT(saveAnalysis()));
+
+    m_saveSessionAnalysis = fileMenu->addAction(saveIcon, tr("&Save"));
+    m_saveSessionAnalysis->setEnabled(false);
+    connect(m_saveSessionAnalysis, SIGNAL(triggered(bool)),
+            this,SLOT(saveSessionAnalysis()));
 
     m_closeAnalysis = fileMenu->addAction(tr("&Close"));
     m_closeAnalysis->setEnabled(false);
@@ -296,6 +301,8 @@ EspinaMainWindow::EspinaMainWindow(EspinaModel      *model,
           this, SLOT(autosave()));
 
   cancel = new QShortcut(Qt::Key_Escape, this, SLOT(cancelOperation()));
+
+  setWindowTitle(QString("EspINA Interactive Neuron Analizer"));
 
   checkAutosave();
 }
@@ -520,9 +527,13 @@ void EspinaMainWindow::closeCurrentAnalysis()
   m_undoStack->clear();
   m_model->reset();
 
-  m_addMenu      ->setEnabled(false);
-  m_saveAnalysis ->setEnabled(false);
+  m_addMenu->setEnabled(false);
+  m_saveAnalysis->setEnabled(false);
+  m_saveSessionAnalysis->setEnabled(false);
   m_closeAnalysis->setEnabled(false);
+  m_sessionFile.clear();
+
+  setWindowTitle(QString("EspINA Interactive Neuron Analizer"));
 
   emit analysisClosed();
 }
@@ -627,7 +638,6 @@ void EspinaMainWindow::openAnalysis(const QString &file)
 
   ChannelPtr channel = m_model->channels().first().data();
   m_viewManager->setActiveChannel(channel);
-  setWindowTitle(channel->data().toString());
 
   if (EspinaIO::isChannelExtension(fileInfo.suffix()))
   {
@@ -640,6 +650,20 @@ void EspinaMainWindow::openAnalysis(const QString &file)
     {
       channel->addExtension(new AdaptiveEdges(true));
     }
+  }
+
+  QStringList fileParts = file.split(QDir::separator());
+  setWindowTitle(fileParts[fileParts.size()-1]);
+
+  if (fileParts[fileParts.size()-1].toLower().endsWith(QString(".seg")))
+  {
+    m_saveSessionAnalysis->setEnabled(true);
+    m_sessionFile = file;
+  }
+  else
+  {
+    m_saveSessionAnalysis->setEnabled(false);
+    m_sessionFile.clear();
   }
 
   m_viewManager->updateSegmentationRepresentations();
@@ -735,12 +759,13 @@ void EspinaMainWindow::saveAnalysis()
   fileDialog.setFileMode(QFileDialog::AnyFile);
   fileDialog.selectFile("");
 
+  QString analysisFile;
   if (fileDialog.exec() == QDialog::Accepted)
   {
     QApplication::setOverrideCursor(Qt::WaitCursor);
     m_busy = true;
 
-    const QString analysisFile = fileDialog.selectedFiles().first();
+    analysisFile = fileDialog.selectedFiles().first();
 
     EspinaIO::saveSegFile(analysisFile, m_model);
 
@@ -751,7 +776,32 @@ void EspinaMainWindow::saveAnalysis()
     m_recentDocuments1.addDocument(analysisFile);
     m_recentDocuments2.updateDocumentList();
   }
+  else
+    return;
+
   m_model->markAsSaved();
+
+  QStringList fileParts = analysisFile.split(QDir::separator());
+  setWindowTitle(fileParts[fileParts.size()-1]);
+
+  m_saveSessionAnalysis->setEnabled(true);
+  m_sessionFile = analysisFile;
+}
+
+//------------------------------------------------------------------------
+void EspinaMainWindow::saveSessionAnalysis()
+{
+  QApplication::setOverrideCursor(Qt::WaitCursor);
+  m_busy = true;
+
+  EspinaIO::saveSegFile(m_sessionFile, m_model);
+
+  QApplication::restoreOverrideCursor();
+  updateStatus(tr("File Saved Successfuly in %1").arg(m_sessionFile));
+  m_busy = false;
+
+  m_recentDocuments1.addDocument(m_sessionFile);
+  m_recentDocuments2.updateDocumentList();
 }
 
 //------------------------------------------------------------------------
