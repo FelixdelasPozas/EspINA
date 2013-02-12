@@ -395,18 +395,25 @@ bool SegmentationVolume::strechToFitContent()
 //------------------------------------------------------------------------
 vtkAlgorithmOutput* SegmentationVolume::toMesh()
 {
+  vtkAlgorithmOutput *vtkVolume = toVTK();
+  int extent[6];
+  vtkImageData *image = vtkImageData::SafeDownCast(vtkVolume->GetProducer()->GetOutputDataObject(0));
+  image->GetExtent(extent);
+  extent[0]--;
+  extent[1]++;
+  extent[2]--;
+  extent[3]++;
+  extent[4]--;
+  extent[5]++;
+
   if (NULL == m_padfilter)
   {
-    vtkAlgorithmOutput *vtkVolume = toVTK();
     // segmentation image need to be padded to avoid segmentation voxels from touching the edges of the
     // image (and create morphologically correct actors)
-    int extent[6];
-    vtkImageData *image = vtkImageData::SafeDownCast(vtkVolume->GetProducer()->GetOutputDataObject(0));
-    image->GetExtent(extent);
 
     m_padfilter = vtkSmartPointer<vtkImageConstantPad>::New();
     m_padfilter->SetInputConnection(vtkVolume);
-    m_padfilter->SetOutputWholeExtent(extent[0]-1, extent[1]+1, extent[2]-1, extent[3]+1, extent[4]-1, extent[5]+1);
+    m_padfilter->SetOutputWholeExtent(extent[0], extent[1], extent[2], extent[3], extent[4], extent[5]);
     m_padfilter->SetConstant(0);
 
     m_march = vtkSmartPointer<vtkDiscreteMarchingCubes>::New();
@@ -422,6 +429,14 @@ vtkAlgorithmOutput* SegmentationVolume::toMesh()
   {
     if (m_padfilter->GetInputConnection(0,0) != toVTK())
       m_padfilter->SetInputConnection(toVTK());
+
+    int outputExtent[6];
+    m_padfilter->GetOutputWholeExtent(outputExtent);
+    if (memcmp(extent, outputExtent, 6*sizeof(int)) != 0)
+    {
+      m_padfilter->SetOutputWholeExtent(extent[0], extent[1], extent[2], extent[3], extent[4], extent[5]);
+      m_padfilter->Update();
+    }
   }
 
   m_march->Update();
