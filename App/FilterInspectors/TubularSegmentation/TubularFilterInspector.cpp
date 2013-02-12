@@ -71,7 +71,7 @@ namespace EspINA
     updateNodeList();
 
     connect(writeDataToFile, SIGNAL(clicked(bool)), this, SLOT(exportNodeList()));
-    connect(m_source.data(), SIGNAL(modified(ModelItem*)), this, SLOT(updateNodeList()));
+    connect(m_source.data(), SIGNAL(modified(ModelItemPtr)), this, SLOT(updateNodeList()));
     connect(modifySource, SIGNAL(toggled(bool)), this, SLOT(editSpine(bool)));
     connect(extremesCheckBox, SIGNAL(toggled(bool)), this, SLOT(modifyRoundedExtremes(bool)));
 

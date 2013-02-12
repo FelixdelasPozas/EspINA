@@ -59,7 +59,7 @@ SegmentationInspector::SegmentationInspector(SegmentationPtr seg,
   m_view->updateView();
   horizontalLayout->insertWidget(0, m_view);
 
-  connect(seg, SIGNAL(modified(ModelItem*)),
+  connect(seg, SIGNAL(modified(ModelItemPtr)),
           this, SLOT(updateScene()));
 
   FilterSPtr filter = seg->filter();

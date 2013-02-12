@@ -21,7 +21,7 @@ ContourFilterInspector::Widget::Widget(ContourSource* source)
   this->editButton->setEnabled(false);
   
   connect(this->editButton, SIGNAL(clicked(bool)), this, SLOT(EditContours()));
-  connect(m_source, SIGNAL(modified(ModelItem*)), this, SLOT(UpdateValues()));
+  connect(m_source, SIGNAL(modified(ModelItemPtr)), this, SLOT(UpdateValues()));
 }
 
  //----------------------------------------------------------------------------

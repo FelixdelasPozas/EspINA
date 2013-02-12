@@ -787,7 +787,7 @@ void SliceView::addChannel(ChannelPtr channel)
     resetCamera();
 
   m_channelPicker->AddPickList(channelRep.slice);
-  connect(channel, SIGNAL(modified(ModelItem*)),
+  connect(channel, SIGNAL(modified(ModelItemPtr)),
           this, SLOT(updateSceneBounds()));
 }
 

@@ -690,14 +690,18 @@ void IOTaxonomy::writeXMLTaxonomy(TaxonomySPtr tax, QString& destination)
 EspinaIO::STATUS EspinaIO::removeTemporalDir(QDir temporalDir)
 {
   bool result = true;
-  foreach(QFileInfo temporalFile, temporalDir.entryInfoList(QDir::Files|QDir::NoDotAndDotDot))
+  foreach(QFileInfo temporalFile, temporalDir.entryInfoList(QDir::Files|QDir::Dirs|QDir::NoDotAndDotDot))
   {
-    qDebug() << "Removing" << temporalFile.fileName();
+    if (temporalFile.isDir())
+    {
+      result &= removeTemporalDir(QDir(temporalFile.absoluteFilePath()));
+      continue;
+    }
+
     result &= temporalDir.remove(temporalFile.fileName());
   }
 
   QString dirName = temporalDir.dirName();
-  qDebug() << "temporal Dir name" << dirName;
   Q_ASSERT(!dirName.isEmpty());
   result &= temporalDir.cdUp();
   result &= temporalDir.rmdir(dirName);

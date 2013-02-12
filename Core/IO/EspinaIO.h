@@ -68,6 +68,9 @@ namespace EspINA
      */
     static STATUS saveSegFile(QFileInfo file, EspinaModel *model);
 
+    // deletes all files inside the temporal dir and removes it, recursively if necessary
+    static STATUS removeTemporalDir(QDir temporalDir);
+
   private:
     /**
      * Creates a zipped file called @param fileName inside @param zFile. @param content
@@ -82,9 +85,6 @@ namespace EspINA
     static bool zipFile(QString fileName,
                         QByteArray content,
                         QuaZipFile& zFile);
-
-    // deletes all files inside the temporal dir and removes it
-    static STATUS removeTemporalDir(QDir temporalDir);
   };
 
   class IOTaxonomy

@@ -93,14 +93,14 @@ void FilterInspector::updatePannel()
   {
     if (m_seg)
     {
-      disconnect(m_seg, SIGNAL(modified(ModelItem*)), this, SLOT(updatePannel()));
+      disconnect(m_seg, SIGNAL(modified(ModelItemPtr)), this, SLOT(updatePannel()));
     }
 
     m_seg = seg;
 
     if (m_seg)
     {
-      connect(m_seg, SIGNAL(modified(ModelItem*)), this, SLOT(updatePannel()));
+      connect(m_seg, SIGNAL(modified(ModelItemPtr)), this, SLOT(updatePannel()));
     }
     changeWidget = true;
   }

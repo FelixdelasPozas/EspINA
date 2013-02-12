@@ -89,7 +89,7 @@ void StereologicalInclusion::initialize(ModelItem::Arguments args)
 
   setCountingFrames(countingFrames);
 
-  connect(m_seg, SIGNAL(modified(ModelItem*)),
+  connect(m_seg, SIGNAL(modified(ModelItemPtr)),
           this, SLOT(evaluateCountingFrames()));
 }
 

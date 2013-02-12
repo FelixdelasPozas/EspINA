@@ -25,6 +25,7 @@
 #include "Core/Model/Sample.h"
 #include "Core/Model/Segmentation.h"
 #include "Core/Model/Taxonomy.h"
+#include "Core/IO/EspinaIO.h"
 
 // Qt
 #include <QDebug>
@@ -82,14 +83,7 @@ void EspinaModel::reset()
   m_relations->clear();//NOTE: Should we remove every item in the previous blocks?
 
   foreach(QDir tmpDir, m_tmpDirs)
-  {
-    QDir parentDir = tmpDir;
-    parentDir.cdUp();
-    foreach(QFileInfo file, tmpDir.entryInfoList())
-      QFile::remove(file.absoluteFilePath());
-
-    parentDir.rmdir(tmpDir.absolutePath());
-  }
+    EspinaIO::removeTemporalDir(tmpDir);
 }
 
 //-----------------------------------------------------------------------------

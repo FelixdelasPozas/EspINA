@@ -177,8 +177,8 @@ void Brush::setInUse(bool value)
   else
   {
     if (m_currentSeg)
-      disconnect(m_currentSeg.data(), SIGNAL(modified(ModelItem*)),
-                 this, SLOT(segmentationHasBeenModified(ModelItem*)));
+      disconnect(m_currentSeg.data(), SIGNAL(modified(ModelItemPtr)),
+                 this, SLOT(segmentationHasBeenModified(ModelItemPtr)));
 
     emit stopDrawing();
   }
@@ -341,7 +341,7 @@ void Brush::segmentationHasBeenModified(ModelItem *item)
   Segmentation *seg = dynamic_cast<Segmentation *>(item);
   if (seg != m_currentSeg)
   {
-    disconnect(seg, SIGNAL(modified(ModelItem*)), this, SLOT(segmentationHasBeenModified(ModelItem*)));
+    disconnect(seg, SIGNAL(modified(ModelItemPtr)), this, SLOT(segmentationHasBeenModified(ModelItemPtr)));
     return;
   }
 
@@ -359,15 +359,15 @@ void Brush::initBrushTool()
     return;
 
   if (m_currentSeg)
-    disconnect(m_currentSeg.data(), SIGNAL(modified(ModelItem*)),
-               this, SLOT(segmentationHasBeenModified(ModelItem*)));
+    disconnect(m_currentSeg.data(), SIGNAL(modified(ModelItemPtr)),
+               this, SLOT(segmentationHasBeenModified(ModelItemPtr)));
 
   SegmentationList segs = m_viewManager->selectedSegmentations();
   if (segs.size() == 1)
   {
     m_currentSeg = m_model->findSegmentation(segs.first());
-    connect(m_currentSeg.data(), SIGNAL(modified(ModelItem*)),
-            this, SLOT(segmentationHasBeenModified(ModelItem*)));
+    connect(m_currentSeg.data(), SIGNAL(modified(ModelItemPtr)),
+            this, SLOT(segmentationHasBeenModified(ModelItemPtr)));
     m_currentSource = m_currentSeg->filter();
     m_currentOutput = m_currentSeg->outputId();
 
