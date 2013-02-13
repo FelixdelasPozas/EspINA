@@ -53,7 +53,7 @@ class QToolButton;
 // GUI
 class QLabel;
 class QScrollBar;
-class QSpinBox;
+class QDoubleSpinBox;
 class QVBoxLayout;
 class QHBoxLayout;
 class QPushButton;
@@ -90,7 +90,7 @@ namespace EspINA
     void slicingStep(Nm steps[3]);
     /// Set the distance between two consecutive slices when
     /// displacement is set to SLICES
-    void setSlicingStep(Nm steps[3]);
+    void setAxialSlicingStep(Nm XYstep);
     Nm slicingPosition() const;
 
     void centerViewOn(Nm center[3], bool force = false);//WARNING Esta enmascarando un metodo de la clase base
@@ -160,6 +160,7 @@ namespace EspINA
   protected slots:
     void sliceViewCenterChanged(Nm x, Nm y, Nm z);
     void scrollValueChanged(int value);
+    void spinValueChanged(double value);
     void selectFromSlice();
     void selectToSlice();
     void resetView();
@@ -237,16 +238,16 @@ namespace EspINA
     ViewManager *m_viewManager;
 
     // GUI
-    QHBoxLayout *m_titleLayout;
-    QLabel      *m_title;
-    QVBoxLayout *m_mainLayout;
-    QHBoxLayout *m_controlLayout;
-    QHBoxLayout *m_fromLayout;
-    QHBoxLayout *m_toLayout;
-    QVTKWidget  *m_view;
-    QScrollBar  *m_scrollBar;
-    QSpinBox    *m_spinBox;
-    QPushButton *m_zoomButton;
+    QHBoxLayout    *m_titleLayout;
+    QLabel         *m_title;
+    QVBoxLayout    *m_mainLayout;
+    QHBoxLayout    *m_controlLayout;
+    QHBoxLayout    *m_fromLayout;
+    QHBoxLayout    *m_toLayout;
+    QVTKWidget     *m_view;
+    QScrollBar     *m_scrollBar;
+    QDoubleSpinBox *m_spinBox;
+    QPushButton    *m_zoomButton;
 
     // VTK View
     vtkRenderWindow                *m_renderWindow;
@@ -256,6 +257,7 @@ namespace EspINA
     vtkSmartPointer<vtkCellPicker>  m_segmentationPicker;
     vtkSmartPointer<vtkAxisActor2D> m_ruler;
     bool                            m_rulerVisibility;
+    bool                            m_fitToSlices;
 
     // View State
     Nm m_crosshairPoint[3];

@@ -44,7 +44,7 @@
 #include <QScrollBar>
 #include <QSettings>
 #include <QDate>
-#include <QSpinBox>
+#include <QDoubleSpinBox>
 #include <QVBoxLayout>
 #include <QVector3D>
 #include <QWheelEvent>
@@ -99,7 +99,7 @@ SliceView::SliceView(ViewManager* vm, PlaneType plane, QWidget* parent)
 , m_toLayout(new QHBoxLayout())
 , m_view(new QVTKWidget())
 , m_scrollBar(new QScrollBar(Qt::Horizontal))
-, m_spinBox(new QSpinBox())
+, m_spinBox(new QDoubleSpinBox())
 , m_zoomButton(new QPushButton())
 , m_ruler(vtkSmartPointer<vtkAxisActor2D>::New())
 , m_selectionEnabled(true)
@@ -110,6 +110,9 @@ SliceView::SliceView(ViewManager* vm, PlaneType plane, QWidget* parent)
 , m_sceneReady(false)
 , m_highlighter(new TransparencySelectionHighlighter())
 {
+  QSettings settings(CESVIMA, ESPINA);
+  m_fitToSlices = settings.value("ViewManager::FitToSlices").toBool();
+
   memset(m_crosshairPoint, 0, 3*sizeof(Nm));
   m_plane = plane;
   m_settings = SettingsPtr(new Settings(m_plane));
@@ -322,7 +325,12 @@ void SliceView::updateThumbnail()
 void SliceView::updateSceneBounds()
 {
   EspinaRenderView::updateSceneBounds();
-  setSlicingStep(m_sceneResolution);
+  setAxialSlicingStep(m_sceneResolution[AXIAL]);
+
+  // we need to update the view only if a signal has been sent
+  // (the volume of a channel has been updated)
+  if (sender() != NULL)
+    updateView();
 }
 
 //-----------------------------------------------------------------------------
@@ -484,16 +492,15 @@ void SliceView::setupUI()
   m_scrollBar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 
   m_spinBox->setMaximum(0);
+  m_spinBox->setDecimals(0);
   m_spinBox->setMinimumWidth(40);
   m_spinBox->setMaximumHeight(20);
   m_spinBox->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
   m_spinBox->setAlignment(Qt::AlignRight);
 
-  connect(m_scrollBar, SIGNAL(valueChanged(int)), m_spinBox,   SLOT(setValue(int)));
-  connect(m_scrollBar, SIGNAL(valueChanged(int)), this,        SLOT(scrollValueChanged(int)));
-  connect(m_spinBox,   SIGNAL(valueChanged(int)), m_scrollBar, SLOT(setValue(int)));
+  connect(m_scrollBar, SIGNAL(valueChanged(int)), this, SLOT(scrollValueChanged(int)));
+  connect(m_spinBox, SIGNAL(valueChanged(double)), this, SLOT(spinValueChanged(double)));
 
-  //   connect(SelectionManager::instance(),SIGNAL(VOIChanged(IVOI*)),this,SLOT(setVOI(IVOI*)));
   m_mainLayout->addWidget(m_view);
   m_controlLayout->addWidget(m_zoomButton);
   m_controlLayout->addWidget(m_scrollBar);
@@ -787,7 +794,10 @@ void SliceView::addChannel(ChannelPtr channel)
     resetCamera();
 
   m_channelPicker->AddPickList(channelRep.slice);
-  connect(channel, SIGNAL(modified(ModelItemPtr)),
+
+  // NOTE: this signal is not disconnected when a channel is removed because is
+  // used in the redo/undo of UnloadChannelCommand
+  connect(channel->volume().get(), SIGNAL(modified()),
           this, SLOT(updateSceneBounds()));
 }
 
@@ -1285,11 +1295,31 @@ void SliceView::sliceViewCenterChanged(Nm x, Nm y, Nm z)
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::scrollValueChanged(int value/*nm*/)
+void SliceView::scrollValueChanged(int value /* nm or slices depending on m_fitToSlices */)
 {
-  m_state->setSlicingPosition(m_slicingMatrix, slicingPosition());
+  double position = (m_fitToSlices ? value*m_slicingStep[m_plane] : value);
+
+  m_state->setSlicingPosition(m_slicingMatrix, position);
+  m_spinBox->blockSignals(true);
+  m_spinBox->setValue(value);
+  m_spinBox->blockSignals(false);
+
   updateView();
-  emit sliceChanged(m_plane, slicingPosition());
+  emit sliceChanged(m_plane, position);
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::spinValueChanged(double value /* nm or slices depending on m_fitToSlices */)
+{
+  double position = (m_fitToSlices ? value*m_slicingStep[m_plane] : value);
+
+  m_state->setSlicingPosition(m_slicingMatrix, position);
+  m_scrollBar->blockSignals(true);
+  m_scrollBar->setValue(value);
+  m_scrollBar->blockSignals(false);
+
+  updateView();
+  emit sliceChanged(m_plane, position);
 }
 
 //-----------------------------------------------------------------------------
@@ -1728,34 +1758,40 @@ void SliceView::slicingStep(Nm steps[3])
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::setSlicingStep(Nm steps[3])
+void SliceView::setAxialSlicingStep(Nm XYstep)
 {
-  if (steps[0] <= 0 || steps[1] <= 0 || steps[2] <= 0)
+  if (XYstep <= 0)
   {
     qFatal("SliceView: Invalid Step value. Slicing Step not changed");
     return;
   }
 
-  Nm slicingPos = slicingPosition();
+  int slicingPos = slicingPosition();
+  int iSlicingPos = slicingPos/m_slicingStep[m_plane];
 
-  if (AXIAL == m_plane)
-  {
-    memcpy(m_slicingStep, steps, 3*sizeof(Nm));
-  }
+  m_slicingStep[AXIAL] = XYstep;
+
   setSlicingBounds(m_sceneBounds);
 
-  if (m_slicingStep[0] == 1 && m_slicingStep[1] == 1 && m_slicingStep[2] == 1)
-    m_spinBox->setSuffix(" nm");
+  if (slicingPos > m_sceneBounds[(2*m_plane) + 1])
+    iSlicingPos = m_sceneBounds[(2*m_plane) + 1]/m_slicingStep[m_plane];
   else
-    m_spinBox->setSuffix("");
+    if (slicingPos < m_sceneBounds[2*m_plane])
+      iSlicingPos = m_sceneBounds[2*m_plane]/m_slicingStep[m_plane];
 
-  m_scrollBar->setValue(slicingPos/m_slicingStep[m_plane]);
+  QSettings settings(CESVIMA, ESPINA);
+  m_fitToSlices = m_plane == AXIAL && settings.value("ViewManager::FitToSlices").toBool();
+
+  if(m_fitToSlices)
+    m_spinBox->setValue(iSlicingPos);
+  else
+    m_spinBox->setValue(iSlicingPos*m_slicingStep[m_plane]);
 }
 
 //-----------------------------------------------------------------------------
 Nm SliceView::slicingPosition() const
 {
-  return m_slicingStep[m_plane]*m_spinBox->value();
+  return m_spinBox->value() * (m_fitToSlices ? m_slicingStep[m_plane] :  1);
 }
 
 
@@ -1768,13 +1804,29 @@ void SliceView::setSlicingBounds(Nm bounds[6])
     return;
   }
 
-  Nm min = bounds[2*m_plane] / m_slicingStep[m_plane];
-  Nm max = bounds[2*m_plane + 1] / m_slicingStep[m_plane];
+  Nm min = bounds[2*m_plane];
+  Nm max = bounds[2*m_plane + 1];
 
-  m_scrollBar->setMinimum(static_cast<int>(min));
-  m_scrollBar->setMaximum(static_cast<int>(max));
-  m_spinBox->setMinimum(static_cast<int>(min));
-  m_spinBox->setMaximum(static_cast<int>(max));
+  if(m_fitToSlices)
+  {
+    m_scrollBar->setMinimum(static_cast<int>(min/m_slicingStep[m_plane]));
+    m_scrollBar->setMaximum(static_cast<int>(max/m_slicingStep[m_plane]));
+    m_spinBox->setPrefix("slice ");
+    m_spinBox->setSuffix("");
+    m_spinBox->setMinimum(min/m_slicingStep[m_plane]);
+    m_spinBox->setMaximum(max/m_slicingStep[m_plane]);
+    m_spinBox->setSingleStep(1);
+  }
+  else
+  {
+    m_scrollBar->setMinimum(static_cast<int>(min));
+    m_scrollBar->setMaximum(static_cast<int>(max));
+    m_spinBox->setPrefix("");
+    m_spinBox->setSuffix(" nm");
+    m_spinBox->setMinimum(min);
+    m_spinBox->setMaximum(max);
+    m_spinBox->setSingleStep(1);
+  }
 
   //bool enabled = m_spinBox->minimum() < m_spinBox->maximum();
   //TODO 2012-11-14 m_fromSlice->setEnabled(enabled);
@@ -1803,9 +1855,12 @@ void SliceView::centerViewOn(Nm center[3], bool force)
     m_crosshairPoint[i] = floor((center[i]/m_slicingStep[i] + 0.5))*m_slicingStep[i];
   }
 
-  // Disable scrollbox signals to avoid calling seting slice
+  // Disable scrollbar signals to avoid calling setting slice
   m_scrollBar->blockSignals(true);
-  m_spinBox->setValue(sliceNumbers[m_plane]);
+  if (!m_fitToSlices)
+    m_spinBox->setValue(sliceNumbers[m_plane]*m_slicingStep[m_plane]);
+  else
+    m_spinBox->setValue(sliceNumbers[m_plane]);
   m_scrollBar->setValue(sliceNumbers[m_plane]);
   m_scrollBar->blockSignals(false);
 

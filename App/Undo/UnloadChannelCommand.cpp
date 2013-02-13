@@ -40,6 +40,9 @@ void EspINA::UnloadChannelCommand::redo()
   m_model->removeRelation(m_reader, m_channel, Channel::VOLUMELINK);
   m_model->removeChannel (m_channel);
   m_model->removeFilter  (m_reader);
+
+  // updates EspinaRenderViews bounds and makes a render
+  m_channel->volume()->markAsModified();
 }
 
 //------------------------------------------------------------------------
@@ -49,5 +52,8 @@ void EspINA::UnloadChannelCommand::undo()
   m_model->addChannel (m_channel);
   m_model->addRelation(m_reader, m_channel, Channel::VOLUMELINK);
   m_model->addRelation(m_sample, m_channel, Channel::STAINLINK);
+
+  // updates EspinaRenderViews bounds and makes a render
+  m_channel->volume()->markAsModified();
 }
 

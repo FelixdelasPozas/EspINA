@@ -225,12 +225,7 @@ void SegmentationExplorer::focusOnSegmentation(const QModelIndex& index)
   Nm center[3] = { (bounds[0] + bounds[1])/2, (bounds[2] + bounds[3])/2, (bounds[4] + bounds[5])/2 };
   m_viewManager->focusViewsOn(center);
 
-  /* TODO BUG 2012-10-05 Use "center on" selection
-  const Nm *p = SelectionManager::instance()->selectionCenter();
-  EspinaView *view = EspinaCore::instance()->viewManger()->currentView();
-  view->setCrosshairPoint(p[0], p[1], p[2]);
-  view->setCameraFocus(p);                     cbbp
-  */
+  /* TODO Use "center on" selection */
 }
 
 //------------------------------------------------------------------------

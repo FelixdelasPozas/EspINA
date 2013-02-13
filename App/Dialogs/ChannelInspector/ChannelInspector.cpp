@@ -202,6 +202,7 @@ void ChannelInspector::changeSpacing()
   }
 
   m_channel->volume()->update();
+  m_view->updateSceneBounds();  // needed to update thumbnail values without triggering volume()->markAsModified()
   m_view->resetCamera();
   m_spacingModified = false;
   applyButton->setEnabled(false);

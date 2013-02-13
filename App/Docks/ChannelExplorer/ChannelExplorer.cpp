@@ -508,6 +508,7 @@ void ChannelExplorer::dialogClosed(QObject *dialog)
     if (it.value() == dialog)
     {
       it.key()->volume()->update();
+      it.key()->volume()->markAsModified();
       ChannelList list;
       list.append(it.key());
       m_viewManager->updateChannelRepresentations(list);

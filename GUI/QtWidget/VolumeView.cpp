@@ -74,7 +74,6 @@ VolumeView::VolumeView(const EspinaFactory *factory,
   buildControls();
 
   setLayout(m_mainLayout);
-  // connect(SelectionManager::instance(),SIGNAL(VOIChanged(IVOI*)),this,SLOT(setVOI(IVOI*)));
 
   // Color background
   QPalette pal = this->palette();

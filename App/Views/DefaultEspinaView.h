@@ -89,7 +89,7 @@ namespace EspINA
     void showSegmentations(bool visible);
     void showThumbnail(bool visible);
     void switchPreprocessing();
-    void setFitToSlices(bool fit);
+    void setFitToSlices(bool unused);
 
     //  virtual void setCameraFocus(const Nm focus[3]);
     //

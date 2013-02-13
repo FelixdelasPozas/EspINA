@@ -50,7 +50,6 @@ class IDockWidget;
 class IToolBar;
   class ColorEngineMenu;
   class DefaultEspinaView;
-  class SelectionManager;
   class GeneralSettings;
   class MainToolBar;
   class ViewManager;
