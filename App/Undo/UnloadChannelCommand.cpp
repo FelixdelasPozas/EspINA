@@ -36,8 +36,8 @@ EspINA::UnloadChannelCommand::UnloadChannelCommand(ChannelPtr   channel,
 //------------------------------------------------------------------------
 void EspINA::UnloadChannelCommand::redo()
 {
-  m_model->removeRelation(m_sample, m_channel, Channel::STAINLINK);
-  m_model->removeRelation(m_reader, m_channel, Channel::VOLUMELINK);
+  m_model->removeRelation(m_sample, m_channel, Channel::STAIN_LINK);
+  m_model->removeRelation(m_reader, m_channel, Channel::VOLUME_LINK);
   m_model->removeChannel (m_channel);
   m_model->removeFilter  (m_reader);
 
@@ -50,8 +50,8 @@ void EspINA::UnloadChannelCommand::undo()
 {
   m_model->addFilter  (m_reader);
   m_model->addChannel (m_channel);
-  m_model->addRelation(m_reader, m_channel, Channel::VOLUMELINK);
-  m_model->addRelation(m_sample, m_channel, Channel::STAINLINK);
+  m_model->addRelation(m_reader, m_channel, Channel::VOLUME_LINK);
+  m_model->addRelation(m_sample, m_channel, Channel::STAIN_LINK);
 
   // updates EspinaRenderViews bounds and makes a render
   m_channel->volume()->markAsModified();

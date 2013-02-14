@@ -48,6 +48,7 @@ AdaptiveCountingFrame::AdaptiveCountingFrame(Id id,
   updateCountingFrame();
 }
 
+// TODO: Memory leak
 //-----------------------------------------------------------------------------
 AdaptiveCountingFrame::~AdaptiveCountingFrame()
 {

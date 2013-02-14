@@ -76,6 +76,8 @@ namespace EspINA
                         QWidget* parent = 0);
     virtual ~VolumeView();
 
+    virtual void reset();
+
     void centerViewOn(Nm *center, bool);
     void setCameraFocus(const Nm center[3]);
 

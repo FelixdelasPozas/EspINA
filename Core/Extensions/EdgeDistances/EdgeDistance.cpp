@@ -204,8 +204,12 @@ Segmentation::Information * EdgeDistance::clone()
 //-----------------------------------------------------------------------------
 void EdgeDistance::invalidate()
 {
+  if (m_seg)
+  {
     qDebug() << "Invalidate" << m_seg->data().toString() << ID;
-  s_cache.remove(m_seg);
+    s_cache.remove(m_seg);
+  }
+
 }
 
 //-----------------------------------------------------------------------------

@@ -56,8 +56,6 @@ namespace EspINA
     static const ArgumentId TAXONOMY;
     static const ArgumentId USERS;//who have reviewed this segmentation
 
-    static const QString COMPOSED_LINK;
-
     static const int SelectionRole = Qt::UserRole + 2;
 
     typedef QString InfoTag;

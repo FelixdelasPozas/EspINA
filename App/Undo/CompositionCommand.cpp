@@ -24,6 +24,7 @@
 #include <Core/Model/EspinaModel.h>
 #include <Core/Model/Sample.h>
 #include <Core/Model/Segmentation.h>
+#include <Core/Relations.h>
 
 #include <QApplication>
 
@@ -100,12 +101,12 @@ void CompositionCommand::redo()
   ChannelSPtr channel = m_input.first()->channel();
   SampleSPtr  sample  = channel->sample();
   m_model->addRelation(m_filter, m_seg, Filter::CREATELINK);
-  m_model->addRelation(sample,   m_seg, Sample::WHERE);
+  m_model->addRelation(sample,   m_seg, Relations::LOCATION);
   m_model->addRelation(channel,  m_seg, Channel::LINK);
 
   foreach(SegmentationSPtr part, m_input)
   {
-    m_model->addRelation(m_seg, part, Segmentation::COMPOSED_LINK);
+    m_model->addRelation(m_seg, part, Relations::COMPOSITION);
   }
 
   m_seg->initializeExtensions();

@@ -99,6 +99,31 @@ VolumeView::~VolumeView()
 
 
 //-----------------------------------------------------------------------------
+void VolumeView::reset()
+{
+  foreach(EspinaWidget *widget, m_widgets.keys())
+  {
+    removeWidget(widget);
+  }
+
+  foreach(SegmentationPtr segmentation, m_segmentations)
+  {
+    removeSegmentation(segmentation);
+  }
+
+  // After removing segmentations there should be only channels
+  foreach(ModelItemPtr item, m_addedItems)
+  {
+    ChannelPtr channel = channelPtr(item);
+    removeChannel(channel);
+  }
+
+  Q_ASSERT(m_addedItems.isEmpty());
+  Q_ASSERT(m_segmentations.isEmpty());
+  Q_ASSERT(m_widgets.isEmpty());
+}
+
+//-----------------------------------------------------------------------------
 void VolumeView::addRendererControls(IRendererSPtr renderer)
 {
   QPushButton *button;

@@ -222,6 +222,24 @@ SliceView::~SliceView()
   delete m_state;
 }
 
+//-----------------------------------------------------------------------------
+void SliceView::reset()
+{
+  foreach(EspinaWidget *widget, m_widgets.keys())
+  {
+    removeWidget(widget);
+  }
+
+  foreach(SegmentationPtr segmentation, m_segmentationReps.keys())
+  {
+    removeSegmentation(segmentation);
+  }
+
+  foreach(ChannelPtr channel, m_channelReps.keys())
+  {
+    removeChannel(channel);
+  }
+}
 
 //-----------------------------------------------------------------------------
 Nm rulerScale(Nm value)

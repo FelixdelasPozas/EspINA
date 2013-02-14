@@ -21,6 +21,7 @@
 
 #include <Core/Model/EspinaModel.h>
 #include <Core/Model/Segmentation.h>
+#include <Core/Relations.h>
 #include <QMimeData>
 
 using namespace EspINA;
@@ -121,7 +122,7 @@ QModelIndex CompositionProxy::parent(const QModelIndex& child) const
   Q_ASSERT(EspINA::SEGMENTATION == childItem->type());
 
   int i = 0;
-  SegmentationPtr parentSeg;
+  SegmentationPtr parentSeg = NULL;
   while(!parentSeg && i < m_components.size())
   {
     SegmentationPtr seg = m_components.keys().at(i);
@@ -165,7 +166,7 @@ QModelIndex CompositionProxy::mapFromSource(const QModelIndex& sourceIndex) cons
   SegmentationPtr seg = segmentationPtr(sourceItem);
 
   ModelItemSList compositions = seg->relatedItems(EspINA::IN,
-                                                       Segmentation::COMPOSED_LINK);
+                                                  Relations::COMPOSITION);
 
   Q_ASSERT(compositions.size() <= 1);
 
@@ -244,12 +245,12 @@ bool CompositionProxy::dropMimeData(const QMimeData* data, Qt::DropAction action
     if (prevParentSeg)
     {
       SegmentationSPtr prevParentSegPtr = m_sourceModel->findSegmentation(prevParentSeg);
-      m_sourceModel->removeRelation(prevParentSegPtr, segPtr, Segmentation::COMPOSED_LINK);
+      m_sourceModel->removeRelation(prevParentSegPtr, segPtr, Relations::COMPOSITION);
     }
     if (newParentSeg)
     {
       SegmentationSPtr newParentSegPtr = m_sourceModel->findSegmentation(newParentSeg);
-      m_sourceModel->addRelation(newParentSegPtr, segPtr, Segmentation::COMPOSED_LINK);
+      m_sourceModel->addRelation(newParentSegPtr, segPtr, Relations::COMPOSITION);
     }
   }
 
@@ -424,9 +425,8 @@ bool CompositionProxy::indices(const QModelIndex& topLeft, const QModelIndex& bo
 //------------------------------------------------------------------------
 SegmentationPtr CompositionProxy::parentSegmentation(ModelItemPtr segItem) const
 {
-  // TODO 2012-12-17 Usar api del modelo!
   ModelItemSList parentItem = segItem->relatedItems(EspINA::IN,
-                                                         Segmentation::COMPOSED_LINK);
+                                                    Relations::COMPOSITION);
 
   SegmentationPtr parentSeg = NULL;
   if (!parentItem.isEmpty())

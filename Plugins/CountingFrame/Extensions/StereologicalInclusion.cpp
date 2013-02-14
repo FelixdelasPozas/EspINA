@@ -70,7 +70,7 @@ void StereologicalInclusion::initialize(ModelItem::Arguments args)
 
   SampleSPtr sample = m_seg->sample();
 
-  ModelItemSList relatedChannels = sample->relatedItems(EspINA::OUT, Channel::STAINLINK);
+  ModelItemSList relatedChannels = sample->relatedItems(EspINA::OUT, Channel::STAIN_LINK);
   Q_ASSERT(relatedChannels.size() > 0);
 
   CountingFrameList countingFrames;

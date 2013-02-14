@@ -405,7 +405,12 @@ void TaxonomyLayout::segmentationsDragged(SegmentationList   segmentations,
                                           TaxonomyElementPtr taxonomy)
 {
   m_undoStack->beginMacro(tr("Change Segmentation's Taxonomy"));
-  m_undoStack->push(new ChangeTaxonomyCommand(segmentations, taxonomy, m_model));
+  {
+    m_undoStack->push(new ChangeTaxonomyCommand(segmentations,
+                                                taxonomy,
+                                                m_model,
+                                                m_viewManager));
+  }
   m_undoStack->endMacro();
 }
 

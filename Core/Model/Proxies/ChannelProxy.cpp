@@ -219,7 +219,7 @@ QModelIndex ChannelProxy::mapFromSource(const QModelIndex& sourceIndex) const
     {
       ChannelPtr channel = channelPtr(sourceItem);
       Q_ASSERT(channel);
-      ModelItemSList samples = channel->relatedItems(EspINA::IN, Channel::STAINLINK);
+      ModelItemSList samples = channel->relatedItems(EspINA::IN, Channel::STAIN_LINK);
       if (samples.size() > 0)
       {
         SamplePtr sample = samplePtr(samples[0].data());
@@ -437,7 +437,7 @@ void ChannelProxy::sourceDataChanged(const QModelIndex& sourceTopLeft,
       {
         SamplePtr sample = samplePtr(proxyItem);
         ModelItemSList channels = sample->relatedItems(EspINA::OUT,
-                                                       Channel::STAINLINK);
+                                                       Channel::STAIN_LINK);
         ChannelSet prevChannels = m_channels[sample].toSet();
         // debugChannelSets("Previous Channels", prevChannels);
         ChannelSet currentChannels;

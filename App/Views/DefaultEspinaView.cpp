@@ -182,57 +182,14 @@ void DefaultEspinaView::createViewMenu(QMenu* menu)
   showThumbnail(st);
 }
 
-////----------------------------------------------------------------------------
-//void DefaultEspinaView::resetCamera()
-//{
-//  xyView->resetCamera();
-//  yzView->resetCamera();
-//  xzView->resetCamera();
-//  volView->resetCamera();
-//}
 
-// //----------------------------------------------------------------------------
-// void DefaultEspinaView::addWidget(EspinaWidget* widget)
-// {
-//   Widgtes widgets;
-//   widgets.xy  = widget->createSliceWidget(AXIAL);
-//   widgets.yz  = widget->createSliceWidget(SAGITTAL);
-//   widgets.xz  = widget->createSliceWidget(CORONAL);
-//   //widgets.vol = widget->createWidget();
-// 
-//   xyView->addWidget (widgets.xy);
-//   yzView->addWidget (widgets.yz);
-//   xzView->addWidget (widgets.xz);
-//   //volView->addWidget(widgets.vol);
-// 
-//   m_widgets[widget] = widgets;
-// 
-//   forceRender();
-// }
-
-// //----------------------------------------------------------------------------
-// void DefaultEspinaView::removeWidget(EspinaWidget* widget)
-// {
-//   Widgtes widgets = m_widgets[widget];
-// 
-//   xyView->removeWidget (widgets.xy);
-//   yzView->removeWidget (widgets.yz);
-//   xzView->removeWidget (widgets.xz);
-//   //volView->removeWidget(widgets.vol);
-// 
-//   m_widgets.remove(widget);
-// }
-/*
-//----------------------------------------------------------------------------
-void DefaultEspinaView::setColorEngine(ColorEngine* engine)
+//-----------------------------------------------------------------------------
+void DefaultEspinaView::setModel(QAbstractItemModel* model)
 {
-  m_colorEngine = engine;
-  xyView->setColorEngine(m_colorEngine);
-  yzView->setColorEngine(m_colorEngine);
-  xzView->setColorEngine(m_colorEngine);
-  volView->setColorEngine(m_colorEngine);
-  forceRender();
-}*/
+  QAbstractItemView::setModel(model);
+  connect(model, SIGNAL(modelAboutToBeReset()),
+          this, SLOT(sourceModelReset()));
+}
 
 //----------------------------------------------------------------------------
 ISettingsPanelPtr DefaultEspinaView::settingsPanel()
@@ -366,6 +323,15 @@ void DefaultEspinaView::rowsAboutToBeRemoved(const QModelIndex& parent, int star
         break;
     };
   }
+}
+
+//----------------------------------------------------------------------------
+void DefaultEspinaView::sourceModelReset()
+{
+  xyView->reset();
+  yzView->reset();
+  xzView->reset();
+  volView->reset();
 }
 
 //----------------------------------------------------------------------------

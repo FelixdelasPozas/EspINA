@@ -84,6 +84,8 @@ namespace EspINA
     explicit SliceView(ViewManager *vm, PlaneType plane = AXIAL, QWidget* parent = 0);
     virtual ~SliceView();
 
+    virtual void reset();
+
     inline QString title() const;
     void setTitle(const QString &title);
 

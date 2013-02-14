@@ -22,14 +22,14 @@
 
 #include "SegmentationExplorerLayout.h"
 
-#include <Core/Model/Proxies/SampleProxy.h>
+#include <Core/Model/Proxies/LocationProxy.h>
 
 #include <QSortFilterProxyModel>
 
 namespace EspINA
 {
   //------------------------------------------------------------------------
-  class SampleLayout
+  class LocationLayout
   : public SegmentationExplorer::Layout
   {
     class SortFilter
@@ -40,20 +40,35 @@ namespace EspINA
     };
 
   public:
-    explicit SampleLayout(CheckableTreeView *view,
+    explicit LocationLayout(CheckableTreeView *view,
                           EspinaModel       *model,
                           QUndoStack        *undoStack,
                           ViewManager       *viewManager);
-    virtual ~SampleLayout();
+    virtual ~LocationLayout();
 
-    virtual QAbstractItemModel* model() {return m_sort.data();}
+    virtual QAbstractItemModel* model() 
+    {return m_sort.data();}
+
     virtual ModelItemPtr item(const QModelIndex& index) const;
+
     virtual QModelIndex index(ModelItemPtr item) const;
-    virtual SegmentationList deletedSegmentations(QModelIndexList selection);
+
+    virtual void contextMenu(const QPoint &pos);
+
+    virtual void deleteSelectedItems();
+
+    virtual void showSelectedItemsInformation();
+
+    virtual QItemDelegate *itemDelegate() const;
 
   private:
-    QSharedPointer<SampleProxy> m_proxy;
+    bool selectedItems(SampleList &samples, SegmentationSet &segmentations);
+
+  private:
+    QSharedPointer<LocationProxy> m_proxy;
     QSharedPointer<SortFilter> m_sort;
+
+    QItemDelegate *m_delegate;
   };
 
 } // namespace EspINA

@@ -22,6 +22,7 @@
 #include <Core/Model/EspinaFactory.h>
 #include <Core/Model/EspinaModel.h>
 #include <Core/Model/Segmentation.h>
+#include <Core/Relations.h>
 #include <Undo/AddChannel.h>
 #include <Undo/AddRelation.h>
 #include <Undo/AddSample.h>
@@ -108,7 +109,7 @@ void SegmhaImporter::UndoCommand::redo()
   foreach(SegmentationSPtr seg, m_segs)
   {
     m_model->addRelation(m_filter,  seg, Filter::CREATELINK);
-    m_model->addRelation(m_sample,  seg, Sample::WHERE);
+    m_model->addRelation(m_sample,  seg, Relations::LOCATION);
     m_model->addRelation(m_channel, seg, Channel::LINK);
     seg->initializeExtensions();
   }
@@ -121,7 +122,7 @@ void SegmhaImporter::UndoCommand::undo()
   foreach(SegmentationSPtr seg, m_segs)
   {
     m_model->removeRelation(m_filter,  seg, Filter::CREATELINK);
-    m_model->removeRelation(m_sample,  seg, Sample::WHERE);
+    m_model->removeRelation(m_sample,  seg, Relations::LOCATION);
     m_model->removeRelation(m_channel, seg, Channel::LINK);
   }
 

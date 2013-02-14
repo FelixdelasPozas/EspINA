@@ -72,6 +72,7 @@ namespace EspINA
     void sourceRowsAboutToBeMoved(const QModelIndex &sourceParent, int sourceStart, int sourceEnd, const QModelIndex & destinationParent, int destinationRow);
     void sourceRowsMoved(const QModelIndex &sourceParent, int sourceStart, int sourceEnd, const QModelIndex & destinationParent, int destinationRow);
     void sourceDataChanged(const QModelIndex &sourceTopLeft, const QModelIndex &sourceBottomRight);
+    void sourceModelReset();
 
   signals:
     void taxonomiesDragged(TaxonomyElementList sources, TaxonomyElementPtr parent);

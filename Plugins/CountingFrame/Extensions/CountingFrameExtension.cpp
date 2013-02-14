@@ -29,6 +29,7 @@
 #include <Core/Model/Channel.h>
 #include <Core/Extensions/EdgeDistances/AdaptiveEdges.h>
 #include <Core/Extensions/EdgeDistances/EdgeDistance.h>
+#include <Core/Relations.h>
 #include <GUI/ViewManager.h>
 
 #include <QDebug>
@@ -262,15 +263,10 @@ void CountingFrameExtension::addCountingFrame(CountingFrame* countingFrame)
   s_cache[m_channel].insert(countingFrame->id() ,cf);
 
   SampleSPtr sample = m_channel->sample();
-  Q_ASSERT(sample);
-  ModelItemSList items = sample->relatedItems(EspINA::OUT,  Sample::WHERE);
-  foreach(ModelItemSPtr item, items)
+  foreach(SegmentationPtr segmentation, sample->segmentations())
   {
-    if (EspINA::SEGMENTATION == item->type())
-    {
-      StereologicalInclusion *inclusionExtension = stereologicalInclusion(item);
-      inclusionExtension->setCountingFrames(m_countingFrames);
-    }
+    StereologicalInclusion *inclusionExtension = stereologicalInclusion(segmentation);
+    inclusionExtension->setCountingFrames(m_countingFrames);
   }
   connect(countingFrame, SIGNAL(modified(CountingFrame*)),
           this, SLOT(countinfFrameUpdated(CountingFrame*)));
@@ -283,15 +279,10 @@ void CountingFrameExtension::deleteCountingFrame(CountingFrame* countingFrame)
   m_countingFrames.removeOne(countingFrame);
 
   SampleSPtr sample = m_channel->sample();
-  Q_ASSERT(sample);
-  ModelItemSList items = sample->relatedItems(EspINA::OUT, Sample::WHERE);
-  foreach(ModelItemSPtr item, items)
+  foreach(SegmentationPtr segmentation, sample->segmentations())
   {
-    if (EspINA::SEGMENTATION == item->type())
-    {
-      StereologicalInclusion *inclusionExtension = stereologicalInclusion(item);
-      inclusionExtension->setCountingFrames(m_countingFrames);
-    }
+    StereologicalInclusion *inclusionExtension = stereologicalInclusion(segmentation);
+    inclusionExtension->setCountingFrames(m_countingFrames);
   }
 }
 
@@ -299,24 +290,16 @@ void CountingFrameExtension::deleteCountingFrame(CountingFrame* countingFrame)
 void CountingFrameExtension::countinfFrameUpdated(CountingFrame* countingFrame)
 {
   SampleSPtr sample = m_channel->sample();
-  Q_ASSERT(sample);
-  ModelItemSList items = sample->relatedItems(EspINA::OUT, Sample::WHERE);
-  foreach(ModelItemSPtr item, items)
+  foreach(SegmentationPtr segmentation, sample->segmentations())
   {
-    if (EspINA::SEGMENTATION == item->type())
-    {
-      StereologicalInclusion *inclusionExtension = stereologicalInclusion(item);
-      inclusionExtension->evaluateCountingFrame(countingFrame);
-    }
+    StereologicalInclusion *inclusionExtension = stereologicalInclusion(segmentation);
+    inclusionExtension->evaluateCountingFrame(countingFrame);
   }
 }
 
 //-----------------------------------------------------------------------------
-StereologicalInclusion *CountingFrameExtension::stereologicalInclusion(ModelItemSPtr segmentationItem)
+StereologicalInclusion *CountingFrameExtension::stereologicalInclusion(SegmentationPtr segmentation)
 {
-  Q_ASSERT(EspINA::SEGMENTATION == segmentationItem->type());
-  SegmentationSPtr segmentation = segmentationPtr(segmentationItem);
-
   StereologicalInclusion *inclusionExtension   = NULL;
   Segmentation::InformationExtension extension = segmentation->informationExtension(StereologicalInclusion::ID);
   if (extension)

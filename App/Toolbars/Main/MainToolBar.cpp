@@ -78,8 +78,10 @@ MainToolBar::MainToolBar(EspinaModel *model,
   m_taxonomySelector->setRootModelIndex(model->taxonomyRoot());
   connect(m_taxonomySelector,SIGNAL(activated(QModelIndex)),
           this, SLOT(setActiveTaxonomy(QModelIndex)));
-  connect(model, SIGNAL(taxonomyAdded(TaxonomySPtr)),
+  connect(m_model, SIGNAL(taxonomyAdded(TaxonomySPtr)),
           this,  SLOT(updateTaxonomy(TaxonomySPtr)));
+  connect(m_model, SIGNAL(modelReset()),
+          this, SLOT(resetRootItem()));
   m_taxonomySelector->setToolTip( tr("Type of new segmentation") );
 
   addWidget(m_taxonomySelector);
@@ -223,4 +225,10 @@ void MainToolBar::toggleMeasureTool(bool enable)
     m_measureTool->setEnabled(false);
     m_viewManager->unsetActiveTool(m_measureTool);
   }
+}
+
+//----------------------------------------------------------------------------
+void MainToolBar::resetRootItem()
+{
+  m_taxonomySelector->setRootModelIndex(m_model->taxonomyRoot());
 }

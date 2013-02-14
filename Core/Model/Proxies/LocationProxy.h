@@ -30,14 +30,15 @@
 
 namespace EspINA
 {
+
   /// Group Segmentations by Sample
-  class SampleProxy
+  class LocationProxy
   : public QAbstractProxyModel
   {
     Q_OBJECT
   public:
-    SampleProxy(QObject* parent = 0);
-    virtual ~SampleProxy();
+    LocationProxy(QObject* parent = 0);
+    virtual ~LocationProxy();
 
     virtual void setSourceModel(EspinaModel *sourceModel);
 
@@ -52,28 +53,23 @@ namespace EspINA
     virtual QModelIndex mapFromSource(const QModelIndex& sourceIndex) const;
     virtual QModelIndex mapToSource(const QModelIndex& proxyIndex) const;
 
-    int numSegmentations(QModelIndex sampleIndex, bool recursive = false) const;
-    int numSubSamples(QModelIndex sampleIndex) const;
-    QModelIndexList segmentations(QModelIndex sampleIndex, bool recursive=false) const;
-
   protected slots:
     void sourceRowsInserted(const QModelIndex & sourceParent, int start, int end);
     void sourceRowsAboutToBeRemoved(const QModelIndex & sourceParent, int start, int end);
     void sourceRowsRemoved(const QModelIndex & sourceParent, int start, int end);
     void sourceDataChanged(const QModelIndex& sourceTopLeft, const QModelIndex& sourceBottomRight);
+    void sourceModelReset();
 
   protected:
-    bool indices(const QModelIndex &topLeft, const QModelIndex &bottomRight, QModelIndexList &result);
-    //   QModelIndexList indices(const QModelIndex& parent, int start, int end);
-    QModelIndexList proxyIndices(const QModelIndex& parent, int start, int end) const;
-    void updateSegmentations() const;
-    int numSegmentations(SamplePtr sample) const;
-    int numSubSamples(SamplePtr sample) const;
+    ModelItemPtr parentNode(const ModelItemPtr node) const;
+    void registerNodes(ModelItemPtr node);
+    void removeSubNodes(ModelItemPtr node);
 
   private:
     EspinaModel *m_model;
-    SampleList m_samples;
-    mutable QMap<SamplePtr, ModelItemList> m_segmentations;
+
+    ModelItemList m_rootNodes;
+    mutable QMap<ModelItemPtr, ModelItemList> m_subNodes;
   };
 
 } // namespace EspINA

@@ -46,6 +46,8 @@ namespace EspINA
     explicit EspinaRenderView(QWidget* parent = 0);
     virtual ~EspinaRenderView();
 
+    virtual void reset() = 0;
+
     virtual void addChannel   (ChannelPtr channel) = 0;
     virtual void removeChannel(ChannelPtr channel) = 0;
     virtual bool updateChannel(ChannelPtr channel) = 0;

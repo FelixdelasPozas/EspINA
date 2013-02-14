@@ -22,12 +22,13 @@
 #include <Core/Model/Sample.h>
 #include <Core/Model/Segmentation.h>
 #include <Core/Model/EspinaModel.h>
+#include <GUI/QtWidget/SegmentationContextualMenu.h>
 
 #include <QMessageBox>
 
 using namespace EspINA;
 
-bool SampleLayout::SortFilter::lessThan(const QModelIndex& left, const QModelIndex& right) const
+bool LocationLayout::SortFilter::lessThan(const QModelIndex& left, const QModelIndex& right) const
 {
   ModelItemPtr leftItem  = indexPtr(left);
   ModelItemPtr rightItem = indexPtr(right);
@@ -42,13 +43,14 @@ bool SampleLayout::SortFilter::lessThan(const QModelIndex& left, const QModelInd
 }
 
 //------------------------------------------------------------------------
-SampleLayout::SampleLayout(CheckableTreeView *view,
+LocationLayout::LocationLayout(CheckableTreeView *view,
                            EspinaModel       *model,
                            QUndoStack        *undoStack,
                            ViewManager       *viewManager)
 : Layout (view, model, undoStack, viewManager)
-, m_proxy(new SampleProxy())
+, m_proxy(new LocationProxy())
 , m_sort (new SortFilter())
+, m_delegate(new QItemDelegate())
 {
   m_proxy->setSourceModel(m_model);
   m_sort->setSourceModel(m_proxy.data());
@@ -56,93 +58,102 @@ SampleLayout::SampleLayout(CheckableTreeView *view,
 }
 
 //------------------------------------------------------------------------
-SampleLayout::~SampleLayout()
+LocationLayout::~LocationLayout()
 {
   qDebug() << "Destroying Sample Layout";
 }
 
 //------------------------------------------------------------------------
-ModelItemPtr SampleLayout::item(const QModelIndex& index) const
+ModelItemPtr LocationLayout::item(const QModelIndex& index) const
 {
   return indexPtr(m_sort->mapToSource(index)); 
 }
 
 //------------------------------------------------------------------------
-QModelIndex SampleLayout::index(ModelItemPtr item) const
+QModelIndex LocationLayout::index(ModelItemPtr item) const
 {
-  return m_sort->mapFromSource(m_proxy->mapFromSource(index(item)));
+  return m_sort->mapFromSource(m_proxy->mapFromSource(Layout::index(item)));
 }
 
 //------------------------------------------------------------------------
-SegmentationList SampleLayout::deletedSegmentations(QModelIndexList selection)
+void LocationLayout::contextMenu(const QPoint &pos)
 {
-  QSet<SegmentationPtr> toDelete;
-  foreach(QModelIndex index, selection)
+  SampleList      samples;
+  SegmentationSet segmentations;
+
+  if (!selectedItems(samples, segmentations))
+    return;
+
+  if (samples.isEmpty())
   {
-    index = m_sort->mapToSource(index);
-    ModelItemPtr item = indexPtr(index);
+    SegmentationContextualMenu contextMenu(segmentations.toList(),
+                                           m_model,
+                                           m_undoStack,
+                                           m_viewManager);
+
+    contextMenu.exec(pos);
+  }
+}
+
+//------------------------------------------------------------------------
+void LocationLayout::deleteSelectedItems()
+{
+  SampleList      samples;
+  SegmentationSet segmentations;
+
+  if (!selectedItems(samples, segmentations))
+    return;
+
+  if (samples.isEmpty())
+  {
+    deleteSegmentations(segmentations.toList());
+  }
+}
+
+//------------------------------------------------------------------------
+void LocationLayout::showSelectedItemsInformation()
+{
+  SampleList      samples;
+  SegmentationSet segmentations;
+
+  if (!selectedItems(samples, segmentations))
+    return;
+
+  if (samples.size() == 1 && segmentations.isEmpty())
+  {
+    // TODO: Display Sample metadata
+  } else if (!segmentations.isEmpty())
+  {
+    showSegmentationInformation(segmentations.toList());
+  }
+
+}
+
+//------------------------------------------------------------------------
+QItemDelegate *LocationLayout::itemDelegate() const
+{
+  return m_delegate;
+}
+
+//------------------------------------------------------------------------
+bool LocationLayout::selectedItems(SampleList &samples, SegmentationSet &segmentations)
+{
+  QModelIndexList selectedIndexes = m_view->selectionModel()->selectedIndexes();
+  foreach(QModelIndex index, selectedIndexes)
+  {
+    ModelItemPtr item = LocationLayout::item(index);
     switch (item->type())
     {
       case EspINA::SEGMENTATION:
-      {
-        SegmentationPtr seg = segmentationPtr(item);
-        Q_ASSERT(seg);
-        toDelete << seg;
+        segmentations << segmentationPtr(item);
         break;
-      }
       case EspINA::SAMPLE:
-      {
-        int totalSeg  = m_proxy->numSegmentations(index, true);
-        int directSeg = m_proxy->numSegmentations(index);
-
-        if (totalSeg == 0)
-          continue;
-
-        SamplePtr sample = samplePtr(item);
-        QMessageBox msgBox;
-        msgBox.setText(SEGMENTATION_MESSAGE.arg(sample->id()));
-        msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-        msgBox.setDefaultButton(QMessageBox::No);
-
-        if (directSeg > 0)
-        {
-          if (directSeg < totalSeg)
-          {
-            msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::YesAll |  QMessageBox::No);
-            msgBox.setText(MIXED_MESSAGE.arg(sample->id()));
-          }
-        } else
-        {
-          msgBox.setText(RECURSIVE_MESSAGE.arg(sample->id()));
-          msgBox.setStandardButtons(QMessageBox::YesAll |  QMessageBox::No);
-        }
-
-        bool recursive = false;
-        switch (msgBox.exec())
-        {
-          case QMessageBox::YesAll:
-            recursive = true;
-          case QMessageBox::Yes:
-          {
-            QModelIndexList subSegs = m_proxy->segmentations(index, recursive);
-            foreach(QModelIndex subIndex, subSegs)
-            {
-              ModelItemPtr subItem = indexPtr(subIndex);
-              SegmentationPtr seg = segmentationPtr(subItem);
-              toDelete << seg;
-            }
-            break;
-          }
-          default:
-            break;
-        }
+        samples << samplePtr(item);
         break;
-      }
-          default:
-            Q_ASSERT(false);
-            break;
+      default:
+        Q_ASSERT(false);
     }
   }
 
-  return toDelete.toList();
+  return !samples.isEmpty() || !segmentations.isEmpty();
 }

@@ -56,6 +56,8 @@ void InformationProxy::setSourceModel(EspinaModel *sourceModel)
           this, SLOT(sourceRowsAboutToBeRemoved(QModelIndex, int, int)));
   connect(sourceModel, SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)),
           this, SLOT(sourceDataChanged(const QModelIndex &,const QModelIndex &)));
+  connect(m_model, SIGNAL(modelAboutToBeReset()),
+          this, SLOT(sourceModelReset()));
 
   sourceRowsInserted(m_model->segmentationRoot(), 0, m_model->segmentations().size()-1);
 
@@ -266,4 +268,14 @@ void InformationProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, const
   {
     emit dataChanged(mapFromSource(sourceTopLeft), mapFromSource(sourceBottomRight));
   }
+}
+
+//------------------------------------------------------------------------
+void InformationProxy::sourceModelReset()
+{
+  beginResetModel();
+  {
+    m_elements.clear();
+  }
+  endResetModel();
 }

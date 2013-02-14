@@ -124,7 +124,12 @@ void SegmentationContextualMenu::changeSegmentationsTaxonomy(const QModelIndex& 
   TaxonomyElementPtr taxonomy = taxonomyElementPtr(taxItem);
 
   m_undoStack->beginMacro(tr("Change Segmentation's Taxonomy"));
-  m_undoStack->push(new ChangeTaxonomyCommand(m_segmentations, taxonomy, m_model));
+  {
+    m_undoStack->push(new ChangeTaxonomyCommand(m_segmentations,
+                                                taxonomy,
+                                                m_model,
+                                                m_viewManager));
+  }
   m_undoStack->endMacro();
 
   emit changeTaxonomy(taxonomy);

@@ -20,6 +20,7 @@
 #include "ChangeTaxonomyCommand.h"
 #include <Core/Model/Segmentation.h>
 #include <Core/Model/EspinaModel.h>
+#include <GUI/ViewManager.h>
 
 using namespace EspINA;
 
@@ -27,9 +28,11 @@ using namespace EspINA;
 ChangeTaxonomyCommand::ChangeTaxonomyCommand(SegmentationList   segmentations,
                                              TaxonomyElementPtr taxonomy,
                                              EspinaModel       *model,
+                                             ViewManager       *viewManager,
                                              QUndoCommand      *parent)
 : QUndoCommand(parent)
 , m_model(model)
+, m_viewManager(viewManager)
 , m_taxonomy(m_model->findTaxonomyElement(taxonomy))
 {
   foreach(SegmentationPtr segmentation, segmentations)
@@ -48,17 +51,23 @@ ChangeTaxonomyCommand::~ChangeTaxonomyCommand()
 //------------------------------------------------------------------------
 void ChangeTaxonomyCommand::redo()
 {
+  SegmentationList segmentations;
   foreach(SegmentationSPtr segmentation, m_oldTaxonomies.keys())
   {
     m_model->changeTaxonomy(segmentation, m_taxonomy);
+    segmentations << segmentation.data();
   }
+  m_viewManager->updateSegmentationRepresentations(segmentations);
 }
 
 //------------------------------------------------------------------------
 void ChangeTaxonomyCommand::undo()
 {
+  SegmentationList segmentations;
   foreach(SegmentationSPtr segmentation, m_oldTaxonomies.keys())
   {
     m_model->changeTaxonomy(segmentation, m_oldTaxonomies[segmentation]);
+    segmentations << segmentation.data();
   }
+  m_viewManager->updateSegmentationRepresentations(segmentations);
 }

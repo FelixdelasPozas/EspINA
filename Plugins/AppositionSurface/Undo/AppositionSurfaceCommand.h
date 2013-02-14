@@ -43,6 +43,7 @@ namespace EspINA
       ChannelSList        m_channels;
       FilterSPtrList      m_filters;
       SegmentationSList   m_segmentations;
+      SegmentationSList   m_asSegmentations;
   };
 
 } /* namespace EspINA */

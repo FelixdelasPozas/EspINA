@@ -39,6 +39,7 @@ namespace EspINA
     explicit ChangeTaxonomyCommand(SegmentationList   segmentations,
                                    TaxonomyElementPtr taxonomy,
                                    EspinaModel       *model,
+                                   ViewManager       *viewManager,
                                    QUndoCommand      *parent = NULL);
     virtual ~ChangeTaxonomyCommand();
 
@@ -47,6 +48,7 @@ namespace EspINA
 
   private:
     EspinaModel *m_model;
+    ViewManager *m_viewManager;
 
     TaxonomyElementSPtr m_taxonomy;
     QMap<SegmentationSPtr, TaxonomyElementSPtr> m_oldTaxonomies;

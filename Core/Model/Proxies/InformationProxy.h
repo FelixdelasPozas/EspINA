@@ -59,9 +59,11 @@ namespace EspINA
     void sourceRowsInserted(const QModelIndex & sourceParent, int start, int end);
     void sourceRowsAboutToBeRemoved(const QModelIndex & sourceParent, int start, int end);
     void sourceDataChanged(const QModelIndex& sourceTopLeft, const QModelIndex& sourceBottomRight);
+    void sourceModelReset();
 
   private:
     EspinaModel *m_model;
+
     QStringList m_query;
     QList<QModelIndex> m_elements;
   };

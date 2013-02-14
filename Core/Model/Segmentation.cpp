@@ -25,6 +25,7 @@
 #include "EspinaModel.h"
 #include "Core/ColorEngines/IColorEngine.h"
 #include <Core/Extensions/SegmentationExtension.h>
+#include <Core/Relations.h>
 
 #include <vtkAlgorithm.h>
 #include <vtkAlgorithmOutput.h>
@@ -40,7 +41,6 @@ const ModelItem::ArgumentId Segmentation::OUTPUT   = "Output";
 const ModelItem::ArgumentId Segmentation::TAXONOMY = "Taxonomy";
 const ModelItem::ArgumentId Segmentation::USERS    = "Users";
 
-const QString Segmentation::COMPOSED_LINK          = "ComposedOf";
 
 const int SegmentationNumberRole = TypeRole+1;
 
@@ -205,13 +205,15 @@ void Segmentation::updateCacheFlag()
 //------------------------------------------------------------------------
 SampleSPtr Segmentation::sample()
 {
-  ModelItemSList relatedSamples = relatedItems(IN, Sample::WHERE);
+  ModelItemSList relatedChannels = relatedItems(EspINA::IN, Channel::LINK);
+  // NOTE: Decide how to deal with segmentations created from various channels in a future
+  Q_ASSERT(relatedChannels.size() == 1);
 
-  SampleSPtr sample;
-  if (relatedSamples.size() == 1)
-    sample = samplePtr(relatedSamples.first());
+  ModelItemSPtr channel = relatedChannels.first();
+  ModelItemSList relatedSamples = channel->relatedItems(EspINA::IN, Channel::STAIN_LINK);
 
-  return sample;
+  Q_ASSERT(relatedSamples.size() == 1);
+  return samplePtr(relatedSamples.first());
 }
 
 //------------------------------------------------------------------------
@@ -313,7 +315,7 @@ SegmentationSList Segmentation::components()
 {
   SegmentationSList res;
 
-  ModelItemSList subComponents = relatedItems(OUT, COMPOSED_LINK);
+  ModelItemSList subComponents = relatedItems(EspINA::OUT, Relations::COMPOSITION);
 
   foreach(ModelItemSPtr item, subComponents)
   {
@@ -329,7 +331,7 @@ SegmentationSList Segmentation::componentOf()
 {
   SegmentationSList res;
 
-  ModelItemSList subComponents = relatedItems(IN, COMPOSED_LINK);
+  ModelItemSList subComponents = relatedItems(EspINA::IN, Relations::COMPOSITION);
 
   foreach(ModelItemSPtr item, subComponents)
   {

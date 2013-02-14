@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2013  <copyright holder> <email>
+    Copyright (C) 2011  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,19 +16,19 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef RELATIONS_H
+#define RELATIONS_H
 
-#ifndef QTMODELUTILS_H
-#define QTMODELUTILS_H
+#include <QString>
 
-#include <QModelIndex>
-
-namespace QtModelUtils
+namespace EspINA
 {
-  /// Find the QModelIndex children of @parent whose @role is equal to @value
-  QModelIndex findChildIndex(QModelIndex parent, QVariant value, int role = Qt::DisplayRole);
+  namespace Relations
+  {
+    const QString COMPOSITION   = "ComposedOf";
+    const QString LOCATION      = "where";
+    const QString SPECIFICATION = "is";
+  } // namespace Relation
+}; // namespace EspINA
 
-  /// Return a list of all QModelIndex between @topLeft index and @bottomRight index
-  QModelIndexList indices(const QModelIndex &topLeft, const QModelIndex &bottomRight);
-} // namespace QtModelUtils
-
-#endif // QTMODELUTILS_H
+#endif // RELATIONS_H

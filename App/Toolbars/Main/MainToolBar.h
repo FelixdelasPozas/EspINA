@@ -81,6 +81,7 @@ namespace EspINA
     void toggleCrosshair(bool);
     void abortRemoval();
     void toggleMeasureTool(bool);
+    void resetRootItem();
 
   signals:
     void showSegmentations(bool);

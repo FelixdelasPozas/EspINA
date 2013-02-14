@@ -63,6 +63,8 @@ namespace EspINA
     virtual QRect visualRect(const QModelIndex& index) const
     { return QRect(); }
 
+    virtual void setModel(QAbstractItemModel *model);
+
   protected:
     // AbstractItemView Interface
     virtual QRegion visualRegionForSelection(const QItemSelection& selection) const {return QRegion();}
@@ -81,8 +83,7 @@ namespace EspINA
     bool updateSegmentation(SegmentationPtr seg);
 
   protected slots:
-    virtual void rowsInserted(const QModelIndex& parent, int start, int end);
-    virtual void rowsAboutToBeRemoved(const QModelIndex& parent, int start, int end);
+    void sourceModelReset();
 
     void showCrosshair(bool visible);
     void setRulerVisibility(bool visible);
@@ -98,6 +99,9 @@ namespace EspINA
     virtual void changePlanePosition(PlaneType, Nm);
 
   protected:
+    virtual void rowsInserted(const QModelIndex& parent, int start, int end);
+    virtual void rowsAboutToBeRemoved(const QModelIndex& parent, int start, int end);
+
     /// Update XY, YZ, XZ and 3D View
     void updateViews();
 

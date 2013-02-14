@@ -24,6 +24,7 @@
 #include <Core/Model/EspinaFactory.h>
 #include <Core/Model/EspinaModel.h>
 #include <Core/Model/Sample.h>
+#include <Core/Relations.h>
 
 #include <QApplication>
 
@@ -125,7 +126,7 @@ void ImageLogicCommand::redo()
 
   SampleSPtr sample = channel->sample();
   m_model->addRelation(m_filter, m_segmentation, Filter::CREATELINK);
-  m_model->addRelation(sample  , m_segmentation, Sample::WHERE);
+  m_model->addRelation(sample  , m_segmentation, Relations::LOCATION);
   m_model->addRelation(channel , m_segmentation, Channel::LINK);
 }
 

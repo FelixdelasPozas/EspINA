@@ -56,9 +56,9 @@ namespace EspINA
     static const ArgumentId BRIGHTNESS;
     static const ArgumentId VOLUME;
 
-    static const QString STAINLINK;
     static const QString LINK;
-    static const QString VOLUMELINK;
+    static const QString STAIN_LINK;
+    static const QString VOLUME_LINK;
 
     // Extended Information and representation tags
     static const QString NAME;
@@ -130,7 +130,7 @@ namespace EspINA
       void setOutputId(Filter::OutputId oId)
       {
         (*this)[VOLUME] = QString("%1_%2")
-        .arg(VOLUMELINK)
+        .arg(VOLUME_LINK)
         .arg(oId);
         m_outputId = oId;
       }

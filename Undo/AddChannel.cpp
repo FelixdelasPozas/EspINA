@@ -41,13 +41,13 @@ void AddChannel::redo()
 {
   m_model->addFilter(m_reader);
   m_model->addChannel(m_channel);
-  m_model->addRelation(m_reader, m_channel, Channel::VOLUMELINK);
+  m_model->addRelation(m_reader, m_channel, Channel::VOLUME_LINK);
 }
 
 //------------------------------------------------------------------------
 void AddChannel::undo()
 {
-  m_model->removeRelation(m_reader, m_channel, Channel::VOLUMELINK);
+  m_model->removeRelation(m_reader, m_channel, Channel::VOLUME_LINK);
   m_model->removeChannel(m_channel);
   m_model->removeFilter(m_reader);
 }

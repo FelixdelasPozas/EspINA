@@ -118,8 +118,8 @@ EspinaIO::STATUS EspinaIO::loadChannel(QFileInfo file,
 
   model->addFilter(reader);
   model->addChannel(channel);
-  model->addRelation(reader, channel, Channel::VOLUMELINK);
-  model->addRelation(existingSample, channel, Channel::STAINLINK);
+  model->addRelation(reader, channel, Channel::VOLUME_LINK);
+  model->addRelation(existingSample, channel, Channel::STAIN_LINK);
 
   channel->initialize(args);
   channel->initializeExtensions();

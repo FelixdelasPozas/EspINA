@@ -47,8 +47,8 @@ const ModelItem::ArgumentId Channel::BRIGHTNESS = "Brightness";
 const ModelItem::ArgumentId Channel::VOLUME     = "Volume";
 
 const QString Channel::LINK       = "Channel";
-const QString Channel::STAINLINK  = "Stain";
-const QString Channel::VOLUMELINK = "Volume";
+const QString Channel::STAIN_LINK  = "Stain";
+const QString Channel::VOLUME_LINK = "Volume";
 
 const QString Channel::NAME       = "Name";
 const QString Channel::VOLUMETRIC = "Volumetric";
@@ -313,7 +313,7 @@ Channel::ExtensionPtr Channel::extension(ModelItem::ExtId extensionId)
 //-----------------------------------------------------------------------------
 SampleSPtr Channel::sample()
 {
-  ModelItemSList relatedSamples = relatedItems(IN, Channel::STAINLINK);
+  ModelItemSList relatedSamples = relatedItems(IN, Channel::STAIN_LINK);
   SampleSPtr sample;
 
   if (relatedSamples.size() > 0)

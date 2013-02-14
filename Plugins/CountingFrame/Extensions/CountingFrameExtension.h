@@ -89,7 +89,7 @@ class StereologicalInclusion;
   private:
     /// Retrieves StereologicalInclusion extension from a segmentation model item
     /// If no extension is found, a new one is add to the item
-    StereologicalInclusion *stereologicalInclusion(ModelItemSPtr segmentationItem);
+    StereologicalInclusion *stereologicalInclusion(SegmentationPtr segmentation);
 
   private:
     CountingFramePanel *m_plugin;

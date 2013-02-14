@@ -69,6 +69,8 @@ void TaxonomyProxy::setSourceModel(EspinaModel *sourceModel)
           this, SLOT(sourceRowsAboutToBeMoved(QModelIndex,int,int,QModelIndex,int)));
   connect(m_model, SIGNAL(rowsMoved(const QModelIndex &, int, int, const QModelIndex &, int)),
           this, SLOT(sourceRowsMoved(QModelIndex,int,int,QModelIndex,int)));
+  connect(m_model, SIGNAL(modelAboutToBeReset()),
+          this, SLOT(sourceModelReset()));
 
   QAbstractProxyModel::setSourceModel(m_model);
 }
@@ -832,6 +834,20 @@ void TaxonomyProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, const QM
     }
   }
 }
+
+//------------------------------------------------------------------------
+void TaxonomyProxy::sourceModelReset()
+{
+  beginResetModel();
+  {
+    m_rootTaxonomies.clear();
+    m_numTaxonomies.clear();
+    m_taxonomySegmentations.clear();
+    m_taxonomyVisibility.clear();
+  }
+  endResetModel();
+}
+
 
 //------------------------------------------------------------------------
 bool idOrdered(SegmentationPtr seg1, SegmentationPtr seg2)

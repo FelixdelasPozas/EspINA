@@ -18,6 +18,7 @@
 
 
 #include "StrokeSegmentationCommand.h"
+#include <Core/Relations.h>
 
 using namespace EspINA;
 
@@ -79,8 +80,8 @@ void StrokeSegmentationCommand::redo()
   m_model->addFilter(m_filter);
   m_model->addRelation(m_channel, m_filter, Channel::LINK);
   m_model->addSegmentation(m_segmentation);
-  m_model->addRelation(m_filter, m_segmentation, Filter::CREATELINK);
-  m_model->addRelation(m_sample, m_segmentation, Sample::WHERE);
+  m_model->addRelation(m_filter , m_segmentation, Filter::CREATELINK);
+  m_model->addRelation(m_sample , m_segmentation, Relations::LOCATION);
   m_model->addRelation(m_channel, m_segmentation, Channel::LINK);
 }
 
@@ -88,8 +89,8 @@ void StrokeSegmentationCommand::redo()
 void StrokeSegmentationCommand::undo()
 {
   m_model->removeRelation(m_channel, m_segmentation, Channel::LINK);
-  m_model->removeRelation(m_sample, m_segmentation, Sample::WHERE);
-  m_model->removeRelation(m_filter, m_segmentation, Filter::CREATELINK);
+  m_model->removeRelation(m_sample , m_segmentation, Relations::LOCATION);
+  m_model->removeRelation(m_filter , m_segmentation, Filter::CREATELINK);
   m_model->removeSegmentation(m_segmentation);
   m_model->removeRelation(m_channel, m_filter, Channel::LINK);
   m_model->removeFilter(m_filter);

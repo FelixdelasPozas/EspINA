@@ -53,8 +53,7 @@ int deletePartialFiltersWhenDeletingSeg(int argc, char** argv)
   QFileInfo file(filename1);
 
   EspinaFactory *factory = new EspinaFactory();
-  EspinaModel *model = new EspinaModel(factory);
-  QUndoStack *undo = new QUndoStack();
+  EspinaModel   *model   = new EspinaModel(factory);
   SeedGrowSegmentationCreator creator;
   factory->registerFilter(&creator, TEST_FILTER_TYPE);
 

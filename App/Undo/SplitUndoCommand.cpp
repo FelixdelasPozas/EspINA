@@ -23,6 +23,7 @@
 #include <Core/Model/Channel.h>
 #include <Core/Model/Segmentation.h>
 #include <Core/Model/Sample.h>
+#include <Core/Relations.h>
 #include <Filters/SplitFilter.h>
 
 using namespace EspINA;
@@ -74,7 +75,7 @@ void SplitUndoCommand::redo()
     m_model->addSegmentation(m_subSeg[i]);
 
     m_model->addRelation(m_filter,  m_subSeg[i], Filter::CREATELINK);
-    m_model->addRelation(m_sample,  m_subSeg[i], Sample::WHERE);
+    m_model->addRelation(m_sample,  m_subSeg[i], Relations::LOCATION);
     m_model->addRelation(m_channel, m_subSeg[i], Channel::LINK);
 
     m_subSeg[i]->initializeExtensions();

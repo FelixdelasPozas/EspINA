@@ -21,13 +21,12 @@
 #include "Core/Model/Sample.h"
 #include "Core/Model/Segmentation.h"
 #include "Core/Extensions/SampleExtension.h"
+#include <Core/Relations.h>
 #include <vtkMath.h>
 
 #include <QDebug>
 
 using namespace EspINA;
-
-const QString Sample::WHERE  = "where";
 
 //------------------------------------------------------------------------
 Sample::Sample(const QString &id)
@@ -78,18 +77,6 @@ void Sample::bounds(double value[6])
 void Sample::setBounds(double value[6])
 {
   memcpy(m_bounds, value, 6*sizeof(double));
-}
-
-//------------------------------------------------------------------------
-void Sample::addChannel(ChannelPtr channel)
-{
-  Q_ASSERT(false); //DEPRECATED
-}
-
-//------------------------------------------------------------------------
-void Sample::addSegmentation(SegmentationPtr seg)
-{
-  Q_ASSERT(false);//DEPRECATED
 }
 
 //------------------------------------------------------------------------
@@ -149,12 +136,31 @@ ChannelList Sample::channels()
 {
   ChannelList channels;
 
-  foreach(ModelItemSPtr item, relatedItems(EspINA::OUT, Channel::STAINLINK))
+  foreach(ModelItemSPtr item, relatedItems(EspINA::OUT, Channel::STAIN_LINK))
   {
     channels << channelPtr(item.data());
   }
 
   return channels;
+}
+
+//------------------------------------------------------------------------
+SegmentationList Sample::segmentations()
+{
+  SegmentationList segmentations;
+
+  ModelItemSList items = relatedItems(EspINA::OUT, Relations::LOCATION);
+  while (!items.isEmpty())
+  {
+    ModelItemSPtr item = items.takeFirst();
+    if (EspINA::SEGMENTATION == item->type())
+    {
+      segmentations << segmentationPtr(item.data());
+    }
+    items << item->relatedItems(EspINA::OUT, Relations::LOCATION);
+  }
+
+  return segmentations;
 }
 
 //------------------------------------------------------------------------

@@ -172,15 +172,17 @@ EspinaMainWindow::EspinaMainWindow(EspinaModel      *model,
               this, SLOT(addToAnalysis()));
     }
 
+    m_saveSessionAnalysis = fileMenu->addAction(saveIcon, tr("&Save"));
+    m_saveSessionAnalysis->setEnabled(false);
+    m_saveSessionAnalysis->setShortcut(Qt::CTRL+Qt::Key_S);
+    connect(m_saveSessionAnalysis, SIGNAL(triggered(bool)),
+            this,SLOT(saveSessionAnalysis()));
+
     m_saveAnalysis = fileMenu->addAction(saveIcon, tr("Save &As..."));
     m_saveAnalysis->setEnabled(false);
     connect(m_saveAnalysis, SIGNAL(triggered(bool)),
             this,SLOT(saveAnalysis()));
 
-    m_saveSessionAnalysis = fileMenu->addAction(saveIcon, tr("&Save"));
-    m_saveSessionAnalysis->setEnabled(false);
-    connect(m_saveSessionAnalysis, SIGNAL(triggered(bool)),
-            this,SLOT(saveSessionAnalysis()));
 
     m_closeAnalysis = fileMenu->addAction(tr("&Close"));
     m_closeAnalysis->setEnabled(false);

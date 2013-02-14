@@ -53,37 +53,35 @@ EspinaModel::~EspinaModel()
 //------------------------------------------------------------------------
 void EspinaModel::reset()
 {
-  if (!m_segmentations.isEmpty())
+  beginResetModel();
   {
-    beginRemoveRows(segmentationRoot(),0,m_segmentations.size()-1);
-    m_segmentations.clear();
-    endRemoveRows();
-  }
-  if (!m_filters.isEmpty())
-  {
-    beginRemoveRows(filterRoot(),0,m_filters.size()-1);
-    m_filters.clear();
-    endRemoveRows();
-  }
-  if (!m_channels.isEmpty())
-  {
-    beginRemoveRows(channelRoot(),0,m_channels.size()-1);
-    m_channels.clear();
-    endRemoveRows();
-  }
-  if (!m_samples.isEmpty())
-  {
-    beginRemoveRows(sampleRoot(),0,m_samples.size()-1);
-    m_samples.clear();
-    endRemoveRows();
-  }
+    if (!m_segmentations.isEmpty())
+    {
+      m_segmentations.clear();
+    }
+    if (!m_filters.isEmpty())
+    {
+      m_filters.clear();
+    }
+    if (!m_channels.isEmpty())
+    {
+      m_channels.clear();
+    }
+    if (!m_samples.isEmpty())
+    {
+      m_samples.clear();
+    }
 
-  setTaxonomy(TaxonomySPtr());
+    m_tax.clear();
 
-  m_relations->clear();//NOTE: Should we remove every item in the previous blocks?
+    m_relations->clear();
+  }
+  endResetModel();
 
   foreach(QDir tmpDir, m_tmpDirs)
     EspinaIO::removeTemporalDir(tmpDir);
+
+  m_changed = false;
 }
 
 //-----------------------------------------------------------------------------
@@ -609,7 +607,7 @@ void EspinaModel::addRelation(ModelItemSPtr  ancestor,
   QModelIndex successorIndex = index(successor);
 
 //   qDebug() << ancestorIndex.data().toString() << "==" << relation << "==>" << successorIndex.data().toString();
-  emit dataChanged(ancestorIndex,   ancestorIndex);
+  emit dataChanged(ancestorIndex,  ancestorIndex);
   emit dataChanged(successorIndex, successorIndex);
   markAsChanged();
 }

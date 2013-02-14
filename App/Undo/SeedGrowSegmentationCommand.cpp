@@ -23,6 +23,7 @@
 #include <Filters/SeedGrowSegmentationFilter.h>
 #include <Core/Model/EspinaFactory.h>
 #include <Core/EspinaSettings.h>
+#include <Core/Relations.h>
 #include <GUI/ViewManager.h>
 #include <QMessageBox>
 
@@ -113,9 +114,9 @@ void SeedGrowSegmentationCommand::redo()
 
   m_segmentation->setTaxonomy(m_taxonomy);
   m_model->addSegmentation(m_segmentation);
-  m_model->addRelation(m_filter , m_segmentation, Filter::CREATELINK);
-  m_model->addRelation(m_sample , m_segmentation, Sample::WHERE     );
-  m_model->addRelation(m_channel, m_segmentation, Channel::LINK     );
+  m_model->addRelation(m_filter , m_segmentation, Filter::CREATELINK );
+  m_model->addRelation(m_sample , m_segmentation, Relations::LOCATION);
+  m_model->addRelation(m_channel, m_segmentation, Channel::LINK      );
 
   SegmentationList segmentations;
   segmentations << m_segmentation.data();
@@ -125,9 +126,9 @@ void SeedGrowSegmentationCommand::redo()
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentationCommand::undo()
 {
-  m_model->removeRelation(m_channel, m_segmentation, Channel::LINK);
-  m_model->removeRelation(m_sample , m_segmentation, Sample::WHERE);
-  m_model->removeRelation(m_filter , m_segmentation, Filter::CREATELINK);
+  m_model->removeRelation(m_channel, m_segmentation, Channel::LINK      );
+  m_model->removeRelation(m_sample , m_segmentation, Relations::LOCATION);
+  m_model->removeRelation(m_filter , m_segmentation, Filter::CREATELINK );
   m_model->removeSegmentation(m_segmentation);
 
   m_model->removeRelation(m_channel->filter(), m_filter, SeedGrowSegmentationFilter::INPUTLINK);

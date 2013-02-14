@@ -37,9 +37,6 @@ namespace EspINA
   : public ModelItem
   {
   public:
-    static const QString WHERE;
-
-  public:
     explicit Sample(const QString &id);
     explicit Sample(const QString &id, const QString &args);
     virtual ~Sample();
@@ -50,10 +47,6 @@ namespace EspINA
 
     void bounds   (double value[6]);//nm
     void setBounds(double value[6]);//nm
-
-    void addChannel(ChannelPtr channel);
-
-    void addSegmentation(SegmentationPtr seg);
 
     /// ModelItem Interface
     virtual QString id() const {return m_ID;}
@@ -66,7 +59,8 @@ namespace EspINA
 
     void setId(const QString &id) {m_ID = id;}
 
-    ChannelList channels();
+    ChannelList      channels();
+    SegmentationList segmentations();
 
   private:
     mutable Arguments m_args;

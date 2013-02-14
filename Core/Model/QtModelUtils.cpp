@@ -38,3 +38,23 @@ QModelIndex QtModelUtils::findChildIndex(QModelIndex parent, QVariant value, int
   return index;
 }
 
+QModelIndexList QtModelUtils::indices(const QModelIndex &topLeft, const QModelIndex &bottomRight)
+{
+  QModelIndexList result;
+
+  result << topLeft;
+
+  const QAbstractItemModel *model = topLeft.model();
+  if (topLeft != bottomRight)
+  {
+    for (int r = 0; r < model->rowCount(topLeft); r++)
+    {
+      result << indices(topLeft.child(r, 0), bottomRight);
+    }
+
+    for (int r = topLeft.row(); r < model->rowCount(topLeft.parent()); r++)
+      result << indices(topLeft.sibling(r,0), bottomRight);
+  }
+
+  return result;
+}

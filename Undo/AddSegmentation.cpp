@@ -23,6 +23,7 @@
 #include <Core/Model/EspinaModel.h>
 #include <Core/Model/Sample.h>
 #include <Core/Model/Segmentation.h>
+#include <Core/Relations.h>
 
 using namespace EspINA;
 
@@ -49,8 +50,8 @@ void AddSegmentation::redo()
   m_model->addRelation(m_channel, m_filter, Channel::LINK);
   m_seg->setTaxonomy(m_taxonomy);
   m_model->addSegmentation(m_seg);
-  m_model->addRelation(m_filter, m_seg, Filter::CREATELINK);
-  m_model->addRelation(m_sample, m_seg, Sample::WHERE);
+  m_model->addRelation(m_filter , m_seg, Filter::CREATELINK);
+  m_model->addRelation(m_sample , m_seg, Relations::LOCATION);
   m_model->addRelation(m_channel, m_seg, Channel::LINK);
   m_seg->initializeExtensions();
 }
@@ -59,8 +60,8 @@ void AddSegmentation::redo()
 void AddSegmentation::undo()
 {
   m_model->removeRelation(m_channel, m_seg, Channel::LINK);
-  m_model->removeRelation(m_sample, m_seg, Sample::WHERE);
-  m_model->removeRelation(m_filter, m_seg, Filter::CREATELINK);
+  m_model->removeRelation(m_sample , m_seg, Relations::LOCATION);
+  m_model->removeRelation(m_filter , m_seg, Filter::CREATELINK);
   m_model->removeSegmentation(m_seg);
   m_model->removeRelation(m_channel, m_filter, Channel::LINK);
   m_model->removeFilter(m_filter);

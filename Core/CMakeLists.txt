@@ -16,7 +16,7 @@ qt4_wrap_cpp(CORE_MOC
   Model/Taxonomy.h
   Model/Proxies/ChannelProxy.h
   Model/Proxies/CompositionProxy.h
-  Model/Proxies/SampleProxy.h
+  Model/Proxies/LocationProxy.h
   Model/Proxies/TaxonomyProxy.h
   Model/Proxies/InformationProxy.h
   Model/Proxies/ConnectomicProxy.h
@@ -64,7 +64,7 @@ set (CORE_SOURCES
   EspinaTypes.cpp
   Model/Proxies/ChannelProxy.cpp
   Model/Proxies/CompositionProxy.cpp
-  Model/Proxies/SampleProxy.cpp
+  Model/Proxies/LocationProxy.cpp
   Model/Proxies/TaxonomyProxy.cpp
   Model/Proxies/InformationProxy.cpp
   Model/Proxies/ConnectomicProxy.cpp
