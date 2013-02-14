@@ -515,6 +515,7 @@ void SliceView::setupUI()
   m_spinBox->setMaximumHeight(20);
   m_spinBox->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
   m_spinBox->setAlignment(Qt::AlignRight);
+  m_spinBox->setSingleStep(1);
 
   connect(m_scrollBar, SIGNAL(valueChanged(int)), this, SLOT(scrollValueChanged(int)));
   connect(m_spinBox, SIGNAL(valueChanged(double)), this, SLOT(spinValueChanged(double)));
@@ -1382,7 +1383,6 @@ bool SliceView::eventFilter(QObject* caller, QEvent* e)
       return true;
   }
 
-
   if (QEvent::Wheel == e->type())
   {
     QWheelEvent *we = static_cast<QWheelEvent *>(e);
@@ -1789,6 +1789,9 @@ void SliceView::setAxialSlicingStep(Nm XYstep)
 
   m_slicingStep[AXIAL] = XYstep;
 
+  QSettings settings(CESVIMA, ESPINA);
+  m_fitToSlices = m_plane == AXIAL && settings.value("ViewManager::FitToSlices").toBool();
+
   setSlicingBounds(m_sceneBounds);
 
   if (slicingPos > m_sceneBounds[(2*m_plane) + 1])
@@ -1796,9 +1799,6 @@ void SliceView::setAxialSlicingStep(Nm XYstep)
   else
     if (slicingPos < m_sceneBounds[2*m_plane])
       iSlicingPos = m_sceneBounds[2*m_plane]/m_slicingStep[m_plane];
-
-  QSettings settings(CESVIMA, ESPINA);
-  m_fitToSlices = m_plane == AXIAL && settings.value("ViewManager::FitToSlices").toBool();
 
   if(m_fitToSlices)
     m_spinBox->setValue(iSlicingPos);
@@ -1827,23 +1827,27 @@ void SliceView::setSlicingBounds(Nm bounds[6])
 
   if(m_fitToSlices)
   {
+    m_scrollBar->blockSignals(true);
     m_scrollBar->setMinimum(static_cast<int>(min/m_slicingStep[m_plane]));
     m_scrollBar->setMaximum(static_cast<int>(max/m_slicingStep[m_plane]));
-    m_spinBox->setPrefix("slice ");
-    m_spinBox->setSuffix("");
+    m_scrollBar->blockSignals(false);
+    m_spinBox->blockSignals(true);
+    m_spinBox->setSuffix(" slice");
     m_spinBox->setMinimum(min/m_slicingStep[m_plane]);
     m_spinBox->setMaximum(max/m_slicingStep[m_plane]);
-    m_spinBox->setSingleStep(1);
+    m_spinBox->blockSignals(false);
   }
   else
   {
+    m_scrollBar->blockSignals(true);
     m_scrollBar->setMinimum(static_cast<int>(min));
     m_scrollBar->setMaximum(static_cast<int>(max));
-    m_spinBox->setPrefix("");
+    m_scrollBar->blockSignals(false);
+    m_spinBox->blockSignals(true);
     m_spinBox->setSuffix(" nm");
     m_spinBox->setMinimum(min);
     m_spinBox->setMaximum(max);
-    m_spinBox->setSingleStep(1);
+    m_spinBox->blockSignals(false);
   }
 
   //bool enabled = m_spinBox->minimum() < m_spinBox->maximum();
