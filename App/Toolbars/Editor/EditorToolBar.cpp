@@ -95,7 +95,7 @@ namespace EspINA
       {
         m_segmentations << m_model->findSegmentation(seg);
 
-        FilterPtr filter;
+        MorphologicalEditionFilter *filter;
         Filter::FilterInspectorPtr filterInspector;
 
         Filter::NamedInputs inputs;
@@ -271,26 +271,30 @@ FilterSPtr EditorToolBar::createFilter(const QString              &filter,
 
   else if (CODECommand::CLOSING_FILTER_TYPE == filter)
   {
-    res = new ClosingFilter(inputs, args, CODECommand::CLOSING_FILTER_TYPE);
-    filterInspector = new CODEFilterInspector("Close", res);
+    MorphologicalEditionFilter *mf = new ClosingFilter(inputs, args, CODECommand::CLOSING_FILTER_TYPE);
+    filterInspector = new CODEFilterInspector(tr("Close"), mf);
+    res = mf;
   }
 
   else if (CODECommand::OPENING_FILTER_TYPE == filter)
   {
-    res = new OpeningFilter(inputs, args, CODECommand::OPENING_FILTER_TYPE);
-    filterInspector = new CODEFilterInspector("Open", res);
+    MorphologicalEditionFilter *mf = new OpeningFilter(inputs, args, CODECommand::OPENING_FILTER_TYPE);
+    filterInspector = new CODEFilterInspector(tr("Open"), mf);
+    res = mf;
   }
 
   else if (CODECommand::DILATE_FILTER_TYPE == filter)
   {
-    res = new DilateFilter(inputs, args, CODECommand::DILATE_FILTER_TYPE);
-    filterInspector = new CODEFilterInspector("Dilate", res);
+    MorphologicalEditionFilter *mf = new DilateFilter(inputs, args, CODECommand::DILATE_FILTER_TYPE);
+    filterInspector = new CODEFilterInspector(tr("Dilate"), mf);
+    res = mf;
   }
 
   else if (CODECommand::ERODE_FILTER_TYPE == filter)
   {
-    res = new ErodeFilter(inputs, args, CODECommand::ERODE_FILTER_TYPE);
-    filterInspector = new CODEFilterInspector("Erode", res);
+    MorphologicalEditionFilter *mf = new ErodeFilter(inputs, args, CODECommand::ERODE_FILTER_TYPE);
+    filterInspector = new CODEFilterInspector(tr("Erode"), mf);
+    res = mf;
   }
 
   else if (Brush::FREEFORM_SOURCE_TYPE == filter)

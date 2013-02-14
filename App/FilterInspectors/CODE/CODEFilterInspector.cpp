@@ -28,16 +28,62 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QSpinBox>
+#include <QUndoCommand>
 
 using namespace EspINA;
+
+
+class CODEModification
+: public QUndoCommand
+{
+public:
+  CODEModification(MorphologicalEditionFilter *filter,
+                   int radius,
+                   QUndoCommand *parent = NULL)
+  : QUndoCommand(parent)
+  , m_filter(filter)
+  , m_radius(radius)
+  {
+    m_oldRadius = m_filter->radius();
+  }
+
+  virtual void redo()
+  {
+    m_filter->setRadius(m_radius);
+
+    update();
+  }
+  virtual void undo()
+  {
+    m_filter->setRadius(m_oldRadius);
+
+    update();
+  }
+
+private:
+  void update()
+  {
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+    m_filter->update();
+    QApplication::restoreOverrideCursor();
+  }
+
+private:
+  MorphologicalEditionFilter *m_filter;
+
+  int m_radius, m_oldRadius;
+};
+
 
 //----------------------------------------------------------------------------
 CODESettings::CODESettings(QString title,
                            MorphologicalEditionFilter* filter,
-                           ViewManager *vm)
+                           QUndoStack  *undoStack,
+                           ViewManager *viewManager)
 : QWidget()
+, m_undoStack(undoStack)
+, m_viewManager(viewManager)
 , m_filter(filter)
-, m_viewManager(vm)
 {
   QGroupBox *group = new QGroupBox(title, this);
   QLabel *label = new QLabel(tr("Radius"));
@@ -65,6 +111,8 @@ CODESettings::CODESettings(QString title,
 
   connect(modifyButton, SIGNAL(clicked(bool)),
           this, SLOT(modifyFilter()));
+  connect(m_filter, SIGNAL(modified(ModelItemPtr)),
+          this, SLOT(updateWidget()));
 
   setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
   setMinimumWidth(150);
@@ -79,15 +127,21 @@ CODESettings::~CODESettings()
 //----------------------------------------------------------------------------
 void CODESettings::modifyFilter()
 {
-  m_filter->setRadius(m_spinbox->value());
-  QApplication::setOverrideCursor(Qt::WaitCursor);
-  m_filter->update();
-  m_viewManager->updateViews();
-  QApplication::restoreOverrideCursor();
+  m_undoStack->beginMacro("Modify Radius");
+  {
+    m_undoStack->push(new CODEModification(m_filter, m_spinbox->value()));
+  }
+  m_undoStack->endMacro();
 }
 
 //----------------------------------------------------------------------------
-CODEFilterInspector::CODEFilterInspector(QString title, FilterPtr filter)
+void CODESettings::updateWidget()
+{
+  m_spinbox->setValue(m_filter->radius());
+}
+
+//----------------------------------------------------------------------------
+CODEFilterInspector::CODEFilterInspector(QString title, MorphologicalEditionFilter *filter)
 : m_title(title)
 , m_filter(filter)
 {
@@ -96,5 +150,5 @@ CODEFilterInspector::CODEFilterInspector(QString title, FilterPtr filter)
 //----------------------------------------------------------------------------
 QWidget *CODEFilterInspector::createWidget(QUndoStack *stack, ViewManager *viewManager)
 {
-  return new CODESettings(m_title, reinterpret_cast<MorphologicalEditionFilter*>(m_filter), viewManager);
+  return new CODESettings(m_title, m_filter, stack, viewManager);
 }

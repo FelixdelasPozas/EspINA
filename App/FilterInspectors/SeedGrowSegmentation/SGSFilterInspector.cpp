@@ -270,6 +270,7 @@ void SGSFilterInspector::Widget::modifyFilter()
                          return;
   }
 
+  m_undoStack->beginMacro("Modify Seed GrowSegmentation Filter");
   m_undoStack->push(new SGSFilterModification(m_filter, VOI, m_threshold->value(), m_closeValue));
 
   double segBounds[6];

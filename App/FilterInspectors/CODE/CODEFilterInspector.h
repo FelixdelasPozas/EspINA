@@ -39,30 +39,33 @@ namespace EspINA
   public:
     explicit CODESettings(QString title,
                           MorphologicalEditionFilter *filter,
-                          ViewManager *vm);
+                          QUndoStack  *undoSactk,
+                          ViewManager *viewManager);
     virtual ~CODESettings();
 
   protected slots:
     void modifyFilter();
+    void updateWidget();
 
   private:
-    MorphologicalEditionFilter *m_filter;
+    QUndoStack  *m_undoStack;
     ViewManager *m_viewManager;
+
+    MorphologicalEditionFilter *m_filter;
     QSpinBox *m_spinbox;
   };
 
   class CODEFilterInspector
   : public Filter::FilterInspector
   {
-    public:
-      CODEFilterInspector(QString title, FilterPtr filter);
+  public:
+    CODEFilterInspector(QString title, MorphologicalEditionFilter *filter);
 
-      virtual QWidget *createWidget(QUndoStack *stack, ViewManager *viewManager);
+    virtual QWidget *createWidget(QUndoStack *stack, ViewManager *viewManager);
 
-    private:
-      QString    m_title;
-      FilterPtr  m_filter;
-
+  private:
+    QString    m_title;
+    MorphologicalEditionFilter *m_filter;
   };
 
 } // namespace EspINA
