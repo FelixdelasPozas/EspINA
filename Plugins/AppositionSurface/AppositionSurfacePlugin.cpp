@@ -103,13 +103,12 @@ namespace EspINA
   {
     Q_ASSERT(AppositionSurfaceCommand::FILTER_TYPE == filter);
 
-    AppositionSurfaceFilter *asFilter = new AppositionSurfaceFilter(inputs, args,
-        AppositionSurfaceCommand::FILTER_TYPE);
+    FilterSPtr asFilter = FilterSPtr(new AppositionSurfaceFilter(inputs, args, AppositionSurfaceCommand::FILTER_TYPE));
 
-    Filter::FilterInspectorPtr asInspector(new AppositionSurfaceFilterInspector(AppositionSurfaceFilter::SPointer(asFilter)));
+    Filter::FilterInspectorPtr asInspector(new AppositionSurfaceFilterInspector(asFilter));
     asFilter->setFilterInspector(asInspector);
 
-    return FilterSPtr(asFilter);
+    return asFilter;
   }
 
   //-----------------------------------------------------------------------------
