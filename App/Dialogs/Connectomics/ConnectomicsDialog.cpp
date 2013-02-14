@@ -22,8 +22,8 @@
 #include <Core/EspinaTypes.h>
 #include <App/Docks/TabularReport/DataView.h>
 #include <Core/Model/Proxies/ConnectomicProxy.h>
-#include <Core/Model/Proxies/LocationProxy.h>
 #include <Core/Utils/SegmentationCollision.h>
+#include <Core/Relations.h>
 #include "ConnectomicsDialog.h"
 
 // Qt
@@ -31,7 +31,6 @@
 #include <QtDebug>
 #include <QListView>
 #include <QAbstractProxyModel>
-#include <QTreeView>
 
 // C++
 #include <iostream>
@@ -56,16 +55,14 @@ ConnectomicsDialog::ConnectomicsDialog(EspinaModel *model,
   setObjectName("ConnectomicsInformationDialog");
   setWindowTitle("Connectomics Information");
   setupUi(this);
-  QTreeView *tv = new QTreeView();
-  layout()->addWidget(tv);
-  LocationProxy *proxy = new LocationProxy();
-  proxy->setSourceModel(m_model);
-  tv->setModel(proxy);
+  listView1->setModel(m_model);
+  listView1->setRootIndex(m_model->segmentationRoot());
 
   generateConectomicGraph(m_model);
   m_listView << listView1;
 
-  connect(listView1, SIGNAL(clicked(QModelIndex)), this, SLOT(showGraphConnectomicsInformation(QModelIndex)));
+  connect(listView1, SIGNAL(clicked(QModelIndex)), 
+          this, SLOT(showGraphConnectomicsInformation(QModelIndex)));
 }
 
 //------------------------------------------------------------------------

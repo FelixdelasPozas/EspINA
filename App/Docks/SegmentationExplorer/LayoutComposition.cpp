@@ -20,6 +20,7 @@
 #include "LayoutComposition.h"
 
 #include <Core/Model/Segmentation.h>
+#include <Core/Relations.h>
 #include <QMessageBox>
 
 using namespace EspINA;
@@ -38,9 +39,11 @@ CompositionLayout::CompositionLayout(CheckableTreeView *view,
                                      QUndoStack        *undoStack,
                                      ViewManager       *viewManager)
 : Layout (view, model, undoStack, viewManager)
-, m_proxy(new CompositionProxy())
+, m_proxy(new RelationProxy())
 , m_sort (new SortFilter())
+, m_delegate(new QItemDelegate())
 {
+  m_proxy->setRelation(Relations::COMPOSITION);
   m_proxy->setSourceModel(m_model);
   m_sort->setSourceModel(m_proxy.data());
   m_sort->setDynamicSortFilter(true);
@@ -65,38 +68,62 @@ QModelIndex CompositionLayout::index(ModelItemPtr item) const
 }
 
 //------------------------------------------------------------------------
-SegmentationList CompositionLayout::deletedSegmentations(QModelIndexList selection)
+void CompositionLayout::contextMenu(const QPoint &pos)
 {
-  QSet<SegmentationPtr> toDelete;
-  foreach(QModelIndex sortIndex, selection)
-  {
-    bool recursive = false;
-    if (m_sort->rowCount(sortIndex) > 0)
-    {
-      QMessageBox msgBox;
-      msgBox.setText(SEGMENTATION_MESSAGE.arg(sortIndex.data().toString()));
-      msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-      msgBox.setDefaultButton(QMessageBox::No);
 
-      recursive = msgBox.exec() == QMessageBox::Yes;
-    }
-
-    ModelItemPtr    selectedItem = item(sortIndex);
-    SegmentationPtr seg          = segmentationPtr(selectedItem);
-    Q_ASSERT(seg);
-    toDelete << seg;
-
-    if (recursive)
-    {
-      foreach(QModelIndex subIndex, indices(sortIndex, true))
-      {
-        ModelItemPtr     subItem = item(subIndex);
-        SegmentationPtr  seg     = segmentationPtr(subItem);
-        Q_ASSERT(seg);
-        toDelete << seg;
-      }
-    }
-  }
-
-  return toDelete.toList();
 }
+
+//------------------------------------------------------------------------
+void CompositionLayout::deleteSelectedItems()
+{
+
+}
+
+//------------------------------------------------------------------------
+QItemDelegate *CompositionLayout::itemDelegate() const
+{
+  return m_delegate;
+}
+
+//------------------------------------------------------------------------
+void CompositionLayout::showSelectedItemsInformation()
+{
+
+}
+
+// //------------------------------------------------------------------------
+// SegmentationList CompositionLayout::deletedSegmentations(QModelIndexList selection)
+// {
+//   QSet<SegmentationPtr> toDelete;
+//   foreach(QModelIndex sortIndex, selection)
+//   {
+//     bool recursive = false;
+//     if (m_sort->rowCount(sortIndex) > 0)
+//     {
+//       QMessageBox msgBox;
+//       msgBox.setText(SEGMENTATION_MESSAGE.arg(sortIndex.data().toString()));
+//       msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+//       msgBox.setDefaultButton(QMessageBox::No);
+// 
+//       recursive = msgBox.exec() == QMessageBox::Yes;
+//     }
+// 
+//     ModelItemPtr    selectedItem = item(sortIndex);
+//     SegmentationPtr seg          = segmentationPtr(selectedItem);
+//     Q_ASSERT(seg);
+//     toDelete << seg;
+// 
+//     if (recursive)
+//     {
+//       foreach(QModelIndex subIndex, indices(sortIndex, true))
+//       {
+//         ModelItemPtr     subItem = item(subIndex);
+//         SegmentationPtr  seg     = segmentationPtr(subItem);
+//         Q_ASSERT(seg);
+//         toDelete << seg;
+//       }
+//     }
+//   }
+// 
+//   return toDelete.toList();
+// }

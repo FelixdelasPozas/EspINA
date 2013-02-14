@@ -16,14 +16,12 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "LocationProxy.h"
+#include "RelationProxy.h"
 
 // Espina
 #include "Core/Model/EspinaModel.h"
-#include "Core/Model/Sample.h"
 #include "Core/Model/Segmentation.h"
 #include <Core/Model/QtModelUtils.h>
-#include <Core/Relations.h>
 
 // Qt
 #include <QPixmap>
@@ -34,19 +32,19 @@ using namespace EspINA;
 typedef QSet<ModelItemPtr> SegSet;
 
 //------------------------------------------------------------------------
-LocationProxy::LocationProxy(QObject* parent)
+RelationProxy::RelationProxy(QObject* parent)
 : QAbstractProxyModel(parent)
 , m_model(NULL)
 {
 }
 
 //------------------------------------------------------------------------
-LocationProxy::~LocationProxy()
+RelationProxy::~RelationProxy()
 {
 }
 
 //------------------------------------------------------------------------
-void LocationProxy::setSourceModel(EspinaModel *sourceModel)
+void RelationProxy::setSourceModel(EspinaModel *sourceModel)
 {
   m_model = sourceModel;
 
@@ -63,46 +61,35 @@ void LocationProxy::setSourceModel(EspinaModel *sourceModel)
 
   QAbstractProxyModel::setSourceModel(m_model);
 
-  sourceRowsInserted(m_model->sampleRoot(),0,m_model->rowCount(m_model->sampleRoot())-1);
+  sourceRowsInserted(m_model->segmentationRoot(), 0, m_model->rowCount(m_model->segmentationRoot())-1);
 }
 
 //------------------------------------------------------------------------
-QVariant LocationProxy::data(const QModelIndex& proxyIndex, int role) const
+QVariant RelationProxy::data(const QModelIndex& proxyIndex, int role) const
 {
   if (!proxyIndex.isValid())
     return QVariant();
 
   ModelItemPtr item = indexPtr(proxyIndex);
-  if (EspINA::SAMPLE == item->type())
-  {
-    if (Qt::DecorationRole == role)
-      return QColor(Qt::blue);
-    else
-      return item->data(role);
-  } else if (EspINA::SEGMENTATION == item->type())
-  {
-    if (Qt::DecorationRole == role)
-    {
-      QPixmap segIcon(3,16);
-      segIcon.fill(proxyIndex.parent().data(role).value<QColor>());
-      return segIcon;
-    }else
-      return item->data(role);
-  }
-  Q_ASSERT(false);
-
-  return QAbstractProxyModel::data(proxyIndex, role);
+  Q_ASSERT(EspINA::SEGMENTATION == item->type());
+//   if (Qt::DecorationRole == role)
+//   {
+//     QPixmap segIcon(3,16);
+//     segIcon.fill(proxyIndex.parent().data(role).value<QColor>());
+//     return segIcon;
+//   }else
+  return item->data(role);
 }
 
 //------------------------------------------------------------------------
-bool LocationProxy::hasChildren(const QModelIndex& parent) const
+bool RelationProxy::hasChildren(const QModelIndex& parent) const
 {
   return rowCount(parent) > 0 && columnCount(parent) > 0;
 }
 
 
 //------------------------------------------------------------------------
-int LocationProxy::rowCount(const QModelIndex& parent) const
+int RelationProxy::rowCount(const QModelIndex& parent) const
 {
   int rows = 0;
 
@@ -119,7 +106,7 @@ int LocationProxy::rowCount(const QModelIndex& parent) const
 }
 
 //------------------------------------------------------------------------
-QModelIndex LocationProxy::index(int row, int column, const QModelIndex& parent) const
+QModelIndex RelationProxy::index(int row, int column, const QModelIndex& parent) const
 {
   if (!hasIndex(row, column, parent))
     return QModelIndex();
@@ -139,7 +126,7 @@ QModelIndex LocationProxy::index(int row, int column, const QModelIndex& parent)
 
 // WARNING: Don't use mapFromSource to implement model primitives!
 //------------------------------------------------------------------------
-QModelIndex LocationProxy::parent(const QModelIndex& child) const
+QModelIndex RelationProxy::parent(const QModelIndex& child) const
 {
   if (!child.isValid())
     return QModelIndex();
@@ -159,14 +146,13 @@ QModelIndex LocationProxy::parent(const QModelIndex& child) const
 }
 
 //------------------------------------------------------------------------
-QModelIndex LocationProxy::mapFromSource(const QModelIndex& sourceIndex) const
+QModelIndex RelationProxy::mapFromSource(const QModelIndex& sourceIndex) const
 {
   if (!sourceIndex.isValid())
     return QModelIndex();
 
   QModelIndex sourceParent = sourceIndex.parent();
-  if (sourceParent != m_model->sampleRoot() &&
-      sourceParent != m_model->segmentationRoot())
+  if (sourceParent != m_model->segmentationRoot())
     return QModelIndex();
 
   ModelItemPtr sourceItem = indexPtr(sourceIndex);
@@ -189,7 +175,7 @@ QModelIndex LocationProxy::mapFromSource(const QModelIndex& sourceIndex) const
 }
 
 //------------------------------------------------------------------------
-QModelIndex LocationProxy::mapToSource(const QModelIndex& proxyIndex) const
+QModelIndex RelationProxy::mapToSource(const QModelIndex& proxyIndex) const
 {
   if (!proxyIndex.isValid())
     return QModelIndex();
@@ -201,13 +187,18 @@ QModelIndex LocationProxy::mapToSource(const QModelIndex& proxyIndex) const
 }
 
 //------------------------------------------------------------------------
-void LocationProxy::sourceRowsInserted(const QModelIndex& sourceParent, int start, int end)
+void RelationProxy::setRelation(const QString &relation)
+{
+  m_relation = relation;
+}
+
+//------------------------------------------------------------------------
+void RelationProxy::sourceRowsInserted(const QModelIndex& sourceParent, int start, int end)
 {
   if (!sourceParent.isValid())
     return;
 
-  if (sourceParent != m_model->sampleRoot() &&
-      sourceParent != m_model->segmentationRoot())
+  if (sourceParent != m_model->segmentationRoot())
     return;
 
   // Inserted items don't have relationships
@@ -227,20 +218,19 @@ void LocationProxy::sourceRowsInserted(const QModelIndex& sourceParent, int star
 
 /// PRE: ModelItem has no relationships
 //------------------------------------------------------------------------
-void LocationProxy::sourceRowsAboutToBeRemoved(const QModelIndex& sourceParent, int start, int end)
+void RelationProxy::sourceRowsAboutToBeRemoved(const QModelIndex& sourceParent, int start, int end)
 {
   if (!sourceParent.isValid())
     return;
 
-  if (sourceParent != m_model->sampleRoot() &&
-      sourceParent != m_model->segmentationRoot())
+  if (sourceParent != m_model->segmentationRoot())
     return;
 
   for (int row=start; row <= end; row++)
   {
-    QModelIndex     sourceIndex = sourceParent.child(row, 0);
-    QModelIndex     proxyIndex  = mapFromSource(sourceIndex);
-    ModelItemPtr    item        = indexPtr(sourceIndex);
+    QModelIndex  sourceIndex = sourceParent.child(row, 0);
+    QModelIndex  proxyIndex  = mapFromSource(sourceIndex);
+    ModelItemPtr item        = indexPtr(sourceIndex);
 
     int proxyRow = proxyIndex.row();
 
@@ -254,12 +244,12 @@ void LocationProxy::sourceRowsAboutToBeRemoved(const QModelIndex& sourceParent, 
 }
 
 //------------------------------------------------------------------------
-void LocationProxy::sourceRowsRemoved(const QModelIndex& sourceParent, int start, int end)
+void RelationProxy::sourceRowsRemoved(const QModelIndex& sourceParent, int start, int end)
 {
 }
 
 //------------------------------------------------------------------------
-void LocationProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, const QModelIndex& sourceBottomRight)
+void RelationProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, const QModelIndex& sourceBottomRight)
 {
   QModelIndexList sources = QtModelUtils::indices(sourceTopLeft, sourceBottomRight);
 
@@ -271,7 +261,7 @@ void LocationProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, const QM
       ModelItemPtr proxyItem = indexPtr(proxyIndex);
 
       ModelItemPtr   prevLocation = parentNode(proxyItem);
-      ModelItemSList relatedItems = proxyItem->relatedItems(EspINA::IN, Relations::LOCATION);
+      ModelItemSList relatedItems = proxyItem->relatedItems(EspINA::IN, m_relation);
 
       QModelIndex oldParent = proxyIndex.parent();
       int fromRow = proxyIndex.row();
@@ -316,7 +306,7 @@ void LocationProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, const QM
 }
 
 //------------------------------------------------------------------------
-void LocationProxy::sourceModelReset()
+void RelationProxy::sourceModelReset()
 {
   beginResetModel();
   {
@@ -327,7 +317,7 @@ void LocationProxy::sourceModelReset()
 }
 
 //------------------------------------------------------------------------
-ModelItemPtr LocationProxy::parentNode(const ModelItemPtr node) const
+ModelItemPtr RelationProxy::parentNode(const ModelItemPtr node) const
 {
   ModelItemPtr parent = NULL;
 
@@ -347,9 +337,9 @@ ModelItemPtr LocationProxy::parentNode(const ModelItemPtr node) const
 }
 
 //------------------------------------------------------------------------
-void LocationProxy::registerNodes(ModelItemPtr node)
+void RelationProxy::registerNodes(ModelItemPtr node)
 {
-  ModelItemSList parentItems = node->relatedItems(EspINA::IN, Relations::LOCATION);
+  ModelItemSList parentItems = node->relatedItems(EspINA::IN, m_relation);
   if (parentItems.isEmpty())
   {
     if (!m_rootNodes.contains(node))
@@ -365,14 +355,14 @@ void LocationProxy::registerNodes(ModelItemPtr node)
     }
   }
 
-  foreach(ModelItemSPtr subItem, node->relatedItems(EspINA::OUT, Relations::LOCATION))
+  foreach(ModelItemSPtr subItem, node->relatedItems(EspINA::OUT, m_relation))
   {
     registerNodes(subItem.data());
   }
 }
 
 //------------------------------------------------------------------------
-void LocationProxy::removeSubNodes(ModelItemPtr node)
+void RelationProxy::removeSubNodes(ModelItemPtr node)
 {
   if (m_subNodes.contains(node))
   {

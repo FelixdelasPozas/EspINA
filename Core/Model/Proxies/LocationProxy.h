@@ -20,8 +20,8 @@
 // File:    SampleProxy.h
 // Purpose: Rearrange model items to group Segmentations by Samples
 //----------------------------------------------------------------------------
-#ifndef SAMPLEPROXY_H
-#define SAMPLEPROXY_H
+#ifndef LOCATIONPROXY_H
+#define LOCATIONPROXY_H
 
 #include <QAbstractProxyModel>
 
@@ -74,4 +74,4 @@ namespace EspINA
 
 } // namespace EspINA
 
-#endif // SAMPLEPROXY_H
+#endif // LOCATIONPROXY_H

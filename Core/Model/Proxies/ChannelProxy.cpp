@@ -58,7 +58,11 @@ void ChannelProxy::setSourceModel(EspinaModel *sourceModel)
           this, SLOT(sourceRowsAboutToBeRemoved(QModelIndex, int, int)));
   connect(sourceModel, SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)),
           this, SLOT(sourceDataChanged(const QModelIndex &,const QModelIndex &)));
+
   QAbstractProxyModel::setSourceModel(sourceModel);
+
+  sourceRowsInserted(m_model->sampleRoot() , 0, m_model->rowCount(m_model->sampleRoot())  - 1);
+  sourceRowsInserted(m_model->channelRoot(), 0, m_model->rowCount(m_model->channelRoot()) - 1);
 }
 
 //------------------------------------------------------------------------
@@ -331,10 +335,26 @@ void ChannelProxy::sourceRowsInserted(const QModelIndex& sourceParent, int start
     {
       for (int row = start; row <= end; row++)
       {
-        ModelItemPtr sourceRow = indexPtr(m_model->index(row, 0, sourceParent));
+        QModelIndex sampleIndex = m_model->index(row, 0, sourceParent);
+        ModelItemPtr sourceRow = indexPtr(sampleIndex);
         Q_ASSERT(EspINA::SAMPLE == sourceRow->type());
         SamplePtr sample = samplePtr(sourceRow);
         m_samples << sample;
+        ModelItemSList channels = sample->relatedItems(EspINA::OUT,
+                                                       Channel::STAIN_LINK);
+        if (!channels.isEmpty())
+        {
+          int start = 0;
+          int end   = start + channels.size() - 1;
+          beginInsertRows(sampleIndex, start, end);
+          {
+            foreach(ModelItemSPtr item, channels)
+            {
+              m_channels[sample] << item.data();
+            }
+          }
+          endInsertRows();
+        }
       }
     }
     endInsertRows();

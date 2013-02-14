@@ -73,6 +73,9 @@ void TaxonomyProxy::setSourceModel(EspinaModel *sourceModel)
           this, SLOT(sourceModelReset()));
 
   QAbstractProxyModel::setSourceModel(m_model);
+
+  sourceRowsInserted(m_model->taxonomyRoot()    , 0, m_model->rowCount(m_model->taxonomyRoot())     - 1);
+  sourceRowsInserted(m_model->segmentationRoot(), 0, m_model->rowCount(m_model->segmentationRoot()) - 1);
 }
 
 //------------------------------------------------------------------------

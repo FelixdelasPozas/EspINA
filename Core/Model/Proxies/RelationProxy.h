@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2012  <copyright holder> <email>
+    Copyright (C) 2011  Jorge Peña <jorge.pena.pastor@gmail.com>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,28 +16,29 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+//----------------------------------------------------------------------------
+// File:    SampleProxy.h
+// Purpose: Rearrange model items to group Segmentations by Samples
+//----------------------------------------------------------------------------
+#ifndef RELATIONPROXY_H
+#define RELATIONPROXY_H
 
-#ifndef COMPOSITIONPROXY_H
-#define COMPOSITIONPROXY_H
-
-#include <QtGui/QAbstractProxyModel>
+#include <QAbstractProxyModel>
 
 #include <Core/EspinaTypes.h>
 #include <Core/Model/EspinaModel.h>
 
 namespace EspINA
 {
-  class ModelItem;
-  class EspinaModel;
 
-  /// Arrange segmentations using their COMPOSED relationship
-  class CompositionProxy
+  /// Group Segmentations by Sample
+  class RelationProxy
   : public QAbstractProxyModel
   {
     Q_OBJECT
   public:
-    explicit CompositionProxy(QObject* parent = 0);
-    virtual ~CompositionProxy();
+    RelationProxy(QObject* parent = 0);
+    virtual ~RelationProxy();
 
     virtual void setSourceModel(EspinaModel *sourceModel);
 
@@ -45,36 +46,35 @@ namespace EspINA
 
     virtual bool hasChildren(const QModelIndex& parent = QModelIndex()) const;
     virtual int rowCount(const QModelIndex& parent = QModelIndex()) const;
-    virtual int columnCount(const QModelIndex& parent = QModelIndex()) const { return 1; }
+    virtual int columnCount(const QModelIndex& parent = QModelIndex()) const {return 1;}
     virtual QModelIndex parent(const QModelIndex& child) const;
     virtual QModelIndex index(int row, int column, const QModelIndex& parent = QModelIndex()) const;
 
     virtual QModelIndex mapFromSource(const QModelIndex& sourceIndex) const;
     virtual QModelIndex mapToSource(const QModelIndex& proxyIndex) const;
 
-    // Drag & Drop
-    virtual Qt::ItemFlags flags(const QModelIndex& index) const;
-    virtual Qt::DropActions supportedDropActions() const {return Qt::MoveAction;}
-    virtual bool dropMimeData(const QMimeData* data, Qt::DropAction action, int row, int column, const QModelIndex& parent);
+    void setRelation(const QString &relation);
 
   protected slots:
     void sourceRowsInserted(const QModelIndex & sourceParent, int start, int end);
     void sourceRowsAboutToBeRemoved(const QModelIndex & sourceParent, int start, int end);
     void sourceRowsRemoved(const QModelIndex & sourceParent, int start, int end);
-    void sourceDataChanged(const QModelIndex &sourceTopLeft, const QModelIndex &sourceBottomRight);
+    void sourceDataChanged(const QModelIndex& sourceTopLeft, const QModelIndex& sourceBottomRight);
+    void sourceModelReset();
 
   protected:
-    SegmentationPtr findSegmentation(QString tooltip) const;
-    bool indices(const QModelIndex& topLeft, const QModelIndex& bottomRight, QModelIndexList& result);
-    SegmentationPtr parentSegmentation(ModelItemPtr segItem) const;
+    ModelItemPtr parentNode(const ModelItemPtr node) const;
+    void registerNodes(ModelItemPtr node);
+    void removeSubNodes(ModelItemPtr node);
 
   private:
-    EspinaModel *m_sourceModel;
+    EspinaModel *m_model;
 
-    SegmentationList m_rootSegmentations;
-    mutable QMap<SegmentationPtr, ModelItemList> m_components;
+    QString m_relation;
+    ModelItemList m_rootNodes;
+    mutable QMap<ModelItemPtr, ModelItemList> m_subNodes;
   };
 
-}// namespace EspINA
+} // namespace EspINA
 
-#endif // COMPOSITIONPROXY_H
+#endif // RELATIONPROXY_H

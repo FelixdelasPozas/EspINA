@@ -23,7 +23,7 @@
 #include "SegmentationExplorerLayout.h"
 
 // EspINA
-#include <Core/Model/Proxies/CompositionProxy.h>
+#include <Core/Model/Proxies/RelationProxy.h>
 
 // Qt
 #include <QSortFilterProxyModel>
@@ -47,14 +47,26 @@ namespace EspINA
                                ViewManager       *viewManager);
     virtual ~CompositionLayout();
 
-    virtual QAbstractItemModel* model() {return m_sort.data();}
+    virtual QAbstractItemModel* model()
+    {return m_sort.data();}
+
     virtual ModelItemPtr item(const QModelIndex& index) const;
+
     virtual QModelIndex index(ModelItemPtr item) const;
-    virtual SegmentationList deletedSegmentations(QModelIndexList selection);
+
+    virtual void contextMenu(const QPoint &pos);
+
+    virtual void deleteSelectedItems();
+
+    virtual void showSelectedItemsInformation();
+
+    virtual QItemDelegate *itemDelegate() const;
 
   private:
-    QSharedPointer<CompositionProxy> m_proxy;
-    QSharedPointer<SortFilter> m_sort;
+    QSharedPointer<RelationProxy> m_proxy;
+    QSharedPointer<SortFilter>   m_sort;
+
+    QItemDelegate *m_delegate;
   };
 
 } // namespace EspINA
