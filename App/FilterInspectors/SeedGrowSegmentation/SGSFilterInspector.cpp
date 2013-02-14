@@ -26,8 +26,65 @@
 #include <QDebug>
 #include <QMessageBox>
 #include <QCheckBox>
+#include <QUndoCommand>
 
 using namespace EspINA;
+
+class SGSFilterModification
+: public QUndoCommand
+{
+public:
+  SGSFilterModification(SeedGrowSegmentationFilter *filter,
+                        int voi[6],
+                        int threshold,
+                        int closeRadius,
+                        QUndoCommand *parent = NULL)
+  : QUndoCommand(parent)
+  , m_filter(filter)
+  , m_threshold(threshold)
+  , m_closeRadius(closeRadius)
+  {
+    memcpy(m_VOI, voi, 6*sizeof(int));
+
+    m_oldThreshold = m_filter->lowerThreshold();
+    m_filter->voi(m_oldVOI);
+    m_oldCloseRadius = m_filter->closeValue();
+  }
+
+  virtual void redo()
+  {
+    m_filter->setLowerThreshold(m_threshold);
+    m_filter->setUpperThreshold(m_threshold);
+    m_filter->setVOI(m_VOI);
+    m_filter->setCloseValue(m_closeRadius);
+
+    update();
+  }
+  virtual void undo()
+  {
+    m_filter->setLowerThreshold(m_oldThreshold);
+    m_filter->setUpperThreshold(m_oldThreshold);
+    m_filter->setVOI(m_oldVOI);
+    m_filter->setCloseValue(m_oldCloseRadius);
+
+    update();
+  }
+
+private:
+  void update()
+  {
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+    m_filter->update();
+    QApplication::restoreOverrideCursor();
+  }
+
+private:
+  SeedGrowSegmentationFilter *m_filter;
+
+  int m_VOI[6], m_oldVOI[6];
+  int m_threshold, m_oldThreshold;
+  int m_closeRadius, m_oldCloseRadius;
+};
 
 //----------------------------------------------------------------------------
 SGSFilterInspector::SGSFilterInspector(SeedGrowSegmentationFilter* filter)
@@ -38,20 +95,27 @@ SGSFilterInspector::SGSFilterInspector(SeedGrowSegmentationFilter* filter)
 //----------------------------------------------------------------------------
 QWidget* SGSFilterInspector::createWidget(QUndoStack* stack, ViewManager* viewManager)
 {
-  return new Widget(m_filter, viewManager);
+  return new Widget(m_filter, stack, viewManager);
 }
 
 
 
 
 //----------------------------------------------------------------------------
-SGSFilterInspector::Widget::Widget(Filter* filter, ViewManager* vm)
-: m_viewManager(vm)
+SGSFilterInspector::Widget::Widget(Filter* filter,
+                                   QUndoStack * undoStack,
+                                   ViewManager* viewManager)
+: m_undoStack(undoStack)
+, m_viewManager(viewManager)
 , m_region(NULL)
+, m_closeValue(0)
 //, m_sliceSelctor(NULL)
 {
   setupUi(this);
   m_filter = dynamic_cast<SeedGrowSegmentationFilter *>(filter);
+  connect(filter, SIGNAL(modified(ModelItemPtr)),
+          this, SLOT(updateWidget()));
+
   itkVolumeType::IndexType seed = m_filter->seed();
   m_xSeed->setText(QString("%1").arg(seed[0]));
   m_ySeed->setText(QString("%1").arg(seed[1]));
@@ -206,15 +270,8 @@ void SGSFilterInspector::Widget::modifyFilter()
                          return;
   }
 
-  m_filter->setLowerThreshold(m_threshold->value());
-  m_filter->setUpperThreshold(m_threshold->value());
-  m_filter->setVOI(VOI);
+  m_undoStack->push(new SGSFilterModification(m_filter, VOI, m_threshold->value(), m_closeValue));
 
-  QApplication::setOverrideCursor(Qt::WaitCursor);
-  m_filter->update();
-
-  // TODO 2012-10-25 Change FilerInspector API to pass segmentations
-  // it can be needed to modify their conditions or even to delete them
   double segBounds[6];
   m_filter->volume(0)->bounds(segBounds);
 
@@ -235,9 +292,6 @@ void SGSFilterInspector::Widget::modifyFilter()
     QString condition = tr("Touch VOI");
     //seg->addCondition(SGS_VOI, ":voi.svg", condition);
   }
-
-  m_viewManager->updateViews();
-  QApplication::restoreOverrideCursor();
 }
 
 //----------------------------------------------------------------------------
@@ -260,13 +314,36 @@ void SGSFilterInspector::Widget::modifyCloseCheckbox(int enable)
   m_closeRadius->setEnabled(enable);
 
   if (!enable)
-    m_filter->setCloseValue(0);
+    m_closeValue = 0;
   else
-      m_filter->setCloseValue(m_closeRadius->value()); // if 0 == value then is the same as disabled
+    m_closeValue = m_closeRadius->value();
 }
 
 //----------------------------------------------------------------------------
 void SGSFilterInspector::Widget::modifyCloseValue(int value)
 {
-  m_filter->setCloseValue(value);
+  m_closeValue = value;
+}
+
+//----------------------------------------------------------------------------
+void SGSFilterInspector::Widget::updateWidget()
+{
+  m_threshold->setValue(m_filter->lowerThreshold());
+  int voiExtent[6];
+  m_filter->voi(voiExtent);
+  itkVolumeType::SpacingType spacing = m_filter->volume(0)->toITK()->GetSpacing();
+  for (int i=0; i<6; i++)
+    m_voiBounds[i] = voiExtent[i] * spacing[i/2];
+
+  m_leftMargin->setValue(m_voiBounds[0]);
+  m_rightMargin->setValue(m_voiBounds[1]);
+  m_topMargin->setValue(m_voiBounds[2]);
+  m_bottomMargin->setValue(m_voiBounds[3]);
+  m_upperMargin->setValue(m_voiBounds[4]);
+  m_lowerMargin->setValue(m_voiBounds[5]);
+
+  bool enabled = m_filter->closeValue() > 0;
+  m_closeCheckbox->setChecked(enabled);
+  m_closeRadius->setEnabled(enabled);
+  m_closeRadius->setValue(m_filter->closeValue());
 }

@@ -182,6 +182,8 @@ void SeedGrowSegmentationFilter::run()
 
   m_paramModified = false;
 
+  m_outputs[0].volume->markAsModified();
+
   emit modified(this);
 }
 

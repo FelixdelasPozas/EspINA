@@ -95,22 +95,23 @@ void FilterInspector::updatePannel()
   {
     if (m_seg)
     {
-      disconnect(m_seg, SIGNAL(modified(ModelItemPtr)), this, SLOT(updatePannel()));
+      disconnect(m_seg, SIGNAL(volumeModified()),
+                 this, SLOT(updatePannel()));
     }
 
     m_seg = seg;
 
     if (m_seg)
     {
-      connect(m_seg, SIGNAL(modified(ModelItemPtr)), this, SLOT(updatePannel()));
+      connect(m_seg, SIGNAL(volumeModified()),
+              this, SLOT(updatePannel()));
     }
     changeWidget = true;
   }
-  else
-    if ((!m_filter.isNull() && m_filter != seg->filter())|| (m_seg == NULL && seg == NULL && widget() == NULL))
-    {
-      changeWidget = true;
-    }
+  else if ((!m_filter.isNull() && m_filter != seg->filter())|| (m_seg == NULL && seg == NULL && widget() == NULL))
+  {
+    changeWidget = true;
+  }
 
   if (changeWidget)
   {
