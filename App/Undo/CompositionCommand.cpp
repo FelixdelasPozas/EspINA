@@ -51,13 +51,20 @@ CompositionCommand::CompositionCommand(const SegmentationList &segmentations,
   for(int i=0; i<segmentations.size(); i++)
   {
     SegmentationSPtr seg = m_model->findSegmentation(segmentations[i]);
-    if (i>0) args[Filter::INPUTS].append(",");
+    m_input << seg; // Need to be inserted before any call to link()
+
+    if (i>0)
+      args[Filter::INPUTS].append(",");
+
     args[Filter::INPUTS].append(Filter::NamedInput(link(seg), seg->outputId()));
+
     inputs[link(seg)] = seg->filter();
-    m_input    << seg;
+
+
     m_infoList << SegInfo(seg);
   }
   params.setOperation(ImageLogicFilter::ADDITION);
+
   m_filter = FilterSPtr(new ImageLogicFilter(inputs, args, FILTER_TYPE));
   m_filter->update();
   m_seg = m_model->factory()->createSegmentation(m_filter, 0);

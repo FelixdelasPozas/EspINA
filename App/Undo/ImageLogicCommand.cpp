@@ -55,7 +55,7 @@ ImageLogicCommand::ImageLogicCommand(SegmentationList            input,
   for(int i = 0; i < input.size(); i++)
   {
     SegmentationSPtr seg = m_model->findSegmentation(input[i]);
-    m_input << seg;
+    m_input << seg; // Need to be inserted before any call to link()
 
     if (i > 0)
       args[Filter::INPUTS].append(",");
