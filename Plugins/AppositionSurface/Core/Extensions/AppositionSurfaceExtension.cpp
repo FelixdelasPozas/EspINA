@@ -21,6 +21,7 @@
 
 // EspINA
 #include <Core/Model/Segmentation.h>
+#include <Core/Model/EspinaModel.h>
 #include <Core/EspinaSettings.h>
 
 // Qt
@@ -38,31 +39,31 @@ using namespace EspINA;
 /// - Apposition Surface Tortuosity
 /// - Synapse from which the Apposition Surface was obtained
 
-const ModelItem::ExtId   AppositionSurfaceExtension::ID
-= "AppositionSurfaceExtension";
+const ModelItem::ExtId   AppositionSurfaceExtension::ID = "AppositionSurfaceExtension";
 
-const Segmentation::InfoTag AppositionSurfaceExtension::AREA
-= "AS Area";
-const Segmentation::InfoTag AppositionSurfaceExtension::PERIMETER
-= "AS Perimeter";
-const Segmentation::InfoTag AppositionSurfaceExtension::TORTUOSITY
-= "AS Tortuosity";
+const Segmentation::InfoTag AppositionSurfaceExtension::AREA       = "AS Area";
+const Segmentation::InfoTag AppositionSurfaceExtension::PERIMETER  = "AS Perimeter";
+const Segmentation::InfoTag AppositionSurfaceExtension::TORTUOSITY = "AS Tortuosity";
+const Segmentation::InfoTag AppositionSurfaceExtension::SYNAPSE    = "AS Synapse";
 
-const Segmentation::InfoTag AppositionSurfaceExtension::SYNAPSE
-= "AS Synapse";
+const QString AppositionSurfaceExtension::EXTENSION_FILE = "AppositionSurfaceExtension/AppositionSurfaceExtension.csv";
 
-const double UNDEFINED = -1.;
+const std::string FILE_VERSION = AppositionSurfaceExtension::ID.toStdString() + " 1.0\n";
+const char SEP = ',';
 
 QMap<SegmentationPtr, AppositionSurfaceExtension::CacheEntry> AppositionSurfaceExtension::s_cache;
 
+const double UNDEFINED = -1.;
 
 //------------------------------------------------------------------------
 AppositionSurfaceExtension::CacheEntry::CacheEntry()
-: Area      (UNDEFINED)
-, Perimeter (UNDEFINED)
+: Modified(false)
+, Area(UNDEFINED)
+, Perimeter(UNDEFINED)
 , Tortuosity(UNDEFINED)
+, FromSynapse(QString())
 {
-}
+};
 
 //------------------------------------------------------------------------
 AppositionSurfaceExtension::AppositionSurfaceExtension()
@@ -72,6 +73,7 @@ AppositionSurfaceExtension::AppositionSurfaceExtension()
 //------------------------------------------------------------------------
 AppositionSurfaceExtension::~AppositionSurfaceExtension()
 {
+  invalidate();
 }
 
 //------------------------------------------------------------------------
@@ -93,7 +95,8 @@ Segmentation::InfoTagList AppositionSurfaceExtension::availableInformations() co
 //------------------------------------------------------------------------
 QVariant AppositionSurfaceExtension::information(const Segmentation::InfoTag &tag)
 {
-  if (m_seg->taxonomy()->name() != tr("AS"))
+  QString fullTaxonomy = m_seg->taxonomy()->qualifiedName();
+  if (!fullTaxonomy.startsWith("AS/") && (fullTaxonomy.compare("AS") != 0))
     return QVariant();
 
   AppositionSurfaceFilter *filter = dynamic_cast<AppositionSurfaceFilter *>(m_seg->filter().data());
@@ -115,7 +118,6 @@ QVariant AppositionSurfaceExtension::information(const Segmentation::InfoTag &ta
 //------------------------------------------------------------------------
 void AppositionSurfaceExtension::initialize(ModelItem::Arguments args)
 {
-  //m_init = true;
 }
 
 //------------------------------------------------------------------------
@@ -123,3 +125,88 @@ Segmentation::InformationExtension AppositionSurfaceExtension::clone()
 {
   return new AppositionSurfaceExtension();
 }
+
+//------------------------------------------------------------------------
+bool AppositionSurfaceExtension::isCacheFile(const QString &file) const
+{
+  return EXTENSION_FILE == file;
+}
+
+//------------------------------------------------------------------------
+void AppositionSurfaceExtension::invalidate()
+{
+  s_cache.remove(m_seg);
+}
+
+//------------------------------------------------------------------------
+bool AppositionSurfaceExtension::loadCache(QuaZipFile &file, const QDir &tmpDir, EspinaModel *model)
+{
+  QString header(file.readLine());
+  if (header.toStdString() != FILE_VERSION)
+    return false;
+
+  char buffer[1024];
+  while (file.readLine(buffer, sizeof(buffer)) > 0)
+  {
+    QString line(buffer);
+    QStringList fields = line.split(SEP);
+
+    SegmentationPtr extensionSegmentation = NULL;
+    int i = 0;
+    while (!extensionSegmentation && i < model->segmentations().size())
+    {
+      SegmentationSPtr segmentation = model->segmentations()[i];
+      if ( segmentation->filter()->id()       == fields[0]
+        && segmentation->outputId()           == fields[1].toInt()
+        && segmentation->filter()->cacheDir() == tmpDir)
+      {
+        extensionSegmentation = segmentation.data();
+      }
+      i++;
+    }
+    // NOTE: This assert means someone's removing an extension from the model
+    //       without invalidating its extensions
+    Q_ASSERT(extensionSegmentation);
+
+    s_cache[extensionSegmentation].Area        = fields[3].toDouble();
+    s_cache[extensionSegmentation].Perimeter   = fields[4].toDouble();
+    s_cache[extensionSegmentation].Tortuosity  = fields[5].toDouble();
+    s_cache[extensionSegmentation].FromSynapse = QString(fields[6].toStdString().c_str());
+  }
+
+  return true;
+}
+
+//------------------------------------------------------------------------
+bool AppositionSurfaceExtension::saveCache(CacheList &cacheList)
+{
+  foreach(SegmentationPtr segmentation, s_cache.keys())
+  {
+    if (segmentation->isVolumeModified() && !s_cache[segmentation].Modified)
+      s_cache.remove(segmentation);
+  }
+
+  if (s_cache.isEmpty())
+    return false;
+
+  std::ostringstream cache;
+  cache << FILE_VERSION;
+
+  foreach(SegmentationPtr segmentation, s_cache.keys())
+  {
+    cache << segmentation->filter()->id().toStdString();
+    cache << SEP << segmentation->outputId();
+
+    cache << SEP << s_cache[segmentation].Area;
+    cache << SEP << s_cache[segmentation].Perimeter;
+    cache << SEP << s_cache[segmentation].Tortuosity;
+    cache << SEP << s_cache[segmentation].FromSynapse.toStdString();
+
+    cache << std::endl;
+  }
+
+  cacheList << QPair<QString, QByteArray>(EXTENSION_FILE, cache.str().c_str());
+
+  return true;
+}
+

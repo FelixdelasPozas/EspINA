@@ -27,54 +27,58 @@ namespace EspINA
   class AppositionSurfaceExtension
   : public Segmentation::Information
   {
-  public:
-    static const ModelItem::ExtId ID;
+      struct CacheEntry
+      {
+          explicit CacheEntry();
 
-    static const Segmentation::InfoTag AREA;
-    static const Segmentation::InfoTag PERIMETER;
-    static const Segmentation::InfoTag TORTUOSITY;
-    static const Segmentation::InfoTag SYNAPSE;
+          bool Modified;
+          double Area;
+          double Perimeter;
+          double Tortuosity;
+          QString FromSynapse;
+      };
 
-    struct CacheEntry
-    {
-      explicit CacheEntry();
+      static QMap<SegmentationPtr, CacheEntry> s_cache;
 
-      double  Area;
-      double  Perimeter;
-      double  Tortuosity;
-      QString Synapse;
-    };
+    public:
+      static const ModelItem::ExtId ID;
 
-    static QMap<SegmentationPtr, CacheEntry> s_cache;
+      static const Segmentation::InfoTag AREA;
+      static const Segmentation::InfoTag PERIMETER;
+      static const Segmentation::InfoTag TORTUOSITY;
+      static const Segmentation::InfoTag SYNAPSE;
 
-  public:
-    explicit AppositionSurfaceExtension();
-    virtual ~AppositionSurfaceExtension();
+      const static QString EXTENSION_FILE;
 
-    virtual ModelItem::ExtId id();
+    public:
+      explicit AppositionSurfaceExtension();
+      virtual ~AppositionSurfaceExtension();
 
-    virtual ModelItem::ExtIdList dependencies() const
-    { return Segmentation::Extension::dependencies(); }
+      virtual ModelItem::ExtId id();
 
-    virtual Segmentation::InfoTagList availableInformations() const;
+      virtual ModelItem::ExtIdList dependencies() const
+      {
+        return Segmentation::Extension::dependencies();
+      }
 
-    virtual QVariant information(const Segmentation::InfoTag &tag);
+      virtual Segmentation::InfoTagList availableInformations() const;
 
-    virtual void initialize(ModelItem::Arguments args = ModelItem::Arguments());
+      virtual QVariant information(const Segmentation::InfoTag &tag);
 
-    virtual bool isCacheFile(const QString &file) const
-    {return false;}
+      virtual void initialize(ModelItem::Arguments args = ModelItem::Arguments());
 
-    virtual bool loadCache(QuaZipFile &file, const QDir &tmpDir, EspinaModel *model)
-    {return false;}
+      virtual bool isCacheFile(const QString &file) const;
 
-    virtual bool saveCache(CacheList &cacheList)
-    {return false;}
+      virtual bool loadCache(QuaZipFile &file, const QDir &tmpDir, EspinaModel *model);
 
-    virtual Segmentation::InformationExtension clone();
+      virtual bool saveCache(CacheList &cacheList);
 
-  private:
-    void updateInformation();
+      virtual Segmentation::InformationExtension clone();
+
+    private:
+      virtual void invalidate();
+
+      void updateInformation();
 
   };
 

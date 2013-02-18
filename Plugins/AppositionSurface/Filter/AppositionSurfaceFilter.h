@@ -86,9 +86,6 @@ namespace EspINA
       /// Default implementation will request an update if there are no filter outputs
       /// or there is at least one invalid output
       virtual bool needUpdate() const;
-      /// Updates filter outputs.
-      /// If a snapshot exits it will try to load it from disk
-      void update();
 
       virtual QString getOriginSegmentation();
       virtual itkVolumeType::SpacingType getOriginSpacing();
@@ -101,6 +98,11 @@ namespace EspINA
       virtual void run();
 
       void createOutput();
+
+      /// Try to locate an snapshot of the filter in tmpDir
+      /// Returns true if all volume snapshot can be recovered
+      /// and false otherwise
+      virtual bool prefetchFilter();
 
     private:
       /// forbidden methods

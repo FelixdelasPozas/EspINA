@@ -89,6 +89,7 @@ MorphologicalInformation::CacheEntry::CacheEntry()
 //------------------------------------------------------------------------
 MorphologicalInformation::MorphologicalInformation()
 : m_statistic(NULL)
+, m_validFeret(false)
 {
   m_labelMap = Image2LabelFilterType::New();
   m_labelMap->SetComputeFeretDiameter(false);

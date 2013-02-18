@@ -806,4 +806,12 @@ namespace EspINA
     m_outputs[0] = Output(this, 0, AppositionSurfaceVolume::Pointer(new AppositionSurfaceVolume(this)));
   }
 
+  //----------------------------------------------------------------------------
+  bool AppositionSurfaceFilter::prefetchFilter()
+  {
+    // TODO get vtkPolyDatas from seg file
+    return SegmentationFilter::prefetchFilter();
+  }
+
+
 } /* namespace EspINA */
