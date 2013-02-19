@@ -736,7 +736,7 @@ void SliceView::addChannel(ChannelPtr channel)
   }
 
   channelRep.selected = false;
-  channelRep.visible = !channel->isVisible();  // Force initialization
+  channelRep.visible = channel->isVisible();
   channelRep.color.setHsvF(hue, sat, 1.0);
   channelRep.brightness = channel->brightness();
   channelRep.contrast = channel->contrast();
