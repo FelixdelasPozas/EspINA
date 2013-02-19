@@ -18,6 +18,7 @@
 */
 #include "Channel.h"
 
+#include "Core/Model/EspinaFactory.h"
 #include "Core/Model/Filter.h"
 #include "Core/Extensions/ChannelExtension.h"
 #include "Core/Extensions/ModelItemExtension.h"

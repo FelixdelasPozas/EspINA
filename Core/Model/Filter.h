@@ -191,6 +191,13 @@ namespace EspINA
 
     void updateCacheFlags();
 
+    /// Try to locate an snapshot of the filter in tmpDir
+    /// Returns true if all volume snapshot can be recovered
+    /// and false otherwise
+    virtual bool fetchSnapshot();
+    /// QMap<file name, file byte array> of filter's data to save to seg file
+    virtual bool dumpSnapshot(QList<QPair<QString, QByteArray> > &fileList);
+
   protected:
     explicit Filter(NamedInputs namedInputs,
                     Arguments   args,
@@ -202,10 +209,6 @@ namespace EspINA
     virtual void createOutput(OutputId id, const EspinaRegion &region, itkVolumeType::SpacingType spacing) = 0;
     /// Method which actually executes the filter
     virtual void run() {};
-    /// Try to locate an snapshot of the filter in tmpDir
-    /// Returns true if all volume snapshot can be recovered
-    /// and false otherwise
-    virtual bool prefetchFilter();
 
     /// Reader to access snapshots
     EspinaVolumeReader::Pointer tmpFileReader(const QString file);

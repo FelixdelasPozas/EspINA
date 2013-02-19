@@ -18,6 +18,7 @@
  */
 #include "Segmentation.h"
 
+#include "Core/Model/EspinaFactory.h"
 #include "Core/Model/Sample.h"
 #include "Core/Model/Filter.h"
 #include "Core/Model/Channel.h"

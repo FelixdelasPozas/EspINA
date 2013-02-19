@@ -135,6 +135,7 @@ namespace EspINA
     Edges inEdges (VertexId v, const QString &filter = "");
     Edges outEdges(VertexId v, const QString &filter = "");
     Edges edges   (VertexId v, const QString &filter = "");
+    void removeEdges(VertexId v);
 
     Vertices vertices();
     Vertices ancestors(VertexId v, const QString &filter = "");
@@ -166,6 +167,8 @@ namespace EspINA
 
     //! Retrieve current vertex index of a ModelItem
     VertexDescriptor vertex(ModelItemPtr item);
+    VertexDescriptor vertex(VertexId v);
+
   private:
     Graph m_graph;
   };

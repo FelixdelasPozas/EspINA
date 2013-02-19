@@ -80,7 +80,7 @@ namespace EspINA
                                 QUndoStack  *undoStack,
                                 ViewManager *viewManager);
 
-    virtual bool readFile(const QFileInfo file);
+    virtual bool readFile(const QFileInfo file, EspinaIO::ErrorHandler *handler = NULL);
 
   private:
     EspinaModel *m_model;

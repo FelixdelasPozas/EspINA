@@ -1,9 +1,8 @@
 #ifndef ESPINAIO_H
 #define ESPINAIO_H
 
-#include "Core/Model/EspinaModel.h"
-#include "Core/Model/Filter.h"
-
+#include <Core/Model/Channel.h>
+#include <Core/Model/Taxonomy.h>
 #include <QFileInfo>
 #include <QDir>
 
@@ -18,10 +17,15 @@ class QXmlStreamWriter;
 
 namespace EspINA
 {
+  class EspinaModel;
+  class Filter;
+
   class EspinaIO
   {
     static const QString VERSION;
   public:
+    class ErrorHandler;
+
     enum STATUS
     { SUCCESS
     , FILE_NOT_FOUND
@@ -37,7 +41,8 @@ namespace EspINA
      * @return Success if no other error is reported.
      */
     static STATUS loadFile(QFileInfo    file,
-                           EspinaModel *model);
+                           EspinaModel *model,
+                           ErrorHandler *handler = NULL);
 
     /**
      * Load channel files supported by EspINA. Current implementation
@@ -49,7 +54,8 @@ namespace EspINA
      */
     static STATUS loadChannel(QFileInfo file,
                               EspinaModel *model,
-                              ChannelSPtr &channelPtr);
+                              ChannelSPtr &channel,
+                              ErrorHandler *handler = NULL);
 
     /**
      * Loads a seg file which must contain at least a trace and a taxonomy file.
@@ -59,17 +65,21 @@ namespace EspINA
      * @return Success if no other error is reported.
      */
     static STATUS loadSegFile(QFileInfo file,
-                              EspinaModel *model);
+                              EspinaModel *model,
+                              ErrorHandler *handler = NULL);
 
     /**
      * Create a new seg file containing all information provided by @param model
      * @param filepath is the path where the model must be saved
      * @param model is the EspinaModel which is saved in @param file
      */
-    static STATUS saveSegFile(QFileInfo file, EspinaModel *model);
+    static STATUS saveSegFile(QFileInfo file,
+                              EspinaModel *model,
+                              ErrorHandler *handler = NULL);
 
     // deletes all files inside the temporal dir and removes it, recursively if necessary
     static STATUS removeTemporalDir(QDir temporalDir);
+
 
   private:
     /**
@@ -78,13 +88,15 @@ namespace EspINA
      * compression.
      * @return If everythin works well it returns true. Otherwise returns false.
      */
+    static bool zipFile(QString fileName,
+                        const QByteArray &content,
+                        QuaZipFile& zFile);
+
+    // deprecated?
     static bool zipVolume(Filter::Output output,
                           QDir tmpDir,
                           QuaZipFile &outFile);
 
-    static bool zipFile(QString fileName,
-                        QByteArray content,
-                        QuaZipFile& zFile);
   };
 
   class IOTaxonomy

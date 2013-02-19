@@ -42,7 +42,7 @@
 #include <Core/ColorEngines/TaxonomyColorEngine.h>
 #include <Core/ColorEngines/UserColorEngine.h>
 #include <Core/EspinaSettings.h>
-#include <Core/IO/EspinaIO.h>
+#include <Core/IO/ErrorHandler.h>
 #include <Core/Interfaces/IColorEngineProvider.h>
 #include <Core/Interfaces/IDockWidget.h>
 #include <Core/Interfaces/IFactoryExtension.h>
@@ -56,6 +56,7 @@
 #include <GUI/Renderers/MeshRenderer.h>
 #include <GUI/Renderers/VolumetricRenderer.h>
 #include <GUI/ViewManager.h>
+#include <Filters/ChannelReader.h>
 
 #ifdef TEST_ESPINA_MODELS
   #include <Core/Model/ModelTest.h>
@@ -71,6 +72,66 @@
 using namespace EspINA;
 
 const QString AUTOSAVE_FILE = "espina-autosave.seg";
+
+//------------------------------------------------------------------------
+class EspinaErrorHandler
+: public EspinaIO::ErrorHandler
+  {
+    public:
+      EspinaErrorHandler(QWidget *parent = NULL)
+      : m_parent(parent) {};
+
+      void setDefaultDir(const QDir &dir) {m_defaultDir = dir;}
+      void warning(const QString &msg)
+      {
+        QMessageBox::warning(m_parent, "EspINA", msg);
+      }
+      void error(const QString &msg)
+      {
+        QMessageBox::warning(m_parent, "EspINA", msg);
+      }
+
+      QFileInfo fileNotFound(const QFileInfo &file,
+                             QDir dir = QDir(),
+                             const QString &nameFilters = QString(),
+                             const QString &hint = QString())
+      {
+        QFileInfo resfile;
+
+        QApplication::setOverrideCursor(Qt::ArrowCursor);
+
+        QFileDialog fileDialog;
+        fileDialog.setFileMode(QFileDialog::ExistingFiles);
+        if (dir == QDir())
+          fileDialog.setDirectory(m_defaultDir);
+        else
+          fileDialog.setDirectory(dir);
+
+        if (hint.isEmpty())
+          fileDialog.setWindowTitle(QObject::tr("Select file for %1:").arg(file.fileName()));
+        else
+          fileDialog.setWindowTitle(hint);
+
+        if (nameFilters.isEmpty())
+          fileDialog.setNameFilter(file.suffix());
+        else
+          fileDialog.setFilter(nameFilters);
+
+        int res = fileDialog.exec();
+
+        QApplication::restoreOverrideCursor();
+
+        if (QDialog::Accepted == res)
+           resfile = fileDialog.selectedFiles().first();
+
+        return resfile;
+      }
+
+    private:
+      QWidget *m_parent;
+      QDir     m_defaultDir;
+  };
+
 
 //------------------------------------------------------------------------
 EspinaMainWindow::DynamicMenuNode::DynamicMenuNode()
@@ -100,6 +161,7 @@ EspinaMainWindow::EspinaMainWindow(EspinaModel      *model,
 , m_settingsPanel(new GeneralSettingsPanel(m_settings))
 , m_view(NULL)
 , m_busy(false)
+, m_errorHandler(new EspinaErrorHandler(this))
 {
 #ifdef TEST_ESPINA_MODELS
   m_modelTester = QSharedPointer<ModelTest>(new ModelTest(m_model));
@@ -124,6 +186,8 @@ EspinaMainWindow::EspinaMainWindow(EspinaModel      *model,
 
   foreach(IRendererSPtr renderer, m_defaultRenderers)
     factory->registerRenderer(renderer.data());
+
+  factory->registerFilter(this, ChannelReader::TYPE);
 
   /*** FILE MENU ***/
   QMenu *fileMenu = new QMenu(tr("File"), this);
@@ -322,6 +386,15 @@ EspinaMainWindow::~EspinaMainWindow()
   delete m_settings;
   delete m_undoStack;
   delete m_dynamicMenuRoot;
+}
+
+//------------------------------------------------------------------------
+FilterSPtr EspinaMainWindow::createFilter(const QString& filter,
+                                          const Filter::NamedInputs& inputs,
+                                          const ModelItem::Arguments& args)
+{
+  if (ChannelReader::TYPE == filter)
+    return FilterSPtr(new ChannelReader(inputs, args, ChannelReader::TYPE, m_errorHandler));
 }
 
 //------------------------------------------------------------------------
@@ -576,13 +649,16 @@ void EspinaMainWindow::openAnalysis(const QString &file)
 
   QFileInfo fileInfo(file);
 
+
   EspinaIO::STATUS loaded;
   {
+    m_errorHandler->setDefaultDir(fileInfo.dir());
     QApplication::setOverrideCursor(Qt::WaitCursor);
     closeCurrentAnalysis();
 
     loaded =  EspinaIO::loadFile(file,
-                                 m_model);
+                                 m_model,
+                                 m_errorHandler);
     QApplication::restoreOverrideCursor();
   }
 

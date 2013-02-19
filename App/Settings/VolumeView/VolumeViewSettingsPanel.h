@@ -21,6 +21,7 @@
 #define VOLUMEVIEWSETTINGSPANEL_H
 
 #include "ui_VolumeViewSettingsPanel.h"
+#include <Core/Model/EspinaFactory.h>
 #include <GUI/ISettingsPanel.h>
 #include <GUI/QtWidget/VolumeView.h>
 

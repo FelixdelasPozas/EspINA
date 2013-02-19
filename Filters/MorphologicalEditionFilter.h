@@ -59,7 +59,7 @@ public:
 
 protected:
   /// Implements Filter Interface
-  virtual bool prefetchFilter();
+  virtual bool fetchSnapshot();
 
 protected:
   Parameters             m_params;

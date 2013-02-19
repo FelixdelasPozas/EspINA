@@ -102,7 +102,7 @@ namespace EspINA
       /// Try to locate an snapshot of the filter in tmpDir
       /// Returns true if all volume snapshot can be recovered
       /// and false otherwise
-      virtual bool prefetchFilter();
+      virtual bool fetchSnapshot();
 
     private:
       /// forbidden methods

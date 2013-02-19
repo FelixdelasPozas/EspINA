@@ -26,12 +26,15 @@
 #include "RecentDocuments.h"
 
 #include <Core/Interfaces/IDynamicMenu.h>
+#include <Core/Interfaces/IFilterCreator.h>
 #include <Core/EspinaTypes.h>
 #include <Core/Model/EspinaModel.h>
 #include <GUI/ISettingsPanel.h>
+#include <GUI/Renderers/Renderer.h>
 
 #include <QTimer>
 
+class EspinaErrorHandler;
 class QPluginLoader;
 class QAction;
 class QFrame;
@@ -56,6 +59,7 @@ class IToolBar;
 
   class EspinaMainWindow
   : public QMainWindow
+  , public IFilterCreator
   {
     Q_OBJECT
   public:
@@ -64,6 +68,9 @@ class IToolBar;
                               QList<QObject *> &plugins);
     virtual ~EspinaMainWindow();
 
+    virtual FilterSPtr createFilter(const QString& filter,
+                                    const Filter::NamedInputs& inputs,
+                                    const ModelItem::Arguments& args);
   public slots:
     void closeCurrentAnalysis();
 
@@ -158,6 +165,8 @@ class IToolBar;
 
     QTimer m_autosave;
     QString m_sessionFile;
+
+    EspinaErrorHandler *m_errorHandler;
   };
 
 } // namespace EspINA

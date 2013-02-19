@@ -26,6 +26,9 @@
 #include "Core/Model/Segmentation.h"
 #include "Core/Model/Taxonomy.h"
 #include "Core/IO/EspinaIO.h"
+#include "Core/IO/ErrorHandler.h"
+#include "Filters/ChannelReader.h"
+
 
 // Qt
 #include <QDebug>
@@ -679,6 +682,7 @@ void EspinaModel::serializeRelations(std::ostream& stream,
 //------------------------------------------------------------------------
 bool EspinaModel::loadSerialization(istream& stream,
                                     QDir tmpDir,
+                                    EspinaIO::ErrorHandler *handler,
                                     RelationshipGraph::PrintFormat format)
 {
   QSharedPointer<RelationshipGraph> input(new RelationshipGraph());
@@ -718,6 +722,7 @@ bool EspinaModel::loadSerialization(istream& stream,
           ModelItem::Arguments args(v.args.c_str());
           ModelItem::Arguments extArgs(args.value(ModelItem::EXTENSIONS, QString()));
           args.remove(ModelItem::EXTENSIONS);
+
           // TODO: Move link management code inside Channel's Arguments class
           QStringList link = args[Channel::VOLUME].split("_");
           Q_ASSERT(link.size() == 2);
@@ -727,15 +732,27 @@ bool EspinaModel::loadSerialization(istream& stream,
           Q_ASSERT(FILTER == item->type());
           FilterSPtr filter = findFilter(item);
           Q_ASSERT(!filter.isNull());
-          filter->update();
-          ChannelSPtr channel = m_factory->createChannel(filter, link[1].toInt());
-          channel->initialize(args);
-          if (channel->volume()->toITK().IsNull())
-            return false;
-          addChannel(channel);
-          nonInitializedItems << NonInitilizedItem(channel, extArgs);
-          input->setItem(v.vId, channel.data());
+          try
+          {
+            filter->update();
+            ChannelSPtr channel = m_factory->createChannel(filter, link[1].toInt());
+            channel->initialize(args);
+            if (channel->volume()->toITK().IsNull())
+              return false;
+            addChannel(channel);
+            nonInitializedItems << NonInitilizedItem(channel, extArgs);
+            input->setItem(v.vId, channel.data());
+          }
+          catch(int e)
+          {
+            Vertices successors = input->succesors(v.vId, QString());
+            if (!successors.empty())
+              return false;
+
+            input->removeEdges(v.vId);
+          }
           break;
+
         }
         case FILTER:
         {

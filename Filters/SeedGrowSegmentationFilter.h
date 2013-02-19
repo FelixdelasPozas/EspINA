@@ -141,7 +141,7 @@ namespace EspINA
     virtual bool needUpdate() const;
     virtual void releaseDataFlagOn();
     virtual void releaseDataFlagOff();
-    virtual bool prefetchFilter();
+    virtual bool fetchSnapshot();
 
   protected:
     virtual void run();

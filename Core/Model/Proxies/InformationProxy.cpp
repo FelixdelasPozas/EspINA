@@ -19,6 +19,7 @@
 
 #include "InformationProxy.h"
 
+#include "Core/Model/EspinaFactory.h"
 #include <Core/Model/EspinaModel.h>
 #include <Core/Model/Segmentation.h>
 #include <Core/Extensions/SegmentationExtension.h>

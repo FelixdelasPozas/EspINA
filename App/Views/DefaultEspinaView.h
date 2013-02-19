@@ -23,6 +23,7 @@
 #include <QAbstractItemView>
 
 #include <Core/EspinaTypes.h>
+#include <Core/Model/EspinaFactory.h>
 #include <GUI/QtWidget/SliceView.h>
 #include <GUI/QtWidget/VolumeView.h>
 #include <GUI/QtWidget/SegmentationContextualMenu.h>

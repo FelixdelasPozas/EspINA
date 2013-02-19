@@ -228,10 +228,10 @@ itkVolumeType::IndexType SeedGrowSegmentationFilter::seed() const
 }
 
 //-----------------------------------------------------------------------------
-bool SeedGrowSegmentationFilter::prefetchFilter()
+bool SeedGrowSegmentationFilter::fetchSnapshot()
 {
   if (m_paramModified)
     return false;
 
-  return Filter::prefetchFilter();
+  return Filter::fetchSnapshot();
 }

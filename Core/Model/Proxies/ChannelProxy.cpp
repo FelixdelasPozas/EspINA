@@ -58,6 +58,8 @@ void ChannelProxy::setSourceModel(EspinaModel *sourceModel)
           this, SLOT(sourceRowsAboutToBeRemoved(QModelIndex, int, int)));
   connect(sourceModel, SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)),
           this, SLOT(sourceDataChanged(const QModelIndex &,const QModelIndex &)));
+  connect(sourceModel, SIGNAL(modelAboutToBeReset()),
+          this, SLOT(sourceModelReset()));
 
   QAbstractProxyModel::setSourceModel(sourceModel);
 
@@ -496,6 +498,18 @@ void ChannelProxy::sourceDataChanged(const QModelIndex& sourceTopLeft,
     }
   }
 }
+
+//------------------------------------------------------------------------
+void ChannelProxy::sourceModelReset()
+{
+  beginResetModel();
+  {
+    m_samples.clear();
+    m_channels.clear();
+  }
+  endResetModel();
+}
+
 
 //------------------------------------------------------------------------
 int ChannelProxy::numChannels(SamplePtr sample) const

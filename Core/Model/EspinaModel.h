@@ -32,7 +32,7 @@
 #include "Filter.h"
 #include "Channel.h"
 #include "Segmentation.h"
-#include "EspinaFactory.h"
+#include <Core/IO/EspinaIO.h>
 
 namespace EspINA
 {
@@ -57,6 +57,9 @@ namespace EspINA
   /// - FilterRoot
   ///   - Filter1
   ///   - ...
+
+  class EspinaFactory;
+
   class EspinaModel
   : public QAbstractItemModel
   {
@@ -180,6 +183,7 @@ namespace EspINA
                             RelationshipGraph::PrintFormat format = RelationshipGraph::BOOST);
     bool loadSerialization (std::istream &stream,
                             QDir tmpDir,
+                            EspinaIO::ErrorHandler *handler = NULL,
                             RelationshipGraph::PrintFormat format = RelationshipGraph::BOOST);
 
     //---------------------------------------------------------------------------

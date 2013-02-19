@@ -26,6 +26,7 @@
 #include "Segmentation.h"
 #include <GUI/ISettingsPanel.h>
 #include <GUI/Renderers/Renderer.h>
+#include <Core/IO/EspinaIO.h>
 
 #include <QStringList>
 #include <QMap>
@@ -82,7 +83,7 @@ namespace EspINA
                                  const Filter::NamedInputs  &inputs,
                                  const ModelItem::Arguments &args);
 
-    bool readFile(const QString &file, const QString &ext);
+    bool readFile(const QString &file, const QString &ext, EspinaIO::ErrorHandler *handler = NULL);
 
 
     SampleSPtr createSample(const QString &id, const QString &args = "");

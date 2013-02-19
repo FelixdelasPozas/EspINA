@@ -26,7 +26,6 @@
 #include "Core/Model/Segmentation.h"
 #include <Core/Extensions/ChannelExtension.h>
 #include <Core/Extensions/SegmentationExtension.h>
-#include "Filters/ChannelReader.h"
 #include "GUI/Renderers/Renderer.h"
 
 #include <QDebug>
@@ -181,19 +180,15 @@ FilterSPtr EspinaFactory::createFilter(const QString              &filter,
                                       const Filter::NamedInputs  &inputs,
                                       const ModelItem::Arguments &args)
 {
-  // TODO 2013-01-04 --> Register outside the factory
-  if (ChannelReader::TYPE == filter)
-    return FilterSPtr(new ChannelReader(inputs, args, ChannelReader::TYPE));
-
   Q_ASSERT(m_filterCreators.contains(filter));
   return m_filterCreators[filter]->createFilter(filter, inputs, args);
 }
 
 //------------------------------------------------------------------------
-bool EspinaFactory::readFile(const QString &file, const QString &ext)
+bool EspinaFactory::readFile(const QString &file, const QString &ext, EspinaIO::ErrorHandler *handler)
 {
   Q_ASSERT(m_fileReaders.contains(ext));
-  return m_fileReaders[ext]->readFile(file);
+  return m_fileReaders[ext]->readFile(file, handler);
 }
 
 //------------------------------------------------------------------------
@@ -211,7 +206,7 @@ SampleSPtr EspinaFactory::createSample(const QString &id, const QString &args)
 
 //------------------------------------------------------------------------
 ChannelSPtr EspinaFactory::createChannel(FilterSPtr filter,
-                                              const Filter::OutputId &oId)
+                                         const Filter::OutputId &oId)
 {
   ChannelSPtr channel(new Channel(filter, oId));
 //   foreach(ChannelExtensionPtr ext, m_channelExtensions)

@@ -21,6 +21,7 @@
 // EspINA
 #include <Core/Model/ModelItem.h>
 #include <Core/Model/Segmentation.h>
+#include <Core/Model/EspinaFactory.h>
 #include <Core/Extensions/SegmentationExtension.h>
 #include <Core/Model/Filter.h>
 #include <GUI/QtWidget/VolumeView.h>

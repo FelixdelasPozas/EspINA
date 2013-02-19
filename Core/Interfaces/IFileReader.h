@@ -20,6 +20,7 @@
 #ifndef READERFACTORY_H
 #define READERFACTORY_H
 
+#include <Core/IO/EspinaIO.h>
 #include <QtPlugin>
 
 class QFileInfo;
@@ -42,7 +43,7 @@ namespace EspINA
                                 QUndoStack  *undoStack,
                                 ViewManager *viewManager) = 0;
 
-                                virtual bool readFile(const QFileInfo) = 0;
+                                virtual bool readFile(const QFileInfo, EspinaIO::ErrorHandler *handler = NULL) = 0;
   };
 
 }// namespace EspINA

@@ -64,6 +64,7 @@ namespace EspINA
     void sourceRowsAboutToBeRemoved(const QModelIndex & sourceParent, int start, int end);
     void sourceRowsRemoved(const QModelIndex & sourceParent, int start, int end);
     void sourceDataChanged(const QModelIndex& sourceTopLeft, const QModelIndex& sourceBottomRight);
+    void sourceModelReset();
 
   protected:
     bool indices(const QModelIndex &topLeft, const QModelIndex &bottomRight, QModelIndexList &result);
@@ -75,6 +76,7 @@ namespace EspINA
   private:
     EspinaModel *m_model;
     ViewManager *m_viewManager;
+
     SampleList m_samples;
     mutable QMap<SamplePtr, ModelItemList> m_channels;
   };

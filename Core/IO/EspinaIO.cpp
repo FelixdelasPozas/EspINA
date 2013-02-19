@@ -1,7 +1,10 @@
 #include "EspinaIO.h"
 
+#include <QFile>
 
 // EspINA
+#include "Core/Model/EspinaModel.h"
+#include "Core/Model/Filter.h"
 #include "Core/Model/EspinaFactory.h"
 #include "Core/Model/Sample.h"
 #include "Core/Model/Channel.h"
@@ -9,6 +12,7 @@
 #include <Core/Model/Taxonomy.h>
 #include <Core/Extensions/ChannelExtension.h>
 #include <Core/Extensions/SegmentationExtension.h>
+#include "ErrorHandler.h"
 
 #include "Filters/ChannelReader.h"
 
@@ -51,25 +55,27 @@ bool EspinaIO::isChannelExtension(const QString &fileExtension)
 
 //-----------------------------------------------------------------------------
 EspinaIO::STATUS EspinaIO::loadFile(QFileInfo file,
-                                    EspinaModel *model)
+                                    EspinaModel *model,
+                                    ErrorHandler *handler)
 {
   const QString ext = file.suffix();
   if (isChannelExtension(ext))
   {
     ChannelSPtr channel;
-    return loadChannel(file, model, channel);
+    return loadChannel(file, model, channel, handler);
   }
 
   if ("seg" == ext)
-    return loadSegFile(file, model);
+    return loadSegFile(file, model, handler);
 
-  return model->factory()->readFile(file.absoluteFilePath(), ext)?SUCCESS:ERROR;
+  return model->factory()->readFile(file.absoluteFilePath(), ext, handler) ? SUCCESS : ERROR;
 }
 
 //-----------------------------------------------------------------------------
 EspinaIO::STATUS EspinaIO::loadChannel(QFileInfo file,
                                        EspinaModel *model,
-                                       ChannelSPtr &channelPtr)
+                                       ChannelSPtr &channel,
+                                       ErrorHandler *handler)
 {
   //TODO 2012-10-07
   // Try to recover sample form DB using channel information
@@ -91,17 +97,26 @@ EspinaIO::STATUS EspinaIO::loadChannel(QFileInfo file,
 
   Filter::NamedInputs noInputs;
   Filter::Arguments readerArgs;
+
+  if (!file.exists())
+  {
+    if (handler)
+      file = handler->fileNotFound(file);
+
+    if (!file.exists())
+      return FILE_NOT_FOUND;
+  }
+
   readerArgs[ChannelReader::FILE] = file.absoluteFilePath();
-  FilterSPtr reader(new ChannelReader(noInputs, readerArgs, ChannelReader::TYPE));
+  FilterSPtr reader(new ChannelReader(noInputs, readerArgs, ChannelReader::TYPE, handler));
   reader->update();
   if (reader->outputs().isEmpty())
     return ERROR;
 
-
   Channel::CArguments args;
   args[Channel::ID] = file.fileName();
   args.setHue(stainColor.hueF());
-  ChannelSPtr channel = factory->createChannel(reader, 0);
+  channel = factory->createChannel(reader, 0);
   channel->setHue(stainColor.hueF());// It is needed to display proper stain color
   //file.absoluteFilePath(), args);
   channel->setOpacity(-1.0);
@@ -124,15 +139,14 @@ EspinaIO::STATUS EspinaIO::loadChannel(QFileInfo file,
   channel->initialize(args);
   channel->initializeExtensions();
 
-  channelPtr = channel;//NOTE: Comprobar esto
-
   return SUCCESS;
 }
 
 
 //-----------------------------------------------------------------------------
 EspinaIO::STATUS EspinaIO::loadSegFile(QFileInfo    file,
-                                       EspinaModel *model)
+                                       EspinaModel *model,
+                                       ErrorHandler *handler)
 {
   // generate random dir based on file name
   QDir temporalDir = QDir::tempPath();
@@ -147,7 +161,8 @@ EspinaIO::STATUS EspinaIO::loadSegFile(QFileInfo    file,
   QuaZip espinaZip(file.filePath());
   if( !espinaZip.open(QuaZip::mdUnzip) )
   {
-    qWarning() << "IOEspinaFile: Could not open file" << file.filePath();
+    if (handler)
+      handler->error("IOEspinaFile: Could not open file" + file.filePath());
     return FILE_NOT_FOUND;
   }
 
@@ -163,7 +178,8 @@ EspinaIO::STATUS EspinaIO::loadSegFile(QFileInfo    file,
     QFileInfo file = espinaFile.getActualFileName();
     if (!espinaFile.open(QIODevice::ReadOnly))
     {
-      qWarning() << "IOEspinaFile: Could not extract the file" << file.filePath();
+      if (handler)
+        handler->error("IOEspinaFile: Could not extract the file" + file.filePath());
       if (file == TAXONOMY_FILE || file == TRACE_FILE)
         return ERROR;
 
@@ -175,8 +191,8 @@ EspinaIO::STATUS EspinaIO::loadSegFile(QFileInfo    file,
       QString versionNumber = espinaFile.readAll();
       if (versionNumber < SEG_FILE_VERSION)
       {
-        qWarning() << QObject::tr("Invalid seg file version. "
-                                  "File Version=%1, current Version %2").arg(versionNumber).arg(SEG_FILE_VERSION);
+        if (handler)
+          handler->error(QObject::tr("Invalid seg file version. File Version=%1, current Version %2").arg(versionNumber).arg(SEG_FILE_VERSION));
         removeTemporalDir(temporalDir);
         espinaFile.close();
         return INVALID_VERSION;
@@ -244,7 +260,8 @@ EspinaIO::STATUS EspinaIO::loadSegFile(QFileInfo    file,
              *                                  QFile::ReadGroup | QFile::ReadOther);*/
             if (!destination.open(QIODevice::WriteOnly | QIODevice::Truncate))
             {
-              qWarning() << "IOEspinaFile::loadFile: could not create file " << destination.fileName() << "in" << temporalDir.path();
+              if (handler)
+                handler->warning("IOEspinaFile::loadFile: could not create file " + destination.fileName() + "in" + temporalDir.path());
             }
             destination.write(espinaFile.readAll());
             destination.close();
@@ -257,7 +274,8 @@ EspinaIO::STATUS EspinaIO::loadSegFile(QFileInfo    file,
 
   if(taxonomy.isNull() || traceContent.isEmpty())
   {
-    qWarning() << "IOEspinaFile::loadFile: could not load taxonomy and/or trace files";
+    if (handler)
+      handler->error("IOEspinaFile::loadFile: could not load taxonomy and/or trace files");
     removeTemporalDir(temporalDir);
     return ERROR;
   }
@@ -265,7 +283,7 @@ EspinaIO::STATUS EspinaIO::loadSegFile(QFileInfo    file,
   STATUS status;
   model->addTaxonomy(taxonomy);
   std::istringstream trace(traceContent.toStdString().c_str());
-  status = model->loadSerialization(trace, temporalDir) ? SUCCESS : ERROR;
+  status = model->loadSerialization(trace, temporalDir, handler) ? SUCCESS : ERROR;
 
   // Load Extensions' cache
   foreach(QString file, extensionFiles.keys())
@@ -325,26 +343,21 @@ bool EspinaIO::zipVolume(Filter::Output output,
 }
 
 //-----------------------------------------------------------------------------
-EspinaIO::STATUS EspinaIO::saveSegFile(QFileInfo file, EspinaModel *model)
+EspinaIO::STATUS EspinaIO::saveSegFile(QFileInfo file, EspinaModel *model, ErrorHandler *handler)
 {
   if (file.baseName().isEmpty())
   {
-    qWarning() << "IOEspinaFile::saveFile file name is empty";
+    if (handler)
+      handler->error("IOEspinaFile::saveFile file name is empty");
     return ERROR;
   }
 
-  // use system/user temporal directory, OS dependent
-  QDir temporalDir = QDir::tempPath();
-  temporalDir.mkdir(file.baseName());
-  temporalDir.cd(file.baseName());
-
-  // always use "/" as separator, Qt will change it according to underlying OS
-  QString temporalSegFileName = temporalDir.path() + QString("/")+ file.fileName();
-  QFile zFile(temporalSegFileName);
+  QFile zFile(file.absoluteFilePath());
   QuaZip zip(&zFile);
   if(!zip.open(QuaZip::mdCreate)) 
   {
-    qWarning() << "IOEspinaFile::saveFile" << zFile.fileName() << "error while creating file";
+    if (handler)
+      handler->error("IOEspinaFile::saveFile" + zFile.fileName() + "error while creating file");
     return ERROR;
   }
   QuaZipFile outFile(&zip);
@@ -364,29 +377,19 @@ EspinaIO::STATUS EspinaIO::saveSegFile(QFileInfo file, EspinaModel *model)
   if( !zipFile(QString(TRACE_FILE),  trace.str().c_str(), outFile) )
     return ERROR;
 
-  // Store volumes
-  bool result = true;
+  // Store filter data
   foreach(FilterSPtr filter, model->filters())
   {
-    Filter::OutputList outputs = filter->outputs();
-    //qDebug() << "Processing Filter" << filter->id() << filter->data().toString();
-    foreach(Filter::Output output, outputs)
+    QList<QPair<QString, QByteArray> > fileList;
+    if (filter->dumpSnapshot(fileList))
     {
-      if (output.isCached)
+      QPair<QString, QByteArray> entry;
+      foreach(entry, fileList)
       {
-        //qDebug() << "Making Snapshot of output" << output.id;
-        // TODO 2012-11-20 Recuperar los .mhd editados sin tener q cargarlos del filtro...
-        //NOTE: In case the filter is updated the output is not (it's just a copy of the old one)
-        result |= zipVolume(filter->output(output.id), temporalDir, outFile);
+        if( !zipFile(entry.first, entry.second, outFile) )
+          return ERROR;
       }
     }
-  }
-
-  if (!result)
-  {
-    qWarning() << "IOEspinaFile::saveFile" << zFile.fileName() << "error zipping volume files";
-    removeTemporalDir(temporalDir);
-    return ERROR;
   }
 
   // Save Extensions' Information
@@ -421,39 +424,16 @@ EspinaIO::STATUS EspinaIO::saveSegFile(QFileInfo file, EspinaModel *model)
   zip.close();
   if (zip.getZipError() != UNZ_OK)
   {
-    qDebug() << "IOEspinaFile::saveFile ERROR: close" << temporalSegFileName << "zip file";
-    removeTemporalDir(temporalDir);
+    if (handler)
+      handler->error("IOEspinaFile::saveFile ERROR: close" + file.absoluteFilePath() + "zip file");
     return ERROR;
   }
-
-  // remove old file if it exists or rename won't work
-  if (temporalDir.exists(file.absoluteFilePath()))
-    if (false == temporalDir.remove(file.absoluteFilePath()))
-    {
-      qDebug() << "IOEspinaFile::saveFile ERROR: remove" << temporalSegFileName << "file";
-      removeTemporalDir(temporalDir);
-      return ERROR;
-    }
-
-  // rename(oldFile, newFile) only fails if:
-  // - oldName doesn't exist
-  // - newName already exist
-  // - rename crosses filesystem boundaries
-  if (false == temporalDir.rename(temporalSegFileName, file.absoluteFilePath()))
-  {
-    qDebug() << "IOEspinaFile::saveFile ERROR: rename" << temporalSegFileName << "to" << file.absoluteFilePath();
-    removeTemporalDir(temporalDir);
-    return ERROR;
-  }
-
-  if (SUCCESS != removeTemporalDir(temporalDir))
-    return ERROR;
 
   return SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
-bool EspinaIO::zipFile(QString fileName, QByteArray content, QuaZipFile& zFile)
+bool EspinaIO::zipFile(QString fileName, const QByteArray &content, QuaZipFile& zFile)
 {
   QuaZipNewInfo zFileInfo = QuaZipNewInfo(fileName, fileName);
   zFileInfo.externalAttr = 0x01A40000; // Permissions of the files 644

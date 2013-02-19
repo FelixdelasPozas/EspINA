@@ -173,9 +173,9 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  bool TubularSegmentationFilter::prefetchFilter()
+  bool TubularSegmentationFilter::fetchSnapshot()
   {
-    return Filter::prefetchFilter();
+    return Filter::fetchSnapshot();
   }
 
   //-----------------------------------------------------------------------------

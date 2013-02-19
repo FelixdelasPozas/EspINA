@@ -22,6 +22,7 @@
 #include <Core/Model/EspinaFactory.h>
 #include <Core/Model/EspinaModel.h>
 #include <Core/Model/Segmentation.h>
+#include <Core/IO/ErrorHandler.h>
 #include <Core/Relations.h>
 #include <Undo/AddChannel.h>
 #include <Undo/AddRelation.h>
@@ -38,99 +39,6 @@ using namespace EspINA;
 const QString INPUTLINK = "Input";
 
 const QString SegmhaImporter::UndoCommand::FILTER_TYPE = "Segmha Importer";
-
-//-----------------------------------------------------------------------------
-SegmhaImporter::UndoCommand::UndoCommand(SampleSPtr               sample,
-                                         ChannelSPtr              channel,
-                                         SegmhaImporterFilterSPtr filter,
-                                         EspinaModel              *model,
-                                         QUndoCommand             *parent)
-: QUndoCommand(parent)
-, m_model(model)
-, m_sample (sample)
-, m_channel(channel)
-, m_filter(filter)
-{
-}
-
-//-----------------------------------------------------------------------------
-void SegmhaImporter::UndoCommand::redo()
-{
-  // update taxonomy
-  m_model->setTaxonomy(m_filter->taxonomy());
-
-  if (m_segs.isEmpty())
-  {
-    SegmentationSPtr seg;
-    foreach(Filter::Output output, m_filter->outputs())
-    {
-      seg = m_model->factory()->createSegmentation(m_filter, output.id);
-      m_filter->initSegmentation(seg, output.id);
-      m_segs << seg;
-    }
-  }
-
-  Channel::ExtensionPtr cfExtension = m_channel->extension(CountingFrameExtensionID);
-  if (!cfExtension)
-  {
-    Channel::ExtensionPtr prototype = m_model->factory()->channelExtension(CountingFrameExtensionID);
-    if (prototype)
-    {
-      cfExtension = prototype->clone();
-      m_channel->addExtension(cfExtension);
-    }
-  }
-
- if (cfExtension)
-  {
-    Nm inclusive[3], exclusive[3];
-    m_filter->countingFrame(inclusive, exclusive);
-    double spacing[3];
-    m_channel->volume()->spacing(spacing);
-    for(int i=0; i<3;i++)
-    {
-      inclusive[i] = inclusive[i]*spacing[i];
-      exclusive[i] = exclusive[i]*spacing[i];
-    }
-
-    QString rcb = QString("RectangularCountingFrame=%1,%2,%3,%4,%5,%6;")
-      .arg(inclusive[0]).arg(inclusive[1]).arg(inclusive[2])
-      .arg(exclusive[0]).arg(exclusive[1]).arg(exclusive[2]);
-    //qDebug() << "Using Counting Frame" << rcb;
-    ModelItem::Arguments args;
-    args["CountingFrameExtension"] = "CFs=[" + rcb + "];";
-    cfExtension->initialize(args);
-  }
-
-  m_model->addFilter(m_filter);
-  m_model->addSegmentation(m_segs);
-
-  m_model->addRelation(m_channel, m_filter, Channel::LINK);
-  foreach(SegmentationSPtr seg, m_segs)
-  {
-    m_model->addRelation(m_filter,  seg, Filter::CREATELINK);
-    m_model->addRelation(m_sample,  seg, Relations::LOCATION);
-    m_model->addRelation(m_channel, seg, Channel::LINK);
-    seg->initializeExtensions();
-  }
-}
-
-//-----------------------------------------------------------------------------
-void SegmhaImporter::UndoCommand::undo()
-{
-  m_model->removeRelation(m_channel, m_filter, Channel::LINK);
-  foreach(SegmentationSPtr seg, m_segs)
-  {
-    m_model->removeRelation(m_filter,  seg, Filter::CREATELINK);
-    m_model->removeRelation(m_sample,  seg, Relations::LOCATION);
-    m_model->removeRelation(m_channel, seg, Channel::LINK);
-  }
-
-  m_model->removeSegmentation(m_segs);
-  m_model->removeFilter(m_filter);
-}
-
-
 
 static const QString SEGMHA = "segmha";
 
@@ -182,30 +90,18 @@ void SegmhaImporter::initFileReader(EspinaModel *model,
 }
 
 //-----------------------------------------------------------------------------
-bool SegmhaImporter::readFile(const QFileInfo file)
+bool SegmhaImporter::readFile(const QFileInfo file, EspinaIO::ErrorHandler *handler)
 {
+  // TODO: usar el handler
   qDebug() << file.absoluteFilePath();
   Q_ASSERT(SEGMHA == file.suffix());
 
-  m_undoStack->beginMacro("Import Segmha");
-
-  QApplication::setOverrideCursor(Qt::ArrowCursor);
-  QFileDialog fileDialog;
-  fileDialog.setObjectName("SelectChannelFile");
-  fileDialog.setFileMode(QFileDialog::ExistingFiles);
-  fileDialog.setWindowTitle(QString("Select channel file for %1:").arg(file.fileName()));
-  fileDialog.setDirectory(file.dir());
-  fileDialog.setFilter(CHANNEL_FILES);
-
-  int res = fileDialog.exec();
-  QApplication::restoreOverrideCursor();
-
-  if (QDialog::Accepted != res)
+  QFileInfo channelFile = handler->fileNotFound(QFileInfo(), file.dir(), CHANNEL_FILES, tr("Select channel file for %1:").arg(file.fileName()));
+  if (!channelFile.exists())
     return false;
 
-  // TODO 2012-12-29: Como gestionar las dependecias? dentro del undo command?
   ChannelSPtr channel;
-  if (EspinaIO::SUCCESS != EspinaIO::loadChannel(fileDialog.selectedFiles().first(), m_model, channel))
+  if (EspinaIO::SUCCESS != EspinaIO::loadChannel(channelFile, m_model, channel, handler))
     return false;
 
   Filter::NamedInputs inputs;
@@ -214,16 +110,68 @@ bool SegmhaImporter::readFile(const QFileInfo file)
   SegmhaImporterFilter::Parameters params(args);
   params.setSpacing(channel->volume()->toITK()->GetSpacing());
 
-  QApplication::setOverrideCursor(Qt::WaitCursor);
   SegmhaImporterFilterSPtr filter(new SegmhaImporterFilter(inputs, args, UndoCommand::FILTER_TYPE));
   filter->update();
   if (filter->outputs().isEmpty())
     return false;
 
   SampleSPtr sample = channel->sample();
-  m_undoStack->push(new UndoCommand(sample, channel, filter, m_model));
-  m_undoStack->endMacro();
-  QApplication::restoreOverrideCursor();
+
+  // update taxonomy
+  m_model->setTaxonomy(filter->taxonomy());
+
+  SegmentationSList segmentations;
+  SegmentationSPtr seg;
+  foreach(Filter::Output output, filter->outputs())
+  {
+    seg = m_model->factory()->createSegmentation(filter, output.id);
+    filter->initSegmentation(seg, output.id);
+    segmentations << seg;
+  }
+
+  Channel::ExtensionPtr cfExtension = channel->extension(CountingFrameExtensionID);
+  if (!cfExtension)
+  {
+    Channel::ExtensionPtr prototype = m_model->factory()->channelExtension(CountingFrameExtensionID);
+    if (prototype)
+    {
+      cfExtension = prototype->clone();
+      channel->addExtension(cfExtension);
+    }
+  }
+
+ if (cfExtension)
+  {
+    Nm inclusive[3], exclusive[3];
+    filter->countingFrame(inclusive, exclusive);
+    double spacing[3];
+    channel->volume()->spacing(spacing);
+    for(int i=0; i<3;i++)
+    {
+      inclusive[i] = inclusive[i]*spacing[i];
+      exclusive[i] = exclusive[i]*spacing[i];
+    }
+
+    QString rcb = QString("RectangularCountingFrame=%1,%2,%3,%4,%5,%6;")
+      .arg(inclusive[0]).arg(inclusive[1]).arg(inclusive[2])
+      .arg(exclusive[0]).arg(exclusive[1]).arg(exclusive[2]);
+    //qDebug() << "Using Counting Frame" << rcb;
+    ModelItem::Arguments args;
+    args["CountingFrameExtension"] = "CFs=[" + rcb + "];";
+    cfExtension->initialize(args);
+  }
+
+  m_model->addFilter(filter);
+  m_model->addSegmentation(segmentations);
+
+  m_model->addRelation(channel, filter, Channel::LINK);
+  foreach(SegmentationSPtr seg, segmentations)
+  {
+    m_model->addRelation(filter,  seg, Filter::CREATELINK);
+    m_model->addRelation(sample,  seg, Relations::LOCATION);
+    m_model->addRelation(channel, seg, Channel::LINK);
+    seg->initializeExtensions();
+  }
 
   return true;
 }

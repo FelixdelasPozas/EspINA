@@ -22,6 +22,7 @@
 
 #include <GUI/ViewManager.h>
 #include <EspinaMainWindow.h>
+#include <Core/Model/EspinaFactory.h>
 #include <Core/Extensions/EdgeDistances/AdaptiveEdges.h>
 #include <Core/Extensions/EdgeDistances/EdgeDistance.h>
 #include <Core/Extensions/Morphological/MorphologicalInformation.h>

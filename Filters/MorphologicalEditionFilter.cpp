@@ -71,10 +71,10 @@ bool MorphologicalEditionFilter::needUpdate() const
 
 
 //-----------------------------------------------------------------------------
-bool MorphologicalEditionFilter::prefetchFilter()
+bool MorphologicalEditionFilter::fetchSnapshot()
 {
   if (m_paramModified)
     return false;
 
-  return Filter::prefetchFilter();
+  return Filter::fetchSnapshot();
 }

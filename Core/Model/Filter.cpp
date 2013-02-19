@@ -24,6 +24,7 @@
 #include <itkImageRegionIteratorWithIndex.h>
 #include <itkMetaImageIO.h>
 #include <itkVTKImageToImageFilter.h>
+#include <itkImageFileWriter.h>
 
 #include <vtkImplicitFunction.h>
 #include <vtkSmartPointer.h>
@@ -50,6 +51,8 @@ const ArgumentId Filter::INPUTS = "Inputs";
 const ArgumentId Filter::EDIT   = "Edit"; // Backwards compatibility
 
 const int EspINA::Filter::Output::INVALID_OUTPUT_ID = -1;
+
+typedef itk::ImageFileWriter<itkVolumeType> EspinaVolumeWriter;
 
 //----------------------------------------------------------------------------
 Filter::~Filter()
@@ -500,12 +503,12 @@ bool Filter::needUpdate() const
 }
 
 //----------------------------------------------------------------------------
-void Filter::update()
+ void Filter::update()
 {
   if (!needUpdate())
     return;
 
-  if (!prefetchFilter())
+  if (!fetchSnapshot())
   {
     if (!editedOutputs().isEmpty())
     {
@@ -547,7 +550,7 @@ void Filter::createOutput(Filter::OutputId id, EspinaVolume::Pointer volume)
 }
 
 //----------------------------------------------------------------------------
-bool Filter::prefetchFilter()
+bool Filter::fetchSnapshot()
 {
   if (m_outputs.isEmpty())
     return false;
@@ -697,4 +700,60 @@ FilterSPtr EspINA::filterPtr(ModelItemSPtr& item)
 
   return ptr;
 
+}
+
+//----------------------------------------------------------------------------
+bool Filter::dumpSnapshot(QList<QPair<QString, QByteArray> > &fileList)
+{
+  itk::MetaImageIO::Pointer io = itk::MetaImageIO::New();
+  EspinaVolumeWriter::Pointer writer = EspinaVolumeWriter::New();
+
+  QDir temporalDir = QDir::tempPath();
+  bool result = false;
+
+  foreach(Output output, this->outputs())
+  {
+    if (!output.isCached)
+      continue;
+
+    result = true;
+
+    QString volumeName = QString("%1_%2").arg(this->id()).arg(output.id);
+    QString mhd = temporalDir.absoluteFilePath(volumeName + ".mhd");
+    QString raw = temporalDir.absoluteFilePath(volumeName + ".raw");
+
+    io->SetFileName(mhd.toStdString());
+    writer->SetFileName(mhd.toStdString());
+
+    update();
+
+    itkVolumeType::Pointer volume = output.volume->toITK();
+    bool releaseFlag = volume->GetReleaseDataFlag();
+    volume->ReleaseDataFlagOff();
+    writer->SetInput(volume);
+    writer->SetImageIO(io);
+    writer->Write();
+    volume->SetReleaseDataFlag(releaseFlag);
+
+    QFile mhdFile(mhd);
+    mhdFile.open(QIODevice::ReadOnly);
+    QFile rawFile(raw);
+    rawFile.open(QIODevice::ReadOnly);
+
+    QByteArray mhdArray(mhdFile.readAll());
+    QByteArray rawArray(rawFile.readAll());
+
+    mhdFile.close();
+    rawFile.close();
+    temporalDir.remove(mhd);
+    temporalDir.remove(raw);
+
+    QPair <QString, QByteArray> mhdEntry(volumeName + QString("mhd"), mhdArray);
+    QPair <QString, QByteArray> rawEntry(volumeName + QString("raw"), rawArray);
+
+    fileList.append(mhdEntry);
+    fileList.append(rawEntry);
+  }
+
+  return result;
 }

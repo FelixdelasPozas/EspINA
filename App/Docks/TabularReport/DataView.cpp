@@ -24,6 +24,7 @@
 // Espina
 #include <Core/Model/EspinaModel.h>
 #include <Core/Model/Segmentation.h>
+#include <Core/Model/EspinaFactory.h>
 #include <Core/Extensions/SegmentationExtension.h>
 
 // Qt

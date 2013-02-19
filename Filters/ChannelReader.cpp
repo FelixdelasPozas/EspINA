@@ -18,6 +18,7 @@
 
 
 #include "ChannelReader.h"
+#include <Core/IO/ErrorHandler.h>
 
 #include <itkMetaImageIO.h>
 #include <itkTIFFImageIO.h>
@@ -35,10 +36,12 @@ const ArgumentId ChannelReader::FILE    = "File";
 const ArgumentId ChannelReader::SPACING = "Spacing";
 
 //----------------------------------------------------------------------------
-ChannelReader::ChannelReader(NamedInputs  inputs,
-                             Arguments    args,
-                             FilterType   type)
+ChannelReader::ChannelReader(NamedInputs             inputs,
+                             Arguments               args,
+                             FilterType              type,
+                             EspinaIO::ErrorHandler *handler)
 : ChannelFilter(inputs, args, type)
+, m_handler(handler)
 {
 }
 
@@ -60,18 +63,12 @@ void ChannelReader::run()
   //qDebug() << "Creating channel from args" << m_args;
   QFileInfo file = m_args[FILE];
   if (!file.exists())
-  {
-    QFileDialog fileDialog;
-    fileDialog.setObjectName("SelectChannelFile");
-    fileDialog.setFileMode(QFileDialog::ExistingFiles);
-    fileDialog.setWindowTitle(QString("Select file for %1:").arg(file.fileName()));
-    fileDialog.setFilter(tr("Channel File (*.%1)").arg(file.suffix()));
+    file = m_handler->fileNotFound(file);
 
-    if (fileDialog.exec() != QDialog::Accepted)
-      return;
-
-    m_args[FILE] = fileDialog.selectedFiles().first();
-  }
+  if (file.exists())
+    m_args[FILE] = file.absoluteFilePath();
+  else
+    throw 1; // TODO: Find proper extension code
 
   m_reader = EspinaVolumeReader::New();
 

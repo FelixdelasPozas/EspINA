@@ -10,6 +10,7 @@
 #include <GUI/FilterInspector/AppositionSurfaceFilterInspector.h>
 
 // EspINA
+#include <Core/Model/EspinaFactory.h>
 #include <Core/Model/EspinaModel.h>
 #include <Core/EspinaTypes.h>
 #include <Core/EspinaSettings.h>

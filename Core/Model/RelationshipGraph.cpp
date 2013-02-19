@@ -249,6 +249,20 @@ RelationshipGraph::VertexDescriptor RelationshipGraph::vertex(ModelItemPtr item)
 }
 
 //-----------------------------------------------------------------------------
+EspINA::RelationshipGraph::VertexDescriptor RelationshipGraph::vertex(EspINA::RelationshipGraph::VertexId v)
+{
+  VertexIterator vi, vi_end;
+  for(boost::tie(vi, vi_end) = boost::vertices(m_graph); vi != vi_end; vi++)
+  {
+    if( m_graph[*vi].vId == v )
+      return *vi;
+  }
+
+  Q_ASSERT(false);
+  return *vi;
+}
+
+//-----------------------------------------------------------------------------
 void RelationshipGraph::addRelation(ModelItemPtr   ancestor,
                                     ModelItemPtr   successor,
                                     const QString &description)
@@ -363,6 +377,34 @@ Edges RelationshipGraph::edges(RelationshipGraph::VertexId v,
   result << outEdges(v, filter);
 
   return result;
+}
+
+//-----------------------------------------------------------------------------
+void RelationshipGraph::removeEdges(RelationshipGraph::VertexId v)
+{
+  OutEdgeIterator oei, oei_end;
+  boost::tie(oei, oei_end) = boost::out_edges(v, m_graph); 
+  while(oei != oei_end)
+  {
+    boost::remove_edge(oei, m_graph);
+    boost::tie(oei, oei_end) = boost::out_edges(v, m_graph); 
+  }
+
+  Vertices ancestorList = ancestors(v);
+  for (int i = 0; i < ancestorList.size(); i++)
+  {
+    VertexId ancestorId = ancestorList[i].vId;
+    boost::tie(oei, oei_end) = boost::out_edges(ancestorId, m_graph); 
+    while(oei != oei_end)
+    {
+      if (target(*oei, m_graph) == vertex(v))
+      {
+        boost::remove_edge(oei, m_graph);
+        boost::tie(oei, oei_end) = boost::out_edges(ancestorId, m_graph); 
+      } else
+        oei++;
+    }
+  }
 }
 
 //-----------------------------------------------------------------------------

@@ -84,7 +84,7 @@ namespace EspINA
 
       /// Implements Filter Interface
       virtual bool needUpdate() const;
-      virtual bool prefetchFilter();
+      virtual bool fetchSnapshot();
 
       // get/set round segmentation extremes
       virtual void setRoundedExtremes(bool value);

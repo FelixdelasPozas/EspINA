@@ -807,10 +807,10 @@ namespace EspINA
   }
 
   //----------------------------------------------------------------------------
-  bool AppositionSurfaceFilter::prefetchFilter()
+  bool AppositionSurfaceFilter::fetchSnapshot()
   {
     // TODO get vtkPolyDatas from seg file
-    return SegmentationFilter::prefetchFilter();
+    return SegmentationFilter::fetchSnapshot();
   }
 
 
