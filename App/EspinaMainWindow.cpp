@@ -804,6 +804,8 @@ void EspinaMainWindow::saveSessionAnalysis()
 
   m_recentDocuments1.addDocument(m_sessionFile);
   m_recentDocuments2.updateDocumentList();
+
+  m_model->markAsSaved();
 }
 
 //------------------------------------------------------------------------
