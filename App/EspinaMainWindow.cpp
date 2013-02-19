@@ -113,7 +113,7 @@ class EspinaErrorHandler
           fileDialog.setWindowTitle(hint);
 
         if (nameFilters.isEmpty())
-          fileDialog.setNameFilter(file.suffix());
+          fileDialog.setNameFilter(QObject::tr("%1 files (*.%1)").arg(file.suffix()));
         else
           fileDialog.setFilter(nameFilters);
 

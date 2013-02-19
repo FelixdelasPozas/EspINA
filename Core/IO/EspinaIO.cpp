@@ -261,7 +261,7 @@ EspinaIO::STATUS EspinaIO::loadSegFile(QFileInfo    file,
             if (!destination.open(QIODevice::WriteOnly | QIODevice::Truncate))
             {
               if (handler)
-                handler->warning("IOEspinaFile::loadFile: could not create file " + destination.fileName() + "in" + temporalDir.path());
+                handler->warning("IOEspinaFile::loadFile: could not create file " + destination.fileName() + " in " + temporalDir.path());
             }
             destination.write(espinaFile.readAll());
             destination.close();
