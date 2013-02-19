@@ -748,8 +748,8 @@ bool Filter::dumpSnapshot(QList<QPair<QString, QByteArray> > &fileList)
     temporalDir.remove(mhd);
     temporalDir.remove(raw);
 
-    QPair <QString, QByteArray> mhdEntry(volumeName + QString("mhd"), mhdArray);
-    QPair <QString, QByteArray> rawEntry(volumeName + QString("raw"), rawArray);
+    QPair <QString, QByteArray> mhdEntry(volumeName + QString(".mhd"), mhdArray);
+    QPair <QString, QByteArray> rawEntry(volumeName + QString(".raw"), rawArray);
 
     fileList.append(mhdEntry);
     fileList.append(rawEntry);

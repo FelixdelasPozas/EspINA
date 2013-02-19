@@ -28,6 +28,8 @@
 #include <vtkBoostConnectedComponents.h>
 #include <vtkIdTypeArray.h>
 #include <vtkEdgeListIterator.h>
+#include <vtkPolyDataWriter.h>
+#include <vtkPolyDataReader.h>
 
 const double UNDEFINED = -1.;
 
@@ -809,8 +811,46 @@ namespace EspINA
   //----------------------------------------------------------------------------
   bool AppositionSurfaceFilter::fetchSnapshot()
   {
-    // TODO get vtkPolyDatas from seg file
-    return SegmentationFilter::fetchSnapshot();
+    bool returnValue = SegmentationFilter::fetchSnapshot();
+
+    if (m_cacheDir.exists(QString().number(m_cacheId) + QString(".vtp")))
+    {
+      QString fileName = m_cacheDir.absolutePath() + QDir::separator() + QString().number(m_cacheId) + QString(".vtp");
+      vtkSmartPointer<vtkPolyDataReader> polyReader = vtkSmartPointer<vtkPolyDataReader>::New();
+
+      polyReader->SetFileName(fileName.toStdString().c_str());
+      polyReader->Update();
+
+      m_ap = PolyData::New();
+      m_ap->ShallowCopy(polyReader->GetOutput());
+
+      returnValue = true;
+    }
+
+    return returnValue;
+  }
+
+  //----------------------------------------------------------------------------
+  bool AppositionSurfaceFilter::dumpSnapshot(QList<QPair<QString, QByteArray> > &fileList)
+  {
+    bool returnValue = SegmentationFilter::dumpSnapshot(fileList);
+
+    if (m_ap != NULL)
+    {
+      vtkSmartPointer<vtkPolyDataWriter> polyWriter = vtkSmartPointer<vtkPolyDataWriter>::New();
+      polyWriter->SetInputConnection(m_ap->GetProducerPort());
+      polyWriter->SetFileTypeToBinary();
+      polyWriter->SetWriteToOutputString(true);
+      polyWriter->Write();
+
+      QByteArray polyArray(polyWriter->GetOutputString(), polyWriter->GetOutputStringLength());
+      QPair<QString, QByteArray> polyEntry(this->id() + QString(".vtp"), polyArray);
+      fileList << polyEntry;
+
+      returnValue = true;
+    }
+
+    return returnValue;
   }
 
 

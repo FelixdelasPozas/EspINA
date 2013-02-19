@@ -223,11 +223,10 @@ namespace EspINA
     FilterType                   m_type;
 
     QMap<OutputId, Output>       m_outputs;
-
-  private:
     int  m_cacheId;
     QDir m_cacheDir;
 
+  private:
     FilterInspectorPtr m_filterInspector;
   };
 
