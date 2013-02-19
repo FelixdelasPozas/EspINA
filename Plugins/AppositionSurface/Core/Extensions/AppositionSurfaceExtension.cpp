@@ -99,16 +99,23 @@ QVariant AppositionSurfaceExtension::information(const Segmentation::InfoTag &ta
   if (!fullTaxonomy.startsWith("AS/") && (fullTaxonomy.compare("AS") != 0))
     return QVariant();
 
-  AppositionSurfaceFilter *filter = dynamic_cast<AppositionSurfaceFilter *>(m_seg->filter().data());
+  if (!s_cache.contains(m_seg))
+  {
+    AppositionSurfaceFilter *filter = dynamic_cast<AppositionSurfaceFilter *>(m_seg->filter().data());
+    s_cache[m_seg].Area = filter->getArea();
+    s_cache[m_seg].Perimeter = filter->getPerimeter();
+    s_cache[m_seg].Tortuosity = filter->getTortuosity();
+    s_cache[m_seg].FromSynapse = filter->getOriginSegmentation();
+  }
 
   if (AREA == tag)
-    return filter->getArea();
+    return s_cache[m_seg].Area;
   if (PERIMETER == tag)
-    return filter->getPerimeter();
+    return s_cache[m_seg].Perimeter;
   if (TORTUOSITY == tag)
-    return filter->getTortuosity();
+    return s_cache[m_seg].Tortuosity;
   if (SYNAPSE == tag)
-    return filter->getOriginSegmentation();
+    return s_cache[m_seg].FromSynapse;
 
   qWarning() << ID << ":"  << tag << " is not provided";
   Q_ASSERT(false);

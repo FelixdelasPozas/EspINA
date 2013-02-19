@@ -21,6 +21,13 @@
 using namespace EspINA;
 
 //----------------------------------------------------------------------------
+PickableItem::PickableItem()
+: m_isSelected(false)
+, m_isVolumeModified(false)
+{
+}
+
+//----------------------------------------------------------------------------
 FilterSPtr PickableItem::filter()
 {
   const FilterSPtr cp = static_cast<const PickableItem *>(this)->filter();

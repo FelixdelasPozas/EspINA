@@ -40,6 +40,7 @@ namespace EspINA
     typedef QPair<QString, QString> ConditionInfo;
 
   public:
+    PickableItem();
     ~PickableItem(){}
 
     virtual bool isSelected() const {return m_isSelected;}
@@ -61,7 +62,7 @@ namespace EspINA
     }
 
     /// Return whether item's volume has been modified or not after its creation
-    bool isVolumeModified() {return m_isVolumeModified; }
+    bool isVolumeModified() { return m_isVolumeModified; }
 
   protected slots:
     void onVolumeModified() { m_isVolumeModified = true; emit volumeModified(); emit modified(this);}

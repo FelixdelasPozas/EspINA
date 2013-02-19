@@ -31,7 +31,6 @@
 #include "Channel.h"
 //#include "Core/Model/Taxonomy.h"
 
-
 #include <vtkAlgorithmOutput.h>
 #include <itkCommand.h>
 #include <itkSmartPointer.h>

@@ -56,7 +56,8 @@ const QString Channel::VOLUMETRIC = "Volumetric";
 
 //-----------------------------------------------------------------------------
 Channel::Channel(FilterSPtr filter, Filter::OutputId oId)
-: m_visible(true)
+: PickableItem()
+, m_visible(true)
 , m_filter(filter)
 {
   memset(m_pos, 0, 3*sizeof(Nm));

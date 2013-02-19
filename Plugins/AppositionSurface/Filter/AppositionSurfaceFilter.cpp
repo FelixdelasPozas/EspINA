@@ -28,8 +28,8 @@
 #include <vtkBoostConnectedComponents.h>
 #include <vtkIdTypeArray.h>
 #include <vtkEdgeListIterator.h>
-#include <vtkPolyDataWriter.h>
-#include <vtkPolyDataReader.h>
+#include <vtkGenericDataObjectWriter.h>
+#include <vtkGenericDataObjectReader.h>
 
 const double UNDEFINED = -1.;
 
@@ -134,7 +134,7 @@ namespace EspINA
     planeSource->Update();
 
     m_referencePlane = PolyData::New();
-    m_referencePlane->DeepCopy (planeSource->GetOutput());
+    m_referencePlane->DeepCopy(planeSource->GetOutput());
 
     //   qDebug() << "Create Path with point + min and update min\n"
     //               "Fill vtkthinPlatesplineTransform";
@@ -214,7 +214,7 @@ namespace EspINA
     pointsList.clear();
 
     m_blendedNotClippedPlane = PolyData::New();
-    m_blendedNotClippedPlane->ShallowCopy(auxPlane);
+    m_blendedNotClippedPlane->DeepCopy(auxPlane);
 
     PolyData clippedPlane = clipPlane(transformer->GetOutput(), vtk_padImage);
     //ESPINA_DEBUG(clippedPlane->GetNumberOfCells() << " cells after clip");
@@ -602,7 +602,7 @@ namespace EspINA
   double AppositionSurfaceFilter::computeArea(PolyData mesh) const
   {
     int nc = mesh->GetNumberOfCells();
-    double totalArea = nc?0.0:UNDEFINED;
+    double totalArea = nc ? 0.0 : UNDEFINED;
     for (int i = 0; i < nc; i++)
       totalArea += vtkMeshQuality::TriangleArea(mesh->GetCell(i));
 
@@ -813,16 +813,35 @@ namespace EspINA
   {
     bool returnValue = SegmentationFilter::fetchSnapshot();
 
-    if (m_cacheDir.exists(QString().number(m_cacheId) + QString(".vtp")))
+    if (m_cacheDir.exists(QString().number(m_cacheId) + QString("-AS.vtp")))
     {
-      QString fileName = m_cacheDir.absolutePath() + QDir::separator() + QString().number(m_cacheId) + QString(".vtp");
-      vtkSmartPointer<vtkPolyDataReader> polyReader = vtkSmartPointer<vtkPolyDataReader>::New();
+      QString fileName = m_cacheDir.absolutePath() + QDir::separator() + QString().number(m_cacheId) + QString("-AS.vtp");
 
-      polyReader->SetFileName(fileName.toStdString().c_str());
-      polyReader->Update();
+      // NOTE: three different instances are needed for the readers,if we reuse one
+      // instance (like we do in AppositionSurfaceFilter::dumpSnapshot() )the data
+      // we obtain will be wrong
+      vtkSmartPointer<vtkGenericDataObjectReader> polyASReader = vtkSmartPointer<vtkGenericDataObjectReader>::New();
+      polyASReader->SetFileName(fileName.toStdString().c_str());
+      polyASReader->SetReadAllFields(true);
+      polyASReader->Update();
 
-      m_ap = PolyData::New();
-      m_ap->ShallowCopy(polyReader->GetOutput());
+      m_ap = PolyData(polyASReader->GetPolyDataOutput());
+
+      fileName = m_cacheDir.absolutePath() + QDir::separator()+ this->id() + QString("-Blended_Plane.vtp");
+      vtkSmartPointer<vtkGenericDataObjectReader> polyBlendedPlaneReader = vtkSmartPointer<vtkGenericDataObjectReader>::New();
+      polyBlendedPlaneReader->SetFileName(fileName.toStdString().c_str());
+      polyBlendedPlaneReader->SetReadAllFields(true);
+      polyBlendedPlaneReader->Update();
+
+      m_blendedNotClippedPlane = PolyData(polyBlendedPlaneReader->GetPolyDataOutput());
+
+      fileName = m_cacheDir.absolutePath() + QDir::separator()+ this->id() + QString("-Reference_Plane.vtp");
+      vtkSmartPointer<vtkGenericDataObjectReader> polyReferencePlaneReader = vtkSmartPointer<vtkGenericDataObjectReader>::New();
+      polyReferencePlaneReader->SetFileName(fileName.toStdString().c_str());
+      polyReferencePlaneReader->SetReadAllFields(true);
+      polyReferencePlaneReader->Update();
+
+      m_referencePlane = PolyData(polyReferencePlaneReader->GetPolyDataOutput());
 
       returnValue = true;
     }
@@ -837,15 +856,31 @@ namespace EspINA
 
     if (m_ap != NULL)
     {
-      vtkSmartPointer<vtkPolyDataWriter> polyWriter = vtkSmartPointer<vtkPolyDataWriter>::New();
+      vtkSmartPointer<vtkGenericDataObjectWriter> polyWriter = vtkSmartPointer<vtkGenericDataObjectWriter>::New();
       polyWriter->SetInputConnection(m_ap->GetProducerPort());
       polyWriter->SetFileTypeToBinary();
       polyWriter->SetWriteToOutputString(true);
       polyWriter->Write();
 
       QByteArray polyArray(polyWriter->GetOutputString(), polyWriter->GetOutputStringLength());
-      QPair<QString, QByteArray> polyEntry(this->id() + QString(".vtp"), polyArray);
-      fileList << polyEntry;
+
+      polyWriter->SetInputConnection(m_blendedNotClippedPlane->GetProducerPort());
+      polyWriter->Update();
+      polyWriter->Write();
+
+      QByteArray polyBlendedPlaneArray(polyWriter->GetOutputString(), polyWriter->GetOutputStringLength());
+
+      polyWriter->SetInputConnection(m_referencePlane->GetProducerPort());
+      polyWriter->Update();
+      polyWriter->Write();
+
+      QByteArray polyReferencePlaneArray(polyWriter->GetOutputString(), polyWriter->GetOutputStringLength());
+
+      QPair<QString, QByteArray> polyEntry(this->id() + QString("-AS.vtp"), polyArray);
+      QPair<QString, QByteArray> polyBlendedPlaneEntry(this->id() + QString("-Blended_Plane.vtp"), polyBlendedPlaneArray);
+      QPair<QString, QByteArray> polyReferencePlaneEntry(this->id() + QString("-Reference_Plane.vtp"), polyReferencePlaneArray);
+
+      fileList << polyEntry << polyBlendedPlaneEntry << polyReferencePlaneEntry;
 
       returnValue = true;
     }

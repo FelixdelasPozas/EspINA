@@ -62,11 +62,11 @@ QString Segmentation::SArguments::serialize() const
 //-----------------------------------------------------------------------------
 Segmentation::Segmentation(FilterSPtr         filter,
                            const Filter::OutputId &oId)
-: m_filter(filter)
+: PickableItem()
+, m_filter(filter)
 , m_taxonomy(NULL)
 , m_isVisible(true)
 {
-  m_isSelected = false;
   m_args.setNumber(0);
   m_args.setOutputId(oId);
   m_args[TAXONOMY] = "Unknown";
