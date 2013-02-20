@@ -24,8 +24,7 @@
 #include <Core/Model/EspinaModel.h>
 #include <Core/EspinaSettings.h>
 
-// Qt
-#include <QDebug>
+// boost
 #include <boost/concept_check.hpp>
 
 using namespace EspINA;
@@ -158,6 +157,8 @@ bool AppositionSurfaceExtension::loadCache(QuaZipFile &file, const QDir &tmpDir,
     QString line(buffer);
     QStringList fields = line.split(SEP);
 
+    Q_ASSERT(fields.size() == 6);
+
     SegmentationPtr extensionSegmentation = NULL;
     int i = 0;
     while (!extensionSegmentation && i < model->segmentations().size())
@@ -175,10 +176,10 @@ bool AppositionSurfaceExtension::loadCache(QuaZipFile &file, const QDir &tmpDir,
     //       without invalidating its extensions
     Q_ASSERT(extensionSegmentation);
 
-    s_cache[extensionSegmentation].Area        = fields[3].toDouble();
-    s_cache[extensionSegmentation].Perimeter   = fields[4].toDouble();
-    s_cache[extensionSegmentation].Tortuosity  = fields[5].toDouble();
-    s_cache[extensionSegmentation].FromSynapse = QString(fields[6].toStdString().c_str());
+    s_cache[extensionSegmentation].Area        = fields[2].toDouble();
+    s_cache[extensionSegmentation].Perimeter   = fields[3].toDouble();
+    s_cache[extensionSegmentation].Tortuosity  = fields[4].toDouble();
+    s_cache[extensionSegmentation].FromSynapse = fields[5].remove('\n');
   }
 
   return true;
@@ -187,6 +188,9 @@ bool AppositionSurfaceExtension::loadCache(QuaZipFile &file, const QDir &tmpDir,
 //------------------------------------------------------------------------
 bool AppositionSurfaceExtension::saveCache(Snapshot &cacheList)
 {
+  // TODO: save disabled
+  return false;
+
   foreach(SegmentationPtr segmentation, s_cache.keys())
   {
     if (segmentation->isVolumeModified() && !s_cache[segmentation].Modified)

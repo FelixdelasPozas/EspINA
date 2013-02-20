@@ -78,8 +78,6 @@ namespace EspINA
     private:
       virtual void invalidate();
 
-      void updateInformation();
-
   };
 
   typedef QSharedPointer<AppositionSurfaceExtension> AppositionSurfaceExtensionSPtr;

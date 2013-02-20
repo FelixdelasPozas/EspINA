@@ -811,14 +811,14 @@ namespace EspINA
   //----------------------------------------------------------------------------
   bool AppositionSurfaceFilter::fetchSnapshot()
   {
-    bool returnValue = SegmentationFilter::fetchSnapshot();
+    bool returnValue = false;
 
     if (m_cacheDir.exists(QString().number(m_cacheId) + QString("-AS.vtp")))
     {
       QString fileName = m_cacheDir.absolutePath() + QDir::separator() + QString().number(m_cacheId) + QString("-AS.vtp");
 
       // NOTE: three different instances are needed for the readers,if we reuse one
-      // instance (like we do in AppositionSurfaceFilter::dumpSnapshot() )the data
+      // instance (like we do in AppositionSurfaceFilter::dumpSnapshot() ) the data
       // we obtain will be wrong
       vtkSmartPointer<vtkGenericDataObjectReader> polyASReader = vtkSmartPointer<vtkGenericDataObjectReader>::New();
       polyASReader->SetFileName(fileName.toStdString().c_str());
@@ -846,13 +846,13 @@ namespace EspINA
       returnValue = true;
     }
 
-    return returnValue;
+    return (SegmentationFilter::fetchSnapshot() && returnValue);
   }
 
   //----------------------------------------------------------------------------
   bool AppositionSurfaceFilter::dumpSnapshot(Snapshot &snapshot)
   {
-    bool returnValue = SegmentationFilter::dumpSnapshot(snapshot);
+    bool returnValue = false;
 
     if (m_ap != NULL)
     {
@@ -885,7 +885,7 @@ namespace EspINA
       returnValue = true;
     }
 
-    return returnValue;
+    return (SegmentationFilter::dumpSnapshot(snapshot) || returnValue);
   }
 
 

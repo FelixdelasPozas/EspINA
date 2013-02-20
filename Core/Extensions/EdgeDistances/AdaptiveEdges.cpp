@@ -62,6 +62,7 @@ const char SEP = ',';
 //-----------------------------------------------------------------------------
 AdaptiveEdges::AdaptiveEdges(bool computeEdges)
 : m_computeAdaptiveEdges(computeEdges)
+, m_computedVolume(0)
 {
   for (int face = 0; face < 6; face++)
     m_PolyDataFaces[face] = NULL;
@@ -159,6 +160,9 @@ bool AdaptiveEdges::loadCache(QuaZipFile &file, const QDir &tmpDir, EspinaModel 
 //-----------------------------------------------------------------------------
 bool AdaptiveEdges::saveCache(Snapshot &snapshot)
 {
+  // TODO: save disabled
+  return false;
+
   if (s_cache.isEmpty())
     return false;
 

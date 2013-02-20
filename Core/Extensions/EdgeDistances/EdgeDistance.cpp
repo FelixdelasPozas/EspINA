@@ -164,6 +164,9 @@ bool EdgeDistance::loadCache(QuaZipFile  &file,
 //-----------------------------------------------------------------------------
 bool EdgeDistance::saveCache(Snapshot &cacheList)
 {
+  // TODO: save disabled
+  return false;
+
   // NOTE: This could be factorized using some kind of template...
   foreach(SegmentationPtr segmentation, s_cache.keys())
   {

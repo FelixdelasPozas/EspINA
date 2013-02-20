@@ -17,13 +17,24 @@
 */
 
 
+// EspINA
 #include "SplitFilter.h"
-
 #include <Core/EspinaVolume.h>
 
+// ITK
 #include <itkImageRegionConstIteratorWithIndex.h>
 #include <itkImageRegionIteratorWithIndex.h>
 #include <vtkImageStencilData.h>
+
+// VTK
+#include <vtkGenericDataObjectReader.h>
+#include <vtkGenericDataObjectWriter.h>
+#include <vtkImageStencilToImage.h>
+#include <vtkImageToImageStencil.h>
+
+// Qt
+#include <QDir>
+#include <QDebug>
 
 using namespace EspINA;
 
@@ -58,8 +69,6 @@ void SplitFilter::run()
   Q_ASSERT(m_stencil.GetPointer());
 
   EspinaRegion region = input->espinaRegion();
-//   itkVolumeType::RegionType  region  = input->GetLargestPossibleRegion();
-//   itkVolumeType::RegionType  nRegion = NormalizedRegion(input);
   itkVolumeType::SpacingType spacing = input->toITK()->GetSpacing();
 
   SegmentationVolume::Pointer volumes[2];
@@ -104,4 +113,61 @@ void SplitFilter::run()
 
     emit modified(this);
   }
+}
+
+//-----------------------------------------------------------------------------
+bool SplitFilter::fetchSnapshot()
+{
+  bool returnVal = false;
+
+  if (m_cacheDir.exists(QString().number(m_cacheId) + QString("-Stencil.vti")))
+  {
+    QString fileName = m_cacheDir.absolutePath() + QDir::separator() + QString().number(m_cacheId) + QString("-Stencil.vti");
+    vtkSmartPointer<vtkGenericDataObjectReader> stencilReader = vtkSmartPointer<vtkGenericDataObjectReader>::New();
+    stencilReader->SetFileName(fileName.toStdString().c_str());
+    stencilReader->ReadAllFieldsOn();
+    stencilReader->Update();
+
+    vtkSmartPointer<vtkImageToImageStencil> convert = vtkSmartPointer<vtkImageToImageStencil>::New();
+    convert->SetInputConnection(stencilReader->GetOutputPort());
+    convert->ThresholdBetween(1,1);
+    convert->Update();
+
+    m_stencil = vtkSmartPointer<vtkImageStencilData>(convert->GetOutput());
+
+    returnVal = true;
+  }
+
+  return (SegmentationFilter::fetchSnapshot() && returnVal);
+}
+
+//-----------------------------------------------------------------------------
+bool SplitFilter::dumpSnapshot(QList<QPair<QString, QByteArray> > &fileList)
+{
+  bool returnVal = false;
+
+  if (m_stencil != NULL)
+  {
+    vtkSmartPointer<vtkImageStencilToImage> convert = vtkSmartPointer<vtkImageStencilToImage>::New();
+    convert->SetInputConnection(m_stencil->GetProducerPort());
+    convert->SetInsideValue(1);
+    convert->SetOutsideValue(0);
+    convert->SetOutputScalarTypeToUnsignedChar();
+    convert->Update();
+
+    vtkSmartPointer<vtkGenericDataObjectWriter> stencilWriter = vtkSmartPointer<vtkGenericDataObjectWriter>::New();
+    stencilWriter->SetInputConnection(convert->GetOutputPort());
+    stencilWriter->SetFileTypeToBinary();
+    stencilWriter->SetWriteToOutputString(true);
+    stencilWriter->Write();
+
+    QByteArray stencilArray(stencilWriter->GetOutputString(), stencilWriter->GetOutputStringLength());
+    QPair<QString, QByteArray> stencilEntry(this->id() + QString("-Stencil.vti"), stencilArray);
+
+    fileList << stencilEntry;
+
+    returnVal = true;
+  }
+
+  return (SegmentationFilter::dumpSnapshot(fileList) || returnVal);
 }

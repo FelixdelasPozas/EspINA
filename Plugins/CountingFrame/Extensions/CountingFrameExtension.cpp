@@ -209,6 +209,9 @@ bool CountingFrameExtension::loadCache(QuaZipFile  &file,
 //-----------------------------------------------------------------------------
 bool CountingFrameExtension::saveCache(Snapshot &cacheList)
 {
+  // TODO: save disabled
+  return false;
+
   if (s_cache.isEmpty())
     return false;
 

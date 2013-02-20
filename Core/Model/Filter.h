@@ -58,7 +58,7 @@ namespace EspINA
 
     struct Output
     {
-      static const int INVALID_OUTPUT_ID;;
+      static const int INVALID_OUTPUT_ID;
 
       explicit Output(Filter               *filter = NULL,
                       const OutputId       &id     = INVALID_OUTPUT_ID,

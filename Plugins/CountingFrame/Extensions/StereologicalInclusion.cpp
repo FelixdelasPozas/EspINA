@@ -164,6 +164,9 @@ bool StereologicalInclusion::loadCache(QuaZipFile &file, const QDir &tmpDir, Esp
 //------------------------------------------------------------------------
 bool StereologicalInclusion::saveCache(Snapshot &cacheList)
 {
+  // TODO: save disabled
+  return false;
+
   if (s_cache.isEmpty())
     return false;
 

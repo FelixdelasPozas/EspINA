@@ -27,13 +27,12 @@
 #include <Core/EspinaSettings.h>
 #include <Filters/SplitFilter.h>
 
-#include <QUndoStack>
-
 // Qt
 #include <QtGlobal>
 #include <QUndoStack>
 #include <QApplication>
 #include <QMessageBox>
+#include <QUndoStack>
 
 using namespace EspINA;
 
