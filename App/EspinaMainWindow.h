@@ -77,11 +77,11 @@ class IToolBar;
     void openRecentAnalysis();
     /// Close former analysis and load a new one
     void openAnalysis();
-    void openAnalysis(const QString& file);
+    void openAnalysis(const QFileInfo file);
     /// Add new data from file to current analysis
     void addToAnalysis();
     void addRecentToAnalysis();
-    void addFileToAnalysis(const QString &file);
+    void addFileToAnalysis(const QFileInfo file);
     /// Save Current Analysis
     void saveAnalysis();
     void saveSessionAnalysis();
@@ -163,8 +163,8 @@ class IToolBar;
     };
     DynamicMenuNode *m_dynamicMenuRoot;
 
-    QTimer m_autosave;
-    QString m_sessionFile;
+    QTimer    m_autosave;
+    QFileInfo m_sessionFile;
 
     EspinaErrorHandler *m_errorHandler;
   };
