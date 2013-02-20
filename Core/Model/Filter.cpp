@@ -703,7 +703,7 @@ FilterSPtr EspINA::filterPtr(ModelItemSPtr& item)
 }
 
 //----------------------------------------------------------------------------
-bool Filter::dumpSnapshot(QList<QPair<QString, QByteArray> > &fileList)
+bool Filter::dumpSnapshot(Snapshot &snapshot)
 {
   itk::MetaImageIO::Pointer io = itk::MetaImageIO::New();
   EspinaVolumeWriter::Pointer writer = EspinaVolumeWriter::New();
@@ -748,11 +748,10 @@ bool Filter::dumpSnapshot(QList<QPair<QString, QByteArray> > &fileList)
     temporalDir.remove(mhd);
     temporalDir.remove(raw);
 
-    QPair <QString, QByteArray> mhdEntry(volumeName + QString(".mhd"), mhdArray);
-    QPair <QString, QByteArray> rawEntry(volumeName + QString(".raw"), rawArray);
+    SnapshotEntry mhdEntry(volumeName + QString(".mhd"), mhdArray);
+    SnapshotEntry rawEntry(volumeName + QString(".raw"), rawArray);
 
-    fileList.append(mhdEntry);
-    fileList.append(rawEntry);
+    snapshot << mhdEntry << rawEntry;
   }
 
   return result;

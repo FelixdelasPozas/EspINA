@@ -23,6 +23,7 @@
 #include "Core/Model/ModelItem.h"
 
 #include <QDir>
+#include <QMap>
 #include <QStringList>
 #include <QVariant>
 
@@ -36,7 +37,55 @@ namespace EspINA
   {
     Q_OBJECT
   public:
-    typedef QList<QPair<QString, QByteArray> > CacheList;
+    template<class D>
+    class CacheEntry
+    {
+    public:
+      explicit CacheEntry()
+      : Dirty(false)
+      {}
+
+      bool Dirty;
+      D    Data;
+    };
+
+    template <class K, class D>
+    class Cache
+    : public QMap<K, CacheEntry<D> >
+    {
+      typedef QMap<K, CacheEntry<D> > Base;
+
+    public:
+      explicit Cache()
+      {}
+
+      bool isCached(K key)
+      {
+        return Base::contains(key) && !Base::value(key).Dirty;
+      }
+
+      void markAsDirty(K key)
+      {
+        if (Base::contains(key))
+          Base::operator[](key).Dirty = true;
+      }
+
+      void markAsClean(K key)
+      {
+        if (Base::contains(key))
+          Base::operator[](key).Dirty = false;
+      }
+
+      /// Remove all dirty entries
+      void purge(bool(*cond)(K) = NULL)
+      {
+        foreach(K key, this->keys())
+        {
+          if (this->value(key).Dirty || key->m_model == NULL || (cond && cond(key)))
+            Base::remove(key);
+        }
+      }
+    };
 
   public:
     virtual ~Extension(){}
@@ -45,16 +94,16 @@ namespace EspINA
     /// List of extension names which need to be loaded to use the extension
     virtual ModelItem::ExtIdList dependencies() const  = 0;
 
-    virtual void initialize(ModelItem::Arguments args = ModelItem::Arguments()) = 0;
-
     virtual bool isCacheFile(const QString &file) const = 0;
 
     virtual bool loadCache(QuaZipFile &file, const QDir &tmpDir, EspinaModel *model) = 0;
 
-    virtual bool saveCache(CacheList &cacheList) = 0;
+    virtual bool saveCache(Snapshot &cacheList) = 0;
+
+    virtual void initialize(ModelItem::Arguments args = ModelItem::Arguments()) = 0;
 
   public slots:
-    virtual void invalidate() {};//TODO: Change to pure abstract
+    virtual void invalidate() {};//TODO: Change to abstract
 
   protected:
     Extension() : m_init(false) {}

@@ -133,6 +133,4 @@ void SeedGrowSegmentationCommand::undo()
 
   m_model->removeRelation(m_channel->filter(), m_filter, SeedGrowSegmentationFilter::INPUTLINK);
   m_model->removeFilter(m_filter);
-
-  m_segmentation->invalidateExtensions();
 }

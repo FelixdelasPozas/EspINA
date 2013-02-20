@@ -185,7 +185,7 @@ bool AppositionSurfaceExtension::loadCache(QuaZipFile &file, const QDir &tmpDir,
 }
 
 //------------------------------------------------------------------------
-bool AppositionSurfaceExtension::saveCache(CacheList &cacheList)
+bool AppositionSurfaceExtension::saveCache(Snapshot &cacheList)
 {
   foreach(SegmentationPtr segmentation, s_cache.keys())
   {

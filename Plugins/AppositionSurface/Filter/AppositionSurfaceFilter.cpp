@@ -850,9 +850,9 @@ namespace EspINA
   }
 
   //----------------------------------------------------------------------------
-  bool AppositionSurfaceFilter::dumpSnapshot(QList<QPair<QString, QByteArray> > &fileList)
+  bool AppositionSurfaceFilter::dumpSnapshot(Snapshot &snapshot)
   {
-    bool returnValue = SegmentationFilter::dumpSnapshot(fileList);
+    bool returnValue = SegmentationFilter::dumpSnapshot(snapshot);
 
     if (m_ap != NULL)
     {
@@ -876,11 +876,11 @@ namespace EspINA
 
       QByteArray polyReferencePlaneArray(polyWriter->GetOutputString(), polyWriter->GetOutputStringLength());
 
-      QPair<QString, QByteArray> polyEntry(this->id() + QString("-AS.vtp"), polyArray);
-      QPair<QString, QByteArray> polyBlendedPlaneEntry(this->id() + QString("-Blended_Plane.vtp"), polyBlendedPlaneArray);
-      QPair<QString, QByteArray> polyReferencePlaneEntry(this->id() + QString("-Reference_Plane.vtp"), polyReferencePlaneArray);
+      SnapshotEntry polyEntry(this->id() + QString("-AS.vtp"), polyArray);
+      SnapshotEntry polyBlendedPlaneEntry(this->id() + QString("-Blended_Plane.vtp"), polyBlendedPlaneArray);
+      SnapshotEntry polyReferencePlaneEntry(this->id() + QString("-Reference_Plane.vtp"), polyReferencePlaneArray);
 
-      fileList << polyEntry << polyBlendedPlaneEntry << polyReferencePlaneEntry;
+      snapshot << polyEntry << polyBlendedPlaneEntry << polyReferencePlaneEntry;
 
       returnValue = true;
     }

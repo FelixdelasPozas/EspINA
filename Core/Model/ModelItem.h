@@ -99,11 +99,12 @@ namespace EspINA
     virtual ModelItemType type() const = 0;
 
     virtual void initialize(const Arguments &args = Arguments()) = 0;
-    /// Used to initialize its extension
-    /// It's important to call initialize once the item has stablished
-    /// its relations with other items. It's up to the developer to
-    /// satisfy this condition
-    virtual void initializeExtensions(const Arguments &args = Arguments()) = 0;
+
+//     /// Used to initialize its extension
+//     /// It's important to call initialize once the item has stablished
+//     /// its relations with other items. It's up to the developer to
+//     /// satisfy this condition
+//     virtual void initializeExtensions(const Arguments &args = Arguments()) = 0;
 
     ModelItemSList relatedItems(RelationType relType, const QString &relName = "");
     RelationList relations(const QString &relName = "");

@@ -1001,22 +1001,23 @@ void EspinaModel::removeChannelImplementation(ChannelSPtr channel)
 }
 
 //------------------------------------------------------------------------
-void EspinaModel::addSegmentationImplementation(SegmentationSPtr seg)
+void EspinaModel::addSegmentationImplementation(SegmentationSPtr segmentation)
 {
-  Q_ASSERT(!seg.isNull());
-  Q_ASSERT(m_segmentations.contains(seg) == false);
+  Q_ASSERT(!segmentation.isNull());
+  Q_ASSERT(m_segmentations.contains(segmentation) == false);
 
-  if (seg->number() == 0)
-    seg->setNumber(++m_lastId);
+  if (segmentation->number() == 0)
+    segmentation->setNumber(++m_lastId);
   else
-    m_lastId = qMax(m_lastId, seg->number());
+    m_lastId = qMax(m_lastId, segmentation->number());
 
-  seg->m_model = this;
+  segmentation->m_model = this;
+  segmentation->initializeExtensions();
 
-  m_segmentations << seg;
-  m_relations->addItem(seg.data());
+  m_segmentations << segmentation;
+  m_relations->addItem(segmentation.data());
 
-  connect(seg.data(), SIGNAL(modified(ModelItemPtr)),
+  connect(segmentation.data(), SIGNAL(modified(ModelItemPtr)),
           this, SLOT(itemModified(ModelItemPtr)));
 }
 
@@ -1025,12 +1026,13 @@ void EspinaModel::removeSegmentationImplementation(SegmentationSPtr segmentation
 {
   Q_ASSERT(!segmentation.isNull());
 
+  segmentation->invalidateExtensions();
+
   m_segmentations.removeOne(segmentation);
   m_relations->removeItem(segmentation.data());
 
   segmentation->m_model = NULL;
 }
-
 
 //------------------------------------------------------------------------
 void EspinaModel::addFilterImplementation(FilterSPtr filter)

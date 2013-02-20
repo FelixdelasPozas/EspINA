@@ -157,7 +157,7 @@ bool AdaptiveEdges::loadCache(QuaZipFile &file, const QDir &tmpDir, EspinaModel 
 
 
 //-----------------------------------------------------------------------------
-bool AdaptiveEdges::saveCache(ModelItem::Extension::CacheList &cacheList)
+bool AdaptiveEdges::saveCache(Snapshot &snapshot)
 {
   if (s_cache.isEmpty())
     return false;
@@ -176,7 +176,7 @@ bool AdaptiveEdges::saveCache(ModelItem::Extension::CacheList &cacheList)
     cache << std::endl;
   }
 
-  cacheList << QPair<QString, QByteArray>(EXTENSION_FILE, cache.str().c_str());
+  snapshot << SnapshotEntry(EXTENSION_FILE, cache.str().c_str());
 
 //   vtkSmartPointer<vtkPolyDataWriter> edgesWriter = vtkSmartPointer<vtkPolyDataWriter>::New();
 //   edgesWriter->WriteToOutputStringOn();

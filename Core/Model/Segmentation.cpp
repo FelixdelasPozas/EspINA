@@ -191,8 +191,8 @@ void Segmentation::initializeExtensions(const Arguments &args)
 //   qDebug() << "Initializing" << data().toString() << "extensions:";
   foreach(ModelItem::ExtensionPtr ext, m_informationExtensions)
   {
-    qDebug() << "Initializing" << data().toString() << ext->id() << "extension";
     Q_ASSERT(ext);
+    qDebug() << "Initializing" << data().toString() << ext->id() << "extension";
     ext->initialize(args);
   }
 }

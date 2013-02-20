@@ -207,7 +207,7 @@ bool CountingFrameExtension::loadCache(QuaZipFile  &file,
 // List of counting frames definitions separated by endl
 // ...
 //-----------------------------------------------------------------------------
-bool CountingFrameExtension::saveCache(ModelItem::Extension::CacheList &cacheList)
+bool CountingFrameExtension::saveCache(Snapshot &cacheList)
 {
   if (s_cache.isEmpty())
     return false;

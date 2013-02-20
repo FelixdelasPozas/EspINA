@@ -30,6 +30,8 @@
 
 namespace EspINA
 {
+  const ModelItem::ExtId MorphologicalInformationID = "MorphologicalExtension";
+
   class MorphologicalInformation
   : public Segmentation::Information
   {
@@ -38,11 +40,10 @@ namespace EspINA
     typedef itk::LabelMap<LabelObjectType> LabelMapType;
     typedef itk::LabelImageToShapeLabelMapFilter<itkVolumeType, LabelMapType> Image2LabelFilterType;
 
-    struct CacheEntry
+    struct ExtensionData
     {
-      CacheEntry();
+      ExtensionData();
 
-      bool   Modified;
       double Size;
       double PhysicalSize;
       double Centroid[3];
@@ -53,12 +54,11 @@ namespace EspINA
       double EquivalentEllipsoidSize[3];
     };
 
-    static QMap<SegmentationPtr, CacheEntry> s_cache;
+    typedef Cache<SegmentationPtr, ExtensionData> ExtensionCache;
+
+    static ExtensionCache s_cache;
 
     const static QString EXTENSION_FILE;
-
-  public:
-    static const ModelItem::ExtId ID;
 
   public:
     explicit MorphologicalInformation();
@@ -73,7 +73,6 @@ namespace EspINA
 
     virtual QVariant information(const Segmentation::InfoTag &tag);
 
-    virtual void initialize(ModelItem::Arguments args = ModelItem::Arguments());
 
     virtual bool isCacheFile(const QString &file) const
     { return EXTENSION_FILE == file; }
@@ -82,11 +81,12 @@ namespace EspINA
                            const QDir  &tmpDir,
                            EspinaModel *model);
 
-    virtual bool saveCache(CacheList &cacheList);
+    virtual bool saveCache(Snapshot &snapshot);
 
     virtual Segmentation::InformationExtension clone();
 
-  protected:
+    virtual void initialize(ModelItem::Arguments args = ModelItem::Arguments());
+
     virtual void invalidate();
 
   private:

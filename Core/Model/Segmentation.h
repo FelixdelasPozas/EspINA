@@ -123,7 +123,6 @@ namespace EspINA
     virtual QString serialize() const;
 
     virtual void initialize(const Arguments &args = Arguments());
-    virtual void initializeExtensions(const Arguments &args = Arguments());
 
     void updateCacheFlag();
 
@@ -164,6 +163,8 @@ namespace EspINA
 
     Segmentation::InformationExtension informationExtension(const ModelItem::ExtId &name) const;
 
+    /// optional args should be deprecated in future versions
+    void initializeExtensions(const Arguments &args = Arguments());
     void invalidateExtensions();
 
     virtual InfoTagList availableInformations() const;

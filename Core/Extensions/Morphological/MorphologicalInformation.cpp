@@ -31,14 +31,13 @@
 
 using namespace EspINA;
 
-const ModelItem::ExtId MorphologicalInformation::ID = "MorphologicalExtension";
 
 const QString MorphologicalInformation::EXTENSION_FILE = "MorphologicalInformation/MorphologicalInformation.csv";
 
-const std::string FILE_VERSION = MorphologicalInformation::ID.toStdString() + " 1.0\n";
+const std::string FILE_VERSION = MorphologicalInformationID.toStdString() + " 1.0\n";
 const char SEP = ',';
 
-QMap<SegmentationPtr, MorphologicalInformation::CacheEntry> MorphologicalInformation::s_cache;
+ModelItem::Extension::Cache<SegmentationPtr, MorphologicalInformation::ExtensionData> MorphologicalInformation::s_cache;
 
 // NOTE: Should it be public?
 const Segmentation::InfoTag SIZE  = "Size";
@@ -67,9 +66,8 @@ const Segmentation::InfoTag EEDy  = "Equivalent Ellipsoid Diameter Y";
 const Segmentation::InfoTag EEDz  = "Equivalent Ellipsoid Diameter Z";
 
 //------------------------------------------------------------------------
-MorphologicalInformation::CacheEntry::CacheEntry()
-: Modified(false)
-, Size(-1)
+MorphologicalInformation::ExtensionData::ExtensionData()
+: Size(-1)
 , PhysicalSize(-1)
 , FeretDiameter(-1)
 {
@@ -105,14 +103,9 @@ MorphologicalInformation::~MorphologicalInformation()
 //------------------------------------------------------------------------
 ModelItem::ExtId MorphologicalInformation::id()
 {
-  return ID;
+  return MorphologicalInformationID;
 }
 
-//------------------------------------------------------------------------
-void MorphologicalInformation::initialize(ModelItem::Arguments args)
-{
-  //qDebug() << "Initialize (empty)" << m_seg->data().toString() << ID;
-}
 
 //------------------------------------------------------------------------
 Segmentation::InfoTagList MorphologicalInformation::availableInformations() const
@@ -136,8 +129,8 @@ Segmentation::InfoTagList MorphologicalInformation::availableInformations() cons
 //------------------------------------------------------------------------
 QVariant MorphologicalInformation::information(const Segmentation::InfoTag &tag)
 {
-  bool cached = s_cache.contains(m_seg);
-  bool requestedInvalidFeret = cached && (tag == FD && s_cache[m_seg].FeretDiameter == -1);
+  bool cached = s_cache.isCached(m_seg);
+  bool requestedInvalidFeret = cached && (tag == FD && s_cache[m_seg].Data.FeretDiameter == -1);
 
   if (!cached || requestedInvalidFeret)
   {
@@ -147,16 +140,18 @@ QVariant MorphologicalInformation::information(const Segmentation::InfoTag &tag)
     updateInformation();
   }
 
+  ExtensionData &data = s_cache[m_seg].Data;
+
   if (tag == SIZE)
-    return s_cache[m_seg].Size;
+    return data.Size;
   if (tag == PS)
-    return s_cache[m_seg].PhysicalSize;
+    return data.PhysicalSize;
   if (tag == Cx)
-    return s_cache[m_seg].Centroid[0];
+    return data.Centroid[0];
   if (tag == Cy)
-    return s_cache[m_seg].Centroid[1];
+    return data.Centroid[1];
   if (tag == Cz)
-    return s_cache[m_seg].Centroid[2];
+    return data.Centroid[2];
 //   if (info == Rx)
 //       return m_Region[0]*spacing[0];
 //   if (info == "Region Y")
@@ -164,39 +159,39 @@ QVariant MorphologicalInformation::information(const Segmentation::InfoTag &tag)
 //   if (info == "Region Z")
 //     return m_Region[2]*spacing[2];
   if (tag == BPMx)
-    return s_cache[m_seg].BinaryPrincipalMoments[0];
+    return data.BinaryPrincipalMoments[0];
   if (tag == BPMy)
-    return s_cache[m_seg].BinaryPrincipalMoments[1];
+    return data.BinaryPrincipalMoments[1];
   if (tag == BPMz)
-    return s_cache[m_seg].BinaryPrincipalMoments[2];
+    return data.BinaryPrincipalMoments[2];
   if (tag == BPA00)
-    return s_cache[m_seg].BinaryPrincipalAxes[0][0];
+    return data.BinaryPrincipalAxes[0][0];
   if (tag == BPA01)
-    return s_cache[m_seg].BinaryPrincipalAxes[0][1];
+    return data.BinaryPrincipalAxes[0][1];
   if (tag == BPA02)
-    return s_cache[m_seg].BinaryPrincipalAxes[0][2];
+    return data.BinaryPrincipalAxes[0][2];
   if (tag == BPA10)
-    return s_cache[m_seg].BinaryPrincipalAxes[1][0];
+    return data.BinaryPrincipalAxes[1][0];
   if (tag == BPA11)
-    return s_cache[m_seg].BinaryPrincipalAxes[1][1];
+    return data.BinaryPrincipalAxes[1][1];
   if (tag == BPA12)
-    return s_cache[m_seg].BinaryPrincipalAxes[1][2];
+    return data.BinaryPrincipalAxes[1][2];
   if (tag == BPA20)
-    return s_cache[m_seg].BinaryPrincipalAxes[2][0];
+    return data.BinaryPrincipalAxes[2][0];
   if (tag == BPA21)
-    return s_cache[m_seg].BinaryPrincipalAxes[2][1];
+    return data.BinaryPrincipalAxes[2][1];
   if (tag == BPA22)
-    return s_cache[m_seg].BinaryPrincipalAxes[2][2];
+    return data.BinaryPrincipalAxes[2][2];
   if (tag == FD)
-    return s_cache[m_seg].FeretDiameter;
+    return data.FeretDiameter;
   if (tag == EEDx)
-    return s_cache[m_seg].EquivalentEllipsoidSize[0];
+    return data.EquivalentEllipsoidSize[0];
   if (tag == EEDy)
-    return s_cache[m_seg].EquivalentEllipsoidSize[1];
+    return data.EquivalentEllipsoidSize[1];
   if (tag == EEDz)
-    return s_cache[m_seg].EquivalentEllipsoidSize[2];
+    return data.EquivalentEllipsoidSize[2];
 
-  qWarning() << ID << ":"  << tag << " is not provided";
+  qWarning() << MorphologicalInformationID << ":"  << tag << " is not provided";
   Q_ASSERT(false);
   return QVariant();
 }
@@ -229,37 +224,43 @@ bool MorphologicalInformation::loadCache(QuaZipFile  &file,
       }
       i++;
     }
-    // NOTE: This assert means someone's removing an extension from the model
-    //       without invalidating its extensions
-    Q_ASSERT(extensionSegmentation);
+    if (extensionSegmentation)
+    {
+      ExtensionData &data = s_cache[extensionSegmentation].Data;
 
-    s_cache[extensionSegmentation].Size = fields[2].toDouble();
+      data.Size = fields[2].toDouble();
+      data.PhysicalSize = fields[3].toDouble();
 
-    s_cache[extensionSegmentation].PhysicalSize = fields[3].toDouble();
+      data.Centroid[0] = fields[4].toDouble();
+      data.Centroid[1] = fields[5].toDouble();
+      data.Centroid[2] = fields[6].toDouble();
 
-    s_cache[extensionSegmentation].Centroid[0] = fields[4].toDouble();
-    s_cache[extensionSegmentation].Centroid[1] = fields[5].toDouble();
-    s_cache[extensionSegmentation].Centroid[2] = fields[6].toDouble();
+      data.BinaryPrincipalMoments[0] = fields[7].toDouble();
+      data.BinaryPrincipalMoments[1] = fields[8].toDouble();
+      data.BinaryPrincipalMoments[2] = fields[9].toDouble();
 
-    s_cache[extensionSegmentation].BinaryPrincipalMoments[0] = fields[7].toDouble();
-    s_cache[extensionSegmentation].BinaryPrincipalMoments[1] = fields[8].toDouble();
-    s_cache[extensionSegmentation].BinaryPrincipalMoments[2] = fields[9].toDouble();
+      data.BinaryPrincipalAxes[0][0] = fields[10].toDouble();
+      data.BinaryPrincipalAxes[0][1] = fields[11].toDouble();
+      data.BinaryPrincipalAxes[0][2] = fields[12].toDouble();
+      data.BinaryPrincipalAxes[1][0] = fields[13].toDouble();
+      data.BinaryPrincipalAxes[1][1] = fields[14].toDouble();
+      data.BinaryPrincipalAxes[1][2] = fields[15].toDouble();
+      data.BinaryPrincipalAxes[2][0] = fields[16].toDouble();
+      data.BinaryPrincipalAxes[2][1] = fields[17].toDouble();
+      data.BinaryPrincipalAxes[2][2] = fields[18].toDouble();
 
-    s_cache[extensionSegmentation].BinaryPrincipalAxes[0][0] = fields[10].toDouble();
-    s_cache[extensionSegmentation].BinaryPrincipalAxes[0][1] = fields[11].toDouble();
-    s_cache[extensionSegmentation].BinaryPrincipalAxes[0][2] = fields[12].toDouble();
-    s_cache[extensionSegmentation].BinaryPrincipalAxes[1][0] = fields[13].toDouble();
-    s_cache[extensionSegmentation].BinaryPrincipalAxes[1][1] = fields[14].toDouble();
-    s_cache[extensionSegmentation].BinaryPrincipalAxes[1][2] = fields[15].toDouble();
-    s_cache[extensionSegmentation].BinaryPrincipalAxes[2][0] = fields[16].toDouble();
-    s_cache[extensionSegmentation].BinaryPrincipalAxes[2][1] = fields[17].toDouble();
-    s_cache[extensionSegmentation].BinaryPrincipalAxes[2][2] = fields[18].toDouble();
+      data.FeretDiameter = fields[19].toDouble();
 
-    s_cache[extensionSegmentation].FeretDiameter = fields[19].toDouble();
-
-    s_cache[extensionSegmentation].EquivalentEllipsoidSize[0] = fields[20].toDouble();
-    s_cache[extensionSegmentation].EquivalentEllipsoidSize[1] = fields[21].toDouble();
-    s_cache[extensionSegmentation].EquivalentEllipsoidSize[2] = fields[22].toDouble();
+      data.EquivalentEllipsoidSize[0] = fields[20].toDouble();
+      data.EquivalentEllipsoidSize[1] = fields[21].toDouble();
+      data.EquivalentEllipsoidSize[2] = fields[22].toDouble();
+    } else
+    {
+      qWarning() << MorphologicalInformationID << "Invalid Cache Entry" << line;
+      // NOTE: This assert means someone's removing an extension from the model
+      //       without invalidating its extensions
+      Q_ASSERT(false);
+    }
   };
 
 
@@ -267,15 +268,16 @@ bool MorphologicalInformation::loadCache(QuaZipFile  &file,
 }
 
 //------------------------------------------------------------------------
-bool MorphologicalInformation::saveCache(CacheList &cacheList)
+bool invalidData(SegmentationPtr seg)
 {
-  foreach(SegmentationPtr segmentation, s_cache.keys())
-  {
-    if (segmentation->isVolumeModified() && !s_cache[segmentation].Modified)
-    {
-      s_cache.remove(segmentation);
-    }
-  }
+  return seg->informationExtension(MorphologicalInformationID) == NULL
+      && seg->isVolumeModified();
+}
+
+//------------------------------------------------------------------------
+bool MorphologicalInformation::saveCache(Snapshot &snapshot)
+{
+  s_cache.purge(invalidData);
 
   if (s_cache.isEmpty())
     return false;
@@ -285,45 +287,47 @@ bool MorphologicalInformation::saveCache(CacheList &cacheList)
 
   foreach(SegmentationPtr segmentation, s_cache.keys())
   {
+    ExtensionData &data = s_cache[segmentation].Data;
+
     cache << segmentation->filter()->id().toStdString();
     cache << SEP << segmentation->outputId();
 
-    cache << SEP << s_cache[segmentation].Size;
+    cache << SEP << data.Size;
 
-    cache << SEP << s_cache[segmentation].PhysicalSize;
+    cache << SEP << data.PhysicalSize;
 
-    cache << SEP << s_cache[segmentation].Centroid[0];
-    cache << SEP << s_cache[segmentation].Centroid[1];
-    cache << SEP << s_cache[segmentation].Centroid[2];
+    cache << SEP << data.Centroid[0];
+    cache << SEP << data.Centroid[1];
+    cache << SEP << data.Centroid[2];
 
     //cache << SEP << s_cache[segmentation].Region[0];
     //cache << SEP << s_cache[segmentation].Region[1];
     //cache << SEP << s_cache[segmentation].Region[2];
 
-    cache << SEP << s_cache[segmentation].BinaryPrincipalMoments[0];
-    cache << SEP << s_cache[segmentation].BinaryPrincipalMoments[1];
-    cache << SEP << s_cache[segmentation].BinaryPrincipalMoments[2];
+    cache << SEP << data.BinaryPrincipalMoments[0];
+    cache << SEP << data.BinaryPrincipalMoments[1];
+    cache << SEP << data.BinaryPrincipalMoments[2];
 
-    cache << SEP << s_cache[segmentation].BinaryPrincipalAxes[0][0];
-    cache << SEP << s_cache[segmentation].BinaryPrincipalAxes[0][1];
-    cache << SEP << s_cache[segmentation].BinaryPrincipalAxes[0][2];
-    cache << SEP << s_cache[segmentation].BinaryPrincipalAxes[1][0];
-    cache << SEP << s_cache[segmentation].BinaryPrincipalAxes[1][1];
-    cache << SEP << s_cache[segmentation].BinaryPrincipalAxes[1][2];
-    cache << SEP << s_cache[segmentation].BinaryPrincipalAxes[2][0];
-    cache << SEP << s_cache[segmentation].BinaryPrincipalAxes[2][1];
-    cache << SEP << s_cache[segmentation].BinaryPrincipalAxes[2][2];
+    cache << SEP << data.BinaryPrincipalAxes[0][0];
+    cache << SEP << data.BinaryPrincipalAxes[0][1];
+    cache << SEP << data.BinaryPrincipalAxes[0][2];
+    cache << SEP << data.BinaryPrincipalAxes[1][0];
+    cache << SEP << data.BinaryPrincipalAxes[1][1];
+    cache << SEP << data.BinaryPrincipalAxes[1][2];
+    cache << SEP << data.BinaryPrincipalAxes[2][0];
+    cache << SEP << data.BinaryPrincipalAxes[2][1];
+    cache << SEP << data.BinaryPrincipalAxes[2][2];
 
-    cache << SEP << s_cache[segmentation].FeretDiameter;
+    cache << SEP << data.FeretDiameter;
 
-    cache << SEP << s_cache[segmentation].EquivalentEllipsoidSize[0];
-    cache << SEP << s_cache[segmentation].EquivalentEllipsoidSize[1];
-    cache << SEP << s_cache[segmentation].EquivalentEllipsoidSize[2];
+    cache << SEP << data.EquivalentEllipsoidSize[0];
+    cache << SEP << data.EquivalentEllipsoidSize[1];
+    cache << SEP << data.EquivalentEllipsoidSize[2];
 
     cache << std::endl;
   }
 
-  cacheList << QPair<QString, QByteArray>(EXTENSION_FILE, cache.str().c_str());
+  snapshot << SnapshotEntry(EXTENSION_FILE, cache.str().c_str());
 
   return true;
 }
@@ -335,10 +339,17 @@ Segmentation::InformationExtension MorphologicalInformation::clone()
 }
 
 //------------------------------------------------------------------------
+void MorphologicalInformation::initialize(ModelItem::Arguments args)
+{
+  //qDebug() << "Initialize (empty)" << m_seg->data().toString() << ID;
+  s_cache.markAsClean(m_seg);
+}
+
+//------------------------------------------------------------------------
 void MorphologicalInformation::invalidate()
 {
   //qDebug() << "Invalidate" << m_seg->data().toString() << ID;
-  s_cache.remove(m_seg);
+  s_cache.markAsDirty(m_seg);
 }
 
 //------------------------------------------------------------------------
@@ -358,28 +369,30 @@ void MorphologicalInformation::updateInformation()
   {
     m_statistic = labelMap->GetNthLabelObject(0);
 
-    s_cache[m_seg].Modified     = true;
+    s_cache.markAsClean(m_seg);
 
-    s_cache[m_seg].Size         = static_cast<unsigned int>(m_statistic->GetNumberOfPixels());
+    ExtensionData &data = s_cache[m_seg].Data;
 
-    s_cache[m_seg].PhysicalSize = m_statistic->GetPhysicalSize();
+    data.Size         = static_cast<unsigned int>(m_statistic->GetNumberOfPixels());
+
+    data.PhysicalSize = m_statistic->GetPhysicalSize();
 
     for(int i=0; i<3; i++)
-      s_cache[m_seg].Centroid[i] = m_statistic->GetCentroid()[i];
+      data.Centroid[i] = m_statistic->GetCentroid()[i];
 
     for(int i=0; i<3; i++)
-      s_cache[m_seg].BinaryPrincipalMoments[i] = m_statistic->GetPrincipalMoments()[i];
+      data.BinaryPrincipalMoments[i] = m_statistic->GetPrincipalMoments()[i];
 
     for(int i=0; i<3; i++)
     {
       for(int j=0; j<3; j++)
-        s_cache[m_seg].BinaryPrincipalAxes[i][j] = m_statistic->GetPrincipalAxes()[i][j];
+        data.BinaryPrincipalAxes[i][j] = m_statistic->GetPrincipalAxes()[i][j];
     }
 
     for(int i=0; i<3; i++)
-      s_cache[m_seg].EquivalentEllipsoidSize[i] = m_statistic->GetEquivalentEllipsoidDiameter()[i];
+      data.EquivalentEllipsoidSize[i] = m_statistic->GetEquivalentEllipsoidDiameter()[i];
 
     if (m_labelMap->GetComputeFeretDiameter())
-      s_cache[m_seg].FeretDiameter = m_statistic->GetFeretDiameter();
+      data.FeretDiameter = m_statistic->GetFeretDiameter();
   }
 }

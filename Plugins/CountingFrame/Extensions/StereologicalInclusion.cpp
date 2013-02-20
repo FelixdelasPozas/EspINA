@@ -162,7 +162,7 @@ bool StereologicalInclusion::loadCache(QuaZipFile &file, const QDir &tmpDir, Esp
 }
 
 //------------------------------------------------------------------------
-bool StereologicalInclusion::saveCache(CacheList &cacheList)
+bool StereologicalInclusion::saveCache(Snapshot &cacheList)
 {
   if (s_cache.isEmpty())
     return false;

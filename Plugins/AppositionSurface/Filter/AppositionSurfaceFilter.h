@@ -94,7 +94,7 @@ namespace EspINA
       virtual double getPerimeter();
       virtual double getTortuosity();
 
-      virtual bool dumpSnapshot(QList<QPair<QString, QByteArray> > &fileList);
+      virtual bool dumpSnapshot(Snapshot &snapshot);
 
     protected:
       virtual void run();

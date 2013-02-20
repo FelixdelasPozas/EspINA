@@ -97,6 +97,9 @@ namespace EspINA
     VOLUME = 3    //3D
   };
 
+  typedef QPair<QString, QByteArray> SnapshotEntry;
+  typedef QList<SnapshotEntry>       Snapshot;
+
 } // EspINA
 
 #endif// ESPINATYPES_H

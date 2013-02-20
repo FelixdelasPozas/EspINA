@@ -95,6 +95,4 @@ void StrokeSegmentationCommand::undo()
   m_model->removeSegmentation(m_segmentation);
   m_model->removeRelation(m_channel, m_filter, Channel::LINK);
   m_model->removeFilter(m_filter);
-
-  m_segmentation->invalidateExtensions();
 }

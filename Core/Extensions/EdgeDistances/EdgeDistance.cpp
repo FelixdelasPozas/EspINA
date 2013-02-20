@@ -162,7 +162,7 @@ bool EdgeDistance::loadCache(QuaZipFile  &file,
 }
 
 //-----------------------------------------------------------------------------
-bool EdgeDistance::saveCache(CacheList &cacheList)
+bool EdgeDistance::saveCache(Snapshot &cacheList)
 {
   // NOTE: This could be factorized using some kind of template...
   foreach(SegmentationPtr segmentation, s_cache.keys())

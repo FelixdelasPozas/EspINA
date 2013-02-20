@@ -74,7 +74,7 @@ class StereologicalInclusion;
 
     virtual bool loadCache(QuaZipFile &file, const QDir &tmpDir, EspinaModel *model);
 
-    virtual bool saveCache(CacheList &cacheList);
+    virtual bool saveCache(Snapshot &cacheList);
 
     virtual Channel::ExtensionPtr clone();
 

@@ -395,6 +395,9 @@ FilterSPtr EspinaMainWindow::createFilter(const QString& filter,
 {
   if (ChannelReader::TYPE == filter)
     return FilterSPtr(new ChannelReader(inputs, args, ChannelReader::TYPE, m_errorHandler));
+
+  Q_ASSERT(false);
+  return FilterSPtr();
 }
 
 //------------------------------------------------------------------------

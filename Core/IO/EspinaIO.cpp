@@ -380,11 +380,10 @@ EspinaIO::STATUS EspinaIO::saveSegFile(QFileInfo file, EspinaModel *model, Error
   // Store filter data
   foreach(FilterSPtr filter, model->filters())
   {
-    QList<QPair<QString, QByteArray> > fileList;
-    if (filter->dumpSnapshot(fileList))
+    Snapshot snapshot;
+    if (filter->dumpSnapshot(snapshot))
     {
-      QPair<QString, QByteArray> entry;
-      foreach(entry, fileList)
+      foreach(SnapshotEntry entry, snapshot)
       {
         if( !zipFile(entry.first, entry.second, outFile) )
           return ERROR;
@@ -395,11 +394,10 @@ EspinaIO::STATUS EspinaIO::saveSegFile(QFileInfo file, EspinaModel *model, Error
   // Save Extensions' Information
   foreach(Channel::ExtensionPtr extension, model->factory()->channelExtensions())
   {
-    ModelItem::Extension::CacheList cacheList;
-    if (extension->saveCache(cacheList))
+    Snapshot snapshot;
+    if (extension->saveCache(snapshot))
     {
-      QPair<QString, QByteArray> entry;
-      foreach(entry, cacheList)
+      foreach(SnapshotEntry entry, snapshot)
       {
         if( !zipFile(entry.first, entry.second, outFile) )
           return ERROR;
@@ -409,11 +407,10 @@ EspinaIO::STATUS EspinaIO::saveSegFile(QFileInfo file, EspinaModel *model, Error
 
   foreach(Segmentation::InformationExtension extension, model->factory()->segmentationExtensions())
   {
-    ModelItem::Extension::CacheList cacheList;
-    if (extension->saveCache(cacheList))
+    Snapshot snapshot;
+    if (extension->saveCache(snapshot))
     {
-      QPair<QString, QByteArray> entry;
-      foreach(entry, cacheList)
+      foreach(SnapshotEntry entry, snapshot)
       {
         if( !zipFile(entry.first, entry.second, outFile) )
           return ERROR;

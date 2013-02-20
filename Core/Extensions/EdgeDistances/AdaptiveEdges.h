@@ -65,7 +65,7 @@ namespace EspINA
 
     virtual bool loadCache(QuaZipFile &file, const QDir &tmpDir, EspinaModel *model);
 
-    virtual bool saveCache(CacheList &cacheList);
+    virtual bool saveCache(Snapshot &snapshot);
 
     virtual Channel::ExtensionPtr clone();
 

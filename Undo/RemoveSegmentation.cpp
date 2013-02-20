@@ -62,8 +62,6 @@ void RemoveSegmentation::redo()
 
   foreach(SegInfo segInfo, m_segmentations)
   {
-    segInfo.segmentation->invalidateExtensions();
-
     removeRelations(segInfo.relations);
 
     segsToRemove    << segInfo.segmentation;

@@ -196,7 +196,7 @@ namespace EspINA
     /// and false otherwise
     virtual bool fetchSnapshot();
     /// QMap<file name, file byte array> of filter's data to save to seg file
-    virtual bool dumpSnapshot(QList<QPair<QString, QByteArray> > &fileList);
+    virtual bool dumpSnapshot(Snapshot &snapshot);
 
   protected:
     explicit Filter(NamedInputs namedInputs,
