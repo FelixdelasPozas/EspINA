@@ -12,6 +12,7 @@
 #include <GUI/ViewManager.h>
 #include <Core/Interfaces/IFilterCreator.h>
 #include <Filters/SeedGrowSegmentationFilter.h>
+#include <Filters/ChannelReader.h>
 #include <App/Undo/SeedGrowSegmentationCommand.h>
 
 // Qt
@@ -23,6 +24,7 @@
 using namespace EspINA;
 
 const Filter::FilterType TEST_FILTER_TYPE = "SeedGrowSegmentation::SeedGrowSegmentationFilter";
+const QString CHANNELREADER_TYPE = "Channel Reader";
 
 class SeedGrowSegmentationCreator
 : public IFilterCreator
@@ -35,6 +37,17 @@ public:
   }
 };
 
+class ChannelReaderCreator
+: public IFilterCreator
+{
+  public:
+    virtual ~ChannelReaderCreator() {};
+    virtual FilterSPtr createFilter(const QString& filter, const Filter::NamedInputs& inputs, const ModelItem::Arguments& args)
+    {
+      return FilterSPtr(new ChannelReader(inputs, args, CHANNELREADER_TYPE, NULL));
+    }
+};
+
 int saveModelToSegFile(int argc, char** argv)
 {
   QString filename1 = QString(argv[1]) + QString("test1.seg");
@@ -42,8 +55,12 @@ int saveModelToSegFile(int argc, char** argv)
 
   EspinaFactory *factory = new EspinaFactory();
   EspinaModel *model = new EspinaModel(factory);
+
   SeedGrowSegmentationCreator seedFilterCreator;
   factory->registerFilter(&seedFilterCreator, TEST_FILTER_TYPE);
+
+  ChannelReaderCreator channelCreator;
+  factory->registerFilter(&channelCreator, CHANNELREADER_TYPE);
 
   if (EspinaIO::loadSegFile(file, model) != EspinaIO::SUCCESS)
     return 1;

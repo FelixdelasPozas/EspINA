@@ -24,23 +24,23 @@
 #include <Core/EspinaTypes.h>
 #include <Filters/FreeFormSource.h>
 
+#include <QDebug>
+
 void insertRowsTest(EspINA::EspinaModel* model)
 {
-//   Filter::NamedInputs inputs;
-//   Filter::Arguments args;
-// 
-//   FreeFormSource::Parameters params(args);
-//   double spacing[3] = {1, 1, 1};
-//   params.setSpacing(spacing);
-// 
-//   FreeFormSource source(inputs, args);
-//   source.draw(0, 50., 50., 50.);
-//   source.update();
+  EspINA::Filter::NamedInputs inputs;
+  EspINA::Filter::Arguments args;
 
-  EspINA::Filter::OutputId outputId = -1;
-  EspINA::FilterSPtr filterp = EspINA::FilterSPtr(NULL);
-  EspINA::SegmentationPtr p1 = new EspINA::Segmentation(filterp, outputId);
-  EspINA::SegmentationSPtr sharedp1 = EspINA::SegmentationSPtr(p1);
+  EspINA::FreeFormSource::Parameters params(args);
+  double spacing[3] = { 1, 1, 1 };
+  params.setSpacing(spacing);
+
+  EspINA::FilterSPtr filter(new EspINA::FreeFormSource(inputs, args, QString("TEMP_FILTER")));
+  filter->draw(0, 50., 50., 50.);
+  filter->update();
+
+  EspINA::Filter::OutputId outputId = 0;
+  EspINA::SegmentationSPtr sharedp1(new EspINA::Segmentation(filter, outputId));
 
   model->addSegmentation(sharedp1);
 }

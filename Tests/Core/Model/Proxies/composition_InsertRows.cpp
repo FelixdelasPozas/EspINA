@@ -8,17 +8,17 @@
 
 int composition_InsertRows(int argc, char** argv)
 {
-  EspINA::EspinaModel model(NULL);
-  EspINA::RelationProxy compositionProxy;
-  compositionProxy.setRelation(EspINA::Relations::COMPOSITION);
-  compositionProxy.setSourceModel(&model);
+  EspINA::EspinaModel *model(new EspINA::EspinaModel(NULL));
+  EspINA::RelationProxy *compositionProxy(new EspINA::RelationProxy());
+  compositionProxy->setRelation(EspINA::Relations::COMPOSITION);
+  compositionProxy->setSourceModel(model);
 
-  ModelTest modelTester(&compositionProxy);
+  ModelTest modelTester(compositionProxy);
 
-  insertRowsTest(&model);
-  insertRowsTest(&model);
+  insertRowsTest(model);
+  insertRowsTest(model);
 
-  if (model.segmentations().size() != 2)
+  if (model->segmentations().size() != 2)
     return 1;
 
   return 0;
