@@ -95,8 +95,8 @@ bool Brush::filterEvent(QEvent* e, EspinaRenderView* view)
       QKeyEvent *ke = static_cast<QKeyEvent *>(e);
       if (ke->key() == Qt::Key_Control)
       {
+        m_brush->DrawingOn(view);
         m_erasing = false;
-        m_brush->DrawingOn();
         if (!m_currentSeg)
           m_brush->setBorderColor(QColor(Qt::blue));
       }
@@ -107,8 +107,8 @@ bool Brush::filterEvent(QEvent* e, EspinaRenderView* view)
         QMouseEvent *me = static_cast<QMouseEvent *>(e);
         if (Qt::CTRL != me->modifiers())
         {
+          m_brush->DrawingOn(view);
           m_erasing = false;
-          m_brush->DrawingOn();
           if (!m_currentSeg)
             m_brush->setBorderColor(QColor(Qt::blue));
         }
@@ -127,8 +127,8 @@ bool Brush::filterEvent(QEvent* e, EspinaRenderView* view)
         QKeyEvent *ke = static_cast<QKeyEvent *>(e);
         if (ke->key() == Qt::Key_Control && ke->count() == 1)
         {
+          m_brush->DrawingOff(view);
           m_erasing = true;
-          m_brush->DrawingOff();
         }
       }
       else
@@ -137,8 +137,8 @@ bool Brush::filterEvent(QEvent* e, EspinaRenderView* view)
           QMouseEvent *me = static_cast<QMouseEvent *>(e);
           if (Qt::CTRL == me->modifiers())
           {
+            m_brush->DrawingOff(view);
             m_erasing = true;
-            m_brush->DrawingOff();
           }
         }
       if (m_erasing)
@@ -389,5 +389,5 @@ void Brush::initBrushTool()
   m_eraseCommand = NULL;
   m_drawCommand = NULL;
   m_erasing = false;
-  m_brush->DrawingOn();
+  m_brush->DrawingOn(NULL);
 }

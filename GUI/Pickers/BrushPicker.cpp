@@ -67,11 +67,22 @@ BrushPicker::BrushPicker(PickableItemPtr item)
 //-----------------------------------------------------------------------------
 bool BrushPicker::filterEvent(QEvent* e, EspinaRenderView* view)
 {
+  if (e->type() == QEvent::KeyRelease)
+  {
+    QKeyEvent *ke = static_cast<QKeyEvent *>(e);
+    if (ke->key() == Qt::Key_Control && m_tracking)
+    {
+      startStroke(m_lastDot, view);
+      return true;
+    }
+  }
+
   if (!m_tracking && QEvent::MouseButtonPress == e->type())
   {
     QMouseEvent *me = static_cast<QMouseEvent *>(e);
     if (me->button() == Qt::LeftButton)
     {
+      m_tracking = true;
       startStroke(me->pos(), view);
       return true;
     }
@@ -82,6 +93,7 @@ bool BrushPicker::filterEvent(QEvent* e, EspinaRenderView* view)
     return true;
   }else if (m_tracking && QEvent::MouseButtonRelease == e->type())
   {
+    m_tracking = false;
     stopStroke(view);
     return true;
   }
@@ -211,8 +223,6 @@ void BrushPicker::startStroke(QPoint pos, EspinaRenderView* view)
   else
     return; // Current implementation only works in 2D views
 
-  m_tracking = true;
-
   memcpy(m_viewSize, view->renderWindow()->GetSize(), 2*sizeof(int));
 
   // Display bounds in world coordinates
@@ -276,7 +286,6 @@ void BrushPicker::stopStroke(EspinaRenderView* view)
   if (m_stroke->GetNumberOfPoints() > 0)
     emit stroke(m_referenceItem, m_stroke, m_radius, m_plane);
 
-  m_tracking = false;
   m_stroke->Reset();
   stopPreview(view);
 }
@@ -359,6 +368,12 @@ void BrushPicker::startPreview(EspinaRenderView* view)
 //-----------------------------------------------------------------------------
 void BrushPicker::updatePreview(double brush[3], EspinaRenderView* view)
 {
+  // fixes crashes when the user releases or presses the control key
+  // in the middle of a stroke (that is, without unpressing the mouse
+  // button).
+  if (m_preview == NULL)
+    startPreview(view);
+
   double brushBounds[6];
 
   switch(m_plane)
@@ -453,14 +468,20 @@ void BrushPicker::stopPreview(EspinaRenderView* view)
 }
 
 //-----------------------------------------------------------------------------
-void BrushPicker::DrawingOn()
+void BrushPicker::DrawingOn(EspinaRenderView *view)
 {
+  if ((m_stroke->GetNumberOfPoints() > 0) && view != NULL)
+    stopStroke(view);
+
   m_drawing = true;
 }
 
 //-----------------------------------------------------------------------------
-void BrushPicker::DrawingOff()
+void BrushPicker::DrawingOff(EspinaRenderView *view)
 {
+  if (m_stroke->GetNumberOfPoints() > 0)
+    stopStroke(view);
+
   m_drawing = false;
 }
 

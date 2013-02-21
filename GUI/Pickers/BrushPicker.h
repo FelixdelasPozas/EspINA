@@ -59,8 +59,8 @@ public:
 
   /// @item is used to specify the spacing of the stroke
   void setReferenceItem(PickableItemPtr item);
-  void DrawingOn();
-  void DrawingOff();
+  void DrawingOn(EspinaRenderView *view);
+  void DrawingOff(EspinaRenderView *view);
 
 signals:
   void stroke(PickableItemPtr, double, double, double, Nm, PlaneType);

@@ -337,9 +337,9 @@ void EditorToolBar::changeSphericalBrushMode(Brush::BrushMode mode)
 {
   QString icon;
   if (Brush::BRUSH == mode)
-    icon = ":/espina/pencil2D.png";
+    icon = ":/espina/pencil3D.png";
   else
-    icon = ":/espina/eraser2D.png";
+    icon = ":/espina/eraser3D.png";
 
   m_drawToolSelector->setIcon(QIcon(icon));
 }
