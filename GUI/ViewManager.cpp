@@ -413,7 +413,6 @@ void ViewManager::setColorEngine(ColorEngine* engine)
 {
   m_colorEngine = engine;
   updateSegmentationRepresentations();
-  updateViews();
 }
 
 //----------------------------------------------------------------------------

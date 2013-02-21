@@ -987,7 +987,10 @@ void SliceView::addSegmentation(SegmentationPtr seg)
 
   segRep.selected = false;
   segRep.visible  = seg->visible() && m_showSegmentations;
-  //segRep.color = m_viewManager->color(seg);
+
+  double rgb[3];
+  m_viewManager->lut(seg)->GetColor(1, rgb);
+  segRep.color = QColor(rgb[0], rgb[1], rgb[2]);
 
   m_segmentationReps.insert(seg, segRep);
   addActor(segRep.slice);

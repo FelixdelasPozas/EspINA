@@ -25,6 +25,9 @@
 
 using namespace EspINA;
 
+const double SELECTED_ALPHA = 1.0;
+const double UNSELECTED_ALPHA = 0.6;
+
 //-----------------------------------------------------------------------------
 UserColorEngine::UserColorEngine() :
 m_lastColor(0)
@@ -64,7 +67,7 @@ LUTPtr UserColorEngine::lut(SegmentationPtr seg)
 
   if (m_LUT.find(lutName) == m_LUT.end())
   {
-    double alpha = (seg->isSelected() ? 1.0 : 0.6);
+    double alpha = (seg->isSelected() ? SELECTED_ALPHA : UNSELECTED_ALPHA);
     QColor c = color(seg);
 
     seg_lut = vtkLookupTable::New();
@@ -78,7 +81,20 @@ LUTPtr UserColorEngine::lut(SegmentationPtr seg)
     m_LUT.insert(lutName, seg_lut);
   }
   else
+  {
+    // fix a corner case when a segmentation and it's user entry have been deleted
+    // but the lookuptable hasn't, so when the segmentation and user are been
+    // created again with a different color the ColorEngine returns the lookuptable
+    // with the old color.
+    double rgb[3];
+    m_LUT[lutName]->GetColor(1, rgb);
+    QColor segColor = seg->taxonomy()->color();
+
+    if (segColor != QColor(rgb[0], rgb[1], rgb[2]))
+      m_LUT[lutName]->SetTableValue(1, segColor.redF(), segColor.greenF(), segColor.blueF(), (seg->isSelected() ? SELECTED_ALPHA : UNSELECTED_ALPHA));
+
     seg_lut = m_LUT.find(lutName).value();
+  }
 
   return seg_lut;
 }

@@ -58,7 +58,8 @@ namespace EspINA
       m_undoStack->beginMacro(tr("Apposition Surface"));
       {
         TaxonomySPtr taxonomy = m_model->taxonomy();
-        if (taxonomy->element(tr("AS")).isNull()) {
+        if (taxonomy->element(tr("AS")).isNull())
+        {
           m_undoStack->push(new AddTaxonomyElement(taxonomy->root().data(), tr("AS"), m_model, QColor(255,255,0)));
         }
         m_undoStack->push(new AppositionSurfaceCommand(validSegs, m_model, m_viewManager));
