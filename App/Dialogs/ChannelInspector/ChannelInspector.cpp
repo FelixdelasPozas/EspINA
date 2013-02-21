@@ -22,8 +22,8 @@
 #include <QDialog>
 #include <QLocale>
 
-// c++
-#include <cmath>
+// VTK
+#include <vtkMath.h>
 
 using namespace EspINA;
 
@@ -81,7 +81,7 @@ ChannelInspector::ChannelInspector(Channel *channel, QWidget *parent)
   {
     opacityBox->setEnabled(true);
     opacityCheck->setChecked(false);
-    opacitySlider->setValue(m_channel->opacity() * 100);
+    opacitySlider->setValue(vtkMath::Round(m_channel->opacity() * 100.));
   }
   connect(opacityCheck, SIGNAL(stateChanged(int)), this, SLOT(opacityCheckChanged(int)));
   connect(opacitySlider, SIGNAL(valueChanged(int)), this, SLOT(opacityChanged(int)));
@@ -103,9 +103,9 @@ ChannelInspector::ChannelInspector(Channel *channel, QWidget *parent)
   else
   {
     m_saturation = m_channel->saturation();
-    hueBox->setValue(m_channel->hue() * 359);
-    m_hueSelector->setHueValue(m_channel->hue() * 359);
-    saturationBox->setValue(m_channel->saturation()*100);
+    hueBox->setValue(vtkMath::Round(m_channel->hue() * 359.));
+    m_hueSelector->setHueValue(vtkMath::Round(m_channel->hue() * 359.));
+    saturationBox->setValue(vtkMath::Round(m_channel->saturation() * 100.));
   }
 
   connect(m_hueSelector, SIGNAL(newHsv(int,int,int)), this, SLOT(newHSV(int,int,int)));
@@ -117,10 +117,10 @@ ChannelInspector::ChannelInspector(Channel *channel, QWidget *parent)
 
   m_brightness = m_channel->brightness();
   m_contrast = m_channel->contrast();
-  brightnessSlider->setValue(m_channel->brightness()*255);
-  brightnessBox->setValue(m_channel->brightness()*100);
-  contrastSlider->setValue((m_channel->contrast()-1.0)*255);
-  contrastBox->setValue((m_channel->contrast()-1.0)*100);
+  brightnessSlider->setValue(vtkMath::Round(m_channel->brightness() * 255.));
+  brightnessBox->setValue(vtkMath::Round(m_channel->brightness() * 100.));
+  contrastSlider->setValue((vtkMath::Round((m_channel->contrast() - 1.0) * 255.)));
+  contrastBox->setValue(vtkMath::Round((m_channel->contrast() - 1.0) * 100.));
   connect(contrastSlider, SIGNAL(valueChanged(int)), this, SLOT(contrastChanged(int)));
   connect(contrastBox, SIGNAL(valueChanged(int)), this, SLOT(contrastChanged(int)));
   connect(brightnessSlider, SIGNAL(valueChanged(int)), this, SLOT(brightnessChanged(int)));
@@ -251,7 +251,7 @@ void ChannelInspector::newHSV(int h, int s, int v)
     saturationSlider->setEnabled(true);
   }
 
-  double value = ((h-1) == -1) ? -1 : ((h-1)/359.0);
+  double value = ((h-1) == -1) ? -1 : ((h-1)/359.);
   m_channel->setHue(value);
   applyModifications();
 }
@@ -272,7 +272,7 @@ void ChannelInspector::newHSV(int h)
     saturationSlider->setEnabled(true);
   }
 
-  double value = (h == -1) ? -1 : (h/359.0);
+  double value = (h == -1) ? -1 : (h/359.);
   m_channel->setHue(value);
   applyModifications();
 }
@@ -294,14 +294,14 @@ void ChannelInspector::contrastChanged(int value)
   {
     tick = rangediff / 255.0;
     contrastBox->blockSignals(true);
-    contrastBox->setValue(value*(100./255.));
+    contrastBox->setValue(vtkMath::Round(value*(100./255.)));
     contrastBox->blockSignals(false);
   }
   else
   {
     tick = rangediff / 100.0;
     contrastSlider->blockSignals(true);
-    contrastSlider->setValue(value*(255./100));
+    contrastSlider->setValue(vtkMath::Round(value*(255./100.)));
     contrastSlider->blockSignals(false);
   }
   m_channel->setContrast(((value * tick)/rangediff)+1);
@@ -315,14 +315,14 @@ void ChannelInspector::brightnessChanged(int value)
   if (QString("brightnessSlider").compare(sender()->objectName()) == 0)
   {
     brightnessBox->blockSignals(true);
-    brightnessBox->setValue(value*(100./255.));
+    brightnessBox->setValue(vtkMath::Round(value*(100./255.)));
     brightnessBox->blockSignals(false);
     m_channel->setBrightness(value/255.);
   }
   else
   {
     brightnessSlider->blockSignals(true);
-    brightnessSlider->setValue(value*(255./100.));
+    brightnessSlider->setValue(vtkMath::Round(value*(255./100.)));
     brightnessSlider->blockSignals(false);
     m_channel->setBrightness(value/100.);
   }
