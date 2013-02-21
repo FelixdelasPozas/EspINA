@@ -59,9 +59,14 @@ namespace EspINA
   //----------------------------------------------------------------------------
   AppositionSurfaceFilter::~AppositionSurfaceFilter()
   {
-    m_ap->Delete();
-    m_referencePlane->Delete();
-    m_blendedNotClippedPlane->Delete();
+    if (m_ap != NULL)
+      m_ap->Delete();
+
+    if (m_referencePlane != NULL)
+      m_referencePlane->Delete();
+
+    if (m_blendedNotClippedPlane != NULL)
+      m_blendedNotClippedPlane->Delete();
   }
 
   //----------------------------------------------------------------------------
@@ -745,7 +750,7 @@ namespace EspINA
   //----------------------------------------------------------------------------
   double AppositionSurfaceFilter::getArea()
   {
-    if (m_ap == NULL)
+    if (m_ap == NULL && !fetchCachePolyDatas())
       return UNDEFINED;
 
     bool updateNeeded = needUpdate();
@@ -761,7 +766,7 @@ namespace EspINA
   //----------------------------------------------------------------------------
   double AppositionSurfaceFilter::getPerimeter()
   {
-    if (m_ap == NULL)
+    if (m_ap == NULL && !fetchCachePolyDatas())
       return UNDEFINED;
 
     bool updateNeeded = needUpdate();
@@ -777,7 +782,7 @@ namespace EspINA
   //----------------------------------------------------------------------------
   double AppositionSurfaceFilter::getTortuosity()
   {
-    if (m_ap == NULL)
+    if (m_ap == NULL && !fetchCachePolyDatas())
       return UNDEFINED;
 
     bool updateNeeded = needUpdate();
@@ -809,17 +814,20 @@ namespace EspINA
   }
 
   //----------------------------------------------------------------------------
-  bool AppositionSurfaceFilter::fetchSnapshot()
+  bool AppositionSurfaceFilter::fetchCachePolyDatas()
   {
     bool returnValue = false;
 
-    if (m_cacheDir.exists(QString().number(m_cacheId) + QString("-AS.vtp")))
-    {
-      QString fileName = m_cacheDir.absolutePath() + QDir::separator() + QString().number(m_cacheId) + QString("-AS.vtp");
+    QString nameAS             = QString().number(m_cacheId) + QString("-AS.vtp");
+    QString nameBlendedPlane   = QString().number(m_cacheId) + QString("-Blended_Plane.vtp");
+    QString nameReferencePlane = QString().number(m_cacheId) + QString("-Reference_Plane.vtp");
 
+    if (m_cacheDir.exists(nameAS) && m_cacheDir.exists(nameBlendedPlane) && m_cacheDir.exists(nameReferencePlane))
+    {
       // NOTE: three different instances are needed for the readers,if we reuse one
       // instance (like we do in AppositionSurfaceFilter::dumpSnapshot() ) the data
       // we obtain will be wrong
+      QString fileName = m_cacheDir.absolutePath() + QDir::separator() + nameAS;
       vtkSmartPointer<vtkGenericDataObjectReader> polyASReader = vtkSmartPointer<vtkGenericDataObjectReader>::New();
       polyASReader->SetFileName(fileName.toStdString().c_str());
       polyASReader->SetReadAllFields(true);
@@ -827,7 +835,7 @@ namespace EspINA
 
       m_ap = PolyData(polyASReader->GetPolyDataOutput());
 
-      fileName = m_cacheDir.absolutePath() + QDir::separator()+ this->id() + QString("-Blended_Plane.vtp");
+      fileName = m_cacheDir.absolutePath() + QDir::separator()+ nameBlendedPlane;
       vtkSmartPointer<vtkGenericDataObjectReader> polyBlendedPlaneReader = vtkSmartPointer<vtkGenericDataObjectReader>::New();
       polyBlendedPlaneReader->SetFileName(fileName.toStdString().c_str());
       polyBlendedPlaneReader->SetReadAllFields(true);
@@ -835,7 +843,7 @@ namespace EspINA
 
       m_blendedNotClippedPlane = PolyData(polyBlendedPlaneReader->GetPolyDataOutput());
 
-      fileName = m_cacheDir.absolutePath() + QDir::separator()+ this->id() + QString("-Reference_Plane.vtp");
+      fileName = m_cacheDir.absolutePath() + QDir::separator()+ nameReferencePlane;
       vtkSmartPointer<vtkGenericDataObjectReader> polyReferencePlaneReader = vtkSmartPointer<vtkGenericDataObjectReader>::New();
       polyReferencePlaneReader->SetFileName(fileName.toStdString().c_str());
       polyReferencePlaneReader->SetReadAllFields(true);
@@ -846,13 +854,16 @@ namespace EspINA
       returnValue = true;
     }
 
-    return (SegmentationFilter::fetchSnapshot() && returnValue);
+    return returnValue;
   }
 
   //----------------------------------------------------------------------------
   bool AppositionSurfaceFilter::dumpSnapshot(Snapshot &snapshot)
   {
     bool returnValue = false;
+
+    if (NULL == m_ap)
+      fetchCachePolyDatas();
 
     if (m_ap != NULL)
     {

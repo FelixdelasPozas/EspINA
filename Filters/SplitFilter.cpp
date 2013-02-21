@@ -66,7 +66,10 @@ void SplitFilter::run()
 {
   Q_ASSERT(m_inputs.size() == 1);
   EspinaVolume::Pointer input = m_inputs[0];
-  Q_ASSERT(m_stencil.GetPointer());
+
+  // if you want to run the filter you must have an stencil
+  if (NULL == m_stencil.GetPointer())
+    Q_ASSERT(fetchCacheStencil());
 
   EspinaRegion region = input->espinaRegion();
   itkVolumeType::SpacingType spacing = input->toITK()->GetSpacing();
@@ -116,7 +119,7 @@ void SplitFilter::run()
 }
 
 //-----------------------------------------------------------------------------
-bool SplitFilter::fetchSnapshot()
+bool SplitFilter::fetchCacheStencil()
 {
   bool returnVal = false;
 
@@ -138,13 +141,17 @@ bool SplitFilter::fetchSnapshot()
     returnVal = true;
   }
 
-  return (SegmentationFilter::fetchSnapshot() && returnVal);
+  return returnVal;
 }
 
 //-----------------------------------------------------------------------------
 bool SplitFilter::dumpSnapshot(QList<QPair<QString, QByteArray> > &fileList)
 {
   bool returnVal = false;
+
+  // check if the stencil is in the cache and hasn't been loaded (because a run() wasn't needed)
+  if (NULL == m_stencil.GetPointer())
+    fetchCacheStencil();
 
   if (m_stencil != NULL)
   {

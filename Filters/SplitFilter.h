@@ -51,7 +51,7 @@ namespace EspINA
     /// Try to locate an snapshot of the filter in tmpDir
     /// Returns true if all volume snapshot can be recovered
     /// and false otherwise
-    virtual bool fetchSnapshot();
+    virtual bool fetchCacheStencil();
     /// QMap<file name, file byte array> of filter's data to save to seg file
     virtual bool dumpSnapshot(QList<QPair<QString, QByteArray> > &fileList);
 
