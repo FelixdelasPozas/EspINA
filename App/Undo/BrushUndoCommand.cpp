@@ -43,13 +43,12 @@ itkVolumeType::Pointer backup(EspinaVolume::Pointer volume)
 
 //-----------------------------------------------------------------------------
 Brush::DrawCommand::DrawCommand(SegmentationSPtr seg,
-                                Filter::OutputId output,
                                 BrushShapeList brushes,
                                 itkVolumeType::PixelType value,
                                 ViewManager *vm,
                                 Brush *parent)
 : m_seg(seg)
-, m_output(output)
+, m_output(seg->outputId())
 , m_brushes(brushes)
 , m_viewManager(vm)
 , m_value(value)

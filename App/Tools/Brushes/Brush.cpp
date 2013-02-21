@@ -30,7 +30,6 @@
 #include <GUI/QtWidget/EspinaRenderView.h>
 #include <GUI/ViewManager.h>
 #include <Filters/FreeFormSource.h>
-#include <Undo/AddSegmentation.h>
 #include <Undo/RemoveSegmentation.h>
 
 #include <vtkRenderWindow.h>
@@ -261,7 +260,7 @@ void Brush::drawStroke(PickableItemPtr item,
     {
       Q_ASSERT(m_currentSource && m_currentSeg);
       m_undoStack->beginMacro("Draw Segmentation");
-      m_undoStack->push(new DrawCommand(m_currentSeg, m_currentOutput, brushes, SEG_VOXEL_VALUE, m_viewManager, this));
+      m_undoStack->push(new DrawCommand(m_currentSeg, brushes, SEG_VOXEL_VALUE, m_viewManager, this));
       m_undoStack->endMacro();
     }
 
@@ -275,49 +274,7 @@ void Brush::drawStrokeStep(PickableItemPtr item,
                            Nm radius,
                            PlaneType plane)
 {
-  if (!m_erasing)
-  {
-    double center[3] = {x, y, z};
-    BrushShape brush = createBrushShape(item, center, radius, plane);
-    if (!m_drawCommand)
-    {
-      if (!m_currentSeg)
-      {
-
-        Q_ASSERT(EspINA::CHANNEL == item->type());
-
-        ChannelPtr channel = channelPtr(item);
-        double spacing[3];
-        channel->volume()->spacing(spacing);
-
-        Filter::NamedInputs inputs;
-        Filter::Arguments args;
-        FreeFormSource::Parameters params(args);
-        params.setSpacing(spacing);
-        m_currentSource = FilterSPtr(new FreeFormSource(inputs, args, FREEFORM_SOURCE_TYPE));
-        m_currentOutput = 0;
-        m_currentSeg = m_model->factory()->createSegmentation(m_currentSource, m_currentOutput);
-        m_currentSource->draw(m_currentOutput, brush.first, brush.second.bounds(), SEG_VOXEL_VALUE);
-
-        // We can't add empty segmentations to the model
-        m_undoStack->beginMacro("Draw Segmentation");
-        m_undoStack->push(new AddSegmentation(m_model->findChannel(channel), m_currentSource, m_currentSeg, m_model->findTaxonomyElement(m_viewManager->activeTaxonomy()), m_model));
-        m_undoStack->endMacro();
-        m_drawCommand = new SnapshotCommand(m_currentSeg, m_currentOutput, m_viewManager);
-      }
-      else
-      {
-        m_drawCommand = new SnapshotCommand(m_currentSeg, m_currentOutput, m_viewManager);
-        m_currentSource->draw(m_currentOutput, brush.first, brush.second.bounds(), SEG_VOXEL_VALUE);
-      }
-    }
-    else
-    {
-      Q_ASSERT(m_currentSeg);
-      m_currentSource->draw(m_currentOutput, brush.first, brush.second.bounds(), SEG_VOXEL_VALUE);
-    }
-  }
-  else
+  if (m_erasing)
   {
     Q_ASSERT(m_currentSeg);
 

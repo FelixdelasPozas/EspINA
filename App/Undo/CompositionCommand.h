@@ -47,8 +47,8 @@ namespace EspINA
 
   public:
     explicit CompositionCommand(const SegmentationList &segmentations,
-                                TaxonomyElementSPtr      taxonomy,
-                                EspinaModel          *model);
+                                TaxonomyElementSPtr     taxonomy,
+                                EspinaModel            *model);
 
     virtual void redo();
     virtual void undo();

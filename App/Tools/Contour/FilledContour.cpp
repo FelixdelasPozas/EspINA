@@ -31,8 +31,8 @@
 #include <Core/Model/Taxonomy.h>
 #include <Filters/FreeFormSource.h>
 #include <Filters/ContourSource.h>
-#include <Undo/AddSegmentation.h>
 #include <App/FilterInspectors/ContourSource/ContourInspector.h>
+#include <Undo/AddSegmentation.h>
 
 #include <QUndoStack>
 #include <QtGui>
@@ -136,6 +136,7 @@ void FilledContour::setInUse(bool enable)
 
       if (!m_currentSeg && m_currentSource)
       {
+        // TODO : Standarize
         m_currentSource->draw(0, NULL, 0, AXIAL);
         m_currentSeg = m_model->factory()->createSegmentation(m_currentSource, 0);
         m_undoStack->beginMacro("Draw segmentation using contours");

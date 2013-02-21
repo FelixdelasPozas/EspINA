@@ -16,7 +16,6 @@
 #include <GUI/vtkWidgets/TubularWidget.h>
 #include <App/FilterInspectors/TubularSegmentation/NodesInformationDialog.h>
 #include <App/FilterInspectors/TubularSegmentation/TubularFilterInspector.h>
-#include <Undo/AddSegmentation.h>
 #include <Core/EspinaTypes.h>
 
 #include "TubularTool.h"

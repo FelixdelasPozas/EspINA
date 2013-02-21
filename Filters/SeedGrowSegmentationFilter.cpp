@@ -20,9 +20,6 @@
 #include "Core/Model/EspinaModel.h"
 
 #include <QDebug>
-#include <QLayout>
-#include <QMessageBox>
-#include <QSpinBox>
 
 #include <vtkAlgorithm.h>
 #include <vtkAlgorithmOutput.h>

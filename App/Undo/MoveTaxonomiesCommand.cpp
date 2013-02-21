@@ -24,17 +24,17 @@ using namespace EspINA;
 
 //------------------------------------------------------------------------
 MoveTaxonomiesCommand::MoveTaxonomiesCommand(TaxonomyElementList taxonomies,
-                                             TaxonomyElementPtr  taxonomy,
+                                             TaxonomyElementPtr  parentTaxonomy,
                                              EspinaModel         *model,
                                              QUndoCommand        *parent)
-: QUndoCommand(parent)
-, m_model     (model)
-, m_taxonomy  (m_model->findTaxonomyElement(taxonomy))
+: QUndoCommand    (parent)
+, m_model         (model)
+, m_parentTaxonomy(m_model->findTaxonomyElement(parentTaxonomy))
 {
   foreach(TaxonomyElementPtr subTaxonomy, taxonomies)
   {
     TaxonomyElementSPtr key = m_model->findTaxonomyElement(subTaxonomy);
-    m_oldTaxonomies[key]    = m_model->findTaxonomyElement(subTaxonomy->parent());
+    m_oldTaxonomyParents[key]    = m_model->findTaxonomyElement(subTaxonomy->parent());
   }
 }
 
@@ -48,17 +48,17 @@ MoveTaxonomiesCommand::~MoveTaxonomiesCommand()
 //------------------------------------------------------------------------
 void MoveTaxonomiesCommand::redo()
 {
-  foreach(TaxonomyElementSPtr subTaxonomy, m_oldTaxonomies.keys())
+  foreach(TaxonomyElementSPtr subTaxonomy, m_oldTaxonomyParents.keys())
   {
-    m_model->changeTaxonomyParent(subTaxonomy, m_taxonomy);
+    m_model->changeTaxonomyParent(subTaxonomy, m_parentTaxonomy);
   }
 }
 
 //------------------------------------------------------------------------
 void MoveTaxonomiesCommand::undo()
 {
-  foreach(TaxonomyElementSPtr subTaxonomy, m_oldTaxonomies.keys())
+  foreach(TaxonomyElementSPtr subTaxonomy, m_oldTaxonomyParents.keys())
   {
-    m_model->changeTaxonomyParent(subTaxonomy, m_oldTaxonomies[subTaxonomy]);
+    m_model->changeTaxonomyParent(subTaxonomy, m_oldTaxonomyParents[subTaxonomy]);
   }
 }

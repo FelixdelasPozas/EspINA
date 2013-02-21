@@ -36,9 +36,6 @@
 #include <GUI/Pickers/PixelPicker.h>
 #include <Core/Model/PickableItem.h>
 #include <GUI/Tools/IVOI.h>
-#include <Undo/AddFilter.h>
-#include <Undo/AddRelation.h>
-#include <Undo/AddSegmentation.h>
 #include <Filters/SeedGrowSegmentationFilter.h>
 
 //GUI includes

@@ -157,7 +157,11 @@ void PlanarSplitTool::splitSegmentation()
     if (filter->outputs().size() == 2)
     {
       SegmentationSPtr segPtr = m_model->findSegmentation(seg);
-      m_undoStack->push(new SplitUndoCommand(segPtr, filter, splitSeg, m_model));
+      m_undoStack->beginMacro("Split Segmentation");
+      {
+        m_undoStack->push(new SplitUndoCommand(segPtr, filter, splitSeg, m_model));
+      }
+      m_undoStack->endMacro();
     }
     else
     {

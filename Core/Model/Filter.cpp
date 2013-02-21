@@ -510,17 +510,6 @@ bool Filter::needUpdate() const
 
   if (!fetchSnapshot())
   {
-    if (!editedOutputs().isEmpty())
-    {
-      QMessageBox msg;
-      msg.setText(tr("Filter contains segmentations that have been modified by the user."
-                     "Updating this filter will result in losing user modifications."
-                     "Do you want to proceed?"));
-      msg.setStandardButtons(QMessageBox::Yes|QMessageBox::No);
-      if (msg.exec() != QMessageBox::Yes)
-        return;
-    }
-
     m_inputs.clear();
 
     foreach(OutputId oId, m_outputs.keys())

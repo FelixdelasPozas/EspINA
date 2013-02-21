@@ -44,7 +44,6 @@
 #include <GUI/QtWidget/ActionSelector.h>
 #include <GUI/ViewManager.h>
 #include <GUI/vtkWidgets/ContourWidget.h>
-#include <Undo/AddSegmentation.h>
 #include <Undo/FillHolesCommand.h>
 #include <Undo/ImageLogicCommand.h>
 #include <Undo/SplitUndoCommand.h>

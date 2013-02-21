@@ -44,7 +44,7 @@ RemoveSegmentation::RemoveSegmentation(SegmentationPtr seg,
 
 //------------------------------------------------------------------------
 RemoveSegmentation::RemoveSegmentation(SegmentationList segs,
-                                       EspinaModel *model,
+                                       EspinaModel     *model,
                                        QUndoCommand    *parent)
 : QUndoCommand(parent)
 , m_model(model)

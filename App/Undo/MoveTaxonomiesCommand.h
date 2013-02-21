@@ -36,7 +36,7 @@ namespace EspINA
   {
   public:
     explicit MoveTaxonomiesCommand(TaxonomyElementList taxonomies,
-                                   TaxonomyElementPtr  taxonomy,
+                                   TaxonomyElementPtr  parentTaxonomy,
                                    EspinaModel         *model,
                                    QUndoCommand        *parent = NULL);
     virtual ~MoveTaxonomiesCommand();
@@ -47,8 +47,8 @@ namespace EspINA
   private:
     EspinaModel *m_model;
 
-    TaxonomyElementSPtr m_taxonomy;
-    QMap<TaxonomyElementSPtr, TaxonomyElementSPtr> m_oldTaxonomies;
+    TaxonomyElementSPtr m_parentTaxonomy;
+    QMap<TaxonomyElementSPtr, TaxonomyElementSPtr> m_oldTaxonomyParents;
   };
 
 } // namespace EspINA

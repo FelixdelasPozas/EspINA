@@ -93,8 +93,6 @@ int deletePartialFiltersWhenDeletingSeg(int argc, char** argv)
   Filter::NamedInputs inputs;
   Filter::Arguments   args;
 
-  // TODO: fix this test
-//
 //  inputs[SplitFilter::INPUTLINK] = seg->filter();
 //  args[Filter::INPUTS] = args.namedInput(SplitFilter::INPUTLINK, seg->outputId());
 //

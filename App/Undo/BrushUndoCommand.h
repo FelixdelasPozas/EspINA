@@ -37,7 +37,6 @@ namespace EspINA
     Q_OBJECT
   public:
     explicit DrawCommand(SegmentationSPtr seg,
-                         Filter::OutputId output,
                          BrushShapeList brushes,
                          itkVolumeType::PixelType value,
                          ViewManager *vm,
