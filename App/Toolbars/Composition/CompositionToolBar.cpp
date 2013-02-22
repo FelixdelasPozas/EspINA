@@ -111,23 +111,13 @@ void CompositionToolBar::updateAvailableOperations()
 {
   SegmentationList segs = m_viewManager->selectedSegmentations();
 
-//   bool one = segs.size() == 1;
-//   QString oneToolTip;
-//   if (!one)
-//     oneToolTip = tr(" (This tool requires just one segmentation to be selected)");
-
   bool atLeastTwo = segs.size()  > 1;
   QString atLeastTwoToolTip;
   if (!atLeastTwo)
     atLeastTwoToolTip = tr(" (This tool requires at least two segmentation to be selected)");
 
-//   bool several    = segs.size()  > 0;
-//   QString severalToolTip;
-//   if (!several)
-//     severalToolTip = tr(" (This tool requires at least one segmentation to be selected)");
-
   m_compose->setEnabled(atLeastTwo);
-  m_compose->setToolTip(tr("Create a segmentations from selected segmentations") + atLeastTwo);
+  m_compose->setToolTip(tr("Create a segmentations from selected segmentations") + atLeastTwoToolTip);
 }
 
 //----------------------------------------------------------------------------
