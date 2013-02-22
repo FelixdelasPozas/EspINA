@@ -745,6 +745,7 @@ void EspinaMainWindow::openAnalysis(const QFileInfo file)
     m_saveSessionAnalysis->setEnabled(false);
     m_sessionFile = QFileInfo();
   }
+  m_sessionDir = file.absoluteDir();
 
   m_viewManager->updateSegmentationRepresentations();
   m_viewManager->updateViews();
@@ -836,10 +837,15 @@ void EspinaMainWindow::saveAnalysis()
   fileDialog.setWindowTitle("Save Espina Analysis");
   fileDialog.setAcceptMode(QFileDialog::AcceptSave);
   fileDialog.setDefaultSuffix(QString(tr("seg")));
-  if (m_sessionFile != QFileInfo())
-    fileDialog.setDirectory(m_sessionFile.absoluteFilePath() + "/");
   fileDialog.setFileMode(QFileDialog::AnyFile);
-  fileDialog.selectFile(m_sessionFile.fileName());
+  if (!m_sessionDir.isRoot())
+  {
+    fileDialog.setDirectory(m_sessionDir.absolutePath() + "/");
+    if (!m_sessionFile.fileName().isEmpty())
+      fileDialog.selectFile(m_sessionFile.fileName());
+    else
+      fileDialog.selectFile(m_sessionDir.dirName());
+  }
 
   QString analysisFile;
   if (fileDialog.exec() == QDialog::Accepted)
@@ -882,7 +888,7 @@ void EspinaMainWindow::saveSessionAnalysis()
   updateStatus(tr("File Saved Successfuly in %1").arg(m_sessionFile.fileName()));
   m_busy = false;
 
-  m_recentDocuments1.addDocument(m_sessionFile.fileName());
+  m_recentDocuments1.addDocument(m_sessionFile.absoluteFilePath());
   m_recentDocuments2.updateDocumentList();
 
   m_model->markAsSaved();

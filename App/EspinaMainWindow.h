@@ -165,6 +165,7 @@ class IToolBar;
 
     QTimer    m_autosave;
     QFileInfo m_sessionFile;
+    QDir      m_sessionDir;
 
     EspinaErrorHandler *m_errorHandler;
   };
