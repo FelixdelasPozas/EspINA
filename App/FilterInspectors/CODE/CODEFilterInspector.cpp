@@ -29,6 +29,7 @@
 #include <QPushButton>
 #include <QSpinBox>
 #include <QUndoCommand>
+#include <QMessageBox>
 
 using namespace EspINA;
 
@@ -49,15 +50,36 @@ public:
 
   virtual void redo()
   {
+    if (!m_filter->editedOutputs().isEmpty() || m_filter->volume(0)->volumeRegion().GetNumberOfPixels() < MAX_UNDO_SIZE)
+      m_oldVolume = m_filter->output(0).volume->cloneVolume();
+
     m_filter->setRadius(m_radius);
 
-    update();
+    if (m_newVolume.IsNull())
+    {
+      update();
+
+      EspinaVolume::Pointer newVolume = m_filter->volume(0);
+      if (newVolume->volumeRegion().GetNumberOfPixels() < MAX_UNDO_SIZE)
+        m_newVolume = m_filter->output(0).volume->cloneVolume();
+    }
+    else
+    {
+      m_filter->restoreOutput(0, m_newVolume);
+    }
   }
+
   virtual void undo()
   {
     m_filter->setRadius(m_oldRadius);
 
-    update();
+    if (m_oldVolume.IsNotNull())
+    {
+      m_filter->restoreOutput(0, m_oldVolume);
+    } else
+    {
+      update();
+    }
   }
 
 private:
@@ -72,6 +94,9 @@ private:
   MorphologicalEditionFilter *m_filter;
 
   int m_radius, m_oldRadius;
+
+  itkVolumeType::Pointer m_oldVolume;
+  itkVolumeType::Pointer m_newVolume;
 };
 
 
@@ -127,6 +152,18 @@ CODESettings::~CODESettings()
 //----------------------------------------------------------------------------
 void CODESettings::modifyFilter()
 {
+  if (!m_filter->editedOutputs().isEmpty())
+  {
+    QMessageBox msg;
+    msg.setText(tr("Filter contains segmentations that have been modified by the user."
+    "Updating this filter will result in losing user modifications."
+    "Do you want to proceed?"));
+    msg.setStandardButtons(QMessageBox::Yes|QMessageBox::No);
+
+    if (msg.exec() != QMessageBox::Yes)
+      return;
+  }
+
   m_undoStack->beginMacro("Modify Radius");
   {
     m_undoStack->push(new CODEModification(m_filter, m_spinbox->value()));
