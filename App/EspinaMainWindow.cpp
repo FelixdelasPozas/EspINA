@@ -571,13 +571,20 @@ void EspinaMainWindow::closeEvent(QCloseEvent* event)
     warning.setText(tr("Current session has not been saved. Do you want to save it now?"));
     warning.setStandardButtons(QMessageBox::Yes|QMessageBox::No|QMessageBox::Cancel);
     int res = warning.exec();
-    if (QMessageBox::Yes == res)
+    switch(res)
     {
-      saveAnalysis();
-    } else if (QMessageBox::Cancel == res)
-    {
-      event->ignore();
-      return;
+      case QMessageBox::Yes:
+        saveAnalysis();
+        break;
+      case QMessageBox::Cancel:
+        event->ignore();
+        return;
+        break;
+      case QMessageBox::No:
+      default:
+        // to avoid triggering the dialog again (later in closeCurrentAnalysis())
+        m_model->markAsSaved();
+        break;
     }
   }
 
@@ -597,6 +604,27 @@ void EspinaMainWindow::closeEvent(QCloseEvent* event)
 //------------------------------------------------------------------------
 void EspinaMainWindow::closeCurrentAnalysis()
 {
+  if (m_model->hasChanged())
+  {
+    QMessageBox warning;
+    warning.setWindowTitle(tr("EspINA"));
+    warning.setText(tr("Current session has not been saved. Do you want to save it now?"));
+    warning.setStandardButtons(QMessageBox::Yes|QMessageBox::No|QMessageBox::Cancel);
+    int res = warning.exec();
+
+    switch(res)
+    {
+      case QMessageBox::Yes:
+        saveAnalysis();
+        break;
+      case QMessageBox::Cancel:
+        return;
+        break;
+      default:
+        break;
+    }
+  }
+
   m_viewManager->setActiveChannel(ChannelPtr());
   m_viewManager->setActiveTaxonomy(TaxonomyElementPtr());
   m_viewManager->unsetActiveVOI();

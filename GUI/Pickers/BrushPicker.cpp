@@ -86,17 +86,21 @@ bool BrushPicker::filterEvent(QEvent* e, EspinaRenderView* view)
       startStroke(me->pos(), view);
       return true;
     }
-  } else if (m_tracking && QEvent::MouseMove == e->type())
-  {
-    QMouseEvent *me = static_cast<QMouseEvent*>(e);
-    updateStroke(me->pos(), view);
-    return true;
-  }else if (m_tracking && QEvent::MouseButtonRelease == e->type())
-  {
-    m_tracking = false;
-    stopStroke(view);
-    return true;
   }
+  else
+    if (m_tracking && QEvent::MouseMove == e->type())
+    {
+      QMouseEvent *me = static_cast<QMouseEvent*>(e);
+      updateStroke(me->pos(), view);
+      return true;
+    }
+    else
+      if (m_tracking && QEvent::MouseButtonRelease == e->type())
+      {
+        m_tracking = false;
+        stopStroke(view);
+        return true;
+      }
 
   return false;
 }
@@ -246,14 +250,14 @@ void BrushPicker::startStroke(QPoint pos, EspinaRenderView* view)
   double brush[3];
   createBrush(brush, pos);
 
-  if (m_drawing)
+  if (m_drawing && !m_preview)
     startPreview(view);
 
   if (validStroke(brush))
   {
     m_lastDot = pos;
     m_stroke->InsertNextPoint(brush);
-    if (m_drawing)
+    if (m_drawing && m_preview)
       updatePreview(brush, view);
     else
       emit stroke(m_referenceItem, brush[0], brush[1], brush[2], m_radius, m_plane);
@@ -273,7 +277,7 @@ void BrushPicker::updateStroke(QPoint pos, EspinaRenderView* view)
   {
     m_lastDot = pos;
     m_stroke->InsertNextPoint(brush);
-    if (m_drawing)
+    if (m_drawing && m_preview)
       updatePreview(brush, view);
     else
       emit stroke(m_referenceItem, brush[0], brush[1], brush[2], m_radius, m_plane);
@@ -287,7 +291,8 @@ void BrushPicker::stopStroke(EspinaRenderView* view)
     emit stroke(m_referenceItem, m_stroke, m_radius, m_plane);
 
   m_stroke->Reset();
-  stopPreview(view);
+  if (m_preview)
+    stopPreview(view);
 }
 
 //-----------------------------------------------------------------------------

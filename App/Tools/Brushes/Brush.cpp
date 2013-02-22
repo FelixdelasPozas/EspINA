@@ -117,7 +117,7 @@ bool Brush::filterEvent(QEvent* e, EspinaRenderView* view)
     }
   }
   else
-    if (m_currentSource)
+    if (m_currentSeg)
     {
       if (QEvent::KeyPress == e->type())
       {
@@ -138,12 +138,14 @@ bool Brush::filterEvent(QEvent* e, EspinaRenderView* view)
             m_erasing = true;
           }
         }
+
       if (m_erasing)
       {
         m_brush->setBorderColor(QColor(Qt::red));
         emit brushModeChanged(ERASER);
       }
     }
+
   if (e->type() == QEvent::Wheel)
   {
     QWheelEvent* we = dynamic_cast<QWheelEvent*>(e);
@@ -155,6 +157,11 @@ bool Brush::filterEvent(QEvent* e, EspinaRenderView* view)
       return true;
     }
   }
+
+  // we must avoid changing brush action until we have a segmentation created,
+  // so avoid passing the CTRL key event to the brush
+  if (QEvent::KeyPress == e->type() && !m_currentSeg)
+    return false;
 
   return m_brush->filterEvent(e, view);
 }
@@ -241,6 +248,10 @@ void Brush::drawStroke(PickableItemPtr item,
       }
       m_undoStack->endMacro();
 
+      ViewManager::Selection selection;
+      selection << m_currentSeg.data();
+      m_viewManager->setSelection(selection);
+
       m_currentSource = m_currentSeg->filter();
       m_currentOutput = m_currentSeg->outputId();
 
@@ -266,10 +277,8 @@ void Brush::drawStrokeStep(PickableItemPtr item,
                            Nm radius,
                            PlaneType plane)
 {
-  if (m_erasing)
+  if (m_erasing && m_currentSeg)
   {
-    Q_ASSERT(m_currentSeg);
-
     if (!m_eraseCommand)
     {
       m_eraseCommand = new VolumeSnapshotCommand(m_currentSeg->filter()->output(m_currentOutput));
