@@ -38,6 +38,7 @@ class ViewManager;
 class MeshRenderer
 : public IRenderer
 {
+  Q_OBJECT
   struct Representation
   {
     vtkActor *actor;
@@ -60,7 +61,6 @@ public:
   virtual const QString tooltip() const {return "Segmentation's Meshes";}
 
   virtual bool addItem   (ModelItemPtr item);
-  virtual bool updateItem(ModelItemPtr item);
   virtual bool removeItem(ModelItemPtr item);
 
   virtual void hide();
@@ -71,6 +71,10 @@ public:
   virtual IRendererSPtr clone() {return IRendererSPtr(new MeshRenderer(m_viewManager));}
 
   virtual bool isASegmentationRenderer() { return true; };
+
+public slots:
+  virtual bool updateItem(ModelItemPtr item);
+
 
 protected:
   ViewManager *m_viewManager;

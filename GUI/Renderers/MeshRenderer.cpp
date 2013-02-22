@@ -135,6 +135,9 @@ bool MeshRenderer::addItem(ModelItemPtr item)
     createHierarchyProperties(seg);
 
   m_segmentations[seg].actor->Modified();
+
+  connect(item, SIGNAL(modified(ModelItemPtr)), this, SLOT(updateItem(ModelItemPtr)));
+
   return true;
 }
 
@@ -256,6 +259,8 @@ bool MeshRenderer::removeItem(ModelItemPtr item)
 
    m_segmentations[seg].actor->Delete();
    m_segmentations.remove(seg);
+
+   disconnect(item, SIGNAL(modified(ModelItemPtr)), this, SLOT(updateItem(ModelItemPtr)));
 
    return true;
 }

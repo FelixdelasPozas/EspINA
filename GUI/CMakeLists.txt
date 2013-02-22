@@ -20,6 +20,7 @@ qt4_wrap_cpp(GUI_MOC
   vtkWidgets/RectangularRegionSliceSelector.h
   ViewManager.h
   vtkWidgets/TubularWidget.h
+  Renderers/MeshRenderer.h
   )
 
 qt4_wrap_ui (GUI_UI
