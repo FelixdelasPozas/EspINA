@@ -45,7 +45,6 @@ private:
 };
 
 
-
 class RectangularRegion;
 class RectangularRegionSliceSelector;
 

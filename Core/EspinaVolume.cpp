@@ -143,7 +143,7 @@ void EspinaVolume::spacing(double out[3]) const
 }
 
 //----------------------------------------------------------------------------
-EspinaRegion EspinaVolume::espinaRegion()
+EspinaRegion EspinaVolume::espinaRegion() const
 {
   double region[6];
   bounds(region);
@@ -152,13 +152,13 @@ EspinaRegion EspinaVolume::espinaRegion()
 }
 
 //----------------------------------------------------------------------------
-EspinaVolume::VolumeRegion EspinaVolume::volumeRegion()
+EspinaVolume::VolumeRegion EspinaVolume::volumeRegion() const
 {
   return volumeRegion(espinaRegion());
 }
 
 //----------------------------------------------------------------------------
-EspinaVolume::VolumeRegion EspinaVolume::volumeRegion(const EspinaRegion& region)
+EspinaVolume::VolumeRegion EspinaVolume::volumeRegion(const EspinaRegion& region) const
 {
   itkVolumeType::SpacingType spacing = m_volume->GetSpacing();
 
@@ -236,6 +236,20 @@ const vtkAlgorithmOutput* EspinaVolume::toVTK() const
   }
 
   return itk2vtk->GetOutput()->GetProducerPort();
+}
+
+//----------------------------------------------------------------------------
+itkVolumeType::Pointer EspinaVolume::cloneVolume() const
+{
+  ExtractType::Pointer extractor = ExtractType::New();
+  extractor->SetNumberOfThreads(1);
+  extractor->SetInput(m_volume);
+  extractor->SetExtractionRegion(volumeRegion());
+  extractor->Update();
+
+  itkVolumeType::Pointer res = extractor->GetOutput();
+  res->DisconnectPipeline();
+  return res;
 }
 
 //----------------------------------------------------------------------------
@@ -317,7 +331,7 @@ void EspinaVolume::expandToFitRegion(EspinaRegion region)
 
 
 //----------------------------------------------------------------------------
-EspinaVolume::VolumeRegion EspinaVolume::volumeRegion(EspinaRegion region, itkVolumeType::SpacingType spacing)
+EspinaVolume::VolumeRegion EspinaVolume::volumeRegion(EspinaRegion region, itkVolumeType::SpacingType spacing) const
 {
   VolumeRegion res;
 

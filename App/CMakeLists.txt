@@ -75,7 +75,7 @@ qt4_wrap_ui (ESPINA_UI
   FilterInspectors/TubularSegmentation/NodesInformationDialog.ui
   )
 
-set (ESPINA_SOURCES
+set (ESPINA_SOURCES 
   ${ESPINA_RCC}
   ${ESPINA_MOC}
   ${ESPINA_UI}
@@ -137,6 +137,7 @@ set (ESPINA_SOURCES
   Undo/StrokeSegmentationCommand.cpp
   Undo/UnloadChannelCommand.cpp
   Undo/UnloadSampleCommand.cpp
+  Undo/VolumeSnapshotCommand.cpp
   Views/DefaultEspinaView.cpp
   Dialogs/Connectomics/ConnectomicsDialog.cpp
   Tools/Measure/MeasureTool.cpp

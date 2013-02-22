@@ -100,6 +100,8 @@ namespace EspINA
   typedef QPair<QString, QByteArray> SnapshotEntry;
   typedef QList<SnapshotEntry>       Snapshot;
 
+  const unsigned int MAX_UNDO_SIZE = 400*400*400; // In volume pixels
+
 } // EspINA
 
 #endif// ESPINATYPES_H

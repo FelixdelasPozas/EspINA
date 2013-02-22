@@ -16,6 +16,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "SGSFilterInspector.h"
+#include <Undo/VolumeSnapshotCommand.h>
 
 // EspINA
 #include <Filters/SeedGrowSegmentationFilter.h>
@@ -53,13 +54,28 @@ public:
 
   virtual void redo()
   {
+    if (!m_filter->editedOutputs().isEmpty() || m_filter->volume(0)->volumeRegion().GetNumberOfPixels() < MAX_UNDO_SIZE)
+      m_oldVolume = m_filter->output(0).volume->cloneVolume();
+
     m_filter->setLowerThreshold(m_threshold);
     m_filter->setUpperThreshold(m_threshold);
     m_filter->setVOI(m_VOI);
     m_filter->setCloseValue(m_closeRadius);
 
-    update();
+    if (m_newVolume.IsNull())
+    {
+      update();
+
+      EspinaVolume::Pointer newVolume = m_filter->volume(0);
+      if (newVolume->volumeRegion().GetNumberOfPixels() < MAX_UNDO_SIZE)
+        m_newVolume = m_filter->output(0).volume->cloneVolume();
+    }
+    else
+    {
+      m_filter->restoreOutput(0, m_newVolume);
+    }
   }
+
   virtual void undo()
   {
     m_filter->setLowerThreshold(m_oldThreshold);
@@ -67,7 +83,13 @@ public:
     m_filter->setVOI(m_oldVOI);
     m_filter->setCloseValue(m_oldCloseRadius);
 
-    update();
+    if (m_oldVolume.IsNotNull())
+    {
+      m_filter->restoreOutput(0, m_oldVolume);
+    } else
+    {
+      update();
+    }
   }
 
 private:
@@ -84,6 +106,9 @@ private:
   int m_VOI[6], m_oldVOI[6];
   int m_threshold, m_oldThreshold;
   int m_closeRadius, m_oldCloseRadius;
+
+  itkVolumeType::Pointer m_oldVolume;
+  itkVolumeType::Pointer m_newVolume;
 };
 
 //----------------------------------------------------------------------------
@@ -150,7 +175,7 @@ SGSFilterInspector::Widget::Widget(Filter* filter,
   m_bottomMargin->setSuffix(" nm");
   m_bottomMargin->installEventFilter(this);
   connect(m_bottomMargin, SIGNAL(valueChanged(int)),
-          this, SLOT(updateRegionBounds()));
+          this, SLOT(updateRegionBounds( )));
 
   m_upperMargin->setValue(m_voiBounds[4]);
   m_upperMargin->setSuffix(" nm");
@@ -159,7 +184,7 @@ SGSFilterInspector::Widget::Widget(Filter* filter,
           this, SLOT(updateRegionBounds()));
 
   m_lowerMargin->setValue(m_voiBounds[5]);
-  m_lowerMargin->setSuffix(" nm");
+  m_lowerMargin->setSuffix(" nm"); 
   m_lowerMargin->installEventFilter(this);
   connect(m_lowerMargin, SIGNAL(valueChanged(int)),
           this, SLOT(updateRegionBounds()));
@@ -241,6 +266,18 @@ void SGSFilterInspector::Widget::redefineVOI(double* bounds)
 //----------------------------------------------------------------------------
 void SGSFilterInspector::Widget::modifyFilter()
 {
+  if (!m_filter->editedOutputs().isEmpty())
+  {
+    QMessageBox msg;
+    msg.setText(tr("Filter contains segmentations that have been modified by the user."
+    "Updating this filter will result in losing user modifications."
+    "Do you want to proceed?"));
+    msg.setStandardButtons(QMessageBox::Yes|QMessageBox::No);
+
+    if (msg.exec() != QMessageBox::Yes)
+      return;
+  }
+
   double spacing[3];
   m_filter->volume(0)->spacing(spacing);
 

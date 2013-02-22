@@ -20,6 +20,7 @@
 #include "Brush.h"
 #include <Undo/BrushUndoCommand.h>
 #include <Undo/StrokeSegmentationCommand.h>
+#include <Undo/VolumeSnapshotCommand.h>
 
 #include <Core/Model/Channel.h>
 #include <Core/Model/EspinaModel.h>
@@ -57,7 +58,6 @@ Brush::Brush(EspinaModel *model,
 , m_currentSource(NULL)
 , m_currentSeg(NULL)
 , m_currentOutput(-1)
-, m_drawCommand(NULL)
 , m_eraseCommand(NULL)
 {
   connect(m_brush, SIGNAL(stroke(PickableItemPtr ,IPicker::WorldRegion, Nm, PlaneType)),
@@ -72,8 +72,6 @@ Brush::Brush(EspinaModel *model,
 Brush::~Brush()
 {
   delete m_brush;
-  if (m_drawCommand)
-    delete m_drawCommand;
   if (m_eraseCommand)
     delete m_eraseCommand;
 }
@@ -209,6 +207,7 @@ void Brush::drawStroke(PickableItemPtr item,
     {
       m_undoStack->beginMacro("Erase Segmentation");
       m_undoStack->push(m_eraseCommand);
+      m_viewManager->updateSegmentationRepresentations(m_currentSeg.data());
       if (!m_currentSeg->volume()->strechToFitContent())
       {
         m_undoStack->push(new RemoveSegmentation(m_currentSeg.data(), m_model));
@@ -220,13 +219,6 @@ void Brush::drawStroke(PickableItemPtr item,
   }
   else
   {
-    if (m_drawCommand)
-    {
-      m_undoStack->push(m_drawCommand);
-      m_drawCommand = NULL;
-      m_brush->setBorderColor(QColor(Qt::green));
-    }
-
     BrushShapeList brushes;
 
     for (int i = 0; i < centers->GetNumberOfPoints(); i++)
@@ -280,11 +272,12 @@ void Brush::drawStrokeStep(PickableItemPtr item,
 
     if (!m_eraseCommand)
     {
-      m_eraseCommand = new SnapshotCommand(m_currentSeg, m_currentOutput, m_viewManager);
+      m_eraseCommand = new VolumeSnapshotCommand(m_currentSeg->filter()->output(m_currentOutput));
     }
     double center[3] = { x, y, z };
     BrushShape brush = createBrushShape(item, center, radius, plane);
     m_currentSource->draw(m_currentOutput, brush.first, brush.second.bounds(), SEG_BG_VALUE);
+    m_viewManager->updateSegmentationRepresentations(m_currentSeg.data());
 
     SegmentationList list;
     list.append(m_currentSeg.data());
@@ -344,7 +337,6 @@ void Brush::initBrushTool()
   }
 
   m_eraseCommand = NULL;
-  m_drawCommand = NULL;
   m_erasing = false;
   m_brush->DrawingOn(NULL);
 }

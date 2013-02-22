@@ -28,20 +28,6 @@ using namespace EspINA;
 typedef itk::ExtractImageFilter<itkVolumeType, itkVolumeType> ExtractType;
 
 //-----------------------------------------------------------------------------
-itkVolumeType::Pointer backup(EspinaVolume::Pointer volume)
-{
-  ExtractType::Pointer extractor = ExtractType::New();
-  extractor->SetNumberOfThreads(1);
-  extractor->SetInput(volume->toITK());
-  extractor->SetExtractionRegion(volume->volumeRegion());
-  extractor->Update();
-
-  itkVolumeType::Pointer res = extractor->GetOutput();
-  res->DisconnectPipeline();
-  return res;
-}
-
-//-----------------------------------------------------------------------------
 Brush::DrawCommand::DrawCommand(SegmentationSPtr seg,
                                 BrushShapeList brushes,
                                 itkVolumeType::PixelType value,
@@ -81,7 +67,7 @@ void Brush::DrawCommand::redo()
   else
   {
     if (!m_seg->filter()->outputs().isEmpty())
-      m_prevVolume = backup(m_seg->filter()->volume(m_output));
+      m_prevVolume = m_seg->filter()->volume(m_output)->cloneVolume();
 
     for (int i=0; i<m_brushes.size(); i++)
     {
@@ -92,7 +78,7 @@ void Brush::DrawCommand::redo()
         m_seg->filter()->draw(m_output, brush.first, brush.second.bounds(), m_value);
     }
     if (!m_seg->filter()->outputs().isEmpty())
-      m_newVolume = backup(m_seg->filter()->volume(m_output));
+      m_newVolume = m_seg->filter()->volume(m_output)->cloneVolume();
   }
 
   SegmentationList list;
@@ -121,7 +107,7 @@ Brush::SnapshotCommand::SnapshotCommand(SegmentationSPtr seg,
 , m_output(output)
 , m_viewManager(vm)
 {
-  m_prevVolume = backup(m_seg->filter()->volume(output));
+  m_prevVolume = m_seg->filter()->volume(output)->cloneVolume();
 }
 
 //-----------------------------------------------------------------------------
@@ -130,20 +116,20 @@ void Brush::SnapshotCommand::redo()
   if (m_newVolume.IsNotNull())
     m_seg->filter()->restoreOutput(m_output, m_newVolume);
 
-  SegmentationList list;
-  list.append(m_seg.data());
-  m_viewManager->updateSegmentationRepresentations(list);
+//   SegmentationList list;
+//   list.append(m_seg.data());
+//   m_viewManager->updateSegmentationRepresentations(list);
 }
 
 //-----------------------------------------------------------------------------
 void Brush::SnapshotCommand::undo()
 {
   if (m_newVolume.IsNull())
-    m_newVolume = backup(m_seg->filter()->volume(m_output));
+    m_newVolume = m_seg->filter()->volume(m_output)->cloneVolume();
   if (m_prevVolume.IsNotNull())
     m_seg->filter()->restoreOutput(m_output, m_prevVolume);
 
-  SegmentationList list;
-  list.append(m_seg.data());
-  m_viewManager->updateSegmentationRepresentations(list);
+//   SegmentationList list;
+//   list.append(m_seg.data());
+//   m_viewManager->updateSegmentationRepresentations(list);
 }

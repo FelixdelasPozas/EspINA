@@ -338,6 +338,18 @@ void ViewManager::resetViewCameras()
 }
 
 //----------------------------------------------------------------------------
+void ViewManager::updateSegmentationRepresentations(SegmentationPtr segmentation)
+{
+  SegmentationList list;
+  list << segmentation;
+
+  foreach(IEspinaView *view, m_espinaViews)
+  {
+    view->updateSegmentationRepresentations(list);
+  }
+}
+
+//----------------------------------------------------------------------------
 void ViewManager::updateSegmentationRepresentations(SegmentationList list)
 {
   foreach(IEspinaView *view, m_espinaViews)

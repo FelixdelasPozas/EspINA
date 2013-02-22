@@ -162,6 +162,8 @@ namespace EspINA
     void forceRender(SegmentationList updatedSegs);
   public slots:
     /// Update Segmentation Representation
+    void updateSegmentationRepresentations(SegmentationPtr segmentation);
+    /// Update Segmentation Representation
     void updateSegmentationRepresentations(SegmentationList list = SegmentationList());
     /// Update Channel Representation
     void updateChannelRepresentations(ChannelList list = ChannelList());

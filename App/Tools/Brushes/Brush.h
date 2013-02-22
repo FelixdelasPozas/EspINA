@@ -32,8 +32,9 @@ class QUndoStack;
 
 namespace EspINA
 {
-  class ViewManager;
   class BrushPicker;
+  class ViewManager;
+  class VolumeSnapshotCommand;
 
   class Brush // TODO 2012-11-27 Crear una clase base para pintar independientemente de lo que se haga con el resultado
   : public ITool
@@ -103,8 +104,7 @@ namespace EspINA
     Filter::OutputId m_currentOutput;
 
   private:
-    SnapshotCommand *m_drawCommand;
-    SnapshotCommand *m_eraseCommand;
+    VolumeSnapshotCommand *m_eraseCommand;
   };
 
 } // namespace EspINA
