@@ -577,7 +577,7 @@ void CountingFramePanel::computeOptimalMargins(Channel* channel,
 
   foreach(SegmentationSPtr seg, channelSegs)
   {
-    Segmentation::InformationExtension ext = seg->informationExtension(EdgeDistance::ID);
+    Segmentation::InformationExtension ext = seg->informationExtension(EdgeDistanceID);
     EdgeDistancePtr marginExt = dynamic_cast<EdgeDistancePtr>(ext);
     if (marginExt)
     {

@@ -25,23 +25,26 @@
 
 namespace EspINA
 {
+  const ModelItem::ExtId EdgeDistanceID = "EdgeDistance";
+
   class EdgeDistance
   : public Segmentation::Information
   {
-    struct CacheEntry
+    struct ExtensionData
     {
-      CacheEntry();
+      ExtensionData();
 
-      bool Modified;
       Nm   Distances[6];
     };
 
+    typedef Cache<SegmentationPtr, ExtensionData> ExtensionCache;
+
+    static ExtensionCache s_cache;
+
+
     static const QString EXTENSION_FILE;
 
-    static QMap<SegmentationPtr, CacheEntry> s_cache;
-
   public:
-    static const ModelItem::ExtId ID;
 
     static const Segmentation::InfoTag LEFT_DISTANCE;
     static const Segmentation::InfoTag TOP_DISTANCE;

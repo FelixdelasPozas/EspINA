@@ -37,7 +37,7 @@ const QString MorphologicalInformation::EXTENSION_FILE = "MorphologicalInformati
 const std::string FILE_VERSION = MorphologicalInformationID.toStdString() + " 1.0\n";
 const char SEP = ',';
 
-ModelItem::Extension::Cache<SegmentationPtr, MorphologicalInformation::ExtensionData> MorphologicalInformation::s_cache;
+MorphologicalInformation::ExtensionCache MorphologicalInformation::s_cache;
 
 // NOTE: Should it be public?
 const Segmentation::InfoTag SIZE  = "Size";
@@ -96,8 +96,11 @@ MorphologicalInformation::MorphologicalInformation()
 //------------------------------------------------------------------------
 MorphologicalInformation::~MorphologicalInformation()
 {
-  //qDebug() << "Deleting Morphological Extension";
-  invalidate();
+  if (m_seg)
+  {
+    //qDebug() << m_seg->data().toString() << ": Deleting" << MorphologicalInformationID;
+    invalidate();
+  }
 }
 
 //------------------------------------------------------------------------
@@ -256,10 +259,7 @@ bool MorphologicalInformation::loadCache(QuaZipFile  &file,
       data.EquivalentEllipsoidSize[2] = fields[22].toDouble();
     } else
     {
-      qWarning() << MorphologicalInformationID << "Invalid Cache Entry" << line;
-      // NOTE: This assert means someone's removing an extension from the model
-      //       without invalidating its extensions
-      Q_ASSERT(false);
+      qWarning() << MorphologicalInformationID << "Invalid Cache Entry:" << line;
     }
   };
 
@@ -268,7 +268,9 @@ bool MorphologicalInformation::loadCache(QuaZipFile  &file,
 }
 
 //------------------------------------------------------------------------
-bool invalidData(SegmentationPtr seg)
+// It's declared static to avoid collisions with other functions with same
+// signature in different compilation units
+static bool invalidData(SegmentationPtr seg)
 {
   return seg->informationExtension(MorphologicalInformationID) == NULL
       && seg->isVolumeModified();
@@ -348,8 +350,11 @@ void MorphologicalInformation::initialize(ModelItem::Arguments args)
 //------------------------------------------------------------------------
 void MorphologicalInformation::invalidate()
 {
-  //qDebug() << "Invalidate" << m_seg->data().toString() << ID;
-  s_cache.markAsDirty(m_seg);
+  if (m_seg)
+  {
+    //qDebug() << "Invalidate" << m_seg->data().toString() << MorphologicalInformationID;
+    s_cache.markAsDirty(m_seg);
+  }
 }
 
 //------------------------------------------------------------------------

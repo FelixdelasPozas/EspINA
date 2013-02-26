@@ -390,7 +390,7 @@ bool SegmentationVolume::strechToFitContent()
   // Get segmentation's Bounding Box
   LabelMapType *labelMap = image2label->GetOutput();
   if (labelMap->GetNumberOfLabelObjects() == 0)
-    return false;
+    throw 1; // TODO: Find proper exception CODE
 
   LabelObjectType     *segmentation = labelMap->GetLabelObject(SEG_VOXEL_VALUE);
   LabelObjectType::RegionType segBB = segmentation->GetBoundingBox();
@@ -401,9 +401,15 @@ bool SegmentationVolume::strechToFitContent()
   extractor->SetExtractionRegion(segBB);
   extractor->Update();
 
-  setVolume(extractor->GetOutput(), true);
+  bool streched = m_volume->GetLargestPossibleRegion() != extractor->GetOutput()->GetLargestPossibleRegion();
+  if (streched)
+  {
+    setVolume(extractor->GetOutput(), true);
 
-  return true;
+    markAsModified();
+  }
+
+  return streched;
 }
 
 //------------------------------------------------------------------------

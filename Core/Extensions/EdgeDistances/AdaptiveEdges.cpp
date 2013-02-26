@@ -213,7 +213,7 @@ void AdaptiveEdges::computeDistanceToEdge(SegmentationPtr seg)
 
   m_ComputedSegmentations.insert(ComputedSegmentation(seg->number(), seg->volume()->toITK()->GetMTime()));
 
-  Segmentation::InformationExtension ext = seg->informationExtension(EdgeDistance::ID);
+  Segmentation::InformationExtension ext = seg->informationExtension(EdgeDistanceID);
   Q_ASSERT(ext);
   EdgeDistance *distanceExt = edgeDistancePtr(ext);
 

@@ -31,11 +31,9 @@ using namespace EspINA;
 
 const QString EdgeDistance::EXTENSION_FILE = "EdgeDistances/EdgeDistance.csv";
 
-QMap<SegmentationPtr, EdgeDistance::CacheEntry> EdgeDistance::s_cache;
+EdgeDistance::ExtensionCache EdgeDistance::s_cache;
 
-const ModelItem::ExtId EdgeDistance::ID = "EdgeDistance";
-
-const std::string FILE_VERSION = EdgeDistance::ID.toStdString() + " 1.0\n";
+const std::string FILE_VERSION = EdgeDistanceID.toStdString() + " 1.0\n";
 const char SEP = ',';
 
 const Segmentation::InfoTag EdgeDistance::LEFT_DISTANCE   = "Left Distance";
@@ -46,11 +44,9 @@ const Segmentation::InfoTag EdgeDistance::BOTTOM_DISTANCE = "Bottom Distance";
 const Segmentation::InfoTag EdgeDistance::LOWER_DISTANCE  = "Lower Distance";
 
 //-----------------------------------------------------------------------------
-EdgeDistance::CacheEntry::CacheEntry()
-: Modified(false)
+EdgeDistance::ExtensionData::ExtensionData()
 {
-  for(int i=0; i<3; i++)
-    Distances[i] = -1;
+  memset(Distances, 0, 6*sizeof(double));
 }
 
 
@@ -63,20 +59,23 @@ EdgeDistance::EdgeDistance()
 //-----------------------------------------------------------------------------
 EdgeDistance::~EdgeDistance()
 {
-  qDebug() << "Deleting EdgeDistance Extension";
-  invalidate();
+  if (m_seg)
+  {
+    //qDebug() << m_seg->data().toString() << ": Deleting" << EdgeDistanceID;
+    invalidate();
+  }
 }
 
 //-----------------------------------------------------------------------------
 ModelItem::ExtId EdgeDistance::id()
 {
-  return ID;
+  return EdgeDistanceID;
 }
 
 //-----------------------------------------------------------------------------
 void EdgeDistance::initialize(ModelItem::Arguments args)
 {
-  qDebug() << "Initialize (empty)" << m_seg->data().toString() << ID;
+  //qDebug() << "Initialize (empty)" << m_seg->data().toString() << EdgeDistanceID;
 }
 
 //-----------------------------------------------------------------------------
@@ -97,26 +96,27 @@ Segmentation::InfoTagList EdgeDistance::availableInformations() const
 //-----------------------------------------------------------------------------
 QVariant EdgeDistance::information(const Segmentation::InfoTag &tag)
 {
-  bool cached = s_cache.contains(m_seg);
+  bool cached = s_cache.isCached(m_seg);
   if (!cached)
   {
     updateDistances();
   }
 
+  ExtensionData &data = s_cache[m_seg].Data;
   if (LEFT_DISTANCE == tag)
-    return s_cache[m_seg].Distances[0];
+    return data.Distances[0];
   if (RIGHT_DISTANCE == tag)
-    return s_cache[m_seg].Distances[1];
+    return data.Distances[1];
   if (TOP_DISTANCE == tag)
-    return s_cache[m_seg].Distances[2];
+    return data.Distances[2];
   if (BOTTOM_DISTANCE == tag)
-    return s_cache[m_seg].Distances[3];
+    return data.Distances[3];
   if (UPPER_DISTANCE == tag)
-    return s_cache[m_seg].Distances[4];
+    return data.Distances[4];
   if (LOWER_DISTANCE == tag)
-    return s_cache[m_seg].Distances[5];
+    return data.Distances[5];
 
-  qWarning() << ID << ":"  << tag << " is not provided";
+  qWarning() << EdgeDistanceID << ":"  << tag << " is not provided";
   Q_ASSERT(false);
   return QVariant();
 }
@@ -150,31 +150,36 @@ bool EdgeDistance::loadCache(QuaZipFile  &file,
       }
       i++;
     }
-    Q_ASSERT(extensionSegmentation);
-
-    for(i=0; i<6; i++)
+    if (extensionSegmentation)
     {
-      s_cache[extensionSegmentation].Distances[i] = fields[2+i].toDouble();
+      ExtensionData &data = s_cache[extensionSegmentation].Data;
+
+      for(i=0; i<6; i++)
+      {
+        data.Distances[i] = fields[2+i].toDouble();
+      }
+    } else
+    {
+      qWarning() << EdgeDistanceID << "Invalid Cache Entry:" << line;
     }
   }
 
   return true;
 }
 
+//------------------------------------------------------------------------
+// It's declared static to avoid collisions with other functions with same
+// signature in different compilation units
+static bool invalidData(SegmentationPtr seg)
+{
+  return seg->informationExtension(EdgeDistanceID) == NULL
+      && seg->isVolumeModified();
+}
+
 //-----------------------------------------------------------------------------
 bool EdgeDistance::saveCache(Snapshot &cacheList)
 {
-  // TODO: save disabled
-  return false;
-
-  // NOTE: This could be factorized using some kind of template...
-  foreach(SegmentationPtr segmentation, s_cache.keys())
-  {
-    if (segmentation->isVolumeModified() && !s_cache[segmentation].Modified)
-    {
-      s_cache.remove(segmentation);
-    }
-  }
+  s_cache.purge(invalidData);
 
   if (s_cache.isEmpty())
     return false;
@@ -184,16 +189,18 @@ bool EdgeDistance::saveCache(Snapshot &cacheList)
 
   foreach(SegmentationPtr segmentation, s_cache.keys())
   {
+    ExtensionData &data = s_cache[segmentation].Data;
+
     cache << segmentation->filter()->id().toStdString();
     cache << SEP << segmentation->outputId();
 
     for(int i=0; i<6; i++)
-      cache << SEP << s_cache[segmentation].Distances[i];
+      cache << SEP << data.Distances[i];
 
     cache << std::endl;
   }
 
-  cacheList << QPair<QString, QByteArray>(EXTENSION_FILE, cache.str().c_str());
+  cacheList << SnapshotEntry(EXTENSION_FILE, cache.str().c_str());
 
   return true;
 }
@@ -209,8 +216,8 @@ void EdgeDistance::invalidate()
 {
   if (m_seg)
   {
-    qDebug() << "Invalidate" << m_seg->data().toString() << ID;
-    s_cache.remove(m_seg);
+    //qDebug() << "Invalidate" << m_seg->data().toString() << EdgeDistanceID;
+    s_cache.markAsDirty(m_seg);
   }
 
 }
@@ -218,7 +225,7 @@ void EdgeDistance::invalidate()
 //-----------------------------------------------------------------------------
 void EdgeDistance::updateDistances() const
 {
-  qDebug() << "Updating" << m_seg->data().toString() << ID;
+  //qDebug() << "Updating" << m_seg->data().toString() << EdgeDistanceID;
   ChannelSPtr channel = m_seg->channel();
 
   AdaptiveEdges  *edgesExtension = NULL;
@@ -239,8 +246,8 @@ void EdgeDistance::updateDistances() const
 //-----------------------------------------------------------------------------
 void EdgeDistance::setDistances(Nm distances[6])
 {
-  memcpy(s_cache[m_seg].Distances, distances, 6*sizeof(Nm));
-  s_cache[m_seg].Modified = true;
+  memcpy(s_cache[m_seg].Data.Distances, distances, 6*sizeof(Nm));
+  s_cache.markAsClean(m_seg);
 }
 
 //-----------------------------------------------------------------------------

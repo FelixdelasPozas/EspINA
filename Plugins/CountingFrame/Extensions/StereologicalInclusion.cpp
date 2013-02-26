@@ -97,7 +97,7 @@ void StereologicalInclusion::initialize(ModelItem::Arguments args)
 ModelItem::ExtIdList StereologicalInclusion::dependencies() const
 {
   ModelItem::ExtIdList deps;
-  deps << EdgeDistance::ID;
+  deps << EdgeDistanceID;
   return deps;
 }
 
@@ -320,7 +320,7 @@ bool StereologicalInclusion::isOnEdge()
   bool excluded  = false;
   Nm   threshold = 1.0;
 
-  Segmentation::InformationExtension ext = m_seg->informationExtension(EdgeDistance::ID);
+  Segmentation::InformationExtension ext = m_seg->informationExtension(EdgeDistanceID);
   if (ext)
   {
     EdgeDistancePtr distanceExtension = dynamic_cast<EdgeDistancePtr>(ext);
