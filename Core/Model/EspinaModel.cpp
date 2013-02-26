@@ -85,6 +85,7 @@ void EspinaModel::reset()
     EspinaIO::removeTemporalDir(tmpDir);
 
   m_changed = false;
+  m_lastId  = 0;
 }
 
 //-----------------------------------------------------------------------------
