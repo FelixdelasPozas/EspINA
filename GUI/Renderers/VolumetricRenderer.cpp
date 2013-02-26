@@ -245,10 +245,7 @@ void VolumetricRenderer::hide()
 
   for (it = m_segmentations.begin(); it != m_segmentations.end(); ++it)
     if ((*it).visible)
-    {
       m_renderer->RemoveVolume((*it).volume);
-      (*it).visible = false;
-    }
 
   emit renderRequested();
 }
@@ -264,11 +261,14 @@ void VolumetricRenderer::show()
   QMap<ModelItemPtr, Representation>::iterator it;
 
   for (it = m_segmentations.begin(); it != m_segmentations.end(); ++it)
-    if(!(*it).visible)
+  {
+    SegmentationPtr seg = segmentationPtr(it.key());
+    if(seg->visible())
     {
       m_renderer->AddVolume((*it).volume);
       (*it).visible = true;
     }
+  }
 
   emit renderRequested();
   QApplication::restoreOverrideCursor();

@@ -294,11 +294,14 @@ void MeshRenderer::show()
   QMap<ModelItemPtr, Representation>::iterator it;
 
   for (it = m_segmentations.begin(); it != m_segmentations.end(); ++it)
-    if (!(*it).visible)
+  {
+    SegmentationPtr seg = segmentationPtr(it.key());
+    if (seg->visible())
     {
       m_renderer->AddActor((*it).actor);
       (*it).visible = true;
     }
+  }
 
   emit renderRequested();
   QApplication::restoreOverrideCursor();
