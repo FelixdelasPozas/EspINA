@@ -126,6 +126,7 @@ void SeedGrowSegmentationFilter::run()
   ctif->SetLower(std::max(seedIntensity - m_param.lowerThreshold(), 0.0));
   ctif->SetUpper(std::min(seedIntensity + m_param.upperThreshold(), 255.0));
   ctif->AddSeed(seed);
+  ctif->SetNumberOfThreads(4);
   ctif->Update();
 
 //   qDebug() << "Intensity at Seed:" << seedIntensity;

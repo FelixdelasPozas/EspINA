@@ -8,6 +8,7 @@
 #include "AppositionSurfaceCommand.h"
 #include <Filter/AppositionSurfaceFilter.h>
 #include <GUI/FilterInspector/AppositionSurfaceFilterInspector.h>
+#include <Core/Extensions/AppositionSurfaceExtension.h>
 
 // EspINA
 #include <Core/Model/EspinaFactory.h>
@@ -30,7 +31,7 @@ namespace EspINA
                                                      ViewManager     *vm)
   : m_model(model)
   , m_viewManager(vm)
-  , m_taxonomy(m_model->taxonomy()->element(QObject::tr("AS")))
+  , m_taxonomy(m_model->taxonomy()->element(SAS))
   {
     Q_ASSERT(m_taxonomy);
 

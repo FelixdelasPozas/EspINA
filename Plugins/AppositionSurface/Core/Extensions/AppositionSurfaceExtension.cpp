@@ -95,7 +95,7 @@ Segmentation::InfoTagList AppositionSurfaceExtension::availableInformations() co
 QVariant AppositionSurfaceExtension::information(const Segmentation::InfoTag &tag)
 {
   QString fullTaxonomy = m_seg->taxonomy()->qualifiedName();
-  if (!fullTaxonomy.startsWith("AS/") && (fullTaxonomy.compare("AS") != 0))
+  if (!fullTaxonomy.startsWith(SAS+"/") && (fullTaxonomy.compare(SAS) != 0))
     return QVariant();
 
   if (!s_cache.contains(m_seg))

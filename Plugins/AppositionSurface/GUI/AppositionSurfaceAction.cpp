@@ -8,6 +8,7 @@
 #include "AppositionSurfaceAction.h"
 
 #include "Undo/AppositionSurfaceCommand.h"
+#include <Core/Extensions/AppositionSurfaceExtension.h>
 
 // EspINA
 #include <Core/Model/PickableItem.h>
@@ -58,9 +59,9 @@ namespace EspINA
       m_undoStack->beginMacro(tr("Apposition Surface"));
       {
         TaxonomySPtr taxonomy = m_model->taxonomy();
-        if (taxonomy->element(tr("AS")).isNull())
+        if (taxonomy->element(SAS).isNull())
         {
-          m_undoStack->push(new AddTaxonomyElement(taxonomy->root().data(), tr("AS"), m_model, QColor(255,255,0)));
+          m_undoStack->push(new AddTaxonomyElement(taxonomy->root().data(), SAS, m_model, QColor(255,255,0)));
         }
         m_undoStack->push(new AppositionSurfaceCommand(validSegs, m_model, m_viewManager));
         m_undoStack->endMacro();

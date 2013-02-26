@@ -24,6 +24,8 @@
 
 namespace EspINA
 {
+  const QString SAS = QObject::tr("SAS");
+
   class AppositionSurfaceExtension
   : public Segmentation::Information
   {
