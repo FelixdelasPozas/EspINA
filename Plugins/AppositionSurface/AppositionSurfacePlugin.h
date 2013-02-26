@@ -61,6 +61,7 @@ namespace EspINA
 
   public slots:
     void selectionChanged(ViewManager::Selection selection, bool unused);
+    void segmentationAdded(SegmentationSPtr);
     virtual void reset();
 
   private:

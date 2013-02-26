@@ -26,6 +26,7 @@
 // EspINA
 #include <Core/Extensions/SegmentationExtension.h>
 #include <Core/Model/EspinaFactory.h>
+#include <Core/Model/EspinaModel.h>
 #include <Core/EspinaSettings.h>
 
 // Qt
@@ -46,8 +47,8 @@ namespace EspINA
   , m_settings(ISettingsPanelPrototype(new AppositionSurfaceSettings()))
   , m_extension(new AppositionSurfaceExtension())
   {
-    setObjectName("AppositionSurfacePlugin");
-    setWindowTitle(tr("Apposition Surface Tool Bar"));
+    setObjectName("SinapticAppositionSurfacePlugin");
+    setWindowTitle(tr("Sinaptic Apposition Surface Tool Bar"));
   }
 
   //-----------------------------------------------------------------------------
@@ -72,6 +73,7 @@ namespace EspINA
     m_viewManager = viewManager;
 
     m_action = new AppositionSurfaceAction(m_viewManager, m_undoStack, m_model, this);
+    m_action->setToolTip("Create a synaptic apposition surface from selected segmentations.");
     addAction(m_action);
 
     connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection, bool)), this,
@@ -80,6 +82,10 @@ namespace EspINA
     // register renderer
     m_renderer = AppositionSurfaceRendererSPtr(new AppositionSurfaceRenderer(m_viewManager));
     m_factory->registerRenderer(m_renderer.data());
+
+    // for automatic computation of SAS
+    connect(m_model, SIGNAL(segmentationAdded(SegmentationSPtr)),
+            this, SLOT(segmentationAdded(SegmentationSPtr)));
   }
 
   //-----------------------------------------------------------------------------
@@ -114,21 +120,34 @@ namespace EspINA
   //-----------------------------------------------------------------------------
   void AppositionSurface::selectionChanged(ViewManager::Selection selection, bool unused)
   {
+    QString toolTip("Create a synaptic apposition surface from selected segmentations.");
+    bool enabled = false;
+
     foreach(PickableItemPtr item, selection)
-    {
       if ((item->type() == SEGMENTATION) && (SegmentationPtr(item)->taxonomy()->qualifiedName().contains(QString("Synapse"))))
       {
-        m_action->setEnabled(true);
-        return;
+        enabled = true;
+        break;
       }
-    }
 
-    m_action->setEnabled(false);
+    if (!enabled)
+      toolTip += QString("\n(Requires a selection of one or more segmentations from 'Synapse' taxonomy)");
+
+    m_action->setToolTip(toolTip);
+    m_action->setEnabled(enabled);
   }
 
   //-----------------------------------------------------------------------------
   void AppositionSurface::reset()
   {
+  }
+
+  //-----------------------------------------------------------------------------
+  void AppositionSurface::segmentationAdded(SegmentationSPtr seg)
+  {
+    // TODO: right now there is no way to know if a segmentation has been loaded
+    // from file or created in a session as this method get called every time a
+    // seg is added to the model, no matter what.
   }
 
 }

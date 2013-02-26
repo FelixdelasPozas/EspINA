@@ -38,8 +38,8 @@ namespace EspINA
     virtual ~AppositionSurfaceRenderer() {};
 
     virtual const QIcon   icon()    const { return QIcon(":/AppSurface.svg"); }
-    virtual const QString name()    const { return tr("Apposition Surface"); }
-    virtual const QString tooltip() const { return tr("Apposition Surfaces Renderer"); }
+    virtual const QString name()    const { return tr("Sinaptic Apposition Surface"); }
+    virtual const QString tooltip() const { return tr("Sinaptic Apposition Surfaces Renderer"); }
 
     virtual IRendererSPtr clone() { return IRendererSPtr(new AppositionSurfaceRenderer(m_viewManager)); }
 
