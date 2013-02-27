@@ -10,6 +10,7 @@
 #include "GUI/vtkWidgets/EspinaInteractorAdapter.h"
 #include "GUI/vtkWidgets/SliceContourWidget.h"
 #include "GUI/vtkWidgets/vtkPlaneContourWidget.h"
+#include <GUI/QtWidget/SliceView.h>
 
 #include <iostream>
 
@@ -49,25 +50,19 @@ ContourWidget::~ContourWidget()
 }
 
 //----------------------------------------------------------------------------
-vtkAbstractWidget *ContourWidget::createWidget()
+vtkAbstractWidget *ContourWidget::create3DWidget(VolumeView *view)
 {
   return NULL;
 }
 
 //----------------------------------------------------------------------------
-void ContourWidget::deleteWidget(vtkAbstractWidget *widget)
-{
-  Q_ASSERT(false);
-}
-
-//----------------------------------------------------------------------------
-SliceWidget *ContourWidget::createSliceWidget(PlaneType plane)
+SliceWidget *ContourWidget::createSliceWidget(SliceView *view)
 {
   ContourWidgetAdapter *widget = new ContourWidgetAdapter();
   widget->setPolygonColor(this->m_color);
   m_widgets << widget;
 
-  switch(plane)
+  switch(view->plane())
   {
     case AXIAL:
       Q_ASSERT(NULL == m_axialSliceContourWidget);

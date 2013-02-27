@@ -20,6 +20,7 @@
 #include "TubularWidget.h"
 #include "TubularSliceWidget.h"
 #include <GUI/vtkWidgets/EspinaInteractorAdapter.h>
+#include <GUI/QtWidget/SliceView.h>
 
 // Qt
 #include <QDebug>
@@ -51,25 +52,19 @@ namespace EspINA
   }
 
   //----------------------------------------------------------------------------
-  vtkAbstractWidget* TubularWidget::createWidget()
+  vtkAbstractWidget* TubularWidget::create3DWidget(EspINA::VolumeView* view)
   {
     return NULL;
   }
 
   //----------------------------------------------------------------------------
-  void TubularWidget::deleteWidget(vtkAbstractWidget* widget)
-  {
-    Q_ASSERT(false);
-  }
-
-  //----------------------------------------------------------------------------
-  SliceWidget* TubularWidget::createSliceWidget(PlaneType plane)
+  SliceWidget* TubularWidget::createSliceWidget(EspINA::SliceView* view)
   {
     TubularWidgetAdapter *widget = new TubularWidgetAdapter();
     Q_ASSERT(widget);
     widget->AddObserver(vtkCommand::EndInteractionEvent, this);
 
-    widget->SetPlane(plane);
+    widget->SetPlane(view->plane());
     widget->SetNodeList(m_nodes);
 
     m_widgets << widget;

@@ -383,7 +383,7 @@ void VolumeView::addWidget(EspinaWidget* eWidget)
 {
   Q_ASSERT(!m_widgets.contains(eWidget));
 
-  vtkAbstractWidget *widget = eWidget->createWidget();
+  vtkAbstractWidget *widget = eWidget->create3DWidget(this);
   if (!widget)
     return;
 

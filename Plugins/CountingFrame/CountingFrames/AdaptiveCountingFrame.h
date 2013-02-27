@@ -47,9 +47,9 @@ namespace EspINA
     virtual QString name() const { return tr("Adaptive CF"); }
 
     // Implements EspinaWidget itnerface
-    virtual vtkAbstractWidget *createWidget();
-    virtual void deleteWidget(vtkAbstractWidget* widget);
-    virtual SliceWidget *createSliceWidget(PlaneType plane);
+    virtual vtkAbstractWidget *create3DWidget(VolumeView *view);
+
+    virtual SliceWidget *createSliceWidget(SliceView *view);
 
     virtual bool processEvent(vtkRenderWindowInteractor* iren,
                               long unsigned int event);

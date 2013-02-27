@@ -45,9 +45,9 @@ namespace EspINA
       explicit TubularWidget();
       virtual ~TubularWidget();
 
-      virtual vtkAbstractWidget* createWidget();
-      virtual void deleteWidget(vtkAbstractWidget* widget);
-      virtual SliceWidget* createSliceWidget(PlaneType plane);
+      virtual vtkAbstractWidget* create3DWidget(VolumeView *view);
+
+      virtual SliceWidget* createSliceWidget(SliceView *view);
 
       virtual void setEnabled(bool enable);
       virtual void Execute(vtkObject* caller, long unsigned int eventId, void* callData);

@@ -328,7 +328,7 @@ void SeedGrowSegmentationTool::removePreview(EspinaRenderView *view)
   if (m_actor == NULL)
     return;
 
-  m_viewOfPreview->removePreview(m_actor);
+  m_viewOfPreview->removeActor(m_actor);
   connectFilter = NULL;
   i2v = NULL;
   m_actor = NULL;
@@ -541,7 +541,7 @@ void SeedGrowSegmentationTool::addPreview(EspinaRenderView *view)
   pos[plane] += (sign*0.1);
   m_actor->SetPosition(pos);
 
-  view->addPreview(m_actor);
+  view->addActor(m_actor);
   m_viewOfPreview = view;
   view->updateView();
 }

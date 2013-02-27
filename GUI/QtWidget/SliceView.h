@@ -89,6 +89,8 @@ namespace EspINA
     inline QString title() const;
     void setTitle(const QString &title);
 
+    PlaneType plane() const {return m_plane;}
+
     void slicingStep(Nm steps[3]);
     /// Set the distance between two consecutive slices when
     /// displacement is set to SLICES
@@ -111,8 +113,9 @@ namespace EspINA
     virtual void addWidget   (EspinaWidget* widget);
     virtual void removeWidget(EspinaWidget* eWidget);
 
-    virtual void addPreview   (vtkProp3D *preview);
-    virtual void removePreview(vtkProp3D *preview);
+    virtual void addActor   (vtkProp3D *actor);
+    virtual void removeActor(vtkProp3D *actor);
+
     virtual void previewBounds(Nm bounds[6]);
 
     virtual void setCursor(const QCursor& cursor);
@@ -215,9 +218,6 @@ namespace EspINA
     void buildCrosshairs();
     void buildTitle();
     void setupUI();
-
-    void addActor(vtkProp *actor);
-    void removeActor(vtkProp *actor);
 
   private:
     struct SliceRep

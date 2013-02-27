@@ -29,7 +29,9 @@ class vtkRenderWindowInteractor;
 namespace EspINA
 {
   class EspinaRenderView;
+  class SliceView;
   class ViewManager;
+  class VolumeView;
 
   class SliceWidget
   {
@@ -54,17 +56,17 @@ namespace EspINA
     virtual ~EspinaWidget(){}
 
     void setViewManager(ViewManager *vm) {m_viewManager = vm;}
-    virtual vtkAbstractWidget *createWidget() = 0;
-    virtual void deleteWidget(vtkAbstractWidget *widget) = 0;
-    virtual SliceWidget *createSliceWidget(PlaneType plane) = 0;
+
+    virtual vtkAbstractWidget *create3DWidget(VolumeView *view) = 0;
+
+    virtual SliceWidget *createSliceWidget(SliceView *view) = 0;
 
     bool filterEvent(QEvent *e, EspinaRenderView *view);
     virtual bool processEvent(vtkRenderWindowInteractor *iren,
                               long unsigned int event) = 0;
-                              virtual void setEnabled(bool enable) = 0;
+    virtual void setEnabled(bool enable) = 0;
 
-                              // true if its a widget to manipulate segmentations
-                              virtual bool manipulatesSegmentations() { return false; };
+    virtual bool manipulatesSegmentations() { return false; };
 
   protected:
     ViewManager *m_viewManager;

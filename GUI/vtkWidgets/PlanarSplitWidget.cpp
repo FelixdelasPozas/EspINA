@@ -12,6 +12,7 @@
 #include "vtkPlanarSplitWidget.h"
 
 #include "GUI/ViewManager.h"
+#include <GUI/QtWidget/SliceView.h>
 
 // vtk
 #include <vtkAbstractWidget.h>
@@ -70,7 +71,7 @@ PlanarSplitWidget::~PlanarSplitWidget()
 }
 
 //-----------------------------------------------------------------------------
-vtkAbstractWidget *PlanarSplitWidget::createWidget()
+vtkAbstractWidget *PlanarSplitWidget::create3DWidget(VolumeView *view)
 {
   m_volume = vtkImplicitPlaneWidget2::New();
   m_volume->AddObserver(vtkCommand::EndInteractionEvent, this);
@@ -78,15 +79,9 @@ vtkAbstractWidget *PlanarSplitWidget::createWidget()
 }
 
 //-----------------------------------------------------------------------------
-void PlanarSplitWidget::deleteWidget(vtkAbstractWidget *widget)
+SliceWidget *PlanarSplitWidget::createSliceWidget(SliceView* view)
 {
-  if (m_volume)
-    m_volume->Delete();
-}
-
-//-----------------------------------------------------------------------------
-SliceWidget *PlanarSplitWidget::createSliceWidget(PlaneType plane)
-{
+  PlaneType plane = view->plane();
   switch(plane)
   {
     case AXIAL:

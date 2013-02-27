@@ -28,6 +28,7 @@
 #include <vtkSmartPointer.h>
 #include "vtkCountingFrame3DWidget.h"
 #include <Core/Model/Channel.h>
+#include <GUI/QtWidget/SliceView.h>
 
 using namespace EspINA;
 
@@ -90,7 +91,7 @@ QString RectangularCountingFrame::serialize() const
 
 
 //-----------------------------------------------------------------------------
-vtkAbstractWidget *RectangularCountingFrame::createWidget()
+vtkAbstractWidget *RectangularCountingFrame::create3DWidget(VolumeView* view)
 {
   CountingFrame3DWidgetAdapter *wa = new CountingFrame3DWidgetAdapter();
   Q_ASSERT(wa);
@@ -101,29 +102,29 @@ vtkAbstractWidget *RectangularCountingFrame::createWidget()
   return wa;
 }
 
+// //-----------------------------------------------------------------------------
+// void RectangularCountingFrame::deleteWidget(vtkAbstractWidget* widget)
+// {
+//   widget->Off();
+//   widget->RemoveAllObservers();
+// 
+//   CountingFrame3DWidgetAdapter *brwa3D = dynamic_cast<CountingFrame3DWidgetAdapter *>(widget);
+//   if (brwa3D)
+//     m_widgets3D.removeAll(brwa3D);
+//   else
+//   {
+//     CountingFrame2DWidgetAdapter *brwa2D = dynamic_cast<CountingFrame2DWidgetAdapter *>(widget);
+//     if (brwa2D)
+//       m_widgets2D.removeAll(brwa2D);
+//     else
+//       Q_ASSERT(false);
+//   }
+// 
+//   widget->Delete();
+// }
+
 //-----------------------------------------------------------------------------
-void RectangularCountingFrame::deleteWidget(vtkAbstractWidget* widget)
-{
-  widget->Off();
-  widget->RemoveAllObservers();
-
-  CountingFrame3DWidgetAdapter *brwa3D = dynamic_cast<CountingFrame3DWidgetAdapter *>(widget);
-  if (brwa3D)
-    m_widgets3D.removeAll(brwa3D);
-  else
-  {
-    CountingFrame2DWidgetAdapter *brwa2D = dynamic_cast<CountingFrame2DWidgetAdapter *>(widget);
-    if (brwa2D)
-      m_widgets2D.removeAll(brwa2D);
-    else
-      Q_ASSERT(false);
-  }
-
-  widget->Delete();
-}
-
-//-----------------------------------------------------------------------------
-SliceWidget* RectangularCountingFrame::createSliceWidget(PlaneType plane)
+SliceWidget* RectangularCountingFrame::createSliceWidget(SliceView *view)
 {
   Channel *channel = m_channelExt->channel();
   double spacing[3];
@@ -132,7 +133,7 @@ SliceWidget* RectangularCountingFrame::createSliceWidget(PlaneType plane)
   CountingFrame2DWidgetAdapter *wa = new CountingFrame2DWidgetAdapter();
   Q_ASSERT(wa);
   wa->AddObserver(vtkCommand::EndInteractionEvent, this);
-  wa->SetPlane(plane);
+  wa->SetPlane(view->plane());
   wa->SetSlicingStep(spacing);
   wa->SetCountingFrame(m_representation, m_inclusion, m_exclusion);
 

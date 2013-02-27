@@ -367,7 +367,7 @@ void BrushPicker::startPreview(EspinaRenderView* view)
   pos[m_plane] += (sign*0.1);
   m_actor->SetPosition(pos);
 
-  view->addPreview(m_actor);
+  view->addActor(m_actor);
 }
 
 //-----------------------------------------------------------------------------
@@ -466,7 +466,7 @@ void BrushPicker::updatePreview(double brush[3], EspinaRenderView* view)
 //-----------------------------------------------------------------------------
 void BrushPicker::stopPreview(EspinaRenderView* view)
 {
-  view->removePreview(m_actor);
+  view->removeActor(m_actor);
   m_lut = NULL;
   m_preview = NULL;
   m_actor = NULL;

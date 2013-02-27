@@ -59,8 +59,9 @@ namespace EspINA
     virtual void addWidget   (EspinaWidget *widget) = 0;
     virtual void removeWidget(EspinaWidget *widget) = 0;
 
-    virtual void addPreview   (vtkProp3D *) = 0;
-    virtual void removePreview(vtkProp3D *) = 0;
+    virtual void addActor   (vtkProp3D *actor) = 0;
+    virtual void removeActor(vtkProp3D *actor) = 0;
+
     virtual void previewBounds(Nm bounds[6]);
 
     virtual void setCursor(const QCursor& cursor) = 0;

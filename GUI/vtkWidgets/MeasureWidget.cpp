@@ -83,23 +83,17 @@ MeasureWidget::~MeasureWidget()
 }
 
 //----------------------------------------------------------------------------
-vtkAbstractWidget *MeasureWidget::createWidget()
+vtkAbstractWidget *MeasureWidget::create3DWidget(VolumeView *view)
 {
   return NULL;
 }
 
 //----------------------------------------------------------------------------
-void MeasureWidget::deleteWidget(vtkAbstractWidget *widget)
-{
-  Q_ASSERT(false);
-}
-
-//----------------------------------------------------------------------------
-SliceWidget *MeasureWidget::createSliceWidget(PlaneType plane)
+SliceWidget *MeasureWidget::createSliceWidget(SliceView *view)
 {
   MeasureSliceWidget *widget = NULL;
 
-  switch(plane)
+  switch(view->plane())
   {
     case AXIAL:
       m_axial = MeasureWidgetAdapter::New();

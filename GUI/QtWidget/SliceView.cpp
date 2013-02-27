@@ -777,7 +777,6 @@ void SliceView::addChannel(ChannelPtr channel)
   channelRep.slice->SetInterpolate(false);
   channelRep.slice->GetMapper()->BorderOn();
   channelRep.slice->GetMapper()->SetInputConnection(channelRep.mapToColors->GetOutputPort());
-  m_state->updateActor(channelRep.slice);
   channelRep.slice->Update();
 
   m_channelReps.insert(channel, channelRep);
@@ -983,7 +982,6 @@ void SliceView::addSegmentation(SegmentationPtr seg)
   segRep.slice->GetMapper()->BorderOn();
   segRep.slice->GetMapper()->SetInputConnection(segRep.mapToColors->GetOutputPort());
   segRep.slice->Update();
-  m_state->updateActor(segRep.slice);
 
   segRep.selected = false;
   segRep.visible  = seg->visible() && m_showSegmentations;
@@ -1153,15 +1151,20 @@ void SliceView::addWidget(EspinaWidget *eWidget)
 {
   Q_ASSERT(!m_widgets.contains(eWidget));
 
-  SliceWidget *sWidget = eWidget->createSliceWidget(m_plane);
+  SliceWidget *sWidget = eWidget->createSliceWidget(this);
   if (!sWidget)
     return;
 
   sWidget->setSlice(slicingPosition(), m_plane);
+
   vtkAbstractWidget *widget = *sWidget;
-  widget->SetInteractor(m_renderWindow->GetInteractor());
-  widget->GetRepresentation()->SetVisibility(true);
-  widget->On();
+  if (widget)
+  {
+    widget->SetInteractor(m_renderWindow->GetInteractor());
+    if (widget->GetRepresentation())
+      widget->GetRepresentation()->SetVisibility(true);
+    widget->On();
+  }
   m_renderer->ResetCameraClippingRange();
   m_widgets[eWidget] = sWidget;
 }
@@ -1179,16 +1182,31 @@ void SliceView::removeWidget(EspinaWidget *eWidget)
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::addPreview(vtkProp3D *preview)
+void SliceView::addActor(vtkProp3D* actor)
 {
-  m_renderer->AddActor(preview);
-  m_state->updateActor(preview);
+  m_state->updateActor(actor);
+
+  m_renderer->AddActor(actor);
+  m_thumbnail->AddActor(actor);
+
+  m_thumbnail->RemoveActor(m_channelBorder);
+  m_thumbnail->RemoveActor(m_viewportBorder);
+
+  updateThumbnail();
+  m_thumbnail->ResetCamera();
+  updateThumbnail();
+
+  m_thumbnail->AddActor(m_channelBorder);
+  m_thumbnail->AddActor(m_viewportBorder);
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::removePreview(vtkProp3D *preview)
+void SliceView::removeActor(vtkProp3D* actor)
 {
-  m_renderer->RemoveActor(preview);
+  m_renderer->RemoveActor(actor);
+  m_thumbnail->RemoveActor(actor);
+
+  updateThumbnail();
 }
 
 //-----------------------------------------------------------------------------
@@ -1215,29 +1233,6 @@ void SliceView::previewBounds(Nm bounds[6])
   bounds[2*V+1]       = std::min(LL[V], m_sceneBounds[2*V+1]);
   bounds[2*m_plane]   = slicingPosition();
   bounds[2*m_plane+1] = slicingPosition();
-}
-
-//-----------------------------------------------------------------------------
-void SliceView::addActor(vtkProp* actor)
-{
-  m_renderer->AddActor(actor);
-  m_thumbnail->AddActor(actor);
-
-  m_thumbnail->RemoveActor(m_channelBorder);
-  m_thumbnail->RemoveActor(this->m_viewportBorder);
-  this->updateThumbnail();
-  m_thumbnail->ResetCamera();
-  this->updateThumbnail();
-  m_thumbnail->AddActor(m_channelBorder);
-  m_thumbnail->AddActor(this->m_viewportBorder);
-}
-
-//-----------------------------------------------------------------------------
-void SliceView::removeActor(vtkProp* actor)
-{
-  m_renderer->RemoveActor(actor);
-  m_thumbnail->RemoveActor(actor);
-  this->updateThumbnail();
 }
 
 //-----------------------------------------------------------------------------
