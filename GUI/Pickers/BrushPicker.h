@@ -47,6 +47,7 @@ class BrushPicker
 
 public:
   explicit BrushPicker(PickableItemPtr item=NULL);
+  virtual ~BrushPicker();
 
   virtual bool filterEvent(QEvent* e, EspinaRenderView* view = NULL);
 
@@ -55,6 +56,7 @@ public:
   int radius() const {return m_displayRadius;}
   void setBorderColor(QColor color);
   void setBrushColor(QColor color);
+  void setBrushImage(QImage &image);
   QColor getBrushColor();
 
   /// @item is used to specify the spacing of the stroke
@@ -83,6 +85,7 @@ private:
   int    m_displayRadius;//In screen pixels
   QColor m_borderColor;
   QColor m_brushColor;
+  QImage *m_brushImage;
 
   bool m_tracking;
   QPoint m_lastDot;

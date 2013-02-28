@@ -85,6 +85,9 @@ QCursor Brush::cursor() const
 //-----------------------------------------------------------------------------
 bool Brush::filterEvent(QEvent* e, EspinaRenderView* view)
 {
+  QImage noSeg = QImage(":/espina/add.svg");
+  QImage hasSeg = QImage();
+
   if (m_erasing)
   {
     if (e->type() == QEvent::KeyRelease)
@@ -94,8 +97,6 @@ bool Brush::filterEvent(QEvent* e, EspinaRenderView* view)
       {
         m_brush->DrawingOn(view);
         m_erasing = false;
-        if (!m_currentSeg)
-          m_brush->setBorderColor(QColor(Qt::blue));
       }
     }
     else
@@ -106,17 +107,26 @@ bool Brush::filterEvent(QEvent* e, EspinaRenderView* view)
         {
           m_brush->DrawingOn(view);
           m_erasing = false;
-          if (!m_currentSeg)
-            m_brush->setBorderColor(QColor(Qt::blue));
         }
       }
+
     if (!m_erasing)
     {
-      m_brush->setBorderColor(QColor(Qt::green));
+      if (!m_currentSeg)
+      {
+        m_brush->setBrushImage(noSeg);
+        m_brush->setBorderColor(QColor(Qt::blue));
+      }
+      else
+      {
+        m_brush->setBrushImage(hasSeg);
+        m_brush->setBorderColor(QColor(Qt::green));
+      }
       emit brushModeChanged(BRUSH);
     }
   }
   else
+  {
     if (m_currentSeg)
     {
       if (QEvent::KeyPress == e->type())
@@ -145,6 +155,7 @@ bool Brush::filterEvent(QEvent* e, EspinaRenderView* view)
         emit brushModeChanged(ERASER);
       }
     }
+  }
 
   if (e->type() == QEvent::Wheel)
   {
@@ -258,6 +269,8 @@ void Brush::drawStroke(PickableItemPtr item,
       m_currentSource = m_currentSeg->filter();
       m_currentOutput = m_currentSeg->outputId();
 
+      QImage hasSeg = QImage();
+      m_brush->setBrushImage(hasSeg);
       m_brush->setBorderColor(QColor(Qt::green));
       connect(m_currentSeg.data(), SIGNAL(modified(ModelItemPtr)),
               this, SLOT(segmentationHasBeenModified(ModelItemPtr)));
@@ -309,6 +322,8 @@ void Brush::segmentationHasBeenModified(ModelItemPtr item)
 
   if (m_currentSeg->taxonomy()->color() != m_brush->getBrushColor())
   {
+    QImage hasSeg = QImage();
+    m_brush->setBrushImage(hasSeg);
     m_brush->setBrushColor(m_currentSeg->taxonomy()->color());
     m_viewManager->updateViews();
   }
@@ -319,6 +334,11 @@ void Brush::initBrushTool()
 {
   if (!m_inUse)
     return;
+
+  QImage noSeg = QImage(":/espina/add.svg");
+  QImage hasSeg = QImage();
+
+  emit brushModeChanged(BRUSH);
 
   if (m_currentSeg)
     disconnect(m_currentSeg.data(), SIGNAL(modified(ModelItemPtr)),
@@ -334,6 +354,7 @@ void Brush::initBrushTool()
     m_currentOutput = m_currentSeg->outputId();
 
     m_brush->setBrushColor(m_currentSeg->taxonomy()->color());
+    m_brush->setBrushImage(hasSeg);
     m_brush->setBorderColor(QColor(Qt::green));
     m_brush->setReferenceItem(m_currentSeg.data());
   }
@@ -344,6 +365,7 @@ void Brush::initBrushTool()
     m_currentOutput = -1;
 
     m_brush->setBrushColor(m_viewManager->activeTaxonomy()->color());
+    m_brush->setBrushImage(noSeg);
     m_brush->setBorderColor(QColor(Qt::blue));
     m_brush->setReferenceItem(m_viewManager->activeChannel());
   }

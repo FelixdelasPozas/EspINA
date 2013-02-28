@@ -48,6 +48,7 @@ BrushPicker::BrushPicker(PickableItemPtr item)
 , m_displayRadius(20)
 , m_borderColor(Qt::blue)
 , m_brushColor(Qt::blue)
+, m_brushImage(NULL)
 , m_tracking(false)
 , m_stroke(IPicker::WorldRegion::New())
 , m_plane(AXIAL)
@@ -62,6 +63,18 @@ BrushPicker::BrushPicker(PickableItemPtr item)
   memset(m_UR, 0, 3*sizeof(double));
   memset(m_pBounds, 0, 6*sizeof(Nm));
   memset(m_worldSize, 0, 2*sizeof(double));
+}
+
+//-----------------------------------------------------------------------------
+BrushPicker::~BrushPicker()
+{
+  if (m_brushImage)
+  {
+    delete m_brushImage;
+    m_brushImage = NULL;
+  }
+
+
 }
 
 //-----------------------------------------------------------------------------
@@ -140,6 +153,23 @@ void BrushPicker::setReferenceItem(PickableItemPtr item)
 }
 
 //-----------------------------------------------------------------------------
+void BrushPicker::setBrushImage(QImage &image)
+{
+  if (m_brushImage)
+  {
+    delete m_brushImage;
+    m_brushImage = NULL;
+  }
+
+  if (!image.isNull())
+  {
+    m_brushImage = new QImage(image);
+  }
+
+  buildCursor();
+}
+
+//-----------------------------------------------------------------------------
 void BrushPicker::buildCursor()
 {
   int width = 2*m_displayRadius;
@@ -149,8 +179,11 @@ void BrushPicker::buildCursor()
   QPainter p(&pix);
   p.setBrush(QBrush(m_brushColor));
   p.setPen(QPen(m_borderColor));
-
   p.drawEllipse(0, 0, width-1, width-1);
+
+  if (m_brushImage)
+    p.drawImage(QPoint(m_displayRadius/2,m_displayRadius/2), m_brushImage->scaledToWidth(m_displayRadius));
+
   Q_ASSERT(pix.hasAlpha());
 
   m_cursor = QCursor(pix);
