@@ -41,7 +41,6 @@ namespace EspINA
 
     static ExtensionCache s_cache;
 
-
     static const QString EXTENSION_FILE;
 
   public:
@@ -65,12 +64,10 @@ namespace EspINA
 
     virtual QVariant information(const Segmentation::InfoTag &tag);
 
-    virtual void initialize(ModelItem::Arguments args = ModelItem::Arguments());
-
     virtual bool isCacheFile(const QString &file) const
     { return EXTENSION_FILE == file; }
 
-    virtual bool loadCache(QuaZipFile &file, const QDir &tmpDir, EspinaModel *model);
+    virtual void loadCache(QuaZipFile &file, const QDir &tmpDir, EspinaModel *model);
 
     virtual bool saveCache(Snapshot &cacheList);
 
@@ -82,8 +79,9 @@ namespace EspINA
       memcpy(distances, m_distances, 6*sizeof(Nm));
     }
 
-  protected:
-    virtual void invalidate();
+    virtual void initialize();
+
+    virtual void invalidate(SegmentationPtr segmentation = NULL);
 
   private:
     void updateDistances() const;

@@ -32,8 +32,8 @@ namespace EspINA
   public:
     virtual ~Extension() {}
   protected:
-    Extension() : m_seg(NULL){}
-    SegmentationPtr m_seg;
+    Extension() : m_segmentation(NULL){}
+    SegmentationPtr m_segmentation;
   };
 
 
@@ -41,12 +41,13 @@ namespace EspINA
   class Segmentation::Information
   : public Segmentation::Extension
   {
+    Q_OBJECT
   public:
     virtual ~Information(){}
 
     virtual void setSegmentation(SegmentationPtr seg);
 
-    virtual SegmentationPtr segmentation() {return m_seg;}
+    virtual SegmentationPtr segmentation() {return m_segmentation;}
 
     virtual Segmentation::InfoTagList availableInformations() const = 0;
 
@@ -54,6 +55,13 @@ namespace EspINA
 
     /// Prototype
     virtual Segmentation::InformationExtension clone() = 0;
+
+    virtual void initialize() = 0;
+
+  public slots:
+    /// Invalidates segmentation's extension. If no segmentation is given
+    /// invalidate this extension for its segmentation
+    virtual void invalidate(SegmentationPtr segmentation = NULL) = 0;
 
   protected:
     Information() {}

@@ -59,7 +59,7 @@ EdgeDistance::EdgeDistance()
 //-----------------------------------------------------------------------------
 EdgeDistance::~EdgeDistance()
 {
-  if (m_seg)
+  if (m_segmentation)
   {
     //qDebug() << m_seg->data().toString() << ": Deleting" << EdgeDistanceID;
     invalidate();
@@ -70,12 +70,6 @@ EdgeDistance::~EdgeDistance()
 ModelItem::ExtId EdgeDistance::id()
 {
   return EdgeDistanceID;
-}
-
-//-----------------------------------------------------------------------------
-void EdgeDistance::initialize(ModelItem::Arguments args)
-{
-  //qDebug() << "Initialize (empty)" << m_seg->data().toString() << EdgeDistanceID;
 }
 
 //-----------------------------------------------------------------------------
@@ -96,13 +90,13 @@ Segmentation::InfoTagList EdgeDistance::availableInformations() const
 //-----------------------------------------------------------------------------
 QVariant EdgeDistance::information(const Segmentation::InfoTag &tag)
 {
-  bool cached = s_cache.isCached(m_seg);
+  bool cached = s_cache.isCached(m_segmentation);
   if (!cached)
   {
     updateDistances();
   }
 
-  ExtensionData &data = s_cache[m_seg].Data;
+  ExtensionData &data = s_cache[m_segmentation].Data;
   if (LEFT_DISTANCE == tag)
     return data.Distances[0];
   if (RIGHT_DISTANCE == tag)
@@ -123,51 +117,49 @@ QVariant EdgeDistance::information(const Segmentation::InfoTag &tag)
 
 
 //-----------------------------------------------------------------------------
-bool EdgeDistance::loadCache(QuaZipFile  &file,
+void EdgeDistance::loadCache(QuaZipFile  &file,
                              const QDir  &tmpDir,
                              EspinaModel *model)
 {
   QString header(file.readLine());
-  if (header.toStdString() != FILE_VERSION)
-    return false;
-
-  char buffer[1024];
-  while (file.readLine(buffer, sizeof(buffer)) > 0)
+  if (header.toStdString() == FILE_VERSION)
   {
-    QString line(buffer);
-    QStringList fields = line.split(SEP);
+    char buffer[1024];
+    while (file.readLine(buffer, sizeof(buffer)) > 0)
+    {
+      QString line(buffer);
+      QStringList fields = line.split(SEP);
 
-    SegmentationPtr extensionSegmentation = NULL;
-    int i = 0;
-    while (!extensionSegmentation && i < model->segmentations().size())
-    {
-      SegmentationSPtr segmentation = model->segmentations()[i];
-      if ( segmentation->filter()->id()  == fields[0]
-        && segmentation->outputId()         == fields[1].toInt()
-        && segmentation->filter()->cacheDir() == tmpDir)
+      SegmentationPtr extensionSegmentation = NULL;
+      int i = 0;
+      while (!extensionSegmentation && i < model->segmentations().size())
       {
-        extensionSegmentation = segmentation.data();
+        SegmentationSPtr segmentation = model->segmentations()[i];
+        if ( segmentation->filter()->id()  == fields[0]
+          && segmentation->outputId()         == fields[1].toInt()
+          && segmentation->filter()->cacheDir() == tmpDir)
+        {
+          extensionSegmentation = segmentation.data();
+        }
+        i++;
       }
-      i++;
-    }
-    if (extensionSegmentation)
-    {
-      ExtensionData &data = s_cache[extensionSegmentation].Data;
+      if (extensionSegmentation)
+      {
+        ExtensionData &data = s_cache[extensionSegmentation].Data;
 
-      for(i=0; i<6; i++)
+        for(i=0; i<6; i++)
+        {
+          data.Distances[i] = fields[2+i].toDouble();
+        }
+      } else
       {
-        data.Distances[i] = fields[2+i].toDouble();
+        qWarning() << EdgeDistanceID << "Invalid Cache Entry:" << line;
       }
-    } else
-    {
-      qWarning() << EdgeDistanceID << "Invalid Cache Entry:" << line;
     }
   }
-
-  return true;
 }
 
-//------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // It's declared static to avoid collisions with other functions with same
 // signature in different compilation units
 static bool invalidData(SegmentationPtr seg)
@@ -212,24 +204,34 @@ Segmentation::Information * EdgeDistance::clone()
 }
 
 //-----------------------------------------------------------------------------
-void EdgeDistance::invalidate()
+void EdgeDistance::initialize()
 {
-  if (m_seg)
+  if (m_segmentation)
   {
-    //qDebug() << "Invalidate" << m_seg->data().toString() << EdgeDistanceID;
-    s_cache.markAsDirty(m_seg);
+    s_cache.markAsClean(m_segmentation);
   }
+}
 
+//-----------------------------------------------------------------------------
+void EdgeDistance::invalidate(SegmentationPtr segmentation)
+{
+  if (!segmentation)
+    segmentation = m_segmentation;
+
+  if (segmentation)
+  {
+    s_cache.markAsDirty(segmentation);
+  }
 }
 
 //-----------------------------------------------------------------------------
 void EdgeDistance::updateDistances() const
 {
   //qDebug() << "Updating" << m_seg->data().toString() << EdgeDistanceID;
-  ChannelSPtr channel = m_seg->channel();
+  ChannelSPtr channel = m_segmentation->channel();
 
   AdaptiveEdges  *edgesExtension = NULL;
-  Channel::ExtensionPtr extension = channel->extension(AdaptiveEdges::ID);
+  Channel::ExtensionPtr extension = channel->extension(AdaptiveEdgesID);
   if (!extension)
   {
     edgesExtension = new AdaptiveEdges();
@@ -240,14 +242,14 @@ void EdgeDistance::updateDistances() const
   }
   Q_ASSERT(edgesExtension);
 
-  edgesExtension->computeDistanceToEdge(m_seg);
+  edgesExtension->computeDistanceToEdge(m_segmentation);
 }
 
 //-----------------------------------------------------------------------------
 void EdgeDistance::setDistances(Nm distances[6])
 {
-  memcpy(s_cache[m_seg].Data.Distances, distances, 6*sizeof(Nm));
-  s_cache.markAsClean(m_seg);
+  memcpy(s_cache[m_segmentation].Data.Distances, distances, 6*sizeof(Nm));
+  s_cache.markAsClean(m_segmentation);
 }
 
 //-----------------------------------------------------------------------------

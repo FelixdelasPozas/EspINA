@@ -30,6 +30,8 @@
 //TODO: Invalidate information and seg's distance information due to spacing modification
 namespace EspINA
 {
+  static const ModelItem::ExtId AdaptiveEdgesID = "AdaptiveEdges";
+
   class AdaptiveEdges
   : public Channel::Extension
   {
@@ -37,37 +39,49 @@ namespace EspINA
     static const QString EDGES_FILE;
     static const QString FACES_FILE;
 
-    struct CacheEntry
+    struct ExtensionData
     {
-      CacheEntry() : UseAdaptiveEdges(false) {}
+      ExtensionData() 
+      : ComputedVolume(0)
+      , UseAdaptiveEdges(false)
+      {}
 
+      Nm   ComputedVolume;
       bool UseAdaptiveEdges;
+
+      vtkSmartPointer<vtkPolyData> Edges;
+      vtkSmartPointer<vtkPolyData> Faces[6];
     };
 
-    static QMap<ChannelPtr, CacheEntry> s_cache;
-  public:
-    static const ModelItem::ExtId ID;
+    typedef Cache<ChannelPtr, ExtensionData> ExtensionCache;
 
+    static ExtensionCache s_cache;
+
+  public:
     static const ModelItem::ArgumentId EDGETYPE;
 
-    explicit AdaptiveEdges(bool computeEdges = false);
+    explicit AdaptiveEdges(bool useAdaptiveEdges = false);
     virtual ~AdaptiveEdges();
 
     virtual ModelItem::ExtId id();
-    virtual void initialize(ModelItem::Arguments args = ModelItem::Arguments());
-    virtual QString serialize() const;
 
     virtual ModelItem::ExtIdList dependencies() const
     {return Channel::Extension::dependencies();}
 
     virtual bool isCacheFile(const QString &file) const
     { return EXTENSION_FILE == file; }
+//           || file.startsWith(EDGES_FILE)
+//           || file.startsWith(FACES_FILE); }
 
-    virtual bool loadCache(QuaZipFile &file, const QDir &tmpDir, EspinaModel *model);
+    virtual void loadCache(QuaZipFile &file, const QDir &tmpDir, EspinaModel *model);
 
     virtual bool saveCache(Snapshot &snapshot);
 
     virtual Channel::ExtensionPtr clone();
+
+    virtual void initialize();
+
+    virtual void invalidate(ChannelPtr channel = NULL);
 
     void computeDistanceToEdge(SegmentationPtr seg);
 
@@ -77,14 +91,21 @@ namespace EspINA
   protected:
     void computeAdaptiveEdges();
 
-  private:
-    bool                         m_computeAdaptiveEdges;
-    ModelItem::Arguments         m_args;
-    vtkSmartPointer<vtkPolyData> m_edges;
-    QMutex                       m_mutex;
-    Nm                           m_computedVolume;
+    void loadEdgesCache(ChannelPtr channel);
 
-    vtkSmartPointer<vtkPolyData> m_PolyDataFaces[6];
+    void loadFacesCache(ChannelPtr channel);
+
+    ChannelPtr findChannel(const QString &id,
+                           int outputId,
+                           const QDir &tmpDir,
+                           EspinaModel *model);
+
+    QString fileId(ChannelPtr channel) const;
+
+  private:
+    QMutex m_mutex;
+    bool   m_useAdaptiveEdges;
+
     std::map<unsigned int, unsigned long int> m_ComputedSegmentations;
 
     // builds a surface for each face the first time one is needed

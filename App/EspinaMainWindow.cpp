@@ -852,6 +852,29 @@ void EspinaMainWindow::addFileToAnalysis(const QFileInfo file)
     QApplication::restoreOverrideCursor();
     m_recentDocuments1.addDocument(file.absoluteFilePath());
     m_recentDocuments2.updateDocumentList();
+
+    if (EspinaIO::isChannelExtension(file.suffix()))
+    {
+      ChannelSPtr channel;
+      int i = 0;
+      while (channel.isNull() && i < m_model->channels().size())
+      {
+        ChannelSPtr iChannel = m_model->channels()[i];
+        if (file.fileName() == iChannel->data().toString())
+          channel = iChannel;
+        ++i;
+      }
+
+      QMessageBox msgBox;
+      msgBox.setWindowTitle("Adaptive Edges Extension");
+      msgBox.setText(tr("Compute %1's edges").arg(channel->data().toString()));
+      msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+      msgBox.setDefaultButton(QMessageBox::No);
+      if (msgBox.exec() == QMessageBox::Yes)
+      {
+        channel->addExtension(new AdaptiveEdges(true));
+      }
+    }
   }
 }
 

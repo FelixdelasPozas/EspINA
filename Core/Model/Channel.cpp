@@ -216,18 +216,6 @@ bool Channel::setData(const QVariant& value, int role)
 //------------------------------------------------------------------------
 QString Channel::serialize() const
 {
-//   QString extensionArgs;
-//   foreach(ModelItemExtensionPtr ext, m_extensions)
-//   {
-//     ChannelExtensionPtr channelExt = channelExtensionPtr(ext);
-// 
-//     QString serializedArgs = channelExt->serialize(); //Independizar los argumentos?
-//     if (!serializedArgs.isEmpty())
-//       extensionArgs.append(ext->id()+"=["+serializedArgs+"];");
-//   }
-//   if (!extensionArgs.isEmpty())
-//     m_args[EXTENSIONS] = QString("[%1]").arg(extensionArgs);
-
   return m_args.serialize();
 }
 
@@ -258,20 +246,22 @@ void Channel::initialize(const Arguments &args)
 }
 
 //------------------------------------------------------------------------
-void Channel::initializeExtensions(const Arguments &args)
+void Channel::initializeExtensions()
 {
-  // TODO: Hay que quitar esto, pero hace falta que se carguen las extensiones
-  // que esten guardadas en trazas de .seg antiguos
-//   qDebug() << args;
-// //   qDebug() << "Initializing" << data().toString() << "extensions:";
-//   foreach(ModelItemExtensionPtr ext, m_insertionOrderedExtensions)
-//   {
-//     ext->initialize(args);
-// //     ChannelExtensionPtr channelExt = channelExtensionPtr(ext);
-// // 
-// //     channelExt->initialize(args);
-//   }
-// 
+//   qDebug() << "Initializing" << data().toString() << "extensions:";
+  foreach(Channel::ExtensionPtr ext, m_extensions)
+  {
+    ext->initialize();
+  }
+}
+
+//------------------------------------------------------------------------
+void Channel::invalidateExtensions()
+{
+  foreach(Channel::ExtensionPtr ext, m_extensions)
+  {
+    ext->invalidate();
+  }
 }
 
 //------------------------------------------------------------------------
@@ -302,8 +292,6 @@ void Channel::addExtension(Channel::ExtensionPtr extension)
 
   extension->setChannel(this);
   m_extensions[extension->id()] = extension;
-
-  extension->initialize();
 }
 
 //-----------------------------------------------------------------------------

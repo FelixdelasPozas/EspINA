@@ -164,7 +164,7 @@ namespace EspINA
     Segmentation::InformationExtension informationExtension(const ModelItem::ExtId &name) const;
 
     /// optional args should be deprecated in future versions
-    void initializeExtensions(const Arguments &args = Arguments());
+    void initializeExtensions();
     void invalidateExtensions();
 
     virtual InfoTagList availableInformations() const;

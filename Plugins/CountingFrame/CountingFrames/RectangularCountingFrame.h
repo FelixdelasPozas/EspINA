@@ -20,7 +20,7 @@
 #ifndef RECTANGULARBOUNDINGFRAME_H
 #define RECTANGULARBOUNDINGFRAME_H
 
-#include "CountingFrames/CountingFrame.h"
+#include "Plugins/CountingFrame/CountingFrames/CountingFrame.h"
 
 namespace EspINA
 {

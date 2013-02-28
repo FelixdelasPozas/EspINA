@@ -37,6 +37,8 @@
 #include <vtkRuledSurfaceFilter.h>
 #include <vtkSurfaceReconstructionFilter.h>
 #include <vtkXMLPolyDataWriter.h>
+#include <vtkGenericDataObjectWriter.h>
+#include <vtkGenericDataObjectReader.h>
 
 #include <QApplication>
 #include <QDebug>
@@ -47,121 +49,159 @@ using namespace EspINA;
 typedef ModelItem::ArgumentId ArgumentId;
 
 const QString AdaptiveEdges::EXTENSION_FILE = "AdaptiveEdges/AdaptiveEdges.ext";
-const QString AdaptiveEdges::EDGES_FILE     = "AdaptiveEdges/ChannelEdges.vtk";
-const QString AdaptiveEdges::FACES_FILE     = "AdaptiveEdges/ChannelFaces.vtk";
+const QString AdaptiveEdges::EDGES_FILE     = "AdaptiveEdges/ChannelEdges";
+const QString AdaptiveEdges::FACES_FILE     = "AdaptiveEdges/ChannelFaces";
 
-QMap<ChannelPtr, AdaptiveEdges::CacheEntry> AdaptiveEdges::s_cache;
-
-const ModelItem::ExtId AdaptiveEdges::ID = "AdaptiveEdges";
+AdaptiveEdges::ExtensionCache AdaptiveEdges::s_cache;
 
 const ArgumentId AdaptiveEdges::EDGETYPE = "MarginType";
 
-const std::string FILE_VERSION = AdaptiveEdges::ID.toStdString() + " 1.0\n";
+const std::string FILE_VERSION = AdaptiveEdgesID.toStdString() + " 1.0\n";
 const char SEP = ',';
 
 //-----------------------------------------------------------------------------
-AdaptiveEdges::AdaptiveEdges(bool computeEdges)
-: m_computeAdaptiveEdges(computeEdges)
-, m_computedVolume(0)
+AdaptiveEdges::AdaptiveEdges(bool useAdaptiveEdges)
+: m_useAdaptiveEdges(useAdaptiveEdges)
 {
-  for (int face = 0; face < 6; face++)
-    m_PolyDataFaces[face] = NULL;
-
 }
 
 //-----------------------------------------------------------------------------
 AdaptiveEdges::~AdaptiveEdges()
 {
+  if (m_channel)
+    invalidate();
 }
 
 //-----------------------------------------------------------------------------
 ModelItem::ExtId AdaptiveEdges::id()
 {
-  return ID;
-}
-
-//-----------------------------------------------------------------------------
-void AdaptiveEdges::initialize(ModelItem::Arguments args)
-{
-  qDebug() << "Initialize" << m_channel->data().toString() << ID;
-  ModelItem::Arguments extArgs(args.value(ID, QString()));
-
-  if (extArgs.contains(EDGETYPE))
-  {
-    m_computeAdaptiveEdges = extArgs[EDGETYPE] == "Yes";
-
-    m_args = extArgs;
-  } else
-  {
-    m_args[EDGETYPE] = m_computeAdaptiveEdges?"Yes":"No";
-  }
-
-  if (m_computeAdaptiveEdges)
-    computeAdaptiveEdges();
-
-  m_init = true;
+  return AdaptiveEdgesID;
 }
 
 //-----------------------------------------------------------------------------
 void AdaptiveEdges::computeAdaptiveEdges()
 {
-  qDebug() << "Computing Adaptive Edges" << m_channel->data().toString() << ID;
-  m_edges = vtkSmartPointer<vtkPolyData>::New();
+  qDebug() << "Computing Adaptive Edges" << m_channel->data().toString() << AdaptiveEdgesID;
+  ExtensionData &data = s_cache[m_channel].Data;
+
+  data.Edges = vtkSmartPointer<vtkPolyData>::New();
+  data.UseAdaptiveEdges = true;
 
   EdgeDetector *marginDetector = new EdgeDetector(this);
   connect(marginDetector, SIGNAL(finished()),
           marginDetector, SLOT(deleteLater()));
   marginDetector->start();
-
-  s_cache[m_channel].UseAdaptiveEdges = true;
 }
 
-//-----------------------------------------------------------------------------
-QString AdaptiveEdges::serialize() const
-{
-  return m_args.serialize();
-}
+typedef vtkSmartPointer<vtkGenericDataObjectReader> VTKReader;
 
 //-----------------------------------------------------------------------------
-bool AdaptiveEdges::loadCache(QuaZipFile &file, const QDir &tmpDir, EspinaModel *model)
+void AdaptiveEdges::loadEdgesCache(ChannelPtr channel)
 {
-  QString header(file.readLine());
-  if (header.toStdString() != FILE_VERSION)
-    return false;
+  ExtensionData &data = s_cache[channel].Data;
 
-  char buffer[1024];
-  while (file.readLine(buffer, sizeof(buffer)) > 0)
+  if (data.Edges.GetPointer() == NULL && !channel->isVolumeModified())
   {
-    QString line(buffer);
-    QStringList fields = line.split(SEP);
+    QString edgesFile = QString(EDGES_FILE + "%1.vtp").arg(fileId(channel));
+    QFileInfo file(channel->filter()->cacheDir().absoluteFilePath(edgesFile));
 
-    ChannelPtr extensionChannel = NULL;
-    int i = 0;
-    while (!extensionChannel && i < model->channels().size())
+    if (file.exists())
     {
-      ChannelSPtr channel = model->channels()[i];
-      if ( channel->filter()->id()       == fields[0]
-        && channel->outputId()           == fields[1].toInt()
-        && channel->filter()->cacheDir() == tmpDir)
-      {
-        extensionChannel = channel.data();
-      }
-      i++;
-    }
-    Q_ASSERT(extensionChannel);
+      VTKReader reader = VTKReader::New();
+      reader->SetFileName(file.absoluteFilePath().toStdString().c_str());
+      reader->SetReadAllFields(true);
+      reader->Update();
 
-    s_cache[extensionChannel].UseAdaptiveEdges = fields[2].toInt();
+      data.Edges = vtkSmartPointer<vtkPolyData>(reader->GetPolyDataOutput());
+    }
+  }
+}
+
+//-----------------------------------------------------------------------------
+void AdaptiveEdges::loadFacesCache(ChannelPtr channel)
+{
+  ExtensionData &data = s_cache[channel].Data;
+
+  if (data.Faces[0].GetPointer() == NULL && !channel->isVolumeModified())
+  {
+    for (int i = 0; i < 6; ++i)
+    {
+      QString edgesFile = QString(FACES_FILE + "%1_%2.vtp").arg(fileId(channel)).arg(i);
+      QFileInfo file(channel->filter()->cacheDir().absoluteFilePath(edgesFile));
+
+      if (file.exists())
+      {
+        VTKReader reader = VTKReader::New();
+        reader->SetFileName(file.absoluteFilePath().toStdString().c_str());
+        reader->SetReadAllFields(true);
+        reader->Update();
+
+        data.Faces[i] = vtkSmartPointer<vtkPolyData>(reader->GetPolyDataOutput());
+      }
+    }
+  }
+}
+
+//-----------------------------------------------------------------------------
+ChannelPtr AdaptiveEdges::findChannel(const QString &id,
+                                      int outputId,
+                                      const QDir &tmpDir,
+                                      EspinaModel *model)
+{
+  ChannelPtr extensionChannel = NULL;
+
+  int i = 0;
+  while (!extensionChannel && i < model->channels().size())
+  {
+    ChannelSPtr channel = model->channels()[i];
+    if ( channel->filter()->id()       == id
+      && channel->outputId()           == outputId
+      && channel->filter()->cacheDir() == tmpDir)
+    {
+      extensionChannel = channel.data();
+    }
+    i++;
   }
 
-  return true;
+  return extensionChannel;
 }
 
+//-----------------------------------------------------------------------------
+void AdaptiveEdges::loadCache(QuaZipFile &file,
+                              const QDir &tmpDir,
+                              EspinaModel *model)
+{
+  QString header(file.readLine());
+  if (header.toStdString() == FILE_VERSION)
+  {
+    char buffer[1024];
+    while (file.readLine(buffer, sizeof(buffer)) > 0)
+    {
+      QString line(buffer);
+      QStringList fields = line.split(SEP);
+
+      ChannelPtr extensionChannel = findChannel(fields[0], fields[1].toInt(), tmpDir, model);
+      if (extensionChannel)
+      {
+        ExtensionData &data = s_cache[extensionChannel].Data;
+
+        data.UseAdaptiveEdges = fields[2].toInt();
+        data.ComputedVolume   = fields[3].toDouble();
+      }
+      else 
+      {
+        qWarning() << AdaptiveEdgesID << "Invalid Cache Entry:" << line;
+      }
+    }
+  }
+}
+
+typedef vtkSmartPointer<vtkGenericDataObjectWriter> VTKWriter;
 
 //-----------------------------------------------------------------------------
 bool AdaptiveEdges::saveCache(Snapshot &snapshot)
 {
-  // TODO: save disabled
-  return false;
+  s_cache.purge();
 
   if (s_cache.isEmpty())
     return false;
@@ -172,19 +212,52 @@ bool AdaptiveEdges::saveCache(Snapshot &snapshot)
   ChannelPtr channel;
   foreach(channel, s_cache.keys())
   {
-    cache << channel->filter()->id().toStdString();
+    ExtensionData &data = s_cache[channel].Data;
+
+    QString channelId = channel->filter()->id();
+
+    cache << channelId.toStdString();
     cache << SEP << channel->outputId();
 
-    cache << SEP << s_cache[channel].UseAdaptiveEdges;
+    cache << SEP << data.UseAdaptiveEdges;
+    cache << SEP << data.ComputedVolume;
 
     cache << std::endl;
+
+    VTKWriter polyWriter = VTKWriter::New();
+
+    if (data.UseAdaptiveEdges)
+    {
+      loadEdgesCache(channel);
+      if (data.Edges)
+      {
+        channelId += QString("-%1").arg(channel->outputId());
+        polyWriter->SetInputConnection(data.Edges->GetProducerPort());
+        polyWriter->SetFileTypeToBinary();
+        polyWriter->WriteToOutputStringOn();
+        polyWriter->Write();
+
+        QByteArray  edges(polyWriter->GetOutputString(), polyWriter->GetOutputStringLength());
+        snapshot << SnapshotEntry(QString(EDGES_FILE + "%1.vtp").arg(channelId), edges);
+      }
+
+      loadFacesCache(channel);
+      for(int i = 0; i < 6; i++)
+      {
+        if (data.Faces[i])
+        {
+          polyWriter->SetInputConnection(data.Faces[i]->GetProducerPort());
+          polyWriter->Update();
+          polyWriter->Write();
+
+          QByteArray face(polyWriter->GetOutputString(), polyWriter->GetOutputStringLength());
+          snapshot << SnapshotEntry(QString(FACES_FILE + "%1_%2.vtp").arg(channelId).arg(i), face);
+        }
+      }
+    }
   }
 
   snapshot << SnapshotEntry(EXTENSION_FILE, cache.str().c_str());
-
-//   vtkSmartPointer<vtkPolyDataWriter> edgesWriter = vtkSmartPointer<vtkPolyDataWriter>::New();
-//   edgesWriter->WriteToOutputStringOn();
-//   //edgesWriter->SetFileTypeToBinary();
 
 
   return true;
@@ -197,6 +270,33 @@ Channel::ExtensionPtr AdaptiveEdges::clone()
 }
 
 typedef std::pair<unsigned int, unsigned long int> ComputedSegmentation;
+
+//-----------------------------------------------------------------------------
+void AdaptiveEdges::initialize()
+{
+  if (s_cache.isCached(m_channel))
+  {
+    s_cache.markAsClean(m_channel);
+
+    m_useAdaptiveEdges = s_cache[m_channel].Data.UseAdaptiveEdges;
+  } else  if (m_useAdaptiveEdges)
+  {
+    computeAdaptiveEdges();
+  }
+}
+
+//-----------------------------------------------------------------------------
+void AdaptiveEdges::invalidate(ChannelPtr channel)
+{
+  if (!channel)
+    channel = m_channel;
+
+  if (s_cache.isCached(channel))
+  {
+    qDebug() << "Invalidate" << channel->data().toString();
+    s_cache.markAsDirty(channel);
+  }
+}
 
 //-----------------------------------------------------------------------------
 void AdaptiveEdges::computeDistanceToEdge(SegmentationPtr seg)
@@ -219,9 +319,13 @@ void AdaptiveEdges::computeDistanceToEdge(SegmentationPtr seg)
 
   Nm distance[6], smargins[6];
   seg->volume()->bounds(smargins);
-  if (m_computeAdaptiveEdges)
+
+  ExtensionData &data = s_cache[m_channel].Data;
+  if (m_useAdaptiveEdges)
   {
-    if (NULL == m_PolyDataFaces[0])
+    loadFacesCache(m_channel);
+
+    if (NULL == data.Faces[0])
       ComputeSurfaces();
 
     for(int face = 0; face < 6; face++)
@@ -229,7 +333,7 @@ void AdaptiveEdges::computeDistanceToEdge(SegmentationPtr seg)
       vtkSmartPointer<vtkDistancePolyDataFilter> distanceFilter = vtkSmartPointer<vtkDistancePolyDataFilter>::New();
       distanceFilter->SignedDistanceOff();
       distanceFilter->SetInputConnection( 0, seg->volume()->toMesh());
-      distanceFilter->SetInputConnection( 1, m_PolyDataFaces[face]->GetProducerPort());
+      distanceFilter->SetInputConnection( 1, data.Faces[face]->GetProducerPort());
       distanceFilter->Update();
       distance[face] = distanceFilter->GetOutput()->GetPointData()->GetScalars()->GetRange()[0];
     }
@@ -249,27 +353,39 @@ void AdaptiveEdges::computeDistanceToEdge(SegmentationPtr seg)
 //-----------------------------------------------------------------------------
 vtkSmartPointer<vtkPolyData> AdaptiveEdges::channelEdges()
 {
+  loadEdgesCache(m_channel);
+
+  ExtensionData &data = s_cache[m_channel].Data;
   // Ensure Margin Detector's finished
-  if (m_edges.GetPointer() == NULL)
+  if (data.Edges.GetPointer() == NULL)
     computeAdaptiveEdges();
 
   m_mutex.lock();
-  Q_ASSERT(m_edges.GetPointer() != NULL);
+  Q_ASSERT(data.Edges.GetPointer() != NULL);
   m_mutex.unlock();
 
-  return m_edges;
+  return data.Edges;
 }
 
 //-----------------------------------------------------------------------------
 Nm AdaptiveEdges::computedVolume()
 {
-  // Ensure Margin Detector's finished
-  if (m_edges.GetPointer() == NULL)
-    computeAdaptiveEdges();
+  Nm volume;
+  if (m_useAdaptiveEdges)
+  {
+    loadEdgesCache(m_channel);
 
-  m_mutex.lock();
-  m_mutex.unlock();
-  return m_computedVolume;
+    ExtensionData &data = s_cache[m_channel].Data;
+    // Ensure Margin Detector's finished
+    if (data.Edges.GetPointer() == NULL)
+      computeAdaptiveEdges();
+
+    m_mutex.lock();
+    volume = data.ComputedVolume;
+    m_mutex.unlock();
+  }
+
+  return volume;
 }
 
 
@@ -278,8 +394,10 @@ void AdaptiveEdges::ComputeSurfaces()
 {
   m_mutex.lock();
 
-  vtkPoints *borderPoints = m_edges->GetPoints();
-  int sliceNum = m_edges->GetNumberOfPoints()/4;
+  ExtensionData &data = s_cache[m_channel].Data;
+
+  vtkPoints *borderPoints = data.Edges->GetPoints();
+  int sliceNum = data.Edges->GetNumberOfPoints()/4;
 
   for (int face = 0; face < 6; face++)
   {
@@ -351,12 +469,19 @@ void AdaptiveEdges::ComputeSurfaces()
     poly->SetPoints(facePoints);
     poly->SetPolys(faceCells);
 
-    m_PolyDataFaces[face] = poly;
+    data.Faces[face] = poly;
   }
   m_mutex.unlock();
 }
 
+//-----------------------------------------------------------------------------
+QString AdaptiveEdges::fileId(ChannelPtr channel) const
+{
+  return QString("%1-%2").arg(channel->filter()->id()).arg(channel->outputId());
+}
 
+
+//-----------------------------------------------------------------------------
 AdaptiveEdgesPtr EspINA::adaptiveEdgesPtr(Channel::ExtensionPtr extension)
 {
   return dynamic_cast<AdaptiveEdgesPtr>(extension);

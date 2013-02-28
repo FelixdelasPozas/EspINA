@@ -96,7 +96,7 @@ MorphologicalInformation::MorphologicalInformation()
 //------------------------------------------------------------------------
 MorphologicalInformation::~MorphologicalInformation()
 {
-  if (m_seg)
+  if (m_segmentation)
   {
     //qDebug() << m_seg->data().toString() << ": Deleting" << MorphologicalInformationID;
     invalidate();
@@ -132,8 +132,8 @@ Segmentation::InfoTagList MorphologicalInformation::availableInformations() cons
 //------------------------------------------------------------------------
 QVariant MorphologicalInformation::information(const Segmentation::InfoTag &tag)
 {
-  bool cached = s_cache.isCached(m_seg);
-  bool requestedInvalidFeret = cached && (tag == FD && s_cache[m_seg].Data.FeretDiameter == -1);
+  bool cached = s_cache.isCached(m_segmentation);
+  bool requestedInvalidFeret = cached && (tag == FD && s_cache[m_segmentation].Data.FeretDiameter == -1);
 
   if (!cached || requestedInvalidFeret)
   {
@@ -143,7 +143,7 @@ QVariant MorphologicalInformation::information(const Segmentation::InfoTag &tag)
     updateInformation();
   }
 
-  ExtensionData &data = s_cache[m_seg].Data;
+  ExtensionData &data = s_cache[m_segmentation].Data;
 
   if (tag == SIZE)
     return data.Size;
@@ -200,71 +200,68 @@ QVariant MorphologicalInformation::information(const Segmentation::InfoTag &tag)
 }
 
 //------------------------------------------------------------------------
-bool MorphologicalInformation::loadCache(QuaZipFile  &file,
+void MorphologicalInformation::loadCache(QuaZipFile  &file,
                                          const QDir  &tmpDir,
                                          EspinaModel *model)
 {
   QString header(file.readLine());
-  if (header.toStdString() != FILE_VERSION)
-    return false;
-
-  char buffer[1024];
-  while (file.readLine(buffer, sizeof(buffer)) > 0)
+  if (header.toStdString() == FILE_VERSION)
   {
-    QString line(buffer);
-    QStringList fields = line.split(SEP);
-
-    SegmentationPtr extensionSegmentation = NULL;
-    int i = 0;
-    while (!extensionSegmentation && i < model->segmentations().size())
+    char buffer[1024];
+    while (file.readLine(buffer, sizeof(buffer)) > 0)
     {
-      SegmentationSPtr segmentation = model->segmentations()[i];
-      if ( segmentation->filter()->id()       == fields[0]
-        && segmentation->outputId()           == fields[1].toInt()
-        && segmentation->filter()->cacheDir() == tmpDir)
+      QString line(buffer);
+      QStringList fields = line.split(SEP);
+
+      SegmentationPtr extensionSegmentation = NULL;
+      int i = 0;
+      while (!extensionSegmentation && i < model->segmentations().size())
       {
-        extensionSegmentation = segmentation.data();
+        SegmentationSPtr segmentation = model->segmentations()[i];
+        if ( segmentation->filter()->id()       == fields[0]
+          && segmentation->outputId()           == fields[1].toInt()
+          && segmentation->filter()->cacheDir() == tmpDir)
+        {
+          extensionSegmentation = segmentation.data();
+        }
+        i++;
       }
-      i++;
-    }
-    if (extensionSegmentation)
-    {
-      ExtensionData &data = s_cache[extensionSegmentation].Data;
+      if (extensionSegmentation)
+      {
+        ExtensionData &data = s_cache[extensionSegmentation].Data;
 
-      data.Size = fields[2].toDouble();
-      data.PhysicalSize = fields[3].toDouble();
+        data.Size = fields[2].toDouble();
+        data.PhysicalSize = fields[3].toDouble();
 
-      data.Centroid[0] = fields[4].toDouble();
-      data.Centroid[1] = fields[5].toDouble();
-      data.Centroid[2] = fields[6].toDouble();
+        data.Centroid[0] = fields[4].toDouble();
+        data.Centroid[1] = fields[5].toDouble();
+        data.Centroid[2] = fields[6].toDouble();
 
-      data.BinaryPrincipalMoments[0] = fields[7].toDouble();
-      data.BinaryPrincipalMoments[1] = fields[8].toDouble();
-      data.BinaryPrincipalMoments[2] = fields[9].toDouble();
+        data.BinaryPrincipalMoments[0] = fields[7].toDouble();
+        data.BinaryPrincipalMoments[1] = fields[8].toDouble();
+        data.BinaryPrincipalMoments[2] = fields[9].toDouble();
 
-      data.BinaryPrincipalAxes[0][0] = fields[10].toDouble();
-      data.BinaryPrincipalAxes[0][1] = fields[11].toDouble();
-      data.BinaryPrincipalAxes[0][2] = fields[12].toDouble();
-      data.BinaryPrincipalAxes[1][0] = fields[13].toDouble();
-      data.BinaryPrincipalAxes[1][1] = fields[14].toDouble();
-      data.BinaryPrincipalAxes[1][2] = fields[15].toDouble();
-      data.BinaryPrincipalAxes[2][0] = fields[16].toDouble();
-      data.BinaryPrincipalAxes[2][1] = fields[17].toDouble();
-      data.BinaryPrincipalAxes[2][2] = fields[18].toDouble();
+        data.BinaryPrincipalAxes[0][0] = fields[10].toDouble();
+        data.BinaryPrincipalAxes[0][1] = fields[11].toDouble();
+        data.BinaryPrincipalAxes[0][2] = fields[12].toDouble();
+        data.BinaryPrincipalAxes[1][0] = fields[13].toDouble();
+        data.BinaryPrincipalAxes[1][1] = fields[14].toDouble();
+        data.BinaryPrincipalAxes[1][2] = fields[15].toDouble();
+        data.BinaryPrincipalAxes[2][0] = fields[16].toDouble();
+        data.BinaryPrincipalAxes[2][1] = fields[17].toDouble();
+        data.BinaryPrincipalAxes[2][2] = fields[18].toDouble();
 
-      data.FeretDiameter = fields[19].toDouble();
+        data.FeretDiameter = fields[19].toDouble();
 
-      data.EquivalentEllipsoidSize[0] = fields[20].toDouble();
-      data.EquivalentEllipsoidSize[1] = fields[21].toDouble();
-      data.EquivalentEllipsoidSize[2] = fields[22].toDouble();
-    } else
-    {
-      qWarning() << MorphologicalInformationID << "Invalid Cache Entry:" << line;
-    }
-  };
-
-
-  return true;
+        data.EquivalentEllipsoidSize[0] = fields[20].toDouble();
+        data.EquivalentEllipsoidSize[1] = fields[21].toDouble();
+        data.EquivalentEllipsoidSize[2] = fields[22].toDouble();
+      } else
+      {
+        qWarning() << MorphologicalInformationID << "Invalid Cache Entry:" << line;
+      }
+    };
+  }
 }
 
 //------------------------------------------------------------------------
@@ -341,19 +338,21 @@ Segmentation::InformationExtension MorphologicalInformation::clone()
 }
 
 //------------------------------------------------------------------------
-void MorphologicalInformation::initialize(ModelItem::Arguments args)
+void MorphologicalInformation::initialize()
 {
-  //qDebug() << "Initialize (empty)" << m_seg->data().toString() << ID;
-  s_cache.markAsClean(m_seg);
+  s_cache.markAsClean(m_segmentation);
 }
 
 //------------------------------------------------------------------------
-void MorphologicalInformation::invalidate()
+void MorphologicalInformation::invalidate(SegmentationPtr segmentation)
 {
-  if (m_seg)
+  if (!segmentation)
+    segmentation = m_segmentation;
+
+  if (segmentation)
   {
     //qDebug() << "Invalidate" << m_seg->data().toString() << MorphologicalInformationID;
-    s_cache.markAsDirty(m_seg);
+    s_cache.markAsDirty(segmentation);
   }
 }
 
@@ -361,7 +360,7 @@ void MorphologicalInformation::invalidate()
 void MorphologicalInformation::updateInformation()
 {
   //qDebug() << "Updating" << m_seg->data().toString() << ID;
-  m_labelMap->SetInput(m_seg->volume()->toITK());
+  m_labelMap->SetInput(m_segmentation->volume()->toITK());
   m_labelMap->Update();
   m_labelMap->Modified();
 
@@ -374,9 +373,9 @@ void MorphologicalInformation::updateInformation()
   {
     m_statistic = labelMap->GetNthLabelObject(0);
 
-    s_cache.markAsClean(m_seg);
+    s_cache.markAsClean(m_segmentation);
 
-    ExtensionData &data = s_cache[m_seg].Data;
+    ExtensionData &data = s_cache[m_segmentation].Data;
 
     data.Size         = static_cast<unsigned int>(m_statistic->GetNumberOfPixels());
 

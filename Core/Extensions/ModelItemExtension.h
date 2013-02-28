@@ -35,7 +35,6 @@ namespace EspINA
   class ModelItem::Extension
   : public QObject
   {
-    Q_OBJECT
   public:
     template<class D>
     class CacheEntry
@@ -96,14 +95,9 @@ namespace EspINA
 
     virtual bool isCacheFile(const QString &file) const = 0;
 
-    virtual bool loadCache(QuaZipFile &file, const QDir &tmpDir, EspinaModel *model) = 0;
+    virtual void loadCache(QuaZipFile &file, const QDir &tmpDir, EspinaModel *model) = 0;
 
     virtual bool saveCache(Snapshot &cacheList) = 0;
-
-    virtual void initialize(ModelItem::Arguments args = ModelItem::Arguments()) = 0;
-
-  public slots:
-    virtual void invalidate() {};//TODO: Change to abstract
 
   protected:
     Extension() : m_init(false) {}

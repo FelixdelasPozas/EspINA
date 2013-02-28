@@ -251,20 +251,25 @@ EspinaIO::STATUS EspinaIO::loadSegFile(QFileInfo    file,
             }
           }
 
-          // Otherwise is an Espina Volumes
+          // Otherwise save it to the temporal directory
           if (!extensionFile)
           {
-            QFile destination(temporalDir.path() + QString("/") + file.fileName());
+            QFileInfo destination = temporalDir.absoluteFilePath(file.filePath());
+            if (!destination.absoluteDir().exists())
+              temporalDir.mkpath(file.path());
+
+            QFile destinationFile(destination.absoluteFilePath());
             /*qDebug()<< "Permissions set" <<
              *       destination.setPermissions(QFile::ReadOwner | QFile::WriteOwner |
              *                                  QFile::ReadGroup | QFile::ReadOther);*/
-            if (!destination.open(QIODevice::WriteOnly | QIODevice::Truncate))
+            if (!destinationFile.open(QIODevice::WriteOnly | QIODevice::Truncate))
             {
               if (handler)
-                handler->warning("IOEspinaFile::loadFile: could not create file " + destination.fileName() + " in " + temporalDir.path());
+                handler->warning("IOEspinaFile::loadFile: could not create file " + destinationFile.fileName() + " in " + temporalDir.path());
             }
-            destination.write(espinaFile.readAll());
-            destination.close();
+
+            destinationFile.write(espinaFile.readAll());
+            destinationFile.close();
           }
         }
 

@@ -186,14 +186,23 @@ void Segmentation::initialize(const Arguments &args)
 }
 
 //------------------------------------------------------------------------
-void Segmentation::initializeExtensions(const Arguments &args)
+void Segmentation::initializeExtensions()
 {
-//   qDebug() << "Initializing" << data().toString() << "extensions:";
-  foreach(ModelItem::ExtensionPtr ext, m_informationExtensions)
+  //qDebug() << "Initializing" << data().toString() << "extensions:";
+  foreach(Segmentation::InformationExtension ext, m_informationExtensions)
   {
     Q_ASSERT(ext);
     qDebug() << "Initializing" << data().toString() << ext->id() << "extension";
-    ext->initialize(args);
+    ext->initialize();
+  }
+}
+
+//------------------------------------------------------------------------
+void Segmentation::invalidateExtensions()
+{
+  foreach(InformationExtension infoExtension, m_informationExtensions)
+  {
+    infoExtension->invalidate();
   }
 }
 
@@ -377,8 +386,6 @@ void Segmentation::addExtension(Segmentation::InformationExtension extension)
     Q_ASSERT(!m_informationTagProvider.contains(tag));
     m_informationTagProvider.insert(tag, extension);
   }
-
-  extension->initialize();
 }
 
 //------------------------------------------------------------------------
@@ -387,14 +394,6 @@ Segmentation::InformationExtension Segmentation::informationExtension(const Mode
   return m_informationExtensions.value(name, NULL);
 }
 
-//------------------------------------------------------------------------
-void Segmentation::invalidateExtensions()
-{
-  foreach(InformationExtension infoExtension, m_informationExtensions)
-  {
-    infoExtension->invalidate();
-  }
-}
 
 //------------------------------------------------------------------------
 Segmentation::InfoTagList Segmentation::availableInformations() const

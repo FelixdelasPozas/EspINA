@@ -77,7 +77,7 @@ namespace EspINA
     virtual bool isCacheFile(const QString &file) const
     { return EXTENSION_FILE == file; }
 
-    virtual bool loadCache(QuaZipFile  &file,
+    virtual void loadCache(QuaZipFile  &file,
                            const QDir  &tmpDir,
                            EspinaModel *model);
 
@@ -85,9 +85,9 @@ namespace EspINA
 
     virtual Segmentation::InformationExtension clone();
 
-    virtual void initialize(ModelItem::Arguments args = ModelItem::Arguments());
+    virtual void initialize();
 
-    virtual void invalidate();
+    virtual void invalidate(SegmentationPtr segmentation = NULL);
 
   private:
     void updateInformation();

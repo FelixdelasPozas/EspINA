@@ -37,27 +37,20 @@
 
 using namespace EspINA;
 
-typedef ModelItem::ArgumentId ArgumentId;
-
-const ModelItem::ExtId ID_1_2_5 = "CountingRegionExtension"; //Backwards compatibility
-
-const ArgumentId CountingFrameExtension::COUNTING_FRAMES = "CFs";
-const ArgumentId COUNTING_FRAMES_1_2_5 = "Regions"; // Backwards compatibility versions < 1.2.5
-
 const QString CountingFrameExtension::EXTENSION_FILE = CountingFrameExtensionID + "/CountingFrameExtension.ext";
 
-QMap<ChannelPtr, CountingFrameExtension::CacheEntry> CountingFrameExtension::s_cache;
-
 const std::string FILE_VERSION = CountingFrameExtensionID.toStdString() + " 1.0\n";
+
 const char SEP = ';';
 
-//-----------------------------------------------------------------------------
-CountingFrameExtension::CountingFrameExtension(CountingFramePanel* plugin,
-                                               ViewManager *vm)
-: m_plugin(plugin)
-, m_viewManager(vm)
-{
+CountingFrameExtension::ExtensionCache CountingFrameExtension::s_cache;
 
+//-----------------------------------------------------------------------------
+CountingFrameExtension::CountingFrameExtension(CountingFramePanel *plugin,
+                                               ViewManager        *viewManager)
+: m_plugin(plugin)
+, m_viewManager(viewManager)
+{
 }
 
 //-----------------------------------------------------------------------------
@@ -68,135 +61,122 @@ CountingFrameExtension::~CountingFrameExtension()
     m_plugin->deleteCountingFrame(cf);
 }
 
-//-----------------------------------------------------------------------------
-void CountingFrameExtension::initialize(ModelItem::Arguments args)
-{
-  qDebug() << "Initialize" << m_channel->data().toString() << CountingFrameExtensionID;
-  ModelItem::Arguments extArgs(args.value(CountingFrameExtensionID, QString()));
-  QStringList countingFrames;
-
-  if (extArgs.isEmpty())
-  {
-    extArgs = ModelItem::Arguments(args.value(ID_1_2_5, QString()));
-    countingFrames = extArgs.value(COUNTING_FRAMES_1_2_5, "").split(";", QString::SkipEmptyParts);
-  }
-  else
-  {
-    countingFrames = extArgs.value(COUNTING_FRAMES, "").split(";", QString::SkipEmptyParts);
-  }
-
-  foreach (QString countingFrame, countingFrames)
-  {
-    if (countingFrame.isEmpty())
-      continue;
-
-    QString type = countingFrame.section('=',0,0);
-    QStringList margins = countingFrame.section('=',-1).split(',');
-    Nm inclusion[3], exclusion[3];
-    for (int i=0; i<3; i++)
-    {
-      inclusion[i] = margins[i].toDouble();
-      exclusion[i] = margins[3+i].toDouble();
-    }
-    if (RectangularCountingFrame::ID == type)
-      m_plugin->createRectangularCF(m_channel, inclusion, exclusion);
-    else if (AdaptiveCountingFrame::ID == type)
-      m_plugin->createAdaptiveCF(m_channel, inclusion, exclusion);
-  }
-//   m_viewManager->updateSegmentationRepresentations();
-//   m_viewManager->updateViews();
-}
-
-//-----------------------------------------------------------------------------
-QString CountingFrameExtension::serialize() const
-{
-  qDebug() << "Deprecated serialize" << m_channel->data().toString() << CountingFrameExtensionID;
-  return QString();
-
-  QStringList cfValue;
-  foreach(CountingFrame *countingFrame, m_countingFrames)
-    cfValue << countingFrame->serialize();
-
-  m_args[COUNTING_FRAMES] = "[" + cfValue.join(";") + "]";
-  return m_args.serialize();
-}
+// //-----------------------------------------------------------------------------
+// void CountingFrameExtension::initialize(ModelItem::Arguments args)
+// {
+//   qDebug() << "Initialize" << m_channel->data().toString() << CountingFrameExtensionID;
+//   ModelItem::Arguments extArgs(args.value(CountingFrameExtensionID, QString()));
+//   QStringList countingFrames;
+// 
+//   if (extArgs.isEmpty())
+//   {
+//     extArgs = ModelItem::Arguments(args.value(ID_1_2_5, QString()));
+//     countingFrames = extArgs.value(COUNTING_FRAMES_1_2_5, "").split(";", QString::SkipEmptyParts);
+//   }
+//   else
+//   {
+//     countingFrames = extArgs.value(COUNTING_FRAMES, "").split(";", QString::SkipEmptyParts);
+//   }
+// 
+//   foreach (QString countingFrame, countingFrames)
+//   {
+//     if (countingFrame.isEmpty())
+//       continue;
+// 
+//     QString type = countingFrame.section('=',0,0);
+//     QStringList margins = countingFrame.section('=',-1).split(',');
+//     Nm inclusion[3], exclusion[3];
+//     for (int i=0; i<3; i++)
+//     {
+//       inclusion[i] = margins[i].toDouble();
+//       exclusion[i] = margins[3+i].toDouble();
+//     }
+//     if (RectangularCountingFrame::ID == type)
+//       m_plugin->createRectangularCF(m_channel, inclusion, exclusion);
+//     else if (AdaptiveCountingFrame::ID == type)
+//       m_plugin->createAdaptiveCF(m_channel, inclusion, exclusion);
+//   }
+// }
 
 //-----------------------------------------------------------------------------
 ModelItem::ExtIdList CountingFrameExtension::dependencies() const
 {
   ModelItem::ExtIdList deps;
-  deps << AdaptiveEdges::ID;
+  deps << AdaptiveEdgesID;
   return deps;
 }
 
 //-----------------------------------------------------------------------------
-bool CountingFrameExtension::loadCache(QuaZipFile  &file,
+void CountingFrameExtension::loadCache(QuaZipFile  &file,
                                        const QDir  &tmpDir,
                                        EspinaModel *model)
 {
   QString header(file.readLine());
-  if (header.toStdString() != FILE_VERSION)
-    return false;
-
-  ChannelPtr extensionChannel = NULL;
-  CountingFrameExtensionPtr cfExtension = NULL;
-
-  char buffer[1024];
-  while (file.readLine(buffer, sizeof(buffer)) > 0)
+  if (header.toStdString() == FILE_VERSION)
   {
-    QString line(buffer);
-    QStringList fields = line.split(SEP);
+    ChannelPtr extensionChannel = NULL;
+    CountingFrameExtensionPtr cfExtension = NULL;
 
-    if (fields.size() == 2)
+    char buffer[1024];
+    while (file.readLine(buffer, sizeof(buffer)) > 0)
     {
-      int i = 0;
-      while (!extensionChannel && i < model->channels().size())
+      QString line(buffer);
+      QStringList fields = line.split(SEP);
+
+      if (fields.size() == 2)
       {
-        ChannelSPtr channel = model->channels()[i];
-        if ( channel->filter()->id()       == fields[0]
-          && channel->outputId()           == fields[1].toInt()
-          && channel->filter()->cacheDir() == tmpDir)
+        int i = 0;
+        while (!extensionChannel && i < model->channels().size())
         {
-          extensionChannel = channel.data();
+          ChannelSPtr channel = model->channels()[i];
+          if ( channel->filter()->id()       == fields[0]
+            && channel->outputId()           == fields[1].toInt()
+            && channel->filter()->cacheDir() == tmpDir)
+          {
+            extensionChannel = channel.data();
+          }
+          i++;
         }
-        i++;
+        if (extensionChannel)
+        {
+          cfExtension = new CountingFrameExtension(m_plugin, m_viewManager);
+          extensionChannel->addExtension(cfExtension);
+        } else
+        {
+          qWarning() << CountingFrameExtensionID << "Invalid Cache Entry:" << line;
+        }
       }
-      Q_ASSERT(extensionChannel);
-
-      cfExtension = new CountingFrameExtension(m_plugin, m_viewManager);
-      extensionChannel->addExtension(cfExtension);
-    }
-    else if (fields.size() == 8)
-    {
-      CF cf;
-      CountingFrame::Id id = fields[0].toInt();
-
-      cf.Type = static_cast<CFType>(fields[1].toInt());
-      for(int i=0; i<3; i++)
-        cf.Inclusion[i] = fields[2+i].toDouble();
-      for(int i=0; i<3; i++)
-        cf.Exclusion[i] = fields[5+i].toDouble();
-
-      s_cache[extensionChannel].insert(id, cf);
-
-      switch(s_cache[extensionChannel][id].Type)
+      else if (fields.size() == 8)
       {
-        case ADAPTIVE:
-          cfExtension->addCountingFrame(AdaptiveCountingFrame::New(id, cfExtension, cf.Inclusion, cf.Exclusion, m_viewManager));
-          break;
-        case RECTANGULAR:
-          double borders[6];
-          extensionChannel->volume()->bounds(borders);
-          cfExtension->addCountingFrame(RectangularCountingFrame::New(id, cfExtension, borders, cf.Inclusion, cf.Exclusion, m_viewManager));
-          break;
-      };
+        CF cf;
+        CountingFrame::Id id = fields[0].toInt();
+
+        cf.Type = static_cast<CFType>(fields[1].toInt());
+        for(int i=0; i<3; i++)
+          cf.Inclusion[i] = fields[2+i].toDouble();
+        for(int i=0; i<3; i++)
+          cf.Exclusion[i] = fields[5+i].toDouble();
+
+        ExtensionData &data = s_cache[extensionChannel].Data;
+        data.insert(id, cf);
+
+        switch(data[id].Type)
+        {
+          case ADAPTIVE:
+            cfExtension->addCountingFrame(AdaptiveCountingFrame::New(id, cfExtension, cf.Inclusion, cf.Exclusion, m_viewManager));
+            break;
+          case RECTANGULAR:
+            double borders[6];
+            extensionChannel->volume()->bounds(borders);
+            cfExtension->addCountingFrame(RectangularCountingFrame::New(id, cfExtension, borders, cf.Inclusion, cf.Exclusion, m_viewManager));
+            break;
+        };
+      }
+      else
+        Q_ASSERT(false);
+
     }
-    else
-      Q_ASSERT(false);
-
   }
-
-  return true;
 }
 
 // File Output:
@@ -209,8 +189,8 @@ bool CountingFrameExtension::loadCache(QuaZipFile  &file,
 //-----------------------------------------------------------------------------
 bool CountingFrameExtension::saveCache(Snapshot &cacheList)
 {
-  // TODO: save disabled
   return false;
+  s_cache.purge();
 
   if (s_cache.isEmpty())
     return false;
@@ -225,9 +205,10 @@ bool CountingFrameExtension::saveCache(Snapshot &cacheList)
     cache << SEP << channel->outputId();
     cache << std::endl;
 
-    CacheEntry &channelCache = s_cache[channel];
-    CacheEntry::iterator cf = channelCache.begin();
-    while(cf != channelCache.end())
+    ExtensionData &data = s_cache[channel].Data;
+
+    ExtensionData::iterator cf = data.begin();
+    while(cf != data.end())
     {
       cache << cf.key();
       cache << SEP << cf->Type;
@@ -243,7 +224,7 @@ bool CountingFrameExtension::saveCache(Snapshot &cacheList)
     }
   }
 
-  cacheList << QPair<QString, QByteArray>(EXTENSION_FILE, cache.str().c_str());
+  cacheList << SnapshotEntry(EXTENSION_FILE, cache.str().c_str());
 
   return true;
 }
@@ -263,7 +244,9 @@ void CountingFrameExtension::addCountingFrame(CountingFrame* countingFrame)
   CF cf;
   cf.Type = static_cast<CFType>(countingFrame->type());
   countingFrame->margins(cf.Inclusion, cf.Exclusion);
-  s_cache[m_channel].insert(countingFrame->id() ,cf);
+
+  s_cache[m_channel].Data.insert(countingFrame->id() ,cf);
+  s_cache.markAsClean(m_channel);
 
   SampleSPtr sample = m_channel->sample();
   foreach(SegmentationPtr segmentation, sample->segmentations())
@@ -288,6 +271,19 @@ void CountingFrameExtension::deleteCountingFrame(CountingFrame* countingFrame)
     inclusionExtension->setCountingFrames(m_countingFrames);
   }
 }
+
+//-----------------------------------------------------------------------------
+void CountingFrameExtension::initialize()
+{
+
+}
+
+//-----------------------------------------------------------------------------
+void CountingFrameExtension::invalidate(ChannelPtr channel)
+{
+
+}
+
 
 //-----------------------------------------------------------------------------
 void CountingFrameExtension::countinfFrameUpdated(CountingFrame* countingFrame)

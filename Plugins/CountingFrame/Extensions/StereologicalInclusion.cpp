@@ -54,43 +54,13 @@ StereologicalInclusion::StereologicalInclusion()
 //------------------------------------------------------------------------
 StereologicalInclusion::~StereologicalInclusion()
 {
-  qDebug() << "Deleting" << m_seg->data().toString() << ID;
+  qDebug() << "Deleting" << m_segmentation->data().toString() << ID;
 }
 
 //------------------------------------------------------------------------
 ModelItem::ExtId StereologicalInclusion::id()
 {
   return ID;
-}
-
-//------------------------------------------------------------------------
-void StereologicalInclusion::initialize(ModelItem::Arguments args)
-{
-  qDebug() << "Initialize (ignore args)" << m_seg->data().toString() << ID;
-
-  SampleSPtr sample = m_seg->sample();
-
-  ModelItemSList relatedChannels = sample->relatedItems(EspINA::OUT, Channel::STAIN_LINK);
-  Q_ASSERT(relatedChannels.size() > 0);
-
-  CountingFrameList countingFrames;
-  for (int i = 0; i < relatedChannels.size(); i++)
-  {
-    ChannelSPtr channel = channelPtr(relatedChannels[i]);
-    Channel::ExtensionPtr ext = channel->extension(CountingFrameExtensionID);
-    if (ext)
-    {
-      CountingFrameExtension *channelExt = dynamic_cast<CountingFrameExtension *>(ext);
-      countingFrames << channelExt->countingFrames();
-    }
-  }
-
-  m_isOnEdge = isOnEdge();
-
-  setCountingFrames(countingFrames);
-
-  connect(m_seg, SIGNAL(modified(ModelItemPtr)),
-          this, SLOT(evaluateCountingFrames()));
 }
 
 //------------------------------------------------------------------------
@@ -116,12 +86,12 @@ QVariant StereologicalInclusion::information(const Segmentation::InfoTag &tag)
 {
   if (EXCLUDED == tag)
   {
-    bool cached = s_cache.contains(m_seg);
+    bool cached = s_cache.contains(m_segmentation);
     if (!cached)
       evaluateCountingFrames();
 
     QStringList excludingCFs;
-    foreach(int countingFrame, s_cache[m_seg])
+    foreach(int countingFrame, s_cache[m_segmentation])
     {
       excludingCFs << QString::number(countingFrame);
     }
@@ -155,10 +125,9 @@ foreach(CountingFrame *countingFrame, newCF.subtract(prevCF))
 }
 
 //------------------------------------------------------------------------
-bool StereologicalInclusion::loadCache(QuaZipFile &file, const QDir &tmpDir, EspinaModel *model)
+void StereologicalInclusion::loadCache(QuaZipFile &file, const QDir &tmpDir, EspinaModel *model)
 {
   // TODO: 
-  return false;
 }
 
 //------------------------------------------------------------------------
@@ -196,6 +165,43 @@ Segmentation::InformationExtension StereologicalInclusion::clone()
 }
 
 //------------------------------------------------------------------------
+void StereologicalInclusion::initialize()
+{
+//   qDebug() << "Initialize (ignore args)" << m_seg->data().toString() << ID;
+// 
+//   SampleSPtr sample = m_seg->sample();
+// 
+//   ModelItemSList relatedChannels = sample->relatedItems(EspINA::OUT, Channel::STAIN_LINK);
+//   Q_ASSERT(relatedChannels.size() > 0);
+// 
+//   CountingFrameList countingFrames;
+//   for (int i = 0; i < relatedChannels.size(); i++)
+//   {
+//     ChannelSPtr channel = channelPtr(relatedChannels[i]);
+//     Channel::ExtensionPtr ext = channel->extension(CountingFrameExtensionID);
+//     if (ext)
+//     {
+//       CountingFrameExtension *channelExt = dynamic_cast<CountingFrameExtension *>(ext);
+//       countingFrames << channelExt->countingFrames();
+//     }
+//   }
+// 
+//   m_isOnEdge = isOnEdge();
+// 
+//   setCountingFrames(countingFrames);
+// 
+//   connect(m_seg, SIGNAL(modified(ModelItemPtr)),
+//           this, SLOT(evaluateCountingFrames()));
+}
+
+//------------------------------------------------------------------------
+void StereologicalInclusion::invalidate(SegmentationPtr segmentation)
+{
+
+}
+
+
+//------------------------------------------------------------------------
 bool StereologicalInclusion::isExcluded() const
 {
   bool excluded = false;
@@ -219,7 +225,7 @@ bool StereologicalInclusion::isExcluded() const
 //------------------------------------------------------------------------
 void StereologicalInclusion::evaluateCountingFrames()
 {
-  qDebug() << "Evaluate Counting Frames" << m_seg->data().toString() << ID;
+  qDebug() << "Evaluate Counting Frames" << m_segmentation->data().toString() << ID;
   m_isOnEdge = isOnEdge();
 
   foreach(CountingFrame *cf, m_isExcludedFrom.keys())
@@ -235,15 +241,15 @@ void StereologicalInclusion::evaluateCountingFrame(CountingFrame* countingFrame)
   m_isExcludedFrom[countingFrame] = excluded;
 
   if (excluded)
-    s_cache[m_seg].insert(countingFrame->id());
+    s_cache[m_segmentation].insert(countingFrame->id());
   else
-    s_cache[m_seg].remove(countingFrame->id());
+    s_cache[m_segmentation].remove(countingFrame->id());
 
   QString tag       = "CountingFrameCondition %1";
   QString condition = excluded?
                       "<font color=\"red\">"   + tr("Excluded from Counting Frame %1").arg(countingFrame->id()) + "</font>":
                       "<font color=\"green\">" + tr("Included in Counting Frame %1"   ).arg(countingFrame->id()) + "</font>";
-  m_seg->addCondition(tag.arg(countingFrame->id()), ":/apply.svg", condition);
+  m_segmentation->addCondition(tag.arg(countingFrame->id()), ":/apply.svg", condition);
 }
 
 
@@ -252,10 +258,10 @@ bool StereologicalInclusion::isExcludedFromCountingFrame(CountingFrame* counting
 {
   const TaxonomyElement *taxonomicalConstraint = countingFrame->taxonomicalConstraint();
 
-  if (taxonomicalConstraint && m_seg->taxonomy() != taxonomicalConstraint)
+  if (taxonomicalConstraint && m_segmentation->taxonomy() != taxonomicalConstraint)
     return true;
 
-  EspinaRegion inputBB = m_seg->volume()->espinaRegion();
+  EspinaRegion inputBB = m_segmentation->volume()->espinaRegion();
 
   vtkPolyData  *region       = countingFrame->region();
   vtkPoints    *regionPoints = region->GetPoints();
@@ -320,7 +326,7 @@ bool StereologicalInclusion::isOnEdge()
   bool excluded  = false;
   Nm   threshold = 1.0;
 
-  Segmentation::InformationExtension ext = m_seg->informationExtension(EdgeDistanceID);
+  Segmentation::InformationExtension ext = m_segmentation->informationExtension(EdgeDistanceID);
   if (ext)
   {
     EdgeDistancePtr distanceExtension = dynamic_cast<EdgeDistancePtr>(ext);
@@ -329,7 +335,7 @@ bool StereologicalInclusion::isOnEdge()
     while (!excluded && i < tags.size())
     {
       bool ok = false;
-      double dist = m_seg->information(tags[i++]).toDouble(&ok);
+      double dist = m_segmentation->information(tags[i++]).toDouble(&ok);
       excluded = ok && dist < threshold;
     }
   }
@@ -340,12 +346,12 @@ bool StereologicalInclusion::isOnEdge()
 //------------------------------------------------------------------------
 bool StereologicalInclusion::isRealCollision(EspinaRegion interscetion)
 {
-  itkVolumeType::Pointer input = m_seg->volume()->toITK();
+  itkVolumeType::Pointer input = m_segmentation->volume()->toITK();
   for (int z = interscetion.zMin(); z <= interscetion.zMax(); z++)
     for (int y = interscetion.yMin(); y <= interscetion.yMax(); y++)
       for (int x = interscetion.xMin(); x <= interscetion.xMax(); x++)
       {
-        itkVolumeType::IndexType index = m_seg->volume()->index(x, y, z);
+        itkVolumeType::IndexType index = m_segmentation->volume()->index(x, y, z);
         if (input->GetLargestPossibleRegion().IsInside(index) && input->GetPixel(index))
           return true;
       }

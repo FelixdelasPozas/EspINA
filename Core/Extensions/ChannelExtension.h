@@ -29,17 +29,21 @@ namespace EspINA
   class Channel::Extension
   : public ModelItem::Extension
   {
+    Q_OBJECT
   public:
     virtual ~Extension(){}
 
-    void setChannel(Channel *channel) {m_channel = channel;}
-    virtual void initialize(ModelItem::Arguments args = ModelItem::Arguments()) = 0;
-    virtual QString serialize() const = 0;
+    virtual void setChannel(Channel *channel);
 
     virtual Channel *channel() const {return m_channel;}
 
     /// Prototype
     virtual Channel::ExtensionPtr clone() = 0;
+
+    virtual void initialize() = 0;
+
+  public slots:
+    virtual void invalidate(ChannelPtr channel = NULL) = 0;
 
   protected:
     explicit Extension() : m_channel(NULL){}

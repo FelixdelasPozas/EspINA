@@ -178,7 +178,7 @@ void AdaptiveCountingFrame::updateCountingFrameImplementation()
   m_inclusionVolume = 0;
 
   AdaptiveEdgesPtr edgesExtension = NULL;
-  Channel::ExtensionPtr extension = m_channel->extension(AdaptiveEdges::ID);
+  Channel::ExtensionPtr extension = m_channel->extension(AdaptiveEdgesID);
   if (extension)
   {
     edgesExtension = dynamic_cast<AdaptiveEdgesPtr>(extension);

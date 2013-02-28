@@ -29,6 +29,7 @@
 #include <Undo/AddSample.h>
 
 #include <Plugins/CountingFrame/Extensions/CountingFrameExtension.h>
+#include "../CountingFrame/CountingFrames/RectangularCountingFrame.h"
 
 #include <QApplication>
 #include <QFileDialog>
@@ -129,19 +130,21 @@ bool SegmhaImporter::readFile(const QFileInfo file, EspinaIO::ErrorHandler *hand
     segmentations << seg;
   }
 
-  Channel::ExtensionPtr cfExtension = channel->extension(CountingFrameExtensionID);
-  if (!cfExtension)
+  Channel::ExtensionPtr extension = channel->extension(CountingFrameExtensionID);
+  if (!extension)
   {
     Channel::ExtensionPtr prototype = m_model->factory()->channelExtension(CountingFrameExtensionID);
     if (prototype)
     {
-      cfExtension = prototype->clone();
-      channel->addExtension(cfExtension);
+      extension = prototype->clone();
+      channel->addExtension(extension);
     }
   }
 
- if (cfExtension)
+ if (extension)
   {
+    CountingFrameExtension *cfExtension = dynamic_cast<CountingFrameExtension *>(extension);
+
     Nm inclusive[3], exclusive[3];
     filter->countingFrame(inclusive, exclusive);
     double spacing[3];
@@ -152,13 +155,15 @@ bool SegmhaImporter::readFile(const QFileInfo file, EspinaIO::ErrorHandler *hand
       exclusive[i] = exclusive[i]*spacing[i];
     }
 
-    QString rcb = QString("RectangularCountingFrame=%1,%2,%3,%4,%5,%6;")
-      .arg(inclusive[0]).arg(inclusive[1]).arg(inclusive[2])
-      .arg(exclusive[0]).arg(exclusive[1]).arg(exclusive[2]);
-    //qDebug() << "Using Counting Frame" << rcb;
-    ModelItem::Arguments args;
-    args["CountingFrameExtension"] = "CFs=[" + rcb + "];";
-    cfExtension->initialize(args);
+    // TODO: 2013-02-28
+//     QString rcb = QString("RectangularCountingFrame=%1,%2,%3,%4,%5,%6;")
+//       .arg(inclusive[0]).arg(inclusive[1]).arg(inclusive[2])
+//       .arg(exclusive[0]).arg(exclusive[1]).arg(exclusive[2]);
+//     //qDebug() << "Using Counting Frame" << rcb;
+//     ModelItem::Arguments args;
+//     args["CountingFrameExtension"] = "CFs=[" + rcb + "];";
+//     extension->initialize(args);
+//     cfExtension->addCountingFrame();
   }
 
   m_model->addFilter(filter);

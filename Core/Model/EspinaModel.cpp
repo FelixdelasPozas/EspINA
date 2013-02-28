@@ -27,6 +27,8 @@
 #include "Core/Model/Taxonomy.h"
 #include "Core/IO/EspinaIO.h"
 #include "Core/IO/ErrorHandler.h"
+#include <Core/Extensions/SegmentationExtension.h>
+#include <Core/Extensions/ChannelExtension.h>
 #include "Filters/ChannelReader.h"
 
 
@@ -60,6 +62,13 @@ void EspinaModel::reset()
   {
     if (!m_segmentations.isEmpty())
     {
+      foreach(SegmentationSPtr segmentation, m_segmentations)
+      {
+        foreach(Segmentation::InformationExtension extension, m_factory->segmentationExtensions())
+        {
+          extension->invalidate(segmentation.data());
+        }
+      }
       m_segmentations.clear();
     }
     if (!m_filters.isEmpty())
@@ -68,6 +77,13 @@ void EspinaModel::reset()
     }
     if (!m_channels.isEmpty())
     {
+      foreach(ChannelSPtr channel, m_channels)
+      {
+        foreach(Channel::ExtensionPtr extension, m_factory->channelExtensions())
+        {
+          extension->invalidate(channel.data());
+        }
+      }
       m_channels.clear();
     }
     if (!m_samples.isEmpty())
@@ -994,6 +1010,8 @@ void EspinaModel::addChannelImplementation(ChannelSPtr channel)
 void EspinaModel::removeChannelImplementation(ChannelSPtr channel)
 {
   Q_ASSERT(!channel.isNull());
+
+  channel->invalidateExtensions();
 
   m_channels.removeOne(channel);
   m_relations->removeItem(channel.data());

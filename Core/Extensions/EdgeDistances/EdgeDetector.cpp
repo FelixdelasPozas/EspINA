@@ -100,7 +100,8 @@ void EdgeDetector::run()
   int extent[6];
   image->GetExtent(extent);
 
-  m_extension->m_computedVolume = 0;
+  AdaptiveEdges::ExtensionData &data = m_extension->s_cache[m_extension->m_channel].Data;
+  data.ComputedVolume = 0;
 
   //   vtkDebugMacro( << "Looking for borders");
 
@@ -239,11 +240,13 @@ void EdgeDetector::run()
     memcpy(lastCell,cell,4*sizeof(vtkIdType));
 
     if (z != zMin)
-      m_extension->m_computedVolume += ((RT[0] - LT[0] + 1)*(LB[1] - LT[1] + 1))*spacing[2];
+      data.ComputedVolume += ((RT[0] - LT[0] + 1)*(LB[1] - LT[1] + 1))*spacing[2];
   }
 
-  m_extension->m_edges->SetPoints(borderVertices);
-  m_extension->m_edges->SetPolys(faces);
+  data.Edges->SetPoints(borderVertices);
+  data.Edges->SetPolys(faces);
+
+  m_extension->s_cache.markAsClean(m_extension->m_channel);
 
   m_extension->m_mutex.unlock();
 }

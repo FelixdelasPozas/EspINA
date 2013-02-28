@@ -49,16 +49,17 @@ class StereologicalInclusion;
       Nm     Exclusion[3];
     };
 
-    typedef QMap<int, CF> CacheEntry;
+    typedef QMap<int, CF> ExtensionData;
 
-    static QMap<ChannelPtr, CacheEntry> s_cache;
+    typedef Cache<ChannelPtr, ExtensionData> ExtensionCache;
+
+    static ExtensionCache s_cache;
 
     static const QString EXTENSION_FILE;
 
   public:
-    static const ModelItem::ArgumentId COUNTING_FRAMES;
-
-    explicit CountingFrameExtension(CountingFramePanel *plugin, ViewManager *vm);
+    explicit CountingFrameExtension(CountingFramePanel *plugin,
+                                    ViewManager        *viewManager);
     virtual ~CountingFrameExtension();
 
     virtual ModelItem::ExtId id()
@@ -66,13 +67,10 @@ class StereologicalInclusion;
 
     virtual ModelItem::ExtIdList dependencies() const;
 
-    virtual void initialize(ModelItem::Arguments args = ModelItem::Arguments());
-    virtual QString serialize() const;
-
     virtual bool isCacheFile(const QString &file) const
     { return EXTENSION_FILE == file; }
 
-    virtual bool loadCache(QuaZipFile &file, const QDir &tmpDir, EspinaModel *model);
+    virtual void loadCache(QuaZipFile &file, const QDir &tmpDir, EspinaModel *model);
 
     virtual bool saveCache(Snapshot &cacheList);
 
@@ -82,6 +80,10 @@ class StereologicalInclusion;
     void deleteCountingFrame(CountingFrame *countingFrame);
 
     CountingFrameList countingFrames() const {return m_countingFrames;}
+
+    virtual void initialize();
+
+    virtual void invalidate(ChannelPtr channel = 0);
 
   protected slots:
     void countinfFrameUpdated(CountingFrame* countingFrame);
@@ -95,13 +97,10 @@ class StereologicalInclusion;
     CountingFramePanel *m_plugin;
     ViewManager        *m_viewManager;
     CountingFrameList   m_countingFrames;
-
-    mutable ModelItem::Arguments    m_args;
   };
 
   typedef CountingFrameExtension * CountingFrameExtensionPtr;
   CountingFrameExtensionPtr countingFrameExtensionPtr(Channel::ExtensionPtr extension);
-
 }
 
 #endif // COUNTINGFRAMEEXTENSION_H

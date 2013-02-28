@@ -60,16 +60,18 @@ namespace EspINA
 
     virtual QVariant information(const Segmentation::InfoTag &tag);
 
-    virtual void initialize(ModelItem::Arguments args = ModelItem::Arguments());
-
     virtual bool isCacheFile(const QString &file) const
     { return EXTENSION_FILE == file; }
 
-    virtual bool loadCache(QuaZipFile &file, const QDir &tmpDir, EspinaModel *model);
+    virtual void loadCache(QuaZipFile &file, const QDir &tmpDir, EspinaModel *model);
 
     virtual bool saveCache(Snapshot &cacheList);
 
     virtual Segmentation::InformationExtension clone();
+
+    virtual void initialize();
+
+    virtual void invalidate(SegmentationPtr segmentation = NULL);
 
     void setCountingFrames(CountingFrameList regions);
 

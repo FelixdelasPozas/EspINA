@@ -94,36 +94,31 @@ Segmentation::InfoTagList AppositionSurfaceExtension::availableInformations() co
 //------------------------------------------------------------------------
 QVariant AppositionSurfaceExtension::information(const Segmentation::InfoTag &tag)
 {
-  QString fullTaxonomy = m_seg->taxonomy()->qualifiedName();
+  QString fullTaxonomy = m_segmentation->taxonomy()->qualifiedName();
   if (!fullTaxonomy.startsWith(SAS+"/") && (fullTaxonomy.compare(SAS) != 0))
     return QVariant();
 
-  if (!s_cache.contains(m_seg))
+  if (!s_cache.contains(m_segmentation))
   {
-    AppositionSurfaceFilter *filter = dynamic_cast<AppositionSurfaceFilter *>(m_seg->filter().data());
-    s_cache[m_seg].Area = filter->getArea();
-    s_cache[m_seg].Perimeter = filter->getPerimeter();
-    s_cache[m_seg].Tortuosity = filter->getTortuosity();
-    s_cache[m_seg].FromSynapse = filter->getOriginSegmentation();
+    AppositionSurfaceFilter *filter = dynamic_cast<AppositionSurfaceFilter *>(m_segmentation->filter().data());
+    s_cache[m_segmentation].Area = filter->getArea();
+    s_cache[m_segmentation].Perimeter = filter->getPerimeter();
+    s_cache[m_segmentation].Tortuosity = filter->getTortuosity();
+    s_cache[m_segmentation].FromSynapse = filter->getOriginSegmentation();
   }
 
   if (AREA == tag)
-    return s_cache[m_seg].Area;
+    return s_cache[m_segmentation].Area;
   if (PERIMETER == tag)
-    return s_cache[m_seg].Perimeter;
+    return s_cache[m_segmentation].Perimeter;
   if (TORTUOSITY == tag)
-    return s_cache[m_seg].Tortuosity;
+    return s_cache[m_segmentation].Tortuosity;
   if (SYNAPSE == tag)
-    return s_cache[m_seg].FromSynapse;
+    return s_cache[m_segmentation].FromSynapse;
 
   qWarning() << ID << ":"  << tag << " is not provided";
   Q_ASSERT(false);
   return QVariant();
-}
-
-//------------------------------------------------------------------------
-void AppositionSurfaceExtension::initialize(ModelItem::Arguments args)
-{
 }
 
 //------------------------------------------------------------------------
@@ -139,50 +134,54 @@ bool AppositionSurfaceExtension::isCacheFile(const QString &file) const
 }
 
 //------------------------------------------------------------------------
-void AppositionSurfaceExtension::invalidate()
+void AppositionSurfaceExtension::initialize()
 {
-  s_cache.remove(m_seg);
+
 }
 
 //------------------------------------------------------------------------
-bool AppositionSurfaceExtension::loadCache(QuaZipFile &file, const QDir &tmpDir, EspinaModel *model)
+void AppositionSurfaceExtension::invalidate(SegmentationPtr segmentation)
+{
+  s_cache.remove(m_segmentation);
+}
+
+//------------------------------------------------------------------------
+void AppositionSurfaceExtension::loadCache(QuaZipFile &file, const QDir &tmpDir, EspinaModel *model)
 {
   QString header(file.readLine());
-  if (header.toStdString() != FILE_VERSION)
-    return false;
-
-  char buffer[1024];
-  while (file.readLine(buffer, sizeof(buffer)) > 0)
+  if (header.toStdString() == FILE_VERSION)
   {
-    QString line(buffer);
-    QStringList fields = line.split(SEP);
-
-    Q_ASSERT(fields.size() == 6);
-
-    SegmentationPtr extensionSegmentation = NULL;
-    int i = 0;
-    while (!extensionSegmentation && i < model->segmentations().size())
+    char buffer[1024];
+    while (file.readLine(buffer, sizeof(buffer)) > 0)
     {
-      SegmentationSPtr segmentation = model->segmentations()[i];
-      if ( segmentation->filter()->id()       == fields[0]
-        && segmentation->outputId()           == fields[1].toInt()
-        && segmentation->filter()->cacheDir() == tmpDir)
+      QString line(buffer);
+      QStringList fields = line.split(SEP);
+
+      Q_ASSERT(fields.size() == 6);
+
+      SegmentationPtr extensionSegmentation = NULL;
+      int i = 0;
+      while (!extensionSegmentation && i < model->segmentations().size())
       {
-        extensionSegmentation = segmentation.data();
+        SegmentationSPtr segmentation = model->segmentations()[i];
+        if ( segmentation->filter()->id()       == fields[0]
+          && segmentation->outputId()           == fields[1].toInt()
+          && segmentation->filter()->cacheDir() == tmpDir)
+        {
+          extensionSegmentation = segmentation.data();
+        }
+        i++;
       }
-      i++;
+      // NOTE: This assert means someone's removing an extension from the model
+      //       without invalidating its extensions
+      Q_ASSERT(extensionSegmentation);
+
+      s_cache[extensionSegmentation].Area        = fields[2].toDouble();
+      s_cache[extensionSegmentation].Perimeter   = fields[3].toDouble();
+      s_cache[extensionSegmentation].Tortuosity  = fields[4].toDouble();
+      s_cache[extensionSegmentation].FromSynapse = fields[5].remove('\n');
     }
-    // NOTE: This assert means someone's removing an extension from the model
-    //       without invalidating its extensions
-    Q_ASSERT(extensionSegmentation);
-
-    s_cache[extensionSegmentation].Area        = fields[2].toDouble();
-    s_cache[extensionSegmentation].Perimeter   = fields[3].toDouble();
-    s_cache[extensionSegmentation].Tortuosity  = fields[4].toDouble();
-    s_cache[extensionSegmentation].FromSynapse = fields[5].remove('\n');
   }
-
-  return true;
 }
 
 //------------------------------------------------------------------------

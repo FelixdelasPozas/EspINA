@@ -21,6 +21,14 @@
 
 using namespace EspINA;
 
+void Channel::Extension::setChannel(Channel *channel)
+{
+  m_channel = channel;
+
+  initialize();
+}
+
+
 Channel::ExtensionPtr EspINA::channelExtensionPtr(ModelItem::Extension *extension)
 {
   Channel::ExtensionPtr res;

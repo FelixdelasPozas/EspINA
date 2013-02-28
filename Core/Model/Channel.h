@@ -173,7 +173,9 @@ namespace EspINA
     virtual QString  serialize() const;
 
     virtual void initialize(const Arguments &args = Arguments());
-    virtual void initializeExtensions(const Arguments &args = Arguments());
+
+    virtual void initializeExtensions();
+    virtual void invalidateExtensions();
 
     /// Get the sample which channel belongs to
     SampleSPtr sample();
