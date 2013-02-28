@@ -186,6 +186,7 @@ namespace EspINA
       mutable PolyData m_ap;
       PolyData m_referencePlane;  // Original Plane Template
       PolyData m_blendedNotClippedPlane;
+      SegmentationPtr m_originSegmentation;
 
       QString m_origin;
       mutable double m_area;

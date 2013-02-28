@@ -8,6 +8,7 @@
 // plugin
 #include "AppositionSurfaceFilter.h"
 #include "../Core/AppositionSurfaceVolume.h"
+#include <Core/Model/Segmentation.h>
 
 // Qt
 #include <QtGlobal>
@@ -47,6 +48,7 @@ namespace EspINA
   , m_ap(NULL)
   , m_referencePlane(NULL)
   , m_blendedNotClippedPlane(NULL)
+  , m_originSegmentation(NULL)
   , m_origin(args[ORIGIN])
   , m_area(UNDEFINED)
   , m_perimeter(UNDEFINED)
@@ -54,6 +56,19 @@ namespace EspINA
   {
     if (m_origin == QString())
       m_origin = QString("Unspecified origin");
+
+    const QString namedInput = m_args[Filter::INPUTS];
+    QStringList list = namedInput.split(QChar('_'));
+    const int outputId = list[1].toInt();
+
+    RelationList relations = m_namedInputs[AppositionSurfaceFilter::INPUTLINK]->relations(EspINA::Filter::CREATELINK);
+    SegmentationSPtr seg;
+    foreach(Relation rel, relations)
+      if (segmentationPtr(rel.succesor)->outputId() == outputId)
+      {
+        m_originSegmentation = segmentationPtr(rel.succesor).data();
+        break;
+      }
   }
   
   //----------------------------------------------------------------------------
@@ -61,7 +76,7 @@ namespace EspINA
   {
     if (m_ap != NULL)
     {
-      disconnect(m_inputs.first().get(), SIGNAL(modified()), this, SLOT(inputModified()));
+      disconnect(m_originSegmentation, SIGNAL(volumeModified()), this, SLOT(inputModified()));
       m_ap->Delete();
     }
 
@@ -96,7 +111,7 @@ namespace EspINA
     // if this it's the first time executing, hook to the volume modified signal
     if (m_ap == NULL)
     {
-      connect(m_inputs.first().get(), SIGNAL(modified()), this, SLOT(inputModified()));
+      connect(m_originSegmentation, SIGNAL(volumeModified()), this, SLOT(inputModified()));
     }
 
     itkVolumeType::SizeType bounds;
