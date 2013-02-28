@@ -42,6 +42,7 @@ namespace EspINA
   class AppositionSurfaceFilter
   : public SegmentationFilter
   {
+    Q_OBJECT
       static const double THRESHOLDFACTOR = 0.1; // Percentage of a single step
       static const unsigned int MAXSAVEDSTATUSES = 10;
       static const int MAXITERATIONSFACTOR = 100;
@@ -96,6 +97,9 @@ namespace EspINA
 
       virtual bool dumpSnapshot(Snapshot &snapshot);
 
+    protected slots:
+      virtual void inputModified();
+
     protected:
       virtual void run();
 
@@ -112,23 +116,28 @@ namespace EspINA
       virtual void draw(OutputId oId,
                         vtkImplicitFunction *brush,
                         const Nm bounds[6],
-                        itkVolumeType::PixelType value = SEG_VOXEL_VALUE) {};
+                        itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
+                        bool emitSignal = true) {};
 
       virtual void draw(OutputId oId,
                         itkVolumeType::IndexType index,
-                        itkVolumeType::PixelType value = SEG_VOXEL_VALUE) {};
+                        itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
+                        bool emitSignal = true) {};
 
       virtual void draw(OutputId oId,
                         Nm x, Nm y, Nm z,
-                        itkVolumeType::PixelType value = SEG_VOXEL_VALUE) {};
+                        itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
+                        bool emitSignal = true) {};
       virtual void draw(OutputId oId,
                         vtkPolyData *contour,
                         Nm slice,
                         PlaneType plane,
-                        itkVolumeType::PixelType value = SEG_VOXEL_VALUE) {};
+                        itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
+                        bool emitSignal = true) {};
 
       virtual void draw(OutputId oId,
-                        itkVolumeType::Pointer volume)  {};
+                        itkVolumeType::Pointer volume,
+                        bool emitSignal = true)  {};
 
       //TODO 2012-11-20 cambiar nombre y usar FilterOutput
       virtual void restoreOutput(OutputId oId,

@@ -253,11 +253,12 @@ itkVolumeType::Pointer EspinaVolume::cloneVolume() const
 }
 
 //----------------------------------------------------------------------------
-void EspinaVolume::markAsModified()
+void EspinaVolume::markAsModified(bool emitSignal)
 {
   toITK()->Modified();
 
-  emit modified();
+  if (emitSignal)
+    emit modified();
 }
 
 //----------------------------------------------------------------------------

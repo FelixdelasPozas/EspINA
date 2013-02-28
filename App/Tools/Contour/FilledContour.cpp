@@ -137,7 +137,7 @@ void FilledContour::setInUse(bool enable)
       if (!m_currentSeg && m_currentSource)
       {
         // TODO : Standarize
-        m_currentSource->draw(0, NULL, 0, AXIAL);
+        m_currentSource->draw(0, NULL, 0, AXIAL, SEG_VOXEL_VALUE, false);
         m_currentSeg = m_model->factory()->createSegmentation(m_currentSource, 0);
         m_undoStack->beginMacro("Draw segmentation using contours");
         m_undoStack->push(new AddSegmentation(m_model->findChannel(channel),
@@ -156,24 +156,27 @@ void FilledContour::setInUse(bool enable)
 
       QMap<PlaneType, QMap<Nm, vtkPolyData*> > contours = m_contourWidget->GetContours();
       QMap<Nm, vtkPolyData*>::iterator it = contours[AXIAL].begin();
+      int i = 0;
       while (it != contours[AXIAL].end())
       {
-        m_currentSource->draw(0, it.value(), it.key(), AXIAL);
-        ++it;
+        m_currentSource->draw(0, it.value(), it.key(), AXIAL, SEG_VOXEL_VALUE, (contours[AXIAL].size()-1 == i) && contours[CORONAL].isEmpty() && contours[SAGITTAL].isEmpty());
+        ++it; ++i;
       }
 
       it = contours[CORONAL].begin();
+      i = 0;
       while (it != contours[CORONAL].end())
       {
-        m_currentSource->draw(0, it.value(), it.key(), CORONAL);
-        ++it;
+        m_currentSource->draw(0, it.value(), it.key(), CORONAL, SEG_VOXEL_VALUE, (contours[CORONAL].size()-1 == i) && contours[SAGITTAL].isEmpty());
+        ++it; ++i;
       }
 
       it = contours[SAGITTAL].begin();
+      i = 0;
       while (it != contours[SAGITTAL].end())
       {
-        m_currentSource->draw(0, it.value(), it.key(), SAGITTAL);
-        ++it;
+        m_currentSource->draw(0, it.value(), it.key(), SAGITTAL, SEG_VOXEL_VALUE, contours[SAGITTAL].size()-1 == i);
+        ++it; ++i;
       }
 
       // only ContourFilter stores the vtkPolyDatas, the others do not
@@ -201,10 +204,7 @@ void FilledContour::setInUse(bool enable)
         }
       }
 
-      SegmentationList list;
-      list.append(m_currentSeg.data());
-      m_viewManager->updateSegmentationRepresentations(list);
-
+      m_viewManager->updateSegmentationRepresentations();
       m_currentSource->notifyModification();
     }
 

@@ -64,9 +64,9 @@ StrokeSegmentationCommand::StrokeSegmentationCommand(ChannelPtr channel,
   {
     Brush::BrushShape &brush = brushes[i];
     if (0 == i) // Prevent resizing on each brush
-      m_filter->draw(0, brush.first, strokeBounds, SEG_VOXEL_VALUE);
+      m_filter->draw(0, brush.first, strokeBounds, SEG_VOXEL_VALUE, brushes.size()-1 == i);
     else
-      m_filter->draw(0, brush.first, brush.second.bounds(), SEG_VOXEL_VALUE);
+      m_filter->draw(0, brush.first, brush.second.bounds(), SEG_VOXEL_VALUE, brushes.size()-1 == i);
   }
 
   m_segmentation = m_model->factory()->createSegmentation(m_filter, 0);

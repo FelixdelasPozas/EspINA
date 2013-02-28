@@ -40,7 +40,6 @@ namespace EspINA
   , m_itkImporter(NULL)
   , m_vtkExporter(NULL)
   , m_rasterizationTime(0)
-  , m_bounds(NULL)
   {
     memset(m_rasterizationBounds, 0, 6*sizeof(double));
   }
@@ -68,11 +67,7 @@ namespace EspINA
       memcpy(m_rasterizationBounds, imageBounds, 6*sizeof(double));
     }
     else
-      if (m_bounds == NULL)
-      {
         m_filter->m_ap->GetBounds(m_rasterizationBounds);
-        m_bounds = m_rasterizationBounds;
-      }
 
     int extent[6] = { vtkMath::Round(m_rasterizationBounds[0]/vSpacing[0]),
                       vtkMath::Round(m_rasterizationBounds[1]/vSpacing[0]),
@@ -98,7 +93,7 @@ namespace EspINA
       for (int y = extent[2]; y <= extent[3]; y++)
         for (int z = extent[4]; z <= extent[5]; z++)
         {
-          double point[3] = { (x+0.5)*vSpacing[0], (y+0.5)*vSpacing[1], (z+0.5)*vSpacing[2] };
+          double point[3] = { x*vSpacing[0], y*vSpacing[1], z*vSpacing[2] };
           if (std::abs(m_distance->EvaluateFunction(point)) <= minSpacing)
           {
             unsigned char *pixel = reinterpret_cast<unsigned char*>(m_emptyImage->GetScalarPointer(x,y,z));
@@ -114,7 +109,7 @@ namespace EspINA
   vtkAlgorithmOutput *AppositionSurfaceVolume::toVTK()
   {
     if ((m_vtkVolume == NULL) || (m_filter->m_ap->GetMTime() != m_rasterizationTime))
-      rasterize(m_bounds);
+      rasterize(m_filter->m_ap->GetBounds());
 
     return m_vtkVolume.GetPointer();
   }
@@ -123,7 +118,7 @@ namespace EspINA
   const vtkAlgorithmOutput *AppositionSurfaceVolume::toVTK() const
   {
     if ((m_vtkVolume == NULL) || (m_filter->m_ap->GetMTime() != m_rasterizationTime))
-      rasterize(m_bounds);
+      rasterize(m_filter->m_ap->GetBounds());
 
     return m_vtkVolume.GetPointer();
   }

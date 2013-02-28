@@ -69,21 +69,19 @@ void Brush::DrawCommand::redo()
     if (!m_seg->filter()->outputs().isEmpty())
       m_prevVolume = m_seg->filter()->volume(m_output)->cloneVolume();
 
-    for (int i=0; i<m_brushes.size(); i++)
+    for (int i=0; i < m_brushes.size(); i++)
     {
       BrushShape &brush = m_brushes[i];
       if (0 == i) // Prevent resizing on each brush
-        m_seg->filter()->draw(m_output, brush.first, m_strokeBounds, m_value);
+        m_seg->filter()->draw(m_output, brush.first, m_strokeBounds, m_value, m_brushes.size()-1 == i);
       else
-        m_seg->filter()->draw(m_output, brush.first, brush.second.bounds(), m_value);
+        m_seg->filter()->draw(m_output, brush.first, brush.second.bounds(), m_value, m_brushes.size()-1 == i);
     }
     if (!m_seg->filter()->outputs().isEmpty())
       m_newVolume = m_seg->filter()->volume(m_output)->cloneVolume();
   }
 
-  SegmentationList list;
-  list.append(m_seg.data());
-  m_viewManager->updateSegmentationRepresentations(list);
+  m_viewManager->updateSegmentationRepresentations();
 }
 
 //-----------------------------------------------------------------------------
@@ -94,9 +92,7 @@ void Brush::DrawCommand::undo()
   else
     emit initBrushTool();
 
-  SegmentationList list;
-  list.append(m_seg.data());
-  m_viewManager->updateSegmentationRepresentations(list);
+  m_viewManager->updateSegmentationRepresentations();
 }
 
 //-----------------------------------------------------------------------------
@@ -115,10 +111,6 @@ void Brush::SnapshotCommand::redo()
 {
   if (m_newVolume.IsNotNull())
     m_seg->filter()->restoreOutput(m_output, m_newVolume);
-
-//   SegmentationList list;
-//   list.append(m_seg.data());
-//   m_viewManager->updateSegmentationRepresentations(list);
 }
 
 //-----------------------------------------------------------------------------
@@ -126,10 +118,7 @@ void Brush::SnapshotCommand::undo()
 {
   if (m_newVolume.IsNull())
     m_newVolume = m_seg->filter()->volume(m_output)->cloneVolume();
+
   if (m_prevVolume.IsNotNull())
     m_seg->filter()->restoreOutput(m_output, m_prevVolume);
-
-//   SegmentationList list;
-//   list.append(m_seg.data());
-//   m_viewManager->updateSegmentationRepresentations(list);
 }

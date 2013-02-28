@@ -62,7 +62,8 @@ ContourSource::~ContourSource()
 void ContourSource::draw(OutputId oId,
                          vtkPolyData *contour,
                          Nm slice, PlaneType plane,
-                         itkVolumeType::PixelType value)
+                         itkVolumeType::PixelType value,
+                         bool emitSignal)
 {
   double bounds[6] = { 0,0,0,0,0,0 };
 
@@ -75,7 +76,7 @@ void ContourSource::draw(OutputId oId,
   else
   {
     m_contourMap[plane].insert(slice, contour);
-    Filter::draw(oId, contour, slice, plane);
+    Filter::draw(oId, contour, slice, plane, value, emitSignal);
   }
 }
 

@@ -84,13 +84,16 @@ public:
   virtual void draw(OutputId oId,
                     vtkImplicitFunction* brush,
                     const Nm bounds[6],
-                    itkVolumeType::PixelType value = SEG_VOXEL_VALUE);
+                    itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
+                    bool emitSignal = true);
   virtual void draw(OutputId oId,
                     itkVolumeType::IndexType index,
-                    itkVolumeType::PixelType value = SEG_VOXEL_VALUE);
+                    itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
+                    bool emitSignal = true);
   virtual void draw(OutputId oId,
                     Nm x, Nm y, Nm z,
-                    itkVolumeType::PixelType value = SEG_VOXEL_VALUE);
+                    itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
+                    bool emitSignal = true);
 
   virtual bool needUpdate() const;
 

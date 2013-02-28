@@ -51,7 +51,7 @@ namespace EspINA
     typedef itkVolumeType::RegionType       VolumeRegion;
     typedef boost::shared_ptr<EspinaVolume> Pointer;
 
-    explicit EspinaVolume(){}
+    explicit EspinaVolume(): m_VTKGenerationTime(0), m_ITKGenerationTime(0) {};
     explicit EspinaVolume(itkVolumeType::Pointer volume);
     explicit EspinaVolume(const EspinaRegion &region, itkVolumeType::SpacingType spacing);
     virtual ~EspinaVolume(){}
@@ -89,7 +89,7 @@ namespace EspINA
 
     virtual itkVolumeType::Pointer cloneVolume() const;
 
-    void markAsModified();
+    void markAsModified(bool emitSignal = true);
     virtual void update();
 
     /// Expands the volume to contain @region.

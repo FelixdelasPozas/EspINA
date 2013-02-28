@@ -43,6 +43,7 @@ qt4_wrap_ui (UI_BUILT_SOURCES
 
 QT4_WRAP_CPP(MOC_SOURCES
   AppositionSurfacePlugin.h
+  Filter/AppositionSurfaceFilter.h
   GUI/Renderer/AppositionSurfaceRenderer.h
   GUI/Settings/AppositionSurfaceSettings.h
   GUI/FilterInspector/AppositionSurfaceFilterInspector.h
@@ -50,8 +51,8 @@ QT4_WRAP_CPP(MOC_SOURCES
 )
 
 set (PLUGIN_SOURCES
-  ${RCC_BUILT_SOURCES}
   ${MOC_SOURCES}
+  ${RCC_BUILT_SOURCES}
   ${UI_BUILT_SOURCES}
   AppositionSurfacePlugin.cpp
   Core/Extensions/AppositionSurfaceExtension.cpp

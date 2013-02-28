@@ -138,7 +138,8 @@ QString Filter::serialize() const
 void Filter::draw(OutputId oId,
                   vtkImplicitFunction* brush,
                   const Nm bounds[6],
-                  itkVolumeType::PixelType value)
+                  itkVolumeType::PixelType value,
+                  bool emitSignal)
 {
   EspinaRegion region(bounds);
 
@@ -159,7 +160,7 @@ void Filter::draw(OutputId oId,
     if (brush->FunctionValue(tx, ty, tz) <= 0)
       it.Set(value);
   }
-  volume->markAsModified();
+  volume->markAsModified(emitSignal);
 
   markAsEdited(oId);
 
@@ -169,17 +170,35 @@ void Filter::draw(OutputId oId,
 //----------------------------------------------------------------------------
 void Filter::draw(OutputId oId,
                   itkVolumeType::IndexType index,
-                  itkVolumeType::PixelType value)
+                  itkVolumeType::PixelType value,
+                  bool emitSignal)
 {
-  Q_ASSERT(false); // TODO 2012-11-28 Implementar
-//   Output &filterOutput = output(oId);
-// 
+  EspinaVolume::Pointer volume  = output(oId).volume;
+
+  itkVolumeType::SpacingType spacing = volume->toITK()->GetSpacing();
+  double voxelBounds[6] = { index[0]*spacing[0],
+                            index[0]*spacing[0],
+                            index[1]*spacing[1],
+                            index[1]*spacing[1],
+                            index[2]*spacing[2],
+                            index[2]*spacing[2] };
+  EspinaRegion voxelRegion(voxelBounds);
+
+  volume->expandToFitRegion(voxelRegion);
+
+  volume->toITK()->SetPixel(index, value);
+  volume->markAsModified(emitSignal);
+
+  markAsEdited(oId);
+
+  emit modified(this);
 }
 
 //----------------------------------------------------------------------------
 void Filter::draw(OutputId oId,
                   Nm x, Nm y, Nm z,
-                  itkVolumeType::PixelType value)
+                  itkVolumeType::PixelType value,
+                  bool emitSignal)
 {
   EspinaVolume::Pointer volume  = output(oId).volume;
 
@@ -189,7 +208,7 @@ void Filter::draw(OutputId oId,
   volume->expandToFitRegion(voxelRegion);
 
   volume->toITK()->SetPixel(volume->index(x, y, z), value);
-  volume->markAsModified();
+  volume->markAsModified(emitSignal);
 
   markAsEdited(oId);
 
@@ -200,7 +219,8 @@ void Filter::draw(OutputId oId,
 void Filter::draw(OutputId oId,
                   vtkPolyData *contour,
                   Nm slice, PlaneType plane,
-                  itkVolumeType::PixelType value)
+                  itkVolumeType::PixelType value,
+                  bool emitSignal)
 {
   if (contour->GetPoints()->GetNumberOfPoints() == 0)
     return;
@@ -403,17 +423,16 @@ void Filter::draw(OutputId oId,
     }
     ++init;
   }
-
-  volume->markAsModified();
+  volume->markAsModified(emitSignal);
 
   markAsEdited(oId);
-
   emit modified(this);
 }
 
 //----------------------------------------------------------------------------
 void Filter::draw(OutputId oId,
-                  itkVolumeType::Pointer volume)
+                  itkVolumeType::Pointer volume,
+                  bool emitSignal)
 {
   EspinaVolume::Pointer filterVolume = output(oId).volume;
   EspinaVolume drawnVolume(volume);
@@ -431,8 +450,7 @@ void Filter::draw(OutputId oId,
   {
     ot.Set(it.Get());
   }
-
-  filterVolume->markAsModified();
+  filterVolume->markAsModified(emitSignal);
 
   markAsEdited(oId);
 

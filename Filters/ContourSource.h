@@ -62,7 +62,8 @@ public:
   virtual void draw(OutputId oId,
                     vtkPolyData *contour,
                     Nm slice, PlaneType plane,
-                    itkVolumeType::PixelType value = SEG_VOXEL_VALUE);
+                    itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
+                    bool emitSignal = true);
 
   /// Implements Filter Interface
   virtual bool needUpdate() const;

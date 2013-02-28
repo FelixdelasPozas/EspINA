@@ -52,19 +52,21 @@ FreeFormSource::~FreeFormSource()
 void FreeFormSource::draw(OutputId oId,
                           vtkImplicitFunction * brush,
                           const Nm bounds[6],
-                          itkVolumeType::PixelType value)
+                          itkVolumeType::PixelType value,
+                          bool emitSignal)
 {
   Q_ASSERT(0 == oId);
   if (m_outputs.isEmpty())
     createOutput(0, EspinaRegion(bounds), m_param.spacing());
 
-  Filter::draw(oId, brush, bounds, value);
+  Filter::draw(oId, brush, bounds, value, emitSignal);
 }
 
 //-----------------------------------------------------------------------------
 void FreeFormSource::draw(OutputId oId,
                           itkVolumeType::IndexType index,
-                          itkVolumeType::PixelType value)
+                          itkVolumeType::PixelType value,
+                          bool emitSignal)
 {
   if (m_outputs.isEmpty())
   {
@@ -79,13 +81,14 @@ void FreeFormSource::draw(OutputId oId,
 
     createOutput(0, volume);
   }
-  Filter::draw(oId, index, value);
+  Filter::draw(oId, index, value, emitSignal);
 }
 
 //-----------------------------------------------------------------------------
 void FreeFormSource::draw(OutputId oId,
                           Nm x, Nm y, Nm z,
-                          itkVolumeType::PixelType value)
+                          itkVolumeType::PixelType value,
+                          bool emitSignal)
 {
   if (m_outputs.isEmpty())
   {
@@ -105,7 +108,7 @@ void FreeFormSource::draw(OutputId oId,
 
     createOutput(0, volume);
   }
-  Filter::draw(oId, x, y, z, value);
+  Filter::draw(oId, x, y, z, value, emitSignal);
 }
 
 //-----------------------------------------------------------------------------

@@ -225,7 +225,6 @@ void Brush::drawStroke(PickableItemPtr item,
     {
       m_undoStack->beginMacro("Erase Segmentation");
       m_undoStack->push(m_eraseCommand);
-      m_viewManager->updateSegmentationRepresentations(m_currentSeg.data());
       try 
       {
         m_currentSeg->volume()->strechToFitContent();
@@ -234,6 +233,7 @@ void Brush::drawStroke(PickableItemPtr item,
         m_undoStack->push(new RemoveSegmentation(m_currentSeg.data(), m_model));
         initBrushTool();
       }
+      m_viewManager->updateSegmentationRepresentations();
       m_undoStack->endMacro();
       m_eraseCommand = NULL;
     }
@@ -301,7 +301,7 @@ void Brush::drawStrokeStep(PickableItemPtr item,
     }
     double center[3] = { x, y, z };
     BrushShape brush = createBrushShape(item, center, radius, plane);
-    m_currentSource->draw(m_currentOutput, brush.first, brush.second.bounds(), SEG_BG_VALUE);
+    m_currentSource->draw(m_currentOutput, brush.first, brush.second.bounds(), SEG_BG_VALUE, false);
     m_viewManager->updateSegmentationRepresentations(m_currentSeg.data());
 
     SegmentationList list;

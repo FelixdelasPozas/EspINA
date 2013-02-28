@@ -90,7 +90,6 @@ namespace EspINA
 
       mutable unsigned long int m_rasterizationTime;
       mutable double            m_rasterizationBounds[6];
-      mutable double           *m_bounds;
   };
 
 } /* namespace EspINA */
