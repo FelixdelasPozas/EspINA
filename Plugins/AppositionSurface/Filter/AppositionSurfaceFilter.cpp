@@ -69,6 +69,8 @@ namespace EspINA
         m_originSegmentation = segmentationPtr(rel.succesor).data();
         break;
       }
+
+    connect(m_originSegmentation, SIGNAL(volumeModified()), this, SLOT(inputModified()));
   }
   
   //----------------------------------------------------------------------------
@@ -104,15 +106,8 @@ namespace EspINA
   //----------------------------------------------------------------------------
   void AppositionSurfaceFilter::run()
   {
-    Q_ASSERT(m_inputs.size() == 1);
-    m_input = m_inputs.first()->toITK();
+    m_input = m_originSegmentation->volume()->toITK();
     m_input->SetBufferedRegion(m_input->GetLargestPossibleRegion());
-
-    // if this it's the first time executing, hook to the volume modified signal
-    if (m_ap == NULL)
-    {
-      connect(m_originSegmentation, SIGNAL(volumeModified()), this, SLOT(inputModified()));
-    }
 
     itkVolumeType::SizeType bounds;
     bounds[0] = bounds[1] = bounds[2] = 1;
@@ -927,6 +922,7 @@ namespace EspINA
   void AppositionSurfaceFilter::inputModified()
   {
     run();
+    m_ap->Modified();
     m_outputs[0].volume->markAsModified(true);
   }
 

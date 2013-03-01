@@ -133,14 +133,11 @@ namespace EspINA
 
     virtual void redo()
     {
-      SegmentationList segmentations;
       for(int i=0; i<m_newConnections.size(); i++)
       {
         SegmentationSPtr seg      = m_segmentations[i];
         Connection oldConnection = m_oldConnections[i];
         Connection newConnection = m_newConnections[i];
-
-        segmentations << seg.data();
 
         m_model->removeRelation(oldConnection.first, seg, Filter::CREATELINK);
         m_model->addFilter(newConnection.first);
@@ -150,19 +147,16 @@ namespace EspINA
         seg->changeFilter(newConnection.first, newConnection.second);
         seg->volume()->markAsModified();
       }
-      m_viewManager->updateSegmentationRepresentations(segmentations);
+      m_viewManager->updateSegmentationRepresentations();
     }
 
     virtual void undo()
     {
-      SegmentationList segmentations;
       for(int i=0; i<m_newConnections.size(); i++)
       {
         SegmentationSPtr seg      = m_segmentations[i];
         Connection oldConnection = m_oldConnections[i];
         Connection newConnection = m_newConnections[i];
-
-        segmentations << seg.data();
 
         m_model->removeRelation(newConnection.first, seg, Filter::CREATELINK);
         m_model->removeRelation(oldConnection.first, newConnection.first, INPUTLINK);
@@ -172,7 +166,7 @@ namespace EspINA
         seg->changeFilter(oldConnection.first, oldConnection.second);
         seg->volume()->markAsModified();
       }
-      m_viewManager->updateSegmentationRepresentations(segmentations);
+      m_viewManager->updateSegmentationRepresentations();
     }
 
   private:
