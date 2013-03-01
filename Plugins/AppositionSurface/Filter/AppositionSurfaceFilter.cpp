@@ -922,7 +922,6 @@ namespace EspINA
   void AppositionSurfaceFilter::inputModified()
   {
     run();
-    m_ap->Modified();
     m_outputs[0].volume->markAsModified(true);
   }
 

@@ -204,7 +204,7 @@ void FilledContour::setInUse(bool enable)
         }
       }
 
-      m_viewManager->updateSegmentationRepresentations();
+      m_viewManager->updateSegmentationRepresentations(m_currentSeg.data());
       m_currentSource->notifyModification();
     }
 

@@ -233,7 +233,7 @@ void Brush::drawStroke(PickableItemPtr item,
         m_undoStack->push(new RemoveSegmentation(m_currentSeg.data(), m_model));
         initBrushTool();
       }
-      m_viewManager->updateSegmentationRepresentations();
+      m_viewManager->updateSegmentationRepresentations(m_currentSeg.data());
       m_undoStack->endMacro();
       m_eraseCommand = NULL;
     }

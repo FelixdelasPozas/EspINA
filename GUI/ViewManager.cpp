@@ -343,6 +343,10 @@ void ViewManager::updateSegmentationRepresentations(SegmentationPtr segmentation
   SegmentationList list;
   list << segmentation;
 
+  foreach(ModelItemSPtr item, segmentation->relatedItems(EspINA::OUT))
+    if (SEGMENTATION == item->type() && !list.contains(segmentationPtr(item.data())))
+      list << segmentationPtr(item.data());
+
   foreach(IEspinaView *view, m_espinaViews)
   {
     view->updateSegmentationRepresentations(list);
@@ -352,6 +356,11 @@ void ViewManager::updateSegmentationRepresentations(SegmentationPtr segmentation
 //----------------------------------------------------------------------------
 void ViewManager::updateSegmentationRepresentations(SegmentationList list)
 {
+  foreach(SegmentationPtr seg, list)
+    foreach(ModelItemSPtr item, seg->relatedItems(EspINA::OUT))
+      if (SEGMENTATION == item->type() && !list.contains(segmentationPtr(item.data())))
+        list << segmentationPtr(item.data());
+
   foreach(IEspinaView *view, m_espinaViews)
   {
     view->updateSegmentationRepresentations(list);

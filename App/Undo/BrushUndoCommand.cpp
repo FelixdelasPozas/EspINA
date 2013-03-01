@@ -81,7 +81,7 @@ void Brush::DrawCommand::redo()
       m_newVolume = m_seg->filter()->volume(m_output)->cloneVolume();
   }
 
-  m_viewManager->updateSegmentationRepresentations();
+  m_viewManager->updateSegmentationRepresentations(m_seg.data());
 }
 
 //-----------------------------------------------------------------------------
@@ -92,7 +92,7 @@ void Brush::DrawCommand::undo()
   else
     emit initBrushTool();
 
-  m_viewManager->updateSegmentationRepresentations();
+  m_viewManager->updateSegmentationRepresentations(m_seg.data());
 }
 
 //-----------------------------------------------------------------------------
