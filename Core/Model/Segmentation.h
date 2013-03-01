@@ -150,6 +150,9 @@ namespace EspINA
     bool visible() const {return m_isVisible;}
     void setVisible(bool visible);
     QStringList users() const {return m_args.users();}
+    bool isInputSegmentationDependent() const {return m_isInputSegmentationDependent;}
+    void setInputSegmentationDependent(bool dependent) { m_isInputSegmentationDependent = dependent; };
+
 
     /// Return the list of segmentations which compose this segmentation
     SegmentationSList components();
@@ -177,6 +180,7 @@ namespace EspINA
     TaxonomyElementSPtr m_taxonomy;
 
     bool m_isVisible;
+    bool m_isInputSegmentationDependent;
     QColor m_color;
 
     InformationExtensionProvider m_informationExtensions;

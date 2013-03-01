@@ -66,6 +66,7 @@ Segmentation::Segmentation(FilterSPtr         filter,
 , m_filter(filter)
 , m_taxonomy(NULL)
 , m_isVisible(true)
+, m_isInputSegmentationDependent(false)
 {
   m_args.setNumber(0);
   m_args.setOutputId(oId);

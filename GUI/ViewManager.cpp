@@ -32,6 +32,7 @@
 // Qt
 #include <QSettings>
 #include <QString>
+#include <QStack>
 #include <QDebug>
 
 using namespace EspINA;
@@ -340,30 +341,66 @@ void ViewManager::resetViewCameras()
 //----------------------------------------------------------------------------
 void ViewManager::updateSegmentationRepresentations(SegmentationPtr segmentation)
 {
-  SegmentationList list;
-  list << segmentation;
+  QStack<SegmentationPtr> itemsStack;
+  SegmentationList segList;
 
-  foreach(ModelItemSPtr item, segmentation->relatedItems(EspINA::OUT))
-    if (SEGMENTATION == item->type() && !list.contains(segmentationPtr(item.data())))
-      list << segmentationPtr(item.data());
+  itemsStack.push_front(segmentation);
+  segList << segmentation;
+
+  while (!itemsStack.isEmpty())
+  {
+    SegmentationPtr seg = itemsStack.pop();
+    foreach(ModelItemSPtr item, seg->relatedItems(EspINA::OUT))
+      if (item->type() == SEGMENTATION)
+      {
+        SegmentationPtr relatedSeg = segmentationPtr(item.data());
+        if (relatedSeg->isInputSegmentationDependent() && !segList.contains(relatedSeg))
+        {
+          itemsStack.push_front(relatedSeg);
+          segList << relatedSeg;
+        }
+      }
+  }
 
   foreach(IEspinaView *view, m_espinaViews)
   {
-    view->updateSegmentationRepresentations(list);
+    view->updateSegmentationRepresentations(segList);
   }
 }
 
 //----------------------------------------------------------------------------
 void ViewManager::updateSegmentationRepresentations(SegmentationList list)
 {
+  QStack<SegmentationPtr> itemsStack;
+  SegmentationList segList;
+
   foreach(SegmentationPtr seg, list)
-    foreach(ModelItemSPtr item, seg->relatedItems(EspINA::OUT))
-      if (SEGMENTATION == item->type() && !list.contains(segmentationPtr(item.data())))
-        list << segmentationPtr(item.data());
+  {
+    if (segList.contains(seg))
+      continue;
+
+    itemsStack.push_front(seg);
+    segList << seg;
+
+    while (!itemsStack.isEmpty())
+    {
+      SegmentationPtr segmentation = itemsStack.pop();
+      foreach(ModelItemSPtr item, segmentation->relatedItems(EspINA::OUT))
+        if (item->type() == SEGMENTATION)
+        {
+          SegmentationPtr relatedSeg = segmentationPtr(item.data());
+          if (relatedSeg->isInputSegmentationDependent() && !segList.contains(relatedSeg))
+          {
+            itemsStack.push_front(relatedSeg);
+            segList << relatedSeg;
+          }
+        }
+    }
+  }
 
   foreach(IEspinaView *view, m_espinaViews)
   {
-    view->updateSegmentationRepresentations(list);
+    view->updateSegmentationRepresentations(segList);
   }
 }
 

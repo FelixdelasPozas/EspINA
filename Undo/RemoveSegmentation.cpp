@@ -22,6 +22,8 @@
 #include <Core/Model/Segmentation.h>
 #include <Core/Model/EspinaModel.h>
 
+#include <QStack>
+
 using namespace EspINA;
 
 //------------------------------------------------------------------------
@@ -39,18 +41,69 @@ RemoveSegmentation::RemoveSegmentation(SegmentationPtr seg,
 : QUndoCommand(parent)
 , m_model(model)
 {
-  m_segmentations << SegInfo(m_model->findSegmentation(seg));
+  // breadth search for related and dependent items of this segmentation in the
+  // related items tree.
+  QStack<SegmentationPtr> itemsStack;
+  SegmentationList addedSegs;
+
+  itemsStack.push_front(seg);
+  addedSegs << seg;
+
+  while (!itemsStack.isEmpty())
+  {
+    SegmentationPtr segmentation = itemsStack.pop();
+    m_segmentations << SegInfo(m_model->findSegmentation(segmentation));
+
+    foreach(ModelItemSPtr item, segmentation->relatedItems(EspINA::OUT))
+      if (item->type() == SEGMENTATION)
+      {
+        SegmentationPtr relatedSeg = segmentationPtr(item.data());
+        if (relatedSeg->isInputSegmentationDependent() && !addedSegs.contains(relatedSeg))
+        {
+          itemsStack.push_front(relatedSeg);
+          addedSegs << relatedSeg;
+        }
+      }
+  }
 }
 
 //------------------------------------------------------------------------
-RemoveSegmentation::RemoveSegmentation(SegmentationList segs,
+RemoveSegmentation::RemoveSegmentation(SegmentationList segList,
                                        EspinaModel     *model,
                                        QUndoCommand    *parent)
 : QUndoCommand(parent)
 , m_model(model)
 {
-  foreach(SegmentationPtr seg, segs)
-    m_segmentations << SegInfo(m_model->findSegmentation(seg));
+  SegmentationList addedSegs;
+
+  foreach(SegmentationPtr seg, segList)
+  {
+    if (addedSegs.contains(seg))
+      continue;
+
+    // breadth search for related and dependent items of this segmentation in the
+    // related items tree.
+    QStack<SegmentationPtr> itemsStack;
+    itemsStack.push_front(seg);
+    addedSegs << seg;
+
+    while (!itemsStack.isEmpty())
+    {
+      SegmentationPtr segmentation = itemsStack.pop();
+      m_segmentations << SegInfo(m_model->findSegmentation(segmentation));
+
+      foreach(ModelItemSPtr item, segmentation->relatedItems(EspINA::OUT))
+        if (item->type() == SEGMENTATION)
+        {
+          SegmentationPtr relatedSeg = segmentationPtr(item.data());
+          if (relatedSeg->isInputSegmentationDependent() && !addedSegs.contains(relatedSeg))
+          {
+            itemsStack.push_front(relatedSeg);
+            addedSegs << relatedSeg;
+          }
+        }
+    }
+  }
 }
 
 
@@ -58,7 +111,7 @@ RemoveSegmentation::RemoveSegmentation(SegmentationList segs,
 void RemoveSegmentation::redo()
 {
   SegmentationSList segsToRemove;
-  FilterSPtrList       filtersToRemove;
+  FilterSPtrList    filtersToRemove;
 
   foreach(SegInfo segInfo, m_segmentations)
   {

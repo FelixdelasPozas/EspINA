@@ -57,11 +57,7 @@ void SegmentationExplorer::Layout::createSpecificControls(QHBoxLayout *specificC
 void SegmentationExplorer::Layout::deleteSegmentations(SegmentationList segmentations)
 {
   m_undoStack->beginMacro("Delete Segmentations");
-  // BUG: Temporal Fix until RemoveSegmentation's bug is fixed
-  foreach(SegmentationPtr seg, segmentations)
-  {
-    m_undoStack->push(new RemoveSegmentation(seg, m_model));
-  }
+  m_undoStack->push(new RemoveSegmentation(segmentations, m_model));
   m_undoStack->endMacro();
 }
 
