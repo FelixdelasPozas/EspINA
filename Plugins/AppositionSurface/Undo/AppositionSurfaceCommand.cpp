@@ -54,6 +54,7 @@ namespace EspINA
       SegmentationSPtr asSegmentation = m_model->factory()->createSegmentation(filter, 0);
       asSegmentation->modifiedByUser(userName());
       asSegmentation->setInputSegmentationDependent(true);
+      asSegmentation->setNumber(seg->number());
 
       m_samples         << seg->sample();
       m_channels        << seg->channel();

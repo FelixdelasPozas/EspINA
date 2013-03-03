@@ -136,8 +136,7 @@ bool EspINA::sortSegmentationLessThan(ModelItemPtr left, ModelItemPtr right)
   SegmentationPtr rightSeg = segmentationPtr(right);
 
   if (leftSeg->number() == rightSeg->number())
-    return left ->data(Qt::ToolTipRole).toString() <
-           right->data(Qt::ToolTipRole).toString();
+    return left ->data(Qt::ToolTipRole).toString() < right->data(Qt::ToolTipRole).toString();
   else
     return leftSeg->number() < rightSeg->number();
 }

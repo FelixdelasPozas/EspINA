@@ -29,6 +29,7 @@
 #include <vtkAlgorithmOutput.h>
 #include <vtkDiscreteMarchingCubes.h>
 #include <vtkImageConstantPad.h>
+#include <vtkMath.h>
 
 // Qt
 #include <QDebug>
@@ -123,16 +124,21 @@ void EspinaVolume::extent(int out[6]) const
 //----------------------------------------------------------------------------
 void EspinaVolume::bounds(double out[6]) const
 {
-  itkVolumeType::SpacingType spacing = m_volume->GetSpacing();
-  itkVolumeType::RegionType  region  = m_volume->GetLargestPossibleRegion();
-  itkVolumeType::PointType origin    = m_volume->GetOrigin();
-
-  for(int i=0; i<3; i++)
+  if (m_volume)
   {
-    int min = 2*i, max = 2*i+1;
-    out[min] = origin[i] + region.GetIndex()[i]*spacing[i];
-    out[max] = out[min] + (region.GetSize()[i] - 1)*spacing[i];
+    itkVolumeType::SpacingType spacing = m_volume->GetSpacing();
+    itkVolumeType::RegionType  region  = m_volume->GetLargestPossibleRegion();
+    itkVolumeType::PointType   origin  = m_volume->GetOrigin();
+
+    for(int i=0; i<3; i++)
+    {
+      int min = 2*i, max = 2*i+1;
+      out[min] = origin[i] + region.GetIndex()[i]*spacing[i];
+      out[max] = out[min] + (region.GetSize()[i] - 1)*spacing[i];
+    }
   }
+  else
+    vtkMath::UninitializeBounds(out);
 }
 
 //----------------------------------------------------------------------------
