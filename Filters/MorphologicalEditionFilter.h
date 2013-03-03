@@ -57,6 +57,8 @@ public:
 
   virtual bool needUpdate() const;
 
+  virtual bool isOutputEmpty() { return m_isOutputEmpty; };
+
 protected:
   /// Implements Filter Interface
   virtual bool fetchSnapshot();
@@ -64,6 +66,7 @@ protected:
 protected:
   Parameters             m_params;
   itkVolumeType::Pointer m_input;
+  bool                   m_isOutputEmpty;
 
   bool m_paramModified;
 };

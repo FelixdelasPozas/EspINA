@@ -39,6 +39,7 @@ MorphologicalEditionFilter::MorphologicalEditionFilter(NamedInputs inputs,
 , m_params(m_args)
 , m_input(NULL)
 , m_paramModified(false)
+, m_isOutputEmpty(true)
 {
 }
 

@@ -34,6 +34,7 @@ DilateFilter::DilateFilter(NamedInputs inputs,
                            Arguments   args,
                            FilterType  type)
 : MorphologicalEditionFilter(inputs, args, type)
+, m_filter(NULL)
 {
 
 }
@@ -78,6 +79,8 @@ void DilateFilter::run()
   m_filter->SetObjectValue(SEG_VOXEL_VALUE);
   m_filter->ReleaseDataFlagOff();
   m_filter->Update();
+
+  m_isOutputEmpty = false;
 
   createOutput(0, m_filter->GetOutput());
 

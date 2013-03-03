@@ -33,7 +33,6 @@
 
 using namespace EspINA;
 
-
 class CODEModification
 : public QUndoCommand
 {
@@ -46,11 +45,12 @@ public:
   , m_radius(radius)
   {
     m_oldRadius = m_filter->radius();
+    m_oldVolumeEditerByUser = !m_filter->editedOutputs().isEmpty();
   }
 
   virtual void redo()
   {
-    if (!m_filter->editedOutputs().isEmpty() || m_filter->volume(0)->volumeRegion().GetNumberOfPixels() < MAX_UNDO_SIZE)
+    if (!m_oldVolumeEditerByUser || m_filter->volume(0)->volumeRegion().GetNumberOfPixels() < MAX_UNDO_SIZE)
       m_oldVolume = m_filter->output(0).volume->cloneVolume();
 
     m_filter->setRadius(m_radius);
@@ -58,6 +58,9 @@ public:
     if (m_newVolume.IsNull())
     {
       update();
+
+      if (m_filter->isOutputEmpty())
+        return;
 
       EspinaVolume::Pointer newVolume = m_filter->volume(0);
       if (newVolume->volumeRegion().GetNumberOfPixels() < MAX_UNDO_SIZE)
@@ -67,6 +70,8 @@ public:
     {
       m_filter->restoreOutput(0, m_newVolume);
     }
+    // NOTE: restoreOutput() marks the volume as edited by the user when that's not true
+    m_filter->output(0).isEdited = false;
   }
 
   virtual void undo()
@@ -76,6 +81,7 @@ public:
     if (m_oldVolume.IsNotNull())
     {
       m_filter->restoreOutput(0, m_oldVolume);
+      m_filter->output(0).isEdited = m_oldVolumeEditerByUser;
     } else
     {
       update();
@@ -97,6 +103,7 @@ private:
 
   itkVolumeType::Pointer m_oldVolume;
   itkVolumeType::Pointer m_newVolume;
+  bool m_oldVolumeEditerByUser;
 };
 
 
@@ -152,6 +159,9 @@ CODESettings::~CODESettings()
 //----------------------------------------------------------------------------
 void CODESettings::modifyFilter()
 {
+  if ((m_spinbox->value() == static_cast<int>(m_filter->radius())) && m_filter->editedOutputs().isEmpty())
+    return;
+
   if (!m_filter->editedOutputs().isEmpty())
   {
     QMessageBox msg;
@@ -164,10 +174,21 @@ void CODESettings::modifyFilter()
       return;
   }
 
-  m_undoStack->beginMacro("Modify Radius");
+  CODEModification *filterModification = new CODEModification(m_filter, m_spinbox->value());
+  filterModification->redo();
+  filterModification->undo();
+
+  if (m_filter->isOutputEmpty())
   {
-    m_undoStack->push(new CODEModification(m_filter, m_spinbox->value()));
+    QMessageBox msg;
+    msg.setText(tr("A operation with that radius will destroy the segmentation.\nThe modification operation has been canceled."));
+    msg.exec();
+    delete filterModification;
+    return;
   }
+
+  m_undoStack->beginMacro("Modify Radius");
+  m_undoStack->push(filterModification);
   m_undoStack->endMacro();
 }
 

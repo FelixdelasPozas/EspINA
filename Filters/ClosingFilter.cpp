@@ -20,22 +20,19 @@
 #include "ClosingFilter.h"
 
 #include <Core/Model/EspinaFactory.h>
-
+#include <itkImageRegionConstIterator.h>
 #include <QDebug>
 
 using namespace EspINA;
-
-
 
 //-----------------------------------------------------------------------------
 ClosingFilter::ClosingFilter(NamedInputs inputs,
                              Arguments   args,
                              FilterType  type)
 : MorphologicalEditionFilter(inputs, args, type)
+, m_filter(NULL)
 {
-
 }
-
 
 //-----------------------------------------------------------------------------
 ClosingFilter::~ClosingFilter()
@@ -59,7 +56,19 @@ void ClosingFilter::run()
   m_filter->SetForegroundValue(SEG_VOXEL_VALUE);
   m_filter->Update();
 
-  createOutput(0, m_filter->GetOutput());
+  m_isOutputEmpty = true;
+  typedef itk::ImageRegionConstIterator<itkVolumeType> ImageIterator;
+  ImageIterator it(m_filter->GetOutput(), m_filter->GetOutput()->GetLargestPossibleRegion());
+  it.GoToBegin();
+  for(it.GoToBegin(); !it.IsAtEnd(); ++it)
+    if (it.Get() == SEG_VOXEL_VALUE)
+    {
+      m_isOutputEmpty = false;
+      break;
+    }
+
+  if (!m_isOutputEmpty)
+    createOutput(0, m_filter->GetOutput());
 
   emit modified(this);
 }

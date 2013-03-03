@@ -51,6 +51,7 @@
 
 // Qt
 #include <QAction>
+#include <QMessageBox>
 
 using namespace EspINA;
 
@@ -92,8 +93,6 @@ namespace EspINA
 
       foreach(SegmentationPtr seg, inputs)
       {
-        m_segmentations << m_model->findSegmentation(seg);
-
         MorphologicalEditionFilter *filter;
         Filter::FilterInspectorPtr filterInspector;
 
@@ -124,6 +123,16 @@ namespace EspINA
         }
         filter->setFilterInspector(filterInspector);
         filter->update();
+
+        if (filter->isOutputEmpty())
+        {
+          m_removedSegmentations << seg;
+          m_removedSegmentationsCommands.append(new RemoveSegmentation(seg, m_model));
+          delete filter;
+          continue;
+        }
+
+        m_segmentations << m_model->findSegmentation(seg);
         m_newConnections << Connection(FilterSPtr(filter), 0);
         m_oldConnections << Connection(seg->filter(), seg->outputId());
       }
@@ -150,6 +159,10 @@ namespace EspINA
         seg->changeFilter(newConnection.first, newConnection.second);
         seg->volume()->markAsModified();
       }
+
+      foreach(RemoveSegmentation *command, m_removedSegmentationsCommands)
+        command->redo();
+
       m_viewManager->updateSegmentationRepresentations(segmentations);
     }
 
@@ -172,7 +185,25 @@ namespace EspINA
         seg->changeFilter(oldConnection.first, oldConnection.second);
         seg->volume()->markAsModified();
       }
+
+      foreach(RemoveSegmentation *command, m_removedSegmentationsCommands)
+        command->undo();
+
       m_viewManager->updateSegmentationRepresentations(segmentations);
+    }
+
+    SegmentationList getRemovedSegmentations()
+    {
+      return m_removedSegmentations;
+    }
+
+    ~CODECommand()
+    {
+      foreach(RemoveSegmentation *command, m_removedSegmentationsCommands)
+        delete command;
+
+      m_newConnections.clear();
+      m_oldConnections.clear();
     }
 
   private:
@@ -180,7 +211,9 @@ namespace EspINA
     ViewManager *m_viewManager;
 
     QList<Connection> m_oldConnections, m_newConnections;
-    SegmentationSList  m_segmentations;
+    SegmentationSList m_segmentations;
+    QList<RemoveSegmentation *> m_removedSegmentationsCommands;
+    SegmentationList m_removedSegmentations;
   };
 
   const Filter::FilterType EditorToolBar::CODECommand::CLOSING_FILTER_TYPE = "EditorToolBar::ClosingFilter";
@@ -422,9 +455,27 @@ void EditorToolBar::closeSegmentations()
   SegmentationList input = m_viewManager->selectedSegmentations();
   if (input.size() > 0)
   {
-    int r = m_settings->closeRadius();
+    CODECommand *closeCommand = new CODECommand(input, CODECommand::CLOSE, m_settings->closeRadius(), m_model, m_viewManager);
+    if (closeCommand->getRemovedSegmentations().size() > 0)
+    {
+      QMessageBox info;
+      info.setWindowTitle("Close Segmentations");
+      info.setIcon(QMessageBox::Warning);
+      QString message(tr("The following segmentations will be deleted by the close operation:\n"));
+      foreach(SegmentationPtr seg, closeCommand->getRemovedSegmentations())
+        message += QString("  - ") + seg->data().toString() + QString("\n");
+      message += tr("\nDo you want to continue with the operation?");
+      info.setText(message);
+      info.setStandardButtons(QMessageBox::Yes|QMessageBox::No);
+      if (info.exec() == QMessageBox::No)
+      {
+        delete closeCommand;
+        return;
+      }
+    }
+
     m_undoStack->beginMacro(tr("Close Segmentation"));
-    m_undoStack->push(new CODECommand(input, CODECommand::CLOSE, r, m_model, m_viewManager));
+    m_undoStack->push(closeCommand);
     m_undoStack->endMacro();
   }
 }
@@ -437,9 +488,27 @@ void EditorToolBar::openSegmentations()
   SegmentationList input = m_viewManager->selectedSegmentations();
   if (input.size() > 0)
   {
-    int r = m_settings->openRadius();
+    CODECommand *openCommand = new CODECommand(input, CODECommand::OPEN, m_settings->openRadius(), m_model, m_viewManager);
+    if (openCommand->getRemovedSegmentations().size() > 0)
+    {
+      QMessageBox info;
+      info.setWindowTitle("Open Segmentations");
+      info.setIcon(QMessageBox::Warning);
+      QString message(tr("The following segmentations will be deleted by the open operation:\n"));
+      foreach(SegmentationPtr seg, openCommand->getRemovedSegmentations())
+        message += QString("  - ") + seg->data().toString() + QString("\n");
+      message += tr("\nDo you want to continue with the operation?");
+      info.setText(message);
+      info.setStandardButtons(QMessageBox::Yes|QMessageBox::No);
+      if (info.exec() == QMessageBox::No)
+      {
+        delete openCommand;
+        return;
+      }
+    }
+
     m_undoStack->beginMacro(tr("Open Segmentation"));
-    m_undoStack->push(new CODECommand(input, CODECommand::OPEN, r, m_model, m_viewManager));
+    m_undoStack->push(openCommand);
     m_undoStack->endMacro();
   }
 }
@@ -467,9 +536,27 @@ void EditorToolBar::erodeSegmentations()
   SegmentationList input = m_viewManager->selectedSegmentations();
   if (input.size() > 0)
   {
-    int r = m_settings->erodeRadius();
+    CODECommand *erodeCommand = new CODECommand(input, CODECommand::ERODE, m_settings->erodeRadius(), m_model, m_viewManager);
+    if(erodeCommand->getRemovedSegmentations().size() > 0)
+    {
+      QMessageBox info;
+      info.setWindowTitle("Erode Segmentations");
+      info.setIcon(QMessageBox::Warning);
+      QString message(tr("The following segmentations will be deleted by the erode operation:\n"));
+      foreach(SegmentationPtr seg, erodeCommand->getRemovedSegmentations())
+        message += QString("  - ") + seg->data().toString() + QString("\n");
+      message += tr("\nDo you want to continue with the operation?");
+      info.setText(message);
+      info.setStandardButtons(QMessageBox::Yes|QMessageBox::No);
+      if (info.exec() == QMessageBox::No)
+      {
+        delete erodeCommand;
+        return;
+      }
+    }
+
     m_undoStack->beginMacro(tr("Erode Segmentation"));
-    m_undoStack->push(new CODECommand(input, CODECommand::ERODE, r, m_model, m_viewManager));
+    m_undoStack->push(erodeCommand);
     m_undoStack->endMacro();
   }
 }

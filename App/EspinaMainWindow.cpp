@@ -707,6 +707,10 @@ void EspinaMainWindow::openAnalysis(const QFileInfo file)
       m_recentDocuments1.removeDocument(file.absoluteFilePath());
       m_recentDocuments2.updateDocumentList();
     }
+    // NOTE: avoid triggering the save dialog in closeCurrentAnalysis()
+    // as this is an incomplete load and the model is inconsistent
+    m_model->markAsSaved();
+
     closeCurrentAnalysis();
     return;
   }
@@ -717,7 +721,6 @@ void EspinaMainWindow::openAnalysis(const QFileInfo file)
     //defaultTaxonomy->print();
     m_model->setTaxonomy(defaultTaxonomy);
   }
-
 
   m_viewManager->resetViewCameras();
   m_addMenu->setEnabled(true);
