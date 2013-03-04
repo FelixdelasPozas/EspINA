@@ -57,7 +57,7 @@ void SegmentationExplorer::Layout::createSpecificControls(QHBoxLayout *specificC
 void SegmentationExplorer::Layout::deleteSegmentations(SegmentationList segmentations)
 {
   m_undoStack->beginMacro("Delete Segmentations");
-  m_undoStack->push(new RemoveSegmentation(segmentations, m_model));
+  m_undoStack->push(new RemoveSegmentation(segmentations, m_model, m_viewManager));
   m_undoStack->endMacro();
 }
 

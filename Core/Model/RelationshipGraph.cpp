@@ -269,6 +269,19 @@ void RelationshipGraph::addRelation(ModelItemPtr   ancestor,
 {
   EdgeProperty p;
   p.relationship = description.toStdString();
+
+  OutEdgeIterator oei, oei_end;
+  for(boost::tie(oei, oei_end) = boost::out_edges(vertex(ancestor), m_graph); oei != oei_end; oei++)
+  {
+    //     qDebug() << m_graph[*oei].relationship.c_str();
+    if (target(*oei, m_graph) == vertex(successor) &&
+      m_graph[*oei].relationship == description.toStdString())
+    {
+      qWarning() << "DUPLICATED RELATION. RELATION ALREADY EXIST IN THE MODEL (" << ancestor->data().toString() << "==>" << description << "==>" << successor->data().toString() << ")";
+      return;
+    }
+  }
+
   boost::add_edge(vertex(ancestor), vertex(successor), p, m_graph);
 }
 

@@ -67,8 +67,7 @@ protected:
   Parameters             m_params;
   itkVolumeType::Pointer m_input;
   bool                   m_isOutputEmpty;
-
-  bool m_paramModified;
+  bool                   m_paramModified;
 };
 
 } // namespace EspINA

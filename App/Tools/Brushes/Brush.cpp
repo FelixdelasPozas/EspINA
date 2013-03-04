@@ -228,12 +228,13 @@ void Brush::drawStroke(PickableItemPtr item,
       try 
       {
         m_currentSeg->volume()->strechToFitContent();
-      } catch (...)
+        m_viewManager->updateSegmentationRepresentations(m_currentSeg.data());
+      }
+      catch (...)
       {
-        m_undoStack->push(new RemoveSegmentation(m_currentSeg.data(), m_model));
+        m_undoStack->push(new RemoveSegmentation(m_currentSeg.data(), m_model, m_viewManager));
         initBrushTool();
       }
-      m_viewManager->updateSegmentationRepresentations(m_currentSeg.data());
       m_undoStack->endMacro();
       m_eraseCommand = NULL;
     }

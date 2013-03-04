@@ -225,11 +225,7 @@ void SegmentationContextualMenu::deleteSelectedSementations()
   this->hide();
 
   m_undoStack->beginMacro("Delete Segmentations");
-  // BUG: Temporal Fix until RemoveSegmentation's bug is fixed
-  foreach(SegmentationPtr seg, m_segmentations)
-  {
-    m_undoStack->push(new RemoveSegmentation(seg, m_model));
-  }
+  m_undoStack->push(new RemoveSegmentation(m_segmentations, m_model, m_viewManager));
   m_undoStack->endMacro();
 
   emit deleteSegmentations();

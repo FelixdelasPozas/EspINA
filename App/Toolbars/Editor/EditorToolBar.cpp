@@ -127,7 +127,7 @@ namespace EspINA
         if (filter->isOutputEmpty())
         {
           m_removedSegmentations << seg;
-          m_removedSegmentationsCommands.append(new RemoveSegmentation(seg, m_model));
+          m_removedSegmentationsCommands.append(new RemoveSegmentation(seg, m_model, m_viewManager));
           delete filter;
           continue;
         }
@@ -159,11 +159,10 @@ namespace EspINA
         seg->changeFilter(newConnection.first, newConnection.second);
         seg->volume()->markAsModified();
       }
+      m_viewManager->updateSegmentationRepresentations(segmentations);
 
       foreach(RemoveSegmentation *command, m_removedSegmentationsCommands)
         command->redo();
-
-      m_viewManager->updateSegmentationRepresentations(segmentations);
     }
 
     virtual void undo()
@@ -185,11 +184,10 @@ namespace EspINA
         seg->changeFilter(oldConnection.first, oldConnection.second);
         seg->volume()->markAsModified();
       }
+      m_viewManager->updateSegmentationRepresentations(segmentations);
 
       foreach(RemoveSegmentation *command, m_removedSegmentationsCommands)
         command->undo();
-
-      m_viewManager->updateSegmentationRepresentations(segmentations);
     }
 
     SegmentationList getRemovedSegmentations()

@@ -186,11 +186,8 @@ void MainToolBar::removeSegmentation(bool active)
 //----------------------------------------------------------------------------
 void MainToolBar::removeSegmentation(SegmentationPtr seg)
 {
-
-  //TODO 2012-10-04: Gestion de memoria...y evitar que siga abierto cuando se elimina la segementacion
-  //SegmentationInspector::RemoveInspector(removedSegs);
   m_undoStack->beginMacro(tr("Delete Segmentation"));
-  m_undoStack->push(new RemoveSegmentation(seg, m_model));
+  m_undoStack->push(new RemoveSegmentation(seg, m_model, m_viewManager));
   m_undoStack->endMacro();
 }
 
