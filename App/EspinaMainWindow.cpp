@@ -98,33 +98,17 @@ class EspinaErrorHandler
       {
         QFileInfo resfile;
 
-        QApplication::setOverrideCursor(Qt::ArrowCursor);
+	QString title = (hint.isEmpty()) ?
+	  QObject::tr("Select file for %1:").arg(file.fileName()) 
+	  : hint;
+	QDir directory   = (dir == QDir()) ? m_defaultDir : dir;
+	QString filters = (nameFilters.isEmpty()) ?
+	  QObject::tr("%1 files (*.%1)").arg(file.suffix())
+	  : nameFilters;
 
-        QFileDialog fileDialog;
-        fileDialog.setFileMode(QFileDialog::ExistingFiles);
-        if (dir == QDir())
-          fileDialog.setDirectory(m_defaultDir);
-        else
-          fileDialog.setDirectory(dir);
+	const QString fileName = QFileDialog::getOpenFileName(m_parent, title, directory.absolutePath(), filters);
 
-        if (hint.isEmpty())
-          fileDialog.setWindowTitle(QObject::tr("Select file for %1:").arg(file.fileName()));
-        else
-          fileDialog.setWindowTitle(hint);
-
-        if (nameFilters.isEmpty())
-          fileDialog.setNameFilter(QObject::tr("%1 files (*.%1)").arg(file.suffix()));
-        else
-          fileDialog.setFilter(nameFilters);
-
-        int res = fileDialog.exec();
-
-        QApplication::restoreOverrideCursor();
-
-        if (QDialog::Accepted == res)
-           resfile = fileDialog.selectedFiles().first();
-
-        return resfile;
+        return QFileInfo(fileName);
       }
 
     private:
@@ -647,28 +631,16 @@ void EspinaMainWindow::closeCurrentAnalysis()
 //------------------------------------------------------------------------
 void EspinaMainWindow::openAnalysis()
 {
-  QFileDialog fileDialog(this,
-                         tr("Start Analysis from:"));
+  const QString title   = tr("Analyse Data");
+  const QString dir   = "";
+  const QString filters = m_model->factory()->supportedFiles().join(";;");
+  const QString fileName = QFileDialog::getOpenFileName(this, title, dir, filters);
+  // Multi-channels is not supported. Eventually use getOpenFileNames instead.
 
-  fileDialog.setObjectName("OpenAnalysisFileDialog");
-  fileDialog.setFileMode(QFileDialog::ExistingFiles);
-  fileDialog.setFilters(m_model->factory()->supportedFiles());
-  fileDialog.setWindowTitle("Analyse Data");
-  fileDialog.setAcceptMode(QFileDialog::AcceptOpen);
-
-  if (fileDialog.exec() != QDialog::Accepted)
+  if (fileName.isEmpty()) 
     return;
 
-  if (fileDialog.selectedFiles().size() != 1)
-  {
-    QMessageBox::warning(this,
-                         tr("EspinaModel"),
-                         tr("Loading multiple files at a time is not supported"));
-                         return; //Multi-channels is not supported
-  }
-
-  const QString file = fileDialog.selectedFiles().first();
-  openAnalysis(file);
+  openAnalysis(fileName);
   m_model->markAsSaved();
 }
 
@@ -802,24 +774,16 @@ void EspinaMainWindow::openRecentAnalysis()
 //------------------------------------------------------------------------
 void EspinaMainWindow::addToAnalysis()
 {
-  QFileDialog fileDialog(this, tr("Analyse:"));
-  fileDialog.setObjectName("AddToAnalysisFileDialog");
-  fileDialog.setFileMode(QFileDialog::ExistingFiles);
-  fileDialog.setFilters(m_model->factory()->supportedFiles());
-  fileDialog.setWindowTitle("Add data to Analysis");
-  fileDialog.setAcceptMode(QFileDialog::AcceptOpen);
-  if (fileDialog.exec() != QDialog::Accepted)
-    return;
 
-  if (fileDialog.selectedFiles().size() != 1)
-  {
-    QMessageBox::warning(this,
-                         tr("EspinaModel"),
-                         tr("Loading multiple files at a time is not supported"));
-    return; //Multi-channels is not supported
-  }
-  const QString file = fileDialog.selectedFiles().first();
-  addFileToAnalysis(file);
+  const QString title   = tr("Add data to Analysis");
+  const QString dir   = "";
+  const QString filters = m_model->factory()->supportedFiles().join(";;");
+  const QString fileName = QFileDialog::getOpenFileName(this, title, dir, filters);
+
+  // Multi-channels is not supported. Eventually use getOpenFileNames instead.
+  if (fileName.isEmpty()) 
+    return;
+  addFileToAnalysis(fileName);
 }
 
 //------------------------------------------------------------------------
@@ -884,42 +848,65 @@ void EspinaMainWindow::addFileToAnalysis(const QFileInfo file)
 //------------------------------------------------------------------------
 void EspinaMainWindow::saveAnalysis()
 {
+  const QString title   = tr("Save Espina Analysis");
+  QString dir   = "";
   QString filters(SEG_FILES);
-
-  QFileDialog fileDialog(this, tr("Save Analysis:"), QString(), filters);
-  fileDialog.setObjectName("SaveAnalysisFileDialog");
-  fileDialog.setWindowTitle("Save Espina Analysis");
-  fileDialog.setAcceptMode(QFileDialog::AcceptSave);
-  fileDialog.setDefaultSuffix(QString(tr("seg")));
-  fileDialog.setFileMode(QFileDialog::AnyFile);
   if (!m_sessionDir.isRoot())
   {
-    fileDialog.setDirectory(m_sessionDir.absolutePath() + "/");
+    dir = m_sessionDir.absolutePath() + "/";
     if (!m_sessionFile.fileName().isEmpty())
-      fileDialog.selectFile(m_sessionFile.fileName());
+      dir += m_sessionFile.fileName();
     else
-      fileDialog.selectFile(m_sessionDir.dirName());
+      dir += m_sessionDir.dirName();
   }
+  const QString fileName = QFileDialog::getSaveFileName(this, title, dir, filters);
 
-  QString analysisFile;
-  if (fileDialog.exec() == QDialog::Accepted)
-  {
-    QApplication::setOverrideCursor(Qt::WaitCursor);
-    m_busy = true;
-
-    analysisFile = fileDialog.selectedFiles().first();
-
-    EspinaIO::saveSegFile(analysisFile, m_model);
-
-    QApplication::restoreOverrideCursor();
-    updateStatus(tr("File Saved Successfuly in %1").arg(analysisFile));
-    m_busy = false;
-
-    m_recentDocuments1.addDocument(analysisFile);
-    m_recentDocuments2.updateDocumentList();
-  }
-  else
+  if (fileName.isEmpty()) 
     return;
+
+  /**
+   * There is no setDefaultSuffix("seg") in the satic method
+   * Overwrite checks are needed
+   */
+  QString analysisFile;
+  if (! fileName.endsWith(".seg")) {
+    analysisFile = fileName + ".seg";
+   
+    if (QFile::exists(analysisFile)) {
+
+      int ret = QMessageBox::warning(this, title,
+				     tr(" %1 already exists.\n"
+					"Do you want to replace it?")
+				     .arg(analysisFile),
+				     QMessageBox::Save | QMessageBox::Cancel,
+				     QMessageBox::Save);
+
+      switch (ret) {
+      case QMessageBox::Cancel:
+	// User does not want to overwrite. Ask again for a new filename
+	saveAnalysis();
+	return;
+      case QMessageBox::Save:
+      default:
+	break;
+      }
+    }
+  } 
+  else {
+    analysisFile = fileName;
+  }
+
+  QApplication::setOverrideCursor(Qt::WaitCursor);
+  m_busy = true;
+
+  EspinaIO::saveSegFile(analysisFile, m_model);
+
+  QApplication::restoreOverrideCursor();
+  updateStatus(tr("File Saved Successfuly in %1").arg(analysisFile));
+  m_busy = false;
+
+  m_recentDocuments1.addDocument(analysisFile);
+  m_recentDocuments2.updateDocumentList();
 
   m_model->markAsSaved();
 
