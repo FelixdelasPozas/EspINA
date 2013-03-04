@@ -81,13 +81,7 @@ QVariant LocationProxy::data(const QModelIndex& proxyIndex, int role) const
       return item->data(role);
   } else if (EspINA::SEGMENTATION == item->type())
   {
-    if (Qt::DecorationRole == role)
-    {
-      QPixmap segIcon(3,16);
-      segIcon.fill(proxyIndex.parent().data(role).value<QColor>());
-      return segIcon;
-    }else
-      return item->data(role);
+    return item->data(role);
   }
   Q_ASSERT(false);
 
