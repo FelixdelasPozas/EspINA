@@ -49,15 +49,18 @@ SegmentationContextualMenu::SegmentationContextualMenu(SegmentationList selectio
 {
   QMenu         *changeTaxonomyMenu = new QMenu(tr("Change Taxonomy"));
   QWidgetAction *taxonomyListAction = new QWidgetAction(changeTaxonomyMenu);
-  QTreeView     *taxonomyList       = new QTreeView();
 
-  taxonomyList->header()->setVisible(false);
-  taxonomyList->setModel(model);
-  taxonomyList->setRootIndex(model->taxonomyRoot());
-  taxonomyList->expandAll();
-  connect(taxonomyList, SIGNAL(clicked(QModelIndex)),
+  m_taxonomyList = new QTreeView();
+
+  m_taxonomyList->header()->setVisible(false);
+  m_taxonomyList->setModel(model);
+  m_taxonomyList->setRootIndex(model->taxonomyRoot());
+  m_taxonomyList->expandAll();
+  connect(model, SIGNAL(modelReset()),
+          this,  SLOT(resetRootItem()));
+  connect(m_taxonomyList, SIGNAL(clicked(QModelIndex)),
           this, SLOT(changeSegmentationsTaxonomy(QModelIndex)));
-  taxonomyListAction->setDefaultWidget(taxonomyList);
+  taxonomyListAction->setDefaultWidget(m_taxonomyList);
   changeTaxonomyMenu->addAction(taxonomyListAction);
   this->addMenu(changeTaxonomyMenu);
 
@@ -208,6 +211,13 @@ void SegmentationContextualMenu::changeFinalFlag()
   emit changeFinalNode(value);
 }
 
+
+
+//------------------------------------------------------------------------
+void SegmentationContextualMenu::resetRootItem()
+{
+  m_taxonomyList->setRootIndex(m_model->taxonomyRoot());
+}
 
 //------------------------------------------------------------------------
 void SegmentationContextualMenu::deleteSelectedSementations()

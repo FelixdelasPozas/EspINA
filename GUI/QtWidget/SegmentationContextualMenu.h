@@ -26,6 +26,7 @@
 #include <QMenu>
 #include <QModelIndex>
 
+class QTreeView;
 namespace EspINA
 {
   class SegmentationContextualMenu
@@ -44,6 +45,7 @@ namespace EspINA
     void changeSegmentationsTaxonomy(const QModelIndex &index);
     void deleteSelectedSementations();
     void changeFinalFlag();
+    void resetRootItem();
 
   signals:
     void changeTaxonomy(TaxonomyElementPtr);
@@ -55,7 +57,8 @@ namespace EspINA
     QUndoStack  *m_undoStack;
     ViewManager *m_viewManager;
 
-    QAction *m_changeFinalNode;
+    QTreeView       *m_taxonomyList;
+    QAction         *m_changeFinalNode;
     SegmentationList m_segmentations;
   };
 } // namespace EspINA
