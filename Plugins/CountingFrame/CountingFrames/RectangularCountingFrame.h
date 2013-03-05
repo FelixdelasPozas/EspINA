@@ -26,13 +26,11 @@ namespace EspINA
 {
   class CountingFrameExtension;
 
+  const QString RECTANGULAR_CF = QObject::tr("Rectangular CF");
   class RectangularCountingFrame
   : public CountingFrame
   {
   public:
-    static const QString ID;
-    static const QString ID_1_2_5; //Backward compatibility
-
     static RectangularCountingFrame *New(Id id,
                                          CountingFrameExtension *channelExt,
                                          Nm borders[6],
@@ -45,8 +43,7 @@ namespace EspINA
 
     // Implements QStandardItem interface
     virtual QVariant data(int role = Qt::UserRole + 1) const;
-    virtual QString serialize() const;
-    virtual QString name() const { return tr("Rectangular CF"); }
+    virtual QString name() const { return RECTANGULAR_CF; }
 
     // Implements EspinaWidget interface
     virtual vtkAbstractWidget *create3DWidget(VolumeView *view);

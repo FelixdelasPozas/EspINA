@@ -78,6 +78,7 @@ class StereologicalInclusion;
 
     void addCountingFrame   (CountingFrame* countingFrame);
     void deleteCountingFrame(CountingFrame *countingFrame);
+    CountingFramePanel *plugin() const {return m_plugin;}
 
     CountingFrameList countingFrames() const {return m_countingFrames;}
 

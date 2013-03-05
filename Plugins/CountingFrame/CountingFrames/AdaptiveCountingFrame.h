@@ -25,13 +25,12 @@
 namespace EspINA
 {
 
+  const QString ADAPTIVE_CF = QObject::tr("Adaptive CF");
+
   class AdaptiveCountingFrame
   : public CountingFrame
   {
   public:
-    static const QString ID;
-    static const QString ID_1_2_5; // Backwards compatibility
-
     static AdaptiveCountingFrame *New(Id id,
                                       CountingFrameExtension *channelExt,
                                       Nm inclusion[3],
@@ -43,8 +42,7 @@ namespace EspINA
 
     // Implements QStandardItem interface
     virtual QVariant data(int role = Qt::UserRole + 1) const;
-    virtual QString serialize() const;
-    virtual QString name() const { return tr("Adaptive CF"); }
+    virtual QString name() const { return ADAPTIVE_CF; }
 
     // Implements EspinaWidget itnerface
     virtual vtkAbstractWidget *create3DWidget(VolumeView *view);

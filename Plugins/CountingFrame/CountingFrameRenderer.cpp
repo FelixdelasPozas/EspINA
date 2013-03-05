@@ -76,8 +76,8 @@ void CountingFrameRenderer::show()
 
   foreach(CountingFrame *cf, m_plugin->countingFrames())
   {
-//     m_widgets[cf] = cf->create3DWidget();
-//     m_widgets[cf]->SetInteractor(interactor);
+    m_widgets[cf] = cf->create3DWidget(NULL);
+    m_widgets[cf]->SetInteractor(interactor);
     m_widgets[cf]->GetRepresentation()->SetVisibility(true);
     m_widgets[cf]->On();
   }
@@ -95,31 +95,30 @@ unsigned int CountingFrameRenderer::getNumberOfvtkActors()
 //-----------------------------------------------------------------------------
 void CountingFrameRenderer::countingFrameCreated(CountingFrame* cf)
 {
-  //TODO: BUUUG!!
-//   if (!m_enable)
-//     return;
-// 
-//   vtkRenderWindow *rw = m_renderer->GetRenderWindow();
-//   vtkRenderWindowInteractor *interactor = rw->GetInteractor();
-// 
-//   m_widgets[cf] = cf->create3DWidget();
-//   m_widgets[cf]->SetInteractor(interactor);
-//   m_widgets[cf]->GetRepresentation()->SetVisibility(true);
-//   m_widgets[cf]->On();
+  if (!m_enable)
+    return;
+
+  vtkRenderWindow *rw = m_renderer->GetRenderWindow();
+  vtkRenderWindowInteractor *interactor = rw->GetInteractor();
+
+  m_widgets[cf] = cf->create3DWidget(NULL);
+  m_widgets[cf]->SetInteractor(interactor);
+  m_widgets[cf]->GetRepresentation()->SetVisibility(true);
+  m_widgets[cf]->On();
 }
 
 //-----------------------------------------------------------------------------
 void CountingFrameRenderer::countingFrameDeleted(CountingFrame* cf)
 {
-  // TODO: BUUUG!!
-//   if (!m_enable)
-//     return;
-// 
-//   // TODO: Review it is already deleted
-//   m_widgets[cf]->GetRepresentation()->SetVisibility(false);
-//   m_widgets[cf]->Off();
-//   //cf->deleteWidget(m_widgets[cf]);
-//   m_widgets.remove(cf);
+  if (!m_enable)
+    return;
+
+  m_widgets[cf]->GetRepresentation()->SetVisibility(false);
+  m_widgets[cf]->Off();
+
+  m_widgets[cf]->Delete();
+
+  m_widgets.remove(cf);
 }
 
 //-----------------------------------------------------------------------------

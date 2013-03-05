@@ -73,11 +73,7 @@ namespace EspINA
 
     virtual Segmentation::InformationExtension clone();
 
-    void edgeDistance(Nm distances[6]) const
-    {
-      updateDistances();
-      memcpy(distances, m_distances, 6*sizeof(Nm));
-    }
+    void edgeDistance(Nm distances[6]) const;
 
     virtual void initialize();
 
@@ -88,9 +84,8 @@ namespace EspINA
     void setDistances(Nm distances[6]);
 
   private:
-    mutable Nm m_distances[6];
-
     friend class AdaptiveEdges;
+
   };
 
   typedef EdgeDistance  *EdgeDistancePtr;

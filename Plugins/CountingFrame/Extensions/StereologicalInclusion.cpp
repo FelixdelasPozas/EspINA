@@ -25,6 +25,7 @@
 #include <Core/Model/Segmentation.h>
 #include <Core/Model/Sample.h>
 #include <Core/Model/Channel.h>
+#include <Core/Model/EspinaModel.h>
 
 #include <vtkCellArray.h>
 #include <vtkCellData.h>
@@ -34,15 +35,14 @@
 
 using namespace EspINA;
 
-const ModelItem::ExtId StereologicalInclusion::ID = "CountingFrameExtension";
 
 const Segmentation::InfoTag StereologicalInclusion::EXCLUDED = "Excluded from CF";
 
-const QString StereologicalInclusion::EXTENSION_FILE = StereologicalInclusion::ID + "/StereologicalInclusion.csv";
+const QString StereologicalInclusion::EXTENSION_FILE = StereologicalInclusionID + "/StereologicalInclusion.csv";
 
-QMap<SegmentationPtr, StereologicalInclusion::CacheEntry> StereologicalInclusion::s_cache;
+StereologicalInclusion::ExtensionCache StereologicalInclusion::s_cache;
 
-const std::string FILE_VERSION = StereologicalInclusion::ID.toStdString() + " 1.0\n";
+const std::string FILE_VERSION = StereologicalInclusionID.toStdString() + " 1.0\n";
 const char SEP = ';';
 
 //------------------------------------------------------------------------
@@ -54,13 +54,17 @@ StereologicalInclusion::StereologicalInclusion()
 //------------------------------------------------------------------------
 StereologicalInclusion::~StereologicalInclusion()
 {
-  qDebug() << "Deleting" << m_segmentation->data().toString() << ID;
+  if (m_segmentation)
+  {
+    qDebug() << "Deleting" << m_segmentation->data().toString() << StereologicalInclusionID;
+    invalidate(m_segmentation);
+  }
 }
 
 //------------------------------------------------------------------------
 ModelItem::ExtId StereologicalInclusion::id()
 {
-  return ID;
+  return StereologicalInclusionID;
 }
 
 //------------------------------------------------------------------------
@@ -86,55 +90,107 @@ QVariant StereologicalInclusion::information(const Segmentation::InfoTag &tag)
 {
   if (EXCLUDED == tag)
   {
-    bool cached = s_cache.contains(m_segmentation);
-    if (!cached)
+    if (!s_cache.isCached(m_segmentation))
       evaluateCountingFrames();
 
+    ExtensionData &data = s_cache[m_segmentation].Data;
+
     QStringList excludingCFs;
-    foreach(int countingFrame, s_cache[m_segmentation])
+    foreach(CountingFrame::Id id, data.ExclusionCFs.keys())
     {
-      excludingCFs << QString::number(countingFrame);
+      if (data.ExclusionCFs[id])
+        excludingCFs << QString::number(id);
     }
     return excludingCFs.join(", ");
   }
 
-  qWarning() << ID << ":"  << tag << " is not provided";
-  Q_ASSERT(false);
+  qWarning() << StereologicalInclusionID << ":"  << tag << " is not provided";
   return QVariant();
 }
 
 //------------------------------------------------------------------------
 void StereologicalInclusion::setCountingFrames(CountingFrameList countingFrames)
 {
-//   EXTENSION_DEBUG("Updating " << m_seg->id() << " bounding regions...");
-//   EXTENSION_DEBUG("\tNumber of regions applied:" << regions.size());
-QSet<CountingFrame *> prevCF = m_isExcludedFrom.keys().toSet();
-QSet<CountingFrame *> newCF  = countingFrames.toSet();
+  Q_ASSERT(m_segmentation);
+  //   EXTENSION_DEBUG("Updating " << m_seg->id() << " bounding regions...");
+  //   EXTENSION_DEBUG("\tNumber of regions applied:" << regions.size());
+  QSet<CountingFrame *> prevCF = m_exclusionCFs.keys().toSet();
+  QSet<CountingFrame *> newCF  = countingFrames.toSet();
 
-// Remove regions that doesn't exist anymore
-foreach(CountingFrame *cf, prevCF.subtract(newCF))
-{
-  m_isExcludedFrom.remove(cf);
-}
+  ExtensionData &data = s_cache[m_segmentation].Data;
+  data.IsExcluded = false;
+  // Remove regions that doesn't exist anymore
+  foreach(CountingFrame *cf, prevCF.subtract(newCF))
+  {
+    m_exclusionCFs.remove(cf);
+    data.ExclusionCFs.remove(cf->id());
+  }
 
-foreach(CountingFrame *countingFrame, newCF.subtract(prevCF))
-{
-  evaluateCountingFrame(countingFrame);
-}
-//   EXTENSION_DEBUG("Counting Region Extension request Segmentation Update");
+  foreach(CountingFrame *countingFrame, newCF.subtract(prevCF))
+  {
+    evaluateCountingFrame(countingFrame);
+  }
+
+  //   EXTENSION_DEBUG("Counting Region Extension request Segmentation Update");
 }
 
 //------------------------------------------------------------------------
 void StereologicalInclusion::loadCache(QuaZipFile &file, const QDir &tmpDir, EspinaModel *model)
 {
-  // TODO: 
+  QString header(file.readLine());
+  if (header.toStdString() == FILE_VERSION)
+  {
+    char buffer[1024];
+    while (file.readLine(buffer, sizeof(buffer)) > 0)
+    {
+      QString line(buffer);
+      QStringList fields = line.split(SEP);
+
+      SegmentationPtr extensionSegmentation = NULL;
+      int i = 0;
+      while (!extensionSegmentation && i < model->segmentations().size())
+      {
+        SegmentationSPtr segmentation = model->segmentations()[i];
+        if ( segmentation->filter()->id()       == fields[0]
+          && segmentation->outputId()           == fields[1].toInt()
+          && segmentation->filter()->cacheDir() == tmpDir)
+        {
+          extensionSegmentation = segmentation.data();
+        }
+        i++;
+      }
+      if (extensionSegmentation)
+      {
+        ExtensionData &data = s_cache[extensionSegmentation].Data;
+
+        for (int f = 2; f < fields.size(); ++f)
+        {
+          CountingFrame::Id id  = fields[f].toInt();
+          bool excluded = id < 0;
+          data.ExclusionCFs[abs(id)] = excluded;
+          data.IsExcluded = data.IsExcluded || excluded;
+        }
+      } else
+      {
+        qWarning() << StereologicalInclusionID << "Invalid Cache Entry:" << line;
+      }
+    };
+  }
+}
+
+//------------------------------------------------------------------------
+// It's declared static to avoid collisions with other functions with same
+// signature in different compilation units
+static bool invalidData(SegmentationPtr seg)
+{
+  return seg->informationExtension(StereologicalInclusionID) == NULL
+      && seg->isVolumeModified();
 }
 
 //------------------------------------------------------------------------
 bool StereologicalInclusion::saveCache(Snapshot &cacheList)
 {
-  // TODO: save disabled
-  return false;
+  s_cache.purge(invalidData);
 
   if (s_cache.isEmpty())
     return false;
@@ -145,10 +201,15 @@ bool StereologicalInclusion::saveCache(Snapshot &cacheList)
   SegmentationPtr segmentation;
   foreach(segmentation, s_cache.keys())
   {
+    ExtensionData &data = s_cache[segmentation].Data;
+
     cache << segmentation->filter()->id().toStdString();
     cache << SEP << segmentation->outputId();
 
-    cache << SEP << segmentation->information(EXCLUDED).toString().toStdString();
+    foreach(CountingFrame::Id id, data.ExclusionCFs.keys())
+    {
+      cache << SEP << (data.ExclusionCFs[id]?-id:id);
+    }
 
     cache << std::endl;
   }
@@ -167,89 +228,89 @@ Segmentation::InformationExtension StereologicalInclusion::clone()
 //------------------------------------------------------------------------
 void StereologicalInclusion::initialize()
 {
-//   qDebug() << "Initialize (ignore args)" << m_seg->data().toString() << ID;
-// 
-//   SampleSPtr sample = m_seg->sample();
-// 
-//   ModelItemSList relatedChannels = sample->relatedItems(EspINA::OUT, Channel::STAIN_LINK);
-//   Q_ASSERT(relatedChannels.size() > 0);
-// 
-//   CountingFrameList countingFrames;
-//   for (int i = 0; i < relatedChannels.size(); i++)
-//   {
-//     ChannelSPtr channel = channelPtr(relatedChannels[i]);
-//     Channel::ExtensionPtr ext = channel->extension(CountingFrameExtensionID);
-//     if (ext)
-//     {
-//       CountingFrameExtension *channelExt = dynamic_cast<CountingFrameExtension *>(ext);
-//       countingFrames << channelExt->countingFrames();
-//     }
-//   }
-// 
-//   m_isOnEdge = isOnEdge();
-// 
-//   setCountingFrames(countingFrames);
-// 
-//   connect(m_seg, SIGNAL(modified(ModelItemPtr)),
-//           this, SLOT(evaluateCountingFrames()));
+  if (s_cache.isCached(m_segmentation))
+  {
+    s_cache.markAsClean(m_segmentation);
+    updateConditions();
+  }
 }
 
 //------------------------------------------------------------------------
 void StereologicalInclusion::invalidate(SegmentationPtr segmentation)
 {
+  if (!segmentation)
+    segmentation = m_segmentation;
 
+  if (segmentation)
+  {
+    //qDebug() << "Invalidate" << m_segmentation->data().toString() << StereologicalInclusionID;
+    s_cache.markAsDirty(segmentation);
+  }
 }
 
 
 //------------------------------------------------------------------------
 bool StereologicalInclusion::isExcluded() const
 {
-  bool excluded = false;
-
-  if (!m_isExcludedFrom.isEmpty())
+  //qDebug() << m_segmentation->data().toString() << "is Cached:" << s_cache.isCached(m_segmentation);
+  if (!s_cache.isCached(m_segmentation))
   {
-    excluded = true;
-
-    int i = 0;
-    CountingFrameList countingFrames = m_isExcludedFrom.keys();
-    while (excluded && i < countingFrames.size())
-    {
-      excluded = excluded && m_isExcludedFrom[countingFrames[i]];
-      i++;
-    }
+    const_cast<StereologicalInclusion *>(this)->evaluateCountingFrames();
   }
 
-  return excluded;
+  return s_cache[m_segmentation].Data.IsExcluded;
 }
 
 //------------------------------------------------------------------------
 void StereologicalInclusion::evaluateCountingFrames()
 {
-  qDebug() << "Evaluate Counting Frames" << m_segmentation->data().toString() << ID;
+  //qDebug() << "Evaluate Counting Frames" << m_segmentation->data().toString() << StereologicalInclusionID;
+  SampleSPtr sample = m_segmentation->sample();
+
+  CountingFrameList countingFrames;
+  foreach (ChannelPtr channel, sample->channels())
+  {
+    Channel::ExtensionPtr ext = channel->extension(CountingFrameExtensionID);
+    if (ext)
+    {
+      CountingFrameExtension *channelExt = dynamic_cast<CountingFrameExtension *>(ext);
+      countingFrames << channelExt->countingFrames();
+    }
+  }
+
   m_isOnEdge = isOnEdge();
 
-  foreach(CountingFrame *cf, m_isExcludedFrom.keys())
-    evaluateCountingFrame(cf);
+  setCountingFrames(countingFrames);
 
+  updateConditions();
+  s_cache.markAsClean(m_segmentation);
 }
 
 //------------------------------------------------------------------------
 void StereologicalInclusion::evaluateCountingFrame(CountingFrame* countingFrame)
 {
+  // Compute CF's exclusion value
   bool excluded = m_isOnEdge || isExcludedFromCountingFrame(countingFrame);
 
-  m_isExcludedFrom[countingFrame] = excluded;
+  m_exclusionCFs[countingFrame] = excluded;
 
-  if (excluded)
-    s_cache[m_segmentation].insert(countingFrame->id());
-  else
-    s_cache[m_segmentation].remove(countingFrame->id());
+  ExtensionData &data = s_cache[m_segmentation].Data;
+  data.ExclusionCFs[countingFrame->id()] = excluded;
 
-  QString tag       = "CountingFrameCondition %1";
-  QString condition = excluded?
-                      "<font color=\"red\">"   + tr("Excluded from Counting Frame %1").arg(countingFrame->id()) + "</font>":
-                      "<font color=\"green\">" + tr("Included in Counting Frame %1"   ).arg(countingFrame->id()) + "</font>";
-  m_segmentation->addCondition(tag.arg(countingFrame->id()), ":/apply.svg", condition);
+  // Update segmentation's exclusion value
+  excluded = true;
+
+  int i = 0;
+  CountingFrameList countingFrames = m_exclusionCFs.keys();
+  while (excluded && i < countingFrames.size())
+  {
+    excluded = excluded && m_exclusionCFs[countingFrames[i]];
+    i++;
+  }
+  data.IsExcluded = excluded;
+
+  updateConditions();
+  s_cache.markAsClean(m_segmentation);
 }
 
 
@@ -341,6 +402,24 @@ bool StereologicalInclusion::isOnEdge()
   }
 
   return excluded;
+}
+
+//------------------------------------------------------------------------
+void StereologicalInclusion::updateConditions()
+{
+  if (s_cache.contains(m_segmentation))
+  {
+    ExtensionData &data = s_cache[m_segmentation].Data;
+
+    foreach(CountingFrame::Id id, data.ExclusionCFs.keys())
+    {
+      QString tag       = "CountingFrameCondition %1";
+      QString condition = data.ExclusionCFs[id]?
+      "<font color=\"red\">"   + tr("Excluded from Counting Frame %1").arg(id) + "</font>":
+      "<font color=\"green\">" + tr("Included in Counting Frame %1"   ).arg(id) + "</font>";
+      m_segmentation->addCondition(tag.arg(id), ":/apply.svg", condition);
+    }
+  }
 }
 
 //------------------------------------------------------------------------

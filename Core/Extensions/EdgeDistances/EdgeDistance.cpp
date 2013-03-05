@@ -53,7 +53,6 @@ EdgeDistance::ExtensionData::ExtensionData()
 //-----------------------------------------------------------------------------
 EdgeDistance::EdgeDistance()
 {
-  memset(m_distances, 0, 6*sizeof(double));
 }
 
 //-----------------------------------------------------------------------------
@@ -201,6 +200,15 @@ bool EdgeDistance::saveCache(Snapshot &cacheList)
 Segmentation::Information * EdgeDistance::clone()
 {
   return new EdgeDistance();
+}
+
+//-----------------------------------------------------------------------------
+void EdgeDistance::edgeDistance(Nm distances[6]) const
+{
+  if (!s_cache.isCached(m_segmentation))
+      updateDistances();
+
+  memcpy(distances, s_cache[m_segmentation].Data.Distances, 6*sizeof(Nm));
 }
 
 //-----------------------------------------------------------------------------

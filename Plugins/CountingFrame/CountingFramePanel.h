@@ -127,6 +127,8 @@ namespace EspINA
     CountingFrame::Id m_nextId;
 
     static const int NUM_FIXED_ROWS = 2;
+
+    friend class CountingFrameExtension;
   };
 
 } // namespace EspINA

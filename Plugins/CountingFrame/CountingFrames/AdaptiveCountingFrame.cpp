@@ -34,10 +34,6 @@
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
-const QString AdaptiveCountingFrame::ID       = "AdaptiveCountingFrame";
-const QString AdaptiveCountingFrame::ID_1_2_5 = "AdaptiveBoundingRegion";
-
-//-----------------------------------------------------------------------------
 AdaptiveCountingFrame::AdaptiveCountingFrame(Id id,
                                              CountingFrameExtension *channelExt,
                                              Nm inclusion[3],
@@ -77,15 +73,6 @@ QVariant AdaptiveCountingFrame::data(int role) const
              .arg(m_id);
 
   return CountingFrame::data(role);
-}
-
-//-----------------------------------------------------------------------------
-QString AdaptiveCountingFrame::serialize() const
-{
-  return QString("%1=%2,%3,%4,%5,%6,%7")
-         .arg(ID)
-         .arg(left(),0,'f',2).arg(top(),0,'f',2).arg(upper(),0,'f',2)
-         .arg(right(),0,'f',2).arg(bottom(),0,'f',2).arg(lower(),0,'f',2);
 }
 
 //-----------------------------------------------------------------------------

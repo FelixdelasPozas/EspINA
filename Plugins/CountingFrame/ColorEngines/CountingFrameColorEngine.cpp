@@ -53,7 +53,7 @@ QColor CountingFrameColorEngine::color(SegmentationPtr seg)
     return QColor(0, 0, 0, 255);
 
   StereologicalInclusion *stereologicalExtentsion;
-  Segmentation::InformationExtension extension = seg->informationExtension(StereologicalInclusion::ID);
+  Segmentation::InformationExtension extension = seg->informationExtension(StereologicalInclusionID);
   if (extension)
   {
     stereologicalExtentsion = stereologicalInclusionPtr(extension);
@@ -78,7 +78,7 @@ LUTPtr CountingFrameColorEngine::lut(SegmentationPtr seg)
     return m_includedLUT;
 
   StereologicalInclusion *stereologicalExtentsion;
-  Segmentation::InformationExtension extension = seg->informationExtension(StereologicalInclusion::ID);
+  Segmentation::InformationExtension extension = seg->informationExtension(StereologicalInclusionID);
   if (extension)
   {
     stereologicalExtentsion = stereologicalInclusionPtr(extension);

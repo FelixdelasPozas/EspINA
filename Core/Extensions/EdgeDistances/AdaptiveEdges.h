@@ -106,9 +106,7 @@ namespace EspINA
     QMutex m_mutex;
     bool   m_useAdaptiveEdges;
 
-    std::map<unsigned int, unsigned long int> m_ComputedSegmentations;
-
-    // builds a surface for each face the first time one is needed
+    // build a surface for each face the first time they're needed
     void ComputeSurfaces();
 
     friend class EdgeDetector;

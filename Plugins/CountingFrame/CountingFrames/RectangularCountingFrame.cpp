@@ -32,9 +32,6 @@
 
 using namespace EspINA;
 
-const QString RectangularCountingFrame::ID       = "RectangularCountingFrame";
-const QString RectangularCountingFrame::ID_1_2_5 = "RectangularBoundingRegion";
-
 //-----------------------------------------------------------------------------
 RectangularCountingFrame::RectangularCountingFrame(Id id,
                                                    CountingFrameExtension *channelExt,
@@ -78,17 +75,6 @@ QVariant RectangularCountingFrame::data(int role) const
 
   return CountingFrame::data(role);
 }
-
-//-----------------------------------------------------------------------------
-QString RectangularCountingFrame::serialize() const
-{
-  return QString("%1=%2,%3,%4,%5,%6,%7")
-         .arg(ID)
-         .arg(left(),0,'f',2).arg(top(),0,'f',2).arg(upper(),0,'f',2)
-         .arg(right(),0,'f',2).arg(bottom(),0,'f',2).arg(lower(),0,'f',2);
-}
-
-
 
 //-----------------------------------------------------------------------------
 vtkAbstractWidget *RectangularCountingFrame::create3DWidget(VolumeView* view)

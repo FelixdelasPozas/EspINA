@@ -301,18 +301,6 @@ void AdaptiveEdges::invalidate(ChannelPtr channel)
 //-----------------------------------------------------------------------------
 void AdaptiveEdges::computeDistanceToEdge(SegmentationPtr seg)
 {
-  std::map<unsigned int, unsigned long int>::iterator it = m_ComputedSegmentations.find(seg->number());
-  if (it != m_ComputedSegmentations.end())
-  {
-    // using itkVolume()->MTime and not mesh()->MTime() to avoid triggering lazy computations
-    if ((*it).second == seg->volume()->toITK()->GetMTime())
-      return;
-
-    m_ComputedSegmentations.erase(seg->number());
-  }
-
-  m_ComputedSegmentations.insert(ComputedSegmentation(seg->number(), seg->volume()->toITK()->GetMTime()));
-
   Segmentation::InformationExtension ext = seg->informationExtension(EdgeDistanceID);
   Q_ASSERT(ext);
   EdgeDistance *distanceExt = edgeDistancePtr(ext);

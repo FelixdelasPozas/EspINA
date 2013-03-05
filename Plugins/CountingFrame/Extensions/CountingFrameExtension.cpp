@@ -56,47 +56,10 @@ CountingFrameExtension::CountingFrameExtension(CountingFramePanel *plugin,
 //-----------------------------------------------------------------------------
 CountingFrameExtension::~CountingFrameExtension()
 {
-  qDebug() << "Deleting Counting Frame Channel Extension";
+  //qDebug() << "Deleting Counting Frame Channel Extension";
   foreach(CountingFrame *cf, m_countingFrames)
     m_plugin->deleteCountingFrame(cf);
 }
-
-// //-----------------------------------------------------------------------------
-// void CountingFrameExtension::initialize(ModelItem::Arguments args)
-// {
-//   qDebug() << "Initialize" << m_channel->data().toString() << CountingFrameExtensionID;
-//   ModelItem::Arguments extArgs(args.value(CountingFrameExtensionID, QString()));
-//   QStringList countingFrames;
-// 
-//   if (extArgs.isEmpty())
-//   {
-//     extArgs = ModelItem::Arguments(args.value(ID_1_2_5, QString()));
-//     countingFrames = extArgs.value(COUNTING_FRAMES_1_2_5, "").split(";", QString::SkipEmptyParts);
-//   }
-//   else
-//   {
-//     countingFrames = extArgs.value(COUNTING_FRAMES, "").split(";", QString::SkipEmptyParts);
-//   }
-// 
-//   foreach (QString countingFrame, countingFrames)
-//   {
-//     if (countingFrame.isEmpty())
-//       continue;
-// 
-//     QString type = countingFrame.section('=',0,0);
-//     QStringList margins = countingFrame.section('=',-1).split(',');
-//     Nm inclusion[3], exclusion[3];
-//     for (int i=0; i<3; i++)
-//     {
-//       inclusion[i] = margins[i].toDouble();
-//       exclusion[i] = margins[3+i].toDouble();
-//     }
-//     if (RectangularCountingFrame::ID == type)
-//       m_plugin->createRectangularCF(m_channel, inclusion, exclusion);
-//     else if (AdaptiveCountingFrame::ID == type)
-//       m_plugin->createAdaptiveCF(m_channel, inclusion, exclusion);
-//   }
-// }
 
 //-----------------------------------------------------------------------------
 ModelItem::ExtIdList CountingFrameExtension::dependencies() const
@@ -148,29 +111,37 @@ void CountingFrameExtension::loadCache(QuaZipFile  &file,
       }
       else if (fields.size() == 8)
       {
-        CF cf;
+        CF cfInfo;
         CountingFrame::Id id = fields[0].toInt();
 
-        cf.Type = static_cast<CFType>(fields[1].toInt());
+        cfInfo.Type = static_cast<CFType>(fields[1].toInt());
         for(int i=0; i<3; i++)
-          cf.Inclusion[i] = fields[2+i].toDouble();
+          cfInfo.Inclusion[i] = fields[2+i].toDouble();
         for(int i=0; i<3; i++)
-          cf.Exclusion[i] = fields[5+i].toDouble();
+          cfInfo.Exclusion[i] = fields[5+i].toDouble();
 
         ExtensionData &data = s_cache[extensionChannel].Data;
-        data.insert(id, cf);
+        data.insert(id, cfInfo);
 
+        CountingFrame *cf = NULL;
         switch(data[id].Type)
         {
           case ADAPTIVE:
-            cfExtension->addCountingFrame(AdaptiveCountingFrame::New(id, cfExtension, cf.Inclusion, cf.Exclusion, m_viewManager));
+            cf = AdaptiveCountingFrame::New(id, cfExtension, cfInfo.Inclusion, cfInfo.Exclusion, m_viewManager);
             break;
           case RECTANGULAR:
             double borders[6];
             extensionChannel->volume()->bounds(borders);
-            cfExtension->addCountingFrame(RectangularCountingFrame::New(id, cfExtension, borders, cf.Inclusion, cf.Exclusion, m_viewManager));
+            cf = RectangularCountingFrame::New(id, cfExtension, borders, cfInfo.Inclusion, cfInfo.Exclusion, m_viewManager);
             break;
         };
+        if (cf)
+        {
+          m_plugin->registerCF(cfExtension, cf);
+        } else
+        {
+          qWarning() << CountingFrameExtensionID << "Invalid Cache Entry:" << line;
+        }
       }
       else
         Q_ASSERT(false);
@@ -189,7 +160,6 @@ void CountingFrameExtension::loadCache(QuaZipFile  &file,
 //-----------------------------------------------------------------------------
 bool CountingFrameExtension::saveCache(Snapshot &cacheList)
 {
-  return false;
   s_cache.purge();
 
   if (s_cache.isEmpty())
@@ -242,7 +212,13 @@ void CountingFrameExtension::addCountingFrame(CountingFrame* countingFrame)
   m_countingFrames << countingFrame;
 
   CF cf;
-  cf.Type = static_cast<CFType>(countingFrame->type());
+  if (countingFrame->name() == ADAPTIVE_CF)
+    cf.Type = ADAPTIVE;
+  else if (countingFrame->name() == RECTANGULAR_CF)
+    cf.Type = RECTANGULAR;
+  else
+    Q_ASSERT(false);
+
   countingFrame->margins(cf.Inclusion, cf.Exclusion);
 
   s_cache[m_channel].Data.insert(countingFrame->id() ,cf);
@@ -300,7 +276,7 @@ void CountingFrameExtension::countinfFrameUpdated(CountingFrame* countingFrame)
 StereologicalInclusion *CountingFrameExtension::stereologicalInclusion(SegmentationPtr segmentation)
 {
   StereologicalInclusion *inclusionExtension   = NULL;
-  Segmentation::InformationExtension extension = segmentation->informationExtension(StereologicalInclusion::ID);
+  Segmentation::InformationExtension extension = segmentation->informationExtension(StereologicalInclusionID);
   if (extension)
   {
     inclusionExtension = dynamic_cast<StereologicalInclusion *>(extension);

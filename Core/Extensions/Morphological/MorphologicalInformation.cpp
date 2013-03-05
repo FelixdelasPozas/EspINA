@@ -99,7 +99,7 @@ MorphologicalInformation::~MorphologicalInformation()
   if (m_segmentation)
   {
     //qDebug() << m_seg->data().toString() << ": Deleting" << MorphologicalInformationID;
-    invalidate();
+    invalidate(m_segmentation);
   }
 }
 
@@ -195,7 +195,6 @@ QVariant MorphologicalInformation::information(const Segmentation::InfoTag &tag)
     return data.EquivalentEllipsoidSize[2];
 
   qWarning() << MorphologicalInformationID << ":"  << tag << " is not provided";
-  Q_ASSERT(false);
   return QVariant();
 }
 

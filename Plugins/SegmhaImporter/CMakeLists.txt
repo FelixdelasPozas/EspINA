@@ -38,6 +38,7 @@ set (PLUGIN_SOURCES
 
 set (PLUGIN_LIBRARIES
   EspinaCore
+  CountingFramePlugin
   )
 
 add_library(SegmhaImporterPlugin SHARED ${PLUGIN_SOURCES})

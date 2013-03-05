@@ -29,7 +29,8 @@
 #include <Undo/AddSample.h>
 
 #include <Plugins/CountingFrame/Extensions/CountingFrameExtension.h>
-#include "../CountingFrame/CountingFrames/RectangularCountingFrame.h"
+#include <Plugins/CountingFrame/CountingFrames/RectangularCountingFrame.h>
+#include <Plugins/CountingFrame/CountingFramePanel.h>
 
 #include <QApplication>
 #include <QFileDialog>
@@ -155,15 +156,7 @@ bool SegmhaImporter::readFile(const QFileInfo file, EspinaIO::ErrorHandler *hand
       exclusive[i] = exclusive[i]*spacing[i];
     }
 
-    // TODO: 2013-02-28
-//     QString rcb = QString("RectangularCountingFrame=%1,%2,%3,%4,%5,%6;")
-//       .arg(inclusive[0]).arg(inclusive[1]).arg(inclusive[2])
-//       .arg(exclusive[0]).arg(exclusive[1]).arg(exclusive[2]);
-//     //qDebug() << "Using Counting Frame" << rcb;
-//     ModelItem::Arguments args;
-//     args["CountingFrameExtension"] = "CFs=[" + rcb + "];";
-//     extension->initialize(args);
-//     cfExtension->addCountingFrame();
+    cfExtension->plugin()->createRectangularCF(channel.data(), inclusive, exclusive);
   }
 
   m_model->addFilter(filter);

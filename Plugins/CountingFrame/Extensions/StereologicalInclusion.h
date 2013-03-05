@@ -32,6 +32,7 @@ class vtkPolyData;
 
 namespace EspINA
 {
+  const ModelItem::ExtId StereologicalInclusionID = "CountingFrameExtension";
 
   class StereologicalInclusion
   : public Segmentation::Information
@@ -40,12 +41,19 @@ namespace EspINA
 
     static const QString EXTENSION_FILE;
 
-    typedef QSet<int> CacheEntry;
-    static QMap<SegmentationPtr, CacheEntry> s_cache;
+    struct ExtensionData
+    {
+      explicit ExtensionData() : IsExcluded(false) {}
+
+      bool IsExcluded;
+      QMap<CountingFrame::Id, bool> ExclusionCFs;
+    };
+
+    typedef Cache<SegmentationPtr, ExtensionData> ExtensionCache;
+
+    static ExtensionCache s_cache;
 
   public:
-    static const ModelItem::ExtId ID;
-
     static const Segmentation::InfoTag EXCLUDED;
 
   public:
@@ -87,9 +95,11 @@ namespace EspINA
     bool isRealCollision(EspinaRegion interscetion);
     bool isOnEdge();
 
+    void updateConditions();
+
   private:
     bool m_isOnEdge;
-    QMap<CountingFrame *, bool> m_isExcludedFrom;
+    QMap<CountingFrame *, bool> m_exclusionCFs;
   };
 
   typedef StereologicalInclusion * StereologicalInclusionPtr;

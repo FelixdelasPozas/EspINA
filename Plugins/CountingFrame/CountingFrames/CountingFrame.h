@@ -89,7 +89,6 @@ namespace EspINA
     void margins(Nm inclusion[3], Nm exclusion[3]);
 
     virtual QVariant data(int role = Qt::UserRole + 1) const;
-    virtual QString serialize() const = 0;
     virtual QString name() const = 0;
 
     Id id() const { return m_id; }
