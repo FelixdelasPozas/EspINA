@@ -89,7 +89,7 @@ set (ESPINA_SOURCES
   Docks/ChannelExplorer/ChannelExplorer.cpp
   Docks/FilterInspector/FilterInspector.cpp # TODO 2012-11-27 Renombrar (cuidadin con el Filter::FilterInspector)
   Docks/SegmentationExplorer/LayoutComposition.cpp
-  Docks/SegmentationExplorer/LayoutSample.cpp
+  Docks/SegmentationExplorer/LayoutLocation.cpp
   Docks/SegmentationExplorer/LayoutTaxonomy.cpp
   Docks/SegmentationExplorer/SegmentationExplorerLayout.cpp
   Docks/SegmentationExplorer/SegmentationDelegate.cpp

@@ -17,7 +17,7 @@
 */
 
 
-#include "LayoutSample.h"
+#include "LayoutLocation.h"
 
 #include <Core/Model/Sample.h>
 #include <Core/Model/Segmentation.h>

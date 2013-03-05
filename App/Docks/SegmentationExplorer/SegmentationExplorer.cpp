@@ -22,7 +22,7 @@
 #include "Docks/SegmentationExplorer/SegmentationDelegate.h"
 #include "Docks/SegmentationExplorer/SegmentationExplorerLayout.h"
 #include "LayoutComposition.h"
-#include "LayoutSample.h"
+#include "LayoutLocation.h"
 #include "LayoutTaxonomy.h"
 
 // EspINA
@@ -267,7 +267,9 @@ void SegmentationExplorer::updateSelection(QItemSelection selected, QItemSelecti
   {
     ModelItemPtr item = m_layout->item(index);
     if (EspINA::SEGMENTATION == item->type())
+    {
       selection << pickableItemPtr(item);
+    }
   }
 
   m_viewManager->setSelection(selection);

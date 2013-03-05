@@ -146,7 +146,8 @@ QModelIndex LocationProxy::parent(const QModelIndex& child) const
   int row = m_rootNodes.indexOf(parent);
   if (row < 0)
   {
-    row = m_subNodes[parent].indexOf(childNode);
+    ModelItemPtr grandParent = parentNode(parent);
+    row = m_subNodes[grandParent].indexOf(parent);
   }
 
   return createIndex(row, 0, parent);
