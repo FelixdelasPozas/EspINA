@@ -144,6 +144,9 @@ bool MeshRenderer::addItem(ModelItemPtr item)
 //-----------------------------------------------------------------------------
 bool MeshRenderer::updateItem(ModelItemPtr item)
 {
+  if (!m_enable)
+    return false;
+
   if (EspINA::SEGMENTATION != item->type())
     return false;
 
@@ -165,7 +168,26 @@ bool MeshRenderer::updateItem(ModelItemPtr item)
   }
 
   Representation &rep = m_segmentations[seg];
-  vtkSmartPointer<vtkProperty> actorProperty = NULL;
+  if (seg->visible())
+  {
+    if (!rep.visible)
+    {
+      m_renderer->AddActor(rep.actor);
+      rep.visible = true;
+      updated = true;
+    }
+  }
+  else
+  {
+    // return avoiding updated in the VTK pipelines.
+    if (rep.visible)
+    {
+      m_renderer->RemoveActor(rep.actor);
+      rep.visible = false;
+      return true;
+    }
+    return false;
+  }
 
   // check if the beginning of the pipeline has changed
   if (m_segmentations[seg].decimate->GetInputConnection(0,0) != seg->volume()->toMesh())
@@ -177,6 +199,7 @@ bool MeshRenderer::updateItem(ModelItemPtr item)
   }
 
   // deal with hierarchies first
+  vtkSmartPointer<vtkProperty> actorProperty = NULL;
   if (seg->OverridesRendering())
   {
     if (m_segmentations[seg].actorPropertyBackup == NULL)
@@ -205,23 +228,6 @@ bool MeshRenderer::updateItem(ModelItemPtr item)
     memcpy(m_segmentations[seg].extent, extent, 6 * sizeof(int));
     updated = true;
   }
-
-  if (m_enable && seg->visible())
-  {
-    if (!rep.visible)
-    {
-      m_renderer->AddActor(rep.actor);
-      rep.visible = true;
-      updated = true;
-    }
-  }
-  else
-    if (rep.visible)
-    {
-      m_renderer->RemoveActor(rep.actor);
-      rep.visible = false;
-      updated = true;
-    }
 
   if (seg->isSelected() != rep.selected || m_viewManager->color(seg) != rep.color)
   {
@@ -298,6 +304,7 @@ void MeshRenderer::show()
     SegmentationPtr seg = segmentationPtr(it.key());
     if (seg->visible())
     {
+      updateItem(it.key());
       m_renderer->AddActor((*it).actor);
       (*it).visible = true;
     }

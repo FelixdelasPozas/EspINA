@@ -350,6 +350,9 @@ bool CrosshairRenderer::addItem(ModelItemPtr item)
 //-----------------------------------------------------------------------------
 bool CrosshairRenderer::updateItem(ModelItemPtr item)
 {
+  if (!m_enable)
+    return false;
+
   if (EspINA::CHANNEL != item->type())
     return false;
 
@@ -357,6 +360,38 @@ bool CrosshairRenderer::updateItem(ModelItemPtr item)
   ChannelPtr channel = channelPtr(item);
   Q_ASSERT(m_channels.contains(channel));
   Representation &rep = m_channels[channel];
+
+  if (channel->isVisible())
+  {
+    if (!rep.visible)
+    {
+      m_renderer->AddActor(rep.axial);
+      m_renderer->AddActor(rep.coronal);
+      m_renderer->AddActor(rep.sagittal);
+      m_renderer->AddActor(rep.axialBorder);
+      m_renderer->AddActor(rep.coronalBorder);
+      m_renderer->AddActor(rep.sagittalBorder);
+      rep.visible = true;
+      updated = true;
+    }
+  }
+  else
+  {
+    // return avoiding updated to the VTK pipelines
+    if (rep.visible)
+    {
+      m_renderer->RemoveActor(rep.axial);
+      m_renderer->RemoveActor(rep.coronal);
+      m_renderer->RemoveActor(rep.sagittal);
+      m_renderer->RemoveActor(rep.axialBorder);
+      m_renderer->RemoveActor(rep.coronalBorder);
+      m_renderer->RemoveActor(rep.sagittalBorder);
+      rep.visible = false;
+      return true;
+    }
+    return false;
+  }
+
 
   if (((channel->hue() != -1) && ((rep.color.hueF() != channel->hue()) || (rep.color.saturation() != 1.0))) ||
      (((channel->hue() == -1) && ((rep.color.hue() != 0) || (rep.color.saturation() != 0)))))
@@ -394,32 +429,6 @@ bool CrosshairRenderer::updateItem(ModelItemPtr item)
     rep.contrast = channel->contrast();
     rep.brightness = channel->brightness();
 
-    updated = true;
-  }
-
-  if (m_enable && channel->isVisible())
-  {
-    if (!rep.visible)
-    {
-      m_renderer->AddActor(rep.axial);
-      m_renderer->AddActor(rep.coronal);
-      m_renderer->AddActor(rep.sagittal);
-      m_renderer->AddActor(rep.axialBorder);
-      m_renderer->AddActor(rep.coronalBorder);
-      m_renderer->AddActor(rep.sagittalBorder);
-      rep.visible = true;
-      updated = true;
-    }
-  }
-  else if (rep.visible)
-  {
-    m_renderer->RemoveActor(rep.axial);
-    m_renderer->RemoveActor(rep.coronal);
-    m_renderer->RemoveActor(rep.sagittal);
-    m_renderer->RemoveActor(rep.axialBorder);
-    m_renderer->RemoveActor(rep.coronalBorder);
-    m_renderer->RemoveActor(rep.sagittalBorder);
-    rep.visible = false;
     updated = true;
   }
 
@@ -502,6 +511,7 @@ void CrosshairRenderer::show()
   for (it = m_channels.begin(); it != m_channels.end(); ++it)
     if (!(*it).visible)
     {
+      updateItem(it.key());
       m_renderer->AddActor((*it).axial);
       m_renderer->AddActor((*it).coronal);
       m_renderer->AddActor((*it).sagittal);

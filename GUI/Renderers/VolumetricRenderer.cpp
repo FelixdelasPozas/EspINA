@@ -126,6 +126,9 @@ bool VolumetricRenderer::addItem(ModelItemPtr item)
 //-----------------------------------------------------------------------------
 bool VolumetricRenderer::updateItem(ModelItemPtr item)
 {
+  if (!m_enable)
+    return false;
+
   if (EspINA::SEGMENTATION != item->type())
     return false;
 
@@ -147,7 +150,26 @@ bool VolumetricRenderer::updateItem(ModelItemPtr item)
   }
 
   Representation &rep = m_segmentations[seg];
-  vtkSmartPointer<vtkVolumeProperty> volumeProperty = NULL;
+  if (seg->visible())
+  {
+    if (!rep.visible)
+    {
+      m_renderer->AddVolume(rep.volume);
+      rep.visible = true;
+      updated = true;
+    }
+  }
+  else
+  {
+    // return avoiding updates in the VTK pipelines;
+    if (rep.visible)
+    {
+      m_renderer->RemoveVolume(rep.volume);
+      rep.visible = false;
+      return true;
+    }
+    return false;
+  }
 
   // has the beginning of the pipeline changed?
   if (rep.volume->GetMapper()->GetInputConnection(0,0) != seg->volume()->toVTK())
@@ -159,6 +181,7 @@ bool VolumetricRenderer::updateItem(ModelItemPtr item)
   }
 
   // deal with hierarchies first
+  vtkSmartPointer<vtkVolumeProperty> volumeProperty = NULL;
   if (seg->OverridesRendering())
   {
     if (m_segmentations[seg].actorPropertyBackup == NULL)
@@ -178,23 +201,6 @@ bool VolumetricRenderer::updateItem(ModelItemPtr item)
 
     volumeProperty = m_segmentations[seg].volume->GetProperty();
   }
-
-  if (m_enable && seg->visible())
-  {
-    if (!rep.visible)
-    {
-      m_renderer->AddVolume(rep.volume);
-      rep.visible = true;
-      updated = true;
-    }
-  }
-  else
-    if (rep.visible)
-    {
-      m_renderer->RemoveVolume(rep.volume);
-      rep.visible = false;
-      updated = true;
-    }
 
   if (seg->isSelected() != rep.selected || m_viewManager->color(seg) != rep.color)
   {
@@ -265,6 +271,7 @@ void VolumetricRenderer::show()
     SegmentationPtr seg = segmentationPtr(it.key());
     if(seg->visible())
     {
+      updateItem(it.key());
       m_renderer->AddVolume((*it).volume);
       (*it).visible = true;
     }
