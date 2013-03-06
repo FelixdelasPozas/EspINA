@@ -57,6 +57,8 @@ namespace EspINA
     virtual void clean();
     virtual IRendererSPtr clone();
 
+    virtual int itemsBeenRendered() { return m_widgets.size(); }
+
   public slots:
     void countingFrameCreated(CountingFrame *cf);
     void countingFrameDeleted(CountingFrame *cf);

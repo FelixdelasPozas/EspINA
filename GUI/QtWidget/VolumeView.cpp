@@ -165,6 +165,8 @@ void VolumeView::addRendererControls(IRendererSPtr renderer)
       }
     }
   }
+
+  updateRenderersButtons();
 }
 
 //-----------------------------------------------------------------------------
@@ -247,6 +249,7 @@ void VolumeView::buildControls()
   m_snapshot.setFlat(true);
   m_snapshot.setIconSize(QSize(22,22));
   m_snapshot.setMaximumSize(QSize(32,32));
+  m_snapshot.setEnabled(false);
   connect(&m_snapshot,SIGNAL(clicked(bool)),this,SLOT(takeSnapshot()));
 
   m_export.setIcon(QIcon(":/espina/export_scene.svg"));
@@ -254,6 +257,7 @@ void VolumeView::buildControls()
   m_export.setFlat(true);
   m_export.setIconSize(QSize(22,22));
   m_export.setMaximumSize(QSize(32,32));
+  m_export.setEnabled(false);
   connect(&m_export,SIGNAL(clicked(bool)),this,SLOT(exportScene()));
 
   QSpacerItem * horizontalSpacer = new QSpacerItem(4000, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
@@ -316,6 +320,8 @@ void VolumeView::addChannel(ChannelPtr channel)
   m_addedItems << channel;
   foreach(IRendererSPtr renderer, m_itemRenderers)
     renderer->addItem(channel);
+
+  updateRenderersButtons();
 }
 
 //-----------------------------------------------------------------------------
@@ -338,6 +344,8 @@ void VolumeView::removeChannel(ChannelPtr channel)
 
   foreach(IRendererSPtr renderer, m_itemRenderers)
     renderer->removeItem(channel);
+
+  updateRenderersButtons();
 }
 
 
@@ -349,6 +357,8 @@ void VolumeView::addSegmentation(SegmentationPtr seg)
   m_addedItems << seg;
   foreach(IRendererSPtr renderer, m_itemRenderers)
     renderer->addItem(seg);
+
+  updateRenderersButtons();
 
   m_segmentations << seg;
 }
@@ -374,6 +384,8 @@ void VolumeView::removeSegmentation(SegmentationPtr seg)
   m_addedItems.removeAll(seg);
   foreach(IRendererSPtr renderer, m_itemRenderers)
     renderer->removeItem(seg);
+
+  updateRenderersButtons();
 
   m_segmentations.removeOne(seg);
 }
@@ -552,21 +564,6 @@ bool VolumeView::eventFilter(QObject* caller, QEvent* e)
 //-----------------------------------------------------------------------------
 void VolumeView::exportScene()
 {
-  // only mesh actors are exported in a 3D scene, not volumes
-  unsigned int numActors = 0;
-  foreach(IRendererSPtr renderer, m_itemRenderers)
-    numActors += renderer->getNumberOfvtkActors();
-
-  if (0 == numActors)
-  {
-    QMessageBox msgBox;
-    QString message(tr("The scene can not be exported because there are no mesh objects in it."));
-    msgBox.setIcon(QMessageBox::Information);
-    msgBox.setText(message);
-    msgBox.exec();
-    return;
-  }
-
   QFileDialog fileDialog(this, tr("Save Scene"), QString(), tr("All supported formats (*.x3d *.pov *.vrml);; POV-Ray files (*.pov);; VRML files (*.vrml);; X3D format (*.x3d)"));
   fileDialog.setObjectName("SaveSceneFileDialog");
   fileDialog.setWindowTitle("Save View as a 3D Scene");
@@ -846,6 +843,7 @@ void VolumeView::countEnabledRenderers(bool value)
       }
     }
   }
+  updateRenderersButtons();
 }
 
 //-----------------------------------------------------------------------------
@@ -911,4 +909,21 @@ void VolumeView::forceRender(SegmentationList updatedSegs)
 
   m_view->GetRenderWindow()->Render();
   m_view->update();
+}
+
+//-----------------------------------------------------------------------------
+void VolumeView::updateRenderersButtons()
+{
+  bool canTakeSnapshot = false;
+  bool canBeExported = false;
+  QMap<QPushButton *, IRendererSPtr>::iterator it;
+  for(it = m_renderers.begin(); it != m_renderers.end(); ++it)
+  {
+    canTakeSnapshot |= (!it.value()->isHidden()) && (it.value()->itemsBeenRendered() != 0);
+    canBeExported |= canTakeSnapshot && (it.value()->getNumberOfvtkActors() != 0);
+    it.key()->setEnabled(it.value()->itemsBeenRendered() != 0);
+  }
+
+  m_snapshot.setEnabled(canTakeSnapshot);
+  m_export.setEnabled(canBeExported);
 }

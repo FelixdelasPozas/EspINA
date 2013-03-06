@@ -66,6 +66,7 @@ namespace EspINA
     virtual IRendererSPtr clone() {return IRendererSPtr(new VolumetricRenderer(m_viewManager));}
 
     virtual bool isASegmentationRenderer() { return true; };
+    virtual int itemsBeenRendered() { return m_segmentations.size(); };
   private:
     // helper methods
     void createHierarchyProperties(SegmentationPtr seg);

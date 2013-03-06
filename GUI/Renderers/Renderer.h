@@ -75,6 +75,9 @@ namespace EspINA
     // naive item filtering, to be modified/enhanced in the future
     virtual bool itemCanBeRendered(ModelItemPtr item) { return true; }
 
+    // return the number of elements actually been rendered by this renderer
+    virtual int itemsBeenRendered() = 0;
+
   public slots:
     virtual void setEnable(bool value)
     {

@@ -71,6 +71,7 @@ public:
   virtual IRendererSPtr clone() {return IRendererSPtr(new MeshRenderer(m_viewManager));}
 
   virtual bool isASegmentationRenderer() { return true; };
+  virtual int itemsBeenRendered() { return m_segmentations.size(); };
 
 public slots:
   virtual bool updateItem(ModelItemPtr item);

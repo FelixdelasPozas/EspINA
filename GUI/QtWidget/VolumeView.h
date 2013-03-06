@@ -142,6 +142,7 @@ namespace EspINA
     //   void selectSegmentations(int x, int y, int z);
     void setupUI();
     void buildControls();
+    void updateRenderersButtons();
 
   protected slots:
     virtual bool eventFilter(QObject* caller, QEvent* e);
