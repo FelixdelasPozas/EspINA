@@ -16,13 +16,13 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+// EspINA
 #include "RemoveSegmentation.h"
-
 #include <Core/Model/Segmentation.h>
-#include <Core/Model/EspinaModel.h>
+#include <Filters/ChannelReader.h>
 #include <GUI/ViewManager.h>
 
+// Qt
 #include <QStack>
 
 using namespace EspINA;
@@ -72,42 +72,8 @@ RemoveSegmentation::RemoveSegmentation(SegmentationPtr seg,
 
   // check if the filters of the segmentations marked to remove can be also removed
   // (that is, the filters doesn't produce another segmentation not marked for removal)
-  // also insert to remove the chain of filters ancestors to these, if we can
   foreach(FilterSPtr filter, addedFilters)
-  {
-    bool canBeDeleted = true;
-    ModelItemSList consumers = filter->relatedItems(EspINA::OUT);
-
-    foreach(ModelItemSPtr consumer, consumers)
-    {
-      if (consumer->type() == SEGMENTATION && !m_segmentations.contains(segmentationPtr(consumer)))
-      {
-        canBeDeleted = false;
-        break;
-      }
-    }
-
-    if (canBeDeleted)
-    {
-      m_filters << filter;
-
-      foreach(Relation relation, filter->relations())
-        if (!isADupicatedRelation(relation))
-          m_relations << relation;
-
-      ModelItemSList ancestors = filter->relatedItems(EspINA::IN);
-      foreach(ModelItemSPtr ancestor, ancestors)
-      {
-        if (ancestor->type() == EspINA::FILTER)
-          addFilterDependencies(filterPtr(ancestor));
-        else
-          if (ancestor->type() == EspINA::CHANNEL)
-            continue;
-          else
-            Q_ASSERT(false);
-      }
-    }
-  }
+    addFilterDependencies(filter);
 }
 
 //------------------------------------------------------------------------
@@ -165,40 +131,7 @@ RemoveSegmentation::RemoveSegmentation(SegmentationList segList,
   // check if the filters of the segmentations marked to remove can be also removed
   // (that is, the filters doesn't produce another segmentation not marked for removal)
   foreach(FilterSPtr filter, addedFilters)
-  {
-    bool canBeDeleted = true;
-    ModelItemSList consumers = filter->relatedItems(EspINA::OUT);
-
-    foreach(ModelItemSPtr consumer, consumers)
-    {
-      if (consumer->type() == EspINA::SEGMENTATION && !m_segmentations.contains(segmentationPtr(consumer)))
-      {
-        canBeDeleted = false;
-        break;
-      }
-    }
-
-    if (canBeDeleted)
-    {
-      m_filters << filter;
-
-      foreach(Relation relation, filter->relations())
-        if (!isADupicatedRelation(relation))
-          m_relations << relation;
-
-      ModelItemSList ancestors = filter->relatedItems(EspINA::IN);
-      foreach(ModelItemSPtr ancestor, ancestors)
-      {
-        if (ancestor->type() == EspINA::FILTER)
-          addFilterDependencies(filterPtr(ancestor));
-        else
-          if (ancestor->type() == EspINA::CHANNEL)
-            continue;
-          else
-            Q_ASSERT(false);
-      }
-    }
-  }
+    addFilterDependencies(filter);
 }
 
 
@@ -239,10 +172,20 @@ void RemoveSegmentation::addFilterDependencies(FilterSPtr filter)
 {
   ModelItemSList consumers = filter->relatedItems(EspINA::OUT);
   foreach(ModelItemSPtr consumer, consumers)
-  {
-    if (consumer->type() == FILTER && !m_filters.contains(filterPtr(consumer)))
-      return;
-  }
+    switch(consumer->type())
+    {
+      case EspINA::SEGMENTATION:
+        if (!m_segmentations.contains(segmentationPtr(consumer)))
+          return;
+        break;
+      case EspINA::FILTER:
+        if (!m_filters.contains(filterPtr(consumer)))
+          return;
+        break;
+      default:
+        return;
+        break;
+    }
 
   m_filters << filter;
 
@@ -252,15 +195,8 @@ void RemoveSegmentation::addFilterDependencies(FilterSPtr filter)
 
   ModelItemSList ancestors = filter->relatedItems(EspINA::IN);
   foreach(ModelItemSPtr ancestor, ancestors)
-  {
-    if (EspINA::FILTER == ancestor->type())
+    if (ancestor->type() == EspINA::FILTER && (filterPtr(ancestor)->filterType() != ChannelReader::TYPE))
       addFilterDependencies(filterPtr(ancestor));
-    else
-      if (ancestor->type() == EspINA::CHANNEL) // 2012-12-24 Bug in pencil erase command?
-        continue;
-      else
-        Q_ASSERT(false);
-  }
 }
 
 //------------------------------------------------------------------------

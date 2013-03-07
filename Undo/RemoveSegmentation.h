@@ -23,11 +23,12 @@
 #ifndef REMOVESEGMENTATION_H
 #define REMOVESEGMENTATION_H
 
-#include <QUndoCommand>
-
 // EspINA
-#include "Core/Model/ModelItem.h"
+#include <Core/Model/ModelItem.h>
 #include <Core/Model/EspinaModel.h>
+
+// Qt
+#include <QUndoCommand>
 
 namespace EspINA
 {
