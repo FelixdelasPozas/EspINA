@@ -84,9 +84,9 @@ void ChannelReader::run()
     .arg(file.absoluteFilePath());
     Q_ASSERT(false);
   }
-  m_io->SetFileName(m_args[FILE].toAscii());
+  m_io->SetFileName(m_args[FILE].toUtf8());
   m_reader->SetImageIO(m_io);
-  m_reader->SetFileName(m_args[FILE].toStdString());
+  m_reader->SetFileName(m_args[FILE].toUtf8().data());
   m_reader->Update();
 
   if (m_args.contains(SPACING))

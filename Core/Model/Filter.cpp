@@ -666,10 +666,10 @@ Filter::EspinaVolumeReader::Pointer Filter::tmpFileReader(const QString file)
     itk::MetaImageIO::Pointer io = itk::MetaImageIO::New();
     reader = EspinaVolumeReader::New();
 
-    std::string tmpFile = m_cacheDir.absoluteFilePath(file).toStdString();
-    io->SetFileName(tmpFile.c_str());
+    QByteArray tmpFile = m_cacheDir.absoluteFilePath(file).toUtf8();
+    io->SetFileName(tmpFile);
     reader->SetImageIO(io);
-    reader->SetFileName(tmpFile);
+    reader->SetFileName(tmpFile.data());
     reader->Update();
   }
 
@@ -771,8 +771,8 @@ bool Filter::dumpSnapshot(Snapshot &snapshot)
       QString mhd = temporalDir.absoluteFilePath(outputName + ".mhd");
       QString raw = temporalDir.absoluteFilePath(outputName + ".raw");
 
-      io->SetFileName(mhd.toStdString());
-      writer->SetFileName(mhd.toStdString());
+      io->SetFileName(mhd.toUtf8());
+      writer->SetFileName(mhd.toUtf8().data());
 
       update();
 
@@ -844,8 +844,8 @@ bool Filter::dumpSnapshot(Snapshot &snapshot)
             bool releaseFlag = regionVolume->GetReleaseDataFlag();
             regionVolume->ReleaseDataFlagOff();
 
-            io->SetFileName(mhd.toStdString());
-            writer->SetFileName(mhd.toStdString());
+            io->SetFileName(mhd.toUtf8());
+            writer->SetFileName(mhd.toUtf8().data());
 
             ROIFilter::Pointer roiFilter = ROIFilter::New();
             roiFilter->SetRegionOfInterest(output.volume->volumeRegion(editedRegion));

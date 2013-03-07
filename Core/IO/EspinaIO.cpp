@@ -315,8 +315,8 @@ bool EspinaIO::zipVolume(Filter::Output output,
   QString volumeName = QString("%1_%2").arg(filter->id()).arg(output.id);
   QString mhd = tmpDir.absoluteFilePath(volumeName + ".mhd");
   QString raw = tmpDir.absoluteFilePath(volumeName + ".raw");
-  io->SetFileName(mhd.toStdString());
-  writer->SetFileName(mhd.toStdString());
+  io->SetFileName(mhd.toUtf8());
+  writer->SetFileName(mhd.toUtf8().data());
   filter->update();
   itkVolumeType::Pointer volume = output.volume->toITK();
   bool releaseFlag = volume->GetReleaseDataFlag();
