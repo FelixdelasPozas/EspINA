@@ -81,9 +81,9 @@ namespace EspINA
     bool init = false;
     foreach(QVector4D node, m_param.nodeList())
     {
-      int cx = node.x() / m_param.spacing()[0] + 0.5;
-      int cy = node.y() / m_param.spacing()[1] + 0.5;
-      int cz = node.z() / m_param.spacing()[2] + 0.5;
+      int cx = vtkMath::Round(node.x() / m_param.spacing()[0]);
+      int cy = vtkMath::Round(node.y() / m_param.spacing()[1]);
+      int cz = vtkMath::Round(node.z() / m_param.spacing()[2]);
       int rx = round(node.w()/m_param.spacing()[0]);
       int ry = round(node.w()/m_param.spacing()[1]);
       int rz = round(node.w()/m_param.spacing()[2]);

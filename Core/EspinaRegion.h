@@ -24,6 +24,7 @@
 
 namespace EspINA
 {
+  /// Normalized region, i.e. origin (0,0,0)
   class EspinaRegion
   {
   public:
@@ -42,6 +43,7 @@ namespace EspINA
     const Nm *bounds(            ) const { return m_bounds; }
     void      bounds(Nm bounds[6]) const { memcpy(bounds, m_bounds, 6*sizeof(Nm)); }
 
+    /// Return whether this is inside @region
     bool isInside(const EspinaRegion &region) const;
     /// Check region intersection
     bool intersect(const EspinaRegion &region) const;

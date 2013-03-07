@@ -42,7 +42,8 @@ const QString TAXONOMY_FILE = "taxonomy.xml";
 typedef itk::ImageFileWriter<itkVolumeType> EspinaVolumeWriter;
 
 const QString EspinaIO::VERSION = "version";
-const QString SEG_FILE_VERSION  = "1";
+const QString SEG_FILE_VERSION  = "2";
+const QString SEG_FILE_COMPATIBLE_VERSION  = "1";
 
 //-----------------------------------------------------------------------------
 bool EspinaIO::isChannelExtension(const QString &fileExtension)
@@ -189,7 +190,7 @@ EspinaIO::STATUS EspinaIO::loadSegFile(QFileInfo    file,
     if (file.fileName() == VERSION)
     {
       QString versionNumber = espinaFile.readAll();
-      if (versionNumber < SEG_FILE_VERSION)
+      if (versionNumber < SEG_FILE_COMPATIBLE_VERSION)
       {
         if (handler)
           handler->error(QObject::tr("Invalid seg file version. File Version=%1, current Version %2").arg(versionNumber).arg(SEG_FILE_VERSION));

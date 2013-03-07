@@ -45,15 +45,18 @@ public:
   , m_radius(radius)
   {
     m_oldRadius = m_filter->radius();
-    m_oldVolumeEditerByUser = !m_filter->editedOutputs().isEmpty();
   }
 
   virtual void redo()
   {
-    if (!m_oldVolumeEditerByUser || m_filter->volume(0)->volumeRegion().GetNumberOfPixels() < MAX_UNDO_SIZE)
-      m_oldVolume = m_filter->output(0).volume->cloneVolume();
+    Filter::Output &output = m_filter->output(0);
+    if (!m_oldVolume && (output.isEdited() || output.volume->volumeRegion().GetNumberOfPixels() < MAX_UNDO_SIZE))
+    {
+      m_oldVolume     = output.volume->cloneVolume();
+      m_editedRegions = output.editedRegions;
+    }
 
-    m_filter->setRadius(m_radius);
+    m_filter->setRadius(m_radius, m_newVolume.IsNotNull());
 
     if (m_newVolume.IsNull())
     {
@@ -62,26 +65,26 @@ public:
       if (m_filter->isOutputEmpty())
         return;
 
-      EspinaVolume::Pointer newVolume = m_filter->volume(0);
+      EspinaVolume::Pointer newVolume = output.volume;
       if (newVolume->volumeRegion().GetNumberOfPixels() < MAX_UNDO_SIZE)
-        m_newVolume = m_filter->output(0).volume->cloneVolume();
+        m_newVolume = output.volume->cloneVolume();
     }
     else
     {
       m_filter->restoreOutput(0, m_newVolume);
     }
-    // NOTE: restoreOutput() marks the volume as edited by the user when that's not true
-    m_filter->output(0).isEdited = false;
+
+    output.editedRegions.clear();
   }
 
   virtual void undo()
   {
-    m_filter->setRadius(m_oldRadius);
+    m_filter->setRadius(m_oldRadius, true);
 
     if (m_oldVolume.IsNotNull())
     {
       m_filter->restoreOutput(0, m_oldVolume);
-      m_filter->output(0).isEdited = m_oldVolumeEditerByUser;
+      m_filter->output(0).editedRegions = m_editedRegions;
     } else
     {
       update();
@@ -103,7 +106,8 @@ private:
 
   itkVolumeType::Pointer m_oldVolume;
   itkVolumeType::Pointer m_newVolume;
-  bool m_oldVolumeEditerByUser;
+
+  QList<EspinaRegion> m_editedRegions;
 };
 
 

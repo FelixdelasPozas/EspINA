@@ -115,27 +115,28 @@ namespace EspINA
                                         FilterType  type);
     virtual ~SeedGrowSegmentationFilter();
 
-    void setLowerThreshold(int th);
+    void setLowerThreshold(int th, bool ignoreUpdate = false);
     int lowerThreshold() const {return m_param.lowerThreshold();}
 
-    void setUpperThreshold(int th);
+    void setUpperThreshold(int th, bool ignoreUpdate = false);
     int upperThreshold() const {return m_param.upperThreshold();}
 
     /// Convenience method to set symmetrical lower/upper thresholds
-    void setThreshold(int th)
+    void setThreshold(int th, bool ignoreUpdate = false)
     {
-      setLowerThreshold(th);
-      setUpperThreshold(th);
+      setLowerThreshold(th, ignoreUpdate);
+      setUpperThreshold(th, ignoreUpdate);
     };
 
-    void setSeed(itkVolumeType::IndexType seed);
+    void setSeed(itkVolumeType::IndexType seed, bool ignoreUpdate = false);
     itkVolumeType::IndexType seed() const;
 
-    void setVOI(int VOI[6]);
+    void setVOI(int VOI[6], bool ignoreUpdate = false);
     void voi(int VOI[6]) const {m_param.voi(VOI);}
 
     unsigned int closeValue() {return m_param.closeValue();}
-    void setCloseValue(unsigned int value) {m_param.setCloseValue(value);}
+    void setCloseValue(unsigned int value, bool ignoreUpdate = false)
+    {m_param.setCloseValue(value); m_paramModified = !ignoreUpdate; }
 
     // Implements Filter Interface
     virtual bool needUpdate() const;

@@ -53,7 +53,8 @@ public:
   virtual ~MorphologicalEditionFilter();
 
   unsigned int radius() const {return m_params.radius();}
-  void setRadius(int radius) {m_params.setRadius(radius); m_paramModified = true;}
+  void setRadius(int radius, bool ignoreUpdate = false)
+  {m_params.setRadius(radius); m_paramModified = !ignoreUpdate;}
 
   virtual bool needUpdate() const;
 

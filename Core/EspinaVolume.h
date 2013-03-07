@@ -70,10 +70,10 @@ namespace EspINA
     ///
     void spacing(double out[3]) const;
 
-    EspinaRegion espinaRegion() const;/// Equivale al bounds que hay arriba
+    EspinaRegion espinaRegion() const;/// Equivalent to bounds method
 
     VolumeRegion volumeRegion() const;/// Largest possible region
-    VolumeRegion volumeRegion(const EspinaRegion &region) const; /// La region del volumen que equivale a la region "normalizada"
+    VolumeRegion volumeRegion(const EspinaRegion &region) const; /// Volume's region equivalent to the normalized region
 
     itkVolumeIterator iterator();
     itkVolumeIterator iterator(const EspinaRegion &region);
@@ -88,6 +88,8 @@ namespace EspINA
     virtual const vtkAlgorithmOutput *toVTK() const;
 
     virtual itkVolumeType::Pointer cloneVolume() const;
+    virtual itkVolumeType::Pointer cloneVolume(const EspinaRegion &region) const;
+    virtual itkVolumeType::Pointer cloneVolume(const VolumeRegion &region) const;
 
     void markAsModified(bool emitSignal = true);
     virtual void update();

@@ -128,7 +128,7 @@ bool realCollision(vtkImageData *input, EspinaRegion interscetion)
         if (input->GetScalarComponentAsDouble(px,py,pz,0))
           return true;
       }
-  
+
   return false;
 }
 
@@ -137,11 +137,11 @@ bool discartedByRegion(vtkImageData *input, EspinaRegion &inputBB, vtkPolyData *
   vtkPoints *regionPoints = region->GetPoints();
   vtkCellArray *regionFaces = region->GetPolys();
   vtkCellData *faceData = region->GetCellData();
-  
+
   double bounds[6];
   regionPoints->GetBounds(bounds);
   EspinaRegion regionBB(bounds);
-  
+
   // If there is no intersection (nor is inside), then it is discarted
   if (!inputBB.intersect(regionBB))
     return true;
@@ -154,24 +154,24 @@ bool discartedByRegion(vtkImageData *input, EspinaRegion &inputBB, vtkPolyData *
   {
     vtkIdType npts, *pts;
     regionFaces->GetNextCell(npts, pts);
-    
+
     vtkSmartPointer<vtkPoints> facePoints = vtkSmartPointer<vtkPoints>::New();
     for (int i=0; i < npts; i++)
       facePoints->InsertNextPoint(regionPoints->GetPoint(pts[i]));
-    
+
     facePoints->GetBounds(bounds);
     EspinaRegion faceBB(bounds);
     if (inputBB.intersect(faceBB) && realCollision(input, inputBB.intersection(faceBB)))
     {
       if (faceData->GetScalars()->GetComponent(f,0) == 0)
-	return true;
+        return true;
       collisionDected = true;
     }
   }
 
   if (collisionDected)
     return false;
-  
+
   // If no collision was detected we have to check for inclusion
   for (int p=0; p < regionPoints->GetNumberOfPoints(); p +=8)
   {

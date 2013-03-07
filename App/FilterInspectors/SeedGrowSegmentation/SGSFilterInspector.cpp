@@ -54,13 +54,20 @@ public:
 
   virtual void redo()
   {
-    if (!m_filter->editedOutputs().isEmpty() || m_filter->volume(0)->volumeRegion().GetNumberOfPixels() < MAX_UNDO_SIZE)
-      m_oldVolume = m_filter->output(0).volume->cloneVolume();
+    Filter::Output &output = m_filter->output(0);
 
-    m_filter->setLowerThreshold(m_threshold);
-    m_filter->setUpperThreshold(m_threshold);
-    m_filter->setVOI(m_VOI);
-    m_filter->setCloseValue(m_closeRadius);
+    if (!m_oldVolume && (output.isEdited() || output.volume->volumeRegion().GetNumberOfPixels() < MAX_UNDO_SIZE))
+    {
+      m_oldVolume     = output.volume->cloneVolume();
+      m_editedRegions = output.editedRegions;
+    }
+
+    bool ignoreUpdate = m_newVolume.IsNotNull();
+
+    m_filter->setLowerThreshold(m_threshold, ignoreUpdate);
+    m_filter->setUpperThreshold(m_threshold, ignoreUpdate);
+    m_filter->setVOI(m_VOI, ignoreUpdate);
+    m_filter->setCloseValue(m_closeRadius, ignoreUpdate);
 
     if (m_newVolume.IsNull())
     {
@@ -74,18 +81,21 @@ public:
     {
       m_filter->restoreOutput(0, m_newVolume);
     }
+
+    output.editedRegions.clear();
   }
 
   virtual void undo()
   {
-    m_filter->setLowerThreshold(m_oldThreshold);
-    m_filter->setUpperThreshold(m_oldThreshold);
-    m_filter->setVOI(m_oldVOI);
-    m_filter->setCloseValue(m_oldCloseRadius);
+    m_filter->setLowerThreshold(m_oldThreshold, true);
+    m_filter->setUpperThreshold(m_oldThreshold, true);
+    m_filter->setVOI(m_oldVOI, true);
+    m_filter->setCloseValue(m_oldCloseRadius, true);
 
     if (m_oldVolume.IsNotNull())
     {
       m_filter->restoreOutput(0, m_oldVolume);
+      m_filter->output(0).editedRegions = m_editedRegions;
     } else
     {
       update();
@@ -109,6 +119,8 @@ private:
 
   itkVolumeType::Pointer m_oldVolume;
   itkVolumeType::Pointer m_newVolume;
+
+  QList<EspinaRegion> m_editedRegions;
 };
 
 //----------------------------------------------------------------------------

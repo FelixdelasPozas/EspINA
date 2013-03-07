@@ -187,36 +187,37 @@ void SeedGrowSegmentationFilter::run()
 
 
 //-----------------------------------------------------------------------------
-void SeedGrowSegmentationFilter::setLowerThreshold(int th)
+void SeedGrowSegmentationFilter::setLowerThreshold(int th, bool ignoreUpdate)
 {
   if (th < 0)
     return;
 
   m_param.setLowerThreshold(th);
-  m_paramModified = true;
+  m_paramModified = !ignoreUpdate;
 }
 
 //-----------------------------------------------------------------------------
-void SeedGrowSegmentationFilter::setUpperThreshold(int th)
+void SeedGrowSegmentationFilter::setUpperThreshold(int th, bool ignoreUpdate)
 {
   if (th < 0)
     return;
 
   m_param.setUpperThreshold(th);
-  m_paramModified = true;
+  m_paramModified = !ignoreUpdate;
 }
 
 //-----------------------------------------------------------------------------
-void SeedGrowSegmentationFilter::setVOI(int VOI[6])
+void SeedGrowSegmentationFilter::setVOI(int VOI[6], bool ignoreUpdate)
 {
   m_param.setVOI(VOI);
-  m_paramModified = true;
+  m_paramModified = !ignoreUpdate;
 }
 
 //-----------------------------------------------------------------------------
-void SeedGrowSegmentationFilter::setSeed(itkVolumeType::IndexType seed)
+void SeedGrowSegmentationFilter::setSeed(itkVolumeType::IndexType seed, bool ignoreUpdate)
 {
   m_param.setSeed(seed);
+  m_paramModified = !ignoreUpdate;
 }
 
 //-----------------------------------------------------------------------------

@@ -225,7 +225,7 @@ void Brush::drawStroke(PickableItemPtr item,
     {
       m_undoStack->beginMacro("Erase Segmentation");
       m_undoStack->push(m_eraseCommand);
-      try 
+      try
       {
         m_currentSeg->volume()->strechToFitContent();
         m_viewManager->updateSegmentationRepresentations(m_currentSeg.data());

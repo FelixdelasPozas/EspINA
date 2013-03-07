@@ -98,10 +98,9 @@ itkVolumeType::IndexType EspinaVolume::index(Nm x, Nm y, Nm z)
   itkVolumeType::SpacingType spacing = m_volume->GetSpacing();
   itkVolumeType::IndexType   res;
 
-  // add 0.5 before int conversion rounds the index
-  res[0] = (x - origin[0]) / spacing[0] + 0.5;
-  res[1] = (y - origin[1]) / spacing[1] + 0.5;
-  res[2] = (z - origin[2]) / spacing[2] + 0.5;
+  res[0] = vtkMath::Round((x - origin[0]) / spacing[0]);
+  res[1] = vtkMath::Round((y - origin[1]) / spacing[1]);
+  res[2] = vtkMath::Round((z - origin[2]) / spacing[2]);
 
   return res;
 }
@@ -116,7 +115,7 @@ void EspinaVolume::extent(int out[6]) const
   for(int i=0; i<3; i++)
   {
     int min = 2*i, max = 2*i+1;
-    out[min] = int(origin[i]/spacing[i] + 0.5) + region.GetIndex(i);
+    out[min] = vtkMath::Round(origin[i]/spacing[i]) + region.GetIndex(i);
     out[max] = out[min] + region.GetSize(i) - 1;
   }
 }
@@ -175,7 +174,7 @@ EspinaVolume::VolumeRegion EspinaVolume::volumeRegion(const EspinaRegion& region
   if (origin[0] != 0 || origin[1] != 0 || origin[2] != 0)
   {
     for (int i = 0; i < 3; i++)
-      res.SetIndex(i, res.GetIndex(i) - int(origin[i]/spacing[i]+0.5));
+      res.SetIndex(i, res.GetIndex(i) - vtkMath::Round(origin[i]/spacing[i]));
   }
 
   return res;
@@ -247,10 +246,22 @@ const vtkAlgorithmOutput* EspinaVolume::toVTK() const
 //----------------------------------------------------------------------------
 itkVolumeType::Pointer EspinaVolume::cloneVolume() const
 {
+  return cloneVolume(volumeRegion());
+}
+
+//----------------------------------------------------------------------------
+itkVolumeType::Pointer EspinaVolume::cloneVolume(const EspinaRegion &region) const
+{
+  return cloneVolume(volumeRegion(region));
+}
+
+//----------------------------------------------------------------------------
+itkVolumeType::Pointer EspinaVolume::cloneVolume(const EspinaVolume::VolumeRegion &region) const
+{
   ExtractType::Pointer extractor = ExtractType::New();
   extractor->SetNumberOfThreads(1);
   extractor->SetInput(m_volume);
-  extractor->SetExtractionRegion(volumeRegion());
+  extractor->SetExtractionRegion(region);
   extractor->Update();
 
   itkVolumeType::Pointer res = extractor->GetOutput();
@@ -330,6 +341,11 @@ void EspinaVolume::expandToFitRegion(EspinaRegion region)
       outIter.Set(0);
       ++outIter;
     }
+/*    
+    m_volume->Print(std::cout);
+    expandedVolume.m_volume->Print(std::cout);
+
+    expandedVolume.m_volume->SetOrigin(m_volume->GetOrigin()); */
 
     setVolume(expandedVolume.m_volume);
   }
@@ -345,8 +361,8 @@ EspinaVolume::VolumeRegion EspinaVolume::volumeRegion(EspinaRegion region, itkVo
   itkVolumeType::IndexType min, max;
   for (int i = 0; i < 3; i++)
   {
-    min[i] = region[2*i  ]/spacing[i]+0.5;
-    max[i] = region[2*i+1]/spacing[i]+0.5;
+    min[i] = vtkMath::Round(region[2*i  ]/spacing[i]);
+    max[i] = vtkMath::Round(region[2*i+1]/spacing[i]);
 
     res.SetIndex(i, min[i]);
     res.SetSize (i, max[i] - min[i] + 1);

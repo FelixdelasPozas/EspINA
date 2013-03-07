@@ -57,8 +57,10 @@ namespace EspINA
     double m_strokeBounds[6];
 
     itkVolumeType::PixelType m_value;
-    itkVolumeType::Pointer m_prevVolume;
-    itkVolumeType::Pointer m_newVolume;
+    itkVolumeType::Pointer   m_prevVolume;
+    itkVolumeType::Pointer   m_newVolume;
+    bool                     m_needStrech;
+    QList<EspinaRegion>      m_prevRegions;
   };
 
   class Brush::SnapshotCommand

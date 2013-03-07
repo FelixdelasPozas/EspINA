@@ -24,6 +24,7 @@
 
 // ITK
 #include <itkImageRegionIteratorWithIndex.h>
+#include <vtkMath.h>
 
 // Qt
 #include <QDebug>
@@ -93,9 +94,9 @@ void FreeFormSource::draw(OutputId oId,
   if (m_outputs.isEmpty())
   {
     itkVolumeType::IndexType index;
-    index[0] = x / m_param.spacing()[0] + 0.5;
-    index[1] = y / m_param.spacing()[1] + 0.5;
-    index[2] = z / m_param.spacing()[2] + 0.5;
+    index[0] = vtkMath::Round(x / m_param.spacing()[0]);
+    index[1] = vtkMath::Round(y / m_param.spacing()[1]);
+    index[2] = vtkMath::Round(z / m_param.spacing()[2]);
 
     itkVolumeType::SizeType pixelSize;
     pixelSize.Fill(1);

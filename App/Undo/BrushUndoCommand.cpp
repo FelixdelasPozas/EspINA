@@ -38,6 +38,7 @@ Brush::DrawCommand::DrawCommand(SegmentationSPtr seg,
 , m_brushes(brushes)
 , m_viewManager(vm)
 , m_value(value)
+, m_needStrech(false)
 {
   for (int i = 0; i < m_brushes.size(); i++)
   {
@@ -62,23 +63,43 @@ void Brush::DrawCommand::redo()
 {
   if (m_newVolume.IsNotNull())
   {
-    m_seg->filter()->restoreOutput(m_output, m_newVolume);
+    m_seg->filter()->draw(m_output, m_newVolume);
   }
   else
   {
-    if (!m_seg->filter()->outputs().isEmpty())
-      m_prevVolume = m_seg->filter()->volume(m_output)->cloneVolume();
+    EspinaRegion strokeRegion(m_strokeBounds);
+
+    if (m_seg->filter()->validOutput(m_output))
+    {
+      EspinaVolume::Pointer volume = m_seg->volume();
+
+      m_prevRegions = m_seg->filter()->output(m_output).editedRegions;
+
+      if (!strokeRegion.isInside(volume->espinaRegion()))
+      {
+        if (strokeRegion.intersect(volume->espinaRegion()))
+          m_prevVolume = volume->cloneVolume(strokeRegion.intersection(volume->espinaRegion()));
+        m_needStrech = true;
+      } else
+      {
+        m_prevVolume = volume->cloneVolume(strokeRegion);
+      }
+
+    }
 
     for (int i=0; i < m_brushes.size(); i++)
     {
+      bool lastBrush    = m_brushes.size() - 1 == i;
       BrushShape &brush = m_brushes[i];
+
       if (0 == i) // Prevent resizing on each brush
-        m_seg->filter()->draw(m_output, brush.first, m_strokeBounds, m_value, m_brushes.size()-1 == i);
+        m_seg->filter()->draw(m_output, brush.first, m_strokeBounds, m_value, lastBrush);
       else
-        m_seg->filter()->draw(m_output, brush.first, brush.second.bounds(), m_value, m_brushes.size()-1 == i);
+        m_seg->filter()->draw(m_output, brush.first, brush.second.bounds(), m_value, lastBrush);
     }
-    if (!m_seg->filter()->outputs().isEmpty())
-      m_newVolume = m_seg->filter()->volume(m_output)->cloneVolume();
+
+    if (m_seg->filter()->validOutput(m_output))
+      m_newVolume = m_seg->volume()->cloneVolume(strokeRegion);
   }
 
   m_viewManager->updateSegmentationRepresentations(m_seg.data());
@@ -87,8 +108,21 @@ void Brush::DrawCommand::redo()
 //-----------------------------------------------------------------------------
 void Brush::DrawCommand::undo()
 {
-  if (m_prevVolume.IsNotNull())
-    m_seg->filter()->restoreOutput(m_output, m_prevVolume);
+  if (m_prevVolume.IsNotNull() || m_needStrech)
+  {
+    EspinaRegion strokeRegion(m_strokeBounds);
+
+    m_seg->filter()->fill(m_output, strokeRegion, SEG_BG_VALUE, false);
+
+    if (m_prevVolume.IsNotNull())
+    m_seg->filter()->draw(m_output, m_prevVolume, !m_needStrech);
+
+    if (m_needStrech)
+      m_seg->volume()->strechToFitContent();
+
+    // Restore previous edited regions
+    m_seg->filter()->output(m_output).editedRegions = m_prevRegions;
+  }
   else
     emit initBrushTool();
 

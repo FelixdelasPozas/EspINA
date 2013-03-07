@@ -149,31 +149,34 @@ bool SplitFilter::dumpSnapshot(QList<QPair<QString, QByteArray> > &fileList)
 {
   bool returnVal = false;
 
-  // check if the stencil is in the cache and hasn't been loaded (because a run() wasn't needed)
-  if (NULL == m_stencil.GetPointer())
-    fetchCacheStencil();
-
-  if (m_stencil != NULL)
+  if (m_traceable)
   {
-    vtkSmartPointer<vtkImageStencilToImage> convert = vtkSmartPointer<vtkImageStencilToImage>::New();
-    convert->SetInputConnection(m_stencil->GetProducerPort());
-    convert->SetInsideValue(1);
-    convert->SetOutsideValue(0);
-    convert->SetOutputScalarTypeToUnsignedChar();
-    convert->Update();
+    // check if the stencil is in the cache and hasn't been loaded (because a run() wasn't needed)
+    if (NULL == m_stencil.GetPointer())
+      fetchCacheStencil();
 
-    vtkSmartPointer<vtkGenericDataObjectWriter> stencilWriter = vtkSmartPointer<vtkGenericDataObjectWriter>::New();
-    stencilWriter->SetInputConnection(convert->GetOutputPort());
-    stencilWriter->SetFileTypeToBinary();
-    stencilWriter->SetWriteToOutputString(true);
-    stencilWriter->Write();
+    if (m_stencil != NULL)
+    {
+      vtkSmartPointer<vtkImageStencilToImage> convert = vtkSmartPointer<vtkImageStencilToImage>::New();
+      convert->SetInputConnection(m_stencil->GetProducerPort());
+      convert->SetInsideValue(1);
+      convert->SetOutsideValue(0);
+      convert->SetOutputScalarTypeToUnsignedChar();
+      convert->Update();
 
-    QByteArray stencilArray(stencilWriter->GetOutputString(), stencilWriter->GetOutputStringLength());
-    QPair<QString, QByteArray> stencilEntry(this->id() + QString("-Stencil.vti"), stencilArray);
+      vtkSmartPointer<vtkGenericDataObjectWriter> stencilWriter = vtkSmartPointer<vtkGenericDataObjectWriter>::New();
+      stencilWriter->SetInputConnection(convert->GetOutputPort());
+      stencilWriter->SetFileTypeToBinary();
+      stencilWriter->SetWriteToOutputString(true);
+      stencilWriter->Write();
 
-    fileList << stencilEntry;
+      QByteArray stencilArray(stencilWriter->GetOutputString(), stencilWriter->GetOutputStringLength());
+      QPair<QString, QByteArray> stencilEntry(this->id() + QString("-Stencil.vti"), stencilArray);
 
-    returnVal = true;
+      fileList << stencilEntry;
+
+      returnVal = true;
+    }
   }
 
   return (SegmentationFilter::dumpSnapshot(fileList) || returnVal);

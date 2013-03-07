@@ -212,7 +212,7 @@ void RelationshipGraph::updateVertexInformation()
       {
         FilterPtr filter = filterPtr(item);
         filter->setId(id++);
-        filter->updateCacheFlags();
+        //filter->resetCacheFlags();
         vertex.shape = FILTER_SHAPE;
         break;
       }

@@ -66,14 +66,13 @@ namespace EspINA
       )
       : id(id)
       , isCached(false)
-      , isEdited(false)
       , filter(filter)
       , volume(volume)
       {}
 
+      QList<EspinaRegion>   editedRegions;
       OutputId              id;
-      bool                  isCached;
-      bool                  isEdited;
+      bool                  isCached; /// Whether output is used by a segmentation
       FilterPtr             filter;
       EspinaVolume::Pointer volume;
 
@@ -84,6 +83,12 @@ namespace EspINA
         && volume.get()
         && volume->toITK().IsNotNull();
       }
+
+      void addEditedRegion(const EspinaRegion &region);
+
+      /// Whether output has been manually edited
+      bool isEdited() const
+      {return !editedRegions.isEmpty();} 
     };
 
     typedef QList<Output> OutputList;
@@ -159,6 +164,13 @@ namespace EspINA
     virtual void draw(OutputId oId,
                       itkVolumeType::Pointer volume,
                       bool emitSignal = true);
+    virtual void fill(OutputId oId,
+                      itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
+                      bool emitSignal = true);
+    virtual void fill(OutputId oId,
+                      const EspinaRegion &region,
+                      itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
+                      bool emitSignal = true);
 
     //NOTE 2012-11-20 suggest a better name
     virtual void restoreOutput(OutputId oId,
@@ -166,7 +178,7 @@ namespace EspINA
 
     /// Returns filter's outputs
     OutputList outputs() const {return m_outputs.values();}
-    /// Returns a list of outputs edited by the user //NOTE: Deberia ser private?
+    /// Returns a list of outputs edited by the user
     OutputList editedOutputs() const;
     /// Return whether or not i is an output of the filter
     bool validOutput(OutputId oId);
@@ -194,7 +206,7 @@ namespace EspINA
     /// Return a widget used to configure filter's parameters
     FilterInspectorPtr const filterInspector() { return m_filterInspector; }
 
-    void updateCacheFlags();
+    void resetCacheFlags();
 
     /// Try to locate an snapshot of the filter in tmpDir
     /// Returns true if all volume snapshot can be recovered
@@ -218,9 +230,6 @@ namespace EspINA
     /// Reader to access snapshots
     EspinaVolumeReader::Pointer tmpFileReader(const QString file);
 
-    /// Update output isEdited flag and filter EDIT argument
-    void markAsEdited(OutputId oId);
-
   protected:
     QList<EspinaVolume::Pointer> m_inputs;
     NamedInputs                  m_namedInputs;
@@ -230,6 +239,7 @@ namespace EspINA
     QMap<OutputId, Output>       m_outputs;
     int  m_cacheId;
     QDir m_cacheDir;
+    bool m_traceable;
 
   private:
     FilterInspectorPtr m_filterInspector;

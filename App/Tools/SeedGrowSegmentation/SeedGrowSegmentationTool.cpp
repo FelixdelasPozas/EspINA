@@ -292,7 +292,7 @@ void SeedGrowSegmentationTool::startSegmentation(IPicker::PickList pickedItems)
 
   int voiExtent[6];
   for (int i=0; i<6; i++)
-    voiExtent[i] = (voiBounds[i] / spacing[i/2]) + 0.5;
+    voiExtent[i] = vtkMath::Round(voiBounds[i] / spacing[i/2]);
 
   Q_ASSERT(m_threshold->isSymmetrical());
   if (m_threshold->isSymmetrical())
