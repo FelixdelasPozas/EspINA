@@ -38,6 +38,7 @@
 #include <QIcon>
 #include <QTreeView>
 #include <QUndoStack>
+#include <QtGui>
 
 using namespace EspINA;
 
@@ -169,8 +170,18 @@ void MainToolBar::updateTaxonomy(TaxonomySPtr taxonomy)
 {
   if (taxonomy && !taxonomy->elements().isEmpty())
   {
-    m_taxonomySelector->setCurrentIndex(0);
-    m_viewManager->setActiveTaxonomy(taxonomy->elements().first().data());
+    // avoid selecting SAS as the active taxonomy when updating
+    if (taxonomy->elements().first().data()->data().toString().compare(QString("SAS")) == 0 &&
+        taxonomy->elements().size() > 1)
+    {
+      m_taxonomySelector->setCurrentIndex(1);
+      m_viewManager->setActiveTaxonomy(taxonomy->elements().at(1).data());
+    }
+    else
+    {
+      m_taxonomySelector->setCurrentIndex(0);
+      m_viewManager->setActiveTaxonomy(taxonomy->elements().first().data());
+    }
   }
 }
 
