@@ -72,6 +72,8 @@ namespace EspINA
 
     public:
       static const QString INPUTLINK;
+      static const QString SAS;
+
       static const ArgumentId ORIGIN;
 
       typedef AppositionSurfaceFilter *               Pointer;

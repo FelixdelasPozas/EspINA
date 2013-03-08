@@ -20,9 +20,10 @@
 #define APPOSITIONSURFACE_H
 
 // EspINA
+#include <Core/Interfaces/IDynamicMenu.h>
 #include <Core/Interfaces/IFactoryExtension.h>
-#include <Core/Interfaces/IToolBar.h>
 #include <Core/Interfaces/IFilterCreator.h>
+#include <Core/Interfaces/IToolBar.h>
 #include <GUI/ISettingsPanel.h>
 #include <GUI/ViewManager.h>
 
@@ -36,6 +37,7 @@ namespace EspINA
   : public IToolBar
   , public IFactoryExtension
   , public IFilterCreator
+  , public IDynamicMenu
   {
     Q_OBJECT
     Q_INTERFACES
@@ -43,6 +45,7 @@ namespace EspINA
       EspINA::IToolBar
       EspINA::IFactoryExtension
       EspINA::IFilterCreator
+      EspINA::IDynamicMenu
     )
 
   public:
@@ -53,16 +56,25 @@ namespace EspINA
                              QUndoStack  *undoStack,
                              ViewManager *viewManager);
 
-    virtual void initFactoryExtension(EspinaFactoryPtr factory);
+    virtual void initFactoryExtension(EspinaFactory *factory);
 
     virtual FilterSPtr createFilter(const QString              &filter,
                                     const Filter::NamedInputs  &inputs,
                                     const ModelItem::Arguments &args);
 
+    virtual QList<MenuEntry> menuEntries();
+
   public slots:
+    void createSynapticAppositionSurfaceAnalysis();
+
     void selectionChanged(ViewManager::Selection selection, bool unused);
     void segmentationAdded(SegmentationSPtr);
+
     virtual void reset();
+
+  private:
+    static bool isSynapse(SegmentationPtr segmentation);
+
 
   private:
     EspinaFactory                 *m_factory;

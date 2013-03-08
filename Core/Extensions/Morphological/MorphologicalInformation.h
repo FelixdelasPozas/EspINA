@@ -71,6 +71,9 @@ namespace EspINA
 
     virtual Segmentation::InfoTagList availableInformations() const;
 
+    virtual bool validTaxonomy(const QString &qualifiedName) const 
+    { return true;}
+
     virtual QVariant information(const Segmentation::InfoTag &tag);
 
 

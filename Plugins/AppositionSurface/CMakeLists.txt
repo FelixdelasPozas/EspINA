@@ -37,12 +37,14 @@ qt4_add_resources (RCC_BUILT_SOURCES
 
 # Create Interface files
 qt4_wrap_ui (UI_BUILT_SOURCES
+  Analysis/SynapticAppositionSurfaceAnalysis.ui
   GUI/Settings/AppositionSurfaceSettings.ui
   GUI/FilterInspector/AppositionSurfaceFilterInspector.ui
   )
 
 QT4_WRAP_CPP(MOC_SOURCES
   AppositionSurfacePlugin.h
+  Analysis/SynapticAppositionSurfaceAnalysis.h
   Filter/AppositionSurfaceFilter.h
   GUI/Renderer/AppositionSurfaceRenderer.h
   GUI/Settings/AppositionSurfaceSettings.h
@@ -55,6 +57,7 @@ set (PLUGIN_SOURCES
   ${RCC_BUILT_SOURCES}
   ${UI_BUILT_SOURCES}
   AppositionSurfacePlugin.cpp
+  Analysis/SynapticAppositionSurfaceAnalysis.cpp
   Core/Extensions/AppositionSurfaceExtension.cpp
   Core/AppositionSurfaceVolume.cpp
   GUI/Settings/AppositionSurfaceSettings.cpp

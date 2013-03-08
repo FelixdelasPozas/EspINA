@@ -36,8 +36,10 @@ const double UNDEFINED = -1.;
 
 namespace EspINA
 {
-  const ModelItem::ArgumentId AppositionSurfaceFilter::ORIGIN = "Origin Segmentation";
   const QString AppositionSurfaceFilter::INPUTLINK = "Input";
+  const QString AppositionSurfaceFilter::SAS = "SAS";
+
+  const ModelItem::ArgumentId AppositionSurfaceFilter::ORIGIN = "Origin Segmentation";
 
   //----------------------------------------------------------------------------
   AppositionSurfaceFilter::AppositionSurfaceFilter(NamedInputs inputs, Arguments args, FilterType type)

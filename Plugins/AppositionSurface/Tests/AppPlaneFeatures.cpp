@@ -38,23 +38,23 @@ int AppPlaneFeatures(int argc, char **argv)
   QString inputFileName = stackPath.filePath("object35.mha");
   seg->SetFileName(inputFileName.toUtf8());
   seg->Update();
-    
+
   vtkSmartPointer<vtkAppositionPlaneFilter> appPlane =
     vtkSmartPointer<vtkAppositionPlaneFilter>::New();
   appPlane->DebugOn();
   appPlane->SetInputConnection(seg->GetOutputPort());
   appPlane->Update();
-  
+
   vtkSmartPointer<vtkAppositionPlaneFeatures> appPlaneFeatures = 
     vtkSmartPointer<vtkAppositionPlaneFeatures>::New();
   appPlaneFeatures->DebugOn();
   appPlaneFeatures->SetInput(appPlane->GetOutput());
   appPlaneFeatures->Update();
-  
+
   std::cout << "Area: " << appPlaneFeatures->GetArea() << std::endl;
   std::cout << "Perimeter: " << appPlaneFeatures->GetPerimeter() << std::endl;
-  
-  
+
+
   // Display the  region
   vtkSmartPointer<vtkPolyDataMapper> planeMapper =
     vtkSmartPointer<vtkPolyDataMapper>::New();

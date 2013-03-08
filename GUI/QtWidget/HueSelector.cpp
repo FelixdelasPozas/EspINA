@@ -7,7 +7,6 @@
 
 // EspINA
 #include "HueSelector.h"
-#include <ui_HueSelector.h>
 
 // Qt
 #include <QMouseEvent>

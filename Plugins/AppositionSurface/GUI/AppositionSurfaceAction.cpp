@@ -64,8 +64,8 @@ namespace EspINA
           m_undoStack->push(new AddTaxonomyElement(taxonomy->root().data(), SAS, m_model, QColor(255,255,0)));
         }
         m_undoStack->push(new AppositionSurfaceCommand(validSegs, m_model, m_viewManager));
-        m_undoStack->endMacro();
       }
+      m_undoStack->endMacro();
     }
     QApplication::restoreOverrideCursor();
   }

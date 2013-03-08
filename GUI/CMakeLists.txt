@@ -4,6 +4,7 @@ include_directories(
 )
 
 qt4_wrap_cpp(GUI_MOC
+  Analysis/InformationSelector.h
   Pickers/BrushPicker.h
   Pickers/IPicker.h
   QtWidget/ActionSelector.h
@@ -24,12 +25,14 @@ qt4_wrap_cpp(GUI_MOC
   )
 
 qt4_wrap_ui (GUI_UI
+  Analysis/InformationSelector.ui
   QtWidget/HueSelector.ui
   )
 
 set (GUI_SOURCES
   ${GUI_MOC}
   ${GUI_UI}
+  Analysis/InformationSelector.cpp
   Pickers/BrushPicker.cpp
   Pickers/ContourPicker.cpp
   Pickers/IPicker.cpp

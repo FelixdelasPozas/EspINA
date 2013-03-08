@@ -65,6 +65,8 @@ namespace EspINA
 
       virtual Segmentation::InfoTagList availableInformations() const;
 
+      virtual bool validTaxonomy(const QString &qualifiedName) const;
+
       virtual QVariant information(const Segmentation::InfoTag &tag);
 
       virtual bool isCacheFile(const QString &file) const;

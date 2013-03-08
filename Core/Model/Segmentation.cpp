@@ -356,36 +356,39 @@ SegmentationSList Segmentation::componentOf()
 //------------------------------------------------------------------------
 void Segmentation::addExtension(Segmentation::InformationExtension extension)
 {
-  if (m_informationExtensions.contains(extension->id()))
+  if (extension->validTaxonomy(m_taxonomy->qualifiedName()))
   {
-         qWarning() << "Extension already registered";
-     Q_ASSERT(false);
-  }
-
-  EspinaFactory *factory = m_model->factory();
-  foreach(ModelItem::ExtId requiredExtensionId, extension->dependencies())
-  {
-    InformationExtension requiredExtension = informationExtension(requiredExtensionId);
-    if (!requiredExtension)
+    if (m_informationExtensions.contains(extension->id()))
     {
-      InformationExtension prototype = factory->segmentationExtension(requiredExtensionId);
-      if (!prototype)
-      {
-        qWarning() << "Failed to load extension's dependency" << requiredExtensionId;
-        Q_ASSERT(false);
-      }
-
-      addExtension(prototype->clone());
+      qWarning() << "Extension already registered";
+      Q_ASSERT(false);
     }
-  }
 
-  extension->setSegmentation(this);
-  m_informationExtensions[extension->id()] = extension;
+    EspinaFactory *factory = m_model->factory();
+    foreach(ModelItem::ExtId requiredExtensionId, extension->dependencies())
+    {
+      InformationExtension requiredExtension = informationExtension(requiredExtensionId);
+      if (!requiredExtension)
+      {
+        InformationExtension prototype = factory->segmentationExtension(requiredExtensionId);
+        if (!prototype)
+        {
+          qWarning() << "Failed to load extension's dependency" << requiredExtensionId;
+          Q_ASSERT(false);
+        }
 
-  foreach(InfoTag tag, extension->availableInformations())
-  {
-    Q_ASSERT(!m_informationTagProvider.contains(tag));
-    m_informationTagProvider.insert(tag, extension);
+        addExtension(prototype->clone());
+      }
+    }
+
+    extension->setSegmentation(this);
+    m_informationExtensions[extension->id()] = extension;
+
+    foreach(InfoTag tag, extension->availableInformations())
+    {
+      Q_ASSERT(!m_informationTagProvider.contains(tag));
+      m_informationTagProvider.insert(tag, extension);
+    }
   }
 }
 
@@ -417,6 +420,14 @@ QVariant Segmentation::information(const Segmentation::InfoTag &tag) const
   if (tag == tr("Taxonomy"))
     return m_taxonomy->qualifiedName();
 
+  if (!m_informationTagProvider.contains(tag))
+  {
+    InformationExtension prototype = m_model->factory()->informationProvider(tag);
+    if (prototype->validTaxonomy(m_taxonomy->qualifiedName()))
+    {
+      const_cast<Segmentation *>(this)->addExtension(prototype->clone());
+    }
+  }
   Q_ASSERT(m_informationTagProvider.contains(tag));
   return m_informationTagProvider[tag]->information(tag);
 }

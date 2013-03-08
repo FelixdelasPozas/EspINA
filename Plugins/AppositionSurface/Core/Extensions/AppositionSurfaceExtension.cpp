@@ -92,6 +92,12 @@ Segmentation::InfoTagList AppositionSurfaceExtension::availableInformations() co
 }
 
 //------------------------------------------------------------------------
+bool AppositionSurfaceExtension::validTaxonomy(const QString &qualifiedName) const
+{
+  return qualifiedName.contains(tr("SAS"));
+}
+
+//------------------------------------------------------------------------
 QVariant AppositionSurfaceExtension::information(const Segmentation::InfoTag &tag)
 {
   QString fullTaxonomy = m_segmentation->taxonomy()->qualifiedName();

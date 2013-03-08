@@ -77,6 +77,7 @@ namespace EspINA
 
       m_model->addRelation(m_filters[i]      , m_asSegmentations[i], Filter::CREATELINK);
       m_model->addRelation(m_segmentations[i], m_asSegmentations[i], Relations::LOCATION);
+      m_model->addRelation(m_segmentations[i], m_asSegmentations[i], AppositionSurfaceFilter::SAS);
       m_model->addRelation(m_channels[i]     , m_asSegmentations[i], Channel::LINK);
     }
   }
@@ -86,6 +87,7 @@ namespace EspINA
     for(int i = 0; i < m_filters.size(); ++i)
     {
       m_model->removeRelation(m_channels[i]     , m_asSegmentations[i], Channel::LINK);
+      m_model->removeRelation(m_segmentations[i], m_asSegmentations[i], AppositionSurfaceFilter::SAS);
       m_model->removeRelation(m_segmentations[i], m_asSegmentations[i], Relations::LOCATION);
       m_model->removeRelation(m_filters[i]      , m_asSegmentations[i], Filter::CREATELINK);
       m_model->removeSegmentation(m_asSegmentations[i]);
