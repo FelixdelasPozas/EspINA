@@ -65,7 +65,7 @@ DefaultEspinaView::DefaultEspinaView(EspinaModel *model,
   xyView = new SliceView(viewManager, AXIAL);
   xzView = new SliceView(viewManager, CORONAL);
   yzView = new SliceView(viewManager, SAGITTAL);
-  volView = new VolumeView(m_model->factory(), viewManager, this);
+  volView = new VolumeView(m_model->factory(), viewManager, false, this);
   volView->setViewType(VOLUME);
 
   xyView->setCrosshairColors(blue, magenta);
@@ -76,8 +76,6 @@ DefaultEspinaView::DefaultEspinaView(EspinaModel *model,
 
   volDock = new QDockWidget(tr("3D"), parent);
   volDock->setObjectName("volDock");
-
-  //volDock->setModel(model);
   volDock->setWidget(volView);
 
   yzDock = new QDockWidget(tr("ZY"), parent);

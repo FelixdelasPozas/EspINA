@@ -19,7 +19,6 @@
 #include "SegmentationExplorer.h"
 
 #include "Dialogs/SegmentationInspector/SegmentationInspector.h"
-#include "Docks/SegmentationExplorer/SegmentationDelegate.h"
 #include "Docks/SegmentationExplorer/SegmentationExplorerLayout.h"
 #include "LayoutComposition.h"
 #include "LayoutLocation.h"
@@ -128,13 +127,13 @@ void SegmentationExplorer::initDockWidget(EspinaModel *model,
                                           QUndoStack  *undoStack,
                                           ViewManager *viewManager)
 {
-
 }
 
 //------------------------------------------------------------------------
 void SegmentationExplorer::reset()
 {
-
+  foreach(Layout *layout, m_layouts)
+    layout->reset();
 }
 
 //------------------------------------------------------------------------
@@ -203,9 +202,7 @@ void SegmentationExplorer::deleteSelectedItems()
 void SegmentationExplorer::showSelectedItemsInformation()
 {
   if (m_layout)
-  {
     m_layout->showSelectedItemsInformation();
-  }
 
   return;
 }
@@ -285,6 +282,8 @@ void SegmentationExplorer::updateSegmentationRepresentations(SegmentationList li
 //------------------------------------------------------------------------
 void SegmentationExplorer::updateChannelRepresentations(ChannelList list)
 {
+  m_viewManager->updateChannelRepresentations(list);
+  m_viewManager->updateViews();
 }
 
 //------------------------------------------------------------------------

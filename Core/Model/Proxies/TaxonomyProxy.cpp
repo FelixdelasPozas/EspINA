@@ -117,6 +117,7 @@ QVariant TaxonomyProxy::data(const QModelIndex& proxyIndex, int role) const
         return item->data(role);
     default:
       Q_ASSERT(false);
+      break;
   }
 
   return QAbstractProxyModel::data(proxyIndex, role);
@@ -264,6 +265,7 @@ QModelIndex TaxonomyProxy::parent(const QModelIndex& child) const
     }
     default:
       Q_ASSERT(false);
+      break;
   }
 
   return parent;
@@ -310,6 +312,7 @@ QModelIndex TaxonomyProxy::mapFromSource(const QModelIndex& sourceIndex) const
     }
     default:
       proxyIndex = QModelIndex();
+      break;
   }
 
   return proxyIndex;
@@ -343,6 +346,7 @@ QModelIndex TaxonomyProxy::mapToSource(const QModelIndex& proxyIndex) const
     }
     default:
       Q_ASSERT(false);
+      break;
   }
 
   return sourceIndex;
@@ -357,9 +361,9 @@ Qt::ItemFlags TaxonomyProxy::flags(const QModelIndex& index) const
   {
     ModelItemPtr sourceItem = indexPtr(index);
     if (EspINA::TAXONOMY == sourceItem->type())
-      f = f | Qt::ItemIsDropEnabled | Qt::ItemIsDragEnabled | Qt::ItemIsEditable | Qt::ItemIsUserCheckable;
+      f = f | Qt::ItemIsDragEnabled | Qt::ItemIsEditable | Qt::ItemIsUserCheckable;
     else if (EspINA::SEGMENTATION == sourceItem->type())
-      f = f | Qt::ItemIsDropEnabled | Qt::ItemIsDragEnabled;
+      f = f | Qt::ItemIsDragEnabled;
   }
 
   return f;
@@ -403,6 +407,7 @@ bool TaxonomyProxy::dropMimeData(const QMimeData *data, Qt::DropAction action, i
         break;
       default:
         source = InvalidSource;
+        break;
     }
 
     draggedItems << itemData;
@@ -432,6 +437,7 @@ bool TaxonomyProxy::dropMimeData(const QMimeData *data, Qt::DropAction action, i
 
     emit segmentationsDragged(sources, newTaxonomy);
   }
+
   // Change taxonomy parent
   else if (TaxonomySource == source && EspINA::TAXONOMY == parentItem->type())
   {
@@ -519,26 +525,6 @@ SegmentationList TaxonomyProxy::segmentations(TaxonomyElementPtr taxonomy,
 
   return segs;
 }
-
-
-// QList<TaxonomyNode *> TaxonomyProxy::indexTaxonomies(int row, int column, const QModelIndex& parent)
-// {
-//   QList<TaxonomyNode *> res;
-//   QModelIndex sourceIndex = m_model->index(row, 0, parent);
-//   ModelItemPtr sourceItem = indexPtr(sourceIndex);
-//   Q_ASSERT(EspINA::TAXONOMY == sourceItem->type());
-//   TaxonomyNode *taxonomy = dynamic_cast<TaxonomyNode *>(sourceItem);
-//   Q_ASSERT(taxonomy);
-//   res << taxonomy;
-// 
-//   int numChildren = m_model->rowCount(sourceIndex);
-//   for (int r=0; r < numChildren; r++)
-//   {
-//     res << indexTaxonomies(r, 0, sourceIndex);
-//   }
-// 
-//   return res();
-// }
 
 //------------------------------------------------------------------------
 QModelIndexList TaxonomyProxy::sourceIndices(const QModelIndex& parent, int start, int end) const

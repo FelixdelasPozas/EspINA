@@ -84,6 +84,9 @@ namespace EspINA
     virtual void clean() {Q_ASSERT(false);}
 
     virtual int itemsBeenRendered() { return m_channels.size(); };
+
+    virtual bool isAChannelRenderer() { return true; };
+
   private:
     QMap<ModelItemPtr, Representation> m_channels;
   };

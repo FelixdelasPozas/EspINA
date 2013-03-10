@@ -28,7 +28,7 @@
 #include <QSortFilterProxyModel>
 
 class TaxonomyItemDelegate;
-// TODO 2013-01-12: Disable taxonomy buttons if no taxonomy is selected
+
 namespace EspINA
 {
   class TaxonomyLayout
@@ -81,11 +81,16 @@ namespace EspINA
     void taxonomiesDragged(TaxonomyElementList subTaxonomies,
                            TaxonomyElementPtr  taxonomy);
 
+    void updateSelection(QItemSelection,QItemSelection);
+    void disconnectSelectionModel();
+
   private:
     QSharedPointer<TaxonomyProxy> m_proxy;
     QSharedPointer<SortFilter>    m_sort;
 
     TaxonomyItemDelegate *m_delegate;
+    QPushButton *m_createTaxonomy;
+    QPushButton *m_createSubTaxonomy;
   };
 
 } // namespace EspINA

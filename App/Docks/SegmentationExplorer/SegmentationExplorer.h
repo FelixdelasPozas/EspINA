@@ -83,7 +83,6 @@ namespace EspINA
     void updateSelection(ViewManager::Selection selection);
     void updateSelection(QItemSelection selected, QItemSelection deselected);
 
-
     virtual void updateSegmentationRepresentations(SegmentationList list = SegmentationList());
     virtual void updateChannelRepresentations(ChannelList list = ChannelList());
     virtual void updateSelection();

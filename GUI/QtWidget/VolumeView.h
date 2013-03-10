@@ -41,6 +41,8 @@ class QVTKWidget;
 class QHBoxLayout;
 class QPushButton;
 class QVBoxLayout;
+class QHBoxLayout;
+class QScrollBar;
 
 namespace EspINA
 {
@@ -73,6 +75,7 @@ namespace EspINA
   public:
     explicit VolumeView(const EspinaFactory *factory,
                         ViewManager* viewManager,
+                        bool additionalScrollBars = false,
                         QWidget* parent = 0);
     virtual ~VolumeView();
 
@@ -143,9 +146,11 @@ namespace EspINA
     void setupUI();
     void buildControls();
     void updateRenderersButtons();
+    void updateScrollBarsLimits();
 
   protected slots:
     virtual bool eventFilter(QObject* caller, QEvent* e);
+    virtual void scrollBarMoved(int);
 
     void exportScene();
     void takeSnapshot();
@@ -169,17 +174,25 @@ namespace EspINA
     QPushButton m_zoom;
     vtkSmartPointer<vtkRenderer> m_renderer;
 
+    // Optional elements only visible in Segmentation Information dialog
+    QHBoxLayout *m_additionalGUI;
+    QScrollBar  *m_axialScrollBar;
+    QScrollBar  *m_coronalScrollBar;
+    QScrollBar  *m_sagittalScrollBar;
+    bool m_additionalScrollBars;
+
     SettingsPtr m_settings;
 
     Nm m_center[3];
     unsigned int m_numEnabledRenders;
     unsigned int m_numEnabledSegmentationRenders;
+    unsigned int m_numEnabledChannelRenders;
     ColorEngine *m_colorEngine;
     QMap<EspinaWidget *, vtkAbstractWidget *> m_widgets;
     QMap<QPushButton *, IRendererSPtr> m_renderers;
 
     SegmentationList m_segmentations;
-    ModelItemList    m_addedItems;
+    ChannelList      m_channels;
     IRendererSList   m_itemRenderers;
   };
 

@@ -49,6 +49,11 @@ SegmentationExplorer::Layout::Layout(CheckableTreeView *view,
 }
 
 //------------------------------------------------------------------------
+SegmentationExplorer::Layout::~Layout()
+{
+  reset();
+}
+//------------------------------------------------------------------------
 void SegmentationExplorer::Layout::createSpecificControls(QHBoxLayout *specificControlLayout)
 {
 }
@@ -64,19 +69,16 @@ void SegmentationExplorer::Layout::deleteSegmentations(SegmentationList segmenta
 //------------------------------------------------------------------------
 void SegmentationExplorer::Layout::showSegmentationInformation(SegmentationList segmentations)
 {
-  foreach(SegmentationPtr segmentation, segmentations)
+  SegmentationInspector *inspector = m_inspectors.value(toKey(segmentations));
+  if (!inspector)
   {
-    SegmentationInspector *inspector = m_inspectors.value(segmentation, NULL);
-    if (!inspector)
-    {
-      inspector = new SegmentationInspector(segmentation, m_model, m_undoStack, m_viewManager);
-      connect(inspector, SIGNAL(inspectorClosed(SegmentationInspector*)),
-              this, SLOT(releaseInspectorResources(SegmentationInspector*)));
-      m_inspectors[segmentation] = inspector;
-    }
-    inspector->show();
-    inspector->raise();
+    inspector = new SegmentationInspector(segmentations, m_model, m_undoStack, m_viewManager);
+    connect(inspector, SIGNAL(inspectorClosed(SegmentationInspector*)), this,
+        SLOT(releaseInspectorResources(SegmentationInspector*)));
+    m_inspectors[toKey(segmentations)] = inspector;
   }
+  inspector->show();
+  inspector->raise();
 }
 
 //------------------------------------------------------------------------
@@ -99,11 +101,8 @@ QModelIndexList SegmentationExplorer::Layout::indices(const QModelIndex& index, 
 //------------------------------------------------------------------------
 void SegmentationExplorer::Layout::releaseInspectorResources(SegmentationInspector *inspector)
 {
-  foreach(SegmentationPtr seg, m_inspectors.keys())
-  {
-    if (m_inspectors[seg] == inspector)
-      m_inspectors.remove(seg);
-  }
+  SegmentationInspectorKey key = m_inspectors.key(inspector);
+  m_inspectors.remove(key);
 }
 
 //------------------------------------------------------------------------
@@ -117,16 +116,57 @@ void SegmentationExplorer::Layout::rowsAboutToBeRemoved(const QModelIndex parent
       ModelItemPtr item = indexPtr(child);
       if (EspINA::SEGMENTATION == item->type())
       {
-        SegmentationPtr seg = segmentationPtr(item);
-        SegmentationInspector *inspector = m_inspectors.value(seg, NULL);
-        if (inspector)
-        {
-          m_inspectors.remove(seg);
-          inspector->close();
-        }
+        SegmentationInspectorKey segKey = toKey(segmentationPtr(item));
+
+        foreach(SegmentationInspectorKey key, m_inspectors.keys())
+          if (key.contains(segKey))
+          {
+            SegmentationInspector *inspector = m_inspectors[key];
+            if (key == segKey)
+            {
+              m_inspectors.remove(key);
+              inspector->close();
+            }
+            else
+            {
+              QString newKey(key);
+
+              m_inspectors.remove(key);
+              m_inspectors.insert(newKey.remove(segKey), inspector);
+
+              inspector->removeSegmentation(segmentationPtr(item));
+            }
+          }
       }
     }
   }
+}
+
+//------------------------------------------------------------------------
+QString SegmentationExplorer::Layout::toKey(SegmentationList segmentations)
+{
+  QString result;
+  foreach(SegmentationPtr seg, segmentations)
+    result += QString().number(reinterpret_cast<unsigned long long>(seg)) + QString("|");
+
+  return result;
+}
+
+//------------------------------------------------------------------------
+void SegmentationExplorer::Layout::reset()
+{
+  foreach(SegmentationInspectorKey key, m_inspectors.keys())
+  {
+    m_inspectors[key]->close();
+    m_inspectors.remove(key);
+  }
+}
+
+//------------------------------------------------------------------------
+QString SegmentationExplorer::Layout::toKey(SegmentationPtr segmentation)
+{
+  QString result = QString().number(reinterpret_cast<unsigned long long>(segmentation)) + QString("|");
+  return result;
 }
 
 //------------------------------------------------------------------------

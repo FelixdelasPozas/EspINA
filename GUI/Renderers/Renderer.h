@@ -72,6 +72,9 @@ namespace EspINA
     // true if this renderer renders segmentations only
     virtual bool isASegmentationRenderer() { return false; };
 
+    // true if this renderer renders channels only
+    virtual bool isAChannelRenderer() { return false; };
+
     // naive item filtering, to be modified/enhanced in the future
     virtual bool itemCanBeRendered(ModelItemPtr item) { return true; }
 

@@ -20,12 +20,14 @@
 #ifndef SEGMENTATIONINSPECTOR_H
 #define SEGMENTATIONINSPECTOR_H
 
-#include <QDialog>
+// EspINA
 #include "ui_SegmentationInspector.h"
-
 #include <Core/Model/EspinaModel.h>
 #include <Core/Model/Proxies/InformationProxy.h>
+#include <GUI/ViewManager.h>
 
+// Qt
+#include <QDialog>
 #include <QSortFilterProxyModel>
 
 class QUndoStack;
@@ -33,7 +35,6 @@ class QUndoStack;
 namespace EspINA
 {
   class VolumeView;
-  class ViewManager;
 
   class SegmentationInspector
   : public QWidget
@@ -41,29 +42,48 @@ namespace EspINA
   {
     Q_OBJECT
   public:
-    SegmentationInspector(SegmentationPtr seg,
-                          EspinaModel *model,
-                          QUndoStack  *undoStack,
-                          ViewManager    *vm,
-                          QWidget        *parent = 0,
-                          Qt::WindowFlags flags  = 0);
+    SegmentationInspector(SegmentationList seg,
+                          EspinaModel     *model,
+                          QUndoStack      *undoStack,
+                          ViewManager     *vm,
+                          QWidget         *parent = 0,
+                          Qt::WindowFlags  flags  = 0);
     virtual ~SegmentationInspector();
 
+    virtual void addSegmentation(SegmentationPtr segmentation);
+    virtual void removeSegmentation(SegmentationPtr segmentation);
+
+    virtual void addChannel(ChannelPtr channel);
+    virtual void removeChannel(ChannelPtr channel);
+
+    virtual void dragEnterEvent(QDragEnterEvent *event);
+    virtual void dropEvent(QDropEvent *event);
+    virtual void dragMoveEvent(QDragMoveEvent *event);
+
   public slots:
-    void updateScene();
+    void updateScene(ModelItemPtr);
+    void updateSelection(QItemSelection selected = QItemSelection(), QItemSelection deselected = QItemSelection());
 
   signals:
     void inspectorClosed(SegmentationInspector *);
+
+  private slots:
+    void centerViewOn(QModelIndex index);
 
   protected:
     virtual void closeEvent(QCloseEvent *e);
 
   private:
+
+    // helpher methods
+    void generateWindowTitle();
+
     EspinaModel *m_model;
     QUndoStack  *m_undoStack;
     ViewManager *m_viewManager;
 
-    SegmentationPtr m_seg;
+    SegmentationList m_segmentations;
+    ChannelList      m_channels;
 
     QSharedPointer<InformationProxy>      m_info;
     QSharedPointer<QSortFilterProxyModel> m_sort;

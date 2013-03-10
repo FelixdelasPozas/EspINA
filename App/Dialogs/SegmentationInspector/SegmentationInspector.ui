@@ -6,20 +6,20 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>595</width>
-    <height>401</height>
+    <width>640</width>
+    <height>480</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>400</width>
-    <height>300</height>
+    <width>640</width>
+    <height>480</height>
    </size>
   </property>
   <property name="windowTitle">
    <string>Segmentation Inspector</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QVBoxLayout" name="verticalLayout" stretch="1,0,0">
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
@@ -41,8 +41,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>579</width>
-          <height>301</height>
+          <width>618</width>
+          <height>251</height>
          </rect>
         </property>
        </widget>
@@ -51,16 +51,23 @@
     </layout>
    </item>
    <item>
+    <widget class="Line" name="line">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QTableView" name="m_dataView">
      <property name="sizePolicy">
-      <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+      <sizepolicy hsizetype="Expanding" vsizetype="MinimumExpanding">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
-     <property name="maximumSize">
+     <property name="minimumSize">
       <size>
-       <width>16777215</width>
+       <width>0</width>
        <height>80</height>
       </size>
      </property>
@@ -82,6 +89,9 @@ QTableView::indicator:unchecked {
      image: url(:/espina/hide_all.svg);
  } 
 </string>
+     </property>
+     <property name="dragDropMode">
+      <enum>QAbstractItemView::DropOnly</enum>
      </property>
      <attribute name="verticalHeaderVisible">
       <bool>false</bool>

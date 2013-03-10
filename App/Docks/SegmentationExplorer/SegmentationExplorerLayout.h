@@ -47,7 +47,7 @@ namespace EspINA
                     QUndoStack        *undoStack,
                     ViewManager       *viewManager);
 
-    virtual ~Layout(){}
+    virtual ~Layout();
 
     virtual void createSpecificControls(QHBoxLayout *specificControlLayout);
 
@@ -64,6 +64,12 @@ namespace EspINA
     virtual void showSelectedItemsInformation() = 0;
 
     virtual QItemDelegate *itemDelegate() const = 0;
+
+    typedef QString SegmentationInspectorKey;
+    static SegmentationInspectorKey toKey(SegmentationList segmentations);
+    static SegmentationInspectorKey toKey(SegmentationPtr segmentation);
+
+    virtual void reset();
 
   protected:
     void deleteSegmentations(SegmentationList segmentations);
@@ -82,7 +88,7 @@ namespace EspINA
 
     CheckableTreeView *m_view;
 
-    QMap<SegmentationPtr, SegmentationInspector *> m_inspectors;
+    QMap<SegmentationInspectorKey, SegmentationInspector *> m_inspectors;
   };
 
   bool sortSegmentationLessThan(ModelItemPtr left, ModelItemPtr right);

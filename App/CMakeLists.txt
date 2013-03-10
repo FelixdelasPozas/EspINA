@@ -92,7 +92,6 @@ set (ESPINA_SOURCES
   Docks/SegmentationExplorer/LayoutLocation.cpp
   Docks/SegmentationExplorer/LayoutTaxonomy.cpp
   Docks/SegmentationExplorer/SegmentationExplorerLayout.cpp
-  Docks/SegmentationExplorer/SegmentationDelegate.cpp
   Docks/SegmentationExplorer/SegmentationExplorer.cpp
   Docks/TabularReport/DataView.cpp
   Docks/TabularReport/DataViewPanel.cpp

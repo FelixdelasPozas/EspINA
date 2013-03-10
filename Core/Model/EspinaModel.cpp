@@ -31,7 +31,6 @@
 #include <Core/Extensions/ChannelExtension.h>
 #include "Filters/ChannelReader.h"
 
-
 // Qt
 #include <QDebug>
 
@@ -1396,4 +1395,3 @@ QModelIndex EspinaModel::filterIndex(FilterSPtr filter) const
 {
   return filterIndex(filter.data());
 }
-

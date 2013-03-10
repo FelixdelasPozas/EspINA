@@ -38,7 +38,6 @@
 #include <QIcon>
 #include <QTreeView>
 #include <QUndoStack>
-#include <QtGui>
 
 using namespace EspINA;
 

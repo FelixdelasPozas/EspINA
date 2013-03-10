@@ -18,9 +18,6 @@
 
 #include "VolumeView.h"
 
-// Debug
-#include <QDebug>
-
 // EspINA
 #include "GUI/Renderers/CrosshairRenderer.h"
 #include <Core/EspinaSettings.h>
@@ -28,16 +25,19 @@
 #include <Core/Model/Channel.h>
 #include <Core/Model/EspinaFactory.h>
 
-// GUI
+// QT
 #include <QEvent>
 #include <QSettings>
 #include <QFileDialog>
-#include <QHBoxLayout>
 #include <QPushButton>
-#include <QVBoxLayout>
 #include <QMouseEvent>
 #include <QMessageBox>
+#include <QHBoxLayout>
+#include <QVBoxLayout>
+#include <QScrollBar>
+#include <QDebug>
 
+// VTK
 #include <vtkInteractorStyleTrackballCamera.h>
 #include <vtkRenderer.h>
 #include <vtkRenderWindow.h>
@@ -55,20 +55,24 @@
 #include <QApplication>
 #include <vtkAbstractWidget.h>
 #include <vtkWidgetRepresentation.h>
+#include <vtkMath.h>
 
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
 VolumeView::VolumeView(const EspinaFactory *factory,
                        ViewManager *viewManager,
+                       bool additionalScrollBars,
                        QWidget* parent)
-: EspinaRenderView(parent)
-, m_viewManager(viewManager)
-, m_mainLayout      (new QVBoxLayout())
-, m_controlLayout   (new QHBoxLayout())
-, m_settings        (new Settings(factory, QString(), this))
-, m_numEnabledRenders(0)
+: EspinaRenderView      (parent)
+, m_viewManager         (viewManager)
+, m_mainLayout          (new QVBoxLayout())
+, m_controlLayout       (new QHBoxLayout())
+, m_additionalScrollBars(additionalScrollBars)
+, m_settings            (new Settings(factory, QString(), this))
+, m_numEnabledRenders   (0)
 , m_numEnabledSegmentationRenders(0)
+, m_numEnabledChannelRenders(0)
 {
   setupUI();
   buildControls();
@@ -79,7 +83,6 @@ VolumeView::VolumeView(const EspinaFactory *factory,
   QPalette pal = this->palette();
   pal.setColor(QPalette::Base, pal.color(QPalette::Window));
   this->setPalette(pal);
-  //   this->setStyleSheet("background-color: grey;");
 
   memset(m_center,0,3*sizeof(double));
   connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection, bool)),
@@ -112,13 +115,12 @@ void VolumeView::reset()
   }
 
   // After removing segmentations there should be only channels
-  foreach(ModelItemPtr item, m_addedItems)
+  foreach(ChannelPtr channel, m_channels)
   {
-    ChannelPtr channel = channelPtr(item);
     removeChannel(channel);
   }
 
-  Q_ASSERT(m_addedItems.isEmpty());
+  Q_ASSERT(m_channels.isEmpty());
   Q_ASSERT(m_segmentations.isEmpty());
   Q_ASSERT(m_widgets.isEmpty());
 }
@@ -144,14 +146,20 @@ void VolumeView::addRendererControls(IRendererSPtr renderer)
   renderer->setVtkRenderer(this->m_renderer);
 
   // add all model items to the renderer
-  foreach(ModelItemPtr item, m_addedItems)
-    renderer->addItem(item);
+  foreach(ChannelPtr channel, m_channels)
+    renderer->addItem(channel);
+
+  foreach(SegmentationPtr segmentation, m_segmentations)
+    renderer->addItem(segmentation);
 
   m_itemRenderers << renderer;
   m_renderers[button] = renderer;
 
   if (!renderer->isHidden() && renderer->isASegmentationRenderer())
     this->m_numEnabledSegmentationRenders++;
+
+  if (!renderer->isHidden() && renderer->isAChannelRenderer())
+    this->m_numEnabledChannelRenders++;
 
   if (0 != m_numEnabledSegmentationRenders)
   {
@@ -228,6 +236,8 @@ void VolumeView::removeRendererControls(const QString name)
 
     m_itemRenderers.removeAll(removedRenderer);
   }
+
+  updateRenderersButtons();
 }
 
 //-----------------------------------------------------------------------------
@@ -294,6 +304,37 @@ void VolumeView::centerViewOn(Nm *center, bool notUsed)
     }
   }
 
+  if (m_additionalScrollBars && !m_channels.empty())
+  {
+    Nm minSpacing[3];
+    m_channels.first()->volume()->spacing(minSpacing);
+
+    foreach(ChannelPtr channel, m_channels)
+    {
+      double spacing[3];
+      channel->volume()->spacing(spacing);
+      if (spacing[0] < minSpacing[0])
+        minSpacing[0] = spacing[0];
+
+      if (spacing[1] < minSpacing[1])
+        minSpacing[1] = spacing[1];
+
+      if (spacing[2] < minSpacing[2])
+        minSpacing[2] = spacing[2];
+    }
+
+    int iCenter[3] = { vtkMath::Round(center[0]/minSpacing[0]), vtkMath::Round(center[1]/minSpacing[1]), vtkMath::Round(center[2]/minSpacing[2]) };
+    m_axialScrollBar->blockSignals(true);
+    m_coronalScrollBar->blockSignals(true);
+    m_sagittalScrollBar->blockSignals(true);
+    m_axialScrollBar->setValue(iCenter[0]);
+    m_coronalScrollBar->setValue(iCenter[1]);
+    m_sagittalScrollBar->setValue(iCenter[2]);
+    m_axialScrollBar->blockSignals(false);
+    m_coronalScrollBar->blockSignals(false);
+    m_sagittalScrollBar->blockSignals(false);
+  }
+
   setCameraFocus(center);
   updateView();
 }
@@ -302,6 +343,7 @@ void VolumeView::centerViewOn(Nm *center, bool notUsed)
 void VolumeView::setCameraFocus(const Nm center[3])
 {
   m_renderer->GetActiveCamera()->SetFocalPoint(center[0],center[1],center[2]);
+  m_renderer->ResetCameraClippingRange();
 }
 
 //-----------------------------------------------------------------------------
@@ -317,16 +359,23 @@ void VolumeView::resetCamera()
 //-----------------------------------------------------------------------------
 void VolumeView::addChannel(ChannelPtr channel)
 {
-  m_addedItems << channel;
+  if (m_channels.contains(channel))
+    return;
+
+  m_channels << channel;
   foreach(IRendererSPtr renderer, m_itemRenderers)
     renderer->addItem(channel);
 
   updateRenderersButtons();
+  updateScrollBarsLimits();
 }
 
 //-----------------------------------------------------------------------------
 bool VolumeView::updateChannel(ChannelPtr channel)
 {
+  if (!m_channels.contains(channel))
+    return false;
+
   if (!isVisible())
     return false;
 
@@ -334,38 +383,46 @@ bool VolumeView::updateChannel(ChannelPtr channel)
   foreach(IRendererSPtr renderer, m_itemRenderers)
     updated = renderer->updateItem(channel) | updated;
 
+  updateScrollBarsLimits();
   return updated;
 }
 
 //-----------------------------------------------------------------------------
 void VolumeView::removeChannel(ChannelPtr channel)
 {
-  m_addedItems.removeAll(channel);
+  if (!m_channels.contains(channel))
+    return;
+
+  m_channels.removeOne(channel);
 
   foreach(IRendererSPtr renderer, m_itemRenderers)
     renderer->removeItem(channel);
 
   updateRenderersButtons();
+  updateScrollBarsLimits();
 }
 
 
 //-----------------------------------------------------------------------------
 void VolumeView::addSegmentation(SegmentationPtr seg)
 {
-  Q_ASSERT(!m_segmentations.contains(seg));
+  if (m_segmentations.contains(seg))
+    return;
 
-  m_addedItems << seg;
+  m_segmentations << seg;
+
   foreach(IRendererSPtr renderer, m_itemRenderers)
     renderer->addItem(seg);
 
   updateRenderersButtons();
-
-  m_segmentations << seg;
 }
 
 //-----------------------------------------------------------------------------
 bool VolumeView::updateSegmentation(SegmentationPtr seg)
 {
+  if (!m_segmentations.contains(seg))
+    return false;
+
   if (!isVisible())
     return false;
 
@@ -379,21 +436,21 @@ bool VolumeView::updateSegmentation(SegmentationPtr seg)
 //-----------------------------------------------------------------------------
 void VolumeView::removeSegmentation(SegmentationPtr seg)
 {
-  Q_ASSERT(m_segmentations.contains(seg));
+  if (!m_segmentations.contains(seg))
+    return;
 
-  m_addedItems.removeAll(seg);
+  m_segmentations.removeOne(seg);
   foreach(IRendererSPtr renderer, m_itemRenderers)
     renderer->removeItem(seg);
 
   updateRenderersButtons();
-
-  m_segmentations.removeOne(seg);
 }
 
 //-----------------------------------------------------------------------------
 void VolumeView::addWidget(EspinaWidget* eWidget)
 {
-  Q_ASSERT(!m_widgets.contains(eWidget));
+  if(m_widgets.contains(eWidget))
+    return;
 
   vtkAbstractWidget *widget = eWidget->create3DWidget(this);
   if (!widget)
@@ -469,7 +526,42 @@ vtkRenderer *VolumeView::mainRenderer()
 void VolumeView::setupUI()
 {
   m_view = new QVTKWidget();
-  m_mainLayout->insertWidget(0,m_view); //To preserver view order
+
+  if (m_additionalScrollBars)
+  {
+    m_additionalGUI = new QHBoxLayout();
+    m_axialScrollBar = new QScrollBar(Qt::Horizontal);
+    m_axialScrollBar->setEnabled(false);
+    m_axialScrollBar->setFixedHeight(15);
+    m_axialScrollBar->setToolTip("Axial scroll bar");
+    connect(m_axialScrollBar, SIGNAL(valueChanged(int)), this, SLOT(scrollBarMoved(int)));
+
+    m_coronalScrollBar = new QScrollBar(Qt::Vertical);
+    m_coronalScrollBar->setEnabled(false);
+    m_coronalScrollBar->setFixedWidth(15);
+    m_coronalScrollBar->setToolTip("Coronal scroll bar");
+    connect(m_coronalScrollBar, SIGNAL(valueChanged(int)), this, SLOT(scrollBarMoved(int)));
+
+    m_sagittalScrollBar = new QScrollBar(Qt::Vertical);
+    m_sagittalScrollBar->setEnabled(false);
+    m_sagittalScrollBar->setFixedWidth(15);
+    m_sagittalScrollBar->setToolTip("Sagittal scroll bar");
+    connect(m_sagittalScrollBar, SIGNAL(valueChanged(int)), this, SLOT(scrollBarMoved(int)));
+
+    updateScrollBarsLimits();
+
+    m_additionalGUI->insertWidget(0, m_coronalScrollBar,0);
+    m_additionalGUI->insertWidget(1, m_view,1);
+    m_additionalGUI->insertWidget(2, m_sagittalScrollBar,0);
+
+    m_mainLayout->insertLayout(0, m_additionalGUI, 1);
+    m_mainLayout->insertWidget(1, m_axialScrollBar, 0);
+  }
+  else
+  {
+    m_mainLayout->insertWidget(0,m_view);
+  }
+
   m_view->show();
   m_renderer = vtkSmartPointer<vtkRenderer>::New();
   m_renderer->LightFollowCameraOn();
@@ -806,6 +898,14 @@ void VolumeView::countEnabledRenderers(bool value)
   if (value)
   {
     m_numEnabledRenders++;
+    if (renderer && renderer->isAChannelRenderer() && m_additionalScrollBars)
+    {
+      m_numEnabledChannelRenders++;
+      m_axialScrollBar->setEnabled(true);
+      m_coronalScrollBar->setEnabled(true);
+      m_sagittalScrollBar->setEnabled(true);
+    }
+
     if (renderer && renderer->isASegmentationRenderer())
     {
       m_numEnabledSegmentationRenders++;
@@ -826,6 +926,17 @@ void VolumeView::countEnabledRenderers(bool value)
   else
   {
     m_numEnabledRenders--;
+    if (renderer && renderer->isAChannelRenderer() && m_additionalScrollBars)
+    {
+      m_numEnabledChannelRenders--;
+      if (0 == m_numEnabledChannelRenders)
+      {
+        m_axialScrollBar->setEnabled(false);
+        m_coronalScrollBar->setEnabled(false);
+        m_sagittalScrollBar->setEnabled(false);
+      }
+    }
+
     if (renderer && renderer->isASegmentationRenderer())
     {
       m_numEnabledSegmentationRenders--;
@@ -926,4 +1037,92 @@ void VolumeView::updateRenderersButtons()
 
   m_snapshot.setEnabled(canTakeSnapshot);
   m_export.setEnabled(canBeExported);
+}
+
+//-----------------------------------------------------------------------------
+void VolumeView::scrollBarMoved(int value)
+{
+  Nm point[3];
+  Nm minSpacing[3];
+  m_channels.first()->volume()->spacing(minSpacing);
+
+  foreach(ChannelPtr channel, m_channels)
+  {
+    double spacing[3];
+    channel->volume()->spacing(spacing);
+    if (spacing[0] < minSpacing[0])
+      minSpacing[0] = spacing[0];
+
+    if (spacing[1] < minSpacing[1])
+      minSpacing[1] = spacing[1];
+
+    if (spacing[2] < minSpacing[2])
+      minSpacing[2] = spacing[2];
+  }
+
+  point[0] = m_axialScrollBar->value() * minSpacing[0];
+  point[1] = m_coronalScrollBar->value() * minSpacing[1];
+  point[2] = m_sagittalScrollBar->value() * minSpacing[2];
+
+  // TODO: not all channel renderers are crosshair renderers duh...
+  // Maybe we should make subclasses depending on the ModelItem been rendered
+  foreach(IRendererSPtr renderer, m_renderers.values())
+    if (renderer->isAChannelRenderer())
+    {
+      reinterpret_cast<CrosshairRenderer *>(renderer.data())->setCrosshair(point);
+    }
+
+  m_view->update();
+}
+
+//-----------------------------------------------------------------------------
+void VolumeView::updateScrollBarsLimits()
+{
+  if (!m_additionalScrollBars)
+    return;
+
+  if(m_channels.isEmpty())
+  {
+    m_axialScrollBar->setMinimum(0);
+    m_axialScrollBar->setMaximum(0);
+    m_coronalScrollBar->setMinimum(0);
+    m_coronalScrollBar->setMaximum(0);
+    m_sagittalScrollBar->setMinimum(0);
+    m_sagittalScrollBar->setMaximum(0);
+    return;
+  }
+
+  int maxExtent[6];
+  m_channels.first()->volume()->extent(maxExtent);
+
+  foreach (ChannelPtr channel, m_channels)
+  {
+    int extent[6];
+    channel->volume()->extent(extent);
+
+    if (maxExtent[0] > extent[0])
+      maxExtent[0] = extent[0];
+
+    if (maxExtent[1] < extent[1])
+      maxExtent[1] = extent[1];
+
+    if (maxExtent[2] > extent[2])
+      maxExtent[2] = extent[2];
+
+    if (maxExtent[3] < extent[3])
+      maxExtent[3] = extent[3];
+
+    if (maxExtent[4] > extent[4])
+      maxExtent[4] = extent[4];
+
+    if (maxExtent[5] < extent[5])
+      maxExtent[5] = extent[5];
+  }
+
+  m_axialScrollBar->setMinimum(maxExtent[0]);
+  m_axialScrollBar->setMaximum(maxExtent[1]);
+  m_coronalScrollBar->setMinimum(maxExtent[2]);
+  m_coronalScrollBar->setMaximum(maxExtent[3]);
+  m_sagittalScrollBar->setMinimum(maxExtent[4]);
+  m_sagittalScrollBar->setMaximum(maxExtent[5]);
 }

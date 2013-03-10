@@ -139,6 +139,8 @@ TaxonomyLayout::TaxonomyLayout(CheckableTreeView     *view,
 , m_proxy   (new TaxonomyProxy())
 , m_sort    (new SortFilter())
 , m_delegate(new TaxonomyItemDelegate(model, undoStack, this))
+, m_createTaxonomy(NULL)
+, m_createSubTaxonomy(NULL)
 {
   m_proxy->setSourceModel(m_model);
   m_sort->setSourceModel(m_proxy.data());
@@ -166,6 +168,7 @@ void TaxonomyLayout::createSpecificControls(QHBoxLayout *specificControlLayout)
   createTaxonomy->setMaximumSize(32, 32);
   createTaxonomy->setMinimumSize(32, 32);
   createTaxonomy->setFlat(true);
+  createTaxonomy->setEnabled(false);
 
   connect(createTaxonomy, SIGNAL(clicked(bool)),
           this, SLOT(createTaxonomy()));
@@ -179,11 +182,20 @@ void TaxonomyLayout::createSpecificControls(QHBoxLayout *specificControlLayout)
   createSubTaxonomy->setMaximumSize(32, 32);
   createSubTaxonomy->setMinimumSize(32, 32);
   createSubTaxonomy->setFlat(true);
+  createSubTaxonomy->setEnabled(false);
 
   connect(createSubTaxonomy, SIGNAL(clicked(bool)),
           this, SLOT(createSubTaxonomy()));
 
   specificControlLayout->addWidget(createSubTaxonomy);
+
+  // the model of CheckableTreeView has been set by now (wasn't in constructor): connect signals
+  connect(m_view->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
+          this, SLOT(updateSelection(QItemSelection,QItemSelection)));
+
+  m_createTaxonomy = createTaxonomy;
+  m_createSubTaxonomy = createSubTaxonomy;
+  connect(m_createTaxonomy, SIGNAL(destroyed()), this, SLOT(disconnectSelectionModel()));
 }
 
 //------------------------------------------------------------------------
@@ -343,6 +355,7 @@ bool TaxonomyLayout::selectedItems(TaxonomyElementList &taxonomies, Segmentation
         break;
       default:
         Q_ASSERT(false);
+        break;
     }
   }
 
@@ -414,7 +427,6 @@ void TaxonomyLayout::segmentationsDragged(SegmentationList   segmentations,
   m_undoStack->endMacro();
 }
 
-
 //------------------------------------------------------------------------
 void TaxonomyLayout::taxonomiesDragged(TaxonomyElementList subTaxonomies,
                                        TaxonomyElementPtr  taxonomy)
@@ -440,4 +452,41 @@ void TaxonomyLayout::taxonomiesDragged(TaxonomyElementList subTaxonomies,
     m_undoStack->push(new MoveTaxonomiesCommand(validSubTaxonomies, taxonomy, m_model));
     m_undoStack->endMacro();
   }
+}
+
+//------------------------------------------------------------------------
+void TaxonomyLayout::updateSelection(QItemSelection selected, QItemSelection deselected)
+{
+  int numSeg = 0;
+  int numTax = 0;
+
+  QModelIndexList selectedIndexes = m_view->selectionModel()->selectedIndexes();
+  foreach(QModelIndex index, selectedIndexes)
+  {
+    ModelItemPtr item = TaxonomyLayout::item(index);
+    switch (item->type())
+    {
+      case EspINA::SEGMENTATION:
+        numSeg++;
+        break;
+      case EspINA::TAXONOMY:
+        numTax++;
+        break;
+      default:
+        Q_ASSERT(false);
+        break;
+    }
+  }
+
+  m_createTaxonomy->setEnabled((numSeg == 0) && (numTax == 1));
+  m_createSubTaxonomy->setEnabled((numSeg == 0) && (numTax == 1));
+}
+
+//------------------------------------------------------------------------
+void TaxonomyLayout::disconnectSelectionModel()
+{
+  m_createTaxonomy = m_createSubTaxonomy = NULL;
+
+  disconnect(m_view->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
+          this, SLOT(updateSelection(QItemSelection,QItemSelection)));
 }
