@@ -210,16 +210,21 @@ void SegmentationInspector::updateSelection(QItemSelection selected, QItemSelect
   if (prevWidget)
     delete prevWidget;
 
+  ModelItemPtr item(NULL);
   if (!m_dataView->selectionModel()->selectedIndexes().isEmpty())
   {
-    ModelItemPtr item = indexPtr(m_sort->mapToSource(m_dataView->selectionModel()->selectedIndexes().first()));
+    item = indexPtr(m_info->mapToSource(m_sort->mapToSource(m_dataView->selectionModel()->selectedIndexes().first())));
 
     if (EspINA::SEGMENTATION == item->type() && m_segmentations.contains(segmentationPtr(item)))
     {
-      QWidget *widget = segmentationPtr(item)->filter()->filterInspector()->createWidget(m_undoStack, m_viewManager);
-      m_filterInspector->setWidget(widget);
-      m_filterInspector->setMinimumWidth(widget->minimumSize().width());
-      return;
+      Filter::FilterInspectorPtr inspector = segmentationPtr(item)->filter()->filterInspector();
+      if (inspector)
+      {
+        QWidget *widget = inspector->createWidget(m_undoStack, m_viewManager);
+        m_filterInspector->setWidget(widget);
+        m_filterInspector->setMinimumWidth((widget->minimumSize().width() < 250) ?  250 : widget->minimumSize().width());
+        return;
+      }
     }
   }
 
@@ -228,8 +233,11 @@ void SegmentationInspector::updateSelection(QItemSelection selected, QItemSelect
   noWidgetInspector->layout()->setSpacing(10);
 
   QLabel *infoLabel = new QLabel(noWidgetInspector);
-  infoLabel->setText(QLabel::tr("No segmentation selected."));
-  infoLabel->setWordWrap(false);
+  if (item != NULL)
+    infoLabel->setText(QLabel::tr("This filter doesn't have configurable options."));
+  else
+    infoLabel->setText(QLabel::tr("No segmentation selected."));
+  infoLabel->setWordWrap(true);
   infoLabel->setTextInteractionFlags(Qt::NoTextInteraction);
   noWidgetInspector->layout()->addWidget(infoLabel);
 
