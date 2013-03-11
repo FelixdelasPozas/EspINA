@@ -97,24 +97,36 @@ class EspinaErrorHandler
                              const QString &hint = QString())
       {
         QFileInfo resfile;
+        QString title = (hint.isEmpty()) ? QObject::tr("Select file for %1:").arg(file.fileName()) : hint;
+        QDir directory = (dir == QDir()) ? m_defaultDir : dir;
+        QString filters = (nameFilters.isEmpty()) ? QObject::tr("%1 files (*.%1)").arg(file.suffix()) : nameFilters;
 
-	QString title = (hint.isEmpty()) ?
-	  QObject::tr("Select file for %1:").arg(file.fileName()) 
-	  : hint;
-	QDir directory   = (dir == QDir()) ? m_defaultDir : dir;
-	QString filters = (nameFilters.isEmpty()) ?
-	  QObject::tr("%1 files (*.%1)").arg(file.suffix())
-	  : nameFilters;
+        QList<QUrl> urls;
+        urls << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::DesktopLocation))
+             << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation))
+             << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::HomeLocation));
 
-	const QString fileName = QFileDialog::getOpenFileName(m_parent, title, directory.absolutePath(), filters);
+        QFileDialog fileDialog(m_parent);
+        fileDialog.setWindowTitle(title);
+        fileDialog.setFilter(filters);
+        fileDialog.setDirectory(directory);
+        fileDialog.setOption(QFileDialog::DontUseNativeDialog, false);
+        fileDialog.setViewMode(QFileDialog::Detail);
+        fileDialog.resize(800, 480);
+        fileDialog.setSidebarUrls(urls);
 
-        return QFileInfo(fileName);
-      }
+        QApplication::setOverrideCursor(Qt::ArrowCursor);
+        if (fileDialog.exec())
+          resfile = QFileInfo(fileDialog.selectedFiles().first());
+        QApplication::restoreOverrideCursor();
 
-    private:
-      QWidget *m_parent;
-      QDir     m_defaultDir;
-  };
+        return resfile;
+    }
+
+  private:
+    QWidget *m_parent;
+    QDir m_defaultDir;
+};
 
 
 //------------------------------------------------------------------------
@@ -632,16 +644,27 @@ void EspinaMainWindow::closeCurrentAnalysis()
 void EspinaMainWindow::openAnalysis()
 {
   const QString title   = tr("Analyse Data");
-  const QString dir   = "";
   const QString filters = m_model->factory()->supportedFiles().join(";;");
-  const QString fileName = QFileDialog::getOpenFileName(this, title, dir, filters);
-  // Multi-channels is not supported. Eventually use getOpenFileNames instead.
 
-  if (fileName.isEmpty()) 
-    return;
+  QList<QUrl> urls;
+  urls << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::DesktopLocation))
+       << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation))
+       << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::HomeLocation));
 
-  openAnalysis(fileName);
-  m_model->markAsSaved();
+  QFileDialog fileDialog(this);
+  fileDialog.setWindowTitle(title);
+  fileDialog.setFilter(filters);
+  fileDialog.setDirectory(QDir());
+  fileDialog.setOption(QFileDialog::DontUseNativeDialog, false);
+  fileDialog.setViewMode(QFileDialog::Detail);
+  fileDialog.resize(800, 480);
+  fileDialog.setSidebarUrls(urls);
+
+  if (fileDialog.exec())
+  {
+    openAnalysis(fileDialog.selectedFiles().first());
+    m_model->markAsSaved();
+  }
 }
 
 //------------------------------------------------------------------------
@@ -774,16 +797,22 @@ void EspinaMainWindow::openRecentAnalysis()
 //------------------------------------------------------------------------
 void EspinaMainWindow::addToAnalysis()
 {
+  QList<QUrl> urls;
+  urls << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::DesktopLocation))
+       << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation))
+       << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::HomeLocation));
 
-  const QString title   = tr("Add data to Analysis");
-  const QString dir   = "";
-  const QString filters = m_model->factory()->supportedFiles().join(";;");
-  const QString fileName = QFileDialog::getOpenFileName(this, title, dir, filters);
+  QFileDialog fileDialog(this);
+  fileDialog.setWindowTitle(tr("Add data to Analysis"));
+  fileDialog.setFilters(m_model->factory()->supportedFiles());
+  fileDialog.setDirectory(m_sessionFile.dir());
+  fileDialog.setOption(QFileDialog::DontUseNativeDialog, false);
+  fileDialog.setViewMode(QFileDialog::Detail);
+  fileDialog.resize(800, 480);
+  fileDialog.setSidebarUrls(urls);
 
-  // Multi-channels is not supported. Eventually use getOpenFileNames instead.
-  if (fileName.isEmpty()) 
-    return;
-  addFileToAnalysis(fileName);
+  if (fileDialog.exec())
+    addFileToAnalysis(QFileInfo(fileDialog.selectedFiles().first()));
 }
 
 //------------------------------------------------------------------------
@@ -848,9 +877,7 @@ void EspinaMainWindow::addFileToAnalysis(const QFileInfo file)
 //------------------------------------------------------------------------
 void EspinaMainWindow::saveAnalysis()
 {
-  const QString title   = tr("Save Espina Analysis");
-  QString dir   = "";
-  QString filters(SEG_FILES);
+  QString dir = "";
   if (!m_sessionDir.isRoot())
   {
     dir = m_sessionDir.absolutePath() + "/";
@@ -859,42 +886,29 @@ void EspinaMainWindow::saveAnalysis()
     else
       dir += m_sessionDir.dirName();
   }
-  const QString fileName = QFileDialog::getSaveFileName(this, title, dir, filters);
 
-  if (fileName.isEmpty()) 
-    return;
+  QList<QUrl> urls;
+  urls << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::DesktopLocation))
+       << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation))
+       << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::HomeLocation));
 
-  /**
-   * There is no setDefaultSuffix("seg") in the satic method
-   * Overwrite checks are needed
-   */
+  QFileDialog fileDialog(this);
+  fileDialog.setWindowTitle(tr("Save Espina Analysis"));
+  fileDialog.setFilter(SEG_FILES);
+  fileDialog.setDirectory(dir);
+  fileDialog.setOption(QFileDialog::DontUseNativeDialog, false);
+  fileDialog.setViewMode(QFileDialog::Detail);
+  fileDialog.resize(800, 480);
+  fileDialog.setSidebarUrls(urls);
+  fileDialog.setConfirmOverwrite(true);
+  fileDialog.setFileMode(QFileDialog::AnyFile);
+  fileDialog.setAcceptMode(QFileDialog::AcceptSave);
+
   QString analysisFile;
-  if (! fileName.endsWith(".seg")) {
-    analysisFile = fileName + ".seg";
-   
-    if (QFile::exists(analysisFile)) {
-
-      int ret = QMessageBox::warning(this, title,
-				     tr(" %1 already exists.\n"
-					"Do you want to replace it?")
-				     .arg(analysisFile),
-				     QMessageBox::Save | QMessageBox::Cancel,
-				     QMessageBox::Save);
-
-      switch (ret) {
-      case QMessageBox::Cancel:
-	// User does not want to overwrite. Ask again for a new filename
-	saveAnalysis();
-	return;
-      case QMessageBox::Save:
-      default:
-	break;
-      }
-    }
-  } 
-  else {
-    analysisFile = fileName;
-  }
+  if (fileDialog.exec())
+    analysisFile = fileDialog.selectedFiles().first();
+  else
+    return;
 
   QApplication::setOverrideCursor(Qt::WaitCursor);
   m_busy = true;
