@@ -175,8 +175,16 @@ bool EspINA::sortSegmentationLessThan(ModelItemPtr left, ModelItemPtr right)
   SegmentationPtr leftSeg  = segmentationPtr(left);
   SegmentationPtr rightSeg = segmentationPtr(right);
 
-  if (leftSeg->number() == rightSeg->number())
-    return left ->data(Qt::ToolTipRole).toString() < right->data(Qt::ToolTipRole).toString();
-  else
-    return leftSeg->number() < rightSeg->number();
+  if (leftSeg->taxonomy()->name() == rightSeg->taxonomy()->name())
+  {
+    if (leftSeg->number() == rightSeg->number())
+      return left ->data(Qt::ToolTipRole).toString() < right->data(Qt::ToolTipRole).toString();
+    else
+      return leftSeg->number() < rightSeg->number();
+  }
+  else 
+  {
+    return leftSeg->taxonomy()->name() < rightSeg->taxonomy()->name();
+  }
+
 }
