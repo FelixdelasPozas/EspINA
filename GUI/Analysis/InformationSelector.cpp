@@ -32,33 +32,57 @@ class InformationSelector::GUI
 };
 
 //----------------------------------------------------------------------------
-InformationSelector::InformationSelector(Segmentation::InfoTagList &tags,
-                                         const QString  &qualifiedName,
+InformationSelector::InformationSelector(TaxonomyInformation &tags,
                                          EspinaFactory  *factory,
                                          QWidget        *parent, 
                                          Qt::WindowFlags f)
 : QDialog(parent, f)
 , m_gui(new GUI())
+, m_factory(factory)
 , m_tags(tags)
 {
   m_gui->setupUi(this);
 
-  setWindowTitle(tr("%1 Information").arg(qualifiedName));
+  setWindowTitle(tr("Select Analysis' Information"));
 
-  foreach(Segmentation::InformationExtension extension, factory->segmentationExtensions())
+  foreach(QString qualifiedName, tags.keys())
   {
-    if (extension->validTaxonomy(qualifiedName))
-    {
-      QTreeWidgetItem *extensionNode = new QTreeWidgetItem(m_gui->treeWidget);
-      extensionNode->setText(0, extension->id());
-      extensionNode->setData(0, Qt::CheckStateRole, Qt::Checked);
-      extensionNode->setData(0, Qt::UserRole, Qt::Checked);
+    QTreeWidgetItem *taxonomyNode = new QTreeWidgetItem(m_gui->treeWidget);
+    taxonomyNode->setText(0, qualifiedName);
 
-      foreach(Segmentation::InfoTag tag, extension->availableInformations())
+    foreach(Segmentation::InformationExtension extension, m_factory->segmentationExtensions())
+    {
+      if (extension->validTaxonomy(qualifiedName))
       {
-        QTreeWidgetItem *tagNode = new QTreeWidgetItem(extensionNode);
-        tagNode->setData(0, Qt::CheckStateRole, Qt::Checked);
-        tagNode->setText(0, tag);
+        QTreeWidgetItem *extensionNode = new QTreeWidgetItem(taxonomyNode);
+        extensionNode->setText(0, extension->id());
+
+        bool hasCheckedChildren   = false;
+        bool hasUnCheckedChildren = false;
+
+        foreach(Segmentation::InfoTag tag, extension->availableInformations())
+        {
+          QTreeWidgetItem *tagNode = new QTreeWidgetItem(extensionNode);
+          bool selected = m_tags[qualifiedName].contains(tag);
+
+          hasCheckedChildren   |=  selected;
+          hasUnCheckedChildren |= !selected;
+
+          Qt::CheckState state = selected?Qt::Checked:Qt::Unchecked;
+          tagNode->setText(0, tag);
+          tagNode->setData(0, Qt::UserRole,       state);
+          tagNode->setData(0, Qt::CheckStateRole, state);
+        }
+        Qt::CheckState state;
+        if (hasCheckedChildren && hasUnCheckedChildren)
+          state = Qt::PartiallyChecked;
+        else if (hasCheckedChildren)
+          state = Qt::Checked;
+        else
+          state = Qt::Unchecked;
+
+        extensionNode->setData(0, Qt::UserRole,       state);
+        extensionNode->setData(0, Qt::CheckStateRole, state);
       }
     }
   }
@@ -86,8 +110,10 @@ void InformationSelector::accept()
   QTreeWidgetItemIterator it(m_gui->treeWidget, QTreeWidgetItemIterator::Checked);
   while (*it)
   {
-    if ((*it)->parent())
-      m_tags << (*it)->data(0,Qt::DisplayRole).toString();
+    QTreeWidgetItem *node       = (*it);
+    QTreeWidgetItem *parentNode = node->parent();
+    if (parentNode && parentNode->parent())
+      m_tags[parentNode->parent()->text(0)] << node->data(0,Qt::DisplayRole).toString();
     ++it;
   }
 
@@ -97,15 +123,30 @@ void InformationSelector::accept()
 #include <QDebug>
 
 //----------------------------------------------------------------------------
-void InformationSelector::updateCheckState(QTreeWidgetItem *item, int column)
+void InformationSelector::updateCheckState(QTreeWidgetItem *item, int column, bool updateParent)
 {
   if (item->data(column, Qt::UserRole).toInt() != item->checkState(column))
   {
     for (int i = 0; i < item->childCount(); ++i)
     {
       item->child(i)->setCheckState(column, item->checkState(column));
-      updateCheckState(item->child(i), column);
+      updateCheckState(item->child(i), column, false);
     }
     item->setData(column, Qt::UserRole, item->checkState(column));
+
+    QTreeWidgetItem *parentNode = item->parent();
+    if (parentNode && updateParent && parentNode->parent())
+    {
+      Qt::CheckState state = item->checkState(column);
+      int i = 0;
+      while (state == item->checkState(column) && i < parentNode->childCount())
+      {
+        if (state != parentNode->child(i)->checkState(0))
+          state = Qt::PartiallyChecked;
+        ++i;
+      }
+      parentNode->setCheckState(column, state);
+      parentNode->setData(column, Qt::UserRole, state);
+    }
   }
 }

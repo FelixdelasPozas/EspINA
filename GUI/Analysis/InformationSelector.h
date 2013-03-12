@@ -38,8 +38,10 @@ namespace EspINA
 
     class GUI;
   public:
-    explicit InformationSelector(Segmentation::InfoTagList &tags,
-                                 const QString   &qualifiedName,
+    typedef QMap<QString, Segmentation::InfoTagList> TaxonomyInformation;
+
+  public:
+    explicit InformationSelector(TaxonomyInformation &tags,
                                  EspinaFactory   *factory,
                                  QWidget         *parent = 0,
                                  Qt::WindowFlags f = 0);
@@ -47,12 +49,14 @@ namespace EspINA
 
   protected slots:
     void accept();
-    void updateCheckState(QTreeWidgetItem *item, int column);
+    void updateCheckState(QTreeWidgetItem *item, int column, bool updateParent = true);
 
   private:
     GUI *m_gui;
 
-    Segmentation::InfoTagList &m_tags;
+    EspinaFactory *m_factory;
+
+    TaxonomyInformation &m_tags;
   };
 }
 

@@ -40,10 +40,10 @@ using namespace EspINA;
 
 const ModelItem::ExtId   AppositionSurfaceExtension::ID = "AppositionSurfaceExtension";
 
-const Segmentation::InfoTag AppositionSurfaceExtension::AREA       = "AS Area";
-const Segmentation::InfoTag AppositionSurfaceExtension::PERIMETER  = "AS Perimeter";
-const Segmentation::InfoTag AppositionSurfaceExtension::TORTUOSITY = "AS Tortuosity";
-const Segmentation::InfoTag AppositionSurfaceExtension::SYNAPSE    = "AS Synapse";
+const Segmentation::InfoTag AppositionSurfaceExtension::AREA       = "Area";
+const Segmentation::InfoTag AppositionSurfaceExtension::PERIMETER  = "Perimeter";
+const Segmentation::InfoTag AppositionSurfaceExtension::TORTUOSITY = "Tortuosity";
+const Segmentation::InfoTag AppositionSurfaceExtension::SYNAPSE    = "Synapse";
 
 const QString AppositionSurfaceExtension::EXTENSION_FILE = "AppositionSurfaceExtension/AppositionSurfaceExtension.csv";
 

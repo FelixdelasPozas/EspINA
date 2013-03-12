@@ -103,7 +103,11 @@ void SynapticAppositionSurfaceAnalysis::displayInformation()
   analysis->setColumnCount(synapseColumns + sasColumns);
 
   QStringList headers;
-  headers << m_synapseTags << m_sasTags;
+  headers << m_synapseTags;
+  foreach(QString sasHeader, m_sasTags)
+  {
+    headers << tr("SAS %1").arg(sasHeader);
+  }
   tableView->setHorizontalHeaderLabels(headers);
   analysis->setHorizontalHeaderLabels(headers);
 
@@ -223,21 +227,27 @@ void SynapticAppositionSurfaceAnalysis::displayInformation()
 //----------------------------------------------------------------------------
 void SynapticAppositionSurfaceAnalysis::defineQuery()
 {
-  InformationSelector synapseTagSelector(m_synapseTags,
-                                         "Synapse", 
+  const QString SYNAPSE = tr("Synapse");
+  const QString SAS     = tr("SAS");
+
+  InformationSelector::TaxonomyInformation tags;
+  tags[SYNAPSE] = m_synapseTags;
+  tags[SAS]     = m_sasTags;
+
+  InformationSelector synapseTagSelector(tags,
                                          m_model->factory(),
                                          this);
-  synapseTagSelector.exec();
-  m_synapseTags.prepend(tr("Taxonomy"));
-  m_synapseTags.prepend(tr("Name"));
 
-  InformationSelector sasTagSelector(m_sasTags,
-                                     "SAS",
-                                     m_model->factory(),
-                                     this);
-  sasTagSelector.exec();
+  if (synapseTagSelector.exec() == QDialog::Accepted)
+  {
+    m_synapseTags.clear();
+    m_synapseTags << tr("Name") << tr("Taxonomy") << tags[SYNAPSE];
 
-  displayInformation();
+    m_sasTags.clear();
+    m_sasTags << tags[SAS];
+
+    displayInformation();
+  }
 }
 
 //----------------------------------------------------------------------------
