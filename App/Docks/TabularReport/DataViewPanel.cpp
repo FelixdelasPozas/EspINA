@@ -19,7 +19,7 @@
 
 #include "DataViewPanel.h"
 
-#include "DataView.h"
+#include "TabularReport.h"
 
 using namespace EspINA;
 
@@ -33,7 +33,7 @@ DataViewPanel::DataViewPanel(EspinaModel *model,
 
   setWindowTitle(tr("Segmentation Information"));
 
-  setWidget(new DataView(model, viewManager));
+  setWidget(new TabularReport(model, viewManager));
 }
 
 //----------------------------------------------------------------------------

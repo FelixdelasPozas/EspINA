@@ -79,7 +79,8 @@ SegmentationInspector::SegmentationInspector(SegmentationList segmentations,
   tags << tr("Name") << tr("Taxonomy");
   foreach(Segmentation::InformationExtension extension, m_model->factory()->segmentationExtensions())
   {
-    tags << extension->availableInformations();
+    if (extension->validTaxonomy(""))
+      tags << extension->availableInformations();
   }
 
   m_info->setQuery(tags);

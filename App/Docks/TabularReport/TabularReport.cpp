@@ -17,7 +17,7 @@
  */
 
 
-#include "DataView.h"
+#include "TabularReport.h"
 
 #include "Dialogs/TabularReport/QueryView.h"
 
@@ -54,7 +54,7 @@ protected:
 };
 
 //------------------------------------------------------------------------
-DataView::DataView(EspinaModel *model,
+TabularReport::TabularReport(EspinaModel *model,
                    ViewManager *viewmManager,
                    QWidget     *parent,
                    Qt::WindowFlags f)
@@ -102,12 +102,12 @@ DataView::DataView(EspinaModel *model,
 }
 
 //------------------------------------------------------------------------
-DataView::~DataView()
+TabularReport::~TabularReport()
 {
 }
 
 //------------------------------------------------------------------------
-QModelIndex DataView::index(ModelItemPtr item) const
+QModelIndex TabularReport::index(ModelItemPtr item) const
 {
   QModelIndex baseModelIndex = m_baseModel->index(item);
   QModelIndex informationIndex = m_model->mapFromSource(baseModelIndex);
@@ -115,13 +115,13 @@ QModelIndex DataView::index(ModelItemPtr item) const
 }
 
 //------------------------------------------------------------------------
-ModelItemPtr DataView::item(QModelIndex index) const
+ModelItemPtr TabularReport::item(QModelIndex index) const
 {
   return indexPtr(m_sort->mapToSource(index));
 }
 
 //------------------------------------------------------------------------
-void DataView::defineQuery()
+void TabularReport::defineQuery()
 {
   QStringList query;
   query << tr("Name") << tr("Taxonomy");
@@ -136,7 +136,7 @@ void DataView::defineQuery()
 }
 
 //------------------------------------------------------------------------
-void DataView::extractInformation()
+void TabularReport::extractInformation()
 {
   QString title   = tr("Export Segmentation Data");
   QString fileExt = tr("CSV Text File (*.csv)");
@@ -163,7 +163,7 @@ void DataView::extractInformation()
 }
 
 //------------------------------------------------------------------------
-void DataView::updateSelection(ViewManager::Selection selection)
+void TabularReport::updateSelection(ViewManager::Selection selection)
 {
   if (!isVisible())
     return;
@@ -196,7 +196,7 @@ void DataView::updateSelection(ViewManager::Selection selection)
 }
 
 //------------------------------------------------------------------------
-void DataView::updateSelection(QItemSelection selected, QItemSelection deselected)
+void TabularReport::updateSelection(QItemSelection selected, QItemSelection deselected)
 {
   ViewManager::Selection selection;
 

@@ -24,7 +24,7 @@
 #include "Docks/ChannelExplorer/ChannelExplorer.h"
 #include "Docks/FilterInspector/FilterInspector.h"
 #include "Docks/SegmentationExplorer/SegmentationExplorer.h"
-#include "Docks/TabularReport/DataView.h"
+#include "Docks/TabularReport/TabularReport.h"
 #include "Docks/TabularReport/DataViewPanel.h"
 #include "Docks/TaxonomyExplorer/TaxonomyExplorer.h"
 #include "Menus/ColorEngineMenu.h"

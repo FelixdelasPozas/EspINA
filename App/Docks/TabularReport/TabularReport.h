@@ -21,7 +21,7 @@
 #define DATAVIEW_H
 
 #include <QWidget>
-#include <ui_DataView.h>
+#include <ui_TabularReport.h>
 
 #include <GUI/ViewManager.h>
 #include <Core/Model/Proxies/InformationProxy.h>
@@ -33,17 +33,17 @@ class ModelTest;
 
 namespace EspINA
 {
-  class DataView
+  class TabularReport
   : public QWidget
-  , Ui::DataView
+  , Ui::TabularReport
   {
     Q_OBJECT
   public:
-    explicit DataView(EspinaModel *model,
+    explicit TabularReport(EspinaModel *model,
                       ViewManager *vm,
                       QWidget *parent = 0,
                       Qt::WindowFlags f = 0);
-    virtual ~DataView();
+    virtual ~TabularReport();
 
   protected:
     QModelIndex index(ModelItemPtr item) const;
