@@ -22,6 +22,7 @@ qt4_wrap_cpp(GUI_MOC
   ViewManager.h
   vtkWidgets/TubularWidget.h
   Renderers/MeshRenderer.h
+  Renderers/SmoothedMeshRenderer.h
   )
 
 qt4_wrap_ui (GUI_UI
@@ -50,6 +51,7 @@ set (GUI_SOURCES
   QtWidget/vtkInteractorStyleEspinaSlice.cpp
   Renderers/CrosshairRenderer.cpp
   Renderers/MeshRenderer.cpp
+  Renderers/SmoothedMeshRenderer.cpp
   Renderers/VolumetricRenderer.cpp
   vtkWidgets/ContourWidget.cpp
   vtkWidgets/EspinaWidget.cpp

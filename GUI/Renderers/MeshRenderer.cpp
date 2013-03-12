@@ -16,27 +16,24 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// EspINA
 #include "MeshRenderer.h"
-
 #include <Core/Model/Segmentation.h>
 #include <Core/ColorEngines/IColorEngine.h>
 #include "GUI/ViewManager.h"
 
+// VTK
 #include <vtkRenderWindow.h>
 #include <vtkSmartPointer.h>
-#include <vtkDiscreteMarchingCubes.h>
-#include <vtkWindowedSincPolyDataFilter.h>
-#include <vtkDecimatePro.h>
 #include <vtkPolyDataMapper.h>
-#include <vtkPolyDataNormals.h>
 #include <vtkActor.h>
 #include <vtkProperty.h>
 #include <vtkImageConstantPad.h>
 #include <vtkAlgorithm.h>
 #include <vtkMath.h>
 
+// Qt
 #include <QApplication>
-#include <QDebug>
 
 using namespace EspINA;
 
@@ -65,44 +62,22 @@ bool MeshRenderer::addItem(ModelItemPtr item)
         m_renderer->RemoveActor(this->m_segmentations[seg].actor);
       m_segmentations[seg].actor->Delete();
       m_segmentations[seg].actorPropertyBackup = NULL;
-      m_segmentations[seg].decimate = NULL;
       m_segmentations.remove(item);
+
+      m_mappers[seg] = NULL;
+      m_mappers.remove(item);
     }
 
   QColor color = m_viewManager->color(seg);
 
-  m_segmentations[seg].decimate = vtkSmartPointer<vtkDecimatePro>::New();
-  m_segmentations[seg].decimate->ReleaseDataFlagOn();
-  m_segmentations[seg].decimate->SetGlobalWarningDisplay(false);
-  m_segmentations[seg].decimate->SetTargetReduction(0.95);
-  m_segmentations[seg].decimate->PreserveTopologyOn();
-  m_segmentations[seg].decimate->SplittingOff();
-  m_segmentations[seg].decimate->SetInputConnection(seg->volume()->toMesh());
-
-
-  vtkSmartPointer<vtkWindowedSincPolyDataFilter> smoother = vtkSmartPointer<vtkWindowedSincPolyDataFilter>::New();
-  smoother->ReleaseDataFlagOn();
-  smoother->SetGlobalWarningDisplay(false);
-  smoother->BoundarySmoothingOn();
-  smoother->FeatureEdgeSmoothingOn();
-  smoother->SetNumberOfIterations(15);
-  smoother->SetFeatureAngle(120);
-  smoother->SetEdgeAngle(90);
-  smoother->SetInputConnection(m_segmentations[seg].decimate->GetOutputPort());
-
-  vtkSmartPointer<vtkPolyDataNormals> normals = vtkSmartPointer<vtkPolyDataNormals>::New();
-  normals->ReleaseDataFlagOn();
-  normals->SetFeatureAngle(120);
-  normals->SetInputConnection(smoother->GetOutputPort());
-
-  vtkSmartPointer<vtkPolyDataMapper> isoMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  isoMapper->ReleaseDataFlagOn();
-  isoMapper->ImmediateModeRenderingOn();
-  isoMapper->ScalarVisibilityOff();
-  isoMapper->SetInputConnection(normals->GetOutputPort());
+  m_mappers[seg] = vtkSmartPointer<vtkPolyDataMapper>::New();
+  m_mappers[seg]->ReleaseDataFlagOn();
+  m_mappers[seg]->ImmediateModeRenderingOn();
+  m_mappers[seg]->ScalarVisibilityOff();
+  m_mappers[seg]->SetInputConnection(seg->volume()->toMesh());
 
   vtkActor *actor = vtkActor::New();
-  actor->SetMapper(isoMapper);
+  actor->SetMapper(m_mappers[seg]);
   double rgb[3] = { color.redF(), color.greenF(), color.blueF() };
   double hsv[3] = { 0.0, 0.0, 0.0 };
   vtkMath::RGBToHSV(rgb,hsv);
@@ -190,10 +165,10 @@ bool MeshRenderer::updateItem(ModelItemPtr item)
   }
 
   // check if the beginning of the pipeline has changed
-  if (m_segmentations[seg].decimate->GetInputConnection(0,0) != seg->volume()->toMesh())
+  if (m_mappers[seg]->GetInputConnection(0,0) != seg->volume()->toMesh())
   {
-    m_segmentations[seg].decimate->SetInputConnection(seg->volume()->toMesh());
-    m_segmentations[seg].decimate->Update();
+    m_mappers[seg]->SetInputConnection(seg->volume()->toMesh());
+    m_mappers[seg]->Update();
 
     updated = true;
   }
@@ -265,6 +240,9 @@ bool MeshRenderer::removeItem(ModelItemPtr item)
 
    m_segmentations[seg].actor->Delete();
    m_segmentations.remove(seg);
+
+   m_mappers[seg] = NULL;
+   m_mappers.remove(seg);
 
    disconnect(item, SIGNAL(modified(ModelItemPtr)), this, SLOT(updateItem(ModelItemPtr)));
 

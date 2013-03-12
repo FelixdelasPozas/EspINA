@@ -136,8 +136,8 @@ void VolumeView::addRendererControls(IRendererSPtr renderer)
   button->setChecked(false);
   button->setIconSize(QSize(22, 22));
   button->setMaximumSize(QSize(32, 32));
-  button->setToolTip(renderer->tooltip());
-  button->setObjectName(renderer->name());
+  button->setToolTip(renderer.data()->tooltip());
+  button->setObjectName(renderer.data()->name());
   connect(button, SIGNAL(clicked(bool)), renderer.data(), SLOT(setEnable(bool)));
   connect(button, SIGNAL(clicked(bool)), this, SLOT(countEnabledRenderers(bool)));
   connect(button, SIGNAL(destroyed(QObject*)), renderer.data(), SLOT(deleteLater()));
