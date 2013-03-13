@@ -58,23 +58,8 @@ namespace EspINA
   {
     if (m_origin == QString())
       m_origin = QString("Unspecified origin");
-
-    const QString namedInput = m_args[Filter::INPUTS];
-    QStringList list = namedInput.split(QChar('_'));
-    const int outputId = list[1].toInt();
-
-    RelationList relations = m_namedInputs[AppositionSurfaceFilter::INPUTLINK]->relations(EspINA::Filter::CREATELINK);
-    SegmentationSPtr seg;
-    foreach(Relation rel, relations)
-      if (segmentationPtr(rel.succesor)->outputId() == outputId)
-      {
-        m_originSegmentation = segmentationPtr(rel.succesor).data();
-        break;
-      }
-
-    connect(m_originSegmentation, SIGNAL(volumeModified()), this, SLOT(inputModified()));
   }
-  
+
   //----------------------------------------------------------------------------
   AppositionSurfaceFilter::~AppositionSurfaceFilter()
   {
@@ -91,6 +76,7 @@ namespace EspINA
       m_blendedNotClippedPlane->Delete();
   }
 
+  
   //----------------------------------------------------------------------------
   bool AppositionSurfaceFilter::needUpdate() const
   {
@@ -100,14 +86,55 @@ namespace EspINA
     {
       Q_ASSERT(m_inputs.size() == 1);
       update = m_outputs[0].volume->toITK()->GetTimeStamp() < m_inputs[0]->toITK()->GetTimeStamp();
+
     }
 
     return update;
   }
 
   //----------------------------------------------------------------------------
+  void AppositionSurfaceFilter::upkeeping()
+  {
+    if (!m_originSegmentation)
+    {
+      const QString namedInput = m_args[Filter::INPUTS];
+      QStringList list = namedInput.split(QChar('_'));
+      const int outputId = list[1].toInt();
+
+      int i = 0;
+      FilterSPtr segFilter = m_namedInputs[AppositionSurfaceFilter::INPUTLINK];
+      qDebug() << segFilter->data().toString();
+
+      ModelItemSList items = segFilter->relatedItems(EspINA::OUT, Filter::CREATELINK);
+      while(!m_originSegmentation && i < items.size())
+      {
+        SegmentationPtr segmentation = segmentationPtr(items[i].data());
+        if (segmentation->outputId() == outputId)
+        {
+          m_originSegmentation = segmentation;
+
+          connect(m_originSegmentation, SIGNAL(volumeModified()),
+                  this, SLOT(inputModified()));
+        }
+        ++i;
+      }
+    }
+    Q_ASSERT(m_originSegmentation);
+
+    ModelItemSList items = relatedItems(EspINA::OUT, Filter::CREATELINK);
+    if (items.size() == 1)
+    {
+      SegmentationPtr segmentation = segmentationPtr(items.first().data());
+      segmentation->setInputSegmentationDependent(true);
+    }
+  }
+
+
+  //----------------------------------------------------------------------------
   void AppositionSurfaceFilter::run()
   {
+    upkeeping();
+
     m_input = m_originSegmentation->volume()->toITK();
     m_input->SetBufferedRegion(m_input->GetLargestPossibleRegion());
 

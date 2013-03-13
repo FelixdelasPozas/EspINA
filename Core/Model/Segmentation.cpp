@@ -37,10 +37,11 @@
 using namespace std;
 using namespace EspINA;
 
-const ModelItem::ArgumentId Segmentation::NUMBER   = "Number";
-const ModelItem::ArgumentId Segmentation::OUTPUT   = "Output";
-const ModelItem::ArgumentId Segmentation::TAXONOMY = "Taxonomy";
-const ModelItem::ArgumentId Segmentation::USERS    = "Users";
+const ModelItem::ArgumentId Segmentation::NUMBER    = "Number";
+const ModelItem::ArgumentId Segmentation::OUTPUT    = "Output";
+const ModelItem::ArgumentId Segmentation::TAXONOMY  = "Taxonomy";
+const ModelItem::ArgumentId Segmentation::DEPENDENT = "Dependent";
+const ModelItem::ArgumentId Segmentation::USERS     = "Users";
 
 
 const int SegmentationNumberRole = TypeRole+1;
@@ -51,6 +52,7 @@ Segmentation::SArguments::SArguments(const Arguments &args)
 {
   m_number = args[NUMBER].toInt();
   m_outputId = args[OUTPUT].toInt();
+  m_isInputSegmentationDependent = args.value(DEPENDENT, "0").toInt();
 }
 
 //-----------------------------------------------------------------------------

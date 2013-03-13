@@ -146,7 +146,6 @@ namespace EspINA
                       const Nm bounds[6],
                       itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
                       bool emitSignal = true);
-    // DEPRECATED: ?
     virtual void draw(OutputId oId,
                       itkVolumeType::IndexType index,
                       itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
@@ -195,6 +194,10 @@ namespace EspINA
     /// Updates filter outputs.
     /// If a snapshot exits it will try to load it from disk
     void update();
+
+    /// Some filters may need to stablish connections with other items on the model
+    /// in order to keep updated
+    virtual void upkeeping() {}
 
     /// Turn on internal filters' release data flags
     virtual void releaseDataFlagOn(){}

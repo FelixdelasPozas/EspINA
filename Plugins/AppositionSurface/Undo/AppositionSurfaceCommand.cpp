@@ -70,7 +70,7 @@ namespace EspINA
     for(int i = 0; i < m_filters.size(); ++i)
     {
       m_model->addFilter(m_filters[i]);
-      m_model->addRelation(m_channels[i]->filter(), m_filters[i], AppositionSurfaceFilter::INPUTLINK);
+      m_model->addRelation(m_segmentations[i]->filter(), m_filters[i], AppositionSurfaceFilter::INPUTLINK);
 
       m_asSegmentations[i]->setTaxonomy(m_taxonomy);
       m_model->addSegmentation(m_asSegmentations[i]);
@@ -92,7 +92,7 @@ namespace EspINA
       m_model->removeRelation(m_filters[i]      , m_asSegmentations[i], Filter::CREATELINK);
       m_model->removeSegmentation(m_asSegmentations[i]);
 
-      m_model->removeRelation(m_channels[i]->filter(), m_filters[i], AppositionSurfaceFilter::INPUTLINK);
+      m_model->removeRelation(m_segmentations[i]->filter(), m_filters[i], AppositionSurfaceFilter::INPUTLINK);
       m_model->removeFilter(m_filters[i]);
     }
   }

@@ -40,7 +40,8 @@ namespace EspINA
 
     m_modified = false;
     defaultComputation->setChecked(m_automaticComputation);
-    connect(defaultComputation, SIGNAL(stateChanged(int)), this, SLOT(changeDefaultComputation(int)));
+    connect(defaultComputation, SIGNAL(stateChanged(int)),
+            this, SLOT(changeDefaultComputation(int)));
   }
 
   //-----------------------------------------------------------------------------

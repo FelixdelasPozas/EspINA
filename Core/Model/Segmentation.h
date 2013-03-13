@@ -53,6 +53,7 @@ namespace EspINA
     static const ArgumentId NUMBER;
     static const ArgumentId OUTPUT;
     static const ArgumentId TAXONOMY;
+    static const ArgumentId DEPENDENT; // Must be sync'ed with its parent segmentation
     static const ArgumentId USERS;//who have reviewed this segmentation
 
     static const int SelectionRole = Qt::UserRole + 2;
@@ -68,13 +69,16 @@ namespace EspINA
     typedef QMap<ExtId, InformationExtension>   InformationExtensionProvider;
     typedef QMap<InfoTag, InformationExtension> InformationTagProvider;
 
-
   private:
     class SArguments
     : public Arguments
     {
     public:
-      explicit SArguments() : m_number(-1), m_outputId(-1){}
+      explicit SArguments() 
+      : m_number(-1)
+      , m_outputId(-1)
+      , m_isInputSegmentationDependent(false){}
+
       explicit SArguments(const Arguments &args);
 
       void setNumber(unsigned int number)
@@ -102,11 +106,20 @@ namespace EspINA
 
       QStringList users() const {return (*this)[USERS].split(',');}
 
+      bool isInputSegmentationDependent() const
+      { return m_isInputSegmentationDependent; }
+
+      void setInputSegmentationDependent(bool value)
+      { m_isInputSegmentationDependent = value;
+        (*this)[DEPENDENT] = value?"1":"0";
+      }
+
       virtual QString serialize() const;
 
     private:
       unsigned int m_number;
       int m_outputId;
+      bool m_isInputSegmentationDependent;
     };
 
   public:
@@ -150,8 +163,8 @@ namespace EspINA
     bool visible() const {return m_isVisible;}
     void setVisible(bool visible);
     QStringList users() const {return m_args.users();}
-    bool isInputSegmentationDependent() const {return m_isInputSegmentationDependent;}
-    void setInputSegmentationDependent(bool dependent) { m_isInputSegmentationDependent = dependent; };
+    bool isInputSegmentationDependent() const {return m_args.isInputSegmentationDependent();}
+    void setInputSegmentationDependent(bool dependent) { m_args.setInputSegmentationDependent(dependent); };
 
 
     /// Return the list of segmentations which compose this segmentation
