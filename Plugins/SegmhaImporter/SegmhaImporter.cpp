@@ -171,6 +171,7 @@ bool SegmhaImporter::readFile(const QFileInfo file, EspinaIO::ErrorHandler *hand
     seg->initializeExtensions();
   }
 
+  m_model->emitSegmentationAdded(segmentations);
   return true;
 }
 

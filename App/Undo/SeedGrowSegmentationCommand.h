@@ -42,6 +42,7 @@ namespace EspINA
                                          TaxonomyElementPtr       taxonomy,
                                          EspinaModel             *model,
                                          ViewManager             *viewManager,
+                                         SegmentationSList       &createdSegmentations,
                                          QUndoCommand *           parent= NULL);
 
     virtual ~SeedGrowSegmentationCommand();

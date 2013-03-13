@@ -49,6 +49,7 @@ namespace EspINA
                                ImageLogicFilter::Operation operation,
                                TaxonomyElementPtr          taxonomy,
                                EspinaModel                *model,
+                               SegmentationSList          &createdSegmentations,
                                QUndoCommand *              parent = NULL);
 
     virtual void redo();

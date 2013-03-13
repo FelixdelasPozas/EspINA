@@ -26,9 +26,10 @@ namespace EspINA
   const Filter::FilterType AppositionSurfaceCommand::FILTER_TYPE = "AppositionSurface::AppositionSurfaceFilter";
 
   //-----------------------------------------------------------------------------
-  AppositionSurfaceCommand::AppositionSurfaceCommand(SegmentationList inputs,
-                                                     EspinaModel     *model,
-                                                     ViewManager     *vm)
+  AppositionSurfaceCommand::AppositionSurfaceCommand(SegmentationList   inputs,
+                                                     EspinaModel       *model,
+                                                     ViewManager       *vm,
+                                                     SegmentationSList &createdSegmentations)
   : m_model(model)
   , m_viewManager(vm)
   , m_taxonomy(m_model->taxonomy()->element(SAS))
@@ -56,11 +57,12 @@ namespace EspINA
       asSegmentation->setInputSegmentationDependent(true);
       asSegmentation->setNumber(seg->number());
 
-      m_samples         << seg->sample();
-      m_channels        << seg->channel();
-      m_filters         << filter;
-      m_segmentations   << model->findSegmentation(seg);
-      m_asSegmentations << asSegmentation;
+      m_samples            << seg->sample();
+      m_channels           << seg->channel();
+      m_filters            << filter;
+      m_segmentations      << model->findSegmentation(seg);
+      m_asSegmentations    << asSegmentation;
+      createdSegmentations << asSegmentation;
     }
   }
 

@@ -21,11 +21,6 @@ namespace EspINA
   {
     setupUi(this);
 
-    // TODO: re-enable this is possible (create a SAS from a segmentation in the
-    // moment of creation). See AppositionSurfacePlugin::segmentationAdded() for
-    // details.
-    defaultComputation->setEnabled(false);
-
     QSettings settings(CESVIMA, ESPINA);
     settings.beginGroup("Apposition Surface");
 

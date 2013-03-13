@@ -16,12 +16,11 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+// EspINA
 #include "Brush.h"
 #include <Undo/BrushUndoCommand.h>
 #include <Undo/StrokeSegmentationCommand.h>
 #include <Undo/VolumeSnapshotCommand.h>
-
 #include <Core/Model/Channel.h>
 #include <Core/Model/EspinaModel.h>
 #include <Core/Model/EspinaFactory.h>
@@ -33,12 +32,15 @@
 #include <Filters/FreeFormSource.h>
 #include <Undo/RemoveSegmentation.h>
 
+// VTK
 #include <vtkRenderWindow.h>
 
+// Qt
 #include <QUndoStack>
 #include <QMouseEvent>
 #include <QPainter>
 #include <QPixmap>
+
 
 using namespace EspINA;
 
@@ -261,6 +263,10 @@ void Brush::drawStroke(PickableItemPtr item,
                                                         m_currentSeg,
                                                         m_model));
       }
+      SegmentationSList createdSegmentations;
+      createdSegmentations << m_currentSeg;
+      m_model->emitSegmentationAdded(createdSegmentations);
+
       m_undoStack->endMacro();
 
       ViewManager::Selection selection;

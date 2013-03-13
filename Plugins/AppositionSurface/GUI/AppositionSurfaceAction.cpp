@@ -21,6 +21,7 @@
 #include <QDebug>
 #include <QApplication>
 
+
 namespace EspINA
 {
   //------------------------------------------------------------------------
@@ -56,15 +57,15 @@ namespace EspINA
 
     QApplication::setOverrideCursor(Qt::WaitCursor);
     {
-      m_undoStack->beginMacro(tr("Apposition Surface"));
+      SegmentationSList createdSegmentations;
+      m_undoStack->beginMacro("Compute Synaptic Apposition Surface");
+      TaxonomySPtr taxonomy = m_model->taxonomy();
+      if (taxonomy->element(SAS).isNull())
       {
-        TaxonomySPtr taxonomy = m_model->taxonomy();
-        if (taxonomy->element(SAS).isNull())
-        {
-          m_undoStack->push(new AddTaxonomyElement(taxonomy->root().data(), SAS, m_model, QColor(255,255,0)));
-        }
-        m_undoStack->push(new AppositionSurfaceCommand(validSegs, m_model, m_viewManager));
+        m_undoStack->push(new AddTaxonomyElement(taxonomy->root().data(), SAS, m_model, QColor(255, 255, 0)));
       }
+      m_undoStack->push(new AppositionSurfaceCommand(validSegs, m_model, m_viewManager, createdSegmentations));
+      m_model->emitSegmentationAdded(createdSegmentations);
       m_undoStack->endMacro();
     }
     QApplication::restoreOverrideCursor();

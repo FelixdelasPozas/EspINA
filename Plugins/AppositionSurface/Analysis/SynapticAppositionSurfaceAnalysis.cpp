@@ -115,6 +115,7 @@ void SynapticAppositionSurfaceAnalysis::displayInformation()
   progressBar->setMaximum(rowCount - 1);
 
   bool createSAS = false;
+  SegmentationSList createdSegmentations;
 
   for (int r = 0; r < rowCount; ++r)
   {
@@ -148,13 +149,13 @@ void SynapticAppositionSurfaceAnalysis::displayInformation()
     {
       if (!createSAS)
       {
-        m_undoStack->beginMacro("Create SAS");
+        m_undoStack->beginMacro("Create Synaptic Apposition Surface");
       }
 
       SegmentationList noSASSegmentations;
       noSASSegmentations << segmentation;
 
-      m_undoStack->push(new AppositionSurfaceCommand(noSASSegmentations, m_model, m_viewManager));
+      m_undoStack->push(new AppositionSurfaceCommand(noSASSegmentations, m_model, m_viewManager, createdSegmentations));
 
       relatedItems = segmentation->relatedItems(EspINA::OUT, AppositionSurfaceFilter::SAS);
       createSAS = true;
@@ -211,7 +212,10 @@ void SynapticAppositionSurfaceAnalysis::displayInformation()
   }
 
   if (createSAS)
+  {
+    m_model->emitSegmentationAdded(createdSegmentations);
     m_undoStack->endMacro();
+  }
 
   tableView->resizeColumnsToContents();
   tableView->setSortingEnabled(true);

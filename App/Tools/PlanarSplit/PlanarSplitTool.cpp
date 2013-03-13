@@ -15,10 +15,10 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "PlanarSplitTool.h"
-#include <Undo/SplitUndoCommand.h>
 
 // EspINA
+#include "PlanarSplitTool.h"
+#include <Undo/SplitUndoCommand.h>
 #include <GUI/vtkWidgets/PlanarSplitWidget.h>
 #include <GUI/ViewManager.h>
 #include <Core/Model/Segmentation.h>
@@ -146,12 +146,14 @@ void PlanarSplitTool::splitSegmentation()
   if (filter->outputs().size() == 2)
   {
     SegmentationSPtr splitSeg[2];
+    SegmentationSList createdSegmentations;
     EspinaFactoryPtr factory = m_model->factory();
     for (int i = 0; i < 2;  i++)
     {
       splitSeg[i] = factory->createSegmentation(filter, i);
       splitSeg[i]->setTaxonomy(seg->taxonomy());
       splitSeg[i]->modifiedByUser(userName());
+      createdSegmentations << splitSeg[i];
     }
 
     if (filter->outputs().size() == 2)
@@ -161,6 +163,7 @@ void PlanarSplitTool::splitSegmentation()
       {
         m_undoStack->push(new SplitUndoCommand(segPtr, filter, splitSeg, m_model));
       }
+      m_model->emitSegmentationAdded(createdSegmentations);
       m_undoStack->endMacro();
     }
     else

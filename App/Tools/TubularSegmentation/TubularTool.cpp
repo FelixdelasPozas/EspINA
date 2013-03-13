@@ -17,7 +17,6 @@
 #include <App/FilterInspectors/TubularSegmentation/NodesInformationDialog.h>
 #include <App/FilterInspectors/TubularSegmentation/TubularFilterInspector.h>
 #include <Core/EspinaTypes.h>
-
 #include "TubularTool.h"
 
 // Qt
@@ -137,7 +136,14 @@ namespace EspINA
         {
           FilterSPtr filteR;
           m_seg = m_model->factory()->createSegmentation(m_source, 0);
+          m_undoStack->beginMacro("Create Tubular Segmentation");
           m_undoStack->push(new AddSegmentation(m_channel, m_source, m_seg, m_model->findTaxonomyElement(m_viewManager->activeTaxonomy()), m_model));
+
+          SegmentationSList createdSegmentations;
+          createdSegmentations << m_seg;
+          m_model->emitSegmentationAdded(createdSegmentations);
+
+          m_undoStack->endMacro();
         }
         m_seg->notifyModification();
       }
@@ -166,6 +172,7 @@ namespace EspINA
     if (nodes == m_source->nodes())
       return;
 
+    SegmentationSList createdSegmentations;
     m_undoStack->beginMacro("Modify Tubular Segmentation Nodes");
     m_undoStack->push(new UpdateSegmentationNodes(m_source, nodes));
 
@@ -175,6 +182,7 @@ namespace EspINA
       {
         m_seg = m_model->factory()->createSegmentation(m_source, 0);
         m_undoStack->push(new AddSegmentation(m_channel, m_source, m_seg, m_model->findTaxonomyElement(m_viewManager->activeTaxonomy()), m_model));
+        createdSegmentations << m_seg;
       }
       else
       {
@@ -184,6 +192,9 @@ namespace EspINA
         }
       }
     }
+    if (!createdSegmentations.isEmpty())
+      m_model->emitSegmentationAdded(createdSegmentations);
+
     m_undoStack->endMacro();
   }
 

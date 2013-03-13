@@ -217,13 +217,47 @@ bool AppositionSurface::isSynapse(SegmentationPtr segmentation)
 
 
 //-----------------------------------------------------------------------------
-void AppositionSurface::segmentationAdded(SegmentationSPtr seg)
+void AppositionSurface::segmentationAdded(SegmentationSPtr segmentation)
 {
-  // TODO: right now there is no way to know if a segmentation has been loaded
-  // from file or created in a session as this method get called every time a
-  // seg is added to the model, no matter what.
+  QSettings settings(CESVIMA, ESPINA);
+  settings.beginGroup("Apposition Surface");
+  if (!settings.contains("Automatic Computation For Synapses") || !settings.value("Automatic Computation For Synapses").toBool())
+    return;
+
+  // filter->executed() marks the segmentation as created in session time, not loaded from a file.
+  if (isSynapse(segmentation.data()) && segmentation->filter()->executed())
+  {
+    // must check if the segmentation already has a SAS, as this call
+    // could be the result of a redo() in a UndoCommand
+    foreach(ModelItemSPtr item, segmentation->relatedItems(EspINA::OUT))
+      if (item->type() == SEGMENTATION)
+      {
+        SegmentationSPtr segmentation = segmentationPtr(item);
+        if (segmentation->taxonomy()->qualifiedName().startsWith("SAS/") || segmentation->taxonomy()->qualifiedName().compare("SAS") == 0)
+          return;
+      }
+
+    SegmentationList synapses;
+    synapses << segmentation.data();
+
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+    {
+      SegmentationSList createdSegmentations;
+      m_undoStack->beginMacro(tr("Apposition Surface"));
+      {
+        TaxonomySPtr taxonomy = m_model->taxonomy();
+        if (taxonomy->element(SAS).isNull())
+        {
+          m_undoStack->push(new AddTaxonomyElement(taxonomy->root().data(), SAS, m_model, QColor(255,255,0)));
+        }
+        m_undoStack->push(new AppositionSurfaceCommand(synapses, m_model, m_viewManager, createdSegmentations));
+      }
+      m_model->emitSegmentationAdded(createdSegmentations);
+      m_undoStack->endMacro();
+    }
+    QApplication::restoreOverrideCursor();
+  }
 }
 
 Q_EXPORT_PLUGIN2(AppositionSurfacePlugin, EspINA::AppositionSurface)
-
 

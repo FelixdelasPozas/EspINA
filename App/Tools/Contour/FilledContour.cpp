@@ -34,6 +34,7 @@
 #include <App/FilterInspectors/ContourSource/ContourInspector.h>
 #include <Undo/AddSegmentation.h>
 
+// Qt
 #include <QUndoStack>
 #include <QtGui>
 
@@ -145,6 +146,10 @@ void FilledContour::setInUse(bool enable)
                                               m_currentSeg,
                                               m_model->findTaxonomyElement(m_viewManager->activeTaxonomy()),
                                               m_model));
+        SegmentationSList createdSegmentations;
+        createdSegmentations << m_currentSeg;
+        m_model->emitSegmentationAdded(createdSegmentations);
+
         m_undoStack->endMacro();
       }
       else

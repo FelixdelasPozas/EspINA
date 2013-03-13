@@ -38,8 +38,9 @@ const Filter::FilterType CompositionCommand::FILTER_TYPE = "CompositionToolbar::
 
 //----------------------------------------------------------------------------
 CompositionCommand::CompositionCommand(const SegmentationList &segmentations,
-                                       TaxonomyElementSPtr      taxonomy,
-                                       EspinaModel          *model)
+                                       TaxonomyElementSPtr     taxonomy,
+                                       EspinaModel            *model,
+                                       SegmentationSList      &createdSegmentations)
 : m_model(model)
 , m_tax(taxonomy)
 {
@@ -68,6 +69,8 @@ CompositionCommand::CompositionCommand(const SegmentationList &segmentations,
   m_filter = FilterSPtr(new ImageLogicFilter(inputs, args, FILTER_TYPE));
   m_filter->update();
   m_seg = m_model->factory()->createSegmentation(m_filter, 0);
+
+  createdSegmentations << m_seg;
 
   QApplication::restoreOverrideCursor();
 }

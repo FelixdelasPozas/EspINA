@@ -218,6 +218,9 @@ namespace EspINA
     /// QMap<file name, file byte array> of filter's data to save to seg file
     virtual bool dumpSnapshot(Snapshot &snapshot);
 
+    /// returns if the filter has been executed at least once in the session
+    virtual bool executed() { return m_executed; }
+
   protected:
     explicit Filter(NamedInputs namedInputs,
                     Arguments   args,
@@ -243,6 +246,7 @@ namespace EspINA
     int  m_cacheId;
     QDir m_cacheDir;
     bool m_traceable;
+    bool m_executed;
 
   private:
     FilterInspectorPtr m_filterInspector;

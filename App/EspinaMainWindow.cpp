@@ -777,6 +777,9 @@ void EspinaMainWindow::openAnalysis(const QFileInfo file)
 
   m_viewManager->updateSegmentationRepresentations();
   m_viewManager->updateViews();
+
+  m_model->emitChannelAdded(m_model->channels());
+  m_model->emitSegmentationAdded(m_model->segmentations());
 }
 
 //------------------------------------------------------------------------
@@ -835,6 +838,9 @@ void EspinaMainWindow::addFileToAnalysis(const QFileInfo file)
   QElapsedTimer timer;
   timer.start();
 
+  ChannelSList existingChannels = m_model->channels();
+  SegmentationSList existingSegmentations = m_model->segmentations();
+
   if (EspinaIO::SUCCESS == EspinaIO::loadFile(file,
                                               m_model))
   {
@@ -873,6 +879,19 @@ void EspinaMainWindow::addFileToAnalysis(const QFileInfo file)
         channel->addExtension(new AdaptiveEdges(true));
       }
     }
+
+    ChannelSList newChannels;
+    SegmentationSList newSegmentations;
+    foreach(ChannelSPtr channel, m_model->channels())
+      if (!existingChannels.contains(channel))
+        newChannels << channel;
+
+    foreach(SegmentationSPtr segmentation, m_model->segmentations())
+      if (!existingSegmentations.contains(segmentation))
+        newSegmentations << segmentation;
+
+    m_model->emitChannelAdded(newChannels);
+    m_model->emitSegmentationAdded(newSegmentations);
   }
 }
 

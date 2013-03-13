@@ -416,13 +416,16 @@ void EditorToolBar::combineSegmentations()
   SegmentationList input = m_viewManager->selectedSegmentations();
   if (input.size() > 1)
   {
+    SegmentationSList createdSegmentations;
     m_viewManager->clearSelection(true);
     m_undoStack->beginMacro("Combine Segmentations");
     m_undoStack->push(
       new ImageLogicCommand(input,
                             ImageLogicFilter::ADDITION,
                             m_viewManager->activeTaxonomy(),
-                            m_model));
+                            m_model,
+                            createdSegmentations));
+    m_model->emitSegmentationAdded(createdSegmentations);
     m_undoStack->endMacro();
   }
 }
@@ -435,12 +438,15 @@ void EditorToolBar::substractSegmentations()
   SegmentationList input = m_viewManager->selectedSegmentations();
   if (input.size() > 1)
   {
+    SegmentationSList createdSegmentations;
     m_viewManager->clearSelection(true);
     m_undoStack->beginMacro("Substract Segmentations");
     m_undoStack->push(new ImageLogicCommand(input,
                                             ImageLogicFilter::SUBSTRACTION,
                                             m_viewManager->activeTaxonomy(),
-                                            m_model));
+                                            m_model,
+                                            createdSegmentations));
+    m_model->emitSegmentationAdded(createdSegmentations);
     m_undoStack->endMacro();
   }
 }

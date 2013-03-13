@@ -41,6 +41,7 @@ ImageLogicCommand::ImageLogicCommand(SegmentationList            input,
                                      ImageLogicFilter::Operation operation,
                                      TaxonomyElementPtr          taxonomy,
                                      EspinaModel                *model,
+                                     SegmentationSList          &createdSegmentations,
                                      QUndoCommand *              parent)
 : QUndoCommand(parent)
 , m_model(model)
@@ -72,6 +73,7 @@ ImageLogicCommand::ImageLogicCommand(SegmentationList            input,
   m_filter->update();
   Q_ASSERT(m_filter->outputs().size() == 1);
   m_segmentation = m_model->factory()->createSegmentation(m_filter, 0);
+  createdSegmentations << m_segmentation;
 
   QApplication::restoreOverrideCursor();
 }

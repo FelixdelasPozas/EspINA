@@ -16,14 +16,14 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+// EspINA
 #include "CompositionToolBar.h"
 #include <Undo/CompositionCommand.h>
-
 #include <Core/Model/EspinaModel.h>
 #include <Core/Model/EspinaFactory.h>
 #include <GUI/ViewManager.h>
 
+// Qt
 #include <QAction>
 #include <QUndoStack>
 
@@ -100,9 +100,21 @@ void CompositionToolBar::createSegmentationFromComponents()
   if (input.size() > 1)
   {
     m_viewManager->clearSelection(true);
+    QString macroText = "Compose";
+    foreach(SegmentationPtr seg, input)
+    {
+      macroText += seg->data().toString();
+      if (seg != input.last())
+        macroText += QString("+");
+    }
+    m_undoStack->beginMacro(macroText);
+    SegmentationSList createdSegmentations;
     m_undoStack->push(new CompositionCommand(input,
                                              m_model->findTaxonomyElement(m_viewManager->activeTaxonomy()),
-                                             m_model));
+                                             m_model,
+                                             createdSegmentations));
+    m_model->emitSegmentationAdded(createdSegmentations);
+    m_undoStack->endMacro();
   }
 }
 

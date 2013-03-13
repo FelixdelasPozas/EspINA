@@ -218,6 +218,7 @@ void RelationshipGraph::updateVertexInformation()
       }
       default:
         Q_ASSERT(false);
+        break;
     }
   }
   // We need to do it in two loops to ensure cache flags are set properly
@@ -579,6 +580,7 @@ void RelationshipGraph::read(std::istream& stream, RelationshipGraph::PrintForma
     }
     default:
       qWarning("Format Unkown");
+      break;
   };
 
 }
@@ -607,5 +609,6 @@ void RelationshipGraph::write(std::ostream &stream, RelationshipGraph::PrintForm
     }
     default:
       qWarning("Format Unkown");
+      break;
   };
 }

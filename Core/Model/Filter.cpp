@@ -128,6 +128,7 @@ Filter::Filter(Filter::NamedInputs  namedInputs,
 , m_type(type)
 , m_cacheId(-1)
 , m_traceable(false)
+, m_executed(false)
 {
   if (m_args.contains(ID)) {
     m_cacheId = m_args[ID].toInt();
@@ -610,6 +611,7 @@ bool Filter::needUpdate() const
     }
 
     run();
+    m_executed = true;
   }
 }
 

@@ -1058,7 +1058,6 @@ void SliceView::removeSegmentation(SegmentationPtr seg)
 //-----------------------------------------------------------------------------
 bool SliceView::updateSegmentation(SegmentationPtr seg)
 {
-  qDebug() << seg->data().toString();
   if (!m_segmentationReps.contains(seg))
     return false;
 

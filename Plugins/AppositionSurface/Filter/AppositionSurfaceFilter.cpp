@@ -103,7 +103,6 @@ namespace EspINA
 
       int i = 0;
       FilterSPtr segFilter = m_namedInputs[AppositionSurfaceFilter::INPUTLINK];
-      qDebug() << segFilter->data().toString();
 
       ModelItemSList items = segFilter->relatedItems(EspINA::OUT, Filter::CREATELINK);
       while(!m_originSegmentation && i < items.size())

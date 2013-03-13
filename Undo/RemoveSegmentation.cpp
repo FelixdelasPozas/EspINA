@@ -164,6 +164,7 @@ void RemoveSegmentation::undo()
   SegmentationList updatedSegs;
   foreach (SegmentationSPtr seg, m_segmentations)
     updatedSegs << seg.data();
+
   m_viewManager->updateSegmentationRepresentations(updatedSegs);
 }
 

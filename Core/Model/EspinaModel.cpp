@@ -427,7 +427,6 @@ void EspinaModel::addChannel(ChannelSPtr channel)
   }
   endInsertRows();
 
-  emit channelAdded(channel);
   markAsChanged();
 }
 
@@ -444,9 +443,14 @@ void EspinaModel::addChannel(ChannelSList channels)
   }
   endInsertRows();
 
+  markAsChanged();
+}
+
+//------------------------------------------------------------------------
+void EspinaModel::emitChannelAdded(ChannelSList channels)
+{
   foreach(ChannelSPtr channel, channels)
     emit channelAdded(channel);
-  markAsChanged();
 }
 
 //------------------------------------------------------------------------
@@ -478,7 +482,6 @@ void EspinaModel::addSegmentation(SegmentationSPtr segmentation)
   }
   endInsertRows();
 
-  emit segmentationAdded(segmentation);
   markAsChanged();
 }
 
@@ -495,11 +498,15 @@ void EspinaModel::addSegmentation(SegmentationSList segmentations)
   }
   endInsertRows();
 
-  foreach(SegmentationSPtr seg, segmentations)
-    emit segmentationAdded(seg);
   markAsChanged();
 }
 
+//------------------------------------------------------------------------
+void EspinaModel::emitSegmentationAdded(SegmentationSList segmentations)
+{
+  foreach(SegmentationSPtr segmentation, segmentations)
+    emit segmentationAdded(segmentation);
+}
 
 //------------------------------------------------------------------------
 void EspinaModel::removeSegmentation(SegmentationSPtr segmentation)
@@ -625,7 +632,6 @@ void EspinaModel::addRelation(ModelItemSPtr  ancestor,
   QModelIndex ancestorIndex  = index(ancestor);
   QModelIndex successorIndex = index(successor);
 
-//   qDebug() << ancestorIndex.data().toString() << "==" << relation << "==>" << successorIndex.data().toString();
   emit dataChanged(ancestorIndex,  ancestorIndex);
   emit dataChanged(successorIndex, successorIndex);
   markAsChanged();
@@ -643,7 +649,6 @@ void EspinaModel::removeRelation(ModelItemSPtr  ancestor,
 
   emit dataChanged(ancestorIndex, ancestorIndex);
   emit dataChanged(succesorIndex, succesorIndex);
-
   markAsChanged();
 }
 
@@ -838,9 +843,7 @@ bool EspinaModel::loadSerialization(istream& stream,
   }
 
   foreach(FilterSPtr filter, filters())
-  {
     filter->upkeeping();
-  }
 
 //   foreach(NonInitilizedItem item, nonInitializedItems)
 //   {

@@ -16,13 +16,13 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// EspINA
 #include "SeedGrowSegmentationTool.h"
 #include <Toolbars/Segmentation/ThresholdAction.h>
 #include <Toolbars/Segmentation/DefaultVOIAction.h>
 #include <Toolbars/Segmentation/SeedGrowSegmentationSettings.h>
 #include <FilterInspectors/SeedGrowSegmentation/SGSFilterInspector.h>
 #include <Undo/SeedGrowSegmentationCommand.h>
-
 #include <Core/Model/Channel.h>
 #include <Core/Model/EspinaModel.h>
 #include <Core/Model/EspinaFactory.h>
@@ -36,17 +36,20 @@
 #include <GUI/Pickers/PixelPicker.h>
 #include <Filters/SeedGrowSegmentationFilter.h>
 
+// Qt
 #include <QApplication>
 #include <QWheelEvent>
 #include <QMessageBox>
 #include <QSettings>
 
+// VTK
 #include <vtkImageActor.h>
 #include <vtkLookupTable.h>
 #include <vtkImageMapper3D.h>
 #include <vtkImageResliceToColors.h>
 #include <vtkMatrix4x4.h>
 #include <vtkMath.h>
+
 
 using namespace EspINA;
 
@@ -306,6 +309,7 @@ void SeedGrowSegmentationTool::startSegmentation(IPicker::PickList pickedItems)
     voiExtent[2] <= seed[1] && seed[1] <= voiExtent[3] &&
     voiExtent[4] <= seed[2] && seed[2] <= voiExtent[5])
   {
+    SegmentationSList createdSegmentations;
     QApplication::setOverrideCursor(Qt::WaitCursor);
     m_undoStack->beginMacro(tr("Seed Grow Segmentation"));
     m_undoStack->push(new SeedGrowSegmentationCommand(channel,
@@ -316,7 +320,9 @@ void SeedGrowSegmentationTool::startSegmentation(IPicker::PickList pickedItems)
                                                       m_settings->closing(),
                                                       m_viewManager->activeTaxonomy(),
                                                       m_model,
-                                                      m_viewManager));
+                                                      m_viewManager,
+                                                      createdSegmentations));
+    m_model->emitSegmentationAdded(createdSegmentations);
     m_undoStack->endMacro();
     QApplication::restoreOverrideCursor();
   }

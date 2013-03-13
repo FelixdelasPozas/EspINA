@@ -28,7 +28,10 @@ namespace EspINA
       static const Filter::FilterType FILTER_TYPE;
 
     public:
-      explicit AppositionSurfaceCommand(SegmentationList inputs, EspinaModel *model, ViewManager *vm);
+      explicit AppositionSurfaceCommand(SegmentationList   inputs,
+                                        EspinaModel       *model,
+                                        ViewManager       *vm,
+                                        SegmentationSList &createdSegmentations);
       virtual ~AppositionSurfaceCommand() {};
 
       virtual void redo();

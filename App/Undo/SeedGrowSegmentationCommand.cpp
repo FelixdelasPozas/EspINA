@@ -43,7 +43,9 @@ SeedGrowSegmentationCommand::SeedGrowSegmentationCommand(ChannelPtr             
                                                          TaxonomyElementPtr       taxonomy,
                                                          EspinaModel             *model,
                                                          ViewManager             *viewManager,
+                                                         SegmentationSList       &createdSegmentations,
                                                          QUndoCommand *           parent)
+
 : QUndoCommand(parent)
 , m_model      (model)
 , m_viewManager(viewManager)
@@ -98,6 +100,7 @@ SeedGrowSegmentationCommand::SeedGrowSegmentationCommand(ChannelPtr             
   }
 
   m_segmentation->modifiedByUser(userName());
+  createdSegmentations << m_segmentation;
 }
 
 //-----------------------------------------------------------------------------

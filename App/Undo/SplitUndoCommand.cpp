@@ -70,8 +70,10 @@ void SplitUndoCommand::redo()
   m_model->removeSegmentation(m_seg);
 
   // Add new segmentations
+  SegmentationSList segmentations;
   for (int i = 0; i < 2;  i++)
   {
+    segmentations << m_subSeg[i];
     m_model->addSegmentation(m_subSeg[i]);
 
     m_model->addRelation(m_filter,  m_subSeg[i], Filter::CREATELINK);

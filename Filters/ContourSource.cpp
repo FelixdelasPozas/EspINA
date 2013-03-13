@@ -78,6 +78,8 @@ void ContourSource::draw(OutputId oId,
     m_contourMap[plane].insert(slice, contour);
     Filter::draw(oId, contour, slice, plane, value, emitSignal);
   }
+
+  m_executed = true;
 }
 
 //-----------------------------------------------------------------------------

@@ -206,10 +206,11 @@ namespace EspINA
     FilterSPtr findFilter(ModelItemPtr item  );
     FilterSPtr findFilter(FilterPtr    filter);
 
-  signals:
-    void itemAdded  (ModelItemSPtr items);
-    void itemRemoved(ModelItemSPtr items);
+    // signal emission methods, used by undo commands to signal finished operations.
+    void emitSegmentationAdded(SegmentationSList);
+    void emitChannelAdded(ChannelSList);
 
+  signals:
     void taxonomyAdded  (TaxonomySPtr taxonomy);
     void taxonomyRemoved(TaxonomySPtr taxonomy);
 
@@ -224,7 +225,6 @@ namespace EspINA
 
     void filterAdded  (FilterSPtr filter);
     void filterRemoved(FilterSPtr filter);
-
 
   private slots:
     void itemModified(ModelItemPtr item);

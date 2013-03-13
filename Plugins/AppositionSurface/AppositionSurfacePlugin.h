@@ -68,7 +68,8 @@ namespace EspINA
     void createSynapticAppositionSurfaceAnalysis();
 
     void selectionChanged(ViewManager::Selection selection, bool unused);
-    void segmentationAdded(SegmentationSPtr);
+
+    void segmentationAdded(SegmentationSPtr segmentation);
 
     virtual void reset();
 
