@@ -96,16 +96,18 @@ void RectangularVOI::SettingsPanel::acceptChanges()
 //------------------------------------------------------------------------
 void RectangularVOI::SettingsPanel::rejectChanges()
 {
-
 }
 
 //------------------------------------------------------------------------
 bool RectangularVOI::SettingsPanel::modified() const
 {
-  return m_xSize->value() != m_settings->xSize()
-      || m_ySize->value() != m_settings->ySize()
-      || m_zSize->value()*m_zSpacing != m_settings->zSize()
-      || taxonomyVOIModified();
+  bool returnValue = false;
+  returnValue |= (m_xSize->value() != m_settings->xSize());
+  returnValue |= (m_ySize->value() != m_settings->ySize());
+  returnValue |= (m_zSize->value()*m_zSpacing != m_settings->zSize());
+  returnValue |= taxonomyVOIModified();
+
+  return returnValue;
 }
 
 //------------------------------------------------------------------------
@@ -121,13 +123,9 @@ bool RectangularVOI::SettingsPanel::taxonomyVOIModified() const
 
   if (m_activeTaxonomy)
   {
-    QVariant xOldSize = m_activeTaxonomy->property(TaxonomyElement::X_DIM);
-    QVariant yOldSize = m_activeTaxonomy->property(TaxonomyElement::Y_DIM);
-    QVariant zOldSize = m_activeTaxonomy->property(TaxonomyElement::Z_DIM);
-
-    modified = modified || xOldSize.toInt() != m_xTaxSize->value();
-    modified = modified || yOldSize.toInt() != m_yTaxSize->value();
-    modified = modified || zOldSize.toInt() != m_zTaxSize->value()*m_zSpacing;
+    modified |= (m_activeTaxonomy->property(TaxonomyElement::X_DIM).toInt() != m_xTaxSize->value());
+    modified |= (m_activeTaxonomy->property(TaxonomyElement::Y_DIM).toInt() != m_yTaxSize->value());
+    modified |= (m_activeTaxonomy->property(TaxonomyElement::Z_DIM).toInt() != m_zTaxSize->value()*m_zSpacing);
   }
 
   return modified;
@@ -161,7 +159,8 @@ void RectangularVOI::SettingsPanel::updateTaxonomyVOI(const QModelIndex& index)
     if (taxonomyVOIModified())
     {
       QMessageBox msg;
-      msg.setText(tr("Taxonomy properties have changed. Do you want to save them"));
+      msg.setWindowTitle(tr("EspINA"));
+      msg.setText(tr("The properties of the taxonomy \"%1\" have been modified.\nDo you want to save the changes?").arg(m_activeTaxonomy->data().toString()));
       msg.setStandardButtons(QMessageBox::Yes|QMessageBox::No);
       if (msg.exec() == QMessageBox::Yes)
         writeTaxonomyProperties();
@@ -173,6 +172,14 @@ void RectangularVOI::SettingsPanel::updateTaxonomyVOI(const QModelIndex& index)
   QVariant xSize = elem->property(TaxonomyElement::X_DIM);
   QVariant ySize = elem->property(TaxonomyElement::Y_DIM);
   QVariant zSize = elem->property(TaxonomyElement::Z_DIM);
+
+  // 2013-03-19 Fix missing "Synapse" taxonomy values bug
+  if (xSize.toInt() == 0 && ySize.toInt() == 0 && zSize.toInt() == 0)
+  {
+    m_activeTaxonomy->addProperty(TaxonomyElement::X_DIM, 500);
+    m_activeTaxonomy->addProperty(TaxonomyElement::Y_DIM, 500);
+    m_activeTaxonomy->addProperty(TaxonomyElement::Z_DIM, 500);
+  }
 
   if (!xSize.isValid() || !ySize.isValid() || !zSize.isValid())
   {

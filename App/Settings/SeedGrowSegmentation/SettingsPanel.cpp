@@ -66,8 +66,14 @@ SeedGrowSegmentationsSettingsPanel::SeedGrowSegmentationsSettingsPanel(SeedGrowS
   }
 
   m_taxonomicalVOI->setChecked(settings->taxonomicalVOI());
+  m_xSize->setEnabled(!settings->taxonomicalVOI());
+  m_ySize->setEnabled(!settings->taxonomicalVOI());
+  m_zSize->setEnabled(!settings->taxonomicalVOI());
 
-  bool closingActive = settings->closing()>0;
+  connect(m_taxonomicalVOI, SIGNAL(stateChanged(int)),
+          this, SLOT(changeTaxonomicalCheck(int)));
+
+  bool closingActive = settings->closing() > 0;
   m_applyClosing->setChecked(closingActive);
   m_closing->setEnabled(closingActive);
   m_closing->setValue(settings->closing());
@@ -81,9 +87,12 @@ void SeedGrowSegmentationsSettingsPanel::acceptChanges()
 {
   m_settings->setBestPixelValue(m_pixelValue->value());
 
-  m_settings->setXSize(m_xSize->value());
-  m_settings->setYSize(m_ySize->value());
-  m_settings->setZSize(m_zSize->value());
+  if (!m_taxonomicalVOI->isChecked())
+  {
+    m_settings->setXSize(m_xSize->value());
+    m_settings->setYSize(m_ySize->value());
+    m_settings->setZSize(m_zSize->value());
+  }
   m_settings->setTaxonomicalVOI(m_taxonomicalVOI->isChecked());
 
   if (m_applyClosing->isChecked())
@@ -100,14 +109,21 @@ void SeedGrowSegmentationsSettingsPanel::rejectChanges()
 //------------------------------------------------------------------------
 bool SeedGrowSegmentationsSettingsPanel::modified() const
 {
-  return m_xSize->value() != m_settings->xSize()
-      || m_ySize->value() != m_settings->ySize()
-      || m_zSize->value() != m_settings->zSize()
-      || m_taxonomicalVOI->isChecked() != m_settings->taxonomicalVOI()
-      || m_pixelValue->value() != m_settings->bestPixelValue()
-      || (m_applyClosing->isChecked()?m_closing->value():0) != m_settings->closing();
-}
+  QSettings settings(CESVIMA, ESPINA);
+  double zSpacing = 1.0;
+  if (m_viewManager->viewResolution() != NULL)
+    zSpacing = m_viewManager->viewResolution()[2];
 
+  bool returnValue = false;
+  returnValue |= (m_xSize->value() != m_settings->xSize());
+  returnValue |= (m_ySize->value() != m_settings->ySize());
+  returnValue |= (settings.value(FIT_TO_SLICES).toBool() ? vtkMath::Round(m_zSize->value()*zSpacing) : m_zSize->value()) != m_settings->zSize();
+  returnValue |= (m_taxonomicalVOI->isChecked() != m_settings->taxonomicalVOI());
+  returnValue |= (m_pixelValue->value() != m_settings->bestPixelValue());
+  returnValue |= ((m_applyClosing->isChecked() ? m_closing->value() : 0) != m_settings->closing());
+
+  return returnValue;
+}
 
 //------------------------------------------------------------------------
 ISettingsPanelPtr SeedGrowSegmentationsSettingsPanel::clone()
@@ -123,4 +139,13 @@ void SeedGrowSegmentationsSettingsPanel::displayColor(int value)
   m_colorSample->setPixmap(pic);
   m_colorSample->setToolTip(tr("Pixel Value: %1").arg(value));
   m_pixelValue->setToolTip(tr("Pixel Value: %1").arg(value));
+}
+
+//------------------------------------------------------------------------
+void SeedGrowSegmentationsSettingsPanel::changeTaxonomicalCheck(int state)
+{
+  bool value = (Qt::Checked != state);
+  m_xSize->setEnabled(value);
+  m_ySize->setEnabled(value);
+  m_zSize->setEnabled(value);
 }

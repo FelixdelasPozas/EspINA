@@ -54,6 +54,9 @@ namespace EspINA
   public slots:
     void displayColor(int value);
 
+  protected slots:
+    void changeTaxonomicalCheck(int);
+
   private:
     SeedGrowSegmentationSettings *m_settings;
     ViewManager                  *m_viewManager;

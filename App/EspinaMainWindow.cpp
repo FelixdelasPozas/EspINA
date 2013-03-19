@@ -366,7 +366,7 @@ EspinaMainWindow::EspinaMainWindow(EspinaModel      *model,
 
   cancel = new QShortcut(Qt::Key_Escape, this, SLOT(cancelOperation()));
 
-  setWindowTitle(QString("EspINA Interactive Neuron Analizer"));
+  setWindowTitle(QString("EspINA Interactive Neuron Analyzer"));
 
   checkAutosave();
 }
@@ -637,7 +637,7 @@ void EspinaMainWindow::closeCurrentAnalysis()
   m_closeAnalysis->setEnabled(false);
   m_sessionFile = QFileInfo();
 
-  setWindowTitle(QString("EspINA Interactive Neuron Analizer"));
+  setWindowTitle(QString("EspINA Interactive Neuron Analyzer"));
 
   emit analysisClosed();
 }
@@ -993,6 +993,7 @@ void EspinaMainWindow::showPreferencesDialog()
 
   dialog.registerPanel(m_settingsPanel.data());
   dialog.registerPanel(m_view->settingsPanel());
+  dialog.resize(800, 600);
 
   foreach(ISettingsPanelPtr panel, m_model->factory()->settingsPanels())
   {

@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <Taxonomy>
   <node name="SAS" color="#FFFF00" Dim_X="500" Dim_Y="500" Dim_Z="500"/>
-  <node name="Synapse" color="#FF7F7F">
+  <node name="Synapse" color="#FF7F7F" Dim_X="500" Dim_Y="500" Dim_Z="500">
     <node name="Asymmetric" color="#00FF00" Dim_X="500" Dim_Y="500" Dim_Z="500"/>
     <node name="Symmetric" color="#FF0000"  Dim_X="500" Dim_Y="500" Dim_Z="500"/>
   </node>

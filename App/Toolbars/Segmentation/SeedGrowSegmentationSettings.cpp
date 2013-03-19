@@ -55,9 +55,9 @@ SeedGrowSegmentationSettings::SeedGrowSegmentationSettings(BestPixelPicker *sele
   // TODO: 2013-01-10 set to default final tags after one release
   if (settings.allKeys().contains(DEFAULT_VOI_X))
   {
-    m_xSize = 2 * settings.value(DEFAULT_VOI_X, 250).toInt();
-    m_ySize = 2 * settings.value(DEFAULT_VOI_Y, 250).toInt();
-    m_zSize = 2 * settings.value(DEFAULT_VOI_Z, 250).toInt();
+    m_xSize = settings.value(DEFAULT_VOI_X, 500).toInt();
+    m_ySize = settings.value(DEFAULT_VOI_Y, 500).toInt();
+    m_zSize = settings.value(DEFAULT_VOI_Z, 500).toInt();
     m_taxonomicalVOI = settings.value(TAXONOMICAL_VOI, true).toBool();
 
     settings.remove(DEFAULT_VOI_X);
@@ -87,6 +87,7 @@ void SeedGrowSegmentationSettings::setXSize(int value)
   QSettings settings(CESVIMA, ESPINA);
 
   settings.setValue(DEFAULT_VOI_X_SIZE, value);
+  settings.sync();
   m_xSize = value;
 }
 
@@ -96,6 +97,7 @@ void SeedGrowSegmentationSettings::setYSize(int value)
   QSettings settings(CESVIMA, ESPINA);
 
   settings.setValue(DEFAULT_VOI_Y_SIZE, value);
+  settings.sync();
   m_ySize = value;
 }
 
@@ -105,6 +107,7 @@ void SeedGrowSegmentationSettings::setZSize(int value)
   QSettings settings(CESVIMA, ESPINA);
 
   settings.setValue(DEFAULT_VOI_Z_SIZE, value);
+  settings.sync();
   m_zSize = value;
 }
 
@@ -114,6 +117,7 @@ void SeedGrowSegmentationSettings::setTaxonomicalVOI(bool value)
   QSettings settings(CESVIMA, ESPINA);
 
   settings.setValue(TAXONOMICAL_VOI_USAGE, value);
+  settings.sync();
   m_taxonomicalVOI = value;
 }
 
@@ -123,6 +127,7 @@ void SeedGrowSegmentationSettings::setBestPixelValue(int value)
   QSettings settings(CESVIMA, ESPINA);
 
   settings.setValue(BEST_PIXEL, value);
+  settings.sync();
   m_selector->setBestPixelValue(value);
 }
 
@@ -142,5 +147,6 @@ void SeedGrowSegmentationSettings::setClosing(int value)
   QSettings settings(CESVIMA, ESPINA);
 
   settings.setValue(CLOSING, value);
+  settings.sync();
   m_closing = value;
 }

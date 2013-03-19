@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>406</width>
-    <height>353</height>
+    <width>457</width>
+    <height>420</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -111,13 +111,13 @@
    <item>
     <widget class="QGroupBox" name="groupBox_2">
      <property name="title">
-      <string>Default VOI Side Size</string>
+      <string>Default VOI Half Side Size</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_4">
       <item>
        <widget class="QLabel" name="label">
         <property name="text">
-         <string>Side Size:</string>
+         <string>Half Side Size:</string>
         </property>
        </widget>
       </item>
@@ -207,10 +207,13 @@
          <number>1</number>
         </property>
         <property name="text">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use taxonomival sizes to define default VOI dimensions.&lt;/p&gt;&lt;p&gt;Note: You can modify taxonomical sizes under Cuboid VOI tab.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use taxonomival sizes to define default VOI dimensions.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Note:&lt;/span&gt; Taxonomical sizes can be modified in the Cuboid VOI settings panel.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="textFormat">
          <enum>Qt::RichText</enum>
+        </property>
+        <property name="wordWrap">
+         <bool>true</bool>
         </property>
        </widget>
       </item>

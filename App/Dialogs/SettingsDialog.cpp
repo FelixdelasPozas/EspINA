@@ -85,6 +85,8 @@ SettingsDialog::SettingsDialog(QWidget *parent, Qt::WindowFlags flags)
 {
   setupUi(this);
 
+  setWindowTitle(tr("EspINA Configuration Dialog"));
+
   connect(components,SIGNAL(currentRowChanged(int)),
           this, SLOT(changePreferencePanel(int)));
 }
@@ -134,7 +136,8 @@ void SettingsDialog::changePreferencePanel(int panel)
   if (m_activePanel && m_activePanel->modified())
   {
     QMessageBox msg;
-    msg.setText(tr("Settings have changed. Do you want to save them"));
+    msg.setWindowTitle(tr("EspINA"));
+    msg.setText(tr("Settings panel \"%1\" have been modified.\nDo you want to save the changes?").arg(m_activePanel->shortDescription()));
     msg.setStandardButtons(QMessageBox::Yes|QMessageBox::No);
     if (msg.exec() == QMessageBox::Yes)
       m_activePanel->acceptChanges();
