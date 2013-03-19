@@ -207,7 +207,6 @@ void SegmentationExplorer::showSelectedItemsInformation()
   return;
 }
 
-
 //------------------------------------------------------------------------
 void SegmentationExplorer::focusOnSegmentation(const QModelIndex& index)
 {
@@ -221,17 +220,14 @@ void SegmentationExplorer::focusOnSegmentation(const QModelIndex& index)
   seg->volume()->bounds(bounds);
   Nm center[3] = { (bounds[0] + bounds[1])/2, (bounds[2] + bounds[3])/2, (bounds[4] + bounds[5])/2 };
   m_viewManager->focusViewsOn(center);
-
-  /* TODO Use "center on" selection */
 }
 
 //------------------------------------------------------------------------
 void SegmentationExplorer::updateSelection(ViewManager::Selection selection)
 {
-  if (!isVisible())
+  if (!isVisible() || signalsBlocked())
     return;
 
-  //qDebug() << "Update Seg Explorer Selection from Selection Manager";
   m_gui->view->blockSignals(true);
   m_gui->view->selectionModel()->blockSignals(true);
   m_gui->view->selectionModel()->reset();
@@ -257,25 +253,28 @@ void SegmentationExplorer::updateSelection(ViewManager::Selection selection)
 //------------------------------------------------------------------------
 void SegmentationExplorer::updateSelection(QItemSelection selected, QItemSelection deselected)
 {
-  //qDebug() << "Update Selection from Seg Explorer";
   ViewManager::Selection selection;
-
-  foreach(QModelIndex index, m_gui->view->selectionModel()->selection().indexes())
+  QModelIndexList selectedIndexes = m_gui->view->selectionModel()->selection().indexes();
+  foreach(QModelIndex index, selectedIndexes)
   {
     ModelItemPtr item = m_layout->item(index);
     if (EspINA::SEGMENTATION == item->type())
-    {
       selection << pickableItemPtr(item);
-    }
   }
+  m_gui->showInformationButton->setEnabled(!selection.empty());
+  m_gui->deleteButton->setEnabled(!selectedIndexes.empty());
 
+  // signal blocking is necessary because we don't want to change our current selection indexes,
+  // and that will happen if a updateSelection(ViewManager::Selection) is called.
+  this->blockSignals(true);
   m_viewManager->setSelection(selection);
+  this->blockSignals(false);
 }
 
 //------------------------------------------------------------------------
 void SegmentationExplorer::updateSegmentationRepresentations(SegmentationList list)
 {
-  m_viewManager->updateSegmentationRepresentations();
+  m_viewManager->updateSegmentationRepresentations(list);
   m_viewManager->updateViews();
 }
 
@@ -289,5 +288,4 @@ void SegmentationExplorer::updateChannelRepresentations(ChannelList list)
 //------------------------------------------------------------------------
 void SegmentationExplorer::updateSelection()
 {
-  std::cout << "update selection\n" << std::flush;
 }

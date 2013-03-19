@@ -16,11 +16,13 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+// EspINA
 #include "LayoutComposition.h"
-
 #include <Core/Model/Segmentation.h>
 #include <Core/Relations.h>
+#include <GUI/QtWidget/SegmentationContextualMenu.h>
+
+// Qt
 #include <QMessageBox>
 
 using namespace EspINA;
@@ -70,13 +72,34 @@ QModelIndex CompositionLayout::index(ModelItemPtr item) const
 //------------------------------------------------------------------------
 void CompositionLayout::contextMenu(const QPoint &pos)
 {
+  SegmentationSet segmentations;
 
+  if (!selectedItems(segmentations))
+    return;
+
+  SegmentationContextualMenu contextMenu(segmentations.toList(),
+                                         m_model,
+                                         m_undoStack,
+                                         m_viewManager);
+
+  contextMenu.addSeparator();
+
+  QAction *selectAll = contextMenu.addAction(tr("Select all segmentations that compose this one"));
+  connect(selectAll, SIGNAL(triggered(bool)), this, SLOT(selectComposeElements()));
+
+  QModelIndex index = m_view->selectionModel()->currentIndex();
+  if (segmentations.size() != 1 || indices(index,true).isEmpty())
+    selectAll->setEnabled(false);
+
+  contextMenu.exec(pos);
 }
 
 //------------------------------------------------------------------------
 void CompositionLayout::deleteSelectedItems()
 {
-
+  QModelIndexList selectedIndexes = m_view->selectionModel()->selectedIndexes();
+  SegmentationList segsToDelete = deletedSegmentations(selectedIndexes);
+  deleteSegmentations(segsToDelete);
 }
 
 //------------------------------------------------------------------------
@@ -88,42 +111,112 @@ QItemDelegate *CompositionLayout::itemDelegate() const
 //------------------------------------------------------------------------
 void CompositionLayout::showSelectedItemsInformation()
 {
+  SampleList      samples;
+  SegmentationSet segmentations;
 
+  if (!selectedItems(segmentations))
+    return;
+
+  showSegmentationInformation(segmentations.toList());
 }
 
-// //------------------------------------------------------------------------
-// SegmentationList CompositionLayout::deletedSegmentations(QModelIndexList selection)
-// {
-//   QSet<SegmentationPtr> toDelete;
-//   foreach(QModelIndex sortIndex, selection)
-//   {
-//     bool recursive = false;
-//     if (m_sort->rowCount(sortIndex) > 0)
-//     {
-//       QMessageBox msgBox;
-//       msgBox.setText(SEGMENTATION_MESSAGE.arg(sortIndex.data().toString()));
-//       msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-//       msgBox.setDefaultButton(QMessageBox::No);
-// 
-//       recursive = msgBox.exec() == QMessageBox::Yes;
-//     }
-// 
-//     ModelItemPtr    selectedItem = item(sortIndex);
-//     SegmentationPtr seg          = segmentationPtr(selectedItem);
-//     Q_ASSERT(seg);
-//     toDelete << seg;
-// 
-//     if (recursive)
-//     {
-//       foreach(QModelIndex subIndex, indices(sortIndex, true))
-//       {
-//         ModelItemPtr     subItem = item(subIndex);
-//         SegmentationPtr  seg     = segmentationPtr(subItem);
-//         Q_ASSERT(seg);
-//         toDelete << seg;
-//       }
-//     }
-//   }
-// 
-//   return toDelete.toList();
-// }
+//------------------------------------------------------------------------
+bool CompositionLayout::selectedItems(SegmentationSet &segmentations)
+{
+  QModelIndexList selectedIndexes = m_view->selectionModel()->selectedIndexes();
+  foreach(QModelIndex index, selectedIndexes)
+  {
+    ModelItemPtr item = CompositionLayout::item(index);
+    switch (item->type())
+    {
+      case EspINA::SEGMENTATION:
+        segmentations << segmentationPtr(item);
+        break;
+      default:
+        Q_ASSERT(false);
+        break;
+    }
+  }
+
+  return !segmentations.isEmpty();
+}
+
+//------------------------------------------------------------------------
+SegmentationList CompositionLayout::deletedSegmentations(QModelIndexList selection)
+{
+  QSet<SegmentationPtr> toDelete;
+  bool recursiveToAll = false;
+  bool recursive = false;
+  foreach(QModelIndex sortIndex, selection)
+  {
+    if (m_sort->rowCount(sortIndex) > 0 && !recursiveToAll)
+    {
+      QMessageBox msgBox(m_view->parentWidget());
+      msgBox.setText(SEGMENTATION_MESSAGE.arg(sortIndex.data().toString()));
+      if (selection.size() > 1)
+        msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::YesToAll | QMessageBox::No | QMessageBox::NoToAll);
+      else
+        msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+      msgBox.setDefaultButton(QMessageBox::No);
+
+      switch(msgBox.exec())
+      {
+        case QMessageBox::Yes:
+          recursive = true;
+          break;
+        case QMessageBox::YesToAll:
+          recursive = true;
+          recursiveToAll = true;
+          break;
+        case QMessageBox::No:
+          recursive = false;
+          break;
+        case QMessageBox::NoToAll:
+          recursive = false;
+          recursiveToAll = true;
+          break;
+      }
+    }
+
+    ModelItemPtr selectedItem = item(sortIndex);
+    SegmentationPtr seg = segmentationPtr(selectedItem);
+    Q_ASSERT(seg);
+    if (!toDelete.contains(seg))
+      toDelete << seg;
+
+    if (recursive)
+    {
+      foreach(QModelIndex subIndex, indices(sortIndex, true))
+      {
+        ModelItemPtr subItem = item(subIndex);
+        SegmentationPtr seg = segmentationPtr(subItem);
+        Q_ASSERT(seg);
+        if (!toDelete.contains(seg))
+          toDelete << seg;
+      }
+    }
+  }
+
+  return toDelete.toList();
+}
+
+//------------------------------------------------------------------------
+void CompositionLayout::selectComposeElements()
+{
+  QModelIndex index = m_view->selectionModel()->currentIndex();
+  if (!index.isValid())
+    return;
+
+  QItemSelection newSelection;
+  foreach(QModelIndex sortIndex, indices(index, false))
+  {
+    if (!sortIndex.isValid())
+      continue;
+
+    QItemSelection selectedItem(sortIndex, sortIndex);
+    newSelection.merge(selectedItem, QItemSelectionModel::Select);
+  }
+
+  m_view->selectionModel()->clearSelection();
+  m_view->selectionModel()->select(newSelection, QItemSelectionModel::Select);
+}

@@ -72,8 +72,9 @@ namespace EspINA
 
   private slots:
     void createTaxonomy();
-
     void createSubTaxonomy();
+    void changeTaxonomyColor();
+    void selectTaxonomyElements();
 
     void segmentationsDragged(SegmentationList    segmentations,
                               TaxonomyElementPtr  taxonomy);
@@ -81,7 +82,7 @@ namespace EspINA
     void taxonomiesDragged(TaxonomyElementList subTaxonomies,
                            TaxonomyElementPtr  taxonomy);
 
-    void updateSelection(QItemSelection,QItemSelection);
+    void updateSelection();
     void disconnectSelectionModel();
 
   private:
@@ -91,6 +92,7 @@ namespace EspINA
     TaxonomyItemDelegate *m_delegate;
     QPushButton *m_createTaxonomy;
     QPushButton *m_createSubTaxonomy;
+    QPushButton *m_changeTaxonomyColor;
   };
 
 } // namespace EspINA

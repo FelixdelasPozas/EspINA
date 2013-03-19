@@ -27,7 +27,7 @@
 using namespace EspINA;
 
 const QString SegmentationExplorer::Layout::SEGMENTATION_MESSAGE
-  = QObject::tr("Delete %1's segmentations");
+  = QObject::tr("Deleting %1.\nDo you want to also delete the segmentations that compose it?");
 const QString SegmentationExplorer::Layout::RECURSIVE_MESSAGE
   = QObject::tr("Delete %1's segmentations. "
                 "If you want to delete recursively select Yes To All");

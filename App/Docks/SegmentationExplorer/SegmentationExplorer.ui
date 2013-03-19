@@ -118,6 +118,9 @@ QTreeView::indicator:unchecked {
      </item>
      <item>
       <widget class="QPushButton" name="showInformationButton">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="sizePolicy">
         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
@@ -161,6 +164,9 @@ QTreeView::indicator:unchecked {
      </item>
      <item>
       <widget class="QPushButton" name="deleteButton">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="sizePolicy">
         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>

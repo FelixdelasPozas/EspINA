@@ -91,6 +91,11 @@ void LocationLayout::contextMenu(const QPoint &pos)
                                            m_undoStack,
                                            m_viewManager);
 
+    contextMenu.addSeparator();
+
+    QAction *selectAll = contextMenu.addAction(tr("Select all segmentations with the same location"));
+    connect(selectAll, SIGNAL(triggered(bool)), this, SLOT(selectLocationElements()));
+
     contextMenu.exec(pos);
   }
 }
@@ -122,11 +127,12 @@ void LocationLayout::showSelectedItemsInformation()
   if (samples.size() == 1 && segmentations.isEmpty())
   {
     // TODO: Display Sample metadata
-  } else if (!segmentations.isEmpty())
-  {
-    showSegmentationInformation(segmentations.toList());
   }
-
+  else
+    if (!segmentations.isEmpty())
+    {
+      showSegmentationInformation(segmentations.toList());
+    }
 }
 
 //------------------------------------------------------------------------
@@ -152,8 +158,35 @@ bool LocationLayout::selectedItems(SampleList &samples, SegmentationSet &segment
         break;
       default:
         Q_ASSERT(false);
+        break;
     }
   }
 
   return !samples.isEmpty() || !segmentations.isEmpty();
+}
+
+//------------------------------------------------------------------------
+void LocationLayout::selectLocationElements()
+{
+  QModelIndex index = m_view->selectionModel()->currentIndex();
+
+  if (!index.isValid() || !index.parent().isValid())
+    return;
+
+  QItemSelection newSelection;
+  foreach(QModelIndex sortIndex, indices(index.parent(), false))
+  {
+    if (!sortIndex.isValid())
+      continue;
+
+    ModelItemPtr sortItem = item(sortIndex);
+    if (EspINA::SEGMENTATION != sortItem->type())
+      continue;
+
+    QItemSelection selectedItem(sortIndex, sortIndex);
+    newSelection.merge(selectedItem, QItemSelectionModel::Select);
+  }
+
+  m_view->selectionModel()->clearSelection();
+  m_view->selectionModel()->select(newSelection, QItemSelectionModel::Select);
 }

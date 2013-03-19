@@ -32,6 +32,7 @@ namespace EspINA
   class LocationLayout
   : public SegmentationExplorer::Layout
   {
+    Q_OBJECT
     class SortFilter
     : public QSortFilterProxyModel
     {
@@ -63,6 +64,9 @@ namespace EspINA
 
   private:
     bool selectedItems(SampleList &samples, SegmentationSet &segmentations);
+
+  private slots:
+    void selectLocationElements();
 
   private:
     QSharedPointer<LocationProxy> m_proxy;

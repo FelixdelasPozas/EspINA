@@ -21,6 +21,8 @@ qt4_wrap_cpp (ESPINA_MOC
   Docks/SegmentationExplorer/SegmentationExplorer.h
   Docks/SegmentationExplorer/SegmentationExplorerLayout.h
   Docks/SegmentationExplorer/LayoutTaxonomy.h
+  Docks/SegmentationExplorer/LayoutLocation.h
+  Docks/SegmentationExplorer/LayoutComposition.h
   Docks/TabularReport/TabularReport.h
   FilterInspectors/CODE/CODEFilterInspector.h
   FilterInspectors/ContourSource/ContourInspectorWidget.h

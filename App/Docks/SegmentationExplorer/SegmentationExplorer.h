@@ -85,6 +85,7 @@ namespace EspINA
 
     virtual void updateSegmentationRepresentations(SegmentationList list = SegmentationList());
     virtual void updateChannelRepresentations(ChannelList list = ChannelList());
+
     virtual void updateSelection();
 
   protected:

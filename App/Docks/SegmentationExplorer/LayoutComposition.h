@@ -33,6 +33,7 @@ namespace EspINA
   class CompositionLayout
   : public SegmentationExplorer::Layout
   {
+    Q_OBJECT
     class SortFilter
     : public QSortFilterProxyModel
     {
@@ -61,6 +62,14 @@ namespace EspINA
     virtual void showSelectedItemsInformation();
 
     virtual QItemDelegate *itemDelegate() const;
+
+    virtual bool selectedItems(SegmentationSet &segmentations);
+
+  protected:
+    SegmentationList deletedSegmentations(QModelIndexList selection);
+
+  private slots:
+    void selectComposeElements();
 
   private:
     QSharedPointer<RelationProxy> m_proxy;

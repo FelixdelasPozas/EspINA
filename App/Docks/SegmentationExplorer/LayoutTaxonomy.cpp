@@ -113,8 +113,6 @@ private:
   QUndoStack  *m_undoStack;
 };
 
-
-
 //------------------------------------------------------------------------
 bool TaxonomyLayout::SortFilter::lessThan(const QModelIndex& left, const QModelIndex& right) const
 {
@@ -141,6 +139,7 @@ TaxonomyLayout::TaxonomyLayout(CheckableTreeView     *view,
 , m_delegate(new TaxonomyItemDelegate(model, undoStack, this))
 , m_createTaxonomy(NULL)
 , m_createSubTaxonomy(NULL)
+, m_changeTaxonomyColor(NULL)
 {
   m_proxy->setSourceModel(m_model);
   m_sort->setSourceModel(m_proxy.data());
@@ -172,7 +171,6 @@ void TaxonomyLayout::createSpecificControls(QHBoxLayout *specificControlLayout)
 
   connect(createTaxonomy, SIGNAL(clicked(bool)),
           this, SLOT(createTaxonomy()));
-
   specificControlLayout->addWidget(createTaxonomy);
 
   QPushButton *createSubTaxonomy = new QPushButton();
@@ -186,15 +184,28 @@ void TaxonomyLayout::createSpecificControls(QHBoxLayout *specificControlLayout)
 
   connect(createSubTaxonomy, SIGNAL(clicked(bool)),
           this, SLOT(createSubTaxonomy()));
-
   specificControlLayout->addWidget(createSubTaxonomy);
 
+  QPushButton *changeColor = new QPushButton();
+  changeColor->setIcon(QIcon(":espina/rainbow.svg"));
+  changeColor->setIconSize(QSize(22,22));
+  changeColor->setBaseSize(32, 32);
+  changeColor->setMaximumSize(32, 32);
+  changeColor->setMinimumSize(32, 32);
+  changeColor->setFlat(true);
+  changeColor->setEnabled(false);
+
+  connect(changeColor, SIGNAL(clicked(bool)),
+          this, SLOT(changeTaxonomyColor()));
+  specificControlLayout->addWidget(changeColor);
+
   // the model of CheckableTreeView has been set by now (wasn't in constructor): connect signals
-  connect(m_view->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
-          this, SLOT(updateSelection(QItemSelection,QItemSelection)));
+  connect(m_view->selectionModel(), SIGNAL(selectionChanged(QItemSelection, QItemSelection)),
+          this, SLOT(updateSelection()));
 
   m_createTaxonomy = createTaxonomy;
   m_createSubTaxonomy = createSubTaxonomy;
+  m_changeTaxonomyColor = changeColor;
   connect(m_createTaxonomy, SIGNAL(destroyed()), this, SLOT(disconnectSelectionModel()));
 }
 
@@ -214,93 +225,124 @@ void TaxonomyLayout::contextMenu(const QPoint &pos)
                                            m_undoStack,
                                            m_viewManager);
 
-    contextMenu.exec(pos);
-  }
+    contextMenu.addSeparator();
 
-  if (segmentations.isEmpty())
-  {
-    QMenu contextMenu;
-
-    QAction *createNode = contextMenu.addAction(tr("Create Taxonomy"));
-    createNode->setIcon(QIcon(":espina/create_node.png"));
-    connect(createNode, SIGNAL(triggered(bool)),
-            this, SLOT(createTaxonomy()));
-
-    QAction *createSubNode = contextMenu.addAction(tr("Create SubTaxonomy"));
-    createSubNode->setIcon(QIcon(":espina/create_subnode.png"));
-    connect(createSubNode, SIGNAL(triggered(bool)),
-            this, SLOT(createSubTaxonomy()));
+    QAction *selectAll = contextMenu.addAction(tr("Select all segmentations with the same taxonomy"));
+    connect(selectAll, SIGNAL(triggered(bool)), this, SLOT(selectTaxonomyElements()));
 
     contextMenu.exec(pos);
+    return;
   }
+
+  QMenu contextMenu;
+
+  QAction *createNode = contextMenu.addAction(tr("Create Taxonomy"));
+  createNode->setIcon(QIcon(":espina/create_node.png"));
+  connect(createNode, SIGNAL(triggered(bool)), this, SLOT(createTaxonomy()));
+
+  QAction *createSubNode = contextMenu.addAction(tr("Create SubTaxonomy"));
+  createSubNode->setIcon(QIcon(":espina/create_subnode.png"));
+  connect(createSubNode, SIGNAL(triggered(bool)), this, SLOT(createSubTaxonomy()));
+
+  QAction *changeColor = contextMenu.addAction(tr("Change Taxonomy Color"));
+  changeColor->setIcon(QIcon(":espina/rainbow.svg"));
+  connect(changeColor, SIGNAL(triggered(bool)), this, SLOT(changeTaxonomyColor()));
+
+  contextMenu.addSeparator();
+
+  QAction *selectAll = contextMenu.addAction(tr("Select all segmentations with this taxonomy"));
+  connect(selectAll, SIGNAL(triggered(bool)), this, SLOT(selectTaxonomyElements()));
+
+  contextMenu.exec(pos);
 }
 
 //------------------------------------------------------------------------
 void TaxonomyLayout::deleteSelectedItems()
 {
-  TaxonomyElementList  taxonomies;
+  TaxonomyElementList  taxonomies, additionalTaxonomies;
   SegmentationSet      segmentations;
 
   if (!selectedItems(taxonomies, segmentations))
     return;
 
-  if (taxonomies.isEmpty())
+  if (!taxonomies.isEmpty())
   {
-    deleteSegmentations(segmentations.toList());
-  }
-  else
-  {
-    foreach(TaxonomyElementPtr taxonomy, taxonomies)
+    QModelIndexList selectedIndexes = m_view->selectionModel()->selectedIndexes();
+    QModelIndexList additionalIndexes;
+    foreach(QModelIndex index, selectedIndexes)
     {
-      foreach(SegmentationPtr segmentation, m_proxy->segmentations(taxonomy, true))
+      if (!index.isValid())
+        continue;
+
+      ModelItemPtr item = TaxonomyLayout::item(index);
+      switch (item->type())
       {
-        segmentations << segmentation;
+        case EspINA::TAXONOMY:
+          additionalIndexes = indices(index, true);
+          foreach(QModelIndex additionalIndex, additionalIndexes)
+          {
+            ModelItemPtr additionalItem = TaxonomyLayout::item(additionalIndex);
+            if (additionalItem->type() == EspINA::SEGMENTATION)
+            {
+              if (!segmentations.contains(segmentationPtr(additionalItem)))
+                segmentations << segmentationPtr(additionalItem);
+            }
+            else
+            {
+              if (!additionalTaxonomies.contains(taxonomyElementPtr(additionalItem)))
+                additionalTaxonomies << taxonomyElementPtr(additionalItem);
+            }
+          }
+          break;
+        default:
+          continue;
+          break;
       }
     }
-
-    bool recursiveRemoval = false;
 
     if (!segmentations.isEmpty())
     {
       QMessageBox msg;
       msg.setText(tr("Delete Selected Items. Warning: all elements under selected items will also be deleted"));
-      QPushButton *recursiveTax = msg.addButton(tr("Taxonomies"), QMessageBox::AcceptRole);
-      QPushButton *onlySeg      = msg.addButton(tr("Only Segmemtations"), QMessageBox::AcceptRole);
       QPushButton *none         = msg.addButton(tr("Cancel"), QMessageBox::RejectRole);
+      QPushButton *recursiveTax = msg.addButton(tr("Taxonomies and Segmentations"), QMessageBox::AcceptRole);
+      QPushButton *onlySeg      = msg.addButton(tr("Only Segmentations"), QMessageBox::AcceptRole);
 
       msg.exec();
 
       if (msg.clickedButton() == none)
         return;
 
-      recursiveRemoval = msg.clickedButton() == recursiveTax;
-
-      if (recursiveRemoval)
-        m_undoStack->beginMacro("Remove Taxonomy");
-
-      // Delete Segmentations
-      deleteSegmentations(segmentations.toList());
-
-      if (recursiveRemoval)
-        segmentations.clear();
-    }
-
-    if (segmentations.isEmpty())
-    {
-      // Remove Taxonomies
-      if (!recursiveRemoval)
-        m_undoStack->beginMacro(tr("Remove Taxonomy"));
-
-      foreach(TaxonomyElementPtr taxonomy, taxonomies)
+      if(msg.clickedButton() == onlySeg)
       {
-        if (!m_model->taxonomy()->element(taxonomy->qualifiedName()).isNull())
-        {
-          m_undoStack->push(new RemoveTaxonomyElementCommand(taxonomy, m_model));
-        }
+        deleteSegmentations(segmentations.toList());
+        return;
       }
-      m_undoStack->endMacro();
     }
+
+    // assuming taxonomies are empty, because if they weren't then !segmentations.empty()
+    m_undoStack->beginMacro("Remove Taxonomy");
+    deleteSegmentations(segmentations.toList());
+    foreach(TaxonomyElementPtr taxonomy, additionalTaxonomies)
+    {
+      if (!m_model->taxonomy()->element(taxonomy->qualifiedName()).isNull())
+      {
+        m_undoStack->push(new RemoveTaxonomyElementCommand(taxonomy, m_model));
+      }
+    }
+
+    foreach(TaxonomyElementPtr taxonomy, taxonomies)
+    {
+      if (!m_model->taxonomy()->element(taxonomy->qualifiedName()).isNull())
+      {
+        m_undoStack->push(new RemoveTaxonomyElementCommand(taxonomy, m_model));
+      }
+    }
+    m_undoStack->endMacro();
   }
+  else
+    if (!segmentations.empty())
+      deleteSegmentations(segmentations.toList());
 }
 
 //------------------------------------------------------------------------
@@ -309,27 +351,10 @@ void TaxonomyLayout::showSelectedItemsInformation()
   TaxonomyElementList  taxonomies;
   SegmentationSet      segmentations;
 
-  if (!selectedItems(taxonomies, segmentations))
+  if (!selectedItems(taxonomies, segmentations) || segmentations.empty())
     return;
 
-  if (taxonomies.size() == 1 && segmentations.isEmpty())
-  {
-    // Change Taxonomy Color
-    QColorDialog colorSelector;
-    if( colorSelector.exec() == QDialog::Accepted)
-    {
-      TaxonomyElementPtr taxonomy = taxonomies.first();
-      taxonomy->setData(colorSelector.selectedColor(),
-                        Qt::DecorationRole);
-
-      m_viewManager->updateSegmentationRepresentations();
-      m_viewManager->updateViews();
-    }
-  } else if (!segmentations.isEmpty())
-  {
-    showSegmentationInformation(segmentations.toList());
-  }
-
+  showSegmentationInformation(segmentations.toList());
 }
 
 //------------------------------------------------------------------------
@@ -373,7 +398,6 @@ void TaxonomyLayout::createTaxonomy()
     taxonomyItem = m_model->taxonomy()->elements().first().data();
   else
     return;
-
 
   if (EspINA::TAXONOMY == taxonomyItem->type())
   {
@@ -455,38 +479,100 @@ void TaxonomyLayout::taxonomiesDragged(TaxonomyElementList subTaxonomies,
 }
 
 //------------------------------------------------------------------------
-void TaxonomyLayout::updateSelection(QItemSelection selected, QItemSelection deselected)
+void TaxonomyLayout::updateSelection()
 {
-  int numSeg = 0;
   int numTax = 0;
 
   QModelIndexList selectedIndexes = m_view->selectionModel()->selectedIndexes();
+
   foreach(QModelIndex index, selectedIndexes)
   {
     ModelItemPtr item = TaxonomyLayout::item(index);
     switch (item->type())
     {
-      case EspINA::SEGMENTATION:
-        numSeg++;
-        break;
       case EspINA::TAXONOMY:
         numTax++;
         break;
       default:
-        Q_ASSERT(false);
         break;
     }
   }
 
-  m_createTaxonomy->setEnabled((numSeg == 0) && (numTax == 1));
-  m_createSubTaxonomy->setEnabled((numSeg == 0) && (numTax == 1));
+  bool enabled = numTax == 1;
+  m_createTaxonomy->setEnabled(enabled);
+  m_createSubTaxonomy->setEnabled(enabled);
+  m_changeTaxonomyColor->setEnabled(enabled);
 }
 
 //------------------------------------------------------------------------
 void TaxonomyLayout::disconnectSelectionModel()
 {
-  m_createTaxonomy = m_createSubTaxonomy = NULL;
+  m_createTaxonomy = m_createSubTaxonomy = m_changeTaxonomyColor = NULL;
 
-  disconnect(m_view->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
-          this, SLOT(updateSelection(QItemSelection,QItemSelection)));
+  disconnect(m_view->selectionModel(), SIGNAL(selectionChanged(QItemSelection, QItemSelection)),
+          this, SLOT(updateSelection()));
+}
+
+//------------------------------------------------------------------------
+void TaxonomyLayout::changeTaxonomyColor()
+{
+  // sanity checks, not really necessary
+  QModelIndexList indexList = m_view->selectionModel()->selection().indexes();
+  if (indexList.size() != 1)
+    return;
+
+  ModelItemPtr item = TaxonomyLayout::item(indexList.first());
+  if (EspINA::TAXONOMY != item->type())
+    return;
+
+  TaxonomyElementPtr taxonomy = taxonomyElementPtr(item);
+
+  QColorDialog colorSelector(m_view->parentWidget());
+  colorSelector.setCurrentColor(taxonomy->color());
+  if(colorSelector.exec() == QDialog::Accepted)
+  {
+    taxonomy->setData(colorSelector.selectedColor(),
+                      Qt::DecorationRole);
+
+    m_viewManager->updateSegmentationRepresentations();
+    m_viewManager->updateViews();
+  }
+}
+
+//------------------------------------------------------------------------
+void TaxonomyLayout::selectTaxonomyElements()
+{
+  QModelIndex index = m_view->selectionModel()->currentIndex();
+
+  if (!index.isValid())
+    return;
+
+  ModelItemPtr itemptr = item(index);
+  if (EspINA::TAXONOMY != itemptr->type())
+  {
+    index = index.parent();
+    if (!index.isValid())
+      return;
+
+    itemptr = item(index);
+
+    Q_ASSERT(itemptr->type() == EspINA::TAXONOMY);
+  }
+
+  QItemSelection newSelection;
+  foreach(QModelIndex sortIndex, indices(index, true))
+  {
+    if (!sortIndex.isValid())
+      continue;
+
+    ModelItemPtr sortItem = item(sortIndex);
+    if (EspINA::SEGMENTATION != sortItem->type())
+      continue;
+
+    QItemSelection selectedItem(sortIndex, sortIndex);
+    newSelection.merge(selectedItem, QItemSelectionModel::Select);
+  }
+
+  m_view->selectionModel()->clearSelection();
+  m_view->selectionModel()->select(newSelection, QItemSelectionModel::Select);
 }

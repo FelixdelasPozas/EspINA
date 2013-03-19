@@ -188,7 +188,8 @@ void RemoveSegmentation::addFilterDependencies(FilterSPtr filter)
         break;
     }
 
-  m_filters << filter;
+  if (!m_filters.contains(filter))
+    m_filters << filter;
 
   foreach(Relation relation, filter->relations())
     if (!isADupicatedRelation(relation))
