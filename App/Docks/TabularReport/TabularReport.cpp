@@ -175,7 +175,6 @@ void TabularReport::rowsInserted(const QModelIndex &parent, int start, int end)
         QStandardItemModel *header = new QStandardItemModel(1, tags.size(), this);
         header->setHorizontalHeaderLabels(tags);
         entry->tableView->horizontalHeader()->setModel(header);
-        entry->tableView->horizontalHeader()->resizeSections(QHeaderView::ResizeToContents);
 
         m_entries[parentItem] = entry;
 
