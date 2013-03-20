@@ -356,7 +356,14 @@ EspinaMainWindow::EspinaMainWindow(EspinaModel      *model,
 
   QSettings settings(CESVIMA, ESPINA);
 
-  restoreGeometry(settings.value("geometry").toByteArray());
+  /**
+   * Instead of ussing save/restoreGeometry resice+move
+   * Works better in Unity when espina is closed while is maximized
+   */
+  settings.beginGroup("MainWindow");
+  resize(settings.value("size", QSize(800, 600)).toSize());
+  move(settings.value("pos", QPoint(200, 200)).toPoint());
+  settings.endGroup();
   restoreState(settings.value("state").toByteArray());
 
   m_autosave.setInterval(m_settings->autosaveInterval()*60*1000);
@@ -588,7 +595,15 @@ void EspinaMainWindow::closeEvent(QCloseEvent* event)
 
   QSettings settings(CESVIMA, ESPINA);
 
-  settings.setValue("geometry", saveGeometry());
+  /**
+   * Instead of ussing save/restoreGeometry resice+move
+   * Works better in Unity when espina is closed while is maximized
+   */
+  settings.beginGroup("MainWindow");
+  settings.setValue("size", size());
+  settings.setValue("pos", pos());
+  settings.endGroup();
+
   settings.setValue("state", saveState());
   settings.sync();
   event->accept();
