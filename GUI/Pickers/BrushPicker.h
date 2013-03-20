@@ -20,12 +20,14 @@
 #ifndef BRUSHPICKER_H
 #define BRUSHPICKER_H
 
+// EspINA
 #include "GUI/Pickers/IPicker.h"
-
 #include "Core/EspinaTypes.h"
 
+// VTK
 #include <vtkSmartPointer.h>
 
+// Qt
 #include <QColor>
 
 class vtkLookupTable;
@@ -62,7 +64,7 @@ public:
   /// @item is used to specify the spacing of the stroke
   void setReferenceItem(PickableItemPtr item);
   void DrawingOn(EspinaRenderView *view);
-  void DrawingOff(EspinaRenderView *view);
+  void DrawingOff(EspinaRenderView *view, SegmentationPtr segmentation);
 
 signals:
   void stroke(PickableItemPtr, double, double, double, Nm, PlaneType);
@@ -103,6 +105,7 @@ private:
   vtkSmartPointer<vtkImageData> m_preview;
   vtkSmartPointer<vtkImageActor> m_actor;
   bool m_drawing;
+  SegmentationPtr m_segmentation;
 
   static const int MAX_RADIUS = 32;
 };

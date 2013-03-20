@@ -77,10 +77,6 @@ namespace EspINA
                             Nm                   radius,
                             PlaneType            plane);
 
-    virtual void drawStrokeStep(PickableItemPtr item,
-                                double x, double y, double z,
-                                Nm              radius,
-                                PlaneType       plane);
   virtual void segmentationHasBeenModified(ModelItemPtr);
 
   virtual void initBrushTool();
@@ -99,12 +95,9 @@ namespace EspINA
     bool         m_erasing;
     BrushPicker *m_brush;
 
-    FilterSPtr        m_currentSource;
-    SegmentationSPtr  m_currentSeg;
+    FilterSPtr       m_currentSource;
+    SegmentationSPtr m_currentSeg;
     Filter::OutputId m_currentOutput;
-
-  private:
-    VolumeSnapshotCommand *m_eraseCommand;
   };
 
 } // namespace EspINA

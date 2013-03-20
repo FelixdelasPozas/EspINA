@@ -23,6 +23,7 @@
 #include <Core/Model/Channel.h>
 #include <Filters/FreeFormSource.h>
 #include <Core/EspinaRegion.h>
+#include "GUI/QtWidget/SliceView.h"
 
 // Qt
 #include <QMouseEvent>
@@ -57,6 +58,7 @@ BrushPicker::BrushPicker(PickableItemPtr item)
 , m_preview(NULL)
 , m_actor(NULL)
 , m_drawing(true)
+, m_segmentation(NULL)
 {
   memset(m_viewSize, 0, 2*sizeof(int));
   memset(m_LL, 0, 3*sizeof(double));
@@ -73,8 +75,6 @@ BrushPicker::~BrushPicker()
     delete m_brushImage;
     m_brushImage = NULL;
   }
-
-
 }
 
 //-----------------------------------------------------------------------------
@@ -240,6 +240,16 @@ bool BrushPicker::validStroke(double brush[3])
   EspinaRegion previewBB(m_pBounds);
   EspinaRegion brushBB(brushBounds);
 
+  if (!m_drawing)
+  {
+    // TODO: pixel-perfect collision of brush-segmentation
+    // this method only eliminates strokes outside the bounding box.
+    Nm bounds[6];
+    m_segmentation->volume()->bounds(bounds);
+    EspinaRegion segBB(bounds);
+    return segBB.intersect(brushBB);
+  }
+
   return previewBB.intersect(brushBB);
 }
 
@@ -283,17 +293,13 @@ void BrushPicker::startStroke(QPoint pos, EspinaRenderView* view)
   double brush[3];
   createBrush(brush, pos);
 
-  if (m_drawing && !m_preview)
-    startPreview(view);
+  startPreview(view);
 
   if (validStroke(brush))
   {
     m_lastDot = pos;
     m_stroke->InsertNextPoint(brush);
-    if (m_drawing && m_preview)
-      updatePreview(brush, view);
-    else
-      emit stroke(m_referenceItem, brush[0], brush[1], brush[2], m_radius, m_plane);
+    updatePreview(brush, view);
   }
 }
 
@@ -310,10 +316,7 @@ void BrushPicker::updateStroke(QPoint pos, EspinaRenderView* view)
   {
     m_lastDot = pos;
     m_stroke->InsertNextPoint(brush);
-    if (m_drawing && m_preview)
-      updatePreview(brush, view);
-    else
-      emit stroke(m_referenceItem, brush[0], brush[1], brush[2], m_radius, m_plane);
+    updatePreview(brush, view);
   }
 }
 
@@ -324,8 +327,7 @@ void BrushPicker::stopStroke(EspinaRenderView* view)
     emit stroke(m_referenceItem, m_stroke, m_radius, m_plane);
 
   m_stroke->Reset();
-  if (m_preview)
-    stopPreview(view);
+  stopPreview(view);
 }
 
 //-----------------------------------------------------------------------------
@@ -342,37 +344,78 @@ void BrushPicker::startPreview(EspinaRenderView* view)
   int extent[6];
   for (int i = 0; i < 3; ++i)
   {
-    extent[2*i] = m_pBounds[2*i]/m_spacing[i];
-    extent[(2*i)+1] = m_pBounds[(2*i)+1]/m_spacing[i];
+    extent[2 * i] = m_pBounds[2 * i] / m_spacing[i];
+    extent[(2 * i) + 1] = m_pBounds[(2 * i) + 1] / m_spacing[i];
   }
 
   m_preview = vtkSmartPointer<vtkImageData>::New();
-  m_preview->SetOrigin(0,0,0);
+  m_preview->SetOrigin(0, 0, 0);
   m_preview->SetScalarTypeToUnsignedChar();
   m_preview->SetExtent(extent);
   m_preview->SetSpacing(m_spacing[0], m_spacing[1], m_spacing[2]);
   m_preview->AllocateScalars();
   memset(m_preview->GetScalarPointer(), 0, m_preview->GetNumberOfPoints());
 
+  // hide seg and copy contents of slice to preview actor
+  if (!m_drawing)
+  {
+    SegmentationList list;
+    list.append(m_segmentation);
+    reinterpret_cast<SliceView *>(view)->hideSegmentations(list);
+
+    int segExtent[6];
+    m_segmentation->volume()->extent(segExtent);
+
+    segExtent[0] = (extent[0] > segExtent[0]) ? extent[0] : segExtent[0];
+    segExtent[1] = (extent[1] < segExtent[1]) ? extent[1] : segExtent[1];
+    segExtent[2] = (extent[2] > segExtent[2]) ? extent[2] : segExtent[2];
+    segExtent[3] = (extent[3] < segExtent[3]) ? extent[3] : segExtent[3];
+    segExtent[4] = (extent[4] > segExtent[4]) ? extent[4] : segExtent[4];
+    segExtent[5] = (extent[5] < segExtent[5]) ? extent[5] : segExtent[5];
+
+    unsigned char *previewPixel;
+    itkVolumeType::IndexType index;
+
+    // segmentations loaded from disk can have an origin != (0,0,0) that messes with the preview
+    // and must be corrected. That means 3 ops more per loop and 3 more vars. If corrected before
+    // we could use the index as the "for" variables directly, so it would be faster.
+    itkVolumeType::PointType origin = m_segmentation->volume()->toITK()->GetOrigin();
+
+    for (int x = segExtent[0]; x <= segExtent[1]; ++x)
+      for (int y = segExtent[2]; y <= segExtent[3]; ++y)
+        for (int z = segExtent[4]; z <= segExtent[5]; ++z)
+        {
+          index[0] = x - origin[0];
+          index[1] = y - origin[1];
+          index[2] = z - origin[2];
+
+          previewPixel = reinterpret_cast<unsigned char *>(m_preview->GetScalarPointer(x,y,z));
+          *previewPixel = m_segmentation->volume()->toITK()->GetPixel(index);
+        }
+  }
+
   vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  if (m_pBounds[4]==m_pBounds[5])
+  if (m_pBounds[4] == m_pBounds[5])
   {
     double elements[16] = { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, m_pBounds[4], 0, 0, 0, 1 };
     matrix->DeepCopy(elements);
-    m_preview->SetOrigin(0,0,m_pBounds[4] - (extent[4]*m_spacing[2])); // resolves "Fit to slices" discrepancy
+    m_preview->SetOrigin(0, 0, m_pBounds[4] - (extent[4] * m_spacing[2])); // resolves "Fit to slices" discrepancy
   }
-  else if (m_pBounds[2] == m_pBounds[3])
-  {
-    double elements[16] = { 1, 0, 0, 0, 0, 0, 1, m_pBounds[2], 0, -1, 0, 0, 0, 0, 0, 1 };
-    matrix->DeepCopy(elements);
-    m_preview->SetOrigin(0,m_pBounds[2] - (extent[2]*m_spacing[1]), 0); // resolves "Fit to slices" discrepancy
-  }
-  else if (m_pBounds[0] == m_pBounds[1])
-  {
-    double elements[16] = { 0, 0, -1, m_pBounds[0], 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 1 };
-    matrix->DeepCopy(elements);
-    m_preview->SetOrigin(m_pBounds[0] - (extent[0]*m_spacing[0]), 0, 0); // resolves "Fit to slices" discrepancy
-  }
+  else
+    if (m_pBounds[2] == m_pBounds[3])
+    {
+      double elements[16] = { 1, 0, 0, 0, 0, 0, 1, m_pBounds[2], 0, -1, 0, 0, 0, 0, 0, 1 };
+      matrix->DeepCopy(elements);
+      m_preview->SetOrigin(0, m_pBounds[2] - (extent[2] * m_spacing[1]), 0); // resolves "Fit to slices" discrepancy
+    }
+    else
+      if (m_pBounds[0] == m_pBounds[1])
+      {
+        double elements[16] = { 0, 0, -1, m_pBounds[0], 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 1 };
+        matrix->DeepCopy(elements);
+        m_preview->SetOrigin(m_pBounds[0] - (extent[0] * m_spacing[0]), 0, 0); // resolves "Fit to slices" discrepancy
+      }
+
   m_preview->Update();
 
   vtkSmartPointer<vtkImageResliceToColors> reslice = vtkSmartPointer<vtkImageResliceToColors>::New();
@@ -395,9 +438,9 @@ void BrushPicker::startPreview(EspinaRenderView* view)
   m_actor->Update();
 
   double pos[3];
-  memset(pos, 0, 3*sizeof(double));
+  memset(pos, 0, 3 * sizeof(double));
   int sign = ((m_plane == AXIAL) ? -1 : 1);
-  pos[m_plane] += (sign*0.1);
+  pos[m_plane] += (sign * 0.1);
   m_actor->SetPosition(pos);
 
   view->addActor(m_actor);
@@ -409,7 +452,7 @@ void BrushPicker::updatePreview(double brush[3], EspinaRenderView* view)
   // fixes crashes when the user releases or presses the control key
   // in the middle of a stroke (that is, without unpressing the mouse
   // button).
-  if (m_preview == NULL)
+  if (!m_preview)
     startPreview(view);
 
   double brushBounds[6];
@@ -460,7 +503,7 @@ void BrushPicker::updatePreview(double brush[3], EspinaRenderView* view)
           if (vtkMath::Distance2BetweenPoints(brush,pixel) < r2)
           {
             unsigned char *pixel = static_cast<unsigned char*>(m_preview->GetScalarPointer(x,y,m_pBounds[4]/m_spacing[2]));
-            *pixel = SEG_VOXEL_VALUE;
+            *pixel = (m_drawing ? 1 : 0);
           }
         }
         break;
@@ -472,7 +515,7 @@ void BrushPicker::updatePreview(double brush[3], EspinaRenderView* view)
           if (vtkMath::Distance2BetweenPoints(brush,pixel) < r2)
           {
             unsigned char *pixel = static_cast<unsigned char*>(m_preview->GetScalarPointer(x,m_pBounds[2]/m_spacing[1],z));
-            *pixel = SEG_VOXEL_VALUE;
+            *pixel = (m_drawing ? 1 : 0);
           }
         }
         break;
@@ -484,7 +527,7 @@ void BrushPicker::updatePreview(double brush[3], EspinaRenderView* view)
           if (vtkMath::Distance2BetweenPoints(brush,pixel) < r2)
           {
             unsigned char *pixel = static_cast<unsigned char*>(m_preview->GetScalarPointer(m_pBounds[0]/m_spacing[0],y,z));
-            *pixel = SEG_VOXEL_VALUE;
+            *pixel = (m_drawing ? 1 : 0);
           }
         }
         break;
@@ -503,6 +546,13 @@ void BrushPicker::stopPreview(EspinaRenderView* view)
   m_lut = NULL;
   m_preview = NULL;
   m_actor = NULL;
+
+  if (!m_drawing && m_segmentation != NULL)
+  {
+    SegmentationList list;
+    list.append(m_segmentation);
+    reinterpret_cast<SliceView *>(view)->unhideSegmentations(list);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -512,15 +562,17 @@ void BrushPicker::DrawingOn(EspinaRenderView *view)
     stopStroke(view);
 
   m_drawing = true;
+  m_segmentation = NULL;
 }
 
 //-----------------------------------------------------------------------------
-void BrushPicker::DrawingOff(EspinaRenderView *view)
+void BrushPicker::DrawingOff(EspinaRenderView *view, SegmentationPtr segmentation)
 {
   if (m_stroke->GetNumberOfPoints() > 0)
     stopStroke(view);
 
   m_drawing = false;
+  m_segmentation = segmentation;
 }
 
 //-----------------------------------------------------------------------------

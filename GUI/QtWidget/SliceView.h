@@ -143,6 +143,10 @@ namespace EspINA
 
     virtual void forceRender(SegmentationList updatedSegs = SegmentationList());
 
+    // preview helper methods
+    virtual void hideSegmentations(SegmentationList segmentations);
+    virtual void unhideSegmentations(SegmentationList segmentations);
+
   public slots:
     /// Show/Hide segmentations
     void setSegmentationVisibility(bool visible);
@@ -287,6 +291,9 @@ namespace EspINA
     vtkSmartPointer<vtkActor>    m_channelBorder, m_viewportBorder;
 
     bool m_sceneReady;
+
+    // preview helpers
+    SegmentationList m_hiddenSegmentations;
 
     // Representations
     TransparencySelectionHighlighter   *m_highlighter;

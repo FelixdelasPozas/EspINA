@@ -1058,7 +1058,7 @@ void SliceView::removeSegmentation(SegmentationPtr seg)
 //-----------------------------------------------------------------------------
 bool SliceView::updateSegmentation(SegmentationPtr seg)
 {
-  if (!m_segmentationReps.contains(seg))
+  if (!m_segmentationReps.keys().contains(seg) || m_hiddenSegmentations.contains(seg))
     return false;
 
   SliceRep &rep = m_segmentationReps[seg];
@@ -2034,4 +2034,30 @@ void SliceView::resetView()
 {
   resetCamera();
   updateView();
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::hideSegmentations(SegmentationList segmentations)
+{
+  foreach(SegmentationPtr segmentation, segmentations)
+  {
+    if (!m_segmentationReps.keys().contains(segmentation) || m_hiddenSegmentations.contains(segmentation))
+      continue;
+
+    m_renderer->RemoveActor(m_segmentationReps[segmentation].slice);
+    m_hiddenSegmentations << segmentation;
+  }
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::unhideSegmentations(SegmentationList segmentations)
+{
+  foreach(SegmentationPtr segmentation, segmentations)
+  {
+    if (!m_segmentationReps.keys().contains(segmentation) || !m_hiddenSegmentations.contains(segmentation))
+      continue;
+
+    m_renderer->AddActor(m_segmentationReps[segmentation].slice);
+    m_hiddenSegmentations.removeOne(segmentation);
+  }
 }
