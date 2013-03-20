@@ -218,9 +218,16 @@ void TabularReport::rowsAboutToBeRemoved(const QModelIndex &parent, int start, i
 //------------------------------------------------------------------------
 void TabularReport::reset()
 {
-  m_entries.clear();
-  rowsInserted(QModelIndex(), 0 , model()->rowCount() - 1);
+  foreach(Entry *entry, m_entries)
+  {
+    m_layout->removeWidget(entry);
+    delete entry;
 }
+  m_entries.clear();
+
+  QAbstractItemView::reset();
+}
+
 
 //------------------------------------------------------------------------
 void TabularReport::updateSelection(ViewManager::Selection selection)

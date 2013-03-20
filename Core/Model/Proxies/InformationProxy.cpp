@@ -48,10 +48,10 @@ void TaxonomicaInformationProxy::setSourceModel(EspinaModel *sourceModel)
                this, SLOT(sourceRowsAboutToBeRemoved(QModelIndex,int,int)));
     disconnect(m_model, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
                this,SLOT(sourceDataChanged(QModelIndex,QModelIndex)));
-    disconnect(m_model, SIGNAL(rowsAboutToBeMoved(const QModelIndex &, int, int, const QModelIndex &, int)),
-               this, SLOT(sourceRowsAboutToBeMoved(QModelIndex,int,int,QModelIndex,int)));
-    disconnect(m_model, SIGNAL(rowsMoved(const QModelIndex &, int, int, const QModelIndex &, int)),
-               this, SLOT(sourceRowsMoved(QModelIndex,int,int,QModelIndex,int)));
+//     disconnect(m_model, SIGNAL(rowsAboutToBeMoved(const QModelIndex &, int, int, const QModelIndex &, int)),
+//                this, SLOT(sourceRowsAboutToBeMoved(QModelIndex,int,int,QModelIndex,int)));
+//     disconnect(m_model, SIGNAL(rowsMoved(const QModelIndex &, int, int, const QModelIndex &, int)),
+//                this, SLOT(sourceRowsMoved(QModelIndex,int,int,QModelIndex,int)));
     disconnect(m_model, SIGNAL(modelAboutToBeReset()),
                this, SLOT(sourceModelReset()));
   }
@@ -70,10 +70,10 @@ void TaxonomicaInformationProxy::setSourceModel(EspinaModel *sourceModel)
             this, SLOT(sourceRowsAboutToBeRemoved(QModelIndex,int,int)));
     connect(m_model, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
             this,SLOT(sourceDataChanged(QModelIndex,QModelIndex)));
-    connect(m_model, SIGNAL(rowsAboutToBeMoved(const QModelIndex &, int, int, const QModelIndex &, int)),
-            this, SLOT(sourceRowsAboutToBeMoved(QModelIndex,int,int,QModelIndex,int)));
-    connect(m_model, SIGNAL(rowsMoved(const QModelIndex &, int, int, const QModelIndex &, int)),
-            this, SLOT(sourceRowsMoved(QModelIndex,int,int,QModelIndex,int)));
+//     connect(m_model, SIGNAL(rowsAboutToBeMoved(const QModelIndex &, int, int, const QModelIndex &, int)),
+//             this, SLOT(sourceRowsAboutToBeMoved(QModelIndex,int,int,QModelIndex,int)));
+//     connect(m_model, SIGNAL(rowsMoved(const QModelIndex &, int, int, const QModelIndex &, int)),
+//             this, SLOT(sourceRowsMoved(QModelIndex,int,int,QModelIndex,int)));
     connect(m_model, SIGNAL(modelAboutToBeReset()),
             this, SLOT(sourceModelReset()));
   }
@@ -349,11 +349,71 @@ void TaxonomicaInformationProxy::sourceRowsAboutToBeRemoved(const QModelIndex& s
 //------------------------------------------------------------------------
 void TaxonomicaInformationProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, const QModelIndex& sourceBottomRight)
 {
-  foreach(QModelIndex sourceIndex, QtModelUtils::indices(sourceTopLeft, sourceBottomRight))
+  foreach(QModelIndex source, QtModelUtils::indices(sourceTopLeft, sourceBottomRight))
   {
-    QModelIndex proxyIndex = mapFromSource(sourceIndex);
+    if (source.parent() == m_model->segmentationRoot())
+    {
+      bool indexChanged = true;
+      SegmentationPtr    segmentation = segmentationPtr(indexPtr(source));
+      TaxonomyElementPtr prevTaxonomy = NULL;
+
+      foreach(ModelItemPtr key, m_information.keys())
+      {
+        TaxonomyElementPtr taxonomy = taxonomyElementPtr(key);
+        if (m_information[taxonomy].Nodes.contains(segmentation))
+        {
+          indexChanged = taxonomy != segmentation->taxonomy();
+          prevTaxonomy = taxonomy;
+          break;
+        }
+      }
+
+      if (prevTaxonomy && indexChanged)
+      {
+        // Remove segmentation from previous location
+        int prevTaxonomyRow = m_taxonomies.indexOf(prevTaxonomy);
+        QModelIndex prevParent  = createIndex(prevTaxonomyRow, 0, prevTaxonomy);
+        int segmentationRow = m_information[prevTaxonomy].Nodes.indexOf(segmentation);
+
+        beginRemoveRows(prevParent, segmentationRow, segmentationRow);
+        m_information[prevTaxonomy].Nodes.removeAt(segmentationRow);
+        endRemoveRows();
+
+        if (m_information[prevTaxonomy].Nodes.isEmpty())
+        {
+          beginRemoveRows(QModelIndex(), prevTaxonomyRow, prevTaxonomyRow);
+          m_information.remove(prevTaxonomy);
+          Q_ASSERT(m_taxonomies.removeOne(prevTaxonomy));
+          endRemoveRows();
+        }
+
+        TaxonomyElementPtr taxonomy = segmentation->taxonomy().data();
+
+        // Insert segmentation into new location
+        int parentRow = m_taxonomies.indexOf(taxonomy);
+
+        if (parentRow < 0)
+        {
+          parentRow = m_taxonomies.size();
+          beginInsertRows(QModelIndex(), parentRow, parentRow);
+          m_taxonomies << taxonomy;
+          endInsertRows();
+        }
+
+        QModelIndex parent = createIndex(parentRow, 0, taxonomy);
+
+        int nextRow  = m_information[taxonomy].Nodes.size();
+        beginInsertRows(parent, nextRow, nextRow);
+        m_information[taxonomy].Nodes << segmentation;
+        endInsertRows();
+      }
+    }
+
+    QModelIndex proxyIndex = mapFromSource(source);
     if (proxyIndex.isValid())
+    {
       emit dataChanged(proxyIndex, proxyIndex);
+    }
   }
 }
 
