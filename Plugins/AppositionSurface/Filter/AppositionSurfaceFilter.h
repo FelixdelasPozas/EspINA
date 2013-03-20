@@ -19,6 +19,7 @@
 #include <itkImageRegionConstIterator.h>
 #include <itkSignedMaurerDistanceMapImageFilter.h>
 #include <itkImageToVTKImageFilter.h>
+#include <itkSmoothingRecursiveGaussianImageFilter.h>
 
 // VTK
 #include <vtkGridTransform.h>
@@ -43,10 +44,12 @@ namespace EspINA
   : public SegmentationFilter
   {
     Q_OBJECT
-      static const double THRESHOLDFACTOR = 0.1; // Percentage of a single step
+      static const double THRESHOLDFACTOR = 0.01; // Percentage of a single step
       static const unsigned int MAXSAVEDSTATUSES = 10;
       static const int MAXITERATIONSFACTOR = 100;
       static const float DISPLACEMENTSCALE = 1;
+      static const float CLIPPINGTHRESHOLD = 0.5;
+      static const float DISTANCESMOOTHSIGMAFACTOR = 0.67448; // probit(0.25)
 
       typedef float DistanceType;
       typedef vtkSmartPointer<vtkPoints>   Points;
@@ -61,6 +64,8 @@ namespace EspINA
       typedef itk::ImageRegionConstIterator<DistanceMapType> DistanceIterator;
       typedef itk::SignedMaurerDistanceMapImageFilter
       <itkVolumeType, DistanceMapType>  SMDistanceMapFilterType;
+      typedef itk::SmoothingRecursiveGaussianImageFilter
+      <DistanceMapType, DistanceMapType>  SmoothingFilterType;
       typedef vtkSmartPointer<vtkPlaneSource> PlaneSourceType;
       typedef itk::GradientImageFilter<DistanceMapType, float> GradientFilterType;
       typedef vtkSmartPointer<vtkGridTransform> GridTransform;
@@ -159,16 +164,18 @@ namespace EspINA
       /// Return the 8 corners of an OBB
       Points corners(double corner[3], double max[3], double mid[3], double min[3]) const;
 
-      DistanceMapType::Pointer computeDistanceMap(itkVolumeType::Pointer volume) const;
-      void maxDistancePoint(DistanceMapType::Pointer map, Points points, double avgMaxDistPoint[3]) const;
+      DistanceMapType::Pointer computeDistanceMap(itkVolumeType::Pointer volume, float sigma) const;
+      void maxDistancePoint(DistanceMapType::Pointer map, double avgMaxDistPoint[3], double & maxDist) const;
       void computeResolution(double * max, double * mid, double * spacing, int & xResolution, int & yResolution) const;
+      void computeIterationLimits(double * min, double * spacing, int & iterations, double & thresholdError) const;
 
       /// Find the projection of A on B
       void project(const double* A, const double* B, double* Projection) const;
+      void projectVectors(vtkImageData* vectors_image, double* unitary) const;
+      void projectPolyDataToPlane(double* origin, double* normal, vtkPolyData* meshIn, vtkPolyData* meshOut) const;
 
       void vectorImageToVTKImage(CovariantVectorImageType::Pointer vectorImage, vtkSmartPointer<vtkImageData> image) const;
-      void projectVectors(vtkImageData* vectors_image, double* unitary) const;
-      void computeIterationLimits(double * min, double * spacing, int & iterations, double & thresholdError) const;
+
       bool hasConverged( vtkPoints * lastPlanePoints, PointsListType & pointsList, double threshold) const;
       int computeMeanEuclideanError(vtkPoints * pointsA, vtkPoints * pointsB, double & euclideanError) const;
       PolyData clipPlane(PolyData plane, vtkImageData* image) const;
@@ -188,8 +195,8 @@ namespace EspINA
       int m_iterations;
       bool m_converge;
       mutable PolyData m_ap;
-      PolyData m_referencePlane;  // Original Plane Template
-      PolyData m_blendedNotClippedPlane;
+      mutable double*  m_templateOrigin;
+      mutable double*  m_templateNormal;
       mutable SegmentationPtr m_originSegmentation;
 
       QString m_origin;

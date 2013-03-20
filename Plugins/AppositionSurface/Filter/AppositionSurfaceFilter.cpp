@@ -31,6 +31,8 @@
 #include <vtkEdgeListIterator.h>
 #include <vtkGenericDataObjectWriter.h>
 #include <vtkGenericDataObjectReader.h>
+#include <vtkPlane.h>
+
 
 const double UNDEFINED = -1.;
 
@@ -48,14 +50,15 @@ namespace EspINA
   , m_iterations(10)
   , m_converge(true)
   , m_ap(NULL)
-  , m_referencePlane(NULL)
-  , m_blendedNotClippedPlane(NULL)
   , m_originSegmentation(NULL)
   , m_origin(args[ORIGIN])
   , m_area(UNDEFINED)
   , m_perimeter(UNDEFINED)
   , m_tortuosity(UNDEFINED)
   {
+    m_templateOrigin = new double[3];
+    m_templateNormal = new double[3];
+
     if (m_origin == QString())
       m_origin = QString("Unspecified origin");
   }
@@ -69,11 +72,8 @@ namespace EspINA
       m_ap->Delete();
     }
 
-    if (m_referencePlane != NULL)
-      m_referencePlane->Delete();
-
-    if (m_blendedNotClippedPlane != NULL)
-      m_blendedNotClippedPlane->Delete();
+    delete[] m_templateNormal;
+    delete[] m_templateOrigin;
   }
 
   
@@ -166,12 +166,12 @@ namespace EspINA
     OBBTreeType obbTree = OBBTreeType::New();
     obbTree->ComputeOBB(points, corner, max, mid, min, size);
     Points obbCorners = corners(corner, max, mid, min);
-    DistanceMapType::Pointer distanceMap = computeDistanceMap(padImage);
+    DistanceMapType::Pointer distanceMap = computeDistanceMap(padImage, DISTANCESMOOTHSIGMAFACTOR);
 
     //   qDebug() << "Build and move the plane to Avg Max Distance";
-    Points maxPoints = Points::New();
     double avgMaxDistPoint[3];
-    maxDistancePoint(distanceMap, maxPoints, avgMaxDistPoint);
+    double maxDistance;
+    maxDistancePoint(distanceMap, avgMaxDistPoint, maxDistance);
 
     int xResolution = m_resolution;
     int yResolution = m_resolution;
@@ -185,18 +185,14 @@ namespace EspINA
     planeSource->SetResolution(xResolution, yResolution);
     planeSource->Update();
 
-    m_referencePlane = PolyData::New();
-    m_referencePlane->DeepCopy(planeSource->GetOutput());
-
-    //   qDebug() << "Create Path with point + min and update min\n"
-    //               "Fill vtkthinPlatesplineTransform";
-
     double *normal = planeSource->GetNormal();
     vtkMath::Normalize(normal);
 
     double v[3], displacement[3];
     for (int i = 0; i < 3; i++) {
       v[i] = avgMaxDistPoint[i] - obbCorners->GetPoint(0)[i];
+      m_templateOrigin[i] = obbCorners->GetPoint(0)[i];
+      m_templateNormal[i] = normal[i];
     }
 
     project(v, normal, displacement);
@@ -213,11 +209,7 @@ namespace EspINA
 
     GradientFilterType::Pointer gradientFilter = GradientFilterType::New();
     gradientFilter->SetInput(distanceMap);
-    /**
-     * SetUseImageSpacingOff: Very important. The DM has already
-     * the phisical coordinates information.
-     */
-    gradientFilter->SetUseImageSpacingOff();
+    gradientFilter->SetUseImageSpacingOn();
     gradientFilter->Update();
 
     vtkSmartPointer<vtkImageData> gradientVectorGrid = vtkSmartPointer<vtkImageData>::New();
@@ -257,16 +249,13 @@ namespace EspINA
     break;
         }
         else {
-    pointsList.push_front(auxPlane->GetPoints());
-    if (pointsList.size() > MAXSAVEDSTATUSES)
-      pointsList.pop_back();
+	  pointsList.push_front(auxPlane->GetPoints());
+	  if (pointsList.size() > MAXSAVEDSTATUSES)
+	    pointsList.pop_back();
         }
       }
     }
     pointsList.clear();
-
-    m_blendedNotClippedPlane = PolyData::New();
-    m_blendedNotClippedPlane->DeepCopy(auxPlane);
 
     PolyData clippedPlane = clipPlane(transformer->GetOutput(), vtk_padImage);
     //ESPINA_DEBUG(clippedPlane->GetNumberOfCells() << " cells after clip");
@@ -276,7 +265,7 @@ namespace EspINA
      */
     vtkSmartPointer<vtkTransformPolyDataFilter> transformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
     vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
-    transform->Translate (-spacing[0], -spacing[1], -spacing[2]);
+    transform->Translate (-spacing[0]*bounds[0], -spacing[1]*bounds[0], -spacing[2]*bounds[0]);
     transformFilter->SetTransform(transform);
     transformFilter->SetInput(clippedPlane);
     transformFilter->Update();
@@ -373,7 +362,7 @@ namespace EspINA
   }
 
   //----------------------------------------------------------------------------
-  AppositionSurfaceFilter::DistanceMapType::Pointer AppositionSurfaceFilter::computeDistanceMap(itkVolumeType::Pointer volume) const
+  AppositionSurfaceFilter::DistanceMapType::Pointer AppositionSurfaceFilter::computeDistanceMap(itkVolumeType::Pointer volume, float sigma) const
   {
     SMDistanceMapFilterType::Pointer smdm_filter = SMDistanceMapFilterType::New();
     smdm_filter->InsideIsPositiveOn();
@@ -382,17 +371,32 @@ namespace EspINA
     smdm_filter->SetInput(volume);
     smdm_filter->Update();
 
-    return smdm_filter->GetOutput();
+    double avgMaxDistPoint[3];
+    double max_distance;
+    maxDistancePoint(smdm_filter->GetOutput(), avgMaxDistPoint, max_distance);
+
+    SmoothingFilterType::Pointer smoothingRecursiveGaussianImageFilter = SmoothingFilterType::New();
+    smoothingRecursiveGaussianImageFilter->SetSigma(sigma * max_distance);
+    smoothingRecursiveGaussianImageFilter->SetInput(smdm_filter->GetOutput());
+
+    if ( (sigma * max_distance) > 0) {
+      smoothingRecursiveGaussianImageFilter->Update();
+      return smoothingRecursiveGaussianImageFilter->GetOutput();
+    }
+    else {
+      return smdm_filter->GetOutput();
+    }
   }
 
   //----------------------------------------------------------------------------
-  void AppositionSurfaceFilter::maxDistancePoint(AppositionSurfaceFilter::DistanceMapType::Pointer map,
-                                                 AppositionSurfaceFilter::Points points,
-                                                 double avgMaxDistPoint[3]) const
+  void AppositionSurfaceFilter::maxDistancePoint(AppositionSurfaceFilter::DistanceMapType::Pointer map, 
+						 double avgMaxDistPoint[3],
+						 double & maxDist) const
   {
-    DistanceType maxDist = 0;
+    maxDist = 0;
     DistanceMapType::PointType origin = map->GetOrigin();
     DistanceMapType::SpacingType spacing = map->GetSpacing();
+    Points points = Points::New();
 
     DistanceIterator it(map, map->GetLargestPossibleRegion());
 
@@ -402,39 +406,40 @@ namespace EspINA
     // #endif
 
     while (!it.IsAtEnd())
-    {
-      DistanceType dist = it.Get();
-      // #ifdef DEBUG_AP_FILES
-      //     distanceFile << dist << std::endl;
-      // #endif
-      if (dist > maxDist)
       {
-        DistanceMapType::IndexType index = it.GetIndex();
-        maxDist = dist;
-        for (unsigned int i = 0; i < 3; i++)
-          avgMaxDistPoint[i] = origin[i] + index[i]*spacing[i];
+	DistanceType dist = it.Get();
+	// #ifdef DEBUG_AP_FILES
+	//     distanceFile << dist << std::endl;
+	// #endif
+	if (dist > maxDist)
+	  {
+	    DistanceMapType::IndexType index = it.GetIndex();
+	    maxDist = dist;
+	    for (unsigned int i = 0; i < 3; i++)
+	      avgMaxDistPoint[i] = origin[i] + index[i]*spacing[i];
 
-        points->Initialize();
-        points->InsertNextPoint(avgMaxDistPoint);
-      }
-      else if (dist == maxDist)
-      {
-        DistanceMapType::IndexType index = it.GetIndex();
-        for (unsigned int i = 0; i < 3; i++)
-          avgMaxDistPoint[i] += origin[i] + index[i]*spacing[i];
+	    points->Initialize();
+	    points->InsertNextPoint(avgMaxDistPoint);
+	  }
+	else if (dist == maxDist)
+	  {
+	    DistanceMapType::IndexType index = it.GetIndex();
+	    for (unsigned int i = 0; i < 3; i++)
+	      avgMaxDistPoint[i] += origin[i] + index[i]*spacing[i];
 
-        points->InsertNextPoint(origin[0] + index[0]*spacing[0],
-                                origin[1] + index[1]*spacing[1],
-                                origin[2] + index[2]*spacing[2]);
+	    points->InsertNextPoint(origin[0] + index[0]*spacing[0],
+				    origin[1] + index[1]*spacing[1],
+				    origin[2] + index[2]*spacing[2]);
+	  }
+	++it;
       }
-      ++it;
-    }
     //   #ifdef DEBUG_AP_FILES
     //   distanceFile.close();
     //   #endif
-
+  
     for (unsigned int i = 0; i < 3; i++)
       avgMaxDistPoint[i] /= points->GetNumberOfPoints();
+
   }
 
   //----------------------------------------------------------------------------
@@ -549,6 +554,47 @@ namespace EspINA
     // #endif
   }
 
+//------------------------------------------------------------------------
+/**
+ * Normal's magnitude is 1
+ */
+  void AppositionSurfaceFilter::projectPolyDataToPlane(double* origin, double* normal, vtkPolyData* meshIn, vtkPolyData* meshOut) const
+  {
+	
+    vtkSmartPointer<vtkPlane> plane = vtkSmartPointer<vtkPlane>::New();
+    plane->SetOrigin(origin);
+    plane->SetNormal(normal);
+  
+    int pointsCount = 0;
+    double projected[3], p[3];
+ 
+    vtkSmartPointer<vtkPoints> pointsIn, pointsOut;
+    pointsOut = vtkSmartPointer<vtkPoints>::New();
+    pointsIn = meshIn->GetPoints();
+
+    pointsCount = pointsIn->GetNumberOfPoints();
+    pointsOut->SetNumberOfPoints(pointsCount);
+    for (int i = 0; i < pointsCount; i++) {
+      pointsIn->GetPoint(i, p);
+      plane->ProjectPoint(p, projected);
+      pointsOut->SetPoint(i, projected);
+    }
+
+    vtkSmartPointer<vtkPolyData> auxMesh = vtkSmartPointer<vtkPolyData>::New();
+    auxMesh->DeepCopy(meshIn);
+    auxMesh->SetPoints(pointsOut);
+
+    vtkSmartPointer<vtkPolyDataNormals> normals =
+      vtkSmartPointer<vtkPolyDataNormals>::New();
+    normals->SetInput(auxMesh);
+    normals->SplittingOff();
+    normals->Update();
+
+
+    meshOut->ShallowCopy(normals->GetOutput());
+	
+  }
+
   //----------------------------------------------------------------------------
   void AppositionSurfaceFilter::computeIterationLimits(double * min, double * spacing, int & iterations, double & thresholdError) const
   {
@@ -612,10 +658,13 @@ namespace EspINA
     implicitVolFilter->SetVolume(image);
     implicitVolFilter->SetOutValue(0);
 
+    double inValue = 255.0;
+    inValue = image->GetScalarRange()[1];
+
     vtkSmartPointer<vtkClipPolyData> clipper = vtkSmartPointer<vtkClipPolyData>::New();
     clipper->SetClipFunction(implicitVolFilter);
     clipper->SetInput(plane);
-    clipper->SetValue(0);
+    clipper->SetValue(inValue*CLIPPINGTHRESHOLD);
     clipper->Update();
 
     PolyData clippedPlane; // = PolyData::New();
@@ -773,10 +822,14 @@ namespace EspINA
   //----------------------------------------------------------------------------
   double AppositionSurfaceFilter::computeTortuosity() const
   {
-    double curved_area = computeArea(m_blendedNotClippedPlane);
-    double reference_area = computeArea(m_referencePlane);
+    vtkSmartPointer<vtkPolyData> projected_apposition_plane = 
+      vtkSmartPointer<vtkPolyData>::New();
+    projectPolyDataToPlane(m_templateOrigin, m_templateNormal, m_ap, projected_apposition_plane);
 
-    return reference_area / curved_area ;
+    double curved_area = computeArea(m_ap);
+    double reference_area = computeArea(projected_apposition_plane);
+  
+    return 1 - (reference_area / curved_area);
   }
 
   //----------------------------------------------------------------------------
@@ -866,10 +919,8 @@ namespace EspINA
     bool returnValue = false;
 
     QString nameAS             = QString().number(m_cacheId) + QString("-AS.vtp");
-    QString nameBlendedPlane   = QString().number(m_cacheId) + QString("-Blended_Plane.vtp");
-    QString nameReferencePlane = QString().number(m_cacheId) + QString("-Reference_Plane.vtp");
 
-    if (m_cacheDir.exists(nameAS) && m_cacheDir.exists(nameBlendedPlane) && m_cacheDir.exists(nameReferencePlane))
+    if (m_cacheDir.exists(nameAS))
     {
       // NOTE: three different instances are needed for the readers,if we reuse one
       // instance (like we do in AppositionSurfaceFilter::dumpSnapshot() ) the data
@@ -881,22 +932,6 @@ namespace EspINA
       polyASReader->Update();
 
       m_ap = PolyData(polyASReader->GetPolyDataOutput());
-
-      fileName = m_cacheDir.absolutePath() + QDir::separator()+ nameBlendedPlane;
-      vtkSmartPointer<vtkGenericDataObjectReader> polyBlendedPlaneReader = vtkSmartPointer<vtkGenericDataObjectReader>::New();
-      polyBlendedPlaneReader->SetFileName(fileName.toStdString().c_str());
-      polyBlendedPlaneReader->SetReadAllFields(true);
-      polyBlendedPlaneReader->Update();
-
-      m_blendedNotClippedPlane = PolyData(polyBlendedPlaneReader->GetPolyDataOutput());
-
-      fileName = m_cacheDir.absolutePath() + QDir::separator()+ nameReferencePlane;
-      vtkSmartPointer<vtkGenericDataObjectReader> polyReferencePlaneReader = vtkSmartPointer<vtkGenericDataObjectReader>::New();
-      polyReferencePlaneReader->SetFileName(fileName.toStdString().c_str());
-      polyReferencePlaneReader->SetReadAllFields(true);
-      polyReferencePlaneReader->Update();
-
-      m_referencePlane = PolyData(polyReferencePlaneReader->GetPolyDataOutput());
 
       returnValue = true;
     }
@@ -922,23 +957,10 @@ namespace EspINA
 
       QByteArray polyArray(polyWriter->GetOutputString(), polyWriter->GetOutputStringLength());
 
-      polyWriter->SetInputConnection(m_blendedNotClippedPlane->GetProducerPort());
-      polyWriter->Update();
-      polyWriter->Write();
-
-      QByteArray polyBlendedPlaneArray(polyWriter->GetOutputString(), polyWriter->GetOutputStringLength());
-
-      polyWriter->SetInputConnection(m_referencePlane->GetProducerPort());
-      polyWriter->Update();
-      polyWriter->Write();
-
-      QByteArray polyReferencePlaneArray(polyWriter->GetOutputString(), polyWriter->GetOutputStringLength());
-
+      
       SnapshotEntry polyEntry(this->id() + QString("-AS.vtp"), polyArray);
-      SnapshotEntry polyBlendedPlaneEntry(this->id() + QString("-Blended_Plane.vtp"), polyBlendedPlaneArray);
-      SnapshotEntry polyReferencePlaneEntry(this->id() + QString("-Reference_Plane.vtp"), polyReferencePlaneArray);
 
-      snapshot << polyEntry << polyBlendedPlaneEntry << polyReferencePlaneEntry;
+      snapshot << polyEntry;
 
       returnValue = true;
     }
