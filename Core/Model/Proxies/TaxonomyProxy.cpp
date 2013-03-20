@@ -56,21 +56,47 @@ TaxonomyProxy::~TaxonomyProxy()
 //------------------------------------------------------------------------
 void TaxonomyProxy::setSourceModel(EspinaModel *sourceModel)
 {
+  if (m_model)
+  {
+    disconnect(m_model, SIGNAL(rowsInserted(const QModelIndex&, int, int)),
+               this, SLOT(sourceRowsInserted(const QModelIndex&, int, int)));
+    disconnect(m_model, SIGNAL(rowsRemoved(const QModelIndex&, int, int)),
+               this, SLOT(sourceRowsRemoved(QModelIndex,int,int)));
+    disconnect(m_model, SIGNAL(rowsAboutToBeRemoved(const QModelIndex&, int, int)),
+               this, SLOT(sourceRowsAboutToBeRemoved(QModelIndex,int,int)));
+    disconnect(m_model, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
+               this,SLOT(sourceDataChanged(QModelIndex,QModelIndex)));
+    disconnect(m_model, SIGNAL(rowsAboutToBeMoved(const QModelIndex &, int, int, const QModelIndex &, int)),
+               this, SLOT(sourceRowsAboutToBeMoved(QModelIndex,int,int,QModelIndex,int)));
+    disconnect(m_model, SIGNAL(rowsMoved(const QModelIndex &, int, int, const QModelIndex &, int)),
+               this, SLOT(sourceRowsMoved(QModelIndex,int,int,QModelIndex,int)));
+    disconnect(m_model, SIGNAL(modelAboutToBeReset()),
+               this, SLOT(sourceModelReset()));
+  }
+
+  m_numTaxonomies.clear();
+  m_taxonomySegmentations.clear();
+  m_taxonomyVisibility.clear();
+
   m_model = sourceModel;
-  connect(m_model, SIGNAL(rowsInserted(const QModelIndex&, int, int)),
-          this, SLOT(sourceRowsInserted(const QModelIndex&, int, int)));
-  connect(m_model, SIGNAL(rowsRemoved(const QModelIndex&, int, int)),
-          this, SLOT(sourceRowsRemoved(QModelIndex,int,int)));
-  connect(m_model, SIGNAL(rowsAboutToBeRemoved(const QModelIndex&, int, int)),
-          this, SLOT(sourceRowsAboutToBeRemoved(QModelIndex,int,int)));
-  connect(m_model, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
-          this,SLOT(sourceDataChanged(QModelIndex,QModelIndex)));
-  connect(m_model, SIGNAL(rowsAboutToBeMoved(const QModelIndex &, int, int, const QModelIndex &, int)),
-          this, SLOT(sourceRowsAboutToBeMoved(QModelIndex,int,int,QModelIndex,int)));
-  connect(m_model, SIGNAL(rowsMoved(const QModelIndex &, int, int, const QModelIndex &, int)),
-          this, SLOT(sourceRowsMoved(QModelIndex,int,int,QModelIndex,int)));
-  connect(m_model, SIGNAL(modelAboutToBeReset()),
-          this, SLOT(sourceModelReset()));
+
+  if (m_model)
+  {
+    connect(m_model, SIGNAL(rowsInserted(const QModelIndex&, int, int)),
+            this, SLOT(sourceRowsInserted(const QModelIndex&, int, int)));
+    connect(m_model, SIGNAL(rowsRemoved(const QModelIndex&, int, int)),
+            this, SLOT(sourceRowsRemoved(QModelIndex,int,int)));
+    connect(m_model, SIGNAL(rowsAboutToBeRemoved(const QModelIndex&, int, int)),
+            this, SLOT(sourceRowsAboutToBeRemoved(QModelIndex,int,int)));
+    connect(m_model, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
+            this,SLOT(sourceDataChanged(QModelIndex,QModelIndex)));
+    connect(m_model, SIGNAL(rowsAboutToBeMoved(const QModelIndex &, int, int, const QModelIndex &, int)),
+            this, SLOT(sourceRowsAboutToBeMoved(QModelIndex,int,int,QModelIndex,int)));
+    connect(m_model, SIGNAL(rowsMoved(const QModelIndex &, int, int, const QModelIndex &, int)),
+            this, SLOT(sourceRowsMoved(QModelIndex,int,int,QModelIndex,int)));
+    connect(m_model, SIGNAL(modelAboutToBeReset()),
+            this, SLOT(sourceModelReset()));
+  }
 
   QAbstractProxyModel::setSourceModel(m_model);
 
@@ -574,8 +600,8 @@ void TaxonomyProxy::sourceRowsInserted(const QModelIndex& sourceParent, int star
     return;
 
   if (sourceParent == m_model->sampleRoot() ||
-    sourceParent == m_model->channelRoot()  ||
-    sourceParent == m_model->filterRoot())
+      sourceParent == m_model->channelRoot()  ||
+      sourceParent == m_model->filterRoot())
     return;
 
   if (sourceParent == m_model->taxonomyRoot())
@@ -667,9 +693,7 @@ void TaxonomyProxy::sourceRowsAboutToBeRemoved(const QModelIndex& sourceParent, 
       }
     }
     return;
-  }else
-    // Handles taxonomyRoot and taxonomyNodes
-//   if (sourceParent == m_model->taxonomyRoot())
+  }else // Handles taxonomyRoot and taxonomyNodes
   {
     beginRemoveRows(mapFromSource(sourceParent), start, end);
     for (int row=start; row <= end; row++)
@@ -681,19 +705,6 @@ void TaxonomyProxy::sourceRowsAboutToBeRemoved(const QModelIndex& sourceParent, 
     endRemoveRows();
     return;
   }
-/* 
-  QModelIndex sourceIndex = m_model->index(start, 0, sourceParent);
-  QModelIndex proxyIndex  = mapFromSource(sourceIndex);
-  ModelItemPtr item = indexPtr(sourceIndex);
-  Q_ASSERT(EspINA::TAXONOMY == item->type());
-  beginRemoveRows(proxyIndex.parent(), proxyIndex.row(),proxyIndex.row());
-  for (int row=start; row <= end; row++)
-  {
-    item = indexPtr(m_model->index(row, 0, sourceParent));
-    TaxonomyNode *taxonomy = dynamic_cast<TaxonomyNode *>(item);
-    removeTaxonomy(taxonomy);
-  }
-  endRemoveRows();*/
 }
 
 //------------------------------------------------------------------------

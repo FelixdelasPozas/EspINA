@@ -29,6 +29,12 @@ namespace QtModelUtils
 
   /// Return a list of all QModelIndex between @topLeft index and @bottomRight index
   QModelIndexList indices(const QModelIndex &topLeft, const QModelIndex &bottomRight);
+
+  /// Return whether a node has leaf nodes
+  bool isInnerNode(const QModelIndex &index);
+
+  /// Return whether a node is leaf
+  bool isLeafNode(const QModelIndex &index);
 } // namespace QtModelUtils
 
 #endif // QTMODELUTILS_H

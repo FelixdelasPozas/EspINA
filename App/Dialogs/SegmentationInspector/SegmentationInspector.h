@@ -85,7 +85,7 @@ namespace EspINA
     SegmentationList m_segmentations;
     ChannelList      m_channels;
 
-    QSharedPointer<InformationProxy>      m_info;
+    QSharedPointer<TaxonomicaInformationProxy>      m_info;
     QSharedPointer<QSortFilterProxyModel> m_sort;
 
     VolumeView *m_view;

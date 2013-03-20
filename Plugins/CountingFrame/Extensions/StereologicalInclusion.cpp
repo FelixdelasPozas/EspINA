@@ -266,24 +266,26 @@ void StereologicalInclusion::evaluateCountingFrames()
 {
   //qDebug() << "Evaluate Counting Frames" << m_segmentation->data().toString() << StereologicalInclusionID;
   SampleSPtr sample = m_segmentation->sample();
-
-  CountingFrameList countingFrames;
-  foreach (ChannelPtr channel, sample->channels())
+  if (!sample.isNull())
   {
-    Channel::ExtensionPtr ext = channel->extension(CountingFrameExtensionID);
-    if (ext)
+    CountingFrameList countingFrames;
+    foreach (ChannelPtr channel, sample->channels())
     {
-      CountingFrameExtension *channelExt = dynamic_cast<CountingFrameExtension *>(ext);
-      countingFrames << channelExt->countingFrames();
+      Channel::ExtensionPtr ext = channel->extension(CountingFrameExtensionID);
+      if (ext)
+      {
+        CountingFrameExtension *channelExt = dynamic_cast<CountingFrameExtension *>(ext);
+        countingFrames << channelExt->countingFrames();
+      }
     }
+
+    m_isOnEdge = isOnEdge();
+
+    setCountingFrames(countingFrames);
+
+    updateConditions();
+    s_cache.markAsClean(m_segmentation);
   }
-
-  m_isOnEdge = isOnEdge();
-
-  setCountingFrames(countingFrames);
-
-  updateConditions();
-  s_cache.markAsClean(m_segmentation);
 }
 
 //------------------------------------------------------------------------

@@ -19,6 +19,7 @@
 
 #include "QtModelUtils.h"
 
+//------------------------------------------------------------------------
 QModelIndex QtModelUtils::findChildIndex(QModelIndex parent, QVariant value, int role)
 {
   QModelIndex index;
@@ -38,6 +39,7 @@ QModelIndex QtModelUtils::findChildIndex(QModelIndex parent, QVariant value, int
   return index;
 }
 
+//------------------------------------------------------------------------
 QModelIndexList QtModelUtils::indices(const QModelIndex &topLeft, const QModelIndex &bottomRight)
 {
   QModelIndexList result;
@@ -57,4 +59,30 @@ QModelIndexList QtModelUtils::indices(const QModelIndex &topLeft, const QModelIn
   }
 
   return result;
+}
+
+//------------------------------------------------------------------------
+bool QtModelUtils::isInnerNode(const QModelIndex &index)
+{
+  bool hasLeafNode = false;
+
+  if (index.isValid())
+  {
+    const QAbstractItemModel *model = index.model();
+
+    int i = 0;
+    while (!hasLeafNode && i < model->rowCount(index))
+    {
+      hasLeafNode |= isLeafNode(index.child(i, 0));
+      ++i;
+    }
+  }
+
+  return hasLeafNode;
+}
+
+//------------------------------------------------------------------------
+bool QtModelUtils::isLeafNode(const QModelIndex &index)
+{
+  return index.isValid() && (index.model()->rowCount(index) == 0);
 }

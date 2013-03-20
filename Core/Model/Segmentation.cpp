@@ -218,15 +218,20 @@ void Segmentation::updateCacheFlag()
 //------------------------------------------------------------------------
 SampleSPtr Segmentation::sample()
 {
+  SampleSPtr sample;
+
   ModelItemSList relatedChannels = relatedItems(EspINA::IN, Channel::LINK);
   // NOTE: Decide how to deal with segmentations created from various channels in a future
-  Q_ASSERT(relatedChannels.size() == 1);
+  if (relatedChannels.size() == 1)
+  {
+    ModelItemSPtr channel = relatedChannels.first();
+    ModelItemSList relatedSamples = channel->relatedItems(EspINA::IN, Channel::STAIN_LINK);
 
-  ModelItemSPtr channel = relatedChannels.first();
-  ModelItemSList relatedSamples = channel->relatedItems(EspINA::IN, Channel::STAIN_LINK);
+    Q_ASSERT(relatedSamples.size() == 1);
+    sample = samplePtr(relatedSamples.first());
+  }
 
-  Q_ASSERT(relatedSamples.size() == 1);
-  return samplePtr(relatedSamples.first());
+  return sample;
 }
 
 //------------------------------------------------------------------------

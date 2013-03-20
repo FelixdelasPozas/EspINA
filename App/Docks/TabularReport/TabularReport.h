@@ -21,11 +21,12 @@
 #define DATAVIEW_H
 
 #include <QWidget>
-#include <ui_TabularReport.h>
 
 #include <GUI/ViewManager.h>
 #include <Core/Model/Proxies/InformationProxy.h>
 #include <QSortFilterProxyModel>
+#include <QAbstractItemView>
+#include <QVBoxLayout>
 
 #ifdef TEST_ESPINA_MODELS
 class ModelTest;
@@ -34,38 +35,50 @@ class ModelTest;
 namespace EspINA
 {
   class TabularReport
-  : public QWidget
-  , Ui::TabularReport
+  : public QAbstractItemView
   {
     Q_OBJECT
+
+    class Entry;
+
   public:
-    explicit TabularReport(EspinaModel *model,
-                      ViewManager *vm,
-                      QWidget *parent = 0,
-                      Qt::WindowFlags f = 0);
+    explicit TabularReport(EspinaFactory *factory,
+                           ViewManager *viewManager,
+                           QWidget *parent = 0,
+                           Qt::WindowFlags f = 0);
     virtual ~TabularReport();
 
+    virtual int horizontalOffset() const{ return 0;}
+    virtual QModelIndex indexAt(const QPoint &point) const {return QModelIndex();}
+    virtual bool isIndexHidden(const QModelIndex &index) const {return false;}
+    virtual QModelIndex moveCursor(CursorAction cursorAction, Qt::KeyboardModifiers modifiers){return QModelIndex();}
+    virtual void scrollTo(const QModelIndex &index, ScrollHint hint = EnsureVisible){}
+    virtual void setSelection(const QRect &rect, QItemSelectionModel::SelectionFlags command){}
+    virtual int verticalOffset() const{return 0;} 
+    virtual QRect visualRect(const QModelIndex &index) const {return QRect();}
+    virtual QRegion visualRegionForSelection(const QItemSelection &selection) const {return QRegion();}
+
+    virtual void rowsInserted(const QModelIndex &parent, int start, int end);
+    virtual void rowsAboutToBeRemoved(const QModelIndex &parent, int start, int end);
+
   protected:
-    QModelIndex index(ModelItemPtr item) const;
-    ModelItemPtr item(QModelIndex index) const;
+    virtual void reset();
 
   protected slots:
-    void defineQuery();
-    void extractInformation();
     void updateSelection(ViewManager::Selection selection);
     void updateSelection(QItemSelection selected, QItemSelection deselected);
 
   private:
-    EspinaModel                          *m_baseModel;
-    ViewManager                          *m_viewManager;
-    QSharedPointer<InformationProxy>      m_model;
-    QSharedPointer<QSortFilterProxyModel> m_sort;
+    EspinaFactory *m_factory;
+    ViewManager   *m_viewManager;
 
     #ifdef TEST_ESPINA_MODELS
     QSharedPointer<ModelTest>             m_modelTester;
     #endif
 
-    QStringList m_query;
+    QStringList  m_query;
+    QVBoxLayout *m_layout;
+    QMap<ModelItemPtr, Entry *> m_entries;
   };
 
 } // namespace EspINA

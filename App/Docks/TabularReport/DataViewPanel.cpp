@@ -20,6 +20,8 @@
 #include "DataViewPanel.h"
 
 #include "TabularReport.h"
+#include <Core/Model/Proxies/TaxonomyProxy.h>
+#include <QTreeView>
 
 using namespace EspINA;
 
@@ -28,12 +30,20 @@ DataViewPanel::DataViewPanel(EspinaModel *model,
                              ViewManager *viewManager,
                              QWidget     *parent)
   : IDockWidget(parent)
+  , m_informationProxy(new TaxonomicaInformationProxy())
 {
   setObjectName("Data View Panel");
 
   setWindowTitle(tr("Segmentation Information"));
 
-  setWidget(new TabularReport(model, viewManager));
+  m_informationProxy->setSourceModel(model);
+
+  TabularReport *report = new TabularReport(model->factory(), viewManager);
+  report->setModel(m_informationProxy.data());
+  setWidget(report);
+// //   QTreeView *tv = new QTreeView();
+// //   tv->setModel(m_informationProxy.data());
+// //   setWidget(tv);
 }
 
 //----------------------------------------------------------------------------

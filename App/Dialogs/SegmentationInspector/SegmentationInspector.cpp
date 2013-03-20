@@ -49,7 +49,7 @@ SegmentationInspector::SegmentationInspector(SegmentationList segmentations,
 , m_model(model)
 , m_undoStack(undoStack)
 , m_viewManager(vm)
-, m_info(new InformationProxy())
+, m_info(new TaxonomicaInformationProxy())
 , m_sort(new QSortFilterProxyModel())
 , m_view(new VolumeView(model->factory(), vm, true))
 {
@@ -83,7 +83,7 @@ SegmentationInspector::SegmentationInspector(SegmentationList segmentations,
       tags << extension->availableInformations();
   }
 
-  m_info->setQuery(tags);
+  //TODO m_info->setQuery(tags);
   m_info->setSourceModel(m_model);
   m_sort->setSourceModel(m_info.data());
   m_sort->setFilterRegExp(regExpression);

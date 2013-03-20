@@ -24,6 +24,8 @@
 
 #include <Core/EspinaTypes.h>
 #include <Core/Model/EspinaModel.h>
+#include <Core/Model/Proxies/InformationProxy.h>
+#include <Core/Model/Proxies/TaxonomyProxy.h>
 
 namespace EspINA
 {
@@ -44,6 +46,9 @@ public:
                               ViewManager *viewManager);
 
   virtual void reset(); // slot
+
+private:
+  QSharedPointer<TaxonomicaInformationProxy> m_informationProxy;
 };
 
 } // namespace EspINA

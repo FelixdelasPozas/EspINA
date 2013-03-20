@@ -18,6 +18,7 @@
 
 
 #include "TabularReport.h"
+#include "TabularReportEntry.h"
 
 #include "Dialogs/TabularReport/QueryView.h"
 
@@ -25,10 +26,14 @@
 #include <Core/Model/EspinaModel.h>
 #include <Core/Model/Segmentation.h>
 #include <Core/Model/EspinaFactory.h>
+#include <Core/Model/QtModelUtils.h>
 #include <Core/Extensions/SegmentationExtension.h>
 
 // Qt
 #include <QFileDialog>
+#include <QLabel>
+#include <QScrollArea>
+#include <QStandardItemModel>
 
 #ifdef TEST_ESPINA_MODELS
 #include "common/model/ModelTest.h"
@@ -36,16 +41,48 @@
 
 using namespace EspINA;
 
+//------------------------------------------------------------------------
 class DataSortFiler
 : public QSortFilterProxyModel
 {
+public:
+  DataSortFiler(QObject *parent = 0) 
+  : QSortFilterProxyModel(parent) {}
+
 protected:
+//   virtual bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const
+//   {
+//     if (!source_parent.isValid())
+//       return true;
+// 
+//     bool accepted = false;
+// 
+//     QModelIndex proxyIndex = source_parent.child(source_row, 0);
+//     if (proxyIndex == m_root)
+//       accepted = true;
+//     else if (proxyIndex.parent() == m_root && QtModelUtils::isLeafNode(proxyIndex))
+//       accepted = true;
+//     else
+//     {
+//       QModelIndex parent = source_parent.parent();
+//       while (!accepted && parent.isValid())
+//       {
+//         accepted = parent == m_root ;
+//         parent   = parent.parent();
+//       }
+//     }
+// 
+//     return accepted;
+//   }
+
+  //------------------------------------------------------------------------
   virtual bool lessThan(const QModelIndex& left, const QModelIndex& right) const
   {
     int role = left.column()>0?Qt::DisplayRole:Qt::UserRole+1;
     bool ok1, ok2;
     double lv = left.data(role).toDouble(&ok1);
     double rv = right.data(role).toDouble(&ok2);
+
     if (ok1 && ok2)
       return lv < rv;
     else
@@ -53,52 +90,44 @@ protected:
   }
 };
 
+
 //------------------------------------------------------------------------
-TabularReport::TabularReport(EspinaModel *model,
-                   ViewManager *viewmManager,
-                   QWidget     *parent,
-                   Qt::WindowFlags f)
-: QWidget(parent, f)
-, m_baseModel(model)
+TabularReport::TabularReport(EspinaFactory  *factory,
+                             ViewManager    *viewmManager,
+                             QWidget        *parent,
+                             Qt::WindowFlags f)
+: m_factory(factory)
 , m_viewManager(viewmManager)
-, m_model(new InformationProxy())
-, m_sort (new DataSortFiler())
 {
-  setupUi(this);
-
-  m_model->setSourceModel(m_baseModel);
-  m_sort->setSourceModel(m_model.data());
-  m_sort->setDynamicSortFilter(true);
-
   #ifdef TEST_ESPINA_MODELS
   m_modelTester = QSharedPointer<ModelTest>(new ModelTest(m_model.data()));
   #endif
 
-  tableView->setModel(m_sort.data());
-  tableView->setSortingEnabled(true);
-  tableView->sortByColumn(0, Qt::AscendingOrder);
-  //   tableView->horizontalHeader()->setMovable(true);
-  tableView->setSelectionBehavior(QAbstractItemView::SelectRows);
+  QVBoxLayout *layout = new QVBoxLayout();
+  QScrollArea *scrollArea = new QScrollArea();
+  QWidget *widget = new QWidget();
+  //layout->setMargin(0);
+  QPalette pal = this->palette();
+  pal.setColor(QPalette::Base, pal.color(QPalette::Background));
+  this->setPalette(pal);
+  m_layout = new QVBoxLayout();
+  widget->setLayout(m_layout);
 
-  QIcon iconSave = qApp->style()->standardIcon(QStyle::SP_DialogSaveButton);
-  writeDataToFile->setIcon(iconSave);
-  connect(writeDataToFile, SIGNAL(clicked()),
-          this,SLOT(extractInformation()));
-  connect(changeQuery, SIGNAL(clicked()),
-          this,SLOT(defineQuery()));
-  connect(tableView->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
-          this, SLOT(updateSelection(QItemSelection,QItemSelection)));
-  connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection, bool)),
-          this, SLOT(updateSelection(ViewManager::Selection)));
+  scrollArea->setWidget(widget);
+  scrollArea->setWidgetResizable(true);
+  layout->addWidget(scrollArea);
+  setLayout(layout);
 
-  Segmentation::InfoTagList tags;
-  tags << tr("Name") << tr("Taxonomy");
-  foreach(Segmentation::InformationExtension extension, m_baseModel->factory()->segmentationExtensions())
-  {
-    tags << extension->availableInformations();
-  }
-
-  m_model->setQuery(tags);
+//   tableView->setModel(m_sort.data());
+//   tableView->setSortingEnabled(true);
+//   tableView->sortByColumn(0, Qt::AscendingOrder);
+//   //   tableView->horizontalHeader()->setMovable(true);
+//   tableView->setSelectionBehavior(QAbstractItemView::SelectRows);
+// 
+//   connect(tableView->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
+//           this, SLOT(updateSelection(QItemSelection,QItemSelection)));
+//   connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection, bool)),
+//           this, SLOT(updateSelection(ViewManager::Selection)));
 }
 
 //------------------------------------------------------------------------
@@ -107,105 +136,137 @@ TabularReport::~TabularReport()
 }
 
 //------------------------------------------------------------------------
-QModelIndex TabularReport::index(ModelItemPtr item) const
+void TabularReport::rowsInserted(const QModelIndex &parent, int start, int end)
 {
-  QModelIndex baseModelIndex = m_baseModel->index(item);
-  QModelIndex informationIndex = m_model->mapFromSource(baseModelIndex);
-  return m_sort->mapFromSource(informationIndex);
-}
-
-//------------------------------------------------------------------------
-ModelItemPtr TabularReport::item(QModelIndex index) const
-{
-  return indexPtr(m_sort->mapToSource(index));
-}
-
-//------------------------------------------------------------------------
-void TabularReport::defineQuery()
-{
-  QStringList query;
-  query << tr("Name") << tr("Taxonomy");
-  foreach(Segmentation::InformationExtension extension, m_baseModel->factory()->segmentationExtensions())
+  if (parent.isValid() && !parent.parent().isValid())
   {
-    query << extension->availableInformations();
-  }
-
-  QueryView *querySelector = new QueryView(query, this);
-  querySelector->exec();
-  m_model->setQuery(query);
-}
-
-//------------------------------------------------------------------------
-void TabularReport::extractInformation()
-{
-  QString title   = tr("Export Segmentation Data");
-  QString fileExt = tr("CSV Text File (*.csv)");
-  QString fileName = QFileDialog::getSaveFileName(this, title, "", fileExt);
-
-  if (fileName.isEmpty())
-    return;
-
-  QFile file(fileName);
-  file.open(QIODevice::WriteOnly |  QIODevice::Text);
-  QTextStream out(&file);
-  out << m_model->query().join(",") << "\n";
-  for (int r = 0; r < m_sort->rowCount(); r++)
-  {
-    for (int c = 0; c < m_sort->columnCount(); c++)
+    ModelItemPtr       parentItem = indexPtr(parent);
+    TaxonomyElementPtr taxonomy   = taxonomyElementPtr(parentItem);
+    for (int row = start; row <= end; ++row)
     {
-      if (c)
-        out << ",";
-      out << m_sort->index(r,c).data().toString();
+      if (!m_entries.contains(parentItem))
+      {
+        QString taxonomyName = taxonomy->qualifiedName();
+
+        Entry *entry = new Entry(taxonomyName, m_factory);
+        entry->title->setText(taxonomyName);
+        DataSortFiler *sortFilter = new DataSortFiler(entry);
+        sortFilter->setSourceModel(model());
+        sortFilter->setDynamicSortFilter(true);
+        sortFilter->setSortRole(Qt::DisplayRole);
+
+        QStringList tags;
+        tags << tr("Name") << tr("Taxonomy");
+        foreach(Segmentation::InformationExtension extension, m_factory->segmentationExtensions())
+        {
+          if (extension->validTaxonomy(taxonomyName))
+          {
+            tags << extension->availableInformations();
+          }
+        }
+
+        entry->tableView->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
+        entry->tableView->setModel(sortFilter);
+        QModelIndex rootIndex = sortFilter->mapFromSource(parent);
+        sortFilter->setData(rootIndex, tags, InformationTagsRole);
+        entry->tableView->setRootIndex(rootIndex);
+        entry->tableView->setSortingEnabled(true);
+
+        QStandardItemModel *header = new QStandardItemModel(1, tags.size(), this);
+        header->setHorizontalHeaderLabels(tags);
+        entry->tableView->horizontalHeader()->setModel(header);
+        entry->tableView->horizontalHeader()->resizeSections(QHeaderView::ResizeToContents);
+
+        m_entries[parentItem] = entry;
+
+        bool ordered = false;
+        int  i = 0;
+        while (!ordered && i < m_layout->count())
+        {
+          Entry *entry = dynamic_cast<Entry *>(m_layout->itemAt(i)->widget());
+          TaxonomyElementPtr currentTaxonomy = taxonomyElementPtr(m_entries.key(entry));
+          if (currentTaxonomy->qualifiedName() > taxonomyName)
+            ordered = true;
+          else
+            i++;
+        }
+
+        m_layout->insertWidget(i, entry);
+      }
     }
-    out << "\n";
   }
-  file.close();
+}
+
+//------------------------------------------------------------------------
+void TabularReport::rowsAboutToBeRemoved(const QModelIndex &parent, int start, int end)
+{
+  if (parent == QModelIndex())
+  {
+    for (int row = start; row <= end; ++row)
+    {
+      ModelItemPtr child = indexPtr(model()->index(row, 0));
+
+      Entry *entry = m_entries[child];
+      m_layout->removeWidget(entry);
+      delete entry;
+
+      m_entries.remove(child);
+    }
+  }
+}
+
+
+//------------------------------------------------------------------------
+void TabularReport::reset()
+{
+  m_entries.clear();
+  rowsInserted(QModelIndex(), 0 , model()->rowCount() - 1);
 }
 
 //------------------------------------------------------------------------
 void TabularReport::updateSelection(ViewManager::Selection selection)
 {
-  if (!isVisible())
-    return;
-
-  //   qDebug() << "Update Data Selection from Selection Manager";
-    tableView->blockSignals(true);
-    tableView->selectionModel()->blockSignals(true);
-    tableView->selectionModel()->reset();
-    tableView->setSelectionMode(QAbstractItemView::MultiSelection);
-    foreach(PickableItemPtr item, selection)
-    {
-      QModelIndex selIndex = index(item);
-      if (selIndex.isValid())
-      {
-        tableView->selectRow(selIndex.row());
-      }
-    }
-    tableView->setSelectionMode(QAbstractItemView::ExtendedSelection);
-    tableView->selectionModel()->blockSignals(false);
-    tableView->blockSignals(false);
-    // Center the view at the first selected item
-    if (!selection.isEmpty())
-    {
-      QModelIndex currentIndex = index(selection.first());
-      tableView->selectionModel()->setCurrentIndex(currentIndex, QItemSelectionModel::Select);
-      tableView->scrollTo(currentIndex);
-    }
-    // Update all visible items
-    tableView->viewport()->update();
+//   if (!isVisible())
+//     return;
+// 
+//   //   qDebug() << "Update Data Selection from Selection Manager";
+//     tableView->blockSignals(true);
+//     tableView->selectionModel()->blockSignals(true);
+//     tableView->selectionModel()->reset();
+//     tableView->setSelectionMode(QAbstractItemView::MultiSelection);
+//     foreach(PickableItemPtr item, selection)
+//     {
+//       QModelIndex selIndex = index(item);
+//       if (selIndex.isValid())
+//       {
+//         tableView->selectRow(selIndex.row());
+//       }
+//     }
+//     tableView->setSelectionMode(QAbstractItemView::ExtendedSelection);
+//     tableView->selectionModel()->blockSignals(false);
+//     tableView->blockSignals(false);
+//     // Center the view at the first selected item
+//     if (!selection.isEmpty())
+//     {
+//       QModelIndex currentIndex = index(selection.first());
+//       tableView->selectionModel()->setCurrentIndex(currentIndex, QItemSelectionModel::Select);
+//       tableView->scrollTo(currentIndex);
+//     }
+//     // Update all visible items
+//     tableView->viewport()->update();
 }
 
 //------------------------------------------------------------------------
 void TabularReport::updateSelection(QItemSelection selected, QItemSelection deselected)
 {
-  ViewManager::Selection selection;
-
-  foreach(QModelIndex index, tableView->selectionModel()->selectedRows())
-  {
-    ModelItemPtr sItem = item(index);
-    if (EspINA::SEGMENTATION == sItem->type())
-      selection << pickableItemPtr(sItem);
-  }
-
-  m_viewManager->setSelection(selection);
+//   ViewManager::Selection selection;
+// 
+//   foreach(QModelIndex index, tableView->selectionModel()->selectedRows())
+//   {
+//     ModelItemPtr sItem = item(index);
+//     if (EspINA::SEGMENTATION == sItem->type())
+//       selection << pickableItemPtr(sItem);
+//   }
+// 
+//   m_viewManager->setSelection(selection);
 }

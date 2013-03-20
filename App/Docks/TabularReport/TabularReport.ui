@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>608</width>
-    <height>320</height>
+    <height>122</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,68 +15,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QScrollArea" name="scrollArea">
-     <property name="widgetResizable">
-      <bool>true</bool>
-     </property>
-     <widget class="QWidget" name="scrollAreaWidgetContents">
-      <property name="geometry">
-       <rect>
-        <x>0</x>
-        <y>0</y>
-        <width>594</width>
-        <height>268</height>
-       </rect>
-      </property>
-      <layout class="QVBoxLayout" name="verticalLayout_2">
-       <item>
-        <widget class="QTableView" name="tableView">
-         <property name="styleSheet">
-          <string notr="true">QTableView::indicator {
-     width: 15px;
-     height: 15px;
- }
-QTableView::indicator:checked {
-     image: url(:/espina/show_all.svg);
- } 
-QTableView::indicator:unchecked {
-     image: url(:/espina/hide_all.svg);
- } 
-</string>
-         </property>
-         <property name="dragDropMode">
-          <enum>QAbstractItemView::InternalMove</enum>
-         </property>
-         <property name="defaultDropAction">
-          <enum>Qt::MoveAction</enum>
-         </property>
-         <property name="selectionBehavior">
-          <enum>QAbstractItemView::SelectRows</enum>
-         </property>
-         <attribute name="verticalHeaderVisible">
-          <bool>false</bool>
-         </attribute>
-        </widget>
-       </item>
-      </layout>
-     </widget>
-    </widget>
-   </item>
-   <item>
     <layout class="QHBoxLayout" name="horizontalLayout_5">
-     <item>
-      <spacer name="horizontalSpacer_5">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
      <item>
       <widget class="QPushButton" name="writeDataToFile">
        <property name="sizePolicy">
@@ -104,7 +43,7 @@ QTableView::indicator:unchecked {
         </size>
        </property>
        <property name="toolTip">
-        <string>Add taxonomy node</string>
+        <string>Export information to csv</string>
        </property>
        <property name="text">
         <string/>
@@ -121,7 +60,7 @@ QTableView::indicator:unchecked {
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="changeQuery">
+      <widget class="QPushButton" name="selectInformation">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
@@ -167,7 +106,59 @@ QTableView::indicator:unchecked {
        </property>
       </widget>
      </item>
+     <item>
+      <widget class="QLabel" name="title">
+       <property name="text">
+        <string>Title</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_5">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
     </layout>
+   </item>
+   <item>
+    <widget class="QTableView" name="tableView">
+     <property name="styleSheet">
+      <string notr="true">QTableView::indicator {
+     width: 15px;
+     height: 15px;
+ }
+QTableView::indicator:checked {
+     image: url(:/espina/show_all.svg);
+ } 
+QTableView::indicator:unchecked {
+     image: url(:/espina/hide_all.svg);
+ } 
+</string>
+     </property>
+     <property name="dragDropMode">
+      <enum>QAbstractItemView::InternalMove</enum>
+     </property>
+     <property name="defaultDropAction">
+      <enum>Qt::MoveAction</enum>
+     </property>
+     <property name="selectionBehavior">
+      <enum>QAbstractItemView::SelectRows</enum>
+     </property>
+     <property name="sortingEnabled">
+      <bool>true</bool>
+     </property>
+     <attribute name="verticalHeaderVisible">
+      <bool>false</bool>
+     </attribute>
+    </widget>
    </item>
   </layout>
  </widget>

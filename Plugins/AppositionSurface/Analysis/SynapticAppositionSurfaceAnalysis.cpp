@@ -238,11 +238,11 @@ void SynapticAppositionSurfaceAnalysis::defineQuery()
   tags[SYNAPSE] = m_synapseTags;
   tags[SAS]     = m_sasTags;
 
-  InformationSelector synapseTagSelector(tags,
-                                         m_model->factory(),
-                                         this);
+  InformationSelector tagSelector(tags,
+                                  m_model->factory(),
+                                  this);
 
-  if (synapseTagSelector.exec() == QDialog::Accepted)
+  if (tagSelector.exec() == QDialog::Accepted)
   {
     m_synapseTags.clear();
     m_synapseTags << tr("Name") << tr("Taxonomy") << tags[SYNAPSE];

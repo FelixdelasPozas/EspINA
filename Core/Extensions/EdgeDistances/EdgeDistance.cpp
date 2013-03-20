@@ -237,20 +237,22 @@ void EdgeDistance::updateDistances() const
 {
   //qDebug() << "Updating" << m_seg->data().toString() << EdgeDistanceID;
   ChannelSPtr channel = m_segmentation->channel();
+  if (!channel.isNull())
+  {
+    AdaptiveEdges  *edgesExtension = NULL;
+    Channel::ExtensionPtr extension = channel->extension(AdaptiveEdgesID);
+    if (!extension)
+    {
+      edgesExtension = new AdaptiveEdges();
+      channel->addExtension(edgesExtension);
+    } else
+    {
+      edgesExtension = adaptiveEdgesPtr(extension);
+    }
+    Q_ASSERT(edgesExtension);
 
-  AdaptiveEdges  *edgesExtension = NULL;
-  Channel::ExtensionPtr extension = channel->extension(AdaptiveEdgesID);
-  if (!extension)
-  {
-    edgesExtension = new AdaptiveEdges();
-    channel->addExtension(edgesExtension);
-  } else
-  {
-    edgesExtension = adaptiveEdgesPtr(extension);
+    edgesExtension->computeDistanceToEdge(m_segmentation);
   }
-  Q_ASSERT(edgesExtension);
-
-  edgesExtension->computeDistanceToEdge(m_segmentation);
 }
 
 //-----------------------------------------------------------------------------

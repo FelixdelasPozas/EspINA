@@ -30,30 +30,37 @@
 namespace EspINA
 {
 
-  class InformationProxy
+  const int InformationTagsRole = Qt::UserRole+3;
+
+  /// Add segmentation information depending on its current taxonomy
+  class TaxonomicaInformationProxy
   : public QAbstractProxyModel
   {
     Q_OBJECT
+    struct TaxonomyNode
+    {
+      QStringList Tags;
+      SegmentationList Nodes;
+    };
+
   public:
-    explicit InformationProxy();
-    virtual ~InformationProxy(){}
+    explicit TaxonomicaInformationProxy();
+    virtual ~TaxonomicaInformationProxy(){}
 
     virtual void setSourceModel(EspinaModel *sourceModel);
+
+    virtual QVariant data(const QModelIndex& proxyIndex, int role = Qt::DisplayRole) const;
+    virtual bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole);
 
     virtual QModelIndex mapFromSource(const QModelIndex& sourceIndex) const;
     virtual QModelIndex mapToSource(const QModelIndex& proxyIndex) const;
 
-    virtual int columnCount(const QModelIndex& parent = QModelIndex()) const;
+    virtual bool hasChildren(const QModelIndex &parent = QModelIndex()) const;
     virtual int rowCount(const QModelIndex& parent = QModelIndex()) const;
+    virtual int columnCount(const QModelIndex& parent = QModelIndex()) const;
+
     virtual QModelIndex parent(const QModelIndex& child) const;
     virtual QModelIndex index(int row, int column, const QModelIndex& parent = QModelIndex()) const;
-
-    virtual QVariant headerData(int section, Qt::Orientation orientation, int role) const;
-    virtual QVariant data(const QModelIndex& proxyIndex, int role = Qt::DisplayRole) const;
-
-    void setQuery(const Segmentation::InfoTagList query);
-    const QStringList query() const {return m_query;}
-    const Segmentation::InfoTagList availableInformation() const;
 
   protected slots:
     void sourceRowsInserted(const QModelIndex & sourceParent, int start, int end);
@@ -64,8 +71,8 @@ namespace EspINA
   private:
     EspinaModel *m_model;
 
-    QStringList m_query;
-    QList<QModelIndex> m_elements;
+    QList<ModelItemPtr> m_taxonomies;
+    QMap<ModelItemPtr, TaxonomyNode> m_information;
   };
 
 } // namespace EspINA
