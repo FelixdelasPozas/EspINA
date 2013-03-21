@@ -72,6 +72,9 @@ namespace EspINA
 
     virtual bool eventFilter(QObject *sender, QEvent* e);
 
+    // update segmentation explorer gui depending on selected indexes
+    void updateGUI(const QModelIndexList &selectedIndexes);
+
   protected slots:
     void changeLayout(int index);
 

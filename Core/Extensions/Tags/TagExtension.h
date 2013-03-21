@@ -31,6 +31,8 @@
 
 #include <Core/Extensions/SegmentationExtension.h>
 
+#include <QStringListModel>
+
 namespace EspINA
 {
 
@@ -47,8 +49,14 @@ namespace EspINA
     typedef Cache<SegmentationPtr, ExtensionData> ExtensionCache;
 
     static ExtensionCache s_cache;
+    static QStringList s_availableTags;
 
     const static QString EXTENSION_FILE;
+
+  public:
+    static const Segmentation::InfoTag TAGS;
+
+    static QStringListModel TagModel;
 
   public:
     explicit SegmentationTags();
@@ -92,6 +100,9 @@ namespace EspINA
     QStringList tags() const
     { return s_cache[m_segmentation].Data.Tags; }
 
+  private:
+    void addTagImplementation(const QString &tag);
+    void updateAvailableTags();
   };
 
 } // namespace EspINA

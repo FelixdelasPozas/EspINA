@@ -35,11 +35,13 @@
 
 #ifdef TEST_ESPINA_MODELS
 #include <Core/Model/ModelTest.h>
+#include <Core/Extensions/Tags/TagExtension.h>
 #endif
 
 // Qt
 #include <QContextMenuEvent>
 #include <QMenu>
+#include <QCompleter>
 #include <QSortFilterProxyModel>
 #include <QStringListModel>
 #include <QUndoStack>
@@ -159,6 +161,26 @@ bool SegmentationExplorer::eventFilter(QObject *sender, QEvent *e)
 }
 
 //------------------------------------------------------------------------
+void SegmentationExplorer::updateGUI(const QModelIndexList &selectedIndexes)
+{
+  m_gui->showInformationButton->setEnabled(!selectedIndexes.empty());
+  m_gui->deleteButton->setEnabled(!selectedIndexes.empty());
+
+  QSet<QString> tagSet;
+  foreach(QModelIndex index, selectedIndexes)
+  {
+    ModelItemPtr item = m_layout->item(index);
+    if (EspINA::SEGMENTATION == item->type())
+    {
+      SegmentationPtr segmentation = segmentationPtr(item);
+      tagSet.unite(segmentation->information(SegmentationTags::TAGS).toStringList().toSet());
+    }
+  }
+  QStringList tags = tagSet.toList();
+  m_gui->selectedTags->setText(tags.join(","));
+}
+
+//------------------------------------------------------------------------
 void SegmentationExplorer::changeLayout(int index)
 {
   Q_ASSERT(index < m_layouts.size());
@@ -180,6 +202,11 @@ void SegmentationExplorer::changeLayout(int index)
   m_modelTester = QSharedPointer<ModelTest>(new ModelTest(m_layout->model()));
 #endif
   m_gui->view->setModel(m_layout->model());
+  QCompleter *completer = new QCompleter(m_layout->model(), this);
+  completer->setCaseSensitivity(Qt::CaseInsensitive);
+  completer->setCompletionMode(QCompleter::UnfilteredPopupCompletion);
+  completer->setModelSorting(QCompleter::CaseInsensitivelySortedModel);
+  m_gui->searchText->setCompleter(completer);
 
   connect(m_gui->view->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
           this, SLOT(updateSelection(QItemSelection, QItemSelection)));
@@ -247,9 +274,7 @@ void SegmentationExplorer::updateSelection(ViewManager::Selection selection)
     m_gui->view->scrollTo(currentIndex);
   }
 
-  QModelIndexList selectedIndexes = m_gui->view->selectionModel()->selection().indexes();
-  m_gui->showInformationButton->setEnabled(!selectedIndexes.empty());
-  m_gui->deleteButton->setEnabled(!selectedIndexes.empty());
+  updateGUI(m_gui->view->selectionModel()->selection().indexes());
 
   // Update all visible items
   m_gui->view->viewport()->update();
@@ -266,8 +291,10 @@ void SegmentationExplorer::updateSelection(QItemSelection selected, QItemSelecti
     if (EspINA::SEGMENTATION == item->type())
       selection << pickableItemPtr(item);
   }
-  m_gui->showInformationButton->setEnabled(!selection.empty());
-  m_gui->deleteButton->setEnabled(!selectedIndexes.empty());
+
+  updateGUI(selectedIndexes);
+//   m_gui->showInformationButton->setEnabled(!selection.empty());
+//   m_gui->deleteButton->setEnabled(!selectedIndexes.empty());
 
   // signal blocking is necessary because we don't want to change our current selection indexes,
   // and that will happen if a updateSelection(ViewManager::Selection) is called.

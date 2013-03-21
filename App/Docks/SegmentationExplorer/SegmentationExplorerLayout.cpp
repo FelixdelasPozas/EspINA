@@ -45,7 +45,6 @@ SegmentationFilterProxyModel::SegmentationFilterProxyModel(QObject *parent)
 //------------------------------------------------------------------------
 bool SegmentationFilterProxyModel::filterAcceptsRow(int source_row, const QModelIndex &source_parent) const
 {
-  qDebug() << filterRegExp();
   bool acceptRows = QSortFilterProxyModel::filterAcceptsRow(source_row, source_parent);
 
   QModelIndex rowIndex = sourceModel()->index(source_row, 0, source_parent);
@@ -63,7 +62,6 @@ bool SegmentationFilterProxyModel::filterAcceptsRow(int source_row, const QModel
       int i = 0;
       while (!acceptRows && i < tags.size())
       {
-        qDebug() << tags[i];
         acceptRows = tags[i].contains(filterRegExp());
         ++i;
       }
