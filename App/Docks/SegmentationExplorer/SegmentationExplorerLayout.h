@@ -26,11 +26,22 @@
 #include <Core/Model/EspinaModel.h>
 
 #include <QItemDelegate>
+#include <QSortFilterProxyModel>
 
 namespace EspINA
 {
 
   class SegmentationInspector;
+
+  class SegmentationFilterProxyModel
+  : public QSortFilterProxyModel
+  {
+  public:
+    SegmentationFilterProxyModel(QObject *parent = 0); 
+
+  protected:
+    virtual bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const;
+  };
 
   class SegmentationExplorer::Layout
   : public QObject
@@ -58,6 +69,8 @@ namespace EspINA
 
     virtual QModelIndex index(ModelItemPtr item) const
     { return m_model->index(item); }
+
+    virtual void setFilterRegExp(const QString &regExp) = 0;
 
     virtual void contextMenu(const QPoint &pos) = 0;
     virtual void deleteSelectedItems() = 0;

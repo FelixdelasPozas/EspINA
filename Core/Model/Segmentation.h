@@ -177,6 +177,7 @@ namespace EspINA
     /// Extesion won't be available until requirements are satisfied
     void addExtension(Segmentation::InformationExtension extension);
 
+    bool hasInformationExtension(const ModelItem::ExtId &name) const;
     Segmentation::InformationExtension informationExtension(const ModelItem::ExtId &name) const;
 
     /// optional args should be deprecated in future versions

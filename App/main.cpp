@@ -26,6 +26,7 @@
 #include <Core/Extensions/EdgeDistances/AdaptiveEdges.h>
 #include <Core/Extensions/EdgeDistances/EdgeDistance.h>
 #include <Core/Extensions/Morphological/MorphologicalInformation.h>
+#include <Core/Extensions/Tags/TagExtension.h>
 
 int main(int argc, char **argv)
 {
@@ -81,19 +82,22 @@ int main(int argc, char **argv)
     EspINA::AdaptiveEdges            adaptiveEdgesExtension;
     EspINA::EdgeDistance             edgeDistanceExtension;
     EspINA::MorphologicalInformation morphologicalExtension;
+    EspINA::SegmentationTags             tagsExtension;
 
     factory.registerChannelExtension     (&adaptiveEdgesExtension);
     factory.registerSegmentationExtension(&edgeDistanceExtension);
     factory.registerSegmentationExtension(&morphologicalExtension);
+    factory.registerSegmentationExtension(&tagsExtension);
 
     EspINA::EspinaMainWindow espina(&model, &viewManager, plugins);
     espina.show();
 
     res = app.exec();
 
-    factory.unregisterChannelExtension     (&adaptiveEdgesExtension);
-    factory.unregisterSegmentationExtension(&edgeDistanceExtension);
+    factory.unregisterSegmentationExtension(&tagsExtension);
     factory.unregisterSegmentationExtension(&morphologicalExtension);
+    factory.unregisterSegmentationExtension(&edgeDistanceExtension);
+    factory.unregisterChannelExtension     (&adaptiveEdgesExtension);
   }
 
   qDebug() << "\nUnloading Plugins: \n";

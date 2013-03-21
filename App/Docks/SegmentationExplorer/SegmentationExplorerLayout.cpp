@@ -21,6 +21,7 @@
 #include <Dialogs/SegmentationInspector/SegmentationInspector.h>
 
 #include <Core/Model/Segmentation.h>
+#include <Core/Extensions/Tags/TagExtension.h>
 #include <Undo/RemoveSegmentation.h>
 #include <QUndoStack>
 
@@ -33,6 +34,51 @@ const QString SegmentationExplorer::Layout::RECURSIVE_MESSAGE
                 "If you want to delete recursively select Yes To All");
 const QString SegmentationExplorer::Layout::MIXED_MESSAGE
   = QObject::tr("Delete recursively %1's segmentations");
+
+//------------------------------------------------------------------------
+SegmentationFilterProxyModel::SegmentationFilterProxyModel(QObject *parent)
+: QSortFilterProxyModel(parent)
+{
+  setFilterCaseSensitivity(Qt::CaseInsensitive);
+}
+
+//------------------------------------------------------------------------
+bool SegmentationFilterProxyModel::filterAcceptsRow(int source_row, const QModelIndex &source_parent) const
+{
+  qDebug() << filterRegExp();
+  bool acceptRows = QSortFilterProxyModel::filterAcceptsRow(source_row, source_parent);
+
+  QModelIndex rowIndex = sourceModel()->index(source_row, 0, source_parent);
+
+  if (!acceptRows)
+  {
+    ModelItemPtr item = indexPtr(rowIndex);
+    if (EspINA::SEGMENTATION == item->type())
+    {
+      SegmentationPtr segmentation = segmentationPtr(item);
+      SegmentationTags *tagExtension = dynamic_cast<SegmentationTags *>(
+        segmentation->informationExtension(TagExtensionID));
+
+      QStringList tags = tagExtension->tags();
+      int i = 0;
+      while (!acceptRows && i < tags.size())
+      {
+        qDebug() << tags[i];
+        acceptRows = tags[i].contains(filterRegExp());
+        ++i;
+      }
+    }
+  }
+
+  int row = 0;
+  while (!acceptRows && row < sourceModel()->rowCount(rowIndex))
+  {
+    acceptRows = filterAcceptsRow(row, rowIndex);
+    ++row;
+  }
+
+  return acceptRows;
+}
 
 //------------------------------------------------------------------------
 SegmentationExplorer::Layout::Layout(CheckableTreeView *view,

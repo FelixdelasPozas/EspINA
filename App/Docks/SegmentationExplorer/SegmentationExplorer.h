@@ -88,6 +88,8 @@ namespace EspINA
 
     virtual void updateSelection();
 
+    void updateSearchFilter();
+
   protected:
     EspinaModel *m_baseModel;
     QUndoStack  *m_undoStack;

@@ -123,9 +123,9 @@ QVariant Segmentation::data(int role) const
         double bounds[6];
         volume()->bounds(bounds);
         boundsInfo = tr("<b>Sections:</b><br>");
-        boundsInfo = boundsInfo.append("  X: %1 nm-%2 nm <br>").arg(bounds[0]).arg(bounds[1]);
-        boundsInfo = boundsInfo.append("  Y: %1 nm-%2 nm <br>").arg(bounds[2]).arg(bounds[3]);
-        boundsInfo = boundsInfo.append("  Z: %1 nm-%2 nm <br>").arg(bounds[4]).arg(bounds[5]);
+        boundsInfo = boundsInfo.append("  X: %1 nm - %2 nm <br>").arg(bounds[0]).arg(bounds[1]);
+        boundsInfo = boundsInfo.append("  Y: %1 nm - %2 nm <br>").arg(bounds[2]).arg(bounds[3]);
+        boundsInfo = boundsInfo.append("  Z: %1 nm - %2 nm <br>").arg(bounds[4]).arg(bounds[5]);
 
         filterInfo = tr("<b>Filter:</b> %1<br>").arg(filter()->data().toString());
       }
@@ -400,9 +400,27 @@ void Segmentation::addExtension(Segmentation::InformationExtension extension)
 }
 
 //------------------------------------------------------------------------
+bool Segmentation::hasInformationExtension(const ModelItem::ExtId &name) const
+{
+  return m_informationExtensions.contains(name);
+}
+
+//------------------------------------------------------------------------
 Segmentation::InformationExtension Segmentation::informationExtension(const ModelItem::ExtId &name) const
 {
-  return m_informationExtensions.value(name, NULL);
+  Segmentation::InformationExtension extension = m_informationExtensions.value(name, NULL);
+
+  if (!extension)
+  {
+    InformationExtension prototype = m_model->factory()->segmentationExtension(name);
+    if (prototype->validTaxonomy(m_taxonomy->qualifiedName()))
+    {
+      extension = prototype->clone();
+      const_cast<Segmentation *>(this)->addExtension(extension);
+    }
+  }
+
+  return extension;
 }
 
 

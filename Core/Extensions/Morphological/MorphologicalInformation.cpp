@@ -268,7 +268,7 @@ void MorphologicalInformation::loadCache(QuaZipFile  &file,
 // signature in different compilation units
 static bool invalidData(SegmentationPtr seg)
 {
-  return seg->informationExtension(MorphologicalInformationID) == NULL
+  return !seg->hasInformationExtension(MorphologicalInformationID)
       && seg->isVolumeModified();
 }
 

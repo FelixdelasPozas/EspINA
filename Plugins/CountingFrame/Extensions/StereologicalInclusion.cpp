@@ -183,7 +183,7 @@ void StereologicalInclusion::loadCache(QuaZipFile &file, const QDir &tmpDir, Esp
 // signature in different compilation units
 static bool invalidData(SegmentationPtr seg)
 {
-  return seg->informationExtension(StereologicalInclusionID) == NULL
+  return !seg->hasInformationExtension(StereologicalInclusionID)
       && seg->isVolumeModified();
 }
 

@@ -23,6 +23,7 @@
 #include <Core/Model/EspinaModel.h>
 #include <Core/Model/Taxonomy.h>
 #include <Core/Model/Segmentation.h>
+#include <Core/Extensions/Tags/TagExtension.h>
 #include <Undo/ChangeTaxonomyCommand.h>
 #include <Undo/RemoveSegmentation.h>
 
@@ -32,6 +33,7 @@
 #include <QStringList>
 #include <QStringListModel>
 #include <QListView>
+#include <qinputdialog.h>
 
 using namespace EspINA;
 
@@ -47,73 +49,10 @@ SegmentationContextualMenu::SegmentationContextualMenu(SegmentationList selectio
 , m_viewManager  (viewManager)
 , m_segmentations(selection  )
 {
-  QMenu         *changeTaxonomyMenu = new QMenu(tr("Change Taxonomy"));
-  QWidgetAction *taxonomyListAction = new QWidgetAction(changeTaxonomyMenu);
+  createChangeTaxonomyMenu();
+  createManageTagsEntry();
+  createSetLevelOfDetailEntry();
 
-  m_taxonomyList = new QTreeView();
-
-  m_taxonomyList->header()->setVisible(false);
-  m_taxonomyList->setModel(model);
-  m_taxonomyList->setRootIndex(model->taxonomyRoot());
-  m_taxonomyList->expandAll();
-  connect(model, SIGNAL(modelReset()),
-          this,  SLOT(resetRootItem()));
-  connect(m_taxonomyList, SIGNAL(clicked(QModelIndex)),
-          this, SLOT(changeSegmentationsTaxonomy(QModelIndex)));
-  taxonomyListAction->setDefaultWidget(m_taxonomyList);
-  changeTaxonomyMenu->addAction(taxonomyListAction);
-  this->addMenu(changeTaxonomyMenu);
-
-  m_changeFinalNode = this->addAction(tr("Set level of detail"));
-  m_changeFinalNode->setCheckable(true);
-  connect(m_changeFinalNode, SIGNAL(triggered()),
-          this, SLOT(changeFinalFlag()));
-
-  QAction *deleteSegs = this->addAction(tr("Delete"));
-  deleteSegs->setIcon(QIcon(":espina/trash-full.svg"));
-  connect (deleteSegs, SIGNAL(triggered(bool)),
-           this, SLOT(deleteSelectedSementations()));
-
-  bool enabled = false;
-  SegmentationList ancestors, successors;
-  foreach (SegmentationPtr seg, m_segmentations)
-  {
-    enabled |= seg->IsFinalNode();
-    foreach(SegmentationSPtr ancestor, seg->componentOf())
-      ancestors <<  ancestor.data();
-    foreach(SegmentationSPtr successor, seg->components())
-      successors << successor.data();
-  }
-
-  foreach(SegmentationPtr seg, ancestors)
-  {
-    if (m_segmentations.contains(seg))
-    {
-      ancestors.removeAll(seg);
-      break;
-    }
-    m_segmentations.append(seg);
-    foreach(SegmentationSPtr ancestor, seg->componentOf())
-      ancestors <<  ancestor.data();
-
-    enabled |= seg->IsFinalNode();
-  }
-
-  foreach(SegmentationPtr seg, successors)
-  {
-    if (m_segmentations.contains(seg))
-    {
-      successors.removeAll(seg);
-      break;
-    }
-    m_segmentations.append(seg);
-    foreach(SegmentationSPtr successor, seg->components())
-      successors << successor.data();
-
-    enabled |= seg->IsFinalNode();
-  }
-
-  m_changeFinalNode->setChecked(enabled);
 }
 
 //------------------------------------------------------------------------
@@ -211,7 +150,26 @@ void SegmentationContextualMenu::changeFinalFlag()
   emit changeFinalNode(value);
 }
 
+//------------------------------------------------------------------------
+void SegmentationContextualMenu::manageTags()
+{
+  foreach (SegmentationPtr segmentation, m_segmentations)
+  {
+    SegmentationTags *extension = dynamic_cast<SegmentationTags *>(segmentation->informationExtension(TagExtensionID));
 
+    bool ok;
+    QString rawTags = QInputDialog::getText(this,
+                                            tr("Tag Manager"),
+                                            tr("Introduce tags. Use comma to separate multiple tags"),
+                                            QLineEdit::Normal,
+                                            extension->tags().join(","),
+                                            &ok);
+    if (ok)
+    {
+      extension->setTags(rawTags.split(",", QString::SkipEmptyParts));
+    }
+  }
+}
 
 //------------------------------------------------------------------------
 void SegmentationContextualMenu::resetRootItem()
@@ -235,4 +193,90 @@ void SegmentationContextualMenu::deleteSelectedSementations()
 void SegmentationContextualMenu::setSelection(SegmentationList list)
 {
   this->m_segmentations = list;
+}
+
+//------------------------------------------------------------------------
+void SegmentationContextualMenu::createChangeTaxonomyMenu()
+{
+  QMenu         *changeTaxonomyMenu = new QMenu(tr("Change Taxonomy"));
+  QWidgetAction *taxonomyListAction = new QWidgetAction(changeTaxonomyMenu);
+
+  m_taxonomyList = new QTreeView();
+
+  m_taxonomyList->header()->setVisible(false);
+  m_taxonomyList->setModel(m_model);
+  m_taxonomyList->setRootIndex(m_model->taxonomyRoot());
+  m_taxonomyList->expandAll();
+  connect(m_model, SIGNAL(modelReset()),
+          this,  SLOT(resetRootItem()));
+  connect(m_taxonomyList, SIGNAL(clicked(QModelIndex)),
+          this, SLOT(changeSegmentationsTaxonomy(QModelIndex)));
+
+  taxonomyListAction->setDefaultWidget(m_taxonomyList);
+  changeTaxonomyMenu->addAction(taxonomyListAction);
+  addMenu(changeTaxonomyMenu);
+}
+
+//------------------------------------------------------------------------
+void SegmentationContextualMenu::createManageTagsEntry()
+{
+  QAction *manageTagsAction = addAction(tr("Manage Tags"));
+  connect(manageTagsAction, SIGNAL(triggered(bool)),
+          this, SLOT(manageTags()));
+
+}
+
+//------------------------------------------------------------------------
+void SegmentationContextualMenu::createSetLevelOfDetailEntry()
+{
+  m_changeFinalNode = this->addAction(tr("Set level of detail"));
+  m_changeFinalNode->setCheckable(true);
+  connect(m_changeFinalNode, SIGNAL(triggered()),
+          this, SLOT(changeFinalFlag()));
+
+  QAction *deleteSegs = this->addAction(tr("Delete"));
+  deleteSegs->setIcon(QIcon(":espina/trash-full.svg"));
+  connect (deleteSegs, SIGNAL(triggered(bool)),
+           this, SLOT(deleteSelectedSementations()));
+
+  bool enabled = false;
+  SegmentationList ancestors, successors;
+  foreach (SegmentationPtr seg, m_segmentations)
+  {
+    enabled |= seg->IsFinalNode();
+    foreach(SegmentationSPtr ancestor, seg->componentOf())
+      ancestors <<  ancestor.data();
+    foreach(SegmentationSPtr successor, seg->components())
+      successors << successor.data();
+  }
+
+  foreach(SegmentationPtr seg, ancestors)
+  {
+    if (m_segmentations.contains(seg))
+    {
+      ancestors.removeAll(seg);
+      break;
+    }
+    m_segmentations.append(seg);
+    foreach(SegmentationSPtr ancestor, seg->componentOf())
+      ancestors <<  ancestor.data();
+
+    enabled |= seg->IsFinalNode();
+  }
+
+  foreach(SegmentationPtr seg, successors)
+  {
+    if (m_segmentations.contains(seg))
+    {
+      successors.removeAll(seg);
+      break;
+    }
+    m_segmentations.append(seg);
+    foreach(SegmentationSPtr successor, seg->components())
+      successors << successor.data();
+
+    enabled |= seg->IsFinalNode();
+  }
+
+  m_changeFinalNode->setChecked(enabled);
 }

@@ -64,8 +64,6 @@ SegmentationExplorer::GUI::GUI()
 
   showInformationButton->setIcon(
     qApp->style()->standardIcon(QStyle::SP_MessageBoxInformation));
-
-  searchText->setVisible(false);
 }
 
 
@@ -106,6 +104,8 @@ SegmentationExplorer::SegmentationExplorer(EspinaModel *model,
           this, SLOT(deleteSelectedItems()));
   connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection, bool)),
           this, SLOT(updateSelection(ViewManager::Selection)));
+  connect(m_gui->searchText, SIGNAL(textChanged(QString)),
+          this, SLOT(updateSearchFilter()));
 
   setWidget(m_gui);
 
@@ -293,4 +293,12 @@ void SegmentationExplorer::updateChannelRepresentations(ChannelList list)
 //------------------------------------------------------------------------
 void SegmentationExplorer::updateSelection()
 {
+}
+
+//------------------------------------------------------------------------
+void SegmentationExplorer::updateSearchFilter()
+{
+  m_gui->clearSearch->setEnabled(!m_gui->searchText->text().isEmpty());
+
+  m_layout->setFilterRegExp(m_gui->searchText->text());
 }

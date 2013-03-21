@@ -45,12 +45,18 @@ namespace EspINA
     void changeSegmentationsTaxonomy(const QModelIndex &index);
     void deleteSelectedSementations();
     void changeFinalFlag();
+    void manageTags();
     void resetRootItem();
 
   signals:
     void changeTaxonomy(TaxonomyElementPtr);
     void deleteSegmentations();
     void changeFinalNode(bool);
+
+  private:
+    void createChangeTaxonomyMenu();
+    void createManageTagsEntry();
+    void createSetLevelOfDetailEntry();
 
   private:
     EspinaModel *m_model;

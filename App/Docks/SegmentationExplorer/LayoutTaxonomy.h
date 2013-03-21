@@ -37,7 +37,7 @@ namespace EspINA
     Q_OBJECT
 
     class SortFilter
-    : public QSortFilterProxyModel
+    : public SegmentationFilterProxyModel
     {
     protected:
       virtual bool lessThan(const QModelIndex& left, const QModelIndex& right) const;
@@ -60,6 +60,9 @@ namespace EspINA
 
     virtual QModelIndex index(ModelItemPtr item) const
     { return m_sort->mapFromSource(m_proxy->mapFromSource(Layout::index(item))); }
+
+    virtual void setFilterRegExp(const QString &regExp)
+    { m_sort->setFilterRegExp(regExp);}
 
     virtual void contextMenu(const QPoint &pos);
     virtual void deleteSelectedItems();
