@@ -246,6 +246,11 @@ void SegmentationExplorer::updateSelection(ViewManager::Selection selection)
     m_gui->view->selectionModel()->setCurrentIndex(currentIndex, QItemSelectionModel::Select);
     m_gui->view->scrollTo(currentIndex);
   }
+
+  QModelIndexList selectedIndexes = m_gui->view->selectionModel()->selection().indexes();
+  m_gui->showInformationButton->setEnabled(!selectedIndexes.empty());
+  m_gui->deleteButton->setEnabled(!selectedIndexes.empty());
+
   // Update all visible items
   m_gui->view->viewport()->update();
 }
