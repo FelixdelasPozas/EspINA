@@ -707,11 +707,11 @@ void SliceView::resetCamera()
   m_renderer->ResetCamera();
 
   m_thumbnail->RemoveActor(m_channelBorder);
-  m_thumbnail->RemoveActor(this->m_viewportBorder);
-  this->updateThumbnail();
+  m_thumbnail->RemoveActor(m_viewportBorder);
+  updateThumbnail();
   m_thumbnail->ResetCamera();
   m_thumbnail->AddActor(m_channelBorder);
-  m_thumbnail->AddActor(this->m_viewportBorder);
+  m_thumbnail->AddActor(m_viewportBorder);
 
   m_sceneReady = !m_channelReps.isEmpty();
 }

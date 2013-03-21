@@ -43,6 +43,8 @@ RectangularVOI::SettingsPanel::SettingsPanel(EspinaModelPtr model,
 , m_settings(settings)
 , m_activeTaxonomy(NULL)
 , m_viewManager(viewManager)
+, m_zValueChanged(false)
+, m_zTaxValueChanged(false)
 {
   setupUi(this);
   m_zSpacing = 1.0;
@@ -69,12 +71,19 @@ RectangularVOI::SettingsPanel::SettingsPanel(EspinaModelPtr model,
 
   m_zSize->setValue(vtkMath::Round(m_settings->zSize()/m_zSpacing));
 
+
   m_taxonomySelector->setModel(m_model);
 
   connect(m_taxonomySelector, SIGNAL(activated(QModelIndex)),
           this, SLOT(updateTaxonomyVOI(QModelIndex)));
 
   m_taxonomySelector->setRootModelIndex(m_model->taxonomyRoot());
+
+  // the rounding of fit to slices on the z value was making the dialog ask the
+  // user if he wanted to save the changes even when the user hasn't changed
+  // anything. this fixes it.
+  connect(m_zTaxSize, SIGNAL(valueChanged(int)), this, SLOT(zValueChanged(int)));
+  connect(m_zSize, SIGNAL(valueChanged(int)), this, SLOT(zValueChanged(int)));
 }
 
 //------------------------------------------------------------------------
@@ -104,7 +113,7 @@ bool RectangularVOI::SettingsPanel::modified() const
   bool returnValue = false;
   returnValue |= (m_xSize->value() != m_settings->xSize());
   returnValue |= (m_ySize->value() != m_settings->ySize());
-  returnValue |= (m_zSize->value()*m_zSpacing != m_settings->zSize());
+  returnValue |= m_zValueChanged;
   returnValue |= taxonomyVOIModified();
 
   return returnValue;
@@ -125,7 +134,7 @@ bool RectangularVOI::SettingsPanel::taxonomyVOIModified() const
   {
     modified |= (m_activeTaxonomy->property(TaxonomyElement::X_DIM).toInt() != m_xTaxSize->value());
     modified |= (m_activeTaxonomy->property(TaxonomyElement::Y_DIM).toInt() != m_yTaxSize->value());
-    modified |= (m_activeTaxonomy->property(TaxonomyElement::Z_DIM).toInt() != m_zTaxSize->value()*m_zSpacing);
+    modified |= m_zTaxValueChanged;
   }
 
   return modified;
@@ -138,7 +147,7 @@ void RectangularVOI::SettingsPanel::writeTaxonomyProperties()
   {
     m_activeTaxonomy->addProperty(TaxonomyElement::X_DIM, m_xTaxSize->value());
     m_activeTaxonomy->addProperty(TaxonomyElement::Y_DIM, m_yTaxSize->value());
-    m_activeTaxonomy->addProperty(TaxonomyElement::Z_DIM, m_zTaxSize->value()*m_zSpacing);
+    m_activeTaxonomy->addProperty(TaxonomyElement::Z_DIM, vtkMath::Round(m_zTaxSize->value()*m_zSpacing));
   }
 }
 
@@ -168,18 +177,21 @@ void RectangularVOI::SettingsPanel::updateTaxonomyVOI(const QModelIndex& index)
   }
 
   m_activeTaxonomy = elem;
+  m_zTaxValueChanged = false;
+
+  // 2013-03-19 Fix missing taxonomy properties in some cases. By default revert to "default VOI" values.
+  if (!m_activeTaxonomy->properties().contains(TaxonomyElement::X_DIM) ||
+      !m_activeTaxonomy->properties().contains(TaxonomyElement::Y_DIM) ||
+      !m_activeTaxonomy->properties().contains(TaxonomyElement::Z_DIM))
+  {
+    m_activeTaxonomy->addProperty(TaxonomyElement::X_DIM, QVariant(m_settings->xSize()));
+    m_activeTaxonomy->addProperty(TaxonomyElement::Y_DIM, QVariant(m_settings->ySize()));
+    m_activeTaxonomy->addProperty(TaxonomyElement::Z_DIM, QVariant(m_settings->zSize()));
+  }
 
   QVariant xSize = elem->property(TaxonomyElement::X_DIM);
   QVariant ySize = elem->property(TaxonomyElement::Y_DIM);
   QVariant zSize = elem->property(TaxonomyElement::Z_DIM);
-
-  // 2013-03-19 Fix missing "Synapse" taxonomy values bug
-  if (xSize.toInt() == 0 && ySize.toInt() == 0 && zSize.toInt() == 0)
-  {
-    m_activeTaxonomy->addProperty(TaxonomyElement::X_DIM, 500);
-    m_activeTaxonomy->addProperty(TaxonomyElement::Y_DIM, 500);
-    m_activeTaxonomy->addProperty(TaxonomyElement::Z_DIM, 500);
-  }
 
   if (!xSize.isValid() || !ySize.isValid() || !zSize.isValid())
   {
@@ -190,5 +202,17 @@ void RectangularVOI::SettingsPanel::updateTaxonomyVOI(const QModelIndex& index)
 
   m_xTaxSize->setValue(xSize.toInt());
   m_yTaxSize->setValue(ySize.toInt());
+  m_zTaxSize->blockSignals(true);
   m_zTaxSize->setValue(vtkMath::Round(zSize.toInt()/m_zSpacing));
+  m_zTaxSize->blockSignals(false);
+}
+
+//------------------------------------------------------------------------
+void RectangularVOI::SettingsPanel::zValueChanged(int unused)
+{
+  if (sender() == m_zSize)
+    m_zValueChanged = true;
+
+  if (sender() == m_zTaxSize)
+    m_zTaxValueChanged = true;
 }

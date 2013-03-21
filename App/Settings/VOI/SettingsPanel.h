@@ -58,6 +58,7 @@ namespace EspINA
 
   private slots:
     void updateTaxonomyVOI(const QModelIndex &index);
+    void zValueChanged(int);
 
   private:
     EspinaModel *m_model;
@@ -65,6 +66,9 @@ namespace EspINA
     TaxonomyElementPtr m_activeTaxonomy;
     ViewManager *m_viewManager;
     Nm m_zSpacing;
+
+    bool m_zValueChanged;
+    bool m_zTaxValueChanged;
   };
 
 } // namespace EspINA

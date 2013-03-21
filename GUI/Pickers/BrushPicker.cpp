@@ -444,6 +444,7 @@ void BrushPicker::startPreview(EspinaRenderView* view)
   m_actor->SetPosition(pos);
 
   view->addActor(m_actor);
+  view->updateView();
 }
 
 //-----------------------------------------------------------------------------
@@ -553,6 +554,7 @@ void BrushPicker::stopPreview(EspinaRenderView* view)
     list.append(m_segmentation);
     reinterpret_cast<SliceView *>(view)->unhideSegmentations(list);
   }
+  view->updateView();
 }
 
 //-----------------------------------------------------------------------------

@@ -226,10 +226,6 @@ void SeedGrowSegmentationTool::startSegmentation(IPicker::PickList pickedItems)
   Q_ASSERT(element.first->GetNumberOfPoints() == 1); // with one pixel
   Nm seedPoint[3];
   element.first->GetPoint(0, seedPoint);
-  //     qDebug() << "Channel:" << input->volume().id();
-  //     qDebug() << "Threshold:" << m_threshold->threshold();
-  //     qDebug() << "Seed:" << seed;
-  //     qDebug() << "Use Default VOI:" << m_useDefaultVOI->useDefaultVOI();
 
   Q_ASSERT(EspINA::CHANNEL == input->type()); //TODO Define active channel policy
   ChannelPtr channel = m_viewManager->activeChannel();
@@ -261,14 +257,22 @@ void SeedGrowSegmentationTool::startSegmentation(IPicker::PickList pickedItems)
     voiBounds[4] = seed[2]*spacing[2];
     voiBounds[5] = seed[2]*spacing[2];
 
+    if (!tax->properties().contains(TaxonomyElement::X_DIM) ||
+        !tax->properties().contains(TaxonomyElement::X_DIM) ||
+        !tax->properties().contains(TaxonomyElement::X_DIM))
+    {
+      tax->addProperty(TaxonomyElement::X_DIM, QVariant(m_settings->xSize()));
+      tax->addProperty(TaxonomyElement::Y_DIM, QVariant(m_settings->ySize()));
+      tax->addProperty(TaxonomyElement::Z_DIM, QVariant(m_settings->zSize()));
+    }
+
     QVariant xTaxSize = tax->property(TaxonomyElement::X_DIM);
     QVariant yTaxSize = tax->property(TaxonomyElement::Y_DIM);
     QVariant zTaxSize = tax->property(TaxonomyElement::Z_DIM);
 
     Nm xSize, ySize, zSize;
 
-    if (m_settings->taxonomicalVOI() && xTaxSize.isValid()
-     && yTaxSize.isValid() && zTaxSize.isValid())
+    if (m_settings->taxonomicalVOI() && xTaxSize.isValid() && yTaxSize.isValid() && zTaxSize.isValid())
     {
       xSize = xTaxSize.toDouble();
       ySize = yTaxSize.toDouble();
@@ -276,9 +280,9 @@ void SeedGrowSegmentationTool::startSegmentation(IPicker::PickList pickedItems)
     }
     else
     {
-      xSize = m_settings->xSize()/2.0;
-      ySize = m_settings->ySize()/2.0;
-      zSize = m_settings->zSize()/2.0;
+      xSize = m_settings->xSize();
+      ySize = m_settings->ySize();
+      zSize = m_settings->zSize();
     }
 
     voiBounds[0] -= xSize;
@@ -343,7 +347,6 @@ void SeedGrowSegmentationTool::removePreview(EspinaRenderView *view)
 }
 
 //-----------------------------------------------------------------------------
-// TODO 2012-12-20 Usar el tamano de la taxonomia para la VOI si esta activada la opcion
 void SeedGrowSegmentationTool::addPreview(EspinaRenderView *view)
 {
   IPicker::DisplayRegionList regions;
@@ -408,12 +411,40 @@ void SeedGrowSegmentationTool::addPreview(EspinaRenderView *view)
     if (m_defaultVOI->useDefaultVOI())
     {
       int voiExtent[6];
-      voiExtent[0] = seed[0] - vtkMath::Round((m_settings->xSize()/spacing[0])/2.0);
-      voiExtent[1] = seed[0] + vtkMath::Round((m_settings->xSize()/spacing[0])/2.0);
-      voiExtent[2] = seed[1] - vtkMath::Round((m_settings->ySize()/spacing[1])/2.0);
-      voiExtent[3] = seed[1] + vtkMath::Round((m_settings->ySize()/spacing[1])/2.0);
-      voiExtent[4] = seed[2] - vtkMath::Round((m_settings->zSize()/spacing[2])/2.0);
-      voiExtent[5] = seed[2] + vtkMath::Round((m_settings->zSize()/spacing[2])/2.0);
+      TaxonomyElementPtr tax = m_viewManager->activeTaxonomy();
+      Q_ASSERT(tax);
+
+      if (!tax->properties().contains(TaxonomyElement::X_DIM) ||
+          !tax->properties().contains(TaxonomyElement::X_DIM) ||
+          !tax->properties().contains(TaxonomyElement::X_DIM))
+      {
+        tax->addProperty(TaxonomyElement::X_DIM, QVariant(m_settings->xSize()));
+        tax->addProperty(TaxonomyElement::Y_DIM, QVariant(m_settings->ySize()));
+        tax->addProperty(TaxonomyElement::Z_DIM, QVariant(m_settings->zSize()));
+      }
+
+      QVariant xTaxSize = tax->property(TaxonomyElement::X_DIM);
+      QVariant yTaxSize = tax->property(TaxonomyElement::Y_DIM);
+      QVariant zTaxSize = tax->property(TaxonomyElement::Z_DIM);
+
+      if (m_settings->taxonomicalVOI() && xTaxSize.isValid() && yTaxSize.isValid() && zTaxSize.isValid())
+      {
+        voiExtent[0] = seed[0] - vtkMath::Round(xTaxSize.toDouble()/spacing[0]);
+        voiExtent[1] = seed[0] + vtkMath::Round(xTaxSize.toDouble()/spacing[0]);
+        voiExtent[2] = seed[1] - vtkMath::Round(yTaxSize.toDouble()/spacing[1]);
+        voiExtent[3] = seed[1] + vtkMath::Round(yTaxSize.toDouble()/spacing[1]);
+        voiExtent[4] = seed[2] - vtkMath::Round(zTaxSize.toDouble()/spacing[2]);
+        voiExtent[5] = seed[2] + vtkMath::Round(zTaxSize.toDouble()/spacing[2]);
+      }
+      else
+      {
+        voiExtent[0] = seed[0] - vtkMath::Round(m_settings->xSize()/spacing[0]);
+        voiExtent[1] = seed[0] + vtkMath::Round(m_settings->xSize()/spacing[0]);
+        voiExtent[2] = seed[1] - vtkMath::Round(m_settings->ySize()/spacing[1]);
+        voiExtent[3] = seed[1] + vtkMath::Round(m_settings->ySize()/spacing[1]);
+        voiExtent[4] = seed[2] - vtkMath::Round(m_settings->zSize()/spacing[2]);
+        voiExtent[5] = seed[2] + vtkMath::Round(m_settings->zSize()/spacing[2]);
+      }
 
       extent[0] = (voiExtent[0] > extent[0]) ? voiExtent[0] : extent[0];
       extent[1] = (voiExtent[1] < extent[1]) ? voiExtent[1] : extent[1];

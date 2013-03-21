@@ -523,6 +523,28 @@ TaxonomySPtr IOTaxonomy::readXML(QXmlStreamReader& xmlStream)
               continue;
             node->addProperty(attrib.name().toString(), attrib.value().toString());
           }
+
+          // BUGFIX: Some taxonomies didn't contain some properties
+          if (!node->properties().contains("Dim_X") || !node->properties().contains("Dim_Y") || !node->properties().contains("Dim_Z"))
+          {
+            qWarning() << "Taxonomy" << node->name() << "is missing some properties.";
+            TaxonomySPtr defaultTaxonomy = IOTaxonomy::openXMLTaxonomy(":/espina/defaultTaxonomy.xml");
+            TaxonomyElementSPtr defaultNode = defaultTaxonomy->element(node->qualifiedName());
+            if (!defaultNode.isNull())
+            {
+              foreach(QString property, defaultNode->properties())
+              {
+                if (!node->properties().contains(property))
+                {
+                  qWarning() << "adding missing property" << property << "with value" << defaultNode->property(property).toString();
+                  node->addProperty(property, defaultNode->property(property));
+                }
+              }
+            }
+            else
+              qWarning() << "Taxonomy" << node->qualifiedName() << "doesn't exist in the default taxonomy definition";
+          }
+
 //         }
         taxHierarchy.push( nodeName.toString() );
       }

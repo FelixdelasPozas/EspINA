@@ -35,6 +35,8 @@
 #include <QColorDialog>
 #include <QSettings>
 #include <QDebug>
+#include <QString>
+#include <QVariant>
 
 using namespace EspINA;
 
@@ -171,6 +173,9 @@ void AppositionSurface::createSynapticAppositionSurfaceAnalysis()
     {
       m_undoStack->beginMacro(tr("Apposition Surface"));
       m_undoStack->push(new AddTaxonomyElement(taxonomy->root().data(), SAS, m_model, QColor(255,255,0)));
+      m_model->taxonomy()->element(SAS)->addProperty(QString("Dim_X"), QVariant("500"));
+      m_model->taxonomy()->element(SAS)->addProperty(QString("Dim_Y"), QVariant("500"));
+      m_model->taxonomy()->element(SAS)->addProperty(QString("Dim_Z"), QVariant("500"));
     }
 
     SASA *analysis = new SASA(synapsis, m_model, m_undoStack, m_viewManager, this);
@@ -249,6 +254,9 @@ void AppositionSurface::segmentationAdded(SegmentationSPtr segmentation)
         if (taxonomy->element(SAS).isNull())
         {
           m_undoStack->push(new AddTaxonomyElement(taxonomy->root().data(), SAS, m_model, QColor(255,255,0)));
+          m_model->taxonomy()->element(SAS)->addProperty(QString("Dim_X"), QVariant("500"));
+          m_model->taxonomy()->element(SAS)->addProperty(QString("Dim_Y"), QVariant("500"));
+          m_model->taxonomy()->element(SAS)->addProperty(QString("Dim_Z"), QVariant("500"));
         }
         m_undoStack->push(new AppositionSurfaceCommand(synapses, m_model, m_viewManager, createdSegmentations));
       }

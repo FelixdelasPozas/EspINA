@@ -76,7 +76,6 @@ namespace EspINA
   private:
     static bool isSynapse(SegmentationPtr segmentation);
 
-
   private:
     EspinaFactory                 *m_factory;
     EspinaModel                   *m_model;

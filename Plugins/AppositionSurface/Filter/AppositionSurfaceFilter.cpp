@@ -918,13 +918,10 @@ namespace EspINA
   {
     bool returnValue = false;
 
-    QString nameAS             = QString().number(m_cacheId) + QString("-AS.vtp");
+    QString nameAS = QString().number(m_cacheId) + QString("-AS.vtp");
 
     if (m_cacheDir.exists(nameAS))
     {
-      // NOTE: three different instances are needed for the readers,if we reuse one
-      // instance (like we do in AppositionSurfaceFilter::dumpSnapshot() ) the data
-      // we obtain will be wrong
       QString fileName = m_cacheDir.absolutePath() + QDir::separator() + nameAS;
       vtkSmartPointer<vtkGenericDataObjectReader> polyASReader = vtkSmartPointer<vtkGenericDataObjectReader>::New();
       polyASReader->SetFileName(fileName.toStdString().c_str());
@@ -956,10 +953,8 @@ namespace EspINA
       polyWriter->Write();
 
       QByteArray polyArray(polyWriter->GetOutputString(), polyWriter->GetOutputStringLength());
-
       
       SnapshotEntry polyEntry(this->id() + QString("-AS.vtp"), polyArray);
-
       snapshot << polyEntry;
 
       returnValue = true;

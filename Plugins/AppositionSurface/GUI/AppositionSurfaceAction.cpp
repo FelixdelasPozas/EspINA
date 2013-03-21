@@ -9,6 +9,7 @@
 
 #include "Undo/AppositionSurfaceCommand.h"
 #include <Core/Extensions/AppositionSurfaceExtension.h>
+#include "AppositionSurfacePlugin.h"
 
 // EspINA
 #include <Core/Model/PickableItem.h>
@@ -63,6 +64,9 @@ namespace EspINA
       if (taxonomy->element(SAS).isNull())
       {
         m_undoStack->push(new AddTaxonomyElement(taxonomy->root().data(), SAS, m_model, QColor(255, 255, 0)));
+        m_model->taxonomy()->element(SAS)->addProperty(QString("Dim_X"), QVariant("500"));
+        m_model->taxonomy()->element(SAS)->addProperty(QString("Dim_Y"), QVariant("500"));
+        m_model->taxonomy()->element(SAS)->addProperty(QString("Dim_Z"), QVariant("500"));
       }
       m_undoStack->push(new AppositionSurfaceCommand(validSegs, m_model, m_viewManager, createdSegmentations));
       m_model->emitSegmentationAdded(createdSegmentations);

@@ -38,6 +38,7 @@ const QString FIT_TO_SLICES ("ViewManager::FitToSlices");
 SeedGrowSegmentationsSettingsPanel::SeedGrowSegmentationsSettingsPanel(SeedGrowSegmentationSettings *settings, ViewManager *viewManager)
 : m_settings(settings)
 , m_viewManager(viewManager)
+, m_zValueChanged(false)
 {
   setupUi(this);
   QSettings espinaSettings(CESVIMA, ESPINA);
@@ -72,6 +73,11 @@ SeedGrowSegmentationsSettingsPanel::SeedGrowSegmentationsSettingsPanel(SeedGrowS
 
   connect(m_taxonomicalVOI, SIGNAL(stateChanged(int)),
           this, SLOT(changeTaxonomicalCheck(int)));
+
+  // the rounding of fit to slices on the z value was making the dialog ask the
+  // user if he wanted to save the changes even when the user hasn't changed
+  // anything. this fixes it.
+  connect(m_zSize, SIGNAL(valueChanged(int)), this, SLOT(zValueChanged(int)));
 
   bool closingActive = settings->closing() > 0;
   m_applyClosing->setChecked(closingActive);
@@ -117,7 +123,7 @@ bool SeedGrowSegmentationsSettingsPanel::modified() const
   bool returnValue = false;
   returnValue |= (m_xSize->value() != m_settings->xSize());
   returnValue |= (m_ySize->value() != m_settings->ySize());
-  returnValue |= (settings.value(FIT_TO_SLICES).toBool() ? vtkMath::Round(m_zSize->value()*zSpacing) : m_zSize->value()) != m_settings->zSize();
+  returnValue |= m_zValueChanged;
   returnValue |= (m_taxonomicalVOI->isChecked() != m_settings->taxonomicalVOI());
   returnValue |= (m_pixelValue->value() != m_settings->bestPixelValue());
   returnValue |= ((m_applyClosing->isChecked() ? m_closing->value() : 0) != m_settings->closing());
@@ -148,4 +154,10 @@ void SeedGrowSegmentationsSettingsPanel::changeTaxonomicalCheck(int state)
   m_xSize->setEnabled(value);
   m_ySize->setEnabled(value);
   m_zSize->setEnabled(value);
+}
+
+//------------------------------------------------------------------------
+void SeedGrowSegmentationsSettingsPanel::zValueChanged(int unused)
+{
+  m_zValueChanged = true;
 }

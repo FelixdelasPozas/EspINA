@@ -56,10 +56,12 @@ namespace EspINA
 
   protected slots:
     void changeTaxonomicalCheck(int);
+    void zValueChanged(int);
 
   private:
     SeedGrowSegmentationSettings *m_settings;
     ViewManager                  *m_viewManager;
+    bool                          m_zValueChanged;
   };
 
 } // namespace EspINA
