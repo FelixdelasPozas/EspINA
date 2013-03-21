@@ -202,7 +202,7 @@ void SegmentationExplorer::changeLayout(int index)
   m_modelTester = QSharedPointer<ModelTest>(new ModelTest(m_layout->model()));
 #endif
   m_gui->view->setModel(m_layout->model());
-  QCompleter *completer = new QCompleter(m_layout->model(), this);
+  QCompleter *completer = new QCompleter(&SegmentationTags::TagModel, this);
   completer->setCaseSensitivity(Qt::CaseInsensitive);
   completer->setCompletionMode(QCompleter::UnfilteredPopupCompletion);
   completer->setModelSorting(QCompleter::CaseInsensitivelySortedModel);

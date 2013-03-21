@@ -116,6 +116,8 @@ void SegmentationTags::loadCache(QuaZipFile &file, const QDir &tmpDir, EspinaMod
       }
     }
   }
+
+  updateAvailableTags();
 }
 
 //------------------------------------------------------------------------
