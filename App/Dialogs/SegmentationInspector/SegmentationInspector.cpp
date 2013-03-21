@@ -32,8 +32,8 @@
 #include <QSettings>
 #include <QLabel>
 #include <QLayout>
-#include <QDebug>
 #include <QDragEnterEvent>
+#include <QStack>
 
 const QString SegmentationInspectorSettingsKey = QString("Segmentation Inspector Window Geometry");
 
@@ -61,16 +61,20 @@ SegmentationInspector::SegmentationInspector(SegmentationList segmentations,
   this->setAttribute(Qt::WA_DeleteOnClose, true);
   this->setAcceptDrops(true);
 
-  QString regExpression;
   foreach(SegmentationPtr seg, segmentations)
-  {
     addSegmentation(seg);
-    connect(seg, SIGNAL(modified(ModelItemPtr)),
-            this, SLOT(updateScene(ModelItemPtr)));
+
+  generateWindowTitle();
+
+  QString regExpression;
+  foreach(SegmentationPtr seg, m_segmentations)
+  {
+    connect(seg, SIGNAL(modified(ModelItemPtr)), this, SLOT(updateScene(ModelItemPtr)));
 
     regExpression += "^"+seg->data().toString()+"$"
                   + "|" + "^" + seg->taxonomy()->qualifiedName() + "$";
-    if(seg != segmentations.last())
+
+    if(seg != m_segmentations.last())
       regExpression += "|";
   }
 
@@ -141,13 +145,29 @@ void SegmentationInspector::addSegmentation(SegmentationPtr segmentation)
   if (m_segmentations.contains(segmentation))
     return;
 
-  m_segmentations << segmentation;
-  m_view->addSegmentation(segmentation);
+  QStack<SegmentationPtr> itemsStack;
+  itemsStack.push_front(segmentation);
+
+  while (!itemsStack.isEmpty())
+  {
+    SegmentationPtr seg = itemsStack.pop();
+
+    m_segmentations << seg;
+    m_view->addSegmentation(seg);
+
+    foreach(ModelItemSPtr item, seg->relatedItems(EspINA::OUT))
+      if (item->type() == SEGMENTATION)
+      {
+        SegmentationPtr relatedSeg = segmentationPtr(item.data());
+        if (relatedSeg->isInputSegmentationDependent() && !m_segmentations.contains(relatedSeg) && !itemsStack.contains(relatedSeg))
+        {
+          itemsStack.push_front(relatedSeg);
+        }
+      }
+  }
   m_view->updateView();
 
   addChannel(segmentation->channel().data());
-
-  generateWindowTitle();
 }
 
 //------------------------------------------------------------------------
