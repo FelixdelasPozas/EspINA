@@ -28,7 +28,7 @@
 using namespace EspINA;
 
 //------------------------------------------------------------------------
-TaxonomicaInformationProxy::TaxonomicaInformationProxy()
+TaxonomicalInformationProxy::TaxonomicalInformationProxy()
 : QAbstractProxyModel()
 , m_model(NULL)
 {
@@ -36,7 +36,7 @@ TaxonomicaInformationProxy::TaxonomicaInformationProxy()
 }
 
 //------------------------------------------------------------------------
-void TaxonomicaInformationProxy::setSourceModel(EspinaModel *sourceModel)
+void TaxonomicalInformationProxy::setSourceModel(EspinaModel *sourceModel)
 {
   if (m_model)
   {
@@ -80,12 +80,11 @@ void TaxonomicaInformationProxy::setSourceModel(EspinaModel *sourceModel)
 
   QAbstractProxyModel::setSourceModel(sourceModel);
 
-  sourceRowsInserted(m_model->taxonomyRoot()    , 0, m_model->rowCount(m_model->taxonomyRoot())     - 1);
   sourceRowsInserted(m_model->segmentationRoot(), 0, m_model->rowCount(m_model->segmentationRoot()) - 1);
 }
 
 //------------------------------------------------------------------------
-QVariant TaxonomicaInformationProxy::data(const QModelIndex& proxyIndex, int role) const
+QVariant TaxonomicalInformationProxy::data(const QModelIndex& proxyIndex, int role) const
 {
   if (!proxyIndex.isValid())
     return QVariant();
@@ -99,6 +98,9 @@ QVariant TaxonomicaInformationProxy::data(const QModelIndex& proxyIndex, int rol
       if (InformationTagsRole == role)
       {
         return m_information[taxonomy].Tags;
+      } else if (Qt::DisplayRole == role)
+      {
+        return taxonomy->qualifiedName();
       }
 
     } break;
@@ -131,7 +133,7 @@ QVariant TaxonomicaInformationProxy::data(const QModelIndex& proxyIndex, int rol
 
 
 //------------------------------------------------------------------------
-bool TaxonomicaInformationProxy::setData(const QModelIndex &index, const QVariant &value, int role)
+bool TaxonomicalInformationProxy::setData(const QModelIndex &index, const QVariant &value, int role)
 {
   bool ok = false;
   if (index.isValid())
@@ -158,7 +160,7 @@ bool TaxonomicaInformationProxy::setData(const QModelIndex &index, const QVarian
 }
 
 //------------------------------------------------------------------------
-QModelIndex TaxonomicaInformationProxy::mapFromSource(const QModelIndex& sourceIndex) const
+QModelIndex TaxonomicalInformationProxy::mapFromSource(const QModelIndex& sourceIndex) const
 {
   if (!sourceIndex.isValid())
     return QModelIndex();
@@ -176,21 +178,21 @@ QModelIndex TaxonomicaInformationProxy::mapFromSource(const QModelIndex& sourceI
   if (EspINA::TAXONOMY == sourceItem->type())
   {
     int row = m_taxonomies.indexOf(sourceItem);
-    proxyIndex = createIndex(row, 0, sourceItem);
+    proxyIndex = createIndex(row, sourceIndex.column(), sourceItem);
   }
   else if (EspINA::SEGMENTATION == sourceItem->type())
   {
     SegmentationPtr    segmentation = SegmentationPtr(sourceItem);
     TaxonomyElementPtr taxonomy     = segmentation->taxonomy().data();
     int row = m_information[taxonomy].Nodes.indexOf(segmentation);
-    proxyIndex = createIndex(row, 0, sourceItem);
+    proxyIndex = createIndex(row, sourceIndex.column(), sourceItem);
   }
 
   return proxyIndex;
 }
 
 //------------------------------------------------------------------------
-QModelIndex TaxonomicaInformationProxy::mapToSource(const QModelIndex& proxyIndex) const
+QModelIndex TaxonomicalInformationProxy::mapToSource(const QModelIndex& proxyIndex) const
 {
   if (!proxyIndex.isValid())
     return QModelIndex();
@@ -205,13 +207,13 @@ QModelIndex TaxonomicaInformationProxy::mapToSource(const QModelIndex& proxyInde
 }
 
 //------------------------------------------------------------------------
-bool TaxonomicaInformationProxy::hasChildren(const QModelIndex &parent) const
+bool TaxonomicalInformationProxy::hasChildren(const QModelIndex &parent) const
 {
   return rowCount(parent) > 0 && columnCount(parent) > 0;
 }
 
 //------------------------------------------------------------------------
-int TaxonomicaInformationProxy::rowCount(const QModelIndex& parent) const
+int TaxonomicalInformationProxy::rowCount(const QModelIndex& parent) const
 {
   int rows = 0;
 
@@ -228,7 +230,7 @@ int TaxonomicaInformationProxy::rowCount(const QModelIndex& parent) const
 }
 
 //------------------------------------------------------------------------
-int TaxonomicaInformationProxy::columnCount(const QModelIndex& parent) const
+int TaxonomicalInformationProxy::columnCount(const QModelIndex& parent) const
 {
   int count = 1;
 
@@ -243,7 +245,7 @@ int TaxonomicaInformationProxy::columnCount(const QModelIndex& parent) const
 }
 
 //------------------------------------------------------------------------
-QModelIndex TaxonomicaInformationProxy::parent(const QModelIndex& child) const
+QModelIndex TaxonomicalInformationProxy::parent(const QModelIndex& child) const
 {
   QModelIndex parentIndex;
 
@@ -263,7 +265,7 @@ QModelIndex TaxonomicaInformationProxy::parent(const QModelIndex& child) const
 }
 
 //------------------------------------------------------------------------
-QModelIndex TaxonomicaInformationProxy::index(int row, int column, const QModelIndex& parent) const
+QModelIndex TaxonomicalInformationProxy::index(int row, int column, const QModelIndex& parent) const
 {
   QModelIndex child;
 
@@ -283,7 +285,7 @@ QModelIndex TaxonomicaInformationProxy::index(int row, int column, const QModelI
 }
 
 //------------------------------------------------------------------------
-void TaxonomicaInformationProxy::sourceRowsInserted(const QModelIndex& sourceParent, int start, int end)
+void TaxonomicalInformationProxy::sourceRowsInserted(const QModelIndex& sourceParent, int start, int end)
 {
   if (!sourceParent.isValid())
     return;
@@ -317,7 +319,7 @@ void TaxonomicaInformationProxy::sourceRowsInserted(const QModelIndex& sourcePar
 }
 
 //------------------------------------------------------------------------
-void TaxonomicaInformationProxy::sourceRowsAboutToBeRemoved(const QModelIndex& sourceParent, int start, int end)
+void TaxonomicalInformationProxy::sourceRowsAboutToBeRemoved(const QModelIndex& sourceParent, int start, int end)
 {
   if (sourceParent == m_model->segmentationRoot())
   {
@@ -347,7 +349,7 @@ void TaxonomicaInformationProxy::sourceRowsAboutToBeRemoved(const QModelIndex& s
 }
 
 //------------------------------------------------------------------------
-void TaxonomicaInformationProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, const QModelIndex& sourceBottomRight)
+void TaxonomicalInformationProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, const QModelIndex& sourceBottomRight)
 {
   foreach(QModelIndex source, QtModelUtils::indices(sourceTopLeft, sourceBottomRight))
   {
@@ -418,7 +420,7 @@ void TaxonomicaInformationProxy::sourceDataChanged(const QModelIndex& sourceTopL
 }
 
 //------------------------------------------------------------------------
-void TaxonomicaInformationProxy::sourceModelReset()
+void TaxonomicalInformationProxy::sourceModelReset()
 {
   beginResetModel();
   {

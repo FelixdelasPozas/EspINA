@@ -23,6 +23,10 @@
 #include <Core/Model/Proxies/TaxonomyProxy.h>
 #include <QTreeView>
 
+#ifdef TEST_ESPINA_MODELS
+#include <Core/Model/ModelTest.h>
+#endif
+
 using namespace EspINA;
 
 //----------------------------------------------------------------------------
@@ -30,13 +34,17 @@ DataViewPanel::DataViewPanel(EspinaModel *model,
                              ViewManager *viewManager,
                              QWidget     *parent)
   : IDockWidget(parent)
-  , m_informationProxy(new TaxonomicaInformationProxy())
+  , m_informationProxy(new TaxonomicalInformationProxy())
 {
   setObjectName("Data View Panel");
 
   setWindowTitle(tr("Segmentation Information"));
 
   m_informationProxy->setSourceModel(model);
+
+  #ifdef TEST_ESPINA_MODELS
+  m_modelTester = QSharedPointer<ModelTest>(new ModelTest(m_informationProxy.data()));
+  #endif
 
   TabularReport *report = new TabularReport(model->factory(), viewManager);
   report->setModel(m_informationProxy.data());

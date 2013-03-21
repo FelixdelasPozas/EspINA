@@ -30,7 +30,7 @@ qt4_wrap_cpp(CORE_MOC
 #   editor/ContourSourceInspector.ui
 #   )
 
-set (CORE_SOURCES
+set (CORE_SOURCES 
   ${CORE_MOC}
   ${CORE_UI}
   EspinaRegion.cpp
@@ -50,6 +50,7 @@ set (CORE_SOURCES
   Extensions/Morphological/MorphologicalInformation.cpp
   Extensions/SampleExtension.cpp
   Extensions/SegmentationExtension.cpp
+#Extensions/Tags/TagExtension.cpp
   Model/Channel.cpp
   Model/EspinaFactory.cpp
   Model/EspinaModel.cpp

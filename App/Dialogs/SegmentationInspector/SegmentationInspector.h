@@ -34,6 +34,8 @@ class QUndoStack;
 
 namespace EspINA
 {
+
+class TabularReport;
   class VolumeView;
 
   class SegmentationInspector
@@ -85,8 +87,10 @@ namespace EspINA
     SegmentationList m_segmentations;
     ChannelList      m_channels;
 
-    QSharedPointer<TaxonomicaInformationProxy>      m_info;
+    QSharedPointer<TaxonomicalInformationProxy> m_info;
     QSharedPointer<QSortFilterProxyModel> m_sort;
+
+    TabularReport *m_tabularReport;
 
     VolumeView *m_view;
   };

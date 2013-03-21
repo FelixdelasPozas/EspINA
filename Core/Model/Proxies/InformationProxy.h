@@ -33,7 +33,7 @@ namespace EspINA
   const int InformationTagsRole = Qt::UserRole+3;
 
   /// Add segmentation information depending on its current taxonomy
-  class TaxonomicaInformationProxy
+  class TaxonomicalInformationProxy
   : public QAbstractProxyModel
   {
     Q_OBJECT
@@ -44,8 +44,8 @@ namespace EspINA
     };
 
   public:
-    explicit TaxonomicaInformationProxy();
-    virtual ~TaxonomicaInformationProxy(){}
+    explicit TaxonomicalInformationProxy();
+    virtual ~TaxonomicalInformationProxy(){}
 
     virtual void setSourceModel(EspinaModel *sourceModel);
 

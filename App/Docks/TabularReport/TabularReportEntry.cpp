@@ -40,12 +40,17 @@ TabularReport::Entry::Entry(QString taxonomy, EspinaFactory *factory)
 , m_taxonomy(taxonomy)
 {
   setupUi(this);
+
+  setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+
   QIcon iconSave = qApp->style()->standardIcon(QStyle::SP_DialogSaveButton);
   writeDataToFile->setIcon(iconSave);
   connect(writeDataToFile, SIGNAL(clicked(bool)),
           this, SLOT(extractInformation()));
   connect(selectInformation, SIGNAL(clicked(bool)),
           this, SLOT(changeDisplayedInformation()));
+
+  tableView->setSelectionBehavior(QAbstractItemView::SelectRows);
 }
 
 //------------------------------------------------------------------------

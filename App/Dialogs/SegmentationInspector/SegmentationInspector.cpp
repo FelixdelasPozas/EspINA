@@ -17,6 +17,7 @@
 */
 
 #include "SegmentationInspector.h"
+#include <Docks/TabularReport/TabularReport.h>
 
 // EspINA
 #include <Core/Model/ModelItem.h>
@@ -42,16 +43,17 @@ using namespace EspINA;
 SegmentationInspector::SegmentationInspector(SegmentationList segmentations,
                                              EspinaModel     *model,
                                              QUndoStack      *undoStack,
-                                             ViewManager     *vm,
+                                             ViewManager     *viewManager,
                                              QWidget         *parent,
                                              Qt::WindowFlags  flags)
 : QWidget(parent, flags|Qt::WindowStaysOnTopHint)
 , m_model(model)
 , m_undoStack(undoStack)
-, m_viewManager(vm)
-, m_info(new TaxonomicaInformationProxy())
+, m_viewManager(viewManager)
+, m_info(new TaxonomicalInformationProxy())
 , m_sort(new QSortFilterProxyModel())
-, m_view(new VolumeView(model->factory(), vm, true))
+, m_tabularReport(new TabularReport(model->factory(), viewManager))
+, m_view(new VolumeView(model->factory(), viewManager, true))
 {
   m_view->setViewType(VOLUME);
 
@@ -66,11 +68,13 @@ SegmentationInspector::SegmentationInspector(SegmentationList segmentations,
     connect(seg, SIGNAL(modified(ModelItemPtr)),
             this, SLOT(updateScene(ModelItemPtr)));
 
-    regExpression += "^"+seg->data().toString()+"$";
+    regExpression += "^"+seg->data().toString()+"$"
+                  + "|" + "^" + seg->taxonomy()->qualifiedName() + "$";
     if(seg != segmentations.last())
       regExpression += "|";
   }
 
+  m_view->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   m_view->resetCamera();
   m_view->updateView();
   horizontalLayout->insertWidget(0, m_view);
@@ -83,18 +87,18 @@ SegmentationInspector::SegmentationInspector(SegmentationList segmentations,
       tags << extension->availableInformations();
   }
 
-  //TODO m_info->setQuery(tags);
   m_info->setSourceModel(m_model);
   m_sort->setSourceModel(m_info.data());
   m_sort->setFilterRegExp(regExpression);
-  m_sort->setDynamicSortFilter(true);
-  m_dataView->setModel(m_sort.data());
-  m_dataView->setSortingEnabled(true);// Needed to update values when segmentation is modified
-  m_dataView->sortByColumn(0, Qt::AscendingOrder);
 
-  connect(m_dataView->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
-          this, SLOT(updateSelection(QItemSelection,QItemSelection)));
-  connect(m_dataView, SIGNAL(doubleClicked(QModelIndex)),
+  m_tabularReport->setModel(m_sort.data());
+  m_tabularReport->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
+
+  layout()->addWidget(m_tabularReport);
+
+//   connect(m_dataView->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
+//           this, SLOT(updateSelection(QItemSelection,QItemSelection)));
+  connect(m_tabularReport, SIGNAL(doubleClicked(QModelIndex)),
           this, SLOT(centerViewOn(QModelIndex)));
 
   QSettings settings(CESVIMA, ESPINA);
@@ -211,42 +215,42 @@ void SegmentationInspector::updateSelection(QItemSelection selected, QItemSelect
   if (prevWidget)
     delete prevWidget;
 
-  ModelItemPtr item(NULL);
-  if (!m_dataView->selectionModel()->selectedIndexes().isEmpty())
-  {
-    item = indexPtr(m_info->mapToSource(m_sort->mapToSource(m_dataView->selectionModel()->selectedIndexes().first())));
+//   ModelItemPtr item(NULL);
+//   if (!m_dataView->selectionModel()->selectedIndexes().isEmpty())
+//   {
+//     item = indexPtr(m_info->mapToSource(m_sort->mapToSource(m_dataView->selectionModel()->selectedIndexes().first())));
+// 
+//     if (EspINA::SEGMENTATION == item->type() && m_segmentations.contains(segmentationPtr(item)))
+//     {
+//       Filter::FilterInspectorPtr inspector = segmentationPtr(item)->filter()->filterInspector();
+//       if (inspector)
+//       {
+//         QWidget *widget = inspector->createWidget(m_undoStack, m_viewManager);
+//         m_filterInspector->setWidget(widget);
+//         m_filterInspector->setMinimumWidth((widget->minimumSize().width() < 250) ?  250 : widget->minimumSize().width());
+//         return;
+//       }
+//     }
+//   }
 
-    if (EspINA::SEGMENTATION == item->type() && m_segmentations.contains(segmentationPtr(item)))
-    {
-      Filter::FilterInspectorPtr inspector = segmentationPtr(item)->filter()->filterInspector();
-      if (inspector)
-      {
-        QWidget *widget = inspector->createWidget(m_undoStack, m_viewManager);
-        m_filterInspector->setWidget(widget);
-        m_filterInspector->setMinimumWidth((widget->minimumSize().width() < 250) ?  250 : widget->minimumSize().width());
-        return;
-      }
-    }
-  }
-
-  QWidget *noWidgetInspector = new QWidget();
-  noWidgetInspector->setLayout(new QVBoxLayout());
-  noWidgetInspector->layout()->setSpacing(10);
-
-  QLabel *infoLabel = new QLabel(noWidgetInspector);
-  if (item != NULL)
-    infoLabel->setText(QLabel::tr("This filter doesn't have configurable options."));
-  else
-    infoLabel->setText(QLabel::tr("No segmentation selected."));
-  infoLabel->setWordWrap(true);
-  infoLabel->setTextInteractionFlags(Qt::NoTextInteraction);
-  noWidgetInspector->layout()->addWidget(infoLabel);
-
-  QSpacerItem* spacer = new QSpacerItem(-1, -1, QSizePolicy::Minimum, QSizePolicy::Expanding);
-  noWidgetInspector->layout()->addItem(spacer);
-
-  m_filterInspector->setWidget(noWidgetInspector);
-  m_filterInspector->setMinimumWidth(250);
+//   QWidget *noWidgetInspector = new QWidget();
+//   noWidgetInspector->setLayout(new QVBoxLayout());
+//   noWidgetInspector->layout()->setSpacing(10);
+// 
+//   QLabel *infoLabel = new QLabel(noWidgetInspector);
+//   if (item != NULL)
+//     infoLabel->setText(QLabel::tr("This filter doesn't have configurable options."));
+//   else
+//     infoLabel->setText(QLabel::tr("No segmentation selected."));
+//   infoLabel->setWordWrap(true);
+//   infoLabel->setTextInteractionFlags(Qt::NoTextInteraction);
+//   noWidgetInspector->layout()->addWidget(infoLabel);
+// 
+//   QSpacerItem* spacer = new QSpacerItem(-1, -1, QSizePolicy::Minimum, QSizePolicy::Expanding);
+//   noWidgetInspector->layout()->addItem(spacer);
+// 
+//   m_filterInspector->setWidget(noWidgetInspector);
+//   m_filterInspector->setMinimumWidth(250);
 }
 
 //------------------------------------------------------------------------
@@ -363,16 +367,18 @@ void SegmentationInspector::dropEvent(QDropEvent *event)
   foreach(SegmentationPtr seg, taxSegmentations)
     addSegmentation(seg);
 
+  // TODO: Use generic filter by segmentation list
   // resetting the sort is faster than modifying the regular expression
   QString regExpression;
   foreach(SegmentationPtr seg, m_segmentations)
   {
-    regExpression += "^"+seg->data().toString()+"$";
+    regExpression += "^"+seg->data().toString()+"$"
+                  + "|" + "^" + seg->taxonomy()->qualifiedName() + "$";
     if(seg != m_segmentations.last())
       regExpression += "|";
   }
   m_sort->setFilterRegExp(regExpression);
-  m_dataView->setModel(m_sort.data());
+  m_tabularReport->setModel(m_sort.data());
 
   m_view->resetCamera();
 

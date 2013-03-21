@@ -23,9 +23,14 @@
 #include <Core/Interfaces/IDockWidget.h>
 
 #include <Core/EspinaTypes.h>
+#include <EspinaConfig.h>
 #include <Core/Model/EspinaModel.h>
 #include <Core/Model/Proxies/InformationProxy.h>
 #include <Core/Model/Proxies/TaxonomyProxy.h>
+
+#ifdef TEST_ESPINA_MODELS
+class ModelTest;
+#endif
 
 namespace EspINA
 {
@@ -48,7 +53,11 @@ public:
   virtual void reset(); // slot
 
 private:
-  QSharedPointer<TaxonomicaInformationProxy> m_informationProxy;
+  #ifdef TEST_ESPINA_MODELS
+  QSharedPointer<ModelTest> m_modelTester;
+  #endif
+
+  QSharedPointer<TaxonomicalInformationProxy> m_informationProxy;
 };
 
 } // namespace EspINA

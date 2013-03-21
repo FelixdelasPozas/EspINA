@@ -28,9 +28,7 @@
 #include <QAbstractItemView>
 #include <QVBoxLayout>
 
-#ifdef TEST_ESPINA_MODELS
-class ModelTest;
-#endif
+class QTableView;
 
 namespace EspINA
 {
@@ -61,7 +59,10 @@ namespace EspINA
     virtual void rowsInserted(const QModelIndex &parent, int start, int end);
     virtual void rowsAboutToBeRemoved(const QModelIndex &parent, int start, int end);
 
+    virtual void setModel(QAbstractItemModel *model);
+
   protected:
+    virtual bool event(QEvent *event);
     virtual void reset();
 
   protected slots:
@@ -69,16 +70,17 @@ namespace EspINA
     void updateSelection(QItemSelection selected, QItemSelection deselected);
 
   private:
+    void resizeTableViews(QTableView *table, const int numRows = 1);
+
+  private:
     EspinaFactory *m_factory;
     ViewManager   *m_viewManager;
 
-    #ifdef TEST_ESPINA_MODELS
-    QSharedPointer<ModelTest>             m_modelTester;
-    #endif
-
     QStringList  m_query;
     QVBoxLayout *m_layout;
-    QMap<ModelItemPtr, Entry *> m_entries;
+    QMap<QString, Entry *> m_entries;
+
+    bool m_multiSelection;
   };
 
 } // namespace EspINA
