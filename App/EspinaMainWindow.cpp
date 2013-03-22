@@ -569,7 +569,7 @@ void EspinaMainWindow::closeEvent(QCloseEvent* event)
     }
   }
 
-  if (m_model->hasChanged())
+  if (m_model->hasChanged() || m_undoStack->canUndo())
   {
     QMessageBox warning;
     warning.setWindowTitle(tr("EspINA"));

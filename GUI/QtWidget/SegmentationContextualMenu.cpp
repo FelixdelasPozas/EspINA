@@ -26,6 +26,7 @@
 #include <Core/Extensions/Tags/TagExtension.h>
 #include <Undo/ChangeTaxonomyCommand.h>
 #include <Undo/RemoveSegmentation.h>
+#include <Undo/ChangeSegmentationTags.h>
 
 #include <QWidgetAction>
 #include <QTreeView>
@@ -153,21 +154,32 @@ void SegmentationContextualMenu::changeFinalFlag()
 //------------------------------------------------------------------------
 void SegmentationContextualMenu::manageTags()
 {
+  if (!m_segmentations.isEmpty())
+  {
+    m_undoStack->beginMacro("Change Segmentation Tags");
+  }
+
   foreach (SegmentationPtr segmentation, m_segmentations)
   {
-    SegmentationTags *extension = dynamic_cast<SegmentationTags *>(segmentation->informationExtension(TagExtensionID));
+    SegmentationTags *tagExtension = dynamic_cast<SegmentationTags *>(segmentation->informationExtension(TagExtensionID));
 
     bool ok;
     QString rawTags = QInputDialog::getText(this,
                                             tr("Tag Manager"),
                                             tr("Introduce tags. Use comma to separate multiple tags"),
                                             QLineEdit::Normal,
-                                            extension->tags().join(","),
+                                            tagExtension->tags().join(","),
                                             &ok);
     if (ok)
     {
-      extension->setTags(rawTags.split(",", QString::SkipEmptyParts));
+      QStringList tags = rawTags.split(",", QString::SkipEmptyParts);
+      m_undoStack->push(new ChangeSegmentationTags(tagExtension, tags));
     }
+  }
+
+  if (!m_segmentations.isEmpty())
+  {
+    m_undoStack->endMacro();
   }
 }
 

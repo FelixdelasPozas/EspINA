@@ -30,12 +30,12 @@
 #include <Core/Model/Sample.h>
 #include <Core/Model/Segmentation.h>
 #include <Core/Model/HierarchyItem.h>
+#include <Core/Extensions/Tags/TagExtension.h>
 #include <GUI/ISettingsPanel.h>
 #include <Undo/RemoveSegmentation.h>
 
 #ifdef TEST_ESPINA_MODELS
 #include <Core/Model/ModelTest.h>
-#include <Core/Extensions/Tags/TagExtension.h>
 #endif
 
 // Qt
@@ -204,7 +204,7 @@ void SegmentationExplorer::changeLayout(int index)
   m_gui->view->setModel(m_layout->model());
   QCompleter *completer = new QCompleter(&SegmentationTags::TagModel, this);
   completer->setCaseSensitivity(Qt::CaseInsensitive);
-  completer->setCompletionMode(QCompleter::UnfilteredPopupCompletion);
+  completer->setCompletionMode(QCompleter::InlineCompletion);
   completer->setModelSorting(QCompleter::CaseInsensitivelySortedModel);
   m_gui->searchText->setCompleter(completer);
 

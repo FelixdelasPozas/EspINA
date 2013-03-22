@@ -13,6 +13,7 @@ set (UNDO_SOURCES
   AddSegmentation.cpp
   AddTaxonomyElement.cpp
   ChangeTaxonomyCommand.cpp
+  ChangeSegmentationTags.cpp
   FillHolesCommand.cpp
   RemoveSegmentation.cpp
   )

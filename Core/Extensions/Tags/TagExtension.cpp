@@ -241,7 +241,7 @@ void SegmentationTags::addTagImplementation(const QString &tag)
   QStringList &currentTags = s_cache[m_segmentation].Data.Tags;
   if (!currentTags.contains(tag))
   {
-    currentTags << tag;
+    currentTags << tag.trimmed();
   }
 }
 

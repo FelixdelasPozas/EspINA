@@ -87,6 +87,7 @@ set (GUI_SOURCES
 
 set(GUI_EXTERNAL_LIBS
   EspinaCore
+  EspinaGUI
 )
 
 add_library           (EspinaGUI SHARED ${GUI_SOURCES})
