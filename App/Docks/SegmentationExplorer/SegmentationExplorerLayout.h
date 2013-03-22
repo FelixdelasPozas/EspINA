@@ -75,6 +75,7 @@ namespace EspINA
     virtual void contextMenu(const QPoint &pos) = 0;
     virtual void deleteSelectedItems() = 0;
     virtual void showSelectedItemsInformation() = 0;
+    virtual bool hasInformationToShow() = 0;
 
     virtual QItemDelegate *itemDelegate() const = 0;
 

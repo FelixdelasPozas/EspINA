@@ -351,7 +351,34 @@ void TaxonomyLayout::showSelectedItemsInformation()
   TaxonomyElementList  taxonomies;
   SegmentationSet      segmentations;
 
-  if (!selectedItems(taxonomies, segmentations) || segmentations.empty())
+  if (!selectedItems(taxonomies, segmentations))
+    return;
+
+  if (!taxonomies.empty())
+  {
+    QModelIndexList selectedIndexes = m_view->selectionModel()->selectedIndexes();
+    QModelIndexList subIndexes;
+    foreach(QModelIndex index, selectedIndexes)
+    {
+      ModelItemPtr item = TaxonomyLayout::item(index);
+      if (EspINA::TAXONOMY == item->type())
+      {
+        subIndexes << indices(index, true);
+        foreach(QModelIndex subIndex, subIndexes)
+        {
+          ModelItemPtr subItem = TaxonomyLayout::item(subIndex);
+          if (EspINA::SEGMENTATION == subItem->type())
+          {
+            SegmentationPtr seg = segmentationPtr(subItem);
+            if (!segmentations.contains(seg))
+              segmentations << seg;
+          }
+        }
+      }
+    }
+  }
+
+  if (segmentations.empty())
     return;
 
   showSegmentationInformation(segmentations.toList());
@@ -498,7 +525,7 @@ void TaxonomyLayout::updateSelection()
     }
   }
 
-  bool enabled = numTax == 1;
+  bool enabled = (numTax == 1);
   m_createTaxonomy->setEnabled(enabled);
   m_createSubTaxonomy->setEnabled(enabled);
   m_changeTaxonomyColor->setEnabled(enabled);
@@ -575,4 +602,33 @@ void TaxonomyLayout::selectTaxonomyElements()
 
   m_view->selectionModel()->clearSelection();
   m_view->selectionModel()->select(newSelection, QItemSelectionModel::Select);
+}
+
+//------------------------------------------------------------------------
+bool TaxonomyLayout::hasInformationToShow()
+{
+  QModelIndexList selectedIndexes = m_view->selectionModel()->selectedIndexes();
+  foreach(QModelIndex index, selectedIndexes)
+  {
+    QModelIndexList subIndexes;
+    ModelItemPtr item = TaxonomyLayout::item(index);
+    switch (item->type())
+    {
+      case EspINA::TAXONOMY:
+        subIndexes = indices(index, true);
+        foreach(QModelIndex subIndex, subIndexes)
+        {
+          if (EspINA::SEGMENTATION == TaxonomyLayout::item(subIndex)->type())
+            return true;
+        }
+        break;
+      case EspINA::SEGMENTATION:
+        return true;
+        break;
+      default:
+        break;
+    }
+  }
+
+  return false;
 }

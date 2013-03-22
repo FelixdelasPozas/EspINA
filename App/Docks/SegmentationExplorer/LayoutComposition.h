@@ -63,6 +63,7 @@ namespace EspINA
     virtual void deleteSelectedItems();
 
     virtual void showSelectedItemsInformation();
+    virtual bool hasInformationToShow();
 
     virtual QItemDelegate *itemDelegate() const;
 

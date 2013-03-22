@@ -169,7 +169,7 @@ bool SegmentationExplorer::eventFilter(QObject *sender, QEvent *e)
 //------------------------------------------------------------------------
 void SegmentationExplorer::updateGUI(const QModelIndexList &selectedIndexes)
 {
-  m_gui->showInformationButton->setEnabled(!selectedIndexes.empty());
+  m_gui->showInformationButton->setEnabled(m_layout->hasInformationToShow());
   m_gui->deleteButton->setEnabled(!selectedIndexes.empty());
 
   QSet<QString> tagSet;
@@ -182,6 +182,7 @@ void SegmentationExplorer::updateGUI(const QModelIndexList &selectedIndexes)
       tagSet.unite(segmentation->information(SegmentationTags::TAGS).toStringList().toSet());
     }
   }
+
   QStringList tags = tagSet.toList();
   m_gui->selectedTags->setText(tags.join(","));
 }
@@ -215,6 +216,7 @@ void SegmentationExplorer::changeLayout(int index)
   m_layout->createSpecificControls(m_gui->specificControlLayout);
 
   m_gui->view->setItemDelegate(m_layout->itemDelegate());
+  m_gui->showInformationButton->setEnabled(false);
 }
 
 //------------------------------------------------------------------------
@@ -294,8 +296,6 @@ void SegmentationExplorer::updateSelection(QItemSelection selected, QItemSelecti
   }
 
   updateGUI(selectedIndexes);
-//   m_gui->showInformationButton->setEnabled(!selection.empty());
-//   m_gui->deleteButton->setEnabled(!selectedIndexes.empty());
 
   // signal blocking is necessary because we don't want to change our current selection indexes,
   // and that will happen if a updateSelection(ViewManager::Selection) is called.

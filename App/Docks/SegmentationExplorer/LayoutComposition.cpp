@@ -220,3 +220,10 @@ void CompositionLayout::selectComposeElements()
   m_view->selectionModel()->clearSelection();
   m_view->selectionModel()->select(newSelection, QItemSelectionModel::Select);
 }
+
+//------------------------------------------------------------------------
+bool CompositionLayout::hasInformationToShow()
+{
+  SegmentationSet unused;
+  return selectedItems(unused);
+}

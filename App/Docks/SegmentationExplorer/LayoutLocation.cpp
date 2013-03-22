@@ -190,3 +190,13 @@ void LocationLayout::selectLocationElements()
   m_view->selectionModel()->clearSelection();
   m_view->selectionModel()->select(newSelection, QItemSelectionModel::Select);
 }
+
+//------------------------------------------------------------------------
+bool LocationLayout::hasInformationToShow()
+{
+  SampleList samples;
+  SegmentationSet segmentations;
+  selectedItems(samples, segmentations);
+
+  return !segmentations.empty();
+}
