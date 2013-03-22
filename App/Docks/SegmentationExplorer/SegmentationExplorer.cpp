@@ -112,6 +112,12 @@ SegmentationExplorer::SegmentationExplorer(EspinaModel *model,
   setWidget(m_gui);
 
   m_gui->view->installEventFilter(this);
+
+  QCompleter *completer = new QCompleter(&SegmentationTags::TagModel, this);
+  completer->setCaseSensitivity(Qt::CaseInsensitive);
+  completer->setCompletionMode(QCompleter::InlineCompletion);
+  completer->setModelSorting(QCompleter::CaseInsensitivelySortedModel);
+  m_gui->searchText->setCompleter(completer);
 }
 
 //------------------------------------------------------------------------
@@ -202,11 +208,6 @@ void SegmentationExplorer::changeLayout(int index)
   m_modelTester = QSharedPointer<ModelTest>(new ModelTest(m_layout->model()));
 #endif
   m_gui->view->setModel(m_layout->model());
-  QCompleter *completer = new QCompleter(&SegmentationTags::TagModel, this);
-  completer->setCaseSensitivity(Qt::CaseInsensitive);
-  completer->setCompletionMode(QCompleter::InlineCompletion);
-  completer->setModelSorting(QCompleter::CaseInsensitivelySortedModel);
-  m_gui->searchText->setCompleter(completer);
 
   connect(m_gui->view->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
           this, SLOT(updateSelection(QItemSelection, QItemSelection)));

@@ -72,9 +72,6 @@ class TabularReport;
   protected:
     virtual void showEvent(QShowEvent *event);
 
-  private slots:
-    void centerViewOn(QModelIndex index);
-
   protected:
     virtual void closeEvent(QCloseEvent *e);
 

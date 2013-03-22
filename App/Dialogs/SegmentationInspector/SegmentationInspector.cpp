@@ -103,8 +103,6 @@ SegmentationInspector::SegmentationInspector(SegmentationList segmentations,
 
   connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection,bool)),
           this, SLOT(updateSelection(ViewManager::Selection)));
-  connect(m_tabularReport, SIGNAL(doubleClicked(QModelIndex)),
-          this, SLOT(centerViewOn(QModelIndex)));
 
   QSettings settings(CESVIMA, ESPINA);
   QByteArray geometry = settings.value(SegmentationInspectorSettingsKey, QByteArray()).toByteArray();
@@ -306,25 +304,6 @@ void SegmentationInspector::showEvent(QShowEvent *event)
 
   updateSelection(m_viewManager->selection());
   m_tabularReport->updateSelection(m_viewManager->selection());
-}
-
-//------------------------------------------------------------------------
-void SegmentationInspector::centerViewOn(QModelIndex index)
-{
-  if (!index.isValid())
-    return;
-
-  QModelIndex modelIndex = m_info->mapToSource(m_sort->mapToSource(index));
-
-  ModelItemPtr item = indexPtr(modelIndex);
-  if (item->type() != SEGMENTATION)
-    return;
-
-  SegmentationPtr segmentation = segmentationPtr(item);
-  double bounds[6];
-  segmentation->volume()->bounds(bounds);
-  Nm center[3] = { (bounds[0] + bounds[1]) / 2.0, (bounds[2] + bounds[3]) / 2.0, (bounds[4] + bounds[5]) / 2.0 };
-  m_view->centerViewOn(center, false);
 }
 
 //------------------------------------------------------------------------

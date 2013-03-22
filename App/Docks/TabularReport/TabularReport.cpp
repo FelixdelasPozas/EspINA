@@ -176,6 +176,8 @@ void TabularReport::rowsInserted(const QModelIndex &parent, int start, int end)
               this, SLOT(updateSelection(QItemSelection,QItemSelection)));
       connect(tableView, SIGNAL(itemStateChanged(QModelIndex)),
               this, SLOT(updateRepresentation(QModelIndex)));
+      connect(tableView, SIGNAL(doubleClicked(QModelIndex)),
+              this, SLOT(indexDoubleClicked(QModelIndex)));
 
 
       m_entries[taxonomyName] = entry;
@@ -266,13 +268,27 @@ void TabularReport::reset()
 
 
 //------------------------------------------------------------------------
+void TabularReport::indexDoubleClicked(QModelIndex index)
+{
+  QModelIndex sourceIndex = sourceModelIndex(index);
+
+  QAbstractProxyModel *proxyModel = dynamic_cast<QAbstractProxyModel *>(model());
+  ModelItemPtr sItem = indexPtr(proxyModel->mapToSource(sourceIndex));
+  SegmentationPtr segmentation = segmentationPtr(sItem);
+
+  double bounds[6];
+  segmentation->volume()->bounds(bounds);
+  Nm center[3] = { (bounds[0] + bounds[1]) / 2.0, (bounds[2] + bounds[3]) / 2.0, (bounds[4] + bounds[5]) / 2.0 };
+  m_viewManager->focusViewsOn(center);
+
+  emit doubleClicked(sourceIndex);
+}
+
+//------------------------------------------------------------------------
 void TabularReport::updateRepresentation(const QModelIndex &index)
 {
-  QAbstractProxyModel   *proxyModel = dynamic_cast<QAbstractProxyModel *>(model());
-
-  const QSortFilterProxyModel *sorFilter = dynamic_cast<const QSortFilterProxyModel *>(index.model());
-
-  ModelItemPtr sItem = indexPtr(proxyModel->mapToSource(sorFilter->mapToSource(index)));
+  QAbstractProxyModel *proxyModel = dynamic_cast<QAbstractProxyModel *>(model());
+  ModelItemPtr sItem = indexPtr(proxyModel->mapToSource(sourceModelIndex(index)));
 
   m_viewManager->updateSegmentationRepresentations(segmentationPtr(sItem));
   m_viewManager->updateViews();
@@ -348,10 +364,10 @@ void TabularReport::updateSelection(QItemSelection selected, QItemSelection dese
     {
       QTableView *tableView = entry->tableView;
 
-      QSortFilterProxyModel *sorFilter = dynamic_cast<QSortFilterProxyModel *>(tableView->model());
+      QSortFilterProxyModel *sortFilter = dynamic_cast<QSortFilterProxyModel *>(tableView->model());
       foreach(QModelIndex index, tableView->selectionModel()->selectedRows())
       {
-        ModelItemPtr sItem = indexPtr(sorFilter->mapToSource(index));
+        ModelItemPtr sItem = indexPtr(sortFilter->mapToSource(index));
         if (EspINA::SEGMENTATION == sItem->type())
           selection << pickableItemPtr(sItem);
       }
@@ -371,10 +387,10 @@ void TabularReport::updateSelection(QItemSelection selected, QItemSelection dese
     }
 
     QAbstractProxyModel   *proxyModel = dynamic_cast<QAbstractProxyModel *>(model());
-    QSortFilterProxyModel *sorFilter = dynamic_cast<QSortFilterProxyModel *>(tableView->model());
+    QSortFilterProxyModel *sortFilter = dynamic_cast<QSortFilterProxyModel *>(tableView->model());
     foreach(QModelIndex index, tableView->selectionModel()->selectedRows())
     {
-      ModelItemPtr sItem = indexPtr(proxyModel->mapToSource(sorFilter->mapToSource(index)));
+      ModelItemPtr sItem = indexPtr(proxyModel->mapToSource(sortFilter->mapToSource(index)));
       if (EspINA::SEGMENTATION == sItem->type())
         selection << pickableItemPtr(sItem);
     }
@@ -394,4 +410,12 @@ void TabularReport::resizeTableViews(QTableView *table, const int numRows)
 
   table->setMinimumHeight(tableHeight);
   table->setMaximumHeight(tableHeight);
+}
+
+//------------------------------------------------------------------------
+QModelIndex TabularReport::sourceModelIndex(const QModelIndex &index)
+{
+  const QSortFilterProxyModel *sortFilter = dynamic_cast<const QSortFilterProxyModel *>(index.model());
+
+  return sortFilter->mapToSource(index);
 }

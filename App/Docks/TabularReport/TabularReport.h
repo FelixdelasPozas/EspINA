@@ -69,11 +69,13 @@ namespace EspINA
     void updateSelection(ViewManager::Selection selection);
 
   protected slots:
+    void indexDoubleClicked(QModelIndex index);
     void updateRepresentation(const QModelIndex &index);
     void updateSelection(QItemSelection selected, QItemSelection deselected);
 
   private:
     void resizeTableViews(QTableView *table, const int numRows = 1);
+    QModelIndex sourceModelIndex(const QModelIndex &index);
 
   private:
     EspinaFactory *m_factory;

@@ -21,7 +21,6 @@
 
 #include "TabularReport.h"
 #include <Core/Model/Proxies/TaxonomyProxy.h>
-#include <QTreeView>
 
 #ifdef TEST_ESPINA_MODELS
 #include <Core/Model/ModelTest.h>
@@ -49,9 +48,6 @@ DataViewPanel::DataViewPanel(EspinaModel *model,
   TabularReport *report = new TabularReport(model->factory(), viewManager);
   report->setModel(m_informationProxy.data());
   setWidget(report);
-// //   QTreeView *tv = new QTreeView();
-// //   tv->setModel(m_informationProxy.data());
-// //   setWidget(tv);
 }
 
 //----------------------------------------------------------------------------
