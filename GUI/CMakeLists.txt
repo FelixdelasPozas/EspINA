@@ -9,6 +9,7 @@ qt4_wrap_cpp(GUI_MOC
   Pickers/IPicker.h
   QtWidget/ActionSelector.h
   QtWidget/ActionSelectorWidget.h
+  QtWidget/CheckableTableView.h
   QtWidget/CheckableTreeView.h
   QtWidget/EspinaRenderView.h
   QtWidget/HueSelector.h
@@ -30,7 +31,7 @@ qt4_wrap_ui (GUI_UI
   QtWidget/HueSelector.ui
   )
 
-set (GUI_SOURCES
+set (GUI_SOURCES 
   ${GUI_MOC}
   ${GUI_UI}
   Analysis/InformationSelector.cpp
@@ -40,6 +41,7 @@ set (GUI_SOURCES
   Pickers/PixelPicker.cpp
   QtWidget/ActionSelector.cpp
   QtWidget/ActionSelectorWidget.cpp
+  QtWidget/CheckableTableView.cpp
   QtWidget/CheckableTreeView.cpp
   QtWidget/EspinaRenderView.cpp
   QtWidget/HueSelector.cpp

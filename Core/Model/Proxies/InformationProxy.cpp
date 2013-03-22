@@ -154,6 +154,10 @@ bool TaxonomicalInformationProxy::setData(const QModelIndex &index, const QVaria
         ok = true;
       }
     }
+    else
+    {
+      ok = QAbstractProxyModel::setData(index, value, role);
+    }
   }
 
   return ok;
