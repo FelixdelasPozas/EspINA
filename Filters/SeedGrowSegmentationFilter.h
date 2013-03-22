@@ -140,8 +140,6 @@ namespace EspINA
 
     // Implements Filter Interface
     virtual bool needUpdate() const;
-    virtual void releaseDataFlagOn();
-    virtual void releaseDataFlagOff();
     virtual bool fetchSnapshot();
 
   protected:

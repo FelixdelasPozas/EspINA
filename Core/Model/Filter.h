@@ -68,7 +68,7 @@ namespace EspINA
       , isCached(false)
       , filter(filter)
       , volume(volume)
-      {}
+      { if (isValid()) this->volume->toITK()->DisconnectPipeline();}
 
       QList<EspinaRegion>   editedRegions;
       OutputId              id;
@@ -198,11 +198,6 @@ namespace EspINA
     /// Some filters may need to stablish connections with other items on the model
     /// in order to keep updated
     virtual void upkeeping() {}
-
-    /// Turn on internal filters' release data flags
-    virtual void releaseDataFlagOn(){}
-    /// Turn off internal filters' release data flags
-    virtual void releaseDataFlagOff(){}
 
     void setFilterInspector(FilterInspectorPtr filterInspector)
     { m_filterInspector = filterInspector; }

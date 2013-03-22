@@ -68,22 +68,6 @@ bool SeedGrowSegmentationFilter::needUpdate() const
 }
 
 //-----------------------------------------------------------------------------
-void SeedGrowSegmentationFilter::releaseDataFlagOn()
-{
-  extractFilter->ReleaseDataFlagOn();
-  if (bmcif.IsNotNull())
-    bmcif->ReleaseDataFlagOn();
-}
-
-//-----------------------------------------------------------------------------
-void SeedGrowSegmentationFilter::releaseDataFlagOff()
-{
-  extractFilter->ReleaseDataFlagOff();
-  if (bmcif.IsNotNull())
-    bmcif->ReleaseDataFlagOff();
-}
-
-//-----------------------------------------------------------------------------
 void SeedGrowSegmentationFilter::run()
 {
   int voi[6];
@@ -115,6 +99,7 @@ void SeedGrowSegmentationFilter::run()
   voiFilter->SetNumberOfThreads(1);
   voiFilter->SetInput(m_input->toITK());
   voiFilter->SetExtractionRegion(roi);
+  voiFilter->ReleaseDataFlagOn();
   voiFilter->Update();
 
 //   qDebug() << "Computing Original Size Connected Threshold";
@@ -127,6 +112,7 @@ void SeedGrowSegmentationFilter::run()
   ctif->SetUpper(std::min(seedIntensity + m_param.upperThreshold(), 255.0));
   ctif->AddSeed(seed);
   ctif->SetNumberOfThreads(4);
+  ctif->ReleaseDataFlagOn();
   ctif->Update();
 
 //   qDebug() << "Intensity at Seed:" << seedIntensity;
@@ -149,6 +135,7 @@ void SeedGrowSegmentationFilter::run()
   extractFilter = ExtractType::New();
   extractFilter->SetInput(ctif->GetOutput());
   extractFilter->SetExtractionRegion(objectROI);
+  extractFilter->ReleaseDataFlagOn();
   extractFilter->Update();
   //typedef itk::ImageFileWriter< OutputImageType >  WriterType;
   //WriterType::Pointer writer = WriterType::New();
@@ -169,6 +156,7 @@ void SeedGrowSegmentationFilter::run()
     bmcif->SetInput(extractFilter->GetOutput());
     bmcif->SetKernel(ball);
     bmcif->SetForegroundValue(LABEL_VALUE);
+    bmcif->ReleaseDataFlagOn();
     bmcif->Update();
 
     volume = bmcif->GetOutput();
