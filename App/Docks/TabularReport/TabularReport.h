@@ -65,9 +65,11 @@ namespace EspINA
     virtual bool event(QEvent *event);
     virtual void reset();
 
+  public slots:
+    void updateSelection(ViewManager::Selection selection);
+
   protected slots:
     void updateRepresentation(const QModelIndex &index);
-    void updateSelection(ViewManager::Selection selection);
     void updateSelection(QItemSelection selected, QItemSelection deselected);
 
   private:

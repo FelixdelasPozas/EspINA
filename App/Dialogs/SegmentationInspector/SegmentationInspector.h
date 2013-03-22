@@ -64,10 +64,13 @@ class TabularReport;
 
   public slots:
     void updateScene(ModelItemPtr);
-    void updateSelection(QItemSelection selected = QItemSelection(), QItemSelection deselected = QItemSelection());
+    void updateSelection(ViewManager::Selection selection);
 
   signals:
     void inspectorClosed(SegmentationInspector *);
+
+  protected:
+    virtual void showEvent(QShowEvent *event);
 
   private slots:
     void centerViewOn(QModelIndex index);

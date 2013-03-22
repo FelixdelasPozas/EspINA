@@ -97,11 +97,12 @@ SegmentationInspector::SegmentationInspector(SegmentationList segmentations,
 
   m_tabularReport->setModel(m_sort.data());
   m_tabularReport->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
+  m_tabularReport->setVisible(true);
 
   layout()->addWidget(m_tabularReport);
 
-//   connect(m_dataView->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
-//           this, SLOT(updateSelection(QItemSelection,QItemSelection)));
+  connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection,bool)),
+          this, SLOT(updateSelection(ViewManager::Selection)));
   connect(m_tabularReport, SIGNAL(doubleClicked(QModelIndex)),
           this, SLOT(centerViewOn(QModelIndex)));
 
@@ -110,7 +111,6 @@ SegmentationInspector::SegmentationInspector(SegmentationList segmentations,
   if (!geometry.isEmpty())
     restoreGeometry(geometry);
 
-  updateSelection();
   generateWindowTitle();
 }
 
@@ -138,6 +138,55 @@ void SegmentationInspector::updateScene(ModelItemPtr item)
   m_view->updateSegmentation(seg);
   m_view->updateView();
 }
+
+//------------------------------------------------------------------------
+void SegmentationInspector::updateSelection(ViewManager::Selection selection)
+{
+  QWidget *prevWidget = m_filterInspector->widget();
+  if (prevWidget)
+    delete prevWidget;
+
+  QWidget *noWidgetInspector = new QWidget();
+  noWidgetInspector->setLayout(new QVBoxLayout());
+  noWidgetInspector->layout()->setSpacing(10);
+
+  QLabel *infoLabel = new QLabel(noWidgetInspector);
+
+  if (selection.size() == 1 && EspINA::SEGMENTATION == selection.first()->type())
+  {
+    SegmentationPtr selectedSegmentation = segmentationPtr(selection.first());
+    if (m_segmentations.contains(selectedSegmentation))
+    {
+      Filter::FilterInspectorPtr inspector = selectedSegmentation->filter()->filterInspector();
+      if (inspector)
+      {
+        QWidget *widget = inspector->createWidget(m_undoStack, m_viewManager);
+        m_filterInspector->setWidget(widget);
+        m_filterInspector->setMinimumWidth((widget->minimumSize().width() < 250) ?  250 : widget->minimumSize().width());
+        return;
+      }
+      else
+      {
+        infoLabel->setText(QLabel::tr("This filter doesn't have configurable options."));
+      }
+    }
+  } else
+  {
+    infoLabel->setText(QLabel::tr("No segmentation selected."));
+  }
+
+  infoLabel->setWordWrap(true);
+  infoLabel->setTextInteractionFlags(Qt::NoTextInteraction);
+  noWidgetInspector->layout()->addWidget(infoLabel);
+
+  QSpacerItem* spacer = new QSpacerItem(-1, -1, QSizePolicy::Minimum, QSizePolicy::Expanding);
+  noWidgetInspector->layout()->addItem(spacer);
+
+  m_filterInspector->setWidget(noWidgetInspector);
+  m_filterInspector->setMinimumWidth(250);
+
+}
+
 
 //------------------------------------------------------------------------
 void SegmentationInspector::addSegmentation(SegmentationPtr segmentation)
@@ -229,51 +278,6 @@ void SegmentationInspector::removeChannel(ChannelPtr channel)
 }
 
 //------------------------------------------------------------------------
-void SegmentationInspector::updateSelection(QItemSelection selected, QItemSelection deselected)
-{
-  QWidget *prevWidget = m_filterInspector->widget();
-  if (prevWidget)
-    delete prevWidget;
-
-//   ModelItemPtr item(NULL);
-//   if (!m_dataView->selectionModel()->selectedIndexes().isEmpty())
-//   {
-//     item = indexPtr(m_info->mapToSource(m_sort->mapToSource(m_dataView->selectionModel()->selectedIndexes().first())));
-// 
-//     if (EspINA::SEGMENTATION == item->type() && m_segmentations.contains(segmentationPtr(item)))
-//     {
-//       Filter::FilterInspectorPtr inspector = segmentationPtr(item)->filter()->filterInspector();
-//       if (inspector)
-//       {
-//         QWidget *widget = inspector->createWidget(m_undoStack, m_viewManager);
-//         m_filterInspector->setWidget(widget);
-//         m_filterInspector->setMinimumWidth((widget->minimumSize().width() < 250) ?  250 : widget->minimumSize().width());
-//         return;
-//       }
-//     }
-//   }
-
-//   QWidget *noWidgetInspector = new QWidget();
-//   noWidgetInspector->setLayout(new QVBoxLayout());
-//   noWidgetInspector->layout()->setSpacing(10);
-// 
-//   QLabel *infoLabel = new QLabel(noWidgetInspector);
-//   if (item != NULL)
-//     infoLabel->setText(QLabel::tr("This filter doesn't have configurable options."));
-//   else
-//     infoLabel->setText(QLabel::tr("No segmentation selected."));
-//   infoLabel->setWordWrap(true);
-//   infoLabel->setTextInteractionFlags(Qt::NoTextInteraction);
-//   noWidgetInspector->layout()->addWidget(infoLabel);
-// 
-//   QSpacerItem* spacer = new QSpacerItem(-1, -1, QSizePolicy::Minimum, QSizePolicy::Expanding);
-//   noWidgetInspector->layout()->addItem(spacer);
-// 
-//   m_filterInspector->setWidget(noWidgetInspector);
-//   m_filterInspector->setMinimumWidth(250);
-}
-
-//------------------------------------------------------------------------
 void SegmentationInspector::generateWindowTitle()
 {
   QString title("Segmentation Inspector - ");
@@ -293,6 +297,15 @@ void SegmentationInspector::generateWindowTitle()
   title += QString("]");
 
   setWindowTitle(title);
+}
+
+//------------------------------------------------------------------------
+void SegmentationInspector::showEvent(QShowEvent *event)
+{
+  QWidget::showEvent(event);
+
+  updateSelection(m_viewManager->selection());
+  m_tabularReport->updateSelection(m_viewManager->selection());
 }
 
 //------------------------------------------------------------------------
@@ -399,6 +412,9 @@ void SegmentationInspector::dropEvent(QDropEvent *event)
   }
   m_sort->setFilterRegExp(regExpression);
   m_tabularReport->setModel(m_sort.data());
+
+  updateSelection(m_viewManager->selection());
+  m_tabularReport->updateSelection(m_viewManager->selection());
 
   m_view->resetCamera();
 

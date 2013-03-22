@@ -58,6 +58,8 @@ SynapticAppositionSurfaceAnalysis::SynapticAppositionSurfaceAnalysis(Segmentatio
 
   setObjectName("SynapticAppositionSurfaceAnalysis");
 
+  tableView->setSelectionBehavior(QAbstractItemView::SelectRows);
+
   connect(tableView->horizontalScrollBar(), SIGNAL(valueChanged(int)),
           analysis->horizontalScrollBar(), SLOT(setValue(int)));
 
