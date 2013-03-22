@@ -66,6 +66,7 @@ namespace EspINA
     virtual void reset();
 
   protected slots:
+    void updateRepresentation(const QModelIndex &index);
     void updateSelection(ViewManager::Selection selection);
     void updateSelection(QItemSelection selected, QItemSelection deselected);
 

@@ -28,6 +28,7 @@
 #include <Core/Model/EspinaFactory.h>
 #include <Core/Model/QtModelUtils.h>
 #include <Core/Extensions/SegmentationExtension.h>
+#include <GUI/QtWidget/CheckableTableView.h>
 
 // Qt
 #include <QFileDialog>
@@ -163,7 +164,7 @@ void TabularReport::rowsInserted(const QModelIndex &parent, int start, int end)
       QModelIndex rootIndex = sortFilter->mapFromSource(parent);
       sortFilter->setData(rootIndex, tags, InformationTagsRole);
 
-      QTableView *tableView = entry->tableView;
+      CheckableTableView *tableView = entry->tableView;
       tableView->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
       tableView->setModel(sortFilter);
       tableView->setRootIndex(rootIndex);
@@ -173,6 +174,8 @@ void TabularReport::rowsInserted(const QModelIndex &parent, int start, int end)
       tableView->horizontalHeader()->setModel(header);
       connect(tableView->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
               this, SLOT(updateSelection(QItemSelection,QItemSelection)));
+      connect(tableView, SIGNAL(itemStateChanged(QModelIndex)),
+              this, SLOT(updateRepresentation(QModelIndex)));
 
 
       m_entries[taxonomyName] = entry;
@@ -261,6 +264,19 @@ void TabularReport::reset()
   rowsInserted(rootIndex(), 0, model()->rowCount(rootIndex())-1);
 }
 
+
+//------------------------------------------------------------------------
+void TabularReport::updateRepresentation(const QModelIndex &index)
+{
+  QAbstractProxyModel   *proxyModel = dynamic_cast<QAbstractProxyModel *>(model());
+
+  const QSortFilterProxyModel *sorFilter = dynamic_cast<const QSortFilterProxyModel *>(index.model());
+
+  ModelItemPtr sItem = indexPtr(proxyModel->mapToSource(sorFilter->mapToSource(index)));
+
+  m_viewManager->updateSegmentationRepresentations(segmentationPtr(sItem));
+  m_viewManager->updateViews();
+}
 
 //------------------------------------------------------------------------
 void TabularReport::updateSelection(ViewManager::Selection selection)

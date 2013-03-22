@@ -141,7 +141,7 @@
     </layout>
    </item>
    <item>
-    <widget class="QTableView" name="tableView">
+    <widget class="CheckableTableView" name="tableView">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
        <horstretch>0</horstretch>
@@ -180,6 +180,13 @@ QTableView::indicator:unchecked {
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>CheckableTableView</class>
+   <extends>QTableView</extends>
+   <header>GUI/QtWidget/CheckableTableView.h</header>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="../../rsc/espina.qrc"/>
  </resources>
