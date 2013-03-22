@@ -59,7 +59,7 @@ namespace EspINA
     itkVolumeType::PixelType m_value;
     itkVolumeType::Pointer   m_prevVolume;
     itkVolumeType::Pointer   m_newVolume;
-    bool                     m_needStrech;
+    bool                     m_needReduction;
     QList<EspinaRegion>      m_prevRegions;
   };
 

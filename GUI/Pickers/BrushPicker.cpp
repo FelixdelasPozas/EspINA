@@ -356,7 +356,7 @@ void BrushPicker::startPreview(EspinaRenderView* view)
   m_preview->AllocateScalars();
   memset(m_preview->GetScalarPointer(), 0, m_preview->GetNumberOfPoints());
 
-  // hide seg and copy contents of slice to preview actor
+  // if erasing hide seg and copy contents of slice to preview actor
   if (!m_drawing)
   {
     SegmentationList list;
@@ -366,12 +366,31 @@ void BrushPicker::startPreview(EspinaRenderView* view)
     int segExtent[6];
     m_segmentation->volume()->extent(segExtent);
 
-    segExtent[0] = (extent[0] > segExtent[0]) ? extent[0] : segExtent[0];
-    segExtent[1] = (extent[1] < segExtent[1]) ? extent[1] : segExtent[1];
-    segExtent[2] = (extent[2] > segExtent[2]) ? extent[2] : segExtent[2];
-    segExtent[3] = (extent[3] < segExtent[3]) ? extent[3] : segExtent[3];
-    segExtent[4] = (extent[4] > segExtent[4]) ? extent[4] : segExtent[4];
-    segExtent[5] = (extent[5] < segExtent[5]) ? extent[5] : segExtent[5];
+    // minimize voxel copy, only fill the part of the preview that has
+    // segmentation voxels.
+    if (m_plane != SAGITTAL)
+    {
+      segExtent[0] = (extent[0] > segExtent[0]) ? extent[0] : segExtent[0];
+      segExtent[1] = (extent[1] < segExtent[1]) ? extent[1] : segExtent[1];
+    }
+    else
+      segExtent[0] = segExtent[1] = extent[0];
+
+    if (m_plane != CORONAL)
+    {
+      segExtent[2] = (extent[2] > segExtent[2]) ? extent[2] : segExtent[2];
+      segExtent[3] = (extent[3] < segExtent[3]) ? extent[3] : segExtent[3];
+    }
+    else
+      segExtent[2] = segExtent[3] = extent[2];
+
+    if (m_plane != AXIAL)
+    {
+      segExtent[4] = (extent[4] > segExtent[4]) ? extent[4] : segExtent[4];
+      segExtent[5] = (extent[5] < segExtent[5]) ? extent[5] : segExtent[5];
+    }
+    else
+      segExtent[4] = segExtent[5] = extent[4];
 
     unsigned char *previewPixel;
     itkVolumeType::IndexType index;
@@ -437,6 +456,7 @@ void BrushPicker::startPreview(EspinaRenderView* view)
   m_actor->GetMapper()->SetInputConnection(reslice->GetOutputPort());
   m_actor->Update();
 
+  // reposition actor to be over plane
   double pos[3];
   memset(pos, 0, 3 * sizeof(double));
   int sign = ((m_plane == AXIAL) ? -1 : 1);

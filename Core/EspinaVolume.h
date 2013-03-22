@@ -130,7 +130,7 @@ namespace EspINA
 
   /// Reduce volume dimensions to adjust it to the bounding box of the
   /// contained segmentation
-  itkVolumeType::Pointer strechToFitContent(itkVolumeType::Pointer volume);
+  itkVolumeType::Pointer fitToContent(itkVolumeType::Pointer volume);
 
   class SegmentationVolume
   : public EspinaVolume
@@ -147,7 +147,7 @@ namespace EspINA
 
     /// Reduce volume dimensions to adjust it to the bounding box of the
     /// contained segmentation
-    virtual bool strechToFitContent();
+    virtual bool fitToContent();
 
     // get mesh representation of the volume
     virtual vtkAlgorithmOutput* toMesh();

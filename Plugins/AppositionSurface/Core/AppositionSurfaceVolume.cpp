@@ -276,7 +276,7 @@ namespace EspINA
   }
 
   //----------------------------------------------------------------------------
-  bool AppositionSurfaceVolume::strechToFitContent()
+  bool AppositionSurfaceVolume::fitToContent()
   {
     if (m_volume.IsNull())
       transformVTK2ITK();

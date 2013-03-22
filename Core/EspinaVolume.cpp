@@ -403,7 +403,7 @@ bool SegmentationVolume::collision(SegmentationVolume v)
 
 
 //----------------------------------------------------------------------------
-bool SegmentationVolume::strechToFitContent()
+bool SegmentationVolume::fitToContent()
 {
   Image2LabelFilterType::Pointer image2label = Image2LabelFilterType::New();
   image2label->ReleaseDataFlagOn();
@@ -424,15 +424,14 @@ bool SegmentationVolume::strechToFitContent()
   extractor->SetExtractionRegion(segBB);
   extractor->Update();
 
-  bool streched = m_volume->GetLargestPossibleRegion() != extractor->GetOutput()->GetLargestPossibleRegion();
-  if (streched)
+  bool reduced = m_volume->GetLargestPossibleRegion() != extractor->GetOutput()->GetLargestPossibleRegion();
+  if (reduced)
   {
     setVolume(extractor->GetOutput(), true);
-
     markAsModified();
   }
 
-  return streched;
+  return reduced;
 }
 
 //------------------------------------------------------------------------

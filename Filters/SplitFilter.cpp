@@ -110,7 +110,7 @@ void SplitFilter::run()
   {
     for (int i = 0; i < 2; i++)
     {
-      volumes[i]->strechToFitContent();
+      volumes[i]->fitToContent();
       createOutput(i, volumes[i]);
     }
 

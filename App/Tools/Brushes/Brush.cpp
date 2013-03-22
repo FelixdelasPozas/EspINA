@@ -216,7 +216,7 @@ void Brush::drawStroke(PickableItemPtr item,
   if (centers->GetNumberOfPoints() == 0)
     return;
 
-    BrushShapeList brushes;
+  BrushShapeList brushes;
 
   for (int i = 0; i < centers->GetNumberOfPoints(); i++)
     brushes << createBrushShape(item, centers->GetPoint(i), radius, plane);
@@ -265,8 +265,23 @@ void Brush::drawStroke(PickableItemPtr item,
     {
       try
       {
-        m_currentSeg->volume()->strechToFitContent();
-        m_viewManager->updateSegmentationRepresentations(m_currentSeg.data());
+        const Nm *volumeBounds = m_currentSeg->volume()->espinaRegion().bounds();
+        Nm insideBounds[6] = { volumeBounds[0]+1, volumeBounds[1]-1, volumeBounds[2]+1, volumeBounds[3]-1, volumeBounds[4]+1, volumeBounds[5]-1 };
+
+        // to make sure the stroke is inside the volumeBounds plus a 1 voxel
+        // border to make sure the segmentation doesn't get deleted, only in
+        // that case we don't need a reduction (costly in big segmentations)
+        EspinaRegion insideRegion(insideBounds);
+        BrushShapeList::const_iterator it;
+        for(it = brushes.begin(); it != brushes.end(); ++it)
+        {
+          if (!(*it).second.isInside(insideRegion))
+          {
+            m_currentSeg->volume()->fitToContent();
+            m_viewManager->updateSegmentationRepresentations(m_currentSeg.data());
+            break;
+          }
+        }
       }
       catch (...)
       {

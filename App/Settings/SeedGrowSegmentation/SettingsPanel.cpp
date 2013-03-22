@@ -116,9 +116,6 @@ void SeedGrowSegmentationsSettingsPanel::rejectChanges()
 bool SeedGrowSegmentationsSettingsPanel::modified() const
 {
   QSettings settings(CESVIMA, ESPINA);
-  double zSpacing = 1.0;
-  if (m_viewManager->viewResolution() != NULL)
-    zSpacing = m_viewManager->viewResolution()[2];
 
   bool returnValue = false;
   returnValue |= (m_xSize->value() != m_settings->xSize());
