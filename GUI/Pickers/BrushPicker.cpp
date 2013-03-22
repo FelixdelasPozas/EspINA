@@ -323,11 +323,14 @@ void BrushPicker::updateStroke(QPoint pos, EspinaRenderView* view)
 //-----------------------------------------------------------------------------
 void BrushPicker::stopStroke(EspinaRenderView* view)
 {
+  stopPreview(view);
+
   if (m_stroke->GetNumberOfPoints() > 0)
     emit stroke(m_referenceItem, m_stroke, m_radius, m_plane);
 
   m_stroke->Reset();
-  stopPreview(view);
+
+  view->updateView();
 }
 
 //-----------------------------------------------------------------------------
@@ -574,7 +577,6 @@ void BrushPicker::stopPreview(EspinaRenderView* view)
     list.append(m_segmentation);
     reinterpret_cast<SliceView *>(view)->unhideSegmentations(list);
   }
-  view->updateView();
 }
 
 //-----------------------------------------------------------------------------

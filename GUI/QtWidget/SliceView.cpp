@@ -2057,6 +2057,7 @@ void SliceView::unhideSegmentations(SegmentationList segmentations)
     if (!m_segmentationReps.keys().contains(segmentation) || !m_hiddenSegmentations.contains(segmentation))
       continue;
 
+    m_segmentationReps[segmentation].slice->Update();
     m_renderer->AddActor(m_segmentationReps[segmentation].slice);
     m_hiddenSegmentations.removeOne(segmentation);
   }

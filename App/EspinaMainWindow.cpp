@@ -646,6 +646,10 @@ void EspinaMainWindow::closeCurrentAnalysis()
   m_undoStack->clear();
   m_model->reset();
 
+  // resets slice views matrices to avoid an esthetic bug
+  Nm origin[3] = { 0,0,0 };
+  m_viewManager->focusViewsOn(origin);
+
   m_addMenu->setEnabled(false);
   m_saveAnalysis->setEnabled(false);
   m_saveSessionAnalysis->setEnabled(false);

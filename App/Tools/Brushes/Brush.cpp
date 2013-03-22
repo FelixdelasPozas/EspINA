@@ -278,7 +278,6 @@ void Brush::drawStroke(PickableItemPtr item,
           if (!(*it).second.isInside(insideRegion))
           {
             m_currentSeg->volume()->fitToContent();
-            m_viewManager->updateSegmentationRepresentations(m_currentSeg.data());
             break;
           }
         }
@@ -294,7 +293,10 @@ void Brush::drawStroke(PickableItemPtr item,
   }
 
   if (m_currentSeg)
+  {
+    m_viewManager->updateSegmentationRepresentations(m_currentSeg.data());
     m_currentSeg->modifiedByUser(userName());
+  }
 }
 
 //-----------------------------------------------------------------------------
