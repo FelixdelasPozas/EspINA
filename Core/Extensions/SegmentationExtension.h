@@ -55,6 +55,9 @@ namespace EspINA
 
     virtual QVariant information(const Segmentation::InfoTag &tag) = 0;
 
+    virtual QString toolTipText() const
+    { return QString(); }
+
     /// Prototype
     virtual Segmentation::InformationExtension clone() = 0;
 

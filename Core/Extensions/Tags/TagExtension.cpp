@@ -82,6 +82,19 @@ QVariant SegmentationTags::information(const Segmentation::InfoTag &tag)
 }
 
 //------------------------------------------------------------------------
+QString SegmentationTags::toolTipText() const
+{
+  QString toolTip;
+  if (!tags().isEmpty())
+  {
+    toolTip = tr("<b>Tags:</b> ");
+    toolTip = toolTip.append(tags().join(","));
+  }
+
+  return toolTip;
+}
+
+//------------------------------------------------------------------------
 void SegmentationTags::loadCache(QuaZipFile &file, const QDir &tmpDir, EspinaModel *model)
 {
   QString header(file.readLine());

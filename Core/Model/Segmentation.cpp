@@ -26,6 +26,7 @@
 #include "EspinaModel.h"
 #include "Core/ColorEngines/IColorEngine.h"
 #include <Core/Extensions/SegmentationExtension.h>
+#include <Core/Extensions/Tags/TagExtension.h>
 #include <Core/Relations.h>
 
 #include <vtkAlgorithm.h>
@@ -116,6 +117,8 @@ QVariant Segmentation::data(int role) const
     }
     case Qt::ToolTipRole:
     {
+      const QString WS  = "&nbsp;"; // White space
+      const QString TAB = WS+WS+WS;
       QString boundsInfo;
       QString filterInfo;
       if (m_filter && outputId() != Filter::Output::INVALID_OUTPUT_ID)
@@ -123,11 +126,11 @@ QVariant Segmentation::data(int role) const
         double bounds[6];
         volume()->bounds(bounds);
         boundsInfo = tr("<b>Sections:</b><br>");
-        boundsInfo = boundsInfo.append("  X: %1 nm - %2 nm <br>").arg(bounds[0]).arg(bounds[1]);
-        boundsInfo = boundsInfo.append("  Y: %1 nm - %2 nm <br>").arg(bounds[2]).arg(bounds[3]);
-        boundsInfo = boundsInfo.append("  Z: %1 nm - %2 nm <br>").arg(bounds[4]).arg(bounds[5]);
+        boundsInfo = boundsInfo.append(TAB+"X: %1 nm - %2 nm <br>").arg(bounds[0]).arg(bounds[1]);
+        boundsInfo = boundsInfo.append(TAB+"Y: %1 nm - %2 nm <br>").arg(bounds[2]).arg(bounds[3]);
+        boundsInfo = boundsInfo.append(TAB+"Z: %1 nm - %2 nm <br>").arg(bounds[4]).arg(bounds[5]);
 
-        filterInfo = tr("<b>Filter:</b> %1<br>").arg(filter()->data().toString());
+        filterInfo = tr("<b>Filter:</b><br> %1").arg(TAB+filter()->data().toString());
       }
 
       QString taxonomyInfo;
@@ -142,6 +145,17 @@ QVariant Segmentation::data(int role) const
       tooltip = tooltip.append(filterInfo);
       tooltip = tooltip.append("<b>Users:</b> %1<br>").arg(m_args[USERS]);
       tooltip = tooltip.append(boundsInfo);
+
+      // FIXME: Hack to ensure tags extension is always loaded
+      InformationExtension tagExtention = informationExtension(TagExtensionID);
+      foreach (InformationExtension extension, m_informationExtensions)
+      {
+        QString extToolTip = extension->toolTipText();
+        if (!extToolTip.isEmpty())
+        {
+          tooltip = tooltip.append(extToolTip);
+        }
+      }
 
       if (!m_conditions.isEmpty())
       {

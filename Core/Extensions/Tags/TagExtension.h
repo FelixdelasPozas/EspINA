@@ -74,6 +74,8 @@ namespace EspINA
 
     virtual QVariant information(const Segmentation::InfoTag &tag);
 
+    virtual QString toolTipText() const;
+
     virtual bool isCacheFile(const QString &file) const
     { return EXTENSION_FILE == file; }
 
