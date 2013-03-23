@@ -118,6 +118,8 @@ SegmentationExplorer::SegmentationExplorer(EspinaModel *model,
   completer->setCompletionMode(QCompleter::InlineCompletion);
   completer->setModelSorting(QCompleter::CaseInsensitivelySortedModel);
   m_gui->searchText->setCompleter(completer);
+  m_gui->tagsLabel->setVisible(false);
+  m_gui->selectedTags->setVisible(false);
 }
 
 //------------------------------------------------------------------------
@@ -184,7 +186,12 @@ void SegmentationExplorer::updateGUI(const QModelIndexList &selectedIndexes)
   }
 
   QStringList tags = tagSet.toList();
+  tags.sort();
   m_gui->selectedTags->setText(tags.join(","));
+
+  bool tagVisibility = !tags.isEmpty();
+  m_gui->tagsLabel->setVisible(tagVisibility);
+  m_gui->selectedTags->setVisible(tagVisibility);
 }
 
 //------------------------------------------------------------------------

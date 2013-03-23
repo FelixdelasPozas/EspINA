@@ -58,11 +58,10 @@
 #include <GUI/Renderers/VolumetricRenderer.h>
 #include <GUI/ViewManager.h>
 #include <Filters/ChannelReader.h>
-#include <Undo/UndoableEspinaModel.h>
+#include <App/Undo/UndoableEspinaModel.h>
 
 #ifdef TEST_ESPINA_MODELS
   #include <Core/Model/ModelTest.h>
-#include <Core/Model/Channel.h>
 #endif
 
 // Std

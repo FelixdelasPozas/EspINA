@@ -211,6 +211,8 @@ void SegmentationTags::addTag(const QString &tag)
 
   addTagImplementation(tag.toUpper());
 
+  s_cache[m_segmentation].Data.Tags.sort();
+
   updateAvailableTags();
 }
 
@@ -223,6 +225,8 @@ void SegmentationTags::addTags(const QStringList &tags)
   {
     addTagImplementation(tag.toUpper());
   }
+
+  s_cache[m_segmentation].Data.Tags.sort();
 
   updateAvailableTags();
 }

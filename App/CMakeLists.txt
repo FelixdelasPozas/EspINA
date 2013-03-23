@@ -139,6 +139,7 @@ set (ESPINA_SOURCES
   Undo/SplitUndoCommand.cpp
   Undo/RemoveTaxonomyElementCommand.cpp
   Undo/StrokeSegmentationCommand.cpp
+  Undo/UndoableEspinaModel.cpp
   Undo/UnloadChannelCommand.cpp
   Undo/UnloadSampleCommand.cpp
   Undo/VolumeSnapshotCommand.cpp
