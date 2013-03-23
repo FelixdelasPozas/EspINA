@@ -73,7 +73,7 @@ namespace EspINA
 //           || file.startsWith(EDGES_FILE)
 //           || file.startsWith(FACES_FILE); }
 
-    virtual void loadCache(QuaZipFile &file, const QDir &tmpDir, EspinaModel *model);
+    virtual void loadCache(QuaZipFile &file, const QDir &tmpDir, IEspinaModel *model);
 
     virtual bool saveCache(Snapshot &snapshot);
 
@@ -98,7 +98,7 @@ namespace EspINA
     ChannelPtr findChannel(const QString &id,
                            int outputId,
                            const QDir &tmpDir,
-                           EspinaModel *model);
+                           IEspinaModel *model);
 
     QString fileId(ChannelPtr channel) const;
 

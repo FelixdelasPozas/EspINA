@@ -3,6 +3,7 @@
 
 #include <Core/Model/Channel.h>
 #include <Core/Model/Taxonomy.h>
+#include <Core/Model/RelationshipGraph.h>
 #include <QFileInfo>
 #include <QDir>
 
@@ -17,7 +18,7 @@ class QXmlStreamWriter;
 
 namespace EspINA
 {
-  class EspinaModel;
+  class IEspinaModel;
   class Filter;
 
   class EspinaIO
@@ -41,7 +42,7 @@ namespace EspINA
      * @return Success if no other error is reported.
      */
     static STATUS loadFile(QFileInfo    file,
-                           EspinaModel *model,
+                           IEspinaModel *model,
                            ErrorHandler *handler = NULL);
 
     /**
@@ -53,7 +54,7 @@ namespace EspINA
      * @return Success if no other error is reported.
      */
     static STATUS loadChannel(QFileInfo file,
-                              EspinaModel *model,
+                              IEspinaModel *model,
                               ChannelSPtr &channel,
                               ErrorHandler *handler = NULL);
 
@@ -65,20 +66,30 @@ namespace EspINA
      * @return Success if no other error is reported.
      */
     static STATUS loadSegFile(QFileInfo file,
-                              EspinaModel *model,
+                              IEspinaModel *model,
                               ErrorHandler *handler = NULL);
 
+    static bool loadSerialization(IEspinaModel *model,
+                                  std::istream &stream,
+                                  QDir tmpDir,
+                                  EspinaIO::ErrorHandler *handler = NULL,
+                                  RelationshipGraph::PrintFormat format = RelationshipGraph::BOOST);
     /**
      * Create a new seg file containing all information provided by @param model
      * @param filepath is the path where the model must be saved
      * @param model is the EspinaModel which is saved in @param file
      */
     static STATUS saveSegFile(QFileInfo file,
-                              EspinaModel *model,
+                              IEspinaModel *model,
                               ErrorHandler *handler = NULL);
 
+    static void serializeRelations(IEspinaModel *model,
+                                   std::ostream& stream,
+                                   RelationshipGraph::PrintFormat format = RelationshipGraph::BOOST);
+
+
     // deletes all files inside the temporal dir and removes it, recursively if necessary
-    static STATUS removeTemporalDir(QDir temporalDir);
+    static STATUS removeTemporalDir(QDir temporalDir = QDir());
 
 
   private:
@@ -117,4 +128,5 @@ namespace EspINA
 
 
 }// namespace EspINA
+
 #endif // ESPINAIO_H

@@ -201,7 +201,7 @@ QVariant MorphologicalInformation::information(const Segmentation::InfoTag &tag)
 //------------------------------------------------------------------------
 void MorphologicalInformation::loadCache(QuaZipFile  &file,
                                          const QDir  &tmpDir,
-                                         EspinaModel *model)
+                                         IEspinaModel *model)
 {
   QString header(file.readLine());
   if (header.toStdString() == FILE_VERSION)

@@ -52,7 +52,7 @@ namespace EspINA
       ViewManager *m_viewManager;
 
       SegmentationSList m_segmentations;
-      FilterSPtrList m_filters;
+      FilterSList m_filters;
       RelationList m_relations;
   };
 

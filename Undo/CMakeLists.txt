@@ -16,6 +16,7 @@ set (UNDO_SOURCES
   ChangeSegmentationTags.cpp
   FillHolesCommand.cpp
   RemoveSegmentation.cpp
+  UndoableEspinaModel.cpp
   )
 
 set(UNDO_EXTERNAL_LIBS

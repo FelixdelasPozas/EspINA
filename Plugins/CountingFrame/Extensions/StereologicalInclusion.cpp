@@ -135,7 +135,7 @@ void StereologicalInclusion::setCountingFrames(CountingFrameList countingFrames)
 }
 
 //------------------------------------------------------------------------
-void StereologicalInclusion::loadCache(QuaZipFile &file, const QDir &tmpDir, EspinaModel *model)
+void StereologicalInclusion::loadCache(QuaZipFile &file, const QDir &tmpDir, IEspinaModel *model)
 {
   QString header(file.readLine());
   if (header.toStdString() == FILE_VERSION)

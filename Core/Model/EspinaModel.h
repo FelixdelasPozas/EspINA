@@ -36,7 +36,92 @@
 
 namespace EspINA
 {
-  /// Current Model arranges elements in the following way:
+  class IEspinaModel
+  {
+  public:
+    virtual ~IEspinaModel() {}
+
+    virtual EspinaFactory *factory() const = 0;
+
+    //---------------------------------------------------------------------------
+    /************************* Model Item API *******************************/
+    //---------------------------------------------------------------------------
+    // Returns the taxonomy used by the analyzer
+    virtual void setTaxonomy(TaxonomySPtr tax) = 0;
+    virtual const TaxonomySPtr taxonomy() const = 0;
+    virtual void addTaxonomy(TaxonomySPtr tax) = 0;
+    virtual TaxonomyElementSPtr createTaxonomyElement(TaxonomyElementPtr  parent, const QString &name) = 0;
+    virtual TaxonomyElementSPtr createTaxonomyElement(TaxonomyElementSPtr parent, const QString &name) = 0;
+    virtual void addTaxonomyElement   (TaxonomyElementSPtr parent, TaxonomyElementSPtr element) = 0;
+    virtual void removeTaxonomyElement(TaxonomyElementSPtr parent, TaxonomyElementSPtr element) = 0;
+
+    // Samples
+    virtual void addSample(SampleSPtr    sample ) = 0;
+    virtual void addSample(SampleSList   samples) = 0;
+    virtual void removeSample(SampleSPtr sample ) = 0;
+    virtual SampleSList samples() const = 0;
+
+    // Channels
+    virtual void addChannel   (ChannelSPtr   channel  ) = 0;
+    virtual void addChannel   (ChannelSList  channels ) = 0;
+    virtual void removeChannel(ChannelSPtr   channel  ) = 0;
+    virtual ChannelSList channels() const = 0;
+
+    // Segmentations
+    virtual void addSegmentation   (SegmentationSPtr   segmentation  ) = 0;
+    virtual void addSegmentation   (SegmentationSList  segmentations ) = 0;
+    virtual void removeSegmentation(SegmentationSPtr   segmentation  ) = 0;
+    virtual void removeSegmentation(SegmentationSList  segmentations ) = 0;
+    virtual SegmentationSList segmentations() const = 0;
+
+    // Filters
+    virtual void addFilter   (FilterSPtr     filter  ) = 0;
+    virtual void addFilter   (FilterSList filters ) = 0;
+    virtual void removeFilter(FilterSPtr     filter  ) = 0;
+    virtual FilterSList filters() const = 0;
+
+    //---------------------------------------------------------------------------
+    /************************* Relationships API *******************************/
+    //---------------------------------------------------------------------------
+    virtual void addRelation   (ModelItemSPtr   ancestor,
+                                ModelItemSPtr   succesor,
+                                const QString &relation) = 0;
+
+    virtual void removeRelation(ModelItemSPtr   ancestor,
+                                ModelItemSPtr   succesor,
+                                const QString &relation) = 0;
+
+    virtual ModelItemSList relatedItems(ModelItemPtr   item,
+                                        RelationType   relType,
+                                        const QString &relName = "") = 0;
+
+    virtual RelationList relations(ModelItemPtr   item,
+                                   const QString &relName = "") = 0;
+
+    virtual RelationshipGraphPtr relationships() = 0;
+
+    //---------------------------------------------------------------------------
+    /************************** SmartPointer API *******************************/
+    //---------------------------------------------------------------------------
+    virtual ModelItemSPtr find(ModelItemPtr item) = 0;
+
+    virtual TaxonomyElementSPtr findTaxonomyElement(ModelItemPtr       item           ) = 0;
+    virtual TaxonomyElementSPtr findTaxonomyElement(TaxonomyElementPtr taxonomyElement) = 0;
+
+    virtual SampleSPtr findSample(ModelItemPtr item  ) = 0;
+    virtual SampleSPtr findSample(SamplePtr    sample) = 0;
+
+    virtual ChannelSPtr findChannel(ModelItemPtr item   ) = 0;
+    virtual ChannelSPtr findChannel(ChannelPtr   channel) = 0;
+
+    virtual SegmentationSPtr findSegmentation(ModelItemPtr    item        ) = 0;
+    virtual SegmentationSPtr findSegmentation(SegmentationPtr segmentation) = 0;
+
+    virtual FilterSPtr findFilter(ModelItemPtr item  ) = 0;
+    virtual FilterSPtr findFilter(FilterPtr    filter) = 0;
+  };
+
+  /// Model elements are arranged in the following way:
   /// QModelIndex() (invalid index/model root index)
   /// - TaxonomyRoot
   ///   - TaxonomyElement1
@@ -62,13 +147,14 @@ namespace EspINA
 
   class EspinaModel
   : public QAbstractItemModel
+  , public IEspinaModel
   {
     Q_OBJECT
   public:
     explicit EspinaModel(EspinaFactory *factory);
     virtual ~EspinaModel();
 
-    EspinaFactory *factory() const
+    virtual EspinaFactory *factory() const
     { return m_factory; }
 
     void reset();
@@ -115,41 +201,41 @@ namespace EspINA
 
     // Taxonomies
     /// Returns the taxonomy used by the analyzer
-    void setTaxonomy(TaxonomySPtr tax);
-    const TaxonomySPtr taxonomy() const {return m_tax;}
-    void addTaxonomy(TaxonomySPtr tax);
-    TaxonomyElementSPtr createTaxonomyElement(TaxonomyElementPtr  parent, const QString &name);
-    TaxonomyElementSPtr createTaxonomyElement(TaxonomyElementSPtr parent, const QString &name);
-    void addTaxonomyElement   (TaxonomyElementSPtr parent, TaxonomyElementSPtr element);
-    void removeTaxonomyElement(TaxonomyElementSPtr parent, TaxonomyElementSPtr element);
+    virtual void setTaxonomy(TaxonomySPtr tax);
+    virtual const TaxonomySPtr taxonomy() const {return m_tax;}
+    virtual void addTaxonomy(TaxonomySPtr tax);
+    virtual TaxonomyElementSPtr createTaxonomyElement(TaxonomyElementPtr  parent, const QString &name);
+    virtual TaxonomyElementSPtr createTaxonomyElement(TaxonomyElementSPtr parent, const QString &name);
+    virtual void addTaxonomyElement   (TaxonomyElementSPtr parent, TaxonomyElementSPtr element);
+    virtual void removeTaxonomyElement(TaxonomyElementSPtr parent, TaxonomyElementSPtr element);
 
     // Samples
-    void addSample(SampleSPtr    sample  );
-    void addSample(SampleSPtrList   samples );
-    void removeSample(SampleSPtr sample  );
-    SampleSPtrList samples() const
+    virtual void addSample(SampleSPtr    sample  );
+    virtual void addSample(SampleSList   samples );
+    virtual void removeSample(SampleSPtr sample  );
+    virtual SampleSList samples() const
     { return m_samples; }
 
     // Channels
-    void addChannel   (ChannelSPtr   channel  );
-    void addChannel   (ChannelSList  channels );
-    void removeChannel(ChannelSPtr   channel  );
-    ChannelSList channels() const
+    virtual void addChannel   (ChannelSPtr   channel  );
+    virtual void addChannel   (ChannelSList  channels );
+    virtual void removeChannel(ChannelSPtr   channel  );
+    virtual ChannelSList channels() const
     { return m_channels; }
 
     // Segmentations
-    void addSegmentation   (SegmentationSPtr   segmentation  );
-    void addSegmentation   (SegmentationSList  segmentations );
-    void removeSegmentation(SegmentationSPtr   segmentation  );
-    void removeSegmentation(SegmentationSList  segmentations );
-    SegmentationSList segmentations() const
+    virtual void addSegmentation   (SegmentationSPtr   segmentation  );
+    virtual void addSegmentation   (SegmentationSList  segmentations );
+    virtual void removeSegmentation(SegmentationSPtr   segmentation  );
+    virtual void removeSegmentation(SegmentationSList  segmentations );
+    virtual SegmentationSList segmentations() const
     { return m_segmentations; }
 
     // Filters
-    void addFilter   (FilterSPtr  filter  );
-    void addFilter   (FilterSPtrList filters );
-    void removeFilter(FilterSPtr  filter  );
-    FilterSPtrList filters() const
+    virtual void addFilter   (FilterSPtr  filter  );
+    virtual void addFilter   (FilterSList filters );
+    virtual void removeFilter(FilterSPtr  filter  );
+    virtual FilterSList filters() const
     { return m_filters; }
 
     void changeTaxonomy(SegmentationSPtr    segmentation,
@@ -162,49 +248,41 @@ namespace EspINA
     //---------------------------------------------------------------------------
     /************************* Relationships API *******************************/
     //---------------------------------------------------------------------------
-    void addRelation   (ModelItemSPtr   ancestor,
-                        ModelItemSPtr   succesor,
-                        const QString &relation);
-    void removeRelation(ModelItemSPtr   ancestor,
-                        ModelItemSPtr   succesor,
-                        const QString &relation);
+    virtual void addRelation   (ModelItemSPtr   ancestor,
+                                ModelItemSPtr   succesor,
+                                const QString &relation);
+    virtual void removeRelation(ModelItemSPtr   ancestor,
+                                ModelItemSPtr   succesor,
+                                const QString &relation);
 
-    ModelItemSList relatedItems(ModelItemPtr   item,
-                                     RelationType   relType,
+    virtual ModelItemSList relatedItems(ModelItemPtr   item,
+                                        RelationType   relType,
                                      const QString &relName = "");
-    RelationList relations(ModelItemPtr   item,
-                           const QString &relName = "");
+    virtual RelationList relations(ModelItemPtr   item,
+                                   const QString &relName = "");
 
-    RelationshipGraphPtr relationships()
+    virtual RelationshipGraphPtr relationships()
     { return m_relations; }
-
-    // TODO 2012-12-17 Move to EspinaIO
-    void serializeRelations(std::ostream& stream,
-                            RelationshipGraph::PrintFormat format = RelationshipGraph::BOOST);
-    bool loadSerialization (std::istream &stream,
-                            QDir tmpDir,
-                            EspinaIO::ErrorHandler *handler = NULL,
-                            RelationshipGraph::PrintFormat format = RelationshipGraph::BOOST);
 
     //---------------------------------------------------------------------------
     /************************** SmartPointer API *******************************/
     //---------------------------------------------------------------------------
-    ModelItemSPtr find(ModelItemPtr item);
+    virtual ModelItemSPtr find(ModelItemPtr item);
 
-    TaxonomyElementSPtr findTaxonomyElement(ModelItemPtr       item           );
-    TaxonomyElementSPtr findTaxonomyElement(TaxonomyElementPtr taxonomyElement);
+    virtual TaxonomyElementSPtr findTaxonomyElement(ModelItemPtr       item           );
+    virtual TaxonomyElementSPtr findTaxonomyElement(TaxonomyElementPtr taxonomyElement);
 
-    SampleSPtr findSample(ModelItemPtr item  );
-    SampleSPtr findSample(SamplePtr    sample);
+    virtual SampleSPtr findSample(ModelItemPtr item  );
+    virtual SampleSPtr findSample(SamplePtr    sample);
 
-    ChannelSPtr findChannel(ModelItemPtr item   );
-    ChannelSPtr findChannel(ChannelPtr   channel);
+    virtual ChannelSPtr findChannel(ModelItemPtr item   );
+    virtual ChannelSPtr findChannel(ChannelPtr   channel);
 
-    SegmentationSPtr findSegmentation(ModelItemPtr    item        );
-    SegmentationSPtr findSegmentation(SegmentationPtr segmentation);
+    virtual SegmentationSPtr findSegmentation(ModelItemPtr    item        );
+    virtual SegmentationSPtr findSegmentation(SegmentationPtr segmentation);
 
-    FilterSPtr findFilter(ModelItemPtr item  );
-    FilterSPtr findFilter(FilterPtr    filter);
+    virtual FilterSPtr findFilter(ModelItemPtr item  );
+    virtual FilterSPtr findFilter(FilterPtr    filter);
 
     // signal emission methods, used by undo commands to signal finished operations.
     void emitSegmentationAdded(SegmentationSList);
@@ -248,8 +326,8 @@ namespace EspINA
     EspinaFactory *m_factory;
 
     ChannelSList      m_channels;
-    FilterSPtrList    m_filters;
-    SampleSPtrList    m_samples;
+    FilterSList       m_filters;
+    SampleSList       m_samples;
     SegmentationSList m_segmentations;
     TaxonomySPtr      m_tax;
 

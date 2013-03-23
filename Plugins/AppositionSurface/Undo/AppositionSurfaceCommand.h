@@ -42,9 +42,9 @@ namespace EspINA
       ViewManager *m_viewManager;
 
       TaxonomyElementSPtr m_taxonomy;
-      SampleSPtrList      m_samples;
+      SampleSList      m_samples;
       ChannelSList        m_channels;
-      FilterSPtrList      m_filters;
+      FilterSList      m_filters;
       SegmentationSList   m_segmentations;
       SegmentationSList   m_asSegmentations;
   };

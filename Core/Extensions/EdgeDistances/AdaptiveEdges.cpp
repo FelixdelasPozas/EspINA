@@ -146,7 +146,7 @@ void AdaptiveEdges::loadFacesCache(ChannelPtr channel)
 ChannelPtr AdaptiveEdges::findChannel(const QString &id,
                                       int outputId,
                                       const QDir &tmpDir,
-                                      EspinaModel *model)
+                                      IEspinaModel *model)
 {
   ChannelPtr extensionChannel = NULL;
 
@@ -169,7 +169,7 @@ ChannelPtr AdaptiveEdges::findChannel(const QString &id,
 //-----------------------------------------------------------------------------
 void AdaptiveEdges::loadCache(QuaZipFile &file,
                               const QDir &tmpDir,
-                              EspinaModel *model)
+                              IEspinaModel *model)
 {
   QString header(file.readLine());
   if (header.toStdString() == FILE_VERSION)

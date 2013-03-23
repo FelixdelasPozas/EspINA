@@ -82,7 +82,7 @@ namespace EspINA
 
     virtual void loadCache(QuaZipFile  &file,
                            const QDir  &tmpDir,
-                           EspinaModel *model);
+                           IEspinaModel *model);
 
     virtual bool saveCache(Snapshot &snapshot);
 

@@ -41,7 +41,7 @@ namespace EspINA
 
 
   typedef QSharedPointer<Filter> FilterSPtr;
-  typedef QList<FilterSPtr>      FilterSPtrList;
+  typedef QList<FilterSPtr>      FilterSList;
 
   class Filter
   : public ModelItem

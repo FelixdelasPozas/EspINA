@@ -58,6 +58,7 @@
 #include <GUI/Renderers/VolumetricRenderer.h>
 #include <GUI/ViewManager.h>
 #include <Filters/ChannelReader.h>
+#include <Undo/UndoableEspinaModel.h>
 
 #ifdef TEST_ESPINA_MODELS
   #include <Core/Model/ModelTest.h>
@@ -658,6 +659,8 @@ void EspinaMainWindow::closeCurrentAnalysis()
 
   setWindowTitle(QString("EspINA Interactive Neuron Analyzer"));
 
+  EspinaIO::removeTemporalDir();
+
   emit analysisClosed();
 }
 
@@ -828,7 +831,10 @@ void EspinaMainWindow::addToAnalysis()
 
   QFileDialog fileDialog(this);
   fileDialog.setWindowTitle(tr("Add data to Analysis"));
-  fileDialog.setFilters(m_model->factory()->supportedFiles());
+  //fileDialog.setFilters(m_model->factory()->supportedFiles());
+  QStringList channelFiles;
+  channelFiles << CHANNEL_FILES;
+  fileDialog.setFilters(channelFiles);
   fileDialog.setDirectory(m_sessionFile.dir());
   fileDialog.setOption(QFileDialog::DontUseNativeDialog, false);
   fileDialog.setViewMode(QFileDialog::Detail);
@@ -860,8 +866,10 @@ void EspinaMainWindow::addFileToAnalysis(const QFileInfo file)
   ChannelSList existingChannels = m_model->channels();
   SegmentationSList existingSegmentations = m_model->segmentations();
 
+  UndoableEspinaModel undoableModel(m_model, m_undoStack);
+  m_undoStack->beginMacro(tr("Add %1 to analysis").arg(file.fileName()));
   if (EspinaIO::SUCCESS == EspinaIO::loadFile(file,
-                                              m_model))
+                                              &undoableModel))
   {
     int secs = timer.elapsed()/1000.0;
     int mins = 0;
@@ -911,7 +919,9 @@ void EspinaMainWindow::addFileToAnalysis(const QFileInfo file)
 
     m_model->emitChannelAdded(newChannels);
     m_model->emitSegmentationAdded(newSegmentations);
+
   }
+  m_undoStack->endMacro();
 }
 
 //------------------------------------------------------------------------

@@ -40,7 +40,7 @@ RemoveSegmentation::RemoveSegmentation(SegmentationPtr seg,
   // related items tree.
   QStack<SegmentationPtr> itemsStack;
   SegmentationList addedSegs;
-  FilterSPtrList addedFilters;
+  FilterSList addedFilters;
 
   itemsStack.push_front(seg);
   addedSegs << seg;
@@ -86,7 +86,7 @@ RemoveSegmentation::RemoveSegmentation(SegmentationList segList,
 , m_viewManager(vm)
 {
   SegmentationList addedSegs;
-  FilterSPtrList addedFilters;
+  FilterSList addedFilters;
 
   foreach(SegmentationPtr seg, segList)
   {

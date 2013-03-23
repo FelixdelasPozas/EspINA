@@ -96,9 +96,6 @@ void EspinaModel::reset()
   }
   endResetModel();
 
-  foreach(QDir tmpDir, m_tmpDirs)
-    EspinaIO::removeTemporalDir(tmpDir);
-
   m_changed = false;
   m_lastId  = 0;
 }
@@ -381,7 +378,7 @@ void EspinaModel::addSample(SampleSPtr sample)
 }
 
 //------------------------------------------------------------------------
-void EspinaModel::addSample(SampleSPtrList samples)
+void EspinaModel::addSample(SampleSList samples)
 {
   int start = m_samples.size();
   int end   = start + samples.size() - 1;
@@ -552,7 +549,7 @@ void EspinaModel::addFilter(FilterSPtr filter)
 }
 
 //------------------------------------------------------------------------
-void EspinaModel::addFilter(FilterSPtrList filters)
+void EspinaModel::addFilter(FilterSList filters)
 {
   int start = m_filters.size();
   int end   = start + filters.size() - 1;
@@ -692,166 +689,6 @@ RelationList EspinaModel::relations(ModelItemPtr   item,
 }
 
 
-//------------------------------------------------------------------------
-void EspinaModel::serializeRelations(std::ostream& stream,
-                                     RelationshipGraph::PrintFormat format)
-{
-  m_relations->updateVertexInformation();
-  m_relations->write(stream, format);
-}
-
-//------------------------------------------------------------------------
-bool EspinaModel::loadSerialization(istream& stream,
-                                    QDir tmpDir,
-                                    EspinaIO::ErrorHandler *handler,
-                                    RelationshipGraph::PrintFormat format)
-{
-  QSharedPointer<RelationshipGraph> input(new RelationshipGraph());
-  m_tmpDirs << tmpDir;
-
-  input->read(stream);
-//   qDebug() << "Check";
-//   input->write(std::cout, RelationshipGraph::GRAPHVIZ);
-
-  typedef QPair<ModelItemSPtr , ModelItem::Arguments> NonInitilizedItem;
-  QList<NonInitilizedItem> nonInitializedItems;
-  QList<VertexProperty> segmentationNodes;
-  SegmentationSList newSegmentations;
-
-  foreach(VertexProperty v, input->vertices())
-  {
-    VertexProperty fv;
-    if (m_relations->find(v, fv))
-    {
-      input->setItem(v.vId, fv.item);
-      qDebug() << "Updating existing vertex" << fv.item->data(Qt::DisplayRole).toString();
-    }else
-    {
-      switch (RelationshipGraph::type(v))
-      {
-        case SAMPLE:
-        {
-          ModelItem::Arguments args(v.args.c_str());
-          SampleSPtr sample = m_factory->createSample(v.name.c_str(), v.args.c_str());
-          addSample(sample);
-          nonInitializedItems << NonInitilizedItem(sample, args);
-          input->setItem(v.vId, sample.data());
-          break;
-        }
-        case CHANNEL:
-        {
-          ModelItem::Arguments args(v.args.c_str());
-          ModelItem::Arguments extArgs(args.value(ModelItem::EXTENSIONS, QString()));
-          args.remove(ModelItem::EXTENSIONS);
-
-          // TODO: Move link management code inside Channel's Arguments class
-          QStringList link = args[Channel::VOLUME].split("_");
-          Q_ASSERT(link.size() == 2);
-          Vertices ancestors = input->ancestors(v.vId, link[0]);
-          Q_ASSERT(ancestors.size() == 1);
-          ModelItemPtr item = ancestors.first().item;
-          Q_ASSERT(FILTER == item->type());
-          FilterSPtr filter = findFilter(item);
-          Q_ASSERT(!filter.isNull());
-          try
-          {
-            filter->update();
-            ChannelSPtr channel = m_factory->createChannel(filter, link[1].toInt());
-            channel->initialize(args);
-            if (channel->volume()->toITK().IsNull())
-              return false;
-            addChannel(channel);
-            nonInitializedItems << NonInitilizedItem(channel, extArgs);
-            input->setItem(v.vId, channel.data());
-          }
-          catch(int e)
-          {
-            Vertices successors = input->succesors(v.vId, QString());
-            if (!successors.empty())
-              return false;
-
-            input->removeEdges(v.vId);
-          }
-          break;
-
-        }
-        case FILTER:
-        {
-          Filter::NamedInputs inputs;
-          Filter::Arguments args(v.args.c_str());
-          QStringList inputLinks = args[Filter::INPUTS].split(",", QString::SkipEmptyParts);
-          // We need to update id values for future filters
-          foreach(QString inputLink, inputLinks)
-          {
-            QStringList link = inputLink.split("_");
-            Q_ASSERT(link.size() == 2);
-            Vertices ancestors = input->ancestors(v.vId, link[0]);
-            Q_ASSERT(ancestors.size() == 1);
-            ModelItemPtr item = ancestors.first().item;
-            Q_ASSERT(FILTER == item->type());
-            FilterSPtr filter = findFilter(item);
-            inputs[link[0]] = filter;
-          }
-          FilterSPtr filter = m_factory->createFilter(v.name.c_str(), inputs, args);
-          filter->setCacheDir(tmpDir);
-          addFilter(filter);
-          input->setItem(v.vId, filter.data());
-          break;
-        }
-        case SEGMENTATION:
-        {
-          segmentationNodes << v;
-          break;
-        }
-        default:
-          Q_ASSERT(false);
-          break;
-      }
-    }
-  }
-
-  foreach(VertexProperty v, segmentationNodes)
-  {
-    Vertices ancestors = input->ancestors(v.vId, Filter::CREATELINK);
-    Q_ASSERT(ancestors.size() == 1);
-    ModelItemPtr item = ancestors.first().item;
-    FilterSPtr filter = findFilter(item);
-    filter->update();
-    if (filter->outputs().isEmpty())
-      return false;
-
-    ModelItem::Arguments args(QString(v.args.c_str()));
-    ModelItem::Arguments extArgs(args.value(ModelItem::EXTENSIONS, QString()));
-    args.remove(ModelItem::EXTENSIONS);
-    SegmentationSPtr seg = m_factory->createSegmentation(filter, args[Segmentation::OUTPUT].toInt());
-    seg->setNumber(args[Segmentation::NUMBER].toInt());
-    TaxonomyElementSPtr taxonomy = m_tax->element(args[Segmentation::TAXONOMY]);
-    if (!taxonomy.isNull())
-      seg->setTaxonomy(taxonomy);
-    newSegmentations << seg;
-    nonInitializedItems << NonInitilizedItem(seg, extArgs);
-    input->setItem(v.vId, seg.data());
-  }
-
-  addSegmentation(newSegmentations);
-
-  foreach(Edge e, input->edges())
-  { //Should store just the modelitem?
-    Q_ASSERT(e.source.item);
-    Q_ASSERT(e.target.item);
-    addRelation(find(e.source.item), find(e.target.item), e.relationship.c_str());
-  }
-
-  foreach(FilterSPtr filter, filters())
-    filter->upkeeping();
-
-//   foreach(NonInitilizedItem item, nonInitializedItems)
-//   {
-//     item.first->initializeExtensions(item.second);
-//   }
-
-  return true;
-}
 
 //------------------------------------------------------------------------
 QModelIndex EspinaModel::index(ModelItemPtr item) const

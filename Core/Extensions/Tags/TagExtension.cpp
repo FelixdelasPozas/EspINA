@@ -95,7 +95,7 @@ QString SegmentationTags::toolTipText() const
 }
 
 //------------------------------------------------------------------------
-void SegmentationTags::loadCache(QuaZipFile &file, const QDir &tmpDir, EspinaModel *model)
+void SegmentationTags::loadCache(QuaZipFile &file, const QDir &tmpDir, IEspinaModel *model)
 {
   QString header(file.readLine());
   if (header.toStdString() == FILE_VERSION)

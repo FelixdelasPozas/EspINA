@@ -71,7 +71,7 @@ namespace EspINA
 
       virtual bool isCacheFile(const QString &file) const;
 
-      virtual void loadCache(QuaZipFile &file, const QDir &tmpDir, EspinaModel *model);
+      virtual void loadCache(QuaZipFile &file, const QDir &tmpDir, IEspinaModel *model);
 
       virtual bool saveCache(Snapshot &cacheList);
 

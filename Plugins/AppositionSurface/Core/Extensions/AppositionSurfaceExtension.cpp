@@ -152,7 +152,7 @@ void AppositionSurfaceExtension::invalidate(SegmentationPtr segmentation)
 }
 
 //------------------------------------------------------------------------
-void AppositionSurfaceExtension::loadCache(QuaZipFile &file, const QDir &tmpDir, EspinaModel *model)
+void AppositionSurfaceExtension::loadCache(QuaZipFile &file, const QDir &tmpDir, IEspinaModel *model)
 {
   QString header(file.readLine());
   if (header.toStdString() == FILE_VERSION)

@@ -29,6 +29,7 @@
 namespace EspINA
 {
   class EspinaModel;
+  class IEspinaModel;
 
   template<class T>
   QString arg3(const T val[3])
