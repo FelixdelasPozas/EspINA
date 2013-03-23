@@ -358,7 +358,7 @@ vtkSmartPointer<vtkPolyData> AdaptiveEdges::channelEdges()
 //-----------------------------------------------------------------------------
 Nm AdaptiveEdges::computedVolume()
 {
-  Nm volume;
+  Nm volume = 0;
   if (m_useAdaptiveEdges)
   {
     loadEdgesCache(m_channel);

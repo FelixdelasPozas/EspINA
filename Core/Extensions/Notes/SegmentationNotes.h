@@ -26,41 +26,36 @@
 */
 
 
-#ifndef TAGEXTENSION_H
-#define TAGEXTENSION_H
+#ifndef SEGMENTATIONNOTES_H
+#define SEGMENTATIONNOTES_H
 
 #include <Core/Extensions/SegmentationExtension.h>
-
-#include <QStringListModel>
 
 namespace EspINA
 {
 
-  const ModelItem::ExtId SegmentationTagsID = "SegmentationTags";
+  const ModelItem::ExtId SegmentationNotesID = "SegmentationNotes";
 
-  class SegmentationTags
+  class SegmentationNotes
   : public Segmentation::Information
   {
     struct ExtensionData
     {
-      QStringList Tags;
+      QString Note;
     };
 
     typedef Cache<SegmentationPtr, ExtensionData> ExtensionCache;
 
     static ExtensionCache s_cache;
-    static QStringList s_availableTags;
 
     const static QString EXTENSION_FILE;
 
   public:
-    static const Segmentation::InfoTag TAGS;
-
-    static QStringListModel TagModel;
+    static const Segmentation::InfoTag NOTE;
 
   public:
-    explicit SegmentationTags();
-    virtual ~SegmentationTags();
+    explicit SegmentationNotes();
+    virtual ~SegmentationNotes();
 
     virtual Segmentation::ExtId id();
 
@@ -77,7 +72,7 @@ namespace EspINA
     virtual QString toolTipText() const;
 
     virtual bool isCacheFile(const QString &file) const
-    { return EXTENSION_FILE == file; }
+    { return EXTENSION_FILE + ".csv" == file; }
 
     virtual void loadCache(QuaZipFile &file,
                            const QDir &tmpDir,
@@ -91,22 +86,14 @@ namespace EspINA
 
     virtual void invalidate(SegmentationPtr segmentation = 0);
 
-    void addTag(const QString &tag);
+    void setNote(const QString &note);
 
-    void addTags(const QStringList &tags);
-
-    void removeTag(const QString &tag);
-
-    void setTags(const QStringList &tags);
-
-    QStringList tags() const
-    { return s_cache[m_segmentation].Data.Tags; }
+    QString note() const;
 
   private:
-    void addTagImplementation(const QString &tag);
-    void updateAvailableTags();
+    void loadNotesCache(SegmentationPtr segmentation) const;
   };
 
 } // namespace EspINA
 
-#endif // TAGEXTENSION_H
+#endif // SEGMENTATIONNOTES_H

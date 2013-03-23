@@ -88,7 +88,7 @@ namespace EspINA
     vtkSmartPointer<vtkPolyData> channelEdges();
     Nm computedVolume();
 
-  protected:
+  private:
     void computeAdaptiveEdges();
 
     void loadEdgesCache(ChannelPtr channel);

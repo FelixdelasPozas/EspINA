@@ -50,6 +50,7 @@ set (CORE_SOURCES
   Extensions/Morphological/MorphologicalInformation.cpp
   Extensions/SampleExtension.cpp
   Extensions/SegmentationExtension.cpp
+  Extensions/Notes/SegmentationNotes.cpp 
   Extensions/Tags/TagExtension.cpp
   Model/Channel.cpp
   Model/EspinaFactory.cpp

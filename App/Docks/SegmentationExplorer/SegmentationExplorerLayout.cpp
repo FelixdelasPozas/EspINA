@@ -56,7 +56,7 @@ bool SegmentationFilterProxyModel::filterAcceptsRow(int source_row, const QModel
     {
       SegmentationPtr segmentation = segmentationPtr(item);
       SegmentationTags *tagExtension = dynamic_cast<SegmentationTags *>(
-        segmentation->informationExtension(TagExtensionID));
+        segmentation->informationExtension(SegmentationTagsID));
 
       QStringList tags = tagExtension->tags();
       int i = 0;

@@ -27,6 +27,7 @@
 #include "Core/ColorEngines/IColorEngine.h"
 #include <Core/Extensions/SegmentationExtension.h>
 #include <Core/Extensions/Tags/TagExtension.h>
+#include <Core/Extensions/Notes/SegmentationNotes.h>
 #include <Core/Relations.h>
 
 #include <vtkAlgorithm.h>
@@ -34,6 +35,7 @@
 #include <vtkImageData.h>
 
 #include <QDebug>
+#include <QPainter>
 
 using namespace std;
 using namespace EspINA;
@@ -110,10 +112,26 @@ QVariant Segmentation::data(int role) const
                              .arg(m_args.number());
     case Qt::DecorationRole:
     {
-      if (m_taxonomy)
-        return m_taxonomy->color();
-      else
-        return QColor(Qt::red);
+      const unsigned char WIDTH = 3;
+      QPixmap segIcon(WIDTH, 16);
+      segIcon.fill(taxonomy()->color());
+
+      if (!information(SegmentationNotes::NOTE).toString().isEmpty())
+      {
+        QPixmap noteIcon(":/espina/note.png");
+        noteIcon = noteIcon.scaled(16, 16, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+
+        const unsigned char SP = 5;
+        QPixmap tmpIcon(WIDTH + SP + noteIcon.width(),16);
+        tmpIcon.fill(Qt::white);
+        QPainter painter(&tmpIcon);
+        painter.drawPixmap(0,0, segIcon);
+        painter.drawPixmap(WIDTH + SP,0, noteIcon);
+
+        segIcon = tmpIcon;
+      }
+
+      return segIcon;
     }
     case Qt::ToolTipRole:
     {
@@ -130,7 +148,7 @@ QVariant Segmentation::data(int role) const
         boundsInfo = boundsInfo.append(TAB+"Y: %1 nm - %2 nm <br>").arg(bounds[2]).arg(bounds[3]);
         boundsInfo = boundsInfo.append(TAB+"Z: %1 nm - %2 nm <br>").arg(bounds[4]).arg(bounds[5]);
 
-        filterInfo = tr("<b>Filter:</b><br> %1").arg(TAB+filter()->data().toString());
+        filterInfo = tr("<b>Filter:</b><br> %1<br>").arg(TAB+filter()->data().toString());
       }
 
       QString taxonomyInfo;
@@ -146,8 +164,9 @@ QVariant Segmentation::data(int role) const
       tooltip = tooltip.append("<b>Users:</b> %1<br>").arg(m_args[USERS]);
       tooltip = tooltip.append(boundsInfo);
 
-      // FIXME: Hack to ensure tags extension is always loaded
-      informationExtension(TagExtensionID);
+      // FIXME: Hack to ensure notes and tags extension are always loaded
+      informationExtension(SegmentationTagsID);
+      informationExtension(SegmentationNotesID);
       foreach (InformationExtension extension, m_informationExtensions)
       {
         QString extToolTip = extension->toolTipText();

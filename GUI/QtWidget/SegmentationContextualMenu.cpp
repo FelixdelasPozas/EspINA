@@ -24,6 +24,7 @@
 #include <Core/Model/Taxonomy.h>
 #include <Core/Model/Segmentation.h>
 #include <Core/Extensions/Tags/TagExtension.h>
+#include <Core/Extensions/Notes/SegmentationNotes.h>
 #include <Undo/ChangeTaxonomyCommand.h>
 #include <Undo/RemoveSegmentation.h>
 #include <Undo/ChangeSegmentationTags.h>
@@ -50,9 +51,43 @@ SegmentationContextualMenu::SegmentationContextualMenu(SegmentationList selectio
 , m_viewManager  (viewManager)
 , m_segmentations(selection  )
 {
+  createAddNoteEntry();
   createChangeTaxonomyMenu();
   createManageTagsEntry();
   createSetLevelOfDetailEntry();
+
+}
+
+//------------------------------------------------------------------------
+void SegmentationContextualMenu::addNote()
+{
+  if (!m_segmentations.isEmpty())
+  {
+    m_undoStack->beginMacro("Add Note");
+  }
+
+  foreach (SegmentationPtr segmentation, m_segmentations)
+  {
+    SegmentationNotes *notesExtension = dynamic_cast<SegmentationNotes *>(segmentation->informationExtension(SegmentationNotesID));
+
+    bool ok;
+    QString note = QInputDialog::getText(this,
+                                         tr("%1 Notes").arg(segmentation->data().toString()),
+                                         tr("%1 Notes").arg(segmentation->data().toString()),
+                                         QLineEdit::Normal,
+                                         notesExtension->note(),
+                                         &ok);
+    if (ok)
+    {
+      notesExtension->setNote(note);
+      //m_undoStack->push(new ChangeSegmentationTags(tagExtension, tags));
+    }
+  }
+
+  if (!m_segmentations.isEmpty())
+  {
+    m_undoStack->endMacro();
+  }
 
 }
 
@@ -161,7 +196,7 @@ void SegmentationContextualMenu::manageTags()
 
   foreach (SegmentationPtr segmentation, m_segmentations)
   {
-    SegmentationTags *tagExtension = dynamic_cast<SegmentationTags *>(segmentation->informationExtension(TagExtensionID));
+    SegmentationTags *tagExtension = dynamic_cast<SegmentationTags *>(segmentation->informationExtension(SegmentationTagsID));
 
     bool ok;
     QString rawTags = QInputDialog::getText(this,
@@ -205,6 +240,14 @@ void SegmentationContextualMenu::deleteSelectedSementations()
 void SegmentationContextualMenu::setSelection(SegmentationList list)
 {
   this->m_segmentations = list;
+}
+
+//------------------------------------------------------------------------
+void SegmentationContextualMenu::createAddNoteEntry()
+{
+  QAction *addNoteAction = addAction(tr("Add Note"));
+  connect(addNoteAction, SIGNAL(triggered(bool)),
+          this, SLOT(addNote()));
 }
 
 //------------------------------------------------------------------------

@@ -25,6 +25,7 @@
 
 #include <QMimeData>
 #include <QPixmap>
+#include <QPainter>
 
 using namespace EspINA;
 
@@ -132,15 +133,8 @@ QVariant TaxonomyProxy::data(const QModelIndex& proxyIndex, int role) const
         return item->data(role);
     }
     case EspINA::SEGMENTATION:
-      if (Qt::DecorationRole == role)
-      {
-        SegmentationPtr seg = segmentationPtr(item);
-        QPixmap segIcon(3,16);
-        segIcon.fill(seg->data(role).value<QColor>());
-        return segIcon;
-      }
-      else
         return item->data(role);
+
     default:
       Q_ASSERT(false);
       break;

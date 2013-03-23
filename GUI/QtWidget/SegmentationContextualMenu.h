@@ -42,6 +42,7 @@ namespace EspINA
     void setSelection(SegmentationList list);
 
   private slots:
+    void addNote();
     void changeSegmentationsTaxonomy(const QModelIndex &index);
     void deleteSelectedSementations();
     void changeFinalFlag();
@@ -54,6 +55,7 @@ namespace EspINA
     void changeFinalNode(bool);
 
   private:
+    void createAddNoteEntry();
     void createChangeTaxonomyMenu();
     void createManageTagsEntry();
     void createSetLevelOfDetailEntry();

@@ -26,69 +26,75 @@
 */
 
 
-#include "TagExtension.h"
+#include "SegmentationNotes.h"
+
+
+
 #include <Core/Model/EspinaModel.h>
 
 using namespace EspINA;
 
+const QString SegmentationNotes::EXTENSION_FILE = "SegmentationNotes/SegmentationNote";
 
-const QString SegmentationTags::EXTENSION_FILE = "SegmentationTags/SegmentationTags.csv";
-
-const std::string FILE_VERSION = SegmentationTagsID.toStdString() + " 1.0\n";
+const std::string FILE_VERSION = SegmentationNotesID.toStdString() + " 1.0\n";
 const char SEP = ',';
 
-SegmentationTags::ExtensionCache SegmentationTags::s_cache;
+SegmentationNotes::ExtensionCache SegmentationNotes::s_cache;
 
-QStringList SegmentationTags::s_availableTags;
-
-QStringListModel SegmentationTags::TagModel;
-
-const Segmentation::InfoTag SegmentationTags::TAGS  = "Tags";
+const Segmentation::InfoTag SegmentationNotes::NOTE  = "Notes";
 
 //------------------------------------------------------------------------
-SegmentationTags::SegmentationTags()
+SegmentationNotes::SegmentationNotes()
 {
 }
 
 //------------------------------------------------------------------------
-SegmentationTags::~SegmentationTags()
+SegmentationNotes::~SegmentationNotes()
 {
 }
 
 //------------------------------------------------------------------------
-ModelItem::ExtId SegmentationTags::id()
+ModelItem::ExtId SegmentationNotes::id()
 {
-  return SegmentationTagsID;
+  return SegmentationNotesID;
 }
 
 //------------------------------------------------------------------------
-Segmentation::InfoTagList SegmentationTags::availableInformations() const
+Segmentation::InfoTagList SegmentationNotes::availableInformations() const
 {
   Segmentation::InfoTagList tags;
 
-  tags << TAGS;
+  tags << NOTE;
 
   return tags;
 
 }
 
 //------------------------------------------------------------------------
-QVariant SegmentationTags::information(const Segmentation::InfoTag &tag)
+QVariant SegmentationNotes::information(const Segmentation::InfoTag &tag)
 {
-  if (TAGS == tag)
-    return s_cache[m_segmentation].Data.Tags;
+  if (NOTE == tag)
+  {
+    loadNotesCache(m_segmentation);
+    return s_cache[m_segmentation].Data.Note;
+  }
 
   return QVariant();
 }
 
 //------------------------------------------------------------------------
-QString SegmentationTags::toolTipText() const
+QString SegmentationNotes::toolTipText() const
 {
+  loadNotesCache(m_segmentation);
+
+  const QString WS  = "&nbsp;"; // White space
+  const QString TAB = WS+WS+WS;
+
   QString toolTip;
-  if (!tags().isEmpty())
+  if (!s_cache[m_segmentation].Data.Note.isEmpty())
   {
-    toolTip = tr("<b>Tags:</b> ");
-    toolTip.append(tags().join(","));
+    toolTip = tr("<b>Note:</b><br>");
+    toolTip.append(TAB + s_cache[m_segmentation].Data.Note);
     toolTip.append("<br>");
   }
 
@@ -96,7 +102,7 @@ QString SegmentationTags::toolTipText() const
 }
 
 //------------------------------------------------------------------------
-void SegmentationTags::loadCache(QuaZipFile &file, const QDir &tmpDir, IEspinaModel *model)
+void SegmentationNotes::loadCache(QuaZipFile &file, const QDir &tmpDir, IEspinaModel *model)
 {
   QString header(file.readLine());
   if (header.toStdString() == FILE_VERSION)
@@ -120,18 +126,13 @@ void SegmentationTags::loadCache(QuaZipFile &file, const QDir &tmpDir, IEspinaMo
         }
         i++;
       }
+
       if (extensionSegmentation)
       {
-        ExtensionData &data = s_cache[extensionSegmentation].Data;
-        for (int t = 2; t < fields.size(); ++t)
-        {
-          data.Tags << fields[t].trimmed();
-        }
+        s_cache[extensionSegmentation].Data.Note = QString();
       }
     }
   }
-
-  updateAvailableTags();
 }
 
 //------------------------------------------------------------------------
@@ -141,19 +142,19 @@ static bool invalidData(SegmentationPtr seg)
 {
   bool invalid = false;
 
-  if (seg->hasInformationExtension(SegmentationTagsID))
+  if (seg->hasInformationExtension(SegmentationNotesID))
   {
-    SegmentationTags *extension = dynamic_cast<SegmentationTags *>(
-      seg->informationExtension(SegmentationTagsID));
+    SegmentationNotes *extension = dynamic_cast<SegmentationNotes *>(
+      seg->informationExtension(SegmentationNotesID));
 
-    invalid = extension->tags().isEmpty();
+    invalid = extension->note().isEmpty();
   }
 
   return invalid;
 }
 
 //------------------------------------------------------------------------
-bool SegmentationTags::saveCache(Snapshot &snapshot)
+bool SegmentationNotes::saveCache(Snapshot &snapshot)
 {
   s_cache.purge(invalidData);
 
@@ -170,31 +171,39 @@ bool SegmentationTags::saveCache(Snapshot &snapshot)
     cache << segmentation->filter()->id().toStdString();
     cache << SEP << segmentation->outputId();
 
-    cache << SEP << data.Tags.join(",").toStdString();
-
     cache << std::endl;
+
+    loadNotesCache(segmentation);
+    if (!data.Note.isEmpty())
+    {
+      QString file = QString("%1%2-%3.txt").arg(EXTENSION_FILE)
+                                           .arg(segmentation->filter()->id())
+                                           .arg(segmentation->outputId());
+
+      snapshot << SnapshotEntry(file, data.Note.toUtf8());
+    }
   }
 
-  snapshot << SnapshotEntry(EXTENSION_FILE, cache.str().c_str());
+  snapshot << SnapshotEntry(EXTENSION_FILE + ".csv", cache.str().c_str());
 
   return true;
 
 }
 
 //------------------------------------------------------------------------
-Segmentation::InformationExtension SegmentationTags::clone()
+Segmentation::InformationExtension SegmentationNotes::clone()
 {
-  return new SegmentationTags();
+  return new SegmentationNotes();
 }
 
 //------------------------------------------------------------------------
-void SegmentationTags::initialize()
+void SegmentationNotes::initialize()
 {
   s_cache.markAsClean(m_segmentation);
 }
 
 //------------------------------------------------------------------------
-void SegmentationTags::invalidate(SegmentationPtr segmentation)
+void SegmentationNotes::invalidate(SegmentationPtr segmentation)
 {
   if (!segmentation)
     segmentation = m_segmentation;
@@ -206,82 +215,37 @@ void SegmentationTags::invalidate(SegmentationPtr segmentation)
 }
 
 //------------------------------------------------------------------------
-void SegmentationTags::addTag(const QString &tag)
+void SegmentationNotes::setNote(const QString &note)
 {
-  s_cache.markAsClean(m_segmentation);
-
-  addTagImplementation(tag.toLower());
-
-  s_cache[m_segmentation].Data.Tags.sort();
-
-  updateAvailableTags();
+  s_cache[m_segmentation].Data.Note = note;
 }
 
 //------------------------------------------------------------------------
-void SegmentationTags::addTags(const QStringList &tags)
+QString SegmentationNotes::note() const
 {
-  s_cache.markAsClean(m_segmentation);
+  loadNotesCache(m_segmentation);
 
-  foreach(QString tag, tags)
+  return s_cache[m_segmentation].Data.Note;
+}
+
+//------------------------------------------------------------------------
+void SegmentationNotes::loadNotesCache(SegmentationPtr segmentation) const
+{
+  ExtensionData &data = s_cache[segmentation].Data;
+
+  if (data.Note.isEmpty())
   {
-    addTagImplementation(tag.toLower());
-  }
+    QString segmentationFile = QString("%1%2-%3.txt").arg(EXTENSION_FILE)
+                                                     .arg(segmentation->filter()->id())
+                                                     .arg(segmentation->outputId());
 
-  s_cache[m_segmentation].Data.Tags.sort();
+    QFileInfo file(segmentation->filter()->cacheDir().absoluteFilePath(segmentationFile));
 
-  updateAvailableTags();
-}
-
-//------------------------------------------------------------------------
-void SegmentationTags::removeTag(const QString &tag)
-{
-  s_cache.markAsClean(m_segmentation);
-
-  QStringList &currentTags = s_cache[m_segmentation].Data.Tags;
-  if (currentTags.contains(tag))
-  {
-    currentTags.removeOne(tag);
-  }
-
-  updateAvailableTags();
-}
-
-//------------------------------------------------------------------------
-void SegmentationTags::setTags(const QStringList &tags)
-{
-  s_cache[m_segmentation].Data.Tags.clear(); 
-  addTags(tags);
-}
-
-//------------------------------------------------------------------------
-void SegmentationTags::addTagImplementation(const QString &tag)
-{
-  QStringList &currentTags = s_cache[m_segmentation].Data.Tags;
-  if (!currentTags.contains(tag))
-  {
-    currentTags << tag.trimmed();
-  }
-}
-
-//------------------------------------------------------------------------
-void SegmentationTags::updateAvailableTags()
-{
-  QStringList tags;
-
-  foreach(CacheEntry<ExtensionData> entry, s_cache)
-  {
-    if (!entry.Dirty)
+    if (file.exists())
     {
-      tags << entry.Data.Tags;
+      QFile reader(file.absoluteFilePath());
+      reader.open(QIODevice::ReadOnly);
+      data.Note = reader.readAll();
     }
   }
-
-  tags.removeDuplicates();
-
-  if (tags.toSet() != s_availableTags.toSet())
-  {
-    s_availableTags = tags;
-    TagModel.setStringList(s_availableTags);
-  }
 }
-
