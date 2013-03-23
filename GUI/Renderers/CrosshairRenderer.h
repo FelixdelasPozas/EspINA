@@ -69,7 +69,7 @@ namespace EspINA
     virtual const QString tooltip() const {return "Sample's Crosshairs";}
 
     virtual bool addItem   (ModelItemPtr item);
-    virtual bool updateItem(ModelItemPtr item);
+    virtual bool updateItem(ModelItemPtr item, bool forced = false);
     virtual bool removeItem(ModelItemPtr item);
 
     virtual void hide();

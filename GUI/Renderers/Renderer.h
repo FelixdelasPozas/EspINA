@@ -52,7 +52,7 @@ namespace EspINA
 
     // Return whether the item was rendered or not
     virtual bool addItem   (ModelItemPtr item) = 0;
-    virtual bool updateItem(ModelItemPtr item) = 0;
+    virtual bool updateItem(ModelItemPtr item, bool forced = false) = 0;
     virtual bool removeItem(ModelItemPtr item) = 0;
 
     // Hide/Show all items rendered by the Renderer
@@ -80,6 +80,9 @@ namespace EspINA
 
     // return the number of elements actually been rendered by this renderer
     virtual int itemsBeenRendered() = 0;
+
+    // return if the renderer has the exclusivity to render some items
+    virtual bool exclusiveRenderer() { return false; }
 
   public slots:
     virtual void setEnable(bool value)

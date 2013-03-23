@@ -133,15 +133,13 @@ bool SmoothedMeshRenderer::addItem(ModelItemPtr item)
 
   m_segmentations[seg].actor->Modified();
 
-  connect(item, SIGNAL(modified(ModelItemPtr)), this, SLOT(updateItem(ModelItemPtr)));
-
   return true;
 }
 
 //-----------------------------------------------------------------------------
-bool SmoothedMeshRenderer::updateItem(ModelItemPtr item)
+bool SmoothedMeshRenderer::updateItem(ModelItemPtr item, bool forced)
 {
-  if (!m_enable)
+  if (!m_enable && !forced)
     return false;
 
   if (EspINA::SEGMENTATION != item->type())
@@ -265,8 +263,6 @@ bool SmoothedMeshRenderer::removeItem(ModelItemPtr item)
 
    m_decimate[seg] = NULL;
    m_decimate.remove(seg);
-
-   disconnect(item, SIGNAL(modified(ModelItemPtr)), this, SLOT(updateItem(ModelItemPtr)));
 
    return true;
 }

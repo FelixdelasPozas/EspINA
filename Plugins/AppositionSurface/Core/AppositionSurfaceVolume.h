@@ -36,20 +36,20 @@ namespace EspINA
 
       /// Volume's voxel's index at given spatial position
       /// It doesn't check whether the index is valid or not
-      itkVolumeType::IndexType index(Nm x, Nm y, Nm z);
+      virtual itkVolumeType::IndexType index(Nm x, Nm y, Nm z);
 
       /// Get the vtk-equivalent extent defining the volume
-      void extent(int out[6]) const;
+      virtual void extent(int out[6]) const;
       /// Get the vtk-equivalent bounds defining the volume
-      void bounds(double out[6]) const;
+      virtual void bounds(double out[6]) const;
       ///
-      void spacing(double out[3]) const;
+      virtual void spacing(double out[3]) const;
 
-      itkVolumeIterator iterator();
-      itkVolumeIterator iterator(const EspinaRegion &region);
+      virtual itkVolumeIterator iterator();
+      virtual itkVolumeIterator iterator(const EspinaRegion &region);
 
-      itkVolumeConstIterator constIterator();
-      itkVolumeConstIterator constIterator(const EspinaRegion &region);
+      virtual itkVolumeConstIterator constIterator();
+      virtual itkVolumeConstIterator constIterator(const EspinaRegion &region);
 
       virtual itkVolumeType::Pointer toITK();
       virtual const itkVolumeType::Pointer toITK() const;
@@ -74,7 +74,7 @@ namespace EspINA
 
     private:
       // not allowed
-      void setVolume(itkVolumeType::Pointer volume, bool disconnect=false);
+      virtual void setVolume(itkVolumeType::Pointer volume, bool disconnect=false) {};
 
       // private attributes
       mutable vtkSmartPointer<vtkAlgorithmOutput>          m_vtkVolume;

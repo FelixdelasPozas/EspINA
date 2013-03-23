@@ -147,7 +147,7 @@ QVariant Segmentation::data(int role) const
       tooltip = tooltip.append(boundsInfo);
 
       // FIXME: Hack to ensure tags extension is always loaded
-      InformationExtension tagExtention = informationExtension(TagExtensionID);
+      informationExtension(TagExtensionID);
       foreach (InformationExtension extension, m_informationExtensions)
       {
         QString extToolTip = extension->toolTipText();
@@ -297,7 +297,6 @@ const SegmentationVolume::Pointer Segmentation::volume() const
 // 
 //   ModelItem::notifyModification(force);
 // }
-
 
 //------------------------------------------------------------------------
 bool Segmentation::setData(const QVariant& value, int role)

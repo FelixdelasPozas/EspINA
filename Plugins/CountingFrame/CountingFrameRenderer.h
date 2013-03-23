@@ -51,7 +51,7 @@ namespace EspINA
     virtual unsigned int getNumberOfvtkActors();
 
     virtual bool addItem   (ModelItemPtr item){return false;}
-    virtual bool updateItem(ModelItemPtr item){return false;}
+    virtual bool updateItem(ModelItemPtr item, bool forced = false){return false;}
     virtual bool removeItem(ModelItemPtr item){return false;}
 
     virtual void clean();

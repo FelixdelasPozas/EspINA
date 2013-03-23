@@ -35,6 +35,7 @@
 
 
 const double UNDEFINED = -1.;
+const char SEP = ',';
 
 namespace EspINA
 {
@@ -933,6 +934,37 @@ namespace EspINA
       returnValue = true;
     }
 
+    QString vectorName = QString().number(m_cacheId) + QString("-Vectors.dat");
+
+    if (m_cacheDir.exists(vectorName))
+    {
+      QString fileName = m_cacheDir.absolutePath() + QDir::separator() + vectorName;
+
+      QFile fileStream(fileName);
+      fileStream.open(QIODevice::ReadOnly | QIODevice::Text);
+      char buffer[1024];
+      while (fileStream.readLine(buffer, sizeof(buffer)) > 0)
+      {
+        QString line(buffer);
+        QStringList fields = line.split(SEP);
+
+        if (fields[0] == QString("Template Origin"))
+        {
+          m_templateOrigin[0] = fields[1].toDouble();
+          m_templateOrigin[1] = fields[2].toDouble();
+          m_templateOrigin[2] = fields[3].toDouble();
+        }
+
+        if (fields[0] == QString("Template Normal"))
+        {
+          m_templateNormal[0] = fields[1].toDouble();
+          m_templateNormal[1] = fields[2].toDouble();
+          m_templateNormal[2] = fields[3].toDouble();
+        }
+      }
+      returnValue = true;
+    }
+
     return returnValue;
   }
 
@@ -954,8 +986,20 @@ namespace EspINA
 
       QByteArray polyArray(polyWriter->GetOutputString(), polyWriter->GetOutputStringLength());
       
-      SnapshotEntry polyEntry(this->id() + QString("-AS.vtp"), polyArray);
-      snapshot << polyEntry;
+      snapshot << SnapshotEntry(this->id() + QString("-AS.vtp"), polyArray);
+
+      std::ostringstream vectorData;
+      vectorData << std::string("Template Origin");
+      vectorData << SEP << m_templateOrigin[0];
+      vectorData << SEP << m_templateOrigin[1];
+      vectorData << SEP << m_templateOrigin[2] << std::endl;
+
+      vectorData << std::string("Template Normal");
+      vectorData << SEP << m_templateNormal[0];
+      vectorData << SEP << m_templateNormal[1];
+      vectorData << SEP << m_templateNormal[2] << std::endl;
+
+      snapshot << SnapshotEntry(this->id() + QString("-Vectors.dat"), vectorData.str().c_str());
 
       returnValue = true;
     }

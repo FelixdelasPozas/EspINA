@@ -124,9 +124,9 @@ bool VolumetricRenderer::addItem(ModelItemPtr item)
 }
 
 //-----------------------------------------------------------------------------
-bool VolumetricRenderer::updateItem(ModelItemPtr item)
+bool VolumetricRenderer::updateItem(ModelItemPtr item, bool forced)
 {
-  if (!m_enable)
+  if (!m_enable && !forced)
     return false;
 
   if (EspINA::SEGMENTATION != item->type())
@@ -154,6 +154,7 @@ bool VolumetricRenderer::updateItem(ModelItemPtr item)
   {
     if (!rep.visible)
     {
+      rep.volume->Update();
       m_renderer->AddVolume(rep.volume);
       rep.visible = true;
       updated = true;
@@ -227,7 +228,8 @@ bool VolumetricRenderer::removeItem(ModelItemPtr item)
      return false;
 
    SegmentationPtr seg = segmentationPtr(item);
-   Q_ASSERT(m_segmentations.contains(seg));
+   if(!m_segmentations.contains(seg))
+     return false;
 
    if (m_enable && m_segmentations[seg].visible)
      m_renderer->RemoveVolume(m_segmentations[seg].volume);
@@ -251,7 +253,10 @@ void VolumetricRenderer::hide()
 
   for (it = m_segmentations.begin(); it != m_segmentations.end(); ++it)
     if ((*it).visible)
+    {
       m_renderer->RemoveVolume((*it).volume);
+      (*it).visible = false;
+    }
 
   emit renderRequested();
 }
@@ -270,11 +275,7 @@ void VolumetricRenderer::show()
   {
     SegmentationPtr seg = segmentationPtr(it.key());
     if(seg->visible())
-    {
-      updateItem(it.key());
-      m_renderer->AddVolume((*it).volume);
-      (*it).visible = true;
-    }
+      updateItem(seg, true);
   }
 
   emit renderRequested();

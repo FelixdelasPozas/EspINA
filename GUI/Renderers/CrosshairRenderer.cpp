@@ -348,9 +348,9 @@ bool CrosshairRenderer::addItem(ModelItemPtr item)
 
 
 //-----------------------------------------------------------------------------
-bool CrosshairRenderer::updateItem(ModelItemPtr item)
+bool CrosshairRenderer::updateItem(ModelItemPtr item, bool forced)
 {
-  if (!m_enable)
+  if (!m_enable && !forced)
     return false;
 
   if (EspINA::CHANNEL != item->type())
@@ -510,16 +510,7 @@ void CrosshairRenderer::show()
   QMap<ModelItemPtr, Representation>::iterator it;
   for (it = m_channels.begin(); it != m_channels.end(); ++it)
     if (!(*it).visible)
-    {
-      updateItem(it.key());
-      m_renderer->AddActor((*it).axial);
-      m_renderer->AddActor((*it).coronal);
-      m_renderer->AddActor((*it).sagittal);
-      m_renderer->AddActor((*it).axialBorder);
-      m_renderer->AddActor((*it).coronalBorder);
-      m_renderer->AddActor((*it).sagittalBorder);
-      (*it).visible = true;
-    }
+      updateItem(it.key(), true);
 
   emit renderRequested();
 }

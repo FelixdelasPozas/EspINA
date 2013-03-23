@@ -43,9 +43,14 @@ namespace EspINA
 
     virtual IRendererSPtr clone() { return IRendererSPtr(new AppositionSurfaceRenderer(m_viewManager)); }
 
+    virtual bool exclusiveRenderer() { return true; }
+
   protected:
     virtual bool itemCanBeRendered(ModelItemPtr item)
     {
+      if (item->type() != EspINA::SEGMENTATION)
+        return false;
+
       QString fullTaxonomy = SegmentationPtr(item)->taxonomy()->qualifiedName();
       return (fullTaxonomy.startsWith(SAS+"/") || (fullTaxonomy.compare(SAS) == 0));
     }

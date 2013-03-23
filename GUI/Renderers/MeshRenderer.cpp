@@ -111,15 +111,13 @@ bool MeshRenderer::addItem(ModelItemPtr item)
 
   m_segmentations[seg].actor->Modified();
 
-  connect(item, SIGNAL(modified(ModelItemPtr)), this, SLOT(updateItem(ModelItemPtr)));
-
   return true;
 }
 
 //-----------------------------------------------------------------------------
-bool MeshRenderer::updateItem(ModelItemPtr item)
+bool MeshRenderer::updateItem(ModelItemPtr item, bool forced)
 {
-  if (!m_enable)
+  if (!m_enable && !forced)
     return false;
 
   if (EspINA::SEGMENTATION != item->type())
@@ -147,6 +145,7 @@ bool MeshRenderer::updateItem(ModelItemPtr item)
   {
     if (!rep.visible)
     {
+      rep.actor->Modified();
       m_renderer->AddActor(rep.actor);
       rep.visible = true;
       updated = true;
@@ -244,8 +243,6 @@ bool MeshRenderer::removeItem(ModelItemPtr item)
    m_mappers[seg] = NULL;
    m_mappers.remove(seg);
 
-   disconnect(item, SIGNAL(modified(ModelItemPtr)), this, SLOT(updateItem(ModelItemPtr)));
-
    return true;
 }
 
@@ -281,11 +278,7 @@ void MeshRenderer::show()
   {
     SegmentationPtr seg = segmentationPtr(it.key());
     if (seg->visible())
-    {
-      updateItem(it.key());
-      m_renderer->AddActor((*it).actor);
-      (*it).visible = true;
-    }
+      updateItem(seg, true);
   }
 
   emit renderRequested();

@@ -32,8 +32,6 @@ namespace EspINA
   class SmoothedMeshRenderer
   : public MeshRenderer
   {
-    Q_OBJECT
-
     public:
       explicit SmoothedMeshRenderer(ViewManager *vm, QObject* parent = 0);
 
@@ -42,15 +40,12 @@ namespace EspINA
       virtual const QString tooltip() const { return "Segmentation's Smoothed Meshes"; }
 
       virtual bool addItem   (ModelItemPtr item);
+      virtual bool updateItem(ModelItemPtr item, bool forced = false);
       virtual bool removeItem(ModelItemPtr item);
 
       virtual IRendererSPtr clone()   { return IRendererSPtr(new SmoothedMeshRenderer(m_viewManager)); }
 
-    public slots:
-      virtual bool updateItem(ModelItemPtr item);
-
     private:
-
       QMap<ModelItemPtr, vtkSmartPointer<vtkDecimatePro> > m_decimate;
   };
 

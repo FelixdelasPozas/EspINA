@@ -55,7 +55,7 @@ namespace EspINA
     virtual const QString tooltip() const {return "Segmentation's Volumes";}
 
     virtual bool addItem   (ModelItemPtr item);
-    virtual bool updateItem(ModelItemPtr item);
+    virtual bool updateItem(ModelItemPtr item, bool forced = false);
     virtual bool removeItem(ModelItemPtr item);
 
     virtual void hide();

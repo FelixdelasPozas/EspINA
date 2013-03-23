@@ -235,12 +235,30 @@ namespace EspINA
   }
 
   //----------------------------------------------------------------------------
+  itkVolumeIterator AppositionSurfaceVolume::iterator()
+  {
+    if (m_volume.IsNull())
+      transformVTK2ITK();
+
+    return EspinaVolume::iterator(espinaRegion());
+  }
+
+  //----------------------------------------------------------------------------
   itkVolumeIterator AppositionSurfaceVolume::iterator(const EspinaRegion &region)
   {
     if (m_volume.IsNull())
       transformVTK2ITK();
 
     return EspinaVolume::iterator(region);
+  }
+
+  //----------------------------------------------------------------------------
+  itkVolumeConstIterator AppositionSurfaceVolume::constIterator()
+  {
+    if (m_volume.IsNull())
+      transformVTK2ITK();
+
+    return EspinaVolume::constIterator(espinaRegion());
   }
 
   //----------------------------------------------------------------------------

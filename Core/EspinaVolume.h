@@ -57,29 +57,29 @@ namespace EspINA
     virtual ~EspinaVolume(){}
 
     //EspinaVolume operator=(itkVolumeType::Pointer volume);
-    void setVolume(itkVolumeType::Pointer volume, bool disconnect=false);
+    virtual void setVolume(itkVolumeType::Pointer volume, bool disconnect=false);
 
     /// Volume's voxel's index at given spatial position
     /// It doesn't check whether the index is valid or not
-    itkVolumeType::IndexType index(Nm x, Nm y, Nm z);
+    virtual itkVolumeType::IndexType index(Nm x, Nm y, Nm z);
 
     /// Get the vtk-equivalent extent defining the volume
-    void extent(int out[6]) const;
+    virtual void extent(int out[6]) const;
     /// Get the vtk-equivalent bounds defining the volume
-    void bounds(double out[6]) const;
+    virtual void bounds(double out[6]) const;
     ///
-    void spacing(double out[3]) const;
+    virtual void spacing(double out[3]) const;
 
-    EspinaRegion espinaRegion() const;/// Equivalent to bounds method
+    virtual EspinaRegion espinaRegion() const;/// Equivalent to bounds method
 
-    VolumeRegion volumeRegion() const;/// Largest possible region
-    VolumeRegion volumeRegion(const EspinaRegion &region) const; /// Volume's region equivalent to the normalized region
+    virtual VolumeRegion volumeRegion() const;/// Largest possible region
+    virtual VolumeRegion volumeRegion(const EspinaRegion &region) const; /// Volume's region equivalent to the normalized region
 
-    itkVolumeIterator iterator();
-    itkVolumeIterator iterator(const EspinaRegion &region);
+    virtual itkVolumeIterator iterator();
+    virtual itkVolumeIterator iterator(const EspinaRegion &region);
 
-    itkVolumeConstIterator constIterator();
-    itkVolumeConstIterator constIterator(const EspinaRegion &region);
+    virtual itkVolumeConstIterator constIterator();
+    virtual itkVolumeConstIterator constIterator(const EspinaRegion &region);
 
     virtual itkVolumeType::Pointer toITK();
     virtual const itkVolumeType::Pointer toITK() const;
@@ -91,7 +91,7 @@ namespace EspINA
     virtual itkVolumeType::Pointer cloneVolume(const EspinaRegion &region) const;
     virtual itkVolumeType::Pointer cloneVolume(const VolumeRegion &region) const;
 
-    void markAsModified(bool emitSignal = true);
+    virtual void markAsModified(bool emitSignal = true);
     virtual void update();
 
     /// Expands the volume to contain @region.
@@ -128,10 +128,6 @@ namespace EspINA
     virtual ~ChannelVolume(){}
   };
 
-  /// Reduce volume dimensions to adjust it to the bounding box of the
-  /// contained segmentation
-  itkVolumeType::Pointer fitToContent(itkVolumeType::Pointer volume);
-
   class SegmentationVolume
   : public EspinaVolume
   {
@@ -150,7 +146,7 @@ namespace EspINA
     virtual bool fitToContent();
 
     // get mesh representation of the volume
-    virtual vtkAlgorithmOutput* toMesh();
+    virtual vtkAlgorithmOutput *toMesh();
 
   private:
     // vtkPolydata generation filter
