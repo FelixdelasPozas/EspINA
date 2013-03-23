@@ -364,20 +364,9 @@ void VolumeView::addChannel(ChannelPtr channel)
 
   m_channels << channel;
 
-  bool itemRendered = false;
   foreach(IRendererSPtr renderer, m_itemRenderers)
-    if (renderer->exclusiveRenderer() && renderer->itemCanBeRendered(channel))
-    {
-      itemRendered = renderer->addItem(channel);
-      break;
-    }
-
-  if (!itemRendered)
-  {
-    foreach(IRendererSPtr renderer, m_itemRenderers)
-      if (renderer->itemCanBeRendered(channel))
-        renderer->addItem(channel);
-  }
+    if (renderer->itemCanBeRendered(channel))
+      renderer->addItem(channel);
 
   updateRenderersButtons();
   updateScrollBarsLimits();
@@ -424,20 +413,9 @@ void VolumeView::addSegmentation(SegmentationPtr seg)
 
   m_segmentations << seg;
 
-  bool itemRendered = false;
   foreach(IRendererSPtr renderer, m_itemRenderers)
-    if (renderer->exclusiveRenderer() && renderer->itemCanBeRendered(seg))
-    {
-      itemRendered = renderer->addItem(seg);
-      break;
-    }
-
-  if (!itemRendered)
-  {
-    foreach(IRendererSPtr renderer, m_itemRenderers)
-      if (renderer->itemCanBeRendered(seg))
-        renderer->addItem(seg);
-  }
+    if (renderer->itemCanBeRendered(seg))
+      renderer->addItem(seg);
 
   updateRenderersButtons();
 }

@@ -81,9 +81,6 @@ namespace EspINA
     // return the number of elements actually been rendered by this renderer
     virtual int itemsBeenRendered() = 0;
 
-    // return if the renderer has the exclusivity to render some items
-    virtual bool exclusiveRenderer() { return false; }
-
   public slots:
     virtual void setEnable(bool value)
     {

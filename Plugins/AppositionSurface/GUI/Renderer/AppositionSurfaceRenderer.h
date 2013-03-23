@@ -43,8 +43,6 @@ namespace EspINA
 
     virtual IRendererSPtr clone() { return IRendererSPtr(new AppositionSurfaceRenderer(m_viewManager)); }
 
-    virtual bool exclusiveRenderer() { return true; }
-
   protected:
     virtual bool itemCanBeRendered(ModelItemPtr item)
     {
