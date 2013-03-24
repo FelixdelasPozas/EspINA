@@ -56,6 +56,7 @@ namespace EspINA
   , m_area(UNDEFINED)
   , m_perimeter(UNDEFINED)
   , m_tortuosity(UNDEFINED)
+  , m_alreadyFetchedData(false)
   {
     m_templateOrigin = new double[3];
     m_templateNormal = new double[3];
@@ -121,14 +122,19 @@ namespace EspINA
     }
     Q_ASSERT(m_originSegmentation);
 
+    m_input = m_originSegmentation->volume()->toITK();
+
+    // need to get the polydata as soon as possible to show the correct mesh
+    fetchCachePolyDatas();
+
     ModelItemSList items = relatedItems(EspINA::OUT, Filter::CREATELINK);
     if (items.size() == 1)
     {
       SegmentationPtr segmentation = segmentationPtr(items.first().data());
       segmentation->setInputSegmentationDependent(true);
+      items.first().data()->notifyModification();
     }
   }
-
 
   //----------------------------------------------------------------------------
   void AppositionSurfaceFilter::run()
@@ -284,7 +290,7 @@ namespace EspINA
     m_ap->SetLines(appositionSurface->GetLines());
     m_ap->Modified();
 
-    createOutput();
+    createOutput(0);
   }
 
   //----------------------------------------------------------------------------
@@ -909,14 +915,22 @@ namespace EspINA
   }
 
   //----------------------------------------------------------------------------
-  void AppositionSurfaceFilter::createOutput()
+  void AppositionSurfaceFilter::createOutput(OutputId id, itkVolumeType::Pointer volume)
   {
-    m_outputs[0] = Output(this, 0, AppositionSurfaceVolume::Pointer(new AppositionSurfaceVolume(this)));
+    Q_ASSERT(0 == id);
+
+    m_outputs[id] = Output(this, 0, AppositionSurfaceVolume::Pointer(new AppositionSurfaceVolume(this)));
+
+    if (volume.IsNotNull())
+      m_outputs[id].volume->setVolume(volume);
   }
 
   //----------------------------------------------------------------------------
   bool AppositionSurfaceFilter::fetchCachePolyDatas()
   {
+    if (m_alreadyFetchedData)
+      return true;
+
     bool returnValue = false;
 
     QString nameAS = QString().number(m_cacheId) + QString("-AS.vtp");
@@ -963,6 +977,12 @@ namespace EspINA
         }
       }
       returnValue = true;
+    }
+
+    if (returnValue)
+    {
+      m_alreadyFetchedData = true;
+      m_outputs[0].volume->markAsModified(true);
     }
 
     return returnValue;

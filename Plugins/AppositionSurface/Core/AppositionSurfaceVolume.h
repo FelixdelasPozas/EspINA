@@ -73,8 +73,6 @@ namespace EspINA
       void transformVTK2ITK() const;
 
     private:
-      // not allowed
-      virtual void setVolume(itkVolumeType::Pointer volume, bool disconnect=false) {};
 
       // private attributes
       mutable vtkSmartPointer<vtkAlgorithmOutput>          m_vtkVolume;

@@ -18,6 +18,8 @@ qt4_wrap_cpp(GUI_MOC
   QtWidget/SliceView.h
   QtWidget/VolumeView.h
   Renderers/Renderer.h
+  Renderers/MeshRenderer.h
+  Renderers/SmoothedMeshRenderer.h
   vtkWidgets/RectangularRegion.h
   vtkWidgets/RectangularRegionSliceSelector.h
   ViewManager.h

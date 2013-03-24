@@ -111,6 +111,8 @@ bool MeshRenderer::addItem(ModelItemPtr item)
 
   m_segmentations[seg].actor->Modified();
 
+  connect(item, SIGNAL(modified(ModelItemPtr)), this, SLOT(updateItem(ModelItemPtr)));
+
   return true;
 }
 
@@ -214,6 +216,7 @@ bool MeshRenderer::updateItem(ModelItemPtr item, bool forced)
     hsv[2] = (rep.selected ? 1.0 : 0.6);
     vtkMath::HSVToRGB(hsv, rgb);
     rep.actor->GetProperty()->SetColor(rgb[0], rgb[1], rgb[2]);
+    rep.actor->GetProperty()->Modified();
 
     updated = true;
   }
@@ -242,6 +245,8 @@ bool MeshRenderer::removeItem(ModelItemPtr item)
 
    m_mappers[seg] = NULL;
    m_mappers.remove(seg);
+
+   disconnect(item, SIGNAL(modified(ModelItemPtr)), this, SLOT(updateItem(ModelItemPtr)));
 
    return true;
 }

@@ -41,6 +41,7 @@ namespace EspINA
   class MeshRenderer
   : public IRenderer
   {
+    Q_OBJECT
     public:
       explicit MeshRenderer(ViewManager *vm, QObject* parent = 0);
 
@@ -49,7 +50,6 @@ namespace EspINA
       virtual const QString tooltip() const { return "Segmentation's Meshes"; }
 
       virtual bool addItem(ModelItemPtr item);
-      virtual bool updateItem(ModelItemPtr item, bool forced = false);
       virtual bool removeItem(ModelItemPtr item);
 
       virtual void hide();
@@ -61,6 +61,9 @@ namespace EspINA
 
       virtual bool isASegmentationRenderer() { return true; }
       virtual int itemsBeenRendered()        { return m_segmentations.size(); }
+
+    public slots:
+      virtual bool updateItem(ModelItemPtr item, bool forced = false);
 
     protected:
       virtual void createHierarchyProperties(SegmentationPtr seg);

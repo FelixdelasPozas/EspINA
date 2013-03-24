@@ -108,6 +108,9 @@ namespace EspINA
   //----------------------------------------------------------------------------
   vtkAlgorithmOutput *AppositionSurfaceVolume::toVTK()
   {
+    if (m_filter->m_ap == NULL)
+      return SegmentationVolume::toVTK();
+
     if ((m_vtkVolume == NULL) || (m_filter->m_ap->GetMTime() != m_rasterizationTime))
       rasterize(m_filter->m_ap->GetBounds());
 
@@ -117,6 +120,9 @@ namespace EspINA
   //----------------------------------------------------------------------------
   const vtkAlgorithmOutput *AppositionSurfaceVolume::toVTK() const
   {
+    if (m_filter->m_ap == NULL)
+      return SegmentationVolume::toVTK();
+
     if ((m_vtkVolume == NULL) || (m_filter->m_ap->GetMTime() != m_rasterizationTime))
       rasterize(m_filter->m_ap->GetBounds());
 
@@ -126,7 +132,10 @@ namespace EspINA
   //----------------------------------------------------------------------------
   itkVolumeType::Pointer AppositionSurfaceVolume::toITK()
   {
-    if (m_volume.IsNull() || m_vtkExporter->GetInputConnection(0,0) != m_vtkVolume)
+    if (m_filter->m_ap == NULL)
+      return SegmentationVolume::toITK();
+
+    if (m_volume.IsNull() || (m_vtkExporter == NULL) || m_vtkExporter->GetInputConnection(0,0) != m_vtkVolume)
       transformVTK2ITK();
     else
       if (m_vtkVolume->GetMTime() != m_ITKGenerationTime)
@@ -141,7 +150,10 @@ namespace EspINA
   //----------------------------------------------------------------------------
   const itkVolumeType::Pointer AppositionSurfaceVolume::toITK() const
   {
-    if (m_volume.IsNull() || m_vtkExporter->GetInputConnection(0,0) != m_vtkVolume)
+    if (m_filter->m_ap == NULL)
+      return SegmentationVolume::toITK();
+
+    if (m_volume.IsNull() || (m_vtkExporter == NULL) || m_vtkExporter->GetInputConnection(0,0) != m_vtkVolume)
       transformVTK2ITK();
     else
       if (m_vtkVolume->GetMTime() != m_ITKGenerationTime)
@@ -200,6 +212,9 @@ namespace EspINA
   //----------------------------------------------------------------------------
   itkVolumeType::IndexType AppositionSurfaceVolume::index(Nm x, Nm y, Nm z)
   {
+    if (m_filter->m_ap == NULL)
+      return SegmentationVolume::index(x,y,z);
+
     if (m_volume.IsNull())
       transformVTK2ITK();
 
@@ -209,6 +224,9 @@ namespace EspINA
   //----------------------------------------------------------------------------
   void AppositionSurfaceVolume::extent(int out[6]) const
   {
+    if (m_filter->m_ap == NULL)
+      return SegmentationVolume::extent(out);
+
     if (m_volume.IsNull())
       transformVTK2ITK();
 
@@ -218,6 +236,9 @@ namespace EspINA
   //----------------------------------------------------------------------------
   void AppositionSurfaceVolume::bounds(double out[6]) const
   {
+    if (m_filter->m_ap == NULL)
+      return SegmentationVolume::bounds(out);
+
     if (m_volume.IsNull())
       transformVTK2ITK();
 
@@ -228,6 +249,9 @@ namespace EspINA
   //----------------------------------------------------------------------------
   void AppositionSurfaceVolume::spacing(double out[3]) const
   {
+    if (m_filter->m_ap == NULL)
+      return SegmentationVolume::spacing(out);
+
     if (m_volume.IsNull())
       transformVTK2ITK();
 
@@ -237,6 +261,9 @@ namespace EspINA
   //----------------------------------------------------------------------------
   itkVolumeIterator AppositionSurfaceVolume::iterator()
   {
+    if (m_filter->m_ap == NULL)
+      return SegmentationVolume::iterator(SegmentationVolume::espinaRegion());
+
     if (m_volume.IsNull())
       transformVTK2ITK();
 
@@ -246,6 +273,9 @@ namespace EspINA
   //----------------------------------------------------------------------------
   itkVolumeIterator AppositionSurfaceVolume::iterator(const EspinaRegion &region)
   {
+    if (m_filter->m_ap == NULL)
+      return SegmentationVolume::iterator(region);
+
     if (m_volume.IsNull())
       transformVTK2ITK();
 
@@ -255,6 +285,9 @@ namespace EspINA
   //----------------------------------------------------------------------------
   itkVolumeConstIterator AppositionSurfaceVolume::constIterator()
   {
+    if (m_filter->m_ap == NULL)
+      return SegmentationVolume::constIterator(SegmentationVolume::espinaRegion());
+
     if (m_volume.IsNull())
       transformVTK2ITK();
 
@@ -264,6 +297,9 @@ namespace EspINA
   //----------------------------------------------------------------------------
   itkVolumeConstIterator AppositionSurfaceVolume::constIterator(const EspinaRegion &region)
   {
+    if (m_filter->m_ap == NULL)
+      return SegmentationVolume::constIterator(region);
+
     if (m_volume.IsNull())
       transformVTK2ITK();
 
@@ -273,6 +309,9 @@ namespace EspINA
   //----------------------------------------------------------------------------
   void AppositionSurfaceVolume::update()
   {
+    if (m_filter->m_ap == NULL)
+      return SegmentationVolume::update();
+
     if (m_vtkVolume != NULL)
       toVTK();
 
@@ -285,6 +324,9 @@ namespace EspINA
   //----------------------------------------------------------------------------
   void AppositionSurfaceVolume::expandToFitRegion(EspinaRegion region)
   {
+    if (m_filter->m_ap == NULL)
+      return SegmentationVolume::expandToFitRegion(region);
+
     double bounds[6];
     region.bounds(bounds);
     rasterize(bounds);
@@ -296,6 +338,9 @@ namespace EspINA
   //----------------------------------------------------------------------------
   bool AppositionSurfaceVolume::fitToContent()
   {
+    if (m_filter->m_ap == NULL)
+      return SegmentationVolume::fitToContent();
+
     if (m_volume.IsNull())
       transformVTK2ITK();
 
@@ -333,6 +378,9 @@ namespace EspINA
   //----------------------------------------------------------------------------
   vtkAlgorithmOutput *AppositionSurfaceVolume::toMesh()
   {
+    if (m_filter->m_ap == NULL)
+      return SegmentationVolume::toMesh();
+
     return m_filter->m_ap->GetProducerPort();
   }
 

@@ -106,18 +106,18 @@ namespace EspINA
 
       virtual bool dumpSnapshot(Snapshot &snapshot);
 
+      /// Try to locate an snapshot of the filter in tmpDir
+      /// Returns true if all volume snapshot can be recovered
+      /// and false otherwise
+      virtual bool fetchCachePolyDatas();
+
     protected slots:
       virtual void inputModified();
 
     protected:
       virtual void run();
 
-      void createOutput();
-
-      /// Try to locate an snapshot of the filter in tmpDir
-      /// Returns true if all volume snapshot can be recovered
-      /// and false otherwise
-      virtual bool fetchCachePolyDatas();
+      virtual void createOutput(OutputId id, itkVolumeType::Pointer volume = NULL);
 
     private:
       /// forbidden methods
@@ -205,6 +205,8 @@ namespace EspINA
       mutable double m_tortuosity;
 
       itkVolumeType::Pointer m_input;
+
+      bool m_alreadyFetchedData;
 
       friend class AppositionSurfaceVolume;
   };

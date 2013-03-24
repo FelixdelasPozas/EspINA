@@ -133,6 +133,8 @@ bool SmoothedMeshRenderer::addItem(ModelItemPtr item)
 
   m_segmentations[seg].actor->Modified();
 
+  connect(item, SIGNAL(modified(ModelItemPtr)), this, SLOT(updateItem(ModelItemPtr)));
+
   return true;
 }
 
@@ -235,6 +237,7 @@ bool SmoothedMeshRenderer::updateItem(ModelItemPtr item, bool forced)
     hsv[2] = (rep.selected ? 1.0 : 0.6);
     vtkMath::HSVToRGB(hsv, rgb);
     rep.actor->GetProperty()->SetColor(rgb[0], rgb[1], rgb[2]);
+    rep.actor->GetProperty()->Modified();
 
     updated = true;
   }
@@ -263,6 +266,8 @@ bool SmoothedMeshRenderer::removeItem(ModelItemPtr item)
 
    m_decimate[seg] = NULL;
    m_decimate.remove(seg);
+
+   disconnect(item, SIGNAL(modified(ModelItemPtr)), this, SLOT(updateItem(ModelItemPtr)));
 
    return true;
 }
