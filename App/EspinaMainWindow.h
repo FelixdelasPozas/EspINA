@@ -72,7 +72,7 @@ class IToolBar;
                                     const Filter::NamedInputs& inputs,
                                     const ModelItem::Arguments& args);
   public slots:
-    void closeCurrentAnalysis();
+    bool closeCurrentAnalysis();
 
     void openRecentAnalysis();
     /// Close former analysis and load a new one
@@ -86,7 +86,7 @@ class IToolBar;
     void saveAnalysis();
     void saveSessionAnalysis();
 
-  protected slots:
+  private slots:
     void updateStatus(QString msg);
     void updateTooltip(QAction *action);
     void showPreferencesDialog();
@@ -164,6 +164,7 @@ class IToolBar;
     };
     DynamicMenuNode *m_dynamicMenuRoot;
 
+    int       m_modifications;
     QTimer    m_autosave;
     QFileInfo m_sessionFile;
     QDir      m_sessionDir;

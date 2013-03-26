@@ -571,55 +571,32 @@ void EspinaMainWindow::closeEvent(QCloseEvent* event)
     }
   }
 
-  if (m_model->hasChanged() || m_undoStack->canUndo())
+  if (closeCurrentAnalysis())
   {
-    QMessageBox warning;
-    warning.setWindowTitle(tr("EspINA"));
-    warning.setText(tr("Current session has not been saved. Do you want to save it now?"));
-    warning.setStandardButtons(QMessageBox::Yes|QMessageBox::No|QMessageBox::Cancel);
-    int res = warning.exec();
-    switch(res)
-    {
-      case QMessageBox::Yes:
-        saveAnalysis();
-        break;
-      case QMessageBox::Cancel:
-        event->ignore();
-        return;
-        break;
-      case QMessageBox::No:
-      default:
-        // to avoid triggering the dialog again (later in closeCurrentAnalysis())
-        m_model->markAsSaved();
-        break;
-    }
+    QSettings settings(CESVIMA, ESPINA);
+
+    /**
+     * Instead of ussing save/restoreGeometry resice+move
+     * Works better in Unity when espina is closed while is maximized
+     */
+    settings.beginGroup("MainWindow");
+    settings.setValue("size", size());
+    settings.setValue("pos", pos());
+    settings.endGroup();
+
+    settings.setValue("state", saveState());
+    settings.sync();
+    event->accept();
+
+    QDir autosavePath = m_settings->autosavePath();
+    autosavePath.remove(AUTOSAVE_FILE);
   }
-
-  QSettings settings(CESVIMA, ESPINA);
-
-  /**
-   * Instead of ussing save/restoreGeometry resice+move
-   * Works better in Unity when espina is closed while is maximized
-   */
-  settings.beginGroup("MainWindow");
-  settings.setValue("size", size());
-  settings.setValue("pos", pos());
-  settings.endGroup();
-
-  settings.setValue("state", saveState());
-  settings.sync();
-  event->accept();
-
-  closeCurrentAnalysis();
-
-  QDir autosavePath = m_settings->autosavePath();
-  autosavePath.remove(AUTOSAVE_FILE);
 }
 
 //------------------------------------------------------------------------
-void EspinaMainWindow::closeCurrentAnalysis()
+bool EspinaMainWindow::closeCurrentAnalysis()
 {
-  if (m_model->hasChanged())
+  if (m_model->hasChanged() || m_undoStack->index() != m_modifications)
   {
     QMessageBox warning;
     warning.setWindowTitle(tr("EspINA"));
@@ -633,7 +610,7 @@ void EspinaMainWindow::closeCurrentAnalysis()
         saveAnalysis();
         break;
       case QMessageBox::Cancel:
-        return;
+        return false;
         break;
       default:
         break;
@@ -663,6 +640,8 @@ void EspinaMainWindow::closeCurrentAnalysis()
   EspinaIO::removeTemporalDir();
 
   emit analysisClosed();
+
+  return true;
 }
 
 //------------------------------------------------------------------------
@@ -973,6 +952,7 @@ void EspinaMainWindow::saveAnalysis()
   m_recentDocuments1.addDocument(analysisFile);
   m_recentDocuments2.updateDocumentList();
 
+  m_modifications = m_undoStack->index();
   m_model->markAsSaved();
 
   QStringList fileParts = analysisFile.split(QDir::separator());
@@ -997,6 +977,7 @@ void EspinaMainWindow::saveSessionAnalysis()
   m_recentDocuments1.addDocument(m_sessionFile.absoluteFilePath());
   m_recentDocuments2.updateDocumentList();
 
+  m_modifications = m_undoStack->index();
   m_model->markAsSaved();
 }
 
