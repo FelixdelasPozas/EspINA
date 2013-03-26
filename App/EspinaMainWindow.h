@@ -164,7 +164,7 @@ class IToolBar;
     };
     DynamicMenuNode *m_dynamicMenuRoot;
 
-    int       m_modifications;
+    int       m_undoStackSavedIndex;
     QTimer    m_autosave;
     QFileInfo m_sessionFile;
     QDir      m_sessionDir;

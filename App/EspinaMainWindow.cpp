@@ -159,6 +159,7 @@ EspinaMainWindow::EspinaMainWindow(EspinaModel      *model,
 , m_view(NULL)
 , m_busy(false)
 , m_errorHandler(new EspinaErrorHandler(this))
+, m_undoStackSavedIndex(0)
 {
 #ifdef TEST_ESPINA_MODELS
   m_modelTester = QSharedPointer<ModelTest>(new ModelTest(m_model));
@@ -596,7 +597,7 @@ void EspinaMainWindow::closeEvent(QCloseEvent* event)
 //------------------------------------------------------------------------
 bool EspinaMainWindow::closeCurrentAnalysis()
 {
-  if (m_model->hasChanged() || m_undoStack->index() != m_modifications)
+  if (m_model->hasChanged() || m_undoStack->index() != m_undoStackSavedIndex)
   {
     QMessageBox warning;
     warning.setWindowTitle(tr("EspINA"));
@@ -952,7 +953,7 @@ void EspinaMainWindow::saveAnalysis()
   m_recentDocuments1.addDocument(analysisFile);
   m_recentDocuments2.updateDocumentList();
 
-  m_modifications = m_undoStack->index();
+  m_undoStackSavedIndex = m_undoStack->index();
   m_model->markAsSaved();
 
   QStringList fileParts = analysisFile.split(QDir::separator());
@@ -977,7 +978,7 @@ void EspinaMainWindow::saveSessionAnalysis()
   m_recentDocuments1.addDocument(m_sessionFile.absoluteFilePath());
   m_recentDocuments2.updateDocumentList();
 
-  m_modifications = m_undoStack->index();
+  m_undoStackSavedIndex = m_undoStack->index();
   m_model->markAsSaved();
 }
 
