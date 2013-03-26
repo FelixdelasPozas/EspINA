@@ -187,8 +187,11 @@ FilterSPtr EspinaFactory::createFilter(const QString              &filter,
 //------------------------------------------------------------------------
 bool EspinaFactory::readFile(const QString &file, const QString &ext, EspinaIO::ErrorHandler *handler)
 {
-  Q_ASSERT(m_fileReaders.contains(ext));
-  return m_fileReaders[ext]->readFile(file, handler);
+  bool success = false;
+  if (m_fileReaders.contains(ext))
+    success = m_fileReaders[ext]->readFile(file, handler);
+
+  return success;
 }
 
 //------------------------------------------------------------------------
