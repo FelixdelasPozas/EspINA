@@ -15,6 +15,8 @@ qt4_wrap_cpp (ESPINA_MOC
   EspinaMainWindow.h
   Dialogs/SegmentationInspector/SegmentationInspector.h
   Dialogs/TabularReport/QueryView.h
+  Dialogs/TabularReport/TabularReport.h
+  Dialogs/TabularReport/TabularReportEntry.h
   Dialogs/SettingsDialog.h
   Docks/ChannelExplorer/ChannelExplorer.h
   Docks/FilterInspector/FilterInspector.h
@@ -23,8 +25,6 @@ qt4_wrap_cpp (ESPINA_MOC
   Docks/SegmentationExplorer/LayoutTaxonomy.h
   Docks/SegmentationExplorer/LayoutLocation.h
   Docks/SegmentationExplorer/LayoutComposition.h
-  Docks/TabularReport/TabularReport.h
-  Docks/TabularReport/TabularReportEntry.h
   FilterInspectors/CODE/CODEFilterInspector.h
   FilterInspectors/ContourSource/ContourInspectorWidget.h
   FilterInspectors/SeedGrowSegmentation/SGSFilterInspector.h
@@ -59,11 +59,11 @@ qt4_wrap_cpp (ESPINA_MOC
 qt4_wrap_ui (ESPINA_UI
   Dialogs/SegmentationInspector/SegmentationInspector.ui
   Dialogs/TabularReport/QueryView.ui
+  Dialogs/TabularReport/TabularReport.ui
   Dialogs/AboutDialog.ui
   Dialogs/SettingsDialog.ui
   Docks/ChannelExplorer/ChannelExplorer.ui
   Docks/SegmentationExplorer/SegmentationExplorer.ui
-  Docks/TabularReport/TabularReport.ui
   FilterInspectors/ContourSource/ContourInspectorWidget.ui
   FilterInspectors/SeedGrowSegmentation/SGSFilterInspectorWidget.ui
   Settings/GeneralSettingsPanel.ui
@@ -87,6 +87,9 @@ set (ESPINA_SOURCES
   RecentDocuments.cpp
   Dialogs/SegmentationInspector/SegmentationInspector.cpp
   Dialogs/TabularReport/QueryView.cpp #TODO 2012-11-27 Cambiar nombre de la clase a TabularReport
+  Dialogs/TabularReport/TabularReport.cpp
+  Dialogs/TabularReport/RawInformationDialog.cpp
+  Dialogs/TabularReport/TabularReportEntry.cpp 
   Dialogs/AboutDialog.cpp
   Dialogs/SettingsDialog.cpp #TODO 2012-11-27 Renombrar General Settings Dialog
   Docks/ChannelExplorer/ChannelExplorer.cpp
@@ -96,9 +99,6 @@ set (ESPINA_SOURCES
   Docks/SegmentationExplorer/LayoutTaxonomy.cpp
   Docks/SegmentationExplorer/SegmentationExplorerLayout.cpp
   Docks/SegmentationExplorer/SegmentationExplorer.cpp
-  Docks/TabularReport/TabularReport.cpp
-  Docks/TabularReport/DataViewPanel.cpp
-  Docks/TabularReport/TabularReportEntry.cpp 
   FilterInspectors/CODE/CODEFilterInspector.cpp
   FilterInspectors/ContourSource/ContourInspector.cpp
   FilterInspectors/ContourSource/ContourInspectorWidget.cpp

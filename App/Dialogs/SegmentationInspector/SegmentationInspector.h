@@ -25,6 +25,7 @@
 #include <Core/Model/EspinaModel.h>
 #include <Core/Model/Proxies/InformationProxy.h>
 #include <GUI/ViewManager.h>
+#include <Docks/SegmentationExplorer/SegmentationExplorerLayout.h>
 
 // Qt
 #include <QDialog>
@@ -35,7 +36,7 @@ class QUndoStack;
 namespace EspINA
 {
 
-class TabularReport;
+  class TabularReport;
   class VolumeView;
 
   class SegmentationInspector
@@ -86,9 +87,6 @@ class TabularReport;
 
     SegmentationList m_segmentations;
     ChannelList      m_channels;
-
-    QSharedPointer<TaxonomicalInformationProxy> m_info;
-    QSharedPointer<QSortFilterProxyModel> m_sort;
 
     TabularReport *m_tabularReport;
 

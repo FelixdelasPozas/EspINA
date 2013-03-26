@@ -20,44 +20,29 @@
 #ifndef DATAVIEWPANEL_H
 #define DATAVIEWPANEL_H
 
-#include <Core/Interfaces/IDockWidget.h>
+#include <QDialog>
 
 #include <Core/EspinaTypes.h>
 #include <EspinaConfig.h>
 #include <Core/Model/EspinaModel.h>
-#include <Core/Model/Proxies/InformationProxy.h>
 #include <Core/Model/Proxies/TaxonomyProxy.h>
-
-#ifdef TEST_ESPINA_MODELS
-class ModelTest;
-#endif
 
 namespace EspINA
 {
 
 class ViewManager;
 
-class DataViewPanel
-  : public IDockWidget
+class RawInformationDialog
+  : public QDialog
 {
 public:
-  explicit DataViewPanel(EspinaModel *model,
-                         ViewManager *vm,
+  explicit RawInformationDialog(EspinaModel *model,
+                         ViewManager *viewManager,
                          QWidget     *parent = 0);
-  virtual ~DataViewPanel();
+  virtual ~RawInformationDialog();
 
-  virtual void initDockWidget(EspinaModel *model,
-                              QUndoStack  *undoStack,
-                              ViewManager *viewManager);
-
-  virtual void reset(); // slot
-
-private:
-  #ifdef TEST_ESPINA_MODELS
-  QSharedPointer<ModelTest> m_modelTester;
-  #endif
-
-  QSharedPointer<TaxonomicalInformationProxy> m_informationProxy;
+protected:
+  virtual void closeEvent(QCloseEvent *event);
 };
 
 } // namespace EspINA

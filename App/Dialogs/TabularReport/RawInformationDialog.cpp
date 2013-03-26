@@ -17,10 +17,12 @@
 */
 
 
-#include "DataViewPanel.h"
+#include "RawInformationDialog.h"
 
 #include "TabularReport.h"
 #include <Core/Model/Proxies/TaxonomyProxy.h>
+#include <Core/EspinaSettings.h>
+#include <QSettings>
 
 #ifdef TEST_ESPINA_MODELS
 #include <Core/Model/ModelTest.h>
@@ -29,43 +31,42 @@
 using namespace EspINA;
 
 //----------------------------------------------------------------------------
-DataViewPanel::DataViewPanel(EspinaModel *model,
+RawInformationDialog::RawInformationDialog(EspinaModel *model,
                              ViewManager *viewManager,
                              QWidget     *parent)
-  : IDockWidget(parent)
-  , m_informationProxy(new TaxonomicalInformationProxy())
+: QDialog(parent)
 {
-  setObjectName("Data View Panel");
+  setObjectName("Raw Information Analysis");
 
-  setWindowTitle(tr("Segmentation Information"));
+  setWindowTitle(tr("Raw Information"));
 
-  m_informationProxy->setSourceModel(model);
+  TabularReport *report = new TabularReport(viewManager);
+  report->setModel(model);
+  setLayout(new QVBoxLayout());
+  layout()->addWidget(report);
 
-  #ifdef TEST_ESPINA_MODELS
-  m_modelTester = QSharedPointer<ModelTest>(new ModelTest(m_informationProxy.data()));
-  #endif
+  QSettings settings(CESVIMA, ESPINA);
 
-  TabularReport *report = new TabularReport(model->factory(), viewManager);
-  report->setModel(m_informationProxy.data());
-  setWidget(report);
+  settings.beginGroup("Raw Information Analysis");
+  resize(settings.value("size", QSize(200, 200)).toSize());
+  move(settings.value("pos", QPoint(200, 200)).toPoint());
+  settings.endGroup();
 }
 
 //----------------------------------------------------------------------------
-DataViewPanel::~DataViewPanel()
+RawInformationDialog::~RawInformationDialog()
 {
-
 }
 
 //----------------------------------------------------------------------------
-void DataViewPanel::initDockWidget(EspinaModel *model,
-                                   QUndoStack     *undoStack,
-                                   ViewManager    *viewManager)
+void RawInformationDialog::closeEvent(QCloseEvent *event)
 {
+  QSettings settings(CESVIMA, ESPINA);
 
-}
+  settings.beginGroup("Raw Information Analysis");
+  settings.setValue("size", size());
+  settings.setValue("pos", pos());
+  settings.endGroup();
 
-//----------------------------------------------------------------------------
-void DataViewPanel::reset()
-{
-
+  QDialog::closeEvent(event);
 }

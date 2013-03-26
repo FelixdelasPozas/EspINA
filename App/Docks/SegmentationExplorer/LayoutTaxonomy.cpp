@@ -526,7 +526,6 @@ void TaxonomyLayout::updateSelection()
   }
 
   bool enabled = (numTax == 1);
-  m_createTaxonomy->setEnabled(enabled);
   m_createSubTaxonomy->setEnabled(enabled);
   m_changeTaxonomyColor->setEnabled(enabled);
 }

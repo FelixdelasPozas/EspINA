@@ -17,7 +17,7 @@
 */
 
 #include "SegmentationInspector.h"
-#include <Docks/TabularReport/TabularReport.h>
+#include <Dialogs/TabularReport/TabularReport.h>
 
 // EspINA
 #include <Core/Model/ModelItem.h>
@@ -25,6 +25,7 @@
 #include <Core/Model/EspinaFactory.h>
 #include <Core/Extensions/SegmentationExtension.h>
 #include <Core/Model/Filter.h>
+#include <Core/Model/ModelTest.h>
 #include <GUI/QtWidget/VolumeView.h>
 #include <Core/EspinaSettings.h>
 
@@ -50,12 +51,12 @@ SegmentationInspector::SegmentationInspector(SegmentationList segmentations,
 , m_model(model)
 , m_undoStack(undoStack)
 , m_viewManager(viewManager)
-, m_info(new TaxonomicalInformationProxy())
-, m_sort(new QSortFilterProxyModel())
-, m_tabularReport(new TabularReport(model->factory(), viewManager))
+, m_tabularReport(new TabularReport(viewManager))
 , m_view(new VolumeView(model->factory(), viewManager, true))
 {
   m_view->setViewType(VOLUME);
+
+  //ModelTest * m_modelTester = new ModelTest(m_info.data());
 
   setupUi(this);
   this->setAttribute(Qt::WA_DeleteOnClose, true);
@@ -71,8 +72,8 @@ SegmentationInspector::SegmentationInspector(SegmentationList segmentations,
   {
     connect(seg, SIGNAL(modified(ModelItemPtr)), this, SLOT(updateScene(ModelItemPtr)));
 
-    regExpression += "^"+seg->data().toString()+"$"
-                  + "|" + "^" + seg->taxonomy()->qualifiedName() + "$";
+    regExpression += "^"+seg->data().toString()+"$";
+                  //+ "|" + "^" + seg->taxonomy()->qualifiedName() + "$";
 
     if(seg != m_segmentations.last())
       regExpression += "|";
@@ -91,11 +92,8 @@ SegmentationInspector::SegmentationInspector(SegmentationList segmentations,
       tags << extension->availableInformations();
   }
 
-  m_info->setSourceModel(m_model);
-  m_sort->setSourceModel(m_info.data());
-  m_sort->setFilterRegExp(regExpression);
-
-  m_tabularReport->setModel(m_sort.data());
+  m_tabularReport->setModel(m_model);
+  m_tabularReport->setFilter(m_segmentations);
   m_tabularReport->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
   m_tabularReport->setVisible(true);
 
@@ -384,13 +382,12 @@ void SegmentationInspector::dropEvent(QDropEvent *event)
   QString regExpression;
   foreach(SegmentationPtr seg, m_segmentations)
   {
-    regExpression += "^"+seg->data().toString()+"$"
-                  + "|" + "^" + seg->taxonomy()->qualifiedName() + "$";
+    regExpression += "^"+seg->data().toString()+"$";
+ //                 + "|" + "^" + seg->taxonomy()->qualifiedName() + "$";
     if(seg != m_segmentations.last())
       regExpression += "|";
   }
-  m_sort->setFilterRegExp(regExpression);
-  m_tabularReport->setModel(m_sort.data());
+  m_tabularReport->setFilter(m_segmentations);
 
   updateSelection(m_viewManager->selection());
   m_tabularReport->updateSelection(m_viewManager->selection());

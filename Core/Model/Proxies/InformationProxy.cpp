@@ -22,13 +22,12 @@
 #include "Core/Model/EspinaFactory.h"
 #include <Core/Model/EspinaModel.h>
 #include <Core/Model/Segmentation.h>
-#include <Core/Model/QtModelUtils.h>
 #include <Core/Extensions/SegmentationExtension.h>
 
 using namespace EspINA;
 
 //------------------------------------------------------------------------
-TaxonomicalInformationProxy::TaxonomicalInformationProxy()
+InformationProxy::InformationProxy()
 : QAbstractProxyModel()
 , m_model(NULL)
 {
@@ -36,140 +35,43 @@ TaxonomicalInformationProxy::TaxonomicalInformationProxy()
 }
 
 //------------------------------------------------------------------------
-void TaxonomicalInformationProxy::setSourceModel(EspinaModel *sourceModel)
+void InformationProxy::setSourceModel(EspinaModel *sourceModel)
 {
   if (m_model)
   {
-    disconnect(m_model, SIGNAL(rowsInserted(const QModelIndex&, int, int)),
+    disconnect(sourceModel, SIGNAL(rowsInserted(const QModelIndex&, int, int)),
                this, SLOT(sourceRowsInserted(const QModelIndex&, int, int)));
-//     disconnect(m_model, SIGNAL(rowsRemoved(const QModelIndex&, int, int)),
-//                this, SLOT(sourceRowsRemoved(QModelIndex,int,int)));
-    disconnect(m_model, SIGNAL(rowsAboutToBeRemoved(const QModelIndex&, int, int)),
-               this, SLOT(sourceRowsAboutToBeRemoved(QModelIndex,int,int)));
-    disconnect(m_model, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
-               this,SLOT(sourceDataChanged(QModelIndex,QModelIndex)));
-//     disconnect(m_model, SIGNAL(rowsAboutToBeMoved(const QModelIndex &, int, int, const QModelIndex &, int)),
-//                this, SLOT(sourceRowsAboutToBeMoved(QModelIndex,int,int,QModelIndex,int)));
-//     disconnect(m_model, SIGNAL(rowsMoved(const QModelIndex &, int, int, const QModelIndex &, int)),
-//                this, SLOT(sourceRowsMoved(QModelIndex,int,int,QModelIndex,int)));
-    disconnect(m_model, SIGNAL(modelAboutToBeReset()),
-               this, SLOT(sourceModelReset()));
+    disconnect(sourceModel, SIGNAL(rowsAboutToBeRemoved(const QModelIndex&, int, int)),
+               this, SLOT(sourceRowsAboutToBeRemoved(QModelIndex, int, int)));
+    disconnect(sourceModel, SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)),
+               this, SLOT(sourceDataChanged(const QModelIndex &,const QModelIndex &)));
   }
-
-  m_information.clear();
 
   m_model = sourceModel;
+  m_elements.clear();
 
   if (m_model)
-  {
-    connect(m_model, SIGNAL(rowsInserted(const QModelIndex&, int, int)),
-            this, SLOT(sourceRowsInserted(const QModelIndex&, int, int)));
-//     connect(m_model, SIGNAL(rowsRemoved(const QModelIndex&, int, int)),
-//             this, SLOT(sourceRowsRemoved(QModelIndex,int,int)));
-    connect(m_model, SIGNAL(rowsAboutToBeRemoved(const QModelIndex&, int, int)),
-            this, SLOT(sourceRowsAboutToBeRemoved(QModelIndex,int,int)));
-    connect(m_model, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
-            this,SLOT(sourceDataChanged(QModelIndex,QModelIndex)));
-//     connect(m_model, SIGNAL(rowsAboutToBeMoved(const QModelIndex &, int, int, const QModelIndex &, int)),
-//             this, SLOT(sourceRowsAboutToBeMoved(QModelIndex,int,int,QModelIndex,int)));
-//     connect(m_model, SIGNAL(rowsMoved(const QModelIndex &, int, int, const QModelIndex &, int)),
-//             this, SLOT(sourceRowsMoved(QModelIndex,int,int,QModelIndex,int)));
-    connect(m_model, SIGNAL(modelAboutToBeReset()),
-            this, SLOT(sourceModelReset()));
-  }
+  connect(sourceModel, SIGNAL(rowsInserted(const QModelIndex&, int, int)),
+          this, SLOT(sourceRowsInserted(const QModelIndex&, int, int)));
+  connect(sourceModel, SIGNAL(rowsAboutToBeRemoved(const QModelIndex&, int, int)),
+          this, SLOT(sourceRowsAboutToBeRemoved(QModelIndex, int, int)));
+  connect(sourceModel, SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)),
+          this, SLOT(sourceDataChanged(const QModelIndex &,const QModelIndex &)));
+  connect(m_model, SIGNAL(modelAboutToBeReset()),
+          this, SLOT(sourceModelReset()));
+
+  sourceRowsInserted(m_model->segmentationRoot(), 0, m_model->segmentations().size()-1);
 
   QAbstractProxyModel::setSourceModel(sourceModel);
-
-  sourceRowsInserted(m_model->segmentationRoot(), 0, m_model->rowCount(m_model->segmentationRoot()) - 1);
 }
 
 //------------------------------------------------------------------------
-QVariant TaxonomicalInformationProxy::data(const QModelIndex& proxyIndex, int role) const
-{
-  if (!proxyIndex.isValid())
-    return QVariant();
-
-  ModelItemPtr item = indexPtr(proxyIndex);
-  switch (item->type())
-  {
-    case EspINA::TAXONOMY:
-    {
-      TaxonomyElementPtr taxonomy = taxonomyElementPtr(item);
-      if (InformationTagsRole == role)
-      {
-        return m_information[taxonomy].Tags;
-      } else if (Qt::DisplayRole == role)
-      {
-        return taxonomy->qualifiedName();
-      }
-
-    } break;
-
-    case EspINA::SEGMENTATION:
-    {
-      if (role == Qt::TextAlignmentRole)
-        return Qt::AlignRight;
-
-      SegmentationPtr    segmentation = segmentationPtr(item);
-      TaxonomyElementPtr segTaxonomy  = segmentation->taxonomy().data();
-      const QStringList &tags = m_information[segTaxonomy].Tags;
-      if (role == Qt::DisplayRole && !tags.isEmpty())
-      {
-        return segmentation->information(tags[proxyIndex.column()]);
-      }
-
-    } break;
-
-    default:
-      return QVariant();
-  };
-
-  // Avoid other roles for non initial column (checkrole, decoration, etc)
-  if (proxyIndex.column() > 0)
-    return QVariant();
-  else
-    return QAbstractProxyModel::data(proxyIndex, role);
-}
-
-
-//------------------------------------------------------------------------
-bool TaxonomicalInformationProxy::setData(const QModelIndex &index, const QVariant &value, int role)
-{
-  bool ok = false;
-  if (index.isValid())
-  {
-    ModelItemPtr item = indexPtr(index);
-    if (EspINA::TAXONOMY == item->type() && InformationTagsRole == role)
-    {
-      if (m_information[item].Tags != value.toStringList())
-      {
-        QModelIndex parent = index.parent();
-        beginRemoveColumns(index, 0, columnCount(index));
-        m_information[item].Tags.clear();
-        endRemoveColumns();
-        QStringList tags = value.toStringList();
-        beginInsertColumns(index, 0, tags.size() - 1);
-        m_information[item].Tags = tags;
-        endInsertColumns();
-        ok = true;
-      }
-    }
-    else
-    {
-      ok = QAbstractProxyModel::setData(index, value, role);
-    }
-  }
-
-  return ok;
-}
-
-//------------------------------------------------------------------------
-QModelIndex TaxonomicalInformationProxy::mapFromSource(const QModelIndex& sourceIndex) const
+QModelIndex InformationProxy::mapFromSource(const QModelIndex& sourceIndex) const
 {
   if (!sourceIndex.isValid())
     return QModelIndex();
 
-  if ( sourceIndex == m_model->taxonomyRoot()
+  if ( sourceIndex == m_model->segmentationRoot()
     || sourceIndex == m_model->sampleRoot()
     || sourceIndex == m_model->channelRoot()
     || sourceIndex == m_model->filterRoot()
@@ -179,24 +81,14 @@ QModelIndex TaxonomicalInformationProxy::mapFromSource(const QModelIndex& source
   ModelItemPtr sourceItem = indexPtr(sourceIndex);
 
   QModelIndex proxyIndex;
-  if (EspINA::TAXONOMY == sourceItem->type())
-  {
-    int row = m_taxonomies.indexOf(sourceItem);
-    proxyIndex = createIndex(row, sourceIndex.column(), sourceItem);
-  }
-  else if (EspINA::SEGMENTATION == sourceItem->type())
-  {
-    SegmentationPtr    segmentation = SegmentationPtr(sourceItem);
-    TaxonomyElementPtr taxonomy     = segmentation->taxonomy().data();
-    int row = m_information[taxonomy].Nodes.indexOf(segmentation);
-    proxyIndex = createIndex(row, sourceIndex.column(), sourceItem);
-  }
+  if ( EspINA::SEGMENTATION == sourceItem->type() && acceptSegmentation(segmentationPtr(sourceItem)))
+    proxyIndex = createIndex(m_elements.indexOf(sourceItem), sourceIndex.column(), sourceItem);
 
   return proxyIndex;
 }
 
 //------------------------------------------------------------------------
-QModelIndex TaxonomicalInformationProxy::mapToSource(const QModelIndex& proxyIndex) const
+QModelIndex InformationProxy::mapToSource(const QModelIndex& proxyIndex) const
 {
   if (!proxyIndex.isValid())
     return QModelIndex();
@@ -204,232 +96,248 @@ QModelIndex TaxonomicalInformationProxy::mapToSource(const QModelIndex& proxyInd
   ModelItemPtr proxyItem = indexPtr(proxyIndex);
 
   QModelIndex sourceIndex;
-  if (EspINA::SEGMENTATION == proxyItem->type() || EspINA::TAXONOMY == proxyItem->type())
+  if (EspINA::SEGMENTATION == proxyItem->type())
     sourceIndex = m_model->index(proxyItem);
 
   return sourceIndex;
 }
 
 //------------------------------------------------------------------------
-bool TaxonomicalInformationProxy::hasChildren(const QModelIndex &parent) const
+int InformationProxy::columnCount(const QModelIndex& parent) const
 {
-  return rowCount(parent) > 0 && columnCount(parent) > 0;
-}
-
-//------------------------------------------------------------------------
-int TaxonomicalInformationProxy::rowCount(const QModelIndex& parent) const
-{
-  int rows = 0;
-
-  if (m_taxonomies.isEmpty())
-    rows = 0;
-  else if (!parent.isValid())
-    rows = m_taxonomies.size();
-  else {
-    ModelItemPtr taxonomy = indexPtr(parent);
-    rows = m_information[taxonomy].Nodes.size();
+  if (!parent.isValid())
+  {
+    return m_tags.size();
   }
 
-  return rows;
+  return 0;
 }
 
 //------------------------------------------------------------------------
-int TaxonomicalInformationProxy::columnCount(const QModelIndex& parent) const
+int InformationProxy::rowCount(const QModelIndex& parent) const
 {
-  int count = 1;
+  if (m_tags.isEmpty())
+    return 0;
 
-  if (parent.isValid())
+  if (!parent.isValid())
+    return m_elements.size();
+  else
+    return 0;// There are no sub-segmentations
+}
+
+//------------------------------------------------------------------------
+QModelIndex InformationProxy::parent(const QModelIndex& child) const
+{
+  if (!child.isValid())
+    return QModelIndex();
+
+  ModelItemPtr childItem = indexPtr(child);
+  Q_ASSERT(EspINA::SEGMENTATION == childItem->type());
+  return mapFromSource(m_model->segmentationRoot());
+}
+
+//------------------------------------------------------------------------
+QModelIndex InformationProxy::index(int row, int column, const QModelIndex& parent) const
+{
+  if (!hasIndex(row, column, parent))
+    return QModelIndex();
+
+  if (!parent.isValid())
   {
-    ModelItemPtr parentItem = indexPtr(parent);
-    count = m_information[parentItem].Tags.size();
-    count = count?count:1;
+    // We need to forward all column indices to the same
+    // original index while keeping column correct
+    return createIndex(row, column, m_elements[row]);
   }
 
-  return count;
+  return QModelIndex();
 }
 
 //------------------------------------------------------------------------
-QModelIndex TaxonomicalInformationProxy::parent(const QModelIndex& child) const
+QVariant InformationProxy::headerData(int section, Qt::Orientation orientation, int role) const
 {
-  QModelIndex parentIndex;
+  if (m_tags.isEmpty())
+    return QAbstractProxyModel::headerData(section, orientation, role);
 
-  if (child.isValid())
+  if (Qt::DisplayRole == role && section < m_tags.size())
   {
-    ModelItemPtr childItem = indexPtr(child);
-    if (EspINA::SEGMENTATION == childItem->type())
+    return m_tags[section];
+  }
+
+  return QAbstractProxyModel::headerData(section, orientation, role);
+}
+
+//------------------------------------------------------------------------
+QVariant InformationProxy::data(const QModelIndex& proxyIndex, int role) const
+{
+  if (!proxyIndex.isValid())
+    return QVariant();
+
+  ModelItemPtr proxyItem = indexPtr(proxyIndex);
+  if (EspINA::SEGMENTATION != proxyItem->type())
+    return QVariant();
+
+  SegmentationPtr segmentation = segmentationPtr(proxyItem);
+
+  if (role == Qt::TextAlignmentRole)
+    return Qt::AlignRight;
+
+  if (role == Qt::DisplayRole && !m_tags.isEmpty())
+  {
+    Segmentation::InfoTag tag = m_tags[proxyIndex.column()];
+    if (!segmentation->availableInformations().contains(tag))
     {
-      SegmentationPtr segmentation = segmentationPtr(childItem);
-      ModelItemPtr    taxonomy     = segmentation->taxonomy().data();
-
-      parentIndex = createIndex(m_taxonomies.indexOf(taxonomy), 0, taxonomy);
+      Segmentation::InformationExtension prototype = m_model->factory()->informationProvider(tag);
+      segmentation->addExtension(prototype->clone());
     }
-  }
+    return segmentation->information(tag);
+  } else if (proxyIndex.column() > 0)
+    return QVariant();//To avoid checkrole or other roles
 
-  return parentIndex;
+    return QAbstractProxyModel::data(proxyIndex, role);
+}
+
+
+//------------------------------------------------------------------------
+void InformationProxy::setTaxonomy(const QString &qualifiedName)
+{
+  beginResetModel();
+  m_taxonomy = qualifiedName;
+  endResetModel();
 }
 
 //------------------------------------------------------------------------
-QModelIndex TaxonomicalInformationProxy::index(int row, int column, const QModelIndex& parent) const
+void InformationProxy::setFilter(const SegmentationList *filter)
 {
-  QModelIndex child;
-
-  if (hasIndex(row, column, parent))
-  {
-    if (!parent.isValid())
-    {
-      child = createIndex(row, column, m_taxonomies[row]);
-    } else 
-    {
-      ModelItemPtr taxonomy = indexPtr(parent);
-      child = createIndex(row, column, m_information[taxonomy].Nodes[row]);
-    }
-  }
-
-  return child;
+  beginResetModel();
+  m_filter = filter; 
+  endResetModel();
 }
 
 //------------------------------------------------------------------------
-void TaxonomicalInformationProxy::sourceRowsInserted(const QModelIndex& sourceParent, int start, int end)
+void InformationProxy::setInformationTags(const Segmentation::InfoTagList tags)
 {
-  if (!sourceParent.isValid())
-    return;
+  beginResetModel();
+  m_tags = tags;
+  endResetModel();
+}
 
+// //------------------------------------------------------------------------
+// const Segmentation::InfoTagList InformationProxy::availableInformation() const
+// {
+//   if (m_elements.isEmpty())
+//     return QStringList();
+// 
+//   ModelItemPtr item = indexPtr(m_elements.first());
+//   return segmentationPtr(item)->availableInformations();
+// }
+// 
+
+
+//------------------------------------------------------------------------
+void InformationProxy::sourceRowsInserted(const QModelIndex& sourceParent, int start, int end)
+// Avoid population the view if no query is selected
+{
   if (sourceParent == m_model->segmentationRoot())
   {
-    for (int row = start; row <= end; ++row)
+    ModelItemList acceptedItems;
+
+    // Filter items
+    for (int row = start; row <= end; row++)
     {
-      ModelItemPtr    child        = indexPtr(sourceParent.child(row, 0));
-      SegmentationPtr segmentation = segmentationPtr(child);
-      ModelItemPtr    taxonomy     = segmentation->taxonomy().data();
+      ModelItemPtr item = indexPtr(sourceParent.child(row, 0));
 
-      int parentRow = m_taxonomies.indexOf(taxonomy);
-
-      if (parentRow < 0)
+      SegmentationPtr segmentation = segmentationPtr(item);
+      if (acceptSegmentation(segmentation))
       {
-        parentRow = m_taxonomies.size();
-        beginInsertRows(QModelIndex(), parentRow, parentRow);
-        m_taxonomies << taxonomy;
-        endInsertRows();
+        acceptedItems << item;
       }
+    }
 
-      QModelIndex parent = createIndex(parentRow, 0, taxonomy);
+    int startRow = m_elements.size();
+    int endRow   = startRow + acceptedItems.size() - 1;
+    // Avoid populating the view if no query is selected
+    if (!m_tags.isEmpty())
+      beginInsertRows(QModelIndex(), startRow, endRow);
 
-      int nextRow  = m_information[taxonomy].Nodes.size();
-      beginInsertRows(parent, nextRow, nextRow);
-      m_information[taxonomy].Nodes << segmentation;
+    foreach(ModelItemPtr acceptedItem, acceptedItems)
+    {
+      m_elements << acceptedItem;
+    }
+
+    if (!m_tags.isEmpty())
       endInsertRows();
-    }
   }
 }
 
 //------------------------------------------------------------------------
-void TaxonomicalInformationProxy::sourceRowsAboutToBeRemoved(const QModelIndex& sourceParent, int start, int end)
+void InformationProxy::sourceRowsAboutToBeRemoved(const QModelIndex& sourceParent, int start, int end)
 {
   if (sourceParent == m_model->segmentationRoot())
   {
-    for (int row = start; row <= end; ++row)
+    QModelIndexList removedIndexes;
+    for (int row = start; row <= end; row++)
     {
-      ModelItemPtr    child        = indexPtr(sourceParent.child(row, 0));
-      SegmentationPtr segmentation = segmentationPtr(child);
-      ModelItemPtr    taxonomy     = segmentation->taxonomy().data();
+      QModelIndex proxyIndex = mapFromSource(sourceParent.child(row, 0));
+      if (proxyIndex.isValid())
+        removedIndexes << proxyIndex;
+    }
 
-      int taxonomyRow     = m_taxonomies.indexOf(taxonomy);
-      QModelIndex parent  = createIndex(taxonomyRow, 0, taxonomy);
-      int segmentationRow = m_information[taxonomy].Nodes.indexOf(segmentation);
-
-      beginRemoveRows(parent, segmentationRow, segmentationRow);
-      m_information[taxonomy].Nodes.removeAt(segmentationRow);
-      endRemoveRows();
-
-      if (m_information[taxonomy].Nodes.isEmpty())
+    if (!removedIndexes.isEmpty())
+    {
+      // Avoid population the view if no query is selected
+      if (!m_tags.isEmpty())
+        beginRemoveRows(QModelIndex(), removedIndexes.first().row(), removedIndexes.last().row());
+      foreach (QModelIndex index, removedIndexes)
       {
-        beginRemoveRows(QModelIndex(), taxonomyRow, taxonomyRow);
-        m_information.remove(taxonomy);
-        Q_ASSERT(m_taxonomies.removeOne(taxonomy));
-        endRemoveRows();
+        // We use start instead of row to avoid access to removed indices
+        ModelItemPtr removedItem = indexPtr(index);
+        m_elements.removeOne(removedItem);
       }
+      if (!m_tags.isEmpty())
+        endRemoveRows();
     }
   }
 }
 
 //------------------------------------------------------------------------
-void TaxonomicalInformationProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, const QModelIndex& sourceBottomRight)
+void InformationProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, const QModelIndex& sourceBottomRight)
 {
-  foreach(QModelIndex source, QtModelUtils::indices(sourceTopLeft, sourceBottomRight))
+  Q_ASSERT(sourceTopLeft == sourceTopLeft);
+  if (sourceTopLeft.parent() == m_model->segmentationRoot())
   {
-    if (source.parent() == m_model->segmentationRoot())
+    ModelItemPtr item = indexPtr(sourceTopLeft);
+    SegmentationPtr segmentation = segmentationPtr(item);
+
+    if (m_elements.contains(item) && !acceptSegmentation(segmentation))
     {
-      bool indexChanged = true;
-      SegmentationPtr    segmentation = segmentationPtr(indexPtr(source));
-      TaxonomyElementPtr prevTaxonomy = NULL;
-
-      foreach(ModelItemPtr key, m_information.keys())
-      {
-        TaxonomyElementPtr taxonomy = taxonomyElementPtr(key);
-        if (m_information[taxonomy].Nodes.contains(segmentation))
-        {
-          indexChanged = taxonomy != segmentation->taxonomy();
-          prevTaxonomy = taxonomy;
-          break;
-        }
-      }
-
-      if (prevTaxonomy && indexChanged)
-      {
-        // Remove segmentation from previous location
-        int prevTaxonomyRow = m_taxonomies.indexOf(prevTaxonomy);
-        QModelIndex prevParent  = createIndex(prevTaxonomyRow, 0, prevTaxonomy);
-        int segmentationRow = m_information[prevTaxonomy].Nodes.indexOf(segmentation);
-
-        beginRemoveRows(prevParent, segmentationRow, segmentationRow);
-        m_information[prevTaxonomy].Nodes.removeAt(segmentationRow);
-        endRemoveRows();
-
-        if (m_information[prevTaxonomy].Nodes.isEmpty())
-        {
-          beginRemoveRows(QModelIndex(), prevTaxonomyRow, prevTaxonomyRow);
-          m_information.remove(prevTaxonomy);
-          Q_ASSERT(m_taxonomies.removeOne(prevTaxonomy));
-          endRemoveRows();
-        }
-
-        TaxonomyElementPtr taxonomy = segmentation->taxonomy().data();
-
-        // Insert segmentation into new location
-        int parentRow = m_taxonomies.indexOf(taxonomy);
-
-        if (parentRow < 0)
-        {
-          parentRow = m_taxonomies.size();
-          beginInsertRows(QModelIndex(), parentRow, parentRow);
-          m_taxonomies << taxonomy;
-          endInsertRows();
-        }
-
-        QModelIndex parent = createIndex(parentRow, 0, taxonomy);
-
-        int nextRow  = m_information[taxonomy].Nodes.size();
-        beginInsertRows(parent, nextRow, nextRow);
-        m_information[taxonomy].Nodes << segmentation;
-        endInsertRows();
-      }
-    }
-
-    QModelIndex proxyIndex = mapFromSource(source);
-    if (proxyIndex.isValid())
+      int row = m_elements.indexOf(item);
+      beginRemoveRows(QModelIndex(), row, row);
+      m_elements.removeAt(row);
+      endRemoveRows();
+    } else if (!m_elements.contains(item) && acceptSegmentation(segmentation))
     {
-      emit dataChanged(proxyIndex, proxyIndex);
-    }
+      int row = m_elements.size();
+      beginInsertRows(QModelIndex(), row, row);
+      m_elements << item;
+      endInsertRows();
+    } else
+      emit dataChanged(mapFromSource(sourceTopLeft), mapFromSource(sourceBottomRight));
   }
 }
 
 //------------------------------------------------------------------------
-void TaxonomicalInformationProxy::sourceModelReset()
+void InformationProxy::sourceModelReset()
 {
   beginResetModel();
   {
-    m_information.clear();
-    m_taxonomies.clear();
+    m_elements.clear();
   }
   endResetModel();
+}
+
+//------------------------------------------------------------------------
+bool InformationProxy::acceptSegmentation(const SegmentationPtr segmentation) const
+{
+  return segmentation->taxonomy()->qualifiedName() == m_taxonomy
+     && (m_filter->isEmpty() || m_filter->contains(segmentation));
 }

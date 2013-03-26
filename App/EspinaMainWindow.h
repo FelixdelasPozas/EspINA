@@ -92,6 +92,7 @@ class IToolBar;
     void showPreferencesDialog();
     void showAboutDialog();
     void showConnectomicsInformation();
+    void showRawInformation();
 
     void openState() {m_menuState = OPEN_STATE;}
     void addState()  {m_menuState = ADD_STATE;}

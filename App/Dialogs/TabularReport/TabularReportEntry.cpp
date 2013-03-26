@@ -56,10 +56,8 @@ TabularReport::Entry::Entry(QString taxonomy, EspinaFactory *factory)
 //------------------------------------------------------------------------
 void TabularReport::Entry::changeDisplayedInformation()
 {
-  QModelIndex rootIndex = tableView->rootIndex();
-
   InformationSelector::TaxonomyInformation tags;
-  tags[m_taxonomy] = rootIndex.data(InformationTagsRole).toStringList();
+  tags[m_taxonomy] = Proxy->informationTags();
 
   InformationSelector tagSelector(tags, m_factory, this);
 
@@ -68,7 +66,7 @@ void TabularReport::Entry::changeDisplayedInformation()
     m_tags.clear();
     m_tags << tr("Name") << tr("Taxonomy") << tags[m_taxonomy];
 
-    tableView->model()->setData(rootIndex, m_tags, InformationTagsRole);
+    Proxy->setInformationTags(m_tags);
 
     QStandardItemModel *header = new QStandardItemModel(1, m_tags.size(), this);
     header->setHorizontalHeaderLabels(m_tags);
@@ -93,7 +91,7 @@ void TabularReport::Entry::extractInformation()
 
   QModelIndex rootIndex = tableView->rootIndex();
 
-  out << rootIndex.data(InformationTagsRole).toStringList().join(",") << "\n";
+  out << Proxy->informationTags().join(",") << "\n";
 
   for (int r = 0; r < tableView->model()->rowCount(rootIndex); r++)
   {

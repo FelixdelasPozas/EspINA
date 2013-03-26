@@ -20,7 +20,7 @@
 #include <Core/Model/EspinaModel.h>
 #include <Core/EspinaRegion.h>
 #include <Core/EspinaTypes.h>
-#include <App/Docks/TabularReport/TabularReport.h>
+#include <App/Dialogs//TabularReport/TabularReport.h>
 #include <Core/Model/Proxies/ConnectomicProxy.h>
 #include <Core/Utils/SegmentationCollision.h>
 #include <Core/Relations.h>

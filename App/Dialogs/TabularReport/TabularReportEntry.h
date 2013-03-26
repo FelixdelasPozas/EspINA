@@ -29,7 +29,7 @@
 #ifndef TABULARREPORTENTRY_H
 #define TABULARREPORTENTRY_H
 
-#include <App/Docks/TabularReport/TabularReport.h>
+#include <App/Dialogs/TabularReport/TabularReport.h>
 #include <ui_TabularReport.h>
 
 namespace EspINA
@@ -41,6 +41,7 @@ namespace EspINA
     Q_OBJECT
   public:
     Entry(QString taxonomy, EspinaFactory *factory);
+    InformationProxy *Proxy;
 
   protected slots:
     void changeDisplayedInformation();

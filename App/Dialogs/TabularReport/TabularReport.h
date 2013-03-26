@@ -40,8 +40,7 @@ namespace EspINA
     class Entry;
 
   public:
-    explicit TabularReport(EspinaFactory *factory,
-                           ViewManager *viewManager,
+    explicit TabularReport(ViewManager *viewManager,
                            QWidget *parent = 0,
                            Qt::WindowFlags f = 0);
     virtual ~TabularReport();
@@ -56,12 +55,16 @@ namespace EspINA
     virtual QRect visualRect(const QModelIndex &index) const {return QRect();}
     virtual QRegion visualRegionForSelection(const QItemSelection &selection) const {return QRegion();}
 
-    virtual void rowsInserted(const QModelIndex &parent, int start, int end);
-    virtual void rowsAboutToBeRemoved(const QModelIndex &parent, int start, int end);
+    virtual void setModel(EspinaModel *model);
 
-    virtual void setModel(QAbstractItemModel *model);
+    /// Only display segmentations' information. If segmentations is empty, then
+    /// all segmentations' information is displayed
+    virtual void setFilter(SegmentationList segmentations);
 
   protected:
+    virtual void dataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight);
+    virtual void rowsInserted(const QModelIndex &parent, int start, int end);
+
     virtual bool event(QEvent *event);
     virtual void reset();
 
@@ -72,18 +75,22 @@ namespace EspINA
     void indexDoubleClicked(QModelIndex index);
     void updateRepresentation(const QModelIndex &index);
     void updateSelection(QItemSelection selected, QItemSelection deselected);
+    void rowsRemoved(const QModelIndex &parent, int start, int end);
+    void exportInformation();
 
   private:
-    void resizeTableViews(QTableView *table, const int numRows = 1);
-    QModelIndex sourceModelIndex(const QModelIndex &index);
+    bool acceptSegmentation(const SegmentationPtr segmentation);
+    void createTaxonomyEntry(const QString &taxonomy);
+    QModelIndex mapToSource(const QModelIndex &index);
+    QModelIndex mapFromSource(const QModelIndex &index, QSortFilterProxyModel *sortFilter);
 
   private:
+    EspinaModel   *m_model;
     EspinaFactory *m_factory;
     ViewManager   *m_viewManager;
 
-    QStringList  m_query;
-    QVBoxLayout *m_layout;
-    QMap<QString, Entry *> m_entries;
+    SegmentationList m_filter;
+    QTabWidget  *m_tabs;
 
     bool m_multiSelection;
   };

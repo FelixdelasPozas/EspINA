@@ -616,6 +616,16 @@ void EspinaModel::changeTaxonomyParent(TaxonomyElementSPtr subTaxonomy,
     parent->addElement(subTaxonomy);
   }
   endMoveRows();
+
+  foreach(SegmentationSPtr segmentation, m_segmentations)
+  {
+    if (segmentation->taxonomy() == subTaxonomy)
+    {
+      QModelIndex segIndex = segmentationIndex(segmentation);
+      emit dataChanged(segIndex, segIndex);
+    }
+  }
+  
 }
 
 

@@ -24,8 +24,8 @@
 #include "Docks/ChannelExplorer/ChannelExplorer.h"
 #include "Docks/FilterInspector/FilterInspector.h"
 #include "Docks/SegmentationExplorer/SegmentationExplorer.h"
-#include "Docks/TabularReport/TabularReport.h"
-#include "Docks/TabularReport/DataViewPanel.h"
+#include "Dialogs/TabularReport/TabularReport.h"
+#include "Dialogs/TabularReport/RawInformationDialog.h"
 #include "Docks/TaxonomyExplorer/TaxonomyExplorer.h"
 #include "Menus/ColorEngineMenu.h"
 #include "Settings/GeneralSettings.h"
@@ -332,12 +332,14 @@ EspinaMainWindow::EspinaMainWindow(EspinaModel      *model,
   FilterInspector *filterInspector = new FilterInspector(m_undoStack, m_viewManager, this);
   registerDockWidget(Qt::LeftDockWidgetArea, filterInspector);
 
-  DataViewPanel *dataView = new DataViewPanel(m_model, m_viewManager, this);
-  registerDockWidget(Qt::BottomDockWidgetArea, dataView);
+//   QAction *connectomicsAction = new QAction(tr("Connectomics Information"), this);
+//   m_dynamicMenuRoot->submenus[0]->menu->addAction(connectomicsAction);
+//   connect(connectomicsAction, SIGNAL(triggered()), this, SLOT(showConnectomicsInformation()));
 
-  QAction *connectomicsAction = new QAction(tr("Connectomics Information"), this);
-  m_dynamicMenuRoot->submenus[0]->menu->addAction(connectomicsAction);
-  connect(connectomicsAction, SIGNAL(triggered()), this, SLOT(showConnectomicsInformation()));
+  QAction *rawInformationAction = m_dynamicMenuRoot->submenus[0]->menu->addAction(tr("Raw Information"));
+  connect(rawInformationAction, SIGNAL(triggered(bool)),
+          this, SLOT(showRawInformation()));
+
 
   loadPlugins(plugins);
 
@@ -1064,5 +1066,15 @@ void EspinaMainWindow::autosave()
 void EspinaMainWindow::showConnectomicsInformation()
 {
   ConnectomicsDialog *dialog = new ConnectomicsDialog(m_model, m_viewManager, this);
-  dialog->exec();
+  dialog->show();
+}
+
+//------------------------------------------------------------------------
+void EspinaMainWindow::showRawInformation()
+{
+  if (!m_model->segmentations().isEmpty())
+  {
+    RawInformationDialog *dialog = new RawInformationDialog(m_model, m_viewManager, this);
+    dialog->show();
+  }
 }
