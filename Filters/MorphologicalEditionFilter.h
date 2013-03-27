@@ -56,13 +56,13 @@ public:
   void setRadius(int radius, bool ignoreUpdate = false)
   {m_params.setRadius(radius); m_paramModified = !ignoreUpdate;}
 
-  virtual bool needUpdate() const;
+  virtual bool needUpdate(OutputId oId) const;
 
   virtual bool isOutputEmpty() { return m_isOutputEmpty; };
 
 protected:
   /// Implements Filter Interface
-  virtual bool fetchSnapshot();
+  virtual bool fetchSnapshot(OutputId oId);
 
 protected:
   Parameters             m_params;

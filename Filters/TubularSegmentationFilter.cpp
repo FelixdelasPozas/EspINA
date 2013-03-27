@@ -167,15 +167,15 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  bool TubularSegmentationFilter::needUpdate() const
+  bool TubularSegmentationFilter::needUpdate(OutputId oId) const
   {
     return m_outputs[0].isValid();
   }
 
   //-----------------------------------------------------------------------------
-  bool TubularSegmentationFilter::fetchSnapshot()
+  bool TubularSegmentationFilter::fetchSnapshot(OutputId oId)
   {
-    return Filter::fetchSnapshot();
+    return Filter::fetchSnapshot(oId);
   }
 
   //-----------------------------------------------------------------------------

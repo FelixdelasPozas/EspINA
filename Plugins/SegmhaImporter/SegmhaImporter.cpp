@@ -113,7 +113,7 @@ bool SegmhaImporter::readFile(const QFileInfo file, EspinaIO::ErrorHandler *hand
   params.setSpacing(channel->volume()->toITK()->GetSpacing());
 
   SegmhaImporterFilterSPtr filter(new SegmhaImporterFilter(inputs, args, UndoCommand::FILTER_TYPE));
-  filter->update();
+  filter->update(Filter::ALL_INPUTS);
   if (filter->outputs().isEmpty())
     return false;
 

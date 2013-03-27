@@ -48,9 +48,9 @@ ImageLogicFilter::~ImageLogicFilter()
 
 
 //-----------------------------------------------------------------------------
-bool ImageLogicFilter::needUpdate() const
+bool ImageLogicFilter::needUpdate(OutputId oId) const
 {
-  bool update = Filter::needUpdate();
+  bool update = Filter::needUpdate(oId);
 
   if (!update && !m_inputs.isEmpty()) //TODO 2012-12-10 Check this update
   {

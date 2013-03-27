@@ -87,7 +87,7 @@ void Segmentation::changeFilter(FilterSPtr filter, const Filter::OutputId &oId)
              this, SLOT(onVolumeModified()));
 //   m_filter->releaseDataFlagOn();
 //   filter->releaseDataFlagOff();
-  filter->update();
+  filter->update(outputId());
   m_filter = filter;
   m_args.setOutputId(oId);
   connect(volume().get(), SIGNAL(modified()),

@@ -64,7 +64,7 @@ public:
   virtual ~ImageLogicFilter();
 
   /// Implements Filter Interface
-  virtual bool needUpdate() const;
+  virtual bool needUpdate(OutputId oId) const;
 
 protected:
   /// Implements Filter Interface

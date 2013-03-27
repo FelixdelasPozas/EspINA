@@ -119,7 +119,7 @@ void FreeFormSource::draw(OutputId oId,
 }
 
 //-----------------------------------------------------------------------------
-bool FreeFormSource::needUpdate() const
+bool FreeFormSource::needUpdate(OutputId oId) const
 {
-  return Filter::needUpdate();
+  return Filter::needUpdate(oId);
 }

@@ -49,9 +49,9 @@ MorphologicalEditionFilter::~MorphologicalEditionFilter()
 }
 
 //-----------------------------------------------------------------------------
-bool MorphologicalEditionFilter::needUpdate() const
+bool MorphologicalEditionFilter::needUpdate(OutputId oId) const
 {
-  bool update = m_paramModified || Filter::needUpdate();
+  bool update = m_paramModified || Filter::needUpdate(oId);
 
   if (!update)
   {
@@ -72,10 +72,10 @@ bool MorphologicalEditionFilter::needUpdate() const
 
 
 //-----------------------------------------------------------------------------
-bool MorphologicalEditionFilter::fetchSnapshot()
+bool MorphologicalEditionFilter::fetchSnapshot(OutputId oId)
 {
   if (m_paramModified)
     return false;
 
-  return Filter::fetchSnapshot();
+  return Filter::fetchSnapshot(oId);
 }

@@ -83,7 +83,7 @@ void ContourSource::draw(OutputId oId,
 }
 
 //-----------------------------------------------------------------------------
-bool ContourSource::needUpdate() const
+bool ContourSource::needUpdate(OutputId oId) const
 {
-  return Filter::needUpdate();
+  return Filter::needUpdate(oId);
 }

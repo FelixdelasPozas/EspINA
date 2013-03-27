@@ -14,6 +14,7 @@ qt4_wrap_cpp(GUI_MOC
   QtWidget/EspinaRenderView.h
   QtWidget/HueSelector.h
   QtWidget/QComboTreeView.h
+  QtWidget/NoteEditor.h
   QtWidget/SegmentationContextualMenu.h
   QtWidget/SliceView.h
   QtWidget/VolumeView.h
@@ -29,6 +30,7 @@ qt4_wrap_cpp(GUI_MOC
 qt4_wrap_ui (GUI_UI
   Analysis/InformationSelector.ui
   QtWidget/HueSelector.ui
+  QtWidget/NoteEditor.ui
   )
 
 set (GUI_SOURCES 
@@ -45,6 +47,7 @@ set (GUI_SOURCES
   QtWidget/CheckableTreeView.cpp
   QtWidget/EspinaRenderView.cpp
   QtWidget/HueSelector.cpp
+  QtWidget/NoteEditor.cpp 
   QtWidget/QComboTreeView.cpp
   QtWidget/SegmentationContextualMenu.cpp
   QtWidget/SliceView.cpp

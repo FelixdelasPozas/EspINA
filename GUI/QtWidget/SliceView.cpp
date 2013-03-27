@@ -960,7 +960,7 @@ void SliceView::addSegmentation(SegmentationPtr seg)
 
   SliceRep segRep;
 
-  seg->filter()->update();
+  seg->filter()->update(seg->outputId());
 
   segRep.reslice = vtkImageReslice::New();
   segRep.reslice->SetResliceAxes(m_slicingMatrix);

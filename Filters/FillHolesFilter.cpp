@@ -37,9 +37,9 @@ FillHolesFilter::~FillHolesFilter()
 }
 
 //-----------------------------------------------------------------------------
-bool FillHolesFilter::needUpdate() const
+bool FillHolesFilter::needUpdate(OutputId oId) const
 {
-  bool update = Filter::needUpdate();
+  bool update = Filter::needUpdate(oId);
 
   if (!update)
   {

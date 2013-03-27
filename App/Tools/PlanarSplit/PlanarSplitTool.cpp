@@ -141,7 +141,7 @@ void PlanarSplitTool::splitSegmentation()
 
   SplitFilterPtr filter(new SplitFilter(inputs, args, SplitUndoCommand::FILTER_TYPE));
   filter->setStencil(m_widget->getStencilForVolume(seg->volume()));
-  filter->update();
+  filter->update(Filter::ALL_INPUTS);
 
   if (filter->outputs().size() == 2)
   {

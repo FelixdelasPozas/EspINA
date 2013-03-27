@@ -93,7 +93,7 @@ namespace EspINA
       /// Determine whether the filter needs to be updated or not
       /// Default implementation will request an update if there are no filter outputs
       /// or there is at least one invalid output
-      virtual bool needUpdate() const;
+      virtual bool needUpdate(OutputId oId) const;
 
       virtual void upkeeping();
 

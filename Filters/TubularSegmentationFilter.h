@@ -83,8 +83,8 @@ namespace EspINA
       virtual QVariant data(int role = Qt::DisplayRole) const;
 
       /// Implements Filter Interface
-      virtual bool needUpdate() const;
-      virtual bool fetchSnapshot();
+      virtual bool needUpdate(OutputId oId) const;
+      virtual bool fetchSnapshot(OutputId oId);
 
       // get/set round segmentation extremes
       virtual void setRoundedExtremes(bool value);

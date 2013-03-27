@@ -139,8 +139,8 @@ namespace EspINA
     {m_param.setCloseValue(value); m_paramModified = !ignoreUpdate; }
 
     // Implements Filter Interface
-    virtual bool needUpdate() const;
-    virtual bool fetchSnapshot();
+    virtual bool needUpdate(OutputId oId) const;
+    virtual bool fetchSnapshot(OutputId oId);
 
   protected:
     virtual void run();

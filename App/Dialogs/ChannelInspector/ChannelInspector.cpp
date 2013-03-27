@@ -183,7 +183,7 @@ void ChannelInspector::changeSpacing()
   ChannelReader *reader = dynamic_cast<ChannelReader *>(m_channel->filter().data());
   Q_ASSERT(reader);
   reader->setSpacing(spacing);
-  reader->update();
+  reader->update(0);
 
   foreach(ModelItemSPtr item, m_channel->relatedItems(EspINA::OUT, Channel::LINK))
   {
@@ -400,7 +400,7 @@ void ChannelInspector::rejectedChanges()
     ChannelReader *reader = dynamic_cast<ChannelReader *>(m_channel->filter().data());
     Q_ASSERT(reader);
     reader->setSpacing(newSpacing);
-    reader->update();
+    reader->update(0);
 
     foreach(ModelItemSPtr item, m_channel->relatedItems(EspINA::OUT, Channel::LINK))
     {

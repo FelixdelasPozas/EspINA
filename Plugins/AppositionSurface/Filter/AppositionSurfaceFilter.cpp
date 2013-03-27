@@ -80,9 +80,9 @@ namespace EspINA
 
   
   //----------------------------------------------------------------------------
-  bool AppositionSurfaceFilter::needUpdate() const
+  bool AppositionSurfaceFilter::needUpdate(OutputId oId) const
   {
-    bool update = SegmentationFilter::needUpdate();
+    bool update = SegmentationFilter::needUpdate(oId);
 
     if (!update && !m_inputs.isEmpty())
     {
@@ -860,9 +860,9 @@ namespace EspINA
     if (m_ap == NULL && !fetchCachePolyDatas())
       return UNDEFINED;
 
-    bool updateNeeded = needUpdate();
+    bool updateNeeded = needUpdate(0);
     if (updateNeeded)
-      update();
+      update(0);
 
     if (UNDEFINED == m_area || updateNeeded)
       m_area = computeArea();
@@ -876,9 +876,9 @@ namespace EspINA
     if (m_ap == NULL && !fetchCachePolyDatas())
       return UNDEFINED;
 
-    bool updateNeeded = needUpdate();
+    bool updateNeeded = needUpdate(0);
     if (updateNeeded)
-      update();
+      update(0);
 
     if (UNDEFINED == m_perimeter || updateNeeded)
       m_perimeter = computePerimeter();
@@ -892,9 +892,9 @@ namespace EspINA
     if (m_ap == NULL && !fetchCachePolyDatas())
       return UNDEFINED;
 
-    bool updateNeeded = needUpdate();
+    bool updateNeeded = needUpdate(0);
     if (updateNeeded)
-      update();
+      update(0);
 
     if (UNDEFINED == m_tortuosity || updateNeeded)
       m_tortuosity = computeTortuosity();

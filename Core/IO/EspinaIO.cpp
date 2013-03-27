@@ -110,7 +110,7 @@ EspinaIO::STATUS EspinaIO::loadChannel(QFileInfo file,
 
   readerArgs[ChannelReader::FILE] = file.absoluteFilePath();
   FilterSPtr reader(new ChannelReader(noInputs, readerArgs, ChannelReader::TYPE, handler));
-  reader->update();
+  reader->update(Filter::ALL_INPUTS);
   if (reader->outputs().isEmpty())
     return ERROR;
 
@@ -321,7 +321,7 @@ bool EspinaIO::zipVolume(Filter::Output output,
   QString raw = tmpDir.absoluteFilePath(volumeName + ".raw");
   io->SetFileName(mhd.toUtf8());
   writer->SetFileName(mhd.toUtf8().data());
-  filter->update();
+  output.update();
   itkVolumeType::Pointer volume = output.volume->toITK();
   bool releaseFlag = volume->GetReleaseDataFlag();
   volume->ReleaseDataFlagOff();
@@ -409,8 +409,9 @@ bool EspinaIO::loadSerialization(IEspinaModel *model,
           Q_ASSERT(!filter.isNull());
           try
           {
-            filter->update();
-            ChannelSPtr channel = factory->createChannel(filter, link[1].toInt());
+            Filter::OutputId channelId = link[1].toInt();
+            filter->update(channelId);
+            ChannelSPtr channel = factory->createChannel(filter, channelId);
             channel->initialize(args);
             if (channel->volume()->toITK().IsNull())
               return false;
@@ -468,16 +469,20 @@ bool EspinaIO::loadSerialization(IEspinaModel *model,
   {
     Vertices ancestors = input->ancestors(v.vId, Filter::CREATELINK);
     Q_ASSERT(ancestors.size() == 1);
+
+    ModelItem::Arguments args(QString(v.args.c_str()));
+    Filter::OutputId outputId =  args[Segmentation::OUTPUT].toInt();
+
     ModelItemPtr item = ancestors.first().item;
     FilterSPtr filter = model->findFilter(item);
-    filter->update();
+    filter->update(outputId);
+    // NOTE: add return value to update?
     if (filter->outputs().isEmpty())
       return false;
 
-    ModelItem::Arguments args(QString(v.args.c_str()));
     ModelItem::Arguments extArgs(args.value(ModelItem::EXTENSIONS, QString()));
     args.remove(ModelItem::EXTENSIONS);
-    SegmentationSPtr seg = factory->createSegmentation(filter, args[Segmentation::OUTPUT].toInt());
+    SegmentationSPtr seg = factory->createSegmentation(filter, outputId);
     seg->setNumber(args[Segmentation::NUMBER].toInt());
     TaxonomyElementSPtr taxonomy = model->taxonomy()->element(args[Segmentation::TAXONOMY]);
     if (!taxonomy.isNull())

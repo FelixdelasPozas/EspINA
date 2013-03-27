@@ -51,6 +51,8 @@ const ArgumentId Filter::ID     = "ID";
 const ArgumentId Filter::INPUTS = "Inputs";
 const ArgumentId Filter::EDIT   = "Edit"; // Backwards compatibility
 
+const int Filter::ALL_INPUTS = -1;
+
 const int EspINA::Filter::Output::INVALID_OUTPUT_ID = -1;
 
 typedef itk::ImageFileWriter<itkVolumeType> EspinaVolumeWriter;
@@ -80,6 +82,7 @@ Filter::~Filter()
 //----------------------------------------------------------------------------
 void Filter::setCacheDir(QDir dir)
 {
+  //WARNING: We need to create all output, even if they are invalid (NULL volume pointer)
   m_cacheDir = dir;
 
   // Load cached outputs
@@ -571,7 +574,7 @@ Filter::Output &Filter::output(OutputId oId)
 }
 
 //----------------------------------------------------------------------------
-bool Filter::needUpdate() const
+bool Filter::needUpdate(Filter::OutputId oId) const
 {
   bool update = true;
 
@@ -588,12 +591,12 @@ bool Filter::needUpdate() const
 }
 
 //----------------------------------------------------------------------------
- void Filter::update()
+ void Filter::update(OutputId oId)
 {
-  if (!needUpdate())
+  if (!needUpdate(oId))
     return;
 
-  if (!fetchSnapshot())
+  if (!fetchSnapshot(oId))
   {
     m_inputs.clear();
 
@@ -605,8 +608,8 @@ bool Filter::needUpdate() const
     {
       QStringList input = namedInput.split("_");
       FilterSPtr inputFilter = m_namedInputs[input[0]];
-      inputFilter->update();
       OutputId oId = input[1].toInt();
+      inputFilter->update(oId);
       m_inputs << inputFilter->output(oId).volume;
     }
 
@@ -634,24 +637,19 @@ void Filter::resetCacheFlags()
 }
 
 //----------------------------------------------------------------------------
-bool Filter::fetchSnapshot()
+bool Filter::fetchSnapshot(OutputId oId)
 {
   if (m_outputs.isEmpty())
     return false;
 
-  //WARNING: Hace falta que todos filtros carguen las outputs al crearse
-  // aunque estas puedan ser invalidas NULL volume pointer
   EspinaVolumeReader::Pointer reader;
 
-  foreach(OutputId oId, m_outputs.keys())
-  {
-    QString tmpFile = QString("%1_%2.mhd").arg(m_cacheId).arg(oId);
-    reader = tmpFileReader(tmpFile);
-    if (reader.IsNull())
-      return false;
+  QString tmpFile = QString("%1_%2.mhd").arg(m_cacheId).arg(oId);
+  reader = tmpFileReader(tmpFile);
+  if (reader.IsNull())
+    return false;
 
-    m_outputs[oId].volume->setVolume(reader->GetOutput(), true);
-  }
+  m_outputs[oId].volume->setVolume(reader->GetOutput(), true);
 
   emit modified(this);
 
@@ -776,7 +774,7 @@ bool Filter::dumpSnapshot(Snapshot &snapshot)
       io->SetFileName(mhd.toUtf8());
       writer->SetFileName(mhd.toUtf8().data());
 
-      update();
+      update(output.id);
 
       itkVolumeType::Pointer volume = output.volume->toITK();
       bool releaseFlag = volume->GetReleaseDataFlag();
@@ -808,7 +806,7 @@ bool Filter::dumpSnapshot(Snapshot &snapshot)
     // Backwards compatibility with seg files version 1.0
     if (m_traceable && m_args.contains(EDIT))
     {
-      update();
+      update(output.id);
 
       QStringList outputIds = m_args[EDIT].split(",");
       if (outputIds.contains(QString::number(output.id)))

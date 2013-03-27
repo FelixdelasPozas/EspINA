@@ -37,9 +37,9 @@ void insertRowsTest(EspINA::EspinaModel* model)
 
   EspINA::FilterSPtr filter(new EspINA::FreeFormSource(inputs, args, QString("TEMP_FILTER")));
   filter->draw(0, 50., 50., 50.);
-  filter->update();
 
   EspINA::Filter::OutputId outputId = 0;
+  filter->update(outputId);
   EspINA::SegmentationSPtr sharedp1(new EspINA::Segmentation(filter, outputId));
 
   model->addSegmentation(sharedp1);

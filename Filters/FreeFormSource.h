@@ -95,7 +95,7 @@ public:
                     itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
                     bool emitSignal = true);
 
-  virtual bool needUpdate() const;
+  virtual bool needUpdate(OutputId oId) const;
 
 protected:
   virtual void run(){}

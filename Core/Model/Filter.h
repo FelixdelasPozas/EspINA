@@ -89,6 +89,8 @@ namespace EspINA
       /// Whether output has been manually edited
       bool isEdited() const
       {return !editedRegions.isEmpty();} 
+
+      void update() { filter->update(id); }
     };
 
     typedef QList<Output> OutputList;
@@ -108,6 +110,8 @@ namespace EspINA
     static const ModelItem::ArgumentId ID;
     static const ModelItem::ArgumentId INPUTS;
     static const ModelItem::ArgumentId EDIT;
+
+    static const int ALL_INPUTS;
 
   protected:
     typedef itk::ImageFileReader<itkVolumeType> EspinaVolumeReader;
@@ -190,10 +194,10 @@ namespace EspINA
     /// Determine whether the filter needs to be updated or not
     /// Default implementation will request an update if there are no filter outputs
     /// or there is at least one invalid output
-    virtual bool needUpdate() const = 0;
+    virtual bool needUpdate(OutputId oId) const = 0;
     /// Updates filter outputs.
     /// If a snapshot exits it will try to load it from disk
-    void update();
+    void update(OutputId oId);
 
     /// Some filters may need to stablish connections with other items on the model
     /// in order to keep updated
@@ -209,7 +213,7 @@ namespace EspINA
     /// Try to locate an snapshot of the filter in tmpDir
     /// Returns true if all volume snapshot can be recovered
     /// and false otherwise
-    virtual bool fetchSnapshot();
+    virtual bool fetchSnapshot(OutputId oId);
     /// QMap<file name, file byte array> of filter's data to save to seg file
     virtual bool dumpSnapshot(Snapshot &snapshot);
 

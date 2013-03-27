@@ -43,7 +43,7 @@ namespace EspINA
     virtual ~SplitFilter();
 
     // Implements Filter Interface
-    virtual bool needUpdate() const;
+    virtual bool needUpdate(OutputId oId) const;
 
     void setStencil(vtkSmartPointer<vtkImageStencilData> stencil)
     { m_stencil = stencil; }

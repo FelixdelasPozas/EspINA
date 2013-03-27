@@ -45,7 +45,7 @@ namespace EspINA
       args[Filter::INPUTS] = Filter::NamedInput(AppositionSurfaceFilter::INPUTLINK, seg->outputId());
 
       FilterSPtr filter(new AppositionSurfaceFilter(inputs, args, FILTER_TYPE));
-      filter->update();
+      filter->update(Filter::ALL_INPUTS);
 
       Filter::FilterInspectorPtr filterInspector(new AppositionSurfaceFilterInspector(filter));
       filter->setFilterInspector(filterInspector);

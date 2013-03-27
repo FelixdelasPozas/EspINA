@@ -66,7 +66,7 @@ public:
                     bool emitSignal = true);
 
   /// Implements Filter Interface
-  virtual bool needUpdate() const;
+  virtual bool needUpdate(OutputId oId) const;
 
 protected:
   virtual void run(){}

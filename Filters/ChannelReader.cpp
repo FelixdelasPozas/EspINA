@@ -52,9 +52,9 @@ QString ChannelReader::serialize() const
 }
 
 //----------------------------------------------------------------------------
-bool ChannelReader::needUpdate() const
+bool ChannelReader::needUpdate(OutputId oId) const
 {
-  return Filter::needUpdate();
+  return Filter::needUpdate(oId);
 }
 
 //----------------------------------------------------------------------------

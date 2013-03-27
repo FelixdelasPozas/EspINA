@@ -101,7 +101,7 @@ namespace EspINA
     virtual QString serialize() const;
 
     // Implements Filter Interface
-    virtual bool needUpdate() const;
+    virtual bool needUpdate(OutputId oId) const;
 
     /// Return full taxonomy contained in segmha's meta-data
     TaxonomySPtr taxonomy() {return m_taxonomy;}

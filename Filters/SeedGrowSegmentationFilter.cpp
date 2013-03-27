@@ -62,9 +62,9 @@ SeedGrowSegmentationFilter::~SeedGrowSegmentationFilter()
 }
 
 //-----------------------------------------------------------------------------
-bool SeedGrowSegmentationFilter::needUpdate() const
+bool SeedGrowSegmentationFilter::needUpdate(OutputId oId) const
 {
-  return  m_paramModified || Filter::needUpdate();
+  return  m_paramModified || Filter::needUpdate(oId);
 }
 
 //-----------------------------------------------------------------------------
@@ -215,10 +215,10 @@ itkVolumeType::IndexType SeedGrowSegmentationFilter::seed() const
 }
 
 //-----------------------------------------------------------------------------
-bool SeedGrowSegmentationFilter::fetchSnapshot()
+bool SeedGrowSegmentationFilter::fetchSnapshot(OutputId oId)
 {
   if (m_paramModified)
     return false;
 
-  return Filter::fetchSnapshot();
+  return Filter::fetchSnapshot(oId);
 }
