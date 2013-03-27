@@ -18,6 +18,7 @@
 
 
 #include "SegmentationContextualMenu.h"
+#include "NoteEditor.h"
 #include <GUI/ViewManager.h>
 
 #include <Core/Model/EspinaModel.h>
@@ -28,6 +29,7 @@
 #include <Undo/ChangeTaxonomyCommand.h>
 #include <Undo/RemoveSegmentation.h>
 #include <Undo/ChangeSegmentationTags.h>
+#include <Undo/ChangeSegmentationNotes.h>
 
 #include <QWidgetAction>
 #include <QTreeView>
@@ -51,9 +53,9 @@ SegmentationContextualMenu::SegmentationContextualMenu(SegmentationList selectio
 , m_viewManager  (viewManager)
 , m_segmentations(selection  )
 {
-  createAddNoteEntry();
   createChangeTaxonomyMenu();
-  createManageTagsEntry();
+  createNoteEntry();
+  createTagsEntry();
   createSetLevelOfDetailEntry();
 
 }
@@ -63,24 +65,19 @@ void SegmentationContextualMenu::addNote()
 {
   if (!m_segmentations.isEmpty())
   {
-    m_undoStack->beginMacro("Add Note");
+    m_undoStack->beginMacro("Segmetation Notes");
   }
 
   foreach (SegmentationPtr segmentation, m_segmentations)
   {
     SegmentationNotes *notesExtension = dynamic_cast<SegmentationNotes *>(segmentation->informationExtension(SegmentationNotesID));
 
-    bool ok;
-    QString note = QInputDialog::getText(this,
-                                         tr("%1 Notes").arg(segmentation->data().toString()),
-                                         tr("%1 Notes").arg(segmentation->data().toString()),
-                                         QLineEdit::Normal,
-                                         notesExtension->note(),
-                                         &ok);
-    if (ok)
+    NoteEditor editor(segmentation->data().toString(), notesExtension->note());
+
+    if (editor.exec())
     {
-      notesExtension->setNote(note);
-      //m_undoStack->push(new ChangeSegmentationTags(tagExtension, tags));
+      //notesExtension->setNote(editor.text());
+      m_undoStack->push(new ChangeSegmentationNotes(notesExtension, editor.text()));
     }
   }
 
@@ -243,9 +240,10 @@ void SegmentationContextualMenu::setSelection(SegmentationList list)
 }
 
 //------------------------------------------------------------------------
-void SegmentationContextualMenu::createAddNoteEntry()
+void SegmentationContextualMenu::createNoteEntry()
 {
-  QAction *addNoteAction = addAction(tr("Add Note"));
+  QAction *addNoteAction = addAction(tr("Notes"));
+  addNoteAction->setIcon(QIcon(":/espina/note.png"));
   connect(addNoteAction, SIGNAL(triggered(bool)),
           this, SLOT(addNote()));
 }
@@ -273,9 +271,9 @@ void SegmentationContextualMenu::createChangeTaxonomyMenu()
 }
 
 //------------------------------------------------------------------------
-void SegmentationContextualMenu::createManageTagsEntry()
+void SegmentationContextualMenu::createTagsEntry()
 {
-  QAction *manageTagsAction = addAction(tr("Manage Tags"));
+  QAction *manageTagsAction = addAction(tr("Tags"));
   connect(manageTagsAction, SIGNAL(triggered(bool)),
           this, SLOT(manageTags()));
 

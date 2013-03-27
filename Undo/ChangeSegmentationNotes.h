@@ -26,8 +26,8 @@
 */
 
 
-#ifndef CHANGESEGMENTATIONTAGS_H
-#define CHANGESEGMENTATIONTAGS_H
+#ifndef CHANGESEGMENTATIONNOTES_H
+#define CHANGESEGMENTATIONNOTES_H
 
 #include <QUndoCommand>
 
@@ -35,26 +35,27 @@
 
 namespace EspINA
 {
+  class SegmentationNotes;
 
-class SegmentationTags;
-  class ChangeSegmentationTags 
+  class ChangeSegmentationNotes
   : public QUndoCommand
   {
   public:
-    explicit ChangeSegmentationTags(SegmentationTags *tagExtension,
-                                    const QStringList &tags,
-                                    QUndoCommand *parent = 0);
+    explicit ChangeSegmentationNotes(SegmentationNotes *noteExtension,
+                                     const QString     &note,
+                                     QUndoCommand      *parent = 0);
+
     virtual void redo();
 
     virtual void undo();
 
   private:
-    void swapTags();
+    void swapNotes();
 
   private:
-    SegmentationTags *m_tagExtension;
-    QStringList       m_formerTags;
+    SegmentationNotes *m_notesExtension;
+    QString            m_formerNote;
   };
 } // namespace EspINA
 
-#endif // CHANGESEGMENTATIONTAGS_H
+#endif // CHANGESEGMENTATIONNOTE_H

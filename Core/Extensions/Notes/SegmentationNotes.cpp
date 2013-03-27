@@ -45,6 +45,7 @@ const Segmentation::InfoTag SegmentationNotes::NOTE  = "Notes";
 
 //------------------------------------------------------------------------
 SegmentationNotes::SegmentationNotes()
+: m_loaded(false)
 {
 }
 
@@ -231,21 +232,26 @@ QString SegmentationNotes::note() const
 //------------------------------------------------------------------------
 void SegmentationNotes::loadNotesCache(SegmentationPtr segmentation) const
 {
-  ExtensionData &data = s_cache[segmentation].Data;
-
-  if (data.Note.isEmpty())
+  if (!m_loaded)
   {
-    QString segmentationFile = QString("%1%2-%3.txt").arg(EXTENSION_FILE)
-                                                     .arg(segmentation->filter()->id())
-                                                     .arg(segmentation->outputId());
+    ExtensionData &data = s_cache[segmentation].Data;
 
-    QFileInfo file(segmentation->filter()->cacheDir().absoluteFilePath(segmentationFile));
-
-    if (file.exists())
+    if (data.Note.isEmpty())
     {
-      QFile reader(file.absoluteFilePath());
-      reader.open(QIODevice::ReadOnly);
-      data.Note = reader.readAll();
+      QString segmentationFile = QString("%1%2-%3.txt").arg(EXTENSION_FILE)
+      .arg(segmentation->filter()->id())
+      .arg(segmentation->outputId());
+
+      QFileInfo file(segmentation->filter()->cacheDir().absoluteFilePath(segmentationFile));
+
+      if (file.exists())
+      {
+        QFile reader(file.absoluteFilePath());
+        reader.open(QIODevice::ReadOnly);
+        data.Note = reader.readAll();
+      }
     }
+
+    m_loaded = true;
   }
 }

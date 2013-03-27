@@ -26,35 +26,35 @@
 */
 
 
-#ifndef CHANGESEGMENTATIONTAGS_H
-#define CHANGESEGMENTATIONTAGS_H
+#ifndef NOTEEDITOR_H
+#define NOTEEDITOR_H
 
-#include <QUndoCommand>
-
-#include <QStringList>
+#include <QDialog>
 
 namespace EspINA
 {
-
-class SegmentationTags;
-  class ChangeSegmentationTags 
-  : public QUndoCommand
+  class NoteEditor
+  : public QDialog
   {
+    Q_OBJECT
+
+    class GUI;
+
   public:
-    explicit ChangeSegmentationTags(SegmentationTags *tagExtension,
-                                    const QStringList &tags,
-                                    QUndoCommand *parent = 0);
-    virtual void redo();
+    explicit NoteEditor(const QString &title,
+                        const QString &text,
+                        QWidget *parent = 0,
+                        Qt::WindowFlags f = 0);
+    virtual ~NoteEditor();
 
-    virtual void undo();
+    QString text();
+
+  private slots:
+    void exportNote();
 
   private:
-    void swapTags();
-
-  private:
-    SegmentationTags *m_tagExtension;
-    QStringList       m_formerTags;
+    GUI *m_gui;
   };
 } // namespace EspINA
 
-#endif // CHANGESEGMENTATIONTAGS_H
+#endif // NOTEEDITOR_H

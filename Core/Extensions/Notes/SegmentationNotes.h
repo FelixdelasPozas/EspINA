@@ -92,6 +92,8 @@ namespace EspINA
 
   private:
     void loadNotesCache(SegmentationPtr segmentation) const;
+
+    mutable bool m_loaded;
   };
 
 } // namespace EspINA

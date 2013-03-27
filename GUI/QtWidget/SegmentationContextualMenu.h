@@ -55,9 +55,9 @@ namespace EspINA
     void changeFinalNode(bool);
 
   private:
-    void createAddNoteEntry();
+    void createNoteEntry();
     void createChangeTaxonomyMenu();
-    void createManageTagsEntry();
+    void createTagsEntry();
     void createSetLevelOfDetailEntry();
 
   private:

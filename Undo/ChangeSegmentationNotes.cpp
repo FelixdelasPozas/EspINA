@@ -26,35 +26,39 @@
 */
 
 
-#ifndef CHANGESEGMENTATIONTAGS_H
-#define CHANGESEGMENTATIONTAGS_H
+#include "ChangeSegmentationNotes.h"
 
-#include <QUndoCommand>
+#include <Core/Model/Segmentation.h>
+#include <Core/Extensions/Notes/SegmentationNotes.h>
 
-#include <QStringList>
+using namespace EspINA;
 
-namespace EspINA
+//------------------------------------------------------------------------
+ChangeSegmentationNotes::ChangeSegmentationNotes(SegmentationNotes *noteExtension,
+                                               const QString       &note,
+                                               QUndoCommand        *parent)
+: QUndoCommand(parent)
+, m_notesExtension(noteExtension)
+, m_formerNote(note)
 {
+}
 
-class SegmentationTags;
-  class ChangeSegmentationTags 
-  : public QUndoCommand
-  {
-  public:
-    explicit ChangeSegmentationTags(SegmentationTags *tagExtension,
-                                    const QStringList &tags,
-                                    QUndoCommand *parent = 0);
-    virtual void redo();
+//------------------------------------------------------------------------
+void ChangeSegmentationNotes::redo()
+{
+  swapNotes();
+}
 
-    virtual void undo();
+//------------------------------------------------------------------------
+void ChangeSegmentationNotes::undo()
+{
+  swapNotes();
+}
 
-  private:
-    void swapTags();
-
-  private:
-    SegmentationTags *m_tagExtension;
-    QStringList       m_formerTags;
-  };
-} // namespace EspINA
-
-#endif // CHANGESEGMENTATIONTAGS_H
+//------------------------------------------------------------------------
+void ChangeSegmentationNotes::swapNotes()
+{
+  QString tmpNote = m_notesExtension->note();
+  m_notesExtension->setNote(m_formerNote);
+  m_formerNote = tmpNote;
+}
