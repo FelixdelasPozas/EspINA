@@ -158,8 +158,8 @@ EspinaMainWindow::EspinaMainWindow(EspinaModel      *model,
 , m_settingsPanel(new GeneralSettingsPanel(m_settings))
 , m_view(NULL)
 , m_busy(false)
-, m_errorHandler(new EspinaErrorHandler(this))
 , m_undoStackSavedIndex(0)
+, m_errorHandler(new EspinaErrorHandler(this))
 {
 #ifdef TEST_ESPINA_MODELS
   m_modelTester = QSharedPointer<ModelTest>(new ModelTest(m_model));

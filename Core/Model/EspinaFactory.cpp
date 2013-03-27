@@ -26,6 +26,7 @@
 #include "Core/Model/Segmentation.h"
 #include <Core/Extensions/ChannelExtension.h>
 #include <Core/Extensions/SegmentationExtension.h>
+#include <Core/IO/ErrorHandler.h>
 #include "GUI/Renderers/Renderer.h"
 
 #include <QDebug>
@@ -190,6 +191,8 @@ bool EspinaFactory::readFile(const QString &file, const QString &ext, EspinaIO::
   bool success = false;
   if (m_fileReaders.contains(ext))
     success = m_fileReaders[ext]->readFile(file, handler);
+  else if (handler)
+    handler->error(QObject::tr("%1 file extension is not supported").arg(ext));
 
   return success;
 }

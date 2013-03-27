@@ -72,8 +72,8 @@ TabularReport::TabularReport(ViewManager    *viewmManager,
 : m_model(NULL)
 , m_factory(NULL)
 , m_viewManager(viewmManager)
-, m_multiSelection(false)
 , m_tabs(new QTabWidget())
+, m_multiSelection(false)
 {
   QVBoxLayout *layout = new QVBoxLayout(this);
   //m_tabs->setCornerWidget(new QPushButton("HOLA"));
