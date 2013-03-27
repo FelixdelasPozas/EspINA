@@ -194,6 +194,8 @@ namespace EspINA
     /// Add a new extension to the segmentation
     /// Extesion won't be available until requirements are satisfied
     void addExtension(Channel::ExtensionPtr extension);
+    /// Delete extension from channel
+    void deleteExtension(Channel::ExtensionPtr extension);
     Channel::ExtensionPtr extension(ModelItem::ExtId extensionId);
 
   private:

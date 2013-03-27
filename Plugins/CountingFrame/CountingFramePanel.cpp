@@ -278,7 +278,19 @@ void CountingFramePanel::createRectangularCF(Channel *channel,
 //------------------------------------------------------------------------
 void CountingFramePanel::deleteCountingFrame(CountingFrame *cf)
 {
-  Q_ASSERT(m_countingFrames.contains(cf));
+  int i = 0;
+  CountingFrameExtension *cfExtension = NULL;
+  while (!cfExtension && i < m_countingFramesExtensions.size())
+  {
+    if (m_countingFramesExtensions[i]->countingFrames().contains(cf))
+    {
+      cfExtension = m_countingFramesExtensions[i];
+      cfExtension->deleteCountingFrame(cf);
+    }
+    else
+      ++i;
+  }
+  m_countingFramesExtensions.removeAt(i);
   m_countingFrames.removeOne(cf);
 
   if (cf == m_activeCF)
@@ -296,6 +308,21 @@ void CountingFramePanel::deleteCountingFrame(CountingFrame *cf)
   m_viewManager->removeWidget(cf);
   cf->Delete();
 }
+
+//------------------------------------------------------------------------
+CountingFrameList CountingFramePanel::countingFrames() const
+{
+  CountingFrameList cfs;
+
+  foreach(CountingFrameExtension *cfExtension, m_countingFramesExtensions)
+  {
+    cfs << cfExtension->countingFrames();
+  }
+
+  return cfs;
+
+}
+
 
 //------------------------------------------------------------------------
 void CountingFramePanel::applyTaxonomicalConstraint()
@@ -324,13 +351,12 @@ void CountingFramePanel::clearCountingFrames()
   m_gui->createCF->setEnabled(false);
   m_gui->deleteCF->setEnabled(false);
 
-  foreach(CountingFrame *cf, m_countingFrames)
+  foreach(CountingFrameExtension *cfExtension, m_countingFramesExtensions)
   {
-    m_viewManager->removeWidget(cf);
-    cf->Delete();
+    Channel *channel = cfExtension->channel();
+    channel->deleteExtension(cfExtension);
   }
-
-  m_countingFrames.clear();
+  m_countingFramesExtensions.clear();
 }
 
 //------------------------------------------------------------------------
@@ -349,6 +375,7 @@ void CountingFramePanel::updateUI(int row)
     m_gui->createCF->setIcon(QIcon(":/update-cr.svg"));
     m_gui->deleteCF->setEnabled(true);
     m_gui->saveDescription->setEnabled(true);
+
 
     CountingFrame *cf = m_countingFrames.value(row-NUM_FIXED_ROWS, NULL);
     Q_ASSERT(cf);
@@ -472,7 +499,7 @@ void CountingFramePanel::showInfo(CountingFrame* cf)
 
   m_activeCF = cf;
 
-  int cfIndex = m_countingFrames.indexOf(cf);
+  int cfIndex = 0; //FIXME NOW m_countingFrames.indexOf(cf);
 
   m_gui->countingFrames->setCurrentIndex(cfIndex + NUM_FIXED_ROWS);
 
@@ -626,6 +653,8 @@ void CountingFramePanel::registerCF(CountingFrameExtension* cfExtension,
 {
   cfExtension->addCountingFrame(cf);
   m_viewManager->addWidget(cf);
+  if (!m_countingFramesExtensions.contains(cfExtension))
+    m_countingFramesExtensions << cfExtension;
   m_countingFrames << cf;
 
   connect(cf, SIGNAL(modified(CountingFrame*)),

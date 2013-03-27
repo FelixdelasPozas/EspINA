@@ -73,7 +73,7 @@ namespace EspINA
 
     void deleteCountingFrame(CountingFrame *cf);
 
-    CountingFrameList countingFrames() const {return m_countingFrames;}
+    CountingFrameList countingFrames() const;
 
   protected slots:
     void applyTaxonomicalConstraint();
@@ -122,6 +122,7 @@ namespace EspINA
     GUI *m_gui;
     bool m_useSlices;
 
+    QList<CountingFrameExtension *> m_countingFramesExtensions;
     CountingFrameList m_countingFrames;
     CountingFrame    *m_activeCF;
     CountingFrame::Id m_nextId;

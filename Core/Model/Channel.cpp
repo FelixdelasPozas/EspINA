@@ -294,6 +294,18 @@ void Channel::addExtension(Channel::ExtensionPtr extension)
   m_extensions[extension->id()] = extension;
 }
 
+//------------------------------------------------------------------------
+void Channel::deleteExtension(Channel::ExtensionPtr extension)
+{
+  ExtId id = extension->id();
+  if (m_extensions.contains(id))
+  {
+    delete m_extensions[id];
+    m_extensions.remove(id);
+  }
+}
+
+
 //-----------------------------------------------------------------------------
 Channel::ExtensionPtr Channel::extension(ModelItem::ExtId extensionId)
 {
