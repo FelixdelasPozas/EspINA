@@ -84,6 +84,7 @@ namespace EspINA
   protected slots:
     void changeCircularBrushMode(Brush::BrushMode mode);
     void changeSphericalBrushMode(Brush::BrushMode mode);
+    void changeContourMode(Brush::BrushMode mode);
     void changeDrawTool(QAction *action);
     void cancelDrawOperation();
     void changeSplitTool(QAction *action);

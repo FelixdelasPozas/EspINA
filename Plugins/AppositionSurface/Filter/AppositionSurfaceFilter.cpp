@@ -996,7 +996,7 @@ namespace EspINA
     if (NULL == m_ap)
       fetchCachePolyDatas();
 
-    if (m_ap != NULL)
+    if (NULL != m_ap)
     {
       vtkSmartPointer<vtkGenericDataObjectWriter> polyWriter = vtkSmartPointer<vtkGenericDataObjectWriter>::New();
       polyWriter->SetInputConnection(m_ap->GetProducerPort());

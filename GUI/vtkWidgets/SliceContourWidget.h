@@ -8,12 +8,16 @@
 #ifndef SLICECONTOURWIDGET_H_
 #define SLICECONTOURWIDGET_H_
 
+// EspINA
 #include "GUI/vtkWidgets/vtkPlaneContourWidget.h"
 #include "GUI/vtkWidgets/EspinaWidget.h"
 #include <Core/EspinaTypes.h>
+#include <App/Tools/Brushes/Brush.h>
 
+// Qt
 #include <QMap>
 
+// VTK
 #include <vtkPolyData.h>
 
 namespace EspINA
@@ -23,21 +27,19 @@ class SliceContourWidget: public SliceWidget
   public:
     explicit SliceContourWidget(vtkPlaneContourWidget *widget);
     virtual ~SliceContourWidget();
+
     virtual void setSlice(Nm pos, PlaneType plane);
-
     virtual void SetEnabled(int);
+    QPair<Brush::BrushMode, vtkPolyData *> getContour();
 
-    void SetContours(QMap<Nm, vtkPolyData*> contours);
-    QMap<Nm, vtkPolyData*> GetContours();
-    unsigned int GetContoursNumber();
+    void setMode(Brush::BrushMode);
+
+    void Initialize();
   private:
-    // helper method
-    void AddActualContour();
 
-    bool m_initialized;
-    PlaneType m_plane;
-    Nm m_pos;
-    QMap<Nm, vtkPolyData*> m_contourMap;
+    bool                   m_initialized;
+    PlaneType              m_plane;
+    Nm                     m_pos;
     vtkPlaneContourWidget *m_contourWidget;
 };
 

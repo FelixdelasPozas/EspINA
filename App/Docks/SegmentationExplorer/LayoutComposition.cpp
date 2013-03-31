@@ -117,6 +117,27 @@ void CompositionLayout::showSelectedItemsInformation()
   if (!selectedItems(segmentations))
     return;
 
+  QModelIndexList selectedIndexes = m_view->selectionModel()->selectedIndexes();
+  QModelIndexList subIndexes;
+  foreach(QModelIndex index, selectedIndexes)
+  {
+    ModelItemPtr itemPtr = item(index);
+    if (EspINA::SEGMENTATION == itemPtr->type())
+    {
+      subIndexes << indices(index, true);
+      foreach(QModelIndex subIndex, subIndexes)
+      {
+        ModelItemPtr subItem = item(subIndex);
+        if (EspINA::SEGMENTATION == subItem->type())
+        {
+          SegmentationPtr seg = segmentationPtr(subItem);
+          if (!segmentations.contains(seg))
+            segmentations << seg;
+        }
+      }
+    }
+  }
+
   showSegmentationInformation(segmentations.toList());
 }
 

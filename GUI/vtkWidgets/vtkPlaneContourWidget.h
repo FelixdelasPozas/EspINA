@@ -8,6 +8,7 @@
 #define _VTKPLANECONTOURWIDGET_H_
 
 #include <Core/EspinaTypes.h>
+#include <App/Tools/Brushes/Brush.h>
 
 #include <vtkAbstractWidget.h>
 #include <QCursor>
@@ -18,8 +19,10 @@ class vtkPolyData;
 namespace EspINA
 {
   class vtkSliceContourRepresentation;
+  class ContourWidget;
 
-  class VTK_WIDGETS_EXPORT vtkPlaneContourWidget : public vtkAbstractWidget
+  class VTK_WIDGETS_EXPORT vtkPlaneContourWidget
+  : public vtkAbstractWidget
   {
   public:
     // Description:
@@ -117,8 +120,15 @@ namespace EspINA
     virtual void SetOrientation(EspINA::PlaneType plane);
     virtual EspINA::PlaneType GetOrientation();
 
+    // polygon appearance
     virtual void setPolygonColor(QColor);
     virtual QColor getPolygonColor();
+
+    // parent needed to signal start/end of a contour
+    void setContourWidget(ContourWidget *parent) { m_parent = parent; }
+
+    void setContourMode(Brush::BrushMode mode);
+    Brush::BrushMode getContourMode();
 
   protected:
     vtkPlaneContourWidget();
@@ -169,6 +179,9 @@ namespace EspINA
     QCursor crossMinusCursor, crossPlusCursor;
     bool mouseButtonDown; // to create almost equally spaced points when using continuous drawing
     QColor m_polygonColor;
+    ContourWidget *m_parent;
+    Brush::BrushMode m_contourMode;
+    Brush::BrushMode m_nextContourMode;
   };
 
 } // namespace EspINA

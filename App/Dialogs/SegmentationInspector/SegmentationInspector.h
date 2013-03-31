@@ -29,6 +29,7 @@
 
 // Qt
 #include <QDialog>
+#include <QScrollArea>
 #include <QSortFilterProxyModel>
 
 class QUndoStack;
@@ -91,6 +92,7 @@ namespace EspINA
     TabularReport *m_tabularReport;
 
     VolumeView *m_view;
+    QScrollArea *m_filterArea;
   };
 
 } // namespace EspINA

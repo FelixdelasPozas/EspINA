@@ -269,7 +269,6 @@ void EditorToolBar::initToolBar(EspinaModel *model,
                                 QUndoStack  *undoStack,
                                 ViewManager *viewManager)
 {
-
 }
 
 //----------------------------------------------------------------------------
@@ -339,10 +338,7 @@ FilterSPtr EditorToolBar::createFilter(const QString              &filter,
     res = new FillHolesFilter(inputs, args, FillHolesCommand::FILTER_TYPE);
 
   else if (FilledContour::FILTER_TYPE == filter)
-  {
     res = new ContourSource(inputs, args, FilledContour::FILTER_TYPE);
-    filterInspector = new ContourFilterInspector(res);
-  }
 
   if (filterInspector != NULL)
     res->setFilterInspector(Filter::FilterInspectorPtr(filterInspector));
@@ -370,6 +366,18 @@ void EditorToolBar::changeSphericalBrushMode(Brush::BrushMode mode)
     icon = ":/espina/pencil3D.png";
   else
     icon = ":/espina/eraser3D.png";
+
+  m_drawToolSelector->setIcon(QIcon(icon));
+}
+
+//----------------------------------------------------------------------------
+void EditorToolBar::changeContourMode(Brush::BrushMode mode)
+{
+  QString icon;
+  if (Brush::BRUSH == mode)
+    icon = ":/espina/lasso.png";
+  else
+    icon = ":/espina/lassoErase.png";
 
   m_drawToolSelector->setIcon(QIcon(icon));
 }
@@ -621,9 +629,11 @@ void EditorToolBar::initDrawTools()
                                               m_undoStack,
                                               m_viewManager));
 
+  connect(contour.data(), SIGNAL(changeMode(Brush::BrushMode)),
+          this, SLOT(changeContourMode(Brush::BrushMode)));
+
   m_drawTools[contourTool] = contour;
   m_drawToolSelector->addAction(contourTool);
-
 
   // Add Draw Tool Selector to Editor Tool Bar
   m_drawToolSelector->setCheckable(true);

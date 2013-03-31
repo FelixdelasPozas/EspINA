@@ -26,7 +26,6 @@ qt4_wrap_cpp (ESPINA_MOC
   Docks/SegmentationExplorer/LayoutLocation.h
   Docks/SegmentationExplorer/LayoutComposition.h
   FilterInspectors/CODE/CODEFilterInspector.h
-  FilterInspectors/ContourSource/ContourInspectorWidget.h
   FilterInspectors/SeedGrowSegmentation/SGSFilterInspector.h
   Menus/ColorEngineMenu.h
   Settings/Editor/SettingsPanel.h
@@ -42,6 +41,7 @@ qt4_wrap_cpp (ESPINA_MOC
   Toolbars/VOI/VolumeOfInterest.h
   Toolbars/Zoom/ZoomToolBar.h
   Tools/Brushes/Brush.h
+  Tools/Contour/FilledContour.h
   Tools/PlanarSplit/PlanarSplitTool.h
   Tools/SeedGrowSegmentation/SeedGrowSegmentationTool.h
   Tools/SegmentationRemover/SegmentationRemover.h
@@ -64,7 +64,7 @@ qt4_wrap_ui (ESPINA_UI
   Dialogs/SettingsDialog.ui
   Docks/ChannelExplorer/ChannelExplorer.ui
   Docks/SegmentationExplorer/SegmentationExplorer.ui
-  FilterInspectors/ContourSource/ContourInspectorWidget.ui
+  Docks/TabularReport/TabularReport.ui
   FilterInspectors/SeedGrowSegmentation/SGSFilterInspectorWidget.ui
   Settings/GeneralSettingsPanel.ui
   Settings/Editor/EditorToolBarSettingsPanel.ui
@@ -100,8 +100,6 @@ set (ESPINA_SOURCES
   Docks/SegmentationExplorer/SegmentationExplorerLayout.cpp
   Docks/SegmentationExplorer/SegmentationExplorer.cpp
   FilterInspectors/CODE/CODEFilterInspector.cpp
-  FilterInspectors/ContourSource/ContourInspector.cpp
-  FilterInspectors/ContourSource/ContourInspectorWidget.cpp
   FilterInspectors/SeedGrowSegmentation/SGSFilterInspector.cpp
   Menus/ColorEngineMenu.cpp
   Settings/GeneralSettings.cpp
@@ -143,6 +141,7 @@ set (ESPINA_SOURCES
   Undo/UnloadChannelCommand.cpp
   Undo/UnloadSampleCommand.cpp
   Undo/VolumeSnapshotCommand.cpp
+  Undo/ContourUndoCommand.cpp
   Views/DefaultEspinaView.cpp
   Dialogs/Connectomics/ConnectomicsDialog.cpp
   Tools/Measure/MeasureTool.cpp

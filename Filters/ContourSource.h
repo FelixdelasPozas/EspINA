@@ -11,75 +11,61 @@
 #include <Core/Model/Filter.h>
 #include <vtkPolyData.h>
 #include <QVector3D>
-#include <App/FilterInspectors/ContourSource/ContourInspector.h>
 
 namespace EspINA
 {
-class ContourSource
-: public SegmentationFilter
-{
-public:
-  static const ModelItem::ArgumentId SPACING;
-
-  class Parameters
+  class ContourSource
+  : public SegmentationFilter
   {
-  public:
-    explicit Parameters(Arguments &args)
-    : m_args(args)
-    {
-      QStringList values = m_args[SPACING].split(",", QString::SkipEmptyParts);
-      if (values.size() == 3)
-      {
-        for(int i=0; i<3; i++)
-          m_spacing[i] = values[i].toDouble();
-      }
-    }
+    public:
+      static const ModelItem::ArgumentId SPACING;
 
-    void setSpacing(double value[3])
-    {
-      for(int i=0; i<3; i++)
-        m_spacing[i] = value[i];
-      m_args[SPACING] = QString("%1,%2,%3")
-                       .arg(value[0])
-                       .arg(value[1])
-                       .arg(value[2]);
-    }
-    itkVolumeType::SpacingType spacing() const
-    {
-      return m_spacing;
-    }
-  private:
-    Arguments &m_args;
-    itkVolumeType::SpacingType m_spacing;
+      class Parameters
+      {
+        public:
+          explicit Parameters(Arguments &args)
+              : m_args(args)
+          {
+            QStringList values = m_args[SPACING].split(",", QString::SkipEmptyParts);
+            if (values.size() == 3)
+            {
+              for (int i = 0; i < 3; i++)
+                m_spacing[i] = values[i].toDouble();
+            }
+          }
+
+          void setSpacing(double value[3])
+          {
+            for (int i = 0; i < 3; i++)
+              m_spacing[i] = value[i];
+            m_args[SPACING] = QString("%1,%2,%3").arg(value[0]).arg(value[1]).arg(value[2]);
+          }
+          itkVolumeType::SpacingType spacing() const
+          {
+            return m_spacing;
+          }
+        private:
+          Arguments &m_args;
+          itkVolumeType::SpacingType m_spacing;
+      };
+
+    public:
+      explicit ContourSource(NamedInputs inputs, Arguments args, FilterType type);
+      virtual ~ContourSource() {};
+
+      virtual void draw(OutputId oId, vtkPolyData *contour, Nm slice, PlaneType plane, itkVolumeType::PixelType value =
+          SEG_VOXEL_VALUE, bool emitSignal = true);
+
+      /// Implements Filter Interface
+      virtual bool needUpdate(OutputId oId) const;
+
+    protected:
+      virtual void run() {}
+
+    private:
+      Parameters m_param;
   };
 
-public:
-  explicit ContourSource(NamedInputs inputs,
-                         Arguments   args,
-                         FilterType  type);
-  virtual ~ContourSource();
-
-  virtual void draw(OutputId oId,
-                    vtkPolyData *contour,
-                    Nm slice, PlaneType plane,
-                    itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
-                    bool emitSignal = true);
-
-  /// Implements Filter Interface
-  virtual bool needUpdate(OutputId oId) const;
-
-protected:
-  virtual void run(){}
-
-
-private:
-  friend class ContourFilterInspector::Widget;
-
-  Parameters m_param;
-  QMap< PlaneType, QMap<Nm, vtkPolyData*> > m_contourMap;
-};
-
 } // namespace EspINA
-
 
 #endif /* CONTOURSOURCE_H_ */

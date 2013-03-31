@@ -124,15 +124,56 @@ void LocationLayout::showSelectedItemsInformation()
   if (!selectedItems(samples, segmentations))
     return;
 
-  if (samples.size() == 1 && segmentations.isEmpty())
+  if (!samples.empty())
   {
-    // TODO: Display Sample metadata
-  }
-  else
-    if (!segmentations.isEmpty())
+    QModelIndexList selectedIndexes = m_view->selectionModel()->selectedIndexes();
+    QModelIndexList subIndexes;
+    foreach(QModelIndex index, selectedIndexes)
     {
-      showSegmentationInformation(segmentations.toList());
+      ModelItemPtr itemPtr = item(index);
+      if (EspINA::SAMPLE == itemPtr->type())
+      {
+        subIndexes << indices(index, true);
+        foreach(QModelIndex subIndex, subIndexes)
+        {
+          ModelItemPtr subItem = item(subIndex);
+          if (EspINA::SEGMENTATION == subItem->type())
+          {
+            SegmentationPtr seg = segmentationPtr(subItem);
+            if (!segmentations.contains(seg))
+              segmentations << seg;
+          }
+        }
+      }
     }
+  }
+
+  if (!segmentations.isEmpty())
+  {
+    QModelIndexList selectedIndexes = m_view->selectionModel()->selectedIndexes();
+    QModelIndexList subIndexes;
+    foreach(QModelIndex index, selectedIndexes)
+    {
+      ModelItemPtr itemPtr = item(index);
+      if (EspINA::SEGMENTATION == itemPtr->type())
+      {
+        subIndexes << indices(index, true);
+        foreach(QModelIndex subIndex, subIndexes)
+        {
+          ModelItemPtr subItem = item(subIndex);
+          if (EspINA::SEGMENTATION == subItem->type())
+          {
+            SegmentationPtr seg = segmentationPtr(subItem);
+            if (!segmentations.contains(seg))
+              segmentations << seg;
+          }
+        }
+      }
+    }
+  }
+
+  if (!segmentations.empty())
+    showSegmentationInformation(segmentations.toList());
 }
 
 //------------------------------------------------------------------------
@@ -198,5 +239,22 @@ bool LocationLayout::hasInformationToShow()
   SegmentationSet segmentations;
   selectedItems(samples, segmentations);
 
-  return !segmentations.empty();
+  bool sampleHasSegmentations = false;
+  if (!samples.empty())
+  {
+    QModelIndexList selectedIndexes = m_view->selectionModel()->selectedIndexes();
+    QModelIndexList subIndexes;
+    foreach(QModelIndex index, selectedIndexes)
+    {
+      ModelItemPtr itemPtr = item(index);
+      if (EspINA::SAMPLE == itemPtr->type())
+      {
+        subIndexes << indices(index, true);
+        if (!subIndexes.empty())
+          sampleHasSegmentations = true;
+      }
+    }
+  }
+
+  return !segmentations.empty() || sampleHasSegmentations;
 }

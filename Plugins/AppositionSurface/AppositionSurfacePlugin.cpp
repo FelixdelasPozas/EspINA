@@ -62,7 +62,6 @@ AppositionSurface::~AppositionSurface()
   qDebug() << "********************************************************";
   m_factory->unregisterSettingsPanel(m_settings.data());
   m_factory->unregisterSegmentationExtension(m_extension.data());
-  m_factory->unregisterRenderer(m_renderer.data());
   // filters can't be unregistered, is this a problem?
 
   delete m_action;
@@ -81,10 +80,6 @@ void AppositionSurface::initToolBar(EspinaModel *model, QUndoStack *undoStack, V
 
   connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection, bool)), this,
           SLOT(selectionChanged(ViewManager::Selection, bool)));
-
-  // register renderer
-  m_renderer = AppositionSurfaceRendererSPtr(new AppositionSurfaceRenderer(m_viewManager));
-  m_factory->registerRenderer(m_renderer.data());
 
   // for automatic computation of SAS
   connect(m_model, SIGNAL(segmentationAdded(SegmentationSPtr)),

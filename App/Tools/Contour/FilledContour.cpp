@@ -17,7 +17,6 @@
 */
 
 #include "FilledContour.h"
-#include <Tools/Brushes/Brush.h>
 #include <Undo/BrushUndoCommand.h>
 
 // EspINA
@@ -31,8 +30,9 @@
 #include <Core/Model/Taxonomy.h>
 #include <Filters/FreeFormSource.h>
 #include <Filters/ContourSource.h>
-#include <App/FilterInspectors/ContourSource/ContourInspector.h>
 #include <Undo/AddSegmentation.h>
+#include <Undo/RemoveSegmentation.h>
+#include <App/Undo/ContourUndoCommand.h>
 
 // Qt
 #include <QUndoStack>
@@ -53,6 +53,8 @@ FilledContour::FilledContour(EspinaModel *model,
 , m_enabled(false)
 , m_inUse(false)
 , m_contourWidget(NULL)
+, m_widgetHasContour(false)
+, m_lastContour(NULL)
 {
   m_picker->setPickable(IPicker::CHANNEL);
 }
@@ -75,6 +77,30 @@ bool FilledContour::filterEvent(QEvent* e, EspinaRenderView* view)
   if (!m_enabled || !m_contourWidget)
     return false;
 
+  if (e->type() == QEvent::KeyRelease)
+  {
+    QKeyEvent *ke = static_cast<QKeyEvent *>(e);
+    if (ke->key() == Qt::Key_Control)
+    {
+      m_contourWidget->setMode(Brush::BRUSH);
+      m_viewManager->updateViews();
+      emit changeMode(Brush::BRUSH);
+      return true;
+    }
+  }
+  else
+    if (QEvent::KeyPress == e->type() && ((m_currentSeg && m_currentSource) || m_widgetHasContour))
+    {
+      QKeyEvent *ke = static_cast<QKeyEvent *>(e);
+      if (ke->key() == Qt::Key_Control && ke->count() == 1)
+      {
+        m_contourWidget->setMode(Brush::ERASER);
+        m_viewManager->updateViews();
+        emit changeMode(Brush::ERASER);
+        return true;
+      }
+    }
+
   return m_contourWidget->filterEvent(e, view);
 }
 
@@ -90,6 +116,11 @@ void FilledContour::setInUse(bool enable)
   if (enable)
   {
     m_contourWidget = new ContourWidget();
+
+    connect(m_contourWidget, SIGNAL(storeData()),
+            this, SLOT(storeContourData()));
+    connect(m_contourWidget, SIGNAL(rasterizeContours(ContourWidget::ContourList)),
+            this, SLOT(rasterize(ContourWidget::ContourList)));
 
     SegmentationList selection;
     foreach(PickableItemPtr item, m_viewManager->selection())
@@ -116,104 +147,14 @@ void FilledContour::setInUse(bool enable)
   }
   else
   {
-    QApplication::setOverrideCursor(Qt::WaitCursor);
+    if (m_widgetHasContour)
+      rasterize(m_contourWidget->getContours());
 
-    if (0 != m_contourWidget->GetContoursNumber())
-    {
-      ChannelPtr channel = m_viewManager->activeChannel();
-      double spacing[3];
-      channel->volume()->spacing(spacing);
+    disconnect(m_contourWidget, SIGNAL(storeData()),
+               this, SLOT(storeContourData()));
+    disconnect(m_contourWidget, SIGNAL(rasterizeContours(ContourWidget::ContourList)),
+               this, SLOT(rasterize(ContourWidget::ContourList)));
 
-      if (!m_currentSource && !m_currentSeg)
-      {
-        Filter::NamedInputs inputs;
-        Filter::Arguments args;
-        FreeFormSource::Parameters params(args);
-        params.setSpacing(spacing);
-        m_currentSource = FilterSPtr(new ContourSource(inputs, args, FILTER_TYPE));
-        Filter::FilterInspectorPtr filterInspector(new ContourFilterInspector(m_currentSource.data()));
-        m_currentSource->setFilterInspector(filterInspector);
-      }
-
-      if (!m_currentSeg && m_currentSource)
-      {
-        // TODO : Standarize
-        m_currentSource->draw(0, NULL, 0, AXIAL, SEG_VOXEL_VALUE, false);
-        m_currentSeg = m_model->factory()->createSegmentation(m_currentSource, 0);
-        m_undoStack->beginMacro("Draw segmentation using contours");
-        m_undoStack->push(new AddSegmentation(m_model->findChannel(channel),
-                                              m_currentSource,
-                                              m_currentSeg,
-                                              m_model->findTaxonomyElement(m_viewManager->activeTaxonomy()),
-                                              m_model));
-        SegmentationSList createdSegmentations;
-        createdSegmentations << m_currentSeg;
-        m_model->emitSegmentationAdded(createdSegmentations);
-
-        m_undoStack->endMacro();
-      }
-      else
-      {
-        m_undoStack->beginMacro("Modify segmentation using contours");
-        m_undoStack->push(new Brush::SnapshotCommand(m_currentSeg, 0, m_viewManager));
-        m_undoStack->endMacro();
-      }
-
-      QMap<PlaneType, QMap<Nm, vtkPolyData*> > contours = m_contourWidget->GetContours();
-      QMap<Nm, vtkPolyData*>::iterator it = contours[AXIAL].begin();
-      int i = 0;
-      while (it != contours[AXIAL].end())
-      {
-        m_currentSource->draw(0, it.value(), it.key(), AXIAL, SEG_VOXEL_VALUE, (contours[AXIAL].size()-1 == i) && contours[CORONAL].isEmpty() && contours[SAGITTAL].isEmpty());
-        ++it; ++i;
-      }
-
-      it = contours[CORONAL].begin();
-      i = 0;
-      while (it != contours[CORONAL].end())
-      {
-        m_currentSource->draw(0, it.value(), it.key(), CORONAL, SEG_VOXEL_VALUE, (contours[CORONAL].size()-1 == i) && contours[SAGITTAL].isEmpty());
-        ++it; ++i;
-      }
-
-      it = contours[SAGITTAL].begin();
-      i = 0;
-      while (it != contours[SAGITTAL].end())
-      {
-        m_currentSource->draw(0, it.value(), it.key(), SAGITTAL, SEG_VOXEL_VALUE, contours[SAGITTAL].size()-1 == i);
-        ++it; ++i;
-      }
-
-      // only ContourFilter stores the vtkPolyDatas, the others do not
-      if (m_currentSource.data()->data().toString().compare(FilledContour::FILTER_TYPE) != 0)
-      {
-        it = contours[AXIAL].begin();
-        while (it != contours[AXIAL].end())
-        {
-          it.value()->Delete();
-          it = contours[AXIAL].erase(it);
-        }
-
-        it = contours[CORONAL].begin();
-        while (it != contours[CORONAL].end())
-        {
-          it.value()->Delete();
-          it = contours[CORONAL].erase(it);
-        }
-
-        it = contours[SAGITTAL].begin();
-        while (it != contours[SAGITTAL].end())
-        {
-          it.value()->Delete();
-          it = contours[SAGITTAL].erase(it);
-        }
-      }
-
-      m_viewManager->updateSegmentationRepresentations(m_currentSeg.data());
-      m_currentSource->notifyModification();
-    }
-
-    QApplication::restoreOverrideCursor();
     m_viewManager->removeWidget(m_contourWidget);
     m_contourWidget->setEnabled(false);
     delete m_contourWidget;
@@ -235,4 +176,98 @@ void FilledContour::setEnabled(bool enable)
 bool FilledContour::enabled() const
 {
   return m_enabled;
+}
+
+//-----------------------------------------------------------------------------
+void FilledContour::storeContourData()
+{
+  m_widgetHasContour = true;
+}
+
+//-----------------------------------------------------------------------------
+void FilledContour::rasterize(ContourWidget::ContourList list)
+{
+  ChannelPtr channel = m_viewManager->activeChannel();
+  double spacing[3];
+  channel->volume()->spacing(spacing);
+  bool reduction = false;
+
+  if (list[AXIAL].contourPoints == NULL && list[CORONAL].contourPoints == NULL && list[SAGITTAL].contourPoints == NULL)
+    return;
+
+  QApplication::setOverrideCursor(Qt::WaitCursor);
+
+  if (!m_currentSeg)
+    m_undoStack->beginMacro("Draw segmentation using contours");
+  else
+    m_undoStack->beginMacro("Modify segmentation using contours");
+
+  ContourWidget::ContourList::const_iterator it;
+  for (it = list.begin(); it != list.end(); ++it)
+  {
+    if ((*it).contourPoints == NULL)
+      continue;
+
+    if ((*it).contourMode == Brush::ERASER)
+      reduction = true;
+
+    if (!m_currentSource)
+    {
+      Filter::NamedInputs inputs;
+      Filter::Arguments args;
+      FreeFormSource::Parameters params(args);
+      params.setSpacing(spacing);
+      m_currentSource = FilterSPtr(new ContourSource(inputs, args, FILTER_TYPE));
+    }
+
+    if (!m_currentSeg)
+    {
+      // TODO: Standarize
+      m_currentSource->draw(0, (*it).contourPoints, (*it).contourPoints->GetPoint(0)[(*it).contourPlane], (*it).contourPlane, (((*it).contourMode == Brush::BRUSH) ? SEG_VOXEL_VALUE : SEG_BG_VALUE), true);
+      m_currentSeg = m_model->factory()->createSegmentation(m_currentSource, 0);
+      m_undoStack->push(new AddSegmentation(m_model->findChannel(channel),
+                                            m_currentSource,
+                                            m_currentSeg,
+                                            m_model->findTaxonomyElement(m_viewManager->activeTaxonomy()),
+                                            m_model));
+      SegmentationSList createdSegmentations;
+      createdSegmentations << m_currentSeg;
+      m_model->emitSegmentationAdded(createdSegmentations);
+    }
+    else
+    {
+      m_undoStack->push(new ContourUndoCommand(m_currentSeg,
+                                               (*it).contourPoints,
+                                               (*it).contourPoints->GetPoint(0)[(*it).contourPlane],
+                                               (*it).contourPlane,
+                                               ((*it).contourMode == Brush::BRUSH) ? SEG_VOXEL_VALUE : SEG_BG_VALUE,
+                                               m_viewManager));
+
+    }
+  }
+
+  m_undoStack->endMacro();
+
+  // if erasing must reduce the volume and check for complete deletion
+  if (reduction)
+  {
+    try
+    {
+      m_currentSeg->volume()->fitToContent();
+    }
+    catch (...)
+    {
+      m_undoStack->push(new RemoveSegmentation(m_currentSeg.data(), m_model, m_viewManager));
+      emit changeMode(Brush::BRUSH);
+      m_currentSeg.clear();
+      m_currentSource.clear();
+      m_contourWidget->setPolygonColor(m_viewManager->activeTaxonomy()->color());
+    }
+  }
+
+  if (m_currentSource)
+    m_currentSource->notifyModification();
+
+  QApplication::restoreOverrideCursor();
+  m_widgetHasContour = false;
 }

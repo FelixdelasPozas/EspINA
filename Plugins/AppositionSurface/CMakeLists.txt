@@ -46,7 +46,7 @@ QT4_WRAP_CPP(MOC_SOURCES
   AppositionSurfacePlugin.h
   Analysis/SynapticAppositionSurfaceAnalysis.h
   Filter/AppositionSurfaceFilter.h
-  GUI/Renderer/AppositionSurfaceRenderer.h
+
   GUI/Settings/AppositionSurfaceSettings.h
   GUI/FilterInspector/AppositionSurfaceFilterInspector.h
   GUI/AppositionSurfaceAction.h

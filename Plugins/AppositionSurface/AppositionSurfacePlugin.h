@@ -19,6 +19,9 @@
 #ifndef APPOSITIONSURFACE_H
 #define APPOSITIONSURFACE_H
 
+// plugin
+#include "Core/Extensions/AppositionSurfaceExtension.h"
+
 // EspINA
 #include <Core/Interfaces/IDynamicMenu.h>
 #include <Core/Interfaces/IFactoryExtension.h>
@@ -26,10 +29,6 @@
 #include <Core/Interfaces/IToolBar.h>
 #include <GUI/ISettingsPanel.h>
 #include <GUI/ViewManager.h>
-
-// plugin
-#include "Core/Extensions/AppositionSurfaceExtension.h"
-#include "GUI/Renderer/AppositionSurfaceRenderer.h"
 
 namespace EspINA
 {
@@ -83,7 +82,6 @@ namespace EspINA
     ViewManager                   *m_viewManager;
     QAction                       *m_action;
     ISettingsPanelPrototype        m_settings;
-    AppositionSurfaceRendererSPtr  m_renderer;
     AppositionSurfaceExtensionSPtr m_extension;
   };
 

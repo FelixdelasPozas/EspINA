@@ -10,6 +10,7 @@
 
 #include "GUI/vtkWidgets/EspinaWidget.h"
 #include <Core/EspinaTypes.h>
+#include <App/Tools/Brushes/Brush.h>
 
 #include <QMap>
 #include <QList>
@@ -26,7 +27,20 @@ namespace EspINA
   : public QObject
   , public EspinaWidget
   {
+  Q_OBJECT
   public:
+    struct ContourInternals
+    {
+      PlaneType        contourPlane;
+      Brush::BrushMode contourMode;
+      vtkPolyData     *contourPoints;
+
+      ContourInternals(PlaneType plane, Brush::BrushMode mode, vtkPolyData *contour) : contourPlane(plane), contourMode(mode), contourPoints(contour) {};
+    };
+    typedef struct ContourInternals ContourData;
+
+    typedef QList<ContourData> ContourList;
+
     explicit ContourWidget();
     virtual ~ContourWidget();
 
@@ -38,11 +52,18 @@ namespace EspINA
                               long unsigned int event);
     virtual void setEnabled(bool enable);
 
-    virtual QMap<PlaneType, QMap<Nm, vtkPolyData*> > GetContours();
-    virtual void SetContours(QMap<PlaneType, QMap<Nm, vtkPolyData*> >);
-    virtual unsigned int GetContoursNumber();
     virtual void setPolygonColor(QColor);
     virtual QColor getPolygonColor();
+    ContourList getContours();
+
+    void startContourFromWidget();
+    void endContourFromWidget();
+
+    void setMode(Brush::BrushMode);
+
+  signals:
+    void rasterizeContours(ContourWidget::ContourList);
+    void storeData();
 
   private:
     SliceContourWidget *m_axialSliceContourWidget;

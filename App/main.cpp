@@ -32,6 +32,7 @@
 int main(int argc, char **argv)
 {
   QApplication app(argc, argv);
+  app.setWindowIcon(QIcon(":/espina/editor.ico"));
 
   QTranslator translator;
   translator.load("espina_es");

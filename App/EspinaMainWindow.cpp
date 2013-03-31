@@ -105,9 +105,11 @@ class EspinaErrorHandler
         QList<QUrl> urls;
         urls << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::DesktopLocation))
              << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation))
-             << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::HomeLocation));
+             << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::HomeLocation))
+             << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::DataLocation));
 
         QFileDialog fileDialog(m_parent);
+        fileDialog.setFileMode(QFileDialog::ExistingFiles);
         fileDialog.setWindowTitle(title);
         fileDialog.setFilter(filters);
         fileDialog.setDirectory(directory);
@@ -648,15 +650,17 @@ bool EspinaMainWindow::closeCurrentAnalysis()
 //------------------------------------------------------------------------
 void EspinaMainWindow::openAnalysis()
 {
-  const QString title   = tr("Analyse Data");
+  const QString title   = tr("Start New Analysis From File");
   const QString filters = m_model->factory()->supportedFiles().join(";;");
 
   QList<QUrl> urls;
   urls << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::DesktopLocation))
        << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation))
-       << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::HomeLocation));
+       << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::HomeLocation))
+       << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::DataLocation));
 
   QFileDialog fileDialog(this);
+  fileDialog.setFileMode(QFileDialog::ExistingFiles);
   fileDialog.setWindowTitle(title);
   fileDialog.setFilter(filters);
   fileDialog.setDirectory(QDir());
@@ -664,8 +668,9 @@ void EspinaMainWindow::openAnalysis()
   fileDialog.setViewMode(QFileDialog::Detail);
   fileDialog.resize(800, 480);
   fileDialog.setSidebarUrls(urls);
+  fileDialog.setAcceptMode(QFileDialog::AcceptOpen);
 
-  if (fileDialog.exec())
+  if (fileDialog.exec() == QDialog::Accepted)
   {
     openAnalysis(fileDialog.selectedFiles().first());
     m_model->markAsSaved();
@@ -808,22 +813,26 @@ void EspinaMainWindow::addToAnalysis()
   QList<QUrl> urls;
   urls << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::DesktopLocation))
        << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation))
-       << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::HomeLocation));
+       << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::HomeLocation))
+       << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::DataLocation));
 
   QFileDialog fileDialog(this);
-  fileDialog.setWindowTitle(tr("Add data to Analysis"));
+  fileDialog.setWindowTitle(tr("Add Data To Analysis"));
   //fileDialog.setFilters(m_model->factory()->supportedFiles());
   QStringList channelFiles;
   channelFiles << CHANNEL_FILES;
+  fileDialog.setFileMode(QFileDialog::ExistingFiles);
   fileDialog.setFilters(channelFiles);
   fileDialog.setDirectory(m_sessionFile.dir());
   fileDialog.setOption(QFileDialog::DontUseNativeDialog, false);
   fileDialog.setViewMode(QFileDialog::Detail);
   fileDialog.resize(800, 480);
   fileDialog.setSidebarUrls(urls);
+  fileDialog.setAcceptMode(QFileDialog::AcceptOpen);
 
-  if (fileDialog.exec())
-    addFileToAnalysis(QFileInfo(fileDialog.selectedFiles().first()));
+  if (fileDialog.exec() == QFileDialog::Accepted)
+    foreach(QString fileName, fileDialog.selectedFiles())
+      addFileToAnalysis(QFileInfo(fileName));
 }
 
 //------------------------------------------------------------------------
@@ -921,10 +930,12 @@ void EspinaMainWindow::saveAnalysis()
   QList<QUrl> urls;
   urls << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::DesktopLocation))
        << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation))
-       << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::HomeLocation));
+       << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::HomeLocation))
+       << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::DataLocation));
 
   QFileDialog fileDialog(this);
-  fileDialog.setWindowTitle(tr("Save Espina Analysis"));
+  fileDialog.setDefaultSuffix(QString(tr("seg")));
+  fileDialog.setWindowTitle(tr("Save EspINA Analysis"));
   fileDialog.setFilter(SEG_FILES);
   fileDialog.setDirectory(dir);
   fileDialog.setOption(QFileDialog::DontUseNativeDialog, false);
@@ -936,10 +947,12 @@ void EspinaMainWindow::saveAnalysis()
   fileDialog.setAcceptMode(QFileDialog::AcceptSave);
 
   QString analysisFile;
-  if (fileDialog.exec())
+  if (fileDialog.exec() == QFileDialog::AcceptSave)
     analysisFile = fileDialog.selectedFiles().first();
   else
     return;
+
+  Q_ASSERT(analysisFile.toLower().endsWith(QString(tr(".seg"))));
 
   QApplication::setOverrideCursor(Qt::WaitCursor);
   m_busy = true;
@@ -947,7 +960,7 @@ void EspinaMainWindow::saveAnalysis()
   EspinaIO::saveSegFile(analysisFile, m_model);
 
   QApplication::restoreOverrideCursor();
-  updateStatus(tr("File Saved Successfuly in %1").arg(analysisFile));
+  updateStatus(tr("File Saved Successfully in %1").arg(analysisFile));
   m_busy = false;
 
   m_recentDocuments1.addDocument(analysisFile);
