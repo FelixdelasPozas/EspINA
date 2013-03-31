@@ -383,5 +383,4 @@ namespace EspINA
 
     return m_filter->m_ap->GetProducerPort();
   }
-
 } /* namespace EspINA */

@@ -185,6 +185,7 @@ void ChannelInspector::changeSpacing()
   reader->setSpacing(spacing);
   reader->update(0);
 
+  SegmentationList updatedSegmentations;
   foreach(ModelItemSPtr item, m_channel->relatedItems(EspINA::OUT, Channel::LINK))
   {
     if (EspINA::SEGMENTATION == item->type())
@@ -198,11 +199,14 @@ void ChannelInspector::changeSpacing()
         origin[i] = origin[i]/oldSpacing[i]*spacing[i];
       seg->volume()->toITK()->SetOrigin(origin);
       seg->volume()->update();
+      seg->volume()->markAsModified(true);
+      updatedSegmentations << seg.data();
     }
   }
 
   m_channel->volume()->update();
   m_view->updateSceneBounds();  // needed to update thumbnail values without triggering volume()->markAsModified()
+  m_viewManager->updateSegmentationRepresentations(updatedSegmentations);
   m_view->resetCamera();
   m_spacingModified = false;
   applyButton->setEnabled(false);
