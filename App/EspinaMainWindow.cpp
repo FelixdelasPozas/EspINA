@@ -599,6 +599,8 @@ void EspinaMainWindow::closeEvent(QCloseEvent* event)
 //------------------------------------------------------------------------
 bool EspinaMainWindow::closeCurrentAnalysis()
 {
+  emit analysisClosed();
+
   if (m_model->hasChanged() || m_undoStack->index() != m_undoStackSavedIndex)
   {
     QMessageBox warning;
@@ -641,8 +643,6 @@ bool EspinaMainWindow::closeCurrentAnalysis()
   setWindowTitle(QString("EspINA Interactive Neuron Analyzer"));
 
   EspinaIO::removeTemporalDir();
-
-  emit analysisClosed();
 
   return true;
 }

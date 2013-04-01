@@ -373,6 +373,7 @@ void CountingFramePanel::updateUI(int row)
   if (row > RECTANGULAR)
   {
     m_gui->createCF->setIcon(QIcon(":/update-cr.svg"));
+    m_gui->createCF->setToolTip(tr("Update Counting Frame"));
     m_gui->deleteCF->setEnabled(true);
     m_gui->saveDescription->setEnabled(true);
 
@@ -387,6 +388,7 @@ void CountingFramePanel::updateUI(int row)
     m_activeCF = NULL;
 
     m_gui->createCF->setIcon(QIcon(":/create-cr.svg"));
+    m_gui->createCF->setToolTip(tr("Create Counting Frame"));
     m_gui->deleteCF->setEnabled(false);
     m_gui->saveDescription->setEnabled(false);
 
