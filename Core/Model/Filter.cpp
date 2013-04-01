@@ -16,17 +16,15 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+// EspINA
 #include "Filter.h"
 
-#include <itkImageAlgorithm.h>
-#include <itkImageRegionExclusionIteratorWithIndex.h>
-#include <itkImageRegionIteratorWithIndex.h>
+// ITK
 #include <itkMetaImageIO.h>
-#include <itkVTKImageToImageFilter.h>
 #include <itkImageFileWriter.h>
 #include <itkRegionOfInterestImageFilter.h>
 
+// VTK
 #include <vtkImplicitFunction.h>
 #include <vtkSmartPointer.h>
 #include <vtkPolyDataToImageStencil.h>
@@ -36,6 +34,7 @@
 #include <vtkCellArray.h>
 #include <vtkPolyData.h>
 
+// Qt
 #include <QDir>
 #include <QMessageBox>
 #include <QWidget>
@@ -282,6 +281,15 @@ void Filter::draw(OutputId oId,
   points->SetNumberOfPoints(count);
   vtkIdType numLines = count + 1;
 
+  // sliceposition should always be less or equal to slice parameter as it represents the
+  // extent*spacing position of the slice, this is so because the user could be drawing using
+  // "fit to slices" and round() will go to the upper integer if slice is greater than spacing/2.
+  // Floor() gives wrong values if extent*spacing = slice as it will give an smaller number, and
+  // I don't want to rely on static_cast<int>(number) to achieve the wanted effect.
+  double slicePosition = vtkMath::Round(slice/spacing[plane]) * spacing[plane];
+  if (slicePosition > slice)
+    slicePosition = vtkMath::Floor(slice/spacing[plane]) * spacing[plane];
+
   if (numLines > 0)
   {
     double pos[3];
@@ -289,28 +297,24 @@ void Filter::draw(OutputId oId,
 
     for (int i = 0; i < count; i++)
     {
-      double temporal;
       contour->GetPoint(i, pos);
       switch (plane)
       {
         case AXIAL:
-          pos[2] -= 0.5 * spacing[2];
           break;
         case CORONAL:
-          temporal = pos[1];
           pos[1] = pos[2];
-          pos[2] = temporal - 0.5 * spacing[1];
           break;
         case SAGITTAL:
-          temporal = pos[0];
           pos[0] = pos[1];
           pos[1] = pos[2];
-          pos[2] = temporal - 0.5 * spacing[0];
           break;
         default:
           Q_ASSERT(false);
           break;
       }
+      pos[2] = slicePosition;
+
       points->InsertPoint(index, pos);
       lineIndices[index] = index;
       index++;
@@ -330,13 +334,18 @@ void Filter::draw(OutputId oId,
 
   rotatedContour->Update();
 
-  int extent[6];
-  volume->extent(extent);
-  double temporal;
-  int temporalvalues[2];
+  int extent[6] = {
+      vtkMath::Round(bounds[0]/spacing[0]),
+      vtkMath::Round(bounds[1]/spacing[0]),
+      vtkMath::Round(bounds[2]/spacing[1]),
+      vtkMath::Round(bounds[3]/spacing[1]),
+      vtkMath::Round(bounds[4]/spacing[2]),
+      vtkMath::Round(bounds[5]/spacing[2])
+  };
 
   // extent and spacing should be changed because vtkPolyDataToImageStencil filter only works in XY plane
   // and we've rotated the contour to that plane
+  double temporal;
   switch(plane)
   {
     case AXIAL:
@@ -345,37 +354,32 @@ void Filter::draw(OutputId oId,
       temporal = spacing[1];
       spacing[1] = spacing[2];
       spacing[2] = temporal;
-      temporalvalues[0] = extent[2];
-      temporalvalues[1] = extent[3];
+
       extent[2] = extent[4];
       extent[3] = extent[5];
-      extent[4] = temporalvalues[0];
-      extent[5] = temporalvalues[1];
       break;
     case SAGITTAL:
       temporal = spacing[0];
       spacing[0] = spacing[1];
       spacing[1] = spacing[2];
       spacing[2] = temporal;
-      temporalvalues[0] = extent[0];
-      temporalvalues[1] = extent[1];
+
       extent[0] = extent[2];
       extent[1] = extent[3];
       extent[2] = extent[4];
       extent[3] = extent[5];
-      extent[4] = temporalvalues[0];
-      extent[5] = temporalvalues[1];
       break;
     default:
       Q_ASSERT(false);
       break;
   }
+  extent[4] = extent[5] = vtkMath::Round(slicePosition/spacing[2]);
 
   vtkSmartPointer<vtkPolyDataToImageStencil> polyDataToStencil = vtkSmartPointer<vtkPolyDataToImageStencil>::New();
   polyDataToStencil->SetInputConnection(rotatedContour->GetProducerPort());
   polyDataToStencil->SetOutputOrigin(0,0,0);
   polyDataToStencil->SetOutputSpacing(spacing[0], spacing[1], spacing[2]);
-  polyDataToStencil->SetOutputWholeExtent(extent[0], extent[1], extent[2], extent[3], vtkMath::Round(slice/spacing[2]), vtkMath::Round(slice/spacing[2]));
+  polyDataToStencil->SetOutputWholeExtent(extent[0], extent[1], extent[2], extent[3], extent[4], extent[5]);
   polyDataToStencil->SetTolerance(0);
 
   vtkSmartPointer<vtkImageStencilToImage> stencilToImage = vtkSmartPointer<vtkImageStencilToImage>::New();
@@ -383,83 +387,64 @@ void Filter::draw(OutputId oId,
   stencilToImage->SetOutputScalarTypeToUnsignedChar();
   stencilToImage->SetInsideValue(1);
   stencilToImage->SetOutsideValue(0);
+  stencilToImage->Update();
 
-  vtkSmartPointer<vtkImageExport> exporter = vtkSmartPointer<vtkImageExport>::New();
-  exporter->SetInputConnection(stencilToImage->GetOutputPort());
-
-  typedef itk::VTKImageToImageFilter<itkVolumeType> VTKImporterType;
-  VTKImporterType::Pointer importer = VTKImporterType::New();
-  importer->SetUpdateInformationCallback(exporter->GetUpdateInformationCallback());
-  importer->SetPipelineModifiedCallback(exporter->GetPipelineModifiedCallback());
-  importer->SetWholeExtentCallback(exporter->GetWholeExtentCallback());
-  importer->SetSpacingCallback(exporter->GetSpacingCallback());
-  importer->SetOriginCallback(exporter->GetOriginCallback());
-  importer->SetScalarTypeCallback(exporter->GetScalarTypeCallback());
-  importer->SetNumberOfComponentsCallback(exporter->GetNumberOfComponentsCallback());
-  importer->SetPropagateUpdateExtentCallback(exporter->GetPropagateUpdateExtentCallback());
-  importer->SetUpdateDataCallback(exporter->GetUpdateDataCallback());
-  importer->SetDataExtentCallback(exporter->GetDataExtentCallback());
-  importer->SetBufferPointerCallback(exporter->GetBufferPointerCallback());
-  importer->SetCallbackUserData(exporter->GetCallbackUserData());
-  importer->Update();
+  vtkImageData *outputImage = stencilToImage->GetOutput();
 
   // we have to check the image index to know if there is a discrepancy between bounds and index
   spacing = volume->toITK()->GetSpacing();
   itkVolumeType::IndexType temporalIndex = volume->toITK()->GetLargestPossibleRegion().GetIndex();
   volume->bounds(bounds);
   bool transformIndex = false;
-  if (bounds[0]/spacing[0] != temporalIndex[0] || bounds[2]/spacing[1] != temporalIndex[1] || bounds[4]/spacing[2] != temporalIndex[2])
+  if (vtkMath::Round(bounds[0]/spacing[0]) != temporalIndex[0] || vtkMath::Round(bounds[2]/spacing[1]) != temporalIndex[1] || vtkMath::Round(bounds[4]/spacing[2]) != temporalIndex[2])
   {
     transformIndex = true;
-    temporalIndex[0] = bounds[0]/spacing[0];
-    temporalIndex[1] = bounds[2]/spacing[1];
-    temporalIndex[2] = bounds[4]/spacing[2];
+    temporalIndex[0] = vtkMath::Round(bounds[0]/spacing[0]);
+    temporalIndex[1] = vtkMath::Round(bounds[2]/spacing[1]);
+    temporalIndex[2] = vtkMath::Round(bounds[4]/spacing[2]);
   }
 
   itk::Index<3> imageIndex;
-  itk::ImageRegionIteratorWithIndex<itkVolumeType> init(importer->GetOutput(), importer->GetOutput()->GetLargestPossibleRegion());
-  init.GoToBegin();
-  while(!init.IsAtEnd())
-  {
-    if (1 == init.Value())
-    {
-      int temporal;
-      imageIndex[0] = init.GetIndex()[0];
-      imageIndex[1] = init.GetIndex()[1];
-      imageIndex[2] = init.GetIndex()[2];
-
-      switch(plane)
+  unsigned char *pixel;
+  for (int x = extent[0]; x <= extent[1]; ++x)
+    for (int y = extent[2]; y <= extent[3]; ++y)
+      for (int z = extent[4]; z <= extent[5]; ++z)
       {
-        case AXIAL:
-          break;
-        case CORONAL:
-          temporal = imageIndex[2];
-          imageIndex[2] = imageIndex[1];
-          imageIndex[1] = temporal;
-          break;
-        case SAGITTAL:
-          temporal = imageIndex[2];
-          imageIndex[2] = imageIndex[1];
-          imageIndex[1] = imageIndex[0];
-          imageIndex[0] = temporal;
-          break;
-        default:
-          Q_ASSERT(false);
-          break;
+        switch(plane)
+        {
+          case AXIAL:
+            imageIndex[0] = x;
+            imageIndex[1] = y;
+            imageIndex[2] = z;
+            break;
+          case CORONAL:
+            imageIndex[0] = x;
+            imageIndex[1] = z;
+            imageIndex[2] = y;
+            break;
+          case SAGITTAL:
+            imageIndex[0] = z;
+            imageIndex[1] = x;
+            imageIndex[2] = y;
+            break;
+          default:
+            Q_ASSERT(false);
+            break;
+        }
+
+        if (transformIndex)
+        {
+          imageIndex[0] -= temporalIndex[0];
+          imageIndex[1] -= temporalIndex[1];
+          imageIndex[2] -= temporalIndex[2];
+        }
+
+        pixel = reinterpret_cast<unsigned char*>(outputImage->GetScalarPointer(x, y, z));
+        Q_ASSERT(volume->toITK()->GetLargestPossibleRegion().IsInside(imageIndex));
+        if (*pixel == 1)
+          volume->toITK()->SetPixel(imageIndex, value);
       }
 
-      if (transformIndex)
-      {
-        imageIndex[0] -= temporalIndex[0];
-        imageIndex[1] -= temporalIndex[1];
-        imageIndex[2] -= temporalIndex[2];
-      }
-
-      Q_ASSERT(volume->toITK()->GetLargestPossibleRegion().IsInside(imageIndex));
-      volume->toITK()->SetPixel(imageIndex, value);
-    }
-    ++init;
-  }
   volume->markAsModified(emitSignal);
 
   emit modified(this);

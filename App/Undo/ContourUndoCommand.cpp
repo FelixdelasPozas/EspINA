@@ -37,6 +37,7 @@ namespace EspINA
   , m_viewManager(vm)
   , m_needReduction(false)
   {
+    contour->ComputeBounds();
     contour->GetBounds(m_contourBounds);
   }
   
