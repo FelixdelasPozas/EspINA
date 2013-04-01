@@ -130,6 +130,9 @@ namespace EspINA
     void setContourMode(Brush::BrushMode mode);
     Brush::BrushMode getContourMode();
 
+    // used by the slice widget to set the mode of a previosly stored contour
+    void setActualContourMode(Brush::BrushMode mode);
+
   protected:
     vtkPlaneContourWidget();
     virtual ~vtkPlaneContourWidget();
@@ -181,7 +184,7 @@ namespace EspINA
     QColor m_polygonColor;
     ContourWidget *m_parent;
     Brush::BrushMode m_contourMode;
-    Brush::BrushMode m_nextContourMode;
+    Brush::BrushMode m_actualBrushMode;
   };
 
 } // namespace EspINA

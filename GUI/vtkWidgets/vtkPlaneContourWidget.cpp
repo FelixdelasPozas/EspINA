@@ -54,7 +54,7 @@ vtkPlaneContourWidget::vtkPlaneContourWidget()
 , m_polygonColor(Qt::black)
 , m_parent(NULL)
 , m_contourMode(Brush::BRUSH)
-, m_nextContourMode(Brush::BRUSH)
+, m_actualBrushMode(Brush::BRUSH)
 {
   this->ManagesCursor = 0; // from Superclass
   this->CreateDefaultRepresentation();
@@ -98,7 +98,7 @@ void vtkPlaneContourWidget::CreateDefaultRepresentation()
     ss->SetRadius(0.5);
     rep->SetActiveCursorShape(ss->GetOutput());
     ss->Delete();
-    switch (m_nextContourMode)
+    switch (m_actualBrushMode)
     {
       case Brush::BRUSH:
         rep->SetLineColor(0, 0, 1);
@@ -201,7 +201,7 @@ void vtkPlaneContourWidget::SelectAction(vtkAbstractWidget *w)
       self->AddNode();
 
       vtkPlaneContourRepresentationGlyph *repGlyph = reinterpret_cast<vtkPlaneContourRepresentationGlyph*>(self->WidgetRep);
-      switch(self->m_nextContourMode)
+      switch(self->m_actualBrushMode)
       {
         case Brush::BRUSH:
           repGlyph->SetLineColor(0,0,1);
@@ -213,7 +213,6 @@ void vtkPlaneContourWidget::SelectAction(vtkAbstractWidget *w)
           Q_ASSERT(false);
           break;
       }
-      self->m_contourMode = self->m_nextContourMode;
 
       // check if the cursor crosses the actual contour, if so then close the contour
       // and end defining
@@ -228,6 +227,7 @@ void vtkPlaneContourWidget::SelectAction(vtkAbstractWidget *w)
         self->WidgetState = vtkPlaneContourWidget::Manipulate;
         self->EventCallbackCommand->SetAbortFlag(1);
         self->InvokeEvent(vtkCommand::EndInteractionEvent, NULL);
+        self->m_contourMode = self->m_actualBrushMode;
         self->m_parent->endContourFromWidget();
       }
       else
@@ -354,6 +354,7 @@ void vtkPlaneContourWidget::AddFinalPointAction(vtkAbstractWidget *w)
     rep->NeedToRenderOff();
   }
 
+  self->m_contourMode = self->m_actualBrushMode;
   self->m_parent->endContourFromWidget();
 }
 
@@ -393,6 +394,7 @@ void vtkPlaneContourWidget::AddNode()
       this->Render();
       this->EventCallbackCommand->SetAbortFlag(1);
       this->InvokeEvent(vtkCommand::EndInteractionEvent, NULL);
+      this->m_contourMode = this->m_actualBrushMode;
       m_parent->endContourFromWidget();
       return;
     }
@@ -624,6 +626,7 @@ void vtkPlaneContourWidget::MoveAction(vtkAbstractWidget *w)
                 self->WidgetState = vtkPlaneContourWidget::Manipulate;
                 self->EventCallbackCommand->SetAbortFlag(1);
                 self->InvokeEvent(vtkCommand::EndInteractionEvent, NULL);
+                self->m_contourMode = self->m_actualBrushMode;
                 self->m_parent->endContourFromWidget();
                 return;
               }
@@ -737,11 +740,14 @@ void vtkPlaneContourWidget::Initialize(vtkPolyData * pd, int state)
     rep->Initialize(pd);
     this->WidgetState = vtkPlaneContourWidget::Manipulate;
     rep->UseContourPolygon(true);
+    this->m_contourMode = this->m_actualBrushMode;
     m_parent->endContourFromWidget();
   }
 
+  Brush::BrushMode brushMode = (pd == NULL) ? m_actualBrushMode : m_contourMode;
+
   vtkPlaneContourRepresentationGlyph *repGlyph = reinterpret_cast<vtkPlaneContourRepresentationGlyph*>(this->WidgetRep);
-  switch(m_nextContourMode)
+  switch(brushMode)
   {
     case Brush::BRUSH:
       repGlyph->SetLineColor(0,0,1);
@@ -758,7 +764,10 @@ void vtkPlaneContourWidget::Initialize(vtkPolyData * pd, int state)
   int Y = this->Interactor->GetEventPosition()[1];
   this->WidgetRep->ComputeInteractionState(X,Y);
   int wState = this->WidgetRep->GetInteractionState();
-  this->SetCursor(wState);
+  if (pd == NULL)
+    this->SetCursor(vtkPlaneContourRepresentation::Outside);
+  else
+    this->SetCursor(wState);
 }
 
 //----------------------------------------------------------------------------
@@ -905,14 +914,20 @@ QColor vtkPlaneContourWidget::getPolygonColor()
 }
 
 //----------------------------------------------------------------------------
+void vtkPlaneContourWidget::setActualContourMode(Brush::BrushMode mode)
+{
+  m_contourMode = mode;
+}
+
+//----------------------------------------------------------------------------
 void vtkPlaneContourWidget::setContourMode(Brush::BrushMode mode)
 {
-  m_nextContourMode = mode;
+  m_actualBrushMode = mode;
 
   if (this->WidgetState != vtkPlaneContourWidget::Manipulate)
   {
     vtkPlaneContourRepresentationGlyph *rep = reinterpret_cast<vtkPlaneContourRepresentationGlyph*>(this->WidgetRep);
-    switch(m_nextContourMode)
+    switch(m_actualBrushMode)
     {
       case Brush::BRUSH:
         rep->SetLineColor(0,0,1);
@@ -924,7 +939,6 @@ void vtkPlaneContourWidget::setContourMode(Brush::BrushMode mode)
         Q_ASSERT(false);
         break;
     }
-    m_contourMode = m_nextContourMode;
   }
 }
 

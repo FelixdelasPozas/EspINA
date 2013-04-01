@@ -41,6 +41,10 @@ class SliceContourWidget: public SliceWidget
     PlaneType              m_plane;
     Nm                     m_pos;
     vtkPlaneContourWidget *m_contourWidget;
+
+    vtkPolyData     *m_storedContour;
+    Nm               m_storedContourPosition;
+    Brush::BrushMode m_storedContourMode;
 };
 
 }// namespace EspINA

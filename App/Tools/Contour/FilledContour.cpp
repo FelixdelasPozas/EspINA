@@ -233,6 +233,10 @@ void FilledContour::rasterize(ContourWidget::ContourList list)
       SegmentationSList createdSegmentations;
       createdSegmentations << m_currentSeg;
       m_model->emitSegmentationAdded(createdSegmentations);
+
+      ViewManager::Selection selectedSegmentations;
+      selectedSegmentations << pickableItemPtr(m_currentSeg.data());
+      m_viewManager->setSelection(selectedSegmentations);
     }
     else
     {

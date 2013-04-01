@@ -24,6 +24,9 @@ SliceContourWidget::SliceContourWidget(vtkPlaneContourWidget* widget)
 , m_plane(AXIAL)
 , m_pos(0)
 , m_contourWidget(widget)
+, m_storedContour(NULL)
+, m_storedContourPosition(-1)
+, m_storedContourMode(Brush::BRUSH)
 {
 }
 
@@ -31,6 +34,9 @@ SliceContourWidget::SliceContourWidget(vtkPlaneContourWidget* widget)
 SliceContourWidget::~SliceContourWidget()
 {
   m_contourWidget->Delete();
+
+  if (m_storedContour != NULL)
+    m_storedContour->Delete();
 }
 
 //-----------------------------------------------------------------------------
@@ -47,6 +53,31 @@ void SliceContourWidget::setSlice(Nm pos, PlaneType plane)
   {
     if (plane != m_plane || pos == m_pos)
       return;
+
+    if ((m_storedContour != NULL) && (m_storedContourPosition == pos))
+    {
+      m_contourWidget->setActualContourMode(m_storedContourMode);
+      m_contourWidget->Initialize(m_storedContour);
+
+      m_storedContour->Delete();
+      m_storedContour = NULL;
+      m_storedContourPosition = -1;
+    }
+    else
+    {
+      vtkPlaneContourRepresentationGlyph *rep = reinterpret_cast<vtkPlaneContourRepresentationGlyph*>(this->m_widget->GetRepresentation());
+      if ((rep->GetContourRepresentationAsPolyData()->GetPoints()->GetNumberOfPoints() != 0) && rep->GetClosedLoop())
+      {
+        Q_ASSERT(m_storedContour == NULL);
+
+        m_storedContour = vtkPolyData::New();
+        m_storedContour->DeepCopy(rep->GetContourRepresentationAsPolyData());
+        m_storedContourPosition = m_pos;
+        m_storedContourMode = m_contourWidget->getContourMode();
+      }
+
+      m_contourWidget->Initialize(NULL);
+    }
 
     m_pos = pos;
   }
@@ -72,12 +103,32 @@ QPair<Brush::BrushMode, vtkPolyData *> SliceContourWidget::getContour()
     {
       double coords[3];
       contourPoints->GetPoint(ndx, coords);
-      coords[this->m_contourWidget->GetOrientation()] = m_pos;
+      coords[m_contourWidget->GetOrientation()] = m_pos;
       contourPoints->SetPoint(ndx, coords);
     }
 
     result.first = m_contourWidget->getContourMode();
     result.second = contour;
+  }
+  else
+  {
+    if (m_storedContour != NULL)
+    {
+      // points in the contour must be corrected according to slice.
+      vtkPoints* contourPoints = m_storedContour->GetPoints();
+      for (int ndx = 0; ndx < contourPoints->GetNumberOfPoints(); ndx++)
+      {
+        double coords[3];
+        contourPoints->GetPoint(ndx, coords);
+        coords[m_contourWidget->GetOrientation()] = m_storedContourPosition;
+        contourPoints->SetPoint(ndx, coords);
+      }
+
+      result.first = m_storedContourMode;
+      result.second = m_storedContour;
+
+      m_storedContour = NULL;
+    }
   }
 
   return result;
