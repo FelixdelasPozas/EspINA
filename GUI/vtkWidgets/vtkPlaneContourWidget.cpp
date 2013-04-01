@@ -98,18 +98,6 @@ void vtkPlaneContourWidget::CreateDefaultRepresentation()
     ss->SetRadius(0.5);
     rep->SetActiveCursorShape(ss->GetOutput());
     ss->Delete();
-    switch (m_actualBrushMode)
-    {
-      case Brush::BRUSH:
-        rep->SetLineColor(0, 0, 1);
-        break;
-      case Brush::ERASER:
-        rep->SetLineColor(1, 0, 0);
-        break;
-      default:
-        Q_ASSERT(false);
-        break;
-    }
 
     vtkProperty *property = vtkProperty::SafeDownCast(rep->GetActiveProperty());
     if (property)
@@ -723,6 +711,7 @@ void vtkPlaneContourWidget::Initialize(vtkPolyData * pd, int state)
   vtkPlaneContourRepresentation *rep = reinterpret_cast<vtkPlaneContourRepresentation*>(this->WidgetRep);
   rep->UseContourPolygon(false);
 
+  Brush::BrushMode brushMode;
   if (pd == NULL)
   {
     while (rep->DeleteLastNode())
@@ -734,17 +723,16 @@ void vtkPlaneContourWidget::Initialize(vtkPolyData * pd, int state)
     rep->NeedToRenderOff();
     rep->VisibilityOff();
     this->WidgetState = vtkPlaneContourWidget::Start;
+    brushMode = m_actualBrushMode;
   }
   else
   {
     rep->Initialize(pd);
     this->WidgetState = vtkPlaneContourWidget::Manipulate;
     rep->UseContourPolygon(true);
-    this->m_contourMode = this->m_actualBrushMode;
     m_parent->endContourFromWidget();
+    brushMode = m_contourMode;
   }
-
-  Brush::BrushMode brushMode = (pd == NULL) ? m_actualBrushMode : m_contourMode;
 
   vtkPlaneContourRepresentationGlyph *repGlyph = reinterpret_cast<vtkPlaneContourRepresentationGlyph*>(this->WidgetRep);
   switch(brushMode)
