@@ -57,9 +57,9 @@ AppositionSurface::AppositionSurface()
 //-----------------------------------------------------------------------------
 AppositionSurface::~AppositionSurface()
 {
-  qDebug() << "********************************************************";
-  qDebug() << "              Destroying Apposition Surface Plugin";
-  qDebug() << "********************************************************";
+//   qDebug() << "********************************************************";
+//   qDebug() << "              Destroying Apposition Surface Plugin";
+//   qDebug() << "********************************************************";
   m_factory->unregisterSettingsPanel(m_settings.data());
   m_factory->unregisterSegmentationExtension(m_extension.data());
   // filters can't be unregistered, is this a problem?

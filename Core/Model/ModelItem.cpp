@@ -116,7 +116,7 @@ QString ModelItem::Arguments::hash() const
 //------------------------------------------------------------------------
 ModelItem::~ModelItem()
 {
-  qDebug() << "Destruyendo ModelItem";
+//   qDebug() << "Destroying ModelItem";
 }
 
 //------------------------------------------------------------------------

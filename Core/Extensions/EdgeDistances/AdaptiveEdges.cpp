@@ -293,7 +293,7 @@ void AdaptiveEdges::invalidate(ChannelPtr channel)
 
   if (s_cache.isCached(channel))
   {
-    qDebug() << "Invalidate" << channel->data().toString();
+    //qDebug() << "Invalidate" << channel->data().toString();
     s_cache.markAsDirty(channel);
   }
 }

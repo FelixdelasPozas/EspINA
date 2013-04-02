@@ -37,7 +37,7 @@ TaxonomyElement::TaxonomyElement(TaxonomyElementPtr parent,
 //------------------------------------------------------------------------
 TaxonomyElement::~TaxonomyElement()
 {
-  qDebug() << "Destroy node " << m_name;
+//   qDebug() << "Destroy node " << m_name;
 }
 
 //------------------------------------------------------------------------
@@ -246,7 +246,7 @@ Taxonomy::Taxonomy()
 //-----------------------------------------------------------------------------
 Taxonomy::~Taxonomy()
 {
-  qDebug() << "Destroy taxonomy";
+//   qDebug() << "Destroy taxonomy";
 }
 
 //-----------------------------------------------------------------------------

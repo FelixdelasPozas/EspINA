@@ -22,10 +22,10 @@
      <widget class="QWidget" name="scrollAreaWidgetContents">
       <property name="geometry">
        <rect>
-        <x>-22</x>
+        <x>0</x>
         <y>0</y>
-        <width>282</width>
-        <height>721</height>
+        <width>268</width>
+        <height>728</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
@@ -441,6 +441,9 @@
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
+         </property>
+         <property name="readOnly">
+          <bool>true</bool>
          </property>
         </widget>
        </item>

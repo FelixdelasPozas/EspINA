@@ -45,12 +45,16 @@ namespace EspINA
     explicit Add##TYPE##Command(TYPE##SPtr item,           \
                               EspinaModel   *model,        \
                               QUndoCommand  *parent = 0)   \
-    : m_model(model) { m_items << item; }                  \
+    : QUndoCommand(parent)                                 \
+    , m_model(model)                                       \
+    { m_items << item; }                                   \
                                                            \
     explicit Add##TYPE##Command(TYPE##SList items,         \
                               EspinaModel    *model,       \
                               QUndoCommand   *parent = 0)  \
-    : m_model(model), m_items(items) {}                    \
+    : QUndoCommand(parent)                                 \
+    , m_model(model)                                       \
+    , m_items(items) {}                                    \
                                                            \
     virtual void redo()                                    \
     { m_model->add##TYPE(m_items); }                       \
@@ -72,12 +76,16 @@ namespace EspINA
     explicit Remove##TYPE##Command(TYPE##SPtr item,        \
                               EspinaModel   *model,        \
                               QUndoCommand  *parent = 0)   \
-    : m_model(model) { m_items << item; }                  \
+    : QUndoCommand(parent)                                 \
+    , m_model(model)                                       \
+    { m_items << item; }                                   \
                                                            \
     explicit Remove##TYPE##Command(TYPE##SList items,      \
                               EspinaModel    *model,       \
                               QUndoCommand   *parent = 0)  \
-    : m_model(model), m_items(items) {}                    \
+    : QUndoCommand(parent)                                 \
+    , m_model(model)                                       \
+    , m_items(items) {}                                    \
                                                            \
     virtual void redo()                                    \
     {                                                      \

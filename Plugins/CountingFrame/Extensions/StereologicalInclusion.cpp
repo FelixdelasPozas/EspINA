@@ -56,7 +56,7 @@ StereologicalInclusion::~StereologicalInclusion()
 {
   if (m_segmentation)
   {
-    qDebug() << "Deleting" << m_segmentation->data().toString() << StereologicalInclusionID;
+    //qDebug() << "Deleting" << m_segmentation->data().toString() << StereologicalInclusionID;
     invalidate(m_segmentation);
   }
 }

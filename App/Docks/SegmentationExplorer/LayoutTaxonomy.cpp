@@ -154,7 +154,7 @@ TaxonomyLayout::TaxonomyLayout(CheckableTreeView     *view,
 //------------------------------------------------------------------------
 TaxonomyLayout::~TaxonomyLayout()
 {
-  qDebug() << "Destroying Taxonomy Layout";
+//   qDebug() << "Destroying Taxonomy Layout";
 }
 
 //------------------------------------------------------------------------

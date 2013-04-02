@@ -103,7 +103,7 @@ namespace EspINA
                              const QString &RGBColor = DEFAULT_TAXONOMY_COLOR );
 
   private:
-    TaxonomyElementPtr         m_parent; // Parent node can't be a shared pointer to avoid circular dependencies
+    TaxonomyElementPtr    m_parent; // Parent node can't be a shared pointer to avoid circular dependencies
     TaxonomyElementSList  m_elements;
 
     QString m_name;

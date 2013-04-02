@@ -51,7 +51,7 @@ TaxonomyProxy::TaxonomyProxy(QObject* parent)
 //------------------------------------------------------------------------
 TaxonomyProxy::~TaxonomyProxy()
 {
-  qDebug() << "Destroying Taxonomy Proxy";
+//   qDebug() << "Destroying Taxonomy Proxy";
 }
 
 //------------------------------------------------------------------------

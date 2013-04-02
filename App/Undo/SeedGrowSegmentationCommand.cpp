@@ -106,7 +106,7 @@ SeedGrowSegmentationCommand::SeedGrowSegmentationCommand(ChannelPtr             
 //-----------------------------------------------------------------------------
 SeedGrowSegmentationCommand::~SeedGrowSegmentationCommand()
 {
-  qDebug() << ">>>>    Destroying SeedGrowSegmentationCommand   <<<<<<<";
+  //qDebug() << ">>>>    Destroying SeedGrowSegmentationCommand   <<<<<<<";
 }
 
 //-----------------------------------------------------------------------------

@@ -54,7 +54,7 @@ CompositionLayout::CompositionLayout(CheckableTreeView *view,
 //------------------------------------------------------------------------
 CompositionLayout::~CompositionLayout()
 {
-  qDebug() << "Destroying Composition Layout";
+//   qDebug() << "Destroying Composition Layout";
 }
 
 //------------------------------------------------------------------------

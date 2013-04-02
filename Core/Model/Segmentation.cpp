@@ -97,7 +97,7 @@ void Segmentation::changeFilter(FilterSPtr filter, const Filter::OutputId &oId)
 //------------------------------------------------------------------------
 Segmentation::~Segmentation()
 {
-  qDebug() << data().toString() << ": Destructor";
+  //qDebug() << data().toString() << ": Destructor";
   foreach(InformationExtension extension, m_informationExtensions)
     delete extension;
 }

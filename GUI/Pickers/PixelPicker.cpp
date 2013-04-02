@@ -249,7 +249,6 @@ double *BestPixelPicker::getPickPoint(EspinaRenderView *view)
   itk::ImageRegionConstIterator<itkVolumeType> it(channelVol,region);
   it.GoToBegin();
 
-  unsigned char pixelValue;
   unsigned char bestValue = abs(it.Get() - m_bestPixel);
   itkVolumeType::IndexType bestPixelIndex = it.GetIndex();
   double bestPoint[3] = { bestPixelIndex[0]*spacing[0], bestPixelIndex[1]*spacing[1], bestPixelIndex[2]*spacing[2] };
@@ -257,7 +256,7 @@ double *BestPixelPicker::getPickPoint(EspinaRenderView *view)
 
   while (!it.IsAtEnd())
   {
-    pixelValue = abs(it.Get()-m_bestPixel);
+    unsigned char pixelValue = abs(it.Get()-m_bestPixel);
     if (pixelValue < bestValue)
     {
       bestValue = pixelValue;

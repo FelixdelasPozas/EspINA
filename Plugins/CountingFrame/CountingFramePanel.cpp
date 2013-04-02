@@ -172,9 +172,9 @@ CountingFramePanel::CountingFramePanel(QWidget * parent)
 //------------------------------------------------------------------------
 CountingFramePanel::~CountingFramePanel()
 {
-  qDebug() << "********************************************************";
-  qDebug() << "              Destroying Counting Frame Panel Plugin";
-  qDebug() << "********************************************************";
+//   qDebug() << "********************************************************";
+//   qDebug() << "              Destroying Counting Frame Panel Plugin";
+//   qDebug() << "********************************************************";
   clearCountingFrames();
 }
 

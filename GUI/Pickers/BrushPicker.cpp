@@ -395,8 +395,6 @@ void BrushPicker::startPreview(EspinaRenderView* view)
     else
       segExtent[4] = segExtent[5] = extent[4];
 
-    unsigned char *previewPixel;
-    itkVolumeType::IndexType index;
 
     // segmentations loaded from disk can have an origin != (0,0,0) that messes with the preview
     // and must be corrected. That means 3 ops more per loop and 3 more vars. If corrected before
@@ -407,11 +405,12 @@ void BrushPicker::startPreview(EspinaRenderView* view)
       for (int y = segExtent[2]; y <= segExtent[3]; ++y)
         for (int z = segExtent[4]; z <= segExtent[5]; ++z)
         {
+          itkVolumeType::IndexType index;
           index[0] = x - origin[0];
           index[1] = y - origin[1];
           index[2] = z - origin[2];
 
-          previewPixel = reinterpret_cast<unsigned char *>(m_preview->GetScalarPointer(x,y,z));
+          unsigned char *previewPixel = reinterpret_cast<unsigned char *>(m_preview->GetScalarPointer(x,y,z));
           *previewPixel = m_segmentation->volume()->toITK()->GetPixel(index);
         }
   }

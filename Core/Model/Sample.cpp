@@ -51,7 +51,7 @@ Sample::Sample(const QString &id, const QString &args)
 //------------------------------------------------------------------------
 Sample::~Sample()
 {
-  qDebug() << data().toString() << ": Destructor";
+//   qDebug() << data().toString() << ": Destructor";
 }
 
 //------------------------------------------------------------------------

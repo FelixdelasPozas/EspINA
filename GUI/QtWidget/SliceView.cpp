@@ -212,9 +212,9 @@ SliceView::SliceView(ViewManager* vm, PlaneType plane, QWidget* parent)
 //-----------------------------------------------------------------------------
 SliceView::~SliceView()
 {
-  qDebug() << "********************************************************";
-  qDebug() << "              Destroying Slice View" << m_plane;
-  qDebug() << "********************************************************";
+//   qDebug() << "********************************************************";
+//   qDebug() << "              Destroying Slice View" << m_plane;
+//   qDebug() << "********************************************************";
   m_viewManager->unregisterView(this);
 
   m_slicingMatrix->Delete();

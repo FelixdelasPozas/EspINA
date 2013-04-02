@@ -110,7 +110,7 @@ DefaultEspinaView::DefaultEspinaView(EspinaModel *model,
 //-----------------------------------------------------------------------------
 DefaultEspinaView::~DefaultEspinaView()
 {
-  qDebug() << "Destroy Default EspINA View";
+//   qDebug() << "Destroy Default EspINA View";
 }
 
 //-----------------------------------------------------------------------------

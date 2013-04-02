@@ -47,7 +47,7 @@ EspinaFactory::EspinaFactory()
 //------------------------------------------------------------------------
 EspinaFactory::~EspinaFactory()
 {
-  qDebug() << "Destroying Espina Factory";
+//   qDebug() << "Destroying Espina Factory";
 }
 
 //------------------------------------------------------------------------

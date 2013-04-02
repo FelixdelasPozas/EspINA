@@ -386,9 +386,9 @@ EspinaMainWindow::EspinaMainWindow(EspinaModel      *model,
 //------------------------------------------------------------------------
 EspinaMainWindow::~EspinaMainWindow()
 {
-  qDebug() << "********************************************************";
-  qDebug() << "              Destroying Main Window";
-  qDebug() << "********************************************************";
+//   qDebug() << "********************************************************";
+//   qDebug() << "              Destroying Main Window";
+//   qDebug() << "********************************************************";
 
   foreach(IRendererSPtr renderer, m_defaultRenderers)
     m_model->factory()->unregisterRenderer(renderer.data());
@@ -471,10 +471,10 @@ void EspinaMainWindow::createActivityMenu()
   QMenu *activityMenu = new QMenu(tr("acceptmodeActivity"));
   menuBar()->addMenu(activityMenu);
 
-  QAction *analyse = new QAction(tr("Analyze"),activityMenu);
-  activityMenu->addAction(analyse);
-  sigMapper->setMapping(analyse,QString("analyze"));
-  connect(analyse,SIGNAL(triggered(bool)), sigMapper, SLOT(map()));
+  QAction *analyze = new QAction(tr("Analyze"),activityMenu);
+  activityMenu->addAction(analyze);
+  sigMapper->setMapping(analyze,QString("analyze"));
+  connect(analyze,SIGNAL(triggered(bool)), sigMapper, SLOT(map()));
   
   QAction *reload = new QAction(tr("Reload"),activityMenu);
   activityMenu->addAction(reload);
@@ -712,7 +712,7 @@ void EspinaMainWindow::openAnalysis(const QFileInfo file)
       m_recentDocuments1.removeDocument(file.absoluteFilePath());
       m_recentDocuments2.updateDocumentList();
     }
-    // NOTE: avoid triggering the save dialog in closeCurrentAnalysis()
+    // NOTE: avoid triggering the save dialog at closeCurrentAnalysis()
     // as this is an incomplete load and the model is inconsistent
     m_model->markAsSaved();
 
@@ -849,6 +849,10 @@ void EspinaMainWindow::addRecentToAnalysis()
 //------------------------------------------------------------------------
 void EspinaMainWindow::addFileToAnalysis(const QFileInfo file)
 {
+  // Prevent loading seg files from recent files until multiple seg analysis is fully supported
+  if (!EspinaIO::isChannelExtension(file.suffix()))
+    return;
+
   QApplication::setOverrideCursor(Qt::WaitCursor);
   QElapsedTimer timer;
   timer.start();

@@ -105,7 +105,7 @@ int main(int argc, char **argv)
     factory.unregisterChannelExtension     (&adaptiveEdgesExtension);
   }
 
-  qDebug() << "\nUnloading Plugins: \n";
+//   qDebug() << "\nUnloading Plugins: \n";
   foreach(QPluginLoader *plugin, loaders)
   {
     plugin->unload();

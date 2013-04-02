@@ -60,7 +60,7 @@ LocationLayout::LocationLayout(CheckableTreeView *view,
 //------------------------------------------------------------------------
 LocationLayout::~LocationLayout()
 {
-  qDebug() << "Destroying Sample Layout";
+//   qDebug() << "Destroying Sample Layout";
 }
 
 //------------------------------------------------------------------------

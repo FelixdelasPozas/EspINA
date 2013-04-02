@@ -18,6 +18,7 @@
 
 
 #include "RecentDocuments.h"
+#include <Core/EspinaSettings.h>
 
 #include <QAction>
 #include <QSettings>
@@ -34,7 +35,7 @@ RecentDocuments::RecentDocuments()
 //------------------------------------------------------------------------
 RecentDocuments::~RecentDocuments()
 {
-  QSettings settings("CeSViMa", "EspINA");
+  QSettings settings(CESVIMA, ESPINA);
   settings.setValue("recentFileList", m_recentDocuments);
   settings.sync();
 }
@@ -52,7 +53,7 @@ void RecentDocuments::addDocument(QString path)
 
   updateActions();
 
-  QSettings settings("CeSViMa", "EspINA");
+  QSettings settings(CESVIMA, ESPINA);
   settings.setValue("recentFileList", m_recentDocuments);
   settings.sync();
 }
@@ -65,7 +66,7 @@ void RecentDocuments::removeDocument(QString path)
 
   updateActions();
 
-  QSettings settings("CeSViMa", "EspINA");
+  QSettings settings(CESVIMA, ESPINA);
   settings.setValue("recentFileList", m_recentDocuments);
   settings.sync();
 }
@@ -90,7 +91,7 @@ void RecentDocuments::updateActions()
 //------------------------------------------------------------------------
 void RecentDocuments::updateDocumentList()
 {
-  QSettings settings("CeSViMa", "EspINA");
+  QSettings settings(CESVIMA, ESPINA);
 
   if (settings.contains("recentFileList"))
     m_recentDocuments = settings.value("recentFileList").toStringList();

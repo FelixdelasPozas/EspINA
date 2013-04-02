@@ -198,11 +198,9 @@ void TabularReport::reset()
 //------------------------------------------------------------------------
 void TabularReport::indexDoubleClicked(QModelIndex index)
 {
-  return;
   QModelIndex sourceIndex = mapToSource(index);
 
-  QAbstractProxyModel *proxyModel = dynamic_cast<QAbstractProxyModel *>(model());
-  ModelItemPtr sItem = indexPtr(proxyModel->mapToSource(sourceIndex));
+  ModelItemPtr sItem = indexPtr(sourceIndex);
   SegmentationPtr segmentation = segmentationPtr(sItem);
 
   double bounds[6];

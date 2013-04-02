@@ -67,7 +67,7 @@ Channel::Channel(FilterSPtr filter, Filter::OutputId oId)
 //-----------------------------------------------------------------------------
 Channel::~Channel()
 {
-  qDebug() << data().toString() << ": Destructor";
+  //qDebug() << data().toString() << ": Destructor";
   // Extensions may need access channel's information
   foreach(ExtensionPtr extension, m_extensions)
   {

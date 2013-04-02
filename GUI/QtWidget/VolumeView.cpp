@@ -94,9 +94,9 @@ VolumeView::VolumeView(const EspinaFactory *factory,
 //-----------------------------------------------------------------------------
 VolumeView::~VolumeView()
 {
-  qDebug() << "********************************************************";
-  qDebug() << "              Destroying Volume View";
-  qDebug() << "********************************************************";
+//   qDebug() << "********************************************************";
+//   qDebug() << "              Destroying Volume View";
+//   qDebug() << "********************************************************";
   m_viewManager->unregisterView(this);
 }
 

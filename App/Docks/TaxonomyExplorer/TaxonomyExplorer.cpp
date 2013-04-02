@@ -78,7 +78,7 @@ TaxonomyExplorer::TaxonomyExplorer(EspinaModel *model,
 //------------------------------------------------------------------------
 TaxonomyExplorer::~TaxonomyExplorer()
 {
-  qDebug() << "Destroy TaxExplorer";
+//   qDebug() << "Destroy TaxExplorer";
   delete m_gui;
 }
 

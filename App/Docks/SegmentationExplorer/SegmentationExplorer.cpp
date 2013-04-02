@@ -125,9 +125,9 @@ SegmentationExplorer::SegmentationExplorer(EspinaModel *model,
 //------------------------------------------------------------------------
 SegmentationExplorer::~SegmentationExplorer()
 {
-  qDebug() << "********************************************************";
-  qDebug() << "          Destroying Segmentation Explorer";
-  qDebug() << "********************************************************";
+//   qDebug() << "********************************************************";
+//   qDebug() << "          Destroying Segmentation Explorer";
+//   qDebug() << "********************************************************";
   foreach(Layout *layout, m_layouts)
     delete layout;
 }

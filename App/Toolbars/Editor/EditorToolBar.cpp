@@ -257,9 +257,9 @@ EditorToolBar::EditorToolBar(EspinaModel *model,
 //----------------------------------------------------------------------------
 EditorToolBar::~EditorToolBar()
 {
-  qDebug() << "********************************************************";
-  qDebug() << "              Destroying Editor ToolbBar";
-  qDebug() << "********************************************************";
+//   qDebug() << "********************************************************";
+//   qDebug() << "              Destroying Editor ToolbBar";
+//   qDebug() << "********************************************************";
   delete m_settings;
 }
 
