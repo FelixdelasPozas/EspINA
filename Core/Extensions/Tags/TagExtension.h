@@ -62,6 +62,8 @@ namespace EspINA
     explicit SegmentationTags();
     virtual ~SegmentationTags();
 
+    static SegmentationTags *extension(SegmentationPtr segmentation);
+
     virtual Segmentation::ExtId id();
 
     virtual Segmentation::ExtIdList dependencies() const

@@ -26,39 +26,38 @@
 */
 
 
-#include "NoteEditor.h"
+#include "TagSelector.h"
 
-#include <ui_NoteEditor.h>
+#include <ui_TagSelector.h>
+#include <Core/Extensions/Tags/TagExtension.h>
 
 #include <QFileDialog>
+#include <qinputdialog.h>
 #include <QTextStream>
 
 using namespace EspINA;
 
-class NoteEditor::GUI
-: public  Ui::NoteEditor
+class TagSelector::GUI
+: public  Ui::TagSelector
 {
 };
 
 //----------------------------------------------------------------------------
-NoteEditor::NoteEditor(const QString &title,
-                       const QString &text,
-                       QWidget *parent,
-                       Qt::WindowFlags f)
+TagSelector::TagSelector(const QString &title,
+                         QStandardItemModel &tags,
+                         QWidget *parent,
+                         Qt::WindowFlags f)
 : QDialog(parent, f)
 , m_gui(new GUI())
 {
   m_gui->setupUi(this);
 
-  setWindowTitle(tr("%1 Notes").arg(title));
-  setWindowIcon(QIcon(":/espina/note.png"));
+  setWindowTitle(tr("%1 Tags").arg(title));
+  setWindowIcon(QIcon(":/espina/tag.svg"));
 
-  m_gui->textEdit->setText(text);
-
-  QIcon saveIcon = qApp->style()->standardIcon(QStyle::SP_DialogSaveButton);
-  m_gui->saveButton->setIcon(saveIcon);
-  connect(m_gui->saveButton, SIGNAL(clicked(bool)),
-          this, SLOT(exportNote()));
+  m_gui->tagList->setModel(&tags);
+  connect(m_gui->createTagButton, SIGNAL(clicked(bool)),
+          this, SLOT(createTag()));
 
   connect(m_gui->acceptChanges, SIGNAL(clicked(bool)),
           this, SLOT(accept()));
@@ -67,31 +66,22 @@ NoteEditor::NoteEditor(const QString &title,
 }
 
 //----------------------------------------------------------------------------
-NoteEditor::~NoteEditor()
+TagSelector::~TagSelector()
 {
   delete m_gui;
 }
 
 //----------------------------------------------------------------------------
-QString NoteEditor::text()
+void TagSelector::createTag()
 {
-  return m_gui->textEdit->document()->toPlainText();
-}
-
-//----------------------------------------------------------------------------
-void NoteEditor::exportNote()
-{
-  QString fileName = QFileDialog::getSaveFileName(this,
-                                                  tr("Export %1").arg(windowTitle()),
-                                                  QString("%1.txt").arg(windowTitle()),
-                                                  tr("Text File (*.txt)"));
-  if (fileName.isEmpty())
-    return;
-
-  QFile file(fileName);
-  file.open(QIODevice::WriteOnly |  QIODevice::Text);
-  QTextStream out(&file);
-
-  out << m_gui->textEdit->toPlainText();
-  file.close();
+  bool ok;
+  QString rawTags = QInputDialog::getText(this,
+                                          tr("Tag Manager"),
+                                          tr("Introduce tags. Use comma to separate multiple tags"),
+                                          QLineEdit::Normal,
+                                          "",
+                                          &ok);
+  if (ok)
+  {
+  }
 }

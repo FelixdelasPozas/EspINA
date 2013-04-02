@@ -1,6 +1,8 @@
 <RCC>
   <qresource prefix="/espina">
     <file>note.png</file>
+    <file>tag.svg</file>
+    <file>newTag.svg</file>
     <file>cajalbbp.svg</file>
     <file>cesvima.svg</file>
     <file>upm.gif</file>

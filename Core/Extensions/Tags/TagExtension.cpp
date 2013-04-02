@@ -56,6 +56,12 @@ SegmentationTags::~SegmentationTags()
 }
 
 //------------------------------------------------------------------------
+SegmentationTags *SegmentationTags::extension(SegmentationPtr segmentation)
+{
+  return dynamic_cast<SegmentationTags *>(segmentation->informationExtension(SegmentationTagsID));
+}
+
+//------------------------------------------------------------------------
 ModelItem::ExtId SegmentationTags::id()
 {
   return SegmentationTagsID;
@@ -125,7 +131,7 @@ void SegmentationTags::loadCache(QuaZipFile &file, const QDir &tmpDir, IEspinaMo
         ExtensionData &data = s_cache[extensionSegmentation].Data;
         for (int t = 2; t < fields.size(); ++t)
         {
-          data.Tags << fields[t].trimmed();
+          data.Tags << fields[t].trimmed().toLower();
         }
       }
     }

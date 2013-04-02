@@ -19,6 +19,7 @@
 
 #include "SegmentationContextualMenu.h"
 #include "NoteEditor.h"
+#include "TagSelector.h"
 #include <GUI/ViewManager.h>
 
 #include <Core/Model/EspinaModel.h>
@@ -38,6 +39,7 @@
 #include <QStringListModel>
 #include <QListView>
 #include <qinputdialog.h>
+#include <QStandardItemModel>
 
 using namespace EspINA;
 
@@ -189,28 +191,62 @@ void SegmentationContextualMenu::manageTags()
   if (!m_segmentations.isEmpty())
   {
     m_undoStack->beginMacro("Change Segmentation Tags");
-  }
 
-  foreach (SegmentationPtr segmentation, m_segmentations)
-  {
-    SegmentationTags *tagExtension = dynamic_cast<SegmentationTags *>(segmentation->informationExtension(SegmentationTagsID));
+    QString title = m_segmentations[0]->data().toString();
+    if (m_segmentations.size() > 1)
+      title.append(", " + m_segmentations[1]->data().toString());
+    if (m_segmentations.size() > 2)
+      title.append(", ...");
 
-    bool ok;
-    QString rawTags = QInputDialog::getText(this,
-                                            tr("Tag Manager"),
-                                            tr("Introduce tags. Use comma to separate multiple tags"),
-                                            QLineEdit::Normal,
-                                            tagExtension->tags().join(","),
-                                            &ok);
-    if (ok)
+    QStandardItemModel tags;
+    foreach (QString tag, SegmentationTags::TagModel.stringList())
     {
-      QStringList tags = rawTags.split(",", QString::SkipEmptyParts);
-      m_undoStack->push(new ChangeSegmentationTags(tagExtension, tags));
-    }
-  }
+      QStandardItem *item = new QStandardItem(tag.toLower());
 
-  if (!m_segmentations.isEmpty())
-  {
+      SegmentationTags *tagExtension = SegmentationTags::extension(m_segmentations[0]);
+
+      bool checked = tagExtension->tags().contains(tag);
+      Qt::CheckState checkState = checked?Qt::Checked:Qt::Unchecked;
+
+      int i = 1;
+      while (checkState != Qt::PartiallyChecked && i < m_segmentations.size())
+      {
+        tagExtension = SegmentationTags::extension(m_segmentations[i]);
+        if (checked != tagExtension->tags().contains(tag))
+          checkState = Qt::PartiallyChecked;
+        i++;
+      }
+
+      item->setCheckState(checkState);
+      item->setCheckable(true);
+
+      tags.appendRow(item);
+    }
+
+    TagSelector tagSelector(title, tags);
+    if (tagSelector.exec())
+    {
+      foreach (SegmentationPtr segmentation, m_segmentations)
+      {
+        SegmentationTags *tagExtension = SegmentationTags::extension(segmentation);
+        QStringList segTags = tagExtension->tags();
+
+        for (int r = 0; r < tags.rowCount(); ++r)
+        {
+          QStandardItem *item = tags.item(r);
+          if (Qt::Checked == item->checkState())
+          {
+            if (!segTags.contains(item->text()))
+              segTags << item->text();
+          } else if (Qt::Unchecked == item->checkState())
+          {
+            segTags.removeAll(item->text());
+          }
+        }
+        m_undoStack->push(new ChangeSegmentationTags(tagExtension, segTags));
+      }
+    }
+
     m_undoStack->endMacro();
   }
 }
@@ -242,9 +278,9 @@ void SegmentationContextualMenu::setSelection(SegmentationList list)
 //------------------------------------------------------------------------
 void SegmentationContextualMenu::createNoteEntry()
 {
-  QAction *addNoteAction = addAction(tr("Notes"));
-  addNoteAction->setIcon(QIcon(":/espina/note.png"));
-  connect(addNoteAction, SIGNAL(triggered(bool)),
+  QAction *noteAction = addAction(tr("Notes"));
+  noteAction->setIcon(QIcon(":/espina/note.png"));
+  connect(noteAction, SIGNAL(triggered(bool)),
           this, SLOT(addNote()));
 }
 
@@ -273,8 +309,9 @@ void SegmentationContextualMenu::createChangeTaxonomyMenu()
 //------------------------------------------------------------------------
 void SegmentationContextualMenu::createTagsEntry()
 {
-  QAction *manageTagsAction = addAction(tr("Tags"));
-  connect(manageTagsAction, SIGNAL(triggered(bool)),
+  QAction *tagsAction = addAction(tr("Tags"));
+  tagsAction->setIcon(QIcon(":/espina/tag.svg"));
+  connect(tagsAction, SIGNAL(triggered(bool)),
           this, SLOT(manageTags()));
 
 }
