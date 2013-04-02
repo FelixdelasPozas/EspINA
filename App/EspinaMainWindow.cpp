@@ -157,7 +157,7 @@ EspinaMainWindow::EspinaMainWindow(EspinaModel      *model,
 , m_undoStack  (new QUndoStack())
 , m_viewManager(viewManager)
 , m_settings     (new GeneralSettings())
-, m_settingsPanel(new GeneralSettingsPanel(m_settings))
+, m_settingsPanel(new GeneralSettingsPanel(m_model, m_settings))
 , m_view(NULL)
 , m_busy(false)
 , m_undoStackSavedIndex(0)

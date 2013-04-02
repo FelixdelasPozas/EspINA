@@ -69,11 +69,6 @@ namespace EspINA
                               IEspinaModel *model,
                               ErrorHandler *handler = NULL);
 
-    static bool loadSerialization(IEspinaModel *model,
-                                  std::istream &stream,
-                                  QDir tmpDir,
-                                  EspinaIO::ErrorHandler *handler = NULL,
-                                  RelationshipGraph::PrintFormat format = RelationshipGraph::BOOST);
     /**
      * Create a new seg file containing all information provided by @param model
      * @param filepath is the path where the model must be saved
@@ -83,16 +78,25 @@ namespace EspINA
                               IEspinaModel *model,
                               ErrorHandler *handler = NULL);
 
-    static void serializeRelations(IEspinaModel *model,
-                                   std::ostream& stream,
-                                   RelationshipGraph::PrintFormat format = RelationshipGraph::BOOST);
-
-
     // deletes all files inside the temporal dir and removes it, recursively if necessary
     static STATUS removeTemporalDir(QDir temporalDir = QDir());
 
 
   private:
+    static bool loadSerialization(IEspinaModel *model,
+                                  std::istream &stream,
+                                  QDir tmpDir,
+                                  EspinaIO::ErrorHandler *handler = NULL,
+                                  RelationshipGraph::PrintFormat format = RelationshipGraph::BOOST);
+    static STATUS readSettings(QuaZipFile &file, EspINA::IEspinaModel *model, EspINA::EspinaIO::ErrorHandler *handler = 0);
+
+    static void serializeRelations(IEspinaModel *model,
+                                   std::ostream& stream,
+                                   RelationshipGraph::PrintFormat format = RelationshipGraph::BOOST);
+
+    static QByteArray settings(IEspinaModel *model);
+
+
     /**
      * Creates a zipped file called @param fileName inside @param zFile. @param content
      * has the information to store in @param fileName. It controls the correct

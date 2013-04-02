@@ -43,16 +43,33 @@ EspinaModel::EspinaModel(EspinaFactory *factory)
 , m_relations (new RelationshipGraph())
 , m_lastId    (0)
 , m_changed   (false)
+, m_isTraceable(true)
 {
 }
 
 //------------------------------------------------------------------------
 EspinaModel::~EspinaModel()
 {
-  qDebug() << "########################################################";
-  qDebug() << "            Destroying EspINA Model";
-  qDebug() << "########################################################";
+//   qDebug() << "########################################################";
+//   qDebug() << "            Destroying EspINA Model";
+//   qDebug() << "########################################################";
 }
+
+//------------------------------------------------------------------------
+bool EspinaModel::isTraceable() const
+{
+  int i = 0;
+  bool result = m_isTraceable;
+
+  while (result && i < m_filters.size())
+  {
+    result &= m_filters[i]->isTraceable();
+    ++i;
+  }
+
+  return result;
+}
+
 
 //------------------------------------------------------------------------
 void EspinaModel::reset()
@@ -98,6 +115,7 @@ void EspinaModel::reset()
 
   m_changed = false;
   m_lastId  = 0;
+  m_isTraceable = true;
 }
 
 //-----------------------------------------------------------------------------
@@ -912,6 +930,7 @@ void EspinaModel::addFilterImplementation(FilterSPtr filter)
   Q_ASSERT(!m_filters.contains(filter));
 
   filter->m_model = this;
+  filter->setTraceable(m_isTraceable);
   m_filters << filter;
   m_relations->addItem(filter.data());
 }

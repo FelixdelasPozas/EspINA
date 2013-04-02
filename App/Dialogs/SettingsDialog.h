@@ -31,56 +31,56 @@
 
 namespace EspINA
 {
+  class EspinaModel;
+  class GeneralSettings;
 
-class GeneralSettings;
+  class GeneralSettingsPanel
+  : public ISettingsPanel
+  , Ui::GeneralSettingsPanel
+  {
+  public:
+    GeneralSettingsPanel(EspinaModel *model, GeneralSettings *settings);
+    virtual ~GeneralSettingsPanel();
 
-class GeneralSettingsPanel
-: public ISettingsPanel
-, Ui::GeneralSettingsPanel
-{
-public:
-  GeneralSettingsPanel(GeneralSettings *settings);
-  virtual ~GeneralSettingsPanel();
+    virtual const QString shortDescription() {return "General";}
+    virtual const QString longDescription() {return "General Settings";}
+    virtual const QIcon icon() {return QIcon(":/espina/editor.ico");}
 
-  virtual const QString shortDescription() {return "General";}
-  virtual const QString longDescription() {return "General Settings";}
-  virtual const QIcon icon() {return QIcon(":/espina/editor.ico");}
+    virtual void acceptChanges();
+    virtual void rejectChanges();
+    virtual bool modified() const;
 
-  virtual void acceptChanges();
-  virtual void rejectChanges();
-  virtual bool modified() const;
+    virtual ISettingsPanelPtr clone();
 
-  virtual ISettingsPanelPtr clone();
+  private:
+    EspinaModel     *m_model;
+    GeneralSettings *m_settings;
+  };
 
-private:
-  GeneralSettings *m_settings;
-};
+  class SettingsDialog
+  : public QDialog
+  , Ui::SettingsDialog
+  {
+    Q_OBJECT
+  public:
+    explicit SettingsDialog(QWidget        *parent = 0,
+                            Qt::WindowFlags flags  = 0);
 
-class SettingsDialog
-: public QDialog
-, Ui::SettingsDialog
-{
-  Q_OBJECT
-public:
-  explicit SettingsDialog(QWidget        *parent = 0,
-                          Qt::WindowFlags flags  = 0);
+    virtual void accept();
+    virtual void reject();
 
-  virtual void accept();
-  virtual void reject();
+    void registerPanel(ISettingsPanelPtr panel);
 
-  void registerPanel(ISettingsPanelPtr panel);
+  private:
+    ISettingsPanelPtr panel(const QString &shortDesc);
 
-private:
-  ISettingsPanelPtr panel(const QString &shortDesc);
+  public slots:
+    void changePreferencePanel(int panel);
 
-
-public slots:
-  void changePreferencePanel(int panel);
-
-private:
-  ISettingsPanelPtr  m_activePanel;
-  ISettingsPanelList m_panels;
-};
+  private:
+    ISettingsPanelPtr  m_activePanel;
+    ISettingsPanelList m_panels;
+  };
 
 } // namespace EspINA
 

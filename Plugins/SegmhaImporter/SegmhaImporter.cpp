@@ -102,6 +102,7 @@ bool SegmhaImporter::readFile(const QFileInfo file, EspinaIO::ErrorHandler *hand
   if (!channelFile.exists())
     return false;
 
+  m_model->setTraceable(false);
   ChannelSPtr channel;
   if (EspinaIO::SUCCESS != EspinaIO::loadChannel(channelFile, m_model, channel, handler))
     return false;

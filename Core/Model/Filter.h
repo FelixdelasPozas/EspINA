@@ -119,6 +119,11 @@ namespace EspINA
   public:
     virtual ~Filter();
 
+    void setTraceable(bool traceable)
+    { m_traceable = traceable; }
+    bool isTraceable() const
+    { return m_traceable; }
+
     void setCacheDir(QDir dir);
     QDir cacheDir() const { return m_cacheDir; }
 

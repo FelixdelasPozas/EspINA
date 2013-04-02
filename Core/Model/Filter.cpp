@@ -18,6 +18,7 @@
 
 // EspINA
 #include "Filter.h"
+#include "EspinaModel.h"
 
 // ITK
 #include <itkMetaImageIO.h>
@@ -75,7 +76,7 @@ void Filter::Output::addEditedRegion(const EspinaRegion &region)
 //----------------------------------------------------------------------------
 Filter::~Filter()
 {
-  qDebug() << "Destruyendo Filter";
+//   qDebug() << "Destroying Filter";
 }
 
 //----------------------------------------------------------------------------
@@ -793,7 +794,7 @@ bool Filter::dumpSnapshot(Snapshot &snapshot)
     }
 
     // Backwards compatibility with seg files version 1.0
-    if (m_traceable && m_args.contains(EDIT))
+    if (m_model->isTraceable() && m_args.contains(EDIT))
     {
       update(output.id);
 
@@ -806,7 +807,7 @@ bool Filter::dumpSnapshot(Snapshot &snapshot)
       }
     }
 
-    if (m_traceable && output.isEdited())
+    if (m_model->isTraceable() && output.isEdited())
     {
       result = true;
 

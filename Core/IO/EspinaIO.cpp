@@ -41,8 +41,9 @@ const QString TAXONOMY_FILE = "taxonomy.xml";
 
 typedef itk::ImageFileWriter<itkVolumeType> EspinaVolumeWriter;
 
-const QString EspinaIO::VERSION = "version";
-const QString SEG_FILE_VERSION  = "2";
+const QString SETTINGS = "settings.ini";
+const QString EspinaIO::VERSION = "version"; //backward compatibility
+const QString SEG_FILE_VERSION  = "3";
 const QString SEG_FILE_COMPATIBLE_VERSION  = "1";
 
 //-----------------------------------------------------------------------------
@@ -191,6 +192,12 @@ EspinaIO::STATUS EspinaIO::loadSegFile(QFileInfo    file,
       continue;
     }
     // qDebug() << "EspinaIO::loadSegFile: extracting" << file.filePath();
+    if (file.fileName() == SETTINGS)
+    {
+      STATUS status = readSettings(espinaFile, model, handler);
+      if (status != SUCCESS)
+        return status;
+    }
     if (file.fileName() == VERSION)
     {
       QString versionNumber = espinaFile.readAll();
@@ -202,81 +209,80 @@ EspinaIO::STATUS EspinaIO::loadSegFile(QFileInfo    file,
         espinaFile.close();
         return INVALID_VERSION;
       }
+      model->setTraceable(false);
+    }
+    else if (file.fileName() == TAXONOMY_FILE)
+    {
+      Q_ASSERT(taxonomy.isNull());
+      taxonomy = IOTaxonomy::loadXMLTaxonomy(espinaFile.readAll());
+      //taxonomy->print(3);
+    }
+    else if (file.fileName() == TRACE_FILE)
+    {
+      Q_ASSERT(traceContent.isEmpty());
+      QTextStream traceStream(&traceContent);
+      traceStream << espinaFile.readAll();
     }
     else
-      if (file.fileName() == TAXONOMY_FILE)
+    {
+      bool extensionFile = false;
+
+      // Check whether is a Channel Extension
       {
-        Q_ASSERT(taxonomy.isNull());
-        taxonomy = IOTaxonomy::loadXMLTaxonomy(espinaFile.readAll());
-        //taxonomy->print(3);
+        int i = 0;
+        Channel::ExtensionList extensions = model->factory()->channelExtensions();
+        while (!extensionFile && i < extensions.size())
+        {
+          Channel::ExtensionPtr extension = extensions[i];
+
+          if (extension->isCacheFile(file.filePath()))
+          {
+            extensionFile = true;
+            extensionFiles[file.filePath()] = extension;
+          }
+          i++;
+        }
       }
-      else
-        if (file.fileName() == TRACE_FILE)
+
+      // Check whether is a Segmentation Extension
+      if (!extensionFile)
+      {
+        int i = 0;
+        Segmentation::InformationExtensionList extensions = model->factory()->segmentationExtensions();
+        while (!extensionFile && i < extensions.size())
         {
-          Q_ASSERT(traceContent.isEmpty());
-          QTextStream traceStream(&traceContent);
-          traceStream << espinaFile.readAll();
+          Segmentation::InformationExtension extension = extensions[i];
+
+          if (extension->isCacheFile(file.filePath()))
+          {
+            extensionFile = true;
+            extensionFiles[file.filePath()] = extension;
+          }
+          i++;
         }
-        else
+      }
+
+      // Otherwise save it to the temporal directory
+      if (!extensionFile)
+      {
+        QFileInfo destination = temporalDir.absoluteFilePath(file.filePath());
+        if (!destination.absoluteDir().exists())
+          temporalDir.mkpath(file.path());
+
+        QFile destinationFile(destination.absoluteFilePath());
+        /*qDebug()<< "Permissions set" <<
+         *       destination.setPermissions(QFile::ReadOwner | QFile::WriteOwner |
+         *                                  QFile::ReadGroup | QFile::ReadOther);*/
+        if (!destinationFile.open(QIODevice::WriteOnly | QIODevice::Truncate))
         {
-          bool extensionFile = false;
-
-          // Check whether is a Channel Extension
-          {
-            int i = 0;
-            Channel::ExtensionList extensions = model->factory()->channelExtensions();
-            while (!extensionFile && i < extensions.size())
-            {
-              Channel::ExtensionPtr extension = extensions[i];
-
-              if (extension->isCacheFile(file.filePath()))
-              {
-                extensionFile = true;
-                extensionFiles[file.filePath()] = extension;
-              }
-              i++;
-            }
-          }
-
-          // Check whether is a Segmentation Extension
-          if (!extensionFile)
-          {
-            int i = 0;
-            Segmentation::InformationExtensionList extensions = model->factory()->segmentationExtensions();
-            while (!extensionFile && i < extensions.size())
-            {
-              Segmentation::InformationExtension extension = extensions[i];
-
-              if (extension->isCacheFile(file.filePath()))
-              {
-                extensionFile = true;
-                extensionFiles[file.filePath()] = extension;
-              }
-              i++;
-            }
-          }
-
-          // Otherwise save it to the temporal directory
-          if (!extensionFile)
-          {
-            QFileInfo destination = temporalDir.absoluteFilePath(file.filePath());
-            if (!destination.absoluteDir().exists())
-              temporalDir.mkpath(file.path());
-
-            QFile destinationFile(destination.absoluteFilePath());
-            /*qDebug()<< "Permissions set" <<
-             *       destination.setPermissions(QFile::ReadOwner | QFile::WriteOwner |
-             *                                  QFile::ReadGroup | QFile::ReadOther);*/
-            if (!destinationFile.open(QIODevice::WriteOnly | QIODevice::Truncate))
-            {
-              if (handler)
-                handler->warning("IOEspinaFile::loadFile: could not create file " + destinationFile.fileName() + " in " + temporalDir.path());
-            }
-
-            destinationFile.write(espinaFile.readAll());
-            destinationFile.close();
-          }
+          if (handler)
+            handler->warning("IOEspinaFile::loadFile: could not create file " + destinationFile.fileName() + " in " + temporalDir.path());
         }
+
+        destinationFile.write(espinaFile.readAll());
+        destinationFile.close();
+      }
+    }
 
     espinaFile.close();
     hasFile = espinaZip.goToNextFile();
@@ -352,165 +358,6 @@ bool EspinaIO::zipVolume(Filter::Output output,
   return true;
 }
 
-//-----------------------------------------------------------------------------
-bool EspinaIO::loadSerialization(IEspinaModel *model,
-                                 istream &stream,
-                                 QDir tmpDir,
-                                 EspinaIO::ErrorHandler *handler,
-                                 RelationshipGraph::PrintFormat format)
-{
-  QSharedPointer<RelationshipGraph> input(new RelationshipGraph());
-
-  input->read(stream);
-//   qDebug() << "Check";
-//   input->write(std::cout, RelationshipGraph::GRAPHVIZ);
-
-  typedef QPair<ModelItemSPtr , ModelItem::Arguments> NonInitilizedItem;
-  QList<NonInitilizedItem> nonInitializedItems;
-  QList<VertexProperty> segmentationNodes;
-  SegmentationSList newSegmentations;
-
-  EspinaFactory *factory = model->factory();
-
-  foreach(VertexProperty v, input->vertices())
-  {
-    VertexProperty fv;
-    if (model->relationships()->find(v, fv))
-    {
-      input->setItem(v.vId, fv.item);
-      qDebug() << "Updating existing vertex" << fv.item->data(Qt::DisplayRole).toString();
-    }else
-    {
-      switch (RelationshipGraph::type(v))
-      {
-        case SAMPLE:
-        {
-          ModelItem::Arguments args(v.args.c_str());
-          SampleSPtr sample = factory->createSample(v.name.c_str(), v.args.c_str());
-          model->addSample(sample);
-          nonInitializedItems << NonInitilizedItem(sample, args);
-          input->setItem(v.vId, sample.data());
-          break;
-        }
-        case CHANNEL:
-        {
-          ModelItem::Arguments args(v.args.c_str());
-          ModelItem::Arguments extArgs(args.value(ModelItem::EXTENSIONS, QString()));
-          args.remove(ModelItem::EXTENSIONS);
-
-          // TODO: Move link management code inside Channel's Arguments class
-          QStringList link = args[Channel::VOLUME].split("_");
-          Q_ASSERT(link.size() == 2);
-          Vertices ancestors = input->ancestors(v.vId, link[0]);
-          Q_ASSERT(ancestors.size() == 1);
-          ModelItemPtr item = ancestors.first().item;
-          Q_ASSERT(FILTER == item->type());
-          FilterSPtr filter = model->findFilter(item);
-          Q_ASSERT(!filter.isNull());
-          try
-          {
-            Filter::OutputId channelId = link[1].toInt();
-            filter->update(channelId);
-            ChannelSPtr channel = factory->createChannel(filter, channelId);
-            channel->initialize(args);
-            if (channel->volume()->toITK().IsNull())
-              return false;
-            model->addChannel(channel);
-            nonInitializedItems << NonInitilizedItem(channel, extArgs);
-            input->setItem(v.vId, channel.data());
-          }
-          catch(int e)
-          {
-            Vertices successors = input->succesors(v.vId, QString());
-            if (!successors.empty())
-              return false;
-
-            input->removeEdges(v.vId);
-          }
-          break;
-
-        }
-        case FILTER:
-        {
-          Filter::NamedInputs inputs;
-          Filter::Arguments args(v.args.c_str());
-          QStringList inputLinks = args[Filter::INPUTS].split(",", QString::SkipEmptyParts);
-          // We need to update id values for future filters
-          foreach(QString inputLink, inputLinks)
-          {
-            QStringList link = inputLink.split("_");
-            Q_ASSERT(link.size() == 2);
-            Vertices ancestors = input->ancestors(v.vId, link[0]);
-            Q_ASSERT(ancestors.size() == 1);
-            ModelItemPtr item = ancestors.first().item;
-            Q_ASSERT(FILTER == item->type());
-            FilterSPtr filter = model->findFilter(item);
-            inputs[link[0]] = filter;
-          }
-          FilterSPtr filter = factory->createFilter(v.name.c_str(), inputs, args);
-          filter->setCacheDir(tmpDir);
-          model->addFilter(filter);
-          input->setItem(v.vId, filter.data());
-          break;
-        }
-        case SEGMENTATION:
-        {
-          segmentationNodes << v;
-          break;
-        }
-        default:
-          Q_ASSERT(false);
-          break;
-      }
-    }
-  }
-
-  foreach(VertexProperty v, segmentationNodes)
-  {
-    Vertices ancestors = input->ancestors(v.vId, Filter::CREATELINK);
-    Q_ASSERT(ancestors.size() == 1);
-
-    ModelItem::Arguments args(QString(v.args.c_str()));
-    Filter::OutputId outputId =  args[Segmentation::OUTPUT].toInt();
-
-    ModelItemPtr item = ancestors.first().item;
-    FilterSPtr filter = model->findFilter(item);
-    filter->update(outputId);
-    // NOTE: add return value to update?
-    if (filter->outputs().isEmpty())
-      return false;
-
-    ModelItem::Arguments extArgs(args.value(ModelItem::EXTENSIONS, QString()));
-    args.remove(ModelItem::EXTENSIONS);
-    SegmentationSPtr seg = factory->createSegmentation(filter, outputId);
-    seg->setNumber(args[Segmentation::NUMBER].toInt());
-    TaxonomyElementSPtr taxonomy = model->taxonomy()->element(args[Segmentation::TAXONOMY]);
-    if (!taxonomy.isNull())
-      seg->setTaxonomy(taxonomy);
-    newSegmentations << seg;
-    nonInitializedItems << NonInitilizedItem(seg, extArgs);
-    input->setItem(v.vId, seg.data());
-  }
-
-  model->addSegmentation(newSegmentations);
-
-  foreach(Edge e, input->edges())
-  { //Should store just the modelitem?
-    Q_ASSERT(e.source.item);
-    Q_ASSERT(e.target.item);
-
-    ModelItemSPtr source = model->find(e.source.item);
-    ModelItemSPtr target = model->find(e.target.item);
-
-    model->addRelation(source, target, e.relationship.c_str());
-  }
-
-  foreach(FilterSPtr filter, model->filters())
-    filter->upkeeping();
-
-  return true;
-}
-
 
 //-----------------------------------------------------------------------------
 EspinaIO::STATUS EspinaIO::saveSegFile(QFileInfo file, IEspinaModel *model, ErrorHandler *handler)
@@ -533,7 +380,7 @@ EspinaIO::STATUS EspinaIO::saveSegFile(QFileInfo file, IEspinaModel *model, Erro
   QuaZipFile outFile(&zip);
 
   // Store Version Number
-  zipFile(VERSION, SEG_FILE_VERSION.toUtf8(), outFile);
+  zipFile(SETTINGS, settings(model), outFile);
 
   // Save Taxonomy
   QString taxonomy;
@@ -603,6 +450,19 @@ void EspinaIO::serializeRelations(IEspinaModel *model, ostream &stream, Relation
 {
   model->relationships()->updateVertexInformation();
   model->relationships()->write(stream, format);
+}
+
+//-----------------------------------------------------------------------------
+QByteArray EspinaIO::settings(IEspinaModel *model)
+{
+  QByteArray settingsData;
+
+  QTextStream settingsStream(&settingsData);
+
+  settingsStream << SEG_FILE_VERSION << endl;
+  settingsStream << QString("Traceable=") << model->isTraceable() << endl;
+
+  return settingsData;
 }
 
 //-----------------------------------------------------------------------------
@@ -891,4 +751,191 @@ EspinaIO::STATUS EspinaIO::removeTemporalDir(QDir temporalDir)
     return ERROR;
 
   return SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+bool EspinaIO::loadSerialization(IEspinaModel *model,
+                                 istream &stream,
+                                 QDir tmpDir,
+                                 EspinaIO::ErrorHandler *handler,
+                                 RelationshipGraph::PrintFormat format)
+{
+  QSharedPointer<RelationshipGraph> input(new RelationshipGraph());
+
+  input->read(stream);
+//   qDebug() << "Check";
+//   input->write(std::cout, RelationshipGraph::GRAPHVIZ);
+
+  typedef QPair<ModelItemSPtr , ModelItem::Arguments> NonInitilizedItem;
+  QList<NonInitilizedItem> nonInitializedItems;
+  QList<VertexProperty> segmentationNodes;
+  SegmentationSList newSegmentations;
+
+  EspinaFactory *factory = model->factory();
+
+  foreach(VertexProperty v, input->vertices())
+  {
+    VertexProperty fv;
+    if (model->relationships()->find(v, fv))
+    {
+      input->setItem(v.vId, fv.item);
+      qDebug() << "Updating existing vertex" << fv.item->data(Qt::DisplayRole).toString();
+    }else
+    {
+      switch (RelationshipGraph::type(v))
+      {
+        case SAMPLE:
+        {
+          ModelItem::Arguments args(v.args.c_str());
+          SampleSPtr sample = factory->createSample(v.name.c_str(), v.args.c_str());
+          model->addSample(sample);
+          nonInitializedItems << NonInitilizedItem(sample, args);
+          input->setItem(v.vId, sample.data());
+          break;
+        }
+        case CHANNEL:
+        {
+          ModelItem::Arguments args(v.args.c_str());
+          ModelItem::Arguments extArgs(args.value(ModelItem::EXTENSIONS, QString()));
+          args.remove(ModelItem::EXTENSIONS);
+
+          // TODO: Move link management code inside Channel's Arguments class
+          QStringList link = args[Channel::VOLUME].split("_");
+          Q_ASSERT(link.size() == 2);
+          Vertices ancestors = input->ancestors(v.vId, link[0]);
+          Q_ASSERT(ancestors.size() == 1);
+          ModelItemPtr item = ancestors.first().item;
+          Q_ASSERT(FILTER == item->type());
+          FilterSPtr filter = model->findFilter(item);
+          Q_ASSERT(!filter.isNull());
+          try
+          {
+            Filter::OutputId channelId = link[1].toInt();
+            filter->update(channelId);
+            ChannelSPtr channel = factory->createChannel(filter, channelId);
+            channel->initialize(args);
+            if (channel->volume()->toITK().IsNull())
+              return false;
+            model->addChannel(channel);
+            nonInitializedItems << NonInitilizedItem(channel, extArgs);
+            input->setItem(v.vId, channel.data());
+          }
+          catch(int e)
+          {
+            Vertices successors = input->succesors(v.vId, QString());
+            if (!successors.empty())
+              return false;
+
+            input->removeEdges(v.vId);
+          }
+          break;
+
+        }
+        case FILTER:
+        {
+          Filter::NamedInputs inputs;
+          Filter::Arguments args(v.args.c_str());
+          QStringList inputLinks = args[Filter::INPUTS].split(",", QString::SkipEmptyParts);
+          // We need to update id values for future filters
+          foreach(QString inputLink, inputLinks)
+          {
+            QStringList link = inputLink.split("_");
+            Q_ASSERT(link.size() == 2);
+            Vertices ancestors = input->ancestors(v.vId, link[0]);
+            Q_ASSERT(ancestors.size() == 1);
+            ModelItemPtr item = ancestors.first().item;
+            Q_ASSERT(FILTER == item->type());
+            FilterSPtr filter = model->findFilter(item);
+            inputs[link[0]] = filter;
+          }
+          FilterSPtr filter = factory->createFilter(v.name.c_str(), inputs, args);
+          filter->setCacheDir(tmpDir);
+          model->addFilter(filter);
+          input->setItem(v.vId, filter.data());
+          break;
+        }
+        case SEGMENTATION:
+        {
+          segmentationNodes << v;
+          break;
+        }
+        default:
+          Q_ASSERT(false);
+          break;
+      }
+    }
+  }
+
+  foreach(VertexProperty v, segmentationNodes)
+  {
+    Vertices ancestors = input->ancestors(v.vId, Filter::CREATELINK);
+    Q_ASSERT(ancestors.size() == 1);
+
+    ModelItem::Arguments args(QString(v.args.c_str()));
+    Filter::OutputId outputId =  args[Segmentation::OUTPUT].toInt();
+
+    ModelItemPtr item = ancestors.first().item;
+    FilterSPtr filter = model->findFilter(item);
+    filter->update(outputId);
+    // NOTE: add return value to update?
+    if (filter->outputs().isEmpty())
+      return false;
+
+    ModelItem::Arguments extArgs(args.value(ModelItem::EXTENSIONS, QString()));
+    args.remove(ModelItem::EXTENSIONS);
+    SegmentationSPtr seg = factory->createSegmentation(filter, outputId);
+    seg->setNumber(args[Segmentation::NUMBER].toInt());
+    TaxonomyElementSPtr taxonomy = model->taxonomy()->element(args[Segmentation::TAXONOMY]);
+    if (!taxonomy.isNull())
+      seg->setTaxonomy(taxonomy);
+    newSegmentations << seg;
+    nonInitializedItems << NonInitilizedItem(seg, extArgs);
+    input->setItem(v.vId, seg.data());
+  }
+
+  model->addSegmentation(newSegmentations);
+
+  foreach(Edge e, input->edges())
+  { //Should store just the modelitem?
+    Q_ASSERT(e.source.item);
+    Q_ASSERT(e.target.item);
+
+    ModelItemSPtr source = model->find(e.source.item);
+    ModelItemSPtr target = model->find(e.target.item);
+
+    model->addRelation(source, target, e.relationship.c_str());
+  }
+
+  foreach(FilterSPtr filter, model->filters())
+    filter->upkeeping();
+
+  return true;
+}
+
+//-----------------------------------------------------------------------------
+EspinaIO::STATUS EspinaIO::readSettings(QuaZipFile   &file,
+                                        IEspinaModel *model,
+                                        ErrorHandler *handler)
+{
+  STATUS status = SUCCESS;
+
+  QTextStream settingsStream(file.readAll());
+
+  QString versionNumber = settingsStream.readLine();
+
+  if (versionNumber < SEG_FILE_COMPATIBLE_VERSION)
+  {
+    if (handler)
+      handler->error(QObject::tr("Invalid seg file version. File Version=%1, current Version %2").arg(versionNumber).arg(SEG_FILE_VERSION));
+    removeTemporalDir();
+    file.close();
+    status = INVALID_VERSION;
+  } else
+  {
+    QString line = settingsStream.readLine();
+    bool traceable = line.split("=")[1].toInt();
+    model->setTraceable(traceable);
+  }
+
+  return status;
 }

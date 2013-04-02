@@ -302,7 +302,7 @@ void InformationProxy::sourceRowsAboutToBeRemoved(const QModelIndex& sourceParen
 //------------------------------------------------------------------------
 void InformationProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, const QModelIndex& sourceBottomRight)
 {
-  Q_ASSERT(sourceTopLeft == sourceTopLeft);
+  Q_ASSERT(sourceTopLeft == sourceBottomRight);
   if (sourceTopLeft.parent() == m_model->segmentationRoot())
   {
     ModelItemPtr item = indexPtr(sourceTopLeft);

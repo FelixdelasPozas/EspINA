@@ -20,6 +20,7 @@
 #include "SettingsDialog.h"
 
 #include "Settings/GeneralSettings.h"
+#include <Core/Model/EspinaModel.h>
 
 #include <QDir>
 #include <QMessageBox>
@@ -31,10 +32,30 @@
 using namespace EspINA;
 
 //------------------------------------------------------------------------
-GeneralSettingsPanel::GeneralSettingsPanel(GeneralSettings *settings)
-: m_settings(settings)
+GeneralSettingsPanel::GeneralSettingsPanel(EspinaModel *model, GeneralSettings *settings)
+: m_model(model)
+, m_settings(settings)
 {
   setupUi(this);
+
+  bool useAnalysisTraceability = !m_model->filters().isEmpty();
+
+  if (useAnalysisTraceability)
+  {
+    traceabilty->setChecked(m_model->isTraceable());
+
+    int i = 0;
+    bool isTraceable = true;
+    while (isTraceable && i < m_model->filters().size())
+    {
+      isTraceable &= m_model->filters()[i]->isTraceable();
+      ++i;
+    }
+    traceabilty->setEnabled(isTraceable);
+  }
+  else
+    traceabilty->setChecked(m_settings->useTraceability());
+
 
   userName->setText(m_settings->userName());
   autosavePath->setText(m_settings->autosavePath().absolutePath());
@@ -44,12 +65,17 @@ GeneralSettingsPanel::GeneralSettingsPanel(GeneralSettings *settings)
 //------------------------------------------------------------------------
 GeneralSettingsPanel::~GeneralSettingsPanel()
 {
-  qDebug() << "Destroying General Settings Panel";
+  //qDebug() << "Destroying General Settings Panel";
 }
 
 //------------------------------------------------------------------------
 void GeneralSettingsPanel::acceptChanges()
 {
+  if (m_model->filters().isEmpty())
+    m_settings->setUseTraceability(traceabilty->isChecked());
+  else
+    m_model->setTraceable(traceabilty->isChecked());
+
   m_settings->setUserName(userName->text());
   m_settings->setAutosavePath(autosavePath->text());
   m_settings->setAutosaveInterval(autosaveInterval->value());
@@ -64,15 +90,20 @@ void GeneralSettingsPanel::rejectChanges()
 //------------------------------------------------------------------------
 bool GeneralSettingsPanel::modified() const
 {
-  return userName->text() != m_settings->userName()
-      || autosavePath->text() != m_settings->autosavePath().absolutePath()
+  bool traceabiltyValue = m_model->filters().isEmpty()
+                        ? m_settings->useTraceability()
+                        : m_model->isTraceable();
+
+  return traceabilty->isChecked()  != traceabiltyValue
+      || userName->text()          != m_settings->userName()
+      || autosavePath->text()      != m_settings->autosavePath().absolutePath()
       || autosaveInterval->value() != m_settings->autosaveInterval();
 }
 
 //------------------------------------------------------------------------
 ISettingsPanelPtr GeneralSettingsPanel::clone()
 {
-  return ISettingsPanelPtr(new GeneralSettingsPanel(m_settings));
+  return ISettingsPanelPtr(new GeneralSettingsPanel(m_model, m_settings));
 }
 
 
@@ -85,7 +116,7 @@ SettingsDialog::SettingsDialog(QWidget *parent, Qt::WindowFlags flags)
 {
   setupUi(this);
 
-  setWindowTitle(tr("EspINA Configuration Dialog"));
+  setWindowTitle(tr("EspINA Configuration"));
 
   connect(components,SIGNAL(currentRowChanged(int)),
           this, SLOT(changePreferencePanel(int)));

@@ -48,6 +48,12 @@ namespace EspINA
     virtual EspinaFactory *factory() const
     { return m_model->factory(); }
 
+    virtual bool isTraceable() const
+    { return m_model->isTraceable(); }
+
+    virtual void setTraceable(bool traceable)
+    { m_model->setTraceable(traceable); }
+
     //---------------------------------------------------------------------------
     /************************* Model Item API *******************************/
     //---------------------------------------------------------------------------

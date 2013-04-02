@@ -43,6 +43,9 @@ namespace EspINA
 
     virtual EspinaFactory *factory() const = 0;
 
+    virtual bool isTraceable() const = 0;
+    virtual void setTraceable(bool traceable) = 0;
+
     //---------------------------------------------------------------------------
     /************************* Model Item API *******************************/
     //---------------------------------------------------------------------------
@@ -156,6 +159,9 @@ namespace EspINA
 
     virtual EspinaFactory *factory() const
     { return m_factory; }
+
+    virtual bool isTraceable() const;
+    virtual void setTraceable(bool traceable) { m_isTraceable = traceable; }
 
     void reset();
 
@@ -336,6 +342,7 @@ namespace EspINA
 
     unsigned int m_lastId;
     bool         m_changed;
+    bool         m_isTraceable;
   };
 
   typedef EspinaModel *               EspinaModelPtr;
