@@ -263,6 +263,8 @@ void Filter::draw(OutputId oId,
   contour->ComputeBounds();
   contour->GetBounds(bounds);
 
+  qDebug() << "poly bounds" << bounds[0] << bounds[1] << bounds[2] << bounds[3] << bounds[4] << bounds[5];
+
   EspinaRegion polyDataRegion(bounds);
 
   currentOutput.addEditedRegion(polyDataRegion);
@@ -281,14 +283,17 @@ void Filter::draw(OutputId oId,
   points->SetNumberOfPoints(count);
   vtkIdType numLines = count + 1;
 
-  // sliceposition should always be less or equal to slice parameter as it represents the
+  // NOTE 1: sliceposition should always be less or equal to slice parameter as it represents the
   // extent*spacing position of the slice, this is so because the user could be drawing using
   // "fit to slices" and round() will go to the upper integer if slice is greater than spacing/2.
   // Floor() gives wrong values if extent*spacing = slice as it will give an smaller number, and
   // I don't want to rely on static_cast<int>(number) to achieve the wanted effect.
-  double slicePosition = vtkMath::Round(slice/spacing[plane]) * spacing[plane];
-  if (slicePosition > slice)
-    slicePosition = vtkMath::Floor(slice/spacing[plane]) * spacing[plane];
+  // NOTE 2: image reslicing starts in spacing[reslicing plane]/2 instead of 0, so we correct this
+  // to match the drawing with what the user sees on screen.
+  double slicePosition = vtkMath::Round((slice + spacing[2]/2)/spacing[plane]) * spacing[plane];
+
+  if (slicePosition > (slice + (spacing[plane]/2)))
+    slicePosition = vtkMath::Floor((slice + spacing[2]/2)/spacing[plane]) * spacing[plane];
 
   if (numLines > 0)
   {
