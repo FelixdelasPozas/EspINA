@@ -53,6 +53,7 @@ namespace EspINA
 
   private:
     GUI *m_gui;
+    QStandardItemModel &m_tags;
   };
 } // namespace EspINA
 

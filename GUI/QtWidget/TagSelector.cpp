@@ -29,7 +29,6 @@
 #include "TagSelector.h"
 
 #include <ui_TagSelector.h>
-#include <Core/Extensions/Tags/TagExtension.h>
 
 #include <QFileDialog>
 #include <qinputdialog.h>
@@ -49,13 +48,16 @@ TagSelector::TagSelector(const QString &title,
                          Qt::WindowFlags f)
 : QDialog(parent, f)
 , m_gui(new GUI())
+, m_tags(tags)
 {
   m_gui->setupUi(this);
 
   setWindowTitle(tr("%1 Tags").arg(title));
   setWindowIcon(QIcon(":/espina/tag.svg"));
 
+  m_tags.sort(0);
   m_gui->tagList->setModel(&tags);
+
   connect(m_gui->createTagButton, SIGNAL(clicked(bool)),
           this, SLOT(createTag()));
 
@@ -75,13 +77,30 @@ TagSelector::~TagSelector()
 void TagSelector::createTag()
 {
   bool ok;
-  QString rawTags = QInputDialog::getText(this,
-                                          tr("Tag Manager"),
-                                          tr("Introduce tags. Use comma to separate multiple tags"),
-                                          QLineEdit::Normal,
-                                          "",
-                                          &ok);
+  QString newTag = QInputDialog::getText(this,
+                                         tr("Add New Tag"),
+                                            tr("Introduce tag name"),
+                                         QLineEdit::Normal,
+                                         "",
+                                         &ok);
   if (ok)
   {
+    newTag = newTag.toLower();
+
+    bool found = false;
+    for (int r = 0; r < m_tags.rowCount(); ++r)
+      if (m_tags.item(r)->text() == newTag)
+        found = true;
+
+    if (!found)
+    {
+      QStandardItem *item = new QStandardItem(newTag);
+      item->setCheckable(true);
+      item->setCheckState(Qt::Checked);
+
+      m_tags.appendRow(item);
+
+      m_tags.sort(0);
+    }
   }
 }

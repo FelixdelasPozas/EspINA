@@ -49,7 +49,7 @@
         </size>
        </property>
        <property name="toolTip">
-        <string>Add taxonomy node</string>
+        <string>Create new tag</string>
        </property>
        <property name="text">
         <string/>
@@ -109,7 +109,7 @@
         </size>
        </property>
        <property name="toolTip">
-        <string>Add taxonomy node</string>
+        <string>Apply changes</string>
        </property>
        <property name="text">
         <string/>
@@ -156,7 +156,7 @@
         </size>
        </property>
        <property name="toolTip">
-        <string>Add taxonomy node</string>
+        <string>Reject changes</string>
        </property>
        <property name="text">
         <string/>
