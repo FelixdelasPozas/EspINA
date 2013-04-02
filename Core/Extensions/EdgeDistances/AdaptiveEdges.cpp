@@ -81,7 +81,7 @@ ModelItem::ExtId AdaptiveEdges::id()
 //-----------------------------------------------------------------------------
 void AdaptiveEdges::computeAdaptiveEdges()
 {
-  qDebug() << "Computing Adaptive Edges" << m_channel->data().toString() << AdaptiveEdgesID;
+  //qDebug() << "Computing Adaptive Edges" << m_channel->data().toString() << AdaptiveEdgesID;
   ExtensionData &data = s_cache[m_channel].Data;
 
   data.Edges = vtkSmartPointer<vtkPolyData>::New();
@@ -100,6 +100,7 @@ void AdaptiveEdges::loadEdgesCache(ChannelPtr channel)
 {
   ExtensionData &data = s_cache[channel].Data;
 
+  m_mutex.lock();
   if (data.Edges.GetPointer() == NULL && !channel->isVolumeModified())
   {
     QString edgesFile = QString(EDGES_FILE + "%1.vtp").arg(fileId(channel));
@@ -115,6 +116,7 @@ void AdaptiveEdges::loadEdgesCache(ChannelPtr channel)
       data.Edges = vtkSmartPointer<vtkPolyData>(reader->GetPolyDataOutput());
     }
   }
+  m_mutex.unlock();
 }
 
 //-----------------------------------------------------------------------------
@@ -186,7 +188,9 @@ void AdaptiveEdges::loadCache(QuaZipFile &file,
         ExtensionData &data = s_cache[extensionChannel].Data;
 
         data.UseAdaptiveEdges = fields[2].toInt();
-        data.ComputedVolume   = fields[3].toDouble();
+        // First versions didn't stored the computed volume
+        if (fields.size() == 4)
+          data.ComputedVolume   = fields[3].toDouble();
       }
       else 
       {
@@ -349,7 +353,7 @@ vtkSmartPointer<vtkPolyData> AdaptiveEdges::channelEdges()
     computeAdaptiveEdges();
 
   m_mutex.lock();
-  Q_ASSERT(data.Edges.GetPointer() != NULL);
+  Q_ASSERT(NULL != data.Edges.GetPointer());
   m_mutex.unlock();
 
   return data.Edges;
@@ -365,7 +369,7 @@ Nm AdaptiveEdges::computedVolume()
 
     ExtensionData &data = s_cache[m_channel].Data;
     // Ensure Margin Detector's finished
-    if (data.Edges.GetPointer() == NULL)
+    if (NULL == data.Edges.GetPointer())
       computeAdaptiveEdges();
 
     m_mutex.lock();
@@ -380,9 +384,15 @@ Nm AdaptiveEdges::computedVolume()
 //-----------------------------------------------------------------------------
 void AdaptiveEdges::ComputeSurfaces()
 {
-  m_mutex.lock();
+
+  loadEdgesCache(m_channel);
 
   ExtensionData &data = s_cache[m_channel].Data;
+
+  if (NULL == data.Edges)
+    computeAdaptiveEdges();
+
+  m_mutex.lock();
 
   vtkPoints *borderPoints = data.Edges->GetPoints();
   int sliceNum = data.Edges->GetNumberOfPoints()/4;
