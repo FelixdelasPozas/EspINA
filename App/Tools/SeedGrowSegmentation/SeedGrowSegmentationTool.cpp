@@ -575,7 +575,7 @@ void SeedGrowSegmentationTool::addPreview(EspinaRenderView *view)
   double pos[3];
   memset(pos, 0, 3*sizeof(double));
   int sign = ((plane == 2) ? -1 : 1);
-  pos[plane] += (sign*0.1);
+  pos[plane] += (sign * 0.09); // the crosshair is at 0.1, and the preview must be under it
   m_actor->SetPosition(pos);
 
   view->addActor(m_actor);
