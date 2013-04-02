@@ -290,10 +290,9 @@ void Filter::draw(OutputId oId,
   // I don't want to rely on static_cast<int>(number) to achieve the wanted effect.
   // NOTE 2: image reslicing starts in spacing[reslicing plane]/2 instead of 0, so we correct this
   // to match the drawing with what the user sees on screen.
-  double slicePosition = vtkMath::Round((slice + spacing[2]/2)/spacing[plane]) * spacing[plane];
-
+  double slicePosition = vtkMath::Round((slice + spacing[plane]/2)/spacing[plane]) * spacing[plane];
   if (slicePosition > (slice + (spacing[plane]/2)))
-    slicePosition = vtkMath::Floor((slice + spacing[2]/2)/spacing[plane]) * spacing[plane];
+    slicePosition = vtkMath::Floor((slice + spacing[plane]/2)/spacing[plane]) * spacing[plane];
 
   if (numLines > 0)
   {
