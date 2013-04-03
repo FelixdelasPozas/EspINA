@@ -1418,7 +1418,7 @@ bool SliceView::eventFilter(QObject* caller, QEvent* e)
   else if (QEvent::ContextMenu == e->type())
   {
     QContextMenuEvent *cme = dynamic_cast<QContextMenuEvent*>(e);
-    if (cme->modifiers() == Qt::CTRL && !m_contextMenu.isNull())
+    if (cme->modifiers() == Qt::CTRL && !m_contextMenu.isNull() && m_selectionEnabled)
     {
       m_contextMenu->setSelection(m_viewManager->selectedSegmentations());
       m_contextMenu->exec(mapToGlobal(cme->pos()));

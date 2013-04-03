@@ -146,6 +146,7 @@ void FilledContour::setInUse(bool enable)
     }
 
     m_viewManager->addWidget(m_contourWidget);
+    m_viewManager->setSelectionEnabled(false);
     m_contourWidget->setEnabled(true);
   }
   else
@@ -159,6 +160,7 @@ void FilledContour::setInUse(bool enable)
                this, SLOT(rasterize(ContourWidget::ContourList)));
 
     m_viewManager->removeWidget(m_contourWidget);
+    m_viewManager->setSelectionEnabled(true);
     m_contourWidget->setEnabled(false);
     delete m_contourWidget;
     m_currentSeg.clear();
