@@ -388,6 +388,15 @@ void vtkPlaneContourWidget::AddNode()
       this->InvokeEvent(vtkCommand::EndInteractionEvent, NULL);
       this->m_contourMode = this->m_actualBrushMode;
       this->m_parent->endContourFromWidget();
+
+      // change cursor
+      int X = this->Interactor->GetEventPosition()[0];
+      int Y = this->Interactor->GetEventPosition()[1];
+
+      this->WidgetRep->ComputeInteractionState(X, Y);
+      int state = this->WidgetRep->GetInteractionState();
+      this->SetCursor(state);
+
       return;
     }
   }
