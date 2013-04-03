@@ -264,8 +264,6 @@ void Filter::draw(OutputId oId,
   contour->ComputeBounds();
   contour->GetBounds(bounds);
 
-  qDebug() << "poly bounds" << bounds[0] << bounds[1] << bounds[2] << bounds[3] << bounds[4] << bounds[5];
-
   EspinaRegion polyDataRegion(bounds);
 
   currentOutput.addEditedRegion(polyDataRegion);

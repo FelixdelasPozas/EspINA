@@ -151,7 +151,7 @@ EspinaIO::STATUS EspinaIO::loadSegFile(QFileInfo    file,
                                        ErrorHandler *handler)
 {
   // generate random dir based on file name
-  QDir temporalDir = QDir("/media/storage/");//QDir::tempPath();
+  QDir temporalDir = QDir::tempPath();
   if (!temporalDir.exists("espina"))
     temporalDir.mkdir("espina");
   temporalDir.cd("espina");

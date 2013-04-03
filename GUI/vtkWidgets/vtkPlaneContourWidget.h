@@ -175,11 +175,14 @@ namespace EspINA
     // helper method to avoid creating too many points in continuos drawing
     virtual bool IsPointTooClose(int,int);
 
+    // find closest node to the cursor node
+    int FindClosestNode();
+
   private:
     vtkPlaneContourWidget(const vtkPlaneContourWidget&); //Not implemented
     void operator=(const vtkPlaneContourWidget&); //Not implemented
 
-    QCursor crossMinusCursor, crossPlusCursor;
+    QCursor crossMinusCursor, crossPlusCursor, crossCheckCursor;
     bool mouseButtonDown; // to create almost equally spaced points when using continuous drawing
     QColor m_polygonColor;
     ContourWidget *m_parent;

@@ -99,6 +99,9 @@ bool FilledContour::filterEvent(QEvent* e, EspinaRenderView* view)
         emit changeMode(Brush::ERASER);
         return true;
       }
+
+      if (ke->key() == Qt::Key_Backspace)
+        m_widgetHasContour = false;
     }
 
   return m_contourWidget->filterEvent(e, view);
