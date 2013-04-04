@@ -165,9 +165,9 @@ SliceView::SliceView(ViewManager* vm, PlaneType plane, QWidget* parent)
   m_slicingMatrix = vtkMatrix4x4::New();
 
   // Init Pickers
-  m_channelPicker = vtkSmartPointer<vtkCellPicker>::New();
+  m_channelPicker = vtkSmartPointer<vtkPropPicker>::New();
   m_channelPicker->PickFromListOn();
-  m_segmentationPicker = vtkSmartPointer<vtkCellPicker>::New();
+  m_segmentationPicker = vtkSmartPointer<vtkPropPicker>::New();
   m_segmentationPicker->PickFromListOn();
 
   // Init Ruler
@@ -1532,76 +1532,82 @@ void SliceView::eventPosition(int& x, int& y)
 
 //-----------------------------------------------------------------------------
 ChannelList SliceView::pickChannels(double vx,
-                                         double vy,
-                                         vtkRenderer* renderer,
-                                         bool repeatable)
+                                    double vy,
+                                    vtkRenderer* renderer,
+                                    bool repeatable)
 {
   ChannelList channels;
+  QList<vtkProp *> removedProps;
 
-  if (m_channelPicker->Pick(vx, vy, 0.1, renderer))
+  while (m_channelPicker->PickProp(vx, vy, renderer, m_channelPicker->GetPickList()))
   {
-    vtkProp3D *pickedProp;
-    m_channelPicker->GetProp3Ds()->InitTraversal();
-    while ((pickedProp = m_channelPicker->GetProp3Ds()->GetNextProp3D()))
-    {
-      ChannelPtr pickedChannel = property3DChannel(pickedProp);
-      Q_ASSERT(pickedChannel);
-      //       qDebug() << "Picked" << pickedChannel->data().toString();
+    vtkProp *pickedProp = m_channelPicker->GetViewProp();
+    ChannelPtr pickedChannel = propToChannel(pickedProp);
+    if (pickedChannel)
       channels << pickedChannel;
 
-      if (!repeatable)
-        return channels;
-    }
+    m_channelPicker->GetPickList()->RemoveItem(pickedProp);
+    removedProps << pickedProp;
+
+    if (!repeatable && !channels.empty())
+      break;
   }
+
+  foreach(vtkProp *prop, removedProps)
+  m_channelPicker->GetPickList()->AddItem(prop);
 
   return channels;
 }
 
 //-----------------------------------------------------------------------------
 SegmentationList SliceView::pickSegmentations(double vx,
-                                                   double vy,
-                                                   vtkRenderer* renderer,
-                                                   bool repeatable)
+                                              double vy,
+                                              vtkRenderer* renderer,
+                                              bool repeatable)
 {
   SegmentationList segmentations;
-  if (m_segmentationPicker->Pick(vx, vy, 0.1, renderer))
+  QList<vtkProp *> removedProps;
+
+  QPolygonF selectedRegion;
+  selectedRegion << QPointF(vx, vy);
+
+  while (m_segmentationPicker->PickProp(vx, vy, renderer, m_segmentationPicker->GetPickList()))
   {
-    QPolygonF selectedRegion;
-    selectedRegion << QPointF(vx, vy);
-
-    // Verify BUG: kills app when picking a node in TubularWidget in ZY view (not only that one?)
-    m_segmentationPicker->GetProp3Ds()->InitTraversal();
-
-    vtkProp3DCollection* props = m_segmentationPicker->GetProp3Ds();
-
-    QList<vtkProp3D *> pickedProps;
-    for(vtkIdType i = 0; i < props->GetNumberOfItems(); i++)
-      pickedProps << props->GetNextProp3D();
-
-    // We need to do it in two separate loops to avoid reseting picker on worldRegion call
-    foreach(vtkProp3D *pickedProp, pickedProps)
+    vtkProp* pickedProp = m_segmentationPicker->GetViewProp();
+    SegmentationPtr pickedSeg = propToSegmentation(pickedProp);
+    if(pickedSeg)
     {
-      SegmentationPtr pickedSeg = property3DSegmentation(pickedProp);
-      Q_ASSERT(pickedSeg);
       Q_ASSERT(pickedSeg->volume().get());
       Q_ASSERT(pickedSeg->volume()->toITK().IsNotNull());
 
-      //TODO 2012-10-23 Check all the region, not just the first point!
+      // iterate over region points
       double pixel[3];
-      worldRegion(selectedRegion, pickedSeg)->GetPoint(0, pixel);
-      itkVolumeType::IndexType pickedPixel = pickedSeg->volume()->index(pixel[0], pixel[1], pixel[2]);
-      if (!pickedSeg->volume()->volumeRegion().IsInside(pickedPixel) ||
-         ( pickedSeg->volume()->toITK()->GetPixel(pickedPixel) == 0))
-        continue;
-
-      segmentations << pickedSeg;
-
-      if (!repeatable)
-        return segmentations;
+      IPicker::WorldRegion pickedRegion = worldRegion(selectedRegion, pickedSeg);
+      for(int i = 0; i < pickedRegion->GetNumberOfPoints(); ++i)
+      {
+        pickedRegion->GetPoint(i, pixel);
+        itkVolumeType::IndexType pickedPixel = pickedSeg->volume()->index(pixel[0], pixel[1], pixel[2]);
+        if (pickedSeg->volume()->volumeRegion().IsInside(pickedPixel) &&
+           (pickedSeg->volume()->toITK()->GetPixel(pickedPixel) == SEG_VOXEL_VALUE))
+        {
+          segmentations << pickedSeg;
+          break;
+        }
+      }
     }
+
+    m_segmentationPicker->GetPickList()->RemoveItem(pickedProp);
+    removedProps << pickedProp;
+
+    if (!repeatable && !segmentations.empty())
+      break;
   }
 
+  foreach(vtkProp *prop, removedProps)
+    m_segmentationPicker->GetPickList()->AddItem(prop);
+
   return segmentations;
+
 }
 
 //-----------------------------------------------------------------------------
@@ -1645,7 +1651,7 @@ void SliceView::updateWidgetVisibility()
 }
 
 //-----------------------------------------------------------------------------
-ChannelPtr SliceView::property3DChannel(vtkProp3D* prop)
+ChannelPtr SliceView::propToChannel(vtkProp* prop)
 {
   foreach(ChannelPtr channel, m_channelReps.keys())
   {
@@ -1656,7 +1662,7 @@ ChannelPtr SliceView::property3DChannel(vtkProp3D* prop)
 }
 
 //-----------------------------------------------------------------------------
-SegmentationPtr SliceView::property3DSegmentation(vtkProp3D* prop)
+SegmentationPtr SliceView::propToSegmentation(vtkProp* prop)
 {
   foreach(SegmentationPtr seg, m_segmentationReps.keys())
   {
@@ -1668,7 +1674,7 @@ SegmentationPtr SliceView::property3DSegmentation(vtkProp3D* prop)
 
 
 //-----------------------------------------------------------------------------
-bool SliceView::pick(vtkPicker *picker, int x, int y, Nm pickPos[3])
+bool SliceView::pick(vtkPropPicker *picker, int x, int y, Nm pickPos[3])
 {
   if (m_thumbnail->GetDraw() && picker->Pick(x, y, 0.1, m_thumbnail))
     return false;//ePick Fail
@@ -1932,12 +1938,12 @@ IPicker::WorldRegion SliceView::worldRegion(const IPicker::DisplayRegion& region
   //Use Render Window Interactor's Picker to find the world coordinates of the stack
   //vtkSMRenderViewProxy* renModule = view->GetRenderWindow()->GetInteractor()->GetRenderView();
   IPicker::WorldRegion wRegion = IPicker::WorldRegion::New();
-  vtkPicker *picker;
+  vtkPropPicker *picker;
 
   if (EspINA::CHANNEL == item->type())
-    picker = m_channelPicker;
+    picker = m_channelPicker.GetPointer();
   else
-    picker = m_segmentationPicker;
+    picker = m_segmentationPicker.GetPointer();
 
   foreach(QPointF point, region)
   {

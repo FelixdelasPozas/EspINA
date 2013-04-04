@@ -324,22 +324,6 @@ SampleSPtr Channel::sample()
   return sample;
 }
 
-//TODO 2012-11-28 vtkAlgorithmOutput* Channel::vtkVolume()
-// {
-//   if (itk2vtk.IsNull())
-//   {
-// 
-//     //qDebug() << " from ITK to VTK (channel)";
-//     itk2vtk = itk2vtkFilterType::New();
-//     itk2vtk->ReleaseDataFlagOn();
-//     itk2vtk->SetInput(m_filter->volume(m_args.outputId()));
-//     itk2vtk->Update();
-//   }
-// 
-//   return itk2vtk->GetOutput()->GetProducerPort();
-// }
-// 
-
 //-----------------------------------------------------------------------------
 ChannelPtr EspINA::channelPtr(ModelItemPtr item)
 {

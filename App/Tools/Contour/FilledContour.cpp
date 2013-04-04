@@ -227,7 +227,6 @@ void FilledContour::rasterize(ContourWidget::ContourList list)
 
     if (!m_currentSeg)
     {
-      // TODO: Standarize
       m_currentSource->draw(0, (*it).contourPoints, (*it).contourPoints->GetPoint(0)[(*it).contourPlane], (*it).contourPlane, (((*it).contourMode == Brush::BRUSH) ? SEG_VOXEL_VALUE : SEG_BG_VALUE), true);
       m_currentSeg = m_model->factory()->createSegmentation(m_currentSource, 0);
       m_undoStack->push(new AddSegmentation(m_model->findChannel(channel),
@@ -251,7 +250,6 @@ void FilledContour::rasterize(ContourWidget::ContourList list)
                                                (*it).contourPlane,
                                                ((*it).contourMode == Brush::BRUSH) ? SEG_VOXEL_VALUE : SEG_BG_VALUE,
                                                m_viewManager));
-
     }
   }
 

@@ -34,7 +34,7 @@
 
 #include <vtkSmartPointer.h>
 #include <vtkRenderer.h>
-#include <vtkCellPicker.h>
+#include <vtkPropPicker.h>
 #include <vtkPolyData.h>
 #include <vtkAxisActor2D.h>
 
@@ -192,7 +192,7 @@ namespace EspINA
     /// Picked position is returned via pickPos parameter
     /// If no item was picked return false, and therefore pickPos values
     /// are invalid
-    bool pick(vtkPicker *picker, int x, int y, Nm pickPos[3]);
+    bool pick(vtkPropPicker *picker, int x, int y, Nm pickPos[3]);
 
     virtual bool eventFilter(QObject* caller, QEvent* e);
     void centerCrosshairOnMousePosition();
@@ -202,10 +202,10 @@ namespace EspINA
     void selectPickedItems(bool append);
 
 
-    /// Convenience function to get vtkProp3D's channel
-    ChannelPtr property3DChannel(vtkProp3D *prop);
-    /// Convenience function to get vtkProp3D's segmentation
-    SegmentationPtr property3DSegmentation(vtkProp3D *prop);
+    /// Convenience function to get vtkProp's channel
+    ChannelPtr propToChannel(vtkProp *prop);
+    /// Convenience function to get vtkProp's segmentation
+    SegmentationPtr propToSegmentation(vtkProp *prop);
 
     /// Converts point from Display coordinates to World coordinates
     IPicker::WorldRegion worldRegion(const IPicker::DisplayRegion &region, PickableItemPtr item);
@@ -259,8 +259,8 @@ namespace EspINA
     vtkRenderWindow                *m_renderWindow;
     vtkSmartPointer<vtkRenderer>    m_renderer;
     vtkSmartPointer<vtkRenderer>    m_thumbnail;
-    vtkSmartPointer<vtkCellPicker>  m_channelPicker;
-    vtkSmartPointer<vtkCellPicker>  m_segmentationPicker;
+    vtkSmartPointer<vtkPropPicker>  m_channelPicker;
+    vtkSmartPointer<vtkPropPicker>  m_segmentationPicker;
     vtkSmartPointer<vtkAxisActor2D> m_ruler;
     bool                            m_rulerVisibility;
     bool                            m_fitToSlices;
