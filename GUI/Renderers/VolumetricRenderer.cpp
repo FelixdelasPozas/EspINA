@@ -40,7 +40,13 @@ using namespace EspINA;
 VolumetricRenderer::VolumetricRenderer(ViewManager* vm, QObject* parent)
 : IRenderer(parent)
 , m_viewManager(vm)
+, m_picker(vtkSmartPointer<vtkVolumePicker>::New())
 {
+  m_picker->PickFromListOn();
+  m_picker->SetPickClippingPlanes(false);
+  m_picker->SetPickCroppingPlanes(false);
+  m_picker->SetPickTextureData(false);
+  m_picker->SetTolerance(0);
 }
 
 //-----------------------------------------------------------------------------
@@ -58,7 +64,10 @@ bool VolumetricRenderer::addItem(ModelItemPtr item)
   if (m_segmentations.contains(item))
     {
       if (this->m_segmentations[seg].visible)
-        m_renderer->RemoveVolume(this->m_segmentations[seg].volume);
+      {
+        m_renderer->RemoveVolume(m_segmentations[seg].volume);
+        m_picker->DeletePickList(m_segmentations[seg].volume);
+      }
 
       m_segmentations[seg].volume->Delete();
 
@@ -114,6 +123,7 @@ bool VolumetricRenderer::addItem(ModelItemPtr item)
   {
     m_segmentations[seg].visible = true;
     m_renderer->AddVolume(volume);
+    m_picker->AddPickList(m_segmentations[seg].volume);
   }
 
   if (m_segmentations[seg].overridden)
@@ -149,13 +159,23 @@ bool VolumetricRenderer::updateItem(ModelItemPtr item, bool forced)
       return removeItem(item);
   }
 
+  // has the beginning of the pipeline changed?
   Representation &rep = m_segmentations[seg];
+  if (rep.volume->GetMapper()->GetInputConnection(0,0) != seg->volume()->toVTK())
+  {
+    rep.volume->GetMapper()->SetInputConnection(seg->volume()->toVTK());
+    rep.volume->Update();
+
+    updated = true;
+  }
+
   if (seg->visible())
   {
     if (!rep.visible)
     {
       rep.volume->Update();
       m_renderer->AddVolume(rep.volume);
+      m_picker->AddPickList(rep.volume);
       rep.visible = true;
       updated = true;
     }
@@ -166,19 +186,11 @@ bool VolumetricRenderer::updateItem(ModelItemPtr item, bool forced)
     if (rep.visible)
     {
       m_renderer->RemoveVolume(rep.volume);
+      m_picker->DeletePickList(rep.volume);
       rep.visible = false;
       return true;
     }
     return false;
-  }
-
-  // has the beginning of the pipeline changed?
-  if (rep.volume->GetMapper()->GetInputConnection(0,0) != seg->volume()->toVTK())
-  {
-    rep.volume->GetMapper()->SetInputConnection(seg->volume()->toVTK());
-    rep.volume->Update();
-
-    updated = true;
   }
 
   // deal with hierarchies first
@@ -232,7 +244,10 @@ bool VolumetricRenderer::removeItem(ModelItemPtr item)
      return false;
 
    if (m_enable && m_segmentations[seg].visible)
+   {
      m_renderer->RemoveVolume(m_segmentations[seg].volume);
+     m_picker->DeletePickList(m_segmentations[seg].volume);
+   }
 
    if (m_segmentations[seg].actorPropertyBackup)
      m_segmentations[seg].actorPropertyBackup = NULL;
@@ -255,6 +270,7 @@ void VolumetricRenderer::hide()
     if ((*it).visible)
     {
       m_renderer->RemoveVolume((*it).volume);
+      m_picker->DeletePickList((*it).volume);
       (*it).visible = false;
     }
 
@@ -309,6 +325,7 @@ void VolumetricRenderer::createHierarchyProperties(SegmentationPtr seg)
       {
         m_segmentations[seg].visible = true;
         m_renderer->AddVolume(m_segmentations[seg].volume);
+        m_picker->AddPickList(m_segmentations[seg].volume);
       }
       break;
     case HierarchyItem::Translucent:
@@ -317,6 +334,7 @@ void VolumetricRenderer::createHierarchyProperties(SegmentationPtr seg)
       {
         m_segmentations[seg].visible = true;
         m_renderer->AddVolume(m_segmentations[seg].volume);
+        m_picker->AddPickList(m_segmentations[seg].volume);
       }
       break;
     case HierarchyItem::Hidden:
@@ -324,6 +342,7 @@ void VolumetricRenderer::createHierarchyProperties(SegmentationPtr seg)
       {
         m_segmentations[seg].visible = false;
         m_renderer->RemoveVolume(m_segmentations[seg].volume);
+        m_picker->DeletePickList(m_segmentations[seg].volume);
       }
       break;
     case HierarchyItem::Undefined:
@@ -389,6 +408,7 @@ bool VolumetricRenderer::updateHierarchyProperties(SegmentationPtr seg)
         {
           m_segmentations[seg].visible = true;
           m_renderer->AddVolume(m_segmentations[seg].volume);
+          m_picker->AddPickList(m_segmentations[seg].volume);
         }
         break;
       case HierarchyItem::Translucent:
@@ -397,6 +417,7 @@ bool VolumetricRenderer::updateHierarchyProperties(SegmentationPtr seg)
         {
           m_segmentations[seg].visible = true;
           m_renderer->AddVolume(m_segmentations[seg].volume);
+          m_picker->AddPickList(m_segmentations[seg].volume);
         }
         break;
       case HierarchyItem::Hidden:
@@ -404,6 +425,7 @@ bool VolumetricRenderer::updateHierarchyProperties(SegmentationPtr seg)
         {
           m_segmentations[seg].visible = false;
           m_renderer->RemoveVolume(m_segmentations[seg].volume);
+          m_picker->DeletePickList(m_segmentations[seg].volume);
         }
         break;
       case HierarchyItem::Undefined:
@@ -419,4 +441,48 @@ bool VolumetricRenderer::updateHierarchyProperties(SegmentationPtr seg)
     m_segmentations[seg].volume->Modified();
 
   return updated;
+}
+
+//-----------------------------------------------------------------------------
+ViewManager::Selection VolumetricRenderer::pick(int x, int y, bool repeat)
+{
+  ViewManager::Selection selection;
+  QList<vtkVolume *> removedProps;
+
+  if (m_renderer)
+  {
+    while (m_picker->Pick(x,y,0, m_renderer))
+    {
+      vtkVolume *pickedVol = m_picker->GetVolume();
+      Q_ASSERT(pickedVol);
+
+      // can't get the key just for this value, as it's not a representation, must iterate.
+      QMap<ModelItemPtr, Representation>::iterator it = m_segmentations.begin();
+      while (it != m_segmentations.end())
+      {
+        if ((*it).volume == pickedVol)
+        {
+          selection << segmentationPtr(it.key());
+          removedProps << pickedVol;
+          m_picker->GetPickList()->RemoveItem(pickedVol);
+          break;
+        }
+        ++it;
+      }
+
+      if (!repeat)
+        break;
+    }
+
+    foreach(vtkVolume *prop, removedProps)
+      m_picker->GetPickList()->AddItem(prop);
+  }
+
+  return selection;
+}
+
+//-----------------------------------------------------------------------------
+void VolumetricRenderer::getPickCoordinates(double *point)
+{
+  m_picker->GetPickPosition(point);
 }

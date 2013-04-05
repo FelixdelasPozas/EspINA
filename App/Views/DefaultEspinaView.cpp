@@ -77,6 +77,8 @@ DefaultEspinaView::DefaultEspinaView(EspinaModel *model,
   volDock = new QDockWidget(tr("3D"), parent);
   volDock->setObjectName("volDock");
   volDock->setWidget(volView);
+  connect(volView, SIGNAL(centerChanged(Nm, Nm, Nm)),
+          this, SLOT(setCrosshairPoint(Nm,Nm,Nm)));
 
   yzDock = new QDockWidget(tr("ZY"), parent);
   yzDock->setObjectName("yzDock");

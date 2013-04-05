@@ -13,6 +13,7 @@
 // Qt
 #include <QtGlobal>
 #include <QDebug>
+#include <QMessageBox>
 
 // VTK
 #include <vtkMath.h>
@@ -386,11 +387,14 @@ namespace EspINA
     smoothingRecursiveGaussianImageFilter->SetSigma(sigma * max_distance);
     smoothingRecursiveGaussianImageFilter->SetInput(smdm_filter->GetOutput());
 
-    if ( (sigma * max_distance) > 0) {
+    SmoothingFilterType::OutputImageRegionType::SizeType regionSize = smdm_filter->GetOutput()->GetLargestPossibleRegion().GetSize();
+    if (((sigma * max_distance) > 0) && (regionSize[0] >= 4) && (regionSize[1] >= 4) && (regionSize[2] >= 4))
+    {
       smoothingRecursiveGaussianImageFilter->Update();
       return smoothingRecursiveGaussianImageFilter->GetOutput();
     }
-    else {
+    else
+    {
       return smdm_filter->GetOutput();
     }
   }

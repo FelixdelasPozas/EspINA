@@ -155,10 +155,10 @@ void VolumeView::addRendererControls(IRendererSPtr renderer)
   m_itemRenderers << renderer;
   m_renderers[button] = renderer;
 
-  if (!renderer->isHidden() && renderer->isASegmentationRenderer())
+  if (!renderer->isHidden() && (renderer->getRendererType() & IRenderer::SEGMENTATION))
     this->m_numEnabledSegmentationRenders++;
 
-  if (!renderer->isHidden() && renderer->isAChannelRenderer())
+  if (!renderer->isHidden() && (renderer->getRendererType() & IRenderer::CHANNEL))
     this->m_numEnabledChannelRenders++;
 
   if (0 != m_numEnabledSegmentationRenders)
@@ -205,8 +205,11 @@ void VolumeView::removeRendererControls(const QString name)
 
   if (!removedRenderer.isNull())
   {
-    if (!removedRenderer->isHidden() && removedRenderer->isASegmentationRenderer())
+    if (!removedRenderer->isHidden() && (removedRenderer->getRendererType() & IRenderer::SEGMENTATION))
       this->m_numEnabledSegmentationRenders--;
+
+    if (!removedRenderer->isHidden() && (removedRenderer->getRendererType() & IRenderer::CHANNEL))
+      this->m_numEnabledChannelRenders--;
 
     if (0 == m_numEnabledSegmentationRenders)
     {
@@ -501,9 +504,14 @@ void VolumeView::setCursor(const QCursor& cursor)
 //-----------------------------------------------------------------------------
 void VolumeView::eventPosition(int& x, int& y)
 {
-//   vtkRenderWindowInteractor *rwi = m_renderWindow->GetInteractor();
-//   Q_ASSERT(rwi);
-//   rwi->GetEventPosition(x, y);
+  x = y = -1;
+
+  if (m_renderer)
+  {
+   vtkRenderWindowInteractor *rwi = m_renderer->GetRenderWindow()->GetInteractor();
+   Q_ASSERT(rwi);
+   rwi->GetEventPosition(x, y);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -574,6 +582,7 @@ void VolumeView::setupUI()
   m_view->GetRenderWindow()->AddRenderer(m_renderer);
   m_view->GetRenderWindow()->GetInteractor()->SetInteractorStyle(interactorstyle);
   m_view->GetRenderWindow()->Render();
+  m_view->installEventFilter(this);
 }
 
 //-----------------------------------------------------------------------------
@@ -588,69 +597,103 @@ void VolumeView::updateView()
 }
 
 //-----------------------------------------------------------------------------
-void VolumeView::selectPickedItems(bool append)
+void VolumeView::selectPickedItems(int vx, int vy, bool append)
 {
-//   vtkSMRenderViewProxy *view =
-//     vtkSMRenderViewProxy::SafeDownCast(m_view->getProxy());
-//   Q_ASSERT(view);
-//   vtkRenderer *renderer = view->GetRenderer();
-//   Q_ASSERT(renderer);
-//   vtkRenderWindowInteractor *rwi =
-//     vtkRenderWindowInteractor::SafeDownCast(
-//       view->GetRenderWindow()->GetInteractor());
-//   Q_ASSERT(rwi);
-// 
-//   int x, y;
-//   rwi->GetEventPosition(x, y);
-// 
-//   vtkPropPicker *propPicker = vtkPropPicker::New();
-//   if (propPicker->Pick(x, y, 0.1, renderer))
-//   {
-//     vtkProp3D *pickedProp = propPicker->GetProp3D();
-//     vtkObjectBase *object;
-// 
-//     foreach(Channel *channel, m_channels.keys())
-//     {
-//       vtkCrosshairRepresentation *rep;
-//       object = m_channels[channel].proxy->GetClientSideObject();
-//       rep = dynamic_cast<vtkCrosshairRepresentation *>(object);
-//       Q_ASSERT(rep);
-//       if (rep->GetCrosshairProp() == pickedProp)
-//       {
-// // 	qDebug() << "Channel" << channel->data(Qt::DisplayRole).toString() << "Selected";
-// 	emit channelSelected(channel);
-// 	return;
-//       }
-//     }
-// 
-//     foreach(Segmentation *seg, m_segmentations.keys())
-//     {
-//       vtkVolumetricRepresentation *rep;
-//       object = m_segmentations[seg].proxy->GetClientSideObject();
-//       rep = dynamic_cast<vtkVolumetricRepresentation *>(object);
-//       Q_ASSERT(rep);
-//       if (rep->GetVolumetricProp() == pickedProp)
-//       {
-// // 	qDebug() << "Segmentation" << seg->data(Qt::DisplayRole).toString() << "Selected";
-// 	emit segmentationSelected(seg, append);
-// 	return;
-//       }
-//     }
-//   }
+  ViewManager::Selection selection;
+  if (append)
+    selection = m_viewManager->selection();
+
+  // If no append, segmentations have priority over channels
+  foreach(IRendererSPtr renderer, m_renderers.values())
+  {
+    if (!renderer->isHidden() && (renderer->getRendererType() & IRenderer::SEGMENTATION))
+    {
+      ViewManager::Selection rendererSelection = renderer->pick(vx, vy, append);
+      if (!rendererSelection.empty())
+      {
+        foreach (PickableItemPtr item, rendererSelection)
+          if (!selection.contains(item))
+            selection << item;
+          else
+            selection.removeAll(item);
+      }
+    }
+  }
+
+  foreach(IRendererSPtr renderer, m_renderers.values())
+  {
+    if (!renderer->isHidden() && (renderer->getRendererType() & IRenderer::CHANNEL))
+    {
+      ViewManager::Selection rendererSelection = renderer->pick(vx, vy, append);
+      if (!rendererSelection.empty())
+      {
+        foreach (PickableItemPtr item, rendererSelection)
+          if (!selection.contains(item))
+            selection << item;
+          else
+            selection.removeAll(item);
+      }
+    }
+  }
+
+  if (!append && !selection.empty())
+  {
+    PickableItemPtr returnItem = selection.first();
+    selection.clear();
+    selection << returnItem;
+  }
+  m_viewManager->setSelection(selection);
 }
 
 //-----------------------------------------------------------------------------
 bool VolumeView::eventFilter(QObject* caller, QEvent* e)
 {
-  return QObject::eventFilter(caller, e);
+  // there is not a "singleclick" event so we need to remember the position of the
+  // press event and compare it with the position of the release event.
+  static int x = -1;
+  static int y = -1;
+
+  int newX, newY;
+  eventPosition(newX, newY);
 
   if (e->type() == QEvent::MouseButtonPress)
   {
     QMouseEvent *me = static_cast<QMouseEvent*>(e);
     if (me->button() == Qt::LeftButton)
     {
-      selectPickedItems(me->modifiers() == Qt::SHIFT);
+      if (me->modifiers() == Qt::CTRL)
+      {
+        foreach(IRendererSPtr renderer, m_renderers.values())
+        {
+          if (!renderer->isHidden())
+          {
+            ViewManager::Selection rendererSelection = renderer->pick(newX, newY, false);
+            if (!rendererSelection.empty())
+            {
+              double point[3];
+              renderer->getPickCoordinates(point);
+
+              emit centerChanged(point[0], point[1], point[2]);
+            }
+          }
+        }
+      }
+      else
+      {
+        x = newX;
+        y = newY;
+      }
     }
+  }
+
+  if (e->type() == QEvent::MouseButtonRelease)
+  {
+    QMouseEvent *me = static_cast<QMouseEvent*>(e);
+    if ((me->button() == Qt::LeftButton) && !(me->modifiers() == Qt::CTRL))
+      if ((newX == x) && (newY == y))
+      {
+        selectPickedItems(newX, newY, me->modifiers() == Qt::SHIFT);
+      }
   }
 
   return QObject::eventFilter(caller, e);
@@ -901,7 +944,7 @@ void VolumeView::countEnabledRenderers(bool value)
   if (value)
   {
     m_numEnabledRenders++;
-    if (renderer && renderer->isAChannelRenderer() && m_additionalScrollBars)
+    if (renderer && (renderer->getRendererType() & IRenderer::SEGMENTATION) && m_additionalScrollBars)
     {
       m_numEnabledChannelRenders++;
       m_axialScrollBar->setEnabled(true);
@@ -909,7 +952,7 @@ void VolumeView::countEnabledRenderers(bool value)
       m_sagittalScrollBar->setEnabled(true);
     }
 
-    if (renderer && renderer->isASegmentationRenderer())
+    if (renderer && (renderer->getRendererType() & IRenderer::SEGMENTATION))
     {
       m_numEnabledSegmentationRenders++;
       if (0 != m_numEnabledSegmentationRenders)
@@ -929,7 +972,7 @@ void VolumeView::countEnabledRenderers(bool value)
   else
   {
     m_numEnabledRenders--;
-    if (renderer && renderer->isAChannelRenderer() && m_additionalScrollBars)
+    if (renderer && (renderer->getRendererType() & IRenderer::CHANNEL) && m_additionalScrollBars)
     {
       m_numEnabledChannelRenders--;
       if (0 == m_numEnabledChannelRenders)
@@ -940,7 +983,7 @@ void VolumeView::countEnabledRenderers(bool value)
       }
     }
 
-    if (renderer && renderer->isASegmentationRenderer())
+    if (renderer && (renderer->getRendererType() & IRenderer::SEGMENTATION))
     {
       m_numEnabledSegmentationRenders--;
       if (0 == m_numEnabledSegmentationRenders)
@@ -1067,12 +1110,12 @@ void VolumeView::scrollBarMoved(int value)
   point[1] = m_coronalScrollBar->value() * minSpacing[1];
   point[2] = m_sagittalScrollBar->value() * minSpacing[2];
 
-  // TODO: not all channel renderers are crosshair renderers duh...
-  // Maybe we should make subclasses depending on the ModelItem been rendered
   foreach(IRendererSPtr renderer, m_renderers.values())
-    if (renderer->isAChannelRenderer())
+    if (renderer->getRendererType() & IRenderer::CHANNEL)
     {
-      reinterpret_cast<CrosshairRenderer *>(renderer.data())->setCrosshair(point);
+      CrosshairRenderer *crossRender = dynamic_cast<CrosshairRenderer *>(renderer.data());
+      if (crossRender != NULL)
+        crossRender->setCrosshair(point);
     }
 
   m_view->update();

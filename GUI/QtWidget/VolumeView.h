@@ -48,7 +48,7 @@ namespace EspINA
 {
   class ColorEngine;
   class IViewWidget;
-  /// VolumeView
+
   class VolumeView
   : public EspinaRenderView
   {
@@ -84,8 +84,8 @@ namespace EspINA
     void centerViewOn(Nm *center, bool);
     void setCameraFocus(const Nm center[3]);
 
-    public slots: //Needed to interact with renderers
-      virtual void updateView();
+  public slots: //Needed to interact with renderers
+    virtual void updateView();
 
   public:
     virtual void resetCamera();
@@ -137,9 +137,10 @@ namespace EspINA
   signals:
     void channelSelected(ChannelPtr);
     void segmentationSelected(SegmentationPtr, bool);
+    void centerChanged(Nm, Nm, Nm);
 
   protected:
-    void selectPickedItems(bool append);
+    void selectPickedItems(int x, int y, bool append);
 
   private:
     //   void selectSegmentations(int x, int y, int z);

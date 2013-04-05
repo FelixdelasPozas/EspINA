@@ -42,7 +42,6 @@ CountingFrameRenderer::CountingFrameRenderer(CountingFramePanel* plugin)
 //-----------------------------------------------------------------------------
 CountingFrameRenderer::~CountingFrameRenderer()
 {
-
 }
 
 //-----------------------------------------------------------------------------

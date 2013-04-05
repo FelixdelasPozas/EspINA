@@ -35,8 +35,18 @@
 #include <vtkMatrix4x4.h>
 #include <vtkLookupTable.h>
 #include <vtkImageShiftScale.h>
+#include <vtkPropPicker.h>
 
 using namespace EspINA;
+
+//-----------------------------------------------------------------------------
+CrosshairRenderer::CrosshairRenderer(ViewManager *vm, QObject* parent)
+: IRenderer(parent)
+, m_viewManager(vm)
+, m_picker(vtkSmartPointer<vtkPropPicker>::New())
+{
+  m_picker->PickFromListOn();
+}
 
 //-----------------------------------------------------------------------------
 bool CrosshairRenderer::addItem(ModelItemPtr item)
@@ -59,6 +69,9 @@ bool CrosshairRenderer::addItem(ModelItemPtr item)
       m_renderer->RemoveActor((*it).axialBorder);
       m_renderer->RemoveActor((*it).coronalBorder);
       m_renderer->RemoveActor((*it).sagittalBorder);
+      m_picker->DeletePickList((*it).axial);
+      m_picker->DeletePickList((*it).coronal);
+      m_picker->DeletePickList((*it).sagittal);
     }
 
     (*it).axial->Delete();
@@ -343,6 +356,17 @@ bool CrosshairRenderer::addItem(ModelItemPtr item)
   m_channels[channel].sagittalBorder->GetProperty()->SetLineWidth(1);
   m_channels[channel].sagittalBorder->SetPickable(false);
 
+  if (m_enable)
+  {
+    m_channels[channel].visible = true;
+    m_renderer->AddActor(m_channels[channel].axial);
+    m_renderer->AddActor(m_channels[channel].coronal);
+    m_renderer->AddActor(m_channels[channel].sagittal);
+    m_picker->AddPickList(m_channels[channel].axial);
+    m_picker->AddPickList(m_channels[channel].coronal);
+    m_picker->AddPickList(m_channels[channel].sagittal);
+  }
+
   return true;
 }
 
@@ -371,6 +395,9 @@ bool CrosshairRenderer::updateItem(ModelItemPtr item, bool forced)
       m_renderer->AddActor(rep.axialBorder);
       m_renderer->AddActor(rep.coronalBorder);
       m_renderer->AddActor(rep.sagittalBorder);
+      m_picker->AddPickList(rep.axial);
+      m_picker->AddPickList(rep.coronal);
+      m_picker->AddPickList(rep.sagittal);
       rep.visible = true;
       updated = true;
     }
@@ -386,6 +413,9 @@ bool CrosshairRenderer::updateItem(ModelItemPtr item, bool forced)
       m_renderer->RemoveActor(rep.axialBorder);
       m_renderer->RemoveActor(rep.coronalBorder);
       m_renderer->RemoveActor(rep.sagittalBorder);
+      m_picker->DeletePickList(rep.axial);
+      m_picker->DeletePickList(rep.axial);
+      m_picker->DeletePickList(rep.axial);
       rep.visible = false;
       return true;
     }
@@ -453,6 +483,9 @@ bool CrosshairRenderer::removeItem(ModelItemPtr item)
     m_renderer->RemoveActor((*it).axialBorder);
     m_renderer->RemoveActor((*it).coronalBorder);
     m_renderer->RemoveActor((*it).sagittalBorder);
+    m_picker->DeletePickList((*it).axial);
+    m_picker->DeletePickList((*it).coronal);
+    m_picker->DeletePickList((*it).sagittal);
   }
 
   (*it).axial->Delete();
@@ -494,6 +527,9 @@ void CrosshairRenderer::hide()
       m_renderer->RemoveActor((*it).axialBorder);
       m_renderer->RemoveActor((*it).coronalBorder);
       m_renderer->RemoveActor((*it).sagittalBorder);
+      m_picker->DeletePickList((*it).axial);
+      m_picker->DeletePickList((*it).coronal);
+      m_picker->DeletePickList((*it).sagittal);
       (*it).visible = false;
     }
 
@@ -549,18 +585,31 @@ void CrosshairRenderer::setCrosshair(Nm point[3])
     if (point[0] != (*it).point[0])
     {
       (*it).point[0] = point[0];
-      if ((point[0] < (*it).bounds[0]) || (point[0] > (*it).bounds[1]))
+      if (((point[0] < (*it).bounds[0]) || (point[0] > (*it).bounds[1])) && (m_channels.size() > 1))
       {
         (*it).sagittal->SetVisibility(false);
         (*it).sagittalBorder->SetVisibility(false);
       }
       else
       {
+        // if not tiling
+        if (point[0] < (*it).bounds[0])
+          (*it).point[0] = (*it).bounds[0];
+
+        if (point[0] > (*it).bounds[1])
+          (*it).point[0] = (*it).bounds[1];
+
         // sagittal changed
+        if ((*it).sagittal->GetVisibility() == false)
+        {
+          (*it).sagittal->SetVisibility(true);
+          (*it).sagittalBorder->SetVisibility(true);
+        }
+
         double actorpos[3];
-        (*it).matSagittal->SetElement(0, 3, point[0]);
+        (*it).matSagittal->SetElement(0, 3, (*it).point[0]);
         (*it).sagittal->GetPosition(actorpos);
-        actorpos[0] = point[0];
+        actorpos[0] = (*it).point[0];
         (*it).sagittal->SetPosition(actorpos);
         (*it).sagittalBorder->SetPosition(actorpos);
       }
@@ -569,18 +618,31 @@ void CrosshairRenderer::setCrosshair(Nm point[3])
     if (point[1] != (*it).point[1])
     {
       (*it).point[1] = point[1];
-      if ((point[1] < (*it).bounds[2]) || (point[1] > (*it).bounds[3]))
+      if (((point[1] < (*it).bounds[2]) || (point[1] > (*it).bounds[3])) && (m_channels.size() > 1))
       {
         (*it).coronal->SetVisibility(false);
         (*it).coronalBorder->SetVisibility(false);
       }
       else
       {
+        // if not tiling
+        if (point[1] < (*it).bounds[2])
+          (*it).point[1] = (*it).bounds[0];
+
+        if (point[1] > (*it).bounds[3])
+          (*it).point[1] = (*it).bounds[1];
+
         // coronal changed
+        if ((*it).coronal->GetVisibility() == false)
+        {
+          (*it).coronal->SetVisibility(true);
+          (*it).coronalBorder->SetVisibility(true);
+        }
+
         double actorpos[3];
-        (*it).matCoronal->SetElement(1, 3, point[1]);
+        (*it).matCoronal->SetElement(1, 3, (*it).point[1]);
         (*it).coronal->GetPosition(actorpos);
-        actorpos[1] = point[1];
+        actorpos[1] = (*it).point[1];
         (*it).coronal->SetPosition(actorpos);
         (*it).coronalBorder->SetPosition(actorpos);
       }
@@ -589,18 +651,31 @@ void CrosshairRenderer::setCrosshair(Nm point[3])
     if (point[2] != (*it).point[2])
     {
       (*it).point[2] = point[2];
-      if ((point[2] < (*it).bounds[4]) || (point[2] > (*it).bounds[5]))
+      if (((point[2] < (*it).bounds[4]) || (point[2] > (*it).bounds[5])) && (m_channels.size() > 1))
       {
         (*it).axial->SetVisibility(false);
         (*it).axialBorder->SetVisibility(false);
       }
       else
       {
+        // if not tiling
+        if (point[2] < (*it).bounds[4])
+          (*it).point[2] = (*it).bounds[4];
+
+        if (point[2] > (*it).bounds[5])
+          (*it).point[2] = (*it).bounds[5];
+
         // axial changed
+        if ((*it).axial->GetVisibility() == false)
+        {
+          (*it).axial->SetVisibility(true);
+          (*it).axialBorder->SetVisibility(true);
+        }
+
         double actorpos[3];
-        (*it).matAxial->SetElement(2, 3, point[2]);
+        (*it).matAxial->SetElement(2, 3, (*it).point[2]);
         (*it).axial->GetPosition(actorpos);
-        actorpos[2] = point[2];
+        actorpos[2] = (*it).point[2];
         (*it).axial->SetPosition(actorpos);
         (*it).axialBorder->SetPosition(actorpos);
       }
@@ -635,3 +710,46 @@ void CrosshairRenderer::setPlanePosition(PlaneType plane, Nm dist)
   setCrosshair(point);
 }
 
+//-----------------------------------------------------------------------------
+ViewManager::Selection CrosshairRenderer::pick(int x, int y, bool repeat)
+{
+  ViewManager::Selection selection;
+  QList<vtkProp*> removedProps;
+
+  if (m_renderer)
+  {
+    while (m_picker->Pick(x,y,0, m_renderer))
+    {
+      vtkProp *pickedProp = m_picker->GetViewProp();
+      Q_ASSERT(pickedProp);
+
+      // can't get the key just for this value, as it's not a representation, must iterate.
+      QMap<ModelItemPtr, Representation>::iterator it = m_channels.begin();
+      while (it != m_channels.end())
+      {
+        if ((*it).axial == pickedProp || (*it).coronal == pickedProp || (*it).sagittal == pickedProp)
+        {
+          selection << channelPtr(it.key());
+          removedProps << pickedProp;
+          m_picker->GetPickList()->RemoveItem(pickedProp);
+          break;
+        }
+        ++it;
+      }
+
+      if (!repeat)
+        break;
+    }
+
+    foreach(vtkProp *prop, removedProps)
+      m_picker->GetPickList()->AddItem(prop);
+  }
+
+  return selection;
+}
+
+//-----------------------------------------------------------------------------
+void CrosshairRenderer::getPickCoordinates(double *point)
+{
+  m_picker->GetPickPosition(point);
+}

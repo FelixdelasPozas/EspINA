@@ -59,6 +59,8 @@ namespace EspINA
 
     virtual int itemsBeenRendered() { return m_widgets.size(); }
 
+    virtual ViewManager::Selection pick(int x, int y, bool repeat) { ViewManager::Selection emptySelection; return emptySelection; }
+
   public slots:
     void countingFrameCreated(CountingFrame *cf);
     void countingFrameDeleted(CountingFrame *cf);

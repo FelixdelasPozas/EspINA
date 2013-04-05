@@ -33,6 +33,7 @@ class vtkImageConstantPad;
 class vtkProperty;
 class vtkPolyDataMapper;
 class vtkActor;
+class vtkPropPicker;
 
 namespace EspINA
 {
@@ -59,8 +60,11 @@ namespace EspINA
       virtual void clean()          { Q_ASSERT(false); }
       virtual IRendererSPtr clone() { return IRendererSPtr(new MeshRenderer(m_viewManager)); }
 
-      virtual bool isASegmentationRenderer() { return true; }
+      virtual RenderedItems getRendererType() { return RenderedItems(IRenderer::SEGMENTATION); };
       virtual int itemsBeenRendered()        { return m_segmentations.size(); }
+
+      virtual ViewManager::Selection pick(int x, int y, bool repeat);
+      virtual void getPickCoordinates(double *point);
 
     public slots:
       virtual bool updateItem(ModelItemPtr item, bool forced = false);
@@ -84,6 +88,7 @@ namespace EspINA
       };
 
       QMap<ModelItemPtr, Representation> m_segmentations;
+      vtkSmartPointer<vtkPropPicker> m_picker;
 
     private:
       // the beginning of the pipeline, needed to check if the mesh

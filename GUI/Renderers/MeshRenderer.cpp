@@ -31,6 +31,7 @@
 #include <vtkImageConstantPad.h>
 #include <vtkAlgorithm.h>
 #include <vtkMath.h>
+#include <vtkPropPicker.h>
 
 // Qt
 #include <QApplication>
@@ -41,7 +42,9 @@ using namespace EspINA;
 MeshRenderer::MeshRenderer(ViewManager* vm, QObject* parent)
 : IRenderer(parent)
 , m_viewManager(vm)
+, m_picker(vtkSmartPointer<vtkPropPicker>::New())
 {
+  m_picker->PickFromListOn();
 }
 
 //-----------------------------------------------------------------------------
@@ -59,7 +62,10 @@ bool MeshRenderer::addItem(ModelItemPtr item)
   if (m_segmentations.contains(item))
     {
       if (m_enable)
+      {
         m_renderer->RemoveActor(this->m_segmentations[seg].actor);
+        m_picker->DeletePickList(this->m_segmentations[seg].actor);
+      }
       m_segmentations[seg].actor->Delete();
       m_segmentations[seg].actorPropertyBackup = NULL;
       m_segmentations.remove(item);
@@ -104,6 +110,7 @@ bool MeshRenderer::addItem(ModelItemPtr item)
   {
     m_segmentations[seg].visible = true;
     m_renderer->AddActor(actor);
+    m_picker->AddPickList(actor);
   }
 
   if (m_segmentations[seg].overridden)
@@ -149,6 +156,7 @@ bool MeshRenderer::updateItem(ModelItemPtr item, bool forced)
     {
       rep.actor->Modified();
       m_renderer->AddActor(rep.actor);
+      m_picker->AddPickList(rep.actor);
       rep.visible = true;
       updated = true;
     }
@@ -159,6 +167,7 @@ bool MeshRenderer::updateItem(ModelItemPtr item, bool forced)
     if (rep.visible)
     {
       m_renderer->RemoveActor(rep.actor);
+      m_picker->DeletePickList(rep.actor);
       rep.visible = false;
       return true;
     }
@@ -235,7 +244,10 @@ bool MeshRenderer::removeItem(ModelItemPtr item)
      return false;
 
    if (m_segmentations[seg].visible)
+   {
      m_renderer->RemoveActor(m_segmentations[seg].actor);
+     m_picker->DeletePickList(m_segmentations[seg].actor);
+   }
 
    if (m_segmentations[seg].actorPropertyBackup)
      m_segmentations[seg].actorPropertyBackup = NULL;
@@ -263,6 +275,7 @@ void MeshRenderer::hide()
     if ((*it).visible)
     {
       m_renderer->RemoveActor((*it).actor);
+      m_picker->DeletePickList((*it).actor);
       (*it).visible = false;
     }
 
@@ -328,6 +341,7 @@ void MeshRenderer::createHierarchyProperties(SegmentationPtr seg)
       {
         m_segmentations[seg].visible = true;
         m_renderer->AddActor(m_segmentations[seg].actor);
+        m_picker->AddPickList(m_segmentations[seg].actor);
       }
       break;
     case HierarchyItem::Translucent:
@@ -336,6 +350,7 @@ void MeshRenderer::createHierarchyProperties(SegmentationPtr seg)
       {
         m_segmentations[seg].visible = true;
         m_renderer->AddActor(m_segmentations[seg].actor);
+        m_picker->AddPickList(m_segmentations[seg].actor);
       }
       break;
     case HierarchyItem::Hidden:
@@ -343,6 +358,7 @@ void MeshRenderer::createHierarchyProperties(SegmentationPtr seg)
       {
         m_segmentations[seg].visible = false;
         m_renderer->RemoveActor(m_segmentations[seg].actor);
+        m_picker->DeletePickList(m_segmentations[seg].actor);
       }
       break;
     case HierarchyItem::Undefined:
@@ -400,6 +416,7 @@ bool MeshRenderer::updateHierarchyProperties(SegmentationPtr seg)
         {
           m_segmentations[seg].visible = true;
           m_renderer->AddActor(m_segmentations[seg].actor);
+          m_picker->AddPickList(m_segmentations[seg].actor);
         }
         break;
       case HierarchyItem::Translucent:
@@ -408,6 +425,7 @@ bool MeshRenderer::updateHierarchyProperties(SegmentationPtr seg)
         {
           m_segmentations[seg].visible = true;
           m_renderer->AddActor(m_segmentations[seg].actor);
+          m_picker->AddPickList(m_segmentations[seg].actor);
         }
         break;
       case HierarchyItem::Hidden:
@@ -415,6 +433,7 @@ bool MeshRenderer::updateHierarchyProperties(SegmentationPtr seg)
         {
           m_segmentations[seg].visible = false;
           m_renderer->RemoveActor(m_segmentations[seg].actor);
+          m_picker->DeletePickList(m_segmentations[seg].actor);
         }
         break;
       case HierarchyItem::Undefined:
@@ -427,4 +446,48 @@ bool MeshRenderer::updateHierarchyProperties(SegmentationPtr seg)
   }
 
   return updated;
+}
+
+//-----------------------------------------------------------------------------
+ViewManager::Selection MeshRenderer::pick(int x, int y, bool repeat)
+{
+  ViewManager::Selection selection;
+  QList<vtkProp*> removedProps;
+
+  if (m_renderer.GetPointer() != NULL)
+  {
+    while (m_picker->Pick(x,y,0, m_renderer))
+    {
+      vtkProp *pickedProp = m_picker->GetViewProp();
+      Q_ASSERT(pickedProp);
+
+      // can't get the key just for this value, as it's not a representation, must iterate.
+      QMap<ModelItemPtr, Representation>::iterator it = m_segmentations.begin();
+      while (it != m_segmentations.end())
+      {
+        if ((*it).actor == pickedProp)
+        {
+          selection << segmentationPtr(it.key());
+          removedProps << pickedProp;
+          m_picker->GetPickList()->RemoveItem(pickedProp);
+          break;
+        }
+        ++it;
+      }
+
+      if (!repeat)
+        break;
+    }
+
+    foreach(vtkProp *prop, removedProps)
+      m_picker->GetPickList()->AddItem(prop);
+  }
+
+  return selection;
+}
+
+//-----------------------------------------------------------------------------
+void MeshRenderer::getPickCoordinates(double *point)
+{
+  m_picker->GetPickPosition(point);
 }

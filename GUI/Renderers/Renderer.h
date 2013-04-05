@@ -19,11 +19,15 @@
 #ifndef IRENDERER
 #define IRENDERER
 
+// EspINA
 #include <Core/EspinaTypes.h>
+#include <GUI/ViewManager.h>
 
+// Qt
 #include <QString>
 #include <QIcon>
 
+// VTK
 #include <vtkSmartPointer.h>
 #include <vtkRenderer.h>
 
@@ -69,17 +73,25 @@ namespace EspINA
 
     virtual bool isHidden() { return !m_enable; }
 
-    // true if this renderer renders segmentations only
-    virtual bool isASegmentationRenderer() { return false; };
+    enum RendererType
+    {
+      UNDEFINED,
+      CHANNEL,
+      SEGMENTATION
+    };
+    Q_DECLARE_FLAGS(RenderedItems, RendererType);
 
-    // true if this renderer renders channels only
-    virtual bool isAChannelRenderer() { return false; };
+    virtual RenderedItems getRendererType() { return RenderedItems(UNDEFINED); }
 
     // naive item filtering, to be modified/enhanced in the future
     virtual bool itemCanBeRendered(ModelItemPtr item) { return true; }
 
     // return the number of elements actually been rendered by this renderer
     virtual int itemsBeenRendered() = 0;
+
+    // to pick items been rendered
+    virtual ViewManager::Selection pick(int x, int y, bool repeat) = 0;
+    virtual void getPickCoordinates(double *point) {};
 
   public slots:
     virtual void setEnable(bool value)
@@ -109,6 +121,9 @@ namespace EspINA
   typedef QList<IRenderer *>   IRendererList;
   typedef QList<IRendererSPtr> IRendererSList;
 
+  Q_DECLARE_OPERATORS_FOR_FLAGS(IRenderer::RenderedItems)
 }// namespace EspINA
+
+
 
 #endif // IRENDERER

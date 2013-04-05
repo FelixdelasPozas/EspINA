@@ -31,6 +31,7 @@
 #include <vtkActor.h>
 #include <vtkMath.h>
 #include <vtkProperty.h>
+#include <vtkPropPicker.h>
 
 // Qt
 #include <QApplication>
@@ -58,7 +59,11 @@ bool SmoothedMeshRenderer::addItem(ModelItemPtr item)
   if (m_segmentations.contains(item))
   {
     if (m_enable)
+    {
       m_renderer->RemoveActor(this->m_segmentations[seg].actor);
+      m_picker->DeletePickList(m_segmentations[seg].actor);
+    }
+
     m_segmentations[seg].actor->Delete();
     m_segmentations[seg].actorPropertyBackup = NULL;
     m_segmentations.remove(item);
@@ -126,6 +131,7 @@ bool SmoothedMeshRenderer::addItem(ModelItemPtr item)
   {
     m_segmentations[seg].visible = true;
     m_renderer->AddActor(actor);
+    m_picker->AddPickList(actor);
   }
 
   if (m_segmentations[seg].overridden)
@@ -170,6 +176,7 @@ bool SmoothedMeshRenderer::updateItem(ModelItemPtr item, bool forced)
     if (!rep.visible)
     {
       m_renderer->AddActor(rep.actor);
+      m_picker->AddPickList(rep.actor);
       rep.visible = true;
       updated = true;
     }
@@ -180,6 +187,7 @@ bool SmoothedMeshRenderer::updateItem(ModelItemPtr item, bool forced)
     if (rep.visible)
     {
       m_renderer->RemoveActor(rep.actor);
+      m_picker->DeletePickList(rep.actor);
       rep.visible = false;
       return true;
     }
@@ -256,7 +264,10 @@ bool SmoothedMeshRenderer::removeItem(ModelItemPtr item)
      return false;
 
    if (m_segmentations[seg].visible)
+   {
      m_renderer->RemoveActor(m_segmentations[seg].actor);
+     m_picker->DeletePickList(m_segmentations[seg].actor);
+   }
 
    if (m_segmentations[seg].actorPropertyBackup)
      m_segmentations[seg].actorPropertyBackup = NULL;

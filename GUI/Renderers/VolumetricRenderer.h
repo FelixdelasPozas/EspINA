@@ -20,12 +20,16 @@
 #ifndef VOLUMETRICRENDERER_H
 #define VOLUMETRICRENDERER_H
 
+// VTK
 #include <vtkVolume.h>
 #include <vtkSmartPointer.h>
+#include <vtkVolumePicker.h>
 
+// EspINA
 #include <Core/Model/HierarchyItem.h>
 #include "GUI/Renderers/Renderer.h"
 
+// Qt
 #include <QMap>
 
 class vtkVolumeProperty;
@@ -49,6 +53,7 @@ namespace EspINA
 
   public:
     explicit VolumetricRenderer(ViewManager *vm, QObject* parent = 0);
+    virtual ~VolumetricRenderer() {};
 
     virtual const QIcon icon() const {return QIcon(":/espina/voxel.png");}
     virtual const QString name() const {return "Volumetric";}
@@ -65,8 +70,13 @@ namespace EspINA
     virtual void clean() {Q_ASSERT(false);}
     virtual IRendererSPtr clone() {return IRendererSPtr(new VolumetricRenderer(m_viewManager));}
 
-    virtual bool isASegmentationRenderer() { return true; };
-    virtual int itemsBeenRendered() { return m_segmentations.size(); };
+    virtual RenderedItems getRendererType() { return RenderedItems(IRenderer::SEGMENTATION); }
+    virtual int itemsBeenRendered() { return m_segmentations.size(); }
+
+    // to pick items been rendered
+    virtual ViewManager::Selection pick(int x, int y, bool repeat);
+    virtual void getPickCoordinates(double *point);
+
   private:
     // helper methods
     void createHierarchyProperties(SegmentationPtr seg);
@@ -74,6 +84,7 @@ namespace EspINA
 
     ViewManager *m_viewManager;
     QMap<ModelItemPtr, Representation> m_segmentations;
+    vtkSmartPointer<vtkVolumePicker> m_picker;
   };
 
 } // namespace EspINA

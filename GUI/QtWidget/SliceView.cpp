@@ -16,9 +16,8 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// EspINA
 #include "SliceView.h"
-
-// // EspINA
 #include "GUI/ISettingsPanel.h"
 #include "GUI/QtWidget/SliceViewState.h"
 #include "GUI/QtWidget/VolumeView.h"
@@ -50,17 +49,20 @@
 #include <QWheelEvent>
 #include <QMenu>
 #include <QToolButton>
+#include <QVTKWidget.h>
 
+// Boost
 #include <boost/concept_check.hpp>
 
-#include <QVTKWidget.h>
+// ITK
 #include <itkImageToVTKImageFilter.h>
+
+// VTK
 #include <vtkAbstractWidget.h>
 #include <vtkAlgorithmOutput.h>
 #include <vtkCamera.h>
 #include <vtkCellArray.h>
 #include <vtkCellPicker.h>
-#include <vtkCommand.h>
 #include <vtkCoordinate.h>
 #include <vtkImageActor.h>
 #include <vtkImageMapper3D.h>

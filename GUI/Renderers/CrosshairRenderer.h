@@ -18,9 +18,12 @@
 #ifndef CROSSHAIRRENDERER_H
 #define CROSSHAIRRENDERER_H
 
+// EspINA
 #include "GUI/Renderers/Renderer.h"
 #include <Core/EspinaTypes.h>
+#include "GUI/ViewManager.h"
 
+// Qt
 #include <QMap>
 
 class vtkImageActor;
@@ -29,9 +32,11 @@ class vtkPolyData;
 class vtkMatrix4x4;
 class vtkLookupTable;
 class vtkImageShiftScale;
+class vtkPropPicker;
 
 namespace EspINA
 {
+  class ViewManager;
 
   class CrosshairRenderer
   : public IRenderer
@@ -64,6 +69,8 @@ namespace EspINA
     };
 
   public:
+    explicit CrosshairRenderer(ViewManager *vm, QObject* parent = 0);
+
     virtual const QIcon icon() const {return QIcon(":/espina/show_planes.svg");}
     virtual const QString name() const {return "Crosshairs";}
     virtual const QString tooltip() const {return "Sample's Crosshairs";}
@@ -79,16 +86,21 @@ namespace EspINA
     void setCrosshair(Nm point[3]);
     void setPlanePosition(PlaneType plane, Nm dist);
 
-    virtual IRendererSPtr clone() {return IRendererSPtr(new CrosshairRenderer());}
+    virtual IRendererSPtr clone() {return IRendererSPtr(new CrosshairRenderer(m_viewManager));}
 
     virtual void clean() {Q_ASSERT(false);}
 
     virtual int itemsBeenRendered() { return m_channels.size(); };
 
-    virtual bool isAChannelRenderer() { return true; };
+    virtual RenderedItems getRendererType() { return RenderedItems(IRenderer::CHANNEL); };
+
+    virtual ViewManager::Selection pick(int x, int y, bool repeat);
+    virtual void getPickCoordinates(double *point);
 
   private:
+    ViewManager *m_viewManager;
     QMap<ModelItemPtr, Representation> m_channels;
+    vtkSmartPointer<vtkPropPicker>     m_picker;
   };
 
 } // namespace EspINA
