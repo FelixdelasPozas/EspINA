@@ -203,6 +203,13 @@ void SegmentationExplorer::changeLayout(int index)
     disconnect(m_gui->view->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
                this, SLOT(updateSelection(QItemSelection, QItemSelection)));
 
+    disconnect(m_layout->model(), SIGNAL(rowsInserted(const QModelIndex&, int, int)),
+               this,              SLOT(updateSelection()));
+    disconnect(m_layout->model(), SIGNAL(rowsRemoved(const QModelIndex&, int, int)),
+               this,              SLOT(updateSelection()));
+    disconnect(m_layout->model(), SIGNAL(modelReset()),
+               this,              SLOT(updateSelection()));
+
     QLayoutItem *specificControl;
     while ((specificControl = m_gui->specificControlLayout->takeAt(0)) != 0)
     {
@@ -218,12 +225,21 @@ void SegmentationExplorer::changeLayout(int index)
   m_gui->view->setModel(m_layout->model());
 
   connect(m_gui->view->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
-          this, SLOT(updateSelection(QItemSelection, QItemSelection)));
+          this,                          SLOT(updateSelection(QItemSelection, QItemSelection)));
+
+  connect(m_layout->model(), SIGNAL(rowsInserted(const QModelIndex&, int, int)),
+          this,              SLOT(updateSelection()));
+  connect(m_layout->model(), SIGNAL(rowsRemoved(const QModelIndex&, int, int)),
+          this,              SLOT(updateSelection()));
+  connect(m_layout->model(), SIGNAL(modelReset()),
+          this,              SLOT(updateSelection()));
 
   m_layout->createSpecificControls(m_gui->specificControlLayout);
 
   m_gui->view->setItemDelegate(m_layout->itemDelegate());
   m_gui->showInformationButton->setEnabled(false);
+
+  updateSelection(m_viewManager->selection());
 }
 
 //------------------------------------------------------------------------
@@ -328,6 +344,10 @@ void SegmentationExplorer::updateChannelRepresentations(ChannelList list)
 //------------------------------------------------------------------------
 void SegmentationExplorer::updateSelection()
 {
+  if (!isVisible() || signalsBlocked())
+    return;
+
+  updateGUI(m_gui->view->selectionModel()->selection().indexes());
 }
 
 //------------------------------------------------------------------------

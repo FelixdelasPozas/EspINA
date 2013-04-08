@@ -149,6 +149,13 @@ TaxonomyLayout::TaxonomyLayout(CheckableTreeView     *view,
           this,           SLOT  (segmentationsDragged(SegmentationList,TaxonomyElementPtr)));
   connect(m_proxy.data(), SIGNAL(taxonomiesDragged(TaxonomyElementList,TaxonomyElementPtr)),
           this,           SLOT  (taxonomiesDragged(TaxonomyElementList,TaxonomyElementPtr)));
+
+  connect(m_model, SIGNAL(rowsInserted(const QModelIndex&, int, int)),
+          this,  SLOT(updateSelection()));
+  connect(m_model, SIGNAL(rowsRemoved(const QModelIndex&, int, int)),
+          this,  SLOT(updateSelection()));
+  connect(m_model, SIGNAL(modelReset()),
+          this,  SLOT(updateSelection()));
 }
 
 //------------------------------------------------------------------------
@@ -170,7 +177,7 @@ void TaxonomyLayout::createSpecificControls(QHBoxLayout *specificControlLayout)
   createTaxonomy->setEnabled(false);
 
   connect(createTaxonomy, SIGNAL(clicked(bool)),
-          this, SLOT(createTaxonomy()));
+          this,           SLOT(createTaxonomy()));
   specificControlLayout->addWidget(createTaxonomy);
 
   QPushButton *createSubTaxonomy = new QPushButton();
@@ -183,7 +190,7 @@ void TaxonomyLayout::createSpecificControls(QHBoxLayout *specificControlLayout)
   createSubTaxonomy->setEnabled(false);
 
   connect(createSubTaxonomy, SIGNAL(clicked(bool)),
-          this, SLOT(createSubTaxonomy()));
+          this,              SLOT(createSubTaxonomy()));
   specificControlLayout->addWidget(createSubTaxonomy);
 
   QPushButton *changeColor = new QPushButton();
@@ -201,12 +208,14 @@ void TaxonomyLayout::createSpecificControls(QHBoxLayout *specificControlLayout)
 
   // the model of CheckableTreeView has been set by now (wasn't in constructor): connect signals
   connect(m_view->selectionModel(), SIGNAL(selectionChanged(QItemSelection, QItemSelection)),
-          this, SLOT(updateSelection()));
+          this,                     SLOT(updateSelection()));
 
-  m_createTaxonomy = createTaxonomy;
-  m_createSubTaxonomy = createSubTaxonomy;
+  m_createTaxonomy      = createTaxonomy;
+  m_createSubTaxonomy   = createSubTaxonomy;
   m_changeTaxonomyColor = changeColor;
-  connect(m_createTaxonomy, SIGNAL(destroyed()), this, SLOT(disconnectSelectionModel()));
+
+  connect(m_createTaxonomy, SIGNAL(destroyed()),
+          this,             SLOT(disconnectSelectionModel()));
 }
 
 //------------------------------------------------------------------------
@@ -228,7 +237,8 @@ void TaxonomyLayout::contextMenu(const QPoint &pos)
     contextMenu.addSeparator();
 
     QAction *selectAll = contextMenu.addAction(tr("Select all segmentations with the same taxonomy"));
-    connect(selectAll, SIGNAL(triggered(bool)), this, SLOT(selectTaxonomyElements()));
+    connect(selectAll, SIGNAL(triggered(bool)),
+            this,      SLOT(selectTaxonomyElements()));
 
     contextMenu.exec(pos);
     return;
@@ -238,20 +248,24 @@ void TaxonomyLayout::contextMenu(const QPoint &pos)
 
   QAction *createNode = contextMenu.addAction(tr("Create Taxonomy"));
   createNode->setIcon(QIcon(":espina/create_node.png"));
-  connect(createNode, SIGNAL(triggered(bool)), this, SLOT(createTaxonomy()));
+  connect(createNode, SIGNAL(triggered(bool)),
+          this,       SLOT(createTaxonomy()));
 
   QAction *createSubNode = contextMenu.addAction(tr("Create SubTaxonomy"));
   createSubNode->setIcon(QIcon(":espina/create_subnode.png"));
-  connect(createSubNode, SIGNAL(triggered(bool)), this, SLOT(createSubTaxonomy()));
+  connect(createSubNode, SIGNAL(triggered(bool)),
+          this,          SLOT(createSubTaxonomy()));
 
   QAction *changeColor = contextMenu.addAction(tr("Change Taxonomy Color"));
   changeColor->setIcon(QIcon(":espina/rainbow.svg"));
-  connect(changeColor, SIGNAL(triggered(bool)), this, SLOT(changeTaxonomyColor()));
+  connect(changeColor, SIGNAL(triggered(bool)),
+          this,        SLOT(changeTaxonomyColor()));
 
   contextMenu.addSeparator();
 
   QAction *selectAll = contextMenu.addAction(tr("Select all segmentations with this taxonomy"));
-  connect(selectAll, SIGNAL(triggered(bool)), this, SLOT(selectTaxonomyElements()));
+  connect(selectAll, SIGNAL(triggered(bool)),
+          this,      SLOT(selectTaxonomyElements()));
 
   contextMenu.exec(pos);
 }
@@ -304,9 +318,9 @@ void TaxonomyLayout::deleteSelectedItems()
     {
       QMessageBox msg;
       msg.setText(tr("Delete Selected Items. Warning: all elements under selected items will also be deleted"));
-      QPushButton *none         = msg.addButton(tr("Cancel"), QMessageBox::RejectRole);
-      QPushButton *recursiveTax = msg.addButton(tr("Taxonomies and Segmentations"), QMessageBox::AcceptRole);
-      QPushButton *onlySeg      = msg.addButton(tr("Only Segmentations"), QMessageBox::AcceptRole);
+      QPushButton *none             = msg.addButton(tr("Cancel"), QMessageBox::RejectRole);
+      /*QPushButton *recursiveTax =*/ msg.addButton(tr("Taxonomies and Segmentations"), QMessageBox::AcceptRole);
+      QPushButton *onlySeg          = msg.addButton(tr("Only Segmentations"), QMessageBox::AcceptRole);
 
       msg.exec();
 
@@ -526,6 +540,7 @@ void TaxonomyLayout::updateSelection()
   }
 
   bool enabled = (numTax == 1);
+  m_createTaxonomy->setEnabled(!m_model->taxonomy().isNull());
   m_createSubTaxonomy->setEnabled(enabled);
   m_changeTaxonomyColor->setEnabled(enabled);
 }
