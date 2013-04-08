@@ -27,6 +27,7 @@ using namespace EspINA;
 
 typedef ModelItem::ArgumentId ArgumentId;
 const ArgumentId MorphologicalEditionFilter::RADIUS = "Radius";
+const QString MorphologicalEditionFilter::INPUTLINK = "Input";
 
 const unsigned int LABEL_VALUE = 255;
 

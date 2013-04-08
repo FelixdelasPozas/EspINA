@@ -31,6 +31,7 @@ class MorphologicalEditionFilter
 public:
 
   static const ModelItem::ArgumentId RADIUS;
+  static const QString INPUTLINK;
 
   class Parameters
   {

@@ -68,7 +68,6 @@ namespace EspINA
     static const Filter::FilterType ERODE_FILTER_TYPE;
 
   private:
-    static const QString INPUTLINK; //TODO 2012-10-05 Move to CODEFilter ?
     typedef QPair<FilterSPtr, Filter::OutputId> Connection;
 
   public:
@@ -100,8 +99,8 @@ namespace EspINA
         Filter::Arguments args;
         MorphologicalEditionFilter::Parameters params(args);
         params.setRadius(radius);
-        inputs[INPUTLINK] = seg->filter();
-        args[Filter::INPUTS] = Filter::NamedInput(INPUTLINK, seg->outputId());
+        inputs[MorphologicalEditionFilter::INPUTLINK] = seg->filter();
+        args[Filter::INPUTS] = Filter::NamedInput(MorphologicalEditionFilter::INPUTLINK, seg->outputId());
         switch (op)
         {
           case CLOSE:
@@ -153,7 +152,7 @@ namespace EspINA
 
         m_model->removeRelation(oldConnection.first, seg, Filter::CREATELINK);
         m_model->addFilter(newConnection.first);
-        m_model->addRelation(oldConnection.first, newConnection.first, INPUTLINK);
+        m_model->addRelation(oldConnection.first, newConnection.first, MorphologicalEditionFilter::INPUTLINK);
         m_model->addRelation(newConnection.first, seg, Filter::CREATELINK);
 
         seg->changeFilter(newConnection.first, newConnection.second);
@@ -177,7 +176,7 @@ namespace EspINA
         segmentations << seg.data();
 
         m_model->removeRelation(newConnection.first, seg, Filter::CREATELINK);
-        m_model->removeRelation(oldConnection.first, newConnection.first, INPUTLINK);
+        m_model->removeRelation(oldConnection.first, newConnection.first, MorphologicalEditionFilter::INPUTLINK);
         m_model->removeFilter(newConnection.first);
         m_model->addRelation(oldConnection.first, seg, Filter::CREATELINK);
 
@@ -220,8 +219,6 @@ namespace EspINA
   const Filter::FilterType EditorToolBar::CODECommand::ERODE_FILTER_TYPE   = "EditorToolBar::ErodeFilter";
 
 } // namespace EspINA
-
-const QString EditorToolBar::CODECommand::INPUTLINK = "Input";
 
 //----------------------------------------------------------------------------
 EditorToolBar::EditorToolBar(EspinaModel *model,
