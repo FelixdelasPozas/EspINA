@@ -63,7 +63,7 @@ namespace EspINA
     virtual const TaxonomySPtr taxonomy() const
     { return m_model->taxonomy(); }
 
-    virtual void addTaxonomy(TaxonomySPtr tax);
+    virtual void addTaxonomy(TaxonomySPtr taxonomy);
 
     virtual TaxonomyElementSPtr createTaxonomyElement(TaxonomyElementPtr  parent, const QString &name);
 

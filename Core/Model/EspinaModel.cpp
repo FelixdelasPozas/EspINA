@@ -783,11 +783,11 @@ QModelIndex EspinaModel::taxonomyIndex(TaxonomyElementSPtr node) const
 
 
 //------------------------------------------------------------------------
-void EspinaModel::setTaxonomy(TaxonomySPtr tax)
+void EspinaModel::setTaxonomy(TaxonomySPtr taxonomy)
 {
   if (m_tax)
   {
-    TaxonomySPtr oldTax = tax;
+    TaxonomySPtr oldTax = taxonomy;
     beginRemoveRows(taxonomyRoot(), 0, rowCount(taxonomyRoot()) - 1);
     m_tax.clear();
     endRemoveRows();
@@ -795,10 +795,10 @@ void EspinaModel::setTaxonomy(TaxonomySPtr tax)
     emit taxonomyRemoved(oldTax);
   }
 
-  if (tax)
+  if (taxonomy)
   {
-    beginInsertRows(taxonomyRoot(), 0, tax->elements().size() - 1);
-    m_tax = tax;
+    beginInsertRows(taxonomyRoot(), 0, taxonomy->elements().size() - 1);
+    m_tax = taxonomy;
     endInsertRows();
 
     emit taxonomyAdded(m_tax);
@@ -807,12 +807,13 @@ void EspinaModel::setTaxonomy(TaxonomySPtr tax)
 }
 
 //------------------------------------------------------------------------
-void EspinaModel::addTaxonomy(TaxonomySPtr tax)
+void EspinaModel::addTaxonomy(TaxonomySPtr taxonomy)
 {
+  Q_ASSERT(false); // TODO 1.4: Mix .seg is not finished
   if (m_tax)
-    addTaxonomy(tax->root());
+    addTaxonomy(taxonomy->root());
   else
-    setTaxonomy(tax);
+    setTaxonomy(taxonomy);
 
   markAsChanged();
 }

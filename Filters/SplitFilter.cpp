@@ -64,7 +64,7 @@ bool SplitFilter::needUpdate(OutputId oId) const
 //-----------------------------------------------------------------------------
 void SplitFilter::run()
 {
-  qDebug() << "Split Run" << m_cacheId;
+  //qDebug() << "Split Run" << m_cacheId;
   Q_ASSERT(m_inputs.size() == 1);
   EspinaVolume::Pointer input = m_inputs[0];
 

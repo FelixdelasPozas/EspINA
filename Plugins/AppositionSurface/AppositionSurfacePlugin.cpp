@@ -29,7 +29,7 @@
 #include <Core/Model/EspinaFactory.h>
 #include <Core/Model/EspinaModel.h>
 #include <Core/EspinaSettings.h>
-#include <Undo/AddTaxonomyElement.h>
+#include <Undo/TaxonomiesCommand.h>
 
 // Qt
 #include <QColorDialog>

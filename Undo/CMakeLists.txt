@@ -11,8 +11,8 @@ set (UNDO_SOURCES
   AddRelation.cpp
   AddSample.cpp
   AddSegmentation.cpp
-  AddTaxonomyElement.cpp
   ChangeTaxonomyCommand.cpp
+  TaxonomiesCommand.cpp
   ChangeSegmentationNotes.cpp
   ChangeSegmentationTags.cpp
   FillHolesCommand.cpp

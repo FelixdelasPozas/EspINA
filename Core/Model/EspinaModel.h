@@ -50,9 +50,9 @@ namespace EspINA
     /************************* Model Item API *******************************/
     //---------------------------------------------------------------------------
     // Returns the taxonomy used by the analyzer
-    virtual void setTaxonomy(TaxonomySPtr tax) = 0;
+    virtual void setTaxonomy(TaxonomySPtr taxonomy) = 0;
     virtual const TaxonomySPtr taxonomy() const = 0;
-    virtual void addTaxonomy(TaxonomySPtr tax) = 0;
+    virtual void addTaxonomy(TaxonomySPtr taxonomy) = 0;
     virtual TaxonomyElementSPtr createTaxonomyElement(TaxonomyElementPtr  parent, const QString &name) = 0;
     virtual TaxonomyElementSPtr createTaxonomyElement(TaxonomyElementSPtr parent, const QString &name) = 0;
     virtual void addTaxonomyElement   (TaxonomyElementSPtr parent, TaxonomyElementSPtr element) = 0;
@@ -207,9 +207,9 @@ namespace EspINA
 
     // Taxonomies
     /// Returns the taxonomy used by the analyzer
-    virtual void setTaxonomy(TaxonomySPtr tax);
+    virtual void setTaxonomy(TaxonomySPtr taxonomy);
     virtual const TaxonomySPtr taxonomy() const {return m_tax;}
-    virtual void addTaxonomy(TaxonomySPtr tax);
+    virtual void addTaxonomy(TaxonomySPtr taxonomy);
     virtual TaxonomyElementSPtr createTaxonomyElement(TaxonomyElementPtr  parent, const QString &name);
     virtual TaxonomyElementSPtr createTaxonomyElement(TaxonomyElementSPtr parent, const QString &name);
     virtual void addTaxonomyElement   (TaxonomyElementSPtr parent, TaxonomyElementSPtr element);

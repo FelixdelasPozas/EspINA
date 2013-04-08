@@ -202,7 +202,7 @@ namespace EspINA
   //-----------------------------------------------------------------------------
   void TubularSegmentationFilter::setTool(TubularTool *tool)
   {
-    qDebug() << "set tool" << tool;
+    //qDebug() << "set tool" << tool;
     m_tool = tool;
   }
 

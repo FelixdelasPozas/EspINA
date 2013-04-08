@@ -29,6 +29,7 @@
 #include "UndoableEspinaModel.h"
 
 #include "App/Undo/AtomicModelOperations.h"
+#include <Undo/TaxonomiesCommand.h>
 
 using namespace EspINA;
 
@@ -39,38 +40,35 @@ void UndoableEspinaModel::setTaxonomy(TaxonomySPtr tax)
 }
 
 //---------------------------------------------------------------------------
-void UndoableEspinaModel::addTaxonomy(TaxonomySPtr tax)
+void UndoableEspinaModel::addTaxonomy(TaxonomySPtr taxonomy)
 {
-  // TODO: Undo
-  m_model->addTaxonomy(tax);
+  m_undoStack->push(new AddTaxonomyCommand(taxonomy, m_model));
 }
 
 //---------------------------------------------------------------------------
 TaxonomyElementSPtr UndoableEspinaModel::createTaxonomyElement(TaxonomyElementPtr parent, const QString &name)
 {
-  // TODO: Undo
-  return m_model->createTaxonomyElement(parent, name);
+  m_undoStack->push(new AddTaxonomyElement(parent, name, m_model, parent->color()));
+  return parent->element(name);
 }
 
 //---------------------------------------------------------------------------
 TaxonomyElementSPtr UndoableEspinaModel::createTaxonomyElement(TaxonomyElementSPtr parent, const QString &name)
 {
-  // TODO: Undo
-  return m_model->createTaxonomyElement(parent, name);
+  m_undoStack->push(new AddTaxonomyElement(parent.data(), name, m_model, parent->color()));
+  return parent->element(name);
 }
 
 //---------------------------------------------------------------------------
 void UndoableEspinaModel::addTaxonomyElement(TaxonomyElementSPtr parent, TaxonomyElementSPtr element)
 {
-  // TODO: Undo
-  m_model->addTaxonomyElement(parent, element);
+  m_undoStack->push(new AddTaxonomyElement(parent, element, m_model));
 }
 
 //---------------------------------------------------------------------------
 void UndoableEspinaModel::removeTaxonomyElement(TaxonomyElementSPtr parent, TaxonomyElementSPtr element)
 {
-  // TODO: Undo
-  m_model->removeTaxonomyElement(parent, element);
+  m_undoStack->push(new RemoveTaxonomyElementCommand(element.data(), m_model));
 }
 
 //---------------------------------------------------------------------------

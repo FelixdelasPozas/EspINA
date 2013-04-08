@@ -18,14 +18,13 @@
 
 
 #include "LayoutTaxonomy.h"
-#include <Undo/ChangeTaxonomyCommand.h>
-#include <Undo/MoveTaxonomiesCommand.h>
-#include <Undo/RemoveTaxonomyElementCommand.h>
+
 
 #include <Core/Model/Segmentation.h>
 #include <Core/Model/Taxonomy.h>
 #include <GUI/QtWidget/SegmentationContextualMenu.h>
-#include <Undo/AddTaxonomyElement.h>
+#include <Undo/ChangeTaxonomyCommand.h>
+#include <Undo/TaxonomiesCommand.h>
 
 #include <QMessageBox>
 #include <QUndoStack>

@@ -46,7 +46,7 @@ void OpeningFilter::run()
   Q_ASSERT(m_inputs.size() == 1);
   m_input = m_inputs.first()->toITK();
 
-  qDebug() << "Compute Image Opening";
+  //qDebug() << "Compute Image Opening";
   StructuringElementType ball;
   ball.SetRadius(m_params.radius());
   ball.CreateStructuringElement();

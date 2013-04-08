@@ -136,10 +136,8 @@ set (ESPINA_SOURCES
   Undo/BrushUndoCommand.cpp
   Undo/CompositionCommand.cpp
   Undo/ImageLogicCommand.cpp
-  Undo/MoveTaxonomiesCommand.cpp
   Undo/SeedGrowSegmentationCommand.cpp
   Undo/SplitUndoCommand.cpp
-  Undo/RemoveTaxonomyElementCommand.cpp
   Undo/StrokeSegmentationCommand.cpp
   Undo/UndoableEspinaModel.cpp
   Undo/UnloadChannelCommand.cpp

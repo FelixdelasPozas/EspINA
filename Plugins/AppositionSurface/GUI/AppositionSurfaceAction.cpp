@@ -16,7 +16,7 @@
 #include <Core/Model/Segmentation.h>
 #include <Core/Model/EspinaModel.h>
 #include <GUI/ViewManager.h>
-#include <Undo/AddTaxonomyElement.h>
+#include <Undo/TaxonomiesCommand.h>
 
 // Qt
 #include <QDebug>

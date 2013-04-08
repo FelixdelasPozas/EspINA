@@ -45,7 +45,7 @@ void ErodeFilter::run()
   Q_ASSERT(m_inputs.size() == 1);
   m_input = m_inputs.first()->toITK();
 
-  qDebug() << "Compute Image Erode";
+  //qDebug() << "Compute Image Erode";
   StructuringElementType ball;
   ball.SetRadius(m_params.radius());
   ball.CreateStructuringElement();
