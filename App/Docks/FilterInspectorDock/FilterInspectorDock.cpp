@@ -16,7 +16,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "FilterInspector.h"
+#include "FilterInspectorDock.h"
 
 #include <Core/Model/Segmentation.h>
 #include <GUI/ViewManager.h>
@@ -28,7 +28,7 @@
 using namespace EspINA;
 
 //----------------------------------------------------------------------------
-FilterInspector::FilterInspector(QUndoStack *undoStack,
+FilterInspectorDock::FilterInspectorDock(QUndoStack *undoStack,
                                  ViewManager* vm,
                                  QWidget* parent)
 : IDockWidget(parent)
@@ -46,12 +46,12 @@ FilterInspector::FilterInspector(QUndoStack *undoStack,
 }
 
 //----------------------------------------------------------------------------
-FilterInspector::~FilterInspector()
+FilterInspectorDock::~FilterInspectorDock()
 {
 }
 
 //----------------------------------------------------------------------------
-void FilterInspector::initDockWidget(EspinaModel *model,
+void FilterInspectorDock::initDockWidget(EspinaModel *model,
                                      QUndoStack  *undoStack,
                                      ViewManager *viewManager)
 {
@@ -59,20 +59,20 @@ void FilterInspector::initDockWidget(EspinaModel *model,
 }
 
 //----------------------------------------------------------------------------
-void FilterInspector::reset()
+void FilterInspectorDock::reset()
 {
 
 }
 
 //----------------------------------------------------------------------------
-void FilterInspector::showEvent(QShowEvent *e)
+void FilterInspectorDock::showEvent(QShowEvent *e)
 {
   QWidget::showEvent(e);
   updatePannel();
 }
 
 //----------------------------------------------------------------------------
-void FilterInspector::updatePannel()
+void FilterInspectorDock::updatePannel()
 {
   if (!isVisible())
     return;

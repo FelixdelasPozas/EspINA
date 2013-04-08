@@ -19,7 +19,7 @@ qt4_wrap_cpp (ESPINA_MOC
   Dialogs/TabularReport/TabularReportEntry.h
   Dialogs/SettingsDialog.h
   Docks/ChannelExplorer/ChannelExplorer.h
-  Docks/FilterInspector/FilterInspector.h
+  Docks/FilterInspectorDock/FilterInspectorDock.h
   Docks/SegmentationExplorer/SegmentationExplorer.h
   Docks/SegmentationExplorer/SegmentationExplorerLayout.h
   Docks/SegmentationExplorer/LayoutTaxonomy.h
@@ -93,7 +93,7 @@ set (ESPINA_SOURCES
   Dialogs/AboutDialog.cpp
   Dialogs/SettingsDialog.cpp #TODO 2012-11-27 Renombrar General Settings Dialog
   Docks/ChannelExplorer/ChannelExplorer.cpp
-  Docks/FilterInspector/FilterInspector.cpp # TODO 2012-11-27 Renombrar (cuidadin con el Filter::FilterInspector)
+  Docks/FilterInspectorDock/FilterInspectorDock.cpp
   Docks/SegmentationExplorer/LayoutComposition.cpp
   Docks/SegmentationExplorer/LayoutLocation.cpp
   Docks/SegmentationExplorer/LayoutTaxonomy.cpp

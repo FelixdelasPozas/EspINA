@@ -22,7 +22,7 @@
 #include "Dialogs/SettingsDialog.h"
 #include "Dialogs/Connectomics/ConnectomicsDialog.h"
 #include "Docks/ChannelExplorer/ChannelExplorer.h"
-#include "Docks/FilterInspector/FilterInspector.h"
+#include "Docks/FilterInspectorDock/FilterInspectorDock.h"
 #include "Docks/SegmentationExplorer/SegmentationExplorer.h"
 #include "Dialogs/TabularReport/TabularReport.h"
 #include "Dialogs/TabularReport/RawInformationDialog.h"
@@ -332,8 +332,8 @@ EspinaMainWindow::EspinaMainWindow(EspinaModel      *model,
   SegmentationExplorer *segExplorer = new SegmentationExplorer(m_model, m_undoStack, m_viewManager, this);
   registerDockWidget(Qt::LeftDockWidgetArea, segExplorer);
 
-  FilterInspector *filterInspector = new FilterInspector(m_undoStack, m_viewManager, this);
-  registerDockWidget(Qt::LeftDockWidgetArea, filterInspector);
+  FilterInspectorDock *filterInspectorDock = new FilterInspectorDock(m_undoStack, m_viewManager, this);
+  registerDockWidget(Qt::LeftDockWidgetArea, filterInspectorDock);
 
 //   QAction *connectomicsAction = new QAction(tr("Connectomics Information"), this);
 //   m_dynamicMenuRoot->submenus[0]->menu->addAction(connectomicsAction);
