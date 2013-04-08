@@ -674,6 +674,7 @@ bool VolumeView::eventFilter(QObject* caller, QEvent* e)
               renderer->getPickCoordinates(point);
 
               emit centerChanged(point[0], point[1], point[2]);
+              break;
             }
           }
         }
