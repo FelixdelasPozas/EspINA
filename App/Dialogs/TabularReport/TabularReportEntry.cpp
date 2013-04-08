@@ -27,11 +27,14 @@
 
 
 #include "TabularReportEntry.h"
+#include <Analysis/xlsUtils.h>
 #include <GUI/Analysis/InformationSelector.h>
 #include <QFileDialog>
 #include <QStandardItemModel>
+#include <QMessageBox>
 
 using namespace EspINA;
+using namespace xlslib_core;
 
 //------------------------------------------------------------------------
 TabularReport::Entry::Entry(QString taxonomy, EspinaFactory *factory)
@@ -52,6 +55,35 @@ TabularReport::Entry::Entry(QString taxonomy, EspinaFactory *factory)
 
   tableView->setSelectionBehavior(QAbstractItemView::SelectRows);
 }
+
+//------------------------------------------------------------------------
+int TabularReport::Entry::rowCount() const
+{
+  return tableView->model()->rowCount(tableView->rootIndex()) + 1;
+}
+
+//------------------------------------------------------------------------
+int TabularReport::Entry::columnCount() const
+{
+  return Proxy->informationTags().size();
+}
+
+//------------------------------------------------------------------------
+QVariant TabularReport::Entry::value(int row, int column) const
+{
+  QVariant result;
+
+  if (row < rowCount() && column < columnCount())
+  {
+    if (row == 0)
+      result = Proxy->informationTags()[column];
+    else
+      result = tableView->model()->index(row - 1, column, tableView->rootIndex()).data();
+  }
+
+  return result;
+}
+
 
 //------------------------------------------------------------------------
 void TabularReport::Entry::changeDisplayedInformation()
@@ -77,31 +109,70 @@ void TabularReport::Entry::changeDisplayedInformation()
 //------------------------------------------------------------------------
 void TabularReport::Entry::extractInformation()
 {
+  QString filter = tr("Excel File (*.xls)") + ";;" + tr("CSV Text File (*.csv)");
   QString fileName = QFileDialog::getSaveFileName(this,
                                                   tr("Export %1 Data").arg(m_taxonomy),
-                                                  QString("%1.csv").arg(m_taxonomy.replace("/","-")),
-                                                  tr("CSV Text File (*.csv)"));
+                                                  QString("%1.xls").arg(m_taxonomy.replace("/","-")),
+                                                  filter);
 
   if (fileName.isEmpty())
     return;
 
-  QFile file(fileName);
+  bool result = false;
+
+  if (fileName.endsWith(".csv"))
+  {
+    result = exportToCSV(fileName);
+  }
+  else if (fileName.endsWith(".xls"))
+  {
+    result = exportToXLS(fileName);
+  }
+
+  if (!result)
+    QMessageBox::warning(this, "EspINA", tr("Couldn't export %1").arg(fileName));
+}
+
+//------------------------------------------------------------------------
+bool TabularReport::Entry::exportToCSV(const QString &filename)
+{
+  QFile file(filename);
+
   file.open(QIODevice::WriteOnly |  QIODevice::Text);
+
   QTextStream out(&file);
 
-  QModelIndex rootIndex = tableView->rootIndex();
-
-  out << Proxy->informationTags().join(",") << "\n";
-
-  for (int r = 0; r < tableView->model()->rowCount(rootIndex); r++)
+  for (int r = 0; r < rowCount(); r++)
   {
-    for (int c = 0; c < tableView->model()->columnCount(rootIndex); c++)
+    for (int c = 0; c < columnCount(); c++)
     {
       if (c)
         out << ",";
-      out << tableView->model()->index(r,c, rootIndex).data().toString();
+      out << value(r, c).toString();
     }
     out << "\n";
   }
   file.close();
+
+  return true;
+}
+
+//------------------------------------------------------------------------
+bool TabularReport::Entry::exportToXLS(const QString &filename)
+{
+  workbook wb;
+
+  worksheet *ws = wb.sheet(m_taxonomy.toStdString());
+
+  for (int r = 0; r < rowCount(); ++r)
+  {
+    for (int c = 0; c < columnCount(); ++c)
+    {
+      createCell(ws, r, c, value(r,c));
+    }
+  }
+
+  wb.Dump(filename.toStdString());
+
+  return true;
 }

@@ -1,7 +1,10 @@
+find_package(XLSLIB REQUIRED)
+
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_BINARY_DIR} # Generated EspinaConfig.h
   ${CMAKE_CURRENT_BINARY_DIR}  #For wrap/ui files
+  ${XLSLIB_INCLUDE_DIRS}
   )
 
 #------------------------------------------------------------------------------
@@ -85,6 +88,7 @@ set (ESPINA_SOURCES
   main.cpp
   EspinaMainWindow.cpp
   RecentDocuments.cpp
+  Analysis/xlsUtils.cpp
   Dialogs/SegmentationInspector/SegmentationInspector.cpp
   Dialogs/TabularReport/QueryView.cpp #TODO 2012-11-27 Cambiar nombre de la clase a TabularReport
   Dialogs/TabularReport/TabularReport.cpp
@@ -156,13 +160,17 @@ set (ESPINA_LIBRARIES
   EspinaFilters
   EspinaGUI
   EspinaUndo
+)
+
+set (EXTERNAL_LIBRARIES
+  ${XLSLIB_LIBRARIES}
   QVTK
   QtTest # Required by ModelTest
-)
+  )
 
 
 add_executable(espina ${ESPINA_SOURCES})
-target_link_libraries (espina ${ESPINA_LIBRARIES})
+target_link_libraries (espina ${ESPINA_LIBRARIES} ${EXTERNAL_LIBRARIES})
 
 #install (
 #  TARGETS espina

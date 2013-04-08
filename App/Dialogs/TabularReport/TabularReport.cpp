@@ -21,6 +21,7 @@
 #include "TabularReportEntry.h"
 
 #include "Dialogs/TabularReport/QueryView.h"
+#include <Analysis/xlsUtils.h>
 
 // Espina
 #include <Core/Model/EspinaModel.h>
@@ -29,6 +30,7 @@
 #include <Core/Model/QtModelUtils.h>
 #include <Core/Extensions/SegmentationExtension.h>
 #include <GUI/QtWidget/CheckableTableView.h>
+#include <xlslib/datast.h>
 
 // Qt
 #include <QFileDialog>
@@ -36,9 +38,11 @@
 #include <QScrollArea>
 #include <QStandardItemModel>
 #include <QKeyEvent>
+#include <QMessageBox>
 
 
 using namespace EspINA;
+using namespace xlslib_core;
 
 //------------------------------------------------------------------------
 class DataSortFiler
@@ -359,6 +363,27 @@ void TabularReport::rowsRemoved(const QModelIndex &parent, int start, int end)
 //------------------------------------------------------------------------
 void TabularReport::exportInformation()
 {
+  QString filter = tr("Excel File (*.xls)") + ";;" + tr("CSV Text File (*.csv)");
+  QString fileName = QFileDialog::getSaveFileName(this,
+                                                  tr("Export Raw Information"),
+                                                  QString("raw information.xls"),
+                                                  filter);
+
+  if (fileName.isEmpty())
+    return;
+
+  bool result = false;
+  if (fileName.endsWith(".csv"))
+  {
+    result = exportToCSV(fileName);
+  } 
+  else if (fileName.endsWith(".xls"))
+  {
+    result = exportToXLS(fileName);
+  }
+
+  if (!result)
+    QMessageBox::warning(this, "EspINA", tr("Couldn't export %1").arg(fileName));
 }
 
 //------------------------------------------------------------------------
@@ -422,6 +447,61 @@ void TabularReport::createTaxonomyEntry(const QString &taxonomy)
 
     m_tabs->insertTab(i, entry, taxonomy);
   }
+}
+
+//------------------------------------------------------------------------
+bool TabularReport::exportToCSV(const QFileInfo &filename)
+{
+  for (int i = 0; i < m_tabs->count(); ++i)
+  {
+    Entry *entry = dynamic_cast<Entry *>(m_tabs->widget(i));
+
+    QString csvFile = filename.dir().absoluteFilePath(filename.baseName() + "-" + m_tabs->tabText(i).replace("/","-") + ".csv");
+
+    QFile file( csvFile);
+
+    file.open(QIODevice::WriteOnly |  QIODevice::Text);
+
+    QTextStream out(&file);
+
+    for (int r = 0; r < entry->rowCount(); r++)
+    {
+      for (int c = 0; c < entry->columnCount(); c++)
+      {
+        if (c)
+          out << ",";
+        out << entry->value(r, c).toString();
+      }
+      out << "\n";
+    }
+    file.close();
+  }
+
+  return true;
+}
+
+//------------------------------------------------------------------------
+bool TabularReport::exportToXLS(const QString &filename)
+{
+  workbook wb;
+
+  for (int i = 0; i < m_tabs->count(); ++i)
+  {
+    Entry *entry = dynamic_cast<Entry *>(m_tabs->widget(i));
+    worksheet *sheet = wb.sheet(m_tabs->tabText(i).toStdString());
+
+    for (int r = 0; r < entry->rowCount(); ++r)
+    {
+      for (int c = 0; c < entry->columnCount(); ++c)
+      {
+        createCell(sheet, r, c, entry->value(r,c));
+      }
+    }
+  }
+
+  wb.Dump(filename.toStdString());
+
+  return true;
 }
 
 //------------------------------------------------------------------------

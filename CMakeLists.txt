@@ -48,6 +48,8 @@ if (${USE_DASHBOARD})
 
 endif()
 
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/CMake/Modules/")
+
 find_package(Quazip REQUIRED)
 include(${QUAZIP_USE_FILE})
 

@@ -62,6 +62,16 @@ SeedGrowSegmentationFilter::~SeedGrowSegmentationFilter()
 }
 
 //-----------------------------------------------------------------------------
+QVariant SeedGrowSegmentationFilter::data(int role) const
+{
+  if (Qt::ToolTipRole == role)
+  {
+    return "Información del filtro";
+  } else
+    return EspINA::Filter::data(role);
+}
+
+//-----------------------------------------------------------------------------
 bool SeedGrowSegmentationFilter::needUpdate(OutputId oId) const
 {
   return  m_paramModified || Filter::needUpdate(oId);

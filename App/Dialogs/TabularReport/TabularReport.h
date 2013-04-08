@@ -81,6 +81,10 @@ namespace EspINA
   private:
     bool acceptSegmentation(const SegmentationPtr segmentation);
     void createTaxonomyEntry(const QString &taxonomy);
+
+    bool exportToCSV(const QFileInfo &filename);
+    bool exportToXLS(const QString &filename);
+
     QModelIndex mapToSource(const QModelIndex &index);
     QModelIndex mapFromSource(const QModelIndex &index, QSortFilterProxyModel *sortFilter);
 

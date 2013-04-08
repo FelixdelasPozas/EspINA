@@ -115,6 +115,8 @@ namespace EspINA
                                         FilterType  type);
     virtual ~SeedGrowSegmentationFilter();
 
+    virtual QVariant data(int role = Qt::DisplayRole) const;
+
     void setLowerThreshold(int th, bool ignoreUpdate = false);
     int lowerThreshold() const {return m_param.lowerThreshold();}
 

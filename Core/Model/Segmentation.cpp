@@ -148,7 +148,8 @@ QVariant Segmentation::data(int role) const
         boundsInfo = boundsInfo.append(TAB+"Y: %1 nm - %2 nm <br>").arg(bounds[2]).arg(bounds[3]);
         boundsInfo = boundsInfo.append(TAB+"Z: %1 nm - %2 nm <br>").arg(bounds[4]).arg(bounds[5]);
 
-        filterInfo = tr("<b>Filter:</b><br> %1<br>").arg(TAB+filter()->data().toString());
+        //filterInfo = tr("<b>Filter:</b><br> %1<br>").arg(TAB+filter()->data().toString());
+        filterInfo = m_filter->data(Qt::ToolTipRole).toString();
       }
 
       QString taxonomyInfo;

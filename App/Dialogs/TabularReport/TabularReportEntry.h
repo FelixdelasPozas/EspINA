@@ -32,8 +32,13 @@
 #include <App/Dialogs/TabularReport/TabularReport.h>
 #include <ui_TabularReport.h>
 
+#include <common/xlconfig.h>
+#include <xlslib.h>
+
 namespace EspINA
 {
+  typedef boost::shared_ptr<xlslib_core::workbook> ExcelWorkBook;
+
   class TabularReport::Entry
   : public QWidget
   , public Ui_TabularReport
@@ -43,9 +48,18 @@ namespace EspINA
     Entry(QString taxonomy, EspinaFactory *factory);
     InformationProxy *Proxy;
 
+    int rowCount() const;
+    int columnCount() const;
+    QVariant value(int row, int column) const;
+
+
   protected slots:
     void changeDisplayedInformation();
     void extractInformation();
+
+  private:
+    bool exportToCSV(const QString &filename);
+    bool exportToXLS(const QString &filename);
 
   private:
     EspinaFactory *m_factory;
