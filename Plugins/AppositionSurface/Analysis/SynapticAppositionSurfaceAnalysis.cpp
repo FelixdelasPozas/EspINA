@@ -36,11 +36,15 @@
 #include <Core/Extensions/SegmentationExtension.h>
 #include <Core/Extensions/Morphological/MorphologicalInformation.h>
 #include <GUI/Analysis/InformationSelector.h>
+#include <App/Analysis/xlsUtils.h>
+#include <../xlslib/src/xlslib/workbook.h>
 #include <QUndoStack>
 #include <QFileDialog>
 #include <QScrollBar>
+#include <QMessageBox>
 
 using namespace EspINA;
+using namespace xlslib_core;
 
 //----------------------------------------------------------------------------
 SynapticAppositionSurfaceAnalysis::SynapticAppositionSurfaceAnalysis(SegmentationList segmentations,
@@ -58,15 +62,15 @@ SynapticAppositionSurfaceAnalysis::SynapticAppositionSurfaceAnalysis(Segmentatio
 
   setObjectName("SynapticAppositionSurfaceAnalysis");
 
-  tableView->setSelectionBehavior(QAbstractItemView::SelectRows);
+  dataTable->setSelectionBehavior(QAbstractItemView::SelectRows);
 
-  connect(tableView->horizontalScrollBar(), SIGNAL(valueChanged(int)),
-          analysis->horizontalScrollBar(), SLOT(setValue(int)));
+  connect(dataTable->horizontalScrollBar(), SIGNAL(valueChanged(int)),
+          analysisTable->horizontalScrollBar(), SLOT(setValue(int)));
 
-  connect(analysis->horizontalScrollBar(), SIGNAL(valueChanged(int)), 
-          tableView->horizontalScrollBar(), SLOT(setValue(int)));
+  connect(analysisTable->horizontalScrollBar(), SIGNAL(valueChanged(int)), 
+          dataTable->horizontalScrollBar(), SLOT(setValue(int)));
 
-  connect(tableView, SIGNAL(cellChanged(int,int)),
+  connect(dataTable, SIGNAL(cellChanged(int,int)),
           this, SLOT(syncGeometry()));
 
   QIcon iconSave = qApp->style()->standardIcon(QStyle::SP_DialogSaveButton);
@@ -98,11 +102,11 @@ void SynapticAppositionSurfaceAnalysis::displayInformation()
   int sasColumns     = m_sasTags.size();
   int rowCount       = m_synapses.size();
 
-  tableView->setRowCount(rowCount);
-  tableView->setColumnCount(synapseColumns + sasColumns);
+  dataTable->setRowCount(rowCount);
+  dataTable->setColumnCount(synapseColumns + sasColumns);
 
-  analysis->setRowCount(1);
-  analysis->setColumnCount(synapseColumns + sasColumns);
+  analysisTable->setRowCount(1);
+  analysisTable->setColumnCount(synapseColumns + sasColumns);
 
   QStringList headers;
   headers << m_synapseTags;
@@ -110,8 +114,8 @@ void SynapticAppositionSurfaceAnalysis::displayInformation()
   {
     headers << tr("SAS %1").arg(sasHeader);
   }
-  tableView->setHorizontalHeaderLabels(headers);
-  analysis->setHorizontalHeaderLabels(headers);
+  dataTable->setHorizontalHeaderLabels(headers);
+  analysisTable->setHorizontalHeaderLabels(headers);
 
   progressBar->setMinimum(-1);
   progressBar->setMaximum(rowCount - 1);
@@ -129,20 +133,21 @@ void SynapticAppositionSurfaceAnalysis::displayInformation()
 
       QTableWidgetItem *item = new QTableWidgetItem();
       item->setData(Qt::DisplayRole, cell);
-      tableView->setItem(r, c, item);
+      dataTable->setItem(r, c, item);
 
       if (r == 0)
       {
-        analysis->setItem(0, c, new QTableWidgetItem("0"));
+        analysisTable->setItem(0, c, new QTableWidgetItem(""));
       }
 
-      bool   isNumber;
-      double cellValue = cell.toDouble(&isNumber);
-      if (isNumber)
+      if (QVariant::Double == cell.type() || QVariant::Int == cell.type())
       {
         item->setData(Qt::TextAlignmentRole, Qt::AlignCenter);
-        double sum = analysis->item(0, c)->data(Qt::DisplayRole).toDouble() + cellValue;
-        analysis->item(0, c)->setData(Qt::DisplayRole, sum);
+
+        double total     = analysisTable->item(0, c)->data(Qt::DisplayRole).toDouble();
+        double cellValue = cell.toDouble();
+
+        analysisTable->item(0, c)->setData(Qt::DisplayRole, total + cellValue);
       }
     }
 
@@ -176,39 +181,40 @@ void SynapticAppositionSurfaceAnalysis::displayInformation()
 
       QTableWidgetItem *item = new QTableWidgetItem();
       item->setData(Qt::DisplayRole, cell);
-      tableView->setItem(r, synapseColumns + c, item);
+      dataTable->setItem(r, synapseColumns + c, item);
 
       int ac = c + synapseColumns;
       if (r == 0)
       {
-        analysis->setItem(0, ac, new QTableWidgetItem("0"));
+        analysisTable->setItem(0, ac, new QTableWidgetItem("0"));
       }
 
-      bool   isNumber;
-      double cellValue = cell.toDouble(&isNumber);
-      if (isNumber)
+      if (QVariant::Double == cell.type() || QVariant::Int == cell.type())
       {
         item->setData(Qt::TextAlignmentRole, Qt::AlignCenter);
-        double sum = analysis->item(0, ac)->data(Qt::DisplayRole).toDouble() + cellValue;
-        analysis->item(0, ac)->setData(Qt::DisplayRole, sum);
+
+        double total     = analysisTable->item(0, ac)->data(Qt::DisplayRole).toDouble();
+        double cellValue = cell.toDouble();
+
+        analysisTable->item(0, ac)->setData(Qt::DisplayRole, total + cellValue);
       }
     }
 
-    tableView->item(r, 0)->setData(Qt::DecorationRole, segmentation->data(Qt::DecorationRole));
+    dataTable->item(r, 0)->setData(Qt::DecorationRole, segmentation->data(Qt::DecorationRole));
 
     progressBar->setValue(r);
   }
 
   for (int c = 0; c < synapseColumns + sasColumns; ++c)
   {
-    bool   isNumber;
-    if (analysis->item(0, c))
+    if (analysisTable->item(0, c))
     {
-      double cellValue = analysis->item(0, c)->data(Qt::DisplayRole).toDouble(&isNumber);
-      if (isNumber)
+      QVariant cell = analysisTable->item(0, c)->data(Qt::DisplayRole);
+
+      if (QVariant::Double == cell.type() || QVariant::Int == cell.type())
       {
-        analysis->item(0, c)->setData(Qt::DisplayRole, cellValue / rowCount);
-        analysis->item(0, c)->setData(Qt::TextAlignmentRole, Qt::AlignCenter);
+        analysisTable->item(0, c)->setData(Qt::DisplayRole, cell.toDouble() / rowCount);
+        analysisTable->item(0, c)->setData(Qt::TextAlignmentRole, Qt::AlignCenter);
       }
     }
   }
@@ -219,10 +225,10 @@ void SynapticAppositionSurfaceAnalysis::displayInformation()
     m_undoStack->endMacro();
   }
 
-  tableView->resizeColumnsToContents();
-  tableView->setSortingEnabled(true);
-  tableView->horizontalHeader()->setMovable(true);
-  analysis->horizontalHeader()->setMovable(true);
+  dataTable->resizeColumnsToContents();
+  dataTable->setSortingEnabled(true);
+  dataTable->horizontalHeader()->setMovable(true);
+  analysisTable->horizontalHeader()->setMovable(true);
 
   syncGeometry();
 
@@ -260,41 +266,117 @@ void SynapticAppositionSurfaceAnalysis::defineQuery()
 void SynapticAppositionSurfaceAnalysis::saveAnalysis()
 {
   QString title   = tr("Export Synaptic Apposition Surface Analysis");
-  QString fileExt = tr("CSV Text File (*.csv)");
-  QString fileName = QFileDialog::getSaveFileName(this, title, "", fileExt);
+  QString filter = tr("Excel File (*.xls)") + ";;" + tr("CSV Text File (*.csv)");
+  QString fileName = QFileDialog::getSaveFileName(this,
+                                                  title,
+                                                  "",
+                                                  filter);
 
   if (fileName.isEmpty())
     return;
 
-  QFile file(fileName);
-  file.open(QIODevice::WriteOnly |  QIODevice::Text);
-  QTextStream out(&file);
-  for (int c = 0; c < analysis->columnCount(); ++c)
+  bool result = false;
+  if (fileName.endsWith(".csv"))
   {
-    if (c)
-      out << ",";
-    out << analysis->horizontalHeaderItem(c)->data(Qt::DisplayRole).toString();
+    result = exportToCSV(fileName);
+  } 
+  else if (fileName.endsWith(".xls"))
+  {
+    result = exportToXLS(fileName);
   }
-  out << "\n";
 
-  for (int r = 0; r < analysis->rowCount(); r++)
-  {
-    for (int c = 0; c < analysis->columnCount(); c++)
-    {
-      if (c)
-        out << ",";
-      out << analysis->item(r,c)->data(Qt::DisplayRole).toString();
-    }
-    out << "\n";
-  }
-  file.close();
+  if (!result)
+    QMessageBox::warning(this, "EspINA", tr("Couldn't export %1").arg(fileName));
 }
 
 //----------------------------------------------------------------------------
 void SynapticAppositionSurfaceAnalysis::syncGeometry()
 {
-  for (int c = 0; c < analysis->columnCount(); ++c)
+  for (int c = 0; c < analysisTable->columnCount(); ++c)
   {
-    analysis->setColumnWidth(c, tableView->columnWidth(c));
+    analysisTable->setColumnWidth(c, dataTable->columnWidth(c));
   }
+}
+
+//----------------------------------------------------------------------------
+bool SynapticAppositionSurfaceAnalysis::exportToCSV(const QString &filename)
+{
+  QFile file(filename);
+
+  file.open(QIODevice::WriteOnly |  QIODevice::Text);
+
+  QTextStream out(&file);
+  for (int c = 0; c < dataTable->columnCount(); ++c)
+  {
+    if (c)
+      out << ",";
+    out << dataTable->horizontalHeaderItem(c)->data(Qt::DisplayRole).toString();
+  }
+  out << "\n";
+
+  for (int r = 0; r < dataTable->rowCount(); ++r)
+  {
+    for (int c = 0; c < dataTable->columnCount(); ++c)
+    {
+      if (c)
+        out << ",";
+      out << dataTable->item(r,c)->data(Qt::DisplayRole).toString();
+    }
+    out << "\n";
+  }
+
+  out << "\n";
+
+  for (int r = 0; r < analysisTable->rowCount(); ++r)
+  {
+    for (int c = 0; c < analysisTable->columnCount(); ++c)
+    {
+      if (c)
+        out << ",";
+      out << analysisTable->item(r,c)->data(Qt::DisplayRole).toString();
+    }
+    out << "\n";
+  }
+
+  file.close();
+
+  return true;
+}
+
+//----------------------------------------------------------------------------
+bool SynapticAppositionSurfaceAnalysis::exportToXLS(const QString &filename)
+{
+  workbook wb;
+  worksheet *sheet = wb.sheet("Synaptic Apposition Surface Analysis");
+
+  int sheetRow = 0;
+  // Headers
+  for (int c = 0; c < dataTable->columnCount(); ++c)
+  {
+    createCell(sheet, sheetRow, c, dataTable->horizontalHeaderItem(c)->data(Qt::DisplayRole));
+  }
+
+  ++sheetRow;
+
+  for (int r = 0; r < dataTable->rowCount(); ++r, ++sheetRow)
+  {
+    for (int c = 0; c < dataTable->columnCount(); ++c)
+    {
+      createCell(sheet, sheetRow, c, dataTable->item(r,c)->data(Qt::DisplayRole));
+    }
+  }
+
+  ++sheetRow;
+
+  for (int r = 0; r < analysisTable->rowCount(); ++r, ++sheetRow)
+  {
+    for (int c = 0; c < analysisTable->columnCount(); ++c)
+    {
+      createCell(sheet, sheetRow, c, analysisTable->item(r,c)->data(Qt::DisplayRole));
+    }
+  }
+
+  wb.Dump(filename.toStdString());
+
+  return true;
 }

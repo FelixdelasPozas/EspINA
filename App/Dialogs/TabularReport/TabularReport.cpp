@@ -30,7 +30,6 @@
 #include <Core/Model/QtModelUtils.h>
 #include <Core/Extensions/SegmentationExtension.h>
 #include <GUI/QtWidget/CheckableTableView.h>
-#include <xlslib/datast.h>
 
 // Qt
 #include <QFileDialog>

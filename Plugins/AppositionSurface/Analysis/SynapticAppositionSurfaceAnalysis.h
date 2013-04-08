@@ -59,6 +59,10 @@ namespace EspINA
     void syncGeometry();
 
   private:
+    bool exportToCSV(const QString &filename);
+    bool exportToXLS(const QString &filename);
+
+  private:
     EspinaModel *m_model;
     QUndoStack  *m_undoStack;
     ViewManager *m_viewManager;

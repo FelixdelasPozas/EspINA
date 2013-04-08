@@ -25,10 +25,13 @@ if (NOT COMPILING_ESPINA)
 
 endif ()
 
+  find_package(XLSLIB REQUIRED)
+
 include_directories (
   ${CMAKE_SOURCE_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_BINARY_DIR} # UI files
+  ${XLSLIB_INCLUDE_DIRS}
 )
 
 qt4_add_resources (RCC_BUILT_SOURCES 
@@ -70,6 +73,7 @@ set (PLUGIN_SOURCES
 set (PLUGIN_LIBRARIES
   EspinaCore
   vtkInfovis
+  ${XLSLIB_LIBRARIES}
   )
 
 add_library(AppositionSurfacePlugin SHARED ${PLUGIN_SOURCES})
