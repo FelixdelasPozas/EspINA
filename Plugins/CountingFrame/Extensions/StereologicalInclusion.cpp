@@ -279,10 +279,15 @@ void StereologicalInclusion::evaluateCountingFrames()
       }
     }
 
-    m_isOnEdge = isOnEdge();
+    if (!countingFrames.isEmpty())
+    {
+      m_isOnEdge = isOnEdge();
 
-    setCountingFrames(countingFrames);
-
+      setCountingFrames(countingFrames);
+    } else 
+    {
+      s_cache[m_segmentation].Data.IsExcluded = false;
+    }
     updateConditions();
     s_cache.markAsClean(m_segmentation);
   }
