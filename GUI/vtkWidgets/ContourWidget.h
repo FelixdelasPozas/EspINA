@@ -61,6 +61,9 @@ namespace EspINA
 
     void setMode(Brush::BrushMode);
 
+    // reset all contours in all planes without rasterize
+    void initialize();
+
   signals:
     void rasterizeContours(ContourWidget::ContourList);
     void storeData();

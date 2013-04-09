@@ -197,3 +197,16 @@ void ContourWidget::setMode(Brush::BrushMode mode)
   if (m_sagittalSliceContourWidget)
     m_sagittalSliceContourWidget->setMode(mode);
 }
+
+//----------------------------------------------------------------------------
+void ContourWidget::initialize()
+{
+  if (m_axialSliceContourWidget)
+    m_axialSliceContourWidget->Initialize();
+
+  if (m_coronalSliceContourWidget)
+    m_coronalSliceContourWidget->Initialize();
+
+  if (m_sagittalSliceContourWidget)
+    m_sagittalSliceContourWidget->Initialize();
+}

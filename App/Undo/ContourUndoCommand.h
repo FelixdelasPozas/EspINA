@@ -22,6 +22,7 @@
 // EspINA
 #include <Core/EspinaTypes.h>
 #include <Core/Model/Segmentation.h>
+#include <Core/Model/EspinaModel.h>
 
 // Qt
 #include <QUndoStack>
@@ -31,6 +32,7 @@ class vtkPolyData;
 namespace EspINA
 {
   class ViewManager;
+  class FilledContour;
   
   class ContourUndoCommand
   : public QUndoCommand
@@ -41,7 +43,8 @@ namespace EspINA
                          Nm pos,
                          PlaneType plane,
                          itkVolumeType::PixelType value,
-                         ViewManager *vm);
+                         ViewManager *vm,
+                         FilledContour *tool);
 
       virtual ~ContourUndoCommand();
 
@@ -61,6 +64,33 @@ namespace EspINA
       itkVolumeType::Pointer   m_newVolume;
       bool                     m_needReduction;
       QList<EspinaRegion>      m_prevRegions;
+      FilledContour           *m_tool;
+      bool                     m_abortOperation;
+  };
+
+  class ContourAddSegmentation
+  : public QUndoCommand
+  {
+  public:
+    explicit ContourAddSegmentation(ChannelSPtr         channel,
+                                    FilterSPtr          filter,
+                                    SegmentationSPtr    seg,
+                                    TaxonomyElementSPtr taxonomy,
+                                    EspinaModel        *model,
+                                    FilledContour      *tool);
+    virtual void redo();
+    virtual void undo();
+
+  private:
+    EspinaModel *m_model;
+
+    SampleSPtr          m_sample;
+    ChannelSPtr         m_channel;
+    FilterSPtr          m_filter;
+    SegmentationSPtr    m_seg;
+    TaxonomyElementSPtr m_taxonomy;
+    FilledContour      *m_tool;
+    bool                m_abortOperation;
   };
 
 } /* namespace EspINA */

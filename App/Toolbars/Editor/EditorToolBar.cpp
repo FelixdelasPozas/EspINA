@@ -628,6 +628,8 @@ void EditorToolBar::initDrawTools()
 
   connect(contour.data(), SIGNAL(changeMode(Brush::BrushMode)),
           this, SLOT(changeContourMode(Brush::BrushMode)));
+  connect(contour.data(), SIGNAL(stopDrawing()),
+          this, SLOT(cancelDrawOperation()));
 
   m_drawTools[contourTool] = contour;
   m_drawToolSelector->addAction(contourTool);

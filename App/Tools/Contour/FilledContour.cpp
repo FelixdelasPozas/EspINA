@@ -115,6 +115,7 @@ void FilledContour::setInUse(bool enable)
 
   m_inUse = enable;
   m_enabled = enable;
+  emit changeMode(Brush::BRUSH);
 
   if (enable)
   {
@@ -229,11 +230,12 @@ void FilledContour::rasterize(ContourWidget::ContourList list)
     {
       m_currentSource->draw(0, (*it).contourPoints, (*it).contourPoints->GetPoint(0)[(*it).contourPlane], (*it).contourPlane, (((*it).contourMode == Brush::BRUSH) ? SEG_VOXEL_VALUE : SEG_BG_VALUE), true);
       m_currentSeg = m_model->factory()->createSegmentation(m_currentSource, 0);
-      m_undoStack->push(new AddSegmentation(m_model->findChannel(channel),
-                                            m_currentSource,
-                                            m_currentSeg,
-                                            m_model->findTaxonomyElement(m_viewManager->activeTaxonomy()),
-                                            m_model));
+      m_undoStack->push(new ContourAddSegmentation(m_model->findChannel(channel),
+                                                   m_currentSource,
+                                                   m_currentSeg,
+                                                   m_model->findTaxonomyElement(m_viewManager->activeTaxonomy()),
+                                                   m_model,
+                                                   this));
       SegmentationSList createdSegmentations;
       createdSegmentations << m_currentSeg;
       m_model->emitSegmentationAdded(createdSegmentations);
@@ -249,7 +251,8 @@ void FilledContour::rasterize(ContourWidget::ContourList list)
                                                (*it).contourPoints->GetPoint(0)[(*it).contourPlane],
                                                (*it).contourPlane,
                                                ((*it).contourMode == Brush::BRUSH) ? SEG_VOXEL_VALUE : SEG_BG_VALUE,
-                                               m_viewManager));
+                                               m_viewManager,
+                                               this));
     }
   }
 
@@ -277,4 +280,19 @@ void FilledContour::rasterize(ContourWidget::ContourList list)
 
   QApplication::restoreOverrideCursor();
   m_widgetHasContour = false;
+}
+
+//-----------------------------------------------------------------------------
+void FilledContour::abortOperation()
+{
+  if (!m_enabled)
+    return;
+
+  if (m_widgetHasContour)
+  {
+    m_widgetHasContour = false;
+    m_contourWidget->initialize();
+  }
+
+  emit stopDrawing();
 }

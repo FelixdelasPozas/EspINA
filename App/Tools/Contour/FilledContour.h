@@ -35,7 +35,8 @@ namespace EspINA
   class ViewManager;
   class ContourWidget;
 
-  class FilledContour: public ITool //NOTE Change to IVOI to use countour as VOI
+  class FilledContour
+  : public ITool  // TODO Change to IVOI to use countour as VOI
   {
     Q_OBJECT
     public:
@@ -51,8 +52,12 @@ namespace EspINA
       virtual void setEnabled(bool enable);
       virtual bool enabled() const;
 
+      // only called from undoCommands
+      virtual void abortOperation();
+
     signals:
       void changeMode(Brush::BrushMode);
+      void stopDrawing();
 
     protected slots:
       void storeContourData();
