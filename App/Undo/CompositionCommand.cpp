@@ -67,7 +67,7 @@ CompositionCommand::CompositionCommand(const SegmentationList &segmentations,
   params.setOperation(ImageLogicFilter::ADDITION);
 
   m_filter = FilterSPtr(new ImageLogicFilter(inputs, args, FILTER_TYPE));
-  m_filter->update(Filter::ALL_INPUTS);
+  m_filter->update();
   m_seg = m_model->factory()->createSegmentation(m_filter, 0);
 
   createdSegmentations << m_seg;

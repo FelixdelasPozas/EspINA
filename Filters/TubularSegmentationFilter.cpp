@@ -67,6 +67,13 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
+  void TubularSegmentationFilter::run(Filter::OutputId oId)
+  {
+    Q_ASSERT(0 == oId);
+    updateVolume();
+  }
+
+  //-----------------------------------------------------------------------------
   void TubularSegmentationFilter::updateVolume()
   {
     foreach(vtkImplicitFunction *f, m_implicitFunctions)

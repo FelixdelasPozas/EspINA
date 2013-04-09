@@ -41,9 +41,11 @@ OpeningFilter::~OpeningFilter()
 }
 
 //-----------------------------------------------------------------------------
-void OpeningFilter::run()
+void OpeningFilter::run(OutputId oId)
 {
+  Q_ASSERT(0 == oId);
   Q_ASSERT(m_inputs.size() == 1);
+
   m_input = m_inputs.first()->toITK();
 
   //qDebug() << "Compute Image Opening";

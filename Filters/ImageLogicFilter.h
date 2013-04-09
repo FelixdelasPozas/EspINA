@@ -63,12 +63,16 @@ public:
                             FilterType  type);
   virtual ~ImageLogicFilter();
 
-  /// Implements Filter Interface
-  virtual bool needUpdate(OutputId oId) const;
 
 protected:
-  /// Implements Filter Interface
-  void run();
+  virtual bool ignoreCurrentOutputs() const
+  { return false; }
+
+  virtual bool needUpdate(OutputId oId) const;
+
+  virtual void run();
+
+  virtual void run(OutputId oId);
 
 protected:
   void addition();

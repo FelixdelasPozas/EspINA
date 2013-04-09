@@ -40,8 +40,7 @@ public:
   virtual ~OpeningFilter();
 
 protected:
-  /// Implements Filter Interface
-  void run();
+  virtual void run(OutputId oId);
 
 private:
   BinaryOpenFilter::Pointer m_filter;

@@ -40,8 +40,7 @@ public:
   virtual ~ErodeFilter();
 
 protected:
-  /// Implements Filter Interface
-  void run();
+  virtual void run(OutputId oId);
 
 private:
   BinaryErodeFilter::Pointer m_filter;

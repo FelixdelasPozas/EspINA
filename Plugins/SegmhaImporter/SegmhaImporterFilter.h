@@ -100,9 +100,6 @@ namespace EspINA
     // Implements Model Item Interface
     virtual QString serialize() const;
 
-    // Implements Filter Interface
-    virtual bool needUpdate(OutputId oId) const;
-
     /// Return full taxonomy contained in segmha's meta-data
     TaxonomySPtr taxonomy() {return m_taxonomy;}
     /// Return the taxonomy associated with the i-th output
@@ -117,7 +114,14 @@ namespace EspINA
     void initSegmentation(SegmentationSPtr seg, OutputId i);
 
   protected:
+    virtual bool ignoreCurrentOutputs() const
+    { return false; }
+
+    virtual bool needUpdate(OutputId oId) const;
+
     virtual void run();
+
+    virtual void run(OutputId oId);
 
   private:
     Parameters m_param;

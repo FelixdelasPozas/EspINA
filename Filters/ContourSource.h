@@ -56,11 +56,15 @@ namespace EspINA
       virtual void draw(OutputId oId, vtkPolyData *contour, Nm slice, PlaneType plane, itkVolumeType::PixelType value =
           SEG_VOXEL_VALUE, bool emitSignal = true);
 
-      /// Implements Filter Interface
+    protected:
+      virtual bool ignoreCurrentOutputs() const
+      { return false; }
+
       virtual bool needUpdate(OutputId oId) const;
 
-    protected:
       virtual void run() {}
+
+      virtual void run(OutputId oId) {}
 
     private:
       Parameters m_param;

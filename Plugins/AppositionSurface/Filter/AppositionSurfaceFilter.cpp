@@ -140,6 +140,14 @@ namespace EspINA
   //----------------------------------------------------------------------------
   void AppositionSurfaceFilter::run()
   {
+    run(0);
+  }
+
+  //----------------------------------------------------------------------------
+  void AppositionSurfaceFilter::run(Filter::OutputId oId)
+  {
+    Q_ASSERT(0 == oId);
+
     upkeeping();
 
     m_input = m_originSegmentation->volume()->toITK();

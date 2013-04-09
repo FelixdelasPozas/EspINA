@@ -162,6 +162,7 @@ EspinaMainWindow::EspinaMainWindow(EspinaModel      *model,
 , m_busy(false)
 , m_undoStackSavedIndex(0)
 , m_errorHandler(new EspinaErrorHandler(this))
+, m_traceableStatus(new QLabel(statusBar()))
 {
 #ifdef TEST_ESPINA_MODELS
   m_modelTester = QSharedPointer<ModelTest>(new ModelTest(m_model));
@@ -381,6 +382,9 @@ EspinaMainWindow::EspinaMainWindow(EspinaModel      *model,
   setWindowTitle(QString("EspINA Interactive Neuron Analyzer"));
 
   checkAutosave();
+
+  statusBar()->addPermanentWidget(m_traceableStatus);
+  updateTraceabilityStatus();
 }
 
 //------------------------------------------------------------------------
@@ -560,6 +564,21 @@ void EspinaMainWindow::registerToolBar(IToolBar* toolbar)
 
 
 //------------------------------------------------------------------------
+void EspinaMainWindow::updateTraceabilityStatus()
+{
+  if (m_model->isTraceable())
+  {
+    m_traceableStatus->setPixmap(QPixmap(":/espina/traceable.png").scaled(22, 22));
+    m_traceableStatus->setToolTip(tr("Current Analysis is traceable"));
+  }
+  else
+  {
+    m_traceableStatus->setPixmap(QPixmap(":/espina/non_traceable.png").scaled(22, 22));
+    m_traceableStatus->setToolTip(tr("Current Analysis is not traceable"));
+  }
+}
+
+//------------------------------------------------------------------------
 void EspinaMainWindow::closeEvent(QCloseEvent* event)
 {
   if (m_busy)
@@ -642,6 +661,7 @@ bool EspinaMainWindow::closeCurrentAnalysis()
   m_sessionFile = QFileInfo();
 
   setWindowTitle(QString("EspINA Interactive Neuron Analyzer"));
+  updateTraceabilityStatus();
 
   EspinaIO::removeTemporalDir();
 
@@ -739,9 +759,11 @@ void EspinaMainWindow::openAnalysis(const QFileInfo file)
     secs = secs % 60;
   }
 
-  updateStatus(QString("File Loaded in %1m%2s").arg(mins).arg(secs));
-  qDebug() << "File Loaded in " << mins << "mins" << secs << "secs";
   QApplication::restoreOverrideCursor();
+
+  updateTraceabilityStatus();
+  updateStatus(QString("File Loaded in %1m%2s").arg(mins).arg(secs));
+
   if (file != m_settings->autosavePath().absoluteFilePath(AUTOSAVE_FILE))
   {
     m_recentDocuments1.addDocument(file.absoluteFilePath());
@@ -1031,6 +1053,7 @@ void EspinaMainWindow::showPreferencesDialog()
   }
 
   dialog.exec();
+  updateTraceabilityStatus();
 }
 
 //------------------------------------------------------------------------

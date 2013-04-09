@@ -47,9 +47,11 @@ DilateFilter::~DilateFilter()
 }
 
 //-----------------------------------------------------------------------------
-void DilateFilter::run()
+void DilateFilter::run(OutputId oId)
 {
+  Q_ASSERT(0 == oId);
   Q_ASSERT(m_inputs.size() == 1);
+
   m_input = m_inputs.first()->toITK();
 
   //   qDebug() << "Compute Image Dilate";
@@ -87,5 +89,6 @@ void DilateFilter::run()
   m_outputs[0].volume->toITK()->DisconnectPipeline();
 
   m_outputs[0].volume->markAsModified();
+
   emit modified(this);
 }

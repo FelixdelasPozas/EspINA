@@ -273,6 +273,14 @@ void SegmhaImporterFilter::run()
 }
 
 //-----------------------------------------------------------------------------
+void SegmhaImporterFilter::run(Filter::OutputId oId)
+{
+  // As traceability is not supported by this filter 
+  Q_ASSERT(false); // TODO: Verify
+}
+
+
+//-----------------------------------------------------------------------------
 TaxonomyElementSPtr SegmhaImporterFilter::taxonomy(OutputId i)
 {
   return m_taxonomies.value(i, TaxonomyElementSPtr());

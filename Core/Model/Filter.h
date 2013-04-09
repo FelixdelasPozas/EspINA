@@ -111,8 +111,6 @@ namespace EspINA
     static const ModelItem::ArgumentId INPUTS;
     static const ModelItem::ArgumentId EDIT;
 
-    static const int ALL_INPUTS;
-
   protected:
     typedef itk::ImageFileReader<itkVolumeType> EspinaVolumeReader;
 
@@ -146,35 +144,53 @@ namespace EspINA
       OutputId  outputPort;
     };
 
+
+    /// Set voxels belonging to the implicit function defined by brush to value
     ///NOTE: Current implementation will expand the image
     ///      when drawing with value != 0
-
-    /// Manually Edit Filter Output
     virtual void draw(OutputId oId,
                       vtkImplicitFunction *brush,
                       const Nm bounds[6],
                       itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
                       bool emitSignal = true);
+
+    /// Set voxels at index to value
+    ///NOTE: Current implementation will expand the image
+    ///      when drawing with value != 0
     virtual void draw(OutputId oId,
                       itkVolumeType::IndexType index,
                       itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
                       bool emitSignal = true);
+
+    /// Set voxels at coordinates (x,y,z) to value
+    ///NOTE: Current implementation will expand the image
+    ///      when drawing with value != 0
     virtual void draw(OutputId oId,
                       Nm x, Nm y, Nm z,
                       itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
                       bool emitSignal = true);
+
+    /// Set voxels inside contour to value
+    ///NOTE: Current implementation will expand the image
+    ///      when drawing with value != 0
     virtual void draw(OutputId oId,
                       vtkPolyData *contour,
                       Nm slice,
                       PlaneType plane,
                       itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
                       bool emitSignal = true);
+
+    /// Draw volume on top of output's voulume
     virtual void draw(OutputId oId,
                       itkVolumeType::Pointer volume,
                       bool emitSignal = true);
+
+    /// Fill output's volume with given value
     virtual void fill(OutputId oId,
                       itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
                       bool emitSignal = true);
+
+    /// Fill output's volume's region with given value
     virtual void fill(OutputId oId,
                       const EspinaRegion &region,
                       itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
@@ -186,22 +202,31 @@ namespace EspINA
 
     /// Returns filter's outputs
     OutputList outputs() const {return m_outputs.values();}
+
     /// Returns a list of outputs edited by the user
     OutputList editedOutputs() const;
+
     /// Return whether or not i is an output of the filter
     bool validOutput(OutputId oId);
+
     /// Return an output with id i. Ids are not necessarily sequential
     virtual const Output output(OutputId oId) const;
+
+    /// Return an output with id i. Ids are not necessarily sequential
     virtual Output &output(OutputId oId);
+
     /// Convencience method to get the volume associated wit output i
     EspinaVolume::Pointer volume(OutputId oId) {return output(oId).volume;}
+
+    /// Convencience method to get the volume associated wit output i
     const EspinaVolume::Pointer volume(OutputId oId) const {return output(oId).volume;}
-    /// Determine whether the filter needs to be updated or not
-    /// Default implementation will request an update if there are no filter outputs
-    /// or there is at least one invalid output
-    virtual bool needUpdate(OutputId oId) const = 0;
-    /// Updates filter outputs.
-    /// If a snapshot exits it will try to load it from disk
+
+    /// Update all filter outputs
+    /// If a snapshot exits, filter will try to load it from disk
+    void update();
+
+    /// Update filter output oId.
+    /// If a snapshot exits, filter will try to load it from disk
     void update(OutputId oId);
 
     /// Some filters may need to stablish connections with other items on the model
@@ -210,10 +235,12 @@ namespace EspINA
 
     void setFilterInspector(FilterInspectorPtr filterInspector)
     { m_filterInspector = filterInspector; }
-    /// Return a widget used to configure filter's parameters
-    FilterInspectorPtr const filterInspector() { return m_filterInspector; }
 
-    void resetCacheFlags();
+    /// Return a widget used to configure filter's parameters
+    /// Filter Inspector are available for traceable filters and those executed
+    /// on current session
+    FilterInspectorPtr const filterInspector() 
+    { return (m_traceable || m_executed)?m_filterInspector:FilterInspectorPtr(); }
 
     /// Try to locate an snapshot of the filter in tmpDir
     /// Returns true if all volume snapshot can be recovered
@@ -234,8 +261,25 @@ namespace EspINA
     virtual void createOutput(OutputId id, itkVolumeType::Pointer volume = NULL) = 0;
     virtual void createOutput(OutputId id, EspinaVolume::Pointer volume) = 0;
     virtual void createOutput(OutputId id, const EspinaRegion &region, itkVolumeType::SpacingType spacing) = 0;
-    /// Method which actually executes the filter
-    virtual void run() {};
+
+    /// Current outputs must be ignored due to changes on filter state
+    virtual bool ignoreCurrentOutputs() const = 0;
+
+    /// Whether the filter needs to be updated or not
+    /// A filter will need an update if there exists an invalid output or no outputs exist at all
+    bool needUpdate() const;
+ 
+    /// Whether the filter needs to be updated or not
+    /// Default implementation will request an update if there is no filter output
+    /// or it is an invalid output
+    virtual bool needUpdate(OutputId oId) const = 0;
+
+
+    /// Method which actually executes the filter to generate all its outputs
+    virtual void run() = 0;
+
+    /// Method which actually executes the filter to generate output oId
+    virtual void run(OutputId oId) = 0;
 
     /// Reader to access snapshots
     EspinaVolumeReader::Pointer tmpFileReader(const QString file);

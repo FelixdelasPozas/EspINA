@@ -61,8 +61,6 @@ void FreeFormSource::draw(OutputId oId,
     createOutput(0, EspinaRegion(bounds), m_param.spacing());
 
   Filter::draw(oId, brush, bounds, value, emitSignal);
-
-  m_executed = true;
 }
 
 //-----------------------------------------------------------------------------
@@ -84,9 +82,8 @@ void FreeFormSource::draw(OutputId oId,
 
     createOutput(0, volume);
   }
-  Filter::draw(oId, index, value, emitSignal);
 
-  m_executed = true;
+  Filter::draw(oId, index, value, emitSignal);
 }
 
 //-----------------------------------------------------------------------------
@@ -113,10 +110,21 @@ void FreeFormSource::draw(OutputId oId,
 
     createOutput(0, volume);
   }
-  Filter::draw(oId, x, y, z, value, emitSignal);
 
-  m_executed = true;
+  Filter::draw(oId, x, y, z, value, emitSignal);
 }
+
+//-----------------------------------------------------------------------------
+void FreeFormSource::draw(Filter::OutputId oId,
+                          itkVolumeType::Pointer volume,
+                          bool emitSignal)
+{
+  if (m_outputs.isEmpty())
+    createOutput(0, volume);
+  else
+    EspINA::Filter::draw(oId, volume, emitSignal);
+}
+
 
 //-----------------------------------------------------------------------------
 bool FreeFormSource::needUpdate(OutputId oId) const

@@ -72,8 +72,15 @@ bool ImageLogicFilter::needUpdate(OutputId oId) const
 }
 
 //-----------------------------------------------------------------------------
-void ImageLogicFilter::run() //TODO: Parallelize
+void ImageLogicFilter::run()
 {
+  run(0);
+}
+
+//-----------------------------------------------------------------------------
+void ImageLogicFilter::run(Filter::OutputId oId) //TODO: Parallelize
+{
+  Q_ASSERT(0 == oId);
   Q_ASSERT(m_inputs.size() > 1);
 
   // NOTE: Updating this filter will result in invalidating previous outputs

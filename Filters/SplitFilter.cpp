@@ -31,6 +31,7 @@
 #include <vtkGenericDataObjectWriter.h>
 #include <vtkImageStencilToImage.h>
 #include <vtkImageToImageStencil.h>
+#include <vtkMath.h>
 
 // Qt
 #include <QDir>
@@ -46,6 +47,7 @@ SplitFilter::SplitFilter(NamedInputs inputs,
                          FilterType  type)
 : SegmentationFilter(inputs, args, type)
 , m_stencil(NULL)
+, m_ignoreCurrentOutputs(false)
 {
 }
 
@@ -63,8 +65,17 @@ bool SplitFilter::needUpdate(OutputId oId) const
 //-----------------------------------------------------------------------------
 void SplitFilter::run()
 {
+  for (int i = 0; i < 2; ++i)
+    run(i);
+}
+
+//-----------------------------------------------------------------------------
+void SplitFilter::run(Filter::OutputId oId)
+{
   //qDebug() << "Split Run" << m_cacheId;
+  Q_ASSERT(0 == oId || 1 == oId);
   Q_ASSERT(m_inputs.size() == 1);
+
   EspinaVolume::Pointer input = m_inputs[0];
 
   // if you want to run the filter you must have an stencil
@@ -74,53 +85,64 @@ void SplitFilter::run()
   EspinaRegion region = input->espinaRegion();
   itkVolumeType::SpacingType spacing = input->toITK()->GetSpacing();
 
-  SegmentationVolume::Pointer volumes[2];
-  for(int i=0; i < 2; i++)
-    volumes[i] = SegmentationVolume::Pointer(new SegmentationVolume(region, spacing));
-
-  itkVolumeConstIterator it = input      ->iterator(region);
-  itkVolumeIterator     ot1 = volumes[0] ->iterator(region);
-  itkVolumeIterator     ot2 = volumes[1] ->iterator(region);
-
-  it .GoToBegin();
-  ot1.GoToBegin();
-  ot2.GoToBegin();
-
-  bool isEmpty1 = true;
-  bool isEmpty2 = true;
-
-  for(; !it.IsAtEnd(); ++it, ++ot1, ++ot2)
+  if (m_volumes[0].get() == NULL || ignoreCurrentOutputs())
   {
-    itkVolumeType::IndexType index = ot1.GetIndex();
-    if (m_stencil->IsInside(index[0], index[1], index[2]))
+    for(int i=0; i < 2; i++)
+      m_volumes[i] = SegmentationVolume::Pointer(new SegmentationVolume(region, spacing));
+
+    itkVolumeConstIterator it = input      ->iterator(region);
+    itkVolumeIterator     ot1 = m_volumes[0] ->iterator(region);
+    itkVolumeIterator     ot2 = m_volumes[1] ->iterator(region);
+
+    it .GoToBegin();
+    ot1.GoToBegin();
+    ot2.GoToBegin();
+
+    bool isEmpty1 = true;
+    bool isEmpty2 = true;
+
+    int shift[3]; // Stencil origin differ from creation to fetch
+    for (int i = 0; i < 3; ++i)
+      shift[i] = vtkMath::Round(m_stencil->GetOrigin()[i] / m_stencil->GetSpacing()[i]);
+
+    for(; !it.IsAtEnd(); ++it, ++ot1, ++ot2)
     {
-      ot1.Set(it.Value());
-      if (isEmpty1)
-        isEmpty1 = ot1.Get() != SEG_VOXEL_VALUE;
+      itkVolumeType::IndexType index = ot1.GetIndex();
+      if (m_stencil->IsInside(index[0] - shift[0], index[1]- shift[1], index[2]- shift[2]))
+      {
+        ot1.Set(it.Value());
+        if (isEmpty1)
+          isEmpty1 = ot1.Get() != SEG_VOXEL_VALUE;
+      }
+      else
+      {
+        ot2.Set(it.Value());
+        if (isEmpty2)
+          isEmpty2 = ot2.Get() != SEG_VOXEL_VALUE;
+      }
     }
-    else
+
+    if (!isEmpty1 && !isEmpty2)
     {
-      ot2.Set(it.Value());
-      if (isEmpty2)
-        isEmpty2 = ot2.Get() != SEG_VOXEL_VALUE;
+      for (int i = 0; i < 2; i++)
+        m_volumes[i]->fitToContent();
+
+      m_ignoreCurrentOutputs = false;
+
+      emit modified(this);
     }
   }
 
-  if (!isEmpty1 && !isEmpty2)
-  {
-    for (int i = 0; i < 2; i++)
-    {
-      volumes[i]->fitToContent();
-      createOutput(i, volumes[i]);
-    }
-
-    emit modified(this);
-  }
+  if (!ignoreCurrentOutputs())
+    createOutput(oId, m_volumes[oId]);
 }
 
 //-----------------------------------------------------------------------------
 bool SplitFilter::fetchCacheStencil()
 {
+  if (m_ignoreCurrentOutputs)
+    return false;
+
   bool returnVal = false;
 
   if (m_cacheDir.exists(QString().number(m_cacheId) + QString("-Stencil.vti")))

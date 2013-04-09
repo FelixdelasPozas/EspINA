@@ -60,6 +60,13 @@ bool ChannelReader::needUpdate(OutputId oId) const
 //----------------------------------------------------------------------------
 void ChannelReader::run()
 {
+  run(0);
+}
+
+//----------------------------------------------------------------------------
+void ChannelReader::run(Filter::OutputId oId)
+{
+  Q_ASSERT(0 == oId);
   //qDebug() << "Creating channel from args" << m_args;
   QFileInfo file = m_args[FILE];
   if (!file.exists())

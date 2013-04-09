@@ -129,7 +129,6 @@
  </widget>
  <resources>
   <include location="../rsc/espina.qrc"/>
-  <include location="../rsc/espina.qrc"/>
  </resources>
  <connections>
   <connection>

@@ -55,21 +55,29 @@ public:
 
   unsigned int radius() const {return m_params.radius();}
   void setRadius(int radius, bool ignoreUpdate = false)
-  {m_params.setRadius(radius); m_paramModified = !ignoreUpdate;}
-
-  virtual bool needUpdate(OutputId oId) const;
+  {m_params.setRadius(radius); m_ignoreCurrentOutputs = !ignoreUpdate;}
 
   virtual bool isOutputEmpty() { return m_isOutputEmpty; };
 
 protected:
-  /// Implements Filter Interface
+  virtual bool ignoreCurrentOutputs() const
+  {  return m_ignoreCurrentOutputs; }
+
+  virtual bool needUpdate(OutputId oId) const;
+
   virtual bool fetchSnapshot(OutputId oId);
+
+  virtual void run()
+  { run(0); }
+
+  virtual void run(OutputId oId) = 0;
+
 
 protected:
   Parameters             m_params;
   itkVolumeType::Pointer m_input;
   bool                   m_isOutputEmpty;
-  bool                   m_paramModified;
+  bool                   m_ignoreCurrentOutputs;
 };
 
 } // namespace EspINA

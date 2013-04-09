@@ -50,7 +50,7 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(NamedInputs inputs,
                                                        Arguments   args,
                                                        FilterType  type)
 : SegmentationFilter(inputs, args, type)
-, m_paramModified   (false)
+, m_ignoreCurrentOutputs   (false)
 , m_param           (m_args)
 , m_input           (EspinaVolume::Pointer())
 {
@@ -74,18 +74,26 @@ QVariant SeedGrowSegmentationFilter::data(int role) const
 //-----------------------------------------------------------------------------
 bool SeedGrowSegmentationFilter::needUpdate(OutputId oId) const
 {
-  return  m_paramModified || Filter::needUpdate(oId);
+  return Filter::needUpdate(oId);
 }
 
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentationFilter::run()
 {
-  int voi[6];
-  m_param.voi(voi);
+  run(0);
+}
 
+//-----------------------------------------------------------------------------
+void SeedGrowSegmentationFilter::run(Filter::OutputId oId)
+{
+  Q_ASSERT(0 == oId);
   Q_ASSERT(m_inputs.size() == 1);
+
   m_input = m_inputs.first();
   Q_ASSERT(m_input);
+
+  int voi[6];
+  m_param.voi(voi);
 
 //   qDebug() << "Bound VOI to input extent";
   int inputExtent[6];
@@ -176,7 +184,7 @@ void SeedGrowSegmentationFilter::run()
 
   createOutput(0, volume);
 
-  m_paramModified = false;
+  m_ignoreCurrentOutputs = false;
 
   m_outputs[0].volume->markAsModified();
 
@@ -191,7 +199,7 @@ void SeedGrowSegmentationFilter::setLowerThreshold(int th, bool ignoreUpdate)
     return;
 
   m_param.setLowerThreshold(th);
-  m_paramModified = !ignoreUpdate;
+  m_ignoreCurrentOutputs = !ignoreUpdate;
 }
 
 //-----------------------------------------------------------------------------
@@ -201,21 +209,21 @@ void SeedGrowSegmentationFilter::setUpperThreshold(int th, bool ignoreUpdate)
     return;
 
   m_param.setUpperThreshold(th);
-  m_paramModified = !ignoreUpdate;
+  m_ignoreCurrentOutputs = !ignoreUpdate;
 }
 
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentationFilter::setVOI(int VOI[6], bool ignoreUpdate)
 {
   m_param.setVOI(VOI);
-  m_paramModified = !ignoreUpdate;
+  m_ignoreCurrentOutputs = !ignoreUpdate;
 }
 
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentationFilter::setSeed(itkVolumeType::IndexType seed, bool ignoreUpdate)
 {
   m_param.setSeed(seed);
-  m_paramModified = !ignoreUpdate;
+  m_ignoreCurrentOutputs = !ignoreUpdate;
 }
 
 //-----------------------------------------------------------------------------
@@ -227,7 +235,7 @@ itkVolumeType::IndexType SeedGrowSegmentationFilter::seed() const
 //-----------------------------------------------------------------------------
 bool SeedGrowSegmentationFilter::fetchSnapshot(OutputId oId)
 {
-  if (m_paramModified)
+  if (m_ignoreCurrentOutputs)
     return false;
 
   return Filter::fetchSnapshot(oId);

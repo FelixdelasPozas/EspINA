@@ -44,8 +44,7 @@ public:
   virtual ~DilateFilter();
 
 protected:
-  /// Implements Filter Interface
-  void run();
+  virtual void run(OutputId oId);
 
 private:
   BinaryDilateFilter::Pointer m_filter;

@@ -82,8 +82,6 @@ namespace EspINA
       /// Implements Model Item Interface
       virtual QVariant data(int role = Qt::DisplayRole) const;
 
-      /// Implements Filter Interface
-      virtual bool needUpdate(OutputId oId) const;
       virtual bool fetchSnapshot(OutputId oId);
 
       // get/set round segmentation extremes
@@ -98,7 +96,15 @@ namespace EspINA
       virtual void setTool(TubularTool *);
 
     protected:
-      virtual void run() { updateVolume(); }
+      virtual bool ignoreCurrentOutputs() const
+      { return false; } // TODO
+
+      virtual bool needUpdate(OutputId oId) const;
+
+      virtual void run() { run(0); }
+
+      virtual void run(OutputId oId);
+
       void updateVolume();
 
     private:

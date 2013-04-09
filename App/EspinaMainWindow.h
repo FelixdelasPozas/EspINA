@@ -34,6 +34,7 @@
 
 #include <QTimer>
 
+class QLabel;
 class EspinaErrorHandler;
 class QPluginLoader;
 class QAction;
@@ -112,6 +113,7 @@ class IToolBar;
     void checkAutosave();
     void registerDockWidget(Qt::DockWidgetArea area, IDockWidget *dock);
     void registerToolBar(IToolBar *toolbar);
+    void updateTraceabilityStatus();
 
 
     void loadPlugins(QList<QObject *> &plugins);
@@ -168,6 +170,9 @@ class IToolBar;
     QTimer    m_autosave;
     QFileInfo m_sessionFile;
     QDir      m_sessionDir;
+
+    // Status Bar
+    QLabel   *m_traceableStatus;
 
     EspinaErrorHandler *m_errorHandler;
   };

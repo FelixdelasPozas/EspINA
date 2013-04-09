@@ -30,6 +30,8 @@ VolumeViewSettingsPanel::VolumeViewSettingsPanel(const EspinaFactoryPtr factory,
 {
   setupUi(this);
 
+  showAxis->setVisible(false);
+
   QStandardItemModel *active, *available;
 
   active    = new QStandardItemModel(this);

@@ -26,6 +26,8 @@ SliceViewSettingsPanel::SliceViewSettingsPanel(SliceView::SettingsPtr settings)
 {
   setupUi(this);
 
+  invertSliceOrder->setVisible(false);
+
   invertSliceOrder->setChecked(settings->invertSliceOrder());
   invertWheel->setChecked(settings->invertWheel());
   showAxis->setChecked(settings->showAxis());

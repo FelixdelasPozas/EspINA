@@ -60,6 +60,13 @@ bool FillHolesFilter::needUpdate(OutputId oId) const
 //-----------------------------------------------------------------------------
 void FillHolesFilter::run()
 {
+  run(0);
+}
+
+//-----------------------------------------------------------------------------
+void FillHolesFilter::run(Filter::OutputId oId)
+{
+  Q_ASSERT(0 == oId);
   Q_ASSERT(m_inputs.size() == 1);
 
   m_filter = BinaryFillholeFilter::New();

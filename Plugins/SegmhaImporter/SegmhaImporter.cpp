@@ -119,7 +119,7 @@ bool SegmhaImporter::readFile(const QFileInfo file, EspinaIO::ErrorHandler *hand
   params.setSpacing(channel->volume()->toITK()->GetSpacing());
 
   SegmhaImporterFilterSPtr filter(new SegmhaImporterFilter(inputs, args, UndoCommand::FILTER_TYPE));
-  filter->update(Filter::ALL_INPUTS);
+  filter->update();
   if (filter->outputs().isEmpty())
   {
     handler->error(tr("Failed to import %1").arg(file.absoluteFilePath()));

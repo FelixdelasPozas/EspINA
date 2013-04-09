@@ -138,7 +138,7 @@ void FilterInspectorDock::updatePannel()
         defaultWidgetInspector->layout()->addWidget(typeLabel);
 
         QLabel *infoLabel = new QLabel(defaultWidgetInspector);
-        infoLabel->setText(QLabel::tr("The filter of this segmentation doesn't have configurable parameters."));
+        infoLabel->setText(QLabel::tr("Segmentation cannot be modified."));
         infoLabel->setWordWrap(true);
         infoLabel->setTextInteractionFlags(Qt::NoTextInteraction);
         defaultWidgetInspector->layout()->addWidget(infoLabel);
@@ -159,7 +159,7 @@ void FilterInspectorDock::updatePannel()
       noWidgetInspector->layout()->setSpacing(10);
 
       QLabel *infoLabel = new QLabel(noWidgetInspector);
-      infoLabel->setText(QLabel::tr("No filter selected."));
+      infoLabel->setText(QLabel::tr("No segmentation selected."));
       infoLabel->setWordWrap(true);
       infoLabel->setTextInteractionFlags(Qt::NoTextInteraction);
       noWidgetInspector->layout()->addWidget(infoLabel);

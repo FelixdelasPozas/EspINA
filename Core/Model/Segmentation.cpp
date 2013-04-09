@@ -87,7 +87,7 @@ void Segmentation::changeFilter(FilterSPtr filter, const Filter::OutputId &oId)
              this, SLOT(onVolumeModified()));
 //   m_filter->releaseDataFlagOn();
 //   filter->releaseDataFlagOff();
-  filter->update(outputId());
+  filter->update(oId);
   m_filter = filter;
   m_args.setOutputId(oId);
   connect(volume().get(), SIGNAL(modified()),
@@ -229,7 +229,7 @@ void Segmentation::initializeExtensions()
   foreach(Segmentation::InformationExtension ext, m_informationExtensions)
   {
     Q_ASSERT(ext);
-    qDebug() << "Initializing" << data().toString() << ext->id() << "extension";
+    //qDebug() << "Initializing" << data().toString() << ext->id() << "extension";
     ext->initialize();
   }
 }

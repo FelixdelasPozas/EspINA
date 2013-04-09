@@ -138,17 +138,22 @@ namespace EspINA
 
     unsigned int closeValue() {return m_param.closeValue();}
     void setCloseValue(unsigned int value, bool ignoreUpdate = false)
-    {m_param.setCloseValue(value); m_paramModified = !ignoreUpdate; }
+    {m_param.setCloseValue(value); m_ignoreCurrentOutputs = !ignoreUpdate; }
 
-    // Implements Filter Interface
-    virtual bool needUpdate(OutputId oId) const;
     virtual bool fetchSnapshot(OutputId oId);
 
   protected:
+    virtual bool ignoreCurrentOutputs() const
+    { return m_ignoreCurrentOutputs; }
+
+    virtual bool needUpdate(OutputId oId) const;
+
     virtual void run();
 
+    virtual void run(OutputId oId);
+
   private:
-    bool                  m_paramModified;
+    bool                  m_ignoreCurrentOutputs;
     Parameters            m_param;
     EspinaVolume::Pointer m_input;
 

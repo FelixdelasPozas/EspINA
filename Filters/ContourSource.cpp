@@ -41,8 +41,6 @@ void ContourSource::draw(OutputId oId,
     createOutput(0, EspinaRegion(contour->GetBounds()), m_param.spacing());
 
   Filter::draw(oId, contour, slice, plane, value, emitSignal);
-
-  m_executed = true;
 }
 
 //-----------------------------------------------------------------------------

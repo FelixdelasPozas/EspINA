@@ -94,11 +94,20 @@ public:
                     Nm x, Nm y, Nm z,
                     itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
                     bool emitSignal = true);
+  virtual void draw(OutputId oId,
+                    itkVolumeType::Pointer volume,
+                    bool emitSignal = true);
+
+
+protected:
+  virtual bool ignoreCurrentOutputs() const
+  { return false; }
 
   virtual bool needUpdate(OutputId oId) const;
 
-protected:
-  virtual void run(){}
+  virtual void run() {}
+
+  virtual void run(OutputId oId) {}
 
 private:
   Parameters m_param;

@@ -108,7 +108,7 @@ EspinaIO::STATUS EspinaIO::loadChannel(QFileInfo file,
 
   readerArgs[ChannelReader::FILE] = file.absoluteFilePath();
   FilterSPtr reader(new ChannelReader(noInputs, readerArgs, ChannelReader::TYPE, handler));
-  reader->update(Filter::ALL_INPUTS);
+  reader->update();
   if (reader->outputs().isEmpty())
     return ERROR;
 

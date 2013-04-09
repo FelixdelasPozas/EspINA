@@ -42,24 +42,35 @@ namespace EspINA
                          FilterType  type);
     virtual ~SplitFilter();
 
-    // Implements Filter Interface
-    virtual bool needUpdate(OutputId oId) const;
-
     void setStencil(vtkSmartPointer<vtkImageStencilData> stencil)
-    { m_stencil = stencil; }
+    {
+      m_stencil = stencil;
+      m_ignoreCurrentOutputs = true;
+    }
 
     /// Try to locate an snapshot of the filter in tmpDir
     /// Returns true if all volume snapshot can be recovered
     /// and false otherwise
     virtual bool fetchCacheStencil();
+
     /// QMap<file name, file byte array> of filter's data to save to seg file
     virtual bool dumpSnapshot(QList<QPair<QString, QByteArray> > &fileList);
 
   protected:
+    virtual bool ignoreCurrentOutputs() const
+    { return m_ignoreCurrentOutputs; }
+
+    virtual bool needUpdate(OutputId oId) const;
+
     virtual void run();
+    virtual void run(OutputId oId);
 
   private:
     vtkSmartPointer<vtkImageStencilData> m_stencil;
+
+    bool m_ignoreCurrentOutputs;
+
+    SegmentationVolume::Pointer m_volumes[2];
   };
 
   typedef QSharedPointer<SplitFilter> SplitFilterPtr;

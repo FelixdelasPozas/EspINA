@@ -51,8 +51,6 @@ const ArgumentId Filter::ID     = "ID";
 const ArgumentId Filter::INPUTS = "Inputs";
 const ArgumentId Filter::EDIT   = "Edit"; // Backwards compatibility
 
-const int Filter::ALL_INPUTS = -1;
-
 const int EspINA::Filter::Output::INVALID_OUTPUT_ID = -1;
 
 typedef itk::ImageFileWriter<itkVolumeType> EspinaVolumeWriter;
@@ -460,23 +458,28 @@ void Filter::draw(OutputId oId,
 {
   Filter::Output &currentOutput = output(oId);
 
-  EspinaVolume::Pointer filterVolume = currentOutput.volume;
-
   EspinaVolume drawnVolume(volume);
   EspinaRegion drawnRegion = drawnVolume.espinaRegion();
 
   currentOutput.addEditedRegion(drawnRegion);
 
-  filterVolume->expandToFitRegion(drawnRegion);
-
-  itkVolumeIterator it = drawnVolume  .iterator(drawnRegion);
-  itkVolumeIterator ot = filterVolume->iterator(drawnRegion);
-
-  it.GoToBegin();
-  ot.GoToBegin();
-  for (; !it.IsAtEnd(); ++it, ++ot )
+  EspinaVolume::Pointer filterVolume = currentOutput.volume;
+  if (filterVolume->toITK().IsNull())
   {
-    ot.Set(it.Get());
+    filterVolume->setVolume(volume, true);
+  } else
+  {
+    filterVolume->expandToFitRegion(drawnRegion);
+
+    itkVolumeIterator it = drawnVolume  .iterator(drawnRegion);
+    itkVolumeIterator ot = filterVolume->iterator(drawnRegion);
+
+    it.GoToBegin();
+    ot.GoToBegin();
+    for (; !it.IsAtEnd(); ++it, ++ot )
+    {
+      ot.Set(it.Get());
+    }
   }
 
   filterVolume->markAsModified(emitSignal);
@@ -562,7 +565,7 @@ Filter::Output &Filter::output(OutputId oId)
 }
 
 //----------------------------------------------------------------------------
-bool Filter::needUpdate(Filter::OutputId oId) const
+bool Filter::needUpdate() const
 {
   bool update = true;
 
@@ -579,32 +582,99 @@ bool Filter::needUpdate(Filter::OutputId oId) const
 }
 
 //----------------------------------------------------------------------------
- void Filter::update(OutputId oId)
+bool Filter::needUpdate(Filter::OutputId oId) const
 {
-  if (!needUpdate(oId))
-    return;
+  bool update = true;
 
-  if (!fetchSnapshot(oId))
+  if (!m_outputs.isEmpty())
+  {
+    update = !output(oId).isValid();
+  }
+
+  return update;
+}
+
+//----------------------------------------------------------------------------
+void Filter::update()
+{
+  bool ignoreOutputs     = ignoreCurrentOutputs();
+  bool outputNeedsUpdate = needUpdate();
+
+  if (m_outputs.isEmpty())
   {
     m_inputs.clear();
-
-    foreach(OutputId oId, m_outputs.keys())
-      m_outputs[oId].editedRegions.clear();
 
     QStringList namedInputList = m_args[INPUTS].split(",", QString::SkipEmptyParts);
     foreach(QString namedInput, namedInputList)
     {
       QStringList input = namedInput.split("_");
       FilterSPtr inputFilter = m_namedInputs[input[0]];
-      OutputId oId = input[1].toInt();
-      inputFilter->update(oId);
-      m_inputs << inputFilter->output(oId).volume;
+      OutputId iId = input[1].toInt();
+      inputFilter->update(iId);
+      m_inputs << inputFilter->output(iId).volume;
     }
 
     run();
+
     m_executed = true;
   }
+  else
+  {
+    foreach(OutputId oId, m_outputs.keys())
+    {
+      update(oId);
+    }
+  }
 }
+
+//----------------------------------------------------------------------------
+ void Filter::update(OutputId oId)
+ {
+   bool ignoreOutputs     = ignoreCurrentOutputs();
+   bool outputNeedsUpdate = needUpdate(oId);
+
+   if (ignoreOutputs || outputNeedsUpdate)
+   {
+     // Invalidate previous run edited regions
+     if (ignoreOutputs && m_outputs.contains(oId))
+     {
+       m_outputs[oId].editedRegions.clear();
+     }
+
+     if (!fetchSnapshot(oId))
+     {
+       m_inputs.clear();
+
+       QStringList namedInputList = m_args[INPUTS].split(",", QString::SkipEmptyParts);
+       foreach(QString namedInput, namedInputList)
+       {
+         QStringList input = namedInput.split("_");
+         FilterSPtr inputFilter = m_namedInputs[input[0]];
+         OutputId iId = input[1].toInt();
+         inputFilter->update(iId);
+         m_inputs << inputFilter->output(iId).volume;
+       }
+
+       run(oId);
+
+       int numRegions = 0;
+       if (m_outputs.contains(oId))
+         numRegions = m_outputs[oId].editedRegions.size(); // prevent new regions added by draw
+
+       // Restore previous edited regions if restoring a modified output
+       for (int i = 0; i < numRegions; ++i)
+       {
+         QString tmpFile = QString("%1_%2_%3.mhd").arg(m_cacheId).arg(oId).arg(i);
+         EspinaVolumeReader::Pointer reader = tmpFileReader(tmpFile);
+         Q_ASSERT(reader.IsNotNull());
+
+         draw(oId, reader->GetOutput(), true);
+       }
+
+       m_executed = true;
+     }
+   }
+ }
 
 //----------------------------------------------------------------------------
 void Filter::createOutput(Filter::OutputId id, EspinaVolume::Pointer volume)
@@ -613,15 +683,6 @@ void Filter::createOutput(Filter::OutputId id, EspinaVolume::Pointer volume)
     m_outputs[id] = Output(this, id, volume);
   else if (volume)
     m_outputs[id].volume->setVolume(volume->toITK());
-}
-
-//----------------------------------------------------------------------------
-void Filter::resetCacheFlags()
-{
-  foreach(OutputId oId, m_outputs.keys())
-  {
-    output(oId).isCached = false;
-  }
 }
 
 //----------------------------------------------------------------------------

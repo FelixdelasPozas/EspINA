@@ -47,13 +47,18 @@ namespace EspINA
     virtual QString id() const {return m_args[ID];}
     virtual QString serialize() const;
 
-    /// Implements Filter Interface
-    virtual bool needUpdate(OutputId oId) const;
 
     void setSpacing(itkVolumeType::SpacingType spacing);
 
   protected:
+    virtual bool ignoreCurrentOutputs() const
+    { return false; }
+
+    virtual bool needUpdate(OutputId oId) const;
+
     virtual void run();
+
+    virtual void run(OutputId oId);
 
     itkVolumeType::SpacingType spacing();
 

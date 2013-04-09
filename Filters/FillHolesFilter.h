@@ -40,11 +40,15 @@ public:
                            FilterType  type);
   virtual ~FillHolesFilter();
 
-  /// Implements Filter Interface
+protected:
+  virtual bool ignoreCurrentOutputs() const
+  { return false; }
+
   virtual bool needUpdate(OutputId oId) const;
 
-protected:
   virtual void run();
+
+  virtual void run(OutputId oId);
 
 private:
   BinaryFillholeFilter::Pointer m_filter;

@@ -90,11 +90,6 @@ namespace EspINA
                               FilterType  filter);
       virtual ~AppositionSurfaceFilter();
 
-      /// Determine whether the filter needs to be updated or not
-      /// Default implementation will request an update if there are no filter outputs
-      /// or there is at least one invalid output
-      virtual bool needUpdate(OutputId oId) const;
-
       virtual void upkeeping();
 
       virtual QString getOriginSegmentation();
@@ -115,7 +110,18 @@ namespace EspINA
       virtual void inputModified();
 
     protected:
+      /// Wether filter parameters have changed or not
+      virtual bool ignoreCurrentOutputs() const
+      { return false; }
+
+      /// Whether the filter needs to be updated or not
+      /// Default implementation will request an update if there is no filter output
+      /// or it is an invalid output
+      virtual bool needUpdate(OutputId oId) const;
+
       virtual void run();
+
+      virtual void run(OutputId oId);
 
       virtual void createOutput(OutputId id, itkVolumeType::Pointer volume = NULL);
 

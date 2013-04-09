@@ -40,9 +40,11 @@ ErodeFilter::~ErodeFilter()
 }
 
 //-----------------------------------------------------------------------------
-void ErodeFilter::run()
+void ErodeFilter::run(OutputId oId)
 {
+  Q_ASSERT(0 == oId);
   Q_ASSERT(m_inputs.size() == 1);
+
   m_input = m_inputs.first()->toITK();
 
   //qDebug() << "Compute Image Erode";

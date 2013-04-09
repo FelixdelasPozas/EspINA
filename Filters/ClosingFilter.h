@@ -41,8 +41,7 @@ public:
   virtual ~ClosingFilter();
 
 protected:
-  /// Implements Filter Interface
-  void run();
+  virtual void run(OutputId oId);
 
 private:
   BinaryClosingFilter::Pointer m_filter;

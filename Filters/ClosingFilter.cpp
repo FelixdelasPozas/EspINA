@@ -41,9 +41,11 @@ ClosingFilter::~ClosingFilter()
 }
 
 //-----------------------------------------------------------------------------
-void ClosingFilter::run()
+void ClosingFilter::run(OutputId oId)
 {
+  Q_ASSERT(0 == oId);
   Q_ASSERT(m_inputs.size() == 1);
+
   m_input = m_inputs.first()->toITK();
 
   StructuringElementType ball;

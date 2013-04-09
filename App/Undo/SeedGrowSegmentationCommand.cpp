@@ -67,7 +67,7 @@ SeedGrowSegmentationCommand::SeedGrowSegmentationCommand(ChannelPtr             
   args[Filter::INPUTS] = Filter::NamedInput(SeedGrowSegmentationFilter::INPUTLINK, channel->outputId());
 
   SeedGrowSegmentationFilter *sgsFilter = new SeedGrowSegmentationFilter(inputs, args, FILTER_TYPE);
-  sgsFilter->update(Filter::ALL_INPUTS);
+  sgsFilter->update();
   Q_ASSERT(sgsFilter->outputs().size() == 1);
 
   Filter::FilterInspectorPtr inspector(new SGSFilterInspector(sgsFilter));

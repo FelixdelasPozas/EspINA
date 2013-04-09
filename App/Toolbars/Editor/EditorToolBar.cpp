@@ -121,7 +121,7 @@ namespace EspINA
             break;
         }
         filter->setFilterInspector(filterInspector);
-        filter->update(Filter::ALL_INPUTS);
+        filter->update();
 
         if (filter->isOutputEmpty())
         {
