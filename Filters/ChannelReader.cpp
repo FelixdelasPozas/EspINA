@@ -65,11 +65,7 @@ void ChannelReader::run()
   if (!file.exists())
     file = m_handler->fileNotFound(file);
 
-  if (file.exists())
-    m_args[FILE] = file.absoluteFilePath();
-  else
-    throw 1; // TODO: Find proper extension code
-
+  m_args[FILE] = file.absoluteFilePath();
   m_reader = EspinaVolumeReader::New();
 
   QString ext = file.suffix();

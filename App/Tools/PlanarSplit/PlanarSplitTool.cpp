@@ -168,7 +168,6 @@ void PlanarSplitTool::splitSegmentation()
     }
     else
     {
-      // delete filter; TODO: Check it is freed by the smart pointer
       QApplication::restoreOverrideCursor();
       QMessageBox warning;
       warning.setWindowModality(Qt::WindowModal);

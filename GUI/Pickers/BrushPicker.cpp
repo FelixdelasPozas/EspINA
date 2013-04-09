@@ -242,12 +242,36 @@ bool BrushPicker::validStroke(double brush[3])
 
   if (!m_drawing)
   {
-    // TODO: pixel-perfect collision of brush-segmentation
-    // this method only eliminates strokes outside the bounding box.
     Nm bounds[6];
     m_segmentation->volume()->bounds(bounds);
     EspinaRegion segBB(bounds);
-    return segBB.intersect(brushBB);
+
+    if (!segBB.intersect(brushBB))
+      return false;
+
+    double spacing[3];
+    m_segmentation->volume()->spacing(spacing);
+
+    itkVolumeType::RegionType volumeRegion = m_segmentation->volume()->toITK()->GetLargestPossibleRegion();
+    itkVolumeType *image = m_segmentation->volume()->toITK();
+
+    for (int i = vtkMath::Round(brushBounds[0]/spacing[0]); i <= vtkMath::Round(brushBounds[1]/spacing[0]); ++i)
+      for (int j = vtkMath::Round(brushBounds[2]/spacing[1]); j <= vtkMath::Round(brushBounds[3]/spacing[1]); ++j)
+        for (int k = vtkMath::Round(brushBounds[4]/spacing[2]); k <= vtkMath::Round(brushBounds[5]/spacing[2]); ++k)
+        {
+          itkVolumeType::IndexType index;
+          index[0] = i;
+          index[1] = j;
+          index[2] = k;
+
+          if (!volumeRegion.IsInside(index)) // brush voxel could be outside volume
+            continue;
+
+          if (image->GetPixel(index) == SEG_VOXEL_VALUE)
+            return true;
+        }
+
+    return false;
   }
 
   return previewBB.intersect(brushBB);
