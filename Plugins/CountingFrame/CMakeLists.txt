@@ -22,7 +22,7 @@ IF (NOT COMPILING_ESPINA)
 ENDIF (NOT COMPILING_ESPINA)
 
 include_directories(
-  ${CMAKE_SOURCE_DIR} #TODO: change to use espina path
+  ${Espina_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_BINARY_DIR} # UI files
   )

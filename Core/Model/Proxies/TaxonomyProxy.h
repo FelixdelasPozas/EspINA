@@ -24,8 +24,6 @@
 #include <Core/EspinaTypes.h>
 #include <Core/Model/EspinaModel.h>
 
-// TODO 2013-01-12: Invalid model when undo (remove synapse with segmentations in sub taxonomies)
-
 namespace EspINA
 {
   /// Group by Taxonomy Espina Proxy

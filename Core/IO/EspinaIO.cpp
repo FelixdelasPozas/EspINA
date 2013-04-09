@@ -79,22 +79,19 @@ EspinaIO::STATUS EspinaIO::loadChannel(QFileInfo file,
                                        ChannelSPtr &channel,
                                        ErrorHandler *handler)
 {
-  //TODO 2012-10-07
-  // Try to recover sample form DB using channel information
   SampleSPtr existingSample;
 
   EspinaFactory *factory = model->factory();
 
   if (existingSample.isNull())
   {
-    // TODO: Look for real channel's sample in DB or prompt dialog
-    // Try to recover sample form DB using channel information
+    //TODO Try to recover sample form OMERO using channel information or prompt dialog to create a new sample
     existingSample = factory->createSample(file.baseName());
 
     model->addSample(existingSample);
   }
 
-  //TODO: Check for channel information in DB
+  //TODO: Recover channel information from centralized system (OMERO)
   QColor stainColor = QColor(Qt::black);
 
   Filter::NamedInputs noInputs;
@@ -507,24 +504,13 @@ IOTaxonomy::~IOTaxonomy()
 {
 }
 
-QString concatenate(std::stack<QString> hierarchy)
-{
-  QString res;
-  while (!hierarchy.empty())
-  {
-    res = QString(hierarchy.top()) + "/" + res;
-    hierarchy.pop();
-  }
-  return res;
-}
-
 TaxonomySPtr IOTaxonomy::readXML(QXmlStreamReader& xmlStream)
 {
   // Read the XML
 //   QXmlStreamReader xmlStream(&file);
   QStringRef nodeName, color;
-  TaxonomySPtr tax(new Taxonomy());
-  std::stack<QString> taxHierarchy;
+  TaxonomySPtr taxonomy(new Taxonomy());
+  TaxonomyElementPtr parent = taxonomy->root().data();
   while(!xmlStream.atEnd())
   {
     xmlStream.readNextStartElement();
@@ -534,57 +520,47 @@ TaxonomySPtr IOTaxonomy::readXML(QXmlStreamReader& xmlStream)
       {
         nodeName = xmlStream.attributes().value("name");
         color = xmlStream.attributes().value("color");
-//         if( taxHierarchy.empty() )
-//         {
-//           tax = new Taxonomy();
-//         }
-//         else
-//         {
-          QString qualified = concatenate(taxHierarchy);
-          // TODO 2012-12-15 Cambiar el algoritmo de cargar los nodos, no tiene sentido ir acumulando
-          // y calculando los nombres cualificados si siempre se accede de forma secuencial...
-          TaxonomyElementSPtr parent = tax->element(qualified);
-          TaxonomyElementSPtr node   = tax->createElement( nodeName.toString(), parent);
-          node->setColor(color.toString());
-          QXmlStreamAttribute attrib;
-          foreach(attrib, xmlStream.attributes())
-          {
-            if (attrib.name() == "name" || attrib.name() == "color")
-              continue;
-            node->addProperty(attrib.name().toString(), attrib.value().toString());
-          }
+        TaxonomyElementSPtr node   = taxonomy->createElement( nodeName.toString(), parent);
+        node->setColor(color.toString());
+        QXmlStreamAttribute attrib;
+        foreach(attrib, xmlStream.attributes())
+        {
+          if (attrib.name() == "name" || attrib.name() == "color")
+            continue;
+          node->addProperty(attrib.name().toString(), attrib.value().toString());
+        }
 
-          // BUGFIX: Some taxonomies didn't contain some properties
-          if (!node->properties().contains("Dim_X") || !node->properties().contains("Dim_Y") || !node->properties().contains("Dim_Z"))
+        // BUGFIX: Some taxonomies didn't contain some properties
+        if (!node->properties().contains("Dim_X") || !node->properties().contains("Dim_Y") || !node->properties().contains("Dim_Z"))
+        {
+          qWarning() << "Taxonomy" << node->name() << "is missing some properties.";
+          TaxonomySPtr defaultTaxonomy = IOTaxonomy::openXMLTaxonomy(":/espina/defaultTaxonomy.xml");
+          TaxonomyElementSPtr defaultNode = defaultTaxonomy->element(node->qualifiedName());
+          if (!defaultNode.isNull())
           {
-            qWarning() << "Taxonomy" << node->name() << "is missing some properties.";
-            TaxonomySPtr defaultTaxonomy = IOTaxonomy::openXMLTaxonomy(":/espina/defaultTaxonomy.xml");
-            TaxonomyElementSPtr defaultNode = defaultTaxonomy->element(node->qualifiedName());
-            if (!defaultNode.isNull())
+            foreach(QString property, defaultNode->properties())
             {
-              foreach(QString property, defaultNode->properties())
+              if (!node->properties().contains(property))
               {
-                if (!node->properties().contains(property))
-                {
-                  qWarning() << "adding missing property" << property << "with value" << defaultNode->property(property).toString();
-                  node->addProperty(property, defaultNode->property(property));
-                }
+                qWarning() << "adding missing property" << property << "with value" << defaultNode->property(property).toString();
+                node->addProperty(property, defaultNode->property(property));
               }
             }
-            else
-              qWarning() << "Taxonomy" << node->qualifiedName() << "doesn't exist in the default taxonomy definition";
           }
+          else
+            qWarning() << "Taxonomy" << node->qualifiedName() << "doesn't exist in the default taxonomy definition";
+        }
 
-//         }
-        taxHierarchy.push( nodeName.toString() );
+        parent = node.data();
       }
       else if( xmlStream.isEndElement() )
       {
-        taxHierarchy.pop();
+        parent = parent->parent();
       }
     }
   }
-  return tax;
+
+  return taxonomy;
 }
 
 
@@ -602,80 +578,19 @@ TaxonomySPtr IOTaxonomy::openXMLTaxonomy(QString fileName)
 
   // Read the XML
   QXmlStreamReader xmlStream(&file);
-  /*
-  QStringRef nodeName;
-  TaxonomyNode* tax;
-  std::stack<QString> taxHierarchy;
-  while(!xmlStream.atEnd())
-  {
-    xmlStream.readNextStartElement();
-    if( xmlStream.name() == "node")
-    {
-      if( xmlStream.isStartElement() )
-      {
-        nodeName = xmlStream.attributes().value("name");
-        if( taxHierarchy.empty() )
-        {
-          tax = new TaxonomyNode( nodeName.toString() );
-        }
-        else
-        {
-          tax->addElement( nodeName.toString(), taxHierarchy.top() );
-        }
-        taxHierarchy.push( nodeName.toString() );
-      }
-      else if( xmlStream.isEndElement() )
-      {
-        taxHierarchy.pop();
-      }
-    }
-  }
-  */
+
   TaxonomySPtr tax = readXML(xmlStream);
+
   file.close();
+
   return tax;
 }
 
 TaxonomySPtr IOTaxonomy::loadXMLTaxonomy(QString content)
 {
-
-//   if( content.device() )
-//     xmlStream.setDevice( content.device() );
-//   else if( content.string() )
-//     xmlStream = QXmlStreamReader(*content.string());
-    
   // Read the XML
   QXmlStreamReader xmlStream(content);
-  /*
-  QStringRef nodeName;
-  TaxonomyNode* tax;
-  std::stack<QString> taxHierarchy;
-  while(!xmlStream.atEnd())
-  {
-    xmlStream.readNextStartElement();
-    if( xmlStream.name() == "node")
-    {
-      if( xmlStream.isStartElement() )
-      {
-        nodeName = xmlStream.attributes().value("name");
-        if( taxHierarchy.empty() )
-        {
-          tax = new TaxonomyNode( nodeName.toString() );
-        }
-        else
-        {
-          tax->addElement( nodeName.toString(), taxHierarchy.top() );
-        }
-        taxHierarchy.push( nodeName.toString() );
-      }
-      else if( xmlStream.isEndElement() )
-      {
-        taxHierarchy.pop();
-      }
-    }
-  }
-  return tax;
-  */
+
   return readXML(xmlStream);
 }
 

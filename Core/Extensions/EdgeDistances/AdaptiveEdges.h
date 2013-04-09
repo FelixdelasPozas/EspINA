@@ -27,7 +27,6 @@
 
 #include <QMutex>
 
-//TODO: Invalidate information and seg's distance information due to spacing modification
 namespace EspINA
 {
   static const ModelItem::ExtId AdaptiveEdgesID = "AdaptiveEdges";

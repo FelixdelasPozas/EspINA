@@ -94,15 +94,20 @@ void SegmhaImporter::initFileReader(EspinaModel *model,
 //-----------------------------------------------------------------------------
 bool SegmhaImporter::readFile(const QFileInfo file, EspinaIO::ErrorHandler *handler)
 {
-  // TODO: usar el handler
-  qDebug() << file.absoluteFilePath();
   Q_ASSERT(SEGMHA == file.suffix());
 
-  QFileInfo channelFile = handler->fileNotFound(QFileInfo(), file.dir(), CHANNEL_FILES, tr("Select channel file for %1:").arg(file.fileName()));
+  QFileInfo channelFile = handler->fileNotFound(QFileInfo(),
+                                                file.dir(),
+                                                CHANNEL_FILES,
+                                                tr("Select channel file for %1:").arg(file.fileName()));
   if (!channelFile.exists())
+  {
+    handler->error(tr("%1 doesn't exist").arg(channelFile.absoluteFilePath()));
     return false;
+  }
 
   m_model->setTraceable(false);
+
   ChannelSPtr channel;
   if (EspinaIO::SUCCESS != EspinaIO::loadChannel(channelFile, m_model, channel, handler))
     return false;
@@ -116,7 +121,10 @@ bool SegmhaImporter::readFile(const QFileInfo file, EspinaIO::ErrorHandler *hand
   SegmhaImporterFilterSPtr filter(new SegmhaImporterFilter(inputs, args, UndoCommand::FILTER_TYPE));
   filter->update(Filter::ALL_INPUTS);
   if (filter->outputs().isEmpty())
+  {
+    handler->error(tr("Failed to import %1").arg(file.absoluteFilePath()));
     return false;
+  }
 
   SampleSPtr sample = channel->sample();
 
@@ -173,6 +181,7 @@ bool SegmhaImporter::readFile(const QFileInfo file, EspinaIO::ErrorHandler *hand
   }
 
   m_model->emitSegmentationAdded(segmentations);
+
   return true;
 }
 
