@@ -253,16 +253,27 @@ bool BrushPicker::validStroke(double brush[3])
     m_segmentation->volume()->spacing(spacing);
 
     itkVolumeType::RegionType volumeRegion = m_segmentation->volume()->toITK()->GetLargestPossibleRegion();
+    itkVolumeType::RegionType::IndexType origin = volumeRegion.GetIndex();
     itkVolumeType *image = m_segmentation->volume()->toITK();
+
+    // Damned discrepancies between origin and bounds in itk volumes loaded from file
+    itkVolumeType::RegionType::IndexType transform;
+    transform[0] = transform[1] = transform[2] = 0;
+    if (origin[0] != vtkMath::Round(bounds[0]/spacing[0]) || origin[1] != vtkMath::Round(bounds[2]/spacing[1]) || origin[2] != vtkMath::Round(bounds[4]/spacing[2]))
+    {
+      transform[0] = vtkMath::Round(bounds[0]/spacing[0]);
+      transform[1] = vtkMath::Round(bounds[2]/spacing[1]);
+      transform[2] = vtkMath::Round(bounds[4]/spacing[2]);
+    }
 
     for (int i = vtkMath::Round(brushBounds[0]/spacing[0]); i <= vtkMath::Round(brushBounds[1]/spacing[0]); ++i)
       for (int j = vtkMath::Round(brushBounds[2]/spacing[1]); j <= vtkMath::Round(brushBounds[3]/spacing[1]); ++j)
         for (int k = vtkMath::Round(brushBounds[4]/spacing[2]); k <= vtkMath::Round(brushBounds[5]/spacing[2]); ++k)
         {
           itkVolumeType::IndexType index;
-          index[0] = i;
-          index[1] = j;
-          index[2] = k;
+          index[0] = i - transform[0];
+          index[1] = j - transform[1];
+          index[2] = k - transform[2];
 
           if (!volumeRegion.IsInside(index)) // brush voxel could be outside volume
             continue;
@@ -393,6 +404,19 @@ void BrushPicker::startPreview(EspinaRenderView* view)
     int segExtent[6];
     m_segmentation->volume()->extent(segExtent);
 
+    // segmentations loaded from disk can have an origin != (0,0,0) that messes with the preview
+    // and must be corrected. That means 3 ops more per loop and 3 more vars. If corrected before
+    // we could use the index as the "for" variables directly, so it would be faster.
+    itkVolumeType::PointType origin = m_segmentation->volume()->toITK()->GetOrigin();
+    itkVolumeType::IndexType transform;
+    transform[0] = transform[1] = transform[2] = 0;
+    if ((origin[0] != 0) || (origin[1] != 0) || (origin[2] != 0))
+    {
+      transform[0] = segExtent[0];
+      transform[1] = segExtent[2];
+      transform[2] = segExtent[4];
+    }
+
     // minimize voxel copy, only fill the part of the preview that has
     // segmentation voxels.
     if (m_plane != SAGITTAL)
@@ -419,20 +443,14 @@ void BrushPicker::startPreview(EspinaRenderView* view)
     else
       segExtent[4] = segExtent[5] = extent[4];
 
-
-    // segmentations loaded from disk can have an origin != (0,0,0) that messes with the preview
-    // and must be corrected. That means 3 ops more per loop and 3 more vars. If corrected before
-    // we could use the index as the "for" variables directly, so it would be faster.
-    itkVolumeType::PointType origin = m_segmentation->volume()->toITK()->GetOrigin();
-
     for (int x = segExtent[0]; x <= segExtent[1]; ++x)
       for (int y = segExtent[2]; y <= segExtent[3]; ++y)
         for (int z = segExtent[4]; z <= segExtent[5]; ++z)
         {
           itkVolumeType::IndexType index;
-          index[0] = x - origin[0];
-          index[1] = y - origin[1];
-          index[2] = z - origin[2];
+          index[0] = x - transform[0];
+          index[1] = y - transform[1];
+          index[2] = z - transform[2];
 
           unsigned char *previewPixel = reinterpret_cast<unsigned char *>(m_preview->GetScalarPointer(x,y,z));
           *previewPixel = m_segmentation->volume()->toITK()->GetPixel(index);
