@@ -68,8 +68,8 @@ qt4_wrap_ui (ESPINA_UI
   Docks/TabularReport/TabularReport.ui
   FilterInspectors/SeedGrowSegmentation/SGSFilterInspectorWidget.ui
   Settings/GeneralSettingsPanel.ui
-  Settings/Editor/EditorToolBarSettingsPanel.ui
-  Settings/SeedGrowSegmentation/SettingsPanel.ui
+  Settings/Editor/EditorSettingsPanel.ui
+  Settings/SeedGrowSegmentation/SeedGrowSettingsPanel.ui
   Settings/SliceView/SliceViewSettingsPanel.ui
   Settings/VOI/RectangularVOISettings.ui
   Settings/VolumeView/VolumeViewSettingsPanel.ui

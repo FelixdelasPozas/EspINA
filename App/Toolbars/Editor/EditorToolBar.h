@@ -38,7 +38,6 @@ class QUndoStack;
 namespace EspINA
 {
   class ITool;
-  class Brush;
   class ViewManager;
   class ContourSelector;
   class ContourWidget;

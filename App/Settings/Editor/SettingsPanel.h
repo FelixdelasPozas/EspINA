@@ -21,13 +21,13 @@
 
 #include "Toolbars/Editor/EditorToolBar.h"
 #include <GUI/ISettingsPanel.h>
-#include "ui_EditorToolBarSettingsPanel.h"
+#include "ui_EditorSettingsPanel.h"
 
 namespace EspINA
 {
   class EditorToolBar::SettingsPanel
   : public ISettingsPanel
-  , public Ui::EditorToolBarSettingsPanel
+  , public Ui::EditorSettingsPanel
   {
     Q_OBJECT
   public:

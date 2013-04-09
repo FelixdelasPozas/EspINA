@@ -31,6 +31,7 @@
 #include <GUI/ViewManager.h>
 #include <Filters/FreeFormSource.h>
 #include <Undo/RemoveSegmentation.h>
+#include <Core/EspinaSettings.h>
 
 // VTK
 #include <vtkRenderWindow.h>
@@ -40,7 +41,7 @@
 #include <QMouseEvent>
 #include <QPainter>
 #include <QPixmap>
-
+#include <QSettings>
 
 using namespace EspINA;
 
@@ -65,6 +66,9 @@ Brush::Brush(EspinaModel *model,
           this,  SLOT(drawStroke(PickableItemPtr, ISelector::WorldRegion, Nm, PlaneType)));
   connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection, bool)),
           this, SLOT(initBrushTool()));
+
+  // TODO: use EditorToolBar::Settings object, first remove .h dependencies between Brush.cpp and EditorToolBar.cpp
+  setBrushRadius();
 }
 
 //-----------------------------------------------------------------------------
@@ -328,6 +332,7 @@ void Brush::initBrushTool()
   QImage hasSeg = QImage();
 
   emit brushModeChanged(BRUSH);
+  setBrushRadius();
 
   if (m_currentSeg)
     disconnect(m_currentSeg.data(), SIGNAL(modified(ModelItemPtr)),
@@ -361,4 +366,11 @@ void Brush::initBrushTool()
 
   m_erasing = false;
   m_brush->DrawingOn(NULL);
+}
+
+//-----------------------------------------------------------------------------
+void Brush::setBrushRadius()
+{
+  QSettings settings(CESVIMA, ESPINA);
+  m_brush->setRadius(settings.value(QString("EditorToolBar::BrushRadius"),20).toInt());
 }

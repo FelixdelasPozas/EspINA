@@ -21,7 +21,7 @@
 #define SEEDGROWSEGMENTATIONPREFERENCES_H
 
 #include <GUI/ISettingsPanel.h>
-#include "ui_SettingsPanel.h"
+#include "ui_SeedGrowSettingsPanel.h"
 
 #include "Toolbars/Segmentation/SegmentationToolBar.h"
 
@@ -31,7 +31,7 @@ namespace EspINA
 
   class SeedGrowSegmentationsSettingsPanel
   : public ISettingsPanel
-  , public Ui::SettingsPanel
+  , public Ui::SeedGrowSettingsPanel
   {
     Q_OBJECT
   public:

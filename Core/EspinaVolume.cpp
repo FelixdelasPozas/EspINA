@@ -403,7 +403,7 @@ bool SegmentationVolume::collision(SegmentationVolume v)
 
 
 //----------------------------------------------------------------------------
-bool SegmentationVolume::fitToContent()
+bool SegmentationVolume::fitToContent() throw(itk::ExceptionObject)
 {
   Image2LabelFilterType::Pointer image2label = Image2LabelFilterType::New();
   image2label->ReleaseDataFlagOn();
@@ -413,7 +413,9 @@ bool SegmentationVolume::fitToContent()
   // Get segmentation's Bounding Box
   LabelMapType *labelMap = image2label->GetOutput();
   if (labelMap->GetNumberOfLabelObjects() == 0)
-    throw 1; // TODO: Find proper exception CODE
+  {
+    throw itk::ExceptionObject( __FILE__, __LINE__, "segmentation volume is empty" );
+  }
 
   LabelObjectType     *segmentation = labelMap->GetLabelObject(SEG_VOXEL_VALUE);
   LabelObjectType::RegionType segBB = segmentation->GetBoundingBox();

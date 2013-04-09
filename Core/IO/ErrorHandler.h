@@ -22,7 +22,6 @@ namespace EspINA
      virtual void warning(const QString &msg) = 0;
      virtual void error(const QString &msg) = 0;
 
-     // TODO: usar QApplication::restoreOverrideCursor();
      virtual QFileInfo fileNotFound(const QFileInfo &file,
                             QDir dir = QDir(),
                             const QString &nameFilters = QString(),

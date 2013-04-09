@@ -20,7 +20,7 @@
 #ifndef EDITORTOOLBAR_SETTINGS_H
 #define EDITORTOOLBAR_SETTINGS_H
 
-#include "Toolbars/Editor/EditorToolBar.h"
+#include <App/Toolbars/Editor/EditorToolBar.h>
 
 class EspINA::EditorToolBar::Settings
 {

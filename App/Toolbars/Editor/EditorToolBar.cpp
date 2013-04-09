@@ -592,7 +592,7 @@ void EditorToolBar::initDrawTools()
 
   CircularBrushSPtr circularBrush(new CircularBrush(m_model,
                                                     m_undoStack,
-                                                    m_viewManager) );
+                                                    m_viewManager));
   connect(circularBrush.data(), SIGNAL(stopDrawing()),
           this, SLOT(cancelDrawOperation()));
   connect(circularBrush.data(), SIGNAL(brushModeChanged(Brush::BrushMode)),

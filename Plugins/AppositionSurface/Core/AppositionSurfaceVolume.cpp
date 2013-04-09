@@ -336,7 +336,7 @@ namespace EspINA
   }
 
   //----------------------------------------------------------------------------
-  bool AppositionSurfaceVolume::fitToContent()
+  bool AppositionSurfaceVolume::fitToContent() throw (itk::ExceptionObject)
   {
     if (m_filter->m_ap == NULL)
       return SegmentationVolume::fitToContent();

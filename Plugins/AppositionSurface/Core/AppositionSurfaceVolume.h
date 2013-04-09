@@ -66,7 +66,7 @@ namespace EspINA
 
       /// Reduce volume dimensions to adjust it to the bounding box of the
       /// contained segmentation
-      virtual bool fitToContent();
+      virtual bool fitToContent() throw (itk::ExceptionObject);
 
     protected:
       void rasterize(double *bounds) const;

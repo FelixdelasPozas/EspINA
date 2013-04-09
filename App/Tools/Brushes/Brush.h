@@ -86,6 +86,8 @@ namespace EspINA
     void stopDrawing();
 
   protected:
+    void setBrushRadius();
+
     EspinaModel *m_model;
     QUndoStack  *m_undoStack;
     ViewManager *m_viewManager;

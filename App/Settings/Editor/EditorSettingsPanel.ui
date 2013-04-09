@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>EditorToolBarSettingsPanel</class>
- <widget class="QWidget" name="EditorToolBarSettingsPanel">
+ <class>EditorSettingsPanel</class>
+ <widget class="QWidget" name="EditorSettingsPanel">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
     <width>252</width>
-    <height>323</height>
+    <height>373</height>
    </rect>
   </property>
   <property name="sizePolicy">
