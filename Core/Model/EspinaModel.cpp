@@ -809,11 +809,15 @@ void EspinaModel::setTaxonomy(TaxonomySPtr taxonomy)
 //------------------------------------------------------------------------
 void EspinaModel::addTaxonomy(TaxonomySPtr taxonomy)
 {
-  Q_ASSERT(false); // TODO 1.4: Mix .seg is not finished
   if (m_tax)
+  {
+    Q_ASSERT(false); // TODO 1.4: Mix .seg is not finished
     addTaxonomy(taxonomy->root());
+  }
   else
+  {
     setTaxonomy(taxonomy);
+  }
 
   markAsChanged();
 }

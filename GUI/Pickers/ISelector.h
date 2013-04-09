@@ -40,7 +40,7 @@ namespace EspINA
   /// Classes that implement this interface have to specify
   /// which selection method has to be used and which type of
   /// products must be selected
-  class IPicker
+  class ISelector
   : public QObject
   {
     Q_OBJECT
@@ -60,11 +60,11 @@ namespace EspINA
     typedef QList<PickedItem>          PickList;
 
   public:
-    explicit IPicker()
+    explicit ISelector()
     : m_multiSelection(false)
     , m_cursor(Qt::CrossCursor)
     {}
-    virtual ~IPicker(){};
+    virtual ~ISelector(){};
 
     virtual bool filterEvent(QEvent *e, EspinaRenderView *view=NULL) = 0;
 
@@ -78,7 +78,7 @@ namespace EspINA
     void setMultiSelection(bool value) {m_multiSelection = value;}
 
   signals:
-    void itemsPicked(IPicker::PickList);
+    void itemsPicked(ISelector::PickList);
 
   protected:
     PickableItems m_filters;
@@ -86,7 +86,7 @@ namespace EspINA
     QCursor       m_cursor;
   };
 
-  typedef QSharedPointer<IPicker> IPickerSPtr;
+  typedef QSharedPointer<ISelector> IPickerSPtr;
 
 } // namespace EspINA
 

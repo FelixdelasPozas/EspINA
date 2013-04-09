@@ -1,4 +1,4 @@
-#include "PixelPicker.h" //TODO 2012-11-27 Rename class
+#include "PixelSelector.h"
 
 #include <Core/EspinaTypes.h>
 #include <Core/Model/PickableItem.h>
@@ -22,7 +22,7 @@
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
-IPicker::PickList PixelPicker::generatePickList(EspinaRenderView* view)
+ISelector::PickList PixelSelector::generatePickList(EspinaRenderView* view)
 {
   DisplayRegionList regions;
   QPolygon singlePixel;
@@ -37,7 +37,7 @@ IPicker::PickList PixelPicker::generatePickList(EspinaRenderView* view)
 }
 
 //-----------------------------------------------------------------------------
-void PixelPicker::onMouseDown(const QPoint &pos, EspinaRenderView* view)
+void PixelSelector::onMouseDown(const QPoint &pos, EspinaRenderView* view)
 {
   PickList pickList = generatePickList(view);
   if (pickList.empty() || 0 == pickList.first().first->GetNumberOfPoints())
@@ -47,7 +47,7 @@ void PixelPicker::onMouseDown(const QPoint &pos, EspinaRenderView* view)
 }
 
 //-----------------------------------------------------------------------------
-double *PixelPicker::getPickPoint(EspinaRenderView *view)
+double *PixelSelector::getPickPoint(EspinaRenderView *view)
 {
   PickList pickList = generatePickList(view);
   if (pickList.empty() || (pickList.first().second->type() != EspINA::CHANNEL) || 0 == pickList.first().first->GetNumberOfPoints())
@@ -59,7 +59,7 @@ double *PixelPicker::getPickPoint(EspinaRenderView *view)
 }
 
 //-----------------------------------------------------------------------------
-bool PixelPicker::filterEvent(QEvent* e, EspinaRenderView* view)
+bool PixelSelector::filterEvent(QEvent* e, EspinaRenderView* view)
 {
   // If successor didn't abort the filtering, apply its own filtering
   if (e->type() == QEvent::MouseButtonPress)
@@ -80,7 +80,7 @@ bool PixelPicker::filterEvent(QEvent* e, EspinaRenderView* view)
     }
   }
 
-  return IPicker::filterEvent(e,view);
+  return ISelector::filterEvent(e,view);
 }
 
 
@@ -98,19 +98,19 @@ int quadDist(int cx, int cy, int x, int y)
 //!      |
 //!      v    BR
 //-----------------------------------------------------------------------------
-BestPixelPicker::BestPixelPicker()
+BestPixelSelector::BestPixelSelector()
 : m_window(new QSize(14,14))
 , m_bestPixel  (0)
 {}
 
 //-----------------------------------------------------------------------------
-BestPixelPicker::~BestPixelPicker()
+BestPixelSelector::~BestPixelSelector()
 {
   delete m_window;
 }
 
 //-----------------------------------------------------------------------------
-void BestPixelPicker::onMouseDown(const QPoint& pos, EspinaRenderView* view)
+void BestPixelSelector::onMouseDown(const QPoint& pos, EspinaRenderView* view)
 {
   PickList pickList = generatePickList(view);
   if (pickList.empty() || (pickList.first().second->type() != EspINA::CHANNEL)  || 0 == pickList.first().first->GetNumberOfPoints())
@@ -124,7 +124,7 @@ void BestPixelPicker::onMouseDown(const QPoint& pos, EspinaRenderView* view)
 }
 
 //-----------------------------------------------------------------------------
-double *BestPixelPicker::getPickPoint(EspinaRenderView *view)
+double *BestPixelSelector::getPickPoint(EspinaRenderView *view)
 {
   PickList pickList = generatePickList(view);
   if (pickList.empty() || (pickList.first().second->type() != EspINA::CHANNEL) || 0 == pickList.first().first->GetNumberOfPoints())

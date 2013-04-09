@@ -21,7 +21,7 @@
 #define BRUSHPICKER_H
 
 // EspINA
-#include "GUI/Pickers/IPicker.h"
+#include "GUI/Pickers/ISelector.h"
 #include "Core/EspinaTypes.h"
 
 // VTK
@@ -42,7 +42,7 @@ namespace EspINA
 {
 
 class BrushPicker
-: public IPicker
+: public ISelector
 {
   Q_OBJECT
   typedef itkVolumeType::SpacingType Spacing;
@@ -68,7 +68,7 @@ public:
 
 signals:
   void stroke(PickableItemPtr, double, double, double, Nm, PlaneType);
-  void stroke(PickableItemPtr, IPicker::WorldRegion, Nm, PlaneType);
+  void stroke(PickableItemPtr, ISelector::WorldRegion, Nm, PlaneType);
 
 private:
   void buildCursor();
@@ -91,7 +91,7 @@ private:
 
   bool m_tracking;
   QPoint m_lastDot;
-  IPicker::WorldRegion m_stroke;
+  ISelector::WorldRegion m_stroke;
 
   PlaneType m_plane;
   Nm        m_radius;

@@ -22,7 +22,7 @@
 
 #include <Core/Model/EspinaModel.h>
 #include <Core/Interfaces/IToolBar.h>
-#include <GUI/Pickers/PixelPicker.h>
+#include <GUI/Pickers/PixelSelector.h>
 #include <GUI/ViewManager.h>
 
 #include <QMap>

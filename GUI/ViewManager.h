@@ -49,7 +49,7 @@ namespace EspINA
   class SliceSelectorWidget;
   class EspinaRenderView;
   class IEspinaView;
-  class IPicker;
+  class ISelector;
   class ITool;
   class IVOI;
   class SliceView;

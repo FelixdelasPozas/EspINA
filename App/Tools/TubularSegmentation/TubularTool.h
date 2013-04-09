@@ -10,7 +10,7 @@
 
 // EspINA
 #include <GUI/Tools/ITool.h>
-#include <GUI/Pickers/PixelPicker.h>
+#include <GUI/Pickers/PixelSelector.h>
 #include <Core/Model/EspinaModel.h>
 
 // Spines plugin
@@ -21,7 +21,7 @@ class QUndoStack;
 
 namespace EspINA
 {
-  class IPicker;
+  class ISelector;
   class Channel;
   class EspinaModel;
   class Segmentation;
@@ -73,7 +73,7 @@ namespace EspINA
 
     public slots:
       void updateNodes(TubularSegmentationFilter::NodeList);
-      void pixelSelected(IPicker::PickList);
+      void pixelSelected(ISelector::PickList);
 
     signals:
       void segmentationStopped();
@@ -85,7 +85,7 @@ namespace EspINA
       bool                                m_enabled;
       bool                                m_inUse;
       bool                                m_roundExtremes;
-      QSharedPointer<PixelPicker>         m_toolPicker;
+      QSharedPointer<PixelSelector>         m_toolPicker;
       TubularWidget                      *m_widget;
       ViewManager                        *m_viewManager;
       QUndoStack                         *m_undoStack;

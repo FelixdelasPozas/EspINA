@@ -40,7 +40,7 @@
 #include <Filters/FreeFormSource.h>
 #include <Filters/OpeningFilter.h>
 #include <Filters/SplitFilter.h>
-#include <GUI/Pickers/ContourPicker.h>
+#include <GUI/Pickers/ContourSelector.h>
 #include <GUI/QtWidget/ActionSelector.h>
 #include <GUI/ViewManager.h>
 #include <GUI/vtkWidgets/ContourWidget.h>

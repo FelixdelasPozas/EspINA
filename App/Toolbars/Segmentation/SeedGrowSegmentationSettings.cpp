@@ -22,7 +22,7 @@
 // Qt
 #include <QSettings>
 #include <Core/EspinaSettings.h>
-#include <GUI/Pickers/PixelPicker.h>
+#include <GUI/Pickers/PixelSelector.h>
 #include <QStringList>
 
 using namespace EspINA;
@@ -44,7 +44,7 @@ const QString DEFAULT_VOI_Z_SIZE   ("SeedGrowSegmentation::DefaultVOI::Z_SIZE");
 const QString TAXONOMICAL_VOI_USAGE("SeedGrowSegmentation::DefaultVOI::USE_TAXONOMY_SIZE");
 
 //------------------------------------------------------------------------
-SeedGrowSegmentationSettings::SeedGrowSegmentationSettings(BestPixelPicker *selector)
+SeedGrowSegmentationSettings::SeedGrowSegmentationSettings(BestPixelSelector *selector)
 : m_selector(selector)
 {
   QSettings settings(CESVIMA, ESPINA);

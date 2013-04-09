@@ -24,12 +24,12 @@
 
 namespace EspINA
 {
-  class BestPixelPicker;
+  class BestPixelSelector;
 
   class SeedGrowSegmentationSettings
   {
   public:
-    explicit SeedGrowSegmentationSettings(BestPixelPicker *selector);
+    explicit SeedGrowSegmentationSettings(BestPixelSelector *selector);
     ~SeedGrowSegmentationSettings(){}
 
     void setXSize(int value);
@@ -51,7 +51,7 @@ namespace EspINA
     int closing() const {return m_closing;}
 
   private:
-    BestPixelPicker *m_selector;
+    BestPixelSelector *m_selector;
     int m_xSize, m_ySize, m_zSize, m_closing;
     bool m_taxonomicalVOI;
   };

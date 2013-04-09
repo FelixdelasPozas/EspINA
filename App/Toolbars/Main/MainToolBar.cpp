@@ -26,7 +26,7 @@
 #include <Core/Model/EspinaModel.h>
 #include <Core/Model/Segmentation.h>
 #include <Core/Model/Taxonomy.h>
-#include <GUI/Pickers/PixelPicker.h>
+#include <GUI/Pickers/PixelSelector.h>
 #include <GUI/QtWidget/QComboTreeView.h>
 #include <GUI/ViewManager.h>
 #include <Undo/RemoveSegmentation.h>

@@ -581,43 +581,43 @@ void SliceView::setCursor(const QCursor &cursor)
 }
 
 //-----------------------------------------------------------------------------
-IPicker::PickList SliceView::pick(IPicker::PickableItems filter,
-                                  IPicker::DisplayRegionList regions)
+ISelector::PickList SliceView::pick(ISelector::PickableItems filter,
+                                  ISelector::DisplayRegionList regions)
 {
   bool multiSelection = false;
-  IPicker::PickList pickedItems;
+  ISelector::PickList pickedItems;
 
   vtkRenderer *renderer = m_renderer;
   Q_ASSERT(renderer);
 
   // Select all products that belongs to all regions
   // NOTE: Should first loop be removed? Only useful to select disconnected regions...
-  foreach(const IPicker::DisplayRegion &region, regions)
+  foreach(const ISelector::DisplayRegion &region, regions)
   {
     QList<vtkProp *> pickedChannels;
     QList<vtkProp *> pickedSegmentations;
     foreach(QPointF p, region)
     {
-      foreach(IPicker::Tag tag, filter)
+      foreach(ISelector::Tag tag, filter)
       {
-        if (IPicker::CHANNEL == tag)
+        if (ISelector::CHANNEL == tag)
         {
           foreach(ChannelPtr channel, pickChannels(p.x(), p.y(), renderer, multiSelection))
           {
-            IPicker::WorldRegion wRegion = worldRegion(region, channel);
-            pickedItems << IPicker::PickedItem(wRegion, channel);
+            ISelector::WorldRegion wRegion = worldRegion(region, channel);
+            pickedItems << ISelector::PickedItem(wRegion, channel);
             // remove it from picking list to prevent other points of the region
             // to select it again
             vtkProp *channelProp = m_channelReps[channel].slice;
             m_channelPicker->DeletePickList(channelProp);
             pickedChannels << channelProp;
           }
-        } else if (IPicker::SEGMENTATION == tag)
+        } else if (ISelector::SEGMENTATION == tag)
         {
             foreach(SegmentationPtr seg, pickSegmentations(p.x(), p.y(), renderer, multiSelection))
             {
-              IPicker::WorldRegion wRegion = worldRegion(region, seg);
-              pickedItems << IPicker::PickedItem(wRegion, seg);
+              ISelector::WorldRegion wRegion = worldRegion(region, seg);
+              pickedItems << ISelector::PickedItem(wRegion, seg);
             // remove it from picking list to prevent other points of the region
             // to select it again
             vtkProp *segProp = m_segmentationReps[seg].slice;
@@ -1584,7 +1584,7 @@ SegmentationList SliceView::pickSegmentations(double vx,
 
       // iterate over region points
       double pixel[3];
-      IPicker::WorldRegion pickedRegion = worldRegion(selectedRegion, pickedSeg);
+      ISelector::WorldRegion pickedRegion = worldRegion(selectedRegion, pickedSeg);
       for(int i = 0; i < pickedRegion->GetNumberOfPoints(); ++i)
       {
         pickedRegion->GetPoint(i, pixel);
@@ -1934,12 +1934,12 @@ void SliceView::centerViewOnPosition(Nm center[3])
 }
 
 //-----------------------------------------------------------------------------
-IPicker::WorldRegion SliceView::worldRegion(const IPicker::DisplayRegion& region,
+ISelector::WorldRegion SliceView::worldRegion(const ISelector::DisplayRegion& region,
                                             PickableItemPtr item)
 {
   //Use Render Window Interactor's Picker to find the world coordinates of the stack
   //vtkSMRenderViewProxy* renModule = view->GetRenderWindow()->GetInteractor()->GetRenderView();
-  IPicker::WorldRegion wRegion = IPicker::WorldRegion::New();
+  ISelector::WorldRegion wRegion = ISelector::WorldRegion::New();
   vtkPropPicker *picker;
 
   if (EspINA::CHANNEL == item->type())

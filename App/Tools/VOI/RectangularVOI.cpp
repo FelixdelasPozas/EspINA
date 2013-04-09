@@ -49,9 +49,9 @@ RectangularVOI::RectangularVOI(EspinaModel *model,
 {
   m_picker.setCursor(QCursor(QPixmap(":/espina/roi_go.svg").scaled(32,32)));
   m_picker.setMultiSelection(false);
-  m_picker.setPickable(IPicker::CHANNEL);
-  connect(&m_picker, SIGNAL(itemsPicked(IPicker::PickList)),
-          this, SLOT(defineVOI(IPicker::PickList)));
+  m_picker.setPickable(ISelector::CHANNEL);
+  connect(&m_picker, SIGNAL(itemsPicked(ISelector::PickList)),
+          this, SLOT(defineVOI(ISelector::PickList)));
 
   vtkMath::UninitializeBounds(m_bounds);
   m_model->factory()->registerSettingsPanel(m_settingsPanel.data());
@@ -153,14 +153,14 @@ IVOI::Region RectangularVOI::region()
 }
 
 //-----------------------------------------------------------------------------
-void RectangularVOI::defineVOI(IPicker::PickList channels)
+void RectangularVOI::defineVOI(ISelector::PickList channels)
 {
   if (channels.isEmpty())
     return;
 
   // Compute default bounds
   Q_ASSERT(channels.size() == 1); //Only one element is selected
-  IPicker::PickedItem pickedItem = channels.first();
+  ISelector::PickedItem pickedItem = channels.first();
 
   Q_ASSERT(pickedItem.first->GetNumberOfPoints() == 1); //Only one pixel's selected
   double pos[3];

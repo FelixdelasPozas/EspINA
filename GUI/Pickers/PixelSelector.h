@@ -20,33 +20,33 @@
 #ifndef PIXELSELECTOR_H_
 #define PIXELSELECTOR_H_
 
-#include "GUI/Pickers/IPicker.h"
+#include "GUI/Pickers/ISelector.h"
 
 class QSize;
 
 namespace EspINA
 {
-  class PixelPicker
-  : public IPicker
+  class PixelSelector
+  : public ISelector
   {
   public:
-    explicit PixelPicker() {}
-    virtual ~PixelPicker(){}
+    explicit PixelSelector() {}
+    virtual ~PixelSelector(){}
 
     virtual void onMouseDown(const QPoint &pos, EspinaRenderView* view);
     virtual bool filterEvent(QEvent* e, EspinaRenderView* view = 0);
     /// NOTE: It is user responsability to free the pointer returned
     virtual double *getPickPoint(EspinaRenderView *view);
-    virtual IPicker::PickList generatePickList(EspinaRenderView*);
+    virtual ISelector::PickList generatePickList(EspinaRenderView*);
   };
 
 
-  class BestPixelPicker
-  : public PixelPicker
+  class BestPixelSelector
+  : public PixelSelector
   {
   public:
-    explicit BestPixelPicker();
-    virtual ~BestPixelPicker();
+    explicit BestPixelSelector();
+    virtual ~BestPixelSelector();
 
     void setBestPixelValue(int value) {m_bestPixel = value;}
 

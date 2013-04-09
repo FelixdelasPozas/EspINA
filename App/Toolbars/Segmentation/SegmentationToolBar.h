@@ -24,7 +24,7 @@
 #include <Core/Interfaces/IDynamicMenu.h>
 
 #include <GUI/ISettingsPanel.h>
-#include <GUI/Pickers/IPicker.h>
+#include <GUI/Pickers/ISelector.h>
 #include <App/Tools/SeedGrowSegmentation/SeedGrowSegmentationTool.h>
 #include <App/Tools/TubularSegmentation/TubularTool.h>
 #include <GUI/ViewManager.h>

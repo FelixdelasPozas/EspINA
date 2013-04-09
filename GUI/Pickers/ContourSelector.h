@@ -5,20 +5,20 @@
  *      Author: Félix de las Pozas Alvarez
  */
 
-#ifndef _CONTOURSELECTION_H_
-#define _CONTOURSELECTION_H_
+#ifndef _CONTOURSELECTOR_H_
+#define _CONTOURSELECTOR_H_
 
-#include <GUI/Pickers/IPicker.h>
+#include <GUI/Pickers/ISelector.h>
 
 class QCursor;
 
 namespace EspINA
 {
 class ContourSelector
-: public IPicker
+: public ISelector
 {
 public:
-  explicit ContourSelector(IPicker *successor = NULL);
+  explicit ContourSelector(ISelector *successor = NULL);
   virtual ~ContourSelector();
 
   virtual bool filterEvent(QEvent* e, EspinaRenderView *view = 0);
@@ -29,4 +29,4 @@ private:
 
 } // namespace EspINA
 
-#endif /* _CONTOURSELECTION_H_ */
+#endif /* _CONTOURSELECTOR_H_ */

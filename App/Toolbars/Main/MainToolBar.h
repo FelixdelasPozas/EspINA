@@ -31,7 +31,7 @@
 #include <Core/EspinaTypes.h>
 
 #include <Core/Model/EspinaModel.h>
-#include <GUI/Pickers/IPicker.h>
+#include <GUI/Pickers/ISelector.h>
 
 #include <Tools/SegmentationRemover/SegmentationRemover.h>
 #include <Tools/Measure/MeasureTool.h>
@@ -43,7 +43,7 @@ class QComboTreeView;
 
 namespace EspINA
 {
-  class PixelPicker;
+  class PixelSelector;
   class SegmentationRemover;
   class ViewManager;
 

@@ -106,8 +106,8 @@ namespace EspINA
 
     virtual void setCursor(const QCursor& cursor);
     virtual void eventPosition(int& x, int& y);
-    virtual IPicker::PickList pick(IPicker::PickableItems filter,
-                                   IPicker::DisplayRegionList regions);
+    virtual ISelector::PickList pick(ISelector::PickableItems filter,
+                                   ISelector::DisplayRegionList regions);
     virtual void worldCoordinates(const QPoint& displayPos,
                                   double worldCoordinatesc[3])
     { Q_ASSERT(false); }

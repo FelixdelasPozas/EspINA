@@ -26,7 +26,7 @@
 #include "SegmentationContextualMenu.h"
 
 #include "Core/EspinaTypes.h"
-#include "GUI/Pickers/IPicker.h"
+#include "GUI/Pickers/ISelector.h"
 
 class vtkRenderer;
 class vtkProp3D;
@@ -68,7 +68,7 @@ namespace EspINA
 
     virtual void eventPosition(int &x, int &y) = 0;
 
-    virtual IPicker::PickList pick(IPicker::PickableItems filter, IPicker::DisplayRegionList regions) = 0;
+    virtual ISelector::PickList pick(ISelector::PickableItems filter, ISelector::DisplayRegionList regions) = 0;
 
     virtual void worldCoordinates(const QPoint &displayPos, double worldPos[3]) = 0;
 

@@ -6,7 +6,7 @@
  */
 
 // EspINA
-#include <GUI/Pickers/PixelPicker.h>
+#include <GUI/Pickers/PixelSelector.h>
 #include <GUI/ViewManager.h>
 #include <Core/EspinaTypes.h>
 #include <Core/Model/EspinaModel.h>
@@ -54,17 +54,17 @@ namespace EspINA
   , m_enabled(true)
   , m_inUse(false)
   , m_roundExtremes(false)
-  , m_toolPicker(new PixelPicker())
+  , m_toolPicker(new PixelSelector())
   , m_widget(NULL)
   , m_viewManager(vm)
   , m_undoStack(undo)
   , m_source(NULL)
   {
-    m_toolPicker->setPickable(IPicker::CHANNEL);
+    m_toolPicker->setPickable(ISelector::CHANNEL);
     m_toolPicker->setMultiSelection(false);
     m_toolPicker->setCursor(Qt::CrossCursor);
 
-    connect(m_toolPicker.data(), SIGNAL(itemsPicked(IPicker::PickList)), this, SLOT(pixelSelected(IPicker::PickList)));
+    connect(m_toolPicker.data(), SIGNAL(itemsPicked(ISelector::PickList)), this, SLOT(pixelSelected(ISelector::PickList)));
   }
 
   //-----------------------------------------------------------------------------
@@ -214,13 +214,13 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  void TubularTool::pixelSelected(IPicker::PickList msel)
+  void TubularTool::pixelSelected(ISelector::PickList msel)
   {
     if ((msel.size() != 1) || !m_source.isNull())
       return;
 
     // Only one element selected
-    IPicker::PickedItem element = msel.first();
+    ISelector::PickedItem element = msel.first();
     Q_ASSERT(element.first->GetNumberOfPoints() == 1);
     // with one pixel
     PickableItemPtr input = element.second;

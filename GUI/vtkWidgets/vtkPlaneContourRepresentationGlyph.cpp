@@ -6,7 +6,7 @@
  */
 #include "vtkPlaneContourRepresentationGlyph.h"
 
-#include "GUI/Pickers/IPicker.h"
+#include "GUI/Pickers/ISelector.h"
 #include <Core/ColorEngines/IColorEngine.h>
 #include <Core/Model/Segmentation.h>
 

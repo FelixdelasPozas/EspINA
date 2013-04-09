@@ -1,10 +1,10 @@
 /*
- * ContourSelection.cpp
+ * ContourSelector.cpp
  *
  *  Created on: Aug 28, 2012
  *      Author: Félix de las Pozas Alvarez
  */
-#include "ContourPicker.h" //TODO 2012-27 Rename Class
+#include "ContourSelector.h"
 
 #include <QPolygon>
 #include <QEvent>
@@ -15,7 +15,7 @@
 using namespace EspINA;
 
 
-ContourSelector::ContourSelector(IPicker *succesor)
+ContourSelector::ContourSelector(ISelector *succesor)
 : m_cursor(Qt::CrossCursor)
 {
 }
@@ -29,13 +29,13 @@ bool ContourSelector::filterEvent(QEvent* e, EspinaRenderView *view)
   switch (e->type())
   {
     case QEvent::Enter:
-      return IPicker::filterEvent(e, view);
+      return ISelector::filterEvent(e, view);
       break;
     case QEvent::Leave:
-      return IPicker::filterEvent(e, view);
+      return ISelector::filterEvent(e, view);
       break;
     case QEvent::Wheel:
-      return IPicker::filterEvent(e, view);
+      return ISelector::filterEvent(e, view);
       break;
     default:
       break;

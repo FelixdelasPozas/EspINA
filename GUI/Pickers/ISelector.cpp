@@ -17,28 +17,28 @@
 */
 
 
-#include "IPicker.h"
+#include "ISelector.h"
 
 using namespace EspINA;
 
-const IPicker::Tag IPicker::SAMPLE = "EspINA_Sample";
-const IPicker::Tag IPicker::CHANNEL = "EspINA_Channel";
-const IPicker::Tag IPicker::SEGMENTATION = "EspINA_Segmentation";
+const ISelector::Tag ISelector::SAMPLE = "EspINA_Sample";
+const ISelector::Tag ISelector::CHANNEL = "EspINA_Channel";
+const ISelector::Tag ISelector::SEGMENTATION = "EspINA_Segmentation";
 
 //-----------------------------------------------------------------------------
-bool IPicker::filterEvent(QEvent* e, EspinaRenderView* view)
+bool ISelector::filterEvent(QEvent* e, EspinaRenderView* view)
 {
   return false;
 }
 
 //-----------------------------------------------------------------------------
-void IPicker::setCursor(QCursor cursor)
+void ISelector::setCursor(QCursor cursor)
 {
   m_cursor = cursor;
 }
 
 //-----------------------------------------------------------------------------
-void IPicker::setPickable(QString type, bool pick)
+void ISelector::setPickable(QString type, bool pick)
 {
   if (pick)
     m_filters.insert(type);

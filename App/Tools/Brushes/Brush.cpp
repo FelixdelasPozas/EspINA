@@ -61,8 +61,8 @@ Brush::Brush(EspinaModel *model,
 , m_currentSeg(NULL)
 , m_currentOutput(-1)
 {
-  connect(m_brush, SIGNAL(stroke(PickableItemPtr, IPicker::WorldRegion, Nm, PlaneType)),
-          this,  SLOT(drawStroke(PickableItemPtr, IPicker::WorldRegion, Nm, PlaneType)));
+  connect(m_brush, SIGNAL(stroke(PickableItemPtr, ISelector::WorldRegion, Nm, PlaneType)),
+          this,  SLOT(drawStroke(PickableItemPtr, ISelector::WorldRegion, Nm, PlaneType)));
   connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection, bool)),
           this, SLOT(initBrushTool()));
 }
@@ -209,7 +209,7 @@ bool Brush::enabled() const
 
 //-----------------------------------------------------------------------------
 void Brush::drawStroke(PickableItemPtr item,
-                       IPicker::WorldRegion centers,
+                       ISelector::WorldRegion centers,
                        Nm radius,
                        PlaneType plane)
 {

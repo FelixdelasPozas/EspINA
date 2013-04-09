@@ -20,7 +20,7 @@
 #include <Undo/BrushUndoCommand.h>
 
 // EspINA
-#include <GUI/Pickers/ContourPicker.h>
+#include <GUI/Pickers/ContourSelector.h>
 #include <GUI/vtkWidgets/ContourWidget.h>
 #include <GUI/ViewManager.h>
 #include <Core/Model/ModelItem.h>
@@ -56,7 +56,7 @@ FilledContour::FilledContour(EspinaModel *model,
 , m_widgetHasContour(false)
 , m_lastContour(NULL)
 {
-  m_picker->setPickable(IPicker::CHANNEL);
+  m_picker->setPickable(ISelector::CHANNEL);
 }
 
 //-----------------------------------------------------------------------------

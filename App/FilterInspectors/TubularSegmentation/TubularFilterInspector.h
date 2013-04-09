@@ -23,7 +23,7 @@
 
 // EspINA
 #include <Filters/TubularSegmentationFilter.h>
-#include <GUI/Pickers/PixelPicker.h>
+#include <GUI/Pickers/PixelSelector.h>
 #include <GUI/Tools/ITool.h>
 
 // Qt

@@ -33,7 +33,7 @@
 #include <GUI/ViewManager.h>
 #include <Core/Model/EspinaFactory.h>
 #include <Core/Model/EspinaModel.h>
-#include <GUI/Pickers/PixelPicker.h>
+#include <GUI/Pickers/PixelSelector.h>
 #include <Core/Model/PickableItem.h>
 #include <GUI/Tools/IVOI.h>
 #include <Filters/SeedGrowSegmentationFilter.h>
@@ -265,7 +265,7 @@ void SegmentationToolBar::addVoxelPicker(QAction* action, IPickerSPtr picker)
   m_pickerSelector->addAction(action);
   m_pickers[action] = picker;
   picker->setMultiSelection(false);
-  picker->setPickable(IPicker::CHANNEL);
+  picker->setPickable(ISelector::CHANNEL);
 }
 
 //-----------------------------------------------------------------------------
@@ -277,14 +277,14 @@ void SegmentationToolBar::buildPickers()
   action = new QAction(QIcon(":/espina/pixelSelector.svg"),
                        tr("Add synapse (Ctrl +). Exact Pixel"),
                        m_pickerSelector);
-  PixelPicker *picker = new PixelPicker();
+  PixelSelector *picker = new PixelSelector();
   addVoxelPicker(action, IPickerSPtr(picker));
 
   // Best Pixel Picker
   action = new QAction(QIcon(":/espina/bestPixelSelector.svg"),
                        tr("Add synapse (Ctrl +). Best Pixel"),
                        m_pickerSelector);
-  BestPixelPicker *bestPicker = new BestPixelPicker();
+  BestPixelSelector *bestPicker = new BestPixelSelector();
   bestPicker->setCursor(QCursor(QPixmap(":/espina/crossRegion.svg")));
   addVoxelPicker(action, IPickerSPtr(bestPicker));
 

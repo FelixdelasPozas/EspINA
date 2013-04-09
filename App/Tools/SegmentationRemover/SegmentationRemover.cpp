@@ -19,7 +19,7 @@
 
 #include "SegmentationRemover.h"
 
-#include <GUI/Pickers/PixelPicker.h>
+#include <GUI/Pickers/PixelSelector.h>
 #include <Core/Model/Segmentation.h>
 
 #include <QMouseEvent>
@@ -28,11 +28,11 @@ using namespace EspINA;
 
 //----------------------------------------------------------------------------
 SegmentationRemover::SegmentationRemover()
-: m_picker(new PixelPicker())
+: m_picker(new PixelSelector())
 {
-  m_picker->setPickable(IPicker::SEGMENTATION);
-  connect(m_picker, SIGNAL(itemsPicked(IPicker::PickList)),
-          this, SLOT(removeSegmentation(IPicker::PickList)));
+  m_picker->setPickable(ISelector::SEGMENTATION);
+  connect(m_picker, SIGNAL(itemsPicked(ISelector::PickList)),
+          this, SLOT(removeSegmentation(ISelector::PickList)));
 }
 
 //----------------------------------------------------------------------------
@@ -78,12 +78,12 @@ bool SegmentationRemover::enabled() const
 }
 
 //----------------------------------------------------------------------------
-void SegmentationRemover::removeSegmentation(IPicker::PickList pickedSeg)
+void SegmentationRemover::removeSegmentation(ISelector::PickList pickedSeg)
 {
   if (pickedSeg.size() != 1)
     return;
 
-  IPicker::PickedItem element = pickedSeg.first();
+  ISelector::PickedItem element = pickedSeg.first();
 
   PickableItemPtr input = element.second;
   Q_ASSERT(EspINA::SEGMENTATION == input->type());

@@ -21,8 +21,8 @@
 #define RECTANGULARVOI_H
 
 #include <GUI/Tools/IVOI.h>
-#include <GUI/Pickers/IPicker.h>
-#include <GUI/Pickers/PixelPicker.h>
+#include <GUI/Pickers/ISelector.h>
+#include <GUI/Pickers/PixelSelector.h>
 #include <GUI/ISettingsPanel.h>
 #include <Core/Model/EspinaModel.h>
 
@@ -53,7 +53,7 @@ namespace EspINA
     virtual IVOI::Region region();
 
   private slots:
-    void defineVOI(IPicker::PickList channels);
+    void defineVOI(ISelector::PickList channels);
 
   signals:
     void voiDeactivated();
@@ -65,7 +65,7 @@ namespace EspINA
     bool m_inUse;
     bool m_enabled;
 
-    PixelPicker        m_picker;
+    PixelSelector      m_picker;
     RectangularRegion *m_widget;
     double             m_bounds[6];
     RectangularRegionSliceSelector *m_sliceSelector;

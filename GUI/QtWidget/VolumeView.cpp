@@ -515,9 +515,9 @@ void VolumeView::eventPosition(int& x, int& y)
 }
 
 //-----------------------------------------------------------------------------
-IPicker::PickList VolumeView::pick(IPicker::PickableItems filter, IPicker::DisplayRegionList regions)
+ISelector::PickList VolumeView::pick(ISelector::PickableItems filter, ISelector::DisplayRegionList regions)
 {
-  return IPicker::PickList();
+  return ISelector::PickList();
 }
 
 //-----------------------------------------------------------------------------

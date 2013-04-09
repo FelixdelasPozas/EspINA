@@ -21,7 +21,7 @@
 #define SEEDGROWSEGMENTATIONTOOL_H
 
 #include <GUI/Tools/ITool.h>
-#include <GUI/Pickers/IPicker.h>
+#include <GUI/Pickers/ISelector.h>
 
 #include <Core/Model/EspinaModel.h>
 
@@ -66,7 +66,7 @@ namespace EspINA
     void setChannelPicker(IPickerSPtr picker);
 
   public slots:
-    void startSegmentation(IPicker::PickList pickedItems);
+    void startSegmentation(ISelector::PickList pickedItems);
 
   signals:
     void seedSelected(Channel *, itkVolumeType::IndexType);

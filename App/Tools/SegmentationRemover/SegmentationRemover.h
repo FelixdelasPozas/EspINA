@@ -21,11 +21,11 @@
 #define SEGREMOVER_H
 
 #include <GUI/Tools/ITool.h>
-#include <GUI/Pickers/IPicker.h>
+#include <GUI/Pickers/ISelector.h>
 
 namespace EspINA
 {
-  class PixelPicker;
+  class PixelSelector;
 
   class SegmentationRemover
   : public ITool
@@ -42,14 +42,14 @@ namespace EspINA
     virtual bool enabled() const;
 
   private slots:
-    void removeSegmentation(IPicker::PickList pickedSeg);
+    void removeSegmentation(ISelector::PickList pickedSeg);
 
   signals:
     void removeSegmentation(SegmentationPtr);
     void removalAborted();
 
   private:
-    PixelPicker *m_picker;
+    PixelSelector *m_picker;
   };
 
   typedef QSharedPointer<SegmentationRemover> SegmentationRemoverSPtr;

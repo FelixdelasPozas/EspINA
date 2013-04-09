@@ -24,7 +24,7 @@
 #include <Core/EspinaTypes.h>
 #include <Core/Model/Segmentation.h>
 #include <Core/Model/EspinaModel.h>
-#include "GUI/Pickers/IPicker.h"
+#include "GUI/Pickers/ISelector.h"
 #include "GUI/Tools/ITool.h"
 #include "GUI/ViewManager.h"
 
@@ -73,7 +73,7 @@ namespace EspINA
                                         PlaneType       plane)=0;
 
     virtual void drawStroke(PickableItemPtr      item,
-                            IPicker::WorldRegion centers,
+                            ISelector::WorldRegion centers,
                             Nm                   radius,
                             PlaneType            plane);
 

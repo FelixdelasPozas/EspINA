@@ -33,7 +33,7 @@
 #include <Core/Model/PickableItem.h>
 #include <Core/Model/Taxonomy.h>
 #include <Core/EspinaSettings.h>
-#include <GUI/Pickers/PixelPicker.h>
+#include <GUI/Pickers/PixelSelector.h>
 #include <Filters/SeedGrowSegmentationFilter.h>
 
 // Qt
@@ -199,28 +199,28 @@ void SeedGrowSegmentationTool::setChannelPicker(IPickerSPtr picker)
 
   if (m_picker)
   {
-    disconnect(m_picker.data(), SIGNAL(itemsPicked(IPicker::PickList)),
-               this, SLOT(startSegmentation(IPicker::PickList)));
+    disconnect(m_picker.data(), SIGNAL(itemsPicked(ISelector::PickList)),
+               this, SLOT(startSegmentation(ISelector::PickList)));
   }
 
   m_picker = picker;
 
   if (m_picker)
   {
-    m_picker->setPickable(IPicker::CHANNEL);
-    m_picker->setPickable(IPicker::SEGMENTATION, false);
-    connect(m_picker.data(), SIGNAL(itemsPicked(IPicker::PickList)),
-            this, SLOT(startSegmentation(IPicker::PickList)));
+    m_picker->setPickable(ISelector::CHANNEL);
+    m_picker->setPickable(ISelector::SEGMENTATION, false);
+    connect(m_picker.data(), SIGNAL(itemsPicked(ISelector::PickList)),
+            this, SLOT(startSegmentation(ISelector::PickList)));
   }
 }
 
 //-----------------------------------------------------------------------------
-void SeedGrowSegmentationTool::startSegmentation(IPicker::PickList pickedItems)
+void SeedGrowSegmentationTool::startSegmentation(ISelector::PickList pickedItems)
 {
   if (pickedItems.size() != 1)
     return;
 
-  IPicker::PickedItem element = pickedItems.first();
+  ISelector::PickedItem element = pickedItems.first();
   PickableItemPtr input = element.second;
 
   Q_ASSERT(element.first->GetNumberOfPoints() == 1); // with one pixel
@@ -349,7 +349,7 @@ void SeedGrowSegmentationTool::removePreview(EspinaRenderView *view)
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentationTool::addPreview(EspinaRenderView *view)
 {
-  IPicker::DisplayRegionList regions;
+  ISelector::DisplayRegionList regions;
   QPolygon singlePixel;
 
   int xPos, yPos;
@@ -359,9 +359,9 @@ void SeedGrowSegmentationTool::addPreview(EspinaRenderView *view)
   regions << singlePixel;
 
   QSet<QString> filter;
-  filter << IPicker::CHANNEL;
+  filter << ISelector::CHANNEL;
 
-  IPicker::PickList pickList = view->pick(filter, regions);
+  ISelector::PickList pickList = view->pick(filter, regions);
 
   if (pickList.empty() || (pickList.first().second->type() != EspINA::CHANNEL))
   {
@@ -369,7 +369,7 @@ void SeedGrowSegmentationTool::addPreview(EspinaRenderView *view)
     return;
   }
 
-  PixelPicker *selector = dynamic_cast<PixelPicker*>(m_picker.data());
+  PixelSelector *selector = dynamic_cast<PixelSelector*>(m_picker.data());
   if (!selector)
     return;
 

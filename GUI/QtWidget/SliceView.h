@@ -121,8 +121,8 @@ namespace EspINA
     virtual void setCursor(const QCursor& cursor);
 
     virtual void eventPosition(int &x, int &y);
-    virtual IPicker::PickList pick(IPicker::PickableItems filter,
-                                   IPicker::DisplayRegionList regions);
+    virtual ISelector::PickList pick(ISelector::PickableItems filter,
+                                   ISelector::DisplayRegionList regions);
     virtual void worldCoordinates(const QPoint& displayPos,
                                   double worldPos[3]);
 
@@ -208,7 +208,7 @@ namespace EspINA
     SegmentationPtr propToSegmentation(vtkProp *prop);
 
     /// Converts point from Display coordinates to World coordinates
-    IPicker::WorldRegion worldRegion(const IPicker::DisplayRegion &region, PickableItemPtr item);
+    ISelector::WorldRegion worldRegion(const ISelector::DisplayRegion &region, PickableItemPtr item);
 
   private:
     void updateRuler();
