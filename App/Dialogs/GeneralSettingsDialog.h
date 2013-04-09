@@ -17,15 +17,15 @@
 */
 
 
-#ifndef PREFERENCESDIALOG_H
-#define PREFERENCESDIALOG_H
+#ifndef GENERALSETTINGSDIALOG_H
+#define GENERALSETTINGSDIALOG_H
 
 #include <QDialog>
 
 #include <GUI/ISettingsPanel.h>
 
 #include "ui_GeneralSettingsPanel.h"
-#include "ui_SettingsDialog.h"
+#include "ui_GeneralSettingsDialog.h"
 
 #include <Core/EspinaTypes.h>
 
@@ -57,13 +57,13 @@ namespace EspINA
     GeneralSettings *m_settings;
   };
 
-  class SettingsDialog
+  class GeneralSettingsDialog
   : public QDialog
-  , Ui::SettingsDialog
+  , Ui::GeneralSettingsDialog
   {
     Q_OBJECT
   public:
-    explicit SettingsDialog(QWidget        *parent = 0,
+    explicit GeneralSettingsDialog(QWidget        *parent = 0,
                             Qt::WindowFlags flags  = 0);
 
     virtual void accept();
@@ -84,4 +84,4 @@ namespace EspINA
 
 } // namespace EspINA
 
-#endif // PREFERENCESDIALOG_H
+#endif // GENERALSETTINGSDIALOG_H

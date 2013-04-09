@@ -19,7 +19,7 @@
 #include "EspinaMainWindow.h"
 
 #include "Dialogs/AboutDialog.h"
-#include "Dialogs/SettingsDialog.h"
+#include "Dialogs/GeneralSettingsDialog.h"
 #include "Dialogs/Connectomics/ConnectomicsDialog.h"
 #include "Docks/ChannelExplorer/ChannelExplorer.h"
 #include "Docks/FilterInspectorDock/FilterInspectorDock.h"
@@ -1019,7 +1019,7 @@ void EspinaMainWindow::updateTooltip(QAction* action)
 //------------------------------------------------------------------------
 void EspinaMainWindow::showPreferencesDialog()
 {
-  SettingsDialog dialog;
+  GeneralSettingsDialog dialog;
 
   dialog.registerPanel(m_settingsPanel.data());
   dialog.registerPanel(m_view->settingsPanel());

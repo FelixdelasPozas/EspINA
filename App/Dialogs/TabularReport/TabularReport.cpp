@@ -20,7 +20,6 @@
 #include "TabularReport.h"
 #include "TabularReportEntry.h"
 
-#include "Dialogs/TabularReport/QueryView.h"
 #include <Analysis/xlsUtils.h>
 
 // Espina

@@ -17,10 +17,9 @@ qt4_add_resources(ESPINA_RCC
 qt4_wrap_cpp (ESPINA_MOC
   EspinaMainWindow.h
   Dialogs/SegmentationInspector/SegmentationInspector.h
-  Dialogs/TabularReport/QueryView.h
   Dialogs/TabularReport/TabularReport.h
   Dialogs/TabularReport/TabularReportEntry.h
-  Dialogs/SettingsDialog.h
+  Dialogs/GeneralSettingsDialog.h
   Docks/ChannelExplorer/ChannelExplorer.h
   Docks/FilterInspectorDock/FilterInspectorDock.h
   Docks/SegmentationExplorer/SegmentationExplorer.h
@@ -61,10 +60,9 @@ qt4_wrap_cpp (ESPINA_MOC
 # Create Interface files
 qt4_wrap_ui (ESPINA_UI
   Dialogs/SegmentationInspector/SegmentationInspector.ui
-  Dialogs/TabularReport/QueryView.ui
   Dialogs/TabularReport/TabularReport.ui
   Dialogs/AboutDialog.ui
-  Dialogs/SettingsDialog.ui
+  Dialogs/GeneralSettingsDialog.ui
   Docks/ChannelExplorer/ChannelExplorer.ui
   Docks/SegmentationExplorer/SegmentationExplorer.ui
   Docks/TabularReport/TabularReport.ui
@@ -90,12 +88,11 @@ set (ESPINA_SOURCES
   RecentDocuments.cpp
   Analysis/xlsUtils.cpp
   Dialogs/SegmentationInspector/SegmentationInspector.cpp
-  Dialogs/TabularReport/QueryView.cpp #TODO 2012-11-27 Cambiar nombre de la clase a TabularReport
   Dialogs/TabularReport/TabularReport.cpp
   Dialogs/TabularReport/RawInformationDialog.cpp
   Dialogs/TabularReport/TabularReportEntry.cpp 
   Dialogs/AboutDialog.cpp
-  Dialogs/SettingsDialog.cpp #TODO 2012-11-27 Renombrar General Settings Dialog
+  Dialogs/GeneralSettingsDialog.cpp
   Docks/ChannelExplorer/ChannelExplorer.cpp
   Docks/FilterInspectorDock/FilterInspectorDock.cpp
   Docks/SegmentationExplorer/LayoutComposition.cpp

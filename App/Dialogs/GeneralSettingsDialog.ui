@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>SettingsDialog</class>
- <widget class="QDialog" name="SettingsDialog">
+ <class>GeneralSettingsDialog</class>
+ <widget class="QDialog" name="GeneralSettingsDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -104,8 +104,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>291</width>
-            <height>313</height>
+            <width>299</width>
+            <height>325</height>
            </rect>
           </property>
          </widget>
@@ -129,13 +129,13 @@
  </widget>
  <resources>
   <include location="../rsc/espina.qrc"/>
-  <include location="rsc/espina.qrc"/>
+  <include location="../rsc/espina.qrc"/>
  </resources>
  <connections>
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>SettingsDialog</receiver>
+   <receiver>GeneralSettingsDialog</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -151,7 +151,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>SettingsDialog</receiver>
+   <receiver>GeneralSettingsDialog</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
