@@ -88,13 +88,15 @@ namespace EspINA
     QModelIndex mapToSource(const QModelIndex &index);
     QModelIndex mapFromSource(const QModelIndex &index, QSortFilterProxyModel *sortFilter);
 
+    void removeTabsAndWidgets();
+
   private:
     EspinaModel   *m_model;
     EspinaFactory *m_factory;
     ViewManager   *m_viewManager;
 
     SegmentationList m_filter;
-    QTabWidget  *m_tabs;
+    QTabWidget      *m_tabs;
 
     bool m_multiSelection;
   };

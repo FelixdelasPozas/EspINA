@@ -33,6 +33,7 @@
 
 // Qt
 #include <QColorDialog>
+#include <QMessageBox>
 #include <QSettings>
 #include <QDebug>
 #include <QString>
@@ -179,6 +180,10 @@ void AppositionSurface::createSynapticAppositionSurfaceAnalysis()
       m_undoStack->endMacro();
 
     analysis->show();
+  }
+  else
+  {
+    QMessageBox::warning(this, ESPINA, tr("Current analysis does not contain any synapses"));
   }
 }
 

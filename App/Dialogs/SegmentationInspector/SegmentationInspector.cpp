@@ -135,6 +135,7 @@ void SegmentationInspector::closeEvent(QCloseEvent *e)
 SegmentationInspector::~SegmentationInspector()
 {
   delete m_view;
+  delete m_tabularReport;
 }
 
 //------------------------------------------------------------------------

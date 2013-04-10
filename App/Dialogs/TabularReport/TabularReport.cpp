@@ -102,6 +102,8 @@ TabularReport::TabularReport(ViewManager    *viewmManager,
 //------------------------------------------------------------------------
 TabularReport::~TabularReport()
 {
+  removeTabsAndWidgets();
+  delete m_tabs;
 }
 
 //------------------------------------------------------------------------
@@ -172,8 +174,7 @@ bool TabularReport::event(QEvent *event)
 //------------------------------------------------------------------------
 void TabularReport::reset()
 {
-  while (m_tabs->count())
-    m_tabs->removeTab(0);
+  removeTabsAndWidgets();
 
   QAbstractItemView::reset();
 
@@ -514,4 +515,11 @@ QModelIndex TabularReport::mapToSource(const QModelIndex &index)
 QModelIndex TabularReport::mapFromSource(const QModelIndex &index, QSortFilterProxyModel *sortFilter)
 {
   return sortFilter->mapFromSource(index);
+}
+
+//------------------------------------------------------------------------
+void TabularReport::removeTabsAndWidgets()
+{
+  while (m_tabs->count())
+    delete m_tabs->widget(0);
 }

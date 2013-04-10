@@ -57,6 +57,12 @@ TabularReport::Entry::Entry(QString taxonomy, EspinaFactory *factory)
 }
 
 //------------------------------------------------------------------------
+TabularReport::Entry::~Entry()
+{
+  if (Proxy) delete Proxy;
+}
+
+//------------------------------------------------------------------------
 int TabularReport::Entry::rowCount() const
 {
   return tableView->model()->rowCount(tableView->rootIndex()) + 1;

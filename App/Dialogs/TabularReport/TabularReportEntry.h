@@ -45,7 +45,9 @@ namespace EspINA
   {
     Q_OBJECT
   public:
-    Entry(QString taxonomy, EspinaFactory *factory);
+    explicit Entry(QString taxonomy, EspinaFactory *factory);
+    virtual ~Entry();
+
     InformationProxy *Proxy;
 
     int rowCount() const;

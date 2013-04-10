@@ -36,7 +36,7 @@ namespace EspINA
     Q_OBJECT
   public:
     explicit InformationProxy();
-    virtual ~InformationProxy(){}
+    virtual ~InformationProxy();
 
     virtual void setSourceModel(EspinaModel *sourceModel);
 

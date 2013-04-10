@@ -40,7 +40,7 @@ RawInformationDialog::RawInformationDialog(EspinaModel *model,
 
   setWindowTitle(tr("Raw Information"));
 
-  TabularReport *report = new TabularReport(viewManager);
+  TabularReport *report = new TabularReport(viewManager, this);
   report->setModel(model);
   setLayout(new QVBoxLayout());
   layout()->addWidget(report);
@@ -56,6 +56,7 @@ RawInformationDialog::RawInformationDialog(EspinaModel *model,
 //----------------------------------------------------------------------------
 RawInformationDialog::~RawInformationDialog()
 {
+  
 }
 
 //----------------------------------------------------------------------------

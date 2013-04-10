@@ -23,7 +23,6 @@
 // EspINA
 #include "ui_SegmentationInspector.h"
 #include <Core/Model/EspinaModel.h>
-#include <Core/Model/Proxies/InformationProxy.h>
 #include <GUI/ViewManager.h>
 #include <Docks/SegmentationExplorer/SegmentationExplorerLayout.h>
 

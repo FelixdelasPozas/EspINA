@@ -31,7 +31,11 @@ InformationProxy::InformationProxy()
 : QAbstractProxyModel()
 , m_model(NULL)
 {
+}
 
+//------------------------------------------------------------------------
+InformationProxy::~InformationProxy()
+{
 }
 
 //------------------------------------------------------------------------

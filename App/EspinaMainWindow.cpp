@@ -266,6 +266,7 @@ EspinaMainWindow::EspinaMainWindow(EspinaModel      *model,
   /*** ANALYSIS MENU ***/
   DynamicMenuNode *subnode = new DynamicMenuNode();
   subnode->menu = menuBar()->addMenu(tr("Analysis"));
+  subnode->menu->setEnabled(false);
   m_dynamicMenuRoot->submenus << subnode;
 
   /*** EDIT MENU ***/
@@ -661,6 +662,7 @@ bool EspinaMainWindow::closeCurrentAnalysis()
   m_sessionFile = QFileInfo();
 
   setWindowTitle(QString("EspINA Interactive Neuron Analyzer"));
+  m_dynamicMenuRoot->submenus.first()->menu->setEnabled(false);
   updateTraceabilityStatus();
 
   EspinaIO::removeTemporalDir();
@@ -762,6 +764,7 @@ void EspinaMainWindow::openAnalysis(const QFileInfo file)
   QApplication::restoreOverrideCursor();
 
   updateTraceabilityStatus();
+  m_dynamicMenuRoot->submenus.first()->menu->setEnabled(true);
   updateStatus(QString("File Loaded in %1m%2s").arg(mins).arg(secs));
 
   if (file != m_settings->autosavePath().absoluteFilePath(AUTOSAVE_FILE))
@@ -1098,6 +1101,12 @@ void EspinaMainWindow::showRawInformation()
   if (!m_model->segmentations().isEmpty())
   {
     RawInformationDialog *dialog = new RawInformationDialog(m_model, m_viewManager, this);
+    connect(dialog, SIGNAL(finished(int)),
+            dialog, SLOT(deleteLater()));
     dialog->show();
+  }
+  else
+  {
+    QMessageBox::warning(this, ESPINA, tr("Current analysis does not contain any segmentations"));
   }
 }
