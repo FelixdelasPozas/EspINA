@@ -65,16 +65,11 @@ SegmentationInspector::SegmentationInspector(SegmentationList segmentations,
   this->setAttribute(Qt::WA_DeleteOnClose, true);
   this->setAcceptDrops(true);
 
-  QString regExpression;
   foreach(SegmentationPtr seg, segmentations)
   {
     addSegmentation(seg);
-    connect(seg, SIGNAL(modified(ModelItemPtr)), this, SLOT(updateScene(ModelItemPtr)));
-
-    regExpression += "^"+seg->data().toString()+"$";
-
-    if(seg != m_segmentations.last())
-      regExpression += "|";
+    connect(seg, SIGNAL(modified(ModelItemPtr)),
+            this, SLOT(updateScene(ModelItemPtr)));
   }
 
   m_view->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -372,15 +367,6 @@ void SegmentationInspector::dropEvent(QDropEvent *event)
   foreach(SegmentationPtr seg, taxSegmentations)
     addSegmentation(seg);
 
-  // TODO: Use generic filter by segmentation list
-  // resetting the sort is faster than modifying the regular expression
-  QString regExpression;
-  foreach(SegmentationPtr seg, m_segmentations)
-  {
-    regExpression += "^"+seg->data().toString()+"$";
-    if(seg != m_segmentations.last())
-      regExpression += "|";
-  }
   m_tabularReport->setFilter(m_segmentations);
 
   updateSelection(m_viewManager->selection());
