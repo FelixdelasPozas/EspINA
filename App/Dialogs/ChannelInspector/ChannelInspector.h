@@ -54,6 +54,9 @@ namespace EspINA
     void brightnessChanged(int);
     void acceptedChanges();
     void rejectedChanges();
+    void radioEdgesChanged(bool);
+    void applyEdgesChanges();
+    void changeEdgeValues(int unused);
 
   private:
     // helpher methods
@@ -67,6 +70,10 @@ namespace EspINA
 
     SliceView   *m_view;
     HueSelector *m_hueSelector;
+
+    bool m_adaptiveEdgesEnabled;
+    int m_backgroundColor;
+    int m_threshold;
 
     // properties backup
     double m_spacing[3];

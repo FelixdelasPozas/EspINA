@@ -12,6 +12,7 @@
 #include <Core/Model/Segmentation.h>
 #include <Core/EspinaTypes.h>
 #include <Filters/ChannelReader.h>
+#include <Core/Extensions/EdgeDistances/AdaptiveEdges.h>
 
 #include "ChannelInspector.h"
 
@@ -21,6 +22,7 @@
 #include <QCloseEvent>
 #include <QDialog>
 #include <QLocale>
+#include <QColorDialog>
 
 // VTK
 #include <vtkMath.h>
@@ -40,6 +42,7 @@ ChannelInspector::ChannelInspector(Channel *channel, QWidget *parent)
   this->setAttribute(Qt::WA_DeleteOnClose, true);
   this->setWindowTitle(QString("Channel Inspector - ") + channel->data().toString());
 
+  /// PROPERTIES TAB
   connect(okCancelBox, SIGNAL(accepted()), this, SLOT(acceptedChanges()));
   connect(okCancelBox, SIGNAL(rejected()), this, SLOT(rejectedChanges()));
   
@@ -130,6 +133,36 @@ ChannelInspector::ChannelInspector(Channel *channel, QWidget *parent)
   m_view->resetCamera();
   m_view->setRulerVisibility(true);
   m_view->updateView();
+
+  /// EDGES TAB
+  Channel::ExtensionPtr edgesExtension = channel->extension(EspINA::AdaptiveEdgesID);
+  AdaptiveEdges *adaptiveExtension = NULL;
+  if (edgesExtension)
+    adaptiveExtension = reinterpret_cast<AdaptiveEdges*>(edgesExtension);
+
+  m_adaptiveEdgesEnabled = (edgesExtension != NULL) && adaptiveExtension->usesAdaptiveEdges();
+
+  radioStackEdges->setChecked(!m_adaptiveEdgesEnabled);
+  radioImageEdges->setChecked(m_adaptiveEdgesEnabled);
+  colorBox->setEnabled(m_adaptiveEdgesEnabled);
+  colorLabel->setEnabled(m_adaptiveEdgesEnabled);
+  thresholdBox->setEnabled(m_adaptiveEdgesEnabled);
+  thresholdLabel->setEnabled(m_adaptiveEdgesEnabled);
+  applyEdgesButton->setEnabled(false);
+
+  connect(radioStackEdges, SIGNAL(toggled(bool)), this, SLOT(radioEdgesChanged(bool)));
+  connect(radioImageEdges, SIGNAL(toggled(bool)), this, SLOT(radioEdgesChanged(bool)));
+
+  m_backgroundColor = (edgesExtension == NULL) ? 0 : adaptiveExtension->backgroundColor();
+  m_threshold = (edgesExtension == NULL) ? 50 : adaptiveExtension->threshold();
+  colorBox->setValue(m_backgroundColor);
+  thresholdBox->setValue(m_threshold);
+
+  connect(colorBox, SIGNAL(valueChanged(int)), this, SLOT(changeEdgeValues(int)));
+  connect(thresholdBox, SIGNAL(valueChanged(int)), this, SLOT(changeEdgeValues(int)));
+  connect(applyEdgesButton, SIGNAL(clicked()), this, SLOT(applyEdgesChanges()));
+
+  tabWidget->setCurrentIndex(0);
 }
 
 //------------------------------------------------------------------------
@@ -464,4 +497,55 @@ void ChannelInspector::closeEvent(QCloseEvent *event)
 {
   rejectedChanges();
   QDialog::closeEvent(event);
+}
+
+//------------------------------------------------------------------------
+void ChannelInspector::radioEdgesChanged(bool value)
+{
+  if (sender() == radioStackEdges)
+    radioImageEdges->setChecked(!value);
+  else
+    radioStackEdges->setChecked(!value);
+
+  colorLabel->setEnabled(radioImageEdges->isChecked());
+  colorBox->setEnabled(radioImageEdges->isChecked());
+  thresholdLabel->setEnabled(radioImageEdges->isChecked());
+  thresholdBox->setEnabled(radioImageEdges->isChecked());
+
+  changeEdgeValues(0);
+}
+
+//------------------------------------------------------------------------
+void ChannelInspector::changeEdgeValues(int unused)
+{
+  bool enabled = (radioImageEdges->isChecked() != m_adaptiveEdgesEnabled) ||
+                 (radioImageEdges->isChecked() && (m_backgroundColor != colorBox->value())) ||
+                 (radioImageEdges->isChecked() && (m_threshold != thresholdBox->value()));
+  applyEdgesButton->setEnabled(enabled);
+}
+
+//------------------------------------------------------------------------
+void ChannelInspector::applyEdgesChanges()
+{
+  Channel::ExtensionPtr extension = m_channel->extension(EspINA::AdaptiveEdgesID);
+  if (extension != NULL)
+  {
+    AdaptiveEdges *adaptiveEdges = reinterpret_cast<AdaptiveEdges *>(extension);
+    adaptiveEdges->invalidate(m_channel);
+
+    m_channel->deleteExtension(extension);
+  }
+
+  if (radioImageEdges->isChecked())
+  {
+    m_adaptiveEdgesEnabled = true;
+    m_backgroundColor = colorBox->value();
+    m_threshold = thresholdBox->value();
+
+    m_channel->addExtension(new AdaptiveEdges(true, m_backgroundColor, m_threshold));
+  }
+  else
+    m_adaptiveEdgesEnabled = false;
+
+  applyEdgesButton->setEnabled(false);
 }

@@ -114,7 +114,9 @@ void EdgeDetector::run()
   unsigned long zMax = extent[5];
   unsigned long yMax = dim[1];
   unsigned long xMax = dim[0];
-  const int blackThreshold = 50;
+  // defined in unsigned char values range
+  const int upperThreshold = (data.BackgroundColor + data.Threshold) > 255 ? 255 : data.BackgroundColor + data.Threshold;
+  const int lowerThreshold = (data.BackgroundColor - data.Threshold) < 0 ? 0 : data.BackgroundColor - data.Threshold;
   vtkIdType lastCell[4];
   for (unsigned long z = zMin; z <= zMax; z++)
   {
@@ -134,7 +136,7 @@ void EdgeDetector::run()
         bool nonBlackPixel = false;
         unsigned long pxId = x*numComponets + y * dim[0]*numComponets + z * dim[0] * dim[1]*numComponets; //check numComponents
         for (int c = 0; c < numComponets; c++)
-          nonBlackPixel = nonBlackPixel || (imagePtr[pxId+c] > blackThreshold);
+          nonBlackPixel = nonBlackPixel || (imagePtr[pxId+c] > upperThreshold) || (imagePtr[pxId+c] < lowerThreshold);
 
         if (nonBlackPixel)
         {

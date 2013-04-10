@@ -60,8 +60,12 @@ const std::string FILE_VERSION = AdaptiveEdgesID.toStdString() + " 1.0\n";
 const char SEP = ',';
 
 //-----------------------------------------------------------------------------
-AdaptiveEdges::AdaptiveEdges(bool useAdaptiveEdges)
+AdaptiveEdges::AdaptiveEdges(bool useAdaptiveEdges,
+                             int backgroundColor,
+                             int threshold)
 : m_useAdaptiveEdges(useAdaptiveEdges)
+, m_backgroundColor(backgroundColor)
+, m_threshold(threshold)
 {
 }
 
@@ -86,6 +90,8 @@ void AdaptiveEdges::computeAdaptiveEdges()
 
   data.Edges = vtkSmartPointer<vtkPolyData>::New();
   data.UseAdaptiveEdges = true;
+  data.BackgroundColor  = m_backgroundColor;
+  data.Threshold        = m_threshold;
 
   EdgeDetector *marginDetector = new EdgeDetector(this);
   connect(marginDetector, SIGNAL(finished()),
@@ -189,8 +195,18 @@ void AdaptiveEdges::loadCache(QuaZipFile &file,
 
         data.UseAdaptiveEdges = fields[2].toInt();
         // First versions didn't stored the computed volume
-        if (fields.size() == 4)
+        if (fields.size() > 3)
+        {
           data.ComputedVolume   = fields[3].toDouble();
+
+          // older versions didn't store background and threshold
+          if (fields.size() > 4)
+          {
+            data.BackgroundColor  = fields[4].toInt();
+            data.Threshold        = fields[5].toInt();
+          }
+        }
+
       }
       else 
       {
@@ -225,6 +241,8 @@ bool AdaptiveEdges::saveCache(Snapshot &snapshot)
 
     cache << SEP << data.UseAdaptiveEdges;
     cache << SEP << data.ComputedVolume;
+    cache << SEP << data.BackgroundColor;
+    cache << SEP << data.Threshold;
 
     cache << std::endl;
 

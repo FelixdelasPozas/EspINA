@@ -43,10 +43,14 @@ namespace EspINA
       ExtensionData() 
       : ComputedVolume(0)
       , UseAdaptiveEdges(false)
+      , BackgroundColor(0)
+      , Threshold(50)
       {}
 
       Nm   ComputedVolume;
       bool UseAdaptiveEdges;
+      int BackgroundColor;
+      int Threshold;
 
       vtkSmartPointer<vtkPolyData> Edges;
       vtkSmartPointer<vtkPolyData> Faces[6];
@@ -59,7 +63,7 @@ namespace EspINA
   public:
     static const ModelItem::ArgumentId EDGETYPE;
 
-    explicit AdaptiveEdges(bool useAdaptiveEdges = false);
+    explicit AdaptiveEdges(bool useAdaptiveEdges = false, int backgroundColor = 0, int threshold = 50);
     virtual ~AdaptiveEdges();
 
     virtual ModelItem::ExtId id();
@@ -87,6 +91,10 @@ namespace EspINA
     vtkSmartPointer<vtkPolyData> channelEdges();
     Nm computedVolume();
 
+    bool usesAdaptiveEdges() { return m_useAdaptiveEdges; }
+    int backgroundColor() { return m_backgroundColor; }
+    int threshold() { return m_threshold; }
+
   private:
     void computeAdaptiveEdges();
 
@@ -104,6 +112,8 @@ namespace EspINA
   private:
     QMutex m_mutex;
     bool   m_useAdaptiveEdges;
+    int    m_backgroundColor;
+    int    m_threshold;
 
     // build a surface for each face the first time they're needed
     void ComputeSurfaces();

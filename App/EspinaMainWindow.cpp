@@ -21,6 +21,7 @@
 #include "Dialogs/AboutDialog.h"
 #include "Dialogs/GeneralSettingsDialog.h"
 #include "Dialogs/Connectomics/ConnectomicsDialog.h"
+#include "Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.h"
 #include "Docks/ChannelExplorer/ChannelExplorer.h"
 #include "Docks/FilterInspectorDock/FilterInspectorDock.h"
 #include "Docks/SegmentationExplorer/SegmentationExplorer.h"
@@ -784,14 +785,11 @@ void EspinaMainWindow::openAnalysis(const QFileInfo file)
 
   if (EspinaIO::isChannelExtension(fileInfo.suffix()))
   {
-    QMessageBox msgBox;
-    msgBox.setWindowTitle("Adaptive Edges Extension");
-    msgBox.setText(tr("Compute %1's edges").arg(channel->data().toString()));
-    msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-    msgBox.setDefaultButton(QMessageBox::No);
-    if (msgBox.exec() == QMessageBox::Yes)
+    AdaptiveEdgesDialog edgesDialog(this);
+    edgesDialog.exec();
+    if (edgesDialog.useAdaptiveEdges())
     {
-      channel->addExtension(new AdaptiveEdges(true));
+      channel->addExtension(new AdaptiveEdges(true, edgesDialog.color(), edgesDialog.threshold()));
     }
   }
 
@@ -916,14 +914,11 @@ void EspinaMainWindow::addFileToAnalysis(const QFileInfo file)
         ++i;
       }
 
-      QMessageBox msgBox;
-      msgBox.setWindowTitle("Adaptive Edges Extension");
-      msgBox.setText(tr("Compute %1's edges").arg(channel->data().toString()));
-      msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-      msgBox.setDefaultButton(QMessageBox::No);
-      if (msgBox.exec() == QMessageBox::Yes)
+      AdaptiveEdgesDialog edgesDialog(this);
+      edgesDialog.exec();
+      if (edgesDialog.useAdaptiveEdges())
       {
-        channel->addExtension(new AdaptiveEdges(true));
+        channel->addExtension(new AdaptiveEdges(true, edgesDialog.color(), edgesDialog.threshold()));
       }
     }
 

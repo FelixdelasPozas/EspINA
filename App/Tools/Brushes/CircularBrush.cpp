@@ -52,7 +52,7 @@ Brush::BrushShape CircularBrush::createBrushShape(PickableItemPtr item, double c
   double cRadius = (plane ==  CORONAL)?0:radius;
   double aRadius = (plane ==    AXIAL)?0:radius;
 
-  double brushBounds[6];//TODO 2012-10-24 Crop bounds
+  double brushBounds[6];
   brushBounds[0] = center[0] - sRadius;
   brushBounds[1] = center[0] + sRadius;
   brushBounds[2] = center[1] - cRadius;

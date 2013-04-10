@@ -76,5 +76,7 @@
     <file>measure.png</file>
     <file>show_partially.svg</file>
     <file>tubular.svg</file>
+    <file>edges-image.png</file>
+    <file>edges-stack.png</file>
   </qresource>
 </RCC>

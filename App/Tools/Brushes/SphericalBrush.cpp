@@ -40,7 +40,7 @@ Brush::BrushShape SphericalBrush::createBrushShape(PickableItemPtr item,
                                                    Nm              radius,
                                                    PlaneType       plane)
 {
-  double brushBounds[6];//TODO 2012-10-24 Crop bounds
+  double brushBounds[6];
   brushBounds[0] = center[0] - radius;
   brushBounds[1] = center[0] + radius;
   brushBounds[2] = center[1] - radius;

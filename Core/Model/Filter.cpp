@@ -467,7 +467,8 @@ void Filter::draw(OutputId oId,
   if (filterVolume->toITK().IsNull())
   {
     filterVolume->setVolume(volume, true);
-  } else
+  }
+  else
   {
     filterVolume->expandToFitRegion(drawnRegion);
 
