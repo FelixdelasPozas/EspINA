@@ -109,6 +109,32 @@ QVariant StereologicalInclusion::information(const Segmentation::InfoTag &tag)
 }
 
 //------------------------------------------------------------------------
+QString StereologicalInclusion::toolTipText() const
+{
+  QString tooltip;
+
+  if (s_cache.contains(m_segmentation))
+  {
+    ExtensionData &data = s_cache[m_segmentation].Data;
+
+    bool addBreakLine = false;
+    foreach(CountingFrame::Id id, data.ExclusionCFs.keys())
+    {
+      if (addBreakLine) tooltip = tooltip.append("<br>");
+
+      QString description = data.ExclusionCFs[id]?
+                            "<font color=\"red\">"   + tr("Excluded from Counting Frame %1").arg(id) + "</font>":
+                            "<font color=\"green\">" + tr("Included in Counting Frame %1"   ).arg(id) + "</font>";
+      tooltip = tooltip.append(condition(":/apply.svg", description));
+
+      addBreakLine = true;
+    }
+  }
+
+  return tooltip;
+}
+
+//------------------------------------------------------------------------
 void StereologicalInclusion::setCountingFrames(CountingFrameList countingFrames)
 {
   Q_ASSERT(m_segmentation);
@@ -231,7 +257,6 @@ void StereologicalInclusion::initialize()
   if (s_cache.isCached(m_segmentation))
   {
     s_cache.markAsClean(m_segmentation);
-    updateConditions();
   }
 }
 
@@ -288,7 +313,6 @@ void StereologicalInclusion::evaluateCountingFrames()
     {
       s_cache[m_segmentation].Data.IsExcluded = false;
     }
-    updateConditions();
     s_cache.markAsClean(m_segmentation);
   }
 }
@@ -316,7 +340,6 @@ void StereologicalInclusion::evaluateCountingFrame(CountingFrame* countingFrame)
   }
   data.IsExcluded = excluded;
 
-  updateConditions();
   s_cache.markAsClean(m_segmentation);
 }
 
@@ -409,24 +432,6 @@ bool StereologicalInclusion::isOnEdge()
   }
 
   return excluded;
-}
-
-//------------------------------------------------------------------------
-void StereologicalInclusion::updateConditions()
-{
-  if (s_cache.contains(m_segmentation))
-  {
-    ExtensionData &data = s_cache[m_segmentation].Data;
-
-    foreach(CountingFrame::Id id, data.ExclusionCFs.keys())
-    {
-      QString tag       = "CountingFrameCondition %1";
-      QString condition = data.ExclusionCFs[id]?
-      "<font color=\"red\">"   + tr("Excluded from Counting Frame %1").arg(id) + "</font>":
-      "<font color=\"green\">" + tr("Included in Counting Frame %1"   ).arg(id) + "</font>";
-      m_segmentation->addCondition(tag.arg(id), ":/apply.svg", condition);
-    }
-  }
 }
 
 //------------------------------------------------------------------------

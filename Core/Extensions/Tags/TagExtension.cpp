@@ -92,11 +92,7 @@ QString SegmentationTags::toolTipText() const
 {
   QString toolTip;
   if (!tags().isEmpty())
-  {
-    toolTip = tr("<b>Tags:</b> ");
-    toolTip.append(tags().join(","));
-    toolTip.append("<br>");
-  }
+    toolTip = condition(":/espina/tag.svg", tags().join(","));
 
   return toolTip;
 }

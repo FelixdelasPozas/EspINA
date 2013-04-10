@@ -242,10 +242,6 @@ namespace EspINA
     FilterInspectorPtr const filterInspector() 
     { return (m_traceable || m_executed)?m_filterInspector:FilterInspectorPtr(); }
 
-    /// Try to locate an snapshot of the filter in tmpDir
-    /// Returns true if all volume snapshot can be recovered
-    /// and false otherwise
-    virtual bool fetchSnapshot(OutputId oId);
     /// QMap<file name, file byte array> of filter's data to save to seg file
     virtual bool dumpSnapshot(Snapshot &snapshot);
 
@@ -274,6 +270,10 @@ namespace EspINA
     /// or it is an invalid output
     virtual bool needUpdate(OutputId oId) const = 0;
 
+    /// Try to locate an snapshot of the filter in tmpDir
+    /// Returns true if all volume snapshot can be recovered
+    /// and false otherwise
+    virtual bool fetchSnapshot(OutputId oId);
 
     /// Method which actually executes the filter to generate all its outputs
     virtual void run() = 0;

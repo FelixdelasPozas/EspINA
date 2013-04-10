@@ -102,6 +102,8 @@ namespace EspINA
 
   const unsigned int MAX_UNDO_SIZE = 400*400*400; // In volume pixels
 
-} // EspINA
+  QString condition(const QString &icon, const QString &description);
+
+} // namespace EspINA
 
 #endif// ESPINATYPES_H

@@ -597,9 +597,6 @@ bool Filter::needUpdate(Filter::OutputId oId) const
 //----------------------------------------------------------------------------
 void Filter::update()
 {
-  bool ignoreOutputs     = ignoreCurrentOutputs();
-  bool outputNeedsUpdate = needUpdate();
-
   if (m_outputs.isEmpty())
   {
     m_inputs.clear();

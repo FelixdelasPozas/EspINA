@@ -36,6 +36,7 @@ set (CORE_SOURCES
   EspinaRegion.cpp
   EspinaSettings.cpp
   EspinaVolume.cpp
+  EspinaTypes.cpp
   ColorEngines/MultiColorEngine.cpp
   ColorEngines/NumberColorEngine.cpp
   ColorEngines/TransparencySelectionHighlighter.cpp

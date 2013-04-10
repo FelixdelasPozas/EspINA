@@ -69,7 +69,7 @@ link_directories ( ${Boost_LIBRARY_DIRS} )
 #      ITK_REQUIRED_CXX_FLAG: -ftemplate-depth-50
 #      so we override CXX_FLAGS to unset previous flag
 #set(CMAKE_CXX_FLAGS " -Wall -Wno-deprecated -msse2")
-set(CMAKE_CXX_FLAGS " -Wall -Wno-deprecated")
+set(CMAKE_CXX_FLAGS " -Wall -Wno-deprecated -Wno-unused-local-typedefs")
 
 
 add_subdirectory( Core    )

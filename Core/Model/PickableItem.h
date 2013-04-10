@@ -37,9 +37,6 @@ namespace EspINA
   {
     Q_OBJECT
   public:
-    typedef QPair<QString, QString> ConditionInfo;
-
-  public:
     PickableItem();
     ~PickableItem(){}
 
@@ -53,14 +50,6 @@ namespace EspINA
     EspinaVolume::Pointer volume();
     const EspinaVolume::Pointer volume() const;
 
-    /// Add a new condition to the item:
-    /// Conditions provide extra information about the state of the item
-    /// i.e. Discarted by Counting Region
-    void addCondition(QString state, QString icon, QString description)
-    {
-      m_conditions[state] = ConditionInfo(icon, description);
-    }
-
     /// Return whether item's volume has been modified or not after its creation
     bool isVolumeModified() { return m_isVolumeModified; }
 
@@ -71,8 +60,6 @@ namespace EspINA
     void volumeModified();
 
   protected:
-    QMap<QString, ConditionInfo> m_conditions;
-
     bool m_isSelected;
     bool m_isVolumeModified; // sticky bit
 

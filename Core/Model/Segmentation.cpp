@@ -161,9 +161,15 @@ QVariant Segmentation::data(int role) const
       QString tooltip;
       tooltip = tooltip.append("<b>Name:</b> %1<br>").arg(data().toString());
       tooltip = tooltip.append(taxonomyInfo);
-      tooltip = tooltip.append(filterInfo);
       tooltip = tooltip.append("<b>Users:</b> %1<br>").arg(m_args[USERS]);
       tooltip = tooltip.append(boundsInfo);
+      bool addBreakLine = false;
+
+      if (!filterInfo.isEmpty())
+      {
+        tooltip      = tooltip.append(filterInfo);
+        addBreakLine = true;
+      }
 
       // FIXME: Hack to ensure notes and tags extension are always loaded
       informationExtension(SegmentationTagsID);
@@ -173,16 +179,20 @@ QVariant Segmentation::data(int role) const
         QString extToolTip = extension->toolTipText();
         if (!extToolTip.isEmpty())
         {
+          if (addBreakLine) tooltip = tooltip.append("<br>");
+
           tooltip = tooltip.append(extToolTip);
+
+          addBreakLine = true;
         }
       }
 
-      if (!m_conditions.isEmpty())
-      {
-        tooltip = tooltip.append("<b>Conditions:</b><br>");
-        foreach(ConditionInfo condition, m_conditions)
-          tooltip = tooltip.append("<img src='%1' width=16 height=16>: %2<br>").arg(condition.first).arg(condition.second);
-      }
+//       if (!m_conditions.isEmpty())
+//       {
+//         tooltip = tooltip.append("<b>Conditions:</b><br>");
+//         foreach(ConditionInfo condition, m_conditions)
+//           tooltip = tooltip.append("<img src='%1' width=16 height=16>: %2<br>").arg(condition.first).arg(condition.second);
+//       }
 
       return tooltip;
     }

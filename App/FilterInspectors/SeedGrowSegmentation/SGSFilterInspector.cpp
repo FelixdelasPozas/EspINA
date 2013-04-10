@@ -325,25 +325,13 @@ void SGSFilterInspector::Widget::modifyFilter()
   }
   m_undoStack->endMacro();
 
-  double segBounds[6];
-  m_filter->volume(0)->bounds(segBounds);
-
-  bool incompleteSeg = false;
-  for (int i=0, j=1; i<6; i+=2, j+=2)
-  {
-    if (segBounds[i] <= voiBounds[i] || voiBounds[j] <= segBounds[j])
-      incompleteSeg = true;
-  }
-
-  if (incompleteSeg)
+  if (m_filter->isTouchingVOI())
   {
     QMessageBox warning;
     warning.setIcon(QMessageBox::Warning);
     warning.setWindowTitle(tr("Seed Grow Segmentation Filter Information"));
     warning.setText(tr("New segmentation may be incomplete due to VOI restriction."));
     warning.exec();
-    QString condition = tr("Touch VOI");
-    //seg->addCondition(SGS_VOI, ":voi.svg", condition);
   }
 }
 

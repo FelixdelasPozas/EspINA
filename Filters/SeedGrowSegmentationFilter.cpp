@@ -66,7 +66,12 @@ QVariant SeedGrowSegmentationFilter::data(int role) const
 {
   if (Qt::ToolTipRole == role)
   {
-    return "Información del filtro";
+    QString tooltip;
+
+    if (isTouchingVOI())
+      tooltip = condition(":/espina/voi.svg", "Touch VOI");
+
+    return tooltip;
   } else
     return EspINA::Filter::data(role);
 }
@@ -217,6 +222,25 @@ void SeedGrowSegmentationFilter::setVOI(int VOI[6], bool ignoreUpdate)
 {
   m_param.setVOI(VOI);
   m_ignoreCurrentOutputs = !ignoreUpdate;
+}
+
+//-----------------------------------------------------------------------------
+bool SeedGrowSegmentationFilter::isTouchingVOI() const
+{
+  int segExtent[6];
+  volume(0)->extent(segExtent);
+
+  int voiExtent[6];
+  m_param.voi(voiExtent);
+
+  bool incompleteSeg = false;
+  for (int i=0, j=1; i<6; i+=2, j+=2)
+  {
+    if (segExtent[i] <= voiExtent[i] || voiExtent[j] <= segExtent[j])
+      incompleteSeg = true;
+  }
+
+  return incompleteSeg;
 }
 
 //-----------------------------------------------------------------------------

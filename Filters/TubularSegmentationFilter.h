@@ -82,8 +82,6 @@ namespace EspINA
       /// Implements Model Item Interface
       virtual QVariant data(int role = Qt::DisplayRole) const;
 
-      virtual bool fetchSnapshot(OutputId oId);
-
       // get/set round segmentation extremes
       virtual void setRoundedExtremes(bool value);
       virtual bool getRoundedExtremes();
@@ -100,6 +98,8 @@ namespace EspINA
       { return false; } // TODO
 
       virtual bool needUpdate(OutputId oId) const;
+
+      virtual bool fetchSnapshot(OutputId oId);
 
       virtual void run() { run(0); }
 

@@ -140,13 +140,15 @@ namespace EspINA
     void setCloseValue(unsigned int value, bool ignoreUpdate = false)
     {m_param.setCloseValue(value); m_ignoreCurrentOutputs = !ignoreUpdate; }
 
-    virtual bool fetchSnapshot(OutputId oId);
+    bool isTouchingVOI() const;
 
   protected:
     virtual bool ignoreCurrentOutputs() const
     { return m_ignoreCurrentOutputs; }
 
     virtual bool needUpdate(OutputId oId) const;
+
+    virtual bool fetchSnapshot(OutputId oId);
 
     virtual void run();
 

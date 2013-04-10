@@ -78,25 +78,13 @@ SeedGrowSegmentationCommand::SeedGrowSegmentationCommand(ChannelPtr             
   m_segmentation = m_model->factory()->createSegmentation(m_filter, 0);
   m_segmentation->setTaxonomy(m_taxonomy);
 
-  int segExtent[6];
-  m_segmentation->volume()->extent(segExtent);
-
-  bool incompleteSeg = false;
-  for (int i=0, j=1; i<6; i+=2, j+=2)
-  {
-    if (segExtent[i] <= voiExtent[i] || voiExtent[j] <= segExtent[j])
-      incompleteSeg = true;
-  }
-
-  if (incompleteSeg)
+  if (sgsFilter->isTouchingVOI())
   {
     QMessageBox warning;
     warning.setIcon(QMessageBox::Warning);
     warning.setWindowTitle(QObject::tr("Seed Grow Segmentation Filter Information"));
     warning.setText(QObject::tr("New segmentation may be incomplete due to VOI restriction."));
     warning.exec();
-    QString condition = QObject::tr("Touch VOI");
-    m_segmentation->addCondition(SGS_VOI, ":/espina/voi.svg", condition);
   }
 
   m_segmentation->modifiedByUser(userName());
