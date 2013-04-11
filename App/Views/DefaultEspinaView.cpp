@@ -141,14 +141,6 @@ void DefaultEspinaView::createViewMenu(QMenu* menu)
   //renderMenu->addSeparator();
   menu->addMenu(renderMenu);
 
-//   //TODO: Synchronize with maintoolbar action
-//   QAction *toggleSegmentationsVisibility = new QAction(tr("Show Segmentations"),menu);
-//   toggleSegmentationsVisibility->setCheckable(true);
-//   toggleSegmentationsVisibility->setShortcut(QString("Space"));
-//   connect(toggleSegmentationsVisibility, SIGNAL(triggered(bool)),
-//   this, SLOT(showSegmentations(bool)));
-//   menu->addAction(toggleSegmentationsVisibility);
-
   QSettings settings(CESVIMA, ESPINA);
 
   bool sr = settings.value("ShowRuler", true).toBool();

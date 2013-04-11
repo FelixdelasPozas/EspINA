@@ -227,7 +227,7 @@ void SeedGrowSegmentationTool::startSegmentation(ISelector::PickList pickedItems
   Nm seedPoint[3];
   element.first->GetPoint(0, seedPoint);
 
-  Q_ASSERT(EspINA::CHANNEL == input->type()); //TODO Define active channel policy
+  Q_ASSERT(EspINA::CHANNEL == input->type());
   ChannelPtr channel = m_viewManager->activeChannel();
 
   if (!channel)

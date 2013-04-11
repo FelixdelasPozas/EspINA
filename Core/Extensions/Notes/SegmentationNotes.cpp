@@ -220,6 +220,7 @@ void SegmentationNotes::invalidate(SegmentationPtr segmentation)
 void SegmentationNotes::setNote(const QString &note)
 {
   s_cache[m_segmentation].Data.Note = note;
+  m_segmentation->notifyModification(); // to update views
 }
 
 //------------------------------------------------------------------------
