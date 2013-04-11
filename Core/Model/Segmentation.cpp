@@ -146,7 +146,7 @@ QVariant Segmentation::data(int role) const
         boundsInfo = tr("<b>Sections:</b><br>");
         boundsInfo = boundsInfo.append(TAB+"X: %1 nm - %2 nm <br>").arg(bounds[0]).arg(bounds[1]);
         boundsInfo = boundsInfo.append(TAB+"Y: %1 nm - %2 nm <br>").arg(bounds[2]).arg(bounds[3]);
-        boundsInfo = boundsInfo.append(TAB+"Z: %1 nm - %2 nm <br>").arg(bounds[4]).arg(bounds[5]);
+        boundsInfo = boundsInfo.append(TAB+"Z: %1 nm - %2 nm").arg(bounds[4]).arg(bounds[5]);
 
         //filterInfo = tr("<b>Filter:</b><br> %1<br>").arg(TAB+filter()->data().toString());
         filterInfo = m_filter->data(Qt::ToolTipRole).toString();
@@ -161,7 +161,7 @@ QVariant Segmentation::data(int role) const
       QString tooltip;
       tooltip = tooltip.append("<b>Name:</b> %1<br>").arg(data().toString());
       tooltip = tooltip.append(taxonomyInfo);
-      tooltip = tooltip.append("<b>Users:</b> %1<br>").arg(m_args[USERS]);
+      //tooltip = tooltip.append("<b>Users:</b> %1<br>").arg(m_args[USERS]);
       tooltip = tooltip.append(boundsInfo);
       bool addBreakLine = false;
 
@@ -179,7 +179,7 @@ QVariant Segmentation::data(int role) const
         QString extToolTip = extension->toolTipText();
         if (!extToolTip.isEmpty())
         {
-          if (addBreakLine) tooltip = tooltip.append("<br>");
+          if (addBreakLine && !extToolTip.contains("</table>")) tooltip = tooltip.append("<br>");
 
           tooltip = tooltip.append(extToolTip);
 

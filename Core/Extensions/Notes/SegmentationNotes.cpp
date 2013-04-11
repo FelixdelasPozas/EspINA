@@ -94,9 +94,10 @@ QString SegmentationNotes::toolTipText() const
   QString toolTip;
   if (!s_cache[m_segmentation].Data.Note.isEmpty())
   {
-    toolTip = tr("<b>Note:</b><br>");
-    toolTip.append(TAB + s_cache[m_segmentation].Data.Note);
-    toolTip.append("<br>");
+    QString firstLine = s_cache[m_segmentation].Data.Note.left(20);
+    if (firstLine.length() == 20)
+      firstLine = firstLine.replace(17, 3, "...");
+    toolTip = condition(":/espina/note.png", firstLine);
   }
 
   return toolTip;
