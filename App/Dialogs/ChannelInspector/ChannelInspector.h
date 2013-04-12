@@ -56,13 +56,15 @@ namespace EspINA
     void rejectedChanges();
     void radioEdgesChanged(bool);
     void applyEdgesChanges();
-    void changeEdgeValues(int unused);
+    void changeEdgeDetectorBgColor(int value);
+    void changeEdgeDetectorThreshold(int value);
 
   private:
     // helpher methods
     void applyModifications();
 
     bool m_spacingModified;
+    bool m_edgesModified;
     double m_range[2];
 
     Channel     *m_channel;

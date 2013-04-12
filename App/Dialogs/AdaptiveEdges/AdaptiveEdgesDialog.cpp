@@ -22,6 +22,9 @@
 // Qt
 #include <QDialog>
 #include <QRadioButton>
+#include <qpicture.h>
+#include <qpaintengine.h>
+#include <qbitmap.h>
 
 namespace EspINA
 {
@@ -43,16 +46,20 @@ namespace EspINA
     thresholdBox->setEnabled(false);
     thresholdLabel->setEnabled(false);
 
-    connect(radioStackEdges, SIGNAL(toggled(bool)), this, SLOT(radioChanged(bool)));
-    connect(radioImageEdges, SIGNAL(toggled(bool)), this, SLOT(radioChanged(bool)));
+    connect(radioStackEdges, SIGNAL(toggled(bool)),
+            this,            SLOT(radioChanged(bool)));
+    connect(radioImageEdges, SIGNAL(toggled(bool)), 
+            this,            SLOT(radioChanged(bool)));
 
     colorBox->setValue(m_backgroundColor);
     thresholdBox->setValue(m_threshold);
 
-    connect(colorBox, SIGNAL(valueChanged(int)), this, SLOT(boxValuesChanged(int)));
-    connect(thresholdBox, SIGNAL(valueChanged(int)), this, SLOT(boxValuesChanged(int)));
+    connect(colorBox, SIGNAL(valueChanged(int)), 
+            this,     SLOT(bgColorChanged(int)));
+    connect(thresholdBox, SIGNAL(valueChanged(int)),
+            this,         SLOT(thresholdChanged(int)));
   }
-  
+
   //------------------------------------------------------------------------
   void AdaptiveEdgesDialog::radioChanged(bool value)
   {
@@ -70,11 +77,24 @@ namespace EspINA
   }
 
   //------------------------------------------------------------------------
-  void AdaptiveEdgesDialog::boxValuesChanged(int unused)
+  void AdaptiveEdgesDialog::bgColorChanged(int value)
   {
-    m_threshold = thresholdBox->value();
-    m_backgroundColor = colorBox->value();
+    m_backgroundColor = value;
+
+    QPixmap image(":espina/edges-image.png");
+    QPixmap bg(image.size());
+    bg.fill(QColor(value, value, value));
+    image.setMask(image.createMaskFromColor(Qt::black, Qt::MaskInColor));
+    QPainter painter(&bg);
+    painter.drawPixmap(0,0, image);
+
+    adaptiveExample->setPixmap(bg);
   }
 
+  //------------------------------------------------------------------------
+  void AdaptiveEdgesDialog::thresholdChanged(int value)
+  {
+    m_threshold = thresholdBox->value();
+  }
 
 } /* namespace EspINA */

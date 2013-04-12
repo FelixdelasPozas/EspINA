@@ -23,6 +23,8 @@
 #include <QDialog>
 #include <QLocale>
 #include <QColorDialog>
+#include <qbitmap.h>
+#include <QPainter>
 
 // VTK
 #include <vtkMath.h>
@@ -33,6 +35,7 @@ using namespace EspINA;
 ChannelInspector::ChannelInspector(Channel *channel, QWidget *parent)
 : QDialog(parent)
 , m_spacingModified(false)
+, m_edgesModified(false)
 , m_channel(channel)
 , m_viewManager(new ViewManager())
 , m_view(new SliceView(m_viewManager, AXIAL))
@@ -45,8 +48,7 @@ ChannelInspector::ChannelInspector(Channel *channel, QWidget *parent)
   /// PROPERTIES TAB
   connect(okCancelBox, SIGNAL(accepted()), this, SLOT(acceptedChanges()));
   connect(okCancelBox, SIGNAL(rejected()), this, SLOT(rejectedChanges()));
-  
-  connect(applyButton, SIGNAL(clicked()), this, SLOT(changeSpacing()));
+
   connect(unitsBox, SIGNAL(currentIndexChanged(int)), this, SLOT(unitsChanged(int)));
 
   m_view->addChannel(channel);
@@ -148,7 +150,6 @@ ChannelInspector::ChannelInspector(Channel *channel, QWidget *parent)
   colorLabel->setEnabled(m_adaptiveEdgesEnabled);
   thresholdBox->setEnabled(m_adaptiveEdgesEnabled);
   thresholdLabel->setEnabled(m_adaptiveEdgesEnabled);
-  applyEdgesButton->setEnabled(false);
 
   connect(radioStackEdges, SIGNAL(toggled(bool)), this, SLOT(radioEdgesChanged(bool)));
   connect(radioImageEdges, SIGNAL(toggled(bool)), this, SLOT(radioEdgesChanged(bool)));
@@ -158,9 +159,11 @@ ChannelInspector::ChannelInspector(Channel *channel, QWidget *parent)
   colorBox->setValue(m_backgroundColor);
   thresholdBox->setValue(m_threshold);
 
-  connect(colorBox, SIGNAL(valueChanged(int)), this, SLOT(changeEdgeValues(int)));
-  connect(thresholdBox, SIGNAL(valueChanged(int)), this, SLOT(changeEdgeValues(int)));
-  connect(applyEdgesButton, SIGNAL(clicked()), this, SLOT(applyEdgesChanges()));
+  connect(colorBox, SIGNAL(valueChanged(int)), this, SLOT(changeEdgeDetectorBgColor(int)));
+  connect(thresholdBox, SIGNAL(valueChanged(int)), this, SLOT(changeEdgeDetectorThreshold(int)));
+
+  if (edgesExtension)
+    changeEdgeDetectorBgColor(m_backgroundColor);
 
   tabWidget->setCurrentIndex(0);
 }
@@ -185,7 +188,6 @@ void ChannelInspector::unitsChanged(int value)
 void ChannelInspector::spacingChanged(double unused)
 {
   m_spacingModified = true;
-  applyButton->setEnabled(true);
 }
 
 //------------------------------------------------------------------------
@@ -242,7 +244,6 @@ void ChannelInspector::changeSpacing()
   m_viewManager->updateSegmentationRepresentations(updatedSegmentations);
   m_view->resetCamera();
   m_spacingModified = false;
-  applyButton->setEnabled(false);
   applyModifications();
 }
 
@@ -384,30 +385,10 @@ void ChannelInspector::acceptedChanges()
     m_channel->setSaturation(0.0);
 
   if (m_spacingModified)
-  {
-    QMessageBox msgBox;
-    msgBox.setText("The spacing has been modified but the changes have not been applied to the channel.");
-    msgBox.setInformativeText("Do you want to apply your changes?");
-    msgBox.setIcon(QMessageBox::Question);
-    msgBox.setStandardButtons(QMessageBox::Apply | QMessageBox::Cancel);
-    msgBox.setDefaultButton(QMessageBox::Apply);
-    QString detailedText = QString("Spacing changed to:\n  X: ") + QString().number(spacingXBox->value())
-        + unitsBox->currentText() + QString("\n  Y: ")  + QString().number(spacingYBox->value())
-        + unitsBox->currentText() + QString("\n  Z: ")  + QString().number(spacingZBox->value())
-        + unitsBox->currentText();
-    msgBox.setDetailedText (detailedText);
-    int ret = msgBox.exec();
+    changeSpacing();
 
-    switch(ret)
-    {
-      case QMessageBox::Apply:
-        changeSpacing();
-        emit spacingUpdated();
-        break;
-      default:
-        break;
-    }
-  }
+  if (m_edgesModified)
+    applyEdgesChanges();
 
   double spacing[3];
   m_channel->volume()->spacing(spacing);
@@ -512,16 +493,38 @@ void ChannelInspector::radioEdgesChanged(bool value)
   thresholdLabel->setEnabled(radioImageEdges->isChecked());
   thresholdBox->setEnabled(radioImageEdges->isChecked());
 
-  changeEdgeValues(0);
+  changeEdgeDetectorBgColor(m_backgroundColor);
+
+  m_edgesModified = (radioImageEdges->isChecked() != m_adaptiveEdgesEnabled) ||
+                    (radioImageEdges->isChecked() && (m_backgroundColor != colorBox->value())) ||
+                    (radioImageEdges->isChecked() && (m_threshold != thresholdBox->value()));
 }
 
 //------------------------------------------------------------------------
-void ChannelInspector::changeEdgeValues(int unused)
+void ChannelInspector::changeEdgeDetectorBgColor(int value)
 {
   bool enabled = (radioImageEdges->isChecked() != m_adaptiveEdgesEnabled) ||
-                 (radioImageEdges->isChecked() && (m_backgroundColor != colorBox->value())) ||
+                 (radioImageEdges->isChecked() && (m_backgroundColor != colorBox->value()));
+
+  QPixmap image(":espina/edges-image.png");
+  QPixmap bg(image.size());
+  bg.fill(QColor(value, value, value));
+  image.setMask(image.createMaskFromColor(Qt::black, Qt::MaskInColor));
+  QPainter painter(&bg);
+  painter.drawPixmap(0,0, image);
+
+  adaptiveExample->setPixmap(bg);
+
+  m_edgesModified = enabled;
+}
+
+//------------------------------------------------------------------------
+void ChannelInspector::changeEdgeDetectorThreshold(int value)
+{
+  bool enabled = (radioImageEdges->isChecked() != m_adaptiveEdgesEnabled) ||
                  (radioImageEdges->isChecked() && (m_threshold != thresholdBox->value()));
-  applyEdgesButton->setEnabled(enabled);
+
+  m_edgesModified = enabled;
 }
 
 //------------------------------------------------------------------------
@@ -547,5 +550,5 @@ void ChannelInspector::applyEdgesChanges()
   else
     m_adaptiveEdgesEnabled = false;
 
-  applyEdgesButton->setEnabled(false);
+  m_edgesModified = false;
 }

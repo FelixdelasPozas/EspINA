@@ -44,7 +44,8 @@ namespace EspINA
 
     public slots:
       void radioChanged(bool);
-      void boxValuesChanged(int);
+      void bgColorChanged(int value);
+      void thresholdChanged(int value);
 
     private:
       bool m_adaptiveEdgesEnabled;
