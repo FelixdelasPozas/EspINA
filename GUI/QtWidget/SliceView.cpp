@@ -1180,6 +1180,7 @@ void SliceView::removeWidget(EspinaWidget *eWidget)
   vtkAbstractWidget *widget = *m_widgets[eWidget];
   widget->Off();
   widget->SetInteractor(NULL);
+  widget->RemoveAllObservers();
   m_widgets.remove(eWidget);
 }
 

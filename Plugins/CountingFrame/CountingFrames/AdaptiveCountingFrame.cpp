@@ -45,16 +45,14 @@ AdaptiveCountingFrame::AdaptiveCountingFrame(Id id,
   updateCountingFrame();
 }
 
-// TODO: Memory leak
 //-----------------------------------------------------------------------------
 AdaptiveCountingFrame::~AdaptiveCountingFrame()
 {
-  m_channelExt->deleteCountingFrame(this);
-  foreach(vtkAbstractWidget *w, m_widgets2D)
-  {
-    w->EnabledOn();
-    w->Delete();
-  }
+//   foreach(vtkAbstractWidget *w, m_widgets2D)
+//   {
+//     w->EnabledOn();
+//     w->Delete();
+//   }
   foreach(vtkAbstractWidget *w, m_widgets3D)
   {
     w->EnabledOn();

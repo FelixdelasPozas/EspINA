@@ -32,6 +32,7 @@ using namespace EspINA;
 //-----------------------------------------------------------------------------
 CountingFrameRenderer::CountingFrameRenderer(CountingFramePanel* plugin)
 : m_plugin(plugin)
+, m_cfCount(0)
 {
   connect(m_plugin, SIGNAL(countingFrameCreated(CountingFrame*)),
           this, SLOT(countingFrameCreated(CountingFrame*)));
@@ -54,11 +55,10 @@ void CountingFrameRenderer::hide()
 
   foreach(CountingFrame *cf, m_widgets.keys())
   {
-    //cf->deleteWidget(m_widgets[cf]);
     m_widgets[cf]->GetRepresentation()->SetVisibility(false);
     m_widgets[cf]->Off();
+    //m_widgets[cf]->Delete();
   }
-  m_widgets.clear();
 
   emit renderRequested();
 }
@@ -75,7 +75,8 @@ void CountingFrameRenderer::show()
 
   foreach(CountingFrame *cf, m_plugin->countingFrames())
   {
-    m_widgets[cf] = cf->create3DWidget(NULL);
+    if (!m_widgets.contains(cf))
+      m_widgets[cf] = cf->create3DWidget(NULL);
     m_widgets[cf]->SetInteractor(interactor);
     m_widgets[cf]->GetRepresentation()->SetVisibility(true);
     m_widgets[cf]->On();
@@ -94,36 +95,29 @@ unsigned int CountingFrameRenderer::getNumberOfvtkActors()
 //-----------------------------------------------------------------------------
 void CountingFrameRenderer::countingFrameCreated(CountingFrame* cf)
 {
-  if (!m_enable)
-    return;
-
-  vtkRenderWindow *rw = m_renderer->GetRenderWindow();
-  vtkRenderWindowInteractor *interactor = rw->GetInteractor();
-
-  m_widgets[cf] = cf->create3DWidget(NULL);
-  m_widgets[cf]->SetInteractor(interactor);
-  m_widgets[cf]->GetRepresentation()->SetVisibility(true);
-  m_widgets[cf]->On();
+  m_cfCount++;
 }
 
 //-----------------------------------------------------------------------------
 void CountingFrameRenderer::countingFrameDeleted(CountingFrame* cf)
 {
-  if (!m_enable)
-    return;
+  m_cfCount--;
 
-  m_widgets[cf]->GetRepresentation()->SetVisibility(false);
-  m_widgets[cf]->Off();
+  if (m_widgets.contains(cf))
+  {
+    m_widgets[cf]->GetRepresentation()->SetVisibility(false);
+    m_widgets[cf]->Off();
+    m_widgets.remove(cf);
+  }
 
-  m_widgets[cf]->Delete();
-
-  m_widgets.remove(cf);
+  if (0 == m_cfCount)
+    setEnable(false);
 }
 
 //-----------------------------------------------------------------------------
 void CountingFrameRenderer::clean()
 {
-  // TODO 2012-12-29
+  Q_ASSERT(m_widgets.isEmpty());
 }
 
 //-----------------------------------------------------------------------------

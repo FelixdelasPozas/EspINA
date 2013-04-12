@@ -484,6 +484,8 @@ void VolumeView::addWidget(EspinaWidget* eWidget)
 
   m_renderer->ResetCameraClippingRange();
   m_widgets[eWidget] = widget;
+
+  updateRenderersButtons();
 }
 
 //-----------------------------------------------------------------------------
@@ -493,6 +495,8 @@ void VolumeView::removeWidget(EspinaWidget* eWidget)
     return;
 
   m_widgets.remove(eWidget);
+
+  updateRenderersButtons();
 }
 
 //-----------------------------------------------------------------------------
@@ -1077,9 +1081,14 @@ void VolumeView::updateRenderersButtons()
   QMap<QPushButton *, IRendererSPtr>::iterator it;
   for(it = m_renderers.begin(); it != m_renderers.end(); ++it)
   {
-    canTakeSnapshot |= (!it.value()->isHidden()) && (it.value()->itemsBeenRendered() != 0);
+    bool canRenderItems = it.value()->itemsBeenRendered() != 0;
+
+    canTakeSnapshot |= (!it.value()->isHidden()) && canRenderItems;
     canBeExported |= canTakeSnapshot && (it.value()->getNumberOfvtkActors() != 0);
-    it.key()->setEnabled(it.value()->itemsBeenRendered() != 0);
+
+    it.key()->setEnabled(canRenderItems);
+    if (!canRenderItems)
+      it.key()->setChecked(false);
   }
 
   m_snapshot.setEnabled(canTakeSnapshot);

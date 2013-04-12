@@ -639,14 +639,13 @@ void TaxonomyProxy::sourceRowsInserted(const QModelIndex& sourceParent, int star
     ModelItemPtr parentItem = indexPtr(sourceParent);
     if (EspINA::TAXONOMY == parentItem->type())
     {
-      //This is the same code than above, TODO create a function to simplify the code
       beginInsertRows(mapFromSource(sourceParent), start, end);
       for (int row = start; row <= end; row++)
       {
         ModelItemPtr sourceRow = indexPtr(m_model->index(row, 0, sourceParent));
         TaxonomyElementPtr taxonomy = taxonomyElementPtr(sourceRow);
         TaxonomyElementPtr parentNode = taxonomy->parent();
-        if (!parentNode->name().isEmpty()) // TODO usar root?
+        if (parentNode != m_model->taxonomy()->root().data())
           m_numTaxonomies[parentNode] += 1;
         m_numTaxonomies[taxonomy]      = taxonomy->subElements().size();
         m_taxonomyVisibility[taxonomy] = Qt::Checked;
@@ -874,7 +873,7 @@ void TaxonomyProxy::removeTaxonomy(TaxonomyElementPtr taxonomy)
   m_numTaxonomies.remove(taxonomy);
   m_taxonomySegmentations.remove(taxonomy);
   TaxonomyElementPtr parentNode = taxonomy->parent();
-  if (!parentNode->name().isEmpty())
+  if (parentNode != m_model->taxonomy()->root().data())
     m_numTaxonomies[parentNode] -= 1;
 }
 

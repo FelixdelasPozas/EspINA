@@ -50,17 +50,18 @@ RectangularCountingFrame::RectangularCountingFrame(Id id,
 //-----------------------------------------------------------------------------
 RectangularCountingFrame::~RectangularCountingFrame()
 {
-  m_channelExt->deleteCountingFrame(this);
-  foreach(vtkAbstractWidget *w, m_widgets2D)
-  {
-    w->EnabledOn();
-    w->Delete();
-  }
+  // 2D widgets have already been deleted by 2D Views
+//   foreach(vtkAbstractWidget *w, m_widgets2D)
+//   {
+//     w->EnabledOff();
+//     w->Delete();
+//   }
   foreach(vtkAbstractWidget *w, m_widgets3D)
   {
-    w->EnabledOn();
+    w->EnabledOff();
     w->Delete();
   }
+
   m_widgets2D.clear();
   m_widgets3D.clear();
 }

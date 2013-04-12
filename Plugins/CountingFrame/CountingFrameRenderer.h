@@ -57,7 +57,7 @@ namespace EspINA
     virtual void clean();
     virtual IRendererSPtr clone();
 
-    virtual int itemsBeenRendered() { return m_widgets.size(); }
+    virtual int itemsBeenRendered() { return m_cfCount; }
 
     virtual ViewManager::Selection pick(int x, int y, bool repeat) { ViewManager::Selection emptySelection; return emptySelection; }
 
@@ -68,6 +68,8 @@ namespace EspINA
   private:
     CountingFramePanel *m_plugin;
     QMap<CountingFrame *, vtkAbstractWidget *> m_widgets;
+
+    unsigned int m_cfCount;
   };
 
 } // namespace EspINA

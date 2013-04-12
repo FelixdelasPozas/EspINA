@@ -119,12 +119,17 @@ vtkCountingFrame3DRepresentation::vtkCountingFrame3DRepresentation()
 //----------------------------------------------------------------------------
 vtkCountingFrame3DRepresentation::~vtkCountingFrame3DRepresentation()
 {
-  //TODO: Review deletes
-
   this->VolumeActor->Delete();
   this->VolumeMapper->Delete();
   this->VolumePolyData->Delete();
 
+  this->MarginPoints->Delete();
+  for(int i = 0; i < 6; ++i)
+  {
+    this->MarginActor[i]->Delete();
+    this->MarginMapper[i]->Delete();
+    this->MarginPolyData[i]->Delete();
+  }
 
   this->VolumePicker->Delete();
 
@@ -133,6 +138,7 @@ vtkCountingFrame3DRepresentation::~vtkCountingFrame3DRepresentation()
   this->FaceProperty->Delete();
   this->SelectedFaceProperty->Delete();
   this->InclusionProperty->Delete();
+  this->InvisibleProperty->Delete();
   this->SelectedOutlineProperty->Delete();
 }
 

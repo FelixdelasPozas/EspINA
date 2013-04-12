@@ -305,6 +305,8 @@ void CountingFramePanel::deleteCountingFrame(CountingFrame *cf)
     }
   }
 
+  emit countingFrameDeleted(cf);
+
   m_viewManager->removeWidget(cf);
   cf->Delete();
 }
@@ -654,7 +656,13 @@ void CountingFramePanel::registerCF(CountingFrameExtension* cfExtension,
                                     CountingFrame* cf)
 {
   cfExtension->addCountingFrame(cf);
+
+  // We need to emit this signal first in order to increment the number of
+  // cf available for the CF_Renderer so when the widget is added, updatRendererButtons
+  // activates the CF_Render
+  emit countingFrameCreated(cf);
   m_viewManager->addWidget(cf);
+
   if (!m_countingFramesExtensions.contains(cfExtension))
     m_countingFramesExtensions << cfExtension;
   m_countingFrames << cf;
@@ -670,6 +678,7 @@ void CountingFramePanel::registerCF(CountingFrameExtension* cfExtension,
   applyTaxonomicalConstraint();
 
   showInfo(cf);
+
 }
 
 Q_EXPORT_PLUGIN2(CountingFramePlugin, EspINA::CountingFramePanel)

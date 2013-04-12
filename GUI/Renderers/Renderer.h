@@ -64,7 +64,7 @@ namespace EspINA
     virtual void show() = 0;
 
     // Remove all items rendered by the Renderer
-    virtual void clean() = 0;
+    virtual void clean() = 0; // DEPRECATED?
 
     virtual IRendererSPtr clone() = 0;
 
