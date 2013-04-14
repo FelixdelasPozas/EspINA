@@ -123,6 +123,17 @@ void VolumeView::reset()
   Q_ASSERT(m_channels.isEmpty());
   Q_ASSERT(m_segmentations.isEmpty());
   Q_ASSERT(m_widgets.isEmpty());
+
+  QMap<QPushButton *, IRendererSPtr>::iterator it = m_renderers.begin();
+  while (it != m_renderers.end())
+  {
+    it.key()->setChecked(false);
+    ++it;
+  }
+
+  m_numEnabledChannelRenders = 0;
+  m_numEnabledSegmentationRenders = 0;
+  m_numEnabledRenders = 0;
 }
 
 //-----------------------------------------------------------------------------
@@ -155,11 +166,20 @@ void VolumeView::addRendererControls(IRendererSPtr renderer)
   m_itemRenderers << renderer;
   m_renderers[button] = renderer;
 
-  if (!renderer->isHidden() && (renderer->getRendererType() & IRenderer::SEGMENTATION))
-    this->m_numEnabledSegmentationRenders++;
-
-  if (!renderer->isHidden() && (renderer->getRendererType() & IRenderer::CHANNEL))
-    this->m_numEnabledChannelRenders++;
+  if (!renderer->isHidden())
+  {
+    switch(renderer->getRendererType())
+    {
+      case IRenderer::SEGMENTATION:
+        this->m_numEnabledSegmentationRenders++;
+        break;
+      case IRenderer::CHANNEL:
+        this->m_numEnabledChannelRenders++;
+        break;
+      default:
+        break;
+    }
+  }
 
   if (0 != m_numEnabledSegmentationRenders)
   {

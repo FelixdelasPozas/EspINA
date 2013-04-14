@@ -57,6 +57,7 @@ MainToolBar::MainToolBar(EspinaModel *model,
 
   setWindowTitle(tr("Main Tool Bar"));
 
+  // Segmentation visibility
   m_toggleSegVisibility = addAction(tr("Toggle Segmentations Visibility"));
 
   m_toggleSegVisibility->setShortcut(QString("Space"));
@@ -66,6 +67,7 @@ MainToolBar::MainToolBar(EspinaModel *model,
   connect(m_toggleSegVisibility,SIGNAL(triggered(bool)),
           this,SLOT(setShowSegmentations(bool)));
 
+  // Cross-hair visibility
   m_toggleCrosshair = addAction(QIcon(":/espina/hide_planes.svg"),
                                 tr("Toggle Crosshair"));
   m_toggleCrosshair->setCheckable(true);
@@ -73,6 +75,7 @@ MainToolBar::MainToolBar(EspinaModel *model,
   connect(m_toggleCrosshair, SIGNAL(toggled(bool)),
           this, SLOT(toggleCrosshair(bool)));
 
+  // Taxonomy selection
   m_taxonomySelector = new QComboTreeView(this);
   m_taxonomySelector->setModel(model);
   m_taxonomySelector->setRootModelIndex(model->taxonomyRoot());
@@ -99,7 +102,6 @@ MainToolBar::MainToolBar(EspinaModel *model,
           this, SLOT(removeSegmentation(bool)));
 
   // Distance Tool
-  m_removeSegmentation->setCheckable(true);
   m_measureButton = addAction(QIcon(":/espina/measure.png"),
                                 tr("Measure tool"));
   m_measureButton->setCheckable(true);
@@ -188,9 +190,15 @@ void MainToolBar::updateTaxonomy(TaxonomySPtr taxonomy)
 void MainToolBar::removeSegmentation(bool active)
 {
   if (active)
+  {
     m_viewManager->setActiveTool(m_segRemover);
+    m_undoIndex = m_undoStack->index();
+  }
   else
+  {
     m_viewManager->unsetActiveTool(m_segRemover);
+    m_undoIndex = INT_MAX;
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -238,4 +246,23 @@ void MainToolBar::toggleMeasureTool(bool enable)
 void MainToolBar::resetRootItem()
 {
   m_taxonomySelector->setRootModelIndex(m_model->taxonomyRoot());
+}
+
+//----------------------------------------------------------------------------
+void MainToolBar::abortOperation()
+{
+  if (m_measureButton->isChecked())
+  {
+    m_measureButton->setChecked(false);
+    toggleMeasureTool(false);
+  }
+
+  if (m_removeSegmentation->isChecked())
+  {
+    if (m_undoIndex < m_undoStack->index())
+      return;
+
+    m_removeSegmentation->setChecked(false);
+    removeSegmentation(false);
+  }
 }

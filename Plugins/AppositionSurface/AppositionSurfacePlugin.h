@@ -71,6 +71,7 @@ namespace EspINA
     void segmentationAdded(SegmentationSPtr segmentation);
 
     virtual void reset();
+    virtual void abortOperation() {};
 
   private:
     static bool isSynapse(SegmentationPtr segmentation);

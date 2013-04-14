@@ -101,8 +101,17 @@ class IToolBar;
     void autosave();
     void cancelOperation() {emit analysisClosed(); }
 
+    /// undo slots
+    void undoTextChanged(QString);
+    void redoTextChanged(QString);
+    void canRedoChanged(bool);
+    void canUndoChanged(bool);
+    void undoAction(bool);
+    void redoAction(bool);
+
   signals:
     void analysisClosed();
+    void abortOperation();
 
   protected:
     virtual void closeEvent(QCloseEvent* );
@@ -133,6 +142,10 @@ class IToolBar;
     QMenu           *m_viewMenu;
     ColorEngineMenu *m_colorEngines;
     QMenu           *m_dockMenu;
+
+    // UNDO
+    QAction         *m_undoAction;
+    QAction         *m_redoAction;
 
     ISettingsPanelPrototype m_settingsPanel;
 

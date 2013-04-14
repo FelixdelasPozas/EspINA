@@ -185,7 +185,6 @@ void PlanarSplitTool::splitSegmentation()
   }
   else
   {
-    //delete filter; // ditto
     QApplication::restoreOverrideCursor();
     QMessageBox warning;
     warning.setWindowModality(Qt::WindowModal);
@@ -198,4 +197,20 @@ void PlanarSplitTool::splitSegmentation()
   }
 
   QApplication::restoreOverrideCursor();
+}
+
+//-----------------------------------------------------------------------------
+void PlanarSplitTool::stopSplitting()
+{
+  if (m_widget)
+  {
+    m_viewManager->setSelectionEnabled(true);
+    m_widget->setEnabled(false);
+    m_viewManager->removeWidget(m_widget);
+    delete m_widget;
+    m_viewManager->updateViews();
+    m_inUse = false;
+
+    emit splittingStopped();
+  }
 }

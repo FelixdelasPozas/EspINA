@@ -88,8 +88,6 @@ namespace EspINA
 
     virtual IRendererSPtr clone() {return IRendererSPtr(new CrosshairRenderer(m_viewManager));}
 
-    virtual void clean() {Q_ASSERT(false);}
-
     virtual int itemsBeenRendered() { return m_channels.size(); };
 
     virtual RenderedItems getRendererType() { return RenderedItems(IRenderer::CHANNEL); };

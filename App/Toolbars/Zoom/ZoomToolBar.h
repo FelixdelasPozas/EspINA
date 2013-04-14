@@ -48,6 +48,7 @@ namespace EspINA
     virtual void initZoomTool(bool);
 
     virtual void reset();
+    virtual void abortOperation() {};
 
   private:
     ViewManager *m_viewManager;

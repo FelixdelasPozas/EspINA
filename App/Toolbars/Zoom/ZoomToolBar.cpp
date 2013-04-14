@@ -68,7 +68,6 @@ void ZoomToolBar::initToolBar(EspinaModel *model,
                               QUndoStack  *undoStack,
                               ViewManager *viewManager)
 {
-
 }
 
 //----------------------------------------------------------------------------

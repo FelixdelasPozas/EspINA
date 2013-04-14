@@ -384,6 +384,7 @@ void EditorToolBar::changeDrawTool(QAction *action)
 {
   Q_ASSERT(m_drawTools.contains(action));
   m_viewManager->setActiveTool(m_drawTools[action]);
+  m_undoIndex = m_undoStack->index();
 }
 
 //----------------------------------------------------------------------------
@@ -394,6 +395,7 @@ void EditorToolBar::cancelDrawOperation()
   QAction *activeAction = m_drawToolSelector->getCurrentAction();
   IToolSPtr activeTool = m_drawTools[activeAction];
   m_viewManager->unsetActiveTool(activeTool);
+  m_undoIndex = INT_MAX;
 }
 
 //----------------------------------------------------------------------------
@@ -401,6 +403,7 @@ void EditorToolBar::changeSplitTool(QAction *action)
 {
   Q_ASSERT(m_splitTools.contains(action));
   m_viewManager->setActiveTool(m_splitTools[action]);
+  m_undoIndex = m_undoStack->index();
 }
 
 //----------------------------------------------------------------------------
@@ -411,6 +414,7 @@ void EditorToolBar::cancelSplitOperation()
   QAction *activeAction = m_splitToolSelector->getCurrentAction();
   IToolSPtr activeTool = m_splitTools[activeAction];
   m_viewManager->unsetActiveTool(activeTool);
+  m_undoIndex = INT_MAX;
 }
 
 //----------------------------------------------------------------------------
@@ -767,4 +771,22 @@ void EditorToolBar::reset()
 
   if (m_splitToolSelector->isChecked())
     cancelSplitOperation();
+}
+
+//----------------------------------------------------------------------------
+void EditorToolBar::abortOperation()
+{
+  if (m_splitToolSelector->isChecked())
+  {
+    QAction *activeAction = m_splitToolSelector->getCurrentAction();
+    IToolSPtr activeTool = m_splitTools[activeAction];
+    reinterpret_cast<PlanarSplitTool *>(activeTool.data())->stopSplitting();
+    cancelSplitOperation();
+  }
+
+  if (m_undoIndex < m_undoStack->index())
+    return;
+
+  if (m_drawToolSelector->isChecked())
+    cancelDrawOperation();
 }

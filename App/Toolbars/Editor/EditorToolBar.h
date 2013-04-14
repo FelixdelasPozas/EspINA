@@ -98,6 +98,7 @@ namespace EspINA
     void updateAvailableOperations();
 
     virtual void reset();
+    virtual void abortOperation();
 
   private:
     void initDrawTools();

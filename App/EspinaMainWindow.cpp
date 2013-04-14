@@ -272,15 +272,29 @@ EspinaMainWindow::EspinaMainWindow(EspinaModel      *model,
 
   /*** EDIT MENU ***/
   QMenu *editMenu = new QMenu(tr("Edit"), this);
-  QAction *undo = m_undoStack->createUndoAction(editMenu);
-  undo->setShortcut(QString("Ctrl+Z"));
-  undo->setIcon(QIcon(":espina/edit-undo.svg"));
-  editMenu->addAction(undo);
-  QAction *redo = m_undoStack->createRedoAction(editMenu);
-  redo->setShortcut(QString("Ctrl+Shift+Z"));
-  redo->setIcon(QIcon(":espina/edit-redo.svg"));
-  editMenu->addAction(redo);
+  m_undoAction = new QAction(QIcon(":espina/edit-undo.svg"), tr("Undo"), this);
+  m_undoAction->setEnabled(false);
+  m_undoAction->setCheckable(false);
+  m_undoAction->setShortcut(QString("Ctrl+Z"));
+  editMenu->addAction(m_undoAction);
+
+  connect(m_undoAction, SIGNAL(triggered(bool)), this, SLOT(undoAction(bool)));
+
+  m_redoAction = new QAction(QIcon(":espina/edit-redo.svg"), tr("Redo"), this);
+  m_redoAction->setEnabled(false);
+  m_redoAction->setCheckable(false);
+  m_redoAction->setShortcut(QString("Ctrl+Shift+Z"));
+  editMenu->addAction(m_redoAction);
+
+  connect(m_redoAction, SIGNAL(triggered(bool)), this, SLOT(redoAction(bool)));
+
   menuBar()->addMenu(editMenu);
+
+  // undo connection with menu actions
+  connect(m_undoStack, SIGNAL(canRedoChanged(bool)), this, SLOT(canRedoChanged(bool)));
+  connect(m_undoStack, SIGNAL(canUndoChanged(bool)), this, SLOT(canUndoChanged(bool)));
+  connect(m_undoStack, SIGNAL(redoTextChanged(QString)), this, SLOT(redoTextChanged(QString)));
+  connect(m_undoStack, SIGNAL(undoTextChanged(QString)), this, SLOT(undoTextChanged(QString)));
 
   /*** VIEW MENU ***/
   m_viewMenu = new QMenu(tr("View"));
@@ -561,6 +575,8 @@ void EspinaMainWindow::registerToolBar(IToolBar* toolbar)
 {
   connect(this, SIGNAL(analysisClosed()),
           toolbar, SLOT(reset()));
+  connect(this, SIGNAL(abortOperation()),
+          toolbar, SLOT(abortOperation()));
   addToolBar(toolbar);
 }
 
@@ -1104,4 +1120,42 @@ void EspinaMainWindow::showRawInformation()
   {
     QMessageBox::warning(this, ESPINA, tr("Current analysis does not contain any segmentations"));
   }
+}
+
+//------------------------------------------------------------------------
+void EspinaMainWindow::undoTextChanged(QString text)
+{
+  m_undoAction->setText(tr("Undo") + text);
+}
+
+//------------------------------------------------------------------------
+void EspinaMainWindow::redoTextChanged(QString text)
+{
+  m_redoAction->setText(tr("Redo") + text);
+}
+
+//------------------------------------------------------------------------
+void EspinaMainWindow::canRedoChanged(bool value)
+{
+  m_redoAction->setEnabled(value);
+}
+
+//------------------------------------------------------------------------
+void EspinaMainWindow::canUndoChanged(bool value)
+{
+  m_undoAction->setEnabled(value);
+}
+
+//------------------------------------------------------------------------
+void EspinaMainWindow::undoAction(bool unused)
+{
+  emit abortOperation();
+  m_undoStack->undo();
+}
+
+//------------------------------------------------------------------------
+void EspinaMainWindow::redoAction(bool unused)
+{
+  emit abortOperation();
+  m_undoStack->redo();
 }

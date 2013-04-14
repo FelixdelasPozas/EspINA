@@ -88,6 +88,9 @@ void CountingFrameRenderer::show()
 //-----------------------------------------------------------------------------
 unsigned int CountingFrameRenderer::getNumberOfvtkActors()
 {
+  if (m_enable)
+    return m_plugin->countingFrames().size() * 2; // m_boundingRegion & m_representation vtkPolyDatas...
+
   return 0;
 }
 
@@ -112,12 +115,6 @@ void CountingFrameRenderer::countingFrameDeleted(CountingFrame* cf)
 
   if (0 == m_cfCount)
     setEnable(false);
-}
-
-//-----------------------------------------------------------------------------
-void CountingFrameRenderer::clean()
-{
-  Q_ASSERT(m_widgets.isEmpty());
 }
 
 //-----------------------------------------------------------------------------

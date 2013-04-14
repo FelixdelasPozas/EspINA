@@ -54,7 +54,6 @@ namespace EspINA
     virtual bool updateItem(ModelItemPtr item, bool forced = false){return false;}
     virtual bool removeItem(ModelItemPtr item){return false;}
 
-    virtual void clean();
     virtual IRendererSPtr clone();
 
     virtual int itemsBeenRendered() { return m_cfCount; }

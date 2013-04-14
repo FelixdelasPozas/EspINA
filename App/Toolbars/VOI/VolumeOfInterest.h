@@ -54,6 +54,8 @@ namespace EspINA
 
     virtual void reset();
 
+    virtual void abortOperation() {};
+
   private:
     void buildVOIs();
 

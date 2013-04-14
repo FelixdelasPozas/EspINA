@@ -57,7 +57,6 @@ namespace EspINA
       virtual void show();
       virtual unsigned int getNumberOfvtkActors();
 
-      virtual void clean()          { Q_ASSERT(false); }
       virtual IRendererSPtr clone() { return IRendererSPtr(new MeshRenderer(m_viewManager)); }
 
       virtual RenderedItems getRendererType() { return RenderedItems(IRenderer::SEGMENTATION); };

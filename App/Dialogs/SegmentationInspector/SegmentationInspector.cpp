@@ -117,6 +117,7 @@ SegmentationInspector::SegmentationInspector(SegmentationList segmentations,
     m_splitter->restoreState(state);
 
   generateWindowTitle();
+  updateSelection(m_viewManager->selection());
 }
 
 //------------------------------------------------------------------------
@@ -160,9 +161,15 @@ void SegmentationInspector::updateSelection(ViewManager::Selection selection)
 
   QLabel *infoLabel = new QLabel(noWidgetInspector);
 
-  if (selection.size() == 1 && EspINA::SEGMENTATION == selection.first()->type() && m_segmentations.contains(segmentationPtr(selection.first())))
+  // channels could be part of the selection, we're only interested in selected segmentations
+  ViewManager::Selection clearedSelection;
+  foreach (PickableItemPtr item, selection)
+  if (item->type() == EspINA::SEGMENTATION)
+    clearedSelection << item;
+
+  if ((clearedSelection.size() == 1) && (EspINA::SEGMENTATION == clearedSelection.first()->type()) && m_segmentations.contains(segmentationPtr(clearedSelection.first())))
   {
-    Filter::FilterInspectorPtr inspector = segmentationPtr(selection.first())->filter()->filterInspector();
+    Filter::FilterInspectorPtr inspector = segmentationPtr(clearedSelection.first())->filter()->filterInspector();
     if (inspector)
     {
       delete noWidgetInspector;
@@ -173,7 +180,7 @@ void SegmentationInspector::updateSelection(ViewManager::Selection selection)
     }
     else
     {
-      infoLabel->setText(QLabel::tr("This filter doesn't have configurable options."));
+      infoLabel->setText(QLabel::tr("Segmentation cannot be modified."));
     }
   }
   else

@@ -63,9 +63,6 @@ namespace EspINA
     virtual void hide() = 0;
     virtual void show() = 0;
 
-    // Remove all items rendered by the Renderer
-    virtual void clean() = 0; // DEPRECATED?
-
     virtual IRendererSPtr clone() = 0;
 
     // get number of vtkActors added to vtkRendered from this Renderer

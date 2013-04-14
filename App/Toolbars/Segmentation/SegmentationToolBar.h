@@ -85,6 +85,7 @@ namespace EspINA
     void cancelTubularSegmentationOperation();
 
     virtual void reset();
+    virtual void abortOperation() {};
 
     void batchMode();
 

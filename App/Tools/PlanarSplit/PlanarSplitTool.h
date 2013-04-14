@@ -50,6 +50,9 @@ namespace EspINA
   signals:
     void splittingStopped();
 
+  public slots:
+    void stopSplitting();
+
   private:
     EspinaModel *m_model;
     QUndoStack  *m_undoStack;

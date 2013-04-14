@@ -60,6 +60,7 @@ namespace EspINA
                                     const ModelItem::Arguments &args);
 
     virtual void reset(); // slot
+    virtual void abortOperation() {};
 
   private slots:
     void createSegmentationFromComponents();

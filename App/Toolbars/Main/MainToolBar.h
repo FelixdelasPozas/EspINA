@@ -82,6 +82,7 @@ namespace EspINA
     void abortRemoval();
     void toggleMeasureTool(bool);
     void resetRootItem();
+    void abortOperation();
 
   signals:
     void showSegmentations(bool);

@@ -19,7 +19,11 @@
 #ifndef ITOOLBAR_H
 #define ITOOLBAR_H
 
+// Qt
 #include <QToolBar>
+
+// c++
+#include <limits.h>
 
 class QUndoStack;
 
@@ -34,9 +38,11 @@ namespace EspINA
     Q_OBJECT
   public:
     explicit IToolBar(QWidget *parent = 0)
-    : QToolBar(parent){}
+    : QToolBar(parent)
+    , m_undoIndex(INT_MAX) {}
     explicit IToolBar(const QString &title, QWidget *parent = 0)
-    : QToolBar(title, parent){}
+    : QToolBar(title, parent)
+    , m_undoIndex(INT_MAX) {}
     virtual ~IToolBar(){}
 
     virtual void initToolBar(EspinaModel *model,
@@ -44,6 +50,10 @@ namespace EspINA
                              ViewManager *viewManager) = 0;
   public slots:
     virtual void reset() = 0;
+    virtual void abortOperation() = 0;
+
+  protected:
+    int m_undoIndex;
   };
 
 } // namespace EspINA
