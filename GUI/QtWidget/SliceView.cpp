@@ -1213,7 +1213,7 @@ void SliceView::removeActor(vtkProp3D* actor)
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::previewBounds(Nm bounds[6])
+void SliceView::previewBounds(Nm bounds[6], bool cropToSceneBounds)
 {
   // Display Orientation (up means up according to screen)
   // but in vtk coordinates UR[V] < LL[V]
@@ -1230,12 +1230,20 @@ void SliceView::previewBounds(Nm bounds[6])
   int H = (SAGITTAL == m_plane)?2:0;
   int V = (CORONAL  == m_plane)?2:1;
 
-  bounds[2*H]         = std::max(LL[H], m_sceneBounds[2*H]);
-  bounds[2*H+1]       = std::min(UR[H], m_sceneBounds[2*H+1]);
-  bounds[2*V]         = std::max(UR[V], m_sceneBounds[2*V]);
-  bounds[2*V+1]       = std::min(LL[V], m_sceneBounds[2*V+1]);
+  bounds[2*H]     = LL[H];
+  bounds[(2*H)+1] = UR[H];
+  bounds[2*V]     = UR[V];
+  bounds[(2*V)+1] = LL[V];
   bounds[2*m_plane]   = slicingPosition();
   bounds[2*m_plane+1] = slicingPosition();
+
+  if (cropToSceneBounds)
+  {
+    bounds[2*H]     = std::max(LL[H], m_sceneBounds[2*H]);
+    bounds[(2*H)+1] = std::min(UR[H], m_sceneBounds[2*H+1]);
+    bounds[2*V]     = std::max(UR[V], m_sceneBounds[2*V]);
+    bounds[(2*V)+1] = std::min(LL[V], m_sceneBounds[2*V+1]);
+  }
 }
 
 //-----------------------------------------------------------------------------

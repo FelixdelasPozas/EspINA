@@ -97,7 +97,12 @@ void SeedGrowSegmentationsSettingsPanel::acceptChanges()
   {
     m_settings->setXSize(m_xSize->value());
     m_settings->setYSize(m_ySize->value());
-    m_settings->setZSize(m_zSize->value());
+
+    double zSpacing = 1.0;
+    if (m_viewManager->viewResolution() != NULL)
+      zSpacing = m_viewManager->viewResolution()[2];
+
+    m_settings->setZSize(m_zSize->value()*zSpacing);
   }
   m_settings->setTaxonomicalVOI(m_taxonomicalVOI->isChecked());
 

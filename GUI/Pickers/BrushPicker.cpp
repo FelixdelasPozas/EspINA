@@ -294,7 +294,7 @@ void BrushPicker::startStroke(QPoint pos, EspinaRenderView* view)
   if (!m_referenceItem)
     return;
 
-  view->previewBounds(m_pBounds);
+  view->previewBounds(m_pBounds, false);
 
   if (m_pBounds[0] == m_pBounds[1])
     m_plane = SAGITTAL;

@@ -116,7 +116,7 @@ namespace EspINA
     virtual void addActor   (vtkProp3D *actor);
     virtual void removeActor(vtkProp3D *actor);
 
-    virtual void previewBounds(Nm bounds[6]);
+    virtual void previewBounds(Nm bounds[6], bool cropToSceneBounds = true);
 
     virtual void setCursor(const QCursor& cursor);
 

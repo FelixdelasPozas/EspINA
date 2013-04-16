@@ -48,7 +48,7 @@ EspinaRenderView::~EspinaRenderView()
 }
 
 //-----------------------------------------------------------------------------
-void EspinaRenderView::previewBounds(Nm bounds[6])
+void EspinaRenderView::previewBounds(Nm bounds[6], bool cropToSceneBounds)
 {
   vtkMath::UninitializeBounds(bounds);
   //qDebug() << bounds[0] << bounds[1] << bounds[2] << bounds[3] << bounds[4] << bounds[5];

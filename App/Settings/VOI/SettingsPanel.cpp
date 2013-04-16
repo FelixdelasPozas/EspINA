@@ -71,7 +71,6 @@ RectangularVOI::SettingsPanel::SettingsPanel(EspinaModelPtr model,
 
   m_zSize->setValue(vtkMath::Round(m_settings->zSize()/m_zSpacing));
 
-
   m_taxonomySelector->setModel(m_model);
 
   connect(m_taxonomySelector, SIGNAL(activated(QModelIndex)),
