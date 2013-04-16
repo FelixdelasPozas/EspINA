@@ -207,13 +207,6 @@ void SegmentationNotes::initialize()
 //------------------------------------------------------------------------
 void SegmentationNotes::invalidate(SegmentationPtr segmentation)
 {
-  if (!segmentation)
-    segmentation = m_segmentation;
-
-  if (segmentation)
-  {
-    s_cache.markAsDirty(segmentation);
-  }
 }
 
 //------------------------------------------------------------------------

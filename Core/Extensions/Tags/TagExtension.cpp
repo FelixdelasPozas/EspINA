@@ -198,13 +198,6 @@ void SegmentationTags::initialize()
 //------------------------------------------------------------------------
 void SegmentationTags::invalidate(SegmentationPtr segmentation)
 {
-  if (!segmentation)
-    segmentation = m_segmentation;
-
-  if (segmentation)
-  {
-    s_cache.markAsDirty(segmentation);
-  }
 }
 
 //------------------------------------------------------------------------
