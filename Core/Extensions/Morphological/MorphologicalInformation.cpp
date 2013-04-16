@@ -130,6 +130,20 @@ Segmentation::InfoTagList MorphologicalInformation::availableInformations() cons
 }
 
 //------------------------------------------------------------------------
+void MorphologicalInformation::setSegmentation(SegmentationPtr seg)
+{
+  EspINA::Segmentation::Information::setSegmentation(seg);
+
+  connect(m_segmentation, SIGNAL(volumeModified()),
+          this, SLOT(invalidate()));
+
+  if (m_segmentation->isVolumeModified())
+    invalidate();
+  else
+    initialize();
+}
+
+//------------------------------------------------------------------------
 QVariant MorphologicalInformation::information(const Segmentation::InfoTag &tag)
 {
   bool cached = s_cache.isCached(m_segmentation);

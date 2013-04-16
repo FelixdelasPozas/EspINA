@@ -98,6 +98,20 @@ bool AppositionSurfaceExtension::validTaxonomy(const QString &qualifiedName) con
 }
 
 //------------------------------------------------------------------------
+void AppositionSurfaceExtension::setSegmentation(SegmentationPtr seg)
+{
+  EspINA::Segmentation::Information::setSegmentation(seg);
+
+  connect(m_segmentation, SIGNAL(volumeModified()),
+          this, SLOT(invalidate()));
+
+  if (m_segmentation->isVolumeModified())
+    invalidate();
+  else
+    initialize();
+}
+
+//------------------------------------------------------------------------
 QVariant AppositionSurfaceExtension::information(const Segmentation::InfoTag &tag)
 {
   QString fullTaxonomy = m_segmentation->taxonomy()->qualifiedName();

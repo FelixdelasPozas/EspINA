@@ -23,12 +23,4 @@ using namespace EspINA;
 void Segmentation::Information::setSegmentation(SegmentationPtr seg)
 {
   m_segmentation = seg;
-
-  connect(m_segmentation, SIGNAL(volumeModified()),
-          this, SLOT(invalidate()));
-
-  if (m_segmentation->isVolumeModified())
-    invalidate();
-  else
-    initialize();
 }

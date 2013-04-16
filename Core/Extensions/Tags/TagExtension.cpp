@@ -79,6 +79,12 @@ Segmentation::InfoTagList SegmentationTags::availableInformations() const
 }
 
 //------------------------------------------------------------------------
+void SegmentationTags::setSegmentation(SegmentationPtr seg)
+{
+  EspINA::Segmentation::Information::setSegmentation(seg);
+}
+
+//------------------------------------------------------------------------
 QVariant SegmentationTags::information(const Segmentation::InfoTag &tag)
 {
   if (TAGS == tag)
@@ -198,6 +204,13 @@ void SegmentationTags::initialize()
 //------------------------------------------------------------------------
 void SegmentationTags::invalidate(SegmentationPtr segmentation)
 {
+  if (!segmentation)
+    segmentation = m_segmentation;
+
+  if (segmentation)
+  {
+    s_cache.markAsDirty(segmentation);
+  }
 }
 
 //------------------------------------------------------------------------

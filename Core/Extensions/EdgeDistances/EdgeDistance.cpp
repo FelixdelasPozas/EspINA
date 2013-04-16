@@ -86,6 +86,20 @@ Segmentation::InfoTagList EdgeDistance::availableInformations() const
   return tags;
 }
 
+//------------------------------------------------------------------------
+void EdgeDistance::setSegmentation(SegmentationPtr seg)
+{
+  EspINA::Segmentation::Information::setSegmentation(seg);
+
+  connect(m_segmentation, SIGNAL(volumeModified()),
+          this, SLOT(invalidate()));
+
+  if (m_segmentation->isVolumeModified())
+    invalidate();
+  else
+    initialize();
+}
+
 //-----------------------------------------------------------------------------
 QVariant EdgeDistance::information(const Segmentation::InfoTag &tag)
 {

@@ -47,7 +47,7 @@ namespace EspINA
 
     virtual bool validTaxonomy(const QString &qualifiedName) const = 0;
 
-    virtual void setSegmentation(SegmentationPtr seg);
+    virtual void setSegmentation(SegmentationPtr seg) = 0;
 
     virtual SegmentationPtr segmentation() {return m_segmentation;}
 

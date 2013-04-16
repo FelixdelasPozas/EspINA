@@ -120,6 +120,9 @@
          <height>22</height>
         </size>
        </property>
+       <property name="shortcut">
+        <string>Ctrl+Return</string>
+       </property>
        <property name="flat">
         <bool>true</bool>
        </property>
