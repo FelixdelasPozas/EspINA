@@ -472,7 +472,7 @@ void ChannelExplorer::showInformation()
 
       if (!inspector)
       {
-        inspector = new ChannelInspector(channel);
+        inspector = new ChannelInspector(channel, m_model);
         m_informationDialogs.insert(channel, inspector);
         connect(inspector, SIGNAL(destroyed(QObject *)), this, SLOT(dialogClosed(QObject *)));
         connect(inspector, SIGNAL(spacingUpdated()), this, SLOT(inspectorChangedSpacing()));

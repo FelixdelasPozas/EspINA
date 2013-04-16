@@ -8,11 +8,13 @@
 // EspINA
 #include <GUI/QtWidget/SliceView.h>
 #include <GUI/ViewManager.h>
+#include <Core/Model/EspinaModel.h>
 #include <Core/Model/Channel.h>
 #include <Core/Model/Segmentation.h>
 #include <Core/EspinaTypes.h>
 #include <Filters/ChannelReader.h>
 #include <Core/Extensions/EdgeDistances/AdaptiveEdges.h>
+#include <Core/Extensions/EdgeDistances/EdgeDistance.h>
 
 #include "ChannelInspector.h"
 
@@ -32,12 +34,13 @@
 using namespace EspINA;
 
 //------------------------------------------------------------------------
-ChannelInspector::ChannelInspector(Channel *channel, QWidget *parent)
+ChannelInspector::ChannelInspector(Channel *channel, EspinaModel *model, QWidget *parent)
 : QDialog(parent)
 , m_spacingModified(false)
 , m_edgesModified(false)
 , m_channel(channel)
 , m_viewManager(new ViewManager())
+, m_model(model)
 , m_view(new SliceView(m_viewManager, AXIAL))
 {
   setupUi(this);
@@ -535,6 +538,14 @@ void ChannelInspector::applyEdgesChanges()
   {
     AdaptiveEdges *adaptiveEdges = reinterpret_cast<AdaptiveEdges *>(extension);
     adaptiveEdges->invalidate(m_channel);
+
+    foreach(SegmentationSPtr seg, m_model->segmentations())
+      if (seg->hasInformationExtension(EdgeDistanceID))
+      {
+        Segmentation::InformationExtension ext = seg->informationExtension(EdgeDistanceID);
+        ext->invalidate(seg.data());
+
+      }
 
     m_channel->deleteExtension(extension);
   }

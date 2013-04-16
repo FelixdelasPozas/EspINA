@@ -347,7 +347,8 @@ void AdaptiveEdges::computeDistanceToEdge(SegmentationPtr seg)
       distanceFilter->Update();
       distance[face] = distanceFilter->GetOutput()->GetPointData()->GetScalars()->GetRange()[0];
     }
-  } else
+  }
+  else
   {
     double cmargins[6];
     m_channel->volume()->bounds(cmargins);
