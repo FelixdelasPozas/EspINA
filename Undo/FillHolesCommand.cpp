@@ -45,7 +45,7 @@ FillHolesCommand::FillHolesCommand(SegmentationList inputs, EspinaModel *model, 
     inputs[FillHolesFilter::INPUTLINK] = seg->filter();
     args[Filter::INPUTS] = Filter::NamedInput(FillHolesFilter::INPUTLINK, seg->outputId());
     FilterSPtr filter(new FillHolesFilter(inputs, args, FILTER_TYPE));
-    filter->update(seg->outputId());
+    filter->update();
     m_segmentations  << m_model->findSegmentation(seg);
     m_newConnections << Connection(filter, 0);
     m_oldConnections << Connection(seg->filter(), seg->outputId());
