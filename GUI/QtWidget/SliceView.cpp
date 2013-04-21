@@ -290,7 +290,7 @@ void SliceView::updateRuler()
 
   m_ruler->SetRange(0, scale);
   m_ruler->SetPoint2(0.1+rulerLength, 0.1);
-  m_ruler->SetVisibility(m_rulerVisibility && 0.02 < rulerLength && rulerLength < 0.8);
+  m_ruler->SetVisibility(m_rulerVisibility && (0.02 < rulerLength) && (rulerLength < 0.8));
 }
 
 //-----------------------------------------------------------------------------
@@ -779,6 +779,7 @@ void SliceView::addChannel(ChannelPtr channel)
   channelRep.slice->SetInterpolate(false);
   channelRep.slice->GetMapper()->BorderOn();
   channelRep.slice->GetMapper()->SetInputConnection(channelRep.mapToColors->GetOutputPort());
+  channelRep.slice->SetVisibility(channelRep.visible);
   channelRep.slice->Update();
 
   m_channelReps.insert(channel, channelRep);
@@ -986,7 +987,7 @@ void SliceView::addSegmentation(SegmentationPtr seg)
   segRep.slice->Update();
 
   segRep.selected = false;
-  segRep.visible  = seg->visible() && m_showSegmentations;
+  segRep.visible  = seg->visible();
 
   double rgb[3];
   m_viewManager->lut(seg)->GetColor(1, rgb);
@@ -995,6 +996,7 @@ void SliceView::addSegmentation(SegmentationPtr seg)
   m_segmentationReps.insert(seg, segRep);
   addActor(segRep.slice);
   m_segmentationPicker->AddPickList(segRep.slice);
+  segRep.slice->SetVisibility(segRep.visible && m_showSegmentations);
 
   // need to reposition the actor so it will always be over the channels actors'
   double pos[3];
@@ -1013,7 +1015,7 @@ void SliceView::addSegmentation(SegmentationPtr seg)
         if (!segRep.visible)
         {
           segRep.visible = true;
-          segRep.slice->SetVisibility(true);
+          segRep.slice->SetVisibility(true && m_showSegmentations);
         }
         break;
       case HierarchyItem::Translucent:
@@ -1021,14 +1023,14 @@ void SliceView::addSegmentation(SegmentationPtr seg)
         if (!segRep.visible)
         {
           segRep.visible = true;
-          segRep.slice->SetVisibility(true);
+          segRep.slice->SetVisibility(true && m_showSegmentations);
         }
         break;
       case HierarchyItem::Hidden:
         if (segRep.visible)
         {
           segRep.visible = false;
-          segRep.slice->SetVisibility(false);
+          segRep.slice->SetVisibility(false && m_showSegmentations);
         }
         break;
       case HierarchyItem::Undefined:
@@ -1074,9 +1076,9 @@ bool SliceView::updateSegmentation(SegmentationPtr seg)
     updated = true;
   }
 
-  if (rep.visible != (seg->visible() && m_showSegmentations))
+  if (rep.visible != seg->visible())
   {
-    rep.visible = seg->visible() && m_showSegmentations;
+    rep.visible = seg->visible();
     rep.slice->SetVisibility(rep.visible && m_showSegmentations);
     updated = true;
   }
@@ -1087,8 +1089,7 @@ bool SliceView::updateSegmentation(SegmentationPtr seg)
     QColor segColor         = m_viewManager->color(seg);
     QColor highlightedColor = m_highlighter->color(segColor, highlight);
 
-    if ((seg->isSelected() != rep.selected)
-      || (highlightedColor != rep.color))
+    if ((seg->isSelected() != rep.selected) || (highlightedColor != rep.color))
     {
       rep.selected = seg->isSelected();
       rep.color = highlightedColor;
@@ -1108,7 +1109,7 @@ bool SliceView::updateSegmentation(SegmentationPtr seg)
         if (!rep.visible)
         {
           rep.visible = true;
-          rep.slice->SetVisibility(true);
+          rep.slice->SetVisibility(true && m_showSegmentations);
         }
         break;
       case HierarchyItem::Translucent:
@@ -1116,14 +1117,14 @@ bool SliceView::updateSegmentation(SegmentationPtr seg)
         if (!rep.visible)
         {
           rep.visible = true;
-          rep.slice->SetVisibility(true);
+          rep.slice->SetVisibility(true && m_showSegmentations);
         }
         break;
       case HierarchyItem::Hidden:
         if (rep.visible)
         {
           rep.visible = false;
-          rep.slice->SetVisibility(false);
+          rep.slice->SetVisibility(false && m_showSegmentations);
         }
         break;
       case HierarchyItem::Undefined:
@@ -1705,7 +1706,7 @@ void SliceView::setSegmentationVisibility(bool visible)
   m_showSegmentations = visible;
   foreach(SliceRep rep, m_segmentationReps)
   {
-    rep.slice->SetVisibility(visible && rep.visible);
+    rep.slice->SetVisibility(m_showSegmentations && rep.visible);
   }
   updateView();
 }
