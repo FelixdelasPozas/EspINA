@@ -366,12 +366,22 @@ EspinaIO::STATUS EspinaIO::saveSegFile(QFileInfo file, IEspinaModel *model, Erro
     return ERROR;
   }
 
-  QFile zFile(file.absoluteFilePath());
+  // use system/user temporal directory, OS dependent
+  QDir temporalDir = QDir::tempPath();
+  QString path = QString("espina%1io%1%2").arg(QDir::separator()).arg(file.baseName());
+  temporalDir.mkpath(path);
+  temporalDir.cd(path);
+
+  QString temporalSegFileName = temporalDir.path() + QDir::separator() + file.fileName();
+
+  QFile zFile(temporalSegFileName);
   QuaZip zip(&zFile);
   if(!zip.open(QuaZip::mdCreate)) 
   {
     if (handler)
       handler->error("IOEspinaFile::saveFile" + zFile.fileName() + "error while creating file");
+
+    removeTemporalDir(temporalDir);
     return ERROR;
   }
   QuaZipFile outFile(&zip);
@@ -383,13 +393,19 @@ EspinaIO::STATUS EspinaIO::saveSegFile(QFileInfo file, IEspinaModel *model, Erro
   QString taxonomy;
   IOTaxonomy::writeXMLTaxonomy(model->taxonomy(), taxonomy);
   if( !zipFile(QString(TAXONOMY_FILE), taxonomy.toAscii(), outFile) )
+  {
+    removeTemporalDir(temporalDir);
     return ERROR;
+  }
 
   // Save Trace
   std::ostringstream trace;
   serializeRelations(model, trace);
   if( !zipFile(QString(TRACE_FILE),  trace.str().c_str(), outFile) )
+  {
+    removeTemporalDir(temporalDir);
     return ERROR;
+  }
 
   // Store filter data
   foreach(FilterSPtr filter, model->filters())
@@ -400,7 +416,10 @@ EspinaIO::STATUS EspinaIO::saveSegFile(QFileInfo file, IEspinaModel *model, Erro
       foreach(SnapshotEntry entry, snapshot)
       {
         if( !zipFile(entry.first, entry.second, outFile) )
+        {
+          removeTemporalDir(temporalDir);
           return ERROR;
+        }
       }
     }
   }
@@ -414,7 +433,10 @@ EspinaIO::STATUS EspinaIO::saveSegFile(QFileInfo file, IEspinaModel *model, Erro
       foreach(SnapshotEntry entry, snapshot)
       {
         if( !zipFile(entry.first, entry.second, outFile) )
+        {
+          removeTemporalDir(temporalDir);
           return ERROR;
+        }
       }
     }
   }
@@ -427,18 +449,48 @@ EspinaIO::STATUS EspinaIO::saveSegFile(QFileInfo file, IEspinaModel *model, Erro
       foreach(SnapshotEntry entry, snapshot)
       {
         if( !zipFile(entry.first, entry.second, outFile) )
+        {
+          removeTemporalDir(temporalDir);
           return ERROR;
+        }
       }
     }
   }
 
   zip.close();
+
   if (zip.getZipError() != UNZ_OK)
   {
     if (handler)
-      handler->error("IOEspinaFile::saveFile ERROR: close" + file.absoluteFilePath() + "zip file");
+      handler->error("IOEspinaFile::saveFile ERROR: Failed to close" + zFile.fileName() + "zip file");
+
+    removeTemporalDir(temporalDir);
     return ERROR;
   }
+
+  // remove old file if it exists or rename won't work
+  if (temporalDir.exists(file.absoluteFilePath()))
+  {
+    if (!temporalDir.remove(file.absoluteFilePath()))
+    {
+      qDebug() << "IOEspinaFile::saveFile ERROR: remove" << temporalSegFileName << "file";
+      removeTemporalDir(temporalDir);
+      return ERROR;
+    }
+  }
+
+  // rename(oldFile, newFile) only fails if:
+  // - oldName doesn't exist
+  // - newName already exist
+  // - rename crosses filesystem boundaries
+  if (!temporalDir.rename(temporalSegFileName, file.absoluteFilePath()))
+  {
+    qDebug() << "IOEspinaFile::saveFile ERROR: Failed to rename" << temporalSegFileName << "to" << file.absoluteFilePath();
+    removeTemporalDir(temporalDir);
+    return ERROR;
+  }
+
+  removeTemporalDir(temporalDir);
 
   return SUCCESS;
 }
@@ -642,19 +694,19 @@ EspinaIO::STATUS EspinaIO::removeTemporalDir(QDir temporalDir)
   if (temporalDir == QDir())
   {
     temporalDir = QDir::temp();
-    temporalDir.cd("espina");
+    if (temporalDir.exists("espina"))
+      temporalDir.cd("espina");
+    else
+      return SUCCESS;
   }
 
   bool result = true;
   foreach(QFileInfo temporalFile, temporalDir.entryInfoList(QDir::Files|QDir::Dirs|QDir::NoDotAndDotDot))
   {
     if (temporalFile.isDir())
-    {
-      result &= removeTemporalDir(QDir(temporalFile.absoluteFilePath()));
-      continue;
-    }
-
-    result &= temporalDir.remove(temporalFile.fileName());
+      result &= (removeTemporalDir(QDir(temporalFile.absoluteFilePath())) == SUCCESS);
+    else
+      result &= temporalDir.remove(temporalFile.fileName());
   }
 
   QString dirName = temporalDir.dirName();
@@ -663,7 +715,10 @@ EspinaIO::STATUS EspinaIO::removeTemporalDir(QDir temporalDir)
   result &= temporalDir.rmdir(dirName);
 
   if (!result)
+  {
+    qWarning() << "EspinaIO: Failed to remove temporal directory" << dirName;
     return ERROR;
+  }
 
   return SUCCESS;
 }
