@@ -345,7 +345,7 @@ void SliceView::updateThumbnail()
 void SliceView::updateSceneBounds()
 {
   EspinaRenderView::updateSceneBounds();
-  setAxialSlicingStep(m_sceneResolution[AXIAL]);
+  setSlicingStep(m_sceneResolution);
 
   // we need to update the view only if a signal has been sent
   // (the volume of a channel has been updated)
@@ -1399,7 +1399,7 @@ bool SliceView::eventFilter(QObject* caller, QEvent* e)
     if (we->buttons() != Qt::MidButton)
     {
       int numSteps = we->delta() / 8 / 15 * (m_settings->invertWheel() ? -1 : 1);  //Refer to QWheelEvent doc.
-      m_spinBox->setValue(m_spinBox->value() - numSteps);
+      m_spinBox->setValue(m_spinBox->value() - numSteps*int(m_spinBox->singleStep()));
       e->ignore();
       return true;
     }
@@ -1792,18 +1792,18 @@ void SliceView::slicingStep(Nm steps[3])
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::setAxialSlicingStep(Nm XYstep)
+void SliceView::setSlicingStep(const Nm steps[3])
 {
-  if (XYstep <= 0)
+  if (steps[0] <= 0 || steps[1] <= 0 || steps[2] <= 0)
   {
     qFatal("SliceView: Invalid Step value. Slicing Step not changed");
     return;
   }
 
-  int slicingPos = slicingPosition();
-  int iSlicingPos = slicingPos/m_slicingStep[m_plane];
+  Nm slicingPos  = slicingPosition();
+  Nm iSlicingPos = slicingPos/m_slicingStep[m_plane];
 
-  m_slicingStep[AXIAL] = XYstep;
+  memcpy(m_slicingStep, steps, 3*sizeof(Nm));
 
   QSettings settings(CESVIMA, ESPINA);
   m_fitToSlices = m_plane == AXIAL && settings.value("ViewManager::FitToSlices").toBool();
@@ -1812,14 +1812,22 @@ void SliceView::setAxialSlicingStep(Nm XYstep)
 
   if (slicingPos > m_sceneBounds[(2*m_plane) + 1])
     iSlicingPos = m_sceneBounds[(2*m_plane) + 1]/m_slicingStep[m_plane];
-  else
-    if (slicingPos < m_sceneBounds[2*m_plane])
-      iSlicingPos = m_sceneBounds[2*m_plane]/m_slicingStep[m_plane];
+  else if (slicingPos < m_sceneBounds[2*m_plane])
+    iSlicingPos = m_sceneBounds[2*m_plane]/m_slicingStep[m_plane];
+
 
   if(m_fitToSlices)
-    m_spinBox->setValue(iSlicingPos);
+  {
+    m_spinBox  ->setValue(iSlicingPos);
+    m_spinBox  ->setSingleStep(1);
+    m_scrollBar->setSingleStep(1);
+  }
   else
-    m_spinBox->setValue(iSlicingPos*m_slicingStep[m_plane]);
+  {
+    m_spinBox  ->setValue(iSlicingPos*m_slicingStep[m_plane]);
+    m_spinBox  ->setSingleStep(int(m_slicingStep[m_plane]));
+    m_scrollBar->setSingleStep(int(m_slicingStep[m_plane]));
+  }
 }
 
 //-----------------------------------------------------------------------------

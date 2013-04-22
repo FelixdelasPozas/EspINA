@@ -94,7 +94,7 @@ namespace EspINA
     void slicingStep(Nm steps[3]);
     /// Set the distance between two consecutive slices when
     /// displacement is set to SLICES
-    void setAxialSlicingStep(Nm XYstep);
+    void setSlicingStep(const Nm steps[3]);
     Nm slicingPosition() const;
 
     void centerViewOn(Nm center[3], bool force = false);//WARNING Esta enmascarando un metodo de la clase base

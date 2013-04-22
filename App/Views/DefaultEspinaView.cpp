@@ -412,11 +412,11 @@ void DefaultEspinaView::setCrosshairPoint(Nm x, Nm y, Nm z, bool force)
 //-----------------------------------------------------------------------------
 void DefaultEspinaView::setFitToSlices(bool unused)
 {
-  Nm step = xyView->sceneResolution()[AXIAL];
+  const Nm *step = xyView->sceneResolution();
 
-  xyView->setAxialSlicingStep(step);
-  yzView->setAxialSlicingStep(step);
-  xzView->setAxialSlicingStep(step);
+  xyView->setSlicingStep(step);
+  yzView->setSlicingStep(step);
+  xzView->setSlicingStep(step);
 }
 
 // //-----------------------------------------------------------------------------
