@@ -264,13 +264,16 @@ void Filter::draw(OutputId oId,
 
   EspinaRegion polyDataRegion(bounds);
 
-  currentOutput.addEditedRegion(polyDataRegion);
-
   if(!polyDataRegion.isInside(volume->espinaRegion()))
     volume->expandToFitRegion(polyDataRegion);
 
-  // vtkPolyDataToImageStencil filter only works in XY plane so we must rotate the contour to that plane
   itkVolumeType::SpacingType spacing = volume->toITK()->GetSpacing();
+
+  currentOutput.addEditedRegion(polyDataRegion);
+  for (int i = 0; i < 6; ++i) // TODO: update alternative branch
+    polyDataRegion[i] = vtkMath::Round(polyDataRegion[i] /spacing[i/2]) * spacing[i/2];
+
+  // vtkPolyDataToImageStencil filter only works in XY plane so we must rotate the contour to that plane
   int count = contour->GetPoints()->GetNumberOfPoints();
   vtkSmartPointer<vtkPolyData> rotatedContour = vtkSmartPointer<vtkPolyData>::New();
   vtkPoints *points = vtkPoints::New();
