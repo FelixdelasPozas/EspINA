@@ -737,7 +737,6 @@ bool EspinaIO::loadSerialization(IEspinaModel *model,
 //   input->write(std::cout, RelationshipGraph::GRAPHVIZ);
 
   typedef QPair<ModelItemSPtr , ModelItem::Arguments> NonInitilizedItem;
-  QList<NonInitilizedItem> nonInitializedItems;
   QList<VertexProperty> segmentationNodes;
   SegmentationSList newSegmentations;
 
@@ -759,7 +758,6 @@ bool EspinaIO::loadSerialization(IEspinaModel *model,
           ModelItem::Arguments args(v.args.c_str());
           SampleSPtr sample = factory->createSample(v.name.c_str(), v.args.c_str());
           model->addSample(sample);
-          nonInitializedItems << NonInitilizedItem(sample, args);
           input->setItem(v.vId, sample.data());
           break;
         }
@@ -787,7 +785,6 @@ bool EspinaIO::loadSerialization(IEspinaModel *model,
             if (channel->volume()->toITK().IsNull())
               return false;
             model->addChannel(channel);
-            nonInitializedItems << NonInitilizedItem(channel, extArgs);
             input->setItem(v.vId, channel.data());
           }
           catch(int e)
@@ -854,12 +851,12 @@ bool EspinaIO::loadSerialization(IEspinaModel *model,
     ModelItem::Arguments extArgs(args.value(ModelItem::EXTENSIONS, QString()));
     args.remove(ModelItem::EXTENSIONS);
     SegmentationSPtr seg = factory->createSegmentation(filter, outputId);
-    seg->setNumber(args[Segmentation::NUMBER].toInt());
+    //seg->setNumber(args[Segmentation::NUMBER].toInt());
+    seg->initialize(args);
     TaxonomyElementSPtr taxonomy = model->taxonomy()->element(args[Segmentation::TAXONOMY]);
     if (!taxonomy.isNull())
       seg->setTaxonomy(taxonomy);
     newSegmentations << seg;
-    nonInitializedItems << NonInitilizedItem(seg, extArgs);
     input->setItem(v.vId, seg.data());
   }
 

@@ -40,6 +40,7 @@
 #include <QListView>
 #include <qinputdialog.h>
 #include <QStandardItemModel>
+#include <QMessageBox>
 
 using namespace EspINA;
 
@@ -59,7 +60,7 @@ SegmentationContextualMenu::SegmentationContextualMenu(SegmentationList selectio
   createNoteEntry();
   createTagsEntry();
   createSetLevelOfDetailEntry();
-
+  createRenameEntry();
 }
 
 //------------------------------------------------------------------------
@@ -188,10 +189,10 @@ void SegmentationContextualMenu::changeFinalFlag()
 //------------------------------------------------------------------------
 void SegmentationContextualMenu::manageTags()
 {
+  QList<QUndoCommand *> pendingCommands;
+
   if (!m_segmentations.isEmpty())
   {
-    m_undoStack->beginMacro("Change Segmentation Tags");
-
     QString title = m_segmentations[0]->data().toString();
     if (m_segmentations.size() > 1)
       title.append(", " + m_segmentations[1]->data().toString());
@@ -230,6 +231,7 @@ void SegmentationContextualMenu::manageTags()
       {
         SegmentationTags *tagExtension = SegmentationTags::extension(segmentation);
         QStringList segTags = tagExtension->tags();
+        QStringList oldTags = tagExtension->tags();
 
         for (int r = 0; r < tags.rowCount(); ++r)
         {
@@ -243,10 +245,20 @@ void SegmentationContextualMenu::manageTags()
             segTags.removeAll(item->text());
           }
         }
-        m_undoStack->push(new ChangeSegmentationTags(tagExtension, segTags));
+        if (oldTags != segTags)
+          pendingCommands << new ChangeSegmentationTags(tagExtension, segTags);
       }
     }
 
+  }
+
+  if (!pendingCommands.isEmpty())
+  {
+    m_undoStack->beginMacro("Change Segmentation Tags");
+    foreach (QUndoCommand *command, pendingCommands)
+    {
+      m_undoStack->push(command);
+    }
     m_undoStack->endMacro();
   }
 }
@@ -255,6 +267,31 @@ void SegmentationContextualMenu::manageTags()
 void SegmentationContextualMenu::resetRootItem()
 {
   m_taxonomyList->setRootIndex(m_model->taxonomyRoot());
+}
+
+//------------------------------------------------------------------------
+void SegmentationContextualMenu::renameSegmentation()
+{
+  foreach (SegmentationPtr segmentation, m_segmentations)
+  {
+    QString oldName = segmentation->data().toString();
+    QString alias = QInputDialog::getText(this, oldName, "Rename Segmentation", QLineEdit::Normal, oldName);
+
+    bool exists = false;
+    foreach (SegmentationSPtr existinSegmentation, m_model->segmentations())
+    {
+      exists |= (existinSegmentation->data().toString() == alias && segmentation != existinSegmentation.data());
+    }
+
+    if (exists)
+    {
+      QMessageBox::warning(this,
+                           tr("Alias duplicated"),
+                           tr("Segmentation alias is already used by another segmentation."));
+    } else
+      segmentation->setData(alias, Qt::EditRole);
+    // TODO: Undoable
+  }
 }
 
 //------------------------------------------------------------------------
@@ -369,4 +406,14 @@ void SegmentationContextualMenu::createSetLevelOfDetailEntry()
   }
 
   m_changeFinalNode->setChecked(enabled);
+}
+
+//------------------------------------------------------------------------
+void SegmentationContextualMenu::createRenameEntry()
+{
+  QAction *action = this->addAction(tr("&Rename"));
+  //action->setShortcut("F2");
+
+  connect(action, SIGNAL(triggered(bool)),
+          this, SLOT(renameSegmentation()));
 }

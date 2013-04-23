@@ -40,6 +40,7 @@
 using namespace std;
 using namespace EspINA;
 
+const ModelItem::ArgumentId Segmentation::ALIAS     = "Alias";
 const ModelItem::ArgumentId Segmentation::NUMBER    = "Number";
 const ModelItem::ArgumentId Segmentation::OUTPUT    = "Output";
 const ModelItem::ArgumentId Segmentation::TAXONOMY  = "Taxonomy";
@@ -108,8 +109,15 @@ QVariant Segmentation::data(int role) const
   switch (role)
   {
     case Qt::DisplayRole:
-      return QString("%1 %2").arg(m_taxonomy->name())
-                             .arg(m_args.number());
+    {
+      QString value = m_args.alias();
+      if (value.isEmpty())
+      {
+        value = QString("%1 %2").arg(m_taxonomy->name())
+                                .arg(m_args.number());
+      }
+      return value;
+    }
     case Qt::DecorationRole:
     {
       const unsigned char WIDTH = 3;
@@ -228,8 +236,11 @@ QString Segmentation::serialize() const
 void Segmentation::initialize(const Arguments &args)
 {
   // Prevent overriding segmentation id assigned from model
-  if (Arguments() != args)
-    m_args = SArguments(args);
+  foreach (QString key, args.keys())
+  {
+    //if (NUMBER != key)
+    m_args[key] = args[key];
+  }
 }
 
 //------------------------------------------------------------------------
@@ -334,6 +345,7 @@ bool Segmentation::setData(const QVariant& value, int role)
   switch (role)
   {
     case Qt::EditRole:
+      m_args.setAlias(value.toString());
       return true;
     case Qt::CheckStateRole:
       setVisible(value.toBool());

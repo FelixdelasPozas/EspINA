@@ -50,6 +50,7 @@ namespace EspINA
   {
     Q_OBJECT
   public:
+    static const ArgumentId ALIAS;
     static const ArgumentId NUMBER;
     static const ArgumentId OUTPUT;
     static const ArgumentId TAXONOMY;
@@ -114,12 +115,18 @@ namespace EspINA
         (*this)[DEPENDENT] = value?"1":"0";
       }
 
+      void setAlias(const QString &alias)
+      { (*this)[ALIAS] = alias; }
+
+      QString alias() const
+      { return (*this)[ALIAS];}
+
       virtual QString serialize() const;
 
     private:
       unsigned int m_number;
-      int m_outputId;
-      bool m_isInputSegmentationDependent;
+      int          m_outputId;
+      bool         m_isInputSegmentationDependent;
     };
 
   public:

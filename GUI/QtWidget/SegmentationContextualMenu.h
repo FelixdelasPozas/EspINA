@@ -48,6 +48,7 @@ namespace EspINA
     void changeFinalFlag();
     void manageTags();
     void resetRootItem();
+    void renameSegmentation();
 
   signals:
     void changeTaxonomy(TaxonomyElementPtr);
@@ -59,6 +60,7 @@ namespace EspINA
     void createChangeTaxonomyMenu();
     void createTagsEntry();
     void createSetLevelOfDetailEntry();
+    void createRenameEntry();
 
   private:
     EspinaModel *m_model;
