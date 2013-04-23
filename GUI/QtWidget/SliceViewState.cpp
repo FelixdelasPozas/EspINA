@@ -37,17 +37,24 @@ double AxialSliceMatrix[16] =
 };
 
 //-----------------------------------------------------------------------------
-void SliceView::AxialState::setCrossHairs(vtkPolyData* hline, vtkPolyData* vline, double center[3], double bounds[6])
+void SliceView::AxialState::setCrossHairs(vtkPolyData* hline,
+                                          vtkPolyData* vline,
+                                          double center[3],
+                                          double bounds[6],
+                                          double slicingStep[3])
 {
   // the -0.1 is needed to draw the crosshair over the actors, right now the
   // segmentation's actors are been drawn -0.05 over the channel's actors at
   // the axial view
-  hline->GetPoints()->SetPoint ( 0,bounds[0],center[1],-0.1 );
-  hline->GetPoints()->SetPoint ( 1,bounds[1],center[1],-0.1 );
+  Nm hShift = 0.5*slicingStep[0];
+  Nm vShift = 0.5*slicingStep[1];
+
+  hline->GetPoints()->SetPoint(0, bounds[0]-hShift, center[1], -0.1);
+  hline->GetPoints()->SetPoint(1, bounds[1]+hShift, center[1], -0.1);
   hline->Modified();
 
-  vline->GetPoints()->SetPoint ( 0,center[0],bounds[2],-0.1 );
-  vline->GetPoints()->SetPoint ( 1,center[0],bounds[3],-0.1 );
+  vline->GetPoints()->SetPoint(0, center[0], bounds[2]-vShift, -0.1);
+  vline->GetPoints()->SetPoint(1, center[0], bounds[3]+vShift, -0.1);
   vline->Modified();
 }
 
@@ -89,17 +96,21 @@ double SagitalSliceMatrix[16] =
 void SliceView::SagittalState::setCrossHairs(vtkPolyData* hline,
                                              vtkPolyData* vline,
                                              double center[3],
-                                             double bounds[6])
+                                             double bounds[6],
+                                             double slicingStep[3])
 {
   // the +0.1 is needed to draw the crosshair over the actors, right now the
   // segmentation's actors are been drawn +0.05 over the channel's actors at
   // the sagittal view
-  hline->GetPoints()->SetPoint ( 0, 0.1,center[1],bounds[4] );
-  hline->GetPoints()->SetPoint ( 1, 0.1,center[1],bounds[5] );
+  Nm hShift = 0.5*slicingStep[2];
+  Nm vShift = 0.5*slicingStep[1];
+
+  hline->GetPoints()->SetPoint(0, 0.1, center[1], bounds[4]-hShift);
+  hline->GetPoints()->SetPoint(1, 0.1, center[1], bounds[5]+hShift);
   hline->Modified();
 
-  vline->GetPoints()->SetPoint ( 0, 0.1,bounds[2],center[2] );
-  vline->GetPoints()->SetPoint ( 1, 0.1,bounds[3],center[2] );
+  vline->GetPoints()->SetPoint(0, 0.1, bounds[2]-vShift, center[2]);
+  vline->GetPoints()->SetPoint(1, 0.1, bounds[3]+vShift, center[2]);
   vline->Modified();
 }
 
@@ -145,17 +156,21 @@ double CoronalSliceMatrix[16] =
 void SliceView::CoronalState::setCrossHairs(vtkPolyData* hline,
                                             vtkPolyData* vline,
                                             double center[3],
-                                            double bounds[6])
+                                            double bounds[6],
+                                            double slicingStep[3])
 {
   // the +0.1 is needed to draw the crosshair over the actors, right now the
   // segmentation's actors are been drawn -0.05 over the channel's actors at
   // the coronal view
-  hline->GetPoints()->SetPoint ( 0,bounds[0], 0.1,center[2] );
-  hline->GetPoints()->SetPoint ( 1,bounds[1], 0.1,center[2] );
+  Nm hShift = 0.5*slicingStep[0];
+  Nm vShift = 0.5*slicingStep[2];
+
+  hline->GetPoints()->SetPoint(0, bounds[0]-hShift, 0.1, center[2]);
+  hline->GetPoints()->SetPoint(1, bounds[1]+hShift, 0.1, center[2]);
   hline->Modified();
 
-  vline->GetPoints()->SetPoint ( 0,center[0], 0.1,bounds[4] );
-  vline->GetPoints()->SetPoint ( 1,center[0], 0.1,bounds[5] );
+  vline->GetPoints()->SetPoint(0, center[0], 0.1, bounds[4]-vShift);
+  vline->GetPoints()->SetPoint(1, center[0], 0.1, bounds[5]+vShift);
   vline->Modified();
 }
 
@@ -173,7 +188,7 @@ void SliceView::CoronalState::updateActor(vtkProp3D* actor)
 
 //-----------------------------------------------------------------------------
 void SliceView::CoronalState::updateCamera(vtkCamera* camera,
-					 double center[3])
+                                           double center[3])
 {
   camera->SetPosition(center[0], center[1]+1, center[2]);
   camera->SetFocalPoint(center[0], center[1], center[2]);

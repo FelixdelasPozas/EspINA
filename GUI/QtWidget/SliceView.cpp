@@ -76,6 +76,7 @@
 #include <vtkPolyDataMapper.h>
 #include <vtkProp3DCollection.h>
 #include <vtkPropCollection.h>
+#include <vtkMath.h>
 #include <vtkPropPicker.h>
 #include <vtkProperty.h>
 #include <vtkRenderWindow.h>
@@ -417,6 +418,30 @@ void SliceView::updateBorder(vtkPolyData* data,
 }
 
 //-----------------------------------------------------------------------------
+Nm SliceView::voxelBottom(int sliceIndex, PlaneType plane) const
+{
+  return (sliceIndex - 0.5) * m_slicingStep[plane];
+}
+
+//-----------------------------------------------------------------------------
+Nm SliceView::voxelCenter(int sliceIndex, PlaneType plane) const
+{
+  return sliceIndex * m_slicingStep[plane];
+}
+
+//-----------------------------------------------------------------------------
+Nm SliceView::voxelTop(int sliceIndex, PlaneType plane) const
+{
+  return (sliceIndex + 0.5) * m_slicingStep[plane];
+}
+
+//-----------------------------------------------------------------------------
+int SliceView::voxelSlice(Nm position, PlaneType plane) const
+{
+  return vtkMath::Round(position/m_slicingStep[plane]);
+}
+
+//-----------------------------------------------------------------------------
 void SliceView::buildCrosshairs()
 {
  vtkSmartPointer<vtkPoints> HPoints = vtkSmartPointer<vtkPoints>::New();
@@ -519,8 +544,8 @@ void SliceView::setupUI()
   m_spinBox->setAlignment(Qt::AlignRight);
   m_spinBox->setSingleStep(1);
 
-  connect(m_scrollBar, SIGNAL(valueChanged(int)), this, SLOT(scrollValueChanged(int)));
   connect(m_spinBox, SIGNAL(valueChanged(double)), this, SLOT(spinValueChanged(double)));
+  connect(m_scrollBar, SIGNAL(valueChanged(int)), this, SLOT(scrollValueChanged(int)));
 
   m_mainLayout->addWidget(m_view);
   m_controlLayout->addWidget(m_zoomButton);
@@ -1324,31 +1349,34 @@ void SliceView::sliceViewCenterChanged(Nm x, Nm y, Nm z)
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::scrollValueChanged(int value /* nm or slices depending on m_fitToSlices */)
+void SliceView::scrollValueChanged(int value /*slice index */)
 {
-  double position = (m_fitToSlices ? value*m_slicingStep[m_plane] : value);
+  m_crosshairPoint[m_plane] = voxelCenter(value, m_plane);
 
-  m_state->setSlicingPosition(m_slicingMatrix, position);
+  m_state->setSlicingPosition(m_slicingMatrix, voxelBottom(value, m_plane));
+
   m_spinBox->blockSignals(true);
-  m_spinBox->setValue(value);
+  m_spinBox->setValue(m_fitToSlices ? value + 1: slicingPosition());
   m_spinBox->blockSignals(false);
 
   updateView();
-  emit sliceChanged(m_plane, position);
+  emit sliceChanged(m_plane, slicingPosition());
 }
 
 //-----------------------------------------------------------------------------
 void SliceView::spinValueChanged(double value /* nm or slices depending on m_fitToSlices */)
 {
-  double position = (m_fitToSlices ? value*m_slicingStep[m_plane] : value);
+  int sliceIndex = m_fitToSlices ? (value - 1) : floor(value/m_slicingStep[m_plane]);
+  m_crosshairPoint[m_plane] = voxelCenter(sliceIndex, m_plane);
 
-  m_state->setSlicingPosition(m_slicingMatrix, position);
+  m_state->setSlicingPosition(m_slicingMatrix, voxelBottom(sliceIndex, m_plane));
+
   m_scrollBar->blockSignals(true);
-  m_scrollBar->setValue(value);
+  m_scrollBar->setValue(m_fitToSlices? (value - 1) : vtkMath::Round(value/m_slicingStep[m_plane]));
   m_scrollBar->blockSignals(false);
 
   updateView();
-  emit sliceChanged(m_plane, position);
+  emit sliceChanged(m_plane, slicingPosition());
 }
 
 //-----------------------------------------------------------------------------
@@ -1399,7 +1427,7 @@ bool SliceView::eventFilter(QObject* caller, QEvent* e)
     if (we->buttons() != Qt::MidButton)
     {
       int numSteps = we->delta() / 8 / 15 * (m_settings->invertWheel() ? -1 : 1);  //Refer to QWheelEvent doc.
-      m_spinBox->setValue(m_spinBox->value() - numSteps*int(m_spinBox->singleStep()));
+      m_scrollBar->setValue(m_scrollBar->value() - numSteps);
       e->ignore();
       return true;
     }
@@ -1800,8 +1828,7 @@ void SliceView::setSlicingStep(const Nm steps[3])
     return;
   }
 
-  Nm slicingPos  = slicingPosition();
-  Nm iSlicingPos = slicingPos/m_slicingStep[m_plane];
+  int sliceIndex = floor(slicingPosition()/m_slicingStep[m_plane]);
 
   memcpy(m_slicingStep, steps, 3*sizeof(Nm));
 
@@ -1810,30 +1837,24 @@ void SliceView::setSlicingStep(const Nm steps[3])
 
   setSlicingBounds(m_sceneBounds);
 
-  if (slicingPos > m_sceneBounds[(2*m_plane) + 1])
-    iSlicingPos = m_sceneBounds[(2*m_plane) + 1]/m_slicingStep[m_plane];
-  else if (slicingPos < m_sceneBounds[2*m_plane])
-    iSlicingPos = m_sceneBounds[2*m_plane]/m_slicingStep[m_plane];
-
-
+//   int sliceMax = floor(m_sceneBounds[2*m_plane+1]/m_slicingStep[m_plane]);
+//   int sliceMin = floor(m_sceneBounds[2*m_plane]  /m_slicingStep[m_plane]);
+// 
   if(m_fitToSlices)
-  {
-    m_spinBox  ->setValue(iSlicingPos);
-    m_spinBox  ->setSingleStep(1);
-    m_scrollBar->setSingleStep(1);
-  }
+    m_spinBox->setSingleStep(1);
   else
-  {
-    m_spinBox  ->setValue(iSlicingPos*m_slicingStep[m_plane]);
-    m_spinBox  ->setSingleStep(int(m_slicingStep[m_plane]));
-    m_scrollBar->setSingleStep(int(m_slicingStep[m_plane]));
-  }
+    m_spinBox->setSingleStep(m_slicingStep[m_plane]);
+
+//   m_scrollBar->setMinimum(sliceMin);
+//   m_scrollBar->setMaximum(sliceMax);
+  m_scrollBar->setValue(sliceIndex);
+  scrollValueChanged(sliceIndex); // Updates spin box's value
 }
 
 //-----------------------------------------------------------------------------
 Nm SliceView::slicingPosition() const
 {
-  return m_spinBox->value() * (m_fitToSlices ? m_slicingStep[m_plane] :  1);
+  return m_crosshairPoint[m_plane];
 }
 
 
@@ -1846,33 +1867,28 @@ void SliceView::setSlicingBounds(Nm bounds[6])
     return;
   }
 
-  Nm min = bounds[2*m_plane];
-  Nm max = bounds[2*m_plane + 1];
+  int sliceMax = floor(bounds[2*m_plane+1]/m_slicingStep[m_plane]);
+  int sliceMin = floor(bounds[2*m_plane]  /m_slicingStep[m_plane]);
 
+  m_spinBox->blockSignals(true);
   if(m_fitToSlices)
   {
-    m_scrollBar->blockSignals(true);
-    m_scrollBar->setMinimum(static_cast<int>(min/m_slicingStep[m_plane]));
-    m_scrollBar->setMaximum(static_cast<int>(max/m_slicingStep[m_plane]));
-    m_scrollBar->blockSignals(false);
-    m_spinBox->blockSignals(true);
     m_spinBox->setSuffix(" slice");
-    m_spinBox->setMinimum(min/m_slicingStep[m_plane]);
-    m_spinBox->setMaximum(max/m_slicingStep[m_plane]);
-    m_spinBox->blockSignals(false);
+    m_spinBox->setMinimum(sliceMin+1);
+    m_spinBox->setMaximum(sliceMax+1);
   }
   else
   {
-    m_scrollBar->blockSignals(true);
-    m_scrollBar->setMinimum(static_cast<int>(min));
-    m_scrollBar->setMaximum(static_cast<int>(max));
-    m_scrollBar->blockSignals(false);
-    m_spinBox->blockSignals(true);
     m_spinBox->setSuffix(" nm");
-    m_spinBox->setMinimum(min);
-    m_spinBox->setMaximum(max);
-    m_spinBox->blockSignals(false);
+    m_spinBox->setMinimum(voxelCenter(sliceMin, m_plane));
+    m_spinBox->setMaximum(voxelCenter(sliceMax, m_plane));
   }
+  m_spinBox->blockSignals(false);
+
+  m_scrollBar->blockSignals(true);
+  m_scrollBar->setMinimum(sliceMin);
+  m_scrollBar->setMaximum(sliceMax);
+  m_scrollBar->blockSignals(false);
 
   //bool enabled = m_spinBox->minimum() < m_spinBox->maximum();
   //TODO 2012-11-14 m_fromSlice->setEnabled(enabled);
@@ -1880,39 +1896,48 @@ void SliceView::setSlicingBounds(Nm bounds[6])
 
   // update crosshair
   m_state->setCrossHairs(m_HCrossLineData, m_VCrossLineData,
-                         m_crosshairPoint, m_sceneBounds);
+                         m_crosshairPoint, m_sceneBounds, m_slicingStep);
 }
 
 //-----------------------------------------------------------------------------
 void SliceView::centerViewOn(Nm center[3], bool force)
 {
+  Nm centerVoxel[3];
+  // Adjust crosshairs to fit slicing steps
+  for (int i = 0; i < 3; i++)
+    centerVoxel[i] = voxelCenter(voxelSlice(center[i], PlaneType(i)), PlaneType(i));
+
   if (!isVisible() ||
-     (m_crosshairPoint[0] == center[0] &&
-      m_crosshairPoint[1] == center[1] &&
-      m_crosshairPoint[2] == center[2] &&
+     (m_crosshairPoint[0] == centerVoxel[0] &&
+      m_crosshairPoint[1] == centerVoxel[1] &&
+      m_crosshairPoint[2] == centerVoxel[2] &&
       !force))
     return;
 
   // Adjust crosshairs to fit slicing steps
-  int sliceNumbers[3];
-  for (int i = 0; i < 3; i++)
-  {
-    sliceNumbers[i] = center[i] / m_slicingStep[i];
-    m_crosshairPoint[i] = floor((center[i]/m_slicingStep[i] + 0.5))*m_slicingStep[i];
-  }
+  memcpy(m_crosshairPoint, centerVoxel, 3*sizeof(Nm));
 
   // Disable scrollbar signals to avoid calling setting slice
   m_scrollBar->blockSignals(true);
-  if (!m_fitToSlices)
-    m_spinBox->setValue(sliceNumbers[m_plane]*m_slicingStep[m_plane]);
+  m_spinBox->blockSignals(true);
+
+  Nm slicingPos = voxelSlice(center[m_plane], m_plane);//m_slicingStep[m_plane]);
+
+  m_scrollBar->setValue(slicingPos);
+
+  if (m_fitToSlices)
+    slicingPos++; // Correct 0 index
   else
-    m_spinBox->setValue(sliceNumbers[m_plane]);
-  m_scrollBar->setValue(sliceNumbers[m_plane]);
+    slicingPos = voxelCenter(slicingPos, m_plane);
+
+  m_spinBox->setValue(slicingPos);
+
+  m_spinBox->blockSignals(false);
   m_scrollBar->blockSignals(false);
 
-  m_state->setSlicingPosition(m_slicingMatrix, slicingPosition());
+  m_state->setSlicingPosition(m_slicingMatrix, voxelBottom(m_scrollBar->value(), m_plane));
   m_state->setCrossHairs(m_HCrossLineData, m_VCrossLineData,
-                         m_crosshairPoint, m_sceneBounds);
+                         m_crosshairPoint, m_sceneBounds, m_slicingStep);
 
   // Only center camera if center is out of the display view
   vtkSmartPointer<vtkCoordinate> coords = vtkSmartPointer<vtkCoordinate>::New();
@@ -2044,11 +2069,11 @@ void SliceView::Settings::setShowAxis(bool value)
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::updateCrosshairPoint(PlaneType plane, Nm slicepos)
+void SliceView::updateCrosshairPoint(PlaneType plane, Nm slicePos)
 {
-  this->m_crosshairPoint[plane] = slicepos;
+  m_crosshairPoint[plane] = voxelCenter(floor(slicePos/m_slicingStep[plane]), plane);
   m_state->setCrossHairs(m_HCrossLineData, m_VCrossLineData,
-                         m_crosshairPoint, m_sceneBounds);
+                         m_crosshairPoint, m_sceneBounds, m_slicingStep);
 
   // render if present
   if (this->m_renderer->HasViewProp(this->m_HCrossLine))

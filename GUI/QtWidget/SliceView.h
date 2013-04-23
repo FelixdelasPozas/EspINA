@@ -219,6 +219,11 @@ namespace EspINA
                       double left, double right,
                       double upper, double lower);
 
+    Nm  voxelBottom(int sliceIndex, PlaneType plane) const;
+    Nm  voxelCenter(int sliceIndex, PlaneType plane) const;
+    Nm  voxelTop   (int sliceIndex, PlaneType plane) const;
+    int voxelSlice (Nm position,    PlaneType plane) const;
+
     void buildCrosshairs();
     void buildTitle();
     void setupUI();
