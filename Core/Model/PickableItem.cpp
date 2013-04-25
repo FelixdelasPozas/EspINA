@@ -23,7 +23,7 @@ using namespace EspINA;
 //----------------------------------------------------------------------------
 PickableItem::PickableItem()
 : m_isSelected(false)
-, m_isVolumeModified(false)
+, m_outputIsModified(false)
 {
 }
 
@@ -35,15 +35,15 @@ FilterSPtr PickableItem::filter()
 }
 
 //----------------------------------------------------------------------------
-EspinaVolume::Pointer PickableItem::volume()
+OutputSPtr PickableItem::output()
 {
-  return filter()->volume(outputId());
+  return filter()->output(outputId());
 }
 
 //----------------------------------------------------------------------------
-const EspinaVolume::Pointer PickableItem::volume() const
+const OutputSPtr PickableItem::output() const
 {
-  return filter()->volume(outputId());
+  return filter()->output(outputId());
 }
 
 //----------------------------------------------------------------------------

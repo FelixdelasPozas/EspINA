@@ -269,7 +269,9 @@ void Brush::drawStroke(PickableItemPtr item,
     {
       try
       {
-        const Nm *volumeBounds = m_currentSeg->volume()->espinaRegion().bounds();
+        SegmentationVolumeTypeSPtr segVolume = boost::dynamic_pointer_cast<SegmentationVolumeType>(m_currentSeg->output()->data(VolumeOutputType::TYPE));
+
+        const Nm *volumeBounds = segVolume->espinaRegion().bounds();
         Nm insideBounds[6] = { volumeBounds[0]+1, volumeBounds[1]-1, volumeBounds[2]+1, volumeBounds[3]-1, volumeBounds[4]+1, volumeBounds[5]-1 };
 
         // to make sure the stroke is inside the volumeBounds plus a 1 voxel
@@ -281,7 +283,7 @@ void Brush::drawStroke(PickableItemPtr item,
         {
           if (!(*it).second.isInside(insideRegion))
           {
-            m_currentSeg->volume()->fitToContent();
+            segVolume->fitToContent();
             break;
           }
         }

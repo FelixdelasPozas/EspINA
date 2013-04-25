@@ -117,45 +117,45 @@ namespace EspINA
       /// Whether the filter needs to be updated or not
       /// Default implementation will request an update if there is no filter output
       /// or it is an invalid output
-      virtual bool needUpdate(OutputId oId) const;
+      virtual bool needUpdate(FilterOutputId oId) const;
 
       virtual void run();
 
-      virtual void run(OutputId oId);
+      virtual void run(FilterOutputId oId);
 
-      virtual void createOutput(OutputId id, itkVolumeType::Pointer volume = NULL);
+      virtual void createOutput(FilterOutputId id, itkVolumeType::Pointer volume = NULL);
 
     private:
       /// forbidden methods
       /////////////////////////////////////////////////////////////////////
-      virtual void draw(OutputId oId,
+      virtual void draw(FilterOutputId oId,
                         vtkImplicitFunction *brush,
                         const Nm bounds[6],
                         itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
                         bool emitSignal = true) {};
 
-      virtual void draw(OutputId oId,
+      virtual void draw(FilterOutputId oId,
                         itkVolumeType::IndexType index,
                         itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
                         bool emitSignal = true) {};
 
-      virtual void draw(OutputId oId,
+      virtual void draw(FilterOutputId oId,
                         Nm x, Nm y, Nm z,
                         itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
                         bool emitSignal = true) {};
-      virtual void draw(OutputId oId,
+      virtual void draw(FilterOutputId oId,
                         vtkPolyData *contour,
                         Nm slice,
                         PlaneType plane,
                         itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
                         bool emitSignal = true) {};
 
-      virtual void draw(OutputId oId,
+      virtual void draw(FilterOutputId oId,
                         itkVolumeType::Pointer volume,
                         bool emitSignal = true)  {};
 
       //TODO 2012-11-20 cambiar nombre y usar FilterOutput
-      virtual void restoreOutput(OutputId oId,
+      virtual void restoreOutput(FilterOutputId oId,
                                  itkVolumeType::Pointer volume) {};
 
       /// helper methods

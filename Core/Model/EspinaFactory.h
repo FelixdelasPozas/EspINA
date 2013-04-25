@@ -88,9 +88,9 @@ namespace EspINA
 
     SampleSPtr createSample(const QString &id, const QString &args = "");
 
-    ChannelSPtr createChannel(FilterSPtr filter, const Filter::OutputId &oId);
+    ChannelSPtr createChannel(FilterSPtr filter, const FilterOutputId &oId);
 
-    SegmentationSPtr createSegmentation(FilterSPtr filter, const Filter::OutputId &oId);
+    SegmentationSPtr createSegmentation(FilterSPtr filter, const FilterOutputId &oId);
 
 
   private:

@@ -24,6 +24,7 @@
 #include "Core/Model/Channel.h"
 #include "Core/Model/Taxonomy.h"
 #include "EspinaModel.h"
+#include "Output.h"
 #include "Core/ColorEngines/IColorEngine.h"
 #include <Core/Extensions/SegmentationExtension.h>
 #include <Core/Extensions/Tags/TagExtension.h>
@@ -66,8 +67,8 @@ QString Segmentation::SArguments::serialize() const
 }
 
 //-----------------------------------------------------------------------------
-Segmentation::Segmentation(FilterSPtr         filter,
-                           const Filter::OutputId &oId)
+Segmentation::Segmentation(FilterSPtr            filter,
+                           const FilterOutputId &oId)
 : PickableItem()
 , m_filter(filter)
 , m_taxonomy(NULL)
@@ -77,22 +78,22 @@ Segmentation::Segmentation(FilterSPtr         filter,
   m_args.setNumber(0);
   m_args.setOutputId(oId);
   m_args[TAXONOMY] = "Unknown";
-  connect(volume().get(), SIGNAL(modified()),
-          this, SLOT(onVolumeModified()));
+  connect(output().get(), SIGNAL(modified()),
+          this, SLOT(onOutputModified()));
 }
 
 //------------------------------------------------------------------------
-void Segmentation::changeFilter(FilterSPtr filter, const Filter::OutputId &oId)
+void Segmentation::changeFilter(FilterSPtr filter, const FilterOutputId &oId)
 {
-  disconnect(volume().get(), SIGNAL(modified()),
-             this, SLOT(onVolumeModified()));
+  disconnect(output().get(), SIGNAL(modified()),
+             this, SLOT(onOutputModified()));
 //   m_filter->releaseDataFlagOn();
 //   filter->releaseDataFlagOff();
   filter->update(oId);
   m_filter = filter;
   m_args.setOutputId(oId);
-  connect(volume().get(), SIGNAL(modified()),
-          this, SLOT(onVolumeModified()));
+  connect(output().get(), SIGNAL(modified()),
+          this, SLOT(onOutputModified()));
 }
 
 //------------------------------------------------------------------------
@@ -147,10 +148,10 @@ QVariant Segmentation::data(int role) const
       const QString TAB = WS+WS+WS;
       QString boundsInfo;
       QString filterInfo;
-      if (m_filter && outputId() != Filter::Output::INVALID_OUTPUT_ID)
+      if (m_filter && output()->isValid()) //FIXME: Utilizar el region del output
       {
         double bounds[6];
-        volume()->bounds(bounds);
+        output()->region().bounds(bounds);
         boundsInfo = tr("<b>Sections:</b><br>");
         boundsInfo = boundsInfo.append(TAB+"X: %1 nm - %2 nm <br>").arg(bounds[0]).arg(bounds[1]);
         boundsInfo = boundsInfo.append(TAB+"Y: %1 nm - %2 nm <br>").arg(bounds[2]).arg(bounds[3]);
@@ -265,9 +266,9 @@ void Segmentation::invalidateExtensions()
 }
 
 //------------------------------------------------------------------------
-void Segmentation::updateCacheFlag()
+void Segmentation::updateCacheFlag() // FIXME
 {
-  m_filter->output(m_args.outputId()).isCached = true;
+  output()->setCached(true);
 }
 
 //------------------------------------------------------------------------
@@ -306,30 +307,30 @@ ChannelSPtr Segmentation::channel()
   return channel;
 }
 
-//------------------------------------------------------------------------
-SegmentationVolume::Pointer Segmentation::volume()
-{
-  EspinaVolume::Pointer ev = m_filter->volume(m_args.outputId());
-
-  // On invalid cast:
-  // The static_pointer_cast will "just do it". This will result in an invalid pointer and will likely cause a crash. The reference count on base will be incremented.
-  // The shared_polymorphic_downcast will come the same as a static cast, but will trigger an assertion in the process. The reference count on base will be incremented.
-  // The dynamic_pointer_cast will simply come out NULL. The reference count on base will be unchanged.
-  return boost::dynamic_pointer_cast<SegmentationVolume>(ev);
-}
-
-//------------------------------------------------------------------------
-const SegmentationVolume::Pointer Segmentation::volume() const
-{
-  EspinaVolume::Pointer ev = m_filter->volume(m_args.outputId());
-
-  // On invalid cast:
-  // The static_pointer_cast will "just do it". This will result in an invalid pointer and will likely cause a crash. The reference count on base will be incremented.
-  // The shared_polymorphic_downcast will come the same as a static cast, but will trigger an assertion in the process. The reference count on base will be incremented.
-  // The dynamic_pointer_cast will simply come out NULL. The reference count on base will be unchanged.
-  return boost::dynamic_pointer_cast<SegmentationVolume>(ev);
-
-}
+// //------------------------------------------------------------------------
+// SegmentationVolume::Pointer Segmentation::volume()
+// {
+//   EspinaVolume::Pointer ev = m_filter->volume(m_args.outputId());
+// 
+//   // On invalid cast:
+//   // The static_pointer_cast will "just do it". This will result in an invalid pointer and will likely cause a crash. The reference count on base will be incremented.
+//   // The shared_polymorphic_downcast will come the same as a static cast, but will trigger an assertion in the process. The reference count on base will be incremented.
+//   // The dynamic_pointer_cast will simply come out NULL. The reference count on base will be unchanged.
+//   return boost::dynamic_pointer_cast<SegmentationVolume>(ev);
+// }
+// 
+// //------------------------------------------------------------------------
+// const SegmentationVolume::Pointer Segmentation::volume() const
+// {
+//   EspinaVolume::Pointer ev = m_filter->volume(m_args.outputId());
+// 
+//   // On invalid cast:
+//   // The static_pointer_cast will "just do it". This will result in an invalid pointer and will likely cause a crash. The reference count on base will be incremented.
+//   // The shared_polymorphic_downcast will come the same as a static cast, but will trigger an assertion in the process. The reference count on base will be incremented.
+//   // The dynamic_pointer_cast will simply come out NULL. The reference count on base will be unchanged.
+//   return boost::dynamic_pointer_cast<SegmentationVolume>(ev);
+// 
+// }
 
 // //------------------------------------------------------------------------
 // void Segmentation::notifyModification(bool force)

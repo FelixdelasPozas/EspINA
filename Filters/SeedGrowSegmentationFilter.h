@@ -19,6 +19,7 @@
 #define SEEDGROWSEGMENTATIONFILTER_H
 
 #include "Core/Model/Filter.h"
+#include <Core/Model/VolumeOutputType.h>
 
 #include <itkImage.h>
 #include <itkVTKImageToImageFilter.h>
@@ -143,21 +144,22 @@ namespace EspINA
     bool isTouchingVOI() const;
 
   protected:
+    virtual void createDummyOutput(FilterOutputId id, const FilterOutput::OutputTypeName &type);
+
     virtual bool ignoreCurrentOutputs() const
     { return m_ignoreCurrentOutputs; }
 
-    virtual bool needUpdate(OutputId oId) const;
+    virtual bool needUpdate(FilterOutputId oId) const;
 
-    virtual bool fetchSnapshot(OutputId oId);
+    virtual bool fetchSnapshot(FilterOutputId oId);
 
     virtual void run();
 
-    virtual void run(OutputId oId);
+    virtual void run(FilterOutputId oId);
 
   private:
-    bool                  m_ignoreCurrentOutputs;
-    Parameters            m_param;
-    EspinaVolume::Pointer m_input;
+    bool              m_ignoreCurrentOutputs;
+    Parameters        m_param;
 
     ConnectedThresholdFilterType::Pointer ctif;
     ExtractType::Pointer voiFilter;

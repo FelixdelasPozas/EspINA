@@ -95,7 +95,7 @@ void FilterInspectorDock::updatePannel()
   {
     if (m_seg)
     {
-      disconnect(m_seg, SIGNAL(volumeModified()),
+      disconnect(m_seg, SIGNAL(outputModified()),
                  this, SLOT(updatePannel()));
     }
 
@@ -103,7 +103,7 @@ void FilterInspectorDock::updatePannel()
 
     if (m_seg)
     {
-      connect(m_seg, SIGNAL(volumeModified()),
+      connect(m_seg, SIGNAL(outputModified()),
               this, SLOT(updatePannel()));
     }
     changeWidget = true;

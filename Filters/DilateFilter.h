@@ -24,19 +24,12 @@
 
 #include <Core/Model/Segmentation.h>
 
-#include <itkBinaryBallStructuringElement.h>
-#include <itkDilateObjectMorphologyImageFilter.h>
-
-
 namespace EspINA
 {
 
 class DilateFilter
 : public MorphologicalEditionFilter
 {
-  typedef itk::BinaryBallStructuringElement<itkVolumeType::PixelType, 3> StructuringElementType;
-  typedef itk::DilateObjectMorphologyImageFilter<itkVolumeType, itkVolumeType, StructuringElementType> BinaryDilateFilter;
-
 public:
   explicit DilateFilter(NamedInputs inputs,
                         Arguments   args,
@@ -44,10 +37,7 @@ public:
   virtual ~DilateFilter();
 
 protected:
-  virtual void run(OutputId oId);
-
-private:
-  BinaryDilateFilter::Pointer m_filter;
+  virtual void run(FilterOutputId oId);
 };
 
 } // namespace EspINA

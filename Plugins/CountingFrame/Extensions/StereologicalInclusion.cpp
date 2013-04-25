@@ -90,10 +90,10 @@ void StereologicalInclusion::setSegmentation(SegmentationPtr seg)
 {
   EspINA::Segmentation::Information::setSegmentation(seg);
 
-  connect(m_segmentation, SIGNAL(volumeModified()),
+  connect(m_segmentation, SIGNAL(outputModified()),
           this, SLOT(invalidate()));
 
-  if (m_segmentation->isVolumeModified())
+  if (m_segmentation->outputIsModified())
     invalidate();
   else
     initialize();
@@ -224,7 +224,7 @@ void StereologicalInclusion::loadCache(QuaZipFile &file, const QDir &tmpDir, IEs
 static bool invalidData(SegmentationPtr seg)
 {
   return !seg->hasInformationExtension(StereologicalInclusionID)
-      && seg->isVolumeModified();
+      && seg->outputIsModified();
 }
 
 //------------------------------------------------------------------------

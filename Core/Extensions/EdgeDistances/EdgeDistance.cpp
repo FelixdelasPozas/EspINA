@@ -91,10 +91,10 @@ void EdgeDistance::setSegmentation(SegmentationPtr seg)
 {
   EspINA::Segmentation::Information::setSegmentation(seg);
 
-  connect(m_segmentation, SIGNAL(volumeModified()),
+  connect(m_segmentation, SIGNAL(outputModified()),
           this, SLOT(invalidate()));
 
-  if (m_segmentation->isVolumeModified())
+  if (m_segmentation->outputIsModified())
     invalidate();
   else
     initialize();
@@ -178,7 +178,7 @@ void EdgeDistance::loadCache(QuaZipFile  &file,
 static bool invalidData(SegmentationPtr seg)
 {
   return !seg->hasInformationExtension(EdgeDistanceID)
-      && seg->isVolumeModified();
+      && seg->outputIsModified();
 }
 
 //-----------------------------------------------------------------------------

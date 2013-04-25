@@ -20,17 +20,23 @@
 #include "OpeningFilter.h"
 
 #include <Core/Model/EspinaFactory.h>
+
 #include <itkImageRegionConstIterator.h>
+#include <itkBinaryBallStructuringElement.h>
+#include <itkBinaryMorphologicalOpeningImageFilter.h>
+
 #include <QDebug>
 
 using namespace EspINA;
+
+typedef itk::BinaryBallStructuringElement<itkVolumeType::PixelType, 3> StructuringElementType;
+typedef itk::BinaryMorphologicalOpeningImageFilter<itkVolumeType, itkVolumeType, StructuringElementType> BinaryOpenFilter;
 
 //-----------------------------------------------------------------------------
 OpeningFilter::OpeningFilter(NamedInputs inputs,
                              Arguments   args,
                              FilterType  type)
 : MorphologicalEditionFilter(inputs, args, type)
-, m_filter(NULL)
 {
 }
 
@@ -41,27 +47,29 @@ OpeningFilter::~OpeningFilter()
 }
 
 //-----------------------------------------------------------------------------
-void OpeningFilter::run(OutputId oId)
+void OpeningFilter::run(FilterOutputId oId)
 {
   Q_ASSERT(0 == oId);
   Q_ASSERT(m_inputs.size() == 1);
 
-  m_input = m_inputs.first()->toITK();
+  SegmentationVolumeTypeSPtr input = segmentationVolumeOutput(m_inputs[0]);
+  Q_ASSERT(input);
 
   //qDebug() << "Compute Image Opening";
   StructuringElementType ball;
   ball.SetRadius(m_params.radius());
   ball.CreateStructuringElement();
 
-  m_filter = BinaryOpenFilter::New();
-  m_filter->SetInput(m_input);
-  m_filter->SetKernel(ball);
-  m_filter->SetForegroundValue(SEG_VOXEL_VALUE);
-  m_filter->Update();
+
+  BinaryOpenFilter::Pointer filter = BinaryOpenFilter::New();
+  filter->SetInput(input->toITK());
+  filter->SetKernel(ball);
+  filter->SetForegroundValue(SEG_VOXEL_VALUE);
+  filter->Update();
 
   m_isOutputEmpty = true;
   typedef itk::ImageRegionConstIterator<itkVolumeType> ImageIterator;
-  ImageIterator it(m_filter->GetOutput(), m_filter->GetOutput()->GetLargestPossibleRegion());
+  ImageIterator it(filter->GetOutput(), filter->GetOutput()->GetLargestPossibleRegion());
   it.GoToBegin();
   for(it.GoToBegin(); !it.IsAtEnd(); ++it)
     if (it.Get() == SEG_VOXEL_VALUE)
@@ -71,7 +79,13 @@ void OpeningFilter::run(OutputId oId)
     }
 
   if (!m_isOutputEmpty)
-    createOutput(0, m_filter->GetOutput());
+  {
+    FilterOutput::OutputTypeList dataList;
+    dataList << SegmentationVolumeTypeSPtr(new SegmentationVolumeType(filter->GetOutput()));
+
+    createOutput(0, dataList);
+  } else
+    qWarning() << "Opening Filter: Empty Output;";
 
   emit modified(this);
 }

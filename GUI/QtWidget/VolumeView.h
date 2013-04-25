@@ -80,8 +80,7 @@ namespace EspINA
     virtual ~VolumeView();
 
     virtual void reset();
-
-    void centerViewOn(Nm *center, bool);
+    virtual void centerViewOn(Nm center[3], bool);
     void setCameraFocus(const Nm center[3]);
 
   public slots: //Needed to interact with renderers
@@ -92,11 +91,13 @@ namespace EspINA
 
     virtual void addChannel   (ChannelPtr channel);
     virtual void removeChannel(ChannelPtr channel);
-    virtual bool updateChannel(ChannelPtr channel);
+    virtual bool updateChannelRepresentation(ChannelPtr channel, bool render = true);
+    virtual void updateSegmentationRepresentations(SegmentationList list = SegmentationList());
 
     virtual void addSegmentation   (SegmentationPtr seg);
     virtual void removeSegmentation(SegmentationPtr seg);
-    virtual bool updateSegmentation(SegmentationPtr seg);
+    virtual bool updateSegmentationRepresentation(SegmentationPtr seg, bool render = true);
+    virtual void updateChannelRepresentations(ChannelList list = ChannelList());
 
     virtual void addWidget   (EspinaWidget *widget);
     virtual void removeWidget(EspinaWidget *widget);
@@ -123,8 +124,6 @@ namespace EspINA
     void removeRendererControls(const QString name);
 
     void showCrosshairs(bool) {};
-    virtual void updateSegmentationRepresentations(SegmentationList list = SegmentationList());
-    virtual void updateChannelRepresentations(ChannelList list = ChannelList());
     virtual void updateSelection(){}
 
     virtual void forceRender(SegmentationList updatedSegs = SegmentationList());
@@ -141,6 +140,8 @@ namespace EspINA
 
   protected:
     void selectPickedItems(int x, int y, bool append);
+
+    virtual void updateChannelsOpactity(){}
 
   private:
     //   void selectSegmentations(int x, int y, int z);

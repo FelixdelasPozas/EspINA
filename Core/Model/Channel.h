@@ -28,6 +28,7 @@
 #include "Core/Model/PickableItem.h"
 #include "Core/Model/HierarchyItem.h"
 #include "Sample.h"
+#include "VolumeOutputType.h"
 
 #include <QColor>
 #include <QFileInfo>
@@ -59,6 +60,8 @@ namespace EspINA
     static const QString LINK;
     static const QString STAIN_LINK;
     static const QString VOLUME_LINK;
+
+    static const int AUTOMATIC_OPACITY = -1;
 
     // Extended Information and representation tags
     static const QString NAME;
@@ -127,7 +130,7 @@ namespace EspINA
         return (*this)[BRIGHTNESS].toFloat();
       }
 
-      void setOutputId(Filter::OutputId oId)
+      void setOutputId(FilterOutputId oId)
       {
         (*this)[VOLUME] = QString("%1_%2")
         .arg(VOLUME_LINK)
@@ -135,13 +138,13 @@ namespace EspINA
         m_outputId = oId;
       }
 
-      Filter::OutputId outputId() const
+      FilterOutputId outputId() const
       {
         return m_outputId;
       }
 
     private:
-      Filter::OutputId m_outputId;
+      FilterOutputId m_outputId;
       //double m_spacing[3];
     };
 
@@ -183,10 +186,10 @@ namespace EspINA
     /// Pickable Item Interface
     virtual const FilterSPtr filter() const;
     virtual FilterSPtr filter() { return PickableItem::filter(); }
-    virtual const Filter::OutputId outputId() const;
+    virtual const FilterOutputId outputId() const;
 
-    ChannelVolume::Pointer volume();
-    const ChannelVolume::Pointer volume() const;
+    VolumeOutputTypeSPtr volume();
+    const VolumeOutputTypeSPtr volume() const;
 
     void setPosition(Nm pos[3]);
     void position(Nm pos[3]);
@@ -199,7 +202,7 @@ namespace EspINA
     Channel::ExtensionPtr extension(ModelItem::ExtId extensionId);
 
   private:
-    explicit Channel(FilterSPtr filter, Filter::OutputId oId);
+    explicit Channel(FilterSPtr filter, FilterOutputId oId);
     friend class EspinaFactory;
   private:
     bool   m_visible;

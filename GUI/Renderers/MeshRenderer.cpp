@@ -50,6 +50,7 @@ MeshRenderer::MeshRenderer(ViewManager* vm, QObject* parent)
 //-----------------------------------------------------------------------------
 bool MeshRenderer::addItem(ModelItemPtr item)
 {
+  /* FIXME
   if (EspINA::SEGMENTATION != item->type())
     return false;
 
@@ -121,11 +122,13 @@ bool MeshRenderer::addItem(ModelItemPtr item)
   connect(item, SIGNAL(modified(ModelItemPtr)), this, SLOT(updateItem(ModelItemPtr)));
 
   return true;
+  */
 }
 
 //-----------------------------------------------------------------------------
 bool MeshRenderer::updateItem(ModelItemPtr item, bool forced)
 {
+  /*
   if (!m_enable && !forced)
     return false;
 
@@ -231,11 +234,13 @@ bool MeshRenderer::updateItem(ModelItemPtr item, bool forced)
   }
 
   return updated || hierarchiesUpdated;
+  */
 }
 
 //-----------------------------------------------------------------------------
 bool MeshRenderer::removeItem(ModelItemPtr item)
 {
+  /*
    if (EspINA::SEGMENTATION != item->type())
      return false;
 
@@ -261,6 +266,7 @@ bool MeshRenderer::removeItem(ModelItemPtr item)
    disconnect(item, SIGNAL(modified(ModelItemPtr)), this, SLOT(updateItem(ModelItemPtr)));
 
    return true;
+   */
 }
 
 //-----------------------------------------------------------------------------

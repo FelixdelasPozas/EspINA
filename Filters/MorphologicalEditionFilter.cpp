@@ -37,10 +37,9 @@ MorphologicalEditionFilter::MorphologicalEditionFilter(NamedInputs inputs,
                                                        Arguments   args,
                                                        FilterType  type)
 : SegmentationFilter(inputs, args, type)
-, m_params(m_args)
-, m_input(NULL)
-, m_isOutputEmpty(true)
 , m_ignoreCurrentOutputs(false)
+, m_isOutputEmpty(true)
+, m_params(m_args)
 {
 }
 
@@ -50,7 +49,16 @@ MorphologicalEditionFilter::~MorphologicalEditionFilter()
 }
 
 //-----------------------------------------------------------------------------
-bool MorphologicalEditionFilter::needUpdate(OutputId oId) const
+void MorphologicalEditionFilter::createDummyOutput(FilterOutputId id, const FilterOutput::OutputTypeName &type)
+{
+  if (VolumeOutputType::TYPE == type)
+    createOutput(id, SegmentationVolumeTypeSPtr(new SegmentationVolumeType()));
+  else
+    Q_ASSERT(false);
+}
+
+//-----------------------------------------------------------------------------
+bool MorphologicalEditionFilter::needUpdate(FilterOutputId oId) const
 {
   bool update = Filter::needUpdate(oId);
 
@@ -58,13 +66,13 @@ bool MorphologicalEditionFilter::needUpdate(OutputId oId) const
   {
     Q_ASSERT(m_namedInputs.size()  == 1);
     Q_ASSERT(m_outputs.size() == 1);
-    Q_ASSERT(m_outputs[0].volume.get());
-    Q_ASSERT(m_outputs[0].volume->toITK().IsNotNull());
+    Q_ASSERT(m_outputs[0]->data(VolumeOutputType::TYPE).get());
+    //FIXME Q_ASSERT(m_outputs[0].volume->toITK().IsNotNull());
 
     if (!m_inputs.isEmpty())
     {
       Q_ASSERT(m_inputs.size() == 1);
-      update = m_outputs[0].volume->toITK()->GetTimeStamp() < m_inputs[0]->toITK()->GetTimeStamp();
+      update = m_outputs[0]->data(VolumeOutputType::TYPE)->timeStamp() < m_inputs[0]->data(VolumeOutputType::TYPE)->timeStamp();
     }
   }
 
@@ -73,7 +81,7 @@ bool MorphologicalEditionFilter::needUpdate(OutputId oId) const
 
 
 //-----------------------------------------------------------------------------
-bool MorphologicalEditionFilter::fetchSnapshot(OutputId oId)
+bool MorphologicalEditionFilter::fetchSnapshot(FilterOutputId oId)
 {
   if (m_ignoreCurrentOutputs)
     return false;

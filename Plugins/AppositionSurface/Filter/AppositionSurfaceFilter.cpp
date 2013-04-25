@@ -71,7 +71,7 @@ namespace EspINA
   {
     if (m_ap != NULL)
     {
-      disconnect(m_originSegmentation, SIGNAL(volumeModified()), this, SLOT(inputModified()));
+      disconnect(m_originSegmentation, SIGNAL(outputModified()), this, SLOT(inputModified()));
       m_ap->Delete();
     }
 
@@ -115,7 +115,7 @@ namespace EspINA
         {
           m_originSegmentation = segmentation;
 
-          connect(m_originSegmentation, SIGNAL(volumeModified()),
+          connect(m_originSegmentation, SIGNAL(outputModified()),
                   this, SLOT(inputModified()));
         }
         ++i;

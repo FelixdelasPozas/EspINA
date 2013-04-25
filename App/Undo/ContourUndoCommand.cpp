@@ -58,6 +58,7 @@ namespace EspINA
   //-----------------------------------------------------------------------------
   void ContourUndoCommand::redo()
   {
+    /* FIXME
     // we musn't abort the operation the first time is called
     if (m_abortOperation)
       m_tool->abortOperation();
@@ -91,11 +92,13 @@ namespace EspINA
     }
 
     m_viewManager->updateSegmentationRepresentations(m_segmentation.data());
+    */
   }
   
   //-----------------------------------------------------------------------------
   void ContourUndoCommand::undo()
   {
+    /* FIXME
     m_tool->abortOperation();
 
     Q_ASSERT(m_newVolume.IsNotNull());
@@ -113,6 +116,7 @@ namespace EspINA
     m_segmentation->filter()->output(0).editedRegions = m_prevRegions;
 
     m_viewManager->updateSegmentationRepresentations(m_segmentation.data());
+    */
   }
 
   //----------------------------------------------------------------------------

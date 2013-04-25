@@ -99,7 +99,7 @@ namespace EspINA
 
     FilterSPtr       m_currentSource;
     SegmentationSPtr m_currentSeg;
-    Filter::OutputId m_currentOutput;
+    FilterOutputId   m_currentOutput;
   };
 
 } // namespace EspINA

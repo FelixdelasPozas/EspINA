@@ -29,6 +29,9 @@ namespace EspINA
   {
   public:
     explicit EspinaRegion(const Nm  bounds[6]);
+    explicit EspinaRegion(const Nm minX, const Nm maxX,
+                          const Nm minY, const Nm maxY,
+                          const Nm minZ, const Nm maxZ);
 
     Nm &operator[](int idx) { return m_bounds[idx]; }
     const Nm &operator[](int idx) const { return m_bounds[idx]; }

@@ -206,8 +206,10 @@ void TabularReport::indexDoubleClicked(QModelIndex index)
   ModelItemPtr sItem = indexPtr(sourceIndex);
   SegmentationPtr segmentation = segmentationPtr(sItem);
 
+  SegmentationVolumeTypeSPtr volume = boost::dynamic_pointer_cast<SegmentationVolumeType>(segmentation->output()->data(VolumeOutputType::TYPE));
+
   double bounds[6];
-  segmentation->volume()->bounds(bounds);
+  volume->bounds(bounds);
   Nm center[3] = { (bounds[0] + bounds[1]) / 2.0, (bounds[2] + bounds[3]) / 2.0, (bounds[4] + bounds[5]) / 2.0 };
   m_viewManager->focusViewsOn(center);
 

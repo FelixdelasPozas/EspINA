@@ -52,6 +52,7 @@ VolumetricRenderer::VolumetricRenderer(ViewManager* vm, QObject* parent)
 //-----------------------------------------------------------------------------
 bool VolumetricRenderer::addItem(ModelItemPtr item)
 {
+  /* FIXME
   if (EspINA::SEGMENTATION != item->type())
     return false;
 
@@ -131,11 +132,13 @@ bool VolumetricRenderer::addItem(ModelItemPtr item)
 
   m_segmentations[seg].volume->Modified();
   return true;
+  */
 }
 
 //-----------------------------------------------------------------------------
 bool VolumetricRenderer::updateItem(ModelItemPtr item, bool forced)
 {
+  /* FIXME
   if (!m_enable && !forced)
     return false;
 
@@ -231,6 +234,7 @@ bool VolumetricRenderer::updateItem(ModelItemPtr item, bool forced)
   }
 
   return updated || hierarchiesUpdated;
+  */
 }
 
 //-----------------------------------------------------------------------------

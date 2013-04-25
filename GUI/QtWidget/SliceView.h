@@ -28,6 +28,7 @@
 #include "GUI/ViewManager.h"
 #include "GUI/ISettingsPanel.h"
 #include "GUI/vtkWidgets/EspinaWidget.h"
+#include <GUI/Representations/IEspinaRepresentation.h>
 #include <Core/Model/HierarchyItem.h>
 
 #include <itkImageToVTKImageFilter.h>
@@ -62,8 +63,6 @@ namespace EspINA
 {
   class ColorEngine;
   class Representation;
-  class TransparencySelectionHighlighter;
-
 
   /// Slice View Widget
   /// Display channels and segmentations as slices
@@ -79,6 +78,7 @@ namespace EspINA
   public:
     class Settings;
     typedef QSharedPointer<Settings> SettingsPtr;
+    static const double SEGMENTATION_SHIFT = 0.05;
 
   public:
     explicit SliceView(ViewManager *vm, PlaneType plane = AXIAL, QWidget* parent = 0);
@@ -89,7 +89,16 @@ namespace EspINA
     inline QString title() const;
     void setTitle(const QString &title);
 
-    PlaneType plane() const {return m_plane;}
+    ViewManager *viewManager() const
+    { return m_viewManager; }
+
+    PlaneType plane() const 
+    {return m_plane;}
+
+    double segmentationDepth() const
+    {
+      return AXIAL == m_plane ? -SliceView::SEGMENTATION_SHIFT : SliceView::SEGMENTATION_SHIFT;
+    }
 
     void slicingStep(Nm steps[3]);
     /// Set the distance between two consecutive slices when
@@ -104,17 +113,25 @@ namespace EspINA
 
     virtual void addChannel   (ChannelPtr channel);
     virtual void removeChannel(ChannelPtr channel);
-    virtual bool updateChannel(ChannelPtr channel);
+    virtual bool updateChannelRepresentation (ChannelPtr channel, bool render = true);
+    virtual void updateChannelRepresentations(ChannelList list = ChannelList());
 
     virtual void addSegmentation   (SegmentationPtr seg);
     virtual void removeSegmentation(SegmentationPtr seg);
-    virtual bool updateSegmentation(SegmentationPtr seg);
+    virtual bool updateSegmentationRepresentation (SegmentationPtr seg, bool render = true);
+    virtual void updateSegmentationRepresentations(SegmentationList list = SegmentationList());
 
     virtual void addWidget   (EspinaWidget* widget);
     virtual void removeWidget(EspinaWidget* eWidget);
 
     virtual void addActor   (vtkProp3D *actor);
     virtual void removeActor(vtkProp3D *actor);
+
+    virtual void addChannelActor   (vtkProp3D *actor);
+    virtual void removeChannelActor(vtkProp3D *actor);
+
+    virtual void addSegmentationActor  (vtkProp3D *actor);
+    virtual void removeSegmentationActor(vtkProp3D *actor);
 
     virtual void previewBounds(Nm bounds[6], bool cropToSceneBounds = true);
 
@@ -137,15 +154,9 @@ namespace EspINA
 
     SettingsPtr settings() { return m_settings; }
 
-    virtual void updateSegmentationRepresentations(SegmentationList list = SegmentationList());
-    virtual void updateChannelRepresentations(ChannelList list = ChannelList());
     void updateCrosshairPoint(PlaneType plane, Nm slicepos);
 
     virtual void forceRender(SegmentationList updatedSegs = SegmentationList());
-
-    // preview helper methods
-    virtual void hideSegmentations(SegmentationList segmentations);
-    virtual void unhideSegmentations(SegmentationList segmentations);
 
   public slots:
     /// Show/Hide segmentations
@@ -176,6 +187,8 @@ namespace EspINA
 
     void updateWidgetVisibility();
 
+    virtual void updateChannelsOpactity();
+
   signals:
     void centerChanged(Nm, Nm, Nm);
     void focusChanged(const Nm[3]);
@@ -197,15 +210,38 @@ namespace EspINA
     virtual bool eventFilter(QObject* caller, QEvent* e);
     void centerCrosshairOnMousePosition();
     void centerViewOnMousePosition();
-    ChannelList pickChannels(double vx, double vy, vtkRenderer *renderer, bool repeatable = true);
-    SegmentationList pickSegmentations(double vx, double vy, vtkRenderer *renderer, bool repeatable = true);
+
+    struct ChannelPick
+    {
+      ChannelPick(ChannelPtr channel, EspinaRepresentationSPtr representation, vtkProp *prop)
+      : Channel(channel), Representation(representation), Prop(prop) {}
+
+      ChannelPtr               Channel;
+      EspinaRepresentationSPtr Representation;
+      vtkProp                 *Prop;
+    };
+    typedef QList<ChannelPick> ChannelPickList;
+    ChannelPickList pickChannels(double vx, double vy, vtkRenderer *renderer, bool repeatable = true);
+
+    struct SegmentationPick
+    {
+      SegmentationPick(SegmentationPtr segmentation, EspinaRepresentationSPtr representation, vtkProp *prop)
+      : Segmentation(segmentation), Representation(representation), Prop(prop) {}
+
+      SegmentationPtr          Segmentation;
+      EspinaRepresentationSPtr Representation;
+      vtkProp                 *Prop;
+    };
+    typedef QList<SegmentationPick> SegmentationPickList;
+    SegmentationPickList pickSegmentations(double vx, double vy, vtkRenderer *renderer, bool repeatable = true);
+
     void selectPickedItems(bool append);
 
 
     /// Convenience function to get vtkProp's channel
-    ChannelPtr propToChannel(vtkProp *prop);
+    ChannelPick propToChannel(vtkProp *prop);
     /// Convenience function to get vtkProp's segmentation
-    SegmentationPtr propToSegmentation(vtkProp *prop);
+    SegmentationPick propToSegmentation(vtkProp *prop);
 
     /// Converts point from Display coordinates to World coordinates
     ISelector::WorldRegion worldRegion(const ISelector::DisplayRegion &region, PickableItemPtr item);
@@ -232,21 +268,25 @@ namespace EspINA
     void setupUI();
 
   private:
-    struct SliceRep
+    struct ChannelState
     {
-      vtkSmartPointer<vtkImageReslice> reslice;
-      vtkSmartPointer<vtkImageMapToColors> mapToColors;
-      vtkSmartPointer<vtkImageShiftScale> shiftScaleFilter;
-      vtkSmartPointer<vtkLookupTable> lut;
-      vtkImageActor *slice;
-      bool visible;
-      bool selected;
+      double    brightness;
+      double    contrast;
+      double    opacity;
+      QColor    stain;
+      bool      visible;
+
+      ChannelRepresentationList representations;
+    };
+
+    struct SegmentationState
+    {
+      Nm     depth;
       QColor color;
-      Nm pos[3];
-      bool overridden;
-      HierarchyItem::HierarchyRenderingType renderingType;
-      double contrast;
-      double brightness;
+      bool   highlited;
+      bool   visible;
+
+      SegmentationRepresentationList representations;
     };
 
     ViewManager *m_viewManager;
@@ -300,14 +340,12 @@ namespace EspINA
 
     bool m_sceneReady;
 
-    // preview helpers
-    SegmentationList m_hiddenSegmentations;
-
     // Representations
-    TransparencySelectionHighlighter   *m_highlighter;
-    QMap<ChannelPtr,      SliceRep>     m_channelReps;
-    QMap<SegmentationPtr, SliceRep>     m_segmentationReps;
-    QMap<EspinaWidget *, SliceWidget *> m_widgets;
+    QMap<ChannelPtr,      ChannelState>      m_channelStates;
+    QMap<SegmentationPtr, SegmentationState> m_segmentationStates;
+    QMap<EspinaWidget *, SliceWidget *>      m_widgets;
+
+    friend class IEspinaRepresentation;
   };
 
   class SliceView::Settings

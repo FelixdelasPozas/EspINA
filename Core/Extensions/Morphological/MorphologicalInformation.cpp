@@ -134,10 +134,10 @@ void MorphologicalInformation::setSegmentation(SegmentationPtr seg)
 {
   EspINA::Segmentation::Information::setSegmentation(seg);
 
-  connect(m_segmentation, SIGNAL(volumeModified()),
+  connect(m_segmentation, SIGNAL(outputModified()),
           this, SLOT(invalidate()));
 
-  if (m_segmentation->isVolumeModified())
+  if (m_segmentation->outputIsModified())
     invalidate();
   else
     initialize();
@@ -283,7 +283,7 @@ void MorphologicalInformation::loadCache(QuaZipFile  &file,
 static bool invalidData(SegmentationPtr seg)
 {
   return !seg->hasInformationExtension(MorphologicalInformationID)
-      && seg->isVolumeModified();
+      && seg->outputIsModified();
 }
 
 //------------------------------------------------------------------------
@@ -373,7 +373,7 @@ void MorphologicalInformation::invalidate(SegmentationPtr segmentation)
 void MorphologicalInformation::updateInformation()
 {
   //qDebug() << "Updating" << m_seg->data().toString() << ID;
-  m_labelMap->SetInput(m_segmentation->volume()->toITK());
+  //FIXME: devolver NAN m_labelMap->SetInput(m_segmentation->volume()->toITK());
   m_labelMap->Update();
   m_labelMap->Modified();
 

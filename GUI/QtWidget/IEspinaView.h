@@ -37,9 +37,9 @@ namespace EspINA
     explicit IEspinaView(){}
     virtual ~IEspinaView(){}
 
-    virtual void updateSelection() = 0;
+    virtual void updateChannelRepresentations     (ChannelList      list = ChannelList()) = 0;
     virtual void updateSegmentationRepresentations(SegmentationList list = SegmentationList()) = 0;
-    virtual void updateChannelRepresentations(ChannelList list = ChannelList()) = 0;
+    virtual void updateSelection() = 0;
   };
 
 } // namespace EspINA

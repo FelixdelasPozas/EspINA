@@ -102,10 +102,10 @@ void AppositionSurfaceExtension::setSegmentation(SegmentationPtr seg)
 {
   EspINA::Segmentation::Information::setSegmentation(seg);
 
-  connect(m_segmentation, SIGNAL(volumeModified()),
+  connect(m_segmentation, SIGNAL(outputModified()),
           this, SLOT(invalidate()));
 
-  if (m_segmentation->isVolumeModified())
+  if (m_segmentation->outputIsModified())
     invalidate();
   else
     initialize();
@@ -212,7 +212,7 @@ bool AppositionSurfaceExtension::saveCache(Snapshot &cacheList)
 
   foreach(SegmentationPtr segmentation, s_cache.keys())
   {
-    if (segmentation->isVolumeModified() && !s_cache[segmentation].Modified)
+    if (segmentation->outputIsModified() && !s_cache[segmentation].Modified)
       s_cache.remove(segmentation);
   }
 

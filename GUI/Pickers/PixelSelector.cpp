@@ -131,8 +131,9 @@ double *BestPixelSelector::getPickPoint(EspinaRenderView *view)
     return NULL;
 
   PickableItemPtr pickedItem = pickList.first().second;
+  ChannelPtr channel = channelPtr(pickedItem);
 
-  itkVolumeType::Pointer channelVol = pickedItem->volume()->toITK();
+  itkVolumeType::Pointer channelVol = channel->volume()->toITK();
   double pickedPoint[3];
   pickList.first().first->GetPoint(0, pickedPoint);
 

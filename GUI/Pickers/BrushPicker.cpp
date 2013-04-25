@@ -19,11 +19,12 @@
 
 // EspINA
 #include "GUI/QtWidget/EspinaRenderView.h"
-#include "GUI/ViewManager.h"
-#include <Core/Model/Channel.h>
-#include <Filters/FreeFormSource.h>
-#include <Core/EspinaRegion.h>
 #include "GUI/QtWidget/SliceView.h"
+#include "GUI/ViewManager.h"
+#include <Core/EspinaRegion.h>
+#include <Core/Model/Channel.h>
+#include <Core/Model/VolumeOutputType.h>
+#include <Filters/FreeFormSource.h>
 
 // Qt
 #include <QMouseEvent>
@@ -149,7 +150,8 @@ void BrushPicker::setBrushColor(QColor color)
 void BrushPicker::setReferenceItem(PickableItemPtr item)
 {
   m_referenceItem = item;
-  m_spacing = m_referenceItem->volume()->toITK()->GetSpacing();
+  VolumeOutputTypeSPtr volume = boost::dynamic_pointer_cast<VolumeOutputType>(m_referenceItem->output()->data(VolumeOutputType::TYPE));
+  m_spacing = volume->toITK()->GetSpacing();
 }
 
 //-----------------------------------------------------------------------------
@@ -242,19 +244,21 @@ bool BrushPicker::validStroke(double brush[3])
 
   if (!m_drawing)
   {
+    VolumeOutputTypeSPtr segVolume = boost::dynamic_pointer_cast<VolumeOutputType>(m_segmentation->output()->data(VolumeOutputType::TYPE));
+
     Nm bounds[6];
-    m_segmentation->volume()->bounds(bounds);
+    segVolume->bounds(bounds);
     EspinaRegion segBB(bounds);
 
     if (!segBB.intersect(brushBB))
       return false;
 
     double spacing[3];
-    m_segmentation->volume()->spacing(spacing);
+    segVolume->spacing(spacing);
 
-    itkVolumeType::RegionType volumeRegion = m_segmentation->volume()->toITK()->GetLargestPossibleRegion();
+    itkVolumeType::RegionType volumeRegion = segVolume->toITK()->GetLargestPossibleRegion();
     itkVolumeType::RegionType::IndexType origin = volumeRegion.GetIndex();
-    itkVolumeType *image = m_segmentation->volume()->toITK();
+    itkVolumeType *image = segVolume->toITK();
 
     // Damned discrepancies between origin and bounds in itk volumes loaded from file
     itkVolumeType::RegionType::IndexType transform;
@@ -397,17 +401,20 @@ void BrushPicker::startPreview(EspinaRenderView* view)
   // if erasing hide seg and copy contents of slice to preview actor
   if (!m_drawing)
   {
-    SegmentationList list;
-    list.append(m_segmentation);
-    reinterpret_cast<SliceView *>(view)->hideSegmentations(list);
+    VolumeOutputTypeSPtr segVolume = boost::dynamic_pointer_cast<VolumeOutputType>(m_segmentation->output()->data(VolumeOutputType::TYPE));
+
+    foreach(EspinaRepresentationSPtr prototype, m_segmentation->representations())
+    {
+      prototype->setActive(false, view);
+    }
 
     int segExtent[6];
-    m_segmentation->volume()->extent(segExtent);
+    segVolume->extent(segExtent);
 
     // segmentations loaded from disk can have an origin != (0,0,0) that messes with the preview
     // and must be corrected. That means 3 ops more per loop and 3 more vars. If corrected before
     // we could use the index as the "for" variables directly, so it would be faster.
-    itkVolumeType::PointType origin = m_segmentation->volume()->toITK()->GetOrigin();
+    itkVolumeType::PointType origin = segVolume->toITK()->GetOrigin();
     itkVolumeType::IndexType transform;
     transform[0] = transform[1] = transform[2] = 0;
     if ((origin[0] != 0) || (origin[1] != 0) || (origin[2] != 0))
@@ -453,7 +460,7 @@ void BrushPicker::startPreview(EspinaRenderView* view)
           index[2] = z - transform[2];
 
           unsigned char *previewPixel = reinterpret_cast<unsigned char *>(m_preview->GetScalarPointer(x,y,z));
-          *previewPixel = m_segmentation->volume()->toITK()->GetPixel(index);
+          *previewPixel = segVolume->toITK()->GetPixel(index);
         }
   }
 
@@ -614,9 +621,10 @@ void BrushPicker::stopPreview(EspinaRenderView* view)
 
   if (!m_drawing && m_segmentation != NULL)
   {
-    SegmentationList list;
-    list.append(m_segmentation);
-    reinterpret_cast<SliceView *>(view)->unhideSegmentations(list);
+    foreach(EspinaRepresentationSPtr prototype, m_segmentation->representations())
+    {
+      prototype->setActive(true, view);
+    }
   }
 }
 

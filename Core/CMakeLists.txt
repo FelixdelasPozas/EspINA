@@ -6,13 +6,15 @@ include_directories(
 qt4_wrap_cpp(CORE_MOC
   ColorEngines/IColorEngine.h
   ColorEngines/TaxonomyColorEngine.h
-  EspinaVolume.h
+  Model/Output.h
+  Model/VolumeOutputType.h
   Extensions/ChannelExtension.h
   Extensions/SegmentationExtension.h
   Model/EspinaModel.h
   Model/ModelTest.h
   Model/ModelItem.h
   Model/PickableItem.h
+  Model/Output.h
   Model/Segmentation.h
   Model/Taxonomy.h
   Model/Proxies/ChannelProxy.h
@@ -35,7 +37,9 @@ set (CORE_SOURCES
   ${CORE_UI}
   EspinaRegion.cpp
   EspinaSettings.cpp
-  EspinaVolume.cpp
+  Model/Output.cpp
+  Model/OutputType.cpp
+  Model/VolumeOutputType.cpp
   EspinaTypes.cpp
   ColorEngines/MultiColorEngine.cpp
   ColorEngines/NumberColorEngine.cpp

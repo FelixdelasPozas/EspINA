@@ -50,11 +50,11 @@ namespace EspINA
 
     virtual void addChannel   (ChannelPtr channel) = 0;
     virtual void removeChannel(ChannelPtr channel) = 0;
-    virtual bool updateChannel(ChannelPtr channel) = 0;
+    virtual bool updateChannelRepresentation(ChannelPtr channel, bool render = true) = 0;
 
     virtual void addSegmentation   (SegmentationPtr seg) = 0;
     virtual void removeSegmentation(SegmentationPtr seg) = 0;
-    virtual bool updateSegmentation(SegmentationPtr seg) = 0;
+    virtual bool updateSegmentationRepresentation(SegmentationPtr seg, bool render = true) = 0;
 
     virtual void addWidget   (EspinaWidget *widget) = 0;
     virtual void removeWidget(EspinaWidget *widget) = 0;
@@ -92,8 +92,9 @@ namespace EspINA
     virtual void setContextualMenu(QSharedPointer<SegmentationContextualMenu> contextMenu)
     { m_contextMenu = contextMenu; }
 
-    // WARNING: Only used in Brush.cpp to update the view while erasing voxels. Very taxing.
+    // WARNING: Only used in Brush.cpp to update the view while erasing voxels. Very taxing. DEPRECAR!
     virtual void forceRender(SegmentationList updatedSegs = SegmentationList()) = 0;
+
   protected slots:
     virtual void updateSceneBounds();
 
@@ -102,6 +103,7 @@ namespace EspINA
     void removeChannelBounds(ChannelPtr channel);
 
     double suggestedChannelOpacity();
+    virtual void updateChannelsOpactity() = 0;
 
     void resetSceneBounds();
 

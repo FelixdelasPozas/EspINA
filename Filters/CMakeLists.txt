@@ -8,7 +8,6 @@ set (FILTERS_SOURCES
   ${FILTERS_UI}
   ChannelReader.cpp
   ClosingFilter.cpp
-  ContourSource.cpp
   DilateFilter.cpp
   ErodeFilter.cpp
   FillHolesFilter.cpp

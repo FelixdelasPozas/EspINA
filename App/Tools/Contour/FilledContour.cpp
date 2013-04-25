@@ -29,7 +29,6 @@
 #include <Core/Model/EspinaFactory.h>
 #include <Core/Model/Taxonomy.h>
 #include <Filters/FreeFormSource.h>
-#include <Filters/ContourSource.h>
 #include <Undo/AddSegmentation.h>
 #include <Undo/RemoveSegmentation.h>
 #include <App/Undo/ContourUndoCommand.h>
@@ -223,7 +222,7 @@ void FilledContour::rasterize(ContourWidget::ContourList list)
       Filter::Arguments args;
       FreeFormSource::Parameters params(args);
       params.setSpacing(spacing);
-      m_currentSource = FilterSPtr(new ContourSource(inputs, args, FILTER_TYPE));
+      m_currentSource = FilterSPtr(new FreeFormSource(inputs, args, FILTER_TYPE));
     }
 
     if (!m_currentSeg)
@@ -263,7 +262,8 @@ void FilledContour::rasterize(ContourWidget::ContourList list)
   {
     try
     {
-      m_currentSeg->volume()->fitToContent();
+      SegmentationVolumeTypeSPtr segVolume = boost::dynamic_pointer_cast<SegmentationVolumeType>(m_currentSeg->output()->data(VolumeOutputType::TYPE));
+      segVolume->fitToContent();
     }
     catch (...)
     {

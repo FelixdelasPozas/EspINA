@@ -384,9 +384,9 @@ void SeedGrowSegmentationTool::addPreview(EspinaRenderView *view)
   if (view != m_viewOfPreview)
     removePreview(view);
 
-  EspinaVolume::Pointer pickedChannel = pickList.first().second->volume();
+  ChannelPtr pickedChannel = channelPtr(pickList.first().second);
   double spacing[3];
-  pickedChannel->spacing(spacing);
+  pickedChannel->volume()->spacing(spacing);
 
   itkVolumeType::IndexType seed;
   seed[0] = point[0]/spacing[0];
@@ -485,7 +485,7 @@ void SeedGrowSegmentationTool::addPreview(EspinaRenderView *view)
   ExtractType::Pointer extract = ExtractType::New();
   extract->SetInPlace(false);
   extract->ReleaseDataFlagOff();
-  extract->SetInput(pickedChannel->toITK());
+  extract->SetInput(pickedChannel->volume()->toITK());
   extract->SetExtractionRegion(region);
   extract->Update();
 

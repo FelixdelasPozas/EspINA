@@ -4,7 +4,7 @@
 
 // EspINA
 #include "Core/Model/EspinaModel.h"
-#include "Core/Model/Filter.h"
+#include "Core/Model/Output.h"
 #include "Core/Model/EspinaFactory.h"
 #include "Core/Model/Sample.h"
 #include "Core/Model/Channel.h"
@@ -43,7 +43,7 @@ typedef itk::ImageFileWriter<itkVolumeType> EspinaVolumeWriter;
 
 const QString SETTINGS = "settings.ini";
 const QString EspinaIO::VERSION = "version"; //backward compatibility
-const QString SEG_FILE_VERSION  = "3";
+const QString SEG_FILE_VERSION  = "4";
 const QString SEG_FILE_COMPATIBLE_VERSION  = "1";
 
 //-----------------------------------------------------------------------------
@@ -310,51 +310,6 @@ EspinaIO::STATUS EspinaIO::loadSegFile(QFileInfo    file,
   espinaZip.close();
   return status;
 }
-
-//-----------------------------------------------------------------------------
-bool EspinaIO::zipVolume(Filter::Output output,
-                         QDir tmpDir,
-                         QuaZipFile& outFile)
-{
-  itk::MetaImageIO::Pointer io = itk::MetaImageIO::New();
-  EspinaVolumeWriter::Pointer writer = EspinaVolumeWriter::New();
-  FilterPtr filter = output.filter;
-  QString volumeName = QString("%1_%2").arg(filter->id()).arg(output.id);
-  QString mhd = tmpDir.absoluteFilePath(volumeName + ".mhd");
-  QString raw = tmpDir.absoluteFilePath(volumeName + ".raw");
-  io->SetFileName(mhd.toUtf8());
-  writer->SetFileName(mhd.toUtf8().data());
-  output.update();
-  itkVolumeType::Pointer volume = output.volume->toITK();
-  bool releaseFlag = volume->GetReleaseDataFlag();
-  volume->ReleaseDataFlagOff();
-  writer->SetInput(volume);
-  writer->SetImageIO(io);
-  writer->Write();
-  volume->SetReleaseDataFlag(releaseFlag);
-
-  QFile mhdFile(mhd);
-  mhdFile.open(QIODevice::ReadOnly);
-  QFile rawFile(raw);
-  rawFile.open(QIODevice::ReadOnly);
-
-  if( !zipFile(volumeName + ".mhd", mhdFile.readAll() , outFile) )
-  {
-    qWarning() << "IOEspinaFile::saveFile: Error while zipping" << (volumeName + ".mhd");
-    return false;
-  }
-  if( !zipFile(volumeName + ".raw", rawFile.readAll() , outFile) )
-  {
-    qWarning() << "IOEspinaFile::saveFile: Error while zipping" << (volumeName + ".raw");
-    return false;
-  }
-
-  mhdFile.close();
-  rawFile.close();
-
-  return true;
-}
-
 
 //-----------------------------------------------------------------------------
 EspinaIO::STATUS EspinaIO::saveSegFile(QFileInfo file, IEspinaModel *model, ErrorHandler *handler)
@@ -778,7 +733,7 @@ bool EspinaIO::loadSerialization(IEspinaModel *model,
           Q_ASSERT(!filter.isNull());
           try
           {
-            Filter::OutputId channelId = link[1].toInt();
+            FilterOutputId channelId = link[1].toInt();
             filter->update(channelId);
             ChannelSPtr channel = factory->createChannel(filter, channelId);
             channel->initialize(args);
@@ -839,7 +794,7 @@ bool EspinaIO::loadSerialization(IEspinaModel *model,
     Q_ASSERT(ancestors.size() == 1);
 
     ModelItem::Arguments args(QString(v.args.c_str()));
-    Filter::OutputId outputId =  args[Segmentation::OUTPUT].toInt();
+    FilterOutputId outputId =  args[Segmentation::OUTPUT].toInt();
 
     ModelItemPtr item = ancestors.first().item;
     FilterSPtr filter = model->findFilter(item);

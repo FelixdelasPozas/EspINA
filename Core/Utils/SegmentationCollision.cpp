@@ -17,7 +17,6 @@
  */
 
 // EspINA
-#include <Core/EspinaVolume.h>
 #include "SegmentationCollision.h"
 
 // itk
@@ -29,7 +28,7 @@
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
-bool EspINA::checkCollision(SegmentationVolume::Pointer seg1, SegmentationVolume::Pointer seg2)
+bool EspINA::checkCollision(SegmentationVolumeTypeSPtr seg1, SegmentationVolumeTypeSPtr seg2)
 {
   if (!seg1->espinaRegion().intersect(seg2->espinaRegion()))
     return false;

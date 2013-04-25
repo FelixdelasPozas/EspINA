@@ -143,7 +143,7 @@ SegmentationInspector::~SegmentationInspector()
 void SegmentationInspector::updateScene(ModelItemPtr item)
 {
   SegmentationPtr seg = segmentationPtr(item);
-  m_view->updateSegmentation(seg);
+  m_view->updateSegmentationRepresentation(seg);
   m_view->updateView();
 }
 

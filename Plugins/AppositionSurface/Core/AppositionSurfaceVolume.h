@@ -11,7 +11,7 @@
 #include "../Filter/AppositionSurfaceFilter.h"
 
 // EspINA
-#include <Core/EspinaVolume.h>
+#include <Core/Model/VolumeOutputType.h>
 
 // ITK
 #include <itkVTKImageImport.h>
@@ -25,7 +25,7 @@ class vtkImplicitPolyDataDistance;
 namespace EspINA
 {
   class AppositionSurfaceVolume
-  : public SegmentationVolume
+  : public SegmentationVolumeType
   {
     public:
       typedef boost::shared_ptr<AppositionSurfaceVolume> Pointer;

@@ -68,11 +68,11 @@ protected:
   virtual bool ignoreCurrentOutputs() const
   { return false; }
 
-  virtual bool needUpdate(OutputId oId) const;
+  virtual bool needUpdate(FilterOutputId oId) const;
 
   virtual void run();
 
-  virtual void run(OutputId oId);
+  virtual void run(FilterOutputId oId);
 
 protected:
   void addition();

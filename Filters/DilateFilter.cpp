@@ -21,20 +21,23 @@
 
 #include <Core/Model/EspinaFactory.h>
 
-#include <QDebug>
-
+#include <itkBinaryBallStructuringElement.h>
+#include <itkDilateObjectMorphologyImageFilter.h>
 #include <itkConstantPadImageFilter.h>
+
+#include <QDebug>
 
 using namespace EspINA;
 
 typedef itk::ConstantPadImageFilter<itkVolumeType,itkVolumeType> PadFilterType;
+typedef itk::BinaryBallStructuringElement<itkVolumeType::PixelType, 3> StructuringElementType;
+typedef itk::DilateObjectMorphologyImageFilter<itkVolumeType, itkVolumeType, StructuringElementType> BinaryDilateFilter;
 
 //-----------------------------------------------------------------------------
 DilateFilter::DilateFilter(NamedInputs inputs,
                            Arguments   args,
                            FilterType  type)
 : MorphologicalEditionFilter(inputs, args, type)
-, m_filter(NULL)
 {
 
 }
@@ -47,12 +50,13 @@ DilateFilter::~DilateFilter()
 }
 
 //-----------------------------------------------------------------------------
-void DilateFilter::run(OutputId oId)
+void DilateFilter::run(FilterOutputId oId)
 {
   Q_ASSERT(0 == oId);
   Q_ASSERT(m_inputs.size() == 1);
 
-  m_input = m_inputs.first()->toITK();
+  SegmentationVolumeTypeSPtr input = segmentationVolumeOutput(m_inputs[0]);
+  Q_ASSERT(input);
 
   //   qDebug() << "Compute Image Dilate";
   itkVolumeType::SizeType lowerExtendRegion;
@@ -67,7 +71,7 @@ void DilateFilter::run(OutputId oId)
 
   PadFilterType::Pointer padFilter = PadFilterType::New();
   padFilter->SetConstant(SEG_BG_VALUE);
-  padFilter->SetInput(m_input);
+  padFilter->SetInput(input->toITK());
   padFilter->SetPadLowerBound(lowerExtendRegion);
   padFilter->SetPadUpperBound(upperExtendRegion);
 
@@ -75,20 +79,19 @@ void DilateFilter::run(OutputId oId)
   ball.SetRadius(m_params.radius());
   ball.CreateStructuringElement();
 
-  m_filter = BinaryDilateFilter::New();
-  m_filter->SetInput(padFilter->GetOutput());
-  m_filter->SetKernel(ball);
-  m_filter->SetObjectValue(SEG_VOXEL_VALUE);
-  m_filter->ReleaseDataFlagOff();
-  m_filter->Update();
+  BinaryDilateFilter::Pointer filter = BinaryDilateFilter::New();
+  filter->SetInput(padFilter->GetOutput());
+  filter->SetKernel(ball);
+  filter->SetObjectValue(SEG_VOXEL_VALUE);
+  filter->ReleaseDataFlagOff();
+  filter->Update();
 
   m_isOutputEmpty = false;
 
-  createOutput(0, m_filter->GetOutput());
+  FilterOutput::OutputTypeList dataList;
+  dataList << SegmentationVolumeTypeSPtr(new SegmentationVolumeType(filter->GetOutput()));
 
-  m_outputs[0].volume->toITK()->DisconnectPipeline();
-
-  m_outputs[0].volume->markAsModified();
+  createOutput(0, dataList);
 
   emit modified(this);
 }

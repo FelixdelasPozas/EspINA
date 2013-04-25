@@ -212,7 +212,7 @@ SampleSPtr EspinaFactory::createSample(const QString &id, const QString &args)
 
 //------------------------------------------------------------------------
 ChannelSPtr EspinaFactory::createChannel(FilterSPtr filter,
-                                         const Filter::OutputId &oId)
+                                         const FilterOutputId &oId)
 {
   ChannelSPtr channel(new Channel(filter, oId));
 //   foreach(ChannelExtensionPtr ext, m_channelExtensions)
@@ -223,7 +223,7 @@ ChannelSPtr EspinaFactory::createChannel(FilterSPtr filter,
 
 //------------------------------------------------------------------------
 SegmentationSPtr EspinaFactory::createSegmentation(FilterSPtr        filter,
-                                                        const Filter::OutputId &oId)
+                                                        const FilterOutputId &oId)
 {
 //   std::cout << "Factory is going to create a segmentation for vtkObject: " << vtkRef->id().toStdString() << std::endl;
   SegmentationSPtr seg(new Segmentation(filter, oId));

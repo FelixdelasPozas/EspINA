@@ -49,11 +49,14 @@ public:
 
   virtual void redo()
   {
-    Filter::Output &output = m_filter->output(0);
-    if (!m_oldVolume && (output.isEdited() || output.volume->volumeRegion().GetNumberOfPixels() < MAX_UNDO_SIZE))
+    OutputSPtr output = m_filter->output(0);
+
+    SegmentationVolumeTypeSPtr volume = boost::dynamic_pointer_cast<SegmentationVolumeType>(output->data(VolumeOutputType::TYPE));
+
+    if (!m_oldVolume && (output->isEdited() || volume->volumeRegion().GetNumberOfPixels() < MAX_UNDO_SIZE))
     {
-      m_oldVolume     = output.volume->cloneVolume();
-      m_editedRegions = output.editedRegions;
+      m_oldVolume     = volume->cloneVolume();
+      m_editedRegions = output->editedRegions();
     }
 
     m_filter->setRadius(m_radius, m_newVolume.IsNotNull());
@@ -65,16 +68,16 @@ public:
       if (m_filter->isOutputEmpty())
         return;
 
-      EspinaVolume::Pointer newVolume = output.volume;
+      SegmentationVolumeTypeSPtr newVolume = volume;
       if (newVolume->volumeRegion().GetNumberOfPixels() < MAX_UNDO_SIZE)
-        m_newVolume = output.volume->cloneVolume();
+        m_newVolume = volume->cloneVolume();
     }
     else
     {
       m_filter->restoreOutput(0, m_newVolume);
     }
 
-    output.editedRegions.clear();
+    output->clearEditedRegions();
   }
 
   virtual void undo()
@@ -84,7 +87,7 @@ public:
     if (m_oldVolume.IsNotNull())
     {
       m_filter->restoreOutput(0, m_oldVolume);
-      m_filter->output(0).editedRegions = m_editedRegions;
+      m_filter->output(0)->setEditedRegions(m_editedRegions);
     } else
     {
       update();
@@ -107,7 +110,7 @@ private:
   itkVolumeType::Pointer m_oldVolume;
   itkVolumeType::Pointer m_newVolume;
 
-  QList<EspinaRegion> m_editedRegions;
+  FilterOutput::NamedRegionList m_editedRegions;
 };
 
 
@@ -163,10 +166,10 @@ CODESettings::~CODESettings()
 //----------------------------------------------------------------------------
 void CODESettings::modifyFilter()
 {
-  if ((m_spinbox->value() == static_cast<int>(m_filter->radius())) && m_filter->editedOutputs().isEmpty())
+  if ((m_spinbox->value() == static_cast<int>(m_filter->radius())) && !m_filter->output(0)->isEdited())
     return;
 
-  if (!m_filter->editedOutputs().isEmpty())
+  if (m_filter->output(0)->isEdited())
   {
     QMessageBox msg;
     msg.setText(tr("Filter contains segmentations that have been modified by the user."

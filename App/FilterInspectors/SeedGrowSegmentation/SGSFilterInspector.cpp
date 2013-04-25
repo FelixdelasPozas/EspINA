@@ -54,12 +54,14 @@ public:
 
   virtual void redo()
   {
-    Filter::Output &output = m_filter->output(0);
+    OutputSPtr output = m_filter->output(0);
 
-    if (!m_oldVolume && (output.isEdited() || output.volume->volumeRegion().GetNumberOfPixels() < MAX_UNDO_SIZE))
+    SegmentationVolumeTypeSPtr volume = boost::dynamic_pointer_cast<SegmentationVolumeType>(output->data(VolumeOutputType::TYPE));
+
+    if (!m_oldVolume && (output->isEdited() || volume->volumeRegion().GetNumberOfPixels() < MAX_UNDO_SIZE))
     {
-      m_oldVolume     = output.volume->cloneVolume();
-      m_editedRegions = output.editedRegions;
+      m_oldVolume     = volume->cloneVolume();
+      m_editedRegions = output->editedRegions();
     }
 
     bool ignoreUpdate = m_newVolume.IsNotNull();
@@ -73,16 +75,16 @@ public:
     {
       update();
 
-      EspinaVolume::Pointer newVolume = m_filter->volume(0);
+      SegmentationVolumeTypeSPtr newVolume = volume;
       if (newVolume->volumeRegion().GetNumberOfPixels() < MAX_UNDO_SIZE)
-        m_newVolume = m_filter->output(0).volume->cloneVolume();
+        m_newVolume = volume->cloneVolume();
     }
     else
     {
       m_filter->restoreOutput(0, m_newVolume);
     }
 
-    output.editedRegions.clear();
+    output->clearEditedRegions();
   }
 
   virtual void undo()
@@ -95,7 +97,7 @@ public:
     if (m_oldVolume.IsNotNull())
     {
       m_filter->restoreOutput(0, m_oldVolume);
-      m_filter->output(0).editedRegions = m_editedRegions;
+      m_filter->output(0)->setEditedRegions(m_editedRegions);
     } else
     {
       update();
@@ -120,7 +122,7 @@ private:
   itkVolumeType::Pointer m_oldVolume;
   itkVolumeType::Pointer m_newVolume;
 
-  QList<EspinaRegion> m_editedRegions;
+  FilterOutput::NamedRegionList m_editedRegions;
 };
 
 //----------------------------------------------------------------------------
@@ -153,6 +155,8 @@ SGSFilterInspector::Widget::Widget(Filter* filter,
   connect(filter, SIGNAL(modified(ModelItemPtr)),
           this, SLOT(updateWidget()));
 
+  SegmentationVolumeTypeSPtr volume = boost::dynamic_pointer_cast<SegmentationVolumeType>(filter->output(0)->data(VolumeOutputType::TYPE));
+
   itkVolumeType::IndexType seed = m_filter->seed();
   m_xSeed->setText(QString("%1").arg(seed[0]));
   m_ySeed->setText(QString("%1").arg(seed[1]));
@@ -161,7 +165,7 @@ SGSFilterInspector::Widget::Widget(Filter* filter,
   m_threshold->setValue(m_filter->lowerThreshold());
   int voiExtent[6];
   m_filter->voi(voiExtent);
-  itkVolumeType::SpacingType spacing = filter->volume(0)->toITK()->GetSpacing();
+  itkVolumeType::SpacingType spacing = volume->toITK()->GetSpacing();
   for (int i=0; i<6; i++)
     m_voiBounds[i] = voiExtent[i] * spacing[i/2];
 
@@ -278,7 +282,7 @@ void SGSFilterInspector::Widget::redefineVOI(double* bounds)
 //----------------------------------------------------------------------------
 void SGSFilterInspector::Widget::modifyFilter()
 {
-  if (!m_filter->editedOutputs().isEmpty())
+  if (m_filter->output(0)->isEdited())
   {
     QMessageBox msg;
     msg.setText(tr("Filter contains segmentations that have been modified by the user."
@@ -289,9 +293,11 @@ void SGSFilterInspector::Widget::modifyFilter()
     if (msg.exec() != QMessageBox::Yes)
       return;
   }
-
+  
+  SegmentationVolumeTypeSPtr volume = boost::dynamic_pointer_cast<SegmentationVolumeType>(m_filter->output(0)->data(VolumeOutputType::TYPE));
+  
   double spacing[3];
-  m_filter->volume(0)->spacing(spacing);
+  volume->spacing(spacing);
 
   double voiBounds[6];
   voiBounds[0] = m_leftMargin->value();
@@ -369,10 +375,12 @@ void SGSFilterInspector::Widget::modifyCloseValue(int value)
 //----------------------------------------------------------------------------
 void SGSFilterInspector::Widget::updateWidget()
 {
+  SegmentationVolumeTypeSPtr volume = boost::dynamic_pointer_cast<SegmentationVolumeType>(m_filter->output(0)->data(VolumeOutputType::TYPE));
+  
   m_threshold->setValue(m_filter->lowerThreshold());
   int voiExtent[6];
   m_filter->voi(voiExtent);
-  itkVolumeType::SpacingType spacing = m_filter->volume(0)->toITK()->GetSpacing();
+  itkVolumeType::SpacingType spacing = volume->toITK()->GetSpacing();
   for (int i=0; i<6; i++)
     m_voiBounds[i] = voiExtent[i] * spacing[i/2];
 

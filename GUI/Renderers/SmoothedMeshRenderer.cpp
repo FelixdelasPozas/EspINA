@@ -47,6 +47,7 @@ SmoothedMeshRenderer::SmoothedMeshRenderer(ViewManager *vm, QObject *parent)
 //-----------------------------------------------------------------------------
 bool SmoothedMeshRenderer::addItem(ModelItemPtr item)
 {
+  /* FIXME
   if (EspINA::SEGMENTATION != item->type())
     return false;
 
@@ -142,11 +143,13 @@ bool SmoothedMeshRenderer::addItem(ModelItemPtr item)
   connect(item, SIGNAL(modified(ModelItemPtr)), this, SLOT(updateItem(ModelItemPtr)));
 
   return true;
+  */
 }
 
 //-----------------------------------------------------------------------------
 bool SmoothedMeshRenderer::updateItem(ModelItemPtr item, bool forced)
 {
+  /* FIXME
   if (!m_enable && !forced)
     return false;
 
@@ -251,6 +254,7 @@ bool SmoothedMeshRenderer::updateItem(ModelItemPtr item, bool forced)
   }
 
   return updated || hierarchiesUpdated;
+  */
 }
 
 //-----------------------------------------------------------------------------

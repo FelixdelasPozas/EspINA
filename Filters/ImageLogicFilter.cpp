@@ -48,7 +48,7 @@ ImageLogicFilter::~ImageLogicFilter()
 
 
 //-----------------------------------------------------------------------------
-bool ImageLogicFilter::needUpdate(OutputId oId) const
+bool ImageLogicFilter::needUpdate(FilterOutputId oId) const
 {
   bool update = Filter::needUpdate(oId);
 
@@ -56,16 +56,13 @@ bool ImageLogicFilter::needUpdate(OutputId oId) const
   {
     Q_ASSERT(m_namedInputs.size()  >= 1);
     Q_ASSERT(m_outputs.size() == 1);
-    Q_ASSERT(m_outputs[0].volume.get());
 
-    itk::TimeStamp inputTimeStamp = m_inputs[0]->toITK()->GetTimeStamp();
-    for (int i = 1; i < m_inputs.size(); i++)
+    int i = 0;
+    while (!update && i < m_inputs.size())
     {
-      if (inputTimeStamp < m_inputs[i]->toITK()->GetTimeStamp())
-        inputTimeStamp = m_inputs[i]->toITK()->GetTimeStamp();
+      update = m_outputs[0]->data(VolumeOutputType::TYPE)->timeStamp() < m_inputs[i]->data(VolumeOutputType::TYPE)->timeStamp();
+      ++i;
     }
-
-    update = m_outputs[0].volume->toITK()->GetTimeStamp() < inputTimeStamp;
   }
 
   return update;
@@ -78,7 +75,7 @@ void ImageLogicFilter::run()
 }
 
 //-----------------------------------------------------------------------------
-void ImageLogicFilter::run(Filter::OutputId oId) //TODO: Parallelize
+void ImageLogicFilter::run(FilterOutputId oId) //TODO: Parallelize
 {
   Q_ASSERT(0 == oId);
   Q_ASSERT(m_inputs.size() > 1);
@@ -106,24 +103,27 @@ void ImageLogicFilter::addition()
 {
   QList<EspinaRegion> regions;
 
-  EspinaRegion bb = m_inputs[0]->espinaRegion();
+  SegmentationVolumeTypeSPtr firstVolume = segmentationVolumeOutput(m_inputs[0]);
+  EspinaRegion bb = firstVolume->espinaRegion();
   regions << bb;
 
   for (int i = 1; i < m_inputs.size(); i++)
   {
-    EspinaRegion region = m_inputs[i]->espinaRegion();
+    SegmentationVolumeTypeSPtr iVolume = segmentationVolumeOutput(m_inputs[i]);
+    EspinaRegion region = iVolume->espinaRegion();
 
     bb = BoundingBox(bb, region);
     regions << region;
   }
 
-  itkVolumeType::SpacingType spacing = m_inputs[0]->toITK()->GetSpacing();
-  SegmentationVolume::Pointer volume(new SegmentationVolume(bb, spacing));
+  itkVolumeType::SpacingType spacing = firstVolume->toITK()->GetSpacing();
+  SegmentationVolumeTypeSPtr volume(new SegmentationVolumeType(bb, spacing));
 
   for (int i = 0; i < regions.size(); i++)
   {
-    itkVolumeConstIterator it = m_inputs[i]->constIterator(regions[i]);
-    itkVolumeIterator      ot = volume     ->iterator     (regions[i]);
+    SegmentationVolumeTypeSPtr  iVolume = segmentationVolumeOutput(m_inputs[i]);
+    itkVolumeConstIterator it = iVolume->constIterator(regions[i]);
+    itkVolumeIterator      ot = volume ->iterator (regions[i]);
 
     it.GoToBegin();
     ot.GetRegion();
@@ -134,24 +134,31 @@ void ImageLogicFilter::addition()
     }
   }
 
-  m_outputs[0] = Output(this, 0, volume);
+  FilterOutput::OutputTypeList dataList;
+  dataList << volume;
+
+  createOutput(0, dataList);
+
+  emit modified(this);
 }
 
 //-----------------------------------------------------------------------------
 void ImageLogicFilter::substraction()
 {
   // TODO 2012-11-29 Revisar si se puede evitar crear la imagen
-  QList<EspinaVolume::Pointer> validInputs;
+  OutputList          validInputs;
   QList<EspinaRegion> regions;
 
-  EspinaRegion outputRegion = m_inputs[0]->espinaRegion();
+  SegmentationVolumeTypeSPtr  firstVolume = segmentationVolumeOutput(m_inputs[0]);
+  EspinaRegion outputRegion = firstVolume->espinaRegion();
 
   validInputs << m_inputs[0];
   regions     << outputRegion;
 
   for (int i = 1; i < m_inputs.size(); i++)
   {
-    EspinaRegion region = m_inputs[i]->espinaRegion();
+    SegmentationVolumeTypeSPtr iVolume = segmentationVolumeOutput(m_inputs[i]);
+    EspinaRegion region = iVolume->espinaRegion();
     if (outputRegion.intersect(region))
     {
       validInputs << m_inputs[i];
@@ -159,18 +166,19 @@ void ImageLogicFilter::substraction()
     }
   }
 
-  itkVolumeType::SpacingType spacing = m_inputs[0]->toITK()->GetSpacing();
-  SegmentationVolume::Pointer volume(new SegmentationVolume(outputRegion, spacing));
+  itkVolumeType::SpacingType spacing = firstVolume->toITK()->GetSpacing();
+  SegmentationVolumeTypeSPtr volume(new SegmentationVolumeType(outputRegion, spacing));
 
-  itk::ImageAlgorithm::Copy(m_inputs[0]->toITK().GetPointer(),
+  itk::ImageAlgorithm::Copy(firstVolume->toITK().GetPointer(),
                             volume->toITK().GetPointer(),
-                            m_inputs[0]->volumeRegion(),
+                            firstVolume->volumeRegion(),
                             volume->volumeRegion());
 
   for (int i = 1; i < validInputs.size(); i++)
   {
-    itkVolumeConstIterator it = m_inputs[i]->constIterator(regions[i]);
-    itkVolumeIterator      ot = volume     ->iterator     (regions[i]);
+    SegmentationVolumeTypeSPtr  iVolume = segmentationVolumeOutput(m_inputs[i]);
+    itkVolumeConstIterator it = iVolume->constIterator(regions[i]);
+    itkVolumeIterator      ot = volume ->iterator     (regions[i]);
     it.GoToBegin();
     ot.GetRegion();
     for (; !it.IsAtEnd(); ++it,++ot)
@@ -180,5 +188,10 @@ void ImageLogicFilter::substraction()
     }
   }
 
-  m_outputs[0] = Output(this, 0, volume);
+  FilterOutput::OutputTypeList dataList;
+  dataList << volume;
+
+  createOutput(0, dataList);
+
+  emit modified(this);
 }

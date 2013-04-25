@@ -50,17 +50,17 @@ namespace EspINA
 
   private:
     SegmentationSPtr m_seg;
-    Filter::OutputId m_output;
+    FilterOutputId   m_output;
     BrushShapeList   m_brushes;
     ViewManager     *m_viewManager;
 
     double m_strokeBounds[6];
 
-    itkVolumeType::PixelType m_value;
-    itkVolumeType::Pointer   m_prevVolume;
-    itkVolumeType::Pointer   m_newVolume;
-    bool                     m_needReduction;
-    QList<EspinaRegion>      m_prevRegions;
+    itkVolumeType::PixelType      m_value;
+    itkVolumeType::Pointer        m_prevVolume;
+    itkVolumeType::Pointer        m_newVolume;
+    bool                          m_needReduction;
+    FilterOutput::NamedRegionList m_prevRegions;
   };
 
   class Brush::SnapshotCommand
@@ -68,15 +68,15 @@ namespace EspINA
   {
   public:
     explicit SnapshotCommand(SegmentationSPtr seg,
-                             Filter::OutputId output,
-                             ViewManager *vm);
+                             FilterOutputId   output,
+                             ViewManager     *vm);
 
     virtual void redo();
     virtual void undo();
 
   private:
     SegmentationSPtr m_seg;
-    Filter::OutputId m_output;
+    FilterOutputId   m_output;
     ViewManager     *m_viewManager;
 
     itkVolumeType::Pointer m_prevVolume;

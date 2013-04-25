@@ -21,6 +21,7 @@
 #define SPLITFILTER_H
 
 #include <Core/Model/Filter.h>
+#include <Core/Model/VolumeOutputType.h>
 
 #include <vtkSmartPointer.h>
 
@@ -60,17 +61,16 @@ namespace EspINA
     virtual bool ignoreCurrentOutputs() const
     { return m_ignoreCurrentOutputs; }
 
-    virtual bool needUpdate(OutputId oId) const;
+    virtual bool needUpdate(FilterOutputId oId) const;
 
     virtual void run();
-    virtual void run(OutputId oId);
+    virtual void run(FilterOutputId oId);
 
   private:
     vtkSmartPointer<vtkImageStencilData> m_stencil;
 
     bool m_ignoreCurrentOutputs;
-
-    SegmentationVolume::Pointer m_volumes[2];
+    SegmentationVolumeTypeSPtr m_volumes[2];
   };
 
   typedef QSharedPointer<SplitFilter> SplitFilterPtr;

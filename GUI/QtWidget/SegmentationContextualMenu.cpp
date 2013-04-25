@@ -177,8 +177,9 @@ void SegmentationContextualMenu::changeFinalFlag()
       seg->setHierarchyRenderingType(HierarchyItem::Undefined, false);
   }
 
-  foreach(SegmentationPtr seg, selectedSegmentations)
-    seg->volume()->update();
+  // FIXME
+//   foreach(SegmentationPtr seg, selectedSegmentations)
+//     seg->output()->update();
 
   m_viewManager->updateSegmentationRepresentations(selectedSegmentations);
   m_viewManager->updateViews();

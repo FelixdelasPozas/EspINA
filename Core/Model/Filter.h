@@ -23,9 +23,8 @@
 #include "Core/Model/ModelItem.h"
 
 #include "Core/EspinaTypes.h"
-#include <Core/EspinaVolume.h>
-
-#include <boost/shared_ptr.hpp>
+#include <Core/EspinaRegion.h>
+#include <Core/Model/Output.h>
 
 #include <itkImageFileReader.h>
 
@@ -49,51 +48,11 @@ namespace EspINA
   public:
     static const QString CREATELINK;
 
-    typedef int OutputId;
-
     typedef QMap<QString, FilterSPtr> NamedInputs;
 
-    static const QString NamedInput(const QString &label, OutputId oId)
+    static const QString NamedInput(const QString &label, FilterOutputId oId)
     { return QString("%1_%2").arg(label).arg(oId); }
 
-    struct Output
-    {
-      static const int INVALID_OUTPUT_ID;
-
-      explicit Output(Filter               *filter = NULL,
-                      const OutputId       &id     = INVALID_OUTPUT_ID,
-                      EspinaVolume::Pointer volume = EspinaVolume::Pointer()
-      )
-      : id(id)
-      , isCached(false)
-      , filter(filter)
-      , volume(volume)
-      { if (isValid()) this->volume->toITK()->DisconnectPipeline();}
-
-      QList<EspinaRegion>   editedRegions;
-      OutputId              id;
-      bool                  isCached; /// Whether output is used by a segmentation
-      FilterPtr             filter;
-      EspinaVolume::Pointer volume;
-
-      bool isValid() const
-      {
-        return NULL != filter
-        && INVALID_OUTPUT_ID < id
-        && volume.get()
-        && volume->toITK().IsNotNull();
-      }
-
-      void addEditedRegion(const EspinaRegion &region);
-
-      /// Whether output has been manually edited
-      bool isEdited() const
-      {return !editedRegions.isEmpty();} 
-
-      void update() { filter->update(id); }
-    };
-
-    typedef QList<Output> OutputList;
 
     typedef QString FilterType;
 
@@ -141,14 +100,14 @@ namespace EspINA
     struct Link
     {
       FilterPtr filter;
-      OutputId  outputPort;
+      FilterOutputId  outputPort;
     };
 
 
     /// Set voxels belonging to the implicit function defined by brush to value
     ///NOTE: Current implementation will expand the image
     ///      when drawing with value != 0
-    virtual void draw(OutputId oId,
+    virtual void draw(FilterOutputId oId,
                       vtkImplicitFunction *brush,
                       const Nm bounds[6],
                       itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
@@ -157,7 +116,7 @@ namespace EspINA
     /// Set voxels at index to value
     ///NOTE: Current implementation will expand the image
     ///      when drawing with value != 0
-    virtual void draw(OutputId oId,
+    virtual void draw(FilterOutputId oId,
                       itkVolumeType::IndexType index,
                       itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
                       bool emitSignal = true);
@@ -165,7 +124,7 @@ namespace EspINA
     /// Set voxels at coordinates (x,y,z) to value
     ///NOTE: Current implementation will expand the image
     ///      when drawing with value != 0
-    virtual void draw(OutputId oId,
+    virtual void draw(FilterOutputId oId,
                       Nm x, Nm y, Nm z,
                       itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
                       bool emitSignal = true);
@@ -173,7 +132,7 @@ namespace EspINA
     /// Set voxels inside contour to value
     ///NOTE: Current implementation will expand the image
     ///      when drawing with value != 0
-    virtual void draw(OutputId oId,
+    virtual void draw(FilterOutputId oId,
                       vtkPolyData *contour,
                       Nm slice,
                       PlaneType plane,
@@ -181,45 +140,36 @@ namespace EspINA
                       bool emitSignal = true);
 
     /// Draw volume on top of output's voulume
-    virtual void draw(OutputId oId,
+    virtual void draw(FilterOutputId oId,
                       itkVolumeType::Pointer volume,
                       bool emitSignal = true);
 
     /// Fill output's volume with given value
-    virtual void fill(OutputId oId,
+    virtual void fill(FilterOutputId oId,
                       itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
                       bool emitSignal = true);
 
     /// Fill output's volume's region with given value
-    virtual void fill(OutputId oId,
+    virtual void fill(FilterOutputId oId,
                       const EspinaRegion &region,
                       itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
                       bool emitSignal = true);
 
     //NOTE 2012-11-20 suggest a better name
-    virtual void restoreOutput(OutputId oId,
+    virtual void restoreOutput(FilterOutputId oId,
                                itkVolumeType::Pointer volume);
 
     /// Returns filter's outputs
     OutputList outputs() const {return m_outputs.values();}
 
-    /// Returns a list of outputs edited by the user
-    OutputList editedOutputs() const;
-
     /// Return whether or not i is an output of the filter
-    bool validOutput(OutputId oId);
+    bool validOutput(FilterOutputId oId);
 
     /// Return an output with id i. Ids are not necessarily sequential
-    virtual const Output output(OutputId oId) const;
+    virtual const OutputSPtr output(FilterOutputId oId) const;
 
     /// Return an output with id i. Ids are not necessarily sequential
-    virtual Output &output(OutputId oId);
-
-    /// Convencience method to get the volume associated wit output i
-    EspinaVolume::Pointer volume(OutputId oId) {return output(oId).volume;}
-
-    /// Convencience method to get the volume associated wit output i
-    const EspinaVolume::Pointer volume(OutputId oId) const {return output(oId).volume;}
+    virtual OutputSPtr output(FilterOutputId oId);
 
     /// Update all filter outputs
     /// If a snapshot exits, filter will try to load it from disk
@@ -227,7 +177,7 @@ namespace EspINA
 
     /// Update filter output oId.
     /// If a snapshot exits, filter will try to load it from disk
-    void update(OutputId oId);
+    void update(FilterOutputId oId);
 
     /// Some filters may need to stablish connections with other items on the model
     /// in order to keep updated
@@ -248,15 +198,24 @@ namespace EspINA
     /// returns if the filter has been executed at least once in the session
     virtual bool executed() { return m_executed; }
 
+    /// Reader to access snapshots
+    itkVolumeType::Pointer readVolumeFromCache(const QString &file);
+
   protected:
     explicit Filter(NamedInputs namedInputs,
                     Arguments   args,
                     FilterType  type);
 
-    /// Subclasses need to specify which subtype of EspinaVolume they use
-    virtual void createOutput(OutputId id, itkVolumeType::Pointer volume = NULL) = 0;
-    virtual void createOutput(OutputId id, EspinaVolume::Pointer volume) = 0;
-    virtual void createOutput(OutputId id, const EspinaRegion &region, itkVolumeType::SpacingType spacing) = 0;
+    /// Create a new output with id, if there is already an output, return it
+    /// instead of creating a new instance
+    void createOutput(FilterOutputId id, FilterOutput::OutputTypeSPtr data);
+    void createOutput(FilterOutputId id, FilterOutput::OutputTypeList dataList);
+
+    virtual void createDummyOutput(FilterOutputId id, const FilterOutput::OutputTypeName &type){}
+//     /// Subclasses need to specify which subtype of EspinaVolume they use
+//     virtual void createOutput(FilterOutputId id, itkVolumeType::Pointer volume = NULL) = 0;
+//     virtual void createOutput(FilterOutputId id, EspinaVolume::Pointer volume) = 0;
+//     virtual void createOutput(FilterOutputId id, const EspinaRegion &region, itkVolumeType::SpacingType spacing) = 0;
 
     /// Current outputs must be ignored due to changes on filter state
     virtual bool ignoreCurrentOutputs() const = 0;
@@ -268,29 +227,26 @@ namespace EspINA
     /// Whether the filter needs to be updated or not
     /// Default implementation will request an update if there is no filter output
     /// or it is an invalid output
-    virtual bool needUpdate(OutputId oId) const = 0;
+    virtual bool needUpdate(FilterOutputId oId) const = 0;
 
     /// Try to locate an snapshot of the filter in tmpDir
     /// Returns true if all volume snapshot can be recovered
     /// and false otherwise
-    virtual bool fetchSnapshot(OutputId oId);
+    virtual bool fetchSnapshot(FilterOutputId oId);
 
     /// Method which actually executes the filter to generate all its outputs
     virtual void run() = 0;
 
     /// Method which actually executes the filter to generate output oId
-    virtual void run(OutputId oId) = 0;
-
-    /// Reader to access snapshots
-    EspinaVolumeReader::Pointer tmpFileReader(const QString file);
+    virtual void run(FilterOutputId oId) = 0;
 
   protected:
-    QList<EspinaVolume::Pointer> m_inputs;
-    NamedInputs                  m_namedInputs;
-    mutable Arguments            m_args;
-    FilterType                   m_type;
+    OutputList        m_inputs;
+    NamedInputs       m_namedInputs;
+    mutable Arguments m_args;
+    FilterType        m_type;
 
-    QMap<OutputId, Output>       m_outputs;
+    QMap<FilterOutputId, OutputSPtr>   m_outputs;
     int  m_cacheId;
     QDir m_cacheDir;
     bool m_traceable;
@@ -312,9 +268,9 @@ namespace EspINA
                            FilterType  type)
     : Filter(namedInputs, args, type){}
 
-    virtual void createOutput(OutputId id, itkVolumeType::Pointer volume = NULL);
-    virtual void createOutput(OutputId id, EspinaVolume::Pointer volume);
-    virtual void createOutput(OutputId id, const EspinaRegion &region, itkVolumeType::SpacingType spacing);
+//     virtual void createOutput(FilterOutputId id, itkVolumeType::Pointer volume = NULL);
+//     //virtual void createOutput(FilterOutputId id, EspinaVolume::Pointer volume);
+//     virtual void createOutput(FilterOutputId id, const EspinaRegion &region, itkVolumeType::SpacingType spacing);
   };
 
   class SegmentationFilter
@@ -329,9 +285,9 @@ namespace EspINA
                                 FilterType  type)
     : Filter(namedInputs, args, type){}
 
-    virtual void createOutput(OutputId id, itkVolumeType::Pointer volume = NULL);
-    virtual void createOutput(OutputId id, EspinaVolume::Pointer volume);
-    virtual void createOutput(OutputId id, const EspinaRegion &region, itkVolumeType::SpacingType spacing);
+//     virtual void createOutput(FilterOutputId id, itkVolumeType::Pointer volume = NULL);
+//     //virtual void createOutput(FilterOutputId id, EspinaVolume::Pointer volume);
+//     virtual void createOutput(FilterOutputId id, const EspinaRegion &region, itkVolumeType::SpacingType spacing);
   };
 
   FilterPtr filterPtr(ModelItemPtr item);

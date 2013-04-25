@@ -19,7 +19,6 @@
 
 // EspINA
 #include "SplitFilter.h"
-#include <Core/EspinaVolume.h>
 
 // ITK
 #include <itkImageRegionConstIteratorWithIndex.h>
@@ -57,7 +56,7 @@ SplitFilter::~SplitFilter()
 }
 
 //-----------------------------------------------------------------------------
-bool SplitFilter::needUpdate(OutputId oId) const
+bool SplitFilter::needUpdate(FilterOutputId oId) const
 {
   return Filter::needUpdate(oId);
 }
@@ -70,13 +69,14 @@ void SplitFilter::run()
 }
 
 //-----------------------------------------------------------------------------
-void SplitFilter::run(Filter::OutputId oId)
+void SplitFilter::run(FilterOutputId oId)
 {
   //qDebug() << "Split Run" << m_cacheId;
   Q_ASSERT(0 == oId || 1 == oId);
   Q_ASSERT(m_inputs.size() == 1);
 
-  EspinaVolume::Pointer input = m_inputs[0];
+  SegmentationVolumeTypeSPtr input = segmentationVolumeOutput(m_inputs[0]);
+  Q_ASSERT(input);
 
   // if you want to run the filter you must have an stencil
   if (NULL == m_stencil.GetPointer())
@@ -88,7 +88,7 @@ void SplitFilter::run(Filter::OutputId oId)
   if (m_volumes[0].get() == NULL || ignoreCurrentOutputs())
   {
     for(int i=0; i < 2; i++)
-      m_volumes[i] = SegmentationVolume::Pointer(new SegmentationVolume(region, spacing));
+      m_volumes[i] = SegmentationVolumeTypeSPtr(new SegmentationVolumeType(region, spacing));
 
     itkVolumeConstIterator it = input      ->iterator(region);
     itkVolumeIterator     ot1 = m_volumes[0] ->iterator(region);

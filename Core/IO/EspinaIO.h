@@ -107,10 +107,6 @@ namespace EspINA
                         const QByteArray &content,
                         QuaZipFile& zFile);
 
-    // deprecated?
-    static bool zipVolume(Filter::Output output,
-                          QDir tmpDir,
-                          QuaZipFile &outFile);
 
   };
 

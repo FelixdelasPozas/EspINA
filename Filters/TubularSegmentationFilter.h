@@ -97,13 +97,13 @@ namespace EspINA
       virtual bool ignoreCurrentOutputs() const
       { return false; } // TODO
 
-      virtual bool needUpdate(OutputId oId) const;
+      virtual bool needUpdate(FilterOutputId oId) const;
 
-      virtual bool fetchSnapshot(OutputId oId);
+      virtual bool fetchSnapshot(FilterOutputId oId);
 
       virtual void run() { run(0); }
 
-      virtual void run(OutputId oId);
+      virtual void run(FilterOutputId oId);
 
       void updateVolume();
 

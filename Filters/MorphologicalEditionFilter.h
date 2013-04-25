@@ -60,24 +60,25 @@ public:
   virtual bool isOutputEmpty() { return m_isOutputEmpty; };
 
 protected:
+  virtual void createDummyOutput(FilterOutputId id, const FilterOutput::OutputTypeName &type);
+
   virtual bool ignoreCurrentOutputs() const
   {  return m_ignoreCurrentOutputs; }
 
-  virtual bool needUpdate(OutputId oId) const;
+  virtual bool needUpdate(FilterOutputId oId) const;
 
-  virtual bool fetchSnapshot(OutputId oId);
+  virtual bool fetchSnapshot(FilterOutputId oId);
 
   virtual void run()
   { run(0); }
 
-  virtual void run(OutputId oId) = 0;
+  virtual void run(FilterOutputId oId) = 0;
 
 
 protected:
-  Parameters             m_params;
-  itkVolumeType::Pointer m_input;
-  bool                   m_isOutputEmpty;
-  bool                   m_ignoreCurrentOutputs;
+  bool                       m_ignoreCurrentOutputs;
+  bool                       m_isOutputEmpty;
+  Parameters                 m_params;
 };
 
 } // namespace EspINA

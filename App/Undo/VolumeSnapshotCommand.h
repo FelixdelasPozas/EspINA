@@ -39,13 +39,13 @@ namespace EspINA
   : public QUndoCommand
   {
   public:
-    explicit VolumeSnapshotCommand(Filter::Output &output);
+    explicit VolumeSnapshotCommand(OutputSPtr output);
 
     virtual void redo();
     virtual void undo();
 
   private:
-    Filter::Output &m_output;
+    OutputSPtr m_output;
 
     itkVolumeType::Pointer m_prevVolume;
     itkVolumeType::Pointer m_newVolume;

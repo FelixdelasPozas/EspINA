@@ -50,21 +50,27 @@ FreeFormSource::~FreeFormSource()
 }
 
 //-----------------------------------------------------------------------------
-void FreeFormSource::draw(OutputId oId,
+void FreeFormSource::draw(FilterOutputId oId,
                           vtkImplicitFunction * brush,
                           const Nm bounds[6],
                           itkVolumeType::PixelType value,
                           bool emitSignal)
 {
   Q_ASSERT(0 == oId);
+
   if (m_outputs.isEmpty())
-    createOutput(0, EspinaRegion(bounds), m_param.spacing());
+  {
+    FilterOutput::OutputTypeList dataList;
+    dataList << SegmentationVolumeTypeSPtr(new SegmentationVolumeType(EspinaRegion(bounds), m_param.spacing()));
+
+    createOutput(0, dataList);
+  }
 
   Filter::draw(oId, brush, bounds, value, emitSignal);
 }
 
 //-----------------------------------------------------------------------------
-void FreeFormSource::draw(OutputId oId,
+void FreeFormSource::draw(FilterOutputId oId,
                           itkVolumeType::IndexType index,
                           itkVolumeType::PixelType value,
                           bool emitSignal)
@@ -80,14 +86,17 @@ void FreeFormSource::draw(OutputId oId,
     volume->Allocate();
     volume->FillBuffer(0);
 
-    createOutput(0, volume);
+    FilterOutput::OutputTypeList dataList;
+    dataList << SegmentationVolumeTypeSPtr(new SegmentationVolumeType(volume));
+
+    createOutput(0, dataList);
   }
 
   Filter::draw(oId, index, value, emitSignal);
 }
 
 //-----------------------------------------------------------------------------
-void FreeFormSource::draw(OutputId oId,
+void FreeFormSource::draw(FilterOutputId oId,
                           Nm x, Nm y, Nm z,
                           itkVolumeType::PixelType value,
                           bool emitSignal)
@@ -108,26 +117,34 @@ void FreeFormSource::draw(OutputId oId,
     volume->Allocate();
     volume->FillBuffer(0);
 
-    createOutput(0, volume);
+    FilterOutput::OutputTypeList dataList;
+    dataList << SegmentationVolumeTypeSPtr(new SegmentationVolumeType(volume));
+
+    createOutput(0, dataList);
   }
 
   Filter::draw(oId, x, y, z, value, emitSignal);
 }
 
 //-----------------------------------------------------------------------------
-void FreeFormSource::draw(Filter::OutputId oId,
+void FreeFormSource::draw(FilterOutputId oId,
                           itkVolumeType::Pointer volume,
                           bool emitSignal)
 {
   if (m_outputs.isEmpty())
-    createOutput(0, volume);
+  {
+    FilterOutput::OutputTypeList dataList;
+    dataList << SegmentationVolumeTypeSPtr(new SegmentationVolumeType(volume));
+
+    createOutput(0, dataList);
+  }
   else
     EspINA::Filter::draw(oId, volume, emitSignal);
 }
 
 
 //-----------------------------------------------------------------------------
-bool FreeFormSource::needUpdate(OutputId oId) const
+bool FreeFormSource::needUpdate(FilterOutputId oId) const
 {
   return Filter::needUpdate(oId);
 }

@@ -21,7 +21,6 @@
 // EspINA
 #include <Core/VTK/vtkTube.h>
 #include <App/Tools/TubularSegmentation/TubularTool.h>
-#include <Core/EspinaVolume.h>
 
 // VTK
 #include <vtkMath.h>
@@ -67,12 +66,13 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  void TubularSegmentationFilter::run(Filter::OutputId oId)
+  void TubularSegmentationFilter::run(FilterOutputId oId)
   {
     Q_ASSERT(0 == oId);
     updateVolume();
   }
 
+  // FIXME: Everything!!!
   //-----------------------------------------------------------------------------
   void TubularSegmentationFilter::updateVolume()
   {
@@ -159,7 +159,10 @@ namespace EspINA
     m_filter->SetImplicitFunctions(m_implicitFunctions);
     m_filter->Update();
 
-    createOutput(0, m_filter->GetOutput());
+    FilterOutput::OutputTypeList dataList;
+    dataList << SegmentationVolumeTypeSPtr(new SegmentationVolumeType(m_filter->GetOutput()));
+
+    createOutput(0, dataList);
 
     emit modified(this);
   }
@@ -174,13 +177,13 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  bool TubularSegmentationFilter::needUpdate(OutputId oId) const
+  bool TubularSegmentationFilter::needUpdate(FilterOutputId oId) const
   {
-    return m_outputs[0].isValid();
+    return m_outputs[0]->isValid();
   }
 
   //-----------------------------------------------------------------------------
-  bool TubularSegmentationFilter::fetchSnapshot(OutputId oId)
+  bool TubularSegmentationFilter::fetchSnapshot(FilterOutputId oId)
   {
     return Filter::fetchSnapshot(oId);
   }

@@ -68,6 +68,7 @@ ConnectomicsDialog::ConnectomicsDialog(EspinaModel *model,
 //------------------------------------------------------------------------
 void ConnectomicsDialog::generateConectomicGraph(EspinaModel *m_model)
 {
+  /* FIXME
   foreach(SegmentationSPtr seg, m_model->segmentations())
   {
     ModelItemSList res;
@@ -97,6 +98,7 @@ void ConnectomicsDialog::generateConectomicGraph(EspinaModel *m_model)
       }
     }
   }
+  */
 }
 
 //------------------------------------------------------------------------

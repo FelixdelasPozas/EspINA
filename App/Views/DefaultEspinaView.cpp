@@ -211,10 +211,10 @@ void DefaultEspinaView::removeChannel(ChannelPtr channel)
 bool DefaultEspinaView::updateChannel(ChannelPtr channel)
 {
   bool modified = false;
-  modified |= xyView->updateChannel(channel);
-  modified |= yzView->updateChannel(channel);
-  modified |= xzView->updateChannel(channel);
-  modified |= volView->updateChannel(channel);
+  modified |= xyView ->updateChannelRepresentation(channel);
+  modified |= yzView ->updateChannelRepresentation(channel);
+  modified |= xzView ->updateChannelRepresentation(channel);
+  modified |= volView->updateChannelRepresentation(channel);
   return modified;
 }
 
@@ -241,10 +241,10 @@ void DefaultEspinaView::removeSegmentation(SegmentationPtr seg)
 bool DefaultEspinaView::updateSegmentation(SegmentationPtr seg)
 {
   bool modified = false;
-  modified |= xyView->updateSegmentation(seg);
-  modified |= yzView->updateSegmentation(seg);
-  modified |= xzView->updateSegmentation(seg);
-  modified |= volView->updateSegmentation(seg);
+  modified |= xyView->updateSegmentationRepresentation(seg);
+  modified |= yzView->updateSegmentationRepresentation(seg);
+  modified |= xzView->updateSegmentationRepresentation(seg);
+  modified |= volView->updateSegmentationRepresentation(seg);
   return modified;
 }
 

@@ -54,17 +54,16 @@ namespace EspINA
     virtual bool ignoreCurrentOutputs() const
     { return false; }
 
-    virtual bool needUpdate(OutputId oId) const;
+    virtual bool needUpdate(FilterOutputId oId) const;
 
     virtual void run();
 
-    virtual void run(OutputId oId);
+    virtual void run(FilterOutputId oId);
 
     itkVolumeType::SpacingType spacing();
 
   private:
-    itk::ImageIOBase::Pointer   m_io;
-    EspinaVolumeReader::Pointer m_reader;
+    ChannelVolumeTypeSPtr   m_volumeOutput;
 
     EspinaIO::ErrorHandler *m_handler;
   };

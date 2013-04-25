@@ -18,6 +18,7 @@
 #include "SeedGrowSegmentationFilter.h"
 
 #include "Core/Model/EspinaModel.h"
+#include <GUI/Representations/SliceRepresentation.h>
 
 #include <QDebug>
 
@@ -52,7 +53,6 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(NamedInputs inputs,
 : SegmentationFilter(inputs, args, type)
 , m_ignoreCurrentOutputs   (false)
 , m_param           (m_args)
-, m_input           (EspinaVolume::Pointer())
 {
 }
 
@@ -68,7 +68,7 @@ QVariant SeedGrowSegmentationFilter::data(int role) const
   {
     QString tooltip;
 
-    if (isTouchingVOI())
+    if (!m_outputs[0]->isEdited() && isTouchingVOI())
       tooltip = condition(":/espina/voi.svg", "Touch VOI");
 
     return tooltip;
@@ -77,7 +77,16 @@ QVariant SeedGrowSegmentationFilter::data(int role) const
 }
 
 //-----------------------------------------------------------------------------
-bool SeedGrowSegmentationFilter::needUpdate(OutputId oId) const
+void SeedGrowSegmentationFilter::createDummyOutput(FilterOutputId id, const FilterOutput::OutputTypeName &type)
+{
+  if (VolumeOutputType::TYPE == type)
+    createOutput(id, SegmentationVolumeTypeSPtr(new SegmentationVolumeType()));
+  else
+    Q_ASSERT(false);
+}
+
+//-----------------------------------------------------------------------------
+bool SeedGrowSegmentationFilter::needUpdate(FilterOutputId oId) const
 {
   return Filter::needUpdate(oId);
 }
@@ -89,20 +98,21 @@ void SeedGrowSegmentationFilter::run()
 }
 
 //-----------------------------------------------------------------------------
-void SeedGrowSegmentationFilter::run(Filter::OutputId oId)
+void SeedGrowSegmentationFilter::run(FilterOutputId oId)
 {
+  qDebug() << "Run SGS";
   Q_ASSERT(0 == oId);
   Q_ASSERT(m_inputs.size() == 1);
 
-  m_input = m_inputs.first();
-  Q_ASSERT(m_input);
+  ChannelVolumeTypeSPtr input = channelVolumeOutput(m_inputs[0]);
+  Q_ASSERT(input);
 
   int voi[6];
   m_param.voi(voi);
 
 //   qDebug() << "Bound VOI to input extent";
   int inputExtent[6];
-  m_input->extent(inputExtent);
+  input->extent(inputExtent);
   for (int i = 0; i < 3; i++)
   {
     int inf = 2*i, sup = 2*i+1;
@@ -120,14 +130,14 @@ void SeedGrowSegmentationFilter::run(Filter::OutputId oId)
     roi.SetSize (i, voi[sup] - voi[inf] + 1);
   }
   voiFilter->SetNumberOfThreads(1);
-  voiFilter->SetInput(m_input->toITK());
+  voiFilter->SetInput(input->toITK());
   voiFilter->SetExtractionRegion(roi);
   voiFilter->ReleaseDataFlagOn();
   voiFilter->Update();
 
 //   qDebug() << "Computing Original Size Connected Threshold";
   itkVolumeType::IndexType seed = m_param.seed();
-  double seedIntensity = m_input->toITK()->GetPixel(seed);
+  double seedIntensity = input->toITK()->GetPixel(seed);
   ctif = ConnectedThresholdFilterType::New();
   ctif->SetInput(voiFilter->GetOutput());
   ctif->SetReplaceValue(LABEL_VALUE);
@@ -187,11 +197,22 @@ void SeedGrowSegmentationFilter::run(Filter::OutputId oId)
   else
     volume = extractFilter->GetOutput();
 
-  createOutput(0, volume);
+  FilterOutput::OutputTypeList dataList;
+  dataList << SegmentationVolumeTypeSPtr(new SegmentationVolumeType(volume));
+
+  createOutput(0, dataList);
+
+  // Register available representations for filter's outputs
+  OutputSPtr currentOutput = output(0);
+
+  VolumeOutputTypeSPtr volumeData = volumeOutput(currentOutput);
+  currentOutput->addRepresentation(EspinaRepresentationSPtr(new SegmentationSliceRepresentation(volumeData, NULL)));
+//   output->addRepresentation(EspinaRepresentationSPtr(new VolumeReprentation  (volumeOutput(output))));
+//   output->addRepresentation(EspinaRepresentationSPtr(new MeshRepresentation  (meshOutput  (output))));
+//   output->addRepresentation(EspinaRepresentationSPtr(new SmoothRepresentation(meshOutput  (output))));
+
 
   m_ignoreCurrentOutputs = false;
-
-  m_outputs[0].volume->markAsModified();
 
   emit modified(this);
 }
@@ -228,7 +249,8 @@ void SeedGrowSegmentationFilter::setVOI(int VOI[6], bool ignoreUpdate)
 bool SeedGrowSegmentationFilter::isTouchingVOI() const
 {
   int segExtent[6];
-  volume(0)->extent(segExtent);
+  SegmentationVolumeTypeSPtr outputVolume = segmentationVolumeOutput(m_outputs[0]);
+  outputVolume->extent(segExtent);
 
   int voiExtent[6];
   m_param.voi(voiExtent);
@@ -257,7 +279,7 @@ itkVolumeType::IndexType SeedGrowSegmentationFilter::seed() const
 }
 
 //-----------------------------------------------------------------------------
-bool SeedGrowSegmentationFilter::fetchSnapshot(OutputId oId)
+bool SeedGrowSegmentationFilter::fetchSnapshot(FilterOutputId oId)
 {
   if (m_ignoreCurrentOutputs)
     return false;

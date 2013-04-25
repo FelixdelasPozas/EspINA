@@ -359,7 +359,7 @@ vtkSmartPointer<vtkPlane> PlanarSplitWidget::getImplicitPlane()
   return plane;
 }
 
-vtkSmartPointer< vtkImageStencilData > PlanarSplitWidget::getStencilForVolume(EspinaVolume::Pointer volume)
+vtkSmartPointer< vtkImageStencilData > PlanarSplitWidget::getStencilForVolume(VolumeOutputTypeSPtr volume)
 {
   if (!this->planeIsValid())
     return NULL;

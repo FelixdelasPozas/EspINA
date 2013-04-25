@@ -88,10 +88,13 @@ void PlanarSplitTool::setInUse(bool value)
     SegmentationList selectedSegs = m_viewManager->selectedSegmentations();
     Q_ASSERT(selectedSegs.size() == 1);
     SegmentationPtr seg = selectedSegs.first();
+
+    SegmentationVolumeTypeSPtr segVolume = boost::dynamic_pointer_cast<SegmentationVolumeType>(seg->output()->data(VolumeOutputType::TYPE));
+
     double bounds[6];
-    seg->volume()->bounds(bounds);
+    segVolume->bounds(bounds);
     double spacing[3];
-    seg->volume()->spacing(spacing);
+    segVolume->spacing(spacing);
     bounds[0] -= 0.5*spacing[0];
     bounds[1] += 0.5*spacing[0];
     bounds[2] -= 0.5*spacing[1];
@@ -132,6 +135,7 @@ void PlanarSplitTool::splitSegmentation()
   Q_ASSERT(selectedSegs.size() == 1);
 
   SegmentationPtr seg = selectedSegs.first();
+  SegmentationVolumeTypeSPtr segVolume = boost::dynamic_pointer_cast<SegmentationVolumeType>(seg->output()->data(VolumeOutputType::TYPE));
 
   Filter::NamedInputs inputs;
   Filter::Arguments   args;
@@ -140,7 +144,7 @@ void PlanarSplitTool::splitSegmentation()
   args[Filter::INPUTS] = Filter::NamedInput(SplitFilter::INPUTLINK, seg->outputId());
 
   SplitFilterPtr filter(new SplitFilter(inputs, args, SplitUndoCommand::FILTER_TYPE));
-  filter->setStencil(m_widget->getStencilForVolume(seg->volume()));
+  filter->setStencil(m_widget->getStencilForVolume(segVolume));
   filter->update();
 
   if (filter->outputs().size() == 2)

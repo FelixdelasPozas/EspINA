@@ -22,17 +22,11 @@
 
 #include "MorphologicalEditionFilter.h"
 
-#include <itkBinaryBallStructuringElement.h>
-#include <itkErodeObjectMorphologyImageFilter.h>
-
 namespace EspINA
 {
 class ErodeFilter
 : public MorphologicalEditionFilter
 {
-  typedef itk::BinaryBallStructuringElement<itkVolumeType::PixelType, 3> StructuringElementType;
-  typedef itk::ErodeObjectMorphologyImageFilter<itkVolumeType, itkVolumeType, StructuringElementType> BinaryErodeFilter;
-
 public:
   explicit ErodeFilter(NamedInputs inputs,
                        Arguments   args,
@@ -40,10 +34,7 @@ public:
   virtual ~ErodeFilter();
 
 protected:
-  virtual void run(OutputId oId);
-
-private:
-  BinaryErodeFilter::Pointer m_filter;
+  virtual void run(FilterOutputId oId);
 };
 
 } // namespace EspINA

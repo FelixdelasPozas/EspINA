@@ -396,7 +396,7 @@ void VolumeView::addChannel(ChannelPtr channel)
 }
 
 //-----------------------------------------------------------------------------
-bool VolumeView::updateChannel(ChannelPtr channel)
+bool VolumeView::updateChannelRepresentation(ChannelPtr channel, bool render)
 {
   if (!m_channels.contains(channel))
     return false;
@@ -444,7 +444,7 @@ void VolumeView::addSegmentation(SegmentationPtr seg)
 }
 
 //-----------------------------------------------------------------------------
-bool VolumeView::updateSegmentation(SegmentationPtr seg)
+bool VolumeView::updateSegmentationRepresentation(SegmentationPtr seg, bool render)
 {
   if (!m_segmentations.contains(seg))
     return false;
@@ -1048,7 +1048,7 @@ void VolumeView::updateSegmentationRepresentations(SegmentationList list)
 
     bool updated = false;
     foreach(SegmentationPtr seg, updateSegmentations)
-      updated |= updateSegmentation(seg);
+      updated |= updateSegmentationRepresentation(seg);
 
     if (updated)
       updateView();
@@ -1069,7 +1069,7 @@ void VolumeView::updateChannelRepresentations(ChannelList list)
 
     bool updated = false;
     foreach(ChannelPtr channel, updateChannels)
-      updated |= this->updateChannel(channel);
+      updated |= updateChannelRepresentation(channel);
 
     if (updated)
       updateView();
@@ -1087,7 +1087,7 @@ void VolumeView::resetView()
 void VolumeView::forceRender(SegmentationList updatedSegs)
 {
   foreach(SegmentationPtr seg, updatedSegs)
-    updateSegmentation(seg);
+    updateSegmentationRepresentation(seg);
 
   m_view->GetRenderWindow()->Render();
   m_view->update();

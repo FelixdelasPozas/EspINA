@@ -89,13 +89,13 @@ namespace EspINA
       }
       unsigned int number() const {return m_number;}
 
-      void setOutputId(Filter::OutputId oId)
+      void setOutputId(FilterOutputId oId)
       {
         m_outputId = oId;
         (*this)[OUTPUT] = QString::number(oId);
       }
 
-      Filter::OutputId outputId() const {return m_outputId;}
+      FilterOutputId outputId() const {return m_outputId;}
 
       void addUser(const QString &user)
       {
@@ -131,10 +131,10 @@ namespace EspINA
 
   public:
     explicit Segmentation(FilterSPtr filter,
-                          const Filter::OutputId &outputNb);
+                          const FilterOutputId &outputNb);
     virtual ~Segmentation();
 
-    void changeFilter(FilterSPtr filter, const Filter::OutputId &outputNb);
+    void changeFilter(FilterSPtr filter, const FilterOutputId &outputNb);
 
     /// Model Item Interface
     virtual QVariant data(int role=Qt::DisplayRole) const;
@@ -154,10 +154,7 @@ namespace EspINA
     /// Selectable Item Interface
     virtual const FilterSPtr filter() const {return m_filter;}
     virtual FilterSPtr filter() { return PickableItem::filter(); }
-    virtual const Filter::OutputId outputId() const {return m_args.outputId();}
-
-    SegmentationVolume::Pointer volume();
-    const SegmentationVolume::Pointer volume() const;
+    virtual const FilterOutputId outputId() const {return m_args.outputId();}
 
     void setNumber(unsigned int number) {m_args.setNumber(number);}
     unsigned int number() const {return m_args.number();}

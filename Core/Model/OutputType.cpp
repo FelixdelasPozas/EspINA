@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2013, <copyright holder> <email>
+    Copyright (c) 2013, Jorge Peña Pastor <jpena@cesvima.upm.es>
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -13,10 +13,10 @@
         names of its contributors may be used to endorse or promote products
         derived from this software without specific prior written permission.
 
-    THIS SOFTWARE IS PROVIDED BY <copyright holder> <email> ''AS IS'' AND ANY
+    THIS SOFTWARE IS PROVIDED BY Jorge Peña Pastor <jpena@cesvima.upm.es> ''AS IS'' AND ANY
     EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
     WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-    DISCLAIMED. IN NO EVENT SHALL <copyright holder> <email> BE LIABLE FOR ANY
+    DISCLAIMED. IN NO EVENT SHALL Jorge Peña Pastor <jpena@cesvima.upm.es> BE LIABLE FOR ANY
     DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
     (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
     LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
@@ -26,33 +26,8 @@
 */
 
 
-#include "VolumeSnapshotCommand.h"
-
-#include <Core/Model/VolumeOutputType.h>
+#include "OutputType.h"
 
 using namespace EspINA;
 
-//-----------------------------------------------------------------------------
-VolumeSnapshotCommand::VolumeSnapshotCommand(OutputSPtr output)
-: QUndoCommand()
-, m_output(output)
-{
-  VolumeOutputTypeSPtr volume = boost::dynamic_pointer_cast<VolumeOutputType>(m_output->data(VolumeOutputType::TYPE));
-  m_prevVolume = volume->cloneVolume();
-}
-
-//-----------------------------------------------------------------------------
-void VolumeSnapshotCommand::redo()
-{
-  if (m_newVolume.IsNotNull())
-    m_output->filter()->restoreOutput(m_output->id(), m_newVolume);
-}
-
-//-----------------------------------------------------------------------------
-void VolumeSnapshotCommand::undo()
-{
-  if (m_newVolume.IsNull())
-    m_newVolume = boost::dynamic_pointer_cast<VolumeOutputType>(m_output->data(VolumeOutputType::TYPE))->cloneVolume();
-  if (m_prevVolume.IsNotNull())
-    m_output->filter()->restoreOutput(m_output->id(), m_prevVolume);
-}
+EspinaTimeStamp FilterOutput::OutputType::s_tick = 0;

@@ -28,6 +28,20 @@ EspinaRegion::EspinaRegion(const Nm bounds[6])
 }
 
 //-----------------------------------------------------------------------------
+EspinaRegion::EspinaRegion(const Nm minX, const Nm maxX,
+                           const Nm minY, const Nm maxY,
+                           const Nm minZ, const Nm maxZ)
+{
+  m_bounds[0] = minX;
+  m_bounds[1] = maxX;
+  m_bounds[2] = minY;
+  m_bounds[3] = maxY;
+  m_bounds[4] = minZ;
+  m_bounds[5] = maxZ;
+}
+
+
+//-----------------------------------------------------------------------------
 bool EspinaRegion::intersect(const EspinaRegion &region) const
 {
   bool xOverlap = xMin() <= region.xMax() && xMax() >= region.xMin();

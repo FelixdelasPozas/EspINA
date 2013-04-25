@@ -107,7 +107,7 @@ void AdaptiveEdges::loadEdgesCache(ChannelPtr channel)
   ExtensionData &data = s_cache[channel].Data;
 
   m_mutex.lock();
-  if (data.Edges.GetPointer() == NULL && !channel->isVolumeModified())
+  if (data.Edges.GetPointer() == NULL && !channel->outputIsModified())
   {
     QString edgesFile = QString(EDGES_FILE + "%1.vtp").arg(fileId(channel));
     QFileInfo file(channel->filter()->cacheDir().absoluteFilePath(edgesFile));
@@ -130,7 +130,7 @@ void AdaptiveEdges::loadFacesCache(ChannelPtr channel)
 {
   ExtensionData &data = s_cache[channel].Data;
 
-  if (data.Faces[0].GetPointer() == NULL && !channel->isVolumeModified())
+  if (data.Faces[0].GetPointer() == NULL && !channel->outputIsModified())
   {
     for (int i = 0; i < 6; ++i)
     {
@@ -323,6 +323,7 @@ void AdaptiveEdges::invalidate(ChannelPtr channel)
 //-----------------------------------------------------------------------------
 void AdaptiveEdges::computeDistanceToEdge(SegmentationPtr seg)
 {
+  /* FIXME
   Segmentation::InformationExtension ext = seg->informationExtension(EdgeDistanceID);
   Q_ASSERT(ext);
   EdgeDistance *distanceExt = edgeDistancePtr(ext);
@@ -359,6 +360,7 @@ void AdaptiveEdges::computeDistanceToEdge(SegmentationPtr seg)
   }
 
   distanceExt->setDistances(distance);
+  */
 }
 
 //-----------------------------------------------------------------------------

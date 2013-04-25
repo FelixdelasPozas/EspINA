@@ -85,6 +85,7 @@ EdgeDetector::~EdgeDetector()
 void EdgeDetector::run()
 {
   Channel *channel       = m_extension->channel();
+
   vtkAlgorithm *producer = channel->volume()->toVTK()->GetProducer();
   vtkDataObject *output  = producer->GetOutputDataObject(0);
   vtkImageData *image    = vtkImageData::SafeDownCast(output);

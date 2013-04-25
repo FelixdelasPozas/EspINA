@@ -33,7 +33,6 @@
 #include <Core/Model/EspinaModel.h>
 #include <Core/Model/PickableItem.h>
 #include <Filters/ClosingFilter.h>
-#include <Filters/ContourSource.h>
 #include <Filters/DilateFilter.h>
 #include <Filters/ErodeFilter.h>
 #include <Filters/FillHolesFilter.h>
@@ -68,7 +67,7 @@ namespace EspINA
     static const Filter::FilterType ERODE_FILTER_TYPE;
 
   private:
-    typedef QPair<FilterSPtr, Filter::OutputId> Connection;
+    typedef QPair<FilterSPtr, FilterOutputId> Connection;
 
   public:
     enum Operation
@@ -156,7 +155,7 @@ namespace EspINA
         m_model->addRelation(newConnection.first, seg, Filter::CREATELINK);
 
         seg->changeFilter(newConnection.first, newConnection.second);
-        seg->volume()->markAsModified();
+        //FIXME seg->volume()->markAsModified();
       }
       m_viewManager->updateSegmentationRepresentations(segmentations);
 
@@ -181,7 +180,7 @@ namespace EspINA
         m_model->addRelation(oldConnection.first, seg, Filter::CREATELINK);
 
         seg->changeFilter(oldConnection.first, oldConnection.second);
-        seg->volume()->markAsModified();
+        //FIXME seg->volume()->markAsModified();
       }
       m_viewManager->updateSegmentationRepresentations(segmentations);
 
@@ -335,7 +334,7 @@ FilterSPtr EditorToolBar::createFilter(const QString              &filter,
     res = new FillHolesFilter(inputs, args, FillHolesCommand::FILTER_TYPE);
 
   else if (FilledContour::FILTER_TYPE == filter)
-    res = new ContourSource(inputs, args, FilledContour::FILTER_TYPE);
+    res = new FreeFormSource(inputs, args, FilledContour::FILTER_TYPE);
 
   if (filterInspector != NULL)
     res->setFilterInspector(Filter::FilterInspectorPtr(filterInspector));

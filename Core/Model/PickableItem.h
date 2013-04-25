@@ -45,23 +45,31 @@ namespace EspINA
 
     virtual const FilterSPtr filter() const = 0;
     virtual FilterSPtr filter() = 0;
-    virtual const Filter::OutputId  outputId() const = 0;
+ 
+    virtual const FilterOutputId  outputId() const = 0;
 
-    EspinaVolume::Pointer volume();
-    const EspinaVolume::Pointer volume() const;
+    /// Convenience method
+    OutputSPtr output();
+    /// Convenience method
+    const OutputSPtr output() const;
+
+    /// Convenience method to access output's representations
+    EspinaRepresentationList representations() const
+    { return output()->representations(); }
+
 
     /// Return whether item's volume has been modified or not after its creation
-    bool isVolumeModified() { return m_isVolumeModified; }
+    bool outputIsModified() { return m_outputIsModified; }
 
   protected slots:
-    void onVolumeModified() { m_isVolumeModified = true; emit volumeModified(); emit modified(this);}
+    void onOutputModified() { m_outputIsModified = true; emit outputModified(); emit modified(this);}
 
   signals:
-    void volumeModified();
+    void outputModified();
 
   protected:
     bool m_isSelected;
-    bool m_isVolumeModified; // sticky bit
+    bool m_outputIsModified; // sticky bit
 
   };
 

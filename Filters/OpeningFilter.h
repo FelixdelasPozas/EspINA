@@ -22,17 +22,11 @@
 
 #include "MorphologicalEditionFilter.h"
 
-#include <itkBinaryBallStructuringElement.h>
-#include <itkBinaryMorphologicalOpeningImageFilter.h>
-
 namespace EspINA
 {
 class OpeningFilter
 : public MorphologicalEditionFilter
 {
-  typedef itk::BinaryBallStructuringElement<itkVolumeType::PixelType, 3> StructuringElementType;
-  typedef itk::BinaryMorphologicalOpeningImageFilter<itkVolumeType, itkVolumeType, StructuringElementType> BinaryOpenFilter;
-
 public:
   explicit OpeningFilter(NamedInputs inputs,
                          Arguments   args,
@@ -40,10 +34,7 @@ public:
   virtual ~OpeningFilter();
 
 protected:
-  virtual void run(OutputId oId);
-
-private:
-  BinaryOpenFilter::Pointer m_filter;
+  virtual void run(FilterOutputId oId);
 };
 
 } // namespace EspINA

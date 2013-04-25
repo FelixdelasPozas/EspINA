@@ -25,6 +25,8 @@
 #include "GUI/QtWidget/vtkInteractorStyleEspinaSlice.h"
 #include "GUI/QtWidget/SliceSelectorWidget.h"
 #include "GUI/ViewManager.h"
+#include <GUI/Representations/IEspinaRepresentation.h>
+#include <GUI/Representations/SliceRepresentation.h>
 #include <Core/ColorEngines/IColorEngine.h>
 #include <Core/ColorEngines/TransparencySelectionHighlighter.h>
 #include <Core/EspinaTypes.h>
@@ -70,7 +72,6 @@
 #include <vtkImageReslice.h>
 #include <vtkImageMapToColors.h>
 #include <vtkInteractorStyleImage.h>
-#include <vtkLookupTable.h>
 #include <vtkMatrix4x4.h>
 #include <vtkObjectFactory.h>
 #include <vtkPolyDataMapper.h>
@@ -111,7 +112,6 @@ SliceView::SliceView(ViewManager* vm, PlaneType plane, QWidget* parent)
 , m_sliceSelector(QPair<SliceSelectorWidget*,SliceSelectorWidget*>(NULL, NULL))
 , m_inThumbnail(false)
 , m_sceneReady(false)
-, m_highlighter(new TransparencySelectionHighlighter())
 {
   QSettings settings(CESVIMA, ESPINA);
   m_fitToSlices = settings.value("ViewManager::FitToSlices").toBool();
@@ -221,7 +221,6 @@ SliceView::~SliceView()
   m_viewManager->unregisterView(this);
 
   m_slicingMatrix->Delete();
-  delete m_highlighter;
   delete m_state;
 }
 
@@ -233,12 +232,12 @@ void SliceView::reset()
     removeWidget(widget);
   }
 
-  foreach(SegmentationPtr segmentation, m_segmentationReps.keys())
+  foreach(SegmentationPtr segmentation, m_segmentationStates.keys())
   {
     removeSegmentation(segmentation);
   }
 
-  foreach(ChannelPtr channel, m_channelReps.keys())
+  foreach(ChannelPtr channel, m_channelStates.keys())
   {
     removeChannel(channel);
   }
@@ -626,8 +625,8 @@ void SliceView::setCursor(const QCursor &cursor)
 }
 
 //-----------------------------------------------------------------------------
-ISelector::PickList SliceView::pick(ISelector::PickableItems filter,
-                                  ISelector::DisplayRegionList regions)
+ISelector::PickList SliceView::pick(ISelector::PickableItems     filter,
+                                    ISelector::DisplayRegionList regions)
 {
   bool multiSelection = false;
   ISelector::PickList pickedItems;
@@ -639,45 +638,43 @@ ISelector::PickList SliceView::pick(ISelector::PickableItems filter,
   // NOTE: Should first loop be removed? Only useful to select disconnected regions...
   foreach(const ISelector::DisplayRegion &region, regions)
   {
-    QList<vtkProp *> pickedChannels;
-    QList<vtkProp *> pickedSegmentations;
+    QList<vtkProp *> pickedChannelProps;
+    QList<vtkProp *> pickedSegmentationProps;
     foreach(QPointF p, region)
     {
       foreach(ISelector::Tag tag, filter)
       {
         if (ISelector::CHANNEL == tag)
         {
-          foreach(ChannelPtr channel, pickChannels(p.x(), p.y(), renderer, multiSelection))
+          foreach(ChannelPick pick, pickChannels(p.x(), p.y(), renderer, multiSelection))
           {
-            ISelector::WorldRegion wRegion = worldRegion(region, channel);
-            pickedItems << ISelector::PickedItem(wRegion, channel);
+            ISelector::WorldRegion wRegion = worldRegion(region, pick.Channel);
+            pickedItems << ISelector::PickedItem(wRegion, pick.Channel);
             // remove it from picking list to prevent other points of the region
             // to select it again
-            vtkProp *channelProp = m_channelReps[channel].slice;
-            m_channelPicker->DeletePickList(channelProp);
-            pickedChannels << channelProp;
+            m_channelPicker->DeletePickList(pick.Prop);
+            pickedChannelProps << pick.Prop;
           }
         } else if (ISelector::SEGMENTATION == tag)
         {
-            foreach(SegmentationPtr seg, pickSegmentations(p.x(), p.y(), renderer, multiSelection))
+            foreach(SegmentationPick pick, pickSegmentations(p.x(), p.y(), renderer, multiSelection))
             {
-              ISelector::WorldRegion wRegion = worldRegion(region, seg);
-              pickedItems << ISelector::PickedItem(wRegion, seg);
+              ISelector::WorldRegion wRegion = worldRegion(region, pick.Segmentation);
+              pickedItems << ISelector::PickedItem(wRegion, pick.Segmentation);
             // remove it from picking list to prevent other points of the region
             // to select it again
-            vtkProp *segProp = m_segmentationReps[seg].slice;
-            m_segmentationPicker->DeletePickList(segProp);
-            pickedSegmentations << segProp;
+            m_segmentationPicker->DeletePickList(pick.Prop);
+              pickedSegmentationProps << pick.Prop;
             }
         } else
           Q_ASSERT(false);
       }
     }
     // Restore picked items to picker's pick lists
-    foreach(vtkProp *channel, pickedChannels)
-      m_channelPicker->AddPickList(channel);
-    foreach(vtkProp *seg, pickedSegmentations)
-      m_segmentationPicker->AddPickList(seg);
+    foreach(vtkProp *channelProp, pickedChannelProps)
+      m_channelPicker->AddPickList(channelProp);
+    foreach(vtkProp *segmentationProp, pickedSegmentationProps)
+      m_segmentationPicker->AddPickList(segmentationProp);
   }
 
   return pickedItems;
@@ -736,11 +733,12 @@ void SliceView::updateView()
 //-----------------------------------------------------------------------------
 void SliceView::forceRender(SegmentationList updatedSegs)
 {
-  foreach(SegmentationPtr seg, updatedSegs)
-    m_segmentationReps[seg].slice->Update();
-
-  m_view->GetRenderWindow()->Render();
-  m_view->update();
+  //TODO: DEPRECAR!
+//   foreach(SegmentationPtr seg, updatedSegs)
+//     m_segmentationStates[seg].slice->Update();
+// 
+//   m_view->GetRenderWindow()->Render();
+//   m_view->update();
 }
 
 //-----------------------------------------------------------------------------
@@ -760,106 +758,56 @@ void SliceView::resetCamera()
   m_thumbnail->AddActor(m_channelBorder);
   m_thumbnail->AddActor(m_viewportBorder);
 
-  m_sceneReady = !m_channelReps.isEmpty();
+  m_sceneReady = !m_channelStates.isEmpty();
 }
 
 //-----------------------------------------------------------------------------
 void SliceView::addChannel(ChannelPtr channel)
 {
-  Q_ASSERT(!m_channelReps.contains(channel));
+  Q_ASSERT(!m_channelStates.contains(channel));
 
-  SliceRep channelRep;
-  double hue, sat, opacity;
+  ChannelState state;
 
-  // if hue is -1 then use 0 saturation to make a grayscale image
-  if (-1.0 == channel->hue())
+  channel->output()->update();
+
+  double hue = -1.0 == channel->hue() ? 0 : channel->hue();
+  double sat = -1.0 == channel->hue() ? 0 : channel->saturation();
+  QColor stain = QColor::fromHsvF(hue, sat, 1.0);
+
+  state.brightness = channel->brightness();
+  state.contrast   = channel->contrast();
+  state.opacity    = channel->opacity();
+  state.stain      = stain;
+  state.visible    = channel->isVisible();
+
+  foreach (EspinaRepresentationSPtr prototype, channel->representations())
   {
-    sat = hue = 0;
-  }
-  else
-  {
-    hue = channel->hue();
-    sat = channel->saturation();
-  }
-
-  channelRep.selected = false;
-  channelRep.visible = channel->isVisible();
-  channelRep.color.setHsvF(hue, sat, 1.0);
-  channelRep.brightness = channel->brightness();
-  channelRep.contrast = channel->contrast();
-  channel->position(channelRep.pos);
-  channelRep.lut = vtkLookupTable::New();
-  channelRep.lut->Allocate();
-  channelRep.lut->SetTableRange(0,255);
-  channelRep.lut->SetHueRange(hue, hue);
-  channelRep.lut->SetSaturationRange(0.0, sat);
-  channelRep.lut->SetValueRange(0.0, 1.0);
-  channelRep.lut->SetAlphaRange(1.0,1.0);
-  channelRep.lut->SetNumberOfColors(256);
-  channelRep.lut->SetRampToLinear();
-  channelRep.lut->Build();
-
-  channelRep.reslice = vtkImageReslice::New();
-  channelRep.reslice->SetResliceAxes(m_slicingMatrix);
-  channelRep.reslice->SetInputConnection(channel->volume()->toVTK());
-  channelRep.reslice->SetNumberOfThreads(1);
-  channelRep.reslice->SetOutputDimensionality(2);
-  channelRep.reslice->Update();
-
-  channelRep.shiftScaleFilter = vtkSmartPointer<vtkImageShiftScale>::New();
-  channelRep.shiftScaleFilter->SetInputConnection(channelRep.reslice->GetOutputPort());
-  channelRep.shiftScaleFilter->SetShift(static_cast<int>(channelRep.brightness*255));
-  channelRep.shiftScaleFilter->SetScale(channelRep.contrast);
-  channelRep.shiftScaleFilter->SetClampOverflow(true);
-  channelRep.shiftScaleFilter->SetOutputScalarType(channelRep.reslice->GetOutput()->GetScalarType());
-  channelRep.shiftScaleFilter->Update();
-
-  channelRep.mapToColors = vtkSmartPointer<vtkImageMapToColors>::New();
-  channelRep.mapToColors->SetInputConnection(channelRep.shiftScaleFilter->GetOutputPort());
-  channelRep.mapToColors->SetLookupTable(channelRep.lut);
-  channelRep.mapToColors->SetNumberOfThreads(1);
-  channelRep.mapToColors->Update();
-
-  channelRep.slice = vtkImageActor::New();
-  channelRep.slice->SetInterpolate(false);
-  channelRep.slice->GetMapper()->BorderOn();
-  channelRep.slice->GetMapper()->SetInputConnection(channelRep.mapToColors->GetOutputPort());
-  channelRep.slice->SetVisibility(channelRep.visible);
-  channelRep.slice->Update();
-
-  m_channelReps.insert(channel, channelRep);
-  addActor(channelRep.slice);
-
-  // need to manage other channels' opacity too. addChannelBounds adds the channel to m_channels
-  addChannelBounds(channel);
-  if (-1 == channel->opacity())
-  {
-    opacity = this->suggestedChannelOpacity();
-    ChannelList updatedChannels;
-    foreach(ChannelPtr otherChannel, m_channels)
+    if (prototype->canRenderOnView().testFlag(IEspinaRepresentation::SLICE_VIEW))
     {
-      if (otherChannel == channel)
-        continue;
+      ChannelRepresentationSPtr representation = boost::dynamic_pointer_cast<ChannelRepresentation>(prototype->clone(this));
 
-      // other channel's opacity is also automatically managed?
-      if (otherChannel->opacity() == -1 && m_channelReps.contains(otherChannel) && m_channelReps[otherChannel].visible)
-      {
-        m_channelReps[otherChannel].slice->GetProperty()->SetOpacity(opacity);
-        updatedChannels << otherChannel;
-      }
+      representation->setBrightness(state.brightness);
+      representation->setContrast(state.contrast);
+      representation->setColor(state.stain);
+      if (Channel::AUTOMATIC_OPACITY != state.opacity)
+        representation->setOpacity(state.opacity);
+      representation->setVisible(state.visible);
+
+      state.representations << representation;
     }
-    updateChannelRepresentations(updatedChannels);
   }
-  else
-    opacity = channel->opacity();
 
-  channelRep.slice->GetProperty()->SetOpacity(opacity);
+  m_channelStates.insert(channel, state);
+
+  // need to manage other channels' opacity too.
+  // addChannelBounds adds the channel to m_channels
+  addChannelBounds(channel);
+
+  updateChannelsOpactity();
 
   // Prevent displaying channel's corner until app request to reset the camera
-  if (m_channelReps.size() == 1)
+  if (m_channelStates.size() == 1)
     resetCamera();
-
-  m_channelPicker->AddPickList(channelRep.slice);
 
   // NOTE: this signal is not disconnected when a channel is removed because is
   // used in the redo/undo of UnloadChannelCommand
@@ -870,219 +818,124 @@ void SliceView::addChannel(ChannelPtr channel)
 //-----------------------------------------------------------------------------
 void SliceView::removeChannel(ChannelPtr channel)
 {
-  Q_ASSERT(m_channelReps.contains(channel));
+  Q_ASSERT(m_channelStates.contains(channel));
 
-  SliceRep rep = m_channelReps[channel];
-  removeActor(rep.slice);
-  m_channelPicker->DeletePickList(rep.slice);
-
-  m_channelReps.remove(channel);
-  rep.reslice->Delete();
-  rep.slice->Delete();
   removeChannelBounds(channel);
 
-  // if there is more than one we must update the visibility
-  double opacity = this->suggestedChannelOpacity();
-  QMap<Channel *, SliceRep>::iterator it = m_channelReps.begin();
-  while (it != m_channelReps.end())
-  {
-    if (it.value().visible)
-    {
-      it.value().slice->GetProperty()->SetOpacity(opacity);
-      it.key()->notifyModification();
-    }
+  m_channelStates.remove(channel);
 
-    ++it;
-  }
+  updateChannelsOpactity();
 }
 
 //-----------------------------------------------------------------------------
-bool SliceView::updateChannel(ChannelPtr channel)
+bool SliceView::updateChannelRepresentation(ChannelPtr channel, bool render)
 {
-  Q_ASSERT(m_channelReps.contains(channel));
-  SliceRep &rep = m_channelReps[channel];
+  Q_ASSERT(m_channelStates.contains(channel));
 
-  double pos[3];
-  channel->position(pos);
+  ChannelState &state = m_channelStates[channel];
 
-  bool updated = false;
+  bool visibilityChanged = state.visible != channel->isVisible();
+  state.visible = channel->isVisible();
 
-  // opacity
-  if ((channel->opacity() == -1.0) && (rep.slice->GetProperty()->GetOpacity() != suggestedChannelOpacity()))
+  bool brightnessChanged = false;
+  bool contrastChanged   = false;
+  bool opacityChanged    = false;
+  bool stainChanged      = false;
+
+  if (visibilityChanged)
+    updateChannelsOpactity();
+
+  double hue = -1.0 == channel->hue() ? 0 : channel->hue();
+  double sat = -1.0 == channel->hue() ? 0 : channel->saturation();
+
+  if (state.visible)
   {
-    double opacity = this->suggestedChannelOpacity();
-    rep.slice->GetProperty()->SetOpacity(opacity);
+    QColor stain = QColor::fromHsvF(hue, sat, 1.0);
 
-    // we must update all channels
-    QMap<Channel *, SliceRep>::iterator it = m_channelReps.begin();
-    while (it != m_channelReps.end())
-    {
-      if (it.key() != channel && it.key()->opacity() != -1 && it.value().visible)
-      {
-        it.value().slice->GetProperty()->SetOpacity(opacity);
-        it.key()->notifyModification();
-      }
+    brightnessChanged = state.brightness != channel->brightness();
+    contrastChanged   = state.contrast   != channel->contrast();
+    opacityChanged    = state.opacity    != channel->opacity();
+    stainChanged      = state.stain      != stain;
 
-      ++it;
-    }
-
-    updated = true;
-  }
-  else
-    if ((channel->opacity() != -1.0) && (channel->opacity() != rep.slice->GetProperty()->GetOpacity()))
-    {
-      rep.slice->GetProperty()->SetOpacity(channel->opacity());
-      updated = true;
-    }
-
-  // visibility
-  if (channel->isVisible() != rep.visible)
-  {
-    rep.visible = channel->isVisible();
-    rep.slice->SetVisibility(rep.visible);
-    updated = true;
+    state.brightness  = channel->brightness();
+    state.contrast    = channel->contrast();
+    state.opacity     = channel->opacity();
+    state.stain       = stain;
   }
 
-  // position
-  if (memcmp(pos, rep.pos, 3 * sizeof(double)))
+  bool hasChanged = visibilityChanged || brightnessChanged || contrastChanged || opacityChanged || stainChanged;
+  if (hasChanged)
   {
-    memcpy(rep.pos, pos, 3 * sizeof(double));
-    rep.slice->SetPosition(rep.pos);
-    updated = true;
+    opacityChanged &= Channel::AUTOMATIC_OPACITY != state.opacity;
+
+    foreach (ChannelRepresentationSPtr representation, state.representations)
+    {
+      if (brightnessChanged) representation->setBrightness(state.brightness);
+      if (contrastChanged  ) representation->setContrast(state.contrast);
+      if (stainChanged     ) representation->setColor(state.stain);
+      if (opacityChanged   ) representation->setOpacity(state.opacity);
+      if (visibilityChanged) representation->setVisible(state.visible);
+
+      representation->updateRepresentation();
+    }
   }
 
-  // hue/saturation
-  if (((channel->hue() != -1) && ((rep.color.hueF() != channel->hue()) || (rep.color.saturation() != channel->saturation()))) ||
-     ((channel->hue() == -1) && ((rep.color.hue() != 0.0) || (rep.color.saturation() != 0.0))))
+  if (render)
+    updateView();
+
+  return hasChanged;
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::updateChannelRepresentations(ChannelList list)
+{
+  if (isVisible())
   {
-    double hue, sat;
-    if (-1.0 == channel->hue())
-    {
-      sat = hue = 0;
-    }
+    ChannelList requestedChannels;
+
+    if (list.empty())
+      requestedChannels = m_channelStates.keys();
     else
-    {
-      hue = channel->hue();
-      sat = channel->saturation();
-    }
+      requestedChannels = list;
 
-    rep.color.setHsvF(hue, sat, 1.0);
+    bool needRender = false;
+    foreach(ChannelPtr channel, requestedChannels)
+      needRender |= updateChannelRepresentation(channel, false);
 
-    rep.lut->Allocate();
-    rep.lut->SetTableRange(0, 255);
-    rep.lut->SetHueRange(hue, hue);
-    rep.lut->SetSaturationRange(0.0, sat);
-    rep.lut->SetValueRange(0.0, 1.0);
-    rep.lut->SetAlphaRange(1.0, 1.0);
-    rep.lut->SetNumberOfColors(256);
-    rep.lut->Build();
-    rep.lut->Modified();
-    updated = true;
+    if (needRender)
+      updateView();
   }
-
-  // brightness/contrast (together to avoid calling modified() twice to the filter)
-  if ((channel->contrast() != rep.contrast) || (channel->brightness() != rep.brightness))
-  {
-    if (channel->contrast() != rep.contrast)
-    {
-      rep.contrast = channel->contrast();
-      rep.shiftScaleFilter->SetScale(channel->contrast());
-    }
-
-    if (channel->brightness() != rep.brightness)
-    {
-      rep.brightness = channel->brightness();
-      rep.shiftScaleFilter->SetShift(static_cast<int>(channel->brightness()*255));
-    }
-    rep.shiftScaleFilter->Modified();
-    updated = true;
-  }
-
-  return updated;
 }
 
 //-----------------------------------------------------------------------------
 void SliceView::addSegmentation(SegmentationPtr seg)
 {
-  Q_ASSERT(!m_segmentationReps.contains(seg));
+  Q_ASSERT(!m_segmentationStates.contains(seg));
 
-  SliceRep segRep;
+  seg->output()->update();
 
-  seg->filter()->update(seg->outputId());
+  SegmentationState state;
 
-  segRep.reslice = vtkImageReslice::New();
-  segRep.reslice->SetResliceAxes(m_slicingMatrix);
-  segRep.reslice->SetInputConnection(seg->volume()->toVTK());
-  segRep.reslice->SetOutputDimensionality(2);
-  segRep.reslice->SetNumberOfThreads(1);
-  segRep.reslice->Update();
+  state.color    = m_viewManager->color(seg);
+  state.depth    = segmentationDepth();
+  state.highlited = false;
+  state.visible  = seg->visible() && m_showSegmentations;
 
-  segRep.shiftScaleFilter = NULL;
-
-  segRep.mapToColors = vtkSmartPointer<vtkImageMapToColors>::New();
-  segRep.mapToColors->SetInputConnection(segRep.reslice->GetOutputPort());
-  segRep.mapToColors->SetLookupTable(m_viewManager->lut(seg));
-  segRep.mapToColors->SetNumberOfThreads(1);
-  segRep.mapToColors->Update();
-
-  segRep.slice = vtkImageActor::New();
-  segRep.slice->SetInterpolate(false);
-  segRep.slice->GetMapper()->BorderOn();
-  segRep.slice->GetMapper()->SetInputConnection(segRep.mapToColors->GetOutputPort());
-  segRep.slice->Update();
-
-  segRep.selected = false;
-  segRep.visible  = seg->visible();
-
-  double rgb[3];
-  m_viewManager->lut(seg)->GetColor(1, rgb);
-  segRep.color = QColor(rgb[0], rgb[1], rgb[2]);
-
-  m_segmentationReps.insert(seg, segRep);
-  addActor(segRep.slice);
-  m_segmentationPicker->AddPickList(segRep.slice);
-  segRep.slice->SetVisibility(segRep.visible && m_showSegmentations);
-
-  // need to reposition the actor so it will always be over the channels actors'
-  double pos[3];
-  segRep.slice->GetPosition(pos);
-  pos[m_plane] = (m_plane == AXIAL) ? -0.05 : 0.05;
-  segRep.slice->SetPosition(pos);
-  segRep.overridden = seg->OverridesRendering();
-  segRep.renderingType = seg->getHierarchyRenderingType();
-
-  if (segRep.overridden)
+  foreach(EspinaRepresentationSPtr prototype, seg->representations())
   {
-    switch(segRep.renderingType)
+    if (prototype->canRenderOnView().testFlag(IEspinaRepresentation::SLICE_VIEW))
     {
-      case HierarchyItem::Opaque:
-        segRep.slice->GetProperty()->SetOpacity(1.0);
-        if (!segRep.visible)
-        {
-          segRep.visible = true;
-          segRep.slice->SetVisibility(true && m_showSegmentations);
-        }
-        break;
-      case HierarchyItem::Translucent:
-        segRep.slice->GetProperty()->SetOpacity(0.3);
-        if (!segRep.visible)
-        {
-          segRep.visible = true;
-          segRep.slice->SetVisibility(true && m_showSegmentations);
-        }
-        break;
-      case HierarchyItem::Hidden:
-        if (segRep.visible)
-        {
-          segRep.visible = false;
-          segRep.slice->SetVisibility(false && m_showSegmentations);
-        }
-        break;
-      case HierarchyItem::Undefined:
-        break;
-      default:
-        Q_ASSERT(false);
-        break;
+      EspinaRepresentationSPtr representation = prototype->clone(this);
+
+      representation->setColor(m_viewManager->color(seg));
+      representation->setHighlighted(state.highlited);
+      representation->setVisible(state.visible);
+
+      representation->updateRepresentation();
+
+      state.representations << boost::dynamic_pointer_cast<SegmentationRepresentation>(representation);
+
+      m_segmentationStates.insert(seg, state);
     }
   }
 }
@@ -1090,109 +943,85 @@ void SliceView::addSegmentation(SegmentationPtr seg)
 //-----------------------------------------------------------------------------
 void SliceView::removeSegmentation(SegmentationPtr seg)
 {
-  Q_ASSERT(m_segmentationReps.contains(seg));
+  Q_ASSERT(m_segmentationStates.contains(seg));
 
-  SliceRep rep = m_segmentationReps[seg];
-
-  removeActor(rep.slice);
-  m_segmentationPicker->DeletePickList(rep.slice);
-
-  // itkvtk filter is handled by a smartpointer, these two are not
-  rep.reslice->Delete();
-  rep.slice->Delete();
-
-  m_segmentationReps.remove(seg);
+  m_segmentationStates.remove(seg);
 }
 
 //-----------------------------------------------------------------------------
-bool SliceView::updateSegmentation(SegmentationPtr seg)
+bool SliceView::updateSegmentationRepresentation(SegmentationPtr seg, bool render)
 {
-  if (!m_segmentationReps.keys().contains(seg) || m_hiddenSegmentations.contains(seg))
+  if (!m_segmentationStates.contains(seg))
     return false;
 
-  SliceRep &rep = m_segmentationReps[seg];
+  SegmentationState &state = m_segmentationStates[seg];
 
-  bool updated = false;
+  bool requestedVisibility = seg->visible() && m_showSegmentations;
 
-  if (rep.reslice->GetInputConnection(0,0) != seg->volume()->toVTK())
+  bool visibilityChanged = state.visible != requestedVisibility;
+  state.visible = requestedVisibility;
+
+  bool colorChanged     = false;
+  bool highlightChanged = false;
+
+  if (state.visible)
   {
-    rep.reslice->SetInputConnection(seg->volume()->toVTK());
-    rep.reslice->Update();
-    updated = true;
+    QColor requestedColor       = m_viewManager->color(seg);
+    bool   requestedHighlighted = seg->isSelected();
+
+    colorChanged     = state.color != requestedColor;
+    highlightChanged = state.highlited != requestedHighlighted;
+
+    state.color     = requestedColor;
+    state.highlited = requestedHighlighted;
   }
 
-  if (rep.visible != seg->visible())
+  bool hasChanged = visibilityChanged || colorChanged || highlightChanged;
+  if (hasChanged)
   {
-    rep.visible = seg->visible();
-    rep.slice->SetVisibility(rep.visible && m_showSegmentations);
-    updated = true;
-  }
-
-  if (rep.visible)
-  {
-    bool   highlight        = seg->isSelected();
-    QColor segColor         = m_viewManager->color(seg);
-    QColor highlightedColor = m_highlighter->color(segColor, highlight);
-
-    if ((seg->isSelected() != rep.selected) || (highlightedColor != rep.color))
+    foreach(EspinaRepresentationSPtr representation, state.representations)
     {
-      rep.selected = seg->isSelected();
-      rep.color = highlightedColor;
+      if (colorChanged)      representation->setColor(m_viewManager->color(seg));
+      if (highlightChanged)  representation->setHighlighted(state.highlited);
+      if (visibilityChanged) representation->setVisible(state.visible);
 
-      rep.mapToColors->SetLookupTable(m_highlighter->lut(segColor, highlight));
-      rep.mapToColors->Update();
-      updated = true;
+      representation->updateRepresentation();
     }
   }
 
-  if (seg->OverridesRendering())
+  if (render)
   {
-    switch(rep.renderingType)
-    {
-      case HierarchyItem::Opaque:
-        rep.slice->GetProperty()->SetOpacity(1.0);
-        if (!rep.visible)
-        {
-          rep.visible = true;
-          rep.slice->SetVisibility(true && m_showSegmentations);
-        }
-        break;
-      case HierarchyItem::Translucent:
-        rep.slice->GetProperty()->SetOpacity(0.3);
-        if (!rep.visible)
-        {
-          rep.visible = true;
-          rep.slice->SetVisibility(true && m_showSegmentations);
-        }
-        break;
-      case HierarchyItem::Hidden:
-        if (rep.visible)
-        {
-          rep.visible = false;
-          rep.slice->SetVisibility(false && m_showSegmentations);
-        }
-        break;
-      case HierarchyItem::Undefined:
-        break;
-      default:
-        Q_ASSERT(false);
-        break;
-    }
-  }
-  else
-  {
-    if (rep.overridden)
-      rep.slice->GetProperty()->SetOpacity(1.0);
+    m_view->GetRenderWindow()->Render();
+    m_view->update();
   }
 
-  updated |= ((seg->OverridesRendering() != rep.overridden) ||
-              (seg->getHierarchyRenderingType() != rep.renderingType));
-
-  rep.overridden = seg->OverridesRendering();
-  rep.renderingType = seg->getHierarchyRenderingType();
-
-  return updated;
+  return hasChanged;
 }
+
+//-----------------------------------------------------------------------------
+void SliceView::updateSegmentationRepresentations(SegmentationList list)
+{
+  if (isVisible())
+  {
+    SegmentationList updateSegmentations;
+
+    if (list.empty())
+      updateSegmentations = m_segmentationStates.keys();
+    else
+      updateSegmentations = list;
+
+    bool needRender = false;
+    foreach(SegmentationPtr seg, updateSegmentations)
+      needRender |= updateSegmentationRepresentation(seg);
+
+    if (needRender)
+    {
+      m_view->GetRenderWindow()->Render();
+      m_view->update();
+    }
+  }
+}
+
 
 //-----------------------------------------------------------------------------
 void SliceView::addWidget(EspinaWidget *eWidget)
@@ -1259,6 +1088,34 @@ void SliceView::removeActor(vtkProp3D* actor)
 }
 
 //-----------------------------------------------------------------------------
+void SliceView::addChannelActor(vtkProp3D *actor)
+{
+  addActor(actor);
+  m_channelPicker->AddPickList(actor);
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::removeChannelActor(vtkProp3D *actor)
+{
+  m_channelPicker->DeletePickList(actor);
+  removeActor(actor);
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::addSegmentationActor(vtkProp3D *actor)
+{
+  addActor(actor);
+  m_segmentationPicker->AddPickList(actor);
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::removeSegmentationActor(vtkProp3D *actor)
+{
+  m_segmentationPicker->DeletePickList(actor);
+  removeActor(actor);
+}
+
+//-----------------------------------------------------------------------------
 void SliceView::previewBounds(Nm bounds[6], bool cropToSceneBounds)
 {
   // Display Orientation (up means up according to screen)
@@ -1298,54 +1155,6 @@ void SliceView::updateSelection(ViewManager::Selection selection, bool render)
   updateSegmentationRepresentations();
   if (render)
     updateView();
-}
-
-//-----------------------------------------------------------------------------
-void SliceView::updateSegmentationRepresentations(SegmentationList list)
-{
-  if (isVisible())
-  {
-    SegmentationList updateSegmentations;
-
-    if (list.empty())
-      updateSegmentations = m_segmentationReps.keys();
-    else
-      updateSegmentations = list;
-
-    bool updated = false;
-    foreach(SegmentationPtr seg, updateSegmentations)
-      updated |= updateSegmentation(seg);
-
-    if (updated)
-    {
-      m_view->GetRenderWindow()->Render();
-      m_view->update();
-    }
-  }
-}
-
-//-----------------------------------------------------------------------------
-void SliceView::updateChannelRepresentations(ChannelList list)
-{
-  if (isVisible())
-  {
-    ChannelList updateChannels;
-
-    if (list.empty())
-      updateChannels = m_channelReps.keys();
-    else
-      updateChannels = list;
-
-    bool updated = false;
-    foreach(ChannelPtr channel, updateChannels)
-      updated |= updateChannel(channel);
-
-    if (updated)
-    {
-      m_view->GetRenderWindow()->Render();
-      m_view->update();
-    }
-  }
 }
 
 //-----------------------------------------------------------------------------
@@ -1488,12 +1297,12 @@ bool SliceView::eventFilter(QObject* caller, QEvent* e)
   {
     int x, y;
     eventPosition(x, y);
-    SegmentationList segs = pickSegmentations(x, y, m_renderer);
+    SegmentationPickList pickedSegmentations = pickSegmentations(x, y, m_renderer);
     QString toopTip;
-    foreach(SegmentationPtr seg, segs)
+    foreach(SegmentationPick pick, pickedSegmentations)
     {
-      toopTip = toopTip.append("<b>%1</b><br>").arg(seg->data().toString());
-      toopTip = toopTip.append(seg->data(Qt::ToolTipRole).toString());
+      toopTip = toopTip.append("<b>%1</b><br>").arg(pick.Segmentation->data().toString());
+      toopTip = toopTip.append(pick.Segmentation->data(Qt::ToolTipRole).toString());
     }
     m_view->setToolTip(toopTip);
   }
@@ -1591,83 +1400,73 @@ void SliceView::eventPosition(int& x, int& y)
 }
 
 //-----------------------------------------------------------------------------
-ChannelList SliceView::pickChannels(double vx,
-                                    double vy,
-                                    vtkRenderer* renderer,
-                                    bool repeatable)
+SliceView::ChannelPickList SliceView::pickChannels(double vx, double vy,
+                                                   vtkRenderer* renderer,
+                                                   bool repeatable)
 {
-  ChannelList channels;
+  ChannelPickList  channelPicks;
   QList<vtkProp *> removedProps;
 
   while (m_channelPicker->PickProp(vx, vy, renderer, m_channelPicker->GetPickList()))
   {
-    vtkProp *pickedProp = m_channelPicker->GetViewProp();
-    ChannelPtr pickedChannel = propToChannel(pickedProp);
-    if (pickedChannel)
-      channels << pickedChannel;
+    ChannelPick picked = propToChannel(m_channelPicker->GetViewProp());
+    if (picked.Channel)
+      channelPicks << picked;
 
-    m_channelPicker->GetPickList()->RemoveItem(pickedProp);
-    removedProps << pickedProp;
+    m_channelPicker->GetPickList()->RemoveItem(picked.Prop);
+    removedProps << picked.Prop;
 
-    if (!repeatable && !channels.empty())
+    if (!repeatable && !channelPicks.empty())
       break;
   }
 
   foreach(vtkProp *prop, removedProps)
-  m_channelPicker->GetPickList()->AddItem(prop);
+    m_channelPicker->GetPickList()->AddItem(prop);
 
-  return channels;
+  return channelPicks;
 }
 
 //-----------------------------------------------------------------------------
-SegmentationList SliceView::pickSegmentations(double vx,
-                                              double vy,
-                                              vtkRenderer* renderer,
-                                              bool repeatable)
+SliceView::SegmentationPickList SliceView::pickSegmentations(double vx, double vy,
+                                                             vtkRenderer* renderer,
+                                                             bool repeatable)
 {
-  SegmentationList segmentations;
-  QList<vtkProp *> removedProps;
+  SegmentationPickList segmentationPicks;
+  QList<vtkProp *>     removedProps;
 
   QPolygonF selectedRegion;
   selectedRegion << QPointF(vx, vy);
 
   while (m_segmentationPicker->PickProp(vx, vy, renderer, m_segmentationPicker->GetPickList()))
   {
-    vtkProp* pickedProp = m_segmentationPicker->GetViewProp();
-    SegmentationPtr pickedSeg = propToSegmentation(pickedProp);
-    if(pickedSeg)
+    SegmentationPick picked = propToSegmentation(m_segmentationPicker->GetViewProp());
+    if(picked.Representation)
     {
-      Q_ASSERT(pickedSeg->volume().get());
-      Q_ASSERT(pickedSeg->volume()->toITK().IsNotNull());
-
       // iterate over region points
-      double pixel[3];
-      ISelector::WorldRegion pickedRegion = worldRegion(selectedRegion, pickedSeg);
-      for(int i = 0; i < pickedRegion->GetNumberOfPoints(); ++i)
+      Nm point[3];
+      ISelector::WorldRegion pickedRegion = worldRegion(selectedRegion, picked.Segmentation);
+      int  i = 0;
+      bool isInside = false;
+      while (!isInside && i < pickedRegion->GetNumberOfPoints())
       {
-        pickedRegion->GetPoint(i, pixel);
-        itkVolumeType::IndexType pickedPixel = pickedSeg->volume()->index(pixel[0], pixel[1], pixel[2]);
-        if (pickedSeg->volume()->volumeRegion().IsInside(pickedPixel) &&
-           (pickedSeg->volume()->toITK()->GetPixel(pickedPixel) == SEG_VOXEL_VALUE))
-        {
-          segmentations << pickedSeg;
-          break;
-        }
+        pickedRegion->GetPoint(i++, point);
+        isInside = picked.Representation->isInside(point);
       }
+      if (isInside)
+        segmentationPicks << picked;
     }
 
-    m_segmentationPicker->GetPickList()->RemoveItem(pickedProp);
-    removedProps << pickedProp;
+    m_segmentationPicker->GetPickList()->RemoveItem(picked.Prop);
+    removedProps << picked.Prop;
 
-    if (!repeatable && !segmentations.empty())
+    if (!repeatable && !segmentationPicks.empty())
       break;
   }
 
   foreach(vtkProp *prop, removedProps)
     m_segmentationPicker->GetPickList()->AddItem(prop);
 
-  return segmentations;
-
+  return segmentationPicks;
 }
 
 //-----------------------------------------------------------------------------
@@ -1681,20 +1480,20 @@ void SliceView::selectPickedItems(bool append)
     selection = m_viewManager->selection();
 
   // If no append, segmentations have priority over channels
-  foreach(SegmentationPtr seg, pickSegmentations(vx, vy, m_renderer, append))
+  foreach(SegmentationPick picked, pickSegmentations(vx, vy, m_renderer, append))
   {
-    if (selection.contains(seg))
-      selection.removeAll(seg);
+    if (selection.contains(picked.Segmentation))
+      selection.removeAll(picked.Segmentation);
     else
-      selection << seg;
+      selection << picked.Segmentation;
 
     if (!append)
       break;
   }
 
-  foreach(ChannelPtr channel, pickChannels(vx, vy, m_renderer, append))
+  foreach(ChannelPick picked, pickChannels(vx, vy, m_renderer, append))
   {
-    selection << channel;
+    selection << picked.Channel;
     if (!append)
       break;
   }
@@ -1711,25 +1510,50 @@ void SliceView::updateWidgetVisibility()
 }
 
 //-----------------------------------------------------------------------------
-ChannelPtr SliceView::propToChannel(vtkProp* prop)
+void SliceView::updateChannelsOpactity()
 {
-  foreach(ChannelPtr channel, m_channelReps.keys())
+  // TODO: Define opacity behaviour
+  double opacity = suggestedChannelOpacity();
+
+  foreach(ChannelPtr channel, m_channelStates.keys())
   {
-    if (m_channelReps[channel].slice == prop)
-      return channel;
+    if (Channel::AUTOMATIC_OPACITY == channel->opacity())
+    {
+      foreach(ChannelRepresentationSPtr representation, m_channelStates[channel].representations)
+      {
+        representation->setOpacity(opacity);
+      }
+    }
   }
-  return ChannelPtr();
 }
 
 //-----------------------------------------------------------------------------
-SegmentationPtr SliceView::propToSegmentation(vtkProp* prop)
+SliceView::ChannelPick SliceView::propToChannel(vtkProp* prop)
 {
-  foreach(SegmentationPtr seg, m_segmentationReps.keys())
+  foreach(ChannelPtr channel, m_channelStates.keys())
   {
-    if (m_segmentationReps[seg].slice == prop)
-      return seg;
+    foreach(EspinaRepresentationSPtr representation, m_channelStates[channel].representations)
+    {
+      if (representation->hasActor(prop))
+        return ChannelPick(channel, representation, prop);
+    }
   }
-  return SegmentationPtr();
+  return ChannelPick(NULL, EspinaRepresentationSPtr() , NULL);
+}
+
+//-----------------------------------------------------------------------------
+SliceView::SegmentationPick SliceView::propToSegmentation(vtkProp* prop)
+{
+  foreach(SegmentationPtr segmentation, m_segmentationStates.keys())
+  {
+    foreach(EspinaRepresentationSPtr representation, m_segmentationStates[segmentation].representations)
+    {
+      if (representation->hasActor(prop))
+        return SegmentationPick(segmentation, representation, prop);
+    }
+  }
+
+  return SegmentationPick(NULL, EspinaRepresentationSPtr(), NULL);
 }
 
 
@@ -1752,32 +1576,31 @@ bool SliceView::pick(vtkPropPicker *picker, int x, int y, Nm pickPos[3])
 void SliceView::setSegmentationVisibility(bool visible)
 {
   m_showSegmentations = visible;
-  foreach(SliceRep rep, m_segmentationReps)
-  {
-    rep.slice->SetVisibility(m_showSegmentations && rep.visible);
-  }
+
+  updateSegmentationRepresentations();
+
   updateView();
 }
 
 //-----------------------------------------------------------------------------
 void SliceView::setShowPreprocessing(bool visible)
 {
-  if (m_channelReps.size() < 2)
+  if (m_channelStates.size() < 2)
     return;
 
-  ChannelPtr hiddenChannel = m_channelReps.keys()[visible];
-  ChannelPtr visibleChannel = m_channelReps.keys()[1 - visible];
+  ChannelPtr hiddenChannel = m_channelStates.keys()[visible];
+  ChannelPtr visibleChannel = m_channelStates.keys()[1 - visible];
   hiddenChannel->setData(false, Qt::CheckStateRole);
   hiddenChannel->notifyModification();
   visibleChannel->setData(true, Qt::CheckStateRole);
   visibleChannel->notifyModification();
-  for (int i = 2; i < m_channelReps.keys().size(); i++)
+  for (int i = 2; i < m_channelStates.keys().size(); i++)
   {
-    ChannelPtr otherChannel = m_channelReps.keys()[i];
+    ChannelPtr otherChannel = m_channelStates.keys()[i];
     otherChannel->setData(false, Qt::CheckStateRole);
     otherChannel->notifyModification();
   }
-  this->updateChannelRepresentations();
+  updateChannelRepresentations();
 }
 
 //-----------------------------------------------------------------------------
@@ -2100,31 +1923,4 @@ void SliceView::resetView()
 {
   resetCamera();
   updateView();
-}
-
-//-----------------------------------------------------------------------------
-void SliceView::hideSegmentations(SegmentationList segmentations)
-{
-  foreach(SegmentationPtr segmentation, segmentations)
-  {
-    if (!m_segmentationReps.keys().contains(segmentation) || m_hiddenSegmentations.contains(segmentation))
-      continue;
-
-    m_renderer->RemoveActor(m_segmentationReps[segmentation].slice);
-    m_hiddenSegmentations << segmentation;
-  }
-}
-
-//-----------------------------------------------------------------------------
-void SliceView::unhideSegmentations(SegmentationList segmentations)
-{
-  foreach(SegmentationPtr segmentation, segmentations)
-  {
-    if (!m_segmentationReps.keys().contains(segmentation) || !m_hiddenSegmentations.contains(segmentation))
-      continue;
-
-    m_segmentationReps[segmentation].slice->Update();
-    m_renderer->AddActor(m_segmentationReps[segmentation].slice);
-    m_hiddenSegmentations.removeOne(segmentation);
-  }
 }

@@ -19,6 +19,7 @@
 
 #include "ChannelReader.h"
 #include <Core/IO/ErrorHandler.h>
+#include <GUI/Representations/SliceRepresentation.h>
 
 #include <itkMetaImageIO.h>
 #include <itkTIFFImageIO.h>
@@ -52,7 +53,7 @@ QString ChannelReader::serialize() const
 }
 
 //----------------------------------------------------------------------------
-bool ChannelReader::needUpdate(OutputId oId) const
+bool ChannelReader::needUpdate(FilterOutputId oId) const
 {
   return Filter::needUpdate(oId);
 }
@@ -64,7 +65,7 @@ void ChannelReader::run()
 }
 
 //----------------------------------------------------------------------------
-void ChannelReader::run(Filter::OutputId oId)
+void ChannelReader::run(FilterOutputId oId)
 {
   Q_ASSERT(0 == oId);
   //qDebug() << "Creating channel from args" << m_args;
@@ -73,13 +74,15 @@ void ChannelReader::run(Filter::OutputId oId)
     file = m_handler->fileNotFound(file);
 
   m_args[FILE] = file.absoluteFilePath();
-  m_reader = EspinaVolumeReader::New();
+  EspinaVolumeReader::Pointer reader = EspinaVolumeReader::New();
+
+  itk::ImageIOBase::Pointer io;
 
   QString ext = file.suffix();
   if ("mhd" == ext || "mha" == ext)
-    m_io = itk::MetaImageIO::New();
+    io = itk::MetaImageIO::New();
   else if ("tif" == ext || "tiff" == ext)
-    m_io = itk::TIFFImageIO::New();
+      io = itk::TIFFImageIO::New();
   else
   {
     qWarning() << QString("Cached Object Builder: Couldn't load file %1."
@@ -87,15 +90,22 @@ void ChannelReader::run(Filter::OutputId oId)
     .arg(file.absoluteFilePath());
     Q_ASSERT(false);
   }
-  m_io->SetFileName(m_args[FILE].toUtf8());
-  m_reader->SetImageIO(m_io);
-  m_reader->SetFileName(m_args[FILE].toUtf8().data());
-  m_reader->Update();
+
+  io->SetFileName(m_args[FILE].toUtf8());
+  reader->SetImageIO(io);
+  reader->SetFileName(m_args[FILE].toUtf8().data());
+  reader->Update();
 
   if (m_args.contains(SPACING))
-    m_reader->GetOutput()->SetSpacing(spacing());
+    reader->GetOutput()->SetSpacing(spacing());
 
-  createOutput(0, m_reader->GetOutput());
+  createOutput(0, ChannelVolumeTypeSPtr(new ChannelVolumeType(reader->GetOutput())));
+
+  // Register available representations for filter's outputs
+  OutputSPtr currentOutput = output(0);
+
+  VolumeOutputTypeSPtr volumeData = volumeOutput(currentOutput);
+  currentOutput->addRepresentation(EspinaRepresentationSPtr(new ChannelSliceRepresentation(volumeData, NULL)));
 }
 
 //----------------------------------------------------------------------------
@@ -106,7 +116,7 @@ void ChannelReader::setSpacing(itkVolumeType::SpacingType spacing)
   m_args[SPACING] = QString("%1,%2,%3")
   .arg(spacing[0]).arg(spacing[1]).arg(spacing[2]);
 
-  m_outputs[0].volume->toITK()->SetSpacing(spacing);
+  m_volumeOutput->toITK()->SetSpacing(spacing);
 
   emit modified(this);
 }

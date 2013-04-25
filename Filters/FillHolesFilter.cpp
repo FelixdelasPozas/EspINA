@@ -18,6 +18,7 @@
 
 
 #include "FillHolesFilter.h"
+#include <Core/Model/VolumeOutputType.h>
 
 using namespace EspINA;
 
@@ -37,7 +38,7 @@ FillHolesFilter::~FillHolesFilter()
 }
 
 //-----------------------------------------------------------------------------
-bool FillHolesFilter::needUpdate(OutputId oId) const
+bool FillHolesFilter::needUpdate(FilterOutputId oId) const
 {
   bool update = Filter::needUpdate(oId);
 
@@ -45,12 +46,11 @@ bool FillHolesFilter::needUpdate(OutputId oId) const
   {
     Q_ASSERT(m_namedInputs.size()  == 1);
     Q_ASSERT(m_outputs.size() == 1);
-    Q_ASSERT(m_outputs[0].volume->toITK().IsNotNull());
 
     if (!m_inputs.isEmpty())
     {
       Q_ASSERT(m_inputs.size() == 1);
-      update = m_outputs[0].volume->toITK()->GetTimeStamp() < m_inputs[0]->toITK()->GetTimeStamp();
+      update = m_outputs[0]->data(VolumeOutputType::TYPE)->timeStamp() < m_inputs[0]->data(VolumeOutputType::TYPE)->timeStamp();
     }
   }
 
@@ -64,14 +64,20 @@ void FillHolesFilter::run()
 }
 
 //-----------------------------------------------------------------------------
-void FillHolesFilter::run(Filter::OutputId oId)
+void FillHolesFilter::run(FilterOutputId oId)
 {
   Q_ASSERT(0 == oId);
   Q_ASSERT(m_inputs.size() == 1);
 
-  m_filter = BinaryFillholeFilter::New();
-  m_filter->SetInput(m_inputs[0]->toITK());
-  m_filter->Update();
+  SegmentationVolumeTypeSPtr input = segmentationVolumeOutput(m_inputs[0]);
+  Q_ASSERT(input);
 
-  createOutput(0, m_filter->GetOutput());
+  BinaryFillholeFilter::Pointer filter = BinaryFillholeFilter::New();
+  filter->SetInput(input->toITK());
+  filter->Update();
+
+  FilterOutput::OutputTypeList dataList;
+  dataList << SegmentationVolumeTypeSPtr(new SegmentationVolumeType(filter->GetOutput()));
+
+  createOutput(0, dataList);
 }

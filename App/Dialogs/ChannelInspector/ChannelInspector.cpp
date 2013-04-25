@@ -229,15 +229,17 @@ void ChannelInspector::changeSpacing()
     if (EspINA::SEGMENTATION == item->type())
     {
       SegmentationSPtr seg = segmentationPtr(item);
+      SegmentationVolumeTypeSPtr segVolume = boost::dynamic_pointer_cast<SegmentationVolumeType>(seg->output()->data(VolumeOutputType::TYPE));
+
       double oldSpacing[3];
-      seg->volume()->spacing(oldSpacing);
-      seg->volume()->toITK()->SetSpacing(spacing);
-      itkVolumeType::PointType origin = seg->volume()->toITK()->GetOrigin();
+      segVolume->spacing(oldSpacing);
+      segVolume->toITK()->SetSpacing(spacing);
+      itkVolumeType::PointType origin = segVolume->toITK()->GetOrigin();
       for (int i=0; i < 3; i++)
         origin[i] = origin[i]/oldSpacing[i]*spacing[i];
-      seg->volume()->toITK()->SetOrigin(origin);
-      seg->volume()->update();
-      seg->volume()->markAsModified(true);
+      segVolume->toITK()->SetOrigin(origin);
+      segVolume->update();
+      segVolume->markAsModified(true);//FIXME
       updatedSegmentations << seg.data();
     }
   }
@@ -377,7 +379,7 @@ void ChannelInspector::applyModifications()
   if (!this->isVisible())
     return;
 
-  m_view->updateChannel(m_channel);
+  m_view->updateChannelRepresentation(m_channel);
   m_view->updateView();
 }
 
@@ -428,14 +430,16 @@ void ChannelInspector::rejectedChanges()
       if (EspINA::SEGMENTATION == item->type())
       {
         SegmentationSPtr seg = segmentationPtr(item);
+        SegmentationVolumeTypeSPtr segVolume = boost::dynamic_pointer_cast<SegmentationVolumeType>(seg->output()->data(VolumeOutputType::TYPE));
+
         double oldSpacing[3];
-        seg->volume()->spacing(oldSpacing);
-        seg->volume()->toITK()->SetSpacing(newSpacing);
-        itkVolumeType::PointType origin = seg->volume()->toITK()->GetOrigin();
+        segVolume->spacing(oldSpacing);
+        segVolume->toITK()->SetSpacing(newSpacing);
+        itkVolumeType::PointType origin = segVolume->toITK()->GetOrigin();
         for (int i=0; i < 3; i++)
         origin[i] = origin[i]/oldSpacing[i]*newSpacing[i];
-        seg->volume()->toITK()->SetOrigin(origin);
-        seg->volume()->update();
+        segVolume->toITK()->SetOrigin(origin);
+        segVolume->update();
       }
     }
   }

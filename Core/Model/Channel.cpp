@@ -55,7 +55,7 @@ const QString Channel::NAME       = "Name";
 const QString Channel::VOLUMETRIC = "Volumetric";
 
 //-----------------------------------------------------------------------------
-Channel::Channel(FilterSPtr filter, Filter::OutputId oId)
+Channel::Channel(FilterSPtr filter, FilterOutputId oId)
 : PickableItem()
 , m_visible(true)
 , m_filter(filter)
@@ -82,33 +82,25 @@ const FilterSPtr Channel::filter() const
 }
 
 //------------------------------------------------------------------------
-const Filter::OutputId Channel::outputId() const
+const FilterOutputId Channel::outputId() const
 {
   return m_args.outputId();
 }
 
 //------------------------------------------------------------------------
-ChannelVolume::Pointer Channel::volume()
+VolumeOutputTypeSPtr Channel::volume()
 {
-  EspinaVolume::Pointer ev = m_filter->volume(m_args.outputId());
-
-  // On invalid cast:
-  // The static_pointer_cast will "just do it". This will result in an invalid pointer and will likely cause a crash. The reference count on base will be incremented.
-  // The shared_polymorphic_downcast will come the same as a static cast, but will trigger an assertion in the process. The reference count on base will be incremented.
-  // The dynamic_pointer_cast will simply come out NULL. The reference count on base will be unchanged.
-  return boost::dynamic_pointer_cast<ChannelVolume>(ev);
+  return static_cast<const Channel *>(this)->volume();
 }
 
 //------------------------------------------------------------------------
-const ChannelVolume::Pointer Channel::volume() const
+const VolumeOutputTypeSPtr Channel::volume() const
 {
-  EspinaVolume::Pointer ev = m_filter->volume(m_args.outputId());
-
   // On invalid cast:
   // The static_pointer_cast will "just do it". This will result in an invalid pointer and will likely cause a crash. The reference count on base will be incremented.
   // The shared_polymorphic_downcast will come the same as a static cast, but will trigger an assertion in the process. The reference count on base will be incremented.
   // The dynamic_pointer_cast will simply come out NULL. The reference count on base will be unchanged.
-  return boost::dynamic_pointer_cast<ChannelVolume>(ev);
+  return boost::dynamic_pointer_cast<VolumeOutputType>(output()->data(VolumeOutputType::TYPE));
 }
 
 

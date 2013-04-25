@@ -46,7 +46,7 @@ namespace EspINA
       EspinaModel *m_model;
       ViewManager *m_viewManager;
 
-      typedef QPair<FilterSPtr, Filter::OutputId> Connection;
+      typedef QPair<FilterSPtr, FilterOutputId> Connection;
 
       SegmentationSList m_segmentations;
       QList<Connection> m_oldConnections, m_newConnections;

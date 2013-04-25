@@ -19,21 +19,12 @@
 // EspINA
 #include "Filter.h"
 #include "EspinaModel.h"
+#include "Output.h"
+#include "VolumeOutputType.h"
 
 // ITK
-#include <itkMetaImageIO.h>
-#include <itkImageFileWriter.h>
 #include <itkRegionOfInterestImageFilter.h>
-
-// VTK
-#include <vtkImplicitFunction.h>
-#include <vtkSmartPointer.h>
-#include <vtkPolyDataToImageStencil.h>
-#include <vtkImageStencilToImage.h>
-#include <vtkImageExport.h>
-#include <vtkMath.h>
-#include <vtkCellArray.h>
-#include <vtkPolyData.h>
+#include <itkMetaImageIO.h>
 
 // Qt
 #include <QDir>
@@ -51,25 +42,6 @@ const ArgumentId Filter::ID     = "ID";
 const ArgumentId Filter::INPUTS = "Inputs";
 const ArgumentId Filter::EDIT   = "Edit"; // Backwards compatibility
 
-const int EspINA::Filter::Output::INVALID_OUTPUT_ID = -1;
-
-typedef itk::ImageFileWriter<itkVolumeType> EspinaVolumeWriter;
-
-//----------------------------------------------------------------------------
-void Filter::Output::addEditedRegion(const EspinaRegion &region)
-{
-  int  i        = 0;
-  bool included = false;
-  while (i < editedRegions.size() && !included)
-  {
-    included = region.isInside(editedRegions[i]);
-    ++i;
-  }
-  if (!included)
-    editedRegions << region;
-}
-
-
 
 //----------------------------------------------------------------------------
 Filter::~Filter()
@@ -86,24 +58,34 @@ void Filter::setCacheDir(QDir dir)
   // Load cached outputs
   if (m_outputs.isEmpty())
   {
+    // Compatibility: verion 3 seg files had only volume outputs shaved
+    // in the base cache dir. Thus, in case we find some files there, we must
+    // assign them to filter's volume outputs
+    bool v3SegFile = false;
+
     QStringList namedFilters;
     namedFilters <<  QString("%1_*.mhd").arg(m_cacheId);
     foreach(QString cachedFile, m_cacheDir.entryList(namedFilters))
     {
+      v3SegFile = true;
+
       QStringList ids = cachedFile.section(".",0,0).split("_");
-      OutputId oId = ids[1].toInt();
-      QString outputName = QString("%1_%2").arg(m_cacheId).arg(oId);
+      FilterOutputId oId = ids[1].toInt();
 
       if (!validOutput(oId))
-        createOutput(oId);
+      {
+        createDummyOutput(oId, VolumeOutputType::TYPE);
+      }
 
-      Output &editedOutput = m_outputs[oId];
+      OutputSPtr editedOutput = m_outputs[oId];
+      QString outputName = QString("%1_%2").arg(m_cacheId).arg(oId);
 
-      if (editedOutput.editedRegions.isEmpty() && m_cacheDir.exists(outputName + ".trc"))
+      if (editedOutput->editedRegions().isEmpty() && m_cacheDir.exists(outputName + ".trc"))
       {
         QFile file(m_cacheDir.absoluteFilePath(outputName + ".trc"));
         if (file.open(QIODevice::ReadOnly))
         {
+          VolumeOutputTypeSPtr volume = volumeOutput(editedOutput);
           while (!file.atEnd())
           {
             QByteArray line = file.readLine();
@@ -112,7 +94,7 @@ void Filter::setCacheDir(QDir dir)
             for (int i = 0; i < 6; ++i)
               bounds[i] = values[i].toDouble();
 
-            editedOutput.editedRegions << EspinaRegion(bounds);
+            volume->addEditedRegion(EspinaRegion(bounds));
           }
         }
       }
@@ -158,7 +140,7 @@ QString Filter::serialize() const
 }
 
 //----------------------------------------------------------------------------
-void Filter::draw(OutputId oId,
+void Filter::draw(FilterOutputId oId,
                   vtkImplicitFunction* brush,
                   const Nm bounds[6],
                   itkVolumeType::PixelType value,
@@ -166,86 +148,59 @@ void Filter::draw(OutputId oId,
 {
   EspinaRegion region(bounds);
 
-  Filter::Output &currentOutput = output(oId);
+  OutputSPtr currentOutput = output(oId);
 
-  currentOutput.addEditedRegion(region);
+  FilterOutput::OutputTypeSPtr data = currentOutput->data(VolumeOutputType::TYPE);
+  VolumeOutputType *volume = dynamic_cast<VolumeOutputType *>(data.get());
 
-  EspinaVolume::Pointer volume = currentOutput.volume;
-  volume->expandToFitRegion(region);
-
-  itkVolumeType::SpacingType spacing = volume->toITK()->GetSpacing();
-  itkVolumeType::PointType   origin  = volume->toITK()->GetOrigin();
-
-  itkVolumeIterator it = volume->iterator(region);
-  it.GoToBegin();
-  for (; !it.IsAtEnd(); ++it )
+  if (volume)
   {
-    double tx = it.GetIndex()[0]*spacing[0] + origin[0];
-    double ty = it.GetIndex()[1]*spacing[1] + origin[1];
-    double tz = it.GetIndex()[2]*spacing[2] + origin[2];
+    volume->draw(brush, bounds, value, emitSignal);
 
-    if (brush->FunctionValue(tx, ty, tz) <= 0)
-      it.Set(value);
+    emit modified(this);
   }
-  volume->markAsModified(emitSignal);
-
-  emit modified(this);
 }
 
 //----------------------------------------------------------------------------
-void Filter::draw(OutputId oId,
+void Filter::draw(FilterOutputId oId,
                   itkVolumeType::IndexType index,
                   itkVolumeType::PixelType value,
                   bool emitSignal)
 {
-  Filter::Output &currentOutput = output(oId);
+  OutputSPtr currentOutput = output(oId);
 
-  EspinaVolume::Pointer volume = currentOutput.volume;
+  FilterOutput::OutputTypeSPtr data = currentOutput->data(VolumeOutputType::TYPE);
+  VolumeOutputType *volume = dynamic_cast<VolumeOutputType *>(data.get());
 
-  itkVolumeType::SpacingType spacing = volume->toITK()->GetSpacing();
-  double voxelBounds[6] = { index[0]*spacing[0],
-                            index[0]*spacing[0],
-                            index[1]*spacing[1],
-                            index[1]*spacing[1],
-                            index[2]*spacing[2],
-                            index[2]*spacing[2] };
-  EspinaRegion voxelRegion(voxelBounds);
+  if (volume)
+  {
+    volume->draw(index, value, emitSignal);
 
-  currentOutput.addEditedRegion(voxelRegion);
-
-  volume->expandToFitRegion(voxelRegion);
-
-  volume->toITK()->SetPixel(index, value);
-  volume->markAsModified(emitSignal);
-
-  emit modified(this);
+    emit modified(this);
+  }
 }
 
 //----------------------------------------------------------------------------
-void Filter::draw(OutputId oId,
+void Filter::draw(FilterOutputId oId,
                   Nm x, Nm y, Nm z,
                   itkVolumeType::PixelType value,
                   bool emitSignal)
 {
-  Filter::Output &currentOutput = output(oId);
+  OutputSPtr currentOutput = output(oId);
 
-  EspinaVolume::Pointer volume = currentOutput.volume;
+  FilterOutput::OutputTypeSPtr data = currentOutput->data(VolumeOutputType::TYPE);
+  VolumeOutputType *volume = dynamic_cast<VolumeOutputType *>(data.get());
 
-  double voxelBounds[6] = {x, x, y, y, z, z};
-  EspinaRegion voxelRegion(voxelBounds);
+  if (volume)
+  {
+    volume->draw(x, y, z, value, emitSignal);
 
-  currentOutput.addEditedRegion(voxelRegion);
-
-  volume->expandToFitRegion(voxelRegion);
-
-  volume->toITK()->SetPixel(volume->index(x, y, z), value);
-  volume->markAsModified(emitSignal);
-
-  emit modified(this);
+    emit modified(this);
+  }
 }
 
 //----------------------------------------------------------------------------
-void Filter::draw(OutputId oId,
+void Filter::draw(FilterOutputId oId,
                   vtkPolyData *contour,
                   Nm slice, PlaneType plane,
                   itkVolumeType::PixelType value,
@@ -254,318 +209,103 @@ void Filter::draw(OutputId oId,
   if (contour->GetPoints()->GetNumberOfPoints() == 0)
     return;
 
-  Filter::Output &currentOutput = output(oId);
-
-  EspinaVolume::Pointer volume = currentOutput.volume;
-
-  double bounds[6];
-  contour->ComputeBounds();
-  contour->GetBounds(bounds);
-
-  EspinaRegion polyDataRegion(bounds);
-
-  if(!polyDataRegion.isInside(volume->espinaRegion()))
-    volume->expandToFitRegion(polyDataRegion);
-
-  itkVolumeType::SpacingType spacing = volume->toITK()->GetSpacing();
-
-  currentOutput.addEditedRegion(polyDataRegion);
-  for (int i = 0; i < 6; ++i) // TODO: update alternative branch
-    polyDataRegion[i] = vtkMath::Round(polyDataRegion[i] /spacing[i/2]) * spacing[i/2];
-
-  // vtkPolyDataToImageStencil filter only works in XY plane so we must rotate the contour to that plane
-  int count = contour->GetPoints()->GetNumberOfPoints();
-  vtkSmartPointer<vtkPolyData> rotatedContour = vtkSmartPointer<vtkPolyData>::New();
-  vtkPoints *points = vtkPoints::New();
-  vtkCellArray *lines = vtkCellArray::New();
-  vtkIdType index = 0;
-
-  points->SetNumberOfPoints(count);
-  vtkIdType numLines = count + 1;
-
-  // NOTE 1: sliceposition should always be less or equal to slice parameter as it represents the
-  // extent*spacing position of the slice, this is so because the user could be drawing using
-  // "fit to slices" and round() will go to the upper integer if slice is greater than spacing/2.
-  // Floor() gives wrong values if extent*spacing = slice as it will give an smaller number, and
-  // I don't want to rely on static_cast<int>(number) to achieve the wanted effect.
-  // NOTE 2: image reslicing starts in spacing[reslicing plane]/2 instead of 0, so we correct this
-  // to match the drawing with what the user sees on screen.
-  double slicePosition = vtkMath::Round((slice + spacing[plane]/2)/spacing[plane]) * spacing[plane];
-  if (slicePosition > (slice + (spacing[plane]/2)))
-    slicePosition = vtkMath::Floor((slice + spacing[plane]/2)/spacing[plane]) * spacing[plane];
-
-  if (numLines > 0)
+  VolumeOutputTypeSPtr volume = volumeOutput(output(oId));
+  if (volume)
   {
-    double pos[3];
-    vtkIdType *lineIndices = new vtkIdType[numLines];
+    volume->draw(contour, slice, plane, value, emitSignal);
 
-    for (int i = 0; i < count; i++)
-    {
-      contour->GetPoint(i, pos);
-      switch (plane)
-      {
-        case AXIAL:
-          break;
-        case CORONAL:
-          pos[1] = pos[2];
-          break;
-        case SAGITTAL:
-          pos[0] = pos[1];
-          pos[1] = pos[2];
-          break;
-        default:
-          Q_ASSERT(false);
-          break;
-      }
-      pos[2] = slicePosition;
-
-      points->InsertPoint(index, pos);
-      lineIndices[index] = index;
-      index++;
-    }
-
-    lineIndices[index] = 0;
-
-    lines->InsertNextCell(numLines, lineIndices);
-    delete[] lineIndices;
+    emit modified(this);
   }
-
-  rotatedContour->SetPoints(points);
-  rotatedContour->SetLines(lines);
-
-  points->Delete();
-  lines->Delete();
-
-  rotatedContour->Update();
-
-  int extent[6] = {
-      vtkMath::Round(bounds[0]/spacing[0]),
-      vtkMath::Round(bounds[1]/spacing[0]),
-      vtkMath::Round(bounds[2]/spacing[1]),
-      vtkMath::Round(bounds[3]/spacing[1]),
-      vtkMath::Round(bounds[4]/spacing[2]),
-      vtkMath::Round(bounds[5]/spacing[2])
-  };
-
-  // extent and spacing should be changed because vtkPolyDataToImageStencil filter only works in XY plane
-  // and we've rotated the contour to that plane
-  double temporal;
-  switch(plane)
-  {
-    case AXIAL:
-      break;
-    case CORONAL:
-      temporal = spacing[1];
-      spacing[1] = spacing[2];
-      spacing[2] = temporal;
-
-      extent[2] = extent[4];
-      extent[3] = extent[5];
-      break;
-    case SAGITTAL:
-      temporal = spacing[0];
-      spacing[0] = spacing[1];
-      spacing[1] = spacing[2];
-      spacing[2] = temporal;
-
-      extent[0] = extent[2];
-      extent[1] = extent[3];
-      extent[2] = extent[4];
-      extent[3] = extent[5];
-      break;
-    default:
-      Q_ASSERT(false);
-      break;
-  }
-  extent[4] = extent[5] = vtkMath::Round(slicePosition/spacing[2]);
-
-  vtkSmartPointer<vtkPolyDataToImageStencil> polyDataToStencil = vtkSmartPointer<vtkPolyDataToImageStencil>::New();
-  polyDataToStencil->SetInputConnection(rotatedContour->GetProducerPort());
-  polyDataToStencil->SetOutputOrigin(0,0,0);
-  polyDataToStencil->SetOutputSpacing(spacing[0], spacing[1], spacing[2]);
-  polyDataToStencil->SetOutputWholeExtent(extent[0], extent[1], extent[2], extent[3], extent[4], extent[5]);
-  polyDataToStencil->SetTolerance(0);
-
-  vtkSmartPointer<vtkImageStencilToImage> stencilToImage = vtkSmartPointer<vtkImageStencilToImage>::New();
-  stencilToImage->SetInputConnection(polyDataToStencil->GetOutputPort());
-  stencilToImage->SetOutputScalarTypeToUnsignedChar();
-  stencilToImage->SetInsideValue(1);
-  stencilToImage->SetOutsideValue(0);
-  stencilToImage->Update();
-
-  vtkImageData *outputImage = stencilToImage->GetOutput();
-
-  // we have to check the image index to know if there is a discrepancy between bounds and index
-  spacing = volume->toITK()->GetSpacing();
-  itkVolumeType::IndexType temporalIndex = volume->toITK()->GetLargestPossibleRegion().GetIndex();
-  volume->bounds(bounds);
-  bool transformIndex = false;
-  if (vtkMath::Round(bounds[0]/spacing[0]) != temporalIndex[0] || vtkMath::Round(bounds[2]/spacing[1]) != temporalIndex[1] || vtkMath::Round(bounds[4]/spacing[2]) != temporalIndex[2])
-  {
-    transformIndex = true;
-    temporalIndex[0] = vtkMath::Round(bounds[0]/spacing[0]);
-    temporalIndex[1] = vtkMath::Round(bounds[2]/spacing[1]);
-    temporalIndex[2] = vtkMath::Round(bounds[4]/spacing[2]);
-  }
-
-  itk::Index<3> imageIndex;
-  unsigned char *pixel;
-  for (int x = extent[0]; x <= extent[1]; ++x)
-    for (int y = extent[2]; y <= extent[3]; ++y)
-      for (int z = extent[4]; z <= extent[5]; ++z)
-      {
-        switch(plane)
-        {
-          case AXIAL:
-            imageIndex[0] = x;
-            imageIndex[1] = y;
-            imageIndex[2] = z;
-            break;
-          case CORONAL:
-            imageIndex[0] = x;
-            imageIndex[1] = z;
-            imageIndex[2] = y;
-            break;
-          case SAGITTAL:
-            imageIndex[0] = z;
-            imageIndex[1] = x;
-            imageIndex[2] = y;
-            break;
-          default:
-            Q_ASSERT(false);
-            break;
-        }
-
-        if (transformIndex)
-        {
-          imageIndex[0] -= temporalIndex[0];
-          imageIndex[1] -= temporalIndex[1];
-          imageIndex[2] -= temporalIndex[2];
-        }
-
-        pixel = reinterpret_cast<unsigned char*>(outputImage->GetScalarPointer(x, y, z));
-        Q_ASSERT(volume->toITK()->GetLargestPossibleRegion().IsInside(imageIndex));
-        if (*pixel == 1)
-          volume->toITK()->SetPixel(imageIndex, value);
-      }
-
-  volume->markAsModified(emitSignal);
-
-  emit modified(this);
 }
 
 //----------------------------------------------------------------------------
-void Filter::draw(OutputId oId,
+void Filter::draw(FilterOutputId oId,
                   itkVolumeType::Pointer volume,
                   bool emitSignal)
 {
-  Filter::Output &currentOutput = output(oId);
+  OutputSPtr currentOutput = output(oId);
 
-  EspinaVolume drawnVolume(volume);
-  EspinaRegion drawnRegion = drawnVolume.espinaRegion();
+  FilterOutput::OutputTypeSPtr data = currentOutput->data(VolumeOutputType::TYPE);
+  VolumeOutputType *filterVolume = dynamic_cast<VolumeOutputType *>(data.get());
 
-  currentOutput.addEditedRegion(drawnRegion);
-
-  EspinaVolume::Pointer filterVolume = currentOutput.volume;
-  if (filterVolume->toITK().IsNull())
+  if (filterVolume)
   {
-    filterVolume->setVolume(volume, true);
+    filterVolume->draw(volume, emitSignal);
+
+    emit modified(this);
   }
-  else
-  {
-    filterVolume->expandToFitRegion(drawnRegion);
-
-    itkVolumeIterator it = drawnVolume  .iterator(drawnRegion);
-    itkVolumeIterator ot = filterVolume->iterator(drawnRegion);
-
-    it.GoToBegin();
-    ot.GoToBegin();
-    for (; !it.IsAtEnd(); ++it, ++ot )
-    {
-      ot.Set(it.Get());
-    }
-  }
-
-  filterVolume->markAsModified(emitSignal);
-
-  emit modified(this);
 }
 
 //----------------------------------------------------------------------------
-void Filter::fill(OutputId oId,
+void Filter::fill(FilterOutputId oId,
                   itkVolumeType::PixelType value,
                   bool emitSignal)
 {
-  fill(oId, m_outputs[oId].volume->espinaRegion(), value, emitSignal);
+  OutputSPtr currentOutput = output(oId);
+
+  FilterOutput::OutputTypeSPtr data = currentOutput->data(VolumeOutputType::TYPE);
+  VolumeOutputType *volume = dynamic_cast<VolumeOutputType *>(data.get());
+
+  if (volume)
+  {
+    volume->fill(value, emitSignal);
+
+    emit modified(this);
+  }
 }
 
 //----------------------------------------------------------------------------
-void Filter::fill(OutputId oId,
+void Filter::fill(FilterOutputId oId,
                   const EspinaRegion &region,
                   itkVolumeType::PixelType value,
                   bool emitSignal)
 {
-  Output &currentOutput = output(oId);
+  OutputSPtr currentOutput = output(oId);
 
-  EspinaVolume::Pointer volume = currentOutput.volume;
+  FilterOutput::OutputTypeSPtr data = currentOutput->data(VolumeOutputType::TYPE);
+  VolumeOutputType *volume = dynamic_cast<VolumeOutputType *>(data.get());
 
-  volume->expandToFitRegion(region);
-
-  itkVolumeIterator ot = volume->iterator(region);
-
-  ot.GoToBegin();
-  for (; !ot.IsAtEnd(); ++ot )
+  if (volume)
   {
-    ot.Set(value);
+    volume->fill(region, value, emitSignal);
+
+    emit modified(this);
   }
-
-  volume->markAsModified(emitSignal);
-
-  emit modified(this);
 }
 
 //----------------------------------------------------------------------------
-void Filter::restoreOutput(OutputId oId, itkVolumeType::Pointer volume)
+void Filter::restoreOutput(FilterOutputId oId, itkVolumeType::Pointer volume)
 {
-  Output &filterOutput = output(oId);
+  OutputSPtr currentOutput = output(oId);
 
-  filterOutput.volume->setVolume(volume);
-  filterOutput.volume->markAsModified();
+  FilterOutput::OutputTypeSPtr data = currentOutput->data(VolumeOutputType::TYPE);
+  VolumeOutputType *filterVolume = dynamic_cast<VolumeOutputType *>(data.get());
 
-  emit modified(this);
-}
-
-//----------------------------------------------------------------------------
-Filter::OutputList Filter::editedOutputs() const
-{
-  OutputList res;
-
-  foreach(Output filterOutput, m_outputs)
+  if (filterVolume)
   {
-    if (filterOutput.isEdited())
-      res << filterOutput;
-  }
+    filterVolume->setVolume(volume);
+    filterVolume->markAsModified();
 
-  return res;
+    emit modified(this);
+  }
 }
 
 //----------------------------------------------------------------------------
-bool Filter::validOutput(Filter::OutputId oId)
+bool Filter::validOutput(FilterOutputId oId)
 {
   return m_outputs.contains(oId);
 }
 
 //----------------------------------------------------------------------------
-const Filter::Output Filter::output(OutputId oId) const
+const OutputSPtr Filter::output(FilterOutputId oId) const
 {
-  return m_outputs.value(oId, Output());
+  return m_outputs.value(oId, OutputSPtr());
 }
 
 //----------------------------------------------------------------------------
-Filter::Output &Filter::output(OutputId oId)
+OutputSPtr Filter::output(FilterOutputId oId)
 {
-  Q_ASSERT(m_outputs.contains(oId));
-  return m_outputs[oId];
+  return m_outputs.value(oId, OutputSPtr());
 }
 
 //----------------------------------------------------------------------------
@@ -576,9 +316,9 @@ bool Filter::needUpdate() const
   if (!m_outputs.isEmpty())
   {
     update = false;
-    foreach(Output filterOutput, m_outputs)
+    foreach(OutputSPtr filterOutput, m_outputs)
     {
-      update = update || !filterOutput.isValid();
+      update = update || !filterOutput->isValid();
     }
   }
 
@@ -586,13 +326,13 @@ bool Filter::needUpdate() const
 }
 
 //----------------------------------------------------------------------------
-bool Filter::needUpdate(Filter::OutputId oId) const
+bool Filter::needUpdate(FilterOutputId oId) const
 {
   bool update = true;
 
   if (!m_outputs.isEmpty())
   {
-    update = !output(oId).isValid();
+    update = !output(oId)->isValid();
   }
 
   return update;
@@ -610,9 +350,9 @@ void Filter::update()
     {
       QStringList input = namedInput.split("_");
       FilterSPtr inputFilter = m_namedInputs[input[0]];
-      OutputId iId = input[1].toInt();
+      FilterOutputId iId = input[1].toInt();
       inputFilter->update(iId);
-      m_inputs << inputFilter->output(iId).volume;
+      m_inputs << inputFilter->output(iId);
     }
 
     run();
@@ -621,7 +361,7 @@ void Filter::update()
   }
   else
   {
-    foreach(OutputId oId, m_outputs.keys())
+    foreach(FilterOutputId oId, m_outputs.keys())
     {
       update(oId);
     }
@@ -629,17 +369,17 @@ void Filter::update()
 }
 
 //----------------------------------------------------------------------------
- void Filter::update(OutputId oId)
+ void Filter::update(FilterOutputId oId)
  {
    bool ignoreOutputs     = ignoreCurrentOutputs();
    bool outputNeedsUpdate = needUpdate(oId);
 
    if (ignoreOutputs || outputNeedsUpdate)
    {
-     // Invalidate previous run edited regions
+     // Invalidate previous edited regions
      if (ignoreOutputs && m_outputs.contains(oId))
      {
-       m_outputs[oId].editedRegions.clear();
+       m_outputs[oId]->clearEditedRegions();
      }
 
      if (!fetchSnapshot(oId))
@@ -651,25 +391,20 @@ void Filter::update()
        {
          QStringList input = namedInput.split("_");
          FilterSPtr inputFilter = m_namedInputs[input[0]];
-         OutputId iId = input[1].toInt();
+         FilterOutputId iId = input[1].toInt();
          inputFilter->update(iId);
-         m_inputs << inputFilter->output(iId).volume;
+         m_inputs << inputFilter->output(iId);
        }
 
        run(oId);
 
-       int numRegions = 0;
        if (m_outputs.contains(oId))
-         numRegions = m_outputs[oId].editedRegions.size(); // prevent new regions added by draw
-
-       // Restore previous edited regions if restoring a modified output
-       for (int i = 0; i < numRegions; ++i)
        {
-         QString tmpFile = QString("%1_%2_%3.mhd").arg(m_cacheId).arg(oId).arg(i);
-         EspinaVolumeReader::Pointer reader = tmpFileReader(tmpFile);
-         Q_ASSERT(reader.IsNotNull());
-
-         draw(oId, reader->GetOutput(), true);
+         QString outputPrefix = QString("%1_%2").arg(m_cacheId).arg(oId);
+         foreach(FilterOutput::NamedRegion region, m_outputs[oId]->editedRegions())
+         {
+           m_outputs[oId]->data(region.first)->restoreEditedRegion(region.second, outputPrefix);
+         }
        }
 
        m_executed = true;
@@ -677,106 +412,157 @@ void Filter::update()
    }
  }
 
+// //----------------------------------------------------------------------------
+// void Filter::createOutput(FilterFilterOutputId id, EspinaVolume::Pointer volume)
+// {
+//   if (!m_outputs.contains(id))
+//     m_outputs[id] = Output(this, id, volume);
+//   else if (volume)
+//     m_outputs[id].volume->setVolume(volume->toITK());
+// }
+
 //----------------------------------------------------------------------------
-void Filter::createOutput(Filter::OutputId id, EspinaVolume::Pointer volume)
+bool Filter::fetchSnapshot(FilterOutputId oId)
 {
-  if (!m_outputs.contains(id))
-    m_outputs[id] = Output(this, id, volume);
-  else if (volume)
-    m_outputs[id].volume->setVolume(volume->toITK());
+  if (m_outputs.isEmpty()) // contains??
+    return false;
+
+  Q_ASSERT(m_outputs.contains(oId));
+
+  QString filterPrefix = QString("%1_%2").arg(m_cacheId).arg(oId);
+
+  bool fetched = m_outputs[oId]->fetchSnapshot(filterPrefix);
+
+  if (fetched)
+    emit modified(this);
+
+  return fetched;
 }
 
 //----------------------------------------------------------------------------
-bool Filter::fetchSnapshot(OutputId oId)
+itkVolumeType::Pointer Filter::readVolumeFromCache(const QString &file)
 {
-  if (m_outputs.isEmpty())
-    return false;
-
-  EspinaVolumeReader::Pointer reader;
-
-  QString tmpFile = QString("%1_%2.mhd").arg(m_cacheId).arg(oId);
-  reader = tmpFileReader(tmpFile);
-  if (reader.IsNull())
-    return false;
-
-  m_outputs[oId].volume->setVolume(reader->GetOutput(), true);
-
-  emit modified(this);
-
-  return true;
-}
-
-//----------------------------------------------------------------------------
-Filter::EspinaVolumeReader::Pointer Filter::tmpFileReader(const QString file)
-{
-  EspinaVolumeReader::Pointer reader;
+  itkVolumeType::Pointer volume;
 
   if (m_cacheDir.exists(file))
   {
     itk::MetaImageIO::Pointer io = itk::MetaImageIO::New();
-    reader = EspinaVolumeReader::New();
+    EspinaVolumeReader::Pointer reader = EspinaVolumeReader::New();
 
     QByteArray tmpFile = m_cacheDir.absoluteFilePath(file).toUtf8();
     io->SetFileName(tmpFile);
     reader->SetImageIO(io);
     reader->SetFileName(tmpFile.data());
     reader->Update();
+
+    volume = reader->GetOutput();
+    volume->DisconnectPipeline();
   }
 
-  return reader;
+  return volume;
 }
 
 //----------------------------------------------------------------------------
-void ChannelFilter::createOutput(Filter::OutputId id, itkVolumeType::Pointer volume)
+void Filter::createOutput(FilterOutputId id, FilterOutput::OutputTypeSPtr data)
 {
-  if (id != 0)
-    qDebug() << id;
   if (!m_outputs.contains(id))
-    m_outputs[id] = Output(this, id, ChannelVolume::Pointer(new ChannelVolume(volume)));
-  else if (volume)
-    m_outputs[id].volume->setVolume(volume);
+    m_outputs[id] = OutputSPtr(new FilterOutput(this, id));
+
+  OutputSPtr currentOutput = m_outputs[id];
+  data->setOutput(currentOutput.get());
+
+  FilterOutput::OutputTypeSPtr out = currentOutput->data(data->type());
+
+  if (out)
+  {
+    if (!out->setInternalData(data))
+    {
+      qWarning() << "Filter: Couldn't copy internal data";
+      Q_ASSERT(false);
+    }
+  }
+  else
+    currentOutput->setData(data->type(), data);
 }
 
 //----------------------------------------------------------------------------
-void ChannelFilter::createOutput(Filter::OutputId id, EspinaVolume::Pointer volume)
+void Filter::createOutput(FilterOutputId id, FilterOutput::OutputTypeList dataList)
 {
-  Filter::createOutput(id, volume);
-}
-
-//----------------------------------------------------------------------------
-void ChannelFilter::createOutput(Filter::OutputId id, const EspinaRegion& region, itkVolumeType::SpacingType spacing)
-{
-  ChannelVolume::Pointer volume(new ChannelVolume(region, spacing));
   if (!m_outputs.contains(id))
-    m_outputs[id] = Output(this, id, volume);
-  else if (volume)
-    m_outputs[id].volume->setVolume(volume->toITK());
+    m_outputs[id] = OutputSPtr(new FilterOutput(this, id));
+
+  OutputSPtr currentOutput = m_outputs[id];
+
+  foreach(FilterOutput::OutputTypeSPtr data, dataList)
+  {
+    data->setOutput(currentOutput.get());
+
+    FilterOutput::OutputTypeSPtr out = currentOutput->data(data->type());
+
+    if (out)
+    {
+      if (!out->setInternalData(data))
+      {
+        qWarning() << "Filter: Couldn't copy internal data";
+        Q_ASSERT(false);
+      }
+    }
+    else
+      currentOutput->setData(data->type(), data);
+  }
 }
 
-//----------------------------------------------------------------------------
-void SegmentationFilter::createOutput(Filter::OutputId id, EspinaVolume::Pointer volume)
-{
-  Filter::createOutput(id, volume);
-}
-
-//----------------------------------------------------------------------------
-void SegmentationFilter::createOutput(Filter::OutputId id, itkVolumeType::Pointer volume)
-{
-  if (m_outputs.contains(id))
-    m_outputs[id].volume->setVolume(volume, true);
-  else
-    m_outputs[id] = Output(this, id, SegmentationVolume::Pointer(new SegmentationVolume(volume)));
-}
-
-//----------------------------------------------------------------------------
-void SegmentationFilter::createOutput(Filter::OutputId id, const EspinaRegion& region, itkVolumeType::SpacingType spacing)
-{
-  SegmentationVolume::Pointer volume(new SegmentationVolume(region, spacing));
-  if (m_outputs.contains(id))
-    m_outputs[id].volume->setVolume(volume->toITK());
-  else
-    m_outputs[id] = Output(this, id, volume);
-}
+// //----------------------------------------------------------------------------
+// void ChannelFilter::createOutput(FilterFilterOutputId id, itkVolumeType::Pointer volume)
+// {
+//   if (id != 0)
+//     qDebug() << id;
+//   if (!m_outputs.contains(id))
+//     m_outputs[id] = Output(this, id, ChannelVolume::Pointer(new ChannelVolume(volume)));
+//   else if (volume)
+//     m_outputs[id].volume->setVolume(volume);
+// }
+// 
+// //----------------------------------------------------------------------------
+// void ChannelFilter::createOutput(FilterFilterOutputId id, EspinaVolume::Pointer volume)
+// {
+//   Filter::createOutput(id, volume);
+// }
+// 
+// //----------------------------------------------------------------------------
+// void ChannelFilter::createOutput(FilterFilterOutputId id, const EspinaRegion& region, itkVolumeType::SpacingType spacing)
+// {
+//   ChannelVolume::Pointer volume(new ChannelVolume(region, spacing));
+//   if (!m_outputs.contains(id))
+//     m_outputs[id] = Output(this, id, volume);
+//   else if (volume)
+//     m_outputs[id].volume->setVolume(volume->toITK());
+// }
+// 
+// //----------------------------------------------------------------------------
+// void SegmentationFilter::createOutput(FilterFilterOutputId id, EspinaVolume::Pointer volume)
+// {
+//   Filter::createOutput(id, volume);
+// }
+// 
+// //----------------------------------------------------------------------------
+// void SegmentationFilter::createOutput(FilterFilterOutputId id, itkVolumeType::Pointer volume)
+// {
+//   if (m_outputs.contains(id))
+//     m_outputs[id].volume->setVolume(volume, true);
+//   else
+//     m_outputs[id] = Output(this, id, SegmentationVolume::Pointer(new SegmentationVolume(volume)));
+// }
+// 
+// //----------------------------------------------------------------------------
+// void SegmentationFilter::createOutput(FilterFilterOutputId id, const EspinaRegion& region, itkVolumeType::SpacingType spacing)
+// {
+//   SegmentationVolume::Pointer volume(new SegmentationVolume(region, spacing));
+//   if (m_outputs.contains(id))
+//     m_outputs[id].volume->setVolume(volume->toITK());
+//   else
+//     m_outputs[id] = Output(this, id, volume);
+// }
 
 //----------------------------------------------------------------------------
 FilterPtr EspINA::filterPtr(ModelItemPtr item)
@@ -805,142 +591,41 @@ typedef itk::RegionOfInterestImageFilter<itkVolumeType, itkVolumeType> ROIFilter
 //----------------------------------------------------------------------------
 bool Filter::dumpSnapshot(Snapshot &snapshot)
 {
-  itk::MetaImageIO::Pointer io = itk::MetaImageIO::New();
-  EspinaVolumeWriter::Pointer writer = EspinaVolumeWriter::New();
-
   QDir temporalDir = QDir::tempPath();
   bool result = false;
 
-  foreach(Output output, this->outputs())
+  foreach(OutputSPtr output, this->outputs())
   {
-    QString outputName = QString("%1_%2").arg(id()).arg(output.id);
-    if (output.isCached)
+    QString filterPrefix = temporalDir.absoluteFilePath(QString("%1_%2").arg(id()).arg(output->id()));
+
+    if (output->isCached())
     {
-      result = true;
+      update(output->id());
 
-      QString mhd = temporalDir.absoluteFilePath(outputName + ".mhd");
-      QString raw = temporalDir.absoluteFilePath(outputName + ".raw");
-
-      io->SetFileName(mhd.toUtf8());
-      writer->SetFileName(mhd.toUtf8().data());
-
-      update(output.id);
-
-      itkVolumeType::Pointer volume = output.volume->toITK();
-      bool releaseFlag = volume->GetReleaseDataFlag();
-      volume->ReleaseDataFlagOff();
-      writer->SetInput(volume);
-      writer->SetImageIO(io);
-      writer->Write();
-      volume->SetReleaseDataFlag(releaseFlag);
-
-      QFile mhdFile(mhd);
-      mhdFile.open(QIODevice::ReadOnly);
-      QFile rawFile(raw);
-      rawFile.open(QIODevice::ReadOnly);
-
-      QByteArray mhdArray(mhdFile.readAll());
-      QByteArray rawArray(rawFile.readAll());
-
-      mhdFile.close();
-      rawFile.close();
-      temporalDir.remove(mhd);
-      temporalDir.remove(raw);
-
-      SnapshotEntry mhdEntry(outputName + ".mhd", mhdArray);
-      SnapshotEntry rawEntry(outputName + ".raw", rawArray);
-
-      snapshot << mhdEntry << rawEntry;
+      result |= output->dumpSnapshot(filterPrefix, snapshot);
     }
 
     // Backwards compatibility with seg files version 1.0
     if (m_model->isTraceable() && m_args.contains(EDIT))
     {
-      update(output.id);
+      update(output->id());
 
       QStringList outputIds = m_args[EDIT].split(",");
-      if (outputIds.contains(QString::number(output.id)))
+      if (outputIds.contains(QString::number(output->id())))
       {
-        EspinaRegion region = output.volume->espinaRegion();
-        m_outputs[output.id].addEditedRegion(region);
-        output = m_outputs[output.id];
+        VolumeOutputType *editedVolume = dynamic_cast<VolumeOutputType *>(output->data(VolumeOutputType::TYPE).get());
+        EspinaRegion region = editedVolume->espinaRegion();
+        editedVolume->addEditedRegion(region);
       }
     }
 
-    if (m_model->isTraceable() && output.isEdited())
+    if (m_model->isTraceable() && output->isEdited())
     {
       result = true;
-
-      std::ostringstream regions;
-      for (int r = 0; r < output.editedRegions.size(); ++r)
-      {
-        EspinaRegion editedRegion = output.editedRegions[r];
-        for (int i = 0; i < 6; ++i)
-        {
-          regions << editedRegion[i] << " ";
-        }
-        regions << std::endl;
-
-        // Dump modified volume
-        if (!output.isCached)
-        {
-          QString regionName = QString("%1_%2").arg(outputName).arg(r);
-          QString mhd = temporalDir.absoluteFilePath(regionName + ".mhd");
-          QString raw = temporalDir.absoluteFilePath(regionName + ".raw");
-
-          itkVolumeType::Pointer regionVolume = output.volume->toITK();
-          if (regionVolume)
-          {
-            bool releaseFlag = regionVolume->GetReleaseDataFlag();
-            regionVolume->ReleaseDataFlagOff();
-
-            io->SetFileName(mhd.toUtf8());
-            writer->SetFileName(mhd.toUtf8().data());
-
-            ROIFilter::Pointer roiFilter = ROIFilter::New();
-            roiFilter->SetRegionOfInterest(output.volume->volumeRegion(editedRegion));
-            roiFilter->SetInput(regionVolume);
-            roiFilter->Update();
-
-            writer->SetInput(roiFilter->GetOutput());
-            writer->SetImageIO(io);
-            writer->Write();
-            regionVolume->SetReleaseDataFlag(releaseFlag);
-          } else
-          {
-            // dump cache volumes
-            mhd = m_cacheDir.absoluteFilePath(regionName + ".mhd");
-            raw = m_cacheDir.absoluteFilePath(regionName + ".raw");
-          }
-
-          QFile mhdFile(mhd);
-          mhdFile.open(QIODevice::ReadOnly);
-          QFile rawFile(raw);
-          rawFile.open(QIODevice::ReadOnly);
-
-          QByteArray mhdArray(mhdFile.readAll());
-          QByteArray rawArray(rawFile.readAll());
-
-          mhdFile.close();
-          rawFile.close();
-
-          if (regionVolume)
-          {
-            temporalDir.remove(mhd);
-            temporalDir.remove(raw);
-          }
-
-          SnapshotEntry mhdEntry(regionName + ".mhd", mhdArray);
-          SnapshotEntry rawEntry(regionName + ".raw", rawArray);
-
-          snapshot << mhdEntry << rawEntry;
-        }
-      }
-
-      snapshot << SnapshotEntry(outputName + ".trc", regions.str().c_str());
+      output->dumpSnapshot(filterPrefix, snapshot);
     }
 
-    m_outputs[output.id].isCached = false;
+    output->setCached(false);
   }
 
   return result;

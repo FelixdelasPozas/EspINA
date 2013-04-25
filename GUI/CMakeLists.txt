@@ -19,6 +19,7 @@ qt4_wrap_cpp(GUI_MOC
   QtWidget/SegmentationContextualMenu.h
   QtWidget/SliceView.h
   QtWidget/VolumeView.h
+  Representations/SliceRepresentation.h
   Renderers/Renderer.h
   Renderers/MeshRenderer.h
   Renderers/SmoothedMeshRenderer.h
@@ -58,6 +59,8 @@ set (GUI_SOURCES
   QtWidget/SliceViewState.cpp
   QtWidget/VolumeView.cpp
   QtWidget/vtkInteractorStyleEspinaSlice.cpp
+  Representations/IEspinaRepresentation.cpp
+  Representations/SliceRepresentation.cpp 
   Renderers/CrosshairRenderer.cpp
   Renderers/MeshRenderer.cpp
   Renderers/SmoothedMeshRenderer.cpp
@@ -96,7 +99,7 @@ set (GUI_SOURCES
 
 set(GUI_EXTERNAL_LIBS
   EspinaCore
-  EspinaGUI
+  EspinaFilters
 )
 
 add_library           (EspinaGUI SHARED ${GUI_SOURCES})
