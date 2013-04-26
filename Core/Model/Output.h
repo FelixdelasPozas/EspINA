@@ -131,8 +131,9 @@ namespace EspINA
     QMap<OutputTypeName, OutputTypeSPtr> m_data;
   };
 
+  typedef FilterOutput                  * OutputPtr;
   typedef boost::shared_ptr<FilterOutput> OutputSPtr;
-  typedef QList<OutputSPtr> OutputList;
+  typedef QList<OutputSPtr> OutputSList;
 
 } // namespace EspINA
 

@@ -89,7 +89,7 @@ void PlanarSplitTool::setInUse(bool value)
     Q_ASSERT(selectedSegs.size() == 1);
     SegmentationPtr seg = selectedSegs.first();
 
-    SegmentationVolumeTypeSPtr segVolume = boost::dynamic_pointer_cast<SegmentationVolumeType>(seg->output()->data(VolumeOutputType::TYPE));
+    SegmentationVolumeTypeSPtr segVolume = outputSegmentationVolume(seg->output());
 
     double bounds[6];
     segVolume->bounds(bounds);
@@ -135,7 +135,7 @@ void PlanarSplitTool::splitSegmentation()
   Q_ASSERT(selectedSegs.size() == 1);
 
   SegmentationPtr seg = selectedSegs.first();
-  SegmentationVolumeTypeSPtr segVolume = boost::dynamic_pointer_cast<SegmentationVolumeType>(seg->output()->data(VolumeOutputType::TYPE));
+  SegmentationVolumeTypeSPtr segVolume = outputSegmentationVolume(seg->output());
 
   Filter::NamedInputs inputs;
   Filter::Arguments   args;

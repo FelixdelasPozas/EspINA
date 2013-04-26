@@ -51,6 +51,10 @@ namespace EspINA
     void setSpacing(itkVolumeType::SpacingType spacing);
 
   protected:
+    virtual void createDummyOutput(FilterOutputId id, const FilterOutput::OutputTypeName &type) {}
+
+    virtual void createOutputRepresentations(OutputSPtr output);
+
     virtual bool ignoreCurrentOutputs() const
     { return false; }
 

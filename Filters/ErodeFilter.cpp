@@ -51,7 +51,7 @@ void ErodeFilter::run(FilterOutputId oId)
   Q_ASSERT(0 == oId);
   Q_ASSERT(m_inputs.size() == 1);
 
-  SegmentationVolumeTypeSPtr input = segmentationVolumeOutput(m_inputs[0]);
+  SegmentationVolumeTypeSPtr input = outputSegmentationVolume(m_inputs[0]);
   Q_ASSERT(input);
 
   //qDebug() << "Compute Image Erode";

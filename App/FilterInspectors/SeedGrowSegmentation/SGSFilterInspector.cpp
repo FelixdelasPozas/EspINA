@@ -56,7 +56,7 @@ public:
   {
     OutputSPtr output = m_filter->output(0);
 
-    SegmentationVolumeTypeSPtr volume = boost::dynamic_pointer_cast<SegmentationVolumeType>(output->data(VolumeOutputType::TYPE));
+    SegmentationVolumeTypeSPtr volume = outputSegmentationVolume(output);
 
     if (!m_oldVolume && (output->isEdited() || volume->volumeRegion().GetNumberOfPixels() < MAX_UNDO_SIZE))
     {
@@ -155,7 +155,7 @@ SGSFilterInspector::Widget::Widget(Filter* filter,
   connect(filter, SIGNAL(modified(ModelItemPtr)),
           this, SLOT(updateWidget()));
 
-  SegmentationVolumeTypeSPtr volume = boost::dynamic_pointer_cast<SegmentationVolumeType>(filter->output(0)->data(VolumeOutputType::TYPE));
+  SegmentationVolumeTypeSPtr volume = outputSegmentationVolume(filter->output(0));
 
   itkVolumeType::IndexType seed = m_filter->seed();
   m_xSeed->setText(QString("%1").arg(seed[0]));
@@ -293,9 +293,9 @@ void SGSFilterInspector::Widget::modifyFilter()
     if (msg.exec() != QMessageBox::Yes)
       return;
   }
-  
-  SegmentationVolumeTypeSPtr volume = boost::dynamic_pointer_cast<SegmentationVolumeType>(m_filter->output(0)->data(VolumeOutputType::TYPE));
-  
+
+  SegmentationVolumeTypeSPtr volume = outputSegmentationVolume(m_filter->output(0));
+
   double spacing[3];
   volume->spacing(spacing);
 
@@ -375,7 +375,7 @@ void SGSFilterInspector::Widget::modifyCloseValue(int value)
 //----------------------------------------------------------------------------
 void SGSFilterInspector::Widget::updateWidget()
 {
-  SegmentationVolumeTypeSPtr volume = boost::dynamic_pointer_cast<SegmentationVolumeType>(m_filter->output(0)->data(VolumeOutputType::TYPE));
+  SegmentationVolumeTypeSPtr volume = outputSegmentationVolume(m_filter->output(0));
   
   m_threshold->setValue(m_filter->lowerThreshold());
   int voiExtent[6];

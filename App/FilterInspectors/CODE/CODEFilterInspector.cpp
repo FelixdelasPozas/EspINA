@@ -51,7 +51,7 @@ public:
   {
     OutputSPtr output = m_filter->output(0);
 
-    SegmentationVolumeTypeSPtr volume = boost::dynamic_pointer_cast<SegmentationVolumeType>(output->data(VolumeOutputType::TYPE));
+    SegmentationVolumeTypeSPtr volume = outputSegmentationVolume(output);
 
     if (!m_oldVolume && (output->isEdited() || volume->volumeRegion().GetNumberOfPixels() < MAX_UNDO_SIZE))
     {

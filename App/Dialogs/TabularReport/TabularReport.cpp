@@ -206,7 +206,7 @@ void TabularReport::indexDoubleClicked(QModelIndex index)
   ModelItemPtr sItem = indexPtr(sourceIndex);
   SegmentationPtr segmentation = segmentationPtr(sItem);
 
-  SegmentationVolumeTypeSPtr volume = boost::dynamic_pointer_cast<SegmentationVolumeType>(segmentation->output()->data(VolumeOutputType::TYPE));
+  SegmentationVolumeTypeSPtr volume = outputSegmentationVolume(segmentation->output());
 
   double bounds[6];
   volume->bounds(bounds);

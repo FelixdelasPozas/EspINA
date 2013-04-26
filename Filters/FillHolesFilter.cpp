@@ -19,6 +19,7 @@
 
 #include "FillHolesFilter.h"
 #include <Core/Model/VolumeOutputType.h>
+#include <GUI/Representations/SliceRepresentation.h>
 
 using namespace EspINA;
 
@@ -35,6 +36,22 @@ FillHolesFilter::FillHolesFilter(NamedInputs inputs,
 //-----------------------------------------------------------------------------
 FillHolesFilter::~FillHolesFilter()
 {
+}
+
+//-----------------------------------------------------------------------------
+void FillHolesFilter::createDummyOutput(FilterOutputId id, const FilterOutput::OutputTypeName &type)
+{
+
+}
+
+//-----------------------------------------------------------------------------
+void FillHolesFilter::createOutputRepresentations(OutputSPtr output)
+{
+  VolumeOutputTypeSPtr volumeData = outputVolume(output);
+  output->addRepresentation(EspinaRepresentationSPtr(new SegmentationSliceRepresentation(volumeData, NULL)));
+  //   output->addRepresentation(EspinaRepresentationSPtr(new VolumeReprentation  (volumeOutput(output))));
+  //   output->addRepresentation(EspinaRepresentationSPtr(new MeshRepresentation  (meshOutput  (output))));
+  //   output->addRepresentation(EspinaRepresentationSPtr(new SmoothRepresentation(meshOutput  (output))));
 }
 
 //-----------------------------------------------------------------------------
@@ -69,7 +86,7 @@ void FillHolesFilter::run(FilterOutputId oId)
   Q_ASSERT(0 == oId);
   Q_ASSERT(m_inputs.size() == 1);
 
-  SegmentationVolumeTypeSPtr input = segmentationVolumeOutput(m_inputs[0]);
+  SegmentationVolumeTypeSPtr input = outputSegmentationVolume(m_inputs[0]);
   Q_ASSERT(input);
 
   BinaryFillholeFilter::Pointer filter = BinaryFillholeFilter::New();

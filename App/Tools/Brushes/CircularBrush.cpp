@@ -45,7 +45,7 @@ CircularBrush::~CircularBrush()
 //-----------------------------------------------------------------------------
 Brush::BrushShape CircularBrush::createBrushShape(PickableItemPtr item, double center[3], Nm radius, PlaneType plane)
 {
-  VolumeOutputTypeSPtr volume = boost::dynamic_pointer_cast<VolumeOutputType>(item->output()->data(VolumeOutputType::TYPE));
+  VolumeOutputTypeSPtr volume = outputVolume(item->output());
   double spacing[3];
   volume->spacing(spacing);
 

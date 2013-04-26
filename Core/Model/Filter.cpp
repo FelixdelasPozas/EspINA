@@ -74,7 +74,7 @@ void Filter::setCacheDir(QDir dir)
 
       if (!validOutput(oId))
       {
-        createDummyOutput(oId, VolumeOutputType::TYPE);
+        createDummyOutput(oId, EspinaVolume::TYPE);
       }
 
       OutputSPtr editedOutput = m_outputs[oId];
@@ -85,7 +85,7 @@ void Filter::setCacheDir(QDir dir)
         QFile file(m_cacheDir.absoluteFilePath(outputName + ".trc"));
         if (file.open(QIODevice::ReadOnly))
         {
-          VolumeOutputTypeSPtr volume = volumeOutput(editedOutput);
+          VolumeOutputTypeSPtr volume = outputVolume(editedOutput);
           while (!file.atEnd())
           {
             QByteArray line = file.readLine();
@@ -148,10 +148,7 @@ void Filter::draw(FilterOutputId oId,
 {
   EspinaRegion region(bounds);
 
-  OutputSPtr currentOutput = output(oId);
-
-  FilterOutput::OutputTypeSPtr data = currentOutput->data(VolumeOutputType::TYPE);
-  VolumeOutputType *volume = dynamic_cast<VolumeOutputType *>(data.get());
+  EspinaVolumeSPtr volume = outputEspinaVolume(output(oId));
 
   if (volume)
   {
@@ -167,10 +164,7 @@ void Filter::draw(FilterOutputId oId,
                   itkVolumeType::PixelType value,
                   bool emitSignal)
 {
-  OutputSPtr currentOutput = output(oId);
-
-  FilterOutput::OutputTypeSPtr data = currentOutput->data(VolumeOutputType::TYPE);
-  VolumeOutputType *volume = dynamic_cast<VolumeOutputType *>(data.get());
+  EspinaVolumeSPtr volume = outputEspinaVolume(output(oId));
 
   if (volume)
   {
@@ -186,10 +180,7 @@ void Filter::draw(FilterOutputId oId,
                   itkVolumeType::PixelType value,
                   bool emitSignal)
 {
-  OutputSPtr currentOutput = output(oId);
-
-  FilterOutput::OutputTypeSPtr data = currentOutput->data(VolumeOutputType::TYPE);
-  VolumeOutputType *volume = dynamic_cast<VolumeOutputType *>(data.get());
+  EspinaVolumeSPtr volume = outputEspinaVolume(output(oId));
 
   if (volume)
   {
@@ -209,7 +200,8 @@ void Filter::draw(FilterOutputId oId,
   if (contour->GetPoints()->GetNumberOfPoints() == 0)
     return;
 
-  VolumeOutputTypeSPtr volume = volumeOutput(output(oId));
+  EspinaVolumeSPtr volume = outputEspinaVolume(output(oId));
+
   if (volume)
   {
     volume->draw(contour, slice, plane, value, emitSignal);
@@ -223,10 +215,7 @@ void Filter::draw(FilterOutputId oId,
                   itkVolumeType::Pointer volume,
                   bool emitSignal)
 {
-  OutputSPtr currentOutput = output(oId);
-
-  FilterOutput::OutputTypeSPtr data = currentOutput->data(VolumeOutputType::TYPE);
-  VolumeOutputType *filterVolume = dynamic_cast<VolumeOutputType *>(data.get());
+  EspinaVolumeSPtr filterVolume = outputEspinaVolume(output(oId));
 
   if (filterVolume)
   {
@@ -241,10 +230,7 @@ void Filter::fill(FilterOutputId oId,
                   itkVolumeType::PixelType value,
                   bool emitSignal)
 {
-  OutputSPtr currentOutput = output(oId);
-
-  FilterOutput::OutputTypeSPtr data = currentOutput->data(VolumeOutputType::TYPE);
-  VolumeOutputType *volume = dynamic_cast<VolumeOutputType *>(data.get());
+  EspinaVolumeSPtr volume = outputEspinaVolume(output(oId));
 
   if (volume)
   {
@@ -260,10 +246,7 @@ void Filter::fill(FilterOutputId oId,
                   itkVolumeType::PixelType value,
                   bool emitSignal)
 {
-  OutputSPtr currentOutput = output(oId);
-
-  FilterOutput::OutputTypeSPtr data = currentOutput->data(VolumeOutputType::TYPE);
-  VolumeOutputType *volume = dynamic_cast<VolumeOutputType *>(data.get());
+  EspinaVolumeSPtr volume = outputEspinaVolume(output(oId));
 
   if (volume)
   {
@@ -276,16 +259,13 @@ void Filter::fill(FilterOutputId oId,
 //----------------------------------------------------------------------------
 void Filter::restoreOutput(FilterOutputId oId, itkVolumeType::Pointer volume)
 {
-  OutputSPtr currentOutput = output(oId);
-
-  FilterOutput::OutputTypeSPtr data = currentOutput->data(VolumeOutputType::TYPE);
-  VolumeOutputType *filterVolume = dynamic_cast<VolumeOutputType *>(data.get());
+  EspinaVolumeSPtr filterVolume = outputEspinaVolume(output(oId));
 
   if (filterVolume)
   {
     filterVolume->setVolume(volume);
-    filterVolume->markAsModified();
-
+    Q_ASSERT(false);
+//     filterVolume->markAsModified();
     emit modified(this);
   }
 }
@@ -403,7 +383,7 @@ void Filter::update()
          QString outputPrefix = QString("%1_%2").arg(m_cacheId).arg(oId);
          foreach(FilterOutput::NamedRegion region, m_outputs[oId]->editedRegions())
          {
-           m_outputs[oId]->data(region.first)->restoreEditedRegion(region.second, outputPrefix);
+           m_outputs[oId]->data(region.first)->restoreEditedRegion(this, region.second, outputPrefix);
          }
        }
 
@@ -462,16 +442,11 @@ itkVolumeType::Pointer Filter::readVolumeFromCache(const QString &file)
   return volume;
 }
 
-//----------------------------------------------------------------------------
-void Filter::createOutput(FilterOutputId id, FilterOutput::OutputTypeSPtr data)
+void addOutputData(OutputSPtr output, FilterOutput::OutputTypeSPtr data)
 {
-  if (!m_outputs.contains(id))
-    m_outputs[id] = OutputSPtr(new FilterOutput(this, id));
+  FilterOutput::OutputTypeSPtr out = output->data(data->type());
 
-  OutputSPtr currentOutput = m_outputs[id];
-  data->setOutput(currentOutput.get());
-
-  FilterOutput::OutputTypeSPtr out = currentOutput->data(data->type());
+  data->setOutput(output.get());
 
   if (out)
   {
@@ -482,7 +457,20 @@ void Filter::createOutput(FilterOutputId id, FilterOutput::OutputTypeSPtr data)
     }
   }
   else
-    currentOutput->setData(data->type(), data);
+    output->setData(data->type(), data);
+}
+
+//----------------------------------------------------------------------------
+void Filter::createOutput(FilterOutputId id, FilterOutput::OutputTypeSPtr data)
+{
+  if (!m_outputs.contains(id))
+    m_outputs[id] = OutputSPtr(new FilterOutput(this, id));
+
+  OutputSPtr currentOutput = m_outputs[id];
+
+  addOutputData(currentOutput, data);
+
+  createOutputRepresentations(currentOutput);
 }
 
 //----------------------------------------------------------------------------
@@ -495,74 +483,11 @@ void Filter::createOutput(FilterOutputId id, FilterOutput::OutputTypeList dataLi
 
   foreach(FilterOutput::OutputTypeSPtr data, dataList)
   {
-    data->setOutput(currentOutput.get());
-
-    FilterOutput::OutputTypeSPtr out = currentOutput->data(data->type());
-
-    if (out)
-    {
-      if (!out->setInternalData(data))
-      {
-        qWarning() << "Filter: Couldn't copy internal data";
-        Q_ASSERT(false);
-      }
-    }
-    else
-      currentOutput->setData(data->type(), data);
+    addOutputData(currentOutput, data);
   }
-}
 
-// //----------------------------------------------------------------------------
-// void ChannelFilter::createOutput(FilterFilterOutputId id, itkVolumeType::Pointer volume)
-// {
-//   if (id != 0)
-//     qDebug() << id;
-//   if (!m_outputs.contains(id))
-//     m_outputs[id] = Output(this, id, ChannelVolume::Pointer(new ChannelVolume(volume)));
-//   else if (volume)
-//     m_outputs[id].volume->setVolume(volume);
-// }
-// 
-// //----------------------------------------------------------------------------
-// void ChannelFilter::createOutput(FilterFilterOutputId id, EspinaVolume::Pointer volume)
-// {
-//   Filter::createOutput(id, volume);
-// }
-// 
-// //----------------------------------------------------------------------------
-// void ChannelFilter::createOutput(FilterFilterOutputId id, const EspinaRegion& region, itkVolumeType::SpacingType spacing)
-// {
-//   ChannelVolume::Pointer volume(new ChannelVolume(region, spacing));
-//   if (!m_outputs.contains(id))
-//     m_outputs[id] = Output(this, id, volume);
-//   else if (volume)
-//     m_outputs[id].volume->setVolume(volume->toITK());
-// }
-// 
-// //----------------------------------------------------------------------------
-// void SegmentationFilter::createOutput(FilterFilterOutputId id, EspinaVolume::Pointer volume)
-// {
-//   Filter::createOutput(id, volume);
-// }
-// 
-// //----------------------------------------------------------------------------
-// void SegmentationFilter::createOutput(FilterFilterOutputId id, itkVolumeType::Pointer volume)
-// {
-//   if (m_outputs.contains(id))
-//     m_outputs[id].volume->setVolume(volume, true);
-//   else
-//     m_outputs[id] = Output(this, id, SegmentationVolume::Pointer(new SegmentationVolume(volume)));
-// }
-// 
-// //----------------------------------------------------------------------------
-// void SegmentationFilter::createOutput(FilterFilterOutputId id, const EspinaRegion& region, itkVolumeType::SpacingType spacing)
-// {
-//   SegmentationVolume::Pointer volume(new SegmentationVolume(region, spacing));
-//   if (m_outputs.contains(id))
-//     m_outputs[id].volume->setVolume(volume->toITK());
-//   else
-//     m_outputs[id] = Output(this, id, volume);
-// }
+  createOutputRepresentations(currentOutput);
+}
 
 //----------------------------------------------------------------------------
 FilterPtr EspINA::filterPtr(ModelItemPtr item)
@@ -613,7 +538,7 @@ bool Filter::dumpSnapshot(Snapshot &snapshot)
       QStringList outputIds = m_args[EDIT].split(",");
       if (outputIds.contains(QString::number(output->id())))
       {
-        VolumeOutputType *editedVolume = dynamic_cast<VolumeOutputType *>(output->data(VolumeOutputType::TYPE).get());
+        EspinaVolumeSPtr editedVolume = outputEspinaVolume(output);
         EspinaRegion region = editedVolume->espinaRegion();
         editedVolume->addEditedRegion(region);
       }

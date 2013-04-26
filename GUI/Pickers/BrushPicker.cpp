@@ -150,7 +150,7 @@ void BrushPicker::setBrushColor(QColor color)
 void BrushPicker::setReferenceItem(PickableItemPtr item)
 {
   m_referenceItem = item;
-  VolumeOutputTypeSPtr volume = boost::dynamic_pointer_cast<VolumeOutputType>(m_referenceItem->output()->data(VolumeOutputType::TYPE));
+  VolumeOutputTypeSPtr volume = outputVolume(m_referenceItem->output());
   m_spacing = volume->toITK()->GetSpacing();
 }
 
@@ -244,7 +244,7 @@ bool BrushPicker::validStroke(double brush[3])
 
   if (!m_drawing)
   {
-    VolumeOutputTypeSPtr segVolume = boost::dynamic_pointer_cast<VolumeOutputType>(m_segmentation->output()->data(VolumeOutputType::TYPE));
+    SegmentationVolumeTypeSPtr segVolume = outputSegmentationVolume(m_segmentation->output());
 
     Nm bounds[6];
     segVolume->bounds(bounds);
@@ -401,7 +401,7 @@ void BrushPicker::startPreview(EspinaRenderView* view)
   // if erasing hide seg and copy contents of slice to preview actor
   if (!m_drawing)
   {
-    VolumeOutputTypeSPtr segVolume = boost::dynamic_pointer_cast<VolumeOutputType>(m_segmentation->output()->data(VolumeOutputType::TYPE));
+    SegmentationVolumeTypeSPtr segVolume = outputSegmentationVolume(m_segmentation->output());
 
     foreach(EspinaRepresentationSPtr prototype, m_segmentation->representations())
     {

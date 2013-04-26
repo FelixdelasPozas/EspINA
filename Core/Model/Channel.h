@@ -188,8 +188,8 @@ namespace EspINA
     virtual FilterSPtr filter() { return PickableItem::filter(); }
     virtual const FilterOutputId outputId() const;
 
-    VolumeOutputTypeSPtr volume();
-    const VolumeOutputTypeSPtr volume() const;
+    ChannelVolumeTypeSPtr volume();
+    const ChannelVolumeTypeSPtr volume() const;
 
     void setPosition(Nm pos[3]);
     void position(Nm pos[3]);

@@ -53,6 +53,13 @@ QString ChannelReader::serialize() const
 }
 
 //----------------------------------------------------------------------------
+void ChannelReader::createOutputRepresentations(OutputSPtr output)
+{
+  VolumeOutputTypeSPtr volumeData = outputVolume(output);
+  output->addRepresentation(EspinaRepresentationSPtr(new ChannelSliceRepresentation(volumeData, NULL)));
+}
+
+//----------------------------------------------------------------------------
 bool ChannelReader::needUpdate(FilterOutputId oId) const
 {
   return Filter::needUpdate(oId);
@@ -100,12 +107,6 @@ void ChannelReader::run(FilterOutputId oId)
     reader->GetOutput()->SetSpacing(spacing());
 
   createOutput(0, ChannelVolumeTypeSPtr(new ChannelVolumeType(reader->GetOutput())));
-
-  // Register available representations for filter's outputs
-  OutputSPtr currentOutput = output(0);
-
-  VolumeOutputTypeSPtr volumeData = volumeOutput(currentOutput);
-  currentOutput->addRepresentation(EspinaRepresentationSPtr(new ChannelSliceRepresentation(volumeData, NULL)));
 }
 
 //----------------------------------------------------------------------------

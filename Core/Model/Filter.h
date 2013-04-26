@@ -160,7 +160,7 @@ namespace EspINA
                                itkVolumeType::Pointer volume);
 
     /// Returns filter's outputs
-    OutputList outputs() const {return m_outputs.values();}
+    OutputSList outputs() const {return m_outputs.values();}
 
     /// Return whether or not i is an output of the filter
     bool validOutput(FilterOutputId oId);
@@ -211,11 +211,8 @@ namespace EspINA
     void createOutput(FilterOutputId id, FilterOutput::OutputTypeSPtr data);
     void createOutput(FilterOutputId id, FilterOutput::OutputTypeList dataList);
 
-    virtual void createDummyOutput(FilterOutputId id, const FilterOutput::OutputTypeName &type){}
-//     /// Subclasses need to specify which subtype of EspinaVolume they use
-//     virtual void createOutput(FilterOutputId id, itkVolumeType::Pointer volume = NULL) = 0;
-//     virtual void createOutput(FilterOutputId id, EspinaVolume::Pointer volume) = 0;
-//     virtual void createOutput(FilterOutputId id, const EspinaRegion &region, itkVolumeType::SpacingType spacing) = 0;
+    virtual void createDummyOutput(FilterOutputId id, const FilterOutput::OutputTypeName &type) = 0;
+    virtual void createOutputRepresentations(OutputSPtr output) = 0;
 
     /// Current outputs must be ignored due to changes on filter state
     virtual bool ignoreCurrentOutputs() const = 0;
@@ -241,7 +238,7 @@ namespace EspINA
     virtual void run(FilterOutputId oId) = 0;
 
   protected:
-    OutputList        m_inputs;
+    OutputSList        m_inputs;
     NamedInputs       m_namedInputs;
     mutable Arguments m_args;
     FilterType        m_type;

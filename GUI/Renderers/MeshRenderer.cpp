@@ -50,7 +50,6 @@ MeshRenderer::MeshRenderer(ViewManager* vm, QObject* parent)
 //-----------------------------------------------------------------------------
 bool MeshRenderer::addItem(ModelItemPtr item)
 {
-  /* FIXME
   if (EspINA::SEGMENTATION != item->type())
     return false;
 
@@ -61,68 +60,72 @@ bool MeshRenderer::addItem(ModelItemPtr item)
 
   // duplicated item? addItem again
   if (m_segmentations.contains(item))
-    {
-      if (m_enable)
-      {
-        m_renderer->RemoveActor(this->m_segmentations[seg].actor);
-        m_picker->DeletePickList(this->m_segmentations[seg].actor);
-      }
-      m_segmentations[seg].actor->Delete();
-      m_segmentations[seg].actorPropertyBackup = NULL;
-      m_segmentations.remove(item);
-
-      m_mappers[seg] = NULL;
-      m_mappers.remove(item);
-    }
-
-  QColor color = m_viewManager->color(seg);
-
-  m_mappers[seg] = vtkSmartPointer<vtkPolyDataMapper>::New();
-  m_mappers[seg]->ReleaseDataFlagOn();
-  m_mappers[seg]->ImmediateModeRenderingOn();
-  m_mappers[seg]->ScalarVisibilityOff();
-  m_mappers[seg]->SetInputConnection(seg->volume()->toMesh());
-
-  vtkActor *actor = vtkActor::New();
-  actor->SetMapper(m_mappers[seg]);
-  double rgb[3] = { color.redF(), color.greenF(), color.blueF() };
-  double hsv[3] = { 0.0, 0.0, 0.0 };
-  vtkMath::RGBToHSV(rgb,hsv);
-  hsv[2] = (seg->isSelected() ? 1.0 : 0.6);
-  vtkMath::HSVToRGB(hsv, rgb);
-  actor->GetProperty()->SetColor(rgb[0], rgb[1], rgb[2]);
-  actor->GetProperty()->SetSpecular(0.2);
-  actor->GetProperty()->SetOpacity(1);
-
-  m_segmentations[seg].selected = seg->isSelected();
-  m_segmentations[seg].color = m_viewManager->color(seg);
-  m_segmentations[seg].actor = actor;
-  m_segmentations[seg].visible = false;
-  m_segmentations[seg].overridden = seg->OverridesRendering();
-  m_segmentations[seg].renderingType = seg->getHierarchyRenderingType();
-  m_segmentations[seg].actorPropertyBackup = NULL;
-
-  int extent[6];
-  vtkImageData *image = vtkImageData::SafeDownCast(seg->volume()->toVTK()->GetProducer()->GetOutputDataObject(0));
-  image->GetExtent(extent);
-  memcpy(m_segmentations[seg].extent, extent, 6*sizeof(int));
-
-  if (m_enable)
   {
-    m_segmentations[seg].visible = true;
-    m_renderer->AddActor(actor);
-    m_picker->AddPickList(actor);
+    Q_ASSERT(false);
+//     if (m_enable)
+//     {
+//       m_renderer->RemoveActor(this->m_segmentations[seg].actor);
+//       m_picker->DeletePickList(this->m_segmentations[seg].actor);
+//     }
+//     m_segmentations[seg].actor->Delete();
+//     m_segmentations[seg].actorPropertyBackup = NULL;
+//     m_segmentations.remove(item);
+//
+//     m_mappers[seg] = NULL;
+//     m_mappers.remove(item);
   }
 
-  if (m_segmentations[seg].overridden)
-    createHierarchyProperties(seg);
+  State state;
 
-  m_segmentations[seg].actor->Modified();
+  state.color       = m_viewManager->color(seg);
+  state.highlighted = seg->isSelected();
+  state.visible     = seg->visible();
 
-  connect(item, SIGNAL(modified(ModelItemPtr)), this, SLOT(updateItem(ModelItemPtr)));
+//   m_mappers[seg] = vtkSmartPointer<vtkPolyDataMapper>::New();
+//   m_mappers[seg]->ReleaseDataFlagOn();
+//   m_mappers[seg]->ImmediateModeRenderingOn();
+//   m_mappers[seg]->ScalarVisibilityOff();
+//   m_mappers[seg]->SetInputConnection(seg->volume()->toMesh());
+// 
+//   vtkActor *actor = vtkActor::New();
+//   actor->SetMapper(m_mappers[seg]);
+//   double rgb[3] = { color.redF(), color.greenF(), color.blueF() };
+//   double hsv[3] = { 0.0, 0.0, 0.0 };
+//   vtkMath::RGBToHSV(rgb,hsv);
+//   hsv[2] = (seg->isSelected() ? 1.0 : 0.6);
+//   vtkMath::HSVToRGB(hsv, rgb);
+//   actor->GetProperty()->SetColor(rgb[0], rgb[1], rgb[2]);
+//   actor->GetProperty()->SetSpecular(0.2);
+//   actor->GetProperty()->SetOpacity(1);
+// 
+//   m_segmentations[seg].highlighted = seg->isSelected();
+//   m_segmentations[seg].color = m_viewManager->color(seg);
+//   m_segmentations[seg].actor = actor;
+//   m_segmentations[seg].visible = false;
+//   m_segmentations[seg].overridden = seg->OverridesRendering();
+//   m_segmentations[seg].renderingType = seg->getHierarchyRenderingType();
+//   m_segmentations[seg].actorPropertyBackup = NULL;
+// 
+//   int extent[6];
+//   vtkImageData *image = vtkImageData::SafeDownCast(seg->volume()->toVTK()->GetProducer()->GetOutputDataObject(0));
+//   image->GetExtent(extent);
+//   memcpy(m_segmentations[seg].extent, extent, 6*sizeof(int));
+// 
+//   if (m_enable)
+//   {
+//     m_segmentations[seg].visible = true;
+//     m_renderer->AddActor(actor);
+//     m_picker->AddPickList(actor);
+//   }
+// 
+//   if (m_segmentations[seg].overridden)
+//     createHierarchyProperties(seg);
+// 
+//   m_segmentations[seg].actor->Modified();
+// 
+//   connect(item, SIGNAL(modified(ModelItemPtr)), this, SLOT(updateItem(ModelItemPtr)));
 
   return true;
-  */
 }
 
 //-----------------------------------------------------------------------------
@@ -272,224 +275,224 @@ bool MeshRenderer::removeItem(ModelItemPtr item)
 //-----------------------------------------------------------------------------
 void MeshRenderer::hide()
 {
-  if (!m_enable)
-    return;
-
-  QMap<ModelItemPtr, Representation>::iterator it;
-
-  for (it = m_segmentations.begin(); it != m_segmentations.end(); ++it)
-    if ((*it).visible)
-    {
-      m_renderer->RemoveActor((*it).actor);
-      m_picker->DeletePickList((*it).actor);
-      (*it).visible = false;
-    }
-
-   emit renderRequested();
+//   if (!m_enable)
+//     return;
+// 
+//   QMap<ModelItemPtr, State>::iterator it;
+// 
+//   for (it = m_segmentations.begin(); it != m_segmentations.end(); ++it)
+//     if ((*it).visible)
+//     {
+//       m_renderer->RemoveActor((*it).actor);
+//       m_picker->DeletePickList((*it).actor);
+//       (*it).visible = false;
+//     }
+// 
+//    emit renderRequested();
 }
 
 //-----------------------------------------------------------------------------
 void MeshRenderer::show()
 {
-  if (m_enable)
-    return;
-
-  QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-
-  QMap<ModelItemPtr, Representation>::iterator it;
-
-  for (it = m_segmentations.begin(); it != m_segmentations.end(); ++it)
-  {
-    SegmentationPtr seg = segmentationPtr(it.key());
-    if (seg->visible())
-      updateItem(seg, true);
-  }
-
-  emit renderRequested();
-  QApplication::restoreOverrideCursor();
+//   if (m_enable)
+//     return;
+// 
+//   QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+// 
+//   QMap<ModelItemPtr, State>::iterator it;
+// 
+//   for (it = m_segmentations.begin(); it != m_segmentations.end(); ++it)
+//   {
+//     SegmentationPtr seg = segmentationPtr(it.key());
+//     if (seg->visible())
+//       updateItem(seg, true);
+//   }
+// 
+//   emit renderRequested();
+//   QApplication::restoreOverrideCursor();
 }
 
 //-----------------------------------------------------------------------------
 unsigned int MeshRenderer::getNumberOfvtkActors()
 {
-  unsigned int numActors = 0;
-
-  QMap<ModelItemPtr, Representation>::iterator it;
-  for (it = m_segmentations.begin(); it != m_segmentations.end(); ++it)
-    if ((*it).visible)
-      numActors++;
-
-  return numActors;
+//   unsigned int numActors = 0;
+// 
+//   QMap<ModelItemPtr, State>::iterator it;
+//   for (it = m_segmentations.begin(); it != m_segmentations.end(); ++it)
+//     if ((*it).visible)
+//       numActors++;
+// 
+//   return numActors;
 }
 
 //-----------------------------------------------------------------------------
 void MeshRenderer::createHierarchyProperties(SegmentationPtr seg)
 {
-  m_segmentations[seg].actorPropertyBackup = m_segmentations[seg].actor->GetProperty();
-  m_segmentations[seg].overridden = true;
-  m_segmentations[seg].renderingType = seg->getHierarchyRenderingType();
-  vtkSmartPointer<vtkProperty> actorProperty = vtkSmartPointer<vtkProperty>::New();
-
-  QColor color = m_segmentations[seg].color;
-  double rgb[3] = { color.redF(), color.greenF(), color.blueF() };
-  double hsv[3] = { 0.0, 0.0, 0.0 };
-  vtkMath::RGBToHSV(rgb,hsv);
-  hsv[2] = (seg->isSelected() ? 1.0 : 0.6);
-  vtkMath::HSVToRGB(hsv, rgb);
-  actorProperty->SetColor(rgb[0], rgb[1], rgb[2]);
-  actorProperty->SetSpecular(0.2);
-
-  switch(m_segmentations[seg].renderingType)
-  {
-    case HierarchyItem::Opaque:
-      actorProperty->SetOpacity(1.0);
-      if (m_enable && !m_segmentations[seg].visible)
-      {
-        m_segmentations[seg].visible = true;
-        m_renderer->AddActor(m_segmentations[seg].actor);
-        m_picker->AddPickList(m_segmentations[seg].actor);
-      }
-      break;
-    case HierarchyItem::Translucent:
-      actorProperty->SetOpacity(0.3);
-      if (m_enable && !m_segmentations[seg].visible)
-      {
-        m_segmentations[seg].visible = true;
-        m_renderer->AddActor(m_segmentations[seg].actor);
-        m_picker->AddPickList(m_segmentations[seg].actor);
-      }
-      break;
-    case HierarchyItem::Hidden:
-      if (m_enable && m_segmentations[seg].visible)
-      {
-        m_segmentations[seg].visible = false;
-        m_renderer->RemoveActor(m_segmentations[seg].actor);
-        m_picker->DeletePickList(m_segmentations[seg].actor);
-      }
-      break;
-    case HierarchyItem::Undefined:
-      break;
-    default:
-      Q_ASSERT(false);
-      break;
-  }
-
-  m_segmentations[seg].actor->SetProperty(actorProperty);
+//   m_segmentations[seg].actorPropertyBackup = m_segmentations[seg].actor->GetProperty();
+//   m_segmentations[seg].overridden = true;
+//   m_segmentations[seg].renderingType = seg->getHierarchyRenderingType();
+//   vtkSmartPointer<vtkProperty> actorProperty = vtkSmartPointer<vtkProperty>::New();
+// 
+//   QColor color = m_segmentations[seg].color;
+//   double rgb[3] = { color.redF(), color.greenF(), color.blueF() };
+//   double hsv[3] = { 0.0, 0.0, 0.0 };
+//   vtkMath::RGBToHSV(rgb,hsv);
+//   hsv[2] = (seg->isSelected() ? 1.0 : 0.6);
+//   vtkMath::HSVToRGB(hsv, rgb);
+//   actorProperty->SetColor(rgb[0], rgb[1], rgb[2]);
+//   actorProperty->SetSpecular(0.2);
+// 
+//   switch(m_segmentations[seg].renderingType)
+//   {
+//     case HierarchyItem::Opaque:
+//       actorProperty->SetOpacity(1.0);
+//       if (m_enable && !m_segmentations[seg].visible)
+//       {
+//         m_segmentations[seg].visible = true;
+//         m_renderer->AddActor(m_segmentations[seg].actor);
+//         m_picker->AddPickList(m_segmentations[seg].actor);
+//       }
+//       break;
+//     case HierarchyItem::Translucent:
+//       actorProperty->SetOpacity(0.3);
+//       if (m_enable && !m_segmentations[seg].visible)
+//       {
+//         m_segmentations[seg].visible = true;
+//         m_renderer->AddActor(m_segmentations[seg].actor);
+//         m_picker->AddPickList(m_segmentations[seg].actor);
+//       }
+//       break;
+//     case HierarchyItem::Hidden:
+//       if (m_enable && m_segmentations[seg].visible)
+//       {
+//         m_segmentations[seg].visible = false;
+//         m_renderer->RemoveActor(m_segmentations[seg].actor);
+//         m_picker->DeletePickList(m_segmentations[seg].actor);
+//       }
+//       break;
+//     case HierarchyItem::Undefined:
+//       break;
+//     default:
+//       Q_ASSERT(false);
+//       break;
+//   }
+// 
+//   m_segmentations[seg].actor->SetProperty(actorProperty);
 }
 
 //-----------------------------------------------------------------------------
 bool MeshRenderer::updateHierarchyProperties(SegmentationPtr seg)
 {
-  Q_ASSERT(m_segmentations[seg].actorPropertyBackup != NULL);
-  bool updated = false;
-
-  vtkSmartPointer<vtkProperty> actorProperty = NULL;
-  if (seg->OverridesRendering() != m_segmentations[seg].overridden)
-  {
-    actorProperty = m_segmentations[seg].actor->GetProperty();
-    m_segmentations[seg].actor->SetProperty(m_segmentations[seg].actorPropertyBackup);
-    m_segmentations[seg].actorPropertyBackup = actorProperty;
-    m_segmentations[seg].actor->Modified();
-    m_segmentations[seg].overridden = seg->OverridesRendering();
-    updated = true;
-  }
-
-  if (!seg->OverridesRendering())
-    return true;
-
-  actorProperty = m_segmentations[seg].actor->GetProperty();
-  if (m_segmentations[seg].color != m_viewManager->color(seg))
-  {
-    QColor color = m_segmentations[seg].color;
-    double rgb[3] = { color.redF(), color.greenF(), color.blueF() };
-    double hsv[3] = { 0.0, 0.0, 0.0 };
-    vtkMath::RGBToHSV(rgb,hsv);
-    hsv[2] = (seg->isSelected() ? 1.0 : 0.6);
-    vtkMath::HSVToRGB(hsv, rgb);
-    actorProperty->SetColor(rgb[0], rgb[1], rgb[2]);
-    updated = true;
-  }
-
-  if (seg->getHierarchyRenderingType() != m_segmentations[seg].renderingType)
-  {
-    m_segmentations[seg].renderingType = seg->getHierarchyRenderingType();
-
-    switch (m_segmentations[seg].renderingType)
-    {
-      case HierarchyItem::Opaque:
-        actorProperty->SetOpacity(1.0);
-        if (m_enable && !m_segmentations[seg].visible)
-        {
-          m_segmentations[seg].visible = true;
-          m_renderer->AddActor(m_segmentations[seg].actor);
-          m_picker->AddPickList(m_segmentations[seg].actor);
-        }
-        break;
-      case HierarchyItem::Translucent:
-        actorProperty->SetOpacity(0.3);
-        if (m_enable && !m_segmentations[seg].visible)
-        {
-          m_segmentations[seg].visible = true;
-          m_renderer->AddActor(m_segmentations[seg].actor);
-          m_picker->AddPickList(m_segmentations[seg].actor);
-        }
-        break;
-      case HierarchyItem::Hidden:
-        if (m_enable && m_segmentations[seg].visible)
-        {
-          m_segmentations[seg].visible = false;
-          m_renderer->RemoveActor(m_segmentations[seg].actor);
-          m_picker->DeletePickList(m_segmentations[seg].actor);
-        }
-        break;
-      case HierarchyItem::Undefined:
-        break;
-      default:
-        Q_ASSERT(false);
-        break;
-    }
-    updated = true;
-  }
-
-  return updated;
+//   Q_ASSERT(m_segmentations[seg].actorPropertyBackup != NULL);
+//   bool updated = false;
+// 
+//   vtkSmartPointer<vtkProperty> actorProperty = NULL;
+//   if (seg->OverridesRendering() != m_segmentations[seg].overridden)
+//   {
+//     actorProperty = m_segmentations[seg].actor->GetProperty();
+//     m_segmentations[seg].actor->SetProperty(m_segmentations[seg].actorPropertyBackup);
+//     m_segmentations[seg].actorPropertyBackup = actorProperty;
+//     m_segmentations[seg].actor->Modified();
+//     m_segmentations[seg].overridden = seg->OverridesRendering();
+//     updated = true;
+//   }
+// 
+//   if (!seg->OverridesRendering())
+//     return true;
+// 
+//   actorProperty = m_segmentations[seg].actor->GetProperty();
+//   if (m_segmentations[seg].color != m_viewManager->color(seg))
+//   {
+//     QColor color = m_segmentations[seg].color;
+//     double rgb[3] = { color.redF(), color.greenF(), color.blueF() };
+//     double hsv[3] = { 0.0, 0.0, 0.0 };
+//     vtkMath::RGBToHSV(rgb,hsv);
+//     hsv[2] = (seg->isSelected() ? 1.0 : 0.6);
+//     vtkMath::HSVToRGB(hsv, rgb);
+//     actorProperty->SetColor(rgb[0], rgb[1], rgb[2]);
+//     updated = true;
+//   }
+// 
+//   if (seg->getHierarchyRenderingType() != m_segmentations[seg].renderingType)
+//   {
+//     m_segmentations[seg].renderingType = seg->getHierarchyRenderingType();
+// 
+//     switch (m_segmentations[seg].renderingType)
+//     {
+//       case HierarchyItem::Opaque:
+//         actorProperty->SetOpacity(1.0);
+//         if (m_enable && !m_segmentations[seg].visible)
+//         {
+//           m_segmentations[seg].visible = true;
+//           m_renderer->AddActor(m_segmentations[seg].actor);
+//           m_picker->AddPickList(m_segmentations[seg].actor);
+//         }
+//         break;
+//       case HierarchyItem::Translucent:
+//         actorProperty->SetOpacity(0.3);
+//         if (m_enable && !m_segmentations[seg].visible)
+//         {
+//           m_segmentations[seg].visible = true;
+//           m_renderer->AddActor(m_segmentations[seg].actor);
+//           m_picker->AddPickList(m_segmentations[seg].actor);
+//         }
+//         break;
+//       case HierarchyItem::Hidden:
+//         if (m_enable && m_segmentations[seg].visible)
+//         {
+//           m_segmentations[seg].visible = false;
+//           m_renderer->RemoveActor(m_segmentations[seg].actor);
+//           m_picker->DeletePickList(m_segmentations[seg].actor);
+//         }
+//         break;
+//       case HierarchyItem::Undefined:
+//         break;
+//       default:
+//         Q_ASSERT(false);
+//         break;
+//     }
+//     updated = true;
+//   }
+// 
+//   return updated;
 }
 
 //-----------------------------------------------------------------------------
 ViewManager::Selection MeshRenderer::pick(int x, int y, bool repeat)
 {
-  ViewManager::Selection selection;
-  QList<vtkProp*> removedProps;
-
-  if (m_renderer.GetPointer() != NULL)
-  {
-    while (m_picker->Pick(x,y,0, m_renderer))
-    {
-      vtkProp *pickedProp = m_picker->GetViewProp();
-      Q_ASSERT(pickedProp);
-
-      // can't get the key just for this value, as it's not a representation, must iterate.
-      QMap<ModelItemPtr, Representation>::iterator it = m_segmentations.begin();
-      while (it != m_segmentations.end())
-      {
-        if ((*it).actor == pickedProp)
-        {
-          selection << segmentationPtr(it.key());
-          removedProps << pickedProp;
-          m_picker->GetPickList()->RemoveItem(pickedProp);
-          break;
-        }
-        ++it;
-      }
-
-      if (!repeat)
-        break;
-    }
-
-    foreach(vtkProp *prop, removedProps)
-      m_picker->GetPickList()->AddItem(prop);
-  }
-
-  return selection;
+//   ViewManager::Selection selection;
+//   QList<vtkProp*> removedProps;
+// 
+//   if (m_renderer.GetPointer() != NULL)
+//   {
+//     while (m_picker->Pick(x,y,0, m_renderer))
+//     {
+//       vtkProp *pickedProp = m_picker->GetViewProp();
+//       Q_ASSERT(pickedProp);
+// 
+//       // can't get the key just for this value, as it's not a representation, must iterate.
+//       QMap<ModelItemPtr, State>::iterator it = m_segmentations.begin();
+//       while (it != m_segmentations.end())
+//       {
+//         if ((*it).actor == pickedProp)
+//         {
+//           selection << segmentationPtr(it.key());
+//           removedProps << pickedProp;
+//           m_picker->GetPickList()->RemoveItem(pickedProp);
+//           break;
+//         }
+//         ++it;
+//       }
+// 
+//       if (!repeat)
+//         break;
+//     }
+// 
+//     foreach(vtkProp *prop, removedProps)
+//       m_picker->GetPickList()->AddItem(prop);
+//   }
+//
+//   return selection;
 }
 
 //-----------------------------------------------------------------------------

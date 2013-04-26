@@ -270,7 +270,7 @@ void SegmentationExplorer::focusOnSegmentation(const QModelIndex& index)
 
   Nm bounds[6];
   SegmentationPtr seg = segmentationPtr(item);
-  VolumeOutputTypeSPtr volume = boost::dynamic_pointer_cast<VolumeOutputType>(seg->output()->data(VolumeOutputType::TYPE));
+  SegmentationVolumeTypeSPtr volume = outputSegmentationVolume(seg->output());
   volume->bounds(bounds);
   Nm center[3] = { (bounds[0] + bounds[1])/2, (bounds[2] + bounds[3])/2, (bounds[4] + bounds[5])/2 };
   m_viewManager->focusViewsOn(center);

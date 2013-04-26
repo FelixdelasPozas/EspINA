@@ -66,7 +66,7 @@ bool FilterOutput::fetchSnapshot(const QString &prefix)
 
   foreach(OutputTypeSPtr outputData, m_data)
   {
-    fetched &= outputData->fetchSnapshot(prefix);
+    fetched &= outputData->fetchSnapshot(m_filter, prefix);
   }
 
   return fetched;

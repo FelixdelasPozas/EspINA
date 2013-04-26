@@ -20,6 +20,7 @@
 #include "MorphologicalEditionFilter.h"
 
 #include <Core/Model/EspinaFactory.h>
+#include <GUI/Representations/SliceRepresentation.h>
 
 #include <QDebug>
 
@@ -55,6 +56,16 @@ void MorphologicalEditionFilter::createDummyOutput(FilterOutputId id, const Filt
     createOutput(id, SegmentationVolumeTypeSPtr(new SegmentationVolumeType()));
   else
     Q_ASSERT(false);
+}
+
+//-----------------------------------------------------------------------------
+void MorphologicalEditionFilter::createOutputRepresentations(OutputSPtr output)
+{
+  VolumeOutputTypeSPtr volumeData = outputVolume(output);
+  output->addRepresentation(EspinaRepresentationSPtr(new SegmentationSliceRepresentation(volumeData, NULL)));
+  //   output->addRepresentation(EspinaRepresentationSPtr(new VolumeReprentation  (volumeOutput(output))));
+  //   output->addRepresentation(EspinaRepresentationSPtr(new MeshRepresentation  (meshOutput  (output))));
+  //   output->addRepresentation(EspinaRepresentationSPtr(new SmoothRepresentation(meshOutput  (output))));
 }
 
 //-----------------------------------------------------------------------------

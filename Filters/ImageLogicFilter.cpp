@@ -19,6 +19,7 @@
 #include "ImageLogicFilter.h"
 
 #include <Core/Model/EspinaFactory.h>
+#include <GUI/Representations/SliceRepresentation.h>
 
 #include <itkImageAlgorithm.h>
 
@@ -46,6 +47,22 @@ ImageLogicFilter::~ImageLogicFilter()
 {
 }
 
+
+//-----------------------------------------------------------------------------
+void ImageLogicFilter::createDummyOutput(FilterOutputId id, const FilterOutput::OutputTypeName &type)
+{
+
+}
+
+//-----------------------------------------------------------------------------
+void ImageLogicFilter::createOutputRepresentations(OutputSPtr output)
+{
+  VolumeOutputTypeSPtr volumeData = outputVolume(output);
+  output->addRepresentation(EspinaRepresentationSPtr(new SegmentationSliceRepresentation(volumeData, NULL)));
+  //   output->addRepresentation(EspinaRepresentationSPtr(new VolumeReprentation  (volumeOutput(output))));
+  //   output->addRepresentation(EspinaRepresentationSPtr(new MeshRepresentation  (meshOutput  (output))));
+  //   output->addRepresentation(EspinaRepresentationSPtr(new SmoothRepresentation(meshOutput  (output))));
+}
 
 //-----------------------------------------------------------------------------
 bool ImageLogicFilter::needUpdate(FilterOutputId oId) const
@@ -103,13 +120,13 @@ void ImageLogicFilter::addition()
 {
   QList<EspinaRegion> regions;
 
-  SegmentationVolumeTypeSPtr firstVolume = segmentationVolumeOutput(m_inputs[0]);
+  SegmentationVolumeTypeSPtr firstVolume = outputSegmentationVolume(m_inputs[0]);
   EspinaRegion bb = firstVolume->espinaRegion();
   regions << bb;
 
   for (int i = 1; i < m_inputs.size(); i++)
   {
-    SegmentationVolumeTypeSPtr iVolume = segmentationVolumeOutput(m_inputs[i]);
+    SegmentationVolumeTypeSPtr iVolume = outputSegmentationVolume(m_inputs[i]);
     EspinaRegion region = iVolume->espinaRegion();
 
     bb = BoundingBox(bb, region);
@@ -121,7 +138,7 @@ void ImageLogicFilter::addition()
 
   for (int i = 0; i < regions.size(); i++)
   {
-    SegmentationVolumeTypeSPtr  iVolume = segmentationVolumeOutput(m_inputs[i]);
+    SegmentationVolumeTypeSPtr  iVolume = outputSegmentationVolume(m_inputs[i]);
     itkVolumeConstIterator it = iVolume->constIterator(regions[i]);
     itkVolumeIterator      ot = volume ->iterator (regions[i]);
 
@@ -146,10 +163,10 @@ void ImageLogicFilter::addition()
 void ImageLogicFilter::substraction()
 {
   // TODO 2012-11-29 Revisar si se puede evitar crear la imagen
-  OutputList          validInputs;
+  OutputSList          validInputs;
   QList<EspinaRegion> regions;
 
-  SegmentationVolumeTypeSPtr  firstVolume = segmentationVolumeOutput(m_inputs[0]);
+  SegmentationVolumeTypeSPtr  firstVolume = outputSegmentationVolume(m_inputs[0]);
   EspinaRegion outputRegion = firstVolume->espinaRegion();
 
   validInputs << m_inputs[0];
@@ -157,7 +174,7 @@ void ImageLogicFilter::substraction()
 
   for (int i = 1; i < m_inputs.size(); i++)
   {
-    SegmentationVolumeTypeSPtr iVolume = segmentationVolumeOutput(m_inputs[i]);
+    SegmentationVolumeTypeSPtr iVolume = outputSegmentationVolume(m_inputs[i]);
     EspinaRegion region = iVolume->espinaRegion();
     if (outputRegion.intersect(region))
     {
@@ -176,7 +193,7 @@ void ImageLogicFilter::substraction()
 
   for (int i = 1; i < validInputs.size(); i++)
   {
-    SegmentationVolumeTypeSPtr  iVolume = segmentationVolumeOutput(m_inputs[i]);
+    SegmentationVolumeTypeSPtr  iVolume = outputSegmentationVolume(m_inputs[i]);
     itkVolumeConstIterator it = iVolume->constIterator(regions[i]);
     itkVolumeIterator      ot = volume ->iterator     (regions[i]);
     it.GoToBegin();

@@ -260,29 +260,29 @@ bool SmoothedMeshRenderer::updateItem(ModelItemPtr item, bool forced)
 //-----------------------------------------------------------------------------
 bool SmoothedMeshRenderer::removeItem(ModelItemPtr item)
 {
-   if (EspINA::SEGMENTATION != item->type())
-     return false;
-
-   SegmentationPtr seg = segmentationPtr(item);
-   if(!m_segmentations.contains(seg))
-     return false;
-
-   if (m_segmentations[seg].visible)
-   {
-     m_renderer->RemoveActor(m_segmentations[seg].actor);
-     m_picker->DeletePickList(m_segmentations[seg].actor);
-   }
-
-   if (m_segmentations[seg].actorPropertyBackup)
-     m_segmentations[seg].actorPropertyBackup = NULL;
-
-   m_segmentations[seg].actor->Delete();
-   m_segmentations.remove(seg);
-
-   m_decimate[seg] = NULL;
-   m_decimate.remove(seg);
-
-   disconnect(item, SIGNAL(modified(ModelItemPtr)), this, SLOT(updateItem(ModelItemPtr)));
-
-   return true;
+//    if (EspINA::SEGMENTATION != item->type())
+//      return false;
+// 
+//    SegmentationPtr seg = segmentationPtr(item);
+//    if(!m_segmentations.contains(seg))
+//      return false;
+// 
+//    if (m_segmentations[seg].visible)
+//    {
+//      m_renderer->RemoveActor(m_segmentations[seg].actor);
+//      m_picker->DeletePickList(m_segmentations[seg].actor);
+//    }
+// 
+//    if (m_segmentations[seg].actorPropertyBackup)
+//      m_segmentations[seg].actorPropertyBackup = NULL;
+// 
+//    m_segmentations[seg].actor->Delete();
+//    m_segmentations.remove(seg);
+// 
+//    m_decimate[seg] = NULL;
+//    m_decimate.remove(seg);
+// 
+//    disconnect(item, SIGNAL(modified(ModelItemPtr)), this, SLOT(updateItem(ModelItemPtr)));
+// 
+//    return true;
 }

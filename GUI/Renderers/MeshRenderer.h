@@ -22,6 +22,7 @@
 // EspINA
 #include "GUI/Renderers/Renderer.h"
 #include <Core/Model/HierarchyItem.h>
+#include <Core/Model/Output.h>
 
 // Qt
 #include <QMap>
@@ -74,19 +75,17 @@ namespace EspINA
 
       ViewManager *m_viewManager;
 
-      struct Representation
+      struct State
       {
-          vtkActor *actor;
-          bool visible;
-          bool selected;
-          QColor color;
-          int extent[6];
-          bool overridden;
-          HierarchyItem::HierarchyRenderingType renderingType;
-          vtkSmartPointer<vtkProperty> actorPropertyBackup;
+        QColor color;
+        int    extent[6];
+        bool   highlighted;
+        bool   visible;
+
+        EspinaRepresentationSPtr representation;
       };
 
-      QMap<ModelItemPtr, Representation> m_segmentations;
+      QMap<ModelItemPtr, State>      m_segmentations;
       vtkSmartPointer<vtkPropPicker> m_picker;
 
     private:

@@ -71,7 +71,7 @@ void Brush::DrawCommand::redo()
 
     if (m_seg->filter()->validOutput(m_output))
     {
-      SegmentationVolumeTypeSPtr volume = boost::dynamic_pointer_cast<SegmentationVolumeType>(m_seg->output()->data(VolumeOutputType::TYPE));
+      SegmentationVolumeTypeSPtr volume = outputSegmentationVolume(m_seg->output());
 
       m_prevRegions = m_seg->output()->editedRegions();
 
@@ -100,7 +100,7 @@ void Brush::DrawCommand::redo()
 
     if (m_seg->filter()->validOutput(m_output))
     {
-      SegmentationVolumeTypeSPtr volume = boost::dynamic_pointer_cast<SegmentationVolumeType>(m_seg->output()->data(VolumeOutputType::TYPE));
+      SegmentationVolumeTypeSPtr volume = outputSegmentationVolume(m_seg->output());
       m_newVolume = volume->cloneVolume(strokeRegion);
     }
   }
@@ -122,7 +122,7 @@ void Brush::DrawCommand::undo()
 
     if (m_needReduction)
     {
-      SegmentationVolumeTypeSPtr volume = boost::dynamic_pointer_cast<SegmentationVolumeType>(m_seg->output()->data(VolumeOutputType::TYPE));
+      SegmentationVolumeTypeSPtr volume = outputSegmentationVolume(m_seg->output());
       volume->fitToContent();
     }
 
@@ -143,7 +143,7 @@ Brush::SnapshotCommand::SnapshotCommand(SegmentationSPtr seg,
 , m_output(output)
 , m_viewManager(vm)
 {
-  SegmentationVolumeTypeSPtr segVolume = boost::dynamic_pointer_cast<SegmentationVolumeType>(m_seg->output()->data(VolumeOutputType::TYPE));
+  SegmentationVolumeTypeSPtr segVolume = outputSegmentationVolume(m_seg->output());
   m_prevVolume = segVolume->cloneVolume();
 }
 
@@ -159,7 +159,7 @@ void Brush::SnapshotCommand::undo()
 {
   if (m_newVolume.IsNull())
   {
-    SegmentationVolumeTypeSPtr segVolume = boost::dynamic_pointer_cast<SegmentationVolumeType>(m_seg->output()->data(VolumeOutputType::TYPE));
+    SegmentationVolumeTypeSPtr segVolume = outputSegmentationVolume(m_seg->output());
     m_newVolume = segVolume->cloneVolume();
   }
 

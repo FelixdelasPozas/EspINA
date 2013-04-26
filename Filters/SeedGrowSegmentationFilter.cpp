@@ -18,6 +18,7 @@
 #include "SeedGrowSegmentationFilter.h"
 
 #include "Core/Model/EspinaModel.h"
+#include <Core/Model/MarchingCubesMesh.h>
 #include <GUI/Representations/SliceRepresentation.h>
 
 #include <QDebug>
@@ -86,6 +87,16 @@ void SeedGrowSegmentationFilter::createDummyOutput(FilterOutputId id, const Filt
 }
 
 //-----------------------------------------------------------------------------
+void SeedGrowSegmentationFilter::createOutputRepresentations(OutputSPtr output)
+{
+  VolumeOutputTypeSPtr volumeData = outputVolume(output);
+  output->addRepresentation(EspinaRepresentationSPtr(new SegmentationSliceRepresentation(volumeData, NULL)));
+//   output->addRepresentation(EspinaRepresentationSPtr(new VolumeReprentation  (volumeOutput(output))));
+//   output->addRepresentation(EspinaRepresentationSPtr(new MeshRepresentation  (meshOutput  (output))));
+//   output->addRepresentation(EspinaRepresentationSPtr(new SmoothRepresentation(meshOutput  (output))));
+}
+
+//-----------------------------------------------------------------------------
 bool SeedGrowSegmentationFilter::needUpdate(FilterOutputId oId) const
 {
   return Filter::needUpdate(oId);
@@ -104,7 +115,7 @@ void SeedGrowSegmentationFilter::run(FilterOutputId oId)
   Q_ASSERT(0 == oId);
   Q_ASSERT(m_inputs.size() == 1);
 
-  ChannelVolumeTypeSPtr input = channelVolumeOutput(m_inputs[0]);
+  ChannelVolumeTypeSPtr input = outputChannelVolume(m_inputs[0]);
   Q_ASSERT(input);
 
   int voi[6];
@@ -199,18 +210,9 @@ void SeedGrowSegmentationFilter::run(FilterOutputId oId)
 
   FilterOutput::OutputTypeList dataList;
   dataList << SegmentationVolumeTypeSPtr(new SegmentationVolumeType(volume));
+  dataList << MeshOutputTypeSPtr(new MarchingCubesMesh());
 
   createOutput(0, dataList);
-
-  // Register available representations for filter's outputs
-  OutputSPtr currentOutput = output(0);
-
-  VolumeOutputTypeSPtr volumeData = volumeOutput(currentOutput);
-  currentOutput->addRepresentation(EspinaRepresentationSPtr(new SegmentationSliceRepresentation(volumeData, NULL)));
-//   output->addRepresentation(EspinaRepresentationSPtr(new VolumeReprentation  (volumeOutput(output))));
-//   output->addRepresentation(EspinaRepresentationSPtr(new MeshRepresentation  (meshOutput  (output))));
-//   output->addRepresentation(EspinaRepresentationSPtr(new SmoothRepresentation(meshOutput  (output))));
-
 
   m_ignoreCurrentOutputs = false;
 
@@ -249,7 +251,7 @@ void SeedGrowSegmentationFilter::setVOI(int VOI[6], bool ignoreUpdate)
 bool SeedGrowSegmentationFilter::isTouchingVOI() const
 {
   int segExtent[6];
-  SegmentationVolumeTypeSPtr outputVolume = segmentationVolumeOutput(m_outputs[0]);
+  SegmentationVolumeTypeSPtr outputVolume = outputSegmentationVolume(m_outputs[0]);
   outputVolume->extent(segExtent);
 
   int voiExtent[6];

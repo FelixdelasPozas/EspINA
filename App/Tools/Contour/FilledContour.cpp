@@ -262,7 +262,7 @@ void FilledContour::rasterize(ContourWidget::ContourList list)
   {
     try
     {
-      SegmentationVolumeTypeSPtr segVolume = boost::dynamic_pointer_cast<SegmentationVolumeType>(m_currentSeg->output()->data(VolumeOutputType::TYPE));
+      SegmentationVolumeTypeSPtr segVolume = outputSegmentationVolume(m_currentSeg->output());
       segVolume->fitToContent();
     }
     catch (...)

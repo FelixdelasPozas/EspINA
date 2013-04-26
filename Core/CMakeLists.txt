@@ -15,6 +15,8 @@ qt4_wrap_cpp(CORE_MOC
   Model/ModelItem.h
   Model/PickableItem.h
   Model/Output.h
+  Model/OutputType.h
+  Model/MarchingCubesMesh.h
   Model/Segmentation.h
   Model/Taxonomy.h
   Model/Proxies/ChannelProxy.h
@@ -62,6 +64,7 @@ set (CORE_SOURCES
   Model/EspinaModel.cpp
   Model/Filter.cpp
   Model/QtModelUtils.cpp
+  Model/MarchingCubesMesh.cpp 
   Model/ModelItem.cpp
   Model/ModelTest.cpp
   Model/PickableItem.cpp

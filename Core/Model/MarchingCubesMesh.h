@@ -26,40 +26,53 @@
 */
 
 
-#include "OutputType.h"
+#ifndef MARCHINGCUBEMESH_H
+#define MARCHINGCUBEMESH_H
 
-using namespace EspINA;
+#include "Core/Model/OutputType.h"
+#include <vtkSmartPointer.h>
 
-//----------------------------------------------------------------------------
-EspinaTimeStamp FilterOutput::OutputType::s_tick = 0;
+class vtkDiscreteMarchingCubes;
+class vtkImageConstantPad;
 
-//----------------------------------------------------------------------------
-void FilterOutput::OutputType::setOutput(FilterOutput *output)
+namespace EspINA
 {
-  m_output = output;
-  emit outputChanged();
-}
+  class MarchingCubesMesh
+  : public MeshOutputType
+  {
+    Q_OBJECT
+  public:
+    explicit MarchingCubesMesh(FilterOutput *output = NULL);
+    virtual ~MarchingCubesMesh();
 
-//----------------------------------------------------------------------------
-const FilterOutput::OutputTypeName VolumeOutputType::TYPE = "VolumeOutputType";
+    virtual bool setInternalData(FilterOutput::OutputTypeSPtr rhs);
 
-//----------------------------------------------------------------------------
-VolumeOutputTypePtr EspINA::outputVolume(OutputPtr output)
-{
-  return dynamic_cast<VolumeOutputType *>(output->data(VolumeOutputType::TYPE).get());
-}
+    virtual bool dumpSnapshot(const QString &prefix, Snapshot &snapshot);
 
-//----------------------------------------------------------------------------
-VolumeOutputTypeSPtr EspINA::outputVolume(OutputSPtr output)
-{
-  return boost::dynamic_pointer_cast<VolumeOutputType>(output->data(VolumeOutputType::TYPE));
-}
+    virtual bool fetchSnapshot(Filter *filter, const QString &prefix);
 
-//----------------------------------------------------------------------------
-const FilterOutput::OutputTypeName MeshOutputType::TYPE = "MeshOutputType";
+    virtual bool isEdited() const;
 
-//----------------------------------------------------------------------------
-MeshOutputTypeSPtr EspINA::meshOutput(OutputSPtr output)
-{
-  return boost::dynamic_pointer_cast<MeshOutputType>(output->data(MeshOutputType::TYPE));
-}
+    virtual bool isValid() const;
+
+    virtual FilterOutput::NamedRegionList editedRegions() const;
+
+    virtual void clearEditedRegions();
+
+    virtual void dumpEditedRegions(const QString &prefix) const;
+
+    virtual void restoreEditedRegion(Filter *filter, const EspinaRegion &region, const QString &prefix);
+
+    virtual vtkAlgorithmOutput *mesh() const;
+
+  private slots:
+    void updateMesh();
+
+  private:
+    vtkSmartPointer<vtkImageConstantPad>      m_pad;
+    vtkSmartPointer<vtkDiscreteMarchingCubes> m_marchingCubes;
+  };
+
+} // namespace EspINA
+
+#endif // MARCHINGCUBEMESH_H

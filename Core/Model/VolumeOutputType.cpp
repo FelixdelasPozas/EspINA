@@ -49,8 +49,6 @@
 
 using namespace EspINA;
 
-const FilterOutput::OutputTypeName VolumeOutputType::TYPE = "VolumeOutputType";
-
 typedef itk::StatisticsLabelObject<unsigned int, 3>                       LabelObjectType;
 typedef itk::LabelMap<LabelObjectType>                                    LabelMapType;
 typedef itk::LabelImageToShapeLabelMapFilter<itkVolumeType, LabelMapType> Image2LabelFilterType;
@@ -59,8 +57,8 @@ typedef itk::ImageFileReader<itkVolumeType>                               Espina
 typedef itk::ImageFileWriter<itkVolumeType>                               EspinaVolumeWriter;
 
 //----------------------------------------------------------------------------
-VolumeOutputType::VolumeOutputType(FilterOutput *output)
-: OutputType(output)
+EspinaVolume::EspinaVolume(FilterOutput *output)
+: VolumeOutputType(output)
 , m_volume(NULL)
 , m_VTKGenerationTime(0)
 , m_ITKGenerationTime(0)
@@ -69,9 +67,9 @@ VolumeOutputType::VolumeOutputType(FilterOutput *output)
 }
 
 //----------------------------------------------------------------------------
-VolumeOutputType::VolumeOutputType(itkVolumeType::Pointer volume, 
-                                   FilterOutput *output)
-: OutputType(output)
+EspinaVolume::EspinaVolume(itkVolumeType::Pointer volume, 
+               FilterOutput *output)
+: VolumeOutputType(output)
 , m_volume(volume)
 , m_VTKGenerationTime(0)
 , m_ITKGenerationTime(0)
@@ -79,10 +77,10 @@ VolumeOutputType::VolumeOutputType(itkVolumeType::Pointer volume,
 }
 
 //----------------------------------------------------------------------------
-VolumeOutputType::VolumeOutputType(const EspinaRegion& region,
-                                   itkVolumeType::SpacingType spacing,
-                                   FilterOutput *output)
-: OutputType(output)
+EspinaVolume::EspinaVolume(const EspinaRegion& region,
+               itkVolumeType::SpacingType spacing,
+               FilterOutput *output)
+: VolumeOutputType(output)
 , m_volume(itkVolumeType::New())
 , m_VTKGenerationTime(0)
 , m_ITKGenerationTime(0)
@@ -95,10 +93,10 @@ VolumeOutputType::VolumeOutputType(const EspinaRegion& region,
 }
 
 //----------------------------------------------------------------------------
-VolumeOutputType::VolumeOutputType(const VolumeRegion& region,
-                                   itkVolumeType::SpacingType spacing,
-                                   FilterOutput *output)
-: OutputType(output)
+EspinaVolume::EspinaVolume(const VolumeRegion& region,
+               itkVolumeType::SpacingType spacing,
+               FilterOutput *output)
+: VolumeOutputType(output)
 , m_volume(itkVolumeType::New())
 , m_VTKGenerationTime(0)
 , m_ITKGenerationTime(0)
@@ -111,22 +109,22 @@ VolumeOutputType::VolumeOutputType(const VolumeRegion& region,
 }
 
 //----------------------------------------------------------------------------
-bool VolumeOutputType::setInternalData(FilterOutput::OutputTypeSPtr rhs)
+bool EspinaVolume::setInternalData(FilterOutput::OutputTypeSPtr rhs)
 {
-  VolumeOutputTypeSPtr volume = boost::dynamic_pointer_cast<VolumeOutputType>(rhs);
+  VolumeOutputTypeSPtr volume = boost::dynamic_pointer_cast<EspinaVolume>(rhs);
   setVolume(volume->toITK(), true);
 
   return true;
 }
 
 //----------------------------------------------------------------------------
-long unsigned int VolumeOutputType::timeStamp()
+long unsigned int EspinaVolume::timeStamp()
 {
   return m_volume->GetMTime();
 }
 
 //----------------------------------------------------------------------------
-void VolumeOutputType::draw(vtkImplicitFunction *brush,
+void EspinaVolume::draw(vtkImplicitFunction *brush,
                             const Nm bounds[6],
                             itkVolumeType::PixelType value,
                             bool emitSignal)
@@ -156,7 +154,7 @@ void VolumeOutputType::draw(vtkImplicitFunction *brush,
 }
 
 //----------------------------------------------------------------------------
-void VolumeOutputType::draw(itkVolumeType::IndexType index,
+void EspinaVolume::draw(itkVolumeType::IndexType index,
                             itkVolumeType::PixelType value,
                             bool emitSignal)
 {
@@ -179,7 +177,7 @@ void VolumeOutputType::draw(itkVolumeType::IndexType index,
 }
 
 //----------------------------------------------------------------------------
-void VolumeOutputType::draw(Nm x, Nm y, Nm z,
+void EspinaVolume::draw(Nm x, Nm y, Nm z,
                             itkVolumeType::PixelType value,
                             bool emitSignal)
 {
@@ -195,7 +193,7 @@ void VolumeOutputType::draw(Nm x, Nm y, Nm z,
 }
 
 //----------------------------------------------------------------------------
-void VolumeOutputType::draw(vtkPolyData *contour,
+void EspinaVolume::draw(vtkPolyData *contour,
                             Nm slice,
                             PlaneType plane,
                             itkVolumeType::PixelType value,
@@ -403,10 +401,10 @@ void VolumeOutputType::draw(vtkPolyData *contour,
 }
 
 //----------------------------------------------------------------------------
-void VolumeOutputType::draw(itkVolumeType::Pointer volume,
+void EspinaVolume::draw(itkVolumeType::Pointer volume,
                             bool emitSignal)
 {
-  VolumeOutputType drawnVolume(volume);
+  EspinaVolume drawnVolume(volume);
   EspinaRegion drawnRegion = drawnVolume.espinaRegion();
 
   if (m_volume.IsNull())
@@ -434,13 +432,13 @@ void VolumeOutputType::draw(itkVolumeType::Pointer volume,
 }
 
 //----------------------------------------------------------------------------
-void VolumeOutputType::fill(itkVolumeType::PixelType value, bool emitSignal)
+void EspinaVolume::fill(itkVolumeType::PixelType value, bool emitSignal)
 {
   fill(espinaRegion(), value, emitSignal);
 }
 
 //----------------------------------------------------------------------------
-void VolumeOutputType::fill(const EspinaRegion &region,
+void EspinaVolume::fill(const EspinaRegion &region,
                             itkVolumeType::PixelType value,
                             bool emitSignal)
 {
@@ -460,7 +458,7 @@ void VolumeOutputType::fill(const EspinaRegion &region,
 }
 
 //----------------------------------------------------------------------------
-bool VolumeOutputType::dumpSnapshot(const QString &prefix, Snapshot &snapshot)
+bool EspinaVolume::dumpSnapshot(const QString &prefix, Snapshot &snapshot)
 {
   bool dumped = true;
 
@@ -506,12 +504,12 @@ bool VolumeOutputType::dumpSnapshot(const QString &prefix, Snapshot &snapshot)
 }
 
 //----------------------------------------------------------------------------
-bool VolumeOutputType::fetchSnapshot(const QString &prefix)
+bool EspinaVolume::fetchSnapshot(Filter *filter, const QString &prefix)
 {
   // Version 3 seg files compatibility
   QString cachedFileV3 = QString("%1.mhd").arg(prefix);
 
-  itkVolumeType::Pointer cachedVolumeV3 = m_output->filter()->readVolumeFromCache(cachedFileV3);
+  itkVolumeType::Pointer cachedVolumeV3 = filter->readVolumeFromCache(cachedFileV3);
 
   bool fetchedV3 = cachedVolumeV3.IsNotNull();
 
@@ -523,7 +521,7 @@ bool VolumeOutputType::fetchSnapshot(const QString &prefix)
 
   QString cachedFile = QString("%1/%2.mhd").arg(TYPE).arg(prefix);
 
-  itkVolumeType::Pointer cachedVolume = m_output->filter()->readVolumeFromCache(cachedFile);
+  itkVolumeType::Pointer cachedVolume = filter->readVolumeFromCache(cachedFile);
 
   bool fetched = cachedVolume.IsNotNull();
 
@@ -535,13 +533,13 @@ bool VolumeOutputType::fetchSnapshot(const QString &prefix)
 }
 
 //----------------------------------------------------------------------------
-void VolumeOutputType::clearEditedRegions()
+void EspinaVolume::clearEditedRegions()
 {
 
 }
 
 //----------------------------------------------------------------------------
-void VolumeOutputType::dumpEditedRegions(const QString &prefix) const
+void EspinaVolume::dumpEditedRegions(const QString &prefix) const
 {
   //FIXME: Simplify regions
   for (int i = 0; i < m_editedRegions.size(); ++i)
@@ -608,14 +606,14 @@ void VolumeOutputType::dumpEditedRegions(const QString &prefix) const
 }
 
 //----------------------------------------------------------------------------
-void VolumeOutputType::restoreEditedRegion(const EspinaRegion &region, const QString &prefix)
+void EspinaVolume::restoreEditedRegion(Filter *filter, const EspinaRegion &region, const QString &prefix)
 {
   // Restore previous edited regions if restoring a modified output
   int regionId = m_editedRegions.size() - 1;
 
   // Version 3 seg files compatibility
   QString fileV3 = QString("%1_%2.mhd").arg(prefix).arg(regionId);
-  itkVolumeType::Pointer editedVolumeV3 = m_output->filter()->readVolumeFromCache(fileV3);
+  itkVolumeType::Pointer editedVolumeV3 = filter->readVolumeFromCache(fileV3);
   if (editedVolumeV3.IsNotNull())
   {
     draw(editedVolumeV3, true);
@@ -625,7 +623,7 @@ void VolumeOutputType::restoreEditedRegion(const EspinaRegion &region, const QSt
   }
 
   QString file = QString("%1_%2.mhd").arg(prefix).arg(regionId);
-  itkVolumeType::Pointer editedVolume = m_output->filter()->readVolumeFromCache(file);
+  itkVolumeType::Pointer editedVolume = filter->readVolumeFromCache(file);
   if (editedVolume.IsNotNull())
   {
     draw(editedVolume, true);
@@ -636,7 +634,7 @@ void VolumeOutputType::restoreEditedRegion(const EspinaRegion &region, const QSt
 }
 
 //----------------------------------------------------------------------------
-void VolumeOutputType::setVolume(itkVolumeType::Pointer volume, bool disconnect)
+void EspinaVolume::setVolume(itkVolumeType::Pointer volume, bool disconnect)
 {
   m_volume = volume;
 
@@ -652,7 +650,7 @@ void VolumeOutputType::setVolume(itkVolumeType::Pointer volume, bool disconnect)
 }
 
 //----------------------------------------------------------------------------
-void VolumeOutputType::addEditedRegion(const EspinaRegion &region)
+void EspinaVolume::addEditedRegion(const EspinaRegion &region)
 {
   int  i        = 0;
   bool included = false;
@@ -666,7 +664,7 @@ void VolumeOutputType::addEditedRegion(const EspinaRegion &region)
 }
 
 //----------------------------------------------------------------------------
-FilterOutput::NamedRegionList VolumeOutputType::editedRegions() const
+FilterOutput::NamedRegionList EspinaVolume::editedRegions() const
 {
   FilterOutput::NamedRegionList regions; // TODO: Move to Output base class??
 
@@ -680,7 +678,7 @@ FilterOutput::NamedRegionList VolumeOutputType::editedRegions() const
 
 
 //----------------------------------------------------------------------------
-itkVolumeType::IndexType VolumeOutputType::index(Nm x, Nm y, Nm z)
+itkVolumeType::IndexType EspinaVolume::index(Nm x, Nm y, Nm z)
 {
   itkVolumeType::PointType   origin  = m_volume->GetOrigin();
   itkVolumeType::SpacingType spacing = m_volume->GetSpacing();
@@ -694,7 +692,7 @@ itkVolumeType::IndexType VolumeOutputType::index(Nm x, Nm y, Nm z)
 }
 
 //----------------------------------------------------------------------------
-void VolumeOutputType::extent(int out[6]) const
+void EspinaVolume::extent(int out[6]) const
 {
   itkVolumeType::SpacingType spacing = m_volume->GetSpacing();
   itkVolumeType::RegionType  region  = m_volume->GetLargestPossibleRegion();
@@ -709,7 +707,7 @@ void VolumeOutputType::extent(int out[6]) const
 }
 
 //----------------------------------------------------------------------------
-void VolumeOutputType::bounds(double out[6]) const
+void EspinaVolume::bounds(double out[6]) const
 {
   if (m_volume)
   {
@@ -729,14 +727,14 @@ void VolumeOutputType::bounds(double out[6]) const
 }
 
 //----------------------------------------------------------------------------
-void VolumeOutputType::spacing(double out[3]) const
+void EspinaVolume::spacing(double out[3]) const
 {
   for(int i=0; i<3; i++)
     out[i] = m_volume->GetSpacing()[i];
 }
 
 //----------------------------------------------------------------------------
-EspinaRegion VolumeOutputType::espinaRegion() const
+EspinaRegion EspinaVolume::espinaRegion() const
 {
   double region[6];
   bounds(region);
@@ -745,13 +743,13 @@ EspinaRegion VolumeOutputType::espinaRegion() const
 }
 
 //----------------------------------------------------------------------------
-VolumeOutputType::VolumeRegion VolumeOutputType::volumeRegion() const
+EspinaVolume::VolumeRegion EspinaVolume::volumeRegion() const
 {
   return volumeRegion(espinaRegion());
 }
 
 //----------------------------------------------------------------------------
-VolumeOutputType::VolumeRegion VolumeOutputType::volumeRegion(const EspinaRegion& region) const
+EspinaVolume::VolumeRegion EspinaVolume::volumeRegion(const EspinaRegion& region) const
 {
   itkVolumeType::SpacingType spacing = m_volume->GetSpacing();
 
@@ -769,50 +767,50 @@ VolumeOutputType::VolumeRegion VolumeOutputType::volumeRegion(const EspinaRegion
 }
 
 //----------------------------------------------------------------------------
-itkVolumeIterator VolumeOutputType::iterator()
+itkVolumeIterator EspinaVolume::iterator()
 {
   return iterator(espinaRegion());
 }
 
 //----------------------------------------------------------------------------
-itkVolumeIterator VolumeOutputType::iterator(const EspinaRegion& region)
+itkVolumeIterator EspinaVolume::iterator(const EspinaRegion& region)
 {
   return itkVolumeIterator(m_volume, volumeRegion(region));
 }
 
 //----------------------------------------------------------------------------
-itkVolumeConstIterator VolumeOutputType::constIterator()
+itkVolumeConstIterator EspinaVolume::constIterator()
 {
   return constIterator(espinaRegion());
 }
 
 //----------------------------------------------------------------------------
-itkVolumeConstIterator VolumeOutputType::constIterator(const EspinaRegion& region)
+itkVolumeConstIterator EspinaVolume::constIterator(const EspinaRegion& region)
 {
   return itkVolumeConstIterator(m_volume, volumeRegion(region));
 }
 
 //----------------------------------------------------------------------------
-itkVolumeType::Pointer VolumeOutputType::toITK()
+itkVolumeType::Pointer EspinaVolume::toITK()
 {
   return m_volume;
 }
 
 //----------------------------------------------------------------------------
-const itkVolumeType::Pointer VolumeOutputType::toITK() const
+const itkVolumeType::Pointer EspinaVolume::toITK() const
 {
   return m_volume;
 }
 
 //----------------------------------------------------------------------------
-vtkAlgorithmOutput* VolumeOutputType::toVTK()
+vtkAlgorithmOutput* EspinaVolume::toVTK()
 {
   return const_cast<vtkAlgorithmOutput *>(
-    static_cast<const VolumeOutputType *>(this)->toVTK());
+    static_cast<const EspinaVolume *>(this)->toVTK());
 }
 
 //----------------------------------------------------------------------------
-const vtkAlgorithmOutput* VolumeOutputType::toVTK() const
+const vtkAlgorithmOutput* EspinaVolume::toVTK() const
 {
   if (itk2vtk.IsNull() || itk2vtk->GetInput() != m_volume)
   {
@@ -832,19 +830,19 @@ const vtkAlgorithmOutput* VolumeOutputType::toVTK() const
 }
 
 //----------------------------------------------------------------------------
-itkVolumeType::Pointer VolumeOutputType::cloneVolume() const
+itkVolumeType::Pointer EspinaVolume::cloneVolume() const
 {
   return cloneVolume(volumeRegion());
 }
 
 //----------------------------------------------------------------------------
-itkVolumeType::Pointer VolumeOutputType::cloneVolume(const EspinaRegion &region) const
+itkVolumeType::Pointer EspinaVolume::cloneVolume(const EspinaRegion &region) const
 {
   return cloneVolume(volumeRegion(region));
 }
 
 //----------------------------------------------------------------------------
-itkVolumeType::Pointer VolumeOutputType::cloneVolume(const VolumeOutputType::VolumeRegion &region) const
+itkVolumeType::Pointer EspinaVolume::cloneVolume(const EspinaVolume::VolumeRegion &region) const
 {
   ExtractType::Pointer extractor = ExtractType::New();
   extractor->SetNumberOfThreads(1);
@@ -858,7 +856,7 @@ itkVolumeType::Pointer VolumeOutputType::cloneVolume(const VolumeOutputType::Vol
 }
 
 //----------------------------------------------------------------------------
-void VolumeOutputType::markAsModified(bool emitSignal)
+void EspinaVolume::markAsModified(bool emitSignal)
 {
   toITK()->Modified();
 
@@ -867,7 +865,7 @@ void VolumeOutputType::markAsModified(bool emitSignal)
 }
 
 //----------------------------------------------------------------------------
-void VolumeOutputType::update()
+void EspinaVolume::update()
 {
   m_volume->Update();
 
@@ -883,11 +881,11 @@ typedef itk::ImageRegionExclusionIteratorWithIndex<itkVolumeType> ExclusionItera
 
 // Expand To Fit Region's Auxiliar Function
 //-----------------------------------------------------------------------------
-VolumeOutputType::VolumeRegion BoundingBox(VolumeOutputType::VolumeRegion v1,
-                                       VolumeOutputType::VolumeRegion v2)
+EspinaVolume::VolumeRegion BoundingBox(EspinaVolume::VolumeRegion v1,
+                                       EspinaVolume::VolumeRegion v2)
 {
-  VolumeOutputType::VolumeRegion res;
-  VolumeOutputType::VolumeRegion::IndexType minIndex, maxIndex;
+  EspinaVolume::VolumeRegion res;
+  EspinaVolume::VolumeRegion::IndexType minIndex, maxIndex;
 
   for(unsigned int i = 0; i < 3; i++)
   {
@@ -901,7 +899,7 @@ VolumeOutputType::VolumeRegion BoundingBox(VolumeOutputType::VolumeRegion v1,
 }
 
 //----------------------------------------------------------------------------
-void VolumeOutputType::expandToFitRegion(EspinaRegion region)
+void EspinaVolume::expandToFitRegion(EspinaRegion region)
 {
   if (m_volume->GetLargestPossibleRegion() != m_volume->GetBufferedRegion())
   {
@@ -913,7 +911,7 @@ void VolumeOutputType::expandToFitRegion(EspinaRegion region)
   if (!region.isInside(currentRegion))
   {
     EspinaRegion expandedRegion = BoundingBox(currentRegion, region);
-    VolumeOutputType expandedVolume(expandedRegion, m_volume->GetSpacing());
+    EspinaVolume expandedVolume(expandedRegion, m_volume->GetSpacing());
 
     VolumeRegion commonRegion = expandedVolume.volumeRegion(currentRegion);
     // Do a block copy for the overlapping region.
@@ -942,7 +940,7 @@ void VolumeOutputType::expandToFitRegion(EspinaRegion region)
 
 
 //----------------------------------------------------------------------------
-VolumeOutputType::VolumeRegion VolumeOutputType::volumeRegion(EspinaRegion region, itkVolumeType::SpacingType spacing) const
+EspinaVolume::VolumeRegion EspinaVolume::volumeRegion(EspinaRegion region, itkVolumeType::SpacingType spacing) const
 {
   VolumeRegion res;
 
@@ -959,14 +957,14 @@ VolumeOutputType::VolumeRegion VolumeOutputType::volumeRegion(EspinaRegion regio
 }
 
 //----------------------------------------------------------------------------
-VolumeOutputTypeSPtr EspINA::volumeOutput(OutputSPtr output)
+EspinaVolumeSPtr EspINA::outputEspinaVolume(OutputSPtr output)
 {
-  return boost::dynamic_pointer_cast<VolumeOutputType>(output->data(VolumeOutputType::TYPE));
+  return boost::dynamic_pointer_cast<EspinaVolume>(output->data(EspinaVolume::TYPE));
 }
 
 //----------------------------------------------------------------------------
 ChannelVolumeType::ChannelVolumeType(itkVolumeType::Pointer volume, FilterOutput *output)
-: VolumeOutputType(volume, output)
+: EspinaVolume(volume, output)
 {
 }
 
@@ -974,19 +972,19 @@ ChannelVolumeType::ChannelVolumeType(itkVolumeType::Pointer volume, FilterOutput
 ChannelVolumeType::ChannelVolumeType(const EspinaRegion& region,
                                      itkVolumeType::SpacingType spacing,
                                      FilterOutput *output)
-: VolumeOutputType(region, spacing, output)
+: EspinaVolume(region, spacing, output)
 {
 }
 
 //----------------------------------------------------------------------------
-ChannelVolumeTypeSPtr EspINA::channelVolumeOutput(OutputSPtr output)
+ChannelVolumeTypeSPtr EspINA::outputChannelVolume(OutputSPtr output)
 {
-  return boost::dynamic_pointer_cast<ChannelVolumeType>(output->data(VolumeOutputType::TYPE));
+  return boost::dynamic_pointer_cast<ChannelVolumeType>(output->data(EspinaVolume::TYPE));
 }
 
 //----------------------------------------------------------------------------
 SegmentationVolumeType::SegmentationVolumeType(FilterOutput *output)
-: VolumeOutputType(output)
+: EspinaVolume(output)
 {
 
 }
@@ -994,7 +992,7 @@ SegmentationVolumeType::SegmentationVolumeType(FilterOutput *output)
 //----------------------------------------------------------------------------
 SegmentationVolumeType::SegmentationVolumeType(itkVolumeType::Pointer volume,
                                                FilterOutput *output)
-: VolumeOutputType(volume, output)
+: EspinaVolume(volume, output)
 {
 }
 
@@ -1002,7 +1000,7 @@ SegmentationVolumeType::SegmentationVolumeType(itkVolumeType::Pointer volume,
 SegmentationVolumeType::SegmentationVolumeType(const EspinaRegion& region,
                                                itkVolumeType::SpacingType spacing,
                                                FilterOutput *output)
-: VolumeOutputType(region, spacing, output)
+: EspinaVolume(region, spacing, output)
 {
 }
 
@@ -1048,59 +1046,7 @@ bool SegmentationVolumeType::fitToContent() throw(itk::ExceptionObject)
 }
 
 //----------------------------------------------------------------------------
-SegmentationVolumeTypeSPtr EspINA::segmentationVolumeOutput(OutputSPtr output)
+SegmentationVolumeTypeSPtr EspINA::outputSegmentationVolume(OutputSPtr output)
 {
-  return boost::dynamic_pointer_cast<SegmentationVolumeType>(output->data(VolumeOutputType::TYPE));
+  return boost::dynamic_pointer_cast<SegmentationVolumeType>(output->data(EspinaVolume::TYPE));
 }
-
-
-// //------------------------------------------------------------------------
-// vtkAlgorithmOutput* SegmentationVolume::toMesh()
-// {
-//   vtkAlgorithmOutput *vtkVolume = toVTK();
-//   int extent[6];
-//   vtkImageData *image = vtkImageData::SafeDownCast(vtkVolume->GetProducer()->GetOutputDataObject(0));
-//   image->GetExtent(extent);
-//   extent[0]--;
-//   extent[1]++;
-//   extent[2]--;
-//   extent[3]++;
-//   extent[4]--;
-//   extent[5]++;
-// 
-//   if (NULL == m_padfilter)
-//   {
-//     // segmentation image need to be padded to avoid segmentation voxels from touching the edges of the
-//     // image (and create morphologically correct actors)
-// 
-//     m_padfilter = vtkSmartPointer<vtkImageConstantPad>::New();
-//     m_padfilter->SetInputConnection(vtkVolume);
-//     m_padfilter->SetOutputWholeExtent(extent[0], extent[1], extent[2], extent[3], extent[4], extent[5]);
-//     m_padfilter->SetConstant(0);
-// 
-//     m_march = vtkSmartPointer<vtkDiscreteMarchingCubes>::New();
-//     m_march->ReleaseDataFlagOn();
-//     m_march->SetNumberOfContours(1);
-//     m_march->GenerateValues(1, 255, 255);
-//     m_march->ComputeScalarsOff();
-//     m_march->ComputeNormalsOff();
-//     m_march->ComputeGradientsOff();
-//     m_march->SetInputConnection(m_padfilter->GetOutputPort());
-//   }
-//   else
-//   {
-//     if (m_padfilter->GetInputConnection(0,0) != toVTK())
-//       m_padfilter->SetInputConnection(toVTK());
-// 
-//     int outputExtent[6];
-//     m_padfilter->GetOutputWholeExtent(outputExtent);
-//     if (memcmp(extent, outputExtent, 6*sizeof(int)) != 0)
-//     {
-//       m_padfilter->SetOutputWholeExtent(extent[0], extent[1], extent[2], extent[3], extent[4], extent[5]);
-//       m_padfilter->Update();
-//     }
-//   }
-// 
-//   m_march->Update();
-//   return m_march->GetOutput()->GetProducerPort();
-// }

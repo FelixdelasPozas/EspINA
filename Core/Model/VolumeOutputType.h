@@ -26,7 +26,6 @@
 #include "Core/Model/OutputType.h"
 
 // ITK
-#include <itkImageRegionIteratorWithIndex.h>
 #include <itkImageToVTKImageFilter.h>
 
 // VTK
@@ -35,33 +34,20 @@
 // boost
 #include <boost/shared_ptr.hpp>
 
-class vtkAlgorithmOutput;
-class vtkDiscreteMarchingCubes;
-class vtkImageConstantPad;
-class vtkImplicitFunction;
-class vtkPolyData;
-
 namespace EspINA
 {
-  typedef itk::ImageRegionIteratorWithIndex<itkVolumeType>      itkVolumeIterator;
-  typedef itk::ImageRegionConstIteratorWithIndex<itkVolumeType> itkVolumeConstIterator;
-
-  class VolumeOutputType
-  : public FilterOutput::OutputType
+  class EspinaVolume
+  : public VolumeOutputType
   {
     Q_OBJECT
   public:
-    static const FilterOutput::OutputTypeName TYPE;
-
-    typedef itkVolumeType::RegionType           VolumeRegion;
-
-    explicit VolumeOutputType(FilterOutput *output = NULL);
-    explicit VolumeOutputType(itkVolumeType::Pointer volume,
-                              FilterOutput *output = NULL);
-    explicit VolumeOutputType(const EspinaRegion &region,
-                              itkVolumeType::SpacingType spacing,
-                              FilterOutput *output = NULL);
-    virtual ~VolumeOutputType(){}
+    explicit EspinaVolume(FilterOutput *output = NULL);
+    explicit EspinaVolume(itkVolumeType::Pointer volume,
+                          FilterOutput *output = NULL);
+    explicit EspinaVolume(const EspinaRegion &region,
+                          itkVolumeType::SpacingType spacing,
+                          FilterOutput *output = NULL);
+    virtual ~EspinaVolume(){}
 
     virtual FilterOutput::OutputTypeName type() const
     { return TYPE; }
@@ -111,12 +97,12 @@ namespace EspINA
                       bool emitSignal = true);
 
     /// Fill output's volume's region with given value
-    void fill(const EspinaRegion &region,
+    virtual void fill(const EspinaRegion &region,
                       itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
                       bool emitSignal = true);
 
     virtual bool dumpSnapshot(const QString &prefix, Snapshot &snapshot);
-    virtual bool fetchSnapshot(const QString &prefix);
+    virtual bool fetchSnapshot(Filter *filter, const QString &prefix);
 
     virtual bool isEdited() const
     {return !m_editedRegions.isEmpty();}
@@ -124,7 +110,7 @@ namespace EspINA
     virtual bool isValid() const
     { return m_volume.IsNotNull(); }
 
-    void addEditedRegion(const EspinaRegion &region);
+    virtual void addEditedRegion(const EspinaRegion &region);
 
     virtual FilterOutput::NamedRegionList editedRegions() const;
 
@@ -132,9 +118,8 @@ namespace EspINA
 
     virtual void dumpEditedRegions(const QString &prefix) const;
 
-    virtual void restoreEditedRegion(const EspinaRegion &region, const QString &prefix);
+    virtual void restoreEditedRegion(Filter *filter, const EspinaRegion &region, const QString &prefix);
 
-    //VolumeOutputType operator=(itkVolumeType::Pointer volume);
     virtual void setVolume(itkVolumeType::Pointer volume, bool disconnect=false);
 
     /// Volume's voxel's index at given spatial position
@@ -143,15 +128,20 @@ namespace EspINA
 
     /// Get the vtk-equivalent extent defining the volume
     virtual void extent(int out[6]) const;
+
     /// Get the vtk-equivalent bounds defining the volume
     virtual void bounds(double out[6]) const;
     ///
     virtual void spacing(double out[3]) const;
 
-    virtual EspinaRegion espinaRegion() const;/// Equivalent to bounds method
+    /// Equivalent to bounds method
+    virtual EspinaRegion espinaRegion() const;
 
-    virtual VolumeRegion volumeRegion() const;/// Largest possible region
-    virtual VolumeRegion volumeRegion(const EspinaRegion &region) const; /// Volume's region equivalent to the normalized region
+    /// Largest possible region
+    virtual VolumeRegion volumeRegion() const;
+
+    /// Volume's region equivalent to the normalized region
+    virtual VolumeRegion volumeRegion(const EspinaRegion &region) const; 
 
     virtual itkVolumeIterator iterator();
     virtual itkVolumeIterator iterator(const EspinaRegion &region);
@@ -179,9 +169,9 @@ namespace EspINA
     void modified();
 
   private:
-    explicit VolumeOutputType(const VolumeRegion &region,
-                              itkVolumeType::SpacingType spacing,
-                              FilterOutput *output);
+    explicit EspinaVolume(const VolumeRegion &region,
+                          itkVolumeType::SpacingType spacing,
+                          FilterOutput *output);
 
     VolumeRegion volumeRegion(EspinaRegion region, itkVolumeType::SpacingType spacing) const;
 
@@ -197,12 +187,12 @@ namespace EspINA
     mutable unsigned long int m_ITKGenerationTime;
   };
 
-  typedef boost::shared_ptr<VolumeOutputType> VolumeOutputTypeSPtr;
+  typedef boost::shared_ptr<EspinaVolume> EspinaVolumeSPtr;
 
-  VolumeOutputTypeSPtr volumeOutput(OutputSPtr output);
+  EspinaVolumeSPtr outputEspinaVolume(OutputSPtr output);
 
   class ChannelVolumeType
-  : public VolumeOutputType
+  : public EspinaVolume
   {
   public:
     explicit ChannelVolumeType(itkVolumeType::Pointer volume,
@@ -215,10 +205,10 @@ namespace EspINA
 
   typedef boost::shared_ptr<ChannelVolumeType> ChannelVolumeTypeSPtr;
 
-  ChannelVolumeTypeSPtr channelVolumeOutput(OutputSPtr output);
+  ChannelVolumeTypeSPtr outputChannelVolume(OutputSPtr output);
 
   class SegmentationVolumeType
-  : public VolumeOutputType
+  : public EspinaVolume
   {
   public:
     explicit SegmentationVolumeType(FilterOutput *output = NULL);
@@ -235,17 +225,10 @@ namespace EspINA
     /// contained segmentation
     virtual bool fitToContent() throw(itk::ExceptionObject);
 
-//     // get mesh representation of the volume
-//     virtual vtkAlgorithmOutput *toMesh();
-// 
-//   private:
-//     // vtkPolydata generation filter
-//     vtkSmartPointer<vtkImageConstantPad>      m_padfilter;
-//     vtkSmartPointer<vtkDiscreteMarchingCubes> m_march;
   };
 
   typedef boost::shared_ptr<SegmentationVolumeType> SegmentationVolumeTypeSPtr;
-  SegmentationVolumeTypeSPtr segmentationVolumeOutput(OutputSPtr output);
+  SegmentationVolumeTypeSPtr outputSegmentationVolume(OutputSPtr output);
 
 } // namespace EspINA
 

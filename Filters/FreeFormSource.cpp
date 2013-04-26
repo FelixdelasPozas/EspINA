@@ -21,6 +21,7 @@
 
 // EspINA
 #include "Core/Model/EspinaFactory.h"
+#include <GUI/Representations/SliceRepresentation.h>
 
 // ITK
 #include <itkImageRegionIteratorWithIndex.h>
@@ -142,6 +143,15 @@ void FreeFormSource::draw(FilterOutputId oId,
     EspINA::Filter::draw(oId, volume, emitSignal);
 }
 
+//-----------------------------------------------------------------------------
+void FreeFormSource::createOutputRepresentations(OutputSPtr output)
+{
+  VolumeOutputTypeSPtr volumeData = outputVolume(output);
+  output->addRepresentation(EspinaRepresentationSPtr(new SegmentationSliceRepresentation(volumeData, NULL)));
+  //   output->addRepresentation(EspinaRepresentationSPtr(new VolumeReprentation  (volumeOutput(output))));
+  //   output->addRepresentation(EspinaRepresentationSPtr(new MeshRepresentation  (meshOutput  (output))));
+  //   output->addRepresentation(EspinaRepresentationSPtr(new SmoothRepresentation(meshOutput  (output))));
+}
 
 //-----------------------------------------------------------------------------
 bool FreeFormSource::needUpdate(FilterOutputId oId) const

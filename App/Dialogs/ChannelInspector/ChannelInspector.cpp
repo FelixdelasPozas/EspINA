@@ -229,7 +229,7 @@ void ChannelInspector::changeSpacing()
     if (EspINA::SEGMENTATION == item->type())
     {
       SegmentationSPtr seg = segmentationPtr(item);
-      SegmentationVolumeTypeSPtr segVolume = boost::dynamic_pointer_cast<SegmentationVolumeType>(seg->output()->data(VolumeOutputType::TYPE));
+      SegmentationVolumeTypeSPtr segVolume = outputSegmentationVolume(seg->output());
 
       double oldSpacing[3];
       segVolume->spacing(oldSpacing);
@@ -430,7 +430,7 @@ void ChannelInspector::rejectedChanges()
       if (EspINA::SEGMENTATION == item->type())
       {
         SegmentationSPtr seg = segmentationPtr(item);
-        SegmentationVolumeTypeSPtr segVolume = boost::dynamic_pointer_cast<SegmentationVolumeType>(seg->output()->data(VolumeOutputType::TYPE));
+        SegmentationVolumeTypeSPtr segVolume = outputSegmentationVolume(seg->output());
 
         double oldSpacing[3];
         segVolume->spacing(oldSpacing);

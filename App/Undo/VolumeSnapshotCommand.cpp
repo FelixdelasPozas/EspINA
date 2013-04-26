@@ -37,7 +37,7 @@ VolumeSnapshotCommand::VolumeSnapshotCommand(OutputSPtr output)
 : QUndoCommand()
 , m_output(output)
 {
-  VolumeOutputTypeSPtr volume = boost::dynamic_pointer_cast<VolumeOutputType>(m_output->data(VolumeOutputType::TYPE));
+  VolumeOutputTypeSPtr volume = outputVolume(m_output);
   m_prevVolume = volume->cloneVolume();
 }
 
@@ -52,7 +52,7 @@ void VolumeSnapshotCommand::redo()
 void VolumeSnapshotCommand::undo()
 {
   if (m_newVolume.IsNull())
-    m_newVolume = boost::dynamic_pointer_cast<VolumeOutputType>(m_output->data(VolumeOutputType::TYPE))->cloneVolume();
+    m_newVolume = outputVolume(m_output)->cloneVolume();
   if (m_prevVolume.IsNotNull())
     m_output->filter()->restoreOutput(m_output->id(), m_prevVolume);
 }

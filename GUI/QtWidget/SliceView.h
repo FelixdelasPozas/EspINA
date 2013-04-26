@@ -270,11 +270,11 @@ namespace EspINA
   private:
     struct ChannelState
     {
-      double    brightness;
-      double    contrast;
-      double    opacity;
-      QColor    stain;
-      bool      visible;
+      double brightness;
+      double contrast;
+      double opacity;
+      QColor stain;
+      bool   visible;
 
       ChannelRepresentationList representations;
     };

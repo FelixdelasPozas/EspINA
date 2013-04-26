@@ -88,19 +88,15 @@ const FilterOutputId Channel::outputId() const
 }
 
 //------------------------------------------------------------------------
-VolumeOutputTypeSPtr Channel::volume()
+ChannelVolumeTypeSPtr Channel::volume()
 {
   return static_cast<const Channel *>(this)->volume();
 }
 
 //------------------------------------------------------------------------
-const VolumeOutputTypeSPtr Channel::volume() const
+const ChannelVolumeTypeSPtr Channel::volume() const
 {
-  // On invalid cast:
-  // The static_pointer_cast will "just do it". This will result in an invalid pointer and will likely cause a crash. The reference count on base will be incremented.
-  // The shared_polymorphic_downcast will come the same as a static cast, but will trigger an assertion in the process. The reference count on base will be incremented.
-  // The dynamic_pointer_cast will simply come out NULL. The reference count on base will be unchanged.
-  return boost::dynamic_pointer_cast<VolumeOutputType>(output()->data(VolumeOutputType::TYPE));
+  return outputChannelVolume(output());
 }
 
 

@@ -19,6 +19,7 @@
 
 // EspINA
 #include "SplitFilter.h"
+#include <GUI/Representations/SliceRepresentation.h>
 
 // ITK
 #include <itkImageRegionConstIteratorWithIndex.h>
@@ -56,6 +57,22 @@ SplitFilter::~SplitFilter()
 }
 
 //-----------------------------------------------------------------------------
+void SplitFilter::createDummyOutput(FilterOutputId id, const FilterOutput::OutputTypeName &type)
+{
+
+}
+
+//-----------------------------------------------------------------------------
+void SplitFilter::createOutputRepresentations(OutputSPtr output)
+{
+  VolumeOutputTypeSPtr volumeData = outputVolume(output);
+  output->addRepresentation(EspinaRepresentationSPtr(new SegmentationSliceRepresentation(volumeData, NULL)));
+  //   output->addRepresentation(EspinaRepresentationSPtr(new VolumeReprentation  (volumeOutput(output))));
+  //   output->addRepresentation(EspinaRepresentationSPtr(new MeshRepresentation  (meshOutput  (output))));
+  //   output->addRepresentation(EspinaRepresentationSPtr(new SmoothRepresentation(meshOutput  (output))));
+}
+
+//-----------------------------------------------------------------------------
 bool SplitFilter::needUpdate(FilterOutputId oId) const
 {
   return Filter::needUpdate(oId);
@@ -75,7 +92,7 @@ void SplitFilter::run(FilterOutputId oId)
   Q_ASSERT(0 == oId || 1 == oId);
   Q_ASSERT(m_inputs.size() == 1);
 
-  SegmentationVolumeTypeSPtr input = segmentationVolumeOutput(m_inputs[0]);
+  SegmentationVolumeTypeSPtr input = outputSegmentationVolume(m_inputs[0]);
   Q_ASSERT(input);
 
   // if you want to run the filter you must have an stencil
