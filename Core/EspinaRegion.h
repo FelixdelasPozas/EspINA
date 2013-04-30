@@ -28,6 +28,7 @@ namespace EspINA
   class EspinaRegion
   {
   public:
+    explicit EspinaRegion();
     explicit EspinaRegion(const Nm  bounds[6]);
     explicit EspinaRegion(const Nm minX, const Nm maxX,
                           const Nm minY, const Nm maxY,

@@ -18,8 +18,15 @@
 
 
 #include "EspinaRegion.h"
+#include <vtkMath.h>
 
 using namespace EspINA;
+
+//-----------------------------------------------------------------------------
+EspinaRegion::EspinaRegion()
+{
+  vtkMath::UninitializeBounds(m_bounds);
+}
 
 //-----------------------------------------------------------------------------
 EspinaRegion::EspinaRegion(const Nm bounds[6])

@@ -193,7 +193,7 @@ void SegmentationFilter::update(FilterOutputId oId)
 //----------------------------------------------------------------------------
 bool SegmentationFilter::fetchSnapshot(FilterOutputId oId)
 {
-  if (numberOfOutputs()) // contains??
+  if (numberOfOutputs() == 0) // contains??
     return false;
 
   Q_ASSERT(m_outputs.contains(oId));
@@ -492,14 +492,17 @@ void addSegmentationRepresentation(SegmentationOutputSPtr output, SegmentationRe
 }
 
 //----------------------------------------------------------------------------
-void SegmentationFilter::createOutput(FilterOutputId id, SegmentationRepresentationSPtr data)
+void SegmentationFilter::createOutput(FilterOutputId id, SegmentationRepresentationSPtr rep)
 {
   if (!m_outputs.contains(id))
+  {
     m_outputs[id] = SegmentationOutputSPtr(new SegmentationOutput(this, id));
+    createDummyOutput(id, rep->type());
+  }
 
   SegmentationOutputSPtr currentOutput = m_outputs[id];
 
-  addSegmentationRepresentation(currentOutput, data);
+  addSegmentationRepresentation(currentOutput, rep);
 
   createOutputRepresentations(currentOutput);
 }
@@ -508,7 +511,13 @@ void SegmentationFilter::createOutput(FilterOutputId id, SegmentationRepresentat
 void SegmentationFilter::createOutput(FilterOutputId id, SegmentationRepresentationSList repList)
 {
   if (!m_outputs.contains(id))
+  {
     m_outputs[id] = SegmentationOutputSPtr(new SegmentationOutput(this, id));
+    foreach(SegmentationRepresentationSPtr rep, repList)
+    {
+      createDummyOutput(id, rep->type());
+    }
+  }
 
   SegmentationOutputSPtr currentOutput = m_outputs[id];
 

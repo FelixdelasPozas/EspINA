@@ -286,7 +286,7 @@ namespace EspINA
     virtual bool fetchSnapshot(FilterOutputId oId);
 
 
-    virtual void createOutput(FilterOutputId id, SegmentationRepresentationSPtr  data);
+    virtual void createOutput(EspINA::FilterOutputId id, EspINA::SegmentationRepresentationSPtr rep);
     virtual void createOutput(FilterOutputId id, SegmentationRepresentationSList repList);
 
     virtual void createOutputRepresentations(SegmentationOutputSPtr output) = 0;

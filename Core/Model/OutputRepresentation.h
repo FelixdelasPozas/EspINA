@@ -74,7 +74,7 @@ namespace EspINA
     explicit OutputRepresentation(FilterOutput *output)
     : m_output(output), m_timeStamp(s_tick++) {}
 
-    void markAsModified() 
+    void updateModificationTime() 
     {
       m_timeStamp = s_tick++;
     }

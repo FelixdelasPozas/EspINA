@@ -19,6 +19,8 @@
 
 #include "Core/Model/EspinaModel.h"
 #include <Core/Model/MarchingCubesMesh.h>
+#include <Core/Outputs/VolumeProxy.h>
+#include <Core/Outputs/MeshProxy.h>
 #include <GUI/Representations/SliceRepresentation.h>
 
 #include <QDebug>
@@ -81,7 +83,9 @@ QVariant SeedGrowSegmentationFilter::data(int role) const
 void SeedGrowSegmentationFilter::createDummyOutput(FilterOutputId id, const FilterOutput::OutputRepresentationName &type)
 {
   if (SegmentationVolume::TYPE == type)
-    createOutput(id, RawSegmentationVolumeSPtr(new RawSegmentationVolume()));
+    createOutput(id, VolumeProxySPtr(new VolumeProxy()));
+  else if (MeshType::TYPE == type)
+    createOutput(id, MeshProxySPtr(new MeshProxy()));
   else
     Q_ASSERT(false);
 }

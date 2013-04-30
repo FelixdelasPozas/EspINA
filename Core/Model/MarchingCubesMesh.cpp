@@ -41,7 +41,7 @@ using namespace EspINA;
 MarchingCubesMesh::MarchingCubesMesh(FilterOutput *output)
 : MeshType(output)
 {
-  connect(this, SIGNAL(outputChanged()),
+  connect(this, SIGNAL(representationChanged()),
           this, SLOT(updateMesh()));
 }
 
