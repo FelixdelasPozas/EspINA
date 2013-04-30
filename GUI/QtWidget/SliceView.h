@@ -28,7 +28,7 @@
 #include "GUI/ViewManager.h"
 #include "GUI/ISettingsPanel.h"
 #include "GUI/vtkWidgets/EspinaWidget.h"
-#include <GUI/Representations/IEspinaRepresentation.h>
+#include <GUI/Representations/GraphicalRepresentation.h>
 #include <Core/Model/HierarchyItem.h>
 
 #include <itkImageToVTKImageFilter.h>
@@ -213,11 +213,11 @@ namespace EspINA
 
     struct ChannelPick
     {
-      ChannelPick(ChannelPtr channel, EspinaRepresentationSPtr representation, vtkProp *prop)
+      ChannelPick(ChannelPtr channel, GraphicalRepresentationSPtr representation, vtkProp *prop)
       : Channel(channel), Representation(representation), Prop(prop) {}
 
       ChannelPtr               Channel;
-      EspinaRepresentationSPtr Representation;
+      GraphicalRepresentationSPtr Representation;
       vtkProp                 *Prop;
     };
     typedef QList<ChannelPick> ChannelPickList;
@@ -225,11 +225,11 @@ namespace EspINA
 
     struct SegmentationPick
     {
-      SegmentationPick(SegmentationPtr segmentation, EspinaRepresentationSPtr representation, vtkProp *prop)
+      SegmentationPick(SegmentationPtr segmentation, GraphicalRepresentationSPtr representation, vtkProp *prop)
       : Segmentation(segmentation), Representation(representation), Prop(prop) {}
 
       SegmentationPtr          Segmentation;
-      EspinaRepresentationSPtr Representation;
+      GraphicalRepresentationSPtr Representation;
       vtkProp                 *Prop;
     };
     typedef QList<SegmentationPick> SegmentationPickList;
@@ -276,17 +276,18 @@ namespace EspINA
       QColor stain;
       bool   visible;
 
-      ChannelRepresentationList representations;
+      ChannelGraphicalRepresentationList representations;
     };
 
     struct SegmentationState
     {
-      Nm     depth;
-      QColor color;
-      bool   highlited;
-      bool   visible;
+      Nm         depth;
+      QColor     color;
+      bool       highlited;
+      OutputSPtr output;
+      bool       visible;
 
-      SegmentationRepresentationList representations;
+      SegmentationGraphicalRepresentationList representations;
     };
 
     ViewManager *m_viewManager;
@@ -345,7 +346,7 @@ namespace EspINA
     QMap<SegmentationPtr, SegmentationState> m_segmentationStates;
     QMap<EspinaWidget *, SliceWidget *>      m_widgets;
 
-    friend class IEspinaRepresentation;
+    friend class GraphicalRepresentation;
   };
 
   class SliceView::Settings

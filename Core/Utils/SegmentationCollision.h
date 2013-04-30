@@ -20,13 +20,13 @@
 #ifndef SEGMENTATIONCOLLISION_H
 #define SEGMENTATIONCOLLISION_H
 
-#include <Core/Model/VolumeOutputType.h>
+#include <Core/Outputs/RawVolume.h>
 
 namespace EspINA
 {
   // checks if both volumes collide at the voxel level
-  bool checkCollision(SegmentationVolumeTypeSPtr seg1,
-                      SegmentationVolumeTypeSPtr seg2);
+  bool checkCollision(SegmentationVolumeSPtr seg1,
+                      SegmentationVolumeSPtr seg2);
 }
 
 #endif // SEGMENTATIONCOLLISION_H

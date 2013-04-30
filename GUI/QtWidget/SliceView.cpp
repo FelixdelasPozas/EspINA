@@ -25,7 +25,7 @@
 #include "GUI/QtWidget/vtkInteractorStyleEspinaSlice.h"
 #include "GUI/QtWidget/SliceSelectorWidget.h"
 #include "GUI/ViewManager.h"
-#include <GUI/Representations/IEspinaRepresentation.h>
+#include <GUI/Representations/GraphicalRepresentation.h>
 #include <GUI/Representations/SliceRepresentation.h>
 #include <Core/ColorEngines/IColorEngine.h>
 #include <Core/ColorEngines/TransparencySelectionHighlighter.h>
@@ -780,11 +780,11 @@ void SliceView::addChannel(ChannelPtr channel)
   state.stain      = stain;
   state.visible    = channel->isVisible();
 
-  foreach (EspinaRepresentationSPtr prototype, channel->representations())
+  foreach (GraphicalRepresentationSPtr prototype, channel->representations())
   {
-    if (prototype->canRenderOnView().testFlag(IEspinaRepresentation::SLICE_VIEW))
+    if (prototype->canRenderOnView().testFlag(GraphicalRepresentation::SLICE_VIEW))
     {
-      ChannelRepresentationSPtr representation = boost::dynamic_pointer_cast<ChannelRepresentation>(prototype->clone(this));
+      ChannelGraphicalRepresentationSPtr representation = boost::dynamic_pointer_cast<ChannelGraphicalRepresentation>(prototype->clone(this));
 
       representation->setBrightness(state.brightness);
       representation->setContrast(state.contrast);
@@ -811,7 +811,7 @@ void SliceView::addChannel(ChannelPtr channel)
 
   // NOTE: this signal is not disconnected when a channel is removed because is
   // used in the redo/undo of UnloadChannelCommand
-  connect(channel->volume().get(), SIGNAL(modified()),
+  connect(channel->volume().get(), SIGNAL(representationChanged()),
           this, SLOT(updateSceneBounds()));
 }
 
@@ -868,7 +868,7 @@ bool SliceView::updateChannelRepresentation(ChannelPtr channel, bool render)
   {
     opacityChanged &= Channel::AUTOMATIC_OPACITY != state.opacity;
 
-    foreach (ChannelRepresentationSPtr representation, state.representations)
+    foreach (ChannelGraphicalRepresentationSPtr representation, state.representations)
     {
       if (brightnessChanged) representation->setBrightness(state.brightness);
       if (contrastChanged  ) representation->setContrast(state.contrast);
@@ -916,28 +916,9 @@ void SliceView::addSegmentation(SegmentationPtr seg)
 
   SegmentationState state;
 
-  state.color    = m_viewManager->color(seg);
-  state.depth    = segmentationDepth();
-  state.highlited = false;
-  state.visible  = seg->visible() && m_showSegmentations;
+  state.visible   = false; 
 
-  foreach(EspinaRepresentationSPtr prototype, seg->representations())
-  {
-    if (prototype->canRenderOnView().testFlag(IEspinaRepresentation::SLICE_VIEW))
-    {
-      EspinaRepresentationSPtr representation = prototype->clone(this);
-
-      representation->setColor(m_viewManager->color(seg));
-      representation->setHighlighted(state.highlited);
-      representation->setVisible(state.visible);
-
-      representation->updateRepresentation();
-
-      state.representations << boost::dynamic_pointer_cast<SegmentationRepresentation>(representation);
-
-      m_segmentationStates.insert(seg, state);
-    }
-  }
+  m_segmentationStates.insert(seg, state);
 }
 
 //-----------------------------------------------------------------------------
@@ -962,6 +943,7 @@ bool SliceView::updateSegmentationRepresentation(SegmentationPtr seg, bool rende
   state.visible = requestedVisibility;
 
   bool colorChanged     = false;
+  bool outputChanged    = false;
   bool highlightChanged = false;
 
   if (state.visible)
@@ -969,17 +951,34 @@ bool SliceView::updateSegmentationRepresentation(SegmentationPtr seg, bool rende
     QColor requestedColor       = m_viewManager->color(seg);
     bool   requestedHighlighted = seg->isSelected();
 
-    colorChanged     = state.color != requestedColor;
-    highlightChanged = state.highlited != requestedHighlighted;
+    outputChanged    = state.output != seg->output();
+    colorChanged     = state.color != requestedColor           || outputChanged;
+    highlightChanged = state.highlited != requestedHighlighted || outputChanged;
 
     state.color     = requestedColor;
     state.highlited = requestedHighlighted;
+    state.output    = seg->output();
+  }
+
+  if (outputChanged)
+  {
+    state.representations.clear();
+
+    foreach(GraphicalRepresentationSPtr prototype, seg->representations())
+    {
+      if (prototype->canRenderOnView().testFlag(GraphicalRepresentation::SLICE_VIEW))
+      {
+        GraphicalRepresentationSPtr representation = prototype->clone(this);
+
+        state.representations << boost::dynamic_pointer_cast<SegmentationGraphicalRepresentation>(representation);
+      }
+    }
   }
 
   bool hasChanged = visibilityChanged || colorChanged || highlightChanged;
   if (hasChanged)
   {
-    foreach(EspinaRepresentationSPtr representation, state.representations)
+    foreach(GraphicalRepresentationSPtr representation, state.representations)
     {
       if (colorChanged)      representation->setColor(m_viewManager->color(seg));
       if (highlightChanged)  representation->setHighlighted(state.highlited);
@@ -1519,7 +1518,7 @@ void SliceView::updateChannelsOpactity()
   {
     if (Channel::AUTOMATIC_OPACITY == channel->opacity())
     {
-      foreach(ChannelRepresentationSPtr representation, m_channelStates[channel].representations)
+      foreach(ChannelGraphicalRepresentationSPtr representation, m_channelStates[channel].representations)
       {
         representation->setOpacity(opacity);
       }
@@ -1532,13 +1531,13 @@ SliceView::ChannelPick SliceView::propToChannel(vtkProp* prop)
 {
   foreach(ChannelPtr channel, m_channelStates.keys())
   {
-    foreach(EspinaRepresentationSPtr representation, m_channelStates[channel].representations)
+    foreach(GraphicalRepresentationSPtr representation, m_channelStates[channel].representations)
     {
       if (representation->hasActor(prop))
         return ChannelPick(channel, representation, prop);
     }
   }
-  return ChannelPick(NULL, EspinaRepresentationSPtr() , NULL);
+  return ChannelPick(NULL, GraphicalRepresentationSPtr() , NULL);
 }
 
 //-----------------------------------------------------------------------------
@@ -1546,14 +1545,14 @@ SliceView::SegmentationPick SliceView::propToSegmentation(vtkProp* prop)
 {
   foreach(SegmentationPtr segmentation, m_segmentationStates.keys())
   {
-    foreach(EspinaRepresentationSPtr representation, m_segmentationStates[segmentation].representations)
+    foreach(GraphicalRepresentationSPtr representation, m_segmentationStates[segmentation].representations)
     {
       if (representation->hasActor(prop))
         return SegmentationPick(segmentation, representation, prop);
     }
   }
 
-  return SegmentationPick(NULL, EspinaRepresentationSPtr(), NULL);
+  return SegmentationPick(NULL, GraphicalRepresentationSPtr(), NULL);
 }
 
 

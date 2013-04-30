@@ -82,7 +82,7 @@ namespace EspINA
         bool   highlighted;
         bool   visible;
 
-        EspinaRepresentationSPtr representation;
+        GraphicalRepresentationSPtr representation;
       };
 
       QMap<ModelItemPtr, State>      m_segmentations;

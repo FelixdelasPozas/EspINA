@@ -37,7 +37,7 @@ class EspinaRenderView;
   class SliceView;
   class VolumeView;
 
-  class IEspinaRepresentation
+  class GraphicalRepresentation
   : public QObject
   {
   public:
@@ -49,9 +49,9 @@ class EspinaRenderView;
     Q_DECLARE_FLAGS(RenderableView, RenderableViews);
 
   public:
-    explicit IEspinaRepresentation(EspinaRenderView *view);
+    explicit GraphicalRepresentation(EspinaRenderView *view);
 
-    virtual ~IEspinaRepresentation(){}
+    virtual ~GraphicalRepresentation(){}
 
     virtual void setActive(bool value, EspinaRenderView *view = NULL);
 
@@ -86,8 +86,8 @@ class EspinaRenderView;
 
     virtual RenderableView canRenderOnView() const = 0;
 
-    virtual EspinaRepresentationSPtr clone(SliceView  *view) = 0;
-    virtual EspinaRepresentationSPtr clone(VolumeView *view) = 0;
+    virtual GraphicalRepresentationSPtr clone(SliceView  *view) = 0;
+    virtual GraphicalRepresentationSPtr clone(VolumeView *view) = 0;
 
     virtual bool hasActor(vtkProp *actor) const = 0;
 
@@ -109,11 +109,11 @@ class EspinaRenderView;
     EspinaRenderView *m_view;
   };
 
-  class ChannelRepresentation
-  : public IEspinaRepresentation
+  class ChannelGraphicalRepresentation
+  : public GraphicalRepresentation
   {
   public:
-    explicit ChannelRepresentation(EspinaRenderView *view);
+    explicit ChannelGraphicalRepresentation(EspinaRenderView *view);
 
     /// Brightness value in range [-1,1]
     virtual void setBrightness(double value)
@@ -145,22 +145,22 @@ class EspinaRenderView;
     double m_opacity;
   };
 
-  typedef boost::shared_ptr<ChannelRepresentation> ChannelRepresentationSPtr;
-  typedef QList<ChannelRepresentationSPtr> ChannelRepresentationList;
+  typedef boost::shared_ptr<ChannelGraphicalRepresentation> ChannelGraphicalRepresentationSPtr;
+  typedef QList<ChannelGraphicalRepresentationSPtr> ChannelGraphicalRepresentationList;
 
   // NOTE: Temporal empty class, maybe useful in a future...
-  class SegmentationRepresentation
-  : public IEspinaRepresentation
+  class SegmentationGraphicalRepresentation
+  : public GraphicalRepresentation
   {
   public:
-    explicit SegmentationRepresentation(EspinaRenderView *view)
-    : IEspinaRepresentation(view) {}
+    explicit SegmentationGraphicalRepresentation(EspinaRenderView *view)
+    : GraphicalRepresentation(view) {}
   };
 
-  typedef boost::shared_ptr<SegmentationRepresentation> SegmentationRepresentationSPtr;
-  typedef QList<SegmentationRepresentationSPtr> SegmentationRepresentationList;
+  typedef boost::shared_ptr<SegmentationGraphicalRepresentation> SegmentationGraphicalRepresentationSPtr;
+  typedef QList<SegmentationGraphicalRepresentationSPtr> SegmentationGraphicalRepresentationList;
 
-  Q_DECLARE_OPERATORS_FOR_FLAGS(IEspinaRepresentation::RenderableView)
+  Q_DECLARE_OPERATORS_FOR_FLAGS(GraphicalRepresentation::RenderableView)
 } // namespace EspINA
 
 #endif // IESPINAREPRESENTATION_H

@@ -60,13 +60,14 @@ StrokeSegmentationCommand::StrokeSegmentationCommand(ChannelPtr channel,
 
   m_filter = FilterSPtr(new FreeFormSource(inputs, args, Brush::FREEFORM_SOURCE_TYPE));
 
+  SegmentationVolumeSPtr volume = segmentationVolume(m_filter->output(0));
   for (int i = 0; i < brushes.size(); i++)
   {
     Brush::BrushShape &brush = brushes[i];
     if (0 == i) // Prevent resizing on each brush
-      m_filter->draw(0, brush.first, strokeBounds, SEG_VOXEL_VALUE, brushes.size()-1 == i);
+      volume->draw(brush.first, strokeBounds, SEG_VOXEL_VALUE, brushes.size()-1 == i);
     else
-      m_filter->draw(0, brush.first, brush.second.bounds(), SEG_VOXEL_VALUE, brushes.size()-1 == i);
+      volume->draw(brush.first, brush.second.bounds(), SEG_VOXEL_VALUE, brushes.size()-1 == i);
   }
 
   m_segmentation = m_model->factory()->createSegmentation(m_filter, 0);

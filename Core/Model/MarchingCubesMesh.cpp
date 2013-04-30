@@ -27,6 +27,9 @@
 
 
 #include "MarchingCubesMesh.h"
+
+#include "Core/Outputs/RawVolume.h"
+
 #include <vtkImageConstantPad.h>
 #include <vtkDiscreteMarchingCubes.h>
 #include <vtkImageData.h>
@@ -36,7 +39,7 @@ using namespace EspINA;
 
 //----------------------------------------------------------------------------
 MarchingCubesMesh::MarchingCubesMesh(FilterOutput *output)
-: MeshOutputType(output)
+: MeshType(output)
 {
   connect(this, SIGNAL(outputChanged()),
           this, SLOT(updateMesh()));
@@ -49,13 +52,13 @@ MarchingCubesMesh::~MarchingCubesMesh()
 }
 
 //----------------------------------------------------------------------------
-bool MarchingCubesMesh::setInternalData(FilterOutput::OutputTypeSPtr rhs)
+bool MarchingCubesMesh::setInternalData(SegmentationRepresentationSPtr rhs)
 {
   return false;
 }
 
 //----------------------------------------------------------------------------
-bool MarchingCubesMesh::dumpSnapshot(const QString &prefix, Snapshot &snapshot)
+bool MarchingCubesMesh::dumpSnapshot(const QString &prefix, Snapshot &snapshot) const
 {
   return false;
 }
@@ -112,7 +115,7 @@ vtkAlgorithmOutput *MarchingCubesMesh::mesh() const
 //----------------------------------------------------------------------------
 void MarchingCubesMesh::updateMesh()
 {
-  vtkAlgorithmOutput *vtkVolume = outputVolume(m_output)->toVTK();
+  vtkAlgorithmOutput *vtkVolume = segmentationVolume(m_output)->toVTK();
 
   int extent[6];
   vtkImageData *image = vtkImageData::SafeDownCast(vtkVolume->GetProducer()->GetOutputDataObject(0));

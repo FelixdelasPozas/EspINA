@@ -20,7 +20,7 @@
 #include "Filter.h"
 #include "EspinaModel.h"
 #include "Output.h"
-#include "VolumeOutputType.h"
+#include "Core/Outputs/VolumeRepresentation.h"
 
 // ITK
 #include <itkRegionOfInterestImageFilter.h>
@@ -52,54 +52,8 @@ Filter::~Filter()
 //----------------------------------------------------------------------------
 void Filter::setCacheDir(QDir dir)
 {
-  //WARNING: We need to create all output, even if they are invalid (NULL volume pointer)
   m_cacheDir = dir;
 
-  // Load cached outputs
-  if (m_outputs.isEmpty())
-  {
-    // Compatibility: verion 3 seg files had only volume outputs shaved
-    // in the base cache dir. Thus, in case we find some files there, we must
-    // assign them to filter's volume outputs
-    bool v3SegFile = false;
-
-    QStringList namedFilters;
-    namedFilters <<  QString("%1_*.mhd").arg(m_cacheId);
-    foreach(QString cachedFile, m_cacheDir.entryList(namedFilters))
-    {
-      v3SegFile = true;
-
-      QStringList ids = cachedFile.section(".",0,0).split("_");
-      FilterOutputId oId = ids[1].toInt();
-
-      if (!validOutput(oId))
-      {
-        createDummyOutput(oId, EspinaVolume::TYPE);
-      }
-
-      OutputSPtr editedOutput = m_outputs[oId];
-      QString outputName = QString("%1_%2").arg(m_cacheId).arg(oId);
-
-      if (editedOutput->editedRegions().isEmpty() && m_cacheDir.exists(outputName + ".trc"))
-      {
-        QFile file(m_cacheDir.absoluteFilePath(outputName + ".trc"));
-        if (file.open(QIODevice::ReadOnly))
-        {
-          VolumeOutputTypeSPtr volume = outputVolume(editedOutput);
-          while (!file.atEnd())
-          {
-            QByteArray line = file.readLine();
-            QStringList values = QString(line).split(" ");
-            Nm bounds[6];
-            for (int i = 0; i < 6; ++i)
-              bounds[i] = values[i].toDouble();
-
-            volume->addEditedRegion(EspinaRegion(bounds));
-          }
-        }
-      }
-    }
-  }
 }
 
 //----------------------------------------------------------------------------
@@ -140,163 +94,14 @@ QString Filter::serialize() const
 }
 
 //----------------------------------------------------------------------------
-void Filter::draw(FilterOutputId oId,
-                  vtkImplicitFunction* brush,
-                  const Nm bounds[6],
-                  itkVolumeType::PixelType value,
-                  bool emitSignal)
-{
-  EspinaRegion region(bounds);
-
-  EspinaVolumeSPtr volume = outputEspinaVolume(output(oId));
-
-  if (volume)
-  {
-    volume->draw(brush, bounds, value, emitSignal);
-
-    emit modified(this);
-  }
-}
-
-//----------------------------------------------------------------------------
-void Filter::draw(FilterOutputId oId,
-                  itkVolumeType::IndexType index,
-                  itkVolumeType::PixelType value,
-                  bool emitSignal)
-{
-  EspinaVolumeSPtr volume = outputEspinaVolume(output(oId));
-
-  if (volume)
-  {
-    volume->draw(index, value, emitSignal);
-
-    emit modified(this);
-  }
-}
-
-//----------------------------------------------------------------------------
-void Filter::draw(FilterOutputId oId,
-                  Nm x, Nm y, Nm z,
-                  itkVolumeType::PixelType value,
-                  bool emitSignal)
-{
-  EspinaVolumeSPtr volume = outputEspinaVolume(output(oId));
-
-  if (volume)
-  {
-    volume->draw(x, y, z, value, emitSignal);
-
-    emit modified(this);
-  }
-}
-
-//----------------------------------------------------------------------------
-void Filter::draw(FilterOutputId oId,
-                  vtkPolyData *contour,
-                  Nm slice, PlaneType plane,
-                  itkVolumeType::PixelType value,
-                  bool emitSignal)
-{
-  if (contour->GetPoints()->GetNumberOfPoints() == 0)
-    return;
-
-  EspinaVolumeSPtr volume = outputEspinaVolume(output(oId));
-
-  if (volume)
-  {
-    volume->draw(contour, slice, plane, value, emitSignal);
-
-    emit modified(this);
-  }
-}
-
-//----------------------------------------------------------------------------
-void Filter::draw(FilterOutputId oId,
-                  itkVolumeType::Pointer volume,
-                  bool emitSignal)
-{
-  EspinaVolumeSPtr filterVolume = outputEspinaVolume(output(oId));
-
-  if (filterVolume)
-  {
-    filterVolume->draw(volume, emitSignal);
-
-    emit modified(this);
-  }
-}
-
-//----------------------------------------------------------------------------
-void Filter::fill(FilterOutputId oId,
-                  itkVolumeType::PixelType value,
-                  bool emitSignal)
-{
-  EspinaVolumeSPtr volume = outputEspinaVolume(output(oId));
-
-  if (volume)
-  {
-    volume->fill(value, emitSignal);
-
-    emit modified(this);
-  }
-}
-
-//----------------------------------------------------------------------------
-void Filter::fill(FilterOutputId oId,
-                  const EspinaRegion &region,
-                  itkVolumeType::PixelType value,
-                  bool emitSignal)
-{
-  EspinaVolumeSPtr volume = outputEspinaVolume(output(oId));
-
-  if (volume)
-  {
-    volume->fill(region, value, emitSignal);
-
-    emit modified(this);
-  }
-}
-
-//----------------------------------------------------------------------------
-void Filter::restoreOutput(FilterOutputId oId, itkVolumeType::Pointer volume)
-{
-  EspinaVolumeSPtr filterVolume = outputEspinaVolume(output(oId));
-
-  if (filterVolume)
-  {
-    filterVolume->setVolume(volume);
-    Q_ASSERT(false);
-//     filterVolume->markAsModified();
-    emit modified(this);
-  }
-}
-
-//----------------------------------------------------------------------------
-bool Filter::validOutput(FilterOutputId oId)
-{
-  return m_outputs.contains(oId);
-}
-
-//----------------------------------------------------------------------------
-const OutputSPtr Filter::output(FilterOutputId oId) const
-{
-  return m_outputs.value(oId, OutputSPtr());
-}
-
-//----------------------------------------------------------------------------
-OutputSPtr Filter::output(FilterOutputId oId)
-{
-  return m_outputs.value(oId, OutputSPtr());
-}
-
-//----------------------------------------------------------------------------
-bool Filter::needUpdate() const
+bool SegmentationFilter::needUpdate() const
 {
   bool update = true;
 
   if (!m_outputs.isEmpty())
   {
     update = false;
-    foreach(OutputSPtr filterOutput, m_outputs)
+    foreach(SegmentationOutputSPtr filterOutput, m_outputs)
     {
       update = update || !filterOutput->isValid();
     }
@@ -306,22 +111,15 @@ bool Filter::needUpdate() const
 }
 
 //----------------------------------------------------------------------------
-bool Filter::needUpdate(FilterOutputId oId) const
+bool SegmentationFilter::needUpdate(FilterOutputId oId) const
 {
-  bool update = true;
-
-  if (!m_outputs.isEmpty())
-  {
-    update = !output(oId)->isValid();
-  }
-
-  return update;
+  return !m_outputs.contains(oId) || !m_outputs[oId]->isValid();
 }
 
 //----------------------------------------------------------------------------
 void Filter::update()
 {
-  if (m_outputs.isEmpty())
+  if (numberOfOutputs() == 0)
   {
     m_inputs.clear();
 
@@ -341,7 +139,7 @@ void Filter::update()
   }
   else
   {
-    foreach(FilterOutputId oId, m_outputs.keys())
+    foreach(FilterOutputId oId, availableOutputIds())
     {
       update(oId);
     }
@@ -349,10 +147,10 @@ void Filter::update()
 }
 
 //----------------------------------------------------------------------------
- void Filter::update(FilterOutputId oId)
- {
-   bool ignoreOutputs     = ignoreCurrentOutputs();
-   bool outputNeedsUpdate = needUpdate(oId);
+void SegmentationFilter::update(FilterOutputId oId)
+{
+  bool ignoreOutputs     = ignoreCurrentOutputs();
+  bool outputNeedsUpdate = needUpdate(oId);
 
    if (ignoreOutputs || outputNeedsUpdate)
    {
@@ -383,28 +181,19 @@ void Filter::update()
          QString outputPrefix = QString("%1_%2").arg(m_cacheId).arg(oId);
          foreach(FilterOutput::NamedRegion region, m_outputs[oId]->editedRegions())
          {
-           m_outputs[oId]->data(region.first)->restoreEditedRegion(this, region.second, outputPrefix);
+           m_outputs[oId]->representation(region.first)->restoreEditedRegion(this, region.second, outputPrefix);
          }
        }
 
        m_executed = true;
      }
    }
- }
-
-// //----------------------------------------------------------------------------
-// void Filter::createOutput(FilterFilterOutputId id, EspinaVolume::Pointer volume)
-// {
-//   if (!m_outputs.contains(id))
-//     m_outputs[id] = Output(this, id, volume);
-//   else if (volume)
-//     m_outputs[id].volume->setVolume(volume->toITK());
-// }
+}
 
 //----------------------------------------------------------------------------
-bool Filter::fetchSnapshot(FilterOutputId oId)
+bool SegmentationFilter::fetchSnapshot(FilterOutputId oId)
 {
-  if (m_outputs.isEmpty()) // contains??
+  if (numberOfOutputs()) // contains??
     return false;
 
   Q_ASSERT(m_outputs.contains(oId));
@@ -442,52 +231,115 @@ itkVolumeType::Pointer Filter::readVolumeFromCache(const QString &file)
   return volume;
 }
 
-void addOutputData(OutputSPtr output, FilterOutput::OutputTypeSPtr data)
+
+//----------------------------------------------------------------------------
+void ChannelFilter::update(FilterOutputId oId)
 {
-  FilterOutput::OutputTypeSPtr out = output->data(data->type());
+  bool ignoreOutputs     = ignoreCurrentOutputs();
+  bool outputNeedsUpdate = needUpdate(oId);
 
-  data->setOutput(output.get());
+   if (ignoreOutputs || outputNeedsUpdate)
+   {
+     if (!fetchSnapshot(oId))
+     {
+       m_inputs.clear();
 
-  if (out)
+       QStringList namedInputList = m_args[INPUTS].split(",", QString::SkipEmptyParts);
+       foreach(QString namedInput, namedInputList)
+       {
+         QStringList input = namedInput.split("_");
+         FilterSPtr inputFilter = m_namedInputs[input[0]];
+         FilterOutputId iId = input[1].toInt();
+         inputFilter->update(iId);
+         m_inputs << inputFilter->output(iId);
+       }
+
+       run(oId);
+
+       m_executed = true;
+     }
+   }
+}
+
+//----------------------------------------------------------------------------
+bool ChannelFilter::validOutput(FilterOutputId oId)
+{
+  return m_outputs.contains(oId);
+}
+
+
+//----------------------------------------------------------------------------
+bool SegmentationFilter::validOutput(FilterOutputId oId)
+{
+  return m_outputs.contains(oId);
+}
+
+//----------------------------------------------------------------------------
+bool SegmentationFilter::dumpSnapshot(Snapshot &snapshot)
+{
+  QDir temporalDir = QDir::tempPath();
+  bool result = false;
+
+  foreach(SegmentationOutputSPtr output, m_outputs)
   {
-    if (!out->setInternalData(data))
+    QString filterPrefix = temporalDir.absoluteFilePath(QString("%1_%2").arg(id()).arg(output->id()));
+
+    if (output->isCached())
     {
-      qWarning() << "Filter: Couldn't copy internal data";
-      Q_ASSERT(false);
+      update(output->id());
+
+      result |= output->dumpSnapshot(filterPrefix, snapshot);
+    }
+
+    // Backwards compatibility with seg files version 1.0
+    if (m_model->isTraceable() && m_args.contains(EDIT))
+    {
+      update(output->id());
+
+      QStringList outputIds = m_args[EDIT].split(",");
+      if (outputIds.contains(QString::number(output->id())))
+      {
+        SegmentationVolumeSPtr editedVolume = segmentationVolume(output);
+        EspinaRegion region = editedVolume->espinaRegion();
+        editedVolume->addEditedRegion(region);
+      }
+    }
+
+    if (m_model->isTraceable() && output->isEdited())
+    {
+      result = true;
+      output->dumpSnapshot(filterPrefix, snapshot);
+    }
+
+    output->setCached(false);
+  }
+
+  return result;
+}
+
+//----------------------------------------------------------------------------
+bool ChannelFilter::needUpdate() const
+{
+  bool update = true;
+
+  if (!m_outputs.isEmpty())
+  {
+    update = false;
+    foreach(ChannelOutputSPtr filterOutput, m_outputs)
+    {
+      update = update || !filterOutput->isValid();
     }
   }
-  else
-    output->setData(data->type(), data);
+
+  return update;
 }
 
 //----------------------------------------------------------------------------
-void Filter::createOutput(FilterOutputId id, FilterOutput::OutputTypeSPtr data)
+bool ChannelFilter::needUpdate(FilterOutputId oId) const
 {
-  if (!m_outputs.contains(id))
-    m_outputs[id] = OutputSPtr(new FilterOutput(this, id));
-
-  OutputSPtr currentOutput = m_outputs[id];
-
-  addOutputData(currentOutput, data);
-
-  createOutputRepresentations(currentOutput);
+  return !m_outputs.contains(oId) || !m_outputs[oId]->isValid();
 }
 
-//----------------------------------------------------------------------------
-void Filter::createOutput(FilterOutputId id, FilterOutput::OutputTypeList dataList)
-{
-  if (!m_outputs.contains(id))
-    m_outputs[id] = OutputSPtr(new FilterOutput(this, id));
-
-  OutputSPtr currentOutput = m_outputs[id];
-
-  foreach(FilterOutput::OutputTypeSPtr data, dataList)
-  {
-    addOutputData(currentOutput, data);
-  }
-
-  createOutputRepresentations(currentOutput);
-}
 
 //----------------------------------------------------------------------------
 FilterPtr EspINA::filterPtr(ModelItemPtr item)
@@ -516,42 +368,154 @@ typedef itk::RegionOfInterestImageFilter<itkVolumeType, itkVolumeType> ROIFilter
 //----------------------------------------------------------------------------
 bool Filter::dumpSnapshot(Snapshot &snapshot)
 {
-  QDir temporalDir = QDir::tempPath();
-  bool result = false;
+  return false;
+}
 
-  foreach(OutputSPtr output, this->outputs())
+//----------------------------------------------------------------------------
+void addChannelOutputData(ChannelOutputSPtr output, ChannelRepresentationSPtr rep)
+{
+  ChannelRepresentationSPtr oldRep = output->representation(rep->type());
+
+  rep->setOutput(output.get());
+
+  if (oldRep)
   {
-    QString filterPrefix = temporalDir.absoluteFilePath(QString("%1_%2").arg(id()).arg(output->id()));
-
-    if (output->isCached())
+    if (!oldRep->setInternalData(rep))
     {
-      update(output->id());
-
-      result |= output->dumpSnapshot(filterPrefix, snapshot);
+      qWarning() << "Filter: Couldn't copy internal data";
+      Q_ASSERT(false);
     }
+  }
+  else
+    output->setRepresentation(rep->type(), rep);
+}
 
-    // Backwards compatibility with seg files version 1.0
-    if (m_model->isTraceable() && m_args.contains(EDIT))
-    {
-      update(output->id());
+//----------------------------------------------------------------------------
+void ChannelFilter::createOutput(FilterOutputId id, ChannelRepresentationSPtr rep)
+{
+  if (!m_outputs.contains(id))
+    m_outputs[id] = ChannelOutputSPtr(new ChannelOutput(this, id));
 
-      QStringList outputIds = m_args[EDIT].split(",");
-      if (outputIds.contains(QString::number(output->id())))
-      {
-        EspinaVolumeSPtr editedVolume = outputEspinaVolume(output);
-        EspinaRegion region = editedVolume->espinaRegion();
-        editedVolume->addEditedRegion(region);
-      }
-    }
+  ChannelOutputSPtr currentOutput = m_outputs[id];
 
-    if (m_model->isTraceable() && output->isEdited())
-    {
-      result = true;
-      output->dumpSnapshot(filterPrefix, snapshot);
-    }
+  addChannelOutputData(currentOutput, rep);
 
-    output->setCached(false);
+  createOutputRepresentations(currentOutput);
+}
+
+//----------------------------------------------------------------------------
+void ChannelFilter::createOutput(FilterOutputId id, ChannelRepresentationSList repList)
+{
+  if (!m_outputs.contains(id))
+    m_outputs[id] = ChannelOutputSPtr(new ChannelOutput(this, id));
+
+  ChannelOutputSPtr currentOutput = m_outputs[id];
+
+  foreach(ChannelRepresentationSPtr rep, repList)
+  {
+    addChannelOutputData(currentOutput, rep);
   }
 
-  return result;
+  createOutputRepresentations(currentOutput);
+}
+
+//----------------------------------------------------------------------------
+void SegmentationFilter::setCacheDir(QDir dir)
+{
+  EspINA::Filter::setCacheDir(dir);
+
+  //WARNING: We need to create all output, even if they are invalid (NULL volume pointer)
+  // Load cached outputs
+  if (m_outputs.isEmpty())
+  {
+    // Compatibility: verion 3 seg files had only volume outputs shaved
+    // in the base cache dir. Thus, in case we find some files there, we must
+    // assign them to filter's volume outputs
+    bool v3SegFile = false;
+
+    QStringList namedFilters;
+    namedFilters <<  QString("%1_*.mhd").arg(m_cacheId);
+    foreach(QString cachedFile, m_cacheDir.entryList(namedFilters))
+    {
+      v3SegFile = true;
+
+      QStringList ids = cachedFile.section(".",0,0).split("_");
+      FilterOutputId oId = ids[1].toInt();
+
+      if (!validOutput(oId))
+      {
+        createDummyOutput(oId, SegmentationVolume::TYPE);
+      }
+
+      SegmentationOutputSPtr editedOutput = m_outputs[oId];
+      QString outputName = QString("%1_%2").arg(m_cacheId).arg(oId);
+
+      if (editedOutput->editedRegions().isEmpty() && m_cacheDir.exists(outputName + ".trc"))
+      {
+        QFile file(m_cacheDir.absoluteFilePath(outputName + ".trc"));
+        if (file.open(QIODevice::ReadOnly))
+        {
+          SegmentationVolumeSPtr volume = segmentationVolume(editedOutput);
+          while (!file.atEnd())
+          {
+            QByteArray line = file.readLine();
+            QStringList values = QString(line).split(" ");
+            Nm bounds[6];
+            for (int i = 0; i < 6; ++i)
+              bounds[i] = values[i].toDouble();
+
+            volume->addEditedRegion(EspinaRegion(bounds));
+          }
+        }
+      }
+    }
+  }
+}
+
+//----------------------------------------------------------------------------
+void addSegmentationRepresentation(SegmentationOutputSPtr output, SegmentationRepresentationSPtr rep)
+{
+  SegmentationRepresentationSPtr oldData = output->representation(rep->type());
+
+  rep->setOutput(output.get());
+
+  if (oldData)
+  {
+    if (!oldData->setInternalData(rep))
+    {
+      qWarning() << "Filter: Couldn't copy internal data";
+      Q_ASSERT(false);
+    }
+  }
+  else
+    output->setRepresentation(rep->type(), rep);
+}
+
+//----------------------------------------------------------------------------
+void SegmentationFilter::createOutput(FilterOutputId id, SegmentationRepresentationSPtr data)
+{
+  if (!m_outputs.contains(id))
+    m_outputs[id] = SegmentationOutputSPtr(new SegmentationOutput(this, id));
+
+  SegmentationOutputSPtr currentOutput = m_outputs[id];
+
+  addSegmentationRepresentation(currentOutput, data);
+
+  createOutputRepresentations(currentOutput);
+}
+
+//----------------------------------------------------------------------------
+void SegmentationFilter::createOutput(FilterOutputId id, SegmentationRepresentationSList repList)
+{
+  if (!m_outputs.contains(id))
+    m_outputs[id] = SegmentationOutputSPtr(new SegmentationOutput(this, id));
+
+  SegmentationOutputSPtr currentOutput = m_outputs[id];
+
+  foreach(SegmentationRepresentationSPtr rep, repList)
+  {
+    addSegmentationRepresentation(currentOutput, rep);
+  }
+
+  createOutputRepresentations(currentOutput);
 }

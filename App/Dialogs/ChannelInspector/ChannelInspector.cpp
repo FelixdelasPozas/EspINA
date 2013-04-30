@@ -229,7 +229,7 @@ void ChannelInspector::changeSpacing()
     if (EspINA::SEGMENTATION == item->type())
     {
       SegmentationSPtr seg = segmentationPtr(item);
-      SegmentationVolumeTypeSPtr segVolume = outputSegmentationVolume(seg->output());
+      SegmentationVolumeSPtr segVolume = segmentationVolume(seg->output());
 
       double oldSpacing[3];
       segVolume->spacing(oldSpacing);
@@ -238,13 +238,14 @@ void ChannelInspector::changeSpacing()
       for (int i=0; i < 3; i++)
         origin[i] = origin[i]/oldSpacing[i]*spacing[i];
       segVolume->toITK()->SetOrigin(origin);
-      segVolume->update();
-      segVolume->markAsModified(true);//FIXME
+      Q_ASSERT(false);
+      //segVolume->update();
+      //segVolume->markAsModified(true);//FIXME
       updatedSegmentations << seg.data();
     }
   }
 
-  m_channel->volume()->update();
+  m_channel->output()->update();//FIXME
   m_view->updateSceneBounds();  // needed to update thumbnail values without triggering volume()->markAsModified()
   m_viewManager->updateSegmentationRepresentations(updatedSegmentations);
   m_view->resetCamera();
@@ -400,7 +401,7 @@ void ChannelInspector::acceptedChanges()
   if (m_spacing[0] != spacing[0] || m_spacing[1] != spacing[1] || m_spacing[2] != m_spacing[2])
     emit spacingUpdated();
 
-  m_channel->volume()->update();
+  m_channel->output()->update();
 }
 
 //------------------------------------------------------------------------
@@ -430,7 +431,7 @@ void ChannelInspector::rejectedChanges()
       if (EspINA::SEGMENTATION == item->type())
       {
         SegmentationSPtr seg = segmentationPtr(item);
-        SegmentationVolumeTypeSPtr segVolume = outputSegmentationVolume(seg->output());
+        SegmentationVolumeSPtr segVolume = segmentationVolume(seg->output());
 
         double oldSpacing[3];
         segVolume->spacing(oldSpacing);
@@ -439,7 +440,8 @@ void ChannelInspector::rejectedChanges()
         for (int i=0; i < 3; i++)
         origin[i] = origin[i]/oldSpacing[i]*newSpacing[i];
         segVolume->toITK()->SetOrigin(origin);
-        segVolume->update();
+        Q_ASSERT(false);
+        seg->output()->update(); //FIXME
       }
     }
   }
@@ -476,7 +478,8 @@ void ChannelInspector::rejectedChanges()
 
   if (modified)
   {
-    m_channel->volume()->update();
+    Q_ASSERT(false);
+    m_channel->output()->update();
   }
 }
 

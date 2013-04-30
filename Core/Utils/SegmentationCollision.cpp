@@ -28,7 +28,7 @@
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
-bool EspINA::checkCollision(SegmentationVolumeTypeSPtr seg1, SegmentationVolumeTypeSPtr seg2)
+bool EspINA::checkCollision(SegmentationVolumeSPtr seg1, SegmentationVolumeSPtr seg2)
 {
   if (!seg1->espinaRegion().intersect(seg2->espinaRegion()))
     return false;

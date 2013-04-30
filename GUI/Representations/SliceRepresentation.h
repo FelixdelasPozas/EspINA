@@ -29,10 +29,12 @@
 #ifndef SLICEREPRESENTATION_H
 #define SLICEREPRESENTATION_H
 
-#include "GUI/Representations/IEspinaRepresentation.h"
+#include "GUI/Representations/GraphicalRepresentation.h"
 
-#include <Core/Model/VolumeOutputType.h>
+#include <Core/Outputs/VolumeRepresentation.h>
 #include <Core/Model/HierarchyItem.h>
+
+#include <vtkSmartPointer.h>
 
 //Forward declaration
 class vtkImageReslice;
@@ -48,12 +50,12 @@ class TransparencySelectionHighlighter;
   class SliceView;
 
   class ChannelSliceRepresentation
-  : public ChannelRepresentation
+  : public ChannelGraphicalRepresentation
   {
     Q_OBJECT
   public:
-    explicit ChannelSliceRepresentation(VolumeOutputTypeSPtr data,
-                                        SliceView           *view);
+    explicit ChannelSliceRepresentation(ChannelVolumeSPtr data,
+                                        SliceView            *view);
     virtual ~ChannelSliceRepresentation();
 
     virtual void setBrightness(double value);
@@ -71,12 +73,12 @@ class TransparencySelectionHighlighter;
     virtual bool isInside(Nm point[3]);
 
     virtual RenderableView canRenderOnView() const
-    { return IEspinaRepresentation::SLICE_VIEW; }
+    { return GraphicalRepresentation::SLICE_VIEW; }
 
-    virtual EspinaRepresentationSPtr clone(SliceView *view);
+    virtual GraphicalRepresentationSPtr clone(SliceView *view);
 
-    virtual EspinaRepresentationSPtr clone(VolumeView *view)
-    { return EspinaRepresentationSPtr(); }
+    virtual GraphicalRepresentationSPtr clone(VolumeView *view)
+    { return GraphicalRepresentationSPtr(); }
 
     virtual bool hasActor(vtkProp *actor) const;
 
@@ -89,8 +91,8 @@ class TransparencySelectionHighlighter;
     void initializePipeline(EspINA::SliceView *view);
 
   private:
-    VolumeOutputTypeSPtr m_data;
-    SliceView           *m_view;
+    ChannelVolumeSPtr m_data;
+    SliceView        *m_view;
 
     vtkSmartPointer<vtkImageReslice>     reslice;
     vtkSmartPointer<vtkImageMapToColors> mapToColors;
@@ -100,12 +102,12 @@ class TransparencySelectionHighlighter;
   };
 
   class SegmentationSliceRepresentation
-  : public SegmentationRepresentation
+  : public SegmentationGraphicalRepresentation
   {
     Q_OBJECT
   public:
-    explicit SegmentationSliceRepresentation(VolumeOutputTypeSPtr data,
-                                             SliceView *view);
+    explicit SegmentationSliceRepresentation(SegmentationVolumeSPtr data,
+                                             SliceView             *view);
     virtual ~SegmentationSliceRepresentation();
 
     virtual void setColor(const QColor &color);
@@ -117,12 +119,12 @@ class TransparencySelectionHighlighter;
     virtual bool isInside(Nm point[3]);
 
     virtual RenderableView canRenderOnView() const
-    { return IEspinaRepresentation::SLICE_VIEW; }
+    { return GraphicalRepresentation::SLICE_VIEW; }
 
-    virtual EspinaRepresentationSPtr clone(SliceView *view);
+    virtual GraphicalRepresentationSPtr clone(SliceView *view);
 
-    virtual EspinaRepresentationSPtr clone(VolumeView *view)
-    { return EspinaRepresentationSPtr(); }
+    virtual GraphicalRepresentationSPtr clone(VolumeView *view)
+    { return GraphicalRepresentationSPtr(); }
 
     virtual bool hasActor(vtkProp *actor) const;
 
@@ -135,8 +137,8 @@ class TransparencySelectionHighlighter;
     void initializePipeline(EspINA::SliceView *view);
 
   private:
-    VolumeOutputTypeSPtr m_data;
-    SliceView           *m_view;
+    SegmentationVolumeSPtr m_data;
+    SliceView             *m_view;
 
     vtkSmartPointer<vtkImageReslice>     reslice;
     vtkSmartPointer<vtkImageMapToColors> mapToColors;

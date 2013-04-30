@@ -183,7 +183,7 @@ void ChannelExplorer::alignLeft()
       int coord = m_gui->coordinateSelector->currentIndex();
       pos[coord] = lastPos[coord];
       channel->setPosition(pos);
-      channel->volume()->update();
+      channel->output()->update(); //FIXME: Check this is the right method (before it was volume()->update())
     }
     if (!lastChannel)
       lastChannel = channel;
@@ -214,7 +214,7 @@ void ChannelExplorer::alignCenter()
       channel->volume()->bounds(bounds);
       pos[coord] = centerMargin - (bounds[2*coord+1] - bounds[2*coord])/2.0;
       channel->setPosition(pos);
-      channel->volume()->update();
+      channel->output()->update();
     }
 
     if (!lastChannel)
@@ -250,7 +250,7 @@ void ChannelExplorer::alignRight()
       channel->volume()->bounds(bounds);
       pos[coord] = rightMargin - (bounds[2*coord+1] - bounds[2*coord]);
       channel->setPosition(pos);
-      channel->volume()->update();
+      channel->output()->update();
     }
 
     if (!lastChannel)
@@ -354,7 +354,7 @@ void ChannelExplorer::updateChannelPosition()
     };
 
     channel->setPosition(pos);
-    channel->volume()->update();
+    channel->output()->update();
   }
 }
 
@@ -507,8 +507,8 @@ void ChannelExplorer::dialogClosed(QObject *dialog)
   {
     if (it.value() == dialog)
     {
-      it.key()->volume()->update();
-      it.key()->volume()->markAsModified();
+      it.key()->output()->update();
+      //it.key()->volume()->markAsModified(); //FIXME: It should be done by those methods that modifiy the volume 
       ChannelList list;
       list.append(it.key());
       m_viewManager->updateChannelRepresentations(list);

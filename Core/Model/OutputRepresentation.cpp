@@ -26,40 +26,15 @@
 */
 
 
-#include "OutputType.h"
+#include "OutputRepresentation.h"
 
 using namespace EspINA;
 
 //----------------------------------------------------------------------------
-EspinaTimeStamp FilterOutput::OutputType::s_tick = 0;
+EspinaTimeStamp FilterOutput::OutputRepresentation::s_tick = 0;
 
 //----------------------------------------------------------------------------
-void FilterOutput::OutputType::setOutput(FilterOutput *output)
+void FilterOutput::OutputRepresentation::setOutput(FilterOutput *output)
 {
   m_output = output;
-  emit outputChanged();
-}
-
-//----------------------------------------------------------------------------
-const FilterOutput::OutputTypeName VolumeOutputType::TYPE = "VolumeOutputType";
-
-//----------------------------------------------------------------------------
-VolumeOutputTypePtr EspINA::outputVolume(OutputPtr output)
-{
-  return dynamic_cast<VolumeOutputType *>(output->data(VolumeOutputType::TYPE).get());
-}
-
-//----------------------------------------------------------------------------
-VolumeOutputTypeSPtr EspINA::outputVolume(OutputSPtr output)
-{
-  return boost::dynamic_pointer_cast<VolumeOutputType>(output->data(VolumeOutputType::TYPE));
-}
-
-//----------------------------------------------------------------------------
-const FilterOutput::OutputTypeName MeshOutputType::TYPE = "MeshOutputType";
-
-//----------------------------------------------------------------------------
-MeshOutputTypeSPtr EspINA::meshOutput(OutputSPtr output)
-{
-  return boost::dynamic_pointer_cast<MeshOutputType>(output->data(MeshOutputType::TYPE));
 }

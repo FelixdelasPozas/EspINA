@@ -109,7 +109,7 @@ EspinaIO::STATUS EspinaIO::loadChannel(QFileInfo file,
   readerArgs[ChannelReader::FILE] = file.absoluteFilePath();
   FilterSPtr reader(new ChannelReader(noInputs, readerArgs, ChannelReader::TYPE, handler));
   reader->update();
-  if (reader->outputs().isEmpty())
+  if (reader->numberOfOutputs() == 0)
     return ERROR;
 
   Channel::CArguments args;
@@ -800,7 +800,7 @@ bool EspinaIO::loadSerialization(IEspinaModel *model,
     FilterSPtr filter = model->findFilter(item);
     filter->update(outputId);
     // NOTE: add return value to update?
-    if (filter->outputs().isEmpty())
+    if (filter->numberOfOutputs() == 0)
       return false;
 
     ModelItem::Arguments extArgs(args.value(ModelItem::EXTENSIONS, QString()));

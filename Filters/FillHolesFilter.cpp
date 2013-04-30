@@ -18,7 +18,8 @@
 
 
 #include "FillHolesFilter.h"
-#include <Core/Model/VolumeOutputType.h>
+#include <Core/Outputs/VolumeRepresentation.h>
+#include <Core/Outputs/RawVolume.h>
 #include <GUI/Representations/SliceRepresentation.h>
 
 using namespace EspINA;
@@ -39,25 +40,25 @@ FillHolesFilter::~FillHolesFilter()
 }
 
 //-----------------------------------------------------------------------------
-void FillHolesFilter::createDummyOutput(FilterOutputId id, const FilterOutput::OutputTypeName &type)
+void FillHolesFilter::createDummyOutput(FilterOutputId id, const FilterOutput::OutputRepresentationName &type)
 {
 
 }
 
 //-----------------------------------------------------------------------------
-void FillHolesFilter::createOutputRepresentations(OutputSPtr output)
+void FillHolesFilter::createOutputRepresentations(SegmentationOutputSPtr output)
 {
-  VolumeOutputTypeSPtr volumeData = outputVolume(output);
-  output->addRepresentation(EspinaRepresentationSPtr(new SegmentationSliceRepresentation(volumeData, NULL)));
-  //   output->addRepresentation(EspinaRepresentationSPtr(new VolumeReprentation  (volumeOutput(output))));
-  //   output->addRepresentation(EspinaRepresentationSPtr(new MeshRepresentation  (meshOutput  (output))));
-  //   output->addRepresentation(EspinaRepresentationSPtr(new SmoothRepresentation(meshOutput  (output))));
+  SegmentationVolumeSPtr volumeData = segmentationVolume(output);
+  output->addRepresentation(GraphicalRepresentationSPtr(new SegmentationSliceRepresentation(volumeData, NULL)));
+  //   output->addRepresentation(GraphicalRepresentationSPtr(new VolumeReprentation  (volumeOutput(output))));
+  //   output->addRepresentation(GraphicalRepresentationSPtr(new MeshRepresentation  (meshOutput  (output))));
+  //   output->addRepresentation(GraphicalRepresentationSPtr(new SmoothRepresentation(meshOutput  (output))));
 }
 
 //-----------------------------------------------------------------------------
 bool FillHolesFilter::needUpdate(FilterOutputId oId) const
 {
-  bool update = Filter::needUpdate(oId);
+  bool update = SegmentationFilter::needUpdate(oId);
 
   if (!update)
   {
@@ -67,7 +68,9 @@ bool FillHolesFilter::needUpdate(FilterOutputId oId) const
     if (!m_inputs.isEmpty())
     {
       Q_ASSERT(m_inputs.size() == 1);
-      update = m_outputs[0]->data(VolumeOutputType::TYPE)->timeStamp() < m_inputs[0]->data(VolumeOutputType::TYPE)->timeStamp();
+      SegmentationVolumeSPtr inputVolume  = segmentationVolume(m_inputs[0]);
+      SegmentationVolumeSPtr outputVolume = segmentationVolume(m_outputs[0]);
+      update = outputVolume->timeStamp() < inputVolume->timeStamp();
     }
   }
 
@@ -86,15 +89,15 @@ void FillHolesFilter::run(FilterOutputId oId)
   Q_ASSERT(0 == oId);
   Q_ASSERT(m_inputs.size() == 1);
 
-  SegmentationVolumeTypeSPtr input = outputSegmentationVolume(m_inputs[0]);
+  SegmentationVolumeSPtr input = segmentationVolume(m_inputs[0]);
   Q_ASSERT(input);
 
   BinaryFillholeFilter::Pointer filter = BinaryFillholeFilter::New();
   filter->SetInput(input->toITK());
   filter->Update();
 
-  FilterOutput::OutputTypeList dataList;
-  dataList << SegmentationVolumeTypeSPtr(new SegmentationVolumeType(filter->GetOutput()));
+  SegmentationRepresentationSList repList;
+  repList << RawSegmentationVolumeSPtr(new RawSegmentationVolume(filter->GetOutput()));
 
-  createOutput(0, dataList);
+  createOutput(0, repList);
 }

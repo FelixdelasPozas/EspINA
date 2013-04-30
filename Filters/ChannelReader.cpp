@@ -53,16 +53,16 @@ QString ChannelReader::serialize() const
 }
 
 //----------------------------------------------------------------------------
-void ChannelReader::createOutputRepresentations(OutputSPtr output)
+void ChannelReader::createOutputRepresentations(ChannelOutputSPtr output)
 {
-  VolumeOutputTypeSPtr volumeData = outputVolume(output);
-  output->addRepresentation(EspinaRepresentationSPtr(new ChannelSliceRepresentation(volumeData, NULL)));
+  ChannelVolumeSPtr volumeData = channelVolume(output);
+  output->addRepresentation(GraphicalRepresentationSPtr(new ChannelSliceRepresentation(volumeData, NULL)));
 }
 
 //----------------------------------------------------------------------------
 bool ChannelReader::needUpdate(FilterOutputId oId) const
 {
-  return Filter::needUpdate(oId);
+  return ChannelFilter::needUpdate(oId);
 }
 
 //----------------------------------------------------------------------------
@@ -106,7 +106,7 @@ void ChannelReader::run(FilterOutputId oId)
   if (m_args.contains(SPACING))
     reader->GetOutput()->SetSpacing(spacing());
 
-  createOutput(0, ChannelVolumeTypeSPtr(new ChannelVolumeType(reader->GetOutput())));
+  createOutput(0, RawChannelVolumeSPtr(new RawChannelVolume(reader->GetOutput())));
 }
 
 //----------------------------------------------------------------------------

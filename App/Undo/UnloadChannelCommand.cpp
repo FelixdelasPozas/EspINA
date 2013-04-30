@@ -42,7 +42,8 @@ void EspINA::UnloadChannelCommand::redo()
   m_model->removeFilter  (m_reader);
 
   // updates EspinaRenderViews bounds and makes a render
-  m_channel->volume()->markAsModified();
+  // FIXME: m_channel->volume()->markAsModified();
+  Q_ASSERT(false);
 }
 
 //------------------------------------------------------------------------
@@ -54,6 +55,7 @@ void EspINA::UnloadChannelCommand::undo()
   m_model->addRelation(m_sample, m_channel, Channel::STAIN_LINK);
 
   // updates EspinaRenderViews bounds and makes a render
-  m_channel->volume()->markAsModified();
+  //FIXME:m_channel->volume()->markAsModified();
+  Q_ASSERT(false);
 }
 

@@ -45,7 +45,7 @@ CircularBrush::~CircularBrush()
 //-----------------------------------------------------------------------------
 Brush::BrushShape CircularBrush::createBrushShape(PickableItemPtr item, double center[3], Nm radius, PlaneType plane)
 {
-  VolumeOutputTypeSPtr volume = outputVolume(item->output());
+  SegmentationVolumeSPtr volume = segmentationVolume(item->output());
   double spacing[3];
   volume->spacing(spacing);
 

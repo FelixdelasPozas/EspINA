@@ -27,8 +27,8 @@
 
 #include "Core/Model/PickableItem.h"
 #include "Core/Model/HierarchyItem.h"
+#include "Core/Outputs/RawVolume.h"
 #include "Sample.h"
-#include "VolumeOutputType.h"
 
 #include <QColor>
 #include <QFileInfo>
@@ -188,8 +188,8 @@ namespace EspINA
     virtual FilterSPtr filter() { return PickableItem::filter(); }
     virtual const FilterOutputId outputId() const;
 
-    ChannelVolumeTypeSPtr volume();
-    const ChannelVolumeTypeSPtr volume() const;
+    ChannelVolumeSPtr volume();
+    const ChannelVolumeSPtr volume() const;
 
     void setPosition(Nm pos[3]);
     void position(Nm pos[3]);

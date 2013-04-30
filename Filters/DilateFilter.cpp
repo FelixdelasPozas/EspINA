@@ -55,7 +55,7 @@ void DilateFilter::run(FilterOutputId oId)
   Q_ASSERT(0 == oId);
   Q_ASSERT(m_inputs.size() == 1);
 
-  SegmentationVolumeTypeSPtr input = outputSegmentationVolume(m_inputs[0]);
+  SegmentationVolumeSPtr input = segmentationVolume(m_inputs[0]);
   Q_ASSERT(input);
 
   //   qDebug() << "Compute Image Dilate";
@@ -88,10 +88,10 @@ void DilateFilter::run(FilterOutputId oId)
 
   m_isOutputEmpty = false;
 
-  FilterOutput::OutputTypeList dataList;
-  dataList << SegmentationVolumeTypeSPtr(new SegmentationVolumeType(filter->GetOutput()));
+  SegmentationRepresentationSList repList;
+  repList << RawSegmentationVolumeSPtr(new RawSegmentationVolume(filter->GetOutput()));
 
-  createOutput(0, dataList);
+  createOutput(0, repList);
 
   emit modified(this);
 }

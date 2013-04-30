@@ -52,7 +52,7 @@ void ClosingFilter::run(FilterOutputId oId)
   Q_ASSERT(0 == oId);
   Q_ASSERT(m_inputs.size() == 1);
 
-  SegmentationVolumeTypeSPtr input = outputSegmentationVolume(m_inputs[0]);
+  SegmentationVolumeSPtr input = segmentationVolume(m_inputs[0]);
   Q_ASSERT(input);
 
   StructuringElementType ball;
@@ -78,10 +78,10 @@ void ClosingFilter::run(FilterOutputId oId)
 
   if (!m_isOutputEmpty)
   {
-    FilterOutput::OutputTypeList dataList;
-    dataList << SegmentationVolumeTypeSPtr(new SegmentationVolumeType(filter->GetOutput()));
+    SegmentationRepresentationSList repList;
+    repList << RawSegmentationVolumeSPtr(new RawSegmentationVolume(filter->GetOutput()));
 
-    createOutput(0, dataList);
+    createOutput(0, repList);
   } else
     qWarning() << "Closing Filter: Empty Output;";
 

@@ -26,13 +26,13 @@
 */
 
 
-#include "IEspinaRepresentation.h"
+#include "GraphicalRepresentation.h"
 #include <GUI/QtWidget/SliceView.h>
 
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
-IEspinaRepresentation::IEspinaRepresentation(EspinaRenderView *view) 
+GraphicalRepresentation::GraphicalRepresentation(EspinaRenderView *view) 
 : m_color(Qt::white)
 , m_highlight(false)
 , m_visible(true)
@@ -41,8 +41,8 @@ IEspinaRepresentation::IEspinaRepresentation(EspinaRenderView *view)
 {}
 
 //-----------------------------------------------------------------------------
-ChannelRepresentation::ChannelRepresentation(EspinaRenderView *view)
-: IEspinaRepresentation(view)
+ChannelGraphicalRepresentation::ChannelGraphicalRepresentation(EspinaRenderView *view)
+: GraphicalRepresentation(view)
 , m_brightness(0)
 , m_contrast(1)
 , m_opacity(1)
@@ -50,19 +50,19 @@ ChannelRepresentation::ChannelRepresentation(EspinaRenderView *view)
 }
 
 //-----------------------------------------------------------------------------
-void IEspinaRepresentation::setActive(bool value, EspinaRenderView *view)
+void GraphicalRepresentation::setActive(bool value, EspinaRenderView *view)
 {
   if (!view || view == m_view)
     m_active = value;
 
-  foreach (EspinaRepresentationSPtr clone, m_clones)
+  foreach (GraphicalRepresentationSPtr clone, m_clones)
   {
     clone->setActive(value, view);
   }
 }
 
 //-----------------------------------------------------------------------------
-vtkMatrix4x4 *IEspinaRepresentation::slicingMatrix(SliceView *view) const
+vtkMatrix4x4 *GraphicalRepresentation::slicingMatrix(SliceView *view) const
 {
   return view->m_slicingMatrix;
 }

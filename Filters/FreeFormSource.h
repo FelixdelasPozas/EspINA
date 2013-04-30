@@ -80,29 +80,29 @@ public:
                           FilterType  type);
   virtual ~FreeFormSource();
 
-  /// Implements Filter Interface
-  virtual void draw(FilterOutputId oId,
-                    vtkImplicitFunction* brush,
-                    const Nm bounds[6],
-                    itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
-                    bool emitSignal = true);
-  virtual void draw(FilterOutputId oId,
-                    itkVolumeType::IndexType index,
-                    itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
-                    bool emitSignal = true);
-  virtual void draw(FilterOutputId oId,
-                    Nm x, Nm y, Nm z,
-                    itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
-                    bool emitSignal = true);
-  virtual void draw(FilterOutputId oId,
-                    itkVolumeType::Pointer volume,
-                    bool emitSignal = true);
+//   /// Implements Filter Interface
+//   virtual void draw(FilterOutputId oId,
+//                     vtkImplicitFunction* brush,
+//                     const Nm bounds[6],
+//                     itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
+//                     bool emitSignal = true);
+//   virtual void draw(FilterOutputId oId,
+//                     itkVolumeType::IndexType index,
+//                     itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
+//                     bool emitSignal = true);
+//   virtual void draw(FilterOutputId oId,
+//                     Nm x, Nm y, Nm z,
+//                     itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
+//                     bool emitSignal = true);
+//   virtual void draw(FilterOutputId oId,
+//                     itkVolumeType::Pointer volume,
+//                     bool emitSignal = true);
 
 
 protected:
-  virtual void createDummyOutput(FilterOutputId id, const FilterOutput::OutputTypeName &type) {}
+  virtual void createDummyOutput(FilterOutputId id, const FilterOutput::OutputRepresentationName &type) {}
 
-  virtual void createOutputRepresentations(OutputSPtr output);
+  virtual void createOutputRepresentations(SegmentationOutputSPtr output);
 
   virtual bool ignoreCurrentOutputs() const
   { return false; }

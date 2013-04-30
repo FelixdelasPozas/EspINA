@@ -54,9 +54,9 @@ public:
 
   virtual void redo()
   {
-    OutputSPtr output = m_filter->output(0);
+    SegmentationOutputSPtr output = boost::dynamic_pointer_cast<SegmentationOutput>(m_filter->output(0));
 
-    SegmentationVolumeTypeSPtr volume = outputSegmentationVolume(output);
+    SegmentationVolumeSPtr volume = segmentationVolume(output);
 
     if (!m_oldVolume && (output->isEdited() || volume->volumeRegion().GetNumberOfPixels() < MAX_UNDO_SIZE))
     {
@@ -75,13 +75,14 @@ public:
     {
       update();
 
-      SegmentationVolumeTypeSPtr newVolume = volume;
+      SegmentationVolumeSPtr newVolume = volume;
       if (newVolume->volumeRegion().GetNumberOfPixels() < MAX_UNDO_SIZE)
         m_newVolume = volume->cloneVolume();
     }
     else
     {
-      m_filter->restoreOutput(0, m_newVolume);
+      Q_ASSERT(false);
+      volume->setVolume(m_newVolume);
     }
 
     output->clearEditedRegions();
@@ -94,10 +95,13 @@ public:
     m_filter->setVOI(m_oldVOI, true);
     m_filter->setCloseValue(m_oldCloseRadius, true);
 
+    SegmentationOutputSPtr output = boost::dynamic_pointer_cast<SegmentationOutput>(m_filter->output(0));
+    SegmentationVolumeSPtr volume = segmentationVolume(output);
+
     if (m_oldVolume.IsNotNull())
     {
-      m_filter->restoreOutput(0, m_oldVolume);
-      m_filter->output(0)->setEditedRegions(m_editedRegions);
+      volume->setVolume(m_oldVolume);
+      output->setEditedRegions(m_editedRegions);
     } else
     {
       update();
@@ -155,7 +159,7 @@ SGSFilterInspector::Widget::Widget(Filter* filter,
   connect(filter, SIGNAL(modified(ModelItemPtr)),
           this, SLOT(updateWidget()));
 
-  SegmentationVolumeTypeSPtr volume = outputSegmentationVolume(filter->output(0));
+  SegmentationVolumeSPtr volume = segmentationVolume(filter->output(0));
 
   itkVolumeType::IndexType seed = m_filter->seed();
   m_xSeed->setText(QString("%1").arg(seed[0]));
@@ -282,7 +286,9 @@ void SGSFilterInspector::Widget::redefineVOI(double* bounds)
 //----------------------------------------------------------------------------
 void SGSFilterInspector::Widget::modifyFilter()
 {
-  if (m_filter->output(0)->isEdited())
+  SegmentationOutputSPtr output = boost::dynamic_pointer_cast<SegmentationOutput>(m_filter->output(0));
+
+  if (output->isEdited())
   {
     QMessageBox msg;
     msg.setText(tr("Filter contains segmentations that have been modified by the user."
@@ -294,7 +300,7 @@ void SGSFilterInspector::Widget::modifyFilter()
       return;
   }
 
-  SegmentationVolumeTypeSPtr volume = outputSegmentationVolume(m_filter->output(0));
+  SegmentationVolumeSPtr volume = segmentationVolume(output);
 
   double spacing[3];
   volume->spacing(spacing);
@@ -375,8 +381,8 @@ void SGSFilterInspector::Widget::modifyCloseValue(int value)
 //----------------------------------------------------------------------------
 void SGSFilterInspector::Widget::updateWidget()
 {
-  SegmentationVolumeTypeSPtr volume = outputSegmentationVolume(m_filter->output(0));
-  
+  SegmentationVolumeSPtr volume = segmentationVolume(m_filter->output(0));
+
   m_threshold->setValue(m_filter->lowerThreshold());
   int voiExtent[6];
   m_filter->voi(voiExtent);

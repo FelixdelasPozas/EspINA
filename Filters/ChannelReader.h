@@ -47,13 +47,12 @@ namespace EspINA
     virtual QString id() const {return m_args[ID];}
     virtual QString serialize() const;
 
-
     void setSpacing(itkVolumeType::SpacingType spacing);
 
   protected:
-    virtual void createDummyOutput(FilterOutputId id, const FilterOutput::OutputTypeName &type) {}
+    virtual void createDummyOutput(FilterOutputId id, const FilterOutput::OutputRepresentationName &type) {}
 
-    virtual void createOutputRepresentations(OutputSPtr output);
+    virtual void createOutputRepresentations(ChannelOutputSPtr output);
 
     virtual bool ignoreCurrentOutputs() const
     { return false; }
@@ -67,7 +66,7 @@ namespace EspINA
     itkVolumeType::SpacingType spacing();
 
   private:
-    ChannelVolumeTypeSPtr   m_volumeOutput;
+    ChannelVolumeSPtr m_volumeOutput;
 
     EspinaIO::ErrorHandler *m_handler;
   };

@@ -19,7 +19,7 @@
 #define SEEDGROWSEGMENTATIONFILTER_H
 
 #include "Core/Model/Filter.h"
-#include <Core/Model/VolumeOutputType.h>
+#include <Core/Outputs/RawVolume.h>
 
 #include <itkImage.h>
 #include <itkVTKImageToImageFilter.h>
@@ -144,9 +144,9 @@ namespace EspINA
     bool isTouchingVOI() const;
 
   protected:
-    virtual void createDummyOutput(FilterOutputId id, const FilterOutput::OutputTypeName &type);
+    virtual void createDummyOutput(FilterOutputId id, const FilterOutput::OutputRepresentationName &type);
 
-    virtual void createOutputRepresentations(OutputSPtr output);
+    virtual void createOutputRepresentations(SegmentationOutputSPtr output);
 
     virtual bool ignoreCurrentOutputs() const
     { return m_ignoreCurrentOutputs; }

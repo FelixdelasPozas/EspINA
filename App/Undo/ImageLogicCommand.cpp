@@ -71,7 +71,7 @@ ImageLogicCommand::ImageLogicCommand(SegmentationList            input,
 
   m_filter = FilterSPtr(new ImageLogicFilter(inputs, args, ImageLogicCommand::FILTER_TYPE));
   m_filter->update(0);
-  Q_ASSERT(m_filter->outputs().size() == 1);
+  Q_ASSERT(m_filter->numberOfOutputs() == 1);
   m_segmentation = m_model->factory()->createSegmentation(m_filter, 0);
   createdSegmentations << m_segmentation;
 

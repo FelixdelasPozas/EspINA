@@ -32,7 +32,7 @@ namespace EspINA
 
   //----------------------------------------------------------------------------
   AppositionSurfaceVolume::AppositionSurfaceVolume(AppositionSurfaceFilter *filter)
-  : SegmentationVolumeType(NULL)
+  : RawSegmentationVolume(NULL)
   , m_vtkVolume(NULL)
   , m_filter(filter)
   , m_emptyImage(NULL)
@@ -109,7 +109,7 @@ namespace EspINA
   vtkAlgorithmOutput *AppositionSurfaceVolume::toVTK()
   {
     if (m_filter->m_ap == NULL)
-      return SegmentationVolumeType::toVTK();
+      return RawSegmentationVolume::toVTK();
 
     if ((m_vtkVolume == NULL) || (m_filter->m_ap->GetMTime() != m_rasterizationTime))
       rasterize(m_filter->m_ap->GetBounds());
@@ -121,7 +121,7 @@ namespace EspINA
   const vtkAlgorithmOutput *AppositionSurfaceVolume::toVTK() const
   {
     if (m_filter->m_ap == NULL)
-      return SegmentationVolumeType::toVTK();
+      return RawSegmentationVolume::toVTK();
 
     if ((m_vtkVolume == NULL) || (m_filter->m_ap->GetMTime() != m_rasterizationTime))
       rasterize(m_filter->m_ap->GetBounds());
@@ -133,7 +133,7 @@ namespace EspINA
   itkVolumeType::Pointer AppositionSurfaceVolume::toITK()
   {
     if (m_filter->m_ap == NULL)
-      return SegmentationVolumeType::toITK();
+      return RawSegmentationVolume::toITK();
 
     if (m_volume.IsNull() || (m_vtkExporter == NULL) || m_vtkExporter->GetInputConnection(0,0) != m_vtkVolume)
       transformVTK2ITK();
@@ -151,7 +151,7 @@ namespace EspINA
   const itkVolumeType::Pointer AppositionSurfaceVolume::toITK() const
   {
     if (m_filter->m_ap == NULL)
-      return SegmentationVolumeType::toITK();
+      return RawSegmentationVolume::toITK();
 
     if (m_volume.IsNull() || (m_vtkExporter == NULL) || m_vtkExporter->GetInputConnection(0,0) != m_vtkVolume)
       transformVTK2ITK();
@@ -213,7 +213,7 @@ namespace EspINA
   itkVolumeType::IndexType AppositionSurfaceVolume::index(Nm x, Nm y, Nm z)
   {
     if (m_filter->m_ap == NULL)
-      return SegmentationVolumeType::index(x,y,z);
+      return RawSegmentationVolume::index(x,y,z);
 
     if (m_volume.IsNull())
       transformVTK2ITK();

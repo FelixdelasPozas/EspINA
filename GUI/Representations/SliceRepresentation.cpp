@@ -39,9 +39,9 @@
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
-ChannelSliceRepresentation::ChannelSliceRepresentation(VolumeOutputTypeSPtr data,
-                                                       SliceView           *view)
-: ChannelRepresentation(view)
+ChannelSliceRepresentation::ChannelSliceRepresentation(ChannelVolumeSPtr data,
+                                                       SliceView        *view)
+: ChannelGraphicalRepresentation(view)
 , m_data(data)
 , m_view(view)
 {
@@ -57,7 +57,7 @@ ChannelSliceRepresentation::~ChannelSliceRepresentation()
 //-----------------------------------------------------------------------------
 void ChannelSliceRepresentation::setBrightness(double value)
 {
-  ChannelRepresentation::setBrightness(value);
+  ChannelGraphicalRepresentation::setBrightness(value);
 
   shiftScaleFilter->SetShift(static_cast<int>(m_brightness*255));
 }
@@ -65,7 +65,7 @@ void ChannelSliceRepresentation::setBrightness(double value)
 //-----------------------------------------------------------------------------
 void ChannelSliceRepresentation::setContrast(double value)
 {
-  ChannelRepresentation::setContrast(value);
+  ChannelGraphicalRepresentation::setContrast(value);
 
   shiftScaleFilter->SetScale(m_contrast);
 }
@@ -73,7 +73,7 @@ void ChannelSliceRepresentation::setContrast(double value)
 //-----------------------------------------------------------------------------
 void ChannelSliceRepresentation::setColor(const QColor &color)
 {
-  IEspinaRepresentation::setColor(color);
+  GraphicalRepresentation::setColor(color);
 
   lut->SetHueRange(color.hueF(), color.hueF());
   lut->SetSaturationRange(0.0, color.saturationF());
@@ -82,14 +82,14 @@ void ChannelSliceRepresentation::setColor(const QColor &color)
 
 void ChannelSliceRepresentation::setHighlighted(bool highlighted)
 {
-  IEspinaRepresentation::setHighlighted(highlighted);
+  GraphicalRepresentation::setHighlighted(highlighted);
 }
 
 
 //-----------------------------------------------------------------------------
 void ChannelSliceRepresentation::setOpacity(double value)
 {
-  ChannelRepresentation::setOpacity(value);
+  ChannelGraphicalRepresentation::setOpacity(value);
 
   slice->SetOpacity(m_opacity);
 }
@@ -97,7 +97,7 @@ void ChannelSliceRepresentation::setOpacity(double value)
 //-----------------------------------------------------------------------------
 void ChannelSliceRepresentation::setVisible(bool visible)
 {
-  ChannelRepresentation::setVisible(visible);
+  ChannelGraphicalRepresentation::setVisible(visible);
 
   slice->SetVisibility(m_visible);
 }
@@ -109,13 +109,13 @@ bool ChannelSliceRepresentation::isInside(Nm point[3])
 }
 
 //-----------------------------------------------------------------------------
-EspinaRepresentationSPtr ChannelSliceRepresentation::clone(SliceView *view)
+GraphicalRepresentationSPtr ChannelSliceRepresentation::clone(SliceView *view)
 {
   ChannelSliceRepresentation *rep = new ChannelSliceRepresentation(m_data, view);
 
   rep->initializePipeline(view);
 
-  EspinaRepresentationSPtr representation(rep);
+  GraphicalRepresentationSPtr representation(rep);
 
   m_clones << representation;
 
@@ -150,7 +150,7 @@ void ChannelSliceRepresentation::updatePipelineConnections()
 //-----------------------------------------------------------------------------
 void ChannelSliceRepresentation::initializePipeline(SliceView *view)
 {
-  connect(m_data.get(), SIGNAL(modified()),
+  connect(m_data.get(), SIGNAL(representationChanged()),
           this, SLOT(updatePipelineConnections()));
 
   reslice = vtkSmartPointer<vtkImageReslice>::New();
@@ -201,9 +201,9 @@ void ChannelSliceRepresentation::initializePipeline(SliceView *view)
 TransparencySelectionHighlighter *SegmentationSliceRepresentation::s_highlighter = new TransparencySelectionHighlighter();
 
 //-----------------------------------------------------------------------------
-SegmentationSliceRepresentation::SegmentationSliceRepresentation(VolumeOutputTypeSPtr data,
-                                                                 SliceView           *view)
-: SegmentationRepresentation(view)
+SegmentationSliceRepresentation::SegmentationSliceRepresentation(SegmentationVolumeSPtr data,
+                                                                 SliceView             *view)
+: SegmentationGraphicalRepresentation(view)
 , m_data(data)
 , m_view(view)
 {
@@ -220,7 +220,7 @@ SegmentationSliceRepresentation::~SegmentationSliceRepresentation()
 //-----------------------------------------------------------------------------
 void SegmentationSliceRepresentation::setColor(const QColor &color)
 {
-  IEspinaRepresentation::setColor(color);
+  GraphicalRepresentation::setColor(color);
 
   mapToColors->SetLookupTable(s_highlighter->lut(m_color, m_highlight));
 }
@@ -228,7 +228,7 @@ void SegmentationSliceRepresentation::setColor(const QColor &color)
 //-----------------------------------------------------------------------------
 void SegmentationSliceRepresentation::setHighlighted(bool highlighted)
 {
-  SegmentationRepresentation::setHighlighted(highlighted);
+  SegmentationGraphicalRepresentation::setHighlighted(highlighted);
 
   mapToColors->SetLookupTable(s_highlighter->lut(m_color, m_highlight));
 }
@@ -236,7 +236,7 @@ void SegmentationSliceRepresentation::setHighlighted(bool highlighted)
 //-----------------------------------------------------------------------------
 void SegmentationSliceRepresentation::setVisible(bool visible)
 {
-  SegmentationRepresentation::setVisible(visible);
+  SegmentationGraphicalRepresentation::setVisible(visible);
 
   slice->SetVisibility(m_visible);
 }
@@ -260,19 +260,19 @@ bool SegmentationSliceRepresentation::isInside(Nm point[3])
 }
 
 //-----------------------------------------------------------------------------
-EspinaRepresentationSPtr SegmentationSliceRepresentation::clone(SliceView *view)
+GraphicalRepresentationSPtr SegmentationSliceRepresentation::clone(SliceView *view)
 {
   SegmentationSliceRepresentation *representation = new SegmentationSliceRepresentation(m_data, view);
 
   representation->initializePipeline(view);
 
-  return EspinaRepresentationSPtr(representation);
+  return GraphicalRepresentationSPtr(representation);
 }
 
 //-----------------------------------------------------------------------------
 void SegmentationSliceRepresentation::initializePipeline(SliceView *view)
 {
-  connect(m_data.get(), SIGNAL(modified()),
+  connect(m_data.get(), SIGNAL(representationChanged()),
           this, SLOT(updatePipelineConnections()));
 
   reslice = vtkSmartPointer<vtkImageReslice>::New();
@@ -284,7 +284,7 @@ void SegmentationSliceRepresentation::initializePipeline(SliceView *view)
 
   mapToColors = vtkSmartPointer<vtkImageMapToColors>::New();
   mapToColors->SetInputConnection(reslice->GetOutputPort());
-  //mapToColors->SetLookupTable(lut);
+  setColor(m_color);
   mapToColors->SetNumberOfThreads(1);
   mapToColors->Update();
 

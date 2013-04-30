@@ -29,7 +29,8 @@
 #ifndef MARCHINGCUBEMESH_H
 #define MARCHINGCUBEMESH_H
 
-#include "Core/Model/OutputType.h"
+#include "Core/Outputs/MeshType.h"
+
 #include <vtkSmartPointer.h>
 
 class vtkDiscreteMarchingCubes;
@@ -38,16 +39,16 @@ class vtkImageConstantPad;
 namespace EspINA
 {
   class MarchingCubesMesh
-  : public MeshOutputType
+  : public MeshType
   {
     Q_OBJECT
   public:
     explicit MarchingCubesMesh(FilterOutput *output = NULL);
     virtual ~MarchingCubesMesh();
 
-    virtual bool setInternalData(FilterOutput::OutputTypeSPtr rhs);
+    virtual bool setInternalData(SegmentationRepresentationSPtr rhs);
 
-    virtual bool dumpSnapshot(const QString &prefix, Snapshot &snapshot);
+    virtual bool dumpSnapshot(const QString &prefix, Snapshot &snapshot) const;
 
     virtual bool fetchSnapshot(Filter *filter, const QString &prefix);
 

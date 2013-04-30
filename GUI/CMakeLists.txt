@@ -59,7 +59,7 @@ set (GUI_SOURCES
   QtWidget/SliceViewState.cpp
   QtWidget/VolumeView.cpp
   QtWidget/vtkInteractorStyleEspinaSlice.cpp
-  Representations/IEspinaRepresentation.cpp
+  Representations/GraphicalRepresentation.cpp
   Representations/SliceRepresentation.cpp 
   Renderers/CrosshairRenderer.cpp
   Renderers/MeshRenderer.cpp

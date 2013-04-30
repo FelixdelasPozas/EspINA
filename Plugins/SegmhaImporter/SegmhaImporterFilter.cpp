@@ -121,7 +121,7 @@ QString SegmhaImporterFilter::serialize() const
 //-----------------------------------------------------------------------------
 bool SegmhaImporterFilter::needUpdate(OutputId oId) const
 {
-  return Filter::needUpdate(oId);
+  returnSegmentationFilter::needUpdate(oId);
 }
 
 //-----------------------------------------------------------------------------

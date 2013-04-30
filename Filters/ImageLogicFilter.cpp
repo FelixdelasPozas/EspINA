@@ -49,35 +49,37 @@ ImageLogicFilter::~ImageLogicFilter()
 
 
 //-----------------------------------------------------------------------------
-void ImageLogicFilter::createDummyOutput(FilterOutputId id, const FilterOutput::OutputTypeName &type)
+void ImageLogicFilter::createDummyOutput(FilterOutputId id, const FilterOutput::OutputRepresentationName &type)
 {
 
 }
 
 //-----------------------------------------------------------------------------
-void ImageLogicFilter::createOutputRepresentations(OutputSPtr output)
+void ImageLogicFilter::createOutputRepresentations(SegmentationOutputSPtr output)
 {
-  VolumeOutputTypeSPtr volumeData = outputVolume(output);
-  output->addRepresentation(EspinaRepresentationSPtr(new SegmentationSliceRepresentation(volumeData, NULL)));
-  //   output->addRepresentation(EspinaRepresentationSPtr(new VolumeReprentation  (volumeOutput(output))));
-  //   output->addRepresentation(EspinaRepresentationSPtr(new MeshRepresentation  (meshOutput  (output))));
-  //   output->addRepresentation(EspinaRepresentationSPtr(new SmoothRepresentation(meshOutput  (output))));
+  SegmentationVolumeSPtr volumeRep = segmentationVolume(output);
+  output->addRepresentation(GraphicalRepresentationSPtr(new SegmentationSliceRepresentation(volumeRep, NULL)));
+  //   output->addRepresentation(GraphicalRepresentationSPtr(new VolumeReprentation  (volumeOutput(output))));
+  //   output->addRepresentation(GraphicalRepresentationSPtr(new MeshRepresentation  (meshOutput  (output))));
+  //   output->addRepresentation(GraphicalRepresentationSPtr(new SmoothRepresentation(meshOutput  (output))));
 }
 
 //-----------------------------------------------------------------------------
 bool ImageLogicFilter::needUpdate(FilterOutputId oId) const
 {
-  bool update = Filter::needUpdate(oId);
+  bool update =SegmentationFilter::needUpdate(oId);
 
   if (!update && !m_inputs.isEmpty()) //TODO 2012-12-10 Check this update
   {
     Q_ASSERT(m_namedInputs.size()  >= 1);
     Q_ASSERT(m_outputs.size() == 1);
 
+    SegmentationVolumeSPtr outputVolume = segmentationVolume(m_outputs[0]);
     int i = 0;
     while (!update && i < m_inputs.size())
     {
-      update = m_outputs[0]->data(VolumeOutputType::TYPE)->timeStamp() < m_inputs[i]->data(VolumeOutputType::TYPE)->timeStamp();
+      SegmentationVolumeSPtr inputVolume = segmentationVolume(m_inputs[i]);
+      update = outputVolume->timeStamp() < inputVolume->timeStamp();
       ++i;
     }
   }
@@ -120,13 +122,13 @@ void ImageLogicFilter::addition()
 {
   QList<EspinaRegion> regions;
 
-  SegmentationVolumeTypeSPtr firstVolume = outputSegmentationVolume(m_inputs[0]);
+  SegmentationVolumeSPtr firstVolume = segmentationVolume(m_inputs[0]);
   EspinaRegion bb = firstVolume->espinaRegion();
   regions << bb;
 
   for (int i = 1; i < m_inputs.size(); i++)
   {
-    SegmentationVolumeTypeSPtr iVolume = outputSegmentationVolume(m_inputs[i]);
+    SegmentationVolumeSPtr iVolume = segmentationVolume(m_inputs[i]);
     EspinaRegion region = iVolume->espinaRegion();
 
     bb = BoundingBox(bb, region);
@@ -134,13 +136,13 @@ void ImageLogicFilter::addition()
   }
 
   itkVolumeType::SpacingType spacing = firstVolume->toITK()->GetSpacing();
-  SegmentationVolumeTypeSPtr volume(new SegmentationVolumeType(bb, spacing));
+  RawSegmentationVolumeSPtr volume(new RawSegmentationVolume(bb, spacing));
 
   for (int i = 0; i < regions.size(); i++)
   {
-    SegmentationVolumeTypeSPtr  iVolume = outputSegmentationVolume(m_inputs[i]);
-    itkVolumeConstIterator it = iVolume->constIterator(regions[i]);
-    itkVolumeIterator      ot = volume ->iterator (regions[i]);
+    SegmentationVolumeSPtr iVolume = segmentationVolume(m_inputs[i]);
+    itkVolumeConstIterator it      = iVolume->constIterator(regions[i]);
+    itkVolumeIterator      ot      = volume ->iterator (regions[i]);
 
     it.GoToBegin();
     ot.GetRegion();
@@ -151,10 +153,10 @@ void ImageLogicFilter::addition()
     }
   }
 
-  FilterOutput::OutputTypeList dataList;
-  dataList << volume;
+  SegmentationRepresentationSList repList;
+  repList << volume;
 
-  createOutput(0, dataList);
+  createOutput(0, repList);
 
   emit modified(this);
 }
@@ -166,7 +168,7 @@ void ImageLogicFilter::substraction()
   OutputSList          validInputs;
   QList<EspinaRegion> regions;
 
-  SegmentationVolumeTypeSPtr  firstVolume = outputSegmentationVolume(m_inputs[0]);
+  SegmentationVolumeSPtr firstVolume = segmentationVolume(m_inputs[0]);
   EspinaRegion outputRegion = firstVolume->espinaRegion();
 
   validInputs << m_inputs[0];
@@ -174,7 +176,7 @@ void ImageLogicFilter::substraction()
 
   for (int i = 1; i < m_inputs.size(); i++)
   {
-    SegmentationVolumeTypeSPtr iVolume = outputSegmentationVolume(m_inputs[i]);
+    SegmentationVolumeSPtr iVolume = segmentationVolume(m_inputs[i]);
     EspinaRegion region = iVolume->espinaRegion();
     if (outputRegion.intersect(region))
     {
@@ -184,7 +186,7 @@ void ImageLogicFilter::substraction()
   }
 
   itkVolumeType::SpacingType spacing = firstVolume->toITK()->GetSpacing();
-  SegmentationVolumeTypeSPtr volume(new SegmentationVolumeType(outputRegion, spacing));
+  RawSegmentationVolumeSPtr volume(new RawSegmentationVolume(outputRegion, spacing));
 
   itk::ImageAlgorithm::Copy(firstVolume->toITK().GetPointer(),
                             volume->toITK().GetPointer(),
@@ -193,9 +195,9 @@ void ImageLogicFilter::substraction()
 
   for (int i = 1; i < validInputs.size(); i++)
   {
-    SegmentationVolumeTypeSPtr  iVolume = outputSegmentationVolume(m_inputs[i]);
-    itkVolumeConstIterator it = iVolume->constIterator(regions[i]);
-    itkVolumeIterator      ot = volume ->iterator     (regions[i]);
+    SegmentationVolumeSPtr iVolume = segmentationVolume(m_inputs[i]);
+    itkVolumeConstIterator it      = iVolume->constIterator(regions[i]);
+    itkVolumeIterator      ot      = volume ->iterator     (regions[i]);
     it.GoToBegin();
     ot.GetRegion();
     for (; !it.IsAtEnd(); ++it,++ot)
@@ -205,10 +207,10 @@ void ImageLogicFilter::substraction()
     }
   }
 
-  FilterOutput::OutputTypeList dataList;
-  dataList << volume;
+  SegmentationRepresentationSList repList;
+  repList << volume;
 
-  createOutput(0, dataList);
+  createOutput(0, repList);
 
   emit modified(this);
 }

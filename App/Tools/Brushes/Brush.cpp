@@ -269,7 +269,7 @@ void Brush::drawStroke(PickableItemPtr item,
     {
       try
       {
-        SegmentationVolumeTypeSPtr segVolume = outputSegmentationVolume(m_currentSeg->output());
+        SegmentationVolumeSPtr segVolume = segmentationVolume(m_currentSeg->output());
 
         const Nm *volumeBounds = segVolume->espinaRegion().bounds();
         Nm insideBounds[6] = { volumeBounds[0]+1, volumeBounds[1]-1, volumeBounds[2]+1, volumeBounds[3]-1, volumeBounds[4]+1, volumeBounds[5]-1 };

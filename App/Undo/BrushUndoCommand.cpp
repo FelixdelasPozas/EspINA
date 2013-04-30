@@ -63,7 +63,8 @@ void Brush::DrawCommand::redo()
 {
   if (m_newVolume.IsNotNull())
   {
-    m_seg->filter()->draw(m_output, m_newVolume);
+    SegmentationVolumeSPtr volume = segmentationVolume(m_seg->output());
+    volume->draw(m_newVolume);
   }
   else
   {
@@ -71,9 +72,9 @@ void Brush::DrawCommand::redo()
 
     if (m_seg->filter()->validOutput(m_output))
     {
-      SegmentationVolumeTypeSPtr volume = outputSegmentationVolume(m_seg->output());
+      SegmentationVolumeSPtr volume = segmentationVolume(m_seg->output());
 
-      m_prevRegions = m_seg->output()->editedRegions();
+      m_prevRegions = volume->editedRegions();
 
       if (!strokeRegion.isInside(volume->espinaRegion()))
       {
@@ -87,20 +88,21 @@ void Brush::DrawCommand::redo()
 
     }
 
+    SegmentationVolumeSPtr volume = segmentationVolume(m_seg->output());
     for (int i=0; i < m_brushes.size(); i++)
     {
       bool lastBrush    = m_brushes.size() - 1 == i;
       BrushShape &brush = m_brushes[i];
 
       if (0 == i) // Prevent resizing on each brush
-        m_seg->filter()->draw(m_output, brush.first, m_strokeBounds, m_value, lastBrush);
+        volume->draw(brush.first, m_strokeBounds, m_value, lastBrush);
       else
-        m_seg->filter()->draw(m_output, brush.first, brush.second.bounds(), m_value, lastBrush);
+        volume->draw(brush.first, brush.second.bounds(), m_value, lastBrush);
     }
 
     if (m_seg->filter()->validOutput(m_output))
     {
-      SegmentationVolumeTypeSPtr volume = outputSegmentationVolume(m_seg->output());
+      SegmentationVolumeSPtr volume = segmentationVolume(m_seg->output());
       m_newVolume = volume->cloneVolume(strokeRegion);
     }
   }
@@ -115,19 +117,21 @@ void Brush::DrawCommand::undo()
   {
     EspinaRegion strokeRegion(m_strokeBounds);
 
-    m_seg->filter()->fill(m_output, strokeRegion, SEG_BG_VALUE, false);
+    SegmentationOutputSPtr output = boost::dynamic_pointer_cast<SegmentationOutput>(m_seg->output());
+    SegmentationVolumeSPtr volume = segmentationVolume(output);
+    volume->fill(strokeRegion, SEG_BG_VALUE, false);
 
     if (m_prevVolume.IsNotNull())
-    m_seg->filter()->draw(m_output, m_prevVolume, !m_needReduction);
+      volume->draw(m_prevVolume, !m_needReduction);
 
     if (m_needReduction)
     {
-      SegmentationVolumeTypeSPtr volume = outputSegmentationVolume(m_seg->output());
+      SegmentationVolumeSPtr volume = segmentationVolume(m_seg->output());
       volume->fitToContent();
     }
 
     // Restore previous edited regions
-    m_seg->output()->setEditedRegions(m_prevRegions);
+    output->setEditedRegions(m_prevRegions);
   }
   else
     emit initBrushTool();
@@ -143,7 +147,7 @@ Brush::SnapshotCommand::SnapshotCommand(SegmentationSPtr seg,
 , m_output(output)
 , m_viewManager(vm)
 {
-  SegmentationVolumeTypeSPtr segVolume = outputSegmentationVolume(m_seg->output());
+  SegmentationVolumeSPtr segVolume = segmentationVolume(m_seg->output());
   m_prevVolume = segVolume->cloneVolume();
 }
 
@@ -151,18 +155,21 @@ Brush::SnapshotCommand::SnapshotCommand(SegmentationSPtr seg,
 void Brush::SnapshotCommand::redo()
 {
   if (m_newVolume.IsNotNull())
-    m_seg->filter()->restoreOutput(m_output, m_newVolume);
+  {
+    SegmentationVolumeSPtr volume = segmentationVolume(m_seg->output());
+    volume->setVolume(m_newVolume);
+  }
 }
 
 //-----------------------------------------------------------------------------
 void Brush::SnapshotCommand::undo()
 {
+  SegmentationVolumeSPtr segVolume = segmentationVolume(m_seg->output());
   if (m_newVolume.IsNull())
   {
-    SegmentationVolumeTypeSPtr segVolume = outputSegmentationVolume(m_seg->output());
     m_newVolume = segVolume->cloneVolume();
   }
 
   if (m_prevVolume.IsNotNull())
-    m_seg->filter()->restoreOutput(m_output, m_prevVolume);
+    segVolume->setVolume(m_prevVolume);
 }

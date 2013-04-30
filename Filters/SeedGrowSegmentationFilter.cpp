@@ -78,28 +78,28 @@ QVariant SeedGrowSegmentationFilter::data(int role) const
 }
 
 //-----------------------------------------------------------------------------
-void SeedGrowSegmentationFilter::createDummyOutput(FilterOutputId id, const FilterOutput::OutputTypeName &type)
+void SeedGrowSegmentationFilter::createDummyOutput(FilterOutputId id, const FilterOutput::OutputRepresentationName &type)
 {
-  if (VolumeOutputType::TYPE == type)
-    createOutput(id, SegmentationVolumeTypeSPtr(new SegmentationVolumeType()));
+  if (SegmentationVolume::TYPE == type)
+    createOutput(id, RawSegmentationVolumeSPtr(new RawSegmentationVolume()));
   else
     Q_ASSERT(false);
 }
 
 //-----------------------------------------------------------------------------
-void SeedGrowSegmentationFilter::createOutputRepresentations(OutputSPtr output)
+void SeedGrowSegmentationFilter::createOutputRepresentations(SegmentationOutputSPtr output)
 {
-  VolumeOutputTypeSPtr volumeData = outputVolume(output);
-  output->addRepresentation(EspinaRepresentationSPtr(new SegmentationSliceRepresentation(volumeData, NULL)));
-//   output->addRepresentation(EspinaRepresentationSPtr(new VolumeReprentation  (volumeOutput(output))));
-//   output->addRepresentation(EspinaRepresentationSPtr(new MeshRepresentation  (meshOutput  (output))));
-//   output->addRepresentation(EspinaRepresentationSPtr(new SmoothRepresentation(meshOutput  (output))));
+  SegmentationVolumeSPtr volumeRep = segmentationVolume(output);
+  output->addRepresentation(GraphicalRepresentationSPtr(new SegmentationSliceRepresentation(volumeRep, NULL)));
+//   output->addRepresentation(GraphicalRepresentationSPtr(new VolumeReprentation  (volumeOutput(output))));
+//   output->addRepresentation(GraphicalRepresentationSPtr(new MeshRepresentation  (meshOutput  (output))));
+//   output->addRepresentation(GraphicalRepresentationSPtr(new SmoothRepresentation(meshOutput  (output))));
 }
 
 //-----------------------------------------------------------------------------
 bool SeedGrowSegmentationFilter::needUpdate(FilterOutputId oId) const
 {
-  return Filter::needUpdate(oId);
+  return SegmentationFilter::needUpdate(oId);
 }
 
 //-----------------------------------------------------------------------------
@@ -115,7 +115,7 @@ void SeedGrowSegmentationFilter::run(FilterOutputId oId)
   Q_ASSERT(0 == oId);
   Q_ASSERT(m_inputs.size() == 1);
 
-  ChannelVolumeTypeSPtr input = outputChannelVolume(m_inputs[0]);
+  ChannelVolumeSPtr input = channelVolume(m_inputs[0]);
   Q_ASSERT(input);
 
   int voi[6];
@@ -208,11 +208,11 @@ void SeedGrowSegmentationFilter::run(FilterOutputId oId)
   else
     volume = extractFilter->GetOutput();
 
-  FilterOutput::OutputTypeList dataList;
-  dataList << SegmentationVolumeTypeSPtr(new SegmentationVolumeType(volume));
-  dataList << MeshOutputTypeSPtr(new MarchingCubesMesh());
+  SegmentationRepresentationSList repList;
+  repList << RawSegmentationVolumeSPtr(new RawSegmentationVolume(volume));
+  repList << MeshTypeSPtr(new MarchingCubesMesh());
 
-  createOutput(0, dataList);
+  createOutput(0, repList);
 
   m_ignoreCurrentOutputs = false;
 
@@ -251,7 +251,7 @@ void SeedGrowSegmentationFilter::setVOI(int VOI[6], bool ignoreUpdate)
 bool SeedGrowSegmentationFilter::isTouchingVOI() const
 {
   int segExtent[6];
-  SegmentationVolumeTypeSPtr outputVolume = outputSegmentationVolume(m_outputs[0]);
+  SegmentationVolumeSPtr outputVolume =segmentationVolume(m_outputs[0]);
   outputVolume->extent(segExtent);
 
   int voiExtent[6];
@@ -286,5 +286,5 @@ bool SeedGrowSegmentationFilter::fetchSnapshot(FilterOutputId oId)
   if (m_ignoreCurrentOutputs)
     return false;
 
-  return Filter::fetchSnapshot(oId);
+  return SegmentationFilter::fetchSnapshot(oId);
 }

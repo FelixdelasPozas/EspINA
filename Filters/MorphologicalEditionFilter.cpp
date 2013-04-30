@@ -50,40 +50,42 @@ MorphologicalEditionFilter::~MorphologicalEditionFilter()
 }
 
 //-----------------------------------------------------------------------------
-void MorphologicalEditionFilter::createDummyOutput(FilterOutputId id, const FilterOutput::OutputTypeName &type)
+void MorphologicalEditionFilter::createDummyOutput(FilterOutputId id, const FilterOutput::OutputRepresentationName &type)
 {
-  if (VolumeOutputType::TYPE == type)
-    createOutput(id, SegmentationVolumeTypeSPtr(new SegmentationVolumeType()));
+  if (SegmentationVolume::TYPE == type)
+    createOutput(id, RawSegmentationVolumeSPtr(new RawSegmentationVolume()));
   else
     Q_ASSERT(false);
 }
 
 //-----------------------------------------------------------------------------
-void MorphologicalEditionFilter::createOutputRepresentations(OutputSPtr output)
+void MorphologicalEditionFilter::createOutputRepresentations(SegmentationOutputSPtr output)
 {
-  VolumeOutputTypeSPtr volumeData = outputVolume(output);
-  output->addRepresentation(EspinaRepresentationSPtr(new SegmentationSliceRepresentation(volumeData, NULL)));
-  //   output->addRepresentation(EspinaRepresentationSPtr(new VolumeReprentation  (volumeOutput(output))));
-  //   output->addRepresentation(EspinaRepresentationSPtr(new MeshRepresentation  (meshOutput  (output))));
-  //   output->addRepresentation(EspinaRepresentationSPtr(new SmoothRepresentation(meshOutput  (output))));
+  SegmentationVolumeSPtr volumeRep = segmentationVolume(output);
+  output->addRepresentation(GraphicalRepresentationSPtr(new SegmentationSliceRepresentation(volumeRep, NULL)));
+  //   output->addRepresentation(GraphicalRepresentationSPtr(new VolumeReprentation  (volumeOutput(output))));
+  //   output->addRepresentation(GraphicalRepresentationSPtr(new MeshRepresentation  (meshOutput  (output))));
+  //   output->addRepresentation(GraphicalRepresentationSPtr(new SmoothRepresentation(meshOutput  (output))));
 }
 
 //-----------------------------------------------------------------------------
 bool MorphologicalEditionFilter::needUpdate(FilterOutputId oId) const
 {
-  bool update = Filter::needUpdate(oId);
+  bool update =SegmentationFilter::needUpdate(oId);
 
   if (!update)
   {
     Q_ASSERT(m_namedInputs.size()  == 1);
     Q_ASSERT(m_outputs.size() == 1);
-    Q_ASSERT(m_outputs[0]->data(VolumeOutputType::TYPE).get());
-    //FIXME Q_ASSERT(m_outputs[0].volume->toITK().IsNotNull());
 
+    SegmentationVolumeSPtr outputVolume = segmentationVolume(m_outputs[0]);
+    Q_ASSERT(outputVolume.get());
+    Q_ASSERT(outputVolume->toITK().IsNotNull());
     if (!m_inputs.isEmpty())
     {
       Q_ASSERT(m_inputs.size() == 1);
-      update = m_outputs[0]->data(VolumeOutputType::TYPE)->timeStamp() < m_inputs[0]->data(VolumeOutputType::TYPE)->timeStamp();
+      SegmentationVolumeSPtr inputVolume = segmentationVolume(m_inputs[0]);
+      update = outputVolume->timeStamp() < inputVolume->timeStamp();
     }
   }
 
@@ -97,5 +99,5 @@ bool MorphologicalEditionFilter::fetchSnapshot(FilterOutputId oId)
   if (m_ignoreCurrentOutputs)
     return false;
 
-  return Filter::fetchSnapshot(oId);
+  return SegmentationFilter::fetchSnapshot(oId);
 }

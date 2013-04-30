@@ -57,25 +57,25 @@ SplitFilter::~SplitFilter()
 }
 
 //-----------------------------------------------------------------------------
-void SplitFilter::createDummyOutput(FilterOutputId id, const FilterOutput::OutputTypeName &type)
+void SplitFilter::createDummyOutput(FilterOutputId id, const FilterOutput::OutputRepresentationName &type)
 {
 
 }
 
 //-----------------------------------------------------------------------------
-void SplitFilter::createOutputRepresentations(OutputSPtr output)
+void SplitFilter::createOutputRepresentations(SegmentationOutputSPtr output)
 {
-  VolumeOutputTypeSPtr volumeData = outputVolume(output);
-  output->addRepresentation(EspinaRepresentationSPtr(new SegmentationSliceRepresentation(volumeData, NULL)));
-  //   output->addRepresentation(EspinaRepresentationSPtr(new VolumeReprentation  (volumeOutput(output))));
-  //   output->addRepresentation(EspinaRepresentationSPtr(new MeshRepresentation  (meshOutput  (output))));
-  //   output->addRepresentation(EspinaRepresentationSPtr(new SmoothRepresentation(meshOutput  (output))));
+  SegmentationVolumeSPtr volumeRep = segmentationVolume(output);
+  output->addRepresentation(GraphicalRepresentationSPtr(new SegmentationSliceRepresentation(volumeRep, NULL)));
+  //   output->addRepresentation(GraphicalRepresentationSPtr(new VolumeReprentation  (volumeOutput(output))));
+  //   output->addRepresentation(GraphicalRepresentationSPtr(new MeshRepresentation  (meshOutput  (output))));
+  //   output->addRepresentation(GraphicalRepresentationSPtr(new SmoothRepresentation(meshOutput  (output))));
 }
 
 //-----------------------------------------------------------------------------
 bool SplitFilter::needUpdate(FilterOutputId oId) const
 {
-  return Filter::needUpdate(oId);
+  return SegmentationFilter::needUpdate(oId);
 }
 
 //-----------------------------------------------------------------------------
@@ -92,7 +92,7 @@ void SplitFilter::run(FilterOutputId oId)
   Q_ASSERT(0 == oId || 1 == oId);
   Q_ASSERT(m_inputs.size() == 1);
 
-  SegmentationVolumeTypeSPtr input = outputSegmentationVolume(m_inputs[0]);
+  SegmentationVolumeSPtr input = segmentationVolume(m_inputs[0]);
   Q_ASSERT(input);
 
   // if you want to run the filter you must have an stencil
@@ -105,9 +105,9 @@ void SplitFilter::run(FilterOutputId oId)
   if (m_volumes[0].get() == NULL || ignoreCurrentOutputs())
   {
     for(int i=0; i < 2; i++)
-      m_volumes[i] = SegmentationVolumeTypeSPtr(new SegmentationVolumeType(region, spacing));
+      m_volumes[i] = RawSegmentationVolumeSPtr(new RawSegmentationVolume(region, spacing));
 
-    itkVolumeConstIterator it = input      ->iterator(region);
+    itkVolumeConstIterator it = input        ->iterator(region);
     itkVolumeIterator     ot1 = m_volumes[0] ->iterator(region);
     itkVolumeIterator     ot2 = m_volumes[1] ->iterator(region);
 

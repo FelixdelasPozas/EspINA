@@ -159,10 +159,10 @@ namespace EspINA
     m_filter->SetImplicitFunctions(m_implicitFunctions);
     m_filter->Update();
 
-    FilterOutput::OutputTypeList dataList;
-    dataList << SegmentationVolumeTypeSPtr(new SegmentationVolumeType(m_filter->GetOutput()));
+    SegmentationRepresentationSList repList;
+    repList << RawSegmentationVolumeSPtr(new RawSegmentationVolume(m_filter->GetOutput()));
 
-    createOutput(0, dataList);
+    createOutput(0, repList);
 
     emit modified(this);
   }
@@ -185,7 +185,7 @@ namespace EspINA
   //-----------------------------------------------------------------------------
   bool TubularSegmentationFilter::fetchSnapshot(FilterOutputId oId)
   {
-    return Filter::fetchSnapshot(oId);
+    return SegmentationFilter::fetchSnapshot(oId);
   }
 
   //-----------------------------------------------------------------------------

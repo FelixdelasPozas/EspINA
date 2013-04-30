@@ -27,7 +27,7 @@
 
 
 #include "Output.h"
-#include "OutputType.h"
+#include "OutputRepresentation.h"
 #include "Filter.h"
 #include <vtkMath.h>
 
@@ -47,40 +47,83 @@ FilterOutput::FilterOutput(Filter *filter, const FilterOutputId &id)
 }
 
 //----------------------------------------------------------------------------
-bool FilterOutput::dumpSnapshot(const QString &prefix, Snapshot &snapshot)
+void FilterOutput::update()
+{
+  m_filter->update(m_id);
+}
+
+//----------------------------------------------------------------------------
+void FilterOutput::setRegion(const EspinaRegion &region)
+{
+  m_region = region;
+}
+
+
+//----------------------------------------------------------------------------
+ChannelOutput::ChannelOutput(Filter *filter, const FilterOutputId &id)
+: FilterOutput(filter, id)
+{
+}
+
+//----------------------------------------------------------------------------
+bool ChannelOutput::isValid() const
+{
+  bool validData = !m_representations.isEmpty();
+
+  int i = 0;
+  while (validData && i < m_representations.size())
+  {
+    validData = m_representations[m_representations.keys()[i]]->isValid();
+    ++i;
+  }
+
+  return NULL != m_filter
+      && INVALID_OUTPUT_ID < m_id
+      && validData;
+}
+
+
+//----------------------------------------------------------------------------
+SegmentationOutput::SegmentationOutput(Filter *filter, const FilterOutputId &id)
+: FilterOutput(filter, id)
+{
+}
+
+//----------------------------------------------------------------------------
+bool SegmentationOutput::dumpSnapshot(const QString &prefix, Snapshot &snapshot)
 {
   bool dumped = true;
 
-  foreach(OutputTypeSPtr data, m_data)
+  foreach(SegmentationRepresentationSPtr rep, m_representations)
   {
-    dumped |= data->dumpSnapshot(prefix, snapshot);
+    dumped |= rep->dumpSnapshot(prefix, snapshot);
   }
 
   return dumped;
 }
 
 //----------------------------------------------------------------------------
-bool FilterOutput::fetchSnapshot(const QString &prefix)
+bool SegmentationOutput::fetchSnapshot(const QString &prefix)
 {
   bool fetched = true;
 
-  foreach(OutputTypeSPtr outputData, m_data)
+  foreach(SegmentationRepresentationSPtr rep, m_representations)
   {
-    fetched &= outputData->fetchSnapshot(m_filter, prefix);
+    fetched &= rep->fetchSnapshot(m_filter, prefix);
   }
 
   return fetched;
 }
 
 //----------------------------------------------------------------------------
-bool FilterOutput::isValid() const
+bool SegmentationOutput::isValid() const
 {
-  bool validData = !m_data.isEmpty();
+  bool validData = !m_representations.isEmpty();
 
   int i = 0;
-  while (validData && i < m_data.size())
+  while (validData && i < m_representations.size())
   {
-    validData = m_data[m_data.keys()[i]]->isValid();
+    validData = m_representations[m_representations.keys()[i]]->isValid();
     ++i;
   }
 
@@ -90,14 +133,14 @@ bool FilterOutput::isValid() const
 }
 
 //----------------------------------------------------------------------------
-bool FilterOutput::isEdited() const
+bool SegmentationOutput::isEdited() const
 {
   bool editedData = false;
 
   int i = 0;
-  while (!editedData && i < m_data.size())
+  while (!editedData && i < m_representations.size())
   {
-    editedData = m_data[m_data.keys()[i]]->isEdited();
+    editedData = m_representations[m_representations.keys()[i]]->isEdited();
     ++i;
   }
 
@@ -105,22 +148,22 @@ bool FilterOutput::isEdited() const
 }
 
 //----------------------------------------------------------------------------
-void FilterOutput::clearEditedRegions()
+void SegmentationOutput::clearEditedRegions()
 {
-  foreach(OutputTypeSPtr outputData, m_data)
+  foreach(SegmentationRepresentationSPtr rep, m_representations)
   {
-    outputData->clearEditedRegions();
+    rep->clearEditedRegions();
   }
 }
 
 //----------------------------------------------------------------------------
-void FilterOutput::dumpEditedRegions(const QString &prefix, Snapshot &snapshot)
+void SegmentationOutput::dumpEditedRegions(const QString &prefix, Snapshot &snapshot)
 {
   //FIXME
 
 //   std::ostringstream regions;
 // 
-//   for (int r = 0; r < m_data; ++r)
+//   for (int r = 0; r < m_representations; ++r)
 //   {
 //     Output::NamedRegion editedRegion = output->editedRegions[r];
 //     
@@ -136,39 +179,27 @@ void FilterOutput::dumpEditedRegions(const QString &prefix, Snapshot &snapshot)
 }
 
 //----------------------------------------------------------------------------
-FilterOutput::NamedRegionList FilterOutput::editedRegions() const
+SegmentationOutput::NamedRegionList SegmentationOutput::editedRegions() const
 {
   NamedRegionList regions;
 
-  foreach (OutputTypeSPtr data, m_data)
+  foreach (SegmentationRepresentationSPtr rep, m_representations)
   {
-    regions << data->editedRegions();
+    regions << rep->editedRegions();
   }
 
   return regions;
 }
 
 //----------------------------------------------------------------------------
-void FilterOutput::restoreEditedRegions(const QString &prefix)
+void SegmentationOutput::restoreEditedRegions(const QString &prefix)
 {
   //FIXME
 }
 
 //----------------------------------------------------------------------------
-void FilterOutput::setEditedRegions(const FilterOutput::NamedRegionList &regions)
+void SegmentationOutput::setEditedRegions(const SegmentationOutput::NamedRegionList &regions)
 {
   clearEditedRegions();
   //FIXME set regions
-}
-
-//----------------------------------------------------------------------------
-void FilterOutput::update()
-{
-  m_filter->update(m_id);
-}
-
-//----------------------------------------------------------------------------
-void FilterOutput::setRegion(const EspinaRegion &region)
-{
-  m_region = region;
 }

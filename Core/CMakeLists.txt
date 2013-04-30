@@ -7,7 +7,6 @@ qt4_wrap_cpp(CORE_MOC
   ColorEngines/IColorEngine.h
   ColorEngines/TaxonomyColorEngine.h
   Model/Output.h
-  Model/VolumeOutputType.h
   Extensions/ChannelExtension.h
   Extensions/SegmentationExtension.h
   Model/EspinaModel.h
@@ -15,7 +14,7 @@ qt4_wrap_cpp(CORE_MOC
   Model/ModelItem.h
   Model/PickableItem.h
   Model/Output.h
-  Model/OutputType.h
+  Model/OutputRepresentation.h
   Model/MarchingCubesMesh.h
   Model/Segmentation.h
   Model/Taxonomy.h
@@ -25,6 +24,7 @@ qt4_wrap_cpp(CORE_MOC
   Model/Proxies/TaxonomyProxy.h
   Model/Proxies/InformationProxy.h
   Model/Proxies/ConnectomicProxy.h
+  Outputs/RawVolume.h
   Interfaces/IDockWidget.h
   Interfaces/IToolBar.h
   )
@@ -34,14 +34,13 @@ qt4_wrap_cpp(CORE_MOC
 #   editor/ContourSourceInspector.ui
 #   )
 
-set (CORE_SOURCES 
+set (CORE_SOURCES
   ${CORE_MOC}
   ${CORE_UI}
   EspinaRegion.cpp
   EspinaSettings.cpp
   Model/Output.cpp
-  Model/OutputType.cpp
-  Model/VolumeOutputType.cpp
+  Model/OutputRepresentation.cpp
   EspinaTypes.cpp
   ColorEngines/MultiColorEngine.cpp
   ColorEngines/NumberColorEngine.cpp
@@ -79,6 +78,11 @@ set (CORE_SOURCES
   Model/Proxies/RelationProxy.cpp
   Model/Proxies/InformationProxy.cpp
   Model/Proxies/ConnectomicProxy.cpp
+  Outputs/MeshType.cpp
+  Outputs/MeshProxy.cpp 
+  Outputs/RawVolume.cpp
+  Outputs/VolumeProxy.cpp 
+  Outputs/VolumeRepresentation.cpp 
   VTK/vtkTube.cxx
   Utils/SegmentationCollision.cpp
   Model/HierarchyItem.cpp

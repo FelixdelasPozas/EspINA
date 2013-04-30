@@ -49,9 +49,9 @@ public:
 
   virtual void redo()
   {
-    OutputSPtr output = m_filter->output(0);
+    SegmentationOutputSPtr output = boost::dynamic_pointer_cast<SegmentationOutput>(m_filter->output(0));
 
-    SegmentationVolumeTypeSPtr volume = outputSegmentationVolume(output);
+    SegmentationVolumeSPtr volume = segmentationVolume(output);
 
     if (!m_oldVolume && (output->isEdited() || volume->volumeRegion().GetNumberOfPixels() < MAX_UNDO_SIZE))
     {
@@ -68,13 +68,13 @@ public:
       if (m_filter->isOutputEmpty())
         return;
 
-      SegmentationVolumeTypeSPtr newVolume = volume;
+      SegmentationVolumeSPtr newVolume = volume;
       if (newVolume->volumeRegion().GetNumberOfPixels() < MAX_UNDO_SIZE)
         m_newVolume = volume->cloneVolume();
     }
     else
     {
-      m_filter->restoreOutput(0, m_newVolume);
+      volume->setVolume(m_newVolume);
     }
 
     output->clearEditedRegions();
@@ -84,10 +84,12 @@ public:
   {
     m_filter->setRadius(m_oldRadius, true);
 
+    SegmentationOutputSPtr output = boost::dynamic_pointer_cast<SegmentationOutput>(m_filter->output(0));
+    SegmentationVolumeSPtr volume = segmentationVolume(output);
     if (m_oldVolume.IsNotNull())
     {
-      m_filter->restoreOutput(0, m_oldVolume);
-      m_filter->output(0)->setEditedRegions(m_editedRegions);
+      volume->setVolume(m_oldVolume);
+      output->setEditedRegions(m_editedRegions);
     } else
     {
       update();
@@ -166,10 +168,12 @@ CODESettings::~CODESettings()
 //----------------------------------------------------------------------------
 void CODESettings::modifyFilter()
 {
-  if ((m_spinbox->value() == static_cast<int>(m_filter->radius())) && !m_filter->output(0)->isEdited())
+  SegmentationOutputSPtr output = boost::dynamic_pointer_cast<SegmentationOutput>(m_filter->output(0));
+
+  if ((m_spinbox->value() == static_cast<int>(m_filter->radius())) && !output->isEdited())
     return;
 
-  if (m_filter->output(0)->isEdited())
+  if (output->isEdited())
   {
     QMessageBox msg;
     msg.setText(tr("Filter contains segmentations that have been modified by the user."

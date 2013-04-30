@@ -88,15 +88,15 @@ const FilterOutputId Channel::outputId() const
 }
 
 //------------------------------------------------------------------------
-ChannelVolumeTypeSPtr Channel::volume()
+ChannelVolumeSPtr Channel::volume()
 {
   return static_cast<const Channel *>(this)->volume();
 }
 
 //------------------------------------------------------------------------
-const ChannelVolumeTypeSPtr Channel::volume() const
+const ChannelVolumeSPtr Channel::volume() const
 {
-  return outputChannelVolume(output());
+  return channelVolume(output());
 }
 
 

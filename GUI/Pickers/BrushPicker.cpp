@@ -23,7 +23,7 @@
 #include "GUI/ViewManager.h"
 #include <Core/EspinaRegion.h>
 #include <Core/Model/Channel.h>
-#include <Core/Model/VolumeOutputType.h>
+#include <Core/Outputs/VolumeRepresentation.h>
 #include <Filters/FreeFormSource.h>
 
 // Qt
@@ -150,7 +150,7 @@ void BrushPicker::setBrushColor(QColor color)
 void BrushPicker::setReferenceItem(PickableItemPtr item)
 {
   m_referenceItem = item;
-  VolumeOutputTypeSPtr volume = outputVolume(m_referenceItem->output());
+  SegmentationVolumeSPtr volume = segmentationVolume(m_referenceItem->output());
   m_spacing = volume->toITK()->GetSpacing();
 }
 
@@ -244,7 +244,7 @@ bool BrushPicker::validStroke(double brush[3])
 
   if (!m_drawing)
   {
-    SegmentationVolumeTypeSPtr segVolume = outputSegmentationVolume(m_segmentation->output());
+    SegmentationVolumeSPtr segVolume = segmentationVolume(m_segmentation->output());
 
     Nm bounds[6];
     segVolume->bounds(bounds);
@@ -401,9 +401,9 @@ void BrushPicker::startPreview(EspinaRenderView* view)
   // if erasing hide seg and copy contents of slice to preview actor
   if (!m_drawing)
   {
-    SegmentationVolumeTypeSPtr segVolume = outputSegmentationVolume(m_segmentation->output());
+    SegmentationVolumeSPtr segVolume = segmentationVolume(m_segmentation->output());
 
-    foreach(EspinaRepresentationSPtr prototype, m_segmentation->representations())
+    foreach(GraphicalRepresentationSPtr prototype, m_segmentation->representations())
     {
       prototype->setActive(false, view);
     }
@@ -621,7 +621,7 @@ void BrushPicker::stopPreview(EspinaRenderView* view)
 
   if (!m_drawing && m_segmentation != NULL)
   {
-    foreach(EspinaRepresentationSPtr prototype, m_segmentation->representations())
+    foreach(GraphicalRepresentationSPtr prototype, m_segmentation->representations())
     {
       prototype->setActive(true, view);
     }

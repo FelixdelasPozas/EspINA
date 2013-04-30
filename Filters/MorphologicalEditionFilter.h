@@ -60,9 +60,9 @@ public:
   virtual bool isOutputEmpty() { return m_isOutputEmpty; };
 
 protected:
-  virtual void createDummyOutput(FilterOutputId id, const FilterOutput::OutputTypeName &type);
+  virtual void createDummyOutput(FilterOutputId id, const FilterOutput::OutputRepresentationName &type);
 
-  virtual void createOutputRepresentations(OutputSPtr output);
+  virtual void createOutputRepresentations(SegmentationOutputSPtr output);
 
   virtual bool ignoreCurrentOutputs() const
   {  return m_ignoreCurrentOutputs; }

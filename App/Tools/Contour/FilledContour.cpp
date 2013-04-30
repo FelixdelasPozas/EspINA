@@ -227,7 +227,9 @@ void FilledContour::rasterize(ContourWidget::ContourList list)
 
     if (!m_currentSeg)
     {
-      m_currentSource->draw(0, (*it).contourPoints, (*it).contourPoints->GetPoint(0)[(*it).contourPlane], (*it).contourPlane, (((*it).contourMode == Brush::BRUSH) ? SEG_VOXEL_VALUE : SEG_BG_VALUE), true);
+      // FIXME:
+      SegmentationVolumeSPtr currentVolume = segmentationVolume(m_currentSource->output(0));
+      currentVolume->draw((*it).contourPoints, (*it).contourPoints->GetPoint(0)[(*it).contourPlane], (*it).contourPlane, (((*it).contourMode == Brush::BRUSH) ? SEG_VOXEL_VALUE : SEG_BG_VALUE), true);
       m_currentSeg = m_model->factory()->createSegmentation(m_currentSource, 0);
       m_undoStack->push(new ContourAddSegmentation(m_model->findChannel(channel),
                                                    m_currentSource,
@@ -262,7 +264,7 @@ void FilledContour::rasterize(ContourWidget::ContourList list)
   {
     try
     {
-      SegmentationVolumeTypeSPtr segVolume = outputSegmentationVolume(m_currentSeg->output());
+      SegmentationVolumeSPtr segVolume = segmentationVolume(m_currentSeg->output());
       segVolume->fitToContent();
     }
     catch (...)
