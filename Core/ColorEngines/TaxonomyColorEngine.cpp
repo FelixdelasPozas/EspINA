@@ -70,14 +70,17 @@ LUTPtr TaxonomyColorEngine::lut(SegmentationPtr seg)
     // but the lookuptable hasn't, so when the segmentation and taxonomy are been
     // created again with a different color the ColorEngine returns the lookuptable
     // with the old color.
-    double rgb[3];
-    m_LUT[lutName]->GetColor(1, rgb);
-    QColor segColor = seg->taxonomy()->color();
+    if (seg->taxonomy()) // TODO: sometimes happens, segs without taxonomy, fixed?
+    {
+      double rgb[3];
+      m_LUT[lutName]->GetColor(1, rgb);
+      QColor segColor = seg->taxonomy()->color();
 
-    if (segColor != QColor(rgb[0], rgb[1], rgb[2]))
-      m_LUT[lutName]->SetTableValue(1, segColor.redF(), segColor.greenF(), segColor.blueF(), (seg->isSelected() ? SELECTED_ALPHA : UNSELECTED_ALPHA));
+      if (segColor != QColor(rgb[0], rgb[1], rgb[2]))
+        m_LUT[lutName]->SetTableValue(1, segColor.redF(), segColor.greenF(), segColor.blueF(), (seg->isSelected() ? SELECTED_ALPHA : UNSELECTED_ALPHA));
 
-    seg_lut = m_LUT[lutName];
+      seg_lut = m_LUT[lutName];
+    }
   }
 
   return seg_lut;

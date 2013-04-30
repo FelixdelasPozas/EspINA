@@ -811,6 +811,26 @@ bool EspinaIO::loadSerialization(IEspinaModel *model,
     TaxonomyElementSPtr taxonomy = model->taxonomy()->element(args[Segmentation::TAXONOMY]);
     if (!taxonomy.isNull())
       seg->setTaxonomy(taxonomy);
+    else
+    {
+      QStringList path = args[Segmentation::TAXONOMY].split("/", QString::SkipEmptyParts);
+      TaxonomyElementSPtr missingTax = model->taxonomy()->root();
+
+        TaxonomyElementSPtr parent = model->taxonomy()->root();
+        for (int i = 0; i < path.size(); ++i)
+        {
+          missingTax = missingTax->element(path.at(i));
+          if (missingTax.isNull())
+          {
+            missingTax = model->taxonomy()->createElement(path.at(i));
+            model->addTaxonomyElement(parent, missingTax);
+            qWarning() << "created taxonomy node" << missingTax->name() << "(qualified-name:" << missingTax->qualifiedName() << "missing from taxonomy.xml file inside segfile, but referenced in tracefile.dot)";
+          }
+          parent = missingTax;
+        }
+
+      seg->setTaxonomy(missingTax);
+    }
     newSegmentations << seg;
     input->setItem(v.vId, seg.data());
   }
