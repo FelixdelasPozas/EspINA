@@ -132,13 +132,14 @@ namespace EspINA
     FilterInspectorPtr const filterInspector() 
     { return (m_traceable || m_executed)?m_filterInspector:FilterInspectorPtr(); }
 
-    /// Filter's data to save to seg file
+    /// Create a snapshot with all the data of this filter that need to be stored
+    /// in seg files.
     virtual bool dumpSnapshot(Snapshot &snapshot);
 
     /// returns if the filter has been executed at least once in the session
-    virtual bool executed() { return m_executed; }
+    bool executed() { return m_executed; }
 
-    /// Reader to access snapshots
+    /// Reader to access snapshot data in filter's cache dir
     itkVolumeType::Pointer readVolumeFromCache(const QString &file);
 
     virtual int numberOfOutputs() const = 0;

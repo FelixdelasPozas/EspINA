@@ -400,6 +400,8 @@ void ChannelFilter::createOutput(FilterOutputId id, ChannelRepresentationSPtr re
 
   addChannelOutputData(currentOutput, rep);
 
+  currentOutput->clearRepresentations();
+
   createOutputRepresentations(currentOutput);
 }
 
@@ -415,6 +417,8 @@ void ChannelFilter::createOutput(FilterOutputId id, ChannelRepresentationSList r
   {
     addChannelOutputData(currentOutput, rep);
   }
+
+  currentOutput->clearRepresentations();//TODO: comprobar que se eliminan los actores de las antiguas representaciones en las vistas al ejecutar varios run
 
   createOutputRepresentations(currentOutput);
 }

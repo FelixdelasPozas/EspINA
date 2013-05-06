@@ -38,184 +38,157 @@ class QString;
 
 namespace EspINA
 {
-  class AppositionSurfaceVolume;
+  class RasterizedVolume;
 
   class AppositionSurfaceFilter
   : public SegmentationFilter
   {
     Q_OBJECT
-      static const double THRESHOLDFACTOR = 0.01; // Percentage of a single step
-      static const unsigned int MAXSAVEDSTATUSES = 10;
-      static const int MAXITERATIONSFACTOR = 100;
-      static const float DISPLACEMENTSCALE = 1;
-      static const float CLIPPINGTHRESHOLD = 0.5;
-      static const float DISTANCESMOOTHSIGMAFACTOR = 0.67448; // probit(0.25)
+    static const double THRESHOLDFACTOR = 0.01; // Percentage of a single step
+    static const unsigned int MAXSAVEDSTATUSES = 10;
+    static const int MAXITERATIONSFACTOR = 100;
+    static const float DISPLACEMENTSCALE = 1;
+    static const float CLIPPINGTHRESHOLD = 0.5;
+    static const float DISTANCESMOOTHSIGMAFACTOR = 0.67448; // probit(0.25)
 
-      typedef float DistanceType;
-      typedef vtkSmartPointer<vtkPoints>   Points;
-      typedef vtkSmartPointer<vtkPolyData> PolyData;
-      typedef vtkSmartPointer<vtkOBBTree>  OBBTreeType;
+    typedef float DistanceType;
+    typedef vtkSmartPointer<vtkPoints>   Points;
+    typedef vtkSmartPointer<vtkPolyData> PolyData;
+    typedef vtkSmartPointer<vtkOBBTree>  OBBTreeType;
 
-      typedef itk::ImageRegionConstIterator<itkVolumeType>  VoxelIterator;
-      typedef itk::ImageToVTKImageFilter<itkVolumeType> ItkToVtkFilterType;
-      typedef itk::ExtractImageFilter<itkVolumeType, itkVolumeType> ExtractFilterType;
-      typedef itk::ConstantPadImageFilter<itkVolumeType, itkVolumeType> PadFilterType;
-      typedef itk::Image<DistanceType,3> DistanceMapType;
-      typedef itk::ImageRegionConstIterator<DistanceMapType> DistanceIterator;
-      typedef itk::SignedMaurerDistanceMapImageFilter
-      <itkVolumeType, DistanceMapType>  SMDistanceMapFilterType;
-      typedef itk::SmoothingRecursiveGaussianImageFilter
-      <DistanceMapType, DistanceMapType>  SmoothingFilterType;
-      typedef vtkSmartPointer<vtkPlaneSource> PlaneSourceType;
-      typedef itk::GradientImageFilter<DistanceMapType, float> GradientFilterType;
-      typedef vtkSmartPointer<vtkGridTransform> GridTransform;
-      typedef vtkSmartPointer<vtkTransformPolyDataFilter>  TransformPolyDataFilter;
-      typedef itk::CovariantVector<float, 3> CovariantVectorType;
-      typedef itk::Image<CovariantVectorType,3> CovariantVectorImageType;
+    typedef itk::ImageToVTKImageFilter<itkVolumeType>                 ItkToVtkFilterType;
+    typedef itk::ExtractImageFilter<itkVolumeType, itkVolumeType>     ExtractFilterType;
+    typedef itk::ConstantPadImageFilter<itkVolumeType, itkVolumeType> PadFilterType;
 
-      typedef std::list< vtkSmartPointer<vtkPoints> > PointsListType;
+    typedef vtkSmartPointer<vtkGridTransform>            GridTransform;
+    typedef vtkSmartPointer<vtkTransformPolyDataFilter>  TransformPolyDataFilter;
 
-    public:
-      static const QString INPUTLINK;
-      static const QString SAS;
+    typedef itk::Image<DistanceType,3>                       DistanceMapType;
+    typedef itk::ImageRegionConstIterator<DistanceMapType>   DistanceIterator;
+    typedef itk::SignedMaurerDistanceMapImageFilter
+    <itkVolumeType, DistanceMapType>    SMDistanceMapFilterType;
+    typedef itk::SmoothingRecursiveGaussianImageFilter
+    <DistanceMapType, DistanceMapType>  SmoothingFilterType;
+    typedef itk::GradientImageFilter<DistanceMapType, float> GradientFilterType;
 
-      static const ArgumentId ORIGIN;
+    typedef vtkSmartPointer<vtkPlaneSource>                  PlaneSourceType;
 
-      typedef AppositionSurfaceFilter *               Pointer;
-      typedef QSharedPointer<AppositionSurfaceFilter> SPointer;
+    typedef itk::CovariantVector<float, 3>          CovariantVectorType;
+    typedef itk::Image<CovariantVectorType,3>       CovariantVectorImageType;
+    typedef std::list< vtkSmartPointer<vtkPoints> > PointsListType;
 
-    public:
-      AppositionSurfaceFilter(NamedInputs inputs,
-                              Arguments   args,
-                              FilterType  filter);
-      virtual ~AppositionSurfaceFilter();
+  public:
+    static const QString INPUTLINK;
+    static const QString SAS;
 
-      virtual void upkeeping();
+    static const ArgumentId ORIGIN;
 
-      virtual QString getOriginSegmentation();
-      virtual itkVolumeType::SpacingType getOriginSpacing();
-      virtual itkVolumeType::RegionType getOriginRegion();
-      virtual double getArea();
-      virtual double getPerimeter();
-      virtual double getTortuosity();
+    typedef AppositionSurfaceFilter *               Pointer;
+    typedef QSharedPointer<AppositionSurfaceFilter> SPointer;
 
-      virtual bool dumpSnapshot(Snapshot &snapshot);
+  public:
+    AppositionSurfaceFilter(NamedInputs inputs,
+                            Arguments   args,
+                            FilterType  filter);
+    virtual ~AppositionSurfaceFilter();
 
-      /// Try to locate an snapshot of the filter in tmpDir
-      /// Returns true if all volume snapshot can be recovered
-      /// and false otherwise
-      virtual bool fetchCachePolyDatas();
+    virtual void upkeeping();
 
-    protected slots:
-      virtual void inputModified();
+    double getArea();
 
-    protected:
-      /// Wether filter parameters have changed or not
-      virtual bool ignoreCurrentOutputs() const
-      { return false; }
+    double getPerimeter();
 
-      /// Whether the filter needs to be updated or not
-      /// Default implementation will request an update if there is no filter output
-      /// or it is an invalid output
-      virtual bool needUpdate(FilterOutputId oId) const;
+    double getTortuosity();
 
-      virtual void run();
+    QString getOriginSegmentation();
 
-      virtual void run(FilterOutputId oId);
+    virtual bool dumpSnapshot(Snapshot &snapshot);
 
-      virtual void createOutput(FilterOutputId id, itkVolumeType::Pointer volume = NULL);
+  protected:
+    virtual void createDummyOutput(FilterOutputId id, const FilterOutput::OutputRepresentationName &type);
 
-    private:
-      /// forbidden methods
-      /////////////////////////////////////////////////////////////////////
-      virtual void draw(FilterOutputId oId,
-                        vtkImplicitFunction *brush,
-                        const Nm bounds[6],
-                        itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
-                        bool emitSignal = true) {};
+    virtual void createOutputRepresentations(SegmentationOutputSPtr output);
 
-      virtual void draw(FilterOutputId oId,
-                        itkVolumeType::IndexType index,
-                        itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
-                        bool emitSignal = true) {};
+    virtual bool ignoreCurrentOutputs() const
+    { return false; }
 
-      virtual void draw(FilterOutputId oId,
-                        Nm x, Nm y, Nm z,
-                        itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
-                        bool emitSignal = true) {};
-      virtual void draw(FilterOutputId oId,
-                        vtkPolyData *contour,
-                        Nm slice,
-                        PlaneType plane,
-                        itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
-                        bool emitSignal = true) {};
+    virtual bool needUpdate() const;
 
-      virtual void draw(FilterOutputId oId,
-                        itkVolumeType::Pointer volume,
-                        bool emitSignal = true)  {};
+    virtual bool needUpdate(FilterOutputId oId) const;
 
-      //TODO 2012-11-20 cambiar nombre y usar FilterOutput
-      virtual void restoreOutput(FilterOutputId oId,
-                                 itkVolumeType::Pointer volume) {};
+    virtual void run();
 
-      /// helper methods
-      /////////////////////////////////////////////////////////////////////
+    virtual void run(FilterOutputId oId);
 
-      /// Return a cloud of points representing the segmentation
-      /// Segmentations are represented by labelmap-like vtkDataImages
-      /// with background pixels being 0 and foreground ones being 255.
-      /// Nevertheless, non-0 pixels are also considered foreground.
-      Points segmentationPoints(itkVolumeType::Pointer seg) const;
+  protected slots:
+    virtual void inputModified();
 
-      /// Return the 8 corners of an OBB
-      Points corners(double corner[3], double max[3], double mid[3], double min[3]) const;
+  private:
+    virtual itkVolumeType::SpacingType getOriginSpacing();
 
-      DistanceMapType::Pointer computeDistanceMap(itkVolumeType::Pointer volume, float sigma) const;
-      void maxDistancePoint(DistanceMapType::Pointer map, double avgMaxDistPoint[3], double & maxDist) const;
-      void computeResolution(double * max, double * mid, double * spacing, int & xResolution, int & yResolution) const;
-      void computeIterationLimits(double * min, double * spacing, int & iterations, double & thresholdError) const;
+    virtual itkVolumeType::RegionType getOriginRegion();
+    /// Try to locate an snapshot of the filter in tmpDir
+    /// Returns true if all volume snapshot can be recovered
+    /// and false otherwise
+    virtual bool fetchCachePolyDatas();
 
-      /// Find the projection of A on B
-      void project(const double* A, const double* B, double* Projection) const;
-      void projectVectors(vtkImageData* vectors_image, double* unitary) const;
-      void projectPolyDataToPlane(double* origin, double* normal, vtkPolyData* meshIn, vtkPolyData* meshOut) const;
+    /// helper methods
+    /////////////////////////////////////////////////////////////////////
+    /// Return a cloud of points representing the segmentation
+    /// Segmentations are represented by labelmap-like vtkDataImages
+    /// with background pixels being 0 and foreground ones being 255.
+    /// Nevertheless, non-0 pixels are also considered foreground.
+    Points segmentationPoints(itkVolumeType::Pointer seg) const;
 
-      void vectorImageToVTKImage(CovariantVectorImageType::Pointer vectorImage, vtkSmartPointer<vtkImageData> image) const;
+    /// Return the 8 corners of an OBB
+    Points corners(double corner[3], double max[3], double mid[3], double min[3]) const;
 
-      bool hasConverged( vtkPoints * lastPlanePoints, PointsListType & pointsList, double threshold) const;
-      int computeMeanEuclideanError(vtkPoints * pointsA, vtkPoints * pointsB, double & euclideanError) const;
-      PolyData clipPlane(PolyData plane, vtkImageData* image) const;
-      PolyData triangulate(PolyData plane) const;
-      /////////////////////////////////////////////////////////////////////
+    DistanceMapType::Pointer computeDistanceMap(itkVolumeType::Pointer volume, float sigma) const;
+    void maxDistancePoint(DistanceMapType::Pointer map, double avgMaxDistPoint[3], double & maxDist) const;
+    void computeResolution(double * max, double * mid, double * spacing, int & xResolution, int & yResolution) const;
+    void computeIterationLimits(double * min, double * spacing, int & iterations, double & thresholdError) const;
 
-      /// Apposition plane metrics
-      /////////////////////////////////////////////////////////////////////
-      double computeArea() const;
-      double computeArea(PolyData mesh) const;
-      double computePerimeter() const;
-      double computeTortuosity() const;
-      bool isPerimeter(vtkIdType cellId, vtkIdType p1, vtkIdType p2) const;
-      /////////////////////////////////////////////////////////////////////
+    /// Find the projection of A on B
+    void project(const double* A, const double* B, double* Projection) const;
+    void projectVectors(vtkImageData* vectors_image, double* unitary) const;
+    void projectPolyDataToPlane(double* origin, double* normal, vtkPolyData* meshIn, vtkPolyData* meshOut) const;
 
-      int m_resolution;
-      int m_iterations;
-      bool m_converge;
-      mutable PolyData m_ap;
-      mutable double*  m_templateOrigin;
-      mutable double*  m_templateNormal;
-      mutable SegmentationPtr m_originSegmentation;
+    void vectorImageToVTKImage(CovariantVectorImageType::Pointer vectorImage, vtkSmartPointer<vtkImageData> image) const;
 
-      QString m_origin;
-      mutable double m_area;
-      mutable double m_perimeter;
-      mutable double m_tortuosity;
+    bool hasConverged( vtkPoints * lastPlanePoints, PointsListType & pointsList, double threshold) const;
+    int computeMeanEuclideanError(vtkPoints * pointsA, vtkPoints * pointsB, double & euclideanError) const;
+    PolyData clipPlane(PolyData plane, vtkImageData* image) const;
+    PolyData triangulate(PolyData plane) const;
+    /////////////////////////////////////////////////////////////////////
 
-      itkVolumeType::Pointer m_input;
+    /// Apposition plane metrics
+    /////////////////////////////////////////////////////////////////////
+    double computeArea() const;
+    double computeArea(PolyData mesh) const;
+    double computePerimeter() const;
+    double computeTortuosity() const;
+    bool isPerimeter(vtkIdType cellId, vtkIdType p1, vtkIdType p2) const;
+    /////////////////////////////////////////////////////////////////////
 
-      bool m_alreadyFetchedData;
+  private:
+    int m_resolution;
+    int m_iterations;
+    bool m_converge;
+    mutable PolyData m_ap;
+    mutable double*  m_templateOrigin;
+    mutable double*  m_templateNormal;
+    mutable SegmentationPtr m_originSegmentation;
 
-      friend class AppositionSurfaceVolume;
+    QString m_origin;
+    mutable double m_area;
+    mutable double m_perimeter;
+    mutable double m_tortuosity;
+
+    itkVolumeType::Pointer m_input;
+
+    bool m_alreadyFetchedData;
+
+    friend class AppositionSurfaceVolume;
   };
-
 } /* namespace EspINA */
 #endif /* APPOSITIONSURFACEFILTER_H_ */

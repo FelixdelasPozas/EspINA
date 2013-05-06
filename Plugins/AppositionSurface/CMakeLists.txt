@@ -55,14 +55,16 @@ QT4_WRAP_CPP(MOC_SOURCES
   GUI/AppositionSurfaceAction.h
 )
 
-set (PLUGIN_SOURCES
+set (PLUGIN_SOURCES 
   ${MOC_SOURCES}
   ${RCC_BUILT_SOURCES}
   ${UI_BUILT_SOURCES}
   AppositionSurfacePlugin.cpp
   Analysis/SynapticAppositionSurfaceAnalysis.cpp
   Core/Extensions/AppositionSurfaceExtension.cpp
-  Core/AppositionSurfaceVolume.cpp
+  Core/ASVolumeProxy.cpp
+  Core/ASMeshProxy.cpp 
+#Core/AppositionSurfaceVolume.cpp
   GUI/Settings/AppositionSurfaceSettings.cpp
   GUI/FilterInspector/AppositionSurfaceFilterInspector.cpp
   Undo/AppositionSurfaceCommand.cpp

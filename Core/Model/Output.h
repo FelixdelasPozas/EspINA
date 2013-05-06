@@ -94,6 +94,9 @@ namespace EspINA
     EspinaRepresentationList representations() const
     { return m_repPrototypes; }
 
+    void clearRepresentations()
+    { m_repPrototypes.clear(); }
+
   signals:
     void modified();
 

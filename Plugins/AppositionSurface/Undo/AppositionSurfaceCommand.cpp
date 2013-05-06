@@ -50,7 +50,7 @@ namespace EspINA
       Filter::FilterInspectorPtr filterInspector(new AppositionSurfaceFilterInspector(filter));
       filter->setFilterInspector(filterInspector);
 
-      Q_ASSERT(filter->outputs().size() == 1);
+      Q_ASSERT(filter->numberOfOutputs() == 1);
 
       SegmentationSPtr asSegmentation = m_model->factory()->createSegmentation(filter, 0);
       asSegmentation->modifiedByUser(userName());

@@ -77,7 +77,7 @@ add_subdirectory( Filters )
 add_subdirectory( GUI     )
 add_subdirectory( Undo    )
 add_subdirectory( App     )
-#add_subdirectory( Plugins )
+add_subdirectory( Plugins )
 
 
 if (BUILD_TESTING)

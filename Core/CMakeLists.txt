@@ -34,7 +34,7 @@ qt4_wrap_cpp(CORE_MOC
 #   editor/ContourSourceInspector.ui
 #   )
 
-set (CORE_SOURCES
+set (CORE_SOURCES 
   ${CORE_MOC}
   ${CORE_UI}
   EspinaRegion.cpp
@@ -80,7 +80,9 @@ set (CORE_SOURCES
   Model/Proxies/ConnectomicProxy.cpp
   Outputs/MeshType.cpp
   Outputs/MeshProxy.cpp 
+  Outputs/RawMesh.cpp 
   Outputs/RawVolume.cpp
+  Outputs/RasterizedVolume.cpp
   Outputs/VolumeProxy.cpp 
   Outputs/VolumeRepresentation.cpp 
   VTK/vtkTube.cxx
