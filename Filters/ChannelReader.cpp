@@ -56,7 +56,7 @@ QString ChannelReader::serialize() const
 void ChannelReader::createOutputRepresentations(ChannelOutputSPtr output)
 {
   ChannelVolumeSPtr volumeData = channelVolume(output);
-  output->addRepresentation(GraphicalRepresentationSPtr(new ChannelSliceRepresentation(volumeData, NULL)));
+  output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new ChannelSliceRepresentation(volumeData, NULL)));
 }
 
 //----------------------------------------------------------------------------

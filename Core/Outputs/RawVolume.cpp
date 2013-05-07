@@ -25,6 +25,7 @@
 #include <itkImageRegionExclusionIteratorWithIndex.h>
 #include <itkLabelImageToShapeLabelMapFilter.h>
 #include <itkStatisticsLabelObject.h>
+#include <itkRegionOfInterestImageFilter.h>
 #include <itkMetaImageIO.h>
 #include <itkImageFileWriter.h>
 #include <itkImageFileReader.h>
@@ -56,6 +57,8 @@ typedef itk::LabelImageToShapeLabelMapFilter<itkVolumeType, LabelMapType> Image2
 typedef itk::ExtractImageFilter<itkVolumeType, itkVolumeType>             ExtractType;
 typedef itk::ImageFileReader<itkVolumeType>                               RawSegmentationVolumeReader;
 typedef itk::ImageFileWriter<itkVolumeType>                               RawSegmentationVolumeWriter;
+typedef itk::RegionOfInterestImageFilter<itkVolumeType, itkVolumeType>    ROIFilter;
+
 
 //----------------------------------------------------------------------------
 itkVolumeType::IndexType volumeIndex(itkVolumeType::Pointer volume, Nm x, Nm y, Nm z)
@@ -291,7 +294,7 @@ RawChannelVolumeSPtr EspINA::rawChannelVolume(OutputSPtr output)
 {
   ChannelOutputSPtr channelOutput = boost::dynamic_pointer_cast<ChannelOutput>(output);
   Q_ASSERT(channelOutput.get());
-  return boost::dynamic_pointer_cast<RawChannelVolume>(channelOutput->representation(RawChannelVolume::TYPE));
+  return boost::dynamic_pointer_cast<RawChannelVolume>(channelOutput->representation(ChannelVolume::TYPE));
 }
 
 
@@ -725,8 +728,10 @@ bool RawSegmentationVolume::dumpSnapshot(const QString &prefix, Snapshot &snapsh
 {
   bool dumped = true;
 
-  QString mhd = prefix + ".mhd";
-  QString raw = prefix + ".raw";
+  QDir temporalDir = QDir::tempPath();
+
+  QString mhd = temporalDir.absoluteFilePath(prefix + ".mhd");
+  QString raw = temporalDir.absoluteFilePath(prefix + ".raw");
 
   itk::MetaImageIO::Pointer io = itk::MetaImageIO::New();
   io->SetFileName(mhd.toUtf8());
@@ -751,15 +756,11 @@ bool RawSegmentationVolume::dumpSnapshot(const QString &prefix, Snapshot &snapsh
   mhdFile.close();
   rawFile.close();
 
-  QFileInfo mhdFileInfo(mhd);
-  QFileInfo rawFileInfo(raw);
-
-  QDir temporalDir = mhdFileInfo.dir();
   temporalDir.remove(mhd);
   temporalDir.remove(raw);
 
-  SnapshotEntry mhdEntry(TYPE + "/" + mhdFileInfo.fileName(), mhdArray);
-  SnapshotEntry rawEntry(TYPE + "/" + rawFileInfo.fileName(), rawArray);
+  SnapshotEntry mhdEntry(SegmentationVolume::TYPE + QString("/%1.mhd").arg(prefix), mhdArray);
+  SnapshotEntry rawEntry(SegmentationVolume::TYPE + QString("/%1.raw").arg(prefix), rawArray);
 
   snapshot << mhdEntry << rawEntry;
 
@@ -798,17 +799,49 @@ bool RawSegmentationVolume::fetchSnapshot(Filter *filter, const QString &prefix)
 //----------------------------------------------------------------------------
 void RawSegmentationVolume::clearEditedRegions()
 {
-  //FIXME
+  m_editedRegions.clear();
 }
 
 //----------------------------------------------------------------------------
-void RawSegmentationVolume::dumpEditedRegions(const QString &prefix) const
+void RawSegmentationVolume::commitEditedRegions(bool withData) const
 {
-  //FIXME: Simplify regions
+  FilterOutput::EditedRegionSList regions;
   for (int i = 0; i < m_editedRegions.size(); ++i)
   {
-    QString file = QString("%1_%2.mhd").arg(prefix).arg(i);
+    EditedVolumeRegionSPtr editedRegion(new EditedVolumeRegion());
 
+    editedRegion->Name   = SegmentationVolume::TYPE;
+    editedRegion->Region = m_editedRegions[i];
+
+    if (withData)
+    {
+      Q_ASSERT(m_volume);
+
+      bool releaseFlag = m_volume->GetReleaseDataFlag();
+      m_volume->ReleaseDataFlagOff();
+
+      ROIFilter::Pointer roiFilter = ROIFilter::New();
+      roiFilter->SetRegionOfInterest(volumeRegion(editedRegion->Region));
+      roiFilter->SetInput(m_volume);
+      roiFilter->Update();
+
+      editedRegion->Volume = roiFilter->GetOutput(0);
+      editedRegion->Volume->DisconnectPipeline();
+
+      m_volume->SetReleaseDataFlag(releaseFlag);
+    }
+
+    regions << editedRegion;
+  }
+
+  SegmentationOutputPtr output = dynamic_cast<SegmentationOutputPtr>(m_output);
+  output->push(regions);
+
+  //FIXME: Simplify regions
+//   for (int i = 0; i < m_editedRegions.size(); ++i)
+//   {
+//     QString file = QString("%1_%2.mhd").arg(prefix).arg(i);
+// 
     // FIXME
 //     // Dump modified volume
 //     if (!output->isCached())
@@ -864,8 +897,8 @@ void RawSegmentationVolume::dumpEditedRegions(const QString &prefix) const
 //       
 //       snapshot << mhdEntry << rawEntry;
 //     }
-  }
-  
+//   }
+//   
 }
 
 //----------------------------------------------------------------------------
@@ -926,20 +959,6 @@ void RawSegmentationVolume::addEditedRegion(const EspinaRegion &region)
   if (!included)
     m_editedRegions << region;
 }
-
-//----------------------------------------------------------------------------
-FilterOutput::NamedRegionList RawSegmentationVolume::editedRegions() const
-{
-  FilterOutput::NamedRegionList regions; // TODO: Move to Output base class??
-
-  foreach (EspinaRegion region, m_editedRegions)
-  {
-    regions << FilterOutput::NamedRegion(TYPE, region);
-  }
-
-  return regions;
-}
-
 
 //----------------------------------------------------------------------------
 itkVolumeType::IndexType RawSegmentationVolume::index(Nm x, Nm y, Nm z)

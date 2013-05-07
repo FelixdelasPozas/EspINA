@@ -54,8 +54,8 @@ namespace EspINA
     const OutputSPtr output() const;
 
     /// Convenience method to access output's representations
-    EspinaRepresentationList representations() const
-    { return output()->representations(); }
+    GraphicalRepresentationSList representations() const
+    { return output()->graphicalRepresentations(); }
 
 
     /// Return whether item's volume has been modified or not after its creation

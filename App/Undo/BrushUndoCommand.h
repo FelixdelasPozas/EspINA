@@ -60,7 +60,7 @@ namespace EspINA
     itkVolumeType::Pointer        m_prevVolume;
     itkVolumeType::Pointer        m_newVolume;
     bool                          m_needReduction;
-    FilterOutput::NamedRegionList m_prevRegions;
+    QList<EspinaRegion>           m_prevRegions;
   };
 
   class Brush::SnapshotCommand

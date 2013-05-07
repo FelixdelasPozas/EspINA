@@ -108,16 +108,16 @@ bool VolumeProxy::dumpSnapshot(const QString &prefix, Snapshot &snapshot) const
   return dumped;
 }
 
-//-----------------------------------------------------------------------------
-bool VolumeProxy::fetchSnapshot(Filter *filter, const QString &prefix)
-{
-  bool fetched = false;
-
-  if (m_volumeRepresentation)
-    fetched = m_volumeRepresentation->fetchSnapshot(filter, prefix);
-
-  return fetched;
-}
+// //-----------------------------------------------------------------------------
+// bool VolumeProxy::fetchSnapshot(Filter *filter, const QString &prefix)
+// {
+//   bool fetched = false;
+// 
+//   if (m_volumeRepresentation)
+//     fetched = m_volumeRepresentation->fetchSnapshot(filter, prefix);
+// 
+//   return fetched;
+// }
 
 //-----------------------------------------------------------------------------
 bool VolumeProxy::isEdited() const
@@ -149,9 +149,30 @@ void VolumeProxy::addEditedRegion(const EspinaRegion &region)
 }
 
 //-----------------------------------------------------------------------------
-FilterOutput::NamedRegionList VolumeProxy::editedRegions() const
+void VolumeProxy::clearEditedRegions()
 {
-  FilterOutput::NamedRegionList res;
+  if (m_volumeRepresentation)
+    m_volumeRepresentation->clearEditedRegions();
+}
+
+//-----------------------------------------------------------------------------
+void VolumeProxy::commitEditedRegions(bool withData) const
+{
+  if (m_volumeRepresentation)
+    m_volumeRepresentation->commitEditedRegions(withData);
+}
+
+//-----------------------------------------------------------------------------
+void VolumeProxy::restoreEditedRegion(Filter *filter, const EspinaRegion &region, const QString &prefix)
+{
+  if (m_volumeRepresentation)
+    m_volumeRepresentation->restoreEditedRegion(filter, region, prefix);
+}
+
+//-----------------------------------------------------------------------------
+QList<EspinaRegion> VolumeProxy::editedRegions() const
+{
+  QList<EspinaRegion> res;
 
   if (m_volumeRepresentation)
     res = m_volumeRepresentation->editedRegions();
@@ -160,24 +181,10 @@ FilterOutput::NamedRegionList VolumeProxy::editedRegions() const
 }
 
 //-----------------------------------------------------------------------------
-void VolumeProxy::clearEditedRegions()
+void VolumeProxy::setEditedRegions(QList<EspinaRegion> regions)
 {
   if (m_volumeRepresentation)
-    m_volumeRepresentation->clearEditedRegions();
-}
-
-//-----------------------------------------------------------------------------
-void VolumeProxy::dumpEditedRegions(const QString &prefix) const
-{
-  if (m_volumeRepresentation)
-    m_volumeRepresentation->dumpEditedRegions(prefix);
-}
-
-//-----------------------------------------------------------------------------
-void VolumeProxy::restoreEditedRegion(Filter *filter, const EspinaRegion &region, const QString &prefix)
-{
-  if (m_volumeRepresentation)
-    m_volumeRepresentation->restoreEditedRegion(filter, region, prefix);
+    m_volumeRepresentation->setEditedRegions(regions);
 }
 
 //-----------------------------------------------------------------------------

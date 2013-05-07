@@ -80,7 +80,6 @@ namespace EspINA
                       bool emitSignal = true);
 
     virtual bool dumpSnapshot(const QString &prefix, Snapshot &snapshot) const;
-    virtual bool fetchSnapshot(Filter *filter, const QString &prefix);
 
     virtual bool isEdited() const;
 
@@ -88,13 +87,15 @@ namespace EspINA
 
     virtual void addEditedRegion(const EspinaRegion &region);
 
-    virtual FilterOutput::NamedRegionList editedRegions() const;
-
     virtual void clearEditedRegions();
 
-    virtual void dumpEditedRegions(const QString &prefix) const;
+    virtual void commitEditedRegions(bool withData) const;
 
     virtual void restoreEditedRegion(Filter *filter, const EspinaRegion &region, const QString &prefix);
+
+    virtual QList<EspinaRegion> editedRegions() const;
+
+    virtual void setEditedRegions(QList<EspinaRegion> regions);
 
     virtual void setVolume(itkVolumeType::Pointer volume, bool disconnect=false);
 

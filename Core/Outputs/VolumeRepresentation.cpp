@@ -18,12 +18,16 @@
  */
 
 #include "VolumeRepresentation.h"
+#include <itkMetaImageIO.h>
+#include <itkImageFileWriter.h>
+#include <QDir>
 
 using namespace EspINA;
 
+typedef itk::ImageFileWriter<itkVolumeType> EspinaVolumeWriter;
 
 //----------------------------------------------------------------------------
-const FilterOutput::OutputRepresentationName ChannelVolume::TYPE = "ChannelVolumeType";
+const FilterOutput::OutputRepresentationName ChannelVolume::TYPE = "ChannelVolume";
 
 //----------------------------------------------------------------------------
 ChannelVolumePtr EspINA::channelVolume(OutputPtr output)
@@ -42,9 +46,77 @@ ChannelVolumeSPtr EspINA::channelVolume(OutputSPtr output)
 }
 
 
+//----------------------------------------------------------------------------
+const FilterOutput::OutputRepresentationName SegmentationVolume::TYPE = "SegmentationVolume";
 
 //----------------------------------------------------------------------------
-const FilterOutput::OutputRepresentationName SegmentationVolume::TYPE = "RawSegmentationVolume";
+bool SegmentationVolume::EditedVolumeRegion::dump(QDir           cacheDir,
+                                                  const QString &regionName,
+                                                  Snapshot      &snapshot) const
+{
+  bool dumped = false;
+
+  itk::MetaImageIO::Pointer io = itk::MetaImageIO::New();
+  EspinaVolumeWriter::Pointer writer = EspinaVolumeWriter::New();
+
+  QDir temporalDir = QDir::tempPath();
+
+  QString mhd = temporalDir.absoluteFilePath(regionName + ".mhd");
+  QString raw = temporalDir.absoluteFilePath(regionName + ".raw");
+
+  if (Volume)
+  {
+    bool releaseFlag = Volume->GetReleaseDataFlag();
+    Volume->ReleaseDataFlagOff();
+
+    io->SetFileName(mhd.toUtf8());
+    writer->SetFileName(mhd.toUtf8().data());
+
+    writer->SetInput(Volume);
+    writer->SetImageIO(io);
+    writer->Write();
+
+    Volume->SetReleaseDataFlag(releaseFlag);
+  } else
+  {
+    cacheDir.cd(SegmentationVolume::TYPE);
+
+    // dump cached volumes
+    mhd = cacheDir.absoluteFilePath(regionName + ".mhd");
+    raw = cacheDir.absoluteFilePath(regionName + ".raw");
+  }
+
+  QFileInfo mhdFileInfo(mhd);
+  QFileInfo rawFileInfo(raw);
+  if (mhdFileInfo.exists() && rawFileInfo.exists())
+  {
+    QFile mhdFile(mhd);
+    mhdFile.open(QIODevice::ReadOnly);
+    QFile rawFile(raw);
+    rawFile.open(QIODevice::ReadOnly);
+
+    QByteArray mhdArray(mhdFile.readAll());
+    QByteArray rawArray(rawFile.readAll());
+
+    mhdFile.close();
+    rawFile.close();
+
+    SnapshotEntry mhdEntry(regionName + ".mhd", mhdArray);
+    SnapshotEntry rawEntry(regionName + ".raw", rawArray);
+
+    snapshot << mhdEntry << rawEntry;
+
+    dumped = true;
+  }
+
+  if (Volume)
+  {
+    temporalDir.remove(mhd);
+    temporalDir.remove(raw);
+  }
+
+  return dumped;
+}
 
 //----------------------------------------------------------------------------
 SegmentationVolumePtr EspINA::segmentationVolume(OutputPtr output)

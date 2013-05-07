@@ -80,6 +80,17 @@ QVariant SeedGrowSegmentationFilter::data(int role) const
 }
 
 //-----------------------------------------------------------------------------
+FilterOutput::OutputRepresentationNameList SeedGrowSegmentationFilter::possibleRepresentations() const
+{
+  FilterOutput::OutputRepresentationNameList representations;
+
+  representations << SegmentationVolume::TYPE;
+  representations << MeshType::TYPE;
+
+  return representations;
+}
+
+//-----------------------------------------------------------------------------
 void SeedGrowSegmentationFilter::createDummyOutput(FilterOutputId id, const FilterOutput::OutputRepresentationName &type)
 {
   if (SegmentationVolume::TYPE == type)
@@ -94,7 +105,7 @@ void SeedGrowSegmentationFilter::createDummyOutput(FilterOutputId id, const Filt
 void SeedGrowSegmentationFilter::createOutputRepresentations(SegmentationOutputSPtr output)
 {
   SegmentationVolumeSPtr volumeRep = segmentationVolume(output);
-  output->addRepresentation(GraphicalRepresentationSPtr(new SegmentationSliceRepresentation(volumeRep, NULL)));
+  output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new SegmentationSliceRepresentation(volumeRep, NULL)));
 //   output->addRepresentation(GraphicalRepresentationSPtr(new VolumeReprentation  (volumeOutput(output))));
 //   output->addRepresentation(GraphicalRepresentationSPtr(new MeshRepresentation  (meshOutput  (output))));
 //   output->addRepresentation(GraphicalRepresentationSPtr(new SmoothRepresentation(meshOutput  (output))));
@@ -212,9 +223,11 @@ void SeedGrowSegmentationFilter::run(FilterOutputId oId)
   else
     volume = extractFilter->GetOutput();
 
+  RawSegmentationVolumeSPtr volumeRepresentation(new RawSegmentationVolume(volume));
+
   SegmentationRepresentationSList repList;
-  repList << RawSegmentationVolumeSPtr(new RawSegmentationVolume(volume));
-  repList << MeshTypeSPtr(new MarchingCubesMesh());
+  repList << volumeRepresentation;
+  repList << MeshTypeSPtr(new MarchingCubesMesh(volumeRepresentation));//TODO: Pass the volume or the proxy?
 
   createOutput(0, repList);
 
@@ -287,8 +300,30 @@ itkVolumeType::IndexType SeedGrowSegmentationFilter::seed() const
 //-----------------------------------------------------------------------------
 bool SeedGrowSegmentationFilter::fetchSnapshot(FilterOutputId oId)
 {
-  if (m_ignoreCurrentOutputs)
-    return false;
+  bool fetched = false;
 
-  return SegmentationFilter::fetchSnapshot(oId);
+  if (!m_ignoreCurrentOutputs && m_outputs.contains(oId))
+  {
+    QString filterPrefix = QString("%1_%2").arg(m_cacheId).arg(oId);
+
+    RawSegmentationVolumeSPtr volume(new RawSegmentationVolume(m_outputs[0].get()));
+    bool fetchVolume = volume->fetchSnapshot(this, filterPrefix);
+
+    // TODO: RawMesh
+    bool fetchMesh   = false;// meshOutput        (m_outputs[0])->fetchSnapshot(this, filterPrefix);
+
+    if (fetchVolume && !fetchMesh)
+    {
+      SegmentationRepresentationSList repList;
+      repList << volume;
+      repList << MeshTypeSPtr(new MarchingCubesMesh(volume));//TODO: Pass the volume or the proxy?
+      createOutput(oId, repList);
+    } else if (fetchMesh && !fetchVolume)
+    {
+      // TODO: Review fetch snapshot
+    }
+
+    fetched = fetchVolume || fetchMesh;
+  }
+  return fetched;
 }

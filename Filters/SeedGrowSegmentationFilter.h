@@ -144,6 +144,8 @@ namespace EspINA
     bool isTouchingVOI() const;
 
   protected:
+    virtual FilterOutput::OutputRepresentationNameList possibleRepresentations() const;
+
     virtual void createDummyOutput(FilterOutputId id, const FilterOutput::OutputRepresentationName &type);
 
     virtual void createOutputRepresentations(SegmentationOutputSPtr output);

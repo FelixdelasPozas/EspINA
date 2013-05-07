@@ -117,8 +117,7 @@ void Brush::DrawCommand::undo()
   {
     EspinaRegion strokeRegion(m_strokeBounds);
 
-    SegmentationOutputSPtr output = boost::dynamic_pointer_cast<SegmentationOutput>(m_seg->output());
-    SegmentationVolumeSPtr volume = segmentationVolume(output);
+    SegmentationVolumeSPtr volume = segmentationVolume(m_seg->output());
     volume->fill(strokeRegion, SEG_BG_VALUE, false);
 
     if (m_prevVolume.IsNotNull())
@@ -126,12 +125,12 @@ void Brush::DrawCommand::undo()
 
     if (m_needReduction)
     {
-      SegmentationVolumeSPtr volume = segmentationVolume(m_seg->output());
+      volume = segmentationVolume(m_seg->output());
       volume->fitToContent();
     }
 
     // Restore previous edited regions
-    output->setEditedRegions(m_prevRegions);
+    volume->setEditedRegions(m_prevRegions);
   }
   else
     emit initBrushTool();

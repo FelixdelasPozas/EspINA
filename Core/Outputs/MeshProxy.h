@@ -35,17 +35,13 @@ namespace EspINA
 
     virtual bool dumpSnapshot(const QString &prefix, Snapshot &snapshot) const;
 
-    virtual bool fetchSnapshot(Filter *filter, const QString &prefix);
-
     virtual bool isValid() const;
 
     virtual bool isEdited() const;
 
-    virtual FilterOutput::NamedRegionList editedRegions() const;
-
     virtual void clearEditedRegions();
 
-    virtual void dumpEditedRegions(const QString &prefix) const;
+    virtual void commitEditedRegions(bool withData) const;
 
     virtual void restoreEditedRegion(Filter *filter, const EspinaRegion &region, const QString &prefix);
 

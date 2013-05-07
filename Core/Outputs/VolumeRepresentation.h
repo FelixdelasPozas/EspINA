@@ -110,6 +110,20 @@ namespace EspINA
   public:
     static const FilterOutput::OutputRepresentationName TYPE;
 
+  protected:
+    class EditedVolumeRegion
+    : public FilterOutput::EditedRegion
+    {
+    public:
+      virtual bool dump(QDir           cacheDir,
+                        const QString &regionName,
+                        Snapshot      &snapshot) const;
+
+      itkVolumeType::Pointer Volume;
+    };
+
+    typedef boost::shared_ptr<EditedVolumeRegion> EditedVolumeRegionSPtr;
+
   public:
     FilterOutput::OutputRepresentationName type() const
     { return TYPE; }
@@ -158,7 +172,9 @@ namespace EspINA
                       itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
                       bool emitSignal = true) = 0;
 
-    virtual void addEditedRegion(const EspinaRegion &region) = 0;
+    virtual QList<EspinaRegion> editedRegions() const = 0;
+
+    virtual void setEditedRegions(QList<EspinaRegion>) = 0;
 
     virtual void setVolume(itkVolumeType::Pointer volume, bool disconnect=false) = 0;
 

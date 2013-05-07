@@ -101,7 +101,7 @@ class EspinaRenderView;
     bool   m_highlight;
     bool   m_visible;
 
-    EspinaRepresentationList m_clones;
+    GraphicalRepresentationSList m_clones;
 
   private:
     bool              m_active;

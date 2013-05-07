@@ -66,7 +66,7 @@ void SplitFilter::createDummyOutput(FilterOutputId id, const FilterOutput::Outpu
 void SplitFilter::createOutputRepresentations(SegmentationOutputSPtr output)
 {
   SegmentationVolumeSPtr volumeRep = segmentationVolume(output);
-  output->addRepresentation(GraphicalRepresentationSPtr(new SegmentationSliceRepresentation(volumeRep, NULL)));
+  output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new SegmentationSliceRepresentation(volumeRep, NULL)));
   //   output->addRepresentation(GraphicalRepresentationSPtr(new VolumeReprentation  (volumeOutput(output))));
   //   output->addRepresentation(GraphicalRepresentationSPtr(new MeshRepresentation  (meshOutput  (output))));
   //   output->addRepresentation(GraphicalRepresentationSPtr(new SmoothRepresentation(meshOutput  (output))));

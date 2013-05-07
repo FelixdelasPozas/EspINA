@@ -38,10 +38,12 @@
 using namespace EspINA;
 
 //----------------------------------------------------------------------------
-MarchingCubesMesh::MarchingCubesMesh(FilterOutput *output)
+MarchingCubesMesh::MarchingCubesMesh(SegmentationVolumeSPtr volume,
+                                     FilterOutput *output)
 : MeshType(output)
+, m_volume(volume)
 {
-  connect(this, SIGNAL(representationChanged()),
+  connect(volume.get(), SIGNAL(representationChanged()),
           this, SLOT(updateMesh()));
 }
 
@@ -63,11 +65,11 @@ bool MarchingCubesMesh::dumpSnapshot(const QString &prefix, Snapshot &snapshot) 
   return false;
 }
 
-//----------------------------------------------------------------------------
-bool MarchingCubesMesh::fetchSnapshot(Filter *filter, const QString &prefix)
-{
-  return false;
-}
+// //----------------------------------------------------------------------------
+// bool MarchingCubesMesh::fetchSnapshot(Filter *filter, const QString &prefix)
+// {
+//   return segmentationVolume(m_output)->isValid();
+// }
 
 //----------------------------------------------------------------------------
 bool MarchingCubesMesh::isEdited() const
@@ -82,9 +84,9 @@ bool MarchingCubesMesh::isValid() const
 }
 
 //----------------------------------------------------------------------------
-FilterOutput::NamedRegionList MarchingCubesMesh::editedRegions() const
+FilterOutput::EditedRegionSList MarchingCubesMesh::editedRegions() const
 {
-  FilterOutput::NamedRegionList regions;
+  FilterOutput::EditedRegionSList regions;
   return regions;
 }
 
@@ -95,10 +97,11 @@ void MarchingCubesMesh::clearEditedRegions()
 }
 
 //----------------------------------------------------------------------------
-void MarchingCubesMesh::dumpEditedRegions(const QString &prefix) const
+void MarchingCubesMesh::commitEditedRegions(bool withData) const
 {
 
 }
+
 
 //----------------------------------------------------------------------------
 void MarchingCubesMesh::restoreEditedRegion(Filter *filter, const EspinaRegion &region, const QString &prefix)

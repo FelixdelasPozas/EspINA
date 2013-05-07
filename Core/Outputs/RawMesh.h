@@ -36,9 +36,8 @@ namespace EspINA
     virtual bool isValid() const;
     virtual bool setInternalData(SegmentationRepresentationSPtr rhs);
     virtual bool isEdited() const;
-    virtual FilterOutput::NamedRegionList editedRegions() const;
     virtual void clearEditedRegions();
-    virtual void dumpEditedRegions(const QString &prefix) const;
+    virtual void commitEditedRegions(bool withData) const;
     virtual void restoreEditedRegion(Filter *filter, const EspinaRegion &region, const QString &prefix);
 
     virtual vtkAlgorithmOutput *mesh() const;

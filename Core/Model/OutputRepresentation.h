@@ -63,8 +63,6 @@ namespace EspINA
 
     virtual bool dumpSnapshot (const QString &prefix, Snapshot &snapshot) const = 0;
 
-    virtual bool fetchSnapshot(Filter *filter, const QString &prefix) = 0;
-
     virtual bool isValid() const = 0;
 
   signals:
@@ -93,9 +91,6 @@ namespace EspINA
     virtual bool dumpSnapshot(const QString &prefix, Snapshot &snapshot) const
     { return false; }
 
-    virtual bool fetchSnapshot(Filter *filter, const QString &prefix)
-    { return false; }
-
     virtual bool setInternalData(ChannelRepresentationSPtr rhs) = 0;
 
   protected:
@@ -109,14 +104,15 @@ namespace EspINA
   public:
     virtual bool setInternalData(SegmentationRepresentationSPtr rhs) = 0;
 
+    virtual void addEditedRegion(const EspinaRegion &region) = 0;
+
     /// Whether output has been manually edited
     virtual bool isEdited() const = 0;
 
-    virtual FilterOutput::NamedRegionList editedRegions() const = 0;
-
     virtual void clearEditedRegions() = 0;
 
-    virtual void dumpEditedRegions(const QString &prefix) const = 0;
+    /// Update output's edited region list
+    virtual void commitEditedRegions(bool withData) const = 0;
 
     virtual void restoreEditedRegion(Filter *filter, const EspinaRegion &region, const QString &prefix) = 0;
 

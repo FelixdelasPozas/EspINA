@@ -806,8 +806,8 @@ bool EspinaIO::loadSerialization(IEspinaModel *model,
     ModelItem::Arguments extArgs(args.value(ModelItem::EXTENSIONS, QString()));
     args.remove(ModelItem::EXTENSIONS);
     SegmentationSPtr seg = factory->createSegmentation(filter, outputId);
-    //seg->setNumber(args[Segmentation::NUMBER].toInt());
     seg->initialize(args);
+    seg->setNumber(args[Segmentation::NUMBER].toInt());
     TaxonomyElementSPtr taxonomy = model->taxonomy()->element(args[Segmentation::TAXONOMY]);
     if (!taxonomy.isNull())
       seg->setTaxonomy(taxonomy);

@@ -43,7 +43,7 @@ configure_file (
 
 if (${USE_DASHBOARD})
 
-  set (BUILDNAME "${BUILDNAME}" CACHE STRING "Name of build on the dashboard")
+ eset (BUILDNAME "${BUILDNAME}" CACHE STRING "Name of build on the dashboard")
   mark_as_advanced (BUILDNAME)
 
 endif()

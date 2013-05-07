@@ -62,7 +62,7 @@ void MorphologicalEditionFilter::createDummyOutput(FilterOutputId id, const Filt
 void MorphologicalEditionFilter::createOutputRepresentations(SegmentationOutputSPtr output)
 {
   SegmentationVolumeSPtr volumeRep = segmentationVolume(output);
-  output->addRepresentation(GraphicalRepresentationSPtr(new SegmentationSliceRepresentation(volumeRep, NULL)));
+  output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new SegmentationSliceRepresentation(volumeRep, NULL)));
   //   output->addRepresentation(GraphicalRepresentationSPtr(new VolumeReprentation  (volumeOutput(output))));
   //   output->addRepresentation(GraphicalRepresentationSPtr(new MeshRepresentation  (meshOutput  (output))));
   //   output->addRepresentation(GraphicalRepresentationSPtr(new SmoothRepresentation(meshOutput  (output))));

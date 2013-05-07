@@ -23,7 +23,6 @@
 #include "Core/Outputs/VolumeRepresentation.h"
 
 // ITK
-#include <itkRegionOfInterestImageFilter.h>
 #include <itkMetaImageIO.h>
 
 // Qt
@@ -179,9 +178,9 @@ void SegmentationFilter::update(FilterOutputId oId)
        if (m_outputs.contains(oId))
        {
          QString outputPrefix = QString("%1_%2").arg(m_cacheId).arg(oId);
-         foreach(FilterOutput::NamedRegion region, m_outputs[oId]->editedRegions())
+         foreach(FilterOutput::EditedRegionSPtr region, m_outputs[oId]->editedRegions())
          {
-           m_outputs[oId]->representation(region.first)->restoreEditedRegion(this, region.second, outputPrefix);
+         //FIXME  m_outputs[oId]->representation(region->Name)->restoreEditedRegion(this, region.second, outputPrefix);
          }
        }
 
@@ -193,6 +192,7 @@ void SegmentationFilter::update(FilterOutputId oId)
 //----------------------------------------------------------------------------
 bool SegmentationFilter::fetchSnapshot(FilterOutputId oId)
 {
+  Q_ASSERT(false);
   if (numberOfOutputs() == 0) // contains??
     return false;
 
@@ -200,7 +200,7 @@ bool SegmentationFilter::fetchSnapshot(FilterOutputId oId)
 
   QString filterPrefix = QString("%1_%2").arg(m_cacheId).arg(oId);
 
-  bool fetched = m_outputs[oId]->fetchSnapshot(filterPrefix);
+  bool fetched = false;// m_outputs[oId]->fetchSnapshot(filterPrefix);
 
   if (fetched)
     emit modified(this);
@@ -277,41 +277,34 @@ bool SegmentationFilter::validOutput(FilterOutputId oId)
 //----------------------------------------------------------------------------
 bool SegmentationFilter::dumpSnapshot(Snapshot &snapshot)
 {
-  QDir temporalDir = QDir::tempPath();
   bool result = false;
 
-  foreach(SegmentationOutputSPtr output, m_outputs)
+  foreach(SegmentationOutputSPtr filterOutput, m_outputs)
   {
-    QString filterPrefix = temporalDir.absoluteFilePath(QString("%1_%2").arg(id()).arg(output->id()));
-
-    if (output->isCached())
-    {
-      update(output->id());
-
-      result |= output->dumpSnapshot(filterPrefix, snapshot);
-    }
+    FilterOutputId oId = filterOutput->id();
+    QString filterPrefix = QString("%1_%2").arg(id()).arg(oId);
 
     // Backwards compatibility with seg files version 1.0
     if (m_model->isTraceable() && m_args.contains(EDIT))
     {
-      update(output->id());
+      qWarning("Deprecated Format");
+      update(oId);
 
       QStringList outputIds = m_args[EDIT].split(",");
-      if (outputIds.contains(QString::number(output->id())))
+      if (outputIds.contains(QString::number(oId)))
       {
-        SegmentationVolumeSPtr editedVolume = segmentationVolume(output);
+        SegmentationVolumeSPtr editedVolume = segmentationVolume(filterOutput);
         EspinaRegion region = editedVolume->espinaRegion();
         editedVolume->addEditedRegion(region);
       }
     }
 
-    if (m_model->isTraceable() && output->isEdited())
-    {
-      result = true;
-      output->dumpSnapshot(filterPrefix, snapshot);
-    }
+    bool saveEditedRegions = m_model->isTraceable() && filterOutput->isEdited();
 
-    output->setCached(false);
+    if (filterOutput->isCached() || saveEditedRegions)
+      result |= filterOutput->dumpSnapshot(filterPrefix, snapshot, saveEditedRegions);
+
+    filterOutput->setCached(false);
   }
 
   return result;
@@ -361,9 +354,6 @@ FilterSPtr EspINA::filterPtr(ModelItemSPtr& item)
   return ptr;
 
 }
-
-typedef itk::RegionOfInterestImageFilter<itkVolumeType, itkVolumeType> ROIFilter;
-
 
 //----------------------------------------------------------------------------
 bool Filter::dumpSnapshot(Snapshot &snapshot)
@@ -426,49 +416,90 @@ void ChannelFilter::createOutput(FilterOutputId id, ChannelRepresentationSList r
 //----------------------------------------------------------------------------
 void SegmentationFilter::setCacheDir(QDir dir)
 {
-  EspINA::Filter::setCacheDir(dir);
+  Filter::setCacheDir(dir);
 
   //WARNING: We need to create all output, even if they are invalid (NULL volume pointer)
   // Load cached outputs
-  if (m_outputs.isEmpty())
+  Q_ASSERT(m_outputs.isEmpty());
+  // Compatibility: verion 3 seg files had only volume outputs shaved
+  // in the base cache dir. Thus, in case we find some files there, we must
+  // assign them to filter's volume outputs
+  bool v3SegFile = false;
+
+  QStringList namedFilters;
+  namedFilters <<  QString("%1_*.mhd").arg(m_cacheId);
+  foreach(QString cachedFile, m_cacheDir.entryList(namedFilters))
   {
-    // Compatibility: verion 3 seg files had only volume outputs shaved
-    // in the base cache dir. Thus, in case we find some files there, we must
-    // assign them to filter's volume outputs
-    bool v3SegFile = false;
+    v3SegFile = true;
+
+    QStringList ids = cachedFile.section(".",0,0).split("_");
+    FilterOutputId oId = ids[1].toInt();
+
+    if (!validOutput(oId))
+    {
+      createDummyOutput(oId, SegmentationVolume::TYPE);
+    }
+
+    SegmentationOutputSPtr editedOutput = m_outputs[oId];
+    QString outputName = QString("%1_%2").arg(m_cacheId).arg(oId);
+
+    if (editedOutput->editedRegions().isEmpty() && m_cacheDir.exists(outputName + ".trc"))
+    {
+      QFile file(m_cacheDir.absoluteFilePath(outputName + ".trc"));
+      if (file.open(QIODevice::ReadOnly))
+      {
+        SegmentationVolumeSPtr volume = segmentationVolume(editedOutput);
+        while (!file.atEnd())
+        {
+          QByteArray line = file.readLine();
+          QStringList values = QString(line).split(" ");
+          Nm bounds[6];
+          for (int i = 0; i < 6; ++i)
+            bounds[i] = values[i].toDouble();
+
+          volume->addEditedRegion(EspinaRegion(bounds));
+        }
+      }
+    }
+  }
+
+  if (!v3SegFile)
+  {
+    QDir outputsDir(m_cacheDir.filePath("Outputs"));
 
     QStringList namedFilters;
-    namedFilters <<  QString("%1_*.mhd").arg(m_cacheId);
-    foreach(QString cachedFile, m_cacheDir.entryList(namedFilters))
+    namedFilters <<  QString("%1_*.trc").arg(m_cacheId);
+    foreach(QString outputInfoFile, outputsDir.entryList(namedFilters))
     {
-      v3SegFile = true;
-
-      QStringList ids = cachedFile.section(".",0,0).split("_");
+      QStringList ids = outputInfoFile.section(".",0,0).split("_");
       FilterOutputId oId = ids[1].toInt();
 
-      if (!validOutput(oId))
+      QFile file(outputsDir.absoluteFilePath(outputInfoFile));
+      if (file.open(QIODevice::ReadOnly))
       {
-        createDummyOutput(oId, SegmentationVolume::TYPE);
-      }
-
-      SegmentationOutputSPtr editedOutput = m_outputs[oId];
-      QString outputName = QString("%1_%2").arg(m_cacheId).arg(oId);
-
-      if (editedOutput->editedRegions().isEmpty() && m_cacheDir.exists(outputName + ".trc"))
-      {
-        QFile file(m_cacheDir.absoluteFilePath(outputName + ".trc"));
-        if (file.open(QIODevice::ReadOnly))
+        bool header = true;
+        while (!file.atEnd())
         {
-          SegmentationVolumeSPtr volume = segmentationVolume(editedOutput);
-          while (!file.atEnd())
+          QString line = file.readLine();
+          if (header)
           {
-            QByteArray line = file.readLine();
-            QStringList values = QString(line).split(" ");
-            Nm bounds[6];
-            for (int i = 0; i < 6; ++i)
-              bounds[i] = values[i].toDouble();
+            if (!line.isEmpty())
+            {
+              createDummyOutput(oId, line.trimmed());
+            } else
+            {
+              header = true;
+            }
+          } else // Restore edited regions
+          {
+            QStringList values = line.split(" ");
+            Q_ASSERT(values.size() == 7);
 
-            volume->addEditedRegion(EspinaRegion(bounds));
+            EspinaRegion region;
+            for (int i = 0; i < 6; ++i)
+              region[i] = values[i+1].toDouble();
+
+            m_outputs[oId]->representation(values[0])->addEditedRegion(region);
           }
         }
       }
@@ -508,6 +539,8 @@ void SegmentationFilter::createOutput(FilterOutputId id, SegmentationRepresentat
 
   addSegmentationRepresentation(currentOutput, rep);
 
+  currentOutput->clearRepresentations();
+
   createOutputRepresentations(currentOutput);
 }
 
@@ -529,6 +562,8 @@ void SegmentationFilter::createOutput(FilterOutputId id, SegmentationRepresentat
   {
     addSegmentationRepresentation(currentOutput, rep);
   }
+
+  currentOutput->clearRepresentations();
 
   createOutputRepresentations(currentOutput);
 }

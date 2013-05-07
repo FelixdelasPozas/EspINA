@@ -60,19 +60,13 @@ bool RawMesh::isEdited() const
 }
 
 //----------------------------------------------------------------------------
-FilterOutput::NamedRegionList RawMesh::editedRegions() const
-{
-  return FilterOutput::NamedRegionList();
-}
-
-//----------------------------------------------------------------------------
 void RawMesh::clearEditedRegions()
 {
 
 }
 
 //----------------------------------------------------------------------------
-void RawMesh::dumpEditedRegions(const QString &prefix) const
+void RawMesh::commitEditedRegions(bool withData) const
 {
 
 }

@@ -48,15 +48,15 @@ bool MeshProxy::dumpSnapshot(const QString &prefix, Snapshot &snapshot) const
 }
 
 //-----------------------------------------------------------------------------
-bool MeshProxy::fetchSnapshot(Filter *filter, const QString &prefix)
-{
-  bool fetched = false;
-
-  if (m_meshRepresentation)
-    fetched = m_meshRepresentation->fetchSnapshot(filter, prefix);
-
-  return fetched;
-}
+// bool MeshProxy::fetchSnapshot(Filter *filter, const QString &prefix)
+// {
+//   bool fetched = false;
+// 
+//   if (m_meshRepresentation)
+//     fetched = m_meshRepresentation->fetchSnapshot(filter, prefix);
+// 
+//   return fetched;
+// }
 
 //-----------------------------------------------------------------------------
 bool MeshProxy::isValid() const
@@ -81,17 +81,6 @@ bool MeshProxy::isEdited() const
 }
 
 //-----------------------------------------------------------------------------
-FilterOutput::NamedRegionList MeshProxy::editedRegions() const
-{
-  FilterOutput::NamedRegionList res;
-
-  if (m_meshRepresentation)
-    res = m_meshRepresentation->editedRegions();
-
-  return res;
-}
-
-//-----------------------------------------------------------------------------
 void MeshProxy::clearEditedRegions()
 {
   if (m_meshRepresentation)
@@ -99,10 +88,10 @@ void MeshProxy::clearEditedRegions()
 }
 
 //-----------------------------------------------------------------------------
-void MeshProxy::dumpEditedRegions(const QString &prefix) const
+void MeshProxy::commitEditedRegions(bool withData) const
 {
   if (m_meshRepresentation)
-    m_meshRepresentation->dumpEditedRegions(prefix);
+    m_meshRepresentation->commitEditedRegions(withData);
 }
 
 //-----------------------------------------------------------------------------

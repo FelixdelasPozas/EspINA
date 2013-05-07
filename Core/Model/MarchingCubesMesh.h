@@ -30,6 +30,7 @@
 #define MARCHINGCUBEMESH_H
 
 #include "Core/Outputs/MeshType.h"
+#include <Core/Outputs/VolumeRepresentation.h>
 
 #include <vtkSmartPointer.h>
 
@@ -43,24 +44,24 @@ namespace EspINA
   {
     Q_OBJECT
   public:
-    explicit MarchingCubesMesh(FilterOutput *output = NULL);
+    explicit MarchingCubesMesh(SegmentationVolumeSPtr volume, FilterOutput *output = NULL);
     virtual ~MarchingCubesMesh();
 
     virtual bool setInternalData(SegmentationRepresentationSPtr rhs);
 
     virtual bool dumpSnapshot(const QString &prefix, Snapshot &snapshot) const;
 
-    virtual bool fetchSnapshot(Filter *filter, const QString &prefix);
+    //virtual bool fetchSnapshot(Filter *filter, const QString &prefix);
 
     virtual bool isEdited() const;
 
     virtual bool isValid() const;
 
-    virtual FilterOutput::NamedRegionList editedRegions() const;
+    virtual FilterOutput::EditedRegionSList editedRegions() const;
 
     virtual void clearEditedRegions();
 
-    virtual void dumpEditedRegions(const QString &prefix) const;
+    virtual void commitEditedRegions(bool withData) const;
 
     virtual void restoreEditedRegion(Filter *filter, const EspinaRegion &region, const QString &prefix);
 
@@ -70,6 +71,8 @@ namespace EspINA
     void updateMesh();
 
   private:
+    SegmentationVolumeSPtr m_volume;
+
     vtkSmartPointer<vtkImageConstantPad>      m_pad;
     vtkSmartPointer<vtkDiscreteMarchingCubes> m_marchingCubes;
   };

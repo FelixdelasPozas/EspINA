@@ -90,30 +90,74 @@ SegmentationOutput::SegmentationOutput(Filter *filter, const FilterOutputId &id)
 }
 
 //----------------------------------------------------------------------------
-bool SegmentationOutput::dumpSnapshot(const QString &prefix, Snapshot &snapshot)
+bool SegmentationOutput::dumpSnapshot(const QString &prefix, Snapshot &snapshot, bool saveEditedRegions)
 {
   bool dumped = true;
 
+  int oldSize = m_editerRegions.size();
+
+  std::ostringstream outputInfo;
   foreach(SegmentationRepresentationSPtr rep, m_representations)
   {
-    dumped |= rep->dumpSnapshot(prefix, snapshot);
+    outputInfo << rep->type().toStdString() << std::endl;
+    if (isCached())
+    {
+      dumped |= rep->dumpSnapshot(prefix, snapshot);
+    }
+
+    if (saveEditedRegions)
+    {
+      // We don't need to make a copy of latest modifications of cached representations data
+      // becasue they are implictly stored by dumpSnapshot. We just save the edited regions
+      // in case the output is not referenced by a segmentation in a future
+      // NOTE: Verify that the order of the regions doesn't matter
+      rep->commitEditedRegions(!isCached());
+    }
   }
+
+  if (saveEditedRegions)
+  {
+    outputInfo << std::endl; // Empty line separates representation types from region info
+
+
+    foreach(EditedRegionSPtr editedRegion, m_editerRegions)
+    {
+      outputInfo << editedRegion->Name.toStdString() << " ";
+      for (int i = 0; i < 6; ++i)
+      {
+        outputInfo << editedRegion->Region[i] << " ";
+      }
+      outputInfo << std::endl;
+
+      editedRegion->dump(m_filter->cacheDir(), prefix, snapshot);
+    }
+  }
+
+  // Because current representations can be modified and saved again,
+  // we don't commit them definetely
+  while (m_editerRegions.size() > oldSize)
+  {
+    m_editerRegions.pop_back();
+  }
+
+  QString outputInfoFile = QString("Outputs/%1.trc").arg(prefix);
+  snapshot << SnapshotEntry(outputInfoFile, outputInfo.str().c_str());
 
   return dumped;
 }
 
-//----------------------------------------------------------------------------
-bool SegmentationOutput::fetchSnapshot(const QString &prefix)
-{
-  bool fetched = true;
-
-  foreach(SegmentationRepresentationSPtr rep, m_representations)
-  {
-    fetched &= rep->fetchSnapshot(m_filter, prefix);
-  }
-
-  return fetched;
-}
+// //----------------------------------------------------------------------------
+// bool SegmentationOutput::fetchSnapshot(const QString &prefix)
+// {
+//   bool fetched = true;
+// 
+//   foreach(SegmentationRepresentationSPtr rep, m_representations)
+//   {
+//     fetched &= rep->fetchSnapshot(m_filter, prefix);
+//   }
+// 
+//   return fetched;
+// }
 
 //----------------------------------------------------------------------------
 bool SegmentationOutput::isValid() const
@@ -148,8 +192,15 @@ bool SegmentationOutput::isEdited() const
 }
 
 //----------------------------------------------------------------------------
+void SegmentationOutput::push(FilterOutput::EditedRegionSList editedRegions)
+{
+  m_editerRegions << editedRegions;
+}
+
+//----------------------------------------------------------------------------
 void SegmentationOutput::clearEditedRegions()
 {
+  m_editerRegions.clear();
   foreach(SegmentationRepresentationSPtr rep, m_representations)
   {
     rep->clearEditedRegions();
@@ -160,35 +211,40 @@ void SegmentationOutput::clearEditedRegions()
 void SegmentationOutput::dumpEditedRegions(const QString &prefix, Snapshot &snapshot)
 {
   //FIXME
+  std::ostringstream regions;
 
-//   std::ostringstream regions;
-// 
-//   for (int r = 0; r < m_representations; ++r)
-//   {
-//     Output::NamedRegion editedRegion = output->editedRegions[r];
-//     
-//     regions << editedRegion.first << " ";
-//     for (int i = 0; i < 6; ++i)
-//     {
-//       regions << editedRegion.second[i] << " ";
-//     }
-//     regions << std::endl;
-//   }
-// 
-//   snapshot << SnapshotEntry(prefix + ".trc", regions.str().c_str());
+  int oldSize = m_editerRegions.size();
+  // Verify that the order of the regions doesn't matter
+  // We need to add regions that haven't been
+  foreach(SegmentationRepresentationSPtr rep, m_representations)
+  {
+    rep->commitEditedRegions(!isCached());
+  }
+
+  foreach(EditedRegionSPtr editedRegion, m_editerRegions)
+  {
+    regions << editedRegion->Name.toStdString() << " ";
+    for (int i = 0; i < 6; ++i)
+    {
+      regions << editedRegion->Region[i] << " ";
+    }
+    regions << std::endl;
+
+    editedRegion->dump(m_filter->cacheDir(), prefix, snapshot);
+  }
+
+  snapshot << SnapshotEntry(prefix + ".trc", regions.str().c_str());
+
+  while (m_editerRegions.size() > oldSize)
+  {
+    m_editerRegions.pop_back();
+  }
 }
 
 //----------------------------------------------------------------------------
-SegmentationOutput::NamedRegionList SegmentationOutput::editedRegions() const
+SegmentationOutput::EditedRegionSList SegmentationOutput::editedRegions() const
 {
-  NamedRegionList regions;
-
-  foreach (SegmentationRepresentationSPtr rep, m_representations)
-  {
-    regions << rep->editedRegions();
-  }
-
-  return regions;
+  return m_editerRegions;
 }
 
 //----------------------------------------------------------------------------
@@ -198,7 +254,7 @@ void SegmentationOutput::restoreEditedRegions(const QString &prefix)
 }
 
 //----------------------------------------------------------------------------
-void SegmentationOutput::setEditedRegions(const SegmentationOutput::NamedRegionList &regions)
+void SegmentationOutput::setEditedRegions(FilterOutput::EditedRegionSList regions)
 {
   clearEditedRegions();
   //FIXME set regions

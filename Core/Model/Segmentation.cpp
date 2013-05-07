@@ -239,8 +239,8 @@ void Segmentation::initialize(const Arguments &args)
   // Prevent overriding segmentation id assigned from model
   foreach (QString key, args.keys())
   {
-    //if (NUMBER != key)
-    m_args[key] = args[key];
+    if (NUMBER != key)
+      m_args[key] = args[key];
   }
 }
 

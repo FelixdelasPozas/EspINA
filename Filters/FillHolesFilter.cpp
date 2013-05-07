@@ -49,7 +49,7 @@ void FillHolesFilter::createDummyOutput(FilterOutputId id, const FilterOutput::O
 void FillHolesFilter::createOutputRepresentations(SegmentationOutputSPtr output)
 {
   SegmentationVolumeSPtr volumeData = segmentationVolume(output);
-  output->addRepresentation(GraphicalRepresentationSPtr(new SegmentationSliceRepresentation(volumeData, NULL)));
+  output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new SegmentationSliceRepresentation(volumeData, NULL)));
   //   output->addRepresentation(GraphicalRepresentationSPtr(new VolumeReprentation  (volumeOutput(output))));
   //   output->addRepresentation(GraphicalRepresentationSPtr(new MeshRepresentation  (meshOutput  (output))));
   //   output->addRepresentation(GraphicalRepresentationSPtr(new SmoothRepresentation(meshOutput  (output))));

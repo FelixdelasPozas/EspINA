@@ -99,7 +99,7 @@ void AppositionSurfaceFilter::createDummyOutput(FilterOutputId id, const FilterO
 void AppositionSurfaceFilter::createOutputRepresentations(SegmentationOutputSPtr output)
 {
   SegmentationVolumeSPtr volumeRep = segmentationVolume(output);
-  output->addRepresentation(GraphicalRepresentationSPtr(new SegmentationSliceRepresentation(volumeRep, NULL)));
+  output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new SegmentationSliceRepresentation(volumeRep, NULL)));
 }
 
 //----------------------------------------------------------------------------

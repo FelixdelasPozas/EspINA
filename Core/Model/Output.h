@@ -34,6 +34,7 @@
 #include <boost/shared_ptr.hpp>
 #include <QMap>
 
+class QDir;
 namespace EspINA
 {
 
@@ -41,7 +42,7 @@ namespace EspINA
 
   class GraphicalRepresentation;
   typedef boost::shared_ptr<GraphicalRepresentation> GraphicalRepresentationSPtr;
-  typedef QList<GraphicalRepresentationSPtr>          EspinaRepresentationList;
+  typedef QList<GraphicalRepresentationSPtr>         GraphicalRepresentationSList;
 
  typedef int FilterOutputId;
 
@@ -53,13 +54,28 @@ namespace EspINA
     static const int INVALID_OUTPUT_ID;
 
   public:
+    typedef QString                         OutputRepresentationName;
+    typedef QList<OutputRepresentationName> OutputRepresentationNameList;
+
+    class EditedRegion
+    {
+    public:
+      virtual ~EditedRegion() {}
+
+      EspinaRegion             Region;
+      OutputRepresentationName Name;
+
+      virtual bool dump(QDir           cacheDir,
+                        const QString &regionName,
+                        Snapshot      &snapshot) const = 0;
+    };
+
+    typedef boost::shared_ptr<EditedRegion> EditedRegionSPtr;
+    typedef QList<EditedRegionSPtr>         EditedRegionSList;
+
     class OutputRepresentation;
     typedef boost::shared_ptr<OutputRepresentation> OutputRepresentationSPtr;
     typedef QList<OutputRepresentationSPtr>         OutputRepresentationSList;
-    typedef QString                                 OutputRepresentationName;
-
-    typedef QPair<QString, EspinaRegion> NamedRegion;
-    typedef QList<NamedRegion>           NamedRegionList;
 
   public:
     explicit FilterOutput(Filter               *filter = NULL,
@@ -88,15 +104,14 @@ namespace EspINA
     EspinaRegion region() const
     { return m_region; }
 
-    void addRepresentation(GraphicalRepresentationSPtr prototype)
+    void addGraphicalRepresentation(GraphicalRepresentationSPtr prototype)
     { m_repPrototypes << prototype; }
 
-    EspinaRepresentationList representations() const
+    GraphicalRepresentationSList graphicalRepresentations() const
     { return m_repPrototypes; }
 
     void clearRepresentations()
     { m_repPrototypes.clear(); }
-
   signals:
     void modified();
 
@@ -105,7 +120,8 @@ namespace EspINA
     bool           m_isCached; /// Whether output is used by a segmentation
     FilterPtr      m_filter;
     EspinaRegion   m_region;
-    EspinaRepresentationList m_repPrototypes;
+
+    GraphicalRepresentationSList m_repPrototypes;
   };
 
   typedef FilterOutput                  * OutputPtr;
@@ -146,12 +162,13 @@ namespace EspINA
   public:
     explicit SegmentationOutput(Filter *filter = 0, const FilterOutputId &id = INVALID_OUTPUT_ID);
 
-    bool dumpSnapshot (const QString &prefix, Snapshot &snapshot);
-    bool fetchSnapshot(const QString &prefix);
+    bool dumpSnapshot (const QString &prefix, Snapshot &snapshot, bool saveEditedRegions);
 
     virtual bool isValid() const;
 
     bool isEdited() const;
+
+    void push(EditedRegionSList editedRegions);
 
     /// clear output's edited regions
     void clearEditedRegions();
@@ -159,13 +176,13 @@ namespace EspINA
     /// dump output's edited regions information to snapshot
     void dumpEditedRegions(const QString &prefix, Snapshot &snapshot);
 
-    NamedRegionList editedRegions() const;
+    EditedRegionSList editedRegions() const;
 
     /// restore output's edited regions information from cache
     void restoreEditedRegions(const QString &prefix);
 
     /// replace current edited regions
-    void setEditedRegions(const NamedRegionList &regions);
+    void setEditedRegions(EditedRegionSList regions);
 
     void setRepresentation(const OutputRepresentationName &name, SegmentationRepresentationSPtr representation)
     { m_representations[name] = representation; }
@@ -175,6 +192,9 @@ namespace EspINA
 
   private:
     QMap<OutputRepresentationName, SegmentationRepresentationSPtr> m_representations;
+
+    EditedRegionSList m_editerRegions;
+    int               m_editerRegionsStackPointer;
   };
 
   typedef SegmentationOutput                  * SegmentationOutputPtr;

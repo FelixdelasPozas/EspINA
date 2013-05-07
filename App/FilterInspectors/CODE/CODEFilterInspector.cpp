@@ -112,7 +112,7 @@ private:
   itkVolumeType::Pointer m_oldVolume;
   itkVolumeType::Pointer m_newVolume;
 
-  FilterOutput::NamedRegionList m_editedRegions;
+  FilterOutput::EditedRegionSList m_editedRegions;
 };
 
 
