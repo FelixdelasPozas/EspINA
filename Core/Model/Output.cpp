@@ -92,7 +92,7 @@ SegmentationOutput::SegmentationOutput(Filter *filter, const FilterOutputId &id)
 //----------------------------------------------------------------------------
 bool SegmentationOutput::dumpSnapshot(const QString &prefix, Snapshot &snapshot, bool saveEditedRegions)
 {
-  bool dumped = true;
+  bool dumped = false;
 
   int oldSize = m_editerRegions.size();
 
@@ -120,6 +120,7 @@ bool SegmentationOutput::dumpSnapshot(const QString &prefix, Snapshot &snapshot,
     outputInfo << std::endl; // Empty line separates representation types from region info
 
 
+    int regionId = 0;
     foreach(EditedRegionSPtr editedRegion, m_editerRegions)
     {
       outputInfo << editedRegion->Name.toStdString() << " ";
@@ -129,7 +130,7 @@ bool SegmentationOutput::dumpSnapshot(const QString &prefix, Snapshot &snapshot,
       }
       outputInfo << std::endl;
 
-      editedRegion->dump(m_filter->cacheDir(), prefix, snapshot);
+      dumped |= editedRegion->dump(m_filter->cacheDir(), QString("%1_%2").arg(prefix).arg(regionId++) , snapshot);
     }
   }
 
@@ -248,9 +249,12 @@ SegmentationOutput::EditedRegionSList SegmentationOutput::editedRegions() const
 }
 
 //----------------------------------------------------------------------------
-void SegmentationOutput::restoreEditedRegions(const QString &prefix)
+void SegmentationOutput::restoreEditedRegions(const QDir &cacheDir, const QString &ouptutId)
 {
-  //FIXME
+  foreach(SegmentationRepresentationSPtr rep, m_representations)
+  {
+    rep->restoreEditedRegions(cacheDir, ouptutId);
+  }
 }
 
 //----------------------------------------------------------------------------

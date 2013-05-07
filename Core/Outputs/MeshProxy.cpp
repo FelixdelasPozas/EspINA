@@ -95,10 +95,10 @@ void MeshProxy::commitEditedRegions(bool withData) const
 }
 
 //-----------------------------------------------------------------------------
-void MeshProxy::restoreEditedRegion(Filter *filter, const EspinaRegion &region, const QString &prefix)
+void MeshProxy::restoreEditedRegions(const QDir &cacheDir, const QString &outputId)
 {
   if (m_meshRepresentation)
-    m_meshRepresentation->restoreEditedRegion(filter, region, prefix);
+    m_meshRepresentation->restoreEditedRegions(cacheDir, outputId);
 }
 
 //-----------------------------------------------------------------------------

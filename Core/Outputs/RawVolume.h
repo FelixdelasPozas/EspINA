@@ -171,18 +171,18 @@ namespace EspINA
     virtual bool isValid() const
     { return m_volume.IsNotNull(); }
 
-    virtual void addEditedRegion(const EspinaRegion &region);
+    virtual void addEditedRegion(const EspinaRegion &region, int id = -1);
 
     virtual void clearEditedRegions();
 
     virtual void commitEditedRegions(bool ignoreData) const;
 
-    virtual void restoreEditedRegion(Filter *filter, const EspinaRegion &region, const QString &prefix);
+    virtual void restoreEditedRegions(const QDir &cacheDir, const QString &outputId);
 
-    virtual QList< EspinaRegion > editedRegions() const
+    virtual EditedVolumeRegionSList editedRegions() const
     { return m_editedRegions; }
 
-    virtual void setEditedRegions(QList<EspinaRegion> regions)
+    virtual void setEditedRegions(EditedVolumeRegionSList regions)
     { m_editedRegions = regions; }
 
     virtual void setVolume(itkVolumeType::Pointer volume, bool disconnect=false);
@@ -244,8 +244,8 @@ namespace EspINA
                                    FilterOutput *output);
 
   protected:
-    mutable itkVolumeType::Pointer  m_volume;
-    QList<EspinaRegion>             m_editedRegions;
+    mutable itkVolumeType::Pointer m_volume;
+    EditedVolumeRegionSList        m_editedRegions;
 
     // itk to vtk filter
     typedef itk::ImageToVTKImageFilter<itkVolumeType> itk2vtkFilterType;

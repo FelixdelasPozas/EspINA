@@ -104,10 +104,11 @@ void MarchingCubesMesh::commitEditedRegions(bool withData) const
 
 
 //----------------------------------------------------------------------------
-void MarchingCubesMesh::restoreEditedRegion(Filter *filter, const EspinaRegion &region, const QString &prefix)
+void MarchingCubesMesh::restoreEditedRegions(const QDir &cacheDir, const QString &outputId)
 {
 
 }
+
 
 //----------------------------------------------------------------------------
 vtkAlgorithmOutput *MarchingCubesMesh::mesh() const

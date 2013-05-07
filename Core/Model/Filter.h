@@ -281,6 +281,9 @@ namespace EspINA
 
     virtual void setCacheDir(QDir dir);
 
+    QString cacheOutputId(FilterOutputId id) const
+    { return QString("%1_%2").arg(m_cacheId).arg(id); }
+
     /// Try to locate an snapshot of the filter in tmpDir
     /// Returns true if all volume snapshot can be recovered
     /// and false otherwise

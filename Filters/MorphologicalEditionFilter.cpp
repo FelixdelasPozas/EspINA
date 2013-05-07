@@ -37,7 +37,7 @@ const unsigned int LABEL_VALUE = 255;
 MorphologicalEditionFilter::MorphologicalEditionFilter(NamedInputs inputs,
                                                        Arguments   args,
                                                        FilterType  type)
-: SegmentationFilter(inputs, args, type)
+: BasicSegmentationFilter(inputs, args, type)
 , m_ignoreCurrentOutputs(false)
 , m_isOutputEmpty(true)
 , m_params(m_args)
@@ -47,25 +47,6 @@ MorphologicalEditionFilter::MorphologicalEditionFilter(NamedInputs inputs,
 //-----------------------------------------------------------------------------
 MorphologicalEditionFilter::~MorphologicalEditionFilter()
 {
-}
-
-//-----------------------------------------------------------------------------
-void MorphologicalEditionFilter::createDummyOutput(FilterOutputId id, const FilterOutput::OutputRepresentationName &type)
-{
-  if (SegmentationVolume::TYPE == type)
-    createOutput(id, RawSegmentationVolumeSPtr(new RawSegmentationVolume()));
-  else
-    Q_ASSERT(false);
-}
-
-//-----------------------------------------------------------------------------
-void MorphologicalEditionFilter::createOutputRepresentations(SegmentationOutputSPtr output)
-{
-  SegmentationVolumeSPtr volumeRep = segmentationVolume(output);
-  output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new SegmentationSliceRepresentation(volumeRep, NULL)));
-  //   output->addRepresentation(GraphicalRepresentationSPtr(new VolumeReprentation  (volumeOutput(output))));
-  //   output->addRepresentation(GraphicalRepresentationSPtr(new MeshRepresentation  (meshOutput  (output))));
-  //   output->addRepresentation(GraphicalRepresentationSPtr(new SmoothRepresentation(meshOutput  (output))));
 }
 
 //-----------------------------------------------------------------------------
@@ -90,14 +71,4 @@ bool MorphologicalEditionFilter::needUpdate(FilterOutputId oId) const
   }
 
   return update;
-}
-
-
-//-----------------------------------------------------------------------------
-bool MorphologicalEditionFilter::fetchSnapshot(FilterOutputId oId)
-{
-  if (m_ignoreCurrentOutputs)
-    return false;
-
-  return SegmentationFilter::fetchSnapshot(oId);
 }

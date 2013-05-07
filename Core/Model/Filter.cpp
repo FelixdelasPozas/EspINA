@@ -177,11 +177,7 @@ void SegmentationFilter::update(FilterOutputId oId)
 
        if (m_outputs.contains(oId))
        {
-         QString outputPrefix = QString("%1_%2").arg(m_cacheId).arg(oId);
-         foreach(FilterOutput::EditedRegionSPtr region, m_outputs[oId]->editedRegions())
-         {
-         //FIXME  m_outputs[oId]->representation(region->Name)->restoreEditedRegion(this, region.second, outputPrefix);
-         }
+         m_outputs[oId]->restoreEditedRegions(m_cacheDir, cacheOutputId(oId));
        }
 
        m_executed = true;
@@ -192,20 +188,7 @@ void SegmentationFilter::update(FilterOutputId oId)
 //----------------------------------------------------------------------------
 bool SegmentationFilter::fetchSnapshot(FilterOutputId oId)
 {
-  Q_ASSERT(false);
-  if (numberOfOutputs() == 0) // contains??
-    return false;
-
-  Q_ASSERT(m_outputs.contains(oId));
-
-  QString filterPrefix = QString("%1_%2").arg(m_cacheId).arg(oId);
-
-  bool fetched = false;// m_outputs[oId]->fetchSnapshot(filterPrefix);
-
-  if (fetched)
-    emit modified(this);
-
-  return fetched;
+  return false;
 }
 
 //----------------------------------------------------------------------------
@@ -282,7 +265,6 @@ bool SegmentationFilter::dumpSnapshot(Snapshot &snapshot)
   foreach(SegmentationOutputSPtr filterOutput, m_outputs)
   {
     FilterOutputId oId = filterOutput->id();
-    QString filterPrefix = QString("%1_%2").arg(id()).arg(oId);
 
     // Backwards compatibility with seg files version 1.0
     if (m_model->isTraceable() && m_args.contains(EDIT))
@@ -302,7 +284,7 @@ bool SegmentationFilter::dumpSnapshot(Snapshot &snapshot)
     bool saveEditedRegions = m_model->isTraceable() && filterOutput->isEdited();
 
     if (filterOutput->isCached() || saveEditedRegions)
-      result |= filterOutput->dumpSnapshot(filterPrefix, snapshot, saveEditedRegions);
+      result |= filterOutput->dumpSnapshot(cacheOutputId(oId), snapshot, saveEditedRegions);
 
     filterOutput->setCached(false);
   }
@@ -390,7 +372,7 @@ void ChannelFilter::createOutput(FilterOutputId id, ChannelRepresentationSPtr re
 
   addChannelOutputData(currentOutput, rep);
 
-  currentOutput->clearRepresentations();
+  currentOutput->clearGraphicalRepresentations();
 
   createOutputRepresentations(currentOutput);
 }
@@ -408,7 +390,7 @@ void ChannelFilter::createOutput(FilterOutputId id, ChannelRepresentationSList r
     addChannelOutputData(currentOutput, rep);
   }
 
-  currentOutput->clearRepresentations();//TODO: comprobar que se eliminan los actores de las antiguas representaciones en las vistas al ejecutar varios run
+  currentOutput->clearGraphicalRepresentations();//TODO: comprobar que se eliminan los actores de las antiguas representaciones en las vistas al ejecutar varios run
 
   createOutputRepresentations(currentOutput);
 }
@@ -441,7 +423,7 @@ void SegmentationFilter::setCacheDir(QDir dir)
     }
 
     SegmentationOutputSPtr editedOutput = m_outputs[oId];
-    QString outputName = QString("%1_%2").arg(m_cacheId).arg(oId);
+    QString outputName = cacheOutputId(oId);
 
     if (editedOutput->editedRegions().isEmpty() && m_cacheDir.exists(outputName + ".trc"))
     {
@@ -477,18 +459,20 @@ void SegmentationFilter::setCacheDir(QDir dir)
       QFile file(outputsDir.absoluteFilePath(outputInfoFile));
       if (file.open(QIODevice::ReadOnly))
       {
-        bool header = true;
+        bool header   = true;
+        int  regionId = 0;
         while (!file.atEnd())
         {
           QString line = file.readLine();
+          line = line.trimmed();
           if (header)
           {
             if (!line.isEmpty())
             {
-              createDummyOutput(oId, line.trimmed());
+              createDummyOutput(oId, line);
             } else
             {
-              header = true;
+              header = false;
             }
           } else // Restore edited regions
           {
@@ -499,7 +483,7 @@ void SegmentationFilter::setCacheDir(QDir dir)
             for (int i = 0; i < 6; ++i)
               region[i] = values[i+1].toDouble();
 
-            m_outputs[oId]->representation(values[0])->addEditedRegion(region);
+            m_outputs[oId]->representation(values[0])->addEditedRegion(region, regionId++);
           }
         }
       }
@@ -539,7 +523,7 @@ void SegmentationFilter::createOutput(FilterOutputId id, SegmentationRepresentat
 
   addSegmentationRepresentation(currentOutput, rep);
 
-  currentOutput->clearRepresentations();
+  currentOutput->clearGraphicalRepresentations();
 
   createOutputRepresentations(currentOutput);
 }
@@ -563,7 +547,7 @@ void SegmentationFilter::createOutput(FilterOutputId id, SegmentationRepresentat
     addSegmentationRepresentation(currentOutput, rep);
   }
 
-  currentOutput->clearRepresentations();
+  currentOutput->clearGraphicalRepresentations();
 
   createOutputRepresentations(currentOutput);
 }

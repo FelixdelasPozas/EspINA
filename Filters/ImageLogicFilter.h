@@ -20,7 +20,7 @@
 #ifndef IMAGELOGICFILTER_H
 #define IMAGELOGICFILTER_H
 
-#include <Core/Model/Filter.h>
+#include "BasicSegmentationFilter.h"
 #include <Core/Model/Segmentation.h>
 
 // #include <itkConstantPadImageFilter.h>
@@ -29,7 +29,7 @@
 namespace EspINA
 {
 class ImageLogicFilter
-: public SegmentationFilter
+: public BasicSegmentationFilter
 {
 //   typedef itk::ConstantPadImageFilter<EspinaVolume, EspinaVolume> PadFilterType;
 //   typedef itk::OrImageFilter<EspinaVolume, EspinaVolume, EspinaVolume> OrFilterType;
@@ -65,10 +65,6 @@ public:
 
 
 protected:
-  virtual void createDummyOutput(FilterOutputId id, const FilterOutput::OutputRepresentationName &type);
-
-  virtual void createOutputRepresentations(SegmentationOutputSPtr output);
-
   virtual bool ignoreCurrentOutputs() const
   { return false; }
 

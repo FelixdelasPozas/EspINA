@@ -45,7 +45,7 @@ const QString SplitFilter::INPUTLINK = "Segmentation";
 SplitFilter::SplitFilter(NamedInputs inputs,
                          Arguments   args,
                          FilterType  type)
-: SegmentationFilter(inputs, args, type)
+: BasicSegmentationFilter(inputs, args, type)
 , m_stencil(NULL)
 , m_ignoreCurrentOutputs(false)
 {
@@ -54,22 +54,6 @@ SplitFilter::SplitFilter(NamedInputs inputs,
 //-----------------------------------------------------------------------------
 SplitFilter::~SplitFilter()
 {
-}
-
-//-----------------------------------------------------------------------------
-void SplitFilter::createDummyOutput(FilterOutputId id, const FilterOutput::OutputRepresentationName &type)
-{
-
-}
-
-//-----------------------------------------------------------------------------
-void SplitFilter::createOutputRepresentations(SegmentationOutputSPtr output)
-{
-  SegmentationVolumeSPtr volumeRep = segmentationVolume(output);
-  output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new SegmentationSliceRepresentation(volumeRep, NULL)));
-  //   output->addRepresentation(GraphicalRepresentationSPtr(new VolumeReprentation  (volumeOutput(output))));
-  //   output->addRepresentation(GraphicalRepresentationSPtr(new MeshRepresentation  (meshOutput  (output))));
-  //   output->addRepresentation(GraphicalRepresentationSPtr(new SmoothRepresentation(meshOutput  (output))));
 }
 
 //-----------------------------------------------------------------------------

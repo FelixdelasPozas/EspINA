@@ -18,8 +18,7 @@
 #ifndef SEEDGROWSEGMENTATIONFILTER_H
 #define SEEDGROWSEGMENTATIONFILTER_H
 
-#include "Core/Model/Filter.h"
-#include <Core/Outputs/RawVolume.h>
+#include "BasicSegmentationFilter.h"
 
 #include <itkImage.h>
 #include <itkVTKImageToImageFilter.h>
@@ -39,7 +38,7 @@ namespace EspINA
   class ViewManager;
 
   class SeedGrowSegmentationFilter
-  : public SegmentationFilter
+  : public BasicSegmentationFilter
   {
     typedef itk::ExtractImageFilter<itkVolumeType, itkVolumeType> ExtractType;
     typedef itk::ConnectedThresholdImageFilter<itkVolumeType, itkVolumeType> ConnectedThresholdFilterType;
@@ -144,32 +143,24 @@ namespace EspINA
     bool isTouchingVOI() const;
 
   protected:
-    virtual FilterOutput::OutputRepresentationNameList possibleRepresentations() const;
-
-    virtual void createDummyOutput(FilterOutputId id, const FilterOutput::OutputRepresentationName &type);
-
-    virtual void createOutputRepresentations(SegmentationOutputSPtr output);
-
     virtual bool ignoreCurrentOutputs() const
     { return m_ignoreCurrentOutputs; }
 
     virtual bool needUpdate(FilterOutputId oId) const;
-
-    virtual bool fetchSnapshot(FilterOutputId oId);
 
     virtual void run();
 
     virtual void run(FilterOutputId oId);
 
   private:
-    bool              m_ignoreCurrentOutputs;
-    Parameters        m_param;
+    bool       m_ignoreCurrentOutputs;
+    Parameters m_param;
 
     ConnectedThresholdFilterType::Pointer ctif;
-    ExtractType::Pointer voiFilter;
-    ExtractType::Pointer extractFilter;
-    Image2LabelFilterType::Pointer image2label;
-    bmcifType::Pointer bmcif;
+    ExtractType::Pointer                  voiFilter;
+    ExtractType::Pointer                  extractFilter;
+    Image2LabelFilterType::Pointer        image2label;
+    bmcifType::Pointer                    bmcif;
 
     friend class FilterInspector;
   };

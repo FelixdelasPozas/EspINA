@@ -22,6 +22,7 @@
 #include <Filters/SeedGrowSegmentationFilter.h>
 #include <GUI/ViewManager.h>
 #include <GUI/vtkWidgets/RectangularRegion.h>
+#include <Core/Outputs/VolumeRepresentation.h>
 
 // Qt
 #include <QDebug>

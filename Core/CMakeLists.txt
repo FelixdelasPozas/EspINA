@@ -24,6 +24,7 @@ qt4_wrap_cpp(CORE_MOC
   Model/Proxies/TaxonomyProxy.h
   Model/Proxies/InformationProxy.h
   Model/Proxies/ConnectomicProxy.h
+  Outputs/VolumeProxy.h
   Interfaces/IDockWidget.h
   Interfaces/IToolBar.h
   )

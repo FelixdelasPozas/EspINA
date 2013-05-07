@@ -49,6 +49,8 @@ namespace EspINA
 
 
   private:
+    typedef SegmentationVolume::EditedVolumeRegionSList EditedRegionSList;
+
     SegmentationSPtr m_seg;
     FilterOutputId   m_output;
     BrushShapeList   m_brushes;
@@ -56,11 +58,11 @@ namespace EspINA
 
     double m_strokeBounds[6];
 
-    itkVolumeType::PixelType      m_value;
-    itkVolumeType::Pointer        m_prevVolume;
-    itkVolumeType::Pointer        m_newVolume;
-    bool                          m_needReduction;
-    QList<EspinaRegion>           m_prevRegions;
+    itkVolumeType::PixelType m_value;
+    itkVolumeType::Pointer   m_prevVolume;
+    itkVolumeType::Pointer   m_newVolume;
+    bool                     m_needReduction;
+    EditedRegionSList        m_prevRegions;
   };
 
   class Brush::SnapshotCommand

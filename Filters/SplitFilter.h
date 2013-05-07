@@ -22,6 +22,7 @@
 
 #include <Core/Model/Filter.h>
 #include <Core/Outputs/RawVolume.h>
+#include "BasicSegmentationFilter.h"
 
 #include <vtkSmartPointer.h>
 
@@ -32,7 +33,7 @@ namespace EspINA
   /// Split Segmentation into two components according to
   /// given stencil
   class SplitFilter
-  : public SegmentationFilter
+  : public BasicSegmentationFilter
   {
   public:
     static const QString INPUTLINK;
@@ -58,10 +59,6 @@ namespace EspINA
     virtual bool dumpSnapshot(QList<QPair<QString, QByteArray> > &fileList);
 
   protected:
-    virtual void createDummyOutput(FilterOutputId id, const FilterOutput::OutputRepresentationName &type);
-
-    virtual void createOutputRepresentations(SegmentationOutputSPtr output);
-
     virtual bool ignoreCurrentOutputs() const
     { return m_ignoreCurrentOutputs; }
 

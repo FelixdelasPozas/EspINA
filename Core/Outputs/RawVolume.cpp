@@ -759,8 +759,8 @@ bool RawSegmentationVolume::dumpSnapshot(const QString &prefix, Snapshot &snapsh
   temporalDir.remove(mhd);
   temporalDir.remove(raw);
 
-  SnapshotEntry mhdEntry(SegmentationVolume::TYPE + QString("/%1.mhd").arg(prefix), mhdArray);
-  SnapshotEntry rawEntry(SegmentationVolume::TYPE + QString("/%1.raw").arg(prefix), rawArray);
+  SnapshotEntry mhdEntry(cachePath(prefix + ".mhd"), mhdArray);
+  SnapshotEntry rawEntry(cachePath(prefix + ".raw"), rawArray);
 
   snapshot << mhdEntry << rawEntry;
 
@@ -806,13 +806,13 @@ void RawSegmentationVolume::clearEditedRegions()
 void RawSegmentationVolume::commitEditedRegions(bool withData) const
 {
   FilterOutput::EditedRegionSList regions;
-  for (int i = 0; i < m_editedRegions.size(); ++i)
+//   for (int i = 0; i < m_editedRegions.size(); ++i)
+//   {
+//     EditedVolumeRegionSPtr editedRegion(
+//       new EditedVolumeRegion(m_editedRegions[i]->Id,
+//                              m_editedRegions[i]->Region));
+  foreach(EditedVolumeRegionSPtr editedRegion, m_editedRegions)
   {
-    EditedVolumeRegionSPtr editedRegion(new EditedVolumeRegion());
-
-    editedRegion->Name   = SegmentationVolume::TYPE;
-    editedRegion->Region = m_editedRegions[i];
-
     if (withData)
     {
       Q_ASSERT(m_volume);
@@ -902,30 +902,33 @@ void RawSegmentationVolume::commitEditedRegions(bool withData) const
 }
 
 //----------------------------------------------------------------------------
-void RawSegmentationVolume::restoreEditedRegion(Filter *filter, const EspinaRegion &region, const QString &prefix)
+void RawSegmentationVolume::restoreEditedRegions(const QDir &cacheDir, const QString &outputId)
 {
-  // Restore previous edited regions if restoring a modified output
-  int regionId = m_editedRegions.size() - 1;
+//   // Restore previous edited regions if restoring a modified output
+//   int regionId = m_editedRegions.size() - 1;
+// 
+//   // Version 3 seg files compatibility
+//   QString fileV3 = QString("%1_%2.mhd").arg(prefix).arg(regionId);
+//   itkVolumeType::Pointer editedVolumeV3 = filter->readVolumeFromCache(fileV3);
+//   if (editedVolumeV3.IsNotNull())
+//   {
+//     draw(editedVolumeV3, true);
+//   } else
+//   {
+//     qWarning() << "VolumeType: Couldn't restore edited region";
+//   }
 
-  // Version 3 seg files compatibility
-  QString fileV3 = QString("%1_%2.mhd").arg(prefix).arg(regionId);
-  itkVolumeType::Pointer editedVolumeV3 = filter->readVolumeFromCache(fileV3);
-  if (editedVolumeV3.IsNotNull())
+  foreach(EditedVolumeRegionSPtr region, m_editedRegions)
   {
-    draw(editedVolumeV3, true);
-  } else
-  {
-    qWarning() << "VolumeType: Couldn't restore edited region";
-  }
-
-  QString file = QString("%1_%2.mhd").arg(prefix).arg(regionId);
-  itkVolumeType::Pointer editedVolume = filter->readVolumeFromCache(file);
-  if (editedVolume.IsNotNull())
-  {
-    draw(editedVolume, true);
-  } else
-  {
-    qWarning() << "VolumeType: Couldn't restore edited region";
+    QString file = cacheDir.absoluteFilePath(cachePath(QString("%1_%2.mhd").arg(outputId).arg(region->Id)));
+    itkVolumeType::Pointer editedVolume = m_output->filter()->readVolumeFromCache(file);
+    if (editedVolume.IsNotNull())
+    {
+      draw(editedVolume, true);
+    } else
+    {
+      qWarning() << "VolumeType: Couldn't restore edited region";
+    }
   }
 }
 
@@ -947,17 +950,17 @@ void RawSegmentationVolume::setVolume(itkVolumeType::Pointer volume, bool discon
 }
 
 //----------------------------------------------------------------------------
-void RawSegmentationVolume::addEditedRegion(const EspinaRegion &region)
+void RawSegmentationVolume::addEditedRegion(const EspinaRegion &region, int id)
 {
   int  i        = 0;
   bool included = false;
   while (i < m_editedRegions.size() && !included)
   {
-    included = region.isInside(m_editedRegions[i]);
+    included = region.isInside(m_editedRegions[i]->Region);
     ++i;
   }
   if (!included)
-    m_editedRegions << region;
+    m_editedRegions << EditedVolumeRegionSPtr(new EditedVolumeRegion(id, region));
 }
 
 //----------------------------------------------------------------------------

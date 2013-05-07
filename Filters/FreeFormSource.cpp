@@ -39,7 +39,7 @@ const ArgumentId FreeFormSource::SPACING = "SPACING";
 FreeFormSource::FreeFormSource(NamedInputs inputs,
                                Arguments   args,
                                FilterType  type)
-: SegmentationFilter(inputs, args, type)
+: BasicSegmentationFilter(inputs, args, type)
 , m_param(m_args)
 {
   Q_ASSERT(inputs.isEmpty());
@@ -48,109 +48,6 @@ FreeFormSource::FreeFormSource(NamedInputs inputs,
 //-----------------------------------------------------------------------------
 FreeFormSource::~FreeFormSource()
 {
-}
-
-// //-----------------------------------------------------------------------------
-// void FreeFormSource::draw(FilterOutputId oId,
-//                           vtkImplicitFunction * brush,
-//                           const Nm bounds[6],
-//                           itkVolumeType::PixelType value,
-//                           bool emitSignal)
-// {
-//   Q_ASSERT(0 == oId);
-// 
-//   if (m_outputs.isEmpty())
-//   {
-//     SegmentationRepresentationSList repList;
-//     repList << RawSegmentationVolumeSPtr(new RawSegmentationVolume(EspinaRegion(bounds), m_param.spacing()));
-// 
-//     createOutput(0, repList);
-//   }
-// 
-//   Filter::draw(oId, brush, bounds, value, emitSignal);
-// }
-// 
-// //-----------------------------------------------------------------------------
-// void FreeFormSource::draw(FilterOutputId oId,
-//                           itkVolumeType::IndexType index,
-//                           itkVolumeType::PixelType value,
-//                           bool emitSignal)
-// {
-//   if (m_outputs.isEmpty())
-//   {
-//     itkVolumeType::SizeType pixelSize;
-//     pixelSize.Fill(1);
-//     itkVolumeType::RegionType pixelRegion(index, pixelSize);
-//     itkVolumeType::Pointer volume = itkVolumeType::New();
-//     volume->SetRegions(pixelRegion);
-//     volume->SetSpacing(m_param.spacing());
-//     volume->Allocate();
-//     volume->FillBuffer(0);
-// 
-//     SegmentationRepresentationSList repList;
-//     repList << RawSegmentationVolumeSPtr(new RawSegmentationVolume(volume));
-// 
-//     createOutput(0, repList);
-//   }
-// 
-//   Filter::draw(oId, index, value, emitSignal);
-// }
-// 
-// //-----------------------------------------------------------------------------
-// void FreeFormSource::draw(FilterOutputId oId,
-//                           Nm x, Nm y, Nm z,
-//                           itkVolumeType::PixelType value,
-//                           bool emitSignal)
-// {
-//   if (m_outputs.isEmpty())
-//   {
-//     itkVolumeType::IndexType index;
-//     index[0] = vtkMath::Round(x / m_param.spacing()[0]);
-//     index[1] = vtkMath::Round(y / m_param.spacing()[1]);
-//     index[2] = vtkMath::Round(z / m_param.spacing()[2]);
-// 
-//     itkVolumeType::SizeType pixelSize;
-//     pixelSize.Fill(1);
-//     itkVolumeType::RegionType pixelRegion(index, pixelSize);
-//     itkVolumeType::Pointer volume = itkVolumeType::New();
-//     volume->SetRegions(pixelRegion);
-//     volume->SetSpacing(m_param.spacing());
-//     volume->Allocate();
-//     volume->FillBuffer(0);
-// 
-//     SegmentationRepresentationSList repList;
-//     repList << RawSegmentationVolumeSPtr(new RawSegmentationVolume(volume));
-// 
-//     createOutput(0, repList);
-//   }
-// 
-//   Filter::draw(oId, x, y, z, value, emitSignal);
-// }
-// 
-// //-----------------------------------------------------------------------------
-// void FreeFormSource::draw(FilterOutputId oId,
-//                           itkVolumeType::Pointer volume,
-//                           bool emitSignal)
-// {
-//   if (m_outputs.isEmpty())
-//   {
-//     SegmentationRepresentationSList repList;
-//     repList << RawSegmentationVolumeSPtr(new RawSegmentationVolume(volume));
-// 
-//     createOutput(0, repList);
-//   }
-//   else
-//     EspINA::Filter::draw(oId, volume, emitSignal);
-// }
-// 
-//-----------------------------------------------------------------------------
-void FreeFormSource::createOutputRepresentations(SegmentationOutputSPtr output)
-{
-  SegmentationVolumeSPtr volumeRep = segmentationVolume(output);
-  output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new SegmentationSliceRepresentation(volumeRep, NULL)));
-  //   output->addRepresentation(GraphicalRepresentationSPtr(new VolumeReprentation  (volumeOutput(output))));
-  //   output->addRepresentation(GraphicalRepresentationSPtr(new MeshRepresentation  (meshOutput  (output))));
-  //   output->addRepresentation(GraphicalRepresentationSPtr(new SmoothRepresentation(meshOutput  (output))));
 }
 
 //-----------------------------------------------------------------------------

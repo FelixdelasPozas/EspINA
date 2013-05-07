@@ -101,8 +101,8 @@ bool SegmentationVolume::EditedVolumeRegion::dump(QDir           cacheDir,
     mhdFile.close();
     rawFile.close();
 
-    SnapshotEntry mhdEntry(regionName + ".mhd", mhdArray);
-    SnapshotEntry rawEntry(regionName + ".raw", rawArray);
+    SnapshotEntry mhdEntry(cachePath(regionName + ".mhd"), mhdArray);
+    SnapshotEntry rawEntry(cachePath(regionName + ".raw"), rawArray);
 
     snapshot << mhdEntry << rawEntry;
 

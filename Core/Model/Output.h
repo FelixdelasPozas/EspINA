@@ -35,6 +35,7 @@
 #include <QMap>
 
 class QDir;
+class QDir;
 namespace EspINA
 {
 
@@ -60,10 +61,13 @@ namespace EspINA
     class EditedRegion
     {
     public:
+      EditedRegion(int id, const OutputRepresentationName &name, const EspinaRegion &region)
+      : Id(id), Name(name), Region(region) {}
       virtual ~EditedRegion() {}
 
-      EspinaRegion             Region;
+      int                      Id;
       OutputRepresentationName Name;
+      EspinaRegion             Region;
 
       virtual bool dump(QDir           cacheDir,
                         const QString &regionName,
@@ -110,7 +114,7 @@ namespace EspINA
     GraphicalRepresentationSList graphicalRepresentations() const
     { return m_repPrototypes; }
 
-    void clearRepresentations()
+    void clearGraphicalRepresentations()
     { m_repPrototypes.clear(); }
   signals:
     void modified();
@@ -179,7 +183,7 @@ namespace EspINA
     EditedRegionSList editedRegions() const;
 
     /// restore output's edited regions information from cache
-    void restoreEditedRegions(const QString &prefix);
+    void restoreEditedRegions(const QDir &cacheDir, const QString &ouptutId);
 
     /// replace current edited regions
     void setEditedRegions(EditedRegionSList regions);
@@ -194,7 +198,6 @@ namespace EspINA
     QMap<OutputRepresentationName, SegmentationRepresentationSPtr> m_representations;
 
     EditedRegionSList m_editerRegions;
-    int               m_editerRegionsStackPointer;
   };
 
   typedef SegmentationOutput                  * SegmentationOutputPtr;

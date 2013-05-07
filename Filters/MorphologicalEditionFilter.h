@@ -20,13 +20,13 @@
 #ifndef MORPHOLOGICALEDITIONFILTER_H
 #define MORPHOLOGICALEDITIONFILTER_H
 
-#include <Core/Model/Segmentation.h>
+#include "Filters/BasicSegmentationFilter.h"
 
 namespace EspINA
 {
 
 class MorphologicalEditionFilter
-: public SegmentationFilter
+: public BasicSegmentationFilter
 {
 public:
 
@@ -60,16 +60,10 @@ public:
   virtual bool isOutputEmpty() { return m_isOutputEmpty; };
 
 protected:
-  virtual void createDummyOutput(FilterOutputId id, const FilterOutput::OutputRepresentationName &type);
-
-  virtual void createOutputRepresentations(SegmentationOutputSPtr output);
-
   virtual bool ignoreCurrentOutputs() const
   {  return m_ignoreCurrentOutputs; }
 
   virtual bool needUpdate(FilterOutputId oId) const;
-
-  virtual bool fetchSnapshot(FilterOutputId oId);
 
   virtual void run()
   { run(0); }

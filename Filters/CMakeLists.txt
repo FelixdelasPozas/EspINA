@@ -3,9 +3,10 @@ include_directories(
   ${CMAKE_CURRENT_BINARY_DIR} #For wrap/ui files
 )
 
-set (FILTERS_SOURCES
+set (FILTERS_SOURCES 
   ${FILTERS_MOC}
   ${FILTERS_UI}
+  BasicSegmentationFilter.cpp
   ChannelReader.cpp
   ClosingFilter.cpp
   DilateFilter.cpp

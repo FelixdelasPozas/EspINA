@@ -72,10 +72,11 @@ void RawMesh::commitEditedRegions(bool withData) const
 }
 
 //----------------------------------------------------------------------------
-void RawMesh::restoreEditedRegion(Filter *filter, const EspinaRegion &region, const QString &prefix)
+void RawMesh::restoreEditedRegions(const QDir &cacheDir, const QString &outputId)
 {
 
 }
+
 
 //----------------------------------------------------------------------------
 vtkAlgorithmOutput *RawMesh::mesh() const

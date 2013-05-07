@@ -37,7 +37,7 @@ namespace EspINA
     virtual FilterOutput::OutputRepresentationName type() const
     { return TYPE; }
 
-    virtual void addEditedRegion(const EspinaRegion &region) {}
+    virtual void addEditedRegion(const EspinaRegion &region, int id = -1) {}
 
     virtual vtkAlgorithmOutput *mesh() const = 0;
   };

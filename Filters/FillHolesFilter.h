@@ -20,14 +20,14 @@
 #ifndef FILLHOLESFILTER_H
 #define FILLHOLESFILTER_H
 
-#include <Core/Model/Filter.h>
+#include "BasicSegmentationFilter.h"
 
 #include <itkBinaryFillholeImageFilter.h>
 
 namespace EspINA
 {
 class FillHolesFilter
-: public SegmentationFilter
+: public BasicSegmentationFilter
 {
   typedef itk::BinaryFillholeImageFilter<itkVolumeType> BinaryFillholeFilter;
 
@@ -41,9 +41,6 @@ public:
   virtual ~FillHolesFilter();
 
 protected:
-  virtual void createDummyOutput(FilterOutputId id, const FilterOutput::OutputRepresentationName &type);
-
-  virtual void createOutputRepresentations(SegmentationOutputSPtr output);
 
   virtual bool ignoreCurrentOutputs() const
   { return false; }

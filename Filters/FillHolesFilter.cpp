@@ -30,29 +30,13 @@ const QString FillHolesFilter::INPUTLINK = "Input";
 FillHolesFilter::FillHolesFilter(NamedInputs inputs,
                                  Arguments   args,
                                  FilterType  type)
-: SegmentationFilter(inputs, args, type)
+: BasicSegmentationFilter(inputs, args, type)
 {
 }
 
 //-----------------------------------------------------------------------------
 FillHolesFilter::~FillHolesFilter()
 {
-}
-
-//-----------------------------------------------------------------------------
-void FillHolesFilter::createDummyOutput(FilterOutputId id, const FilterOutput::OutputRepresentationName &type)
-{
-
-}
-
-//-----------------------------------------------------------------------------
-void FillHolesFilter::createOutputRepresentations(SegmentationOutputSPtr output)
-{
-  SegmentationVolumeSPtr volumeData = segmentationVolume(output);
-  output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new SegmentationSliceRepresentation(volumeData, NULL)));
-  //   output->addRepresentation(GraphicalRepresentationSPtr(new VolumeReprentation  (volumeOutput(output))));
-  //   output->addRepresentation(GraphicalRepresentationSPtr(new MeshRepresentation  (meshOutput  (output))));
-  //   output->addRepresentation(GraphicalRepresentationSPtr(new SmoothRepresentation(meshOutput  (output))));
 }
 
 //-----------------------------------------------------------------------------

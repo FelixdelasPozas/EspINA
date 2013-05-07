@@ -37,7 +37,7 @@ const ArgumentId ImageLogicFilter::OPERATION = "Operation";
 ImageLogicFilter::ImageLogicFilter(NamedInputs inputs,
                                    Arguments   args,
                                    FilterType  type)
-: SegmentationFilter(inputs, args, type)
+: BasicSegmentationFilter(inputs, args, type)
 , m_param(m_args)
 {
 }
@@ -45,23 +45,6 @@ ImageLogicFilter::ImageLogicFilter(NamedInputs inputs,
 //-----------------------------------------------------------------------------
 ImageLogicFilter::~ImageLogicFilter()
 {
-}
-
-
-//-----------------------------------------------------------------------------
-void ImageLogicFilter::createDummyOutput(FilterOutputId id, const FilterOutput::OutputRepresentationName &type)
-{
-
-}
-
-//-----------------------------------------------------------------------------
-void ImageLogicFilter::createOutputRepresentations(SegmentationOutputSPtr output)
-{
-  SegmentationVolumeSPtr volumeRep = segmentationVolume(output);
-  output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new SegmentationSliceRepresentation(volumeRep, NULL)));
-  //   output->addRepresentation(GraphicalRepresentationSPtr(new VolumeReprentation  (volumeOutput(output))));
-  //   output->addRepresentation(GraphicalRepresentationSPtr(new MeshRepresentation  (meshOutput  (output))));
-  //   output->addRepresentation(GraphicalRepresentationSPtr(new SmoothRepresentation(meshOutput  (output))));
 }
 
 //-----------------------------------------------------------------------------

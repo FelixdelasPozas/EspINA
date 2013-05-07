@@ -32,7 +32,28 @@ VolumeProxy::VolumeProxy(FilterOutput *output)
 //-----------------------------------------------------------------------------
 bool VolumeProxy::setInternalData(SegmentationRepresentationSPtr rhs)
 {
+  if (m_volumeRepresentation)
+  {
+    disconnect(m_volumeRepresentation.get(), SIGNAL(representationChanged()),
+            this, SLOT(onProxyRepresentationChanged()));
+  }
+
   m_volumeRepresentation = boost::dynamic_pointer_cast<SegmentationVolume>(rhs);
+
+  if (m_volumeRepresentation)
+  {
+    foreach(EditedVolumeRegionSPtr editedRegion, m_editedRegions)
+    {
+      m_volumeRepresentation->addEditedRegion(editedRegion->Region, editedRegion->Id);
+    }
+
+    connect(m_volumeRepresentation.get(), SIGNAL(representationChanged()),
+            this, SLOT(onProxyRepresentationChanged()));
+
+    m_editedRegions.clear();
+  }
+
+  emit representationChanged();
 
   return m_volumeRepresentation != NULL;
 }
@@ -142,15 +163,19 @@ bool VolumeProxy::isValid() const
 }
 
 //-----------------------------------------------------------------------------
-void VolumeProxy::addEditedRegion(const EspinaRegion &region)
+void VolumeProxy::addEditedRegion(const EspinaRegion &region, int id)
 {
   if (m_volumeRepresentation)
-    m_volumeRepresentation->addEditedRegion(region);
+    m_volumeRepresentation->addEditedRegion(region, id);
+  else
+    m_editedRegions << EditedVolumeRegionSPtr(new EditedVolumeRegion(id, region));
 }
 
 //-----------------------------------------------------------------------------
 void VolumeProxy::clearEditedRegions()
 {
+  m_editedRegions.clear();
+
   if (m_volumeRepresentation)
     m_volumeRepresentation->clearEditedRegions();
 }
@@ -163,26 +188,32 @@ void VolumeProxy::commitEditedRegions(bool withData) const
 }
 
 //-----------------------------------------------------------------------------
-void VolumeProxy::restoreEditedRegion(Filter *filter, const EspinaRegion &region, const QString &prefix)
+void VolumeProxy::restoreEditedRegions(const QDir &cacheDir, const QString &outputId)
 {
   if (m_volumeRepresentation)
-    m_volumeRepresentation->restoreEditedRegion(filter, region, prefix);
+    m_volumeRepresentation->restoreEditedRegions(cacheDir, outputId);
 }
 
 //-----------------------------------------------------------------------------
-QList<EspinaRegion> VolumeProxy::editedRegions() const
+SegmentationVolume::EditedVolumeRegionSList VolumeProxy::editedRegions() const
 {
-  QList<EspinaRegion> res;
+  EditedVolumeRegionSList res;
 
   if (m_volumeRepresentation)
     res = m_volumeRepresentation->editedRegions();
+  else
+  {
+    res << m_editedRegions;
+  }
 
   return res;
 }
 
 //-----------------------------------------------------------------------------
-void VolumeProxy::setEditedRegions(QList<EspinaRegion> regions)
+void VolumeProxy::setEditedRegions(EditedVolumeRegionSList regions)
 {
+  m_editedRegions.clear();
+
   if (m_volumeRepresentation)
     m_volumeRepresentation->setEditedRegions(regions);
 }
@@ -419,4 +450,10 @@ bool VolumeProxy::collision(SegmentationVolumeSPtr segmentation)
     res = m_volumeRepresentation->collision(segmentation);
 
   return res;
+}
+
+//-----------------------------------------------------------------------------
+void VolumeProxy::onProxyRepresentationChanged()
+{
+  emit representationChanged();
 }

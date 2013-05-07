@@ -28,6 +28,7 @@ namespace EspINA
   class VolumeProxy 
   : public SegmentationVolume
   {
+    Q_OBJECT
   public:
     explicit VolumeProxy(FilterOutput *output = NULL);
 
@@ -85,17 +86,17 @@ namespace EspINA
 
     virtual bool isValid() const;
 
-    virtual void addEditedRegion(const EspinaRegion &region);
+    virtual void addEditedRegion(const EspinaRegion &region, int id = -1);
 
     virtual void clearEditedRegions();
 
     virtual void commitEditedRegions(bool withData) const;
 
-    virtual void restoreEditedRegion(Filter *filter, const EspinaRegion &region, const QString &prefix);
+    virtual void restoreEditedRegions(const QDir &cacheDir, const QString &outputId);
 
-    virtual QList<EspinaRegion> editedRegions() const;
+    virtual EditedVolumeRegionSList editedRegions() const;
 
-    virtual void setEditedRegions(QList<EspinaRegion> regions);
+    virtual void setEditedRegions(EditedVolumeRegionSList regions);
 
     virtual void setVolume(itkVolumeType::Pointer volume, bool disconnect=false);
 
@@ -143,8 +144,13 @@ namespace EspINA
     virtual bool fitToContent() throw(itk::ExceptionObject);
 
     virtual bool collision(SegmentationVolumeSPtr segmentation);
+
+  private slots:
+    void onProxyRepresentationChanged();
+
   private:
-    SegmentationVolumeSPtr m_volumeRepresentation;
+    SegmentationVolumeSPtr  m_volumeRepresentation;
+    EditedVolumeRegionSList m_editedRegions;
   };
 
   typedef VolumeProxy                  * VolumeProxyPtr;

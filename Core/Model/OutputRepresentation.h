@@ -33,6 +33,7 @@
 
 #include <itkImageRegionIteratorWithIndex.h>
 
+class QDir;
 class vtkAlgorithmOutput;
 class vtkDiscreteMarchingCubes;
 class vtkImageConstantPad;
@@ -104,7 +105,7 @@ namespace EspINA
   public:
     virtual bool setInternalData(SegmentationRepresentationSPtr rhs) = 0;
 
-    virtual void addEditedRegion(const EspinaRegion &region) = 0;
+    virtual void addEditedRegion(const EspinaRegion &region, int id = -1) = 0;
 
     /// Whether output has been manually edited
     virtual bool isEdited() const = 0;
@@ -114,7 +115,7 @@ namespace EspINA
     /// Update output's edited region list
     virtual void commitEditedRegions(bool withData) const = 0;
 
-    virtual void restoreEditedRegion(Filter *filter, const EspinaRegion &region, const QString &prefix) = 0;
+    virtual void restoreEditedRegions(const QDir &cacheDir, const QString &outputId) = 0;
 
   protected:
     explicit SegmentationRepresentation(FilterOutput *output)
