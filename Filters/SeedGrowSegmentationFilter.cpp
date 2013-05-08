@@ -81,37 +81,6 @@ QVariant SeedGrowSegmentationFilter::data(int role) const
 }
 
 //-----------------------------------------------------------------------------
-FilterOutput::OutputRepresentationNameList SeedGrowSegmentationFilter::possibleRepresentations() const
-{
-  FilterOutput::OutputRepresentationNameList representations;
-
-  representations << SegmentationVolume::TYPE;
-  representations << MeshType::TYPE;
-
-  return representations;
-}
-
-//-----------------------------------------------------------------------------
-void SeedGrowSegmentationFilter::createDummyOutput(FilterOutputId id, const FilterOutput::OutputRepresentationName &type)
-{
-  if (SegmentationVolume::TYPE == type)
-    createOutput(id, VolumeProxySPtr(new VolumeProxy()));
-  else if (MeshType::TYPE == type)
-    createOutput(id, MeshProxySPtr(new MeshProxy()));
-  else
-    Q_ASSERT(false);
-}
-
-//-----------------------------------------------------------------------------
-void SeedGrowSegmentationFilter::createOutputRepresentations(SegmentationOutputSPtr output)
-{
-  output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new SegmentationSliceRepresentation(segmentationVolume(output), NULL)));
-  output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new MeshRepresentation(meshOutput(output), NULL)));
-//   output->addRepresentation(GraphicalRepresentationSPtr(new VolumeReprentation  (volumeOutput(output))));
-//   output->addRepresentation(GraphicalRepresentationSPtr(new SmoothRepresentation(meshOutput  (output))));
-}
-
-//-----------------------------------------------------------------------------
 bool SeedGrowSegmentationFilter::needUpdate(FilterOutputId oId) const
 {
   return SegmentationFilter::needUpdate(oId);
@@ -294,36 +263,4 @@ void SeedGrowSegmentationFilter::setSeed(itkVolumeType::IndexType seed, bool ign
 itkVolumeType::IndexType SeedGrowSegmentationFilter::seed() const
 {
   return m_param.seed();
-}
-
-//-----------------------------------------------------------------------------
-bool SeedGrowSegmentationFilter::fetchSnapshot(FilterOutputId oId)
-{
-  bool fetched = false;
-
-  if (!m_ignoreCurrentOutputs && m_outputs.contains(oId))
-  {
-    QString filterPrefix = QString("%1_%2").arg(m_cacheId).arg(oId);
-
-    RawSegmentationVolumeSPtr volume(new RawSegmentationVolume(m_outputs[0].get()));
-    bool fetchVolume = volume->fetchSnapshot(this, filterPrefix);
-
-    // TODO: RawMesh
-    bool fetchMesh   = false;// meshOutput        (m_outputs[0])->fetchSnapshot(this, filterPrefix);
-
-    if (fetchVolume && !fetchMesh)
-    {
-      SegmentationRepresentationSList repList;
-      repList << volume;
-      repList << MeshTypeSPtr(new MarchingCubesMesh(volume));//TODO: Pass the volume or the proxy?
-      createOutput(oId, repList);
-    }
-    else if (fetchMesh && !fetchVolume)
-    {
-      // TODO: Review fetch snapshot
-    }
-
-    fetched = fetchVolume || fetchMesh;
-  }
-  return fetched;
 }

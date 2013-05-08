@@ -24,7 +24,9 @@ using namespace EspINA;
 
 //----------------------------------------------------------------------------
 RawMesh::RawMesh(vtkSmartPointer<vtkPolyData> mesh,
-                 FilterOutput *output): MeshType(output)
+                 FilterOutput *output)
+: MeshType(output)
+, m_mesh(mesh)
 {
 
 }

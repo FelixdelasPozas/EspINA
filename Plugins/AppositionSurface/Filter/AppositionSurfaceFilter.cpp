@@ -14,6 +14,7 @@
 #include <Core/Outputs/RawMesh.h>
 #include <Core/Outputs/RasterizedVolume.h>
 #include <GUI/Representations/SliceRepresentation.h>
+#include <GUI/Representations/MeshRepresentation.h>
 
 // Qt
 #include <QtGlobal>
@@ -99,7 +100,15 @@ void AppositionSurfaceFilter::createDummyOutput(FilterOutputId id, const FilterO
 void AppositionSurfaceFilter::createOutputRepresentations(SegmentationOutputSPtr output)
 {
   SegmentationVolumeSPtr volumeRep = segmentationVolume(output);
+  MeshTypeSPtr           meshRep   = meshOutput(output);
   output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new SegmentationSliceRepresentation(volumeRep, NULL)));
+  output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new MeshRepresentation(meshRep, NULL)));
+}
+
+//----------------------------------------------------------------------------
+bool AppositionSurfaceFilter::fetchSnapshot(FilterOutputId oId)
+{
+  return false;
 }
 
 //----------------------------------------------------------------------------
@@ -332,9 +341,10 @@ void AppositionSurfaceFilter::run(FilterOutputId oId)
   m_ap->Modified();
 
   SegmentationVolumeSPtr volume = segmentationVolume(m_originSegmentation->output());
+
   SegmentationRepresentationSList repList;
   repList << RawMeshSPtr(new RawMesh(m_ap));
-  repList << RasterizedVolumeSPtr(new RasterizedVolume(m_ap->GetProducerPort(), volume->spacing()));
+  repList << RasterizedVolumeSPtr(new RasterizedVolume(m_ap, volume->spacing()));
 
   createOutput(0, repList);
 
@@ -910,14 +920,14 @@ double AppositionSurfaceFilter::getArea()
 {
   if (m_ap == NULL && !fetchCachePolyDatas())
     return UNDEFINED;
-  
+
   bool updateNeeded = needUpdate(0);
   if (updateNeeded)
     update(0);
-  
+
   if (UNDEFINED == m_area || updateNeeded)
     m_area = computeArea();
-  
+
   return m_area;
 }
 

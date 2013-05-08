@@ -26,9 +26,7 @@
 using namespace EspINA;
 
 //----------------------------------------------------------------------------
-RasterizedVolume::RasterizedVolume(vtkAlgorithmOutput *mesh,
-                                   itkVolumeType::SpacingType spacing,
-                                   FilterOutput *output)
+RasterizedVolume::RasterizedVolume(vtkSmartPointer<vtkPolyData> mesh, itk::Image< unsigned int, 3 >::SpacingType spacing, FilterOutput *output)
 : RawSegmentationVolume(output)
 , m_mesh(mesh)
 , m_spacing(spacing)
@@ -38,18 +36,7 @@ RasterizedVolume::RasterizedVolume(vtkAlgorithmOutput *mesh,
 //----------------------------------------------------------------------------
 itkVolumeType::Pointer RasterizedVolume::toITK()
 {
-  Q_ASSERT(m_mesh);
-
-  if (m_volume.IsNull() || (m_vtkExporter == NULL) || m_vtkExporter->GetInputConnection(0,0) != m_vtkVolume)
-    transformVTK2ITK();
-  else
-    if (m_vtkVolume->GetMTime() != m_ITKGenerationTime)
-    {
-      m_volume->Update();
-      m_ITKGenerationTime = m_vtkVolume->GetMTime();
-    }
-
-  return m_volume;
+  return static_cast<const RasterizedVolume *>(this)->toITK();
 }
 
 //----------------------------------------------------------------------------
@@ -72,15 +59,8 @@ const itkVolumeType::Pointer RasterizedVolume::toITK() const
 //----------------------------------------------------------------------------
 vtkAlgorithmOutput *RasterizedVolume::toVTK()
 {
-  Q_ASSERT(m_mesh);
-
-  if ((m_vtkVolume == NULL) || (m_mesh->GetMTime() != m_rasterizationTime))
-  {
-    vtkPolyData *mesh = dynamic_cast<vtkPolyData *>(m_mesh->GetProducer()->GetInputDataObject(0, 0));
-    rasterize(mesh->GetBounds());
-  }
-
-  return m_vtkVolume.GetPointer();
+  return const_cast<vtkAlgorithmOutput *>(
+    static_cast<const RasterizedVolume *>(this)->toVTK());
 }
 
 
@@ -91,8 +71,7 @@ const vtkAlgorithmOutput *RasterizedVolume::toVTK() const
 
   if ((m_vtkVolume == NULL) || (m_mesh->GetMTime() != m_rasterizationTime))
   {
-    vtkPolyData *mesh = dynamic_cast<vtkPolyData *>(m_mesh->GetProducer()->GetInputDataObject(0, 0));
-    rasterize(mesh->GetBounds());
+    rasterize(m_mesh->GetBounds());
   }
 
   return m_vtkVolume.GetPointer();
@@ -110,14 +89,13 @@ void RasterizedVolume::rasterize(double *imageBounds) const
 
   double minSpacing = std::min(m_spacing[0], std::min(m_spacing[1], m_spacing[2]));
 
-  vtkPolyData *mesh = dynamic_cast<vtkPolyData *>(m_mesh->GetProducer()->GetInputDataObject(0, 0));
   if (imageBounds != NULL)
   {
     memcpy(m_rasterizationBounds, imageBounds, 6*sizeof(double));
   }
   else
   {
-    mesh->GetBounds(m_rasterizationBounds);
+    m_mesh->GetBounds(m_rasterizationBounds);
   }
 
   int extent[6] = {
@@ -139,7 +117,7 @@ void RasterizedVolume::rasterize(double *imageBounds) const
   memset(m_emptyImage->GetScalarPointer(), SEG_BG_VALUE, m_emptyImage->GetNumberOfPoints());
 
   m_distance = vtkSmartPointer<vtkImplicitPolyDataDistance>::New();
-  m_distance->SetInput(mesh);
+  m_distance->SetInput(m_mesh);
   m_distance->SetTolerance(0);
 
   for (int x = extent[0]; x <= extent[1]; x++)

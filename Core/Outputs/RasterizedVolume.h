@@ -37,7 +37,7 @@ namespace EspINA
   : public RawSegmentationVolume
   {
   public:
-    explicit RasterizedVolume(vtkAlgorithmOutput *mesh,
+    explicit RasterizedVolume(vtkSmartPointer<vtkPolyData> mesh,
                               itkVolumeType::SpacingType spacing,
                               FilterOutput *output = NULL);
 
@@ -63,8 +63,8 @@ namespace EspINA
     void transformVTK2ITK() const;
 
   private:
-    vtkAlgorithmOutput *m_mesh;
-    itkVolumeType::SpacingType m_spacing;
+    vtkSmartPointer<vtkPolyData> m_mesh;
+    itkVolumeType::SpacingType   m_spacing;
 
     mutable vtkSmartPointer<vtkAlgorithmOutput>          m_vtkVolume;
 

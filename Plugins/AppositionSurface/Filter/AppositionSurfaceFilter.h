@@ -109,6 +109,8 @@ namespace EspINA
 
     virtual void createOutputRepresentations(SegmentationOutputSPtr output);
 
+    virtual bool fetchSnapshot(FilterOutputId oId);
+
     virtual bool ignoreCurrentOutputs() const
     { return false; }
 
