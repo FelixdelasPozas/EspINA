@@ -69,7 +69,7 @@ namespace EspINA
     };
 
   public:
-    explicit CrosshairRenderer(ViewManager *vm, QObject* parent = 0);
+    explicit CrosshairRenderer(QObject* parent = 0);
 
     virtual const QIcon icon() const {return QIcon(":/espina/show_planes.svg");}
     virtual const QString name() const {return "Crosshairs";}
@@ -79,6 +79,11 @@ namespace EspINA
     virtual bool updateItem(ModelItemPtr item, bool forced = false);
     virtual bool removeItem(ModelItemPtr item);
 
+    virtual void addRepresentation(GraphicalRepresentationSPtr rep) {};
+    virtual void removeRepresentation(GraphicalRepresentationSPtr rep) {};
+    virtual bool hasRepresentation(GraphicalRepresentationSPtr rep) { return false; };
+    virtual bool managesRepresentation(GraphicalRepresentationSPtr rep) {return false;};
+
     virtual void hide();
     virtual void show();
     virtual unsigned int getNumberOfvtkActors();
@@ -86,17 +91,16 @@ namespace EspINA
     void setCrosshair(Nm point[3]);
     void setPlanePosition(PlaneType plane, Nm dist);
 
-    virtual IRendererSPtr clone() {return IRendererSPtr(new CrosshairRenderer(m_viewManager));}
+    virtual IRendererSPtr clone() {return IRendererSPtr(new CrosshairRenderer());}
 
     virtual int itemsBeenRendered() { return m_channels.size(); };
 
     virtual RenderedItems getRendererType() { return RenderedItems(IRenderer::CHANNEL); };
 
-    virtual ViewManager::Selection pick(int x, int y, bool repeat);
+    virtual GraphicalRepresentationSList pick(int x, int y, bool repeat);
     virtual void getPickCoordinates(double *point);
 
   private:
-    ViewManager *m_viewManager;
     QMap<ModelItemPtr, Representation> m_channels;
     vtkSmartPointer<vtkPropPicker>     m_picker;
   };

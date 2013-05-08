@@ -21,6 +21,7 @@
 
 // EspINA
 #include "GUI/Renderers/Renderer.h"
+#include "GUI/Representations/GraphicalRepresentation.h"
 #include <Core/Model/HierarchyItem.h>
 #include <Core/Model/Output.h>
 
@@ -45,53 +46,32 @@ namespace EspINA
   {
     Q_OBJECT
     public:
-      explicit MeshRenderer(ViewManager *vm, QObject* parent = 0);
+      explicit MeshRenderer(QObject* parent = 0);
 
-      virtual const QIcon icon()      const { return QIcon(":/espina/mesh.png"); }
-      virtual const QString name()    const { return "Mesh"; }
-      virtual const QString tooltip() const { return "Segmentation's Meshes"; }
+      virtual const QIcon icon()      const  { return QIcon(":/espina/mesh.png"); }
+      virtual const QString name()    const  { return "Mesh"; }
+      virtual const QString tooltip() const  { return "Segmentation's Meshes"; }
 
-      virtual bool addItem(ModelItemPtr item);
-      virtual bool removeItem(ModelItemPtr item);
+      virtual void addRepresentation(GraphicalRepresentationSPtr rep);
+      virtual void removeRepresentation(GraphicalRepresentationSPtr rep);
+      virtual bool hasRepresentation(GraphicalRepresentationSPtr rep);
+      virtual bool managesRepresentation(GraphicalRepresentationSPtr rep);
 
       virtual void hide();
       virtual void show();
+
       virtual unsigned int getNumberOfvtkActors();
 
-      virtual IRendererSPtr clone() { return IRendererSPtr(new MeshRenderer(m_viewManager)); }
+      virtual IRendererSPtr clone()           { return IRendererSPtr(new MeshRenderer()); }
 
       virtual RenderedItems getRendererType() { return RenderedItems(IRenderer::SEGMENTATION); };
-      virtual int itemsBeenRendered()        { return m_segmentations.size(); }
+      virtual int itemsBeenRendered()         { return m_representations.size(); };
 
-      virtual ViewManager::Selection pick(int x, int y, bool repeat);
-      virtual void getPickCoordinates(double *point);
-
-    public slots:
-      virtual bool updateItem(ModelItemPtr item, bool forced = false);
-
-    protected:
-      virtual void createHierarchyProperties(SegmentationPtr seg);
-      virtual bool updateHierarchyProperties(SegmentationPtr seg);
-
-      ViewManager *m_viewManager;
-
-      struct State
-      {
-        QColor color;
-        int    extent[6];
-        bool   highlighted;
-        bool   visible;
-
-        GraphicalRepresentationSPtr representation;
-      };
-
-      QMap<ModelItemPtr, State>      m_segmentations;
-      vtkSmartPointer<vtkPropPicker> m_picker;
+      virtual GraphicalRepresentationSList pick(int x, int y, bool repeat);
+      virtual void getPickCoordinates(Nm *point);
 
     private:
-      // the beginning of the pipeline, needed to check if the mesh
-      // of the segmentation has changed
-      QMap<ModelItemPtr, vtkSmartPointer<vtkPolyDataMapper> > m_mappers;
+      vtkSmartPointer<vtkPropPicker> m_picker;
   };
 
 } // namespace EspINA

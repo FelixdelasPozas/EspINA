@@ -78,7 +78,7 @@ namespace EspINA
   public:
     class Settings;
     typedef QSharedPointer<Settings> SettingsPtr;
-    static const double SEGMENTATION_SHIFT = 0.05;
+    static const double SEGMENTATION_SHIFT;
 
   public:
     explicit SliceView(ViewManager *vm, PlaneType plane = AXIAL, QWidget* parent = 0);
@@ -268,28 +268,6 @@ namespace EspINA
     void setupUI();
 
   private:
-    struct ChannelState
-    {
-      double brightness;
-      double contrast;
-      double opacity;
-      QColor stain;
-      bool   visible;
-
-      ChannelGraphicalRepresentationList representations;
-    };
-
-    struct SegmentationState
-    {
-      Nm         depth;
-      QColor     color;
-      bool       highlited;
-      OutputSPtr output;
-      bool       visible;
-
-      SegmentationGraphicalRepresentationList representations;
-    };
-
     ViewManager *m_viewManager;
 
     // GUI
@@ -342,8 +320,6 @@ namespace EspINA
     bool m_sceneReady;
 
     // Representations
-    QMap<ChannelPtr,      ChannelState>      m_channelStates;
-    QMap<SegmentationPtr, SegmentationState> m_segmentationStates;
     QMap<EspinaWidget *, SliceWidget *>      m_widgets;
 
     friend class GraphicalRepresentation;

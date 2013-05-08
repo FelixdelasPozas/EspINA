@@ -21,6 +21,7 @@
 
 #include <Core/Model/Filter.h>
 #include <Core/Model/Segmentation.h>
+#include <Core/Model/Output.h>
 
 // Qt
 #include <QColor>
@@ -103,7 +104,7 @@ namespace EspINA
     /// Return full taxonomy contained in segmha's meta-data
     TaxonomySPtr taxonomy() {return m_taxonomy;}
     /// Return the taxonomy associated with the i-th output
-    TaxonomyElementSPtr taxonomy(OutputId i);
+    TaxonomyElementSPtr taxonomy(FilterOutputId i);
     /// Return Counting Frame Definition
     void countingFrame(double inclusive[3], double exclusive[3])
     {
@@ -111,17 +112,21 @@ namespace EspINA
       memcpy(exclusive, m_exclusive, 3*sizeof(Nm));
     }
 
-    void initSegmentation(SegmentationSPtr seg, OutputId i);
+    void initSegmentation(SegmentationSPtr seg, FilterOutputId i);
 
   protected:
+    virtual void createDummyOutput(FilterOutputId id, const FilterOutput::OutputRepresentationName &type);
+
+    virtual void createOutputRepresentations(SegmentationOutputSPtr output);
+
     virtual bool ignoreCurrentOutputs() const
     { return false; }
 
-    virtual bool needUpdate(OutputId oId) const;
+    virtual bool needUpdate(FilterOutputId oId) const;
 
     virtual void run();
 
-    virtual void run(OutputId oId);
+    virtual void run(FilterOutputId oId);
 
   private:
     Parameters m_param;

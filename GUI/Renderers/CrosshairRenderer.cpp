@@ -40,9 +40,8 @@
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
-CrosshairRenderer::CrosshairRenderer(ViewManager *vm, QObject* parent)
+CrosshairRenderer::CrosshairRenderer(QObject* parent)
 : IRenderer(parent)
-, m_viewManager(vm)
 , m_picker(vtkSmartPointer<vtkPropPicker>::New())
 {
   m_picker->PickFromListOn();
@@ -711,9 +710,9 @@ void CrosshairRenderer::setPlanePosition(PlaneType plane, Nm dist)
 }
 
 //-----------------------------------------------------------------------------
-ViewManager::Selection CrosshairRenderer::pick(int x, int y, bool repeat)
+GraphicalRepresentationSList CrosshairRenderer::pick(int x, int y, bool repeat)
 {
-  ViewManager::Selection selection;
+  GraphicalRepresentationSList selection;
   QList<vtkProp*> removedProps;
 
   if (m_renderer)
@@ -723,30 +722,26 @@ ViewManager::Selection CrosshairRenderer::pick(int x, int y, bool repeat)
       vtkProp *pickedProp = m_picker->GetViewProp();
       Q_ASSERT(pickedProp);
 
-      // can't get the key just for this value, as it's not a representation, must iterate.
-      QMap<ModelItemPtr, Representation>::iterator it = m_channels.begin();
-      while (it != m_channels.end())
-      {
-        if ((*it).axial == pickedProp || (*it).coronal == pickedProp || (*it).sagittal == pickedProp)
+
+      m_picker->GetPickList()->RemoveItem(pickedProp);
+      removedProps << pickedProp;
+
+      foreach(GraphicalRepresentationSPtr rep, m_representations)
+        if (rep->hasActor(pickedProp))
         {
-          selection << channelPtr(it.key());
-          removedProps << pickedProp;
-          m_picker->GetPickList()->RemoveItem(pickedProp);
+          selection << rep;
           break;
         }
-        ++it;
-      }
 
       if (!repeat)
         break;
     }
-
-    foreach(vtkProp *prop, removedProps)
-      m_picker->GetPickList()->AddItem(prop);
   }
 
-  return selection;
-}
+  foreach(vtkProp *actor, removedProps)
+    m_picker->GetPickList()->AddItem(actor);
+
+  return selection;}
 
 //-----------------------------------------------------------------------------
 void CrosshairRenderer::getPickCoordinates(double *point)

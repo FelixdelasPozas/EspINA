@@ -79,7 +79,7 @@ void RawMesh::restoreEditedRegions(const QDir &cacheDir, const QString &outputId
 
 
 //----------------------------------------------------------------------------
-vtkAlgorithmOutput *RawMesh::mesh() const
+vtkAlgorithmOutput *RawMesh::mesh()
 {
   return m_mesh->GetProducerPort();
 }

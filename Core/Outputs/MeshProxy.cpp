@@ -102,7 +102,7 @@ void MeshProxy::restoreEditedRegions(const QDir &cacheDir, const QString &output
 }
 
 //-----------------------------------------------------------------------------
-vtkAlgorithmOutput *MeshProxy::mesh() const
+vtkAlgorithmOutput *MeshProxy::mesh()
 {
   vtkAlgorithmOutput *res = NULL;
 

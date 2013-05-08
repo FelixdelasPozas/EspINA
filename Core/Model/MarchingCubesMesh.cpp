@@ -111,8 +111,11 @@ void MarchingCubesMesh::restoreEditedRegions(const QDir &cacheDir, const QString
 
 
 //----------------------------------------------------------------------------
-vtkAlgorithmOutput *MarchingCubesMesh::mesh() const
+vtkAlgorithmOutput *MarchingCubesMesh::mesh()
 {
+  if (m_marchingCubes == NULL)
+    updateMesh();
+
   return m_marchingCubes->GetOutput()->GetProducerPort();
 }
 

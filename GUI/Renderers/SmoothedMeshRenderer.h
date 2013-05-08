@@ -34,19 +34,18 @@ namespace EspINA
   {
     Q_OBJECT
     public:
-      explicit SmoothedMeshRenderer(ViewManager *vm, QObject* parent = 0);
+      explicit SmoothedMeshRenderer(QObject* parent = 0);
 
       virtual const QIcon icon() const      { return QIcon(":/espina/smoothedmesh.png"); }
       virtual const QString name() const    { return "Smoothed Mesh"; }
       virtual const QString tooltip() const { return "Segmentation's Smoothed Meshes"; }
 
-      virtual bool addItem   (ModelItemPtr item);
-      virtual bool removeItem(ModelItemPtr item);
+      virtual void addRepresentation(GraphicalRepresentationSPtr rep) {};
+      virtual void removeRepresentation(GraphicalRepresentationSPtr rep) {};
+      virtual bool hasRepresentation(GraphicalRepresentationSPtr rep) { return false; };
+      virtual bool managesRepresentation(GraphicalRepresentationSPtr rep) { return false; };
 
-      virtual IRendererSPtr clone()   { return IRendererSPtr(new SmoothedMeshRenderer(m_viewManager)); }
-
-    public slots:
-      virtual bool updateItem(ModelItemPtr item, bool forced = false);
+      virtual IRendererSPtr clone()   { return IRendererSPtr(new SmoothedMeshRenderer()); }
 
     private:
       QMap<ModelItemPtr, vtkSmartPointer<vtkDecimatePro> > m_decimate;

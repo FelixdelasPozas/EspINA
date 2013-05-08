@@ -56,29 +56,12 @@ void EspinaRenderView::previewBounds(Nm bounds[6], bool cropToSceneBounds)
   bounds[1] = bounds[3] = bounds[5] = -1;
 }
 
-
-//-----------------------------------------------------------------------------
-void EspinaRenderView::addChannelBounds(ChannelPtr channel)
-{
-  Q_ASSERT(!m_channels.contains(channel));
-  m_channels << channel;
-  updateSceneBounds();
-}
-
-//-----------------------------------------------------------------------------
-void EspinaRenderView::removeChannelBounds(ChannelPtr channel)
-{
-  Q_ASSERT(m_channels.contains(channel));
-  m_channels.removeOne(channel);
-  updateSceneBounds();
-}
-
 //-----------------------------------------------------------------------------
 double EspinaRenderView::suggestedChannelOpacity()
 {
   double numVisibleRep = 0;
 
-  foreach(ChannelPtr  channel, m_channels)
+  foreach(ChannelPtr  channel, m_channelStates.keys())
     if (channel->isVisible())
       numVisibleRep++;
 
@@ -99,23 +82,26 @@ void EspinaRenderView::resetSceneBounds()
 //-----------------------------------------------------------------------------
 void EspinaRenderView::updateSceneBounds()
 {
-  if (!m_channels.isEmpty())
+  if (!m_channelStates.isEmpty())
   {
-    m_channels[0]->volume()->spacing(m_sceneResolution);
-    m_channels[0]->volume()->bounds(m_sceneBounds);
+    m_channelStates.keys().first()->volume()->spacing(m_sceneResolution);
+    m_channelStates.keys().first()->volume()->bounds(m_sceneBounds);
 
-    for(int c = 1; c < m_channels.size(); c++)
+    ChannelList channels = m_channelStates.keys();
+    for (int i = 0; i < channels.size(); ++i)
     {
-      double spacing[3];
-      double bounds[6];
+      double channelSpacing[3];
+      double channelBounds[6];
 
-      m_channels[c]->volume()->spacing(spacing);
-      m_channels[c]->volume()->bounds(bounds);
+      channels[i]->volume()->spacing(channelSpacing);
+      channels[i]->volume()->bounds(channelBounds);
+
       for (int i = 0; i < 3; i++)
       {
-        m_sceneResolution[i] = std::min(m_sceneResolution[i], spacing[i]);
-        m_sceneBounds[i] = std::min(m_sceneBounds[i], bounds[i]);
-        m_sceneBounds[2*i+1] = std::max(m_sceneBounds[2*i+1], bounds[2*i+1]);
+        m_sceneResolution[i] = std::min(m_sceneResolution[i], channelSpacing[i]);
+
+        m_sceneBounds[2*i]     = std::min(m_sceneBounds[2*i]    , channelBounds[2*i]);
+        m_sceneBounds[(2*i)+1] = std::max(m_sceneBounds[(2*i)+1], channelBounds[(2*i)+1]);
       }
     }
   }

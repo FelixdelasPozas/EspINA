@@ -89,6 +89,8 @@
 
 using namespace EspINA;
 
+const double SliceView::SEGMENTATION_SHIFT = 0.05;
+
 //-----------------------------------------------------------------------------
 // SLICE VIEW
 //-----------------------------------------------------------------------------
@@ -800,13 +802,11 @@ void SliceView::addChannel(ChannelPtr channel)
   m_channelStates.insert(channel, state);
 
   // need to manage other channels' opacity too.
-  // addChannelBounds adds the channel to m_channels
-  addChannelBounds(channel);
-
+  updateSceneBounds();
   updateChannelsOpactity();
 
   // Prevent displaying channel's corner until app request to reset the camera
-  if (m_channelStates.size() == 1)
+  if ((m_channelStates.size() == 1) && channel->isVisible())
     resetCamera();
 
   // NOTE: this signal is not disconnected when a channel is removed because is
@@ -820,10 +820,9 @@ void SliceView::removeChannel(ChannelPtr channel)
 {
   Q_ASSERT(m_channelStates.contains(channel));
 
-  removeChannelBounds(channel);
-
   m_channelStates.remove(channel);
 
+  updateSceneBounds();
   updateChannelsOpactity();
 }
 

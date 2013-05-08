@@ -22,6 +22,12 @@
 // EspINA
 #include <Core/Model/Segmentation.h>
 #include <Core/Model/Taxonomy.h>
+#include <Core/Model/MarchingCubesMesh.h>
+#include <Core/Outputs/MeshType.h>
+#include <Core/Outputs/VolumeProxy.h>
+#include <Core/Outputs/MeshProxy.h>
+#include <GUI/Representations/SliceRepresentation.h>
+#include <GUI/Representations/MeshRepresentation.h>
 
 // Qt
 #include <QApplication>
@@ -111,17 +117,17 @@ SegmhaImporterFilter::~SegmhaImporterFilter()
 QString SegmhaImporterFilter::serialize() const
 {
   QStringList blockList;
-  foreach(Output filterOutput, m_outputs)
-    blockList << QString::number(filterOutput.id);
+  foreach(FilterOutputId outputId, m_outputs.keys())
+    blockList << QString::number(outputId);
 
   m_args[BLOCKS] = blockList.join(",");
   return Filter::serialize();
 }
 
 //-----------------------------------------------------------------------------
-bool SegmhaImporterFilter::needUpdate(OutputId oId) const
+bool SegmhaImporterFilter::needUpdate(FilterOutputId oId) const
 {
-  returnSegmentationFilter::needUpdate(oId);
+  return SegmentationFilter::needUpdate(oId);
 }
 
 //-----------------------------------------------------------------------------
@@ -234,7 +240,7 @@ void SegmhaImporterFilter::run()
   qDebug() << "Number of Label Objects" << labelMap->GetNumberOfLabelObjects();
 
   LabelObjectType * object;
-  OutputId id = 0;
+  FilterOutputId id = 0;
   foreach(SegmentationObject seg, metaData)
   {
     try
@@ -257,8 +263,13 @@ void SegmhaImporterFilter::run()
       label2volume->SetInput(segLabelMap);
       label2volume->Update();
 
-      createOutput(id, label2volume->GetOutput());
-      output(id).volume->toITK()->DisconnectPipeline();
+      RawSegmentationVolumeSPtr volume(new RawSegmentationVolume(label2volume->GetOutput()));
+
+      SegmentationRepresentationSList repList;
+      repList << volume;
+      repList << MeshTypeSPtr(new MarchingCubesMesh(volume)); //TODO: pass the volume or the proxy?
+
+      createOutput(id, repList);
 
       m_taxonomies << taxonomies[seg.taxonomyId-1];
 
@@ -273,7 +284,7 @@ void SegmhaImporterFilter::run()
 }
 
 //-----------------------------------------------------------------------------
-void SegmhaImporterFilter::run(Filter::OutputId oId)
+void SegmhaImporterFilter::run(FilterOutputId oId)
 {
   // As traceability is not supported by this filter 
   Q_ASSERT(false);
@@ -281,15 +292,36 @@ void SegmhaImporterFilter::run(Filter::OutputId oId)
 
 
 //-----------------------------------------------------------------------------
-TaxonomyElementSPtr SegmhaImporterFilter::taxonomy(OutputId i)
+TaxonomyElementSPtr SegmhaImporterFilter::taxonomy(FilterOutputId i)
 {
   return m_taxonomies.value(i, TaxonomyElementSPtr());
 }
 
 //-----------------------------------------------------------------------------
-void SegmhaImporterFilter::initSegmentation(SegmentationSPtr seg, Filter::OutputId i)
+void SegmhaImporterFilter::initSegmentation(SegmentationSPtr seg, FilterOutputId i)
 {
   seg->setTaxonomy(taxonomy(i));
 
   seg->setNumber(m_labels.value(i,-1));
+}
+
+//-----------------------------------------------------------------------------
+void SegmhaImporterFilter::createDummyOutput(FilterOutputId id, const FilterOutput::OutputRepresentationName &type)
+{
+  if (SegmentationVolume::TYPE == type)
+    createOutput(id, VolumeProxySPtr(new VolumeProxy()));
+  else if (MeshType::TYPE == type)
+    createOutput(id, MeshProxySPtr(new MeshProxy()));
+  else
+    Q_ASSERT(false);
+}
+
+//-----------------------------------------------------------------------------
+void SegmhaImporterFilter::createOutputRepresentations(SegmentationOutputSPtr output)
+{
+  output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new SegmentationSliceRepresentation(segmentationVolume(output), NULL)));
+  output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new MeshRepresentation(meshOutput(output), NULL)));
+//   output->addRepresentation(GraphicalRepresentationSPtr(new VolumeReprentation  (volumeOutput(output))));
+//   output->addRepresentation(GraphicalRepresentationSPtr(new MeshRepresentation  (meshOutput  (output))));
+//   output->addRepresentation(GraphicalRepresentationSPtr(new SmoothRepresentation(meshOutput  (output))));
 }

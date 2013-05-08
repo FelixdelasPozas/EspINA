@@ -45,7 +45,7 @@ namespace EspINA
   typedef boost::shared_ptr<GraphicalRepresentation> GraphicalRepresentationSPtr;
   typedef QList<GraphicalRepresentationSPtr>         GraphicalRepresentationSList;
 
- typedef int FilterOutputId;
+  typedef int FilterOutputId;
 
   class FilterOutput
   : public QObject

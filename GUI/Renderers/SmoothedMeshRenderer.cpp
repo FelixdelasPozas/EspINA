@@ -39,14 +39,14 @@
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
-SmoothedMeshRenderer::SmoothedMeshRenderer(ViewManager *vm, QObject *parent)
-: MeshRenderer(vm, parent)
+SmoothedMeshRenderer::SmoothedMeshRenderer(QObject* parent)
+: MeshRenderer(parent)
 {
 }
 
 //-----------------------------------------------------------------------------
-bool SmoothedMeshRenderer::addItem(ModelItemPtr item)
-{
+//bool SmoothedMeshRenderer::addItem(ModelItemPtr item)
+//{
   /* FIXME
   if (EspINA::SEGMENTATION != item->type())
     return false;
@@ -144,11 +144,12 @@ bool SmoothedMeshRenderer::addItem(ModelItemPtr item)
 
   return true;
   */
-}
+//  return false;
+//}
 
 //-----------------------------------------------------------------------------
-bool SmoothedMeshRenderer::updateItem(ModelItemPtr item, bool forced)
-{
+//bool SmoothedMeshRenderer::updateItem(ModelItemPtr item, bool forced)
+//{
   /* FIXME
   if (!m_enable && !forced)
     return false;
@@ -255,11 +256,12 @@ bool SmoothedMeshRenderer::updateItem(ModelItemPtr item, bool forced)
 
   return updated || hierarchiesUpdated;
   */
-}
+//  return false;
+//}
 
 //-----------------------------------------------------------------------------
-bool SmoothedMeshRenderer::removeItem(ModelItemPtr item)
-{
+//bool SmoothedMeshRenderer::removeItem(ModelItemPtr item)
+//{
 //    if (EspINA::SEGMENTATION != item->type())
 //      return false;
 // 
@@ -285,4 +287,5 @@ bool SmoothedMeshRenderer::removeItem(ModelItemPtr item)
 //    disconnect(item, SIGNAL(modified(ModelItemPtr)), this, SLOT(updateItem(ModelItemPtr)));
 // 
 //    return true;
-}
+//  return false;
+//}

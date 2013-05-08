@@ -36,8 +36,8 @@ GraphicalRepresentation::GraphicalRepresentation(EspinaRenderView *view)
 : m_color(Qt::white)
 , m_highlight(false)
 , m_visible(true)
+, m_view(view)
 , m_active(false)
-, m_view(view) 
 {}
 
 //-----------------------------------------------------------------------------

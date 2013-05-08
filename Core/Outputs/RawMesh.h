@@ -40,7 +40,7 @@ namespace EspINA
     virtual void commitEditedRegions(bool withData) const;
     virtual void restoreEditedRegions(const QDir &cacheDir, const QString &outputId);
 
-    virtual vtkAlgorithmOutput *mesh() const;
+    virtual vtkAlgorithmOutput *mesh();
 
   private:
     vtkSmartPointer<vtkPolyData> m_mesh;

@@ -43,15 +43,17 @@ ChannelSliceRepresentation::ChannelSliceRepresentation(ChannelVolumeSPtr data,
                                                        SliceView        *view)
 : ChannelGraphicalRepresentation(view)
 , m_data(data)
-, m_view(view)
 {
 }
 
 //-----------------------------------------------------------------------------
 ChannelSliceRepresentation::~ChannelSliceRepresentation()
 {
-  if (m_view)
-    m_view->removeChannelActor(slice);
+  SliceView *sliceView = static_cast<SliceView *>(m_view);
+  if (sliceView)
+  {
+    sliceView->removeChannelActor(slice);
+  }
 }
 
 //-----------------------------------------------------------------------------

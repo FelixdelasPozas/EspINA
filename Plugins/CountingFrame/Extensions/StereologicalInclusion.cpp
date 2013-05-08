@@ -366,7 +366,7 @@ bool StereologicalInclusion::isExcludedFromCountingFrame(CountingFrame* counting
   if (taxonomicalConstraint && m_segmentation->taxonomy() != taxonomicalConstraint)
     return true;
 
-  EspinaRegion inputBB = m_segmentation->volume()->espinaRegion();
+  EspinaRegion inputBB = m_segmentation->output()->region();
 
   vtkPolyData  *region       = countingFrame->region();
   vtkPoints    *regionPoints = region->GetPoints();
@@ -451,12 +451,15 @@ bool StereologicalInclusion::isOnEdge()
 //------------------------------------------------------------------------
 bool StereologicalInclusion::isRealCollision(EspinaRegion interscetion)
 {
-  itkVolumeType::Pointer input = m_segmentation->volume()->toITK();
+  // TODO: esto tiene en cuenta el shift del origen de las imágenes de ITK?
+  SegmentationVolumeSPtr volume = segmentationVolume(m_segmentation->output());
+
+  itkVolumeType::Pointer input = volume->toITK();
   for (int z = interscetion.zMin(); z <= interscetion.zMax(); z++)
     for (int y = interscetion.yMin(); y <= interscetion.yMax(); y++)
       for (int x = interscetion.xMin(); x <= interscetion.xMax(); x++)
       {
-        itkVolumeType::IndexType index = m_segmentation->volume()->index(x, y, z);
+        itkVolumeType::IndexType index = volume->index(x, y, z);
         if (input->GetLargestPossibleRegion().IsInside(index) && input->GetPixel(index))
           return true;
       }

@@ -61,6 +61,8 @@ DefaultEspinaView::DefaultEspinaView(EspinaModel *model,
 
   setObjectName("xyView");
 
+
+
   //   qDebug() << "New Default EspinaView";
   xyView = new SliceView(viewManager, AXIAL);
   xzView = new SliceView(viewManager, CORONAL);

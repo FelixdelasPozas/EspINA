@@ -73,6 +73,7 @@ VolumeView::VolumeView(const EspinaFactory *factory,
 , m_numEnabledRenders   (0)
 , m_numEnabledSegmentationRenders(0)
 , m_numEnabledChannelRenders(0)
+, m_meshPicker          (vtkSmartPointer<vtkPropPicker>::New())
 {
   setupUI();
   buildControls();
@@ -109,19 +110,19 @@ void VolumeView::reset()
     removeWidget(widget);
   }
 
-  foreach(SegmentationPtr segmentation, m_segmentations)
+  foreach(SegmentationPtr segmentation, m_segmentationStates.keys())
   {
     removeSegmentation(segmentation);
   }
 
   // After removing segmentations there should be only channels
-  foreach(ChannelPtr channel, m_channels)
+  foreach(ChannelPtr channel, m_channelStates.keys())
   {
     removeChannel(channel);
   }
 
-  Q_ASSERT(m_channels.isEmpty());
-  Q_ASSERT(m_segmentations.isEmpty());
+  Q_ASSERT(m_channelStates.isEmpty());
+  Q_ASSERT(m_segmentationStates.isEmpty());
   Q_ASSERT(m_widgets.isEmpty());
 
   QMap<QPushButton *, IRendererSPtr>::iterator it = m_renderers.begin();
@@ -154,14 +155,19 @@ void VolumeView::addRendererControls(IRendererSPtr renderer)
   connect(button, SIGNAL(destroyed(QObject*)), renderer.data(), SLOT(deleteLater()));
   connect(renderer.data(), SIGNAL(renderRequested()), this, SLOT(updateView()));
   m_controlLayout->addWidget(button);
-  renderer->setVtkRenderer(this->m_renderer);
+  renderer->setVTKRenderer(this->m_renderer);
 
-  // add all model items to the renderer
-  foreach(ChannelPtr channel, m_channels)
-    renderer->addItem(channel);
+  // add representations to renderer
+  foreach(SegmentationPtr segmentation, m_segmentationStates.keys())
+  {
+    if (renderer->itemCanBeRendered(segmentation))
+      foreach(GraphicalRepresentationSPtr rep, m_segmentationStates[segmentation].representations)
+         if (renderer->managesRepresentation(rep)) renderer->addRepresentation(rep);
+  }
 
-  foreach(SegmentationPtr segmentation, m_segmentations)
-    renderer->addItem(segmentation);
+  foreach(ChannelPtr channel, m_channelStates.keys())
+    if (renderer->itemCanBeRendered(channel))
+      reinterpret_cast<CrosshairRenderer *>(renderer.data())->addItem(channel);
 
   m_itemRenderers << renderer;
   m_renderers[button] = renderer;
@@ -327,12 +333,12 @@ void VolumeView::centerViewOn(Nm *center, bool notUsed)
     }
   }
 
-  if (m_additionalScrollBars && !m_channels.empty())
+  if (m_additionalScrollBars && !m_channelStates.empty())
   {
     Nm minSpacing[3];
-    m_channels.first()->volume()->spacing(minSpacing);
+    m_channelStates.begin().key()->volume()->spacing(minSpacing);
 
-    foreach(ChannelPtr channel, m_channels)
+    foreach(ChannelPtr channel, m_channelStates.keys())
     {
       double spacing[3];
       channel->volume()->spacing(spacing);
@@ -382,14 +388,57 @@ void VolumeView::resetCamera()
 //-----------------------------------------------------------------------------
 void VolumeView::addChannel(ChannelPtr channel)
 {
-  if (m_channels.contains(channel))
-    return;
+  Q_ASSERT(!m_channelStates.contains(channel));
 
-  m_channels << channel;
+  ChannelState state;
 
-  foreach(IRendererSPtr renderer, m_itemRenderers)
-    if (renderer->itemCanBeRendered(channel))
-      renderer->addItem(channel);
+  channel->output()->update();
+
+  double hue = -1.0 == channel->hue() ? 0 : channel->hue();
+  double sat = -1.0 == channel->hue() ? 0 : channel->saturation();
+  QColor stain = QColor::fromHsvF(hue, sat, 1.0);
+
+  state.brightness = channel->brightness();
+  state.contrast   = channel->contrast();
+  state.opacity    = channel->opacity();
+  state.stain      = stain;
+  state.visible    = channel->isVisible();
+
+  foreach (GraphicalRepresentationSPtr prototype, channel->representations())
+  {
+    if (prototype->canRenderOnView().testFlag(GraphicalRepresentation::VOLUME_VIEW))
+    {
+      ChannelGraphicalRepresentationSPtr representation = boost::dynamic_pointer_cast<ChannelGraphicalRepresentation>(prototype->clone(this));
+
+      representation->setBrightness(state.brightness);
+      representation->setContrast(state.contrast);
+      representation->setColor(state.stain);
+      if (Channel::AUTOMATIC_OPACITY != state.opacity)
+        representation->setOpacity(state.opacity);
+      representation->setVisible(state.visible);
+
+      state.representations << representation;
+
+      foreach(IRendererSPtr renderer, m_itemRenderers)
+        if (renderer->itemCanBeRendered(channel) && renderer->managesRepresentation(representation))
+          renderer->addRepresentation(representation);
+    }
+  }
+
+  m_channelStates.insert(channel, state);
+
+  // need to manage other channels' opacity too.
+  updateSceneBounds();
+  updateChannelsOpactity();
+
+  // Prevent displaying channel's corner until app request to reset the camera
+  if (m_channelStates.size() == 1 && channel->isVisible())
+    resetCamera();
+
+  // NOTE: this signal is not disconnected when a channel is removed because is
+  // used in the redo/undo of UnloadChannelCommand
+  connect(channel->volume().get(), SIGNAL(representationChanged()),
+          this, SLOT(updateSceneBounds()));
 
   updateRenderersButtons();
   updateScrollBarsLimits();
@@ -398,30 +447,95 @@ void VolumeView::addChannel(ChannelPtr channel)
 //-----------------------------------------------------------------------------
 bool VolumeView::updateChannelRepresentation(ChannelPtr channel, bool render)
 {
-  if (!m_channels.contains(channel))
-    return false;
+  Q_ASSERT(m_channelStates.contains(channel));
 
-  if (!isVisible())
-    return false;
+  ChannelState &state = m_channelStates[channel];
 
-  bool updated = false;
-  foreach(IRendererSPtr renderer, m_itemRenderers)
-    updated = renderer->updateItem(channel) | updated;
+  bool visibilityChanged = state.visible != channel->isVisible();
+  state.visible = channel->isVisible();
 
-  updateScrollBarsLimits();
-  return updated;
+  bool brightnessChanged = false;
+  bool contrastChanged   = false;
+  bool opacityChanged    = false;
+  bool stainChanged      = false;
+
+  if (visibilityChanged)
+    updateChannelsOpactity();
+
+  double hue = -1.0 == channel->hue() ? 0 : channel->hue();
+  double sat = -1.0 == channel->hue() ? 0 : channel->saturation();
+
+  if (state.visible)
+  {
+    QColor stain = QColor::fromHsvF(hue, sat, 1.0);
+
+    brightnessChanged = state.brightness != channel->brightness();
+    contrastChanged   = state.contrast   != channel->contrast();
+    opacityChanged    = state.opacity    != channel->opacity();
+    stainChanged      = state.stain      != stain;
+
+    state.brightness  = channel->brightness();
+    state.contrast    = channel->contrast();
+    state.opacity     = channel->opacity();
+    state.stain       = stain;
+  }
+
+  bool hasChanged = visibilityChanged || brightnessChanged || contrastChanged || opacityChanged || stainChanged;
+  if (hasChanged)
+  {
+    opacityChanged &= Channel::AUTOMATIC_OPACITY != state.opacity;
+
+    foreach (GraphicalRepresentationSPtr representation, state.representations)
+    {
+      ChannelGraphicalRepresentationSPtr rep = boost::dynamic_pointer_cast<ChannelGraphicalRepresentation>(representation);
+      if (brightnessChanged) rep->setBrightness(state.brightness);
+      if (contrastChanged  ) rep->setContrast(state.contrast);
+      if (stainChanged     ) rep->setColor(state.stain);
+      if (opacityChanged   ) rep->setOpacity(state.opacity);
+      if (visibilityChanged) rep->setVisible(state.visible);
+
+      rep->updateRepresentation();
+    }
+  }
+
+  if (render)
+    updateView();
+
+  return hasChanged;
+}
+
+//-----------------------------------------------------------------------------
+void VolumeView::updateChannelRepresentations(ChannelList list)
+{
+  if (isVisible())
+  {
+    ChannelList updateChannels;
+
+    if (list.empty())
+      updateChannels = m_channelStates.keys();
+    else
+      updateChannels = list;
+
+    bool updated = false;
+    foreach(ChannelPtr channel, updateChannels)
+      updated |= updateChannelRepresentation(channel);
+
+    if (updated)
+      updateView();
+  }
 }
 
 //-----------------------------------------------------------------------------
 void VolumeView::removeChannel(ChannelPtr channel)
 {
-  if (!m_channels.contains(channel))
-    return;
+  Q_ASSERT(m_channelStates.contains(channel));
 
-  m_channels.removeOne(channel);
+  foreach(GraphicalRepresentationSPtr representation, m_channelStates[channel].representations)
+    foreach(IRendererSPtr renderer, m_itemRenderers)
+      if (renderer->hasRepresentation(representation))
+        renderer->removeRepresentation(representation);
 
-  foreach(IRendererSPtr renderer, m_itemRenderers)
-    renderer->removeItem(channel);
+  m_channelStates.remove(channel);
 
   updateRenderersButtons();
   updateScrollBarsLimits();
@@ -431,43 +545,121 @@ void VolumeView::removeChannel(ChannelPtr channel)
 //-----------------------------------------------------------------------------
 void VolumeView::addSegmentation(SegmentationPtr seg)
 {
-  if (m_segmentations.contains(seg))
-    return;
+  Q_ASSERT(!m_segmentationStates.contains(seg));
 
-  m_segmentations << seg;
+  seg->output()->update();
 
-  foreach(IRendererSPtr renderer, m_itemRenderers)
-    if (renderer->itemCanBeRendered(seg))
-      renderer->addItem(seg);
+  SegmentationState state;
 
-  updateRenderersButtons();
+  state.visible = false;
+
+  m_segmentationStates.insert(seg, state);
 }
 
 //-----------------------------------------------------------------------------
 bool VolumeView::updateSegmentationRepresentation(SegmentationPtr seg, bool render)
 {
-  if (!m_segmentations.contains(seg))
+  if (!m_segmentationStates.contains(seg))
     return false;
 
-  if (!isVisible())
-    return false;
+  SegmentationState &state = m_segmentationStates[seg];
 
-  bool updated = false;
-  foreach(IRendererSPtr renderer, m_itemRenderers)
-    updated = renderer->updateItem(seg) | updated;
+  bool requestedVisibility = seg->visible();
 
-  return updated;
+  bool visibilityChanged = state.visible != requestedVisibility;
+  state.visible = requestedVisibility;
+
+  bool colorChanged = false;
+  bool outputChanged = false;
+  bool highlightChanged = false;
+
+  if (state.visible)
+  {
+    QColor requestedColor       = m_viewManager->color(seg);
+    bool   requestedHighlighted = seg->isSelected();
+
+    outputChanged    = state.output != seg->output();
+    colorChanged     = state.color != requestedColor           || outputChanged;
+    highlightChanged = state.highlited != requestedHighlighted || outputChanged;
+
+    state.color     = requestedColor;
+    state.highlited = requestedHighlighted;
+    state.output    = seg->output();
+  }
+
+  if (outputChanged)
+  {
+    state.representations.clear();
+
+    foreach(GraphicalRepresentationSPtr prototype, seg->representations())
+    {
+      if (prototype->canRenderOnView().testFlag(GraphicalRepresentation::VOLUME_VIEW))
+      {
+        GraphicalRepresentationSPtr representation = prototype->clone(this);
+
+        foreach(IRendererSPtr renderer, m_itemRenderers)
+          if (renderer->itemCanBeRendered(seg) && renderer->managesRepresentation(representation))
+            renderer->addRepresentation(representation);
+
+        state.representations << boost::dynamic_pointer_cast<SegmentationGraphicalRepresentation>(representation);
+      }
+    }
+  }
+
+  bool hasChanged = visibilityChanged || colorChanged || highlightChanged;
+  if (hasChanged)
+  {
+    foreach(GraphicalRepresentationSPtr representation, state.representations)
+    {
+      if (colorChanged)      representation->setColor(m_viewManager->color(seg));
+      if (highlightChanged)  representation->setHighlighted(state.highlited);
+      if (visibilityChanged) representation->setVisible(state.visible);
+
+      representation->updateRepresentation();
+    }
+  }
+
+  if (render)
+  {
+    m_view->GetRenderWindow()->Render();
+    m_view->update();
+  }
+
+  updateRenderersButtons();
+  return hasChanged;
+}
+
+//-----------------------------------------------------------------------------
+void VolumeView::updateSegmentationRepresentations(SegmentationList list)
+{
+  if (isVisible())
+  {
+    SegmentationList updateSegmentations;
+
+    if (list.empty())
+      updateSegmentations = m_segmentationStates.keys();
+    else
+      updateSegmentations = list;
+
+    bool updated = false;
+    foreach(SegmentationPtr seg, updateSegmentations)
+      updated |= updateSegmentationRepresentation(seg);
+
+    if (updated)
+      updateView();
+  }
 }
 
 //-----------------------------------------------------------------------------
 void VolumeView::removeSegmentation(SegmentationPtr seg)
 {
-  if (!m_segmentations.contains(seg))
-    return;
+  Q_ASSERT(m_segmentationStates.contains(seg));
 
-  m_segmentations.removeOne(seg);
-  foreach(IRendererSPtr renderer, m_itemRenderers)
-    renderer->removeItem(seg);
+  foreach(GraphicalRepresentationSPtr rep, m_segmentationStates[seg].representations)
+    foreach(IRendererSPtr renderer, m_itemRenderers)
+      if (renderer->hasRepresentation(rep))
+        renderer->removeRepresentation(rep);
+  m_segmentationStates.remove(seg);
 
   updateRenderersButtons();
 }
@@ -632,14 +824,20 @@ void VolumeView::selectPickedItems(int vx, int vy, bool append)
   {
     if (!renderer->isHidden() && (renderer->getRendererType() & IRenderer::SEGMENTATION))
     {
-      ViewManager::Selection rendererSelection = renderer->pick(vx, vy, append);
+      GraphicalRepresentationSList rendererSelection = renderer->pick(vx, vy, append);
+      qDebug() << "selected" << rendererSelection.size();
       if (!rendererSelection.empty())
       {
-        foreach (PickableItemPtr item, rendererSelection)
-          if (!selection.contains(item))
-            selection << item;
-          else
-            selection.removeAll(item);
+        foreach(GraphicalRepresentationSPtr rep, rendererSelection)
+          foreach (SegmentationPtr seg, m_segmentationStates.keys())
+            if (m_segmentationStates[seg].representations.contains(rep))
+            {
+              if (!selection.contains(seg))
+                selection << seg;
+              else
+                selection.removeAll(seg);
+
+            }
       }
     }
   }
@@ -648,14 +846,19 @@ void VolumeView::selectPickedItems(int vx, int vy, bool append)
   {
     if (!renderer->isHidden() && (renderer->getRendererType() & IRenderer::CHANNEL))
     {
-      ViewManager::Selection rendererSelection = renderer->pick(vx, vy, append);
+      GraphicalRepresentationSList rendererSelection = renderer->pick(vx, vy, append);
       if (!rendererSelection.empty())
       {
-        foreach (PickableItemPtr item, rendererSelection)
-          if (!selection.contains(item))
-            selection << item;
-          else
-            selection.removeAll(item);
+        foreach(GraphicalRepresentationSPtr rep, rendererSelection)
+          foreach (SegmentationPtr seg, m_segmentationStates.keys())
+            if (m_segmentationStates[seg].representations.contains(rep))
+            {
+              if (!selection.contains(seg))
+                selection << seg;
+              else
+                selection.removeAll(seg);
+
+            }
       }
     }
   }
@@ -691,7 +894,7 @@ bool VolumeView::eventFilter(QObject* caller, QEvent* e)
         {
           if (!renderer->isHidden())
           {
-            ViewManager::Selection rendererSelection = renderer->pick(newX, newY, false);
+            GraphicalRepresentationSList rendererSelection = renderer->pick(newX, newY, false);
             if (!rendererSelection.empty())
             {
               double point[3];
@@ -796,6 +999,7 @@ void VolumeView::exportScene()
   }
 }
 
+//-----------------------------------------------------------------------------
 void VolumeView::takeSnapshot()
 {
   QFileDialog fileDialog(this, tr("Save Scene As Image"), QString(), tr("All supported formats (*.jpg *.png);; JPEG images (*.jpg);; PNG images (*.png)"));
@@ -906,7 +1110,7 @@ void VolumeView::Settings::setRenderers(IRendererList values)
         oldRenderer->hide();
         parent->countEnabledRenderers(false);
       }
-      oldRenderer->setVtkRenderer(NULL);
+      oldRenderer->setVTKRenderer(NULL);
     }
     else
       activeRenderers << oldRenderer;
@@ -1035,48 +1239,6 @@ void VolumeView::updateSelection(ViewManager::Selection selection, bool render)
 }
 
 //-----------------------------------------------------------------------------
-void VolumeView::updateSegmentationRepresentations(SegmentationList list)
-{
-  if (isVisible())
-  {
-    SegmentationList updateSegmentations;
-
-    if (list.empty())
-      updateSegmentations = m_segmentations;
-    else
-      updateSegmentations = list;
-
-    bool updated = false;
-    foreach(SegmentationPtr seg, updateSegmentations)
-      updated |= updateSegmentationRepresentation(seg);
-
-    if (updated)
-      updateView();
-  }
-}
-
-//-----------------------------------------------------------------------------
-void VolumeView::updateChannelRepresentations(ChannelList list)
-{
-  if (isVisible())
-  {
-    ChannelList updateChannels;
-
-    if (list.empty())
-      updateChannels = m_channels;
-    else
-      updateChannels = list;
-
-    bool updated = false;
-    foreach(ChannelPtr channel, updateChannels)
-      updated |= updateChannelRepresentation(channel);
-
-    if (updated)
-      updateView();
-  }
-}
-
-//-----------------------------------------------------------------------------
 void VolumeView::resetView()
 {
   resetCamera();
@@ -1120,9 +1282,11 @@ void VolumeView::scrollBarMoved(int value)
 {
   Nm point[3];
   Nm minSpacing[3];
-  m_channels.first()->volume()->spacing(minSpacing);
 
-  foreach(ChannelPtr channel, m_channels)
+  Q_ASSERT(!m_channelStates.isEmpty());
+  m_channelStates.keys().first()->volume()->spacing(minSpacing);
+
+  foreach(ChannelPtr channel, m_channelStates.keys())
   {
     double spacing[3];
     channel->volume()->spacing(spacing);
@@ -1157,7 +1321,7 @@ void VolumeView::updateScrollBarsLimits()
   if (!m_additionalScrollBars)
     return;
 
-  if(m_channels.isEmpty())
+  if(m_channelStates.isEmpty())
   {
     m_axialScrollBar->setMinimum(0);
     m_axialScrollBar->setMaximum(0);
@@ -1169,9 +1333,9 @@ void VolumeView::updateScrollBarsLimits()
   }
 
   int maxExtent[6];
-  m_channels.first()->volume()->extent(maxExtent);
+  m_channelStates.keys().first()->volume()->extent(maxExtent);
 
-  foreach (ChannelPtr channel, m_channels)
+  foreach (ChannelPtr channel, m_channelStates.keys())
   {
     int extent[6];
     channel->volume()->extent(extent);
@@ -1201,4 +1365,18 @@ void VolumeView::updateScrollBarsLimits()
   m_coronalScrollBar->setMaximum(maxExtent[3]);
   m_sagittalScrollBar->setMinimum(maxExtent[4]);
   m_sagittalScrollBar->setMaximum(maxExtent[5]);
+}
+
+//-----------------------------------------------------------------------------
+void VolumeView::addActor(vtkProp3D *actor)
+{
+  m_renderer->AddActor(actor);
+  m_meshPicker->GetPickList()->AddItem(actor);
+}
+
+//-----------------------------------------------------------------------------
+void VolumeView::removeActor(vtkProp3D *actor)
+{
+  m_renderer->RemoveActor(actor);
+  m_meshPicker->GetPickList()->RemoveItem(actor);
 }

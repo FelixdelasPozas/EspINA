@@ -22,6 +22,7 @@
 // EspINA
 #include <Core/EspinaTypes.h>
 #include <GUI/ViewManager.h>
+#include <GUI/Representations/GraphicalRepresentation.h>
 
 // Qt
 #include <QString>
@@ -52,12 +53,12 @@ namespace EspINA
     virtual const QIcon icon() const         { return QIcon(); }
 
     /// sets renderer
-    virtual void setVtkRenderer(vtkSmartPointer<vtkRenderer> renderer) {m_renderer = renderer;}
+    virtual void setVTKRenderer(vtkSmartPointer<vtkRenderer> renderer) { m_renderer = renderer;}
 
-    // Return whether the item was rendered or not
-    virtual bool addItem   (ModelItemPtr item) = 0;
-    virtual bool updateItem(ModelItemPtr item, bool forced = false) = 0;
-    virtual bool removeItem(ModelItemPtr item) = 0;
+    virtual void addRepresentation(GraphicalRepresentationSPtr rep) = 0;
+    virtual void removeRepresentation(GraphicalRepresentationSPtr rep) = 0;
+    virtual bool hasRepresentation(GraphicalRepresentationSPtr rep) = 0;
+    virtual bool managesRepresentation(GraphicalRepresentationSPtr rep) = 0;
 
     // Hide/Show all items rendered by the Renderer
     virtual void hide() = 0;
@@ -83,12 +84,11 @@ namespace EspINA
     // naive item filtering, to be modified/enhanced in the future
     virtual bool itemCanBeRendered(ModelItemPtr item) { return true; }
 
-    // return the number of elements actually been rendered by this renderer
+    // return the number of elements actually been managed by this renderer
     virtual int itemsBeenRendered() = 0;
 
-    // to pick items been rendered
-    virtual ViewManager::Selection pick(int x, int y, bool repeat) = 0;
-    virtual void getPickCoordinates(double *point) {};
+    virtual GraphicalRepresentationSList pick(int x, int y, bool repeat) = 0;
+    virtual void getPickCoordinates(Nm *point) = 0;
 
   public slots:
     virtual void setEnable(bool value)
@@ -112,7 +112,7 @@ namespace EspINA
   protected:
     vtkSmartPointer<vtkRenderer> m_renderer;
     bool m_enable;
-
+    GraphicalRepresentationSList m_representations;
   };
 
   typedef QList<IRenderer *>   IRendererList;

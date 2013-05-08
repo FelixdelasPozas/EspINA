@@ -45,7 +45,7 @@ namespace EspINA
 
     virtual void restoreEditedRegions(const QDir &cacheDir, const QString &outputId);
 
-    virtual vtkAlgorithmOutput *mesh() const;
+    virtual vtkAlgorithmOutput *mesh();
 
   protected:
     MeshTypeSPtr m_meshRepresentation;

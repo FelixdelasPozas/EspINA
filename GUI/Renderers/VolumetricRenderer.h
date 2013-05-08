@@ -40,49 +40,32 @@ namespace EspINA
   class VolumetricRenderer
   : public IRenderer
   {
-    struct Representation
-    {
-      vtkVolume *volume;
-      bool visible;
-      bool selected;
-      QColor color;
-      bool overridden;
-      HierarchyItem::HierarchyRenderingType renderingType;
-      vtkSmartPointer<vtkVolumeProperty> actorPropertyBackup;
-    };
-
   public:
-    explicit VolumetricRenderer(ViewManager *vm, QObject* parent = 0);
-    virtual ~VolumetricRenderer() {};
+    explicit VolumetricRenderer(QObject* parent = 0);
 
     virtual const QIcon icon() const {return QIcon(":/espina/voxel.png");}
     virtual const QString name() const {return "Volumetric";}
     virtual const QString tooltip() const {return "Segmentation's Volumes";}
 
-    virtual bool addItem   (ModelItemPtr item);
-    virtual bool updateItem(ModelItemPtr item, bool forced = false);
-    virtual bool removeItem(ModelItemPtr item);
+    virtual void addRepresentation(GraphicalRepresentationSPtr rep) {};
+    virtual void removeRepresentation(GraphicalRepresentationSPtr rep) {};
+    virtual bool hasRepresentation(GraphicalRepresentationSPtr rep) { return false; };
+    virtual bool managesRepresentation(GraphicalRepresentationSPtr rep) { return false; };
 
     virtual void hide();
     virtual void show();
-    virtual unsigned int getNumberOfvtkActors(){return 0;}
+    virtual unsigned int getNumberOfvtkActors() { return 0; }
 
-    virtual IRendererSPtr clone() {return IRendererSPtr(new VolumetricRenderer(m_viewManager));}
+    virtual IRendererSPtr clone() {return IRendererSPtr(new VolumetricRenderer());}
 
     virtual RenderedItems getRendererType() { return RenderedItems(IRenderer::SEGMENTATION); }
-    virtual int itemsBeenRendered() { return m_segmentations.size(); }
+    virtual int itemsBeenRendered() { return m_representations.size(); }
 
     // to pick items been rendered
-    virtual ViewManager::Selection pick(int x, int y, bool repeat);
+    virtual GraphicalRepresentationSList pick(int x, int y, bool repeat);
     virtual void getPickCoordinates(double *point);
 
   private:
-    // helper methods
-    void createHierarchyProperties(SegmentationPtr seg);
-    bool updateHierarchyProperties(SegmentationPtr seg);
-
-    ViewManager *m_viewManager;
-    QMap<ModelItemPtr, Representation> m_segmentations;
     vtkSmartPointer<vtkVolumePicker> m_picker;
   };
 

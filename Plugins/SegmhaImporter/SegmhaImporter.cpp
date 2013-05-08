@@ -133,10 +133,10 @@ bool SegmhaImporter::readFile(const QFileInfo file, EspinaIO::ErrorHandler *hand
 
   SegmentationSList segmentations;
   SegmentationSPtr seg;
-  foreach(Filter::Output output, filter->outputs())
+  foreach(SegmentationOutputSPtr segOutput, filter->outputs())
   {
-    seg = m_model->factory()->createSegmentation(filter, output.id);
-    filter->initSegmentation(seg, output.id);
+    seg = m_model->factory()->createSegmentation(filter, segOutput->id());
+    filter->initSegmentation(seg, segOutput->id());
     segmentations << seg;
   }
 

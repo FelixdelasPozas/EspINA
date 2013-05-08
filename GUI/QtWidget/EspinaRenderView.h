@@ -27,6 +27,7 @@
 
 #include "Core/EspinaTypes.h"
 #include "GUI/Pickers/ISelector.h"
+#include "GUI/Representations/GraphicalRepresentation.h"
 
 class vtkRenderer;
 class vtkProp3D;
@@ -99,22 +100,42 @@ namespace EspINA
     virtual void updateSceneBounds();
 
   protected:
-    void addChannelBounds   (ChannelPtr channel);
-    void removeChannelBounds(ChannelPtr channel);
-
     double suggestedChannelOpacity();
     virtual void updateChannelsOpactity() = 0;
 
     void resetSceneBounds();
-
-  protected:
-    ChannelList m_channels;
 
     Nm m_sceneBounds[6];
     Nm m_sceneResolution[3];// Min distance between 2 voxels in each axis
     PlaneType m_plane;
 
     QSharedPointer<SegmentationContextualMenu> m_contextMenu;
+
+  protected:
+    struct ChannelState
+    {
+      double brightness;
+      double contrast;
+      double opacity;
+      QColor stain;
+      bool   visible;
+
+      ChannelGraphicalRepresentationList representations;
+    };
+
+    struct SegmentationState
+    {
+      Nm         depth;
+      QColor     color;
+      bool       highlited;
+      OutputSPtr output;
+      bool       visible;
+
+      SegmentationGraphicalRepresentationList representations;
+    };
+
+    QMap<ChannelPtr,      ChannelState>      m_channelStates;
+    QMap<SegmentationPtr, SegmentationState> m_segmentationStates;
   };
 
 } // namespace EspINA

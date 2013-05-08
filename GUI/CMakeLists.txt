@@ -20,6 +20,7 @@ qt4_wrap_cpp(GUI_MOC
   QtWidget/SliceView.h
   QtWidget/VolumeView.h
   Representations/SliceRepresentation.h
+  Representations/MeshRepresentation.h
   Renderers/Renderer.h
   Renderers/MeshRenderer.h
   Renderers/SmoothedMeshRenderer.h
@@ -60,7 +61,8 @@ set (GUI_SOURCES
   QtWidget/VolumeView.cpp
   QtWidget/vtkInteractorStyleEspinaSlice.cpp
   Representations/GraphicalRepresentation.cpp
-  Representations/SliceRepresentation.cpp 
+  Representations/SliceRepresentation.cpp
+  Representations/MeshRepresentation.cpp 
   Renderers/CrosshairRenderer.cpp
   Renderers/MeshRenderer.cpp
   Renderers/SmoothedMeshRenderer.cpp

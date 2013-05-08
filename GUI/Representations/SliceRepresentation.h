@@ -45,8 +45,7 @@ class vtkLookupTable;
 
 namespace EspINA
 {
-
-class TransparencySelectionHighlighter;
+  class TransparencySelectionHighlighter;
   class SliceView;
 
   class ChannelSliceRepresentation
@@ -55,7 +54,7 @@ class TransparencySelectionHighlighter;
     Q_OBJECT
   public:
     explicit ChannelSliceRepresentation(ChannelVolumeSPtr data,
-                                        SliceView            *view);
+                                        SliceView        *view);
     virtual ~ChannelSliceRepresentation();
 
     virtual void setBrightness(double value);
@@ -92,7 +91,6 @@ class TransparencySelectionHighlighter;
 
   private:
     ChannelVolumeSPtr m_data;
-    SliceView        *m_view;
 
     vtkSmartPointer<vtkImageReslice>     reslice;
     vtkSmartPointer<vtkImageMapToColors> mapToColors;

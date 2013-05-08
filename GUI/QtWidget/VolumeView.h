@@ -27,6 +27,7 @@
 #include "Core/EspinaTypes.h"
 #include "GUI/QtWidget/EspinaRenderView.h"
 #include "GUI/Renderers/Renderer.h"
+#include "GUI/Representations/GraphicalRepresentation.h"
 #include "GUI/ViewManager.h"
 
 #include <vtkSmartPointer.h>
@@ -43,6 +44,7 @@ class QPushButton;
 class QVBoxLayout;
 class QHBoxLayout;
 class QScrollBar;
+class vtkPropPicker;
 
 namespace EspINA
 {
@@ -92,18 +94,18 @@ namespace EspINA
     virtual void addChannel   (ChannelPtr channel);
     virtual void removeChannel(ChannelPtr channel);
     virtual bool updateChannelRepresentation(ChannelPtr channel, bool render = true);
-    virtual void updateSegmentationRepresentations(SegmentationList list = SegmentationList());
+    virtual void updateChannelRepresentations(ChannelList list = ChannelList());
 
     virtual void addSegmentation   (SegmentationPtr seg);
     virtual void removeSegmentation(SegmentationPtr seg);
     virtual bool updateSegmentationRepresentation(SegmentationPtr seg, bool render = true);
-    virtual void updateChannelRepresentations(ChannelList list = ChannelList());
+    virtual void updateSegmentationRepresentations(SegmentationList list = SegmentationList());
 
     virtual void addWidget   (EspinaWidget *widget);
     virtual void removeWidget(EspinaWidget *widget);
 
-    virtual void addActor   (vtkProp3D *actor){}
-    virtual void removeActor(vtkProp3D *actor){}
+    virtual void addActor   (vtkProp3D *actor);
+    virtual void removeActor(vtkProp3D *actor);
 
     virtual void setCursor(const QCursor& cursor);
     virtual void eventPosition(int& x, int& y);
@@ -127,6 +129,7 @@ namespace EspINA
     virtual void updateSelection(){}
 
     virtual void forceRender(SegmentationList updatedSegs = SegmentationList());
+
   public slots:
     void countEnabledRenderers(bool);
     /// Update Selected Items
@@ -144,7 +147,28 @@ namespace EspINA
     virtual void updateChannelsOpactity(){}
 
   private:
-    //   void selectSegmentations(int x, int y, int z);
+    struct ChannelState
+    {
+      double brightness;
+      double contrast;
+      double opacity;
+      QColor stain;
+      bool   visible;
+
+      GraphicalRepresentationSList representations;
+    };
+
+    struct SegmentationState
+    {
+      Nm         depth;
+      QColor     color;
+      bool       highlited;
+      OutputSPtr output;
+      bool       visible;
+
+      GraphicalRepresentationSList representations;
+    };
+
     void setupUI();
     void buildControls();
     void updateRenderersButtons();
@@ -158,13 +182,6 @@ namespace EspINA
     void takeSnapshot();
 
   private:
-    struct Representation
-    {
-      bool visible;
-      bool selected;
-      QColor color;
-    };
-
     ViewManager *m_viewManager;
 
     // GUI
@@ -192,10 +209,14 @@ namespace EspINA
     ColorEngine *m_colorEngine;
     QMap<EspinaWidget *, vtkAbstractWidget *> m_widgets;
     QMap<QPushButton *, IRendererSPtr> m_renderers;
-
-    SegmentationList m_segmentations;
-    ChannelList      m_channels;
     IRendererSList   m_itemRenderers;
+
+    QMap<ChannelPtr,      ChannelState>      m_channelStates;
+    QMap<SegmentationPtr, SegmentationState> m_segmentationStates;
+
+    vtkSmartPointer<vtkPropPicker> m_meshPicker;
+
+    friend class GraphicalRepresentation;
   };
 
 } // namespace EspINA

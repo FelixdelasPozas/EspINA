@@ -39,7 +39,7 @@ namespace EspINA
 
     virtual void addEditedRegion(const EspinaRegion &region, int id = -1) {}
 
-    virtual vtkAlgorithmOutput *mesh() const = 0;
+    virtual vtkAlgorithmOutput *mesh() = 0;
   };
 
   typedef boost::shared_ptr<MeshType> MeshTypeSPtr;

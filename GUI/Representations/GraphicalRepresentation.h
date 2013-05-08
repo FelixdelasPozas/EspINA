@@ -97,16 +97,16 @@ class EspinaRenderView;
     vtkMatrix4x4 *slicingMatrix(SliceView *view) const;
 
   protected:
-    QColor m_color;
-    bool   m_highlight;
-    bool   m_visible;
-
+    QColor            m_color;
+    bool              m_highlight;
+    bool              m_visible;
+    EspinaRenderView *m_view;
     GraphicalRepresentationSList m_clones;
 
+
   private:
-    bool              m_active;
-    QString           m_label;
-    EspinaRenderView *m_view;
+    bool    m_active;
+    QString m_label;
   };
 
   class ChannelGraphicalRepresentation
@@ -140,9 +140,9 @@ class EspinaRenderView;
     { return m_opacity; }
 
   protected:
-    double m_brightness;
-    double m_contrast;
-    double m_opacity;
+    double            m_brightness;
+    double            m_contrast;
+    double            m_opacity;
   };
 
   typedef boost::shared_ptr<ChannelGraphicalRepresentation> ChannelGraphicalRepresentationSPtr;

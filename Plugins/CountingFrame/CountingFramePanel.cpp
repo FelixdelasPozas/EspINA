@@ -616,14 +616,15 @@ void CountingFramePanel::computeOptimalMargins(Channel* channel,
       marginExt->edgeDistance(dist2Margin);
 
       double segBounds[6];
-      seg->volume()->bounds(segBounds);
-      double spacing[3];
-      seg->volume()->spacing(spacing);
+      double segSpacing[3];
+      SegmentationVolumeSPtr volume = segmentationVolume(seg->output());
+      volume->spacing(segSpacing);
+      volume->bounds(segBounds);
 
       for (int i=0; i < 3; i++)
       {
         double length = segBounds[2*i+1] - segBounds[2*i];
-        length += spacing[i];
+        length += segSpacing[i];
         if (dist2Margin[2*i] < delta[i])
           inclusion[i] = std::max(length, inclusion[i]);
         if (dist2Margin[2*i+1] < delta[i])

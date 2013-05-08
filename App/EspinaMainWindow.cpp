@@ -182,10 +182,10 @@ EspinaMainWindow::EspinaMainWindow(EspinaModel      *model,
 
   EspinaFactory *factory = m_model->factory();
 
-  m_defaultRenderers << IRendererSPtr(new CrosshairRenderer(m_viewManager));
-  m_defaultRenderers << IRendererSPtr(new VolumetricRenderer(m_viewManager));
-  m_defaultRenderers << IRendererSPtr(new MeshRenderer(m_viewManager));
-  m_defaultRenderers << IRendererSPtr(new SmoothedMeshRenderer(m_viewManager));
+  m_defaultRenderers << IRendererSPtr(new CrosshairRenderer());
+  m_defaultRenderers << IRendererSPtr(new VolumetricRenderer());
+  m_defaultRenderers << IRendererSPtr(new MeshRenderer());
+  m_defaultRenderers << IRendererSPtr(new SmoothedMeshRenderer());
 
   foreach(IRendererSPtr renderer, m_defaultRenderers)
     factory->registerRenderer(renderer.data());

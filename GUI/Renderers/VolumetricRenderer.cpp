@@ -37,9 +37,8 @@
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
-VolumetricRenderer::VolumetricRenderer(ViewManager* vm, QObject* parent)
+VolumetricRenderer::VolumetricRenderer(QObject* parent)
 : IRenderer(parent)
-, m_viewManager(vm)
 , m_picker(vtkSmartPointer<vtkVolumePicker>::New())
 {
   m_picker->PickFromListOn();
@@ -50,8 +49,8 @@ VolumetricRenderer::VolumetricRenderer(ViewManager* vm, QObject* parent)
 }
 
 //-----------------------------------------------------------------------------
-bool VolumetricRenderer::addItem(ModelItemPtr item)
-{
+//bool VolumetricRenderer::addItem(ModelItemPtr item)
+//{
   /* FIXME
   if (EspINA::SEGMENTATION != item->type())
     return false;
@@ -133,11 +132,12 @@ bool VolumetricRenderer::addItem(ModelItemPtr item)
   m_segmentations[seg].volume->Modified();
   return true;
   */
-}
+//  return false;
+//}
 
 //-----------------------------------------------------------------------------
-bool VolumetricRenderer::updateItem(ModelItemPtr item, bool forced)
-{
+//bool VolumetricRenderer::updateItem(ModelItemPtr item, bool forced)
+//{
   /* FIXME
   if (!m_enable && !forced)
     return false;
@@ -235,244 +235,80 @@ bool VolumetricRenderer::updateItem(ModelItemPtr item, bool forced)
 
   return updated || hierarchiesUpdated;
   */
-}
+//  return false;
+//}
 
 //-----------------------------------------------------------------------------
-bool VolumetricRenderer::removeItem(ModelItemPtr item)
-{
-   if (EspINA::SEGMENTATION != item->type())
-     return false;
-
-   SegmentationPtr seg = segmentationPtr(item);
-   if(!m_segmentations.contains(seg))
-     return false;
-
-   if (m_enable && m_segmentations[seg].visible)
-   {
-     m_renderer->RemoveVolume(m_segmentations[seg].volume);
-     m_picker->DeletePickList(m_segmentations[seg].volume);
-   }
-
-   if (m_segmentations[seg].actorPropertyBackup)
-     m_segmentations[seg].actorPropertyBackup = NULL;
-
-   m_segmentations[seg].volume->Delete();
-   m_segmentations.remove(seg);
-
-   return true;
-}
+//bool VolumetricRenderer::removeItem(ModelItemPtr item)
+//{
+//   if (EspINA::SEGMENTATION != item->type())
+//     return false;
+//
+//   SegmentationPtr seg = segmentationPtr(item);
+//   if(!m_segmentations.contains(seg))
+//     return false;
+//
+//   if (m_enable && m_segmentations[seg].visible)
+//   {
+//     m_renderer->RemoveVolume(m_segmentations[seg].volume);
+//     m_picker->DeletePickList(m_segmentations[seg].volume);
+//   }
+//
+//   if (m_segmentations[seg].actorPropertyBackup)
+//     m_segmentations[seg].actorPropertyBackup = NULL;
+//
+//   m_segmentations[seg].volume->Delete();
+//   m_segmentations.remove(seg);
+//
+//   return true;
+//}
 
 //-----------------------------------------------------------------------------
 void VolumetricRenderer::hide()
 {
-  if (!m_enable)
-    return;
+    if (!m_enable)
+      return;
 
-  QMap<ModelItemPtr, Representation>::iterator it;
+    foreach(GraphicalRepresentationSPtr rep, m_representations)
+      rep->setVisible(false);
 
-  for (it = m_segmentations.begin(); it != m_segmentations.end(); ++it)
-    if ((*it).visible)
-    {
-      m_renderer->RemoveVolume((*it).volume);
-      m_picker->DeletePickList((*it).volume);
-      (*it).visible = false;
-    }
-
-  emit renderRequested();
+    emit renderRequested();
 }
 
 //-----------------------------------------------------------------------------
 void VolumetricRenderer::show()
 {
-  if (m_enable)
+  if (!m_enable)
     return;
 
-  QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-
-  QMap<ModelItemPtr, Representation>::iterator it;
-
-  for (it = m_segmentations.begin(); it != m_segmentations.end(); ++it)
-  {
-    SegmentationPtr seg = segmentationPtr(it.key());
-    if(seg->visible())
-      updateItem(seg, true);
-  }
+  foreach(GraphicalRepresentationSPtr rep, m_representations)
+    rep->setVisible(true);
 
   emit renderRequested();
-  QApplication::restoreOverrideCursor();
 }
 
 //-----------------------------------------------------------------------------
-void VolumetricRenderer::createHierarchyProperties(SegmentationPtr seg)
+GraphicalRepresentationSList VolumetricRenderer::pick(int x, int y, bool repeat)
 {
-  m_segmentations[seg].actorPropertyBackup = m_segmentations[seg].volume->GetProperty();
-  m_segmentations[seg].overridden = true;
-
-  QColor color = m_segmentations[seg].color;
-  double rgb[3], hsv[3] = { 0.0, 0.0, 0.0 };
-
-  vtkSmartPointer<vtkColorTransferFunction> hierarchyColor = vtkSmartPointer<vtkColorTransferFunction>::New();
-  hierarchyColor->AllowDuplicateScalarsOff();
-  rgb[0] = color.redF();
-  rgb[1] = color.greenF();
-  rgb[2] = color.blueF();
-  vtkMath::RGBToHSV(rgb,hsv);
-  hierarchyColor->AddHSVPoint(255, hsv[0], hsv[1], seg->isSelected() ? 1.0 : 0.6);
-
-  vtkSmartPointer<vtkPiecewiseFunction> hierarchyPiecewise = vtkSmartPointer<vtkPiecewiseFunction>::New();
-  hierarchyPiecewise->AddPoint(0, 0.0);
-  switch(seg->getHierarchyRenderingType())
-  {
-    case HierarchyItem::Opaque:
-      hierarchyPiecewise->AddPoint(255, 1.0);
-      if (m_enable && !m_segmentations[seg].visible)
-      {
-        m_segmentations[seg].visible = true;
-        m_renderer->AddVolume(m_segmentations[seg].volume);
-        m_picker->AddPickList(m_segmentations[seg].volume);
-      }
-      break;
-    case HierarchyItem::Translucent:
-      hierarchyPiecewise->AddPoint(255, 0.3);
-      if (m_enable && !m_segmentations[seg].visible)
-      {
-        m_segmentations[seg].visible = true;
-        m_renderer->AddVolume(m_segmentations[seg].volume);
-        m_picker->AddPickList(m_segmentations[seg].volume);
-      }
-      break;
-    case HierarchyItem::Hidden:
-      if (m_enable && m_segmentations[seg].visible)
-      {
-        m_segmentations[seg].visible = false;
-        m_renderer->RemoveVolume(m_segmentations[seg].volume);
-        m_picker->DeletePickList(m_segmentations[seg].volume);
-      }
-      break;
-    case HierarchyItem::Undefined:
-      break;
-    default:
-      Q_ASSERT(false);
-      break;
-  }
-
-  vtkSmartPointer<vtkVolumeProperty> hierarchyProperty = vtkSmartPointer<vtkVolumeProperty>::New();
-  hierarchyProperty->SetColor(hierarchyColor);
-  hierarchyProperty->SetScalarOpacity(hierarchyPiecewise);
-  hierarchyProperty->DisableGradientOpacityOff();
-  hierarchyProperty->SetSpecular(0.5);
-  hierarchyProperty->ShadeOn();
-  hierarchyProperty->SetInterpolationTypeToLinear();
-
-  m_segmentations[seg].volume->SetProperty(hierarchyProperty);
-}
-
-//-----------------------------------------------------------------------------
-bool VolumetricRenderer::updateHierarchyProperties(SegmentationPtr seg)
-{
-  Q_ASSERT(m_segmentations[seg].actorPropertyBackup != NULL);
-  bool updated = false;
-
-  vtkSmartPointer<vtkVolumeProperty> volumeProperty = NULL;
-  if (seg->OverridesRendering() != m_segmentations[seg].overridden)
-  {
-    volumeProperty = m_segmentations[seg].volume->GetProperty();
-    m_segmentations[seg].volume->SetProperty(m_segmentations[seg].actorPropertyBackup);
-    m_segmentations[seg].actorPropertyBackup = volumeProperty;
-    m_segmentations[seg].volume->Modified();
-    m_segmentations[seg].overridden = seg->OverridesRendering();
-    updated = true;
-  }
-
-  if (!seg->OverridesRendering())
-    return true;
-
-  volumeProperty = m_segmentations[seg].volume->GetProperty();
-  if (m_segmentations[seg].color != m_viewManager->color(seg))
-  {
-    QColor color = m_viewManager->color(seg);
-    vtkColorTransferFunction *hierarchyColor = volumeProperty->GetRGBTransferFunction();
-    double rgb[3] = { color.redF(), color.greenF(), color.blueF() };
-    double hsv[3] = { 0.0, 0.0, 0.0 };
-    vtkMath::RGBToHSV(rgb, hsv);
-    hierarchyColor->AddHSVPoint(255, hsv[0], hsv[1], m_segmentations[seg].selected ? 1.0 : 0.6);
-    hierarchyColor->Modified();
-    updated = true;
-  }
-
-  if (seg->getHierarchyRenderingType() != m_segmentations[seg].renderingType)
-  {
-    m_segmentations[seg].renderingType = seg->getHierarchyRenderingType();
-    vtkPiecewiseFunction *hierarchyPiecewise = volumeProperty->GetGradientOpacity();
-    switch (m_segmentations[seg].renderingType)
-    {
-      case HierarchyItem::Opaque:
-        hierarchyPiecewise->AddPoint(255, 1.0);
-        if (m_enable && !m_segmentations[seg].visible)
-        {
-          m_segmentations[seg].visible = true;
-          m_renderer->AddVolume(m_segmentations[seg].volume);
-          m_picker->AddPickList(m_segmentations[seg].volume);
-        }
-        break;
-      case HierarchyItem::Translucent:
-        hierarchyPiecewise->AddPoint(255, 0.3);
-        if (m_enable && !m_segmentations[seg].visible)
-        {
-          m_segmentations[seg].visible = true;
-          m_renderer->AddVolume(m_segmentations[seg].volume);
-          m_picker->AddPickList(m_segmentations[seg].volume);
-        }
-        break;
-      case HierarchyItem::Hidden:
-        if (m_enable && m_segmentations[seg].visible)
-        {
-          m_segmentations[seg].visible = false;
-          m_renderer->RemoveVolume(m_segmentations[seg].volume);
-          m_picker->DeletePickList(m_segmentations[seg].volume);
-        }
-        break;
-      case HierarchyItem::Undefined:
-        break;
-      default:
-        Q_ASSERT(false);
-        break;
-    }
-    updated = true;
-  }
-
-  if (updated)
-    m_segmentations[seg].volume->Modified();
-
-  return updated;
-}
-
-//-----------------------------------------------------------------------------
-ViewManager::Selection VolumetricRenderer::pick(int x, int y, bool repeat)
-{
-  ViewManager::Selection selection;
+  GraphicalRepresentationSList selection;
   QList<vtkVolume *> removedProps;
 
   if (m_renderer)
   {
-    while (m_picker->Pick(x,y,0, m_renderer))
+    while (m_picker->Pick(x, y, 0, m_renderer))
     {
-      vtkVolume *pickedVol = m_picker->GetVolume();
-      Q_ASSERT(pickedVol);
+      vtkVolume *pickedProp = m_picker->GetVolume();
+      Q_ASSERT(pickedProp);
 
-      // can't get the key just for this value, as it's not a representation, must iterate.
-      QMap<ModelItemPtr, Representation>::iterator it = m_segmentations.begin();
-      while (it != m_segmentations.end())
-      {
-        if ((*it).volume == pickedVol)
+      m_picker->GetPickList()->RemoveItem(pickedProp);
+      removedProps << pickedProp;
+
+      foreach(GraphicalRepresentationSPtr rep, m_representations)
+        if (rep->hasActor(pickedProp))
         {
-          selection << segmentationPtr(it.key());
-          removedProps << pickedVol;
-          m_picker->GetPickList()->RemoveItem(pickedVol);
+          selection << rep;
           break;
         }
-        ++it;
-      }
 
       if (!repeat)
         break;

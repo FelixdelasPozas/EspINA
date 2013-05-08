@@ -22,6 +22,7 @@
 
 #include <QMap>
 #include <GUI/Renderers/Renderer.h>
+#include <Core/Model/Output.h>
 
 class vtkAbstractWidget;
 
@@ -50,15 +51,17 @@ namespace EspINA
     virtual void show();
     virtual unsigned int getNumberOfvtkActors();
 
-    virtual bool addItem   (ModelItemPtr item){return false;}
-    virtual bool updateItem(ModelItemPtr item, bool forced = false){return false;}
-    virtual bool removeItem(ModelItemPtr item){return false;}
+    virtual void addRepresentation(GraphicalRepresentationSPtr rep) {};
+    virtual void removeRepresentation(GraphicalRepresentationSPtr rep) {};
+    virtual bool hasRepresentation(GraphicalRepresentationSPtr rep) { return false; };
+    virtual bool managesRepresentation(GraphicalRepresentationSPtr rep) { return false; };
 
     virtual IRendererSPtr clone();
 
     virtual int itemsBeenRendered() { return m_cfCount; }
 
-    virtual ViewManager::Selection pick(int x, int y, bool repeat) { ViewManager::Selection emptySelection; return emptySelection; }
+    virtual GraphicalRepresentationSList pick(int x, int y, bool repeat) { return GraphicalRepresentationSList(); }
+    virtual void getPickCoordinates(Nm *point) {};
 
   public slots:
     void countingFrameCreated(CountingFrame *cf);
