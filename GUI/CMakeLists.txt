@@ -19,8 +19,11 @@ qt4_wrap_cpp(GUI_MOC
   QtWidget/SegmentationContextualMenu.h
   QtWidget/SliceView.h
   QtWidget/VolumeView.h
+  Representations/IMeshRepresentation.h
   Representations/SliceRepresentation.h
-  Representations/MeshRepresentation.h
+  Representations/SimpleMeshRepresentation.h
+  Representations/SmoothedMeshRepresentation.h
+  Representations/VolumeRaycastRepresentation.h
   Renderers/Renderer.h
   Renderers/MeshRenderer.h
   Renderers/SmoothedMeshRenderer.h
@@ -61,8 +64,11 @@ set (GUI_SOURCES
   QtWidget/VolumeView.cpp
   QtWidget/vtkInteractorStyleEspinaSlice.cpp
   Representations/GraphicalRepresentation.cpp
+  Representations/IMeshRepresentation.cpp
   Representations/SliceRepresentation.cpp
-  Representations/MeshRepresentation.cpp 
+  Representations/SimpleMeshRepresentation.cpp
+  Representations/SmoothedMeshRepresentation.cpp
+  Representations/VolumeRaycastRepresentation.cpp 
   Renderers/CrosshairRenderer.cpp
   Renderers/MeshRenderer.cpp
   Renderers/SmoothedMeshRenderer.cpp

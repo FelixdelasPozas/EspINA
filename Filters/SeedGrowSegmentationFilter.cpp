@@ -22,7 +22,6 @@
 #include <Core/Outputs/VolumeProxy.h>
 #include <Core/Outputs/MeshProxy.h>
 #include <GUI/Representations/SliceRepresentation.h>
-#include <GUI/Representations/MeshRepresentation.h>
 
 #include <QDebug>
 

@@ -30,6 +30,8 @@ namespace EspINA
     typedef itkVolumeType::RegionType VolumeRegion;
 
   public:
+    virtual ~VolumeRepresentation() {}
+
     virtual void setVolume(itkVolumeType::Pointer volume, bool disconnect=false) = 0;
 
     /// Volume's voxel's index at given spatial position

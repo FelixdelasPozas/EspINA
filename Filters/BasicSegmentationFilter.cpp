@@ -26,7 +26,9 @@
 #include <Core/Model/MarchingCubesMesh.h>
 
 #include <GUI/Representations/SliceRepresentation.h>
-#include <GUI/Representations/MeshRepresentation.h>
+#include <GUI/Representations/SimpleMeshRepresentation.h>
+#include <GUI/Representations/SmoothedMeshRepresentation.h>
+#include <GUI/Representations/VolumeRaycastRepresentation.h>
 
 using namespace EspINA;
 
@@ -54,9 +56,9 @@ void BasicSegmentationFilter::createOutputRepresentations(SegmentationOutputSPtr
   SegmentationVolumeSPtr volumeRep = segmentationVolume(output);
   MeshTypeSPtr           meshRep   = meshOutput(output);
   output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new SegmentationSliceRepresentation(volumeRep, NULL)));
-  output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new MeshRepresentation(meshRep, NULL)));
-//   output->addRepresentation(GraphicalRepresentationSPtr(new MeshRepresentation  (meshOutput  (output))));
-//   output->addRepresentation(GraphicalRepresentationSPtr(new SmoothRepresentation(meshOutput  (output))));
+  output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new SimpleMeshRepresentation(meshRep, NULL)));
+  output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new SmoothedMeshRepresentation(meshRep, NULL)));
+  output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new VolumeRaycastRepresentation(volumeRep, NULL)));
 }
 
 //-----------------------------------------------------------------------------

@@ -587,6 +587,7 @@ bool VolumeView::updateSegmentationRepresentation(SegmentationPtr seg, bool rend
     state.output    = seg->output();
   }
 
+  // TODO: rep visibility not handled well
   if (outputChanged)
   {
     state.representations.clear();
@@ -599,7 +600,10 @@ bool VolumeView::updateSegmentationRepresentation(SegmentationPtr seg, bool rend
 
         foreach(IRendererSPtr renderer, m_itemRenderers)
           if (renderer->itemCanBeRendered(seg) && renderer->managesRepresentation(representation))
+          {
+            representation->setVisible( (renderer->isHidden() ? false : requestedVisibility) );
             renderer->addRepresentation(representation);
+          }
 
         state.representations << boost::dynamic_pointer_cast<SegmentationGraphicalRepresentation>(representation);
       }
@@ -613,7 +617,7 @@ bool VolumeView::updateSegmentationRepresentation(SegmentationPtr seg, bool rend
     {
       if (colorChanged)      representation->setColor(m_viewManager->color(seg));
       if (highlightChanged)  representation->setHighlighted(state.highlited);
-      if (visibilityChanged) representation->setVisible(state.visible);
+      if (visibilityChanged && representation->isVisible()) representation->setVisible(state.visible);
 
       representation->updateRepresentation();
     }
@@ -806,7 +810,6 @@ void VolumeView::updateView()
 {
   if(isVisible())
   {
-//     qDebug() << "Render Volume View";
     this->m_view->GetRenderWindow()->Render();
     this->m_view->update();
   }
@@ -836,7 +839,6 @@ void VolumeView::selectPickedItems(int vx, int vy, bool append)
                 selection << seg;
               else
                 selection.removeAll(seg);
-
             }
       }
     }
@@ -1371,12 +1373,12 @@ void VolumeView::updateScrollBarsLimits()
 void VolumeView::addActor(vtkProp3D *actor)
 {
   m_renderer->AddActor(actor);
-  m_meshPicker->GetPickList()->AddItem(actor);
+//  m_meshPicker->GetPickList()->AddItem(actor);
 }
 
 //-----------------------------------------------------------------------------
 void VolumeView::removeActor(vtkProp3D *actor)
 {
   m_renderer->RemoveActor(actor);
-  m_meshPicker->GetPickList()->RemoveItem(actor);
+//  m_meshPicker->GetPickList()->RemoveItem(actor);
 }

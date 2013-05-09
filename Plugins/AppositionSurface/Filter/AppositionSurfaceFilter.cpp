@@ -14,7 +14,7 @@
 #include <Core/Outputs/RawMesh.h>
 #include <Core/Outputs/RasterizedVolume.h>
 #include <GUI/Representations/SliceRepresentation.h>
-#include <GUI/Representations/MeshRepresentation.h>
+#include <GUI/Representations/SimpleMeshRepresentation.h>
 
 // Qt
 #include <QtGlobal>
@@ -102,7 +102,7 @@ void AppositionSurfaceFilter::createOutputRepresentations(SegmentationOutputSPtr
   SegmentationVolumeSPtr volumeRep = segmentationVolume(output);
   MeshTypeSPtr           meshRep   = meshOutput(output);
   output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new SegmentationSliceRepresentation(volumeRep, NULL)));
-  output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new MeshRepresentation(meshRep, NULL)));
+  output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new SimpleMeshRepresentation(meshRep, NULL)));
 }
 
 //----------------------------------------------------------------------------

@@ -17,8 +17,8 @@
  */
 
 // EspINA
-#include "GUI/Representations/MeshRepresentation.h"
-#include "GUI/QtWidget/VolumeView.h"
+#include "GUI/Representations/SimpleMeshRepresentation.h"
+#include <GUI/QtWidget/VolumeView.h>
 #include <Core/ColorEngines/TransparencySelectionHighlighter.h>
 
 // VTK
@@ -29,78 +29,24 @@
 
 namespace EspINA
 {
-  TransparencySelectionHighlighter *MeshRepresentation::s_highlighter = new TransparencySelectionHighlighter();
 
   //-----------------------------------------------------------------------------
-  MeshRepresentation::MeshRepresentation(MeshTypeSPtr mesh, EspinaRenderView *view)
-  : SegmentationGraphicalRepresentation(view)
-  , m_data(mesh)
+  SimpleMeshRepresentation::SimpleMeshRepresentation(MeshTypeSPtr mesh, EspinaRenderView *view)
+  : IMeshRepresentation(mesh, view)
   {
   }
 
   //-----------------------------------------------------------------------------
-  MeshRepresentation::~MeshRepresentation()
+  GraphicalRepresentationSPtr SimpleMeshRepresentation::clone(VolumeView *view)
   {
-    if (m_view)
-      m_view->removeActor(m_actor);
-  }
-
-  //-----------------------------------------------------------------------------
-  void MeshRepresentation::setColor(const QColor &color)
-  {
-    SegmentationGraphicalRepresentation::setColor(color);
-
-    LUTPtr colors = s_highlighter->lut(m_color, m_highlight);
-    
-    double *rgba = colors->GetTableValue(1);
-    m_actor->GetProperty()->SetColor(rgba[0], rgba[1], rgba[2]);
-    m_actor->GetProperty()->SetOpacity(rgba[3]);
-  }
-  
-  //-----------------------------------------------------------------------------
-  void MeshRepresentation::setHighlighted(bool highlighted)
-  {
-    GraphicalRepresentation::setHighlighted(highlighted);
-
-    LUTPtr colors = s_highlighter->lut(m_color, m_highlight);
-
-    double *rgba = colors->GetTableValue(1);
-    m_actor->GetProperty()->SetColor(rgba[0], rgba[1], rgba[2]);
-    m_actor->GetProperty()->SetOpacity(rgba[3]);
-  }
-
-  //-----------------------------------------------------------------------------
-  void MeshRepresentation::setVisible(bool visible)
-  {
-    SegmentationGraphicalRepresentation::setVisible(visible);
-
-    m_actor->SetVisibility(m_visible);
-  }
-
-  //-----------------------------------------------------------------------------
-  bool MeshRepresentation::hasActor(vtkProp *actor) const
-  {
-    return m_actor.GetPointer() == actor;
-  }
-
-  //-----------------------------------------------------------------------------
-  bool MeshRepresentation::isInside(Nm *point)
-  {
-    // FIXME: unused now, buy maybe useful in the future
-    return false;
-  }
-
-  //-----------------------------------------------------------------------------
-  GraphicalRepresentationSPtr MeshRepresentation::clone(VolumeView *view)
-  {
-    MeshRepresentation *representation = new MeshRepresentation(m_data, view);
+    SimpleMeshRepresentation *representation = new SimpleMeshRepresentation(m_data, view);
     representation->initializePipeline(view);
 
     return GraphicalRepresentationSPtr(representation);
   }
 
   //-----------------------------------------------------------------------------
-  void MeshRepresentation::initializePipeline(VolumeView *view)
+  void SimpleMeshRepresentation::initializePipeline(VolumeView *view)
   {
     connect(m_data.get(), SIGNAL(representationChanged()),
             this, SLOT(updatePipelineConnections()));
@@ -128,15 +74,18 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  void MeshRepresentation::updateRepresentation()
+  void SimpleMeshRepresentation::updateRepresentation()
   {
-    m_mapper->Update();
-    m_actor->GetProperty()->Modified();
-    m_actor->Modified();
+    if (m_visible)
+    {
+      m_mapper->Update();
+      m_actor->GetProperty()->Modified();
+      m_actor->Modified();
+    }
   }
 
   //-----------------------------------------------------------------------------
-  void MeshRepresentation::updatePipelineConnections()
+  void SimpleMeshRepresentation::updatePipelineConnections()
   {
     if (m_mapper->GetInputConnection(0,0) != m_data->mesh())
     {

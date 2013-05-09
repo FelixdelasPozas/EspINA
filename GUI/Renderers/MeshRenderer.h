@@ -20,21 +20,13 @@
 #define MESHRENDERER_H
 
 // EspINA
-#include "GUI/Renderers/Renderer.h"
+#include "Renderer.h"
 #include "GUI/Representations/GraphicalRepresentation.h"
-#include <Core/Model/HierarchyItem.h>
 #include <Core/Model/Output.h>
-
-// Qt
-#include <QMap>
 
 // VTK
 #include <vtkSmartPointer.h>
 
-class vtkImageConstantPad;
-class vtkProperty;
-class vtkPolyDataMapper;
-class vtkActor;
 class vtkPropPicker;
 
 namespace EspINA
@@ -47,10 +39,11 @@ namespace EspINA
     Q_OBJECT
     public:
       explicit MeshRenderer(QObject* parent = 0);
+      virtual ~MeshRenderer() {};
 
-      virtual const QIcon icon()      const  { return QIcon(":/espina/mesh.png"); }
-      virtual const QString name()    const  { return "Mesh"; }
-      virtual const QString tooltip() const  { return "Segmentation's Meshes"; }
+      virtual const QIcon icon()      const   { return QIcon(":/espina/mesh.png"); }
+      virtual const QString name()    const   { return "Mesh"; }
+      virtual const QString tooltip() const   { return "Segmentation's Meshes"; }
 
       virtual void addRepresentation(GraphicalRepresentationSPtr rep);
       virtual void removeRepresentation(GraphicalRepresentationSPtr rep);
@@ -64,13 +57,13 @@ namespace EspINA
 
       virtual IRendererSPtr clone()           { return IRendererSPtr(new MeshRenderer()); }
 
-      virtual RenderedItems getRendererType() { return RenderedItems(IRenderer::SEGMENTATION); };
-      virtual int itemsBeenRendered()         { return m_representations.size(); };
+      virtual RenderedItems getRendererType() { return RenderedItems(IRenderer::SEGMENTATION); }
+      virtual int itemsBeenRendered()         { return m_representations.size();               }
 
       virtual GraphicalRepresentationSList pick(int x, int y, bool repeat);
       virtual void getPickCoordinates(Nm *point);
 
-    private:
+    protected:
       vtkSmartPointer<vtkPropPicker> m_picker;
   };
 

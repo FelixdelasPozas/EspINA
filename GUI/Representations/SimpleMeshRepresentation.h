@@ -20,48 +20,23 @@
 #define MESHREPRESENTATION_H_
 
 // EspINA
-#include <GUI/Representations/GraphicalRepresentation.h>
-#include <GUI/QtWidget/EspinaRenderView.h>
-#include <Core/Outputs/MeshType.h>
-
-// VTK
-#include <vtkSmartPointer.h>
-
-
-class vtkPolyDataMapper;
-class vtkActor;
+#include "IMeshRepresentation.h"
 
 namespace EspINA
 {
   class TransparencySelectionHighlighter;
   class VolumeView;
   
-  class MeshRepresentation
-  : public SegmentationGraphicalRepresentation
+  class SimpleMeshRepresentation
+  : public IMeshRepresentation
   {
     Q_OBJECT
     public:
-      explicit MeshRepresentation(MeshTypeSPtr data,
+      explicit SimpleMeshRepresentation(MeshTypeSPtr data,
                                   EspinaRenderView *view);
-      virtual ~MeshRepresentation();
-
-      virtual void setColor(const QColor &color);
-
-      virtual void setHighlighted(bool highlighted);
-
-      virtual void setVisible(bool visible);
-
-      virtual bool isInside(Nm point[3]);
-
-      virtual RenderableView canRenderOnView() const
-      { return GraphicalRepresentation::VOLUME_VIEW; }
-
-      virtual GraphicalRepresentationSPtr clone(SliceView *view)
-      { return GraphicalRepresentationSPtr(); }
+      virtual ~SimpleMeshRepresentation() {};
 
       virtual GraphicalRepresentationSPtr clone(VolumeView *view);
-
-      virtual bool hasActor(vtkProp *actor) const;
 
       virtual void updateRepresentation();
 
@@ -70,19 +45,10 @@ namespace EspINA
 
     private:
       void initializePipeline(VolumeView *view);
+  };
 
-    private:
-      MeshTypeSPtr m_data;
-
-      vtkSmartPointer<vtkPolyDataMapper> m_mapper;
-      vtkSmartPointer<vtkActor>          m_actor;
-
-      static TransparencySelectionHighlighter *s_highlighter;
-    };
-
-
-  typedef boost::shared_ptr<MeshRepresentation> MeshRepresentationSPtr;
-  typedef QList<MeshRepresentationSPtr> MeshRepresentationList;
+  typedef boost::shared_ptr<SimpleMeshRepresentation> SimpleMeshRepresentationSPtr;
+  typedef QList<SimpleMeshRepresentationSPtr> MeshRepresentationSList;
 
 } /* namespace EspINA */
 #endif /* MESHREPRESENTATION_H_ */

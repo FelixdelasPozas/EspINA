@@ -20,23 +20,15 @@
 #ifndef VOLUMETRICRENDERER_H
 #define VOLUMETRICRENDERER_H
 
+// EspINA
+#include "GUI/Renderers/Renderer.h"
+#include "GUI/Representations/VolumeRaycastRepresentation.h"
+
 // VTK
-#include <vtkVolume.h>
-#include <vtkSmartPointer.h>
 #include <vtkVolumePicker.h>
 
-// EspINA
-#include <Core/Model/HierarchyItem.h>
-#include "GUI/Renderers/Renderer.h"
-
-// Qt
-#include <QMap>
-
-class vtkVolumeProperty;
 namespace EspINA
 {
-  class ViewManager;
-
   class VolumetricRenderer
   : public IRenderer
   {
@@ -47,10 +39,10 @@ namespace EspINA
     virtual const QString name() const {return "Volumetric";}
     virtual const QString tooltip() const {return "Segmentation's Volumes";}
 
-    virtual void addRepresentation(GraphicalRepresentationSPtr rep) {};
-    virtual void removeRepresentation(GraphicalRepresentationSPtr rep) {};
-    virtual bool hasRepresentation(GraphicalRepresentationSPtr rep) { return false; };
-    virtual bool managesRepresentation(GraphicalRepresentationSPtr rep) { return false; };
+    virtual void addRepresentation(GraphicalRepresentationSPtr rep);
+    virtual void removeRepresentation(GraphicalRepresentationSPtr rep);
+    virtual bool hasRepresentation(GraphicalRepresentationSPtr rep);
+    virtual bool managesRepresentation(GraphicalRepresentationSPtr rep);
 
     virtual void hide();
     virtual void show();

@@ -27,7 +27,9 @@
 #include <Core/Outputs/VolumeProxy.h>
 #include <Core/Outputs/MeshProxy.h>
 #include <GUI/Representations/SliceRepresentation.h>
-#include <GUI/Representations/MeshRepresentation.h>
+#include <GUI/Representations/SimpleMeshRepresentation.h>
+#include <GUI/Representations/SmoothedMeshRepresentation.h>
+#include <GUI/Representations/VolumeRaycastRepresentation.h>
 
 // Qt
 #include <QApplication>
@@ -320,8 +322,7 @@ void SegmhaImporterFilter::createDummyOutput(FilterOutputId id, const FilterOutp
 void SegmhaImporterFilter::createOutputRepresentations(SegmentationOutputSPtr output)
 {
   output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new SegmentationSliceRepresentation(segmentationVolume(output), NULL)));
-  output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new MeshRepresentation(meshOutput(output), NULL)));
-//   output->addRepresentation(GraphicalRepresentationSPtr(new VolumeReprentation  (volumeOutput(output))));
-//   output->addRepresentation(GraphicalRepresentationSPtr(new MeshRepresentation  (meshOutput  (output))));
-//   output->addRepresentation(GraphicalRepresentationSPtr(new SmoothRepresentation(meshOutput  (output))));
+  output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new SimpleMeshRepresentation(meshOutput(output), NULL)));
+  output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new SmoothedMeshRepresentation(meshOutput(output), NULL)));
+  output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new VolumeRaycastRepresentation(segmentationVolume(output), NULL)));
 }

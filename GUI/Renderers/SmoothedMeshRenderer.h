@@ -22,9 +22,6 @@
 // EspINA
 #include "MeshRenderer.h"
 
-class vtkDecimatePro;
-class vtkProperty;
-
 namespace EspINA
 {
   class ViewManager;
@@ -36,21 +33,17 @@ namespace EspINA
     public:
       explicit SmoothedMeshRenderer(QObject* parent = 0);
 
-      virtual const QIcon icon() const      { return QIcon(":/espina/smoothedmesh.png"); }
-      virtual const QString name() const    { return "Smoothed Mesh"; }
+      virtual const QIcon icon()      const { return QIcon(":/espina/smoothedmesh.png"); }
+      virtual const QString name()    const { return "Smoothed Mesh"; }
       virtual const QString tooltip() const { return "Segmentation's Smoothed Meshes"; }
 
-      virtual void addRepresentation(GraphicalRepresentationSPtr rep) {};
-      virtual void removeRepresentation(GraphicalRepresentationSPtr rep) {};
-      virtual bool hasRepresentation(GraphicalRepresentationSPtr rep) { return false; };
-      virtual bool managesRepresentation(GraphicalRepresentationSPtr rep) { return false; };
+      virtual void addRepresentation(GraphicalRepresentationSPtr rep);
+      virtual void removeRepresentation(GraphicalRepresentationSPtr rep);
+      virtual bool managesRepresentation(GraphicalRepresentationSPtr rep);
 
-      virtual IRendererSPtr clone()   { return IRendererSPtr(new SmoothedMeshRenderer()); }
-
-    private:
-      QMap<ModelItemPtr, vtkSmartPointer<vtkDecimatePro> > m_decimate;
+      virtual IRendererSPtr clone()         { return IRendererSPtr(new SmoothedMeshRenderer()); }
   };
 
-
 } /* namespace EspINA */
+
 #endif /* SMOOTHEDMESHRENDERER_H_ */

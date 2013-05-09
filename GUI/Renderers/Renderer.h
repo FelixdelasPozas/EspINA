@@ -39,6 +39,7 @@ namespace EspINA
   /// Base class which define the API to render and manage
   /// item visibily in Espina Views (currently only supported
   /// for VolumeView class)
+
   class IRenderer
   : public QObject
   {
