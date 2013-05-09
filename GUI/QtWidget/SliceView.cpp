@@ -989,6 +989,7 @@ bool SliceView::updateSegmentationRepresentation(SegmentationPtr seg, bool rende
 
   if (render)
   {
+    //qDebug() << "Single Rep Update ==> Render";
     m_view->GetRenderWindow()->Render();
     m_view->update();
   }
@@ -1010,10 +1011,11 @@ void SliceView::updateSegmentationRepresentations(SegmentationList list)
 
     bool needRender = false;
     foreach(SegmentationPtr seg, updateSegmentations)
-      needRender |= updateSegmentationRepresentation(seg);
+      needRender |= updateSegmentationRepresentation(seg, false);
 
     if (needRender)
     {
+      //qDebug() << "Update Segmentations ==> Render";
       m_view->GetRenderWindow()->Render();
       m_view->update();
     }
@@ -1178,6 +1180,8 @@ void SliceView::sliceViewCenterChanged(Nm x, Nm y, Nm z)
 //-----------------------------------------------------------------------------
 void SliceView::scrollValueChanged(int value /*slice index */)
 {
+  // WARNING: Any modification to this method must be taken into account
+  // at the end block of setSlicingStep
   m_crosshairPoint[m_plane] = voxelCenter(value, m_plane);
 
   m_state->setSlicingPosition(m_slicingMatrix, voxelBottom(value, m_plane));
@@ -1187,6 +1191,7 @@ void SliceView::scrollValueChanged(int value /*slice index */)
   m_spinBox->blockSignals(false);
 
   updateView();
+
   emit sliceChanged(m_plane, slicingPosition());
 }
 
@@ -1684,7 +1689,21 @@ void SliceView::setSlicingStep(const Nm steps[3])
     m_spinBox->setSingleStep(m_slicingStep[m_plane]);
 
   m_scrollBar->setValue(sliceIndex);
-  scrollValueChanged(sliceIndex); // Updates spin box's value
+
+  {
+    // We want to avoid the view update while loading channels
+    // on scrollValueChanged(sliceIndex)
+    m_crosshairPoint[m_plane] = voxelCenter(sliceIndex, m_plane);
+
+    m_state->setSlicingPosition(m_slicingMatrix, voxelBottom(sliceIndex, m_plane));
+
+    m_spinBox->blockSignals(true);
+    m_spinBox->setValue(m_fitToSlices ? sliceIndex + 1: slicingPosition());
+    m_spinBox->blockSignals(false);
+
+    emit sliceChanged(m_plane, slicingPosition());
+    //scrollValueChanged(sliceIndex); // Updates spin box's value
+  }
 }
 
 //-----------------------------------------------------------------------------

@@ -95,6 +95,7 @@ void SeedGrowSegmentationFilter::run()
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentationFilter::run(FilterOutputId oId)
 {
+  qDebug() << "Run SGS";
   Q_ASSERT(0 == oId);
   Q_ASSERT(m_inputs.size() == 1);
 
