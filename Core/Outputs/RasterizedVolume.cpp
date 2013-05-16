@@ -23,14 +23,24 @@
 #include <vtkAlgorithmOutput.h>
 #include <vtkPolyData.h>
 
+#include <QDebug>
+
 using namespace EspINA;
 
 //----------------------------------------------------------------------------
-RasterizedVolume::RasterizedVolume(vtkSmartPointer<vtkPolyData> mesh, itk::Image< unsigned int, 3 >::SpacingType spacing, FilterOutput *output)
+RasterizedVolume::RasterizedVolume(MeshTypeSPtr mesh, FilterOutput *output)
 : RawSegmentationVolume(output)
-, m_mesh(mesh)
-, m_spacing(spacing)
+, m_mesh(dynamic_cast<vtkPolyData *>(mesh->mesh()->GetProducer()->GetOutputDataObject(0)))
+, m_spacing(mesh->spacing())
 {
+}
+
+//----------------------------------------------------------------------------
+bool RasterizedVolume::dumpSnapshot(const QString &prefix, Snapshot &snapshot) const
+{
+  updateITKVolume();
+
+  return RawSegmentationVolume::dumpSnapshot(prefix, snapshot);
 }
 
 //----------------------------------------------------------------------------
@@ -44,14 +54,7 @@ const itkVolumeType::Pointer RasterizedVolume::toITK() const
 {
   Q_ASSERT(m_mesh);
 
-  if (m_volume.IsNull() || (m_vtkExporter == NULL) || m_vtkExporter->GetInputConnection(0,0) != m_vtkVolume)
-    transformVTK2ITK();
-  else
-    if (m_vtkVolume->GetMTime() != m_ITKGenerationTime)
-    {
-      m_volume->Update();
-      m_ITKGenerationTime = m_vtkVolume->GetMTime();
-    }
+  updateITKVolume();
 
   return m_volume;
 }
@@ -80,6 +83,7 @@ const vtkAlgorithmOutput *RasterizedVolume::toVTK() const
 //----------------------------------------------------------------------------
 void RasterizedVolume::rasterize(double *imageBounds) const
 {
+  qDebug() << "Rasterize Volume from Mesh";
   if (m_vtkVolume != NULL &&
       m_rasterizationTime == m_mesh->GetMTime() &&
       memcmp(imageBounds, m_rasterizationBounds, 6*sizeof(double)) == 0)
@@ -141,7 +145,7 @@ void RasterizedVolume::transformVTK2ITK() const
 {
   if (NULL == m_vtkVolume)
     toVTK();
-  
+
   if (m_itkImporter.IsNotNull())
   {
     if (m_vtkExporter->GetInputConnection(0,0) != m_vtkVolume)
@@ -149,16 +153,16 @@ void RasterizedVolume::transformVTK2ITK() const
       m_vtkExporter->SetInputConnection(m_vtkVolume);
       m_vtkExporter->Modified();
     }
-    
+
     m_volume->Update();
   }
   else
   {
     m_itkImporter = itkImageImporter::New();
     m_vtkExporter = vtkImageExport::New();
-    
+
     m_vtkExporter->SetInputConnection(m_vtkVolume);
-    
+
     m_itkImporter->SetUpdateInformationCallback(m_vtkExporter->GetUpdateInformationCallback());
     m_itkImporter->SetPipelineModifiedCallback(m_vtkExporter->GetPipelineModifiedCallback());
     m_itkImporter->SetWholeExtentCallback(m_vtkExporter->GetWholeExtentCallback());
@@ -172,12 +176,29 @@ void RasterizedVolume::transformVTK2ITK() const
     m_itkImporter->SetBufferPointerCallback(m_vtkExporter->GetBufferPointerCallback());
     m_itkImporter->SetCallbackUserData(m_vtkExporter->GetCallbackUserData());
     m_itkImporter->UpdateLargestPossibleRegion();
-    
+
     m_volume = m_itkImporter->GetOutput();
   }
   
   m_volume->Update();
   m_ITKGenerationTime = m_vtkVolume->GetMTime();
+}
+
+//----------------------------------------------------------------------------
+void RasterizedVolume::updateITKVolume() const
+{
+  if (m_volume.IsNull() || (m_vtkExporter == NULL) || m_vtkExporter->GetInputConnection(0,0) != m_vtkVolume)
+  {
+    transformVTK2ITK();
+  }
+  else
+  {
+    if (m_vtkVolume->GetMTime() != m_ITKGenerationTime)
+    {
+      m_volume->Update();
+      m_ITKGenerationTime = m_vtkVolume->GetMTime();
+    }
+  }
 }
 
 //----------------------------------------------------------------------------

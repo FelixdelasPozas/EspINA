@@ -23,7 +23,7 @@ using namespace EspINA;
 
 //-----------------------------------------------------------------------------
 MeshProxy::MeshProxy(FilterOutput *output)
-: MeshType(output)
+: MeshType(itkVolumeType::SpacingType(), output)
 {
 
 }

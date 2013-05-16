@@ -31,11 +31,11 @@ namespace EspINA
   public:
     struct ContourInternals
     {
-      PlaneType        contourPlane;
-      Brush::BrushMode contourMode;
-      vtkPolyData     *contourPoints;
+      PlaneType        Plane;
+      Brush::BrushMode Mode;
+      vtkPolyData     *Points;
 
-      ContourInternals(PlaneType plane, Brush::BrushMode mode, vtkPolyData *contour) : contourPlane(plane), contourMode(mode), contourPoints(contour) {};
+      ContourInternals(PlaneType plane, Brush::BrushMode mode, vtkPolyData *contour) : Plane(plane), Mode(mode), Points(contour) {};
     };
     typedef struct ContourInternals ContourData;
 

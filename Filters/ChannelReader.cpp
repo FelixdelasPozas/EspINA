@@ -19,10 +19,12 @@
 
 #include "ChannelReader.h"
 #include <Core/IO/ErrorHandler.h>
+#include <Core/Outputs/ChannelVolumeProxy.h>
 #include <GUI/Representations/SliceRepresentation.h>
 
 #include <itkMetaImageIO.h>
 #include <itkTIFFImageIO.h>
+#include <itkChangeInformationImageFilter.h>
 
 #include <QDebug>
 #include <QFileDialog>
@@ -35,6 +37,8 @@ const QString ChannelReader::TYPE = "Channel Reader";
 typedef ModelItem::ArgumentId ArgumentId;
 const ArgumentId ChannelReader::FILE    = "File";
 const ArgumentId ChannelReader::SPACING = "Spacing";
+
+typedef itk::ChangeInformationImageFilter<itkVolumeType> ChangeInformationFilter;
 
 //----------------------------------------------------------------------------
 ChannelReader::ChannelReader(NamedInputs             inputs,
@@ -53,7 +57,25 @@ QString ChannelReader::serialize() const
 }
 
 //----------------------------------------------------------------------------
-void ChannelReader::createOutputRepresentations(ChannelOutputSPtr output)
+ChannelRepresentationSPtr ChannelReader::createRepresentationProxy(FilterOutputId id, const FilterOutput::OutputRepresentationName &type)
+{
+  ChannelRepresentationSPtr proxy;
+
+  Q_ASSERT(m_outputs.contains(id));
+  Q_ASSERT( NULL == m_outputs[id]->representation(type));
+
+  if (ChannelVolume::TYPE == type)
+    proxy  =ChannelVolumeProxySPtr(new ChannelVolumeProxy());
+  else
+    Q_ASSERT(false);
+
+  m_outputs[id]->setRepresentation(type, proxy);
+
+  return proxy;
+}
+
+//----------------------------------------------------------------------------
+void ChannelReader::createGraphicalRepresentations(ChannelOutputSPtr output)
 {
   ChannelVolumeSPtr volumeData = channelVolume(output);
   output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new ChannelSliceRepresentation(volumeData, NULL)));
@@ -74,8 +96,8 @@ void ChannelReader::run()
 //----------------------------------------------------------------------------
 void ChannelReader::run(FilterOutputId oId)
 {
+  qDebug() << "Executing ChannelReader run";
   Q_ASSERT(0 == oId);
-  //qDebug() << "Creating channel from args" << m_args;
   QFileInfo file = m_args[FILE];
   if (!file.exists())
     file = m_handler->fileNotFound(file);
@@ -103,10 +125,10 @@ void ChannelReader::run(FilterOutputId oId)
   reader->SetFileName(m_args[FILE].toUtf8().data());
   reader->Update();
 
-  if (m_args.contains(SPACING))
-    reader->GetOutput()->SetSpacing(spacing());
+  addOutputRepresentation(0, RawChannelVolumeSPtr(new RawChannelVolume(reader->GetOutput())));
 
-  createOutput(0, RawChannelVolumeSPtr(new RawChannelVolume(reader->GetOutput())));
+  if (m_args.contains(SPACING))
+    setSpacing(spacing());
 }
 
 //----------------------------------------------------------------------------
@@ -114,12 +136,17 @@ void ChannelReader::setSpacing(itkVolumeType::SpacingType spacing)
 {
   Q_ASSERT(m_outputs.size() == 1);
 
-  m_args[SPACING] = QString("%1,%2,%3")
-  .arg(spacing[0]).arg(spacing[1]).arg(spacing[2]);
+  m_args[SPACING] = QString("%1,%2,%3").arg(spacing[0]).arg(spacing[1]).arg(spacing[2]);
 
-  m_volumeOutput->toITK()->SetSpacing(spacing);
+  ChannelVolumeSPtr volume = channelVolume(m_outputs[0]);
 
-  emit modified(this);
+  ChangeInformationFilter::Pointer changer = ChangeInformationFilter::New();
+  changer->SetInput(volume->toITK());
+  changer->SetChangeSpacing(true);
+  changer->SetOutputSpacing(spacing);
+  changer->Update();
+
+  addOutputRepresentation(0, RawChannelVolumeSPtr(new RawChannelVolume(changer->GetOutput())));
 }
 
 //----------------------------------------------------------------------------

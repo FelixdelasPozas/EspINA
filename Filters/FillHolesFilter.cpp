@@ -20,6 +20,7 @@
 #include "FillHolesFilter.h"
 #include <Core/Outputs/VolumeRepresentation.h>
 #include <Core/Outputs/RawVolume.h>
+#include <Core/Model/MarchingCubesMesh.h>
 #include <GUI/Representations/SliceRepresentation.h>
 
 using namespace EspINA;
@@ -80,8 +81,11 @@ void FillHolesFilter::run(FilterOutputId oId)
   filter->SetInput(input->toITK());
   filter->Update();
 
-  SegmentationRepresentationSList repList;
-  repList << RawSegmentationVolumeSPtr(new RawSegmentationVolume(filter->GetOutput()));
+  RawSegmentationVolumeSPtr volumeRepresentation(new RawSegmentationVolume(filter->GetOutput()));
 
-  createOutput(0, repList);
+  SegmentationRepresentationSList repList;
+  repList << volumeRepresentation;
+  repList << MeshTypeSPtr(new MarchingCubesMesh(volumeRepresentation));
+
+  addOutputRepresentations(0, repList);
 }

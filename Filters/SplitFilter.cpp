@@ -135,7 +135,7 @@ void SplitFilter::run(FilterOutputId oId)
   }
 
   if (!ignoreCurrentOutputs())
-    createOutput(oId, m_volumes[oId]);
+    addOutputRepresentation(oId, m_volumes[oId]);
 }
 
 //-----------------------------------------------------------------------------

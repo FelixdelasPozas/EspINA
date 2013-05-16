@@ -115,7 +115,7 @@ void AdaptiveEdges::loadEdgesCache(ChannelPtr channel)
     if (file.exists())
     {
       VTKReader reader = VTKReader::New();
-      reader->SetFileName(file.absoluteFilePath().toStdString().c_str());
+      reader->SetFileName(file.absoluteFilePath().toUtf8());
       reader->SetReadAllFields(true);
       reader->Update();
 
@@ -140,7 +140,7 @@ void AdaptiveEdges::loadFacesCache(ChannelPtr channel)
       if (file.exists())
       {
         VTKReader reader = VTKReader::New();
-        reader->SetFileName(file.absoluteFilePath().toStdString().c_str());
+        reader->SetFileName(file.absoluteFilePath().toUtf8());
         reader->SetReadAllFields(true);
         reader->Update();
 

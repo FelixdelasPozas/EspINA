@@ -163,12 +163,12 @@ bool VolumeProxy::isValid() const
 }
 
 //-----------------------------------------------------------------------------
-void VolumeProxy::addEditedRegion(const EspinaRegion &region, int id)
+void VolumeProxy::addEditedRegion(const EspinaRegion &region, int cacheId)
 {
   if (m_volumeRepresentation)
-    m_volumeRepresentation->addEditedRegion(region, id);
+    m_volumeRepresentation->addEditedRegion(region, cacheId);
   else
-    m_editedRegions << EditedVolumeRegionSPtr(new EditedVolumeRegion(id, region));
+    m_editedRegions << EditedVolumeRegionSPtr(new EditedVolumeRegion(cacheId, region));
 }
 
 //-----------------------------------------------------------------------------

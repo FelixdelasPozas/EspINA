@@ -30,7 +30,7 @@ int Pipeline(int argc, char **argv)
 //   QString inputFileName = stackPath.filePath("object44_OUTPUT.mha");
 //   QString inputFileName = stackPath.filePath("reducedSeg1.mhd");
   QString inputFileName = stackPath.filePath("object35.mha");
-  seg->SetFileName(inputFileName.toUtf8());
+  seg->SetFileName(inputFileName.toUtf8().data());
   seg->Update();
     
   vtkSmartPointer<vtkAppositionPlaneFilter> appPlane =

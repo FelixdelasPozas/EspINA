@@ -88,6 +88,8 @@ namespace EspINA
     FilterOutput::OutputRepresentationName type() const
     { return TYPE; }
 
+   // virtual void markAsModified(bool emitSignal = true) = 0;
+
   protected:
     explicit ChannelVolume(FilterOutput *output)
     : ChannelRepresentation(output) {}

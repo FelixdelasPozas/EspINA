@@ -193,11 +193,9 @@ void FilledContour::storeContourData()
 void FilledContour::rasterize(ContourWidget::ContourList list)
 {
   ChannelPtr channel = m_viewManager->activeChannel();
-  double spacing[3];
-  channel->volume()->spacing(spacing);
   bool reduction = false;
 
-  if (list[AXIAL].contourPoints == NULL && list[CORONAL].contourPoints == NULL && list[SAGITTAL].contourPoints == NULL)
+  if (list[AXIAL].Points == NULL && list[CORONAL].Points == NULL && list[SAGITTAL].Points == NULL)
     return;
 
   QApplication::setOverrideCursor(Qt::WaitCursor);
@@ -207,29 +205,25 @@ void FilledContour::rasterize(ContourWidget::ContourList list)
   else
     m_undoStack->beginMacro("Modify segmentation using contours");
 
-  ContourWidget::ContourList::const_iterator it;
-  for (it = list.begin(); it != list.end(); ++it)
+  foreach(ContourWidget::ContourData contour, list)
   {
-    if ((*it).contourPoints == NULL)
+    if (contour.Points == NULL)
       continue;
 
-    if ((*it).contourMode == Brush::ERASER)
+    if (contour.Mode == Brush::ERASER)
       reduction = true;
 
     if (!m_currentSource)
     {
-      Filter::NamedInputs inputs;
-      Filter::Arguments args;
-      FreeFormSource::Parameters params(args);
-      params.setSpacing(spacing);
-      m_currentSource = FilterSPtr(new FreeFormSource(inputs, args, FILTER_TYPE));
+      m_currentSource = FilterSPtr(new FreeFormSource(EspinaRegion(contour.Points->GetBounds()),
+                                                      channel->volume()->spacing(),
+                                                      FILTER_TYPE));
     }
 
     if (!m_currentSeg)
     {
-      // FIXME:
       SegmentationVolumeSPtr currentVolume = segmentationVolume(m_currentSource->output(0));
-      currentVolume->draw((*it).contourPoints, (*it).contourPoints->GetPoint(0)[(*it).contourPlane], (*it).contourPlane, (((*it).contourMode == Brush::BRUSH) ? SEG_VOXEL_VALUE : SEG_BG_VALUE), true);
+      currentVolume->draw(contour.Points, contour.Points->GetPoint(0)[contour.Plane], contour.Plane, ((contour.Mode == Brush::BRUSH) ? SEG_VOXEL_VALUE : SEG_BG_VALUE), true);
       m_currentSeg = m_model->factory()->createSegmentation(m_currentSource, 0);
       m_undoStack->push(new ContourAddSegmentation(m_model->findChannel(channel),
                                                    m_currentSource,
@@ -248,10 +242,10 @@ void FilledContour::rasterize(ContourWidget::ContourList list)
     else
     {
       m_undoStack->push(new ContourUndoCommand(m_currentSeg,
-                                               (*it).contourPoints,
-                                               (*it).contourPoints->GetPoint(0)[(*it).contourPlane],
-                                               (*it).contourPlane,
-                                               ((*it).contourMode == Brush::BRUSH) ? SEG_VOXEL_VALUE : SEG_BG_VALUE,
+                                               contour.Points,
+                                               contour.Points->GetPoint(0)[contour.Plane],
+                                               contour.Plane,
+                                               contour.Mode == Brush::BRUSH ? SEG_VOXEL_VALUE : SEG_BG_VALUE,
                                                m_viewManager,
                                                this));
     }

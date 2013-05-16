@@ -35,7 +35,7 @@ int DecimalPlane(int argc, char **argv)
 //   QString inputFileName = stackPath.filePath("DecimalPlane-30.mhd");
 //   QString inputFileName = stackPath.filePath("DecimalPlane-4.mhd");
 //   QString inputFileName = stackPath.filePath("DecimalPlane-00.mhd");
-  seg->SetFileName(inputFileName.toUtf8());
+  seg->SetFileName(inputFileName.toUtf8().data());
   seg->Update();
     
   vtkSmartPointer<vtkAppositionPlaneFilter> appPlane =

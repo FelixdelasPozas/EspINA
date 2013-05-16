@@ -63,6 +63,8 @@ public:
 
   /// @item is used to specify the spacing of the stroke
   void setReferenceItem(PickableItemPtr item);
+  itkVolumeType::SpacingType referenceSpacing() const;
+
   void DrawingOn(EspinaRenderView *view);
   void DrawingOff(EspinaRenderView *view, SegmentationPtr segmentation);
 

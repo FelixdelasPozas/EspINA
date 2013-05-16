@@ -19,7 +19,8 @@
 #ifndef SEGMHAIMPORTERFILTER_H
 #define SEGMHAIMPORTERFILTER_H
 
-#include <Core/Model/Filter.h>
+#include <Filters/BasicSegmentationFilter.h>
+
 #include <Core/Model/Segmentation.h>
 #include <Core/Model/Output.h>
 
@@ -29,7 +30,7 @@
 namespace EspINA
 {
   class SegmhaImporterFilter
-  : public SegmentationFilter
+  : public BasicSegmentationFilter
   {
     struct SegmentationObject
     {
@@ -115,10 +116,6 @@ namespace EspINA
     void initSegmentation(SegmentationSPtr seg, FilterOutputId i);
 
   protected:
-    virtual void createDummyOutput(FilterOutputId id, const FilterOutput::OutputRepresentationName &type);
-
-    virtual void createOutputRepresentations(SegmentationOutputSPtr output);
-
     virtual bool ignoreCurrentOutputs() const
     { return false; }
 
@@ -133,8 +130,8 @@ namespace EspINA
 
     TaxonomyElementSList m_taxonomies;
     QList<int>           m_labels;
-    TaxonomySPtr   m_taxonomy;
-    Nm                  m_inclusive[3], m_exclusive[3];
+    TaxonomySPtr         m_taxonomy;
+    Nm                   m_inclusive[3], m_exclusive[3];
   };
 
   typedef QSharedPointer<SegmhaImporterFilter> SegmhaImporterFilterSPtr;

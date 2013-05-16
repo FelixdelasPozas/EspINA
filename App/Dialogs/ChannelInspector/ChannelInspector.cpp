@@ -221,7 +221,8 @@ void ChannelInspector::changeSpacing()
   ChannelReader *reader = dynamic_cast<ChannelReader *>(m_channel->filter().data());
   Q_ASSERT(reader);
   reader->setSpacing(spacing);
-  reader->update(0);
+  m_viewManager->updateChannelRepresentations();
+  m_view->updateChannelRepresentations();
 
   SegmentationList updatedSegmentations;
   foreach(ModelItemSPtr item, m_channel->relatedItems(EspINA::OUT, Channel::LINK))
@@ -238,14 +239,12 @@ void ChannelInspector::changeSpacing()
       for (int i=0; i < 3; i++)
         origin[i] = origin[i]/oldSpacing[i]*spacing[i];
       segVolume->toITK()->SetOrigin(origin);
-      Q_ASSERT(false);
-      //segVolume->update();
-      //segVolume->markAsModified(true);//FIXME
+      segVolume->toITK()->Update();
+      segVolume->markAsModified(true);
       updatedSegmentations << seg.data();
     }
   }
 
-  m_channel->output()->update();//FIXME
   m_view->updateSceneBounds();  // needed to update thumbnail values without triggering volume()->markAsModified()
   m_viewManager->updateSegmentationRepresentations(updatedSegmentations);
   m_view->resetCamera();

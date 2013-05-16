@@ -79,7 +79,8 @@ bool SegmentationVolume::EditedVolumeRegion::dump(QDir           cacheDir,
     Volume->SetReleaseDataFlag(releaseFlag);
   } else
   {
-    cacheDir.cd(SegmentationVolume::TYPE);
+    if (cacheDir.exists(SegmentationVolume::TYPE))
+      cacheDir.cd(SegmentationVolume::TYPE);
 
     // dump cached volumes
     mhd = cacheDir.absoluteFilePath(regionName + ".mhd");

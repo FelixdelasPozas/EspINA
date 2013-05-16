@@ -19,6 +19,7 @@
 #include "ErodeFilter.h"
 
 #include <Core/Model/EspinaFactory.h>
+#include <Core/Model/MarchingCubesMesh.h>
 
 #include <itkImageRegionConstIterator.h>
 #include <itkBinaryBallStructuringElement.h>
@@ -78,10 +79,13 @@ void ErodeFilter::run(FilterOutputId oId)
 
   if (!m_isOutputEmpty)
   {
-    SegmentationRepresentationSList repList;
-    repList << RawSegmentationVolumeSPtr(new RawSegmentationVolume(filter->GetOutput()));
+    RawSegmentationVolumeSPtr volumeRepresentation(new RawSegmentationVolume(filter->GetOutput()));
 
-    createOutput(0, repList);
+    SegmentationRepresentationSList repList;
+    repList << volumeRepresentation;
+    repList << MeshTypeSPtr(new MarchingCubesMesh(volumeRepresentation));
+
+    addOutputRepresentations(0, repList);
   } else
     qWarning() << "Erode Filter: Empty Output;";
 

@@ -31,15 +31,26 @@ namespace EspINA
     static const FilterOutput::OutputRepresentationName TYPE;
 
   public:
-    explicit MeshType(FilterOutput *output)
-    : SegmentationRepresentation(output) {}
+    explicit MeshType(itkVolumeType::SpacingType spacing, FilterOutput *output = NULL)
+    : SegmentationRepresentation(output)
+    , m_spacing(spacing) {}
 
     virtual FilterOutput::OutputRepresentationName type() const
     { return TYPE; }
 
-    virtual void addEditedRegion(const EspinaRegion &region, int id = -1) {}
+    virtual void addEditedRegion(const EspinaRegion &region, int cacheId = -1) {}
 
     virtual vtkAlgorithmOutput *mesh() = 0;
+
+    itkVolumeType::SpacingType spacing() const
+    { return m_spacing; }
+
+  protected:
+    static QString cachePath(const QString &fileName)
+    { return QString("%1/%2").arg(MeshType::TYPE).arg(fileName); }
+
+  protected:
+    itkVolumeType::SpacingType m_spacing;
   };
 
   typedef boost::shared_ptr<MeshType> MeshTypeSPtr;

@@ -22,6 +22,7 @@
 
 #include <Core/Outputs/VolumeRepresentation.h>
 #include "RawVolume.h"
+#include "MeshType.h"
 
 // ITK
 #include <itkVTKImageImport.h>
@@ -37,18 +38,13 @@ namespace EspINA
   : public RawSegmentationVolume
   {
   public:
-    explicit RasterizedVolume(vtkSmartPointer<vtkPolyData> mesh,
-                              itkVolumeType::SpacingType spacing,
+    explicit RasterizedVolume(MeshTypeSPtr  mesh,
                               FilterOutput *output = NULL);
 
     virtual bool isValid() const
     { return m_mesh != NULL || RawSegmentationVolume::isValid();}
 
-    virtual bool dumpSnapshot(const QString &prefix, Snapshot &snapshot) const
-    { return false; }
-
-    virtual bool fetchSnapshot(Filter *filter, const QString &prefix)
-    { return false; }
+    virtual bool dumpSnapshot(const QString &prefix, Snapshot &snapshot) const;
 
     virtual itkVolumeType::Pointer toITK();
 
@@ -58,12 +54,13 @@ namespace EspINA
 
     virtual const vtkAlgorithmOutput *toVTK() const;
 
-  protected:
+  private:
     void rasterize(double *bounds) const;
     void transformVTK2ITK() const;
+    void updateITKVolume() const;
 
   private:
-    vtkSmartPointer<vtkPolyData> m_mesh;
+    vtkPolyData * m_mesh;
     itkVolumeType::SpacingType   m_spacing;
 
     mutable vtkSmartPointer<vtkAlgorithmOutput>          m_vtkVolume;

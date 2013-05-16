@@ -159,21 +159,21 @@ void ContourWidget::startContourFromWidget()
   {
     emit rasterizeContours(resultList);
 
-    if (resultList[0].contourPoints != NULL)
+    if (resultList[0].Points != NULL)
     {
-      resultList[0].contourPoints->Delete();
+      resultList[0].Points->Delete();
       m_axialSliceContourWidget->Initialize();
     }
 
-    if (resultList[1].contourPoints != NULL)
+    if (resultList[1].Points != NULL)
     {
-      resultList[1].contourPoints->Delete();
+      resultList[1].Points->Delete();
       m_coronalSliceContourWidget->Initialize();
     }
 
-    if (resultList[2].contourPoints != NULL)
+    if (resultList[2].Points != NULL)
     {
-      resultList[2].contourPoints->Delete();
+      resultList[2].Points->Delete();
       m_sagittalSliceContourWidget->Initialize();
     }
   }

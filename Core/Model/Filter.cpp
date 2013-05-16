@@ -21,6 +21,7 @@
 #include "EspinaModel.h"
 #include "Output.h"
 #include "Core/Outputs/VolumeRepresentation.h"
+#include <Core/Outputs/MeshType.h>
 
 // ITK
 #include <itkMetaImageIO.h>
@@ -52,7 +53,6 @@ Filter::~Filter()
 void Filter::setCacheDir(QDir dir)
 {
   m_cacheDir = dir;
-
 }
 
 //----------------------------------------------------------------------------
@@ -189,6 +189,55 @@ void SegmentationFilter::update(FilterOutputId oId)
 bool SegmentationFilter::fetchSnapshot(FilterOutputId oId)
 {
   return false;
+}
+
+//----------------------------------------------------------------------------
+void ChannelFilter::createOutput(FilterOutputId id)
+{
+  if (!m_outputs.contains(id))
+    m_outputs[id] = ChannelOutputSPtr(new ChannelOutput(this, id));
+  else
+    qWarning() << "Filter: " << data().toString() << " has already created output" << id;
+}
+
+//----------------------------------------------------------------------------
+void ChannelFilter::addOutputRepresentation(FilterOutputId id, ChannelRepresentationSPtr rep)
+{
+  ChannelRepresentationSList representations;
+  representations << rep;
+
+  addOutputRepresentations(id, representations);
+}
+
+//----------------------------------------------------------------------------
+void ChannelFilter::addOutputRepresentations(FilterOutputId id, ChannelRepresentationSList repList)
+{
+  if (!m_outputs.contains(id))
+    createOutput(id);
+
+  Q_ASSERT(m_outputs.contains(id));
+
+  ChannelOutputSPtr currentOutput = m_outputs[id];
+
+  foreach(ChannelRepresentationSPtr representation, repList)
+  {
+    ChannelRepresentationSPtr proxyRepresentation = currentOutput->representation(representation->type());
+
+    representation->setOutput(currentOutput.get());
+
+    if (!proxyRepresentation)
+      proxyRepresentation = createRepresentationProxy(id, representation->type());
+
+    if (!proxyRepresentation->setInternalData(representation))
+    {
+      qWarning() << "Filter: Couldn't copy internal data";
+      Q_ASSERT(false);
+    }
+  }
+
+  currentOutput->clearGraphicalRepresentations();
+
+  createGraphicalRepresentations(currentOutput);
 }
 
 //----------------------------------------------------------------------------
@@ -344,56 +393,9 @@ bool Filter::dumpSnapshot(Snapshot &snapshot)
 }
 
 //----------------------------------------------------------------------------
-void addChannelOutputData(ChannelOutputSPtr output, ChannelRepresentationSPtr rep)
-{
-  ChannelRepresentationSPtr oldRep = output->representation(rep->type());
-
-  rep->setOutput(output.get());
-
-  if (oldRep)
-  {
-    if (!oldRep->setInternalData(rep))
-    {
-      qWarning() << "Filter: Couldn't copy internal data";
-      Q_ASSERT(false);
-    }
-  }
-  else
-    output->setRepresentation(rep->type(), rep);
-}
 
 //----------------------------------------------------------------------------
-void ChannelFilter::createOutput(FilterOutputId id, ChannelRepresentationSPtr rep)
-{
-  if (!m_outputs.contains(id))
-    m_outputs[id] = ChannelOutputSPtr(new ChannelOutput(this, id));
 
-  ChannelOutputSPtr currentOutput = m_outputs[id];
-
-  addChannelOutputData(currentOutput, rep);
-
-  currentOutput->clearGraphicalRepresentations();
-
-  createOutputRepresentations(currentOutput);
-}
-
-//----------------------------------------------------------------------------
-void ChannelFilter::createOutput(FilterOutputId id, ChannelRepresentationSList repList)
-{
-  if (!m_outputs.contains(id))
-    m_outputs[id] = ChannelOutputSPtr(new ChannelOutput(this, id));
-
-  ChannelOutputSPtr currentOutput = m_outputs[id];
-
-  foreach(ChannelRepresentationSPtr rep, repList)
-  {
-    addChannelOutputData(currentOutput, rep);
-  }
-
-  currentOutput->clearGraphicalRepresentations();//TODO: comprobar que se eliminan los actores de las antiguas representaciones en las vistas al ejecutar varios run
-
-  createOutputRepresentations(currentOutput);
-}
 
 //----------------------------------------------------------------------------
 void SegmentationFilter::setCacheDir(QDir dir)
@@ -419,7 +421,9 @@ void SegmentationFilter::setCacheDir(QDir dir)
 
     if (!validOutput(oId))
     {
-      createDummyOutput(oId, SegmentationVolume::TYPE);
+      createOutput(oId);
+      createRepresentationProxy(oId, SegmentationVolume::TYPE);
+      createRepresentationProxy(oId, MeshType::TYPE);
     }
 
     SegmentationOutputSPtr editedOutput = m_outputs[oId];
@@ -456,6 +460,8 @@ void SegmentationFilter::setCacheDir(QDir dir)
       QStringList ids = outputInfoFile.section(".",0,0).split("_");
       FilterOutputId oId = ids[1].toInt();
 
+      createOutput(oId);
+
       QFile file(outputsDir.absoluteFilePath(outputInfoFile));
       if (file.open(QIODevice::ReadOnly))
       {
@@ -469,7 +475,7 @@ void SegmentationFilter::setCacheDir(QDir dir)
           {
             if (!line.isEmpty())
             {
-              createDummyOutput(oId, line);
+              createRepresentationProxy(oId, line);
             } else
             {
               header = false;
@@ -492,62 +498,47 @@ void SegmentationFilter::setCacheDir(QDir dir)
 }
 
 //----------------------------------------------------------------------------
-void addSegmentationRepresentation(SegmentationOutputSPtr output, SegmentationRepresentationSPtr rep)
+void SegmentationFilter::createOutput(FilterOutputId id)
 {
-  SegmentationRepresentationSPtr oldData = output->representation(rep->type());
+  if (!m_outputs.contains(id))
+    m_outputs[id] = SegmentationOutputSPtr(new SegmentationOutput(this, id));
+  else
+    qWarning() << "Filter: " << data().toString() << " has already created output" << id;
+}
 
-  rep->setOutput(output.get());
+//----------------------------------------------------------------------------
+void SegmentationFilter::addOutputRepresentation(FilterOutputId id, SegmentationRepresentationSPtr rep)
+{
+  SegmentationRepresentationSList representacions;
+  representacions << rep;
 
-  if (oldData)
+  addOutputRepresentations(id, representacions);
+}
+
+//----------------------------------------------------------------------------
+void SegmentationFilter::addOutputRepresentations(FilterOutputId id, SegmentationRepresentationSList repList)
+{
+  if (!m_outputs.contains(id))
+    createOutput(id);
+
+  SegmentationOutputSPtr currentOutput = m_outputs[id];
+
+  foreach(SegmentationRepresentationSPtr representation, repList)
   {
-    if (!oldData->setInternalData(rep))
+    SegmentationRepresentationSPtr proxyRepresentation = currentOutput->representation(representation->type());
+    representation->setOutput(currentOutput.get());
+
+    if (!proxyRepresentation)
+      proxyRepresentation = createRepresentationProxy(id, representation->type());
+
+    if (!proxyRepresentation->setInternalData(representation))
     {
       qWarning() << "Filter: Couldn't copy internal data";
       Q_ASSERT(false);
     }
   }
-  else
-    output->setRepresentation(rep->type(), rep);
-}
-
-//----------------------------------------------------------------------------
-void SegmentationFilter::createOutput(FilterOutputId id, SegmentationRepresentationSPtr rep)
-{
-  if (!m_outputs.contains(id))
-  {
-    m_outputs[id] = SegmentationOutputSPtr(new SegmentationOutput(this, id));
-    createDummyOutput(id, rep->type());
-  }
-
-  SegmentationOutputSPtr currentOutput = m_outputs[id];
-
-  addSegmentationRepresentation(currentOutput, rep);
 
   currentOutput->clearGraphicalRepresentations();
 
-  createOutputRepresentations(currentOutput);
-}
-
-//----------------------------------------------------------------------------
-void SegmentationFilter::createOutput(FilterOutputId id, SegmentationRepresentationSList repList)
-{
-  if (!m_outputs.contains(id))
-  {
-    m_outputs[id] = SegmentationOutputSPtr(new SegmentationOutput(this, id));
-    foreach(SegmentationRepresentationSPtr rep, repList)
-    {
-      createDummyOutput(id, rep->type());
-    }
-  }
-
-  SegmentationOutputSPtr currentOutput = m_outputs[id];
-
-  foreach(SegmentationRepresentationSPtr rep, repList)
-  {
-    addSegmentationRepresentation(currentOutput, rep);
-  }
-
-  currentOutput->clearGraphicalRepresentations();
-
-  createOutputRepresentations(currentOutput);
+  createGraphicalRepresentations(currentOutput);
 }

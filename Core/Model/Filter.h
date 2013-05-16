@@ -151,8 +151,6 @@ namespace EspINA
                     Arguments   args,
                     FilterType  type);
 
-    virtual void createDummyOutput(FilterOutputId id, const FilterOutput::OutputRepresentationName &type) = 0;
-
     /// Current outputs must be ignored due to changes on filter state
     virtual bool ignoreCurrentOutputs() const = 0;
 
@@ -169,6 +167,8 @@ namespace EspINA
     /// Returns true if all volume snapshot can be recovered
     /// and false otherwise
     virtual bool fetchSnapshot(FilterOutputId oId) = 0;
+
+    virtual void createOutput(FilterOutputId id) = 0;
 
     /// Method which actually executes the filter to generate all its outputs
     virtual void run() = 0;
@@ -228,10 +228,14 @@ namespace EspINA
     /// and false otherwise
     virtual bool fetchSnapshot(FilterOutputId oId) {return false;}
 
-    virtual void createOutput(FilterOutputId id, ChannelRepresentationSPtr  data);
-    virtual void createOutput(FilterOutputId id, ChannelRepresentationSList repList);
+    virtual void createOutput(FilterOutputId id);
 
-    virtual void createOutputRepresentations(ChannelOutputSPtr output) = 0;
+    virtual ChannelRepresentationSPtr createRepresentationProxy(FilterOutputId id, const FilterOutput::OutputRepresentationName &type) = 0;
+
+    virtual void addOutputRepresentation(FilterOutputId id, ChannelRepresentationSPtr  data);
+    virtual void addOutputRepresentations(FilterOutputId id, ChannelRepresentationSList repList);
+
+    virtual void createGraphicalRepresentations(ChannelOutputSPtr output) = 0;
 
     /// Whether the filter needs to be updated or not
     /// A filter will need an update if there exists an invalid output or no outputs exist at all
@@ -281,19 +285,22 @@ namespace EspINA
 
     virtual void setCacheDir(QDir dir);
 
-    QString cacheOutputId(FilterOutputId id) const
-    { return QString("%1_%2").arg(m_cacheId).arg(id); }
+    QString cacheOutputId(FilterOutputId oId) const
+    { return QString("%1_%2").arg(id()).arg(oId); }
 
     /// Try to locate an snapshot of the filter in tmpDir
     /// Returns true if all volume snapshot can be recovered
     /// and false otherwise
     virtual bool fetchSnapshot(FilterOutputId oId);
 
+    virtual void createOutput(FilterOutputId id);
 
-    virtual void createOutput(EspINA::FilterOutputId id, EspINA::SegmentationRepresentationSPtr rep);
-    virtual void createOutput(FilterOutputId id, SegmentationRepresentationSList repList);
+    virtual SegmentationRepresentationSPtr createRepresentationProxy(FilterOutputId id, const FilterOutput::OutputRepresentationName &type) = 0;
 
-    virtual void createOutputRepresentations(SegmentationOutputSPtr output) = 0;
+    virtual void addOutputRepresentation(FilterOutputId id, SegmentationRepresentationSPtr rep);
+    virtual void addOutputRepresentations(FilterOutputId id, SegmentationRepresentationSList repList);
+
+    virtual void createGraphicalRepresentations(SegmentationOutputSPtr output) = 0;
 
     /// Whether the filter needs to be updated or not
     /// A filter will need an update if there exists an invalid output or no outputs exist at all

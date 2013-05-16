@@ -39,9 +39,9 @@ namespace EspINA
     explicit BasicSegmentationFilter(NamedInputs namedInputs, Arguments args, FilterType type);
 
   protected:
-    virtual void createDummyOutput(FilterOutputId id, const FilterOutput::OutputRepresentationName &type);
+  virtual SegmentationRepresentationSPtr createRepresentationProxy(FilterOutputId id, const FilterOutput::OutputRepresentationName &type);
 
-    virtual void createOutputRepresentations(SegmentationOutputSPtr output);
+    virtual void createGraphicalRepresentations(SegmentationOutputSPtr output);
 
     virtual bool fetchSnapshot(FilterOutputId oId);
   };

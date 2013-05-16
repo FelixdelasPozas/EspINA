@@ -373,14 +373,22 @@ void MorphologicalInformation::invalidate(SegmentationPtr segmentation)
 void MorphologicalInformation::updateInformation()
 {
   //qDebug() << "Updating" << m_seg->data().toString() << ID;
-  //FIXME: devolver NAN m_labelMap->SetInput(m_segmentation->volume()->toITK());
-  m_labelMap->Update();
-  m_labelMap->Modified();
+  SegmentationVolumeSPtr segVolume = segmentationVolume(m_segmentation->output());
 
-  LabelMapType *labelMap = m_labelMap->GetOutput();
-  labelMap->Update();
+  bool          validInfo = segVolume != NULL;
+  LabelMapType *labelMap  = NULL;
 
-  bool validInfo = labelMap->GetNumberOfLabelObjects() == 1;
+  if (validInfo)
+  {
+    m_labelMap->SetInput(segVolume->toITK());
+    m_labelMap->Update();
+    m_labelMap->Modified();
+
+    labelMap = m_labelMap->GetOutput();
+    labelMap->Update();
+
+    validInfo = labelMap->GetNumberOfLabelObjects() == 1;
+  }
 
   if (validInfo)
   {

@@ -51,5 +51,6 @@ Brush::BrushShape SphericalBrush::createBrushShape(PickableItemPtr item,
   vtkSphere *brush = vtkSphere::New();
   brush->SetCenter(center);
   brush->SetRadius(radius);
+
   return BrushShape(brush, EspinaRegion(brushBounds));
 }

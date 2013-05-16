@@ -21,6 +21,7 @@
 
 
 #include "Core/VTK/vtkTube.h"
+#include <GUI/Pickers/BrushPicker.h>
 
 #include <QDebug>
 #include <QUndoStack>
@@ -45,9 +46,7 @@ CircularBrush::~CircularBrush()
 //-----------------------------------------------------------------------------
 Brush::BrushShape CircularBrush::createBrushShape(PickableItemPtr item, double center[3], Nm radius, PlaneType plane)
 {
-  SegmentationVolumeSPtr volume = segmentationVolume(item->output());
-  double spacing[3];
-  volume->spacing(spacing);
+  itkVolumeType::SpacingType spacing = m_brush->referenceSpacing();
 
   double sRadius = (plane == SAGITTAL)?0:radius;
   double cRadius = (plane ==  CORONAL)?0:radius;

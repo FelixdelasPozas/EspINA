@@ -102,11 +102,10 @@ const QString SegmhaImporterFilter::SUPPORTED_FILES = tr("Segmentation LabelMaps
 SegmhaImporterFilter::SegmhaImporterFilter(NamedInputs inputs,
                                            Arguments   args,
                                            FilterType  type)
-: SegmentationFilter(inputs, args, type)
-, m_param           (m_args)
-, m_taxonomy        (new Taxonomy())
+: BasicSegmentationFilter(inputs, args, type)
+, m_param                (m_args)
+, m_taxonomy             (new Taxonomy())
 {
-
 }
 
 
@@ -271,7 +270,7 @@ void SegmhaImporterFilter::run()
       repList << volume;
       repList << MeshTypeSPtr(new MarchingCubesMesh(volume)); //TODO: pass the volume or the proxy?
 
-      createOutput(id, repList);
+      addOutputRepresentations(id, repList);
 
       m_taxonomies << taxonomies[seg.taxonomyId-1];
 
@@ -305,24 +304,4 @@ void SegmhaImporterFilter::initSegmentation(SegmentationSPtr seg, FilterOutputId
   seg->setTaxonomy(taxonomy(i));
 
   seg->setNumber(m_labels.value(i,-1));
-}
-
-//-----------------------------------------------------------------------------
-void SegmhaImporterFilter::createDummyOutput(FilterOutputId id, const FilterOutput::OutputRepresentationName &type)
-{
-  if (SegmentationVolume::TYPE == type)
-    createOutput(id, VolumeProxySPtr(new VolumeProxy()));
-  else if (MeshType::TYPE == type)
-    createOutput(id, MeshProxySPtr(new MeshProxy()));
-  else
-    Q_ASSERT(false);
-}
-
-//-----------------------------------------------------------------------------
-void SegmhaImporterFilter::createOutputRepresentations(SegmentationOutputSPtr output)
-{
-  output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new SegmentationSliceRepresentation(segmentationVolume(output), NULL)));
-  output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new SimpleMeshRepresentation(meshOutput(output), NULL)));
-  output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new SmoothedMeshRepresentation(meshOutput(output), NULL)));
-  output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new VolumeRaycastRepresentation(segmentationVolume(output), NULL)));
 }

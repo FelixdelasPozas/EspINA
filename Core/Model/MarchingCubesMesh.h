@@ -51,7 +51,7 @@ namespace EspINA
 
     virtual bool dumpSnapshot(const QString &prefix, Snapshot &snapshot) const;
 
-    //virtual bool fetchSnapshot(Filter *filter, const QString &prefix);
+    virtual bool fetchSnapshot(Filter *filter, const QString &prefix);
 
     virtual bool isEdited() const;
 

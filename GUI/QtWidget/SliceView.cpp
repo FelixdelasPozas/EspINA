@@ -220,6 +220,11 @@ SliceView::~SliceView()
 //   qDebug() << "********************************************************";
 //   qDebug() << "              Destroying Slice View" << m_plane;
 //   qDebug() << "********************************************************";
+
+  // Representation destructors may need to access slice view in their destructors
+  m_channelStates.clear();
+  m_segmentationStates.clear();
+
   m_viewManager->unregisterView(this);
 
   m_slicingMatrix->Delete();
@@ -839,6 +844,7 @@ bool SliceView::updateChannelRepresentation(ChannelPtr channel, bool render)
   bool brightnessChanged = false;
   bool contrastChanged   = false;
   bool opacityChanged    = false;
+  bool outputChanged     = false;
   bool stainChanged      = false;
 
   if (visibilityChanged)
@@ -854,12 +860,29 @@ bool SliceView::updateChannelRepresentation(ChannelPtr channel, bool render)
     brightnessChanged = state.brightness != channel->brightness();
     contrastChanged   = state.contrast   != channel->contrast();
     opacityChanged    = state.opacity    != channel->opacity();
+    outputChanged     = state.output     != channel->output();
     stainChanged      = state.stain      != stain;
 
     state.brightness  = channel->brightness();
     state.contrast    = channel->contrast();
     state.opacity     = channel->opacity();
+    state.output      = channel->output();
     state.stain       = stain;
+  }
+
+  if (outputChanged)
+  {
+    state.representations.clear();
+
+    foreach(GraphicalRepresentationSPtr prototype, channel->representations())
+    {
+      if (prototype->canRenderOnView().testFlag(GraphicalRepresentation::SLICE_VIEW))
+      {
+        GraphicalRepresentationSPtr representation = prototype->clone(this);
+
+        state.representations << boost::dynamic_pointer_cast<ChannelGraphicalRepresentation>(representation);
+      }
+    }
   }
 
   bool hasChanged = visibilityChanged || brightnessChanged || contrastChanged || opacityChanged || stainChanged;

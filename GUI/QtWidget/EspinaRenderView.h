@@ -114,11 +114,12 @@ namespace EspINA
   protected:
     struct ChannelState
     {
-      double brightness;
-      double contrast;
-      double opacity;
-      QColor stain;
-      bool   visible;
+      double     brightness;
+      double     contrast;
+      double     opacity;
+      OutputSPtr output;
+      QColor     stain;
+      bool       visible;
 
       ChannelGraphicalRepresentationList representations;
     };

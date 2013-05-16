@@ -36,7 +36,6 @@
 #include <vtkBoostConnectedComponents.h>
 #include <vtkIdTypeArray.h>
 #include <vtkEdgeListIterator.h>
-#include <vtkGenericDataObjectWriter.h>
 #include <vtkGenericDataObjectReader.h>
 #include <vtkPlane.h>
 
@@ -53,7 +52,7 @@ const ModelItem::ArgumentId AppositionSurfaceFilter::ORIGIN = "Origin Segmentati
 
 //----------------------------------------------------------------------------
 AppositionSurfaceFilter::AppositionSurfaceFilter(NamedInputs inputs, Arguments args, FilterType type)
-: SegmentationFilter(inputs, args, type)
+: BasicSegmentationFilter(inputs, args, type)
 , m_resolution(50)
 , m_iterations(10)
 , m_converge(true)
@@ -77,7 +76,8 @@ AppositionSurfaceFilter::~AppositionSurfaceFilter()
 {
   if (m_ap != NULL)
   {
-    disconnect(m_originSegmentation, SIGNAL(outputModified()), this, SLOT(inputModified()));
+    disconnect(m_originSegmentation, SIGNAL(outputModified()),
+               this, SLOT(inputModified()));
     m_ap->Delete();
   }
 
@@ -86,29 +86,23 @@ AppositionSurfaceFilter::~AppositionSurfaceFilter()
 }
 
 //----------------------------------------------------------------------------
-void AppositionSurfaceFilter::createDummyOutput(FilterOutputId id, const FilterOutput::OutputRepresentationName &type)
+SegmentationRepresentationSPtr AppositionSurfaceFilter::createRepresentationProxy(FilterOutputId id, const FilterOutput::OutputRepresentationName &type)
 {
+  SegmentationRepresentationSPtr proxy;
+
+  Q_ASSERT(m_outputs.contains(id));
+  Q_ASSERT( NULL == m_outputs[id]->representation(type));
+
   if (SegmentationVolume::TYPE == type)
-    createOutput(id, VolumeProxySPtr(new ASVolumeProxy()));
+    proxy = VolumeProxySPtr(new ASVolumeProxy());
   else if (MeshType::TYPE == type)
-    createOutput(id, MeshProxySPtr(new ASMeshProxy()));
+    proxy = MeshProxySPtr(new ASMeshProxy());
   else
     Q_ASSERT(false);
-}
 
-//----------------------------------------------------------------------------
-void AppositionSurfaceFilter::createOutputRepresentations(SegmentationOutputSPtr output)
-{
-  SegmentationVolumeSPtr volumeRep = segmentationVolume(output);
-  MeshTypeSPtr           meshRep   = meshOutput(output);
-  output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new SegmentationSliceRepresentation(volumeRep, NULL)));
-  output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new SimpleMeshRepresentation(meshRep, NULL)));
-}
+  m_outputs[id]->setRepresentation(type, proxy);
 
-//----------------------------------------------------------------------------
-bool AppositionSurfaceFilter::fetchSnapshot(FilterOutputId oId)
-{
-  return false;
+  return proxy;
 }
 
 //----------------------------------------------------------------------------
@@ -187,9 +181,16 @@ void AppositionSurfaceFilter::run()
 //----------------------------------------------------------------------------
 void AppositionSurfaceFilter::run(FilterOutputId oId)
 {
+  qDebug() << "Compute AS";
   Q_ASSERT(0 == oId);
 
-  upkeeping();
+  const QString        namedInput = m_args[Filter::INPUTS];
+  QStringList          list       = namedInput.split(QChar('_'));
+  const FilterOutputId outputId   = list[1].toInt();
+
+  FilterSPtr segFilter = m_namedInputs[AppositionSurfaceFilter::INPUTLINK];
+
+  m_input = segmentationVolume(segFilter->output(outputId))->toITK();
 
   //m_input = m_originSegmentation->volume()->toITK();
   m_input->SetBufferedRegion(m_input->GetLargestPossibleRegion());
@@ -340,13 +341,13 @@ void AppositionSurfaceFilter::run(FilterOutputId oId)
   m_ap->SetLines(appositionSurface->GetLines());
   m_ap->Modified();
 
-  SegmentationVolumeSPtr volume = segmentationVolume(m_originSegmentation->output());
+  RawMeshSPtr meshRepresentation(new RawMesh(m_ap, m_input->GetSpacing()));
 
   SegmentationRepresentationSList repList;
-  repList << RawMeshSPtr(new RawMesh(m_ap));
-  repList << RasterizedVolumeSPtr(new RasterizedVolume(m_ap, volume->spacing()));
+  repList << meshRepresentation;
+  repList << RasterizedVolumeSPtr(new RasterizedVolume(meshRepresentation));
 
-  createOutput(0, repList);
+  addOutputRepresentations(0, repList);
 
   emit modified(this);
 }
@@ -989,7 +990,7 @@ bool AppositionSurfaceFilter::fetchCachePolyDatas()
   {
     QString fileName = m_cacheDir.absolutePath() + QDir::separator() + nameAS;
     vtkSmartPointer<vtkGenericDataObjectReader> polyASReader = vtkSmartPointer<vtkGenericDataObjectReader>::New();
-    polyASReader->SetFileName(fileName.toStdString().c_str());
+    polyASReader->SetFileName(fileName.toUtf8());
     polyASReader->SetReadAllFields(true);
     polyASReader->Update();
 
@@ -1048,16 +1049,6 @@ bool AppositionSurfaceFilter::dumpSnapshot(Snapshot &snapshot)
 
   if (NULL != m_ap)
   {
-    vtkSmartPointer<vtkGenericDataObjectWriter> polyWriter = vtkSmartPointer<vtkGenericDataObjectWriter>::New();
-    polyWriter->SetInputConnection(m_ap->GetProducerPort());
-    polyWriter->SetFileTypeToBinary();
-    polyWriter->SetWriteToOutputString(true);
-    polyWriter->Write();
-
-    QByteArray polyArray(polyWriter->GetOutputString(), polyWriter->GetOutputStringLength());
-
-    snapshot << SnapshotEntry(this->id() + QString("-AS.vtp"), polyArray);
-
     std::ostringstream vectorData;
     vectorData << std::string("Template Origin");
     vectorData << SEP << m_templateOrigin[0];

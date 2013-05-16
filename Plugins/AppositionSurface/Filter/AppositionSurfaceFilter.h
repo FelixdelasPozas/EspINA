@@ -9,7 +9,7 @@
 #define APPOSITIONSURFACEFILTER_H_
 
 // EspINA
-#include <Core/Model/Filter.h>
+#include <Filters/BasicSegmentationFilter.h>
 #include <Core/Model/ModelItem.h>
 
 // ITK
@@ -41,7 +41,7 @@ namespace EspINA
   class RasterizedVolume;
 
   class AppositionSurfaceFilter
-  : public SegmentationFilter
+  : public BasicSegmentationFilter
   {
     Q_OBJECT
     static const double THRESHOLDFACTOR = 0.01; // Percentage of a single step
@@ -105,11 +105,7 @@ namespace EspINA
     virtual bool dumpSnapshot(Snapshot &snapshot);
 
   protected:
-    virtual void createDummyOutput(FilterOutputId id, const FilterOutput::OutputRepresentationName &type);
-
-    virtual void createOutputRepresentations(SegmentationOutputSPtr output);
-
-    virtual bool fetchSnapshot(FilterOutputId oId);
+    virtual SegmentationRepresentationSPtr createRepresentationProxy(FilterOutputId id, const FilterOutput::OutputRepresentationName &type);
 
     virtual bool ignoreCurrentOutputs() const
     { return false; }

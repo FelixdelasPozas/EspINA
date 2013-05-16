@@ -36,7 +36,7 @@ int AppPlaneFeatures(int argc, char **argv)
 //   QString inputFileName = stackPath.filePath("Plane-1611.mhd");
 //   QString inputFileName = stackPath.filePath("Plane-1619.mhd");
   QString inputFileName = stackPath.filePath("object35.mha");
-  seg->SetFileName(inputFileName.toUtf8());
+  seg->SetFileName(inputFileName.toUtf8().data());
   seg->Update();
 
   vtkSmartPointer<vtkAppositionPlaneFilter> appPlane =

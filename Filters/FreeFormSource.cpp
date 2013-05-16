@@ -21,7 +21,7 @@
 
 // EspINA
 #include "Core/Model/EspinaFactory.h"
-#include <GUI/Representations/SliceRepresentation.h>
+#include <Core/Model/MarchingCubesMesh.h>
 
 // ITK
 #include <itkImageRegionIteratorWithIndex.h>
@@ -34,6 +34,24 @@ using namespace EspINA;
 
 typedef ModelItem::ArgumentId ArgumentId;
 const ArgumentId FreeFormSource::SPACING = "SPACING";
+
+//-----------------------------------------------------------------------------
+FreeFormSource::FreeFormSource(const EspinaRegion        &bounds,
+                               itkVolumeType::SpacingType spacing,
+                               Filter::FilterType        type)
+: BasicSegmentationFilter(NamedInputs(), Arguments(), type)
+, m_param(m_args)
+{
+  RawSegmentationVolumeSPtr volumeRepresentation(new RawSegmentationVolume(bounds, spacing));
+
+  SegmentationRepresentationSList representations;
+  representations << volumeRepresentation;
+  representations << MeshTypeSPtr(new MarchingCubesMesh(volumeRepresentation));
+
+  addOutputRepresentations(0, representations);
+
+  segmentationVolume(m_outputs[0])->addEditedRegion(bounds);
+}
 
 //-----------------------------------------------------------------------------
 FreeFormSource::FreeFormSource(NamedInputs inputs,

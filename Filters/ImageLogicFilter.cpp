@@ -19,6 +19,7 @@
 #include "ImageLogicFilter.h"
 
 #include <Core/Model/EspinaFactory.h>
+#include <Core/Model/MarchingCubesMesh.h>
 #include <GUI/Representations/SliceRepresentation.h>
 
 #include <itkImageAlgorithm.h>
@@ -119,13 +120,13 @@ void ImageLogicFilter::addition()
   }
 
   itkVolumeType::SpacingType spacing = firstVolume->toITK()->GetSpacing();
-  RawSegmentationVolumeSPtr volume(new RawSegmentationVolume(bb, spacing));
+  RawSegmentationVolumeSPtr volumeRepresentation(new RawSegmentationVolume(bb, spacing));
 
   for (int i = 0; i < regions.size(); i++)
   {
     SegmentationVolumeSPtr iVolume = segmentationVolume(m_inputs[i]);
     itkVolumeConstIterator it      = iVolume->constIterator(regions[i]);
-    itkVolumeIterator      ot      = volume ->iterator (regions[i]);
+    itkVolumeIterator      ot      = volumeRepresentation ->iterator (regions[i]);
 
     it.GoToBegin();
     ot.GetRegion();
@@ -137,11 +138,10 @@ void ImageLogicFilter::addition()
   }
 
   SegmentationRepresentationSList repList;
-  repList << volume;
+  repList << volumeRepresentation;
+  repList << MeshTypeSPtr(new MarchingCubesMesh(volumeRepresentation));
 
-  createOutput(0, repList);
-
-  emit modified(this);
+  addOutputRepresentations(0, repList);
 }
 
 //-----------------------------------------------------------------------------
@@ -169,18 +169,18 @@ void ImageLogicFilter::substraction()
   }
 
   itkVolumeType::SpacingType spacing = firstVolume->toITK()->GetSpacing();
-  RawSegmentationVolumeSPtr volume(new RawSegmentationVolume(outputRegion, spacing));
+  RawSegmentationVolumeSPtr volumeRepresentation(new RawSegmentationVolume(outputRegion, spacing));
 
   itk::ImageAlgorithm::Copy(firstVolume->toITK().GetPointer(),
-                            volume->toITK().GetPointer(),
+                            volumeRepresentation->toITK().GetPointer(),
                             firstVolume->volumeRegion(),
-                            volume->volumeRegion());
+                            volumeRepresentation->volumeRegion());
 
   for (int i = 1; i < validInputs.size(); i++)
   {
     SegmentationVolumeSPtr iVolume = segmentationVolume(m_inputs[i]);
     itkVolumeConstIterator it      = iVolume->constIterator(regions[i]);
-    itkVolumeIterator      ot      = volume ->iterator     (regions[i]);
+    itkVolumeIterator      ot      = volumeRepresentation ->iterator     (regions[i]);
     it.GoToBegin();
     ot.GetRegion();
     for (; !it.IsAtEnd(); ++it,++ot)
@@ -191,9 +191,8 @@ void ImageLogicFilter::substraction()
   }
 
   SegmentationRepresentationSList repList;
-  repList << volume;
+  repList << volumeRepresentation;
+  repList << MeshTypeSPtr(new MarchingCubesMesh(volumeRepresentation));
 
-  createOutput(0, repList);
-
-  emit modified(this);
+  addOutputRepresentations(0, repList);
 }

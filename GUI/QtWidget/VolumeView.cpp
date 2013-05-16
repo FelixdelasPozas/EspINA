@@ -98,6 +98,11 @@ VolumeView::~VolumeView()
 //   qDebug() << "********************************************************";
 //   qDebug() << "              Destroying Volume View";
 //   qDebug() << "********************************************************";
+
+  // Representation destructors may need to access slice view in their destructors
+  m_channelStates.clear();
+  m_segmentationStates.clear();
+
   m_viewManager->unregisterView(this);
 }
 
@@ -957,7 +962,7 @@ void VolumeView::exportScene()
         vtkPOVExporter *exporter = vtkPOVExporter::New();
         exporter->DebugOn();
         exporter->SetGlobalWarningDisplay(true);
-        exporter->SetFileName(selectedFile.toStdString().c_str());
+        exporter->SetFileName(selectedFile.toUtf8());
         exporter->SetRenderWindow(m_renderer->GetRenderWindow());
         QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
         exporter->Write();
@@ -969,7 +974,7 @@ void VolumeView::exportScene()
       {
         vtkVRMLExporter *exporter = vtkVRMLExporter::New();
         exporter->DebugOn();
-        exporter->SetFileName(selectedFile.toStdString().c_str());
+        exporter->SetFileName(selectedFile.toUtf8());
         exporter->SetRenderWindow(m_renderer->GetRenderWindow());
         QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
         exporter->Write();
@@ -981,7 +986,7 @@ void VolumeView::exportScene()
       {
         vtkX3DExporter *exporter = vtkX3DExporter::New();
         exporter->DebugOn();
-        exporter->SetFileName(selectedFile.toStdString().c_str());
+        exporter->SetFileName(selectedFile.toUtf8());
         exporter->SetRenderWindow(m_renderer->GetRenderWindow());
         QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
         exporter->Write();
@@ -1034,7 +1039,7 @@ void VolumeView::takeSnapshot()
       {
         vtkPNGWriter *writer = vtkPNGWriter::New();
         writer->SetFileDimensionality(2);
-        writer->SetFileName(selectedFile.toStdString().c_str());
+        writer->SetFileName(selectedFile.toUtf8());
         writer->SetInputConnection(image->GetOutputPort());
         QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
         writer->Write();
@@ -1048,7 +1053,7 @@ void VolumeView::takeSnapshot()
         writer->ProgressiveOff();
         writer->WriteToMemoryOff();
         writer->SetFileDimensionality(2);
-        writer->SetFileName(selectedFile.toStdString().c_str());
+        writer->SetFileName(selectedFile.toUtf8());
         writer->SetInputConnection(image->GetOutputPort());
         QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
         writer->Write();

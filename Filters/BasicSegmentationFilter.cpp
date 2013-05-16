@@ -23,12 +23,15 @@
 #include <Core/Outputs/VolumeProxy.h>
 #include <Core/Outputs/MeshProxy.h>
 #include <Core/Outputs/RawVolume.h>
+#include <Core/Outputs/RawMesh.h>
+#include <Core/Outputs/RasterizedVolume.h>
 #include <Core/Model/MarchingCubesMesh.h>
 
 #include <GUI/Representations/SliceRepresentation.h>
 #include <GUI/Representations/SimpleMeshRepresentation.h>
 #include <GUI/Representations/SmoothedMeshRepresentation.h>
 #include <GUI/Representations/VolumeRaycastRepresentation.h>
+#include <vtkMath.h>
 
 using namespace EspINA;
 
@@ -40,18 +43,27 @@ BasicSegmentationFilter::BasicSegmentationFilter(NamedInputs namedInputs, ModelI
 }
 
 //-----------------------------------------------------------------------------
-void BasicSegmentationFilter::createDummyOutput(FilterOutputId id, const FilterOutput::OutputRepresentationName &type)
+SegmentationRepresentationSPtr BasicSegmentationFilter::createRepresentationProxy(FilterOutputId id, const FilterOutput::OutputRepresentationName &type)
 {
+  SegmentationRepresentationSPtr proxy;
+
+  Q_ASSERT(m_outputs.contains(id));
+  Q_ASSERT( NULL == m_outputs[id]->representation(type));
+
   if (SegmentationVolume::TYPE == type)
-    createOutput(id, VolumeProxySPtr(new VolumeProxy()));
+    proxy = VolumeProxySPtr(new VolumeProxy());
   else if (MeshType::TYPE == type)
-    createOutput(id, MeshProxySPtr(new MeshProxy()));
+    proxy = MeshProxySPtr(new MeshProxy());
   else
     Q_ASSERT(false);
+
+  m_outputs[id]->setRepresentation(type, proxy);
+
+  return proxy;
 }
 
 //-----------------------------------------------------------------------------
-void BasicSegmentationFilter::createOutputRepresentations(SegmentationOutputSPtr output)
+void BasicSegmentationFilter::createGraphicalRepresentations(SegmentationOutputSPtr output)
 {
   SegmentationVolumeSPtr volumeRep = segmentationVolume(output);
   MeshTypeSPtr           meshRep   = meshOutput(output);
@@ -73,21 +85,24 @@ bool BasicSegmentationFilter::fetchSnapshot(FilterOutputId oId)
     RawSegmentationVolumeSPtr volume(new RawSegmentationVolume(m_outputs[0].get()));
     bool fetchVolume = volume->fetchSnapshot(this, filterPrefix);
 
-    // TODO: RawMesh
-    bool fetchMesh   = false;// meshOutput        (m_outputs[0])->fetchSnapshot(this, filterPrefix);
+    RawMeshSPtr mesh(new RawMesh(m_outputs[0].get()));
+    bool fetchMesh   = mesh->fetchSnapshot(this, filterPrefix);
 
-    if (fetchVolume && !fetchMesh)
-    {
-      SegmentationRepresentationSList repList;
+    SegmentationRepresentationSList repList;
+    if (fetchVolume)
       repList << volume;
+    else if (fetchMesh)
+      repList << SegmentationVolumeSPtr(new RasterizedVolume(mesh));
+
+    if (fetchMesh)
+      repList << mesh;
+    else if (fetchVolume)
       repList << MeshTypeSPtr(new MarchingCubesMesh(volume));//TODO: Pass the volume or the proxy?
-      createOutput(oId, repList);
-    } else if (fetchMesh && !fetchVolume)
-    {
-      // TODO: Review fetch snapshot
-    }
+
+    addOutputRepresentations(oId, repList);
 
     fetched = fetchVolume || fetchMesh;
   }
+
   return fetched;
 }

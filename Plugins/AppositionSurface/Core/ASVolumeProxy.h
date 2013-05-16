@@ -27,7 +27,6 @@ namespace EspINA
   class ASVolumeProxy 
   : public VolumeProxy
   {
-    
   };
 }
 

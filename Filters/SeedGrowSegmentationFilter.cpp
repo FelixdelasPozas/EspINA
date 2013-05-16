@@ -195,9 +195,9 @@ void SeedGrowSegmentationFilter::run(FilterOutputId oId)
 
   SegmentationRepresentationSList repList;
   repList << volumeRepresentation;
-  repList << MeshTypeSPtr(new MarchingCubesMesh(volumeRepresentation));//TODO: Pass the volume or the proxy?
+  repList << MeshTypeSPtr(new MarchingCubesMesh(volumeRepresentation));
 
-  createOutput(0, repList);
+  addOutputRepresentations(0, repList);
 
   m_ignoreCurrentOutputs = false;
 

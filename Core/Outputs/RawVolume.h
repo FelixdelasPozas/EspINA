@@ -89,6 +89,8 @@ namespace EspINA
 
     virtual const vtkAlgorithmOutput *toVTK() const;
 
+    virtual void markAsModified(bool emitSignal = true);
+
   protected:
     mutable itkVolumeType::Pointer m_volume;
 
@@ -110,10 +112,10 @@ namespace EspINA
   public:
     explicit RawSegmentationVolume(FilterOutput *output = NULL);
     explicit RawSegmentationVolume(itkVolumeType::Pointer volume,
-                          FilterOutput *output = NULL);
+                                   FilterOutput *output = NULL);
     explicit RawSegmentationVolume(const EspinaRegion &region,
-                          itkVolumeType::SpacingType spacing,
-                          FilterOutput *output = NULL);
+                                   itkVolumeType::SpacingType spacing,
+                                   FilterOutput *output = NULL);
     virtual ~RawSegmentationVolume(){}
 
     virtual bool setInternalData(SegmentationRepresentationSPtr rhs);
@@ -175,7 +177,7 @@ namespace EspINA
 
     virtual void clearEditedRegions();
 
-    virtual void commitEditedRegions(bool ignoreData) const;
+    virtual void commitEditedRegions(bool withData) const;
 
     virtual void restoreEditedRegions(const QDir &cacheDir, const QString &outputId);
 

@@ -150,9 +150,24 @@ void BrushPicker::setBrushColor(QColor color)
 void BrushPicker::setReferenceItem(PickableItemPtr item)
 {
   m_referenceItem = item;
-  SegmentationVolumeSPtr volume = segmentationVolume(m_referenceItem->output());
-  m_spacing = volume->toITK()->GetSpacing();
+
+  if (EspINA::SEGMENTATION == item->type())
+  {
+    SegmentationVolumeSPtr volume = segmentationVolume(m_referenceItem->output());
+    m_spacing = volume->toITK()->GetSpacing();
+  } else if (EspINA::CHANNEL == item->type())
+  {
+    ChannelVolumeSPtr volume = channelVolume(m_referenceItem->output());
+    m_spacing = volume->toITK()->GetSpacing();
+  }
 }
+
+//-----------------------------------------------------------------------------
+itkVolumeType::SpacingType BrushPicker::referenceSpacing() const
+{
+  return m_spacing;
+}
+
 
 //-----------------------------------------------------------------------------
 void BrushPicker::setBrushImage(QImage &image)

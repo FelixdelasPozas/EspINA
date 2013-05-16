@@ -162,7 +162,7 @@ namespace EspINA
     SegmentationRepresentationSList repList;
     repList << RawSegmentationVolumeSPtr(new RawSegmentationVolume(m_filter->GetOutput()));
 
-    createOutput(0, repList);
+    addOutputRepresentations(0, repList);
 
     emit modified(this);
   }

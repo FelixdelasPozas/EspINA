@@ -50,9 +50,9 @@ namespace EspINA
     void setSpacing(itkVolumeType::SpacingType spacing);
 
   protected:
-    virtual void createDummyOutput(FilterOutputId id, const FilterOutput::OutputRepresentationName &type) {}
+    virtual ChannelRepresentationSPtr createRepresentationProxy(FilterOutputId id, const FilterOutput::OutputRepresentationName &type);
 
-    virtual void createOutputRepresentations(ChannelOutputSPtr output);
+    virtual void createGraphicalRepresentations(ChannelOutputSPtr output);
 
     virtual bool ignoreCurrentOutputs() const
     { return false; }
@@ -66,8 +66,6 @@ namespace EspINA
     itkVolumeType::SpacingType spacing();
 
   private:
-    ChannelVolumeSPtr m_volumeOutput;
-
     EspinaIO::ErrorHandler *m_handler;
   };
 

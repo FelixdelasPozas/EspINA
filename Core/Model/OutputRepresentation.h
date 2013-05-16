@@ -105,7 +105,7 @@ namespace EspINA
   public:
     virtual bool setInternalData(SegmentationRepresentationSPtr rhs) = 0;
 
-    virtual void addEditedRegion(const EspinaRegion &region, int id = -1) = 0;
+    virtual void addEditedRegion(const EspinaRegion &region, int cacheId = -1) = 0;
 
     /// Whether output has been manually edited
     virtual bool isEdited() const = 0;

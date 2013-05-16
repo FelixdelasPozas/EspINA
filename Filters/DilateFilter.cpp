@@ -20,6 +20,7 @@
 #include "DilateFilter.h"
 
 #include <Core/Model/EspinaFactory.h>
+#include <Core/Model/MarchingCubesMesh.h>
 
 #include <itkBinaryBallStructuringElement.h>
 #include <itkDilateObjectMorphologyImageFilter.h>
@@ -88,10 +89,13 @@ void DilateFilter::run(FilterOutputId oId)
 
   m_isOutputEmpty = false;
 
-  SegmentationRepresentationSList repList;
-  repList << RawSegmentationVolumeSPtr(new RawSegmentationVolume(filter->GetOutput()));
+  RawSegmentationVolumeSPtr volumeRepresentation(new RawSegmentationVolume(filter->GetOutput()));
 
-  createOutput(0, repList);
+  SegmentationRepresentationSList repList;
+  repList << volumeRepresentation;
+  repList << MeshTypeSPtr(new MarchingCubesMesh(volumeRepresentation));//TODO: Pass the volume or the proxy?
+
+  addOutputRepresentations(0, repList);
 
   emit modified(this);
 }

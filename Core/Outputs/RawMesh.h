@@ -29,7 +29,10 @@ namespace EspINA
   : public MeshType
   {
   public:
-    explicit RawMesh(vtkSmartPointer<vtkPolyData> mesh, FilterOutput *output=NULL);
+    explicit RawMesh(FilterOutput *output=NULL);
+    explicit RawMesh(vtkSmartPointer<vtkPolyData> mesh,
+                     itkVolumeType::SpacingType spacing,
+                     FilterOutput *output = NULL);
 
     virtual bool dumpSnapshot(const QString &prefix, Snapshot &snapshot) const;
     virtual bool fetchSnapshot(Filter *filter, const QString &prefix);

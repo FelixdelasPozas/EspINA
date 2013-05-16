@@ -58,6 +58,12 @@ void FilterOutput::setRegion(const EspinaRegion &region)
   m_region = region;
 }
 
+//----------------------------------------------------------------------------
+void FilterOutput::onRepresentationChanged()
+{
+  emit modified();
+}
+
 
 //----------------------------------------------------------------------------
 ChannelOutput::ChannelOutput(Filter *filter, const FilterOutputId &id)
@@ -262,4 +268,25 @@ void SegmentationOutput::setEditedRegions(FilterOutput::EditedRegionSList region
 {
   clearEditedRegions();
   //FIXME set regions
+}
+
+//----------------------------------------------------------------------------
+void SegmentationOutput::setRepresentation(const FilterOutput::OutputRepresentationName &name,
+                                           SegmentationRepresentationSPtr representation)
+{
+  if (m_representations.contains(name))
+  {
+    disconnect(m_representations[name].get(), SIGNAL(representationChanged()),
+               this, SLOT(onRepresentationChanged()));
+  }
+
+  if (representation.get()) {
+    m_representations[name] = representation;
+
+    connect(m_representations[name].get(), SIGNAL(representationChanged()),
+            this, SLOT(onRepresentationChanged()));
+  } else 
+  {
+    m_representations.remove(name);
+  }
 }

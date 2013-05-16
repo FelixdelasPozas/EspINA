@@ -75,6 +75,9 @@ public:
   };
 
 public:
+  explicit FreeFormSource(const EspinaRegion &bounds,
+                          itkVolumeType::SpacingType spacing,
+                          FilterType  type);
   explicit FreeFormSource(NamedInputs inputs,
                           Arguments   args,
                           FilterType  type);

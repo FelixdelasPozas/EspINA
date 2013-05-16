@@ -35,12 +35,14 @@
 #include <vtkImageData.h>
 #include <vtkAlgorithmOutput.h>
 
+#include <QDebug>
+
 using namespace EspINA;
 
 //----------------------------------------------------------------------------
 MarchingCubesMesh::MarchingCubesMesh(SegmentationVolumeSPtr volume,
                                      FilterOutput *output)
-: MeshType(output)
+: MeshType(volume->toITK()->GetSpacing(), output)
 , m_volume(volume)
 {
   connect(volume.get(), SIGNAL(representationChanged()),
@@ -65,11 +67,11 @@ bool MarchingCubesMesh::dumpSnapshot(const QString &prefix, Snapshot &snapshot) 
   return false;
 }
 
-// //----------------------------------------------------------------------------
-// bool MarchingCubesMesh::fetchSnapshot(Filter *filter, const QString &prefix)
-// {
-//   return segmentationVolume(m_output)->isValid();
-// }
+//----------------------------------------------------------------------------
+bool MarchingCubesMesh::fetchSnapshot(Filter *filter, const QString &prefix)
+{
+  return false;
+}
 
 //----------------------------------------------------------------------------
 bool MarchingCubesMesh::isEdited() const
@@ -93,20 +95,17 @@ FilterOutput::EditedRegionSList MarchingCubesMesh::editedRegions() const
 //----------------------------------------------------------------------------
 void MarchingCubesMesh::clearEditedRegions()
 {
-
 }
 
 //----------------------------------------------------------------------------
 void MarchingCubesMesh::commitEditedRegions(bool withData) const
 {
-
 }
 
 
 //----------------------------------------------------------------------------
 void MarchingCubesMesh::restoreEditedRegions(const QDir &cacheDir, const QString &outputId)
 {
-
 }
 
 

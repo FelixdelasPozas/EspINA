@@ -116,6 +116,10 @@ namespace EspINA
 
     void clearGraphicalRepresentations()
     { m_repPrototypes.clear(); }
+
+  protected slots:
+    void onRepresentationChanged();
+
   signals:
     void modified();
 
@@ -188,8 +192,7 @@ namespace EspINA
     /// replace current edited regions
     void setEditedRegions(EditedRegionSList regions);
 
-    void setRepresentation(const OutputRepresentationName &name, SegmentationRepresentationSPtr representation)
-    { m_representations[name] = representation; }
+    void setRepresentation(const OutputRepresentationName &name, SegmentationRepresentationSPtr representation);
 
     SegmentationRepresentationSPtr representation(const OutputRepresentationName &name) const
     { return m_representations.value(name, SegmentationRepresentationSPtr()); }

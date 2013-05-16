@@ -280,6 +280,16 @@ const vtkAlgorithmOutput* RawChannelVolume::toVTK() const
   return itk2vtk->GetOutput()->GetProducerPort();
 }
 
+//----------------------------------------------------------------------------
+void RawChannelVolume::markAsModified(bool emitSignal)
+{
+  OutputRepresentation::updateModificationTime();
+  toITK()->Modified();
+
+  if (emitSignal)
+    emit representationChanged();
+}
+
 
 // //----------------------------------------------------------------------------
 // RawChannelVolume::RawChannelVolume(const EspinaRegion &region,
@@ -806,11 +816,7 @@ void RawSegmentationVolume::clearEditedRegions()
 void RawSegmentationVolume::commitEditedRegions(bool withData) const
 {
   FilterOutput::EditedRegionSList regions;
-//   for (int i = 0; i < m_editedRegions.size(); ++i)
-//   {
-//     EditedVolumeRegionSPtr editedRegion(
-//       new EditedVolumeRegion(m_editedRegions[i]->Id,
-//                              m_editedRegions[i]->Region));
+
   foreach(EditedVolumeRegionSPtr editedRegion, m_editedRegions)
   {
     if (withData)
@@ -836,91 +842,18 @@ void RawSegmentationVolume::commitEditedRegions(bool withData) const
 
   SegmentationOutputPtr output = dynamic_cast<SegmentationOutputPtr>(m_output);
   output->push(regions);
-
-  //FIXME: Simplify regions
-//   for (int i = 0; i < m_editedRegions.size(); ++i)
-//   {
-//     QString file = QString("%1_%2.mhd").arg(prefix).arg(i);
-// 
-    // FIXME
-//     // Dump modified volume
-//     if (!output->isCached())
-//     {
-//       QString regionName = QString("%1_%2").arg(filterPrefix).arg(r);
-//       QString mhd = temporalDir.absoluteFilePath(regionName + ".mhd");
-//       QString raw = temporalDir.absoluteFilePath(regionName + ".raw");
-//       
-//       itkVolumeType::Pointer regionVolume = output.volume->toITK();
-//       if (regionVolume)
-//       {
-//         bool releaseFlag = regionVolume->GetReleaseDataFlag();
-//         regionVolume->ReleaseDataFlagOff();
-//         
-//         io->SetFileName(mhd.toUtf8());
-//         writer->SetFileName(mhd.toUtf8().data());
-//         
-//         ROIFilter::Pointer roiFilter = ROIFilter::New();
-//         roiFilter->SetRegionOfInterest(output.volume->volumeRegion(editedRegion));
-//         roiFilter->SetInput(regionVolume);
-//         roiFilter->Update();
-//         
-//         writer->SetInput(roiFilter->GetOutput());
-//         writer->SetImageIO(io);
-//         writer->Write();
-//         regionVolume->SetReleaseDataFlag(releaseFlag);
-//       } else
-//       {
-//         // dump cache volumes
-//         mhd = m_cacheDir.absoluteFilePath(regionName + ".mhd");
-//         raw = m_cacheDir.absoluteFilePath(regionName + ".raw");
-//       }
-//       
-//       QFile mhdFile(mhd);
-//       mhdFile.open(QIODevice::ReadOnly);
-//       QFile rawFile(raw);
-//       rawFile.open(QIODevice::ReadOnly);
-//       
-//       QByteArray mhdArray(mhdFile.readAll());
-//       QByteArray rawArray(rawFile.readAll());
-//       
-//       mhdFile.close();
-//       rawFile.close();
-//       
-//       if (regionVolume)
-//       {
-//         temporalDir.remove(mhd);
-//         temporalDir.remove(raw);
-//       }
-//       
-//       SnapshotEntry mhdEntry(regionName + ".mhd", mhdArray);
-//       SnapshotEntry rawEntry(regionName + ".raw", rawArray);
-//       
-//       snapshot << mhdEntry << rawEntry;
-//     }
-//   }
-//   
 }
 
 //----------------------------------------------------------------------------
 void RawSegmentationVolume::restoreEditedRegions(const QDir &cacheDir, const QString &outputId)
 {
-//   // Restore previous edited regions if restoring a modified output
-//   int regionId = m_editedRegions.size() - 1;
-// 
-//   // Version 3 seg files compatibility
-//   QString fileV3 = QString("%1_%2.mhd").arg(prefix).arg(regionId);
-//   itkVolumeType::Pointer editedVolumeV3 = filter->readVolumeFromCache(fileV3);
-//   if (editedVolumeV3.IsNotNull())
-//   {
-//     draw(editedVolumeV3, true);
-//   } else
-//   {
-//     qWarning() << "VolumeType: Couldn't restore edited region";
-//   }
-
   foreach(EditedVolumeRegionSPtr region, m_editedRegions)
   {
     QString file = cacheDir.absoluteFilePath(cachePath(QString("%1_%2.mhd").arg(outputId).arg(region->Id)));
+    if (!cacheDir.exists(file))
+    {//v3 support
+      file = cacheDir.absoluteFilePath(QString("%1_%2.mhd").arg(outputId).arg(m_editedRegions.indexOf(region)));
+    }
     itkVolumeType::Pointer editedVolume = m_output->filter()->readVolumeFromCache(file);
     if (editedVolume.IsNotNull())
     {
@@ -950,7 +883,7 @@ void RawSegmentationVolume::setVolume(itkVolumeType::Pointer volume, bool discon
 }
 
 //----------------------------------------------------------------------------
-void RawSegmentationVolume::addEditedRegion(const EspinaRegion &region, int id)
+void RawSegmentationVolume::addEditedRegion(const EspinaRegion &region, int cacheId)
 {
   int  i        = 0;
   bool included = false;
@@ -960,7 +893,7 @@ void RawSegmentationVolume::addEditedRegion(const EspinaRegion &region, int id)
     ++i;
   }
   if (!included)
-    m_editedRegions << EditedVolumeRegionSPtr(new EditedVolumeRegion(id, region));
+    m_editedRegions << EditedVolumeRegionSPtr(new EditedVolumeRegion(cacheId, region));
 }
 
 //----------------------------------------------------------------------------
@@ -1177,11 +1110,6 @@ void RawSegmentationVolume::expandToFitRegion(EspinaRegion region)
       outIter.Set(0);
       ++outIter;
     }
-/*    
-    m_volume->Print(std::cout);
-    expandedVolume.m_volume->Print(std::cout);
-
-    expandedVolume.m_volume->SetOrigin(m_volume->GetOrigin()); */
 
     setVolume(expandedVolume.m_volume);
   }

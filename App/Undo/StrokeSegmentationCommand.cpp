@@ -35,14 +35,6 @@ StrokeSegmentationCommand::StrokeSegmentationCommand(ChannelPtr channel,
 , m_channel(model->findChannel(channel))
 , m_taxonomy(model->findTaxonomyElement(taxonomy))
 {
-  double spacing[3];
-  channel->volume()->spacing(spacing);
-
-  Filter::NamedInputs inputs;
-  Filter::Arguments args;
-  FreeFormSource::Parameters params(args);
-  params.setSpacing(spacing);
-
   double strokeBounds[6];
   for (int i = 0; i < brushes.size(); i++)
   {
@@ -58,16 +50,15 @@ StrokeSegmentationCommand::StrokeSegmentationCommand(ChannelPtr channel,
     }
   }
 
-  m_filter = FilterSPtr(new FreeFormSource(inputs, args, Brush::FREEFORM_SOURCE_TYPE));
+  m_filter = FilterSPtr(new FreeFormSource(EspinaRegion(strokeBounds),
+                                           channel->volume()->spacing(),
+                                           Brush::FREEFORM_SOURCE_TYPE));
 
   SegmentationVolumeSPtr volume = segmentationVolume(m_filter->output(0));
   for (int i = 0; i < brushes.size(); i++)
   {
     Brush::BrushShape &brush = brushes[i];
-    if (0 == i) // Prevent resizing on each brush
-      volume->draw(brush.first, strokeBounds, SEG_VOXEL_VALUE, brushes.size()-1 == i);
-    else
-      volume->draw(brush.first, brush.second.bounds(), SEG_VOXEL_VALUE, brushes.size()-1 == i);
+    volume->draw(brush.first, brush.second.bounds(), SEG_VOXEL_VALUE, brushes.size()-1 == i);
   }
 
   m_segmentation = m_model->factory()->createSegmentation(m_filter, 0);

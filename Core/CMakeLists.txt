@@ -24,6 +24,7 @@ qt4_wrap_cpp(CORE_MOC
   Model/Proxies/TaxonomyProxy.h
   Model/Proxies/InformationProxy.h
   Model/Proxies/ConnectomicProxy.h
+  Outputs/ChannelVolumeProxy.h
   Outputs/VolumeProxy.h
   Interfaces/IDockWidget.h
   Interfaces/IToolBar.h
@@ -78,6 +79,7 @@ set (CORE_SOURCES
   Model/Proxies/RelationProxy.cpp
   Model/Proxies/InformationProxy.cpp
   Model/Proxies/ConnectomicProxy.cpp
+  Outputs/ChannelVolumeProxy.cpp 
   Outputs/MeshType.cpp
   Outputs/MeshProxy.cpp 
   Outputs/RawMesh.cpp 
