@@ -22,10 +22,18 @@
 using namespace EspINA;
 
 //----------------------------------------------------------------------------
-const FilterOutput::OutputRepresentationName MeshType::TYPE = "MeshOutputType";
+const FilterOutput::OutputRepresentationName MeshRepresentation::TYPE = "MeshOutputType";
 
 //----------------------------------------------------------------------------
-MeshTypeSPtr EspINA::meshOutput(SegmentationOutputSPtr output)
+MeshRepresentationSPtr EspINA::meshRepresentation(OutputSPtr output)
 {
-  return boost::dynamic_pointer_cast<MeshType>(output->representation(MeshType::TYPE));
+  SegmentationOutputSPtr segmentationOutput = boost::dynamic_pointer_cast<SegmentationOutput>(output);
+  Q_ASSERT(segmentationOutput.get());
+  return boost::dynamic_pointer_cast<MeshRepresentation>(segmentationOutput->representation(MeshRepresentation::TYPE));
+}
+
+//----------------------------------------------------------------------------
+MeshRepresentationSPtr EspINA::meshRepresentation(SegmentationOutputSPtr output)
+{
+  return boost::dynamic_pointer_cast<MeshRepresentation>(output->representation(MeshRepresentation::TYPE));
 }

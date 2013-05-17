@@ -139,7 +139,7 @@ void ImageLogicFilter::addition()
 
   SegmentationRepresentationSList repList;
   repList << volumeRepresentation;
-  repList << MeshTypeSPtr(new MarchingCubesMesh(volumeRepresentation));
+  repList << MeshRepresentationSPtr(new MarchingCubesMesh(volumeRepresentation));
 
   addOutputRepresentations(0, repList);
 }
@@ -192,7 +192,7 @@ void ImageLogicFilter::substraction()
 
   SegmentationRepresentationSList repList;
   repList << volumeRepresentation;
-  repList << MeshTypeSPtr(new MarchingCubesMesh(volumeRepresentation));
+  repList << MeshRepresentationSPtr(new MarchingCubesMesh(volumeRepresentation));
 
   addOutputRepresentations(0, repList);
 }

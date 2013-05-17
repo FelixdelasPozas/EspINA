@@ -44,12 +44,12 @@ namespace EspINA
   : public BasicSegmentationFilter
   {
     Q_OBJECT
-    static const double THRESHOLDFACTOR = 0.01; // Percentage of a single step
-    static const unsigned int MAXSAVEDSTATUSES = 10;
-    static const int MAXITERATIONSFACTOR = 100;
-    static const float DISPLACEMENTSCALE = 1;
-    static const float CLIPPINGTHRESHOLD = 0.5;
-    static const float DISTANCESMOOTHSIGMAFACTOR = 0.67448; // probit(0.25)
+    static const double       THRESHOLDFACTOR           = 0.01; // Percentage of a single step
+    static const unsigned int MAXSAVEDSTATUSES          = 10;
+    static const int          MAXITERATIONSFACTOR       = 100;
+    static const float        DISPLACEMENTSCALE         = 1;
+    static const float        CLIPPINGTHRESHOLD         = 0.5;
+    static const float        DISTANCESMOOTHSIGMAFACTOR = 0.67448; // probit(0.25)
 
     typedef float DistanceType;
     typedef vtkSmartPointer<vtkPoints>   Points;
@@ -81,6 +81,9 @@ namespace EspINA
     static const QString INPUTLINK;
     static const QString SAS;
 
+    static const char * MESH_ORIGIN;
+    static const char * MESH_NORMAL;
+
     static const ArgumentId ORIGIN;
 
     typedef AppositionSurfaceFilter *               Pointer;
@@ -94,15 +97,7 @@ namespace EspINA
 
     virtual void upkeeping();
 
-    double getArea();
-
-    double getPerimeter();
-
-    double getTortuosity();
-
     QString getOriginSegmentation();
-
-    virtual bool dumpSnapshot(Snapshot &snapshot);
 
   protected:
     virtual SegmentationRepresentationSPtr createRepresentationProxy(FilterOutputId id, const FilterOutput::OutputRepresentationName &type);
@@ -125,10 +120,6 @@ namespace EspINA
     virtual itkVolumeType::SpacingType getOriginSpacing();
 
     virtual itkVolumeType::RegionType getOriginRegion();
-    /// Try to locate an snapshot of the filter in tmpDir
-    /// Returns true if all volume snapshot can be recovered
-    /// and false otherwise
-    virtual bool fetchCachePolyDatas();
 
     /// helper methods
     /////////////////////////////////////////////////////////////////////
@@ -149,7 +140,6 @@ namespace EspINA
     /// Find the projection of A on B
     void project(const double* A, const double* B, double* Projection) const;
     void projectVectors(vtkImageData* vectors_image, double* unitary) const;
-    void projectPolyDataToPlane(double* origin, double* normal, vtkPolyData* meshIn, vtkPolyData* meshOut) const;
 
     void vectorImageToVTKImage(CovariantVectorImageType::Pointer vectorImage, vtkSmartPointer<vtkImageData> image) const;
 
@@ -159,28 +149,14 @@ namespace EspINA
     PolyData triangulate(PolyData plane) const;
     /////////////////////////////////////////////////////////////////////
 
-    /// Apposition plane metrics
-    /////////////////////////////////////////////////////////////////////
-    double computeArea() const;
-    double computeArea(PolyData mesh) const;
-    double computePerimeter() const;
-    double computeTortuosity() const;
-    bool isPerimeter(vtkIdType cellId, vtkIdType p1, vtkIdType p2) const;
-    /////////////////////////////////////////////////////////////////////
-
   private:
     int m_resolution;
     int m_iterations;
     bool m_converge;
     mutable PolyData m_ap;
-    mutable double*  m_templateOrigin;
-    mutable double*  m_templateNormal;
     mutable SegmentationPtr m_originSegmentation;
 
     QString m_origin;
-    mutable double m_area;
-    mutable double m_perimeter;
-    mutable double m_tortuosity;
 
     itkVolumeType::Pointer m_input;
 

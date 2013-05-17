@@ -34,7 +34,7 @@
 namespace EspINA
 {
   //-----------------------------------------------------------------------------
-  SmoothedMeshRepresentation::SmoothedMeshRepresentation(MeshTypeSPtr mesh, EspinaRenderView *view)
+  SmoothedMeshRepresentation::SmoothedMeshRepresentation(MeshRepresentationSPtr mesh, EspinaRenderView *view)
   : IMeshRepresentation(mesh, view)
   {
   }

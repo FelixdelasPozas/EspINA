@@ -439,8 +439,7 @@ void ChannelInspector::rejectedChanges()
         for (int i=0; i < 3; i++)
         origin[i] = origin[i]/oldSpacing[i]*newSpacing[i];
         segVolume->toITK()->SetOrigin(origin);
-        Q_ASSERT(false);
-        seg->output()->update(); //FIXME
+        seg->output()->update();
       }
     }
   }
@@ -476,10 +475,7 @@ void ChannelInspector::rejectedChanges()
   }
 
   if (modified)
-  {
-    Q_ASSERT(false);
-    m_channel->output()->update();
-  }
+    m_viewManager->updateChannelRepresentations();
 }
 
 //------------------------------------------------------------------------

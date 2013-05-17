@@ -31,7 +31,7 @@ namespace EspINA
 {
 
   //-----------------------------------------------------------------------------
-  SimpleMeshRepresentation::SimpleMeshRepresentation(MeshTypeSPtr mesh, EspinaRenderView *view)
+  SimpleMeshRepresentation::SimpleMeshRepresentation(MeshRepresentationSPtr mesh, EspinaRenderView *view)
   : IMeshRepresentation(mesh, view)
   {
   }

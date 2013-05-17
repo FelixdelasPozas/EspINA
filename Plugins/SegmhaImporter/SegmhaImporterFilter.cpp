@@ -268,7 +268,7 @@ void SegmhaImporterFilter::run()
 
       SegmentationRepresentationSList repList;
       repList << volume;
-      repList << MeshTypeSPtr(new MarchingCubesMesh(volume)); //TODO: pass the volume or the proxy?
+      repList << MeshRepresentationSPtr(new MarchingCubesMesh(volume)); //TODO: pass the volume or the proxy?
 
       addOutputRepresentations(id, repList);
 

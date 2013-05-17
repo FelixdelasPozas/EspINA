@@ -23,7 +23,7 @@ using namespace EspINA;
 
 //-----------------------------------------------------------------------------
 MeshProxy::MeshProxy(FilterOutput *output)
-: MeshType(itkVolumeType::SpacingType(), output)
+: MeshRepresentation(itkVolumeType::SpacingType(), output)
 {
 
 }
@@ -31,7 +31,7 @@ MeshProxy::MeshProxy(FilterOutput *output)
 //-----------------------------------------------------------------------------
 bool MeshProxy::setInternalData(SegmentationRepresentationSPtr rhs)
 {
-  m_meshRepresentation = boost::dynamic_pointer_cast<MeshType>(rhs);
+  m_meshRepresentation = boost::dynamic_pointer_cast<MeshRepresentation>(rhs);
 
   return m_meshRepresentation != NULL;
 }

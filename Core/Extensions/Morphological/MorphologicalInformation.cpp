@@ -398,7 +398,7 @@ void MorphologicalInformation::updateInformation()
 
     ExtensionData &data = s_cache[m_segmentation].Data;
 
-    data.Size         = static_cast<unsigned int>(m_statistic->GetNumberOfPixels());
+    data.Size = static_cast<unsigned int>(m_statistic->GetNumberOfPixels());
 
     data.PhysicalSize = m_statistic->GetPhysicalSize();
 

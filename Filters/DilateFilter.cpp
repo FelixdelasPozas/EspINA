@@ -93,7 +93,7 @@ void DilateFilter::run(FilterOutputId oId)
 
   SegmentationRepresentationSList repList;
   repList << volumeRepresentation;
-  repList << MeshTypeSPtr(new MarchingCubesMesh(volumeRepresentation));//TODO: Pass the volume or the proxy?
+  repList << MeshRepresentationSPtr(new MarchingCubesMesh(volumeRepresentation));//TODO: Pass the volume or the proxy?
 
   addOutputRepresentations(0, repList);
 

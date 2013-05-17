@@ -31,7 +31,7 @@ using namespace EspINA;
 
 //----------------------------------------------------------------------------
 RawMesh::RawMesh(FilterOutput *output)
-: MeshType(itkVolumeType::SpacingType(), output)
+: MeshRepresentation(itkVolumeType::SpacingType(), output)
 , m_mesh(NULL)
 {
 
@@ -41,7 +41,7 @@ RawMesh::RawMesh(FilterOutput *output)
 RawMesh::RawMesh(vtkSmartPointer<vtkPolyData> mesh,
                  itkVolumeType::SpacingType spacing,
                  FilterOutput *output)
-: MeshType(spacing, output)
+: MeshRepresentation(spacing, output)
 , m_mesh(mesh)
 {
 
@@ -196,5 +196,5 @@ RawMeshSPtr EspINA::rawMesh(OutputSPtr output)
 {
   SegmentationOutputSPtr segmentationOutput = boost::dynamic_pointer_cast<SegmentationOutput>(output);
   Q_ASSERT(segmentationOutput.get());
-  return boost::dynamic_pointer_cast<RawMesh>(segmentationOutput->representation(MeshType::TYPE));
+  return boost::dynamic_pointer_cast<RawMesh>(segmentationOutput->representation(MeshRepresentation::TYPE));
 }

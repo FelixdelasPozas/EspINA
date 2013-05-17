@@ -26,7 +26,7 @@
 namespace EspINA
 {
   class RawMesh 
-  : public MeshType
+  : public MeshRepresentation
   {
   public:
     explicit RawMesh(FilterOutput *output=NULL);

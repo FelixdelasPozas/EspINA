@@ -30,7 +30,7 @@ namespace EspINA
   TransparencySelectionHighlighter *IMeshRepresentation::s_highlighter = new TransparencySelectionHighlighter();
 
   //-----------------------------------------------------------------------------
-  IMeshRepresentation::IMeshRepresentation(MeshTypeSPtr mesh, EspinaRenderView *view)
+  IMeshRepresentation::IMeshRepresentation(MeshRepresentationSPtr mesh, EspinaRenderView *view)
   : SegmentationGraphicalRepresentation(view)
   , m_data(mesh)
   {

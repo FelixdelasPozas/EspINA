@@ -38,6 +38,7 @@
 #include <vtkEdgeListIterator.h>
 #include <vtkGenericDataObjectReader.h>
 #include <vtkPlane.h>
+#include <vtkDoubleArray.h>
 
 
 const double UNDEFINED = -1.;
@@ -47,6 +48,9 @@ using namespace EspINA;
 
 const QString AppositionSurfaceFilter::INPUTLINK = "Input";
 const QString AppositionSurfaceFilter::SAS = "SAS";
+
+const char * AppositionSurfaceFilter::MESH_NORMAL = "Normal";
+const char * AppositionSurfaceFilter::MESH_ORIGIN = "Origin";
 
 const ModelItem::ArgumentId AppositionSurfaceFilter::ORIGIN = "Origin Segmentation";
 
@@ -59,14 +63,8 @@ AppositionSurfaceFilter::AppositionSurfaceFilter(NamedInputs inputs, Arguments a
 , m_ap(NULL)
 , m_originSegmentation(NULL)
 , m_origin(args[ORIGIN])
-, m_area(UNDEFINED)
-, m_perimeter(UNDEFINED)
-, m_tortuosity(UNDEFINED)
 , m_alreadyFetchedData(false)
 {
-  m_templateOrigin = new double[3];
-  m_templateNormal = new double[3];
-
   if (m_origin == QString())
     m_origin = QString("Unspecified origin");
 }
@@ -80,9 +78,6 @@ AppositionSurfaceFilter::~AppositionSurfaceFilter()
                this, SLOT(inputModified()));
     m_ap->Delete();
   }
-
-  delete[] m_templateNormal;
-  delete[] m_templateOrigin;
 }
 
 //----------------------------------------------------------------------------
@@ -95,7 +90,7 @@ SegmentationRepresentationSPtr AppositionSurfaceFilter::createRepresentationProx
 
   if (SegmentationVolume::TYPE == type)
     proxy = VolumeProxySPtr(new ASVolumeProxy());
-  else if (MeshType::TYPE == type)
+  else if (MeshRepresentation::TYPE == type)
     proxy = MeshProxySPtr(new ASMeshProxy());
   else
     Q_ASSERT(false);
@@ -120,14 +115,20 @@ bool AppositionSurfaceFilter::needUpdate(FilterOutputId oId) const
   {
     Q_ASSERT(m_inputs.size() == 1);
 
-    SegmentationVolumeSPtr inputVolume  = segmentationVolume(m_inputs[0] );
-    MeshTypeSPtr           outputMesh   = meshOutput        (m_outputs[0]);
+    SegmentationVolumeSPtr inputVolume = segmentationVolume(m_inputs[0] );
+    MeshRepresentationSPtr outputMesh  = meshRepresentation(m_outputs[0]);
 
     update = outputMesh->timeStamp() < inputVolume->timeStamp();
   }
 
   return update;
 }
+
+QString AppositionSurfaceFilter::getOriginSegmentation()
+{
+  return m_originSegmentation->data().toString();
+}
+
 
 //----------------------------------------------------------------------------
 void AppositionSurfaceFilter::upkeeping()
@@ -157,11 +158,7 @@ void AppositionSurfaceFilter::upkeeping()
   }
   Q_ASSERT(m_originSegmentation);
 
-  //FIXME
   m_input = segmentationVolume(m_originSegmentation->output())->toITK();
-
-  // need to get the polydata as soon as possible to show the correct mesh
-  fetchCachePolyDatas();
 
   ModelItemSList items = relatedItems(EspINA::OUT, Filter::CREATELINK);
   if (items.size() == 1)
@@ -246,11 +243,19 @@ void AppositionSurfaceFilter::run(FilterOutputId oId)
   double *normal = planeSource->GetNormal();
   vtkMath::Normalize(normal);
 
+  vtkSmartPointer<vtkDoubleArray> originArray = vtkSmartPointer<vtkDoubleArray>::New();
+  vtkSmartPointer<vtkDoubleArray> normalArray = vtkSmartPointer<vtkDoubleArray>::New();
+
+  originArray->SetName(MESH_ORIGIN);
+  originArray->SetNumberOfValues(3);
+  normalArray->SetName(MESH_NORMAL);
+  normalArray->SetNumberOfValues(3);
+
   double v[3], displacement[3];
   for (int i = 0; i < 3; i++) {
     v[i] = avgMaxDistPoint[i] - obbCorners->GetPoint(0)[i];
-    m_templateOrigin[i] = obbCorners->GetPoint(0)[i];
-    m_templateNormal[i] = normal[i];
+    originArray->SetValue(i, obbCorners->GetPoint(0)[i]);
+    normalArray->SetValue(i, normal[i]);
   }
 
   project(v, normal, displacement);
@@ -339,6 +344,8 @@ void AppositionSurfaceFilter::run(FilterOutputId oId)
   m_ap->SetPoints(appositionSurface->GetPoints());
   m_ap->SetPolys(appositionSurface->GetPolys());
   m_ap->SetLines(appositionSurface->GetLines());
+  m_ap->GetPointData()->AddArray(originArray);
+  m_ap->GetPointData()->AddArray(normalArray);
   m_ap->Modified();
 
   RawMeshSPtr meshRepresentation(new RawMesh(m_ap, m_input->GetSpacing()));
@@ -623,47 +630,6 @@ void AppositionSurfaceFilter::projectVectors(vtkImageData* vectors_image, double
   // #endif
 }
 
-//------------------------------------------------------------------------
-/**
- * Normal's magnitude is 1
- */
-void AppositionSurfaceFilter::projectPolyDataToPlane(double* origin, double* normal, vtkPolyData* meshIn, vtkPolyData* meshOut) const
-{
-  
-  vtkSmartPointer<vtkPlane> plane = vtkSmartPointer<vtkPlane>::New();
-  plane->SetOrigin(origin);
-  plane->SetNormal(normal);
-  
-  int pointsCount = 0;
-  double projected[3], p[3];
-  
-  vtkSmartPointer<vtkPoints> pointsIn, pointsOut;
-  pointsOut = vtkSmartPointer<vtkPoints>::New();
-  pointsIn = meshIn->GetPoints();
-  
-  pointsCount = pointsIn->GetNumberOfPoints();
-  pointsOut->SetNumberOfPoints(pointsCount);
-  for (int i = 0; i < pointsCount; i++) {
-    pointsIn->GetPoint(i, p);
-    plane->ProjectPoint(p, projected);
-    pointsOut->SetPoint(i, projected);
-  }
-  
-  vtkSmartPointer<vtkPolyData> auxMesh = vtkSmartPointer<vtkPolyData>::New();
-  auxMesh->DeepCopy(meshIn);
-  auxMesh->SetPoints(pointsOut);
-  
-  vtkSmartPointer<vtkPolyDataNormals> normals =
-  vtkSmartPointer<vtkPolyDataNormals>::New();
-  normals->SetInput(auxMesh);
-  normals->SplittingOff();
-  normals->Update();
-  
-  
-  meshOut->ShallowCopy(normals->GetOutput());
-  
-}
-
 //----------------------------------------------------------------------------
 void AppositionSurfaceFilter::computeIterationLimits(double * min, double * spacing, int & iterations, double & thresholdError) const
 {
@@ -763,208 +729,6 @@ AppositionSurfaceFilter::PolyData AppositionSurfaceFilter::triangulate(PolyData 
 }
 
 //----------------------------------------------------------------------------
-double AppositionSurfaceFilter::computeArea() const
-{
-  return computeArea(m_ap);
-}
-
-//----------------------------------------------------------------------------
-double AppositionSurfaceFilter::computeArea(PolyData mesh) const
-{
-  int nc = mesh->GetNumberOfCells();
-  double totalArea = nc ? 0.0 : UNDEFINED;
-  for (int i = 0; i < nc; i++)
-    totalArea += vtkMeshQuality::TriangleArea(mesh->GetCell(i));
-  
-  return totalArea;
-}
-
-//----------------------------------------------------------------------------
-double AppositionSurfaceFilter::computePerimeter() const
-{
-  double totalPerimeter = 0.0;
-  try
-  {
-    m_ap->BuildLinks();
-    
-    // std::cout << "Points: " << mesh->GetNumberOfPoints() << std::endl;
-    int num_of_cells = m_ap->GetNumberOfCells();
-    
-    vtkSmartPointer<vtkMutableUndirectedGraph> graph =
-    vtkSmartPointer<vtkMutableUndirectedGraph>::New();
-    
-    vtkSmartPointer<vtkIdTypeArray> pedigree = vtkSmartPointer<vtkIdTypeArray>::New();
-    graph->GetVertexData()->SetPedigreeIds(pedigree);
-    
-    for (vtkIdType cellId = 0; cellId < num_of_cells; cellId++)
-    {
-      vtkSmartPointer<vtkIdList> cellPointIds = vtkSmartPointer<vtkIdList>::New();
-      m_ap->GetCellPoints(cellId, cellPointIds);
-      for(vtkIdType i = 0; i < cellPointIds->GetNumberOfIds(); i++)
-      {
-        vtkIdType p1;
-        vtkIdType p2;
-        
-        p1 = cellPointIds->GetId(i);
-        if(i+1 == cellPointIds->GetNumberOfIds())
-          p2 = cellPointIds->GetId(0);
-        else
-          p2 = cellPointIds->GetId(i+1);
-        
-        if (isPerimeter(cellId,p1,p2))
-        {
-          /**
-           * VTK BUG: in Vtk5.10.1 without
-           * clearing the loopuk table, the
-           * pedigree->LoockupValue(p1) fails
-           *
-           * TODO: Check if ClearLookup is
-           * needed in other version of VTK
-           */
-          pedigree->ClearLookup();
-          
-          vtkIdType i1 = graph->AddVertex(p1);
-          vtkIdType i2 = graph->AddVertex(p2);
-          
-          graph->AddEdge(i1, i2);
-        }
-      }
-    }
-    
-    // std::cout << "Vertices: " << graph->GetNumberOfVertices() << std::endl;
-    // std::cout << "Edges: " << graph->GetNumberOfEdges() << std::endl;
-    // std::cout << "Pedigree: " << pedigree->GetNumberOfTuples() << std::endl;
-    
-    vtkSmartPointer<vtkBoostConnectedComponents> connectedComponents =
-    vtkSmartPointer<vtkBoostConnectedComponents>::New();
-    connectedComponents->SetInput(graph);
-    connectedComponents->Update();
-    vtkGraph *outputGraph = connectedComponents->GetOutput();
-    vtkIntArray *components = vtkIntArray::SafeDownCast( outputGraph->GetVertexData()->GetArray("component"));
-    
-    double *range = components->GetRange(0);
-    // std::cout << "components: " << range[0] << " to "<< range[1] << std::endl;
-    
-    std::vector<double> perimeters;
-    perimeters.resize(range[1]+1);
-    
-    vtkSmartPointer<vtkEdgeListIterator> edgeListIterator = vtkSmartPointer<vtkEdgeListIterator>::New();
-    graph->GetEdges(edgeListIterator);
-    
-    while(edgeListIterator->HasNext()) {
-      vtkEdgeType edge = edgeListIterator->Next();
-      
-      if (components->GetValue(edge.Source) != components->GetValue(edge.Target) ) {
-        throw "ERROR: Edge between 2 disconnected component";
-      }
-      double x[3];
-      double y[3];
-      m_ap->GetPoint(pedigree->GetValue(edge.Source), x);
-      m_ap->GetPoint(pedigree->GetValue(edge.Target), y);
-      
-      // std::cout << "X: " << x[0] << " " << x[1] << " " << x[2] << " Point: " << pedigree->GetValue(edge.Source) << std::endl;
-      // std::cout << "Y: " << y[0] << " " << y[1] << " " << y[2] << " Point: " << pedigree->GetValue(edge.Target) << std::endl;
-      
-      double edge_length = sqrt(vtkMath::Distance2BetweenPoints(x, y));
-      // std::cout << edge_length << std::endl;
-      perimeters[components->GetValue(edge.Source)] += edge_length;
-      //perimeters[components->GetValue(edge.Source)] += 1;
-    }
-    
-    double max_per = 0.0;
-    // std::cout << "myvector contains:";
-    for (unsigned int i=0;i<perimeters.size();i++)
-    {
-      // std::cout << " " << perimeters[i];
-      max_per = std::max(perimeters[i], max_per);
-    }
-    totalPerimeter = max_per;
-  }catch (...)
-  {
-    // std::cerr << "Warning: Couldn't compute " << m_seg->data().toString().toStdString() << "'s Apposition Plane perimter" << std::endl;
-    totalPerimeter = UNDEFINED;
-  }
-  
-  return totalPerimeter;
-}
-
-//----------------------------------------------------------------------------
-double AppositionSurfaceFilter::computeTortuosity() const
-{
-  vtkSmartPointer<vtkPolyData> projected_apposition_plane = 
-  vtkSmartPointer<vtkPolyData>::New();
-  projectPolyDataToPlane(m_templateOrigin, m_templateNormal, m_ap, projected_apposition_plane);
-  
-  double curved_area = computeArea(m_ap);
-  double reference_area = computeArea(projected_apposition_plane);
-  
-  return 1 - (reference_area / curved_area);
-}
-
-//----------------------------------------------------------------------------
-bool AppositionSurfaceFilter::isPerimeter(vtkIdType cellId, vtkIdType p1, vtkIdType p2) const
-{
-  vtkSmartPointer<vtkIdList> neighborCellIds = vtkSmartPointer<vtkIdList>::New();
-  m_ap->GetCellEdgeNeighbors(cellId, p1, p2, neighborCellIds);
-  
-  return (neighborCellIds->GetNumberOfIds() == 0);
-}
-
-//----------------------------------------------------------------------------
-QString AppositionSurfaceFilter::getOriginSegmentation()
-{
-  return m_origin;
-}
-
-//----------------------------------------------------------------------------
-double AppositionSurfaceFilter::getArea()
-{
-  if (m_ap == NULL && !fetchCachePolyDatas())
-    return UNDEFINED;
-
-  bool updateNeeded = needUpdate(0);
-  if (updateNeeded)
-    update(0);
-
-  if (UNDEFINED == m_area || updateNeeded)
-    m_area = computeArea();
-
-  return m_area;
-}
-
-//----------------------------------------------------------------------------
-double AppositionSurfaceFilter::getPerimeter()
-{
-  if (m_ap == NULL && !fetchCachePolyDatas())
-    return UNDEFINED;
-  
-  bool updateNeeded = needUpdate(0);
-  if (updateNeeded)
-    update(0);
-  
-  if (UNDEFINED == m_perimeter || updateNeeded)
-    m_perimeter = computePerimeter();
-  
-  return m_perimeter;
-}
-
-//----------------------------------------------------------------------------
-double AppositionSurfaceFilter::getTortuosity()
-{
-  if (m_ap == NULL && !fetchCachePolyDatas())
-    return UNDEFINED;
-  
-  bool updateNeeded = needUpdate(0);
-  if (updateNeeded)
-    update(0);
-  
-  if (UNDEFINED == m_tortuosity || updateNeeded)
-    m_tortuosity = computeTortuosity();
-  
-  return m_tortuosity;
-}
-
-//----------------------------------------------------------------------------
 itkVolumeType::SpacingType AppositionSurfaceFilter::getOriginSpacing()
 {
   return m_input->GetSpacing();
@@ -974,98 +738,6 @@ itkVolumeType::SpacingType AppositionSurfaceFilter::getOriginSpacing()
 itkVolumeType::RegionType AppositionSurfaceFilter::getOriginRegion()
 {
   return m_input->GetLargestPossibleRegion();
-}
-
-//----------------------------------------------------------------------------
-bool AppositionSurfaceFilter::fetchCachePolyDatas()
-{
-  if (m_alreadyFetchedData)
-    return true;
-
-  bool returnValue = false;
-
-  QString nameAS = QString().number(m_cacheId) + QString("-AS.vtp");
-
-  if (m_cacheDir.exists(nameAS))
-  {
-    QString fileName = m_cacheDir.absolutePath() + QDir::separator() + nameAS;
-    vtkSmartPointer<vtkGenericDataObjectReader> polyASReader = vtkSmartPointer<vtkGenericDataObjectReader>::New();
-    polyASReader->SetFileName(fileName.toUtf8());
-    polyASReader->SetReadAllFields(true);
-    polyASReader->Update();
-
-    m_ap = PolyData(polyASReader->GetPolyDataOutput());
-
-    returnValue = true;
-  }
-
-  QString vectorName = QString().number(m_cacheId) + QString("-Vectors.dat");
-
-  if (m_cacheDir.exists(vectorName))
-  {
-    QString fileName = m_cacheDir.absolutePath() + QDir::separator() + vectorName;
-
-    QFile fileStream(fileName);
-    fileStream.open(QIODevice::ReadOnly | QIODevice::Text);
-    char buffer[1024];
-    while (fileStream.readLine(buffer, sizeof(buffer)) > 0)
-    {
-      QString line(buffer);
-      QStringList fields = line.split(SEP);
-
-      if (fields[0] == QString("Template Origin"))
-      {
-        m_templateOrigin[0] = fields[1].toDouble();
-        m_templateOrigin[1] = fields[2].toDouble();
-        m_templateOrigin[2] = fields[3].toDouble();
-      }
-
-      if (fields[0] == QString("Template Normal"))
-      {
-        m_templateNormal[0] = fields[1].toDouble();
-        m_templateNormal[1] = fields[2].toDouble();
-        m_templateNormal[2] = fields[3].toDouble();
-      }
-    }
-    returnValue = true;
-  }
-
-  if (returnValue) //FIXME
-  {
-    m_alreadyFetchedData = true;
-    //m_outputs[0].volume->markAsModified(true);
-  }
-
-  return returnValue;
-}
-
-//----------------------------------------------------------------------------
-bool AppositionSurfaceFilter::dumpSnapshot(Snapshot &snapshot)
-{
-  bool returnValue = false;
-
-  if (NULL == m_ap)
-    fetchCachePolyDatas();
-
-  if (NULL != m_ap)
-  {
-    std::ostringstream vectorData;
-    vectorData << std::string("Template Origin");
-    vectorData << SEP << m_templateOrigin[0];
-    vectorData << SEP << m_templateOrigin[1];
-    vectorData << SEP << m_templateOrigin[2] << std::endl;
-
-    vectorData << std::string("Template Normal");
-    vectorData << SEP << m_templateNormal[0];
-    vectorData << SEP << m_templateNormal[1];
-    vectorData << SEP << m_templateNormal[2] << std::endl;
-
-    snapshot << SnapshotEntry(this->id() + QString("-Vectors.dat"), vectorData.str().c_str());
-
-    returnValue = true;
-  }
-
-  return (SegmentationFilter::dumpSnapshot(snapshot) || returnValue);
 }
 
 //----------------------------------------------------------------------------

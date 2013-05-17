@@ -85,7 +85,7 @@ void OpeningFilter::run(FilterOutputId oId)
 
     SegmentationRepresentationSList repList;
     repList << volumeRepresentation;
-    repList << MeshTypeSPtr(new MarchingCubesMesh(volumeRepresentation));
+    repList << MeshRepresentationSPtr(new MarchingCubesMesh(volumeRepresentation));
 
     addOutputRepresentations(0, repList);
   } else

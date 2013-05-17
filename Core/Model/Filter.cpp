@@ -423,7 +423,7 @@ void SegmentationFilter::setCacheDir(QDir dir)
     {
       createOutput(oId);
       createRepresentationProxy(oId, SegmentationVolume::TYPE);
-      createRepresentationProxy(oId, MeshType::TYPE);
+      createRepresentationProxy(oId, MeshRepresentation::TYPE);
     }
 
     SegmentationOutputSPtr editedOutput = m_outputs[oId];

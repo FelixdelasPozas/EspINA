@@ -25,7 +25,7 @@
 namespace EspINA
 {
   class MeshProxy
-  : public MeshType
+  : public MeshRepresentation
   {
   public:
     explicit MeshProxy(FilterOutput *output = NULL);
@@ -48,7 +48,7 @@ namespace EspINA
     virtual vtkAlgorithmOutput *mesh();
 
   protected:
-    MeshTypeSPtr m_meshRepresentation;
+    MeshRepresentationSPtr m_meshRepresentation;
   };
 
   typedef MeshProxy                  * MeshProxyPtr;

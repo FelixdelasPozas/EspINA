@@ -52,7 +52,7 @@ SegmentationRepresentationSPtr BasicSegmentationFilter::createRepresentationProx
 
   if (SegmentationVolume::TYPE == type)
     proxy = VolumeProxySPtr(new VolumeProxy());
-  else if (MeshType::TYPE == type)
+  else if (MeshRepresentation::TYPE == type)
     proxy = MeshProxySPtr(new MeshProxy());
   else
     Q_ASSERT(false);
@@ -66,7 +66,7 @@ SegmentationRepresentationSPtr BasicSegmentationFilter::createRepresentationProx
 void BasicSegmentationFilter::createGraphicalRepresentations(SegmentationOutputSPtr output)
 {
   SegmentationVolumeSPtr volumeRep = segmentationVolume(output);
-  MeshTypeSPtr           meshRep   = meshOutput(output);
+  MeshRepresentationSPtr           meshRep   = meshRepresentation(output);
   output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new SegmentationSliceRepresentation(volumeRep, NULL)));
   output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new SimpleMeshRepresentation(meshRep, NULL)));
   output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new SmoothedMeshRepresentation(meshRep, NULL)));
@@ -97,7 +97,7 @@ bool BasicSegmentationFilter::fetchSnapshot(FilterOutputId oId)
     if (fetchMesh)
       repList << mesh;
     else if (fetchVolume)
-      repList << MeshTypeSPtr(new MarchingCubesMesh(volume));//TODO: Pass the volume or the proxy?
+      repList << MeshRepresentationSPtr(new MarchingCubesMesh(volume));//TODO: Pass the volume or the proxy?
 
     addOutputRepresentations(oId, repList);
 

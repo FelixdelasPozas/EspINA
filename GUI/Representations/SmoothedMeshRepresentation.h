@@ -32,7 +32,7 @@ namespace EspINA
   {
     Q_OBJECT
     public:
-      explicit SmoothedMeshRepresentation(MeshTypeSPtr mesh,
+      explicit SmoothedMeshRepresentation(MeshRepresentationSPtr mesh,
                                           EspinaRenderView *view);
       virtual ~SmoothedMeshRepresentation() {};
 

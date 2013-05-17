@@ -46,7 +46,7 @@ FreeFormSource::FreeFormSource(const EspinaRegion        &bounds,
 
   SegmentationRepresentationSList representations;
   representations << volumeRepresentation;
-  representations << MeshTypeSPtr(new MarchingCubesMesh(volumeRepresentation));
+  representations << MeshRepresentationSPtr(new MarchingCubesMesh(volumeRepresentation));
 
   addOutputRepresentations(0, representations);
 

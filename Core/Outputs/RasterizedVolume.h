@@ -38,7 +38,7 @@ namespace EspINA
   : public RawSegmentationVolume
   {
   public:
-    explicit RasterizedVolume(MeshTypeSPtr  mesh,
+    explicit RasterizedVolume(MeshRepresentationSPtr  mesh,
                               FilterOutput *output = NULL);
 
     virtual bool isValid() const

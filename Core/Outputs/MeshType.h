@@ -24,14 +24,14 @@
 
 namespace EspINA
 {
-  class MeshType
+  class MeshRepresentation
   : public SegmentationRepresentation
   {
   public:
     static const FilterOutput::OutputRepresentationName TYPE;
 
   public:
-    explicit MeshType(itkVolumeType::SpacingType spacing, FilterOutput *output = NULL)
+    explicit MeshRepresentation(itkVolumeType::SpacingType spacing, FilterOutput *output = NULL)
     : SegmentationRepresentation(output)
     , m_spacing(spacing) {}
 
@@ -47,15 +47,16 @@ namespace EspINA
 
   protected:
     static QString cachePath(const QString &fileName)
-    { return QString("%1/%2").arg(MeshType::TYPE).arg(fileName); }
+    { return QString("%1/%2").arg(MeshRepresentation::TYPE).arg(fileName); }
 
   protected:
     itkVolumeType::SpacingType m_spacing;
   };
 
-  typedef boost::shared_ptr<MeshType> MeshTypeSPtr;
+  typedef boost::shared_ptr<MeshRepresentation> MeshRepresentationSPtr;
 
-  MeshTypeSPtr meshOutput(SegmentationOutputSPtr output);
+  MeshRepresentationSPtr meshRepresentation(OutputSPtr             output);
+  MeshRepresentationSPtr meshRepresentation(SegmentationOutputSPtr output);
 } // namespace EspINA
 
 #endif // MESHTYPE_H

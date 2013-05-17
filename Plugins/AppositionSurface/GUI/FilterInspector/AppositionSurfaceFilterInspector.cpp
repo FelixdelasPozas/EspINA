@@ -33,22 +33,22 @@ namespace EspINA
     m_filter = AppositionSurfaceFilter::Pointer(filter.data());
     m_origin->setText(m_filter->getOriginSegmentation());
 
-    double area = m_filter->getArea();
-    double perimeter = m_filter->getPerimeter();
-    double tortuosity = m_filter->getTortuosity();
+    double area =  0; // m_filter->getArea();
+    double perimeter = 0; // m_filter->getPerimeter();
+    double tortuosity = 0; //m_filter->getTortuosity();
 
     if (-1 != area)
-      m_area->setText(QString().number(m_filter->getArea()));
+      m_area->setText(QString::number(area));
     else
       m_area->setText("Not computed");
 
     if (-1 != perimeter)
-      m_perimeter->setText(QString().number(m_filter->getPerimeter()));
+      m_perimeter->setText(QString::number(perimeter));
     else
       m_perimeter->setText("Not computed");
 
     if (-1 != tortuosity)
-      m_tortuosity->setText(QString().number(m_filter->getTortuosity()));
+      m_tortuosity->setText(QString::number(tortuosity));
     else
       m_tortuosity->setText("Not computed");
   }

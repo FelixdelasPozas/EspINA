@@ -29,18 +29,29 @@ namespace EspINA
   class AppositionSurfaceExtension
   : public Segmentation::Information
   {
-      struct CacheEntry
+      struct ExtensionData
       {
-          explicit CacheEntry();
+          explicit ExtensionData();
 
-          bool Modified;
-          double Area;
-          double Perimeter;
+          Nm Area;
+          Nm Perimeter;
           double Tortuosity;
-          QString FromSynapse;
+          QString SynapticSource;
+          double MeanGaussCurvature;
+          double StdDevGaussCurvature;
+          double MeanMeanCurvature;
+          double StdDevMeanCurvature;
+          double MeanMinCurvature;
+          double StdDevMinCurvature;
+          double MeanMaxCurvature;
+          double StdDevMaxCurvature;
       };
 
-      static QMap<SegmentationPtr, CacheEntry> s_cache;
+      typedef Cache<SegmentationPtr, ExtensionData> ExtensionCache;
+
+      static ExtensionCache s_cache;
+
+      const static QString EXTENSION_FILE;
 
     public:
       static const ModelItem::ExtId ID;
@@ -49,8 +60,15 @@ namespace EspINA
       static const Segmentation::InfoTag PERIMETER;
       static const Segmentation::InfoTag TORTUOSITY;
       static const Segmentation::InfoTag SYNAPSE;
-
-      const static QString EXTENSION_FILE;
+      static const Segmentation::InfoTag COMPUTATION_TIME;
+      static const Segmentation::InfoTag MEAN_GAUSS_CURVATURE;
+      static const Segmentation::InfoTag STD_DEV_GAUS_CURVATURE;
+      static const Segmentation::InfoTag MEAN_MEAN_CURVATURE;
+      static const Segmentation::InfoTag STD_DEV_MEAN_CURVATURE;
+      static const Segmentation::InfoTag MEAN_MIN_CURVATURE;
+      static const Segmentation::InfoTag STD_DEV_MIN_CURVATURE;
+      static const Segmentation::InfoTag MEAN_MAX_CURVATURE;
+      static const Segmentation::InfoTag STD_DEV_MAX_CURVATURE;
 
     public:
       explicit AppositionSurfaceExtension();
@@ -59,9 +77,7 @@ namespace EspINA
       virtual ModelItem::ExtId id();
 
       virtual ModelItem::ExtIdList dependencies() const
-      {
-        return Segmentation::Extension::dependencies();
-      }
+      { return Segmentation::Extension::dependencies(); }
 
       virtual Segmentation::InfoTagList availableInformations() const;
 
@@ -82,6 +98,19 @@ namespace EspINA
       virtual void initialize();
 
       virtual void invalidate(SegmentationPtr segmentation = 0);
+
+  private:
+    Nm computeArea(vtkPolyData *asMesh) const;
+
+    bool isPerimeter(vtkPolyData *asMesh, vtkIdType cellId, vtkIdType p1, vtkIdType p2) const;
+
+    Nm computePerimeter(vtkPolyData *asMesh) const;
+
+    vtkSmartPointer<vtkPolyData> projectPolyDataToPlane(vtkPolyData* mesh) const;
+
+    double computeTortuosity(vtkPolyData *asMesh, Nm asArea) const;
+
+    bool computeInformation();
 
   };
 

@@ -40,7 +40,7 @@ namespace EspINA
   {
     Q_OBJECT
     public:
-      explicit IMeshRepresentation(MeshTypeSPtr data,
+      explicit IMeshRepresentation(MeshRepresentationSPtr data,
                                    EspinaRenderView *view);
       virtual ~IMeshRepresentation();
 
@@ -71,7 +71,7 @@ namespace EspINA
       virtual void initializePipeline(VolumeView *view) = 0;
 
     protected:
-      MeshTypeSPtr m_data;
+      MeshRepresentationSPtr m_data;
       vtkSmartPointer<vtkPolyDataMapper> m_mapper;
       vtkSmartPointer<vtkActor>          m_actor;
 

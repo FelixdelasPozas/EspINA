@@ -42,7 +42,7 @@ using namespace EspINA;
 //----------------------------------------------------------------------------
 MarchingCubesMesh::MarchingCubesMesh(SegmentationVolumeSPtr volume,
                                      FilterOutput *output)
-: MeshType(volume->toITK()->GetSpacing(), output)
+: MeshRepresentation(volume->toITK()->GetSpacing(), output)
 , m_volume(volume)
 {
   connect(volume.get(), SIGNAL(representationChanged()),
