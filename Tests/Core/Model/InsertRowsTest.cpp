@@ -22,7 +22,7 @@
 #include <Core/Model/EspinaModel.h>
 #include <Core/Model/Segmentation.h>
 #include <Core/EspinaTypes.h>
-#include <Filters/FreeFormSource.h>
+#include <Core/Filters/FreeFormSource.h>
 
 #include <QDebug>
 

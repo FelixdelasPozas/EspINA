@@ -20,7 +20,7 @@
 
 // EspINA
 #include <GUI/vtkWidgets/EspinaWidget.h>
-#include <Filters/TubularSegmentationFilter.h>
+#include <Core/Filters/TubularSegmentationFilter.h>
 #include <Core/EspinaTypes.h>
 #include "vtkTubularWidget.h"
 

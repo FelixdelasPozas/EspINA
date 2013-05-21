@@ -21,7 +21,7 @@
 #define STROKESEGMENTATIONCOMMAND_H
 
 #include <QUndoCommand>
-#include <Filters/FreeFormSource.h>
+#include <Core/Filters/FreeFormSource.h>
 #include <Core/Model/Segmentation.h>
 #include <Tools/Brushes/Brush.h>
 

@@ -125,7 +125,7 @@ namespace EspINA
     QAction     *m_showRuler, *m_showThumbnail;
 
     ISettingsPanelPrototype m_settingsPanel;
-    QSharedPointer<SegmentationContextualMenu> m_contextMenu;
+    SegmentationContextualMenuSPtr m_contextMenu;
   };
 
   class DefaultEspinaView::SettingsPanel

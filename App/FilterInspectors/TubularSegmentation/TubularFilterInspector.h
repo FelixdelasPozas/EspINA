@@ -22,7 +22,7 @@
 #include "ui_TubularFilterInspector.h"
 
 // EspINA
-#include <Filters/TubularSegmentationFilter.h>
+#include <Core/Filters/TubularSegmentationFilter.h>
 #include <GUI/Pickers/PixelSelector.h>
 #include <GUI/Tools/ITool.h>
 

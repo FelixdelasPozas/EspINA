@@ -27,10 +27,6 @@
 #include <Core/Outputs/RasterizedVolume.h>
 #include <Core/Model/MarchingCubesMesh.h>
 
-#include <GUI/Representations/SliceRepresentation.h>
-#include <GUI/Representations/SimpleMeshRepresentation.h>
-#include <GUI/Representations/SmoothedMeshRepresentation.h>
-#include <GUI/Representations/VolumeRaycastRepresentation.h>
 #include <vtkMath.h>
 
 using namespace EspINA;
@@ -60,17 +56,6 @@ SegmentationRepresentationSPtr BasicSegmentationFilter::createRepresentationProx
   m_outputs[id]->setRepresentation(type, proxy);
 
   return proxy;
-}
-
-//-----------------------------------------------------------------------------
-void BasicSegmentationFilter::createGraphicalRepresentations(SegmentationOutputSPtr output)
-{
-  SegmentationVolumeSPtr volumeRep = segmentationVolume(output);
-  MeshRepresentationSPtr           meshRep   = meshRepresentation(output);
-  output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new SegmentationSliceRepresentation(volumeRep, NULL)));
-  output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new SimpleMeshRepresentation(meshRep, NULL)));
-  output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new SmoothedMeshRepresentation(meshRep, NULL)));
-  output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new VolumeRaycastRepresentation(volumeRep, NULL)));
 }
 
 //-----------------------------------------------------------------------------

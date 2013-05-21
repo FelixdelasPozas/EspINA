@@ -34,7 +34,7 @@
 #include <Core/Model/Taxonomy.h>
 #include <Core/EspinaSettings.h>
 #include <GUI/Pickers/PixelSelector.h>
-#include <Filters/SeedGrowSegmentationFilter.h>
+#include <Core/Filters/SeedGrowSegmentationFilter.h>
 
 // Qt
 #include <QApplication>

@@ -15,7 +15,7 @@
 
 // Spines plugin
 #include <GUI/vtkWidgets/vtkTubularWidget.h>
-#include <Filters/TubularSegmentationFilter.h>
+#include <Core/Filters/TubularSegmentationFilter.h>
 
 class QUndoStack;
 

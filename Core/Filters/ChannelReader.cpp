@@ -18,9 +18,8 @@
 
 
 #include "ChannelReader.h"
-#include <Core/IO/ErrorHandler.h>
+#include <Core/IO/IOErrorHandler.h>
 #include <Core/Outputs/ChannelVolumeProxy.h>
-#include <GUI/Representations/SliceRepresentation.h>
 
 #include <itkMetaImageIO.h>
 #include <itkTIFFImageIO.h>
@@ -41,10 +40,10 @@ const ArgumentId ChannelReader::SPACING = "Spacing";
 typedef itk::ChangeInformationImageFilter<itkVolumeType> ChangeInformationFilter;
 
 //----------------------------------------------------------------------------
-ChannelReader::ChannelReader(NamedInputs             inputs,
-                             Arguments               args,
-                             FilterType              type,
-                             EspinaIO::ErrorHandler *handler)
+ChannelReader::ChannelReader(NamedInputs     inputs,
+                             Arguments       args,
+                             FilterType      type,
+                             IOErrorHandler *handler)
 : ChannelFilter(inputs, args, type)
 , m_handler(handler)
 {
@@ -72,13 +71,6 @@ ChannelRepresentationSPtr ChannelReader::createRepresentationProxy(FilterOutputI
   m_outputs[id]->setRepresentation(type, proxy);
 
   return proxy;
-}
-
-//----------------------------------------------------------------------------
-void ChannelReader::createGraphicalRepresentations(ChannelOutputSPtr output)
-{
-  ChannelVolumeSPtr volumeData = channelVolume(output);
-  output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new ChannelSliceRepresentation(volumeData, NULL)));
 }
 
 //----------------------------------------------------------------------------

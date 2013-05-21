@@ -10,11 +10,11 @@
 #include <Core/Model/Segmentation.h>
 #include <Core/Model/ModelItem.h>
 #include <Core/Model/RelationshipGraph.h>
-#include <Core/IO/EspinaIO.h>
+#include <Core/IO/SegFileReader.h>
 #include <Undo/RemoveSegmentation.h>
 #include <Undo/FillHolesCommand.h>
 #include <Core/Interfaces/IFilterCreator.h>
-#include <Filters/SeedGrowSegmentationFilter.h>
+#include <Core/Filters/SeedGrowSegmentationFilter.h>
 #include <App/Undo/SeedGrowSegmentationCommand.h>
 #include <GUI/ViewManager.h>
 

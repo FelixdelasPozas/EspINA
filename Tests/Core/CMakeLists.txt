@@ -15,7 +15,6 @@
 # 
 set(LIB_DEPENDECIES
   EspinaCore
-  EspinaFilters
   EspinaGUI
   EspinaUndo
   QtTest
@@ -27,4 +26,4 @@ set(LIB_DEPENDECIES
 )
 
 add_subdirectory(IO)
-add_subdirectory(Model)
+# add_subdirectory(Model)

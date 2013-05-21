@@ -36,7 +36,7 @@
 #include <Core/Extensions/SegmentationExtension.h>
 #include <Core/Extensions/Morphological/MorphologicalInformation.h>
 #include <GUI/Analysis/InformationSelector.h>
-#include <App/Analysis/xlsUtils.h>
+#include <GUI/Analysis/xlsUtils.h>
 #include <xlslib/workbook.h>
 #include <QUndoStack>
 #include <QFileDialog>

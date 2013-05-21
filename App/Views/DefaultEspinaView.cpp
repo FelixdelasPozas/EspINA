@@ -19,6 +19,7 @@
 #include "DefaultEspinaView.h"
 #include <Settings/SliceView/SliceViewSettingsPanel.h>
 #include <Settings/VolumeView/VolumeViewSettingsPanel.h>
+#include <Menus/SegmentationContextualMenu.h>
 
 #include <QDebug>
 
@@ -53,7 +54,7 @@ DefaultEspinaView::DefaultEspinaView(EspinaModel *model,
 , m_viewManager(viewManager)
 , m_showProcessing(false)
 , m_showSegmentations(true)
-, m_contextMenu(new SegmentationContextualMenu(SegmentationList(), model, undoStack, viewManager))
+, m_contextMenu(new DefaultContextualMenu(SegmentationList(), model, undoStack, viewManager))
 {
   double cyan[3] = { 0, 1, 1 };
   double blue[3] = { 0, 0, 1 };

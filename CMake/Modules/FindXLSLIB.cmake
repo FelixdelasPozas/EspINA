@@ -24,4 +24,4 @@ include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(xlslib
                                   REQUIRED_VARS XLSLIB_LIBRARIES XLSLIB_INCLUDE_DIR)
 
-mark_as_advanced(XLSLIB_INCLUDE_DIR XLSLIB_LIBRARY )
+#mark_as_advanced(XLSLIB_INCLUDE_DIR XLSLIB_LIBRARY )

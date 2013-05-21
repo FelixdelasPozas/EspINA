@@ -20,11 +20,12 @@
 #include "SeedGrowSegmentationCommand.h"
 #include <FilterInspectors/SeedGrowSegmentation/SGSFilterInspector.h>
 
-#include <Filters/SeedGrowSegmentationFilter.h>
+#include <Core/Filters/SeedGrowSegmentationFilter.h>
 #include <Core/Model/EspinaFactory.h>
 #include <Core/EspinaSettings.h>
 #include <Core/Relations.h>
 #include <GUI/ViewManager.h>
+#include <GUI/Representations/BasicGraphicalRepresentationFactory.h>
 #include <QMessageBox>
 
 using namespace EspINA;
@@ -67,6 +68,7 @@ SeedGrowSegmentationCommand::SeedGrowSegmentationCommand(ChannelPtr             
   args[Filter::INPUTS] = Filter::NamedInput(SeedGrowSegmentationFilter::INPUTLINK, channel->outputId());
 
   SeedGrowSegmentationFilter *sgsFilter = new SeedGrowSegmentationFilter(inputs, args, FILTER_TYPE);
+  SetBasicGraphicalRepresentationFactory(sgsFilter);
   sgsFilter->update();
   Q_ASSERT(sgsFilter->outputs().size() == 1);
 

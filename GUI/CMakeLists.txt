@@ -1,6 +1,9 @@
+find_package(XLSLIB REQUIRED)
+
 include_directories(
   ${CMAKE_BINARY_DIR}         # Generated EspinaConfig.h
   ${CMAKE_CURRENT_BINARY_DIR} #For wrap/ui files
+  ${XLSLIB_INCLUDE_DIRS}
 )
 
 qt4_wrap_cpp(GUI_MOC
@@ -16,7 +19,6 @@ qt4_wrap_cpp(GUI_MOC
   QtWidget/QComboTreeView.h
   QtWidget/NoteEditor.h
   QtWidget/TagSelector.h
-  QtWidget/SegmentationContextualMenu.h
   QtWidget/SliceView.h
   QtWidget/VolumeView.h
   Representations/IMeshRepresentation.h
@@ -32,6 +34,7 @@ qt4_wrap_cpp(GUI_MOC
   ViewManager.h
   vtkWidgets/TubularWidget.h
   vtkWidgets/ContourWidget.h
+  OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
   )
 
 qt4_wrap_ui (GUI_UI
@@ -41,14 +44,17 @@ qt4_wrap_ui (GUI_UI
   QtWidget/TagSelector.ui
   )
 
-set (GUI_SOURCES 
+set (GUI_SOURCES
   ${GUI_MOC}
   ${GUI_UI}
   Analysis/InformationSelector.cpp
+  Analysis/xlsUtils.cpp
+  IO/EspinaIO.cpp
   Pickers/BrushPicker.cpp
   Pickers/ContourSelector.cpp
   Pickers/ISelector.cpp
   Pickers/PixelSelector.cpp
+  Representations/BasicGraphicalRepresentationFactory.cpp 
   QtWidget/ActionSelector.cpp
   QtWidget/ActionSelectorWidget.cpp
   QtWidget/CheckableTableView.cpp
@@ -58,7 +64,6 @@ set (GUI_SOURCES
   QtWidget/NoteEditor.cpp 
   QtWidget/TagSelector.cpp 
   QtWidget/QComboTreeView.cpp
-  QtWidget/SegmentationContextualMenu.cpp
   QtWidget/SliceView.cpp
   QtWidget/SliceViewState.cpp
   QtWidget/VolumeView.cpp
@@ -107,8 +112,23 @@ set (GUI_SOURCES
 
 set(GUI_EXTERNAL_LIBS
   EspinaCore
-  EspinaFilters
+#EspinaUndo
+  QVTK
+  ${VTK_LIBRARIES}
+  ${ITK_LIBRARIES}
+  ${XLSLIB_LIBRARIES}
 )
+
+if(APPLE)
+   include_directories ( /System/Library/Frameworks )
+   find_library(COCOA_LIBRARY Cocoa)
+   find_library(GLUT_LIBRARY GLUT )
+   find_library(OpenGL_LIBRARY OpenGL )
+   mark_as_advanced (COCOA_LIBRARY
+                     GLUT_LIBRARY
+                     OpenGL_LIBRARY)
+   set(GUI_EXTERNAL_LIBS ${GUI_EXTERNAL_LIBS} ${COCOA_LIBRARY} ${GLUT_LIBRARY} ${OpenGL_LIBRARY})
+endif (APPLE)
 
 add_library           (EspinaGUI SHARED ${GUI_SOURCES})
 target_link_libraries (EspinaGUI ${GUI_EXTERNAL_LIBS})

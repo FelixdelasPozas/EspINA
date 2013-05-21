@@ -21,6 +21,7 @@ set (UNDO_SOURCES
 
 set(UNDO_EXTERNAL_LIBS
   EspinaCore
+  EspinaGUI
 )
 
 add_library (EspinaUndo SHARED ${UNDO_SOURCES})

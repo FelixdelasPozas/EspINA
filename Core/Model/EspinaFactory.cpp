@@ -26,7 +26,7 @@
 #include "Core/Model/Segmentation.h"
 #include <Core/Extensions/ChannelExtension.h>
 #include <Core/Extensions/SegmentationExtension.h>
-#include <Core/IO/ErrorHandler.h>
+#include <Core/IO/IOErrorHandler.h>
 #include "GUI/Renderers/Renderer.h"
 
 #include <QDebug>
@@ -186,7 +186,7 @@ FilterSPtr EspinaFactory::createFilter(const QString              &filter,
 }
 
 //------------------------------------------------------------------------
-bool EspinaFactory::readFile(const QString &file, const QString &ext, EspinaIO::ErrorHandler *handler)
+bool EspinaFactory::readFile(const QString &file, const QString &ext, IOErrorHandler *handler)
 {
   bool success = false;
   if (m_fileReaders.contains(ext))

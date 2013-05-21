@@ -28,7 +28,7 @@
 #include <Core/Model/EspinaModel.h>
 #include <Core/Model/EspinaFactory.h>
 #include <Core/Model/Taxonomy.h>
-#include <Filters/FreeFormSource.h>
+#include <Core/Filters/FreeFormSource.h>
 #include <Undo/AddSegmentation.h>
 #include <Undo/RemoveSegmentation.h>
 #include <App/Undo/ContourUndoCommand.h>

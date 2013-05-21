@@ -18,15 +18,16 @@
 
 
 #include "SegmentationContextualMenu.h"
-#include "NoteEditor.h"
-#include "TagSelector.h"
-#include <GUI/ViewManager.h>
 
 #include <Core/Model/EspinaModel.h>
 #include <Core/Model/Taxonomy.h>
 #include <Core/Model/Segmentation.h>
 #include <Core/Extensions/Tags/TagExtension.h>
 #include <Core/Extensions/Notes/SegmentationNotes.h>
+#include "GUI/QtWidget/NoteEditor.h"
+#include "GUI/QtWidget/TagSelector.h"
+#include <GUI/ViewManager.h>
+
 #include <Undo/ChangeTaxonomyCommand.h>
 #include <Undo/RemoveSegmentation.h>
 #include <Undo/ChangeSegmentationTags.h>
@@ -45,12 +46,12 @@
 using namespace EspINA;
 
 //------------------------------------------------------------------------
-SegmentationContextualMenu::SegmentationContextualMenu(SegmentationList selection,
+DefaultContextualMenu::DefaultContextualMenu(SegmentationList selection,
                                                        EspinaModel     *model,
                                                        QUndoStack      *undoStack,
                                                        ViewManager     *viewManager,
                                                        QWidget         *parent)
-: QMenu          (parent     )
+: SegmentationContextualMenu(parent     )
 , m_model        (model      )
 , m_undoStack    (undoStack  )
 , m_viewManager  (viewManager)
@@ -64,7 +65,7 @@ SegmentationContextualMenu::SegmentationContextualMenu(SegmentationList selectio
 }
 
 //------------------------------------------------------------------------
-void SegmentationContextualMenu::addNote()
+void DefaultContextualMenu::addNote()
 {
   if (!m_segmentations.isEmpty())
   {
@@ -92,7 +93,7 @@ void SegmentationContextualMenu::addNote()
 }
 
 //------------------------------------------------------------------------
-void SegmentationContextualMenu::changeSegmentationsTaxonomy(const QModelIndex& index)
+void DefaultContextualMenu::changeSegmentationsTaxonomy(const QModelIndex& index)
 {
   this->hide();
 
@@ -114,7 +115,7 @@ void SegmentationContextualMenu::changeSegmentationsTaxonomy(const QModelIndex& 
 }
 
 //------------------------------------------------------------------------
-void SegmentationContextualMenu::changeFinalFlag()
+void DefaultContextualMenu::changeFinalFlag()
 {
   this->hide();
 
@@ -188,7 +189,7 @@ void SegmentationContextualMenu::changeFinalFlag()
 }
 
 //------------------------------------------------------------------------
-void SegmentationContextualMenu::manageTags()
+void DefaultContextualMenu::manageTags()
 {
   QList<QUndoCommand *> pendingCommands;
 
@@ -265,13 +266,13 @@ void SegmentationContextualMenu::manageTags()
 }
 
 //------------------------------------------------------------------------
-void SegmentationContextualMenu::resetRootItem()
+void DefaultContextualMenu::resetRootItem()
 {
   m_taxonomyList->setRootIndex(m_model->taxonomyRoot());
 }
 
 //------------------------------------------------------------------------
-void SegmentationContextualMenu::renameSegmentation()
+void DefaultContextualMenu::renameSegmentation()
 {
   foreach (SegmentationPtr segmentation, m_segmentations)
   {
@@ -296,7 +297,7 @@ void SegmentationContextualMenu::renameSegmentation()
 }
 
 //------------------------------------------------------------------------
-void SegmentationContextualMenu::deleteSelectedSementations()
+void DefaultContextualMenu::deleteSelectedSementations()
 {
   this->hide();
 
@@ -308,13 +309,13 @@ void SegmentationContextualMenu::deleteSelectedSementations()
 }
 
 //------------------------------------------------------------------------
-void SegmentationContextualMenu::setSelection(SegmentationList list)
+void DefaultContextualMenu::setSelection(SegmentationList list)
 {
   this->m_segmentations = list;
 }
 
 //------------------------------------------------------------------------
-void SegmentationContextualMenu::createNoteEntry()
+void DefaultContextualMenu::createNoteEntry()
 {
   QAction *noteAction = addAction(tr("Notes"));
   noteAction->setIcon(QIcon(":/espina/note.png"));
@@ -323,7 +324,7 @@ void SegmentationContextualMenu::createNoteEntry()
 }
 
 //------------------------------------------------------------------------
-void SegmentationContextualMenu::createChangeTaxonomyMenu()
+void DefaultContextualMenu::createChangeTaxonomyMenu()
 {
   QMenu         *changeTaxonomyMenu = new QMenu(tr("Change Taxonomy"));
   QWidgetAction *taxonomyListAction = new QWidgetAction(changeTaxonomyMenu);
@@ -345,7 +346,7 @@ void SegmentationContextualMenu::createChangeTaxonomyMenu()
 }
 
 //------------------------------------------------------------------------
-void SegmentationContextualMenu::createTagsEntry()
+void DefaultContextualMenu::createTagsEntry()
 {
   QAction *tagsAction = addAction(tr("Tags"));
   tagsAction->setIcon(QIcon(":/espina/tag.svg"));
@@ -355,7 +356,7 @@ void SegmentationContextualMenu::createTagsEntry()
 }
 
 //------------------------------------------------------------------------
-void SegmentationContextualMenu::createSetLevelOfDetailEntry()
+void DefaultContextualMenu::createSetLevelOfDetailEntry()
 {
   m_changeFinalNode = this->addAction(tr("Set level of detail"));
   m_changeFinalNode->setCheckable(true);
@@ -410,7 +411,7 @@ void SegmentationContextualMenu::createSetLevelOfDetailEntry()
 }
 
 //------------------------------------------------------------------------
-void SegmentationContextualMenu::createRenameEntry()
+void DefaultContextualMenu::createRenameEntry()
 {
   QAction *action = this->addAction(tr("&Rename"));
   //action->setShortcut("F2");

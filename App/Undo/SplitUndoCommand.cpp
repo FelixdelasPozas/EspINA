@@ -24,7 +24,7 @@
 #include <Core/Model/Segmentation.h>
 #include <Core/Model/Sample.h>
 #include <Core/Relations.h>
-#include <Filters/SplitFilter.h>
+#include <Core/Filters/SplitFilter.h>
 
 using namespace EspINA;
 

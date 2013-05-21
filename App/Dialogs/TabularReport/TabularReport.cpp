@@ -20,7 +20,7 @@
 #include "TabularReport.h"
 #include "TabularReportEntry.h"
 
-#include <Analysis/xlsUtils.h>
+#include <GUI/Analysis/xlsUtils.h>
 
 // Espina
 #include <Core/Model/EspinaModel.h>

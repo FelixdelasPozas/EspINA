@@ -35,7 +35,7 @@
 #include <QTimer>
 
 class QLabel;
-class EspinaErrorHandler;
+class EspinaIOErrorHandler;
 class QPluginLoader;
 class QAction;
 class QFrame;
@@ -49,9 +49,8 @@ class ModelTest;
 namespace EspINA
 {
 
-class IDockWidget;
-
-class IToolBar;
+  class IDockWidget;
+  class IToolBar;
   class ColorEngineMenu;
   class DefaultEspinaView;
   class GeneralSettings;
@@ -187,7 +186,7 @@ class IToolBar;
     // Status Bar
     QLabel   *m_traceableStatus;
 
-    EspinaErrorHandler *m_errorHandler;
+    EspinaIOErrorHandler *m_errorHandler;
   };
 
 } // namespace EspINA

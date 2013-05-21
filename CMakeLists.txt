@@ -62,18 +62,17 @@ include (${VTK_USE_FILE})
 find_package (ITK REQUIRED)
 include (${ITK_USE_FILE})
 
-find_package(Boost REQUIRED COMPONENTS  graph)
+find_package(Boost REQUIRED COMPONENTS  graph regex)
 link_directories ( ${Boost_LIBRARY_DIRS} )
 
 #NOTE: We can't use ITK and BOOST graph at the same time because of
 #      ITK_REQUIRED_CXX_FLAG: -ftemplate-depth-50
 #      so we override CXX_FLAGS to unset previous flag
 #set(CMAKE_CXX_FLAGS " -Wall -Wno-deprecated -msse2")
-set(CMAKE_CXX_FLAGS " -Wall -Wno-deprecated -Wno-unused-local-typedefs")
+set(CMAKE_CXX_FLAGS " -Wall -Wno-deprecated")
 
 
 add_subdirectory( Core    )
-add_subdirectory( Filters )
 add_subdirectory( GUI     )
 add_subdirectory( Undo    )
 add_subdirectory( App     )
@@ -82,10 +81,10 @@ add_subdirectory( Plugins )
 
 if (BUILD_TESTING)
 
- include (CTest)
- enable_testing()
+  include (CTest)
+  enable_testing()
 
-#add_subdirectory(Tests)
+  add_subdirectory(Tests)
 
 endif()
 

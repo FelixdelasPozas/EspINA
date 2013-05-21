@@ -43,7 +43,7 @@
 #include <Core/ColorEngines/TaxonomyColorEngine.h>
 #include <Core/ColorEngines/UserColorEngine.h>
 #include <Core/EspinaSettings.h>
-#include <Core/IO/ErrorHandler.h>
+#include <Core/IO/IOErrorHandler.h>
 #include <Core/Interfaces/IColorEngineProvider.h>
 #include <Core/Interfaces/IDockWidget.h>
 #include <Core/Interfaces/IFactoryExtension.h>
@@ -58,8 +58,10 @@
 #include <GUI/Renderers/SmoothedMeshRenderer.h>
 #include <GUI/Renderers/VolumetricRenderer.h>
 #include <GUI/ViewManager.h>
-#include <Filters/ChannelReader.h>
+#include <Core/Filters/ChannelReader.h>
 #include <App/Undo/UndoableEspinaModel.h>
+#include <GUI/IO/EspinaIO.h>
+#include <GUI/Representations/BasicGraphicalRepresentationFactory.h>
 
 #ifdef TEST_ESPINA_MODELS
   #include <Core/Model/ModelTest.h>
@@ -76,11 +78,11 @@ using namespace EspINA;
 const QString AUTOSAVE_FILE = "espina-autosave.seg";
 
 //------------------------------------------------------------------------
-class EspinaErrorHandler
-: public EspinaIO::ErrorHandler
+class EspinaIOErrorHandler
+: public IOErrorHandler
   {
     public:
-      EspinaErrorHandler(QWidget *parent = NULL)
+      EspinaIOErrorHandler(QWidget *parent = NULL)
       : m_parent(parent) {};
 
       void setDefaultDir(const QDir &dir) {m_defaultDir = dir;}
@@ -163,7 +165,7 @@ EspinaMainWindow::EspinaMainWindow(EspinaModel      *model,
 , m_busy(false)
 , m_undoStackSavedIndex(0)
 , m_traceableStatus(new QLabel(statusBar()))
-, m_errorHandler(new EspinaErrorHandler(this))
+, m_errorHandler(new EspinaIOErrorHandler(this))
 {
 #ifdef TEST_ESPINA_MODELS
   m_modelTester = QSharedPointer<ModelTest>(new ModelTest(m_model));
@@ -424,7 +426,11 @@ FilterSPtr EspinaMainWindow::createFilter(const QString& filter,
                                           const ModelItem::Arguments& args)
 {
   if (ChannelReader::TYPE == filter)
-    return FilterSPtr(new ChannelReader(inputs, args, ChannelReader::TYPE, m_errorHandler));
+  {
+    FilterSPtr reader(new ChannelReader(inputs, args, ChannelReader::TYPE, m_errorHandler));
+    SetBasicGraphicalRepresentationFactory(reader);
+    return reader;
+  }
 
   Q_ASSERT(false);
   return FilterSPtr();
@@ -682,7 +688,7 @@ bool EspinaMainWindow::closeCurrentAnalysis()
   m_dynamicMenuRoot->submenus.first()->menu->setEnabled(false);
   updateTraceabilityStatus();
 
-  EspinaIO::removeTemporalDir();
+  SegFileReader::removeTemporalDir();
 
   return true;
 }
@@ -726,7 +732,7 @@ void EspinaMainWindow::openAnalysis(const QFileInfo file)
   QFileInfo fileInfo(file);
 
 
-  EspinaIO::STATUS loaded;
+  IOErrorHandler::STATUS loaded;
   {
     m_errorHandler->setDefaultDir(fileInfo.dir());
     QApplication::setOverrideCursor(Qt::WaitCursor);
@@ -738,7 +744,7 @@ void EspinaMainWindow::openAnalysis(const QFileInfo file)
     QApplication::restoreOverrideCursor();
   }
 
-  if (EspinaIO::SUCCESS != loaded)
+  if (IOErrorHandler::SUCCESS != loaded)
   {
     QMessageBox box(QMessageBox::Warning,
                     tr("Espina"),
@@ -902,8 +908,7 @@ void EspinaMainWindow::addFileToAnalysis(const QFileInfo file)
 
   UndoableEspinaModel undoableModel(m_model, m_undoStack);
   m_undoStack->beginMacro(tr("Add %1 to analysis").arg(file.fileName()));
-  if (EspinaIO::SUCCESS == EspinaIO::loadFile(file,
-                                              &undoableModel))
+  if (IOErrorHandler::SUCCESS == EspinaIO::loadFile(file, &undoableModel))
   {
     int secs = timer.elapsed()/1000.0;
     int mins = 0;
@@ -998,7 +1003,7 @@ void EspinaMainWindow::saveAnalysis()
   QApplication::setOverrideCursor(Qt::WaitCursor);
   m_busy = true;
 
-  EspinaIO::saveSegFile(analysisFile, m_model);
+  SegFileReader::saveSegFile(analysisFile, m_model);
 
   QApplication::restoreOverrideCursor();
   updateStatus(tr("File Saved Successfully in %1").arg(analysisFile));
@@ -1023,7 +1028,7 @@ void EspinaMainWindow::saveSessionAnalysis()
   QApplication::setOverrideCursor(Qt::WaitCursor);
   m_busy = true;
 
-  EspinaIO::saveSegFile(m_sessionFile, m_model);
+  SegFileReader::saveSegFile(m_sessionFile, m_model);
 
   QApplication::restoreOverrideCursor();
   updateStatus(tr("File Saved Successfuly in %1").arg(m_sessionFile.fileName()));
@@ -1092,7 +1097,7 @@ void EspinaMainWindow::autosave()
 
   const QFileInfo analysisFile = autosavePath.absoluteFilePath(AUTOSAVE_FILE);
 
-  EspinaIO::saveSegFile(analysisFile, m_model);
+  SegFileReader::saveSegFile(analysisFile, m_model);
 
   updateStatus(tr("Analysis autosaved at %1").arg(QTime::currentTime().toString()));
   m_busy = false;

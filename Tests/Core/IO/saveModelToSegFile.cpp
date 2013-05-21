@@ -8,11 +8,11 @@
 // Espina
 #include <Core/Model/EspinaModel.h>
 #include <Core/Model/EspinaFactory.h>
-#include <Core/IO/EspinaIO.h>
+#include <Core/IO/SegFileReader.h>
 #include <GUI/ViewManager.h>
 #include <Core/Interfaces/IFilterCreator.h>
-#include <Filters/SeedGrowSegmentationFilter.h>
-#include <Filters/ChannelReader.h>
+#include <Core/Filters/SeedGrowSegmentationFilter.h>
+#include <Core/Filters/ChannelReader.h>
 #include <App/Undo/SeedGrowSegmentationCommand.h>
 
 // Qt

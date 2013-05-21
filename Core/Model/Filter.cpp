@@ -22,6 +22,7 @@
 #include "Output.h"
 #include "Core/Outputs/VolumeRepresentation.h"
 #include <Core/Outputs/MeshType.h>
+#include <GUI/Representations/GraphicalRepresentationFactory.h>
 
 // ITK
 #include <itkMetaImageIO.h>
@@ -237,7 +238,8 @@ void ChannelFilter::addOutputRepresentations(FilterOutputId id, ChannelRepresent
 
   currentOutput->clearGraphicalRepresentations();
 
-  createGraphicalRepresentations(currentOutput);
+  if (m_graphicalRepresentationFactory)
+    m_graphicalRepresentationFactory->createGraphicalRepresentations(currentOutput);
 }
 
 //----------------------------------------------------------------------------
@@ -540,5 +542,6 @@ void SegmentationFilter::addOutputRepresentations(FilterOutputId id, Segmentatio
 
   currentOutput->clearGraphicalRepresentations();
 
-  createGraphicalRepresentations(currentOutput);
+  if (m_graphicalRepresentationFactory)
+    m_graphicalRepresentationFactory->createGraphicalRepresentations(currentOutput);
 }

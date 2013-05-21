@@ -18,6 +18,7 @@
 
 
 #include "LayoutLocation.h"
+#include <Menus/SegmentationContextualMenu.h>
 
 #include <Core/Model/Sample.h>
 #include <Core/Model/Segmentation.h>
@@ -86,7 +87,7 @@ void LocationLayout::contextMenu(const QPoint &pos)
 
   if (samples.isEmpty())
   {
-    SegmentationContextualMenu contextMenu(segmentations.toList(),
+    DefaultContextualMenu contextMenu(segmentations.toList(),
                                            m_model,
                                            m_undoStack,
                                            m_viewManager);

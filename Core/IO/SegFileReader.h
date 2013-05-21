@@ -1,5 +1,7 @@
-#ifndef ESPINAIO_H
-#define ESPINAIO_H
+#ifndef SEGFILEREADER_H
+#define SEGFILEREADER_H
+
+#include <Core/IO/IOErrorHandler.h>
 
 #include <Core/Model/Channel.h>
 #include <Core/Model/Taxonomy.h>
@@ -21,42 +23,10 @@ namespace EspINA
   class IEspinaModel;
   class Filter;
 
-  class EspinaIO
+  class SegFileReader
   {
     static const QString VERSION;
   public:
-    class ErrorHandler;
-
-    enum STATUS
-    { SUCCESS
-    , FILE_NOT_FOUND
-    , INVALID_VERSION
-    , ERROR
-    };
-
-    static bool isChannelExtension(const QString &fileExtension);
-    /**
-     * Loads any file supported by EspINA.
-     * @param file is the absolute path to be loaded
-     * @param model is the EspinaModel in which the file is loaded into
-     * @return Success if no other error is reported.
-     */
-    static STATUS loadFile(QFileInfo    file,
-                           IEspinaModel *model,
-                           ErrorHandler *handler = NULL);
-
-    /**
-     * Load channel files supported by EspINA. Current implementation
-     * supports the following extensions: mha, mhd, tiff, tif
-     * @param file is the absolute path to be loaded
-     * @param model is the EspinaModel in which the file is loaded into
-     * @param channelPtr is used to retrieve loaded channel if loading was successful
-     * @return Success if no other error is reported.
-     */
-    static STATUS loadChannel(QFileInfo file,
-                              IEspinaModel *model,
-                              ChannelSPtr &channel,
-                              ErrorHandler *handler = NULL);
 
     /**
      * Loads a seg file which must contain at least a trace and a taxonomy file.
@@ -65,33 +35,36 @@ namespace EspINA
      * @param tmpDir is the directory where temporal files are stored in
      * @return Success if no other error is reported.
      */
-    static STATUS loadSegFile(QFileInfo file,
-                              IEspinaModel *model,
-                              ErrorHandler *handler = NULL);
+    static IOErrorHandler::STATUS loadSegFile(QFileInfo       file,
+                                              IEspinaModel   *model,
+                                              IOErrorHandler *handler = NULL);
 
     /**
      * Create a new seg file containing all information provided by @param model
      * @param filepath is the path where the model must be saved
      * @param model is the EspinaModel which is saved in @param file
      */
-    static STATUS saveSegFile(QFileInfo file,
-                              IEspinaModel *model,
-                              ErrorHandler *handler = NULL);
+    static IOErrorHandler::STATUS saveSegFile(QFileInfo       file,
+                                              IEspinaModel   *model,
+                                              IOErrorHandler *handler = NULL);
 
     // deletes all files inside the temporal dir and removes it, recursively if necessary
-    static STATUS removeTemporalDir(QDir temporalDir = QDir());
+    static IOErrorHandler::STATUS removeTemporalDir(QDir temporalDir = QDir());
 
 
   private:
-    static bool loadSerialization(IEspinaModel *model,
-                                  std::istream &stream,
-                                  QDir tmpDir,
-                                  EspinaIO::ErrorHandler *handler = NULL,
+    static bool loadSerialization(IEspinaModel   *model,
+                                  std::istream   &stream,
+                                  QDir            tmpDir,
+                                  IOErrorHandler *handler = NULL,
                                   RelationshipGraph::PrintFormat format = RelationshipGraph::BOOST);
-    static STATUS readSettings(QuaZipFile &file, EspINA::IEspinaModel *model, EspINA::EspinaIO::ErrorHandler *handler = 0);
+
+    static IOErrorHandler::STATUS readSettings(QuaZipFile     &file,
+                                               IEspinaModel   *model,
+                                               IOErrorHandler *handler = 0);
 
     static void serializeRelations(IEspinaModel *model,
-                                   std::ostream& stream,
+                                   std::ostream &stream,
                                    RelationshipGraph::PrintFormat format = RelationshipGraph::BOOST);
 
     static QByteArray settings(IEspinaModel *model);
@@ -129,4 +102,4 @@ namespace EspINA
 
 }// namespace EspINA
 
-#endif // ESPINAIO_H
+#endif // SEGFILEREADER_H

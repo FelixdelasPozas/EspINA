@@ -19,7 +19,7 @@
 #ifndef SEGMHAIMPORTERFILTER_H
 #define SEGMHAIMPORTERFILTER_H
 
-#include <Filters/BasicSegmentationFilter.h>
+#include <Core/Filters/BasicSegmentationFilter.h>
 
 #include <Core/Model/Segmentation.h>
 #include <Core/Model/Output.h>

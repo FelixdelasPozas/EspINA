@@ -30,6 +30,7 @@
 #include <Core/Model/EspinaModel.h>
 #include <Core/EspinaSettings.h>
 #include <Undo/TaxonomiesCommand.h>
+#include <GUI/Representations/BasicGraphicalRepresentationFactory.h>
 
 // Qt
 #include <QColorDialog>
@@ -109,6 +110,7 @@ FilterSPtr AppositionSurface::createFilter(const QString &filter, const Filter::
   Q_ASSERT(AppositionSurfaceCommand::FILTER_TYPE == filter);
 
   FilterSPtr asFilter = FilterSPtr(new AppositionSurfaceFilter(inputs, args, AppositionSurfaceCommand::FILTER_TYPE));
+  SetBasicGraphicalRepresentationFactory(asFilter);
 
   Filter::FilterInspectorPtr asInspector(new AppositionSurfaceFilterInspector(asFilter));
   asFilter->setFilterInspector(asInspector);

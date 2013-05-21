@@ -1,4 +1,4 @@
-#include "EspinaIO.h"
+#include "SegFileReader.h"
 
 #include <QFile>
 
@@ -12,9 +12,9 @@
 #include <Core/Model/Taxonomy.h>
 #include <Core/Extensions/ChannelExtension.h>
 #include <Core/Extensions/SegmentationExtension.h>
-#include "ErrorHandler.h"
+#include "IOErrorHandler.h"
 
-#include "Filters/ChannelReader.h"
+#include "Core/Filters/ChannelReader.h"
 
 // ITK
 #include <itkImageFileWriter.h>
@@ -42,110 +42,14 @@ const QString TAXONOMY_FILE = "taxonomy.xml";
 typedef itk::ImageFileWriter<itkVolumeType> EspinaVolumeWriter;
 
 const QString SETTINGS = "settings.ini";
-const QString EspinaIO::VERSION = "version"; //backward compatibility
+const QString SegFileReader::VERSION = "version"; //backward compatibility
 const QString SEG_FILE_VERSION  = "4";
 const QString SEG_FILE_COMPATIBLE_VERSION  = "1";
 
 //-----------------------------------------------------------------------------
-bool EspinaIO::isChannelExtension(const QString &fileExtension)
-{
-  return ("mha"  == fileExtension
-       || "mhd"  == fileExtension
-       || "tiff" == fileExtension
-       || "tif"  == fileExtension);
-}
-
-//-----------------------------------------------------------------------------
-EspinaIO::STATUS EspinaIO::loadFile(QFileInfo file,
-                                    IEspinaModel *model,
-                                    ErrorHandler *handler)
-{
-  const QString ext = file.suffix();
-  if (isChannelExtension(ext))
-  {
-    ChannelSPtr channel;
-    return loadChannel(file, model, channel, handler);
-  }
-
-  if ("seg" == ext)
-    return loadSegFile(file, model, handler);
-
-  return model->factory()->readFile(file.absoluteFilePath(), ext, handler) ? SUCCESS : ERROR;
-}
-
-//-----------------------------------------------------------------------------
-EspinaIO::STATUS EspinaIO::loadChannel(QFileInfo file,
-                                       IEspinaModel *model,
-                                       ChannelSPtr &channel,
-                                       ErrorHandler *handler)
-{
-  SampleSPtr existingSample;
-
-  EspinaFactory *factory = model->factory();
-
-  if (existingSample.isNull())
-  {
-    //TODO Try to recover sample form OMERO using channel information or prompt dialog to create a new sample
-    existingSample = factory->createSample(file.baseName());
-
-    model->addSample(existingSample);
-  }
-
-  //TODO: Recover channel information from centralized system (OMERO)
-  QColor stainColor = QColor(Qt::black);
-
-  Filter::NamedInputs noInputs;
-  Filter::Arguments readerArgs;
-
-  if (!file.exists())
-  {
-    if (handler)
-      file = handler->fileNotFound(file);
-
-    if (!file.exists())
-      return FILE_NOT_FOUND;
-  }
-
-  readerArgs[ChannelReader::FILE] = file.absoluteFilePath();
-  FilterSPtr reader(new ChannelReader(noInputs, readerArgs, ChannelReader::TYPE, handler));
-  reader->update();
-  if (reader->numberOfOutputs() == 0)
-    return ERROR;
-
-  Channel::CArguments args;
-  args[Channel::ID] = file.fileName();
-  args.setHue(stainColor.hueF());
-  channel = factory->createChannel(reader, 0);
-  channel->setHue(stainColor.hueF());// It is needed to display proper stain color
-  //file.absoluteFilePath(), args);
-  channel->setOpacity(-1.0);
-  if (channel->hue() != -1.0)
-    channel->setSaturation(1.0);
-  else
-    channel->setSaturation(0.0);
-  channel->setContrast(1.0);
-  channel->setBrightness(0.0);
-
-  double pos[3];
-  existingSample->position(pos);
-  channel->setPosition(pos);
-
-  model->addFilter(reader);
-  model->addChannel(channel);
-  model->addRelation(reader, channel, Channel::VOLUME_LINK);
-  model->addRelation(existingSample, channel, Channel::STAIN_LINK);
-
-  channel->initialize(args);
-  channel->initializeExtensions();
-
-  return SUCCESS;
-}
-
-
-//-----------------------------------------------------------------------------
-EspinaIO::STATUS EspinaIO::loadSegFile(QFileInfo    file,
-                                       IEspinaModel *model,
-                                       ErrorHandler *handler)
+IOErrorHandler::STATUS SegFileReader::loadSegFile(QFileInfo       file,
+                                                  IEspinaModel   *model,
+                                                  IOErrorHandler *handler)
 {
   // generate random dir based on file name
   QDir temporalDir = QDir::tempPath();
@@ -166,7 +70,7 @@ EspinaIO::STATUS EspinaIO::loadSegFile(QFileInfo    file,
   {
     if (handler)
       handler->error("IOEspinaFile: Could not open file" + file.filePath());
-    return FILE_NOT_FOUND;
+    return IOErrorHandler::FILE_NOT_FOUND;
   }
 
   QuaZipFile espinaFile(&espinaZip);
@@ -184,15 +88,15 @@ EspinaIO::STATUS EspinaIO::loadSegFile(QFileInfo    file,
       if (handler)
         handler->error("IOEspinaFile: Could not extract the file" + file.filePath());
       if (file == TAXONOMY_FILE || file == TRACE_FILE)
-        return ERROR;
+        return IOErrorHandler::ERROR;
 
       continue;
     }
-    // qDebug() << "EspinaIO::loadSegFile: extracting" << file.filePath();
+    // qDebug() << "SegFileReader::loadSegFile: extracting" << file.filePath();
     if (file.fileName() == SETTINGS)
     {
-      STATUS status = readSettings(espinaFile, model, handler);
-      if (status != SUCCESS)
+      IOErrorHandler::STATUS status = readSettings(espinaFile, model, handler);
+      if (status != IOErrorHandler::SUCCESS)
         return status;
     }
     if (file.fileName() == VERSION)
@@ -204,7 +108,7 @@ EspinaIO::STATUS EspinaIO::loadSegFile(QFileInfo    file,
           handler->error(QObject::tr("Invalid seg file version. File Version=%1, current Version %2").arg(versionNumber).arg(SEG_FILE_VERSION));
         removeTemporalDir();
         espinaFile.close();
-        return INVALID_VERSION;
+        return IOErrorHandler::INVALID_VERSION;
       }
       model->setTraceable(false);
     }
@@ -290,13 +194,13 @@ EspinaIO::STATUS EspinaIO::loadSegFile(QFileInfo    file,
     if (handler)
       handler->error("IOEspinaFile::loadFile: could not load taxonomy and/or trace files");
     removeTemporalDir();
-    return ERROR;
+    return IOErrorHandler::ERROR;
   }
 
-  STATUS status;
+  IOErrorHandler::STATUS status;
   model->addTaxonomy(taxonomy);
   std::istringstream trace(traceContent.toStdString().c_str());
-  status = loadSerialization(model, trace, temporalDir, handler) ? SUCCESS : ERROR;
+  status = loadSerialization(model, trace, temporalDir, handler) ? IOErrorHandler::SUCCESS : IOErrorHandler::ERROR;
 
   // Load Extensions' cache
   foreach(QString file, extensionFiles.keys())
@@ -312,13 +216,13 @@ EspinaIO::STATUS EspinaIO::loadSegFile(QFileInfo    file,
 }
 
 //-----------------------------------------------------------------------------
-EspinaIO::STATUS EspinaIO::saveSegFile(QFileInfo file, IEspinaModel *model, ErrorHandler *handler)
+IOErrorHandler::STATUS SegFileReader::saveSegFile(QFileInfo file, IEspinaModel *model, IOErrorHandler *handler)
 {
   if (file.baseName().isEmpty())
   {
     if (handler)
       handler->error("IOEspinaFile::saveFile file name is empty");
-    return ERROR;
+    return IOErrorHandler::ERROR;
   }
 
   // use system/user temporal directory, OS dependent
@@ -337,7 +241,7 @@ EspinaIO::STATUS EspinaIO::saveSegFile(QFileInfo file, IEspinaModel *model, Erro
       handler->error("IOEspinaFile::saveFile" + zFile.fileName() + "error while creating file");
 
     removeTemporalDir(temporalDir);
-    return ERROR;
+    return IOErrorHandler::ERROR;
   }
   QuaZipFile outFile(&zip);
 
@@ -350,7 +254,7 @@ EspinaIO::STATUS EspinaIO::saveSegFile(QFileInfo file, IEspinaModel *model, Erro
   if( !zipFile(QString(TAXONOMY_FILE), taxonomy.toAscii(), outFile) )
   {
     removeTemporalDir(temporalDir);
-    return ERROR;
+    return IOErrorHandler::ERROR;
   }
 
   // Save Trace
@@ -359,7 +263,7 @@ EspinaIO::STATUS EspinaIO::saveSegFile(QFileInfo file, IEspinaModel *model, Erro
   if( !zipFile(QString(TRACE_FILE),  trace.str().c_str(), outFile) )
   {
     removeTemporalDir(temporalDir);
-    return ERROR;
+    return IOErrorHandler::ERROR;
   }
 
   // Store filter data
@@ -373,7 +277,7 @@ EspinaIO::STATUS EspinaIO::saveSegFile(QFileInfo file, IEspinaModel *model, Erro
         if( !zipFile(entry.first, entry.second, outFile) )
         {
           removeTemporalDir(temporalDir);
-          return ERROR;
+          return IOErrorHandler::ERROR;
         }
       }
     }
@@ -390,7 +294,7 @@ EspinaIO::STATUS EspinaIO::saveSegFile(QFileInfo file, IEspinaModel *model, Erro
         if( !zipFile(entry.first, entry.second, outFile) )
         {
           removeTemporalDir(temporalDir);
-          return ERROR;
+          return IOErrorHandler::ERROR;
         }
       }
     }
@@ -406,7 +310,7 @@ EspinaIO::STATUS EspinaIO::saveSegFile(QFileInfo file, IEspinaModel *model, Erro
         if( !zipFile(entry.first, entry.second, outFile) )
         {
           removeTemporalDir(temporalDir);
-          return ERROR;
+          return IOErrorHandler::ERROR;
         }
       }
     }
@@ -417,10 +321,10 @@ EspinaIO::STATUS EspinaIO::saveSegFile(QFileInfo file, IEspinaModel *model, Erro
   if (zip.getZipError() != UNZ_OK)
   {
     if (handler)
-      handler->error("IOEspinaFile::saveFile ERROR: Failed to close" + zFile.fileName() + "zip file");
+      handler->error("IOEspinaFile::saveFile IOErrorHandler::ERROR: Failed to close" + zFile.fileName() + "zip file");
 
     removeTemporalDir(temporalDir);
-    return ERROR;
+    return IOErrorHandler::ERROR;
   }
 
   // remove old file if it exists or rename won't work
@@ -428,9 +332,9 @@ EspinaIO::STATUS EspinaIO::saveSegFile(QFileInfo file, IEspinaModel *model, Erro
   {
     if (!temporalDir.remove(file.absoluteFilePath()))
     {
-      qDebug() << "IOEspinaFile::saveFile ERROR: remove" << temporalSegFileName << "file";
+      qDebug() << "IOEspinaFile::saveFile IOErrorHandler::ERROR: remove" << temporalSegFileName << "file";
       removeTemporalDir(temporalDir);
-      return ERROR;
+      return IOErrorHandler::ERROR;
     }
   }
 
@@ -440,24 +344,24 @@ EspinaIO::STATUS EspinaIO::saveSegFile(QFileInfo file, IEspinaModel *model, Erro
   // - rename crosses filesystem boundaries
   if (!temporalDir.rename(temporalSegFileName, file.absoluteFilePath()))
   {
-    qDebug() << "IOEspinaFile::saveFile ERROR: Failed to rename" << temporalSegFileName << "to" << file.absoluteFilePath();
+    qDebug() << "IOEspinaFile::saveFile IOErrorHandler::ERROR: Failed to rename" << temporalSegFileName << "to" << file.absoluteFilePath();
     removeTemporalDir(temporalDir);
-    return ERROR;
+    return IOErrorHandler::ERROR;
   }
 
   removeTemporalDir(temporalDir);
 
-  return SUCCESS;
+  return IOErrorHandler::SUCCESS;
 }
 
-void EspinaIO::serializeRelations(IEspinaModel *model, ostream &stream, RelationshipGraph::PrintFormat format)
+void SegFileReader::serializeRelations(IEspinaModel *model, ostream &stream, RelationshipGraph::PrintFormat format)
 {
   model->relationships()->updateVertexInformation();
   model->relationships()->write(stream, format);
 }
 
 //-----------------------------------------------------------------------------
-QByteArray EspinaIO::settings(IEspinaModel *model)
+QByteArray SegFileReader::settings(IEspinaModel *model)
 {
   QByteArray settingsData;
 
@@ -470,7 +374,7 @@ QByteArray EspinaIO::settings(IEspinaModel *model)
 }
 
 //-----------------------------------------------------------------------------
-bool EspinaIO::zipFile(QString fileName, const QByteArray &content, QuaZipFile& zFile)
+bool SegFileReader::zipFile(QString fileName, const QByteArray &content, QuaZipFile& zFile)
 {
   QuaZipNewInfo zFileInfo = QuaZipNewInfo(fileName, fileName);
   zFileInfo.externalAttr = 0x01A40000; // Permissions of the files 644
@@ -644,7 +548,7 @@ void IOTaxonomy::writeXMLTaxonomy(TaxonomySPtr tax, QString& destination)
 }
 
 //-----------------------------------------------------------------------------
-EspinaIO::STATUS EspinaIO::removeTemporalDir(QDir temporalDir)
+IOErrorHandler::STATUS SegFileReader::removeTemporalDir(QDir temporalDir)
 {
   if (temporalDir == QDir())
   {
@@ -652,14 +556,14 @@ EspinaIO::STATUS EspinaIO::removeTemporalDir(QDir temporalDir)
     if (temporalDir.exists("espina"))
       temporalDir.cd("espina");
     else
-      return SUCCESS;
+      return IOErrorHandler::SUCCESS;
   }
 
   bool result = true;
   foreach(QFileInfo temporalFile, temporalDir.entryInfoList(QDir::Files|QDir::Dirs|QDir::NoDotAndDotDot))
   {
     if (temporalFile.isDir())
-      result &= (removeTemporalDir(QDir(temporalFile.absoluteFilePath())) == SUCCESS);
+      result &= (removeTemporalDir(QDir(temporalFile.absoluteFilePath())) == IOErrorHandler::SUCCESS);
     else
       result &= temporalDir.remove(temporalFile.fileName());
   }
@@ -671,18 +575,18 @@ EspinaIO::STATUS EspinaIO::removeTemporalDir(QDir temporalDir)
 
   if (!result)
   {
-    qWarning() << "EspinaIO: Failed to remove temporal directory" << dirName;
-    return ERROR;
+    qWarning() << "SegFileReader: Failed to remove temporal directory" << dirName;
+    return IOErrorHandler::ERROR;
   }
 
-  return SUCCESS;
+  return IOErrorHandler::SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
-bool EspinaIO::loadSerialization(IEspinaModel *model,
+bool SegFileReader::loadSerialization(IEspinaModel *model,
                                  istream &stream,
                                  QDir tmpDir,
-                                 EspinaIO::ErrorHandler *handler,
+                                 IOErrorHandler *handler,
                                  RelationshipGraph::PrintFormat format)
 {
   QSharedPointer<RelationshipGraph> input(new RelationshipGraph());
@@ -855,11 +759,11 @@ bool EspinaIO::loadSerialization(IEspinaModel *model,
 }
 
 //-----------------------------------------------------------------------------
-EspinaIO::STATUS EspinaIO::readSettings(QuaZipFile   &file,
-                                        IEspinaModel *model,
-                                        ErrorHandler *handler)
+IOErrorHandler::STATUS SegFileReader::readSettings(QuaZipFile   &file,
+                                                   IEspinaModel *model,
+                                                   IOErrorHandler *handler)
 {
-  STATUS status = SUCCESS;
+  IOErrorHandler::STATUS status = IOErrorHandler::SUCCESS;
 
   QTextStream settingsStream(file.readAll());
 
@@ -871,7 +775,7 @@ EspinaIO::STATUS EspinaIO::readSettings(QuaZipFile   &file,
       handler->error(QObject::tr("Invalid seg file version. File Version=%1, current Version %2").arg(versionNumber).arg(SEG_FILE_VERSION));
     removeTemporalDir();
     file.close();
-    status = INVALID_VERSION;
+    status = IOErrorHandler::INVALID_VERSION;
   } else
   {
     QString line = settingsStream.readLine();

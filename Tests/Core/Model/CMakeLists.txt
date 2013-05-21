@@ -21,7 +21,7 @@ target_link_libraries(${TEST_NAME} ${LIB_DEPENDECIES})
 set( TestToRun ${TESTS} )
 list (REMOVE_ITEM TestToRun ${TEST_NAME}.cpp)
 
-set( STACK_DIR "${CMAKE_SOURCE_DIR}/Tests/test images/")
+set( STACK_DIR "${CMAKE_SOURCE_DIR}/Tests/data/")
 
 # add tests
 foreach(TEST ${TestToRun})

@@ -21,7 +21,7 @@
 #define CHANNELREADER_H
 
 #include "Core/Model/Filter.h"
-#include <Core/IO/EspinaIO.h>
+#include <Core/IO/SegFileReader.h>
 
 #include <itkImageIOBase.h>
 #include <itkImageFileReader.h>
@@ -38,10 +38,10 @@ namespace EspINA
     static const ArgumentId SPACING;
 
   public:
-    explicit ChannelReader(NamedInputs             inputs,
-                           Arguments               args,
-                           FilterType              type,
-                           EspinaIO::ErrorHandler *handler);
+    explicit ChannelReader(NamedInputs     inputs,
+                           Arguments       args,
+                           FilterType      type,
+                           IOErrorHandler *handler);
 
     /// Implements Model Item Interface
     virtual QString id() const {return m_args[ID];}
@@ -51,8 +51,6 @@ namespace EspINA
 
   protected:
     virtual ChannelRepresentationSPtr createRepresentationProxy(FilterOutputId id, const FilterOutput::OutputRepresentationName &type);
-
-    virtual void createGraphicalRepresentations(ChannelOutputSPtr output);
 
     virtual bool ignoreCurrentOutputs() const
     { return false; }
@@ -66,7 +64,7 @@ namespace EspINA
     itkVolumeType::SpacingType spacing();
 
   private:
-    EspinaIO::ErrorHandler *m_handler;
+    IOErrorHandler *m_handler;
   };
 
 }// namespace EspINA

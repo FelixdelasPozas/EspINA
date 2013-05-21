@@ -19,7 +19,7 @@
 
 #include "FillHolesCommand.h"
 
-#include <Filters/FillHolesFilter.h>
+#include <Core/Filters/FillHolesFilter.h>
 #include <Core/Model/EspinaModel.h>
 #include <GUI/ViewManager.h>
 

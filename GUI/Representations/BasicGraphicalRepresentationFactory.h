@@ -17,34 +17,25 @@
  *
  */
 
-#ifndef ESPINA_BASICSEGMENTATIONFILTER_H
-#define ESPINA_BASICSEGMENTATIONFILTER_H
+#ifndef ESPINA_BASICGRAPHICALREPRESENTATIONFACTORY_H
+#define ESPINA_BASICGRAPHICALREPRESENTATIONFACTORY_H
 
 #include <Core/Model/Filter.h>
+#include <GUI/Representations/GraphicalRepresentationFactory.h>
 
 namespace EspINA
 {
-  // Provide common implementation for filters which generates
-  // volumetric outputs with volumetric representations and 
-  // marching cubes mesh representations generated from it
-  // It also provide the following graphical representations for each output:
-  // SliceGraphicalRepresentetion
-  // VolumetricGraphicalRepresentation
-  // MeshGraphicalRepresentation
-  // SmoothedMeshGraphicalRepresentation
-  class BasicSegmentationFilter 
-  : public SegmentationFilter
+  class BasicGraphicalRepresentationFactory 
+  : public GraphicalRepresentationFactory
   {
   public:
-    explicit BasicSegmentationFilter(NamedInputs namedInputs, Arguments args, FilterType type);
-
-  protected:
-  virtual SegmentationRepresentationSPtr createRepresentationProxy(FilterOutputId id, const FilterOutput::OutputRepresentationName &type);
+    virtual void createGraphicalRepresentations(ChannelOutputSPtr output);
 
     virtual void createGraphicalRepresentations(SegmentationOutputSPtr output);
-
-    virtual bool fetchSnapshot(FilterOutputId oId);
   };
+
+  void SetBasicGraphicalRepresentationFactory(Filter    *filter);
+  void SetBasicGraphicalRepresentationFactory(FilterSPtr filter);
 }
 
-#endif // ESPINA_BASICSEGMENTATIONFILTER_H
+#endif // ESPINA_BASICGRAPHICALREPRESENTATIONFACTORY_H

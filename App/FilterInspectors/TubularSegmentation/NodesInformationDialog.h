@@ -21,7 +21,7 @@
 
 // EspINA
 #include "ui_NodesInformationDialog.h"
-#include <Filters/TubularSegmentationFilter.h>
+#include <Core/Filters/TubularSegmentationFilter.h>
 
 // Qt
 #include <QDialog>

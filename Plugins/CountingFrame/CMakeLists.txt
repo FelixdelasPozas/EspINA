@@ -44,6 +44,8 @@ qt4_wrap_cpp(MOC_SRCS
   Extensions/CountingFrameExtension.h
   Extensions/StereologicalInclusion.h
   CountingFrames/CountingFrame.h
+
+  OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
   )
 
 
@@ -79,6 +81,7 @@ set (PLUGIN_SOURCES
 
 set (PLUGIN_LIBRARIES
   EspinaCore
+  EspinaUndo
   )
 
 add_library(CountingFramePlugin SHARED ${PLUGIN_SOURCES})

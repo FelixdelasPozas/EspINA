@@ -8,10 +8,10 @@
 // Espina
 #include <Core/Model/EspinaModel.h>
 #include <Core/Model/EspinaFactory.h>
-#include <Core/IO/EspinaIO.h>
+#include <Core/IO/SegFileReader.h>
 #include <Core/Interfaces/IFilterCreator.h>
-#include <Filters/SeedGrowSegmentationFilter.h>
-#include <Filters/ChannelReader.h>
+#include <Core/Filters/SeedGrowSegmentationFilter.h>
+#include <Core/Filters/ChannelReader.h>
 #include <App/Undo/SeedGrowSegmentationCommand.h>
 
 // Qt
@@ -52,6 +52,7 @@ int loadModelFromSegFile(int argc, char** argv)
 {
   QString filename = QString(argv[1]) + QString("test1.seg");
   QFileInfo file(filename);
+  Q_ASSERT(file.exists());
 
   EspinaFactory *factory = new EspinaFactory();
   EspinaModel *model = new EspinaModel(factory);
@@ -63,7 +64,7 @@ int loadModelFromSegFile(int argc, char** argv)
   factory->registerFilter(&channelCreator, CHANNELREADER_TYPE);
 
   // check model
-  if(EspinaIO::loadSegFile(file, model) != EspinaIO::SUCCESS)
+  if(SegFileReader::loadSegFile(file, model) != IOErrorHandler::SUCCESS)
   {
     qDebug() << "couldn't load test file";
     return 1;
@@ -71,7 +72,7 @@ int loadModelFromSegFile(int argc, char** argv)
 
   if (model)
   {
-    if ((model->segmentations().size() != 64) || (model->channels().size() != 1))
+    if ((model->segmentations().size() != 1) || (model->channels().size() != 1))
     {
       qDebug() << "wrong number of segmentations or channels";
       return 1;

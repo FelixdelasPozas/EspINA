@@ -53,6 +53,8 @@ QT4_WRAP_CPP(MOC_SOURCES
   GUI/Settings/AppositionSurfaceSettings.h
   GUI/FilterInspector/AppositionSurfaceFilterInspector.h
   GUI/AppositionSurfaceAction.h
+
+  OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
 )
 
 set (PLUGIN_SOURCES 
@@ -74,6 +76,8 @@ set (PLUGIN_SOURCES
 
 set (PLUGIN_LIBRARIES
   EspinaCore
+  EspinaGUI
+  EspinaUndo
   vtkInfovis
   ${XLSLIB_LIBRARIES}
   )

@@ -164,11 +164,6 @@ void SeedGrowSegmentationFilter::run(FilterOutputId oId)
   extractFilter->SetExtractionRegion(objectROI);
   extractFilter->ReleaseDataFlagOn();
   extractFilter->Update();
-  //typedef itk::ImageFileWriter< OutputImageType >  WriterType;
-  //WriterType::Pointer writer = WriterType::New();
-  //writer->SetFileName("Test.mha");
-  //writer->SetInput(extract->GetOutput());
-  //writer->Write();
 
   itkVolumeType::Pointer volume;
 

@@ -18,11 +18,11 @@
 
 #include "SegmhaImporter.h"
 
-#include <Core/IO/EspinaIO.h>
 #include <Core/Model/EspinaFactory.h>
 #include <Core/Model/EspinaModel.h>
 #include <Core/Model/Segmentation.h>
-#include <Core/IO/ErrorHandler.h>
+#include <GUI/IO/EspinaIO.h>
+#include <GUI/Representations/BasicGraphicalRepresentationFactory.h>
 #include <Core/Relations.h>
 #include <Undo/AddChannel.h>
 #include <Undo/AddRelation.h>
@@ -92,7 +92,7 @@ void SegmhaImporter::initFileReader(EspinaModel *model,
 }
 
 //-----------------------------------------------------------------------------
-bool SegmhaImporter::readFile(const QFileInfo file, EspinaIO::ErrorHandler *handler)
+bool SegmhaImporter::readFile(const QFileInfo file, IOErrorHandler *handler)
 {
   Q_ASSERT(SEGMHA == file.suffix());
 
@@ -109,7 +109,7 @@ bool SegmhaImporter::readFile(const QFileInfo file, EspinaIO::ErrorHandler *hand
   m_model->setTraceable(false);
 
   ChannelSPtr channel;
-  if (EspinaIO::SUCCESS != EspinaIO::loadChannel(channelFile, m_model, channel, handler))
+  if (IOErrorHandler::SUCCESS != EspinaIO::loadChannel(channelFile, m_model, channel, handler))
     return false;
 
   Filter::NamedInputs inputs;
@@ -119,6 +119,7 @@ bool SegmhaImporter::readFile(const QFileInfo file, EspinaIO::ErrorHandler *hand
   params.setSpacing(channel->volume()->toITK()->GetSpacing());
 
   SegmhaImporterFilterSPtr filter(new SegmhaImporterFilter(inputs, args, UndoCommand::FILTER_TYPE));
+  filter->setGraphicalRepresentationFactory(GraphicalRepresentationFactorySPtr(new BasicGraphicalRepresentationFactory()));
   filter->update();
   if (filter->outputs().isEmpty())
   {

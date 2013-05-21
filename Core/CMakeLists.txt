@@ -28,6 +28,7 @@ qt4_wrap_cpp(CORE_MOC
   Outputs/VolumeProxy.h
   Interfaces/IDockWidget.h
   Interfaces/IToolBar.h
+  OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
   )
 
 # qt4_wrap_ui (CORE_UI
@@ -48,7 +49,7 @@ set (CORE_SOURCES
   ColorEngines/TransparencySelectionHighlighter.cpp
   ColorEngines/TaxonomyColorEngine.cpp
   ColorEngines/UserColorEngine.cpp
-  IO/EspinaIO.cpp
+  IO/SegFileReader.cpp
   Extensions/ChannelExtension.cpp
   Extensions/EdgeDistances/EdgeDetector.cpp
   Extensions/EdgeDistances/AdaptiveEdges.cpp
@@ -79,6 +80,19 @@ set (CORE_SOURCES
   Model/Proxies/RelationProxy.cpp
   Model/Proxies/InformationProxy.cpp
   Model/Proxies/ConnectomicProxy.cpp
+  Filters/BasicSegmentationFilter.cpp
+  Filters/ChannelReader.cpp
+  Filters/ClosingFilter.cpp
+  Filters/DilateFilter.cpp
+  Filters/ErodeFilter.cpp
+  Filters/FillHolesFilter.cpp
+  Filters/FreeFormSource.cpp
+  Filters/ImageLogicFilter.cpp
+  Filters/MorphologicalEditionFilter.cpp
+  Filters/OpeningFilter.cpp
+  Filters/SeedGrowSegmentationFilter.cpp
+  Filters/SplitFilter.cpp
+  Filters/TubularSegmentationFilter.cpp
   Outputs/ChannelVolumeProxy.cpp 
   Outputs/MeshType.cpp
   Outputs/MeshProxy.cpp 

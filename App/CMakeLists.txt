@@ -30,6 +30,7 @@ qt4_wrap_cpp (ESPINA_MOC
   FilterInspectors/CODE/CODEFilterInspector.h
   FilterInspectors/SeedGrowSegmentation/SGSFilterInspector.h
   Menus/ColorEngineMenu.h
+  Menus/SegmentationContextualMenu.h
   Settings/Editor/SettingsPanel.h
   Settings/SeedGrowSegmentation/SettingsPanel.h
   Settings/SliceView/SliceViewSettingsPanel.h
@@ -56,6 +57,7 @@ qt4_wrap_cpp (ESPINA_MOC
   Tools/TubularSegmentation/TubularTool.h
   FilterInspectors/TubularSegmentation/TubularFilterInspector.h
   FilterInspectors/TubularSegmentation/NodesInformationDialog.h
+  OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
   )
 
 # Create Interface files
@@ -88,7 +90,6 @@ set (ESPINA_SOURCES
   main.cpp
   EspinaMainWindow.cpp
   RecentDocuments.cpp
-  Analysis/xlsUtils.cpp
   Dialogs/SegmentationInspector/SegmentationInspector.cpp
   Dialogs/TabularReport/TabularReport.cpp
   Dialogs/TabularReport/RawInformationDialog.cpp
@@ -105,6 +106,7 @@ set (ESPINA_SOURCES
   FilterInspectors/CODE/CODEFilterInspector.cpp
   FilterInspectors/SeedGrowSegmentation/SGSFilterInspector.cpp
   Menus/ColorEngineMenu.cpp
+  Menus/SegmentationContextualMenu.cpp
   Settings/GeneralSettings.cpp
   Settings/Editor/SettingsPanel.cpp
   Settings/SeedGrowSegmentation/SettingsPanel.cpp
@@ -155,7 +157,6 @@ set (ESPINA_SOURCES
 
 set (ESPINA_LIBRARIES
   EspinaCore
-  EspinaFilters
   EspinaGUI
   EspinaUndo
 )
@@ -165,7 +166,6 @@ set (EXTERNAL_LIBRARIES
   QVTK
   QtTest # Required by ModelTest
   )
-
 
 add_executable(espina ${ESPINA_SOURCES})
 target_link_libraries (espina ${ESPINA_LIBRARIES} ${EXTERNAL_LIBRARIES})

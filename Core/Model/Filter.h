@@ -25,6 +25,7 @@
 #include "Core/EspinaTypes.h"
 #include <Core/EspinaRegion.h>
 #include <Core/Model/Output.h>
+#include <GUI/Representations/GraphicalRepresentationFactory.h>
 
 #include <itkImageFileReader.h>
 
@@ -126,6 +127,9 @@ namespace EspINA
     void setFilterInspector(FilterInspectorPtr filterInspector)
     { m_filterInspector = filterInspector; }
 
+    void setGraphicalRepresentationFactory(GraphicalRepresentationFactorySPtr factory)
+    { m_graphicalRepresentationFactory = factory; }
+
     /// Return a widget used to configure filter's parameters
     /// Filter Inspector are available for traceable filters and those executed
     /// on current session
@@ -183,6 +187,8 @@ namespace EspINA
     mutable Arguments m_args;
     FilterType        m_type;
 
+    GraphicalRepresentationFactorySPtr m_graphicalRepresentationFactory;
+
     int  m_cacheId;
     QDir m_cacheDir;
     bool m_traceable;
@@ -234,8 +240,6 @@ namespace EspINA
 
     virtual void addOutputRepresentation(FilterOutputId id, ChannelRepresentationSPtr  data);
     virtual void addOutputRepresentations(FilterOutputId id, ChannelRepresentationSList repList);
-
-    virtual void createGraphicalRepresentations(ChannelOutputSPtr output) = 0;
 
     /// Whether the filter needs to be updated or not
     /// A filter will need an update if there exists an invalid output or no outputs exist at all
@@ -299,8 +303,6 @@ namespace EspINA
 
     virtual void addOutputRepresentation(FilterOutputId id, SegmentationRepresentationSPtr rep);
     virtual void addOutputRepresentations(FilterOutputId id, SegmentationRepresentationSList repList);
-
-    virtual void createGraphicalRepresentations(SegmentationOutputSPtr output) = 0;
 
     /// Whether the filter needs to be updated or not
     /// A filter will need an update if there exists an invalid output or no outputs exist at all

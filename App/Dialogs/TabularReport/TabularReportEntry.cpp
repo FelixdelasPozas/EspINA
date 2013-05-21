@@ -27,7 +27,7 @@
 
 
 #include "TabularReportEntry.h"
-#include <Analysis/xlsUtils.h>
+#include <GUI/Analysis/xlsUtils.h>
 #include <GUI/Analysis/InformationSelector.h>
 #include <QFileDialog>
 #include <QStandardItemModel>

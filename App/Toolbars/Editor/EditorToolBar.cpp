@@ -32,17 +32,18 @@
 #include <Core/Model/EspinaFactory.h>
 #include <Core/Model/EspinaModel.h>
 #include <Core/Model/PickableItem.h>
-#include <Filters/ClosingFilter.h>
-#include <Filters/DilateFilter.h>
-#include <Filters/ErodeFilter.h>
-#include <Filters/FillHolesFilter.h>
-#include <Filters/FreeFormSource.h>
-#include <Filters/OpeningFilter.h>
-#include <Filters/SplitFilter.h>
+#include <Core/Filters/ClosingFilter.h>
+#include <Core/Filters/DilateFilter.h>
+#include <Core/Filters/ErodeFilter.h>
+#include <Core/Filters/FillHolesFilter.h>
+#include <Core/Filters/FreeFormSource.h>
+#include <Core/Filters/OpeningFilter.h>
+#include <Core/Filters/SplitFilter.h>
 #include <GUI/Pickers/ContourSelector.h>
 #include <GUI/QtWidget/ActionSelector.h>
 #include <GUI/ViewManager.h>
 #include <GUI/vtkWidgets/ContourWidget.h>
+#include <GUI/Representations/BasicGraphicalRepresentationFactory.h>
 #include <Undo/FillHolesCommand.h>
 #include <Undo/ImageLogicCommand.h>
 #include <Undo/SplitUndoCommand.h>
@@ -339,7 +340,10 @@ FilterSPtr EditorToolBar::createFilter(const QString              &filter,
   if (filterInspector != NULL)
     res->setFilterInspector(Filter::FilterInspectorPtr(filterInspector));
 
-  return FilterSPtr(res);
+  FilterSPtr resFilter(res);
+  SetBasicGraphicalRepresentationFactory(resFilter);
+
+  return resFilter;
 }
 
 //----------------------------------------------------------------------------

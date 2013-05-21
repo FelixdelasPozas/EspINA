@@ -21,7 +21,7 @@
 
 #include <QUndoCommand>
 
-#include <Filters/ImageLogicFilter.h>
+#include <Core/Filters/ImageLogicFilter.h>
 #include <Core/Model/EspinaModel.h>
 
 namespace EspINA

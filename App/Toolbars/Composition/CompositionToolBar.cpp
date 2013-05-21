@@ -22,6 +22,7 @@
 #include <Core/Model/EspinaModel.h>
 #include <Core/Model/EspinaFactory.h>
 #include <GUI/ViewManager.h>
+#include <GUI/Representations/BasicGraphicalRepresentationFactory.h>
 
 // Qt
 #include <QAction>
@@ -82,7 +83,11 @@ FilterSPtr CompositionToolBar::createFilter(const QString              &filter,
                                             const ModelItem::Arguments &args)
 {
   Q_ASSERT(CompositionCommand::FILTER_TYPE == filter);
-  return FilterSPtr(new ImageLogicFilter(inputs, args, CompositionCommand::FILTER_TYPE));
+  {
+    FilterSPtr composition(new ImageLogicFilter(inputs, args, CompositionCommand::FILTER_TYPE));
+    SetBasicGraphicalRepresentationFactory(composition);
+    return composition;
+  }
 }
 
 //----------------------------------------------------------------------------

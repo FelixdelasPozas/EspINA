@@ -1,5 +1,5 @@
 #include <Core/Model/Taxonomy.h>
-#include <Core/IO/EspinaIO.h>
+#include <Core/IO/SegFileReader.h>
 #include <QDebug>
 #include <QFile>
 

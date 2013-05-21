@@ -36,7 +36,8 @@
 #include <GUI/Pickers/PixelSelector.h>
 #include <Core/Model/PickableItem.h>
 #include <GUI/Tools/IVOI.h>
-#include <Filters/SeedGrowSegmentationFilter.h>
+#include <GUI/Representations/BasicGraphicalRepresentationFactory.h>
+#include <Core/Filters/SeedGrowSegmentationFilter.h>
 
 //GUI includes
 #include <QSettings>
@@ -144,6 +145,7 @@ FilterSPtr SegmentationToolBar::createFilter(const QString              &filter,
   if (SeedGrowSegmentationCommand::FILTER_TYPE == filter)
   {
     SeedGrowSegmentationFilter *sgsFilter = new SeedGrowSegmentationFilter(inputs, args, SeedGrowSegmentationCommand::FILTER_TYPE);
+    SetBasicGraphicalRepresentationFactory(sgsFilter);
 
     Filter::FilterInspectorPtr sgsInspector(new SGSFilterInspector(sgsFilter));
     sgsFilter->setFilterInspector(sgsInspector);

@@ -32,7 +32,7 @@
 #include "Filter.h"
 #include "Channel.h"
 #include "Segmentation.h"
-#include <Core/IO/EspinaIO.h>
+#include <Core/IO/SegFileReader.h>
 
 namespace EspINA
 {

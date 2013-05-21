@@ -25,11 +25,11 @@
 #include "Core/Model/Sample.h"
 #include "Core/Model/Segmentation.h"
 #include "Core/Model/Taxonomy.h"
-#include "Core/IO/EspinaIO.h"
-#include "Core/IO/ErrorHandler.h"
+#include "Core/IO/SegFileReader.h"
+#include "Core/IO/IOErrorHandler.h"
 #include <Core/Extensions/SegmentationExtension.h>
 #include <Core/Extensions/ChannelExtension.h>
-#include "Filters/ChannelReader.h"
+#include "Core/Filters/ChannelReader.h"
 
 // Qt
 #include <QDebug>

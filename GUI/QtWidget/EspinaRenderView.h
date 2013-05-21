@@ -23,7 +23,7 @@
 #include <QWidget>
 #include <QMenu>
 #include "GUI/QtWidget/IEspinaView.h"
-#include "SegmentationContextualMenu.h"
+#include "GUI/QtWidget/SegmentationContextualMenu.h"
 
 #include "Core/EspinaTypes.h"
 #include "GUI/Pickers/ISelector.h"
@@ -90,7 +90,7 @@ namespace EspINA
     virtual void setViewType(PlaneType plane);
     virtual PlaneType getViewType();
 
-    virtual void setContextualMenu(QSharedPointer<SegmentationContextualMenu> contextMenu)
+    virtual void setContextualMenu(SegmentationContextualMenuSPtr contextMenu)
     { m_contextMenu = contextMenu; }
 
     // WARNING: Only used in Brush.cpp to update the view while erasing voxels. Very taxing. DEPRECAR!
@@ -109,7 +109,7 @@ namespace EspINA
     Nm m_sceneResolution[3];// Min distance between 2 voxels in each axis
     PlaneType m_plane;
 
-    QSharedPointer<SegmentationContextualMenu> m_contextMenu;
+    SegmentationContextualMenuSPtr m_contextMenu;
 
   protected:
     struct ChannelState

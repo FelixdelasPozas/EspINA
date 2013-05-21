@@ -12,7 +12,7 @@
 #include <Core/Model/Channel.h>
 #include <Core/Model/Segmentation.h>
 #include <Core/EspinaTypes.h>
-#include <Filters/ChannelReader.h>
+#include <Core/Filters/ChannelReader.h>
 #include <Core/Extensions/EdgeDistances/AdaptiveEdges.h>
 #include <Core/Extensions/EdgeDistances/EdgeDistance.h>
 

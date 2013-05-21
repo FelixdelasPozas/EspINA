@@ -9,7 +9,7 @@
 #define APPOSITIONSURFACEFILTER_H_
 
 // EspINA
-#include <Filters/BasicSegmentationFilter.h>
+#include <Core/Filters/BasicSegmentationFilter.h>
 #include <Core/Model/ModelItem.h>
 
 // ITK

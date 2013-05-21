@@ -19,7 +19,7 @@
 #include <Undo/VolumeSnapshotCommand.h>
 
 // EspINA
-#include <Filters/SeedGrowSegmentationFilter.h>
+#include <Core/Filters/SeedGrowSegmentationFilter.h>
 #include <GUI/ViewManager.h>
 #include <GUI/vtkWidgets/RectangularRegion.h>
 #include <Core/Outputs/VolumeRepresentation.h>

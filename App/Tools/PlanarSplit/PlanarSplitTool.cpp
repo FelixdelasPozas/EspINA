@@ -25,7 +25,7 @@
 #include <Core/Model/EspinaFactory.h>
 #include <Core/Model/EspinaModel.h>
 #include <Core/EspinaSettings.h>
-#include <Filters/SplitFilter.h>
+#include <Core/Filters/SplitFilter.h>
 
 // Qt
 #include <QtGlobal>

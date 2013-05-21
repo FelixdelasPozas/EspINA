@@ -21,56 +21,24 @@
 #define SEGMENTATIONCONTEXTUALMENU_H
 
 #include <Core/EspinaTypes.h>
-#include <Core/Model/EspinaModel.h>
 
 #include <QMenu>
-#include <QModelIndex>
+#include <boost/shared_ptr.hpp>
 
-class QTreeView;
 namespace EspINA
 {
   class SegmentationContextualMenu
   : public QMenu
   {
-    Q_OBJECT
   public:
-    explicit SegmentationContextualMenu(SegmentationList selection,
-                                        EspinaModel     *model,
-                                        QUndoStack      *undoStack,
-                                        ViewManager     *viewManager,
-                                        QWidget         *parent = 0);
-    void setSelection(SegmentationList list);
+    explicit SegmentationContextualMenu(QWidget *parent = 0)
+    : QMenu(parent) {}
 
-  private slots:
-    void addNote();
-    void changeSegmentationsTaxonomy(const QModelIndex &index);
-    void deleteSelectedSementations();
-    void changeFinalFlag();
-    void manageTags();
-    void resetRootItem();
-    void renameSegmentation();
-
-  signals:
-    void changeTaxonomy(TaxonomyElementPtr);
-    void deleteSegmentations();
-    void changeFinalNode(bool);
-
-  private:
-    void createNoteEntry();
-    void createChangeTaxonomyMenu();
-    void createTagsEntry();
-    void createSetLevelOfDetailEntry();
-    void createRenameEntry();
-
-  private:
-    EspinaModel *m_model;
-    QUndoStack  *m_undoStack;
-    ViewManager *m_viewManager;
-
-    QTreeView       *m_taxonomyList;
-    QAction         *m_changeFinalNode;
-    SegmentationList m_segmentations;
+    virtual void setSelection(SegmentationList list) = 0;
   };
+
+  typedef boost::shared_ptr<SegmentationContextualMenu> SegmentationContextualMenuSPtr;
+
 } // namespace EspINA
 
 #endif // SEGMENTATIONCONTEXTUALMENU_H

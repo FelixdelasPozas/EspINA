@@ -27,7 +27,7 @@
 
 // EspINA
 #include <Core/EspinaTypes.h>
-#include <Filters/TubularSegmentationFilter.h>
+#include <Core/Filters/TubularSegmentationFilter.h>
 #include "vtkTubularWidget.h"
 
 class vtkSphereSource;

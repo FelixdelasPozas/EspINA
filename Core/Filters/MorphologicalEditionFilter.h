@@ -20,7 +20,7 @@
 #ifndef MORPHOLOGICALEDITIONFILTER_H
 #define MORPHOLOGICALEDITIONFILTER_H
 
-#include "Filters/BasicSegmentationFilter.h"
+#include "Core/Filters/BasicSegmentationFilter.h"
 
 namespace EspINA
 {

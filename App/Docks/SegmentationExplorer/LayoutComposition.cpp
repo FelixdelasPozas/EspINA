@@ -18,6 +18,7 @@
 
 // EspINA
 #include "LayoutComposition.h"
+#include <Menus/SegmentationContextualMenu.h>
 #include <Core/Model/Segmentation.h>
 #include <Core/Relations.h>
 #include <GUI/QtWidget/SegmentationContextualMenu.h>
@@ -77,10 +78,10 @@ void CompositionLayout::contextMenu(const QPoint &pos)
   if (!selectedItems(segmentations))
     return;
 
-  SegmentationContextualMenu contextMenu(segmentations.toList(),
-                                         m_model,
-                                         m_undoStack,
-                                         m_viewManager);
+  DefaultContextualMenu contextMenu(segmentations.toList(),
+                                    m_model,
+                                    m_undoStack,
+                                    m_viewManager);
 
   contextMenu.addSeparator();
 

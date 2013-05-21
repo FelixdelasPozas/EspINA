@@ -28,6 +28,8 @@ include_directories (
 
 qt4_wrap_cpp(MOC_SOURCES
   SegmhaImporter.h
+
+  OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
 )
 
 set (PLUGIN_SOURCES

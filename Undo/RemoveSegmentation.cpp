@@ -19,7 +19,7 @@
 // EspINA
 #include "RemoveSegmentation.h"
 #include <Core/Model/Segmentation.h>
-#include <Filters/ChannelReader.h>
+#include <Core/Filters/ChannelReader.h>
 #include <GUI/ViewManager.h>
 
 // Qt

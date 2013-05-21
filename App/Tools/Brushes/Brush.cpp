@@ -29,7 +29,7 @@
 #include <GUI/Pickers/BrushPicker.h>
 #include <GUI/QtWidget/EspinaRenderView.h>
 #include <GUI/ViewManager.h>
-#include <Filters/FreeFormSource.h>
+#include <Core/Filters/FreeFormSource.h>
 #include <Undo/RemoveSegmentation.h>
 #include <Core/EspinaSettings.h>
 

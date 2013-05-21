@@ -17,6 +17,7 @@
 #include <Core/EspinaSettings.h>
 #include <Core/Relations.h>
 #include <GUI/ViewManager.h>
+#include <GUI/Representations/BasicGraphicalRepresentationFactory.h>
 
 // Qt
 #include <QApplication>
@@ -45,6 +46,7 @@ namespace EspINA
       args[Filter::INPUTS] = Filter::NamedInput(AppositionSurfaceFilter::INPUTLINK, seg->outputId());
 
       FilterSPtr filter(new AppositionSurfaceFilter(inputs, args, FILTER_TYPE));
+      SetBasicGraphicalRepresentationFactory(filter);
       filter->update();
       filter->upkeeping();
 
