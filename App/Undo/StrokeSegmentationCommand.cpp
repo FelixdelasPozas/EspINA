@@ -20,6 +20,7 @@
 #include "StrokeSegmentationCommand.h"
 #include <Core/Relations.h>
 #include <Core/Model/EspinaFactory.h>
+#include <Core/Model/Sample.h>
 
 using namespace EspINA;
 

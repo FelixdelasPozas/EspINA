@@ -24,6 +24,7 @@
 
 #include <Core/EspinaTypes.h>
 #include <Core/Model/EspinaModel.h>
+#include <Core/Model/Segmentation.h>
 
 #include <QStringList>
 

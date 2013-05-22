@@ -27,6 +27,7 @@
 
 #include <Core/Model/Sample.h>
 #include <Core/Model/Channel.h>
+#include <Core/Model/Filter.h>
 #include <Core/Extensions/EdgeDistances/AdaptiveEdges.h>
 #include <Core/Extensions/EdgeDistances/EdgeDistance.h>
 #include <Core/Relations.h>

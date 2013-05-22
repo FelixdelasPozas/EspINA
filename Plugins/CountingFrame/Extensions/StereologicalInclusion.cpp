@@ -26,6 +26,7 @@
 #include <Core/Model/Sample.h>
 #include <Core/Model/Channel.h>
 #include <Core/Model/EspinaModel.h>
+#include <Core/Model/Filter.h>
 
 #include <vtkCellArray.h>
 #include <vtkCellData.h>

@@ -21,14 +21,15 @@
 
 #include <Core/Model/Channel.h>
 #include <Core/Model/EspinaModel.h>
+#include <Core/Model/Filter.h>
 
 using namespace EspINA;
 
 //------------------------------------------------------------------------
-AddChannel::AddChannel(FilterSPtr      reader,
-                       ChannelSPtr     channel,
+AddChannel::AddChannel(FilterSPtr    reader,
+                       ChannelSPtr   channel,
                        EspinaModel  *model,
-                       QUndoCommand  *parent)
+                       QUndoCommand *parent)
 : QUndoCommand(parent)
 , m_model  (model)
 , m_reader (reader)

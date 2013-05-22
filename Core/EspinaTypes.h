@@ -14,6 +14,7 @@ namespace EspINA
   typedef ModelItem *                  ModelItemPtr;
   typedef QList<ModelItemPtr   >       ModelItemList;
   typedef boost::shared_ptr<ModelItem> ModelItemSPtr;
+  typedef QList<ModelItemSPtr>         ModelItemSList;
 
   class   Taxonomy;
   typedef boost::shared_ptr<Taxonomy> TaxonomySPtr;
@@ -27,22 +28,28 @@ namespace EspINA
   typedef Sample *                  SamplePtr;
   typedef QList<SamplePtr>          SampleList;
   typedef boost::shared_ptr<Sample> SampleSPtr;
+  typedef QList<SampleSPtr>         SampleSList;
 
   class   Channel;
-  typedef Channel *         ChannelPtr;
-  typedef QList<ChannelPtr> ChannelList;
+  typedef Channel *                  ChannelPtr;
+  typedef QList<ChannelPtr>          ChannelList;
   typedef boost::shared_ptr<Channel> ChannelSPtr;
+  typedef QList<ChannelSPtr>         ChannelSList;
+
 
   class   Segmentation;
-  typedef Segmentation *         SegmentationPtr;
-  typedef QList<SegmentationPtr> SegmentationList;
-  typedef QSet<SegmentationPtr>  SegmentationSet;
+  typedef Segmentation *                  SegmentationPtr;
+  typedef QList<SegmentationPtr>          SegmentationList;
+  typedef QSet<SegmentationPtr>           SegmentationSet;
   typedef boost::shared_ptr<Segmentation> SegmentationSPtr;
+  typedef QList<SegmentationSPtr>         SegmentationSList;
+
 
   class   Filter;
   typedef Filter *         FilterPtr;
   typedef QList<FilterPtr> FilterList;
   typedef boost::shared_ptr<Filter> FilterSPtr;
+  typedef QList<FilterSPtr>      FilterSList;
 
   class   PickableItem;
   typedef PickableItem *                  PickableItemPtr;

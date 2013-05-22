@@ -47,10 +47,10 @@ using namespace EspINA;
 
 //------------------------------------------------------------------------
 DefaultContextualMenu::DefaultContextualMenu(SegmentationList selection,
-                                                       EspinaModel     *model,
-                                                       QUndoStack      *undoStack,
-                                                       ViewManager     *viewManager,
-                                                       QWidget         *parent)
+                                             EspinaModel     *model,
+                                             QUndoStack      *undoStack,
+                                             ViewManager     *viewManager,
+                                             QWidget         *parent)
 : SegmentationContextualMenu(parent     )
 , m_model        (model      )
 , m_undoStack    (undoStack  )

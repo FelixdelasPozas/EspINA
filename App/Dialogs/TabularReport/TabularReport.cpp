@@ -20,8 +20,6 @@
 #include "TabularReport.h"
 #include "TabularReportEntry.h"
 
-#include <GUI/Analysis/xlsUtils.h>
-
 // Espina
 #include <Core/Model/EspinaModel.h>
 #include <Core/Model/Segmentation.h>
@@ -29,6 +27,7 @@
 #include <Core/Model/QtModelUtils.h>
 #include <Core/Extensions/SegmentationExtension.h>
 #include <GUI/QtWidget/CheckableTableView.h>
+#include <GUI/Analysis/xlsUtils.h>
 
 // Qt
 #include <QFileDialog>
@@ -37,6 +36,8 @@
 #include <QStandardItemModel>
 #include <QKeyEvent>
 #include <QMessageBox>
+
+
 
 
 using namespace EspINA;

@@ -19,6 +19,8 @@
 
 #include "UnloadChannelCommand.h"
 #include <Core/Model/EspinaModel.h>
+#include <Core/Model/Sample.h>
+#include <Core/Model/Filter.h>
 
 //------------------------------------------------------------------------
 EspINA::UnloadChannelCommand::UnloadChannelCommand(ChannelPtr   channel,

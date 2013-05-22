@@ -24,6 +24,7 @@
 #include <Core/EspinaTypes.h>
 #include <Core/Model/Segmentation.h>
 #include <Core/Model/EspinaModel.h>
+#include <Core/Model/Filter.h>
 #include "GUI/Pickers/ISelector.h"
 #include "GUI/Tools/ITool.h"
 #include "GUI/ViewManager.h"

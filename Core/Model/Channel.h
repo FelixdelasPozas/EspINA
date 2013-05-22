@@ -27,8 +27,8 @@
 
 #include "Core/Model/PickableItem.h"
 #include "Core/Model/HierarchyItem.h"
-#include "Core/Outputs/RawVolume.h"
-#include "Sample.h"
+
+#include <Core/Outputs/VolumeRepresentation.h>
 
 #include <QColor>
 #include <QFileInfo>
@@ -213,8 +213,6 @@ namespace EspINA
     FilterSPtr        m_filter;
     ExtensionProvider m_extensions;
   };
-
-  typedef QList<ChannelSPtr>      ChannelSList;
 
   ChannelPtr  channelPtr(ModelItemPtr      item);
   ChannelPtr  channelPtr(PickableItemPtr   item);

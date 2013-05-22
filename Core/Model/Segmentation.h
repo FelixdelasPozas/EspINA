@@ -41,8 +41,6 @@
 namespace EspINA
 {
 
-  typedef QList<SegmentationSPtr> SegmentationSList;
-
   class Segmentation
   : public PickableItem
   , public HierarchyItem

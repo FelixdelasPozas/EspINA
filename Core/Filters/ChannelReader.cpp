@@ -20,6 +20,7 @@
 #include "ChannelReader.h"
 #include <Core/IO/IOErrorHandler.h>
 #include <Core/Outputs/ChannelVolumeProxy.h>
+#include <Core/Outputs/RawVolume.h>
 
 #include <itkMetaImageIO.h>
 #include <itkTIFFImageIO.h>

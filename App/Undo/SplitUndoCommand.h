@@ -21,8 +21,7 @@
 #define SPLITUNDOCOMMAND_H
 
 #include <QUndoStack>
-#include <Core/Model/ModelItem.h>
-#include <Core/Model/EspinaModel.h>
+#include <Core/Model/Filter.h>
 
 namespace EspINA
 {

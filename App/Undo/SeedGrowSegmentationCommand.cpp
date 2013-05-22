@@ -22,6 +22,8 @@
 
 #include <Core/Filters/SeedGrowSegmentationFilter.h>
 #include <Core/Model/EspinaFactory.h>
+#include <Core/Model/EspinaModel.h>
+#include <Core/Model/Sample.h>
 #include <Core/EspinaSettings.h>
 #include <Core/Relations.h>
 #include <GUI/ViewManager.h>

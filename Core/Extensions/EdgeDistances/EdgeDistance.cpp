@@ -24,6 +24,7 @@
 #include "Core/Model/Segmentation.h"
 #include "Core/Model/Channel.h"
 #include <Core/Model/EspinaModel.h>
+#include <Core/Model/Filter.h>
 
 #include <QDebug>
 

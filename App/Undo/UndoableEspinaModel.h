@@ -31,6 +31,8 @@
 
 #include <Core/Model/EspinaModel.h>
 
+class QUndoStack;
+
 namespace EspINA
 {
 

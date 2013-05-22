@@ -43,7 +43,6 @@ namespace EspINA
     return QString("%1,%2,%3,%4,%5,%6").arg(val[0]).arg(val[1]).arg(val[2]).arg(val[3]).arg(val[4]).arg(val[5]);
   }
 
-  typedef QList<ModelItemSPtr> ModelItemSList;
 
   struct Relation
   {

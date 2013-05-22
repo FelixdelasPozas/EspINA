@@ -25,7 +25,7 @@ namespace EspINA
 
   class SegFileReader
   {
-    static const QString VERSION;
+    static const QString FILE_VERSION;
   public:
 
     /**

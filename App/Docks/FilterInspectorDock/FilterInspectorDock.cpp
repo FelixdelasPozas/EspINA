@@ -19,6 +19,7 @@
 #include "FilterInspectorDock.h"
 
 #include <Core/Model/Segmentation.h>
+#include <Core/Model/Filter.h>
 #include <GUI/ViewManager.h>
 
 #include <QDebug>

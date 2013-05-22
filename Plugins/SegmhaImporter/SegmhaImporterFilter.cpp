@@ -26,6 +26,7 @@
 #include <Core/Outputs/MeshType.h>
 #include <Core/Outputs/VolumeProxy.h>
 #include <Core/Outputs/MeshProxy.h>
+#include <Core/Outputs/RawVolume.h>
 #include <GUI/Representations/SliceRepresentation.h>
 #include <GUI/Representations/SimpleMeshRepresentation.h>
 #include <GUI/Representations/SmoothedMeshRepresentation.h>

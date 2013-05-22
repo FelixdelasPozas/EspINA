@@ -27,18 +27,22 @@
 #include <QModelIndex>
 
 class QTreeView;
+class QUndoStack;
+
 namespace EspINA
 {
+  class ViewManager;
+
   class DefaultContextualMenu
   : public SegmentationContextualMenu
   {
     Q_OBJECT
   public:
     explicit DefaultContextualMenu(SegmentationList selection,
-                                        EspinaModel     *model,
-                                        QUndoStack      *undoStack,
-                                        ViewManager     *viewManager,
-                                        QWidget         *parent = 0);
+                                   EspinaModel     *model,
+                                   QUndoStack      *undoStack,
+                                   ViewManager     *viewManager,
+                                   QWidget         *parent = 0);
     virtual void setSelection(SegmentationList list);
 
   private slots:

@@ -21,6 +21,7 @@
 
 #include "Core/Model/Segmentation.h"
 #include <Core/Model/EspinaModel.h>
+#include <Core/Model/Filter.h>
 
 // ITK
 #include <itkShapeLabelObject.h>

@@ -44,7 +44,7 @@ const QString TAXONOMY_FILE = "taxonomy.xml";
 typedef itk::ImageFileWriter<itkVolumeType> EspinaVolumeWriter;
 
 const QString SETTINGS = "settings.ini";
-const QString SegFileReader::VERSION = "version"; //backward compatibility
+const QString SegFileReader::FILE_VERSION = "version"; //backward compatibility
 const QString SEG_FILE_VERSION  = "4";
 const QString SEG_FILE_COMPATIBLE_VERSION  = "1";
 
@@ -101,7 +101,7 @@ IOErrorHandler::STATUS SegFileReader::loadSegFile(QFileInfo       file,
       if (status != IOErrorHandler::SUCCESS)
         return status;
     }
-    if (file.fileName() == VERSION)
+    if (file.fileName() == FILE_VERSION)
     {
       QString versionNumber = espinaFile.readAll();
       if (versionNumber < SEG_FILE_COMPATIBLE_VERSION)

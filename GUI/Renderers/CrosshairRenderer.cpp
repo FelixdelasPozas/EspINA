@@ -32,6 +32,7 @@
 #include <vtkImageActor.h>
 #include <vtkActor.h>
 #include <vtkPolyData.h>
+#include <vtkImageData.h>
 #include <vtkMatrix4x4.h>
 #include <vtkLookupTable.h>
 #include <vtkImageShiftScale.h>

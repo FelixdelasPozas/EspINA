@@ -22,7 +22,6 @@
 
 #include "Core/Model/ModelItem.h"
 
-#include "Core/EspinaTypes.h"
 #include <Core/EspinaRegion.h>
 #include <Core/Model/Output.h>
 #include <GUI/Representations/GraphicalRepresentationFactory.h>
@@ -38,8 +37,6 @@ class vtkPolyData;
 namespace EspINA
 {
   class ViewManager;
-
-  typedef QList<FilterSPtr>      FilterSList;
 
   typedef QList<ChannelRepresentationSPtr>      ChannelRepresentationSList;
   typedef QList<SegmentationRepresentationSPtr> SegmentationRepresentationSList;
@@ -243,7 +240,7 @@ namespace EspINA
     /// Whether the filter needs to be updated or not
     /// A filter will need an update if there exists an invalid output or no outputs exist at all
     virtual bool needUpdate() const;
- 
+
     /// Whether the filter needs to be updated or not
     /// Default implementation will request an update if there is no filter output
     /// or it is an invalid output

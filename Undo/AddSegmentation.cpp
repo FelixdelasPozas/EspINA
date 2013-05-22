@@ -23,6 +23,7 @@
 #include <Core/Model/EspinaModel.h>
 #include <Core/Model/Sample.h>
 #include <Core/Model/Segmentation.h>
+#include <Core/Model/Filter.h>
 #include <Core/Relations.h>
 
 using namespace EspINA;

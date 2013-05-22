@@ -20,6 +20,7 @@
 
 #include <Core/Model/EspinaFactory.h>
 #include <Core/Model/MarchingCubesMesh.h>
+#include <Core/Outputs/RawVolume.h>
 #include <GUI/Representations/SliceRepresentation.h>
 
 #include <itkImageAlgorithm.h>

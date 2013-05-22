@@ -21,6 +21,7 @@
 
 #include "Settings/GeneralSettings.h"
 #include <Core/Model/EspinaModel.h>
+#include <Core/Model/Filter.h>
 
 #include <QDir>
 #include <QMessageBox>

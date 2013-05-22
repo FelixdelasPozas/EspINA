@@ -21,6 +21,7 @@
 #include <Core/Model/EspinaFactory.h>
 #include <Core/Model/EspinaModel.h>
 #include <Core/Model/Segmentation.h>
+#include <Core/Model/Sample.h>
 #include <GUI/IO/EspinaIO.h>
 #include <GUI/Representations/BasicGraphicalRepresentationFactory.h>
 #include <Core/Relations.h>

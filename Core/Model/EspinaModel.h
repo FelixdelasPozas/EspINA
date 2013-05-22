@@ -28,11 +28,8 @@
 #include <QAbstractItemModel>
 #include <QDir>
 
+#include "Core/Model/ModelItem.h"
 #include "Core/Model/RelationshipGraph.h"
-#include "Filter.h"
-#include "Channel.h"
-#include "Segmentation.h"
-#include <Core/IO/SegFileReader.h>
 
 namespace EspINA
 {

@@ -26,6 +26,8 @@
 //VTK
 #include <vtkCellArray.h>
 #include <vtkAlgorithmOutput.h>
+#include <vtkAlgorithm.h>
+#include <vtkImageData.h>
 #include <vtkSmartPointer.h>
 #include <vtkPoints.h>
 #include <vtkOBBTree.h>
@@ -86,9 +88,9 @@ void EdgeDetector::run()
 {
   Channel *channel       = m_extension->channel();
 
-  vtkAlgorithm *producer = channel->volume()->toVTK()->GetProducer();
-  vtkDataObject *output  = producer->GetOutputDataObject(0);
-  vtkImageData *image    = vtkImageData::SafeDownCast(output);
+  vtkAlgorithm  *producer = channel->volume()->toVTK()->GetProducer();
+  vtkDataObject *output   = producer->GetOutputDataObject(0);
+  vtkImageData  *image    = vtkImageData::SafeDownCast(output);
 
   vtkSmartPointer<vtkPoints> borderVertices = vtkSmartPointer<vtkPoints>::New();
   vtkSmartPointer<vtkCellArray> faces       = vtkSmartPointer<vtkCellArray>::New();

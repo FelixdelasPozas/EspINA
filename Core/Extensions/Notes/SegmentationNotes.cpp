@@ -31,6 +31,7 @@
 
 
 #include <Core/Model/EspinaModel.h>
+#include <Core/Model/Filter.h>
 
 using namespace EspINA;
 

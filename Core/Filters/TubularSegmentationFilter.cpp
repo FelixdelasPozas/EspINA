@@ -20,6 +20,7 @@
 
 // EspINA
 #include <Core/VTK/vtkTube.h>
+#include <Core/Outputs/RawVolume.h>
 #include <App/Tools/TubularSegmentation/TubularTool.h>
 
 // VTK

@@ -22,7 +22,7 @@
 
 #include <QUndoStack>
 
-#include <Core/Model/EspinaModel.h>
+#include <Core/Model/Filter.h>
 
 namespace EspINA
 {
