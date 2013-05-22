@@ -19,6 +19,7 @@
 
 // EspINA
 #include "SplitFilter.h"
+#include <Core/Model/MarchingCubesMesh.h>
 #include <GUI/Representations/SliceRepresentation.h>
 
 // ITK
@@ -125,17 +126,24 @@ void SplitFilter::run(FilterOutputId oId)
 
     if (!isEmpty1 && !isEmpty2)
     {
-      for (int i = 0; i < 2; i++)
+      for (FilterOutputId i = 0; i < 2; i++)
+      {
         m_volumes[i]->fitToContent();
 
+        SegmentationRepresentationSList repList;
+        repList << m_volumes[i];
+        repList << MeshRepresentationSPtr(new MarchingCubesMesh(m_volumes[i]));
+
+        addOutputRepresentations(i, repList);
+      }
+
       m_ignoreCurrentOutputs = false;
+
 
       emit modified(this);
     }
   }
 
-  if (!ignoreCurrentOutputs())
-    addOutputRepresentation(oId, m_volumes[oId]);
 }
 
 //-----------------------------------------------------------------------------

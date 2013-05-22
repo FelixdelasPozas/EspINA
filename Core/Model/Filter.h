@@ -123,7 +123,7 @@ namespace EspINA
     void setFilterInspector(FilterInspectorPtr filterInspector)
     { m_filterInspector = filterInspector; }
 
-    void setGraphicalRepresentationFactory(GraphicalRepresentationFactorySPtr factory)
+    virtual void setGraphicalRepresentationFactory(GraphicalRepresentationFactorySPtr factory)
     { m_graphicalRepresentationFactory = factory; }
 
     /// Return a widget used to configure filter's parameters

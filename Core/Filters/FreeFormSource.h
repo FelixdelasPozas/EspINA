@@ -83,6 +83,8 @@ public:
                           FilterType  type);
   virtual ~FreeFormSource();
 
+  virtual void setGraphicalRepresentationFactory(GraphicalRepresentationFactorySPtr factory);
+
 protected:
   virtual bool ignoreCurrentOutputs() const
   { return false; }

@@ -25,6 +25,7 @@
 #include <Core/Model/EspinaModel.h>
 #include <Core/Model/Sample.h>
 #include <Core/Relations.h>
+#include <GUI/Representations/BasicGraphicalRepresentationFactory.h>
 
 #include <QApplication>
 
@@ -70,6 +71,7 @@ ImageLogicCommand::ImageLogicCommand(SegmentationList            input,
   params.setOperation(m_operation);
 
   m_filter = FilterSPtr(new ImageLogicFilter(inputs, args, ImageLogicCommand::FILTER_TYPE));
+  SetBasicGraphicalRepresentationFactory(m_filter);
   m_filter->update(0);
   Q_ASSERT(m_filter->numberOfOutputs() == 1);
   m_segmentation = m_model->factory()->createSegmentation(m_filter, 0);

@@ -21,6 +21,7 @@
 #include <Core/Relations.h>
 #include <Core/Model/EspinaFactory.h>
 #include <Core/Model/Sample.h>
+#include <GUI/Representations/BasicGraphicalRepresentationFactory.h>
 
 using namespace EspINA;
 
@@ -54,6 +55,7 @@ StrokeSegmentationCommand::StrokeSegmentationCommand(ChannelPtr channel,
   m_filter = FilterSPtr(new FreeFormSource(EspinaRegion(strokeBounds),
                                            channel->volume()->spacing(),
                                            Brush::FREEFORM_SOURCE_TYPE));
+  SetBasicGraphicalRepresentationFactory(m_filter);
 
   SegmentationVolumeSPtr volume = segmentationVolume(m_filter->output(0));
   for (int i = 0; i < brushes.size(); i++)

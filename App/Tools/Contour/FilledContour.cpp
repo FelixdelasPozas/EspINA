@@ -23,6 +23,7 @@
 #include <GUI/Pickers/ContourSelector.h>
 #include <GUI/vtkWidgets/ContourWidget.h>
 #include <GUI/ViewManager.h>
+#include <GUI/Representations/BasicGraphicalRepresentationFactory.h>
 #include <Core/Model/ModelItem.h>
 #include <Core/Model/Channel.h>
 #include <Core/Model/EspinaModel.h>
@@ -218,6 +219,7 @@ void FilledContour::rasterize(ContourWidget::ContourList list)
       m_currentSource = FilterSPtr(new FreeFormSource(EspinaRegion(contour.Points->GetBounds()),
                                                       channel->volume()->spacing(),
                                                       FILTER_TYPE));
+      SetBasicGraphicalRepresentationFactory(m_currentSource);
     }
 
     if (!m_currentSeg)

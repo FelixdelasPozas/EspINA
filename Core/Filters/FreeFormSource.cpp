@@ -70,6 +70,14 @@ FreeFormSource::~FreeFormSource()
 }
 
 //-----------------------------------------------------------------------------
+void FreeFormSource::setGraphicalRepresentationFactory(GraphicalRepresentationFactorySPtr factory)
+{
+  EspINA::Filter::setGraphicalRepresentationFactory(factory);
+  if (factory)
+    factory->createGraphicalRepresentations(m_outputs[0]);
+}
+
+//-----------------------------------------------------------------------------
 bool FreeFormSource::needUpdate(FilterOutputId oId) const
 {
   return SegmentationFilter::needUpdate(oId);
