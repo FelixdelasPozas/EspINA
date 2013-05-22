@@ -79,7 +79,12 @@ int loadModelFromSegFile(int argc, char** argv)
   QString path     = QString(argv[1]);
   QString filename = path + QString("test1.seg");
   QFileInfo file(filename);
-  Q_ASSERT(file.exists());
+
+  if (!file.exists())
+  {
+    qDebug() << "Test Data couldn't be found. Please download it from: http://bb13.cesvima.upm.es/espina/testing/data";
+    return 1;
+  }
 
   EspinaFactory *factory = new EspinaFactory();
   EspinaModel *model = new EspinaModel(factory);
