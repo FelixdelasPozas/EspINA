@@ -248,20 +248,34 @@ Taxonomy::~Taxonomy()
 }
 
 //-----------------------------------------------------------------------------
-TaxonomyElementSPtr Taxonomy::createElement(const QString& name,
-                                                 TaxonomyElementPtr parent)
+TaxonomyElementSPtr Taxonomy::createElement(const QString&     qualifiedName,
+                                            TaxonomyElementPtr parent)
 {
+  Q_ASSERT(!qualifiedName.isEmpty());
   TaxonomyElementPtr parentNode = parent;
 
   if (!parentNode)
     parentNode = m_root.data();
 
-  return parentNode->createElement(name);
+  TaxonomyElementSPtr requestedTaxonomy;
+
+  QStringList path = qualifiedName.split("/", QString::SkipEmptyParts);
+  for (int i = 0; i < path.size(); ++i)
+  {
+    requestedTaxonomy = parentNode->element(path.at(i));
+    if (requestedTaxonomy.isNull())
+    {
+      requestedTaxonomy = parentNode->createElement(path.at(i));
+    }
+    parentNode = requestedTaxonomy.data();
+  }
+
+  return requestedTaxonomy;
 }
 
 //-----------------------------------------------------------------------------
 TaxonomyElementSPtr Taxonomy::createElement(const QString& name,
-                                                 TaxonomyElementSPtr parent)
+                                            TaxonomyElementSPtr parent)
 {
   return createElement(name, parent.data());
 }

@@ -71,6 +71,11 @@ link_directories ( ${Boost_LIBRARY_DIRS} )
 #set(CMAKE_CXX_FLAGS " -Wall -Wno-deprecated -msse2")
 set(CMAKE_CXX_FLAGS " -Wall -Wno-deprecated")
 
+if (UNIX AND NOT APPLE) # Check if it works on OS X, it has only been tested in Unix
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-local-typedefs")
+  message(STATUS "CXX_FLAGS" ${CMAKE_CXX_FLAGS})
+endif()
+
 
 add_subdirectory( Core    )
 add_subdirectory( GUI     )

@@ -129,10 +129,11 @@ namespace EspINA
     explicit Taxonomy();
     ~Taxonomy();
 
+    /// Create taxonmy element with qualified name relative to parent node
+    TaxonomyElementSPtr createElement(const QString &qualifiedName,
+                                      TaxonomyElementPtr parent);
     TaxonomyElementSPtr createElement(const QString &name,
-                                           TaxonomyElementPtr parent);
-    TaxonomyElementSPtr createElement(const QString &name,
-                                           TaxonomyElementSPtr parent = TaxonomyElementSPtr());
+                                      TaxonomyElementSPtr parent = TaxonomyElementSPtr());
 
     void deleteElement(TaxonomyElementPtr element);
     void deleteElement(TaxonomyElementSPtr element);

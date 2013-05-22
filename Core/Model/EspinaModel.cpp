@@ -684,14 +684,14 @@ ModelItemSList EspinaModel::relatedItems(ModelItemPtr   item,
 {
   ModelItemSList res;
 
-  RelationshipGraph::VertexId vertex = m_relations->vertex(item);
+  RelationshipGraph::Vertex vertex = m_relations->vertex(item);
 
   if (relType == IN || relType == INOUT)
-    foreach(VertexProperty v, m_relations->ancestors(vertex, relName))
+    foreach(RelationshipGraph::Vertex v, m_relations->ancestors(vertex, relName))
       res << find(v.item);
 
   if (relType == OUT || relType == INOUT)
-    foreach(VertexProperty v, m_relations->succesors(vertex, relName))
+    foreach(RelationshipGraph::Vertex v, m_relations->succesors(vertex, relName))
       res << find(v.item);
 
   return res;
@@ -701,10 +701,11 @@ ModelItemSList EspinaModel::relatedItems(ModelItemPtr   item,
 RelationList EspinaModel::relations(ModelItemPtr   item,
                                     const QString &relName)
 {
-   RelationList res;
+  RelationList res;
 
-   RelationshipGraph::VertexId vertex = m_relations->vertex(item);
-  foreach(Edge edge, m_relations->edges(vertex, relName))
+  RelationshipGraph::Vertex vertex = m_relations->vertex(item);
+
+  foreach(RelationshipGraph::Edge edge, m_relations->edges(vertex, relName))
   {
     Relation rel;
     rel.ancestor = find(edge.source.item);

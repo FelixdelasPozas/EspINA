@@ -41,20 +41,20 @@ const std::string SAMPLE_SHAPE = "invtriangle";
 
 namespace EspINA
 {
-std::ostream& operator << ( std::ostream& out, const VertexProperty& v)
+std::ostream& operator << ( std::ostream& out, const RelationshipGraph::Vertex& v)
 {
-  out << v.vId   << std::endl
-      << v.shape << std::endl
-      << v.name  << std::endl
+  out << v.descriptor << std::endl
+      << v.shape      << std::endl
+      << v.name       << std::endl
       << v.args;
   return out;
 }
 
-std::istream& operator >> ( std::istream& in, VertexProperty& v)
+std::istream& operator >> ( std::istream& in, RelationshipGraph::Vertex& v)
 {
   const int MAX = 10000;
   char buff[MAX];
-  in >> v.vId;
+  in >> v.descriptor;
   in >> v.shape;
   in.getline(buff, 2);//Process shape's endl
   in.getline(buff, MAX);
@@ -83,90 +83,16 @@ std::istream& operator >> ( std::istream& in, RelationshipGraph::EdgeProperty& e
 }
 
 //-----------------------------------------------------------------------------
-/// Visit nodes by edges and return the root vertex id
-template<class Graph, class VertexId>
-QList<VertexId> rootVertices(const Graph& graph)
-{
-  VertexId v;
-  QList<VertexId> discardedVertices, posibleRootVertices;
-
-  typename boost::graph_traits<Graph>::edge_iterator ei, ei_end;
-  for( boost::tie(ei, ei_end) = boost::edges(graph); ei != ei_end; ei++)
-  {
-    //       std::cout << *ei;
-    v = boost::source(*ei, graph);
-    //       std::cout << " v" << v;
-    if( !discardedVertices.contains(v) && !posibleRootVertices.contains(v)){
-      //         std::cout << " a posible root vertex ";
-      posibleRootVertices.push_back(v);
-    }
-    //       std::cout << std::endl;
-    v = boost::target(*ei, graph);
-    if( posibleRootVertices.contains(v) ){
-      //         std::cout << "v" << v << " deleted from posibleRootVertices "<< std::endl;
-      posibleRootVertices.removeOne(v);
-    }
-    discardedVertices.push_back(v);
-
-    //       qDebug() << "Discarded" << discardedVertices;
-    //       qDebug() << "Posible Root" << posibleRootVertices;
-
-  }
-  // If there is no edges //TODO what if it is a closed graph?
-  if( posibleRootVertices.size() == 0)
-  {
-    typename boost::graph_traits<Graph>::vertex_iterator vi, vi_end;
-    for(boost::tie(vi, vi_end) = boost::vertices(graph); vi != vi_end; vi++)
-    {
-      posibleRootVertices.push_back(*vi);
-    }
-  }
-  //     qDebug() << "Number of Root vertex " << posibleRootVertices.size();
-  assert(posibleRootVertices.size() >= 1 );//? posibleRootVertices.at(0) : -1;
-  return posibleRootVertices;
-
-}
-
-//-----------------------------------------------------------------------------
-//! Retrieve a map of the parents or predecessors of all the vertex in graph
-template<class Graph, class VertexId>
-QMap<VertexId, QList<VertexId> > predecessors(const Graph& g)
-{
-  QMap<VertexId, QList<VertexId> > res;
-  QList<VertexId> list;
-  VertexId vs, vt;
-
-  typename boost::graph_traits<Graph>::edge_iterator ei, ei_end;
-  for( boost::tie(ei, ei_end) = boost::edges(g); ei != ei_end; ei++)
-  {
-    vs = boost::source(*ei, g);
-    vt = boost::target(*ei, g);
-
-    if( !res.contains(vt) ){
-      list.clear();// = QList<VertexId>();
-    }
-    else
-      list = res.value(vt);
-    list.append(vs);
-    res.insert(vt, list);
-    //std::cout << vs << " (parentof) " << vt << std::endl;
-  }
-  return res;
-}
-
-
-//-----------------------------------------------------------------------------
 RelationshipGraph::RelationshipGraph()
 : m_graph(0)
 {
-  // m_graph.m_property.owner = name;
 }
 
 //-----------------------------------------------------------------------------
 void RelationshipGraph::addItem(ModelItemPtr item)
 {
   // TODO: Check if item's been already added to the graph
-  VertexId v = add_vertex(m_graph);
+  VertexDescriptor v = add_vertex(m_graph);
   m_graph[v].item = item;
   //   qDebug() << item->data(Qt::DisplayRole) << " = " << v;
 }
@@ -174,9 +100,9 @@ void RelationshipGraph::addItem(ModelItemPtr item)
 //-----------------------------------------------------------------------------
 void RelationshipGraph::removeItem(ModelItemPtr item)
 {
-  VertexDescriptor itemVertex = vertex(item);
-  clear_vertex (itemVertex, m_graph);
-  remove_vertex(itemVertex, m_graph);
+  Vertex v = vertex(item);
+  clear_vertex (v.descriptor, m_graph);
+  remove_vertex(v.descriptor, m_graph);
 }
 
 //-----------------------------------------------------------------------------
@@ -187,12 +113,12 @@ void RelationshipGraph::updateVertexInformation()
   VertexIterator vi, vi_end;
   for(boost::tie(vi, vi_end) = boost::vertices(m_graph); vi != vi_end; vi++)
   {
-    VertexProperty &vertex = m_graph[*vi];
+    Vertex &vertex = m_graph[*vi];
     ModelItemPtr item = vertex.item;
     if (!item)
       continue;
     Q_ASSERT(item);
-    //vertex.vId  = item->m_vertex;
+    //vertex.descriptor  = item->m_vertex;
     switch (item->type())
     {
       case SAMPLE:
@@ -224,38 +150,51 @@ void RelationshipGraph::updateVertexInformation()
   // We need to do it in two loops to ensure cache flags are set properly
   for(boost::tie(vi, vi_end) = boost::vertices(m_graph); vi != vi_end; vi++)
   {
-    VertexProperty &vertex = m_graph[*vi];
+    Vertex &vertex = m_graph[*vi];
     ModelItemPtr item = vertex.item;
     if (!item)
+    {
+      qWarning() << "RealationshipGraph: Updating vertex with NULL model item";
       continue;
-    Q_ASSERT(item);
-    vertex.name = item->data(Qt::DisplayRole).toString().toStdString();
-    vertex.args = item->serialize().toStdString();
+    }
+    vertex.name       = item->data(Qt::DisplayRole).toString().toStdString();
+    vertex.args       = item->serialize().toStdString();
+    vertex.descriptor = *vi;
   }
 }
 
 //-----------------------------------------------------------------------------
-RelationshipGraph::VertexDescriptor RelationshipGraph::vertex(ModelItemPtr item)
+RelationshipGraph::Vertex RelationshipGraph::vertex(ModelItemPtr item) const
 {
   //   qDebug() << "Previous id" << item->m_vertex;
-  VertexIterator vi, vi_end;
-  for(boost::tie(vi, vi_end) = boost::vertices(m_graph); vi != vi_end; vi++)
-  {
-    if( m_graph[*vi].item == item )
-      return *vi;
-  }
+  Vertex v;
 
-  Q_ASSERT(false);
-  return *vi;
+  VertexIterator vi, vi_end;
+  boost::tie(vi, vi_end) = boost::vertices(m_graph);
+  while(!v.item && vi != vi_end)
+  {
+    VertexDescriptor vd = *vi;
+
+    if(m_graph[vd].item == item)
+    {
+      m_graph[vd].descriptor = vd;
+      v = m_graph[vd];
+    }
+
+    ++vi;
+  }
+  Q_ASSERT(v.item);
+
+  return v;
 }
 
 //-----------------------------------------------------------------------------
-EspINA::RelationshipGraph::VertexDescriptor RelationshipGraph::vertex(EspINA::RelationshipGraph::VertexId v)
+EspINA::RelationshipGraph::VertexDescriptor RelationshipGraph::vertex(EspINA::RelationshipGraph::VertexDescriptor v)
 {
   VertexIterator vi, vi_end;
   for(boost::tie(vi, vi_end) = boost::vertices(m_graph); vi != vi_end; vi++)
   {
-    if( m_graph[*vi].vId == v )
+    if( m_graph[*vi].descriptor == v )
       return *vi;
   }
 
@@ -271,19 +210,17 @@ void RelationshipGraph::addRelation(ModelItemPtr   ancestor,
   EdgeProperty p;
   p.relationship = description.toStdString();
 
-  OutEdgeIterator oei, oei_end;
-  for(boost::tie(oei, oei_end) = boost::out_edges(vertex(ancestor), m_graph); oei != oei_end; oei++)
-  {
-    //     qDebug() << m_graph[*oei].relationship.c_str();
-    if (target(*oei, m_graph) == vertex(successor) &&
-      m_graph[*oei].relationship == description.toStdString())
-    {
-      qWarning() << "DUPLICATED RELATION. RELATION ALREADY EXIST IN THE MODEL (" << ancestor->data().toString() << "==>" << description << "==>" << successor->data().toString() << ")";
-      return;
-    }
-  }
+  VertexDescriptor ancestorVD  = vertex(ancestor).descriptor;
+  VertexDescriptor successorVD = vertex(successor).descriptor;
 
-  boost::add_edge(vertex(ancestor), vertex(successor), p, m_graph);
+  OutEdgeIterator edge;
+  if (findRelation(ancestorVD, successorVD, description, edge))
+  {
+    qWarning() << "RelationshipGraph: Realtion (" << ancestor->data().toString() << "==>" << description << "==>" << successor->data().toString() << ") already exists";
+  } else
+  {
+    boost::add_edge(ancestorVD, successorVD, p, m_graph);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -291,36 +228,22 @@ void RelationshipGraph::removeRelation(ModelItemPtr   ancestor,
                                        ModelItemPtr   successor,
                                        const QString &description)
 {
-  OutEdgeIterator oei, oei_end;
+  VertexDescriptor ancestorVD  = vertex(ancestor).descriptor;
+  VertexDescriptor successorVD = vertex(successor).descriptor;
 
-  //   qDebug() << "Ancestors of:" << m_graph[v].name.c_str();
-  for(boost::tie(oei, oei_end) = boost::out_edges(vertex(ancestor), m_graph); oei != oei_end; oei++)
+  OutEdgeIterator edge;
+  if (findRelation(ancestorVD, successorVD, description, edge))
   {
-    //     qDebug() << m_graph[*oei].relationship.c_str();
-    if (target(*oei, m_graph) == vertex(successor) &&
-      m_graph[*oei].relationship == description.toStdString())
-    {
-      OutEdgeIterator old = oei++;
-      boost::remove_edge(old, m_graph);
-    }
+    boost::remove_edge(edge, m_graph);
+  } else
+  {
+    qWarning() << "RelationshipGraph: Realtion (" << ancestor->data().toString() << "==>" << description << "==>" << successor->data().toString() << ") already removed";
   }
 }
 
-//-----------------------------------------------------------------------------
-void RelationshipGraph::connect(const QString &ancestor,
-                                ModelItemPtr   successor,
-                                const QString &description)
-{
-  VertexIterator vi, vi_end;
-  for(boost::tie(vi, vi_end) = boost::vertices(m_graph); vi != vi_end; vi++)
-  {
-    Q_ASSERT(false);
-  }
-  addRelation(m_graph[*vi].item, successor, description);
-}
 
 //-----------------------------------------------------------------------------
-Edges RelationshipGraph::edges(const QString &filter)
+RelationshipGraph::Edges RelationshipGraph::edges(const QString &filter)
 {
   Edges result;
 
@@ -340,13 +263,12 @@ Edges RelationshipGraph::edges(const QString &filter)
 }
 
 //-----------------------------------------------------------------------------
-Edges RelationshipGraph::inEdges(RelationshipGraph::VertexId v,
-                                 const QString &filter)
+RelationshipGraph::Edges RelationshipGraph::inEdges(Vertex v, const QString &filter)
 {
   Edges result;
 
   InEdgeIterator ei, ei_end;
-  for(boost::tie(ei, ei_end) = boost::in_edges(v, m_graph); ei != ei_end; ei++)
+  for(boost::tie(ei, ei_end) = boost::in_edges(v.descriptor, m_graph); ei != ei_end; ei++)
   {
     if (filter.isEmpty() || m_graph[*ei].relationship == filter.toStdString())
     {
@@ -361,13 +283,12 @@ Edges RelationshipGraph::inEdges(RelationshipGraph::VertexId v,
 }
 
 //-----------------------------------------------------------------------------
-Edges RelationshipGraph::outEdges(RelationshipGraph::VertexId v,
-                                  const QString &filter)
+RelationshipGraph::Edges RelationshipGraph::outEdges(Vertex v, const QString &filter)
 {
   Edges result;
 
   OutEdgeIterator ei, ei_end;
-  for(boost::tie(ei, ei_end) = boost::out_edges(v, m_graph); ei != ei_end; ei++)
+  for(boost::tie(ei, ei_end) = boost::out_edges(v.descriptor, m_graph); ei != ei_end; ei++)
   {
     if (filter.isEmpty() || m_graph[*ei].relationship == filter.toStdString())
     {
@@ -382,8 +303,7 @@ Edges RelationshipGraph::outEdges(RelationshipGraph::VertexId v,
 }
 
 //-----------------------------------------------------------------------------
-Edges RelationshipGraph::edges(RelationshipGraph::VertexId v,
-                               const QString &filter)
+RelationshipGraph::Edges RelationshipGraph::edges(Vertex v, const QString &filter)
 {
   Edges result;
 
@@ -394,24 +314,24 @@ Edges RelationshipGraph::edges(RelationshipGraph::VertexId v,
 }
 
 //-----------------------------------------------------------------------------
-void RelationshipGraph::removeEdges(RelationshipGraph::VertexId v)
+void RelationshipGraph::removeEdges(Vertex v)
 {
   OutEdgeIterator oei, oei_end;
-  boost::tie(oei, oei_end) = boost::out_edges(v, m_graph); 
+  boost::tie(oei, oei_end) = boost::out_edges(v.descriptor, m_graph); 
   while(oei != oei_end)
   {
     boost::remove_edge(oei, m_graph);
-    boost::tie(oei, oei_end) = boost::out_edges(v, m_graph); 
+    boost::tie(oei, oei_end) = boost::out_edges(v.descriptor, m_graph); 
   }
 
   Vertices ancestorList = ancestors(v);
   for (int i = 0; i < ancestorList.size(); i++)
   {
-    VertexId ancestorId = ancestorList[i].vId;
+    VertexDescriptor ancestorId = ancestorList[i].descriptor;
     boost::tie(oei, oei_end) = boost::out_edges(ancestorId, m_graph); 
     while(oei != oei_end)
     {
-      if (target(*oei, m_graph) == vertex(v))
+      if (target(*oei, m_graph) == v.descriptor)
       {
         boost::remove_edge(oei, m_graph);
         boost::tie(oei, oei_end) = boost::out_edges(ancestorId, m_graph); 
@@ -422,7 +342,7 @@ void RelationshipGraph::removeEdges(RelationshipGraph::VertexId v)
 }
 
 //-----------------------------------------------------------------------------
-Vertices RelationshipGraph::vertices()
+RelationshipGraph::Vertices RelationshipGraph::vertices() const
 {
   Vertices result;
 
@@ -430,8 +350,8 @@ Vertices RelationshipGraph::vertices()
   for(boost::tie(vi, vi_end) = boost::vertices(m_graph); vi != vi_end; vi++)
   {
     //     qDebug() << *vi << m_graph[*vi].name.c_str() << m_graph[*vi].args.c_str();
-    //     Q_ASSERT(m_graph[*vi].vId == *vi);
-    m_graph[*vi].vId = *vi;
+    //     Q_ASSERT(m_graph[*vi].descriptor == *vi);
+    m_graph[*vi].descriptor = *vi;
     result << m_graph[*vi];
   }
 
@@ -439,21 +359,20 @@ Vertices RelationshipGraph::vertices()
 }
 
 //-----------------------------------------------------------------------------
-Vertices RelationshipGraph::ancestors(RelationshipGraph::VertexId v,
-                                      const QString &filter)
+RelationshipGraph::Vertices RelationshipGraph::ancestors(Vertex v, const QString &filter) const
 {
   Vertices result;
   InEdgeIterator iei, iei_end;
 
   //   qDebug() << "Ancestors of:" << m_graph[v].name.c_str();
-  for(boost::tie(iei, iei_end) = boost::in_edges(v, m_graph); iei != iei_end; iei++)
+  for(boost::tie(iei, iei_end) = boost::in_edges(v.descriptor, m_graph); iei != iei_end; iei++)
   {
     //     qDebug() << "\t" << source(*iei, m_graph) << m_graph[source(*iei,m_graph)].name.c_str();
     if (filter.isEmpty() || m_graph[*iei].relationship == filter.toStdString())
     {
-      //       qDebug() << "Pass Filter:"  << m_graph[source(*iei, m_graph)].vId << m_graph[source(*iei, m_graph)].name.c_str();
+      //       qDebug() << "Pass Filter:"  << m_graph[source(*iei, m_graph)].descriptor << m_graph[source(*iei, m_graph)].name.c_str();
       VertexDescriptor v = source(*iei, m_graph);
-      //       m_graph[v].vId = v;
+      m_graph[v].descriptor = v;
       result << m_graph[v];
     }
   }
@@ -461,59 +380,33 @@ Vertices RelationshipGraph::ancestors(RelationshipGraph::VertexId v,
 }
 
 //-----------------------------------------------------------------------------
-Vertices RelationshipGraph::succesors(RelationshipGraph::VertexId v,
-                                      const QString &filter)
+RelationshipGraph::Vertices RelationshipGraph::succesors(Vertex v, const QString &filter) const
 {
   Vertices result;
   OutEdgeIterator oei, oei_end;
 
   //   qDebug() << "Successors of:" << m_graph[v].name.c_str();
-  for(boost::tie(oei, oei_end) = boost::out_edges(v, m_graph); oei != oei_end; oei++)
+  for(boost::tie(oei, oei_end) = boost::out_edges(v.descriptor, m_graph); oei != oei_end; oei++)
   {
     //     qDebug() << "\t" << m_graph[target(*oei,m_graph)].name.c_str();
     if (filter.isEmpty() || m_graph[*oei].relationship == filter.toStdString())
     {
       VertexDescriptor v = target(*oei, m_graph);
-      //       m_graph[v].vId = v;
+      m_graph[v].descriptor = v;
       result << m_graph[v];
     }
   }
   return result;
 }
 
-
 //-----------------------------------------------------------------------------
-bool RelationshipGraph::find(VertexProperty vp, VertexProperty &foundV)
+void RelationshipGraph::setItem(Vertex v, ModelItemPtr item)
 {
-  VertexIterator vi, vi_end;
-  for(boost::tie(vi, vi_end) = boost::vertices(m_graph); vi != vi_end; vi++)
-  {
-    if (m_graph[*vi].name  == vp.name  &&
-      m_graph[*vi].shape == vp.shape &&
-      m_graph[*vi].args  == vp.args)
-    {
-      foundV = m_graph[*vi];
-      return true;
-    }
-  }
-  return false;
+  m_graph[v.descriptor].item = item;
 }
 
 //-----------------------------------------------------------------------------
-void RelationshipGraph::setItem(RelationshipGraph::VertexId v, ModelItemPtr item)
-{
-  m_graph[v].item = item;
-}
-
-
-//-----------------------------------------------------------------------------
-QString RelationshipGraph::name(RelationshipGraph::VertexId v) const
-{
-  return QString(m_graph[v].name.c_str());
-}
-
-//-----------------------------------------------------------------------------
-ModelItemType RelationshipGraph::type(const VertexProperty v)
+ModelItemType RelationshipGraph::type(const Vertex v)
 {
   if (v.item)
     return v.item->type();
@@ -531,33 +424,6 @@ ModelItemType RelationshipGraph::type(const VertexProperty v)
 }
 
 //-----------------------------------------------------------------------------
-QString RelationshipGraph::args(RelationshipGraph::VertexId v) const
-{
-  return QString(m_graph[v].args.c_str());
-}
-
-//-----------------------------------------------------------------------------
-VertexProperty RelationshipGraph::properties(RelationshipGraph::VertexId v)
-{
-  return m_graph[v];
-}
-
-
-//-----------------------------------------------------------------------------
-void RelationshipGraph::load(QTextStream& serialization)
-{
-  boost::dynamic_properties dp;
-
-  dp.property("node_id", boost::get(&VertexProperty::vId       , m_graph));
-  dp.property("label"  , boost::get(&VertexProperty::name      , m_graph));
-  dp.property("shape"  , boost::get(&VertexProperty::shape     , m_graph));
-  dp.property("args"   , boost::get(&VertexProperty::args      , m_graph));
-  dp.property("label"  , boost::get(&EdgeProperty::relationship, m_graph));
-
-  boost::read_graphviz(serialization.string()->toStdString(), m_graph, dp);
-}
-
-//-----------------------------------------------------------------------------
 void RelationshipGraph::read(std::istream& stream, RelationshipGraph::PrintFormat format)
 {
   switch (format)
@@ -570,9 +436,9 @@ void RelationshipGraph::read(std::istream& stream, RelationshipGraph::PrintForma
       boost::dynamic_properties dp;
 
       dp.property("node_id", boost::get(boost::vertex_index        , m_graph));
-      dp.property("label"  , boost::get(&VertexProperty::name      , m_graph));
-      dp.property("shape"  , boost::get(&VertexProperty::shape     , m_graph));
-      dp.property("args"   , boost::get(&VertexProperty::args      , m_graph));
+      dp.property("label"  , boost::get(&Vertex::name      , m_graph));
+      dp.property("shape"  , boost::get(&Vertex::shape     , m_graph));
+      dp.property("args"   , boost::get(&Vertex::args      , m_graph));
       dp.property("label"  , boost::get(&EdgeProperty::relationship, m_graph));
       boost::read_graphviz(stream, m_graph, dp);
 
@@ -599,9 +465,9 @@ void RelationshipGraph::write(std::ostream &stream, RelationshipGraph::PrintForm
       boost::dynamic_properties dp;
 
       dp.property("node_id", boost::get(boost::vertex_index        , m_graph));
-      dp.property("label"  , boost::get(&VertexProperty::name      , m_graph));
-      dp.property("shape"  , boost::get(&VertexProperty::shape     , m_graph));
-      dp.property("args"   , boost::get(&VertexProperty::args      , m_graph));
+      dp.property("label"  , boost::get(&Vertex::name      , m_graph));
+      dp.property("shape"  , boost::get(&Vertex::shape     , m_graph));
+      dp.property("args"   , boost::get(&Vertex::args      , m_graph));
       dp.property("label"  , boost::get(&EdgeProperty::relationship, m_graph));
       boost::write_graphviz_dp(stream, m_graph, dp);
 
@@ -611,4 +477,25 @@ void RelationshipGraph::write(std::ostream &stream, RelationshipGraph::PrintForm
       qWarning("Format Unkown");
       break;
   };
+}
+
+//-----------------------------------------------------------------------------
+bool RelationshipGraph::findRelation(const VertexDescriptor source,
+                                     const VertexDescriptor destination,
+                                     const QString         &relation,
+                                     OutEdgeIterator       &edge) const
+{
+  bool found = false;
+  OutEdgeIterator oei_end;
+
+  boost::tie(edge, oei_end) = boost::out_edges(source, m_graph);
+  while (!found && edge != oei_end)
+  {
+    found  = target(*edge, m_graph)      == destination;
+    found &= m_graph[*edge].relationship == relation.toStdString();
+    if (!found)
+      edge++;
+  }
+
+  return found;
 }

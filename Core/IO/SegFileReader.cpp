@@ -2,6 +2,8 @@
 
 #include <QFile>
 
+#include <EspinaConfig.h>
+
 // EspINA
 #include "Core/Model/EspinaModel.h"
 #include "Core/Model/Output.h"
@@ -368,7 +370,8 @@ QByteArray SegFileReader::settings(IEspinaModel *model)
   QTextStream settingsStream(&settingsData);
 
   settingsStream << SEG_FILE_VERSION << endl;
-  settingsStream << QString("Traceable=") << model->isTraceable() << endl;
+  settingsStream << QString("Traceable=") << model->isTraceable()    << endl;
+  settingsStream << QString("EspINA Version=%1").arg(ESPINA_VERSION) << endl;
 
   return settingsData;
 }
@@ -596,152 +599,131 @@ bool SegFileReader::loadSerialization(IEspinaModel *model,
 //   input->write(std::cout, RelationshipGraph::GRAPHVIZ);
 
   typedef QPair<ModelItemSPtr , ModelItem::Arguments> NonInitilizedItem;
-  QList<VertexProperty> segmentationNodes;
-  SegmentationSList newSegmentations;
+
+  SegmentationSList           newSegmentations;
+  RelationshipGraph::Vertices segmentationNodes;
 
   EspinaFactory *factory = model->factory();
 
-  foreach(VertexProperty v, input->vertices())
+  foreach(RelationshipGraph::Vertex v, input->vertices())
   {
-    VertexProperty fv;
-    if (model->relationships()->find(v, fv))
+    switch (RelationshipGraph::type(v))
     {
-      input->setItem(v.vId, fv.item);
-      qDebug() << "Updating existing vertex" << fv.item->data(Qt::DisplayRole).toString();
-    }else
-    {
-      switch (RelationshipGraph::type(v))
+      case SAMPLE:
       {
-        case SAMPLE:
-        {
-          ModelItem::Arguments args(v.args.c_str());
-          SampleSPtr sample = factory->createSample(v.name.c_str(), v.args.c_str());
-          model->addSample(sample);
-          input->setItem(v.vId, sample.data());
-          break;
-        }
-        case CHANNEL:
-        {
-          ModelItem::Arguments args(v.args.c_str());
-          ModelItem::Arguments extArgs(args.value(ModelItem::EXTENSIONS, QString()));
-          args.remove(ModelItem::EXTENSIONS);
+        ModelItem::Arguments args(v.args.c_str());
+        SampleSPtr sample = factory->createSample(v.name.c_str(), v.args.c_str());
+        model->addSample(sample);
+        input->setItem(v, sample.data());
+        break;
+      }
+      case CHANNEL:
+      {
+        ModelItem::Arguments args(v.args.c_str());
+        ModelItem::Arguments extArgs(args.value(ModelItem::EXTENSIONS, QString()));
+        args.remove(ModelItem::EXTENSIONS);
 
-          // TODO: Move link management code inside Channel's Arguments class
-          QStringList link = args[Channel::VOLUME].split("_");
+        // TODO: Move link management code inside Channel's Arguments class
+        QStringList link = args[Channel::VOLUME].split("_");
+        Q_ASSERT(link.size() == 2);
+        RelationshipGraph::Vertices ancestors = input->ancestors(v, link[0]);
+        Q_ASSERT(ancestors.size() == 1);
+        ModelItemPtr item = ancestors.first().item;
+        Q_ASSERT(FILTER == item->type());
+        FilterSPtr filter = model->findFilter(item);
+        Q_ASSERT(!filter.isNull());
+        try
+        {
+          FilterOutputId channelId = link[1].toInt();
+          filter->update(channelId);
+          ChannelSPtr channel = factory->createChannel(filter, channelId);
+          channel->initialize(args);
+          if (channel->volume()->toITK().IsNull())
+            return false;
+          model->addChannel(channel);
+          input->setItem(v, channel.data());
+        }
+        catch(int e)
+        {
+          RelationshipGraph::Vertices successors = input->succesors(v, QString());
+          if (!successors.empty())
+            return false;
+
+          input->removeEdges(v);
+        }
+        break;
+      }
+      case FILTER:
+      {
+        Filter::NamedInputs inputs;
+        Filter::Arguments args(v.args.c_str());
+        QStringList inputLinks = args[Filter::INPUTS].split(",", QString::SkipEmptyParts);
+        // We need to update id values for future filters
+        foreach(QString inputLink, inputLinks)
+        {
+          QStringList link = inputLink.split("_");
           Q_ASSERT(link.size() == 2);
-          Vertices ancestors = input->ancestors(v.vId, link[0]);
+          RelationshipGraph::Vertices ancestors = input->ancestors(v, link[0]);
           Q_ASSERT(ancestors.size() == 1);
           ModelItemPtr item = ancestors.first().item;
           Q_ASSERT(FILTER == item->type());
           FilterSPtr filter = model->findFilter(item);
-          Q_ASSERT(!filter.isNull());
-          try
-          {
-            FilterOutputId channelId = link[1].toInt();
-            filter->update(channelId);
-            ChannelSPtr channel = factory->createChannel(filter, channelId);
-            channel->initialize(args);
-            if (channel->volume()->toITK().IsNull())
-              return false;
-            model->addChannel(channel);
-            input->setItem(v.vId, channel.data());
-          }
-          catch(int e)
-          {
-            Vertices successors = input->succesors(v.vId, QString());
-            if (!successors.empty())
-              return false;
-
-            input->removeEdges(v.vId);
-          }
-          break;
-
+          inputs[link[0]] = filter;
         }
-        case FILTER:
-        {
-          Filter::NamedInputs inputs;
-          Filter::Arguments args(v.args.c_str());
-          QStringList inputLinks = args[Filter::INPUTS].split(",", QString::SkipEmptyParts);
-          // We need to update id values for future filters
-          foreach(QString inputLink, inputLinks)
-          {
-            QStringList link = inputLink.split("_");
-            Q_ASSERT(link.size() == 2);
-            Vertices ancestors = input->ancestors(v.vId, link[0]);
-            Q_ASSERT(ancestors.size() == 1);
-            ModelItemPtr item = ancestors.first().item;
-            Q_ASSERT(FILTER == item->type());
-            FilterSPtr filter = model->findFilter(item);
-            inputs[link[0]] = filter;
-          }
-          FilterSPtr filter = factory->createFilter(v.name.c_str(), inputs, args);
-          filter->setCacheDir(tmpDir);
-          model->addFilter(filter);
-          input->setItem(v.vId, filter.data());
-          break;
-        }
-        case SEGMENTATION:
-        {
-          segmentationNodes << v;
-          break;
-        }
-        default:
-          Q_ASSERT(false);
-          break;
+        FilterSPtr filter = factory->createFilter(v.name.c_str(), inputs, args);
+        filter->setCacheDir(tmpDir);
+        model->addFilter(filter);
+        input->setItem(v, filter.data());
+        break;
       }
+      case SEGMENTATION:
+      {
+        segmentationNodes << v;
+        break;
+      }
+      default:
+        Q_ASSERT(false);
+        break;
     }
   }
 
-  foreach(VertexProperty v, segmentationNodes)
+  foreach(RelationshipGraph::Vertex v, segmentationNodes)
   {
-    Vertices ancestors = input->ancestors(v.vId, Filter::CREATELINK);
+    RelationshipGraph::Vertices ancestors = input->ancestors(v, Filter::CREATELINK);
     Q_ASSERT(ancestors.size() == 1);
 
-    ModelItem::Arguments args(QString(v.args.c_str()));
-    FilterOutputId outputId =  args[Segmentation::OUTPUT].toInt();
+    ModelItem::Arguments args       (QString(v.args.c_str()));
+    FilterOutputId       outputId = args[Segmentation::OUTPUT].toInt();
 
-    ModelItemPtr item = ancestors.first().item;
-    FilterSPtr filter = model->findFilter(item);
+    ModelItemPtr item   = ancestors.first().item;
+    FilterSPtr   filter = model->findFilter(item);
+
     filter->update(outputId);
-    // NOTE: add return value to update?
-    if (filter->numberOfOutputs() == 0)
-      return false;
-
-    ModelItem::Arguments extArgs(args.value(ModelItem::EXTENSIONS, QString()));
-    args.remove(ModelItem::EXTENSIONS);
-    SegmentationSPtr seg = factory->createSegmentation(filter, outputId);
-    seg->initialize(args);
-    seg->setNumber(args[Segmentation::NUMBER].toInt());
-    TaxonomyElementSPtr taxonomy = model->taxonomy()->element(args[Segmentation::TAXONOMY]);
-    if (!taxonomy.isNull())
-      seg->setTaxonomy(taxonomy);
-    else
+    if (filter->validOutput(outputId))
     {
-      QStringList path = args[Segmentation::TAXONOMY].split("/", QString::SkipEmptyParts);
-      TaxonomyElementSPtr missingTax = model->taxonomy()->root();
+      ModelItem::Arguments extArgs(args.value(ModelItem::EXTENSIONS, QString()));
+      args.remove(ModelItem::EXTENSIONS);
+      SegmentationSPtr seg = factory->createSegmentation(filter, outputId);
+      seg->initialize(args);
+      seg->setNumber(args[Segmentation::NUMBER].toInt());
 
-        TaxonomyElementSPtr parent = model->taxonomy()->root();
-        for (int i = 0; i < path.size(); ++i)
-        {
-          missingTax = missingTax->element(path.at(i));
-          if (missingTax.isNull())
-          {
-            missingTax = model->taxonomy()->createElement(path.at(i));
-            model->addTaxonomyElement(parent, missingTax);
-            qWarning() << "created taxonomy node" << missingTax->name() << "(qualified-name:" << missingTax->qualifiedName() << "missing from taxonomy.xml file inside segfile, but referenced in tracefile.dot)";
-          }
-          parent = missingTax;
-        }
-
-      seg->setTaxonomy(missingTax);
+      QString taxonomyQualifiedName = args[Segmentation::TAXONOMY];
+      TaxonomyElementSPtr taxonomy = model->taxonomy()->element(taxonomyQualifiedName);
+      if (!taxonomy.isNull())
+        seg->setTaxonomy(taxonomy);
+      else
+      {
+        taxonomy = model->taxonomy()->createElement(taxonomyQualifiedName);
+        seg->setTaxonomy(taxonomy);
+      }
+      newSegmentations << seg;
+      input->setItem(v, seg.data());
     }
-    newSegmentations << seg;
-    input->setItem(v.vId, seg.data());
   }
 
   model->addSegmentation(newSegmentations);
 
-  foreach(Edge e, input->edges())
+  foreach(RelationshipGraph::Edge e, input->edges())
   { //Should store just the modelitem?
     Q_ASSERT(e.source.item);
     Q_ASSERT(e.target.item);

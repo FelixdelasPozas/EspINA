@@ -69,7 +69,6 @@ namespace EspINA
 
     static QByteArray settings(IEspinaModel *model);
 
-
     /**
      * Creates a zipped file called @param fileName inside @param zFile. @param content
      * has the information to store in @param fileName. It controls the correct
