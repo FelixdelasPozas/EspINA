@@ -49,7 +49,7 @@ namespace EspINA
     virtual ~CompositionLayout();
 
     virtual QAbstractItemModel* model()
-    {return m_sort.data();}
+    {return m_sort.get();}
 
     virtual ModelItemPtr item(const QModelIndex& index) const;
 
@@ -76,8 +76,8 @@ namespace EspINA
     void selectComposeElements();
 
   private:
-    QSharedPointer<RelationProxy> m_proxy;
-    QSharedPointer<SortFilter>   m_sort;
+    boost::shared_ptr<RelationProxy> m_proxy;
+    boost::shared_ptr<SortFilter>    m_sort;
 
     QItemDelegate *m_delegate;
   };

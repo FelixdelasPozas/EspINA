@@ -18,7 +18,6 @@
 
 
 #include "BrushUndoCommand.h"
-#include <Core/Model/Filter.h>
 #include <GUI/ViewManager.h>
 
 #include <itkExtractImageFilter.h>
@@ -107,7 +106,7 @@ void Brush::DrawCommand::redo()
     }
   }
 
-  m_viewManager->updateSegmentationRepresentations(m_seg.data());
+  m_viewManager->updateSegmentationRepresentations(m_seg.get());
 }
 
 //-----------------------------------------------------------------------------
@@ -135,7 +134,7 @@ void Brush::DrawCommand::undo()
   else
     emit initBrushTool();
 
-  m_viewManager->updateSegmentationRepresentations(m_seg.data());
+  m_viewManager->updateSegmentationRepresentations(m_seg.get());
 }
 
 //-----------------------------------------------------------------------------

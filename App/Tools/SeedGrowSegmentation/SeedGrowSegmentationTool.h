@@ -100,7 +100,7 @@ namespace EspINA
     EspinaRenderView *m_viewOfPreview;
   };
 
-  typedef QSharedPointer<SeedGrowSegmentationTool> SeedGrowSegmentationToolSPtr;
+  typedef boost::shared_ptr<SeedGrowSegmentationTool> SeedGrowSegmentationToolSPtr;
 
 } // namespace EspINA
 

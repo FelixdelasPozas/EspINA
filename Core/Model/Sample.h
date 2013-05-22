@@ -30,7 +30,6 @@
 namespace EspINA
 {
 
-  typedef QSharedPointer<Sample> SampleSPtr;
   typedef QList<SampleSPtr>      SampleSList;
 
   class Sample

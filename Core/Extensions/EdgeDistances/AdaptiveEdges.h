@@ -122,7 +122,7 @@ namespace EspINA
   };
 
   typedef AdaptiveEdges *AdaptiveEdgesPtr;
-  typedef QSharedPointer<AdaptiveEdgesPtr> AdaptiveEdgesSPtr;
+  typedef boost::shared_ptr<AdaptiveEdgesPtr> AdaptiveEdgesSPtr;
 
   AdaptiveEdgesPtr adaptiveEdgesPtr(Channel::ExtensionPtr extension);
 

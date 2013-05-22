@@ -90,9 +90,9 @@ MainToolBar::MainToolBar(EspinaModel *model,
   addWidget(m_taxonomySelector);
 
   // Segmentation Remover
-  connect(m_segRemover.data(), SIGNAL(removalAborted()),
+  connect(m_segRemover.get(), SIGNAL(removalAborted()),
           this, SLOT(abortRemoval()));
-  connect(m_segRemover.data(), SIGNAL(removeSegmentation(SegmentationPtr)),
+  connect(m_segRemover.get(), SIGNAL(removeSegmentation(SegmentationPtr)),
           this, SLOT(removeSegmentation(SegmentationPtr)));
 
   m_removeSegmentation = addAction(QIcon(":/espina/removeSeg.svg"),
@@ -172,16 +172,16 @@ void MainToolBar::updateTaxonomy(TaxonomySPtr taxonomy)
   if (taxonomy && !taxonomy->elements().isEmpty())
   {
     // avoid selecting SAS as the active taxonomy when updating
-    if (taxonomy->elements().first().data()->data().toString().compare(QString("SAS")) == 0 &&
+    if (taxonomy->elements().first().get()->data().toString().compare(QString("SAS")) == 0 &&
         taxonomy->elements().size() > 1)
     {
       m_taxonomySelector->setCurrentIndex(1);
-      m_viewManager->setActiveTaxonomy(taxonomy->elements().at(1).data());
+      m_viewManager->setActiveTaxonomy(taxonomy->elements().at(1).get());
     }
     else
     {
       m_taxonomySelector->setCurrentIndex(0);
-      m_viewManager->setActiveTaxonomy(taxonomy->elements().first().data());
+      m_viewManager->setActiveTaxonomy(taxonomy->elements().first().get());
     }
   }
 }

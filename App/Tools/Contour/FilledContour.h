@@ -81,7 +81,7 @@ namespace EspINA
       vtkPolyData *m_lastContour;
   };
 
-  typedef QSharedPointer<FilledContour> FilledContourSPtr;
+  typedef boost::shared_ptr<FilledContour> FilledContourSPtr;
 
 } // namespace EspINA
 

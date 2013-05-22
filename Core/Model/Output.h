@@ -30,8 +30,8 @@
 #define OUTPUT_H
 
 #include <Core/EspinaRegion.h>
+#include <Core/EspinaTypes.h>
 
-#include <boost/shared_ptr.hpp>
 #include <QMap>
 
 class QDir;

@@ -85,7 +85,7 @@ namespace EspINA
       bool                                m_enabled;
       bool                                m_inUse;
       bool                                m_roundExtremes;
-      QSharedPointer<PixelSelector>         m_toolPicker;
+      boost::shared_ptr<PixelSelector>         m_toolPicker;
       TubularWidget                      *m_widget;
       ViewManager                        *m_viewManager;
       QUndoStack                         *m_undoStack;
@@ -93,6 +93,6 @@ namespace EspINA
   };
 
   typedef TubularTool*                TubularToolPtr;
-  typedef QSharedPointer<TubularTool> TubularToolSPtr;
+  typedef boost::shared_ptr<TubularTool> TubularToolSPtr;
 }
 #endif /* TUBULARTOOL_H_ */

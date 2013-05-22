@@ -43,7 +43,7 @@ namespace EspINA
       typedef itk::ImplicitImageSource<itkVolumeType> ImplicitSource;
 
     public:
-      typedef QSharedPointer<TubularSegmentationFilter> Pointer;
+      typedef boost::shared_ptr<TubularSegmentationFilter> Pointer;
 
     public:
       static const QString FILTER_TYPE;

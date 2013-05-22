@@ -48,7 +48,7 @@ namespace EspINA
     virtual ~LocationLayout();
 
     virtual QAbstractItemModel* model() 
-    {return m_sort.data();}
+    {return m_sort.get();}
 
     virtual ModelItemPtr item(const QModelIndex& index) const;
 
@@ -73,8 +73,8 @@ namespace EspINA
     void selectLocationElements();
 
   private:
-    QSharedPointer<LocationProxy> m_proxy;
-    QSharedPointer<SortFilter> m_sort;
+    boost::shared_ptr<LocationProxy> m_proxy;
+    boost::shared_ptr<SortFilter> m_sort;
 
     QItemDelegate *m_delegate;
   };

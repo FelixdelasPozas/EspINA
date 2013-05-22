@@ -152,7 +152,7 @@ void EdgeDistance::loadCache(QuaZipFile  &file,
           && segmentation->outputId()         == fields[1].toInt()
           && segmentation->filter()->cacheDir() == tmpDir)
         {
-          extensionSegmentation = segmentation.data();
+          extensionSegmentation = segmentation.get();
         }
         i++;
       }
@@ -251,7 +251,7 @@ void EdgeDistance::updateDistances() const
 {
   //qDebug() << "Updating" << m_seg->data().toString() << EdgeDistanceID;
   ChannelSPtr channel = m_segmentation->channel();
-  if (!channel.isNull())
+  if (channel != NULL)
   {
     AdaptiveEdges  *edgesExtension = NULL;
     Channel::ExtensionPtr extension = channel->extension(AdaptiveEdgesID);

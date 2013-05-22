@@ -346,7 +346,7 @@ namespace EspINA
   };
 
   typedef EspinaModel *               EspinaModelPtr;
-  typedef QSharedPointer<EspinaModel> EspinaModelSPtr;
+  typedef boost::shared_ptr<EspinaModel> EspinaModelSPtr;
 
 } // namespace EspINA
 

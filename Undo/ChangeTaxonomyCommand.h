@@ -31,6 +31,7 @@ namespace EspINA
 {
 
   class EspinaModel;
+  class ViewManager;
 
   class ChangeTaxonomyCommand
   : public QUndoCommand

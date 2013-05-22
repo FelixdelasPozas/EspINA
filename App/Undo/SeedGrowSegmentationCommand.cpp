@@ -112,7 +112,7 @@ void SeedGrowSegmentationCommand::redo()
   m_model->addRelation(m_channel, m_segmentation, Channel::LINK      );
 
   SegmentationList segmentations;
-  segmentations << m_segmentation.data();
+  segmentations << m_segmentation.get();
   m_viewManager->updateSegmentationRepresentations(segmentations);
 }
 

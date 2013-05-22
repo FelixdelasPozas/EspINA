@@ -114,7 +114,7 @@ namespace EspINA
 
   };
 
-  typedef QSharedPointer<AppositionSurfaceExtension> AppositionSurfaceExtensionSPtr;
+  typedef boost::shared_ptr<AppositionSurfaceExtension> AppositionSurfaceExtensionSPtr;
 
 } // namespace EspINA
 

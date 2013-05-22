@@ -76,7 +76,7 @@ void VolumeOfInterest::buildVOIs()
   m_voiSelector->addAction(action);
   RectangularVOISPtr voi(new RectangularVOI(m_model, m_viewManager));
   m_vois[action] = voi;
-  connect(voi.data(), SIGNAL(voiDeactivated()),
+  connect(voi.get(), SIGNAL(voiDeactivated()),
           this, SLOT(cancelVOI()));
 }
 

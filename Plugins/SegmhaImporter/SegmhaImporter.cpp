@@ -166,7 +166,7 @@ bool SegmhaImporter::readFile(const QFileInfo file, IOErrorHandler *handler)
       exclusive[i] = exclusive[i]*spacing[i];
     }
 
-    cfExtension->plugin()->createRectangularCF(channel.data(), inclusive, exclusive);
+    cfExtension->plugin()->createRectangularCF(channel.get(), inclusive, exclusive);
   }
 
   m_model->addFilter(filter);

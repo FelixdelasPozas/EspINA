@@ -214,7 +214,6 @@ namespace EspINA
     ExtensionProvider m_extensions;
   };
 
-  typedef QSharedPointer<Channel> ChannelSPtr;
   typedef QList<ChannelSPtr>      ChannelSList;
 
   ChannelPtr  channelPtr(ModelItemPtr      item);

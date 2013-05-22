@@ -5,40 +5,48 @@
 
 #include <QList>
 //#define QT_SHAREDPOINTER_TRACK_POINTERS
-#include <QSharedPointer>
 #include <QSet>
+#include <boost/shared_ptr.hpp>
 
 namespace EspINA
 {
   class   ModelItem;
-  typedef ModelItem *               ModelItemPtr;
-  typedef QList<ModelItemPtr>       ModelItemList;
+  typedef ModelItem *                  ModelItemPtr;
+  typedef QList<ModelItemPtr   >       ModelItemList;
+  typedef boost::shared_ptr<ModelItem> ModelItemSPtr;
 
   class   Taxonomy;
+  typedef boost::shared_ptr<Taxonomy> TaxonomySPtr;
 
   class   TaxonomyElement;
-  typedef TaxonomyElement *               TaxonomyElementPtr;
-  typedef QList<TaxonomyElementPtr>       TaxonomyElementList;
+  typedef TaxonomyElement *                  TaxonomyElementPtr;
+  typedef QList<TaxonomyElementPtr>          TaxonomyElementList;
+  typedef boost::shared_ptr<TaxonomyElement> TaxonomyElementSPtr;
 
   class   Sample;
-  typedef Sample *               SamplePtr;
-  typedef QList<SamplePtr>       SampleList;
+  typedef Sample *                  SamplePtr;
+  typedef QList<SamplePtr>          SampleList;
+  typedef boost::shared_ptr<Sample> SampleSPtr;
 
   class   Channel;
   typedef Channel *         ChannelPtr;
   typedef QList<ChannelPtr> ChannelList;
+  typedef boost::shared_ptr<Channel> ChannelSPtr;
 
   class   Segmentation;
   typedef Segmentation *         SegmentationPtr;
   typedef QList<SegmentationPtr> SegmentationList;
   typedef QSet<SegmentationPtr>  SegmentationSet;
+  typedef boost::shared_ptr<Segmentation> SegmentationSPtr;
 
   class   Filter;
   typedef Filter *         FilterPtr;
   typedef QList<FilterPtr> FilterList;
+  typedef boost::shared_ptr<Filter> FilterSPtr;
 
   class   PickableItem;
-  typedef PickableItem *               PickableItemPtr;
+  typedef PickableItem *                  PickableItemPtr;
+  typedef boost::shared_ptr<PickableItem> PickableItemSPtr;
 
 //   class   ModelItemExtension;
 //   typedef ModelItemExtension *ModelItemExtensionPtr;

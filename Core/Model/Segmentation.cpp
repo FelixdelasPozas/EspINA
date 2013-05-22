@@ -71,7 +71,6 @@ Segmentation::Segmentation(FilterSPtr            filter,
                            const FilterOutputId &oId)
 : PickableItem()
 , m_filter(filter)
-, m_taxonomy(NULL)
 , m_isVisible(true)
 , m_isInputSegmentationDependent(false)
 {
@@ -554,8 +553,8 @@ SegmentationPtr EspINA::segmentationPtr(PickableItemPtr item)
 SegmentationSPtr EspINA::segmentationPtr(ModelItemSPtr &item)
 {
   Q_ASSERT(SEGMENTATION == item->type());
-  SegmentationSPtr ptr = qSharedPointerDynamicCast<Segmentation>(item);
-  Q_ASSERT(!ptr.isNull());
+  SegmentationSPtr ptr = boost::dynamic_pointer_cast<Segmentation>(item);
+  Q_ASSERT(ptr != NULL);
 
   return ptr;
 }
@@ -565,8 +564,8 @@ SegmentationSPtr EspINA::segmentationPtr(ModelItemSPtr &item)
 SegmentationSPtr EspINA::segmentationPtr(PickableItemSPtr &item)
 {
   Q_ASSERT(SEGMENTATION == item->type());
-  SegmentationSPtr ptr = qSharedPointerDynamicCast<Segmentation>(item);
-  Q_ASSERT(!ptr.isNull());
+  SegmentationSPtr ptr = boost::dynamic_pointer_cast<Segmentation>(item);
+  Q_ASSERT(ptr != NULL);
 
   return ptr;
 }

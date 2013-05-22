@@ -124,7 +124,7 @@ void SegmentationTags::loadCache(QuaZipFile &file, const QDir &tmpDir, IEspinaMo
           && segmentation->outputId()           == fields[1].toInt()
           && segmentation->filter()->cacheDir() == tmpDir)
         {
-          extensionSegmentation = segmentation.data();
+          extensionSegmentation = segmentation.get();
         }
         i++;
       }

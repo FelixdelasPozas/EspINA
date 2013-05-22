@@ -43,7 +43,7 @@ TaxonomyElement::~TaxonomyElement()
 //------------------------------------------------------------------------
 void TaxonomyElement::setName(const QString &name)
 {
-  Q_ASSERT(element(name).isNull());
+  Q_ASSERT(element(name).get() == NULL);
   m_name = name;
 }
 
@@ -76,7 +76,7 @@ void TaxonomyElement::setColor(const QColor &color)
 //------------------------------------------------------------------------
 TaxonomyElementSPtr TaxonomyElement::createElement(const QString& name)
 {
-  Q_ASSERT(element(name).isNull());
+  Q_ASSERT(!element(name));
 
   TaxonomyElementSPtr taxElement(new TaxonomyElement(this, name));
   taxElement->setColor(m_color);
@@ -102,15 +102,15 @@ void TaxonomyElement::deleteElement(TaxonomyElementPtr taxElement)
   TaxonomyElementSPtr subNode;
 
   int index = 0;
-  while (subNode.isNull() && index < m_elements.size())
+  while (!subNode && index < m_elements.size())
   {
-    if (m_elements[index].data() == taxElement)
+    if (m_elements[index].get() == taxElement)
       subNode = m_elements[index];
     else
       index++;
   }
 
-  if (!subNode.isNull())
+  if (subNode)
     m_elements.removeAt(index);
 }
 
@@ -120,7 +120,7 @@ TaxonomyElementSPtr TaxonomyElement::element(const QString& name)
   TaxonomyElementSPtr res;
 
   int i = 0;
-  while (res.isNull() && i < m_elements.size())
+  while (!res && i < m_elements.size())
   {
     if (m_elements[i]->name() == name)
       res = m_elements[i];
@@ -225,8 +225,8 @@ TaxonomyElementPtr EspINA::taxonomyElementPtr(ModelItemPtr item)
 TaxonomyElementSPtr taxonomyElementPtr(ModelItemSPtr& item)
 {
   Q_ASSERT(EspINA::TAXONOMY == item->type());
-  TaxonomyElementSPtr ptr = qSharedPointerDynamicCast<TaxonomyElement>(item);
-  Q_ASSERT(!ptr.isNull());
+  TaxonomyElementSPtr ptr = boost::dynamic_pointer_cast<TaxonomyElement>(item);
+  Q_ASSERT(ptr != NULL);
 
   return ptr;
 }
@@ -255,7 +255,7 @@ TaxonomyElementSPtr Taxonomy::createElement(const QString&     qualifiedName,
   TaxonomyElementPtr parentNode = parent;
 
   if (!parentNode)
-    parentNode = m_root.data();
+    parentNode = m_root.get();
 
   TaxonomyElementSPtr requestedTaxonomy;
 
@@ -263,11 +263,11 @@ TaxonomyElementSPtr Taxonomy::createElement(const QString&     qualifiedName,
   for (int i = 0; i < path.size(); ++i)
   {
     requestedTaxonomy = parentNode->element(path.at(i));
-    if (requestedTaxonomy.isNull())
+    if (!requestedTaxonomy)
     {
       requestedTaxonomy = parentNode->createElement(path.at(i));
     }
-    parentNode = requestedTaxonomy.data();
+    parentNode = requestedTaxonomy.get();
   }
 
   return requestedTaxonomy;
@@ -277,7 +277,7 @@ TaxonomyElementSPtr Taxonomy::createElement(const QString&     qualifiedName,
 TaxonomyElementSPtr Taxonomy::createElement(const QString& name,
                                             TaxonomyElementSPtr parent)
 {
-  return createElement(name, parent.data());
+  return createElement(name, parent.get());
 }
 
 //-----------------------------------------------------------------------------
@@ -285,19 +285,19 @@ void Taxonomy::deleteElement(TaxonomyElementPtr element)
 {
   Q_ASSERT(element);
 
-  if (element != m_root.data())
+  if (element != m_root.get())
   {
     TaxonomyElementPtr parentElement = element->parent();
     parentElement->deleteElement(element);
   }
   else
-    m_root.clear();
+    m_root.reset();
 }
 
 //-----------------------------------------------------------------------------
 void Taxonomy::deleteElement(TaxonomyElementSPtr element)
 {
-  deleteElement(element.data());
+  deleteElement(element.get());
 }
 
 //-----------------------------------------------------------------------------
@@ -306,41 +306,17 @@ TaxonomyElementSPtr Taxonomy::element(const QString& qualifiedName)
   QStringList path = qualifiedName.split("/", QString::SkipEmptyParts);
   TaxonomyElementSPtr node = m_root;
 
-  for(int i = 0; i < path.length(); i++)
+  int i = 0;
+  while (node.get() != NULL && i < path.length())
   {
     node = node->element(path[i]);
-    if (node.isNull())
-    {
-      node.clear();
-      return node;
-    }
+    ++i;
   }
 
   if (node == m_root)
-    node.clear();
+    node.reset();
 
   return node;
-
-//   bool exits = false;
-//   foreach(TaxonomyElementPtr sibling, m_parent->m_elements)
-//   {
-//     exits = exits || sibling->name() == name;
-//   }
-//   if (!exits)
-//     m_name = name;
-//   QString::SectionFlag flag = QString::SectionSkipEmpty;
-//   return m_root->element(qualifiedName);
-// 
-//   QString rootName = qualifiedName.section("/",0,0,flag);
-// 
-//   if (rootName != m_root->name())
-//     return NULL;
-// 
-//   QString subName = qualifiedName.section("/",1,-1,flag);
-//   if (subName.isEmpty())
-//     return m_root;
-//   else
-//     return m_root->element(subName);
 }
 
 //-----------------------------------------------------------------------------
@@ -352,7 +328,7 @@ TaxonomyElementSPtr Taxonomy::parent(const TaxonomyElementSPtr element) const
   for(int i = 0; i < path.length() - 1; i++)
   {
     parent = parent->element(path[i]);
-    Q_ASSERT(!parent.isNull());
+    Q_ASSERT(parent.get() != NULL);
   }
 
   return parent;

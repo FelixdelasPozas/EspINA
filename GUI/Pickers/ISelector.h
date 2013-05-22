@@ -86,7 +86,7 @@ namespace EspINA
     QCursor       m_cursor;
   };
 
-  typedef QSharedPointer<ISelector> IPickerSPtr;
+  typedef boost::shared_ptr<ISelector> IPickerSPtr;
 
 } // namespace EspINA
 

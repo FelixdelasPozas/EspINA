@@ -48,7 +48,7 @@ CompositionLayout::CompositionLayout(CheckableTreeView *view,
 {
   m_proxy->setRelation(Relations::COMPOSITION);
   m_proxy->setSourceModel(m_model);
-  m_sort->setSourceModel(m_proxy.data());
+  m_sort->setSourceModel(m_proxy.get());
   m_sort->setDynamicSortFilter(true);
 }
 

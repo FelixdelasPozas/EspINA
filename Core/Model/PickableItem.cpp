@@ -17,6 +17,7 @@
 */
 
 #include "PickableItem.h"
+#include "Filter.h"
 
 using namespace EspINA;
 
@@ -60,8 +61,8 @@ PickableItemPtr EspINA::pickableItemPtr(ModelItemPtr item)
 PickableItemSPtr EspINA::pickableItemPtr(ModelItemSPtr &item)
 {
   Q_ASSERT(EspINA::SEGMENTATION == item->type() || EspINA::SAMPLE == item->type());
-  PickableItemSPtr ptr = qSharedPointerDynamicCast<PickableItem>(item);
-  Q_ASSERT(!ptr.isNull());
+  PickableItemSPtr ptr = boost::dynamic_pointer_cast<PickableItem>(item);
+  Q_ASSERT(ptr != NULL);
 
   return ptr;
 }

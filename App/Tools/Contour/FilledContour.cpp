@@ -136,12 +136,12 @@ void FilledContour::setInUse(bool enable)
     {
       m_currentSeg = m_model->findSegmentation(selection.first());
       m_currentSource = m_currentSeg->filter();
-      m_contourWidget->setPolygonColor(m_viewManager->color(m_currentSeg.data()));
+      m_contourWidget->setPolygonColor(m_viewManager->color(m_currentSeg.get()));
     }
     else
     {
-      m_currentSeg.clear();
-      m_currentSource.clear();
+      m_currentSeg.reset();
+      m_currentSource.reset();
       m_contourWidget->setPolygonColor(m_viewManager->activeTaxonomy()->color());
     }
 
@@ -163,8 +163,8 @@ void FilledContour::setInUse(bool enable)
     m_viewManager->setSelectionEnabled(true);
     m_contourWidget->setEnabled(false);
     delete m_contourWidget;
-    m_currentSeg.clear();
-    m_currentSource.clear();
+    m_currentSeg.reset();
+    m_currentSource.reset();
   }
 }
 
@@ -236,7 +236,7 @@ void FilledContour::rasterize(ContourWidget::ContourList list)
       m_model->emitSegmentationAdded(createdSegmentations);
 
       ViewManager::Selection selectedSegmentations;
-      selectedSegmentations << pickableItemPtr(m_currentSeg.data());
+      selectedSegmentations << pickableItemPtr(m_currentSeg.get());
       m_viewManager->setSelection(selectedSegmentations);
     }
     else
@@ -263,10 +263,10 @@ void FilledContour::rasterize(ContourWidget::ContourList list)
     }
     catch (...)
     {
-      m_undoStack->push(new RemoveSegmentation(m_currentSeg.data(), m_model, m_viewManager));
+      m_undoStack->push(new RemoveSegmentation(m_currentSeg.get(), m_model, m_viewManager));
       emit changeMode(Brush::BRUSH);
-      m_currentSeg.clear();
-      m_currentSource.clear();
+      m_currentSeg.reset();
+      m_currentSource.reset();
       m_contourWidget->setPolygonColor(m_viewManager->activeTaxonomy()->color());
     }
   }

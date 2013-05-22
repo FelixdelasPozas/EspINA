@@ -67,7 +67,6 @@ SeedGrowSegmentationTool::SeedGrowSegmentationTool(EspinaModel *model,
 , m_settings(settings)
 , m_defaultVOI(voi)
 , m_threshold(th)
-, m_picker(NULL)
 , m_inUse(false)
 , m_enabled(true)
 , m_validPos(false)
@@ -199,7 +198,7 @@ void SeedGrowSegmentationTool::setChannelPicker(IPickerSPtr picker)
 
   if (m_picker)
   {
-    disconnect(m_picker.data(), SIGNAL(itemsPicked(ISelector::PickList)),
+    disconnect(m_picker.get(), SIGNAL(itemsPicked(ISelector::PickList)),
                this, SLOT(startSegmentation(ISelector::PickList)));
   }
 
@@ -209,7 +208,7 @@ void SeedGrowSegmentationTool::setChannelPicker(IPickerSPtr picker)
   {
     m_picker->setPickable(ISelector::CHANNEL);
     m_picker->setPickable(ISelector::SEGMENTATION, false);
-    connect(m_picker.data(), SIGNAL(itemsPicked(ISelector::PickList)),
+    connect(m_picker.get(), SIGNAL(itemsPicked(ISelector::PickList)),
             this, SLOT(startSegmentation(ISelector::PickList)));
   }
 }
@@ -369,7 +368,7 @@ void SeedGrowSegmentationTool::addPreview(EspinaRenderView *view)
     return;
   }
 
-  PixelSelector *selector = dynamic_cast<PixelSelector*>(m_picker.data());
+  PixelSelector *selector = dynamic_cast<PixelSelector*>(m_picker.get());
   if (!selector)
     return;
 

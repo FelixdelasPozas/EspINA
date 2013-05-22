@@ -22,7 +22,6 @@
 
 // EspINA
 #include "GUI/Pickers/ISelector.h"
-#include "Core/EspinaTypes.h"
 
 // VTK
 #include <vtkSmartPointer.h>

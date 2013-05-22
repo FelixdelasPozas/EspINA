@@ -381,8 +381,8 @@ FilterPtr EspINA::filterPtr(ModelItemPtr item)
 FilterSPtr EspINA::filterPtr(ModelItemSPtr& item)
 {
   Q_ASSERT(EspINA::FILTER == item->type());
-  FilterSPtr ptr = qSharedPointerDynamicCast<Filter>(item);
-  Q_ASSERT(!ptr.isNull());
+  FilterSPtr ptr = boost::dynamic_pointer_cast<Filter>(item);
+  Q_ASSERT(ptr.get() != NULL);
 
   return ptr;
 
@@ -393,10 +393,6 @@ bool Filter::dumpSnapshot(Snapshot &snapshot)
 {
   return false;
 }
-
-//----------------------------------------------------------------------------
-
-//----------------------------------------------------------------------------
 
 
 //----------------------------------------------------------------------------

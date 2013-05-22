@@ -208,7 +208,7 @@ void SegmentationInspector::addSegmentation(SegmentationPtr segmentation)
   m_segmentations << segmentation;
   m_view->addSegmentation(segmentation);
 
-  addChannel(segmentation->channel().data());
+  addChannel(segmentation->channel().get());
 }
 
 //------------------------------------------------------------------------
@@ -236,7 +236,7 @@ void SegmentationInspector::removeSegmentation(SegmentationPtr segmentation)
       channelFound = true;
 
   if (!channelFound)
-    removeChannel(channel.data());
+    removeChannel(channel.get());
 
   m_view->updateView();
   generateWindowTitle();
@@ -347,12 +347,12 @@ void SegmentationInspector::dropEvent(QDropEvent *event)
       TaxonomyElementPtr taxonomy = taxonomyElementPtr(item);
       foreach(SegmentationSPtr seg, m_model->segmentations())
       {
-        TaxonomyElementPtr segTax = seg->taxonomy().data();
-        while(segTax != m_model->taxonomy()->root().data())
+        TaxonomyElementPtr segTax = seg->taxonomy().get();
+        while(segTax != m_model->taxonomy()->root().get())
         {
           if (segTax == taxonomy)
           {
-            taxSegmentations << seg.data();
+            taxSegmentations << seg.get();
             break;
           }
 

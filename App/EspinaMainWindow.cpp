@@ -168,7 +168,7 @@ EspinaMainWindow::EspinaMainWindow(EspinaModel      *model,
 , m_errorHandler(new EspinaIOErrorHandler(this))
 {
 #ifdef TEST_ESPINA_MODELS
-  m_modelTester = QSharedPointer<ModelTest>(new ModelTest(m_model));
+  m_modelTester = boost::shared_ptr<ModelTest>(new ModelTest(m_model));
 #endif
 
   m_dynamicMenuRoot = new DynamicMenuNode();
@@ -190,7 +190,7 @@ EspinaMainWindow::EspinaMainWindow(EspinaModel      *model,
   m_defaultRenderers << IRendererSPtr(new SmoothedMeshRenderer());
 
   foreach(IRendererSPtr renderer, m_defaultRenderers)
-    factory->registerRenderer(renderer.data());
+    factory->registerRenderer(renderer.get());
 
   factory->registerFilter(this, ChannelReader::TYPE);
 
@@ -413,7 +413,7 @@ EspinaMainWindow::~EspinaMainWindow()
 //   qDebug() << "********************************************************";
 
   foreach(IRendererSPtr renderer, m_defaultRenderers)
-    m_model->factory()->unregisterRenderer(renderer.data());
+    m_model->factory()->unregisterRenderer(renderer.get());
 
   delete m_settings;
   delete m_undoStack;
@@ -766,7 +766,7 @@ void EspinaMainWindow::openAnalysis(const QFileInfo file)
     return;
   }
 
-  if (m_model->taxonomy().isNull())
+  if (!m_model->taxonomy())
   {
     TaxonomySPtr defaultTaxonomy = IOTaxonomy::openXMLTaxonomy(":/espina/defaultTaxonomy.xml");
     //defaultTaxonomy->print();
@@ -802,7 +802,7 @@ void EspinaMainWindow::openAnalysis(const QFileInfo file)
   m_saveAnalysis ->setEnabled(true);
   m_closeAnalysis->setEnabled(true);
 
-  ChannelPtr channel = m_model->channels().first().data();
+  ChannelPtr channel = m_model->channels().first().get();
   m_viewManager->setActiveChannel(channel);
 
   if (EspinaIO::isChannelExtension(fileInfo.suffix()))
@@ -927,7 +927,7 @@ void EspinaMainWindow::addFileToAnalysis(const QFileInfo file)
     {
       ChannelSPtr channel;
       int i = 0;
-      while (channel.isNull() && i < m_model->channels().size())
+      while (!channel && i < m_model->channels().size())
       {
         ChannelSPtr iChannel = m_model->channels()[i];
         if (file.fileName() == iChannel->data().toString())
@@ -1062,7 +1062,7 @@ void EspinaMainWindow::showPreferencesDialog()
 {
   GeneralSettingsDialog dialog;
 
-  dialog.registerPanel(m_settingsPanel.data());
+  dialog.registerPanel(m_settingsPanel.get());
   dialog.registerPanel(m_view->settingsPanel());
   dialog.resize(800, 600);
 

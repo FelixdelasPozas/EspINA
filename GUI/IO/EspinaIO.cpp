@@ -84,7 +84,7 @@ IOErrorHandler::STATUS EspinaIO::loadChannel(QFileInfo file,
 
   EspinaFactory *factory = model->factory();
 
-  if (existingSample.isNull())
+  if (!existingSample)
   {
     //TODO Try to recover sample form OMERO using channel information or prompt dialog to create a new sample
     existingSample = factory->createSample(file.baseName());

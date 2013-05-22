@@ -77,7 +77,7 @@ namespace EspINA
 
   public:
     class Settings;
-    typedef QSharedPointer<Settings> SettingsPtr;
+    typedef boost::shared_ptr<Settings> SettingsPtr;
     static const double SEGMENTATION_SHIFT;
 
   public:

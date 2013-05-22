@@ -48,9 +48,7 @@ namespace EspINA
 
   //-----------------------------------------------------------------------------
   TubularTool::TubularTool(ViewManager *vm, QUndoStack *undo, EspinaModel *model)
-  : m_channel(NULL)
-  , m_seg(NULL)
-  , m_model(model)
+  : m_model(model)
   , m_enabled(true)
   , m_inUse(false)
   , m_roundExtremes(false)
@@ -58,13 +56,12 @@ namespace EspINA
   , m_widget(NULL)
   , m_viewManager(vm)
   , m_undoStack(undo)
-  , m_source(NULL)
   {
     m_toolPicker->setPickable(ISelector::CHANNEL);
     m_toolPicker->setMultiSelection(false);
     m_toolPicker->setCursor(Qt::CrossCursor);
 
-    connect(m_toolPicker.data(), SIGNAL(itemsPicked(ISelector::PickList)), this, SLOT(pixelSelected(ISelector::PickList)));
+    connect(m_toolPicker.get(), SIGNAL(itemsPicked(ISelector::PickList)), this, SLOT(pixelSelected(ISelector::PickList)));
   }
 
   //-----------------------------------------------------------------------------
@@ -93,7 +90,7 @@ namespace EspINA
 
     Q_ASSERT(m_widget && m_toolPicker);
 
-    if (m_source.isNull())
+    if (!m_source)
       if (!m_toolPicker->filterEvent(e, view))
         return false;
 
@@ -129,7 +126,7 @@ namespace EspINA
       m_widget = NULL;
 
       // take care of lazy execution of filter
-      if (!m_source.isNull() && m_source->getLazyExecution())
+      if (m_source && m_source->getLazyExecution())
       {
         m_source->executeFilter();
         if (!m_seg)
@@ -148,9 +145,9 @@ namespace EspINA
         m_seg->notifyModification();
       }
 
-      m_channel.clear();
-      m_seg.clear();
-      m_source.clear();
+      m_channel.reset();
+      m_seg.reset();
+      m_source.reset();
       m_undoStack->clear();
 
       emit segmentationStopped();
@@ -186,7 +183,7 @@ namespace EspINA
       }
       else
       {
-        if (!m_seg.isNull() && m_source->outputs().size() == 1)
+        if (m_seg && m_source->outputs().size() == 1)
         {
           m_seg->notifyModification();
         }
@@ -206,9 +203,9 @@ namespace EspINA
       this->setInUse(false);
       this->setEnabled(false);
 
-      m_channel.clear();
-      m_seg.clear();
-      m_source.clear();
+      m_channel.reset();
+      m_seg.reset();
+      m_source.reset();
       m_widget = NULL;
     }
   }
@@ -216,7 +213,7 @@ namespace EspINA
   //-----------------------------------------------------------------------------
   void TubularTool::pixelSelected(ISelector::PickList msel)
   {
-    if ((msel.size() != 1) || !m_source.isNull())
+    if ((msel.size() != 1) || m_source)
       return;
 
     // Only one element selected
@@ -236,11 +233,11 @@ namespace EspINA
     Nm spacing[3];
     m_channel->volume()->spacing(spacing);
     params.setSpacing(spacing);
-    if (m_source.isNull())
+    if (!m_source)
     {
       m_source = TubularSegmentationFilter::Pointer(new TubularSegmentationFilter(inputs, args, TubularSegmentationFilter::FILTER_TYPE));
 
-      Filter::FilterInspectorPtr inspector = Filter::FilterInspectorPtr(new TubularFilterInspector(m_source, m_undoStack, m_viewManager, IToolSPtr(NULL)));
+      Filter::FilterInspectorPtr inspector = Filter::FilterInspectorPtr(new TubularFilterInspector(m_source, m_undoStack, m_viewManager, IToolSPtr()));
       m_source->setFilterInspector(Filter::FilterInspectorPtr(inspector));
     }
     m_source->setTool(this);
@@ -249,7 +246,7 @@ namespace EspINA
   //-----------------------------------------------------------------------------
   void TubularTool::showSpineInformation()
   {
-    if (m_source.isNull())
+    if (!m_source)
       return;
 
     NodesInformationDialog *dialog = new NodesInformationDialog(m_model, m_undoStack, m_viewManager, m_source);
@@ -262,7 +259,7 @@ namespace EspINA
   //-----------------------------------------------------------------------------
   bool TubularTool::getLazyExecution()
   {
-    if (m_source.isNull())
+    if (!m_source)
       return false;
     else
       return m_source->getLazyExecution();
@@ -273,14 +270,14 @@ namespace EspINA
   {
     // a change in laziness is not allowed if a segmentation has been
     // already created
-    if (m_seg.isNull())
+    if (!m_seg)
       m_source->setLazyExecution(value);
   }
 
   //-----------------------------------------------------------------------------
   bool TubularTool::getRoundedExtremes()
   {
-    if (m_source.isNull())
+    if (!m_source)
       return false;
 
     return m_source->getRoundedExtremes();
@@ -290,7 +287,7 @@ namespace EspINA
   void TubularTool::setRoundedExtremes(bool value)
   {
     m_roundExtremes = value;
-    if (!m_source.isNull())
+    if (m_source)
       m_source->setRoundedExtremes(m_roundExtremes);
 
     if (m_widget != NULL)

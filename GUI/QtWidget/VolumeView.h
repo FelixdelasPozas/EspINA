@@ -72,7 +72,7 @@ namespace EspINA
       VolumeView *parent;
     };
 
-    typedef QSharedPointer<Settings> SettingsPtr;
+    typedef boost::shared_ptr<Settings> SettingsPtr;
 
   public:
     explicit VolumeView(const EspinaFactory *factory,

@@ -59,7 +59,7 @@ RemoveSegmentation::RemoveSegmentation(SegmentationPtr seg,
     foreach(ModelItemSPtr item, segmentation->relatedItems(EspINA::OUT))
       if (item->type() == SEGMENTATION)
       {
-        SegmentationPtr relatedSeg = segmentationPtr(item.data());
+        SegmentationPtr relatedSeg = segmentationPtr(item.get());
         if (relatedSeg->isInputSegmentationDependent() && !addedSegs.contains(relatedSeg))
         {
           itemsStack.push_front(relatedSeg);
@@ -116,7 +116,7 @@ RemoveSegmentation::RemoveSegmentation(SegmentationList segList,
       foreach(ModelItemSPtr item, segmentation->relatedItems(EspINA::OUT))
         if (item->type() == SEGMENTATION)
         {
-          SegmentationPtr relatedSeg = segmentationPtr(item.data());
+          SegmentationPtr relatedSeg = segmentationPtr(item.get());
           if (relatedSeg->isInputSegmentationDependent() && !addedSegs.contains(relatedSeg))
           {
             itemsStack.push_front(relatedSeg);
@@ -163,7 +163,7 @@ void RemoveSegmentation::undo()
 
   SegmentationList updatedSegs;
   foreach (SegmentationSPtr seg, m_segmentations)
-    updatedSegs << seg.data();
+    updatedSegs << seg.get();
 
   m_viewManager->updateSegmentationRepresentations(updatedSegs);
 }

@@ -20,7 +20,6 @@
 #ifndef ESPINA_BASICGRAPHICALREPRESENTATIONFACTORY_H
 #define ESPINA_BASICGRAPHICALREPRESENTATIONFACTORY_H
 
-#include <Core/Model/Filter.h>
 #include <GUI/Representations/GraphicalRepresentationFactory.h>
 
 namespace EspINA

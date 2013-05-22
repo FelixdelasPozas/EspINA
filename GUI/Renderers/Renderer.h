@@ -35,7 +35,7 @@
 namespace EspINA
 {
 
-  typedef QSharedPointer<IRenderer> IRendererSPtr;
+  typedef boost::shared_ptr<IRenderer> IRendererSPtr;
   /// Base class which define the API to render and manage
   /// item visibily in Espina Views (currently only supported
   /// for VolumeView class)

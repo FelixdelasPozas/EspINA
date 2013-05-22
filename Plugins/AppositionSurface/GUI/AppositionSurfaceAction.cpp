@@ -61,9 +61,9 @@ namespace EspINA
       SegmentationSList createdSegmentations;
       m_undoStack->beginMacro("Compute Synaptic Apposition Surface");
       TaxonomySPtr taxonomy = m_model->taxonomy();
-      if (taxonomy->element(SAS).isNull())
+      if (!taxonomy->element(SAS))
       {
-        m_undoStack->push(new AddTaxonomyElement(taxonomy->root().data(), SAS, m_model, QColor(255, 255, 0)));
+        m_undoStack->push(new AddTaxonomyElement(taxonomy->root().get(), SAS, m_model, QColor(255, 255, 0)));
         m_model->taxonomy()->element(SAS)->addProperty(QString("Dim_X"), QVariant("500"));
         m_model->taxonomy()->element(SAS)->addProperty(QString("Dim_Y"), QVariant("500"));
         m_model->taxonomy()->element(SAS)->addProperty(QString("Dim_Z"), QVariant("500"));

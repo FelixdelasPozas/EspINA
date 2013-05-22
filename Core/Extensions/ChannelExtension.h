@@ -51,7 +51,7 @@ namespace EspINA
     Channel *m_channel;
   };
 
-  typedef QSharedPointer<Channel::Extension> ChannelExtensionSPtr;
+  typedef boost::shared_ptr<Channel::Extension> ChannelExtensionSPtr;
   typedef QList<ChannelExtensionSPtr>      ChannelExtensionSList;
 
   Channel::ExtensionPtr channelExtensionPtr(ModelItem::Extension *extension);

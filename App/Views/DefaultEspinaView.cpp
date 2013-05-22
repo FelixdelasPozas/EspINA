@@ -189,7 +189,7 @@ void DefaultEspinaView::setModel(QAbstractItemModel* model)
 //----------------------------------------------------------------------------
 ISettingsPanelPtr DefaultEspinaView::settingsPanel()
 {
-  return m_settingsPanel.data();
+  return m_settingsPanel.get();
 }
 
 //-----------------------------------------------------------------------------

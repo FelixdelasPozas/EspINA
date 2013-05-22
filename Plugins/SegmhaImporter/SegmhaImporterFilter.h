@@ -134,7 +134,7 @@ namespace EspINA
     Nm                   m_inclusive[3], m_exclusive[3];
   };
 
-  typedef QSharedPointer<SegmhaImporterFilter> SegmhaImporterFilterSPtr;
+  typedef boost::shared_ptr<SegmhaImporterFilter> SegmhaImporterFilterSPtr;
 
 } // namespace EspINA
 

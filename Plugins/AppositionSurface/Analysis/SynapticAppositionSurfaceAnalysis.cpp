@@ -173,7 +173,7 @@ void SynapticAppositionSurfaceAnalysis::displayInformation()
       qWarning() << segmentation->data().toString() <<  "has several SAS segmentations associated";
     }
 
-    SegmentationPtr sas = segmentationPtr(relatedItems.first().data());
+    SegmentationPtr sas = segmentationPtr(relatedItems.first().get());
 
     for (int c = 0; c < sasColumns; ++c)
     {

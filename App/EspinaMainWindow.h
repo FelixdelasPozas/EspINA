@@ -157,7 +157,7 @@ namespace EspINA
     QList<QPluginLoader *> m_plugins;
 
     #ifdef TEST_ESPINA_MODELS
-    QSharedPointer<ModelTest>   m_modelTester;
+    boost::shared_ptr<ModelTest>   m_modelTester;
     #endif
 
     enum MenuState {OPEN_STATE, ADD_STATE};

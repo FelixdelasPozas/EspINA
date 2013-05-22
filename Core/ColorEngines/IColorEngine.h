@@ -54,7 +54,7 @@ namespace EspINA
     void lutModified();
   };
 
-  typedef QSharedPointer<ColorEngine> ColorEnginePtr;
+  typedef boost::shared_ptr<ColorEngine> ColorEnginePtr;
 
   Q_DECLARE_OPERATORS_FOR_FLAGS(ColorEngine::Composition)
 

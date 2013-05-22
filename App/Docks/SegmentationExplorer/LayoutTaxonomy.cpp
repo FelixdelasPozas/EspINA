@@ -99,7 +99,7 @@ public:
 
       TaxonomyElementPtr taxonomy = taxonomyElementPtr(item);
 
-      if (taxonomy->parent()->element(name).isNull())
+      if (!taxonomy->parent()->element(name))
       {
         m_undoStack->beginMacro("Rename Taxonomy");
         m_undoStack->push(new RenameTaxonomyCommand(taxonomy, name, m_model));
@@ -142,12 +142,12 @@ TaxonomyLayout::TaxonomyLayout(CheckableTreeView     *view,
 , m_changeTaxonomyColor(NULL)
 {
   m_proxy->setSourceModel(m_model);
-  m_sort->setSourceModel(m_proxy.data());
+  m_sort->setSourceModel(m_proxy.get());
   m_sort->setDynamicSortFilter(true);
 
-  connect(m_proxy.data(), SIGNAL(segmentationsDragged(SegmentationList,TaxonomyElementPtr)),
+  connect(m_proxy.get(), SIGNAL(segmentationsDragged(SegmentationList,TaxonomyElementPtr)),
           this,           SLOT  (segmentationsDragged(SegmentationList,TaxonomyElementPtr)));
-  connect(m_proxy.data(), SIGNAL(taxonomiesDragged(TaxonomyElementList,TaxonomyElementPtr)),
+  connect(m_proxy.get(), SIGNAL(taxonomiesDragged(TaxonomyElementList,TaxonomyElementPtr)),
           this,           SLOT  (taxonomiesDragged(TaxonomyElementList,TaxonomyElementPtr)));
 
   connect(m_model, SIGNAL(rowsInserted(const QModelIndex&, int, int)),
@@ -339,7 +339,7 @@ void TaxonomyLayout::deleteSelectedItems()
     deleteSegmentations(segmentations.toList());
     foreach(TaxonomyElementPtr taxonomy, additionalTaxonomies)
     {
-      if (!m_model->taxonomy()->element(taxonomy->qualifiedName()).isNull())
+      if (m_model->taxonomy()->element(taxonomy->qualifiedName()))
       {
         m_undoStack->push(new RemoveTaxonomyElementCommand(taxonomy, m_model));
       }
@@ -347,7 +347,7 @@ void TaxonomyLayout::deleteSelectedItems()
 
     foreach(TaxonomyElementPtr taxonomy, taxonomies)
     {
-      if (!m_model->taxonomy()->element(taxonomy->qualifiedName()).isNull())
+      if (m_model->taxonomy()->element(taxonomy->qualifiedName()))
       {
         m_undoStack->push(new RemoveTaxonomyElementCommand(taxonomy, m_model));
       }
@@ -436,7 +436,7 @@ void TaxonomyLayout::createTaxonomy()
   if (currentIndex.isValid())
     taxonomyItem = item(currentIndex);
   else if (m_view->model()->rowCount() > 0)
-    taxonomyItem = m_model->taxonomy()->elements().first().data();
+    taxonomyItem = m_model->taxonomy()->elements().first().get();
   else
     return;
 
@@ -446,7 +446,7 @@ void TaxonomyLayout::createTaxonomy()
 
     TaxonomyElementPtr selectedTaxonomy = taxonomyElementPtr(taxonomyItem);
     TaxonomyElementPtr parentTaxonomy   = selectedTaxonomy->parent();
-    if (parentTaxonomy->element(name).isNull())
+    if (!parentTaxonomy->element(name))
     {
       m_undoStack->beginMacro("Create Taxonomy");
       m_undoStack->push(new AddTaxonomyElement(parentTaxonomy, name, m_model, parentTaxonomy->color()));
@@ -469,7 +469,7 @@ void TaxonomyLayout::createSubTaxonomy()
     QString name = tr("New Taxonomy");
 
     TaxonomyElementPtr taxonomy = taxonomyElementPtr(taxonomyItem);
-    if (taxonomy->element(name).isNull())
+    if (!taxonomy->element(name))
     {
       m_undoStack->beginMacro("Create Taxonomy");
       m_undoStack->push(new AddTaxonomyElement(taxonomy, name, m_model, taxonomy->color()));
@@ -499,7 +499,7 @@ void TaxonomyLayout::taxonomiesDragged(TaxonomyElementList subTaxonomies,
   TaxonomyElementList validSubTaxonomies;
   foreach(TaxonomyElementPtr subTaxonomy, subTaxonomies)
   {
-    if (taxonomy->element(subTaxonomy->name()).isNull())
+    if (!taxonomy->element(subTaxonomy->name()))
     {
       bool nameConflict = false;
       foreach (TaxonomyElementPtr validSubTaxonomy, validSubTaxonomies)
@@ -540,7 +540,7 @@ void TaxonomyLayout::updateSelection()
   }
 
   bool enabled = (numTax == 1);
-  m_createTaxonomy->setEnabled(!m_model->taxonomy().isNull());
+  m_createTaxonomy->setEnabled(m_model->taxonomy());
   m_createSubTaxonomy->setEnabled(enabled);
   m_changeTaxonomyColor->setEnabled(enabled);
 }

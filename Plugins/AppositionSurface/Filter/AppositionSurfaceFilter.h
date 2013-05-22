@@ -86,8 +86,8 @@ namespace EspINA
 
     static const ArgumentId ORIGIN;
 
-    typedef AppositionSurfaceFilter *               Pointer;
-    typedef QSharedPointer<AppositionSurfaceFilter> SPointer;
+    typedef AppositionSurfaceFilter *                  Pointer;
+    typedef boost::shared_ptr<AppositionSurfaceFilter> SPointer;
 
   public:
     AppositionSurfaceFilter(NamedInputs inputs,

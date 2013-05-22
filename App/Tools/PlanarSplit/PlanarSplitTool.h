@@ -64,7 +64,7 @@ namespace EspINA
     PlanarSplitWidget *m_widget;
   };
 
-  typedef QSharedPointer<PlanarSplitTool> PlanarSplitToolSPtr;
+  typedef boost::shared_ptr<PlanarSplitTool> PlanarSplitToolSPtr;
 
 } // namespace EspINA
 

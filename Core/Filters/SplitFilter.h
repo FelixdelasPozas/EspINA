@@ -74,7 +74,7 @@ namespace EspINA
     RawSegmentationVolumeSPtr m_volumes[2];
   };
 
-  typedef QSharedPointer<SplitFilter> SplitFilterPtr;
+  typedef boost::shared_ptr<SplitFilter> SplitFilterSPtr;
 
 } // namespace EspINA
 

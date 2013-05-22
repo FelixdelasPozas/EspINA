@@ -135,10 +135,10 @@ void DefaultContextualMenu::changeFinalFlag()
       seg->setHierarchyRenderingType(HierarchyItem::Undefined, false);
 
     foreach(SegmentationSPtr ancestor, seg->componentOf())
-      rootSegmentations << ancestor.data();
+      rootSegmentations << ancestor.get();
 
     foreach(SegmentationSPtr successor, seg->components())
-      dependentSegmentations << successor.data();
+      dependentSegmentations << successor.get();
   }
 
   foreach(SegmentationPtr seg, dependentSegmentations)
@@ -158,7 +158,7 @@ void DefaultContextualMenu::changeFinalFlag()
       seg->setHierarchyRenderingType(HierarchyItem::Undefined, false);
 
     foreach(SegmentationSPtr successor, seg->components())
-      dependentSegmentations << successor.data();
+      dependentSegmentations << successor.get();
   }
 
   foreach(SegmentationPtr seg, rootSegmentations)
@@ -282,7 +282,7 @@ void DefaultContextualMenu::renameSegmentation()
     bool exists = false;
     foreach (SegmentationSPtr existinSegmentation, m_model->segmentations())
     {
-      exists |= (existinSegmentation->data().toString() == alias && segmentation != existinSegmentation.data());
+      exists |= (existinSegmentation->data().toString() == alias && segmentation != existinSegmentation.get());
     }
 
     if (exists)
@@ -374,9 +374,9 @@ void DefaultContextualMenu::createSetLevelOfDetailEntry()
   {
     enabled |= seg->IsFinalNode();
     foreach(SegmentationSPtr ancestor, seg->componentOf())
-      ancestors <<  ancestor.data();
+      ancestors <<  ancestor.get();
     foreach(SegmentationSPtr successor, seg->components())
-      successors << successor.data();
+      successors << successor.get();
   }
 
   foreach(SegmentationPtr seg, ancestors)
@@ -388,7 +388,7 @@ void DefaultContextualMenu::createSetLevelOfDetailEntry()
     }
     m_segmentations.append(seg);
     foreach(SegmentationSPtr ancestor, seg->componentOf())
-      ancestors <<  ancestor.data();
+      ancestors <<  ancestor.get();
 
     enabled |= seg->IsFinalNode();
   }
@@ -402,7 +402,7 @@ void DefaultContextualMenu::createSetLevelOfDetailEntry()
     }
     m_segmentations.append(seg);
     foreach(SegmentationSPtr successor, seg->components())
-      successors << successor.data();
+      successors << successor.get();
 
     enabled |= seg->IsFinalNode();
   }

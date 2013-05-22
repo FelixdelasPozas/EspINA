@@ -220,7 +220,7 @@ void SegmentationExplorer::changeLayout(int index)
 
   m_layout = m_layouts[index];
 #ifdef TEST_ESPINA_MODELS
-  m_modelTester = QSharedPointer<ModelTest>(new ModelTest(m_layout->model()));
+  m_modelTester = boost::shared_ptr<ModelTest>(new ModelTest(m_layout->model()));
 #endif
   m_gui->view->setModel(m_layout->model());
 

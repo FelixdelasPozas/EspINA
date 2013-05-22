@@ -109,7 +109,7 @@ namespace EspINA
   };
 
   typedef EspinaFactory *EspinaFactoryPtr;
-  //typedef QSharedPointer<EspinaFactory> EspinaFactorySPtr;
+  //typedef boost::shared_ptr<EspinaFactory> EspinaFactorySPtr;
 
 }// namespace EspINA
 

@@ -55,7 +55,7 @@ void ChangeTaxonomyCommand::redo()
   foreach(SegmentationSPtr segmentation, m_oldTaxonomies.keys())
   {
     m_model->changeTaxonomy(segmentation, m_taxonomy);
-    segmentations << segmentation.data();
+    segmentations << segmentation.get();
   }
   m_viewManager->updateSegmentationRepresentations(segmentations);
 }
@@ -67,7 +67,7 @@ void ChangeTaxonomyCommand::undo()
   foreach(SegmentationSPtr segmentation, m_oldTaxonomies.keys())
   {
     m_model->changeTaxonomy(segmentation, m_oldTaxonomies[segmentation]);
-    segmentations << segmentation.data();
+    segmentations << segmentation.get();
   }
   m_viewManager->updateSegmentationRepresentations(segmentations);
 }

@@ -39,7 +39,6 @@ namespace EspINA
 {
   class ViewManager;
 
-  typedef QSharedPointer<Filter> FilterSPtr;
   typedef QList<FilterSPtr>      FilterSList;
 
   typedef QList<ChannelRepresentationSPtr>      ChannelRepresentationSList;
@@ -161,7 +160,7 @@ namespace EspINA
     /// Whether the filter needs to be updated or not
     /// A filter will need an update if there exists an invalid output or no outputs exist at all
     virtual bool needUpdate() const = 0;
- 
+
     /// Whether the filter needs to be updated or not
     /// Default implementation will request an update if there is no filter output
     /// or it is an invalid output

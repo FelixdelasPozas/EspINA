@@ -41,7 +41,6 @@
 namespace EspINA
 {
 
-  typedef QSharedPointer<Segmentation> SegmentationSPtr;
   typedef QList<SegmentationSPtr> SegmentationSList;
 
   class Segmentation

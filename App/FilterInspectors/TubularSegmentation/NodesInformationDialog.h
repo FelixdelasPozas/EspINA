@@ -57,7 +57,7 @@ namespace EspINA
       QUndoStack                           *m_undoStack;
       ViewManager                          *m_viewManager;
       EspinaModel                          *m_model;
-      QSharedPointer<QSortFilterProxyModel> m_sort;
+      boost::shared_ptr<QSortFilterProxyModel> m_sort;
       TubularSegmentationFilter::Pointer    m_filter;
       QWidget                              *m_lastWidget;
       ITool                                *tubularTool;

@@ -64,7 +64,7 @@ namespace EspINA
 
     GUI *m_gui;
 
-    QSharedPointer<QSortFilterProxyModel> m_sort;
+    boost::shared_ptr<QSortFilterProxyModel> m_sort;
   };
 
 } // namespace EspINA

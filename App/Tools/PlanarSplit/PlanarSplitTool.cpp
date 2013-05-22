@@ -21,6 +21,7 @@
 #include <Undo/SplitUndoCommand.h>
 #include <GUI/vtkWidgets/PlanarSplitWidget.h>
 #include <GUI/ViewManager.h>
+#include <GUI/Representations/BasicGraphicalRepresentationFactory.h>
 #include <Core/Model/Segmentation.h>
 #include <Core/Model/EspinaFactory.h>
 #include <Core/Model/EspinaModel.h>
@@ -143,8 +144,9 @@ void PlanarSplitTool::splitSegmentation()
   inputs[SplitFilter::INPUTLINK] = seg->filter();
   args[Filter::INPUTS] = Filter::NamedInput(SplitFilter::INPUTLINK, seg->outputId());
 
-  SplitFilterPtr filter(new SplitFilter(inputs, args, SplitUndoCommand::FILTER_TYPE));
+  SplitFilterSPtr filter(new SplitFilter(inputs, args, SplitUndoCommand::FILTER_TYPE));
   filter->setStencil(m_widget->getStencilForVolume(segVolume));
+  SetBasicGraphicalRepresentationFactory(filter);
   filter->update();
 
   if (filter->outputs().size() == 2)
@@ -184,7 +186,7 @@ void PlanarSplitTool::splitSegmentation()
     }
 
     ViewManager::Selection selection;
-    selection << splitSeg[0].data();
+    selection << splitSeg[0].get();
     m_viewManager->setSelection(selection);
   }
   else

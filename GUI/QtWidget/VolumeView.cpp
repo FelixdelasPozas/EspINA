@@ -153,12 +153,12 @@ void VolumeView::addRendererControls(IRendererSPtr renderer)
   button->setChecked(false);
   button->setIconSize(QSize(22, 22));
   button->setMaximumSize(QSize(32, 32));
-  button->setToolTip(renderer.data()->tooltip());
-  button->setObjectName(renderer.data()->name());
-  connect(button, SIGNAL(clicked(bool)), renderer.data(), SLOT(setEnable(bool)));
+  button->setToolTip(renderer.get()->tooltip());
+  button->setObjectName(renderer.get()->name());
+  connect(button, SIGNAL(clicked(bool)), renderer.get(), SLOT(setEnable(bool)));
   connect(button, SIGNAL(clicked(bool)), this, SLOT(countEnabledRenderers(bool)));
-  connect(button, SIGNAL(destroyed(QObject*)), renderer.data(), SLOT(deleteLater()));
-  connect(renderer.data(), SIGNAL(renderRequested()), this, SLOT(updateView()));
+  connect(button, SIGNAL(destroyed(QObject*)), renderer.get(), SLOT(deleteLater()));
+  connect(renderer.get(), SIGNAL(renderRequested()), this, SLOT(updateView()));
   m_controlLayout->addWidget(button);
   renderer->setVTKRenderer(this->m_renderer);
 
@@ -172,7 +172,7 @@ void VolumeView::addRendererControls(IRendererSPtr renderer)
 
   foreach(ChannelPtr channel, m_channelStates.keys())
     if (renderer->itemCanBeRendered(channel))
-      reinterpret_cast<CrosshairRenderer *>(renderer.data())->addItem(channel);
+      reinterpret_cast<CrosshairRenderer *>(renderer.get())->addItem(channel);
 
   m_itemRenderers << renderer;
   m_renderers[button] = renderer;
@@ -234,7 +234,7 @@ void VolumeView::removeRendererControls(const QString name)
     }
   }
 
-  if (!removedRenderer.isNull())
+  if (removedRenderer)
   {
     if (!removedRenderer->isHidden() && (removedRenderer->getRendererType() & IRenderer::SEGMENTATION))
       this->m_numEnabledSegmentationRenders--;
@@ -333,7 +333,7 @@ void VolumeView::centerViewOn(Nm *center, bool notUsed)
   {
     if (QString("Crosshairs") == ren->name())
     {
-      CrosshairRenderer *crossren = reinterpret_cast<CrosshairRenderer *>(ren.data());
+      CrosshairRenderer *crossren = reinterpret_cast<CrosshairRenderer *>(ren.get());
       crossren->setCrosshair(center);
     }
   }
@@ -1153,7 +1153,7 @@ void VolumeView::changePlanePosition(PlaneType plane, Nm dist)
   {
     if (QString("Crosshairs") == ren->name())
     {
-      CrosshairRenderer *crossren = reinterpret_cast<CrosshairRenderer *>(ren.data());
+      CrosshairRenderer *crossren = reinterpret_cast<CrosshairRenderer *>(ren.get());
       crossren->setPlanePosition(plane, dist);
       needUpdate = true;
     }
@@ -1314,7 +1314,7 @@ void VolumeView::scrollBarMoved(int value)
   foreach(IRendererSPtr renderer, m_renderers.values())
     if (renderer->getRendererType() & IRenderer::CHANNEL)
     {
-      CrosshairRenderer *crossRender = dynamic_cast<CrosshairRenderer *>(renderer.data());
+      CrosshairRenderer *crossRender = dynamic_cast<CrosshairRenderer *>(renderer.get());
       if (crossRender != NULL)
         crossRender->setCrosshair(point);
     }

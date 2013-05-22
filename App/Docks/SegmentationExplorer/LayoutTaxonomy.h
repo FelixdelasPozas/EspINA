@@ -53,7 +53,7 @@ namespace EspINA
     virtual void createSpecificControls(QHBoxLayout *specificControlLayout);
 
     virtual QAbstractItemModel* model()
-    { return m_sort.data(); }
+    { return m_sort.get(); }
 
     virtual ModelItemPtr item(const QModelIndex& index) const
     { return indexPtr(m_sort->mapToSource(index)); }
@@ -90,8 +90,8 @@ namespace EspINA
     void disconnectSelectionModel();
 
   private:
-    QSharedPointer<TaxonomyProxy> m_proxy;
-    QSharedPointer<SortFilter>    m_sort;
+    boost::shared_ptr<TaxonomyProxy> m_proxy;
+    boost::shared_ptr<SortFilter>    m_sort;
 
     TaxonomyItemDelegate *m_delegate;
     QPushButton *m_createTaxonomy;

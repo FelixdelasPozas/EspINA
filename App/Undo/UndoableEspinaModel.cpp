@@ -55,7 +55,7 @@ TaxonomyElementSPtr UndoableEspinaModel::createTaxonomyElement(TaxonomyElementPt
 //---------------------------------------------------------------------------
 TaxonomyElementSPtr UndoableEspinaModel::createTaxonomyElement(TaxonomyElementSPtr parent, const QString &name)
 {
-  m_undoStack->push(new AddTaxonomyElement(parent.data(), name, m_model, parent->color()));
+  m_undoStack->push(new AddTaxonomyElement(parent.get(), name, m_model, parent->color()));
   return parent->element(name);
 }
 
@@ -68,7 +68,7 @@ void UndoableEspinaModel::addTaxonomyElement(TaxonomyElementSPtr parent, Taxonom
 //---------------------------------------------------------------------------
 void UndoableEspinaModel::removeTaxonomyElement(TaxonomyElementSPtr parent, TaxonomyElementSPtr element)
 {
-  m_undoStack->push(new RemoveTaxonomyElementCommand(element.data(), m_model));
+  m_undoStack->push(new RemoveTaxonomyElementCommand(element.get(), m_model));
 }
 
 //---------------------------------------------------------------------------

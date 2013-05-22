@@ -11,7 +11,9 @@
 // Qt
 #include <QStringList>
 #include <QString>
-#include <QSharedPointer>
+
+// Boost
+#include <boost/shared_ptr.hpp>
 
 namespace EspINA
 {
@@ -48,8 +50,8 @@ namespace EspINA
       QStringList m_unitsStrings;
   };
 
-  typedef Measure *               MeasurePtr;
-  typedef QSharedPointer<Measure> MeasureSPtr;
+  typedef Measure *                  MeasurePtr;
+  typedef boost::shared_ptr<Measure> MeasureSPtr;
 
 
 } /* namespace EspINA */

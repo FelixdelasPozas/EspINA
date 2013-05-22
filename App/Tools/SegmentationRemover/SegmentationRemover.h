@@ -52,7 +52,7 @@ namespace EspINA
     PixelSelector *m_picker;
   };
 
-  typedef QSharedPointer<SegmentationRemover> SegmentationRemoverSPtr;
+  typedef boost::shared_ptr<SegmentationRemover> SegmentationRemoverSPtr;
 
 } // namespace EspINA
 

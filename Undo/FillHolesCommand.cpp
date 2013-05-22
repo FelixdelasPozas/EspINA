@@ -72,7 +72,7 @@ void FillHolesCommand::redo()
     Connection oldConnection  = m_oldConnections[i];
     Connection newConnection  = m_newConnections[i];
 
-    segmentations << seg.data();
+    segmentations << seg.get();
 
     m_model->removeRelation(oldConnection.first, seg, Filter::CREATELINK);
     m_model->addFilter(newConnection.first);
@@ -95,7 +95,7 @@ void FillHolesCommand::undo()
     Connection oldConnection  = m_oldConnections[i];
     Connection newConnection  = m_newConnections[i];
 
-    segmentations << seg.data();
+    segmentations << seg.get();
 
     m_model->removeRelation(newConnection.first, seg, Filter::CREATELINK);
     m_model->removeRelation(oldConnection.first, newConnection.first, FillHolesFilter::INPUTLINK);

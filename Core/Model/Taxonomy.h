@@ -34,7 +34,6 @@ namespace EspINA
 {
   const QString DEFAULT_TAXONOMY_COLOR = "#00FF00"; //Red
 
-  typedef QSharedPointer<TaxonomyElement> TaxonomyElementSPtr;
   typedef QList<TaxonomyElementSPtr>      TaxonomyElementSList;
 
   class TaxonomyElement
@@ -118,8 +117,6 @@ namespace EspINA
   TaxonomyElementPtr  taxonomyElementPtr(ModelItemPtr   item);
   TaxonomyElementSPtr taxonomyElementPtr(ModelItemSPtr &item);
 
-
-  typedef QSharedPointer<Taxonomy> TaxonomySPtr;
   /// Tree-like structure representing taxonomical relationships
   class Taxonomy
   {

@@ -74,7 +74,7 @@ namespace EspINA
     ISettingsPanelPrototype m_settingsPanel;
   };
 
-  typedef QSharedPointer<RectangularVOI> RectangularVOISPtr;
+  typedef boost::shared_ptr<RectangularVOI> RectangularVOISPtr;
 
 } // namespace EspINA
 

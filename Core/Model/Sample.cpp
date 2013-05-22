@@ -138,7 +138,7 @@ ChannelList Sample::channels()
 
   foreach(ModelItemSPtr item, relatedItems(EspINA::OUT, Channel::STAIN_LINK))
   {
-    channels << channelPtr(item.data());
+    channels << channelPtr(item.get());
   }
 
   return channels;
@@ -155,7 +155,7 @@ SegmentationList Sample::segmentations()
     ModelItemSPtr item = items.takeFirst();
     if (EspINA::SEGMENTATION == item->type())
     {
-      segmentations << segmentationPtr(item.data());
+      segmentations << segmentationPtr(item.get());
     }
     items << item->relatedItems(EspINA::OUT, Relations::LOCATION);
   }
@@ -177,8 +177,8 @@ SamplePtr EspINA::samplePtr(ModelItemPtr item)
 SampleSPtr EspINA::samplePtr(ModelItemSPtr& item)
 {
   Q_ASSERT(SAMPLE == item->type());
-  SampleSPtr ptr = qSharedPointerDynamicCast<Sample>(item);
-  Q_ASSERT(!ptr.isNull());
+  SampleSPtr ptr = boost::dynamic_pointer_cast<Sample>(item);
+  Q_ASSERT(ptr != NULL);
 
   return ptr;
 }

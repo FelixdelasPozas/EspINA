@@ -22,8 +22,8 @@
 
 #include <QObject>
 
-#include <QSharedPointer>
 #include <QCursor>
+#include <boost/shared_ptr.hpp>
 
 class QEvent;
 
@@ -43,8 +43,7 @@ namespace EspINA
     virtual void lostEvent(EspinaRenderView*) {};
   };
 
-  typedef QSharedPointer<ITool> IToolSPtr;
-
+  typedef boost::shared_ptr<ITool> IToolSPtr;
 } // namespace EspINA
 
 #endif // ITOOL_H

@@ -166,7 +166,7 @@ ChannelPtr AdaptiveEdges::findChannel(const QString &id,
       && channel->outputId()           == outputId
       && channel->filter()->cacheDir() == tmpDir)
     {
-      extensionChannel = channel.data();
+      extensionChannel = channel.get();
     }
     i++;
   }

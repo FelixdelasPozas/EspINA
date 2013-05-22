@@ -77,7 +77,7 @@ namespace EspINA
     m_sort->setDynamicSortFilter(true);
     m_sort->setSortRole(Qt::UserRole + 1);
 
-    m_list->setModel(m_sort.data());
+    m_list->setModel(m_sort.get());
     m_list->setRootIndex(m_sort->mapFromSource(m_model->segmentationRoot()));
 
     connect(m_list, SIGNAL(clicked(QModelIndex)), this, SLOT(showSpineInformation(QModelIndex)));
@@ -113,7 +113,7 @@ namespace EspINA
 
         QString separator = " ";
         QTextStream out(&spineFile);
-        TubularSegmentationFilter *source = reinterpret_cast<TubularSegmentationFilter*>(seg->filter().data());
+        TubularSegmentationFilter *source = reinterpret_cast<TubularSegmentationFilter*>(seg->filter().get());
         foreach(QVector4D node, source->nodes())
         {
           out << node.x() << separator << node.y() << separator

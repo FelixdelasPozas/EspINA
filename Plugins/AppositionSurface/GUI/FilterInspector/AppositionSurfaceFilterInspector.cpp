@@ -30,7 +30,7 @@ namespace EspINA
   {
     setupUi(this);
 
-    m_filter = AppositionSurfaceFilter::Pointer(filter.data());
+    m_filter = dynamic_cast<AppositionSurfaceFilter *>(filter.get());
     m_origin->setText(m_filter->getOriginSegmentation());
 
     double area =  0; // m_filter->getArea();

@@ -61,7 +61,7 @@ LUTPtr TaxonomyColorEngine::lut(SegmentationPtr seg)
     m_LUT.insert(lutName, seg_lut);
 
     if (lutName != "")
-      connect(seg->taxonomy().data(), SIGNAL(colorChanged(TaxonomyElementPtr)),
+      connect(seg->taxonomy().get(), SIGNAL(colorChanged(TaxonomyElementPtr)),
               this, SLOT(updateTaxonomyColor(TaxonomyElementPtr)));
   }
   else

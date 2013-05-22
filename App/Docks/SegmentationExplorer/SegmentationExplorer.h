@@ -106,7 +106,7 @@ namespace EspINA
 
   private:
     #ifdef TEST_ESPINA_MODELS
-    QSharedPointer<ModelTest>   m_modelTester;
+    boost::shared_ptr<ModelTest>   m_modelTester;
     #endif
   };
 

@@ -22,8 +22,6 @@
 
 #include "ITool.h"
 
-#include <qsharedpointer.h>
-
 namespace EspINA
 {
 
@@ -36,7 +34,7 @@ namespace EspINA
     virtual Region region() = 0;
   };
 
-  typedef QSharedPointer<IVOI> IVOISPtr;
+  typedef boost::shared_ptr<IVOI> IVOISPtr;
 
 } // namespace EspINA
 

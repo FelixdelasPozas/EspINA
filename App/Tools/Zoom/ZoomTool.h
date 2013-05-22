@@ -39,7 +39,7 @@ namespace EspINA
     QCursor zoomCursor;
   };
 
-  typedef QSharedPointer<ZoomTool> ZoomToolSPtr;
+  typedef boost::shared_ptr<ZoomTool> ZoomToolSPtr;
 
 } // namespace EspINA
 

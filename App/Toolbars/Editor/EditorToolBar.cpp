@@ -121,6 +121,7 @@ namespace EspINA
             break;
         }
         filter->setFilterInspector(filterInspector);
+        SetBasicGraphicalRepresentationFactory(filter);
         filter->update();
 
         if (filter->isOutputEmpty())
@@ -148,7 +149,7 @@ namespace EspINA
         Connection oldConnection = m_oldConnections[i];
         Connection newConnection = m_newConnections[i];
 
-        segmentations << seg.data();
+        segmentations << seg.get();
 
         m_model->removeRelation(oldConnection.first, seg, Filter::CREATELINK);
         m_model->addFilter(newConnection.first);
@@ -173,7 +174,7 @@ namespace EspINA
         Connection oldConnection = m_oldConnections[i];
         Connection newConnection = m_newConnections[i];
 
-        segmentations << seg.data();
+        segmentations << seg.get();
 
         m_model->removeRelation(newConnection.first, seg, Filter::CREATELINK);
         m_model->removeRelation(oldConnection.first, newConnection.first, MorphologicalEditionFilter::INPUTLINK);
@@ -281,7 +282,7 @@ void EditorToolBar::initFactoryExtension(EspinaFactoryPtr factory)
   factory->registerFilter(this, FillHolesCommand::FILTER_TYPE);
   factory->registerFilter(this, FilledContour::FILTER_TYPE);
 
-  factory->registerSettingsPanel(editorSettings.data());
+  factory->registerSettingsPanel(editorSettings.get());
 }
 
 //----------------------------------------------------------------------------
@@ -600,9 +601,9 @@ void EditorToolBar::initDrawTools()
   CircularBrushSPtr circularBrush(new CircularBrush(m_model,
                                                     m_undoStack,
                                                     m_viewManager));
-  connect(circularBrush.data(), SIGNAL(stopDrawing()),
+  connect(circularBrush.get(), SIGNAL(stopDrawing()),
           this, SLOT(cancelDrawOperation()));
-  connect(circularBrush.data(), SIGNAL(brushModeChanged(Brush::BrushMode)),
+  connect(circularBrush.get(), SIGNAL(brushModeChanged(Brush::BrushMode)),
           this, SLOT(changeCircularBrushMode(Brush::BrushMode)));
 
   m_drawTools[discTool] =  circularBrush;
@@ -616,9 +617,9 @@ void EditorToolBar::initDrawTools()
   SphericalBrushSPtr sphericalBrush(new SphericalBrush(m_model,
                                                        m_undoStack,
                                                        m_viewManager));
-  connect(sphericalBrush.data(), SIGNAL(stopDrawing()),
+  connect(sphericalBrush.get(), SIGNAL(stopDrawing()),
           this, SLOT(cancelDrawOperation()));
-  connect(sphericalBrush.data(), SIGNAL(brushModeChanged(Brush::BrushMode)),
+  connect(sphericalBrush.get(), SIGNAL(brushModeChanged(Brush::BrushMode)),
           this, SLOT(changeSphericalBrushMode(Brush::BrushMode)));
 
   m_drawTools[sphereTool] = sphericalBrush;
@@ -633,9 +634,9 @@ void EditorToolBar::initDrawTools()
                                               m_undoStack,
                                               m_viewManager));
 
-  connect(contour.data(), SIGNAL(changeMode(Brush::BrushMode)),
+  connect(contour.get(), SIGNAL(changeMode(Brush::BrushMode)),
           this, SLOT(changeContourMode(Brush::BrushMode)));
-  connect(contour.data(), SIGNAL(stopDrawing()),
+  connect(contour.get(), SIGNAL(stopDrawing()),
           this, SLOT(cancelDrawOperation()));
 
   m_drawTools[contourTool] = contour;
@@ -661,7 +662,7 @@ void EditorToolBar::initSplitTools()
   PlanarSplitToolSPtr planarSplitTool(new PlanarSplitTool(m_model,
                                                           m_undoStack,
                                                           m_viewManager));
-  connect(planarSplitTool.data(), SIGNAL(splittingStopped()),
+  connect(planarSplitTool.get(), SIGNAL(splittingStopped()),
           this, SLOT(cancelSplitOperation()));
 
   m_splitTools[planarSplit] = planarSplitTool;
@@ -783,7 +784,7 @@ void EditorToolBar::abortOperation()
   {
     QAction *activeAction = m_splitToolSelector->getCurrentAction();
     IToolSPtr activeTool = m_splitTools[activeAction];
-    reinterpret_cast<PlanarSplitTool *>(activeTool.data())->stopSplitting();
+    reinterpret_cast<PlanarSplitTool *>(activeTool.get())->stopSplitting();
     cancelSplitOperation();
   }
 

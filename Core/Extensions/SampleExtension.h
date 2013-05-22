@@ -41,7 +41,7 @@
 //     SamplePtr m_sample;
 //   };
 // 
-//   typedef QSharedPointer<SampleExtension> SampleExtensionSPtr;
+//   typedef boost::shared_ptr<SampleExtension> SampleExtensionSPtr;
 //   typedef QList<SampleExtensionPtr>       SampleExtensionSList;
 // 
 //   SampleExtensionPtr sampleExtensionPtr(ModelItemExtensionPtr extension);

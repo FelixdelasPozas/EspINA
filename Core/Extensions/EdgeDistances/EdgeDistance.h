@@ -94,7 +94,7 @@ namespace EspINA
   };
 
   typedef EdgeDistance  *EdgeDistancePtr;
-  typedef QSharedPointer<EdgeDistancePtr> EdgeDistanceSPtr;
+  typedef boost::shared_ptr<EdgeDistancePtr> EdgeDistanceSPtr;
 
   EdgeDistancePtr edgeDistancePtr(ModelItem::Extension *extension);
 

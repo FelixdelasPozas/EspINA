@@ -40,7 +40,7 @@ namespace EspINA
                                         Nm radius, PlaneType plane);
   };
 
-  typedef QSharedPointer<SphericalBrush> SphericalBrushSPtr;
+  typedef boost::shared_ptr<SphericalBrush> SphericalBrushSPtr;
 
 } // namespace EspINA
 

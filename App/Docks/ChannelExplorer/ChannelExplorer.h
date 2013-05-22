@@ -83,14 +83,14 @@ namespace EspINA
     QUndoStack  *m_undoStack;
     ViewManager *m_viewManager;
 
-    QSharedPointer<ChannelProxy> m_channelProxy;
-    QSharedPointer<QSortFilterProxyModel> m_sort;
+    boost::shared_ptr<ChannelProxy>          m_channelProxy;
+    boost::shared_ptr<QSortFilterProxyModel> m_sort;
 
     CentralWidget *m_gui;
     QMap<Channel *, ChannelInspector *> m_informationDialogs;
 
     #ifdef TEST_ESPINA_MODELS
-    QSharedPointer<ModelTest>   m_modelTester;
+    boost::shared_ptr<ModelTest>   m_modelTester;
     #endif
   };
 

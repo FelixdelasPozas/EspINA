@@ -34,7 +34,6 @@ FilterInspectorDock::FilterInspectorDock(QUndoStack *undoStack,
 : IDockWidget(parent)
 , m_undoStack(undoStack)
 , m_viewManager(vm)
-, m_filter(NULL)
 , m_seg   (NULL)
 {
   setObjectName("Filter Inspector Panel");
@@ -108,7 +107,7 @@ void FilterInspectorDock::updatePannel()
     }
     changeWidget = true;
   }
-  else if ((!m_filter.isNull() && m_filter != seg->filter())|| (m_seg == NULL && seg == NULL && widget() == NULL))
+  else if ((m_filter && m_filter != seg->filter())|| (m_seg == NULL && seg == NULL && widget() == NULL))
   {
     changeWidget = true;
   }
@@ -151,7 +150,7 @@ void FilterInspectorDock::updatePannel()
     }
     else
     {
-      m_filter.clear();
+      m_filter.reset();
       m_seg = NULL;
 
       QWidget *noWidgetInspector = new QWidget();

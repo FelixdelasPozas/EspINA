@@ -96,7 +96,7 @@ void CountingFrameExtension::loadCache(QuaZipFile  &file,
             && channel->outputId()           == fields[1].toInt()
             && channel->filter()->cacheDir() == tmpDir)
           {
-            extensionChannel = channel.data();
+            extensionChannel = channel.get();
           }
           i++;
         }

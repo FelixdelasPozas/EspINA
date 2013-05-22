@@ -25,6 +25,7 @@
 
 #include <Core/Outputs/MeshType.h>
 #include <Core/Outputs/VolumeRepresentation.h>
+#include <Core/Model/Filter.h>
 
 using namespace EspINA;
 
@@ -52,5 +53,5 @@ void EspINA::SetBasicGraphicalRepresentationFactory(Filter *filter)
 
 void EspINA::SetBasicGraphicalRepresentationFactory(FilterSPtr filter)
 {
-  SetBasicGraphicalRepresentationFactory(filter.data());
+  SetBasicGraphicalRepresentationFactory(filter.get());
 }

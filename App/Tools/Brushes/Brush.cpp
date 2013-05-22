@@ -58,8 +58,6 @@ Brush::Brush(EspinaModel *model,
 , m_mode(CREATE)
 , m_erasing(false)
 , m_brush(new BrushPicker())
-, m_currentSource(NULL)
-, m_currentSeg(NULL)
 , m_currentOutput(-1)
 {
   connect(m_brush, SIGNAL(stroke(PickableItemPtr, ISelector::WorldRegion, Nm, PlaneType)),
@@ -135,7 +133,7 @@ bool Brush::filterEvent(QEvent* e, EspinaRenderView* view)
         QKeyEvent *ke = static_cast<QKeyEvent *>(e);
         if (ke->key() == Qt::Key_Control && ke->count() == 1)
         {
-          m_brush->DrawingOff(view, m_currentSeg.data());
+          m_brush->DrawingOff(view, m_currentSeg.get());
           m_erasing = true;
         }
       }
@@ -145,7 +143,7 @@ bool Brush::filterEvent(QEvent* e, EspinaRenderView* view)
           QMouseEvent *me = static_cast<QMouseEvent *>(e);
           if (Qt::CTRL == me->modifiers())
           {
-            m_brush->DrawingOff(view, m_currentSeg.data());
+            m_brush->DrawingOff(view, m_currentSeg.get());
             m_erasing = true;
           }
         }
@@ -193,7 +191,7 @@ void Brush::setInUse(bool value)
   else
   {
     if (m_currentSeg)
-      disconnect(m_currentSeg.data(), SIGNAL(modified(ModelItemPtr)),
+      disconnect(m_currentSeg.get(), SIGNAL(modified(ModelItemPtr)),
                  this, SLOT(segmentationHasBeenModified(ModelItemPtr)));
 
     emit stopDrawing();
@@ -243,7 +241,7 @@ void Brush::drawStroke(PickableItemPtr item,
     m_undoStack->endMacro();
 
     ViewManager::Selection selection;
-    selection << m_currentSeg.data();
+    selection << m_currentSeg.get();
     m_viewManager->setSelection(selection);
 
     m_currentSource = m_currentSeg->filter();
@@ -252,7 +250,7 @@ void Brush::drawStroke(PickableItemPtr item,
     QImage hasSeg = QImage();
     m_brush->setBrushImage(hasSeg);
     m_brush->setBorderColor(QColor(Qt::green));
-    connect(m_currentSeg.data(), SIGNAL(modified(ModelItemPtr)), this, SLOT(segmentationHasBeenModified(ModelItemPtr)));
+    connect(m_currentSeg.get(), SIGNAL(modified(ModelItemPtr)), this, SLOT(segmentationHasBeenModified(ModelItemPtr)));
   }
   else
   {
@@ -290,7 +288,7 @@ void Brush::drawStroke(PickableItemPtr item,
       }
       catch (...)
       {
-        m_undoStack->push(new RemoveSegmentation(m_currentSeg.data(), m_model, m_viewManager));
+        m_undoStack->push(new RemoveSegmentation(m_currentSeg.get(), m_model, m_viewManager));
         initBrushTool();
       }
     }
@@ -300,7 +298,7 @@ void Brush::drawStroke(PickableItemPtr item,
 
   if (m_currentSeg)
   {
-    m_viewManager->updateSegmentationRepresentations(m_currentSeg.data());
+    m_viewManager->updateSegmentationRepresentations(m_currentSeg.get());
     m_currentSeg->modifiedByUser(userName());
   }
 }
@@ -309,7 +307,7 @@ void Brush::drawStroke(PickableItemPtr item,
 void Brush::segmentationHasBeenModified(ModelItemPtr item)
 {
   Segmentation *seg = dynamic_cast<Segmentation *>(item);
-  if (seg != m_currentSeg)
+  if (seg != m_currentSeg.get())
   {
     disconnect(seg, SIGNAL(modified(ModelItemPtr)), this, SLOT(segmentationHasBeenModified(ModelItemPtr)));
     return;
@@ -337,14 +335,14 @@ void Brush::initBrushTool()
   setBrushRadius();
 
   if (m_currentSeg)
-    disconnect(m_currentSeg.data(), SIGNAL(modified(ModelItemPtr)),
+    disconnect(m_currentSeg.get(), SIGNAL(modified(ModelItemPtr)),
                this, SLOT(segmentationHasBeenModified(ModelItemPtr)));
 
   SegmentationList segs = m_viewManager->selectedSegmentations();
   if (segs.size() == 1)
   {
     m_currentSeg = m_model->findSegmentation(segs.first());
-    connect(m_currentSeg.data(), SIGNAL(modified(ModelItemPtr)),
+    connect(m_currentSeg.get(), SIGNAL(modified(ModelItemPtr)),
             this, SLOT(segmentationHasBeenModified(ModelItemPtr)));
     m_currentSource = m_currentSeg->filter();
     m_currentOutput = m_currentSeg->outputId();
@@ -352,12 +350,12 @@ void Brush::initBrushTool()
     m_brush->setBrushColor(m_currentSeg->taxonomy()->color());
     m_brush->setBrushImage(hasSeg);
     m_brush->setBorderColor(QColor(Qt::green));
-    m_brush->setReferenceItem(m_currentSeg.data());
+    m_brush->setReferenceItem(m_currentSeg.get());
   }
   else
   {
-    m_currentSeg.clear();
-    m_currentSource.clear();
+    m_currentSeg.reset();
+    m_currentSource.reset();
     m_currentOutput = -1;
 
     m_brush->setBrushColor(m_viewManager->activeTaxonomy()->color());

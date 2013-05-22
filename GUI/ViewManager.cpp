@@ -41,13 +41,10 @@ const QString FIT_TO_SLICES ("ViewManager::FitToSlices");
 
 //----------------------------------------------------------------------------
 ViewManager::ViewManager()
-: m_voi(NULL)
-, m_tool(NULL)
-, m_fitToSlices(new QAction(tr("Fit To Slices"), this))
+: m_fitToSlices(new QAction(tr("Fit To Slices"), this))
 , m_resolutionUnits(QString("nm"))
 , m_activeChannel(NULL)
 , m_activeTaxonomy(NULL)
-, m_colorEngine(NULL)
 {
   QSettings settings(CESVIMA, ESPINA);
   bool fitEnabled;
@@ -187,29 +184,29 @@ void ViewManager::clearSelection(bool notifyViews)
 //----------------------------------------------------------------------------
 void ViewManager::setVOI(IVOISPtr voi)
 {
-  if (!m_voi.isNull() && m_voi != voi)
+  if (m_voi && m_voi != voi)
     m_voi->setInUse(false);
 
   m_voi = voi;
 
-  if (m_tool && !m_voi.isNull())
+  if (m_tool && m_voi)
   {
     m_tool->setInUse(false);
-    m_tool.clear();
+    m_tool.reset();
   }
 
-  if (!m_voi.isNull())
+  if (m_voi)
     m_voi->setInUse(true);
 }
 
 //----------------------------------------------------------------------------
 void ViewManager::unsetActiveVOI()
 {
-  if (!m_voi.isNull())
+  if (m_voi)
   {
     m_voi->setEnabled(false);
     m_voi->setInUse(false);
-    m_voi.clear();
+    m_voi.reset();
   }
 }
 
@@ -217,9 +214,9 @@ void ViewManager::unsetActiveVOI()
 //----------------------------------------------------------------------------
 void ViewManager::setActiveTool(IToolSPtr tool)
 {
-  Q_ASSERT(!tool.isNull());
+  Q_ASSERT(tool);
 
-  if (!m_tool.isNull() && m_tool != tool)
+  if (m_tool && m_tool != tool)
     m_tool->setInUse(false);
 
   m_tool = tool;
@@ -243,7 +240,7 @@ void ViewManager::unsetActiveTool()
   if (m_tool)
   {
     m_tool->setInUse(false);
-    m_tool.clear();
+    m_tool.reset();
   }
 }
 
@@ -253,7 +250,7 @@ void ViewManager::unsetActiveTool(IToolSPtr tool)
   if (m_tool == tool)
   {
     m_tool->setInUse(false);
-    m_tool.clear();
+    m_tool.reset();
   }
 }
 
@@ -353,7 +350,7 @@ void ViewManager::updateSegmentationRepresentations(SegmentationPtr segmentation
     foreach(ModelItemSPtr item, seg->relatedItems(EspINA::OUT))
       if (item->type() == SEGMENTATION)
       {
-        SegmentationPtr relatedSeg = segmentationPtr(item.data());
+        SegmentationPtr relatedSeg = segmentationPtr(item.get());
         if (relatedSeg->isInputSegmentationDependent() && !segList.contains(relatedSeg))
         {
           itemsStack.push_front(relatedSeg);
@@ -388,7 +385,7 @@ void ViewManager::updateSegmentationRepresentations(SegmentationList list)
       foreach(ModelItemSPtr item, segmentation->relatedItems(EspINA::OUT))
         if (item->type() == SEGMENTATION)
         {
-          SegmentationPtr relatedSeg = segmentationPtr(item.data());
+          SegmentationPtr relatedSeg = segmentationPtr(item.get());
           if (relatedSeg->isInputSegmentationDependent() && !segList.contains(relatedSeg))
           {
             itemsStack.push_front(relatedSeg);

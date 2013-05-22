@@ -76,8 +76,8 @@ ChannelExplorer::ChannelExplorer(EspinaModel *model,
   setWindowTitle(tr("Channel Explorer"));
 
   m_channelProxy->setSourceModel(m_model);
-  m_sort->setSourceModel(m_channelProxy.data());
-  m_gui->view->setModel(m_sort.data());
+  m_sort->setSourceModel(m_channelProxy.get());
+  m_gui->view->setModel(m_sort.get());
 
   connect(m_gui->showInformation, SIGNAL(clicked(bool)),
           this, SLOT(showInformation()));

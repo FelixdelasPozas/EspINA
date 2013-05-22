@@ -52,7 +52,7 @@ namespace EspINA
 
   private:
     ViewManager *m_viewManager;
-    QSharedPointer<MultiColorEngine> m_engine;
+    boost::shared_ptr<MultiColorEngine> m_engine;
     QMap<QAction *, ColorEnginePtr>  m_availableEngines;
   };
 

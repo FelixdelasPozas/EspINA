@@ -231,7 +231,7 @@ void AppositionSurfaceExtension::loadCache(QuaZipFile &file, const QDir &tmpDir,
         && segmentation->outputId()           == fields[1].toInt()
         && segmentation->filter()->cacheDir() == tmpDir)
       {
-        extensionSegmentation = segmentation.data();
+        extensionSegmentation = segmentation.get();
       }
       i++;
     }

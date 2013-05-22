@@ -79,7 +79,6 @@ AddTaxonomyElement::AddTaxonomyElement(TaxonomyElementPtr parentTaxonomy,
 , m_model(model)
 , m_name (name)
 , m_color(color)
-, m_taxonomy(NULL)
 , m_parentTaxonomy(m_model->findTaxonomyElement(parentTaxonomy))
 {
 }
@@ -95,7 +94,7 @@ void AddTaxonomyElement::redo()
 {
   // if it has been used before, we should use the same object in case other
   // commands keep its reference
-  if (m_taxonomy.isNull())
+  if (!m_taxonomy)
   {
     m_taxonomy = m_model->createTaxonomyElement(m_parentTaxonomy, m_name);
     m_taxonomy->setColor(m_color);

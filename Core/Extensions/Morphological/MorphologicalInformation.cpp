@@ -235,7 +235,7 @@ void MorphologicalInformation::loadCache(QuaZipFile  &file,
           && segmentation->outputId()           == fields[1].toInt()
           && segmentation->filter()->cacheDir() == tmpDir)
         {
-          extensionSegmentation = segmentation.data();
+          extensionSegmentation = segmentation.get();
         }
         i++;
       }

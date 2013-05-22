@@ -65,7 +65,7 @@ bool ConnectomicProxy::filterAcceptsRow(int sourceRow, const QModelIndex& source
 
     foreach (ModelItemSPtr i_res, res)
     {
-      SegmentationPtr seg_i = segmentationPtr(i_res.data());
+      SegmentationPtr seg_i = segmentationPtr(i_res.get());
       if (seg_i == seg)
         return true;
     }

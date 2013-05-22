@@ -62,8 +62,8 @@ AppositionSurface::~AppositionSurface()
 //   qDebug() << "********************************************************";
 //   qDebug() << "              Destroying Apposition Surface Plugin";
 //   qDebug() << "********************************************************";
-  m_factory->unregisterSettingsPanel(m_settings.data());
-  m_factory->unregisterSegmentationExtension(m_extension.data());
+  m_factory->unregisterSettingsPanel(m_settings.get());
+  m_factory->unregisterSegmentationExtension(m_extension.get());
   // filters can't be unregistered, is this a problem?
 
   delete m_action;
@@ -94,10 +94,10 @@ void AppositionSurface::initFactoryExtension(EspinaFactory *factory)
   m_factory = factory;
 
   // register settings panel
-  m_factory->registerSettingsPanel(m_settings.data());
+  m_factory->registerSettingsPanel(m_settings.get());
 
   // register extension
-  m_factory->registerSegmentationExtension(m_extension.data());
+  m_factory->registerSegmentationExtension(m_extension.get());
 
   // register filter
   factory->registerFilter(this, AppositionSurfaceCommand::FILTER_TYPE);
@@ -147,9 +147,9 @@ void AppositionSurface::createSynapticAppositionSurfaceAnalysis()
   {
     foreach(SegmentationSPtr segmentation, m_model->segmentations())
     {
-      if (isSynapse(segmentation.data()))
+      if (isSynapse(segmentation.get()))
       {
-        synapsis << segmentation.data();
+        synapsis << segmentation.get();
       }
     }
   } else
@@ -166,11 +166,11 @@ void AppositionSurface::createSynapticAppositionSurfaceAnalysis()
   if (!synapsis.isEmpty())
   {
     TaxonomySPtr taxonomy = m_model->taxonomy();
-    bool createTaxonomy = taxonomy->element(SAS).isNull();
+    bool createTaxonomy = !taxonomy->element(SAS);
     if (createTaxonomy)
     {
       m_undoStack->beginMacro(tr("Apposition Surface"));
-      m_undoStack->push(new AddTaxonomyElement(taxonomy->root().data(), SAS, m_model, QColor(255,255,0)));
+      m_undoStack->push(new AddTaxonomyElement(taxonomy->root().get(), SAS, m_model, QColor(255,255,0)));
       m_model->taxonomy()->element(SAS)->addProperty(QString("Dim_X"), QVariant("500"));
       m_model->taxonomy()->element(SAS)->addProperty(QString("Dim_Y"), QVariant("500"));
       m_model->taxonomy()->element(SAS)->addProperty(QString("Dim_Z"), QVariant("500"));
@@ -232,7 +232,7 @@ void AppositionSurface::segmentationAdded(SegmentationSPtr segmentation)
     return;
 
   // filter->executed() marks the segmentation as created in session time, not loaded from a file.
-  if (isSynapse(segmentation.data()) && segmentation->filter()->executed())
+  if (isSynapse(segmentation.get()) && segmentation->filter()->executed())
   {
     // must check if the segmentation already has a SAS, as this call
     // could be the result of a redo() in a UndoCommand
@@ -245,7 +245,7 @@ void AppositionSurface::segmentationAdded(SegmentationSPtr segmentation)
       }
 
     SegmentationList synapses;
-    synapses << segmentation.data();
+    synapses << segmentation.get();
 
     QApplication::setOverrideCursor(Qt::WaitCursor);
     {
@@ -253,9 +253,9 @@ void AppositionSurface::segmentationAdded(SegmentationSPtr segmentation)
       m_undoStack->beginMacro(tr("Apposition Surface"));
       {
         TaxonomySPtr taxonomy = m_model->taxonomy();
-        if (taxonomy->element(SAS).isNull())
+        if (!taxonomy->element(SAS))
         {
-          m_undoStack->push(new AddTaxonomyElement(taxonomy->root().data(), SAS, m_model, QColor(255,255,0)));
+          m_undoStack->push(new AddTaxonomyElement(taxonomy->root().get(), SAS, m_model, QColor(255,255,0)));
           m_model->taxonomy()->element(SAS)->addProperty(QString("Dim_X"), QVariant("500"));
           m_model->taxonomy()->element(SAS)->addProperty(QString("Dim_Y"), QVariant("500"));
           m_model->taxonomy()->element(SAS)->addProperty(QString("Dim_Z"), QVariant("500"));

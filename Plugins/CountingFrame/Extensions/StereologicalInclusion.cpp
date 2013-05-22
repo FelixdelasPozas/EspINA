@@ -195,7 +195,7 @@ void StereologicalInclusion::loadCache(QuaZipFile &file, const QDir &tmpDir, IEs
           && segmentation->outputId()           == fields[1].toInt()
           && segmentation->filter()->cacheDir() == tmpDir)
         {
-          extensionSegmentation = segmentation.data();
+          extensionSegmentation = segmentation.get();
         }
         i++;
       }
@@ -305,7 +305,7 @@ void StereologicalInclusion::evaluateCountingFrames()
 {
   //qDebug() << "Evaluate Counting Frames" << m_segmentation->data().toString() << StereologicalInclusionID;
   SampleSPtr sample = m_segmentation->sample();
-  if (!sample.isNull())
+  if (sample)
   {
     CountingFrameList countingFrames;
     foreach (ChannelPtr channel, sample->channels())
@@ -363,7 +363,7 @@ bool StereologicalInclusion::isExcludedFromCountingFrame(CountingFrame* counting
 {
   const TaxonomyElement *taxonomicalConstraint = countingFrame->taxonomicalConstraint();
 
-  if (taxonomicalConstraint && m_segmentation->taxonomy() != taxonomicalConstraint)
+  if (taxonomicalConstraint && m_segmentation->taxonomy().get() != taxonomicalConstraint)
     return true;
 
   EspinaRegion inputBB = m_segmentation->output()->region();

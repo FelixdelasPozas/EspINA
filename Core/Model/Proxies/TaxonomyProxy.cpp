@@ -318,7 +318,7 @@ QModelIndex TaxonomyProxy::mapFromSource(const QModelIndex& sourceIndex) const
     {
       SegmentationPtr seg = segmentationPtr(sourceItem);
       Q_ASSERT(seg);
-      TaxonomyElementPtr taxonomy = seg->taxonomy().data();
+      TaxonomyElementPtr taxonomy = seg->taxonomy().get();
       if (taxonomy)
       {
         int row = m_taxonomySegmentations[taxonomy].indexOf(seg);
@@ -395,7 +395,7 @@ typedef QMap<int, QVariant> DraggedItem;
 bool TaxonomyProxy::dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex& parent)
 {
 
-  TaxonomyElementPtr root = m_model->taxonomy()->root().data();
+  TaxonomyElementPtr root = m_model->taxonomy()->root().get();
 
   ModelItemPtr parentItem = NULL;
   if (parent.isValid())
@@ -451,7 +451,7 @@ bool TaxonomyProxy::dropMimeData(const QMimeData *data, Qt::DropAction action, i
     else if (EspINA::SEGMENTATION == parentItem->type())
     {
       SegmentationPtr seg = segmentationPtr(parentItem);
-      newTaxonomy = seg->taxonomy().data();
+      newTaxonomy = seg->taxonomy().get();
     }
     Q_ASSERT(newTaxonomy);
 
@@ -534,7 +534,7 @@ SegmentationList TaxonomyProxy::segmentations(TaxonomyElementPtr taxonomy,
   {
     foreach(TaxonomyElementSPtr subElement, taxonomy->subElements())
     {
-      segs << segmentations(subElement.data(), recursive);
+      segs << segmentations(subElement.get(), recursive);
     }
   }
 
@@ -619,7 +619,7 @@ void TaxonomyProxy::sourceRowsInserted(const QModelIndex& sourceParent, int star
       QModelIndex sourceIndex = m_model->index(row, 0, sourceParent);
       ModelItemPtr sourceItem = indexPtr(sourceIndex);
       SegmentationPtr seg = segmentationPtr(sourceItem);
-      TaxonomyElementPtr taxonomy = seg->taxonomy().data();
+      TaxonomyElementPtr taxonomy = seg->taxonomy().get();
       if (taxonomy)
         relations[taxonomy] << sourceItem;
     }
@@ -645,7 +645,7 @@ void TaxonomyProxy::sourceRowsInserted(const QModelIndex& sourceParent, int star
         ModelItemPtr sourceRow = indexPtr(m_model->index(row, 0, sourceParent));
         TaxonomyElementPtr taxonomy = taxonomyElementPtr(sourceRow);
         TaxonomyElementPtr parentNode = taxonomy->parent();
-        if (parentNode != m_model->taxonomy()->root().data())
+        if (parentNode != m_model->taxonomy()->root().get())
           m_numTaxonomies[parentNode] += 1;
         m_numTaxonomies[taxonomy]      = taxonomy->subElements().size();
         m_taxonomyVisibility[taxonomy] = Qt::Checked;
@@ -674,7 +674,7 @@ void TaxonomyProxy::sourceRowsAboutToBeRemoved(const QModelIndex& sourceParent, 
       QModelIndex   proxyIndex  = mapFromSource(sourceIndex);
       ModelItemPtr  item = indexPtr(sourceIndex);
       SegmentationPtr seg  = segmentationPtr(item);
-      TaxonomyElementPtr taxonomy = seg->taxonomy().data();
+      TaxonomyElementPtr taxonomy = seg->taxonomy().get();
       Q_ASSERT(taxonomy);
       int segRow = m_taxonomySegmentations[taxonomy].indexOf(item);
       if (segRow >= 0)
@@ -803,7 +803,7 @@ void TaxonomyProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, const QM
       {
         if (m_taxonomySegmentations[taxonomy].contains(sourceItem))
         {
-          indexChanged = taxonomy != segmentation->taxonomy();
+          indexChanged = taxonomy != segmentation->taxonomy().get();
           prevTaxonomy = taxonomy;
           break;
         }
@@ -816,7 +816,7 @@ void TaxonomyProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, const QM
         int newRow = rowCount(destination);
         beginMoveRows(source, currentRow, currentRow, destination, newRow);
         m_taxonomySegmentations[prevTaxonomy].removeOne(sourceItem);
-        m_taxonomySegmentations[segmentation->taxonomy().data()] << sourceItem;
+        m_taxonomySegmentations[segmentation->taxonomy().get()] << sourceItem;
         endMoveRows();
       }
     }
@@ -856,7 +856,7 @@ void TaxonomyProxy::addTaxonomicalElement(TaxonomyElementPtr taxonomicalElement)
 
   foreach(TaxonomyElementSPtr subTaxonomcialElement, taxonomicalElement->subElements())
   {
-    addTaxonomicalElement(subTaxonomcialElement.data());
+    addTaxonomicalElement(subTaxonomcialElement.get());
   }
 }
 
@@ -866,14 +866,14 @@ void TaxonomyProxy::removeTaxonomy(TaxonomyElementPtr taxonomy)
   // First remove its subtaxonomies
   foreach(TaxonomyElementSPtr subTax, taxonomy->subElements())
   {
-    removeTaxonomy(subTax.data());
+    removeTaxonomy(subTax.get());
   }
 
   m_rootTaxonomies.removeOne(taxonomy); //Safe even if it's not root taxonomy
   m_numTaxonomies.remove(taxonomy);
   m_taxonomySegmentations.remove(taxonomy);
   TaxonomyElementPtr parentNode = taxonomy->parent();
-  if (parentNode != m_model->taxonomy()->root().data())
+  if (parentNode != m_model->taxonomy()->root().get())
     m_numTaxonomies[parentNode] -= 1;
 }
 
@@ -884,7 +884,7 @@ int TaxonomyProxy::numSegmentations(TaxonomyElementPtr taxonomy, bool recursive)
   if (recursive)
     foreach(TaxonomyElementSPtr subtax, taxonomy->subElements())
     {
-      total += numSegmentations(subtax.data(), recursive);
+      total += numSegmentations(subtax.get(), recursive);
     }
 
   return total;

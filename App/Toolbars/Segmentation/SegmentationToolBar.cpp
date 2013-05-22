@@ -64,7 +64,6 @@ SegmentationToolBar::SegmentationToolBar(EspinaModel *model,
 , m_useDefaultVOI (new DefaultVOIAction(this))
 , m_pickerSelector(new ActionSelector(this))
 , m_tubularAction (new QAction(this))
-, m_tubularTool   (NULL)
 {
   setObjectName("SegmentationToolBar");
 
@@ -101,11 +100,11 @@ SegmentationToolBar::SegmentationToolBar(EspinaModel *model,
           this, SLOT(changePicker(QAction*)));
   connect(m_pickerSelector, SIGNAL(actionCanceled()),
           this, SLOT(cancelSegmentationOperation()));
-  connect(m_SGStool.data(), SIGNAL(segmentationStopped()),
+  connect(m_SGStool.get(), SIGNAL(segmentationStopped()),
           this, SLOT(cancelSegmentationOperation()));
   connect(m_tubularAction, SIGNAL(toggled(bool)),
           this, SLOT(tubularActionStateChanged(bool)));
-  connect(m_tubularTool.data(), SIGNAL(segmentationStopped()),
+  connect(m_tubularTool.get(), SIGNAL(segmentationStopped()),
           this, SLOT(cancelTubularSegmentationOperation()));
 }
 
@@ -115,7 +114,7 @@ SegmentationToolBar::~SegmentationToolBar()
   delete m_settings;
 
   if (m_tubularTool != NULL)
-    m_tubularTool.clear();
+    m_tubularTool.reset();
 }
 
 //-----------------------------------------------------------------------------
@@ -134,7 +133,7 @@ void SegmentationToolBar::initFactoryExtension(EspinaFactory *factory)
 
 
   // Register settings panels
-  factory->registerSettingsPanel(m_SeedGrowSettingsPanel.data());
+  factory->registerSettingsPanel(m_SeedGrowSettingsPanel.get());
 }
 
 //-----------------------------------------------------------------------------
@@ -164,7 +163,7 @@ FilterSPtr SegmentationToolBar::createFilter(const QString              &filter,
     return FilterSPtr(tubularFilter);
   }
 
-  return FilterSPtr(NULL);
+  return FilterSPtr();
 }
 
 //-----------------------------------------------------------------------------

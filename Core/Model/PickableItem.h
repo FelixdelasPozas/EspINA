@@ -21,9 +21,8 @@
 #define SELECTABLEITEM_H
 
 #include "Core/Model/ModelItem.h"
-
 #include "Core/EspinaTypes.h"
-#include "Core/Model/Filter.h"
+#include "Core/Model/Output.h"
 
 #include <QIcon>
 
@@ -45,8 +44,8 @@ namespace EspINA
 
     virtual const FilterSPtr filter() const = 0;
     virtual FilterSPtr filter() = 0;
- 
-    virtual const FilterOutputId  outputId() const = 0;
+
+    virtual const FilterOutputId outputId() const = 0;
 
     /// Convenience method
     OutputSPtr output();
@@ -73,7 +72,6 @@ namespace EspINA
 
   };
 
-  typedef QSharedPointer<PickableItem> PickableItemSPtr;
 
   PickableItemPtr pickableItemPtr(ModelItemPtr item);
   PickableItemSPtr pickableItemPtr(ModelItemSPtr &item);

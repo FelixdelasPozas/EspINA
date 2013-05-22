@@ -145,7 +145,7 @@ void AppositionSurfaceFilter::upkeeping()
     ModelItemSList items = segFilter->relatedItems(EspINA::OUT, Filter::CREATELINK);
     while(!m_originSegmentation && i < items.size())
     {
-      SegmentationPtr segmentation = segmentationPtr(items[i].data());
+      SegmentationPtr segmentation = segmentationPtr(items[i].get());
       if (segmentation->outputId() == outputId)
       {
         m_originSegmentation = segmentation;
@@ -163,9 +163,9 @@ void AppositionSurfaceFilter::upkeeping()
   ModelItemSList items = relatedItems(EspINA::OUT, Filter::CREATELINK);
   if (items.size() == 1)
   {
-    SegmentationPtr segmentation = segmentationPtr(items.first().data());
+    SegmentationPtr segmentation = segmentationPtr(items.first().get());
     segmentation->setInputSegmentationDependent(true);
-    items.first().data()->notifyModification();
+    items.first()->notifyModification();
   }
 }
 

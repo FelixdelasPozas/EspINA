@@ -42,7 +42,7 @@ namespace EspINA
 
   };
 
-  typedef QSharedPointer<CircularBrush> CircularBrushSPtr;
+  typedef boost::shared_ptr<CircularBrush> CircularBrushSPtr;
 }
 
 #endif // CIRCULARBRUSH_H

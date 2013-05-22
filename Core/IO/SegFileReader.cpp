@@ -116,7 +116,7 @@ IOErrorHandler::STATUS SegFileReader::loadSegFile(QFileInfo       file,
     }
     else if (file.fileName() == TAXONOMY_FILE)
     {
-      Q_ASSERT(taxonomy.isNull());
+      Q_ASSERT(taxonomy.get() == NULL);
       taxonomy = IOTaxonomy::loadXMLTaxonomy(espinaFile.readAll());
       //taxonomy->print(3);
     }
@@ -191,7 +191,7 @@ IOErrorHandler::STATUS SegFileReader::loadSegFile(QFileInfo       file,
     hasFile = espinaZip.goToNextFile();
   }
 
-  if(taxonomy.isNull() || traceContent.isEmpty())
+  if(taxonomy.get() == NULL || traceContent.isEmpty())
   {
     if (handler)
       handler->error("IOEspinaFile::loadFile: could not load taxonomy and/or trace files");
@@ -424,7 +424,7 @@ TaxonomySPtr IOTaxonomy::readXML(QXmlStreamReader& xmlStream)
 //   QXmlStreamReader xmlStream(&file);
   QStringRef nodeName, color;
   TaxonomySPtr taxonomy(new Taxonomy());
-  TaxonomyElementPtr parent = taxonomy->root().data();
+  TaxonomyElementPtr parent = taxonomy->root().get();
   while(!xmlStream.atEnd())
   {
     xmlStream.readNextStartElement();
@@ -450,7 +450,7 @@ TaxonomySPtr IOTaxonomy::readXML(QXmlStreamReader& xmlStream)
           qWarning() << "Taxonomy" << node->name() << "is missing some properties.";
           TaxonomySPtr defaultTaxonomy = IOTaxonomy::openXMLTaxonomy(":/espina/defaultTaxonomy.xml");
           TaxonomyElementSPtr defaultNode = defaultTaxonomy->element(node->qualifiedName());
-          if (!defaultNode.isNull())
+          if (defaultNode.get() != NULL)
           {
             foreach(QString property, defaultNode->properties())
             {
@@ -465,7 +465,7 @@ TaxonomySPtr IOTaxonomy::readXML(QXmlStreamReader& xmlStream)
             qWarning() << "Taxonomy" << node->qualifiedName() << "doesn't exist in the default taxonomy definition";
         }
 
-        parent = node.data();
+        parent = node.get();
       }
       else if( xmlStream.isEndElement() )
       {
@@ -510,7 +510,7 @@ TaxonomySPtr IOTaxonomy::loadXMLTaxonomy(QString content)
 
 void IOTaxonomy::writeTaxonomy(TaxonomySPtr tax, QXmlStreamWriter& stream)
 {
-  if( !tax.isNull() )
+  if(tax.get() != NULL)
     foreach(TaxonomyElementSPtr node, tax->elements())
       IOTaxonomy::writeTaxonomyElement(node, stream);
 }
@@ -592,7 +592,7 @@ bool SegFileReader::loadSerialization(IEspinaModel *model,
                                  IOErrorHandler *handler,
                                  RelationshipGraph::PrintFormat format)
 {
-  QSharedPointer<RelationshipGraph> input(new RelationshipGraph());
+  boost::shared_ptr<RelationshipGraph> input(new RelationshipGraph());
 
   input->read(stream);
 //   qDebug() << "Check";
@@ -614,7 +614,7 @@ bool SegFileReader::loadSerialization(IEspinaModel *model,
         ModelItem::Arguments args(v.args.c_str());
         SampleSPtr sample = factory->createSample(v.name.c_str(), v.args.c_str());
         model->addSample(sample);
-        input->setItem(v, sample.data());
+        input->setItem(v, sample.get());
         break;
       }
       case CHANNEL:
@@ -631,7 +631,7 @@ bool SegFileReader::loadSerialization(IEspinaModel *model,
         ModelItemPtr item = ancestors.first().item;
         Q_ASSERT(FILTER == item->type());
         FilterSPtr filter = model->findFilter(item);
-        Q_ASSERT(!filter.isNull());
+        Q_ASSERT(filter.get() != NULL);
         try
         {
           FilterOutputId channelId = link[1].toInt();
@@ -641,7 +641,7 @@ bool SegFileReader::loadSerialization(IEspinaModel *model,
           if (channel->volume()->toITK().IsNull())
             return false;
           model->addChannel(channel);
-          input->setItem(v, channel.data());
+          input->setItem(v, channel.get());
         }
         catch(int e)
         {
@@ -673,7 +673,7 @@ bool SegFileReader::loadSerialization(IEspinaModel *model,
         FilterSPtr filter = factory->createFilter(v.name.c_str(), inputs, args);
         filter->setCacheDir(tmpDir);
         model->addFilter(filter);
-        input->setItem(v, filter.data());
+        input->setItem(v, filter.get());
         break;
       }
       case SEGMENTATION:
@@ -709,7 +709,7 @@ bool SegFileReader::loadSerialization(IEspinaModel *model,
 
       QString taxonomyQualifiedName = args[Segmentation::TAXONOMY];
       TaxonomyElementSPtr taxonomy = model->taxonomy()->element(taxonomyQualifiedName);
-      if (!taxonomy.isNull())
+      if (taxonomy.get() != NULL)
         seg->setTaxonomy(taxonomy);
       else
       {
@@ -717,7 +717,7 @@ bool SegFileReader::loadSerialization(IEspinaModel *model,
         seg->setTaxonomy(taxonomy);
       }
       newSegmentations << seg;
-      input->setItem(v, seg.data());
+      input->setItem(v, seg.get());
     }
   }
 

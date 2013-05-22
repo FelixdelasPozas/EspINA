@@ -71,11 +71,11 @@ namespace EspINA
     updateNodeList();
 
     connect(writeDataToFile, SIGNAL(clicked(bool)), this, SLOT(exportNodeList()));
-    connect(m_source.data(), SIGNAL(modified(ModelItemPtr)), this, SLOT(updateNodeList()));
+    connect(m_source.get(), SIGNAL(modified(ModelItemPtr)), this, SLOT(updateNodeList()));
     connect(modifySource, SIGNAL(toggled(bool)), this, SLOT(editSpine(bool)));
     connect(extremesCheckBox, SIGNAL(toggled(bool)), this, SLOT(modifyRoundedExtremes(bool)));
 
-    if (m_tool.isNull())
+    if (!m_tool)
       modifySource->setEnabled(false);
   }
 
@@ -143,11 +143,11 @@ namespace EspINA
   //----------------------------------------------------------------------------
   void TubularFilterInspector::Widget::editSpine(bool editing)
   {
-    if (!m_tool.isNull())
+    if (m_tool)
     {
       if (editing)
       {
-        TubularTool *tool = reinterpret_cast<TubularTool *>(m_tool.data());
+        TubularTool *tool = reinterpret_cast<TubularTool *>(m_tool.get());
         tool->setFilter(m_source);
         m_viewManager->setActiveTool(m_tool);
         tool->setNodes(m_source->nodes());
@@ -162,9 +162,9 @@ namespace EspINA
   //----------------------------------------------------------------------------
   void TubularFilterInspector::Widget::modifyRoundedExtremes(bool value)
   {
-    if (!m_tool.isNull())
+    if (m_tool)
     {
-      TubularTool *tool = reinterpret_cast<TubularTool *>(m_tool.data());
+      TubularTool *tool = reinterpret_cast<TubularTool *>(m_tool.get());
       tool->setRoundedExtremes(value);
     }
 

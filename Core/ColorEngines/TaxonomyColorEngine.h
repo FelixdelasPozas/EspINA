@@ -44,7 +44,7 @@ private:
   QMap<QString, vtkSmartPointer<vtkLookupTable> > m_LUT;
 };
 
-typedef QSharedPointer<TaxonomyColorEngine> TaxonomyColorEnginePtr;
+typedef boost::shared_ptr<TaxonomyColorEngine> TaxonomyColorEnginePtr;
 
 }// namespace EspINA
 

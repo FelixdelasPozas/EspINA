@@ -49,7 +49,7 @@ CountingFrameColorEngine::CountingFrameColorEngine()
 //-----------------------------------------------------------------------------
 QColor CountingFrameColorEngine::color(SegmentationPtr seg)
 {
-  if (seg->channel().isNull())
+  if (!seg->channel())
     return QColor(0, 0, 0, 255);
 
   StereologicalInclusion *stereologicalExtentsion;
@@ -74,7 +74,7 @@ QColor CountingFrameColorEngine::color(SegmentationPtr seg)
 //-----------------------------------------------------------------------------
 LUTPtr CountingFrameColorEngine::lut(SegmentationPtr seg)
 {
-  if (seg->channel().isNull())
+  if (!seg->channel())
     return m_includedLUT;
 
   StereologicalInclusion *stereologicalExtentsion;

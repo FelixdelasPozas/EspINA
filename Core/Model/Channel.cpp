@@ -336,8 +336,8 @@ ChannelPtr EspINA::channelPtr(PickableItemPtr item)
 ChannelSPtr EspINA::channelPtr(ModelItemSPtr& item)
 {
   Q_ASSERT(CHANNEL == item->type());
-  ChannelSPtr ptr = qSharedPointerDynamicCast<Channel>(item);
-  Q_ASSERT(!ptr.isNull());
+  ChannelSPtr ptr = boost::dynamic_pointer_cast<Channel>(item);
+  Q_ASSERT(ptr != NULL);
 
   return ptr;
 }
@@ -346,8 +346,8 @@ ChannelSPtr EspINA::channelPtr(ModelItemSPtr& item)
 ChannelSPtr EspINA::channelPtr(PickableItemSPtr& item)
 {
   Q_ASSERT(CHANNEL == item->type());
-  ChannelSPtr ptr = qSharedPointerDynamicCast<Channel>(item);
-  Q_ASSERT(!ptr.isNull());
+  ChannelSPtr ptr = boost::dynamic_pointer_cast<Channel>(item);
+  Q_ASSERT(ptr != NULL);
 
   return ptr;
 }

@@ -22,7 +22,6 @@
 #include <Core/Model/Channel.h>
 #include <Core/Model/Segmentation.h>
 #include <Core/Outputs/VolumeRepresentation.h>
-#include <Core/Filters/FreeFormSource.h>
 
 #include "GUI/QtWidget/EspinaRenderView.h"
 #include "GUI/QtWidget/SliceView.h"

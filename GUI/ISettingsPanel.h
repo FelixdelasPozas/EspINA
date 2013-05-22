@@ -32,7 +32,7 @@ namespace EspINA
   };
 
   typedef QList<ISettingsPanelPtr>       ISettingsPanelList;
-  typedef QSharedPointer<ISettingsPanel> ISettingsPanelPrototype;
+  typedef boost::shared_ptr<ISettingsPanel> ISettingsPanelPrototype;
   typedef QList<ISettingsPanelPrototype> ISettingsPanelPrototypeList;
 
 } // namespace EspINA

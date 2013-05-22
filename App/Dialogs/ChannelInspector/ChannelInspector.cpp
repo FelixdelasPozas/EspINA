@@ -218,7 +218,7 @@ void ChannelInspector::changeSpacing()
   spacing[2] = spacingZBox->value()*pow(1000,unitsBox->currentIndex());
 
   /// WARNING: This won't work with preprocessing
-  ChannelReader *reader = dynamic_cast<ChannelReader *>(m_channel->filter().data());
+  ChannelReader *reader = dynamic_cast<ChannelReader *>(m_channel->filter().get());
   Q_ASSERT(reader);
   reader->setSpacing(spacing);
   m_viewManager->updateChannelRepresentations();
@@ -241,7 +241,7 @@ void ChannelInspector::changeSpacing()
       segVolume->toITK()->SetOrigin(origin);
       segVolume->toITK()->Update();
       segVolume->markAsModified(true);
-      updatedSegmentations << seg.data();
+      updatedSegmentations << seg.get();
     }
   }
 
@@ -420,7 +420,7 @@ void ChannelInspector::rejectedChanges()
     newSpacing[2] = m_spacing[2];
 
     /// WARNING: This won't work with preprocessing
-    ChannelReader *reader = dynamic_cast<ChannelReader *>(m_channel->filter().data());
+    ChannelReader *reader = dynamic_cast<ChannelReader *>(m_channel->filter().get());
     Q_ASSERT(reader);
     reader->setSpacing(newSpacing);
     reader->update(0);
@@ -545,7 +545,7 @@ void ChannelInspector::applyEdgesChanges()
       if (seg->hasInformationExtension(EdgeDistanceID))
       {
         Segmentation::InformationExtension ext = seg->informationExtension(EdgeDistanceID);
-        ext->invalidate(seg.data());
+        ext->invalidate(seg.get());
 
       }
 

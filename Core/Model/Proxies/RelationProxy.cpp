@@ -272,7 +272,7 @@ void RelationProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, const QM
 
       if (!relatedItems.isEmpty())
       {
-        newLocation = relatedItems.first().data();
+        newLocation = relatedItems.first().get();
         toRow       = m_subNodes[newLocation].size();
         newParent   = mapFromSource(m_model->index(newLocation));
       }
@@ -349,7 +349,7 @@ void RelationProxy::registerNodes(ModelItemPtr node)
     }
   } else {
     Q_ASSERT(parentItems.size() == 1);
-    ModelItemPtr parentNode = parentItems.first().data();
+    ModelItemPtr parentNode = parentItems.first().get();
     if (!m_subNodes[parentNode].contains(node))
     {
       m_subNodes[parentNode] << node;
@@ -358,7 +358,7 @@ void RelationProxy::registerNodes(ModelItemPtr node)
 
   foreach(ModelItemSPtr subItem, node->relatedItems(EspINA::OUT, m_relation))
   {
-    registerNodes(subItem.data());
+    registerNodes(subItem.get());
   }
 }
 

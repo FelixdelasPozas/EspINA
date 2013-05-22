@@ -54,7 +54,7 @@ LocationLayout::LocationLayout(CheckableTreeView *view,
 , m_delegate(new QItemDelegate())
 {
   m_proxy->setSourceModel(m_model);
-  m_sort->setSourceModel(m_proxy.data());
+  m_sort->setSourceModel(m_proxy.get());
   m_sort->setDynamicSortFilter(true);
 }
 
