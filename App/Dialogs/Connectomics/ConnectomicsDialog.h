@@ -28,7 +28,6 @@
 // EspINA
 #include <GUI/ViewManager.h>
 #include <Core/Model/Proxies/InformationProxy.h>
-#include <Core/Model/RelationshipGraph.h>
 #include <Core/Model/Segmentation.h>
 #include <Core/Model/Proxies/ConnectomicProxy.h>
 

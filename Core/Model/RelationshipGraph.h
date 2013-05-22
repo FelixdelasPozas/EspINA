@@ -36,6 +36,7 @@ namespace EspINA
   class RelationshipGraph
   {
   public:
+    // Bundled Properties
     struct Vertex
     {
       Vertex()

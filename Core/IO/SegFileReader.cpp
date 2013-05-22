@@ -5,6 +5,8 @@
 #include <EspinaConfig.h>
 
 // EspINA
+#include "IOErrorHandler.h"
+
 #include "Core/Model/EspinaModel.h"
 #include "Core/Model/Output.h"
 #include "Core/Model/EspinaFactory.h"
@@ -14,7 +16,6 @@
 #include <Core/Model/Taxonomy.h>
 #include <Core/Extensions/ChannelExtension.h>
 #include <Core/Extensions/SegmentationExtension.h>
-#include "IOErrorHandler.h"
 
 #include "Core/Filters/ChannelReader.h"
 

@@ -26,6 +26,27 @@ using namespace EspINA;
 const Filter::FilterType TEST_FILTER_TYPE = "SeedGrowSegmentation::SeedGrowSegmentationFilter";
 const QString CHANNELREADER_TYPE = "Channel Reader";
 
+class SameDirectoryErrorHandler
+: public IOErrorHandler
+{
+public:
+  SameDirectoryErrorHandler(QString path) : m_path(path) {}
+
+  virtual void error(const QString &msg)
+  { qWarning() << "Error:" << msg; }
+
+  virtual QFileInfo fileNotFound(const QFileInfo &file, QDir dir = QDir(), const QString &nameFilters = QString(), const QString &hint = QString())
+  {
+    qDebug() << m_path.absoluteFilePath(file.fileName());
+    return m_path.absoluteFilePath(file.fileName());
+  }
+
+  virtual void warning(const QString &msg)
+  { qWarning() << "Warning:" << msg; }
+
+private:
+  QDir m_path;
+};
 class SeedGrowSegmentationCreator
 : public IFilterCreator
 {
@@ -41,16 +62,22 @@ class ChannelReaderCreator
 : public IFilterCreator
 {
   public:
+    ChannelReaderCreator(QString path) : m_path(path) {}
+
     virtual ~ChannelReaderCreator() {};
     virtual FilterSPtr createFilter(const QString& filter, const Filter::NamedInputs& inputs, const ModelItem::Arguments& args)
     {
-      return FilterSPtr(new ChannelReader(inputs, args, CHANNELREADER_TYPE, NULL));
+      return FilterSPtr(new ChannelReader(inputs, args, CHANNELREADER_TYPE, new SameDirectoryErrorHandler(m_path)));
     }
+
+private:
+  QString m_path;
 };
 
 int loadModelFromSegFile(int argc, char** argv)
 {
-  QString filename = QString(argv[1]) + QString("test1.seg");
+  QString path     = QString(argv[1]);
+  QString filename = path + QString("test1.seg");
   QFileInfo file(filename);
   Q_ASSERT(file.exists());
 
@@ -60,7 +87,7 @@ int loadModelFromSegFile(int argc, char** argv)
   SeedGrowSegmentationCreator creator;
   factory->registerFilter(&creator, TEST_FILTER_TYPE);
 
-  ChannelReaderCreator channelCreator;
+  ChannelReaderCreator channelCreator(path);
   factory->registerFilter(&channelCreator, CHANNELREADER_TYPE);
 
   // check model
