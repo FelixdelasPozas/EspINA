@@ -34,6 +34,7 @@
 
 namespace EspINA
 {
+  class EspinaRenderView;
 
   typedef boost::shared_ptr<IRenderer> IRendererSPtr;
   /// Base class which define the API to render and manage
@@ -54,9 +55,10 @@ namespace EspINA
     virtual const QIcon icon() const         { return QIcon(); }
 
     /// sets renderer
-    virtual void setVTKRenderer(vtkSmartPointer<vtkRenderer> renderer) { m_renderer = renderer;}
+    virtual void setViewData(EspinaRenderView* view, vtkSmartPointer<vtkRenderer> renderer)
+    { m_view = view; m_renderer = renderer; }
 
-    virtual void addRepresentation(GraphicalRepresentationSPtr rep) = 0;
+    virtual void addRepresentation(PickableItemPtr item, GraphicalRepresentationSPtr rep) = 0;
     virtual void removeRepresentation(GraphicalRepresentationSPtr rep) = 0;
     virtual bool hasRepresentation(GraphicalRepresentationSPtr rep) = 0;
     virtual bool managesRepresentation(GraphicalRepresentationSPtr rep) = 0;
@@ -72,15 +74,25 @@ namespace EspINA
 
     virtual bool isHidden() { return !m_enable; }
 
-    enum RendererType
+    enum RendererableItemsTypes
     {
-      UNDEFINED,
-      CHANNEL,
-      SEGMENTATION
+      RENDERER_UNDEFINED_ITEM,
+      RENDERER_CHANNEL,
+      RENDERER_SEGMENTATION
     };
-    Q_DECLARE_FLAGS(RenderedItems, RendererType);
+    Q_DECLARE_FLAGS(RenderabledItems, RendererableItemsTypes);
 
-    virtual RenderedItems getRendererType() { return RenderedItems(UNDEFINED); }
+    virtual RenderabledItems getRenderableItemsType() { return RenderabledItems(RENDERER_UNDEFINED_ITEM); }
+
+    enum RendererTypes
+    {
+      RENDERER_UNDEFINED_VIEW,
+      RENDERER_SLICEVIEW,
+      RENDERER_VOLUMEVIEW
+    };
+    Q_DECLARE_FLAGS(RendererType, RendererTypes);
+
+    virtual RendererType getRenderType() { return RendererType(RENDERER_UNDEFINED_VIEW); }
 
     // naive item filtering, to be modified/enhanced in the future
     virtual bool itemCanBeRendered(ModelItemPtr item) { return true; }
@@ -88,7 +100,7 @@ namespace EspINA
     // return the number of elements actually been managed by this renderer
     virtual int itemsBeenRendered() = 0;
 
-    virtual GraphicalRepresentationSList pick(int x, int y, bool repeat) = 0;
+    virtual ViewManager::Selection pick(int x, int y, vtkSmartPointer<vtkRenderer> renderer, bool repeat = false) = 0;
     virtual void getPickCoordinates(Nm *point) = 0;
 
   public slots:
@@ -108,18 +120,22 @@ namespace EspINA
   protected:
     explicit IRenderer(QObject* parent = 0)
     : m_renderer(NULL)
-    , m_enable(false) {}
+    , m_enable(false)
+    , m_view (NULL)
+    {}
 
   protected:
     vtkSmartPointer<vtkRenderer> m_renderer;
     bool m_enable;
-    GraphicalRepresentationSList m_representations;
+    QMap<PickableItemPtr, GraphicalRepresentationSList> m_representations;
+    EspinaRenderView *m_view;
   };
 
   typedef QList<IRenderer *>   IRendererList;
   typedef QList<IRendererSPtr> IRendererSList;
 
-  Q_DECLARE_OPERATORS_FOR_FLAGS(IRenderer::RenderedItems)
+  Q_DECLARE_OPERATORS_FOR_FLAGS(IRenderer::RenderabledItems)
+  Q_DECLARE_OPERATORS_FOR_FLAGS(IRenderer::RendererType)
 }// namespace EspINA
 
 

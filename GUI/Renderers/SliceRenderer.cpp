@@ -1,41 +1,45 @@
 /*
-    <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
+ <one line to give the program's name and a brief idea of what it does.>
+ Copyright (C) 2013 Félix de las Pozas Álvarez <felixdelaspozas@gmail.com>
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 // EspINA
-#include "MeshRenderer.h"
-#include <GUI/Representations/SimpleMeshRepresentation.h>
+#include "SliceRenderer.h"
+#include "GUI/Representations/SliceRepresentation.h"
+#include <GUI/ViewManager.h>
 #include "GUI/QtWidget/EspinaRenderView.h"
 
 // VTK
 #include <vtkPropPicker.h>
+#include <QDebug>
+
+
 
 namespace EspINA
 {
   //-----------------------------------------------------------------------------
-  MeshRenderer::MeshRenderer(QObject *parent)
+  SliceRenderer::SliceRenderer(QObject *parent)
   : IRenderer(parent)
   , m_picker(vtkSmartPointer<vtkPropPicker>::New())
   {
     m_picker->PickFromListOn();
   }
-
+  
   //-----------------------------------------------------------------------------
-  MeshRenderer::~MeshRenderer()
+  SliceRenderer::~SliceRenderer()
   {
     foreach(PickableItemPtr item, m_representations.keys())
     {
@@ -53,10 +57,11 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  void MeshRenderer::addRepresentation(PickableItemPtr item, GraphicalRepresentationSPtr rep)
+  void SliceRenderer::addRepresentation(PickableItemPtr item, GraphicalRepresentationSPtr rep)
   {
-    SimpleMeshRepresentationSPtr mesh = boost::dynamic_pointer_cast<SimpleMeshRepresentation>(rep);
-    if (mesh.get() != NULL)
+    ChannelSliceRepresentationSPtr channelSlice = boost::dynamic_pointer_cast<ChannelSliceRepresentation>(rep);
+    SegmentationSliceRepresentationSPtr segmentationSlice = boost::dynamic_pointer_cast<SegmentationSliceRepresentation>(rep);
+    if (channelSlice.get() != NULL || segmentationSlice.get() != NULL)
     {
       if (m_representations.keys().contains(item))
         m_representations[item] << rep;
@@ -77,10 +82,11 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  void MeshRenderer::removeRepresentation(GraphicalRepresentationSPtr rep)
+  void SliceRenderer::removeRepresentation(GraphicalRepresentationSPtr rep)
   {
-    SimpleMeshRepresentationSPtr mesh = boost::dynamic_pointer_cast<SimpleMeshRepresentation>(rep);
-    if (mesh.get() != NULL)
+    ChannelSliceRepresentationSPtr channelSlice = boost::dynamic_pointer_cast<ChannelSliceRepresentation>(rep);
+    SegmentationSliceRepresentationSPtr segmentationSlice = boost::dynamic_pointer_cast<SegmentationSliceRepresentation>(rep);
+    if (channelSlice.get() != NULL || segmentationSlice.get() != NULL)
     {
       foreach(PickableItemPtr item, m_representations.keys())
         if (m_representations[item].contains(rep))
@@ -100,14 +106,15 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  bool MeshRenderer::managesRepresentation(GraphicalRepresentationSPtr rep)
+  bool SliceRenderer::managesRepresentation(GraphicalRepresentationSPtr rep)
   {
-    SimpleMeshRepresentationSPtr mesh = boost::dynamic_pointer_cast<SimpleMeshRepresentation>(rep);
-    return (mesh.get() != NULL);
+    ChannelSliceRepresentationSPtr channelSlice = boost::dynamic_pointer_cast<ChannelSliceRepresentation>(rep);
+    SegmentationSliceRepresentationSPtr segmentationSlice = boost::dynamic_pointer_cast<SegmentationSliceRepresentation>(rep);
+    return (channelSlice.get() != NULL || segmentationSlice.get() != NULL);
   }
 
   //-----------------------------------------------------------------------------
-  bool MeshRenderer::hasRepresentation(GraphicalRepresentationSPtr rep)
+  bool SliceRenderer::hasRepresentation(GraphicalRepresentationSPtr rep)
   {
     foreach (PickableItemPtr item, m_representations.keys())
       if (m_representations[item].contains(rep))
@@ -117,7 +124,7 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  void MeshRenderer::hide()
+  void SliceRenderer::hide()
   {
     if (!m_enable)
       return;
@@ -134,7 +141,7 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  void MeshRenderer::show()
+  void SliceRenderer::show()
   {
      if (m_enable)
        return;
@@ -151,7 +158,7 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  unsigned int MeshRenderer::getNumberOfvtkActors()
+  unsigned int SliceRenderer::getNumberOfvtkActors()
   {
     unsigned int returnVal = 0;
     foreach (PickableItemPtr item, m_representations.keys())
@@ -162,7 +169,7 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  ViewManager::Selection MeshRenderer::pick(int x, int y, vtkSmartPointer<vtkRenderer> renderer, bool repeat)
+  ViewManager::Selection SliceRenderer::pick(int x, int y, vtkSmartPointer<vtkRenderer> renderer, bool repeat)
   {
     ViewManager::Selection selection;
     QList<vtkProp *> removedProps;
@@ -194,6 +201,7 @@ namespace EspINA
 
               break;
             }
+
       }
 
       foreach(vtkProp *actor, removedProps)
@@ -204,10 +212,10 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  void MeshRenderer::getPickCoordinates(Nm *point)
+  void SliceRenderer::getPickCoordinates(Nm *point)
   {
     m_picker->GetPickPosition(point);
   }
 
-} // namespace EspINA
 
+} /* namespace EspINA */

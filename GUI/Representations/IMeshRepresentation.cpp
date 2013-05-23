@@ -37,13 +37,6 @@ namespace EspINA
   }
   
   //-----------------------------------------------------------------------------
-  IMeshRepresentation::~IMeshRepresentation()
-  {
-    if (m_view)
-      m_view->removeActor(m_actor);
-  }
-
-  //-----------------------------------------------------------------------------
   void IMeshRepresentation::setColor(const QColor &color)
   {
     SegmentationGraphicalRepresentation::setColor(color);
@@ -86,5 +79,14 @@ namespace EspINA
   {
     // FIXME: unused now, buy maybe useful in the future
     return false;
+  }
+
+  //-----------------------------------------------------------------------------
+  QList<vtkProp3D *> IMeshRepresentation::getActors()
+  {
+    QList<vtkProp3D *> list;
+    list << m_actor.GetPointer();
+
+    return list;
   }
 } /* namespace EspINA */

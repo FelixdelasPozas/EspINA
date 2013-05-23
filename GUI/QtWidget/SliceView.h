@@ -23,21 +23,16 @@
 #ifndef SLICEVIEW_H
 #define SLICEVIEW_H
 
+// EspINA
 #include "EspinaRenderView.h"
-
 #include "GUI/ViewManager.h"
 #include "GUI/ISettingsPanel.h"
 #include "GUI/vtkWidgets/EspinaWidget.h"
-#include <GUI/Representations/GraphicalRepresentation.h>
 #include <Core/Model/HierarchyItem.h>
+#include <Core/Model/EspinaFactory.h>
 
-#include <itkImageToVTKImageFilter.h>
-
+// VTK
 #include <vtkSmartPointer.h>
-#include <vtkRenderer.h>
-#include <vtkPropPicker.h>
-#include <vtkPolyData.h>
-#include <vtkAxisActor2D.h>
 
 //Forward declaration
 class vtkImageResliceToColors;
@@ -47,6 +42,10 @@ class vtkImageShiftScale;
 class vtkImageActor;
 class vtkInteractorStyleEspinaSlice;
 class vtkRenderWindow;
+class vtkPolyData;
+class vtkAxisActor2D;
+class vtkPropPicker;
+class vtkRenderer;
 class vtkView;
 class QVTKWidget;
 class QToolButton;
@@ -81,7 +80,7 @@ namespace EspINA
     static const double SEGMENTATION_SHIFT;
 
   public:
-    explicit SliceView(ViewManager *vm, PlaneType plane = AXIAL, QWidget* parent = 0);
+    explicit SliceView(EspinaFactoryPtr factory, ViewManager *vm, PlaneType plane = AXIAL, QWidget* parent = 0);
     virtual ~SliceView();
 
     virtual void reset();
@@ -89,11 +88,8 @@ namespace EspINA
     inline QString title() const;
     void setTitle(const QString &title);
 
-    ViewManager *viewManager() const
-    { return m_viewManager; }
-
-    PlaneType plane() const 
-    {return m_plane;}
+    ViewManager *viewManager() const        { return m_viewManager; }
+    PlaneType plane() const                 { return m_plane; }
 
     double segmentationDepth() const
     {
@@ -111,42 +107,20 @@ namespace EspINA
     void setCrosshairColors(double hcolor[3], double vcolor[3]);
     void setThumbnailVisibility(bool visible);
 
-    virtual void addChannel   (ChannelPtr channel);
-    virtual void removeChannel(ChannelPtr channel);
-    virtual bool updateChannelRepresentation (ChannelPtr channel, bool render = true);
-    virtual void updateChannelRepresentations(ChannelList list = ChannelList());
-
-    virtual void addSegmentation   (SegmentationPtr seg);
-    virtual void removeSegmentation(SegmentationPtr seg);
-    virtual bool updateSegmentationRepresentation (SegmentationPtr seg, bool render = true);
-    virtual void updateSegmentationRepresentations(SegmentationList list = SegmentationList());
-
     virtual void addWidget   (EspinaWidget* widget);
     virtual void removeWidget(EspinaWidget* eWidget);
 
     virtual void addActor   (vtkProp3D *actor);
     virtual void removeActor(vtkProp3D *actor);
 
-    virtual void addChannelActor   (vtkProp3D *actor);
-    virtual void removeChannelActor(vtkProp3D *actor);
-
-    virtual void addSegmentationActor  (vtkProp3D *actor);
-    virtual void removeSegmentationActor(vtkProp3D *actor);
-
     virtual void previewBounds(Nm bounds[6], bool cropToSceneBounds = true);
 
-    virtual void setCursor(const QCursor& cursor);
-
-    virtual void eventPosition(int &x, int &y);
     virtual ISelector::PickList pick(ISelector::PickableItems filter,
                                    ISelector::DisplayRegionList regions);
     virtual void worldCoordinates(const QPoint& displayPos,
                                   double worldPos[3]);
 
     virtual void setSelectionEnabled(bool enabe);
-
-    virtual vtkRenderWindow *renderWindow();
-    virtual vtkRenderer* mainRenderer();
 
     virtual void updateView();
     virtual void resetCamera();
@@ -156,7 +130,10 @@ namespace EspINA
 
     void updateCrosshairPoint(PlaneType plane, Nm slicepos);
 
-    virtual void forceRender(SegmentationList updatedSegs = SegmentationList());
+    void addRendererControls(IRendererSPtr renderer);
+    void removeRendererControls(const QString name);
+
+    virtual GraphicalRepresentationSPtr cloneRepresentation(GraphicalRepresentationSPtr prototype);
 
   public slots:
     /// Show/Hide segmentations
@@ -172,10 +149,9 @@ namespace EspINA
     void removeSliceSelectors(SliceSelectorWidget *widget);
 
     /// Update Selected Items
-    virtual void updateSelection(ViewManager::Selection selection, bool render);
     virtual void updateSceneBounds();
 
-    virtual void updateSelection() {}
+    virtual void updateSelection() {};
 
   protected slots:
     void sliceViewCenterChanged(Nm x, Nm y, Nm z);
@@ -183,7 +159,6 @@ namespace EspINA
     void spinValueChanged(double value);
     void selectFromSlice();
     void selectToSlice();
-    void resetView();
 
     void updateWidgetVisibility();
 
@@ -211,37 +186,10 @@ namespace EspINA
     void centerCrosshairOnMousePosition();
     void centerViewOnMousePosition();
 
-    struct ChannelPick
-    {
-      ChannelPick(ChannelPtr channel, GraphicalRepresentationSPtr representation, vtkProp *prop)
-      : Channel(channel), Representation(representation), Prop(prop) {}
-
-      ChannelPtr               Channel;
-      GraphicalRepresentationSPtr Representation;
-      vtkProp                 *Prop;
-    };
-    typedef QList<ChannelPick> ChannelPickList;
-    ChannelPickList pickChannels(double vx, double vy, vtkRenderer *renderer, bool repeatable = true);
-
-    struct SegmentationPick
-    {
-      SegmentationPick(SegmentationPtr segmentation, GraphicalRepresentationSPtr representation, vtkProp *prop)
-      : Segmentation(segmentation), Representation(representation), Prop(prop) {}
-
-      SegmentationPtr          Segmentation;
-      GraphicalRepresentationSPtr Representation;
-      vtkProp                 *Prop;
-    };
-    typedef QList<SegmentationPick> SegmentationPickList;
-    SegmentationPickList pickSegmentations(double vx, double vy, vtkRenderer *renderer, bool repeatable = true);
+    ViewManager::Selection pickChannels(double vx, double vy, vtkRenderer *renderer, bool repeatable = true);
+    ViewManager::Selection pickSegmentations(double vx, double vy, vtkRenderer *renderer, bool repeatable = true);
 
     void selectPickedItems(bool append);
-
-
-    /// Convenience function to get vtkProp's channel
-    ChannelPick propToChannel(vtkProp *prop);
-    /// Convenience function to get vtkProp's segmentation
-    SegmentationPick propToSegmentation(vtkProp *prop);
 
     /// Converts point from Display coordinates to World coordinates
     ISelector::WorldRegion worldRegion(const ISelector::DisplayRegion &region, PickableItemPtr item);
@@ -268,8 +216,6 @@ namespace EspINA
     void setupUI();
 
   private:
-    ViewManager *m_viewManager;
-
     // GUI
     QHBoxLayout    *m_titleLayout;
     QLabel         *m_title;
@@ -277,17 +223,12 @@ namespace EspINA
     QHBoxLayout    *m_controlLayout;
     QHBoxLayout    *m_fromLayout;
     QHBoxLayout    *m_toLayout;
-    QVTKWidget     *m_view;
     QScrollBar     *m_scrollBar;
     QDoubleSpinBox *m_spinBox;
     QPushButton    *m_zoomButton;
 
     // VTK View
-    vtkRenderWindow                *m_renderWindow;
-    vtkSmartPointer<vtkRenderer>    m_renderer;
     vtkSmartPointer<vtkRenderer>    m_thumbnail;
-    vtkSmartPointer<vtkPropPicker>  m_channelPicker;
-    vtkSmartPointer<vtkPropPicker>  m_segmentationPicker;
     vtkSmartPointer<vtkAxisActor2D> m_ruler;
     bool                            m_rulerVisibility;
     bool                            m_fitToSlices;
@@ -317,7 +258,8 @@ namespace EspINA
     vtkSmartPointer<vtkPolyData> m_channelBorderData, m_viewportBorderData;
     vtkSmartPointer<vtkActor>    m_channelBorder, m_viewportBorder;
 
-    bool m_sceneReady;
+    bool           m_sceneReady;
+    IRendererSList m_itemRenderers;
 
     // Representations
     QMap<EspinaWidget *, SliceWidget *>      m_widgets;
@@ -330,9 +272,10 @@ namespace EspINA
     const QString INVERT_SLICE_ORDER;
     const QString INVERT_WHEEL;
     const QString SHOW_AXIS;
+    const QString RENDERERS;
 
   public:
-    explicit Settings(PlaneType plane, const QString prefix = QString());
+    explicit Settings(const EspinaFactoryPtr factory, SliceView* parent, PlaneType plane, const QString prefix = QString());
 
     void setInvertWheel(bool value);
     bool invertWheel() const
@@ -357,13 +300,18 @@ namespace EspINA
       return m_plane;
     }
 
+    void setRenderers(IRendererSList values);
+    IRendererSList renderers() { return m_renderers; }
+
   private:
     static const QString view(PlaneType plane);
 
   private:
-    bool m_InvertWheel;
-    bool m_InvertSliceOrder;
-    bool m_ShowAxis;
+    bool           m_InvertWheel;
+    bool           m_InvertSliceOrder;
+    bool           m_ShowAxis;
+    SliceView     *m_parent;
+    IRendererSList m_renderers;
 
   private:
     PlaneType m_plane;

@@ -94,7 +94,6 @@ unsigned int CountingFrameRenderer::getNumberOfvtkActors()
   return 0;
 }
 
-
 //-----------------------------------------------------------------------------
 void CountingFrameRenderer::countingFrameCreated(CountingFrame* cf)
 {

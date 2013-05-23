@@ -42,8 +42,6 @@
 #include <vtkRenderer.h>
 #include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
-#include <vtkPropPicker.h>
-#include <vtkPolyDataMapper.h>
 #include <QVTKWidget.h>
 #include <vtkCamera.h>
 #include <vtkPOVExporter.h>
@@ -52,10 +50,13 @@
 #include <vtkPNGWriter.h>
 #include <vtkJPEGWriter.h>
 #include <vtkRenderLargeImage.h>
-#include <QApplication>
 #include <vtkAbstractWidget.h>
 #include <vtkWidgetRepresentation.h>
 #include <vtkMath.h>
+
+// Qt
+#include <QApplication>
+#include "GUI/Representations/CrosshairRepresentation.h"
 
 using namespace EspINA;
 
@@ -64,19 +65,13 @@ VolumeView::VolumeView(const EspinaFactory *factory,
                        ViewManager *viewManager,
                        bool additionalScrollBars,
                        QWidget* parent)
-: EspinaRenderView      (parent)
-, m_viewManager         (viewManager)
+: EspinaRenderView      (viewManager, parent)
 , m_mainLayout          (new QVBoxLayout())
 , m_controlLayout       (new QHBoxLayout())
 , m_additionalScrollBars(additionalScrollBars)
 , m_settings            (new Settings(factory, QString(), this))
-, m_numEnabledRenders   (0)
-, m_numEnabledSegmentationRenders(0)
-, m_numEnabledChannelRenders(0)
-, m_meshPicker          (vtkSmartPointer<vtkPropPicker>::New())
 {
   setupUI();
-  buildControls();
 
   setLayout(m_mainLayout);
 
@@ -105,7 +100,6 @@ VolumeView::~VolumeView()
 
   m_viewManager->unregisterView(this);
 }
-
 
 //-----------------------------------------------------------------------------
 void VolumeView::reset()
@@ -139,7 +133,6 @@ void VolumeView::reset()
 
   m_numEnabledChannelRenders = 0;
   m_numEnabledSegmentationRenders = 0;
-  m_numEnabledRenders = 0;
 }
 
 //-----------------------------------------------------------------------------
@@ -156,40 +149,37 @@ void VolumeView::addRendererControls(IRendererSPtr renderer)
   button->setToolTip(renderer.get()->tooltip());
   button->setObjectName(renderer.get()->name());
   connect(button, SIGNAL(clicked(bool)), renderer.get(), SLOT(setEnable(bool)));
-  connect(button, SIGNAL(clicked(bool)), this, SLOT(countEnabledRenderers(bool)));
+  connect(button, SIGNAL(clicked(bool)), this, SLOT(updateEnabledRenderersCount(bool)));
   connect(button, SIGNAL(destroyed(QObject*)), renderer.get(), SLOT(deleteLater()));
   connect(renderer.get(), SIGNAL(renderRequested()), this, SLOT(updateView()));
   m_controlLayout->addWidget(button);
-  renderer->setVTKRenderer(this->m_renderer);
+  renderer->setViewData(this, this->m_renderer);
 
   // add representations to renderer
   foreach(SegmentationPtr segmentation, m_segmentationStates.keys())
   {
     if (renderer->itemCanBeRendered(segmentation))
       foreach(GraphicalRepresentationSPtr rep, m_segmentationStates[segmentation].representations)
-         if (renderer->managesRepresentation(rep)) renderer->addRepresentation(rep);
+         if (renderer->managesRepresentation(rep)) renderer->addRepresentation(segmentation, rep);
   }
 
   foreach(ChannelPtr channel, m_channelStates.keys())
+  {
     if (renderer->itemCanBeRendered(channel))
-      reinterpret_cast<CrosshairRenderer *>(renderer.get())->addItem(channel);
+      foreach(GraphicalRepresentationSPtr rep, m_channelStates[channel].representations)
+        if (renderer->managesRepresentation(rep)) renderer->addRepresentation(channel, rep);
+  }
 
   m_itemRenderers << renderer;
   m_renderers[button] = renderer;
 
   if (!renderer->isHidden())
   {
-    switch(renderer->getRendererType())
-    {
-      case IRenderer::SEGMENTATION:
-        this->m_numEnabledSegmentationRenders++;
-        break;
-      case IRenderer::CHANNEL:
-        this->m_numEnabledChannelRenders++;
-        break;
-      default:
-        break;
-    }
+    if (renderer->getRenderableItemsType().testFlag(IRenderer::RENDERER_SEGMENTATION))
+      this->m_numEnabledSegmentationRenders++;
+
+    if (renderer->getRenderableItemsType().testFlag(IRenderer::RENDERER_CHANNEL))
+      this->m_numEnabledChannelRenders++;
   }
 
   if (0 != m_numEnabledSegmentationRenders)
@@ -205,7 +195,7 @@ void VolumeView::addRendererControls(IRendererSPtr renderer)
     }
   }
 
-  updateRenderersButtons();
+  updateRenderersControls();
 }
 
 //-----------------------------------------------------------------------------
@@ -236,10 +226,13 @@ void VolumeView::removeRendererControls(const QString name)
 
   if (removedRenderer)
   {
-    if (!removedRenderer->isHidden() && (removedRenderer->getRendererType() & IRenderer::SEGMENTATION))
+    if (!removedRenderer->isHidden())
+      removedRenderer->hide();
+
+    if (!removedRenderer->isHidden() && (removedRenderer->getRenderableItemsType().testFlag(IRenderer::RENDERER_SEGMENTATION)))
       this->m_numEnabledSegmentationRenders--;
 
-    if (!removedRenderer->isHidden() && (removedRenderer->getRendererType() & IRenderer::CHANNEL))
+    if (!removedRenderer->isHidden() && (removedRenderer->getRenderableItemsType().testFlag(IRenderer::RENDERER_CHANNEL)))
       this->m_numEnabledChannelRenders--;
 
     if (0 == m_numEnabledSegmentationRenders)
@@ -271,7 +264,7 @@ void VolumeView::removeRendererControls(const QString name)
     m_itemRenderers.removeAll(removedRenderer);
   }
 
-  updateRenderersButtons();
+  updateRenderersControls();
 }
 
 //-----------------------------------------------------------------------------
@@ -312,7 +305,8 @@ void VolumeView::buildControls()
   m_controlLayout->addItem(horizontalSpacer);
 
   foreach(IRenderer *renderer, m_settings->renderers())
-    this->addRendererControls(renderer->clone());
+    if (renderer->getRenderType().testFlag(IRenderer::RENDERER_VOLUMEVIEW))
+      this->addRendererControls(renderer->clone());
 
   m_mainLayout->addLayout(m_controlLayout);
 }
@@ -393,285 +387,39 @@ void VolumeView::resetCamera()
 //-----------------------------------------------------------------------------
 void VolumeView::addChannel(ChannelPtr channel)
 {
-  Q_ASSERT(!m_channelStates.contains(channel));
+  EspinaRenderView::addChannel(channel);
 
-  ChannelState state;
+  updateRenderersControls();
+  updateScrollBarsLimits();
+}
 
-  channel->output()->update();
+//-----------------------------------------------------------------------------
+void VolumeView::removeChannel(ChannelPtr channel)
+{
+  EspinaRenderView::removeChannel(channel);
 
-  double hue = -1.0 == channel->hue() ? 0 : channel->hue();
-  double sat = -1.0 == channel->hue() ? 0 : channel->saturation();
-  QColor stain = QColor::fromHsvF(hue, sat, 1.0);
-
-  state.brightness = channel->brightness();
-  state.contrast   = channel->contrast();
-  state.opacity    = channel->opacity();
-  state.stain      = stain;
-  state.visible    = channel->isVisible();
-
-  foreach (GraphicalRepresentationSPtr prototype, channel->representations())
-  {
-    if (prototype->canRenderOnView().testFlag(GraphicalRepresentation::VOLUME_VIEW))
-    {
-      ChannelGraphicalRepresentationSPtr representation = boost::dynamic_pointer_cast<ChannelGraphicalRepresentation>(prototype->clone(this));
-
-      representation->setBrightness(state.brightness);
-      representation->setContrast(state.contrast);
-      representation->setColor(state.stain);
-      if (Channel::AUTOMATIC_OPACITY != state.opacity)
-        representation->setOpacity(state.opacity);
-      representation->setVisible(state.visible);
-
-      state.representations << representation;
-
-      foreach(IRendererSPtr renderer, m_itemRenderers)
-        if (renderer->itemCanBeRendered(channel) && renderer->managesRepresentation(representation))
-          renderer->addRepresentation(representation);
-    }
-  }
-
-  m_channelStates.insert(channel, state);
-
-  // need to manage other channels' opacity too.
-  updateSceneBounds();
-  updateChannelsOpactity();
-
-  // Prevent displaying channel's corner until app request to reset the camera
-  if (m_channelStates.size() == 1 && channel->isVisible())
-    resetCamera();
-
-  // NOTE: this signal is not disconnected when a channel is removed because is
-  // used in the redo/undo of UnloadChannelCommand
-  connect(channel->volume().get(), SIGNAL(representationChanged()),
-          this, SLOT(updateSceneBounds()));
-
-  updateRenderersButtons();
+  updateRenderersControls();
   updateScrollBarsLimits();
 }
 
 //-----------------------------------------------------------------------------
 bool VolumeView::updateChannelRepresentation(ChannelPtr channel, bool render)
 {
-  Q_ASSERT(m_channelStates.contains(channel));
+  bool returnVal = EspinaRenderView::updateChannelRepresentation(channel, render);
 
-  ChannelState &state = m_channelStates[channel];
-
-  bool visibilityChanged = state.visible != channel->isVisible();
-  state.visible = channel->isVisible();
-
-  bool brightnessChanged = false;
-  bool contrastChanged   = false;
-  bool opacityChanged    = false;
-  bool stainChanged      = false;
-
-  if (visibilityChanged)
-    updateChannelsOpactity();
-
-  double hue = -1.0 == channel->hue() ? 0 : channel->hue();
-  double sat = -1.0 == channel->hue() ? 0 : channel->saturation();
-
-  if (state.visible)
-  {
-    QColor stain = QColor::fromHsvF(hue, sat, 1.0);
-
-    brightnessChanged = state.brightness != channel->brightness();
-    contrastChanged   = state.contrast   != channel->contrast();
-    opacityChanged    = state.opacity    != channel->opacity();
-    stainChanged      = state.stain      != stain;
-
-    state.brightness  = channel->brightness();
-    state.contrast    = channel->contrast();
-    state.opacity     = channel->opacity();
-    state.stain       = stain;
-  }
-
-  bool hasChanged = visibilityChanged || brightnessChanged || contrastChanged || opacityChanged || stainChanged;
-  if (hasChanged)
-  {
-    opacityChanged &= Channel::AUTOMATIC_OPACITY != state.opacity;
-
-    foreach (GraphicalRepresentationSPtr representation, state.representations)
-    {
-      ChannelGraphicalRepresentationSPtr rep = boost::dynamic_pointer_cast<ChannelGraphicalRepresentation>(representation);
-      if (brightnessChanged) rep->setBrightness(state.brightness);
-      if (contrastChanged  ) rep->setContrast(state.contrast);
-      if (stainChanged     ) rep->setColor(state.stain);
-      if (opacityChanged   ) rep->setOpacity(state.opacity);
-      if (visibilityChanged) rep->setVisible(state.visible);
-
-      rep->updateRepresentation();
-    }
-  }
-
-  if (render)
-    updateView();
-
-  return hasChanged;
-}
-
-//-----------------------------------------------------------------------------
-void VolumeView::updateChannelRepresentations(ChannelList list)
-{
-  if (isVisible())
-  {
-    ChannelList updateChannels;
-
-    if (list.empty())
-      updateChannels = m_channelStates.keys();
-    else
-      updateChannels = list;
-
-    bool updated = false;
-    foreach(ChannelPtr channel, updateChannels)
-      updated |= updateChannelRepresentation(channel);
-
-    if (updated)
-      updateView();
-  }
-}
-
-//-----------------------------------------------------------------------------
-void VolumeView::removeChannel(ChannelPtr channel)
-{
-  Q_ASSERT(m_channelStates.contains(channel));
-
-  foreach(GraphicalRepresentationSPtr representation, m_channelStates[channel].representations)
-    foreach(IRendererSPtr renderer, m_itemRenderers)
-      if (renderer->hasRepresentation(representation))
-        renderer->removeRepresentation(representation);
-
-  m_channelStates.remove(channel);
-
-  updateRenderersButtons();
-  updateScrollBarsLimits();
-}
-
-
-//-----------------------------------------------------------------------------
-void VolumeView::addSegmentation(SegmentationPtr seg)
-{
-  Q_ASSERT(!m_segmentationStates.contains(seg));
-
-  seg->output()->update();
-
-  SegmentationState state;
-
-  state.visible = false;
-
-  m_segmentationStates.insert(seg, state);
+  updateRenderersControls();
+  return returnVal;
 }
 
 //-----------------------------------------------------------------------------
 bool VolumeView::updateSegmentationRepresentation(SegmentationPtr seg, bool render)
 {
-  if (!m_segmentationStates.contains(seg))
-    return false;
+  bool returnVal = EspinaRenderView::updateSegmentationRepresentation(seg, render);
 
-  SegmentationState &state = m_segmentationStates[seg];
-
-  bool requestedVisibility = seg->visible();
-
-  bool visibilityChanged = state.visible != requestedVisibility;
-  state.visible = requestedVisibility;
-
-  bool colorChanged = false;
-  bool outputChanged = false;
-  bool highlightChanged = false;
-
-  if (state.visible)
-  {
-    QColor requestedColor       = m_viewManager->color(seg);
-    bool   requestedHighlighted = seg->isSelected();
-
-    outputChanged    = state.output != seg->output();
-    colorChanged     = state.color != requestedColor           || outputChanged;
-    highlightChanged = state.highlited != requestedHighlighted || outputChanged;
-
-    state.color     = requestedColor;
-    state.highlited = requestedHighlighted;
-    state.output    = seg->output();
-  }
-
-  // TODO: rep visibility not handled well
-  if (outputChanged)
-  {
-    state.representations.clear();
-
-    foreach(GraphicalRepresentationSPtr prototype, seg->representations())
-    {
-      if (prototype->canRenderOnView().testFlag(GraphicalRepresentation::VOLUME_VIEW))
-      {
-        GraphicalRepresentationSPtr representation = prototype->clone(this);
-
-        foreach(IRendererSPtr renderer, m_itemRenderers)
-          if (renderer->itemCanBeRendered(seg) && renderer->managesRepresentation(representation))
-          {
-            representation->setVisible( (renderer->isHidden() ? false : requestedVisibility) );
-            renderer->addRepresentation(representation);
-          }
-
-        state.representations << boost::dynamic_pointer_cast<SegmentationGraphicalRepresentation>(representation);
-      }
-    }
-  }
-
-  bool hasChanged = visibilityChanged || colorChanged || highlightChanged;
-  if (hasChanged)
-  {
-    foreach(GraphicalRepresentationSPtr representation, state.representations)
-    {
-      if (colorChanged)      representation->setColor(m_viewManager->color(seg));
-      if (highlightChanged)  representation->setHighlighted(state.highlited);
-      if (visibilityChanged && representation->isVisible()) representation->setVisible(state.visible);
-
-      representation->updateRepresentation();
-    }
-  }
-
-  if (render)
-  {
-    m_view->GetRenderWindow()->Render();
-    m_view->update();
-  }
-
-  updateRenderersButtons();
-  return hasChanged;
+  updateRenderersControls();
+  return returnVal;
 }
 
-//-----------------------------------------------------------------------------
-void VolumeView::updateSegmentationRepresentations(SegmentationList list)
-{
-  if (isVisible())
-  {
-    SegmentationList updateSegmentations;
-
-    if (list.empty())
-      updateSegmentations = m_segmentationStates.keys();
-    else
-      updateSegmentations = list;
-
-    bool updated = false;
-    foreach(SegmentationPtr seg, updateSegmentations)
-      updated |= updateSegmentationRepresentation(seg);
-
-    if (updated)
-      updateView();
-  }
-}
-
-//-----------------------------------------------------------------------------
-void VolumeView::removeSegmentation(SegmentationPtr seg)
-{
-  Q_ASSERT(m_segmentationStates.contains(seg));
-
-  foreach(GraphicalRepresentationSPtr rep, m_segmentationStates[seg].representations)
-    foreach(IRendererSPtr renderer, m_itemRenderers)
-      if (renderer->hasRepresentation(rep))
-        renderer->removeRepresentation(rep);
-  m_segmentationStates.remove(seg);
-
-  updateRenderersButtons();
-}
 
 //-----------------------------------------------------------------------------
 void VolumeView::addWidget(EspinaWidget* eWidget)
@@ -686,27 +434,17 @@ void VolumeView::addWidget(EspinaWidget* eWidget)
   widget->SetCurrentRenderer(this->m_renderer);
   widget->SetInteractor(m_view->GetInteractor());
 
-  if (m_numEnabledSegmentationRenders != 0)
+  bool activate = (m_numEnabledSegmentationRenders != 0);
+  if (eWidget->manipulatesSegmentations())
   {
-    if (eWidget->manipulatesSegmentations())
-    {
-      widget->SetEnabled(true);
-      widget->GetRepresentation()->SetVisibility(true);
-    }
-  }
-  else
-  {
-    if (eWidget->manipulatesSegmentations())
-    {
-      widget->SetEnabled(false);
-      widget->GetRepresentation()->SetVisibility(false);
-    }
+    widget->SetEnabled(activate);
+    widget->GetRepresentation()->SetVisibility(activate);
   }
 
   m_renderer->ResetCameraClippingRange();
   m_widgets[eWidget] = widget;
 
-  updateRenderersButtons();
+  updateRenderersControls();
 }
 
 //-----------------------------------------------------------------------------
@@ -715,28 +453,13 @@ void VolumeView::removeWidget(EspinaWidget* eWidget)
   if (!m_widgets.contains(eWidget))
     return;
 
+  vtkAbstractWidget *widget = m_widgets[eWidget];
+  widget->Off();
+  widget->SetInteractor(NULL);
+  widget->RemoveAllObservers();
   m_widgets.remove(eWidget);
 
-  updateRenderersButtons();
-}
-
-//-----------------------------------------------------------------------------
-void VolumeView::setCursor(const QCursor& cursor)
-{
-  m_view->setCursor(cursor);
-}
-
-//-----------------------------------------------------------------------------
-void VolumeView::eventPosition(int& x, int& y)
-{
-  x = y = -1;
-
-  if (m_renderer)
-  {
-   vtkRenderWindowInteractor *rwi = m_renderer->GetRenderWindow()->GetInteractor();
-   Q_ASSERT(rwi);
-   rwi->GetEventPosition(x, y);
-  }
+  updateRenderersControls();
 }
 
 //-----------------------------------------------------------------------------
@@ -746,23 +469,8 @@ ISelector::PickList VolumeView::pick(ISelector::PickableItems filter, ISelector:
 }
 
 //-----------------------------------------------------------------------------
-vtkRenderWindow* VolumeView::renderWindow()
-{
-  return m_view->GetRenderWindow();
-}
-
-//-----------------------------------------------------------------------------
-vtkRenderer *VolumeView::mainRenderer()
-{
-  return m_renderer;
-}
-
-
-//-----------------------------------------------------------------------------
 void VolumeView::setupUI()
 {
-  m_view = new QVTKWidget();
-
   if (m_additionalScrollBars)
   {
     m_additionalGUI = new QHBoxLayout();
@@ -808,6 +516,8 @@ void VolumeView::setupUI()
   m_view->GetRenderWindow()->GetInteractor()->SetInteractorStyle(interactorstyle);
   m_view->GetRenderWindow()->Render();
   m_view->installEventFilter(this);
+
+  buildControls();
 }
 
 //-----------------------------------------------------------------------------
@@ -823,49 +533,42 @@ void VolumeView::updateView()
 //-----------------------------------------------------------------------------
 void VolumeView::selectPickedItems(int vx, int vy, bool append)
 {
-  ViewManager::Selection selection;
+
+  ViewManager::Selection selection, pickedItems;
   if (append)
     selection = m_viewManager->selection();
 
   // If no append, segmentations have priority over channels
-  foreach(IRendererSPtr renderer, m_renderers.values())
+  foreach(IRendererSPtr renderer, m_itemRenderers)
   {
-    if (!renderer->isHidden() && (renderer->getRendererType() & IRenderer::SEGMENTATION))
+    if (!renderer->isHidden() && (renderer->getRenderableItemsType().testFlag(IRenderer::RENDERER_SEGMENTATION)))
     {
-      GraphicalRepresentationSList rendererSelection = renderer->pick(vx, vy, append);
-      qDebug() << "selected" << rendererSelection.size();
-      if (!rendererSelection.empty())
+      pickedItems = renderer->pick(vx, vy, NULL, append);
+      if (!pickedItems.empty())
       {
-        foreach(GraphicalRepresentationSPtr rep, rendererSelection)
-          foreach (SegmentationPtr seg, m_segmentationStates.keys())
-            if (m_segmentationStates[seg].representations.contains(rep))
-            {
-              if (!selection.contains(seg))
-                selection << seg;
-              else
-                selection.removeAll(seg);
-            }
+        foreach(PickableItemPtr item, pickedItems)
+          if (!selection.contains(item))
+            selection << item;
+          else
+            selection.removeAll(item);
       }
     }
   }
 
-  foreach(IRendererSPtr renderer, m_renderers.values())
-  {
-    if (!renderer->isHidden() && (renderer->getRendererType() & IRenderer::CHANNEL))
-    {
-      GraphicalRepresentationSList rendererSelection = renderer->pick(vx, vy, append);
-      if (!rendererSelection.empty())
-      {
-        foreach(GraphicalRepresentationSPtr rep, rendererSelection)
-          foreach (SegmentationPtr seg, m_segmentationStates.keys())
-            if (m_segmentationStates[seg].representations.contains(rep))
-            {
-              if (!selection.contains(seg))
-                selection << seg;
-              else
-                selection.removeAll(seg);
+  pickedItems.clear();
 
-            }
+  foreach(IRendererSPtr renderer, m_itemRenderers)
+  {
+    if (!renderer->isHidden() && (renderer->getRenderableItemsType().testFlag(IRenderer::RENDERER_CHANNEL)))
+    {
+      pickedItems = renderer->pick(vx, vy, NULL, append);
+      if (!pickedItems.empty())
+      {
+        foreach(PickableItemPtr item, pickedItems)
+          if (!selection.contains(item))
+            selection << item;
+          else
+            selection.removeAll(item);
       }
     }
   }
@@ -883,7 +586,7 @@ void VolumeView::selectPickedItems(int vx, int vy, bool append)
 bool VolumeView::eventFilter(QObject* caller, QEvent* e)
 {
   // there is not a "singleclick" event so we need to remember the position of the
-  // press event and compare it with the position of the release event.
+  // press event and compare it with the position of the release event (for picking).
   static int x = -1;
   static int y = -1;
 
@@ -897,12 +600,12 @@ bool VolumeView::eventFilter(QObject* caller, QEvent* e)
     {
       if (me->modifiers() == Qt::CTRL)
       {
-        foreach(IRendererSPtr renderer, m_renderers.values())
+        foreach(IRendererSPtr renderer, m_itemRenderers)
         {
           if (!renderer->isHidden())
           {
-            GraphicalRepresentationSList rendererSelection = renderer->pick(newX, newY, false);
-            if (!rendererSelection.empty())
+            ViewManager::Selection selection = renderer->pick(newX, newY, NULL, false);
+            if (!selection.empty())
             {
               double point[3];
               renderer->getPickCoordinates(point);
@@ -926,9 +629,7 @@ bool VolumeView::eventFilter(QObject* caller, QEvent* e)
     QMouseEvent *me = static_cast<QMouseEvent*>(e);
     if ((me->button() == Qt::LeftButton) && !(me->modifiers() == Qt::CTRL))
       if ((newX == x) && (newY == y))
-      {
         selectPickedItems(newX, newY, me->modifiers() == Qt::SHIFT);
-      }
   }
 
   return QObject::eventFilter(caller, e);
@@ -1073,79 +774,6 @@ void VolumeView::takeSnapshot()
 }
 
 //-----------------------------------------------------------------------------
-VolumeView::Settings::Settings(const EspinaFactory *factory,
-                               const QString        prefix,
-                               VolumeView          *parent)
-: RENDERERS(prefix + "VolumeView::renderers")
-{
-  this->parent = parent;
-  QSettings settings(CESVIMA, ESPINA);
-
-  if (!settings.contains(RENDERERS))
-    settings.setValue(RENDERERS, QStringList() << "Crosshairs" << "Volumetric" << "Mesh");
-
-  QMap<QString, IRenderer *> renderers = factory->renderers();
-  foreach(QString name, settings.value(RENDERERS).toStringList())
-  {
-    IRenderer *renderer = renderers.value(name, NULL);
-    if (renderer)
-      m_renderers << renderer;
-  }
-
-}
-
-//-----------------------------------------------------------------------------
-void VolumeView::Settings::setRenderers(IRendererList values)
-{
-  QSettings settings(CESVIMA, ESPINA);
-  QStringList activeRenderersNames;
-  IRendererList activeRenderers;
-
-  // remove controls for unused renderers
-  foreach(IRenderer *oldRenderer, m_renderers)
-  {
-    bool selected = false;
-    int i = 0;
-    while (!selected && i < values.size())
-      selected = values[i++]->name() == oldRenderer->name();
-
-    if (!selected)
-    {
-      parent->removeRendererControls(oldRenderer->name());
-      if (!oldRenderer->isHidden())
-      {
-        oldRenderer->hide();
-        parent->countEnabledRenderers(false);
-      }
-      oldRenderer->setVTKRenderer(NULL);
-    }
-    else
-      activeRenderers << oldRenderer;
-  }
-
-  // add controls for added renderers
-  foreach(IRenderer *renderer, values)
-  {
-    activeRenderersNames << renderer->name();
-    if (!activeRenderers.contains(renderer))
-    {
-      activeRenderers << renderer;
-      parent->addRendererControls(renderer->clone());
-    }
-  }
-
-  settings.setValue(RENDERERS, activeRenderersNames);
-  settings.sync();
-  m_renderers = activeRenderers;
-}
-
-//-----------------------------------------------------------------------------
-IRendererList VolumeView::Settings::renderers() const
-{
-  return m_renderers;
-}
-
-//-----------------------------------------------------------------------------
 void VolumeView::changePlanePosition(PlaneType plane, Nm dist)
 {
   bool needUpdate = false;
@@ -1158,112 +786,62 @@ void VolumeView::changePlanePosition(PlaneType plane, Nm dist)
       needUpdate = true;
     }
   }
+
   if (needUpdate)
     updateView();
 }
 
 //-----------------------------------------------------------------------------
-void VolumeView::countEnabledRenderers(bool value)
+void VolumeView::updateEnabledRenderersCount(bool value)
 {
-  if ((true == value) && (0 == this->m_numEnabledRenders))
+  int updateValue = (value ? +1 : -1);
+
+  // reset camera if is the first renderer the user activates
+  if ((true == value) && (0 == (m_numEnabledChannelRenders + m_numEnabledSegmentationRenders)))
   {
     m_renderer->ResetCamera();
     updateView();
   }
 
+  // get enabled/disabled renderer that triggered the signal
   IRendererSPtr renderer;
-
   QPushButton *button = dynamic_cast<QPushButton*>(sender());
   if (button)
     renderer = m_renderers[button];
 
-  if (value)
+  if (renderer && (renderer->getRenderableItemsType().testFlag(IRenderer::RENDERER_CHANNEL)))
   {
-    m_numEnabledRenders++;
-    if (renderer && (renderer->getRendererType() & IRenderer::SEGMENTATION) && m_additionalScrollBars)
+    m_numEnabledChannelRenders += updateValue;
+    if (m_additionalScrollBars)
     {
-      m_numEnabledChannelRenders++;
-      m_axialScrollBar->setEnabled(true);
-      m_coronalScrollBar->setEnabled(true);
-      m_sagittalScrollBar->setEnabled(true);
+      m_axialScrollBar->setEnabled(value);
+      m_coronalScrollBar->setEnabled(value);
+      m_sagittalScrollBar->setEnabled(value);
     }
+  }
 
-    if (renderer && (renderer->getRendererType() & IRenderer::SEGMENTATION))
+  if (renderer && (renderer->getRenderableItemsType().testFlag(IRenderer::RENDERER_SEGMENTATION)))
+  {
+    m_numEnabledSegmentationRenders += updateValue;
+    if (0 != m_numEnabledSegmentationRenders)
     {
-      m_numEnabledSegmentationRenders++;
-      if (0 != m_numEnabledSegmentationRenders)
+      QMap<EspinaWidget *, vtkAbstractWidget *>::const_iterator it = m_widgets.begin();
+      for( ; it != m_widgets.end(); ++it)
       {
-        QMap<EspinaWidget *, vtkAbstractWidget *>::const_iterator it = m_widgets.begin();
-        for( ; it != m_widgets.end(); ++it)
+        if (it.key()->manipulatesSegmentations())
         {
-          if (it.key()->manipulatesSegmentations())
-          {
-            it.value()->SetEnabled(true);
-            it.value()->GetRepresentation()->SetVisibility(true);
-          }
+          it.value()->SetEnabled(value);
+          it.value()->GetRepresentation()->SetVisibility(value);
         }
       }
     }
   }
-  else
-  {
-    m_numEnabledRenders--;
-    if (renderer && (renderer->getRendererType() & IRenderer::CHANNEL) && m_additionalScrollBars)
-    {
-      m_numEnabledChannelRenders--;
-      if (0 == m_numEnabledChannelRenders)
-      {
-        m_axialScrollBar->setEnabled(false);
-        m_coronalScrollBar->setEnabled(false);
-        m_sagittalScrollBar->setEnabled(false);
-      }
-    }
 
-    if (renderer && (renderer->getRendererType() & IRenderer::SEGMENTATION))
-    {
-      m_numEnabledSegmentationRenders--;
-      if (0 == m_numEnabledSegmentationRenders)
-      {
-        QMap<EspinaWidget *, vtkAbstractWidget *>::const_iterator it = m_widgets.begin();
-        for( ; it != m_widgets.end(); ++it)
-        {
-          if (it.key()->manipulatesSegmentations())
-          {
-            it.value()->SetEnabled(false);
-            it.value()->GetRepresentation()->SetVisibility(false);
-          }
-        }
-      }
-    }
-  }
-  updateRenderersButtons();
+  updateRenderersControls();
 }
 
 //-----------------------------------------------------------------------------
-void VolumeView::updateSelection(ViewManager::Selection selection, bool render)
-{
-  updateSegmentationRepresentations();
-}
-
-//-----------------------------------------------------------------------------
-void VolumeView::resetView()
-{
-  resetCamera();
-  updateView();
-}
-
-//-----------------------------------------------------------------------------
-void VolumeView::forceRender(SegmentationList updatedSegs)
-{
-  foreach(SegmentationPtr seg, updatedSegs)
-    updateSegmentationRepresentation(seg);
-
-  m_view->GetRenderWindow()->Render();
-  m_view->update();
-}
-
-//-----------------------------------------------------------------------------
-void VolumeView::updateRenderersButtons()
+void VolumeView::updateRenderersControls()
 {
   bool canTakeSnapshot = false;
   bool canBeExported = false;
@@ -1311,8 +889,8 @@ void VolumeView::scrollBarMoved(int value)
   point[1] = m_coronalScrollBar->value() * minSpacing[1];
   point[2] = m_sagittalScrollBar->value() * minSpacing[2];
 
-  foreach(IRendererSPtr renderer, m_renderers.values())
-    if (renderer->getRendererType() & IRenderer::CHANNEL)
+  foreach(IRendererSPtr renderer, m_itemRenderers)
+    if (renderer->getRenderableItemsType().testFlag(IRenderer::RENDERER_CHANNEL))
     {
       CrosshairRenderer *crossRender = dynamic_cast<CrosshairRenderer *>(renderer.get());
       if (crossRender != NULL)
@@ -1375,15 +953,80 @@ void VolumeView::updateScrollBarsLimits()
 }
 
 //-----------------------------------------------------------------------------
-void VolumeView::addActor(vtkProp3D *actor)
+GraphicalRepresentationSPtr VolumeView::cloneRepresentation(GraphicalRepresentationSPtr prototype)
 {
-  m_renderer->AddActor(actor);
-//  m_meshPicker->GetPickList()->AddItem(actor);
+  GraphicalRepresentationSPtr rep = GraphicalRepresentationSPtr();
+
+  if (prototype->canRenderOnView().testFlag(GraphicalRepresentation::RENDERABLEVIEW_VOLUME))
+    rep = prototype->clone(this);
+
+  return rep;
 }
 
 //-----------------------------------------------------------------------------
-void VolumeView::removeActor(vtkProp3D *actor)
+// VOLUMEVIEW::SETTINGS
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+VolumeView::Settings::Settings(const EspinaFactory *factory,
+                               const QString        prefix,
+                               VolumeView          *parent)
+: RENDERERS(prefix + "VolumeView::renderers")
 {
-  m_renderer->RemoveActor(actor);
-//  m_meshPicker->GetPickList()->RemoveItem(actor);
+  this->parent = parent;
+  QSettings settings(CESVIMA, ESPINA);
+
+  if (!settings.contains(RENDERERS))
+    settings.setValue(RENDERERS, QStringList() << "Crosshairs" << "Volumetric" << "Mesh" << "Smoothed Mesh");
+
+  QMap<QString, IRenderer *> renderers = factory->renderers();
+  foreach(QString name, settings.value(RENDERERS).toStringList())
+  {
+    IRenderer *renderer = renderers.value(name, NULL);
+    if (renderer)
+      m_renderers << renderer;
+  }
+}
+
+//-----------------------------------------------------------------------------
+void VolumeView::Settings::setRenderers(IRendererList values)
+{
+  QSettings settings(CESVIMA, ESPINA);
+  QStringList activeRenderersNames;
+  IRendererList activeRenderers;
+
+  // remove controls for unused renderers
+  foreach(IRenderer *oldRenderer, m_renderers)
+  {
+    bool selected = false;
+    int i = 0;
+    while (!selected && i < values.size())
+      selected = values[i++]->name() == oldRenderer->name();
+
+    if (!selected)
+      parent->removeRendererControls(oldRenderer->name());
+    else
+      activeRenderers << oldRenderer;
+  }
+
+  // add controls for added renderers
+  foreach(IRenderer *renderer, values)
+  {
+    activeRenderersNames << renderer->name();
+    if (!activeRenderers.contains(renderer))
+    {
+      activeRenderers << renderer;
+      parent->addRendererControls(renderer->clone());
+    }
+  }
+
+  settings.setValue(RENDERERS, activeRenderersNames);
+  settings.sync();
+  m_renderers = activeRenderers;
+}
+
+//-----------------------------------------------------------------------------
+IRendererList VolumeView::Settings::renderers() const
+{
+  return m_renderers;
 }

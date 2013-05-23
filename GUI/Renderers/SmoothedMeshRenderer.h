@@ -29,7 +29,6 @@ namespace EspINA
   class SmoothedMeshRenderer
   : public MeshRenderer
   {
-    Q_OBJECT
     public:
       explicit SmoothedMeshRenderer(QObject* parent = 0);
 
@@ -37,7 +36,7 @@ namespace EspINA
       virtual const QString name()    const { return "Smoothed Mesh"; }
       virtual const QString tooltip() const { return "Segmentation's Smoothed Meshes"; }
 
-      virtual void addRepresentation(GraphicalRepresentationSPtr rep);
+      virtual void addRepresentation(PickableItemPtr item, GraphicalRepresentationSPtr rep);
       virtual void removeRepresentation(GraphicalRepresentationSPtr rep);
       virtual bool managesRepresentation(GraphicalRepresentationSPtr rep);
 

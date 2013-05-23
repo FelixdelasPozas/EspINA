@@ -55,7 +55,7 @@ namespace EspINA
   public:
     explicit ChannelSliceRepresentation(ChannelVolumeSPtr data,
                                         SliceView        *view);
-    virtual ~ChannelSliceRepresentation();
+    virtual ~ChannelSliceRepresentation() {};
 
     virtual void setBrightness(double value);
 
@@ -63,16 +63,14 @@ namespace EspINA
 
     virtual void setColor(const QColor &color);
 
-    virtual void setHighlighted(bool highlighted);
-
     virtual void setOpacity(double value);
 
     virtual void setVisible(bool visible);
 
-    virtual bool isInside(Nm point[3]);
+    virtual bool isInside(Nm point[3]) { return false; };
 
     virtual RenderableView canRenderOnView() const
-    { return GraphicalRepresentation::SLICE_VIEW; }
+    { return GraphicalRepresentation::RENDERABLEVIEW_SLICE; }
 
     virtual GraphicalRepresentationSPtr clone(SliceView *view);
 
@@ -82,6 +80,8 @@ namespace EspINA
     virtual bool hasActor(vtkProp *actor) const;
 
     virtual void updateRepresentation();
+
+    virtual QList<vtkProp3D*> getActors();
 
   private slots:
     void updatePipelineConnections();
@@ -106,7 +106,7 @@ namespace EspINA
   public:
     explicit SegmentationSliceRepresentation(SegmentationVolumeSPtr data,
                                              SliceView             *view);
-    virtual ~SegmentationSliceRepresentation();
+    virtual ~SegmentationSliceRepresentation() {};
 
     virtual void setColor(const QColor &color);
 
@@ -117,7 +117,7 @@ namespace EspINA
     virtual bool isInside(Nm point[3]);
 
     virtual RenderableView canRenderOnView() const
-    { return GraphicalRepresentation::SLICE_VIEW; }
+    { return GraphicalRepresentation::RENDERABLEVIEW_SLICE; }
 
     virtual GraphicalRepresentationSPtr clone(SliceView *view);
 
@@ -127,6 +127,8 @@ namespace EspINA
     virtual bool hasActor(vtkProp *actor) const;
 
     virtual void updateRepresentation();
+
+    virtual QList<vtkProp3D*> getActors();
 
   private slots:
     void updatePipelineConnections();
@@ -145,6 +147,12 @@ namespace EspINA
     static TransparencySelectionHighlighter *s_highlighter;
   };
 
+
+  typedef boost::shared_ptr<ChannelSliceRepresentation> ChannelSliceRepresentationSPtr;
+  typedef QList<ChannelSliceRepresentationSPtr> ChannelSliceRepresentationSList;
+
+  typedef boost::shared_ptr<SegmentationSliceRepresentation> SegmentationSliceRepresentationSPtr;
+  typedef QList<SegmentationSliceRepresentationSPtr> SegmentationSliceRepresentationSList;
 
 } // namespace EspINA
 

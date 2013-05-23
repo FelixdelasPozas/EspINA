@@ -24,8 +24,6 @@
 #include <vtkPolyData.h>
 #include <vtkProp3D.h>
 
-#include <QDebug>
-
 using namespace EspINA;
 
 double AxialSliceMatrix[16] =

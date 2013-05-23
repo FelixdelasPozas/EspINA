@@ -41,68 +41,38 @@ namespace EspINA
   class CrosshairRenderer
   : public IRenderer
   {
-    struct Representation
-    {
-      vtkImageActor *axial;
-      vtkImageActor *coronal;
-      vtkImageActor *sagittal;
-      vtkActor *axialBorder;
-      vtkActor *coronalBorder;
-      vtkActor *sagittalBorder;
-      vtkPolyData *axialSquare;
-      vtkPolyData *coronalSquare;
-      vtkPolyData *sagittalSquare;
-      vtkMatrix4x4 *matAxial;
-      vtkMatrix4x4 *matCoronal;
-      vtkMatrix4x4 *matSagittal;
-      vtkLookupTable *lut;
-      double bounds[6];
-      bool visible;
-      bool selected;
-      QColor color;
-      Nm point[3];
-      vtkImageShiftScale *axialScaler;
-      vtkImageShiftScale *coronalScaler;
-      vtkImageShiftScale *sagittalScaler;
-      double contrast;
-      double brightness;
-    };
-
   public:
     explicit CrosshairRenderer(QObject* parent = 0);
+    virtual ~CrosshairRenderer();
 
     virtual const QIcon icon() const {return QIcon(":/espina/show_planes.svg");}
     virtual const QString name() const {return "Crosshairs";}
     virtual const QString tooltip() const {return "Sample's Crosshairs";}
 
-    virtual bool addItem   (ModelItemPtr item);
-    virtual bool updateItem(ModelItemPtr item, bool forced = false);
-    virtual bool removeItem(ModelItemPtr item);
-
-    virtual void addRepresentation(GraphicalRepresentationSPtr rep) {};
-    virtual void removeRepresentation(GraphicalRepresentationSPtr rep) {};
-    virtual bool hasRepresentation(GraphicalRepresentationSPtr rep) { return false; };
-    virtual bool managesRepresentation(GraphicalRepresentationSPtr rep) {return false;};
+    virtual void addRepresentation(PickableItemPtr seg, GraphicalRepresentationSPtr rep);
+    virtual void removeRepresentation(GraphicalRepresentationSPtr rep);
+    virtual bool hasRepresentation(GraphicalRepresentationSPtr rep);
+    virtual bool managesRepresentation(GraphicalRepresentationSPtr rep);
 
     virtual void hide();
     virtual void show();
     virtual unsigned int getNumberOfvtkActors();
+
     void setCrosshairColors(double axialColor[3], double coronalColor[3], double sagittalColor[3]);
     void setCrosshair(Nm point[3]);
     void setPlanePosition(PlaneType plane, Nm dist);
 
-    virtual IRendererSPtr clone() {return IRendererSPtr(new CrosshairRenderer());}
+    virtual IRendererSPtr clone()           { return IRendererSPtr(new CrosshairRenderer()); }
+    virtual int itemsBeenRendered()         { return m_representations.size(); };
 
-    virtual int itemsBeenRendered() { return m_channels.size(); };
+    virtual RendererType getRenderType() { return RendererType(RENDERER_VOLUMEVIEW); }
+    virtual RenderabledItems getRenderableItemsType() { return RenderabledItems(IRenderer::RENDERER_CHANNEL); };
 
-    virtual RenderedItems getRendererType() { return RenderedItems(IRenderer::CHANNEL); };
-
-    virtual GraphicalRepresentationSList pick(int x, int y, bool repeat);
+    virtual ViewManager::Selection pick(int x, int y, vtkSmartPointer<vtkRenderer> renderer, bool repeat = false);
     virtual void getPickCoordinates(double *point);
 
   private:
-    QMap<ModelItemPtr, Representation> m_channels;
-    vtkSmartPointer<vtkPropPicker>     m_picker;
+    vtkSmartPointer<vtkPropPicker>                   m_picker;
   };
 
 } // namespace EspINA

@@ -24,15 +24,18 @@
 #ifndef VOLUMEVIEW_H
 #define VOLUMEVIEW_H
 
+// EspINA
 #include "Core/EspinaTypes.h"
 #include "GUI/QtWidget/EspinaRenderView.h"
 #include "GUI/Renderers/Renderer.h"
 #include "GUI/Representations/GraphicalRepresentation.h"
 #include "GUI/ViewManager.h"
 
+// VTK
 #include <vtkSmartPointer.h>
 #include <vtkRenderer.h>
 
+// Qt
 #include <QPushButton>
 
 class vtkAbstractWidget;
@@ -44,7 +47,6 @@ class QPushButton;
 class QVBoxLayout;
 class QHBoxLayout;
 class QScrollBar;
-class vtkPropPicker;
 
 namespace EspINA
 {
@@ -85,8 +87,11 @@ namespace EspINA
     virtual void centerViewOn(Nm center[3], bool);
     void setCameraFocus(const Nm center[3]);
 
+    virtual GraphicalRepresentationSPtr cloneRepresentation(GraphicalRepresentationSPtr prototype);
+
   public slots: //Needed to interact with renderers
     virtual void updateView();
+    virtual void updateSelection(){};
 
   public:
     virtual void resetCamera();
@@ -94,51 +99,31 @@ namespace EspINA
     virtual void addChannel   (ChannelPtr channel);
     virtual void removeChannel(ChannelPtr channel);
     virtual bool updateChannelRepresentation(ChannelPtr channel, bool render = true);
-    virtual void updateChannelRepresentations(ChannelList list = ChannelList());
 
-    virtual void addSegmentation   (SegmentationPtr seg);
-    virtual void removeSegmentation(SegmentationPtr seg);
     virtual bool updateSegmentationRepresentation(SegmentationPtr seg, bool render = true);
-    virtual void updateSegmentationRepresentations(SegmentationList list = SegmentationList());
 
     virtual void addWidget   (EspinaWidget *widget);
     virtual void removeWidget(EspinaWidget *widget);
 
-    virtual void addActor   (vtkProp3D *actor);
-    virtual void removeActor(vtkProp3D *actor);
-
-    virtual void setCursor(const QCursor& cursor);
-    virtual void eventPosition(int& x, int& y);
     virtual ISelector::PickList pick(ISelector::PickableItems filter,
                                    ISelector::DisplayRegionList regions);
-    virtual void worldCoordinates(const QPoint& displayPos,
-                                  double worldCoordinatesc[3])
-    { Q_ASSERT(false); }
-    virtual void setSelectionEnabled(bool enabe){}
 
-    virtual vtkRenderWindow* renderWindow();
-    virtual vtkRenderer* mainRenderer();
+    virtual void setSelectionEnabled(bool enable){}
 
     SettingsPtr settings() {return m_settings;}
 
     void changePlanePosition(PlaneType, Nm);
+
     void addRendererControls(IRendererSPtr renderer);
     void removeRendererControls(const QString name);
 
     void showCrosshairs(bool) {};
-    virtual void updateSelection(){}
-
-    virtual void forceRender(SegmentationList updatedSegs = SegmentationList());
+    virtual void worldCoordinates(const QPoint &displayPos, double worldPos[3]) {};
 
   public slots:
-    void countEnabledRenderers(bool);
-    /// Update Selected Items
-    virtual void updateSelection(ViewManager::Selection selection, bool render);
-    void resetView();
+    void updateEnabledRenderersCount(bool);
 
   signals:
-    void channelSelected(ChannelPtr);
-    void segmentationSelected(SegmentationPtr, bool);
     void centerChanged(Nm, Nm, Nm);
 
   protected:
@@ -147,31 +132,9 @@ namespace EspINA
     virtual void updateChannelsOpactity(){}
 
   private:
-    struct ChannelState
-    {
-      double brightness;
-      double contrast;
-      double opacity;
-      QColor stain;
-      bool   visible;
-
-      GraphicalRepresentationSList representations;
-    };
-
-    struct SegmentationState
-    {
-      Nm         depth;
-      QColor     color;
-      bool       highlited;
-      OutputSPtr output;
-      bool       visible;
-
-      GraphicalRepresentationSList representations;
-    };
-
     void setupUI();
     void buildControls();
-    void updateRenderersButtons();
+    void updateRenderersControls();
     void updateScrollBarsLimits();
 
   protected slots:
@@ -182,18 +145,14 @@ namespace EspINA
     void takeSnapshot();
 
   private:
-    ViewManager *m_viewManager;
-
     // GUI
     QVBoxLayout *m_mainLayout;
     QHBoxLayout *m_controlLayout;
-    QVTKWidget  *m_view;
     QPushButton m_snapshot;
     QPushButton m_export;
     QPushButton m_zoom;
-    vtkSmartPointer<vtkRenderer> m_renderer;
 
-    // Optional elements only visible in Segmentation Information dialog
+    // GUI elements only visible in Segmentation Information dialog
     QHBoxLayout *m_additionalGUI;
     QScrollBar  *m_axialScrollBar;
     QScrollBar  *m_coronalScrollBar;
@@ -203,20 +162,8 @@ namespace EspINA
     SettingsPtr m_settings;
 
     Nm m_center[3];
-    unsigned int m_numEnabledRenders;
-    unsigned int m_numEnabledSegmentationRenders;
-    unsigned int m_numEnabledChannelRenders;
-    ColorEngine *m_colorEngine;
     QMap<EspinaWidget *, vtkAbstractWidget *> m_widgets;
-    QMap<QPushButton *, IRendererSPtr> m_renderers;
     IRendererSList   m_itemRenderers;
-
-    QMap<ChannelPtr,      ChannelState>      m_channelStates;
-    QMap<SegmentationPtr, SegmentationState> m_segmentationStates;
-
-    vtkSmartPointer<vtkPropPicker> m_meshPicker;
-
-    friend class GraphicalRepresentation;
   };
 
 } // namespace EspINA

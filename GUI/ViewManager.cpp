@@ -502,10 +502,3 @@ MeasureSPtr ViewManager::measure(Nm distance)
 
   return MeasureSPtr(measure);
 }
-
-//----------------------------------------------------------------------------
-void ViewManager::forceRender(SegmentationList updatedSegs)
-{
-  foreach(EspinaRenderView *rView, m_renderViews)
-    rView->forceRender(updatedSegs);
-}

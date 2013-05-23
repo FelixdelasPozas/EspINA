@@ -47,8 +47,6 @@ namespace EspINA
   //-----------------------------------------------------------------------------
   VolumeRaycastRepresentation::~VolumeRaycastRepresentation()
   {
-    if (m_view)
-      m_view->removeActor(m_actor);
   }
 
   //-----------------------------------------------------------------------------
@@ -160,8 +158,16 @@ namespace EspINA
     m_actor->SetProperty(property);
     m_actor->Update();
 
-    view->addActor(m_actor);
     m_view = view;
+  }
+
+  //-----------------------------------------------------------------------------
+  QList<vtkProp3D*> VolumeRaycastRepresentation::getActors()
+  {
+    QList<vtkProp3D*> list;
+    list << m_actor.GetPointer();
+
+    return list;
   }
 
 } /* namespace EspINA */

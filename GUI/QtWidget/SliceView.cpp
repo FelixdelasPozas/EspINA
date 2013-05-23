@@ -86,6 +86,8 @@
 #include <vtkWidgetRepresentation.h>
 #include <vtkWorldPointPicker.h>
 #include <vtkImageShiftScale.h>
+#include <vtkSmartPointer.h>
+#include <vtkAxisActor2D.h>
 
 using namespace EspINA;
 
@@ -94,16 +96,14 @@ const double SliceView::SEGMENTATION_SHIFT = 0.05;
 //-----------------------------------------------------------------------------
 // SLICE VIEW
 //-----------------------------------------------------------------------------
-SliceView::SliceView(ViewManager* vm, PlaneType plane, QWidget* parent)
-: EspinaRenderView(parent)
-, m_viewManager(vm)
+SliceView::SliceView(EspinaFactoryPtr factory, ViewManager* vm, PlaneType plane, QWidget* parent)
+: EspinaRenderView(vm, parent)
 , m_titleLayout(new QHBoxLayout())
-, m_title(new QLabel("Sagital"))
+, m_title(new QLabel("Undefined"))
 , m_mainLayout(new QVBoxLayout())
 , m_controlLayout(new QHBoxLayout())
 , m_fromLayout(new QHBoxLayout())
 , m_toLayout(new QHBoxLayout())
-, m_view(new QVTKWidget())
 , m_scrollBar(new QScrollBar(Qt::Horizontal))
 , m_spinBox(new QDoubleSpinBox())
 , m_zoomButton(new QPushButton())
@@ -120,7 +120,7 @@ SliceView::SliceView(ViewManager* vm, PlaneType plane, QWidget* parent)
 
   memset(m_crosshairPoint, 0, 3*sizeof(Nm));
   m_plane = plane;
-  m_settings = SettingsPtr(new Settings(m_plane));
+  m_settings = SettingsPtr(new Settings(factory, this, m_plane));
   m_slicingStep[0] = m_slicingStep[1] = m_slicingStep[2] = 1;
 
   setupUI();
@@ -151,10 +151,9 @@ SliceView::SliceView(ViewManager* vm, PlaneType plane, QWidget* parent)
   m_viewManager->registerView(this);
 
   // Init Render Window
-  m_renderWindow = m_view->GetRenderWindow();
-//   m_renderWindow->AlphaBitPlanesOn();
-  m_renderWindow->DoubleBufferOn();
-  m_renderWindow->SetNumberOfLayers(2);
+  vtkRenderWindow* renderWindow = m_view->GetRenderWindow();
+  renderWindow->DoubleBufferOn();
+  renderWindow->SetNumberOfLayers(2);
 
   // Init Renderers
   m_renderer = vtkSmartPointer<vtkRenderer>::New();
@@ -168,12 +167,6 @@ SliceView::SliceView(ViewManager* vm, PlaneType plane, QWidget* parent)
   m_thumbnail->DrawOff();
 
   m_slicingMatrix = vtkMatrix4x4::New();
-
-  // Init Pickers
-  m_channelPicker = vtkSmartPointer<vtkPropPicker>::New();
-  m_channelPicker->PickFromListOn();
-  m_segmentationPicker = vtkSmartPointer<vtkPropPicker>::New();
-  m_segmentationPicker->PickFromListOn();
 
   // Init Ruler
   m_ruler->SetPosition(0.1, 0.1);
@@ -193,8 +186,8 @@ SliceView::SliceView(ViewManager* vm, PlaneType plane, QWidget* parent)
   vtkSmartPointer<vtkInteractorStyleEspinaSlice> interactor = vtkSmartPointer<vtkInteractorStyleEspinaSlice>::New();
   interactor->AutoAdjustCameraClippingRangeOn();
   interactor->KeyPressActivationOff();
-  m_renderWindow->AddRenderer(m_renderer);
-  m_renderWindow->AddRenderer(m_thumbnail);
+  renderWindow->AddRenderer(m_renderer);
+  renderWindow->AddRenderer(m_thumbnail);
   m_view->GetInteractor()->SetInteractorStyle(interactor);
 
   m_channelBorderData = vtkSmartPointer<vtkPolyData>::New();
@@ -212,6 +205,10 @@ SliceView::SliceView(ViewManager* vm, PlaneType plane, QWidget* parent)
 
   connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection, bool)),
           this, SLOT(updateSelection(ViewManager::Selection, bool)));
+
+  foreach(IRendererSPtr renderer, m_settings->renderers())
+    if (renderer->getRenderType().testFlag(IRenderer::RENDERER_SLICEVIEW))
+      this->addRendererControls(renderer->clone());
 }
 
 //-----------------------------------------------------------------------------
@@ -235,19 +232,13 @@ SliceView::~SliceView()
 void SliceView::reset()
 {
   foreach(EspinaWidget *widget, m_widgets.keys())
-  {
     removeWidget(widget);
-  }
 
   foreach(SegmentationPtr segmentation, m_segmentationStates.keys())
-  {
     removeSegmentation(segmentation);
-  }
 
   foreach(ChannelPtr channel, m_channelStates.keys())
-  {
     removeChannel(channel);
-  }
 }
 
 //-----------------------------------------------------------------------------
@@ -271,7 +262,7 @@ Nm rulerScale(Nm value)
 //-----------------------------------------------------------------------------
 void SliceView::updateRuler()
 {
-  if (!m_renderer || !m_renderWindow)
+  if (!m_renderer || !m_view->GetRenderWindow())
     return;
 
   double *value;
@@ -626,12 +617,6 @@ void SliceView::setThumbnailVisibility(bool visible)
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::setCursor(const QCursor &cursor)
-{
-  m_view->setCursor(cursor);
-}
-
-//-----------------------------------------------------------------------------
 ISelector::PickList SliceView::pick(ISelector::PickableItems     filter,
                                     ISelector::DisplayRegionList regions)
 {
@@ -645,43 +630,43 @@ ISelector::PickList SliceView::pick(ISelector::PickableItems     filter,
   // NOTE: Should first loop be removed? Only useful to select disconnected regions...
   foreach(const ISelector::DisplayRegion &region, regions)
   {
-    QList<vtkProp *> pickedChannelProps;
-    QList<vtkProp *> pickedSegmentationProps;
     foreach(QPointF p, region)
     {
       foreach(ISelector::Tag tag, filter)
       {
         if (ISelector::CHANNEL == tag)
         {
-          foreach(ChannelPick pick, pickChannels(p.x(), p.y(), renderer, multiSelection))
+          foreach(IRendererSPtr renderer, m_itemRenderers)
           {
-            ISelector::WorldRegion wRegion = worldRegion(region, pick.Channel);
-            pickedItems << ISelector::PickedItem(wRegion, pick.Channel);
-            // remove it from picking list to prevent other points of the region
-            // to select it again
-            m_channelPicker->DeletePickList(pick.Prop);
-            pickedChannelProps << pick.Prop;
-          }
-        } else if (ISelector::SEGMENTATION == tag)
-        {
-            foreach(SegmentationPick pick, pickSegmentations(p.x(), p.y(), renderer, multiSelection))
+            if (renderer->getRenderableItemsType().testFlag(IRenderer::RENDERER_CHANNEL))
             {
-              ISelector::WorldRegion wRegion = worldRegion(region, pick.Segmentation);
-              pickedItems << ISelector::PickedItem(wRegion, pick.Segmentation);
-            // remove it from picking list to prevent other points of the region
-            // to select it again
-            m_segmentationPicker->DeletePickList(pick.Prop);
-              pickedSegmentationProps << pick.Prop;
+              foreach(PickableItemPtr item, renderer->pick(p.x(), p.y(), NULL, multiSelection))
+              {
+                ISelector::WorldRegion wRegion = worldRegion(region, item);
+                pickedItems << ISelector::PickedItem(wRegion, item);
+              }
             }
-        } else
-          Q_ASSERT(false);
+          }
+        }
+        else
+        {
+          if (ISelector::SEGMENTATION == tag)
+          {
+            foreach(IRendererSPtr renderer, m_itemRenderers)
+            {
+              if (renderer->getRenderableItemsType().testFlag(IRenderer::RENDERER_CHANNEL))
+              {
+                foreach(PickableItemPtr item, renderer->pick(p.x(), p.y(), NULL, multiSelection))
+                {
+                  ISelector::WorldRegion wRegion = worldRegion(region, item);
+                  pickedItems << ISelector::PickedItem(wRegion, item);
+                }
+              }
+            }
+          }
+        }
       }
     }
-    // Restore picked items to picker's pick lists
-    foreach(vtkProp *channelProp, pickedChannelProps)
-      m_channelPicker->AddPickList(channelProp);
-    foreach(vtkProp *segmentationProp, pickedSegmentationProps)
-      m_segmentationPicker->AddPickList(segmentationProp);
   }
 
   return pickedItems;
@@ -693,7 +678,7 @@ void SliceView::worldCoordinates(const QPoint& displayPos,
 {
   double LL[3], UR[3];
   int viewSize[2];
-  memcpy(viewSize, m_renderWindow->GetSize(), 2*sizeof(int));
+  memcpy(viewSize, m_view->GetRenderWindow()->GetSize(), 2*sizeof(int));
 
   // Display bounds in world coordinates
   vtkSmartPointer<vtkCoordinate> coords = vtkSmartPointer<vtkCoordinate>::New();
@@ -738,17 +723,6 @@ void SliceView::updateView()
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::forceRender(SegmentationList updatedSegs)
-{
-  //TODO: DEPRECAR!
-//   foreach(SegmentationPtr seg, updatedSegs)
-//     m_segmentationStates[seg].slice->Update();
-// 
-//   m_view->GetRenderWindow()->Render();
-//   m_view->update();
-}
-
-//-----------------------------------------------------------------------------
 void SliceView::resetCamera()
 {
   double origin[3] = { 0, 0, 0 };
@@ -769,284 +743,6 @@ void SliceView::resetCamera()
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::addChannel(ChannelPtr channel)
-{
-  Q_ASSERT(!m_channelStates.contains(channel));
-
-  ChannelState state;
-
-  channel->output()->update();
-
-  double hue = -1.0 == channel->hue() ? 0 : channel->hue();
-  double sat = -1.0 == channel->hue() ? 0 : channel->saturation();
-  QColor stain = QColor::fromHsvF(hue, sat, 1.0);
-
-  state.brightness = channel->brightness();
-  state.contrast   = channel->contrast();
-  state.opacity    = channel->opacity();
-  state.stain      = stain;
-  state.visible    = channel->isVisible();
-
-  foreach (GraphicalRepresentationSPtr prototype, channel->representations())
-  {
-    if (prototype->canRenderOnView().testFlag(GraphicalRepresentation::SLICE_VIEW))
-    {
-      ChannelGraphicalRepresentationSPtr representation = boost::dynamic_pointer_cast<ChannelGraphicalRepresentation>(prototype->clone(this));
-
-      representation->setBrightness(state.brightness);
-      representation->setContrast(state.contrast);
-      representation->setColor(state.stain);
-      if (Channel::AUTOMATIC_OPACITY != state.opacity)
-        representation->setOpacity(state.opacity);
-      representation->setVisible(state.visible);
-
-      state.representations << representation;
-    }
-  }
-
-  m_channelStates.insert(channel, state);
-
-  // need to manage other channels' opacity too.
-  updateSceneBounds();
-  updateChannelsOpactity();
-
-  // Prevent displaying channel's corner until app request to reset the camera
-  if ((m_channelStates.size() == 1) && channel->isVisible())
-    resetCamera();
-
-  // NOTE: this signal is not disconnected when a channel is removed because is
-  // used in the redo/undo of UnloadChannelCommand
-  connect(channel->volume().get(), SIGNAL(representationChanged()),
-          this, SLOT(updateSceneBounds()));
-}
-
-//-----------------------------------------------------------------------------
-void SliceView::removeChannel(ChannelPtr channel)
-{
-  Q_ASSERT(m_channelStates.contains(channel));
-
-  m_channelStates.remove(channel);
-
-  updateSceneBounds();
-  updateChannelsOpactity();
-}
-
-//-----------------------------------------------------------------------------
-bool SliceView::updateChannelRepresentation(ChannelPtr channel, bool render)
-{
-  Q_ASSERT(m_channelStates.contains(channel));
-
-  ChannelState &state = m_channelStates[channel];
-
-  bool visibilityChanged = state.visible != channel->isVisible();
-  state.visible = channel->isVisible();
-
-  bool brightnessChanged = false;
-  bool contrastChanged   = false;
-  bool opacityChanged    = false;
-  bool outputChanged     = false;
-  bool stainChanged      = false;
-
-  if (visibilityChanged)
-    updateChannelsOpactity();
-
-  double hue = -1.0 == channel->hue() ? 0 : channel->hue();
-  double sat = -1.0 == channel->hue() ? 0 : channel->saturation();
-
-  if (state.visible)
-  {
-    QColor stain = QColor::fromHsvF(hue, sat, 1.0);
-
-    brightnessChanged = state.brightness != channel->brightness();
-    contrastChanged   = state.contrast   != channel->contrast();
-    opacityChanged    = state.opacity    != channel->opacity();
-    outputChanged     = state.output     != channel->output();
-    stainChanged      = state.stain      != stain;
-
-    state.brightness  = channel->brightness();
-    state.contrast    = channel->contrast();
-    state.opacity     = channel->opacity();
-    state.output      = channel->output();
-    state.stain       = stain;
-  }
-
-  if (outputChanged)
-  {
-    state.representations.clear();
-
-    foreach(GraphicalRepresentationSPtr prototype, channel->representations())
-    {
-      if (prototype->canRenderOnView().testFlag(GraphicalRepresentation::SLICE_VIEW))
-      {
-        GraphicalRepresentationSPtr representation = prototype->clone(this);
-
-        state.representations << boost::dynamic_pointer_cast<ChannelGraphicalRepresentation>(representation);
-      }
-    }
-  }
-
-  bool hasChanged = visibilityChanged || brightnessChanged || contrastChanged || opacityChanged || stainChanged;
-  if (hasChanged)
-  {
-    opacityChanged &= Channel::AUTOMATIC_OPACITY != state.opacity;
-
-    foreach (ChannelGraphicalRepresentationSPtr representation, state.representations)
-    {
-      if (brightnessChanged) representation->setBrightness(state.brightness);
-      if (contrastChanged  ) representation->setContrast(state.contrast);
-      if (stainChanged     ) representation->setColor(state.stain);
-      if (opacityChanged   ) representation->setOpacity(state.opacity);
-      if (visibilityChanged) representation->setVisible(state.visible);
-
-      representation->updateRepresentation();
-    }
-  }
-
-  if (render)
-    updateView();
-
-  return hasChanged;
-}
-
-//-----------------------------------------------------------------------------
-void SliceView::updateChannelRepresentations(ChannelList list)
-{
-  if (isVisible())
-  {
-    ChannelList requestedChannels;
-
-    if (list.empty())
-      requestedChannels = m_channelStates.keys();
-    else
-      requestedChannels = list;
-
-    bool needRender = false;
-    foreach(ChannelPtr channel, requestedChannels)
-      needRender |= updateChannelRepresentation(channel, false);
-
-    if (needRender)
-      updateView();
-  }
-}
-
-//-----------------------------------------------------------------------------
-void SliceView::addSegmentation(SegmentationPtr seg)
-{
-  Q_ASSERT(!m_segmentationStates.contains(seg));
-
-  seg->output()->update();
-
-  SegmentationState state;
-
-  state.visible   = false; 
-
-  m_segmentationStates.insert(seg, state);
-}
-
-//-----------------------------------------------------------------------------
-void SliceView::removeSegmentation(SegmentationPtr seg)
-{
-  Q_ASSERT(m_segmentationStates.contains(seg));
-
-  m_segmentationStates.remove(seg);
-}
-
-//-----------------------------------------------------------------------------
-bool SliceView::updateSegmentationRepresentation(SegmentationPtr seg, bool render)
-{
-  if (!m_segmentationStates.contains(seg))
-    return false;
-
-  SegmentationState &state = m_segmentationStates[seg];
-
-  bool requestedVisibility = seg->visible() && m_showSegmentations;
-
-  bool visibilityChanged = state.visible != requestedVisibility;
-  state.visible = requestedVisibility;
-
-  bool colorChanged     = false;
-  bool outputChanged    = false;
-  bool highlightChanged = false;
-
-  if (state.visible)
-  {
-    QColor requestedColor       = m_viewManager->color(seg);
-    bool   requestedHighlighted = seg->isSelected();
-
-    outputChanged    = state.output != seg->output();
-    colorChanged     = state.color != requestedColor           || outputChanged;
-    highlightChanged = state.highlited != requestedHighlighted || outputChanged;
-
-    state.color     = requestedColor;
-    state.highlited = requestedHighlighted;
-    state.output    = seg->output();
-  }
-
-  if (outputChanged)
-  {
-    state.representations.clear();
-
-    foreach(GraphicalRepresentationSPtr prototype, seg->representations())
-    {
-      if (prototype->canRenderOnView().testFlag(GraphicalRepresentation::SLICE_VIEW))
-      {
-        GraphicalRepresentationSPtr representation = prototype->clone(this);
-
-        state.representations << boost::dynamic_pointer_cast<SegmentationGraphicalRepresentation>(representation);
-      }
-    }
-  }
-
-  bool hasChanged = visibilityChanged || colorChanged || highlightChanged;
-  if (hasChanged)
-  {
-    foreach(GraphicalRepresentationSPtr representation, state.representations)
-    {
-      if (colorChanged)      representation->setColor(m_viewManager->color(seg));
-      if (highlightChanged)  representation->setHighlighted(state.highlited);
-      if (visibilityChanged) representation->setVisible(state.visible);
-
-      representation->updateRepresentation();
-    }
-  }
-
-  if (render)
-  {
-    //qDebug() << "Single Rep Update ==> Render";
-    m_view->GetRenderWindow()->Render();
-    m_view->update();
-  }
-
-  return hasChanged;
-}
-
-//-----------------------------------------------------------------------------
-void SliceView::updateSegmentationRepresentations(SegmentationList list)
-{
-  if (isVisible())
-  {
-    SegmentationList updateSegmentations;
-
-    if (list.empty())
-      updateSegmentations = m_segmentationStates.keys();
-    else
-      updateSegmentations = list;
-
-    bool needRender = false;
-    foreach(SegmentationPtr seg, updateSegmentations)
-      needRender |= updateSegmentationRepresentation(seg, false);
-
-    if (needRender)
-    {
-      //qDebug() << "Update Segmentations ==> Render";
-      m_view->GetRenderWindow()->Render();
-      m_view->update();
-    }
-  }
-}
-
-
-//-----------------------------------------------------------------------------
 void SliceView::addWidget(EspinaWidget *eWidget)
 {
   Q_ASSERT(!m_widgets.contains(eWidget));
@@ -1060,7 +756,7 @@ void SliceView::addWidget(EspinaWidget *eWidget)
   vtkAbstractWidget *widget = *sWidget;
   if (widget)
   {
-    widget->SetInteractor(m_renderWindow->GetInteractor());
+    widget->SetInteractor(m_view->GetRenderWindow()->GetInteractor());
     if (widget->GetRepresentation())
       widget->GetRepresentation()->SetVisibility(true);
     widget->On();
@@ -1111,34 +807,6 @@ void SliceView::removeActor(vtkProp3D* actor)
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::addChannelActor(vtkProp3D *actor)
-{
-  addActor(actor);
-  m_channelPicker->AddPickList(actor);
-}
-
-//-----------------------------------------------------------------------------
-void SliceView::removeChannelActor(vtkProp3D *actor)
-{
-  m_channelPicker->DeletePickList(actor);
-  removeActor(actor);
-}
-
-//-----------------------------------------------------------------------------
-void SliceView::addSegmentationActor(vtkProp3D *actor)
-{
-  addActor(actor);
-  m_segmentationPicker->AddPickList(actor);
-}
-
-//-----------------------------------------------------------------------------
-void SliceView::removeSegmentationActor(vtkProp3D *actor)
-{
-  m_segmentationPicker->DeletePickList(actor);
-  removeActor(actor);
-}
-
-//-----------------------------------------------------------------------------
 void SliceView::previewBounds(Nm bounds[6], bool cropToSceneBounds)
 {
   // Display Orientation (up means up according to screen)
@@ -1171,27 +839,6 @@ void SliceView::previewBounds(Nm bounds[6], bool cropToSceneBounds)
     bounds[(2*V)+1] = std::min(LL[V], m_sceneBounds[2*V+1]);
   }
 }
-
-//-----------------------------------------------------------------------------
-void SliceView::updateSelection(ViewManager::Selection selection, bool render)
-{
-  updateSegmentationRepresentations();
-  if (render)
-    updateView();
-}
-
-//-----------------------------------------------------------------------------
-vtkRenderWindow *SliceView::renderWindow()
-{
-  return m_renderWindow;
-}
-
-//-----------------------------------------------------------------------------
-vtkRenderer* SliceView::mainRenderer()
-{
-  return m_renderer;
-}
-
 
 //-----------------------------------------------------------------------------
 void SliceView::sliceViewCenterChanged(Nm x, Nm y, Nm z)
@@ -1307,8 +954,7 @@ bool SliceView::eventFilter(QObject* caller, QEvent* e)
   {
     int x, y;
     eventPosition(x, y);
-    m_inThumbnail = m_thumbnail->GetDraw() && m_channelPicker->Pick(x, y, 0.1, m_thumbnail);
-
+    m_inThumbnail = m_thumbnail->GetDraw() && (m_thumbnail->PickProp(x,y) != NULL);
   }
   else if (QEvent::ContextMenu == e->type())
   {
@@ -1323,12 +969,12 @@ bool SliceView::eventFilter(QObject* caller, QEvent* e)
   {
     int x, y;
     eventPosition(x, y);
-    SegmentationPickList pickedSegmentations = pickSegmentations(x, y, m_renderer);
+    ViewManager::Selection selection = pickSegmentations(x, y, m_renderer);
     QString toopTip;
-    foreach(SegmentationPick pick, pickedSegmentations)
+    foreach(PickableItemPtr pick, selection)
     {
-      toopTip = toopTip.append("<b>%1</b><br>").arg(pick.Segmentation->data().toString());
-      toopTip = toopTip.append(pick.Segmentation->data(Qt::ToolTipRole).toString());
+      toopTip = toopTip.append("<b>%1</b><br>").arg(pick->data().toString());
+      toopTip = toopTip.append(pick->data(Qt::ToolTipRole).toString());
     }
     m_view->setToolTip(toopTip);
   }
@@ -1389,15 +1035,40 @@ void SliceView::centerCrosshairOnMousePosition()
   bool channelPicked = false;
   if (m_inThumbnail)
   {
-    channelPicked = m_channelPicker->Pick(xPos, yPos, 0.1, m_thumbnail);
-    if (channelPicked)
-      m_channelPicker->GetPickPosition(center);
+    foreach(IRendererSPtr renderer, m_itemRenderers)
+    {
+      if (renderer->getRenderableItemsType().testFlag(IRenderer::RENDERER_CHANNEL))
+      {
+        ViewManager::Selection selection = renderer->pick(xPos, yPos, m_thumbnail);
+        if (!selection.isEmpty())
+        {
+          channelPicked = true;
+          renderer->getPickCoordinates(center);
+          break;
+        }
+      }
+    }
   }
   else
-    channelPicked = pick(m_channelPicker, xPos, yPos, center);
+  {
+    foreach(IRendererSPtr renderer, m_itemRenderers)
+    {
+      if (renderer->getRenderableItemsType().testFlag(IRenderer::RENDERER_CHANNEL))
+      {
+        ViewManager::Selection selection = renderer->pick(xPos, yPos, NULL);
+        if (!selection.isEmpty())
+        {
+          channelPicked = true;
+          renderer->getPickCoordinates(center);
+          break;
+        }
+      }
+    }
+  }
 
   if (channelPicked)
   {
+    center[this->m_plane] = slicingPosition();
     centerViewOn(center);
     emit centerChanged(m_crosshairPoint[0], m_crosshairPoint[1], m_crosshairPoint[2]);
   }
@@ -1409,90 +1080,53 @@ void SliceView::centerViewOnMousePosition()
   int xPos, yPos;
   eventPosition(xPos, yPos);
 
-  if (m_channelPicker->Pick(xPos, yPos, 0.1, m_thumbnail))
-  {
-    double center[3];  //World coordinates
-    m_channelPicker->GetPickPosition(center);
-    centerViewOnPosition(center);
-  }
-}
-
-//-----------------------------------------------------------------------------
-void SliceView::eventPosition(int& x, int& y)
-{
-  vtkRenderWindowInteractor *rwi = m_renderWindow->GetInteractor();
-  Q_ASSERT(rwi);
-  rwi->GetEventPosition(x, y);
-}
-
-//-----------------------------------------------------------------------------
-SliceView::ChannelPickList SliceView::pickChannels(double vx, double vy,
-                                                   vtkRenderer* renderer,
-                                                   bool repeatable)
-{
-  ChannelPickList  channelPicks;
-  QList<vtkProp *> removedProps;
-
-  while (m_channelPicker->PickProp(vx, vy, renderer, m_channelPicker->GetPickList()))
-  {
-    ChannelPick picked = propToChannel(m_channelPicker->GetViewProp());
-    if (picked.Channel)
-      channelPicks << picked;
-
-    m_channelPicker->GetPickList()->RemoveItem(picked.Prop);
-    removedProps << picked.Prop;
-
-    if (!repeatable && !channelPicks.empty())
-      break;
-  }
-
-  foreach(vtkProp *prop, removedProps)
-    m_channelPicker->GetPickList()->AddItem(prop);
-
-  return channelPicks;
-}
-
-//-----------------------------------------------------------------------------
-SliceView::SegmentationPickList SliceView::pickSegmentations(double vx, double vy,
-                                                             vtkRenderer* renderer,
-                                                             bool repeatable)
-{
-  SegmentationPickList segmentationPicks;
-  QList<vtkProp *>     removedProps;
-
-  QPolygonF selectedRegion;
-  selectedRegion << QPointF(vx, vy);
-
-  while (m_segmentationPicker->PickProp(vx, vy, renderer, m_segmentationPicker->GetPickList()))
-  {
-    SegmentationPick picked = propToSegmentation(m_segmentationPicker->GetViewProp());
-    if(picked.Representation)
+  foreach(IRendererSPtr renderer, m_itemRenderers)
+    if (renderer->getRenderableItemsType().testFlag(IRenderer::RENDERER_CHANNEL))
     {
-      // iterate over region points
-      Nm point[3];
-      ISelector::WorldRegion pickedRegion = worldRegion(selectedRegion, picked.Segmentation);
-      int  i = 0;
-      bool isInside = false;
-      while (!isInside && i < pickedRegion->GetNumberOfPoints())
+      ViewManager::Selection selection = renderer->pick(xPos, yPos, m_thumbnail, false);
+      if (!selection.isEmpty())
       {
-        pickedRegion->GetPoint(i++, point);
-        isInside = picked.Representation->isInside(point);
+        Nm center[3];
+        renderer->getPickCoordinates(center);
+        centerViewOnPosition(center);
       }
-      if (isInside)
-        segmentationPicks << picked;
     }
+}
 
-    m_segmentationPicker->GetPickList()->RemoveItem(picked.Prop);
-    removedProps << picked.Prop;
+//-----------------------------------------------------------------------------
+ViewManager::Selection SliceView::pickChannels(double vx, double vy,
+                                               vtkRenderer* renderer,
+                                               bool repeatable)
+{
+  ViewManager::Selection selection;
 
-    if (!repeatable && !segmentationPicks.empty())
-      break;
-  }
+  foreach(IRendererSPtr renderer, m_itemRenderers)
+    if (renderer->getRenderableItemsType().testFlag(IRenderer::RENDERER_CHANNEL))
+      foreach(PickableItemPtr item, renderer->pick(vx,vy, NULL, repeatable))
+      {
+        if (!selection.contains(item))
+          selection << item;
+      }
 
-  foreach(vtkProp *prop, removedProps)
-    m_segmentationPicker->GetPickList()->AddItem(prop);
+  return selection;
+}
 
-  return segmentationPicks;
+//-----------------------------------------------------------------------------
+ViewManager::Selection SliceView::pickSegmentations(double vx, double vy,
+                                                    vtkRenderer* renderer,
+                                                    bool repeatable)
+{
+  ViewManager::Selection selection;
+
+  foreach(IRendererSPtr renderer, m_itemRenderers)
+    if (renderer->getRenderableItemsType().testFlag(IRenderer::RENDERER_SEGMENTATION))
+      foreach(PickableItemPtr item, renderer->pick(vx,vy, NULL, repeatable))
+      {
+        if (!selection.contains(item))
+          selection << item;
+      }
+
+  return selection;
 }
 
 //-----------------------------------------------------------------------------
@@ -1505,24 +1139,29 @@ void SliceView::selectPickedItems(bool append)
   if (append)
     selection = m_viewManager->selection();
 
-  // If no append, segmentations have priority over channels
-  foreach(SegmentationPick picked, pickSegmentations(vx, vy, m_renderer, append))
+  // segmentations have priority over channels
+  foreach(PickableItemPtr item, pickSegmentations(vx, vy, m_renderer, append))
   {
-    if (selection.contains(picked.Segmentation))
-      selection.removeAll(picked.Segmentation);
+    if (selection.contains(item))
+      selection.removeAll(item);
     else
-      selection << picked.Segmentation;
+      selection << item;
 
     if (!append)
       break;
   }
 
-  foreach(ChannelPick picked, pickChannels(vx, vy, m_renderer, append))
+  foreach(PickableItemPtr item, pickChannels(vx, vy, m_renderer, append))
   {
-    selection << picked.Channel;
+    if (selection.contains(item))
+      selection.removeAll(item);
+    else
+      selection << item;
+
     if (!append)
       break;
   }
+
   m_viewManager->setSelection(selection);
 }
 
@@ -1552,36 +1191,6 @@ void SliceView::updateChannelsOpactity()
     }
   }
 }
-
-//-----------------------------------------------------------------------------
-SliceView::ChannelPick SliceView::propToChannel(vtkProp* prop)
-{
-  foreach(ChannelPtr channel, m_channelStates.keys())
-  {
-    foreach(GraphicalRepresentationSPtr representation, m_channelStates[channel].representations)
-    {
-      if (representation->hasActor(prop))
-        return ChannelPick(channel, representation, prop);
-    }
-  }
-  return ChannelPick(NULL, GraphicalRepresentationSPtr() , NULL);
-}
-
-//-----------------------------------------------------------------------------
-SliceView::SegmentationPick SliceView::propToSegmentation(vtkProp* prop)
-{
-  foreach(SegmentationPtr segmentation, m_segmentationStates.keys())
-  {
-    foreach(GraphicalRepresentationSPtr representation, m_segmentationStates[segmentation].representations)
-    {
-      if (representation->hasActor(prop))
-        return SegmentationPick(segmentation, representation, prop);
-    }
-  }
-
-  return SegmentationPick(NULL, GraphicalRepresentationSPtr(), NULL);
-}
-
 
 //-----------------------------------------------------------------------------
 bool SliceView::pick(vtkPropPicker *picker, int x, int y, Nm pickPos[3])
@@ -1856,36 +1465,163 @@ void SliceView::centerViewOnPosition(Nm center[3])
 
 //-----------------------------------------------------------------------------
 ISelector::WorldRegion SliceView::worldRegion(const ISelector::DisplayRegion& region,
-                                            PickableItemPtr item)
+                                              PickableItemPtr item)
 {
-  //Use Render Window Interactor's Picker to find the world coordinates of the stack
-  //vtkSMRenderViewProxy* renModule = view->GetRenderWindow()->GetInteractor()->GetRenderView();
   ISelector::WorldRegion wRegion = ISelector::WorldRegion::New();
-  vtkPropPicker *picker;
-
-  if (EspINA::CHANNEL == item->type())
-    picker = m_channelPicker.GetPointer();
-  else
-    picker = m_segmentationPicker.GetPointer();
 
   foreach(QPointF point, region)
   {
-    double pickPos[3];  //World coordinates
-    if (pick(picker, point.x(), point.y(), pickPos))
-      wRegion->InsertNextPoint(pickPos);
+    Nm pickPos[3];
+    if (EspINA::CHANNEL == item->type())
+    {
+      foreach(IRendererSPtr renderer, m_itemRenderers)
+        if (renderer->getRenderableItemsType().testFlag(IRenderer::RENDERER_CHANNEL) && !renderer->pick(point.x(), point.y(), NULL, false).isEmpty())
+        {
+          renderer->getPickCoordinates(pickPos);
+          wRegion->InsertNextPoint(pickPos);
+        }
+    }
+    else
+    {
+      foreach(IRendererSPtr renderer, m_itemRenderers)
+        if (renderer->getRenderableItemsType().testFlag(IRenderer::RENDERER_SEGMENTATION) && !renderer->pick(point.x(), point.y(), NULL, false).isEmpty())
+        {
+          renderer->getPickCoordinates(pickPos);
+          wRegion->InsertNextPoint(pickPos);
+        }
+    }
   }
 
   return wRegion;
 }
 
 //-----------------------------------------------------------------------------
-SliceView::Settings::Settings(PlaneType plane, const QString prefix)
+GraphicalRepresentationSPtr SliceView::cloneRepresentation(GraphicalRepresentationSPtr prototype)
+{
+  GraphicalRepresentationSPtr rep = GraphicalRepresentationSPtr();
+
+  if (prototype->canRenderOnView().testFlag(GraphicalRepresentation::RENDERABLEVIEW_SLICE))
+    rep = prototype->clone(this);
+
+  return rep;
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::addRendererControls(IRendererSPtr renderer)
+{
+  renderer->setViewData(this, this->m_renderer);
+  renderer->setEnable(true);
+
+  // add representations to renderer
+  foreach(SegmentationPtr segmentation, m_segmentationStates.keys())
+  {
+    if (renderer->itemCanBeRendered(segmentation))
+      foreach(GraphicalRepresentationSPtr rep, m_segmentationStates[segmentation].representations)
+         if (renderer->managesRepresentation(rep)) renderer->addRepresentation(segmentation, rep);
+  }
+
+  foreach(ChannelPtr channel, m_channelStates.keys())
+  {
+    if (renderer->itemCanBeRendered(channel))
+      foreach(GraphicalRepresentationSPtr rep, m_channelStates[channel].representations)
+        if (renderer->managesRepresentation(rep)) renderer->addRepresentation(channel, rep);
+  }
+
+  QPushButton *button = new QPushButton();
+  m_itemRenderers << renderer;
+  m_renderers[button] = renderer;
+
+  if (!renderer->isHidden())
+  {
+    if (renderer->getRenderableItemsType().testFlag(IRenderer::RENDERER_SEGMENTATION))
+      this->m_numEnabledSegmentationRenders++;
+
+    if (renderer->getRenderableItemsType().testFlag(IRenderer::RENDERER_CHANNEL))
+      this->m_numEnabledChannelRenders++;
+  }
+
+  if (0 != m_numEnabledSegmentationRenders)
+  {
+    QMap<EspinaWidget *, SliceWidget *>::const_iterator it = m_widgets.begin();
+    for( ; it != m_widgets.end(); ++it)
+    {
+      if (it.key()->manipulatesSegmentations())
+      {
+        it.value()->SetEnabled(true);
+        it.value()->SetVisibility(true);
+      }
+    }
+  }
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::removeRendererControls(QString name)
+{
+  IRendererSPtr removedRenderer;
+  foreach (IRendererSPtr renderer, m_itemRenderers)
+  {
+    if (renderer->name() == name)
+    {
+      removedRenderer = renderer;
+      break;
+    }
+  }
+
+  if (removedRenderer)
+  {
+    if (!removedRenderer->isHidden())
+      removedRenderer->hide();
+
+    if (!removedRenderer->isHidden() && (removedRenderer->getRenderableItemsType().testFlag(IRenderer::RENDERER_SEGMENTATION)))
+      this->m_numEnabledSegmentationRenders--;
+
+    if (!removedRenderer->isHidden() && (removedRenderer->getRenderableItemsType().testFlag(IRenderer::RENDERER_CHANNEL)))
+      this->m_numEnabledChannelRenders--;
+
+    if (0 == m_numEnabledSegmentationRenders)
+    {
+      QMap<EspinaWidget *, SliceWidget *>::const_iterator it = m_widgets.begin();
+      for( ; it != m_widgets.end(); ++it)
+      {
+        if (it.key()->manipulatesSegmentations())
+        {
+          it.value()->SetEnabled(false);
+          it.value()->SetVisibility(false);
+        }
+      }
+    }
+
+    QMap<QPushButton*, IRendererSPtr>::iterator it = m_renderers.begin();
+    bool erased = false;
+    while(!erased && it != m_renderers.end())
+    {
+      if (it.value() == removedRenderer)
+      {
+        m_renderers.erase(it);
+        erased = true;
+      }
+      else
+        ++it;
+    }
+
+    m_itemRenderers.removeAll(removedRenderer);
+  }
+}
+
+//-----------------------------------------------------------------------------
+// SLICEVIEW::SETTINGS
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+SliceView::Settings::Settings(const EspinaFactoryPtr factory, SliceView *parent, PlaneType plane, const QString prefix)
 : INVERT_SLICE_ORDER(prefix + view(plane) + "::invertSliceOrder")
 , INVERT_WHEEL(prefix + view(plane) + "::invertWheel")
 , SHOW_AXIS(prefix + view(plane) + "::showAxis")
+, RENDERERS(prefix + "SliceView::renderers")
 , m_InvertWheel(false)
 , m_InvertSliceOrder(false)
 , m_ShowAxis(false)
+, m_parent(parent)
 , m_plane(plane)
 {
   QSettings settings(CESVIMA, ESPINA);
@@ -1893,6 +1629,20 @@ SliceView::Settings::Settings(PlaneType plane, const QString prefix)
   m_InvertSliceOrder = settings.value(INVERT_SLICE_ORDER, false).toBool();
   m_InvertWheel      = settings.value(INVERT_WHEEL, false).toBool();
   m_ShowAxis         = settings.value(SHOW_AXIS, false).toBool();
+
+  m_parent = parent;
+
+  if (!settings.contains(RENDERERS))
+    settings.setValue(RENDERERS, QStringList() << "Slice");
+
+  QMap<QString, IRenderer *> renderers = factory->renderers();
+  foreach(QString name, settings.value(RENDERERS).toStringList())
+  {
+    IRenderer *renderer = renderers.value(name, NULL);
+    if (renderer)
+      m_renderers << IRendererSPtr(renderer);
+  }
+
 }
 
 //-----------------------------------------------------------------------------
@@ -1959,8 +1709,38 @@ void SliceView::updateCrosshairPoint(PlaneType plane, Nm slicePos)
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::resetView()
+void SliceView::Settings::setRenderers(IRendererSList values)
 {
-  resetCamera();
-  updateView();
+  QSettings settings(CESVIMA, ESPINA);
+  QStringList activeRenderersNames;
+  IRendererSList activeRenderers;
+
+  // remove controls for unused renderers
+  foreach(IRendererSPtr oldRenderer, m_renderers)
+  {
+    bool selected = false;
+    int i = 0;
+    while (!selected && i < values.size())
+      selected = values[i++]->name() == oldRenderer->name();
+
+    if (!selected)
+      m_parent->removeRendererControls(oldRenderer->name());
+    else
+      activeRenderers << oldRenderer;
+  }
+
+  // add controls for added renderers
+  foreach(IRendererSPtr renderer, values)
+  {
+    activeRenderersNames << renderer->name();
+    if (!activeRenderers.contains(renderer))
+    {
+      activeRenderers << renderer;
+      m_parent->addRendererControls(renderer->clone());
+    }
+  }
+
+  settings.setValue(RENDERERS, activeRenderersNames);
+  settings.sync();
+  m_renderers = activeRenderers;
 }

@@ -21,9 +21,10 @@
 #define ESPINAWIDGET_H
 
 #include <Core/EspinaTypes.h>
+#include <vtkAbstractWidget.h>
+#include <vtkWidgetRepresentation.h>
 
 class QEvent;
-class vtkAbstractWidget;
 class vtkRenderWindowInteractor;
 
 namespace EspINA
@@ -41,9 +42,11 @@ namespace EspINA
 
     virtual void setSlice(Nm pos, PlaneType plane) {};
 
-    operator vtkAbstractWidget *(){return m_widget;}
-    operator const vtkAbstractWidget *const() const {return m_widget;}
-    vtkAbstractWidget *operator->() {return m_widget;}
+    operator vtkAbstractWidget *()                  { return m_widget; }
+    operator const vtkAbstractWidget *const() const { return m_widget; }
+    vtkAbstractWidget *operator->()                 { return m_widget; }
+    void SetEnabled(bool value)                     { m_widget->SetEnabled(value); }
+    void SetVisibility(bool value)                  { m_widget->GetRepresentation()->SetVisibility(value); }
 
   protected:
     vtkAbstractWidget *m_widget;

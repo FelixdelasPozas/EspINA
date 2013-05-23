@@ -95,7 +95,6 @@ namespace EspINA
     m_actor->GetProperty()->SetOpacity(rgba[3]);
     m_actor->Modified();
 
-    view->addActor(m_actor);
     m_view = view;
   }
 

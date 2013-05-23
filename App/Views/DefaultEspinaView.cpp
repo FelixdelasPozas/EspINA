@@ -65,9 +65,9 @@ DefaultEspinaView::DefaultEspinaView(EspinaModel *model,
 
 
   //   qDebug() << "New Default EspinaView";
-  xyView = new SliceView(viewManager, AXIAL);
-  xzView = new SliceView(viewManager, CORONAL);
-  yzView = new SliceView(viewManager, SAGITTAL);
+  xyView = new SliceView(m_model->factory(), viewManager, AXIAL);
+  xzView = new SliceView(m_model->factory(), viewManager, CORONAL);
+  yzView = new SliceView(m_model->factory(), viewManager, SAGITTAL);
   volView = new VolumeView(m_model->factory(), viewManager, false, this);
   volView->setViewType(VOLUME);
 

@@ -42,6 +42,7 @@
 #include <vtkSphere.h>
 #include <vtkImageResliceToColors.h>
 #include <vtkMatrix4x4.h>
+#include <vtkImageData.h>
 
 using namespace EspINA;
 

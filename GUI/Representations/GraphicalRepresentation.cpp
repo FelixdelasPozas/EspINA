@@ -41,15 +41,6 @@ GraphicalRepresentation::GraphicalRepresentation(EspinaRenderView *view)
 {}
 
 //-----------------------------------------------------------------------------
-ChannelGraphicalRepresentation::ChannelGraphicalRepresentation(EspinaRenderView *view)
-: GraphicalRepresentation(view)
-, m_brightness(0)
-, m_contrast(1)
-, m_opacity(1)
-{
-}
-
-//-----------------------------------------------------------------------------
 void GraphicalRepresentation::setActive(bool value, EspinaRenderView *view)
 {
   if (!view || view == m_view)
@@ -66,6 +57,12 @@ vtkMatrix4x4 *GraphicalRepresentation::slicingMatrix(SliceView *view) const
 {
   return view->m_slicingMatrix;
 }
-namespace EspINA
+
+//-----------------------------------------------------------------------------
+ChannelGraphicalRepresentation::ChannelGraphicalRepresentation(EspinaRenderView *view)
+: GraphicalRepresentation(view)
+, m_brightness(0)
+, m_contrast(1)
+, m_opacity(1)
 {
 }

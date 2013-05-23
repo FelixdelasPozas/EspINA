@@ -35,6 +35,7 @@
 #include <vtkImageShiftScale.h>
 #include <vtkImageActor.h>
 #include <vtkImageMapper3D.h>
+#include <vtkImageData.h>
 
 using namespace EspINA;
 
@@ -44,16 +45,6 @@ ChannelSliceRepresentation::ChannelSliceRepresentation(ChannelVolumeSPtr data,
 : ChannelGraphicalRepresentation(view)
 , m_data(data)
 {
-}
-
-//-----------------------------------------------------------------------------
-ChannelSliceRepresentation::~ChannelSliceRepresentation()
-{
-  SliceView *sliceView = static_cast<SliceView *>(m_view);
-  if (sliceView)
-  {
-    sliceView->removeChannelActor(slice);
-  }
 }
 
 //-----------------------------------------------------------------------------
@@ -82,12 +73,6 @@ void ChannelSliceRepresentation::setColor(const QColor &color)
   lut->Build();
 }
 
-void ChannelSliceRepresentation::setHighlighted(bool highlighted)
-{
-  GraphicalRepresentation::setHighlighted(highlighted);
-}
-
-
 //-----------------------------------------------------------------------------
 void ChannelSliceRepresentation::setOpacity(double value)
 {
@@ -102,12 +87,6 @@ void ChannelSliceRepresentation::setVisible(bool visible)
   ChannelGraphicalRepresentation::setVisible(visible);
 
   slice->SetVisibility(m_visible);
-}
-
-//-----------------------------------------------------------------------------
-bool ChannelSliceRepresentation::isInside(Nm point[3])
-{
-  return false;
 }
 
 //-----------------------------------------------------------------------------
@@ -193,11 +172,17 @@ void ChannelSliceRepresentation::initializePipeline(SliceView *view)
   slice->GetMapper()->SetInputConnection(mapToColors->GetOutputPort());
   slice->Update();
 
-  view->addChannelActor(slice);
-
   m_view = view;
 }
 
+//-----------------------------------------------------------------------------
+QList<vtkProp3D*> ChannelSliceRepresentation::getActors()
+{
+  QList<vtkProp3D*> list;
+  list << slice.GetPointer();
+
+  return list;
+}
 
 //-----------------------------------------------------------------------------
 TransparencySelectionHighlighter *SegmentationSliceRepresentation::s_highlighter = new TransparencySelectionHighlighter();
@@ -210,13 +195,6 @@ SegmentationSliceRepresentation::SegmentationSliceRepresentation(SegmentationVol
 , m_view(view)
 {
 
-}
-
-//-----------------------------------------------------------------------------
-SegmentationSliceRepresentation::~SegmentationSliceRepresentation()
-{
-  if (m_view)
-    m_view->removeSegmentationActor(slice);
 }
 
 //-----------------------------------------------------------------------------
@@ -302,8 +280,6 @@ void SegmentationSliceRepresentation::initializePipeline(SliceView *view)
   pos[m_view->plane()] = m_view->segmentationDepth();
   slice->SetPosition(pos);
 
-  view->addSegmentationActor(slice);
-
   m_view = view;
 }
 
@@ -313,6 +289,15 @@ void SegmentationSliceRepresentation::updateRepresentation()
   reslice->Update();
   mapToColors->Update();
   slice->Update();
+}
+
+//-----------------------------------------------------------------------------
+QList<vtkProp3D*> SegmentationSliceRepresentation::getActors()
+{
+  QList<vtkProp3D *> list;
+  list << slice.GetPointer();
+
+  return list;
 }
 
 //-----------------------------------------------------------------------------

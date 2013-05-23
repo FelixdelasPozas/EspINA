@@ -20,22 +20,27 @@
 #ifndef ESPINARENDERVIEW_H
 #define ESPINARENDERVIEW_H
 
-#include <QWidget>
-#include <QMenu>
+// EspINA
 #include "GUI/QtWidget/IEspinaView.h"
 #include "GUI/QtWidget/SegmentationContextualMenu.h"
-
+#include <GUI/Renderers/Renderer.h>
 #include "Core/EspinaTypes.h"
 #include "GUI/Pickers/ISelector.h"
-#include "GUI/Representations/GraphicalRepresentation.h"
+#include <GUI/Representations/GraphicalRepresentation.h>
+
+// Qt
+#include <QWidget>
+#include <QMenu>
+#include <QFlags>
 
 class vtkRenderer;
 class vtkProp3D;
 class vtkRenderWindow;
+class QVTKWidget;
+class QPushButton;
 
 namespace EspINA
 {
-
   class EspinaWidget;
 
   class EspinaRenderView
@@ -44,39 +49,41 @@ namespace EspINA
   {
     Q_OBJECT
   public:
-    explicit EspinaRenderView(QWidget* parent = 0);
+    explicit EspinaRenderView(ViewManager *vm, QWidget* parent = 0);
     virtual ~EspinaRenderView();
 
     virtual void reset() = 0;
 
-    virtual void addChannel   (ChannelPtr channel) = 0;
-    virtual void removeChannel(ChannelPtr channel) = 0;
-    virtual bool updateChannelRepresentation(ChannelPtr channel, bool render = true) = 0;
+    virtual void addChannel   (ChannelPtr channel);
+    virtual void removeChannel(ChannelPtr channel);
+    virtual bool updateChannelRepresentation(ChannelPtr channel, bool render = true);
+    virtual void updateChannelRepresentations(ChannelList list = ChannelList());
 
-    virtual void addSegmentation   (SegmentationPtr seg) = 0;
-    virtual void removeSegmentation(SegmentationPtr seg) = 0;
-    virtual bool updateSegmentationRepresentation(SegmentationPtr seg, bool render = true) = 0;
+    virtual void addSegmentation   (SegmentationPtr seg);
+    virtual void removeSegmentation(SegmentationPtr seg);
+    virtual bool updateSegmentationRepresentation(SegmentationPtr seg, bool render = true);
+    virtual void updateSegmentationRepresentations(SegmentationList list = SegmentationList());
 
     virtual void addWidget   (EspinaWidget *widget) = 0;
     virtual void removeWidget(EspinaWidget *widget) = 0;
 
-    virtual void addActor   (vtkProp3D *actor) = 0;
-    virtual void removeActor(vtkProp3D *actor) = 0;
+    virtual void addActor   (vtkProp3D *actor);
+    virtual void removeActor(vtkProp3D *actor);
 
     virtual void previewBounds(Nm bounds[6], bool cropToSceneBounds = true);
 
-    virtual void setCursor(const QCursor& cursor) = 0;
+    virtual void setCursor(const QCursor& cursor);
 
-    virtual void eventPosition(int &x, int &y) = 0;
+    virtual void eventPosition(int &x, int &y);
 
     virtual ISelector::PickList pick(ISelector::PickableItems filter, ISelector::DisplayRegionList regions) = 0;
 
     virtual void worldCoordinates(const QPoint &displayPos, double worldPos[3]) = 0;
 
-    virtual void setSelectionEnabled(bool enabe) = 0;
+    virtual void setSelectionEnabled(bool enable) = 0;
 
-    virtual vtkRenderWindow *renderWindow() = 0;
-    virtual vtkRenderer     *mainRenderer() = 0;
+    virtual vtkRenderWindow *renderWindow();
+    virtual vtkRenderer     *mainRenderer();
 
     virtual void updateView() = 0;
     virtual void resetCamera() = 0;
@@ -93,11 +100,15 @@ namespace EspINA
     virtual void setContextualMenu(SegmentationContextualMenuSPtr contextMenu)
     { m_contextMenu = contextMenu; }
 
-    // WARNING: Only used in Brush.cpp to update the view while erasing voxels. Very taxing. DEPRECAR!
-    virtual void forceRender(SegmentationList updatedSegs = SegmentationList()) = 0;
+    virtual void addRendererControls(IRendererSPtr renderer) = 0;
+    virtual void removeRendererControls(const QString name) = 0;
+
+    virtual GraphicalRepresentationSPtr cloneRepresentation(GraphicalRepresentationSPtr prototype) = 0;
 
   protected slots:
     virtual void updateSceneBounds();
+    virtual void resetView();
+    virtual void updateSelection(ViewManager::Selection selection, bool render);
 
   protected:
     double suggestedChannelOpacity();
@@ -108,10 +119,16 @@ namespace EspINA
     Nm m_sceneBounds[6];
     Nm m_sceneResolution[3];// Min distance between 2 voxels in each axis
     PlaneType m_plane;
+    unsigned int m_numEnabledSegmentationRenders;
+    unsigned int m_numEnabledChannelRenders;
 
     SegmentationContextualMenuSPtr m_contextMenu;
 
   protected:
+    ViewManager *m_viewManager;
+    QVTKWidget  *m_view;
+    vtkSmartPointer<vtkRenderer> m_renderer;
+
     struct ChannelState
     {
       double     brightness;
@@ -137,6 +154,8 @@ namespace EspINA
 
     QMap<ChannelPtr,      ChannelState>      m_channelStates;
     QMap<SegmentationPtr, SegmentationState> m_segmentationStates;
+
+    QMap<QPushButton *, IRendererSPtr> m_renderers;
   };
 
 } // namespace EspINA

@@ -1,6 +1,6 @@
 /*
  <one line to give the program's name and a brief idea of what it does.>
- Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
+ Copyright (C) 2013 Félix de las Pozas Álvarez <felixdelaspozas@gmail.com>
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -16,34 +16,29 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MESHRENDERER_H
-#define MESHRENDERER_H
+#ifndef SLICERENDERER_H_
+#define SLICERENDERER_H_
 
 // EspINA
 #include "Renderer.h"
-#include "GUI/Representations/GraphicalRepresentation.h"
-#include <Core/Model/Output.h>
-#include <GUI/ViewManager.h>
-
-// VTK
-#include <vtkSmartPointer.h>
 
 class vtkPropPicker;
 
 namespace EspINA
 {
   class ViewManager;
-
-  class MeshRenderer
+  
+  class SliceRenderer
   : public IRenderer
   {
     public:
-      explicit MeshRenderer(QObject* parent = 0);
-      virtual ~MeshRenderer();
+      explicit SliceRenderer(QObject* parent = 0);
+      virtual ~SliceRenderer();
 
-      virtual const QIcon icon()      const   { return QIcon(":/espina/mesh.png"); }
-      virtual const QString name()    const   { return "Mesh"; }
-      virtual const QString tooltip() const   { return "Segmentation's Meshes"; }
+      // TODO: icon for slice renderer controls (unused, but not in the future)
+      virtual const QIcon icon()      const   { return QIcon(); }
+      virtual const QString name()    const   { return "Slice"; }
+      virtual const QString tooltip() const   { return "Segmentation's Slices"; }
 
       virtual void addRepresentation(PickableItemPtr item, GraphicalRepresentationSPtr rep);
       virtual void removeRepresentation(GraphicalRepresentationSPtr rep);
@@ -55,19 +50,19 @@ namespace EspINA
 
       virtual unsigned int getNumberOfvtkActors();
 
-      virtual IRendererSPtr clone()           { return IRendererSPtr(new MeshRenderer()); }
+      virtual IRendererSPtr clone()                     { return IRendererSPtr(new SliceRenderer()); }
 
-      virtual RendererType getRenderType() { return RendererType(RENDERER_VOLUMEVIEW); }
-      virtual RenderabledItems getRenderableItemsType() { return RenderabledItems(IRenderer::RENDERER_SEGMENTATION); }
-      virtual int itemsBeenRendered()         { return m_representations.size(); }
+      virtual RendererType getRenderType()              { return RendererType(RENDERER_SLICEVIEW); }
+      virtual RenderabledItems getRenderableItemsType() { return RenderabledItems(RENDERER_SEGMENTATION|RENDERER_CHANNEL); }
+      virtual int itemsBeenRendered()                   { return m_representations.size(); }
 
       virtual ViewManager::Selection pick(int x, int y, vtkSmartPointer<vtkRenderer> renderer, bool repeat = false);
       virtual void getPickCoordinates(Nm *point);
 
     protected:
       vtkSmartPointer<vtkPropPicker> m_picker;
+
   };
 
-} // namespace EspINA
-
-#endif // MESHRENDERER_H
+} /* namespace EspINA */
+#endif /* SLICERENDERER_H_ */

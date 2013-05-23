@@ -159,7 +159,6 @@ namespace EspINA
     Nm *viewResolution();
     MeasureSPtr measure(Nm distance);
 
-    void forceRender(SegmentationList updatedSegs);
   public slots:
     /// Update Segmentation Representation
     void updateSegmentationRepresentations(SegmentationPtr segmentation);

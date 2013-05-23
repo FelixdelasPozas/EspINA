@@ -23,6 +23,8 @@
 // EspINA
 #include "GUI/Renderers/Renderer.h"
 #include "GUI/Representations/VolumeRaycastRepresentation.h"
+#include <Core/EspinaTypes.h>
+#include <GUI/ViewManager.h>
 
 // VTK
 #include <vtkVolumePicker.h>
@@ -34,12 +36,13 @@ namespace EspINA
   {
   public:
     explicit VolumetricRenderer(QObject* parent = 0);
+    virtual ~VolumetricRenderer();
 
     virtual const QIcon icon() const {return QIcon(":/espina/voxel.png");}
     virtual const QString name() const {return "Volumetric";}
     virtual const QString tooltip() const {return "Segmentation's Volumes";}
 
-    virtual void addRepresentation(GraphicalRepresentationSPtr rep);
+    virtual void addRepresentation(PickableItemPtr item, GraphicalRepresentationSPtr rep);
     virtual void removeRepresentation(GraphicalRepresentationSPtr rep);
     virtual bool hasRepresentation(GraphicalRepresentationSPtr rep);
     virtual bool managesRepresentation(GraphicalRepresentationSPtr rep);
@@ -50,11 +53,12 @@ namespace EspINA
 
     virtual IRendererSPtr clone() {return IRendererSPtr(new VolumetricRenderer());}
 
-    virtual RenderedItems getRendererType() { return RenderedItems(IRenderer::SEGMENTATION); }
+    virtual RendererType getRenderType() { return RendererType(RENDERER_VOLUMEVIEW); }
+    virtual RenderabledItems getRenderableItemsType() { return RenderabledItems(IRenderer::RENDERER_SEGMENTATION); }
     virtual int itemsBeenRendered() { return m_representations.size(); }
 
     // to pick items been rendered
-    virtual GraphicalRepresentationSList pick(int x, int y, bool repeat);
+    virtual ViewManager::Selection pick(int x, int y, vtkSmartPointer<vtkRenderer> renderer, bool repeat = false);
     virtual void getPickCoordinates(double *point);
 
   private:

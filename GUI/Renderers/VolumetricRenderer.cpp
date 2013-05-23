@@ -18,6 +18,7 @@
 
 // EspINA
 #include "VolumetricRenderer.h"
+#include "GUI/QtWidget/EspinaRenderView.h"
 
 // VTK
 #include <vtkVolume.h>
@@ -37,29 +38,80 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  void VolumetricRenderer::addRepresentation(GraphicalRepresentationSPtr rep)
+  VolumetricRenderer::~VolumetricRenderer()
+  {
+    foreach(PickableItemPtr item, m_representations.keys())
+    {
+      foreach(GraphicalRepresentationSPtr rep, m_representations[item])
+      {
+        foreach(vtkProp *prop, rep->getActors())
+        {
+          m_renderer->RemoveActor(prop);
+          m_picker->DeletePickList(prop);
+        }
+      }
+      m_representations[item].clear();
+    }
+
+    m_representations.clear();
+  }
+
+  //-----------------------------------------------------------------------------
+  void VolumetricRenderer::addRepresentation(PickableItemPtr item, GraphicalRepresentationSPtr rep)
   {
     VolumeRaycastRepresentationSPtr volume = boost::dynamic_pointer_cast<VolumeRaycastRepresentation>(rep);
-    if ((volume.get() == NULL) || m_representations.contains(rep))
-      return;
+    if (volume.get() != NULL)
+    {
+      if (m_representations.keys().contains(item))
+        m_representations[item] << rep;
+      else
+      {
+        GraphicalRepresentationSList list;
+        list << rep;
+        m_representations.insert(item, list);
+      }
 
-    m_representations << rep;
+      if (m_enable)
+        foreach(vtkProp3D *prop, rep->getActors())
+        {
+          m_view->addActor(prop);
+          m_picker->AddPickList(prop);
+        }
+    }
   }
 
   //-----------------------------------------------------------------------------
   void VolumetricRenderer::removeRepresentation(GraphicalRepresentationSPtr rep)
   {
     VolumeRaycastRepresentationSPtr volume = boost::dynamic_pointer_cast<VolumeRaycastRepresentation>(rep);
-    if (!m_representations.contains(rep) || (volume.get() == NULL))
-      return;
+    if (volume.get() != NULL)
+    {
+      foreach(PickableItemPtr item, m_representations.keys())
+        if (m_representations[item].contains(rep))
+        {
+          if (m_enable)
+            foreach(vtkProp3D *prop, rep->getActors())
+            {
+              m_view->removeActor(prop);
+              m_picker->DeletePickList(prop);
+            }
 
-    m_representations.removeAll(rep);
+          m_representations[item].removeAll(rep);
+
+          if (m_representations[item].isEmpty())
+            m_representations.remove(item);
+        }
+    }
   }
 
   //-----------------------------------------------------------------------------
   bool VolumetricRenderer::hasRepresentation(GraphicalRepresentationSPtr rep)
   {
-    return m_representations.contains(rep);
+    foreach(PickableItemPtr item, m_representations.keys())
+      if (m_representations[item].contains(rep))
+        return true;
+
+    return false;
   }
 
   //-----------------------------------------------------------------------------
@@ -75,11 +127,13 @@ namespace EspINA
       if (!m_enable)
         return;
 
-      foreach(GraphicalRepresentationSPtr rep, m_representations)
-      {
-        rep->setVisible(false);
-        rep->updateRepresentation();
-      }
+      foreach(PickableItemPtr item, m_representations.keys())
+        foreach(GraphicalRepresentationSPtr rep, m_representations[item])
+          foreach(vtkProp3D* prop, rep->getActors())
+          {
+            m_view->removeActor(prop);
+            m_picker->DeletePickList(prop);
+          }
 
       emit renderRequested();
   }
@@ -90,24 +144,29 @@ namespace EspINA
     if (m_enable)
       return;
 
-    foreach(GraphicalRepresentationSPtr rep, m_representations)
-    {
-      rep->setVisible(true);
-      rep->updateRepresentation();
-    }
+    foreach(PickableItemPtr item, m_representations.keys())
+      foreach(GraphicalRepresentationSPtr rep, m_representations[item])
+        foreach(vtkProp3D* prop, rep->getActors())
+        {
+          m_view->addActor(prop);
+          m_picker->AddPickList(prop);
+        }
 
     emit renderRequested();
   }
 
   //-----------------------------------------------------------------------------
-  GraphicalRepresentationSList VolumetricRenderer::pick(int x, int y, bool repeat)
+  ViewManager::Selection VolumetricRenderer::pick(int x, int y, vtkSmartPointer<vtkRenderer> renderer, bool repeat)
   {
-    GraphicalRepresentationSList selection;
+    ViewManager::Selection selection;
     QList<vtkVolume *> removedProps;
 
-    if (m_renderer)
+    if (!renderer || !renderer.GetPointer())
+      renderer = m_renderer;
+
+    if (renderer)
     {
-      while (m_picker->Pick(x, y, 0, m_renderer))
+      while (m_picker->Pick(x, y, 0, renderer))
       {
         vtkVolume *pickedProp = m_picker->GetVolume();
         Q_ASSERT(pickedProp);
@@ -115,15 +174,20 @@ namespace EspINA
         m_picker->GetPickList()->RemoveItem(pickedProp);
         removedProps << pickedProp;
 
-        foreach(GraphicalRepresentationSPtr rep, m_representations)
-          if (rep->hasActor(pickedProp))
-          {
-            selection << rep;
-            break;
-          }
+        foreach(PickableItemPtr item, m_representations.keys())
+          foreach(GraphicalRepresentationSPtr rep, m_representations[item])
+            if (rep->isVisible() && rep->hasActor(pickedProp) && !selection.contains(item))
+            {
+              selection << item;
 
-        if (!repeat)
-          break;
+              if (!repeat)
+              {
+                m_picker->GetPickList()->AddItem(pickedProp);
+                return selection;
+              }
+
+              break;
+            }
       }
 
       foreach(vtkVolume *prop, removedProps)

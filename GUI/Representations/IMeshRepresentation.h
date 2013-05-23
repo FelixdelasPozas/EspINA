@@ -42,7 +42,7 @@ namespace EspINA
     public:
       explicit IMeshRepresentation(MeshRepresentationSPtr data,
                                    EspinaRenderView *view);
-      virtual ~IMeshRepresentation();
+      virtual ~IMeshRepresentation() {};
 
       virtual void setColor(const QColor &color);
 
@@ -53,7 +53,7 @@ namespace EspINA
       virtual bool isInside(Nm point[3]);
 
       virtual RenderableView canRenderOnView() const
-      { return GraphicalRepresentation::VOLUME_VIEW; }
+      { return GraphicalRepresentation::RENDERABLEVIEW_VOLUME; }
 
       virtual GraphicalRepresentationSPtr clone(SliceView *view)
       { return GraphicalRepresentationSPtr(); }
@@ -63,6 +63,8 @@ namespace EspINA
       virtual bool hasActor(vtkProp *actor) const;
 
       virtual void updateRepresentation() = 0;
+
+      virtual QList<vtkProp3D *> getActors();
 
     private slots:
       virtual void updatePipelineConnections() = 0;

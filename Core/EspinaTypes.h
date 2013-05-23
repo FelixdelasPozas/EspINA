@@ -109,7 +109,8 @@ namespace EspINA
     AXIAL = 2,    //XY
     CORONAL = 1,  //ZX
     SAGITTAL = 0, //YZ
-    VOLUME = 3    //3D
+    VOLUME = 3,    //3D
+    UNDEFINED = 255
   };
 
   typedef QPair<QString, QByteArray> SnapshotEntry;

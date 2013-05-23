@@ -20,6 +20,9 @@
 #include "SmoothedMeshRenderer.h"
 #include "GUI/Representations/SmoothedMeshRepresentation.h"
 
+// VTK
+#include <vtkPropPicker.h>
+
 namespace EspINA
 {
   //-----------------------------------------------------------------------------
@@ -29,23 +32,51 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  void SmoothedMeshRenderer::addRepresentation(GraphicalRepresentationSPtr rep)
+  void SmoothedMeshRenderer::addRepresentation(PickableItemPtr item, GraphicalRepresentationSPtr rep)
   {
     SmoothedMeshRepresentationSPtr mesh = boost::dynamic_pointer_cast<SmoothedMeshRepresentation>(rep);
-    if ((mesh.get() == NULL) || m_representations.contains(rep))
-      return;
+    if (mesh.get() != NULL)
+    {
+      if (m_representations.keys().contains(item))
+        m_representations[item] << rep;
+      else
+      {
+        GraphicalRepresentationSList list;
+        list << rep;
+        m_representations.insert(item, list);
+      }
 
-    m_representations << rep;
+      if (m_enable)
+        foreach(vtkProp3D *prop, rep->getActors())
+        {
+          m_view->addActor(prop);
+          m_picker->AddPickList(prop);
+        }
+    }
   }
 
   //-----------------------------------------------------------------------------
   void SmoothedMeshRenderer::removeRepresentation(GraphicalRepresentationSPtr rep)
   {
     SmoothedMeshRepresentationSPtr mesh = boost::dynamic_pointer_cast<SmoothedMeshRepresentation>(rep);
-    if (!m_representations.contains(rep) || (mesh.get() == NULL))
-      return;
+    if (mesh.get() != NULL)
+    {
+      foreach(PickableItemPtr item, m_representations.keys())
+        if (m_representations[item].contains(rep))
+        {
+          if (m_enable)
+            foreach(vtkProp3D *prop, rep->getActors())
+            {
+              m_view->removeActor(prop);
+              m_picker->DeletePickList(prop);
+            }
 
-    m_representations.removeAll(rep);
+          m_representations[item].removeAll(rep);
+
+          if (m_representations[item].isEmpty())
+            m_representations.remove(item);
+        }
+    }
   }
 
   //-----------------------------------------------------------------------------
@@ -56,4 +87,3 @@ namespace EspINA
   }
   
 } // namespace EspINA
-

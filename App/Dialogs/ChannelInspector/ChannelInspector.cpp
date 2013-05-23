@@ -30,6 +30,7 @@
 
 // VTK
 #include <vtkMath.h>
+#include <vtkImageData.h>
 
 using namespace EspINA;
 
@@ -41,7 +42,7 @@ ChannelInspector::ChannelInspector(Channel *channel, EspinaModel *model, QWidget
 , m_channel(channel)
 , m_viewManager(new ViewManager())
 , m_model(model)
-, m_view(new SliceView(m_viewManager, AXIAL))
+, m_view(new SliceView(m_model->factory(), m_viewManager, AXIAL))
 {
   setupUi(this);
 

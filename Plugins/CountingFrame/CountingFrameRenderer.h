@@ -51,16 +51,20 @@ namespace EspINA
     virtual void show();
     virtual unsigned int getNumberOfvtkActors();
 
-    virtual void addRepresentation(GraphicalRepresentationSPtr rep) {};
+    virtual void addRepresentation(PickableItemPtr item, GraphicalRepresentationSPtr rep) {};
     virtual void removeRepresentation(GraphicalRepresentationSPtr rep) {};
     virtual bool hasRepresentation(GraphicalRepresentationSPtr rep) { return false; };
     virtual bool managesRepresentation(GraphicalRepresentationSPtr rep) { return false; };
 
     virtual IRendererSPtr clone();
 
+    virtual RendererType getRenderType() { return RendererType(RENDERER_VOLUMEVIEW); }
     virtual int itemsBeenRendered() { return m_cfCount; }
 
-    virtual GraphicalRepresentationSList pick(int x, int y, bool repeat) { return GraphicalRepresentationSList(); }
+
+    virtual ViewManager::Selection pick(int x, int y, vtkSmartPointer<vtkRenderer> renderer, bool repeat = false)
+    { return ViewManager::Selection(); }
+
     virtual void getPickCoordinates(Nm *point) {};
 
   public slots:

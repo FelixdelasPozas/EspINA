@@ -21,7 +21,8 @@
 #include <Core/IO/IOErrorHandler.h>
 #include <Core/Outputs/ChannelVolumeProxy.h>
 #include <Core/Outputs/RawVolume.h>
-
+#include <GUI/Representations/SliceRepresentation.h>
+#include <GUI/Representations/CrosshairRepresentation.h>
 #include <itkMetaImageIO.h>
 #include <itkTIFFImageIO.h>
 #include <itkChangeInformationImageFilter.h>
@@ -65,7 +66,7 @@ ChannelRepresentationSPtr ChannelReader::createRepresentationProxy(FilterOutputI
   Q_ASSERT( NULL == m_outputs[id]->representation(type));
 
   if (ChannelVolume::TYPE == type)
-    proxy  =ChannelVolumeProxySPtr(new ChannelVolumeProxy());
+    proxy  = ChannelVolumeProxySPtr(new ChannelVolumeProxy());
   else
     Q_ASSERT(false);
 

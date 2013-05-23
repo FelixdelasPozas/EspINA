@@ -94,7 +94,8 @@ namespace EspINA
       virtual void setTool(TubularTool *);
 
     protected:
-      virtual SegmentationRepresentationSPtr createRepresentationProxy(FilterOutputId id, const FilterOutput::OutputRepresentationName &type){}
+      virtual SegmentationRepresentationSPtr createRepresentationProxy(FilterOutputId id, const FilterOutput::OutputRepresentationName &type)
+      { return SegmentationRepresentationSPtr();}
       virtual void createGraphicalRepresentations(SegmentationOutputSPtr output){}
       virtual bool ignoreCurrentOutputs() const
       { return false; } // TODO

@@ -22,6 +22,7 @@
 #include "SimpleMeshRepresentation.h"
 #include "SmoothedMeshRepresentation.h"
 #include "VolumeRaycastRepresentation.h"
+#include "CrosshairRepresentation.h"
 
 #include <Core/Outputs/MeshType.h>
 #include <Core/Outputs/VolumeRepresentation.h>
@@ -33,6 +34,7 @@ void BasicGraphicalRepresentationFactory::createGraphicalRepresentations(Channel
 {
   ChannelVolumeSPtr volumeData = channelVolume(output);
   output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new ChannelSliceRepresentation(volumeData, NULL)));
+  output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new CrosshairRepresentation(volumeData, NULL)));
 }
 
 void BasicGraphicalRepresentationFactory::createGraphicalRepresentations(SegmentationOutputSPtr output)

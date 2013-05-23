@@ -19,21 +19,27 @@
 #ifndef IESPINAREPRESENTATION_H
 #define IESPINAREPRESENTATION_H
 
+// Qt
 #include <QList>
 #include <QString>
 #include <QColor>
 
+// boost
 #include <boost/shared_ptr.hpp>
+
+// EspINA
 #include <Core/Model/Output.h>
+#include <Core/EspinaTypes.h>
 
 class vtkProp;
 class vtkMatrix4x4;
 class vtkLookupTable;
+class vtkProp3D;
 
 namespace EspINA
 {
 
-class EspinaRenderView;
+  class EspinaRenderView;
   class SliceView;
   class VolumeView;
 
@@ -43,8 +49,9 @@ class EspinaRenderView;
   public:
     enum RenderableViews
     {
-      SLICE_VIEW,
-      VOLUME_VIEW
+      RENDERABLEVIEW_SLICE,
+      RENDERABLEVIEW_VOLUME,
+      RENDERABLEVIEW_UNDEFINED
     };
     Q_DECLARE_FLAGS(RenderableView, RenderableViews);
 
@@ -84,14 +91,16 @@ class EspinaRenderView;
 
     virtual bool isInside(Nm point[3]) = 0;
 
-    virtual RenderableView canRenderOnView() const = 0;
+    virtual RenderableView canRenderOnView() const { return RENDERABLEVIEW_UNDEFINED; };
 
-    virtual GraphicalRepresentationSPtr clone(SliceView  *view) = 0;
     virtual GraphicalRepresentationSPtr clone(VolumeView *view) = 0;
+    virtual GraphicalRepresentationSPtr clone(SliceView *view) = 0;
 
     virtual bool hasActor(vtkProp *actor) const = 0;
 
     virtual void updateRepresentation() = 0;
+
+    virtual QList<vtkProp3D*> getActors() = 0;
 
   protected:
     vtkMatrix4x4 *slicingMatrix(SliceView *view) const;
@@ -102,10 +111,9 @@ class EspinaRenderView;
     bool              m_visible;
     EspinaRenderView *m_view;
     GraphicalRepresentationSList m_clones;
-
+    bool    m_active;
 
   private:
-    bool    m_active;
     QString m_label;
   };
 
@@ -148,7 +156,6 @@ class EspinaRenderView;
   typedef boost::shared_ptr<ChannelGraphicalRepresentation> ChannelGraphicalRepresentationSPtr;
   typedef QList<ChannelGraphicalRepresentationSPtr> ChannelGraphicalRepresentationList;
 
-  // NOTE: Temporal empty class, maybe useful in a future...
   class SegmentationGraphicalRepresentation
   : public GraphicalRepresentation
   {
