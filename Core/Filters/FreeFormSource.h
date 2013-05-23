@@ -91,7 +91,7 @@ protected:
 
   virtual bool needUpdate(FilterOutputId oId) const;
 
-  virtual void run() {}
+  virtual void run() { run(0); }
 
   virtual void run(FilterOutputId oId) {}
 

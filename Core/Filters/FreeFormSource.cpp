@@ -73,7 +73,7 @@ FreeFormSource::~FreeFormSource()
 void FreeFormSource::setGraphicalRepresentationFactory(GraphicalRepresentationFactorySPtr factory)
 {
   EspINA::Filter::setGraphicalRepresentationFactory(factory);
-  if (factory)
+  if (factory && validOutput(0))
     factory->createGraphicalRepresentations(m_outputs[0]);
 }
 

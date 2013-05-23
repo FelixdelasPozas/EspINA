@@ -37,12 +37,16 @@ void BasicGraphicalRepresentationFactory::createGraphicalRepresentations(Channel
 
 void BasicGraphicalRepresentationFactory::createGraphicalRepresentations(SegmentationOutputSPtr output)
 {
-  SegmentationVolumeSPtr volumeRep = segmentationVolume(output);
-  MeshRepresentationSPtr meshRep   = meshRepresentation(output);
-  output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new SegmentationSliceRepresentation(volumeRep, NULL)));
-  output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new SimpleMeshRepresentation(meshRep, NULL)));
-  output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new SmoothedMeshRepresentation(meshRep, NULL)));
-  output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new VolumeRaycastRepresentation(volumeRep, NULL)));
+  if (output && output->isValid())
+  {
+    SegmentationVolumeSPtr volumeRep = segmentationVolume(output);
+    MeshRepresentationSPtr meshRep   = meshRepresentation(output);
+
+    output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new SimpleMeshRepresentation       (meshRep,   NULL)));
+    output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new SmoothedMeshRepresentation     (meshRep,   NULL)));
+    output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new VolumeRaycastRepresentation    (volumeRep, NULL)));
+    output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new SegmentationSliceRepresentation(volumeRep, NULL)));
+  }
 }
 
 void EspINA::SetBasicGraphicalRepresentationFactory(Filter *filter)
