@@ -330,7 +330,7 @@ void EspinaRenderView::updateChannelRepresentations(ChannelList list)
 
     bool updated = false;
     foreach(ChannelPtr channel, updateChannels)
-      updated |= updateChannelRepresentation(channel);
+      updated |= updateChannelRepresentation(channel, false);
 
     if (updated)
       updateView();
@@ -425,7 +425,7 @@ void EspinaRenderView::updateSegmentationRepresentations(SegmentationList list)
 
     bool updated = false;
     foreach(SegmentationPtr seg, updateSegmentations)
-      updated |= updateSegmentationRepresentation(seg);
+      updated |= updateSegmentationRepresentation(seg, false);
 
     if (updated)
       updateView();
