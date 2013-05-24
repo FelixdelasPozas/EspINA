@@ -75,11 +75,9 @@
 #include <vtkMatrix4x4.h>
 #include <vtkObjectFactory.h>
 #include <vtkPolyDataMapper.h>
-#include <vtkProp3DCollection.h>
-#include <vtkPropCollection.h>
 #include <vtkMath.h>
-#include <vtkPropPicker.h>
 #include <vtkProperty.h>
+#include <vtkPropPicker.h>
 #include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkRenderer.h>
@@ -622,9 +620,6 @@ ISelector::PickList SliceView::pick(ISelector::PickableItems     filter,
   bool multiSelection = false;
   ISelector::PickList pickedItems;
 
-  vtkRenderer *renderer = m_renderer;
-  Q_ASSERT(renderer);
-
   // Select all products that belongs to all regions
   // NOTE: Should first loop be removed? Only useful to select disconnected regions...
   foreach(const ISelector::DisplayRegion &region, regions)
@@ -637,7 +632,7 @@ ISelector::PickList SliceView::pick(ISelector::PickableItems     filter,
         {
           foreach(IRendererSPtr renderer, m_itemRenderers)
             if (renderer->getRenderableItemsType().testFlag(EspINA::CHANNEL))
-              foreach(PickableItemPtr item, renderer->pick(p.x(), p.y(), NULL, IRenderer::RenderabledItems(EspINA::CHANNEL), multiSelection))
+              foreach(PickableItemPtr item, renderer->pick(p.x(), p.y(), m_renderer, IRenderer::RenderabledItems(EspINA::CHANNEL), multiSelection))
               {
                 ISelector::WorldRegion wRegion = worldRegion(region, item);
                 pickedItems << ISelector::PickedItem(wRegion, item);
@@ -649,7 +644,7 @@ ISelector::PickList SliceView::pick(ISelector::PickableItems     filter,
           {
             foreach(IRendererSPtr renderer, m_itemRenderers)
               if (renderer->getRenderableItemsType().testFlag(EspINA::SEGMENTATION))
-                foreach(PickableItemPtr item, renderer->pick(p.x(), p.y(), NULL, IRenderer::RenderabledItems(EspINA::SEGMENTATION), multiSelection))
+                foreach(PickableItemPtr item, renderer->pick(p.x(), p.y(), m_renderer, IRenderer::RenderabledItems(EspINA::SEGMENTATION), multiSelection))
                 {
                   ISelector::WorldRegion wRegion = worldRegion(region, item);
                   pickedItems << ISelector::PickedItem(wRegion, item);
@@ -704,7 +699,7 @@ void SliceView::updateView()
 {
   if (isVisible())
   {
-    //qDebug() << "Updating View";
+//    qDebug() << "Updating View";
     updateRuler();
     updateWidgetVisibility();
     updateThumbnail();
@@ -770,9 +765,10 @@ void SliceView::removeWidget(EspinaWidget *eWidget)
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::addActor(vtkProp3D* actor)
+void SliceView::addActor(vtkProp* actor)
 {
-  m_state->updateActor(actor);
+  vtkProp3D *actor3D = reinterpret_cast<vtkProp3D*>(actor);
+  m_state->updateActor(actor3D);
 
   m_renderer->AddActor(actor);
   m_thumbnail->AddActor(actor);
@@ -789,7 +785,7 @@ void SliceView::addActor(vtkProp3D* actor)
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::removeActor(vtkProp3D* actor)
+void SliceView::removeActor(vtkProp* actor)
 {
   m_renderer->RemoveActor(actor);
   m_thumbnail->RemoveActor(actor);
@@ -1046,7 +1042,7 @@ void SliceView::centerCrosshairOnMousePosition()
     {
       if (renderer->getRenderableItemsType().testFlag(EspINA::CHANNEL))
       {
-        ViewManager::Selection selection = renderer->pick(xPos, yPos, NULL, IRenderer::RenderabledItems(EspINA::CHANNEL));
+        ViewManager::Selection selection = renderer->pick(xPos, yPos, m_renderer, IRenderer::RenderabledItems(EspINA::CHANNEL));
         if (!selection.isEmpty())
         {
           channelPicked = true;
@@ -1086,14 +1082,13 @@ void SliceView::centerViewOnMousePosition()
 
 //-----------------------------------------------------------------------------
 ViewManager::Selection SliceView::pickChannels(double vx, double vy,
-                                               vtkRenderer* renderer,
                                                bool repeatable)
 {
   ViewManager::Selection selection;
 
   foreach(IRendererSPtr renderer, m_itemRenderers)
     if (renderer->getRenderableItemsType().testFlag(EspINA::CHANNEL))
-      foreach(PickableItemPtr item, renderer->pick(vx,vy, NULL, IRenderer::RenderabledItems(EspINA::CHANNEL), repeatable))
+      foreach(PickableItemPtr item, renderer->pick(vx,vy, m_renderer, IRenderer::RenderabledItems(EspINA::CHANNEL), repeatable))
       {
         if (!selection.contains(item))
           selection << item;
@@ -1104,14 +1099,13 @@ ViewManager::Selection SliceView::pickChannels(double vx, double vy,
 
 //-----------------------------------------------------------------------------
 ViewManager::Selection SliceView::pickSegmentations(double vx, double vy,
-                                                    vtkRenderer* renderer,
                                                     bool repeatable)
 {
   ViewManager::Selection selection;
 
   foreach(IRendererSPtr renderer, m_itemRenderers)
     if (renderer->getRenderableItemsType().testFlag(EspINA::SEGMENTATION))
-      foreach(PickableItemPtr item, renderer->pick(vx,vy, NULL, IRenderer::RenderabledItems(EspINA::SEGMENTATION), repeatable))
+      foreach(PickableItemPtr item, renderer->pick(vx,vy, m_renderer, IRenderer::RenderabledItems(EspINA::SEGMENTATION), repeatable))
         if (!selection.contains(item))
           selection << item;
 
@@ -1129,7 +1123,7 @@ void SliceView::selectPickedItems(bool append)
     selection = m_viewManager->selection();
 
   // segmentations have priority over channels
-  foreach(PickableItemPtr item, pickSegmentations(vx, vy, m_renderer, append))
+  foreach(PickableItemPtr item, pickSegmentations(vx, vy, append))
   {
     if (selection.contains(item))
       selection.removeAll(item);
@@ -1141,7 +1135,7 @@ void SliceView::selectPickedItems(bool append)
   }
 
   if (selection.isEmpty() || append)
-    foreach(PickableItemPtr item, pickChannels(vx, vy, m_renderer, append))
+    foreach(PickableItemPtr item, pickChannels(vx, vy, append))
     {
       if (selection.contains(item))
         selection.removeAll(item);
@@ -1185,6 +1179,7 @@ void SliceView::updateChannelsOpactity()
 //-----------------------------------------------------------------------------
 bool SliceView::pick(vtkPropPicker *picker, int x, int y, Nm pickPos[3])
 {
+
   if (m_thumbnail->GetDraw() && picker->Pick(x, y, 0.1, m_thumbnail))
     return false;//ePick Fail
 
@@ -1456,7 +1451,7 @@ ISelector::WorldRegion SliceView::worldRegion(const ISelector::DisplayRegion& re
     {
       foreach(IRendererSPtr renderer, m_itemRenderers)
         if (renderer->getRenderableItemsType().testFlag(EspINA::CHANNEL) &&
-            !renderer->pick(point.x(), point.y(), NULL, IRenderer::RenderabledItems(EspINA::CHANNEL), false).isEmpty())
+            !renderer->pick(point.x(), point.y(), m_renderer, IRenderer::RenderabledItems(EspINA::CHANNEL), false).isEmpty())
         {
           renderer->getPickCoordinates(pickPos);
           wRegion->InsertNextPoint(pickPos);
@@ -1466,7 +1461,7 @@ ISelector::WorldRegion SliceView::worldRegion(const ISelector::DisplayRegion& re
     {
       foreach(IRendererSPtr renderer, m_itemRenderers)
         if (renderer->getRenderableItemsType().testFlag(EspINA::SEGMENTATION) &&
-            !renderer->pick(point.x(), point.y(), NULL, IRenderer::RenderabledItems(EspINA::SEGMENTATION), false).isEmpty())
+            !renderer->pick(point.x(), point.y(), m_renderer, IRenderer::RenderabledItems(EspINA::SEGMENTATION), false).isEmpty())
         {
           renderer->getPickCoordinates(pickPos);
           wRegion->InsertNextPoint(pickPos);
@@ -1491,7 +1486,7 @@ GraphicalRepresentationSPtr SliceView::cloneRepresentation(GraphicalRepresentati
 //-----------------------------------------------------------------------------
 void SliceView::addRendererControls(IRendererSPtr renderer)
 {
-  renderer->setViewData(this, this->m_renderer);
+  renderer->setView(this);
   renderer->setEnable(true);
 
   // add representations to renderer

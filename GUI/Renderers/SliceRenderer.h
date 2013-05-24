@@ -63,7 +63,7 @@ namespace EspINA
                                           bool repeat = false);
       virtual void getPickCoordinates(Nm *point);
 
-    protected:
+    private:
       vtkSmartPointer<vtkPropPicker> m_picker;
 
   };

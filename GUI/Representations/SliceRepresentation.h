@@ -81,7 +81,7 @@ namespace EspINA
 
     virtual void updateRepresentation();
 
-    virtual QList<vtkProp3D*> getActors();
+    virtual QList<vtkProp*> getActors();
 
   private slots:
     void updatePipelineConnections();
@@ -128,7 +128,7 @@ namespace EspINA
 
     virtual void updateRepresentation();
 
-    virtual QList<vtkProp3D*> getActors();
+    virtual QList<vtkProp*> getActors();
 
   private slots:
     void updatePipelineConnections();

@@ -82,9 +82,9 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  QList<vtkProp3D *> IMeshRepresentation::getActors()
+  QList<vtkProp *> IMeshRepresentation::getActors()
   {
-    QList<vtkProp3D *> list;
+    QList<vtkProp *> list;
     list << m_actor.GetPointer();
 
     return list;

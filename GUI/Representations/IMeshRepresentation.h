@@ -64,7 +64,7 @@ namespace EspINA
 
       virtual void updateRepresentation() = 0;
 
-      virtual QList<vtkProp3D *> getActors();
+      virtual QList<vtkProp *> getActors();
 
     private slots:
       virtual void updatePipelineConnections() = 0;

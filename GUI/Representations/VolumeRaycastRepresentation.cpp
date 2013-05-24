@@ -162,9 +162,9 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  QList<vtkProp3D*> VolumeRaycastRepresentation::getActors()
+  QList<vtkProp*> VolumeRaycastRepresentation::getActors()
   {
-    QList<vtkProp3D*> list;
+    QList<vtkProp*> list;
     list << m_actor.GetPointer();
 
     return list;

@@ -34,7 +34,7 @@
 #include <QFlags>
 
 class vtkRenderer;
-class vtkProp3D;
+class vtkProp;
 class vtkRenderWindow;
 class QVTKWidget;
 class QPushButton;
@@ -91,8 +91,8 @@ namespace EspINA
     virtual void addWidget   (EspinaWidget *widget) = 0;
     virtual void removeWidget(EspinaWidget *widget) = 0;
 
-    virtual void addActor   (vtkProp3D *actor);
-    virtual void removeActor(vtkProp3D *actor);
+    virtual void addActor   (vtkProp *actor);
+    virtual void removeActor(vtkProp *actor);
 
     virtual void previewBounds(Nm bounds[6], bool cropToSceneBounds = true);
 

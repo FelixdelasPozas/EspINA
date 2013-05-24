@@ -26,6 +26,7 @@
 #include <vtkRenderWindow.h>
 #include <vtkAbstractWidget.h>
 #include <vtkWidgetRepresentation.h>
+#include <GUI/QtWidget/EspinaRenderView.h>
 
 using namespace EspINA;
 
@@ -70,7 +71,7 @@ void CountingFrameRenderer::show()
     return;
 
   m_enable = true;
-  vtkRenderWindow *rw = m_renderer->GetRenderWindow();
+  vtkRenderWindow *rw = m_view->renderWindow();
   vtkRenderWindowInteractor *interactor = rw->GetInteractor();
 
   foreach(CountingFrame *cf, m_plugin->countingFrames())

@@ -176,9 +176,9 @@ void ChannelSliceRepresentation::initializePipeline(SliceView *view)
 }
 
 //-----------------------------------------------------------------------------
-QList<vtkProp3D*> ChannelSliceRepresentation::getActors()
+QList<vtkProp*> ChannelSliceRepresentation::getActors()
 {
-  QList<vtkProp3D*> list;
+  QList<vtkProp*> list;
   list << slice.GetPointer();
 
   return list;
@@ -292,9 +292,9 @@ void SegmentationSliceRepresentation::updateRepresentation()
 }
 
 //-----------------------------------------------------------------------------
-QList<vtkProp3D*> SegmentationSliceRepresentation::getActors()
+QList<vtkProp*> SegmentationSliceRepresentation::getActors()
 {
-  QList<vtkProp3D *> list;
+  QList<vtkProp *> list;
   list << slice.GetPointer();
 
   return list;

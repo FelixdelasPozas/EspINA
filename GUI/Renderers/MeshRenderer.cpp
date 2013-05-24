@@ -43,7 +43,7 @@ namespace EspINA
       {
         foreach(vtkProp *prop, rep->getActors())
         {
-          m_renderer->RemoveActor(prop);
+          m_view->removeActor(prop);
           m_picker->DeletePickList(prop);
         }
       }
@@ -68,7 +68,7 @@ namespace EspINA
       }
 
       if (m_enable)
-        foreach(vtkProp3D* prop, rep->getActors())
+        foreach(vtkProp* prop, rep->getActors())
         {
           m_view->addActor(prop);
           m_picker->AddPickList(prop);
@@ -85,7 +85,7 @@ namespace EspINA
       foreach(PickableItemPtr item, m_representations.keys())
         if (m_representations[item].contains(rep))
         {
-          foreach(vtkProp3D* prop, rep->getActors())
+          foreach(vtkProp* prop, rep->getActors())
           {
             m_view->removeActor(prop);
             m_picker->DeletePickList(prop);
@@ -124,7 +124,7 @@ namespace EspINA
 
     foreach (PickableItemPtr item, m_representations.keys())
       foreach(GraphicalRepresentationSPtr rep, m_representations[item])
-        foreach(vtkProp3D* prop, rep->getActors())
+        foreach(vtkProp* prop, rep->getActors())
         {
           m_view->removeActor(prop);
           m_picker->DeletePickList(prop);
@@ -141,7 +141,7 @@ namespace EspINA
 
      foreach (PickableItemPtr item, m_representations.keys())
        foreach(GraphicalRepresentationSPtr rep, m_representations[item])
-         foreach(vtkProp3D* prop, rep->getActors())
+         foreach(vtkProp* prop, rep->getActors())
          {
            m_view->addActor(prop);
            m_picker->AddPickList(prop);
@@ -167,38 +167,37 @@ namespace EspINA
     ViewManager::Selection selection;
     QList<vtkProp *> removedProps;
 
-    if (!renderer || !renderer.GetPointer())
-      renderer = m_renderer;
+    if (!renderer || !renderer.GetPointer() || !itemType.testFlag(EspINA::SEGMENTATION))
+      return selection;
 
-    if (renderer.GetPointer() != NULL && itemType.testFlag(EspINA::SEGMENTATION))
+    while (m_picker->Pick(x, y, 0, renderer))
     {
-      while (m_picker->Pick(x,y,0, renderer))
-      {
-        vtkProp *pickedProp = m_picker->GetViewProp();
-        Q_ASSERT(pickedProp);
+      vtkProp *pickedProp = m_picker->GetViewProp();
+      Q_ASSERT(pickedProp);
 
-        m_picker->DeletePickList(pickedProp);
-        removedProps << pickedProp;
+      m_picker->DeletePickList(pickedProp);
+      removedProps << pickedProp;
 
-        foreach(PickableItemPtr item, m_representations.keys())
-          foreach(GraphicalRepresentationSPtr rep, m_representations[item])
-            if (rep->isVisible() && rep->hasActor(pickedProp) && !selection.contains(item))
-            {
-              selection << item;
+      foreach(PickableItemPtr item, m_representations.keys())
+        foreach(GraphicalRepresentationSPtr rep, m_representations[item])
+        if (rep->isVisible() && rep->hasActor(pickedProp) && !selection.contains(item))
+        {
+          selection << item;
 
-              if (!repeat)
-              {
-                m_picker->AddPickList(pickedProp);
-                return selection;
-              }
+          if (!repeat)
+          {
+            foreach(vtkProp *actor, removedProps)
+              m_picker->AddPickList(actor);
 
-              break;
-            }
-      }
+            return selection;
+          }
 
-      foreach(vtkProp *actor, removedProps)
-        m_picker->AddPickList(actor);
+          break;
+        }
     }
+
+    foreach(vtkProp *actor, removedProps)
+      m_picker->AddPickList(actor);
 
     return selection;
   }

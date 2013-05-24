@@ -31,10 +31,10 @@
 #include <Core/Model/Output.h>
 #include <Core/EspinaTypes.h>
 
+class vtkProp3D;
 class vtkProp;
 class vtkMatrix4x4;
 class vtkLookupTable;
-class vtkProp3D;
 
 namespace EspINA
 {
@@ -107,7 +107,7 @@ namespace EspINA
 
     virtual void updateRepresentation() = 0;
 
-    virtual QList<vtkProp3D*> getActors() = 0;
+    virtual QList<vtkProp*> getActors() = 0;
 
   protected:
     vtkMatrix4x4 *slicingMatrix(SliceView *view) const;

@@ -46,7 +46,7 @@ CrosshairRenderer::~CrosshairRenderer()
     {
       foreach(vtkProp *prop, rep->getActors())
       {
-        m_renderer->RemoveActor(prop);
+        m_view->removeActor(prop);
         m_picker->DeletePickList(prop);
       }
     }
@@ -71,7 +71,7 @@ void CrosshairRenderer::addRepresentation(PickableItemPtr item, GraphicalReprese
     }
 
     if (m_enable)
-      foreach(vtkProp3D* prop, rep->getActors())
+      foreach(vtkProp* prop, rep->getActors())
       {
         m_view->addActor(prop);
         m_picker->AddPickList(prop);
@@ -89,7 +89,7 @@ void CrosshairRenderer::removeRepresentation(GraphicalRepresentationSPtr rep)
       if (m_representations[item].contains(rep))
       {
         if (m_enable)
-          foreach(vtkProp3D* prop, rep->getActors())
+          foreach(vtkProp* prop, rep->getActors())
           {
             m_view->removeActor(prop);
             m_picker->DeletePickList(prop);
@@ -130,7 +130,7 @@ void CrosshairRenderer::hide()
 
   foreach (PickableItemPtr item, m_representations.keys())
     foreach(GraphicalRepresentationSPtr rep, m_representations[item])
-      foreach(vtkProp3D* prop, rep->getActors())
+      foreach(vtkProp* prop, rep->getActors())
       {
         m_view->removeActor(prop);
         m_picker->DeletePickList(prop);
@@ -147,7 +147,7 @@ void CrosshairRenderer::show()
 
   foreach (PickableItemPtr item, m_representations.keys())
     foreach(GraphicalRepresentationSPtr rep, m_representations[item])
-      foreach(vtkProp3D* prop, rep->getActors())
+      foreach(vtkProp* prop, rep->getActors())
       {
         m_view->addActor(prop);
         m_picker->AddPickList(prop);
@@ -176,46 +176,45 @@ ViewManager::Selection CrosshairRenderer::pick(int x, int y, vtkSmartPointer<vtk
   ViewManager::Selection selection;
   QList<vtkProp*> removedProps;
 
-  if (!renderer || !renderer.GetPointer())
-    renderer = m_renderer;
+  if (!renderer || !renderer.GetPointer() || !itemType.testFlag(EspINA::CHANNEL))
+    return selection;
 
-  if (renderer && itemType.testFlag(EspINA::CHANNEL))
+  while (m_picker->Pick(x, y, 0, renderer))
   {
-    while (m_picker->Pick(x,y,0, renderer))
-    {
-      vtkProp *pickedProp = m_picker->GetViewProp();
-      Q_ASSERT(pickedProp);
+    vtkProp *pickedProp = m_picker->GetViewProp();
+    Q_ASSERT(pickedProp);
 
-      m_picker->DeletePickList(pickedProp);
-      removedProps << pickedProp;
+    m_picker->DeletePickList(pickedProp);
+    removedProps << pickedProp;
 
-      foreach(PickableItemPtr item, m_representations.keys())
-        foreach(GraphicalRepresentationSPtr rep, m_representations[item])
-          if (rep->isVisible() && rep->hasActor(pickedProp) && !selection.contains(item))
+    foreach(PickableItemPtr item, m_representations.keys())
+      foreach(GraphicalRepresentationSPtr rep, m_representations[item])
+        if (rep->isVisible() && rep->hasActor(pickedProp) && !selection.contains(item))
+        {
+          selection << item;
+
+          if (!repeat)
           {
-            selection << item;
+            foreach(vtkProp *actor, removedProps)
+              m_picker->AddPickList(actor);
 
-            if (!repeat)
-            {
-              m_picker->GetPickList()->AddItem(pickedProp);
-              return selection;
-            }
-
-            // channels have multiple actors, we must eliminate five more of them and continue searching
-            foreach(vtkProp *actor, rep->getActors())
-              if (actor != pickedProp)
-              {
-                m_picker->AddPickList(actor);
-                removedProps << actor;
-              }
-
-            break;
+            return selection;
           }
-    }
 
-    foreach(vtkProp *actor, removedProps)
-      m_picker->AddPickList(actor);
+          // channels have multiple actors, we must eliminate five more of them and continue searching
+          foreach(vtkProp *actor, rep->getActors())
+          if (actor != pickedProp)
+          {
+            m_picker->DeletePickList(actor);
+            removedProps << actor;
+          }
+
+          break;
+        }
   }
+
+  foreach(vtkProp *actor, removedProps)
+    m_picker->AddPickList(actor);
 
   return selection;
 }

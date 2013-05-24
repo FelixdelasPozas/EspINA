@@ -27,6 +27,7 @@ namespace EspINA
   class GraphicalRepresentationFactory
   {
   public:
+    virtual ~GraphicalRepresentationFactory() {};
     virtual void createGraphicalRepresentations(ChannelOutputSPtr output) = 0;
 
     virtual void createGraphicalRepresentations(SegmentationOutputSPtr output) = 0;

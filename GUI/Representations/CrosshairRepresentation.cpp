@@ -718,9 +718,9 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  QList<vtkProp3D*> CrosshairRepresentation::getActors()
+  QList<vtkProp*> CrosshairRepresentation::getActors()
   {
-    QList<vtkProp3D*> list;
+    QList<vtkProp*> list;
     list << m_axial << m_coronal << m_sagittal;
     list << m_axialBorder << m_coronalBorder << m_sagittalBorder;
 

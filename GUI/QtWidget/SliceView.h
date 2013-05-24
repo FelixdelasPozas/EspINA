@@ -110,8 +110,8 @@ namespace EspINA
     virtual void addWidget   (EspinaWidget* widget);
     virtual void removeWidget(EspinaWidget* eWidget);
 
-    virtual void addActor   (vtkProp3D *actor);
-    virtual void removeActor(vtkProp3D *actor);
+    virtual void addActor   (vtkProp *actor);
+    virtual void removeActor(vtkProp *actor);
 
     virtual void previewBounds(Nm bounds[6], bool cropToSceneBounds = true);
 
@@ -184,8 +184,8 @@ namespace EspINA
     void centerCrosshairOnMousePosition();
     void centerViewOnMousePosition();
 
-    ViewManager::Selection pickChannels(double vx, double vy, vtkRenderer *renderer, bool repeatable = true);
-    ViewManager::Selection pickSegmentations(double vx, double vy, vtkRenderer *renderer, bool repeatable = true);
+    ViewManager::Selection pickChannels(double vx, double vy, bool repeatable = true);
+    ViewManager::Selection pickSegmentations(double vx, double vy, bool repeatable = true);
 
     void selectPickedItems(bool append);
 

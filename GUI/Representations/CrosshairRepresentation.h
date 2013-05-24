@@ -76,7 +76,7 @@ namespace EspINA
 
       virtual void updateRepresentation();
 
-      virtual QList<vtkProp3D*> getActors();
+      virtual QList<vtkProp*> getActors();
 
       void setCrosshairColors(double axialColor[3], double coronalColor[3], double sagittalColor[3]);
       void setCrosshair(Nm point[3]);

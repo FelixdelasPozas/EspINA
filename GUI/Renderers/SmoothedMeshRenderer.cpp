@@ -47,7 +47,7 @@ namespace EspINA
       }
 
       if (m_enable)
-        foreach(vtkProp3D *prop, rep->getActors())
+        foreach(vtkProp *prop, rep->getActors())
         {
           m_view->addActor(prop);
           m_picker->AddPickList(prop);
@@ -65,7 +65,7 @@ namespace EspINA
         if (m_representations[item].contains(rep))
         {
           if (m_enable)
-            foreach(vtkProp3D *prop, rep->getActors())
+            foreach(vtkProp *prop, rep->getActors())
             {
               m_view->removeActor(prop);
               m_picker->DeletePickList(prop);

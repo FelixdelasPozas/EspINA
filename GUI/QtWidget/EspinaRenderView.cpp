@@ -492,13 +492,13 @@ void EspinaRenderView::updateSelection(ViewManager::Selection selection, bool re
 }
 
 //-----------------------------------------------------------------------------
-void EspinaRenderView::addActor(vtkProp3D *actor)
+void EspinaRenderView::addActor(vtkProp *actor)
 {
   m_renderer->AddActor(actor);
 }
 
 //-----------------------------------------------------------------------------
-void EspinaRenderView::removeActor(vtkProp3D *actor)
+void EspinaRenderView::removeActor(vtkProp *actor)
 {
   m_renderer->RemoveActor(actor);
 }

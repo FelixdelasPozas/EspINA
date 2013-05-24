@@ -56,8 +56,7 @@ namespace EspINA
     virtual const QIcon icon() const         { return QIcon(); }
 
     /// sets renderer
-    virtual void setViewData(EspinaRenderView* view, vtkSmartPointer<vtkRenderer> renderer)
-    { m_view = view; m_renderer = renderer; }
+    virtual void setView(EspinaRenderView* view) { m_view = view; }
 
     virtual void addRepresentation(PickableItemPtr item, GraphicalRepresentationSPtr rep) = 0;
     virtual void removeRepresentation(GraphicalRepresentationSPtr rep) = 0;
@@ -113,13 +112,11 @@ namespace EspINA
 
   protected:
     explicit IRenderer(QObject* parent = 0)
-    : m_renderer(NULL)
-    , m_enable(false)
+    : m_enable(false)
     , m_view (NULL)
     {}
 
   protected:
-    vtkSmartPointer<vtkRenderer> m_renderer;
     bool m_enable;
     QMap<PickableItemPtr, GraphicalRepresentationSList> m_representations;
     EspinaRenderView *m_view;
