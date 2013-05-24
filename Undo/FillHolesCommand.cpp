@@ -22,6 +22,7 @@
 #include <Core/Filters/FillHolesFilter.h>
 #include <Core/Model/EspinaModel.h>
 #include <GUI/ViewManager.h>
+#include <GUI/Representations/BasicGraphicalRepresentationFactory.h>
 
 #include <QApplication>
 
@@ -45,6 +46,7 @@ FillHolesCommand::FillHolesCommand(SegmentationList inputs, EspinaModel *model, 
     inputs[FillHolesFilter::INPUTLINK] = seg->filter();
     args[Filter::INPUTS] = Filter::NamedInput(FillHolesFilter::INPUTLINK, seg->outputId());
     FilterSPtr filter(new FillHolesFilter(inputs, args, FILTER_TYPE));
+    SetBasicGraphicalRepresentationFactory(filter);
     filter->update();
     m_segmentations  << m_model->findSegmentation(seg);
     m_newConnections << Connection(filter, 0);
