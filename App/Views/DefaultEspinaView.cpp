@@ -138,8 +138,8 @@ void DefaultEspinaView::initSliceView(SliceView* view)
 void DefaultEspinaView::createViewMenu(QMenu* menu)
 {
   QMenu *renderMenu = new QMenu(tr("Views"), this);
-  renderMenu->addAction(yzDock->toggleViewAction());
-  renderMenu->addAction(xzDock->toggleViewAction());
+  renderMenu->addAction(yzDock ->toggleViewAction());
+  renderMenu->addAction(xzDock ->toggleViewAction());
   renderMenu->addAction(volDock->toggleViewAction());
   //renderMenu->addSeparator();
   menu->addMenu(renderMenu);
@@ -161,7 +161,7 @@ void DefaultEspinaView::createViewMenu(QMenu* menu)
   m_showThumbnail->setChecked(st);
   menu->addAction(m_showThumbnail);
   connect(m_showThumbnail, SIGNAL(toggled(bool)),
-	  this, SLOT(showThumbnail(bool)));
+          this, SLOT(showThumbnail(bool)));
 
   QAction *togglePreprocessingVisibility = new QAction(tr("Switch Channel"), menu);
   togglePreprocessingVisibility->setShortcut(QString("Ctrl+Space"));
@@ -350,10 +350,10 @@ void DefaultEspinaView::setRulerVisibility(bool visible)
 //----------------------------------------------------------------------------
 void DefaultEspinaView::showSegmentations(bool visible)
 {
-  xyView->setSegmentationVisibility(visible);
-  yzView->setSegmentationVisibility(visible);
-  xzView->setSegmentationVisibility(visible);
-  //   EspinaCore::instance()->model()->serializeRelations(std::cout, RelationshipGraph::GRAPHVIZ);
+  xyView->setSegmentationsVisibility(visible);
+  yzView->setSegmentationsVisibility(visible);
+  xzView->setSegmentationsVisibility(visible);
+
   m_showSegmentations = visible;
 }
 //-----------------------------------------------------------------------------

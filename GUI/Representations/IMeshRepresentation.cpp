@@ -65,7 +65,7 @@ namespace EspINA
   {
     SegmentationGraphicalRepresentation::setVisible(visible);
 
-    m_actor->SetVisibility(m_visible);
+    m_actor->SetVisibility(isVisible());
   }
 
   //-----------------------------------------------------------------------------

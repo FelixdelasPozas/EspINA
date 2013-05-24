@@ -109,7 +109,6 @@ SliceView::SliceView(EspinaFactoryPtr factory, ViewManager* vm, PlaneType plane,
 , m_zoomButton(new QPushButton())
 , m_ruler(vtkSmartPointer<vtkAxisActor2D>::New())
 , m_selectionEnabled(true)
-, m_showSegmentations(true)
 , m_showThumbnail(true)
 , m_sliceSelector(QPair<SliceSelectorWidget*,SliceSelectorWidget*>(NULL, NULL))
 , m_inThumbnail(false)
@@ -1205,16 +1204,6 @@ bool SliceView::pick(vtkPropPicker *picker, int x, int y, Nm pickPos[3])
   pickPos[m_plane] = slicingPosition();
 
   return true;
-}
-
-//-----------------------------------------------------------------------------
-void SliceView::setSegmentationVisibility(bool visible)
-{
-  m_showSegmentations = visible;
-
-  updateSegmentationRepresentations();
-
-  updateView();
 }
 
 //-----------------------------------------------------------------------------

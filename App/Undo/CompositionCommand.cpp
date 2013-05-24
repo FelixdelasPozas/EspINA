@@ -25,6 +25,7 @@
 #include <Core/Model/Sample.h>
 #include <Core/Model/Segmentation.h>
 #include <Core/Relations.h>
+#include <GUI/Representations/BasicGraphicalRepresentationFactory.h>
 
 #include <QApplication>
 
@@ -67,6 +68,7 @@ CompositionCommand::CompositionCommand(const SegmentationList &segmentations,
   params.setOperation(ImageLogicFilter::ADDITION);
 
   m_filter = FilterSPtr(new ImageLogicFilter(inputs, args, FILTER_TYPE));
+  SetBasicGraphicalRepresentationFactory(m_filter);
   m_filter->update();
   m_seg = m_model->factory()->createSegmentation(m_filter, 0);
 

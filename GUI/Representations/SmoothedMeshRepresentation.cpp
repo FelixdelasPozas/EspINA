@@ -101,7 +101,7 @@ namespace EspINA
   //-----------------------------------------------------------------------------
   void SmoothedMeshRepresentation::updateRepresentation()
   {
-    if (m_visible)
+    if (isVisible())
     {
       m_decimate->Update();
       m_mapper->Update();

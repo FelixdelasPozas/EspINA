@@ -98,12 +98,14 @@ namespace EspINA
   {
     ChannelGraphicalRepresentation::setVisible(visible);
 
-    m_axial->SetVisibility(m_visible);
-    m_coronal->SetVisibility(m_visible);
-    m_sagittal->SetVisibility(m_visible);
-    m_axialBorder->SetVisibility(m_visible);
-    m_coronalBorder->SetVisibility(m_visible);
-    m_sagittalBorder->SetVisibility(m_visible);
+    bool visibility = isVisible();
+
+    m_axial         ->SetVisibility(visibility);
+    m_coronal       ->SetVisibility(visibility);
+    m_sagittal      ->SetVisibility(visibility);
+    m_axialBorder   ->SetVisibility(visibility);
+    m_coronalBorder ->SetVisibility(visibility);
+    m_sagittalBorder->SetVisibility(visibility);
   }
 
   //-----------------------------------------------------------------------------

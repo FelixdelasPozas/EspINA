@@ -106,6 +106,9 @@ SegmentationToolBar::SegmentationToolBar(EspinaModel *model,
           this, SLOT(tubularActionStateChanged(bool)));
   connect(m_tubularTool.get(), SIGNAL(segmentationStopped()),
           this, SLOT(cancelTubularSegmentationOperation()));
+
+  // TODO: Deprecated?
+  m_tubularAction->setVisible(false);
 }
 
 //-----------------------------------------------------------------------------

@@ -80,12 +80,12 @@ namespace EspINA
 
     virtual void addChannel   (ChannelPtr channel);
     virtual void removeChannel(ChannelPtr channel);
-    virtual bool updateChannelRepresentation(ChannelPtr channel, bool render = true);
-    virtual void updateChannelRepresentations(ChannelList list = ChannelList());
+    virtual bool updateChannelRepresentation (ChannelPtr  channel, bool render = true);
+    virtual void updateChannelRepresentations(ChannelList list =  ChannelList());
 
     virtual void addSegmentation   (SegmentationPtr seg);
     virtual void removeSegmentation(SegmentationPtr seg);
-    virtual bool updateSegmentationRepresentation(SegmentationPtr seg, bool render = true);
+    virtual bool updateSegmentationRepresentation (SegmentationPtr  seg, bool render = true);
     virtual void updateSegmentationRepresentations(SegmentationList list = SegmentationList());
 
     virtual void addWidget   (EspinaWidget *widget) = 0;
@@ -129,12 +129,19 @@ namespace EspINA
 
     virtual GraphicalRepresentationSPtr cloneRepresentation(GraphicalRepresentationSPtr prototype) = 0;
 
+    bool segmentationsVisibility() const
+    { return m_showSegmentations; }
+
+    void setSegmentationsVisibility(bool visibility);
+
   protected slots:
     virtual void updateSceneBounds();
     virtual void resetView();
     virtual void updateSelection(ViewManager::Selection selection, bool render);
 
   protected:
+    virtual void showEvent(QShowEvent *event);
+
     double suggestedChannelOpacity();
     virtual void updateChannelsOpactity() = 0;
 
@@ -162,6 +169,8 @@ namespace EspINA
 
     QMap<QPushButton *, IRendererSPtr> m_renderers;
 
+    bool m_sceneCameraInitialized;
+    bool m_showSegmentations;
   };
 
 } // namespace EspINA

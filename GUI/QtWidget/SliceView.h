@@ -136,8 +136,6 @@ namespace EspINA
     virtual GraphicalRepresentationSPtr cloneRepresentation(GraphicalRepresentationSPtr prototype);
 
   public slots:
-    /// Show/Hide segmentations
-    void setSegmentationVisibility(bool visible);
     /// Show/Hide Preprocessing
     void setShowPreprocessing(bool visible);
     /// Show/Hide the ruler
@@ -240,7 +238,6 @@ namespace EspINA
     vtkMatrix4x4 *m_slicingMatrix;
     State *m_state;
     bool m_selectionEnabled;
-    bool m_showSegmentations;
     bool m_showThumbnail;
     SettingsSPtr m_settings;
 

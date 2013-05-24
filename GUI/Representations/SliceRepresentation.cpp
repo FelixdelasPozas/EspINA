@@ -86,7 +86,7 @@ void ChannelSliceRepresentation::setVisible(bool visible)
 {
   ChannelGraphicalRepresentation::setVisible(visible);
 
-  slice->SetVisibility(m_visible);
+  slice->SetVisibility(isVisible());
 }
 
 //-----------------------------------------------------------------------------
@@ -218,7 +218,7 @@ void SegmentationSliceRepresentation::setVisible(bool visible)
 {
   SegmentationGraphicalRepresentation::setVisible(visible);
 
-  slice->SetVisibility(m_visible);
+  slice->SetVisibility(isVisible());
 }
 
 //-----------------------------------------------------------------------------

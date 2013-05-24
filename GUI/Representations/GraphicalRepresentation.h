@@ -62,6 +62,9 @@ namespace EspINA
 
     virtual void setActive(bool value, EspinaRenderView *view = NULL);
 
+    /// Whether or not the user has selected this representation to be displayed
+    /// Representation will only be currently displayed if it is visibility has also
+    /// been set to true
     bool isActive() const
     { return m_active; }
 
@@ -83,11 +86,15 @@ namespace EspINA
     bool isHighlighted() const
     { return m_highlight; }
 
+    /// Set representation visibility
+    /// Innactive representations are never visible, even visibility is set to true
     virtual void setVisible(bool visible)
     { m_visible = visible; }
 
+    /// Whether or not the representation is displayed
+    /// Innactive representations are never visible, even visibility is set to true
     bool isVisible() const
-    { return m_visible; }
+    { return m_visible && m_active; }
 
     virtual bool isInside(Nm point[3]) = 0;
 
@@ -108,12 +115,12 @@ namespace EspINA
   protected:
     QColor            m_color;
     bool              m_highlight;
-    bool              m_visible;
     EspinaRenderView *m_view;
     GraphicalRepresentationSList m_clones;
-    bool    m_active;
 
   private:
+    bool    m_active;
+    bool    m_visible;
     QString m_label;
   };
 

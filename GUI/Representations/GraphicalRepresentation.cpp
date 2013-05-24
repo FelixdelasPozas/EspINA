@@ -35,9 +35,9 @@ using namespace EspINA;
 GraphicalRepresentation::GraphicalRepresentation(EspinaRenderView *view) 
 : m_color(Qt::white)
 , m_highlight(false)
-, m_visible(true)
 , m_view(view)
-, m_active(false)
+, m_active(true)
+, m_visible(true)
 {}
 
 //-----------------------------------------------------------------------------

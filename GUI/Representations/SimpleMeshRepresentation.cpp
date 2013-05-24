@@ -75,7 +75,7 @@ namespace EspINA
   //-----------------------------------------------------------------------------
   void SimpleMeshRepresentation::updateRepresentation()
   {
-    if (m_visible)
+    if (isVisible())
     {
       m_mapper->Update();
       m_actor->GetProperty()->Modified();

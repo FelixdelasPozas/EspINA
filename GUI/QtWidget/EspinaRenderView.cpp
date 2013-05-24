@@ -44,6 +44,8 @@ EspinaRenderView::EspinaRenderView(ViewManager *vm, QWidget* parent)
 , m_view(new QVTKWidget())
 , m_numEnabledSegmentationRenders(0)
 , m_numEnabledChannelRenders(0)
+, m_sceneCameraInitialized(false)
+, m_showSegmentations(true)
 {
   m_sceneResolution[0] = m_sceneResolution[1] = m_sceneResolution[2] = 1;
 
@@ -68,6 +70,15 @@ void EspinaRenderView::previewBounds(Nm bounds[6], bool cropToSceneBounds)
 }
 
 //-----------------------------------------------------------------------------
+void EspinaRenderView::showEvent(QShowEvent *event)
+{
+  QWidget::showEvent(event);
+
+  updateChannelRepresentations();
+  updateSegmentationRepresentations();
+}
+
+//-----------------------------------------------------------------------------
 double EspinaRenderView::suggestedChannelOpacity()
 {
   double numVisibleRep = 0;
@@ -88,6 +99,15 @@ void EspinaRenderView::resetSceneBounds()
   m_sceneResolution[0] = m_sceneResolution[1] = m_sceneResolution[2] = 1;
   m_sceneBounds[0] = m_sceneBounds[2] = m_sceneBounds[4] = 0;
   m_sceneBounds[1] = m_sceneBounds[3] = m_sceneBounds[5] = 0;
+}
+
+
+//-----------------------------------------------------------------------------
+void EspinaRenderView::setSegmentationsVisibility(bool visible)
+{
+  m_showSegmentations = visible;
+
+  updateSegmentationRepresentations();
 }
 
 //-----------------------------------------------------------------------------
@@ -144,6 +164,8 @@ void EspinaRenderView::addSegmentation(SegmentationPtr seg)
   state.visible   = false;
 
   m_segmentationStates.insert(seg, state);
+
+  updateSegmentationRepresentation(seg, false);
 }
 
 //-----------------------------------------------------------------------------
@@ -164,51 +186,18 @@ void EspinaRenderView::addChannel(ChannelPtr channel)
 {
   Q_ASSERT(!m_channelStates.contains(channel));
 
-  ChannelState state;
-
   channel->output()->update();
 
-  double hue = -1.0 == channel->hue() ? 0 : channel->hue();
-  double sat = -1.0 == channel->hue() ? 0 : channel->saturation();
-  QColor stain = QColor::fromHsvF(hue, sat, 1.0);
+  ChannelState state;
 
-  state.brightness = channel->brightness();
-  state.contrast   = channel->contrast();
-  state.opacity    = channel->opacity();
-  state.stain      = stain;
-  state.visible    = channel->isVisible();
-
-  foreach (GraphicalRepresentationSPtr prototype, channel->representations())
-  {
-    GraphicalRepresentationSPtr representationClone = cloneRepresentation(prototype);
-    if (representationClone.get() != NULL)
-    {
-      ChannelGraphicalRepresentationSPtr representation = boost::dynamic_pointer_cast<ChannelGraphicalRepresentation>(representationClone);
-
-      representation->setBrightness(state.brightness);
-      representation->setContrast(state.contrast);
-      representation->setColor(state.stain);
-      if (Channel::AUTOMATIC_OPACITY != state.opacity)
-        representation->setOpacity(state.opacity);
-      representation->setVisible(state.visible);
-
-      state.representations << representation;
-
-      foreach(IRendererSPtr renderer, m_renderers.values())
-        if (renderer->itemCanBeRendered(channel) && renderer->managesRepresentation(representation))
-          renderer->addRepresentation(channel, representation);
-    }
-  }
+  state.visible = !channel->isVisible();
 
   m_channelStates.insert(channel, state);
 
   // need to manage other channels' opacity too.
   updateSceneBounds();
-  updateChannelsOpactity();
 
-  // Prevent displaying channel's corner until app request to reset the camera
-  if (m_channelStates.size() == 1 && channel->isVisible())
-    resetCamera();
+  updateChannelRepresentation(channel, false);
 
   // NOTE: this signal is not disconnected when a channel is removed because is
   // used in the redo/undo of UnloadChannelCommand
@@ -236,12 +225,23 @@ void EspinaRenderView::removeChannel(ChannelPtr channel)
 //-----------------------------------------------------------------------------
 bool EspinaRenderView::updateChannelRepresentation(ChannelPtr channel, bool render)
 {
+  if (!isVisible())
+    return false;
+
+  if (!m_channelStates.contains(channel))
+  {
+    qWarning() << "Update Graphical Representation on non-registered channel";
+    return false;
+  }
+
   Q_ASSERT(m_channelStates.contains(channel));
 
   ChannelState &state = m_channelStates[channel];
 
-  bool visibilityChanged = state.visible != channel->isVisible();
-  state.visible = channel->isVisible();
+  bool requestedVisibility = channel->isVisible();
+
+  bool visibilityChanged = state.visible != requestedVisibility;
+  state.visible = requestedVisibility;
 
   bool brightnessChanged = false;
   bool contrastChanged   = false;
@@ -257,18 +257,22 @@ bool EspinaRenderView::updateChannelRepresentation(ChannelPtr channel, bool rend
 
   if (state.visible)
   {
-    QColor stain = QColor::fromHsvF(hue, sat, 1.0);
+    double requestedBrightness = channel->brightness();
+    double requestedContrast   = channel->contrast();
+    double requestedOpacity    = channel->opacity();
+    QColor requestedStain      = QColor::fromHsvF(hue, sat, 1.0);
 
     outputChanged     = state.output     != channel->output();
-    brightnessChanged = state.brightness != channel->brightness();
-    contrastChanged   = state.contrast   != channel->contrast();
-    opacityChanged    = state.opacity    != channel->opacity();
-    stainChanged      = state.stain      != stain;
+    brightnessChanged = state.brightness != requestedBrightness || outputChanged;
+    contrastChanged   = state.contrast   != requestedContrast   || outputChanged;
+    opacityChanged    = state.opacity    != requestedOpacity    || outputChanged;
+    stainChanged      = state.stain      != requestedStain      || outputChanged;
 
-    state.brightness  = channel->brightness();
-    state.contrast    = channel->contrast();
-    state.opacity     = channel->opacity();
-    state.stain       = stain;
+    state.brightness  = requestedBrightness;
+    state.contrast    = requestedContrast;
+    state.opacity     = requestedOpacity;
+    state.stain       = requestedStain;
+    state.output      = channel->output();
   }
 
   if (outputChanged)
@@ -310,8 +314,17 @@ bool EspinaRenderView::updateChannelRepresentation(ChannelPtr channel, bool rend
     }
   }
 
-  if (render)
-    updateView();
+  if (!m_sceneCameraInitialized && state.visible)
+  {
+    resetCamera();
+    m_sceneCameraInitialized = true;
+  }
+
+  if (render && isVisible())
+  {
+    m_view->GetRenderWindow()->Render();
+    m_view->update();
+  }
 
   return hasChanged;
 }
@@ -340,18 +353,25 @@ void EspinaRenderView::updateChannelRepresentations(ChannelList list)
 //-----------------------------------------------------------------------------
 bool EspinaRenderView::updateSegmentationRepresentation(SegmentationPtr seg, bool render)
 {
-  if (!m_segmentationStates.contains(seg))
+  if (!isVisible())
     return false;
+
+  if (!m_segmentationStates.contains(seg))
+  {
+    qWarning() << "Update Graphical Representation on non-registered segmentation";
+    return false;
+  }
+  Q_ASSERT(m_segmentationStates.contains(seg));
 
   SegmentationState &state = m_segmentationStates[seg];
 
-  bool requestedVisibility = seg->visible();
+  bool requestedVisibility = seg->visible() && m_showSegmentations;
 
   bool visibilityChanged = state.visible != requestedVisibility;
   state.visible = requestedVisibility;
 
-  bool colorChanged = false;
-  bool outputChanged = false;
+  bool colorChanged     = false;
+  bool outputChanged    = false;
   bool highlightChanged = false;
 
   if (state.visible)
@@ -359,8 +379,8 @@ bool EspinaRenderView::updateSegmentationRepresentation(SegmentationPtr seg, boo
     QColor requestedColor       = m_viewManager->color(seg);
     bool   requestedHighlighted = seg->isSelected();
 
-    outputChanged    = state.output != seg->output();
-    colorChanged     = state.color != requestedColor           || outputChanged;
+    outputChanged    = state.output    != seg->output();
+    colorChanged     = state.color     != requestedColor       || outputChanged;
     highlightChanged = state.highlited != requestedHighlighted || outputChanged;
 
     state.color     = requestedColor;
@@ -396,13 +416,13 @@ bool EspinaRenderView::updateSegmentationRepresentation(SegmentationPtr seg, boo
     {
       if (colorChanged)      representation->setColor(m_viewManager->color(seg));
       if (highlightChanged)  representation->setHighlighted(state.highlited);
-      if (visibilityChanged && representation->isVisible()) representation->setVisible(state.visible);
+      if (visibilityChanged) representation->setVisible(state.visible);
 
       representation->updateRepresentation();
     }
   }
 
-  if (render)
+  if (render && isVisible())
   {
     m_view->GetRenderWindow()->Render();
     m_view->update();
