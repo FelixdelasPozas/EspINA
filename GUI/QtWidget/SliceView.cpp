@@ -206,7 +206,7 @@ SliceView::SliceView(EspinaFactoryPtr factory, ViewManager* vm, PlaneType plane,
   connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection, bool)),
           this, SLOT(updateSelection(ViewManager::Selection, bool)));
 
-  foreach(IRendererSPtr renderer, m_settings->renderers())
+  foreach(IRenderer *renderer, m_settings->renderers())
     if (renderer->getRenderType().testFlag(IRenderer::RENDERER_SLICEVIEW))
       this->addRendererControls(renderer->clone());
 }
@@ -1640,7 +1640,7 @@ SliceView::Settings::Settings(const EspinaFactoryPtr factory, SliceView *parent,
   {
     IRenderer *renderer = renderers.value(name, NULL);
     if (renderer)
-      m_renderers << IRendererSPtr(renderer);
+      m_renderers << renderer;
   }
 
 }
@@ -1709,14 +1709,14 @@ void SliceView::updateCrosshairPoint(PlaneType plane, Nm slicePos)
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::Settings::setRenderers(IRendererSList values)
+void SliceView::Settings::setRenderers(QList<IRenderer *> values)
 {
   QSettings settings(CESVIMA, ESPINA);
   QStringList activeRenderersNames;
-  IRendererSList activeRenderers;
+  QList<IRenderer *> activeRenderers;
 
   // remove controls for unused renderers
-  foreach(IRendererSPtr oldRenderer, m_renderers)
+  foreach(IRenderer *oldRenderer, m_renderers)
   {
     bool selected = false;
     int i = 0;
@@ -1730,7 +1730,7 @@ void SliceView::Settings::setRenderers(IRendererSList values)
   }
 
   // add controls for added renderers
-  foreach(IRendererSPtr renderer, values)
+  foreach(IRenderer *renderer, values)
   {
     activeRenderersNames << renderer->name();
     if (!activeRenderers.contains(renderer))

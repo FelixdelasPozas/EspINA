@@ -276,6 +276,8 @@ namespace EspINA
 
   public:
     explicit Settings(const EspinaFactoryPtr factory, SliceView* parent, PlaneType plane, const QString prefix = QString());
+    virtual ~Settings()
+    { m_renderers.clear(); };
 
     void setInvertWheel(bool value);
     bool invertWheel() const
@@ -300,8 +302,8 @@ namespace EspINA
       return m_plane;
     }
 
-    void setRenderers(IRendererSList values);
-    IRendererSList renderers() { return m_renderers; }
+    void setRenderers(QList<IRenderer *> values);
+    QList<IRenderer *> renderers() { return m_renderers; }
 
   private:
     static const QString view(PlaneType plane);
@@ -311,7 +313,7 @@ namespace EspINA
     bool           m_InvertSliceOrder;
     bool           m_ShowAxis;
     SliceView     *m_parent;
-    IRendererSList m_renderers;
+    QList<IRenderer *> m_renderers;
 
   private:
     PlaneType m_plane;
