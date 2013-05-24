@@ -30,7 +30,6 @@ class FreeFormSource
 : public BasicSegmentationFilter
 {
 public:
-  static const FilterType FILTER_TYPE;
   static const ModelItem::ArgumentId SPACING;
 
   class Parameters

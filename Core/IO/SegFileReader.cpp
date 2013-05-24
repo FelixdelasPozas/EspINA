@@ -449,7 +449,7 @@ TaxonomySPtr IOTaxonomy::readXML(QXmlStreamReader& xmlStream)
         if (!node->properties().contains("Dim_X") || !node->properties().contains("Dim_Y") || !node->properties().contains("Dim_Z"))
         {
           qWarning() << "Taxonomy" << node->name() << "is missing some properties.";
-          TaxonomySPtr defaultTaxonomy = IOTaxonomy::openXMLTaxonomy(":/espina/defaultTaxonomy.xml");
+          TaxonomySPtr defaultTaxonomy = IOTaxonomy::openXMLTaxonomy(":/espina/defaultTaxonomy.xml"); // TODO: Remove dependency to be used as independent lib
           TaxonomyElementSPtr defaultNode = defaultTaxonomy->element(node->qualifiedName());
           if (defaultNode.get() != NULL)
           {

@@ -36,7 +36,7 @@ namespace EspINA
   {
     m_picker->PickFromListOn();
   }
-  
+
   //-----------------------------------------------------------------------------
   SliceRenderer::~SliceRenderer()
   {
