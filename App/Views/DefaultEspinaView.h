@@ -132,9 +132,9 @@ namespace EspINA
   : public ISettingsPanel
   {
   public:
-    explicit SettingsPanel(SliceView::SettingsPtr xy,
-                           SliceView::SettingsPtr yz,
-                           SliceView::SettingsPtr xz,
+    explicit SettingsPanel(SliceView::SettingsSPtr xy,
+                           SliceView::SettingsSPtr yz,
+                           SliceView::SettingsSPtr xz,
                            VolumeView::SettingsPtr vol,
                            EspinaFactoryPtr factory);
 
@@ -149,7 +149,7 @@ namespace EspINA
     virtual ISettingsPanelPtr clone();
 
   private:
-    SliceView::SettingsPtr m_xy, m_yz, m_xz;
+    SliceView::SettingsSPtr m_xy, m_yz, m_xz;
     EspinaFactory *m_factory;
 
     Nm m_slicingStep;

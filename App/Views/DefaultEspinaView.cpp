@@ -435,9 +435,9 @@ void DefaultEspinaView::setFitToSlices(bool unused)
 // }
 
 //-----------------------------------------------------------------------------
-DefaultEspinaView::SettingsPanel::SettingsPanel(SliceView::SettingsPtr xy,
-                                                SliceView::SettingsPtr yz,
-                                                SliceView::SettingsPtr xz,
+DefaultEspinaView::SettingsPanel::SettingsPanel(SliceView::SettingsSPtr xy,
+                                                SliceView::SettingsSPtr yz,
+                                                SliceView::SettingsSPtr xz,
                                                 VolumeView::SettingsPtr vol,
                                                 EspinaFactoryPtr factory)
 : m_xy(xy)

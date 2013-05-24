@@ -120,7 +120,7 @@ SliceView::SliceView(EspinaFactoryPtr factory, ViewManager* vm, PlaneType plane,
 
   memset(m_crosshairPoint, 0, 3*sizeof(Nm));
   m_plane = plane;
-  m_settings = SettingsPtr(new Settings(factory, this, m_plane));
+  m_settings = SettingsSPtr(new Settings(factory, this, m_plane));
   m_slicingStep[0] = m_slicingStep[1] = m_slicingStep[2] = 1;
 
   setupUI();

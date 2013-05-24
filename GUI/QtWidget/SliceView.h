@@ -76,7 +76,7 @@ namespace EspINA
 
   public:
     class Settings;
-    typedef boost::shared_ptr<Settings> SettingsPtr;
+    typedef boost::shared_ptr<Settings> SettingsSPtr;
     static const double SEGMENTATION_SHIFT;
 
   public:
@@ -126,7 +126,7 @@ namespace EspINA
     virtual void resetCamera();
     virtual void showCrosshairs(bool);
 
-    SettingsPtr settings() { return m_settings; }
+    SettingsSPtr settings() { return m_settings; }
 
     void updateCrosshairPoint(PlaneType plane, Nm slicepos);
 
@@ -242,7 +242,7 @@ namespace EspINA
     bool m_selectionEnabled;
     bool m_showSegmentations;
     bool m_showThumbnail;
-    SettingsPtr m_settings;
+    SettingsSPtr m_settings;
 
     // Slice Selectors
     QPair<SliceSelectorWidget *, SliceSelectorWidget *> m_sliceSelector;

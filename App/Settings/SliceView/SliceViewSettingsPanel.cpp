@@ -21,7 +21,7 @@
 
 using namespace EspINA;
 
-SliceViewSettingsPanel::SliceViewSettingsPanel(SliceView::SettingsPtr settings)
+SliceViewSettingsPanel::SliceViewSettingsPanel(SliceView::SettingsSPtr settings)
 : m_settings(settings)
 {
   setupUi(this);

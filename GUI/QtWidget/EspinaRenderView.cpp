@@ -40,10 +40,10 @@ using namespace EspINA;
 //-----------------------------------------------------------------------------
 EspinaRenderView::EspinaRenderView(ViewManager *vm, QWidget* parent)
 : QWidget(parent)
-, m_numEnabledSegmentationRenders(0)
-, m_numEnabledChannelRenders(0)
 , m_viewManager(vm)
 , m_view(new QVTKWidget())
+, m_numEnabledSegmentationRenders(0)
+, m_numEnabledChannelRenders(0)
 {
   m_sceneResolution[0] = m_sceneResolution[1] = m_sceneResolution[2] = 1;
 
@@ -273,7 +273,7 @@ bool EspinaRenderView::updateChannelRepresentation(ChannelPtr channel, bool rend
 
   if (outputChanged)
   {
-    state.representations.clear();
+    removeGraphicalRepresentations(state);
 
     foreach(GraphicalRepresentationSPtr prototype, channel->representations())
     {
@@ -370,7 +370,7 @@ bool EspinaRenderView::updateSegmentationRepresentation(SegmentationPtr seg, boo
 
   if (outputChanged)
   {
-    state.representations.clear();
+    removeGraphicalRepresentations(state);
 
     foreach(GraphicalRepresentationSPtr prototype, seg->representations())
     {
@@ -488,4 +488,32 @@ void EspinaRenderView::resetView()
 {
   resetCamera();
   updateView();
+}
+
+//-----------------------------------------------------------------------------
+void EspinaRenderView::removeGraphicalRepresentations(ChannelState &state)
+{
+  foreach(ChannelGraphicalRepresentationSPtr gr, state.representations)
+  {
+    foreach(IRendererSPtr renderer, m_renderers)
+    {
+      renderer->removeRepresentation(gr);
+    }
+  }
+
+  state.representations.clear();
+}
+
+//-----------------------------------------------------------------------------
+void EspinaRenderView::removeGraphicalRepresentations(SegmentationState &state)
+{
+  foreach(SegmentationGraphicalRepresentationSPtr gr, state.representations)
+  {
+    foreach(IRendererSPtr renderer, m_renderers)
+    {
+      renderer->removeRepresentation(gr);
+    }
+  }
+
+  state.representations.clear();
 }

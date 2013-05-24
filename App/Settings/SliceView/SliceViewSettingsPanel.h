@@ -32,7 +32,7 @@ namespace EspINA
   {
     Q_OBJECT
   public:
-    explicit SliceViewSettingsPanel(SliceView::SettingsPtr settings);
+    explicit SliceViewSettingsPanel(SliceView::SettingsSPtr settings);
 
     virtual const QString shortDescription();
     virtual const QString longDescription() {return tr("%1 Settings").arg(shortDescription());}
@@ -45,7 +45,7 @@ namespace EspINA
     virtual ISettingsPanelPtr clone();
 
   private:
-    SliceView::SettingsPtr m_settings;
+    SliceView::SettingsSPtr m_settings;
   };
 
 } // namespace EspINA

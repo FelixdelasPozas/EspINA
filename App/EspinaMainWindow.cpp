@@ -185,6 +185,7 @@ EspinaMainWindow::EspinaMainWindow(EspinaModel      *model,
 
   EspinaFactory *factory = m_model->factory();
 
+  // TODO: Pass smartpointers direcrtly to factory
   m_defaultRenderers << IRendererSPtr(new CrosshairRenderer());
   m_defaultRenderers << IRendererSPtr(new VolumetricRenderer());
   m_defaultRenderers << IRendererSPtr(new MeshRenderer());

@@ -48,6 +48,30 @@ namespace EspINA
   , public IEspinaView
   {
     Q_OBJECT
+  protected:
+    struct ChannelState
+    {
+      double     brightness;
+      double     contrast;
+      double     opacity;
+      OutputSPtr output;
+      QColor     stain;
+      bool       visible;
+
+      ChannelGraphicalRepresentationList representations;
+    };
+
+    struct SegmentationState
+    {
+      Nm         depth;
+      QColor     color;
+      bool       highlited;
+      OutputSPtr output;
+      bool       visible;
+
+      SegmentationGraphicalRepresentationList representations;
+    };
+
   public:
     explicit EspinaRenderView(ViewManager *vm, QWidget* parent = 0);
     virtual ~EspinaRenderView();
@@ -116,46 +140,28 @@ namespace EspINA
 
     void resetSceneBounds();
 
-    Nm m_sceneBounds[6];
-    Nm m_sceneResolution[3];// Min distance between 2 voxels in each axis
-    PlaneType m_plane;
-    unsigned int m_numEnabledSegmentationRenders;
-    unsigned int m_numEnabledChannelRenders;
-
-    SegmentationContextualMenuSPtr m_contextMenu;
+    void removeGraphicalRepresentations(ChannelState      &state);
+    void removeGraphicalRepresentations(SegmentationState &state);
 
   protected:
     ViewManager *m_viewManager;
     QVTKWidget  *m_view;
     vtkSmartPointer<vtkRenderer> m_renderer;
 
-    struct ChannelState
-    {
-      double     brightness;
-      double     contrast;
-      double     opacity;
-      OutputSPtr output;
-      QColor     stain;
-      bool       visible;
+    Nm m_sceneBounds[6];
+    Nm m_sceneResolution[3];// Min distance between 2 voxels in each axis
+    PlaneType m_plane;
 
-      ChannelGraphicalRepresentationList representations;
-    };
+    unsigned int m_numEnabledSegmentationRenders;
+    unsigned int m_numEnabledChannelRenders;
 
-    struct SegmentationState
-    {
-      Nm         depth;
-      QColor     color;
-      bool       highlited;
-      OutputSPtr output;
-      bool       visible;
-
-      SegmentationGraphicalRepresentationList representations;
-    };
+    SegmentationContextualMenuSPtr m_contextMenu;
 
     QMap<ChannelPtr,      ChannelState>      m_channelStates;
     QMap<SegmentationPtr, SegmentationState> m_segmentationStates;
 
     QMap<QPushButton *, IRendererSPtr> m_renderers;
+
   };
 
 } // namespace EspINA
