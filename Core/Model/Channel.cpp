@@ -237,9 +237,9 @@ void Channel::initialize(const Arguments &args)
 void Channel::initializeExtensions()
 {
 //   qDebug() << "Initializing" << data().toString() << "extensions:";
-  foreach(Channel::ExtensionPtr ext, m_extensions)
+  foreach(Channel::ExtensionPtr channelExtension, m_extensions)
   {
-    ext->initialize();
+    channelExtension->initialize();
   }
 }
 

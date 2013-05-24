@@ -258,6 +258,14 @@ void CountingFrameExtension::initialize()
 //-----------------------------------------------------------------------------
 void CountingFrameExtension::invalidate(ChannelPtr channel)
 {
+  if (!channel)
+    channel = m_channel;
+
+  if (channel)
+  {
+    //qDebug() << "Invalidate" << m_channel->data().toString() << MorphologicalInformationID;
+    s_cache.markAsDirty(channel);
+  }
 
 }
 
