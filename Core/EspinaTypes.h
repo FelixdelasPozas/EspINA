@@ -90,11 +90,11 @@ namespace EspINA
 
   enum ModelItemType
   {
-    TAXONOMY,
-    SAMPLE,
-    CHANNEL,
-    SEGMENTATION,
-    FILTER
+    TAXONOMY     = 0x1,
+    SAMPLE       = 0x2,
+    CHANNEL      = 0x4,
+    SEGMENTATION = 0x8,
+    FILTER       = 0x16
   };
 
   enum RelationType

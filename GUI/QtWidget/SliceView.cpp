@@ -636,32 +636,24 @@ ISelector::PickList SliceView::pick(ISelector::PickableItems     filter,
         if (ISelector::CHANNEL == tag)
         {
           foreach(IRendererSPtr renderer, m_itemRenderers)
-          {
-            if (renderer->getRenderableItemsType().testFlag(IRenderer::RENDERER_CHANNEL))
-            {
-              foreach(PickableItemPtr item, renderer->pick(p.x(), p.y(), NULL, multiSelection))
+            if (renderer->getRenderableItemsType().testFlag(EspINA::CHANNEL))
+              foreach(PickableItemPtr item, renderer->pick(p.x(), p.y(), NULL, IRenderer::RenderabledItems(EspINA::CHANNEL), multiSelection))
               {
                 ISelector::WorldRegion wRegion = worldRegion(region, item);
                 pickedItems << ISelector::PickedItem(wRegion, item);
               }
-            }
-          }
         }
         else
         {
           if (ISelector::SEGMENTATION == tag)
           {
             foreach(IRendererSPtr renderer, m_itemRenderers)
-            {
-              if (renderer->getRenderableItemsType().testFlag(IRenderer::RENDERER_CHANNEL))
-              {
-                foreach(PickableItemPtr item, renderer->pick(p.x(), p.y(), NULL, multiSelection))
+              if (renderer->getRenderableItemsType().testFlag(EspINA::SEGMENTATION))
+                foreach(PickableItemPtr item, renderer->pick(p.x(), p.y(), NULL, IRenderer::RenderabledItems(EspINA::SEGMENTATION), multiSelection))
                 {
                   ISelector::WorldRegion wRegion = worldRegion(region, item);
                   pickedItems << ISelector::PickedItem(wRegion, item);
                 }
-              }
-            }
           }
         }
       }
@@ -1036,9 +1028,9 @@ void SliceView::centerCrosshairOnMousePosition()
   {
     foreach(IRendererSPtr renderer, m_itemRenderers)
     {
-      if (renderer->getRenderableItemsType().testFlag(IRenderer::RENDERER_CHANNEL))
+      if (renderer->getRenderableItemsType().testFlag(EspINA::CHANNEL))
       {
-        ViewManager::Selection selection = renderer->pick(xPos, yPos, m_thumbnail);
+        ViewManager::Selection selection = renderer->pick(xPos, yPos, m_thumbnail, IRenderer::RenderabledItems(EspINA::CHANNEL));
         if (!selection.isEmpty())
         {
           channelPicked = true;
@@ -1052,9 +1044,9 @@ void SliceView::centerCrosshairOnMousePosition()
   {
     foreach(IRendererSPtr renderer, m_itemRenderers)
     {
-      if (renderer->getRenderableItemsType().testFlag(IRenderer::RENDERER_CHANNEL))
+      if (renderer->getRenderableItemsType().testFlag(EspINA::CHANNEL))
       {
-        ViewManager::Selection selection = renderer->pick(xPos, yPos, NULL);
+        ViewManager::Selection selection = renderer->pick(xPos, yPos, NULL, IRenderer::RenderabledItems(EspINA::CHANNEL));
         if (!selection.isEmpty())
         {
           channelPicked = true;
@@ -1080,9 +1072,9 @@ void SliceView::centerViewOnMousePosition()
   eventPosition(xPos, yPos);
 
   foreach(IRendererSPtr renderer, m_itemRenderers)
-    if (renderer->getRenderableItemsType().testFlag(IRenderer::RENDERER_CHANNEL))
+    if (renderer->getRenderableItemsType().testFlag(EspINA::CHANNEL))
     {
-      ViewManager::Selection selection = renderer->pick(xPos, yPos, m_thumbnail, false);
+      ViewManager::Selection selection = renderer->pick(xPos, yPos, m_thumbnail, IRenderer::RenderabledItems(EspINA::CHANNEL), false);
       if (!selection.isEmpty())
       {
         Nm center[3];
@@ -1100,8 +1092,8 @@ ViewManager::Selection SliceView::pickChannels(double vx, double vy,
   ViewManager::Selection selection;
 
   foreach(IRendererSPtr renderer, m_itemRenderers)
-    if (renderer->getRenderableItemsType().testFlag(IRenderer::RENDERER_CHANNEL))
-      foreach(PickableItemPtr item, renderer->pick(vx,vy, NULL, repeatable))
+    if (renderer->getRenderableItemsType().testFlag(EspINA::CHANNEL))
+      foreach(PickableItemPtr item, renderer->pick(vx,vy, NULL, IRenderer::RenderabledItems(EspINA::CHANNEL), repeatable))
       {
         if (!selection.contains(item))
           selection << item;
@@ -1118,12 +1110,10 @@ ViewManager::Selection SliceView::pickSegmentations(double vx, double vy,
   ViewManager::Selection selection;
 
   foreach(IRendererSPtr renderer, m_itemRenderers)
-    if (renderer->getRenderableItemsType().testFlag(IRenderer::RENDERER_SEGMENTATION))
-      foreach(PickableItemPtr item, renderer->pick(vx,vy, NULL, repeatable))
-      {
+    if (renderer->getRenderableItemsType().testFlag(EspINA::SEGMENTATION))
+      foreach(PickableItemPtr item, renderer->pick(vx,vy, NULL, IRenderer::RenderabledItems(EspINA::SEGMENTATION), repeatable))
         if (!selection.contains(item))
           selection << item;
-      }
 
   return selection;
 }
@@ -1150,16 +1140,17 @@ void SliceView::selectPickedItems(bool append)
       break;
   }
 
-  foreach(PickableItemPtr item, pickChannels(vx, vy, m_renderer, append))
-  {
-    if (selection.contains(item))
-      selection.removeAll(item);
-    else
-      selection << item;
+  if (selection.isEmpty() || append)
+    foreach(PickableItemPtr item, pickChannels(vx, vy, m_renderer, append))
+    {
+      if (selection.contains(item))
+        selection.removeAll(item);
+      else
+        selection << item;
 
-    if (!append)
-      break;
-  }
+      if (!append)
+        break;
+    }
 
   m_viewManager->setSelection(selection);
 }
@@ -1464,7 +1455,8 @@ ISelector::WorldRegion SliceView::worldRegion(const ISelector::DisplayRegion& re
     if (EspINA::CHANNEL == item->type())
     {
       foreach(IRendererSPtr renderer, m_itemRenderers)
-        if (renderer->getRenderableItemsType().testFlag(IRenderer::RENDERER_CHANNEL) && !renderer->pick(point.x(), point.y(), NULL, false).isEmpty())
+        if (renderer->getRenderableItemsType().testFlag(EspINA::CHANNEL) &&
+            !renderer->pick(point.x(), point.y(), NULL, IRenderer::RenderabledItems(EspINA::CHANNEL), false).isEmpty())
         {
           renderer->getPickCoordinates(pickPos);
           wRegion->InsertNextPoint(pickPos);
@@ -1473,7 +1465,8 @@ ISelector::WorldRegion SliceView::worldRegion(const ISelector::DisplayRegion& re
     else
     {
       foreach(IRendererSPtr renderer, m_itemRenderers)
-        if (renderer->getRenderableItemsType().testFlag(IRenderer::RENDERER_SEGMENTATION) && !renderer->pick(point.x(), point.y(), NULL, false).isEmpty())
+        if (renderer->getRenderableItemsType().testFlag(EspINA::SEGMENTATION) &&
+            !renderer->pick(point.x(), point.y(), NULL, IRenderer::RenderabledItems(EspINA::SEGMENTATION), false).isEmpty())
         {
           renderer->getPickCoordinates(pickPos);
           wRegion->InsertNextPoint(pickPos);
@@ -1522,10 +1515,10 @@ void SliceView::addRendererControls(IRendererSPtr renderer)
 
   if (!renderer->isHidden())
   {
-    if (renderer->getRenderableItemsType().testFlag(IRenderer::RENDERER_SEGMENTATION))
+    if (renderer->getRenderableItemsType().testFlag(EspINA::SEGMENTATION))
       this->m_numEnabledSegmentationRenders++;
 
-    if (renderer->getRenderableItemsType().testFlag(IRenderer::RENDERER_CHANNEL))
+    if (renderer->getRenderableItemsType().testFlag(EspINA::CHANNEL))
       this->m_numEnabledChannelRenders++;
   }
 
@@ -1561,10 +1554,10 @@ void SliceView::removeRendererControls(QString name)
     if (!removedRenderer->isHidden())
       removedRenderer->hide();
 
-    if (!removedRenderer->isHidden() && (removedRenderer->getRenderableItemsType().testFlag(IRenderer::RENDERER_SEGMENTATION)))
+    if (!removedRenderer->isHidden() && (removedRenderer->getRenderableItemsType().testFlag(EspINA::SEGMENTATION)))
       this->m_numEnabledSegmentationRenders--;
 
-    if (!removedRenderer->isHidden() && (removedRenderer->getRenderableItemsType().testFlag(IRenderer::RENDERER_CHANNEL)))
+    if (!removedRenderer->isHidden() && (removedRenderer->getRenderableItemsType().testFlag(EspINA::CHANNEL)))
       this->m_numEnabledChannelRenders--;
 
     if (0 == m_numEnabledSegmentationRenders)

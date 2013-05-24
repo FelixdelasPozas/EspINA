@@ -171,7 +171,7 @@ unsigned int CrosshairRenderer::getNumberOfvtkActors()
 
 
 //-----------------------------------------------------------------------------
-ViewManager::Selection CrosshairRenderer::pick(int x, int y, vtkSmartPointer<vtkRenderer> renderer, bool repeat)
+ViewManager::Selection CrosshairRenderer::pick(int x, int y, vtkSmartPointer<vtkRenderer> renderer, RenderabledItems itemType, bool repeat)
 {
   ViewManager::Selection selection;
   QList<vtkProp*> removedProps;
@@ -179,14 +179,14 @@ ViewManager::Selection CrosshairRenderer::pick(int x, int y, vtkSmartPointer<vtk
   if (!renderer || !renderer.GetPointer())
     renderer = m_renderer;
 
-  if (renderer)
+  if (renderer && itemType.testFlag(EspINA::CHANNEL))
   {
     while (m_picker->Pick(x,y,0, renderer))
     {
       vtkProp *pickedProp = m_picker->GetViewProp();
       Q_ASSERT(pickedProp);
 
-      m_picker->GetPickList()->RemoveItem(pickedProp);
+      m_picker->DeletePickList(pickedProp);
       removedProps << pickedProp;
 
       foreach(PickableItemPtr item, m_representations.keys())
@@ -205,7 +205,7 @@ ViewManager::Selection CrosshairRenderer::pick(int x, int y, vtkSmartPointer<vtk
             foreach(vtkProp *actor, rep->getActors())
               if (actor != pickedProp)
               {
-                m_picker->GetPickList()->RemoveItem(actor);
+                m_picker->AddPickList(actor);
                 removedProps << actor;
               }
 
@@ -214,7 +214,7 @@ ViewManager::Selection CrosshairRenderer::pick(int x, int y, vtkSmartPointer<vtk
     }
 
     foreach(vtkProp *actor, removedProps)
-      m_picker->GetPickList()->AddItem(actor);
+      m_picker->AddPickList(actor);
   }
 
   return selection;

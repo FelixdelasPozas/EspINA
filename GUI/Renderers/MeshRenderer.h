@@ -24,6 +24,7 @@
 #include "GUI/Representations/GraphicalRepresentation.h"
 #include <Core/Model/Output.h>
 #include <GUI/ViewManager.h>
+#include <Core/EspinaTypes.h>
 
 // VTK
 #include <vtkSmartPointer.h>
@@ -55,13 +56,16 @@ namespace EspINA
 
       virtual unsigned int getNumberOfvtkActors();
 
-      virtual IRendererSPtr clone()           { return IRendererSPtr(new MeshRenderer()); }
+      virtual IRendererSPtr clone()                     { return IRendererSPtr(new MeshRenderer()); }
+      virtual RendererType getRenderType()              { return RendererType(RENDERER_VOLUMEVIEW); }
+      virtual RenderabledItems getRenderableItemsType() { return RenderabledItems(EspINA::SEGMENTATION); }
+      virtual int itemsBeenRendered()                   { return m_representations.size(); }
 
-      virtual RendererType getRenderType() { return RendererType(RENDERER_VOLUMEVIEW); }
-      virtual RenderabledItems getRenderableItemsType() { return RenderabledItems(IRenderer::RENDERER_SEGMENTATION); }
-      virtual int itemsBeenRendered()         { return m_representations.size(); }
-
-      virtual ViewManager::Selection pick(int x, int y, vtkSmartPointer<vtkRenderer> renderer, bool repeat = false);
+      virtual ViewManager::Selection pick(int x,
+                                          int y,
+                                          vtkSmartPointer<vtkRenderer> renderer,
+                                          RenderabledItems itemType = RenderabledItems(),
+                                          bool repeat = false);
       virtual void getPickCoordinates(Nm *point);
 
     protected:

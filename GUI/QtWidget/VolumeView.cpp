@@ -175,10 +175,10 @@ void VolumeView::addRendererControls(IRendererSPtr renderer)
 
   if (!renderer->isHidden())
   {
-    if (renderer->getRenderableItemsType().testFlag(IRenderer::RENDERER_SEGMENTATION))
+    if (renderer->getRenderableItemsType().testFlag(EspINA::SEGMENTATION))
       this->m_numEnabledSegmentationRenders++;
 
-    if (renderer->getRenderableItemsType().testFlag(IRenderer::RENDERER_CHANNEL))
+    if (renderer->getRenderableItemsType().testFlag(EspINA::CHANNEL))
       this->m_numEnabledChannelRenders++;
   }
 
@@ -229,10 +229,10 @@ void VolumeView::removeRendererControls(const QString name)
     if (!removedRenderer->isHidden())
       removedRenderer->hide();
 
-    if (!removedRenderer->isHidden() && (removedRenderer->getRenderableItemsType().testFlag(IRenderer::RENDERER_SEGMENTATION)))
+    if (!removedRenderer->isHidden() && (removedRenderer->getRenderableItemsType().testFlag(EspINA::SEGMENTATION)))
       this->m_numEnabledSegmentationRenders--;
 
-    if (!removedRenderer->isHidden() && (removedRenderer->getRenderableItemsType().testFlag(IRenderer::RENDERER_CHANNEL)))
+    if (!removedRenderer->isHidden() && (removedRenderer->getRenderableItemsType().testFlag(EspINA::CHANNEL)))
       this->m_numEnabledChannelRenders--;
 
     if (0 == m_numEnabledSegmentationRenders)
@@ -541,9 +541,9 @@ void VolumeView::selectPickedItems(int vx, int vy, bool append)
   // If no append, segmentations have priority over channels
   foreach(IRendererSPtr renderer, m_itemRenderers)
   {
-    if (!renderer->isHidden() && (renderer->getRenderableItemsType().testFlag(IRenderer::RENDERER_SEGMENTATION)))
+    if (!renderer->isHidden() && (renderer->getRenderableItemsType().testFlag(EspINA::SEGMENTATION)))
     {
-      pickedItems = renderer->pick(vx, vy, NULL, append);
+      pickedItems = renderer->pick(vx, vy, NULL, IRenderer::RenderabledItems(EspINA::SEGMENTATION), append);
       if (!pickedItems.empty())
       {
         foreach(PickableItemPtr item, pickedItems)
@@ -559,9 +559,9 @@ void VolumeView::selectPickedItems(int vx, int vy, bool append)
 
   foreach(IRendererSPtr renderer, m_itemRenderers)
   {
-    if (!renderer->isHidden() && (renderer->getRenderableItemsType().testFlag(IRenderer::RENDERER_CHANNEL)))
+    if (!renderer->isHidden() && (renderer->getRenderableItemsType().testFlag(EspINA::CHANNEL)))
     {
-      pickedItems = renderer->pick(vx, vy, NULL, append);
+      pickedItems = renderer->pick(vx, vy, NULL, IRenderer::RenderabledItems(EspINA::CHANNEL), append);
       if (!pickedItems.empty())
       {
         foreach(PickableItemPtr item, pickedItems)
@@ -604,7 +604,7 @@ bool VolumeView::eventFilter(QObject* caller, QEvent* e)
         {
           if (!renderer->isHidden())
           {
-            ViewManager::Selection selection = renderer->pick(newX, newY, NULL, false);
+            ViewManager::Selection selection = renderer->pick(newX, newY, NULL, IRenderer::RenderabledItems(EspINA::SEGMENTATION|EspINA::CHANNEL), false);
             if (!selection.empty())
             {
               double point[3];
@@ -809,7 +809,7 @@ void VolumeView::updateEnabledRenderersCount(bool value)
   if (button)
     renderer = m_renderers[button];
 
-  if (renderer && (renderer->getRenderableItemsType().testFlag(IRenderer::RENDERER_CHANNEL)))
+  if (renderer && (renderer->getRenderableItemsType().testFlag(EspINA::CHANNEL)))
   {
     m_numEnabledChannelRenders += updateValue;
     if (m_additionalScrollBars)
@@ -820,7 +820,7 @@ void VolumeView::updateEnabledRenderersCount(bool value)
     }
   }
 
-  if (renderer && (renderer->getRenderableItemsType().testFlag(IRenderer::RENDERER_SEGMENTATION)))
+  if (renderer && (renderer->getRenderableItemsType().testFlag(EspINA::SEGMENTATION)))
   {
     m_numEnabledSegmentationRenders += updateValue;
     if (0 != m_numEnabledSegmentationRenders)
@@ -890,7 +890,7 @@ void VolumeView::scrollBarMoved(int value)
   point[2] = m_sagittalScrollBar->value() * minSpacing[2];
 
   foreach(IRendererSPtr renderer, m_itemRenderers)
-    if (renderer->getRenderableItemsType().testFlag(IRenderer::RENDERER_CHANNEL))
+    if (renderer->getRenderableItemsType().testFlag(EspINA::CHANNEL))
     {
       CrosshairRenderer *crossRender = dynamic_cast<CrosshairRenderer *>(renderer.get());
       if (crossRender != NULL)

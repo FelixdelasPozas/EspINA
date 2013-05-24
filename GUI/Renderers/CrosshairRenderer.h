@@ -66,9 +66,13 @@ namespace EspINA
     virtual int itemsBeenRendered()         { return m_representations.size(); };
 
     virtual RendererType getRenderType() { return RendererType(RENDERER_VOLUMEVIEW); }
-    virtual RenderabledItems getRenderableItemsType() { return RenderabledItems(IRenderer::RENDERER_CHANNEL); };
+    virtual RenderabledItems getRenderableItemsType() { return RenderabledItems(EspINA::CHANNEL); };
 
-    virtual ViewManager::Selection pick(int x, int y, vtkSmartPointer<vtkRenderer> renderer, bool repeat = false);
+    virtual ViewManager::Selection pick(int x,
+                                        int y,
+                                        vtkSmartPointer<vtkRenderer> renderer,
+                                        RenderabledItems itemType = RenderabledItems(),
+                                        bool repeat = false);
     virtual void getPickCoordinates(double *point);
 
   private:

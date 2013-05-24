@@ -54,11 +54,15 @@ namespace EspINA
     virtual IRendererSPtr clone() {return IRendererSPtr(new VolumetricRenderer());}
 
     virtual RendererType getRenderType() { return RendererType(RENDERER_VOLUMEVIEW); }
-    virtual RenderabledItems getRenderableItemsType() { return RenderabledItems(IRenderer::RENDERER_SEGMENTATION); }
+    virtual RenderabledItems getRenderableItemsType() { return RenderabledItems(EspINA::SEGMENTATION); }
     virtual int itemsBeenRendered() { return m_representations.size(); }
 
     // to pick items been rendered
-    virtual ViewManager::Selection pick(int x, int y, vtkSmartPointer<vtkRenderer> renderer, bool repeat = false);
+    virtual ViewManager::Selection pick(int x,
+                                        int y,
+                                        vtkSmartPointer<vtkRenderer> renderer,
+                                        RenderabledItems itemType = RenderabledItems(),
+                                        bool repeat = false);
     virtual void getPickCoordinates(double *point);
 
   private:

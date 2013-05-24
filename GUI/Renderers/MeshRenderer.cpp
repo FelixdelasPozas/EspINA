@@ -162,7 +162,7 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  ViewManager::Selection MeshRenderer::pick(int x, int y, vtkSmartPointer<vtkRenderer> renderer, bool repeat)
+  ViewManager::Selection MeshRenderer::pick(int x, int y, vtkSmartPointer<vtkRenderer> renderer, RenderabledItems itemType,  bool repeat)
   {
     ViewManager::Selection selection;
     QList<vtkProp *> removedProps;
@@ -170,14 +170,14 @@ namespace EspINA
     if (!renderer || !renderer.GetPointer())
       renderer = m_renderer;
 
-    if (renderer.GetPointer() != NULL)
+    if (renderer.GetPointer() != NULL && itemType.testFlag(EspINA::SEGMENTATION))
     {
       while (m_picker->Pick(x,y,0, renderer))
       {
         vtkProp *pickedProp = m_picker->GetViewProp();
         Q_ASSERT(pickedProp);
 
-        m_picker->GetPickList()->RemoveItem(pickedProp);
+        m_picker->DeletePickList(pickedProp);
         removedProps << pickedProp;
 
         foreach(PickableItemPtr item, m_representations.keys())
@@ -188,7 +188,7 @@ namespace EspINA
 
               if (!repeat)
               {
-                m_picker->GetPickList()->AddItem(pickedProp);
+                m_picker->AddPickList(pickedProp);
                 return selection;
               }
 
@@ -197,7 +197,7 @@ namespace EspINA
       }
 
       foreach(vtkProp *actor, removedProps)
-        m_picker->GetPickList()->AddItem(actor);
+        m_picker->AddPickList(actor);
     }
 
     return selection;

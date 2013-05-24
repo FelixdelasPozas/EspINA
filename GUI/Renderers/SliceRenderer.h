@@ -53,10 +53,14 @@ namespace EspINA
       virtual IRendererSPtr clone()                     { return IRendererSPtr(new SliceRenderer()); }
 
       virtual RendererType getRenderType()              { return RendererType(RENDERER_SLICEVIEW); }
-      virtual RenderabledItems getRenderableItemsType() { return RenderabledItems(RENDERER_SEGMENTATION|RENDERER_CHANNEL); }
+      virtual RenderabledItems getRenderableItemsType() { return RenderabledItems(EspINA::CHANNEL|EspINA::SEGMENTATION); }
       virtual int itemsBeenRendered()                   { return m_representations.size(); }
 
-      virtual ViewManager::Selection pick(int x, int y, vtkSmartPointer<vtkRenderer> renderer, bool repeat = false);
+      virtual ViewManager::Selection pick(int x,
+                                          int y,
+                                          vtkSmartPointer<vtkRenderer> renderer,
+                                          RenderabledItems itemType = RenderabledItems(),
+                                          bool repeat = false);
       virtual void getPickCoordinates(Nm *point);
 
     protected:

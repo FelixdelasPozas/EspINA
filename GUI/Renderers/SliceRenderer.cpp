@@ -21,12 +21,11 @@
 #include "GUI/Representations/SliceRepresentation.h"
 #include <GUI/ViewManager.h>
 #include "GUI/QtWidget/EspinaRenderView.h"
+#include <Core/Model/PickableItem.h>
 
 // VTK
 #include <vtkPropPicker.h>
 #include <QDebug>
-
-
 
 namespace EspINA
 {
@@ -169,7 +168,7 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  ViewManager::Selection SliceRenderer::pick(int x, int y, vtkSmartPointer<vtkRenderer> renderer, bool repeat)
+  ViewManager::Selection SliceRenderer::pick(int x, int y, vtkSmartPointer<vtkRenderer> renderer, RenderabledItems itemType, bool repeat)
   {
     ViewManager::Selection selection;
     QList<vtkProp *> removedProps;
@@ -177,17 +176,21 @@ namespace EspINA
     if (!renderer || !renderer.GetPointer())
       renderer = m_renderer;
 
-    if (renderer.GetPointer() != NULL)
+    if (renderer.GetPointer() != NULL && (itemType.testFlag(EspINA::CHANNEL) || itemType.testFlag(EspINA::SEGMENTATION)))
     {
       while (m_picker->Pick(x,y,0, renderer))
       {
         vtkProp *pickedProp = m_picker->GetViewProp();
         Q_ASSERT(pickedProp);
 
-        m_picker->GetPickList()->RemoveItem(pickedProp);
+        m_picker->DeletePickList(pickedProp);
         removedProps << pickedProp;
 
         foreach(PickableItemPtr item, m_representations.keys())
+        {
+          if (!itemType.testFlag(item->type()))
+            continue;
+
           foreach(GraphicalRepresentationSPtr rep, m_representations[item])
             if (rep->isVisible() && rep->hasActor(pickedProp) && !selection.contains(item))
             {
@@ -195,17 +198,17 @@ namespace EspINA
 
               if (!repeat)
               {
-                m_picker->GetPickList()->AddItem(pickedProp);
+                m_picker->AddPickList(pickedProp);
                 return selection;
               }
 
               break;
             }
-
+        }
       }
 
       foreach(vtkProp *actor, removedProps)
-        m_picker->GetPickList()->AddItem(actor);
+        m_picker->AddPickList(actor);
     }
 
     return selection;

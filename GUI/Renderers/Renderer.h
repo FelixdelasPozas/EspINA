@@ -75,21 +75,14 @@ namespace EspINA
 
     virtual bool isHidden() { return !m_enable; }
 
-    enum RendererableItemsTypes
-    {
-      RENDERER_UNDEFINED_ITEM,
-      RENDERER_CHANNEL,
-      RENDERER_SEGMENTATION
-    };
-    Q_DECLARE_FLAGS(RenderabledItems, RendererableItemsTypes);
-
-    virtual RenderabledItems getRenderableItemsType() { return RenderabledItems(RENDERER_UNDEFINED_ITEM); }
+    Q_DECLARE_FLAGS(RenderabledItems, EspINA::ModelItemType);
+    virtual RenderabledItems getRenderableItemsType() { return RenderabledItems(); }
 
     enum RendererTypes
     {
-      RENDERER_UNDEFINED_VIEW,
-      RENDERER_SLICEVIEW,
-      RENDERER_VOLUMEVIEW
+      RENDERER_UNDEFINED_VIEW = 0x1,
+      RENDERER_SLICEVIEW      = 0x2,
+      RENDERER_VOLUMEVIEW     = 0x4
     };
     Q_DECLARE_FLAGS(RendererType, RendererTypes);
 
@@ -101,7 +94,7 @@ namespace EspINA
     // return the number of elements actually been managed by this renderer
     virtual int itemsBeenRendered() = 0;
 
-    virtual ViewManager::Selection pick(int x, int y, vtkSmartPointer<vtkRenderer> renderer, bool repeat = false) = 0;
+    virtual ViewManager::Selection pick(int x, int y, vtkSmartPointer<vtkRenderer> renderer, RenderabledItems itemType = RenderabledItems(), bool repeat = false) = 0;
     virtual void getPickCoordinates(Nm *point) = 0;
 
   public slots:
