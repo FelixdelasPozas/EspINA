@@ -20,7 +20,7 @@
 #ifndef SEGMENTATIONCOLLISION_H
 #define SEGMENTATIONCOLLISION_H
 
-#include <Core/Outputs/RawVolume.h>
+#include <Core/OutputRepresentations/RawVolume.h>
 
 namespace EspINA
 {

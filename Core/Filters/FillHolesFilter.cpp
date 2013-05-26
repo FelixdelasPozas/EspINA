@@ -18,8 +18,8 @@
 
 
 #include "FillHolesFilter.h"
-#include <Core/Outputs/VolumeRepresentation.h>
-#include <Core/Outputs/RawVolume.h>
+#include <Core/OutputRepresentations/VolumeRepresentation.h>
+#include <Core/OutputRepresentations/RawVolume.h>
 #include <Core/Model/MarchingCubesMesh.h>
 #include <GUI/Representations/SliceRepresentation.h>
 

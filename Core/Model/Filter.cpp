@@ -20,8 +20,8 @@
 #include "Filter.h"
 #include "EspinaModel.h"
 #include "Output.h"
-#include "Core/Outputs/VolumeRepresentation.h"
-#include <Core/Outputs/MeshType.h>
+#include "Core/OutputRepresentations/VolumeRepresentation.h"
+#include <Core/OutputRepresentations/MeshType.h>
 #include <GUI/Representations/GraphicalRepresentationFactory.h>
 
 // ITK

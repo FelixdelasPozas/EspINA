@@ -29,8 +29,8 @@
 #ifndef MARCHINGCUBEMESH_H
 #define MARCHINGCUBEMESH_H
 
-#include "Core/Outputs/MeshType.h"
-#include <Core/Outputs/VolumeRepresentation.h>
+#include "Core/OutputRepresentations/MeshType.h"
+#include <Core/OutputRepresentations/VolumeRepresentation.h>
 
 #include <vtkSmartPointer.h>
 

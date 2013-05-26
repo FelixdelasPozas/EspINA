@@ -22,7 +22,7 @@
 // EspINA
 #include "GUI/Representations/GraphicalRepresentation.h"
 #include <Core/EspinaTypes.h>
-#include <Core/Outputs/VolumeRepresentation.h>
+#include <Core/OutputRepresentations/VolumeRepresentation.h>
 
 // VTK
 #include <vtkSmartPointer.h>
@@ -60,17 +60,10 @@ namespace EspINA
 
       virtual void setOpacity(double value);
 
-      virtual void setVisible(bool visible);
-
       virtual bool isInside(Nm point[3]);
 
       virtual RenderableView canRenderOnView() const
       { return GraphicalRepresentation::RENDERABLEVIEW_VOLUME; }
-
-      virtual GraphicalRepresentationSPtr clone(SliceView *view)
-      { return GraphicalRepresentationSPtr(); }
-
-      virtual GraphicalRepresentationSPtr clone(VolumeView *view);
 
       virtual bool hasActor(vtkProp *actor) const;
 
@@ -84,6 +77,14 @@ namespace EspINA
 
       bool tiling()              { return m_tiling; }
       void setTiling(bool value) { m_tiling = value; }
+
+  protected:
+      virtual GraphicalRepresentationSPtr cloneImplementation(SliceView *view)
+      { return GraphicalRepresentationSPtr(); }
+
+      virtual GraphicalRepresentationSPtr cloneImplementation(VolumeView *view);
+
+    virtual void updateVisibility(bool visible);
 
     private slots:
       void updatePipelineConnections();

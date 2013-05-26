@@ -21,7 +21,7 @@
 
 #include <Core/Model/EspinaFactory.h>
 #include <Core/Model/MarchingCubesMesh.h>
-#include <Core/Outputs/RawVolume.h>
+#include <Core/OutputRepresentations/RawVolume.h>
 
 #include <itkBinaryBallStructuringElement.h>
 #include <itkDilateObjectMorphologyImageFilter.h>

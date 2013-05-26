@@ -37,15 +37,6 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  GraphicalRepresentationSPtr SimpleMeshRepresentation::clone(VolumeView *view)
-  {
-    SimpleMeshRepresentation *representation = new SimpleMeshRepresentation(m_data, view);
-    representation->initializePipeline(view);
-
-    return GraphicalRepresentationSPtr(representation);
-  }
-
-  //-----------------------------------------------------------------------------
   void SimpleMeshRepresentation::initializePipeline(VolumeView *view)
   {
     connect(m_data.get(), SIGNAL(representationChanged()),
@@ -81,6 +72,15 @@ namespace EspINA
       m_actor->GetProperty()->Modified();
       m_actor->Modified();
     }
+  }
+
+  //-----------------------------------------------------------------------------
+  GraphicalRepresentationSPtr SimpleMeshRepresentation::cloneImplementation(VolumeView *view)
+  {
+    SimpleMeshRepresentation *representation = new SimpleMeshRepresentation(m_data, view);
+    representation->initializePipeline(view);
+
+    return GraphicalRepresentationSPtr(representation);
   }
 
   //-----------------------------------------------------------------------------

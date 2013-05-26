@@ -20,7 +20,7 @@
 #ifndef CHANNELVOLUMEPROXY_H
 #define CHANNELVOLUMEPROXY_H
 
-#include <Core/Outputs/VolumeRepresentation.h>
+#include <Core/OutputRepresentations/VolumeRepresentation.h>
 
 namespace EspINA
 {

@@ -60,7 +60,7 @@ namespace EspINA
 
     virtual ~GraphicalRepresentation(){}
 
-    virtual void setActive(bool value, EspinaRenderView *view = NULL);
+    void setActive(bool value, EspinaRenderView *view = NULL);
 
     /// Whether or not the user has selected this representation to be displayed
     /// Representation will only be currently displayed if it is visibility has also
@@ -88,8 +88,7 @@ namespace EspINA
 
     /// Set representation visibility
     /// Innactive representations are never visible, even visibility is set to true
-    virtual void setVisible(bool visible)
-    { m_visible = visible; }
+    void setVisible(bool visible);
 
     /// Whether or not the representation is displayed
     /// Innactive representations are never visible, even visibility is set to true
@@ -100,8 +99,8 @@ namespace EspINA
 
     virtual RenderableView canRenderOnView() const { return RENDERABLEVIEW_UNDEFINED; };
 
-    virtual GraphicalRepresentationSPtr clone(VolumeView *view) = 0;
-    virtual GraphicalRepresentationSPtr clone(SliceView *view) = 0;
+    GraphicalRepresentationSPtr clone(SliceView *view);
+    GraphicalRepresentationSPtr clone(VolumeView *view);
 
     virtual bool hasActor(vtkProp *actor) const = 0;
 
@@ -110,6 +109,11 @@ namespace EspINA
     virtual QList<vtkProp*> getActors() = 0;
 
   protected:
+    virtual GraphicalRepresentationSPtr cloneImplementation(SliceView *view) = 0;
+    virtual GraphicalRepresentationSPtr cloneImplementation(VolumeView *view) = 0;
+
+    virtual void updateVisibility(bool visible) = 0;
+
     vtkMatrix4x4 *slicingMatrix(SliceView *view) const;
 
   protected:

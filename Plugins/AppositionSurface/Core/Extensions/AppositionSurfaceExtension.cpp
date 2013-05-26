@@ -23,7 +23,7 @@
 #include <Core/Model/Segmentation.h>
 #include <Core/Model/EspinaModel.h>
 #include <Core/EspinaSettings.h>
-#include <Core/Outputs/MeshType.h>
+#include <Core/OutputRepresentations/MeshType.h>
 #include <vtkMeshQuality.h>
 #include <vtkPolyDataNormals.h>
 #include <vtkMutableUndirectedGraph.h>

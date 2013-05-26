@@ -26,28 +26,29 @@ class vtkDecimatePro;
 
 namespace EspINA
 {
-  
+
   class SmoothedMeshRepresentation
   : public IMeshRepresentation
   {
     Q_OBJECT
-    public:
-      explicit SmoothedMeshRepresentation(MeshRepresentationSPtr mesh,
-                                          EspinaRenderView *view);
-      virtual ~SmoothedMeshRepresentation() {};
+  public:
+    explicit SmoothedMeshRepresentation(MeshRepresentationSPtr mesh,
+                                        EspinaRenderView *view);
+    virtual ~SmoothedMeshRepresentation() {};
 
-      virtual GraphicalRepresentationSPtr clone(VolumeView *view);
+    virtual void updateRepresentation();
 
-      virtual void updateRepresentation();
+  protected:
+    virtual GraphicalRepresentationSPtr cloneImplementation(VolumeView *view);
 
-    private slots:
-      void updatePipelineConnections();
+  private slots:
+    void updatePipelineConnections();
 
-    private:
-      void initializePipeline(VolumeView *view);
+  private:
+    void initializePipeline(VolumeView *view);
 
-    private:
-      vtkSmartPointer<vtkDecimatePro>                m_decimate;
+  private:
+    vtkSmartPointer<vtkDecimatePro>                m_decimate;
   };
 
   typedef boost::shared_ptr<SmoothedMeshRepresentation> SmoothedMeshRepresentationSPtr;

@@ -40,15 +40,6 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  GraphicalRepresentationSPtr SmoothedMeshRepresentation::clone(VolumeView *view)
-  {
-    SmoothedMeshRepresentation *representation = new SmoothedMeshRepresentation(m_data, view);
-    representation->initializePipeline(view);
-
-    return GraphicalRepresentationSPtr(representation);
-  }
-
-  //-----------------------------------------------------------------------------
   void SmoothedMeshRepresentation::initializePipeline(VolumeView *view)
   {
     connect(m_data.get(), SIGNAL(representationChanged()),
@@ -108,6 +99,15 @@ namespace EspINA
       m_actor->GetProperty()->Modified();
       m_actor->Modified();
     }
+  }
+
+  //-----------------------------------------------------------------------------
+  GraphicalRepresentationSPtr SmoothedMeshRepresentation::cloneImplementation(VolumeView *view)
+  {
+    SmoothedMeshRepresentation *representation = new SmoothedMeshRepresentation(m_data, view);
+    representation->initializePipeline(view);
+
+    return GraphicalRepresentationSPtr(representation);
   }
 
   //-----------------------------------------------------------------------------

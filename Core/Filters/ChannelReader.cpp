@@ -19,8 +19,8 @@
 
 #include "ChannelReader.h"
 #include <Core/IO/IOErrorHandler.h>
-#include <Core/Outputs/ChannelVolumeProxy.h>
-#include <Core/Outputs/RawVolume.h>
+#include <Core/OutputRepresentations/ChannelVolumeProxy.h>
+#include <Core/OutputRepresentations/RawVolume.h>
 #include <GUI/Representations/SliceRepresentation.h>
 #include <GUI/Representations/CrosshairRepresentation.h>
 #include <itkMetaImageIO.h>

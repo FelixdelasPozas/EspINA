@@ -10,9 +10,9 @@
 #include <Core/ASMeshProxy.h>
 #include <Core/ASVolumeProxy.h>
 #include <Core/Model/Segmentation.h>
-#include <Core/Outputs/MeshType.h>
-#include <Core/Outputs/RawMesh.h>
-#include <Core/Outputs/RasterizedVolume.h>
+#include <Core/OutputRepresentations/MeshType.h>
+#include <Core/OutputRepresentations/RawMesh.h>
+#include <Core/OutputRepresentations/RasterizedVolume.h>
 #include <GUI/Representations/SliceRepresentation.h>
 #include <GUI/Representations/SimpleMeshRepresentation.h>
 

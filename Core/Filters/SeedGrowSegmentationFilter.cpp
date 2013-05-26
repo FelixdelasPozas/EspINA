@@ -19,9 +19,9 @@
 
 #include "Core/Model/EspinaModel.h"
 #include <Core/Model/MarchingCubesMesh.h>
-#include <Core/Outputs/VolumeProxy.h>
-#include <Core/Outputs/MeshProxy.h>
-#include <Core/Outputs/RawVolume.h>
+#include <Core/OutputRepresentations/VolumeProxy.h>
+#include <Core/OutputRepresentations/MeshProxy.h>
+#include <Core/OutputRepresentations/RawVolume.h>
 #include <GUI/Representations/SliceRepresentation.h>
 
 #include <QDebug>

@@ -20,7 +20,7 @@
 #ifndef ESPINA_ASVOLUMEPROXY_H
 #define ESPINA_ASVOLUMEPROXY_H
 
-#include <Core/Outputs/VolumeProxy.h>
+#include <Core/OutputRepresentations/VolumeProxy.h>
 
 namespace EspINA
 {

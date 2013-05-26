@@ -12,7 +12,7 @@
 // EspINA
 #include "GUI/vtkWidgets/EspinaWidget.h"
 #include <Core/EspinaTypes.h>
-#include <Core/Outputs/VolumeRepresentation.h>
+#include <Core/OutputRepresentations/VolumeRepresentation.h>
 
 // vtk
 #include <vtkSmartPointer.h>

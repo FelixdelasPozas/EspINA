@@ -28,7 +28,7 @@
 
 #include "VolumeSnapshotCommand.h"
 
-#include <Core/Outputs/VolumeRepresentation.h>
+#include <Core/OutputRepresentations/VolumeRepresentation.h>
 
 using namespace EspINA;
 

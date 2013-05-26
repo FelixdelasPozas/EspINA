@@ -20,7 +20,7 @@
 #ifndef ESPINA_RASTERIZEDVOLUME_H
 #define ESPINA_RASTERIZEDVOLUME_H
 
-#include <Core/Outputs/VolumeRepresentation.h>
+#include <Core/OutputRepresentations/VolumeRepresentation.h>
 #include "RawVolume.h"
 #include "MeshType.h"
 

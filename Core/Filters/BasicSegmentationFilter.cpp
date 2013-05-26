@@ -19,12 +19,12 @@
 
 #include "BasicSegmentationFilter.h"
 
-#include <Core/Outputs/VolumeRepresentation.h>
-#include <Core/Outputs/VolumeProxy.h>
-#include <Core/Outputs/MeshProxy.h>
-#include <Core/Outputs/RawVolume.h>
-#include <Core/Outputs/RawMesh.h>
-#include <Core/Outputs/RasterizedVolume.h>
+#include <Core/OutputRepresentations/VolumeRepresentation.h>
+#include <Core/OutputRepresentations/VolumeProxy.h>
+#include <Core/OutputRepresentations/MeshProxy.h>
+#include <Core/OutputRepresentations/RawVolume.h>
+#include <Core/OutputRepresentations/RawMesh.h>
+#include <Core/OutputRepresentations/RasterizedVolume.h>
 #include <Core/Model/MarchingCubesMesh.h>
 
 #include <vtkMath.h>

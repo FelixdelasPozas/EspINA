@@ -31,7 +31,7 @@
 
 #include "GUI/Representations/GraphicalRepresentation.h"
 
-#include <Core/Outputs/VolumeRepresentation.h>
+#include <Core/OutputRepresentations/VolumeRepresentation.h>
 #include <Core/Model/HierarchyItem.h>
 
 #include <vtkSmartPointer.h>
@@ -65,23 +65,24 @@ namespace EspINA
 
     virtual void setOpacity(double value);
 
-    virtual void setVisible(bool visible);
-
     virtual bool isInside(Nm point[3]) { return false; };
 
     virtual RenderableView canRenderOnView() const
     { return GraphicalRepresentation::RENDERABLEVIEW_SLICE; }
-
-    virtual GraphicalRepresentationSPtr clone(SliceView *view);
-
-    virtual GraphicalRepresentationSPtr clone(VolumeView *view)
-    { return GraphicalRepresentationSPtr(); }
 
     virtual bool hasActor(vtkProp *actor) const;
 
     virtual void updateRepresentation();
 
     virtual QList<vtkProp*> getActors();
+
+  protected:
+    virtual GraphicalRepresentationSPtr cloneImplementation(SliceView *view);
+
+    virtual GraphicalRepresentationSPtr cloneImplementation(VolumeView *view)
+    { return GraphicalRepresentationSPtr(); }
+
+    virtual void updateVisibility(bool visible);
 
   private slots:
     void updatePipelineConnections();
@@ -112,23 +113,24 @@ namespace EspINA
 
     virtual void setHighlighted(bool highlighted);
 
-    virtual void setVisible(bool visible);
-
     virtual bool isInside(Nm point[3]);
 
     virtual RenderableView canRenderOnView() const
     { return GraphicalRepresentation::RENDERABLEVIEW_SLICE; }
-
-    virtual GraphicalRepresentationSPtr clone(SliceView *view);
-
-    virtual GraphicalRepresentationSPtr clone(VolumeView *view)
-    { return GraphicalRepresentationSPtr(); }
 
     virtual bool hasActor(vtkProp *actor) const;
 
     virtual void updateRepresentation();
 
     virtual QList<vtkProp*> getActors();
+
+  protected:
+    virtual GraphicalRepresentationSPtr cloneImplementation(SliceView *view);
+
+    virtual GraphicalRepresentationSPtr cloneImplementation(VolumeView *view)
+    { return GraphicalRepresentationSPtr(); }
+
+    virtual void updateVisibility(bool visible);
 
   private slots:
     void updatePipelineConnections();

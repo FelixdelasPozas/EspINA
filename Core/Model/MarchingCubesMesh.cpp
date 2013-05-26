@@ -28,7 +28,7 @@
 
 #include "MarchingCubesMesh.h"
 
-#include "Core/Outputs/RawVolume.h"
+#include "Core/OutputRepresentations/RawVolume.h"
 
 #include <vtkImageConstantPad.h>
 #include <vtkDiscreteMarchingCubes.h>

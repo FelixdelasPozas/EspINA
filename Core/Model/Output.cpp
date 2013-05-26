@@ -147,7 +147,7 @@ bool SegmentationOutput::dumpSnapshot(const QString &prefix, Snapshot &snapshot,
     m_editerRegions.pop_back();
   }
 
-  QString outputInfoFile = QString("Outputs/%1.trc").arg(prefix);
+  QString outputInfoFile = QString("OutputRepresentations/%1.trc").arg(prefix);
   snapshot << SnapshotEntry(outputInfoFile, outputInfo.str().c_str());
 
   return dumped;

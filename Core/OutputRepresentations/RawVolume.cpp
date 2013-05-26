@@ -16,7 +16,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Core/Outputs/RawVolume.h"
+#include "Core/OutputRepresentations/RawVolume.h"
 
 #include "Core/Model/Filter.h"
 

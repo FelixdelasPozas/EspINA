@@ -20,8 +20,8 @@
 #ifndef VOLUMEPROXY_H
 #define VOLUMEPROXY_H
 
-#include <Core/Outputs/VolumeRepresentation.h>
-#include <Core/Outputs/VolumeRepresentation.h>
+#include <Core/OutputRepresentations/VolumeRepresentation.h>
+#include <Core/OutputRepresentations/VolumeRepresentation.h>
 
 namespace EspINA
 {

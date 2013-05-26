@@ -20,7 +20,7 @@
 #ifndef ESPINA_RAWMESH_H
 #define ESPINA_RAWMESH_H
 
-#include <Core/Outputs/MeshType.h>
+#include <Core/OutputRepresentations/MeshType.h>
 #include <vtkSmartPointer.h>
 
 namespace EspINA

@@ -22,7 +22,7 @@
 // EspINA
 #include "Core/Model/EspinaFactory.h"
 #include <Core/Model/MarchingCubesMesh.h>
-#include <Core/Outputs/RawVolume.h>
+#include <Core/OutputRepresentations/RawVolume.h>
 
 // ITK
 #include <itkImageRegionIteratorWithIndex.h>

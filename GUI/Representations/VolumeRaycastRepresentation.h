@@ -20,7 +20,7 @@
 #define VOLUMERAYCASTREPRESENTATION_H_
 
 // EspINA
-#include <Core/Outputs/VolumeRepresentation.h>
+#include <Core/OutputRepresentations/VolumeRepresentation.h>
 #include "GUI/Representations/GraphicalRepresentation.h"
 
 // VTK
@@ -48,23 +48,24 @@ namespace EspINA
 
       virtual void setHighlighted(bool highlighted);
 
-      virtual void setVisible(bool visible);
-
       virtual bool isInside(Nm point[3]);
 
       virtual RenderableView canRenderOnView() const
       { return GraphicalRepresentation::RENDERABLEVIEW_VOLUME; }
-
-      virtual GraphicalRepresentationSPtr clone(SliceView *view)
-      { return GraphicalRepresentationSPtr(); }
-
-      virtual GraphicalRepresentationSPtr clone(VolumeView *view);
 
       virtual bool hasActor(vtkProp *actor) const;
 
       virtual void updateRepresentation();
 
       virtual QList<vtkProp*> getActors();
+
+  protected:
+      virtual GraphicalRepresentationSPtr cloneImplementation(SliceView *view)
+      { return GraphicalRepresentationSPtr(); }
+
+      virtual GraphicalRepresentationSPtr cloneImplementation(VolumeView *view);
+
+    virtual void updateVisibility(bool visible);
 
     private slots:
       void updatePipelineConnections();

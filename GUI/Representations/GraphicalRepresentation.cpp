@@ -44,12 +44,46 @@ GraphicalRepresentation::GraphicalRepresentation(EspinaRenderView *view)
 void GraphicalRepresentation::setActive(bool value, EspinaRenderView *view)
 {
   if (!view || view == m_view)
+  {
     m_active = value;
+
+    updateVisibility(isVisible());
+  }
 
   foreach (GraphicalRepresentationSPtr clone, m_clones)
   {
     clone->setActive(value, view);
   }
+}
+
+//-----------------------------------------------------------------------------
+void GraphicalRepresentation::setVisible(bool visible)
+{
+  m_visible = visible;
+
+  updateVisibility(isVisible());
+}
+
+//-----------------------------------------------------------------------------
+GraphicalRepresentationSPtr GraphicalRepresentation::clone(SliceView *view)
+{
+  GraphicalRepresentationSPtr representation = cloneImplementation(view);
+
+  if (representation)
+    m_clones << representation;
+
+  return representation;
+}
+
+//-----------------------------------------------------------------------------
+GraphicalRepresentationSPtr GraphicalRepresentation::clone(VolumeView *view)
+{
+  GraphicalRepresentationSPtr representation = cloneImplementation(view);
+
+  if (representation)
+    m_clones << representation;
+
+  return representation;
 }
 
 //-----------------------------------------------------------------------------

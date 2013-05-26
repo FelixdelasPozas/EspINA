@@ -23,10 +23,10 @@
 #include <Core/Model/Segmentation.h>
 #include <Core/Model/Taxonomy.h>
 #include <Core/Model/MarchingCubesMesh.h>
-#include <Core/Outputs/MeshType.h>
-#include <Core/Outputs/VolumeProxy.h>
-#include <Core/Outputs/MeshProxy.h>
-#include <Core/Outputs/RawVolume.h>
+#include <Core/OutputRepresentations/MeshType.h>
+#include <Core/OutputRepresentations/VolumeProxy.h>
+#include <Core/OutputRepresentations/MeshProxy.h>
+#include <Core/OutputRepresentations/RawVolume.h>
 #include <GUI/Representations/SliceRepresentation.h>
 #include <GUI/Representations/SimpleMeshRepresentation.h>
 #include <GUI/Representations/SmoothedMeshRepresentation.h>

@@ -20,7 +20,7 @@
 #include "CODEFilterInspector.h"
 #include <Core/Filters/MorphologicalEditionFilter.h>
 #include <GUI/ViewManager.h>
-#include <Core/Outputs/VolumeRepresentation.h>
+#include <Core/OutputRepresentations/VolumeRepresentation.h>
 
 // Qt
 #include <QApplication>

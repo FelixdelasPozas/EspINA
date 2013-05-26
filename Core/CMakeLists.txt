@@ -24,8 +24,8 @@ qt4_wrap_cpp(CORE_MOC
   Model/Proxies/TaxonomyProxy.h
   Model/Proxies/InformationProxy.h
   Model/Proxies/ConnectomicProxy.h
-  Outputs/ChannelVolumeProxy.h
-  Outputs/VolumeProxy.h
+  OutputRepresentations/ChannelVolumeProxy.h
+  OutputRepresentations/VolumeProxy.h
   Interfaces/IDockWidget.h
   Interfaces/IToolBar.h
   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
@@ -93,14 +93,14 @@ set (CORE_SOURCES
   Filters/SeedGrowSegmentationFilter.cpp
   Filters/SplitFilter.cpp
   Filters/TubularSegmentationFilter.cpp
-  Outputs/ChannelVolumeProxy.cpp 
-  Outputs/MeshType.cpp
-  Outputs/MeshProxy.cpp 
-  Outputs/RawMesh.cpp 
-  Outputs/RawVolume.cpp
-  Outputs/RasterizedVolume.cpp
-  Outputs/VolumeProxy.cpp 
-  Outputs/VolumeRepresentation.cpp 
+  OutputRepresentations/ChannelVolumeProxy.cpp 
+  OutputRepresentations/MeshType.cpp
+  OutputRepresentations/MeshProxy.cpp 
+  OutputRepresentations/RawMesh.cpp 
+  OutputRepresentations/RawVolume.cpp
+  OutputRepresentations/RasterizedVolume.cpp
+  OutputRepresentations/VolumeProxy.cpp 
+  OutputRepresentations/VolumeRepresentation.cpp 
   VTK/vtkTube.cxx
   Utils/SegmentationCollision.cpp
   Model/HierarchyItem.cpp

@@ -33,141 +33,137 @@
 #include <vtkMath.h>
 
 
-namespace EspINA
+using namespace EspINA;
+
+TransparencySelectionHighlighter *VolumeRaycastRepresentation::s_highlighter = new TransparencySelectionHighlighter();
+
+//-----------------------------------------------------------------------------
+VolumeRaycastRepresentation::VolumeRaycastRepresentation(SegmentationVolumeSPtr data, EspinaRenderView *view)
+: SegmentationGraphicalRepresentation(view)
+, m_data(data)
 {
-  TransparencySelectionHighlighter *VolumeRaycastRepresentation::s_highlighter = new TransparencySelectionHighlighter();
+}
 
-  //-----------------------------------------------------------------------------
-  VolumeRaycastRepresentation::VolumeRaycastRepresentation(SegmentationVolumeSPtr data, EspinaRenderView *view)
-  : SegmentationGraphicalRepresentation(view)
-  , m_data(data)
+//-----------------------------------------------------------------------------
+VolumeRaycastRepresentation::~VolumeRaycastRepresentation()
+{
+}
+
+//-----------------------------------------------------------------------------
+void VolumeRaycastRepresentation::setColor(const QColor &color)
+{
+  SegmentationGraphicalRepresentation::setColor(color);
+
+  LUTPtr colors = s_highlighter->lut(m_color, m_highlight);
+
+  double rgba[4], rgb[3], hsv[3];
+  colors->GetTableValue(1, rgba);
+  memcpy(rgb, rgba, 3*sizeof(double));
+  vtkMath::RGBToHSV(rgb, hsv);
+  m_colorFunction->AddHSVPoint(255, hsv[0], hsv[1], hsv[2]);
+}
+
+//-----------------------------------------------------------------------------
+void VolumeRaycastRepresentation::setHighlighted(bool highlight)
+{
+  GraphicalRepresentation::setHighlighted(highlight);
+  setColor(m_color);
+}
+
+//-----------------------------------------------------------------------------
+bool VolumeRaycastRepresentation::isInside(Nm *point)
+{
+  // FIXME: unused now, buy maybe useful in the future
+  return false;
+}
+
+//-----------------------------------------------------------------------------
+bool VolumeRaycastRepresentation::hasActor(vtkProp *actor) const
+{
+  return m_actor.GetPointer() == actor;
+}
+
+//-----------------------------------------------------------------------------
+void VolumeRaycastRepresentation::updateRepresentation()
+{
+  m_mapper->Update();
+  m_colorFunction->Modified();
+  m_actor->Modified();
+  m_actor->Update();
+}
+
+//-----------------------------------------------------------------------------
+void VolumeRaycastRepresentation::updatePipelineConnections()
+{
+  if (m_mapper->GetInputConnection(0,0) != m_data->toVTK())
   {
-  }
-  
-  //-----------------------------------------------------------------------------
-  VolumeRaycastRepresentation::~VolumeRaycastRepresentation()
-  {
-  }
-
-  //-----------------------------------------------------------------------------
-  void VolumeRaycastRepresentation::setColor(const QColor &color)
-  {
-    SegmentationGraphicalRepresentation::setColor(color);
-
-    LUTPtr colors = s_highlighter->lut(m_color, m_highlight);
-
-    double rgba[4], rgb[3], hsv[3];
-    colors->GetTableValue(1, rgba);
-    memcpy(rgb, rgba, 3*sizeof(double));
-    vtkMath::RGBToHSV(rgb, hsv);
-    m_colorFunction->AddHSVPoint(255, hsv[0], hsv[1], hsv[2]);
-  }
-
-  //-----------------------------------------------------------------------------
-  void VolumeRaycastRepresentation::setHighlighted(bool highlight)
-  {
-    GraphicalRepresentation::setHighlighted(highlight);
-    setColor(m_color);
-  }
-
-  //-----------------------------------------------------------------------------
-  void VolumeRaycastRepresentation::setVisible(bool visible)
-  {
-    GraphicalRepresentation::setVisible(visible);
-
-    m_actor->SetVisibility(visible);
-  }
-
-  //-----------------------------------------------------------------------------
-  bool VolumeRaycastRepresentation::isInside(Nm *point)
-  {
-    // FIXME: unused now, buy maybe useful in the future
-    return false;
-  }
-
-  //-----------------------------------------------------------------------------
-  GraphicalRepresentationSPtr VolumeRaycastRepresentation::clone(VolumeView *view)
-  {
-    VolumeRaycastRepresentation *representation = new VolumeRaycastRepresentation(m_data, view);
-    representation->initializePipeline(view);
-
-    return GraphicalRepresentationSPtr(representation);
-  }
-
-  //-----------------------------------------------------------------------------
-  bool VolumeRaycastRepresentation::hasActor(vtkProp *actor) const
-  {
-    return m_actor.GetPointer() == actor;
-  }
-
-  //-----------------------------------------------------------------------------
-  void VolumeRaycastRepresentation::updateRepresentation()
-  {
-    m_mapper->Update();
-    m_colorFunction->Modified();
-    m_actor->Modified();
-    m_actor->Update();
-  }
-
-  //-----------------------------------------------------------------------------
-  void VolumeRaycastRepresentation::updatePipelineConnections()
-  {
-    if (m_mapper->GetInputConnection(0,0) != m_data->toVTK())
-    {
-      m_mapper->SetInputConnection(m_data->toVTK());
-      m_mapper->Update();
-    }
-  }
-  
-  //-----------------------------------------------------------------------------
-  void VolumeRaycastRepresentation::initializePipeline(VolumeView *view)
-  {
-    connect(m_data.get(), SIGNAL(representationChanged()),
-            this, SLOT(updatePipelineConnections()));
-
-    vtkSmartPointer<vtkVolumeRayCastCompositeFunction> composite = vtkSmartPointer<vtkVolumeRayCastCompositeFunction>::New();
-    m_mapper = vtkSmartPointer<vtkVolumeRayCastMapper>::New();
-    m_mapper->ReleaseDataFlagOn();
-    m_mapper->SetBlendModeToComposite();
-    m_mapper->SetVolumeRayCastFunction(composite);
-    m_mapper->IntermixIntersectingGeometryOff();
     m_mapper->SetInputConnection(m_data->toVTK());
     m_mapper->Update();
-
-    m_colorFunction = vtkSmartPointer<vtkColorTransferFunction>::New();
-    m_colorFunction->AllowDuplicateScalarsOff();
-    setColor(m_color);
-    m_colorFunction->Modified();
-
-    vtkSmartPointer<vtkPiecewiseFunction> piecewise = vtkSmartPointer<vtkPiecewiseFunction>::New();
-    piecewise->AddPoint(0, 0.0);
-    piecewise->AddPoint(255, 1.0);
-    piecewise->Update();
-
-    vtkSmartPointer<vtkVolumeProperty> property = vtkSmartPointer<vtkVolumeProperty>::New();
-    property->SetColor(m_colorFunction);
-    property->SetScalarOpacity(piecewise);
-    property->DisableGradientOpacityOff();
-    property->SetSpecular(0.5);
-    property->ShadeOn();
-    property->SetInterpolationTypeToLinear();
-    property->Modified();
-
-    m_actor = vtkSmartPointer<vtkVolume>::New();
-    m_actor->SetMapper(m_mapper);
-    m_actor->SetProperty(property);
-    m_actor->Update();
-
-    m_view = view;
   }
+}
 
-  //-----------------------------------------------------------------------------
-  QList<vtkProp*> VolumeRaycastRepresentation::getActors()
-  {
-    QList<vtkProp*> list;
-    list << m_actor.GetPointer();
+//-----------------------------------------------------------------------------
+void VolumeRaycastRepresentation::initializePipeline(VolumeView *view)
+{
+  connect(m_data.get(), SIGNAL(representationChanged()),
+          this, SLOT(updatePipelineConnections()));
 
-    return list;
-  }
+  vtkSmartPointer<vtkVolumeRayCastCompositeFunction> composite = vtkSmartPointer<vtkVolumeRayCastCompositeFunction>::New();
+  m_mapper = vtkSmartPointer<vtkVolumeRayCastMapper>::New();
+  m_mapper->ReleaseDataFlagOn();
+  m_mapper->SetBlendModeToComposite();
+  m_mapper->SetVolumeRayCastFunction(composite);
+  m_mapper->IntermixIntersectingGeometryOff();
+  m_mapper->SetInputConnection(m_data->toVTK());
+  m_mapper->Update();
 
-} /* namespace EspINA */
+  m_colorFunction = vtkSmartPointer<vtkColorTransferFunction>::New();
+  m_colorFunction->AllowDuplicateScalarsOff();
+  setColor(m_color);
+  m_colorFunction->Modified();
+
+  vtkSmartPointer<vtkPiecewiseFunction> piecewise = vtkSmartPointer<vtkPiecewiseFunction>::New();
+  piecewise->AddPoint(0, 0.0);
+  piecewise->AddPoint(255, 1.0);
+  piecewise->Update();
+
+  vtkSmartPointer<vtkVolumeProperty> property = vtkSmartPointer<vtkVolumeProperty>::New();
+  property->SetColor(m_colorFunction);
+  property->SetScalarOpacity(piecewise);
+  property->DisableGradientOpacityOff();
+  property->SetSpecular(0.5);
+  property->ShadeOn();
+  property->SetInterpolationTypeToLinear();
+  property->Modified();
+
+  m_actor = vtkSmartPointer<vtkVolume>::New();
+  m_actor->SetMapper(m_mapper);
+  m_actor->SetProperty(property);
+  m_actor->Update();
+
+  m_view = view;
+}
+
+//-----------------------------------------------------------------------------
+QList<vtkProp*> VolumeRaycastRepresentation::getActors()
+{
+  QList<vtkProp*> list;
+  list << m_actor.GetPointer();
+
+  return list;
+}
+
+//-----------------------------------------------------------------------------
+GraphicalRepresentationSPtr VolumeRaycastRepresentation::cloneImplementation(VolumeView *view)
+{
+  VolumeRaycastRepresentation *representation = new VolumeRaycastRepresentation(m_data, view);
+  representation->initializePipeline(view);
+
+  return GraphicalRepresentationSPtr(representation);
+}
+
+//-----------------------------------------------------------------------------
+void VolumeRaycastRepresentation::updateVisibility(bool visible)
+{
+  m_actor->SetVisibility(visible);
+}

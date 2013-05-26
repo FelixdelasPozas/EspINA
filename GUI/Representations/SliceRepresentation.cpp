@@ -82,28 +82,6 @@ void ChannelSliceRepresentation::setOpacity(double value)
 }
 
 //-----------------------------------------------------------------------------
-void ChannelSliceRepresentation::setVisible(bool visible)
-{
-  ChannelGraphicalRepresentation::setVisible(visible);
-
-  slice->SetVisibility(isVisible());
-}
-
-//-----------------------------------------------------------------------------
-GraphicalRepresentationSPtr ChannelSliceRepresentation::clone(SliceView *view)
-{
-  ChannelSliceRepresentation *rep = new ChannelSliceRepresentation(m_data, view);
-
-  rep->initializePipeline(view);
-
-  GraphicalRepresentationSPtr representation(rep);
-
-  m_clones << representation;
-
-  return representation;
-}
-
-//-----------------------------------------------------------------------------
 bool ChannelSliceRepresentation::hasActor(vtkProp *actor) const
 {
   return slice.GetPointer() == actor;
@@ -116,6 +94,22 @@ void ChannelSliceRepresentation::updateRepresentation()
   mapToColors->Update();
   shiftScaleFilter->Update();
   slice->Update();
+}
+
+//-----------------------------------------------------------------------------
+GraphicalRepresentationSPtr ChannelSliceRepresentation::cloneImplementation(SliceView *view)
+{
+  ChannelSliceRepresentation *representation = new ChannelSliceRepresentation(m_data, view);
+
+  representation->initializePipeline(view);
+
+  return GraphicalRepresentationSPtr(representation);
+}
+
+//-----------------------------------------------------------------------------
+void ChannelSliceRepresentation::updateVisibility(bool visible)
+{
+  slice->SetVisibility(visible);
 }
 
 //-----------------------------------------------------------------------------
@@ -214,14 +208,6 @@ void SegmentationSliceRepresentation::setHighlighted(bool highlighted)
 }
 
 //-----------------------------------------------------------------------------
-void SegmentationSliceRepresentation::setVisible(bool visible)
-{
-  SegmentationGraphicalRepresentation::setVisible(visible);
-
-  slice->SetVisibility(isVisible());
-}
-
-//-----------------------------------------------------------------------------
 bool SegmentationSliceRepresentation::hasActor(vtkProp *actor) const
 {
   return slice.GetPointer() == actor;
@@ -237,16 +223,6 @@ bool SegmentationSliceRepresentation::isInside(Nm point[3])
 
   return m_data->volumeRegion().IsInside(voxel)
       && m_data->toITK()->GetPixel(voxel) == SEG_VOXEL_VALUE;
-}
-
-//-----------------------------------------------------------------------------
-GraphicalRepresentationSPtr SegmentationSliceRepresentation::clone(SliceView *view)
-{
-  SegmentationSliceRepresentation *representation = new SegmentationSliceRepresentation(m_data, view);
-
-  representation->initializePipeline(view);
-
-  return GraphicalRepresentationSPtr(representation);
 }
 
 //-----------------------------------------------------------------------------
@@ -298,6 +274,22 @@ QList<vtkProp*> SegmentationSliceRepresentation::getActors()
   list << slice.GetPointer();
 
   return list;
+}
+
+//-----------------------------------------------------------------------------
+GraphicalRepresentationSPtr SegmentationSliceRepresentation::cloneImplementation(SliceView *view)
+{
+  SegmentationSliceRepresentation *representation = new SegmentationSliceRepresentation(m_data, view);
+
+  representation->initializePipeline(view);
+
+  return GraphicalRepresentationSPtr(representation);
+}
+
+//-----------------------------------------------------------------------------
+void SegmentationSliceRepresentation::updateVisibility(bool visible)
+{
+  slice->SetVisibility(visible);
 }
 
 //-----------------------------------------------------------------------------

@@ -22,7 +22,7 @@
 // EspINA
 #include "GraphicalRepresentation.h"
 #include <GUI/QtWidget/EspinaRenderView.h>
-#include <Core/Outputs/MeshType.h>
+#include <Core/OutputRepresentations/MeshType.h>
 
 // VTK
 #include <vtkSmartPointer.h>
@@ -34,7 +34,7 @@ namespace EspINA
 {
   class TransparencySelectionHighlighter;
   class VolumeView;
-  
+
   class IMeshRepresentation
   : public SegmentationGraphicalRepresentation
   {
@@ -48,23 +48,24 @@ namespace EspINA
 
       virtual void setHighlighted(bool highlighted);
 
-      virtual void setVisible(bool visible);
-
       virtual bool isInside(Nm point[3]);
 
       virtual RenderableView canRenderOnView() const
       { return GraphicalRepresentation::RENDERABLEVIEW_VOLUME; }
-
-      virtual GraphicalRepresentationSPtr clone(SliceView *view)
-      { return GraphicalRepresentationSPtr(); }
-
-      virtual GraphicalRepresentationSPtr clone(VolumeView *view) = 0;
 
       virtual bool hasActor(vtkProp *actor) const;
 
       virtual void updateRepresentation() = 0;
 
       virtual QList<vtkProp *> getActors();
+
+  protected:
+      virtual GraphicalRepresentationSPtr cloneImplementation(SliceView *view)
+      { return GraphicalRepresentationSPtr(); }
+
+      virtual GraphicalRepresentationSPtr cloneImplementation(VolumeView *view) = 0;
+
+    virtual void updateVisibility(bool visible);
 
     private slots:
       virtual void updatePipelineConnections() = 0;

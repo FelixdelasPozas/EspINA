@@ -20,7 +20,7 @@
 #ifndef ESPINA_ASMESHPROXY_H
 #define ESPINA_ASMESHPROXY_H
 
-#include <Core/Outputs/MeshProxy.h>
+#include <Core/OutputRepresentations/MeshProxy.h>
 
 namespace EspINA
 {

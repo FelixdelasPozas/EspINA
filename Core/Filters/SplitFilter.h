@@ -21,7 +21,7 @@
 #define SPLITFILTER_H
 
 #include <Core/Model/Filter.h>
-#include <Core/Outputs/RawVolume.h>
+#include <Core/OutputRepresentations/RawVolume.h>
 #include "BasicSegmentationFilter.h"
 
 #include <vtkSmartPointer.h>

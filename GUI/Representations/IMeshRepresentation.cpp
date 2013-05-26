@@ -25,68 +25,64 @@
 #include <vtkActor.h>
 #include <vtkProperty.h>
 
-namespace EspINA
+using namespace EspINA;
+
+TransparencySelectionHighlighter *IMeshRepresentation::s_highlighter = new TransparencySelectionHighlighter();
+
+//-----------------------------------------------------------------------------
+IMeshRepresentation::IMeshRepresentation(MeshRepresentationSPtr mesh, EspinaRenderView *view)
+: SegmentationGraphicalRepresentation(view)
+, m_data(mesh)
 {
-  TransparencySelectionHighlighter *IMeshRepresentation::s_highlighter = new TransparencySelectionHighlighter();
+}
 
-  //-----------------------------------------------------------------------------
-  IMeshRepresentation::IMeshRepresentation(MeshRepresentationSPtr mesh, EspinaRenderView *view)
-  : SegmentationGraphicalRepresentation(view)
-  , m_data(mesh)
-  {
-  }
-  
-  //-----------------------------------------------------------------------------
-  void IMeshRepresentation::setColor(const QColor &color)
-  {
-    SegmentationGraphicalRepresentation::setColor(color);
+//-----------------------------------------------------------------------------
+void IMeshRepresentation::setColor(const QColor &color)
+{
+  SegmentationGraphicalRepresentation::setColor(color);
 
-    LUTPtr colors = s_highlighter->lut(m_color, m_highlight);
+  LUTPtr colors = s_highlighter->lut(m_color, m_highlight);
 
-    double *rgba = colors->GetTableValue(1);
-    m_actor->GetProperty()->SetColor(rgba[0], rgba[1], rgba[2]);
-    m_actor->GetProperty()->SetOpacity(rgba[3]);
-  }
+  double *rgba = colors->GetTableValue(1);
+  m_actor->GetProperty()->SetColor(rgba[0], rgba[1], rgba[2]);
+  m_actor->GetProperty()->SetOpacity(rgba[3]);
+}
 
-  //-----------------------------------------------------------------------------
-  void IMeshRepresentation::setHighlighted(bool highlighted)
-  {
-    GraphicalRepresentation::setHighlighted(highlighted);
+//-----------------------------------------------------------------------------
+void IMeshRepresentation::setHighlighted(bool highlighted)
+{
+  GraphicalRepresentation::setHighlighted(highlighted);
 
-    LUTPtr colors = s_highlighter->lut(m_color, m_highlight);
+  LUTPtr colors = s_highlighter->lut(m_color, m_highlight);
 
-    double *rgba = colors->GetTableValue(1);
-    m_actor->GetProperty()->SetColor(rgba[0], rgba[1], rgba[2]);
-    m_actor->GetProperty()->SetOpacity(rgba[3]);
-  }
+  double *rgba = colors->GetTableValue(1);
+  m_actor->GetProperty()->SetColor(rgba[0], rgba[1], rgba[2]);
+  m_actor->GetProperty()->SetOpacity(rgba[3]);
+}
 
-  //-----------------------------------------------------------------------------
-  void IMeshRepresentation::setVisible(bool visible)
-  {
-    SegmentationGraphicalRepresentation::setVisible(visible);
+//-----------------------------------------------------------------------------
+bool IMeshRepresentation::hasActor(vtkProp *actor) const
+{
+  return m_actor.GetPointer() == actor;
+}
 
-    m_actor->SetVisibility(isVisible());
-  }
+//-----------------------------------------------------------------------------
+bool IMeshRepresentation::isInside(Nm *point)
+{
+  // FIXME: unused now, buy maybe useful in the future
+  return false;
+}
 
-  //-----------------------------------------------------------------------------
-  bool IMeshRepresentation::hasActor(vtkProp *actor) const
-  {
-    return m_actor.GetPointer() == actor;
-  }
+//-----------------------------------------------------------------------------
+QList<vtkProp *> IMeshRepresentation::getActors()
+{
+  QList<vtkProp *> list;
+  list << m_actor.GetPointer();
 
-  //-----------------------------------------------------------------------------
-  bool IMeshRepresentation::isInside(Nm *point)
-  {
-    // FIXME: unused now, buy maybe useful in the future
-    return false;
-  }
-
-  //-----------------------------------------------------------------------------
-  QList<vtkProp *> IMeshRepresentation::getActors()
-  {
-    QList<vtkProp *> list;
-    list << m_actor.GetPointer();
-
-    return list;
-  }
-} /* namespace EspINA */
+  return list;
+}
+//-----------------------------------------------------------------------------
+void IMeshRepresentation::updateVisibility(bool visible)
+{
+  m_actor->SetVisibility(visible);
+}

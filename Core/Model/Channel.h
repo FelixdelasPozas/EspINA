@@ -28,7 +28,7 @@
 #include "Core/Model/PickableItem.h"
 #include "Core/Model/HierarchyItem.h"
 
-#include <Core/Outputs/VolumeRepresentation.h>
+#include <Core/OutputRepresentations/VolumeRepresentation.h>
 
 #include <QColor>
 #include <QFileInfo>

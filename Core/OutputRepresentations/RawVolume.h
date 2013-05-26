@@ -23,7 +23,7 @@
 // EspINA
 #include "Core/EspinaTypes.h"
 #include "Core/EspinaRegion.h"
-#include "Core/Outputs/VolumeRepresentation.h"
+#include "Core/OutputRepresentations/VolumeRepresentation.h"
 
 // VTK
 #include <itkImageToVTKImageFilter.h>

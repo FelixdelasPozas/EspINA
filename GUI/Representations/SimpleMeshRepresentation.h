@@ -26,7 +26,7 @@ namespace EspINA
 {
   class TransparencySelectionHighlighter;
   class VolumeView;
-  
+
   class SimpleMeshRepresentation
   : public IMeshRepresentation
   {
@@ -36,9 +36,10 @@ namespace EspINA
                                   EspinaRenderView *view);
       virtual ~SimpleMeshRepresentation() {};
 
-      virtual GraphicalRepresentationSPtr clone(VolumeView *view);
-
       virtual void updateRepresentation();
+
+  protected:
+      virtual GraphicalRepresentationSPtr cloneImplementation(VolumeView *view);
 
     private slots:
       void updatePipelineConnections();

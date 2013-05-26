@@ -78,8 +78,8 @@ namespace EspINA
     typedef QList<EditedRegionSPtr>         EditedRegionSList;
 
     class OutputRepresentation;
-    typedef boost::shared_ptr<OutputRepresentation> OutputRepresentationSPtr;
-    typedef QList<OutputRepresentationSPtr>         OutputRepresentationSList;
+    typedef boost::shared_ptr<OutputRepresentation> OutputRepresentationsPtr;
+    typedef QList<OutputRepresentationsPtr>         OutputRepresentationsList;
 
   public:
     explicit FilterOutput(Filter               *filter = NULL,

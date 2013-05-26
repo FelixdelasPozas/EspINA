@@ -24,8 +24,8 @@
 #include "VolumeRaycastRepresentation.h"
 #include "CrosshairRepresentation.h"
 
-#include <Core/Outputs/MeshType.h>
-#include <Core/Outputs/VolumeRepresentation.h>
+#include <Core/OutputRepresentations/MeshType.h>
+#include <Core/OutputRepresentations/VolumeRepresentation.h>
 #include <Core/Model/Filter.h>
 
 using namespace EspINA;
