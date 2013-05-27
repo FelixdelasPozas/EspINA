@@ -93,7 +93,7 @@ namespace EspINA
     // return the number of elements actually been managed by this renderer
     virtual int itemsBeenRendered() = 0;
 
-    virtual ViewManager::Selection pick(int x, int y, vtkSmartPointer<vtkRenderer> renderer, RenderabledItems itemType = RenderabledItems(), bool repeat = false) = 0;
+    virtual ViewManager::Selection pick(int x, int y, Nm z, vtkSmartPointer<vtkRenderer> renderer, RenderabledItems itemType = RenderabledItems(), bool repeat = false) = 0;
     virtual void getPickCoordinates(Nm *point) = 0;
 
   public slots:

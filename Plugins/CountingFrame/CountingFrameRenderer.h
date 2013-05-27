@@ -62,7 +62,7 @@ namespace EspINA
     virtual int itemsBeenRendered() { return m_cfCount; }
 
 
-    virtual ViewManager::Selection pick(int x, int y, vtkSmartPointer<vtkRenderer> renderer, RenderabledItems itemType = RenderabledItems(), bool repeat = false)
+    virtual ViewManager::Selection pick(int x, int y, Nm z, vtkSmartPointer<vtkRenderer> renderer, RenderabledItems itemType = RenderabledItems(), bool repeat = false)
     { return ViewManager::Selection(); }
 
     virtual void getPickCoordinates(Nm *point) {};

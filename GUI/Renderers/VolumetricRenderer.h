@@ -60,6 +60,7 @@ namespace EspINA
     // to pick items been rendered
     virtual ViewManager::Selection pick(int x,
                                         int y,
+                                        Nm z,
                                         vtkSmartPointer<vtkRenderer> renderer,
                                         RenderabledItems itemType = RenderabledItems(),
                                         bool repeat = false);

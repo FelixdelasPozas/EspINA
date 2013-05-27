@@ -543,7 +543,7 @@ void VolumeView::selectPickedItems(int vx, int vy, bool append)
   {
     if (!renderer->isHidden() && (renderer->getRenderableItemsType().testFlag(EspINA::SEGMENTATION)))
     {
-      pickedItems = renderer->pick(vx, vy, m_renderer, IRenderer::RenderabledItems(EspINA::SEGMENTATION), append);
+      pickedItems = renderer->pick(vx, vy, 0, m_renderer, IRenderer::RenderabledItems(EspINA::SEGMENTATION), append);
       if (!pickedItems.empty())
       {
         foreach(PickableItemPtr item, pickedItems)
@@ -561,7 +561,7 @@ void VolumeView::selectPickedItems(int vx, int vy, bool append)
   {
     if (!renderer->isHidden() && (renderer->getRenderableItemsType().testFlag(EspINA::CHANNEL)))
     {
-      pickedItems = renderer->pick(vx, vy, m_renderer, IRenderer::RenderabledItems(EspINA::CHANNEL), append);
+      pickedItems = renderer->pick(vx, vy, 0, m_renderer, IRenderer::RenderabledItems(EspINA::CHANNEL), append);
       if (!pickedItems.empty())
       {
         foreach(PickableItemPtr item, pickedItems)
@@ -604,7 +604,7 @@ bool VolumeView::eventFilter(QObject* caller, QEvent* e)
         {
           if (!renderer->isHidden())
           {
-            ViewManager::Selection selection = renderer->pick(newX, newY, m_renderer, IRenderer::RenderabledItems(EspINA::SEGMENTATION|EspINA::CHANNEL), false);
+            ViewManager::Selection selection = renderer->pick(newX, newY, 0, m_renderer, IRenderer::RenderabledItems(EspINA::SEGMENTATION|EspINA::CHANNEL), false);
             if (!selection.empty())
             {
               double point[3];

@@ -171,7 +171,7 @@ unsigned int CrosshairRenderer::getNumberOfvtkActors()
 
 
 //-----------------------------------------------------------------------------
-ViewManager::Selection CrosshairRenderer::pick(int x, int y, vtkSmartPointer<vtkRenderer> renderer, RenderabledItems itemType, bool repeat)
+ViewManager::Selection CrosshairRenderer::pick(int x, int y, Nm z, vtkSmartPointer<vtkRenderer> renderer, RenderabledItems itemType, bool repeat)
 {
   ViewManager::Selection selection;
   QList<vtkProp*> removedProps;

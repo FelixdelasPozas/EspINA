@@ -170,7 +170,7 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  ViewManager::Selection SliceRenderer::pick(int x, int y, vtkSmartPointer<vtkRenderer> renderer, RenderabledItems itemType, bool repeat)
+  ViewManager::Selection SliceRenderer::pick(int x, int y, Nm z, vtkSmartPointer<vtkRenderer> renderer, RenderabledItems itemType, bool repeat)
   {
     ViewManager::Selection selection;
     QList<vtkProp *> removedProps;
@@ -178,7 +178,7 @@ namespace EspINA
     if (!renderer || !renderer.GetPointer() || (!itemType.testFlag(EspINA::CHANNEL) && !itemType.testFlag(EspINA::SEGMENTATION)))
       return selection;
 
-    while (m_picker->Pick(x, y, 0, renderer))
+    while (m_picker->Pick(x, y, z, renderer))
     {
       vtkProp *pickedProp = m_picker->GetViewProp();
       Q_ASSERT(pickedProp);
@@ -188,6 +188,7 @@ namespace EspINA
 
       Nm point[3];
       m_picker->GetPickPosition(point);
+      point[2] = z;
 
       foreach(PickableItemPtr item, m_representations.keys())
       {
