@@ -111,7 +111,7 @@ void ChannelReader::run(FilterOutputId oId)
     qWarning() << QString("Cached Object Builder: Couldn't load file %1."
     "Extension not supported")
     .arg(file.absoluteFilePath());
-    Q_ASSERT(false);
+    return;
   }
 
   io->SetFileName(m_args[FILE].toUtf8());

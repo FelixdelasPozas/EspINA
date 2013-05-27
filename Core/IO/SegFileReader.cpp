@@ -637,10 +637,14 @@ bool SegFileReader::loadSerialization(IEspinaModel *model,
         {
           FilterOutputId channelId = link[1].toInt();
           filter->update(channelId);
+          if (!filter->validOutput(channelId))
+            return false;
+
           ChannelSPtr channel = factory->createChannel(filter, channelId);
           channel->initialize(args);
           if (channel->volume()->toITK().IsNull())
             return false;
+
           model->addChannel(channel);
           input->setItem(v, channel.get());
         }
