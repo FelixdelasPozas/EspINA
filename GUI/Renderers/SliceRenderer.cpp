@@ -186,13 +186,16 @@ namespace EspINA
       m_picker->DeletePickList(pickedProp);
       removedProps << pickedProp;
 
+      Nm point[3];
+      m_picker->GetPickPosition(point);
+
       foreach(PickableItemPtr item, m_representations.keys())
       {
         if (!itemType.testFlag(item->type()))
         continue;
 
         foreach(GraphicalRepresentationSPtr rep, m_representations[item])
-        if (rep->isVisible() && rep->hasActor(pickedProp) && !selection.contains(item))
+        if (rep->isVisible() && rep->hasActor(pickedProp) && rep->isInside(point) && !selection.contains(item))
         {
           selection << item;
 

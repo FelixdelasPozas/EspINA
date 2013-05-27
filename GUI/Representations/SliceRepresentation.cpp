@@ -179,6 +179,13 @@ QList<vtkProp*> ChannelSliceRepresentation::getActors()
 }
 
 //-----------------------------------------------------------------------------
+bool ChannelSliceRepresentation::isInside(Nm point[3])
+{
+  itkVolumeType::IndexType voxel = m_data->index(point[0], point[1], point[2]);
+  return m_data->volumeRegion().IsInside(voxel);
+};
+
+//-----------------------------------------------------------------------------
 TransparencySelectionHighlighter *SegmentationSliceRepresentation::s_highlighter = new TransparencySelectionHighlighter();
 
 //-----------------------------------------------------------------------------

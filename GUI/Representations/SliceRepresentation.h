@@ -65,7 +65,7 @@ namespace EspINA
 
     virtual void setOpacity(double value);
 
-    virtual bool isInside(Nm point[3]) { return false; };
+    virtual bool isInside(Nm point[3]);
 
     virtual RenderableView canRenderOnView() const
     { return GraphicalRepresentation::RENDERABLEVIEW_SLICE; }
