@@ -58,23 +58,22 @@ namespace EspINA
   //-----------------------------------------------------------------------------
   void ContourUndoCommand::redo()
   {
-    /* FIXME
-    // we musn't abort the operation the first time is called
     if (m_abortOperation)
       m_tool->abortOperation();
     else
       m_abortOperation = true;
 
+    SegmentationVolumeSPtr volume = segmentationVolume(m_segmentation->output());
     if (m_newVolume.IsNotNull())
     {
-      m_segmentation->filter()->draw(0, m_newVolume);
+
+      volume->draw(m_newVolume);
     }
     else
     {
       EspinaRegion contourRegion(m_contourBounds);
-      EspinaVolume::Pointer volume = m_segmentation->volume();
 
-      m_prevRegions = m_segmentation->filter()->output(0).editedRegions;
+      m_prevRegions = volume->editedRegions();
 
       if (!contourRegion.isInside(volume->espinaRegion()))
       {
@@ -86,37 +85,35 @@ namespace EspINA
       else
         m_prevVolume = volume->cloneVolume(contourRegion);
 
-      m_segmentation->filter()->draw(0, m_contour, m_pos, m_plane, m_value, true);
+      volume->draw(m_contour, m_pos, m_plane, m_value, true);
 
-      m_newVolume = m_segmentation->volume()->cloneVolume(contourRegion);
+      m_newVolume = volume->cloneVolume(contourRegion);
     }
 
-    m_viewManager->updateSegmentationRepresentations(m_segmentation.data());
-    */
+    m_viewManager->updateSegmentationRepresentations(m_segmentation.get());
   }
   
   //-----------------------------------------------------------------------------
   void ContourUndoCommand::undo()
   {
-    /* FIXME
     m_tool->abortOperation();
 
     Q_ASSERT(m_newVolume.IsNotNull());
 
+    SegmentationVolumeSPtr volume = segmentationVolume(m_segmentation->output());
     EspinaRegion contourRegion(m_contourBounds);
-    m_segmentation->filter()->fill(0, contourRegion, SEG_BG_VALUE, false);
+    volume->fill(contourRegion, SEG_BG_VALUE, false);
 
     if (m_prevVolume.IsNotNull())
-      m_segmentation->filter()->draw(0, m_prevVolume, !m_needReduction);
+      volume->draw(m_prevVolume, !m_needReduction);
 
     if (m_needReduction)
-      m_segmentation->volume()->fitToContent();
+      volume->fitToContent();
 
     // Restore previous edited regions
-    m_segmentation->filter()->output(0).editedRegions = m_prevRegions;
+    volume->setEditedRegions(m_prevRegions);
 
-    m_viewManager->updateSegmentationRepresentations(m_segmentation.data());
-    */
+    m_viewManager->updateSegmentationRepresentations(m_segmentation.get());
   }
 
   //----------------------------------------------------------------------------

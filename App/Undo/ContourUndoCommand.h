@@ -52,6 +52,8 @@ namespace EspINA
       virtual void undo();
 
     private:
+      typedef SegmentationVolume::EditedVolumeRegionSList EditedRegionSList;
+
       SegmentationSPtr         m_segmentation;
       Nm                       m_contourBounds[6];
       vtkPolyData             *m_contour;
@@ -63,7 +65,7 @@ namespace EspINA
       itkVolumeType::Pointer   m_prevVolume;
       itkVolumeType::Pointer   m_newVolume;
       bool                     m_needReduction;
-      QList<EspinaRegion>      m_prevRegions;
+      EditedRegionSList        m_prevRegions;
       FilledContour           *m_tool;
       bool                     m_abortOperation;
   };

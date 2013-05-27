@@ -197,7 +197,9 @@ void FilledContour::rasterize(ContourWidget::ContourList list)
   bool reduction = false;
 
   if (list[AXIAL].Points == NULL && list[CORONAL].Points == NULL && list[SAGITTAL].Points == NULL)
+  {
     return;
+  }
 
   QApplication::setOverrideCursor(Qt::WaitCursor);
 
