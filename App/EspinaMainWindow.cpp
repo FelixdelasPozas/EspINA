@@ -56,6 +56,7 @@
 #include <GUI/Renderers/CrosshairRenderer.h>
 #include <GUI/Renderers/MeshRenderer.h>
 #include <GUI/Renderers/SmoothedMeshRenderer.h>
+#include <GUI/Renderers/VolumetricGPURenderer.h>
 #include <GUI/Renderers/VolumetricRenderer.h>
 #include <GUI/Renderers/SliceRenderer.h>
 #include <GUI/ViewManager.h>
@@ -188,6 +189,7 @@ EspinaMainWindow::EspinaMainWindow(EspinaModel      *model,
   // TODO: Pass smartpointers direcrtly to factory
   m_defaultRenderers << IRendererSPtr(new CrosshairRenderer());
   m_defaultRenderers << IRendererSPtr(new VolumetricRenderer());
+  m_defaultRenderers << IRendererSPtr(new VolumetricGPURenderer());
   m_defaultRenderers << IRendererSPtr(new MeshRenderer());
   m_defaultRenderers << IRendererSPtr(new SmoothedMeshRenderer());
   m_defaultRenderers << IRendererSPtr(new SliceRenderer());

@@ -26,6 +26,7 @@ qt4_wrap_cpp(GUI_MOC
   Representations/SliceRepresentation.h
   Representations/SimpleMeshRepresentation.h
   Representations/SmoothedMeshRepresentation.h
+  Representations/VolumeGPURepresentation.h
   Representations/VolumeRaycastRepresentation.h
   Renderers/Renderer.h
   vtkWidgets/RectangularRegion.h
@@ -73,12 +74,14 @@ set (GUI_SOURCES
   Representations/SliceRepresentation.cpp
   Representations/SimpleMeshRepresentation.cpp
   Representations/SmoothedMeshRepresentation.cpp
+  Representations/VolumeGPURepresentation.cpp
   Representations/VolumeRaycastRepresentation.cpp 
   Renderers/CrosshairRenderer.cpp
   Renderers/SliceRenderer.cpp
   Renderers/MeshRenderer.cpp
   Renderers/SmoothedMeshRenderer.cpp
   Renderers/VolumetricRenderer.cpp
+  Renderers/VolumetricGPURenderer.cpp
   vtkWidgets/ContourWidget.cpp
   vtkWidgets/EspinaWidget.cpp
   vtkWidgets/PlanarSplitSliceWidget.cpp
