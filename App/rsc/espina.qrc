@@ -79,5 +79,6 @@
     <file>tubular.svg</file>
     <file>edges-image.png</file>
     <file>edges-stack.png</file>
+    <file>slice.png</file>
   </qresource>
 </RCC>

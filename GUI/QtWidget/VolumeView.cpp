@@ -977,13 +977,13 @@ VolumeView::Settings::Settings(const EspinaFactory *factory,
   QSettings settings(CESVIMA, ESPINA);
 
   if (!settings.contains(RENDERERS))
-    settings.setValue(RENDERERS, QStringList() << "Crosshairs" << "Volumetric" << "Mesh" << "Smoothed Mesh");
+    settings.setValue(RENDERERS, QStringList() << "Crosshairs" << "Volumetric" << "Volumetric GPU" << "Mesh" << "Smoothed Mesh");
 
   QMap<QString, IRenderer *> renderers = factory->renderers();
   foreach(QString name, settings.value(RENDERERS).toStringList())
   {
     IRenderer *renderer = renderers.value(name, NULL);
-    if (renderer)
+    if (renderer && renderer->getRenderType().testFlag(IRenderer::RENDERER_VOLUMEVIEW))
       m_renderers << renderer;
   }
 }
@@ -1012,6 +1012,9 @@ void VolumeView::Settings::setRenderers(IRendererList values)
   // add controls for added renderers
   foreach(IRenderer *renderer, values)
   {
+    if (!renderer->getRenderType().testFlag(IRenderer::RENDERER_VOLUMEVIEW))
+      continue;
+
     activeRenderersNames << renderer->name();
     if (!activeRenderers.contains(renderer))
     {

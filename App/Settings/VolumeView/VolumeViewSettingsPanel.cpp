@@ -39,6 +39,9 @@ VolumeViewSettingsPanel::VolumeViewSettingsPanel(const EspinaFactoryPtr factory,
 
   foreach(IRenderer *renderer, m_factory->renderers())
   {
+    if (!renderer->getRenderType().testFlag(IRenderer::RENDERER_VOLUMEVIEW))
+      continue;
+
     QStandardItem *item = new QStandardItem(renderer->icon(), renderer->name());
     item->setDropEnabled(false);
     item->setDragEnabled(true);

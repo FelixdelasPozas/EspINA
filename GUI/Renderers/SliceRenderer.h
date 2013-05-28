@@ -35,8 +35,7 @@ namespace EspINA
       explicit SliceRenderer(QObject* parent = 0);
       virtual ~SliceRenderer();
 
-      // TODO: icon for slice renderer controls (unused, but not in the future)
-      virtual const QIcon icon()      const   { return QIcon(); }
+      virtual const QIcon icon()      const   { return QIcon(":/espina/slice.png"); }
       virtual const QString name()    const   { return "Slice"; }
       virtual const QString tooltip() const   { return "Segmentation's Slices"; }
 

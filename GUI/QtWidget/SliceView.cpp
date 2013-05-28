@@ -1586,6 +1586,18 @@ void SliceView::removeRendererControls(QString name)
 }
 
 //-----------------------------------------------------------------------------
+void SliceView::updateCrosshairPoint(PlaneType plane, Nm slicePos)
+{
+  m_crosshairPoint[plane] = voxelCenter(slicePos, plane);
+  m_state->setCrossHairs(m_HCrossLineData, m_VCrossLineData,
+                         m_crosshairPoint, m_sceneBounds, m_slicingStep);
+
+  // render if present
+  if (this->m_renderer->HasViewProp(this->m_HCrossLine))
+    updateView();
+}
+
+//-----------------------------------------------------------------------------
 // SLICEVIEW::SETTINGS
 //-----------------------------------------------------------------------------
 
@@ -1616,10 +1628,9 @@ SliceView::Settings::Settings(const EspinaFactoryPtr factory, SliceView *parent,
   foreach(QString name, settings.value(RENDERERS).toStringList())
   {
     IRenderer *renderer = renderers.value(name, NULL);
-    if (renderer)
+    if (renderer && renderer->getRenderType().testFlag(IRenderer::RENDERER_SLICEVIEW))
       m_renderers << renderer;
   }
-
 }
 
 //-----------------------------------------------------------------------------
@@ -1674,18 +1685,6 @@ void SliceView::Settings::setShowAxis(bool value)
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::updateCrosshairPoint(PlaneType plane, Nm slicePos)
-{
-  m_crosshairPoint[plane] = voxelCenter(slicePos, plane);
-  m_state->setCrossHairs(m_HCrossLineData, m_VCrossLineData,
-                         m_crosshairPoint, m_sceneBounds, m_slicingStep);
-
-  // render if present
-  if (this->m_renderer->HasViewProp(this->m_HCrossLine))
-    updateView();
-}
-
-//-----------------------------------------------------------------------------
 void SliceView::Settings::setRenderers(QList<IRenderer *> values)
 {
   QSettings settings(CESVIMA, ESPINA);
@@ -1709,6 +1708,9 @@ void SliceView::Settings::setRenderers(QList<IRenderer *> values)
   // add controls for added renderers
   foreach(IRenderer *renderer, values)
   {
+    if (!renderer->getRenderType().testFlag(IRenderer::RENDERER_SLICEVIEW))
+      continue;
+
     activeRenderersNames << renderer->name();
     if (!activeRenderers.contains(renderer))
     {
