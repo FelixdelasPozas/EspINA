@@ -34,6 +34,7 @@
 #include <vtkPolyDataSilhouette.h>
 #include <vtkRenderWindow.h>
 #include <vtkRendererCollection.h>
+#include <vtkImageContinuousDilate3D.h>
 
 namespace EspINA
 {
@@ -100,37 +101,49 @@ namespace EspINA
     connect(m_data.get(), SIGNAL(representationChanged()),
             this, SLOT(updatePipelineConnections()));
 
+    vtkImageData *vtkImage = vtkImageData::SafeDownCast(m_data->toVTK()->GetProducer()->GetOutputDataObject(0));
+    vtkImage->GetExtent(m_extent);
+
     m_reslice = vtkSmartPointer<vtkImageReslice>::New();
     m_reslice->SetInputConnection(m_data->toVTK());
     m_reslice->SetOutputDimensionality(2);
     m_reslice->InterpolateOff();
+    m_reslice->AutoCropOutputOn();
     m_reslice->SetResliceAxes(slicingMatrix(view));
     m_reslice->SetNumberOfThreads(1);
     m_reslice->Update();
 
+    // we need to dilate the border of the slice image by one (later in the dilate)
+    // and also have a background border of one voxel, that's the reason for the add/subtract 2
+    int extent[6];
     vtkImageData *image = m_reslice->GetOutput();
-    image->GetExtent(m_extent);
-    m_extent[0]--;
-    m_extent[1]++;
-    m_extent[2]--;
-    m_extent[3]++;
-    m_extent[4]--;
-    m_extent[5]++;
+    image->GetExtent(extent);
+    extent[0] -= 2;
+    extent[1] += 2;
+    extent[2] -= 2;
+    extent[3] += 2;
+    extent[4] -= 2;
+    extent[5] += 2;
 
     m_pad = vtkSmartPointer<vtkImageConstantPad>::New();
     m_pad->SetInputConnection(m_reslice->GetOutputPort());
-    m_pad->SetOutputWholeExtent(m_extent);
+    m_pad->SetOutputWholeExtent(extent);
     m_pad->SetConstant(SEG_BG_VALUE);
+    m_pad->Update();
+
+    vtkSmartPointer<vtkImageContinuousDilate3D> dilate = vtkSmartPointer<vtkImageContinuousDilate3D>::New();
+    dilate->SetInputConnection(m_pad->GetOutputPort());
+    dilate->SetKernelSize(3,3,1);
+    dilate->Update();
 
     vtkSmartPointer<vtkContourFilter> contour = vtkSmartPointer<vtkContourFilter>::New();
-    contour->SetInputConnection(m_pad->GetOutputPort());
+    contour->SetInputConnection(dilate->GetOutputPort());
     contour->ComputeGradientsOff();
     contour->ComputeNormalsOff();
     contour->ComputeScalarsOff();
-    contour->SetNumberOfContours(2);
+    contour->SetNumberOfContours(1);
     contour->UseScalarTreeOn(); // UseScalarTreeOn() uses more memory, but extracts the contour faster
     contour->SetValue(0, SEG_VOXEL_VALUE);
-    contour->SetValue(1, SEG_BG_VALUE);
     contour->Update();
 
     vtkSmartPointer<vtkPolyDataSilhouette> silhouette = vtkSmartPointer<vtkPolyDataSilhouette>::New();
@@ -209,21 +222,29 @@ namespace EspINA
       m_reslice->Update();
     }
 
-    vtkImageData *image = m_reslice->GetOutput();
     int extent[6];
+    vtkImageData *image = vtkImageData::SafeDownCast(m_data->toVTK()->GetProducer()->GetOutputDataObject(0));
     image->GetExtent(extent);
-    extent[0]--;
-    extent[1]++;
-    extent[2]--;
-    extent[3]++;
-    extent[4]--;
-    extent[5]++;
 
     if (memcmp(m_extent, extent, 6*sizeof(int)) != 0)
     {
-      memcpy(m_extent, extent, 6*sizeof(int));
-      m_pad->SetOutputWholeExtent(m_extent);
+      m_reslice->UpdateWholeExtent();
+      m_reslice->Update();
+      image = m_reslice->GetOutput();
+      image->GetExtent(extent);
+      extent[0] -= 2;
+      extent[1] += 2;
+      extent[2] -= 2;
+      extent[3] += 2;
+      extent[4] -= 2;
+      extent[5] += 2;
+
+      m_pad->SetOutputWholeExtent(extent);
+      m_pad->UpdateWholeExtent();
+      m_pad->Update();
     }
+
+
   }
 
 } /* namespace EspINA */
