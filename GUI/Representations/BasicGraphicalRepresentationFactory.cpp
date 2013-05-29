@@ -24,6 +24,7 @@
 #include "VolumeRaycastRepresentation.h"
 #include "CrosshairRepresentation.h"
 #include "VolumeGPURepresentation.h"
+#include "ContourRepresentation.h"
 
 #include <Core/OutputRepresentations/MeshType.h>
 #include <Core/OutputRepresentations/VolumeRepresentation.h>
@@ -50,6 +51,7 @@ void BasicGraphicalRepresentationFactory::createGraphicalRepresentations(Segment
     output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new VolumeRaycastRepresentation    (volumeRep, NULL)));
     output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new VolumeGPURaycastRepresentation (volumeRep, NULL)));
     output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new SegmentationSliceRepresentation(volumeRep, NULL)));
+    output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new ContourRepresentation          (volumeRep, NULL)));
   }
 }
 

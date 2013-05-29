@@ -49,9 +49,9 @@ namespace EspINA
   public:
     enum RenderableViews
     {
-      RENDERABLEVIEW_SLICE,
-      RENDERABLEVIEW_VOLUME,
-      RENDERABLEVIEW_UNDEFINED
+      RENDERABLEVIEW_SLICE     = 0x1,
+      RENDERABLEVIEW_VOLUME    = 0x2,
+      RENDERABLEVIEW_UNDEFINED = 0x4
     };
     Q_DECLARE_FLAGS(RenderableView, RenderableViews);
 

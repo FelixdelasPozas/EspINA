@@ -184,7 +184,6 @@ void RawMesh::restoreEditedRegions(const QDir &cacheDir, const QString &outputId
 
 }
 
-
 //----------------------------------------------------------------------------
 vtkAlgorithmOutput *RawMesh::mesh()
 {

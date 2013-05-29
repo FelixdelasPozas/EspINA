@@ -1621,8 +1621,11 @@ SliceView::Settings::Settings(const EspinaFactoryPtr factory, SliceView *parent,
 
   m_parent = parent;
 
+  // FIXME: if not removed then the newly added renderers wont be added
+  settings.remove(RENDERERS);
+
   if (!settings.contains(RENDERERS))
-    settings.setValue(RENDERERS, QStringList() << "Slice");
+    settings.setValue(RENDERERS, QStringList() << "Slice" << "Contour");
 
   QMap<QString, IRenderer *> renderers = factory->renderers();
   foreach(QString name, settings.value(RENDERERS).toStringList())

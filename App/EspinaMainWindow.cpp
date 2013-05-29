@@ -59,6 +59,7 @@
 #include <GUI/Renderers/VolumetricGPURenderer.h>
 #include <GUI/Renderers/VolumetricRenderer.h>
 #include <GUI/Renderers/SliceRenderer.h>
+#include <GUI/Renderers/ContourRenderer.h>
 #include <GUI/ViewManager.h>
 #include <Core/Filters/ChannelReader.h>
 #include <App/Undo/UndoableEspinaModel.h>
@@ -193,6 +194,7 @@ EspinaMainWindow::EspinaMainWindow(EspinaModel      *model,
   m_defaultRenderers << IRendererSPtr(new MeshRenderer());
   m_defaultRenderers << IRendererSPtr(new SmoothedMeshRenderer());
   m_defaultRenderers << IRendererSPtr(new SliceRenderer());
+  m_defaultRenderers << IRendererSPtr(new ContourRenderer());
 
   foreach(IRendererSPtr renderer, m_defaultRenderers)
     factory->registerRenderer(renderer.get());
