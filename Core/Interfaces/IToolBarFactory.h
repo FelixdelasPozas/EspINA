@@ -16,14 +16,11 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef ITOOLBAR_H
-#define ITOOLBAR_H
+#ifndef ITOOLBARFACTORY_H
+#define ITOOLBARFACTORY_H
 
+#include "Core/Interfaces/IToolBar.h"
 // Qt
-#include <QToolBar>
-
-// c++
-#include <limits.h>
 
 class QUndoStack;
 
@@ -32,31 +29,19 @@ namespace EspINA
   class EspinaModel;
   class ViewManager;
 
-  class IToolBar
-  : public QToolBar
+  class IToolBarFactory
   {
-    Q_OBJECT
   public:
-    explicit IToolBar(QWidget *parent = 0)
-    : QToolBar(parent)
-    , m_undoIndex(INT_MAX) {}
-    explicit IToolBar(const QString &title, QWidget *parent = 0)
-    : QToolBar(title, parent)
-    , m_undoIndex(INT_MAX) {}
-    virtual ~IToolBar(){}
+    virtual void initToolBarFactory(EspinaModel *model,
+                                    QUndoStack  *undoStack,
+                                    ViewManager *viewManager) = 0;
 
-  public slots:
-    /// Restore toolbar state to its initial state. Every widgets and tools
-    /// created by this toolbar must be removed
-    virtual void resetToolbar() = 0;
-
-    
-    virtual void abortOperation() = 0;
-
-  protected:
-    int m_undoIndex;
+    virtual QList<IToolBar *> toolBars() const = 0;
   };
 
 } // namespace EspINA
 
-#endif //ITOOLBAR_H
+Q_DECLARE_INTERFACE(EspINA::IToolBarFactory,
+                    "es.upm.cesvima.EspINA.ToolBarInterface/1.4")
+
+#endif //ITOOLBARFACTORY_H

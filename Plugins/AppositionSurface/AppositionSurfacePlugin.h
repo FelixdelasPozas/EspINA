@@ -26,14 +26,15 @@
 #include <Core/Interfaces/IDynamicMenu.h>
 #include <Core/Interfaces/IFactoryExtension.h>
 #include <Core/Interfaces/IFilterCreator.h>
-#include <Core/Interfaces/IToolBar.h>
+#include <Core/Interfaces/IToolBarFactory.h>
 #include <GUI/ISettingsPanel.h>
 #include <GUI/ViewManager.h>
 
 namespace EspINA
 {
   class AppositionSurface
-  : public IToolBar
+  : public QObject
+  , public IToolBarFactory
   , public IFactoryExtension
   , public IFilterCreator
   , public IDynamicMenu
@@ -41,7 +42,7 @@ namespace EspINA
     Q_OBJECT
     Q_INTERFACES
     (
-      EspINA::IToolBar
+      EspINA::IToolBarFactory
       EspINA::IFactoryExtension
       EspINA::IFilterCreator
       EspINA::IDynamicMenu
@@ -51,11 +52,13 @@ namespace EspINA
     explicit AppositionSurface();
     virtual ~AppositionSurface();
 
-    virtual void initToolBar(EspinaModel *model,
-                             QUndoStack  *undoStack,
-                             ViewManager *viewManager);
+    virtual void initToolBarFactory(EspinaModel *model,
+                                    QUndoStack  *undoStack,
+                                    ViewManager *viewManager);
 
     virtual void initFactoryExtension(EspinaFactory *factory);
+
+    virtual QList<IToolBar *> toolBars() const;
 
     virtual FilterSPtr createFilter(const QString              &filter,
                                     const Filter::NamedInputs  &inputs,
@@ -63,15 +66,12 @@ namespace EspINA
 
     virtual QList<MenuEntry> menuEntries();
 
+    virtual void resetMenus() {}
+
   public slots:
     void createSynapticAppositionSurfaceAnalysis();
 
-    void selectionChanged(ViewManager::Selection selection, bool unused);
-
     void segmentationAdded(SegmentationSPtr segmentation);
-
-    virtual void reset();
-    virtual void abortOperation() {};
 
   private:
     static bool isSynapse(SegmentationPtr segmentation);
@@ -81,7 +81,7 @@ namespace EspINA
     EspinaModel                   *m_model;
     QUndoStack                    *m_undoStack;
     ViewManager                   *m_viewManager;
-    QAction                       *m_action;
+    IToolBar                      *m_toolbar;
     ISettingsPanelPrototype        m_settings;
     AppositionSurfaceExtensionSPtr m_extension;
   };

@@ -37,7 +37,6 @@ namespace EspINA
     Q_OBJECT
     Q_INTERFACES
     (
-      EspINA::IToolBar
       EspINA::IFactoryExtension
       EspINA::IFilterCreator
     )
@@ -49,17 +48,13 @@ namespace EspINA
                                 QWidget     *parent = 0);
     virtual ~CompositionToolBar();
 
-    virtual void initToolBar(EspinaModel *model,
-                             QUndoStack  *undoStack,
-                             ViewManager *viewManager);
-
     virtual void initFactoryExtension(EspinaFactory *factory);
 
     virtual FilterSPtr createFilter(const QString              &filter,
                                     const Filter::NamedInputs  &inputs,
                                     const ModelItem::Arguments &args);
 
-    virtual void reset(); // slot
+    virtual void resetToolbar(); // slot
     virtual void abortOperation() {};
 
   private slots:

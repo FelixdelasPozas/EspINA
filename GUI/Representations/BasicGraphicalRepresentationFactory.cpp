@@ -46,12 +46,21 @@ void BasicGraphicalRepresentationFactory::createGraphicalRepresentations(Segment
     SegmentationVolumeSPtr volumeRep = segmentationVolume(output);
     MeshRepresentationSPtr meshRep   = meshRepresentation(output);
 
-    output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new SimpleMeshRepresentation       (meshRep,   NULL)));
-    output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new SmoothedMeshRepresentation     (meshRep,   NULL)));
-    output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new VolumeRaycastRepresentation    (volumeRep, NULL)));
-    output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new VolumeGPURaycastRepresentation (volumeRep, NULL)));
-    output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new SegmentationSliceRepresentation(volumeRep, NULL)));
-    output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new ContourRepresentation          (volumeRep, NULL)));
+    GraphicalRepresentationSPtr simpleMeshRepresentation      (new SimpleMeshRepresentation       (meshRep,   NULL));
+    GraphicalRepresentationSPtr smoothedMeshRepresentation    (new SmoothedMeshRepresentation     (meshRep,   NULL));
+    GraphicalRepresentationSPtr volumeRaycastRepresentation   (new VolumeRaycastRepresentation    (volumeRep, NULL));
+    GraphicalRepresentationSPtr volumeGPURayCastRepresentation(new VolumeGPURaycastRepresentation (volumeRep, NULL));
+    GraphicalRepresentationSPtr sliceRepresentation           (new SegmentationSliceRepresentation(volumeRep, NULL));
+    GraphicalRepresentationSPtr contourRepresentation         (new ContourRepresentation          (volumeRep, NULL));
+
+    contourRepresentation->setActive(false);
+
+    output->addGraphicalRepresentation(simpleMeshRepresentation      );
+    output->addGraphicalRepresentation(smoothedMeshRepresentation    );
+    output->addGraphicalRepresentation(volumeRaycastRepresentation   );
+    output->addGraphicalRepresentation(volumeGPURayCastRepresentation);
+    output->addGraphicalRepresentation(sliceRepresentation           );
+    output->addGraphicalRepresentation(contourRepresentation         );
   }
 }
 

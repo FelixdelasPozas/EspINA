@@ -53,6 +53,7 @@ QT4_WRAP_CPP(MOC_SOURCES
   GUI/Settings/AppositionSurfaceSettings.h
   GUI/FilterInspector/AppositionSurfaceFilterInspector.h
   GUI/AppositionSurfaceAction.h
+  GUI/AppositionSurfaceToolbar.h
 
   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
 )
@@ -61,17 +62,17 @@ set (PLUGIN_SOURCES
   ${MOC_SOURCES}
   ${RCC_BUILT_SOURCES}
   ${UI_BUILT_SOURCES}
-  AppositionSurfacePlugin.cpp
   Analysis/SynapticAppositionSurfaceAnalysis.cpp
-  Core/Extensions/AppositionSurfaceExtension.cpp
-  Core/ASVolumeProxy.cpp
+  AppositionSurfacePlugin.cpp
   Core/ASMeshProxy.cpp 
-#Core/AppositionSurfaceVolume.cpp
-  GUI/Settings/AppositionSurfaceSettings.cpp
-  GUI/FilterInspector/AppositionSurfaceFilterInspector.cpp
-  Undo/AppositionSurfaceCommand.cpp
-  GUI/AppositionSurfaceAction.cpp
+  Core/ASVolumeProxy.cpp
+  Core/Extensions/AppositionSurfaceExtension.cpp
   Filter/AppositionSurfaceFilter.cpp
+  GUI/AppositionSurfaceAction.cpp
+  GUI/AppositionSurfaceToolbar.cpp
+  GUI/FilterInspector/AppositionSurfaceFilterInspector.cpp
+  GUI/Settings/AppositionSurfaceSettings.cpp
+  Undo/AppositionSurfaceCommand.cpp
 )
 
 set (PLUGIN_LIBRARIES

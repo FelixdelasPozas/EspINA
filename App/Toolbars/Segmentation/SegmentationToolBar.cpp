@@ -121,13 +121,6 @@ SegmentationToolBar::~SegmentationToolBar()
 }
 
 //-----------------------------------------------------------------------------
-void SegmentationToolBar::initToolBar(EspinaModel *model,
-                                      QUndoStack  *undoStack,
-                                      ViewManager *viewManager)
-{
-}
-
-//-----------------------------------------------------------------------------
 void SegmentationToolBar::initFactoryExtension(EspinaFactory *factory)
 {
   // Register Factory's filters
@@ -185,7 +178,7 @@ void SegmentationToolBar::cancelSegmentationOperation()
 }
 
 //------------------------------------------------------------------------
-void SegmentationToolBar::reset()
+void SegmentationToolBar::resetToolbar()
 {
   cancelSegmentationOperation();
   cancelTubularSegmentationOperation();

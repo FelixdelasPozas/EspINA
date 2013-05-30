@@ -70,7 +70,11 @@ GraphicalRepresentationSPtr GraphicalRepresentation::clone(SliceView *view)
   GraphicalRepresentationSPtr representation = cloneImplementation(view);
 
   if (representation)
+  {
+    representation->setActive(isActive());
+
     m_clones << representation;
+  }
 
   return representation;
 }

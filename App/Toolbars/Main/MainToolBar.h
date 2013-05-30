@@ -51,11 +51,6 @@ namespace EspINA
   : public IToolBar
   {
     Q_OBJECT
-    Q_INTERFACES
-    (
-      EspINA::IToolBar
-    )
-
   public:
     explicit MainToolBar(EspinaModel *model,
                          QUndoStack  *undoStack,
@@ -63,11 +58,7 @@ namespace EspINA
                          QWidget     *parent = 0);
     virtual ~MainToolBar();
 
-    virtual void initToolBar(EspinaModel *model,
-                             QUndoStack  *undoStack,
-                             ViewManager *viewManager);
-
-    virtual void reset(); // slot
+  virtual void resetToolbar();// slot
 
   public slots:
     void setShowSegmentations(bool visible);

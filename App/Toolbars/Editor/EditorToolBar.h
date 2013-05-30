@@ -51,7 +51,6 @@ namespace EspINA
     Q_OBJECT
     Q_INTERFACES
     (
-      EspINA::IToolBar
       EspINA::IFactoryExtension
       EspINA::IFilterCreator
     )
@@ -70,15 +69,15 @@ namespace EspINA
                            QWidget     *parent = 0);
     virtual ~EditorToolBar();
 
-    virtual void initToolBar(EspinaModel *model,
-                             QUndoStack  *undoStack,
-                             ViewManager *viewManager);
-
     virtual void initFactoryExtension(EspinaFactory *factory);
 
     virtual FilterSPtr createFilter(const QString              &filter,
                                     const Filter::NamedInputs  &inputs,
                                     const ModelItem::Arguments &args);
+
+    virtual void resetToolbar();
+
+    virtual void abortOperation();
 
   protected slots:
     void changeCircularBrushMode(Brush::BrushMode mode);
@@ -96,9 +95,6 @@ namespace EspINA
     void erodeSegmentations();
     void fillHoles();
     void updateAvailableOperations();
-
-    virtual void reset();
-    virtual void abortOperation();
 
   private:
     void initDrawTools();

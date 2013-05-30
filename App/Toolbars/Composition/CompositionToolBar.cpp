@@ -64,14 +64,6 @@ CompositionToolBar::~CompositionToolBar()
 }
 
 //----------------------------------------------------------------------------
-void CompositionToolBar::initToolBar(EspinaModel *model,
-                                     QUndoStack  *undoStack,
-                                     ViewManager *viewManager)
-{
-
-}
-
-//----------------------------------------------------------------------------
 void CompositionToolBar::initFactoryExtension(EspinaFactoryPtr factory)
 {
   factory->registerFilter(this, CompositionCommand::FILTER_TYPE);
@@ -91,7 +83,7 @@ FilterSPtr CompositionToolBar::createFilter(const QString              &filter,
 }
 
 //----------------------------------------------------------------------------
-void CompositionToolBar::reset()
+void CompositionToolBar::resetToolbar()
 {
   updateAvailableOperations();
 }

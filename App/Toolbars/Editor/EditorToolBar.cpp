@@ -262,12 +262,6 @@ EditorToolBar::~EditorToolBar()
 }
 
 
-//----------------------------------------------------------------------------
-void EditorToolBar::initToolBar(EspinaModel *model,
-                                QUndoStack  *undoStack,
-                                ViewManager *viewManager)
-{
-}
 
 //----------------------------------------------------------------------------
 void EditorToolBar::initFactoryExtension(EspinaFactoryPtr factory)
@@ -768,7 +762,7 @@ void EditorToolBar::updateAvailableOperations()
 }
 
 //----------------------------------------------------------------------------
-void EditorToolBar::reset()
+void EditorToolBar::resetToolbar()
 {
   if (m_drawToolSelector->isChecked())
     cancelDrawOperation();

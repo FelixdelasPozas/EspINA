@@ -95,7 +95,7 @@ void VolumeOfInterest::cancelVOI()
 }
 
 //-----------------------------------------------------------------------------
-void VolumeOfInterest::reset()
+void VolumeOfInterest::resetToolbar()
 {
   cancelVOI();
 }

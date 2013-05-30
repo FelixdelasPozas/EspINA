@@ -210,7 +210,7 @@ namespace EspINA
   //-----------------------------------------------------------------------------
   void ContourRepresentation::updateVisibility(bool visible)
   {
-    m_actor->SetVisibility(visible);
+    if (m_actor) m_actor->SetVisibility(visible);
   }
 
   //-----------------------------------------------------------------------------

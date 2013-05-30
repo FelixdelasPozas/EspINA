@@ -93,7 +93,7 @@ void ZoomToolBar::initZoomTool(bool value)
 }
 
 //----------------------------------------------------------------------------
-void ZoomToolBar::reset()
+void ZoomToolBar::resetToolbar()
 {
   if (m_zoomToolAction->isChecked())
   {

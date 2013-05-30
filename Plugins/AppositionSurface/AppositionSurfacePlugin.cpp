@@ -22,6 +22,7 @@
 #include "GUI/Settings/AppositionSurfaceSettings.h"
 #include "GUI/FilterInspector/AppositionSurfaceFilterInspector.h"
 #include "GUI/AppositionSurfaceAction.h"
+#include "GUI/AppositionSurfaceToolbar.h"
 #include "Undo/AppositionSurfaceCommand.h"
 
 // EspINA
@@ -48,12 +49,10 @@ AppositionSurface::AppositionSurface()
 , m_model(NULL)
 , m_undoStack(NULL)
 , m_viewManager(NULL)
-, m_action(NULL)
+, m_toolbar(NULL)
 , m_settings(ISettingsPanelPrototype(new AppositionSurfaceSettings()))
 , m_extension(new AppositionSurfaceExtension())
 {
-  setObjectName("SinapticAppositionSurfacePlugin");
-  setWindowTitle(tr("Sinaptic Apposition Surface Tool Bar"));
 }
 
 //-----------------------------------------------------------------------------
@@ -65,23 +64,14 @@ AppositionSurface::~AppositionSurface()
   m_factory->unregisterSettingsPanel(m_settings.get());
   m_factory->unregisterSegmentationExtension(m_extension.get());
   // filters can't be unregistered, is this a problem?
-
-  delete m_action;
 }
 
 //-----------------------------------------------------------------------------
-void AppositionSurface::initToolBar(EspinaModel *model, QUndoStack *undoStack, ViewManager *viewManager)
+void AppositionSurface::initToolBarFactory(EspinaModel *model, QUndoStack *undoStack, ViewManager *viewManager)
 {
   m_model = model;
   m_undoStack = undoStack;
   m_viewManager = viewManager;
-
-  m_action = new AppositionSurfaceAction(m_viewManager, m_undoStack, m_model, this);
-  m_action->setToolTip("Create a synaptic apposition surface from selected segmentations.");
-  addAction(m_action);
-
-  connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection, bool)), this,
-          SLOT(selectionChanged(ViewManager::Selection, bool)));
 
   // for automatic computation of SAS
   connect(m_model, SIGNAL(segmentationAdded(SegmentationSPtr)),
@@ -101,6 +91,21 @@ void AppositionSurface::initFactoryExtension(EspinaFactory *factory)
 
   // register filter
   factory->registerFilter(this, AppositionSurfaceCommand::FILTER_TYPE);
+}
+
+//-----------------------------------------------------------------------------
+QList<IToolBar *> AppositionSurface::toolBars() const
+{
+  QList<IToolBar *> toolBars;
+
+  AppositionSurfaceToolbar *toolBar = new AppositionSurfaceToolbar(m_model, m_undoStack, m_viewManager);
+
+  connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection, bool)), toolBar,
+          SLOT(selectionChanged(ViewManager::Selection, bool)));
+
+  toolBars << toolBar;
+
+  return toolBars;
 }
 
 //-----------------------------------------------------------------------------
@@ -176,7 +181,7 @@ void AppositionSurface::createSynapticAppositionSurfaceAnalysis()
       m_model->taxonomy()->element(SAS)->addProperty(QString("Dim_Z"), QVariant("500"));
     }
 
-    SASA *analysis = new SASA(synapsis, m_model, m_undoStack, m_viewManager, this);
+    SASA *analysis = new SASA(synapsis, m_model, m_undoStack, m_viewManager, m_toolbar);
 
     if (createTaxonomy)
       m_undoStack->endMacro();
@@ -185,35 +190,8 @@ void AppositionSurface::createSynapticAppositionSurfaceAnalysis()
   }
   else
   {
-    QMessageBox::warning(this, ESPINA, tr("Current analysis does not contain any synapses"));
+    QMessageBox::warning(m_toolbar, ESPINA, tr("Current analysis does not contain any synapses"));
   }
-}
-
-//-----------------------------------------------------------------------------
-void AppositionSurface::selectionChanged(ViewManager::Selection selection, bool unused)
-{
-  QString toolTip("Create a synaptic apposition surface from selected segmentations.");
-  bool enabled = false;
-
-  foreach(PickableItemPtr item, selection)
-  {
-    if (item->type() == SEGMENTATION && isSynapse(segmentationPtr(item)))
-    {
-      enabled = true;
-      break;
-    }
-  }
-
-  if (!enabled)
-    toolTip += QString("\n(Requires a selection of one or more segmentations from 'Synapse' taxonomy)");
-
-  m_action->setToolTip(toolTip);
-  m_action->setEnabled(enabled);
-}
-
-//-----------------------------------------------------------------------------
-void AppositionSurface::reset()
-{
 }
 
 //-----------------------------------------------------------------------------

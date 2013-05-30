@@ -49,6 +49,7 @@
 #include <Core/Interfaces/IFactoryExtension.h>
 #include <Core/Interfaces/IFileReader.h>
 #include <Core/Interfaces/IToolBar.h>
+#include <Core/Interfaces/IToolBarFactory.h>
 #include <Core/Model/EspinaFactory.h>
 #include <Core/Model/EspinaModel.h>
 #include <Core/Extensions/EdgeDistances/AdaptiveEdges.h>
@@ -455,12 +456,15 @@ void EspinaMainWindow::loadPlugins(QList<QObject *> &plugins)
       factoryExtension->initFactoryExtension(m_model->factory());
     }
 
-    IToolBar *toolbar = qobject_cast<IToolBar *>(plugin);
-    if (toolbar)
+    IToolBarFactory *toolbarFactory = qobject_cast<IToolBarFactory *>(plugin);
+    if (toolbarFactory)
     {
       qDebug() << plugin << "- ToolBar ... OK";
-      toolbar->initToolBar(m_model, m_undoStack, m_viewManager);
-      registerToolBar(toolbar);
+      toolbarFactory->initToolBarFactory(m_model, m_undoStack, m_viewManager);
+      foreach(IToolBar *toolbar, toolbarFactory->toolBars())
+      {
+        registerToolBar(toolbar);
+      }
     }
 
     IDynamicMenu *menu = qobject_cast<IDynamicMenu *>(plugin);
@@ -587,7 +591,7 @@ void EspinaMainWindow::registerDockWidget(Qt::DockWidgetArea area, IDockWidget* 
 void EspinaMainWindow::registerToolBar(IToolBar* toolbar)
 {
   connect(this, SIGNAL(analysisClosed()),
-          toolbar, SLOT(reset()));
+          toolbar, SLOT(resetToolbar()));
   connect(this, SIGNAL(abortOperation()),
           toolbar, SLOT(abortOperation()));
   addToolBar(toolbar);

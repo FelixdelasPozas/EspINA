@@ -397,7 +397,7 @@ void BrushPicker::startPreview(EspinaRenderView* view)
   m_lut->SetNumberOfTableValues(2);
   m_lut->Build();
   m_lut->SetTableValue(0, 0.0, 0.0, 0.0, 0.0);
-  m_lut->SetTableValue(1, m_brushColor.redF(), m_brushColor.greenF(), m_brushColor.blueF(), 1.0);
+  m_lut->SetTableValue(1, m_brushColor.redF(), m_brushColor.greenF(), m_brushColor.blueF(), 0.8);
   m_lut->Modified();
 
   int extent[6];

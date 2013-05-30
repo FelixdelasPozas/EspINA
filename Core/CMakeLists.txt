@@ -28,6 +28,7 @@ qt4_wrap_cpp(CORE_MOC
   OutputRepresentations/VolumeProxy.h
   Interfaces/IDockWidget.h
   Interfaces/IToolBar.h
+
   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
   )
 

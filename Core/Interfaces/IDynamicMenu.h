@@ -37,11 +37,11 @@ namespace EspINA
 
       virtual QList<MenuEntry> menuEntries() = 0;
 
-      virtual void reset() = 0;
+      virtual void resetMenus() = 0;
   };
 }
 
 Q_DECLARE_INTERFACE(EspINA::IDynamicMenu,
-                    "es.upm.cesvima.EspINA.DynamicMenuInterface/1.0")
+                    "es.upm.cesvima.EspINA.DynamicMenuInterface/1.1")
 
 #endif //IDYNAMICMENU_H

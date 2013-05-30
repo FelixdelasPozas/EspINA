@@ -43,12 +43,12 @@ namespace EspINA
     virtual void initToolBar(EspinaModel *model,
                              QUndoStack  *undoStack,
                              ViewManager *viewManager);
+    virtual void resetToolbar();
+    virtual void abortOperation() {};
+
   public slots:
     virtual void resetViews();
     virtual void initZoomTool(bool);
-
-    virtual void reset();
-    virtual void abortOperation() {};
 
   private:
     ViewManager *m_viewManager;

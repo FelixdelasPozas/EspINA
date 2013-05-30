@@ -52,7 +52,6 @@ namespace EspINA
     Q_OBJECT
     Q_INTERFACES
     (
-      EspINA::IToolBar
       EspINA::IFactoryExtension
       EspINA::IFilterCreator
       EspINA::IDynamicMenu
@@ -65,9 +64,6 @@ namespace EspINA
                         QWidget     *parent=NULL);
     virtual ~SegmentationToolBar();
 
-    virtual void initToolBar(EspinaModel *model,
-                             QUndoStack  *undoStack,
-                             ViewManager *viewManager);
     virtual void initFactoryExtension(EspinaFactory *factory);
 
     virtual FilterSPtr createFilter(const QString             &filter,
@@ -76,6 +72,13 @@ namespace EspINA
 
     virtual QList<MenuEntry> menuEntries();
 
+
+    virtual void resetToolbar();
+
+    virtual void abortOperation() {};
+
+    virtual void resetMenus() {}
+
   protected slots:
     /// Change picker
     void changePicker(QAction *action);
@@ -83,9 +86,6 @@ namespace EspINA
     void tubularActionStateChanged(bool segmenting);
     void showNodesInformation();
     void cancelTubularSegmentationOperation();
-
-    virtual void reset();
-    virtual void abortOperation() {};
 
     void batchMode();
 

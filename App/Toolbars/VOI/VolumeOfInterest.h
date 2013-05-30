@@ -48,13 +48,14 @@ namespace EspINA
     virtual void initToolBar(EspinaModel *model,
                              QUndoStack  *undoStack,
                              ViewManager *viewManager);
+    virtual void resetToolbar();
+
+    virtual void abortOperation() {};
+
   protected slots:
     void changeVOI(QAction *action);
     void cancelVOI();
 
-    virtual void reset();
-
-    virtual void abortOperation() {};
 
   private:
     void buildVOIs();

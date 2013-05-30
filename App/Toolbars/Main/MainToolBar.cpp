@@ -119,15 +119,6 @@ MainToolBar::~MainToolBar()
 }
 
 //----------------------------------------------------------------------------
-void MainToolBar::initToolBar(EspinaModel *model,
-                              QUndoStack  *undoStack,
-                              ViewManager *viewManager)
-{
-
-}
-
-
-//----------------------------------------------------------------------------
 void MainToolBar::setShowSegmentations(bool visible)
 {
 //   std::filebuf fb;
@@ -147,7 +138,7 @@ void MainToolBar::setShowSegmentations(bool visible)
 }
 
 //----------------------------------------------------------------------------
-void MainToolBar::reset()
+void MainToolBar::resetToolbar()
 {
   setShowSegmentations(true);
   toggleMeasureTool(false);

@@ -109,7 +109,8 @@ GraphicalRepresentationSPtr ChannelSliceRepresentation::cloneImplementation(Slic
 //-----------------------------------------------------------------------------
 void ChannelSliceRepresentation::updateVisibility(bool visible)
 {
-  slice->SetVisibility(visible);
+  if (slice)
+    slice->SetVisibility(visible);
 }
 
 //-----------------------------------------------------------------------------
