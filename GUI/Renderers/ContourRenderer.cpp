@@ -20,6 +20,7 @@
 #include "ContourRenderer.h"
 #include "GUI/Representations/ContourRepresentation.h"
 #include "GUI/QtWidget/EspinaRenderView.h"
+#include <GUI/QtWidget/SliceView.h>
 
 // VTK
 #include <vtkPropPicker.h>
@@ -55,6 +56,7 @@ namespace EspINA
       if (m_enable)
         foreach(vtkProp* prop, rep->getActors())
         {
+          prop->SetPickable(true);
           m_view->addActor(prop);
           m_picker->AddPickList(prop);
         }
@@ -90,5 +92,75 @@ namespace EspINA
     ContourRepresentationSPtr contour = boost::dynamic_pointer_cast<ContourRepresentation>(rep);
     return (contour.get() != NULL);
   }
+
+  //-----------------------------------------------------------------------------
+  ViewManager::Selection ContourRenderer::pick(int x, int y, Nm z, vtkSmartPointer<vtkRenderer> renderer, RenderabledItems itemType, bool repeat)
+  {
+    // FIXME: apparently the contours can't be picked, even when the actors
+    // have been marked as pickable a call to m_picker->Pick() always returns
+    // empty (just actors hard to pinpoint?)
+    ViewManager::Selection selection;
+    QList<vtkProp *> removedProps;
+
+    if (!renderer || !renderer.GetPointer() || !itemType.testFlag(EspINA::SEGMENTATION))
+      return selection;
+
+    Nm pickPoint[3] = { x, y, ((m_view->getViewType() == AXIAL) ? -SliceView::SEGMENTATION_SHIFT : SliceView::SEGMENTATION_SHIFT) };
+
+    while (m_picker->Pick(pickPoint, renderer))
+    {
+      vtkProp *pickedProp = m_picker->GetViewProp();
+      Q_ASSERT(pickedProp);
+
+      Nm point[3];
+      m_picker->GetPickPosition(point);
+      switch (m_view->getViewType())
+      {
+        case AXIAL:
+          point[2] = z;
+          break;
+        case CORONAL:
+          point[1] = z;
+          break;
+        case SAGITTAL:
+          point[0] = z;
+          break;
+        default:
+          Q_ASSERT(false);
+          break;
+      }
+
+      m_picker->DeletePickList(pickedProp);
+      removedProps << pickedProp;
+
+      foreach(PickableItemPtr item, m_representations.keys())
+      {
+        if (!itemType.testFlag(item->type()))
+        continue;
+
+        foreach(GraphicalRepresentationSPtr rep, m_representations[item])
+          if (rep->isVisible() && rep->hasActor(pickedProp) && rep->isInside(point) && !selection.contains(item))
+          {
+            selection << item;
+
+            if (!repeat)
+            {
+              foreach(vtkProp *actor, removedProps)
+                m_picker->AddPickList(actor);
+
+              return selection;
+            }
+
+            break;
+          }
+      }
+    }
+
+    foreach(vtkProp *actor, removedProps)
+      m_picker->AddPickList(actor);
+
+    return selection;
+  }
+
 
 } /* namespace EspINA */

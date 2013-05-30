@@ -22,6 +22,7 @@
 #include <GUI/ViewManager.h>
 #include "GUI/QtWidget/EspinaRenderView.h"
 #include <Core/Model/PickableItem.h>
+#include <GUI/QtWidget/SliceView.h>
 
 // VTK
 #include <vtkPropPicker.h>
@@ -178,17 +179,33 @@ namespace EspINA
     if (!renderer || !renderer.GetPointer() || (!itemType.testFlag(EspINA::CHANNEL) && !itemType.testFlag(EspINA::SEGMENTATION)))
       return selection;
 
-    while (m_picker->Pick(x, y, z, renderer))
+    Nm pickPoint[3] = { x, y, ((m_view->getViewType() == AXIAL) ? -SliceView::SEGMENTATION_SHIFT : SliceView::SEGMENTATION_SHIFT) };
+
+    while (m_picker->Pick(pickPoint, renderer))
     {
       vtkProp *pickedProp = m_picker->GetViewProp();
       Q_ASSERT(pickedProp);
 
-      m_picker->DeletePickList(pickedProp);
-      removedProps << pickedProp;
-
       Nm point[3];
       m_picker->GetPickPosition(point);
-      point[2] = z;
+      switch (m_view->getViewType())
+      {
+        case AXIAL:
+          point[2] = z;
+          break;
+        case CORONAL:
+          point[1] = z;
+          break;
+        case SAGITTAL:
+          point[0] = z;
+          break;
+        default:
+          Q_ASSERT(false);
+          break;
+      }
+
+      m_picker->DeletePickList(pickedProp);
+      removedProps << pickedProp;
 
       foreach(PickableItemPtr item, m_representations.keys())
       {
@@ -196,20 +213,20 @@ namespace EspINA
         continue;
 
         foreach(GraphicalRepresentationSPtr rep, m_representations[item])
-        if (rep->isVisible() && rep->hasActor(pickedProp) && rep->isInside(point) && !selection.contains(item))
-        {
-          selection << item;
-
-          if (!repeat)
+          if (rep->isVisible() && rep->hasActor(pickedProp) && rep->isInside(point) && !selection.contains(item))
           {
-            foreach(vtkProp *actor, removedProps)
-              m_picker->AddPickList(actor);
+            selection << item;
 
-            return selection;
+            if (!repeat)
+            {
+              foreach(vtkProp *actor, removedProps)
+                m_picker->AddPickList(actor);
+
+              return selection;
+            }
+
+            break;
           }
-
-          break;
-        }
       }
     }
 

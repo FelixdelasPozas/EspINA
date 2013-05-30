@@ -32,7 +32,7 @@ namespace EspINA
       ContourRenderer(QObject* parent = 0);
       virtual ~ContourRenderer();
 
-      virtual const QIcon icon()      const   { return QIcon(":/espina/mesh.png"); }
+      virtual const QIcon icon()      const   { return QIcon(":/espina/contour.png"); }
       virtual const QString name()    const   { return "Contour"; }
       virtual const QString tooltip() const   { return "Segmentation's Contours"; }
 
@@ -42,6 +42,13 @@ namespace EspINA
 
       virtual IRendererSPtr clone()                     { return IRendererSPtr(new ContourRenderer()); }
       virtual RendererType getRenderType()              { return RendererType(RENDERER_SLICEVIEW); }
+
+      virtual ViewManager::Selection pick(int x,
+                                          int y,
+                                          Nm z,
+                                          vtkSmartPointer<vtkRenderer> renderer,
+                                          RenderabledItems itemType = RenderabledItems(),
+                                          bool repeat = false);
   };
 
 } /* namespace EspINA */
