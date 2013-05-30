@@ -172,7 +172,7 @@ namespace EspINA
   //-----------------------------------------------------------------------------
   void VolumeGPURaycastRepresentation::updateVisibility(bool visible)
   {
-    m_actor->SetVisibility(visible);
+    if (m_actor) m_actor->SetVisibility(visible);
   }
 
 } /* namespace EspINA */

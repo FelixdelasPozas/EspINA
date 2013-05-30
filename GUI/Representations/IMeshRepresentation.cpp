@@ -84,5 +84,5 @@ QList<vtkProp *> IMeshRepresentation::getActors()
 //-----------------------------------------------------------------------------
 void IMeshRepresentation::updateVisibility(bool visible)
 {
-  m_actor->SetVisibility(visible);
+  if (m_actor) m_actor->SetVisibility(visible);
 }

@@ -711,10 +711,13 @@ GraphicalRepresentationSPtr CrosshairRepresentation::cloneImplementation(VolumeV
 //-----------------------------------------------------------------------------
 void CrosshairRepresentation::updateVisibility(bool visible)
 {
-  m_axial         ->SetVisibility(visible);
-  m_coronal       ->SetVisibility(visible);
-  m_sagittal      ->SetVisibility(visible);
-  m_axialBorder   ->SetVisibility(visible);
-  m_coronalBorder ->SetVisibility(visible);
-  m_sagittalBorder->SetVisibility(visible);
+  if (m_axial)
+  {
+    m_axial         ->SetVisibility(visible);
+    m_coronal       ->SetVisibility(visible);
+    m_sagittal      ->SetVisibility(visible);
+    m_axialBorder   ->SetVisibility(visible);
+    m_coronalBorder ->SetVisibility(visible);
+    m_sagittalBorder->SetVisibility(visible);
+  }
 }

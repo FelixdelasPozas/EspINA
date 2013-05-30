@@ -165,5 +165,5 @@ GraphicalRepresentationSPtr VolumeRaycastRepresentation::cloneImplementation(Vol
 //-----------------------------------------------------------------------------
 void VolumeRaycastRepresentation::updateVisibility(bool visible)
 {
-  m_actor->SetVisibility(visible);
+  if (m_actor) m_actor->SetVisibility(visible);
 }
