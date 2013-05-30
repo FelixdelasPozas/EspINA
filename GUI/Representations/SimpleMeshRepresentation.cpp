@@ -37,7 +37,7 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  void SimpleMeshRepresentation::initializePipeline(VolumeView *view)
+  void SimpleMeshRepresentation::initializePipeline()
   {
     connect(m_data.get(), SIGNAL(representationChanged()),
             this, SLOT(updatePipelineConnections()));
@@ -59,14 +59,12 @@ namespace EspINA
     m_actor->GetProperty()->SetColor(rgba[0], rgba[1], rgba[2]);
     m_actor->GetProperty()->SetOpacity(rgba[3]);
     m_actor->Modified();
-
-    m_view = view;
   }
 
   //-----------------------------------------------------------------------------
   void SimpleMeshRepresentation::updateRepresentation()
   {
-    if (isVisible())
+    if (isVisible() && (m_actor != NULL))
     {
       m_mapper->Update();
       m_actor->GetProperty()->Modified();
@@ -78,7 +76,7 @@ namespace EspINA
   GraphicalRepresentationSPtr SimpleMeshRepresentation::cloneImplementation(VolumeView *view)
   {
     SimpleMeshRepresentation *representation = new SimpleMeshRepresentation(m_data, view);
-    representation->initializePipeline(view);
+    representation->setView(view);
 
     return GraphicalRepresentationSPtr(representation);
   }
@@ -86,7 +84,7 @@ namespace EspINA
   //-----------------------------------------------------------------------------
   void SimpleMeshRepresentation::updatePipelineConnections()
   {
-    if (m_mapper->GetInputConnection(0,0) != m_data->mesh())
+    if ((m_actor != NULL) && (m_mapper->GetInputConnection(0,0) != m_data->mesh()))
     {
       m_mapper->SetInputConnection(m_data->mesh());
       m_mapper->Update();

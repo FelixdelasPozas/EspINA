@@ -23,6 +23,7 @@
 #include "GraphicalRepresentation.h"
 #include <GUI/QtWidget/EspinaRenderView.h>
 #include <Core/OutputRepresentations/MeshType.h>
+#include <GUI/QtWidget/VolumeView.h>
 
 // VTK
 #include <vtkSmartPointer.h>
@@ -66,12 +67,13 @@ namespace EspINA
       virtual GraphicalRepresentationSPtr cloneImplementation(VolumeView *view) = 0;
 
     virtual void updateVisibility(bool visible);
+    virtual void setView(VolumeView *view) { m_view = view; };
 
     private slots:
       virtual void updatePipelineConnections() = 0;
 
     private:
-      virtual void initializePipeline(VolumeView *view) = 0;
+      virtual void initializePipeline() = 0;
 
     protected:
       MeshRepresentationSPtr m_data;

@@ -24,6 +24,9 @@
 // VTK
 #include <vtkPropPicker.h>
 
+// Qt
+#include <QApplication>
+
 namespace EspINA
 {
   //-----------------------------------------------------------------------------
@@ -139,6 +142,7 @@ namespace EspINA
      if (m_enable)
        return;
 
+     QApplication::setOverrideCursor(Qt::WaitCursor);
      foreach (PickableItemPtr item, m_representations.keys())
        foreach(GraphicalRepresentationSPtr rep, m_representations[item])
          foreach(vtkProp* prop, rep->getActors())
@@ -147,6 +151,7 @@ namespace EspINA
            m_picker->AddPickList(prop);
          }
 
+     QApplication::restoreOverrideCursor();
      emit renderRequested();
   }
 

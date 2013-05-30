@@ -23,6 +23,7 @@
 #include "GUI/Representations/GraphicalRepresentation.h"
 #include <Core/EspinaTypes.h>
 #include <Core/OutputRepresentations/VolumeRepresentation.h>
+#include <GUI/QtWidget/VolumeView.h>
 
 // VTK
 #include <vtkSmartPointer.h>
@@ -90,7 +91,8 @@ namespace EspINA
       void updatePipelineConnections();
 
     private:
-      void initializePipeline(EspinaRenderView *view);
+      void setView(VolumeView *view) { m_view = view; };
+      void initializePipeline();
 
     private:
       ChannelVolumeSPtr                   m_data;

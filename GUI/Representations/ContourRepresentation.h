@@ -19,9 +19,12 @@
 #ifndef CONTOURREPRESENTATION_H_
 #define CONTOURREPRESENTATION_H_
 
+// EspINA
 #include <GUI/Representations/GraphicalRepresentation.h>
 #include <Core/OutputRepresentations/VolumeRepresentation.h>
+#include <GUI/QtWidget/SliceView.h>
 
+// VTK
 #include <vtkSmartPointer.h>
 
 class vtkImageReslice;
@@ -69,8 +72,8 @@ namespace EspINA
       void updatePipelineConnections();
 
     private:
-      void initializePipeline(EspINA::SliceView *view);
-      void initializePipeline(EspINA::VolumeView *view);
+      void setView(SliceView *view) {m_view = view; };
+      void initializePipeline();
 
     private:
       SegmentationVolumeSPtr m_data;

@@ -41,11 +41,13 @@ void IMeshRepresentation::setColor(const QColor &color)
 {
   SegmentationGraphicalRepresentation::setColor(color);
 
-  LUTPtr colors = s_highlighter->lut(m_color, m_highlight);
-
-  double *rgba = colors->GetTableValue(1);
-  m_actor->GetProperty()->SetColor(rgba[0], rgba[1], rgba[2]);
-  m_actor->GetProperty()->SetOpacity(rgba[3]);
+  if (m_actor != NULL)
+  {
+    LUTPtr colors = s_highlighter->lut(m_color, m_highlight);
+    double *rgba = colors->GetTableValue(1);
+    m_actor->GetProperty()->SetColor(rgba[0], rgba[1], rgba[2]);
+    m_actor->GetProperty()->SetOpacity(rgba[3]);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -53,16 +55,21 @@ void IMeshRepresentation::setHighlighted(bool highlighted)
 {
   GraphicalRepresentation::setHighlighted(highlighted);
 
-  LUTPtr colors = s_highlighter->lut(m_color, m_highlight);
-
-  double *rgba = colors->GetTableValue(1);
-  m_actor->GetProperty()->SetColor(rgba[0], rgba[1], rgba[2]);
-  m_actor->GetProperty()->SetOpacity(rgba[3]);
+  if (m_actor != NULL)
+  {
+    LUTPtr colors = s_highlighter->lut(m_color, m_highlight);
+    double *rgba = colors->GetTableValue(1);
+    m_actor->GetProperty()->SetColor(rgba[0], rgba[1], rgba[2]);
+    m_actor->GetProperty()->SetOpacity(rgba[3]);
+  }
 }
 
 //-----------------------------------------------------------------------------
 bool IMeshRepresentation::hasActor(vtkProp *actor) const
 {
+  if (m_actor == NULL)
+    return false;
+
   return m_actor.GetPointer() == actor;
 }
 
@@ -77,12 +84,16 @@ bool IMeshRepresentation::isInside(Nm *point)
 QList<vtkProp *> IMeshRepresentation::getActors()
 {
   QList<vtkProp *> list;
-  list << m_actor.GetPointer();
 
+  if (m_actor == NULL)
+    initializePipeline();
+
+  list << m_actor.GetPointer();
   return list;
 }
 //-----------------------------------------------------------------------------
 void IMeshRepresentation::updateVisibility(bool visible)
 {
-  if (m_actor) m_actor->SetVisibility(visible);
+  if (m_actor != NULL)
+    m_actor->SetVisibility(visible);
 }

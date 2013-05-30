@@ -32,7 +32,6 @@
 #include <vtkVolume.h>
 #include <vtkMath.h>
 
-
 using namespace EspINA;
 
 TransparencySelectionHighlighter *VolumeRaycastRepresentation::s_highlighter = new TransparencySelectionHighlighter();
@@ -54,13 +53,15 @@ void VolumeRaycastRepresentation::setColor(const QColor &color)
 {
   SegmentationGraphicalRepresentation::setColor(color);
 
-  LUTPtr colors = s_highlighter->lut(m_color, m_highlight);
-
-  double rgba[4], rgb[3], hsv[3];
-  colors->GetTableValue(1, rgba);
-  memcpy(rgb, rgba, 3*sizeof(double));
-  vtkMath::RGBToHSV(rgb, hsv);
-  m_colorFunction->AddHSVPoint(255, hsv[0], hsv[1], hsv[2]);
+  if (m_actor != NULL)
+  {
+    LUTPtr colors = s_highlighter->lut(m_color, m_highlight);
+    double rgba[4], rgb[3], hsv[3];
+    colors->GetTableValue(1, rgba);
+    memcpy(rgb, rgba, 3*sizeof(double));
+    vtkMath::RGBToHSV(rgb, hsv);
+    m_colorFunction->AddHSVPoint(255, hsv[0], hsv[1], hsv[2]);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -80,22 +81,28 @@ bool VolumeRaycastRepresentation::isInside(Nm *point)
 //-----------------------------------------------------------------------------
 bool VolumeRaycastRepresentation::hasActor(vtkProp *actor) const
 {
+  if (m_actor == NULL)
+    return false;
+
   return m_actor.GetPointer() == actor;
 }
 
 //-----------------------------------------------------------------------------
 void VolumeRaycastRepresentation::updateRepresentation()
 {
-  m_mapper->Update();
-  m_colorFunction->Modified();
-  m_actor->Modified();
-  m_actor->Update();
+  if (m_actor != NULL)
+  {
+    m_mapper->Update();
+    m_colorFunction->Modified();
+    m_actor->Modified();
+    m_actor->Update();
+  }
 }
 
 //-----------------------------------------------------------------------------
 void VolumeRaycastRepresentation::updatePipelineConnections()
 {
-  if (m_mapper->GetInputConnection(0,0) != m_data->toVTK())
+  if ((m_actor != NULL) && (m_mapper->GetInputConnection(0,0) != m_data->toVTK()))
   {
     m_mapper->SetInputConnection(m_data->toVTK());
     m_mapper->Update();
@@ -103,7 +110,7 @@ void VolumeRaycastRepresentation::updatePipelineConnections()
 }
 
 //-----------------------------------------------------------------------------
-void VolumeRaycastRepresentation::initializePipeline(VolumeView *view)
+void VolumeRaycastRepresentation::initializePipeline()
 {
   connect(m_data.get(), SIGNAL(representationChanged()),
           this, SLOT(updatePipelineConnections()));
@@ -116,6 +123,9 @@ void VolumeRaycastRepresentation::initializePipeline(VolumeView *view)
   m_mapper->IntermixIntersectingGeometryOff();
   m_mapper->SetInputConnection(m_data->toVTK());
   m_mapper->Update();
+
+  // actor should be allocated first of the next call to setColor would do nothing
+  m_actor = vtkSmartPointer<vtkVolume>::New();
 
   m_colorFunction = vtkSmartPointer<vtkColorTransferFunction>::New();
   m_colorFunction->AllowDuplicateScalarsOff();
@@ -136,18 +146,19 @@ void VolumeRaycastRepresentation::initializePipeline(VolumeView *view)
   property->SetInterpolationTypeToLinear();
   property->Modified();
 
-  m_actor = vtkSmartPointer<vtkVolume>::New();
   m_actor->SetMapper(m_mapper);
   m_actor->SetProperty(property);
   m_actor->Update();
-
-  m_view = view;
 }
 
 //-----------------------------------------------------------------------------
 QList<vtkProp*> VolumeRaycastRepresentation::getActors()
 {
   QList<vtkProp*> list;
+
+  if (m_actor == NULL)
+    initializePipeline();
+
   list << m_actor.GetPointer();
 
   return list;
@@ -157,7 +168,7 @@ QList<vtkProp*> VolumeRaycastRepresentation::getActors()
 GraphicalRepresentationSPtr VolumeRaycastRepresentation::cloneImplementation(VolumeView *view)
 {
   VolumeRaycastRepresentation *representation = new VolumeRaycastRepresentation(m_data, view);
-  representation->initializePipeline(view);
+  representation->setView(view);
 
   return GraphicalRepresentationSPtr(representation);
 }
@@ -165,5 +176,6 @@ GraphicalRepresentationSPtr VolumeRaycastRepresentation::cloneImplementation(Vol
 //-----------------------------------------------------------------------------
 void VolumeRaycastRepresentation::updateVisibility(bool visible)
 {
-  if (m_actor) m_actor->SetVisibility(visible);
+  if (m_actor != NULL)
+    m_actor->SetVisibility(visible);
 }

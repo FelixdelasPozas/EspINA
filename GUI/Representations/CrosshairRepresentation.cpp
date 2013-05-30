@@ -48,6 +48,7 @@ CrosshairRepresentation::CrosshairRepresentation(ChannelVolumeSPtr data,
 , m_data(data)
 , m_tiling(false)
 {
+  memset(m_point, 0, 3*sizeof(double));
 }
 
 //-----------------------------------------------------------------------------
@@ -55,9 +56,12 @@ void CrosshairRepresentation::setBrightness(double value)
 {
   ChannelGraphicalRepresentation::setBrightness(value);
 
-  m_axialScaler->SetShift(static_cast<int>(m_brightness*255));
-  m_coronalScaler->SetShift(static_cast<int>(m_brightness*255));
-  m_sagittalScaler->SetShift(static_cast<int>(m_brightness*255));
+  if (m_axial != NULL)
+  {
+    m_axialScaler->SetShift(static_cast<int>(m_brightness*255));
+    m_coronalScaler->SetShift(static_cast<int>(m_brightness*255));
+    m_sagittalScaler->SetShift(static_cast<int>(m_brightness*255));
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -65,9 +69,12 @@ void CrosshairRepresentation::setContrast(double value)
 {
   ChannelGraphicalRepresentation::setContrast(value);
 
-  m_axialScaler->SetScale(m_contrast);
-  m_coronalScaler->SetScale(m_contrast);
-  m_sagittalScaler->SetScale(m_contrast);
+  if (m_axial != NULL)
+  {
+    m_axialScaler->SetScale(m_contrast);
+    m_coronalScaler->SetScale(m_contrast);
+    m_sagittalScaler->SetScale(m_contrast);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -75,9 +82,12 @@ void CrosshairRepresentation::setColor(const QColor &color)
 {
   GraphicalRepresentation::setColor(color);
 
-  m_lut->SetHueRange(color.hueF(), color.hueF());
-  m_lut->SetSaturationRange(0.0, color.saturationF());
-  m_lut->Build();
+  if (m_axial != NULL)
+  {
+    m_lut->SetHueRange(color.hueF(), color.hueF());
+    m_lut->SetSaturationRange(0.0, color.saturationF());
+    m_lut->Build();
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -85,17 +95,23 @@ void CrosshairRepresentation::setOpacity(double value)
 {
   ChannelGraphicalRepresentation::setOpacity(value);
 
-  m_axial->SetOpacity(m_opacity);
-  m_coronal->SetOpacity(m_opacity);
-  m_sagittal->SetOpacity(m_opacity);
-  m_axialBorder->GetProperty()->SetOpacity(m_opacity);
-  m_coronalBorder->GetProperty()->SetOpacity(m_opacity);
-  m_sagittalBorder->GetProperty()->SetOpacity(m_opacity);
+  if (m_axial != NULL)
+  {
+    m_axial->SetOpacity(m_opacity);
+    m_coronal->SetOpacity(m_opacity);
+    m_sagittal->SetOpacity(m_opacity);
+    m_axialBorder->GetProperty()->SetOpacity(m_opacity);
+    m_coronalBorder->GetProperty()->SetOpacity(m_opacity);
+    m_sagittalBorder->GetProperty()->SetOpacity(m_opacity);
+  }
 }
 
 //-----------------------------------------------------------------------------
 bool CrosshairRepresentation::isInside(Nm *point)
 {
+  if (m_axial == NULL)
+    m_data->bounds(m_bounds);
+
   return ((m_bounds[0] <= point[0]) &&
           (m_bounds[1] >= point[0]) &&
           (m_bounds[2] <= point[1]) &&
@@ -107,6 +123,9 @@ bool CrosshairRepresentation::isInside(Nm *point)
 //-----------------------------------------------------------------------------
 bool CrosshairRepresentation::hasActor(vtkProp *actor) const
 {
+  if (m_axial == NULL)
+    return false;
+
   return (m_axial.GetPointer()          == actor ||
           m_coronal.GetPointer()        == actor ||
           m_sagittal.GetPointer()       == actor ||
@@ -118,35 +137,38 @@ bool CrosshairRepresentation::hasActor(vtkProp *actor) const
 //-----------------------------------------------------------------------------
 void CrosshairRepresentation::updateRepresentation()
 {
-  m_matAxial->Modified();
-  m_matCoronal->Modified();
-  m_matSagittal->Modified();
+  if (m_axial != NULL)
+  {
+    m_matAxial->Modified();
+    m_matCoronal->Modified();
+    m_matSagittal->Modified();
 
-  m_axialReslice->Update();
-  m_coronalReslice->Update();
-  m_sagittalReslice->Update();
+    m_axialReslice->Update();
+    m_coronalReslice->Update();
+    m_sagittalReslice->Update();
 
-  m_axialScaler->Update();
-  m_coronalScaler->Update();
-  m_sagittalScaler->Update();
+    m_axialScaler->Update();
+    m_coronalScaler->Update();
+    m_sagittalScaler->Update();
 
-  m_axialSquare->Update();
-  m_coronalSquare->Update();
-  m_sagittalSquare->Update();
+    m_axialSquare->Update();
+    m_coronalSquare->Update();
+    m_sagittalSquare->Update();
 
-  m_axial->Update();
-  m_coronal->Update();
-  m_sagittal->Update();
+    m_axial->Update();
+    m_coronal->Update();
+    m_sagittal->Update();
 
-  m_axialBorder->Modified();
-  m_coronalBorder->Modified();
-  m_sagittalBorder->Modified();
+    m_axialBorder->Modified();
+    m_coronalBorder->Modified();
+    m_sagittalBorder->Modified();
+  }
 }
 
 //-----------------------------------------------------------------------------
 void CrosshairRepresentation::updatePipelineConnections()
 {
-  if (m_axialReslice->GetInputConnection(0,0) != m_data->toVTK())
+  if ((m_axial != NULL) && (m_axialReslice->GetInputConnection(0,0) != m_data->toVTK()))
   {
     itk::Matrix<double,3,3> direction = m_data->toITK()->GetDirection();
 
@@ -289,7 +311,7 @@ void CrosshairRepresentation::updatePipelineConnections()
 }
 
 //-----------------------------------------------------------------------------
-void CrosshairRepresentation::initializePipeline(EspinaRenderView *view)
+void CrosshairRepresentation::initializePipeline()
 {
   connect(m_data.get(), SIGNAL(representationChanged()),
           this, SLOT(updatePipelineConnections()));
@@ -423,8 +445,6 @@ void CrosshairRepresentation::initializePipeline(EspinaRenderView *view)
   m_sagittal->RotateY(90);
   m_sagittal->SetOrigin(origin);
 
-  memset(m_point, 0, 3*sizeof(double));
-
   m_data->bounds(m_bounds);
   double ap0[3] = { m_bounds[0], m_bounds[2], m_bounds[4] };
   double ap1[3] = { m_bounds[0], m_bounds[3], m_bounds[4] };
@@ -549,14 +569,24 @@ void CrosshairRepresentation::initializePipeline(EspinaRenderView *view)
   m_sagittalBorder->GetProperty()->SetPointSize(2);
   m_sagittalBorder->GetProperty()->SetLineWidth(1);
   m_sagittalBorder->SetPickable(false);
-
-  m_view = view;
 }
 
 //-----------------------------------------------------------------------------
 QList<vtkProp*> CrosshairRepresentation::getActors()
 {
   QList<vtkProp*> list;
+
+  if (m_axial == NULL)
+  {
+    initializePipeline();
+    Nm point[3];
+    memcpy(point, m_point, sizeof(Nm)*3);
+    m_point[0]--;
+    m_point[1]--;
+    m_point[2]--;
+    setCrosshair(point);
+  }
+
   list << m_axial << m_coronal << m_sagittal;
   list << m_axialBorder << m_coronalBorder << m_sagittalBorder;
 
@@ -566,14 +596,23 @@ QList<vtkProp*> CrosshairRepresentation::getActors()
 //-----------------------------------------------------------------------------
 void CrosshairRepresentation::setCrosshairColors(double aColor[3], double cColor[3], double sColor[3])
 {
-  m_axialBorder->GetProperty()->SetColor(aColor);
-  m_coronalBorder->GetProperty()->SetColor(cColor);
-  m_sagittalBorder->GetProperty()->SetColor(sColor);
+  if (m_axial != NULL)
+  {
+    m_axialBorder->GetProperty()->SetColor(aColor);
+    m_coronalBorder->GetProperty()->SetColor(cColor);
+    m_sagittalBorder->GetProperty()->SetColor(sColor);
+  }
 }
 
 //-----------------------------------------------------------------------------
 void CrosshairRepresentation::setCrosshair(Nm point[3])
 {
+  if (m_axial == NULL)
+  {
+    memcpy(m_point, point, sizeof(Nm)*3);
+    return;
+  }
+
   if (point[0] != m_point[0])
   {
     m_point[0] = point[0];
@@ -702,8 +741,7 @@ void CrosshairRepresentation::setPlanePosition(PlaneType plane, Nm dist)
 GraphicalRepresentationSPtr CrosshairRepresentation::cloneImplementation(VolumeView *view)
 {
   CrosshairRepresentation *representation = new CrosshairRepresentation(m_data, view);
-
-  representation->initializePipeline(view);
+  representation->setView(view);
 
   return GraphicalRepresentationSPtr(representation);
 }

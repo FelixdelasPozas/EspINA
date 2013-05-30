@@ -46,7 +46,6 @@ namespace EspINA
   : SegmentationGraphicalRepresentation(view)
   , m_data(data)
   {
-
   }
 
   //-----------------------------------------------------------------------------
@@ -54,14 +53,17 @@ namespace EspINA
   {
     GraphicalRepresentation::setColor(color);
 
-    vtkSmartPointer<vtkLookupTable> lut = s_highlighter->lut(m_color, m_highlight);
+    if (m_actor != NULL)
+    {
+      vtkSmartPointer<vtkLookupTable> lut = s_highlighter->lut(m_color, m_highlight);
 
-    double rgba[4];
-    s_highlighter->lut(m_color, m_highlight)->GetTableValue(1, rgba);
+      double rgba[4];
+      s_highlighter->lut(m_color, m_highlight)->GetTableValue(1, rgba);
 
-    m_actor->GetProperty()->SetColor(rgba[0],rgba[1],rgba[2]);
-    m_actor->GetProperty()->SetOpacity(rgba[3]);
-    m_actor->GetProperty()->Modified();
+      m_actor->GetProperty()->SetColor(rgba[0],rgba[1],rgba[2]);
+      m_actor->GetProperty()->SetOpacity(rgba[3]);
+      m_actor->GetProperty()->Modified();
+    }
   }
 
   //-----------------------------------------------------------------------------
@@ -69,17 +71,23 @@ namespace EspINA
   {
     SegmentationGraphicalRepresentation::setHighlighted(highlighted);
 
-    double rgba[4];
-    s_highlighter->lut(m_color, m_highlight)->GetTableValue(1, rgba);
+    if (m_actor != NULL)
+    {
+      double rgba[4];
+      s_highlighter->lut(m_color, m_highlight)->GetTableValue(1, rgba);
 
-    m_actor->GetProperty()->SetColor(rgba[0],rgba[1],rgba[2]);
-    m_actor->GetProperty()->SetOpacity(rgba[3]);
-    m_actor->GetProperty()->Modified();
+      m_actor->GetProperty()->SetColor(rgba[0],rgba[1],rgba[2]);
+      m_actor->GetProperty()->SetOpacity(rgba[3]);
+      m_actor->GetProperty()->Modified();
+    }
   }
 
   //-----------------------------------------------------------------------------
   bool ContourRepresentation::hasActor(vtkProp *actor) const
   {
+    if (m_actor == NULL)
+      return false;
+
     return m_actor.GetPointer() == actor;
   }
 
@@ -96,13 +104,15 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  void ContourRepresentation::initializePipeline(SliceView *view)
+  void ContourRepresentation::initializePipeline()
   {
     connect(m_data.get(), SIGNAL(representationChanged()),
             this, SLOT(updatePipelineConnections()));
 
     vtkImageData *vtkImage = vtkImageData::SafeDownCast(m_data->toVTK()->GetProducer()->GetOutputDataObject(0));
     vtkImage->GetExtent(m_extent);
+
+    SliceView *view = reinterpret_cast<SliceView *>(m_view);
 
     m_reslice = vtkSmartPointer<vtkImageReslice>::New();
     m_reslice->SetInputConnection(m_data->toVTK());
@@ -175,23 +185,28 @@ namespace EspINA
     m_actor->GetPosition(pos);
     pos[view->plane()] = view->segmentationDepth();
     m_actor->SetPosition(pos);
-
-    m_view = view;
   }
 
   //-----------------------------------------------------------------------------
   void ContourRepresentation::updateRepresentation()
   {
-    m_reslice->Update();
-    m_pad->Update();
-    m_mapper->Update();
-    m_actor->Modified();
+    if (m_actor != NULL)
+    {
+      m_reslice->Update();
+      m_pad->Update();
+      m_mapper->Update();
+      m_actor->Modified();
+    }
   }
 
   //-----------------------------------------------------------------------------
   QList<vtkProp*> ContourRepresentation::getActors()
   {
     QList<vtkProp *> list;
+
+    if (m_actor == NULL)
+      initializePipeline();
+
     list << m_actor.GetPointer();
 
     return list;
@@ -201,8 +216,7 @@ namespace EspINA
   GraphicalRepresentationSPtr ContourRepresentation::cloneImplementation(SliceView *view)
   {
     ContourRepresentation *representation = new ContourRepresentation(m_data, view);
-
-    representation->initializePipeline(view);
+    representation->setView(view);
 
     return GraphicalRepresentationSPtr(representation);
   }
@@ -210,12 +224,16 @@ namespace EspINA
   //-----------------------------------------------------------------------------
   void ContourRepresentation::updateVisibility(bool visible)
   {
-    if (m_actor) m_actor->SetVisibility(visible);
+    if (m_actor != NULL)
+      m_actor->SetVisibility(visible);
   }
 
   //-----------------------------------------------------------------------------
   void ContourRepresentation::updatePipelineConnections()
   {
+    if (m_actor == NULL)
+      return;
+
     if (m_reslice->GetInputConnection(0,0) != m_data->toVTK())
     {
       m_reslice->SetInputConnection(m_data->toVTK());
@@ -243,8 +261,6 @@ namespace EspINA
       m_pad->UpdateWholeExtent();
       m_pad->Update();
     }
-
-
   }
 
 } /* namespace EspINA */

@@ -45,7 +45,7 @@ namespace EspINA
       void updatePipelineConnections();
 
     private:
-      void initializePipeline(VolumeView *view);
+      void initializePipeline();
   };
 
   typedef boost::shared_ptr<SimpleMeshRepresentation> SimpleMeshRepresentationSPtr;

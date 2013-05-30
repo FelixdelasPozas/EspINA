@@ -40,7 +40,7 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  void SmoothedMeshRepresentation::initializePipeline(VolumeView *view)
+  void SmoothedMeshRepresentation::initializePipeline()
   {
     connect(m_data.get(), SIGNAL(representationChanged()),
             this, SLOT(updatePipelineConnections()));
@@ -85,14 +85,12 @@ namespace EspINA
     m_actor->GetProperty()->SetColor(rgba[0], rgba[1], rgba[2]);
     m_actor->GetProperty()->SetOpacity(rgba[3]);
     m_actor->Modified();
-
-    m_view = view;
   }
 
   //-----------------------------------------------------------------------------
   void SmoothedMeshRepresentation::updateRepresentation()
   {
-    if (isVisible())
+    if (isVisible() && (m_actor != NULL))
     {
       m_decimate->Update();
       m_mapper->Update();
@@ -105,7 +103,7 @@ namespace EspINA
   GraphicalRepresentationSPtr SmoothedMeshRepresentation::cloneImplementation(VolumeView *view)
   {
     SmoothedMeshRepresentation *representation = new SmoothedMeshRepresentation(m_data, view);
-    representation->initializePipeline(view);
+    representation->setView(view);
 
     return GraphicalRepresentationSPtr(representation);
   }
@@ -113,7 +111,7 @@ namespace EspINA
   //-----------------------------------------------------------------------------
   void SmoothedMeshRepresentation::updatePipelineConnections()
   {
-    if (m_decimate->GetInputConnection(0, 0) != m_data->mesh())
+    if ((m_actor != NULL) && (m_decimate->GetInputConnection(0, 0) != m_data->mesh()))
     {
       m_decimate->SetInputConnection(m_data->mesh());
       m_decimate->Update();

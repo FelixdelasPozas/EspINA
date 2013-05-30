@@ -45,7 +45,8 @@ namespace EspINA
     void updatePipelineConnections();
 
   private:
-    void initializePipeline(VolumeView *view);
+    void setView(VolumeView *view) { m_view = view; };
+    void initializePipeline();
 
   private:
     vtkSmartPointer<vtkDecimatePro>                m_decimate;

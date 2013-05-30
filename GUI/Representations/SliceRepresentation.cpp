@@ -52,7 +52,8 @@ void ChannelSliceRepresentation::setBrightness(double value)
 {
   ChannelGraphicalRepresentation::setBrightness(value);
 
-  shiftScaleFilter->SetShift(static_cast<int>(m_brightness*255));
+  if (m_actor != NULL)
+    m_shiftScaleFilter->SetShift(static_cast<int>(m_brightness*255));
 }
 
 //-----------------------------------------------------------------------------
@@ -60,7 +61,8 @@ void ChannelSliceRepresentation::setContrast(double value)
 {
   ChannelGraphicalRepresentation::setContrast(value);
 
-  shiftScaleFilter->SetScale(m_contrast);
+  if (m_actor != NULL)
+    m_shiftScaleFilter->SetScale(m_contrast);
 }
 
 //-----------------------------------------------------------------------------
@@ -68,9 +70,12 @@ void ChannelSliceRepresentation::setColor(const QColor &color)
 {
   GraphicalRepresentation::setColor(color);
 
-  lut->SetHueRange(color.hueF(), color.hueF());
-  lut->SetSaturationRange(0.0, color.saturationF());
-  lut->Build();
+  if (m_actor != NULL)
+  {
+    m_lut->SetHueRange(color.hueF(), color.hueF());
+    m_lut->SetSaturationRange(0.0, color.saturationF());
+    m_lut->Build();
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -78,30 +83,36 @@ void ChannelSliceRepresentation::setOpacity(double value)
 {
   ChannelGraphicalRepresentation::setOpacity(value);
 
-  slice->SetOpacity(m_opacity);
+  if (m_actor != NULL)
+    m_actor->SetOpacity(m_opacity);
 }
 
 //-----------------------------------------------------------------------------
 bool ChannelSliceRepresentation::hasActor(vtkProp *actor) const
 {
-  return slice.GetPointer() == actor;
+  if (m_actor == NULL)
+    return false;
+
+  return m_actor.GetPointer() == actor;
 }
 
 //-----------------------------------------------------------------------------
 void ChannelSliceRepresentation::updateRepresentation()
 {
-  reslice->Update();
-  mapToColors->Update();
-  shiftScaleFilter->Update();
-  slice->Update();
+  if (m_actor != NULL)
+  {
+    m_reslice->Update();
+    m_mapToColors->Update();
+    m_shiftScaleFilter->Update();
+    m_actor->Update();
+  }
 }
 
 //-----------------------------------------------------------------------------
 GraphicalRepresentationSPtr ChannelSliceRepresentation::cloneImplementation(SliceView *view)
 {
   ChannelSliceRepresentation *representation = new ChannelSliceRepresentation(m_data, view);
-
-  representation->initializePipeline(view);
+  representation->setView(view);
 
   return GraphicalRepresentationSPtr(representation);
 }
@@ -109,71 +120,74 @@ GraphicalRepresentationSPtr ChannelSliceRepresentation::cloneImplementation(Slic
 //-----------------------------------------------------------------------------
 void ChannelSliceRepresentation::updateVisibility(bool visible)
 {
-  if (slice) slice->SetVisibility(visible);
+  if (m_actor != NULL)
+    m_actor->SetVisibility(visible);
 }
 
 //-----------------------------------------------------------------------------
 void ChannelSliceRepresentation::updatePipelineConnections()
 {
-  if (reslice->GetInputConnection(0,0) != m_data->toVTK())
+  if ((m_actor != NULL) && (m_reslice->GetInputConnection(0,0) != m_data->toVTK()))
   {
-    reslice->SetInputConnection(m_data->toVTK());
-    reslice->Update();
+    m_reslice->SetInputConnection(m_data->toVTK());
+    m_reslice->Update();
   }
 }
 
 //-----------------------------------------------------------------------------
-void ChannelSliceRepresentation::initializePipeline(SliceView *view)
+void ChannelSliceRepresentation::initializePipeline()
 {
   connect(m_data.get(), SIGNAL(representationChanged()),
           this, SLOT(updatePipelineConnections()));
 
-  reslice = vtkSmartPointer<vtkImageReslice>::New();
-  reslice->SetInputConnection(m_data->toVTK());
-  reslice->SetOutputDimensionality(2);
-  reslice->SetResliceAxes(slicingMatrix(view));
-  reslice->SetNumberOfThreads(1);
-  reslice->Update();
+  m_reslice = vtkSmartPointer<vtkImageReslice>::New();
+  m_reslice->SetInputConnection(m_data->toVTK());
+  m_reslice->SetOutputDimensionality(2);
+  m_reslice->SetResliceAxes(slicingMatrix(reinterpret_cast<SliceView *>(m_view)));
+  m_reslice->SetNumberOfThreads(1);
+  m_reslice->Update();
 
-  shiftScaleFilter = vtkSmartPointer<vtkImageShiftScale>::New();
-  shiftScaleFilter->SetInputConnection(reslice->GetOutputPort());
-  shiftScaleFilter->SetShift(static_cast<int>(m_brightness*255));
-  shiftScaleFilter->SetScale(m_contrast);
-  shiftScaleFilter->SetClampOverflow(true);
-  shiftScaleFilter->SetOutputScalarType(reslice->GetOutput()->GetScalarType());
-  shiftScaleFilter->Update();
+  m_shiftScaleFilter = vtkSmartPointer<vtkImageShiftScale>::New();
+  m_shiftScaleFilter->SetInputConnection(m_reslice->GetOutputPort());
+  m_shiftScaleFilter->SetShift(static_cast<int>(m_brightness*255));
+  m_shiftScaleFilter->SetScale(m_contrast);
+  m_shiftScaleFilter->SetClampOverflow(true);
+  m_shiftScaleFilter->SetOutputScalarType(m_reslice->GetOutput()->GetScalarType());
+  m_shiftScaleFilter->Update();
 
-  lut = vtkSmartPointer<vtkLookupTable>::New();
-  lut->Allocate();
-  lut->SetTableRange(0,255);
-  lut->SetHueRange(0.0, 0.0);
-  lut->SetSaturationRange(0.0, 0.0);
-  lut->SetValueRange(0.0, 1.0);
-  lut->SetAlphaRange(1.0,1.0);
-  lut->SetNumberOfColors(256);
-  lut->SetRampToLinear();
-  lut->Build();
+  m_lut = vtkSmartPointer<vtkLookupTable>::New();
+  m_lut->Allocate();
+  m_lut->SetTableRange(0,255);
+  m_lut->SetHueRange(0.0, 0.0);
+  m_lut->SetSaturationRange(0.0, 0.0);
+  m_lut->SetValueRange(0.0, 1.0);
+  m_lut->SetAlphaRange(1.0,1.0);
+  m_lut->SetNumberOfColors(256);
+  m_lut->SetRampToLinear();
+  m_lut->Build();
 
-  mapToColors = vtkSmartPointer<vtkImageMapToColors>::New();
-  mapToColors->SetInputConnection(shiftScaleFilter->GetOutputPort());
-  mapToColors->SetLookupTable(lut);
-  mapToColors->SetNumberOfThreads(1);
-  mapToColors->Update();
+  m_mapToColors = vtkSmartPointer<vtkImageMapToColors>::New();
+  m_mapToColors->SetInputConnection(m_shiftScaleFilter->GetOutputPort());
+  m_mapToColors->SetLookupTable(m_lut);
+  m_mapToColors->SetNumberOfThreads(1);
+  m_mapToColors->Update();
 
-  slice = vtkSmartPointer<vtkImageActor>::New();
-  slice->SetInterpolate(false);
-  slice->GetMapper()->BorderOn();
-  slice->GetMapper()->SetInputConnection(mapToColors->GetOutputPort());
-  slice->Update();
-
-  m_view = view;
+  m_actor = vtkSmartPointer<vtkImageActor>::New();
+  m_actor->SetInterpolate(false);
+  m_actor->GetMapper()->BorderOn();
+  m_actor->GetMapper()->SetInputConnection(m_mapToColors->GetOutputPort());
+  m_actor->Update();
 }
 
 //-----------------------------------------------------------------------------
 QList<vtkProp*> ChannelSliceRepresentation::getActors()
 {
   QList<vtkProp*> list;
-  list << slice.GetPointer();
+
+  if (m_actor == NULL)
+    initializePipeline();
+
+  list << m_actor.GetPointer();
 
   return list;
 }
@@ -193,7 +207,9 @@ SegmentationSliceRepresentation::SegmentationSliceRepresentation(SegmentationVol
                                                                  SliceView             *view)
 : SegmentationGraphicalRepresentation(view)
 , m_data(data)
-, m_view(view)
+, m_reslice(NULL)
+, m_mapToColors(NULL)
+, m_actor(NULL)
 {
 
 }
@@ -203,7 +219,8 @@ void SegmentationSliceRepresentation::setColor(const QColor &color)
 {
   GraphicalRepresentation::setColor(color);
 
-  mapToColors->SetLookupTable(s_highlighter->lut(m_color, m_highlight));
+  if (m_actor != NULL)
+    m_mapToColors->SetLookupTable(s_highlighter->lut(m_color, m_highlight));
 }
 
 //-----------------------------------------------------------------------------
@@ -211,13 +228,17 @@ void SegmentationSliceRepresentation::setHighlighted(bool highlighted)
 {
   SegmentationGraphicalRepresentation::setHighlighted(highlighted);
 
-  mapToColors->SetLookupTable(s_highlighter->lut(m_color, m_highlight));
+  if (m_actor != NULL)
+    m_mapToColors->SetLookupTable(s_highlighter->lut(m_color, m_highlight));
 }
 
 //-----------------------------------------------------------------------------
 bool SegmentationSliceRepresentation::hasActor(vtkProp *actor) const
 {
-  return slice.GetPointer() == actor;
+  if (m_actor == NULL)
+    return false;
+
+  return m_actor.GetPointer() == actor;
 }
 
 //-----------------------------------------------------------------------------
@@ -233,52 +254,61 @@ bool SegmentationSliceRepresentation::isInside(Nm point[3])
 }
 
 //-----------------------------------------------------------------------------
-void SegmentationSliceRepresentation::initializePipeline(SliceView *view)
+void SegmentationSliceRepresentation::initializePipeline()
 {
   connect(m_data.get(), SIGNAL(representationChanged()),
           this, SLOT(updatePipelineConnections()));
 
-  reslice = vtkSmartPointer<vtkImageReslice>::New();
-  reslice->SetInputConnection(m_data->toVTK());
-  reslice->SetOutputDimensionality(2);
-  reslice->SetResliceAxes(slicingMatrix(view));
-  reslice->SetNumberOfThreads(1);
-  reslice->Update();
+  SliceView *view = reinterpret_cast<SliceView *>(m_view);
 
-  mapToColors = vtkSmartPointer<vtkImageMapToColors>::New();
-  mapToColors->SetInputConnection(reslice->GetOutputPort());
+  m_reslice = vtkSmartPointer<vtkImageReslice>::New();
+  m_reslice->SetInputConnection(m_data->toVTK());
+  m_reslice->SetOutputDimensionality(2);
+  m_reslice->SetResliceAxes(slicingMatrix(view));
+  m_reslice->SetNumberOfThreads(1);
+  m_reslice->Update();
+
+  // actor should be allocated first or the next call to setColor() would do nothing
+  m_actor = vtkSmartPointer<vtkImageActor>::New();
+
+  m_mapToColors = vtkSmartPointer<vtkImageMapToColors>::New();
+  m_mapToColors->SetInputConnection(m_reslice->GetOutputPort());
   setColor(m_color);
-  mapToColors->SetNumberOfThreads(1);
-  mapToColors->Update();
+  m_mapToColors->SetNumberOfThreads(1);
+  m_mapToColors->Update();
 
-  slice = vtkSmartPointer<vtkImageActor>::New();
-  slice->SetInterpolate(false);
-  slice->GetMapper()->BorderOn();
-  slice->GetMapper()->SetInputConnection(mapToColors->GetOutputPort());
-  slice->Update();
+  m_actor->SetInterpolate(false);
+  m_actor->GetMapper()->BorderOn();
+  m_actor->GetMapper()->SetInputConnection(m_mapToColors->GetOutputPort());
+  m_actor->Update();
 
   // need to reposition the actor so it will always be over the channels actors'
   double pos[3];
-  slice->GetPosition(pos);
-  pos[m_view->plane()] = m_view->segmentationDepth();
-  slice->SetPosition(pos);
-
-  m_view = view;
+  m_actor->GetPosition(pos);
+  pos[view->plane()] = view->segmentationDepth();
+  m_actor->SetPosition(pos);
 }
 
 //-----------------------------------------------------------------------------
 void SegmentationSliceRepresentation::updateRepresentation()
 {
-  reslice->Update();
-  mapToColors->Update();
-  slice->Update();
+  if (m_actor != NULL)
+  {
+    m_reslice->Update();
+    m_mapToColors->Update();
+    m_actor->Update();
+  }
 }
 
 //-----------------------------------------------------------------------------
 QList<vtkProp*> SegmentationSliceRepresentation::getActors()
 {
   QList<vtkProp *> list;
-  list << slice.GetPointer();
+
+  if (m_actor == NULL)
+    initializePipeline();
+
+  list << m_actor.GetPointer();
 
   return list;
 }
@@ -287,8 +317,7 @@ QList<vtkProp*> SegmentationSliceRepresentation::getActors()
 GraphicalRepresentationSPtr SegmentationSliceRepresentation::cloneImplementation(SliceView *view)
 {
   SegmentationSliceRepresentation *representation = new SegmentationSliceRepresentation(m_data, view);
-
-  representation->initializePipeline(view);
+  representation->setView(view);
 
   return GraphicalRepresentationSPtr(representation);
 }
@@ -296,15 +325,16 @@ GraphicalRepresentationSPtr SegmentationSliceRepresentation::cloneImplementation
 //-----------------------------------------------------------------------------
 void SegmentationSliceRepresentation::updateVisibility(bool visible)
 {
-  if (slice) slice->SetVisibility(visible);
+  if (m_actor != NULL)
+    m_actor->SetVisibility(visible);
 }
 
 //-----------------------------------------------------------------------------
 void SegmentationSliceRepresentation::updatePipelineConnections()
 {
-  if (reslice->GetInputConnection(0,0) != m_data->toVTK())
+  if ((m_actor != NULL) && (m_reslice->GetInputConnection(0,0) != m_data->toVTK()))
   {
-    reslice->SetInputConnection(m_data->toVTK());
-    reslice->Update();
+    m_reslice->SetInputConnection(m_data->toVTK());
+    m_reslice->Update();
   }
 }

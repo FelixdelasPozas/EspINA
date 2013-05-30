@@ -55,13 +55,16 @@ namespace EspINA
   {
     SegmentationGraphicalRepresentation::setColor(color);
 
-    LUTPtr colors = s_highlighter->lut(m_color, m_highlight);
+    if (m_actor != NULL)
+    {
+      LUTPtr colors = s_highlighter->lut(m_color, m_highlight);
 
-    double rgba[4], rgb[3], hsv[3];
-    colors->GetTableValue(1, rgba);
-    memcpy(rgb, rgba, 3*sizeof(double));
-    vtkMath::RGBToHSV(rgb, hsv);
-    m_colorFunction->AddHSVPoint(255, hsv[0], hsv[1], hsv[2]);
+      double rgba[4], rgb[3], hsv[3];
+      colors->GetTableValue(1, rgba);
+      memcpy(rgb, rgba, 3*sizeof(double));
+      vtkMath::RGBToHSV(rgb, hsv);
+      m_colorFunction->AddHSVPoint(255, hsv[0], hsv[1], hsv[2]);
+    }
   }
 
   //-----------------------------------------------------------------------------
@@ -81,22 +84,28 @@ namespace EspINA
   //-----------------------------------------------------------------------------
   bool VolumeGPURaycastRepresentation::hasActor(vtkProp *actor) const
   {
+    if (m_actor == NULL)
+      return false;
+
     return m_actor.GetPointer() == actor;
   }
 
   //-----------------------------------------------------------------------------
   void VolumeGPURaycastRepresentation::updateRepresentation()
   {
-    m_colorFunction->Modified();
-    m_actor->Modified();
-    m_mapper->Update();
-    m_actor->Update();
+    if (m_actor != NULL)
+    {
+      m_colorFunction->Modified();
+      m_actor->Modified();
+      m_mapper->Update();
+      m_actor->Update();
+    }
   }
 
   //-----------------------------------------------------------------------------
   void VolumeGPURaycastRepresentation::updatePipelineConnections()
   {
-    if (m_mapper->GetInputConnection(0,0) != m_data->toVTK())
+    if ((m_actor != NULL) && (m_mapper->GetInputConnection(0,0) != m_data->toVTK()))
     {
       m_mapper->SetInputConnection(m_data->toVTK());
       m_mapper->Update();
@@ -104,7 +113,7 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  void VolumeGPURaycastRepresentation::initializePipeline(VolumeView *view)
+  void VolumeGPURaycastRepresentation::initializePipeline()
   {
     connect(m_data.get(), SIGNAL(representationChanged()),
             this, SLOT(updatePipelineConnections()));
@@ -120,6 +129,9 @@ namespace EspINA
     m_mapper->SetMaxMemoryInBytes(1024 * 1024 * 1024);
     m_mapper->SetInputConnection(m_data->toVTK());
     m_mapper->Update();
+
+    // actor should be allocated first of the next call to setColor would do nothing
+    m_actor = vtkSmartPointer<vtkVolume>::New();
 
     m_colorFunction = vtkSmartPointer<vtkColorTransferFunction>::New();
     m_colorFunction->AllowDuplicateScalarsOff();
@@ -141,20 +153,21 @@ namespace EspINA
     property->IndependentComponentsOn();
     property->Modified();
 
-    m_actor = vtkSmartPointer<vtkVolume>::New();
     m_actor->UseBoundsOn();
     m_actor->PickableOn();
     m_actor->SetMapper(m_mapper);
     m_actor->SetProperty(property);
     m_actor->Update();
-
-    m_view = view;
   }
 
   //-----------------------------------------------------------------------------
   QList<vtkProp*> VolumeGPURaycastRepresentation::getActors()
   {
     QList<vtkProp*> list;
+
+    if (m_actor == NULL)
+      initializePipeline();
+
     list << m_actor.GetPointer();
 
     return list;
@@ -164,7 +177,7 @@ namespace EspINA
   GraphicalRepresentationSPtr VolumeGPURaycastRepresentation::cloneImplementation(VolumeView *view)
   {
     VolumeGPURaycastRepresentation *representation = new VolumeGPURaycastRepresentation(m_data, view);
-    representation->initializePipeline(view);
+    representation->setView(view);
 
     return GraphicalRepresentationSPtr(representation);
   }
@@ -172,7 +185,8 @@ namespace EspINA
   //-----------------------------------------------------------------------------
   void VolumeGPURaycastRepresentation::updateVisibility(bool visible)
   {
-    if (m_actor) m_actor->SetVisibility(visible);
+    if (m_actor != NULL)
+      m_actor->SetVisibility(visible);
   }
 
 } /* namespace EspINA */

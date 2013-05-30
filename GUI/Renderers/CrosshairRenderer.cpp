@@ -27,6 +27,9 @@
 #include <vtkSmartPointer.h>
 #include <vtkPropPicker.h>
 
+// Qt
+#include <QApplication>
+
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
@@ -145,6 +148,7 @@ void CrosshairRenderer::show()
   if (this->m_enable)
     return;
 
+  QApplication::setOverrideCursor(Qt::WaitCursor);
   foreach (PickableItemPtr item, m_representations.keys())
     foreach(GraphicalRepresentationSPtr rep, m_representations[item])
       foreach(vtkProp* prop, rep->getActors())
@@ -153,6 +157,7 @@ void CrosshairRenderer::show()
         m_picker->AddPickList(prop);
       }
 
+  QApplication::restoreOverrideCursor();
   emit renderRequested();
 }
 

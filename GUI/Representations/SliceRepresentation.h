@@ -29,11 +29,13 @@
 #ifndef SLICEREPRESENTATION_H
 #define SLICEREPRESENTATION_H
 
+// EspINA
 #include "GUI/Representations/GraphicalRepresentation.h"
-
 #include <Core/OutputRepresentations/VolumeRepresentation.h>
 #include <Core/Model/HierarchyItem.h>
+#include <GUI/QtWidget/SliceView.h>
 
+// VTK
 #include <vtkSmartPointer.h>
 
 //Forward declaration
@@ -88,16 +90,17 @@ namespace EspINA
     void updatePipelineConnections();
 
   private:
-    void initializePipeline(EspINA::SliceView *view);
+    void setView(SliceView *view) { m_view = view; };
+    void initializePipeline();
 
   private:
     ChannelVolumeSPtr m_data;
 
-    vtkSmartPointer<vtkImageReslice>     reslice;
-    vtkSmartPointer<vtkImageMapToColors> mapToColors;
-    vtkSmartPointer<vtkImageShiftScale>  shiftScaleFilter;
-    vtkSmartPointer<vtkImageActor>       slice;
-    vtkSmartPointer<vtkLookupTable>      lut;
+    vtkSmartPointer<vtkImageReslice>     m_reslice;
+    vtkSmartPointer<vtkImageMapToColors> m_mapToColors;
+    vtkSmartPointer<vtkImageShiftScale>  m_shiftScaleFilter;
+    vtkSmartPointer<vtkImageActor>       m_actor;
+    vtkSmartPointer<vtkLookupTable>      m_lut;
   };
 
   class SegmentationSliceRepresentation
@@ -136,15 +139,15 @@ namespace EspINA
     void updatePipelineConnections();
 
   private:
-    void initializePipeline(EspINA::SliceView *view);
+    void setView(SliceView *view) { m_view = view; };
+    void initializePipeline();
 
   private:
     SegmentationVolumeSPtr m_data;
-    SliceView             *m_view;
 
-    vtkSmartPointer<vtkImageReslice>     reslice;
-    vtkSmartPointer<vtkImageMapToColors> mapToColors;
-    vtkSmartPointer<vtkImageActor>       slice;
+    vtkSmartPointer<vtkImageReslice>     m_reslice;
+    vtkSmartPointer<vtkImageMapToColors> m_mapToColors;
+    vtkSmartPointer<vtkImageActor>       m_actor;
 
     static TransparencySelectionHighlighter *s_highlighter;
   };
