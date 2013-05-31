@@ -1,16 +1,17 @@
+// EspINA
 #include "PixelSelector.h"
-
 #include <Core/EspinaTypes.h>
 #include <Core/Model/Channel.h>
 #include <Core/Model/Segmentation.h>
 #include <Core/Model/PickableItem.h>
 #include <GUI/QtWidget/EspinaRenderView.h>
 
-#include <QDebug>
+// Qt
 #include <QMouseEvent>
 #include <QWidget>
 #include <QSize>
 
+// VTK
 #include <vtkImageData.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkRenderWindow.h>
@@ -18,6 +19,7 @@
 #include <vtkWindowToImageFilter.h>
 #include <vtkMath.h>
 
+// ITK
 #include <itkImageRegionConstIterator.h>
 #include <itkExtractImageFilter.h>
 
@@ -288,7 +290,8 @@ double *BestPixelSelector::getPickPoint(EspinaRenderView *view)
     ++it;
   }
 
-  double *requestedPoint = new double[3]; //WARNING  Memory leak!
+  // NOTE: check that point is deleted later
+  double *requestedPoint = new double[3];
   requestedPoint[0] = bestPoint[0];
   requestedPoint[1] = bestPoint[1];
   requestedPoint[2] = bestPoint[2];

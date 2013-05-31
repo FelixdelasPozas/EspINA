@@ -114,21 +114,7 @@ namespace EspINA
 
       Nm point[3];
       m_picker->GetPickPosition(point);
-      switch (m_view->getViewType())
-      {
-        case AXIAL:
-          point[2] = z;
-          break;
-        case CORONAL:
-          point[1] = z;
-          break;
-        case SAGITTAL:
-          point[0] = z;
-          break;
-        default:
-          Q_ASSERT(false);
-          break;
-      }
+      point[m_view->getViewType()] = z;
 
       m_picker->DeletePickList(pickedProp);
       removedProps << pickedProp;

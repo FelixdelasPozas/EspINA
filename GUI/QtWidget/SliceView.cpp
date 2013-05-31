@@ -1179,7 +1179,6 @@ void SliceView::updateChannelsOpactity()
 //-----------------------------------------------------------------------------
 bool SliceView::pick(vtkPropPicker *picker, int x, int y, Nm pickPos[3])
 {
-
   if (m_thumbnail->GetDraw() && picker->Pick(x, y, 0.1, m_thumbnail))
     return false;//ePick Fail
 
@@ -1454,6 +1453,7 @@ ISelector::WorldRegion SliceView::worldRegion(const ISelector::DisplayRegion& re
             !renderer->pick(point.x(), point.y(), slicingPosition(), m_renderer, IRenderer::RenderabledItems(EspINA::CHANNEL), false).isEmpty())
         {
           renderer->getPickCoordinates(pickPos);
+          pickPos[m_plane] = slicingPosition();
           wRegion->InsertNextPoint(pickPos);
         }
     }
@@ -1464,6 +1464,7 @@ ISelector::WorldRegion SliceView::worldRegion(const ISelector::DisplayRegion& re
             !renderer->pick(point.x(), point.y(), slicingPosition(), m_renderer, IRenderer::RenderabledItems(EspINA::SEGMENTATION), false).isEmpty())
         {
           renderer->getPickCoordinates(pickPos);
+          pickPos[m_plane] = slicingPosition();
           wRegion->InsertNextPoint(pickPos);
         }
     }
