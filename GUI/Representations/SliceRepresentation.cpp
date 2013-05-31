@@ -158,8 +158,8 @@ void ChannelSliceRepresentation::initializePipeline()
   m_lut = vtkSmartPointer<vtkLookupTable>::New();
   m_lut->Allocate();
   m_lut->SetTableRange(0,255);
-  m_lut->SetHueRange(0.0, 0.0);
-  m_lut->SetSaturationRange(0.0, 0.0);
+  m_lut->SetHueRange(m_color.hueF(), m_color.hueF());
+  m_lut->SetSaturationRange(0.0, m_color.saturationF());
   m_lut->SetValueRange(0.0, 1.0);
   m_lut->SetAlphaRange(1.0,1.0);
   m_lut->SetNumberOfColors(256);

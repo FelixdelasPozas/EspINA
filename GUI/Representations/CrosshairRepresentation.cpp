@@ -38,6 +38,7 @@
 
 // Qt
 #include <QColor>
+#include <QDebug>
 
 using namespace EspINA;
 
@@ -85,7 +86,7 @@ void CrosshairRepresentation::setColor(const QColor &color)
   if (m_axial != NULL)
   {
     m_lut->SetHueRange(color.hueF(), color.hueF());
-    m_lut->SetSaturationRange(0.0, color.saturationF());
+    m_lut->SetSaturationRange(0, color.saturationF());
     m_lut->Build();
   }
 }
@@ -364,15 +365,12 @@ void CrosshairRepresentation::initializePipeline()
   m_sagittalReslice->SetOutputDimensionality(2);
   m_sagittalReslice->SetResliceAxes(m_matSagittal);
 
-  // if hue is -1 then use 0 saturation to make a grayscale image
-  double hue = m_color.hueF();
-  double sat = hue >= 0?1.0:0.0;
-
   m_lut = vtkSmartPointer<vtkLookupTable>::New();
   m_lut->Allocate();
+  m_lut->SetVectorModeToRGBColors();
   m_lut->SetTableRange(0,255);
-  m_lut->SetHueRange(hue, hue);
-  m_lut->SetSaturationRange(0.0, sat);
+  m_lut->SetHueRange(m_color.hueF(), m_color.hueF());
+  m_lut->SetSaturationRange(0.0, m_color.saturationF());
   m_lut->SetValueRange(0.0, 1.0);
   m_lut->SetAlphaRange(1.0,1.0);
   m_lut->SetNumberOfColors(256);
@@ -716,24 +714,12 @@ void CrosshairRepresentation::setCrosshair(Nm point[3])
 //-----------------------------------------------------------------------------
 void CrosshairRepresentation::setPlanePosition(PlaneType plane, Nm dist)
 {
+  if (m_point[plane] == dist)
+    return;
+
   Nm point[3];
   memcpy(point, m_point, 3*sizeof(Nm));
-
-  switch(plane)
-  {
-  case AXIAL:
-    point[2] = dist;
-    break;
-  case CORONAL:
-    point[1] = dist;
-    break;
-  case SAGITTAL:
-    point[0] = dist;
-    break;
-  default:
-    break;
-  }
-
+  point[plane] = dist;
   setCrosshair(point);
 }
 

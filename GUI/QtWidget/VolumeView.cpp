@@ -323,6 +323,7 @@ void VolumeView::centerViewOn(Nm *center, bool notUsed)
 
   memcpy(m_center, center, 3*sizeof(double));
 
+  bool updated = false;
   foreach(IRendererSPtr ren, m_itemRenderers)
   {
     if (QString("Crosshairs") == ren->name())
@@ -330,6 +331,8 @@ void VolumeView::centerViewOn(Nm *center, bool notUsed)
       CrosshairRenderer *crossren = reinterpret_cast<CrosshairRenderer *>(ren.get());
       crossren->setCrosshair(center);
     }
+
+    updated |= !ren->isHidden() && (ren->itemsBeenRendered() != 0);
   }
 
   if (m_additionalScrollBars && !m_channelStates.empty())
@@ -363,8 +366,11 @@ void VolumeView::centerViewOn(Nm *center, bool notUsed)
     m_sagittalScrollBar->blockSignals(false);
   }
 
-  setCameraFocus(center);
-  updateView();
+  if (updated)
+  {
+    setCameraFocus(center);
+    updateView();
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -783,7 +789,7 @@ void VolumeView::changePlanePosition(PlaneType plane, Nm dist)
     {
       CrosshairRenderer *crossren = reinterpret_cast<CrosshairRenderer *>(ren.get());
       crossren->setPlanePosition(plane, dist);
-      needUpdate = true;
+      needUpdate = !crossren->isHidden() && (crossren->itemsBeenRendered() != 0);
     }
   }
 
