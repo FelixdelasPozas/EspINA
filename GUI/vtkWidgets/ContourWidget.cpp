@@ -159,21 +159,21 @@ void ContourWidget::startContourFromWidget()
   {
     emit rasterizeContours(resultList);
 
-    if (resultList[0].Points != NULL)
+    if (resultList[0].PolyData != NULL)
     {
-      resultList[0].Points->Delete();
+      resultList[0].PolyData->Delete();
       m_axialSliceContourWidget->Initialize();
     }
 
-    if (resultList[1].Points != NULL)
+    if (resultList[1].PolyData != NULL)
     {
-      resultList[1].Points->Delete();
+      resultList[1].PolyData->Delete();
       m_coronalSliceContourWidget->Initialize();
     }
 
-    if (resultList[2].Points != NULL)
+    if (resultList[2].PolyData != NULL)
     {
-      resultList[2].Points->Delete();
+      resultList[2].PolyData->Delete();
       m_sagittalSliceContourWidget->Initialize();
     }
   }
@@ -182,7 +182,7 @@ void ContourWidget::startContourFromWidget()
 //----------------------------------------------------------------------------
 void ContourWidget::endContourFromWidget()
 {
-  emit storeData();
+  emit endContour();
 }
 
 //----------------------------------------------------------------------------
@@ -209,4 +209,48 @@ void ContourWidget::initialize()
 
   if (m_sagittalSliceContourWidget)
     m_sagittalSliceContourWidget->Initialize();
+}
+
+//----------------------------------------------------------------------------
+void ContourWidget::initialize(ContourData contour)
+{
+  if (contour.PolyData == NULL)
+    initialize();
+
+  switch (contour.Plane)
+  {
+    case AXIAL:
+      if (m_axialSliceContourWidget)
+        m_axialSliceContourWidget->Initialize(contour);
+
+      if (m_coronalSliceContourWidget)
+        m_coronalSliceContourWidget->Initialize();
+
+      if (m_sagittalSliceContourWidget)
+        m_sagittalSliceContourWidget->Initialize();
+      break;
+    case CORONAL:
+      if (m_axialSliceContourWidget)
+        m_axialSliceContourWidget->Initialize();
+
+      if (m_coronalSliceContourWidget)
+        m_coronalSliceContourWidget->Initialize(contour);
+
+      if (m_sagittalSliceContourWidget)
+        m_sagittalSliceContourWidget->Initialize();
+      break;
+    case SAGITTAL:
+      if (m_axialSliceContourWidget)
+        m_axialSliceContourWidget->Initialize();
+
+      if (m_coronalSliceContourWidget)
+        m_coronalSliceContourWidget->Initialize();
+
+      if (m_sagittalSliceContourWidget)
+        m_sagittalSliceContourWidget->Initialize(contour);
+      break;
+    default:
+      Q_ASSERT(false);
+      break;
+  }
 }

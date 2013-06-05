@@ -708,7 +708,6 @@ void vtkPlaneContourWidget::Initialize(vtkPolyData * pd, int state)
     rep->Initialize(pd);
     this->WidgetState = vtkPlaneContourWidget::Manipulate;
     rep->UseContourPolygon(true);
-    m_parent->endContourFromWidget();
     brushMode = m_contourMode;
   }
 

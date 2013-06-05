@@ -25,144 +25,239 @@
 #include <Core/Model/Sample.h>
 #include <Core/Model/Segmentation.h>
 #include <Core/Relations.h>
+#include <Core/Filters/FreeFormSource.h>
+#include <Core/EspinaRegion.h>
+#include <Core/Model/EspinaFactory.h>
+#include <GUI/Representations/BasicGraphicalRepresentationFactory.h>
 
 namespace EspINA
 {
   //-----------------------------------------------------------------------------
   ContourUndoCommand::ContourUndoCommand(SegmentationSPtr seg,
-                                         vtkPolyData* contour,
-                                         Nm pos,
-                                         PlaneType plane,
-                                         itkVolumeType::PixelType value,
                                          ViewManager *vm,
                                          FilledContour *tool)
   : m_segmentation(seg)
-  , m_contour(contour)
-  , m_plane(plane)
-  , m_pos(pos)
-  , m_value(value)
   , m_viewManager(vm)
   , m_needReduction(false)
   , m_tool(tool)
-  , m_abortOperation(false)
+  , m_rasterized(false)
   {
-    contour->ComputeBounds();
-    contour->GetBounds(m_contourBounds);
   }
   
   //-----------------------------------------------------------------------------
   ContourUndoCommand::~ContourUndoCommand()
   {
+    if (m_contour.PolyData != NULL)
+      m_contour.PolyData->Delete();
   }
 
   //-----------------------------------------------------------------------------
   void ContourUndoCommand::redo()
   {
-    if (m_abortOperation)
-      m_tool->abortOperation();
-    else
-      m_abortOperation = true;
-
-    SegmentationVolumeSPtr volume = segmentationVolume(m_segmentation->output());
-    if (m_newVolume.IsNotNull())
+    if (m_rasterized)
     {
-
+      SegmentationVolumeSPtr volume = segmentationVolume(m_segmentation->output());
       volume->draw(m_newVolume);
+
+      if (m_needReduction)
+        volume->fitToContent();
+
+      m_viewManager->updateSegmentationRepresentations(m_segmentation.get());
     }
     else
     {
-      EspinaRegion contourRegion(m_contourBounds);
-
-      m_prevRegions = volume->editedRegions();
-
-      if (!contourRegion.isInside(volume->espinaRegion()))
-      {
-        if (contourRegion.intersect(volume->espinaRegion()))
-          m_prevVolume = volume->cloneVolume(contourRegion.intersection(volume->espinaRegion()));
-
-        m_needReduction = true;
-      }
-      else
-        m_prevVolume = volume->cloneVolume(contourRegion);
-
-      volume->draw(m_contour, m_pos, m_plane, m_value, true);
-
-      m_newVolume = volume->cloneVolume(contourRegion);
+      if (m_contour.PolyData != NULL)
+        m_tool->setContour(m_contour);
     }
-
-    m_viewManager->updateSegmentationRepresentations(m_segmentation.get());
   }
   
   //-----------------------------------------------------------------------------
   void ContourUndoCommand::undo()
   {
-    m_tool->abortOperation();
+    if (m_rasterized)
+    {
+      SegmentationVolumeSPtr volume = segmentationVolume(m_segmentation->output());
+      EspinaRegion region(m_bounds);
+      volume->fill(region, SEG_BG_VALUE, false);
 
-    Q_ASSERT(m_newVolume.IsNotNull());
+      if (m_prevVolume.GetPointer() != NULL)
+        volume->draw(m_prevVolume, false);
 
+      volume->setEditedRegions(m_prevRegions);
+
+      if (m_needReduction)
+        volume->fitToContent();
+
+      m_viewManager->updateSegmentationRepresentations(m_segmentation.get());
+    }
+    else
+    {
+      ContourWidget::ContourData contour = m_tool->getContour();
+      Q_ASSERT(contour.PolyData != NULL && contour.PolyData->GetNumberOfPoints() != 0);
+      m_contour.PolyData = vtkPolyData::New();
+      m_contour.PolyData->DeepCopy(contour.PolyData);
+      m_contour.Plane = contour.Plane;
+      m_contour.Mode = contour.Mode;
+
+      contour.PolyData = NULL;
+      m_tool->setContour(contour);
+    }
+  }
+
+  //----------------------------------------------------------------------------
+  void ContourUndoCommand::rasterizeContour(ContourWidget::ContourData contour) const
+  {
     SegmentationVolumeSPtr volume = segmentationVolume(m_segmentation->output());
-    EspinaRegion contourRegion(m_contourBounds);
-    volume->fill(contourRegion, SEG_BG_VALUE, false);
+    if (m_contour.PolyData != NULL)
+    {
+      m_contour.PolyData->Delete();
+      m_contour.PolyData = NULL;
+    }
+    else
+      m_prevRegions = volume->editedRegions();
 
-    if (m_prevVolume.IsNotNull())
-      volume->draw(m_prevVolume, !m_needReduction);
+    contour.PolyData->ComputeBounds();
+    contour.PolyData->GetBounds(m_bounds);
+    EspinaRegion contourRegion(m_bounds);
 
-    if (m_needReduction)
-      volume->fitToContent();
+    if (!contourRegion.isInside(volume->espinaRegion()))
+    {
+      m_needReduction = true;
 
-    // Restore previous edited regions
-    volume->setEditedRegions(m_prevRegions);
+      if (contourRegion.intersect(volume->espinaRegion()))
+        m_prevVolume = volume->cloneVolume(contourRegion.intersection(volume->espinaRegion()));
+    }
+    else
+      m_prevVolume = volume->cloneVolume(contourRegion);
+
+    Nm pos = contour.PolyData->GetPoints()->GetPoint(0)[contour.Plane];
+    itkVolumeType::PixelType value = ((contour.Mode == Brush::BRUSH) ? SEG_VOXEL_VALUE : SEG_BG_VALUE);
+    volume->draw(contour.PolyData, pos, contour.Plane, value);
+    m_newVolume = volume->cloneVolume(contourRegion);
 
     m_viewManager->updateSegmentationRepresentations(m_segmentation.get());
+
+    m_rasterized = true;
   }
 
   //----------------------------------------------------------------------------
   ContourAddSegmentation::ContourAddSegmentation(ChannelSPtr channel,
-                                                 FilterSPtr filter,
-                                                 SegmentationSPtr seg,
                                                  TaxonomyElementSPtr taxonomy,
                                                  EspinaModel *model,
+                                                 ViewManager *vm,
                                                  FilledContour *tool)
   : m_model         (model)
   , m_channel       (channel)
-  , m_filter        (filter)
-  , m_seg           (seg)
   , m_taxonomy      (taxonomy)
+  , m_viewManager   (vm)
   , m_tool          (tool)
-  , m_abortOperation(false)
+  , m_rasterized    (false)
   {
     m_sample = m_channel->sample();
     Q_ASSERT(m_sample);
+
+    m_contour.PolyData = NULL;
+  }
+
+  //----------------------------------------------------------------------------
+  ContourAddSegmentation::~ContourAddSegmentation()
+  {
+    if (m_contour.PolyData != NULL)
+      m_contour.PolyData->Delete();
   }
 
   //----------------------------------------------------------------------------
   void ContourAddSegmentation::redo()
   {
-    if (m_abortOperation)
-      m_tool->abortOperation();
+    if (m_rasterized)
+    {
+      m_model->addFilter(m_filter);
+      m_model->addRelation(m_channel, m_filter, Channel::LINK);
+      m_segmentation->setTaxonomy(m_taxonomy);
+      m_model->addSegmentation(m_segmentation);
+      m_model->addRelation(m_filter , m_segmentation, Filter::CREATELINK);
+      m_model->addRelation(m_sample , m_segmentation, Relations::LOCATION);
+      m_model->addRelation(m_channel, m_segmentation, Channel::LINK);
+      m_segmentation->initializeExtensions();
+    }
     else
-      m_abortOperation = true;
-
-    m_model->addFilter(m_filter);
-    m_model->addRelation(m_channel, m_filter, Channel::LINK);
-    m_seg->setTaxonomy(m_taxonomy);
-    m_model->addSegmentation(m_seg);
-    m_model->addRelation(m_filter , m_seg, Filter::CREATELINK);
-    m_model->addRelation(m_sample , m_seg, Relations::LOCATION);
-    m_model->addRelation(m_channel, m_seg, Channel::LINK);
-    m_seg->initializeExtensions();
+    {
+      if (m_contour.PolyData != NULL)
+        m_tool->setContour(m_contour);
+    }
   }
 
   //----------------------------------------------------------------------------
   void ContourAddSegmentation::undo()
   {
-    m_tool->abortOperation();
-    m_model->removeRelation(m_channel, m_seg, Channel::LINK);
-    m_model->removeRelation(m_sample , m_seg, Relations::LOCATION);
-    m_model->removeRelation(m_filter , m_seg, Filter::CREATELINK);
-    m_model->removeSegmentation(m_seg);
-    m_model->removeRelation(m_channel, m_filter, Channel::LINK);
-    m_model->removeFilter(m_filter);
+    if (m_rasterized)
+    {
+      m_model->removeRelation(m_channel, m_segmentation, Channel::LINK);
+      m_model->removeRelation(m_sample , m_segmentation, Relations::LOCATION);
+      m_model->removeRelation(m_filter , m_segmentation, Filter::CREATELINK);
+      m_model->removeSegmentation(m_segmentation);
+      m_model->removeRelation(m_channel, m_filter, Channel::LINK);
+      m_model->removeFilter(m_filter);
+    }
+    else
+    {
+      ContourWidget::ContourData contour = m_tool->getContour();
+      Q_ASSERT(contour.PolyData != NULL && contour.PolyData->GetNumberOfPoints() != 0);
+      m_contour.PolyData = vtkPolyData::New();
+      m_contour.PolyData->DeepCopy(contour.PolyData);
+      m_contour.Plane = contour.Plane;
+      m_contour.Mode = contour.Mode;
+
+      contour.PolyData = NULL;
+      m_tool->setContour(contour);
+    }
+  }
+
+  //----------------------------------------------------------------------------
+  void ContourAddSegmentation::rasterizeContour(ContourWidget::ContourData contour) const
+  {
+    if (m_contour.PolyData != NULL)
+    {
+      m_contour.PolyData->Delete();
+      m_contour.PolyData = NULL;
+    }
+
+    m_filter = FilterSPtr(new FreeFormSource(EspinaRegion(contour.PolyData->GetBounds()),
+                          m_channel->volume()->spacing(),
+                          FilledContour::FILTER_TYPE));
+    SetBasicGraphicalRepresentationFactory (m_filter);
+
+    Nm pos = contour.PolyData->GetPoints()->GetPoint(0)[contour.Plane];
+    itkVolumeType::PixelType value = ((contour.Mode == Brush::BRUSH) ? SEG_VOXEL_VALUE : SEG_BG_VALUE);
+
+    SegmentationVolumeSPtr currentVolume = segmentationVolume(m_filter->output(0));
+    currentVolume->draw(contour.PolyData, pos, contour.Plane, value, true);
+    m_segmentation = m_model->factory()->createSegmentation(m_filter, 0);
+
+    m_model->addFilter(m_filter);
+    m_model->addRelation(m_channel, m_filter, Channel::LINK);
+    m_segmentation->setTaxonomy(m_taxonomy);
+    m_model->addSegmentation(m_segmentation);
+    m_model->addRelation(m_filter , m_segmentation, Filter::CREATELINK);
+    m_model->addRelation(m_sample , m_segmentation, Relations::LOCATION);
+    m_model->addRelation(m_channel, m_segmentation, Channel::LINK);
+    m_segmentation->initializeExtensions();
+
+    SegmentationSList createdSegmentations;
+    createdSegmentations << m_segmentation;
+    m_model->emitSegmentationAdded(createdSegmentations);
+
+    ViewManager::Selection selectedSegmentations;
+    selectedSegmentations << pickableItemPtr(m_segmentation.get());
+    m_viewManager->setSelection(selectedSegmentations);
+
+    m_rasterized = true;
+  }
+
+  //----------------------------------------------------------------------------
+  SegmentationSPtr ContourAddSegmentation::getCreatedSegmentation() const
+  {
+    return m_segmentation;
   }
 
 } /* namespace EspINA */

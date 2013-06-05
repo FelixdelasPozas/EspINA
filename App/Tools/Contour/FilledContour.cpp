@@ -121,8 +121,8 @@ void FilledContour::setInUse(bool enable)
   {
     m_contourWidget = new ContourWidget();
 
-    connect(m_contourWidget, SIGNAL(storeData()),
-            this, SLOT(storeContourData()));
+    connect(m_contourWidget, SIGNAL(endContour()),
+            this, SLOT(createUndoCommand()));
     connect(m_contourWidget, SIGNAL(rasterizeContours(ContourWidget::ContourList)),
             this, SLOT(rasterize(ContourWidget::ContourList)));
 
@@ -155,8 +155,8 @@ void FilledContour::setInUse(bool enable)
     if (m_widgetHasContour)
       rasterize(m_contourWidget->getContours());
 
-    disconnect(m_contourWidget, SIGNAL(storeData()),
-               this, SLOT(storeContourData()));
+    disconnect(m_contourWidget, SIGNAL(endContour()),
+               this, SLOT(createUndoCommand()));
     disconnect(m_contourWidget, SIGNAL(rasterizeContours(ContourWidget::ContourList)),
                this, SLOT(rasterize(ContourWidget::ContourList)));
 
@@ -164,6 +164,7 @@ void FilledContour::setInUse(bool enable)
     m_viewManager->setSelectionEnabled(true);
     m_contourWidget->setEnabled(false);
     delete m_contourWidget;
+    m_contourWidget = NULL;
     m_currentSeg.reset();
     m_currentSource.reset();
   }
@@ -185,79 +186,69 @@ bool FilledContour::enabled() const
 }
 
 //-----------------------------------------------------------------------------
-void FilledContour::storeContourData()
+void FilledContour::createUndoCommand()
 {
+  ChannelPtr channel = m_viewManager->activeChannel();
+
+  if (!m_currentSeg)
+  {
+    m_undoStack->beginMacro("Draw segmentation using contours");
+    m_undoStack->push(new ContourAddSegmentation(m_model->findChannel(channel),
+                                                 m_model->findTaxonomyElement(m_viewManager->activeTaxonomy()),
+                                                 m_model,
+                                                 m_viewManager,
+                                                 this));
+  }
+  else
+  {
+    m_undoStack->beginMacro("Modify segmentation using contours");
+    m_undoStack->push(new ContourUndoCommand(m_currentSeg, m_viewManager, this));
+  }
+
+  m_undoStack->endMacro();
   m_widgetHasContour = true;
 }
 
 //-----------------------------------------------------------------------------
 void FilledContour::rasterize(ContourWidget::ContourList list)
 {
-  ChannelPtr channel = m_viewManager->activeChannel();
   bool reduction = false;
 
-  if (list[AXIAL].Points == NULL && list[CORONAL].Points == NULL && list[SAGITTAL].Points == NULL)
-  {
+  ContourWidget::ContourData contour;
+
+  foreach(ContourWidget::ContourData contourElement, list)
+    if (contourElement.PolyData != NULL)
+    {
+      contour = contourElement;
+      if (contour.Mode == Brush::ERASER)
+        reduction = true;
+
+      break;
+    }
+
+  if (contour.PolyData == NULL || contour.PolyData->GetNumberOfPoints() == 0)
     return;
-  }
+
+  Q_ASSERT(m_undoStack->index() >= 1);
+  const QUndoCommand *command = m_undoStack->command(m_undoStack->index()-1);
 
   QApplication::setOverrideCursor(Qt::WaitCursor);
-
-  if (!m_currentSeg)
-    m_undoStack->beginMacro("Draw segmentation using contours");
-  else
-    m_undoStack->beginMacro("Modify segmentation using contours");
-
-  foreach(ContourWidget::ContourData contour, list)
+  if (command->text() == QString("Draw segmentation using contours"))
   {
-    if (contour.Points == NULL)
-      continue;
+    const ContourAddSegmentation *addCommand = dynamic_cast<const ContourAddSegmentation *>(command->child(0));
+    addCommand->rasterizeContour(contour);
 
-    if (contour.Mode == Brush::ERASER)
-      reduction = true;
-
-    if (!m_currentSource)
+    m_currentSeg = addCommand->getCreatedSegmentation();
+  }
+  else
+    if (command->text() == QString("Modify segmentation using contours"))
     {
-      m_currentSource = FilterSPtr(new FreeFormSource(EspinaRegion(contour.Points->GetBounds()),
-                                                      channel->volume()->spacing(),
-                                                      FILTER_TYPE));
-      SetBasicGraphicalRepresentationFactory(m_currentSource);
-    }
-
-    if (!m_currentSeg)
-    {
-      SegmentationVolumeSPtr currentVolume = segmentationVolume(m_currentSource->output(0));
-      currentVolume->draw(contour.Points, contour.Points->GetPoint(0)[contour.Plane], contour.Plane, ((contour.Mode == Brush::BRUSH) ? SEG_VOXEL_VALUE : SEG_BG_VALUE), true);
-      m_currentSeg = m_model->factory()->createSegmentation(m_currentSource, 0);
-      m_undoStack->push(new ContourAddSegmentation(m_model->findChannel(channel),
-                                                   m_currentSource,
-                                                   m_currentSeg,
-                                                   m_model->findTaxonomyElement(m_viewManager->activeTaxonomy()),
-                                                   m_model,
-                                                   this));
-      SegmentationSList createdSegmentations;
-      createdSegmentations << m_currentSeg;
-      m_model->emitSegmentationAdded(createdSegmentations);
-
-      ViewManager::Selection selectedSegmentations;
-      selectedSegmentations << pickableItemPtr(m_currentSeg.get());
-      m_viewManager->setSelection(selectedSegmentations);
+      const ContourUndoCommand *undoCommand = dynamic_cast<const ContourUndoCommand *>(command->child(0));
+      undoCommand->rasterizeContour(contour);
     }
     else
-    {
-      m_undoStack->push(new ContourUndoCommand(m_currentSeg,
-                                               contour.Points,
-                                               contour.Points->GetPoint(0)[contour.Plane],
-                                               contour.Plane,
-                                               contour.Mode == Brush::BRUSH ? SEG_VOXEL_VALUE : SEG_BG_VALUE,
-                                               m_viewManager,
-                                               this));
-    }
-  }
+      Q_ASSERT(false);
 
-  m_undoStack->endMacro();
-
-  // if erasing must reduce the volume and check for complete deletion
   if (reduction)
   {
     try
@@ -283,16 +274,23 @@ void FilledContour::rasterize(ContourWidget::ContourList list)
 }
 
 //-----------------------------------------------------------------------------
-void FilledContour::abortOperation()
+void FilledContour::setContour(ContourWidget::ContourData contour)
 {
   if (!m_enabled)
-    return;
+    emit startDrawing();
 
-  if (m_widgetHasContour)
-  {
-    m_widgetHasContour = false;
-    m_contourWidget->initialize();
-  }
+  m_widgetHasContour = (contour.PolyData != NULL);
+  m_contourWidget->initialize(contour);
+}
 
-  emit stopDrawing();
+//-----------------------------------------------------------------------------
+ContourWidget::ContourData FilledContour::getContour()
+{
+  ContourWidget::ContourList list = m_contourWidget->getContours();
+
+  foreach(ContourWidget::ContourData contour, list)
+    if (contour.PolyData != NULL)
+      return contour;
+
+  return ContourWidget::ContourData();
 }

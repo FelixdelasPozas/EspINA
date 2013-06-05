@@ -11,6 +11,7 @@
 
 // VTK
 #include <vtkObjectFactory.h>
+#include <vtkPolyData.h>
 
 // Qt
 #include <QPolygon>
@@ -150,4 +151,36 @@ void SliceContourWidget::setMode(Brush::BrushMode mode)
 void SliceContourWidget::Initialize()
 {
   m_contourWidget->Initialize(NULL);
+}
+
+//-----------------------------------------------------------------------------
+void SliceContourWidget::Initialize(ContourWidget::ContourData contour)
+{
+  if (m_plane != contour.Plane || contour.PolyData == NULL)
+  {
+    Initialize();
+    return;
+  }
+
+  if (m_storedContour != NULL)
+  {
+    m_storedContour->Delete();
+    m_storedContour = NULL;
+    m_storedContourPosition = -1;
+  }
+
+  Nm contourPos = contour.PolyData->GetPoints()->GetPoint(0)[m_plane];
+
+  if (m_pos == contourPos)
+  {
+    m_contourWidget->setActualContourMode(contour.Mode);
+    m_contourWidget->Initialize(contour.PolyData);
+  }
+  else
+  {
+    m_storedContour = vtkPolyData::New();
+    m_storedContour->DeepCopy(contour.PolyData);
+    m_storedContourPosition = contourPos;
+    m_storedContourMode = contour.Mode;
+  }
 }

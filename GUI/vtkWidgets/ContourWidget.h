@@ -33,9 +33,10 @@ namespace EspINA
     {
       PlaneType        Plane;
       Brush::BrushMode Mode;
-      vtkPolyData     *Points;
+      vtkPolyData     *PolyData;
 
-      ContourInternals(PlaneType plane, Brush::BrushMode mode, vtkPolyData *contour) : Plane(plane), Mode(mode), Points(contour) {};
+      ContourInternals(PlaneType plane, Brush::BrushMode mode, vtkPolyData *contour) : Plane(plane), Mode(mode), PolyData(contour) {};
+      ContourInternals() : Plane(AXIAL), Mode(Brush::BRUSH), PolyData(NULL) {};
     };
     typedef struct ContourInternals ContourData;
 
@@ -63,10 +64,11 @@ namespace EspINA
 
     // reset all contours in all planes without rasterize
     void initialize();
+    void initialize(ContourData contour);
 
   signals:
     void rasterizeContours(ContourWidget::ContourList);
-    void storeData();
+    void endContour();
 
   private:
     SliceContourWidget *m_axialSliceContourWidget;

@@ -41,6 +41,7 @@ public:
   QString getCurrentActionAsQString();
   void cancel() {emit cancelAction();}
   bool isChecked();
+  void setChecked(bool value);
   void setIcon(const QIcon &);
 
 protected slots:

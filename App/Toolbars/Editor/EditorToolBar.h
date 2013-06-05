@@ -95,6 +95,7 @@ namespace EspINA
     void erodeSegmentations();
     void fillHoles();
     void updateAvailableOperations();
+    void startContourOperation();
 
   private:
     void initDrawTools();
@@ -122,6 +123,8 @@ namespace EspINA
     QAction *m_dilate;
     QAction *m_open;
     QAction *m_close;
+
+    QAction *m_contourTool;
 
     QAction *m_fill;
     ContourWidget *m_contourWidget;

@@ -9,16 +9,13 @@
 #define SLICECONTOURWIDGET_H_
 
 // EspINA
-#include "GUI/vtkWidgets/vtkPlaneContourWidget.h"
-#include "GUI/vtkWidgets/EspinaWidget.h"
+#include "vtkPlaneContourWidget.h"
+#include "EspinaWidget.h"
+#include "ContourWidget.h"
 #include <Core/EspinaTypes.h>
 #include <App/Tools/Brushes/Brush.h>
 
-// Qt
-#include <QMap>
-
-// VTK
-#include <vtkPolyData.h>
+class vtkPolyData;
 
 namespace EspINA
 {
@@ -35,6 +32,7 @@ class SliceContourWidget: public SliceWidget
     void setMode(Brush::BrushMode);
 
     void Initialize();
+    void Initialize(ContourWidget::ContourData contour);
   private:
 
     bool                   m_initialized;

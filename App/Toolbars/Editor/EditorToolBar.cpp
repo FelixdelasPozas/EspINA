@@ -250,6 +250,8 @@ EditorToolBar::EditorToolBar(EspinaModel *model,
   connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection, bool)),
           this, SLOT(updateAvailableOperations()));
   updateAvailableOperations();
+
+  m_drawToolSelector->setCheckable(true);
 }
 
 //----------------------------------------------------------------------------
@@ -620,9 +622,9 @@ void EditorToolBar::initDrawTools()
   m_drawToolSelector->addAction(sphereTool);
 
   // draw with contour
-  QAction *contourTool = new QAction(QIcon(":espina/lasso.png"),
-                                       tr("Draw segmentations using contours"),
-                                       m_drawToolSelector);
+  m_contourTool = new QAction(QIcon(":espina/lasso.png"),
+                              tr("Draw segmentations using contours"),
+                              m_drawToolSelector);
 
   FilledContourSPtr contour(new FilledContour(m_model,
                                               m_undoStack,
@@ -632,9 +634,12 @@ void EditorToolBar::initDrawTools()
           this, SLOT(changeContourMode(Brush::BrushMode)));
   connect(contour.get(), SIGNAL(stopDrawing()),
           this, SLOT(cancelDrawOperation()));
+  connect(contour.get(), SIGNAL(startDrawing()),
+          this, SLOT(startContourOperation()));
 
-  m_drawTools[contourTool] = contour;
-  m_drawToolSelector->addAction(contourTool);
+
+  m_drawTools[m_contourTool] = contour;
+  m_drawToolSelector->addAction(m_contourTool);
 
   // Add Draw Tool Selector to Editor Tool Bar
   m_drawToolSelector->setCheckable(true);
@@ -787,4 +792,15 @@ void EditorToolBar::abortOperation()
 
   if (m_drawToolSelector->isChecked())
     cancelDrawOperation();
+}
+
+//----------------------------------------------------------------------------
+void EditorToolBar::startContourOperation()
+{
+  if (!m_drawToolSelector->isChecked())
+  {
+    m_drawToolSelector->setDefaultAction(m_contourTool);
+    changeDrawTool(m_contourTool);
+    m_drawToolSelector->setChecked(true);
+  }
 }

@@ -34,7 +34,6 @@
 #include <vtkAlgorithmOutput.h>
 #include <vtkCellArray.h>
 #include <vtkDiscreteMarchingCubes.h>
-#include <vtkImageConstantPad.h>
 #include <vtkImageExport.h>
 #include <vtkImageStencilToImage.h>
 #include <vtkImplicitFunction.h>

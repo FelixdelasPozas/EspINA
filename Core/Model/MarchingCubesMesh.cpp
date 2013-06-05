@@ -142,6 +142,7 @@ void MarchingCubesMesh::updateMesh()
     m_pad->SetInputConnection(vtkVolume);
     m_pad->SetOutputWholeExtent(extent[0], extent[1], extent[2], extent[3], extent[4], extent[5]);
     m_pad->SetConstant(0);
+    m_pad->UpdateWholeExtent();
 
     m_marchingCubes = vtkSmartPointer<vtkDiscreteMarchingCubes>::New();
     m_marchingCubes->ReleaseDataFlagOn();
@@ -154,14 +155,25 @@ void MarchingCubesMesh::updateMesh()
   }
   else
   {
+    bool connectionChanged = false;
+    bool extentChanged = false;
     if (m_pad->GetInputConnection(0,0) != vtkVolume)
+    {
       m_pad->SetInputConnection(vtkVolume);
+      connectionChanged = true;
+    }
 
     int outputExtent[6];
     m_pad->GetOutputWholeExtent(outputExtent);
     if (memcmp(extent, outputExtent, 6*sizeof(int)) != 0)
     {
       m_pad->SetOutputWholeExtent(extent[0], extent[1], extent[2], extent[3], extent[4], extent[5]);
+      extentChanged = true;
+    }
+
+    if (connectionChanged || extentChanged)
+    {
+      m_pad->UpdateWholeExtent();
       m_pad->Update();
     }
   }

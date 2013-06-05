@@ -52,15 +52,19 @@ namespace EspINA
       virtual void setEnabled(bool enable);
       virtual bool enabled() const;
 
-      // only called from undoCommands
-      virtual void abortOperation();
+      // called by unrasterized UndoCommands
+      void setContour(ContourWidget::ContourData contour);
+      ContourWidget::ContourData getContour();
 
     signals:
       void changeMode(Brush::BrushMode);
       void stopDrawing();
+      void startDrawing();
+
+    public slots:
+      void createUndoCommand();
 
     protected slots:
-      void storeContourData();
       void rasterize(ContourWidget::ContourList);
 
     private:

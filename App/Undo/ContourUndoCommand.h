@@ -23,6 +23,7 @@
 #include <Core/EspinaTypes.h>
 #include <Core/Model/Segmentation.h>
 #include <Core/Model/EspinaModel.h>
+#include <GUI/vtkWidgets/ContourWidget.h>
 
 // Qt
 #include <QUndoStack>
@@ -39,10 +40,6 @@ namespace EspINA
   {
     public:
       ContourUndoCommand(SegmentationSPtr seg,
-                         vtkPolyData* contour,
-                         Nm pos,
-                         PlaneType plane,
-                         itkVolumeType::PixelType value,
                          ViewManager *vm,
                          FilledContour *tool);
 
@@ -51,48 +48,55 @@ namespace EspINA
       virtual void redo();
       virtual void undo();
 
+      void rasterizeContour(ContourWidget::ContourData) const;
+
     private:
       typedef SegmentationVolume::EditedVolumeRegionSList EditedRegionSList;
 
-      SegmentationSPtr         m_segmentation;
-      Nm                       m_contourBounds[6];
-      vtkPolyData             *m_contour;
-      PlaneType                m_plane;
-      Nm                       m_pos;
-      itkVolumeType::PixelType m_value;
-      ViewManager             *m_viewManager;
+      SegmentationSPtr                   m_segmentation;
+      ViewManager                       *m_viewManager;
 
-      itkVolumeType::Pointer   m_prevVolume;
-      itkVolumeType::Pointer   m_newVolume;
-      bool                     m_needReduction;
-      EditedRegionSList        m_prevRegions;
-      FilledContour           *m_tool;
-      bool                     m_abortOperation;
+      mutable itkVolumeType::Pointer     m_prevVolume;
+      mutable itkVolumeType::Pointer     m_newVolume;
+      mutable bool                       m_needReduction;
+      mutable EditedRegionSList          m_prevRegions;
+      FilledContour                     *m_tool;
+      mutable Nm                         m_bounds[6];
+      mutable bool                       m_rasterized;
+
+      mutable ContourWidget::ContourData m_contour;
   };
 
   class ContourAddSegmentation
   : public QUndoCommand
   {
   public:
-    explicit ContourAddSegmentation(ChannelSPtr         channel,
-                                    FilterSPtr          filter,
-                                    SegmentationSPtr    seg,
-                                    TaxonomyElementSPtr taxonomy,
-                                    EspinaModel        *model,
-                                    FilledContour      *tool);
+    explicit ContourAddSegmentation(ChannelSPtr                channel,
+                                    TaxonomyElementSPtr        taxonomy,
+                                    EspinaModel               *model,
+                                    ViewManager               *vm,
+                                    FilledContour             *tool);
+    virtual ~ContourAddSegmentation();
+
     virtual void redo();
     virtual void undo();
+
+    void rasterizeContour(ContourWidget::ContourData) const;
+
+    SegmentationSPtr getCreatedSegmentation() const;
 
   private:
     EspinaModel *m_model;
 
-    SampleSPtr          m_sample;
-    ChannelSPtr         m_channel;
-    FilterSPtr          m_filter;
-    SegmentationSPtr    m_seg;
-    TaxonomyElementSPtr m_taxonomy;
-    FilledContour      *m_tool;
-    bool                m_abortOperation;
+    SampleSPtr                         m_sample;
+    ChannelSPtr                        m_channel;
+    mutable FilterSPtr                 m_filter;
+    mutable SegmentationSPtr           m_segmentation;
+    TaxonomyElementSPtr                m_taxonomy;
+    ViewManager                       *m_viewManager;
+    FilledContour                     *m_tool;
+    mutable bool                       m_rasterized;
+    mutable ContourWidget::ContourData m_contour;
   };
 
 } /* namespace EspINA */
