@@ -65,7 +65,7 @@ namespace EspINA
     };
 
     typedef QList<Vertex> Vertices;
-    typedef QList<Edge> Edges;
+    typedef QList<Edge>   Edges;
 
   private:
     typedef unsigned int IndexType;
@@ -141,7 +141,7 @@ namespace EspINA
     /// Return all vertices whose incoming edges start on v
     Vertices succesors(Vertex v, const QString &filter = "") const;
 
-    void setItem(Vertex v, ModelItemPtr item);
+    void setItem(Vertex &v, ModelItemPtr item);
 
     static ModelItemType type(const Vertex v);
 
@@ -153,9 +153,10 @@ namespace EspINA
     /// Update vertex's information with model's items' information
     void updateVertexInformation();
 
-    //! Retrieve current vertex index of a ModelItem
+    /// Retrieve current vertex index of a ModelItem
+    /// A vertex with NULL item field is returned if no vertex contains item
     Vertex vertex(ModelItemPtr item) const;
-    VertexDescriptor vertex(VertexDescriptor v);
+    Vertex vertex(RelationshipGraph::VertexDescriptor vd);
 
   private:
     bool findRelation(const VertexDescriptor source,

@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="/espina">
+    <file>eraser.png</file>
     <file>non_traceable.png</file>
     <file>traceable.png</file>
     <file>note.png</file>

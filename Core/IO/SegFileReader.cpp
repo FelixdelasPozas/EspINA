@@ -586,28 +586,15 @@ IOErrorHandler::STATUS SegFileReader::removeTemporalDir(QDir temporalDir)
   return IOErrorHandler::SUCCESS;
 }
 
-//-----------------------------------------------------------------------------
-bool SegFileReader::loadSerialization(IEspinaModel *model,
-                                 istream &stream,
-                                 QDir tmpDir,
-                                 IOErrorHandler *handler,
-                                 RelationshipGraph::PrintFormat format)
+bool parseVertex(RelationshipGraphPtr input,
+                 RelationshipGraph::Vertex &v,
+                 IEspinaModel *model,
+                 QDir tmpDir,
+                 RelationshipGraph::Vertices &segmentationNodes)
 {
-  boost::shared_ptr<RelationshipGraph> input(new RelationshipGraph());
-
-  input->read(stream);
-//   qDebug() << "Check";
-//   input->write(std::cout, RelationshipGraph::GRAPHVIZ);
-
-  typedef QPair<ModelItemSPtr , ModelItem::Arguments> NonInitilizedItem;
-
-  SegmentationSList           newSegmentations;
-  RelationshipGraph::Vertices segmentationNodes;
-
-  EspinaFactory *factory = model->factory();
-
-  foreach(RelationshipGraph::Vertex v, input->vertices())
+  if (!v.item)
   {
+    EspinaFactoryPtr factory = model->factory();
     switch (RelationshipGraph::type(v))
     {
       case SAMPLE:
@@ -669,8 +656,19 @@ bool SegFileReader::loadSerialization(IEspinaModel *model,
           QStringList link = inputLink.split("_");
           Q_ASSERT(link.size() == 2);
           RelationshipGraph::Vertices ancestors = input->ancestors(v, link[0]);
+          if (ancestors.size() != 1) 
+          {
+            qWarning() << QString("Seg File Reader: unexpected number of filters (%1) for %2 relationship").arg(ancestors.size()).arg(link[0]);
+          }
           Q_ASSERT(ancestors.size() == 1);
-          ModelItemPtr item = ancestors.first().item;
+          //qDebug() << "\t" << QString(ancestors.first().args.c_str());
+          RelationshipGraph::Vertex &ancestor = ancestors.first();
+          if (!ancestor.item)
+          {
+            parseVertex(input, ancestor, model, tmpDir, segmentationNodes);
+            qWarning() << QString("Seg File Reader: Unordered relationship (%1 --%2--> %3) fixed.").arg(ancestor.args.c_str()).arg(link[0]).arg(v.args.c_str());
+          }
+          ModelItemPtr item = ancestor.item;
           Q_ASSERT(FILTER == item->type());
           FilterSPtr filter = model->findFilter(item);
           inputs[link[0]] = filter;
@@ -690,6 +688,38 @@ bool SegFileReader::loadSerialization(IEspinaModel *model,
         Q_ASSERT(false);
         break;
     }
+  }
+
+  return true;
+}
+
+//-----------------------------------------------------------------------------
+bool SegFileReader::loadSerialization(IEspinaModel *model,
+                                 istream &stream,
+                                 QDir tmpDir,
+                                 IOErrorHandler *handler,
+                                 RelationshipGraph::PrintFormat format)
+{
+  RelationshipGraphPtr input(new RelationshipGraph());
+
+  input->read(stream);
+//   qDebug() << "Check";
+//   input->write(std::cout, RelationshipGraph::GRAPHVIZ);
+
+  typedef QPair<ModelItemSPtr , ModelItem::Arguments> NonInitilizedItem;
+
+  SegmentationSList           newSegmentations;
+  RelationshipGraph::Vertices segmentationNodes;
+
+  EspinaFactory *factory = model->factory();
+
+  foreach(RelationshipGraph::Vertex v, input->vertices())
+  {
+    // Input may be modified inside parse vertex, so we need to update
+    // vertex structure
+    RelationshipGraph::Vertex vertex = input->vertex(v.descriptor);
+    if (!parseVertex(input, vertex, model, tmpDir, segmentationNodes))
+      return false;
   }
 
   foreach(RelationshipGraph::Vertex v, segmentationNodes)

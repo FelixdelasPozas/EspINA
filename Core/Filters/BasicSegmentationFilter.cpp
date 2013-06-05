@@ -67,10 +67,10 @@ bool BasicSegmentationFilter::fetchSnapshot(FilterOutputId oId)
   {
     QString filterPrefix = QString("%1_%2").arg(m_cacheId).arg(oId);
 
-    RawSegmentationVolumeSPtr volume(new RawSegmentationVolume(m_outputs[0].get()));
+    RawSegmentationVolumeSPtr volume(new RawSegmentationVolume(m_outputs[oId].get()));
     bool fetchVolume = volume->fetchSnapshot(this, filterPrefix);
 
-    RawMeshSPtr mesh(new RawMesh(m_outputs[0].get()));
+    RawMeshSPtr mesh(new RawMesh(m_outputs[oId].get()));
     bool fetchMesh   = mesh->fetchSnapshot(this, filterPrefix);
 
     SegmentationRepresentationSList repList;

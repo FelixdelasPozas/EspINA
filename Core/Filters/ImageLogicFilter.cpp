@@ -60,7 +60,7 @@ bool ImageLogicFilter::needUpdate(FilterOutputId oId) const
     Q_ASSERT(m_outputs.size() == 1);
 
     SegmentationVolumeSPtr outputVolume = segmentationVolume(m_outputs[0]);
-    int i = 0;
+    int i = 1;
     while (!update && i < m_inputs.size())
     {
       SegmentationVolumeSPtr inputVolume = segmentationVolume(m_inputs[i]);

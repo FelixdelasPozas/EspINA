@@ -91,16 +91,21 @@ RelationshipGraph::RelationshipGraph()
 //-----------------------------------------------------------------------------
 void RelationshipGraph::addItem(ModelItemPtr item)
 {
-  // TODO: Check if item's been already added to the graph
+  Q_ASSERT(!vertex(item).item);
+
   VertexDescriptor v = add_vertex(m_graph);
-  m_graph[v].item = item;
-  //   qDebug() << item->data(Qt::DisplayRole) << " = " << v;
+
+  m_graph[v].item       = item;
+  m_graph[v].descriptor = v;
+  //qDebug() << "New Vertex" << v << ":"  << item->data().toString();
+  //qDebug() << item->data(Qt::DisplayRole) << " = " << v;
 }
 
 //-----------------------------------------------------------------------------
 void RelationshipGraph::removeItem(ModelItemPtr item)
 {
   Vertex v = vertex(item);
+
   clear_vertex (v.descriptor, m_graph);
   remove_vertex(v.descriptor, m_graph);
 }
@@ -115,10 +120,12 @@ void RelationshipGraph::updateVertexInformation()
   {
     Vertex &vertex = m_graph[*vi];
     ModelItemPtr item = vertex.item;
-    if (!item)
-      continue;
     Q_ASSERT(item);
-    //vertex.descriptor  = item->m_vertex;
+    if (!item)
+    {
+      qWarning() << "RelationshipGraph: Trying to update invalid vertex";
+      continue;
+    }
     switch (item->type())
     {
       case SAMPLE:
@@ -146,20 +153,21 @@ void RelationshipGraph::updateVertexInformation()
         Q_ASSERT(false);
         break;
     }
-  }
-  // We need to do it in two loops to ensure cache flags are set properly
-  for(boost::tie(vi, vi_end) = boost::vertices(m_graph); vi != vi_end; vi++)
-  {
-    Vertex &vertex = m_graph[*vi];
-    ModelItemPtr item = vertex.item;
-    if (!item)
-    {
-      qWarning() << "RealationshipGraph: Updating vertex with NULL model item";
-      continue;
-    }
     vertex.name       = item->data(Qt::DisplayRole).toString().toStdString();
     vertex.args       = item->serialize().toStdString();
     vertex.descriptor = *vi;
+  }
+
+  // TODO: DEVELOPMENT ONLY: Integrity check
+  for(boost::tie(vi, vi_end) = boost::vertices(m_graph); vi != vi_end; vi++)
+  {
+    Vertex &vertex = m_graph[*vi];
+    Vertices vertexAncestors = ancestors(vertex);
+    for (int i = 0; i < vertexAncestors.size(); ++i)
+    {
+      Q_ASSERT(vertexAncestors[i].descriptor < *vi);
+      Q_ASSERT(vertexAncestors[i].item != NULL);
+    }
   }
 }
 
@@ -183,23 +191,14 @@ RelationshipGraph::Vertex RelationshipGraph::vertex(ModelItemPtr item) const
 
     ++vi;
   }
-  Q_ASSERT(v.item);
 
   return v;
 }
 
 //-----------------------------------------------------------------------------
-EspINA::RelationshipGraph::VertexDescriptor RelationshipGraph::vertex(EspINA::RelationshipGraph::VertexDescriptor v)
+RelationshipGraph::Vertex RelationshipGraph::vertex(RelationshipGraph::VertexDescriptor vd)
 {
-  VertexIterator vi, vi_end;
-  for(boost::tie(vi, vi_end) = boost::vertices(m_graph); vi != vi_end; vi++)
-  {
-    if( m_graph[*vi].descriptor == v )
-      return *vi;
-  }
-
-  Q_ASSERT(false);
-  return *vi;
+  return m_graph[vd];
 }
 
 //-----------------------------------------------------------------------------
@@ -400,9 +399,12 @@ RelationshipGraph::Vertices RelationshipGraph::succesors(Vertex v, const QString
 }
 
 //-----------------------------------------------------------------------------
-void RelationshipGraph::setItem(Vertex v, ModelItemPtr item)
+void RelationshipGraph::setItem(Vertex &v, ModelItemPtr item)
 {
-  m_graph[v.descriptor].item = item;
+  Q_ASSERT(item);
+  v.item = item;
+
+  m_graph[v.descriptor].item = v.item;
 }
 
 //-----------------------------------------------------------------------------
