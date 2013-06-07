@@ -115,6 +115,7 @@ set (GUI_SOURCES
   vtkWidgets/vtkTubeSource.cxx
   vtkWidgets/vtkTubularRepresentation.cpp
   vtkWidgets/vtkTubularWidget.cpp
+  vtkWidgets/vtkVoxelContour2D.cpp
   )
 
 set(GUI_EXTERNAL_LIBS

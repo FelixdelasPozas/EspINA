@@ -30,6 +30,7 @@
 class vtkImageReslice;
 class vtkPolyDataMapper;
 class vtkActor;
+class vtkVoxelContour2D;
 
 namespace EspINA
 {
@@ -79,11 +80,10 @@ namespace EspINA
       SegmentationVolumeSPtr m_data;
 
       vtkSmartPointer<vtkImageReslice>     m_reslice;
-      vtkSmartPointer<vtkImageConstantPad> m_pad;
+      vtkSmartPointer<vtkVoxelContour2D>   m_voxelContour;
       vtkSmartPointer<vtkPolyDataMapper>   m_mapper;
       vtkSmartPointer<vtkActor>            m_actor;
       static TransparencySelectionHighlighter *s_highlighter;
-      int m_extent[6];
     };
 
     typedef boost::shared_ptr<ContourRepresentation> ContourRepresentationSPtr;

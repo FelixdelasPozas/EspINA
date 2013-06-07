@@ -22,19 +22,17 @@
 #include <Core/EspinaTypes.h>
 #include <GUI/QtWidget/SliceView.h>
 #include <GUI/QtWidget/VolumeView.h>
+#include <GUI/vtkWidgets/vtkVoxelContour2D.h>
 
 // VTK
 #include <vtkActor.h>
 #include <vtkPolyDataMapper.h>
-#include <vtkContourFilter.h>
 #include <vtkImageReslice.h>
 #include <vtkProperty.h>
-#include <vtkCleanPolyData.h>
-#include <vtkImageData.h>
-#include <vtkPolyDataSilhouette.h>
 #include <vtkRenderWindow.h>
 #include <vtkRendererCollection.h>
-#include <vtkImageContinuousDilate3D.h>
+#include <vtkPolyData.h>
+#include <vtkImageData.h>
 
 namespace EspINA
 {
@@ -109,9 +107,6 @@ namespace EspINA
     connect(m_data.get(), SIGNAL(representationChanged()),
             this, SLOT(updatePipelineConnections()));
 
-    vtkImageData *vtkImage = vtkImageData::SafeDownCast(m_data->toVTK()->GetProducer()->GetOutputDataObject(0));
-    vtkImage->GetExtent(m_extent);
-
     SliceView *view = reinterpret_cast<SliceView *>(m_view);
 
     m_reslice = vtkSmartPointer<vtkImageReslice>::New();
@@ -123,47 +118,12 @@ namespace EspINA
     m_reslice->SetNumberOfThreads(1);
     m_reslice->Update();
 
-    // we need to dilate the border of the slice image by one (later in the dilate)
-    // and also have a background border of one voxel, that's the reason for the add/subtract 2
-    int extent[6];
-    vtkImageData *image = m_reslice->GetOutput();
-    image->GetExtent(extent);
-    extent[0] -= 2;
-    extent[1] += 2;
-    extent[2] -= 2;
-    extent[3] += 2;
-    extent[4] -= 2;
-    extent[5] += 2;
-
-    m_pad = vtkSmartPointer<vtkImageConstantPad>::New();
-    m_pad->SetInputConnection(m_reslice->GetOutputPort());
-    m_pad->SetOutputWholeExtent(extent);
-    m_pad->SetConstant(SEG_BG_VALUE);
-    m_pad->Update();
-
-    vtkSmartPointer<vtkImageContinuousDilate3D> dilate = vtkSmartPointer<vtkImageContinuousDilate3D>::New();
-    dilate->SetInputConnection(m_pad->GetOutputPort());
-    dilate->SetKernelSize(3,3,1);
-    dilate->Update();
-
-    vtkSmartPointer<vtkContourFilter> contour = vtkSmartPointer<vtkContourFilter>::New();
-    contour->SetInputConnection(dilate->GetOutputPort());
-    contour->ComputeGradientsOff();
-    contour->ComputeNormalsOff();
-    contour->ComputeScalarsOff();
-    contour->SetNumberOfContours(1);
-    contour->UseScalarTreeOn(); // UseScalarTreeOn() uses more memory, but extracts the contour faster
-    contour->SetValue(0, SEG_VOXEL_VALUE);
-    contour->Update();
-
-    vtkSmartPointer<vtkPolyDataSilhouette> silhouette = vtkSmartPointer<vtkPolyDataSilhouette>::New();
-    silhouette->SetCamera(view->renderWindow()->GetRenderers()->GetFirstRenderer()->GetActiveCamera());
-    silhouette->SetInputConnection(contour->GetOutputPort());
-    silhouette->BorderEdgesOn();
-    silhouette->Update();
+    m_voxelContour = vtkSmartPointer<vtkVoxelContour2D>::New();
+    m_voxelContour->SetInput(m_reslice->GetOutput());
+    m_voxelContour->Update();
 
     m_mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-    m_mapper->SetInputConnection(silhouette->GetOutputPort());
+    m_mapper->SetInputConnection(m_voxelContour->GetOutputPort());
     m_mapper->SetColorModeToDefault();
     m_mapper->ScalarVisibilityOff();
     m_mapper->StaticOff();
@@ -193,7 +153,6 @@ namespace EspINA
     if (m_actor != NULL)
     {
       m_reslice->Update();
-      m_pad->Update();
       m_mapper->Update();
       m_actor->Modified();
     }
@@ -238,28 +197,6 @@ namespace EspINA
     {
       m_reslice->SetInputConnection(m_data->toVTK());
       m_reslice->Update();
-    }
-
-    int extent[6];
-    vtkImageData *image = vtkImageData::SafeDownCast(m_data->toVTK()->GetProducer()->GetOutputDataObject(0));
-    image->GetExtent(extent);
-
-    if (memcmp(m_extent, extent, 6*sizeof(int)) != 0)
-    {
-      m_reslice->UpdateWholeExtent();
-      m_reslice->Update();
-      image = m_reslice->GetOutput();
-      image->GetExtent(extent);
-      extent[0] -= 2;
-      extent[1] += 2;
-      extent[2] -= 2;
-      extent[3] += 2;
-      extent[4] -= 2;
-      extent[5] += 2;
-
-      m_pad->SetOutputWholeExtent(extent);
-      m_pad->UpdateWholeExtent();
-      m_pad->Update();
     }
   }
 

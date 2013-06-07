@@ -53,8 +53,6 @@ void BasicGraphicalRepresentationFactory::createGraphicalRepresentations(Segment
     GraphicalRepresentationSPtr sliceRepresentation           (new SegmentationSliceRepresentation(volumeRep, NULL));
     GraphicalRepresentationSPtr contourRepresentation         (new ContourRepresentation          (volumeRep, NULL));
 
-    contourRepresentation->setActive(false);
-
     output->addGraphicalRepresentation(simpleMeshRepresentation      );
     output->addGraphicalRepresentation(smoothedMeshRepresentation    );
     output->addGraphicalRepresentation(volumeRaycastRepresentation   );
