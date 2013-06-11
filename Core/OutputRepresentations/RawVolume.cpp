@@ -143,7 +143,6 @@ VolumeRepresentation::VolumeRegion volumeRegionAux(itkVolumeType::Pointer volume
   VolumeRepresentation::VolumeRegion res = volumeRegionAux(region, spacing);
 
   itkVolumeType::PointType origin = volume->GetOrigin();
-
   if (origin[0] != 0 || origin[1] != 0 || origin[2] != 0)
   {
     for (int i = 0; i < 3; i++)
@@ -159,6 +158,8 @@ RawChannelVolume::RawChannelVolume(itkVolumeType::Pointer volume,
                                    FilterOutput *output)
 : ChannelVolume(output)
 , m_volume(volume)
+, m_VTKGenerationTime(0)
+, m_ITKGenerationTime(0)
 {
 
 }
@@ -255,8 +256,7 @@ const itkVolumeType::Pointer RawChannelVolume::toITK() const
 //----------------------------------------------------------------------------
 vtkAlgorithmOutput* RawChannelVolume::toVTK()
 {
-  return const_cast<vtkAlgorithmOutput *>(
-    static_cast<const RawChannelVolume *>(this)->toVTK());
+  return const_cast<vtkAlgorithmOutput *>(static_cast<const RawChannelVolume *>(this)->toVTK());
 }
 
 //----------------------------------------------------------------------------
@@ -288,7 +288,6 @@ void RawChannelVolume::markAsModified(bool emitSignal)
   if (emitSignal)
     emit representationChanged();
 }
-
 
 // //----------------------------------------------------------------------------
 // RawChannelVolume::RawChannelVolume(const EspinaRegion &region,
@@ -398,7 +397,6 @@ void RawSegmentationVolume::draw(vtkImplicitFunction *brush,
     if (brush->FunctionValue(tx, ty, tz) <= 0)
       it.Set(value);
   }
-
   markAsModified(emitSignal);
 }
 
@@ -877,6 +875,7 @@ void RawSegmentationVolume::setVolume(itkVolumeType::Pointer volume, bool discon
   {
     itk2vtk->SetInput(m_volume);
     itk2vtk->Update();
+
     m_VTKGenerationTime = m_volume->GetMTime();
   }
 }

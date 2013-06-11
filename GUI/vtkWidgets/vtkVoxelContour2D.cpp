@@ -93,9 +93,10 @@ int vtkVoxelContour2D::RequestData(vtkInformation *request,
   EspINA::Nm spacing[3];
   image->GetSpacing(spacing);
 
+  // reslice can change the origin of the result to something different from (0,0,0)
+  // depending on the reslice matrix direction.
   EspINA::Nm origin[3];
   image->GetOrigin(origin);
-  int iOrigin[3] = { origin[0]/spacing[0], origin[1]/spacing[1], origin[2]/spacing[2] };
 
   // apparently all our slices are in the axial plane, go figure...
   if (extent[4] != extent[5])
@@ -113,8 +114,8 @@ int vtkVoxelContour2D::RequestData(vtkInformation *request,
       voxel = reinterpret_cast<unsigned char *>(image->GetScalarPointer(x, y, extent[4]));
       if (*voxel != previousValue)
       {
-        cell[0] = newPts->InsertNextPoint(((EspINA::Nm) x - 0.5 + iOrigin[0]) * spacing[0], ((EspINA::Nm) y - 0.5 + iOrigin[1]) * spacing[1], extent[4]);
-        cell[1] = newPts->InsertNextPoint(((EspINA::Nm) x - 0.5 + iOrigin[0]) * spacing[0], ((EspINA::Nm) y + 0.5 + iOrigin[1]) * spacing[1], extent[4]);
+        cell[0] = newPts->InsertNextPoint((((EspINA::Nm) x - 0.5) * spacing[0]) + origin[0], (((EspINA::Nm) y - 0.5) * spacing[1]) + origin[1], extent[4]*spacing[2] + origin[2]);
+        cell[1] = newPts->InsertNextPoint((((EspINA::Nm) x - 0.5) * spacing[0]) + origin[0], (((EspINA::Nm) y + 0.5) * spacing[1]) + origin[1], extent[4]*spacing[2] + origin[2]);
         newLines->InsertNextCell(2, cell);
       }
       previousValue = *voxel;
@@ -122,8 +123,8 @@ int vtkVoxelContour2D::RequestData(vtkInformation *request,
 
     if (*voxel == EspINA::SEG_VOXEL_VALUE)
     {
-      cell[0] = newPts->InsertNextPoint(((EspINA::Nm) x - 0.5 + iOrigin[0]) * spacing[0], ((EspINA::Nm) y - 0.5 + iOrigin[1]) * spacing[1], extent[4]);
-      cell[1] = newPts->InsertNextPoint(((EspINA::Nm) x - 0.5 + iOrigin[0]) * spacing[0], ((EspINA::Nm) y + 0.5 + iOrigin[1]) * spacing[1], extent[4]);
+      cell[0] = newPts->InsertNextPoint((((EspINA::Nm) x - 0.5) * spacing[0]) + origin[0], (((EspINA::Nm) y - 0.5) * spacing[1]) + origin[1], extent[4]*spacing[2] + origin[2]);
+      cell[1] = newPts->InsertNextPoint((((EspINA::Nm) x - 0.5) * spacing[0]) + origin[0], (((EspINA::Nm) y + 0.5) * spacing[1]) + origin[1], extent[4]*spacing[2] + origin[2]);
       newLines->InsertNextCell(2, cell);
     }
   }
@@ -136,8 +137,8 @@ int vtkVoxelContour2D::RequestData(vtkInformation *request,
       voxel = reinterpret_cast<unsigned char *>(image->GetScalarPointer(x, y, extent[4]));
       if (*voxel != previousValue)
       {
-        cell[0] = newPts->InsertNextPoint(((EspINA::Nm) x - 0.5 + iOrigin[0]) * spacing[0], ((EspINA::Nm) y - 0.5 + iOrigin[1]) * spacing[1], extent[4]);
-        cell[1] = newPts->InsertNextPoint(((EspINA::Nm) x + 0.5 + iOrigin[0]) * spacing[0], ((EspINA::Nm) y - 0.5 + iOrigin[1]) * spacing[1], extent[4]);
+        cell[0] = newPts->InsertNextPoint((((EspINA::Nm) x - 0.5) * spacing[0]) + origin[0], (((EspINA::Nm) y - 0.5) * spacing[1]) + origin[1], extent[4]*spacing[2] + origin[2]);
+        cell[1] = newPts->InsertNextPoint((((EspINA::Nm) x + 0.5) * spacing[0]) + origin[0], (((EspINA::Nm) y - 0.5) * spacing[1]) + origin[1], extent[4]*spacing[2] + origin[2]);
         newLines->InsertNextCell(2, cell);
       }
       previousValue = *voxel;
@@ -145,8 +146,8 @@ int vtkVoxelContour2D::RequestData(vtkInformation *request,
 
     if (*voxel == EspINA::SEG_VOXEL_VALUE)
     {
-      cell[0] = newPts->InsertNextPoint(((EspINA::Nm) x - 0.5 + iOrigin[0]) * spacing[0], ((EspINA::Nm) y - 0.5 + iOrigin[1]) * spacing[1], extent[4]);
-      cell[1] = newPts->InsertNextPoint(((EspINA::Nm) x + 0.5 + iOrigin[0]) * spacing[0], ((EspINA::Nm) y - 0.5 + iOrigin[1]) * spacing[1], extent[4]);
+      cell[0] = newPts->InsertNextPoint((((EspINA::Nm) x - 0.5) * spacing[0]) + origin[0], (((EspINA::Nm) y - 0.5) * spacing[1]) + origin[1], extent[4] + origin[2]);
+      cell[1] = newPts->InsertNextPoint((((EspINA::Nm) x + 0.5) * spacing[0]) + origin[0], (((EspINA::Nm) y - 0.5) * spacing[1]) + origin[1], extent[4] + origin[2]);
       newLines->InsertNextCell(2, cell);
     }
   }

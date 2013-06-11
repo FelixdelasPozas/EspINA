@@ -428,19 +428,6 @@ void BrushPicker::startPreview(EspinaRenderView* view)
     int segExtent[6];
     segVolume->extent(segExtent);
 
-    // segmentations loaded from disk can have an origin != (0,0,0) that messes with the preview
-    // and must be corrected. That means 3 ops more per loop and 3 more vars. If corrected before
-    // we could use the index as the "for" variables directly, so it would be faster.
-    itkVolumeType::PointType origin = segVolume->toITK()->GetOrigin();
-    itkVolumeType::IndexType transform;
-    transform[0] = transform[1] = transform[2] = 0;
-    if ((origin[0] != 0) || (origin[1] != 0) || (origin[2] != 0))
-    {
-      transform[0] = segExtent[0];
-      transform[1] = segExtent[2];
-      transform[2] = segExtent[4];
-    }
-
     // minimize voxel copy, only fill the part of the preview that has
     // segmentation voxels.
     if (m_plane != SAGITTAL)
@@ -467,14 +454,14 @@ void BrushPicker::startPreview(EspinaRenderView* view)
     else
       segExtent[4] = segExtent[5] = extent[4];
 
+    itkVolumeType::IndexType index;
     for (int x = segExtent[0]; x <= segExtent[1]; ++x)
       for (int y = segExtent[2]; y <= segExtent[3]; ++y)
         for (int z = segExtent[4]; z <= segExtent[5]; ++z)
         {
-          itkVolumeType::IndexType index;
-          index[0] = x - transform[0];
-          index[1] = y - transform[1];
-          index[2] = z - transform[2];
+          index[0] = x;
+          index[1] = y;
+          index[2] = z;
 
           unsigned char *previewPixel = reinterpret_cast<unsigned char *>(m_preview->GetScalarPointer(x,y,z));
           *previewPixel = segVolume->toITK()->GetPixel(index);

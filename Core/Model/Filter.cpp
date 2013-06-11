@@ -26,12 +26,16 @@
 
 // ITK
 #include <itkMetaImageIO.h>
+#include <itkChangeInformationImageFilter.h>
 
 // Qt
 #include <QDir>
 #include <QMessageBox>
 #include <QWidget>
 #include <QDebug>
+
+// VTK
+#include <vtkMath.h>
 
 using namespace EspINA;
 
@@ -43,6 +47,7 @@ const ArgumentId Filter::ID     = "ID";
 const ArgumentId Filter::INPUTS = "Inputs";
 const ArgumentId Filter::EDIT   = "Edit"; // Backwards compatibility
 
+typedef itk::ChangeInformationImageFilter<itkVolumeType> ChangeImageInformationFilter;
 
 //----------------------------------------------------------------------------
 Filter::~Filter()
@@ -258,7 +263,40 @@ itkVolumeType::Pointer Filter::readVolumeFromCache(const QString &file)
     reader->SetFileName(tmpFile.data());
     reader->Update();
 
-    volume = reader->GetOutput();
+    itkVolumeType::Pointer imagePtr = reader->GetOutput();
+    itkVolumeType::PointType origin = imagePtr->GetOrigin();
+
+    // all itk volumes must have their origin at (0,0,0) to avoid
+    // origin discrepancies with their vtk counterparts.
+    if ((origin[0] != 0) || (origin[1] != 0) || (origin[2] != 0))
+    {
+      itkVolumeType::RegionType region = imagePtr->GetLargestPossibleRegion();
+      itkVolumeType::RegionType::IndexType index = region.GetIndex();
+      Q_ASSERT((index[0] == 0) && (index[1] == 0) && (index[2] == 0));
+      itkVolumeType::SpacingType spacing = imagePtr->GetSpacing();
+
+      itkVolumeType::RegionType::IndexType newIndex;
+      newIndex[0] = vtkMath::Round(origin[0] / spacing[0]);
+      newIndex[1] = vtkMath::Round(origin[1] / spacing[1]);
+      newIndex[2] = vtkMath::Round(origin[2] / spacing[2]);
+      region.SetIndex(newIndex);
+      imagePtr->SetLargestPossibleRegion(region);
+
+      itkVolumeType::PointType newOrigin;
+      newOrigin[0] = newOrigin[1] = newOrigin[2] = 0;
+
+      ChangeImageInformationFilter::Pointer changer = ChangeImageInformationFilter::New();
+      changer->SetInput(imagePtr);
+      changer->ChangeOriginOn();
+      changer->ChangeRegionOff();
+      changer->SetOutputOrigin(newOrigin);
+      changer->Update();
+
+      volume = changer->GetOutput();
+    }
+    else
+      volume = reader->GetOutput();
+
     volume->DisconnectPipeline();
   }
 

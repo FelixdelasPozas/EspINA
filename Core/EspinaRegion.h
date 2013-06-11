@@ -60,6 +60,7 @@ namespace EspINA
 
   EspinaRegion BoundingBox(EspinaRegion r1, EspinaRegion r2);
 
+
 } // namespace EspINA
 
 #endif // ESPINAREGION_H

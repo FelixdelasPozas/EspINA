@@ -32,6 +32,7 @@ RasterizedVolume::RasterizedVolume(MeshRepresentationSPtr mesh, FilterOutput *ou
 : RawSegmentationVolume(output)
 , m_mesh(dynamic_cast<vtkPolyData *>(mesh->mesh()->GetProducer()->GetOutputDataObject(0)))
 , m_spacing(mesh->spacing())
+, m_rasterizationTime(0)
 {
 }
 

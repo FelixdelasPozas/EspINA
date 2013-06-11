@@ -112,9 +112,8 @@ namespace EspINA
     m_reslice = vtkSmartPointer<vtkImageReslice>::New();
     m_reslice->SetInputConnection(m_data->toVTK());
     m_reslice->SetOutputDimensionality(2);
-    m_reslice->InterpolateOff();
-    m_reslice->AutoCropOutputOn();
     m_reslice->SetResliceAxes(slicingMatrix(view));
+    m_reslice->AutoCropOutputOn();
     m_reslice->SetNumberOfThreads(1);
     m_reslice->Update();
 

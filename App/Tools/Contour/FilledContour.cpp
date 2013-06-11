@@ -162,6 +162,7 @@ void FilledContour::setInUse(bool enable)
 
     m_viewManager->removeWidget(m_contourWidget);
     m_viewManager->setSelectionEnabled(true);
+    m_viewManager->updateViews();
     m_contourWidget->setEnabled(false);
     delete m_contourWidget;
     m_contourWidget = NULL;

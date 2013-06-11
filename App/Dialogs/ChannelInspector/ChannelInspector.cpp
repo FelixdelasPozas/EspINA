@@ -32,7 +32,12 @@
 #include <vtkMath.h>
 #include <vtkImageData.h>
 
+// ITK
+#include <itkChangeInformationImageFilter.h>
+
 using namespace EspINA;
+
+typedef itk::ChangeInformationImageFilter<itkVolumeType> ChangeImageInformationFilter;
 
 //------------------------------------------------------------------------
 ChannelInspector::ChannelInspector(Channel *channel, EspinaModel *model, QWidget *parent)
@@ -233,13 +238,13 @@ void ChannelInspector::changeSpacing()
       SegmentationSPtr seg = segmentationPtr(item);
       SegmentationVolumeSPtr segVolume = segmentationVolume(seg->output());
 
-      double oldSpacing[3];
-      segVolume->spacing(oldSpacing);
-      segVolume->toITK()->SetSpacing(spacing);
-      itkVolumeType::PointType origin = segVolume->toITK()->GetOrigin();
-      for (int i=0; i < 3; i++)
-        origin[i] = origin[i]/oldSpacing[i]*spacing[i];
-      segVolume->toITK()->SetOrigin(origin);
+      ChangeImageInformationFilter::Pointer changer = ChangeImageInformationFilter::New();
+      changer->SetInput(segVolume->toITK().GetPointer());
+      changer->ChangeSpacingOn();
+      changer->SetOutputSpacing(spacing);
+      changer->Update();
+
+      segVolume->setVolume(changer->GetOutput());
       segVolume->toITK()->Update();
       segVolume->markAsModified(true);
       updatedSegmentations << seg.get();
@@ -426,23 +431,28 @@ void ChannelInspector::rejectedChanges()
     reader->setSpacing(newSpacing);
     reader->update(0);
 
+    SegmentationList updatedSegmentations;
     foreach(ModelItemSPtr item, m_channel->relatedItems(EspINA::OUT, Channel::LINK))
     {
       if (EspINA::SEGMENTATION == item->type())
       {
         SegmentationSPtr seg = segmentationPtr(item);
         SegmentationVolumeSPtr segVolume = segmentationVolume(seg->output());
+        ChangeImageInformationFilter::Pointer changer = ChangeImageInformationFilter::New();
+        changer->SetInput(segVolume->toITK());
+        changer->ChangeSpacingOn();
+        changer->SetOutputSpacing(newSpacing);
+        changer->Update();
 
-        double oldSpacing[3];
-        segVolume->spacing(oldSpacing);
-        segVolume->toITK()->SetSpacing(newSpacing);
-        itkVolumeType::PointType origin = segVolume->toITK()->GetOrigin();
-        for (int i=0; i < 3; i++)
-        origin[i] = origin[i]/oldSpacing[i]*newSpacing[i];
-        segVolume->toITK()->SetOrigin(origin);
-        seg->output()->update();
+        segVolume->setVolume(changer->GetOutput());
+        segVolume->toITK()->Update();
+        segVolume->markAsModified(true);
+        updatedSegmentations << seg.get();
       }
     }
+
+    m_view->updateSceneBounds();  // needed to update thumbnail values without triggering volume()->markAsModified()
+    m_viewManager->updateSegmentationRepresentations(updatedSegmentations);
   }
 
   if (m_opacity != m_channel->opacity())
