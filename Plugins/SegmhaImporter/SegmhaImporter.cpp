@@ -73,7 +73,9 @@ FilterSPtr SegmhaImporter::createFilter(const QString              &filter,
                                         const ModelItem::Arguments &args)
 {
   Q_ASSERT(UndoCommand::FILTER_TYPE == filter);
-  return FilterSPtr(new SegmhaImporterFilter(inputs, args, UndoCommand::FILTER_TYPE));
+  FilterSPtr reader(new SegmhaImporterFilter(inputs, args, UndoCommand::FILTER_TYPE));
+  SetBasicGraphicalRepresentationFactory(reader);
+  return reader;
 }
 
 //-----------------------------------------------------------------------------
