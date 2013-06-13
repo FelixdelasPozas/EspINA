@@ -149,7 +149,7 @@ void DefaultEspinaView::createViewMenu(QMenu* menu)
   bool sr = settings.value("ShowRuler", true).toBool();
   bool st = settings.value("ShowThumbnail", true).toBool();
 
-  m_showRuler = new QAction(tr("Show Ruler"),menu);
+  m_showRuler = new QAction(tr("Show Scale Bar"),menu);
   m_showRuler->setCheckable(true);
   m_showRuler->setChecked(sr);
   menu->addAction(m_showRuler);

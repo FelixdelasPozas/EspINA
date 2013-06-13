@@ -87,7 +87,7 @@ SeedGrowSegmentationCommand::SeedGrowSegmentationCommand(ChannelPtr             
     QMessageBox warning;
     warning.setIcon(QMessageBox::Warning);
     warning.setWindowTitle(QObject::tr("Seed Grow Segmentation Filter Information"));
-    warning.setText(QObject::tr("New segmentation may be incomplete due to VOI restriction."));
+    warning.setText(QObject::tr("Segmentation may be incomplete due to VOI restriction."));
     warning.exec();
   }
 

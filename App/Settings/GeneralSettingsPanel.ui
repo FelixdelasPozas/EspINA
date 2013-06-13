@@ -84,7 +84,7 @@
          <string>Store all information needed to repeat the analysis inside the .seg files</string>
         </property>
         <property name="text">
-         <string>Store traceability information</string>
+         <string>Save traceability information</string>
         </property>
        </widget>
       </item>

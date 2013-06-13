@@ -69,7 +69,7 @@ void DefaultContextualMenu::addNote()
 {
   if (!m_segmentations.isEmpty())
   {
-    m_undoStack->beginMacro("Segmetation Notes");
+    m_undoStack->beginMacro("Segmentation Notes");
   }
 
   foreach (SegmentationPtr segmentation, m_segmentations)
@@ -358,7 +358,7 @@ void DefaultContextualMenu::createTagsEntry()
 //------------------------------------------------------------------------
 void DefaultContextualMenu::createSetLevelOfDetailEntry()
 {
-  m_changeFinalNode = this->addAction(tr("Set level of detail"));
+  m_changeFinalNode = this->addAction(tr("Modify level of detail"));
   m_changeFinalNode->setCheckable(true);
   connect(m_changeFinalNode, SIGNAL(triggered()),
           this, SLOT(changeFinalFlag()));

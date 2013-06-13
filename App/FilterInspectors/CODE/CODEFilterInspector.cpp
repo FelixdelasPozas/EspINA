@@ -177,9 +177,9 @@ void CODESettings::modifyFilter()
   if (output->isEdited())
   {
     QMessageBox msg;
-    msg.setText(tr("Filter contains segmentations that have been modified by the user."
-    "Updating this filter will result in losing user modifications."
-    "Do you want to proceed?"));
+    msg.setText(tr("Filter contains segmentations that have been manually modified by the user. "
+                   "Updating will result in losing user modifications. "
+                   "Do you want to proceed?"));
     msg.setStandardButtons(QMessageBox::Yes|QMessageBox::No);
 
     if (msg.exec() != QMessageBox::Yes)
@@ -193,7 +193,8 @@ void CODESettings::modifyFilter()
   if (m_filter->isOutputEmpty())
   {
     QMessageBox msg;
-    msg.setText(tr("A operation with that radius will destroy the segmentation.\nThe modification operation has been canceled."));
+    msg.setText(tr("Operation with this radius will destroy the segmentation. "
+		               "The modifying operation has been canceled."));
     msg.exec();
     delete filterModification;
     return;

@@ -78,7 +78,7 @@ QVariant CountingFrame::data(int role) const
     QString desc;
     desc += tr("CF:   %1"            ).arg(m_id)                             + br;
     desc += tr("Type: %1"            ).arg(name())                           + br;
-    desc += tr("Volume informtation:")                                       + br;
+    desc += tr("Volume information:" )                                       + br;
     desc += tr("  Total Volume:"     )                                       + br;
     desc += tr("    %1 voxel"        ).arg(totalVoxelVolume)                 + br;
     desc += tr("    %1 nm"           ).arg(totalVolume(),0,'f',2)     + cube + br;

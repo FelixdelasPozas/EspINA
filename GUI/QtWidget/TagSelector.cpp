@@ -79,7 +79,7 @@ void TagSelector::createTag()
   bool ok;
   QString newTag = QInputDialog::getText(this,
                                          tr("Add New Tag"),
-                                            tr("Introduce tag name"),
+                                            tr("Introduce Tag name"),
                                          QLineEdit::Normal,
                                          "",
                                          &ok);

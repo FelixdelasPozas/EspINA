@@ -474,7 +474,7 @@ void EditorToolBar::closeSegmentations()
       QMessageBox info;
       info.setWindowTitle("Close Segmentations");
       info.setIcon(QMessageBox::Warning);
-      QString message(tr("The following segmentations will be deleted by the close operation:\n"));
+      QString message(tr("The following segmentations will be deleted by the CLOSE operation:\n"));
       foreach(SegmentationPtr seg, closeCommand->getRemovedSegmentations())
         message += QString("  - ") + seg->data().toString() + QString("\n");
       message += tr("\nDo you want to continue with the operation?");
@@ -507,7 +507,7 @@ void EditorToolBar::openSegmentations()
       QMessageBox info;
       info.setWindowTitle("Open Segmentations");
       info.setIcon(QMessageBox::Warning);
-      QString message(tr("The following segmentations will be deleted by the open operation:\n"));
+      QString message(tr("The following segmentations will be deleted by the OPEN operation:\n"));
       foreach(SegmentationPtr seg, openCommand->getRemovedSegmentations())
         message += QString("  - ") + seg->data().toString() + QString("\n");
       message += tr("\nDo you want to continue with the operation?");
@@ -555,7 +555,7 @@ void EditorToolBar::erodeSegmentations()
       QMessageBox info;
       info.setWindowTitle("Erode Segmentations");
       info.setIcon(QMessageBox::Warning);
-      QString message(tr("The following segmentations will be deleted by the erode operation:\n"));
+      QString message(tr("The following segmentations will be deleted by the ERODE operation:\n"));
       foreach(SegmentationPtr seg, erodeCommand->getRemovedSegmentations())
         message += QString("  - ") + seg->data().toString() + QString("\n");
       message += tr("\nDo you want to continue with the operation?");
@@ -591,7 +591,7 @@ void EditorToolBar::initDrawTools()
 {
   // draw with a disc
   QAction *discTool = new QAction(QIcon(":/espina/pencil2D.png"),
-                                  tr("Draw segmentations using a disc"),
+                                  tr("Draw segmentations using a 2D disc"),
                                   m_drawToolSelector);
 
   CircularBrushSPtr circularBrush(new CircularBrush(m_model,
@@ -608,7 +608,7 @@ void EditorToolBar::initDrawTools()
 
   // draw with a sphere
   QAction *sphereTool = new QAction(QIcon(":espina/pencil3D.png"),
-                                    tr("Draw segmentations using a sphere"),
+                                    tr("Draw segmentations using a 3D sphere"),
                                     m_drawToolSelector);
 
   SphericalBrushSPtr sphericalBrush(new SphericalBrush(m_model,
@@ -740,7 +740,7 @@ void EditorToolBar::updateAvailableOperations()
   bool atLeastTwo = segs.size()  > 1;
   QString atLeastTwoToolTip;
   if (!atLeastTwo)
-    atLeastTwoToolTip = tr(" (This tool requires at least two segmentation to be selected)");
+    atLeastTwoToolTip = tr(" (This tool requires at least two segmentations to be selected)");
 
   bool several    = segs.size()  > 0;
   QString severalToolTip;

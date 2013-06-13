@@ -179,7 +179,7 @@ void PlanarSplitTool::splitSegmentation()
       warning.setWindowModality(Qt::WindowModal);
       warning.setWindowTitle(tr("EspINA"));
       warning.setIcon(QMessageBox::Warning);
-      warning.setText(tr("The defined plane does not split the selected segmentation into two different segmentations. Operation has no effect."));
+      warning.setText(tr("Operation has NO effect. The defined plane does not split the selected segmentation into 2 segmentations."));
       warning.setStandardButtons(QMessageBox::Yes);
       warning.exec();
       return;
@@ -196,7 +196,7 @@ void PlanarSplitTool::splitSegmentation()
     warning.setWindowModality(Qt::WindowModal);
     warning.setWindowTitle(tr("EspINA"));
     warning.setIcon(QMessageBox::Warning);
-    warning.setText(tr("The defined plane does not split the selected segmentation into two different segmentations. Operation has no effect."));
+    warning.setText(tr("Operation has NO effect. The defined plane does not split the selected segmentation into 2 segmentations."));
     warning.setStandardButtons(QMessageBox::Yes);
     warning.exec();
     return;

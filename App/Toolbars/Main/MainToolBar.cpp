@@ -85,7 +85,7 @@ MainToolBar::MainToolBar(EspinaModel *model,
           this,  SLOT(updateTaxonomy(TaxonomySPtr)));
   connect(m_model, SIGNAL(modelReset()),
           this, SLOT(resetRootItem()));
-  m_taxonomySelector->setToolTip( tr("Type of new segmentation") );
+  m_taxonomySelector->setToolTip( tr("New segmentation type") );
 
   addWidget(m_taxonomySelector);
 

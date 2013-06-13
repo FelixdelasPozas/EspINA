@@ -17,7 +17,7 @@
    <item>
     <widget class="QLabel" name="label">
      <property name="text">
-      <string>Define how the distance of a segmentation to the margins will be calculated. This option can be changed later in the Channel Inspector dialog.</string>
+      <string>Define distance of a segmentation to the margins. This option can be changed later in the Channel Inspector dialog.</string>
      </property>
      <property name="wordWrap">
       <bool>true</bool>

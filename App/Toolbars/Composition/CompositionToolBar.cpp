@@ -123,7 +123,7 @@ void CompositionToolBar::updateAvailableOperations()
 
   QString atLeastTwoToolTip;
   if (!atLeastTwo)
-    atLeastTwoToolTip = tr(" (This tool requires at least two segmentation to be selected)");
+    atLeastTwoToolTip = tr(" (This tool requires at least two selected segmentations)");
 
   m_compose->setEnabled(atLeastTwo);
   m_compose->setToolTip(tr("Create a segmentation from selected segmentations") + atLeastTwoToolTip);

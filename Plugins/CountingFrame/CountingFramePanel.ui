@@ -24,8 +24,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>268</width>
-        <height>728</height>
+        <width>282</width>
+        <height>721</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
@@ -416,7 +416,7 @@
             </size>
            </property>
            <property name="toolTip">
-            <string>Save Counting Frame Description to File</string>
+            <string>Save CF Description to File</string>
            </property>
            <property name="text">
             <string/>

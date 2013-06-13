@@ -367,7 +367,7 @@ void TabularReport::exportInformation()
 {
   QString filter = tr("Excel File (*.xls)") + ";;" + tr("CSV Text File (*.csv)");
   QString fileName = QFileDialog::getSaveFileName(this,
-                                                  tr("Export Raw Information"),
+                                                  tr("Export Raw Data"),
                                                   QString("raw information.xls"),
                                                   filter);
 
@@ -385,7 +385,7 @@ void TabularReport::exportInformation()
   }
 
   if (!result)
-    QMessageBox::warning(this, "EspINA", tr("Couldn't export %1").arg(fileName));
+    QMessageBox::warning(this, "EspINA", tr("Unable to export %1").arg(fileName));
 }
 
 //------------------------------------------------------------------------

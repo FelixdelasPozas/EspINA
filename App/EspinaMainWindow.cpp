@@ -315,7 +315,7 @@ EspinaMainWindow::EspinaMainWindow(EspinaModel      *model,
   m_colorEngines->addColorEngine(tr("Taxonomy"),taxonomyEngine);
   m_colorEngines->addColorEngine(tr("User"), ColorEnginePtr(new UserColorEngine()));
 
-  m_dockMenu = new QMenu(tr("Panels"));
+  m_dockMenu = new QMenu(tr("Pannels"));
 
   menuBar()->addMenu(m_viewMenu);
   m_viewMenu->addMenu(m_colorEngines);
@@ -567,8 +567,8 @@ void EspinaMainWindow::checkAutosave()
   {
     QMessageBox info;
     info.setWindowTitle(tr("EspINA"));
-    info.setText(tr("Previous working session closed unexpectedly. "
-                    "Do you want to load auto-saved session?"));
+    info.setText(tr("EspINA closed unexpectedly. "
+                    "Do you want to load autosave file?"));
     info.setStandardButtons(QMessageBox::Yes|QMessageBox::No);
     if (QMessageBox::Yes == info.exec())
     {
@@ -604,12 +604,12 @@ void EspinaMainWindow::updateTraceabilityStatus()
   if (m_model->isTraceable())
   {
     m_traceableStatus->setPixmap(QPixmap(":/espina/traceable.png").scaled(22, 22));
-    m_traceableStatus->setToolTip(tr("Current Analysis is traceable"));
+    m_traceableStatus->setToolTip(tr("Current Session is trackable"));
   }
   else
   {
     m_traceableStatus->setPixmap(QPixmap(":/espina/non_traceable.png").scaled(22, 22));
-    m_traceableStatus->setToolTip(tr("Current Analysis is not traceable"));
+    m_traceableStatus->setToolTip(tr("Current Session is NOT trackable"));
   }
 }
 
@@ -758,9 +758,9 @@ void EspinaMainWindow::openAnalysis(const QFileInfo file)
   if (IOErrorHandler::SUCCESS != loaded)
   {
     QMessageBox box(QMessageBox::Warning,
-                    tr("Espina"),
+                    tr("EspINA"),
                     tr("File %1 could not be loaded.\n"
-                    "Do you want to remove it from recent documents?")
+                    "Do you want to remove it from recent documents list?")
                     .arg(fileInfo.fileName()),
                     QMessageBox::Yes|QMessageBox::No);
 

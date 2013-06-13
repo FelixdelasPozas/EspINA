@@ -286,7 +286,7 @@ void SynapticAppositionSurfaceAnalysis::saveAnalysis()
   }
 
   if (!result)
-    QMessageBox::warning(this, "EspINA", tr("Couldn't export %1").arg(fileName));
+    QMessageBox::warning(this, "EspINA", tr("Unable to export %1").arg(fileName));
 }
 
 //----------------------------------------------------------------------------

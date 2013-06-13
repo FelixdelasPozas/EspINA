@@ -102,7 +102,7 @@
       </sizepolicy>
      </property>
      <property name="title">
-      <string>Erode Kernel Options</string>
+      <string>Erode Options</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_6">
       <item>
@@ -169,7 +169,7 @@
       </sizepolicy>
      </property>
      <property name="title">
-      <string>Dilate Kernel Options</string>
+      <string>Dilate Options</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_4">
       <item>
@@ -236,7 +236,7 @@
       </sizepolicy>
      </property>
      <property name="title">
-      <string>Open Kernel Options</string>
+      <string>Open Options</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_5">
       <item>
@@ -303,7 +303,7 @@
       </sizepolicy>
      </property>
      <property name="title">
-      <string>Close Kernel Options</string>
+      <string>Close Options</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_3">
       <item>
