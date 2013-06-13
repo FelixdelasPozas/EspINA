@@ -49,7 +49,7 @@ using namespace EspINA;
 //-----------------------------------------------------------------------------
 BrushPicker::BrushPicker(PickableItemPtr item)
 : m_referenceItem(item)
-, m_displayRadius(20)
+, m_displayRadius(-1)
 , m_borderColor(Qt::blue)
 , m_brushColor(Qt::blue)
 , m_brushImage(NULL)
@@ -191,6 +191,12 @@ void BrushPicker::setBrushImage(QImage &image)
 //-----------------------------------------------------------------------------
 void BrushPicker::buildCursor()
 {
+  if (m_displayRadius == -1)
+  {
+    qWarning("Brushpicker cursor radius not initialized. Using default value 20.");
+    m_displayRadius = 20;
+  }
+
   int width = 2*m_displayRadius;
 
   QPixmap pix(width, width);

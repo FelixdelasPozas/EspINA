@@ -232,7 +232,7 @@ EditorToolBar::EditorToolBar(EspinaModel *model,
 , m_viewManager(vm)
 , m_drawToolSelector(new ActionSelector(this))
 , m_splitToolSelector(new ActionSelector(this))
-, m_settings(new Settings())
+, m_settings(new EditorToolBarSettings())
 , editorSettings(new SettingsPanel(m_settings))
 {
   setObjectName("EditorToolBar");
@@ -595,6 +595,7 @@ void EditorToolBar::initDrawTools()
                                   m_drawToolSelector);
 
   CircularBrushSPtr circularBrush(new CircularBrush(m_model,
+                                                    m_settings,
                                                     m_undoStack,
                                                     m_viewManager));
   connect(circularBrush.get(), SIGNAL(stopDrawing()),
@@ -611,6 +612,7 @@ void EditorToolBar::initDrawTools()
                                     m_drawToolSelector);
 
   SphericalBrushSPtr sphericalBrush(new SphericalBrush(m_model,
+                                                       m_settings,
                                                        m_undoStack,
                                                        m_viewManager));
   connect(sphericalBrush.get(), SIGNAL(stopDrawing()),

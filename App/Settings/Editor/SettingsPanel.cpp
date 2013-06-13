@@ -26,7 +26,7 @@
 using namespace EspINA;
 
 //------------------------------------------------------------------------
-EditorToolBar::SettingsPanel::SettingsPanel(EditorToolBar::Settings *settings)
+EditorToolBar::SettingsPanel::SettingsPanel(EditorToolBarSettings *settings)
 : m_settings(settings)
 {
   setupUi(this);

@@ -25,13 +25,15 @@
 
 namespace EspINA
 {
+  class EditorToolBarSettings;
+
   class EditorToolBar::SettingsPanel
   : public ISettingsPanel
   , public Ui::EditorSettingsPanel
   {
     Q_OBJECT
   public:
-    SettingsPanel(Settings *settings);
+    SettingsPanel(EditorToolBarSettings *settings);
     virtual ~SettingsPanel(){}
 
     virtual const QString shortDescription()
@@ -52,7 +54,7 @@ namespace EspINA
   public slots:
 
   private:
-    Settings *m_settings;
+  EditorToolBarSettings *m_settings;
   };
 
 } // namespace EspINA

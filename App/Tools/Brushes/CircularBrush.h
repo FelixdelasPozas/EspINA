@@ -30,6 +30,7 @@ namespace EspINA
   {
   public:
     explicit CircularBrush(EspinaModel *model,
+                           EditorToolBarSettings *settings,
                            QUndoStack  *undoStack,
                            ViewManager *viewManager);
     virtual ~CircularBrush();

@@ -31,6 +31,7 @@ namespace EspINA
   {
   public:
     explicit SphericalBrush(EspinaModel *model,
+                            EditorToolBarSettings *settings,
                             QUndoStack  *undoStack,
                             ViewManager *viewManager);
 

@@ -18,6 +18,7 @@
 
 // EspINA
 #include "Brush.h"
+#include <App/Toolbars/Editor/Settings.h>
 #include <Undo/BrushUndoCommand.h>
 #include <Undo/StrokeSegmentationCommand.h>
 #include <Undo/VolumeSnapshotCommand.h>
@@ -49,6 +50,7 @@ const Filter::FilterType Brush::FREEFORM_SOURCE_TYPE = "EditorToolBar::FreeFormS
 
 //-----------------------------------------------------------------------------
 Brush::Brush(EspinaModel *model,
+             EditorToolBarSettings *settings,
              QUndoStack  *undoStack,
              ViewManager *viewManager)
 : m_model(model)
@@ -58,6 +60,7 @@ Brush::Brush(EspinaModel *model,
 , m_mode(CREATE)
 , m_erasing(false)
 , m_brush(new BrushPicker())
+, m_settings(settings)
 , m_currentOutput(-1)
 {
   connect(m_brush, SIGNAL(stroke(PickableItemPtr, ISelector::WorldRegion, Nm, PlaneType)),
@@ -65,8 +68,7 @@ Brush::Brush(EspinaModel *model,
   connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection, bool)),
           this, SLOT(initBrushTool()));
 
-  // TODO: use EditorToolBar::Settings object, first remove .h dependencies between Brush.cpp and EditorToolBar.cpp
-  setBrushRadius();
+  m_brush->setRadius(settings->brushRadius());
 }
 
 //-----------------------------------------------------------------------------
@@ -163,6 +165,7 @@ bool Brush::filterEvent(QEvent* e, EspinaRenderView* view)
     {
       int numSteps = we->delta() / 8 / 15; //Refer to QWheelEvent doc.
       m_brush->setRadius(m_brush->radius() + numSteps);
+      m_settings->setBrushRadius(m_brush->radius());
       view->setCursor(cursor());
       return true;
     }
@@ -332,7 +335,6 @@ void Brush::initBrushTool()
   QImage hasSeg = QImage();
 
   emit brushModeChanged(BRUSH);
-  setBrushRadius();
 
   if (m_currentSeg)
     disconnect(m_currentSeg.get(), SIGNAL(modified(ModelItemPtr)),
@@ -366,11 +368,4 @@ void Brush::initBrushTool()
 
   m_erasing = false;
   m_brush->DrawingOn(NULL);
-}
-
-//-----------------------------------------------------------------------------
-void Brush::setBrushRadius()
-{
-  QSettings settings(CESVIMA, ESPINA);
-  m_brush->setRadius(settings.value(QString("EditorToolBar::BrushRadius"),20).toInt());
 }

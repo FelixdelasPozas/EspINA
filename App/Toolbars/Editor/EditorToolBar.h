@@ -42,6 +42,7 @@ namespace EspINA
   class ContourSelector;
   class ContourWidget;
   class FreeFormSource;
+  class EditorToolBarSettings;
 
   class EditorToolBar
   : public IToolBar
@@ -59,7 +60,6 @@ namespace EspINA
     class CODECommand;// Close/Open/Dilate/Erode Command
 
   public:
-    class Settings;
     class SettingsPanel;
 
   public:
@@ -129,7 +129,7 @@ namespace EspINA
     QAction *m_fill;
     ContourWidget *m_contourWidget;
 
-    Settings      *m_settings;
+    EditorToolBarSettings  *m_settings;
     ISettingsPanelPrototype editorSettings;
   };
 

@@ -28,9 +28,10 @@ using namespace EspINA;
 
 //-----------------------------------------------------------------------------
 SphericalBrush::SphericalBrush(EspinaModel *model,
+                               EditorToolBarSettings *settings,
                                QUndoStack  *undoStack,
                                ViewManager *viewManager)
-: Brush(model, undoStack, viewManager)
+: Brush(model, settings, undoStack, viewManager)
 {
 }
 

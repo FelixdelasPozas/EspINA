@@ -28,6 +28,7 @@
 #include "GUI/Pickers/ISelector.h"
 #include "GUI/Tools/ITool.h"
 #include "GUI/ViewManager.h"
+#include "App/Toolbars/Editor/Settings.h"
 
 class QUndoStack;
 
@@ -36,6 +37,7 @@ namespace EspINA
   class BrushPicker;
   class ViewManager;
   class VolumeSnapshotCommand;
+  class EditorToolBarSettings;
 
   class Brush // TODO 2012-11-27 Crear una clase base para pintar independientemente de lo que se haga con el resultado
   : public ITool
@@ -57,6 +59,7 @@ namespace EspINA
 
   public:
     explicit Brush(EspinaModel *model,
+                   EditorToolBarSettings *settins,
                    QUndoStack  *undoStack,
                    ViewManager *viewManager);
     virtual ~Brush();
@@ -87,7 +90,6 @@ namespace EspINA
     void stopDrawing();
 
   protected:
-    void setBrushRadius();
 
     EspinaModel *m_model;
     QUndoStack  *m_undoStack;
@@ -97,6 +99,7 @@ namespace EspINA
     DrawMode     m_mode;
     bool         m_erasing;
     BrushPicker *m_brush;
+    EditorToolBarSettings *m_settings;
 
     FilterSPtr       m_currentSource;
     SegmentationSPtr m_currentSeg;
