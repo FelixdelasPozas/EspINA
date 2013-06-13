@@ -118,7 +118,7 @@ namespace EspINA
     m_reslice->Update();
 
     m_voxelContour = vtkSmartPointer<vtkVoxelContour2D>::New();
-    m_voxelContour->SetInput(m_reslice->GetOutput());
+    m_voxelContour->SetInputConnection(m_reslice->GetOutputPort());
     m_voxelContour->Update();
 
     m_mapper = vtkSmartPointer<vtkPolyDataMapper>::New();

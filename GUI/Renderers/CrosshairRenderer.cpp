@@ -45,14 +45,16 @@ CrosshairRenderer::~CrosshairRenderer()
 {
   foreach(PickableItemPtr item, m_representations.keys())
   {
-    foreach(GraphicalRepresentationSPtr rep, m_representations[item])
-    {
-      foreach(vtkProp *prop, rep->getActors())
+    if (m_enable)
+      foreach(GraphicalRepresentationSPtr rep, m_representations[item])
       {
-        m_view->removeActor(prop);
-        m_picker->DeletePickList(prop);
+        foreach(vtkProp *prop, rep->getActors())
+        {
+          m_view->removeActor(prop);
+          m_picker->DeletePickList(prop);
+        }
       }
-    }
+
     m_representations[item].clear();
   }
   m_representations.clear();
@@ -128,7 +130,7 @@ bool CrosshairRenderer::managesRepresentation(GraphicalRepresentationSPtr rep)
 //-----------------------------------------------------------------------------
 void CrosshairRenderer::hide()
 {
-  if (!this->m_enable)
+  if (!m_enable)
     return;
 
   foreach (PickableItemPtr item, m_representations.keys())
@@ -145,7 +147,7 @@ void CrosshairRenderer::hide()
 //-----------------------------------------------------------------------------
 void CrosshairRenderer::show()
 {
-  if (this->m_enable)
+  if (m_enable)
     return;
 
   QApplication::setOverrideCursor(Qt::WaitCursor);

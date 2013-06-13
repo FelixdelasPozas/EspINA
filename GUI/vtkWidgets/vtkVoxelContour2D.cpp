@@ -161,7 +161,9 @@ int vtkVoxelContour2D::RequestData(vtkInformation *request,
   vtkSmartPointer<vtkCleanPolyData> cleaner = vtkSmartPointer<vtkCleanPolyData>::New();
   cleaner->SetInput(temp);
   cleaner->PointMergingOn();
+  cleaner->SetTolerance(0.0);
   cleaner->Update();
+
   temp->Delete();
 
   output->SetPoints(cleaner->GetOutput()->GetPoints());

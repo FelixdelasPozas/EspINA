@@ -45,14 +45,16 @@ namespace EspINA
   {
     foreach(PickableItemPtr item, m_representations.keys())
     {
-      foreach(GraphicalRepresentationSPtr rep, m_representations[item])
-      {
-        foreach(vtkProp *prop, rep->getActors())
+      if (m_enable)
+        foreach(GraphicalRepresentationSPtr rep, m_representations[item])
         {
-          m_view->removeActor(prop);
-          m_picker->DeletePickList(prop);
+          foreach(vtkProp *prop, rep->getActors())
+          {
+            m_view->removeActor(prop);
+            m_picker->DeletePickList(prop);
+          }
         }
-      }
+
       m_representations[item].clear();
     }
 

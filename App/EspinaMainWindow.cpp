@@ -125,10 +125,10 @@ class EspinaIOErrorHandler
         fileDialog.resize(800, 480);
         fileDialog.setSidebarUrls(urls);
 
-        //QApplication::setOverrideCursor(Qt::ArrowCursor);
+        QApplication::setOverrideCursor(Qt::ArrowCursor);
         if (fileDialog.exec())
           resfile = QFileInfo(fileDialog.selectedFiles().first());
-        //QApplication::restoreOverrideCursor();
+        QApplication::restoreOverrideCursor();
 
         return resfile;
     }
