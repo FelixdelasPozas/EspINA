@@ -181,7 +181,6 @@ namespace EspINA
     int       m_undoStackSavedIndex;
     QTimer    m_autosave;
     QFileInfo m_sessionFile;
-    QDir      m_sessionDir;
 
     // Status Bar
     QLabel   *m_traceableStatus;

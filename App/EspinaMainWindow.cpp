@@ -742,7 +742,6 @@ void EspinaMainWindow::openAnalysis(const QFileInfo file)
 
   QFileInfo fileInfo(file);
 
-
   IOErrorHandler::STATUS loaded;
   {
     m_errorHandler->setDefaultDir(fileInfo.dir());
@@ -828,17 +827,12 @@ void EspinaMainWindow::openAnalysis(const QFileInfo file)
 
   setWindowTitle(file.fileName());
 
-  if (file.suffix() == "seg")
-  {
+  if (file.suffix().toLower() == QString("seg"))
     m_saveSessionAnalysis->setEnabled(true);
-    m_sessionFile = file;
-  }
   else
-  {
     m_saveSessionAnalysis->setEnabled(false);
-    m_sessionFile = QFileInfo();
-  }
-  m_sessionDir = file.absoluteDir();
+
+  m_sessionFile = file;
 
   m_viewManager->updateSegmentationRepresentations();
   m_viewManager->updateViews();
@@ -880,7 +874,7 @@ void EspinaMainWindow::addToAnalysis()
   channelFiles << CHANNEL_FILES;
   fileDialog.setFileMode(QFileDialog::ExistingFiles);
   fileDialog.setFilters(channelFiles);
-  fileDialog.setDirectory(m_sessionFile.dir());
+  fileDialog.setDirectory(m_sessionFile.absoluteDir());
   fileDialog.setOption(QFileDialog::DontUseNativeDialog, false);
   fileDialog.setViewMode(QFileDialog::Detail);
   fileDialog.resize(800, 480);
@@ -974,15 +968,11 @@ void EspinaMainWindow::addFileToAnalysis(const QFileInfo file)
 //------------------------------------------------------------------------
 void EspinaMainWindow::saveAnalysis()
 {
-  QString dir = "";
-  if (!m_sessionDir.isRoot())
-  {
-    dir = m_sessionDir.absolutePath() + "/";
-    if (!m_sessionFile.fileName().isEmpty())
-      dir += m_sessionFile.fileName();
-    else
-      dir += m_sessionDir.dirName();
-  }
+  QString suggestedFileName;
+  if (m_sessionFile.suffix().toLower() == QString("seg"))
+    suggestedFileName = m_sessionFile.fileName();
+  else
+    suggestedFileName = m_sessionFile.baseName() + QString(".seg");
 
   QList<QUrl> urls;
   urls << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::DesktopLocation))
@@ -991,10 +981,11 @@ void EspinaMainWindow::saveAnalysis()
        << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::DataLocation));
 
   QFileDialog fileDialog(this);
+  fileDialog.selectFile(suggestedFileName);
   fileDialog.setDefaultSuffix(QString(tr("seg")));
   fileDialog.setWindowTitle(tr("Save EspINA Analysis"));
   fileDialog.setFilter(SEG_FILES);
-  fileDialog.setDirectory(dir);
+  fileDialog.setDirectory(m_sessionFile.absoluteDir());
   fileDialog.setOption(QFileDialog::DontUseNativeDialog, false);
   fileDialog.setViewMode(QFileDialog::Detail);
   fileDialog.resize(800, 480);
