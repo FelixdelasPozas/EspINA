@@ -159,7 +159,6 @@ namespace EspINA
   {
     m_view = view;
     m_view->mainRenderer()->AddObserver(vtkCommand::StartEvent, this, &ContourRenderer::RendererEventCallbackFunction);
-    m_view->mainRenderer()->AddObserver(vtkCommand::EndEvent, this, &ContourRenderer::RendererEventCallbackFunction);
 
     computeWidth();
   }
@@ -167,6 +166,8 @@ namespace EspINA
   //-----------------------------------------------------------------------------
   void ContourRenderer::computeWidth()
   {
+    // NOTES: final with range is (1-5)
+    // bounds enforced with std::min/max functions.
     m_width = 6 - (m_view->mainRenderer()->GetActiveCamera()->GetParallelScale() / 100.0);
     m_width = std::max(1, std::min(m_width, 5));
   }
