@@ -158,7 +158,6 @@ static bool invalidData(SegmentationPtr seg)
 
     invalid = extension->note().isEmpty();
   }
-
   return invalid;
 }
 

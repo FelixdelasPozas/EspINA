@@ -63,13 +63,22 @@ namespace EspINA
 
     virtual void initialize() = 0;
 
+    void setEnabled(bool enabled)
+    { m_enabled = enabled; }
+
+    bool isEnabled() const 
+    {return m_enabled;}
+
   public slots:
     /// Invalidates segmentation's extension. If no segmentation is given
     /// invalidate this extension for its segmentation
     virtual void invalidate(SegmentationPtr segmentation = NULL) = 0;
 
   protected:
-    Information() {}
+    Information() : m_enabled(true) {}
+
+  protected:
+    bool m_enabled;
   };
 
 } // namespace EspINA

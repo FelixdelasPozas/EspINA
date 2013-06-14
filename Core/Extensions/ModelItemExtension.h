@@ -80,7 +80,9 @@ namespace EspINA
       {
         foreach(K key, this->keys())
         {
-          if (this->value(key).Dirty || key->m_model == NULL || (cond && cond(key)))
+          if (this->value(key).Dirty 
+          || key->m_model == NULL
+          || (cond && cond(key)))
             Base::remove(key);
         }
       }

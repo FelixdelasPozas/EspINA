@@ -184,14 +184,17 @@ QVariant Segmentation::data(int role) const
       informationExtension(SegmentationNotesID);
       foreach (InformationExtension extension, m_informationExtensions)
       {
-        QString extToolTip = extension->toolTipText();
-        if (!extToolTip.isEmpty())
+        if (extension->isEnabled())
         {
-          if (addBreakLine && !extToolTip.contains("</table>")) tooltip = tooltip.append("<br>");
+          QString extToolTip = extension->toolTipText();
+          if (!extToolTip.isEmpty())
+          {
+            if (addBreakLine && !extToolTip.contains("</table>")) tooltip = tooltip.append("<br>");
 
-          tooltip = tooltip.append(extToolTip);
+            tooltip = tooltip.append(extToolTip);
 
-          addBreakLine = true;
+            addBreakLine = true;
+          }
         }
       }
 
@@ -363,6 +366,10 @@ void Segmentation::setTaxonomy(TaxonomyElementSPtr tax)
 {
   m_taxonomy = tax;
   m_args[TAXONOMY] = Argument(tax->qualifiedName());
+  foreach(InformationExtension extension, m_informationExtensions)
+  {
+    extension->setEnabled(extension->validTaxonomy(tax->qualifiedName()));
+  }
 }
 
 // void Segmentation::bounds(double val[3])

@@ -178,8 +178,15 @@ void EdgeDistance::loadCache(QuaZipFile  &file,
 // signature in different compilation units
 static bool invalidData(SegmentationPtr seg)
 {
-  return !seg->hasInformationExtension(EdgeDistanceID)
-      && seg->outputIsModified();
+  bool invalid = false;
+  if (seg->hasInformationExtension(EdgeDistanceID))
+  {
+    invalid = !seg->informationExtension(EdgeDistanceID)->isEnabled();
+  } else 
+  {
+    invalid = seg->outputIsModified();
+  }
+  return invalid;
 }
 
 //-----------------------------------------------------------------------------

@@ -224,8 +224,15 @@ void StereologicalInclusion::loadCache(QuaZipFile &file, const QDir &tmpDir, IEs
 // signature in different compilation units
 static bool invalidData(SegmentationPtr seg)
 {
-  return !seg->hasInformationExtension(StereologicalInclusionID)
-      && seg->outputIsModified();
+  bool invalid = false;
+  if (seg->hasInformationExtension(StereologicalInclusionID))
+  {
+    invalid = !seg->informationExtension(StereologicalInclusionID)->isEnabled();
+  } else 
+  {
+    invalid = seg->outputIsModified();
+  }
+  return invalid;
 }
 
 //------------------------------------------------------------------------

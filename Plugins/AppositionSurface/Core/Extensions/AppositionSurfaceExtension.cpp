@@ -176,6 +176,22 @@ QVariant AppositionSurfaceExtension::information(const Segmentation::InfoTag &ta
     return data.Tortuosity;
   if (SYNAPSE == tag)
     return data.SynapticSource;
+  if (MEAN_GAUSS_CURVATURE == tag)
+    return data.MeanGaussCurvature;
+  if (STD_DEV_GAUS_CURVATURE == tag)
+    return data.StdDevGaussCurvature;
+  if (MEAN_MEAN_CURVATURE == tag)
+    return data.MeanMeanCurvature;
+  if (STD_DEV_MEAN_CURVATURE == tag)
+    return data.StdDevMeanCurvature;
+  if (MEAN_MIN_CURVATURE == tag)
+    return data.MeanMinCurvature;
+  if (STD_DEV_MIN_CURVATURE == tag)
+    return data.StdDevMinCurvature;
+  if (MEAN_MAX_CURVATURE == tag)
+    return data.MeanMaxCurvature;
+  if (STD_DEV_MAX_CURVATURE == tag)
+    return data.StdDevMaxCurvature;
 
   qWarning() << ID << ":"  << tag << " is not provided";
   Q_ASSERT(false);
@@ -265,8 +281,15 @@ void AppositionSurfaceExtension::loadCache(QuaZipFile &file, const QDir &tmpDir,
 // signature in different compilation units
 static bool invalidData(SegmentationPtr seg)
 {
-  return !seg->hasInformationExtension(AppositionSurfaceExtension::ID)
-       && seg->outputIsModified();
+  bool invalid = false;
+  if (seg->hasInformationExtension(AppositionSurfaceExtension::ID))
+  {
+    invalid = !seg->informationExtension(AppositionSurfaceExtension::ID)->isEnabled();
+  } else 
+  {
+    invalid = seg->outputIsModified();
+  }
+  return invalid;
 }
 //------------------------------------------------------------------------
 bool AppositionSurfaceExtension::saveCache(Snapshot &cacheList)
