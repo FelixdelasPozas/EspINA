@@ -43,6 +43,8 @@ namespace EspINA
                                                EspinaRenderView      *view)
   : SegmentationGraphicalRepresentation(view)
   , m_data(data)
+  , m_width(5)
+  , m_pattern(0xFFFF)
   {
   }
 
@@ -133,7 +135,8 @@ namespace EspINA
 
     m_actor = vtkSmartPointer<vtkActor>::New();
     m_actor->SetMapper(m_mapper);
-    m_actor->GetProperty()->SetLineWidth(5);
+    m_actor->GetProperty()->SetLineWidth(m_width);
+    m_actor->GetProperty()->SetLineStipplePattern(m_pattern);
     m_actor->GetProperty()->SetColor(rgba[0],rgba[1],rgba[2]);
     m_actor->GetProperty()->SetOpacity(rgba[3]);
     m_actor->GetProperty()->Modified();
@@ -197,6 +200,30 @@ namespace EspINA
       m_reslice->SetInputConnection(m_data->toVTK());
       m_reslice->Update();
     }
+  }
+
+  //-----------------------------------------------------------------------------
+  void ContourRepresentation::setLineWidth(int width)
+  {
+    m_width = width;
+
+    if (m_actor == NULL)
+      return;
+
+    m_actor->GetProperty()->SetLineWidth(m_width);
+    m_actor->Modified();
+  }
+
+  //-----------------------------------------------------------------------------
+  void ContourRepresentation::setLinePattern(int pattern)
+  {
+    m_pattern = pattern;
+
+    if (m_actor == NULL)
+      return;
+
+    m_actor->GetProperty()->SetLineStipplePattern(m_pattern);
+    m_actor->Modified();
   }
 
 } /* namespace EspINA */

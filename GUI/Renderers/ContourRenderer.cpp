@@ -24,12 +24,15 @@
 
 // VTK
 #include <vtkPropPicker.h>
+#include <vtkCommand.h>
+#include <vtkCamera.h>
 
 namespace EspINA
 {
   //-----------------------------------------------------------------------------
   ContourRenderer::ContourRenderer(QObject *parent)
   : MeshRenderer(parent)
+  , m_width(5)
   {
   }
   
@@ -52,6 +55,8 @@ namespace EspINA
         list << rep;
         m_representations.insert(item, list);
       }
+
+      contour->setLineWidth(m_width);
 
       if (m_enable)
         foreach(vtkProp* prop, rep->getActors())
@@ -149,5 +154,39 @@ namespace EspINA
     return selection;
   }
 
+  //-----------------------------------------------------------------------------
+  void ContourRenderer::setView(EspinaRenderView* view)
+  {
+    m_view = view;
+    m_view->mainRenderer()->AddObserver(vtkCommand::StartEvent, this, &ContourRenderer::RendererEventCallbackFunction);
+    m_view->mainRenderer()->AddObserver(vtkCommand::EndEvent, this, &ContourRenderer::RendererEventCallbackFunction);
+
+    computeWidth();
+  }
+
+  //-----------------------------------------------------------------------------
+  void ContourRenderer::computeWidth()
+  {
+    m_width = 6 - (m_view->mainRenderer()->GetActiveCamera()->GetParallelScale() / 100.0);
+    m_width = std::max(1, std::min(m_width, 5));
+  }
+
+  //-----------------------------------------------------------------------------
+  void ContourRenderer::RendererEventCallbackFunction(vtkObject *caller, unsigned long int eventId, void *callData)
+  {
+    computeWidth();
+
+    double scale = m_view->mainRenderer()->GetActiveCamera()->GetParallelScale();
+    if ((m_representations.size() == 0) || scale > 400 || scale < 100)
+      return;
+
+    foreach(GraphicalRepresentationSList list, m_representations.values())
+      foreach(GraphicalRepresentationSPtr rep, list)
+      {
+        ContourRepresentationSPtr contour = boost::dynamic_pointer_cast<ContourRepresentation>(rep);
+        if (contour.get() != NULL)
+          contour->setLineWidth(m_width);
+      }
+  }
 
 } /* namespace EspINA */

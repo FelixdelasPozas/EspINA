@@ -62,6 +62,9 @@ namespace EspINA
 
       virtual QList<vtkProp*> getActors();
 
+      void setLineWidth(int width);
+      void setLinePattern(int pattern);
+
     protected:
       virtual GraphicalRepresentationSPtr cloneImplementation(SliceView *view);
       virtual GraphicalRepresentationSPtr cloneImplementation(VolumeView *view)
@@ -84,6 +87,9 @@ namespace EspINA
       vtkSmartPointer<vtkPolyDataMapper>   m_mapper;
       vtkSmartPointer<vtkActor>            m_actor;
       static TransparencySelectionHighlighter *s_highlighter;
+
+      int m_width;
+      int m_pattern;
     };
 
     typedef boost::shared_ptr<ContourRepresentation> ContourRepresentationSPtr;

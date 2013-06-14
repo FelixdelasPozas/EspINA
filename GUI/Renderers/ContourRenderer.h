@@ -19,6 +19,7 @@
 #ifndef CONTOURRENDERER_H_
 #define CONTOURRENDERER_H_
 
+// EspINA
 #include "MeshRenderer.h"
 #include <Core/Model/Output.h>
 
@@ -49,6 +50,16 @@ namespace EspINA
                                           vtkSmartPointer<vtkRenderer> renderer,
                                           RenderabledItems itemType = RenderabledItems(),
                                           bool repeat = false);
+
+      virtual void setView(EspinaRenderView* view);
+
+      void RendererEventCallbackFunction(vtkObject* caller,
+                                         long unsigned int eventId,
+                                         void* callData);
+    private:
+      inline void computeWidth();
+
+      int m_width;
   };
 
 } /* namespace EspINA */
