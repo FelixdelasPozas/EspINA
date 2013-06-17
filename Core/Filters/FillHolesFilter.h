@@ -20,13 +20,15 @@
 #ifndef FILLHOLESFILTER_H
 #define FILLHOLESFILTER_H
 
+#include "EspinaCore_Export.h"
+
 #include "BasicSegmentationFilter.h"
 
 #include <itkBinaryFillholeImageFilter.h>
 
 namespace EspINA
 {
-class FillHolesFilter
+class EspinaCore_EXPORT FillHolesFilter
 : public BasicSegmentationFilter
 {
   typedef itk::BinaryFillholeImageFilter<itkVolumeType> BinaryFillholeFilter;

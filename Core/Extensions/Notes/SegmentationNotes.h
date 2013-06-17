@@ -29,6 +29,8 @@
 #ifndef SEGMENTATIONNOTES_H
 #define SEGMENTATIONNOTES_H
 
+#include "EspinaCore_Export.h"
+
 #include <Core/Extensions/SegmentationExtension.h>
 
 namespace EspINA
@@ -36,7 +38,7 @@ namespace EspINA
 
   const ModelItem::ExtId SegmentationNotesID = "SegmentationNotes";
 
-  class SegmentationNotes
+  class EspinaCore_EXPORT SegmentationNotes
   : public Segmentation::Information
   {
     struct ExtensionData

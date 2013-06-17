@@ -598,7 +598,7 @@ void CountingFramePanel::computeOptimalMargins(Channel* channel,
   memset(inclusion, 0, 3*sizeof(Nm));
   memset(exclusion, 0, 3*sizeof(Nm));
 
-  ModelItemSList items = channel->relatedItems(EspINA::OUT, Channel::LINK);
+  ModelItemSList items = channel->relatedItems(EspINA::RELATION_OUT, Channel::LINK);
   SegmentationSList channelSegs;
   foreach(ModelItemSPtr item, items)
   {

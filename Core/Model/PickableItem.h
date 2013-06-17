@@ -20,6 +20,8 @@
 #ifndef SELECTABLEITEM_H
 #define SELECTABLEITEM_H
 
+#include "EspinaCore_Export.h"
+
 #include "Core/Model/ModelItem.h"
 #include "Core/EspinaTypes.h"
 #include "Core/Model/Output.h"
@@ -31,7 +33,7 @@ class vtkAlgorithmOutput;
 namespace EspINA
 {
 
-  class PickableItem
+  class EspinaCore_EXPORT PickableItem
   : public ModelItem
   {
     Q_OBJECT
@@ -73,8 +75,8 @@ namespace EspINA
   };
 
 
-  PickableItemPtr pickableItemPtr(ModelItemPtr item);
-  PickableItemSPtr pickableItemPtr(ModelItemSPtr &item);
+  PickableItemPtr  EspinaCore_EXPORT pickableItemPtr(ModelItemPtr item);
+  PickableItemSPtr EspinaCore_EXPORT pickableItemPtr(ModelItemSPtr &item);
 
 } // namespace EspINA
 

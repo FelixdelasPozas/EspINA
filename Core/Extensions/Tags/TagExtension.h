@@ -25,9 +25,10 @@
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-
 #ifndef TAGEXTENSION_H
 #define TAGEXTENSION_H
+
+#include "EspinaCore_Export.h"
 
 #include <Core/Extensions/SegmentationExtension.h>
 
@@ -38,7 +39,7 @@ namespace EspINA
 
   const ModelItem::ExtId SegmentationTagsID = "SegmentationTags";
 
-  class SegmentationTags
+  class EspinaCore_EXPORT SegmentationTags
   : public Segmentation::Information
   {
     struct ExtensionData

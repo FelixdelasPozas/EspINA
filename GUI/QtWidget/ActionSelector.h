@@ -20,13 +20,15 @@
 #ifndef ACTIONSELECTOR_H
 #define ACTIONSELECTOR_H
 
+#include "EspinaGUI_Export.h"
+
 #include <QWidgetAction>
 
 class QMenu;
 
 class ActionSelectorWidget;
 
-class ActionSelector
+class EspinaGUI_EXPORT ActionSelector
 : public QWidgetAction
 {
   Q_OBJECT

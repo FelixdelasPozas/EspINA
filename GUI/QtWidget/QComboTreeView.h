@@ -20,11 +20,14 @@
 #ifndef QCOMBOTREEVIEW_H
 #define QCOMBOTREEVIEW_H
 
+#include "EspinaGUI_Export.h"
+
 #include <QComboBox>
 #include <QTreeView>
 
 class QTreeView;
-class QComboTreeView
+
+class EspinaGUI_EXPORT QComboTreeView
 : public QComboBox
 {
   Q_OBJECT

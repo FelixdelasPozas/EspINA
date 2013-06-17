@@ -31,12 +31,15 @@
 #ifndef __vtkContourToPolygonFilter_h
 #define __vtkContourToPolygonFilter_h
 
+#include "EspinaGUI_Export.h"
+
 #include "vtkPolyDataAlgorithm.h"
 
 class vtkCellArray;
 class vtkIdList;
 
-class VTK_GRAPHICS_EXPORT vtkContourToPolygonFilter : public vtkPolyDataAlgorithm
+class EspinaGUI_EXPORT vtkContourToPolygonFilter
+: public vtkPolyDataAlgorithm
 {
 public:
   static vtkContourToPolygonFilter *New();

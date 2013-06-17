@@ -2,11 +2,13 @@
  * MeasureWidget.h
  *
  *  Created on: Dec 11, 2012
- *      Author: F√©lix de las Pozas √Ålvarez
+ *      Author: FÈlix de las Pozas ¡lvarez
  */
 
 #ifndef MEASUREWIDGET_H_
 #define MEASUREWIDGET_H_
+
+#include "EspinaGUI_Export.h"
 
 // EspINA
 #include <GUI/vtkWidgets/EspinaWidget.h>
@@ -28,7 +30,7 @@ namespace EspINA
   class MeasureSliceWidget;
   class EspinaRenderView;
 
-  class MeasureWidget
+  class EspinaGUI_EXPORT MeasureWidget
   : public EspinaWidget
   , public vtkCommand
   {

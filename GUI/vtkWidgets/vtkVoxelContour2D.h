@@ -1,6 +1,6 @@
 /*
  <one line to give the program's name and a brief idea of what it does.>
- Copyright (C) 2013 F√©lix de las Pozas √Ålvarez <felixdelaspozas@gmail.com>
+ Copyright (C) 2013 FÈlix de las Pozas ¡lvarez <felixdelaspozas@gmail.com>
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -19,12 +19,14 @@
 #ifndef VTKVOXELCONTOUR2D_H_
 #define VTKVOXELCONTOUR2D_H_
 
+#include "EspinaGUI_Export.h"
+
 #include <vtkPolyDataAlgorithm.h>
 
 // WARNING: this filter only works for slices in the axial plane (extent[4] == extent[5]),
 // like those used by EspINA, it's not a generic marching cubes for 2D or 3d volumes.
 
-class VTK_GRAPHICS_EXPORT vtkVoxelContour2D
+class EspinaGUI_EXPORT vtkVoxelContour2D
 : public vtkPolyDataAlgorithm
 {
   public:

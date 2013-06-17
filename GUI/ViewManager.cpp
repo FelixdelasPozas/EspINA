@@ -347,7 +347,7 @@ void ViewManager::updateSegmentationRepresentations(SegmentationPtr segmentation
   while (!itemsStack.isEmpty())
   {
     SegmentationPtr seg = itemsStack.pop();
-    foreach(ModelItemSPtr item, seg->relatedItems(EspINA::OUT))
+    foreach(ModelItemSPtr item, seg->relatedItems(EspINA::RELATION_OUT))
       if (item->type() == SEGMENTATION)
       {
         SegmentationPtr relatedSeg = segmentationPtr(item.get());
@@ -382,7 +382,7 @@ void ViewManager::updateSegmentationRepresentations(SegmentationList list)
     while (!itemsStack.isEmpty())
     {
       SegmentationPtr segmentation = itemsStack.pop();
-      foreach(ModelItemSPtr item, segmentation->relatedItems(EspINA::OUT))
+      foreach(ModelItemSPtr item, segmentation->relatedItems(EspINA::RELATION_OUT))
         if (item->type() == SEGMENTATION)
         {
           SegmentationPtr relatedSeg = segmentationPtr(item.get());

@@ -2,12 +2,13 @@
  * PlanarSplitWidget.h
  *
  *  Created on: Nov 5, 2012
- *      Author: F√©lix de las Pozas √Ålvarez
+ *      Author: FÈlix de las Pozas ¡lvarez
  */
 
 #ifndef PLANARSPLITWIDGET_H_
 #define PLANARSPLITWIDGET_H_
 
+#include "EspinaGUI_Export.h"
 
 // EspINA
 #include "GUI/vtkWidgets/EspinaWidget.h"
@@ -37,7 +38,7 @@ namespace EspINA
 
   enum WidgetType { AXIAL_WIDGET = 2, CORONAL_WIDGET = 1, SAGITTAL_WIDGET = 0, VOLUME_WIDGET = 3, NONE = 4 };
 
-  class PlanarSplitWidget
+  class EspinaGUI_EXPORT PlanarSplitWidget
   : public EspinaWidget
   , public vtkCommand
   {

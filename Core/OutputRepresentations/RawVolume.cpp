@@ -600,6 +600,7 @@ void RawSegmentationVolume::draw(vtkPolyData *contour,
   }
 
   itk::Index<3> imageIndex;
+  imageIndex[0] = imageIndex[1] = imageIndex[2] = 0;
   unsigned char *pixel;
   for (int x = extent[0]; x <= extent[1]; ++x)
   {

@@ -20,13 +20,15 @@
 #ifndef SEGMENTATIONEXTENSION_H
 #define SEGMENTATIONEXTENSION_H
 
+#include "EspinaCore_Export.h"
+
 #include "Core/Model/Segmentation.h"
 #include "Core/Extensions/ModelItemExtension.h"
 
 namespace EspINA
 {
 
-  class Segmentation::Extension
+  class EspinaCore_EXPORT Segmentation::Extension
   : public ModelItem::Extension
   {
   public:
@@ -38,7 +40,7 @@ namespace EspINA
 
 
   /// Interface to extend segmentation's behaviour
-  class Segmentation::Information
+  class EspinaCore_EXPORT Segmentation::Information
   : public Segmentation::Extension
   {
     Q_OBJECT

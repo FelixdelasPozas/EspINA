@@ -29,10 +29,11 @@
 #ifndef CHECKABLETABLEVIEW_H
 #define CHECKABLETABLEVIEW_H
 
+#include "EspinaGUI_Export.h"
+
 #include <QTableView>
 
-
-class CheckableTableView
+class EspinaGUI_EXPORT CheckableTableView
 : public QTableView
 {
   Q_OBJECT

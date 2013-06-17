@@ -20,6 +20,8 @@
 #ifndef ESPINARENDERVIEW_H
 #define ESPINARENDERVIEW_H
 
+#include "EspinaGUI_Export.h"
+
 // EspINA
 #include "GUI/QtWidget/IEspinaView.h"
 #include "GUI/QtWidget/SegmentationContextualMenu.h"
@@ -43,7 +45,7 @@ namespace EspINA
 {
   class EspinaWidget;
 
-  class EspinaRenderView
+  class EspinaGUI_EXPORT EspinaRenderView
   : public QWidget
   , public IEspinaView
   {

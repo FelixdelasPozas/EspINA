@@ -20,11 +20,13 @@
 #ifndef ESPINA_GRAPHICALREPRESENTATIONFACTORY_H
 #define ESPINA_GRAPHICALREPRESENTATIONFACTORY_H
 
+#include "EspinaGUI_Export.h"
+
 #include <Core/Model/Output.h>
 
 namespace EspINA
 {
-  class GraphicalRepresentationFactory
+  class EspinaGUI_EXPORT GraphicalRepresentationFactory
   {
   public:
     virtual ~GraphicalRepresentationFactory() {};

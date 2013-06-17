@@ -19,13 +19,15 @@
 #ifndef TAXONOMYCOLORENGINE_H
 #define TAXONOMYCOLORENGINE_H
 
+#include "EspinaCore_Export.h"
+
 #include "Core/ColorEngines/IColorEngine.h"
 #include <QMap>
 
 namespace EspINA
 {
 
-class TaxonomyColorEngine
+class EspinaCore_EXPORT TaxonomyColorEngine
 : public ColorEngine
 {
   Q_OBJECT

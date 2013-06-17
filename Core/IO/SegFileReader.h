@@ -1,6 +1,8 @@
 #ifndef SEGFILEREADER_H
 #define SEGFILEREADER_H
 
+#include "EspinaCore_Export.h"
+
 #include <Core/IO/IOErrorHandler.h>
 
 #include <Core/Model/Channel.h>
@@ -23,7 +25,7 @@ namespace EspINA
   class IEspinaModel;
   class Filter;
 
-  class SegFileReader
+  class EspinaCore_EXPORT SegFileReader
   {
     static const QString FILE_VERSION;
   public:
@@ -82,7 +84,7 @@ namespace EspINA
 
   };
 
-  class IOTaxonomy
+  class EspinaCore_EXPORT IOTaxonomy
   {
   public:
     static TaxonomySPtr openXMLTaxonomy(QString fileName);

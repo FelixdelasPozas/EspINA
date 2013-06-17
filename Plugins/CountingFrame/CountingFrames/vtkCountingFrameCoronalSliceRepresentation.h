@@ -20,10 +20,11 @@
 #ifndef VTKBOUNDINGFRAMECORONALSLICEREPRESENTATION_H
 #define VTKBOUNDINGFRAMECORONALSLICEREPRESENTATION_H
 
+#include "CountingFramePlugin_Export.h"
+
 #include "CountingFrames/vtkCountingFrameSliceRepresentation.h"
 
-
-class vtkCountingFrameCoronalSliceRepresentation
+class CountingFramePlugin_EXPORT vtkCountingFrameCoronalSliceRepresentation
 : public vtkCountingFrameSliceRepresentation
 {
 public:

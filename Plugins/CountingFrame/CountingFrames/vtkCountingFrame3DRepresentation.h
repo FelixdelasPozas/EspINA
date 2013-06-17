@@ -19,6 +19,8 @@
 #ifndef VTKBOUNDINGFRAME3DRESENTATION_H
 #define VTKBOUNDINGFRAME3DRESENTATION_H
 
+#include "CountingFramePlugin_Export.h"
+
 #include "vtkWidgetRepresentation.h"
 #include <vtkSmartPointer.h>
 #include <vtkPolyData.h>
@@ -41,7 +43,7 @@ class vtkDoubleArray;
 class vtkMatrix4x4;
 
 
-class VTK_WIDGETS_EXPORT vtkCountingFrame3DRepresentation
+class CountingFramePlugin_EXPORT vtkCountingFrame3DRepresentation
 : public vtkWidgetRepresentation
 {
   //BTX

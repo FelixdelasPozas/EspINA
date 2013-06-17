@@ -20,12 +20,14 @@
 #ifndef CLOSINGFILTER_H
 #define CLOSINGFILTER_H
 
+#include "EspinaCore_Export.h"
+
 #include "MorphologicalEditionFilter.h"
 
 namespace EspINA
 {
 
-class ClosingFilter
+class EspinaCore_EXPORT ClosingFilter
 : public MorphologicalEditionFilter
 {
 

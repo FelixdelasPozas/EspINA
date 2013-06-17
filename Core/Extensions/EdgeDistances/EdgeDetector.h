@@ -20,6 +20,8 @@
 #ifndef MARGINDETECTOR_H
 #define MARGINDETECTOR_H
 
+#include "EspinaCore_Export.h"
+
 #include <QThread>
 
 #include <Core/EspinaTypes.h>
@@ -28,7 +30,7 @@ namespace EspINA
 {
 class AdaptiveEdges;
 
-class EdgeDetector
+class EspinaCore_EXPORT EdgeDetector
 : public QThread
 {
 public:

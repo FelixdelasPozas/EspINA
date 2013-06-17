@@ -20,12 +20,13 @@
 #ifndef MORPHOLOGICALEDITIONFILTER_H
 #define MORPHOLOGICALEDITIONFILTER_H
 
+#include "EspinaCore_Export.h"
+
 #include "Core/Filters/BasicSegmentationFilter.h"
 
 namespace EspINA
 {
-
-class MorphologicalEditionFilter
+class EspinaCore_EXPORT MorphologicalEditionFilter
 : public BasicSegmentationFilter
 {
 public:

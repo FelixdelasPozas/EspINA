@@ -2,18 +2,20 @@
  * HueSelector.h
  *
  *  Created on: August 2012
- *      Author: F√©lix de las Pozas √Ålvarez
+ *      Author: FÈlix de las Pozas ¡lvarez
  */
 
 #ifndef HUESELECTOR_H_
 #define HUESELECTOR_H_
+
+#include "EspinaGUI_Export.h"
 
 // Qt includes
 #include <QWidget>
 
 namespace EspINA
 {
-class HueSelector
+class EspinaGUI_EXPORT HueSelector
 : public QWidget
 {
 Q_OBJECT

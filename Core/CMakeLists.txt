@@ -3,6 +3,8 @@ include_directories(
   ${CMAKE_CURRENT_BINARY_DIR} #For wrap/ui files
 )
 
+include (GenerateExportHeader)
+
 qt4_wrap_cpp(CORE_MOC
   ColorEngines/IColorEngine.h
   ColorEngines/TaxonomyColorEngine.h
@@ -32,11 +34,6 @@ qt4_wrap_cpp(CORE_MOC
   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
   )
 
-# qt4_wrap_ui (CORE_UI
-#   gui/HueSelector.ui
-#   editor/ContourSourceInspector.ui
-#   )
-
 set (CORE_SOURCES 
   ${CORE_MOC}
   ${CORE_UI}
@@ -51,6 +48,14 @@ set (CORE_SOURCES
   ColorEngines/TaxonomyColorEngine.cpp
   ColorEngines/UserColorEngine.cpp
   IO/SegFileReader.cpp
+  Interfaces/IColorEngineProvider.cpp
+  Interfaces/IDockWidget.cpp
+  Interfaces/IDynamicMenu.cpp
+  Interfaces/IFactoryExtension.cpp
+  Interfaces/IFileReader.cpp
+  Interfaces/IFilterCreator.cpp
+  Interfaces/IToolBar.cpp
+  Interfaces/IToolBarFactory.cpp
   Extensions/ChannelExtension.cpp
   Extensions/EdgeDistances/EdgeDetector.cpp
   Extensions/EdgeDistances/AdaptiveEdges.cpp
@@ -113,7 +118,23 @@ set(CORE_EXTERNAL_LIBS
   ${Boost_LIBRARIES}
   ${VTK_LIBRARIES}
   ${ITK_LIBRARIES}
+  ${QT_LIBRARIES}
 )
 
+if(MINGW)
+	if(DEFINED ESPINA_VERSION_MAJOR)
+		configure_file("${CMAKE_CURRENT_SOURCE_DIR}/windllprops.rc.in" "${CMAKE_CURRENT_BINARY_DIR}/windllprops.rc")
+		SET(CORE_SOURCES ${CORE_SOURCES} ${CMAKE_CURRENT_BINARY_DIR}/windllprops.rc)
+		SET(CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> -O coff -o <OBJECT> -i <SOURCE>")
+    ENABLE_LANGUAGE(RC)
+  endif(DEFINED ESPINA_VERSION_MAJOR)
+endif(MINGW)
+
 add_library (EspinaCore SHARED ${CORE_SOURCES})
+GENERATE_EXPORT_HEADER(
+             EspinaCore
+             BASE_NAME EspinaCore
+             EXPORT_MACRO_NAME EspinaCore_EXPORT
+             EXPORT_FILE_NAME EspinaCore_Export.h
+			 )
 target_link_libraries (EspinaCore ${CORE_EXTERNAL_LIBS})

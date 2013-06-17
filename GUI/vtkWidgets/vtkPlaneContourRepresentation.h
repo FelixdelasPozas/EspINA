@@ -2,13 +2,18 @@
  * vtkPlaneContourRepresentation.h
  *
  *  Created on: Sep 8, 2012
- *      Author: Félix de las Pozas Alvarez
+ *      Author: Félix de las Pozas Álvarez
  */
+
 #ifndef _VTKPLANECONTOURREPRESENTATION_H_
 #define _VTKPLANECONTOURREPRESENTATION_H_
 
+#include "EspinaGUI_Export.h"
+
+// EspINA
 #include <Core/EspinaTypes.h>
 
+// VTK
 #include <vtkContourRepresentation.h>
 #include <vtkSmartPointer.h>
 
@@ -59,7 +64,8 @@ namespace EspINA
   };
   //ETX
 
-  class VTK_WIDGETS_EXPORT vtkPlaneContourRepresentation : public vtkContourRepresentation
+  class EspinaGUI_EXPORT vtkPlaneContourRepresentation
+  : public vtkContourRepresentation
   {
     //BTX
     friend class vtkPlaneContourWidget;

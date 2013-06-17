@@ -20,11 +20,13 @@
 #ifndef ESPINA_ASMESHPROXY_H
 #define ESPINA_ASMESHPROXY_H
 
+#include "AppositionSurfacePlugin_Export.h"
+
 #include <Core/OutputRepresentations/MeshProxy.h>
 
 namespace EspINA
 {
-  class ASMeshProxy
+  class AppositionSurfacePlugin_EXPORT ASMeshProxy
   : public MeshProxy
   {
   };

@@ -20,6 +20,8 @@
 #ifndef ESPINAWIDGET_H
 #define ESPINAWIDGET_H
 
+#include "EspinaGUI_Export.h"
+
 #include <Core/EspinaTypes.h>
 #include <vtkAbstractWidget.h>
 #include <vtkWidgetRepresentation.h>
@@ -34,7 +36,7 @@ namespace EspINA
   class ViewManager;
   class VolumeView;
 
-  class SliceWidget
+  class EspinaGUI_EXPORT SliceWidget
   {
   public:
     explicit SliceWidget(vtkAbstractWidget *widget);
@@ -52,7 +54,7 @@ namespace EspINA
     vtkAbstractWidget *m_widget;
   };
 
-  class EspinaWidget
+  class EspinaGUI_EXPORT EspinaWidget
   {
   public:
     explicit EspinaWidget() : m_viewManager(NULL) {}

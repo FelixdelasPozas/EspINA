@@ -19,11 +19,13 @@
 #ifndef XLSUTILS_H
 #define XLSUTILS_H
 
+#include "EspinaGUI_Export.h"
+
 #include <QVariant>
 
 #include <common/xlconfig.h>
 #include <xlslib.h>
 
-xlslib_core::cell_t *createCell(xlslib_core::worksheet *sheet, int row, int column, const QVariant &value);
+EspinaGUI_EXPORT xlslib_core::cell_t *createCell(xlslib_core::worksheet *sheet, int row, int column, const QVariant &value);
 
 #endif // XLSUTILS_H

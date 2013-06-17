@@ -23,6 +23,8 @@
 #ifndef SLICEVIEW_H
 #define SLICEVIEW_H
 
+#include "EspinaGUI_Export.h"
+
 // EspINA
 #include "EspinaRenderView.h"
 #include "GUI/ViewManager.h"
@@ -65,7 +67,7 @@ namespace EspINA
 
   /// Slice View Widget
   /// Display channels and segmentations as slices
-  class SliceView
+  class EspinaGUI_EXPORT SliceView
   : public EspinaRenderView
   {
     Q_OBJECT
@@ -264,7 +266,7 @@ namespace EspINA
     friend class GraphicalRepresentation;
   };
 
-  class SliceView::Settings
+  class EspinaGUI_EXPORT SliceView::Settings
   {
     const QString INVERT_SLICE_ORDER;
     const QString INVERT_WHEEL;

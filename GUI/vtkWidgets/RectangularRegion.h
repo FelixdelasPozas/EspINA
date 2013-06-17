@@ -20,6 +20,8 @@
 #ifndef RECTANGULARREGION_H
 #define RECTANGULARREGION_H
 
+#include "EspinaGUI_Export.h"
+
 #include "GUI/vtkWidgets/EspinaWidget.h"
 
 // Qt
@@ -34,7 +36,7 @@ namespace EspINA
   class ViewManager;
   class vtkRectangularSliceWidget;
 
-  class RectangularRegion
+  class EspinaGUI_EXPORT RectangularRegion
   : public QObject
   , public EspinaWidget
   , public vtkCommand

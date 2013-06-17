@@ -20,11 +20,13 @@
 #ifndef CHANNELVOLUMEPROXY_H
 #define CHANNELVOLUMEPROXY_H
 
+#include "EspinaCore_Export.h"
+
 #include <Core/OutputRepresentations/VolumeRepresentation.h>
 
 namespace EspINA
 {
-  class ChannelVolumeProxy 
+  class EspinaCore_EXPORT ChannelVolumeProxy
   : public ChannelVolume
   {
     Q_OBJECT

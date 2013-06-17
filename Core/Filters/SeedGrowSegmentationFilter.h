@@ -18,6 +18,8 @@
 #ifndef SEEDGROWSEGMENTATIONFILTER_H
 #define SEEDGROWSEGMENTATIONFILTER_H
 
+#include "EspinaCore_Export.h"
+
 #include "BasicSegmentationFilter.h"
 
 #include <itkImage.h>
@@ -37,7 +39,7 @@ namespace EspINA
 {
   class ViewManager;
 
-  class SeedGrowSegmentationFilter
+  class EspinaCore_EXPORT SeedGrowSegmentationFilter
   : public BasicSegmentationFilter
   {
     typedef itk::ExtractImageFilter<itkVolumeType, itkVolumeType> ExtractType;
@@ -57,7 +59,7 @@ namespace EspINA
     static const ModelItem::ArgumentId VOI;
     static const ModelItem::ArgumentId CLOSE;
 
-    class Parameters
+    class EspinaCore_EXPORT Parameters
     {
     public:
       explicit Parameters(Arguments &args);

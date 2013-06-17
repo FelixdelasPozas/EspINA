@@ -19,6 +19,8 @@
 #ifndef MESHRENDERER_H
 #define MESHRENDERER_H
 
+#include "EspinaGUI_Export.h"
+
 // EspINA
 #include "Renderer.h"
 #include "GUI/Representations/GraphicalRepresentation.h"
@@ -35,7 +37,7 @@ namespace EspINA
 {
   class ViewManager;
 
-  class MeshRenderer
+  class EspinaGUI_EXPORT MeshRenderer
   : public IRenderer
   {
     public:

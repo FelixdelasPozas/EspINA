@@ -2,11 +2,13 @@
  * AppositionSurfaceAction.h
  *
  *  Created on: Jan 16, 2013
- *      Author: F√©lix de las Pozas √Ålvarez
+ *      Author: FÈlix de las Pozas ¡lvarez
  */
 
 #ifndef APPOSITIONSURFACEACTION_H_
 #define APPOSITIONSURFACEACTION_H_
+
+#include "AppositionSurfacePlugin_Export.h"
 
 // Qt
 #include <QAction>
@@ -17,7 +19,7 @@ namespace EspINA
   class ViewManager;
   class EspinaModel;
 
-  class AppositionSurfaceAction
+  class AppositionSurfacePlugin_EXPORT AppositionSurfaceAction
   : public QAction
   {
       Q_OBJECT

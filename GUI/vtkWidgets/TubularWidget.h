@@ -18,6 +18,8 @@
 #ifndef TUBULARWIDGET_H
 #define TUBULARWIDGET_H
 
+#include "EspinaGUI_Export.h"
+
 // EspINA
 #include <GUI/vtkWidgets/EspinaWidget.h>
 #include <Core/Filters/TubularSegmentationFilter.h>
@@ -35,7 +37,7 @@ class vtkImageAlgorithm;
 namespace EspINA
 {
 
-  class TubularWidget
+  class EspinaGUI_EXPORT TubularWidget
   : public QObject
   , public EspinaWidget
   , public vtkCommand

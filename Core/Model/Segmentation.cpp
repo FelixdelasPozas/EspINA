@@ -278,12 +278,12 @@ SampleSPtr Segmentation::sample()
 {
   SampleSPtr sample;
 
-  ModelItemSList relatedChannels = relatedItems(EspINA::IN, Channel::LINK);
+  ModelItemSList relatedChannels = relatedItems(EspINA::RELATION_IN, Channel::LINK);
   // NOTE: Decide how to deal with segmentations created from various channels in a future
   if (relatedChannels.size() == 1)
   {
     ModelItemSPtr channel = relatedChannels.first();
-    ModelItemSList relatedSamples = channel->relatedItems(EspINA::IN, Channel::STAIN_LINK);
+    ModelItemSList relatedSamples = channel->relatedItems(EspINA::RELATION_IN, Channel::STAIN_LINK);
 
     Q_ASSERT(relatedSamples.size() == 1);
     sample = samplePtr(relatedSamples.first());
@@ -297,7 +297,7 @@ ChannelSPtr Segmentation::channel()
 {
   ChannelSList channels;
 
-  ModelItemSList relatedChannels = relatedItems(IN, Channel::LINK);
+  ModelItemSList relatedChannels = relatedItems(RELATION_IN, Channel::LINK);
 
   ChannelSPtr channel;
   // NOTE: Decide how to deal with segmentations created from various channels in a future
@@ -395,7 +395,7 @@ SegmentationSList Segmentation::components()
 {
   SegmentationSList res;
 
-  ModelItemSList subComponents = relatedItems(EspINA::OUT, Relations::COMPOSITION);
+  ModelItemSList subComponents = relatedItems(EspINA::RELATION_OUT, Relations::COMPOSITION);
 
   foreach(ModelItemSPtr item, subComponents)
   {
@@ -411,7 +411,7 @@ SegmentationSList Segmentation::componentOf()
 {
   SegmentationSList res;
 
-  ModelItemSList subComponents = relatedItems(EspINA::IN, Relations::COMPOSITION);
+  ModelItemSList subComponents = relatedItems(EspINA::RELATION_IN, Relations::COMPOSITION);
 
   foreach(ModelItemSPtr item, subComponents)
   {

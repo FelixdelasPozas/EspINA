@@ -19,6 +19,8 @@
 #ifndef IPICKER_H
 #define IPICKER_H
 
+#include "EspinaGUI_Export.h"
+
 #include <QObject>
 
 #include <QCursor>
@@ -40,7 +42,7 @@ namespace EspINA
   /// Classes that implement this interface have to specify
   /// which selection method has to be used and which type of
   /// products must be selected
-  class ISelector
+  class EspinaGUI_EXPORT ISelector
   : public QObject
   {
     Q_OBJECT

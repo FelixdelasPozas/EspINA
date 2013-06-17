@@ -20,14 +20,18 @@
 #ifndef ADDSEGMENTATION_H
 #define ADDSEGMENTATION_H
 
-#include <QUndoCommand>
+#include "EspinaUndo_Export.h"
 
+// EspINA
 #include <Core/EspinaTypes.h>
 #include <Core/Model/EspinaModel.h>
 
+// Qt
+#include <QUndoCommand>
+
 namespace EspINA
 {
-  class AddSegmentation
+  class EspinaUndo_EXPORT AddSegmentation
   : public QUndoCommand
   {
   public:

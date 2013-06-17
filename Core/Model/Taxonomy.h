@@ -20,6 +20,8 @@
 #ifndef TAXONOMY_H
 #define TAXONOMY_H
 
+#include "EspinaCore_Export.h"
+
 #include "Core/Model/ModelItem.h"
 #include "Core/Model/HierarchyItem.h"
 
@@ -36,7 +38,7 @@ namespace EspINA
 
   typedef QList<TaxonomyElementSPtr>      TaxonomyElementSList;
 
-  class TaxonomyElement
+  class EspinaCore_EXPORT TaxonomyElement
   : public ModelItem
   , public HierarchyItem
   {
@@ -114,11 +116,11 @@ namespace EspINA
     friend class Taxonomy;
   };
 
-  TaxonomyElementPtr  taxonomyElementPtr(ModelItemPtr   item);
-  TaxonomyElementSPtr taxonomyElementPtr(ModelItemSPtr &item);
+  TaxonomyElementPtr  EspinaCore_EXPORT taxonomyElementPtr(ModelItemPtr   item);
+  TaxonomyElementSPtr EspinaCore_EXPORT taxonomyElementPtr(ModelItemSPtr &item);
 
   /// Tree-like structure representing taxonomical relationships
-  class Taxonomy
+  class EspinaCore_EXPORT Taxonomy
   {
     static const QString ROOT;
 

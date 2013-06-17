@@ -1,6 +1,8 @@
 #ifndef _VTKPLANECONTOURREPRESENTATIONGLYPH_H_
 #define _VTKPLANECONTOURREPRESENTATIONGLYPH_H_
 
+#include "EspinaGUI_Export.h"
+
 #include "vtkPlaneContourRepresentation.h"
 #include "vtkContourToPolygonFilter.h"
 #include <QColor>
@@ -15,7 +17,7 @@ class vtkPoints;
 namespace EspINA
 {
 
-  class VTK_WIDGETS_EXPORT vtkPlaneContourRepresentationGlyph
+  class EspinaGUI_EXPORT vtkPlaneContourRepresentationGlyph
   : public vtkPlaneContourRepresentation
   {
   public:

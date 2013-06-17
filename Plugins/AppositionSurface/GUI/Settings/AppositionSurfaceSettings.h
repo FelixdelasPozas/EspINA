@@ -2,11 +2,13 @@
  * AppositionSurfaceSettings.h
  *
  *  Created on: Jan 16, 2013
- *      Author: F√©lix de las Pozas √Ålvarez
+ *      Author: FÈlix de las Pozas ¡lvarez
  */
 
 #ifndef APPOSITIONSURFACESETTINGS_H_
 #define APPOSITIONSURFACESETTINGS_H_
+
+#include "AppositionSurfacePlugin_Export.h"
 
 // EspINA
 #include <GUI/ISettingsPanel.h>
@@ -17,7 +19,7 @@
 
 namespace EspINA
 {
-  class AppositionSurfaceSettings
+  class AppositionSurfacePlugin_EXPORT AppositionSurfaceSettings
   : public ISettingsPanel
   , public Ui::AppositionSurfaceSettings
   {

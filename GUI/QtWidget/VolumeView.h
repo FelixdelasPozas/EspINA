@@ -24,6 +24,8 @@
 #ifndef VOLUMEVIEW_H
 #define VOLUMEVIEW_H
 
+#include "EspinaGUI_Export.h"
+
 // EspINA
 #include "Core/EspinaTypes.h"
 #include "GUI/QtWidget/EspinaRenderView.h"
@@ -53,12 +55,12 @@ namespace EspINA
   class ColorEngine;
   class IViewWidget;
 
-  class VolumeView
+  class EspinaGUI_EXPORT VolumeView
   : public EspinaRenderView
   {
     Q_OBJECT
   public:
-    class Settings
+    class EspinaGUI_EXPORT Settings
     {
       const QString RENDERERS;
     public:

@@ -29,6 +29,8 @@
 #ifndef OUTPUTREPRESENTATION_H
 #define OUTPUTREPRESENTATION_H
 
+#include "EspinaCore_Export.h"
+
 #include "Core/Model/Output.h"
 
 #include <itkImageRegionIteratorWithIndex.h>
@@ -47,7 +49,7 @@ namespace EspINA
 
   typedef unsigned long long EspinaTimeStamp;
 
-  class FilterOutput::OutputRepresentation
+  class EspinaCore_EXPORT FilterOutput::OutputRepresentation
   : public QObject
   {
     static EspinaTimeStamp s_tick;
@@ -85,7 +87,7 @@ namespace EspINA
     EspinaTimeStamp m_timeStamp;
   };
 
-  class ChannelRepresentation
+  class EspinaCore_EXPORT ChannelRepresentation
   : public FilterOutput::OutputRepresentation
   {
   public:
@@ -99,7 +101,7 @@ namespace EspINA
     : FilterOutput::OutputRepresentation(output) {}
   };
 
-  class SegmentationRepresentation
+  class EspinaCore_EXPORT SegmentationRepresentation
   : public FilterOutput::OutputRepresentation
   {
   public:

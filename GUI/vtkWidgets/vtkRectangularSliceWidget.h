@@ -19,6 +19,8 @@
 #ifndef VTKRBOUNDINGREGIONSLICEWIDGET_H
 #define VTKRBOUNDINGREGIONSLICEWIDGET_H
 
+#include "EspinaGUI_Export.h"
+
 #include "vtkAbstractWidget.h"
 
 #include <Core/EspinaTypes.h>
@@ -30,7 +32,7 @@ class vtkRectangularSliceRepresentation;
 namespace EspINA
 {
 
-  class VTK_WIDGETS_EXPORT vtkRectangularSliceWidget
+  class EspinaGUI_EXPORT vtkRectangularSliceWidget
   : public vtkAbstractWidget
   {
   public:

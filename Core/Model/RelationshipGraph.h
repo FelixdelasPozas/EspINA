@@ -19,6 +19,8 @@
 #ifndef RELATIONSHIPGRAPH_H
 #define RELATIONSHIPGRAPH_H
 
+#include "EspinaCore_Export.h"
+
 #include <boost/graph/adjacency_list.hpp>
 
 #include "Core/EspinaTypes.h"
@@ -33,14 +35,16 @@ namespace EspINA
 {
   /// Graph like structure which contains all the relationships
   /// between different elements of the model
-  class RelationshipGraph
+  class EspinaCore_EXPORT RelationshipGraph
   {
   public:
     // Bundled Properties
     struct Vertex
     {
       Vertex()
-      : item(NULL) {}
+      : item(NULL)
+      , descriptor(sizeof(int))
+      {}
 
       /// A pointer to the object associated with this vertex
       ModelItemPtr item;

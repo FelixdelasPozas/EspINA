@@ -16,9 +16,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #ifndef ADAPTIVEEDGES_H
 #define ADAPTIVEEDGES_H
+
+#include "EspinaCore_Export.h"
 
 #include "Core/Extensions/ChannelExtension.h"
 
@@ -31,7 +32,7 @@ namespace EspINA
 {
   static const ModelItem::ExtId AdaptiveEdgesID = "AdaptiveEdges";
 
-  class AdaptiveEdges
+  class EspinaCore_EXPORT AdaptiveEdges
   : public Channel::Extension
   {
     static const QString EXTENSION_FILE;

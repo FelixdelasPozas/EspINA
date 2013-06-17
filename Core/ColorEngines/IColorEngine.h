@@ -19,6 +19,8 @@
 #ifndef COLORENGINE_H
 #define COLORENGINE_H
 
+#include "EspinaCore_Export.h"
+
 #include "Core/EspinaTypes.h"
 
 #include <QColor>
@@ -30,7 +32,7 @@ namespace EspINA
 {
   typedef vtkSmartPointer<vtkLookupTable> LUTPtr;
 
-  class ColorEngine
+  class EspinaCore_EXPORT ColorEngine
   : public QObject
   {
     Q_OBJECT

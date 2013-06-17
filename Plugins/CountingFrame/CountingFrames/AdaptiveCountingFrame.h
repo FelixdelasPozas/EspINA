@@ -16,10 +16,10 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #ifndef ADAPTIVEBOUNDINGFRAME_H
 #define ADAPTIVEBOUNDINGFRAME_H
 
+#include "CountingFramePlugin_Export.h"
 #include "CountingFrames/CountingFrame.h"
 
 namespace EspINA
@@ -27,7 +27,7 @@ namespace EspINA
 
   const QString ADAPTIVE_CF = QObject::tr("Adaptive CF");
 
-  class AdaptiveCountingFrame
+  class CountingFramePlugin_EXPORT AdaptiveCountingFrame
   : public CountingFrame
   {
   public:

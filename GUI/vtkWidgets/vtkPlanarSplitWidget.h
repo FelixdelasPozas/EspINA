@@ -2,11 +2,13 @@
  * vtkPlanarSplitWidget.h
  *
  *  Created on: Nov 5, 2012
- *      Author: F√©lix de las Pozas √Ålvarez
+ *      Author: FÈlix de las Pozas ¡lvarez
  */
 
 #ifndef VTKPLANARSPLITWIDGET_H_
 #define VTKPLANARSPLITWIDGET_H_
+
+#include "EspinaGUI_Export.h"
 
 // EspINA
 #include <Core/EspinaTypes.h>
@@ -25,7 +27,7 @@ namespace EspINA
   class vtkPlanarSplitWidgetCallback;
   class vtkPlanarSplitRepresentation2D;
 
-  class VTK_WIDGETS_EXPORT vtkPlanarSplitWidget
+  class EspinaGUI_EXPORT vtkPlanarSplitWidget
   : public vtkAbstractWidget
   {
   public:

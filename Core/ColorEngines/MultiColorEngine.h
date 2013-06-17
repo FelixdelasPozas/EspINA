@@ -20,13 +20,15 @@
 #ifndef MULTICOLORENGINE_H
 #define MULTICOLORENGINE_H
 
+#include "EspinaCore_Export.h"
+
 #include "Core/ColorEngines/IColorEngine.h"
 
 #include <QList>
 
 namespace EspINA
 {
-  class MultiColorEngine
+  class EspinaCore_EXPORT MultiColorEngine
   : public ColorEngine
   {
   public:

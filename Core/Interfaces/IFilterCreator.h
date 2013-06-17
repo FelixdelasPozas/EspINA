@@ -20,16 +20,18 @@
 #ifndef FILTERFACTORY_H
 #define FILTERFACTORY_H
 
+#include "EspinaCore_Export.h"
+
 #include "Core/EspinaTypes.h"
 #include <Core/Model/ModelItem.h>
 #include <Core/Model/Filter.h>
 
 namespace EspINA
 {
-  class IFilterCreator
+  class EspinaCore_EXPORT IFilterCreator
   {
   public:
-    virtual ~IFilterCreator(){}
+    virtual ~IFilterCreator();
 
     virtual FilterSPtr createFilter(const QString              &filter,
                                     const Filter::NamedInputs  &inputs,

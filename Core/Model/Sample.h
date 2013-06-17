@@ -25,6 +25,8 @@
 #ifndef SAMPLE_H
 #define SAMPLE_H
 
+#include "EspinaCore_Export.h"
+
 #include "Core/Model/ModelItem.h"
 
 namespace EspINA
@@ -32,7 +34,7 @@ namespace EspINA
 
   typedef QList<SampleSPtr>      SampleSList;
 
-  class Sample
+  class EspinaCore_EXPORT Sample
   : public ModelItem
   {
   public:
@@ -72,8 +74,8 @@ namespace EspINA
     SegmentationList m_segmentations;
   };
 
-  SamplePtr samplePtr(ModelItemPtr item);
-  SampleSPtr samplePtr(ModelItemSPtr &item);
+  SamplePtr  EspinaCore_EXPORT samplePtr(ModelItemPtr item);
+  SampleSPtr EspinaCore_EXPORT samplePtr(ModelItemSPtr &item);
 }// namespace EspINA
 
 #endif // SAMPLE_H

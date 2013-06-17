@@ -2,11 +2,13 @@
  * AppositionSurfaceFilterInspector.h
  *
  *  Created on: Jan 18, 2013
- *      Author: F√©lix de las Pozas √Ålvarez
+ *      Author: FÈlix de las Pozas ¡lvarez
  */
 
 #ifndef APPOSITIONSURFACEFILTERINSPECTOR_H_
 #define APPOSITIONSURFACEFILTERINSPECTOR_H_
+
+#include "AppositionSurfacePlugin_Export.h"
 
 #include "ui_AppositionSurfaceFilterInspector.h"
 
@@ -19,10 +21,9 @@ class QUndoStack;
 
 namespace EspINA
 {
-
   /// Filter Inspector
   //
-  class AppositionSurfaceFilterInspector
+  class AppositionSurfacePlugin_EXPORT AppositionSurfaceFilterInspector
   : public Filter::FilterInspector
   {
     public:
@@ -39,7 +40,7 @@ namespace EspINA
 
   /// Filter Inspector Widget
   //
-  class AppositionSurfaceFilterInspector::Widget
+  class AppositionSurfacePlugin_EXPORT AppositionSurfaceFilterInspector::Widget
   : public QWidget
   , public Ui::AppositionSurfaceFilterInspector
   {

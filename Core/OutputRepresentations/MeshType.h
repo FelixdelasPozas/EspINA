@@ -20,11 +20,13 @@
 #ifndef MESHTYPE_H
 #define MESHTYPE_H
 
+#include "EspinaCore_Export.h"
+
 #include <Core/Model/OutputRepresentation.h>
 
 namespace EspINA
 {
-  class MeshRepresentation
+  class EspinaCore_EXPORT MeshRepresentation
   : public SegmentationRepresentation
   {
   public:
@@ -55,8 +57,8 @@ namespace EspINA
 
   typedef boost::shared_ptr<MeshRepresentation> MeshRepresentationSPtr;
 
-  MeshRepresentationSPtr meshRepresentation(OutputSPtr             output);
-  MeshRepresentationSPtr meshRepresentation(SegmentationOutputSPtr output);
+  MeshRepresentationSPtr EspinaCore_EXPORT meshRepresentation(OutputSPtr             output);
+  MeshRepresentationSPtr EspinaCore_EXPORT meshRepresentation(SegmentationOutputSPtr output);
 } // namespace EspINA
 
 #endif // MESHTYPE_H

@@ -20,9 +20,11 @@
 #ifndef ACTIONSELECTORWIDGET_H
 #define ACTIONSELECTORWIDGET_H
 
+#include "EspinaGUI_Export.h"
+
 #include <QToolButton>
 
-class ActionSelectorWidget
+class EspinaGUI_EXPORT ActionSelectorWidget
 : public QToolButton
 {
   Q_OBJECT

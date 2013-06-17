@@ -29,12 +29,14 @@
 #ifndef TAGSELECTOR_H
 #define TAGSELECTOR_H
 
+#include "EspinaGUI_Export.h"
+
 #include <QDialog>
 #include <QStandardItemModel>
 
 namespace EspINA
 {
-  class TagSelector
+  class EspinaGUI_EXPORT TagSelector
   : public QDialog
   {
     Q_OBJECT

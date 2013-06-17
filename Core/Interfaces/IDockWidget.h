@@ -19,6 +19,8 @@
 #ifndef IDOCKWIDGET_H
 #define IDOCKWIDGET_H
 
+#include "EspinaCore_Export.h"
+
 #include <QtPlugin>
 #include <QDockWidget>
 
@@ -30,14 +32,13 @@ namespace EspINA
 {
   class ViewManager;
 
-  class IDockWidget
+  class EspinaCore_EXPORT IDockWidget
   : public QDockWidget
   {
     Q_OBJECT
   public:
-    explicit IDockWidget(QWidget* parent = 0)
-    : QDockWidget(parent){}
-    virtual ~IDockWidget(){}
+    explicit IDockWidget(QWidget* parent = 0);
+    virtual ~IDockWidget();
 
     virtual void initDockWidget(EspinaModel *model,
                                 QUndoStack  *undoStack,

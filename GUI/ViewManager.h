@@ -24,6 +24,8 @@
 #ifndef VIEWMANAGER_H
 #define VIEWMANAGER_H
 
+#include "EspinaGUI_Export.h"
+
 // EspINA
 #include "Core/EspinaTypes.h"
 #include "Core/ColorEngines/IColorEngine.h"
@@ -55,7 +57,7 @@ namespace EspINA
   class SliceView;
   class Measure;
 
-  class ViewManager
+  class EspinaGUI_EXPORT ViewManager
   : public QObject
   {
     Q_OBJECT
@@ -175,7 +177,6 @@ private:
   QAction *m_fitToSlices;
   Nm m_viewResolution[3];
   QString m_resolutionUnits;
-
 
     //---------------------------------------------------------------------------
     /*********************** Active Elements API *******************************/

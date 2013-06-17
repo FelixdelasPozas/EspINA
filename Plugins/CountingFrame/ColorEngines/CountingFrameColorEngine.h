@@ -20,12 +20,13 @@
 #ifndef COUNTINGFRAMECOLORENGINE_H
 #define COUNTINGFRAMECOLORENGINE_H
 
+#include "CountingFramePlugin_Export.h"
+
 #include <Core/ColorEngines/IColorEngine.h>
 
 namespace EspINA
 {
-
-  class CountingFrameColorEngine
+  class CountingFramePlugin_EXPORT CountingFrameColorEngine
   : public ColorEngine
   {
 

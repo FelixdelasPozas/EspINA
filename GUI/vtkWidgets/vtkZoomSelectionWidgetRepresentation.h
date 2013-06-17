@@ -2,11 +2,13 @@
  * vtkZoomSelectionWidgetRepresentation.h
  *
  *  Created on: Nov 14, 2012
- *      Author: F√©lix de las Pozas √Ålvarez
+ *      Author: FÈlix de las Pozas ¡lvarez
  */
 
 #ifndef VTKZOOMSELECTIONWIDGETREPRESENTATION_H_
 #define VTKZOOMSELECTIONWIDGETREPRESENTATION_H_
+
+#include "EspinaGUI_Export.h"
 
 // EspINA
 #include "GUI/vtkWidgets/vtkZoomSelectionWidget.h"
@@ -18,7 +20,7 @@
 class vtkPoints;
 class vtkActor;
 
-class vtkZoomSelectionWidgetRepresentation
+class EspinaGUI_EXPORT vtkZoomSelectionWidgetRepresentation
 : public vtkWidgetRepresentation
 {
   vtkTypeMacro(vtkZoomSelectionWidgetRepresentation,vtkWidgetRepresentation);

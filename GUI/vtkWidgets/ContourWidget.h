@@ -2,7 +2,7 @@
  * ContourWidget.h
  *
  *  Created on: Sep 8, 2012
- *      Author: FÃ©lix de las Pozas Alvarez
+ *      Author: Félix de las Pozas Álvarez
  */
 
 #ifndef CONTOURWIDGET_H_
@@ -23,7 +23,7 @@ namespace EspINA
 {
   class SliceContourWidget;
 
-  class ContourWidget
+  class EspinaGUI_EXPORT ContourWidget
   : public QObject
   , public EspinaWidget
   {

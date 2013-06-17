@@ -80,7 +80,7 @@ void ConnectomicsDialog::generateConectomicGraph(EspinaModel *m_model)
         SegmentationVolume::Pointer otherSegVolume = seg_others->volume();
         if (checkCollision(segVolume, otherSegVolume))
         {
-          res = seg->relatedItems(EspINA::OUT, CONECTOMICA);
+          res = seg->relatedItems(EspINA::RELATION_OUT, CONECTOMICA);
           bool no_existe = true;
           foreach (ModelItemSPtr i_res, res)
           {

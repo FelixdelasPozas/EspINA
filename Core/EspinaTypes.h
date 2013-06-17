@@ -1,6 +1,7 @@
 #ifndef ESPINATYPES_H
 #define ESPINATYPES_H
 
+#include "EspinaCore_Export.h"
 #include <itkImage.h>
 
 #include <QList>
@@ -99,9 +100,9 @@ namespace EspINA
 
   enum RelationType
   {
-    IN,
-    OUT,
-    INOUT
+    RELATION_IN,
+    RELATION_OUT,
+    RELATION_INOUT
   };
 
   enum PlaneType
@@ -118,7 +119,7 @@ namespace EspINA
 
   const unsigned int MAX_UNDO_SIZE = 400*400*400; // In volume pixels
 
-  QString condition(const QString &icon, const QString &description);
+  QString EspinaCore_EXPORT condition(const QString &icon, const QString &description);
 
 } // namespace EspINA
 

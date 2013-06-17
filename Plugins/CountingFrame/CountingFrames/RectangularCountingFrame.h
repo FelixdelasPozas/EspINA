@@ -16,9 +16,10 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #ifndef RECTANGULARBOUNDINGFRAME_H
 #define RECTANGULARBOUNDINGFRAME_H
+
+#include "CountingFramePlugin_Export.h"
 
 #include "Plugins/CountingFrame/CountingFrames/CountingFrame.h"
 
@@ -27,7 +28,7 @@ namespace EspINA
   class CountingFrameExtension;
 
   const QString RECTANGULAR_CF = QObject::tr("Rectangular CF");
-  class RectangularCountingFrame
+  class CountingFramePlugin_EXPORT RectangularCountingFrame
   : public CountingFrame
   {
   public:

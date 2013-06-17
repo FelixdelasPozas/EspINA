@@ -398,7 +398,7 @@ void ChannelExplorer::unloadChannel()
     return;
 
   ChannelPtr channel = channelPtr(item);
-  ModelItemSList relItems = channel->relatedItems(EspINA::OUT);
+  ModelItemSList relItems = channel->relatedItems(EspINA::RELATION_OUT);
 
   if (!relItems.empty())
   {

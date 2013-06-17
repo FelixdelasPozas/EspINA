@@ -2,7 +2,7 @@
  * ChannelInspector.cpp
  *
  *  Created on: Dec 16, 2012
- *      Author: FÃ©lix de las Pozas Ãlvarez
+ *      Author: Félix de las Pozas Álvarez
  */
 
 // EspINA
@@ -231,7 +231,7 @@ void ChannelInspector::changeSpacing()
   m_view->updateChannelRepresentations();
 
   SegmentationList updatedSegmentations;
-  foreach(ModelItemSPtr item, m_channel->relatedItems(EspINA::OUT, Channel::LINK))
+  foreach(ModelItemSPtr item, m_channel->relatedItems(EspINA::RELATION_OUT, Channel::LINK))
   {
     if (EspINA::SEGMENTATION == item->type())
     {
@@ -432,7 +432,7 @@ void ChannelInspector::rejectedChanges()
     reader->update(0);
 
     SegmentationList updatedSegmentations;
-    foreach(ModelItemSPtr item, m_channel->relatedItems(EspINA::OUT, Channel::LINK))
+    foreach(ModelItemSPtr item, m_channel->relatedItems(EspINA::RELATION_OUT, Channel::LINK))
     {
       if (EspINA::SEGMENTATION == item->type())
       {

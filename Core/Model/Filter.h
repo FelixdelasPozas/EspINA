@@ -20,6 +20,8 @@
 #ifndef FILTER_H
 #define FILTER_H
 
+#include "EspinaCore_Export.h"
+
 #include "Core/Model/ModelItem.h"
 
 #include <Core/EspinaRegion.h>
@@ -41,7 +43,7 @@ namespace EspINA
   typedef QList<ChannelRepresentationSPtr>      ChannelRepresentationSList;
   typedef QList<SegmentationRepresentationSPtr> SegmentationRepresentationSList;
 
-  class Filter
+  class EspinaCore_EXPORT Filter
   : public ModelItem
   {
   public:
@@ -194,7 +196,7 @@ namespace EspINA
     FilterInspectorPtr m_filterInspector;
   };
 
-  class ChannelFilter
+  class EspinaCore_EXPORT ChannelFilter
   : public Filter
   {
   public:
@@ -250,7 +252,7 @@ namespace EspINA
     QMap<FilterOutputId, ChannelOutputSPtr> m_outputs;
   };
 
-  class SegmentationFilter
+  class EspinaCore_EXPORT SegmentationFilter
   : public Filter
   {
   public:
@@ -313,8 +315,8 @@ namespace EspINA
     QMap<FilterOutputId, SegmentationOutputSPtr> m_outputs;
   };
 
-  FilterPtr filterPtr(ModelItemPtr item);
-  FilterSPtr filterPtr(ModelItemSPtr &item);
+  FilterPtr  EspinaCore_EXPORT filterPtr(ModelItemPtr item);
+  FilterSPtr EspinaCore_EXPORT filterPtr(ModelItemSPtr &item);
 
 } // namespace EspINA
 

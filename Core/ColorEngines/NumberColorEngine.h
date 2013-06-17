@@ -19,6 +19,7 @@
 #ifndef NUMBERCOLORENGINE_H
 #define NUMBERCOLORENGINE_H
 
+#include "EspinaCore_Export.h"
 
 #include "Core/ColorEngines/IColorEngine.h"
 
@@ -26,7 +27,7 @@
 
 namespace EspINA
 {
-  class NumberColorEngine
+  class EspinaCore_EXPORT NumberColorEngine
   : public ColorEngine
   {
   public:

@@ -20,13 +20,16 @@
 #ifndef CHANNELEXTENSION_H
 #define CHANNELEXTENSION_H
 
+#include "EspinaCore_Export.h"
+
+
 #include <Core/Model/Channel.h>
 #include <Core/Extensions/ModelItemExtension.h>
 
 namespace EspINA
 {
   /// Interface to extend channel's behaviour
-  class Channel::Extension
+  class EspinaCore_EXPORT Channel::Extension
   : public ModelItem::Extension
   {
     Q_OBJECT

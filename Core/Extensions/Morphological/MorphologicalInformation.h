@@ -20,8 +20,9 @@
 #ifndef MORPHOLOGICALINFORMATION_H
 #define MORPHOLOGICALINFORMATION_H
 
-#include "Core/Extensions/SegmentationExtension.h"
+#include "EspinaCore_Export.h"
 
+#include "Core/Extensions/SegmentationExtension.h"
 #include "Core/EspinaTypes.h"
 
 // ITK
@@ -32,7 +33,7 @@ namespace EspINA
 {
   const ModelItem::ExtId MorphologicalInformationID = "MorphologicalExtension";
 
-  class MorphologicalInformation
+  class EspinaCore_EXPORT MorphologicalInformation
   : public Segmentation::Information
   {
 

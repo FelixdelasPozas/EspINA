@@ -2,11 +2,13 @@
  * AppositionSurfaceCommand.h
  *
  *  Created on: Jan 16, 2013
- *      Author: F√©lix de las Pozas √Ålvarez
+ *      Author: FÈlix de las Pozas ¡lvarez
  */
 
 #ifndef APPOSITIONSURFACECOMMAND_H_
 #define APPOSITIONSURFACECOMMAND_H_
+
+#include "AppositionSurfacePlugin_Export.h"
 
 // EspINA
 #include <Core/Model/Filter.h>
@@ -21,7 +23,7 @@ namespace EspINA
   class EspinaModel;
   class ViewManager;
 
-  class AppositionSurfaceCommand
+  class AppositionSurfacePlugin_EXPORT AppositionSurfaceCommand
   : public QUndoCommand
   {
     public:

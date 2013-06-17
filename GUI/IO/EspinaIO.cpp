@@ -71,7 +71,7 @@ IOErrorHandler::STATUS EspinaIO::loadFile(QFileInfo file,
   if ("seg" == ext)
     return SegFileReader::loadSegFile(file, model, handler);
 
-  return model->factory()->readFile(file.absoluteFilePath(), ext, handler) ? IOErrorHandler::SUCCESS : IOErrorHandler::ERROR;
+  return model->factory()->readFile(file.absoluteFilePath(), ext, handler) ? IOErrorHandler::SUCCESS : IOErrorHandler::IO_ERROR;
 }
 
 //-----------------------------------------------------------------------------
@@ -112,7 +112,7 @@ IOErrorHandler::STATUS EspinaIO::loadChannel(QFileInfo file,
   reader->setGraphicalRepresentationFactory(GraphicalRepresentationFactorySPtr(new BasicGraphicalRepresentationFactory()));
   reader->update();
   if (reader->numberOfOutputs() == 0)
-    return IOErrorHandler::ERROR;
+    return IOErrorHandler::IO_ERROR;
 
   Channel::CArguments args;
   args[Channel::ID] = file.fileName();

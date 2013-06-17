@@ -19,6 +19,7 @@
 #ifndef APPOSITIONSURFACETOOLBAR_H
 #define APPOSITIONSURFACETOOLBAR_H
 
+#include "AppositionSurfacePlugin_Export.h"
 // plugin
 #include "Core/Extensions/AppositionSurfaceExtension.h"
 
@@ -29,7 +30,7 @@
 
 namespace EspINA
 {
-  class AppositionSurfaceToolbar
+  class AppositionSurfacePlugin_EXPORT AppositionSurfaceToolbar
   : public IToolBar
   {
     Q_OBJECT

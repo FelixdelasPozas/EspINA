@@ -23,6 +23,8 @@
 #ifndef CHANNELPROXY_H
 #define CHANNELPROXY_H
 
+#include "EspinaCore_Export.h"
+
 #include <QAbstractProxyModel>
 
 #include <Core/EspinaTypes.h>
@@ -34,7 +36,7 @@ namespace EspINA
   class ViewManager;
 
   /// Group Channels by Sample
-  class ChannelProxy
+  class EspinaCore_EXPORT ChannelProxy
   : public QAbstractProxyModel
   {
     Q_OBJECT

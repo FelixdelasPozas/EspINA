@@ -20,11 +20,13 @@
 #ifndef VOLUMEREPRESENTATION_H
 #define VOLUMEREPRESENTATION_H
 
+#include "EspinaCore_Export.h"
+
 #include <Core/Model/OutputRepresentation.h>
 
 namespace EspINA
 {
-  class VolumeRepresentation
+  class EspinaCore_EXPORT VolumeRepresentation
   {
   public:
     typedef itkVolumeType::RegionType VolumeRegion;
@@ -75,7 +77,7 @@ namespace EspINA
   protected:
   };
 
-  class ChannelVolume
+  class EspinaCore_EXPORT ChannelVolume
   : public ChannelRepresentation
   , public VolumeRepresentation
   {
@@ -98,8 +100,8 @@ namespace EspINA
   typedef ChannelVolume                  * ChannelVolumePtr;
   typedef boost::shared_ptr<ChannelVolume> ChannelVolumeSPtr;
 
-  ChannelVolumePtr  channelVolume(OutputPtr  output);
-  ChannelVolumeSPtr channelVolume(OutputSPtr output);
+  ChannelVolumePtr  EspinaCore_EXPORT channelVolume(OutputPtr  output);
+  ChannelVolumeSPtr EspinaCore_EXPORT channelVolume(OutputSPtr output);
 
 
 
@@ -107,7 +109,7 @@ namespace EspINA
   typedef SegmentationVolume                  * SegmentationVolumePtr;
   typedef boost::shared_ptr<SegmentationVolume> SegmentationVolumeSPtr;
 
-  class SegmentationVolume
+  class EspinaCore_EXPORT SegmentationVolume
   : public SegmentationRepresentation
   , public VolumeRepresentation
   {
@@ -206,9 +208,9 @@ namespace EspINA
     : SegmentationRepresentation(output) {}
   };
 
-  SegmentationVolumePtr  segmentationVolume(OutputPtr              output);
-  SegmentationVolumeSPtr segmentationVolume(OutputSPtr             output);
-  SegmentationVolumeSPtr segmentationVolume(SegmentationOutputSPtr output);
+  SegmentationVolumePtr  EspinaCore_EXPORT segmentationVolume(OutputPtr              output);
+  SegmentationVolumeSPtr EspinaCore_EXPORT segmentationVolume(OutputSPtr             output);
+  SegmentationVolumeSPtr EspinaCore_EXPORT segmentationVolume(SegmentationOutputSPtr output);
 
 } // namespace EspINA
 

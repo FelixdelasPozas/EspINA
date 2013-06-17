@@ -20,20 +20,22 @@
 #ifndef CHANGETAXONOMYCOMMAND_H
 #define CHANGETAXONOMYCOMMAND_H
 
-#include <QUndoStack>
+#include "EspinaUndo_Export.h"
 
+// EspINA
 #include <Core/Model/Taxonomy.h>
 #include <Core/Model/Segmentation.h>
 
+// Qt
+#include <QUndoStack>
 #include <QMap>
 
 namespace EspINA
 {
-
   class EspinaModel;
   class ViewManager;
 
-  class ChangeTaxonomyCommand
+  class EspinaUndo_EXPORT ChangeTaxonomyCommand
   : public QUndoCommand
   {
   public:

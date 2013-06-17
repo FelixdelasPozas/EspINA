@@ -25,6 +25,8 @@
 #ifndef SEGMENTATION_H
 #define SEGMENTATION_H
 
+#include "EspinaCore_Export.h"
+
 #include "Core/Model/PickableItem.h"
 #include "Core/Model/Taxonomy.h"
 #include "Core/Model/HierarchyItem.h"
@@ -41,7 +43,7 @@
 namespace EspINA
 {
 
-  class Segmentation
+  class EspinaCore_EXPORT Segmentation
   : public PickableItem
   , public HierarchyItem
   {
@@ -202,9 +204,9 @@ namespace EspINA
     InformationTagProvider       m_informationTagProvider;
   };
 
-  SegmentationPtr  segmentationPtr(ModelItemPtr     item);
-  SegmentationPtr  segmentationPtr(PickableItemPtr  item);
-  SegmentationSPtr segmentationPtr(ModelItemSPtr   &item);
-  SegmentationSPtr segmentationPtr(PickableItemSPtr &item);
+  SegmentationPtr  EspinaCore_EXPORT segmentationPtr(ModelItemPtr     item);
+  SegmentationPtr  EspinaCore_EXPORT segmentationPtr(PickableItemPtr  item);
+  SegmentationSPtr EspinaCore_EXPORT segmentationPtr(ModelItemSPtr   &item);
+  SegmentationSPtr EspinaCore_EXPORT segmentationPtr(PickableItemSPtr &item);
 }
 #endif // PRODUCTS_H

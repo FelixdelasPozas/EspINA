@@ -25,6 +25,8 @@
 #ifndef ESPinaModelMODEL_H
 #define ESPinaModelMODEL_H
 
+#include "EspinaCore_Export.h"
+
 #include <QAbstractItemModel>
 #include <QDir>
 
@@ -33,7 +35,7 @@
 
 namespace EspINA
 {
-  class IEspinaModel
+  class EspinaCore_EXPORT IEspinaModel
   {
   public:
     virtual ~IEspinaModel() {}
@@ -145,7 +147,7 @@ namespace EspINA
 
   class EspinaFactory;
 
-  class EspinaModel
+  class EspinaCore_EXPORT EspinaModel
   : public QAbstractItemModel
   , public IEspinaModel
   {

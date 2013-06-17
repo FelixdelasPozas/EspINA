@@ -29,6 +29,8 @@
 #ifndef OUTPUT_H
 #define OUTPUT_H
 
+#include "EspinaCore_Export.h"
+
 #include <Core/EspinaRegion.h>
 #include <Core/EspinaTypes.h>
 
@@ -47,7 +49,7 @@ namespace EspINA
 
   typedef int FilterOutputId;
 
-  class FilterOutput
+  class EspinaCore_EXPORT FilterOutput
   : public QObject
   {
     Q_OBJECT
@@ -139,7 +141,7 @@ namespace EspINA
   class ChannelRepresentation;
   typedef boost::shared_ptr<ChannelRepresentation> ChannelRepresentationSPtr;
 
-  class ChannelOutput
+  class EspinaCore_EXPORT ChannelOutput
   : public FilterOutput
   {
   public:
@@ -164,7 +166,7 @@ namespace EspINA
   class SegmentationRepresentation;
   typedef boost::shared_ptr<SegmentationRepresentation> SegmentationRepresentationSPtr;
 
-  class SegmentationOutput
+  class EspinaCore_EXPORT SegmentationOutput
   : public FilterOutput
   {
   public:

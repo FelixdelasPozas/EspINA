@@ -61,7 +61,7 @@ bool ConnectomicProxy::filterAcceptsRow(int sourceRow, const QModelIndex& source
 
   //   std::cout << "Check Segmentation " << item->data().toString().toStdString() << std::endl;
     SegmentationPtr seg = segmentationPtr(item);
-    ModelItemSList res = m_seg->relatedItems(EspINA::OUT, CONECTOMICA); // elementos conectados a la seg de la vista
+    ModelItemSList res = m_seg->relatedItems(EspINA::RELATION_OUT, CONECTOMICA); // elementos conectados a la seg de la vista
 
     foreach (ModelItemSPtr i_res, res)
     {

@@ -20,12 +20,14 @@
 #ifndef ESPINA_RAWMESH_H
 #define ESPINA_RAWMESH_H
 
+#include "EspinaCore_Export.h"
+
 #include <Core/OutputRepresentations/MeshType.h>
 #include <vtkSmartPointer.h>
 
 namespace EspINA
 {
-  class RawMesh 
+  class EspinaCore_EXPORT RawMesh
   : public MeshRepresentation
   {
   public:
@@ -51,7 +53,7 @@ namespace EspINA
 
   typedef boost::shared_ptr<RawMesh> RawMeshSPtr;
 
-  RawMeshSPtr rawMesh(OutputSPtr output);
+  RawMeshSPtr EspinaCore_EXPORT rawMesh(OutputSPtr output);
 }
 
 #endif // ESPINA_RAWMESH_H

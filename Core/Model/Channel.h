@@ -25,6 +25,8 @@
 #ifndef CHANNEL_H
 #define CHANNEL_H
 
+#include "EspinaCore_Export.h"
+
 #include "Core/Model/PickableItem.h"
 #include "Core/Model/HierarchyItem.h"
 
@@ -38,7 +40,7 @@ class vtkAlgorithmOutput;
 
 namespace EspINA
 {
-  class Channel
+  class EspinaCore_EXPORT Channel
   : public PickableItem
   , public HierarchyItem
   {
@@ -214,10 +216,10 @@ namespace EspINA
     ExtensionProvider m_extensions;
   };
 
-  ChannelPtr  channelPtr(ModelItemPtr      item);
-  ChannelPtr  channelPtr(PickableItemPtr   item);
-  ChannelSPtr channelPtr(ModelItemSPtr    &item);
-  ChannelSPtr channelPtr(PickableItemSPtr &item);
+  ChannelPtr  EspinaCore_EXPORT channelPtr(ModelItemPtr      item);
+  ChannelPtr  EspinaCore_EXPORT channelPtr(PickableItemPtr   item);
+  ChannelSPtr EspinaCore_EXPORT channelPtr(ModelItemSPtr    &item);
+  ChannelSPtr EspinaCore_EXPORT channelPtr(PickableItemSPtr &item);
 
 }// namespace EspINA
 

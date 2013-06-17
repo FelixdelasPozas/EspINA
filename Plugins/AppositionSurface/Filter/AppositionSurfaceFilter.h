@@ -2,11 +2,13 @@
  * AppositionSurfaceFilter.h
  *
  *  Created on: Jan 18, 2013
- *      Author: F√©lix de las Pozas √Ålvarez
+ *      Author: FÈlix de las Pozas ¡lvarez
  */
 
 #ifndef APPOSITIONSURFACEFILTER_H_
 #define APPOSITIONSURFACEFILTER_H_
+
+#include "AppositionSurfacePlugin_Export.h"
 
 // EspINA
 #include <Core/Filters/BasicSegmentationFilter.h>
@@ -40,7 +42,7 @@ namespace EspINA
 {
   class RasterizedVolume;
 
-  class AppositionSurfaceFilter
+  class AppositionSurfacePlugin_EXPORT AppositionSurfaceFilter
   : public BasicSegmentationFilter
   {
     Q_OBJECT

@@ -18,6 +18,8 @@
 #ifndef SEGMHAIMPORTER_H
 #define SEGMHAIMPORTER_H
 
+#include "SegmhaImporterPlugin_Export.h"
+
 #include <Core/Interfaces/IFactoryExtension.h>
 #include <Core/Interfaces/IFilterCreator.h>
 #include <Core/Interfaces/IFileReader.h>
@@ -30,7 +32,7 @@ namespace EspINA
   class ViewManager;
 
   /// Segmha Reader Plugin
-  class SegmhaImporter
+  class SegmhaImporterPlugin_EXPORT SegmhaImporter
   : public QObject
   , public IFactoryExtension
   , public IFilterCreator

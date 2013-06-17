@@ -16,9 +16,10 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #ifndef COUNTINGFRAMEEXTENSION_H
 #define COUNTINGFRAMEEXTENSION_H
+
+#include "CountingFramePlugin_Export.h"
 
 #include <Core/Extensions/ChannelExtension.h>
 #include <Plugins/CountingFrame/CountingFrames/CountingFrame.h>
@@ -32,7 +33,7 @@ class StereologicalInclusion;
 
   const ModelItem::ExtId CountingFrameExtensionID = "CountingFrameExtension";
 
-  class CountingFrameExtension
+  class CountingFramePlugin_EXPORT CountingFrameExtension
   : public Channel::Extension
   {
     Q_OBJECT
@@ -101,7 +102,7 @@ class StereologicalInclusion;
   };
 
   typedef CountingFrameExtension * CountingFrameExtensionPtr;
-  CountingFrameExtensionPtr countingFrameExtensionPtr(Channel::ExtensionPtr extension);
+  CountingFrameExtensionPtr CountingFramePlugin_EXPORT countingFrameExtensionPtr(Channel::ExtensionPtr extension);
 }
 
 #endif // COUNTINGFRAMEEXTENSION_H

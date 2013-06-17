@@ -303,7 +303,7 @@ Channel::ExtensionPtr Channel::extension(ModelItem::ExtId extensionId)
 //-----------------------------------------------------------------------------
 SampleSPtr Channel::sample()
 {
-  ModelItemSList relatedSamples = relatedItems(IN, Channel::STAIN_LINK);
+  ModelItemSList relatedSamples = relatedItems(RELATION_IN, Channel::STAIN_LINK);
   SampleSPtr sample;
 
   if (relatedSamples.size() > 0)

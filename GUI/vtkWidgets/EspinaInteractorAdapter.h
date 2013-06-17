@@ -16,9 +16,10 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #ifndef ESPINAINTERACTORADAPTER_H
 #define ESPINAINTERACTORADAPTER_H
+
+#include "EspinaGUI_Export.h"
 
 #include <vtkAbstractWidget.h>
 #include <vtkWidgetCallbackMapper.h>
@@ -30,24 +31,21 @@ class QEvent;
 namespace EspINA
 {
   template<class T>
-  class EspinaInteractorAdapter
+  class EspinaGUI_EXPORT EspinaInteractorAdapter
   : public T
   {
   public:
     bool ProcessEventsHandler(long unsigned int event)
     {
-      this->EventCallbackCommand->SetAbortFlag(0);
-      this->CallbackMapper->DebugOn();
-      unsigned long int widgetEvent = this->CallbackMapper->GetEventTranslator()->GetTranslation(event);
-      this->CallbackMapper->InvokeCallback(widgetEvent);
+        this->EventCallbackCommand->SetAbortFlag(0);
+        this->CallbackMapper->DebugOn();
+        unsigned long int widgetEvent = this->CallbackMapper->GetEventTranslator()->GetTranslation(event);
+        this->CallbackMapper->InvokeCallback(widgetEvent);
 
-      return this->EventCallbackCommand->GetAbortFlag();
+        return this->EventCallbackCommand->GetAbortFlag();
     }
-
   };
 
 }// namespace EspINA
-
-//vtkStandardNewMacro(EspinaInteractorAdapter<T>);
 
 #endif // ESPINAINTERACTORADAPTER_H

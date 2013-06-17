@@ -20,13 +20,15 @@
 #ifndef USERCOLORENGINE_H
 #define USERCOLORENGINE_H
 
+#include "EspinaCore_Export.h"
+
 #include "Core/ColorEngines/IColorEngine.h"
 
 #include <QMap>
 
 namespace EspINA
 {
-  class UserColorEngine
+  class EspinaCore_EXPORT UserColorEngine
   : public ColorEngine
   {
   public:

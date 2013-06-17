@@ -16,9 +16,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #ifndef MODELITEMEXTENSION_H
 #define MODELITEMEXTENSION_H
+
+#include "EspinaCore_Export.h"
 
 #include "Core/Model/ModelItem.h"
 
@@ -32,7 +33,7 @@
 namespace EspINA
 {
 
-  class ModelItem::Extension
+  class EspinaCore_EXPORT ModelItem::Extension
   : public QObject
   {
   public:
@@ -49,7 +50,7 @@ namespace EspINA
     };
 
     template <class K, class D>
-    class Cache
+    class EspinaCore_EXPORT Cache
     : public QMap<K, CacheEntry<D> >
     {
       typedef QMap<K, CacheEntry<D> > Base;

@@ -20,6 +20,8 @@
 #ifndef ESPinaFACTORY_H
 #define ESPinaFACTORY_H
 
+#include "EspinaCore_Export.h"
+
 #include "Core/EspinaTypes.h"
 #include "Core/Model/Filter.h"
 #include "Channel.h"
@@ -36,7 +38,7 @@ namespace EspINA
   const QString CHANNEL_FILES = QObject::tr("Channel Files (*.mha *.mhd *.tif *.tiff)");
   const QString SEG_FILES     = QObject::tr("Espina Analysis (*.seg)");
 
-  class EspinaFactory
+  class EspinaCore_EXPORT EspinaFactory
   {
   public:
     explicit EspinaFactory();

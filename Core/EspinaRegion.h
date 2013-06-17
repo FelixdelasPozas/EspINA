@@ -16,16 +16,17 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #ifndef ESPINAREGION_H
 #define ESPINAREGION_H
+
+#include "EspinaCore_Export.h"
 
 #include "EspinaTypes.h"
 
 namespace EspINA
 {
   /// Normalized region, i.e. origin (0,0,0)
-  class EspinaRegion
+  class EspinaCore_EXPORT EspinaRegion
   {
   public:
     explicit EspinaRegion();

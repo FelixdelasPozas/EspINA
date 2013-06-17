@@ -1,0 +1,26 @@
+1 VERSIONINFO
+FILEVERSION @PLUGIN_VERSION_MAJOR@, @PLUGIN_VERSION_MINOR@, @PLUGIN_VERSION_PATCH@, 0
+PRODUCTVERSION @PLUGIN_VERSION_MAJOR@, @PLUGIN_VERSION_MINOR@, @PLUGIN_VERSION_PATCH@, 0
+FILEFLAGSMASK 0
+FILEOS 0x40000
+FILETYPE 1
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "040904B0"
+    BEGIN
+      VALUE "CompanyName", "CesViMa"
+      VALUE "FileDescription", "Counting Frame Plugin"
+      VALUE "FileVersion", "@PLUGIN_VERSION_MAJOR@.@PLUGIN_VERSION_MINOR@.@PLUGIN_VERSION_PATCH@"
+      VALUE "InternalName", "CountingFramePlugin"
+      VALUE "LegalCopyright", "GNU Public License"
+      VALUE "OriginalFilename", "libCountingFramePlugin.dll"
+      VALUE "ProductName", "EspINA"
+      VALUE "ProductVersion", "@ESPINA_VERSION_MAJOR@.@ESPINA_VERSION_MINOR@.@ESPINA_VERSION_PATCH@"
+    END
+  END
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x409, 1200
+  END
+END

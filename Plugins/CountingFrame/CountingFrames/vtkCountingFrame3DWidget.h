@@ -19,12 +19,14 @@
 #ifndef VTKBOUNDINGFRAME3DWIDGET_H
 #define VTKBOUNDINGFRAME3DWIDGET_H
 
+#include "CountingFramePlugin_Export.h"
+
 #include "vtkCountingFrameWidget.h"
 
 class vtkPolyData;
 class vtkPolyDataAlgorithm;
 
-class VTK_WIDGETS_EXPORT vtkCountingFrame3DWidget
+class CountingFramePlugin_EXPORT vtkCountingFrame3DWidget
 : public vtkCountingFrameWidget
 {
 public:

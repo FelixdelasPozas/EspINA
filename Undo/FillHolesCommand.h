@@ -19,16 +19,21 @@
 #ifndef FILLHOLESCOMMAND_H
 #define FILLHOLESCOMMAND_H
 
-#include <QUndoStack>
+#include "EspinaUndo_Export.h"
 
+// EspINA
 #include <Core/Model/Segmentation.h>
 #include <Core/Model/EspinaModel.h>
+
+// Qt
+#include <QUndoStack>
 
 namespace EspINA
 {
   class ViewManager;
 
-  class FillHolesCommand: public QUndoCommand
+  class EspinaUndo_EXPORT FillHolesCommand
+  : public QUndoCommand
   {
     public:
       static const QString FILTER_TYPE;

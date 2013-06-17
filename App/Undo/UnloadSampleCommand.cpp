@@ -32,7 +32,7 @@ UnloadSampleCommand::UnloadSampleCommand(SampleSPtr    sample,
 , m_model     (model )
 , m_sample    (sample)
 {
-  Q_ASSERT(sample->relatedItems(EspINA::INOUT).isEmpty());
+  Q_ASSERT(sample->relatedItems(EspINA::RELATION_INOUT).isEmpty());
 }
 
 //-----------------------------------------------------------------------------

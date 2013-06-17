@@ -2,7 +2,7 @@
  * vtkTubeSource.h
  *
  *  Created on: August 2012
- *      Author: F√©lix de las Pozas √Ålvarez
+ *      Author: FÈlix de las Pozas ¡lvarez
  */
 
 // .NAME vtkTubeSource - generate a tube centered at origin
@@ -16,6 +16,8 @@
 #ifndef _VTKTUBESOURCE_H_
 #define _VTKTUBESOURCE_H_
 
+#include "EspinaGUI_Export.h"
+
 #include <vtkPolyDataAlgorithm.h>
 #include <vtkSmartPointer.h>
 #include <vtkCell.h>
@@ -23,7 +25,8 @@
 class vtkTransform;
 class vtkTransformPolyDataFilter;
 
-class VTK_GRAPHICS_EXPORT vtkTubeSource : public vtkPolyDataAlgorithm
+class EspinaGUI_EXPORT vtkTubeSource
+: public vtkPolyDataAlgorithm
 {
 public:
   static vtkTubeSource *New();

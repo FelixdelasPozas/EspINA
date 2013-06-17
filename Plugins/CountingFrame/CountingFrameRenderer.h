@@ -20,6 +20,8 @@
 #ifndef FRAMERENDERER_H
 #define FRAMERENDERER_H
 
+#include "CountingFramePlugin_Export.h"
+
 #include <QMap>
 #include <GUI/Renderers/Renderer.h>
 #include <Core/Model/Output.h>
@@ -28,11 +30,10 @@ class vtkAbstractWidget;
 
 namespace EspINA
 {
-
   class CountingFrame;
   class CountingFramePanel;
 
-  class CountingFrameRenderer
+  class CountingFramePlugin_EXPORT CountingFrameRenderer
   : public IRenderer
   {
     Q_OBJECT

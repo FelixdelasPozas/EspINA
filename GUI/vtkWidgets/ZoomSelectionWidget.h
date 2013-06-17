@@ -2,11 +2,13 @@
  * ZoomSelectionWidget.h
  *
  *  Created on: Nov 14, 2012
- *      Author: F√©lix de las Pozas √Ålvarez
+ *      Author: FÈlix de las Pozas ¡lvarez
  */
 
 #ifndef ZOOMSELECTIONWIDGET_H_
 #define ZOOMSELECTIONWIDGET_H_
+
+#include "EspinaGUI_Export.h"
 
 // EspINA
 #include "GUI/vtkWidgets/vtkZoomSelectionWidget.h"
@@ -24,7 +26,7 @@ namespace EspINA
 {
   class ZoomSelectionSliceWidget;
 
-  class ZoomSelectionWidget
+  class EspinaGUI_EXPORT ZoomSelectionWidget
   : public EspinaWidget
   , public vtkCommand
   {

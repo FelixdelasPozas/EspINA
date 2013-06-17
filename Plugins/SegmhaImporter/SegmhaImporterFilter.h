@@ -19,6 +19,8 @@
 #ifndef SEGMHAIMPORTERFILTER_H
 #define SEGMHAIMPORTERFILTER_H
 
+#include "SegmhaImporterPlugin_Export.h"
+
 #include <Core/Filters/BasicSegmentationFilter.h>
 
 #include <Core/Model/Segmentation.h>
@@ -29,7 +31,7 @@
 
 namespace EspINA
 {
-  class SegmhaImporterFilter
+  class SegmhaImporterPlugin_EXPORT SegmhaImporterFilter
   : public BasicSegmentationFilter
   {
     struct SegmentationObject

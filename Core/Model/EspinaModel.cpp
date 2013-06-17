@@ -685,11 +685,11 @@ ModelItemSList EspinaModel::relatedItems(ModelItemPtr   item,
 
   RelationshipGraph::Vertex vertex = m_relations->vertex(item);
 
-  if (relType == IN || relType == INOUT)
+  if (relType == RELATION_IN || relType == RELATION_INOUT)
     foreach(RelationshipGraph::Vertex v, m_relations->ancestors(vertex, relName))
       res << find(v.item);
 
-  if (relType == OUT || relType == INOUT)
+  if (relType == RELATION_OUT || relType == RELATION_INOUT)
     foreach(RelationshipGraph::Vertex v, m_relations->succesors(vertex, relName))
       res << find(v.item);
 

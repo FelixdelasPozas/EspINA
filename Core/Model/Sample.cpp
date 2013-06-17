@@ -136,7 +136,7 @@ ChannelList Sample::channels()
 {
   ChannelList channels;
 
-  foreach(ModelItemSPtr item, relatedItems(EspINA::OUT, Channel::STAIN_LINK))
+  foreach(ModelItemSPtr item, relatedItems(EspINA::RELATION_OUT, Channel::STAIN_LINK))
   {
     channels << channelPtr(item.get());
   }
@@ -149,7 +149,7 @@ SegmentationList Sample::segmentations()
 {
   SegmentationList segmentations;
 
-  ModelItemSList items = relatedItems(EspINA::OUT, Relations::LOCATION);
+  ModelItemSList items = relatedItems(EspINA::RELATION_OUT, Relations::LOCATION);
   while (!items.isEmpty())
   {
     ModelItemSPtr item = items.takeFirst();
@@ -157,7 +157,7 @@ SegmentationList Sample::segmentations()
     {
       segmentations << segmentationPtr(item.get());
     }
-    items << item->relatedItems(EspINA::OUT, Relations::LOCATION);
+    items << item->relatedItems(EspINA::RELATION_OUT, Relations::LOCATION);
   }
 
   return segmentations;

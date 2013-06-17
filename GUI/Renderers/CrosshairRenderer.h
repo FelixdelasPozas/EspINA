@@ -18,6 +18,8 @@
 #ifndef CROSSHAIRRENDERER_H
 #define CROSSHAIRRENDERER_H
 
+#include "EspinaGUI_Export.h"
+
 // EspINA
 #include "GUI/Renderers/Renderer.h"
 #include <Core/EspinaTypes.h>
@@ -38,7 +40,7 @@ namespace EspINA
 {
   class ViewManager;
 
-  class CrosshairRenderer
+  class EspinaGUI_EXPORT CrosshairRenderer
   : public IRenderer
   {
   public:

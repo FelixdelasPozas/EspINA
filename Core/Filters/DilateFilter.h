@@ -20,6 +20,8 @@
 #ifndef DILATEFILTER_H
 #define DILATEFILTER_H
 
+#include "EspinaCore_Export.h"
+
 #include "MorphologicalEditionFilter.h"
 
 #include <Core/Model/Segmentation.h>
@@ -27,7 +29,7 @@
 namespace EspINA
 {
 
-class DilateFilter
+class EspinaCore_EXPORT DilateFilter
 : public MorphologicalEditionFilter
 {
 public:

@@ -2,11 +2,13 @@
  * Measure.h
  *
  *  Created on: Jan 11, 2013
- *      Author: F√©lix de las Pozas √Ålvarez
+ *      Author: FÈlix de las Pozas ¡lvarez
  */
 
 #ifndef MEASURE_H_
 #define MEASURE_H_
+
+#include "EspinaCore_Export.h"
 
 // Qt
 #include <QStringList>
@@ -17,7 +19,7 @@
 
 namespace EspINA
 {
-  class Measure
+  class EspinaCore_EXPORT Measure
   {
     public:
       Measure(): m_measure(0), m_units("nm"), m_adjust(true)

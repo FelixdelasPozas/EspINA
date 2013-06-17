@@ -2,18 +2,20 @@
  * MeasureSliceWidget.h
  *
  *  Created on: Dec 11, 2012
- *      Author: F√©lix de las Pozas √Ålvarez
+ *      Author: FÈlix de las Pozas ¡lvarez
  */
 
 #ifndef MEASURESLICEWIDGET_H_
 #define MEASURESLICEWIDGET_H_
+
+#include "EspinaGUI_Export.h"
 
 // EspINA
 #include <GUI/vtkWidgets/EspinaWidget.h>
 
 namespace EspINA
 {
-class MeasureSliceWidget
+class EspinaGUI_EXPORT MeasureSliceWidget
 : public SliceWidget
 {
   public:

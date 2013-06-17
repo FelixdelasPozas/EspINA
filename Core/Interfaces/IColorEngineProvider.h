@@ -20,6 +20,8 @@
 #ifndef ICOLORENGINEPROVIDER_H
 #define ICOLORENGINEPROVIDER_H
 
+#include "EspinaCore_Export.h"
+
 #include <QtPlugin>
 #include <QPair>
 
@@ -27,13 +29,13 @@
 
 namespace EspINA
 {
-  class IColorEngineProvider
+  class EspinaCore_EXPORT IColorEngineProvider
   {
   public:
     typedef QPair<QString, ColorEnginePtr> Engine;
     typedef QList<IColorEngineProvider::Engine> EngineList;
 
-    virtual ~IColorEngineProvider(){}
+    virtual ~IColorEngineProvider();
 
     virtual EngineList colorEngines() = 0;
   };

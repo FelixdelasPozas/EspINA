@@ -164,8 +164,13 @@ set (ESPINA_LIBRARIES
 set (EXTERNAL_LIBRARIES
   ${XLSLIB_LIBRARIES}
   QVTK
-  QtTest # Required by ModelTest
   )
+  
+if (MINGW)
+  set (EXTERNAL_LIBRARIES ${EXTERNAL_LIBRARIES} ${QT_LIBRARIES})
+else (MINGW)
+  set (EXTERNAL_LIBRARIES ${EXTERNAL_LIBRARIES} QtTest )  
+endif (MINGW)  
 
 add_executable(espina ${ESPINA_SOURCES})
 target_link_libraries (espina ${ESPINA_LIBRARIES} ${EXTERNAL_LIBRARIES})

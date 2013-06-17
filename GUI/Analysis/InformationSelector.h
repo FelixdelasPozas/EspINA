@@ -20,6 +20,8 @@
 #ifndef INFORMATION_SELECTOR_H
 #define INFORMATION_SELECTOR_H
 
+#include "EspinaGUI_Export.h"
+
 #include <QDialog>
 
 #include <QStringListModel>
@@ -31,7 +33,7 @@ namespace EspINA
 
   class EspinaFactory;
 
-  class InformationSelector
+  class EspinaGUI_EXPORT InformationSelector
   : public QDialog
   {
     Q_OBJECT

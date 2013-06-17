@@ -16,16 +16,16 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #ifndef IVOI_H
 #define IVOI_H
+
+#include "EspinaGUI_Export.h"
 
 #include "ITool.h"
 
 namespace EspINA
 {
-
-  class IVOI
+  class EspinaGUI_EXPORT IVOI
   : public ITool
   {
   public:

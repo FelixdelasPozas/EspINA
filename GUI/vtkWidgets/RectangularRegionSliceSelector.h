@@ -20,6 +20,8 @@
 #ifndef RECTANGULARREGIONSLICESELECTOR_H
 #define RECTANGULARREGIONSLICESELECTOR_H
 
+#include "EspinaGUI_Export.h"
+
 #include "GUI/QtWidget/SliceSelectorWidget.h"
 
 class QPushButton;
@@ -28,7 +30,7 @@ namespace EspINA
 {
   class RectangularRegion;
 
-  class RectangularRegionSliceSelector
+  class EspinaGUI_EXPORT RectangularRegionSliceSelector
   : public SliceSelectorWidget
   {
     Q_OBJECT

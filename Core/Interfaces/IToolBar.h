@@ -19,6 +19,8 @@
 #ifndef ITOOLBAR_H
 #define ITOOLBAR_H
 
+#include "EspinaCore_Export.h"
+
 // Qt
 #include <QToolBar>
 
@@ -32,25 +34,20 @@ namespace EspINA
   class EspinaModel;
   class ViewManager;
 
-  class IToolBar
+  class EspinaCore_EXPORT IToolBar
   : public QToolBar
   {
     Q_OBJECT
   public:
-    explicit IToolBar(QWidget *parent = 0)
-    : QToolBar(parent)
-    , m_undoIndex(INT_MAX) {}
-    explicit IToolBar(const QString &title, QWidget *parent = 0)
-    : QToolBar(title, parent)
-    , m_undoIndex(INT_MAX) {}
-    virtual ~IToolBar(){}
+    explicit IToolBar(QWidget *parent = 0);
+    explicit IToolBar(const QString &title, QWidget *parent = 0);
+    virtual ~IToolBar();
 
   public slots:
     /// Restore toolbar state to its initial state. Every widgets and tools
     /// created by this toolbar must be removed
     virtual void resetToolbar() = 0;
 
-    
     virtual void abortOperation() = 0;
 
   protected:

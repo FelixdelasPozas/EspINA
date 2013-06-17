@@ -20,11 +20,13 @@
 #ifndef MESHPROXY_H
 #define MESHPROXY_H
 
+#include "EspinaCore_Export.h"
+
 #include "MeshType.h"
 
 namespace EspINA
 {
-  class MeshProxy
+  class EspinaCore_EXPORT MeshProxy
   : public MeshRepresentation
   {
   public:

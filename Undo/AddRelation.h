@@ -20,14 +20,18 @@
 #ifndef ADDRELATION_H
 #define ADDRELATION_H
 
-#include <QUndoCommand>
+#include "EspinaUndo_Export.h"
 
+// EspINA
 #include <Core/EspinaTypes.h>
 #include <Core/Model/EspinaModel.h>
 
+// Qt
+#include <QUndoCommand>
+
 namespace EspINA
 {
-  class AddRelation
+  class EspinaUndo_EXPORT AddRelation
   : public QUndoCommand
   {
   public:

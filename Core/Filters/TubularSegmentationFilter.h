@@ -19,6 +19,8 @@
 #ifndef TUBULARSOURCE_H
 #define TUBULARSOURCE_H
 
+#include "EspinaCore_Export.h"
+
 // EspINA
 #include <Core/Model/Filter.h>
 #include <Core/EspinaTypes.h>
@@ -37,7 +39,7 @@ namespace EspINA
   class TubularTool;
   class TubularFilterInspector;
 
-  class TubularSegmentationFilter
+  class EspinaCore_EXPORT TubularSegmentationFilter
   : public SegmentationFilter
   {
       typedef itk::ImplicitImageSource<itkVolumeType> ImplicitSource;
@@ -53,7 +55,7 @@ namespace EspINA
 
       typedef QList<QVector4D> NodeList;
 
-      class Parameters
+      class EspinaCore_EXPORT Parameters
       {
         public:
           explicit Parameters(Arguments &args);

@@ -2,11 +2,13 @@
  * SliceContourWidget.h
  *
  *  Created on: Sep 8, 2012
- *      Author: F√©lix de las Pozas √Ålvarez
+ *      Author: FÈlix de las Pozas ¡lvarez
  */
 
 #ifndef SLICECONTOURWIDGET_H_
 #define SLICECONTOURWIDGET_H_
+
+#include "EspinaGUI_Export.h"
 
 // EspINA
 #include "vtkPlaneContourWidget.h"
@@ -19,7 +21,8 @@ class vtkPolyData;
 
 namespace EspINA
 {
-class SliceContourWidget: public SliceWidget
+class EspinaGUI_EXPORT SliceContourWidget
+: public SliceWidget
 {
   public:
     explicit SliceContourWidget(vtkPlaneContourWidget *widget);

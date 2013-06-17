@@ -19,6 +19,8 @@
 #ifndef IESPINAREPRESENTATION_H
 #define IESPINAREPRESENTATION_H
 
+#include "EspinaGUI_Export.h"
+
 // Qt
 #include <QList>
 #include <QString>
@@ -43,7 +45,7 @@ namespace EspINA
   class SliceView;
   class VolumeView;
 
-  class GraphicalRepresentation
+  class EspinaGUI_EXPORT GraphicalRepresentation
   : public QObject
   {
   public:
@@ -128,7 +130,7 @@ namespace EspINA
     QString m_label;
   };
 
-  class ChannelGraphicalRepresentation
+  class EspinaGUI_EXPORT ChannelGraphicalRepresentation
   : public GraphicalRepresentation
   {
   public:
@@ -167,7 +169,7 @@ namespace EspINA
   typedef boost::shared_ptr<ChannelGraphicalRepresentation> ChannelGraphicalRepresentationSPtr;
   typedef QList<ChannelGraphicalRepresentationSPtr> ChannelGraphicalRepresentationList;
 
-  class SegmentationGraphicalRepresentation
+  class EspinaGUI_EXPORT SegmentationGraphicalRepresentation
   : public GraphicalRepresentation
   {
   public:

@@ -20,11 +20,13 @@
 #ifndef ERODEFILTER_H
 #define ERODEFILTER_H
 
+#include "EspinaCore_Export.h"
+
 #include "MorphologicalEditionFilter.h"
 
 namespace EspINA
 {
-class ErodeFilter
+class EspinaCore_EXPORT ErodeFilter
 : public MorphologicalEditionFilter
 {
 public:

@@ -20,6 +20,8 @@
 #ifndef INFORMATIONPROXY_H
 #define INFORMATIONPROXY_H
 
+#include "EspinaCore_Export.h"
+
 #include <QAbstractProxyModel>
 
 #include <Core/EspinaTypes.h>
@@ -31,7 +33,7 @@
 namespace EspINA
 {
 
-  class InformationProxy
+  class EspinaCore_EXPORT InformationProxy
   : public QAbstractProxyModel
   {
     Q_OBJECT

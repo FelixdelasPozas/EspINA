@@ -20,6 +20,8 @@
 #ifndef EDGEDISTANCE_H
 #define EDGEDISTANCE_H
 
+#include "EspinaCore_Export.h"
+
 #include "Core/Extensions/SegmentationExtension.h"
 #include "Core/EspinaTypes.h"
 
@@ -27,7 +29,7 @@ namespace EspINA
 {
   const ModelItem::ExtId EdgeDistanceID = "EdgeDistance";
 
-  class EdgeDistance
+  class EspinaCore_EXPORT EdgeDistance
   : public Segmentation::Information
   {
     struct ExtensionData

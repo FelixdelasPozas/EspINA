@@ -19,6 +19,8 @@
 #ifndef IDYNAMICMENU_H
 #define IDYNAMICMENU_H
 
+#include "EspinaCore_Export.h"
+
 #include <QPair>
 #include <QStringList>
 
@@ -28,12 +30,10 @@ namespace EspINA
 {
   typedef QPair<QStringList, QAction *> MenuEntry;
 
-  class IDynamicMenu
+  class EspinaCore_EXPORT IDynamicMenu
   {
     public:
-      virtual ~IDynamicMenu()
-      {
-      }
+      virtual ~IDynamicMenu();
 
       virtual QList<MenuEntry> menuEntries() = 0;
 

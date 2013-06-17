@@ -151,7 +151,7 @@ void SynapticAppositionSurfaceAnalysis::displayInformation()
       }
     }
 
-    ModelItemSList relatedItems = segmentation->relatedItems(EspINA::OUT, AppositionSurfaceFilter::SAS);
+    ModelItemSList relatedItems = segmentation->relatedItems(EspINA::RELATION_OUT, AppositionSurfaceFilter::SAS);
     if (relatedItems.isEmpty())
     {
       if (!createSAS)
@@ -164,7 +164,7 @@ void SynapticAppositionSurfaceAnalysis::displayInformation()
 
       m_undoStack->push(new AppositionSurfaceCommand(noSASSegmentations, m_model, m_viewManager, createdSegmentations));
 
-      relatedItems = segmentation->relatedItems(EspINA::OUT, AppositionSurfaceFilter::SAS);
+      relatedItems = segmentation->relatedItems(EspINA::RELATION_OUT, AppositionSurfaceFilter::SAS);
       createSAS = true;
     }
 

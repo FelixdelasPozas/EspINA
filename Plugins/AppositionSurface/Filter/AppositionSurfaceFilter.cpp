@@ -2,7 +2,7 @@
  * AppositionSurfaceFilter.cpp
  *
  *  Created on: Jan 18, 2013
- *      Author: FÃ©lix de las Pozas Ãlvarez
+ *      Author: Félix de las Pozas Álvarez
  */
 
 // plugin
@@ -142,7 +142,7 @@ void AppositionSurfaceFilter::upkeeping()
     int i = 0;
     FilterSPtr segFilter = m_namedInputs[AppositionSurfaceFilter::INPUTLINK];
 
-    ModelItemSList items = segFilter->relatedItems(EspINA::OUT, Filter::CREATELINK);
+    ModelItemSList items = segFilter->relatedItems(EspINA::RELATION_OUT, Filter::CREATELINK);
     while(!m_originSegmentation && i < items.size())
     {
       SegmentationPtr segmentation = segmentationPtr(items[i].get());
@@ -160,7 +160,7 @@ void AppositionSurfaceFilter::upkeeping()
 
   m_input = segmentationVolume(m_originSegmentation->output())->toITK();
 
-  ModelItemSList items = relatedItems(EspINA::OUT, Filter::CREATELINK);
+  ModelItemSList items = relatedItems(EspINA::RELATION_OUT, Filter::CREATELINK);
   if (items.size() == 1)
   {
     SegmentationPtr segmentation = segmentationPtr(items.first().get());

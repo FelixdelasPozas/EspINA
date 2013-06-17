@@ -20,13 +20,15 @@
 #ifndef PIXELSELECTOR_H_
 #define PIXELSELECTOR_H_
 
+#include "EspinaGUI_Export.h"
+
 #include "GUI/Pickers/ISelector.h"
 
 class QSize;
 
 namespace EspINA
 {
-  class PixelSelector
+  class EspinaGUI_EXPORT PixelSelector
   : public ISelector
   {
   public:
@@ -41,7 +43,7 @@ namespace EspINA
   };
 
 
-  class BestPixelSelector
+  class EspinaGUI_EXPORT BestPixelSelector
   : public PixelSelector
   {
   public:

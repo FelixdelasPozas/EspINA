@@ -29,15 +29,17 @@
 #ifndef CHANGESEGMENTATIONNOTES_H
 #define CHANGESEGMENTATIONNOTES_H
 
-#include <QUndoCommand>
+#include "EspinaUndo_Export.h"
 
+// Qt
+#include <QUndoCommand>
 #include <QStringList>
 
 namespace EspINA
 {
   class SegmentationNotes;
 
-  class ChangeSegmentationNotes
+  class EspinaUndo_EXPORT ChangeSegmentationNotes
   : public QUndoCommand
   {
   public:

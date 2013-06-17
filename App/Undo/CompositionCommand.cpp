@@ -98,7 +98,7 @@ void CompositionCommand::redo()
   m_model->addFilter(m_filter);
   foreach(SegmentationSPtr seg, m_input)
   {
-//     SharedModelItemList segFilter = seg->relatedItems(EspINA::IN, CREATELINK);
+//     SharedModelItemList segFilter = seg->relatedItems(EspINA::RELATION_IN, CREATELINK);
 //     Q_ASSERT(segFilter.size() == 1);
 //     SharedModelItemPtr item = segFilter[0];
 //     Q_ASSERT(EspINA::FILTER == item->type());

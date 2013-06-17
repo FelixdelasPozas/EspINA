@@ -20,14 +20,15 @@
 #ifndef BOUNDINGREGION_H
 #define BOUNDINGREGION_H
 
+#include "CountingFramePlugin_Export.h"
+
 #include <QStandardItemModel>
 #include <boost/graph/graph_concepts.hpp>
 
 #include "vtkCountingFrameSliceWidget.h"
 #include "vtkCountingFrame3DWidget.h"
 #include <GUI/vtkWidgets/EspinaWidget.h>
-#include <GUI/vtkWidgets/EspinaInteractorAdapter.h>
-
+#include "CountingFrameInteractorAdapter.h"
 
 #include <vtkCommand.h>
 #include <vtkSmartPointer.h>
@@ -39,7 +40,7 @@ namespace EspINA
   class ViewManager;
 
   /// Bounding Regions' base class
-  class CountingFrame
+  class CountingFramePlugin_EXPORT CountingFrame
   : public QObject
   , public QStandardItem
   , public EspinaWidget
@@ -48,8 +49,8 @@ namespace EspINA
     Q_OBJECT
 
   protected:
-    typedef EspinaInteractorAdapter<vtkCountingFrameSliceWidget> CountingFrame2DWidgetAdapter;
-    typedef EspinaInteractorAdapter<vtkCountingFrame3DWidget>    CountingFrame3DWidgetAdapter;
+    typedef CountingFrameInteractorAdapter<vtkCountingFrameSliceWidget> CountingFrame2DWidgetAdapter;
+    typedef CountingFrameInteractorAdapter<vtkCountingFrame3DWidget>    CountingFrame3DWidgetAdapter;
 
     class CountingFrameSliceWidget
     : public SliceWidget

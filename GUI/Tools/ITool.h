@@ -20,6 +20,8 @@
 #ifndef ITOOL_H
 #define ITOOL_H
 
+#include "EspinaGUI_Export.h"
+
 #include <QObject>
 
 #include <QCursor>
@@ -31,7 +33,7 @@ namespace EspINA
 {
   class EspinaRenderView;
 
-  class ITool
+  class EspinaGUI_EXPORT ITool
   : public QObject
   {
   public:

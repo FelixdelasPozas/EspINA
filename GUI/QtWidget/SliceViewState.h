@@ -29,7 +29,6 @@ class vtkProp3D;
 
 namespace EspINA
 {
-
   class SliceView::State
   {
   public:

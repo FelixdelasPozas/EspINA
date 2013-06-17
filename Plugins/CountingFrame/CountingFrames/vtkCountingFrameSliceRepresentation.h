@@ -1,6 +1,8 @@
 #ifndef VTKRECTANGULARBOUNDINGBOXREPRESENTATION_H
 #define VTKRECTANGULARBOUNDINGBOXREPRESENTATION_H
 
+#include "CountingFramePlugin_Export.h"
+
 #include "vtkWidgetRepresentation.h"
 #include <vtkSmartPointer.h>
 #include <vtkPolyData.h>
@@ -24,7 +26,7 @@ class vtkBox;
 class vtkDoubleArray;
 class vtkMatrix4x4;
 
-class VTK_WIDGETS_EXPORT vtkCountingFrameSliceRepresentation
+class CountingFramePlugin_EXPORT vtkCountingFrameSliceRepresentation
 : public vtkWidgetRepresentation
 {
 protected:

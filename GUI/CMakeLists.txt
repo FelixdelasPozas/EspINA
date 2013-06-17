@@ -1,7 +1,9 @@
 find_package(XLSLIB REQUIRED)
 
+include (GenerateExportHeader)
+
 include_directories(
-  ${CMAKE_BINARY_DIR}         # Generated EspinaConfig.h
+  ${CMAKE_BINARY_DIR}         # Exports & Generated EspinaConfig.h
   ${CMAKE_CURRENT_BINARY_DIR} #For wrap/ui files
   ${XLSLIB_INCLUDE_DIRS}
 )
@@ -119,13 +121,21 @@ set (GUI_SOURCES
   )
 
 set(GUI_EXTERNAL_LIBS
-  EspinaCore
-#EspinaUndo
   QVTK
+  EspinaCore
   ${VTK_LIBRARIES}
   ${ITK_LIBRARIES}
   ${XLSLIB_LIBRARIES}
 )
+
+if(MINGW)
+  if(DEFINED ESPINA_VERSION_MAJOR)
+    configure_file("${CMAKE_CURRENT_SOURCE_DIR}/windllprops.rc.in" "${CMAKE_CURRENT_BINARY_DIR}/windllprops.rc")
+    SET(GUI_SOURCES ${GUI_SOURCES} ${CMAKE_CURRENT_BINARY_DIR}/windllprops.rc)
+    SET(CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> -O coff -o <OBJECT> -i <SOURCE>")
+    ENABLE_LANGUAGE(RC)
+  endif(DEFINED ESPINA_VERSION_MAJOR)
+endif(MINGW)
 
 if(APPLE)
    include_directories ( /System/Library/Frameworks )
@@ -139,4 +149,10 @@ if(APPLE)
 endif (APPLE)
 
 add_library           (EspinaGUI SHARED ${GUI_SOURCES})
+GENERATE_EXPORT_HEADER(
+             EspinaGUI
+             BASE_NAME EspinaGUI
+             EXPORT_MACRO_NAME EspinaGUI_EXPORT
+             EXPORT_FILE_NAME EspinaGUI_Export.h
+			 )
 target_link_libraries (EspinaGUI ${GUI_EXTERNAL_LIBS})

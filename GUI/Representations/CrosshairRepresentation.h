@@ -1,6 +1,6 @@
 /*
  <one line to give the program's name and a brief idea of what it does.>
- Copyright (C) 2013 F√©lix de las Pozas √Ålvarez <felixdelaspozas@gmail.com>
+ Copyright (C) 2013 FÈlix de las Pozas ¡lvarez <felixdelaspozas@gmail.com>
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -18,6 +18,8 @@
 
 #ifndef CROSSHAIRREPRESENTATION_H_
 #define CROSSHAIRREPRESENTATION_H_
+
+#include "EspinaGUI_Export.h"
 
 // EspINA
 #include "GUI/Representations/GraphicalRepresentation.h"
@@ -44,7 +46,7 @@ namespace EspINA
   class EspinaRenderView;
   class CrosshairRenderer;
   
-  class CrosshairRepresentation
+  class EspinaGUI_EXPORT CrosshairRepresentation
   :public ChannelGraphicalRepresentation
   {
     Q_OBJECT

@@ -642,7 +642,7 @@ namespace EspINA
     TubularSegmentationFilter::NodeList::Iterator it = this->nodes.begin();
     for (int i = 0; i < this->nodes.size(); i++, it++)
     {
-      double data[3];
+      double data[3] = { 0,0,0 };
 
       switch (this->Plane)
       {
@@ -733,7 +733,9 @@ namespace EspINA
   //----------------------------------------------------------------------------
   void vtkTubularRepresentation::updateSections(int node)
   {
-    double distance, nodeZ, previousNodeZ;
+    double distance = 0;
+    double nodeZ = 0;
+    double previousNodeZ = 0;
 
     switch (this->Plane)
     {

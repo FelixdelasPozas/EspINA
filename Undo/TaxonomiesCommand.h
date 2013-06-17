@@ -20,6 +20,7 @@
 #ifndef TAXONOMIESCOMMAND_H
 #define TAXONOMIESCOMMAND_H
 
+#include "EspinaUndo_Export.h"
 #include <QUndoCommand>
 
 #include <Core/EspinaTypes.h>
@@ -31,7 +32,7 @@ namespace EspINA
 {
   class EspinaModel;
 
-  class AddTaxonomyCommand
+  class EspinaUndo_EXPORT AddTaxonomyCommand
   : public QUndoCommand
   {
   public:
@@ -51,7 +52,7 @@ namespace EspINA
   };
 
   // Add new taxonomical element to parentTaxonomy
-  class AddTaxonomyElement
+  class EspinaUndo_EXPORT AddTaxonomyElement
   : public QUndoCommand
   {
   public:
@@ -81,7 +82,7 @@ namespace EspINA
 
 
   // Change taxonomical element's parent
-  class MoveTaxonomiesCommand
+  class EspinaUndo_EXPORT MoveTaxonomiesCommand
   : public QUndoCommand
   {
   public:
@@ -103,7 +104,7 @@ namespace EspINA
 
 
   // Remove Taxonomical Element from model
-  class RemoveTaxonomyElementCommand
+  class EspinaUndo_EXPORT RemoveTaxonomyElementCommand
   : public QUndoCommand
   {
   public:

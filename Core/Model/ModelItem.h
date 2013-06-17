@@ -20,6 +20,8 @@
 #ifndef MODELITEM_H
 #define MODELITEM_H
 
+#include "EspinaCore_Export.h"
+
 #include <QModelIndex>
 
 #include "Core/EspinaTypes.h"
@@ -43,7 +45,6 @@ namespace EspINA
     return QString("%1,%2,%3,%4,%5,%6").arg(val[0]).arg(val[1]).arg(val[2]).arg(val[3]).arg(val[4]).arg(val[5]);
   }
 
-
   struct Relation
   {
     ModelItemSPtr ancestor;
@@ -56,7 +57,7 @@ namespace EspINA
   const int TypeRole       = Qt::UserRole+2;
 
   /// Base class for every item in EspinaModel
-  class ModelItem
+  class EspinaCore_EXPORT ModelItem
   : public QObject
   {
     Q_OBJECT
@@ -70,7 +71,7 @@ namespace EspINA
     typedef QString      ExtId;
     typedef QList<ExtId> ExtIdList;
 
-    class Arguments
+    class EspinaCore_EXPORT Arguments
     : public QMap<ArgumentId, Argument>
     {
     public:
@@ -121,7 +122,7 @@ namespace EspINA
     friend class EspinaModel;
   };
 
-  ModelItemPtr indexPtr(const QModelIndex &index);
+  ModelItemPtr EspinaCore_EXPORT indexPtr(const QModelIndex &index);
 
 } // EspINA
 

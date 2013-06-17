@@ -23,6 +23,8 @@
 #ifndef LOCATIONPROXY_H
 #define LOCATIONPROXY_H
 
+#include "EspinaCore_Export.h"
+
 #include <QAbstractProxyModel>
 
 #include <Core/EspinaTypes.h>
@@ -32,7 +34,7 @@ namespace EspINA
 {
 
   /// Group Segmentations by Sample
-  class LocationProxy
+  class EspinaCore_EXPORT LocationProxy
   : public QAbstractProxyModel
   {
     Q_OBJECT

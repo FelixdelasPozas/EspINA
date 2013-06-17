@@ -2,7 +2,7 @@
  * vtkZoomSelectionWidget.cpp
  *
  *  Created on: Nov 14, 2012
- *      Author: F√©lix de las Pozas √Ålvarez
+ *      Author: FÈlix de las Pozas ¡lvarez
  */
 
 // EspINA

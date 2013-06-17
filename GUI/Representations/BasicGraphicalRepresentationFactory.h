@@ -20,11 +20,13 @@
 #ifndef ESPINA_BASICGRAPHICALREPRESENTATIONFACTORY_H
 #define ESPINA_BASICGRAPHICALREPRESENTATIONFACTORY_H
 
+#include "EspinaGUI_Export.h"
+
 #include <GUI/Representations/GraphicalRepresentationFactory.h>
 
 namespace EspINA
 {
-  class BasicGraphicalRepresentationFactory 
+  class EspinaGUI_EXPORT BasicGraphicalRepresentationFactory
   : public GraphicalRepresentationFactory
   {
   public:
@@ -34,8 +36,8 @@ namespace EspINA
     virtual void createGraphicalRepresentations(SegmentationOutputSPtr output);
   };
 
-  void SetBasicGraphicalRepresentationFactory(Filter    *filter);
-  void SetBasicGraphicalRepresentationFactory(FilterSPtr filter);
+  void EspinaGUI_EXPORT SetBasicGraphicalRepresentationFactory(Filter    *filter);
+  void EspinaGUI_EXPORT SetBasicGraphicalRepresentationFactory(FilterSPtr filter);
 }
 
 #endif // ESPINA_BASICGRAPHICALREPRESENTATIONFACTORY_H

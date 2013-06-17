@@ -19,6 +19,8 @@
 #ifndef COUNTINGFRAME_H
 #define COUNTINGFRAME_H
 
+#include "CountingFramePlugin_Export.h"
+
 #include "CountingFrames/CountingFrame.h"
 
 #include <Core/Interfaces/IDockWidget.h>
@@ -37,7 +39,7 @@ namespace EspINA
   class CountingFrameExtension;
 
   /// Counting Frame Plugin
-  class CountingFramePanel
+  class CountingFramePlugin_EXPORT CountingFramePanel
   : public IDockWidget
   , public IColorEngineProvider
   {

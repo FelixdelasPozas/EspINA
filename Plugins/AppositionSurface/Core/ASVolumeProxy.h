@@ -20,11 +20,13 @@
 #ifndef ESPINA_ASVOLUMEPROXY_H
 #define ESPINA_ASVOLUMEPROXY_H
 
+#include "AppositionSurfacePlugin_Export.h"
+
 #include <Core/OutputRepresentations/VolumeProxy.h>
 
 namespace EspINA
 {
-  class ASVolumeProxy 
+  class AppositionSurfacePlugin_EXPORT ASVolumeProxy
   : public VolumeProxy
   {
   };

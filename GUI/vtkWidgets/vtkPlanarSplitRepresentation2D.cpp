@@ -2,7 +2,7 @@
  * vtkPlanarSplitRepresentation2D.cpp
  *
  *  Created on: Nov 6, 2012
- *      Author: FÃ©lix de las Pozas Ãlvarez
+ *      Author: Félix de las Pozas Álvarez
  */
 
 // EspINA
@@ -201,7 +201,7 @@ int vtkPlanarSplitRepresentation2D::RenderOverlay(vtkViewport *v)
 {
   this->BuildRepresentation();
 
-  int result;
+  int result = 0;
 
   if (m_lineActor->GetVisibility())
     result = m_lineActor->RenderOverlay(v);
@@ -220,7 +220,7 @@ int vtkPlanarSplitRepresentation2D::RenderOpaqueGeometry(vtkViewport *v)
 {
   this->BuildRepresentation();
 
-  int result;
+  int result = 0;
 
   if (m_lineActor->GetVisibility())
     result = m_lineActor->RenderOpaqueGeometry(v);

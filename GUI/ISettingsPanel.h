@@ -1,6 +1,8 @@
 #ifndef ISETTINGSPANEL_H
 #define ISETTINGSPANEL_H
 
+#include "EspinaGUI_Export.h"
+
 #include <QWidget>
 #include <QIcon>
 
@@ -8,11 +10,10 @@
 
 namespace EspINA
 {
-
   class ISettingsPanel;
   typedef ISettingsPanel * ISettingsPanelPtr;
 
-  class ISettingsPanel
+  class EspinaGUI_EXPORT ISettingsPanel
   : public QWidget
   {
   public:
@@ -31,9 +32,9 @@ namespace EspINA
     virtual ISettingsPanelPtr clone() = 0;
   };
 
-  typedef QList<ISettingsPanelPtr>       ISettingsPanelList;
+  typedef QList<ISettingsPanelPtr>          ISettingsPanelList;
   typedef boost::shared_ptr<ISettingsPanel> ISettingsPanelPrototype;
-  typedef QList<ISettingsPanelPrototype> ISettingsPanelPrototypeList;
+  typedef QList<ISettingsPanelPrototype>    ISettingsPanelPrototypeList;
 
 } // namespace EspINA
 

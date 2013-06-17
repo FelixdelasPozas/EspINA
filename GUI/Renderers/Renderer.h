@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2012  Jorge PeÃ±a Pastor <jpena@cesvima.upm.es>
+    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -18,6 +18,8 @@
 
 #ifndef IRENDERER
 #define IRENDERER
+
+#include "EspinaGUI_Export.h"
 
 // EspINA
 #include <Core/EspinaTypes.h>
@@ -42,7 +44,7 @@ namespace EspINA
   /// item visibily in Espina Views (currently only supported
   /// for VolumeView class)
 
-  class IRenderer
+  class EspinaGUI_EXPORT IRenderer
   : public QObject
   {
     Q_OBJECT

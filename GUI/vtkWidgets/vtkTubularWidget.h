@@ -19,6 +19,8 @@
 #ifndef VTKTUBULARWIDGET_H_
 #define VTKTUBULARWIDGET_H_
 
+#include "EspinaGUI_Export.h"
+
 // EspINA
 #include <Core/Filters/TubularSegmentationFilter.h>
 #include <Core/EspinaTypes.h>
@@ -38,7 +40,8 @@ namespace EspINA
   class vtkSpineRepresentation;
   class vtkTubularRepresentation;
 
-  class VTK_WIDGETS_EXPORT vtkTubularWidget: public vtkAbstractWidget
+  class EspinaGUI_EXPORT vtkTubularWidget
+  : public vtkAbstractWidget
   {
     public:
 

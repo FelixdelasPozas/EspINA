@@ -18,6 +18,7 @@
 #ifndef APPOSITIONSURFACEXTENSION_H
 #define APPOSITIONSURFACEXTENSION_H
 
+#include "AppositionSurfacePlugin_Export.h"
 // EspINA
 #include <Core/Extensions/SegmentationExtension.h>
 #include <Core/EspinaTypes.h>
@@ -26,7 +27,7 @@ namespace EspINA
 {
   const QString SAS = QObject::tr("SAS");
 
-  class AppositionSurfaceExtension
+  class AppositionSurfacePlugin_EXPORT AppositionSurfaceExtension
   : public Segmentation::Information
   {
       struct ExtensionData

@@ -20,6 +20,8 @@
 #ifndef SPLITFILTER_H
 #define SPLITFILTER_H
 
+#include "EspinaCore_Export.h"
+
 #include <Core/Model/Filter.h>
 #include <Core/OutputRepresentations/RawVolume.h>
 #include "BasicSegmentationFilter.h"
@@ -32,7 +34,7 @@ namespace EspINA
 {
   /// Split Segmentation into two components according to
   /// given stencil
-  class SplitFilter
+  class EspinaCore_EXPORT SplitFilter
   : public BasicSegmentationFilter
   {
   public:

@@ -19,6 +19,8 @@
 #ifndef TAXONOMYPROXY_H
 #define TAXONOMYPROXY_H
 
+#include "EspinaCore_Export.h"
+
 #include <QAbstractProxyModel>
 
 #include <Core/EspinaTypes.h>
@@ -27,7 +29,7 @@
 namespace EspINA
 {
   /// Group by Taxonomy Espina Proxy
-  class TaxonomyProxy
+  class EspinaCore_EXPORT TaxonomyProxy
   : public QAbstractProxyModel
   {
     Q_OBJECT

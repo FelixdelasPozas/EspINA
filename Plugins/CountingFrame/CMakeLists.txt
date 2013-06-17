@@ -1,5 +1,7 @@
 project (COUNTING_REGION_PLUGIN)
 
+include (GenerateExportHeader)
+
 # Version Number
 set (PLUGIN_VERSION_MAJOR 0)
 set (PLUGIN_VERSION_MINOR 2)
@@ -80,11 +82,28 @@ set (PLUGIN_SOURCES
   )
 
 set (PLUGIN_LIBRARIES
+  EspinaGUI
   EspinaCore
   EspinaUndo
   )
 
+if(MINGW)
+  if(DEFINED ESPINA_VERSION_MAJOR)
+    configure_file("${CMAKE_CURRENT_SOURCE_DIR}/windllprops.rc.in" "${CMAKE_CURRENT_BINARY_DIR}/windllprops.rc")
+    SET(PLUGIN_SOURCES ${PLUGIN_SOURCES} ${CMAKE_CURRENT_BINARY_DIR}/windllprops.rc)
+    SET(CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> -O coff -o <OBJECT> -i <SOURCE>")
+    ENABLE_LANGUAGE(RC)
+  endif(DEFINED ESPINA_VERSION_MAJOR)
+endif(MINGW)
+
 add_library(CountingFramePlugin SHARED ${PLUGIN_SOURCES})
+GENERATE_EXPORT_HEADER(
+             CountingFramePlugin
+             BASE_NAME CountingFramePlugin
+             EXPORT_MACRO_NAME CountingFramePlugin_EXPORT
+             EXPORT_FILE_NAME CountingFramePlugin_Export.h
+			 )
+
 target_link_libraries (CountingFramePlugin ${PLUGIN_LIBRARIES})
 
 if( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )

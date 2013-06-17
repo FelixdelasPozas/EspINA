@@ -25,9 +25,10 @@
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-
 #ifndef SLICEREPRESENTATION_H
 #define SLICEREPRESENTATION_H
+
+#include "EspinaGUI_Export.h"
 
 // EspINA
 #include "GUI/Representations/GraphicalRepresentation.h"
@@ -50,7 +51,7 @@ namespace EspINA
   class TransparencySelectionHighlighter;
   class SliceView;
 
-  class ChannelSliceRepresentation
+  class EspinaGUI_EXPORT ChannelSliceRepresentation
   : public ChannelGraphicalRepresentation
   {
     Q_OBJECT
@@ -103,7 +104,7 @@ namespace EspINA
     vtkSmartPointer<vtkLookupTable>      m_lut;
   };
 
-  class SegmentationSliceRepresentation
+  class EspinaGUI_EXPORT SegmentationSliceRepresentation
   : public SegmentationGraphicalRepresentation
   {
     Q_OBJECT
@@ -151,7 +152,6 @@ namespace EspINA
 
     static TransparencySelectionHighlighter *s_highlighter;
   };
-
 
   typedef boost::shared_ptr<ChannelSliceRepresentation> ChannelSliceRepresentationSPtr;
   typedef QList<ChannelSliceRepresentationSPtr> ChannelSliceRepresentationSList;

@@ -20,6 +20,9 @@ set (COMPILING_ESPINA 1)
 set (ESPINA_LIBRARY_DIRECTORIES ${PROJECT_BINARY_DIR}/libs )
 
 include_directories (${CMAKE_SOURCE_DIR})
+include_directories (${PROJECT_BINARY_DIR}/Core)
+include_directories (${PROJECT_BINARY_DIR}/GUI)
+include_directories (${PROJECT_BINARY_DIR}/Undo)
 link_directories    (${ESPINA_LIBRARY_DIRECTORIES})
 
 
@@ -51,7 +54,10 @@ endif()
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/CMake/Modules/")
 
 find_package(Quazip REQUIRED)
-include(${QUAZIP_USE_FILE})
+# WIN64: deshabilitado, configurar a mano. Provoca el error "include called with wrong number of arguments.  Include only takes one file"
+if (NOT DEFINED MINGW)
+  include(${QUAZIP_USE_FILE})
+endif (NOT DEFINED MINGW)
 
 find_package(Qt4 REQUIRED)
 include(${QT_USE_FILE})

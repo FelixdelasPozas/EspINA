@@ -19,6 +19,8 @@
 #ifndef ITOOLBARFACTORY_H
 #define ITOOLBARFACTORY_H
 
+#include "EspinaCore_Export.h"
+
 #include "Core/Interfaces/IToolBar.h"
 // Qt
 
@@ -29,12 +31,13 @@ namespace EspINA
   class EspinaModel;
   class ViewManager;
 
-  class IToolBarFactory
+  class EspinaCore_EXPORT IToolBarFactory
   {
   public:
     virtual void initToolBarFactory(EspinaModel *model,
                                     QUndoStack  *undoStack,
                                     ViewManager *viewManager) = 0;
+    virtual ~IToolBarFactory();
 
     virtual QList<IToolBar *> toolBars() const = 0;
   };

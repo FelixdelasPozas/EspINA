@@ -19,6 +19,8 @@
 #ifndef SLICEDTUBULARWIDGET_H
 #define SLICEDTUBULARWIDGET_H
 
+#include "EspinaGUI_Export.h"
+
 // EspINA
 #include <GUI/vtkWidgets/EspinaWidget.h>
 
@@ -27,7 +29,7 @@ namespace EspINA
   //Forward Declarations
   class vtkTubularWidget;
 
-  class TubularSliceWidget
+  class EspinaGUI_EXPORT TubularSliceWidget
   : public SliceWidget
   {
     public:

@@ -20,9 +20,11 @@
 #ifndef CHECKABLETREEVIEW_H
 #define CHECKABLETREEVIEW_H
 
+#include "EspinaGUI_Export.h"
+
 #include <QTreeView>
 
-class CheckableTreeView
+class EspinaGUI_EXPORT CheckableTreeView
 : public QTreeView
 {
   Q_OBJECT

@@ -19,7 +19,9 @@
 #ifndef APPOSITIONSURFACE_H
 #define APPOSITIONSURFACE_H
 
-// plugin
+#include "AppositionSurfacePlugin_Export.h"
+
+// Plugin
 #include "Core/Extensions/AppositionSurfaceExtension.h"
 
 // EspINA
@@ -32,7 +34,7 @@
 
 namespace EspINA
 {
-  class AppositionSurface
+  class AppositionSurfacePlugin_EXPORT AppositionSurface
   : public QObject
   , public IToolBarFactory
   , public IFactoryExtension

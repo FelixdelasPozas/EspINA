@@ -20,13 +20,16 @@
 #ifndef SLICESELECTORWIDGET_H
 #define SLICESELECTORWIDGET_H
 
+#include "EspinaGUI_Export.h"
+
 #include <Core/EspinaTypes.h>
 #include <QObject>
 
 namespace EspINA
 {
   class SliceView;
-  class SliceSelectorWidget
+
+  class EspinaGUI_EXPORT SliceSelectorWidget
   : public QObject
   {
   public:

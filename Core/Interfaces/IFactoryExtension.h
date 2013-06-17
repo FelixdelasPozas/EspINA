@@ -20,15 +20,17 @@
 #ifndef IEXTENSIONPROVIDER_H
 #define IEXTENSIONPROVIDER_H
 
+#include "EspinaCore_Export.h"
+
 #include <QtPlugin>
 #include <Core/Model/EspinaFactory.h>
 
 namespace EspINA
 {
-  class IFactoryExtension
+  class EspinaCore_EXPORT IFactoryExtension
   {
   public:
-    virtual ~IFactoryExtension(){}
+    virtual ~IFactoryExtension();
 
     virtual void initFactoryExtension(EspinaFactory *factory) = 0;
   };
@@ -37,4 +39,5 @@ namespace EspINA
 
 Q_DECLARE_INTERFACE(EspINA::IFactoryExtension,
                     "es.upm.cesvima.EspINA.IFactoryExtension/1.1")
+
 #endif // IEXTENSIONPROVIDER_H

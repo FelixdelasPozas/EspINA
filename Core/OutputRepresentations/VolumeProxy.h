@@ -20,12 +20,14 @@
 #ifndef VOLUMEPROXY_H
 #define VOLUMEPROXY_H
 
+#include "EspinaCore_Export.h"
+
 #include <Core/OutputRepresentations/VolumeRepresentation.h>
 #include <Core/OutputRepresentations/VolumeRepresentation.h>
 
 namespace EspINA
 {
-  class VolumeProxy 
+  class EspinaCore_EXPORT VolumeProxy
   : public SegmentationVolume
   {
     Q_OBJECT

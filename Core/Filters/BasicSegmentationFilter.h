@@ -20,6 +20,8 @@
 #ifndef ESPINA_BASICSEGMENTATIONFILTER_H
 #define ESPINA_BASICSEGMENTATIONFILTER_H
 
+#include "EspinaCore_Export.h"
+
 #include <Core/Model/Filter.h>
 
 namespace EspINA
@@ -32,7 +34,7 @@ namespace EspINA
   // VolumetricGraphicalRepresentation
   // MeshGraphicalRepresentation
   // SmoothedMeshGraphicalRepresentation
-  class BasicSegmentationFilter 
+  class EspinaCore_EXPORT BasicSegmentationFilter
   : public SegmentationFilter
   {
   public:

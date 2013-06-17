@@ -20,6 +20,8 @@
 #ifndef RAWVOLUME_H
 #define RAWVOLUME_H
 
+#include "EspinaCore_Export.h"
+
 // EspINA
 #include "Core/EspinaTypes.h"
 #include "Core/EspinaRegion.h"
@@ -34,7 +36,7 @@
 
 namespace EspINA
 {
-  class RawChannelVolume
+  class EspinaCore_EXPORT RawChannelVolume
   : public ChannelVolume
   {
   public:
@@ -104,9 +106,9 @@ namespace EspINA
 
   typedef boost::shared_ptr<RawChannelVolume> RawChannelVolumeSPtr;
 
-  RawChannelVolumeSPtr rawChannelVolume(OutputSPtr output);
+  RawChannelVolumeSPtr EspinaCore_EXPORT rawChannelVolume(OutputSPtr output);
 
-  class RawSegmentationVolume
+  class EspinaCore_EXPORT RawSegmentationVolume
   : public SegmentationVolume
   {
   public:
@@ -259,7 +261,7 @@ namespace EspINA
 
   typedef boost::shared_ptr<RawSegmentationVolume> RawSegmentationVolumeSPtr;
 
-  RawSegmentationVolumeSPtr rawSegmentationVolume(OutputSPtr output);
+  RawSegmentationVolumeSPtr EspinaCore_EXPORT rawSegmentationVolume(OutputSPtr output);
 
 } // namespace EspINA
 

@@ -23,6 +23,8 @@
 #ifndef REMOVESEGMENTATION_H
 #define REMOVESEGMENTATION_H
 
+#include "EspinaUndo_Export.h"
+
 // EspINA
 #include <Core/Model/ModelItem.h>
 #include <Core/Model/EspinaModel.h>
@@ -34,7 +36,8 @@ namespace EspINA
 {
   class ViewManager;
 
-  class RemoveSegmentation: public QUndoCommand
+  class EspinaUndo_EXPORT RemoveSegmentation
+  : public QUndoCommand
   {
     public:
       explicit RemoveSegmentation(SegmentationPtr seg, EspinaModel *model, ViewManager *vm, QUndoCommand *parent = 0);

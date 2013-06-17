@@ -1,6 +1,8 @@
 #ifndef ESPINAIO_H
 #define ESPINAIO_H
 
+#include "EspinaGUI_Export.h"
+
 #include <Core/Model/Channel.h>
 #include <Core/IO/IOErrorHandler.h>
 #include <QFileInfo>
@@ -9,7 +11,7 @@ namespace EspINA
 {
   class IEspinaModel;
 
-  class EspinaIO
+  class EspinaGUI_EXPORT EspinaIO
   {
     static const QString VERSION;
 

@@ -1,6 +1,6 @@
 /*
  <one line to give the program's name and a brief idea of what it does.>
- Copyright (C) 2013 F√©lix de las Pozas √Ålvarez <felixdelaspozas@gmail.com>
+ Copyright (C) 2013 FÈlix de las Pozas ¡lvarez <felixdelaspozas@gmail.com>
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -19,6 +19,8 @@
 #ifndef IMESHREPRESENTATION_H_
 #define IMESHREPRESENTATION_H_
 
+#include "EspinaGUI_Export.h"
+
 // EspINA
 #include "GraphicalRepresentation.h"
 #include <GUI/QtWidget/EspinaRenderView.h>
@@ -36,7 +38,7 @@ namespace EspINA
   class TransparencySelectionHighlighter;
   class VolumeView;
 
-  class IMeshRepresentation
+  class EspinaGUI_EXPORT IMeshRepresentation
   : public SegmentationGraphicalRepresentation
   {
     Q_OBJECT

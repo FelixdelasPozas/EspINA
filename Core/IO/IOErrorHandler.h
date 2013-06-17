@@ -8,6 +8,8 @@
 #ifndef ERRORHANDLER_H_
 #define ERRORHANDLER_H_
 
+#include "EspinaCore_Export.h"
+
 #include <QDir>
 #include <QFileInfo>
 #include <QString>
@@ -22,7 +24,7 @@ namespace EspINA
     { SUCCESS
       , FILE_NOT_FOUND
       , INVALID_VERSION
-      , ERROR
+      , IO_ERROR
     };
 
   public:

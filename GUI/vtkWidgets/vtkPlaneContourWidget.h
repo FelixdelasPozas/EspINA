@@ -2,15 +2,21 @@
  * vtkPlaneContourWidget.h
  *
  *  Created on: Sep 8, 2012
- *      Author: Félix de las Pozas Alvarez
+ *      Author: Félix de las Pozas Álvarez
  */
 #ifndef _VTKPLANECONTOURWIDGET_H_
 #define _VTKPLANECONTOURWIDGET_H_
 
+#include "EspinaGUI_Export.h"
+
+// EspINA
 #include <Core/EspinaTypes.h>
 #include <App/Tools/Brushes/Brush.h>
 
+// VTK
 #include <vtkAbstractWidget.h>
+
+// Qt
 #include <QCursor>
 #include <QColor>
 
@@ -21,7 +27,7 @@ namespace EspINA
   class vtkSliceContourRepresentation;
   class ContourWidget;
 
-  class VTK_WIDGETS_EXPORT vtkPlaneContourWidget
+  class EspinaGUI_EXPORT vtkPlaneContourWidget
   : public vtkAbstractWidget
   {
   public:

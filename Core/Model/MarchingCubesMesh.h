@@ -29,6 +29,8 @@
 #ifndef MARCHINGCUBEMESH_H
 #define MARCHINGCUBEMESH_H
 
+#include "EspinaCore_Export.h"
+
 #include "Core/OutputRepresentations/MeshType.h"
 #include <Core/OutputRepresentations/VolumeRepresentation.h>
 
@@ -39,7 +41,7 @@ class vtkImageConstantPad;
 
 namespace EspINA
 {
-  class MarchingCubesMesh
+  class EspinaCore_EXPORT MarchingCubesMesh
   : public MeshRepresentation
   {
     Q_OBJECT

@@ -20,6 +20,8 @@
 #ifndef VTKBOUNDINGFRAMEWIDGET_H
 #define VTKBOUNDINGFRAMEWIDGET_H
 
+#include "CountingFramePlugin_Export.h"
+
 #include <Core/EspinaTypes.h>
 
 #include <vtkAbstractWidget.h>
@@ -27,7 +29,7 @@
 #include <vtkPolyData.h>
 
 /// Base class for bounding region widgets
-class VTK_WIDGETS_EXPORT vtkCountingFrameWidget
+class CountingFramePlugin_EXPORT vtkCountingFrameWidget
 : public vtkAbstractWidget
 {
 public:

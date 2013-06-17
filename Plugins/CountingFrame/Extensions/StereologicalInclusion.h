@@ -16,9 +16,10 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #ifndef STEREOLOGICALINCLUSION_H
 #define STEREOLOGICALINCLUSION_H
+
+#include "CountingFramePlugin_Export.h"
 
 #include <CountingFrames/CountingFrame.h>
 
@@ -34,7 +35,7 @@ namespace EspINA
 {
   const ModelItem::ExtId StereologicalInclusionID = "CountingFrameExtension";
 
-  class StereologicalInclusion
+  class CountingFramePlugin_EXPORT StereologicalInclusion
   : public Segmentation::Information
   {
     Q_OBJECT
@@ -109,7 +110,7 @@ namespace EspINA
 
   typedef StereologicalInclusion * StereologicalInclusionPtr;
 
-  StereologicalInclusionPtr stereologicalInclusionPtr(Segmentation::InformationExtension extension);
+  StereologicalInclusionPtr CountingFramePlugin_EXPORT stereologicalInclusionPtr(Segmentation::InformationExtension extension);
 
 } // namespace EspINA
 

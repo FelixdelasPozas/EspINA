@@ -2,11 +2,13 @@
  * PlanarSplitSliceWidget.h
  *
  *  Created on: Nov 5, 2012
- *      Author: F√©lix de las Pozas √Ålvarez
+ *      Author: FÈlix de las Pozas ¡lvarez
  */
 
 #ifndef PLANARSPLITSLICEWIDGET_H_
 #define PLANARSPLITSLICEWIDGET_H_
+
+#include "EspinaGUI_Export.h"
 
 // EspINA
 #include "GUI/vtkWidgets//EspinaWidget.h"
@@ -22,7 +24,7 @@ namespace EspINA
 {
   class vtkPlanarSplitWidget;
 
-  class PlanarSplitSliceWidget
+  class EspinaGUI_EXPORT PlanarSplitSliceWidget
   : public SliceWidget
   {
   public:

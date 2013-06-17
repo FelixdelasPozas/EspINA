@@ -56,7 +56,7 @@ RemoveSegmentation::RemoveSegmentation(SegmentationPtr seg,
       if (!isADupicatedRelation(relation))
         m_relations << relation;
 
-    foreach(ModelItemSPtr item, segmentation->relatedItems(EspINA::OUT))
+    foreach(ModelItemSPtr item, segmentation->relatedItems(EspINA::RELATION_OUT))
       if (item->type() == SEGMENTATION)
       {
         SegmentationPtr relatedSeg = segmentationPtr(item.get());
@@ -113,7 +113,7 @@ RemoveSegmentation::RemoveSegmentation(SegmentationList segList,
           m_relations << relation;
 
       // process next dependent segmentation
-      foreach(ModelItemSPtr item, segmentation->relatedItems(EspINA::OUT))
+      foreach(ModelItemSPtr item, segmentation->relatedItems(EspINA::RELATION_OUT))
         if (item->type() == SEGMENTATION)
         {
           SegmentationPtr relatedSeg = segmentationPtr(item.get());
@@ -171,7 +171,7 @@ void RemoveSegmentation::undo()
 //------------------------------------------------------------------------
 void RemoveSegmentation::addFilterDependencies(FilterSPtr filter)
 {
-  ModelItemSList consumers = filter->relatedItems(EspINA::OUT);
+  ModelItemSList consumers = filter->relatedItems(EspINA::RELATION_OUT);
   foreach(ModelItemSPtr consumer, consumers)
     switch(consumer->type())
     {
@@ -195,7 +195,7 @@ void RemoveSegmentation::addFilterDependencies(FilterSPtr filter)
     if (!isADupicatedRelation(relation))
       m_relations << relation;
 
-  ModelItemSList ancestors = filter->relatedItems(EspINA::IN);
+  ModelItemSList ancestors = filter->relatedItems(EspINA::RELATION_IN);
   foreach(ModelItemSPtr ancestor, ancestors)
     if (ancestor->type() == EspINA::FILTER && (filterPtr(ancestor)->filterType() != ChannelReader::TYPE))
       addFilterDependencies(filterPtr(ancestor));

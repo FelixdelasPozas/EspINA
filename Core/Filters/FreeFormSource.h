@@ -20,13 +20,15 @@
 #ifndef FREEFORMSOURCE_H
 #define FREEFORMSOURCE_H
 
+#include "EspinaCore_Export.h"
+
 #include "BasicSegmentationFilter.h"
 
 #include <QVector3D>
 
 namespace EspINA
 {
-class FreeFormSource
+class EspinaCore_EXPORT FreeFormSource
 : public BasicSegmentationFilter
 {
 public:

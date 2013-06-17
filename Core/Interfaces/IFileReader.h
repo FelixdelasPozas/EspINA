@@ -20,6 +20,8 @@
 #ifndef READERFACTORY_H
 #define READERFACTORY_H
 
+#include "EspinaCore_Export.h"
+
 #include <Core/IO/SegFileReader.h>
 #include <QtPlugin>
 
@@ -34,10 +36,10 @@ namespace EspINA
   class EspinaModel;
   class ViewManager;
 
-  class IFileReader
+  class EspinaCore_EXPORT IFileReader
   {
   public:
-    virtual ~IFileReader(){}
+    virtual ~IFileReader();
 
     virtual void initFileReader(EspinaModel *model,
                                 QUndoStack  *undoStack,

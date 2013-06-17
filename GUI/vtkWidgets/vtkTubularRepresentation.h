@@ -19,6 +19,8 @@
 #ifndef VTKTUBULARREPRESENTATION_H
 #define VTKTUBULARREPRESENTATION_H
 
+#include "EspinaGUI_Export.h"
+
 // VTK
 #include <vtkWidgetRepresentation.h>
 #include <vtkUnstructuredGrid.h>
@@ -42,7 +44,7 @@ class vtkRegularPolygonSource;
 
 namespace EspINA
 {
-  class VTK_WIDGETS_EXPORT vtkTubularRepresentation
+  class EspinaGUI_EXPORT vtkTubularRepresentation
   : public vtkWidgetRepresentation
   {
     public:

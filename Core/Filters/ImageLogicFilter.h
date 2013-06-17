@@ -20,6 +20,8 @@
 #ifndef IMAGELOGICFILTER_H
 #define IMAGELOGICFILTER_H
 
+#include "EspinaCore_Export.h"
+
 #include "BasicSegmentationFilter.h"
 #include <Core/Model/Segmentation.h>
 
@@ -28,7 +30,7 @@
 
 namespace EspINA
 {
-class ImageLogicFilter
+class EspinaCore_EXPORT ImageLogicFilter
 : public BasicSegmentationFilter
 {
 //   typedef itk::ConstantPadImageFilter<EspinaVolume, EspinaVolume> PadFilterType;

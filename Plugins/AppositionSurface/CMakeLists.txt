@@ -1,5 +1,7 @@
 project(APPOSITION_PLANE_PLUGIN)
 
+include (GenerateExportHeader)
+
 # Version Number
 set (PLUGIN_VERSION_MAJOR 0)
 set (PLUGIN_VERSION_MINOR 1)
@@ -83,7 +85,22 @@ set (PLUGIN_LIBRARIES
   ${XLSLIB_LIBRARIES}
   )
 
+if(MINGW)
+  if(DEFINED ESPINA_VERSION_MAJOR)
+    configure_file("${CMAKE_CURRENT_SOURCE_DIR}/windllprops.rc.in" "${CMAKE_CURRENT_BINARY_DIR}/windllprops.rc")
+    SET(PLUGIN_SOURCES ${PLUGIN_SOURCES} ${CMAKE_CURRENT_BINARY_DIR}/windllprops.rc)
+    SET(CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> -O coff -o <OBJECT> -i <SOURCE>")
+    ENABLE_LANGUAGE(RC)
+  endif(DEFINED ESPINA_VERSION_MAJOR)
+endif(MINGW)
+
 add_library(AppositionSurfacePlugin SHARED ${PLUGIN_SOURCES})
+GENERATE_EXPORT_HEADER(
+             AppositionSurfacePlugin
+             BASE_NAME AppositionSurfacePlugin
+             EXPORT_MACRO_NAME AppositionSurfacePlugin_EXPORT
+             EXPORT_FILE_NAME AppositionSurfacePlugin_Export.h
+			 )
 target_link_libraries(AppositionSurfacePlugin ${PLUGIN_LIBRARIES})
 
 if( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )

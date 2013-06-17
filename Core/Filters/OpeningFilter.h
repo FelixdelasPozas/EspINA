@@ -20,11 +20,13 @@
 #ifndef OPENINGFILTER_H
 #define OPENINGFILTER_H
 
+#include "EspinaCore_Export.h"
+
 #include "MorphologicalEditionFilter.h"
 
 namespace EspINA
 {
-class OpeningFilter
+class EspinaCore_EXPORT OpeningFilter
 : public MorphologicalEditionFilter
 {
 public:

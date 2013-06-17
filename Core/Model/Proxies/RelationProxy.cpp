@@ -262,7 +262,7 @@ void RelationProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, const QM
       ModelItemPtr proxyItem = indexPtr(proxyIndex);
 
       ModelItemPtr   prevLocation = parentNode(proxyItem);
-      ModelItemSList relatedItems = proxyItem->relatedItems(EspINA::IN, m_relation);
+      ModelItemSList relatedItems = proxyItem->relatedItems(EspINA::RELATION_IN, m_relation);
 
       QModelIndex oldParent = proxyIndex.parent();
       int fromRow = proxyIndex.row();
@@ -340,7 +340,7 @@ ModelItemPtr RelationProxy::parentNode(const ModelItemPtr node) const
 //------------------------------------------------------------------------
 void RelationProxy::registerNodes(ModelItemPtr node)
 {
-  ModelItemSList parentItems = node->relatedItems(EspINA::IN, m_relation);
+  ModelItemSList parentItems = node->relatedItems(EspINA::RELATION_IN, m_relation);
   if (parentItems.isEmpty())
   {
     if (!m_rootNodes.contains(node))
@@ -356,7 +356,7 @@ void RelationProxy::registerNodes(ModelItemPtr node)
     }
   }
 
-  foreach(ModelItemSPtr subItem, node->relatedItems(EspINA::OUT, m_relation))
+  foreach(ModelItemSPtr subItem, node->relatedItems(EspINA::RELATION_OUT, m_relation))
   {
     registerNodes(subItem.get());
   }

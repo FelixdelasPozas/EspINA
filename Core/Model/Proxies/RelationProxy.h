@@ -23,6 +23,8 @@
 #ifndef RELATIONPROXY_H
 #define RELATIONPROXY_H
 
+#include "EspinaCore_Export.h"
+
 #include <QAbstractProxyModel>
 
 #include <Core/EspinaTypes.h>
@@ -32,7 +34,7 @@ namespace EspINA
 {
 
   /// Group Segmentations by Sample
-  class RelationProxy
+  class EspinaCore_EXPORT RelationProxy
   : public QAbstractProxyModel
   {
     Q_OBJECT

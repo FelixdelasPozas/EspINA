@@ -1,6 +1,6 @@
 /*
  <one line to give the program's name and a brief idea of what it does.>
- Copyright (C) 2013 F√©lix de las Pozas √Ålvarez <felixdelaspozas@gmail.com>
+ Copyright (C) 2013 FÈlix de las Pozas ¡lvarez <felixdelaspozas@gmail.com>
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -102,7 +102,8 @@ int vtkVoxelContour2D::RequestData(vtkInformation *request,
   if (extent[4] != extent[5])
     Q_ASSERT(false);
 
-  unsigned char previousValue, *voxel;
+  unsigned char previousValue;
+  unsigned char *voxel = NULL;
   int x, y;
   vtkIdType cell[2];
 

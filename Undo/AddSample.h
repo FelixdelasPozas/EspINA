@@ -20,14 +20,18 @@
 #ifndef ADDSAMPLE_H
 #define ADDSAMPLE_H
 
-#include <QUndoStack>
+#include "EspinaUndo_Export.h"
 
+// EspINA
 #include <Core/EspinaTypes.h>
 #include <Core/Model/EspinaModel.h>
 
+// Qt
+#include <QUndoStack>
+
 namespace EspINA
 {
-  class AddSample
+  class EspinaUndo_EXPORT AddSample
   : public QUndoCommand
   {
   public:

@@ -1,6 +1,6 @@
 /*
  <one line to give the program's name and a brief idea of what it does.>
- Copyright (C) 2013 F√©lix de las Pozas √Ålvarez <felixdelaspozas@gmail.com>
+ Copyright (C) 2013 FÈlix de las Pozas ¡lvarez <felixdelaspozas@gmail.com>
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -18,6 +18,8 @@
 
 #ifndef VOLUMEGPUREPRESENTATION_H_
 #define VOLUMEGPUREPRESENTATION_H_
+
+#include "EspinaGUI_Export.h"
 
 // EspINA
 #include "GraphicalRepresentation.h"
@@ -37,7 +39,7 @@ namespace EspINA
   class TransparencySelectionHighlighter;
   class VolumeView;
   
-  class VolumeGPURaycastRepresentation
+  class EspinaGUI_EXPORT VolumeGPURaycastRepresentation
   : public SegmentationGraphicalRepresentation
   {
     Q_OBJECT
@@ -85,7 +87,6 @@ namespace EspINA
 
       static TransparencySelectionHighlighter *s_highlighter;
     };
-
 
   typedef boost::shared_ptr<VolumeGPURaycastRepresentation> VolumeGPURepresentationSPtr;
   typedef QList<VolumeGPURepresentationSPtr> VolumeGPURepresentationSList;

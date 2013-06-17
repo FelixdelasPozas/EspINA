@@ -19,6 +19,8 @@
 #ifndef VTKRBOUNDINGFRAMESLICEWIDGET_H
 #define VTKRBOUNDINGFRAMESLICEWIDGET_H
 
+#include "CountingFramePlugin_Export.h"
+
 #include "vtkCountingFrameWidget.h"
 
 #include <Core/EspinaTypes.h>
@@ -26,7 +28,7 @@
 class vtkPolyData;
 class vtkCountingFrameSliceRepresentation;
 
-class VTK_WIDGETS_EXPORT vtkCountingFrameSliceWidget
+class CountingFramePlugin_EXPORT vtkCountingFrameSliceWidget
 : public vtkCountingFrameWidget
 {
 public:

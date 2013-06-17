@@ -20,21 +20,23 @@
 #ifndef QTMODELUTILS_H
 #define QTMODELUTILS_H
 
+#include "EspinaCore_Export.h"
+
 #include <QModelIndex>
 
 namespace QtModelUtils
 {
   /// Find the QModelIndex children of @parent whose @role is equal to @value
-  QModelIndex findChildIndex(QModelIndex parent, QVariant value, int role = Qt::DisplayRole);
+  QModelIndex EspinaCore_EXPORT findChildIndex(QModelIndex parent, QVariant value, int role = Qt::DisplayRole);
 
   /// Return a list of all QModelIndex between @topLeft index and @bottomRight index
-  QModelIndexList indices(const QModelIndex &topLeft, const QModelIndex &bottomRight);
+  QModelIndexList EspinaCore_EXPORT indices(const QModelIndex &topLeft, const QModelIndex &bottomRight);
 
   /// Return whether a node has leaf nodes
-  bool isInnerNode(const QModelIndex &index);
+  bool EspinaCore_EXPORT isInnerNode(const QModelIndex &index);
 
   /// Return whether a node is leaf
-  bool isLeafNode(const QModelIndex &index);
+  bool EspinaCore_EXPORT isLeafNode(const QModelIndex &index);
 } // namespace QtModelUtils
 
 #endif // QTMODELUTILS_H

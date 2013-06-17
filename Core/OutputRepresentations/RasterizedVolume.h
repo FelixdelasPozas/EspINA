@@ -20,6 +20,8 @@
 #ifndef ESPINA_RASTERIZEDVOLUME_H
 #define ESPINA_RASTERIZEDVOLUME_H
 
+#include "EspinaCore_Export.h"
+
 #include <Core/OutputRepresentations/VolumeRepresentation.h>
 #include "RawVolume.h"
 #include "MeshType.h"
@@ -34,7 +36,7 @@
 
 namespace EspINA
 {
-  class RasterizedVolume 
+  class EspinaCore_EXPORT RasterizedVolume
   : public RawSegmentationVolume
   {
   public:
@@ -78,7 +80,7 @@ namespace EspINA
 
   typedef boost::shared_ptr<RasterizedVolume> RasterizedVolumeSPtr;
 
-  RasterizedVolumeSPtr rasterizedVolume(OutputSPtr output);
+  RasterizedVolumeSPtr EspinaCore_EXPORT rasterizedVolume(OutputSPtr output);
 }
 
 #endif // ESPINA_RASTERIZEDVOLUME_H

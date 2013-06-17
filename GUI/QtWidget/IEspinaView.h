@@ -26,12 +26,13 @@
 #ifndef IESPINAVIEW_H
 #define IESPINAVIEW_H
 
+#include "EspinaGUI_Export.h"
+
 #include <Core/EspinaTypes.h>
 
 namespace EspINA
 {
-
-  class IEspinaView
+  class EspinaGUI_EXPORT IEspinaView
   {
   public:
     explicit IEspinaView(){}

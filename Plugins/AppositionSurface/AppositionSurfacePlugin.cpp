@@ -214,7 +214,7 @@ void AppositionSurface::segmentationAdded(SegmentationSPtr segmentation)
   {
     // must check if the segmentation already has a SAS, as this call
     // could be the result of a redo() in a UndoCommand
-    foreach(ModelItemSPtr item, segmentation->relatedItems(EspINA::OUT))
+    foreach(ModelItemSPtr item, segmentation->relatedItems(EspINA::RELATION_OUT))
       if (item->type() == SEGMENTATION)
       {
         SegmentationSPtr segmentation = segmentationPtr(item);

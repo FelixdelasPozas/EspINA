@@ -29,11 +29,13 @@
 #ifndef NOTEEDITOR_H
 #define NOTEEDITOR_H
 
+#include "EspinaGUI_Export.h"
+
 #include <QDialog>
 
 namespace EspINA
 {
-  class NoteEditor
+  class EspinaGUI_EXPORT NoteEditor
   : public QDialog
   {
     Q_OBJECT

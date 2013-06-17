@@ -29,6 +29,8 @@
 #ifndef SYNAPTICAPPOSITIONSURFACEANALYSIS_H
 #define SYNAPTICAPPOSITIONSURFACEANALYSIS_H
 
+#include "AppositionSurfacePlugin_Export.h"
+
 #include "ui_SynapticAppositionSurfaceAnalysis.h"
 #include <Core/EspinaTypes.h>
 #include <Core/Model/Segmentation.h>
@@ -40,7 +42,7 @@ namespace EspINA
   class EspinaModel;
   class ViewManager;
 
-  class SynapticAppositionSurfaceAnalysis
+  class AppositionSurfacePlugin_EXPORT SynapticAppositionSurfaceAnalysis
   : public QDialog
   , public Ui::SynapticAppositionSurfaceAnalysis
   {

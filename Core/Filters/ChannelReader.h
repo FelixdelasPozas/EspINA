@@ -20,6 +20,8 @@
 #ifndef CHANNELREADER_H
 #define CHANNELREADER_H
 
+#include "EspinaCore_Export.h"
+
 #include "Core/Model/Filter.h"
 #include <Core/IO/SegFileReader.h>
 
@@ -28,7 +30,7 @@
 
 namespace EspINA
 {
-  class ChannelReader
+  class EspinaCore_EXPORT ChannelReader
   : public ChannelFilter
   {
   public:

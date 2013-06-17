@@ -16,9 +16,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #ifndef VOLUMETRICRENDERER_H
 #define VOLUMETRICRENDERER_H
+
+#include "EspinaGUI_Export.h"
 
 // EspINA
 #include "GUI/Renderers/Renderer.h"
@@ -31,7 +32,7 @@
 
 namespace EspINA
 {
-  class VolumetricRenderer
+  class EspinaGUI_EXPORT VolumetricRenderer
   : public IRenderer
   {
   public:

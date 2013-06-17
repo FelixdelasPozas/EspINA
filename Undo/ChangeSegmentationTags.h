@@ -29,15 +29,17 @@
 #ifndef CHANGESEGMENTATIONTAGS_H
 #define CHANGESEGMENTATIONTAGS_H
 
-#include <QUndoCommand>
+#include "EspinaUndo_Export.h"
 
+// Qt
+#include <QUndoCommand>
 #include <QStringList>
 
 namespace EspINA
 {
-
-class SegmentationTags;
-  class ChangeSegmentationTags 
+  class SegmentationTags;
+  
+  class EspinaUndo_EXPORT ChangeSegmentationTags
   : public QUndoCommand
   {
   public:

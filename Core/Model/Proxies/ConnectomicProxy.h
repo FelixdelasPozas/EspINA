@@ -19,6 +19,8 @@
 #ifndef CONNECTOMICPROXY_H
 #define CONNECTOMICPROXY_H
 
+#include "EspinaCore_Export.h"
+
 #include <QAbstractProxyModel>
 #include <QSortFilterProxyModel>
 
@@ -28,7 +30,8 @@ namespace EspINA
 {
   const QString CONECTOMICA = "Conectomica";
 
-  class ConnectomicProxy: public QSortFilterProxyModel
+  class EspinaCore_EXPORT ConnectomicProxy
+  : public QSortFilterProxyModel
   {
     Q_OBJECT
   public:
