@@ -64,6 +64,8 @@ namespace EspINA
 
     virtual void setContrast(double value);
 
+    virtual GraphicalRepresentationSettings *settingsWidget();
+
     virtual void setColor(const QColor &color);
 
     virtual void setOpacity(double value);
@@ -112,6 +114,8 @@ namespace EspINA
     explicit SegmentationSliceRepresentation(SegmentationVolumeSPtr data,
                                              SliceView             *view);
     virtual ~SegmentationSliceRepresentation() {};
+
+    virtual GraphicalRepresentationSettings *settingsWidget();
 
     virtual void setColor(const QColor &color);
 

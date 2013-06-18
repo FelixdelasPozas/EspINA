@@ -144,6 +144,8 @@ namespace EspINA
   protected:
     virtual void showEvent(QShowEvent *event);
 
+    void takeSnapshot(vtkSmartPointer<vtkRenderer> renderer);
+
     double suggestedChannelOpacity();
     virtual void updateChannelsOpactity() = 0;
 

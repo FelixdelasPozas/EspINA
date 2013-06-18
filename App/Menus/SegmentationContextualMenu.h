@@ -53,6 +53,7 @@ namespace EspINA
     void manageTags();
     void resetRootItem();
     void renameSegmentation();
+    void displayVisualizationSettings();
 
   signals:
     void changeTaxonomy(TaxonomyElementPtr);
@@ -65,6 +66,9 @@ namespace EspINA
     void createTagsEntry();
     void createSetLevelOfDetailEntry();
     void createRenameEntry();
+    void createVisualizationEntry();
+
+    QString dialogTitle() const;
 
   private:
     EspinaModel *m_model;

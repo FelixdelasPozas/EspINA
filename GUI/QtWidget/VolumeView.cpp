@@ -47,9 +47,6 @@
 #include <vtkPOVExporter.h>
 #include <vtkVRMLExporter.h>
 #include <vtkX3DExporter.h>
-#include <vtkPNGWriter.h>
-#include <vtkJPEGWriter.h>
-#include <vtkRenderLargeImage.h>
 #include <vtkAbstractWidget.h>
 #include <vtkWidgetRepresentation.h>
 #include <vtkMath.h>
@@ -287,7 +284,7 @@ void VolumeView::buildControls()
   m_snapshot.setIconSize(QSize(22,22));
   m_snapshot.setMaximumSize(QSize(32,32));
   m_snapshot.setEnabled(false);
-  connect(&m_snapshot,SIGNAL(clicked(bool)),this,SLOT(takeSnapshot()));
+  connect(&m_snapshot,SIGNAL(clicked(bool)),this,SLOT(onTakeSnapshot()));
 
   m_export.setIcon(QIcon(":/espina/export_scene.svg"));
   m_export.setToolTip(tr("Export 3D Scene"));
@@ -714,69 +711,9 @@ void VolumeView::exportScene()
 }
 
 //-----------------------------------------------------------------------------
-void VolumeView::takeSnapshot()
+void VolumeView::onTakeSnapshot()
 {
-  QFileDialog fileDialog(this, tr("Save Scene As Image"), QString(), tr("All supported formats (*.jpg *.png);; JPEG images (*.jpg);; PNG images (*.png)"));
-  fileDialog.setObjectName("SaveSnapshotFileDialog");
-  fileDialog.setWindowTitle("Save Scene As Image");
-  fileDialog.setAcceptMode(QFileDialog::AcceptSave);
-  fileDialog.setDefaultSuffix(QString(tr("png")));
-  fileDialog.setFileMode(QFileDialog::AnyFile);
-  fileDialog.selectFile("");
-
-  if (fileDialog.exec() == QDialog::Accepted)
-  {
-    const QString selectedFile = fileDialog.selectedFiles().first();
-
-    QStringList splittedName = selectedFile.split(".");
-    QString extension = splittedName[((splittedName.size()) - 1)].toUpper();
-
-    QStringList validFileExtensions;
-    validFileExtensions << "JPG" << "PNG";
-
-    if (validFileExtensions.contains(extension))
-    {
-      int witdh = m_renderer->GetRenderWindow()->GetSize()[0];
-      vtkRenderLargeImage *image = vtkRenderLargeImage::New();
-      image->SetInput(m_renderer);
-      image->SetMagnification(4096.0/witdh+0.5);
-      image->Update();
-
-      if (QString("PNG") == extension)
-      {
-        vtkPNGWriter *writer = vtkPNGWriter::New();
-        writer->SetFileDimensionality(2);
-        writer->SetFileName(selectedFile.toUtf8());
-        writer->SetInputConnection(image->GetOutputPort());
-        QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-        writer->Write();
-        QApplication::restoreOverrideCursor();
-      }
-
-      if (QString("JPG") == extension)
-      {
-        vtkJPEGWriter *writer = vtkJPEGWriter::New();
-        writer->SetQuality(100);
-        writer->ProgressiveOff();
-        writer->WriteToMemoryOff();
-        writer->SetFileDimensionality(2);
-        writer->SetFileName(selectedFile.toUtf8());
-        writer->SetInputConnection(image->GetOutputPort());
-        QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-        writer->Write();
-        QApplication::restoreOverrideCursor();
-      }
-    }
-    else
-    {
-      QMessageBox msgBox;
-      QString message(tr("Snapshot not exported. Unrecognized extension "));
-      message.append(extension).append(".");
-      msgBox.setIcon(QMessageBox::Critical);
-      msgBox.setText(message);
-      msgBox.exec();
-    }
-  }
+  takeSnapshot(m_renderer);
 }
 
 //-----------------------------------------------------------------------------

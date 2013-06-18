@@ -49,6 +49,8 @@ namespace EspINA
                             EspinaRenderView      *view);
       virtual ~ContourRepresentation() {};
 
+      virtual GraphicalRepresentationSettings *settingsWidget();
+
       virtual void setColor(const QColor &color);
 
       virtual void setHighlighted(bool highlighted);
@@ -65,6 +67,8 @@ namespace EspINA
       virtual QList<vtkProp*> getActors();
 
       void setLineWidth(int width);
+      int lineWidth() const;
+
       void setLinePattern(int pattern);
 
     protected:
@@ -84,10 +88,10 @@ namespace EspINA
     private:
       SegmentationVolumeSPtr m_data;
 
-      vtkSmartPointer<vtkImageReslice>     m_reslice;
-      vtkSmartPointer<vtkVoxelContour2D>   m_voxelContour;
-      vtkSmartPointer<vtkPolyDataMapper>   m_mapper;
-      vtkSmartPointer<vtkActor>            m_actor;
+      vtkSmartPointer<vtkImageReslice>         m_reslice;
+      vtkSmartPointer<vtkVoxelContour2D>       m_voxelContour;
+      vtkSmartPointer<vtkPolyDataMapper>       m_mapper;
+      vtkSmartPointer<vtkActor>                m_actor;
       static TransparencySelectionHighlighter *s_highlighter;
 
       int m_width;

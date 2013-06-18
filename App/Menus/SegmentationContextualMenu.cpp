@@ -26,7 +26,10 @@
 #include <Core/Extensions/Notes/SegmentationNotes.h>
 #include "GUI/QtWidget/NoteEditor.h"
 #include "GUI/QtWidget/TagSelector.h"
+#include <GUI/QtWidget/SegmentationVisualizationSettingsDialog.h>
 #include <GUI/ViewManager.h>
+#include <GUI/Representations/GraphicalRepresentationSettings.h>
+#include <GUI/Representations/GraphicalRepresentation.h>
 
 #include <Undo/ChangeTaxonomyCommand.h>
 #include <Undo/RemoveSegmentation.h>
@@ -60,8 +63,9 @@ DefaultContextualMenu::DefaultContextualMenu(SegmentationList selection,
   createChangeTaxonomyMenu();
   createNoteEntry();
   createTagsEntry();
-  createSetLevelOfDetailEntry();
+  //createSetLevelOfDetailEntry();
   createRenameEntry();
+  createVisualizationEntry();
 }
 
 //------------------------------------------------------------------------
@@ -195,12 +199,6 @@ void DefaultContextualMenu::manageTags()
 
   if (!m_segmentations.isEmpty())
   {
-    QString title = m_segmentations[0]->data().toString();
-    if (m_segmentations.size() > 1)
-      title.append(", " + m_segmentations[1]->data().toString());
-    if (m_segmentations.size() > 2)
-      title.append(", ...");
-
     QStandardItemModel tags;
     foreach (QString tag, SegmentationTags::TagModel.stringList())
     {
@@ -226,7 +224,7 @@ void DefaultContextualMenu::manageTags()
       tags.appendRow(item);
     }
 
-    TagSelector tagSelector(title, tags);
+    TagSelector tagSelector(dialogTitle(), tags);
     if (tagSelector.exec())
     {
       foreach (SegmentationPtr segmentation, m_segmentations)
@@ -294,6 +292,78 @@ void DefaultContextualMenu::renameSegmentation()
       segmentation->setData(alias, Qt::EditRole);
     // TODO: Undoable
   }
+}
+
+QStandardItem *findRepresentationItem(QList<QStandardItem *> items, GraphicalRepresentationSPtr representation)
+{
+  QStandardItem *representationItem = NULL;
+
+  int i = 0;
+  while (!representationItem && i < items.size())
+  {
+    QStandardItem *item = items[i];
+    if (item->data(Qt::DisplayRole).toString() == representation->label())
+    {
+      representationItem = item;
+    }
+    ++i;
+  }
+
+  return representationItem;
+}
+//------------------------------------------------------------------------
+void DefaultContextualMenu::displayVisualizationSettings()
+{
+  if (!m_segmentations.isEmpty())
+  {
+    SegmentationVisualizationSettingsDialog::Settings representations;
+
+    foreach (SegmentationPtr segmentation, m_segmentations)
+    {
+      foreach (GraphicalRepresentationSPtr representation, segmentation->output()->graphicalRepresentations())
+      {
+        QStandardItem *representationItem = findRepresentationItem(representations.keys(), representation);
+
+        if (!representationItem)
+        {
+          representationItem = new QStandardItem(representation->label());
+          representationItem->setCheckState(representation->isActive()?Qt::Checked:Qt::Unchecked);
+          representationItem->setCheckable(true);
+
+          GraphicalRepresentationSettings *settings = representation->settingsWidget();
+          settings->Get(representation);
+          representations[representationItem] = settings;
+        }
+        else
+        {
+          Qt::CheckState checkState = representation->isActive()?Qt::Checked:Qt::Unchecked;
+          if (representationItem->checkState() != checkState)
+            representationItem->setCheckState(Qt::PartiallyChecked);
+        }
+      }
+    }
+
+    SegmentationVisualizationSettingsDialog visualizationSettings(dialogTitle(), representations);
+    if (visualizationSettings.exec())
+    {
+      foreach (SegmentationPtr segmentation, m_segmentations)
+      {
+        foreach (GraphicalRepresentationSPtr representation, segmentation->output()->graphicalRepresentations())
+        {
+          QStandardItem *key = findRepresentationItem(representations.keys(), representation);
+          if (key->checkState() == Qt::Unchecked)
+            representation->setActive(false);
+          else if (key->checkState() == Qt::Checked)
+          {
+            representation->setActive(true);
+            representations[key]->Set(representation);
+          }
+        }
+      }
+    }
+
+  }
+
 }
 
 //------------------------------------------------------------------------
@@ -413,9 +483,30 @@ void DefaultContextualMenu::createSetLevelOfDetailEntry()
 //------------------------------------------------------------------------
 void DefaultContextualMenu::createRenameEntry()
 {
-  QAction *action = this->addAction(tr("&Rename"));
+  QAction *action = addAction(tr("&Rename"));
   //action->setShortcut("F2");
 
   connect(action, SIGNAL(triggered(bool)),
           this, SLOT(renameSegmentation()));
+}
+
+//------------------------------------------------------------------------
+void DefaultContextualMenu::createVisualizationEntry()
+{
+  QAction *action = addAction(tr("&Visualization"));
+
+  connect(action, SIGNAL(triggered(bool)),
+          this, SLOT(displayVisualizationSettings()));
+}
+
+//------------------------------------------------------------------------
+QString DefaultContextualMenu::dialogTitle() const
+{
+  QString title = m_segmentations[0]->data().toString();
+  if (m_segmentations.size() > 1)
+    title.append(", " + m_segmentations[1]->data().toString());
+  if (m_segmentations.size() > 2)
+    title.append(", ...");
+
+  return title;
 }

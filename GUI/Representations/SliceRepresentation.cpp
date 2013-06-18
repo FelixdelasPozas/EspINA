@@ -27,6 +27,9 @@
 
 
 #include "SliceRepresentation.h"
+#include "GraphicalRepresentationSettings.h"
+#include "SliceRepresentationSettings.h"
+#include "GraphicalRepresentationEmptySettings.h"
 #include <GUI/QtWidget/SliceView.h>
 #include <Core/ColorEngines/TransparencySelectionHighlighter.h>
 
@@ -45,6 +48,7 @@ ChannelSliceRepresentation::ChannelSliceRepresentation(ChannelVolumeSPtr data,
 : ChannelGraphicalRepresentation(view)
 , m_data(data)
 {
+  setLabel(tr("Slice Representation"));
 }
 
 //-----------------------------------------------------------------------------
@@ -63,6 +67,12 @@ void ChannelSliceRepresentation::setContrast(double value)
 
   if (m_actor != NULL)
     m_shiftScaleFilter->SetScale(m_contrast);
+}
+
+//-----------------------------------------------------------------------------
+GraphicalRepresentationSettings *ChannelSliceRepresentation::settingsWidget()
+{
+  return new GraphicalRepresentationEmptySettings();
 }
 
 //-----------------------------------------------------------------------------
@@ -211,7 +221,13 @@ SegmentationSliceRepresentation::SegmentationSliceRepresentation(SegmentationVol
 , m_mapToColors(NULL)
 , m_actor(NULL)
 {
+  setLabel(tr("Slice Representation"));
+}
 
+//-----------------------------------------------------------------------------
+GraphicalRepresentationSettings *SegmentationSliceRepresentation::settingsWidget()
+{
+  return new SegmentationSliceRepresentationSettings();
 }
 
 //-----------------------------------------------------------------------------
@@ -221,6 +237,11 @@ void SegmentationSliceRepresentation::setColor(const QColor &color)
 
   if (m_actor != NULL)
     m_mapToColors->SetLookupTable(s_highlighter->lut(m_color, m_highlight));
+
+  foreach (GraphicalRepresentationSPtr clone, m_clones)
+  {
+    clone->setColor(color);
+  }
 }
 
 //-----------------------------------------------------------------------------

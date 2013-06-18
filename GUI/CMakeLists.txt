@@ -21,6 +21,7 @@ qt4_wrap_cpp(GUI_MOC
   QtWidget/QComboTreeView.h
   QtWidget/NoteEditor.h
   QtWidget/TagSelector.h
+  QtWidget/SegmentationVisualizationSettingsDialog.h
   QtWidget/SliceView.h
   QtWidget/VolumeView.h
   Representations/ContourRepresentation.h
@@ -44,10 +45,14 @@ qt4_wrap_ui (GUI_UI
   Analysis/InformationSelector.ui
   QtWidget/HueSelector.ui
   QtWidget/NoteEditor.ui
+  QtWidget/SegmentationVisualizationSettingsDialog.ui
   QtWidget/TagSelector.ui
+  Representations/GraphicalRepresentationEmptySettings.ui
+  Representations/ContourRepresentationSettings.ui
+  Representations/SliceRepresentationSettings.ui
   )
 
-set (GUI_SOURCES
+set (GUI_SOURCES 
   ${GUI_MOC}
   ${GUI_UI}
   Analysis/InformationSelector.cpp
@@ -67,15 +72,19 @@ set (GUI_SOURCES
   QtWidget/NoteEditor.cpp 
   QtWidget/TagSelector.cpp 
   QtWidget/QComboTreeView.cpp
+  QtWidget/SegmentationVisualizationSettingsDialog.cpp
   QtWidget/SliceView.cpp
   QtWidget/SliceViewState.cpp
   QtWidget/VolumeView.cpp
   QtWidget/vtkInteractorStyleEspinaSlice.cpp
   Representations/ContourRepresentation.cpp
+  Representations/ContourRepresentationSettings.cpp
   Representations/CrosshairRepresentation.cpp
   Representations/GraphicalRepresentation.cpp
+  Representations/GraphicalRepresentationEmptySettings.cpp 
   Representations/IMeshRepresentation.cpp
   Representations/SliceRepresentation.cpp
+  Representations/SliceRepresentationSettings.cpp 
   Representations/SimpleMeshRepresentation.cpp
   Representations/SmoothedMeshRepresentation.cpp
   Representations/VolumeGPURepresentation.cpp

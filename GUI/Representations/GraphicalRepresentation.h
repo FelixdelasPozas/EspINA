@@ -41,6 +41,8 @@ class vtkLookupTable;
 namespace EspINA
 {
 
+class GraphicalRepresentationSettings;
+
   class EspinaRenderView;
   class SliceView;
   class VolumeView;
@@ -75,6 +77,8 @@ namespace EspINA
 
     QString label() const
     { return m_label; }
+
+    virtual GraphicalRepresentationSettings *settingsWidget() = 0;
 
     virtual void setColor(const QColor &color)
     { m_color = color; }

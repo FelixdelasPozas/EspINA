@@ -33,7 +33,7 @@ QColor TransparencySelectionHighlighter::color(const QColor& original,
   QColor suggestedColor = original;
 
   if (highlight)
-    suggestedColor.setAlphaF(suggestedColor.alphaF()*0.8);
+    suggestedColor.setAlphaF(suggestedColor.alphaF()*1.0);
   else
     suggestedColor.setAlphaF(suggestedColor.alphaF()*0.6);
 

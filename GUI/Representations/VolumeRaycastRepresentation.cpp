@@ -18,6 +18,7 @@
 
 // EspINA
 #include "VolumeRaycastRepresentation.h"
+#include "GraphicalRepresentationEmptySettings.h"
 #include "GUI/QtWidget/EspinaRenderView.h"
 #include "GUI/QtWidget/VolumeView.h"
 #include "Core/ColorEngines/IColorEngine.h"
@@ -41,11 +42,18 @@ VolumeRaycastRepresentation::VolumeRaycastRepresentation(SegmentationVolumeSPtr 
 : SegmentationGraphicalRepresentation(view)
 , m_data(data)
 {
+  setLabel(tr("Volume Raycast Representation"));
 }
 
 //-----------------------------------------------------------------------------
 VolumeRaycastRepresentation::~VolumeRaycastRepresentation()
 {
+}
+
+//-----------------------------------------------------------------------------
+GraphicalRepresentationSettings *VolumeRaycastRepresentation::settingsWidget()
+{
+  return new GraphicalRepresentationEmptySettings();
 }
 
 //-----------------------------------------------------------------------------

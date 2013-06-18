@@ -105,6 +105,7 @@ SliceView::SliceView(EspinaFactoryPtr factory, ViewManager* vm, PlaneType plane,
 , m_scrollBar(new QScrollBar(Qt::Horizontal))
 , m_spinBox(new QDoubleSpinBox())
 , m_zoomButton(new QPushButton())
+, m_snapshot(new QPushButton())
 , m_ruler(vtkSmartPointer<vtkAxisActor2D>::New())
 , m_selectionEnabled(true)
 , m_showThumbnail(true)
@@ -547,6 +548,14 @@ void SliceView::setupUI()
   m_zoomButton->setCheckable(false);
   connect(m_zoomButton, SIGNAL(clicked()), this, SLOT(resetView()));
 
+  m_snapshot->setIcon(QIcon(":/espina/snapshot_scene.svg"));
+  m_snapshot->setToolTip(tr("Save Scene as Image"));
+  m_snapshot->setFlat(true);
+  m_snapshot->setIconSize(QSize(22,22));
+  m_snapshot->setMaximumSize(QSize(32,32));
+  m_snapshot->setEnabled(true);
+  connect(m_snapshot,SIGNAL(clicked(bool)),this,SLOT(onTakeSnapshot()));
+
   m_scrollBar->setMaximum(0);
   m_scrollBar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 
@@ -563,6 +572,7 @@ void SliceView::setupUI()
 
   m_mainLayout->addWidget(m_view);
   m_controlLayout->addWidget(m_zoomButton);
+  m_controlLayout->addWidget(m_snapshot);
   m_controlLayout->addWidget(m_scrollBar);
   m_controlLayout->addLayout(m_fromLayout);
   m_controlLayout->addWidget(m_spinBox);
@@ -1174,6 +1184,12 @@ void SliceView::updateChannelsOpactity()
       }
     }
   }
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::onTakeSnapshot()
+{
+  takeSnapshot(m_renderer);
 }
 
 //-----------------------------------------------------------------------------

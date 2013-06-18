@@ -144,7 +144,7 @@ namespace EspINA
     virtual void scrollBarMoved(int);
 
     void exportScene();
-    void takeSnapshot();
+    void onTakeSnapshot();
 
   private:
     // GUI

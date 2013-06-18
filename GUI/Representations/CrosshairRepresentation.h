@@ -59,6 +59,8 @@ namespace EspINA
 
       virtual void setContrast(double value);
 
+      virtual GraphicalRepresentationSettings *settingsWidget();
+
       virtual void setColor(const QColor &color);
 
       virtual void setOpacity(double value);

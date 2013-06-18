@@ -18,6 +18,7 @@
 
 // EspINA
 #include "CrosshairRepresentation.h"
+#include "GraphicalRepresentationEmptySettings.h"
 #include "GUI/QtWidget/VolumeView.h"
 
 // VTK
@@ -79,6 +80,12 @@ void CrosshairRepresentation::setContrast(double value)
 }
 
 //-----------------------------------------------------------------------------
+GraphicalRepresentationSettings *CrosshairRepresentation::settingsWidget()
+{
+  return new GraphicalRepresentationEmptySettings();
+}
+
+//-----------------------------------------------------------------------------
 void CrosshairRepresentation::setColor(const QColor &color)
 {
   GraphicalRepresentation::setColor(color);
@@ -98,11 +105,12 @@ void CrosshairRepresentation::setOpacity(double value)
 
   if (m_axial != NULL)
   {
-    m_axial->SetOpacity(m_opacity);
-    m_coronal->SetOpacity(m_opacity);
+    m_axial   ->SetOpacity(m_opacity);
+    m_coronal ->SetOpacity(m_opacity);
     m_sagittal->SetOpacity(m_opacity);
-    m_axialBorder->GetProperty()->SetOpacity(m_opacity);
-    m_coronalBorder->GetProperty()->SetOpacity(m_opacity);
+
+    m_axialBorder   ->GetProperty()->SetOpacity(m_opacity);
+    m_coronalBorder ->GetProperty()->SetOpacity(m_opacity);
     m_sagittalBorder->GetProperty()->SetOpacity(m_opacity);
   }
 }
@@ -127,11 +135,11 @@ bool CrosshairRepresentation::hasActor(vtkProp *actor) const
   if (m_axial == NULL)
     return false;
 
-  return (m_axial.GetPointer()          == actor ||
-          m_coronal.GetPointer()        == actor ||
-          m_sagittal.GetPointer()       == actor ||
-          m_axialBorder.GetPointer()    == actor ||
-          m_coronalBorder.GetPointer()  == actor ||
+  return (m_axial         .GetPointer() == actor ||
+          m_coronal       .GetPointer() == actor ||
+          m_sagittal      .GetPointer() == actor ||
+          m_axialBorder   .GetPointer() == actor ||
+          m_coronalBorder .GetPointer() == actor ||
           m_sagittalBorder.GetPointer() == actor);
 }
 
@@ -140,28 +148,28 @@ void CrosshairRepresentation::updateRepresentation()
 {
   if (m_axial != NULL)
   {
-    m_matAxial->Modified();
-    m_matCoronal->Modified();
+    m_matAxial   ->Modified();
+    m_matCoronal ->Modified();
     m_matSagittal->Modified();
 
-    m_axialReslice->Update();
-    m_coronalReslice->Update();
+    m_axialReslice   ->Update();
+    m_coronalReslice ->Update();
     m_sagittalReslice->Update();
 
-    m_axialScaler->Update();
-    m_coronalScaler->Update();
+    m_axialScaler   ->Update();
+    m_coronalScaler ->Update();
     m_sagittalScaler->Update();
 
-    m_axialSquare->Update();
-    m_coronalSquare->Update();
+    m_axialSquare   ->Update();
+    m_coronalSquare ->Update();
     m_sagittalSquare->Update();
 
-    m_axial->Update();
-    m_coronal->Update();
+    m_axial   ->Update();
+    m_coronal ->Update();
     m_sagittal->Update();
 
-    m_axialBorder->Modified();
-    m_coronalBorder->Modified();
+    m_axialBorder   ->Modified();
+    m_coronalBorder ->Modified();
     m_sagittalBorder->Modified();
   }
 }

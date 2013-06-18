@@ -157,18 +157,6 @@ void RelationshipGraph::updateVertexInformation()
     vertex.args       = item->serialize().toStdString();
     vertex.descriptor = *vi;
   }
-
-  // TODO: DEVELOPMENT ONLY: Integrity check
-  for(boost::tie(vi, vi_end) = boost::vertices(m_graph); vi != vi_end; vi++)
-  {
-    Vertex &vertex = m_graph[*vi];
-    Vertices vertexAncestors = ancestors(vertex);
-    for (int i = 0; i < vertexAncestors.size(); ++i)
-    {
-      Q_ASSERT(vertexAncestors[i].descriptor < *vi);
-      Q_ASSERT(vertexAncestors[i].item != NULL);
-    }
-  }
 }
 
 //-----------------------------------------------------------------------------

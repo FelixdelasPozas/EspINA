@@ -82,7 +82,6 @@ public:
     }
     else
     {
-      Q_ASSERT(false);
       volume->setVolume(m_newVolume);
     }
 

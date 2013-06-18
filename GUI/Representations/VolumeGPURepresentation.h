@@ -48,6 +48,8 @@ namespace EspINA
                                               EspinaRenderView *view);
       virtual ~VolumeGPURaycastRepresentation();
 
+      virtual GraphicalRepresentationSettings *settingsWidget();
+
       virtual void setColor(const QColor &color);
 
       virtual void setHighlighted(bool highlighted);

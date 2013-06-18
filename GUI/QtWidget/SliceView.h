@@ -164,6 +164,9 @@ namespace EspINA
 
     virtual void updateChannelsOpactity();
 
+  private slots:
+    void onTakeSnapshot();
+
   signals:
     void centerChanged(Nm, Nm, Nm);
     void focusChanged(const Nm[3]);
@@ -226,6 +229,7 @@ namespace EspINA
     QScrollBar     *m_scrollBar;
     QDoubleSpinBox *m_spinBox;
     QPushButton    *m_zoomButton;
+    QPushButton    *m_snapshot;
 
     // VTK View
     vtkSmartPointer<vtkRenderer>    m_thumbnail;

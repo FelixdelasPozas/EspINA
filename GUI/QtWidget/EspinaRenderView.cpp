@@ -27,9 +27,15 @@
 #include <vtkMath.h>
 #include <QVTKWidget.h>
 #include <vtkRenderWindow.h>
+#include <vtkPNGWriter.h>
+#include <vtkJPEGWriter.h>
+#include <vtkRenderLargeImage.h>
 
 // Qt
 #include <QApplication>
+#include <QDialog>
+#include <QMessageBox>
+#include <QFileDialog>
 #include <QDebug>
 
 // boost
@@ -76,6 +82,72 @@ void EspinaRenderView::showEvent(QShowEvent *event)
 
   updateChannelRepresentations();
   updateSegmentationRepresentations();
+}
+
+//-----------------------------------------------------------------------------
+void EspinaRenderView::takeSnapshot(vtkSmartPointer<vtkRenderer> renderer)
+{
+  QFileDialog fileDialog(this, tr("Save Scene As Image"), QString(), tr("All supported formats (*.jpg *.png);; JPEG images (*.jpg);; PNG images (*.png)"));
+  fileDialog.setObjectName("SaveSnapshotFileDialog");
+  fileDialog.setWindowTitle("Save Scene As Image");
+  fileDialog.setAcceptMode(QFileDialog::AcceptSave);
+  fileDialog.setDefaultSuffix(QString(tr("png")));
+  fileDialog.setFileMode(QFileDialog::AnyFile);
+  fileDialog.selectFile("");
+
+  if (fileDialog.exec() == QDialog::Accepted)
+  {
+    const QString selectedFile = fileDialog.selectedFiles().first();
+
+    QStringList splittedName = selectedFile.split(".");
+    QString extension = splittedName[((splittedName.size()) - 1)].toUpper();
+
+    QStringList validFileExtensions;
+    validFileExtensions << "JPG" << "PNG";
+
+    if (validFileExtensions.contains(extension))
+    {
+      int witdh = m_renderer->GetRenderWindow()->GetSize()[0];
+      vtkRenderLargeImage *image = vtkRenderLargeImage::New();
+      image->SetInput(m_renderer);
+      image->SetMagnification(4096.0/witdh+0.5);
+      image->Update();
+
+      if (QString("PNG") == extension)
+      {
+        vtkPNGWriter *writer = vtkPNGWriter::New();
+        writer->SetFileDimensionality(2);
+        writer->SetFileName(selectedFile.toUtf8());
+        writer->SetInputConnection(image->GetOutputPort());
+        QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+        writer->Write();
+        QApplication::restoreOverrideCursor();
+      }
+
+      if (QString("JPG") == extension)
+      {
+        vtkJPEGWriter *writer = vtkJPEGWriter::New();
+        writer->SetQuality(100);
+        writer->ProgressiveOff();
+        writer->WriteToMemoryOff();
+        writer->SetFileDimensionality(2);
+        writer->SetFileName(selectedFile.toUtf8());
+        writer->SetInputConnection(image->GetOutputPort());
+        QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+        writer->Write();
+        QApplication::restoreOverrideCursor();
+      }
+    }
+    else
+    {
+      QMessageBox msgBox;
+      QString message(tr("Snapshot not exported. Unrecognized extension "));
+      message.append(extension).append(".");
+      msgBox.setIcon(QMessageBox::Critical);
+      msgBox.setText(message);
+      msgBox.exec();
+    }
+  }
 }
 
 //-----------------------------------------------------------------------------

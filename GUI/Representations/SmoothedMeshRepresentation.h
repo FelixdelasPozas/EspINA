@@ -37,6 +37,8 @@ namespace EspINA
                                         EspinaRenderView *view);
     virtual ~SmoothedMeshRepresentation() {};
 
+    virtual GraphicalRepresentationSettings *settingsWidget();
+
     virtual void updateRepresentation();
 
   protected:
