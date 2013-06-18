@@ -126,6 +126,9 @@ void VolumeGPURaycastRepresentation::initializePipeline()
   connect(m_data.get(), SIGNAL(representationChanged()),
           this, SLOT(updatePipelineConnections()));
 
+  itkVolumeType::RegionType region = m_data->toITK()->GetLargestPossibleRegion();
+  vtkIdType numPixels = region.GetSize()[0] * region.GetSize()[1] * region.GetSize()[2] + 1024;
+
   vtkSmartPointer<vtkVolumeRayCastCompositeFunction> composite = vtkSmartPointer<vtkVolumeRayCastCompositeFunction>::New();
   m_mapper = vtkSmartPointer<vtkGPUVolumeRayCastMapper>::New();
   m_mapper->ReleaseDataFlagOn();
@@ -133,8 +136,8 @@ void VolumeGPURaycastRepresentation::initializePipeline()
   m_mapper->AutoAdjustSampleDistancesOn();
   m_mapper->SetScalarModeToUsePointData();
   m_mapper->SetBlendModeToComposite();
-  m_mapper->SetMaxMemoryFraction(0.95);
-  m_mapper->SetMaxMemoryInBytes(1024 * 1024 * 1024);
+  m_mapper->SetMaxMemoryFraction(1);
+  m_mapper->SetMaxMemoryInBytes(numPixels);
   m_mapper->SetInputConnection(m_data->toVTK());
   m_mapper->Update();
 
