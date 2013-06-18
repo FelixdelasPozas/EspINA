@@ -100,7 +100,7 @@ GENERATE_EXPORT_HEADER(
              BASE_NAME AppositionSurfacePlugin
              EXPORT_MACRO_NAME AppositionSurfacePlugin_EXPORT
              EXPORT_FILE_NAME AppositionSurfacePlugin_Export.h
-			 )
+  )
 target_link_libraries(AppositionSurfacePlugin ${PLUGIN_LIBRARIES})
 
 if( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )

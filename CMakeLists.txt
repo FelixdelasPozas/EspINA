@@ -29,10 +29,11 @@ link_directories    (${ESPINA_LIBRARY_DIRECTORIES})
 # for building espina plugins in the correct directory
 cmake_policy(SET CMP0013 OLD)
 
-set (LIBRARY_OUTPUT_PATH "${CMAKE_BINARY_DIR}/libs"             )
-set (ESPINA_PLUGINS_DIR  "${PROJECT_BINARY_DIR}/App/plugins"    )
-set (ESPINA_INCLUDE      "${PROJECT_SOURCE_DIR}"                )
-set (ESPINA_USE_FILE     "${PROJECT_SOURCE_DIR}/EspinaUse.cmake")
+set (LIBRARY_OUTPUT_PATH   "${CMAKE_BINARY_DIR}/libs"             )
+set (ESPINA_PLUGINS_DIR    "${PROJECT_BINARY_DIR}/App/plugins"    )
+set (ESPINA_INCLUDE        "${PROJECT_SOURCE_DIR}")
+set (ESPINA_BINARY_INCLUDE "${PROJECT_BINARY_DIR}")
+set (ESPINA_USE_FILE       "${PROJECT_SOURCE_DIR}/EspinaUse.cmake")
 
 configure_file(
   "${PROJECT_SOURCE_DIR}/EspinaConfig.h.in"
