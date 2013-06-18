@@ -551,8 +551,8 @@ void SliceView::setupUI()
   m_snapshot->setIcon(QIcon(":/espina/snapshot_scene.svg"));
   m_snapshot->setToolTip(tr("Save Scene as Image"));
   m_snapshot->setFlat(true);
-  m_snapshot->setIconSize(QSize(22,22));
-  m_snapshot->setMaximumSize(QSize(32,32));
+  m_snapshot->setIconSize(QSize(20,20));
+  m_snapshot->setMaximumSize(QSize(22,22));
   m_snapshot->setEnabled(true);
   connect(m_snapshot,SIGNAL(clicked(bool)),this,SLOT(onTakeSnapshot()));
 
