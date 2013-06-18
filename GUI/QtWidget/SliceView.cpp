@@ -726,11 +726,11 @@ void SliceView::resetCamera()
   m_state->updateCamera(m_renderer ->GetActiveCamera(), origin);
   m_state->updateCamera(m_thumbnail->GetActiveCamera(), origin);
 
-  m_renderer->ResetCamera();
-
   m_thumbnail->RemoveActor(m_channelBorder);
   m_thumbnail->RemoveActor(m_viewportBorder);
+  updateSceneBounds();
   updateThumbnail();
+  m_renderer->ResetCamera();
   m_thumbnail->ResetCamera();
   m_thumbnail->AddActor(m_channelBorder);
   m_thumbnail->AddActor(m_viewportBorder);

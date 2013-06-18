@@ -223,12 +223,22 @@ void ChannelInspector::changeSpacing()
   spacing[1] = spacingYBox->value()*pow(1000,unitsBox->currentIndex());
   spacing[2] = spacingZBox->value()*pow(1000,unitsBox->currentIndex());
 
-  /// WARNING: This won't work with preprocessing
-  ChannelReader *reader = dynamic_cast<ChannelReader *>(m_channel->filter().get());
-  Q_ASSERT(reader);
-  reader->setSpacing(spacing);
-  m_viewManager->updateChannelRepresentations();
-  m_view->updateChannelRepresentations();
+  QApplication::setOverrideCursor(Qt::WaitCursor);
+
+  ChannelVolumeSPtr channelVol = channelVolume(m_channel->output());
+  ChangeImageInformationFilter::Pointer channelChanger = ChangeImageInformationFilter::New();
+  channelChanger->SetInput(channelVol->toITK().GetPointer());
+  channelChanger->ChangeSpacingOn();
+  channelChanger->SetOutputSpacing(spacing);
+  channelChanger->Update();
+
+  channelVol->setVolume(channelChanger->GetOutput());
+  channelVol->toITK()->Update();
+
+  ChannelList channels;
+  channels << m_channel;
+  m_viewManager->updateChannelRepresentations(channels);
+  m_view->updateChannelRepresentations(channels);
 
   SegmentationList updatedSegmentations;
   foreach(ModelItemSPtr item, m_channel->relatedItems(EspINA::RELATION_OUT, Channel::LINK))
@@ -256,6 +266,8 @@ void ChannelInspector::changeSpacing()
   m_view->resetCamera();
   m_spacingModified = false;
   applyModifications();
+
+  QApplication::restoreOverrideCursor();
 }
 
 //------------------------------------------------------------------------
@@ -396,17 +408,13 @@ void ChannelInspector::acceptedChanges()
     m_channel->setSaturation(0.0);
 
   if (m_spacingModified)
+  {
     changeSpacing();
+    emit spacingUpdated();
+  }
 
   if (m_edgesModified)
     applyEdgesChanges();
-
-  double spacing[3];
-  m_channel->volume()->spacing(spacing);
-  if (m_spacing[0] != spacing[0] || m_spacing[1] != spacing[1] || m_spacing[2] != m_spacing[2])
-    emit spacingUpdated();
-
-  m_channel->output()->update();
 }
 
 //------------------------------------------------------------------------

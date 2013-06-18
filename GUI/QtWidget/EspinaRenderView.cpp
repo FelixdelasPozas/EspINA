@@ -583,6 +583,7 @@ void EspinaRenderView::removeActor(vtkProp *actor)
 //-----------------------------------------------------------------------------
 void EspinaRenderView::resetView()
 {
+	updateSceneBounds();
   resetCamera();
   updateView();
 }
