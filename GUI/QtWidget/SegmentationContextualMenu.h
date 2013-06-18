@@ -20,6 +20,8 @@
 #ifndef SEGMENTATIONCONTEXTUALMENU_H
 #define SEGMENTATIONCONTEXTUALMENU_H
 
+#include "EspinaGUI_Export.h"
+
 #include <Core/EspinaTypes.h>
 
 #include <QMenu>
@@ -27,7 +29,7 @@
 
 namespace EspINA
 {
-  class SegmentationContextualMenu
+  class EspinaGUI_EXPORT SegmentationContextualMenu
   : public QMenu
   {
   public:

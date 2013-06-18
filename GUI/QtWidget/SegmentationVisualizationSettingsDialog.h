@@ -20,6 +20,8 @@
 #ifndef ESPINA_SEGMENTATIONVISUALIZATIONSETTINGSDIALOG_H
 #define ESPINA_SEGMENTATIONVISUALIZATIONSETTINGSDIALOG_H
 
+#include "EspinaGUI_Export.h"
+
 #include <QDialog>
 #include <QStandardItemModel>
 #include "GUI/ui_SegmentationVisualizationSettingsDialog.h"
@@ -30,7 +32,7 @@ namespace EspINA
 {
   class GraphicalRepresentationSettings;
 
-  class SegmentationVisualizationSettingsDialog 
+  class EspinaGUI_EXPORT SegmentationVisualizationSettingsDialog
   : public QDialog
   , private Ui::SegmentationVisualizationSettingsDialog
   {
