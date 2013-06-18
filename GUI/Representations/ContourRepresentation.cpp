@@ -214,6 +214,9 @@ void ContourRepresentation::updatePipelineConnections()
 //-----------------------------------------------------------------------------
 void ContourRepresentation::setLineWidth(int width)
 {
+	if (m_width == width)
+		return;
+
   m_width = width;
 
   if (m_actor)
@@ -238,6 +241,9 @@ int ContourRepresentation::lineWidth() const
 //-----------------------------------------------------------------------------
 void ContourRepresentation::setLinePattern(int pattern)
 {
+	if (m_pattern == pattern)
+		return;
+
   m_pattern = pattern;
 
   if (m_actor == NULL)

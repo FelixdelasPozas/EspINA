@@ -35,7 +35,7 @@ namespace EspINA
   , m_width(5)
   {
   }
-  
+
   //-----------------------------------------------------------------------------
   ContourRenderer::~ContourRenderer()
   {
@@ -56,6 +56,7 @@ namespace EspINA
         m_representations.insert(item, list);
       }
 
+      computeWidth();
       contour->setLineWidth(m_width);
 
       if (m_enable)
@@ -159,8 +160,7 @@ namespace EspINA
   {
     m_view = view;
     m_view->mainRenderer()->AddObserver(vtkCommand::StartEvent, this, &ContourRenderer::RendererEventCallbackFunction);
-
-    computeWidth();
+    m_view->mainRenderer()->AddObserver(vtkCommand::EndEvent, this, &ContourRenderer::RendererEventCallbackFunction);
   }
 
   //-----------------------------------------------------------------------------
