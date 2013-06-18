@@ -544,10 +544,7 @@ void VolumeView::setupUI()
   m_ruler->SetCamera(m_renderer->GetActiveCamera());
   m_ruler->SetPickable(false);
   m_ruler->SetFlyModeToClosestTriad();
-  m_ruler->SetXLabel("X (nm)");
-  m_ruler->SetYLabel("Y (nm)");
-  m_ruler->SetZLabel("Z (nm)");
-  m_ruler->SetFontFactor(0.8);
+  m_ruler->SetFontFactor(1.5);
   m_ruler->SetNumberOfLabels(2);
 
   buildControls();
@@ -904,10 +901,10 @@ void VolumeView::updateScrollBarsLimits()
 
   if(m_channelStates.isEmpty())
   {
-    m_axialScrollBar->setMinimum(0);
-    m_axialScrollBar->setMaximum(0);
-    m_coronalScrollBar->setMinimum(0);
-    m_coronalScrollBar->setMaximum(0);
+    m_axialScrollBar   ->setMinimum(0);
+    m_axialScrollBar   ->setMaximum(0);
+    m_coronalScrollBar ->setMinimum(0);
+    m_coronalScrollBar ->setMaximum(0);
     m_sagittalScrollBar->setMinimum(0);
     m_sagittalScrollBar->setMaximum(0);
     return;
@@ -920,30 +917,17 @@ void VolumeView::updateScrollBarsLimits()
   {
     int extent[6];
     channel->volume()->extent(extent);
-
-    if (maxExtent[0] > extent[0])
-      maxExtent[0] = extent[0];
-
-    if (maxExtent[1] < extent[1])
-      maxExtent[1] = extent[1];
-
-    if (maxExtent[2] > extent[2])
-      maxExtent[2] = extent[2];
-
-    if (maxExtent[3] < extent[3])
-      maxExtent[3] = extent[3];
-
-    if (maxExtent[4] > extent[4])
-      maxExtent[4] = extent[4];
-
-    if (maxExtent[5] < extent[5])
-      maxExtent[5] = extent[5];
+    for (int i = 0, j = 1; i < 6; i += 2, j += 2)
+    {
+      maxExtent[i] = std::min(extent[i], maxExtent[i]);
+      maxExtent[j] = std::max(extent[j], maxExtent[j]);
+    }
   }
 
-  m_axialScrollBar->setMinimum(maxExtent[0]);
-  m_axialScrollBar->setMaximum(maxExtent[1]);
-  m_coronalScrollBar->setMinimum(maxExtent[2]);
-  m_coronalScrollBar->setMaximum(maxExtent[3]);
+  m_axialScrollBar   ->setMinimum(maxExtent[0]);
+  m_axialScrollBar   ->setMaximum(maxExtent[1]);
+  m_coronalScrollBar ->setMinimum(maxExtent[2]);
+  m_coronalScrollBar ->setMaximum(maxExtent[3]);
   m_sagittalScrollBar->setMinimum(maxExtent[4]);
   m_sagittalScrollBar->setMaximum(maxExtent[5]);
 }
@@ -1060,23 +1044,11 @@ void VolumeView::updateSelection(ViewManager::Selection selection, bool render)
         {
           Nm bounds[6];
           channelPtr(item)->volume()->bounds(bounds);
-          if (channelBounds[0] > bounds[0])
-            channelBounds[0] = bounds[0];
-
-          if (channelBounds[1] < bounds[1])
-            channelBounds[1] = bounds[1];
-
-          if (channelBounds[2] > bounds[2])
-            channelBounds[2] = bounds[2];
-
-          if (channelBounds[3] < bounds[3])
-            channelBounds[3] = bounds[3];
-
-          if (channelBounds[4] > bounds[4])
-            channelBounds[4] = bounds[4];
-
-          if (channelBounds[5] < bounds[5])
-            channelBounds[5] = bounds[5];
+          for (int i = 0, j = 1; i < 6; i += 2, j += 2)
+          {
+            channelBounds[i] = std::min(bounds[i], channelBounds[i]);
+            channelBounds[j] = std::max(bounds[j], channelBounds[j]);
+          }
         }
         break;
       case EspINA::SEGMENTATION:
@@ -1088,23 +1060,11 @@ void VolumeView::updateSelection(ViewManager::Selection selection, bool render)
         {
           Nm bounds[6];
           segmentationVolume(segmentationPtr(item)->output())->bounds(bounds);
-          if (segmentationBounds[0] > bounds[0])
-            segmentationBounds[0] = bounds[0];
-
-          if (segmentationBounds[1] < bounds[1])
-            segmentationBounds[1] = bounds[1];
-
-          if (segmentationBounds[2] > bounds[2])
-            segmentationBounds[2] = bounds[2];
-
-          if (segmentationBounds[3] < bounds[3])
-            segmentationBounds[3] = bounds[3];
-
-          if (segmentationBounds[4] > bounds[4])
-            segmentationBounds[4] = bounds[4];
-
-          if (segmentationBounds[5] < bounds[5])
-            segmentationBounds[5] = bounds[5];
+          for (int i = 0, j = 1; i < 6; i += 2, j += 2)
+          {
+            segmentationBounds[i] = std::min(bounds[i], segmentationBounds[i]);
+            segmentationBounds[j] = std::max(bounds[j], segmentationBounds[j]);
+          }
         }
         break;
       default:
@@ -1114,10 +1074,20 @@ void VolumeView::updateSelection(ViewManager::Selection selection, bool render)
   }
 
   if (vtkMath::AreBoundsInitialized(segmentationBounds))
+  {
     m_ruler->SetBounds(segmentationBounds);
+    m_ruler->SetXLabel(tr("X: %1 nm").arg(segmentationBounds[1]-segmentationBounds[0]).toStdString().c_str());
+    m_ruler->SetYLabel(tr("Y: %1 nm").arg(segmentationBounds[3]-segmentationBounds[2]).toStdString().c_str());
+    m_ruler->SetZLabel(tr("Z: %1 nm").arg(segmentationBounds[5]-segmentationBounds[4]).toStdString().c_str());
+  }
   else
     if (vtkMath::AreBoundsInitialized(channelBounds))
+    {
       m_ruler->SetBounds(channelBounds);
+      m_ruler->SetXLabel(tr("X: %1 nm").arg(channelBounds[1]-channelBounds[0]).toStdString().c_str());
+      m_ruler->SetYLabel(tr("Y: %1 nm").arg(channelBounds[3]-channelBounds[2]).toStdString().c_str());
+      m_ruler->SetZLabel(tr("Z: %1 nm").arg(channelBounds[5]-channelBounds[4]).toStdString().c_str());
+    }
     else
       m_ruler->SetVisibility(false);
 }
