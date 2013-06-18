@@ -50,10 +50,15 @@
 #include <vtkAbstractWidget.h>
 #include <vtkWidgetRepresentation.h>
 #include <vtkMath.h>
+#include <vtkCubeAxesActor2D.h>
+#include <vtkAxisActor2D.h>
+#include <vtkOrientationMarkerWidget.h>
+#include <vtkTextProperty.h>
 
 // Qt
 #include <QApplication>
 #include "GUI/Representations/CrosshairRepresentation.h"
+#include <vtkAxisActor2D.h>
 
 using namespace EspINA;
 
@@ -294,9 +299,20 @@ void VolumeView::buildControls()
   m_export.setEnabled(false);
   connect(&m_export,SIGNAL(clicked(bool)),this,SLOT(exportScene()));
 
+  m_measure.setIcon(QIcon(":/espina/measure3D.png"));
+  m_measure.setToolTip(tr("Enable measure widget"));
+  m_measure.setCheckable(true);
+  m_measure.setChecked(false);
+  m_measure.setFlat(true);
+  m_measure.setIconSize(QSize(22,22));
+  m_measure.setMaximumSize(QSize(32,32));
+  m_measure.setEnabled(false);
+  connect(&m_measure,SIGNAL(clicked(bool)),this,SLOT(enableMeasureWidget(bool)));
+
   QSpacerItem * horizontalSpacer = new QSpacerItem(4000, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
 
   m_controlLayout->addWidget(&m_zoom);
+  m_controlLayout->addWidget(&m_measure);
   m_controlLayout->addWidget(&m_snapshot);
   m_controlLayout->addWidget(&m_export);
   m_controlLayout->addItem(horizontalSpacer);
@@ -307,7 +323,6 @@ void VolumeView::buildControls()
 
   m_mainLayout->addLayout(m_controlLayout);
 }
-
 
 //-----------------------------------------------------------------------------
 void VolumeView::centerViewOn(Nm *center, bool notUsed)
@@ -391,6 +406,10 @@ void VolumeView::resetCamera()
 void VolumeView::addChannel(ChannelPtr channel)
 {
   EspinaRenderView::addChannel(channel);
+
+  double bounds[6];
+  channel->volume()->bounds(bounds);
+  m_ruler->SetBounds(bounds);
 
   updateRenderersControls();
   updateScrollBarsLimits();
@@ -519,6 +538,17 @@ void VolumeView::setupUI()
   m_view->GetRenderWindow()->GetInteractor()->SetInteractorStyle(interactorstyle);
   m_view->GetRenderWindow()->Render();
   m_view->installEventFilter(this);
+
+  m_ruler = vtkSmartPointer<vtkCubeAxesActor2D>::New();
+  m_ruler->SetDragable(false);
+  m_ruler->SetCamera(m_renderer->GetActiveCamera());
+  m_ruler->SetPickable(false);
+  m_ruler->SetFlyModeToClosestTriad();
+  m_ruler->SetXLabel("X (nm)");
+  m_ruler->SetYLabel("Y (nm)");
+  m_ruler->SetZLabel("Z (nm)");
+  m_ruler->SetFontFactor(0.8);
+  m_ruler->SetNumberOfLabels(2);
 
   buildControls();
 }
@@ -717,6 +747,17 @@ void VolumeView::onTakeSnapshot()
 }
 
 //-----------------------------------------------------------------------------
+void VolumeView::enableMeasureWidget(bool value)
+{
+  if(value)
+    m_renderer->AddViewProp(m_ruler);
+  else
+    m_renderer->RemoveViewProp(m_ruler);
+
+  updateView();
+}
+
+//-----------------------------------------------------------------------------
 void VolumeView::changePlanePosition(PlaneType plane, Nm dist)
 {
   bool needUpdate = false;
@@ -780,6 +821,18 @@ void VolumeView::updateEnabledRenderersCount(bool value)
     }
   }
 
+  if (m_numEnabledChannelRenders != 0 || m_numEnabledSegmentationRenders != 0)
+    m_measure.setEnabled(true);
+  else
+  {
+    if (m_measure.isChecked())
+    {
+      m_measure.setChecked(false);
+      enableMeasureWidget(false);
+    }
+
+    m_measure.setEnabled(false);
+  }
   updateRenderersControls();
 }
 
@@ -975,4 +1028,96 @@ void VolumeView::Settings::setRenderers(IRendererList values)
 IRendererList VolumeView::Settings::renderers() const
 {
   return m_renderers;
+}
+
+//-----------------------------------------------------------------------------
+void VolumeView::updateSelection(ViewManager::Selection selection, bool render)
+{
+  EspinaRenderView::updateSelection(selection, render);
+
+  if (selection.isEmpty())
+  {
+    m_ruler->SetVisibility(false);
+    return;
+  }
+
+  m_ruler->SetVisibility(true);
+
+  Nm segmentationBounds[6], channelBounds[6];
+  vtkMath::UninitializeBounds(segmentationBounds);
+  vtkMath::UninitializeBounds(channelBounds);
+
+  foreach(PickableItemPtr item, selection)
+  {
+    switch(item->type())
+    {
+      case EspINA::CHANNEL:
+        if (!m_channelStates.keys().contains(channelPtr(item)))
+          continue;
+        if (!vtkMath::AreBoundsInitialized(channelBounds))
+          channelPtr(item)->volume()->bounds(channelBounds);
+        else
+        {
+          Nm bounds[6];
+          channelPtr(item)->volume()->bounds(bounds);
+          if (channelBounds[0] > bounds[0])
+            channelBounds[0] = bounds[0];
+
+          if (channelBounds[1] < bounds[1])
+            channelBounds[1] = bounds[1];
+
+          if (channelBounds[2] > bounds[2])
+            channelBounds[2] = bounds[2];
+
+          if (channelBounds[3] < bounds[3])
+            channelBounds[3] = bounds[3];
+
+          if (channelBounds[4] > bounds[4])
+            channelBounds[4] = bounds[4];
+
+          if (channelBounds[5] < bounds[5])
+            channelBounds[5] = bounds[5];
+        }
+        break;
+      case EspINA::SEGMENTATION:
+        if (!m_segmentationStates.keys().contains(segmentationPtr(item)))
+          continue;
+        if (!vtkMath::AreBoundsInitialized(segmentationBounds))
+          segmentationVolume(segmentationPtr(item)->output())->bounds(segmentationBounds);
+        else
+        {
+          Nm bounds[6];
+          segmentationVolume(segmentationPtr(item)->output())->bounds(bounds);
+          if (segmentationBounds[0] > bounds[0])
+            segmentationBounds[0] = bounds[0];
+
+          if (segmentationBounds[1] < bounds[1])
+            segmentationBounds[1] = bounds[1];
+
+          if (segmentationBounds[2] > bounds[2])
+            segmentationBounds[2] = bounds[2];
+
+          if (segmentationBounds[3] < bounds[3])
+            segmentationBounds[3] = bounds[3];
+
+          if (segmentationBounds[4] > bounds[4])
+            segmentationBounds[4] = bounds[4];
+
+          if (segmentationBounds[5] < bounds[5])
+            segmentationBounds[5] = bounds[5];
+        }
+        break;
+      default:
+        Q_ASSERT(false);
+        break;
+    }
+  }
+
+  if (vtkMath::AreBoundsInitialized(segmentationBounds))
+    m_ruler->SetBounds(segmentationBounds);
+  else
+    if (vtkMath::AreBoundsInitialized(channelBounds))
+      m_ruler->SetBounds(channelBounds);
+    else
+      m_ruler->SetVisibility(false);
 }

@@ -19,6 +19,7 @@
 
 #include "SegmentationVisualizationSettingsDialog.h"
 #include <GUI/Representations/GraphicalRepresentationSettings.h>
+#include <QDebug>
 
 using namespace EspINA;
 
@@ -44,7 +45,7 @@ SegmentationVisualizationSettingsDialog::SegmentationVisualizationSettingsDialog
     m_representationsModel.sort(0);
 
     m_representationList->setModel(&m_representationsModel);
-    connect(m_representationList, SIGNAL(activated(QModelIndex)),
+    connect(m_representationList, SIGNAL(clicked(QModelIndex)),
             this, SLOT(displayRepresentationSettings(QModelIndex)));
   }
 

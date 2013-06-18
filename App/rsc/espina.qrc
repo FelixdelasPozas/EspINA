@@ -82,5 +82,6 @@
     <file>edges-stack.png</file>
     <file>slice.png</file>
     <file>contour.png</file>
+    <file>measure3D.png</file>
   </qresource>
 </RCC>
