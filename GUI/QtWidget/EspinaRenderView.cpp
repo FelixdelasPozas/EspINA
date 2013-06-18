@@ -29,7 +29,7 @@
 #include <vtkRenderWindow.h>
 #include <vtkPNGWriter.h>
 #include <vtkJPEGWriter.h>
-#include <vtkRenderLargeImage.h>
+#include <vtkWindowToImageFilter.h>
 
 // Qt
 #include <QApplication>
@@ -107,15 +107,20 @@ void EspinaRenderView::takeSnapshot(vtkSmartPointer<vtkRenderer> renderer)
 
     if (validFileExtensions.contains(extension))
     {
-      int witdh = m_renderer->GetRenderWindow()->GetSize()[0];
-      vtkRenderLargeImage *image = vtkRenderLargeImage::New();
-      image->SetInput(m_renderer);
-      image->SetMagnification(4096.0/witdh+0.5);
+      // avoid artifacts when acquiring the image
+      int offScreenRender = renderWindow()->GetOffScreenRendering();
+      renderWindow()->SetOffScreenRendering(true);
+
+      vtkSmartPointer<vtkWindowToImageFilter> image = vtkSmartPointer<vtkWindowToImageFilter>::New();
+      image->SetInput(renderWindow());
+      image->SetMagnification(4096.0/renderWindow()->GetSize()[0]+0.5);
       image->Update();
+
+      renderWindow()->SetOffScreenRendering(offScreenRender);
 
       if (QString("PNG") == extension)
       {
-        vtkPNGWriter *writer = vtkPNGWriter::New();
+        vtkSmartPointer<vtkPNGWriter> writer = vtkSmartPointer<vtkPNGWriter>::New();
         writer->SetFileDimensionality(2);
         writer->SetFileName(selectedFile.toUtf8());
         writer->SetInputConnection(image->GetOutputPort());
@@ -126,7 +131,7 @@ void EspinaRenderView::takeSnapshot(vtkSmartPointer<vtkRenderer> renderer)
 
       if (QString("JPG") == extension)
       {
-        vtkJPEGWriter *writer = vtkJPEGWriter::New();
+        vtkSmartPointer<vtkJPEGWriter> writer = vtkSmartPointer<vtkJPEGWriter>::New();
         writer->SetQuality(100);
         writer->ProgressiveOff();
         writer->WriteToMemoryOff();
