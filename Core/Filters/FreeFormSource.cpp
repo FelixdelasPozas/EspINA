@@ -50,8 +50,6 @@ FreeFormSource::FreeFormSource(const EspinaRegion        &bounds,
   representations << MeshRepresentationSPtr(new MarchingCubesMesh(volumeRepresentation));
 
   addOutputRepresentations(0, representations);
-
-  segmentationVolume(m_outputs[0])->addEditedRegion(bounds);
 }
 
 //-----------------------------------------------------------------------------
@@ -75,6 +73,13 @@ void FreeFormSource::setGraphicalRepresentationFactory(GraphicalRepresentationFa
   EspINA::Filter::setGraphicalRepresentationFactory(factory);
   if (factory && validOutput(0))
     factory->createGraphicalRepresentations(m_outputs[0]);
+}
+
+//-----------------------------------------------------------------------------
+bool FreeFormSource::dumpSnapshot(Snapshot &snapshot)
+{
+  output(0)->setCached(true);
+  return EspINA::SegmentationFilter::dumpSnapshot(snapshot);
 }
 
 //-----------------------------------------------------------------------------

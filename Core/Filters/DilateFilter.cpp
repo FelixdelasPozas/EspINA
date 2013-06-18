@@ -76,6 +76,7 @@ void DilateFilter::run(FilterOutputId oId)
   padFilter->SetInput(input->toITK());
   padFilter->SetPadLowerBound(lowerExtendRegion);
   padFilter->SetPadUpperBound(upperExtendRegion);
+  padFilter->Update();
 
   StructuringElementType ball;
   ball.SetRadius(m_params.radius());

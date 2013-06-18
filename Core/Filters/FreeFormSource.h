@@ -86,6 +86,8 @@ public:
 
   virtual void setGraphicalRepresentationFactory(GraphicalRepresentationFactorySPtr factory);
 
+  virtual bool dumpSnapshot(Snapshot &snapshot);
+
 protected:
   virtual bool ignoreCurrentOutputs() const
   { return false; }
