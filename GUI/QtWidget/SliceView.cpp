@@ -341,6 +341,10 @@ void SliceView::updateThumbnail()
 void SliceView::updateSceneBounds()
 {
   EspinaRenderView::updateSceneBounds();
+
+  if (m_spinBox->minimum() == 0 && m_spinBox->maximum() == 0)
+    memset(m_crosshairPoint, 0, 3*sizeof(Nm));
+
   setSlicingStep(m_sceneResolution);
 
   // we need to update the view only if a signal has been sent
@@ -415,7 +419,7 @@ void SliceView::updateBorder(vtkPolyData* data,
 //-----------------------------------------------------------------------------
 Nm SliceView::voxelBottom(int sliceIndex, PlaneType plane) const
 {
-  return (sliceIndex - 0.5) * m_slicingStep[plane];
+  return  m_sceneBounds[2*plane] + sliceIndex * m_slicingStep[plane];
 }
 
 //-----------------------------------------------------------------------------
@@ -427,7 +431,7 @@ Nm SliceView::voxelBottom(Nm position, PlaneType plane) const
 //-----------------------------------------------------------------------------
 Nm SliceView::voxelCenter(int sliceIndex, PlaneType plane) const
 {
-  return sliceIndex * m_slicingStep[plane];
+  return m_sceneBounds[2*plane] + (sliceIndex + 0.5) * m_slicingStep[plane];
 }
 
 //-----------------------------------------------------------------------------
@@ -440,7 +444,7 @@ Nm SliceView::voxelCenter(Nm position, PlaneType plane) const
 //-----------------------------------------------------------------------------
 Nm SliceView::voxelTop(int sliceIndex, PlaneType plane) const
 {
-  return (sliceIndex + 0.5) * m_slicingStep[plane];
+  return m_sceneBounds[2*plane] + (sliceIndex + 1.0) * m_slicingStep[plane];
 }
 
 //-----------------------------------------------------------------------------
@@ -453,7 +457,7 @@ Nm SliceView::voxelTop(Nm position, PlaneType plane) const
 //-----------------------------------------------------------------------------
 int SliceView::voxelSlice(Nm position, PlaneType plane) const
 {
-  return vtkMath::Round(position/m_slicingStep[plane]);
+  return int((position-m_sceneBounds[2*plane])/m_slicingStep[plane]);
 }
 
 //-----------------------------------------------------------------------------
@@ -1296,9 +1300,9 @@ void SliceView::setSlicingStep(const Nm steps[3])
     return;
   }
 
-  int sliceIndex = voxelSlice(slicingPosition(), m_plane);
-
   memcpy(m_slicingStep, steps, 3*sizeof(Nm));
+
+  int sliceIndex = voxelSlice(slicingPosition(), m_plane);
 
   QSettings settings(CESVIMA, ESPINA);
   m_fitToSlices = m_plane == AXIAL && settings.value("ViewManager::FitToSlices").toBool();
@@ -1344,7 +1348,7 @@ void SliceView::setSlicingBounds(Nm bounds[6])
     return;
   }
 
-  int sliceMax = voxelSlice(bounds[2*m_plane+1], m_plane);
+  int sliceMax = voxelSlice(bounds[2*m_plane+1], m_plane) - 1; // [lowerBound, upperBound) upper bound doesn't belong to the voxel
   int sliceMin = voxelSlice(bounds[2*m_plane]  , m_plane);
 
   m_spinBox->blockSignals(true);
@@ -1398,14 +1402,14 @@ void SliceView::centerViewOn(Nm center[3], bool force)
   m_scrollBar->blockSignals(true);
   m_spinBox->blockSignals(true);
 
-  Nm slicingPos = voxelSlice(center[m_plane], m_plane);
+  int slicingPos = voxelSlice(center[m_plane], m_plane);
 
   m_scrollBar->setValue(slicingPos);
 
   if (m_fitToSlices)
     slicingPos++; // Correct 0 index
   else
-    slicingPos = voxelCenter(slicingPos, m_plane);
+    slicingPos = vtkMath::Round(centerVoxel[m_plane]);
 
   m_spinBox->setValue(slicingPos);
 

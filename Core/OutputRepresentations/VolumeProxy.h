@@ -116,6 +116,9 @@ namespace EspINA
 
     virtual itkVolumeType::SpacingType spacing() const;
 
+    /// Return the smallest valid espina region  which contains bounds
+    virtual EspinaRegion espinaRegion(Nm bounds[6]) const;
+
     /// Equivalent to bounds method
     virtual EspinaRegion espinaRegion() const;
 

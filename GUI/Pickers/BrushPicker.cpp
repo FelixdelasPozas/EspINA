@@ -242,17 +242,20 @@ bool BrushPicker::validStroke(double brush[3])
       brushBounds[1] = brush[0] + m_radius;
       brushBounds[2] = brush[1] - m_radius;
       brushBounds[3] = brush[1] + m_radius;
-      brushBounds[4] = brushBounds[5] = m_pBounds[4];
+      brushBounds[4] = m_pBounds[4];
+      brushBounds[5] = m_pBounds[5];
       break;
     case CORONAL:
       brushBounds[0] = brush[0] - m_radius;
       brushBounds[1] = brush[0] + m_radius;
-      brushBounds[2] = brushBounds[3] = m_pBounds[2];
+      brushBounds[2] = m_pBounds[2];
+      brushBounds[3] = m_pBounds[3];
       brushBounds[4] = brush[2] - m_radius;
       brushBounds[5] = brush[2] + m_radius;
       break;
     case SAGITTAL:
-      brushBounds[0] = brushBounds[1] = m_pBounds[0];
+      brushBounds[0] = m_pBounds[0];
+      brushBounds[1] = m_pBounds[1];
       brushBounds[2] = brush[1] - m_radius;
       brushBounds[3] = brush[1] + m_radius;
       brushBounds[4] = brush[2] - m_radius;

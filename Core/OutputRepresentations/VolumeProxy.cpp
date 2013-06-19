@@ -270,6 +270,17 @@ itkVolumeType::SpacingType VolumeProxy::spacing() const
 }
 
 //-----------------------------------------------------------------------------
+EspinaRegion VolumeProxy::espinaRegion(Nm bounds[6]) const
+{
+  EspinaRegion res;
+
+  if (m_volumeRepresentation)
+    res = m_volumeRepresentation->espinaRegion(bounds);
+
+  return res;
+}
+
+//-----------------------------------------------------------------------------
 EspinaRegion VolumeProxy::espinaRegion() const
 {
   EspinaRegion res;

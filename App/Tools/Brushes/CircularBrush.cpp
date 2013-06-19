@@ -61,13 +61,13 @@ Brush::BrushShape CircularBrush::createBrushShape(PickableItemPtr item, double c
   brushBounds[4] = center[2] - aRadius;
   brushBounds[5] = center[2] + aRadius;
 
-  brushBounds[2*plane+1] += spacing[plane];
 
   double baseCenter[3], topCenter[3];
   for (int i=0; i<3; i++)
     baseCenter[i] = topCenter[i] = center[i];
-  topCenter[plane] += spacing[plane];
-  //baseCenter[plane] = 0.5*spacing[plane];
+
+  topCenter [plane] += 0.5*spacing[plane];
+  baseCenter[plane] -= 0.5*spacing[plane];
 
   vtkTube *brush = vtkTube::New();
   brush->SetBaseCenter(baseCenter);

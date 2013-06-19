@@ -221,17 +221,22 @@ namespace EspINA
       m_contour.PolyData->Delete();
       m_contour.PolyData = NULL;
     }
+    Nm polyBounds[6];
+    PlaneType plane = contour.Plane;
+    contour.PolyData->GetBounds(polyBounds);
+    
+    polyBounds[2*plane+1] += m_channel->volume()->spacing()[plane];
 
-    m_filter = FilterSPtr(new FreeFormSource(EspinaRegion(contour.PolyData->GetBounds()),
+    m_filter = FilterSPtr(new FreeFormSource(EspinaRegion(polyBounds),
                           m_channel->volume()->spacing(),
                           FilledContour::FILTER_TYPE));
     SetBasicGraphicalRepresentationFactory (m_filter);
 
-    Nm pos = contour.PolyData->GetPoints()->GetPoint(0)[contour.Plane];
+    Nm pos = contour.PolyData->GetPoints()->GetPoint(0)[plane];
     itkVolumeType::PixelType value = ((contour.Mode == Brush::BRUSH) ? SEG_VOXEL_VALUE : SEG_BG_VALUE);
 
     SegmentationVolumeSPtr currentVolume = segmentationVolume(m_filter->output(0));
-    currentVolume->draw(contour.PolyData, pos, contour.Plane, value, true);
+    currentVolume->draw(contour.PolyData, pos, plane, value, true);
     m_segmentation = m_model->factory()->createSegmentation(m_filter, 0);
 
     m_model->addFilter(m_filter);

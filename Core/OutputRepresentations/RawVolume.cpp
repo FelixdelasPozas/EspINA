@@ -66,9 +66,9 @@ itkVolumeType::IndexType volumeIndex(itkVolumeType::Pointer volume, Nm x, Nm y, 
   itkVolumeType::SpacingType spacing = volume->GetSpacing();
   itkVolumeType::IndexType   res;
 
-  res[0] = vtkMath::Round((x - origin[0]) / spacing[0]);
-  res[1] = vtkMath::Round((y - origin[1]) / spacing[1]);
-  res[2] = vtkMath::Round((z - origin[2]) / spacing[2]);
+  res[0] = int((x - origin[0]) / spacing[0] + 0.5);
+  res[1] = int((y - origin[1]) / spacing[1] + 0.5);
+  res[2] = int((z - origin[2]) / spacing[2] + 0.5);
 
   return res;
 }
@@ -96,6 +96,19 @@ void volumeExtent(itkVolumeType::Pointer volume, int out[6])
 }
 
 //----------------------------------------------------------------------------
+void volumeBounds(itkVolumeType::PointType   origin,
+                  itkVolumeType::RegionType  region,
+                  itkVolumeType::SpacingType spacing,
+                  double                     out[6])
+{
+  for(int i=0; i<3; i++)
+  {
+    int min = 2*i, max = 2*i+1;
+    out[min] = origin[i] + (region.GetIndex()[i]-0.5)*spacing[i];
+    out[max] = out[min]  + region.GetSize ()[i]*spacing[i];
+  }
+}
+//----------------------------------------------------------------------------
 void volumeBounds(itkVolumeType::Pointer volume, double out[6])
 {
   if (volume)
@@ -104,19 +117,18 @@ void volumeBounds(itkVolumeType::Pointer volume, double out[6])
     itkVolumeType::RegionType  region  = volume->GetLargestPossibleRegion();
     itkVolumeType::PointType   origin  = volume->GetOrigin();
 
-    for(int i=0; i<3; i++)
-    {
-      int min = 2*i, max = 2*i+1;
-      out[min] = origin[i] + region.GetIndex()[i]*spacing[i];
-      out[max] = out[min]  + region.GetSize ()[i]*spacing[i];
-    }
+    volumeBounds(origin, region, spacing, out);
   }
   else
     vtkMath::UninitializeBounds(out);
 }
 
+/// Espina regions are defined using bounds. Bounds are given as a range of 
+/// nm composing a volume. This range is inclusive in its lower limit and exclusive
+/// in its upper limit, i.e. [lower bound, upper bound). Thus, is important not to
+/// take upper bound as part of the volume is multiple of the spacing
 //----------------------------------------------------------------------------
-VolumeRepresentation::VolumeRegion volumeRegionAux(EspinaRegion region,
+VolumeRepresentation::VolumeRegion volumeRegionAux(EspinaRegion               region,
                                                    itkVolumeType::SpacingType spacing)
 {
   VolumeRepresentation::VolumeRegion res;
@@ -124,11 +136,22 @@ VolumeRepresentation::VolumeRegion volumeRegionAux(EspinaRegion region,
   itkVolumeType::IndexType min, max;
   for (int i = 0; i < 3; i++)
   {
-    min[i] = vtkMath::Round(region[2*i  ]/spacing[i]);
-    max[i] = vtkMath::Round(region[2*i+1]/spacing[i]);
+//     min[i] = int(region[2*i  ]/spacing[i] + 0.5);
+//     max[i] = int(region[2*i+1]/spacing[i] - 0.5);
+// 
+//     res.SetIndex(i,          min[i]);
+//     res.SetSize (i, abs(max[i] - min[i]) +  1);
+    int voxel = int(region[2*i  ]/spacing[i] + 0.5);
+    Nm voxelBottom = (voxel - 0.5) * spacing[i];
+    int size = 0;
+    while (voxelBottom < region[2*i+1])
+    {
+      voxelBottom += spacing[i];
+      ++size;
+    }
 
-    res.SetIndex(i,          min[i]);
-    res.SetSize (i, max[i] - min[i]);
+    res.SetIndex(i, voxel);
+    res.SetSize (i, size);
   }
 
   return res;
@@ -136,20 +159,46 @@ VolumeRepresentation::VolumeRegion volumeRegionAux(EspinaRegion region,
 
 //----------------------------------------------------------------------------
 VolumeRepresentation::VolumeRegion volumeRegionAux(itkVolumeType::Pointer volume,
-                                                const EspinaRegion& region)
+                                                   const EspinaRegion&    region)
 {
   itkVolumeType::SpacingType spacing = volume->GetSpacing();
+  itkVolumeType::RegionType volumeRegion;
+
+//   Nm bounds[6];
+//   volumeBounds(volume, bounds);
+//   VolumeRepresentation::VolumeRegion vr = volumeRegionAux(EspinaRegion(bounds), spacing);
 
   VolumeRepresentation::VolumeRegion res = volumeRegionAux(region, spacing);
+//   itkVolumeType::IndexType min, max;
+//   for (int i = 0; i < 3; i++)
+//   {
+//     min[i] = int(region[2*i  ]/spacing[i]);
+//     max[i] = int(region[2*i+1]/spacing[i]);
+// 
+//     res.SetIndex(i,          min[i]);
+//     res.SetSize (i, max[i] - min[i] + 1);
+//   }
 
   itkVolumeType::PointType origin = volume->GetOrigin();
   if (origin[0] != 0 || origin[1] != 0 || origin[2] != 0)
   {
+    qWarning() << "Non zero origin";
     for (int i = 0; i < 3; i++)
       res.SetIndex(i, res.GetIndex(i) - vtkMath::Round(origin[i]/spacing[i]));
   }
 
   return res;
+}
+
+//----------------------------------------------------------------------------
+EspinaRegion espinaRegionAux(itkVolumeType::Pointer volume, const Nm bounds[6])
+{
+  VolumeRepresentation::VolumeRegion volumeRegion = volumeRegionAux(volume, EspinaRegion(bounds));
+
+  double regionBounds[6];
+  volumeBounds(volume->GetOrigin(), volumeRegion, volume->GetSpacing(), regionBounds);
+
+  return EspinaRegion(regionBounds);
 }
 
 
@@ -194,6 +243,12 @@ bool RawChannelVolume::setInternalData(ChannelRepresentationSPtr rhs)
 itkVolumeType::IndexType RawChannelVolume::index(Nm x, Nm y, Nm z)
 {
   return volumeIndex(m_volume, x, y, z);
+}
+
+//----------------------------------------------------------------------------
+EspinaRegion RawChannelVolume::espinaRegion(Nm bounds[6]) const
+{
+  return espinaRegionAux(m_volume, bounds);
 }
 
 //----------------------------------------------------------------------------
@@ -337,6 +392,7 @@ RawSegmentationVolume::RawSegmentationVolume(const EspinaRegion        &region,
 , m_VTKGenerationTime(0)
 , m_ITKGenerationTime(0)
 {
+  VolumeRegion region2 = volumeRegionAux(region, spacing);
   m_volume->SetRegions(volumeRegionAux(region, spacing));
   m_volume->SetSpacing(spacing);
   m_volume->Allocate();
@@ -377,7 +433,7 @@ void RawSegmentationVolume::draw(vtkImplicitFunction *brush,
                             itkVolumeType::PixelType value,
                             bool emitSignal)
 {
-  EspinaRegion region(bounds);
+  EspinaRegion region = espinaRegionAux(m_volume, bounds);
 
   addEditedRegion(region);
 
@@ -412,7 +468,8 @@ void RawSegmentationVolume::draw(itkVolumeType::IndexType index,
   index[1]*spacing[1],
   index[2]*spacing[2],
   index[2]*spacing[2] };
-  EspinaRegion voxelRegion(voxelBounds);
+
+  EspinaRegion voxelRegion = espinaRegionAux(m_volume, voxelBounds);
 
   addEditedRegion(voxelRegion); // FIXME: Mover al undo command?
 
@@ -429,7 +486,8 @@ void RawSegmentationVolume::draw(Nm x, Nm y, Nm z,
                             bool emitSignal)
 {
   double voxelBounds[6] = {x, x, y, y, z, z};
-  EspinaRegion voxelRegion(voxelBounds);
+
+  EspinaRegion voxelRegion = espinaRegionAux(m_volume, voxelBounds);
 
   addEditedRegion(voxelRegion);
 
@@ -450,7 +508,8 @@ void RawSegmentationVolume::draw(vtkPolyData *contour,
   contour->ComputeBounds();
   contour->GetBounds(contourBounds);
 
-  EspinaRegion polyDataRegion(contourBounds);
+  EspinaRegion polyDataRegion = espinaRegionAux(m_volume, contourBounds);
+  EspinaRegion current = espinaRegion();
 
   if(!polyDataRegion.isInside(espinaRegion()))
     expandToFitRegion(polyDataRegion);
@@ -460,6 +519,8 @@ void RawSegmentationVolume::draw(vtkPolyData *contour,
 
   for (int i = 0; i < 6; ++i) // TODO: Test
     polyDataRegion[i] = vtkMath::Round(polyDataRegion[i] /spacing[i/2]) * spacing[i/2];
+  
+  //polyDataRegion[2*plane+1] += spacing[plane];
 
   addEditedRegion(polyDataRegion);
 
@@ -924,6 +985,12 @@ void RawSegmentationVolume::spacing(double out[3]) const
 itkVolumeType::SpacingType RawSegmentationVolume::spacing() const
 {
   return m_volume->GetSpacing();
+}
+
+//----------------------------------------------------------------------------
+EspinaRegion RawSegmentationVolume::espinaRegion(Nm bounds[6]) const
+{
+  return espinaRegionAux(m_volume, bounds);
 }
 
 //----------------------------------------------------------------------------
