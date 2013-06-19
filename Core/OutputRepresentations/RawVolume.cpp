@@ -127,8 +127,8 @@ VolumeRepresentation::VolumeRegion volumeRegionAux(EspinaRegion region,
     min[i] = vtkMath::Round(region[2*i  ]/spacing[i]);
     max[i] = vtkMath::Round(region[2*i+1]/spacing[i]);
 
-    res.SetIndex(i,              min[i]);
-    res.SetSize (i, max[i] - min[i] + 1);
+    res.SetIndex(i,          min[i]);
+    res.SetSize (i, max[i] - min[i]);
   }
 
   return res;
@@ -329,9 +329,9 @@ RawSegmentationVolume::RawSegmentationVolume(itkVolumeType::Pointer volume,
 }
 
 //----------------------------------------------------------------------------
-RawSegmentationVolume::RawSegmentationVolume(const EspinaRegion& region,
+RawSegmentationVolume::RawSegmentationVolume(const EspinaRegion        &region,
                                              itkVolumeType::SpacingType spacing,
-                                             FilterOutput *output)
+                                             FilterOutput              *output)
 : SegmentationVolume(output)
 , m_volume(itkVolumeType::New())
 , m_VTKGenerationTime(0)
@@ -346,7 +346,7 @@ RawSegmentationVolume::RawSegmentationVolume(const EspinaRegion& region,
 }
 
 //----------------------------------------------------------------------------
-RawSegmentationVolume::RawSegmentationVolume(const VolumeRegion& region,
+RawSegmentationVolume::RawSegmentationVolume(const VolumeRegion        &region,
                                              itkVolumeType::SpacingType spacing,
                                              FilterOutput *output)
 : SegmentationVolume(output)
@@ -1064,7 +1064,7 @@ typedef itk::ImageRegionExclusionIteratorWithIndex<itkVolumeType> ExclusionItera
 // Expand To Fit Region's Auxiliar Function
 //-----------------------------------------------------------------------------
 RawSegmentationVolume::VolumeRegion BoundingBox(RawSegmentationVolume::VolumeRegion v1,
-                                       RawSegmentationVolume::VolumeRegion v2)
+                                                RawSegmentationVolume::VolumeRegion v2)
 {
   RawSegmentationVolume::VolumeRegion res;
   RawSegmentationVolume::VolumeRegion::IndexType minIndex, maxIndex;

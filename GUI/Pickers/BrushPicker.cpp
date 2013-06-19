@@ -409,7 +409,7 @@ void BrushPicker::startPreview(EspinaRenderView* view)
   int extent[6];
   for (int i = 0; i < 3; ++i)
   {
-    extent[2 * i] = m_pBounds[2 * i] / m_spacing[i];
+    extent[2 * i]       = m_pBounds[2 * i]       / m_spacing[i];
     extent[(2 * i) + 1] = m_pBounds[(2 * i) + 1] / m_spacing[i];
   }
 

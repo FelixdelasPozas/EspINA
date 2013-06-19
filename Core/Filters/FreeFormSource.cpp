@@ -22,6 +22,7 @@
 // EspINA
 #include "Core/Model/EspinaFactory.h"
 #include <Core/Model/MarchingCubesMesh.h>
+#include <Core/Model/EspinaModel.h>
 #include <Core/OutputRepresentations/RawVolume.h>
 
 // ITK
@@ -78,7 +79,12 @@ void FreeFormSource::setGraphicalRepresentationFactory(GraphicalRepresentationFa
 //-----------------------------------------------------------------------------
 bool FreeFormSource::dumpSnapshot(Snapshot &snapshot)
 {
-  output(0)->setCached(true);
+  OutputSPtr filterOutput = output(0);
+  filterOutput->setCached(filterOutput->isCached() || m_model->isTraceable());
+
+  SegmentationVolumeSPtr editedVolume = segmentationVolume(filterOutput);
+  editedVolume->clearEditedRegions();
+
   return EspINA::SegmentationFilter::dumpSnapshot(snapshot);
 }
 

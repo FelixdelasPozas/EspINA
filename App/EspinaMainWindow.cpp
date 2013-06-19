@@ -604,12 +604,12 @@ void EspinaMainWindow::updateTraceabilityStatus()
   if (m_model->isTraceable())
   {
     m_traceableStatus->setPixmap(QPixmap(":/espina/traceable.png").scaled(22, 22));
-    m_traceableStatus->setToolTip(tr("Current Session is trackable"));
+    m_traceableStatus->setToolTip(tr("Current Session is traceable"));
   }
   else
   {
     m_traceableStatus->setPixmap(QPixmap(":/espina/non_traceable.png").scaled(22, 22));
-    m_traceableStatus->setToolTip(tr("Current Session is NOT trackable"));
+    m_traceableStatus->setToolTip(tr("Current Session is NOT traceable"));
   }
 }
 
