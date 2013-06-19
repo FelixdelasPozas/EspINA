@@ -108,7 +108,7 @@ void volumeBounds(itkVolumeType::Pointer volume, double out[6])
     {
       int min = 2*i, max = 2*i+1;
       out[min] = origin[i] + region.GetIndex()[i]*spacing[i];
-      out[max] = out[min] + (region.GetSize()[i] - 1)*spacing[i];
+      out[max] = out[min]  + region.GetSize ()[i]*spacing[i];
     }
   }
   else

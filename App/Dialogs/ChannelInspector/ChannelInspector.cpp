@@ -225,20 +225,12 @@ void ChannelInspector::changeSpacing()
 
   QApplication::setOverrideCursor(Qt::WaitCursor);
 
-  ChannelVolumeSPtr channelVol = channelVolume(m_channel->output());
-  ChangeImageInformationFilter::Pointer channelChanger = ChangeImageInformationFilter::New();
-  channelChanger->SetInput(channelVol->toITK().GetPointer());
-  channelChanger->ChangeSpacingOn();
-  channelChanger->SetOutputSpacing(spacing);
-  channelChanger->Update();
-
-  channelVol->setVolume(channelChanger->GetOutput());
-  channelVol->toITK()->Update();
+  ChannelReader* reader = dynamic_cast<ChannelReader *>(m_channel->filter().get());
+  Q_ASSERT(reader);
+  reader->setSpacing(spacing);
 
   ChannelList channels;
   channels << m_channel;
-  m_viewManager->updateChannelRepresentations(channels);
-  m_view->updateChannelRepresentations(channels);
 
   SegmentationList updatedSegmentations;
   foreach(ModelItemSPtr item, m_channel->relatedItems(EspINA::RELATION_OUT, Channel::LINK))
@@ -261,8 +253,9 @@ void ChannelInspector::changeSpacing()
     }
   }
 
-  m_view->updateSceneBounds();  // needed to update thumbnail values without triggering volume()->markAsModified()
   m_viewManager->updateSegmentationRepresentations(updatedSegmentations);
+  m_viewManager->updateChannelRepresentations(channels);
+
   m_view->resetCamera();
   m_spacingModified = false;
   applyModifications();
