@@ -119,6 +119,8 @@ namespace EspINA
 
     virtual void setColor(const QColor &color);
 
+    virtual QColor color() const;
+
     virtual void setHighlighted(bool highlighted);
 
     virtual bool isInside(Nm point[3]);

@@ -57,8 +57,11 @@ void SegmentationSliceRepresentationSettings::Set(GraphicalRepresentationSPtr re
 
   if (m_init)
   {
-    QColor color(Qt::red) ;//= sliceRepresentation->color();
-    color.setAlphaF(m_opacity->value()/100.0);
-    sliceRepresentation->setColor(color);
+    if (m_opacity->value() > 0)
+    {
+      QColor color = sliceRepresentation->color();
+      color.setAlphaF(m_opacity->value()/100.0);
+      sliceRepresentation->setColor(color);
+    }
   }
 }

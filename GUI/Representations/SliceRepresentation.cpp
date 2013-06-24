@@ -245,6 +245,16 @@ void SegmentationSliceRepresentation::setColor(const QColor &color)
 }
 
 //-----------------------------------------------------------------------------
+QColor SegmentationSliceRepresentation::color() const
+{
+  if (!m_clones.isEmpty())
+    return m_clones.first()->color();
+  else
+    return EspINA::GraphicalRepresentation::color();
+}
+
+
+//-----------------------------------------------------------------------------
 void SegmentationSliceRepresentation::setHighlighted(bool highlighted)
 {
   SegmentationGraphicalRepresentation::setHighlighted(highlighted);

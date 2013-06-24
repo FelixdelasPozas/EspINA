@@ -83,7 +83,7 @@ class GraphicalRepresentationSettings;
     virtual void setColor(const QColor &color)
     { m_color = color; }
 
-    QColor color() const
+    virtual QColor color() const
     { return m_color; }
 
     virtual void setHighlighted(bool highlighted)
