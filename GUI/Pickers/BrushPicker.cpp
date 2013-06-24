@@ -289,12 +289,12 @@ bool BrushPicker::validStroke(double brush[3])
     // Damned discrepancies between origin and bounds in itk volumes loaded from file
     itkVolumeType::RegionType::IndexType transform;
     transform[0] = transform[1] = transform[2] = 0;
-    if (origin[0] != vtkMath::Round(bounds[0]/spacing[0]) || origin[1] != vtkMath::Round(bounds[2]/spacing[1]) || origin[2] != vtkMath::Round(bounds[4]/spacing[2]))
-    {
-      transform[0] = vtkMath::Round(bounds[0]/spacing[0]);
-      transform[1] = vtkMath::Round(bounds[2]/spacing[1]);
-      transform[2] = vtkMath::Round(bounds[4]/spacing[2]);
-    }
+//     if (origin[0] != vtkMath::Round(bounds[0]/spacing[0]) || origin[1] != vtkMath::Round(bounds[2]/spacing[1]) || origin[2] != vtkMath::Round(bounds[4]/spacing[2]))
+//     {
+//       transform[0] = vtkMath::Round(bounds[0]/spacing[0]);
+//       transform[1] = vtkMath::Round(bounds[2]/spacing[1]);
+//       transform[2] = vtkMath::Round(bounds[4]/spacing[2]);
+//     }
 
     for (int i = vtkMath::Round(brushBounds[0]/spacing[0]); i <= vtkMath::Round(brushBounds[1]/spacing[0]); ++i)
       for (int j = vtkMath::Round(brushBounds[2]/spacing[1]); j <= vtkMath::Round(brushBounds[3]/spacing[1]); ++j)

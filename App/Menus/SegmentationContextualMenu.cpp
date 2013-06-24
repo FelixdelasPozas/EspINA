@@ -330,9 +330,7 @@ void DefaultContextualMenu::displayVisualizationSettings()
           representationItem->setCheckState(representation->isActive()?Qt::Checked:Qt::Unchecked);
           representationItem->setCheckable(true);
 
-          GraphicalRepresentationSettings *settings = representation->settingsWidget();
-          settings->Get(representation);
-          representations[representationItem] = settings;
+          representations[representationItem] = representation->settingsWidget();
         }
         else
         {
@@ -340,6 +338,7 @@ void DefaultContextualMenu::displayVisualizationSettings()
           if (representationItem->checkState() != checkState)
             representationItem->setCheckState(Qt::PartiallyChecked);
         }
+        representations[representationItem]->Get(representation);
       }
     }
 

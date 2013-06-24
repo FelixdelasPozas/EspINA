@@ -147,7 +147,6 @@ namespace EspINA
 
     private:
       FilterOutputId m_outputId;
-      //double m_spacing[3];
     };
 
   public:

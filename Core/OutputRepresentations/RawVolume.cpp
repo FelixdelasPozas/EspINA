@@ -123,10 +123,23 @@ void volumeBounds(itkVolumeType::Pointer volume, double out[6])
     vtkMath::UninitializeBounds(out);
 }
 
+int voxelIndex(Nm point, Nm spacing)
+{
+  int voxel = 0;
+
+  if (point >= 0)
+    //voxel = ceil(point/spacing);
+    voxel = int(point/spacing + 0.5);
+  else
+    voxel = floor(point/spacing + 0.5);
+
+  return voxel;
+}
+
 /// Espina regions are defined using bounds. Bounds are given as a range of 
 /// nm composing a volume. This range is inclusive in its lower limit and exclusive
 /// in its upper limit, i.e. [lower bound, upper bound). Thus, is important not to
-/// take upper bound as part of the volume is multiple of the spacing
+/// take upper bound as part of it when the volume is multiple of the spacing
 //----------------------------------------------------------------------------
 VolumeRepresentation::VolumeRegion volumeRegionAux(EspinaRegion               region,
                                                    itkVolumeType::SpacingType spacing)
@@ -136,15 +149,13 @@ VolumeRepresentation::VolumeRegion volumeRegionAux(EspinaRegion               re
   itkVolumeType::IndexType min, max;
   for (int i = 0; i < 3; i++)
   {
-//     min[i] = int(region[2*i  ]/spacing[i] + 0.5);
-//     max[i] = int(region[2*i+1]/spacing[i] - 0.5);
-// 
-//     res.SetIndex(i,          min[i]);
-//     res.SetSize (i, abs(max[i] - min[i]) +  1);
-    int voxel = int(region[2*i  ]/spacing[i] + 0.5);
+    int voxel = voxelIndex(region[2*i], spacing[i]);
+
+    Nm limit       = region[2*i+1] - 0.25*spacing[i];
     Nm voxelBottom = (voxel - 0.5) * spacing[i];
+
     int size = 0;
-    while (voxelBottom < region[2*i+1])
+    while (voxelBottom < limit)
     {
       voxelBottom += spacing[i];
       ++size;
@@ -392,7 +403,6 @@ RawSegmentationVolume::RawSegmentationVolume(const EspinaRegion        &region,
 , m_VTKGenerationTime(0)
 , m_ITKGenerationTime(0)
 {
-  VolumeRegion region2 = volumeRegionAux(region, spacing);
   m_volume->SetRegions(volumeRegionAux(region, spacing));
   m_volume->SetSpacing(spacing);
   m_volume->Allocate();
@@ -1023,6 +1033,12 @@ itkVolumeIterator RawSegmentationVolume::iterator()
 //----------------------------------------------------------------------------
 itkVolumeIterator RawSegmentationVolume::iterator(const EspinaRegion& region)
 {
+//   qDebug() << "ITERATOR";
+//   qDebug() << region[0] << region[1] << region[2] << region[3] << region[4] << region[5];
+//   qDebug() << m_volume->GetSpacing()[0] << m_volume->GetSpacing()[1] << m_volume->GetSpacing()[2];
+//   volumeRegion(region).Print(std::cout);
+//   //m_volume->Print(std::cout);
+//   qDebug() << "END";
   return itkVolumeIterator(m_volume, volumeRegion(region));
 }
 

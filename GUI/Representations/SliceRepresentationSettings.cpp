@@ -34,10 +34,19 @@ void SegmentationSliceRepresentationSettings::Get(GraphicalRepresentationSPtr re
 {
   SegmentationSliceRepresentation *sliceRepresentation = dynamic_cast<SegmentationSliceRepresentation *>(representation.get());
 
+  int opacity = int(sliceRepresentation->color().alphaF()*100);
+
   if (!m_init)
   {
-    m_opacity->setValue(sliceRepresentation->color().alphaF()*100);
+    m_opacity->setValue(opacity);
     m_init = true;
+  }
+
+  if (m_opacity->value() != opacity)
+  {
+    m_opacity->setMinimum(-1);
+    m_opacity->setValue(-1);
+    m_opacity->setSpecialValueText(" ");
   }
 }
 

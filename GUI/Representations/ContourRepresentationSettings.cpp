@@ -39,6 +39,13 @@ void ContourRepresentationSettings::Get(GraphicalRepresentationSPtr representati
     m_borderWidth->setValue(contourRepresentation->lineWidth());
     m_init = true;
   }
+
+  if (m_borderWidth->value() != contourRepresentation->lineWidth())
+  {
+    m_borderWidth->setMinimum(0);
+    m_borderWidth->setValue(0);
+    m_borderWidth->setSpecialValueText(" ");
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -48,6 +55,7 @@ void ContourRepresentationSettings::Set(GraphicalRepresentationSPtr representati
 
   if (m_init)
   {
-    contourRepresentation->setLineWidth(m_borderWidth->value());
+    if (m_borderWidth->value() > 0)
+      contourRepresentation->setLineWidth(m_borderWidth->value());
   }
 }

@@ -1321,7 +1321,7 @@ void SliceView::setSlicingStep(const Nm steps[3])
     // on scrollValueChanged(sliceIndex)
     m_crosshairPoint[m_plane] = voxelCenter(sliceIndex, m_plane);
 
-    m_state->setSlicingPosition(m_slicingMatrix, voxelBottom(sliceIndex, m_plane));
+    m_state->setSlicingPosition(m_slicingMatrix, voxelCenter(sliceIndex, m_plane));
 
     m_spinBox->blockSignals(true);
     m_spinBox->setValue(m_fitToSlices ? sliceIndex + 1: slicingPosition());
@@ -1348,6 +1348,7 @@ void SliceView::setSlicingBounds(Nm bounds[6])
     return;
   }
 
+  // FIXME: compute slice
   int sliceMax = voxelSlice(bounds[2*m_plane+1], m_plane) - 1; // [lowerBound, upperBound) upper bound doesn't belong to the voxel
   int sliceMin = voxelSlice(bounds[2*m_plane]  , m_plane);
 
