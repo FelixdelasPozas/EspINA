@@ -758,7 +758,7 @@ void EspinaMainWindow::openAnalysis(const QFileInfo file)
   {
     QMessageBox box(QMessageBox::Warning,
                     tr("EspINA"),
-                    tr("File %1 could not be loaded.\n"
+                    tr("File \"%1\" could not be loaded.\n"
                     "Do you want to remove it from recent documents list?")
                     .arg(fileInfo.fileName()),
                     QMessageBox::Yes|QMessageBox::No);
