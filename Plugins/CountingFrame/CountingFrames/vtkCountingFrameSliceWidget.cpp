@@ -246,7 +246,6 @@ void vtkCountingFrameSliceWidget::SetCursor(int state)
   };
 }
 
-
 //----------------------------------------------------------------------
 void vtkCountingFrameSliceWidget::EndSelectAction(vtkAbstractWidget *w)
 {
@@ -269,10 +268,11 @@ void vtkCountingFrameSliceWidget::EndSelectAction(vtkAbstractWidget *w)
     rep->GetExclusionOffset(self->ExclusionOffset);
     for (int i = 0; i < 3; i++)
     {
+      double shift = i < 2? 0.5: -0.5;
       self->InclusionOffset[i] =
-        vtkMath::Round(self->InclusionOffset[i]/self->Resolution[i])*self->Resolution[i];
+        (vtkMath::Round(self->InclusionOffset[i]/self->Resolution[i]-shift)+shift)*self->Resolution[i];
       self->ExclusionOffset[i] =
-        vtkMath::Round(self->ExclusionOffset[i]/self->Resolution[i])*self->Resolution[i];
+        (vtkMath::Round(self->ExclusionOffset[i]/self->Resolution[i]-shift)+shift)*self->Resolution[i];
     }
   }
 

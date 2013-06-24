@@ -184,27 +184,35 @@ void EdgeDetector::run()
 
     // Left Bottom Corner
     face->GetPoint(1, LB);
+    LB[0] -= 0.5*spacing[0];
+    LB[1] += 0.5*spacing[1];
+    LB[2] -= 0.5*spacing[2];
     cell[0] = borderVertices->InsertNextPoint(LB);
 
     // Left Top Corner
     face->GetPoint(0, LT);
+    LT[0] -= 0.5*spacing[0];
+    LT[1] -= 0.5*spacing[1];
+    LT[2] -= 0.5*spacing[2];
     cell[1] = borderVertices->InsertNextPoint(LT);
 
     // Right Top Corner
     face->GetPoint(2, RT);
+    RT[0] += 0.5*spacing[0];
+    RT[1] -= 0.5*spacing[1];
+    RT[2] -= 0.5*spacing[2];
     cell[2] = borderVertices->InsertNextPoint(RT);
 
     // Right Bottom Corner
     face->GetPoint(3, RB);
+    RB[0] += 0.5*spacing[0];
+    RB[1] += 0.5*spacing[1];
+    RB[2] -= 0.5*spacing[2];
     cell[3] = borderVertices->InsertNextPoint(RB);
 
     if (z == zMin)
     {
       // Upper Inclusion Face
-      faces->InsertNextCell(4, cell);
-    } else if (z == zMax)
-    {
-      // Lower Inclusion Face
       faces->InsertNextCell(4, cell);
     } else
     {
@@ -241,6 +249,65 @@ void EdgeDetector::run()
       bottom[2] = cell[3];
       bottom[3] = cell[2];
       faces->InsertNextCell(4, bottom);
+    }
+
+    if (z == zMax)
+    {
+      // Left Bottom Corner
+      face->GetPoint(1, LB);
+      LB[2] += spacing[2];
+      cell[0] = borderVertices->InsertNextPoint(LB);
+
+      // Left Top Corner
+      face->GetPoint(0, LT);
+      LT[2] += spacing[2];
+      cell[1] = borderVertices->InsertNextPoint(LT);
+
+      // Right Top Corner
+      face->GetPoint(2, RT);
+      RT[2] += spacing[2];
+      cell[2] = borderVertices->InsertNextPoint(RT);
+
+      // Right Bottom Corner
+      face->GetPoint(3, RB);
+      RB[2] += spacing[2];
+      cell[3] = borderVertices->InsertNextPoint(RB);
+
+      // Create lateral faces
+      // Left Inclusion Face
+      vtkIdType left[4];
+      left[0] = lastCell[3];
+      left[1] = lastCell[0];
+      left[2] = cell[0];
+      left[3] = cell[3];
+      faces->InsertNextCell(4, left);
+
+      // Right Exclusion Face
+      vtkIdType right[4];
+      right[0] = lastCell[1];
+      right[1] = lastCell[2];
+      right[2] = cell[2];
+      right[3] = cell[1];
+      faces->InsertNextCell(4, right);
+
+      // Top Inclusion Face
+      vtkIdType top[4];
+      top[0] = lastCell[0];
+      top[1] = lastCell[1];
+      top[2] = cell[1];
+      top[3] = cell[0];
+      faces->InsertNextCell(4, top);
+
+      // Bottom Exclusion Face
+      vtkIdType bottom[4];
+      bottom[0] = lastCell[2];
+      bottom[1] = lastCell[3];
+      bottom[2] = cell[3];
+      bottom[3] = cell[2];
+      faces->InsertNextCell(4, bottom);
+
+      // Lower Inclusion Face
+      faces->InsertNextCell(4, cell);
     }
     memcpy(lastCell,cell,4*sizeof(vtkIdType));
 

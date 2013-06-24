@@ -70,6 +70,17 @@ bool MeshProxy::isValid() const
 }
 
 //-----------------------------------------------------------------------------
+EspinaRegion MeshProxy::representationBounds()
+{
+  EspinaRegion res;
+
+  if (m_meshRepresentation)
+    res = m_meshRepresentation->representationBounds();
+
+  return res;
+}
+
+//-----------------------------------------------------------------------------
 bool MeshProxy::isEdited() const
 {
   bool res = false;

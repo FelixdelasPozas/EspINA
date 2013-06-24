@@ -19,10 +19,22 @@
 
 #include "MeshType.h"
 
+#include <vtkAlgorithmOutput.h>
+#include <vtkPolyData.h>
+#include <vtkAlgorithm.h>
+
 using namespace EspINA;
 
 //----------------------------------------------------------------------------
 const FilterOutput::OutputRepresentationName MeshRepresentation::TYPE = "MeshOutputType";
+
+//----------------------------------------------------------------------------
+EspinaRegion MeshRepresentation::representationBounds()
+{
+  vtkPolyData *polyData = dynamic_cast<vtkPolyData *>(mesh()->GetProducer()->GetOutputDataObject(0));
+
+  return EspinaRegion(polyData->GetBounds());
+}
 
 //----------------------------------------------------------------------------
 MeshRepresentationSPtr EspINA::meshRepresentation(OutputSPtr output)

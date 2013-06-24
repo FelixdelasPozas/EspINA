@@ -90,7 +90,7 @@ void ChannelReader::run()
 //----------------------------------------------------------------------------
 void ChannelReader::run(FilterOutputId oId)
 {
-  qDebug() << "Executing ChannelReader run";
+  //qDebug() << "Executing ChannelReader run";
   Q_ASSERT(0 == oId);
   QFileInfo file = m_args[FILE];
   if (!file.exists())

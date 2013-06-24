@@ -93,6 +93,7 @@ namespace EspINA
     FilterOutput::OutputRepresentationName type() const
     { return TYPE; }
 
+    virtual EspinaRegion representationBounds();
    // virtual void markAsModified(bool emitSignal = true) = 0;
 
   protected:
@@ -141,6 +142,8 @@ namespace EspINA
     { return QString("%1/%2").arg(SegmentationVolume::TYPE).arg(fileName); }
 
   public:
+    virtual EspinaRegion representationBounds();
+
     FilterOutput::OutputRepresentationName type() const
     { return TYPE; }
 

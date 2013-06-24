@@ -152,9 +152,9 @@ QVariant Segmentation::data(int role) const
         double bounds[6];
         output()->region().bounds(bounds);
         boundsInfo = tr("<b>Sections:</b><br>");
-        boundsInfo = boundsInfo.append(TAB+"X: %1 nm - %2 nm <br>").arg(bounds[0]).arg(bounds[1]);
-        boundsInfo = boundsInfo.append(TAB+"Y: %1 nm - %2 nm <br>").arg(bounds[2]).arg(bounds[3]);
-        boundsInfo = boundsInfo.append(TAB+"Z: %1 nm - %2 nm").arg(bounds[4]).arg(bounds[5]);
+        boundsInfo = boundsInfo.append(TAB+"X: [%1 nm, %2 nm)<br>").arg(bounds[0]).arg(bounds[1]);
+        boundsInfo = boundsInfo.append(TAB+"Y: [%1 nm, %2 nm)<br>").arg(bounds[2]).arg(bounds[3]);
+        boundsInfo = boundsInfo.append(TAB+"Z: [%1 nm, %2 nm)").arg(bounds[4]).arg(bounds[5]);
 
         //filterInfo = tr("<b>Filter:</b><br> %1<br>").arg(TAB+filter()->data().toString());
         filterInfo = m_filter->data(Qt::ToolTipRole).toString();

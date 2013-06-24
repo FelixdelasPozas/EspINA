@@ -39,6 +39,8 @@ namespace EspINA
 
     virtual bool isValid() const;
 
+    virtual EspinaRegion representationBounds();
+
     virtual bool isEdited() const;
 
     virtual void clearEditedRegions();

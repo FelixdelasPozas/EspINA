@@ -1348,7 +1348,6 @@ void SliceView::setSlicingBounds(Nm bounds[6])
     return;
   }
 
-  // FIXME: compute slice
   int sliceMax = voxelSlice(bounds[2*m_plane+1], m_plane) - 1; // [lowerBound, upperBound) upper bound doesn't belong to the voxel
   int sliceMin = voxelSlice(bounds[2*m_plane]  , m_plane);
 

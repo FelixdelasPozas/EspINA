@@ -587,8 +587,8 @@ void CountingFramePanel::changeUnitMode(bool useSlices)
 
 //------------------------------------------------------------------------
 void CountingFramePanel::computeOptimalMargins(Channel* channel,
-                                           Nm inclusion[3],
-                                           Nm exclusion[3])
+                                               Nm inclusion[3],
+                                               Nm exclusion[3])
 {
   double spacing[3];
   channel->volume()->spacing(spacing);
@@ -615,25 +615,25 @@ void CountingFramePanel::computeOptimalMargins(Channel* channel,
       Nm dist2Margin[6];
       marginExt->edgeDistance(dist2Margin);
 
-      double segBounds[6];
-      double segSpacing[3];
+      Nm segBounds[6];
+      Nm segSpacing[3];
       SegmentationVolumeSPtr volume = segmentationVolume(seg->output());
       volume->spacing(segSpacing);
       volume->bounds(segBounds);
 
       for (int i=0; i < 3; i++)
       {
-        double length = segBounds[2*i+1] - segBounds[2*i];
-        length += segSpacing[i];
+        double shift = i < 2? 0.5:-0.5;
+        Nm length = segBounds[2*i+1] - segBounds[2*i];
         if (dist2Margin[2*i] < delta[i])
-          inclusion[i] = std::max(length, inclusion[i]);
-        if (dist2Margin[2*i+1] < delta[i])
-          exclusion[i] = std::max(length, exclusion[i]);
+          inclusion[i] = (vtkMath::Round(std::max(length, inclusion[i])/spacing[i]-shift)+shift)*spacing[i];
+//         if (dist2Margin[2*i+1] < delta[i])
+//           exclusion[i] = std::max(length, exclusion[i]);
       }
     }
   }
-  //qDebug() << "Inclusion:" << inclusion[0] << inclusion[1] << inclusion[2];
-  //qDebug() << "Exclusion:" << exclusion[0] << exclusion[1] << exclusion[2];
+//   qDebug() << "Inclusion:" << inclusion[0] << inclusion[1] << inclusion[2];
+//   qDebug() << "Exclusion:" << exclusion[0] << exclusion[1] << exclusion[2];
 }
 
 //------------------------------------------------------------------------

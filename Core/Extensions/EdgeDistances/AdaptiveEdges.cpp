@@ -25,6 +25,7 @@
 #include "Core/Model/Segmentation.h"
 #include <Core/Model/EspinaModel.h>
 #include <Core/Model/Filter.h>
+#include <Core/OutputRepresentations/MeshType.h>
 
 #include <vtkAppendPolyData.h>
 #include <vtkCellArray.h>
@@ -324,13 +325,13 @@ void AdaptiveEdges::invalidate(ChannelPtr channel)
 //-----------------------------------------------------------------------------
 void AdaptiveEdges::computeDistanceToEdge(SegmentationPtr seg)
 {
-  /* FIXME
   Segmentation::InformationExtension ext = seg->informationExtension(EdgeDistanceID);
   Q_ASSERT(ext);
   EdgeDistance *distanceExt = edgeDistancePtr(ext);
 
-  Nm distance[6], smargins[6];
-  seg->volume()->bounds(smargins);
+  SegmentationVolumeSPtr segVolume = segmentationVolume(seg->output());
+  Nm distance[6], segMargins[6];
+  segVolume->bounds(segMargins);
 
   ExtensionData &data = s_cache[m_channel].Data;
   if (m_useAdaptiveEdges)
@@ -344,7 +345,7 @@ void AdaptiveEdges::computeDistanceToEdge(SegmentationPtr seg)
     {
       vtkSmartPointer<vtkDistancePolyDataFilter> distanceFilter = vtkSmartPointer<vtkDistancePolyDataFilter>::New();
       distanceFilter->SignedDistanceOff();
-      distanceFilter->SetInputConnection( 0, seg->volume()->toMesh());
+      distanceFilter->SetInputConnection( 0, meshRepresentation(seg->output())->mesh());
       distanceFilter->SetInputConnection( 1, data.Faces[face]->GetProducerPort());
       distanceFilter->Update();
       distance[face] = distanceFilter->GetOutput()->GetPointData()->GetScalars()->GetRange()[0];
@@ -352,16 +353,15 @@ void AdaptiveEdges::computeDistanceToEdge(SegmentationPtr seg)
   }
   else
   {
-    double cmargins[6];
-    m_channel->volume()->bounds(cmargins);
+    Nm channelMargins[6];
+    m_channel->volume()->bounds(channelMargins);
     for (int i = 0; i < 6; i+=2)
-      distance[i] = smargins[i] - cmargins[i];
+      distance[i] = segMargins[i] - channelMargins[i];
     for (int i = 1; i < 6; i+=2)
-      distance[i] = cmargins[i] - smargins[i];
+      distance[i] = channelMargins[i] - segMargins[i];
   }
 
   distanceExt->setDistances(distance);
-  */
 }
 
 //-----------------------------------------------------------------------------
@@ -385,19 +385,17 @@ vtkSmartPointer<vtkPolyData> AdaptiveEdges::channelEdges()
 Nm AdaptiveEdges::computedVolume()
 {
   Nm volume = 0;
-  if (m_useAdaptiveEdges)
-  {
-    loadEdgesCache(m_channel);
 
-    ExtensionData &data = s_cache[m_channel].Data;
-    // Ensure Margin Detector's finished
-    if (NULL == data.Edges.GetPointer())
-      computeAdaptiveEdges();
+  loadEdgesCache(m_channel);
 
-    m_mutex.lock();
-    volume = data.ComputedVolume;
-    m_mutex.unlock();
-  }
+  ExtensionData &data = s_cache[m_channel].Data;
+  // Ensure Margin Detector's finished
+  if (NULL == data.Edges.GetPointer())
+    computeAdaptiveEdges();
+
+  m_mutex.lock();
+  volume = data.ComputedVolume;
+  m_mutex.unlock();
 
   return volume;
 }

@@ -40,22 +40,13 @@ FilterOutput::FilterOutput(Filter *filter, const FilterOutputId &id)
 : m_id(id)
 , m_isCached(false)
 , m_filter(filter)
-, m_region(0, -1, 0, -1, 0, -1)
 {
-  // FIXME
-  //if (isValid()) this->volume->toITK()->DisconnectPipeline();
 }
 
 //----------------------------------------------------------------------------
 void FilterOutput::update()
 {
   m_filter->update(m_id);
-}
-
-//----------------------------------------------------------------------------
-void FilterOutput::setRegion(const EspinaRegion &region)
-{
-  m_region = region;
 }
 
 //----------------------------------------------------------------------------
@@ -86,6 +77,27 @@ bool ChannelOutput::isValid() const
   return NULL != m_filter
       && INVALID_OUTPUT_ID < m_id
       && validData;
+}
+
+//----------------------------------------------------------------------------
+EspinaRegion ChannelOutput::region() const
+{
+  EspinaRegion bb;
+
+  bool first = true;
+  foreach (ChannelRepresentationSPtr representation, m_representations)
+  {
+    if (first)
+    {
+      bb    = representation->representationBounds();
+      first = false;
+    } else
+    {
+      bb = BoundingBox(bb, representation->representationBounds());
+    }
+  }
+
+  return bb;
 }
 
 
@@ -153,19 +165,6 @@ bool SegmentationOutput::dumpSnapshot(const QString &prefix, Snapshot &snapshot,
   return dumped;
 }
 
-// //----------------------------------------------------------------------------
-// bool SegmentationOutput::fetchSnapshot(const QString &prefix)
-// {
-//   bool fetched = true;
-// 
-//   foreach(SegmentationRepresentationSPtr rep, m_representations)
-//   {
-//     fetched &= rep->fetchSnapshot(m_filter, prefix);
-//   }
-// 
-//   return fetched;
-// }
-
 //----------------------------------------------------------------------------
 bool SegmentationOutput::isValid() const
 {
@@ -182,6 +181,28 @@ bool SegmentationOutput::isValid() const
       && INVALID_OUTPUT_ID < m_id
       && validData;
 }
+
+//----------------------------------------------------------------------------
+EspinaRegion SegmentationOutput::region() const
+{
+  EspinaRegion bb;
+
+  bool first = true;
+  foreach (SegmentationRepresentationSPtr representation, m_representations)
+  {
+    if (first)
+    {
+      bb    = representation->representationBounds();
+      first = false;
+    } else
+    {
+      bb = BoundingBox(bb, representation->representationBounds());
+    }
+  }
+
+  return bb;
+}
+
 
 //----------------------------------------------------------------------------
 bool SegmentationOutput::isEdited() const

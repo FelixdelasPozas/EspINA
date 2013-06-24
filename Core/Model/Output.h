@@ -105,10 +105,9 @@ namespace EspINA
     /// Some filters may execute partial updates
     void update();
 
-    void setRegion(const EspinaRegion &region);
-
-    EspinaRegion region() const
-    { return m_region; }
+    // TODO: Representation may have different bounds, in which case,
+    // this function will be needed to represent the bounding box of all those regions
+    virtual EspinaRegion region() const = 0;
 
     void addGraphicalRepresentation(GraphicalRepresentationSPtr prototype)
     { m_repPrototypes << prototype; }
@@ -129,7 +128,6 @@ namespace EspINA
     FilterOutputId m_id;
     bool           m_isCached; /// Whether output is used by a segmentation
     FilterPtr      m_filter;
-    EspinaRegion   m_region;
 
     GraphicalRepresentationSList m_repPrototypes;
   };
@@ -148,6 +146,8 @@ namespace EspINA
     explicit ChannelOutput(Filter *filter = 0, const FilterOutputId &id = INVALID_OUTPUT_ID);
 
     virtual bool isValid() const;
+
+    virtual EspinaRegion region() const;
 
     void setRepresentation(const OutputRepresentationName &name, ChannelRepresentationSPtr representation)
     { m_representations[name] = representation; }
@@ -175,6 +175,8 @@ namespace EspINA
     bool dumpSnapshot (const QString &prefix, Snapshot &snapshot, bool saveEditedRegions);
 
     virtual bool isValid() const;
+
+    virtual EspinaRegion region() const;
 
     bool isEdited() const;
 

@@ -88,6 +88,8 @@ namespace EspINA
 
     virtual bool isValid() const;
 
+    virtual EspinaRegion representationBounds();
+
     virtual void addEditedRegion(const EspinaRegion &region, int id = -1);
 
     virtual void clearEditedRegions();

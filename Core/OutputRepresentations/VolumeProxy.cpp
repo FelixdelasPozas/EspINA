@@ -163,6 +163,17 @@ bool VolumeProxy::isValid() const
 }
 
 //-----------------------------------------------------------------------------
+EspinaRegion VolumeProxy::representationBounds()
+{
+  EspinaRegion res;
+
+  if (m_volumeRepresentation)
+    res = m_volumeRepresentation->representationBounds();
+
+  return res;
+}
+
+//-----------------------------------------------------------------------------
 void VolumeProxy::addEditedRegion(const EspinaRegion &region, int cacheId)
 {
   if (m_volumeRepresentation)

@@ -174,10 +174,10 @@ void AdaptiveCountingFrame::updateCountingFrameImplementation()
     m_channel->addExtension(edgesExtension);
   }
   Q_ASSERT(edgesExtension);
-  m_totalVolume = edgesExtension->computedVolume();
-
   vtkSmartPointer<vtkPolyData> margins = edgesExtension->channelEdges();
   Q_ASSERT(margins.GetPointer());
+
+  m_totalVolume = edgesExtension->computedVolume();
 
   int inSliceOffset = upperOffset() / spacing[2];
   int exSliceOffset = lowerOffset() / spacing[2];

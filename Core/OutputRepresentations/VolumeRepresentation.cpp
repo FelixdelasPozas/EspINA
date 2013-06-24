@@ -30,6 +30,12 @@ typedef itk::ImageFileWriter<itkVolumeType> EspinaVolumeWriter;
 const FilterOutput::OutputRepresentationName ChannelVolume::TYPE = "ChannelVolume";
 
 //----------------------------------------------------------------------------
+EspinaRegion ChannelVolume::representationBounds()
+{
+  return espinaRegion();
+}
+
+//----------------------------------------------------------------------------
 ChannelVolumePtr EspINA::channelVolume(OutputPtr output)
 {
   ChannelOutputPtr channelOutput = dynamic_cast<ChannelOutputPtr>(output);
@@ -48,6 +54,12 @@ ChannelVolumeSPtr EspINA::channelVolume(OutputSPtr output)
 
 //----------------------------------------------------------------------------
 const FilterOutput::OutputRepresentationName SegmentationVolume::TYPE = "SegmentationVolume";
+
+//----------------------------------------------------------------------------
+EspinaRegion SegmentationVolume::representationBounds()
+{
+  return espinaRegion();
+}
 
 //----------------------------------------------------------------------------
 bool SegmentationVolume::EditedVolumeRegion::dump(QDir           cacheDir,

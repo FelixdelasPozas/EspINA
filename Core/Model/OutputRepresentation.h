@@ -68,6 +68,11 @@ namespace EspINA
 
     virtual bool isValid() const = 0;
 
+    // TODO: Use this name to avoid collisions with bounds methods already defined
+    // in some representations. These methods will be deprecated in next version
+    // in favour of using EspinaBounds (former EspinaRegion)
+    virtual EspinaRegion representationBounds() = 0;
+
   signals:
     void representationChanged();
 
