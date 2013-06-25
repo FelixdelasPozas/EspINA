@@ -186,6 +186,7 @@ void ChannelSliceRepresentation::initializePipeline()
   m_actor->SetInterpolate(false);
   m_actor->GetMapper()->BorderOn();
   m_actor->GetMapper()->SetInputConnection(m_mapToColors->GetOutputPort());
+  m_actor->SetVisibility(isVisible());
   m_actor->Update();
 }
 

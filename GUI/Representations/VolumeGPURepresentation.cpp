@@ -168,6 +168,7 @@ void VolumeGPURaycastRepresentation::initializePipeline()
   m_actor->PickableOn();
   m_actor->SetMapper(m_mapper);
   m_actor->SetProperty(property);
+  m_actor->SetVisibility(isVisible());
   m_actor->Update();
 }
 

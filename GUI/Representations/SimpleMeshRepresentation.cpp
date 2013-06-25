@@ -60,6 +60,7 @@ void SimpleMeshRepresentation::initializePipeline()
   double *rgba = colors->GetTableValue(1);
   m_actor->GetProperty()->SetColor(rgba[0], rgba[1], rgba[2]);
   m_actor->GetProperty()->SetOpacity(rgba[3]);
+  m_actor->SetVisibility(isVisible());
   m_actor->Modified();
 }
 

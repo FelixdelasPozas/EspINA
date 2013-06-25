@@ -156,6 +156,7 @@ void VolumeRaycastRepresentation::initializePipeline()
 
   m_actor->SetMapper(m_mapper);
   m_actor->SetProperty(property);
+  m_actor->SetVisibility(isVisible());
   m_actor->Update();
 }
 

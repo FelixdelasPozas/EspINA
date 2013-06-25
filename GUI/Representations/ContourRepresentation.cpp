@@ -149,6 +149,7 @@ void ContourRepresentation::initializePipeline()
   m_actor->GetProperty()->SetColor(rgba[0],rgba[1],rgba[2]);
   m_actor->GetProperty()->SetOpacity(rgba[3]);
   m_actor->GetProperty()->Modified();
+  m_actor->SetVisibility(isVisible());
   m_actor->Modified();
 
   // need to reposition the actor so it will always be over the channels actors'
