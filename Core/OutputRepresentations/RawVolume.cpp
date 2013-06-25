@@ -123,6 +123,7 @@ void volumeBounds(itkVolumeType::Pointer volume, double out[6])
     vtkMath::UninitializeBounds(out);
 }
 
+//----------------------------------------------------------------------------
 int voxelIndex(Nm point, Nm spacing)
 {
   int voxel = 0;
@@ -146,7 +147,6 @@ VolumeRepresentation::VolumeRegion volumeRegionAux(EspinaRegion               re
 {
   VolumeRepresentation::VolumeRegion res;
 
-  itkVolumeType::IndexType min, max;
   for (int i = 0; i < 3; i++)
   {
     int voxel = voxelIndex(region[2*i], spacing[i]);
@@ -519,20 +519,14 @@ void RawSegmentationVolume::draw(vtkPolyData *contour,
   contour->GetBounds(contourBounds);
 
   EspinaRegion polyDataRegion = espinaRegionAux(m_volume, contourBounds);
-  EspinaRegion current = espinaRegion();
 
   if(!polyDataRegion.isInside(espinaRegion()))
     expandToFitRegion(polyDataRegion);
 
+  addEditedRegion(polyDataRegion);
+
   // vtkPolyDataToImageStencil filter only works in XY plane so we must rotate the contour to that plane
   itkVolumeType::SpacingType spacing = m_volume->GetSpacing();
-
-  for (int i = 0; i < 6; ++i) // TODO: Test
-    polyDataRegion[i] = vtkMath::Round(polyDataRegion[i] /spacing[i/2]) * spacing[i/2];
-  
-  //polyDataRegion[2*plane+1] += spacing[plane];
-
-  addEditedRegion(polyDataRegion);
 
   int count = contour->GetPoints()->GetNumberOfPoints();
   vtkSmartPointer<vtkPolyData> rotatedContour = vtkSmartPointer<vtkPolyData>::New();
@@ -598,13 +592,17 @@ void RawSegmentationVolume::draw(vtkPolyData *contour,
 
   rotatedContour->Update();
 
+  VolumeRepresentation::VolumeRegion contourRegion = volumeRegionAux(polyDataRegion, m_volume->GetSpacing());
+  VolumeRepresentation::VolumeRegion::IndexType contourRegionIndex = contourRegion.GetIndex();
+  VolumeRepresentation::VolumeRegion::SizeType contourRegionSize = contourRegion.GetSize();
+
   int extent[6] = {
-    vtkMath::Round(contourBounds[0]/spacing[0]),
-    vtkMath::Round(contourBounds[1]/spacing[0]),
-    vtkMath::Round(contourBounds[2]/spacing[1]),
-    vtkMath::Round(contourBounds[3]/spacing[1]),
-    vtkMath::Round(contourBounds[4]/spacing[2]),
-    vtkMath::Round(contourBounds[5]/spacing[2])
+      contourRegionIndex[0],
+      contourRegionIndex[0] + contourRegionSize[0] -1,
+      contourRegionIndex[1],
+      contourRegionIndex[1] + contourRegionSize[1] -1,
+      contourRegionIndex[2],
+      contourRegionIndex[2] + contourRegionSize[2] -1
   };
 
   // extent and spacing should be changed because vtkPolyDataToImageStencil filter only works in XY plane
@@ -637,7 +635,7 @@ void RawSegmentationVolume::draw(vtkPolyData *contour,
       Q_ASSERT(false);
       break;
   }
-  extent[4] = extent[5] = vtkMath::Round(slicePosition/spacing[2]);
+  extent[4] = extent[5] = contourRegionIndex[plane];
 
   vtkSmartPointer<vtkPolyDataToImageStencil> polyDataToStencil = vtkSmartPointer<vtkPolyDataToImageStencil>::New();
   polyDataToStencil->SetInputConnection(rotatedContour->GetProducerPort());
@@ -654,21 +652,6 @@ void RawSegmentationVolume::draw(vtkPolyData *contour,
   stencilToImage->Update();
 
   vtkImageData *outputImage = stencilToImage->GetOutput();
-
-  // we have to check the image index to know if there is a discrepancy between bounds and index
-  spacing = m_volume->GetSpacing();
-  itkVolumeType::IndexType temporalIndex = m_volume->GetLargestPossibleRegion().GetIndex();
-  bounds(contourBounds);
-  bool transformIndex = false;
-  if ( vtkMath::Round(contourBounds[0]/spacing[0]) != temporalIndex[0]
-    || vtkMath::Round(contourBounds[2]/spacing[1]) != temporalIndex[1]
-    || vtkMath::Round(contourBounds[4]/spacing[2]) != temporalIndex[2])
-  {
-    transformIndex = true;
-    temporalIndex[0] = vtkMath::Round(contourBounds[0]/spacing[0]);
-    temporalIndex[1] = vtkMath::Round(contourBounds[2]/spacing[1]);
-    temporalIndex[2] = vtkMath::Round(contourBounds[4]/spacing[2]);
-  }
 
   itk::Index<3> imageIndex;
   imageIndex[0] = imageIndex[1] = imageIndex[2] = 0;
@@ -699,13 +682,6 @@ void RawSegmentationVolume::draw(vtkPolyData *contour,
           default:
             Q_ASSERT(false);
             break;
-        }
-
-        if (transformIndex)
-        {
-          imageIndex[0] -= temporalIndex[0];
-          imageIndex[1] -= temporalIndex[1];
-          imageIndex[2] -= temporalIndex[2];
         }
 
         pixel = reinterpret_cast<unsigned char*>(outputImage->GetScalarPointer(x, y, z));

@@ -51,6 +51,9 @@ namespace EspINA
       void rasterizeContour(ContourWidget::ContourData) const;
 
     private:
+      // helper method
+      bool intersect(const EspinaRegion &region1, const EspinaRegion &region2) const;
+
       typedef SegmentationVolume::EditedVolumeRegionSList EditedRegionSList;
 
       SegmentationSPtr                   m_segmentation;

@@ -815,16 +815,6 @@ void EspinaMainWindow::openAnalysis(const QFileInfo file)
   ChannelPtr channel = m_model->channels().first().get();
   m_viewManager->setActiveChannel(channel);
 
-  if (EspinaIO::isChannelExtension(fileInfo.suffix()))
-  {
-    AdaptiveEdgesDialog edgesDialog(this);
-    edgesDialog.exec();
-    if (edgesDialog.useAdaptiveEdges())
-    {
-      channel->addExtension(new AdaptiveEdges(true, edgesDialog.color(), edgesDialog.threshold()));
-    }
-  }
-
   setWindowTitle(file.fileName());
 
   if (file.suffix().toLower() == QString("seg"))
@@ -836,6 +826,16 @@ void EspinaMainWindow::openAnalysis(const QFileInfo file)
 
   m_viewManager->updateSegmentationRepresentations();
   m_viewManager->updateViews();
+
+  if (EspinaIO::isChannelExtension(fileInfo.suffix()))
+  {
+    AdaptiveEdgesDialog edgesDialog(this);
+    edgesDialog.exec();
+    if (edgesDialog.useAdaptiveEdges())
+    {
+      channel->addExtension(new AdaptiveEdges(true, edgesDialog.color(), edgesDialog.threshold()));
+    }
+  }
 
   m_model->emitChannelAdded(m_model->channels());
   m_model->emitSegmentationAdded(m_model->segmentations());

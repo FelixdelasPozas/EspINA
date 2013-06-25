@@ -64,4 +64,6 @@ namespace EspINA
 
 } // namespace EspINA
 
+QDebug operator<< (QDebug qd, const EspINA::EspinaRegion &region);
+
 #endif // ESPINAREGION_H

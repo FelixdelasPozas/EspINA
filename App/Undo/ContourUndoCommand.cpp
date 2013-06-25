@@ -105,6 +105,16 @@ namespace EspINA
   }
 
   //----------------------------------------------------------------------------
+  bool ContourUndoCommand::intersect(const EspinaRegion &region1, const EspinaRegion &region2) const
+  {
+    bool xOverlap = region1.xMin() < region2.xMax() && region1.xMax() > region2.xMin();
+    bool yOverlap = region1.yMin() < region2.yMax() && region1.yMax() > region2.yMin();
+    bool zOverlap = region1.zMin() < region2.zMax() && region1.zMax() > region2.zMin();
+
+    return xOverlap && yOverlap && zOverlap;
+  }
+
+  //----------------------------------------------------------------------------
   void ContourUndoCommand::rasterizeContour(ContourWidget::ContourData contour) const
   {
     SegmentationVolumeSPtr volume = segmentationVolume(m_segmentation->output());
@@ -116,23 +126,50 @@ namespace EspINA
     else
       m_prevRegions = volume->editedRegions();
 
+    Nm spacingNm[3];
+    PlaneType plane = contour.Plane;
     contour.PolyData->ComputeBounds();
     contour.PolyData->GetBounds(m_bounds);
-    EspinaRegion contourRegion(m_bounds);
 
+    // bounds need to be corrected in the contour plane and adapted to
+    // the soon-to-be-created segmentation volume
+    volume->spacing(spacingNm);
+    m_bounds[2*plane    ] -= spacingNm[plane]/2;
+    m_bounds[(2*plane)+1] = m_bounds[2*plane] + spacingNm[plane];
+
+    for (int i = 0; i < 3; i++)
+    {
+      int voxelIndex = 0;
+      if (m_bounds[2*i] >= 0)
+        voxelIndex = int(m_bounds[2*i]/spacingNm[i] + 0.5);
+      else
+        voxelIndex = floor(m_bounds[2*i]/spacingNm[i] + 0.5);
+
+      Nm limit       = m_bounds[2*i+1] - 0.25*spacingNm[i];
+      Nm voxelBottom = (voxelIndex - 0.5) * spacingNm[i];
+
+      m_bounds[2*i] = voxelBottom;
+
+      while (voxelBottom < limit)
+        voxelBottom += spacingNm[i];
+
+      m_bounds[(2*i)+1] = voxelBottom;
+    }
+
+    EspinaRegion contourRegion(m_bounds);
     if (!contourRegion.isInside(volume->espinaRegion()))
     {
       m_needReduction = true;
-
-      if (contourRegion.intersect(volume->espinaRegion()))
+      EspinaRegion volumeRegion = volume->espinaRegion();
+      if (intersect(contourRegion, volumeRegion))
         m_prevVolume = volume->cloneVolume(contourRegion.intersection(volume->espinaRegion()));
     }
     else
       m_prevVolume = volume->cloneVolume(contourRegion);
 
-    Nm pos = contour.PolyData->GetPoints()->GetPoint(0)[contour.Plane];
+    Nm pos = contour.PolyData->GetPoints()->GetPoint(0)[plane] - spacingNm[plane]/2;
     itkVolumeType::PixelType value = ((contour.Mode == Brush::BRUSH) ? SEG_VOXEL_VALUE : SEG_BG_VALUE);
-    volume->draw(contour.PolyData, pos, contour.Plane, value);
+    volume->draw(contour.PolyData, pos, plane, value);
     m_newVolume = volume->cloneVolume(contourRegion);
 
     m_viewManager->updateSegmentationRepresentations(m_segmentation.get());
@@ -221,18 +258,41 @@ namespace EspINA
       m_contour.PolyData->Delete();
       m_contour.PolyData = NULL;
     }
-    Nm polyBounds[6];
+    Nm polyBounds[6], spacingNm[3];
     PlaneType plane = contour.Plane;
     contour.PolyData->GetBounds(polyBounds);
     
-    polyBounds[2*plane+1] += m_channel->volume()->spacing()[plane];
+    // bounds need to be corrected in the contour plane and adapted to
+    // the soon-to-be-created segmentation volume
+    m_channel->volume()->spacing(spacingNm);
+    polyBounds[2*plane    ] -= spacingNm[plane]/2;
+    polyBounds[(2*plane)+1] = polyBounds[2*plane] + spacingNm[plane];
+
+    for (int i = 0; i < 3; i++)
+    {
+      int voxelIndex;
+      if (polyBounds[2*i] >= 0)
+        voxelIndex = int(polyBounds[2*i]/spacingNm[i] + 0.5);
+      else
+        voxelIndex = floor(polyBounds[2*i]/spacingNm[i] + 0.5);
+
+      Nm voxelTop = voxelIndex * spacingNm[i] - spacingNm[i]/2;
+      Nm limit       = polyBounds[2*i+1] - 0.25*spacingNm[i];
+      Nm voxelBottom = (voxelIndex - 0.5) * spacingNm[i];
+
+      while (voxelBottom < limit)
+        voxelBottom += spacingNm[i];
+
+      polyBounds[2*i] = voxelTop;
+      polyBounds[(2*i)+1] = voxelBottom;
+    }
 
     m_filter = FilterSPtr(new FreeFormSource(EspinaRegion(polyBounds),
                           m_channel->volume()->spacing(),
                           FilledContour::FILTER_TYPE));
     SetBasicGraphicalRepresentationFactory (m_filter);
 
-    Nm pos = contour.PolyData->GetPoints()->GetPoint(0)[plane];
+    Nm pos = contour.PolyData->GetPoints()->GetPoint(0)[plane] - spacingNm[plane]/2;
     itkVolumeType::PixelType value = ((contour.Mode == Brush::BRUSH) ? SEG_VOXEL_VALUE : SEG_BG_VALUE);
 
     SegmentationVolumeSPtr currentVolume = segmentationVolume(m_filter->output(0));
@@ -266,3 +326,4 @@ namespace EspINA
   }
 
 } /* namespace EspINA */
+

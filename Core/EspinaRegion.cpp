@@ -16,9 +16,14 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+// EspINA
 #include "EspinaRegion.h"
+
+// VTK
 #include <vtkMath.h>
+
+// QT
+#include <QDebug>
 
 using namespace EspINA;
 
@@ -100,3 +105,9 @@ namespace EspINA
     return EspinaRegion(bounds);
   }
 } // namespace EspINA
+
+QDebug operator<< (QDebug qd, const EspINA::EspinaRegion &region)
+{
+    qd << "EspinaRegion [" << region.xMin() << region.xMax() << region.yMin() << region.yMax() << region.zMin() << region.zMax() << "]";
+    return qd;
+}
