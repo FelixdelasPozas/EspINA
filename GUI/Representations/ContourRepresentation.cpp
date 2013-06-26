@@ -48,7 +48,7 @@ ContourRepresentation::ContourRepresentation(SegmentationVolumeSPtr data,
 , m_width(5)
 , m_pattern(0xFFFF)
 {
-  setLabel(tr("Contour Representation"));
+  setLabel(tr("Contour"));
 }
 
 //-----------------------------------------------------------------------------
@@ -215,8 +215,8 @@ void ContourRepresentation::updatePipelineConnections()
 //-----------------------------------------------------------------------------
 void ContourRepresentation::setLineWidth(int width)
 {
-	if (m_width == width)
-		return;
+  if (m_width == width)
+    return;
 
   m_width = width;
 

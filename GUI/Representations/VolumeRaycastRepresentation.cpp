@@ -42,7 +42,7 @@ VolumeRaycastRepresentation::VolumeRaycastRepresentation(SegmentationVolumeSPtr 
 : SegmentationGraphicalRepresentation(view)
 , m_data(data)
 {
-  setLabel(tr("Volume Raycast Representation"));
+  setLabel(tr("Volume Raycast"));
 }
 
 //-----------------------------------------------------------------------------

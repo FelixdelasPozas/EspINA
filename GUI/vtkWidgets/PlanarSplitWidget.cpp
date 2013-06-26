@@ -308,7 +308,7 @@ bool PlanarSplitWidget::planeIsValid()
 }
 
 //-----------------------------------------------------------------------------
-vtkSmartPointer<vtkPlane> PlanarSplitWidget::getImplicitPlane()
+vtkSmartPointer<vtkPlane> PlanarSplitWidget::getImplicitPlane(const double spacing[3])
 {
   vtkSmartPointer<vtkPlane> plane = NULL;
 
@@ -323,7 +323,7 @@ vtkSmartPointer<vtkPlane> PlanarSplitWidget::getImplicitPlane()
     points->GetPoint(1, point2);
 
     double normal[3], upVector[3];
-    double planeVector[3] = { point2[0]-point1[0], point2[1]-point1[1], point2[2]-point1[2] };
+    double planeVector[3] = { point2[0]-point1[0] - 0.5*spacing[0], point2[1]-point1[1] - 0.5*spacing[1], point2[2]-point1[2] - 0.5*spacing[2]};
 
     switch(m_mainWidget)
     {
@@ -371,7 +371,7 @@ vtkSmartPointer< vtkImageStencilData > PlanarSplitWidget::getStencilForVolume(Se
   volume->spacing(spacing);
 
   vtkSmartPointer<vtkImplicitFunctionToImageStencil> plane2stencil = vtkSmartPointer<vtkImplicitFunctionToImageStencil>::New();
-  plane2stencil->SetInput(this->getImplicitPlane());
+  plane2stencil->SetInput(this->getImplicitPlane(spacing));
   plane2stencil->SetOutputOrigin(0, 0, 0);
   plane2stencil->SetOutputSpacing(spacing);
   plane2stencil->SetOutputWholeExtent(segExtent);

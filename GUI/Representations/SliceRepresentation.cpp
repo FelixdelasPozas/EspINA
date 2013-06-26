@@ -48,7 +48,7 @@ ChannelSliceRepresentation::ChannelSliceRepresentation(ChannelVolumeSPtr data,
 : ChannelGraphicalRepresentation(view)
 , m_data(data)
 {
-  setLabel(tr("Slice Representation"));
+  setLabel(tr("Solid"));
 }
 
 //-----------------------------------------------------------------------------
@@ -222,7 +222,7 @@ SegmentationSliceRepresentation::SegmentationSliceRepresentation(SegmentationVol
 , m_mapToColors(NULL)
 , m_actor(NULL)
 {
-  setLabel(tr("Slice Representation"));
+  setLabel(tr("Solid"));
 }
 
 //-----------------------------------------------------------------------------

@@ -35,7 +35,7 @@ using namespace EspINA;
 SimpleMeshRepresentation::SimpleMeshRepresentation(MeshRepresentationSPtr mesh, EspinaRenderView *view)
 : IMeshRepresentation(mesh, view)
 {
-  setLabel(tr("Mesh Representation"));
+  setLabel(tr("Mesh"));
 }
 
 //-----------------------------------------------------------------------------

@@ -2,7 +2,7 @@
  * PlanarSplitWidget.h
  *
  *  Created on: Nov 5, 2012
- *      Author: Félix de las Pozas Álvarez
+ *      Author: Fï¿½lix de las Pozas ï¿½lvarez
  */
 
 #ifndef PLANARSPLITWIDGET_H_
@@ -43,8 +43,12 @@ namespace EspINA
   , public vtkCommand
   {
   public:
-    explicit PlanarSplitWidget();
     virtual ~PlanarSplitWidget();
+
+    vtkTypeMacro(PlanarSplitWidget,vtkCommand);
+
+    static PlanarSplitWidget *New()
+    {return new PlanarSplitWidget();};
 
     // EspinaWidget implementation
     virtual vtkAbstractWidget *create3DWidget(VolumeView *view);
@@ -58,7 +62,7 @@ namespace EspINA
     // get/set
     virtual void setPlanePoints(vtkSmartPointer<vtkPoints>);
     virtual vtkSmartPointer<vtkPoints> getPlanePoints();
-    virtual vtkSmartPointer<vtkPlane> getImplicitPlane();
+    virtual vtkSmartPointer<vtkPlane> getImplicitPlane(const double spacing[3]);
     virtual vtkSmartPointer<vtkImageStencilData> getStencilForVolume(SegmentationVolumeSPtr volume);
     virtual void setSegmentationBounds(double *);
     virtual bool planeIsValid();
@@ -69,6 +73,9 @@ namespace EspINA
     virtual void Execute (vtkObject *caller, unsigned long eventId, void *callData);
 
     virtual bool manipulatesSegmentations() { return true; };
+
+  private:
+    explicit PlanarSplitWidget();
 
   private:
     PlanarSplitSliceWidget *m_axial;

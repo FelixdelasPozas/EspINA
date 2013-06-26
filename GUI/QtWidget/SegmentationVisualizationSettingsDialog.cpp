@@ -41,6 +41,8 @@ SegmentationVisualizationSettingsDialog::SegmentationVisualizationSettingsDialog
 
   foreach(QStandardItem *representation, settings.keys())
   {
+    representation->setEditable(false);
+
     m_representationsModel.appendRow(representation);
     m_representationsModel.sort(0);
 

@@ -41,7 +41,7 @@ VolumeGPURaycastRepresentation::VolumeGPURaycastRepresentation(SegmentationVolum
 : SegmentationGraphicalRepresentation(view)
 , m_data(data)
 {
-  setLabel(tr("Volume GPU Representation"));
+  setLabel(tr("Volume GPU"));
 }
 
 //-----------------------------------------------------------------------------

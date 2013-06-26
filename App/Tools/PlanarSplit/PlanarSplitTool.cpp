@@ -81,7 +81,7 @@ void PlanarSplitTool::setInUse(bool value)
 
   if (m_inUse)
   {
-    m_widget = new PlanarSplitWidget();
+    m_widget = PlanarSplitWidget::New();
     m_viewManager->addWidget(m_widget);
     m_viewManager->setSelectionEnabled(false);
     m_widget->setEnabled(true);
@@ -96,12 +96,6 @@ void PlanarSplitTool::setInUse(bool value)
     segVolume->bounds(bounds);
     double spacing[3];
     segVolume->spacing(spacing);
-    bounds[0] -= 0.5*spacing[0];
-    bounds[1] += 0.5*spacing[0];
-    bounds[2] -= 0.5*spacing[1];
-    bounds[3] += 0.5*spacing[1];
-    bounds[4] -= 0.5*spacing[2];
-    bounds[5] += 0.5*spacing[2];
     m_widget->setSegmentationBounds(bounds);
     m_viewManager->updateViews();
   }
@@ -114,7 +108,8 @@ void PlanarSplitTool::setInUse(bool value)
 
     m_widget->setEnabled(false);
     m_viewManager->removeWidget(m_widget);
-    delete m_widget;
+    m_widget->Delete();
+    m_widget = NULL;
     m_viewManager->updateViews();
 
     emit splittingStopped();
