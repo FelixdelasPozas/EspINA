@@ -123,14 +123,15 @@ void volumeBounds(itkVolumeType::Pointer volume, double out[6])
     vtkMath::UninitializeBounds(out);
 }
 
+#include <iostream>
 //----------------------------------------------------------------------------
 int voxelIndex(Nm point, Nm spacing)
 {
   int voxel = 0;
 
   if (point >= 0)
-    //voxel = ceil(point/spacing);
-    voxel = int(point/spacing + 0.5);
+    //voxel = ceil(point/spacing + 0.5);
+    voxel = int(point/spacing);
   else
     voxel = floor(point/spacing + 0.5);
 
@@ -452,7 +453,9 @@ void RawSegmentationVolume::draw(vtkImplicitFunction *brush,
   itkVolumeType::SpacingType spacing = m_volume->GetSpacing();
   itkVolumeType::PointType   origin  = m_volume->GetOrigin();
 
-  itkVolumeIterator it = iterator(region);
+  // NOTE: We use raw bounds to avoid round problems on the limit
+  // of the voxel interval
+  itkVolumeIterator it = iterator(EspinaRegion(bounds));
   it.GoToBegin();
   for (; !it.IsAtEnd(); ++it )
   {
@@ -596,14 +599,13 @@ void RawSegmentationVolume::draw(vtkPolyData *contour,
   VolumeRepresentation::VolumeRegion::IndexType contourRegionIndex = contourRegion.GetIndex();
   VolumeRepresentation::VolumeRegion::SizeType contourRegionSize = contourRegion.GetSize();
 
-  int extent[6] = {
-      contourRegionIndex[0],
-      contourRegionIndex[0] + contourRegionSize[0] -1,
-      contourRegionIndex[1],
-      contourRegionIndex[1] + contourRegionSize[1] -1,
-      contourRegionIndex[2],
-      contourRegionIndex[2] + contourRegionSize[2] -1
-  };
+  int extent[6];
+  extent[0] = contourRegionIndex[0];
+  extent[1] = contourRegionIndex[0] + contourRegionSize[0] -1;
+  extent[2] = contourRegionIndex[1];
+  extent[3] = contourRegionIndex[1] + contourRegionSize[1] -1;
+  extent[4] = contourRegionIndex[2];
+  extent[5] = contourRegionIndex[2] + contourRegionSize[2] -1;
 
   // extent and spacing should be changed because vtkPolyDataToImageStencil filter only works in XY plane
   // and we've rotated the contour to that plane
