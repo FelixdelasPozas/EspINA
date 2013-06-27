@@ -32,7 +32,7 @@
 int main(int argc, char **argv)
 {
   QApplication app(argc, argv);
-  app.setWindowIcon(QIcon(":/espina/espina.png"));
+  app.setWindowIcon(QIcon(":/espina/espina.svg"));
 
   QTranslator translator;
   translator.load("espina_es");
