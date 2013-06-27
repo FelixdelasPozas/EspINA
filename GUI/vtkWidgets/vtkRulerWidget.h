@@ -56,6 +56,8 @@ namespace EspINA
 
       // set actors bounds
       void setBounds(Nm *bounds);
+      void bounds(Nm bounds[6])
+      { memcpy(bounds, m_bounds, 6*sizeof(Nm));}
 
       void setPlane(PlaneType plane) { m_plane = plane; }
       void drawActors();

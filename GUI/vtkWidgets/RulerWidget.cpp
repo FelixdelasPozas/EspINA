@@ -139,6 +139,10 @@ namespace EspINA
     m_coronal->setBounds(bounds);
     m_sagittal->setBounds(bounds);
     m_volume->setBounds(bounds);
+    foreach(RulerSliceWidget *widget, m_rulerSliceWidgets)
+    {
+      widget->setBounds(bounds);
+    }
   }
 
 } /* namespace EspINA */

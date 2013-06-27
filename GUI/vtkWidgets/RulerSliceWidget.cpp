@@ -30,16 +30,17 @@ namespace EspINA
   RulerSliceWidget::RulerSliceWidget(vtkAbstractWidget *widget)
   : SliceWidget(widget)
   , m_pos(-1)
+  , m_plane(EspINA::AXIAL)
   , m_insideBounds(false)
   , m_enabled(false)
   {
   }
-  
+
   //----------------------------------------------------------------------------
   RulerSliceWidget::~RulerSliceWidget()
   {
   }
-  
+
   //----------------------------------------------------------------------------
   void RulerSliceWidget::setEnabled(int value)
   {
@@ -49,11 +50,13 @@ namespace EspINA
   //----------------------------------------------------------------------------
   void RulerSliceWidget::setSlice(Nm pos, PlaneType plane)
   {
-    m_pos = pos;
-    if (m_enabled)
-    {
-      // TODO
-    }
+    m_pos   = pos;
+    m_plane = plane;
+
+    double bounds[6];
+    static_cast<vtkRulerWidget *>(m_widget)->bounds(bounds);
+    m_insideBounds = bounds[2*plane] <= pos && pos <= bounds[2*plane+1];
+    m_widget->SetEnabled(m_insideBounds);
   }
 
   //----------------------------------------------------------------------------
@@ -62,10 +65,7 @@ namespace EspINA
     if (m_enabled)
     {
       static_cast<vtkRulerWidget *>(m_widget)->setBounds(bounds);
-      if (m_pos)
-      {
-        // TODO
-      }
+      setSlice(m_pos, m_plane);
     }
   }
 } /* namespace EspINA */

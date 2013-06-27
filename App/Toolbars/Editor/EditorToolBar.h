@@ -124,6 +124,8 @@ namespace EspINA
     QAction *m_open;
     QAction *m_close;
 
+    QAction *m_discTool;
+    QAction *m_sphereTool;
     QAction *m_contourTool;
 
     QAction *m_fill;

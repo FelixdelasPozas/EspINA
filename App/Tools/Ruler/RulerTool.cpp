@@ -71,14 +71,14 @@ namespace EspINA
       m_widget = new RulerWidget();
       m_viewManager->addWidget(m_widget);
       connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection, bool)),
-              this, SLOT(selectionChanged(ViewManager::Selection, bool)));
+              this,          SLOT(selectionChanged(ViewManager::Selection, bool)));
       selectionChanged(m_viewManager->selection(), false);
     }
     else
     {
       m_viewManager->removeWidget(m_widget);
       disconnect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection, bool)),
-                 this, SLOT(selectionChanged(ViewManager::Selection, bool)));
+                 this,          SLOT(selectionChanged(ViewManager::Selection, bool)));
       delete m_widget;
       m_widget = NULL;
     }
@@ -100,9 +100,16 @@ namespace EspINA
   void RulerTool::selectionChanged(ViewManager::Selection selection, bool unused)
   {
     if (!m_selection.isEmpty())
+    {
       foreach(PickableItemPtr item, m_selection)
+      {
         if (item->type() == EspINA::SEGMENTATION)
-          disconnect(segmentationVolume(segmentationPtr(item)->output()).get(), SIGNAL(outputModified()), this, SLOT(selectedElementChanged()));
+        {
+          disconnect(item->output().get(), SIGNAL(modified()),
+                     this,                 SLOT(selectedElementChanged()));
+        }
+      }
+    }
 
     Nm segmentationBounds[6], channelBounds[6];
     vtkMath::UninitializeBounds(segmentationBounds);
@@ -130,7 +137,8 @@ namespace EspINA
             break;
           case EspINA::SEGMENTATION:
           {
-            connect(segmentationVolume(segmentationPtr(item)->output()).get(), SIGNAL(outputModified()), this, SLOT(selectedElementChanged()));
+            connect(item->output().get(), SIGNAL(modified()),
+                    this,                 SLOT(selectedElementChanged()));
             if (!vtkMath::AreBoundsInitialized(segmentationBounds))
               segmentationVolume(segmentationPtr(item)->output())->bounds(segmentationBounds);
             else
@@ -166,7 +174,6 @@ namespace EspINA
   //----------------------------------------------------------------------------
   void RulerTool::selectedElementChanged()
   {
-    // TODO: not working, yet...
     selectionChanged(m_selection, false);
   }
 

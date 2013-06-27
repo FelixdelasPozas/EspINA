@@ -355,9 +355,16 @@ FilterSPtr EditorToolBar::createFilter(const QString              &filter,
 //----------------------------------------------------------------------------
 void EditorToolBar::changeCircularBrushMode(Brush::BrushMode mode)
 {
+  bool create = m_viewManager->selectedSegmentations().isEmpty();
+
   QString icon;
   if (Brush::BRUSH == mode)
-    icon = ":/espina/pencil2D.png";
+  {
+    if (create)
+      icon = ":/espina/new-pencil2D.png";
+    else
+      icon = ":/espina/pencil2D.png";
+  }
   else
     icon = ":/espina/eraser2D.png";
 
@@ -367,9 +374,16 @@ void EditorToolBar::changeCircularBrushMode(Brush::BrushMode mode)
 //----------------------------------------------------------------------------
 void EditorToolBar::changeSphericalBrushMode(Brush::BrushMode mode)
 {
+  bool create = m_viewManager->selectedSegmentations().isEmpty();
+
   QString icon;
   if (Brush::BRUSH == mode)
-    icon = ":/espina/pencil3D.png";
+  {
+    if (create)
+      icon = ":/espina/new-pencil3D.png";
+    else
+      icon = ":/espina/pencil3D.png";
+  }
   else
     icon = ":/espina/eraser3D.png";
 
@@ -379,9 +393,16 @@ void EditorToolBar::changeSphericalBrushMode(Brush::BrushMode mode)
 //----------------------------------------------------------------------------
 void EditorToolBar::changeContourMode(Brush::BrushMode mode)
 {
+  bool create = m_viewManager->selectedSegmentations().isEmpty();
+
   QString icon;
   if (Brush::BRUSH == mode)
-    icon = ":/espina/lasso.png";
+  {
+    if (create)
+      icon = ":/espina/new-lasso.png";
+    else
+      icon = ":/espina/lasso.png";
+  }
   else
     icon = ":/espina/lassoErase.png";
 
@@ -599,8 +620,8 @@ void EditorToolBar::fillHoles()
 void EditorToolBar::initDrawTools()
 {
   // draw with a disc
-  QAction *discTool = new QAction(QIcon(":/espina/pencil2D.png"),
-                                  tr("Draw segmentations using a 2D disc"),
+  m_discTool = new QAction(QIcon(":/espina/pencil2D.png"),
+                                  tr("Modify segmentation drawing 2D discs"),
                                   m_drawToolSelector);
 
   CircularBrushSPtr circularBrush(new CircularBrush(m_model,
@@ -612,13 +633,13 @@ void EditorToolBar::initDrawTools()
   connect(circularBrush.get(), SIGNAL(brushModeChanged(Brush::BrushMode)),
           this, SLOT(changeCircularBrushMode(Brush::BrushMode)));
 
-  m_drawTools[discTool] =  circularBrush;
-  m_drawToolSelector->addAction(discTool);
+  m_drawTools[m_discTool] =  circularBrush;
+  m_drawToolSelector->addAction(m_discTool);
 
   // draw with a sphere
-  QAction *sphereTool = new QAction(QIcon(":espina/pencil3D.png"),
-                                    tr("Draw segmentations using a 3D sphere"),
-                                    m_drawToolSelector);
+  m_sphereTool = new QAction(QIcon(":espina/pencil3D.png"),
+                             tr("Modify segmentation drawing 3D spheres"),
+                             m_drawToolSelector);
 
   SphericalBrushSPtr sphericalBrush(new SphericalBrush(m_model,
                                                        m_settings,
@@ -629,12 +650,12 @@ void EditorToolBar::initDrawTools()
   connect(sphericalBrush.get(), SIGNAL(brushModeChanged(Brush::BrushMode)),
           this, SLOT(changeSphericalBrushMode(Brush::BrushMode)));
 
-  m_drawTools[sphereTool] = sphericalBrush;
-  m_drawToolSelector->addAction(sphereTool);
+  m_drawTools[m_sphereTool] = sphericalBrush;
+  m_drawToolSelector->addAction(m_sphereTool);
 
   // draw with contour
   m_contourTool = new QAction(QIcon(":espina/lasso.png"),
-                              tr("Draw segmentations using contours"),
+                              tr("Modify segmentation drawing contour"),
                               m_drawToolSelector);
 
   FilledContourSPtr contour(new FilledContour(m_model,
@@ -659,7 +680,7 @@ void EditorToolBar::initDrawTools()
           this, SLOT(changeDrawTool(QAction*)));
   connect(m_drawToolSelector, SIGNAL(actionCanceled()),
           this, SLOT(cancelDrawOperation()));
-  m_drawToolSelector->setDefaultAction(discTool);
+  m_drawToolSelector->setDefaultAction(m_discTool);
 }
 
 //----------------------------------------------------------------------------
@@ -741,6 +762,8 @@ void EditorToolBar::updateAvailableOperations()
 {
   SegmentationList segs = m_viewManager->selectedSegmentations();
 
+  bool none = segs.size() == 0;
+
   bool one = segs.size() == 1;
   QString oneToolTip;
   if (!one)
@@ -755,6 +778,29 @@ void EditorToolBar::updateAvailableOperations()
   QString severalToolTip;
   if (!several)
     severalToolTip = tr(" (This tool requires at least one segmentation to be selected)");
+
+  if (none)
+  {
+    m_discTool   ->setIcon(QIcon(":/espina/new-pencil2D.png"));
+    m_sphereTool ->setIcon(QIcon(":/espina/new-pencil3D.png"));
+    m_contourTool->setIcon(QIcon(":/espina/new-lasso.png"));
+
+    m_discTool   ->setText(tr("Create segmentation drawing 2D discs"));
+    m_sphereTool ->setText(tr("Create segmentation drawing 3D spheres"));
+    m_contourTool->setText(tr("Create segmentation drawing contour"));
+  } else
+  {
+    m_discTool   ->setIcon(QIcon(":/espina/pencil2D.png"));
+    m_sphereTool ->setIcon(QIcon(":/espina/pencil3D.png"));
+    m_contourTool->setIcon(QIcon(":/espina/lasso.png"));
+
+    m_discTool   ->setText(tr("Modify segmentation drawing 2D discs"));
+    m_sphereTool ->setText(tr("Modify segmentation drawing 3D spheres"));
+    m_contourTool->setText(tr("Modify segmentation drawing contour"));
+  }
+
+  m_drawToolSelector->setIcon(m_drawToolSelector->getCurrentAction()->icon());
+  m_drawToolSelector->setEnabled(!atLeastTwo);
 
   m_splitToolSelector->setEnabled(one);
   m_splitToolSelector->setToolTip(SPLIT_TOOLTIP + oneToolTip);

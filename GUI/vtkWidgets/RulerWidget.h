@@ -32,7 +32,7 @@ namespace EspINA
   class vtkRulerWidget;
   class vtkRulerWidget3D;
   class RulerSliceWidget;
-  
+
   class EspinaGUI_EXPORT RulerWidget
   : public EspinaWidget
   {

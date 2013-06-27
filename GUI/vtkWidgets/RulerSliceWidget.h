@@ -34,12 +34,14 @@ namespace EspINA
       virtual ~RulerSliceWidget();
 
       virtual void setEnabled(int);
-      void setBounds(Nm *bounds);
+      virtual void setBounds(Nm *bounds);
 
       virtual void setSlice(Nm pos, PlaneType plane);
 
     private:
-      Nm m_pos;
+      Nm        m_pos;
+      PlaneType m_plane;
+
       bool m_insideBounds;
       bool m_enabled;
   };
