@@ -26,16 +26,16 @@
 #ifndef MAINTOOLBAR_H
 #define MAINTOOLBAR_H
 
+// EspINA
 #include <Core/Interfaces/IToolBar.h>
-
 #include <Core/EspinaTypes.h>
-
 #include <Core/Model/EspinaModel.h>
 #include <GUI/Pickers/ISelector.h>
-
 #include <Tools/SegmentationRemover/SegmentationRemover.h>
 #include <Tools/Measure/MeasureTool.h>
+#include <Tools/Ruler/RulerTool.h>
 
+// Qt
 #include <QModelIndex>
 
 class QUndoStack;
@@ -72,6 +72,7 @@ namespace EspINA
     void toggleCrosshair(bool);
     void abortRemoval();
     void toggleMeasureTool(bool);
+    void toggleRuler(bool);
     void resetRootItem();
     void abortOperation();
 
@@ -87,10 +88,12 @@ namespace EspINA
     QAction             *m_removeSegmentation;
     QAction             *m_toggleCrosshair;
     QAction             *m_measureButton;
+    QAction             *m_rulerButton;
     QComboTreeView      *m_taxonomySelector;
 
     SegmentationRemoverSPtr m_segRemover;
     MeasureToolSPtr         m_measureTool;
+    RulerToolSPtr           m_rulerTool;
   };
 
 } // namespace EspINA

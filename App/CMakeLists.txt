@@ -46,6 +46,7 @@ qt4_wrap_cpp (ESPINA_MOC
   Tools/Brushes/Brush.h
   Tools/Contour/FilledContour.h
   Tools/PlanarSplit/PlanarSplitTool.h
+  Tools/Ruler/RulerTool.h
   Tools/SeedGrowSegmentation/SeedGrowSegmentationTool.h
   Tools/SegmentationRemover/SegmentationRemover.h
   Tools/VOI/RectangularVOI.h
@@ -128,7 +129,9 @@ set (ESPINA_SOURCES
   Tools/Brushes/CircularBrush.cpp
   Tools/Brushes/SphericalBrush.cpp
   Tools/Contour/FilledContour.cpp
+  Tools/Measure/MeasureTool.cpp
   Tools/PlanarSplit/PlanarSplitTool.cpp
+  Tools/Ruler/RulerTool.cpp
   Tools/SeedGrowSegmentation/SeedGrowSegmentationTool.cpp
   Tools/SegmentationRemover/SegmentationRemover.cpp
   Tools/VOI/RectangularVOI.cpp
@@ -147,7 +150,6 @@ set (ESPINA_SOURCES
   Undo/ContourUndoCommand.cpp
   Views/DefaultEspinaView.cpp
   Dialogs/Connectomics/ConnectomicsDialog.cpp
-  Tools/Measure/MeasureTool.cpp
   Dialogs/ChannelInspector/ChannelInspector.cpp
   Tools/TubularSegmentation/TubularTool.cpp
   FilterInspectors/TubularSegmentation/TubularFilterInspector.cpp

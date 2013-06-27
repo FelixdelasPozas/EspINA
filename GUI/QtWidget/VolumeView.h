@@ -41,8 +41,6 @@
 #include <QPushButton>
 
 class vtkAbstractWidget;
-class vtkCubeAxesActor2D;
-class vtkOrientationMarkerWidget;
 class QVTKWidget;
 
 //Forward declaration
@@ -147,9 +145,6 @@ namespace EspINA
 
     void exportScene();
     void onTakeSnapshot();
-    void enableMeasureWidget(bool);
-
-    virtual void updateSelection(ViewManager::Selection selection, bool render);
 
   private:
     // GUI
@@ -158,7 +153,6 @@ namespace EspINA
     QPushButton m_snapshot;
     QPushButton m_export;
     QPushButton m_zoom;
-    QPushButton m_measure;
 
     // GUI elements only visible in Segmentation Information dialog
     QHBoxLayout *m_additionalGUI;
@@ -172,8 +166,6 @@ namespace EspINA
     Nm m_center[3];
     QMap<EspinaWidget *, vtkAbstractWidget *> m_widgets;
     IRendererSList   m_itemRenderers;
-
-    vtkSmartPointer<vtkCubeAxesActor2D> m_ruler;
   };
 
 } // namespace EspINA

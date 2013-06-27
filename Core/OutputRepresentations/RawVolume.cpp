@@ -131,7 +131,7 @@ int voxelIndex(Nm point, Nm spacing)
 
   if (point >= 0)
     //voxel = ceil(point/spacing + 0.5);
-    voxel = int(point/spacing);
+    voxel = int(point/spacing +0.5);
   else
     voxel = floor(point/spacing + 0.5);
 

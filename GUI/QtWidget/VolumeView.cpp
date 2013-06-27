@@ -299,20 +299,9 @@ void VolumeView::buildControls()
   m_export.setEnabled(false);
   connect(&m_export,SIGNAL(clicked(bool)),this,SLOT(exportScene()));
 
-  m_measure.setIcon(QIcon(":/espina/measure3D.png"));
-  m_measure.setToolTip(tr("Enable measure widget"));
-  m_measure.setCheckable(true);
-  m_measure.setChecked(false);
-  m_measure.setFlat(true);
-  m_measure.setIconSize(QSize(22,22));
-  m_measure.setMaximumSize(QSize(32,32));
-  m_measure.setEnabled(false);
-  connect(&m_measure,SIGNAL(clicked(bool)),this,SLOT(enableMeasureWidget(bool)));
-
   QSpacerItem * horizontalSpacer = new QSpacerItem(4000, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
 
   m_controlLayout->addWidget(&m_zoom);
-  m_controlLayout->addWidget(&m_measure);
   m_controlLayout->addWidget(&m_snapshot);
   m_controlLayout->addWidget(&m_export);
   m_controlLayout->addItem(horizontalSpacer);
@@ -409,7 +398,6 @@ void VolumeView::addChannel(ChannelPtr channel)
 
   double bounds[6];
   channel->volume()->bounds(bounds);
-  m_ruler->SetBounds(bounds);
 
   updateRenderersControls();
   updateScrollBarsLimits();
@@ -460,7 +448,14 @@ void VolumeView::addWidget(EspinaWidget* eWidget)
   if (eWidget->manipulatesSegmentations())
   {
     widget->SetEnabled(activate);
-    widget->GetRepresentation()->SetVisibility(activate);
+    if (widget->GetRepresentation())
+      widget->GetRepresentation()->SetVisibility(activate);
+  }
+  else
+  {
+    widget->SetEnabled(true);
+    if (widget->GetRepresentation())
+      widget->GetRepresentation()->SetVisibility(true);
   }
 
   m_renderer->ResetCameraClippingRange();
@@ -538,14 +533,6 @@ void VolumeView::setupUI()
   m_view->GetRenderWindow()->GetInteractor()->SetInteractorStyle(interactorstyle);
   m_view->GetRenderWindow()->Render();
   m_view->installEventFilter(this);
-
-  m_ruler = vtkSmartPointer<vtkCubeAxesActor2D>::New();
-  m_ruler->SetDragable(false);
-  m_ruler->SetCamera(m_renderer->GetActiveCamera());
-  m_ruler->SetPickable(false);
-  m_ruler->SetFlyModeToClosestTriad();
-  m_ruler->SetFontFactor(1.5);
-  m_ruler->SetNumberOfLabels(2);
 
   buildControls();
 }
@@ -744,17 +731,6 @@ void VolumeView::onTakeSnapshot()
 }
 
 //-----------------------------------------------------------------------------
-void VolumeView::enableMeasureWidget(bool value)
-{
-  if(value)
-    m_renderer->AddViewProp(m_ruler);
-  else
-    m_renderer->RemoveViewProp(m_ruler);
-
-  updateView();
-}
-
-//-----------------------------------------------------------------------------
 void VolumeView::changePlanePosition(PlaneType plane, Nm dist)
 {
   bool needUpdate = false;
@@ -818,18 +794,6 @@ void VolumeView::updateEnabledRenderersCount(bool value)
     }
   }
 
-  if (m_numEnabledChannelRenders != 0 || m_numEnabledSegmentationRenders != 0)
-    m_measure.setEnabled(true);
-  else
-  {
-    if (m_measure.isChecked())
-    {
-      m_measure.setChecked(false);
-      enableMeasureWidget(false);
-    }
-
-    m_measure.setEnabled(false);
-  }
   updateRenderersControls();
 }
 
@@ -1012,82 +976,4 @@ void VolumeView::Settings::setRenderers(IRendererList values)
 IRendererList VolumeView::Settings::renderers() const
 {
   return m_renderers;
-}
-
-//-----------------------------------------------------------------------------
-void VolumeView::updateSelection(ViewManager::Selection selection, bool render)
-{
-  EspinaRenderView::updateSelection(selection, render);
-
-  if (selection.isEmpty())
-  {
-    m_ruler->SetVisibility(false);
-    return;
-  }
-
-  m_ruler->SetVisibility(true);
-
-  Nm segmentationBounds[6], channelBounds[6];
-  vtkMath::UninitializeBounds(segmentationBounds);
-  vtkMath::UninitializeBounds(channelBounds);
-
-  foreach(PickableItemPtr item, selection)
-  {
-    switch(item->type())
-    {
-      case EspINA::CHANNEL:
-        if (!m_channelStates.keys().contains(channelPtr(item)))
-          continue;
-        if (!vtkMath::AreBoundsInitialized(channelBounds))
-          channelPtr(item)->volume()->bounds(channelBounds);
-        else
-        {
-          Nm bounds[6];
-          channelPtr(item)->volume()->bounds(bounds);
-          for (int i = 0, j = 1; i < 6; i += 2, j += 2)
-          {
-            channelBounds[i] = std::min(bounds[i], channelBounds[i]);
-            channelBounds[j] = std::max(bounds[j], channelBounds[j]);
-          }
-        }
-        break;
-      case EspINA::SEGMENTATION:
-        if (!m_segmentationStates.keys().contains(segmentationPtr(item)))
-          continue;
-        if (!vtkMath::AreBoundsInitialized(segmentationBounds))
-          segmentationVolume(segmentationPtr(item)->output())->bounds(segmentationBounds);
-        else
-        {
-          Nm bounds[6];
-          segmentationVolume(segmentationPtr(item)->output())->bounds(bounds);
-          for (int i = 0, j = 1; i < 6; i += 2, j += 2)
-          {
-            segmentationBounds[i] = std::min(bounds[i], segmentationBounds[i]);
-            segmentationBounds[j] = std::max(bounds[j], segmentationBounds[j]);
-          }
-        }
-        break;
-      default:
-        Q_ASSERT(false);
-        break;
-    }
-  }
-
-  if (vtkMath::AreBoundsInitialized(segmentationBounds))
-  {
-    m_ruler->SetBounds(segmentationBounds);
-    m_ruler->SetXLabel(tr("X: %1 nm").arg(segmentationBounds[1]-segmentationBounds[0]).toStdString().c_str());
-    m_ruler->SetYLabel(tr("Y: %1 nm").arg(segmentationBounds[3]-segmentationBounds[2]).toStdString().c_str());
-    m_ruler->SetZLabel(tr("Z: %1 nm").arg(segmentationBounds[5]-segmentationBounds[4]).toStdString().c_str());
-  }
-  else
-    if (vtkMath::AreBoundsInitialized(channelBounds))
-    {
-      m_ruler->SetBounds(channelBounds);
-      m_ruler->SetXLabel(tr("X: %1 nm").arg(channelBounds[1]-channelBounds[0]).toStdString().c_str());
-      m_ruler->SetYLabel(tr("Y: %1 nm").arg(channelBounds[3]-channelBounds[2]).toStdString().c_str());
-      m_ruler->SetZLabel(tr("Z: %1 nm").arg(channelBounds[5]-channelBounds[4]).toStdString().c_str());
-    }
-    else
-      m_ruler->SetVisibility(false);
 }

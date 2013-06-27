@@ -2,7 +2,7 @@
  * MeasureSliceWidget.h
  *
  *  Created on: Dec 11, 2012
- *      Author: Félix de las Pozas Álvarez
+ *      Author: Felix de las Pozas Alvarez
  */
 
 #ifndef MEASURESLICEWIDGET_H_
@@ -11,7 +11,7 @@
 #include "EspinaGUI_Export.h"
 
 // EspINA
-#include <GUI/vtkWidgets/EspinaWidget.h>
+#include "EspinaWidget.h"
 
 namespace EspINA
 {

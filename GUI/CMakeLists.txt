@@ -102,6 +102,8 @@ set (GUI_SOURCES
   vtkWidgets/PlanarSplitWidget.cpp
   vtkWidgets/RectangularRegion.cpp
   vtkWidgets/RectangularRegionSliceSelector.cpp
+  vtkWidgets/RulerSliceWidget.cpp
+  vtkWidgets/RulerWidget.cpp
   vtkWidgets/SliceContourWidget.cpp
   vtkWidgets/vtkClipClosedSurface.cxx
   vtkWidgets/vtkContourToPolygonFilter.cxx
@@ -114,6 +116,8 @@ set (GUI_SOURCES
   vtkWidgets/vtkPlaneContourWidget.cpp
   vtkWidgets/vtkRectangularSliceRepresentation.cpp
   vtkWidgets/vtkRectangularSliceWidget.cpp
+  vtkWidgets/vtkRulerWidget.cpp
+  vtkWidgets/vtkRulerWidget3D.cpp
   vtkWidgets/vtkZoomSelectionWidget.cpp
   vtkWidgets/vtkZoomSelectionWidgetRepresentation.cpp
   vtkWidgets/ZoomSelectionSliceWidget.cpp

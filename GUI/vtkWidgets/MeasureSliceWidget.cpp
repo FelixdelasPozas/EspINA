@@ -8,9 +8,7 @@
 // EspINA
 #include "MeasureSliceWidget.h"
 
-#include <GUI/ViewManager.h>
-
-// vtk
+// VTK
 #include <vtkAbstractWidget.h>
 
 using namespace EspINA;

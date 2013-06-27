@@ -52,6 +52,7 @@ MainToolBar::MainToolBar(EspinaModel *model,
 , m_viewManager(viewManager)
 , m_segRemover (new SegmentationRemover())
 , m_measureTool(new MeasureTool(m_viewManager))
+, m_rulerTool  (new RulerTool(m_viewManager))
 {
   setObjectName("MainToolBar");
 
@@ -108,6 +109,14 @@ MainToolBar::MainToolBar(EspinaModel *model,
   m_measureButton->setShortcut(QKeySequence("M"));
   connect(m_measureButton, SIGNAL(toggled(bool)),
           this, SLOT(toggleMeasureTool(bool)));
+
+  // Ruler toogle button
+  m_rulerButton = addAction(QIcon(":/espina/measure3D.png"),
+                            tr("Show Ruler"));
+  m_rulerButton->setCheckable(true);
+  m_rulerButton->setShortcut(QKeySequence("R"));
+  connect(m_rulerButton, SIGNAL(toggled(bool)),
+          this, SLOT(toggleRuler(bool)));
 }
 
 //----------------------------------------------------------------------------
@@ -256,4 +265,12 @@ void MainToolBar::abortOperation()
     m_removeSegmentation->setChecked(false);
     removeSegmentation(false);
   }
+}
+
+//----------------------------------------------------------------------------
+void MainToolBar::toggleRuler(bool enable)
+{
+  // don't inform ViewManager, as this is a passive tool
+  m_rulerTool->setInUse(enable);
+  m_rulerTool->setEnabled(enable);
 }

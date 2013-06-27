@@ -86,6 +86,7 @@
 #include <vtkImageShiftScale.h>
 #include <vtkSmartPointer.h>
 #include <vtkAxisActor2D.h>
+#include <vtkRendererCollection.h>
 
 using namespace EspINA;
 
@@ -756,6 +757,7 @@ void SliceView::addWidget(EspinaWidget *eWidget)
   vtkAbstractWidget *widget = *sWidget;
   if (widget)
   {
+    widget->SetCurrentRenderer(m_view->GetRenderWindow()->GetRenderers()->GetFirstRenderer());
     widget->SetInteractor(m_view->GetRenderWindow()->GetInteractor());
     if (widget->GetRepresentation())
       widget->GetRepresentation()->SetVisibility(true);
@@ -772,8 +774,7 @@ void SliceView::removeWidget(EspinaWidget *eWidget)
     return;
 
   vtkAbstractWidget *widget = *m_widgets[eWidget];
-  widget->Off();
-  widget->SetInteractor(NULL);
+  widget->SetInteractor(NULL); // calls widget->Off();
   widget->RemoveAllObservers();
   m_widgets.remove(eWidget);
 }
