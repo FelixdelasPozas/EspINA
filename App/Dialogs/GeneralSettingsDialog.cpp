@@ -117,7 +117,7 @@ GeneralSettingsDialog::GeneralSettingsDialog(QWidget *parent, Qt::WindowFlags fl
 {
   setupUi(this);
 
-  setWindowTitle(tr("EspINA Configuration"));
+  setWindowTitle(tr("EspINA Settings"));
 
   connect(components,SIGNAL(currentRowChanged(int)),
           this, SLOT(changePreferencePanel(int)));

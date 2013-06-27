@@ -106,7 +106,7 @@ void DefaultContextualMenu::changeSegmentationsTaxonomy(const QModelIndex& index
 
   TaxonomyElementPtr taxonomy = taxonomyElementPtr(taxItem);
 
-  m_undoStack->beginMacro(tr("Change Segmentation's Taxonomy"));
+  m_undoStack->beginMacro(tr("Change Category"));
   {
     m_undoStack->push(new ChangeTaxonomyCommand(m_segmentations,
                                                 taxonomy,
@@ -395,7 +395,7 @@ void DefaultContextualMenu::createNoteEntry()
 //------------------------------------------------------------------------
 void DefaultContextualMenu::createChangeTaxonomyMenu()
 {
-  QMenu         *changeTaxonomyMenu = new QMenu(tr("Change Taxonomy"));
+  QMenu         *changeTaxonomyMenu = new QMenu(tr("Change Category"));
   QWidgetAction *taxonomyListAction = new QWidgetAction(changeTaxonomyMenu);
 
   m_taxonomyList = new QTreeView();

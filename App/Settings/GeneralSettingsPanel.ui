@@ -26,7 +26,7 @@
          <string>Path where temporal auto-save files are stored</string>
         </property>
         <property name="text">
-         <string>Auto-save Path:</string>
+         <string>Path:</string>
         </property>
        </widget>
       </item>
@@ -36,7 +36,7 @@
          <string>Time interval at which auto-saves are performed</string>
         </property>
         <property name="text">
-         <string>Auto-save Interval:  </string>
+         <string>Interval:  </string>
         </property>
        </widget>
       </item>

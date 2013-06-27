@@ -90,7 +90,8 @@ TabularReport::TabularReport(ViewManager    *viewmManager,
   QPushButton *exportButton = new QPushButton();
   QIcon saveIcon = qApp->style()->standardIcon(QStyle::SP_DialogSaveButton);
   exportButton->setIcon(saveIcon);
-  exportButton->setFlat(true);
+  exportButton->setFlat(false);
+  exportButton->setToolTip("Save All Data");
 
   connect(exportButton, SIGNAL(clicked(bool)),
           this, SLOT(exportInformation()));

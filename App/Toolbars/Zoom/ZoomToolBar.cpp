@@ -40,8 +40,8 @@ ZoomToolBar::ZoomToolBar(ViewManager* viewManager, QWidget* parent)
   setWindowTitle(tr("Zoom Tool Bar"));
 
   m_resetViews = addAction(QIcon(":/espina/zoom_reset.png"),
-                           tr("Reset view's cameras"));
-  m_resetViews->setStatusTip(tr("Reset views' cameras"));
+                           tr("Reset Camera"));
+  m_resetViews->setStatusTip(tr("Reset Camera"));
   m_resetViews->setCheckable(false);
   connect(m_resetViews, SIGNAL(triggered()),
           this, SLOT(resetViews()));

@@ -129,7 +129,7 @@ QList<MenuEntry> AppositionSurface::menuEntries()
   QList<MenuEntry> entries;
 
   QStringList hierarchy;
-  hierarchy << "Analysis" << tr("Apposition Surface");
+  hierarchy << "Analysis";
 
   QAction *action = new QAction(tr("Synaptic Apposition Surface"), this);
   connect(action, SIGNAL(triggered(bool)),

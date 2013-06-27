@@ -35,7 +35,7 @@ namespace EspINA
     explicit SliceViewSettingsPanel(SliceView::SettingsSPtr settings);
 
     virtual const QString shortDescription();
-    virtual const QString longDescription() {return tr("%1 Settings").arg(shortDescription());}
+    virtual const QString longDescription() {return tr("%1").arg(shortDescription());}
     virtual const QIcon icon() {return QIcon();}
 
     virtual void acceptChanges();

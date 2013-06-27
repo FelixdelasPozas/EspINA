@@ -168,7 +168,7 @@ void RectangularVOI::SettingsPanel::updateTaxonomyVOI(const QModelIndex& index)
     {
       QMessageBox msg;
       msg.setWindowTitle(tr("EspINA"));
-      msg.setText(tr("The properties of the taxonomy \"%1\" have been modified.\nDo you want to save the changes?").arg(m_activeTaxonomy->data().toString()));
+      msg.setText(tr("The properties of the category \"%1\" have been modified.\nDo you want to save the changes?").arg(m_activeTaxonomy->data().toString()));
       msg.setStandardButtons(QMessageBox::Yes|QMessageBox::No);
       if (msg.exec() == QMessageBox::Yes)
         writeTaxonomyProperties();

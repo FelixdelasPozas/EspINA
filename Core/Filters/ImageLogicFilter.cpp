@@ -92,8 +92,8 @@ void ImageLogicFilter::run(FilterOutputId oId) //TODO: Parallelize
     case ADDITION:
       addition();
       break;
-    case SUBSTRACTION:
-      substraction();
+    case SUBTRACTION:
+      subtraction();
       break;
     default:
       Q_ASSERT(false);
@@ -121,13 +121,28 @@ void ImageLogicFilter::addition()
   }
 
   itkVolumeType::SpacingType spacing = firstVolume->toITK()->GetSpacing();
+  // TODO FIX. WARNING: This is a hack to prevent rounding problems on the limits
+  // of the voxel ranges
+  for (int i = 0; i < 3; ++i)
+  {
+    bb[2*i]   += 0.25*spacing[i];
+    bb[2*i+1] -= 0.25*spacing[i];
+  }
+  for(int r = 0; r < regions.size(); ++r)
+  {
+    for (int i = 0; i < 3; i++)
+    {
+      regions[r][2*i]   += 0.25*spacing[i];
+      regions[r][2*i+1] -= 0.25*spacing[i];
+    }
+  }
   RawSegmentationVolumeSPtr volumeRepresentation(new RawSegmentationVolume(bb, spacing));
 
   for (int i = 0; i < regions.size(); i++)
   {
     SegmentationVolumeSPtr iVolume = segmentationVolume(m_inputs[i]);
     itkVolumeConstIterator it      = iVolume->constIterator(regions[i]);
-    itkVolumeIterator      ot      = volumeRepresentation ->iterator (regions[i]);
+    itkVolumeIterator      ot      = volumeRepresentation->iterator(regions[i]);
 
     it.GoToBegin();
     ot.GetRegion();
@@ -146,7 +161,7 @@ void ImageLogicFilter::addition()
 }
 
 //-----------------------------------------------------------------------------
-void ImageLogicFilter::substraction()
+void ImageLogicFilter::subtraction()
 {
   // TODO 2012-11-29 Revisar si se puede evitar crear la imagen
   OutputSList          validInputs;

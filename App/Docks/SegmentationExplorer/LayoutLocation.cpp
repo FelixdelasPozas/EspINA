@@ -94,7 +94,7 @@ void LocationLayout::contextMenu(const QPoint &pos)
 
     contextMenu.addSeparator();
 
-    QAction *selectAll = contextMenu.addAction(tr("Select all segmentations in the same location"));
+    QAction *selectAll = contextMenu.addAction(tr("Select segmentations in the same location"));
     connect(selectAll, SIGNAL(triggered(bool)), this, SLOT(selectLocationElements()));
 
     contextMenu.exec(pos);

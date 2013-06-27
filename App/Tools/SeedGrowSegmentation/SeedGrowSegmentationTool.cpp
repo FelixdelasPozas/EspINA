@@ -284,12 +284,12 @@ void SeedGrowSegmentationTool::startSegmentation(ISelector::PickList pickedItems
       zSize = m_settings->zSize();
     }
 
-    voiBounds[0] -= xSize;
-    voiBounds[1] += xSize;
-    voiBounds[2] -= ySize;
-    voiBounds[3] += ySize;
-    voiBounds[4] -= zSize;
-    voiBounds[5] += zSize;
+    voiBounds[0] -= xSize/2.0;
+    voiBounds[1] += xSize/2.0;
+    voiBounds[2] -= ySize/2.0;
+    voiBounds[3] += ySize/2.0;
+    voiBounds[4] -= zSize/2.0;
+    voiBounds[5] += zSize/2.0;
 
   } else
   {
@@ -437,12 +437,12 @@ void SeedGrowSegmentationTool::addPreview(EspinaRenderView *view)
       }
       else
       {
-        voiExtent[0] = seed[0] - vtkMath::Round(m_settings->xSize()/spacing[0]);
-        voiExtent[1] = seed[0] + vtkMath::Round(m_settings->xSize()/spacing[0]);
-        voiExtent[2] = seed[1] - vtkMath::Round(m_settings->ySize()/spacing[1]);
-        voiExtent[3] = seed[1] + vtkMath::Round(m_settings->ySize()/spacing[1]);
-        voiExtent[4] = seed[2] - vtkMath::Round(m_settings->zSize()/spacing[2]);
-        voiExtent[5] = seed[2] + vtkMath::Round(m_settings->zSize()/spacing[2]);
+        voiExtent[0] = seed[0] - vtkMath::Round(m_settings->xSize()/(2.0*spacing[0]));
+        voiExtent[1] = seed[0] + vtkMath::Round(m_settings->xSize()/(2.0*spacing[0]));
+        voiExtent[2] = seed[1] - vtkMath::Round(m_settings->ySize()/(2.0*spacing[1]));
+        voiExtent[3] = seed[1] + vtkMath::Round(m_settings->ySize()/(2.0*spacing[1]));
+        voiExtent[4] = seed[2] - vtkMath::Round(m_settings->zSize()/(2.0*spacing[2]));
+        voiExtent[5] = seed[2] + vtkMath::Round(m_settings->zSize()/(2.0*spacing[2]));
       }
 
       extent[0] = (voiExtent[0] > extent[0]) ? voiExtent[0] : extent[0];

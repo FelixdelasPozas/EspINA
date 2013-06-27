@@ -221,6 +221,15 @@ namespace EspINA
 
 } // namespace EspINA
 
+const QString CLOSING_TOOLTIP    = QObject::tr("Close seleceted segmentations");
+const QString OPENING_TOOLTIP    = QObject::tr("Open selected segmentations");
+const QString DILATE_TOOLTIP     = QObject::tr("Dilate selected segmentations");
+const QString ERODE_TOOLTIP      = QObject::tr("Erode selected segmentations");
+const QString MERGE_TOOLTIP      = QObject::tr("Merge selected segmentations");
+const QString SUBTRACT_TOOLTIP   = QObject::tr("Subtract selected segmentations");
+const QString SPLIT_TOOLTIP      = QObject::tr("Split segmentation");
+const QString FILL_HOLES_TOOLTIP = QObject::tr("Fill internal holes in selected segmentations");
+
 //----------------------------------------------------------------------------
 EditorToolBar::EditorToolBar(EspinaModel *model,
                              QUndoStack  *undoStack,
@@ -235,7 +244,7 @@ EditorToolBar::EditorToolBar(EspinaModel *model,
 , m_settings(new EditorToolBarSettings())
 , editorSettings(new SettingsPanel(m_settings))
 {
-  setObjectName("EditorToolBar");
+  setObjectName(tr("EditorToolBar"));
 
   setWindowTitle(tr("Editor Tool Bar"));
 
@@ -418,7 +427,7 @@ void EditorToolBar::cancelSplitOperation()
 }
 
 //----------------------------------------------------------------------------
-void EditorToolBar::combineSegmentations()
+void EditorToolBar::mergeSegmentations()
 {
   m_viewManager->unsetActiveTool();
 
@@ -427,7 +436,7 @@ void EditorToolBar::combineSegmentations()
   {
     SegmentationSList createdSegmentations;
     m_viewManager->clearSelection(true);
-    m_undoStack->beginMacro("Combine Segmentations");
+    m_undoStack->beginMacro("Merge Segmentations");
     m_undoStack->push(
       new ImageLogicCommand(input,
                             ImageLogicFilter::ADDITION,
@@ -440,7 +449,7 @@ void EditorToolBar::combineSegmentations()
 }
 
 //----------------------------------------------------------------------------
-void EditorToolBar::substractSegmentations()
+void EditorToolBar::subtractSegmentations()
 {
   m_viewManager->unsetActiveTool();
 
@@ -449,9 +458,9 @@ void EditorToolBar::substractSegmentations()
   {
     SegmentationSList createdSegmentations;
     m_viewManager->clearSelection(true);
-    m_undoStack->beginMacro("Substract Segmentations");
+    m_undoStack->beginMacro("Subtract Segmentations");
     m_undoStack->push(new ImageLogicCommand(input,
-                                            ImageLogicFilter::SUBSTRACTION,
+                                            ImageLogicFilter::SUBTRACTION,
                                             m_viewManager->activeTaxonomy(),
                                             m_model,
                                             createdSegmentations));
@@ -472,7 +481,7 @@ void EditorToolBar::closeSegmentations()
     if (closeCommand->getRemovedSegmentations().size() > 0)
     {
       QMessageBox info;
-      info.setWindowTitle("Close Segmentations");
+      info.setWindowTitle(CLOSING_TOOLTIP);
       info.setIcon(QMessageBox::Warning);
       QString message(tr("The following segmentations will be deleted by the CLOSE operation:\n"));
       foreach(SegmentationPtr seg, closeCommand->getRemovedSegmentations())
@@ -657,7 +666,7 @@ void EditorToolBar::initDrawTools()
 void EditorToolBar::initSplitTools()
 {
   QAction *planarSplit = new QAction(QIcon(":/espina/planar_split.svg"),
-                                    tr("Split Segmentations using an orthogonal plane"),
+                                    SPLIT_TOOLTIP,
                                     m_splitToolSelector);
 
   PlanarSplitToolSPtr planarSplitTool(new PlanarSplitTool(m_model,
@@ -683,36 +692,36 @@ void EditorToolBar::initSplitTools()
 //----------------------------------------------------------------------------
 void EditorToolBar::initMorphologicalTools()
 {
-  m_addition = addAction(tr("Combine Selected Segmentations"));
+  m_addition = addAction(MERGE_TOOLTIP);
   m_addition->setIcon(QIcon(":/espina/add.svg"));
   connect(m_addition, SIGNAL(triggered(bool)),
-          this, SLOT(combineSegmentations()));
+          this, SLOT(mergeSegmentations()));
 
-  m_substraction = addAction(tr("Subtract Selected Segmentations"));
-  m_substraction->setIcon(QIcon(":/espina/remove.svg"));
-  connect(m_substraction, SIGNAL(triggered(bool)),
-          this, SLOT(substractSegmentations()));
+  m_subtract = addAction(SUBTRACT_TOOLTIP);
+  m_subtract->setIcon(QIcon(":/espina/remove.svg"));
+  connect(m_subtract, SIGNAL(triggered(bool)),
+          this, SLOT(subtractSegmentations()));
 }
 
 //----------------------------------------------------------------------------
 void EditorToolBar::initCODETools()
 {
-  m_erode = addAction(tr("Erode Selected Segmentations"));
+  m_erode = addAction(ERODE_TOOLTIP);
   m_erode->setIcon(QIcon(":/espina/erode.png"));
   connect(m_erode, SIGNAL(triggered(bool)),
           this, SLOT(erodeSegmentations()));
 
-  m_dilate = addAction(tr("Dilate Selected Segmentations"));
+  m_dilate = addAction(DILATE_TOOLTIP);
   m_dilate->setIcon(QIcon(":/espina/dilate.png"));
   connect(m_dilate, SIGNAL(triggered(bool)),
           this, SLOT(dilateSegmentations()));
 
-  m_open = addAction(tr("Open Selected Segmentations"));
+  m_open = addAction(OPENING_TOOLTIP);
   m_open->setIcon(QIcon(":/espina/open.png"));
   connect(m_open, SIGNAL(triggered(bool)),
           this, SLOT(openSegmentations()));
 
-  m_close = addAction(tr("Close Selected Segmentations"));
+  m_close = addAction(CLOSING_TOOLTIP);
   m_close->setIcon(QIcon(":/espina/close.png"));
   connect(m_close, SIGNAL(triggered(bool)),
           this, SLOT(closeSegmentations()));
@@ -721,7 +730,7 @@ void EditorToolBar::initCODETools()
 //----------------------------------------------------------------------------
 void EditorToolBar::initFillTool()
 {
-  m_fill = addAction(tr("Fill Holes in Selected Segmentations"));
+  m_fill = addAction(FILL_HOLES_TOOLTIP);
   m_fill->setIcon(QIcon(":/espina/fillHoles.svg"));
   connect(m_fill, SIGNAL(triggered(bool)),
           this, SLOT(fillHoles()));
@@ -748,24 +757,24 @@ void EditorToolBar::updateAvailableOperations()
     severalToolTip = tr(" (This tool requires at least one segmentation to be selected)");
 
   m_splitToolSelector->setEnabled(one);
-  m_splitToolSelector->setToolTip(tr("Split Segmentations using an orthogonal plane") + oneToolTip);
+  m_splitToolSelector->setToolTip(SPLIT_TOOLTIP + oneToolTip);
 
   m_addition->setEnabled(atLeastTwo);
-  m_addition->setToolTip(tr("Combine Selected Segmentations") + atLeastTwoToolTip);
-  m_substraction->setEnabled(atLeastTwo);
-  m_substraction->setToolTip(tr("Subtract Selected Segmentations") + atLeastTwoToolTip);
+  m_addition->setToolTip(MERGE_TOOLTIP + atLeastTwoToolTip);
+  m_subtract->setEnabled(atLeastTwo);
+  m_subtract->setToolTip(SUBTRACT_TOOLTIP + atLeastTwoToolTip);
 
   m_close->setEnabled(several);
-  m_close->setToolTip(tr("Close Selected Segmentations") + severalToolTip);
+  m_close->setToolTip(CLOSING_TOOLTIP + severalToolTip);
   m_open->setEnabled(several);
-  m_open->setToolTip(tr("Open Selected Segmentations") + severalToolTip);
+  m_open->setToolTip(OPENING_TOOLTIP + severalToolTip);
   m_dilate->setEnabled(several);
-  m_dilate->setToolTip(tr("Dilate Selected Segmentations") + severalToolTip);
+  m_dilate->setToolTip(DILATE_TOOLTIP + severalToolTip);
   m_erode->setEnabled(several);
-  m_erode->setToolTip(tr("Erode Selected Segmentations") + severalToolTip);
+  m_erode->setToolTip(ERODE_TOOLTIP + severalToolTip);
 
   m_fill->setEnabled(several);
-  m_fill->setToolTip(tr("Fill Holes in Selected Segmentations") + severalToolTip);
+  m_fill->setToolTip(FILL_HOLES_TOOLTIP + severalToolTip);
 }
 
 //----------------------------------------------------------------------------

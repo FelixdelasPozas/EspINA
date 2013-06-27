@@ -49,7 +49,7 @@
         </size>
        </property>
        <property name="toolTip">
-        <string>Export information to csv</string>
+        <string>Save Category Data</string>
        </property>
        <property name="text">
         <string/>
@@ -92,7 +92,7 @@
         </size>
        </property>
        <property name="toolTip">
-        <string>Select Information Fields</string>
+        <string>Select Fields</string>
        </property>
        <property name="text">
         <string/>

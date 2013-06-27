@@ -85,7 +85,7 @@ void CompositionLayout::contextMenu(const QPoint &pos)
 
   contextMenu.addSeparator();
 
-  QAction *selectAll = contextMenu.addAction(tr("Select all segmentations that compose this one"));
+  QAction *selectAll = contextMenu.addAction(tr("Select component segmentations"));
   connect(selectAll, SIGNAL(triggered(bool)), this, SLOT(selectComposeElements()));
 
   QModelIndex index = m_view->selectionModel()->currentIndex();

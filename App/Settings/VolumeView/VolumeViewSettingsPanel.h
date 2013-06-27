@@ -38,7 +38,7 @@ namespace EspINA
                                      VolumeView::SettingsPtr settings);
 
     virtual const QString shortDescription() {return tr("3D View");}
-    virtual const QString longDescription() {return tr("%1 Settings").arg(shortDescription());}
+    virtual const QString longDescription() {return tr("%1").arg(shortDescription());}
     virtual const QIcon icon() {return QIcon();}
 
     virtual void acceptChanges();

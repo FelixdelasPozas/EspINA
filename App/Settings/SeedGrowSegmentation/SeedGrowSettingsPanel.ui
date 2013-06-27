@@ -32,22 +32,6 @@
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="m_colorSample">
-            <property name="minimumSize">
-             <size>
-              <width>32</width>
-              <height>32</height>
-             </size>
-            </property>
-            <property name="frameShape">
-             <enum>QFrame::Box</enum>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-           </widget>
-          </item>
-          <item>
            <spacer name="horizontalSpacer">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
@@ -89,6 +73,22 @@
            </widget>
           </item>
           <item>
+           <widget class="QLabel" name="m_colorSample">
+            <property name="minimumSize">
+             <size>
+              <width>32</width>
+              <height>32</height>
+             </size>
+            </property>
+            <property name="frameShape">
+             <enum>QFrame::Box</enum>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item>
            <spacer name="horizontalSpacer_2">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
@@ -111,16 +111,9 @@
    <item>
     <widget class="QGroupBox" name="groupBox_2">
      <property name="title">
-      <string>Default VOI Half Side Size</string>
+      <string>Default VOI Size</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_4">
-      <item>
-       <widget class="QLabel" name="label">
-        <property name="text">
-         <string>Half Side Size:</string>
-        </property>
-       </widget>
-      </item>
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_3">
         <item>
@@ -197,7 +190,7 @@
       <item>
        <widget class="QCheckBox" name="m_taxonomicalVOI">
         <property name="text">
-         <string>Use taxonomical sizes</string>
+         <string>Use default VOI sizes depending on the active category</string>
         </property>
        </widget>
       </item>
@@ -207,7 +200,7 @@
          <number>1</number>
         </property>
         <property name="text">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use taxonomy sizes to define default VOI dimensions.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Note:&lt;/span&gt; Taxonomy sizes can be modified in the VOI settings panel.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Note:&lt;/span&gt; Category default sizes can be modified in the VOI settings panel.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="textFormat">
          <enum>Qt::RichText</enum>
@@ -229,7 +222,7 @@
       <item>
        <widget class="QCheckBox" name="m_applyClosing">
         <property name="text">
-         <string>Apply Closing</string>
+         <string>Apply closing automatically to new segmentations</string>
         </property>
        </widget>
       </item>
@@ -279,7 +272,7 @@
   </layout>
  </widget>
  <resources>
-  <include location="rsc/SeedGrowSegmentation.qrc"/>
+  <include location="../../rsc/espina.qrc"/>
  </resources>
  <connections/>
 </ui>

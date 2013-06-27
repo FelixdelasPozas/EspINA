@@ -42,7 +42,7 @@ namespace EspINA
     virtual const QString shortDescription()
     { return tr("Cuboid VOI"); }
     virtual const QString longDescription()
-    { return tr("Cuboid Volume Of Interest Settings"); }
+    { return tr("Cuboid Volume Of Interest"); }
     virtual const QIcon icon()
     { return QIcon(":/espina/voi.svg"); }
 

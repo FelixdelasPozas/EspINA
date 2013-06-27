@@ -31,7 +31,7 @@
 
 const QString INPUTLINK     = "Input";
 const QString MERGELINK     = "Merge";
-const QString SUBSTRACTLINK = "Substract";
+const QString SUBTRACTLINK  = "Substract";
 
 using namespace EspINA;
 
@@ -92,8 +92,8 @@ const QString ImageLogicCommand::link(SegmentationSPtr seg)
   else if (ImageLogicFilter::ADDITION == m_operation)
     linkName = MERGELINK + QString::number(index);
 
-  else if (ImageLogicFilter::SUBSTRACTION == m_operation)
-    linkName = SUBSTRACTLINK + QString::number(index);
+  else if (ImageLogicFilter::SUBTRACTION == m_operation)
+    linkName = SUBTRACTLINK + QString::number(index);
 
   else
     Q_ASSERT(false);

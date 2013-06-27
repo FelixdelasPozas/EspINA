@@ -86,7 +86,7 @@ SegmentationExplorer::SegmentationExplorer(EspinaModel *model,
   setWindowTitle(tr("Segmentation Explorer"));
 
   //   addLayout("Debug", new Layout(m_baseModel));
-  addLayout("Type",        new TaxonomyLayout   (m_gui->view, m_baseModel, m_undoStack, m_viewManager));
+  addLayout("Category",    new TaxonomyLayout   (m_gui->view, m_baseModel, m_undoStack, m_viewManager));
   addLayout("Location",    new LocationLayout   (m_gui->view, m_baseModel, m_undoStack, m_viewManager));
   addLayout("Composition", new CompositionLayout(m_gui->view, m_baseModel, m_undoStack, m_viewManager));
 

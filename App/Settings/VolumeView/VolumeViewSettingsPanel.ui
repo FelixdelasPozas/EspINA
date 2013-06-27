@@ -15,23 +15,9 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_3">
    <item>
-    <widget class="QLabel" name="label_2">
-     <property name="text">
-      <string>Display:</string>
-     </property>
-    </widget>
-   </item>
-   <item>
     <widget class="QCheckBox" name="showAxis">
      <property name="text">
       <string>Show Axis</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QLabel" name="label">
-     <property name="text">
-      <string>Renderers:</string>
      </property>
     </widget>
    </item>
@@ -42,7 +28,7 @@
        <item>
         <widget class="QLabel" name="label_3">
          <property name="text">
-          <string>- Active:</string>
+          <string>- Active Renderers:</string>
          </property>
         </widget>
        </item>
@@ -72,7 +58,7 @@
        <item>
         <widget class="QLabel" name="label_4">
          <property name="text">
-          <string>- Available:</string>
+          <string>- Available Renderers:</string>
          </property>
         </widget>
        </item>
@@ -100,15 +86,6 @@
     </layout>
    </item>
   </layout>
-  <zorder>activeRenderers</zorder>
-  <zorder>availableRenderers</zorder>
-  <zorder>label_2</zorder>
-  <zorder>showAxis</zorder>
-  <zorder>label_3</zorder>
-  <zorder>label_4</zorder>
-  <zorder>label_3</zorder>
-  <zorder>label_3</zorder>
-  <zorder>label</zorder>
  </widget>
  <resources/>
  <connections/>

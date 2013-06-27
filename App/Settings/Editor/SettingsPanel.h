@@ -40,7 +40,7 @@ namespace EspINA
     { return tr("Edition Tools"); }
 
     virtual const QString longDescription()
-    { return tr("Edition Tools Settings"); }
+    { return tr("Edition Tools"); }
 
     virtual const QIcon icon()
     { return QIcon(":/espina/pencil.png"); }

@@ -29,7 +29,7 @@ namespace EspINA
     virtual ~AppositionSurfaceSettings() {};
 
     virtual const QString shortDescription() { return tr("Synaptic Apposition Surface"); }
-    virtual const QString longDescription()  { return tr("Synaptic Apposition Surface Settings"); }
+    virtual const QString longDescription()  { return tr("Synaptic Apposition Surface"); }
     virtual const QIcon icon()               { return QIcon(":/AppSurface.svg"); }
 
     virtual void acceptChanges();

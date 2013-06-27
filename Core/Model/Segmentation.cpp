@@ -151,7 +151,7 @@ QVariant Segmentation::data(int role) const
       {
         double bounds[6];
         output()->region().bounds(bounds);
-        boundsInfo = tr("<b>Sections:</b><br>");
+        boundsInfo = tr("<b>Bounds:</b><br>");
         boundsInfo = boundsInfo.append(TAB+"X: [%1 nm, %2 nm)<br>").arg(bounds[0]).arg(bounds[1]);
         boundsInfo = boundsInfo.append(TAB+"Y: [%1 nm, %2 nm)<br>").arg(bounds[2]).arg(bounds[3]);
         boundsInfo = boundsInfo.append(TAB+"Z: [%1 nm, %2 nm)").arg(bounds[4]).arg(bounds[5]);
@@ -163,11 +163,11 @@ QVariant Segmentation::data(int role) const
       QString taxonomyInfo;
       if (m_taxonomy)
       {
-        taxonomyInfo = tr("<b>Taxonomy:</b> %1<br>").arg(m_taxonomy->qualifiedName());
+        taxonomyInfo = tr("<b>Category:</b> %1<br>").arg(m_taxonomy->qualifiedName());
       }
 
       QString tooltip;
-      tooltip = tooltip.append("<b>Name:</b> %1<br>").arg(data().toString());
+      tooltip = tooltip.append("<center><b>%1</b></center>").arg(data().toString());
       tooltip = tooltip.append(taxonomyInfo);
       //tooltip = tooltip.append("<b>Users:</b> %1<br>").arg(m_args[USERS]);
       tooltip = tooltip.append(boundsInfo);

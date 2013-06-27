@@ -39,7 +39,7 @@ public:
   enum Operation
   {
     ADDITION,
-    SUBSTRACTION,
+    SUBTRACTION,
     NOSIGN
   };
 
@@ -78,7 +78,7 @@ protected:
 
 protected:
   void addition();
-  void substraction();
+  void subtraction();
 
 private:
   Parameters   m_param;

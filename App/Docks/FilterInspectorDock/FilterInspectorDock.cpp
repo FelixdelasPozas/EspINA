@@ -37,9 +37,9 @@ FilterInspectorDock::FilterInspectorDock(QUndoStack *undoStack,
 , m_viewManager(vm)
 , m_seg   (NULL)
 {
-  setObjectName("Filter Inspector Panel");
+  setObjectName(tr("History Panel"));
 
-  setWindowTitle(tr("Filter Inspector"));
+  setWindowTitle(tr("History"));
 
   connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection,bool)),
           this, SLOT(updatePannel()));

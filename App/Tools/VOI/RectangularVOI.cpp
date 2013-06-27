@@ -175,9 +175,9 @@ void RectangularVOI::defineVOI(ISelector::PickList channels)
   pickedChannel->volume()->spacing(spacing);
 
   Nm bounds[6] = {
-     pos[0] - m_settings->xSize(), pos[0] + m_settings->xSize(),
-     pos[1] - m_settings->ySize(), pos[1] + m_settings->ySize(),
-     pos[2] - m_settings->zSize(), pos[2] + m_settings->zSize() };
+     pos[0] - m_settings->xSize()/2.0, pos[0] + m_settings->xSize()/2.0,
+     pos[1] - m_settings->ySize()/2.0, pos[1] + m_settings->ySize()/2.0,
+     pos[2] - m_settings->zSize()/2.0, pos[2] + m_settings->zSize()/2.0 };
 
   m_widget = new RectangularRegion(bounds, m_viewManager);
   Q_ASSERT(m_widget);

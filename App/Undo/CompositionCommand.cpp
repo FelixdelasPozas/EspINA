@@ -33,7 +33,7 @@ using namespace EspINA;
 
 const QString INPUTLINK     = "Input";
 const QString MERGELINK     = "Merge";
-const QString SUBSTRACTLINK = "Substract";
+const QString SUBTRACTLINK  = "Substract";
 
 const Filter::FilterType CompositionCommand::FILTER_TYPE = "CompositionToolbar::CompositionFilter";
 

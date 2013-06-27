@@ -11,19 +11,9 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Adaptive Edges Extension</string>
+   <string>Define Channel Edges</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
-   <item>
-    <widget class="QLabel" name="label">
-     <property name="text">
-      <string>Define distance of a segmentation to the margins. This option can be changed later in the Channel Inspector dialog.</string>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,1">
      <item>
@@ -65,7 +55,7 @@
              </size>
             </property>
             <property name="text">
-             <string>The margins are the edges of the stack</string>
+             <string>Compute edges including outer frame</string>
             </property>
             <property name="autoExclusive">
              <bool>true</bool>
@@ -132,7 +122,7 @@
              </size>
             </property>
             <property name="text">
-             <string>The margins are the edges of the image</string>
+             <string>Compute edges excluding outer frame</string>
             </property>
             <property name="autoExclusive">
              <bool>true</bool>
@@ -179,7 +169,8 @@
           <item row="1" column="1">
            <widget class="QLabel" name="colorLabel">
             <property name="text">
-             <string>Background color:</string>
+             <string>Outer frame color:
+(Black=0; White=255)</string>
             </property>
            </widget>
           </item>
@@ -228,6 +219,19 @@
       </widget>
      </item>
     </layout>
+   </item>
+   <item>
+    <widget class="QLabel" name="label_5">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="text">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Note:&lt;/span&gt; &lt;br&gt;-  In case there is no outer frame, select the option to compute edges including outer frame. &lt;br&gt;- This option can be changed later in the Channel Inspector dialog.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+    </widget>
    </item>
    <item>
     <widget class="QDialogButtonBox" name="buttonBox">

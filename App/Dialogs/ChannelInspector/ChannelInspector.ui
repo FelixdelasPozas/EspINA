@@ -277,7 +277,7 @@
               <item>
                <widget class="QCheckBox" name="opacityCheck">
                 <property name="text">
-                 <string>Automatically managed</string>
+                 <string>Auto</string>
                 </property>
                </widget>
               </item>
@@ -504,65 +504,6 @@
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_8">
        <item>
-        <widget class="QLabel" name="label_5">
-         <property name="minimumSize">
-          <size>
-           <width>0</width>
-           <height>25</height>
-          </size>
-         </property>
-         <property name="font">
-          <font>
-           <weight>75</weight>
-           <bold>true</bold>
-           <underline>true</underline>
-          </font>
-         </property>
-         <property name="text">
-          <string>Adaptive Edges Extension</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLabel" name="label_6">
-         <property name="font">
-          <font>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>Extension Explanation</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLabel" name="label_7">
-         <property name="text">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The distance of a segmentation to the margins can be computed in two ways::&lt;/p&gt;&lt;ul style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;&lt;li style=&quot; margin-top:5px; margin-bottom:5px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Margins are defined as the edge of the stack.&lt;/li&gt;&lt;li style=&quot; margin-top:5px; margin-bottom:5px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Margins are defined as the edge of the image.&lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="textFormat">
-          <enum>Qt::RichText</enum>
-         </property>
-         <property name="scaledContents">
-          <bool>false</bool>
-         </property>
-         <property name="wordWrap">
-          <bool>true</bool>
-         </property>
-         <property name="textInteractionFlags">
-          <set>Qt::NoTextInteraction</set>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="Line" name="line">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-        </widget>
-       </item>
-       <item>
         <widget class="QLabel" name="label_10">
          <property name="font">
           <font>
@@ -571,7 +512,7 @@
           </font>
          </property>
          <property name="text">
-          <string>Channel Margins Definition</string>
+          <string>Channel Edges Detection</string>
          </property>
         </widget>
        </item>
@@ -623,7 +564,7 @@
                  </size>
                 </property>
                 <property name="text">
-                 <string>The margins are the edges of the stack</string>
+                 <string>Compute edges including outer frame</string>
                 </property>
                 <property name="autoExclusive">
                  <bool>true</bool>
@@ -694,7 +635,7 @@
                  </size>
                 </property>
                 <property name="text">
-                 <string>The margins are the edges of the image</string>
+                 <string>Compute edges excluding outer frame</string>
                 </property>
                 <property name="autoExclusive">
                  <bool>true</bool>
@@ -738,7 +679,7 @@
               <item row="0" column="1">
                <widget class="QLabel" name="colorLabel">
                 <property name="text">
-                 <string>Background color:
+                 <string>Outer frame color:
 (Black=0; White=255)</string>
                 </property>
                 <property name="scaledContents">
@@ -794,6 +735,33 @@
           </widget>
          </item>
         </layout>
+       </item>
+       <item>
+        <widget class="Line" name="line">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_5">
+         <property name="text">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Note: &lt;/span&gt;In case there is no outer frame, select the option to compute edges including outer frame.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_3">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
        </item>
       </layout>
      </widget>

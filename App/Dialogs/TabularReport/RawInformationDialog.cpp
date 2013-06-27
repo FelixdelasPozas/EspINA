@@ -23,6 +23,7 @@
 #include <Core/Model/Proxies/TaxonomyProxy.h>
 #include <Core/EspinaSettings.h>
 #include <QSettings>
+#include <QDialogButtonBox>
 
 #ifdef TEST_ESPINA_MODELS
 #include <Core/Model/ModelTest.h>
@@ -45,6 +46,11 @@ RawInformationDialog::RawInformationDialog(EspinaModel *model,
   setLayout(new QVBoxLayout());
   layout()->addWidget(report);
 
+  QDialogButtonBox *acceptButton = new QDialogButtonBox(QDialogButtonBox::Ok);
+  connect(acceptButton, SIGNAL(accepted()),
+          this,         SLOT(accept()));
+  layout()->addWidget(acceptButton);
+
   QSettings settings(CESVIMA, ESPINA);
 
   settings.beginGroup("Raw Information Analysis");
@@ -56,7 +62,7 @@ RawInformationDialog::RawInformationDialog(EspinaModel *model,
 //----------------------------------------------------------------------------
 RawInformationDialog::~RawInformationDialog()
 {
-  
+
 }
 
 //----------------------------------------------------------------------------

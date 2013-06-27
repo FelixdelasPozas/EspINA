@@ -41,7 +41,7 @@ namespace EspINA
     virtual const QString shortDescription()
     { return tr("Seed Grow Segmentation"); }
     virtual const QString longDescription()
-    { return tr("Seed Grow Segmentation Settings"); }
+    { return tr("Seed Grow Segmentation"); }
     virtual const QIcon icon()
     { return QIcon(":/espina/bestPixelSelector.svg"); }
 

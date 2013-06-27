@@ -87,8 +87,8 @@ namespace EspINA
     void cancelDrawOperation();
     void changeSplitTool(QAction *action);
     void cancelSplitOperation();
-    void combineSegmentations();
-    void substractSegmentations();
+    void mergeSegmentations();
+    void subtractSegmentations();
     void closeSegmentations();
     void openSegmentations();
     void dilateSegmentations();
@@ -117,7 +117,7 @@ namespace EspINA
     QMap<QAction *, IToolSPtr> m_splitTools;
 
     QAction *m_addition;
-    QAction *m_substraction;
+    QAction *m_subtract;
 
     QAction *m_erode;
     QAction *m_dilate;

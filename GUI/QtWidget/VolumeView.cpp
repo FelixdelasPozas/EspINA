@@ -276,7 +276,7 @@ void VolumeView::buildControls()
   m_controlLayout->addStretch();
 
   m_zoom.setIcon(QIcon(":/espina/zoom_reset.png"));
-  m_zoom.setToolTip(tr("Reset view's camera"));
+  m_zoom.setToolTip(tr("Reset Camera"));
   m_zoom.setFlat(true);
   m_zoom.setIconSize(QSize(22,22));
   m_zoom.setMaximumSize(QSize(32,32));

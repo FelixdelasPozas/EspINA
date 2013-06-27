@@ -42,8 +42,8 @@ namespace EspINA
     GeneralSettingsPanel(EspinaModel *model, GeneralSettings *settings);
     virtual ~GeneralSettingsPanel();
 
-    virtual const QString shortDescription() {return "General";}
-    virtual const QString longDescription() {return "General Settings";}
+    virtual const QString shortDescription() {return "Session";}
+    virtual const QString longDescription() {return "Session";}
     virtual const QIcon icon() {return QIcon(":/espina/editor.ico");}
 
     virtual void acceptChanges();

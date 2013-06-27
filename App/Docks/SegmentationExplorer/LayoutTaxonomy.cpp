@@ -167,31 +167,33 @@ TaxonomyLayout::~TaxonomyLayout()
 //------------------------------------------------------------------------
 void TaxonomyLayout::createSpecificControls(QHBoxLayout *specificControlLayout)
 {
-  QPushButton *createTaxonomy = new QPushButton();
-  createTaxonomy->setIcon(QIcon(":espina/create_node.png"));
-  createTaxonomy->setIconSize(QSize(22,22));
-  createTaxonomy->setBaseSize(32, 32);
-  createTaxonomy->setMaximumSize(32, 32);
-  createTaxonomy->setMinimumSize(32, 32);
-  createTaxonomy->setFlat(true);
-  createTaxonomy->setEnabled(false);
+  QPushButton *createCategory = new QPushButton();
+  createCategory->setIcon(QIcon(":espina/create_node.png"));
+  createCategory->setIconSize(QSize(22,22));
+  createCategory->setBaseSize(32, 32);
+  createCategory->setMaximumSize(32, 32);
+  createCategory->setMinimumSize(32, 32);
+  createCategory->setFlat(true);
+  createCategory->setEnabled(false);
+  createCategory->setToolTip(tr("Create Category"));
 
-  connect(createTaxonomy, SIGNAL(clicked(bool)),
+  connect(createCategory, SIGNAL(clicked(bool)),
           this,           SLOT(createTaxonomy()));
-  specificControlLayout->addWidget(createTaxonomy);
+  specificControlLayout->addWidget(createCategory);
 
-  QPushButton *createSubTaxonomy = new QPushButton();
-  createSubTaxonomy->setIcon(QIcon(":espina/create_subnode.png"));
-  createSubTaxonomy->setIconSize(QSize(22,22));
-  createSubTaxonomy->setBaseSize(32, 32);
-  createSubTaxonomy->setMaximumSize(32, 32);
-  createSubTaxonomy->setMinimumSize(32, 32);
-  createSubTaxonomy->setFlat(true);
-  createSubTaxonomy->setEnabled(false);
+  QPushButton *createSubcategory = new QPushButton();
+  createSubcategory->setIcon(QIcon(":espina/create_subnode.png"));
+  createSubcategory->setIconSize(QSize(22,22));
+  createSubcategory->setBaseSize(32, 32);
+  createSubcategory->setMaximumSize(32, 32);
+  createSubcategory->setMinimumSize(32, 32);
+  createSubcategory->setFlat(true);
+  createSubcategory->setEnabled(false);
+  createSubcategory->setToolTip(tr("Create Subcategory"));
 
-  connect(createSubTaxonomy, SIGNAL(clicked(bool)),
+  connect(createSubcategory, SIGNAL(clicked(bool)),
           this,              SLOT(createSubTaxonomy()));
-  specificControlLayout->addWidget(createSubTaxonomy);
+  specificControlLayout->addWidget(createSubcategory);
 
   QPushButton *changeColor = new QPushButton();
   changeColor->setIcon(QIcon(":espina/rainbow.svg"));
@@ -201,6 +203,7 @@ void TaxonomyLayout::createSpecificControls(QHBoxLayout *specificControlLayout)
   changeColor->setMinimumSize(32, 32);
   changeColor->setFlat(true);
   changeColor->setEnabled(false);
+  changeColor->setToolTip(tr("Change Category Color"));
 
   connect(changeColor, SIGNAL(clicked(bool)),
           this, SLOT(changeTaxonomyColor()));
@@ -210,8 +213,8 @@ void TaxonomyLayout::createSpecificControls(QHBoxLayout *specificControlLayout)
   connect(m_view->selectionModel(), SIGNAL(selectionChanged(QItemSelection, QItemSelection)),
           this,                     SLOT(updateSelection()));
 
-  m_createTaxonomy      = createTaxonomy;
-  m_createSubTaxonomy   = createSubTaxonomy;
+  m_createTaxonomy      = createCategory;
+  m_createSubTaxonomy   = createSubcategory;
   m_changeTaxonomyColor = changeColor;
 
   connect(m_createTaxonomy, SIGNAL(destroyed()),
@@ -236,7 +239,7 @@ void TaxonomyLayout::contextMenu(const QPoint &pos)
 
     contextMenu.addSeparator();
 
-    QAction *selectAll = contextMenu.addAction(tr("Select all segmentations with the same taxonomy"));
+    QAction *selectAll = contextMenu.addAction(tr("Select segmentations of the same category"));
     connect(selectAll, SIGNAL(triggered(bool)),
             this,      SLOT(selectTaxonomyElements()));
 
@@ -246,24 +249,24 @@ void TaxonomyLayout::contextMenu(const QPoint &pos)
 
   QMenu contextMenu;
 
-  QAction *createNode = contextMenu.addAction(tr("Create Taxonomy"));
+  QAction *createNode = contextMenu.addAction(tr("Create Category"));
   createNode->setIcon(QIcon(":espina/create_node.png"));
   connect(createNode, SIGNAL(triggered(bool)),
           this,       SLOT(createTaxonomy()));
 
-  QAction *createSubNode = contextMenu.addAction(tr("Create SubTaxonomy"));
+  QAction *createSubNode = contextMenu.addAction(tr("Create Subcategory"));
   createSubNode->setIcon(QIcon(":espina/create_subnode.png"));
   connect(createSubNode, SIGNAL(triggered(bool)),
           this,          SLOT(createSubTaxonomy()));
 
-  QAction *changeColor = contextMenu.addAction(tr("Change Taxonomy Color"));
+  QAction *changeColor = contextMenu.addAction(tr("Change Category Color"));
   changeColor->setIcon(QIcon(":espina/rainbow.svg"));
   connect(changeColor, SIGNAL(triggered(bool)),
           this,        SLOT(changeTaxonomyColor()));
 
   contextMenu.addSeparator();
 
-  QAction *selectAll = contextMenu.addAction(tr("Select all segmentations with this taxonomy"));
+  QAction *selectAll = contextMenu.addAction(tr("Select category segmentations"));
   connect(selectAll, SIGNAL(triggered(bool)),
           this,      SLOT(selectTaxonomyElements()));
 

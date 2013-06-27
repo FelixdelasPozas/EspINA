@@ -546,7 +546,7 @@ void SliceView::setupUI()
   m_view->installEventFilter(this);
 
   m_zoomButton->setIcon(QIcon(":/espina/zoom_reset.png"));
-  m_zoomButton->setToolTip(tr("Reset view's camera"));
+  m_zoomButton->setToolTip(tr("Reset Camera"));
   m_zoomButton->setFlat(true);
   m_zoomButton->setIconSize(QSize(20,20));
   m_zoomButton->setMaximumSize(QSize(22,22));
@@ -975,7 +975,6 @@ bool SliceView::eventFilter(QObject* caller, QEvent* e)
     QString toopTip;
     foreach(PickableItemPtr pick, selection)
     {
-      toopTip = toopTip.append("<b>%1</b><br>").arg(pick->data().toString());
       toopTip = toopTip.append(pick->data(Qt::ToolTipRole).toString());
     }
     m_view->setToolTip(toopTip);

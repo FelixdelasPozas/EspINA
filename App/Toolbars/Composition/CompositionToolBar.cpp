@@ -30,7 +30,7 @@
 
 using namespace EspINA;
 
-const QString COMPOSE_SEG_TOOLTIP = QObject::tr("Compose Selected Segmentations");
+const QString COMPOSE_SEG_TOOLTIP = QObject::tr("Create compounded segmentation from selected segmentations");
 
 //----------------------------------------------------------------------------
 CompositionToolBar::CompositionToolBar(EspinaModel *model,
@@ -126,7 +126,7 @@ void CompositionToolBar::updateAvailableOperations()
     atLeastTwoToolTip = tr(" (This tool requires at least two selected segmentations)");
 
   m_compose->setEnabled(atLeastTwo);
-  m_compose->setToolTip(tr("Create a segmentation from selected segmentations") + atLeastTwoToolTip);
+  m_compose->setToolTip(COMPOSE_SEG_TOOLTIP + atLeastTwoToolTip);
 }
 
 //----------------------------------------------------------------------------

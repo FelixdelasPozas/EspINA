@@ -59,7 +59,7 @@ MainToolBar::MainToolBar(EspinaModel *model,
   setWindowTitle(tr("Main Tool Bar"));
 
   // Segmentation visibility
-  m_toggleSegVisibility = addAction(tr("Toggle Segmentations Visibility"));
+  m_toggleSegVisibility = addAction(tr("Toggle Segmentation Visibility"));
 
   m_toggleSegVisibility->setShortcut(QString("Space"));
   m_toggleSegVisibility->setCheckable(true);
@@ -86,7 +86,7 @@ MainToolBar::MainToolBar(EspinaModel *model,
           this,  SLOT(updateTaxonomy(TaxonomySPtr)));
   connect(m_model, SIGNAL(modelReset()),
           this, SLOT(resetRootItem()));
-  m_taxonomySelector->setToolTip( tr("New segmentation type") );
+  m_taxonomySelector->setToolTip( tr("Active Category") );
 
   addWidget(m_taxonomySelector);
 
@@ -97,14 +97,14 @@ MainToolBar::MainToolBar(EspinaModel *model,
           this, SLOT(removeSegmentation(SegmentationPtr)));
 
   m_removeSegmentation = addAction(QIcon(":/espina/removeSeg.svg"),
-                                   tr("Remove Segmentation"));
+                                   tr("Delete Segmentation"));
   m_removeSegmentation->setCheckable(true);
   connect(m_removeSegmentation, SIGNAL(toggled(bool)),
           this, SLOT(removeSegmentation(bool)));
 
   // Distance Tool
   m_measureButton = addAction(QIcon(":/espina/measure.png"),
-                                tr("Measure tool"));
+                                tr("Measure Distance"));
   m_measureButton->setCheckable(true);
   m_measureButton->setShortcut(QKeySequence("M"));
   connect(m_measureButton, SIGNAL(toggled(bool)),
@@ -112,7 +112,7 @@ MainToolBar::MainToolBar(EspinaModel *model,
 
   // Ruler toogle button
   m_rulerButton = addAction(QIcon(":/espina/measure3D.png"),
-                            tr("Show Ruler"));
+                            tr("Measure Selection"));
   m_rulerButton->setCheckable(true);
   m_rulerButton->setShortcut(QKeySequence("R"));
   connect(m_rulerButton, SIGNAL(toggled(bool)),

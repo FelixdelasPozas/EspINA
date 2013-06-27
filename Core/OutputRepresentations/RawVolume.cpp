@@ -131,7 +131,7 @@ int voxelIndex(Nm point, Nm spacing)
 
   if (point >= 0)
     //voxel = ceil(point/spacing + 0.5);
-    voxel = int(point/spacing +0.5);
+    voxel = int(point/spacing + 0.5);
   else
     voxel = floor(point/spacing + 0.5);
 
@@ -1011,12 +1011,6 @@ itkVolumeIterator RawSegmentationVolume::iterator()
 //----------------------------------------------------------------------------
 itkVolumeIterator RawSegmentationVolume::iterator(const EspinaRegion& region)
 {
-//   qDebug() << "ITERATOR";
-//   qDebug() << region[0] << region[1] << region[2] << region[3] << region[4] << region[5];
-//   qDebug() << m_volume->GetSpacing()[0] << m_volume->GetSpacing()[1] << m_volume->GetSpacing()[2];
-//   volumeRegion(region).Print(std::cout);
-//   //m_volume->Print(std::cout);
-//   qDebug() << "END";
   return itkVolumeIterator(m_volume, volumeRegion(region));
 }
 
