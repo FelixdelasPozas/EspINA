@@ -63,7 +63,7 @@ void ZoomTool::setInUse(bool value)
 
   if (m_inUse)
   {
-    m_widget = new ZoomSelectionWidget();
+    m_widget = ZoomSelectionWidget::New();
     m_viewManager->addWidget(m_widget);
     m_viewManager->setSelectionEnabled(false);
     m_widget->setEnabled(true);
@@ -73,7 +73,7 @@ void ZoomTool::setInUse(bool value)
     m_widget->setEnabled(false);
     m_viewManager->removeWidget(m_widget);
     m_viewManager->setSelectionEnabled(true);
-    delete m_widget;
+    m_widget->Delete();
     m_widget = NULL;
   }
 }

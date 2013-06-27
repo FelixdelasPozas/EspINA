@@ -77,18 +77,19 @@ MainToolBar::MainToolBar(EspinaModel *model,
           this, SLOT(toggleCrosshair(bool)));
 
   // Taxonomy selection
-  m_taxonomySelector = new QComboTreeView(this);
-  m_taxonomySelector->setModel(model);
-  m_taxonomySelector->setRootModelIndex(model->taxonomyRoot());
-  connect(m_taxonomySelector,SIGNAL(activated(QModelIndex)),
+  m_categorySelector = new QComboTreeView(this);
+  m_categorySelector->setModel(model);
+  m_categorySelector->setRootModelIndex(model->taxonomyRoot());
+  m_categorySelector->setMinimumHeight(28);
+  connect(m_categorySelector,SIGNAL(activated(QModelIndex)),
           this, SLOT(setActiveTaxonomy(QModelIndex)));
   connect(m_model, SIGNAL(taxonomyAdded(TaxonomySPtr)),
           this,  SLOT(updateTaxonomy(TaxonomySPtr)));
   connect(m_model, SIGNAL(modelReset()),
           this, SLOT(resetRootItem()));
-  m_taxonomySelector->setToolTip( tr("Active Category") );
+  m_categorySelector->setToolTip( tr("Active Category") );
 
-  addWidget(m_taxonomySelector);
+  addWidget(m_categorySelector);
 
   // Segmentation Remover
   connect(m_segRemover.get(), SIGNAL(removalAborted()),
@@ -109,6 +110,8 @@ MainToolBar::MainToolBar(EspinaModel *model,
   m_measureButton->setShortcut(QKeySequence("M"));
   connect(m_measureButton, SIGNAL(toggled(bool)),
           this, SLOT(toggleMeasureTool(bool)));
+  connect(m_measureTool.get(), SIGNAL(stopMeasuring()),
+          this,                SLOT(abortOperation()));
 
   // Ruler toogle button
   m_rulerButton = addAction(QIcon(":/espina/measure3D.png"),
@@ -175,12 +178,12 @@ void MainToolBar::updateTaxonomy(TaxonomySPtr taxonomy)
     if (taxonomy->elements().first().get()->data().toString().compare(QString("SAS")) == 0 &&
         taxonomy->elements().size() > 1)
     {
-      m_taxonomySelector->setCurrentIndex(1);
+      m_categorySelector->setCurrentIndex(1);
       m_viewManager->setActiveTaxonomy(taxonomy->elements().at(1).get());
     }
     else
     {
-      m_taxonomySelector->setCurrentIndex(0);
+      m_categorySelector->setCurrentIndex(0);
       m_viewManager->setActiveTaxonomy(taxonomy->elements().first().get());
     }
   }
@@ -245,7 +248,7 @@ void MainToolBar::toggleMeasureTool(bool enable)
 //----------------------------------------------------------------------------
 void MainToolBar::resetRootItem()
 {
-  m_taxonomySelector->setRootModelIndex(m_model->taxonomyRoot());
+  m_categorySelector->setRootModelIndex(m_model->taxonomyRoot());
 }
 
 //----------------------------------------------------------------------------

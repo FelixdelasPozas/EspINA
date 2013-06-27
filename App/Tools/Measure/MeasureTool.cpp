@@ -64,6 +64,9 @@ void MeasureTool::setInUse(bool value)
     m_widget->Delete();
     m_widget = NULL;
   }
+
+  if (!value)
+    emit stopMeasuring();
 }
 
 //----------------------------------------------------------------------------

@@ -89,7 +89,7 @@ namespace EspINA
     QAction             *m_toggleCrosshair;
     QAction             *m_measureButton;
     QAction             *m_rulerButton;
-    QComboTreeView      *m_taxonomySelector;
+    QComboTreeView      *m_categorySelector;
 
     SegmentationRemoverSPtr m_segRemover;
     MeasureToolSPtr         m_measureTool;

@@ -31,8 +31,13 @@ namespace EspINA
   , public vtkCommand
   {
   public:
-    explicit ZoomSelectionWidget();
     virtual ~ZoomSelectionWidget();
+
+    vtkTypeMacro(ZoomSelectionWidget, vtkCommand);
+
+    static ZoomSelectionWidget *New()
+    {return new ZoomSelectionWidget();};
+
 
     // implements EspinaWidget
     void setViewManager(ViewManager *vm) {m_viewManager = vm;}
@@ -46,6 +51,9 @@ namespace EspINA
 
     // implements vtkCommand
     void Execute(vtkObject *, unsigned long int, void*);
+
+  private:
+    explicit ZoomSelectionWidget();
 
   private:
     ZoomSelectionSliceWidget *m_axial;

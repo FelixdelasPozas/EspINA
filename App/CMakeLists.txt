@@ -46,6 +46,7 @@ qt4_wrap_cpp (ESPINA_MOC
   Tools/Brushes/Brush.h
   Tools/Contour/FilledContour.h
   Tools/PlanarSplit/PlanarSplitTool.h
+  Tools/Measure/MeasureTool.h
   Tools/Ruler/RulerTool.h
   Tools/SeedGrowSegmentation/SeedGrowSegmentationTool.h
   Tools/SegmentationRemover/SegmentationRemover.h

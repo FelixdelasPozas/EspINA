@@ -50,12 +50,14 @@ MeasureWidget::~MeasureWidget()
     widget->SetEnabled(false);
     delete widget;
   }
+  m_sliceWidgets.clear();
 
   if (m_axial)
   {
     m_axial->RemoveObserver(this);
     m_axial->SetEnabled(false);
     m_axial->Delete();
+    m_axial = NULL;
   }
 
   if (m_coronal)
@@ -63,6 +65,7 @@ MeasureWidget::~MeasureWidget()
     m_coronal->RemoveObserver(this);
     m_coronal->SetEnabled(false);
     m_coronal->Delete();
+    m_coronal = NULL;
   }
 
   if (m_sagittal)
@@ -70,16 +73,8 @@ MeasureWidget::~MeasureWidget()
     m_sagittal->RemoveObserver(this);
     m_sagittal->SetEnabled(false);
     m_sagittal->Delete();
+    m_sagittal = NULL;
   }
-
-  foreach(vtkCamera *camera, m_axialCameras)
-    camera->RemoveObserver(this);
-
-  foreach(vtkCamera *camera, m_coronalCameras)
-    camera->RemoveObserver(this);
-
-  foreach(vtkCamera *camera, m_sagittalCameras)
-    camera->RemoveObserver(this);
 }
 
 //----------------------------------------------------------------------------

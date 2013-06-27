@@ -21,6 +21,7 @@ namespace EspINA
   class MeasureTool
   : public ITool
   {
+    Q_OBJECT
   public:
     explicit MeasureTool(ViewManager *);
     virtual ~MeasureTool();
@@ -31,6 +32,9 @@ namespace EspINA
     virtual void setInUse(bool value);
     virtual void setEnabled(bool value);
     virtual bool enabled() const;
+
+  signals:
+    void stopMeasuring();
 
   private:
     bool m_enabled;

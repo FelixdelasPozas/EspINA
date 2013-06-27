@@ -126,7 +126,7 @@ QVariant EspinaModel::data(const QModelIndex& index, int role) const
   if (index == taxonomyRoot())
   {
     if (role == Qt::DisplayRole)
-      return tr("Taxonomies");
+      return tr("Categories");
     return QVariant();
   }
 
