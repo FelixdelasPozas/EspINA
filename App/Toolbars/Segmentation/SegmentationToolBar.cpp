@@ -272,14 +272,14 @@ void SegmentationToolBar::buildPickers()
 
   // Exact Pixel Picker
   action = new QAction(QIcon(":/espina/pixelSelector.svg"),
-                       tr("Add synapse (Ctrl +). Exact Pixel"),
+                       tr("Create segmentation based on selected pixel (Ctrl +)"),
                        m_pickerSelector);
   PixelSelector *picker = new PixelSelector();
   addVoxelPicker(action, IPickerSPtr(picker));
 
   // Best Pixel Picker
   action = new QAction(QIcon(":/espina/bestPixelSelector.svg"),
-                       tr("Add synapse (Ctrl +). Best Pixel"),
+                       tr("Create segmentation based on best pixel (Ctrl +)"),
                        m_pickerSelector);
   BestPixelSelector *bestPicker = new BestPixelSelector();
   bestPicker->setCursor(QCursor(QPixmap(":/espina/crossRegion.svg")));

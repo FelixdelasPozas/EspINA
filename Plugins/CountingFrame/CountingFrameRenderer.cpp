@@ -81,6 +81,9 @@ void CountingFrameRenderer::show()
     m_widgets[cf]->SetInteractor(interactor);
     m_widgets[cf]->GetRepresentation()->SetVisibility(true);
     m_widgets[cf]->On();
+    vtkCountingFrame3DWidget *cfWidget = dynamic_cast<vtkCountingFrame3DWidget *>(m_widgets[cf]);
+    cfWidget->SetCountingFrameVisibility(true);
+    cfWidget->SetEnabled(true);
   }
 
   emit renderRequested();

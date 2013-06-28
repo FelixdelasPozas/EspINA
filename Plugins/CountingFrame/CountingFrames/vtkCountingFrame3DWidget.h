@@ -41,6 +41,11 @@ public:
 
   virtual void SetCountingFrame(vtkSmartPointer< vtkPolyData > region, EspINA::Nm inclusionOffset[3], EspINA::Nm exclusionOffset[3]);
 
+  void SetCountingFrameVisibility(bool visible)
+  { m_visible = visible; }
+
+  virtual void SetEnabled(int enabled);
+
   // Description:
   // Create the default widget representation if one is not set. By default,
   // this is an instance of the vtkCountingFrame3DRepresentation class.
@@ -59,7 +64,7 @@ protected:
   static void SelectAction(vtkAbstractWidget*);
   static void EndSelectAction(vtkAbstractWidget*);
 
-  // helper methods for cursoe management
+  // helper methods for cursor management
   virtual void SetCursor(int state);
 
   vtkPolyData *Volume;
@@ -67,6 +72,8 @@ protected:
 private:
   vtkCountingFrame3DWidget(const vtkCountingFrame3DWidget&);  //Not implemented
   void operator=(const vtkCountingFrame3DWidget&);  //Not implemented
+
+  bool m_visible;
 };
 
 #endif // VTKBOUNDINGFRAME3DWIDGET_H
