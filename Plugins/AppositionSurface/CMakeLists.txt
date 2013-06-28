@@ -1,5 +1,7 @@
 project(APPOSITION_PLANE_PLUGIN)
 
+include (GenerateExportHeader)
+
 # Version Number
 set (PLUGIN_VERSION_MAJOR 0)
 set (PLUGIN_VERSION_MINOR 1)
@@ -25,32 +27,80 @@ if (NOT COMPILING_ESPINA)
 
 endif ()
 
+  find_package(XLSLIB REQUIRED)
+
 include_directories (
   ${CMAKE_SOURCE_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}
+  ${CMAKE_CURRENT_BINARY_DIR} # UI files
+  ${XLSLIB_INCLUDE_DIRS}
 )
 
 qt4_add_resources (RCC_BUILT_SOURCES 
-  rsc/AppositionSurface.qrc
+  GUI/rsc/AppositionSurface.qrc
+  )
+
+# Create Interface files
+qt4_wrap_ui (UI_BUILT_SOURCES
+  Analysis/SynapticAppositionSurfaceAnalysis.ui
+  GUI/Settings/AppositionSurfaceSettings.ui
+  GUI/FilterInspector/AppositionSurfaceFilterInspector.ui
   )
 
 QT4_WRAP_CPP(MOC_SOURCES
-  AppositionSurface.h
+  AppositionSurfacePlugin.h
+  Analysis/SynapticAppositionSurfaceAnalysis.h
+  Filter/AppositionSurfaceFilter.h
+
+  GUI/Settings/AppositionSurfaceSettings.h
+  GUI/FilterInspector/AppositionSurfaceFilterInspector.h
+  GUI/AppositionSurfaceAction.h
+  GUI/AppositionSurfaceToolbar.h
+
+  OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
 )
 
-set (PLUGIN_SOURCES
-  AppositionSurface.cpp
-  AppositionSurfaceExtension.cpp
-  AppositionSurfaceRenderer.cpp
+set (PLUGIN_SOURCES 
   ${MOC_SOURCES}
   ${RCC_BUILT_SOURCES}
+  ${UI_BUILT_SOURCES}
+  Analysis/SynapticAppositionSurfaceAnalysis.cpp
+  AppositionSurfacePlugin.cpp
+  Core/ASMeshProxy.cpp 
+  Core/ASVolumeProxy.cpp
+  Core/Extensions/AppositionSurfaceExtension.cpp
+  Filter/AppositionSurfaceFilter.cpp
+  GUI/AppositionSurfaceAction.cpp
+  GUI/AppositionSurfaceToolbar.cpp
+  GUI/FilterInspector/AppositionSurfaceFilterInspector.cpp
+  GUI/Settings/AppositionSurfaceSettings.cpp
+  Undo/AppositionSurfaceCommand.cpp
 )
 
 set (PLUGIN_LIBRARIES
   EspinaCore
+  EspinaGUI
+  EspinaUndo
+  vtkInfovis
+  ${XLSLIB_LIBRARIES}
   )
 
+if(MINGW)
+  if(DEFINED ESPINA_VERSION_MAJOR)
+    configure_file("${CMAKE_CURRENT_SOURCE_DIR}/windllprops.rc.in" "${CMAKE_CURRENT_BINARY_DIR}/windllprops.rc")
+    SET(PLUGIN_SOURCES ${PLUGIN_SOURCES} ${CMAKE_CURRENT_BINARY_DIR}/windllprops.rc)
+    SET(CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> -O coff -o <OBJECT> -i <SOURCE>")
+    ENABLE_LANGUAGE(RC)
+  endif(DEFINED ESPINA_VERSION_MAJOR)
+endif(MINGW)
+
 add_library(AppositionSurfacePlugin SHARED ${PLUGIN_SOURCES})
+GENERATE_EXPORT_HEADER(
+             AppositionSurfacePlugin
+             BASE_NAME AppositionSurfacePlugin
+             EXPORT_MACRO_NAME AppositionSurfacePlugin_EXPORT
+             EXPORT_FILE_NAME AppositionSurfacePlugin_Export.h
+  )
 target_link_libraries(AppositionSurfacePlugin ${PLUGIN_LIBRARIES})
 
 if( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )

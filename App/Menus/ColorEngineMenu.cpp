@@ -23,6 +23,8 @@
 #include <QActionGroup>
 #include <QSettings>
 
+using namespace EspINA;
+
 const QString COLOR_ENGINE("ColorEngine");
 
 //-----------------------------------------------------------------------------
@@ -75,7 +77,7 @@ void ColorEngineMenu::setColorEngine(QAction* action)
   else
     m_engine->removeColorEngine(m_availableEngines[action]);
 
-  m_viewManager->setColorEngine(m_engine.data());
+  m_viewManager->setColorEngine(m_engine.get());
 
   // Save user preferences
   QSettings settings(CESVIMA, ESPINA);

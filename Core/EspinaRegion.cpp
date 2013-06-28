@@ -16,14 +16,42 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+// EspINA
 #include "EspinaRegion.h"
+
+// VTK
+#include <vtkMath.h>
+
+// QT
+#include <QDebug>
+
+using namespace EspINA;
+
+//-----------------------------------------------------------------------------
+EspinaRegion::EspinaRegion()
+{
+  vtkMath::UninitializeBounds(m_bounds);
+}
 
 //-----------------------------------------------------------------------------
 EspinaRegion::EspinaRegion(const Nm bounds[6])
 {
   memcpy(m_bounds, bounds, 6*sizeof(Nm));
 }
+
+//-----------------------------------------------------------------------------
+EspinaRegion::EspinaRegion(const Nm minX, const Nm maxX,
+                           const Nm minY, const Nm maxY,
+                           const Nm minZ, const Nm maxZ)
+{
+  m_bounds[0] = minX;
+  m_bounds[1] = maxX;
+  m_bounds[2] = minY;
+  m_bounds[3] = maxY;
+  m_bounds[4] = minZ;
+  m_bounds[5] = maxZ;
+}
+
 
 //-----------------------------------------------------------------------------
 bool EspinaRegion::intersect(const EspinaRegion &region) const
@@ -60,16 +88,26 @@ EspinaRegion EspinaRegion::intersection(const EspinaRegion &region) const
   return EspinaRegion(res);
 }
 
-//-----------------------------------------------------------------------------
-EspinaRegion BoundingBox(EspinaRegion r1, EspinaRegion r2)
+
+namespace EspINA
 {
-  Nm bounds[6];
-
-  for(unsigned int min = 0, max = 1; min < 6; min += 2, max +=2)
+  //-----------------------------------------------------------------------------
+  EspinaRegion BoundingBox(EspinaRegion r1, EspinaRegion r2)
   {
-    bounds[min] = std::min(r1[min], r2[min]);
-    bounds[max] = std::max(r1[max], r2[max]);
-  }
+    Nm bounds[6];
 
-  return EspinaRegion(bounds);
+    for(unsigned int min = 0, max = 1; min < 6; min += 2, max +=2)
+    {
+      bounds[min] = std::min(r1[min], r2[min]);
+      bounds[max] = std::max(r1[max], r2[max]);
+    }
+
+    return EspinaRegion(bounds);
+  }
+} // namespace EspINA
+
+QDebug operator<< (QDebug qd, const EspINA::EspinaRegion &region)
+{
+    qd << "EspinaRegion [" << region.xMin() << region.xMax() << region.yMin() << region.yMax() << region.zMin() << region.zMax() << "]";
+    return qd;
 }

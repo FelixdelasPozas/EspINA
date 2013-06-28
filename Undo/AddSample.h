@@ -20,25 +20,35 @@
 #ifndef ADDSAMPLE_H
 #define ADDSAMPLE_H
 
+#include "EspinaUndo_Export.h"
+
+// EspINA
+#include <Core/EspinaTypes.h>
+#include <Core/Model/EspinaModel.h>
+
+// Qt
 #include <QUndoStack>
 
-#include <QSharedPointer>
-
-class EspinaModel;
-class Sample;
-
-//------------------------------------------------------------------------
-class AddSample
-: public QUndoCommand
+namespace EspINA
 {
-public:
-  explicit AddSample(Sample *sample, EspinaModel *model);
+  class EspinaUndo_EXPORT AddSample
+  : public QUndoCommand
+  {
+  public:
+    explicit AddSample(SampleSPtr    sample,
+                       EspinaModel  *model,
+                       QUndoCommand *parent = NULL);
+    virtual ~AddSample();
 
-  virtual void redo();
-  virtual void undo();
+    virtual void redo();
+    virtual void undo();
 
-private:
-  EspinaModel *m_model;
-  Sample      *m_sample;
-};
+  private:
+    EspinaModel *m_model;
+
+    SampleSPtr m_sample;
+  };
+
+}// namespace EspINA
+
 #endif // ADDSAMPLE_H

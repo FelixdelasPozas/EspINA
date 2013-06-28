@@ -2,11 +2,13 @@
  * ZoomSelectionWidget.h
  *
  *  Created on: Nov 14, 2012
- *      Author: F√©lix de las Pozas √Ålvarez
+ *      Author: FÈlix de las Pozas ¡lvarez
  */
 
 #ifndef ZOOMSELECTIONWIDGET_H_
 #define ZOOMSELECTIONWIDGET_H_
+
+#include "EspinaGUI_Export.h"
 
 // EspINA
 #include "GUI/vtkWidgets/vtkZoomSelectionWidget.h"
@@ -19,21 +21,29 @@
 #include <vtkCommand.h>
 
 class vtkAbstractWidget;
-class ZoomSelectionSliceWidget;
 
-class ZoomSelectionWidget
-: public EspinaWidget
-, public vtkCommand
+namespace EspINA
 {
+  class ZoomSelectionSliceWidget;
+
+  class EspinaGUI_EXPORT ZoomSelectionWidget
+  : public EspinaWidget
+  , public vtkCommand
+  {
   public:
-    explicit ZoomSelectionWidget();
     virtual ~ZoomSelectionWidget();
+
+    vtkTypeMacro(ZoomSelectionWidget, vtkCommand);
+
+    static ZoomSelectionWidget *New()
+    {return new ZoomSelectionWidget();};
+
 
     // implements EspinaWidget
     void setViewManager(ViewManager *vm) {m_viewManager = vm;}
-    virtual vtkAbstractWidget *createWidget();
-    virtual void deleteWidget(vtkAbstractWidget *widget);
-    virtual SliceWidget *createSliceWidget(PlaneType plane);
+    virtual vtkAbstractWidget *create3DWidget(VolumeView *view);
+
+    virtual SliceWidget *createSliceWidget(SliceView *view);
 
     virtual bool processEvent(vtkRenderWindowInteractor *iren,
                               long unsigned int event);
@@ -43,11 +53,16 @@ class ZoomSelectionWidget
     void Execute(vtkObject *, unsigned long int, void*);
 
   private:
+    explicit ZoomSelectionWidget();
+
+  private:
     ZoomSelectionSliceWidget *m_axial;
     ZoomSelectionSliceWidget *m_coronal;
     ZoomSelectionSliceWidget *m_sagittal;
     vtkZoomSelectionWidget   *m_volume;
     QList<vtkAbstractWidget*> m_widgets;
-};
+  };
+
+}// namespace EspINA
 
 #endif /* ZOOMSELECTIONWIDGET_H_ */

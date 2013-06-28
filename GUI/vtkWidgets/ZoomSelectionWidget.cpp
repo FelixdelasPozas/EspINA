@@ -13,9 +13,12 @@
 #include "vtkZoomSelectionWidget.h"
 
 #include "GUI/ViewManager.h"
+#include <GUI/QtWidget/SliceView.h>
 
 // vtk
 #include <vtkAbstractWidget.h>
+
+using namespace EspINA;
 
 typedef EspinaInteractorAdapter<vtkZoomSelectionWidget> ZoomSelectionWidgetAdapter;
 
@@ -63,7 +66,7 @@ ZoomSelectionWidget::~ZoomSelectionWidget()
 }
 
 //----------------------------------------------------------------------------
-vtkAbstractWidget *ZoomSelectionWidget::createWidget()
+vtkAbstractWidget *ZoomSelectionWidget::create3DWidget(VolumeView *view)
 {
   return NULL;
 
@@ -80,25 +83,10 @@ vtkAbstractWidget *ZoomSelectionWidget::createWidget()
 }
 
 //----------------------------------------------------------------------------
-void ZoomSelectionWidget::deleteWidget(vtkAbstractWidget *widget)
-{
-  Q_ASSERT(false);
-
-  // dead code, for now
-  if (!m_volume)
-    return;
-
-  m_volume->RemoveObserver(this);
-  m_volume->SetEnabled(false);
-  m_volume->Delete();
-  m_volume = NULL;
-}
-
-//----------------------------------------------------------------------------
-SliceWidget *ZoomSelectionWidget::createSliceWidget(PlaneType plane)
+SliceWidget *ZoomSelectionWidget::createSliceWidget(SliceView *view)
 {
   vtkZoomSelectionWidget *widget = NULL;
-  switch(plane)
+  switch(view->plane())
   {
     case AXIAL:
       widget = ZoomSelectionWidgetAdapter::New();

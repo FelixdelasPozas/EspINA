@@ -1,40 +1,64 @@
 /*
- * ZoomToolbar.h
- *
- *  Created on: Nov 14, 2012
- *      Author: Félix de las Pozas Álvarez
- */
+    <one line to give the program's name and a brief idea of what it does.>
+    Copyright (C) 2012 Félix de las Pozas Álvarez <@>
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #ifndef ZOOMTOOLBAR_H_
 #define ZOOMTOOLBAR_H_
 
-#include <QToolBar>
+#include <Core/Interfaces/IToolBar.h>
+#include <Tools/Zoom/ZoomTool.h>
 
-class ViewManager;
 class QAction;
-class ITool;
-class ZoomTool;
 
-class ZoomToolBar
-: public QToolBar
+namespace EspINA
 {
-  Q_OBJECT
+  class ViewManager;
+  class ITool;
+  class ZoomTool;
+
+  class ZoomToolBar
+  : public IToolBar
+  {
+    Q_OBJECT
 
   public:
-    explicit ZoomToolBar(ViewManager *vm,
-                         QWidget* parent = 0);
+    explicit ZoomToolBar(ViewManager *viewManager,
+                         QWidget     *parent = 0);
     virtual ~ZoomToolBar();
 
+    virtual void initToolBar(EspinaModel *model,
+                             QUndoStack  *undoStack,
+                             ViewManager *viewManager);
+    virtual void resetToolbar();
+    virtual void abortOperation() {};
+
   public slots:
-    virtual void ResetViews();
-    virtual void InitZoomTool(bool);
-    virtual void resetState();
+    virtual void resetViews();
+    virtual void initZoomTool(bool);
 
   private:
     ViewManager *m_viewManager;
+
+    ZoomToolSPtr m_zoomTool;
+
     QAction     *m_resetViews;
     QAction     *m_zoomToolAction;
-    ZoomTool    *m_zoomTool;
-};
+  };
+
+} // namespace EspINA
 
 #endif /* ZOOMTOOLBAR_H_ */

@@ -20,13 +20,20 @@
 #include "SplitUndoCommand.h"
 #include <Core/Model/EspinaModel.h>
 #include <Core/Model/EspinaFactory.h>
+#include <Core/Model/Channel.h>
 #include <Core/Model/Segmentation.h>
-#include <Filters/SplitFilter.h>
+#include <Core/Model/Sample.h>
+#include <Core/Relations.h>
+#include <Core/Filters/SplitFilter.h>
+
+using namespace EspINA;
+
+ const Filter::FilterType SplitUndoCommand::FILTER_TYPE = "EditorToolBar::SplitFilter";
 
 //----------------------------------------------------------------------------
-SplitUndoCommand::SplitUndoCommand(Segmentation *input,
-                                   SplitFilter  *filter,
-                                   Segmentation *splitSeg[2],
+SplitUndoCommand::SplitUndoCommand(SegmentationSPtr input,
+                                   FilterSPtr       filter,
+                                   SegmentationSPtr splitSeg[2],
                                    EspinaModel  *model)
 : m_model(model)
 , m_channel(input->channel())
@@ -35,14 +42,15 @@ SplitUndoCommand::SplitUndoCommand(Segmentation *input,
 , m_filter(filter)
 , m_relations(input->relations())
 {
-  memcpy(m_subSeg, splitSeg, 2*sizeof(Segmentation*));
+  m_subSeg[0] = splitSeg[0];
+  m_subSeg[1] = splitSeg[1];
 }
 
 //----------------------------------------------------------------------------
 SplitUndoCommand::~SplitUndoCommand()
 {
-  for (int i = 0; i < 2;  i++)
-    delete m_subSeg[i];
+//   for (int i = 0; i < 2;  i++) smart pointers
+//     delete m_subSeg[i];
 }
 
 //----------------------------------------------------------------------------
@@ -53,7 +61,7 @@ void SplitUndoCommand::redo()
 
   m_model->addRelation(m_seg->filter(), m_filter, SplitFilter::INPUTLINK);
   // Remove Segmentation Relations
-  foreach(ModelItem::Relation rel, m_relations)
+  foreach(Relation rel, m_relations)
   {
     m_model->removeRelation(rel.ancestor, rel.succesor, rel.relation);
   }
@@ -62,12 +70,14 @@ void SplitUndoCommand::redo()
   m_model->removeSegmentation(m_seg);
 
   // Add new segmentations
+  SegmentationSList segmentations;
   for (int i = 0; i < 2;  i++)
   {
+    segmentations << m_subSeg[i];
     m_model->addSegmentation(m_subSeg[i]);
 
-    m_model->addRelation(m_filter,  m_subSeg[i], CREATELINK);
-    m_model->addRelation(m_sample,  m_subSeg[i], Sample::WHERE);
+    m_model->addRelation(m_filter,  m_subSeg[i], Filter::CREATELINK);
+    m_model->addRelation(m_sample,  m_subSeg[i], Relations::LOCATION);
     m_model->addRelation(m_channel, m_subSeg[i], Channel::LINK);
 
     m_subSeg[i]->initializeExtensions();
@@ -80,7 +90,7 @@ void SplitUndoCommand::undo()
   // Remove segmentations
   for (int i = 0; i < 2;  i++)
   {
-    foreach(ModelItem::Relation relation,  m_subSeg[i]->relations())
+    foreach(Relation relation,  m_subSeg[i]->relations())
     {
       m_model->removeRelation(relation.ancestor, relation.succesor, relation.relation);
     }
@@ -89,7 +99,7 @@ void SplitUndoCommand::undo()
   }
 
   // Remove filter
-  foreach(ModelItem::Relation relation,  m_filter->relations())
+  foreach(Relation relation,  m_filter->relations())
   {
     m_model->removeRelation(relation.ancestor, relation.succesor, relation.relation);
   }
@@ -97,7 +107,7 @@ void SplitUndoCommand::undo()
 
   // Restore input segmentation
   m_model->addSegmentation(m_seg);
-  foreach(ModelItem::Relation rel, m_relations)
+  foreach(Relation rel, m_relations)
   {
     m_model->addRelation(rel.ancestor, rel.succesor, rel.relation);
   }

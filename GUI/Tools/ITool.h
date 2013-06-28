@@ -20,22 +20,32 @@
 #ifndef ITOOL_H
 #define ITOOL_H
 
-#include <QObject>
-#include <QCursor>
+#include "EspinaGUI_Export.h"
 
-class EspinaRenderView;
+#include <QObject>
+
+#include <QCursor>
+#include <boost/shared_ptr.hpp>
+
 class QEvent;
 
-class ITool
-: public QObject
+namespace EspINA
 {
-public:
-  virtual QCursor cursor() const = 0;
-  virtual bool filterEvent(QEvent *e, EspinaRenderView *view=NULL) = 0;
-  virtual void setInUse(bool value) = 0;
-  virtual void setEnabled(bool value) = 0;
-  virtual bool enabled() const = 0;
-  virtual void lostEvent(EspinaRenderView*) {};
-};
+  class EspinaRenderView;
+
+  class EspinaGUI_EXPORT ITool
+  : public QObject
+  {
+  public:
+    virtual QCursor cursor() const = 0;
+    virtual bool filterEvent(QEvent *e, EspinaRenderView *view=NULL) = 0;
+    virtual void setInUse(bool value) = 0;
+    virtual void setEnabled(bool value) = 0;
+    virtual bool enabled() const = 0;
+    virtual void lostEvent(EspinaRenderView*) {};
+  };
+
+  typedef boost::shared_ptr<ITool> IToolSPtr;
+} // namespace EspINA
 
 #endif // ITOOL_H

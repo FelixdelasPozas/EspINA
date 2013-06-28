@@ -21,30 +21,34 @@
 
 #include <Core/Model/Channel.h>
 #include <Core/Model/EspinaModel.h>
-#include <Filters/ChannelReader.h>
+#include <Core/Model/Filter.h>
 
-AddChannel::AddChannel(ChannelReader *reader,
-                       Channel       *channel,
-                       EspinaModel   *model,
-                       QUndoCommand  *parent)
+using namespace EspINA;
+
+//------------------------------------------------------------------------
+AddChannel::AddChannel(FilterSPtr    reader,
+                       ChannelSPtr   channel,
+                       EspinaModel  *model,
+                       QUndoCommand *parent)
 : QUndoCommand(parent)
+, m_model  (model)
 , m_reader (reader)
 , m_channel(channel)
-, m_model  (model)
 {
 }
 
+//------------------------------------------------------------------------
 void AddChannel::redo()
 {
   m_model->addFilter(m_reader);
   m_model->addChannel(m_channel);
-  m_model->addRelation(m_reader, m_channel, Channel::VOLUMELINK);
+  m_model->addRelation(m_reader, m_channel, Channel::VOLUME_LINK);
 }
 
+//------------------------------------------------------------------------
 void AddChannel::undo()
 {
-  m_model->removeRelation(m_reader, m_channel, Channel::VOLUMELINK);
+  m_model->removeRelation(m_reader, m_channel, Channel::VOLUME_LINK);
   m_model->removeChannel(m_channel);
   m_model->removeFilter(m_reader);
 }
-

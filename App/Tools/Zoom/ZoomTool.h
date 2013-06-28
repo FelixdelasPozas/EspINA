@@ -10,15 +10,16 @@
 
 #include <GUI/Tools/ITool.h>
 
-// EspINA
-
-class ViewManager;
-class ZoomSelectionWidget;
 class QCursor;
 
-class ZoomTool
-: public ITool
+namespace EspINA
 {
+  class ViewManager;
+  class ZoomSelectionWidget;
+
+  class ZoomTool
+  : public ITool
+  {
   public:
     explicit ZoomTool(ViewManager *);
     virtual ~ZoomTool();
@@ -36,6 +37,10 @@ class ZoomTool
     ZoomSelectionWidget *m_widget;
     ViewManager *m_viewManager;
     QCursor zoomCursor;
-};
+  };
+
+  typedef boost::shared_ptr<ZoomTool> ZoomToolSPtr;
+
+} // namespace EspINA
 
 #endif /* ZOOMTOOL_H_ */

@@ -21,6 +21,16 @@
 
 // EspINA
 #include <Core/Model/Segmentation.h>
+#include <Core/Model/Taxonomy.h>
+#include <Core/Model/MarchingCubesMesh.h>
+#include <Core/OutputRepresentations/MeshType.h>
+#include <Core/OutputRepresentations/VolumeProxy.h>
+#include <Core/OutputRepresentations/MeshProxy.h>
+#include <Core/OutputRepresentations/RawVolume.h>
+#include <GUI/Representations/SliceRepresentation.h>
+#include <GUI/Representations/SimpleMeshRepresentation.h>
+#include <GUI/Representations/SmoothedMeshRepresentation.h>
+#include <GUI/Representations/VolumeRaycastRepresentation.h>
 
 // Qt
 #include <QApplication>
@@ -39,6 +49,8 @@
 #include <itkMetaImageIO.h>
 #include <itkShapeLabelObject.h>
 #include <itkVTKImageToImageFilter.h>
+
+using namespace EspINA;
 
 typedef itk::ImageFileReader<SegmentationLabelMap> LabelMapReader;
 typedef itk::ImageToVTKImageFilter<SegmentationLabelMap> ImageToVTKImageFilterType;
@@ -85,17 +97,16 @@ SegmhaImporterFilter::TaxonomyObject::TaxonomyObject(const QString& line)
 }
 
 //---------------------------------------------------------------------------
-const QString SegmhaImporterFilter::TYPE = "Segmha Importer";
 const QString SegmhaImporterFilter::SUPPORTED_FILES = tr("Segmentation LabelMaps (*.segmha)");
 
 //-----------------------------------------------------------------------------
-SegmhaImporterFilter::SegmhaImporterFilter(Filter::NamedInputs inputs,
-                                           ModelItem::Arguments args)
-: SegmentationFilter(inputs, args)
-, m_param           (m_args)
-, m_taxonomy        (new Taxonomy())
+SegmhaImporterFilter::SegmhaImporterFilter(NamedInputs inputs,
+                                           Arguments   args,
+                                           FilterType  type)
+: BasicSegmentationFilter(inputs, args, type)
+, m_param                (m_args)
+, m_taxonomy             (new Taxonomy())
 {
-
 }
 
 
@@ -105,29 +116,20 @@ SegmhaImporterFilter::~SegmhaImporterFilter()
 }
 
 //-----------------------------------------------------------------------------
-QVariant SegmhaImporterFilter::data(int role) const
-{
-  if (role == Qt::DisplayRole)
-    return TYPE;
-  else
-    return QVariant();
-}
-
-//-----------------------------------------------------------------------------
 QString SegmhaImporterFilter::serialize() const
 {
   QStringList blockList;
-  foreach(Output filterOutput, m_outputs)
-    blockList << QString::number(filterOutput.id);
+  foreach(FilterOutputId outputId, m_outputs.keys())
+    blockList << QString::number(outputId);
 
   m_args[BLOCKS] = blockList.join(",");
   return Filter::serialize();
 }
 
 //-----------------------------------------------------------------------------
-bool SegmhaImporterFilter::needUpdate() const
+bool SegmhaImporterFilter::needUpdate(FilterOutputId oId) const
 {
-  return Filter::needUpdate();
+  return SegmentationFilter::needUpdate(oId);
 }
 
 //-----------------------------------------------------------------------------
@@ -152,7 +154,7 @@ void SegmhaImporterFilter::run()
 
   qDebug() << "Reading segmentation's meta data from file:";
   QList<SegmentationObject> metaData;
-  QList<TaxonomyElement *> taxonomies;
+  TaxonomyElementSList taxonomies;
 
   QFile metaDataReader(m_args[FILE]);
   metaDataReader.open(QIODevice::ReadOnly);
@@ -171,7 +173,7 @@ void SegmhaImporterFilter::run()
     else if (infoType == "Segment")
     {
       TaxonomyObject tax(line);
-      TaxonomyElement *taxonomy = m_taxonomy->addElement(tax.name);
+      TaxonomyElementSPtr taxonomy = m_taxonomy->createElement(tax.name);
       //QColor color(tax.color[0], tax.color[1], tax.color[1]);
       taxonomy->setColor(tax.color);
       taxonomies << taxonomy;
@@ -201,7 +203,7 @@ void SegmhaImporterFilter::run()
 
   //qDebug() << "Reading ITK image from file";
   // Read the original image, whose pixels are indeed labelmap object ids
-  labelMapReader->SetFileName(m_args[FILE].toUtf8().constData());
+  labelMapReader->SetFileName(m_args[FILE].toUtf8().data());
   labelMapReader->SetImageIO(itk::MetaImageIO::New());
   labelMapReader->Update();
 
@@ -240,7 +242,7 @@ void SegmhaImporterFilter::run()
   qDebug() << "Number of Label Objects" << labelMap->GetNumberOfLabelObjects();
 
   LabelObjectType * object;
-  OutputId id = 0;
+  FilterOutputId id = 0;
   foreach(SegmentationObject seg, metaData)
   {
     try
@@ -263,8 +265,13 @@ void SegmhaImporterFilter::run()
       label2volume->SetInput(segLabelMap);
       label2volume->Update();
 
-      createOutput(id, label2volume->GetOutput());
-      output(id).volume->toITK()->DisconnectPipeline();
+      RawSegmentationVolumeSPtr volume(new RawSegmentationVolume(label2volume->GetOutput()));
+
+      SegmentationRepresentationSList repList;
+      repList << volume;
+      repList << MeshRepresentationSPtr(new MarchingCubesMesh(volume)); //TODO: pass the volume or the proxy?
+
+      addOutputRepresentations(id, repList);
 
       m_taxonomies << taxonomies[seg.taxonomyId-1];
 
@@ -279,13 +286,21 @@ void SegmhaImporterFilter::run()
 }
 
 //-----------------------------------------------------------------------------
-TaxonomyElement* SegmhaImporterFilter::taxonomy(OutputId i)
+void SegmhaImporterFilter::run(FilterOutputId oId)
 {
-  return m_taxonomies.value(i, NULL);
+  // As traceability is not supported by this filter 
+  Q_ASSERT(false);
+}
+
+
+//-----------------------------------------------------------------------------
+TaxonomyElementSPtr SegmhaImporterFilter::taxonomy(FilterOutputId i)
+{
+  return m_taxonomies.value(i, TaxonomyElementSPtr());
 }
 
 //-----------------------------------------------------------------------------
-void SegmhaImporterFilter::initSegmentation(Segmentation* seg, Filter::OutputId i)
+void SegmhaImporterFilter::initSegmentation(SegmentationSPtr seg, FilterOutputId i)
 {
   seg->setTaxonomy(taxonomy(i));
 

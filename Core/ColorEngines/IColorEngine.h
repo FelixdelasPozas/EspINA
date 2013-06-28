@@ -19,40 +19,47 @@
 #ifndef COLORENGINE_H
 #define COLORENGINE_H
 
-#include <QSharedPointer>
+#include "EspinaCore_Export.h"
+
+#include "Core/EspinaTypes.h"
 
 #include <QColor>
 #include <vtkLookupTable.h>
 #include <vtkSmartPointer.h>
 
-class Segmentation;
 
-typedef vtkSmartPointer<vtkLookupTable> LUTPtr;
-
-class ColorEngine
-: public QObject
+namespace EspINA
 {
-  Q_OBJECT
+  typedef vtkSmartPointer<vtkLookupTable> LUTPtr;
 
-public:
-  enum Components
+  class EspinaCore_EXPORT ColorEngine
+  : public QObject
   {
-    None = 0x0, Color = 0x1, Transparency = 0x2
+    Q_OBJECT
+
+  public:
+    enum Components
+    {
+      None         = 0x0,
+      Color        = 0x1,
+      Transparency = 0x2
+    };
+    Q_DECLARE_FLAGS(Composition, Components)
+
+  public:
+    virtual QColor color(SegmentationPtr seg) = 0;
+    virtual LUTPtr lut(SegmentationPtr seg) = 0;
+
+    virtual Composition supportedComposition() const = 0;
+
+  signals:
+    void lutModified();
   };
-  Q_DECLARE_FLAGS(Composition, Components)
 
-public:
-  virtual QColor color(Segmentation *seg) = 0;
-  virtual LUTPtr lut(Segmentation *seg) = 0;
+  typedef boost::shared_ptr<ColorEngine> ColorEnginePtr;
 
-  virtual Composition supportedComposition() const = 0;
+  Q_DECLARE_OPERATORS_FOR_FLAGS(ColorEngine::Composition)
 
-signals:
-  void lutModified();
-};
-
-typedef QSharedPointer<ColorEngine> ColorEnginePtr;
-
-Q_DECLARE_OPERATORS_FOR_FLAGS(ColorEngine::Composition)
+}// namespace EspINA
 
 #endif // COLORENGINE_H

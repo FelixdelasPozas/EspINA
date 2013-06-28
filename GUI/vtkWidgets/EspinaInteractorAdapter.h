@@ -1,24 +1,25 @@
 /*
-    <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2012  <copyright holder> <email>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
+ *    <one line to give the program's name and a brief idea of what it does.>
+ *    Copyright (C) 2012  <copyright holder> <email>
+ * 
+ *    This program is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
+ * 
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ * 
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 #ifndef ESPINAINTERACTORADAPTER_H
 #define ESPINAINTERACTORADAPTER_H
+
+#include "EspinaGUI_Export.h"
 
 #include <vtkAbstractWidget.h>
 #include <vtkWidgetCallbackMapper.h>
@@ -27,23 +28,24 @@
 
 class QEvent;
 
-template<class T>
-class EspinaInteractorAdapter
-: public T
+namespace EspINA
 {
-public:
-  bool ProcessEventsHandler(long unsigned int event)
+  template<class T>
+  class EspinaGUI_EXPORT EspinaInteractorAdapter
+  : public T
   {
-    this->EventCallbackCommand->SetAbortFlag(0);
-    this->CallbackMapper->DebugOn();
-    unsigned long int widgetEvent = this->CallbackMapper->GetEventTranslator()->GetTranslation(event);
-    this->CallbackMapper->InvokeCallback(widgetEvent);
+  public:
+    bool ProcessEventsHandler(long unsigned int event)
+    {
+        this->EventCallbackCommand->SetAbortFlag(0);
+        this->CallbackMapper->DebugOn();
+        unsigned long int widgetEvent = this->CallbackMapper->GetEventTranslator()->GetTranslation(event);
+        this->CallbackMapper->InvokeCallback(widgetEvent);
 
-    return this->EventCallbackCommand->GetAbortFlag();
-  }
+        return this->EventCallbackCommand->GetAbortFlag();
+    }
+  };
 
-};
-
-//vtkStandardNewMacro(EspinaInteractorAdapter<T>);
+}// namespace EspINA
 
 #endif // ESPINAINTERACTORADAPTER_H

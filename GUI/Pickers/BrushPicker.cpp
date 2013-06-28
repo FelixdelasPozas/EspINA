@@ -18,11 +18,14 @@
 #include "BrushPicker.h"
 
 // EspINA
-#include "GUI/QtWidget/EspinaRenderView.h"
-#include "GUI/ViewManager.h"
-#include <Core/Model/Channel.h>
-#include <Filters/FreeFormSource.h>
 #include <Core/EspinaRegion.h>
+#include <Core/Model/Channel.h>
+#include <Core/Model/Segmentation.h>
+#include <Core/OutputRepresentations/VolumeRepresentation.h>
+
+#include "GUI/QtWidget/EspinaRenderView.h"
+#include "GUI/QtWidget/SliceView.h"
+#include "GUI/ViewManager.h"
 
 // Qt
 #include <QMouseEvent>
@@ -39,21 +42,26 @@
 #include <vtkSphere.h>
 #include <vtkImageResliceToColors.h>
 #include <vtkMatrix4x4.h>
+#include <vtkImageData.h>
+
+using namespace EspINA;
 
 //-----------------------------------------------------------------------------
-BrushPicker::BrushPicker(PickableItem* item)
+BrushPicker::BrushPicker(PickableItemPtr item)
 : m_referenceItem(item)
-, m_displayRadius(20)
+, m_displayRadius(-1)
 , m_borderColor(Qt::blue)
 , m_brushColor(Qt::blue)
+, m_brushImage(NULL)
 , m_tracking(false)
-, m_stroke(IPicker::WorldRegion::New())
+, m_stroke(ISelector::WorldRegion::New())
 , m_plane(AXIAL)
 , m_radius(-1)
 , m_lut(NULL)
 , m_preview(NULL)
 , m_actor(NULL)
 , m_drawing(true)
+, m_segmentation(NULL)
 {
   memset(m_viewSize, 0, 2*sizeof(int));
   memset(m_LL, 0, 3*sizeof(double));
@@ -63,26 +71,52 @@ BrushPicker::BrushPicker(PickableItem* item)
 }
 
 //-----------------------------------------------------------------------------
+BrushPicker::~BrushPicker()
+{
+  if (m_brushImage)
+  {
+    delete m_brushImage;
+    m_brushImage = NULL;
+  }
+}
+
+//-----------------------------------------------------------------------------
 bool BrushPicker::filterEvent(QEvent* e, EspinaRenderView* view)
 {
+  if (e->type() == QEvent::KeyRelease)
+  {
+    QKeyEvent *ke = static_cast<QKeyEvent *>(e);
+    if (ke->key() == Qt::Key_Control && m_tracking)
+    {
+      startStroke(m_lastDot, view);
+      return true;
+    }
+  }
+
   if (!m_tracking && QEvent::MouseButtonPress == e->type())
   {
     QMouseEvent *me = static_cast<QMouseEvent *>(e);
     if (me->button() == Qt::LeftButton)
     {
+      m_tracking = true;
       startStroke(me->pos(), view);
       return true;
     }
-  } else if (m_tracking && QEvent::MouseMove == e->type())
-  {
-    QMouseEvent *me = static_cast<QMouseEvent*>(e);
-    updateStroke(me->pos(), view);
-    return true;
-  }else if (m_tracking && QEvent::MouseButtonRelease == e->type())
-  {
-    stopStroke(view);
-    return true;
   }
+  else
+    if (m_tracking && QEvent::MouseMove == e->type())
+    {
+      QMouseEvent *me = static_cast<QMouseEvent*>(e);
+      updateStroke(me->pos(), view);
+      return true;
+    }
+    else
+      if (m_tracking && QEvent::MouseButtonRelease == e->type())
+      {
+        m_tracking = false;
+        stopStroke(view);
+        return true;
+      }
 
   return false;
 }
@@ -115,15 +149,54 @@ void BrushPicker::setBrushColor(QColor color)
 }
 
 //-----------------------------------------------------------------------------
-void BrushPicker::setReferenceItem(PickableItem* item)
+void BrushPicker::setReferenceItem(PickableItemPtr item)
 {
   m_referenceItem = item;
-  m_spacing = m_referenceItem->volume()->toITK()->GetSpacing();
+
+  if (EspINA::SEGMENTATION == item->type())
+  {
+    SegmentationVolumeSPtr volume = segmentationVolume(m_referenceItem->output());
+    m_spacing = volume->toITK()->GetSpacing();
+  } else if (EspINA::CHANNEL == item->type())
+  {
+    ChannelVolumeSPtr volume = channelVolume(m_referenceItem->output());
+    m_spacing = volume->toITK()->GetSpacing();
+  }
+}
+
+//-----------------------------------------------------------------------------
+itkVolumeType::SpacingType BrushPicker::referenceSpacing() const
+{
+  return m_spacing;
+}
+
+
+//-----------------------------------------------------------------------------
+void BrushPicker::setBrushImage(QImage &image)
+{
+  if (m_brushImage)
+  {
+    delete m_brushImage;
+    m_brushImage = NULL;
+  }
+
+  if (!image.isNull())
+  {
+    m_brushImage = new QImage(image);
+  }
+
+  buildCursor();
 }
 
 //-----------------------------------------------------------------------------
 void BrushPicker::buildCursor()
 {
+  if (m_displayRadius == -1)
+  {
+    qWarning("Brushpicker cursor radius not initialized. Using default value 20.");
+    m_displayRadius = 20;
+  }
+
   int width = 2*m_displayRadius;
 
   QPixmap pix(width, width);
@@ -131,8 +204,11 @@ void BrushPicker::buildCursor()
   QPainter p(&pix);
   p.setBrush(QBrush(m_brushColor));
   p.setPen(QPen(m_borderColor));
-
   p.drawEllipse(0, 0, width-1, width-1);
+
+  if (m_brushImage)
+    p.drawImage(QPoint(m_displayRadius/2,m_displayRadius/2), m_brushImage->scaledToWidth(m_displayRadius));
+
   Q_ASSERT(pix.hasAlpha());
 
   m_cursor = QCursor(pix);
@@ -166,17 +242,20 @@ bool BrushPicker::validStroke(double brush[3])
       brushBounds[1] = brush[0] + m_radius;
       brushBounds[2] = brush[1] - m_radius;
       brushBounds[3] = brush[1] + m_radius;
-      brushBounds[4] = brushBounds[5] = m_pBounds[4];
+      brushBounds[4] = m_pBounds[4];
+      brushBounds[5] = m_pBounds[5];
       break;
     case CORONAL:
       brushBounds[0] = brush[0] - m_radius;
       brushBounds[1] = brush[0] + m_radius;
-      brushBounds[2] = brushBounds[3] = m_pBounds[2];
+      brushBounds[2] = m_pBounds[2];
+      brushBounds[3] = m_pBounds[3];
       brushBounds[4] = brush[2] - m_radius;
       brushBounds[5] = brush[2] + m_radius;
       break;
     case SAGITTAL:
-      brushBounds[0] = brushBounds[1] = m_pBounds[0];
+      brushBounds[0] = m_pBounds[0];
+      brushBounds[1] = m_pBounds[1];
       brushBounds[2] = brush[1] - m_radius;
       brushBounds[3] = brush[1] + m_radius;
       brushBounds[4] = brush[2] - m_radius;
@@ -189,6 +268,53 @@ bool BrushPicker::validStroke(double brush[3])
   EspinaRegion previewBB(m_pBounds);
   EspinaRegion brushBB(brushBounds);
 
+  if (!m_drawing)
+  {
+    SegmentationVolumeSPtr segVolume = segmentationVolume(m_segmentation->output());
+
+    Nm bounds[6];
+    segVolume->bounds(bounds);
+    EspinaRegion segBB(bounds);
+
+    if (!segBB.intersect(brushBB))
+      return false;
+
+    double spacing[3];
+    segVolume->spacing(spacing);
+
+    itkVolumeType::RegionType volumeRegion = segVolume->toITK()->GetLargestPossibleRegion();
+    itkVolumeType::RegionType::IndexType origin = volumeRegion.GetIndex();
+    itkVolumeType *image = segVolume->toITK();
+
+    // Damned discrepancies between origin and bounds in itk volumes loaded from file
+    itkVolumeType::RegionType::IndexType transform;
+    transform[0] = transform[1] = transform[2] = 0;
+//     if (origin[0] != vtkMath::Round(bounds[0]/spacing[0]) || origin[1] != vtkMath::Round(bounds[2]/spacing[1]) || origin[2] != vtkMath::Round(bounds[4]/spacing[2]))
+//     {
+//       transform[0] = vtkMath::Round(bounds[0]/spacing[0]);
+//       transform[1] = vtkMath::Round(bounds[2]/spacing[1]);
+//       transform[2] = vtkMath::Round(bounds[4]/spacing[2]);
+//     }
+
+    for (int i = vtkMath::Round(brushBounds[0]/spacing[0]); i <= vtkMath::Round(brushBounds[1]/spacing[0]); ++i)
+      for (int j = vtkMath::Round(brushBounds[2]/spacing[1]); j <= vtkMath::Round(brushBounds[3]/spacing[1]); ++j)
+        for (int k = vtkMath::Round(brushBounds[4]/spacing[2]); k <= vtkMath::Round(brushBounds[5]/spacing[2]); ++k)
+        {
+          itkVolumeType::IndexType index;
+          index[0] = i - transform[0];
+          index[1] = j - transform[1];
+          index[2] = k - transform[2];
+
+          if (!volumeRegion.IsInside(index)) // brush voxel could be outside volume
+            continue;
+
+          if (image->GetPixel(index) == SEG_VOXEL_VALUE)
+            return true;
+        }
+
+    return false;
+  }
+
   return previewBB.intersect(brushBB);
 }
 
@@ -198,7 +324,7 @@ void BrushPicker::startStroke(QPoint pos, EspinaRenderView* view)
   if (!m_referenceItem)
     return;
 
-  view->previewBounds(m_pBounds);
+  view->previewBounds(m_pBounds, false);
 
   if (m_pBounds[0] == m_pBounds[1])
     m_plane = SAGITTAL;
@@ -208,8 +334,6 @@ void BrushPicker::startStroke(QPoint pos, EspinaRenderView* view)
     m_plane = AXIAL;
   else
     return; // Current implementation only works in 2D views
-
-  m_tracking = true;
 
   memcpy(m_viewSize, view->renderWindow()->GetSize(), 2*sizeof(int));
 
@@ -234,17 +358,13 @@ void BrushPicker::startStroke(QPoint pos, EspinaRenderView* view)
   double brush[3];
   createBrush(brush, pos);
 
-  if (m_drawing)
-    startPreview(view);
+  startPreview(view);
 
   if (validStroke(brush))
   {
     m_lastDot = pos;
     m_stroke->InsertNextPoint(brush);
-    if (m_drawing)
-      updatePreview(brush, view);
-    else
-      emit stroke(m_referenceItem, brush[0], brush[1], brush[2], m_radius, m_plane);
+    updatePreview(brush, view);
   }
 }
 
@@ -261,22 +381,21 @@ void BrushPicker::updateStroke(QPoint pos, EspinaRenderView* view)
   {
     m_lastDot = pos;
     m_stroke->InsertNextPoint(brush);
-    if (m_drawing)
-      updatePreview(brush, view);
-    else
-      emit stroke(m_referenceItem, brush[0], brush[1], brush[2], m_radius, m_plane);
+    updatePreview(brush, view);
   }
 }
 
 //-----------------------------------------------------------------------------
 void BrushPicker::stopStroke(EspinaRenderView* view)
 {
+  stopPreview(view);
+
   if (m_stroke->GetNumberOfPoints() > 0)
     emit stroke(m_referenceItem, m_stroke, m_radius, m_plane);
 
-  m_tracking = false;
   m_stroke->Reset();
-  stopPreview(view);
+
+  view->updateView();
 }
 
 //-----------------------------------------------------------------------------
@@ -287,43 +406,99 @@ void BrushPicker::startPreview(EspinaRenderView* view)
   m_lut->SetNumberOfTableValues(2);
   m_lut->Build();
   m_lut->SetTableValue(0, 0.0, 0.0, 0.0, 0.0);
-  m_lut->SetTableValue(1, m_brushColor.redF(), m_brushColor.greenF(), m_brushColor.blueF(), 1.0);
+  m_lut->SetTableValue(1, m_brushColor.redF(), m_brushColor.greenF(), m_brushColor.blueF(), 0.8);
   m_lut->Modified();
 
   int extent[6];
   for (int i = 0; i < 3; ++i)
   {
-    extent[2*i] = m_pBounds[2*i]/m_spacing[i];
-    extent[(2*i)+1] = m_pBounds[(2*i)+1]/m_spacing[i];
+    extent[2 * i]       = m_pBounds[2 * i]       / m_spacing[i];
+    extent[(2 * i) + 1] = m_pBounds[(2 * i) + 1] / m_spacing[i];
   }
 
   m_preview = vtkSmartPointer<vtkImageData>::New();
-  m_preview->SetOrigin(0,0,0);
+  m_preview->SetOrigin(0, 0, 0);
   m_preview->SetScalarTypeToUnsignedChar();
   m_preview->SetExtent(extent);
   m_preview->SetSpacing(m_spacing[0], m_spacing[1], m_spacing[2]);
   m_preview->AllocateScalars();
   memset(m_preview->GetScalarPointer(), 0, m_preview->GetNumberOfPoints());
 
+  // if erasing hide seg and copy contents of slice to preview actor
+  if (!m_drawing)
+  {
+    SegmentationVolumeSPtr segVolume = segmentationVolume(m_segmentation->output());
+
+    foreach(GraphicalRepresentationSPtr prototype, m_segmentation->representations())
+    {
+      prototype->setActive(false, view);
+    }
+
+    int segExtent[6];
+    segVolume->extent(segExtent);
+
+    // minimize voxel copy, only fill the part of the preview that has
+    // segmentation voxels.
+    if (m_plane != SAGITTAL)
+    {
+      segExtent[0] = (extent[0] > segExtent[0]) ? extent[0] : segExtent[0];
+      segExtent[1] = (extent[1] < segExtent[1]) ? extent[1] : segExtent[1];
+    }
+    else
+      segExtent[0] = segExtent[1] = extent[0];
+
+    if (m_plane != CORONAL)
+    {
+      segExtent[2] = (extent[2] > segExtent[2]) ? extent[2] : segExtent[2];
+      segExtent[3] = (extent[3] < segExtent[3]) ? extent[3] : segExtent[3];
+    }
+    else
+      segExtent[2] = segExtent[3] = extent[2];
+
+    if (m_plane != AXIAL)
+    {
+      segExtent[4] = (extent[4] > segExtent[4]) ? extent[4] : segExtent[4];
+      segExtent[5] = (extent[5] < segExtent[5]) ? extent[5] : segExtent[5];
+    }
+    else
+      segExtent[4] = segExtent[5] = extent[4];
+
+    itkVolumeType::IndexType index;
+    for (int x = segExtent[0]; x <= segExtent[1]; ++x)
+      for (int y = segExtent[2]; y <= segExtent[3]; ++y)
+        for (int z = segExtent[4]; z <= segExtent[5]; ++z)
+        {
+          index[0] = x;
+          index[1] = y;
+          index[2] = z;
+
+          unsigned char *previewPixel = reinterpret_cast<unsigned char *>(m_preview->GetScalarPointer(x,y,z));
+          *previewPixel = segVolume->toITK()->GetPixel(index);
+        }
+  }
+
   vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  if (m_pBounds[4]==m_pBounds[5])
+  if (m_pBounds[4] == m_pBounds[5])
   {
     double elements[16] = { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, m_pBounds[4], 0, 0, 0, 1 };
     matrix->DeepCopy(elements);
-    m_preview->SetOrigin(0,0,m_pBounds[4] - (extent[4]*m_spacing[2])); // resolves "Fit to slices" discrepancy
+    m_preview->SetOrigin(0, 0, m_pBounds[4] - (extent[4] * m_spacing[2])); // resolves "Fit to slices" discrepancy
   }
-  else if (m_pBounds[2] == m_pBounds[3])
-  {
-    double elements[16] = { 1, 0, 0, 0, 0, 0, 1, m_pBounds[2], 0, -1, 0, 0, 0, 0, 0, 1 };
-    matrix->DeepCopy(elements);
-    m_preview->SetOrigin(0,m_pBounds[2] - (extent[2]*m_spacing[1]), 0); // resolves "Fit to slices" discrepancy
-  }
-  else if (m_pBounds[0] == m_pBounds[1])
-  {
-    double elements[16] = { 0, 0, -1, m_pBounds[0], 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 1 };
-    matrix->DeepCopy(elements);
-    m_preview->SetOrigin(m_pBounds[0] - (extent[0]*m_spacing[0]), 0, 0); // resolves "Fit to slices" discrepancy
-  }
+  else
+    if (m_pBounds[2] == m_pBounds[3])
+    {
+      double elements[16] = { 1, 0, 0, 0, 0, 0, 1, m_pBounds[2], 0, -1, 0, 0, 0, 0, 0, 1 };
+      matrix->DeepCopy(elements);
+      m_preview->SetOrigin(0, m_pBounds[2] - (extent[2] * m_spacing[1]), 0); // resolves "Fit to slices" discrepancy
+    }
+    else
+      if (m_pBounds[0] == m_pBounds[1])
+      {
+        double elements[16] = { 0, 0, -1, m_pBounds[0], 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 1 };
+        matrix->DeepCopy(elements);
+        m_preview->SetOrigin(m_pBounds[0] - (extent[0] * m_spacing[0]), 0, 0); // resolves "Fit to slices" discrepancy
+      }
+
   m_preview->Update();
 
   vtkSmartPointer<vtkImageResliceToColors> reslice = vtkSmartPointer<vtkImageResliceToColors>::New();
@@ -345,18 +520,26 @@ void BrushPicker::startPreview(EspinaRenderView* view)
   m_actor->GetMapper()->SetInputConnection(reslice->GetOutputPort());
   m_actor->Update();
 
+  // reposition actor to be over plane
   double pos[3];
-  memset(pos, 0, 3*sizeof(double));
+  memset(pos, 0, 3 * sizeof(double));
   int sign = ((m_plane == AXIAL) ? -1 : 1);
-  pos[m_plane] += (sign*0.1);
+  pos[m_plane] += (sign * 0.1);
   m_actor->SetPosition(pos);
 
-  view->addPreview(m_actor);
+  view->addActor(m_actor);
+  view->updateView();
 }
 
 //-----------------------------------------------------------------------------
 void BrushPicker::updatePreview(double brush[3], EspinaRenderView* view)
 {
+  // fixes crashes when the user releases or presses the control key
+  // in the middle of a stroke (that is, without unpressing the mouse
+  // button).
+  if (!m_preview)
+    startPreview(view);
+
   double brushBounds[6];
 
   switch(m_plane)
@@ -405,7 +588,7 @@ void BrushPicker::updatePreview(double brush[3], EspinaRenderView* view)
           if (vtkMath::Distance2BetweenPoints(brush,pixel) < r2)
           {
             unsigned char *pixel = static_cast<unsigned char*>(m_preview->GetScalarPointer(x,y,m_pBounds[4]/m_spacing[2]));
-            *pixel = 1;
+            *pixel = (m_drawing ? 1 : 0);
           }
         }
         break;
@@ -417,7 +600,7 @@ void BrushPicker::updatePreview(double brush[3], EspinaRenderView* view)
           if (vtkMath::Distance2BetweenPoints(brush,pixel) < r2)
           {
             unsigned char *pixel = static_cast<unsigned char*>(m_preview->GetScalarPointer(x,m_pBounds[2]/m_spacing[1],z));
-            *pixel = 1;
+            *pixel = (m_drawing ? 1 : 0);
           }
         }
         break;
@@ -429,7 +612,7 @@ void BrushPicker::updatePreview(double brush[3], EspinaRenderView* view)
           if (vtkMath::Distance2BetweenPoints(brush,pixel) < r2)
           {
             unsigned char *pixel = static_cast<unsigned char*>(m_preview->GetScalarPointer(m_pBounds[0]/m_spacing[0],y,z));
-            *pixel = 1;
+            *pixel = (m_drawing ? 1 : 0);
           }
         }
         break;
@@ -444,20 +627,42 @@ void BrushPicker::updatePreview(double brush[3], EspinaRenderView* view)
 //-----------------------------------------------------------------------------
 void BrushPicker::stopPreview(EspinaRenderView* view)
 {
-  view->removePreview(m_actor);
+  view->removeActor(m_actor);
   m_lut = NULL;
   m_preview = NULL;
   m_actor = NULL;
+
+  if (!m_drawing && m_segmentation != NULL)
+  {
+    foreach(GraphicalRepresentationSPtr prototype, m_segmentation->representations())
+    {
+      prototype->setActive(true, view);
+    }
+  }
 }
 
 //-----------------------------------------------------------------------------
-void BrushPicker::DrawingOn()
+void BrushPicker::DrawingOn(EspinaRenderView *view)
 {
+  if ((m_stroke->GetNumberOfPoints() > 0) && view != NULL)
+    stopStroke(view);
+
   m_drawing = true;
+  m_segmentation = NULL;
 }
 
 //-----------------------------------------------------------------------------
-void BrushPicker::DrawingOff()
+void BrushPicker::DrawingOff(EspinaRenderView *view, SegmentationPtr segmentation)
 {
+  if (m_stroke->GetNumberOfPoints() > 0)
+    stopStroke(view);
+
   m_drawing = false;
+  m_segmentation = segmentation;
+}
+
+//-----------------------------------------------------------------------------
+QColor BrushPicker::getBrushColor()
+{
+  return m_brushColor;
 }

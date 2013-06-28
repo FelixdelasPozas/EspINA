@@ -20,12 +20,15 @@
 #ifndef BRUSHPICKER_H
 #define BRUSHPICKER_H
 
-#include "GUI/Pickers/IPicker.h"
+#include "EspinaGUI_Export.h"
 
-#include "Core/EspinaTypes.h"
+// EspINA
+#include "GUI/Pickers/ISelector.h"
 
+// VTK
 #include <vtkSmartPointer.h>
 
+// Qt
 #include <QColor>
 
 class vtkLookupTable;
@@ -36,68 +39,82 @@ class vtkImageData;
 class Channel;
 class PickableItem;
 
-class BrushPicker
-: public IPicker
+namespace EspINA
 {
-  Q_OBJECT
-  typedef itkVolumeType::SpacingType Spacing;
+  class EspinaGUI_EXPORT BrushPicker: public ISelector
+  {
+	Q_OBJECT
+	typedef itkVolumeType::SpacingType Spacing;
 
-public:
-  explicit BrushPicker(PickableItem *item=NULL);
+	public:
+	  explicit BrushPicker(PickableItemPtr item = NULL);
+	  virtual ~BrushPicker();
 
-  virtual bool filterEvent(QEvent* e, EspinaRenderView* view = NULL);
+	  virtual bool filterEvent(QEvent* e, EspinaRenderView* view = NULL);
 
-  /// @radius of the brush in screen pixels
-  void setRadius(int radius);
-  int radius() const {return m_displayRadius;}
-  void setBorderColor(QColor color);
-  void setBrushColor(QColor color);
+	  /// @radius of the brush in screen pixels
+	  void setRadius(int radius);
+	  int radius() const
+	  {
+		return m_displayRadius;
+	  }
+	  void setBorderColor(QColor color);
+	  void setBrushColor(QColor color);
+	  void setBrushImage(QImage &image);
+	  QColor getBrushColor();
 
-  /// @item is used to specify the spacing of the stroke
-  void setReferenceItem(PickableItem *item);
-  void DrawingOn();
-  void DrawingOff();
+	  /// @item is used to specify the spacing of the stroke
+	  void setReferenceItem(PickableItemPtr item);
+	  itkVolumeType::SpacingType referenceSpacing() const;
 
-signals:
-  void stroke(PickableItem *, double, double, double, Nm, PlaneType);
-  void stroke(PickableItem *, IPicker::WorldRegion, Nm, PlaneType);
+	  void DrawingOn(EspinaRenderView *view);
+	  void DrawingOff(EspinaRenderView *view,
+					  SegmentationPtr segmentation);
 
-private:
-  void buildCursor();
-  void createBrush(double brush[3], QPoint pos);
-  bool validStroke(double brush[3]);
-  void startStroke(QPoint pos, EspinaRenderView *view);
-  void updateStroke(QPoint pos, EspinaRenderView *view);
-  void stopStroke(EspinaRenderView *view);
-  void startPreview(EspinaRenderView *view);
-  void updatePreview(double brush[3], EspinaRenderView *view);
-  void stopPreview(EspinaRenderView *view);
+	signals:
+	  void stroke(PickableItemPtr, double, double, double, Nm, PlaneType);
+	  void stroke(PickableItemPtr, ISelector::WorldRegion, Nm, PlaneType);
 
-private:
-  PickableItem *m_referenceItem;
+	private:
+	  void buildCursor();
+	  void createBrush(double brush[3], QPoint pos);
+	  bool validStroke(double brush[3]);
+	  void startStroke(QPoint pos, EspinaRenderView *view);
+	  void updateStroke(QPoint pos, EspinaRenderView *view);
+	  void stopStroke(EspinaRenderView *view);
+	  void startPreview(EspinaRenderView *view);
+	  void updatePreview(double brush[3], EspinaRenderView *view);
+	  void stopPreview(EspinaRenderView *view);
 
-  int    m_displayRadius;//In screen pixels
-  QColor m_borderColor;
-  QColor m_brushColor;
+	private:
+	  PickableItemPtr m_referenceItem;
 
-  bool m_tracking;
-  QPoint m_lastDot;
-  IPicker::WorldRegion m_stroke;
+	  int m_displayRadius; //In screen pixels
+	  QColor m_borderColor;
+	  QColor m_brushColor;
+	  QImage *m_brushImage;
 
-  PlaneType m_plane;
-  Nm        m_radius;
-  Spacing   m_spacing;
-  int       m_viewSize[2];
-  double    m_LL[3], m_UR[3];
-  Nm        m_pBounds[6];
-  double    m_worldSize[2];
+	  bool m_tracking;
+	  QPoint m_lastDot;
+	  ISelector::WorldRegion m_stroke;
 
-  vtkSmartPointer<vtkLookupTable> m_lut;
-  vtkSmartPointer<vtkImageData> m_preview;
-  vtkSmartPointer<vtkImageActor> m_actor;
-  bool m_drawing;
+	  PlaneType m_plane;
+	  Nm m_radius;
+	  Spacing m_spacing;
+	  int m_viewSize[2];
+	  double m_LL[3], m_UR[3];
+	  Nm m_pBounds[6];
+	  double m_worldSize[2];
 
-  static const int MAX_RADIUS = 32;
-};
+	  vtkSmartPointer<vtkLookupTable> m_lut;
+	  vtkSmartPointer<vtkImageData> m_preview;
+	  vtkSmartPointer<vtkImageActor> m_actor;
+	  bool m_drawing;
+	  SegmentationPtr m_segmentation;
+
+	  static const int MAX_RADIUS = 32;
+	};
+
+} // namespace EspINA
 
 #endif // BRUSHPICKER_H

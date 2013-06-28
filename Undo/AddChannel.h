@@ -23,29 +23,36 @@
 #ifndef ADDCHANNEL_H
 #define ADDCHANNEL_H
 
+#include "EspinaUndo_Export.h"
+
+// EspINA
+#include <Core/EspinaTypes.h>
+#include <Core/Model/EspinaModel.h>
+
+// Qt
 #include <QUndoStack>
 
-class Channel;
-class ChannelReader;
-class EspinaModel;
-class Sample;
-
-class AddChannel
-: public QUndoCommand
+namespace EspINA
 {
-public:
-  explicit AddChannel(ChannelReader *reader,
-                      Channel       *channel,
-                      EspinaModel   *model,
-                      QUndoCommand  *parent=0);
+  class EspinaUndo_EXPORT AddChannel
+  : public QUndoCommand
+  {
+  public:
+    explicit AddChannel(FilterSPtr    reader,
+                        ChannelSPtr   channel,
+                        EspinaModel  *model,
+                        QUndoCommand *parent=0);
 
-  virtual void redo();
-  virtual void undo();
+    virtual void redo();
+    virtual void undo();
 
-private:
-  ChannelReader *m_reader;
-  Channel       *m_channel;
-  EspinaModel   *m_model;
-};
+  private:
+    EspinaModel *m_model;
+
+    FilterSPtr      m_reader;
+    ChannelSPtr     m_channel;
+  };
+
+}// namespace EspINA
 
 #endif // ADDCHANNEL_H

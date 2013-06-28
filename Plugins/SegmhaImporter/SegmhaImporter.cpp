@@ -18,100 +18,30 @@
 
 #include "SegmhaImporter.h"
 
-#include "SegmhaImporterFilter.h"
-
-#include <Core/IO/EspinaIO.h>
 #include <Core/Model/EspinaFactory.h>
 #include <Core/Model/EspinaModel.h>
 #include <Core/Model/Segmentation.h>
+#include <Core/Model/Sample.h>
+#include <GUI/IO/EspinaIO.h>
+#include <GUI/Representations/BasicGraphicalRepresentationFactory.h>
+#include <Core/Relations.h>
 #include <Undo/AddChannel.h>
 #include <Undo/AddRelation.h>
 #include <Undo/AddSample.h>
+
+#include <Plugins/CountingFrame/Extensions/CountingFrameExtension.h>
+#include <Plugins/CountingFrame/CountingFrames/RectangularCountingFrame.h>
+#include <Plugins/CountingFrame/CountingFramePanel.h>
 
 #include <QApplication>
 #include <QFileDialog>
 #include <QDebug>
 
+using namespace EspINA;
+
 const QString INPUTLINK = "Input";
 
-//-----------------------------------------------------------------------------
-SegmhaImporter::UndoCommand::UndoCommand(Sample* sample,
-                                         Channel* channel,
-                                         SegmhaImporterFilter* filter,
-                                         EspinaModel *model)
-: m_model(model)
-, m_sample (sample)
-, m_channel(channel)
-, m_filter(filter)
-{
-}
-
-//-----------------------------------------------------------------------------
-void SegmhaImporter::UndoCommand::redo()
-{
-  // update taxonomy
-  m_model->setTaxonomy(m_filter->taxonomy());
-
-  if (m_segs.isEmpty())
-  {
-    Segmentation *seg;
-    foreach(Filter::Output output, m_filter->outputs())
-    {
-      seg = m_model->factory()->createSegmentation(m_filter, output.id);
-      m_filter->initSegmentation(seg, output.id);
-      m_segs << seg;
-    }
-  }
-
-  ModelItemExtension *countingRegionExt = m_channel->extension("CountingRegionExtension");
-  if (countingRegionExt)
-  {
-    Nm inclusive[3], exclusive[3];
-    m_filter->countingRegion(inclusive, exclusive);
-    double spacing[3];
-    m_channel->volume()->spacing(spacing);
-    for(int i=0; i<3;i++)
-    {
-      inclusive[i] = inclusive[i]*spacing[i];
-      exclusive[i] = exclusive[i]*spacing[i];
-    }
-
-    QString rcb = QString("RectangularBoundingRegion=%1,%2,%3,%4,%5,%6;")
-      .arg(inclusive[0]).arg(inclusive[1]).arg(inclusive[2])
-      .arg(exclusive[0]).arg(exclusive[1]).arg(exclusive[2]);
-    //qDebug() << "Using Counting Region" << rcb;
-    ModelItem::Arguments args;
-    args["Regions"] = rcb;
-    countingRegionExt->initialize(args);
-  }
-
-  m_model->addFilter(m_filter);
-  m_model->addSegmentation(m_segs);
-
-  m_model->addRelation(m_channel, m_filter, Channel::LINK);
-  foreach(Segmentation *seg, m_segs)
-  {
-    m_model->addRelation(m_filter, seg, CREATELINK);
-    m_model->addRelation(m_sample, seg, "where");
-    m_model->addRelation(m_channel, seg, Channel::LINK);
-    seg->initializeExtensions();
-  }
-}
-
-//-----------------------------------------------------------------------------
-void SegmhaImporter::UndoCommand::undo()
-{
-  m_model->removeRelation(m_channel, m_filter, Channel::LINK);
-  foreach(Segmentation *seg, m_segs)
-  {
-    m_model->removeRelation(m_filter, seg, CREATELINK);
-    m_model->removeRelation(m_sample, seg, "where");
-    m_model->removeRelation(m_channel, seg, Channel::LINK);
-  }
-
-  m_model->removeSegmentation(m_segs);
-  m_model->removeFilter(m_filter);
-}
+const QString SegmhaImporter::UndoCommand::FILTER_TYPE = "Segmha Importer";
 
 static const QString SEGMHA = "segmha";
 
@@ -124,61 +54,65 @@ SegmhaImporter::SegmhaImporter()
 }
 
 //-----------------------------------------------------------------------------
-void SegmhaImporter::initFactoryExtension(EspinaFactory* factory)
+SegmhaImporter::~SegmhaImporter()
 {
-  factory->registerFilter(this, SegmhaImporterFilter::TYPE);
+//   qDebug() << "********************************************************";
+//   qDebug() << "              Destroying SegmhaImporter Plugin";
+//   qDebug() << "********************************************************";
 }
 
 //-----------------------------------------------------------------------------
-Filter *SegmhaImporter::createFilter(const QString              &filter,
-                                     const Filter::NamedInputs  &inputs,
-                                     const ModelItem::Arguments &args)
+void SegmhaImporter::initFactoryExtension(EspinaFactory *factory)
 {
-  Q_ASSERT(SegmhaImporterFilter::TYPE == filter);
-
-  return new SegmhaImporterFilter(inputs, args);
+  factory->registerFilter(this, UndoCommand::FILTER_TYPE);
 }
 
 //-----------------------------------------------------------------------------
-void SegmhaImporter::initFileReader(EspinaModel* model,
-                                    QUndoStack* undoStack,
-                                    ViewManager* vm)
+FilterSPtr SegmhaImporter::createFilter(const QString              &filter,
+                                        const Filter::NamedInputs  &inputs,
+                                        const ModelItem::Arguments &args)
+{
+  Q_ASSERT(UndoCommand::FILTER_TYPE == filter);
+  FilterSPtr reader(new SegmhaImporterFilter(inputs, args, UndoCommand::FILTER_TYPE));
+  SetBasicGraphicalRepresentationFactory(reader);
+  return reader;
+}
+
+//-----------------------------------------------------------------------------
+void SegmhaImporter::initFileReader(EspinaModel *model,
+                                    QUndoStack  *undoStack,
+                                    ViewManager *viewManager)
 {
   m_model = model;
   m_undoStack = undoStack;
-  m_viewManager = vm;
+  m_viewManager = viewManager;
   // Register filter and reader factories
   QStringList supportedExtensions;
   supportedExtensions << SEGMHA;
   m_model->factory()->registerReaderFactory(this,
-                                            SegmhaImporterFilter::SUPPORTED_FILES,
-                                            supportedExtensions);
+                                           SegmhaImporterFilter::SUPPORTED_FILES,
+                                           supportedExtensions);
 }
 
 //-----------------------------------------------------------------------------
-bool SegmhaImporter::readFile(const QFileInfo file)
+bool SegmhaImporter::readFile(const QFileInfo file, IOErrorHandler *handler)
 {
-  qDebug() << file.absoluteFilePath();
   Q_ASSERT(SEGMHA == file.suffix());
 
-  m_undoStack->beginMacro("Import Segmha");
-
-  QApplication::setOverrideCursor(Qt::ArrowCursor);
-  QFileDialog fileDialog;
-  fileDialog.setObjectName("SelectChannelFile");
-  fileDialog.setFileMode(QFileDialog::ExistingFiles);
-  fileDialog.setWindowTitle(QString("Select channel file for %1:").arg(file.fileName()));
-  fileDialog.setDirectory(file.dir());
-  fileDialog.setFilter(CHANNEL_FILES);
-
-  int res = fileDialog.exec();
-  QApplication::restoreOverrideCursor();
-
-  if (QDialog::Accepted != res)
+  QFileInfo channelFile = handler->fileNotFound(QFileInfo(),
+                                                file.dir(),
+                                                CHANNEL_FILES,
+                                                tr("Select channel file for %1:").arg(file.fileName()));
+  if (!channelFile.exists())
+  {
+    handler->error(tr("%1 doesn't exist").arg(channelFile.absoluteFilePath()));
     return false;
+  }
 
-  Channel *channel;
-  if (EspinaIO::SUCCESS != EspinaIO::loadChannel(fileDialog.selectedFiles().first(), m_model, m_undoStack, &channel))
+  m_model->setTraceable(false);
+
+  ChannelSPtr channel;
+  if (IOErrorHandler::SUCCESS != EspinaIO::loadChannel(channelFile, m_model, channel, handler))
     return false;
 
   Filter::NamedInputs inputs;
@@ -187,20 +121,72 @@ bool SegmhaImporter::readFile(const QFileInfo file)
   SegmhaImporterFilter::Parameters params(args);
   params.setSpacing(channel->volume()->toITK()->GetSpacing());
 
-  QApplication::setOverrideCursor(Qt::WaitCursor);
-  SegmhaImporterFilter *filter = new SegmhaImporterFilter(inputs, args);
+  SegmhaImporterFilterSPtr filter(new SegmhaImporterFilter(inputs, args, UndoCommand::FILTER_TYPE));
+  filter->setGraphicalRepresentationFactory(GraphicalRepresentationFactorySPtr(new BasicGraphicalRepresentationFactory()));
   filter->update();
   if (filter->outputs().isEmpty())
   {
-    delete filter;
+    handler->error(tr("Failed to import %1").arg(file.absoluteFilePath()));
     return false;
   }
-  Sample *sample = channel->sample();
-  m_undoStack->push(new UndoCommand(sample, channel, filter, m_model));
-  m_undoStack->endMacro();
-  QApplication::restoreOverrideCursor();
+
+  SampleSPtr sample = channel->sample();
+
+  // update taxonomy
+  m_model->setTaxonomy(filter->taxonomy());
+
+  SegmentationSList segmentations;
+  SegmentationSPtr seg;
+  foreach(SegmentationOutputSPtr segOutput, filter->outputs())
+  {
+    seg = m_model->factory()->createSegmentation(filter, segOutput->id());
+    filter->initSegmentation(seg, segOutput->id());
+    segmentations << seg;
+  }
+
+  Channel::ExtensionPtr extension = channel->extension(CountingFrameExtensionID);
+  if (!extension)
+  {
+    Channel::ExtensionPtr prototype = m_model->factory()->channelExtension(CountingFrameExtensionID);
+    if (prototype)
+    {
+      extension = prototype->clone();
+      channel->addExtension(extension);
+    }
+  }
+
+ if (extension)
+  {
+    CountingFrameExtension *cfExtension = dynamic_cast<CountingFrameExtension *>(extension);
+
+    Nm inclusive[3], exclusive[3];
+    filter->countingFrame(inclusive, exclusive);
+    double spacing[3];
+    channel->volume()->spacing(spacing);
+    for(int i=0; i<3;i++)
+    {
+      inclusive[i] = inclusive[i]*spacing[i];
+      exclusive[i] = exclusive[i]*spacing[i];
+    }
+
+    cfExtension->plugin()->createRectangularCF(channel.get(), inclusive, exclusive);
+  }
+
+  m_model->addFilter(filter);
+  m_model->addSegmentation(segmentations);
+
+  m_model->addRelation(channel, filter, Channel::LINK);
+  foreach(SegmentationSPtr seg, segmentations)
+  {
+    m_model->addRelation(filter,  seg, Filter::CREATELINK);
+    m_model->addRelation(sample,  seg, Relations::LOCATION);
+    m_model->addRelation(channel, seg, Channel::LINK);
+    seg->initializeExtensions();
+  }
+
+  m_model->emitSegmentationAdded(segmentations);
 
   return true;
 }
 
-Q_EXPORT_PLUGIN2(SegmhaImporterPlugin, SegmhaImporter)
+Q_EXPORT_PLUGIN2(SegmhaImporterPlugin, EspINA::SegmhaImporter)

@@ -2,11 +2,13 @@
  * vtkZoomSelectionWidget.h
  *
  *  Created on: Nov 14, 2012
- *      Author: F√©lix de las Pozas √Ålvarez
+ *      Author: FÈlix de las Pozas ¡lvarez
  */
 
 #ifndef VTKZOOMSELECTIONWIDGET_H_
 #define VTKZOOMSELECTIONWIDGET_H_
+
+#include "EspinaGUI_Export.h"
 
 // EspINA
 #include <Core/EspinaTypes.h>
@@ -17,7 +19,7 @@
 
 class vtkPoints;
 
-class VTK_WIDGETS_EXPORT vtkZoomSelectionWidget
+class EspinaGUI_EXPORT vtkZoomSelectionWidget
 : public vtkAbstractWidget
 {
   public:

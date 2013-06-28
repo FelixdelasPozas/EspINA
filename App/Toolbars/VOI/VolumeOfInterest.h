@@ -20,42 +20,54 @@
 
 #include <QToolBar>
 
-#include <Core/EspinaTypes.h>
-#include <GUI/Pickers/PixelPicker.h>
+#include <Core/Model/EspinaModel.h>
+#include <Core/Interfaces/IToolBar.h>
+#include <GUI/Pickers/PixelSelector.h>
 #include <GUI/ViewManager.h>
 
 #include <QMap>
 
-class EspinaModel;
 class ActionSelector;
-class IVOI;
-class ViewManager;
 class QAction;
 
-/// Volume Of Interest Plugin
-class VolumeOfInterest 
-: public QToolBar
+namespace EspINA
 {
-  Q_OBJECT
-public:
-  explicit VolumeOfInterest(EspinaModel *model,
-                            ViewManager *viewManager,
-                            QWidget *parent=NULL);
-  virtual ~VolumeOfInterest();
+  class ViewManager;
 
-protected slots:
-  void changeVOI(QAction *action);
-  void cancelVOI();
+  /// Volume Of Interest Toolbar
+  class VolumeOfInterest
+  : public IToolBar
+  {
+    Q_OBJECT
+  public:
+    explicit VolumeOfInterest(EspinaModel *model,
+                              ViewManager *viewManager,
+                              QWidget     *parent=NULL);
+    virtual ~VolumeOfInterest();
 
-private:
-  void buildVOIs();
+    virtual void initToolBar(EspinaModel *model,
+                             QUndoStack  *undoStack,
+                             ViewManager *viewManager);
+    virtual void resetToolbar();
 
-private:
-  EspinaModel *m_model;
-  ViewManager *m_viewManager;
+    virtual void abortOperation() {};
 
-  ActionSelector  *m_voiSelector;
-  QMap<QAction *, IVOI *> m_vois;
-};
+  protected slots:
+    void changeVOI(QAction *action);
+    void cancelVOI();
+
+
+  private:
+    void buildVOIs();
+
+  private:
+    EspinaModel *m_model;
+    ViewManager *m_viewManager;
+
+    ActionSelector  *m_voiSelector;
+    QMap<QAction *, IVOISPtr> m_vois;
+  };
+
+} // namespace EspINA
 
 #endif// VOLUMEOFINTEREST_H

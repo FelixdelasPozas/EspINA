@@ -20,36 +20,40 @@
 #ifndef ADDSEGMENTATION_H
 #define ADDSEGMENTATION_H
 
+#include "EspinaUndo_Export.h"
+
+// EspINA
+#include <Core/EspinaTypes.h>
+#include <Core/Model/EspinaModel.h>
+
+// Qt
 #include <QUndoCommand>
 
-// Forward declarations
-class Channel;
-class EspinaModel;
-class Filter;
-class Sample;
-class Segmentation;
-class TaxonomyElement;
-
-class AddSegmentation
-: public QUndoCommand
+namespace EspINA
 {
-public:
-  explicit AddSegmentation(Channel         *channel,
-                           Filter          *filter,
-                           Segmentation    *seg,
-                           TaxonomyElement *taxonomy,
-                           EspinaModel     *model
-                          );
-  virtual void redo();
-  virtual void undo();
+  class EspinaUndo_EXPORT AddSegmentation
+  : public QUndoCommand
+  {
+  public:
+    explicit AddSegmentation(ChannelSPtr         channel,
+                             FilterSPtr          filter,
+                             SegmentationSPtr    seg,
+                             TaxonomyElementSPtr taxonomy,
+                             EspinaModel     *model
+    );
+    virtual void redo();
+    virtual void undo();
 
-private:
-  Sample          *m_sample;
-  Channel         *m_channel;
-  Filter          *m_filter;
-  Segmentation    *m_seg;
-  TaxonomyElement *m_taxonomy;
-  EspinaModel     *m_model;
-};
+  private:
+    EspinaModel *m_model;
+
+    SampleSPtr          m_sample;
+    ChannelSPtr         m_channel;
+    FilterSPtr          m_filter;
+    SegmentationSPtr    m_seg;
+    TaxonomyElementSPtr m_taxonomy;
+  };
+
+} // namespace EspINA
 
 #endif // ADDSEGMENTATION_H

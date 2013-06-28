@@ -23,16 +23,29 @@
 #include <vtkColorTransferFunction.h>
 #include <vtkMath.h>
 
+using namespace EspINA;
+
+const double SELECTED_ALPHA = 1.0;
+const double UNSELECTED_ALPHA = 0.6;
+
 //-----------------------------------------------------------------------------
 UserColorEngine::UserColorEngine() :
 m_lastColor(0)
 {
-  m_colors << QColor(31, 120, 180) << QColor(51, 160, 44) << QColor(227, 26, 28) << QColor(255, 127, 0) << QColor(106, 61, 154) << QColor(166, 206, 227)
-  << QColor(178, 223, 138) << QColor(251, 154, 153) << QColor(253, 191, 111) << QColor(202, 178, 214);
+  m_colors << QColor( 31, 120, 180)
+           << QColor( 51, 160,  44)
+           << QColor(227,  26,  28)
+           << QColor(255, 127,   0)
+           << QColor(106,  61, 154)
+           << QColor(166, 206, 227)
+           << QColor(178, 223, 138)
+           << QColor(251, 154, 153)
+           << QColor(253, 191, 111)
+           << QColor(202, 178, 214);
 }
 
 //-----------------------------------------------------------------------------
-QColor UserColorEngine::color(Segmentation* seg)
+QColor UserColorEngine::color(SegmentationPtr seg)
 {
   QString user = seg->users().last();
 
@@ -45,18 +58,16 @@ QColor UserColorEngine::color(Segmentation* seg)
 }
 
 //-----------------------------------------------------------------------------
-LUTPtr UserColorEngine::lut(Segmentation* seg)
+LUTPtr UserColorEngine::lut(SegmentationPtr seg)
 {
   // Get (or create if it doesn't exit) the lut for the segmentations' images
-  QString lutName = seg->taxonomy()->qualifiedName();
-//   if (seg->isSelected())
-//     lutName.append("_selected");
+  QString lutName = seg->users().join("");
 
   vtkSmartPointer<vtkLookupTable> seg_lut;
 
   if (m_LUT.find(lutName) == m_LUT.end())
   {
-    double alpha = (seg->isSelected() ? 1.0 : 0.6);
+    double alpha = (seg->isSelected() ? SELECTED_ALPHA : UNSELECTED_ALPHA);
     QColor c = color(seg);
 
     seg_lut = vtkLookupTable::New();
@@ -70,7 +81,20 @@ LUTPtr UserColorEngine::lut(Segmentation* seg)
     m_LUT.insert(lutName, seg_lut);
   }
   else
+  {
+    // fix a corner case when a segmentation and it's user entry have been deleted
+    // but the lookuptable hasn't, so when the segmentation and user are been
+    // created again with a different color the ColorEngine returns the lookuptable
+    // with the old color.
+    double rgb[3];
+    m_LUT[lutName]->GetColor(1, rgb);
+    QColor segColor = seg->taxonomy()->color();
+
+    if (segColor != QColor(rgb[0], rgb[1], rgb[2]))
+      m_LUT[lutName]->SetTableValue(1, segColor.redF(), segColor.greenF(), segColor.blueF(), (seg->isSelected() ? SELECTED_ALPHA : UNSELECTED_ALPHA));
+
     seg_lut = m_LUT.find(lutName).value();
+  }
 
   return seg_lut;
 }
@@ -79,6 +103,5 @@ LUTPtr UserColorEngine::lut(Segmentation* seg)
 //-----------------------------------------------------------------------------
 QColor UserColorEngine::nextColor()
 {
-  return m_colors[m_lastColor++];
+  return m_colors[++m_lastColor%m_colors.size()];
 }
-

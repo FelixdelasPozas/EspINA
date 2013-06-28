@@ -24,42 +24,53 @@
 #include <Tools/VOI/RectangularVOI.h>
 #include <GUI/ISettingsPanel.h>
 
-class TaxonomyElement;
-
-class RectangularVOI::SettingsPanel
-: public ISettingsPanel
-, public Ui::RectangularVOISettings
+namespace EspINA
 {
-  Q_OBJECT
-public:
-  explicit SettingsPanel(EspinaModel *model,
-                         RectangularVOI::Settings *settings);
-  virtual ~SettingsPanel();
+  class ViewManager;
 
-  virtual const QString shortDescription()
-  { return tr("Cuboid VOI"); }
-  virtual const QString longDescription()
-  { return tr("Cuboid Volume Of Interest Settings"); }
-  virtual const QIcon icon()
-  { return QIcon(":/espina/voi.svg"); }
+  class RectangularVOI::SettingsPanel
+  : public ISettingsPanel
+  , public Ui::RectangularVOISettings
+  {
+    Q_OBJECT
+  public:
+    explicit SettingsPanel(EspinaModelPtr model,
+                           RectangularVOI::Settings *settings,
+                           ViewManager *viewManager);
+    virtual ~SettingsPanel();
 
-  virtual void acceptChanges();
+    virtual const QString shortDescription()
+    { return tr("Cuboid VOI"); }
+    virtual const QString longDescription()
+    { return tr("Cuboid Volume Of Interest"); }
+    virtual const QIcon icon()
+    { return QIcon(":/espina/voi.svg"); }
 
-  virtual bool modified() const;
+    virtual void acceptChanges();
+    virtual void rejectChanges();
+    virtual bool modified() const;
 
-  virtual ISettingsPanel* clone();
+    virtual ISettingsPanelPtr clone();
 
-private:
-  bool taxonomyVOIModified() const;
-  void writeTaxonomyProperties();
+  private:
+    bool taxonomyVOIModified() const;
+    void writeTaxonomyProperties();
 
-private slots:
-  void updateTaxonomyVOI(const QModelIndex &index);
+  private slots:
+    void updateTaxonomyVOI(const QModelIndex &index);
+    void zValueChanged(int);
 
-private:
-  EspinaModel *m_model;
-  RectangularVOI::Settings *m_settings;
-  TaxonomyElement *m_activeTaxonomy;
-};
+  private:
+    EspinaModel *m_model;
+    RectangularVOI::Settings *m_settings;
+    TaxonomyElementPtr m_activeTaxonomy;
+    ViewManager *m_viewManager;
+    Nm m_zSpacing;
+
+    bool m_zValueChanged;
+    bool m_zTaxValueChanged;
+  };
+
+} // namespace EspINA
 
 #endif // SETTINGSPANEL_H

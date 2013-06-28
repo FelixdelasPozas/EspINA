@@ -1,11 +1,12 @@
-#include <Core/IO/EspinaIO.h>
+#include <Core/IO/SegFileReader.h>
+
+using namespace EspINA;
 
 int loadWithoutSegFile(int argc, char** argv)
 {
   QFileInfo file("NoneFile.seg");
-  QDir tmpDir;
 
-  if(EspinaIO::loadSegFile(file, NULL, tmpDir) == EspinaIO::SUCCESS)
+  if(SegFileReader::loadSegFile(file, NULL) == IOErrorHandler::SUCCESS)
     return 1;
 
   return 0;

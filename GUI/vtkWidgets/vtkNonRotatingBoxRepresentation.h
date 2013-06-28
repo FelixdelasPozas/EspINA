@@ -1,9 +1,12 @@
 #ifndef VTKNONROTATINGBOXREPRESENTATION_H
 #define VTKNONROTATINGBOXREPRESENTATION_H
 
+#include "EspinaGUI_Export.h"
+
 #include <vtkBoxRepresentation.h>
 
-class VTK_WIDGETS_EXPORT vtkNonRotatingBoxRepresentation : public vtkBoxRepresentation
+class EspinaGUI_EXPORT vtkNonRotatingBoxRepresentation
+: public vtkBoxRepresentation
 {
 public:
   static vtkNonRotatingBoxRepresentation *New();  

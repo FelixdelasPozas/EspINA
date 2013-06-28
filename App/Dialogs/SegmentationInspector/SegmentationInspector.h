@@ -20,50 +20,80 @@
 #ifndef SEGMENTATIONINSPECTOR_H
 #define SEGMENTATIONINSPECTOR_H
 
-#include <QDialog>
+// EspINA
 #include "ui_SegmentationInspector.h"
-
 #include <Core/Model/EspinaModel.h>
-#include <Core/Model/Proxies/InformationProxy.h>
+#include <GUI/ViewManager.h>
+#include <Docks/SegmentationExplorer/SegmentationExplorerLayout.h>
 
+// Qt
+#include <QDialog>
+#include <QScrollArea>
 #include <QSortFilterProxyModel>
 
 class QUndoStack;
-class VolumeView;
-class ViewManager;
-class Segmentation;
 
-class SegmentationInspector
-: public QWidget
-, public Ui::SegmentationInspector
+namespace EspINA
 {
-  Q_OBJECT
-public:
-  SegmentationInspector(Segmentation *seg,
-                        EspinaModel *model,
-                        QUndoStack *undoStack,
-                        ViewManager *vm,
-                        QWidget* parent = 0,
-                        Qt::WindowFlags f = 0);
-  virtual ~SegmentationInspector();
 
-public slots:
-  void updateScene();
+  class TabularReport;
+  class VolumeView;
 
-signals:
-  void inspectorClosed(SegmentationInspector *);
+  class SegmentationInspector
+  : public QWidget
+  , public Ui::SegmentationInspector
+  {
+    Q_OBJECT
+  public:
+    SegmentationInspector(SegmentationList seg,
+                          EspinaModel     *model,
+                          QUndoStack      *undoStack,
+                          ViewManager     *vm,
+                          QWidget         *parent = 0,
+                          Qt::WindowFlags  flags  = 0);
+    virtual ~SegmentationInspector();
 
-protected:
-  virtual void closeEvent(QCloseEvent *e);
+    virtual void addSegmentation(SegmentationPtr segmentation);
+    virtual void removeSegmentation(SegmentationPtr segmentation);
 
-private:
-  QUndoStack   *m_undoStack;
-  ViewManager  *m_viewManager;
-  Segmentation *m_seg;
-  EspinaModel  *m_model;
-  VolumeView   *m_view;
-  QSharedPointer<InformationProxy> m_info;
-  QSharedPointer<QSortFilterProxyModel> m_sort;
-};
+    virtual void addChannel(ChannelPtr channel);
+    virtual void removeChannel(ChannelPtr channel);
+
+    virtual void dragEnterEvent(QDragEnterEvent *event);
+    virtual void dropEvent(QDropEvent *event);
+    virtual void dragMoveEvent(QDragMoveEvent *event);
+
+  public slots:
+    void updateScene(ModelItemPtr);
+    void updateSelection(ViewManager::Selection selection);
+
+  signals:
+    void inspectorClosed(SegmentationInspector *);
+
+  protected:
+    virtual void showEvent(QShowEvent *event);
+
+  protected:
+    virtual void closeEvent(QCloseEvent *e);
+
+  private:
+
+    // helpher methods
+    void generateWindowTitle();
+
+    EspinaModel *m_model;
+    QUndoStack  *m_undoStack;
+    ViewManager *m_viewManager;
+
+    SegmentationList m_segmentations;
+    ChannelList      m_channels;
+
+    TabularReport *m_tabularReport;
+
+    VolumeView *m_view;
+    QScrollArea *m_filterArea;
+  };
+
+} // namespace EspINA
 
 #endif // SEGMENTATIONINSPECTOR_H

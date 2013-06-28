@@ -19,10 +19,14 @@
 
 #include "SliceViewSettingsPanel.h"
 
-SliceViewSettingsPanel::SliceViewSettingsPanel(SliceView::SettingsPtr settings)
+using namespace EspINA;
+
+SliceViewSettingsPanel::SliceViewSettingsPanel(SliceView::SettingsSPtr settings)
 : m_settings(settings)
 {
   setupUi(this);
+
+  invertSliceOrder->setVisible(false);
 
   invertSliceOrder->setChecked(settings->invertSliceOrder());
   invertWheel->setChecked(settings->invertWheel());
@@ -57,6 +61,12 @@ void SliceViewSettingsPanel::acceptChanges()
 }
 
 //------------------------------------------------------------------------
+void SliceViewSettingsPanel::rejectChanges()
+{
+
+}
+
+//------------------------------------------------------------------------
 bool SliceViewSettingsPanel::modified() const
 {
   return invertSliceOrder->isChecked() != m_settings->invertSliceOrder()
@@ -65,8 +75,8 @@ bool SliceViewSettingsPanel::modified() const
 }
 
 //------------------------------------------------------------------------
-ISettingsPanel* SliceViewSettingsPanel::clone()
+ISettingsPanelPtr SliceViewSettingsPanel::clone()
 {
-  return new SliceViewSettingsPanel(m_settings);
+  return ISettingsPanelPtr(new SliceViewSettingsPanel(m_settings));
 }
 

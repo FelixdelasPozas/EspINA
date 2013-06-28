@@ -19,6 +19,7 @@
 #ifndef ESPINA_SETTINGS_H
 #define ESPINA_SETTINGS_H
 
+#include "EspinaCore_Export.h"
 #include <QString>
 
 const QString CESVIMA = "CeSViMa";
@@ -26,9 +27,11 @@ const QString ESPINA  = "EspINA";
 
 const QString USER_NAME("UserName");
 
-// TODO 2012-12-05 Remove this function and pass the general settings to
-// all the tools that require it
-QString userName();
-
+namespace EspINA
+{
+  // TODO 2012-12-05 Remove this function and pass the general settings to
+  // all the tools that require it
+  QString EspinaCore_EXPORT userName();
+};
 
 #endif//ESPINA_SETTINGS_H

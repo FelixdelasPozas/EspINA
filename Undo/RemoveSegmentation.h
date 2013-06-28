@@ -1,20 +1,20 @@
 /*
-    <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
+ <one line to give the program's name and a brief idea of what it does.>
+ Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 //----------------------------------------------------------------------------
 // File:    RemoveSegmentation.h
@@ -23,61 +23,42 @@
 #ifndef REMOVESEGMENTATION_H
 #define REMOVESEGMENTATION_H
 
-#include <QUndoCommand>
+#include "EspinaUndo_Export.h"
 
 // EspINA
-#include "Core/Model/ModelItem.h"
+#include <Core/Model/ModelItem.h>
+#include <Core/Model/EspinaModel.h>
 
-class EspinaModel;
-class Filter;
-class Segmentation;
+// Qt
+#include <QUndoCommand>
 
-class RemoveSegmentation
-: public QUndoCommand
+namespace EspINA
 {
-public:
-  explicit RemoveSegmentation(Segmentation *seg,
-                              EspinaModel  *model,
-                              QUndoCommand *parent=0
-                             );
-  explicit RemoveSegmentation(QList<Segmentation *> segs,
-                              EspinaModel          *model,
-                              QUndoCommand         *parent=0
-                             );
+  class ViewManager;
 
-  virtual void redo();
-  virtual void undo();
-
-private:
-  void addRelations(ModelItem::RelationList list);
-  void removeRelations(ModelItem::RelationList list);
-
-  QList<Filter *> removeFilterDependencies(Filter *filter);
-
-private:
-  struct FilterInfo
+  class EspinaUndo_EXPORT RemoveSegmentation
+  : public QUndoCommand
   {
-    FilterInfo () : filter(NULL) {}
-    FilterInfo(Filter *filter, ModelItem::RelationList list) :
-    filter(filter), relations(list)
-    {}
-    Filter *filter;
-    ModelItem::RelationList relations;
+    public:
+      explicit RemoveSegmentation(SegmentationPtr seg, EspinaModel *model, ViewManager *vm, QUndoCommand *parent = 0);
+      explicit RemoveSegmentation(SegmentationList segs, EspinaModel *model, ViewManager *vm, QUndoCommand *parent = 0);
+
+      virtual void redo();
+      virtual void undo();
+
+    private:
+      bool isADupicatedRelation(Relation relation);
+      void addFilterDependencies(FilterSPtr filter);
+
+    private:
+      EspinaModel *m_model;
+      ViewManager *m_viewManager;
+
+      SegmentationSList m_segmentations;
+      FilterSList m_filters;
+      RelationList m_relations;
   };
 
-  struct SegInfo
-  {
-    SegInfo(Segmentation *seg);
-
-    Filter * filter;
-    ModelItem::RelationList relations;
-    Segmentation *segmentation;
-  };
-
-private:
-  EspinaModel      *m_model;
-  QList<FilterInfo> m_removedFilters;
-  QList<SegInfo>    m_segmentations;
-};
+} // namespace EspINA
 
 #endif // REMOVESEGMENTATION_H

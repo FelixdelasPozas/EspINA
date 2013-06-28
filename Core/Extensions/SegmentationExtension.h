@@ -1,56 +1,88 @@
 /*
-    <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ *    <one line to give the program's name and a brief idea of what it does.>
+ *    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
+ *
+ *    This program is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
+ *
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 
 #ifndef SEGMENTATIONEXTENSION_H
 #define SEGMENTATIONEXTENSION_H
 
+#include "EspinaCore_Export.h"
+
+#include "Core/Model/Segmentation.h"
 #include "Core/Extensions/ModelItemExtension.h"
 
-#include <QSharedPointer>
-
-class Segmentation;
-class SegmentationRepresentation;
-
-/// Interface to extend segmentation's behaviour
-class SegmentationExtension
-: public ModelItemExtension
+namespace EspINA
 {
-public:
-  typedef QSharedPointer<SegmentationExtension> SPtr;
 
-public:
-  virtual ~SegmentationExtension(){}
-
-  virtual void setSegmentation(Segmentation *seg) {m_seg = seg;}
-
-  virtual SegmentationRepresentation *representation(QString rep) = 0;
-
-  virtual Segmentation *segmentation() {return m_seg;}
-
-  /// Prototype
-  virtual SegmentationExtension *clone() = 0;
-
-protected:
-  SegmentationExtension() : m_seg(NULL){}
-  Segmentation *m_seg;
-};
+  class EspinaCore_EXPORT Segmentation::Extension
+  : public ModelItem::Extension
+  {
+  public:
+    virtual ~Extension() {}
+  protected:
+    Extension() : m_segmentation(NULL){}
+    SegmentationPtr m_segmentation;
+  };
 
 
+  /// Interface to extend segmentation's behaviour
+  class EspinaCore_EXPORT Segmentation::Information
+  : public Segmentation::Extension
+  {
+    Q_OBJECT
+  public:
+    virtual ~Information(){}
+
+    virtual bool validTaxonomy(const QString &qualifiedName) const = 0;
+
+    virtual void setSegmentation(SegmentationPtr seg) = 0;
+
+    virtual SegmentationPtr segmentation() {return m_segmentation;}
+
+    virtual Segmentation::InfoTagList availableInformations() const = 0;
+
+    virtual QVariant information(const Segmentation::InfoTag &tag) = 0;
+
+    virtual QString toolTipText() const
+    { return QString(); }
+
+    /// Prototype
+    virtual Segmentation::InformationExtension clone() = 0;
+
+    virtual void initialize() = 0;
+
+    void setEnabled(bool enabled)
+    { m_enabled = enabled; }
+
+    bool isEnabled() const 
+    {return m_enabled;}
+
+  public slots:
+    /// Invalidates segmentation's extension. If no segmentation is given
+    /// invalidate this extension for its segmentation
+    virtual void invalidate(SegmentationPtr segmentation = NULL) = 0;
+
+  protected:
+    Information() : m_enabled(true) {}
+
+  protected:
+    bool m_enabled;
+  };
+
+} // namespace EspINA
 
 #endif // SEGMENTATIONEXTENSION_H

@@ -16,61 +16,61 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #ifndef VOLUMETRICRENDERER_H
 #define VOLUMETRICRENDERER_H
 
-#include <vtkVolume.h>
-#include <vtkSmartPointer.h>
+#include "EspinaGUI_Export.h"
 
-#include <Core/Model/HierarchyItem.h>
+// EspINA
 #include "GUI/Renderers/Renderer.h"
+#include "GUI/Representations/VolumeRaycastRepresentation.h"
+#include <Core/EspinaTypes.h>
+#include <GUI/ViewManager.h>
 
-#include <QMap>
+// VTK
+#include <vtkVolumePicker.h>
 
-class ViewManager;
-class ModelItem;
-class Segmentation;
-class vtkVolumeProperty;
-
-class VolumetricRenderer
-: public Renderer
+namespace EspINA
 {
-  struct Representation
+  class EspinaGUI_EXPORT VolumetricRenderer
+  : public IRenderer
   {
-    vtkVolume *volume;
-    bool visible;
-    bool selected;
-    QColor color;
-    bool overridden;
-    HierarchyItem::HierarchyRenderingType renderingType;
-    vtkSmartPointer<vtkVolumeProperty> actorPropertyBackup;
+  public:
+    explicit VolumetricRenderer(QObject* parent = 0);
+    virtual ~VolumetricRenderer();
+
+    virtual const QIcon icon() const {return QIcon(":/espina/voxel.png");}
+    virtual const QString name() const {return "Volumetric";}
+    virtual const QString tooltip() const {return "Segmentation's Volumes";}
+
+    virtual void addRepresentation(PickableItemPtr item, GraphicalRepresentationSPtr rep);
+    virtual void removeRepresentation(GraphicalRepresentationSPtr rep);
+    virtual bool hasRepresentation(GraphicalRepresentationSPtr rep);
+    virtual bool managesRepresentation(GraphicalRepresentationSPtr rep);
+
+    virtual void hide();
+    virtual void show();
+    virtual unsigned int getNumberOfvtkActors() { return 0; }
+
+    virtual IRendererSPtr clone() {return IRendererSPtr(new VolumetricRenderer());}
+
+    virtual RendererType getRenderType() { return RendererType(RENDERER_VOLUMEVIEW); }
+    virtual RenderabledItems getRenderableItemsType() { return RenderabledItems(EspINA::SEGMENTATION); }
+    virtual int itemsBeenRendered() { return m_representations.size(); }
+
+    // to pick items been rendered
+    virtual ViewManager::Selection pick(int x,
+                                        int y,
+                                        Nm z,
+                                        vtkSmartPointer<vtkRenderer> renderer,
+                                        RenderabledItems itemType = RenderabledItems(),
+                                        bool repeat = false);
+    virtual void getPickCoordinates(double *point);
+
+  protected:
+    vtkSmartPointer<vtkVolumePicker> m_picker;
   };
 
-public:
-  explicit VolumetricRenderer(ViewManager *vm, QObject* parent = 0);
-
-  virtual const QIcon icon() const {return QIcon(":/espina/voxel.png");}
-  virtual const QString name() const {return "Volumetric";}
-  virtual const QString tooltip() const {return "Segmentation's Volumes";}
-
-  virtual bool addItem(ModelItem* item);
-  virtual bool updateItem(ModelItem* item);
-  virtual bool removeItem(ModelItem* item);
-
-  virtual void hide();
-  virtual void show();
-
-  virtual Renderer* clone() {return new VolumetricRenderer(m_viewManager);}
-
-  virtual bool isASegmentationRenderer() { return true; };
-private:
-  // helper methods
-  void createHierarchyProperties(Segmentation *);
-  bool updateHierarchyProperties(Segmentation *);
-
-  ViewManager *m_viewManager;
-  QMap<ModelItem *, Representation> m_segmentations;
-};
+} // namespace EspINA
 
 #endif // VOLUMETRICRENDERER_H

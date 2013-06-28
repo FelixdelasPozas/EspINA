@@ -23,21 +23,23 @@
 #include <Core/Model/EspinaModel.h>
 #include <Core/Model/Sample.h>
 #include <Core/Model/Segmentation.h>
+#include <Core/Model/Filter.h>
+#include <Core/Relations.h>
+
+using namespace EspINA;
 
 //----------------------------------------------------------------------------
-AddSegmentation::AddSegmentation(Channel         *channel,
-                                 Filter          *filter,
-                                 Segmentation    *seg,
-                                 TaxonomyElement *taxonomy,
-                                 EspinaModel     *model)
-: m_channel (channel)
+AddSegmentation::AddSegmentation(ChannelSPtr channel,
+                                 FilterSPtr filter,
+                                 SegmentationSPtr seg,
+                                 TaxonomyElementSPtr taxonomy,
+                                 EspinaModel *model)
+: m_model   (model)
+, m_channel (channel)
 , m_filter  (filter)
 , m_seg     (seg)
 , m_taxonomy(taxonomy)
-, m_model   (model)
 {
-  //TODO: Poner punto de interrupcion y comprobar si SIEMPRE se crean segmentacion antes de invocar a este m�todo
-  //      en cuyo caso hay que destruirlas en el destructor
   m_sample = m_channel->sample();
   Q_ASSERT(m_sample);
 }
@@ -49,8 +51,8 @@ void AddSegmentation::redo()
   m_model->addRelation(m_channel, m_filter, Channel::LINK);
   m_seg->setTaxonomy(m_taxonomy);
   m_model->addSegmentation(m_seg);
-  m_model->addRelation(m_filter, m_seg, CREATELINK);
-  m_model->addRelation(m_sample, m_seg, Sample::WHERE);
+  m_model->addRelation(m_filter , m_seg, Filter::CREATELINK);
+  m_model->addRelation(m_sample , m_seg, Relations::LOCATION);
   m_model->addRelation(m_channel, m_seg, Channel::LINK);
   m_seg->initializeExtensions();
 }
@@ -59,8 +61,8 @@ void AddSegmentation::redo()
 void AddSegmentation::undo()
 {
   m_model->removeRelation(m_channel, m_seg, Channel::LINK);
-  m_model->removeRelation(m_sample, m_seg, "where");
-  m_model->removeRelation(m_filter, m_seg, CREATELINK);
+  m_model->removeRelation(m_sample , m_seg, Relations::LOCATION);
+  m_model->removeRelation(m_filter , m_seg, Filter::CREATELINK);
   m_model->removeSegmentation(m_seg);
   m_model->removeRelation(m_channel, m_filter, Channel::LINK);
   m_model->removeFilter(m_filter);

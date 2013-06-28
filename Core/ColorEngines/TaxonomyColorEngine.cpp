@@ -19,12 +19,15 @@
 #include "TaxonomyColorEngine.h"
 
 #include "Core/Model/Segmentation.h"
+#include "Core/Model/Taxonomy.h"
+
+using namespace EspINA;
 
 const double SELECTED_ALPHA = 1.0;
 const double UNSELECTED_ALPHA = 0.6;
 
 //-----------------------------------------------------------------------------
-QColor TaxonomyColorEngine::color(Segmentation* seg)
+QColor TaxonomyColorEngine::color(SegmentationPtr seg)
 {
   if (seg && seg->taxonomy())
     return seg->taxonomy()->color();
@@ -33,7 +36,7 @@ QColor TaxonomyColorEngine::color(Segmentation* seg)
 }
 
 //-----------------------------------------------------------------------------
-LUTPtr TaxonomyColorEngine::lut(Segmentation* seg)
+LUTPtr TaxonomyColorEngine::lut(SegmentationPtr seg)
 {
   // Get (or create if it doesn't exit) the lut for the segmentations' images
   QString lutName;
@@ -56,15 +59,35 @@ LUTPtr TaxonomyColorEngine::lut(Segmentation* seg)
     seg_lut->Modified();
 
     m_LUT.insert(lutName, seg_lut);
+
+    if (lutName != "")
+      connect(seg->taxonomy().get(), SIGNAL(colorChanged(TaxonomyElementPtr)),
+              this, SLOT(updateTaxonomyColor(TaxonomyElementPtr)));
   }
   else
-    seg_lut = m_LUT[lutName];
+  {
+    // fix a corner case when a segmentation and it's taxonomy have been deleted
+    // but the lookuptable hasn't, so when the segmentation and taxonomy are been
+    // created again with a different color the ColorEngine returns the lookuptable
+    // with the old color.
+    if (seg->taxonomy()) // TODO: sometimes happens, segs without taxonomy, fixed?
+    {
+      double rgb[3];
+      m_LUT[lutName]->GetColor(1, rgb);
+      QColor segColor = seg->taxonomy()->color();
+
+      if (segColor != QColor(rgb[0], rgb[1], rgb[2]))
+        m_LUT[lutName]->SetTableValue(1, segColor.redF(), segColor.greenF(), segColor.blueF(), (seg->isSelected() ? SELECTED_ALPHA : UNSELECTED_ALPHA));
+
+      seg_lut = m_LUT[lutName];
+    }
+  }
 
   return seg_lut;
 }
 
 //-----------------------------------------------------------------------------
-void TaxonomyColorEngine::updateTaxonomyColor(TaxonomyElement* tax)
+void TaxonomyColorEngine::updateTaxonomyColor(TaxonomyElementPtr tax)
 {
   QString lutName = tax->qualifiedName();
   QColor c = tax->color();

@@ -20,29 +20,38 @@
 #ifndef ADDRELATION_H
 #define ADDRELATION_H
 
+#include "EspinaUndo_Export.h"
+
+// EspINA
+#include <Core/EspinaTypes.h>
+#include <Core/Model/EspinaModel.h>
+
+// Qt
 #include <QUndoCommand>
 
-class EspinaModel;
-class ModelItem;
-
-class AddRelation
-: public QUndoCommand
+namespace EspINA
 {
-public:
-  explicit AddRelation(ModelItem *ancestor,
-                       ModelItem *successor,
-                       const QString description,
-                       EspinaModel *model,
-                       QUndoCommand* parent = 0);
+  class EspinaUndo_EXPORT AddRelation
+  : public QUndoCommand
+  {
+  public:
+    explicit AddRelation(ModelItemSPtr  ancestor,
+                         ModelItemSPtr  successor,
+                         const QString  description,
+                         EspinaModel   *model,
+                         QUndoCommand  *parent = 0);
 
-  virtual void redo();
-  virtual void undo();
+    virtual void redo();
+    virtual void undo();
 
-private:
-  EspinaModel  *m_model;
-  ModelItem    *m_ancester;
-  ModelItem    *m_succesor;
-  const QString m_description;
-};
+  private:
+    EspinaModel   *m_model;
+
+    ModelItemSPtr  m_ancester;
+    ModelItemSPtr  m_succesor;
+    const QString  m_description;
+  };
+
+}// namespace EspINA
 
 #endif // ADDRELATION_H

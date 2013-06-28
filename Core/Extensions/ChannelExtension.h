@@ -20,35 +20,44 @@
 #ifndef CHANNELEXTENSION_H
 #define CHANNELEXTENSION_H
 
-#include "Core/Extensions/ModelItemExtension.h"
+#include "EspinaCore_Export.h"
 
-#include <QSharedPointer>
 
-class Channel;
+#include <Core/Model/Channel.h>
+#include <Core/Extensions/ModelItemExtension.h>
 
-/// Interface to extend channel's behaviour
-class ChannelExtension
-: public ModelItemExtension
+namespace EspINA
 {
-public:
-  typedef QSharedPointer<ChannelExtension> SPtr;
+  /// Interface to extend channel's behaviour
+  class EspinaCore_EXPORT Channel::Extension
+  : public ModelItem::Extension
+  {
+    Q_OBJECT
+  public:
+    virtual ~Extension(){}
 
-public:
-  virtual ~ChannelExtension(){}
+    virtual void setChannel(Channel *channel);
 
-    void setChannel(Channel* channel) {m_channel = channel;}
-  virtual void initialize(ModelItem::Arguments args = ModelItem::Arguments()) = 0;
-  virtual QString serialize() const = 0;
+    virtual Channel *channel() const {return m_channel;}
 
-  virtual Channel *channel() const {return m_channel;}
+    /// Prototype
+    virtual Channel::ExtensionPtr clone() = 0;
 
-  /// Prototype
-  virtual ChannelExtension *clone() = 0;
+    virtual void initialize() = 0;
 
-protected:
-  explicit ChannelExtension() : m_channel(NULL){}
+  public slots:
+    virtual void invalidate(ChannelPtr channel = NULL) = 0;
 
-  Channel *m_channel;
-};
+  protected:
+    explicit Extension() : m_channel(NULL){}
 
+    Channel *m_channel;
+  };
+
+  typedef boost::shared_ptr<Channel::Extension> ChannelExtensionSPtr;
+  typedef QList<ChannelExtensionSPtr>      ChannelExtensionSList;
+
+  Channel::ExtensionPtr channelExtensionPtr(ModelItem::Extension *extension);
+
+}
 #endif // CHANNELEXTENSION_H

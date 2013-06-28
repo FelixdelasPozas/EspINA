@@ -1,24 +1,24 @@
 /*
-    <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2011  Jorge Peña Pastor <jpena@cesvima.upm.es>
+ *    <one line to give the program's name and a brief idea of what it does.>
+ *    Copyright (C) 2011  Jorge Peña Pastor <jpena@cesvima.upm.es>
+ *
+ *    This program is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
+ *
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
-
-#ifndef ESPinaModelWINDOW_H
-#define ESPinaModelWINDOW_H
+#ifndef ESPINA_MAIN_WINDOW_H
+#define ESPINA_MAIN_WINDOW_H
 
 #include <QMainWindow>
 
@@ -26,110 +26,168 @@
 #include "RecentDocuments.h"
 
 #include <Core/Interfaces/IDynamicMenu.h>
+#include <Core/Interfaces/IFilterCreator.h>
+#include <Core/EspinaTypes.h>
+#include <Core/Model/EspinaModel.h>
+#include <GUI/ISettingsPanel.h>
+#include <GUI/Renderers/Renderer.h>
 
 #include <QTimer>
 
-class ColorEngineMenu;
-class DefaultEspinaView;
-class SelectionManager;
-class GeneralSettings;
-class EspinaFactory;
+class QLabel;
+class EspinaIOErrorHandler;
+class QPluginLoader;
 class QAction;
-class EspinaModel;
-class MainToolBar;
 class QFrame;
 class QUndoStack;
-class ViewManager;
 class QShortcut;
 
 #ifdef TEST_ESPINA_MODELS
 class ModelTest;
 #endif
 
-class EspinaMainWindow
-: public QMainWindow
+namespace EspINA
 {
-  Q_OBJECT
-public:
-    explicit EspinaMainWindow();
+
+  class IDockWidget;
+  class IToolBar;
+  class ColorEngineMenu;
+  class DefaultEspinaView;
+  class GeneralSettings;
+  class MainToolBar;
+  class ViewManager;
+
+  class EspinaMainWindow
+  : public QMainWindow
+  , public IFilterCreator
+  {
+    Q_OBJECT
+  public:
+    explicit EspinaMainWindow(EspinaModel      *model,
+                              ViewManager      *viewManager,
+                              QList<QObject *> &plugins);
     virtual ~EspinaMainWindow();
 
-public slots:
-  void closeCurrentAnalysis();
+    virtual FilterSPtr createFilter(const QString& filter,
+                                    const Filter::NamedInputs& inputs,
+                                    const ModelItem::Arguments& args);
+  public slots:
+    bool closeCurrentAnalysis();
 
-  void openRecentAnalysis();
-  /// Close former analysis and load a new one
-  void openAnalysis();
-  void openAnalysis(const QString& file);
-  /// Add new data from file to current analysis
-  void addToAnalysis();
-  void addRecentToAnalysis();
-  void addFileToAnalysis(const QString &file);
-  /// Save Current Analysis
-  void saveAnalysis();
+    void openRecentAnalysis();
+    /// Close former analysis and load a new one
+    void openAnalysis();
+    void openAnalysis(const QFileInfo file);
+    /// Add new data from file to current analysis
+    void addToAnalysis();
+    void addRecentToAnalysis();
+    void addFileToAnalysis(const QFileInfo file);
+    /// Save Current Analysis
+    void saveAnalysis();
+    void saveSessionAnalysis();
 
-protected slots:
-  void updateStatus(QString msg);
-  void updateTooltip(QAction *action);
-  void showPreferencesDialog();
-  void showAboutDialog();
-  void showConnectomicsInformation();
+  private slots:
+    void updateStatus(QString msg);
+    void updateTooltip(QAction *action);
+    void showPreferencesDialog();
+    void showAboutDialog();
+    void showConnectomicsInformation();
+    void showRawInformation();
 
-  void openState() {m_menuState = OPEN_STATE;}
-  void addState()  {m_menuState = ADD_STATE;}
+    void openState() {m_menuState = OPEN_STATE;}
+    void addState()  {m_menuState = ADD_STATE;}
 
-  void autosave();
-  void cancelOperation() {emit analysisClosed(); }
+    void autosave();
+    void cancelOperation() {emit analysisClosed(); }
 
-signals:
-  void analysisClosed();
+    /// undo slots
+    void undoTextChanged(QString);
+    void redoTextChanged(QString);
+    void canRedoChanged(bool);
+    void canUndoChanged(bool);
+    void undoAction(bool);
+    void redoAction(bool);
 
-protected:
-  void createActivityMenu();
-  void createDynamicMenu(MenuEntry entry);
-  void createLODMenu();
+  signals:
+    void analysisClosed();
+    void abortOperation();
 
-  void checkAutosave();
+  protected:
+    virtual void closeEvent(QCloseEvent* );
 
-  virtual void closeEvent(QCloseEvent* );
+  private:
+    void createActivityMenu();
+    void createDynamicMenu(MenuEntry entry);
+    void checkAutosave();
+    void registerDockWidget(Qt::DockWidgetArea area, IDockWidget *dock);
+    void registerToolBar(IToolBar *toolbar);
+    void updateTraceabilityStatus();
 
-  void loadPlugins();
 
-private:
-  QMenu           *m_viewMenu;
-  ColorEngineMenu *m_colorEngines;
-  QMenu           *m_dockMenu;
-  QMenu           *m_addMenu;
+    void loadPlugins(QList<QObject *> &plugins);
 
-  MainToolBar *m_mainToolBar;
-  DefaultEspinaView *m_view;
+  private:
+    // EspINA
+    EspinaModel     *m_model;
+    QUndoStack      *m_undoStack;
+    ViewManager     *m_viewManager;
+    GeneralSettings *m_settings;
 
-  EspinaFactory    *m_factory;
-  EspinaModel      *m_model;
-  QUndoStack       *m_undoStack;
-  ViewManager      *m_viewManager;
-  GeneralSettings  *m_settings;
+    // GUI
+    QMenu           *m_addMenu;
+    QAction         *m_saveAnalysis;
+    QAction         *m_saveSessionAnalysis;
+    QAction         *m_closeAnalysis;
+    QMenu           *m_viewMenu;
+    ColorEngineMenu *m_colorEngines;
+    QMenu           *m_dockMenu;
 
-  RecentDocuments m_recentDocuments1;
-  RecentDocuments m_recentDocuments2; // fixes duplicated actions warning in some systems
+    // UNDO
+    QAction         *m_undoAction;
+    QAction         *m_redoAction;
 
-#ifdef TEST_ESPINA_MODELS
-  QSharedPointer<ModelTest>   m_modelTester;
-#endif
+    ISettingsPanelPrototype m_settingsPanel;
 
-  enum MenuState {OPEN_STATE, ADD_STATE};
-  MenuState m_menuState;
+    MainToolBar *m_mainToolBar;
+    DefaultEspinaView *m_view;
 
-  bool m_busy;
-  QShortcut *cancel;
+    RecentDocuments m_recentDocuments1;
+    RecentDocuments m_recentDocuments2; // fixes duplicated actions warning in some systems
 
-  struct DynamicMenuNode
-  {
-    QMenu *menu;
-    QList<DynamicMenuNode *> submenus;
+    QList<QPluginLoader *> m_plugins;
+
+    #ifdef TEST_ESPINA_MODELS
+    boost::shared_ptr<ModelTest>   m_modelTester;
+    #endif
+
+    enum MenuState {OPEN_STATE, ADD_STATE};
+    MenuState m_menuState;
+
+    bool m_busy;
+    QShortcut *cancel;
+
+    QList<IRendererSPtr> m_defaultRenderers;
+
+    struct DynamicMenuNode
+    {
+      explicit DynamicMenuNode();
+      ~DynamicMenuNode();
+
+      QMenu *menu;
+      QList<DynamicMenuNode *> submenus;
+    };
+    DynamicMenuNode *m_dynamicMenuRoot;
+
+    int       m_undoStackSavedIndex;
+    QTimer    m_autosave;
+    QFileInfo m_sessionFile;
+
+    // Status Bar
+    QLabel   *m_traceableStatus;
+
+    EspinaIOErrorHandler *m_errorHandler;
   };
-  DynamicMenuNode *m_dynamicMenuRoot;
-  QTimer m_autosave;
-};
 
-#endif // ESPinaModelWINDOW_H
+} // namespace EspINA
+
+#endif // ESPINA_MAIN_WINDOW_H

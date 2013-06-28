@@ -20,13 +20,15 @@
 #ifndef ACTIONSELECTOR_H
 #define ACTIONSELECTOR_H
 
+#include "EspinaGUI_Export.h"
+
 #include <QWidgetAction>
 
 class QMenu;
-class IPicker;
+
 class ActionSelectorWidget;
 
-class ActionSelector
+class EspinaGUI_EXPORT ActionSelector
 : public QWidgetAction
 {
   Q_OBJECT
@@ -41,6 +43,7 @@ public:
   QString getCurrentActionAsQString();
   void cancel() {emit cancelAction();}
   bool isChecked();
+  void setChecked(bool value);
   void setIcon(const QIcon &);
 
 protected slots:

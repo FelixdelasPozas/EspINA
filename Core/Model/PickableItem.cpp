@@ -17,25 +17,52 @@
 */
 
 #include "PickableItem.h"
+#include "Filter.h"
 
+using namespace EspINA;
 
 //----------------------------------------------------------------------------
-Filter* PickableItem::filter()
+PickableItem::PickableItem()
+: m_isSelected(false)
+, m_outputIsModified(false)
 {
-  return const_cast<Filter *>(
-    static_cast<const PickableItem *>(this)->filter()
-  );
-
 }
 
 //----------------------------------------------------------------------------
-EspinaVolume::Pointer PickableItem::volume()
+FilterSPtr PickableItem::filter()
 {
-  return filter()->volume(outputId());
+  const FilterSPtr cp = static_cast<const PickableItem *>(this)->filter();
+  return cp;
 }
 
 //----------------------------------------------------------------------------
-const EspinaVolume::Pointer PickableItem::volume() const
+OutputSPtr PickableItem::output()
 {
-  return filter()->volume(outputId());
+  return filter()->output(outputId());
+}
+
+//----------------------------------------------------------------------------
+const OutputSPtr PickableItem::output() const
+{
+  return filter()->output(outputId());
+}
+
+//----------------------------------------------------------------------------
+PickableItemPtr EspINA::pickableItemPtr(ModelItemPtr item)
+{
+  Q_ASSERT(EspINA::SEGMENTATION == item->type() || EspINA::SAMPLE == item->type());
+  PickableItemPtr ptr = dynamic_cast<PickableItemPtr>(item);
+  Q_ASSERT(ptr);
+
+  return ptr;
+}
+
+//----------------------------------------------------------------------------
+PickableItemSPtr EspINA::pickableItemPtr(ModelItemSPtr &item)
+{
+  Q_ASSERT(EspINA::SEGMENTATION == item->type() || EspINA::SAMPLE == item->type());
+  PickableItemSPtr ptr = boost::dynamic_pointer_cast<PickableItem>(item);
+  Q_ASSERT(ptr != NULL);
+
+  return ptr;
 }

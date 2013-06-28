@@ -15,20 +15,15 @@
 # 
 set(LIB_DEPENDECIES
   EspinaCore
-  EspinaFilters
+  EspinaGUI
   EspinaUndo
   QtTest
   ${QT_LIBRARIES}
   ${Boost_LIBRARIES}
   ${VTK_LIBRARIES}
   ${ITK_LIBRARIES}
-)
-
-include_directories(
-  ${CMAKE_SOURCE_DIR}
-  ${CMAKE_SOURCE_DIR}/common
-  ${CMAKE_SOURCE_DIR}/common/IO
+  QVTK
 )
 
 add_subdirectory(IO)
-add_subdirectory(Model)
+# add_subdirectory(Model)

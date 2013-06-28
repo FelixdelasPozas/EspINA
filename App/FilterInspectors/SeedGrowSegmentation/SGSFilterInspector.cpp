@@ -16,41 +16,151 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "SGSFilterInspector.h"
+#include <Undo/VolumeSnapshotCommand.h>
 
 // EspINA
-#include <Filters/SeedGrowSegmentationFilter.h>
+#include <Core/Filters/SeedGrowSegmentationFilter.h>
 #include <GUI/ViewManager.h>
 #include <GUI/vtkWidgets/RectangularRegion.h>
+#include <Core/OutputRepresentations/VolumeRepresentation.h>
 
 // Qt
 #include <QDebug>
 #include <QMessageBox>
 #include <QCheckBox>
+#include <QUndoCommand>
+
+using namespace EspINA;
+
+class SGSFilterModification
+: public QUndoCommand
+{
+public:
+  SGSFilterModification(SeedGrowSegmentationFilter *filter,
+                        int voi[6],
+                        int threshold,
+                        int closeRadius,
+                        QUndoCommand *parent = NULL)
+  : QUndoCommand(parent)
+  , m_filter(filter)
+  , m_threshold(threshold)
+  , m_closeRadius(closeRadius)
+  {
+    memcpy(m_VOI, voi, 6*sizeof(int));
+
+    m_oldThreshold = m_filter->lowerThreshold();
+    m_filter->voi(m_oldVOI);
+    m_oldCloseRadius = m_filter->closeValue();
+  }
+
+  virtual void redo()
+  {
+    SegmentationOutputSPtr output = boost::dynamic_pointer_cast<SegmentationOutput>(m_filter->output(0));
+
+    SegmentationVolumeSPtr volume = segmentationVolume(output);
+
+    if (!m_oldVolume && (output->isEdited() || volume->volumeRegion().GetNumberOfPixels() < MAX_UNDO_SIZE))
+    {
+      m_oldVolume     = volume->cloneVolume();
+      m_editedRegions = output->editedRegions();
+    }
+
+    bool ignoreUpdate = m_newVolume.IsNotNull();
+
+    m_filter->setLowerThreshold(m_threshold, ignoreUpdate);
+    m_filter->setUpperThreshold(m_threshold, ignoreUpdate);
+    m_filter->setVOI(m_VOI, ignoreUpdate);
+    m_filter->setCloseValue(m_closeRadius, ignoreUpdate);
+
+    if (m_newVolume.IsNull())
+    {
+      update();
+
+      SegmentationVolumeSPtr newVolume = volume;
+      if (newVolume->volumeRegion().GetNumberOfPixels() < MAX_UNDO_SIZE)
+        m_newVolume = volume->cloneVolume();
+    }
+    else
+    {
+      volume->setVolume(m_newVolume);
+    }
+
+    output->clearEditedRegions();
+  }
+
+  virtual void undo()
+  {
+    m_filter->setLowerThreshold(m_oldThreshold, true);
+    m_filter->setUpperThreshold(m_oldThreshold, true);
+    m_filter->setVOI(m_oldVOI, true);
+    m_filter->setCloseValue(m_oldCloseRadius, true);
+
+    SegmentationOutputSPtr output = boost::dynamic_pointer_cast<SegmentationOutput>(m_filter->output(0));
+    SegmentationVolumeSPtr volume = segmentationVolume(output);
+
+    if (m_oldVolume.IsNotNull())
+    {
+      volume->setVolume(m_oldVolume);
+      output->setEditedRegions(m_editedRegions);
+    } else
+    {
+      update();
+    }
+  }
+
+private:
+  void update()
+  {
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+    m_filter->update(0);
+    QApplication::restoreOverrideCursor();
+  }
+
+private:
+  SeedGrowSegmentationFilter *m_filter;
+
+  int m_VOI[6], m_oldVOI[6];
+  int m_threshold, m_oldThreshold;
+  int m_closeRadius, m_oldCloseRadius;
+
+  itkVolumeType::Pointer m_oldVolume;
+  itkVolumeType::Pointer m_newVolume;
+
+  FilterOutput::EditedRegionSList m_editedRegions;
+};
 
 //----------------------------------------------------------------------------
 SGSFilterInspector::SGSFilterInspector(SeedGrowSegmentationFilter* filter)
 : m_filter(filter)
 {
-  filter->setFilterInspector(Filter::FilterInspectorPtr(this));
 }
 
 //----------------------------------------------------------------------------
 QWidget* SGSFilterInspector::createWidget(QUndoStack* stack, ViewManager* viewManager)
 {
-  return new Widget(m_filter, viewManager);
+  return new Widget(m_filter, stack, viewManager);
 }
 
 
 
 
 //----------------------------------------------------------------------------
-SGSFilterInspector::Widget::Widget(Filter* filter, ViewManager* vm)
-: m_viewManager(vm)
+SGSFilterInspector::Widget::Widget(Filter* filter,
+                                   QUndoStack * undoStack,
+                                   ViewManager* viewManager)
+: m_undoStack(undoStack)
+, m_viewManager(viewManager)
 , m_region(NULL)
+, m_closeValue(0)
 //, m_sliceSelctor(NULL)
 {
   setupUi(this);
   m_filter = dynamic_cast<SeedGrowSegmentationFilter *>(filter);
+  connect(filter, SIGNAL(modified(ModelItemPtr)),
+          this, SLOT(updateWidget()));
+
+  SegmentationVolumeSPtr volume = segmentationVolume(filter->output(0));
+
   itkVolumeType::IndexType seed = m_filter->seed();
   m_xSeed->setText(QString("%1").arg(seed[0]));
   m_ySeed->setText(QString("%1").arg(seed[1]));
@@ -59,7 +169,7 @@ SGSFilterInspector::Widget::Widget(Filter* filter, ViewManager* vm)
   m_threshold->setValue(m_filter->lowerThreshold());
   int voiExtent[6];
   m_filter->voi(voiExtent);
-  itkVolumeType::SpacingType spacing = filter->volume(0)->toITK()->GetSpacing();
+  itkVolumeType::SpacingType spacing = volume->toITK()->GetSpacing();
   for (int i=0; i<6; i++)
     m_voiBounds[i] = voiExtent[i] * spacing[i/2];
 
@@ -85,7 +195,7 @@ SGSFilterInspector::Widget::Widget(Filter* filter, ViewManager* vm)
   m_bottomMargin->setSuffix(" nm");
   m_bottomMargin->installEventFilter(this);
   connect(m_bottomMargin, SIGNAL(valueChanged(int)),
-          this, SLOT(updateRegionBounds()));
+          this, SLOT(updateRegionBounds( )));
 
   m_upperMargin->setValue(m_voiBounds[4]);
   m_upperMargin->setSuffix(" nm");
@@ -94,7 +204,7 @@ SGSFilterInspector::Widget::Widget(Filter* filter, ViewManager* vm)
           this, SLOT(updateRegionBounds()));
 
   m_lowerMargin->setValue(m_voiBounds[5]);
-  m_lowerMargin->setSuffix(" nm");
+  m_lowerMargin->setSuffix(" nm"); 
   m_lowerMargin->installEventFilter(this);
   connect(m_lowerMargin, SIGNAL(valueChanged(int)),
           this, SLOT(updateRegionBounds()));
@@ -176,8 +286,24 @@ void SGSFilterInspector::Widget::redefineVOI(double* bounds)
 //----------------------------------------------------------------------------
 void SGSFilterInspector::Widget::modifyFilter()
 {
+  SegmentationOutputSPtr output = boost::dynamic_pointer_cast<SegmentationOutput>(m_filter->output(0));
+
+  if (output->isEdited())
+  {
+    QMessageBox msg;
+    msg.setText(tr("Filter contains segmentations that have been manually modified by the user."
+                   "Updating this filter will result in losing user modifications."
+                   "Do you want to proceed?"));
+    msg.setStandardButtons(QMessageBox::Yes|QMessageBox::No);
+
+    if (msg.exec() != QMessageBox::Yes)
+      return;
+  }
+
+  SegmentationVolumeSPtr volume = segmentationVolume(output);
+
   double spacing[3];
-  m_filter->volume(0)->spacing(spacing);
+  volume->spacing(spacing);
 
   double voiBounds[6];
   voiBounds[0] = m_leftMargin->value();
@@ -205,38 +331,20 @@ void SGSFilterInspector::Widget::modifyFilter()
                          return;
   }
 
-  m_filter->setLowerThreshold(m_threshold->value());
-  m_filter->setUpperThreshold(m_threshold->value());
-  m_filter->setVOI(VOI);
-
-  QApplication::setOverrideCursor(Qt::WaitCursor);
-  m_filter->update();
-
-  // TODO 2012-10-25 Change FilerInspector API to pass segmentations
-  // it can be needed to modify their conditions or even to delete them
-  double segBounds[6];
-  m_filter->volume(0)->bounds(segBounds);
-
-  bool incompleteSeg = false;
-  for (int i=0, j=1; i<6; i+=2, j+=2)
+  m_undoStack->beginMacro("Modify Seed GrowSegmentation Filter");
   {
-    if (segBounds[i] <= voiBounds[i] || voiBounds[j] <= segBounds[j])
-      incompleteSeg = true;
+    m_undoStack->push(new SGSFilterModification(m_filter, VOI, m_threshold->value(), m_closeValue));
   }
+  m_undoStack->endMacro();
 
-  if (incompleteSeg)
+  if (m_filter->isTouchingVOI())
   {
     QMessageBox warning;
     warning.setIcon(QMessageBox::Warning);
     warning.setWindowTitle(tr("Seed Grow Segmentation Filter Information"));
     warning.setText(tr("New segmentation may be incomplete due to VOI restriction."));
     warning.exec();
-    QString condition = tr("Touch VOI");
-    //seg->addCondition(SGS_VOI, ":voi.svg", condition);
   }
-
-  m_viewManager->updateViews();
-  QApplication::restoreOverrideCursor();
 }
 
 //----------------------------------------------------------------------------
@@ -259,13 +367,38 @@ void SGSFilterInspector::Widget::modifyCloseCheckbox(int enable)
   m_closeRadius->setEnabled(enable);
 
   if (!enable)
-    m_filter->setCloseValue(0);
+    m_closeValue = 0;
   else
-      m_filter->setCloseValue(m_closeRadius->value()); // if 0 == value then is the same as disabled
+    m_closeValue = m_closeRadius->value();
 }
 
 //----------------------------------------------------------------------------
 void SGSFilterInspector::Widget::modifyCloseValue(int value)
 {
-  m_filter->setCloseValue(value);
+  m_closeValue = value;
+}
+
+//----------------------------------------------------------------------------
+void SGSFilterInspector::Widget::updateWidget()
+{
+  SegmentationVolumeSPtr volume = segmentationVolume(m_filter->output(0));
+
+  m_threshold->setValue(m_filter->lowerThreshold());
+  int voiExtent[6];
+  m_filter->voi(voiExtent);
+  itkVolumeType::SpacingType spacing = volume->toITK()->GetSpacing();
+  for (int i=0; i<6; i++)
+    m_voiBounds[i] = voiExtent[i] * spacing[i/2];
+
+  m_leftMargin->setValue(m_voiBounds[0]);
+  m_rightMargin->setValue(m_voiBounds[1]);
+  m_topMargin->setValue(m_voiBounds[2]);
+  m_bottomMargin->setValue(m_voiBounds[3]);
+  m_upperMargin->setValue(m_voiBounds[4]);
+  m_lowerMargin->setValue(m_voiBounds[5]);
+
+  bool enabled = m_filter->closeValue() > 0;
+  m_closeCheckbox->setChecked(enabled);
+  m_closeRadius->setEnabled(enabled);
+  m_closeRadius->setValue(m_filter->closeValue());
 }

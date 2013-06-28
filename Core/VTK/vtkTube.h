@@ -20,10 +20,11 @@
 #ifndef VTKTUBE_H
 #define VTKTUBE_H
 
+#include "EspinaCore_Export.h"
+
 #include <vtkImplicitFunction.h>
 
-
-class vtkTube
+class EspinaCore_EXPORT vtkTube
 : public vtkImplicitFunction
 {
 public:

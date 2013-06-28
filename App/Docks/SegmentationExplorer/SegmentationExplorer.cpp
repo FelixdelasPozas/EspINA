@@ -19,10 +19,9 @@
 #include "SegmentationExplorer.h"
 
 #include "Dialogs/SegmentationInspector/SegmentationInspector.h"
-#include "Docks/SegmentationExplorer/SegmentationDelegate.h"
 #include "Docks/SegmentationExplorer/SegmentationExplorerLayout.h"
 #include "LayoutComposition.h"
-#include "LayoutSample.h"
+#include "LayoutLocation.h"
 #include "LayoutTaxonomy.h"
 
 // EspINA
@@ -31,8 +30,8 @@
 #include <Core/Model/Sample.h>
 #include <Core/Model/Segmentation.h>
 #include <Core/Model/HierarchyItem.h>
+#include <Core/Extensions/Tags/TagExtension.h>
 #include <GUI/ISettingsPanel.h>
-#include <GUI/QtWidget/SegmentationContextualMenu.h>
 #include <Undo/RemoveSegmentation.h>
 
 #ifdef TEST_ESPINA_MODELS
@@ -42,10 +41,13 @@
 // Qt
 #include <QContextMenuEvent>
 #include <QMenu>
+#include <QCompleter>
 #include <QSortFilterProxyModel>
 #include <QStringListModel>
 #include <QUndoStack>
 #include <QWidgetAction>
+
+using namespace EspINA;
 
 //------------------------------------------------------------------------
 class SegmentationExplorer::GUI
@@ -62,7 +64,7 @@ SegmentationExplorer::GUI::GUI()
   view->setSortingEnabled(true);
   view->sortByColumn(0, Qt::AscendingOrder);
 
-  showInformation->setIcon(
+  showInformationButton->setIcon(
     qApp->style()->standardIcon(QStyle::SP_MessageBoxInformation));
 }
 
@@ -71,24 +73,25 @@ SegmentationExplorer::GUI::GUI()
 SegmentationExplorer::SegmentationExplorer(EspinaModel *model,
                                            QUndoStack  *undoStack,
                                            ViewManager *vm,
-                                           QWidget* parent)
-: QDockWidget(parent)
-, m_gui        (new GUI())
+                                           QWidget     *parent)
+: IDockWidget(parent)
 , m_baseModel  (model)
 , m_undoStack  (undoStack)
 , m_viewManager(vm)
+, m_gui        (new GUI())
 , m_layout     (NULL)
 {
-  setWindowTitle(tr("Segmentation Explorer"));
   setObjectName("SegmentationExplorer");
 
-  //   addLayout("Debug", new Layout(m_baseModel));
-  addLayout("Taxonomy",    new TaxonomyLayout   (m_baseModel));
-  addLayout("Composition", new CompositionLayout(m_baseModel));
-  addLayout("Location",    new SampleLayout     (m_baseModel));
+  setWindowTitle(tr("Segmentation Explorer"));
 
-  QStringListModel *layoutModel = new QStringListModel(m_layoutNames);
-  m_gui->groupList->setModel(layoutModel);
+  //   addLayout("Debug", new Layout(m_baseModel));
+  addLayout("Category",    new TaxonomyLayout   (m_gui->view, m_baseModel, m_undoStack, m_viewManager));
+  addLayout("Location",    new LocationLayout   (m_gui->view, m_baseModel, m_undoStack, m_viewManager));
+  addLayout("Composition", new CompositionLayout(m_gui->view, m_baseModel, m_undoStack, m_viewManager));
+
+  m_layoutModel.setStringList(m_layoutNames);
+  m_gui->groupList->setModel(&m_layoutModel);
   changeLayout(0);
 
   connect(m_gui->groupList, SIGNAL(currentIndexChanged(int)),
@@ -96,24 +99,51 @@ SegmentationExplorer::SegmentationExplorer(EspinaModel *model,
   connect(m_gui->view, SIGNAL(doubleClicked(QModelIndex)),
           this, SLOT(focusOnSegmentation(QModelIndex)));
   connect(m_gui->view, SIGNAL(itemStateChanged(QModelIndex)),
-          m_viewManager, SLOT(updateViews()));
-  connect(m_gui->showInformation, SIGNAL(clicked(bool)),
-          this, SLOT(showInformation()));
-  connect(m_gui->deleteSegmentation, SIGNAL(clicked(bool)),
-          this, SLOT(deleteSegmentations()));
+          this, SLOT(updateSegmentationRepresentations()));
+  connect(m_gui->showInformationButton, SIGNAL(clicked(bool)),
+          this, SLOT(showSelectedItemsInformation()));
+  connect(m_gui->deleteButton, SIGNAL(clicked(bool)),
+          this, SLOT(deleteSelectedItems()));
   connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection, bool)),
           this, SLOT(updateSelection(ViewManager::Selection)));
-  connect(m_baseModel, SIGNAL(rowsAboutToBeRemoved(QModelIndex, int , int)),
-          this, SLOT(rowsAboutToBeRemoved(QModelIndex, int,int)));
+  connect(m_gui->searchText, SIGNAL(textChanged(QString)),
+          this, SLOT(updateSearchFilter()));
 
   setWidget(m_gui);
 
   m_gui->view->installEventFilter(this);
+
+  QCompleter *completer = new QCompleter(&SegmentationTags::TagModel, this);
+  completer->setCaseSensitivity(Qt::CaseInsensitive);
+  completer->setCompletionMode(QCompleter::InlineCompletion);
+  completer->setModelSorting(QCompleter::CaseInsensitivelySortedModel);
+  m_gui->searchText->setCompleter(completer);
+  m_gui->tagsLabel->setVisible(false);
+  m_gui->selectedTags->setVisible(false);
 }
 
 //------------------------------------------------------------------------
 SegmentationExplorer::~SegmentationExplorer()
 {
+//   qDebug() << "********************************************************";
+//   qDebug() << "          Destroying Segmentation Explorer";
+//   qDebug() << "********************************************************";
+  foreach(Layout *layout, m_layouts)
+    delete layout;
+}
+
+//------------------------------------------------------------------------
+void SegmentationExplorer::initDockWidget(EspinaModel *model,
+                                          QUndoStack  *undoStack,
+                                          ViewManager *viewManager)
+{
+}
+
+//------------------------------------------------------------------------
+void SegmentationExplorer::reset()
+{
+  foreach(Layout *layout, m_layouts)
+    layout->reset();
 }
 
 //------------------------------------------------------------------------
@@ -126,24 +156,42 @@ void SegmentationExplorer::addLayout(const QString id, SegmentationExplorer::Lay
 //------------------------------------------------------------------------
 bool SegmentationExplorer::eventFilter(QObject *sender, QEvent *e)
 {
-  if (sender == m_gui->view && QEvent::ContextMenu == e->type())
+  if (sender == m_gui->view && QEvent::ContextMenu == e->type() && m_layout)
   {
     QContextMenuEvent *cme = static_cast<QContextMenuEvent *>(e);
 
-    SegmentationContextualMenu contextMenu(m_baseModel, m_viewManager->selectedSegmentations());
-    connect(&contextMenu, SIGNAL(deleteSegmentations()),
-            this, SLOT(deleteSegmentations()));
-    connect(&contextMenu, SIGNAL(changeTaxonomy(TaxonomyElement*)),
-            this, SLOT(changeTaxonomy(TaxonomyElement*)));
-    connect(&contextMenu, SIGNAL(changeFinalNode(bool)),
-            this, SLOT(changeFinalFlag(bool)));
-
-    contextMenu.exec(cme->globalPos());
+    m_layout->contextMenu(cme->globalPos());
 
     return true;
   }
 
   return QObject::eventFilter(sender, e);
+}
+
+//------------------------------------------------------------------------
+void SegmentationExplorer::updateGUI(const QModelIndexList &selectedIndexes)
+{
+  m_gui->showInformationButton->setEnabled(m_layout->hasInformationToShow());
+  m_gui->deleteButton->setEnabled(!selectedIndexes.empty());
+
+  QSet<QString> tagSet;
+  foreach(QModelIndex index, selectedIndexes)
+  {
+    ModelItemPtr item = m_layout->item(index);
+    if (EspINA::SEGMENTATION == item->type())
+    {
+      SegmentationPtr segmentation = segmentationPtr(item);
+      tagSet.unite(segmentation->information(SegmentationTags::TAGS).toStringList().toSet());
+    }
+  }
+
+  QStringList tags = tagSet.toList();
+  tags.sort();
+  m_gui->selectedTags->setText(tags.join(", "));
+
+  bool tagVisibility = !tags.isEmpty();
+  m_gui->tagsLabel->setVisible(tagVisibility);
+  m_gui->selectedTags->setVisible(tagVisibility);
 }
 
 //------------------------------------------------------------------------
@@ -154,134 +202,90 @@ void SegmentationExplorer::changeLayout(int index)
   {
     disconnect(m_gui->view->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
                this, SLOT(updateSelection(QItemSelection, QItemSelection)));
+
+    disconnect(m_layout->model(), SIGNAL(rowsInserted(const QModelIndex&, int, int)),
+               this,              SLOT(updateSelection()));
+    disconnect(m_layout->model(), SIGNAL(rowsRemoved(const QModelIndex&, int, int)),
+               this,              SLOT(updateSelection()));
+    disconnect(m_layout->model(), SIGNAL(modelReset()),
+               this,              SLOT(updateSelection()));
+
+    QLayoutItem *specificControl;
+    while ((specificControl = m_gui->specificControlLayout->takeAt(0)) != 0)
+    {
+      delete specificControl->widget();
+      delete specificControl;
+    }
   }
 
   m_layout = m_layouts[index];
 #ifdef TEST_ESPINA_MODELS
-  m_modelTester = QSharedPointer<ModelTest>(new ModelTest(m_layout->model()));
+  m_modelTester = boost::shared_ptr<ModelTest>(new ModelTest(m_layout->model()));
 #endif
   m_gui->view->setModel(m_layout->model());
-  m_gui->view->setItemDelegate(new SegmentationDelegate(m_baseModel, m_undoStack, m_viewManager)); //TODO 2012-10-05 Sigue sirviendo para algo??
 
   connect(m_gui->view->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
-          this, SLOT(updateSelection(QItemSelection, QItemSelection)));
+          this,                          SLOT(updateSelection(QItemSelection, QItemSelection)));
+
+  connect(m_layout->model(), SIGNAL(rowsInserted(const QModelIndex&, int, int)),
+          this,              SLOT(updateSelection()));
+  connect(m_layout->model(), SIGNAL(rowsRemoved(const QModelIndex&, int, int)),
+          this,              SLOT(updateSelection()));
+  connect(m_layout->model(), SIGNAL(modelReset()),
+          this,              SLOT(updateSelection()));
+
+  m_layout->createSpecificControls(m_gui->specificControlLayout);
+
+  m_gui->view->setItemDelegate(m_layout->itemDelegate());
+  m_gui->showInformationButton->setEnabled(false);
+
+  updateSelection(m_viewManager->selection());
 }
 
 //------------------------------------------------------------------------
-void SegmentationExplorer::changeTaxonomy(TaxonomyElement* taxonomy)
-{
-  SegmentationList selectedSegmentations = m_viewManager->selectedSegmentations();
-  foreach(Segmentation *seg, selectedSegmentations)
-  {
-    m_baseModel->changeTaxonomy(seg, taxonomy);
-  }
-}
-
-//------------------------------------------------------------------------
-void SegmentationExplorer::deleteSegmentations()
+void SegmentationExplorer::deleteSelectedItems()
 {
   if (m_layout)
   {
-    QModelIndexList selected = m_gui->view->selectionModel()->selectedIndexes();
-    SegmentationList toDelete = m_layout->deletedSegmentations(selected);
-    if (!toDelete.isEmpty())
-    {
-      m_gui->view->selectionModel()->blockSignals(true);
-      m_gui->view->selectionModel()->clear();
-      m_gui->view->selectionModel()->blockSignals(false);
-      m_viewManager->clearSelection(false);
-      m_undoStack->beginMacro("Delete Segmentations");
-      // BUG: Temporal Fix until RemoveSegmentation's bug is fixed
-      foreach(Segmentation *seg, toDelete)
-      {
-        m_undoStack->push(new RemoveSegmentation(seg, m_baseModel));
-      }
-      m_undoStack->endMacro();
-    }
+    m_layout->deleteSelectedItems();
   }
 }
 
+//------------------------------------------------------------------------
+void SegmentationExplorer::showSelectedItemsInformation()
+{
+  if (m_layout)
+    m_layout->showSelectedItemsInformation();
+
+  return;
+}
 
 //------------------------------------------------------------------------
 void SegmentationExplorer::focusOnSegmentation(const QModelIndex& index)
 {
-  ModelItem *item = m_layout->item(index);
+  ModelItemPtr item = m_layout->item(index);
 
-  if (ModelItem::SEGMENTATION != item->type())
+  if (EspINA::SEGMENTATION != item->type())
     return;
 
   Nm bounds[6];
-  Segmentation *seg = dynamic_cast<Segmentation*>(item);
-  seg->volume()->bounds(bounds);
+  SegmentationPtr seg = segmentationPtr(item);
+  SegmentationVolumeSPtr volume = segmentationVolume(seg->output());
+  volume->bounds(bounds);
   Nm center[3] = { (bounds[0] + bounds[1])/2, (bounds[2] + bounds[3])/2, (bounds[4] + bounds[5])/2 };
   m_viewManager->focusViewsOn(center);
-
-  /* TODO BUG 2012-10-05 Use "center on" selection
-  const Nm *p = SelectionManager::instance()->selectionCenter();
-  EspinaView *view = EspinaCore::instance()->viewManger()->currentView();
-  view->setCrosshairPoint(p[0], p[1], p[2]);
-  view->setCameraFocus(p);                     cbbp
-  */
-}
-
-//------------------------------------------------------------------------
-void SegmentationExplorer::rowsAboutToBeRemoved(const QModelIndex parent, int start, int end)
-{
-  if (m_baseModel->segmentationRoot() == parent)
-  {
-    for(int row = start; row <= end; row++)
-    {
-      QModelIndex child = parent.child(row, 0);
-      ModelItem *item = indexPtr(child);
-      Segmentation *seg = dynamic_cast<Segmentation *>(item);
-      Q_ASSERT(seg);
-      SegmentationInspector *inspector = m_inspectors.value(seg, NULL);
-      if (inspector)
-      {
-        m_inspectors.remove(seg);
-        inspector->hide();
-        delete inspector;
-      }
-      }
-  }
-}
-
-//------------------------------------------------------------------------
-void SegmentationExplorer::showInformation()
-{
-  foreach(QModelIndex index, m_gui->view->selectionModel()->selectedIndexes())
-  {
-    ModelItem *item = m_layout->item(index);
-    Q_ASSERT(item);
-
-    if (ModelItem::SEGMENTATION == item->type())
-    {
-      Segmentation *seg = dynamic_cast<Segmentation *>(item);
-      SegmentationInspector *inspector = m_inspectors.value(seg, NULL);
-      if (!inspector)
-      {
-        inspector = new SegmentationInspector(seg, m_baseModel, m_undoStack, m_viewManager);
-        connect(inspector, SIGNAL(inspectorClosed(SegmentationInspector*)),
-                this, SLOT(releaseInspectorResources(SegmentationInspector*)));
-        m_inspectors[seg] = inspector;
-      }
-      inspector->show();
-      inspector->raise();
-    }
-  }
 }
 
 //------------------------------------------------------------------------
 void SegmentationExplorer::updateSelection(ViewManager::Selection selection)
 {
-  if (!isVisible())
+  if (!isVisible() || signalsBlocked())
     return;
 
-  //qDebug() << "Update Seg Explorer Selection from Selection Manager";
   m_gui->view->blockSignals(true);
   m_gui->view->selectionModel()->blockSignals(true);
   m_gui->view->selectionModel()->reset();
-  foreach(PickableItem *item, selection)
+  foreach(PickableItemPtr item, selection)
   {
     QModelIndex index = m_layout->index(item);
     if (index.isValid())
@@ -296,6 +300,9 @@ void SegmentationExplorer::updateSelection(ViewManager::Selection selection)
     m_gui->view->selectionModel()->setCurrentIndex(currentIndex, QItemSelectionModel::Select);
     m_gui->view->scrollTo(currentIndex);
   }
+
+  updateGUI(m_gui->view->selectionModel()->selection().indexes());
+
   // Update all visible items
   m_gui->view->viewport()->update();
 }
@@ -303,110 +310,51 @@ void SegmentationExplorer::updateSelection(ViewManager::Selection selection)
 //------------------------------------------------------------------------
 void SegmentationExplorer::updateSelection(QItemSelection selected, QItemSelection deselected)
 {
-  //qDebug() << "Update Selection from Seg Explorer";
   ViewManager::Selection selection;
-
-  foreach(QModelIndex index, m_gui->view->selectionModel()->selection().indexes())
+  QModelIndexList selectedIndexes = m_gui->view->selectionModel()->selection().indexes();
+  foreach(QModelIndex index, selectedIndexes)
   {
-    ModelItem *item = m_layout->item(index);
-    if (ModelItem::SEGMENTATION == item->type())
-      selection << dynamic_cast<PickableItem *>(item);
+    ModelItemPtr item = m_layout->item(index);
+    if (EspINA::SEGMENTATION == item->type())
+      selection << pickableItemPtr(item);
   }
 
+  updateGUI(selectedIndexes);
+
+  // signal blocking is necessary because we don't want to change our current selection indexes,
+  // and that will happen if a updateSelection(ViewManager::Selection) is called.
+  this->blockSignals(true);
   m_viewManager->setSelection(selection);
-}
-
-//------------------------------------------------------------------------
-void SegmentationExplorer::releaseInspectorResources(SegmentationInspector* inspector)
-{
-  foreach(Segmentation *seg, m_inspectors.keys())
-  {
-    if (m_inspectors[seg] == inspector)
-    {
-      m_inspectors.remove(seg);
-      delete inspector;
-
-      return;
-    }
-  }
-}
-
-//------------------------------------------------------------------------
-ISettingsPanel *SegmentationExplorer::settingsPanel()
-{
-  Q_ASSERT(false); //TODO Check if NULL is correct
-  return NULL;
+  this->blockSignals(false);
 }
 
 //------------------------------------------------------------------------
 void SegmentationExplorer::updateSegmentationRepresentations(SegmentationList list)
 {
+  m_viewManager->updateSegmentationRepresentations(list);
+  m_viewManager->updateViews();
+}
+
+//------------------------------------------------------------------------
+void SegmentationExplorer::updateChannelRepresentations(ChannelList list)
+{
+  m_viewManager->updateChannelRepresentations(list);
+  m_viewManager->updateViews();
 }
 
 //------------------------------------------------------------------------
 void SegmentationExplorer::updateSelection()
 {
-  std::cout << "update selection\n" << std::flush;
+  if (!isVisible() || signalsBlocked())
+    return;
+
+  updateGUI(m_gui->view->selectionModel()->selection().indexes());
 }
 
 //------------------------------------------------------------------------
-void SegmentationExplorer::changeFinalFlag(bool value)
+void SegmentationExplorer::updateSearchFilter()
 {
-  SegmentationList selectedSegmentations = m_viewManager->selectedSegmentations();
-  SegmentationList dependentSegmentations;
-  SegmentationList rootSegmentations;
+  m_gui->clearSearch->setEnabled(!m_gui->searchText->text().isEmpty());
 
-  foreach(Segmentation *seg, selectedSegmentations)
-  {
-    seg->setFinalNode(value);
-    seg->setDependentNode(false);
-    if (value)
-      seg->setHierarchyRenderingType(HierarchyItem::Opaque, true);
-    else
-      seg->setHierarchyRenderingType(HierarchyItem::Undefined, false);
-
-    dependentSegmentations.append(seg->components());
-    rootSegmentations.append(seg->componentOf());
-  }
-
-  foreach(Segmentation *seg, dependentSegmentations)
-  {
-    if (selectedSegmentations.contains(seg))
-    {
-      dependentSegmentations.removeAll(seg);
-      break;
-    }
-
-    selectedSegmentations.append(seg);
-    seg->setDependentNode(value);
-
-    if (value)
-      seg->setHierarchyRenderingType(HierarchyItem::Hidden, true);
-    else
-      seg->setHierarchyRenderingType(HierarchyItem::Undefined, false);
-
-    dependentSegmentations.append(seg->components());
-  }
-
-  foreach(Segmentation *seg, rootSegmentations)
-  {
-    if (selectedSegmentations.contains(seg))
-    {
-      rootSegmentations.removeAll(seg);
-      break;
-    }
-
-    selectedSegmentations.append(seg);
-    seg->setDependentNode(value);
-
-    if (value)
-      seg->setHierarchyRenderingType(HierarchyItem::Translucent, true);
-    else
-      seg->setHierarchyRenderingType(HierarchyItem::Undefined, false);
-  }
-
-  foreach(Segmentation *seg, selectedSegmentations)
-    seg->notifyModification(true);
-
-  m_viewManager->updateViews();
+  m_layout->setFilterRegExp(m_gui->searchText->text());
 }

@@ -18,30 +18,42 @@
 
 #ifndef ITOOLBAR_H
 #define ITOOLBAR_H
+
+#include "EspinaCore_Export.h"
+
+// Qt
 #include <QToolBar>
 
-class EspinaModel;
-class ViewManager;
+// c++
+#include <limits.h>
+
 class QUndoStack;
 
-class IToolBar
-: public QToolBar
+namespace EspINA
 {
-public:
-  explicit IToolBar(QWidget* parent = 0)
-  : QToolBar(parent){}
-  explicit IToolBar(const QString& title, QWidget* parent = 0)
-  : QToolBar(title, parent){}
-  virtual ~IToolBar(){}
+  class EspinaModel;
+  class ViewManager;
 
-  virtual void initToolBar(EspinaModel *model,
-                           QUndoStack  *undoStack,
-                           ViewManager *viewManager) = 0;
-  virtual void reset() = 0;
-public slots:
-  void resetState();
-};
+  class EspinaCore_EXPORT IToolBar
+  : public QToolBar
+  {
+    Q_OBJECT
+  public:
+    explicit IToolBar(QWidget *parent = 0);
+    explicit IToolBar(const QString &title, QWidget *parent = 0);
+    virtual ~IToolBar();
 
-Q_DECLARE_INTERFACE(IToolBar,
-                    "es.upm.cesvima.EspINA.ToolBarInterface/1.1")
+  public slots:
+    /// Restore toolbar state to its initial state. Every widgets and tools
+    /// created by this toolbar must be removed
+    virtual void resetToolbar() = 0;
+
+    virtual void abortOperation() = 0;
+
+  protected:
+    int m_undoIndex;
+  };
+
+} // namespace EspINA
+
 #endif //ITOOLBAR_H

@@ -18,11 +18,13 @@
 */
 #include "Channel.h"
 
+#include "Core/Model/EspinaFactory.h"
 #include "Core/Model/Filter.h"
 #include "Core/Extensions/ChannelExtension.h"
 #include "Core/Extensions/ModelItemExtension.h"
 #include "Core/Model/RelationshipGraph.h"
 #include "Core/Model/Sample.h"
+#include "EspinaModel.h"
 
 #include <itkImageFileReader.h>
 #include <itkMetaImageIO.h>
@@ -35,21 +37,27 @@
 #include <QDebug>
 #include <QFileDialog>
 
+using namespace EspINA;
 
-const ModelItem::ArgumentId Channel::ID     = "ID";
-const ModelItem::ArgumentId Channel::COLOR  = "Color";
-const ModelItem::ArgumentId Channel::VOLUME = "Volume";
+const ModelItem::ArgumentId Channel::ID         = "ID";
+const ModelItem::ArgumentId Channel::HUE        = "Hue";
+const ModelItem::ArgumentId Channel::OPACITY    = "Opacity";
+const ModelItem::ArgumentId Channel::SATURATION = "Saturation";
+const ModelItem::ArgumentId Channel::CONTRAST   = "Contrast";
+const ModelItem::ArgumentId Channel::BRIGHTNESS = "Brightness";
+const ModelItem::ArgumentId Channel::VOLUME     = "Volume";
 
 const QString Channel::LINK       = "Channel";
-const QString Channel::STAINLINK  = "Stain";
-const QString Channel::VOLUMELINK = "Volume";
+const QString Channel::STAIN_LINK  = "Stain";
+const QString Channel::VOLUME_LINK = "Volume";
 
 const QString Channel::NAME       = "Name";
 const QString Channel::VOLUMETRIC = "Volumetric";
 
 //-----------------------------------------------------------------------------
-Channel::Channel(Filter* filter, Filter::OutputId oId)
-: m_visible(true)
+Channel::Channel(FilterSPtr filter, FilterOutputId oId)
+: PickableItem()
+, m_visible(true)
 , m_filter(filter)
 {
   memset(m_pos, 0, 3*sizeof(Nm));
@@ -59,42 +67,36 @@ Channel::Channel(Filter* filter, Filter::OutputId oId)
 //-----------------------------------------------------------------------------
 Channel::~Channel()
 {
+  //qDebug() << data().toString() << ": Destructor";
+  // Extensions may need access channel's information
+  foreach(ExtensionPtr extension, m_extensions)
+  {
+    delete extension;
+  }
 }
 
 //------------------------------------------------------------------------
-const Filter* Channel::filter() const
+const FilterSPtr Channel::filter() const
 {
   return m_filter;
 }
 
 //------------------------------------------------------------------------
-const Filter::OutputId Channel::outputId() const
+const FilterOutputId Channel::outputId() const
 {
   return m_args.outputId();
 }
 
 //------------------------------------------------------------------------
-ChannelVolume::Pointer Channel::volume()
+ChannelVolumeSPtr Channel::volume()
 {
-  EspinaVolume::Pointer ev = m_filter->volume(m_args.outputId());
-
-  // On invalid cast:
-  // The static_pointer_cast will "just do it". This will result in an invalid pointer and will likely cause a crash. The reference count on base will be incremented.
-  // The shared_polymorphic_downcast will come the same as a static cast, but will trigger an assertion in the process. The reference count on base will be incremented.
-  // The dynamic_pointer_cast will simply come out NULL. The reference count on base will be unchanged.
-  return boost::dynamic_pointer_cast<ChannelVolume>(ev);
+  return static_cast<const Channel *>(this)->volume();
 }
 
 //------------------------------------------------------------------------
-const ChannelVolume::Pointer Channel::volume() const
+const ChannelVolumeSPtr Channel::volume() const
 {
-  EspinaVolume::Pointer ev = m_filter->volume(m_args.outputId());
-
-  // On invalid cast:
-  // The static_pointer_cast will "just do it". This will result in an invalid pointer and will likely cause a crash. The reference count on base will be incremented.
-  // The shared_polymorphic_downcast will come the same as a static cast, but will trigger an assertion in the process. The reference count on base will be incremented.
-  // The dynamic_pointer_cast will simply come out NULL. The reference count on base will be unchanged.
-  return boost::dynamic_pointer_cast<ChannelVolume>(ev);
+  return channelVolume(output());
 }
 
 
@@ -111,35 +113,63 @@ void Channel::position(Nm pos[3])
 }
 
 //------------------------------------------------------------------------
-void Channel::setColor(const double color)
+void Channel::setHue(const double hue)
 {
-  m_args.setColor(color);
+  m_args.setHue(hue);
 }
 
 //------------------------------------------------------------------------
-double Channel::color() const
+double Channel::hue() const
 {
-  return m_args.color();
+  return m_args.hue();
 }
 
 //------------------------------------------------------------------------
-QStringList Channel::availableInformations() const
+void Channel::setOpacity(const double opacity)
 {
-  QStringList informations;
-  informations << NAME;
-  informations << ModelItem::availableInformations();
-
-  return informations;
+  m_args.setOpacity(opacity);
 }
 
 //------------------------------------------------------------------------
-QStringList Channel::availableRepresentations() const
+double Channel::opacity() const
 {
-  QStringList representations;
-  representations << VOLUME;
-  representations << ModelItem::availableInformations();
+  return m_args.opacity();
+}
 
-  return representations;
+//------------------------------------------------------------------------
+void Channel::setSaturation(const double saturation)
+{
+  m_args.setSaturation(saturation);
+}
+
+//------------------------------------------------------------------------
+double Channel::saturation() const
+{
+  return m_args.saturation();
+}
+
+//------------------------------------------------------------------------
+void Channel::setBrightness(const double brightness)
+{
+  m_args.setBrightness(brightness);
+}
+
+//------------------------------------------------------------------------
+double Channel::brightness() const
+{
+  return m_args.brightness();
+}
+
+//------------------------------------------------------------------------
+void Channel::setContrast(const double contrast)
+{
+  m_args.setContrast(contrast);
+}
+
+//------------------------------------------------------------------------
+double Channel::contrast() const
+{
+  return m_args.contrast();
 }
 
 //------------------------------------------------------------------------
@@ -174,91 +204,150 @@ bool Channel::setData(const QVariant& value, int role)
 //------------------------------------------------------------------------
 QString Channel::serialize() const
 {
-  QString extensionArgs;
-  foreach(ModelItemExtension *ext, m_extensions)
-  {
-    ChannelExtension *channelExt = dynamic_cast<ChannelExtension *>(ext);
-    Q_ASSERT(channelExt);
-    QString serializedArgs = channelExt->serialize(); //Independizar los argumentos?
-    if (!serializedArgs.isEmpty())
-      extensionArgs.append(ext->id()+"=["+serializedArgs+"];");
-  }
-  if (!extensionArgs.isEmpty())
-    m_args[EXTENSIONS] = QString("[%1]").arg(extensionArgs);
-
   return m_args.serialize();
 }
 
 //-----------------------------------------------------------------------------
-void Channel::initialize(ModelItem::Arguments args)
+void Channel::initialize(const Arguments &args)
 {
   //qDebug() << "Init" << data().toString() << "with args:" << args;
   foreach(ArgumentId argId, args.keys())
   {
+    // changes in seg file format
+    if (QString("Color").compare(argId) == 0)
+    {
+      m_args[HUE] = args[argId];
+
+      setOpacity(-1.0);
+      if (hue() != -1.0)
+        setSaturation(1.0);
+      else
+        setSaturation(0.0);
+      setContrast(1.0);
+      setBrightness(0.0);
+      continue;
+    }
+
     if (argId != EXTENSIONS)
       m_args[argId] = args[argId];
   }
 }
 
 //------------------------------------------------------------------------
-void Channel::initializeExtensions(ModelItem::Arguments args)
+void Channel::initializeExtensions()
 {
 //   qDebug() << "Initializing" << data().toString() << "extensions:";
-  foreach(ModelItemExtension *ext, m_insertionOrderedExtensions)
+  foreach(Channel::ExtensionPtr channelExtension, m_extensions)
   {
-    ChannelExtension *channelExt = dynamic_cast<ChannelExtension *>(ext);
-    Q_ASSERT(channelExt);
-    ModelItem::Arguments extArgs(args.value(channelExt->id(), QString()));
-//     qDebug() << channelExt->id();
-//     if (!args.isEmpty()) qDebug() << "*" << extArgs;
-    channelExt->initialize(extArgs);
+    channelExtension->initialize();
   }
-
 }
 
 //------------------------------------------------------------------------
-QVariant Channel::information(QString name)
+void Channel::invalidateExtensions()
 {
-  if (name == NAME)
-    return data(Qt::DisplayRole);
-
-  return ModelItem::information(name);
+  foreach(Channel::ExtensionPtr ext, m_extensions)
+  {
+    ext->invalidate();
+  }
 }
 
-void Channel::addExtension(ChannelExtension* ext)
+//------------------------------------------------------------------------
+void Channel::addExtension(Channel::ExtensionPtr extension)
 {
-  ModelItem::addExtension(ext);
-  ext->setChannel(this);
+  if (m_extensions.contains(extension->id()))
+  {
+    qWarning() << "Extension already registered";
+    Q_ASSERT(false);
+  }
+
+  foreach(ModelItem::ExtId requiredExtensionId, extension->dependencies())
+  {
+    ExtensionPtr requiredExtension = Channel::extension(requiredExtensionId);
+    if (!requiredExtension)
+    {
+      EspinaFactory *factory = m_model->factory();
+      ExtensionPtr prototype = factory->channelExtension(requiredExtensionId);
+      if (!prototype)
+      {
+        qWarning() << "Failed to load extension's dependency" << requiredExtensionId;
+        Q_ASSERT(false);
+      }
+
+      addExtension(prototype->clone());
+    }
+  }
+
+  extension->setChannel(this);
+  m_extensions[extension->id()] = extension;
+}
+
+//------------------------------------------------------------------------
+void Channel::deleteExtension(Channel::ExtensionPtr extension)
+{
+  ExtId id = extension->id();
+  if (m_extensions.contains(id))
+  {
+    delete m_extensions[id];
+    m_extensions.remove(id);
+  }
 }
 
 
 //-----------------------------------------------------------------------------
-void Channel::notifyModification(bool force)
+Channel::ExtensionPtr Channel::extension(ModelItem::ExtId extensionId)
 {
-  m_filter->volume(outputId())->update();
-  ModelItem::notifyModification(force);
+  return m_extensions.value(extensionId, NULL);
 }
 
 //-----------------------------------------------------------------------------
-Sample *Channel::sample()
+SampleSPtr Channel::sample()
 {
-  ModelItem::Vector relatedSamples = relatedItems(ModelItem::IN, Channel::STAINLINK);
-  Q_ASSERT(relatedSamples.size() == 1);
-  return dynamic_cast<Sample *>(relatedSamples[0]);
+  ModelItemSList relatedSamples = relatedItems(RELATION_IN, Channel::STAIN_LINK);
+  SampleSPtr sample;
+
+  if (relatedSamples.size() > 0)
+    sample = samplePtr(relatedSamples.first());
+
+  return sample;
 }
 
-//TODO 2012-11-28 vtkAlgorithmOutput* Channel::vtkVolume()
-// {
-//   if (itk2vtk.IsNull())
-//   {
-// 
-//     //qDebug() << " from ITK to VTK (channel)";
-//     itk2vtk = itk2vtkFilterType::New();
-//     itk2vtk->ReleaseDataFlagOn();
-//     itk2vtk->SetInput(m_filter->volume(m_args.outputId()));
-//     itk2vtk->Update();
-//   }
-// 
-//   return itk2vtk->GetOutput()->GetProducerPort();
-// }
-// 
+//-----------------------------------------------------------------------------
+ChannelPtr EspINA::channelPtr(ModelItemPtr item)
+{
+  Q_ASSERT(CHANNEL == item->type());
+  ChannelPtr ptr = dynamic_cast<ChannelPtr>(item);
+  Q_ASSERT(ptr);
+
+  return ptr;
+}
+
+//-----------------------------------------------------------------------------
+ChannelPtr EspINA::channelPtr(PickableItemPtr item)
+{
+  Q_ASSERT(CHANNEL == item->type());
+  ChannelPtr ptr = dynamic_cast<ChannelPtr>(item);
+  Q_ASSERT(ptr);
+
+  return ptr;
+}
+
+//-----------------------------------------------------------------------------
+ChannelSPtr EspINA::channelPtr(ModelItemSPtr& item)
+{
+  Q_ASSERT(CHANNEL == item->type());
+  ChannelSPtr ptr = boost::dynamic_pointer_cast<Channel>(item);
+  Q_ASSERT(ptr != NULL);
+
+  return ptr;
+}
+
+//-----------------------------------------------------------------------------
+ChannelSPtr EspINA::channelPtr(PickableItemSPtr& item)
+{
+  Q_ASSERT(CHANNEL == item->type());
+  ChannelSPtr ptr = boost::dynamic_pointer_cast<Channel>(item);
+  Q_ASSERT(ptr != NULL);
+
+  return ptr;
+}

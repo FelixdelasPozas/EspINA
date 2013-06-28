@@ -24,21 +24,24 @@
 #include <QDebug>
 #include <QUndoStack>
 
+using namespace EspINA;
+
 //-----------------------------------------------------------------------------
-SphericalBrush::SphericalBrush(EspinaModel* model,
-                               QUndoStack* undoStack,
-                               ViewManager* viewManager)
-: Brush(model, undoStack, viewManager)
+SphericalBrush::SphericalBrush(EspinaModel *model,
+                               EditorToolBarSettings *settings,
+                               QUndoStack  *undoStack,
+                               ViewManager *viewManager)
+: Brush(model, settings, undoStack, viewManager)
 {
 }
 
 //-----------------------------------------------------------------------------
-Brush::BrushShape SphericalBrush::createBrushShape(PickableItem* item,
-                                                   double center[3],
-                                                   Nm radius,
-                                                   PlaneType plane)
+Brush::BrushShape SphericalBrush::createBrushShape(PickableItemPtr item,
+                                                   double          center[3],
+                                                   Nm              radius,
+                                                   PlaneType       plane)
 {
-  double brushBounds[6];//TODO 2012-10-24 Crop bounds
+  double brushBounds[6];
   brushBounds[0] = center[0] - radius;
   brushBounds[1] = center[0] + radius;
   brushBounds[2] = center[1] - radius;
@@ -49,5 +52,6 @@ Brush::BrushShape SphericalBrush::createBrushShape(PickableItem* item,
   vtkSphere *brush = vtkSphere::New();
   brush->SetCenter(center);
   brush->SetRadius(radius);
+
   return BrushShape(brush, EspinaRegion(brushBounds));
 }

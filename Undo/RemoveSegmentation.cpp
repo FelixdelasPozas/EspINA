@@ -16,125 +16,201 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+// EspINA
 #include "RemoveSegmentation.h"
-
 #include <Core/Model/Segmentation.h>
-#include <Core/Model/EspinaModel.h>
+#include <Core/Filters/ChannelReader.h>
+#include <GUI/ViewManager.h>
+
+// Qt
+#include <QStack>
+
+using namespace EspINA;
 
 //------------------------------------------------------------------------
-RemoveSegmentation::SegInfo::SegInfo(Segmentation* seg)
-: filter(seg->filter())
-, relations(seg->relations())
-, segmentation(seg)
-{
-}
-
-//------------------------------------------------------------------------
-RemoveSegmentation::RemoveSegmentation(Segmentation *seg,
+RemoveSegmentation::RemoveSegmentation(SegmentationPtr seg,
                                        EspinaModel  *model,
+                                       ViewManager  *vm,
                                        QUndoCommand *parent)
 : QUndoCommand(parent)
 , m_model(model)
+, m_viewManager(vm)
 {
-  m_segmentations << SegInfo(seg);
+  // breadth search for related and dependent items of this segmentation in the
+  // related items tree.
+  QStack<SegmentationPtr> itemsStack;
+  SegmentationList addedSegs;
+  FilterSList addedFilters;
+
+  itemsStack.push_front(seg);
+  addedSegs << seg;
+  addedFilters << seg->filter();
+
+  while (!itemsStack.isEmpty())
+  {
+    SegmentationPtr segmentation = itemsStack.pop();
+
+    m_segmentations << m_model->findSegmentation(segmentation);
+
+    foreach(Relation relation, segmentation->relations())
+      if (!isADupicatedRelation(relation))
+        m_relations << relation;
+
+    foreach(ModelItemSPtr item, segmentation->relatedItems(EspINA::RELATION_OUT))
+      if (item->type() == SEGMENTATION)
+      {
+        SegmentationPtr relatedSeg = segmentationPtr(item.get());
+        if (relatedSeg->isInputSegmentationDependent() && !addedSegs.contains(relatedSeg))
+        {
+          itemsStack.push_front(relatedSeg);
+          addedSegs << relatedSeg;
+          if (!addedFilters.contains(relatedSeg->filter()))
+            addedFilters << relatedSeg->filter();
+        }
+      }
+  }
+
+  // check if the filters of the segmentations marked to remove can be also removed
+  // (that is, the filters doesn't produce another segmentation not marked for removal)
+  foreach(FilterSPtr filter, addedFilters)
+    addFilterDependencies(filter);
 }
 
 //------------------------------------------------------------------------
-RemoveSegmentation::RemoveSegmentation(QList<Segmentation *> segs,
-                                       EspinaModel          *model,
-                                       QUndoCommand         *parent)
+RemoveSegmentation::RemoveSegmentation(SegmentationList segList,
+                                       EspinaModel     *model,
+                                       ViewManager     *vm,
+                                       QUndoCommand    *parent)
 : QUndoCommand(parent)
 , m_model(model)
+, m_viewManager(vm)
 {
-  foreach(Segmentation *seg, segs)
-    m_segmentations << SegInfo(seg);
+  SegmentationList addedSegs;
+  FilterSList addedFilters;
+
+  foreach(SegmentationPtr seg, segList)
+  {
+    if (addedSegs.contains(seg))
+      continue;
+
+    // breadth search for related and dependent items of this segmentation in the
+    // related items tree.
+    QStack<SegmentationPtr> itemsStack;
+    itemsStack.push_front(seg);
+    addedSegs << seg;
+
+    if (!addedFilters.contains(seg->filter()))
+      addedFilters << seg->filter();
+
+    while (!itemsStack.isEmpty())
+    {
+      SegmentationPtr segmentation = itemsStack.pop();
+
+      m_segmentations << m_model->findSegmentation(segmentation);
+
+      foreach(Relation relation, segmentation->relations())
+        if (!isADupicatedRelation(relation))
+          m_relations << relation;
+
+      // process next dependent segmentation
+      foreach(ModelItemSPtr item, segmentation->relatedItems(EspINA::RELATION_OUT))
+        if (item->type() == SEGMENTATION)
+        {
+          SegmentationPtr relatedSeg = segmentationPtr(item.get());
+          if (relatedSeg->isInputSegmentationDependent() && !addedSegs.contains(relatedSeg))
+          {
+            itemsStack.push_front(relatedSeg);
+            addedSegs << relatedSeg;
+            if (!addedFilters.contains(relatedSeg->filter()))
+              addedFilters << relatedSeg->filter();
+          }
+        }
+    }
+  }
+
+  // check if the filters of the segmentations marked to remove can be also removed
+  // (that is, the filters doesn't produce another segmentation not marked for removal)
+  foreach(FilterSPtr filter, addedFilters)
+    addFilterDependencies(filter);
 }
 
 
 //------------------------------------------------------------------------
 void RemoveSegmentation::redo()
 {
-  QList<Segmentation *> segsToRemove;
-  QList<Filter *>    filtersToRemove;
+  foreach(Relation rel, m_relations)
+    m_model->removeRelation(rel.ancestor, rel.succesor, rel.relation);
 
-  foreach(SegInfo segInfo, m_segmentations)
-  {
-    removeRelations(segInfo.relations);
-    segsToRemove << segInfo.segmentation;
-    filtersToRemove << removeFilterDependencies(segInfo.filter);
-  }
+  m_model->removeSegmentation(m_segmentations);
 
-  m_model->removeSegmentation(segsToRemove);
-
-  foreach(Filter *filter, filtersToRemove)
+  foreach(FilterSPtr filter, m_filters)
     m_model->removeFilter(filter);
+
+  m_viewManager->updateSegmentationRepresentations();
 }
 
 
 //------------------------------------------------------------------------
 void RemoveSegmentation::undo()
 {
-  //BUG: If several segmentations are deleted in a row, common relationships
-  //     are duplicated
-  foreach(FilterInfo filterInfo, m_removedFilters)
-    m_model->addFilter(filterInfo.filter);
+  foreach(FilterSPtr filter, m_filters)
+    m_model->addFilter(filter);
 
-  foreach(FilterInfo filterInfo, m_removedFilters)
-    addRelations(filterInfo.relations);
+  m_model->addSegmentation(m_segmentations);
 
-  m_removedFilters.clear();
-
-  QList<Segmentation *> segsToAdd;
-  foreach(SegInfo segInfo, m_segmentations)
-    segsToAdd << segInfo.segmentation;
-  m_model->addSegmentation(segsToAdd);
-
-  foreach(SegInfo segInfo, m_segmentations)
-    addRelations(segInfo.relations);
-}
-
-//------------------------------------------------------------------------
-void RemoveSegmentation::addRelations(ModelItem::RelationList list)
-{
-  foreach(ModelItem::Relation rel, list)
+  foreach(Relation rel, m_relations)
     m_model->addRelation(rel.ancestor, rel.succesor, rel.relation);
-}
 
+  SegmentationList updatedSegs;
+  foreach (SegmentationSPtr seg, m_segmentations)
+    updatedSegs << seg.get();
 
-//------------------------------------------------------------------------
-void RemoveSegmentation::removeRelations(ModelItem::RelationList list)
-{
-  foreach(ModelItem::Relation rel, list)
-    m_model->removeRelation(rel.ancestor, rel.succesor, rel.relation);
+  m_viewManager->updateSegmentationRepresentations(updatedSegs);
 }
 
 //------------------------------------------------------------------------
-QList<Filter *> RemoveSegmentation::removeFilterDependencies(Filter* filter)
+void RemoveSegmentation::addFilterDependencies(FilterSPtr filter)
 {
-  QList<Filter *> filtersToRemove;
-
-  //qDebug() << "Analyzing Filter" << filter->data().toString();
-  ModelItem::Vector consumers = filter->relatedItems(ModelItem::OUT);
-  if (consumers.isEmpty())
-  {
-    //qDebug() << "* Can be removed";
-    filtersToRemove.push_front(filter);
-
-    ModelItem::Vector ancestors = filter->relatedItems(ModelItem::IN);
-
-    FilterInfo filterInfo(filter, filter->relations());
-    m_removedFilters.push_front(filterInfo);
-    removeRelations(filterInfo.relations);
-
-    foreach(ModelItem *item, ancestors)
+  ModelItemSList consumers = filter->relatedItems(EspINA::RELATION_OUT);
+  foreach(ModelItemSPtr consumer, consumers)
+    switch(consumer->type())
     {
-      if (ModelItem::FILTER == item->type())
-        filtersToRemove << removeFilterDependencies(dynamic_cast<Filter *>(item));
-      else
-        Q_ASSERT(false);
+      case EspINA::SEGMENTATION:
+        if (!m_segmentations.contains(segmentationPtr(consumer)))
+          return;
+        break;
+      case EspINA::FILTER:
+        if (!m_filters.contains(filterPtr(consumer)))
+          return;
+        break;
+      default:
+        return;
+        break;
     }
-  }
 
-  return filtersToRemove;
+  if (!m_filters.contains(filter))
+    m_filters << filter;
+
+  foreach(Relation relation, filter->relations())
+    if (!isADupicatedRelation(relation))
+      m_relations << relation;
+
+  ModelItemSList ancestors = filter->relatedItems(EspINA::RELATION_IN);
+  foreach(ModelItemSPtr ancestor, ancestors)
+    if (ancestor->type() == EspINA::FILTER && (filterPtr(ancestor)->filterType() != ChannelReader::TYPE))
+      addFilterDependencies(filterPtr(ancestor));
+}
+
+//------------------------------------------------------------------------
+bool RemoveSegmentation::isADupicatedRelation(Relation relation)
+{
+  foreach(Relation storedRelation, m_relations)
+    if (relation.ancestor == storedRelation.ancestor &&
+        relation.relation == storedRelation.relation &&
+        relation.succesor == storedRelation.succesor)
+    {
+      return true;
+    }
+
+  return false;
 }

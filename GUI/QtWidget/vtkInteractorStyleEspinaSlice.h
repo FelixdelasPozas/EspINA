@@ -20,11 +20,12 @@
 #ifndef VTKINTERACTORSTYLEESPINASLICE_H
 #define VTKINTERACTORSTYLEESPINASLICE_H
 
+#include "EspinaGUI_Export.h"
+
 #include <vtkInteractorStyleImage.h>
 
-
 // Interactor Style to be used with Slice Views
-class vtkInteractorStyleEspinaSlice
+class EspinaGUI_EXPORT vtkInteractorStyleEspinaSlice
 : public vtkInteractorStyleImage
 {
 public:

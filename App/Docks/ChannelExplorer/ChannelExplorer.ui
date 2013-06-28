@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>297</width>
+    <width>347</width>
     <height>475</height>
    </rect>
   </property>
@@ -149,53 +149,6 @@ QTreeView::indicator:unchecked {
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="channelColor">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>32</width>
-         <height>32</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>32</width>
-         <height>32</height>
-        </size>
-       </property>
-       <property name="baseSize">
-        <size>
-         <width>32</width>
-         <height>32</height>
-        </size>
-       </property>
-       <property name="toolTip">
-        <string>Show Segmentation Information</string>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-       <property name="icon">
-        <iconset resource="../../rsc/espina.qrc">
-         <normaloff>:/espina/rainbow.svg</normaloff>:/espina/rainbow.svg</iconset>
-       </property>
-       <property name="iconSize">
-        <size>
-         <width>22</width>
-         <height>22</height>
-        </size>
-       </property>
-       <property name="flat">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
       <widget class="QPushButton" name="unloadChannel">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -222,7 +175,7 @@ QTreeView::indicator:unchecked {
         </size>
        </property>
        <property name="toolTip">
-        <string>Delete selected segmentation</string>
+        <string>Unload selected channels</string>
        </property>
        <property name="text">
         <string/>

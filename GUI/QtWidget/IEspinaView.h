@@ -26,21 +26,23 @@
 #ifndef IESPINAVIEW_H
 #define IESPINAVIEW_H
 
+#include "EspinaGUI_Export.h"
+
 #include <Core/EspinaTypes.h>
 
-// Forward-declaration
-class EspinaModel;
-class ISettingsPanel;
-class Segmentation;
-
-class IEspinaView
+namespace EspINA
 {
-public:
-  explicit IEspinaView(){}
-  virtual ~IEspinaView(){}
+  class EspinaGUI_EXPORT IEspinaView
+  {
+  public:
+    explicit IEspinaView(){}
+    virtual ~IEspinaView(){}
 
-  virtual void updateSelection() = 0;
-  virtual void updateSegmentationRepresentations(SegmentationList list = SegmentationList()) = 0;
-};
+    virtual void updateChannelRepresentations     (ChannelList      list = ChannelList()) = 0;
+    virtual void updateSegmentationRepresentations(SegmentationList list = SegmentationList()) = 0;
+    virtual void updateSelection() = 0;
+  };
+
+} // namespace EspINA
 
 #endif //IESPINAVIEW_H

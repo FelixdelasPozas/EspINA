@@ -2,22 +2,34 @@
  * vtkPlaneContourWidget.h
  *
  *  Created on: Sep 8, 2012
- *      Author: Félix de las Pozas Alvarez
+ *      Author: Félix de las Pozas Álvarez
  */
 #ifndef _VTKPLANECONTOURWIDGET_H_
 #define _VTKPLANECONTOURWIDGET_H_
 
-#include <Core/EspinaTypes.h>
+#include "EspinaGUI_Export.h"
 
+// EspINA
+#include <Core/EspinaTypes.h>
+#include <App/Tools/Brushes/Brush.h>
+
+// VTK
 #include <vtkAbstractWidget.h>
+
+// Qt
 #include <QCursor>
 #include <QColor>
 
-class vtkSliceContourRepresentation;
 class vtkPolyData;
 
-class VTK_WIDGETS_EXPORT vtkPlaneContourWidget : public vtkAbstractWidget
+namespace EspINA
 {
+  class vtkSliceContourRepresentation;
+  class ContourWidget;
+
+  class EspinaGUI_EXPORT vtkPlaneContourWidget
+  : public vtkAbstractWidget
+  {
   public:
     // Description:
     // Instantiate this class.
@@ -111,31 +123,41 @@ class VTK_WIDGETS_EXPORT vtkPlaneContourWidget : public vtkAbstractWidget
       this->Initialize(NULL);
     }
 
-    virtual void SetOrientation(PlaneType plane);
-    virtual PlaneType GetOrientation();
+    virtual void SetOrientation(EspINA::PlaneType plane);
+    virtual EspINA::PlaneType GetOrientation();
 
+    // polygon appearance
     virtual void setPolygonColor(QColor);
     virtual QColor getPolygonColor();
+
+    // parent needed to signal start/end of a contour
+    void setContourWidget(ContourWidget *parent) { m_parent = parent; }
+
+    void setContourMode(Brush::BrushMode mode);
+    Brush::BrushMode getContourMode();
+
+    // used by the slice widget to set the mode of a previosly stored contour
+    void setActualContourMode(Brush::BrushMode mode);
 
   protected:
     vtkPlaneContourWidget();
     virtual ~vtkPlaneContourWidget();
 
     // The state of the widget
-//BTX
+    //BTX
     enum
     {
       Start, Define, Manipulate
     };
 
-//ETX
+    //ETX
     int WidgetState;
     int CurrentHandle;
     int AllowNodePicking;
     int FollowCursor;
     int ContinuousDraw;
     int ContinuousActive;
-    PlaneType Orientation;
+    EspINA::PlaneType Orientation;
     double ContinuousDrawTolerance;
 
     // Callback interface to capture events when placing the widget.
@@ -159,13 +181,21 @@ class VTK_WIDGETS_EXPORT vtkPlaneContourWidget : public vtkAbstractWidget
     // helper method to avoid creating too many points in continuos drawing
     virtual bool IsPointTooClose(int,int);
 
+    // find closest node to the cursor node
+    int FindClosestNode();
+
   private:
     vtkPlaneContourWidget(const vtkPlaneContourWidget&); //Not implemented
     void operator=(const vtkPlaneContourWidget&); //Not implemented
 
-    QCursor crossMinusCursor, crossPlusCursor;
+    QCursor crossMinusCursor, crossPlusCursor, crossCheckCursor;
     bool mouseButtonDown; // to create almost equally spaced points when using continuous drawing
     QColor m_polygonColor;
-};
+    ContourWidget *m_parent;
+    Brush::BrushMode m_contourMode;
+    Brush::BrushMode m_actualBrushMode;
+  };
+
+} // namespace EspINA
 
 #endif // _VTKPLANECONTOURWIDGET_H_

@@ -16,12 +16,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #include "vtkInteractorStyleEspinaSlice.h"
 
 #include <vtkObjectFactory.h>
 #include <vtkRenderWindowInteractor.h>
-
 
 vtkStandardNewMacro(vtkInteractorStyleEspinaSlice);
 

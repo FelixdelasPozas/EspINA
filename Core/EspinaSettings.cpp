@@ -20,7 +20,7 @@
 
 #include <QSettings>
 
-QString userName()
+QString EspINA::userName()
 {
   QSettings settings(CESVIMA, ESPINA);
 

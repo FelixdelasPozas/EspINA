@@ -20,22 +20,29 @@
 #include "CompositionCommand.h"
 
 #include <Core/Model/Channel.h>
-#include <Core/Model/Segmentation.h>
 #include <Core/Model/EspinaFactory.h>
 #include <Core/Model/EspinaModel.h>
+#include <Core/Model/Sample.h>
+#include <Core/Model/Segmentation.h>
+#include <Core/Relations.h>
+#include <GUI/Representations/BasicGraphicalRepresentationFactory.h>
 
 #include <QApplication>
 
+using namespace EspINA;
+
 const QString INPUTLINK     = "Input";
 const QString MERGELINK     = "Merge";
-const QString SUBSTRACTLINK = "Substract";
+const QString SUBTRACTLINK  = "Substract";
+
+const Filter::FilterType CompositionCommand::FILTER_TYPE = "CompositionToolbar::CompositionFilter";
 
 //----------------------------------------------------------------------------
 CompositionCommand::CompositionCommand(const SegmentationList &segmentations,
-                                       TaxonomyElement        *taxonomy,
-                                       EspinaModel            *model)
+                                       TaxonomyElementSPtr     taxonomy,
+                                       EspinaModel            *model,
+                                       SegmentationSList      &createdSegmentations)
 : m_model(model)
-, m_input(segmentations)
 , m_tax(taxonomy)
 {
   QApplication::setOverrideCursor(Qt::WaitCursor);
@@ -45,22 +52,33 @@ CompositionCommand::CompositionCommand(const SegmentationList &segmentations,
   ImageLogicFilter::Parameters params(args);
   for(int i=0; i<segmentations.size(); i++)
   {
-    Segmentation *seg = segmentations[i];
-    if (i>0) args[Filter::INPUTS].append(",");
+    SegmentationSPtr seg = m_model->findSegmentation(segmentations[i]);
+    m_input << seg; // Need to be inserted before any call to link()
+
+    if (i>0)
+      args[Filter::INPUTS].append(",");
+
     args[Filter::INPUTS].append(Filter::NamedInput(link(seg), seg->outputId()));
+
     inputs[link(seg)] = seg->filter();
+
+
     m_infoList << SegInfo(seg);
   }
   params.setOperation(ImageLogicFilter::ADDITION);
-  m_filter = new ImageLogicFilter(inputs, args);
+
+  m_filter = FilterSPtr(new ImageLogicFilter(inputs, args, FILTER_TYPE));
+  SetBasicGraphicalRepresentationFactory(m_filter);
   m_filter->update();
   m_seg = m_model->factory()->createSegmentation(m_filter, 0);
+
+  createdSegmentations << m_seg;
 
   QApplication::restoreOverrideCursor();
 }
 
 //----------------------------------------------------------------------------
-const QString CompositionCommand::link(Segmentation* seg)
+const QString CompositionCommand::link(SegmentationSPtr seg)
 {
   unsigned int index = m_input.indexOf(seg);
   QString linkName;
@@ -76,16 +94,15 @@ const QString CompositionCommand::link(Segmentation* seg)
 //----------------------------------------------------------------------------
 void CompositionCommand::redo()
 {
-
   // Add new filter
   m_model->addFilter(m_filter);
-  foreach(Segmentation *seg, m_input)
+  foreach(SegmentationSPtr seg, m_input)
   {
-    ModelItem::Vector segFilter = seg->relatedItems(ModelItem::IN, CREATELINK);
-    Q_ASSERT(segFilter.size() == 1);
-    ModelItem *item = segFilter[0];
-    Q_ASSERT(ModelItem::FILTER == item->type());
-    m_model->addRelation(item, m_filter, link(seg));
+//     SharedModelItemList segFilter = seg->relatedItems(EspINA::RELATION_IN, CREATELINK);
+//     Q_ASSERT(segFilter.size() == 1);
+//     SharedModelItemPtr item = segFilter[0];
+//     Q_ASSERT(EspINA::FILTER == item->type());
+    m_model->addRelation(seg->filter(), m_filter, link(seg));
   }
 
   // Add new segmentation
@@ -93,15 +110,15 @@ void CompositionCommand::redo()
   m_model->addSegmentation(m_seg);
 
   //WARNING: This won't work with segmentation belonging to different channels
-  Channel *channel = m_input.first()->channel();
-  Sample *sample = channel->sample();
-  m_model->addRelation(m_filter, m_seg, CREATELINK);
-  m_model->addRelation(sample,   m_seg, Sample::WHERE);
+  ChannelSPtr channel = m_input.first()->channel();
+  SampleSPtr  sample  = channel->sample();
+  m_model->addRelation(m_filter, m_seg, Filter::CREATELINK);
+  m_model->addRelation(sample,   m_seg, Relations::LOCATION);
   m_model->addRelation(channel,  m_seg, Channel::LINK);
 
-  foreach(Segmentation *part, m_input)
+  foreach(SegmentationSPtr part, m_input)
   {
-    m_model->addRelation(m_seg, part, Segmentation::COMPOSED_LINK);
+    m_model->addRelation(m_seg, part, Relations::COMPOSITION);
   }
 
   m_seg->initializeExtensions();
@@ -111,14 +128,14 @@ void CompositionCommand::redo()
 void CompositionCommand::undo()
 {
   // Remove merge segmentation
-  foreach(ModelItem::Relation relation,  m_seg->relations())
+  foreach(Relation relation,  m_seg->relations())
   {
     m_model->removeRelation(relation.ancestor, relation.succesor, relation.relation);
   }
   m_model->removeSegmentation(m_seg);
 
   // Remove filter
-  foreach(ModelItem::Relation relation,  m_filter->relations())
+  foreach(Relation relation,  m_filter->relations())
   {
     m_model->removeRelation(relation.ancestor, relation.succesor, relation.relation);
   }

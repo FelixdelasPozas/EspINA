@@ -16,24 +16,23 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+// EspINA
 #include "CheckableTreeView.h"
+
+// Qt
 #include <QHeaderView>
 #include <QMouseEvent>
-
 #include <QDebug>
 
 //------------------------------------------------------------------------
 CheckableTreeView::CheckableTreeView(QWidget* parent)
 : QTreeView(parent)
 {
-
 }
 
 //------------------------------------------------------------------------
 CheckableTreeView::~CheckableTreeView()
 {
-
 }
 
 //------------------------------------------------------------------------
@@ -46,11 +45,11 @@ void CheckableTreeView::mouseReleaseEvent(QMouseEvent* event)
   {
     QRect vrect = visualRect(indexClicked);
     int itemIndentation = vrect.x() - visualRect(rootIndex()).x();
-    QRect rect = QRect(header()->sectionViewportPosition(0) + itemIndentation
-    , vrect.y(), style()->pixelMetric(QStyle::PM_IndicatorWidth), vrect.height());
+    QRect rect = QRect(header()->sectionViewportPosition(0) + itemIndentation, vrect.y(), style()->pixelMetric(QStyle::PM_IndicatorWidth), vrect.height());
     if(rect.contains(event->pos()))
     {
       emit itemStateChanged(indexClicked);
     }
   }
 }
+

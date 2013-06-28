@@ -19,26 +19,35 @@
 #ifndef TAXONOMYCOLORENGINE_H
 #define TAXONOMYCOLORENGINE_H
 
+#include "EspinaCore_Export.h"
+
 #include "Core/ColorEngines/IColorEngine.h"
 #include <QMap>
 
-class TaxonomyElement;
-class TaxonomyColorEngine
+namespace EspINA
+{
+
+class EspinaCore_EXPORT TaxonomyColorEngine
 : public ColorEngine
 {
+  Q_OBJECT
 public:
   explicit TaxonomyColorEngine(){}
 
-  virtual QColor color(Segmentation* seg);
-  virtual LUTPtr lut(Segmentation* seg);
+  virtual QColor color(SegmentationPtr seg);
+  virtual LUTPtr lut  (SegmentationPtr seg);
   virtual ColorEngine::Composition supportedComposition() const
   { return ColorEngine::Color; }
 
-  void updateTaxonomyColor(TaxonomyElement *tax);
+protected slots:
+  void updateTaxonomyColor(TaxonomyElementPtr tax);
 
+private:
   QMap<QString, vtkSmartPointer<vtkLookupTable> > m_LUT;
 };
 
-typedef QSharedPointer<TaxonomyColorEngine> TaxonomyColorEnginePtr;
+typedef boost::shared_ptr<TaxonomyColorEngine> TaxonomyColorEnginePtr;
+
+}// namespace EspINA
 
 #endif // TAXONOMYCOLORENGINE_H

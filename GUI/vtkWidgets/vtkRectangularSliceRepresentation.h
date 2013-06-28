@@ -1,6 +1,8 @@
 #ifndef VTKRECTANGULARSLICEREPRESENTATION_H
 #define VTKRECTANGULARSLICEREPRESENTATION_H
 
+#include "EspinaGUI_Export.h"
+
 #include "vtkWidgetRepresentation.h"
 
 #include <Core/EspinaTypes.h>
@@ -22,7 +24,10 @@ class vtkBox;
 class vtkDoubleArray;
 class vtkMatrix4x4;
 
-class VTK_WIDGETS_EXPORT vtkRectangularSliceRepresentation
+namespace EspINA
+{
+
+class EspinaGUI_EXPORT vtkRectangularSliceRepresentation
 : public vtkWidgetRepresentation
 {
   //BTX
@@ -178,5 +183,7 @@ private:
   double m_color[3];
   int m_pattern;
 };
+
+} // namespace EspINA
 
 #endif

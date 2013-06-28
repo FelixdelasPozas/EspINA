@@ -24,18 +24,25 @@
 
 class vtkImplicitFunction;
 
-class SphericalBrush
-: public Brush
+namespace EspINA
 {
-public:
-  explicit SphericalBrush(EspinaModel* model,
-                          QUndoStack* undoStack,
-                          ViewManager* viewManager);
+  class SphericalBrush
+  : public Brush
+  {
+  public:
+    explicit SphericalBrush(EspinaModel *model,
+                            EditorToolBarSettings *settings,
+                            QUndoStack  *undoStack,
+                            ViewManager *viewManager);
 
-protected:
-  virtual BrushShape createBrushShape(PickableItem* item,
-                                      double center[3],
-                                      Nm radius, PlaneType plane);
-};
+  protected:
+    virtual BrushShape createBrushShape(PickableItemPtr item,
+                                        double center[3],
+                                        Nm radius, PlaneType plane);
+  };
+
+  typedef boost::shared_ptr<SphericalBrush> SphericalBrushSPtr;
+
+} // namespace EspINA
 
 #endif // SPHERICALBRUSH_H

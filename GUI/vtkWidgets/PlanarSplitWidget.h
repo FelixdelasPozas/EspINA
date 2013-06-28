@@ -2,18 +2,18 @@
  * PlanarSplitWidget.h
  *
  *  Created on: Nov 5, 2012
- *      Author: Félix de las Pozas Álvarez
+ *      Author: F�lix de las Pozas �lvarez
  */
 
 #ifndef PLANARSPLITWIDGET_H_
 #define PLANARSPLITWIDGET_H_
 
-class PlanarSplitSliceWidget;
+#include "EspinaGUI_Export.h"
 
 // EspINA
 #include "GUI/vtkWidgets/EspinaWidget.h"
 #include <Core/EspinaTypes.h>
-#include <Core/EspinaVolume.h>
+#include <Core/OutputRepresentations/VolumeRepresentation.h>
 
 // vtk
 #include <vtkSmartPointer.h>
@@ -30,22 +30,30 @@ class vtkImageStencilSource;
 class vtkImplicitPlaneWidget2;
 class vtkAlgorithmOutput;
 class vtkImageStencilData;
-class SliceWidget;
 
-enum WidgetType { AXIAL_WIDGET = 2, CORONAL_WIDGET = 1, SAGITTAL_WIDGET = 0, VOLUME_WIDGET = 3, NONE = 4 };
-
-class PlanarSplitWidget
-: public EspinaWidget
-, public vtkCommand
+namespace EspINA
 {
+  class SliceWidget;
+  class PlanarSplitSliceWidget;
+
+  enum WidgetType { AXIAL_WIDGET = 2, CORONAL_WIDGET = 1, SAGITTAL_WIDGET = 0, VOLUME_WIDGET = 3, NONE = 4 };
+
+  class EspinaGUI_EXPORT PlanarSplitWidget
+  : public EspinaWidget
+  , public vtkCommand
+  {
   public:
-    explicit PlanarSplitWidget();
     virtual ~PlanarSplitWidget();
 
+    vtkTypeMacro(PlanarSplitWidget,vtkCommand);
+
+    static PlanarSplitWidget *New()
+    {return new PlanarSplitWidget();};
+
     // EspinaWidget implementation
-    virtual vtkAbstractWidget *createWidget();
-    virtual void deleteWidget(vtkAbstractWidget *widget);
-    virtual SliceWidget *createSliceWidget(PlaneType plane);
+    virtual vtkAbstractWidget *create3DWidget(VolumeView *view);
+
+    virtual SliceWidget *createSliceWidget(SliceView *view);
 
     virtual bool processEvent(vtkRenderWindowInteractor *iren,
                               long unsigned int event);
@@ -54,8 +62,8 @@ class PlanarSplitWidget
     // get/set
     virtual void setPlanePoints(vtkSmartPointer<vtkPoints>);
     virtual vtkSmartPointer<vtkPoints> getPlanePoints();
-    virtual vtkSmartPointer<vtkPlane> getImplicitPlane();
-    virtual vtkSmartPointer<vtkImageStencilData> getStencilForVolume(EspinaVolume::Pointer volume);
+    virtual vtkSmartPointer<vtkPlane> getImplicitPlane(const double spacing[3]);
+    virtual vtkSmartPointer<vtkImageStencilData> getStencilForVolume(SegmentationVolumeSPtr volume);
     virtual void setSegmentationBounds(double *);
     virtual bool planeIsValid();
 
@@ -67,6 +75,9 @@ class PlanarSplitWidget
     virtual bool manipulatesSegmentations() { return true; };
 
   private:
+    explicit PlanarSplitWidget();
+
+  private:
     PlanarSplitSliceWidget *m_axial;
     PlanarSplitSliceWidget *m_coronal;
     PlanarSplitSliceWidget *m_sagittal;
@@ -74,6 +85,8 @@ class PlanarSplitWidget
     QList<vtkAbstractWidget*> m_widgets;
     WidgetType m_mainWidget;
     vtkAlgorithmOutput *m_vtkVolumeInformation;
-};
+  };
+
+}// namespace EspINA
 
 #endif /* PLANARSPLITWIDGET_H_ */

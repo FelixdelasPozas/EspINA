@@ -1,48 +1,62 @@
 /*
-    <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2012  <copyright holder> <email>
+ <one line to give the program's name and a brief idea of what it does.>
+ Copyright (C) 2012  <copyright holder> <email>
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 #ifndef FILLHOLESCOMMAND_H
 #define FILLHOLESCOMMAND_H
 
+#include "EspinaUndo_Export.h"
+
+// EspINA
+#include <Core/Model/Segmentation.h>
+#include <Core/Model/EspinaModel.h>
+
+// Qt
 #include <QUndoStack>
 
-#include <Core/Model/Segmentation.h>
-
-class EspinaModel;
-
-class FillHolesCommand
-: public QUndoCommand
+namespace EspINA
 {
-public:
-  explicit FillHolesCommand(SegmentationList inputs, EspinaModel *model);
-  virtual ~FillHolesCommand();
+  class ViewManager;
 
-  virtual void redo();
-  virtual void undo();
+  class EspinaUndo_EXPORT FillHolesCommand
+  : public QUndoCommand
+  {
+    public:
+      static const QString FILTER_TYPE;
 
-private:
-  EspinaModel *m_model;
+    public:
+      explicit FillHolesCommand(SegmentationList inputs,
+                                EspinaModel *model,
+                                ViewManager *vm);
+      virtual ~FillHolesCommand();
 
-  typedef QPair<Filter *, unsigned int> Connection;
+      virtual void redo();
+      virtual void undo();
 
-  SegmentationList  m_segmentations;
-  QList<Connection> m_oldConnections, m_newConnections;
-};
+    private:
+      EspinaModel *m_model;
+      ViewManager *m_viewManager;
+
+      typedef QPair<FilterSPtr, FilterOutputId> Connection;
+
+      SegmentationSList m_segmentations;
+      QList<Connection> m_oldConnections, m_newConnections;
+  };
+
+} // namespace EspINA
 
 #endif // FILLHOLESCOMMAND_H

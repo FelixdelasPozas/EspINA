@@ -5,34 +5,42 @@
  *      Author: Félix de las Pozas Álvarez
  */
 
+// EspINA
 #include "SliceContourWidget.h"
 #include "vtkPlaneContourRepresentationGlyph.h"
+
+// VTK
 #include <vtkObjectFactory.h>
+#include <vtkPolyData.h>
+
+// Qt
 #include <QPolygon>
 
+using namespace EspINA;
+
+//-----------------------------------------------------------------------------
 SliceContourWidget::SliceContourWidget(vtkPlaneContourWidget* widget)
 : SliceWidget(widget)
 , m_initialized(false)
 , m_plane(AXIAL)
 , m_pos(0)
 , m_contourWidget(widget)
+, m_storedContour(NULL)
+, m_storedContourPosition(-1)
+, m_storedContourMode(Brush::BRUSH)
 {
 }
 
+//-----------------------------------------------------------------------------
 SliceContourWidget::~SliceContourWidget()
 {
-  QMap<Nm, vtkPolyData*>::iterator it = m_contourMap.begin();
-  while (it != m_contourMap.end())
-  {
-    vtkPolyData *value = it.value();
-    if (NULL != value)
-      value->Delete();
-    it++;
-  }
-  m_contourMap.clear();
   m_contourWidget->Delete();
+
+  if (m_storedContour != NULL)
+    m_storedContour->Delete();
 }
 
+//-----------------------------------------------------------------------------
 void SliceContourWidget::setSlice(Nm pos, PlaneType plane)
 {
   if (!m_initialized)
@@ -44,90 +52,50 @@ void SliceContourWidget::setSlice(Nm pos, PlaneType plane)
   }
   else
   {
-    AddActualContour();
+    if (plane != m_plane || pos == m_pos)
+      return;
 
-    if (m_contourMap.contains(pos) && (m_contourMap.value(pos)->GetPoints()->GetNumberOfPoints() != 0))
-      m_contourWidget->Initialize(m_contourMap.value(pos));
+    if ((m_storedContour != NULL) && (m_storedContourPosition == pos))
+    {
+      m_contourWidget->setActualContourMode(m_storedContourMode);
+      m_contourWidget->Initialize(m_storedContour);
+
+      m_storedContour->Delete();
+      m_storedContour = NULL;
+      m_storedContourPosition = -1;
+    }
     else
-      m_contourWidget->Initialize();
+    {
+      vtkPlaneContourRepresentationGlyph *rep = reinterpret_cast<vtkPlaneContourRepresentationGlyph*>(this->m_widget->GetRepresentation());
+      if ((rep->GetContourRepresentationAsPolyData()->GetPoints()->GetNumberOfPoints() != 0) && rep->GetClosedLoop())
+      {
+        Q_ASSERT(m_storedContour == NULL);
+
+        m_storedContour = vtkPolyData::New();
+        m_storedContour->DeepCopy(rep->GetContourRepresentationAsPolyData());
+        m_storedContourPosition = m_pos;
+        m_storedContourMode = m_contourWidget->getContourMode();
+      }
+
+      m_contourWidget->Initialize(NULL);
+    }
 
     m_pos = pos;
   }
 }
 
-void SliceContourWidget::SetContours(QMap<Nm, vtkPolyData*> contours)
+//-----------------------------------------------------------------------------
+QPair<Brush::BrushMode, vtkPolyData *> SliceContourWidget::getContour()
 {
   if (!m_initialized)
     Q_ASSERT(false);
 
-  QMap<Nm, vtkPolyData*>::iterator it = m_contourMap.begin();
-  while (it != m_contourMap.end())
-  {
-    vtkPolyData *value = it.value();
-    if (NULL != value)
-      value->Delete();
-    it++;
-  }
-  m_contourMap.clear();
+  QPair<Brush::BrushMode, vtkPolyData *> result(Brush::BRUSH, NULL);
 
-  m_contourMap = contours;
-
-  if (m_contourMap.contains(m_pos) && (m_contourMap.value(m_pos)->GetPoints()->GetNumberOfPoints() != 0))
-    m_contourWidget->Initialize(m_contourMap.value(m_pos));
-  else
-    m_contourWidget->Initialize();
-}
-
-QMap<Nm, vtkPolyData*> SliceContourWidget::GetContours()
-{
-  if (!m_initialized)
-    Q_ASSERT(false);
-
-  // add actual contour (maybe the slice didn't change)
-  AddActualContour();
-
-  QMap<Nm, vtkPolyData*>::iterator it = this->m_contourMap.begin();
-  while(it != this->m_contourMap.end())
-  {
-    if (0 == it.value()->GetPoints()->GetNumberOfPoints())
-      it = m_contourMap.erase(it);
-    else
-      ++it;
-  }
-
-  return m_contourMap;
-}
-
-void SliceContourWidget::SetEnabled(int value)
-{
-  this->m_contourWidget->SetEnabled(value);
-}
-
-unsigned int SliceContourWidget::GetContoursNumber()
-{
-  unsigned int result = 0;
-
-  AddActualContour();
-
-  QMap<Nm, vtkPolyData*>::iterator it = this->m_contourMap.begin();
-
-  while(it != this->m_contourMap.end())
-  {
-    if (0 != it.value()->GetPoints()->GetNumberOfPoints())
-      result++;
-
-    ++it;
-  }
-
-  return result;
-}
-
-void SliceContourWidget::AddActualContour()
-{
   vtkPlaneContourRepresentationGlyph *rep = reinterpret_cast<vtkPlaneContourRepresentationGlyph*>(this->m_widget->GetRepresentation());
   if ((rep->GetContourRepresentationAsPolyData()->GetPoints()->GetNumberOfPoints() != 0) && rep->GetClosedLoop())
   {
-    vtkPolyData *contour = vtkPolyData::New();
+    vtkPolyData* contour = vtkPolyData::New();
     contour->DeepCopy(rep->GetContourRepresentationAsPolyData());
 
     // points in the contour must be corrected according to slice.
@@ -136,16 +104,83 @@ void SliceContourWidget::AddActualContour()
     {
       double coords[3];
       contourPoints->GetPoint(ndx, coords);
-      coords[this->m_contourWidget->GetOrientation()] = this->m_pos;
+      coords[m_contourWidget->GetOrientation()] = m_pos;
       contourPoints->SetPoint(ndx, coords);
     }
 
-    m_contourMap.insert(m_pos, contour);
+    result.first = m_contourWidget->getContourMode();
+    result.second = contour;
   }
   else
   {
-    // actual contour is NULL, remove any previous contour for this slice (if any exists)
-    if ((m_contourMap.find(m_pos) != m_contourMap.end()))
-        m_contourMap.remove(m_pos);
+    if (m_storedContour != NULL)
+    {
+      // points in the contour must be corrected according to slice.
+      vtkPoints* contourPoints = m_storedContour->GetPoints();
+      for (int ndx = 0; ndx < contourPoints->GetNumberOfPoints(); ndx++)
+      {
+        double coords[3];
+        contourPoints->GetPoint(ndx, coords);
+        coords[m_contourWidget->GetOrientation()] = m_storedContourPosition;
+        contourPoints->SetPoint(ndx, coords);
+      }
+
+      result.first = m_storedContourMode;
+      result.second = m_storedContour;
+
+      m_storedContour = NULL;
+    }
+  }
+
+  return result;
+}
+
+//-----------------------------------------------------------------------------
+void SliceContourWidget::SetEnabled(int value)
+{
+  this->m_contourWidget->SetEnabled(value);
+}
+
+//-----------------------------------------------------------------------------
+void SliceContourWidget::setMode(Brush::BrushMode mode)
+{
+   this->m_contourWidget->setContourMode(mode);
+}
+
+//-----------------------------------------------------------------------------
+void SliceContourWidget::Initialize()
+{
+  m_contourWidget->Initialize(NULL);
+}
+
+//-----------------------------------------------------------------------------
+void SliceContourWidget::Initialize(ContourWidget::ContourData contour)
+{
+  if (m_plane != contour.Plane || contour.PolyData == NULL)
+  {
+    Initialize();
+    return;
+  }
+
+  if (m_storedContour != NULL)
+  {
+    m_storedContour->Delete();
+    m_storedContour = NULL;
+    m_storedContourPosition = -1;
+  }
+
+  Nm contourPos = contour.PolyData->GetPoints()->GetPoint(0)[m_plane];
+
+  if (m_pos == contourPos)
+  {
+    m_contourWidget->setActualContourMode(contour.Mode);
+    m_contourWidget->Initialize(contour.PolyData);
+  }
+  else
+  {
+    m_storedContour = vtkPolyData::New();
+    m_storedContour->DeepCopy(contour.PolyData);
+    m_storedContourPosition = contourPos;
+    m_storedContourMode = contour.Mode;
   }
 }

@@ -1,4 +1,3 @@
-#include <FilePack.h>
 #include "helpers.h"
 #include <QDebug>
 

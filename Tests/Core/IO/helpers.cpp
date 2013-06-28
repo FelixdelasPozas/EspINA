@@ -129,7 +129,6 @@ int loadSimpleFile( QDir fileDir, QString referenceFileName )
     qWarning("An error ocurre while openning seg file");
     return 1;
   }
-  // compare trace.dot and taxonomy.xml ... TODO and pvd files
   recursiveRemoveDir("test");
   system(QString("unzip -u %1 -d test").arg(fileDir.filePath(referenceFileName)).toUtf8());
   

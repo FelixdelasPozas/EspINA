@@ -1,26 +1,41 @@
 #ifndef ISETTINGSPANEL_H
 #define ISETTINGSPANEL_H
 
+#include "EspinaGUI_Export.h"
+
 #include <QWidget>
 #include <QIcon>
 
-class ISettingsPanel
-: public QWidget
+#include <Core/EspinaTypes.h>
+
+namespace EspINA
 {
-public:
-  virtual ~ISettingsPanel(){}
+  class ISettingsPanel;
+  typedef ISettingsPanel * ISettingsPanelPtr;
 
-  virtual const QString shortDescription() = 0;
-  virtual const QString longDescription() = 0;
-  virtual const QIcon icon() = 0;  
+  class EspinaGUI_EXPORT ISettingsPanel
+  : public QWidget
+  {
+  public:
+    virtual ~ISettingsPanel(){}
 
-  virtual void addPanel(ISettingsPanel *panel){}
+    virtual const QString shortDescription() = 0;
+    virtual const QString longDescription() = 0;
+    virtual const QIcon icon() = 0;
 
-  virtual void acceptChanges(){}; //TODO: Make abstract
-  virtual void rejectChanges(){};
-  virtual bool modified() const {return false;}
+    virtual void addPanel(ISettingsPanel *panel){}
 
-  virtual ISettingsPanel *clone() = 0;
-};
+    virtual void acceptChanges()  = 0;
+    virtual void rejectChanges()  = 0;
+    virtual bool modified() const = 0;
+
+    virtual ISettingsPanelPtr clone() = 0;
+  };
+
+  typedef QList<ISettingsPanelPtr>          ISettingsPanelList;
+  typedef boost::shared_ptr<ISettingsPanel> ISettingsPanelPrototype;
+  typedef QList<ISettingsPanelPrototype>    ISettingsPanelPrototypeList;
+
+} // namespace EspINA
 
 #endif// ISETTINGSPANEL_H

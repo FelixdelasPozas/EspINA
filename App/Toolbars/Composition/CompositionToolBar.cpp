@@ -16,24 +16,28 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+// EspINA
 #include "CompositionToolBar.h"
 #include <Undo/CompositionCommand.h>
-
 #include <Core/Model/EspinaModel.h>
+#include <Core/Model/EspinaFactory.h>
 #include <GUI/ViewManager.h>
+#include <GUI/Representations/BasicGraphicalRepresentationFactory.h>
 
+// Qt
 #include <QAction>
 #include <QUndoStack>
 
-const QString COMPOSE_SEG_TOOLTIP = QObject::tr("Compose Selected Segmentations");
+using namespace EspINA;
+
+const QString COMPOSE_SEG_TOOLTIP = QObject::tr("Create compounded segmentation from selected segmentations");
 
 //----------------------------------------------------------------------------
 CompositionToolBar::CompositionToolBar(EspinaModel *model,
                                        QUndoStack  *undoStack,
                                        ViewManager *viewManager,
                                        QWidget     *parent)
-: QToolBar     ( parent      )
+: IToolBar     ( parent      )
 , m_model      ( model       )
 , m_undoStack  ( undoStack   )
 , m_viewManager( viewManager )
@@ -54,21 +58,34 @@ CompositionToolBar::CompositionToolBar(EspinaModel *model,
 //----------------------------------------------------------------------------
 CompositionToolBar::~CompositionToolBar()
 {
-
+//   qDebug() << "********************************************************";
+//   qDebug() << "          Destroying Composition ToolbBar";
+//   qDebug() << "********************************************************";
 }
 
 //----------------------------------------------------------------------------
-void CompositionToolBar::initFactoryExtension(EspinaFactory* factory)
+void CompositionToolBar::initFactoryExtension(EspinaFactoryPtr factory)
 {
-
+  factory->registerFilter(this, CompositionCommand::FILTER_TYPE);
 }
 
 //----------------------------------------------------------------------------
-Filter* CompositionToolBar::createFilter(const QString              &filter,
-                                         const Filter::NamedInputs  &inputs,
-                                         const ModelItem::Arguments &args)
+FilterSPtr CompositionToolBar::createFilter(const QString              &filter,
+                                            const Filter::NamedInputs  &inputs,
+                                            const ModelItem::Arguments &args)
 {
-  return NULL;
+  Q_ASSERT(CompositionCommand::FILTER_TYPE == filter);
+  {
+    FilterSPtr composition(new ImageLogicFilter(inputs, args, CompositionCommand::FILTER_TYPE));
+    SetBasicGraphicalRepresentationFactory(composition);
+    return composition;
+  }
+}
+
+//----------------------------------------------------------------------------
+void CompositionToolBar::resetToolbar()
+{
+  updateAvailableOperations();
 }
 
 //----------------------------------------------------------------------------
@@ -80,9 +97,21 @@ void CompositionToolBar::createSegmentationFromComponents()
   if (input.size() > 1)
   {
     m_viewManager->clearSelection(true);
+    QString macroText = "Compose";
+    foreach(SegmentationPtr seg, input)
+    {
+      macroText += seg->data().toString();
+      if (seg != input.last())
+        macroText += QString("+");
+    }
+    m_undoStack->beginMacro(macroText);
+    SegmentationSList createdSegmentations;
     m_undoStack->push(new CompositionCommand(input,
-                                             m_viewManager->activeTaxonomy(),
-                                             m_model));
+                                             m_model->findTaxonomyElement(m_viewManager->activeTaxonomy()),
+                                             m_model,
+                                             createdSegmentations));
+    m_model->emitSegmentationAdded(createdSegmentations);
+    m_undoStack->endMacro();
   }
 }
 
@@ -90,24 +119,14 @@ void CompositionToolBar::createSegmentationFromComponents()
 void CompositionToolBar::updateAvailableOperations()
 {
   SegmentationList segs = m_viewManager->selectedSegmentations();
-
-//   bool one = segs.size() == 1;
-//   QString oneToolTip;
-//   if (!one)
-//     oneToolTip = tr(" (This tool requires just one segmentation to be selected)");
-
   bool atLeastTwo = segs.size()  > 1;
+
   QString atLeastTwoToolTip;
   if (!atLeastTwo)
-    atLeastTwoToolTip = tr(" (This tool requires at least two segmentation to be selected)");
-
-//   bool several    = segs.size()  > 0;
-//   QString severalToolTip;
-//   if (!several)
-//     severalToolTip = tr(" (This tool requires at least one segmentation to be selected)");
+    atLeastTwoToolTip = tr(" (This tool requires at least two selected segmentations)");
 
   m_compose->setEnabled(atLeastTwo);
-  m_compose->setToolTip(tr("Create a segmentations from selected segmentations") + atLeastTwo);
+  m_compose->setToolTip(COMPOSE_SEG_TOOLTIP + atLeastTwoToolTip);
 }
 
 //----------------------------------------------------------------------------

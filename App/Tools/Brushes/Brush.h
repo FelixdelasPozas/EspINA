@@ -1,20 +1,20 @@
 /*
-    <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2012  <copyright holder> <email>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ *    <one line to give the program's name and a brief idea of what it does.>
+ *    Copyright (C) 2012  <copyright holder> <email>
+ *
+ *    This program is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
+ *
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 
 #ifndef BRUSH_H
@@ -23,81 +23,89 @@
 #include <Core/EspinaRegion.h>
 #include <Core/EspinaTypes.h>
 #include <Core/Model/Segmentation.h>
-#include "GUI/Pickers/IPicker.h"
+#include <Core/Model/EspinaModel.h>
+#include <Core/Model/Filter.h>
+#include "GUI/Pickers/ISelector.h"
 #include "GUI/Tools/ITool.h"
+#include "GUI/ViewManager.h"
+#include "App/Toolbars/Editor/Settings.h"
 
-class EspinaModel;
 class QUndoStack;
-class ViewManager;
-class BrushPicker;
-class Channel;
-class Filter;
-class Segmentation;
 
-class Brush // TODO 2012-11-27 Crear una clase base para pintar independientemente de lo que se haga con el resultado
-: public ITool
+namespace EspINA
 {
-  Q_OBJECT
+  class BrushPicker;
+  class ViewManager;
+  class VolumeSnapshotCommand;
+  class EditorToolBarSettings;
 
-  enum DrawMode {CREATE, MODIFY};
+  class Brush // TODO 2012-11-27 Crear una clase base para pintar independientemente de lo que se haga con el resultado
+  : public ITool
+  {
+    Q_OBJECT
 
-public:
-  enum BrushMode {BRUSH, ERASER};
+    enum DrawMode {CREATE, MODIFY};
 
-  typedef QPair<vtkImplicitFunction *, EspinaRegion> BrushShape;
-  typedef QList<BrushShape> BrushShapeList;
+  public:
+    enum BrushMode {BRUSH, ERASER};
 
-  class DrawCommand;
-  class SnapshotCommand;
+    typedef QPair<vtkImplicitFunction *, EspinaRegion> BrushShape;
+    typedef QList<BrushShape> BrushShapeList;
 
-public:
-  explicit Brush(EspinaModel *model,
-                 QUndoStack  *undoStack,
-                 ViewManager *viewManager);
-  virtual ~Brush();
+    class DrawCommand;
+    class SnapshotCommand;
 
-  virtual QCursor cursor() const;
-  virtual bool filterEvent(QEvent* e, EspinaRenderView* view = 0);
-  virtual bool enabled() const;
-  virtual void setEnabled(bool enable);
-  virtual void setInUse(bool value);
+    static const Filter::FilterType FREEFORM_SOURCE_TYPE;
 
-protected slots:
-  virtual BrushShape createBrushShape(PickableItem *item,
-                                      double center[3],
-                                      Nm radius,
-                                      PlaneType plane)=0;
+  public:
+    explicit Brush(EspinaModel *model,
+                   EditorToolBarSettings *settins,
+                   QUndoStack  *undoStack,
+                   ViewManager *viewManager);
+    virtual ~Brush();
 
-  virtual void drawStroke(PickableItem *item,
-                          IPicker::WorldRegion centers,
-                          Nm radius,
-                          PlaneType plane);
+    virtual QCursor cursor() const;
+    virtual bool filterEvent(QEvent* e, EspinaRenderView* view = 0);
+    virtual bool enabled() const;
+    virtual void setEnabled(bool enable);
+    virtual void setInUse(bool value);
 
-virtual void drawStrokeStep(PickableItem *item,
-                            double x, double y, double z,
-                            Nm radius,
-                            PlaneType plane);
-signals:
-  void brushModeChanged(Brush::BrushMode);
-  void stopDrawing();
+  protected slots:
+    virtual BrushShape createBrushShape(PickableItemPtr item,
+                                        double          center[3],
+                                        Nm              radius,
+                                        PlaneType       plane)=0;
 
-protected:
-  EspinaModel *m_model;
-  QUndoStack  *m_undoStack;
-  ViewManager *m_viewManager;
+    virtual void drawStroke(PickableItemPtr      item,
+                            ISelector::WorldRegion centers,
+                            Nm                   radius,
+                            PlaneType            plane);
 
-  bool         m_inUse;
-  DrawMode     m_mode;
-  bool         m_erasing;
-  BrushPicker *m_brush;
+  virtual void segmentationHasBeenModified(ModelItemPtr);
 
-  Filter       *m_currentSource;
-  Segmentation *m_currentSeg;
-  Filter::OutputId  m_currentOutput;
+  virtual void initBrushTool();
 
-private:
-  SnapshotCommand *m_drawCommand;
-  SnapshotCommand *m_eraseCommand;
-};
+  signals:
+    void brushModeChanged(Brush::BrushMode);
+    void stopDrawing();
+
+  protected:
+
+    EspinaModel *m_model;
+    QUndoStack  *m_undoStack;
+    ViewManager *m_viewManager;
+
+    bool         m_inUse;
+    DrawMode     m_mode;
+    bool         m_erasing;
+    BrushPicker *m_brush;
+    EditorToolBarSettings *m_settings;
+
+    FilterSPtr       m_currentSource;
+    SegmentationSPtr m_currentSeg;
+    FilterOutputId   m_currentOutput;
+  };
+
+} // namespace EspINA
 
 #endif // BRUSH_H

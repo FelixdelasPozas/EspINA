@@ -16,40 +16,54 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #ifndef ESPINAREGION_H
 #define ESPINAREGION_H
 
+#include "EspinaCore_Export.h"
+
 #include "EspinaTypes.h"
 
-class EspinaRegion
+namespace EspINA
 {
-public:
-  explicit EspinaRegion(const Nm  bounds[6]);
+  /// Normalized region, i.e. origin (0,0,0)
+  class EspinaCore_EXPORT EspinaRegion
+  {
+  public:
+    explicit EspinaRegion();
+    explicit EspinaRegion(const Nm  bounds[6]);
+    explicit EspinaRegion(const Nm minX, const Nm maxX,
+                          const Nm minY, const Nm maxY,
+                          const Nm minZ, const Nm maxZ);
 
-  Nm &operator[](int idx) { return m_bounds[idx]; }
-  const Nm &operator[](int idx) const { return m_bounds[idx]; }
+    Nm &operator[](int idx) { return m_bounds[idx]; }
+    const Nm &operator[](int idx) const { return m_bounds[idx]; }
 
-  Nm xMin() const {return m_bounds[0];}
-  Nm xMax() const {return m_bounds[1];}
-  Nm yMin() const {return m_bounds[2];}
-  Nm yMax() const {return m_bounds[3];}
-  Nm zMin() const {return m_bounds[4];}
-  Nm zMax() const {return m_bounds[5];}
+    Nm xMin() const {return m_bounds[0];}
+    Nm xMax() const {return m_bounds[1];}
+    Nm yMin() const {return m_bounds[2];}
+    Nm yMax() const {return m_bounds[3];}
+    Nm zMin() const {return m_bounds[4];}
+    Nm zMax() const {return m_bounds[5];}
 
-  const Nm * bounds(            ) const { return m_bounds; }
-  void       bounds(Nm bounds[6]) const { memcpy(bounds, m_bounds, 6*sizeof(Nm)); }
+    const Nm *bounds(            ) const { return m_bounds; }
+    void      bounds(Nm bounds[6]) const { memcpy(bounds, m_bounds, 6*sizeof(Nm)); }
 
-  bool isInside(const EspinaRegion &region) const;
-  /// Check region intersection
-  bool intersect(const EspinaRegion &region) const;
-  /// Return intersection region
-  EspinaRegion intersection(const EspinaRegion &region) const;
+    /// Return whether this is inside @region
+    bool isInside(const EspinaRegion &region) const;
+    /// Check region intersection
+    bool intersect(const EspinaRegion &region) const;
+    /// Return intersection region
+    EspinaRegion intersection(const EspinaRegion &region) const;
 
-private:
-  Nm m_bounds[6];
-};
+  private:
+    Nm m_bounds[6];
+  };
 
-EspinaRegion BoundingBox(EspinaRegion r1, EspinaRegion r2);
+  EspinaRegion BoundingBox(EspinaRegion r1, EspinaRegion r2);
+
+
+} // namespace EspINA
+
+QDebug operator<< (QDebug qd, const EspINA::EspinaRegion &region);
 
 #endif // ESPINAREGION_H

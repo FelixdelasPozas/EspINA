@@ -22,11 +22,27 @@
 #include <Core/Model/Sample.h>
 #include <Core/Model/EspinaModel.h>
 
+#include <QDebug>
+
+using namespace EspINA;
+
 //------------------------------------------------------------------------
-AddSample::AddSample(Sample *sample, EspinaModel *model)
-: m_model(model),
-m_sample(sample)
+AddSample::AddSample(SampleSPtr  sample,
+                     EspinaModel *model,
+                     QUndoCommand    *parent)
+: QUndoCommand(parent)
+, m_model(model)
+, m_sample(sample)
 {}
+
+//------------------------------------------------------------------------
+AddSample::~AddSample()
+{
+//   qDebug() << "********************************************************";
+//   qDebug() << "            Destroying Add Sample Action";
+//   qDebug() << "********************************************************";
+}
+
 
 //------------------------------------------------------------------------
 void AddSample::redo()

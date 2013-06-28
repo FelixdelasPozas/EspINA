@@ -22,6 +22,8 @@
 #include <QSettings>
 #include <Core/EspinaSettings.h>
 
+using namespace EspINA;
+
 const QString DEFAULT_VOI_X("RectangularVOI::DefaultVOI::X");
 const QString DEFAULT_VOI_Y("RectangularVOI::DefaultVOI::Y");
 const QString DEFAULT_VOI_Z("RectangularVOI::DefaultVOI::Z");
@@ -31,9 +33,9 @@ RectangularVOI::Settings::Settings()
 {
   QSettings settings(CESVIMA, ESPINA);
 
-  m_xSize   = settings.value(DEFAULT_VOI_X, 250).toInt();
-  m_ySize   = settings.value(DEFAULT_VOI_Y, 250).toInt();
-  m_zSize   = settings.value(DEFAULT_VOI_Z, 250).toInt();
+  m_xSize   = settings.value(DEFAULT_VOI_X, 500).toInt();
+  m_ySize   = settings.value(DEFAULT_VOI_Y, 500).toInt();
+  m_zSize   = settings.value(DEFAULT_VOI_Z, 500).toInt();
 }
 
 //------------------------------------------------------------------------

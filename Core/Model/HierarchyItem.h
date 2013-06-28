@@ -2,15 +2,17 @@
  * IHierarchyItem.h
  *
  *  Created on: Dec 4, 2012
- *      Author: F√©lix de las Pozas √Ålvarez
+ *      Author: FÈlix de las Pozas ¡lvarez
  */
 
 #ifndef HIERARCHYITEM_H_
 #define HIERARCHYITEM_H_
 
+#include "EspinaCore_Export.h"
+
 #include <QObject>
 
-class HierarchyItem
+class EspinaCore_EXPORT HierarchyItem
 {
   public:
     enum HierarchyProperty

@@ -1,5 +1,7 @@
 project(SEGMHA_IMPORTER_PLUGIN)
 
+include (GenerateExportHeader)
+
 # Version Number
 set (PLUGIN_VERSION_MAJOR 0)
 set (PLUGIN_VERSION_MINOR 2)
@@ -22,12 +24,16 @@ IF (NOT COMPILING_ESPINA)
 ENDIF (NOT COMPILING_ESPINA)
 
 include_directories (
+  ${CMAKE_CURRENT_BINARY_DIR} # Export file
+  ${CMAKE_CURRENT_BINARY_DIR}/../CountingFrame # Export file
   ${CMAKE_SOURCE_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}
   )
 
 qt4_wrap_cpp(MOC_SOURCES
   SegmhaImporter.h
+
+  OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
 )
 
 set (PLUGIN_SOURCES
@@ -38,9 +44,25 @@ set (PLUGIN_SOURCES
 
 set (PLUGIN_LIBRARIES
   EspinaCore
+  CountingFramePlugin
   )
 
+if(MINGW)
+  if(DEFINED ESPINA_VERSION_MAJOR)
+    configure_file("${CMAKE_CURRENT_SOURCE_DIR}/windllprops.rc.in" "${CMAKE_CURRENT_BINARY_DIR}/windllprops.rc")
+    SET(PLUGIN_SOURCES ${PLUGIN_SOURCES} ${CMAKE_CURRENT_BINARY_DIR}/windllprops.rc)
+    SET(CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> -O coff -o <OBJECT> -i <SOURCE>")
+    ENABLE_LANGUAGE(RC)
+  endif(DEFINED ESPINA_VERSION_MAJOR)
+endif(MINGW)
+
 add_library(SegmhaImporterPlugin SHARED ${PLUGIN_SOURCES})
+GENERATE_EXPORT_HEADER(
+             SegmhaImporterPlugin
+             BASE_NAME SegmhaImporterPlugin
+             EXPORT_MACRO_NAME SegmhaImporterPlugin_EXPORT
+             EXPORT_FILE_NAME SegmhaImporterPlugin_Export.h
+			 )
 target_link_libraries(SegmhaImporterPlugin ${PLUGIN_LIBRARIES})
 
 if( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )

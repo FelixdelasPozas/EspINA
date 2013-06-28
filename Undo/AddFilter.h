@@ -20,27 +20,34 @@
 #ifndef ADDFILTER_H
 #define ADDFILTER_H
 
+#include "EspinaUndo_Export.h"
+
+// EspINA
+#include "Core/Model/Filter.h"
+#include <Core/Model/EspinaModel.h>
+
+// Qt
 #include <QUndoCommand>
 
-#include "Core/Model/Filter.h"
-#include <QSharedPointer>
-
-class EspinaModel;
-
-class AddFilter
-: public QUndoCommand
+namespace EspINA
 {
-public:
-  explicit AddFilter(Filter *filter,
-                     EspinaModel *,
-                     QUndoCommand *parent = 0);
+  class EspinaUndo_EXPORT AddFilter
+  : public QUndoCommand
+  {
+    public:
+	  explicit AddFilter(FilterSPtr   filter,
+						 EspinaModel  *model,
+						 QUndoCommand *parent = 0);
 
-  virtual void redo();
-  virtual void undo();
+	  virtual void redo();
+	  virtual void undo();
 
-private:
-  EspinaModel *m_model;
-  Filter *m_filter;
-};
+	private:
+	  EspinaModel *m_model;
+
+	  FilterSPtr m_filter;
+  };
+
+} // namespace EspINA
 
 #endif // ADDFILTER_H

@@ -12,6 +12,8 @@
 // vtk
 #include <vtkPoints.h>
 
+using namespace EspINA;
+
 //-----------------------------------------------------------------------------
 PlanarSplitSliceWidget::PlanarSplitSliceWidget(vtkAbstractWidget *widget)
 : SliceWidget(widget)

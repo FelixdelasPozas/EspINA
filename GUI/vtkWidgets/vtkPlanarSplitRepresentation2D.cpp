@@ -2,7 +2,7 @@
  * vtkPlanarSplitRepresentation2D.cpp
  *
  *  Created on: Nov 6, 2012
- *      Author: F√©lix de las Pozas √Ålvarez
+ *      Author: FÈlix de las Pozas ¡lvarez
  */
 
 // EspINA
@@ -23,6 +23,8 @@
 #include <vtkPointHandleRepresentation2D.h>
 #include <vtkRenderer.h>
 #include <vtkProperty2D.h>
+
+using namespace EspINA;
 
 vtkStandardNewMacro(vtkPlanarSplitRepresentation2D);
 
@@ -199,7 +201,7 @@ int vtkPlanarSplitRepresentation2D::RenderOverlay(vtkViewport *v)
 {
   this->BuildRepresentation();
 
-  int result;
+  int result = 0;
 
   if (m_lineActor->GetVisibility())
     result = m_lineActor->RenderOverlay(v);
@@ -218,7 +220,7 @@ int vtkPlanarSplitRepresentation2D::RenderOpaqueGeometry(vtkViewport *v)
 {
   this->BuildRepresentation();
 
-  int result;
+  int result = 0;
 
   if (m_lineActor->GetVisibility())
     result = m_lineActor->RenderOpaqueGeometry(v);

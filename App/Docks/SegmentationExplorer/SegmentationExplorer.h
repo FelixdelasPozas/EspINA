@@ -24,79 +24,92 @@
 // File:    SegmentationExplorer.h
 // Purpose: Dock widget to manage segmentations in the model
 //----------------------------------------------------------------------------
-#include <QDockWidget>
+#include <Core/Interfaces/IDockWidget.h>
 
 #include "GUI/QtWidget/IEspinaView.h"
 #include <ui_SegmentationExplorer.h>
 
 #include <GUI/ViewManager.h>
 
-class SegmentationInspector;
-class EspinaModel;
 class QUndoStack;
 
 #include "EspinaConfig.h"
+#include <Core/Model/EspinaModel.h>
+#include <QStringListModel>
+
 #ifdef TEST_ESPINA_MODELS
 class ModelTest;
 #endif
 
-class SegmentationExplorer
-: public QDockWidget
-, public IEspinaView
+namespace EspINA
 {
-  Q_OBJECT
-  class GUI;
-public:
-  class Layout;
+  class SegmentationInspector;
 
-public:
-  explicit SegmentationExplorer(EspinaModel *model,
+  class SegmentationExplorer
+  : public IDockWidget
+  , public IEspinaView
+  {
+    Q_OBJECT
+    class GUI;
+  public:
+    class Layout;
+
+  public:
+    explicit SegmentationExplorer(EspinaModel *model,
+                                  QUndoStack  *undoStack,
+                                  ViewManager *viewManager,
+                                  QWidget     *parent = 0);
+    virtual ~SegmentationExplorer();
+
+    virtual void initDockWidget(EspinaModel *model,
                                 QUndoStack  *undoStack,
-                                ViewManager *vm,
-                                QWidget *parent = 0);
-  virtual ~SegmentationExplorer();
+                                ViewManager *viewManager);
 
-protected:
-  void addLayout(const QString id, Layout *proxy);
+    virtual void reset(); // slot
 
-  virtual bool eventFilter(QObject *sender, QEvent* e);
+  protected:
+    void addLayout(const QString id, Layout *proxy);
 
-protected slots:
-  void changeLayout(int index);
+    virtual bool eventFilter(QObject *sender, QEvent* e);
 
-  void changeTaxonomy(TaxonomyElement *taxonomy);
-  void changeFinalFlag(bool);
-  void deleteSegmentations();
-  void focusOnSegmentation(const QModelIndex &index);
-  void rowsAboutToBeRemoved(const QModelIndex parent, int start, int end);
-  void showInformation();
+    // update segmentation explorer gui depending on selected indexes
+    void updateGUI(const QModelIndexList &selectedIndexes);
 
-  void updateSelection(ViewManager::Selection selection);
-  void updateSelection(QItemSelection selected, QItemSelection deselected);
+  protected slots:
+    void changeLayout(int index);
 
-  void releaseInspectorResources(SegmentationInspector *inspector);
+    void deleteSelectedItems();
+    void showSelectedItemsInformation();
 
-  virtual ISettingsPanel* settingsPanel();
-  virtual void updateSegmentationRepresentations(SegmentationList list = SegmentationList());
-  virtual void updateSelection();
+    void focusOnSegmentation(const QModelIndex &index);
 
-protected:
-  GUI *m_gui;
+    void updateSelection(ViewManager::Selection selection);
+    void updateSelection(QItemSelection selected, QItemSelection deselected);
 
-  EspinaModel    *m_baseModel;
-  QUndoStack     *m_undoStack;
-  ViewManager    *m_viewManager;
+    virtual void updateSegmentationRepresentations(SegmentationList list = SegmentationList());
+    virtual void updateChannelRepresentations(ChannelList list = ChannelList());
 
-  QStringList     m_layoutNames;
-  QList<Layout *> m_layouts;
-  Layout         *m_layout;
+    virtual void updateSelection();
 
-  QMap<Segmentation *, SegmentationInspector *> m_inspectors;
+    void updateSearchFilter();
 
-private:
-#ifdef TEST_ESPINA_MODELS
-  QSharedPointer<ModelTest>   m_modelTester;
-#endif
-};
+  protected:
+    EspinaModel *m_baseModel;
+    QUndoStack  *m_undoStack;
+    ViewManager *m_viewManager;
+
+    GUI *m_gui;
+    QStringList      m_layoutNames;
+    QStringListModel m_layoutModel;
+    QList<Layout *>  m_layouts;
+    Layout          *m_layout;
+
+  private:
+    #ifdef TEST_ESPINA_MODELS
+    boost::shared_ptr<ModelTest>   m_modelTester;
+    #endif
+  };
+
+} // namespace EspINA
 
 #endif // SEGMENTATIONEXPLORER_H

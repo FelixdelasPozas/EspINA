@@ -16,20 +16,26 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #ifndef IVOI_H
 #define IVOI_H
 
+#include "EspinaGUI_Export.h"
+
 #include "ITool.h"
 
-
-class IVOI
-: public ITool
+namespace EspINA
 {
-public:
-  typedef double * Region;
+  class EspinaGUI_EXPORT IVOI
+  : public ITool
+  {
+  public:
+    typedef double * Region;
 
-  virtual Region region() = 0;
-};
+    virtual Region region() = 0;
+  };
+
+  typedef boost::shared_ptr<IVOI> IVOISPtr;
+
+} // namespace EspINA
 
 #endif // IVOI_H

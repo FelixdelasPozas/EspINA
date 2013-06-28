@@ -69,7 +69,7 @@
         <string/>
        </property>
        <property name="icon">
-        <iconset resource="../rsc/espina.qrc">
+        <iconset resource="../../rsc/espina.qrc">
          <normaloff>:/espina/rainbow.svg</normaloff>:/espina/rainbow.svg</iconset>
        </property>
        <property name="iconSize">
@@ -116,7 +116,7 @@
         <string/>
        </property>
        <property name="icon">
-        <iconset resource="../rsc/espina.qrc">
+        <iconset resource="../../rsc/espina.qrc">
          <normaloff>:/espina/create_node.png</normaloff>:/espina/create_node.png</iconset>
        </property>
        <property name="iconSize">
@@ -163,7 +163,7 @@
         <string/>
        </property>
        <property name="icon">
-        <iconset resource="../rsc/espina.qrc">
+        <iconset resource="../../rsc/espina.qrc">
          <normaloff>:/espina/create_subnode.png</normaloff>:/espina/create_subnode.png</iconset>
        </property>
        <property name="iconSize">
@@ -210,7 +210,7 @@
         <string/>
        </property>
        <property name="icon">
-        <iconset resource="../rsc/espina.qrc">
+        <iconset resource="../../rsc/espina.qrc">
          <normaloff>:/espina/trash-full.svg</normaloff>:/espina/trash-full.svg</iconset>
        </property>
        <property name="iconSize">
@@ -229,7 +229,7 @@
   </layout>
  </widget>
  <resources>
-  <include location="../rsc/espina.qrc"/>
+  <include location="../../rsc/espina.qrc"/>
  </resources>
  <connections/>
 </ui>

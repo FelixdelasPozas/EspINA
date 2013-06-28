@@ -33,9 +33,11 @@
 #include <QPixmap>
 #include <boost/concept_check.hpp>
 
+using namespace EspINA;
+
 //-----------------------------------------------------------------------------
-RectangularVOI::RectangularVOI(EspinaModel* model,
-                               ViewManager* viewManager)
+RectangularVOI::RectangularVOI(EspinaModel *model,
+                               ViewManager *viewManager)
 : m_model(model)
 , m_viewManager(viewManager)
 , m_inUse(false)
@@ -43,22 +45,22 @@ RectangularVOI::RectangularVOI(EspinaModel* model,
 , m_widget (NULL)
 , m_sliceSelector(NULL)
 , m_settings     (new Settings())
-, m_settingsPanel(new SettingsPanel(m_model, m_settings))
+, m_settingsPanel(new SettingsPanel(m_model, m_settings, m_viewManager))
 {
   m_picker.setCursor(QCursor(QPixmap(":/espina/roi_go.svg").scaled(32,32)));
   m_picker.setMultiSelection(false);
-  m_picker.setPickable(IPicker::CHANNEL);
-  connect(&m_picker, SIGNAL(itemsPicked(IPicker::PickList)),
-          this, SLOT(defineVOI(IPicker::PickList)));
+  m_picker.setPickable(ISelector::CHANNEL);
+  connect(&m_picker, SIGNAL(itemsPicked(ISelector::PickList)),
+          this, SLOT(defineVOI(ISelector::PickList)));
 
   vtkMath::UninitializeBounds(m_bounds);
-  model->factory()->registerSettingsPanel(m_settingsPanel);
+  m_model->factory()->registerSettingsPanel(m_settingsPanel.get());
 }
 
 //-----------------------------------------------------------------------------
 RectangularVOI::~RectangularVOI()
 {
-  delete m_settingsPanel;
+//   qDebug() << "Destroy RVOI";
   delete m_settings;
 
   if (m_sliceSelector)
@@ -151,35 +153,31 @@ IVOI::Region RectangularVOI::region()
 }
 
 //-----------------------------------------------------------------------------
-void RectangularVOI::defineVOI(IPicker::PickList channels)
+void RectangularVOI::defineVOI(ISelector::PickList channels)
 {
   if (channels.isEmpty())
     return;
 
   // Compute default bounds
   Q_ASSERT(channels.size() == 1); //Only one element is selected
-  IPicker::PickedItem pickedItem = channels.first();
+  ISelector::PickedItem pickedItem = channels.first();
 
   Q_ASSERT(pickedItem.first->GetNumberOfPoints() == 1); //Only one pixel's selected
   double pos[3];
   pickedItem.first->GetPoint(0, pos);
 
-  PickableItem *pItem = pickedItem.second;
-  if (ModelItem::CHANNEL != pItem->type())
+  PickableItemPtr pItem = pickedItem.second;
+  if (EspINA::CHANNEL != pItem->type())
     return;
 
-  Channel *pickedChannel = dynamic_cast<Channel *>(pItem);
+  ChannelPtr pickedChannel = channelPtr(pItem);
   double spacing[3];
   pickedChannel->volume()->spacing(spacing);
 
-  const Nm XHSIZE = m_settings->xSize();
-  const Nm YHSIZE = m_settings->ySize();
-  const Nm ZHSIZE = m_settings->zSize();
-
   Nm bounds[6] = {
-     pos[0] - XHSIZE, pos[0] + XHSIZE,
-     pos[1] - YHSIZE, pos[1] + YHSIZE,
-     pos[2] - ZHSIZE, pos[2] + ZHSIZE};
+     pos[0] - m_settings->xSize()/2.0, pos[0] + m_settings->xSize()/2.0,
+     pos[1] - m_settings->ySize()/2.0, pos[1] + m_settings->ySize()/2.0,
+     pos[2] - m_settings->zSize()/2.0, pos[2] + m_settings->zSize()/2.0 };
 
   m_widget = new RectangularRegion(bounds, m_viewManager);
   Q_ASSERT(m_widget);

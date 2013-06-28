@@ -21,8 +21,12 @@
 #define SEEDGROWSEGMENTATIONFILTERINSPECTOR_H
 
 #include <Core/Model/Filter.h>
+#include "ui_SGSFilterInspectorWidget.h"
 
 class QUndoStack;
+
+namespace EspINA
+{
 class SeedGrowSegmentationFilter;
 class ViewManager;
 
@@ -41,8 +45,6 @@ private:
 };
 
 
-#include "ui_SGSFilterInspectorWidget.h"
-
 class RectangularRegion;
 class RectangularRegionSliceSelector;
 
@@ -52,7 +54,9 @@ class SGSFilterInspector::Widget
 {
   Q_OBJECT
 public:
-  explicit Widget(Filter *filter, ViewManager *vm);
+  explicit Widget(Filter *filter,
+                  QUndoStack  *undoStack,
+                  ViewManager *vm);
   virtual ~Widget();
 
   virtual bool eventFilter(QObject* sender, QEvent* e );
@@ -63,15 +67,20 @@ protected slots:
   void updateRegionBounds();
   void modifyCloseValue(int);
   void modifyCloseCheckbox(int);
+  void updateWidget();
 
 private:
-  ViewManager                *m_viewManager;
-  SeedGrowSegmentationFilter *m_filter;
+  QUndoStack  *m_undoStack;
+  ViewManager *m_viewManager;
 
+  SeedGrowSegmentationFilter *m_filter;
   RectangularRegion          *m_region;
   //RectangularRegionSliceSelector *m_sliceSelctor;
 
-  Nm m_voiBounds[6];
+  int m_closeValue;
+  Nm  m_voiBounds[6];
 };
+
+} // namespace EspINA
 
 #endif // SEEDGROWSEGMENTATIONFILTERINSPECTOR_H

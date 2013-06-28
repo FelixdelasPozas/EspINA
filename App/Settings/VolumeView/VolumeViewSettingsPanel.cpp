@@ -20,27 +20,34 @@
 
 #include <QStandardItemModel>
 
+using namespace EspINA;
+
 //-----------------------------------------------------------------------------
-VolumeViewSettingsPanel::VolumeViewSettingsPanel(const EspinaFactory *factory,
+VolumeViewSettingsPanel::VolumeViewSettingsPanel(const EspinaFactoryPtr factory,
                                                  VolumeView::SettingsPtr settings)
 : m_factory(factory)
 , m_settings(settings)
 {
   setupUi(this);
 
+  showAxis->setVisible(false);
+
   QStandardItemModel *active, *available;
 
   active    = new QStandardItemModel(this);
   available = new QStandardItemModel(this);
 
-  foreach(Renderer *renderer, m_factory->renderers())
+  foreach(IRenderer *renderer, m_factory->renderers())
   {
+    if (!renderer->getRenderType().testFlag(IRenderer::RENDERER_VOLUMEVIEW))
+      continue;
+
     QStandardItem *item = new QStandardItem(renderer->icon(), renderer->name());
     item->setDropEnabled(false);
     item->setDragEnabled(true);
     item->setToolTip(renderer->tooltip());
     bool isActive = false;
-    foreach(Renderer* activeRenderer, m_settings->renderers())
+    foreach(IRenderer *activeRenderer, m_settings->renderers())
     {
       if (renderer->name() == activeRenderer->name())
         isActive = true;
@@ -58,8 +65,8 @@ VolumeViewSettingsPanel::VolumeViewSettingsPanel(const EspinaFactory *factory,
 //-----------------------------------------------------------------------------
 void VolumeViewSettingsPanel::acceptChanges()
 {
-  QList<Renderer *> renderers;
-  QMap<QString, Renderer *> rendererFactory = m_factory->renderers();
+  IRendererList renderers;
+  QMap<QString, IRenderer *> rendererFactory = m_factory->renderers();
 
   QAbstractItemModel *activeModel = activeRenderers->model();
   for(int i=0; i < activeModel->rowCount(); i++)
@@ -71,6 +78,12 @@ void VolumeViewSettingsPanel::acceptChanges()
 }
 
 //-----------------------------------------------------------------------------
+void VolumeViewSettingsPanel::rejectChanges()
+{
+
+}
+
+//-----------------------------------------------------------------------------
 bool VolumeViewSettingsPanel::modified() const
 {
   QSet<QString> current, previous;
@@ -79,7 +92,7 @@ bool VolumeViewSettingsPanel::modified() const
   for(int i=0; i < activeModel->rowCount(); i++)
     current << activeModel->index(i,0).data().toString();
 
-  foreach(Renderer* activeRenderer, m_settings->renderers())
+  foreach(IRenderer *activeRenderer, m_settings->renderers())
     previous << activeRenderer->name();
 
   return current != previous;
@@ -87,8 +100,7 @@ bool VolumeViewSettingsPanel::modified() const
 
 
 //-----------------------------------------------------------------------------
-ISettingsPanel* VolumeViewSettingsPanel::clone()
+ISettingsPanelPtr VolumeViewSettingsPanel::clone()
 {
-  return new VolumeViewSettingsPanel(m_factory, m_settings);
+  return ISettingsPanelPtr(new VolumeViewSettingsPanel(m_factory, m_settings));
 }
-

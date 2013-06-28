@@ -21,30 +21,39 @@
 
 
 #include "Core/VTK/vtkTube.h"
+#include <GUI/Pickers/BrushPicker.h>
 
 #include <QDebug>
 #include <QUndoStack>
 
+using namespace EspINA;
+
 //-----------------------------------------------------------------------------
-CircularBrush::CircularBrush(EspinaModel* model,
-                             QUndoStack* undoStack,
-                             ViewManager* viewManager)
-: Brush(model, undoStack, viewManager)
+CircularBrush::CircularBrush(EspinaModel *model,
+                             EditorToolBarSettings *settings,
+                             QUndoStack  *undoStack,
+                             ViewManager *viewManager)
+: Brush(model, settings, undoStack, viewManager)
 {
 }
 
 
 //-----------------------------------------------------------------------------
-Brush::BrushShape CircularBrush::createBrushShape(PickableItem* item, double center[3], Nm radius, PlaneType plane)
+CircularBrush::~CircularBrush()
 {
-  double spacing[3];
-  item->volume()->spacing(spacing);
+
+}
+
+//-----------------------------------------------------------------------------
+Brush::BrushShape CircularBrush::createBrushShape(PickableItemPtr item, double center[3], Nm radius, PlaneType plane)
+{
+  itkVolumeType::SpacingType spacing = m_brush->referenceSpacing();
 
   double sRadius = (plane == SAGITTAL)?0:radius;
   double cRadius = (plane ==  CORONAL)?0:radius;
   double aRadius = (plane ==    AXIAL)?0:radius;
 
-  double brushBounds[6];//TODO 2012-10-24 Crop bounds
+  double brushBounds[6];
   brushBounds[0] = center[0] - sRadius;
   brushBounds[1] = center[0] + sRadius;
   brushBounds[2] = center[1] - cRadius;
@@ -52,10 +61,12 @@ Brush::BrushShape CircularBrush::createBrushShape(PickableItem* item, double cen
   brushBounds[4] = center[2] - aRadius;
   brushBounds[5] = center[2] + aRadius;
 
+
   double baseCenter[3], topCenter[3];
   for (int i=0; i<3; i++)
     baseCenter[i] = topCenter[i] = center[i];
-  topCenter[plane] += 0.5*spacing[plane];
+
+  topCenter [plane] += 0.5*spacing[plane];
   baseCenter[plane] -= 0.5*spacing[plane];
 
   vtkTube *brush = vtkTube::New();

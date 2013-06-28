@@ -16,12 +16,13 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// EspINA
 #include "SeedGrowSegmentationTool.h"
-#include <Toolbars/SeedGrowSegmentation/ThresholdAction.h>
-#include <Toolbars/SeedGrowSegmentation/DefaultVOIAction.h>
-#include <Toolbars/SeedGrowSegmentation/Settings.h>
+#include <Toolbars/Segmentation/ThresholdAction.h>
+#include <Toolbars/Segmentation/DefaultVOIAction.h>
+#include <Toolbars/Segmentation/SeedGrowSegmentationSettings.h>
 #include <FilterInspectors/SeedGrowSegmentation/SGSFilterInspector.h>
-
+#include <Undo/SeedGrowSegmentationCommand.h>
 #include <Core/Model/Channel.h>
 #include <Core/Model/EspinaModel.h>
 #include <Core/Model/EspinaFactory.h>
@@ -30,65 +31,27 @@
 #include <GUI/QtWidget/EspinaRenderView.h>
 #include <GUI/ViewManager.h>
 #include <Core/Model/PickableItem.h>
+#include <Core/Model/Taxonomy.h>
 #include <Core/EspinaSettings.h>
-#include <GUI/Pickers/PixelPicker.h>
-#include <Filters/SeedGrowSegmentationFilter.h>
+#include <GUI/Pickers/PixelSelector.h>
+#include <Core/Filters/SeedGrowSegmentationFilter.h>
 
+// Qt
 #include <QApplication>
 #include <QWheelEvent>
 #include <QMessageBox>
 #include <QSettings>
 
+// VTK
 #include <vtkImageActor.h>
 #include <vtkLookupTable.h>
 #include <vtkImageMapper3D.h>
 #include <vtkImageResliceToColors.h>
 #include <vtkMatrix4x4.h>
-
-const QString SGS_VOI = "SGS VOI";
-
-//-----------------------------------------------------------------------------
-SeedGrowSegmentationTool::CreateSegmentation::CreateSegmentation(Channel* channel,
-                                                                 SeedGrowSegmentationFilter* filter,
-                                                                 Segmentation *segmentation,
-                                                                 TaxonomyElement* taxonomy,
-                                                                 EspinaModel* model)
-: m_model   ( model        )
-, m_channel ( channel      )
-, m_filter  ( filter       )
-, m_seg     ( segmentation )
-, m_taxonomy( taxonomy     )
-{
-  m_sample = m_channel->sample();
-  Q_ASSERT(m_sample);
-}
+#include <vtkMath.h>
 
 
-//-----------------------------------------------------------------------------
-void SeedGrowSegmentationTool::CreateSegmentation::redo()
-{
-  m_model->addFilter(m_filter);
-  m_model->addRelation(m_channel->filter(), m_filter, SeedGrowSegmentationFilter::INPUTLINK);
-  m_seg->setTaxonomy(m_taxonomy);
-  m_model->addSegmentation(m_seg);
-  m_model->addRelation(m_filter, m_seg, CREATELINK);
-  m_model->addRelation(m_sample, m_seg, Sample::WHERE);
-  m_model->addRelation(m_channel, m_seg, Channel::LINK);
-  m_seg->initializeExtensions();
-  //Request views to update its rep after initilizing extensions
-  m_seg->notifyModification();
-}
-
-//-----------------------------------------------------------------------------
-void SeedGrowSegmentationTool::CreateSegmentation::undo()
-{
-  m_model->removeRelation(m_channel->filter(), m_seg, SeedGrowSegmentationFilter::INPUTLINK);
-  m_model->removeRelation(m_sample, m_seg, Sample::WHERE);
-  m_model->removeRelation(m_filter, m_seg, CREATELINK);
-  m_model->removeSegmentation(m_seg);
-  m_model->removeRelation(m_channel, m_filter, Channel::LINK);
-  m_model->removeFilter(m_filter);
-}
+using namespace EspINA;
 
 //-----------------------------------------------------------------------------
 SeedGrowSegmentationTool::SeedGrowSegmentationTool(EspinaModel *model,
@@ -96,18 +59,17 @@ SeedGrowSegmentationTool::SeedGrowSegmentationTool(EspinaModel *model,
                                                    ViewManager *viewManager,
                                                    ThresholdAction  *th,
                                                    DefaultVOIAction *voi,
-                                                   SeedGrowSegmentation::Settings *settings,
-                                                   IPicker *picker)
+                                                   SeedGrowSegmentationSettings *settings,
+                                                   IPickerSPtr picker)
 : m_model(model)
 , m_undoStack(undoStack)
 , m_viewManager(viewManager)
 , m_settings(settings)
 , m_defaultVOI(voi)
 , m_threshold(th)
-, m_picker(NULL)
-, m_inUse(true)
+, m_inUse(false)
 , m_enabled(true)
-, m_validPos(true)
+, m_validPos(false)
 , connectFilter(NULL)
 , m_actor(NULL)
 , m_viewOfPreview(NULL)
@@ -223,53 +185,49 @@ void SeedGrowSegmentationTool::setInUse(bool value)
   if (m_inUse != value)
   {
     m_inUse = value;
-    if (!m_inUse)
+    if (!m_inUse || !m_viewManager->activeTaxonomy())
       emit segmentationStopped();
   }
 }
 
 //-----------------------------------------------------------------------------
-void SeedGrowSegmentationTool::setChannelPicker(IPicker* picker)
+void SeedGrowSegmentationTool::setChannelPicker(IPickerSPtr picker)
 {
   if (picker == m_picker)
     return;
 
   if (m_picker)
   {
-    disconnect(m_picker, SIGNAL(itemsPicked(IPicker::PickList)),
-               this, SLOT(startSegmentation(IPicker::PickList)));
+    disconnect(m_picker.get(), SIGNAL(itemsPicked(ISelector::PickList)),
+               this, SLOT(startSegmentation(ISelector::PickList)));
   }
 
   m_picker = picker;
 
   if (m_picker)
   {
-    m_picker->setPickable(IPicker::CHANNEL);
-    m_picker->setPickable(IPicker::SEGMENTATION, false);
-    connect(m_picker, SIGNAL(itemsPicked(IPicker::PickList)),
-            this, SLOT(startSegmentation(IPicker::PickList)));
+    m_picker->setPickable(ISelector::CHANNEL);
+    m_picker->setPickable(ISelector::SEGMENTATION, false);
+    connect(m_picker.get(), SIGNAL(itemsPicked(ISelector::PickList)),
+            this, SLOT(startSegmentation(ISelector::PickList)));
   }
 }
 
 //-----------------------------------------------------------------------------
-void SeedGrowSegmentationTool::startSegmentation(IPicker::PickList pickedItems)
+void SeedGrowSegmentationTool::startSegmentation(ISelector::PickList pickedItems)
 {
   if (pickedItems.size() != 1)
     return;
 
-  IPicker::PickedItem element = pickedItems.first();
-  PickableItem *input = element.second;
+  ISelector::PickedItem element = pickedItems.first();
+  PickableItemPtr input = element.second;
 
   Q_ASSERT(element.first->GetNumberOfPoints() == 1); // with one pixel
   Nm seedPoint[3];
   element.first->GetPoint(0, seedPoint);
-  //     qDebug() << "Channel:" << input->volume().id();
-  //     qDebug() << "Threshold:" << m_threshold->threshold();
-  //     qDebug() << "Seed:" << seed;
-  //     qDebug() << "Use Default VOI:" << m_useDefaultVOI->useDefaultVOI();
 
-  Q_ASSERT(ModelItem::CHANNEL == input->type()); //TODO Define active channel policy
-  Channel *channel = m_viewManager->activeChannel();
+  Q_ASSERT(EspINA::CHANNEL == input->type());
+  ChannelPtr channel = m_viewManager->activeChannel();
 
   if (!channel)
     return;
@@ -280,7 +238,7 @@ void SeedGrowSegmentationTool::startSegmentation(IPicker::PickList pickedItems)
   double spacing[3];
   channel->volume()->spacing(spacing);
 
-  TaxonomyElement *tax = m_viewManager->activeTaxonomy();
+  TaxonomyElementPtr tax = m_viewManager->activeTaxonomy();
   Q_ASSERT(tax);
 
   Nm voiBounds[6];
@@ -298,14 +256,22 @@ void SeedGrowSegmentationTool::startSegmentation(IPicker::PickList pickedItems)
     voiBounds[4] = seed[2]*spacing[2];
     voiBounds[5] = seed[2]*spacing[2];
 
+    if (!tax->properties().contains(TaxonomyElement::X_DIM) ||
+        !tax->properties().contains(TaxonomyElement::X_DIM) ||
+        !tax->properties().contains(TaxonomyElement::X_DIM))
+    {
+      tax->addProperty(TaxonomyElement::X_DIM, QVariant(m_settings->xSize()));
+      tax->addProperty(TaxonomyElement::Y_DIM, QVariant(m_settings->ySize()));
+      tax->addProperty(TaxonomyElement::Z_DIM, QVariant(m_settings->zSize()));
+    }
+
     QVariant xTaxSize = tax->property(TaxonomyElement::X_DIM);
     QVariant yTaxSize = tax->property(TaxonomyElement::Y_DIM);
     QVariant zTaxSize = tax->property(TaxonomyElement::Z_DIM);
 
     Nm xSize, ySize, zSize;
 
-    if (m_settings->taxonomicalVOI() && xTaxSize.isValid()
-     && yTaxSize.isValid() && zTaxSize.isValid())
+    if (m_settings->taxonomicalVOI() && xTaxSize.isValid() && yTaxSize.isValid() && zTaxSize.isValid())
     {
       xSize = xTaxSize.toDouble();
       ySize = yTaxSize.toDouble();
@@ -318,12 +284,12 @@ void SeedGrowSegmentationTool::startSegmentation(IPicker::PickList pickedItems)
       zSize = m_settings->zSize();
     }
 
-    voiBounds[0] -= xSize;
-    voiBounds[1] += xSize;
-    voiBounds[2] -= ySize;
-    voiBounds[3] += ySize;
-    voiBounds[4] -= zSize;
-    voiBounds[5] += zSize;
+    voiBounds[0] -= xSize/2.0;
+    voiBounds[1] += xSize/2.0;
+    voiBounds[2] -= ySize/2.0;
+    voiBounds[3] += ySize/2.0;
+    voiBounds[4] -= zSize/2.0;
+    voiBounds[5] += zSize/2.0;
 
   } else
   {
@@ -332,7 +298,7 @@ void SeedGrowSegmentationTool::startSegmentation(IPicker::PickList pickedItems)
 
   int voiExtent[6];
   for (int i=0; i<6; i++)
-    voiExtent[i] = (voiBounds[i] / spacing[i/2]) + 0.5;
+    voiExtent[i] = vtkMath::Round(voiBounds[i] / spacing[i/2]);
 
   Q_ASSERT(m_threshold->isSymmetrical());
   if (m_threshold->isSymmetrical())
@@ -346,51 +312,21 @@ void SeedGrowSegmentationTool::startSegmentation(IPicker::PickList pickedItems)
     voiExtent[2] <= seed[1] && seed[1] <= voiExtent[3] &&
     voiExtent[4] <= seed[2] && seed[2] <= voiExtent[5])
   {
+    SegmentationSList createdSegmentations;
     QApplication::setOverrideCursor(Qt::WaitCursor);
-
-    Filter::NamedInputs inputs;
-    Filter::Arguments   args;
-
-    SeedGrowSegmentationFilter::Parameters params(args);
-    params.setSeed(seed);
-    params.setLowerThreshold(m_threshold->lowerThreshold());
-    params.setUpperThreshold(m_threshold->upperThreshold());
-    params.setVOI(voiExtent);
-    params.setCloseValue(m_settings->closing());
-    inputs[SeedGrowSegmentationFilter::INPUTLINK] = channel->filter();
-    args[Filter::INPUTS] = Filter::NamedInput(SeedGrowSegmentationFilter::INPUTLINK, channel->outputId());
-    SeedGrowSegmentationFilter *filter;
-    filter = new SeedGrowSegmentationFilter(inputs, args);
-    filter->update();
-    Q_ASSERT(filter->outputs().size() == 1);
-
-    // NOTE: automatically assigns widget to filter on new()
-    new SGSFilterInspector(filter);
-
-    Segmentation *seg = m_model->factory()->createSegmentation(filter, 0);
-
-    double segBounds[6];
-    seg->volume()->bounds(segBounds);
-
-    bool incompleteSeg = false;
-    for (int i=0, j=1; i<6; i+=2, j+=2)
-      if (segBounds[i] <= voiBounds[i] || voiBounds[j] <= segBounds[j])
-        incompleteSeg = true;
-
-    if (incompleteSeg)
-    {
-      QMessageBox warning;
-      warning.setIcon(QMessageBox::Warning);
-      warning.setWindowTitle(tr("Seed Grow Segmentation Filter Information"));
-      warning.setText(tr("New segmentation may be incomplete due to VOI restriction."));
-      warning.exec();
-      QString condition = tr("Touch VOI");
-      seg->addCondition(SGS_VOI, ":/espina/voi.svg", condition);
-    }
-
-    seg->modifiedByUser(userName());
-
-    m_undoStack->push(new CreateSegmentation(channel, filter, seg, tax, m_model));
+    m_undoStack->beginMacro(tr("Seed Grow Segmentation"));
+    m_undoStack->push(new SeedGrowSegmentationCommand(channel,
+                                                      seed,
+                                                      voiExtent,
+                                                      m_threshold->lowerThreshold(),
+                                                      m_threshold->upperThreshold(),
+                                                      m_settings->closing(),
+                                                      m_viewManager->activeTaxonomy(),
+                                                      m_model,
+                                                      m_viewManager,
+                                                      createdSegmentations));
+    m_model->emitSegmentationAdded(createdSegmentations);
+    m_undoStack->endMacro();
     QApplication::restoreOverrideCursor();
   }
 }
@@ -401,7 +337,7 @@ void SeedGrowSegmentationTool::removePreview(EspinaRenderView *view)
   if (m_actor == NULL)
     return;
 
-  m_viewOfPreview->removePreview(m_actor);
+  m_viewOfPreview->removeActor(m_actor);
   connectFilter = NULL;
   i2v = NULL;
   m_actor = NULL;
@@ -412,7 +348,7 @@ void SeedGrowSegmentationTool::removePreview(EspinaRenderView *view)
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentationTool::addPreview(EspinaRenderView *view)
 {
-  IPicker::DisplayRegionList regions;
+  ISelector::DisplayRegionList regions;
   QPolygon singlePixel;
 
   int xPos, yPos;
@@ -422,21 +358,24 @@ void SeedGrowSegmentationTool::addPreview(EspinaRenderView *view)
   regions << singlePixel;
 
   QSet<QString> filter;
-  filter << IPicker::CHANNEL;
+  filter << ISelector::CHANNEL;
 
-  IPicker::PickList pickList = view->pick(filter, regions);
+  ISelector::PickList pickList = view->pick(filter, regions);
 
-  if (pickList.empty() || (pickList.first().second->type() != ModelItem::CHANNEL))
+  if (pickList.empty() || (pickList.first().second->type() != EspINA::CHANNEL))
   {
     removePreview(view);
     return;
   }
 
-  BestPixelSelector *selector = static_cast<BestPixelSelector*>(m_picker);
+  PixelSelector *selector = dynamic_cast<PixelSelector*>(m_picker.get());
+  if (!selector)
+    return;
+
   double *point = selector->getPickPoint(view);
   if (point == NULL)
   {
-    delete point;
+    delete[] point;
     removePreview(view);
     return;
   }
@@ -444,9 +383,9 @@ void SeedGrowSegmentationTool::addPreview(EspinaRenderView *view)
   if (view != m_viewOfPreview)
     removePreview(view);
 
-  EspinaVolume::Pointer pickedChannel = pickList.first().second->volume();
+  ChannelPtr pickedChannel = channelPtr(pickList.first().second);
   double spacing[3];
-  pickedChannel->spacing(spacing);
+  pickedChannel->volume()->spacing(spacing);
 
   itkVolumeType::IndexType seed;
   seed[0] = point[0]/spacing[0];
@@ -471,12 +410,40 @@ void SeedGrowSegmentationTool::addPreview(EspinaRenderView *view)
     if (m_defaultVOI->useDefaultVOI())
     {
       int voiExtent[6];
-      voiExtent[0] = seed[0] - (m_settings->xSize()/spacing[0]);
-      voiExtent[1] = seed[0] + (m_settings->xSize()/spacing[0]);
-      voiExtent[2] = seed[1] - (m_settings->ySize()/spacing[1]);
-      voiExtent[3] = seed[1] + (m_settings->ySize()/spacing[1]);
-      voiExtent[4] = seed[2] - (m_settings->zSize()/spacing[2]);
-      voiExtent[5] = seed[2] + (m_settings->zSize()/spacing[2]);
+      TaxonomyElementPtr tax = m_viewManager->activeTaxonomy();
+      Q_ASSERT(tax);
+
+      if (!tax->properties().contains(TaxonomyElement::X_DIM) ||
+          !tax->properties().contains(TaxonomyElement::X_DIM) ||
+          !tax->properties().contains(TaxonomyElement::X_DIM))
+      {
+        tax->addProperty(TaxonomyElement::X_DIM, QVariant(m_settings->xSize()));
+        tax->addProperty(TaxonomyElement::Y_DIM, QVariant(m_settings->ySize()));
+        tax->addProperty(TaxonomyElement::Z_DIM, QVariant(m_settings->zSize()));
+      }
+
+      QVariant xTaxSize = tax->property(TaxonomyElement::X_DIM);
+      QVariant yTaxSize = tax->property(TaxonomyElement::Y_DIM);
+      QVariant zTaxSize = tax->property(TaxonomyElement::Z_DIM);
+
+      if (m_settings->taxonomicalVOI() && xTaxSize.isValid() && yTaxSize.isValid() && zTaxSize.isValid())
+      {
+        voiExtent[0] = seed[0] - vtkMath::Round(xTaxSize.toDouble()/spacing[0]);
+        voiExtent[1] = seed[0] + vtkMath::Round(xTaxSize.toDouble()/spacing[0]);
+        voiExtent[2] = seed[1] - vtkMath::Round(yTaxSize.toDouble()/spacing[1]);
+        voiExtent[3] = seed[1] + vtkMath::Round(yTaxSize.toDouble()/spacing[1]);
+        voiExtent[4] = seed[2] - vtkMath::Round(zTaxSize.toDouble()/spacing[2]);
+        voiExtent[5] = seed[2] + vtkMath::Round(zTaxSize.toDouble()/spacing[2]);
+      }
+      else
+      {
+        voiExtent[0] = seed[0] - vtkMath::Round(m_settings->xSize()/(2.0*spacing[0]));
+        voiExtent[1] = seed[0] + vtkMath::Round(m_settings->xSize()/(2.0*spacing[0]));
+        voiExtent[2] = seed[1] - vtkMath::Round(m_settings->ySize()/(2.0*spacing[1]));
+        voiExtent[3] = seed[1] + vtkMath::Round(m_settings->ySize()/(2.0*spacing[1]));
+        voiExtent[4] = seed[2] - vtkMath::Round(m_settings->zSize()/(2.0*spacing[2]));
+        voiExtent[5] = seed[2] + vtkMath::Round(m_settings->zSize()/(2.0*spacing[2]));
+      }
 
       extent[0] = (voiExtent[0] > extent[0]) ? voiExtent[0] : extent[0];
       extent[1] = (voiExtent[1] < extent[1]) ? voiExtent[1] : extent[1];
@@ -517,7 +484,7 @@ void SeedGrowSegmentationTool::addPreview(EspinaRenderView *view)
   ExtractType::Pointer extract = ExtractType::New();
   extract->SetInPlace(false);
   extract->ReleaseDataFlagOff();
-  extract->SetInput(pickedChannel->toITK());
+  extract->SetInput(pickedChannel->volume()->toITK());
   extract->SetExtractionRegion(region);
   extract->Update();
 
@@ -584,7 +551,7 @@ void SeedGrowSegmentationTool::addPreview(EspinaRenderView *view)
     plane = 0;
   }
   i2v->GetOutput()->Update();
-  delete point;
+  delete[] point;
 
   vtkSmartPointer<vtkImageResliceToColors> reslice = vtkSmartPointer<vtkImageResliceToColors>::New();
   reslice->OptimizationOn();
@@ -607,10 +574,10 @@ void SeedGrowSegmentationTool::addPreview(EspinaRenderView *view)
   double pos[3];
   memset(pos, 0, 3*sizeof(double));
   int sign = ((plane == 2) ? -1 : 1);
-  pos[plane] += (sign*0.1);
+  pos[plane] += (sign * 0.09); // the crosshair is at 0.1, and the preview must be under it
   m_actor->SetPosition(pos);
 
-  view->addPreview(m_actor);
+  view->addActor(m_actor);
   m_viewOfPreview = view;
   view->updateView();
 }

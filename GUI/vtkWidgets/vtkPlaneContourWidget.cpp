@@ -2,14 +2,17 @@
  * vtkPlaneContourWidget.cpp
  *
  *  Created on: Sep 8, 2012
- *      Author: Félix de las Pozas Alvarez
+ *      Author: Félix de las Pozas Álvarez
  */
 
+// EspINA
 #include "vtkPlaneContourWidget.h"
 #include "vtkPlaneContourRepresentation.h"
 #include "vtkPlaneContourRepresentationGlyph.h"
 #include <Core/EspinaTypes.h>
+#include "ContourWidget.h"
 
+// VTK
 #include <vtkCommand.h>
 #include <vtkCallbackCommand.h>
 #include <vtkRenderWindowInteractor.h>
@@ -27,12 +30,18 @@
 #include <vtkInteractorStyleImage.h>
 #include <vtkSmartPointer.h>
 #include <vtkLinearContourLineInterpolator.h>
+#include <vtkMath.h>
 
+// Qt
 #include <QApplication>
 #include <QPixmap>
+#include <QObject>
+
+using namespace EspINA;
 
 vtkStandardNewMacro(vtkPlaneContourWidget);
 
+//----------------------------------------------------------------------------
 vtkPlaneContourWidget::vtkPlaneContourWidget()
 : WidgetState(vtkPlaneContourWidget::Start)
 , CurrentHandle(0)
@@ -44,6 +53,9 @@ vtkPlaneContourWidget::vtkPlaneContourWidget()
 , ContinuousDrawTolerance(40)
 , mouseButtonDown(false)
 , m_polygonColor(Qt::black)
+, m_parent(NULL)
+, m_contourMode(Brush::BRUSH)
+, m_actualBrushMode(Brush::BRUSH)
 {
   this->ManagesCursor = 0; // from Superclass
   this->CreateDefaultRepresentation();
@@ -56,14 +68,17 @@ vtkPlaneContourWidget::vtkPlaneContourWidget()
   this->CallbackMapper->SetCallbackMethod(vtkCommand::KeyPressEvent, vtkWidgetEvent::ModifyEvent, this, vtkPlaneContourWidget::KeyPressAction);
   this->CallbackMapper->SetCallbackMethod(vtkCommand::KeyReleaseEvent, vtkWidgetEvent::ModifyEvent, this, vtkPlaneContourWidget::KeyPressAction);
 
-  QPixmap crossMinusPixmap, crossPlusPixmap;
+  QPixmap crossMinusPixmap, crossPlusPixmap, crossCheckPixmap;
   crossMinusPixmap.load(":espina/cross-minus.png", "PNG", Qt::ColorOnly);
   crossPlusPixmap.load(":espina/cross-plus.png", "PNG", Qt::ColorOnly);
+  crossCheckPixmap.load(":espina/cross-check.png", "PNG", Qt::ColorOnly);
 
   this->crossMinusCursor = QCursor(crossMinusPixmap, -1, -1);
   this->crossPlusCursor = QCursor(crossPlusPixmap, -1, -1);
+  this->crossCheckCursor = QCursor(crossCheckPixmap, -1, -1);
 }
 
+//----------------------------------------------------------------------------
 vtkPlaneContourWidget::~vtkPlaneContourWidget()
 {
   // restore the pointer if the widget has changed it
@@ -71,6 +86,7 @@ vtkPlaneContourWidget::~vtkPlaneContourWidget()
     QApplication::restoreOverrideCursor();
 }
 
+//----------------------------------------------------------------------------
 void vtkPlaneContourWidget::CreateDefaultRepresentation()
 {
   if (!this->WidgetRep)
@@ -85,7 +101,6 @@ void vtkPlaneContourWidget::CreateDefaultRepresentation()
     ss->SetRadius(0.5);
     rep->SetActiveCursorShape(ss->GetOutput());
     ss->Delete();
-    rep->GetProperty()->SetColor(1.0, 1.0, 1.0);
 
     vtkProperty *property = vtkProperty::SafeDownCast(rep->GetActiveProperty());
     if (property)
@@ -98,6 +113,7 @@ void vtkPlaneContourWidget::CreateDefaultRepresentation()
   }
 }
 
+//----------------------------------------------------------------------------
 void vtkPlaneContourWidget::CloseLoop()
 {
   vtkPlaneContourRepresentation *rep = reinterpret_cast<vtkPlaneContourRepresentation*>(this->WidgetRep);
@@ -107,9 +123,11 @@ void vtkPlaneContourWidget::CloseLoop()
     rep->ClosedLoopOn();
     rep->UseContourPolygon(true);
     this->Render();
+    m_parent->endContourFromWidget();
   }
 }
 
+//----------------------------------------------------------------------------
 void vtkPlaneContourWidget::SetEnabled(int enabling)
 {
   // The handle widgets are not actually enabled until they are placed.
@@ -132,6 +150,7 @@ void vtkPlaneContourWidget::SetEnabled(int enabling)
   this->Superclass::SetEnabled(enabling);
 }
 
+//----------------------------------------------------------------------------
 // The following methods are the callbacks that the contour widget responds to.
 void vtkPlaneContourWidget::SelectAction(vtkAbstractWidget *w)
 {
@@ -166,9 +185,29 @@ void vtkPlaneContourWidget::SelectAction(vtkAbstractWidget *w)
       // first click. The second node is the one that follows the cursor
       // around.
       if ((self->FollowCursor || self->ContinuousDraw) && (rep->GetNumberOfNodes() == 0))
+      {
+        self->m_parent->startContourFromWidget();
+        vtkPlaneContourRepresentationGlyph *repGlyph = reinterpret_cast<vtkPlaneContourRepresentationGlyph*>(self->WidgetRep);
+        switch(self->m_actualBrushMode)
+        {
+          case Brush::BRUSH:
+            repGlyph->SetLineColor(0,0,1);
+            break;
+          case Brush::ERASER:
+            repGlyph->SetLineColor(1,0,0);
+            break;
+          default:
+            Q_ASSERT(false);
+            break;
+        }
+
         self->AddNode();
+      }
 
       self->AddNode();
+
+      if (self->WidgetState == vtkPlaneContourWidget::Manipulate)
+        break;
 
       // check if the cursor crosses the actual contour, if so then close the contour
       // and end defining
@@ -183,6 +222,8 @@ void vtkPlaneContourWidget::SelectAction(vtkAbstractWidget *w)
         self->WidgetState = vtkPlaneContourWidget::Manipulate;
         self->EventCallbackCommand->SetAbortFlag(1);
         self->InvokeEvent(vtkCommand::EndInteractionEvent, NULL);
+        self->m_contourMode = self->m_actualBrushMode;
+        self->m_parent->endContourFromWidget();
       }
       else
       {
@@ -219,6 +260,7 @@ void vtkPlaneContourWidget::SelectAction(vtkAbstractWidget *w)
         rep->SetCurrentOperationToTranslate();
         rep->StartWidgetInteraction(pos);
         self->EventCallbackCommand->SetAbortFlag(1);
+        break;
       }
       else
         if (rep->AddNodeOnContour(X, Y))
@@ -229,10 +271,15 @@ void vtkPlaneContourWidget::SelectAction(vtkAbstractWidget *w)
             rep->StartWidgetInteraction(pos);
           }
           self->EventCallbackCommand->SetAbortFlag(1);
+          break;
         }
-        else
-          if (!rep->GetNeedToRender())
-            rep->SetRebuildLocator(true);
+
+      if (!rep->GetNeedToRender())
+        rep->SetRebuildLocator(true);
+
+      // start a new contour
+      self->m_parent->startContourFromWidget();
+      self->SelectAction(w);
       break;
     }
   }
@@ -244,6 +291,7 @@ void vtkPlaneContourWidget::SelectAction(vtkAbstractWidget *w)
   }
 }
 
+//----------------------------------------------------------------------------
 void vtkPlaneContourWidget::AddFinalPointAction(vtkAbstractWidget *w)
 {
   vtkPlaneContourWidget *self = reinterpret_cast<vtkPlaneContourWidget*>(w);
@@ -300,8 +348,12 @@ void vtkPlaneContourWidget::AddFinalPointAction(vtkAbstractWidget *w)
     self->Render();
     rep->NeedToRenderOff();
   }
+
+  self->m_contourMode = self->m_actualBrushMode;
+  self->m_parent->endContourFromWidget();
 }
 
+//----------------------------------------------------------------------------
 void vtkPlaneContourWidget::AddNode()
 {
   int X = this->Interactor->GetEventPosition()[0];
@@ -313,36 +365,43 @@ void vtkPlaneContourWidget::AddNode()
   int numNodes = rep->GetNumberOfNodes();
   if (numNodes > 1)
   {
-    int pixelTolerance = rep->GetPixelTolerance();
-    int pixelTolerance2 = pixelTolerance * pixelTolerance;
-
-    double displayPos[2];
-    if (!rep->GetNthNodeDisplayPosition(0, displayPos))
-    {
-      vtkErrorMacro("Can't get first node display position!");
-      return;
-    }
+    int closestNode = this->FindClosestNode();
 
     // if in continuous draw mode, we don't want to close the loop until we are at least
     // numNodes > pixelTolerance away
-    int distance2 = static_cast<int>((X - displayPos[0]) * (X - displayPos[0])
-        + (Y - displayPos[1]) * (Y - displayPos[1]));
-
-    if ((distance2 < pixelTolerance2) && (numNodes > 2))
+    if ((closestNode != -1) && !this->ContinuousActive && (numNodes > 2))
     {
-      // yes - we have made a loop. Stop defining and switch to manipulate mode
-      this->WidgetState = vtkPlaneContourWidget::Manipulate;
+      double nodePos[3];
+      if (this->FollowCursor)
+        rep->DeleteLastNode();
+      rep->GetNthNodeWorldPosition(closestNode, nodePos);
+      rep->AddNodeAtWorldPosition(nodePos);
+      rep->CheckAndCutContourIntersectionInFinalPoint();
+
+      // set the closed loop now
       rep->ClosedLoopOn();
       rep->UseContourPolygon(true);
+
+      this->WidgetState = vtkPlaneContourWidget::Manipulate;
       this->Render();
       this->EventCallbackCommand->SetAbortFlag(1);
       this->InvokeEvent(vtkCommand::EndInteractionEvent, NULL);
+      this->m_contourMode = this->m_actualBrushMode;
+      this->m_parent->endContourFromWidget();
+
+      // change cursor
+      int X = this->Interactor->GetEventPosition()[0];
+      int Y = this->Interactor->GetEventPosition()[1];
+
+      this->WidgetRep->ComputeInteractionState(X, Y);
+      int state = this->WidgetRep->GetInteractionState();
+      this->SetCursor(state);
+
       return;
     }
   }
 
   // check we are in continuous mode and try not to add too many points
-
   if (rep->AddNodeAtDisplayPosition(X, Y))
   {
     if (this->WidgetState == vtkPlaneContourWidget::Start)
@@ -355,6 +414,7 @@ void vtkPlaneContourWidget::AddNode()
   }
 }
 
+//----------------------------------------------------------------------------
 void vtkPlaneContourWidget::TranslateContourAction(vtkAbstractWidget *w)
 {
   vtkPlaneContourWidget *self = reinterpret_cast<vtkPlaneContourWidget*>(w);
@@ -384,6 +444,7 @@ void vtkPlaneContourWidget::TranslateContourAction(vtkAbstractWidget *w)
   }
 }
 
+//----------------------------------------------------------------------------
 // not used
 void vtkPlaneContourWidget::ScaleContourAction(vtkAbstractWidget *w)
 {
@@ -433,6 +494,7 @@ void vtkPlaneContourWidget::ScaleContourAction(vtkAbstractWidget *w)
   }
 }
 
+//----------------------------------------------------------------------------
 void vtkPlaneContourWidget::DeleteAction(vtkAbstractWidget *w)
 {
   vtkPlaneContourWidget *self = reinterpret_cast<vtkPlaneContourWidget*>(w);
@@ -477,6 +539,7 @@ void vtkPlaneContourWidget::DeleteAction(vtkAbstractWidget *w)
   }
 }
 
+//----------------------------------------------------------------------------
 void vtkPlaneContourWidget::MoveAction(vtkAbstractWidget *w)
 {
   vtkPlaneContourWidget *self = reinterpret_cast<vtkPlaneContourWidget*>(w);
@@ -499,80 +562,48 @@ void vtkPlaneContourWidget::MoveAction(vtkAbstractWidget *w)
       // Have the last node follow the mouse in this case...
       const int numNodes = rep->GetNumberOfNodes();
 
-      // First check if the last node is near the first node, if so, we intend closing the loop.
       if (numNodes > 1)
       {
-        double displayPos[2];
-        int pixelTolerance = rep->GetPixelTolerance();
-        int pixelTolerance2 = pixelTolerance * pixelTolerance;
-
-        rep->GetNthNodeDisplayPosition(0, displayPos);
-
-        int distance2 = static_cast<int>((X - displayPos[0]) * (X - displayPos[0]) + (Y - displayPos[1]) * (Y - displayPos[1]));
-
-        const bool mustCloseLoop = ((distance2 < pixelTolerance2) && (numNodes > 2));
-
-        if (mustCloseLoop != (rep->GetClosedLoop() == 1))
+        if (rep->GetClosedLoop() == 0)
         {
-          if (rep->GetClosedLoop())
+          if (self->ContinuousDraw && self->ContinuousActive)
           {
-            // We need to open the closed loop. We do this by adding a node at (X,Y). If by chance the
-            // point placer says that (X,Y) is invalid, we'll add it at the location of the first control point (which we know is valid).
-            if (!rep->AddNodeAtDisplayPosition(X, Y))
+            if (self->IsPointTooClose(X, Y) && (rep->GetNumberOfNodes() > 2))
+              return;
+
+            rep->AddNodeAtDisplayPosition(X, Y);
+            self->InvokeEvent(vtkCommand::InteractionEvent, NULL);
+
+            // check the contour detect if it intersects with itself
+            if (rep->CheckAndCutContourIntersection())
             {
-              double closedLoopPoint[3];
-              rep->GetNthNodeWorldPosition(0, closedLoopPoint);
-              rep->AddNodeAtDisplayPosition(closedLoopPoint);
+              // last check
+              int numNodes = rep->GetNumberOfNodes();
+              if (rep->CheckNodesForDuplicates(numNodes - 1, numNodes - 2))
+                rep->DeleteNthNode(numNodes - 2);
+
+              if (self->ContinuousDraw)
+                self->ContinuousActive = 0;
+
+              // set the closed loop now
+              rep->ClosedLoopOn();
+              rep->UseContourPolygon(true);
+
+              self->WidgetState = vtkPlaneContourWidget::Manipulate;
+              self->EventCallbackCommand->SetAbortFlag(1);
+              self->InvokeEvent(vtkCommand::EndInteractionEvent, NULL);
+              self->m_contourMode = self->m_actualBrushMode;
+              self->m_parent->endContourFromWidget();
+              return;
             }
-            rep->ClosedLoopOff();
           }
           else
           {
-            // We need to close the open loop. Delete the node that's following the mouse cursor and close the loop between the previous node
-            // and the first node.
-            rep->DeleteLastNode();
-            rep->ClosedLoopOn();
+            // If we aren't changing the loop topology, simply update the position of the latest node to follow the mouse cursor position (X,Y).
+            rep->SetNthNodeDisplayPosition(numNodes - 1, X, Y);
+            self->InvokeEvent(vtkCommand::InteractionEvent, NULL);
           }
         }
-        else
-          if (rep->GetClosedLoop() == 0)
-          {
-            if (self->ContinuousDraw && self->ContinuousActive)
-            {
-              if (self->IsPointTooClose(X,Y) && (rep->GetNumberOfNodes() > 2))
-                return;
-
-              rep->AddNodeAtDisplayPosition(X, Y);
-              self->InvokeEvent(vtkCommand::InteractionEvent, NULL);
-
-              // check the contour detect if it intersects with itself
-              if (rep->CheckAndCutContourIntersection())
-              {
-                // last check
-                int numNodes = rep->GetNumberOfNodes();
-                if (rep->CheckNodesForDuplicates(numNodes - 1, numNodes - 2))
-                  rep->DeleteNthNode(numNodes - 2);
-
-                if (self->ContinuousDraw)
-                  self->ContinuousActive = 0;
-
-                // set the closed loop now
-                rep->ClosedLoopOn();
-                rep->UseContourPolygon(true);
-
-                self->WidgetState = vtkPlaneContourWidget::Manipulate;
-                self->EventCallbackCommand->SetAbortFlag(1);
-                self->InvokeEvent(vtkCommand::EndInteractionEvent, NULL);
-                return;
-              }
-            }
-            else
-            {
-              // If we aren't changing the loop topology, simply update the position of the latest node to follow the mouse cursor position (X,Y).
-              rep->SetNthNodeDisplayPosition(numNodes - 1, X, Y);
-              self->InvokeEvent(vtkCommand::InteractionEvent, NULL);
-            }
-          }
       }
     }
     else
@@ -600,6 +631,7 @@ void vtkPlaneContourWidget::MoveAction(vtkAbstractWidget *w)
   }
 }
 
+//----------------------------------------------------------------------------
 void vtkPlaneContourWidget::EndSelectAction(vtkAbstractWidget *w)
 {
   vtkPlaneContourWidget *self = reinterpret_cast<vtkPlaneContourWidget*>(w);
@@ -641,12 +673,14 @@ void vtkPlaneContourWidget::EndSelectAction(vtkAbstractWidget *w)
   self->SetCursor(state);
 }
 
+//----------------------------------------------------------------------------
 void vtkPlaneContourWidget::ResetAction(vtkAbstractWidget *w)
 {
   vtkPlaneContourWidget *self = reinterpret_cast<vtkPlaneContourWidget*>(w);
   self->Initialize(NULL);
 }
 
+//----------------------------------------------------------------------------
 void vtkPlaneContourWidget::Initialize(vtkPolyData * pd, int state)
 {
   if (!this->WidgetRep)
@@ -655,6 +689,7 @@ void vtkPlaneContourWidget::Initialize(vtkPolyData * pd, int state)
   vtkPlaneContourRepresentation *rep = reinterpret_cast<vtkPlaneContourRepresentation*>(this->WidgetRep);
   rep->UseContourPolygon(false);
 
+  Brush::BrushMode brushMode;
   if (pd == NULL)
   {
     while (rep->DeleteLastNode())
@@ -666,21 +701,41 @@ void vtkPlaneContourWidget::Initialize(vtkPolyData * pd, int state)
     rep->NeedToRenderOff();
     rep->VisibilityOff();
     this->WidgetState = vtkPlaneContourWidget::Start;
+    brushMode = m_actualBrushMode;
   }
   else
   {
     rep->Initialize(pd);
     this->WidgetState = vtkPlaneContourWidget::Manipulate;
     rep->UseContourPolygon(true);
+    brushMode = m_contourMode;
+  }
+
+  vtkPlaneContourRepresentationGlyph *repGlyph = reinterpret_cast<vtkPlaneContourRepresentationGlyph*>(this->WidgetRep);
+  switch(brushMode)
+  {
+    case Brush::BRUSH:
+      repGlyph->SetLineColor(0,0,1);
+      break;
+    case Brush::ERASER:
+      repGlyph->SetLineColor(1,0,0);
+      break;
+    default:
+      Q_ASSERT(false);
+      break;
   }
 
   int X = this->Interactor->GetEventPosition()[0];
   int Y = this->Interactor->GetEventPosition()[1];
   this->WidgetRep->ComputeInteractionState(X,Y);
   int wState = this->WidgetRep->GetInteractionState();
-  this->SetCursor(wState);
+  if (pd == NULL)
+    this->SetCursor(vtkPlaneContourRepresentation::Outside);
+  else
+    this->SetCursor(wState);
 }
 
+//----------------------------------------------------------------------------
 void vtkPlaneContourWidget::SetAllowNodePicking(int val)
 {
   if (this->AllowNodePicking == val)
@@ -694,6 +749,7 @@ void vtkPlaneContourWidget::SetAllowNodePicking(int val)
   }
 }
 
+//----------------------------------------------------------------------------
 void vtkPlaneContourWidget::PrintSelf(ostream& os, vtkIndent indent)
 {
   //Superclass typedef defined in vtkTypeMacro() found in vtkSetGet.h
@@ -706,11 +762,50 @@ void vtkPlaneContourWidget::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "ContinuousDraw: " << (this->ContinuousDraw ? "On" : "Off") << endl;
 }
 
+//----------------------------------------------------------------------------
+int vtkPlaneContourWidget::FindClosestNode()
+{
+  double lastNodePos[3], nodePos[3];
+  int closestNode = -1;
+  double closestDistance = VTK_DOUBLE_MAX;
+
+  vtkPlaneContourRepresentation *rep = reinterpret_cast<vtkPlaneContourRepresentation*>(this->WidgetRep);
+  if (rep->GetNumberOfNodes() >= 4)
+  {
+    int pixelTolerance = rep->GetPixelTolerance();
+    rep->GetNthNodeWorldPosition(rep->GetNumberOfNodes()-1, lastNodePos);
+
+    for (int i = 0; i < rep->GetNumberOfNodes()-1; ++i)
+    {
+      rep->GetNthNodeWorldPosition(i, nodePos);
+      double distance = vtkMath::Distance2BetweenPoints(nodePos, lastNodePos);
+      if ((distance < pixelTolerance) && (distance < closestDistance))
+      {
+        closestDistance = distance;
+        closestNode = i;
+      }
+    }
+  }
+
+  return closestNode;
+}
+
+//----------------------------------------------------------------------------
 void vtkPlaneContourWidget::SetCursor(int cState)
 {
   // cursor will only change in manipulate or start mode only
   if (this->WidgetState == vtkPlaneContourWidget::Define)
   {
+    if (-1 != FindClosestNode() && !this->mouseButtonDown)
+    {
+      if (!this->ManagesCursor)
+      {
+        this->ManagesCursor = true;
+        QApplication::setOverrideCursor(crossCheckCursor);
+      }
+      return;
+    }
+
     if (this->ManagesCursor)
     {
       this->ManagesCursor = false;
@@ -756,6 +851,7 @@ void vtkPlaneContourWidget::SetCursor(int cState)
   }
 }
 
+//----------------------------------------------------------------------------
 // NOTE: keypress/keyrelease vtk events are mostly useless. when the interactor loses focus and then user
 // 		 presses the keys we are watching outside the interactor it really fucks the widget state as it
 //		 still has the keyboard focus. the solution is a mixed vtk/qt key events watching and using a
@@ -785,6 +881,7 @@ void vtkPlaneContourWidget::KeyPressAction(vtkAbstractWidget *w)
   self->SetCursor(state);
 }
 
+//----------------------------------------------------------------------------
 void vtkPlaneContourWidget::SetOrientation(PlaneType plane)
 {
   Orientation = plane;
@@ -792,17 +889,20 @@ void vtkPlaneContourWidget::SetOrientation(PlaneType plane)
   rep->SetOrientation(Orientation);
 }
 
+//----------------------------------------------------------------------------
 PlaneType vtkPlaneContourWidget::GetOrientation()
 {
   return Orientation;
 }
 
+//----------------------------------------------------------------------------
 bool vtkPlaneContourWidget::IsPointTooClose(int X, int Y)
 {
   vtkPlaneContourRepresentationGlyph *rep = reinterpret_cast<vtkPlaneContourRepresentationGlyph*>(this->WidgetRep);
   return (rep->Distance2BetweenPoints(X,Y, rep->GetNumberOfNodes()-2) < this->ContinuousDrawTolerance);
 }
 
+//----------------------------------------------------------------------------
 void vtkPlaneContourWidget::setPolygonColor(QColor color)
 {
   this->m_polygonColor = color;
@@ -810,8 +910,43 @@ void vtkPlaneContourWidget::setPolygonColor(QColor color)
   rep->setPolygonColor(color);
 }
 
+//----------------------------------------------------------------------------
 QColor vtkPlaneContourWidget::getPolygonColor()
 {
   return this->m_polygonColor;
 }
 
+//----------------------------------------------------------------------------
+void vtkPlaneContourWidget::setActualContourMode(Brush::BrushMode mode)
+{
+  m_contourMode = mode;
+}
+
+//----------------------------------------------------------------------------
+void vtkPlaneContourWidget::setContourMode(Brush::BrushMode mode)
+{
+  m_actualBrushMode = mode;
+
+  if (this->WidgetState != vtkPlaneContourWidget::Manipulate)
+  {
+    vtkPlaneContourRepresentationGlyph *rep = reinterpret_cast<vtkPlaneContourRepresentationGlyph*>(this->WidgetRep);
+    switch(m_actualBrushMode)
+    {
+      case Brush::BRUSH:
+        rep->SetLineColor(0,0,1);
+        break;
+      case Brush::ERASER:
+        rep->SetLineColor(1,0,0);
+        break;
+      default:
+        Q_ASSERT(false);
+        break;
+    }
+  }
+}
+
+//----------------------------------------------------------------------------
+Brush::BrushMode vtkPlaneContourWidget::getContourMode()
+{
+  return m_contourMode;
+}

@@ -254,7 +254,8 @@ void ModelTest::index()
 
     // Catch off by one errors
     Q_ASSERT ( model->index ( rows, columns ) == QModelIndex() );
-    Q_ASSERT ( model->index ( 0, 0 ).isValid() == true );
+    if (!model->index(0,0).isValid())
+      Q_ASSERT ( model->index ( 0, 0 ).isValid() == true );
 
     // Make sure that the same index is *always* returned
     QModelIndex a = model->index ( 0, 0 );
@@ -373,6 +374,8 @@ void ModelTest::checkChildren ( const QModelIndex &parent, int currentDepth )
             Q_ASSERT ( model->hasIndex ( r, c, parent ) == true );
             QModelIndex index = model->index ( r, c, parent );
             // rowCount() and columnCount() said that it existed...
+            if (!model->index(r, c, parent).isValid())
+              QModelIndex index2 = model->index ( r, c, parent );
             Q_ASSERT ( index.isValid() == true );
 
             // index() should always return the same index when called twice in a row
@@ -407,7 +410,8 @@ void ModelTest::checkChildren ( const QModelIndex &parent, int currentDepth )
 
             // Check that we can get back our real parent.
 //             qDebug() << index.data(Qt::DisplayRole)<< model->parent ( index ) << parent ;
-            Q_ASSERT ( model->parent ( index ) == parent );
+if (model->parent(index) != parent)
+  Q_ASSERT ( model->parent ( index ) == parent );
 
             // recursively go down the children
             if ( model->hasChildren ( index ) && currentDepth < 10 )

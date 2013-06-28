@@ -20,47 +20,64 @@
 #ifndef SELECTABLEITEM_H
 #define SELECTABLEITEM_H
 
-#include "Core/Model/ModelItem.h"
+#include "EspinaCore_Export.h"
 
+#include "Core/Model/ModelItem.h"
 #include "Core/EspinaTypes.h"
-#include "Core/Model/Filter.h"
+#include "Core/Model/Output.h"
 
 #include <QIcon>
 
 class vtkAlgorithmOutput;
 
-class PickableItem
-: public ModelItem
+namespace EspINA
 {
-public:
-  typedef QPair<QString, QString> ConditionInfo;
 
-public:
-  ~PickableItem(){}
-
-  virtual bool isSelected() const {return m_isSelected;}
-  virtual void setSelected(bool value) {m_isSelected = value;}
-
-  virtual const Filter *filter() const = 0;
-  virtual Filter *filter() = 0;
-  virtual const Filter::OutputId  outputId() const = 0;
-
-  EspinaVolume::Pointer volume();
-  const EspinaVolume::Pointer volume() const;
-
-  /// Add a new condition to the item:
-  /// Conditions provide extra information about the state of the item
-  /// i.e. Discarted by Counting Region
-  void addCondition(QString state, QString icon, QString description)
+  class EspinaCore_EXPORT PickableItem
+  : public ModelItem
   {
-    m_conditions[state] = ConditionInfo(icon, description);
-  }
+    Q_OBJECT
+  public:
+    PickableItem();
+    ~PickableItem(){}
 
-protected:
-  bool m_isSelected;
-  QMap<QString, ConditionInfo> m_conditions;
-};
+    virtual bool isSelected() const {return m_isSelected;}
+    virtual void setSelected(bool value) {m_isSelected = value;}
 
-typedef QSharedPointer<PickableItem> SelectableItemPtr;
+    virtual const FilterSPtr filter() const = 0;
+    virtual FilterSPtr filter() = 0;
+
+    virtual const FilterOutputId outputId() const = 0;
+
+    /// Convenience method
+    OutputSPtr output();
+    /// Convenience method
+    const OutputSPtr output() const;
+
+    /// Convenience method to access output's representations
+    GraphicalRepresentationSList representations() const
+    { return output()->graphicalRepresentations(); }
+
+
+    /// Return whether item's volume has been modified or not after its creation
+    bool outputIsModified() { return m_outputIsModified; }
+
+  protected slots:
+    void onOutputModified() { m_outputIsModified = true; emit outputModified(); emit modified(this);}
+
+  signals:
+    void outputModified();
+
+  protected:
+    bool m_isSelected;
+    bool m_outputIsModified; // sticky bit
+
+  };
+
+
+  PickableItemPtr  EspinaCore_EXPORT pickableItemPtr(ModelItemPtr item);
+  PickableItemSPtr EspinaCore_EXPORT pickableItemPtr(ModelItemSPtr &item);
+
+} // namespace EspINA
 
 #endif // SELECTABLEITEM_H

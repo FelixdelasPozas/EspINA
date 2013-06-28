@@ -1,14 +1,14 @@
 project (EspINA)
 
-cmake_minimum_required (VERSION 2.8)
+cmake_minimum_required (VERSION 2.8.6)
 
 # needed for plugin compilation
 set (Espina_DIR ${PROJECT_BINARY_DIR})
 
 # Version Number
 set (ESPINA_VERSION_MAJOR 1)
-set (ESPINA_VERSION_MINOR 2)
-set (ESPINA_VERSION_PATCH 5)
+set (ESPINA_VERSION_MINOR 3)
+set (ESPINA_VERSION_PATCH 0)
 
 
 set (TEST_ESPINA_MODELS CACHE BOOL "Build EspINA Model Test wrappers")
@@ -20,16 +20,20 @@ set (COMPILING_ESPINA 1)
 set (ESPINA_LIBRARY_DIRECTORIES ${PROJECT_BINARY_DIR}/libs )
 
 include_directories (${CMAKE_SOURCE_DIR})
+include_directories (${PROJECT_BINARY_DIR}/Core)
+include_directories (${PROJECT_BINARY_DIR}/GUI)
+include_directories (${PROJECT_BINARY_DIR}/Undo)
 link_directories    (${ESPINA_LIBRARY_DIRECTORIES})
 
 
 # for building espina plugins in the correct directory
 cmake_policy(SET CMP0013 OLD)
 
-set (LIBRARY_OUTPUT_PATH "${CMAKE_BINARY_DIR}/libs"             )
-set (ESPINA_PLUGINS_DIR  "${PROJECT_BINARY_DIR}/App/plugins"    )
-set (ESPINA_INCLUDE      "${PROJECT_SOURCE_DIR}"                )
-set (ESPINA_USE_FILE     "${PROJECT_SOURCE_DIR}/EspinaUse.cmake")
+set (LIBRARY_OUTPUT_PATH   "${CMAKE_BINARY_DIR}/libs"             )
+set (ESPINA_PLUGINS_DIR    "${PROJECT_BINARY_DIR}/App/plugins"    )
+set (ESPINA_INCLUDE        "${PROJECT_SOURCE_DIR}")
+set (ESPINA_BINARY_INCLUDE "${PROJECT_BINARY_DIR}")
+set (ESPINA_USE_FILE       "${PROJECT_SOURCE_DIR}/EspinaUse.cmake")
 
 configure_file(
   "${PROJECT_SOURCE_DIR}/EspinaConfig.h.in"
@@ -43,13 +47,18 @@ configure_file (
 
 if (${USE_DASHBOARD})
 
-  set (BUILDNAME "${BUILDNAME}" CACHE STRING "Name of build on the dashboard")
+ eset (BUILDNAME "${BUILDNAME}" CACHE STRING "Name of build on the dashboard")
   mark_as_advanced (BUILDNAME)
 
 endif()
 
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/CMake/Modules/")
+
 find_package(Quazip REQUIRED)
-include(${QUAZIP_USE_FILE})
+# WIN64: deshabilitado, configurar a mano. Provoca el error "include called with wrong number of arguments.  Include only takes one file"
+if (NOT DEFINED MINGW)
+  include(${QUAZIP_USE_FILE})
+endif (NOT DEFINED MINGW)
 
 find_package(Qt4 REQUIRED)
 include(${QT_USE_FILE})
@@ -60,7 +69,7 @@ include (${VTK_USE_FILE})
 find_package (ITK REQUIRED)
 include (${ITK_USE_FILE})
 
-find_package(Boost REQUIRED COMPONENTS  graph)
+find_package(Boost REQUIRED COMPONENTS  graph regex)
 link_directories ( ${Boost_LIBRARY_DIRS} )
 
 #NOTE: We can't use ITK and BOOST graph at the same time because of
@@ -69,13 +78,18 @@ link_directories ( ${Boost_LIBRARY_DIRS} )
 #set(CMAKE_CXX_FLAGS " -Wall -Wno-deprecated -msse2")
 set(CMAKE_CXX_FLAGS " -Wall -Wno-deprecated")
 
+if (UNIX AND NOT APPLE) # Check if it works on OS X, it has only been tested in Unix
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-local-typedefs")
+  message(STATUS "CXX_FLAGS" ${CMAKE_CXX_FLAGS})
+endif()
+
 
 add_subdirectory( Core    )
-add_subdirectory( Filters )
 add_subdirectory( GUI     )
 add_subdirectory( Undo    )
 add_subdirectory( App     )
 add_subdirectory( Plugins )
+
 
 if (BUILD_TESTING)
 
@@ -88,13 +102,13 @@ endif()
 
 ### TODO: Review from previous version
 # TRANSLATIONS
-#set( DEFAULT_TRANSLATION_DIR "/usr/share/espina/translations/" )
-# Generate translation file
-# add_custom_command( OUTPUT es_ES.qm #TARGET DEFAULT_TRANSLATION_DIR POST_BUILD
-#       COMMAND lrelease ${PROJECT_SOURCE_DIR}/frontend/translationFiles/translation_es.ts -qm ${CMAKE_BINARY_DIR}/es_ES.qm
-# )
-# add_custom_target(es DEPENDS es_ES.qm)
-# add_dependencies(Espina es)
+# set( DEFAULT_TRANSLATION_DIR "/home/lokifacio/tmp" )
+# # Generate translation file
+#  add_custom_command( OUTPUT es_ES.qm #TARGET DEFAULT_TRANSLATION_DIR POST_BUILD
+#        COMMAND lrelease ${PROJECT_SOURCE_DIR}/frontend/translationFiles/translation_es.ts -qm ${CMAKE_BINARY_DIR}/es_ES.qm
+#  )
+#  add_custom_target(es DEPENDS es_ES.qm)
+#  add_dependencies(espina es)
 
 
 #LINUX INSTALATION

@@ -24,6 +24,7 @@
 #include "vtkRectangularSliceWidget.h"
 
 #include "GUI/QtWidget/EspinaRenderView.h"
+#include <GUI/QtWidget/SliceView.h>
 #include "GUI/ViewManager.h"
 
 #include <vtkRenderWindow.h>
@@ -33,13 +34,15 @@
 #include <QDebug>
 #include <QMouseEvent>
 
+using namespace EspINA;
+
 typedef EspinaInteractorAdapter<vtkRectangularSliceWidget> SliceWidgetAdapter;
 
 class RectangularSliceWidget
 : public SliceWidget
 {
 public:
-    explicit RectangularSliceWidget(vtkRectangularSliceWidget* widget)
+    explicit RectangularSliceWidget(vtkRectangularSliceWidget *widget)
     : SliceWidget(widget)
     , m_widget(widget)
     { }
@@ -75,26 +78,19 @@ RectangularRegion::~RectangularRegion()
   m_widgets.clear();
 }
 
-
 //----------------------------------------------------------------------------
-vtkAbstractWidget* RectangularRegion::createWidget()
+vtkAbstractWidget* RectangularRegion::create3DWidget(VolumeView *view)
 {
   return NULL;
 }
-//----------------------------------------------------------------------------
-void RectangularRegion::deleteWidget(vtkAbstractWidget* widget)
-{
-  Q_ASSERT(false);
-}
-
 
 //----------------------------------------------------------------------------
-SliceWidget* RectangularRegion::createSliceWidget(PlaneType plane)
+SliceWidget* RectangularRegion::createSliceWidget(SliceView *view)
 {
   SliceWidgetAdapter *wi = new SliceWidgetAdapter();
   Q_ASSERT(wi);
   wi->AddObserver(vtkCommand::EndInteractionEvent, this);
-  wi->SetPlane(plane);
+  wi->SetPlane(view->plane());
   wi->SetBounds(m_bounds);
   wi->setRepresentationColor(m_color);
   wi->setRepresentationPattern(m_pattern);

@@ -16,17 +16,18 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+// EspINA
 #include "AddRelation.h"
-
 #include <Core/Model/EspinaModel.h>
 
+using namespace EspINA;
+
 //------------------------------------------------------------------------
-AddRelation::AddRelation(ModelItem* ancestor,
-			 ModelItem* successor,
-			 const QString description,
-                         EspinaModel *model,
-			 QUndoCommand* parent)
+AddRelation::AddRelation(ModelItemSPtr   ancestor,
+                         ModelItemSPtr   successor,
+                         const QString  description,
+                         EspinaModel   *model,
+                         QUndoCommand  *parent)
 : QUndoCommand(parent)
 , m_model(model)
 , m_ancester(ancestor)

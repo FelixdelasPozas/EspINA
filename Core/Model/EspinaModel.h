@@ -25,150 +25,328 @@
 #ifndef ESPinaModelMODEL_H
 #define ESPinaModelMODEL_H
 
+#include "EspinaCore_Export.h"
+
 #include <QAbstractItemModel>
 #include <QDir>
 
+#include "Core/Model/ModelItem.h"
 #include "Core/Model/RelationshipGraph.h"
 
-class Channel;
-class EspinaFactory;
-class Filter;
-class ModelItem;
-class Sample;
-class Segmentation;
-class Taxonomy;
-class TaxonomyElement;
-
-/// Current Model arranges elements in the following way:
-/// QModelIndex() (invalid index/model root index)
-/// - TaxonomyRoot
-///   - TaxonomyElement1
-///     - Sub-TaxonomyElement1-1
-///     - ...
-///   - TaxonomyElement2
-///     - ...
-///   - ...
-/// - SampleRoot
-///   - Sample1
-///   - ...
-/// - ChannelRoot
-///   - Channel1
-///   - ...
-/// - SegmentationRoot
-///   - Segmentation1
-///   - ...
-/// - FilterRoot
-///   - Filter1
-///   - ...
-class EspinaModel
-: public QAbstractItemModel
+namespace EspINA
 {
+  class EspinaCore_EXPORT IEspinaModel
+  {
+  public:
+    virtual ~IEspinaModel() {}
+
+    virtual EspinaFactory *factory() const = 0;
+
+    virtual bool isTraceable() const = 0;
+    virtual void setTraceable(bool traceable) = 0;
+
+    //---------------------------------------------------------------------------
+    /************************* Model Item API *******************************/
+    //---------------------------------------------------------------------------
+    // Returns the taxonomy used by the analyzer
+    virtual void setTaxonomy(TaxonomySPtr taxonomy) = 0;
+    virtual const TaxonomySPtr taxonomy() const = 0;
+    virtual void addTaxonomy(TaxonomySPtr taxonomy) = 0;
+    virtual TaxonomyElementSPtr createTaxonomyElement(TaxonomyElementPtr  parent, const QString &name) = 0;
+    virtual TaxonomyElementSPtr createTaxonomyElement(TaxonomyElementSPtr parent, const QString &name) = 0;
+    virtual void addTaxonomyElement   (TaxonomyElementSPtr parent, TaxonomyElementSPtr element) = 0;
+    virtual void removeTaxonomyElement(TaxonomyElementSPtr parent, TaxonomyElementSPtr element) = 0;
+
+    // Samples
+    virtual void addSample(SampleSPtr    sample ) = 0;
+    virtual void addSample(SampleSList   samples) = 0;
+    virtual void removeSample(SampleSPtr sample ) = 0;
+    virtual SampleSList samples() const = 0;
+
+    // Channels
+    virtual void addChannel   (ChannelSPtr   channel  ) = 0;
+    virtual void addChannel   (ChannelSList  channels ) = 0;
+    virtual void removeChannel(ChannelSPtr   channel  ) = 0;
+    virtual ChannelSList channels() const = 0;
+
+    // Segmentations
+    virtual void addSegmentation   (SegmentationSPtr   segmentation  ) = 0;
+    virtual void addSegmentation   (SegmentationSList  segmentations ) = 0;
+    virtual void removeSegmentation(SegmentationSPtr   segmentation  ) = 0;
+    virtual void removeSegmentation(SegmentationSList  segmentations ) = 0;
+    virtual SegmentationSList segmentations() const = 0;
+
+    // Filters
+    virtual void addFilter   (FilterSPtr     filter  ) = 0;
+    virtual void addFilter   (FilterSList filters ) = 0;
+    virtual void removeFilter(FilterSPtr     filter  ) = 0;
+    virtual FilterSList filters() const = 0;
+
+    //---------------------------------------------------------------------------
+    /************************* Relationships API *******************************/
+    //---------------------------------------------------------------------------
+    virtual void addRelation   (ModelItemSPtr   ancestor,
+                                ModelItemSPtr   succesor,
+                                const QString &relation) = 0;
+
+    virtual void removeRelation(ModelItemSPtr   ancestor,
+                                ModelItemSPtr   succesor,
+                                const QString &relation) = 0;
+
+    virtual ModelItemSList relatedItems(ModelItemPtr   item,
+                                        RelationType   relType,
+                                        const QString &relName = "") = 0;
+
+    virtual RelationList relations(ModelItemPtr   item,
+                                   const QString &relName = "") = 0;
+
+    virtual RelationshipGraphPtr relationships() = 0;
+
+    //---------------------------------------------------------------------------
+    /************************** SmartPointer API *******************************/
+    //---------------------------------------------------------------------------
+    virtual ModelItemSPtr find(ModelItemPtr item) = 0;
+
+    virtual TaxonomyElementSPtr findTaxonomyElement(ModelItemPtr       item           ) = 0;
+    virtual TaxonomyElementSPtr findTaxonomyElement(TaxonomyElementPtr taxonomyElement) = 0;
+
+    virtual SampleSPtr findSample(ModelItemPtr item  ) = 0;
+    virtual SampleSPtr findSample(SamplePtr    sample) = 0;
+
+    virtual ChannelSPtr findChannel(ModelItemPtr item   ) = 0;
+    virtual ChannelSPtr findChannel(ChannelPtr   channel) = 0;
+
+    virtual SegmentationSPtr findSegmentation(ModelItemPtr    item        ) = 0;
+    virtual SegmentationSPtr findSegmentation(SegmentationPtr segmentation) = 0;
+
+    virtual FilterSPtr findFilter(ModelItemPtr item  ) = 0;
+    virtual FilterSPtr findFilter(FilterPtr    filter) = 0;
+  };
+
+  /// Model elements are arranged in the following way:
+  /// QModelIndex() (invalid index/model root index)
+  /// - TaxonomyRoot
+  ///   - TaxonomyElement1
+  ///     - Sub-TaxonomyElement1-1
+  ///     - ...
+  ///   - TaxonomyElement2
+  ///     - ...
+  ///   - ...
+  /// - SampleRoot
+  ///   - Sample1
+  ///   - ...
+  /// - ChannelRoot
+  ///   - Channel1
+  ///   - ...
+  /// - SegmentationRoot
+  ///   - Segmentation1
+  ///   - ...
+  /// - FilterRoot
+  ///   - Filter1
+  ///   - ...
+
+  class EspinaFactory;
+
+  class EspinaCore_EXPORT EspinaModel
+  : public QAbstractItemModel
+  , public IEspinaModel
+  {
     Q_OBJECT
-public:
-  explicit EspinaModel(EspinaFactory *factory, QObject* parent = 0);
-  virtual ~EspinaModel();
+  public:
+    explicit EspinaModel(EspinaFactory *factory);
+    virtual ~EspinaModel();
 
-  EspinaFactory *factory() const
-  { return m_factory; }
+    virtual EspinaFactory *factory() const
+    { return m_factory; }
 
-  void reset();
+    virtual bool isTraceable() const;
+    virtual void setTraceable(bool traceable) { m_isTraceable = traceable; }
 
-  // Implement QAbstractItemModel Interface
-  virtual QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const;
-  virtual bool setData(const QModelIndex& index, const QVariant& value, int role = Qt::EditRole);
-  virtual Qt::ItemFlags flags(const QModelIndex& index) const;
+    void reset();
 
-  virtual int columnCount(const QModelIndex& parent = QModelIndex()) const;
-  virtual int rowCount(const QModelIndex& parent = QModelIndex()) const;
-  virtual QModelIndex parent(const QModelIndex& child) const;
-  virtual QModelIndex index(int row, int column, const QModelIndex& parent = QModelIndex()) const;
-  QModelIndex index(ModelItem *item) const;
+    // Implement QAbstractItemModel Interface
+    virtual QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const;
+    virtual bool setData(const QModelIndex& index, const QVariant& value, int role = Qt::EditRole);
+    virtual QMap< int, QVariant > itemData(const QModelIndex &index) const;
+    virtual Qt::ItemFlags flags(const QModelIndex& index) const;
 
-  // Special Nodes of the model to refer different roots
-  QModelIndex taxonomyRoot() const;
-  QModelIndex taxonomyIndex(TaxonomyElement *node) const;
+    virtual int columnCount(const QModelIndex& parent = QModelIndex()) const;
+    virtual int rowCount(const QModelIndex& parent = QModelIndex()) const;
+    virtual QModelIndex parent(const QModelIndex& child) const;
+    virtual QModelIndex index(int row, int column, const QModelIndex& parent = QModelIndex()) const;
+    QModelIndex index(ModelItemPtr item) const;
+    QModelIndex index(ModelItemSPtr item) const;
 
-  QModelIndex sampleRoot() const;
-  QModelIndex sampleIndex(Sample *sample) const;
+    // Special Nodes of the model to refer different roots
+    QModelIndex taxonomyRoot() const;
+    QModelIndex taxonomyIndex(TaxonomyElementPtr node) const;
+    QModelIndex taxonomyIndex(TaxonomyElementSPtr node) const;
 
-  QModelIndex channelRoot() const;
-  QModelIndex channelIndex(Channel *channel) const;
+    QModelIndex sampleRoot() const;
+    QModelIndex sampleIndex(SamplePtr       sample) const;
+    QModelIndex sampleIndex(SampleSPtr sample) const;
 
-  QModelIndex segmentationRoot() const;
-  QModelIndex segmentationIndex(Segmentation *seg) const;
+    QModelIndex channelRoot() const;
+    QModelIndex channelIndex(ChannelPtr       channel) const;
+    QModelIndex channelIndex(ChannelSPtr channel) const;
 
-  QModelIndex filterRoot() const;
-  QModelIndex filterIndex(Filter *filter) const;
+    QModelIndex segmentationRoot() const;
+    QModelIndex segmentationIndex(SegmentationPtr       seg) const;
+    QModelIndex segmentationIndex(SegmentationSPtr seg) const;
 
-  bool hasChanged() const {return m_changed;}
-  void markAsChanged() {m_changed = true;}
-  void markAsSaved(){m_changed = false;}
+    QModelIndex filterRoot() const;
+    QModelIndex filterIndex(FilterPtr       filter) const;
+    QModelIndex filterIndex(FilterSPtr filter) const;
+
+    bool hasChanged() const {return m_changed;}
+
+    void markAsChanged() {m_changed = true;}
+
+    void markAsSaved() {m_changed = false;}
+
+    // Taxonomies
+    /// Returns the taxonomy used by the analyzer
+    virtual void setTaxonomy(TaxonomySPtr taxonomy);
+    virtual const TaxonomySPtr taxonomy() const {return m_tax;}
+    virtual void addTaxonomy(TaxonomySPtr taxonomy);
+    virtual TaxonomyElementSPtr createTaxonomyElement(TaxonomyElementPtr  parent, const QString &name);
+    virtual TaxonomyElementSPtr createTaxonomyElement(TaxonomyElementSPtr parent, const QString &name);
+    virtual void addTaxonomyElement   (TaxonomyElementSPtr parent, TaxonomyElementSPtr element);
+    virtual void removeTaxonomyElement(TaxonomyElementSPtr parent, TaxonomyElementSPtr element);
+
+    // Samples
+    virtual void addSample(SampleSPtr    sample  );
+    virtual void addSample(SampleSList   samples );
+    virtual void removeSample(SampleSPtr sample  );
+    virtual SampleSList samples() const
+    { return m_samples; }
+
+    // Channels
+    virtual void addChannel   (ChannelSPtr   channel  );
+    virtual void addChannel   (ChannelSList  channels );
+    virtual void removeChannel(ChannelSPtr   channel  );
+    virtual ChannelSList channels() const
+    { return m_channels; }
+
+    // Segmentations
+    virtual void addSegmentation   (SegmentationSPtr   segmentation  );
+    virtual void addSegmentation   (SegmentationSList  segmentations );
+    virtual void removeSegmentation(SegmentationSPtr   segmentation  );
+    virtual void removeSegmentation(SegmentationSList  segmentations );
+    virtual SegmentationSList segmentations() const
+    { return m_segmentations; }
+
+    // Filters
+    virtual void addFilter   (FilterSPtr  filter  );
+    virtual void addFilter   (FilterSList filters );
+    virtual void removeFilter(FilterSPtr  filter  );
+    virtual FilterSList filters() const
+    { return m_filters; }
+
+    void changeTaxonomy(SegmentationSPtr    segmentation,
+                        TaxonomyElementSPtr taxonomy);
+
+    void changeTaxonomyParent(TaxonomyElementSPtr subTaxonomy,
+                              TaxonomyElementSPtr parent);
 
 
-  // Taxonomies
-  /// Returns the taxonomy used by the analyzer
-  void setTaxonomy(Taxonomy *tax);
-  Taxonomy * const taxonomy() const {return m_tax;}
-  void addTaxonomy(Taxonomy *tax);
-  QModelIndex addTaxonomyElement(const QModelIndex &parent, QString qualifiedName);
-  void addTaxonomyElement(QString qualifiedName);
-  void removeTaxonomyElement(const QModelIndex &index);
-  void removeTaxonomyElement(QString qualifiedName);
+    //---------------------------------------------------------------------------
+    /************************* Relationships API *******************************/
+    //---------------------------------------------------------------------------
+    virtual void addRelation   (ModelItemSPtr   ancestor,
+                                ModelItemSPtr   succesor,
+                                const QString &relation);
+    virtual void removeRelation(ModelItemSPtr   ancestor,
+                                ModelItemSPtr   succesor,
+                                const QString &relation);
 
-  // Samples
-  void addSample(Sample *sample);
-  void addSample(QList<Sample *> samples);
-  /// Remove @sample and all channels and segmentations associated with it
-  void removeSample(Sample *sample);
+    virtual ModelItemSList relatedItems(ModelItemPtr   item,
+                                        RelationType   relType,
+                                     const QString &relName = "");
+    virtual RelationList relations(ModelItemPtr   item,
+                                   const QString &relName = "");
 
-  // Channels
-  void addChannel(Channel *channel);
-  void removeChannel(Channel *channel);
-  QList<Channel *> channels() const {return m_channels;}
+    virtual RelationshipGraphPtr relationships()
+    { return m_relations; }
 
-  // Segmentations
-  void addSegmentation(Segmentation *seg);
-  void addSegmentation(QList<Segmentation *> segs);
-  void removeSegmentation(Segmentation *seg);
-  void removeSegmentation(QList<Segmentation *> segs);
-  void changeTaxonomy(Segmentation *seg, TaxonomyElement *taxonomy);
-  QList<Segmentation *> segmentations() const {return m_segmentations;}
+    //---------------------------------------------------------------------------
+    /************************** SmartPointer API *******************************/
+    //---------------------------------------------------------------------------
+    virtual ModelItemSPtr find(ModelItemPtr item);
 
-  void addFilter(Filter *filter);
-  void removeFilter(Filter *filter);
-  QList<Filter *> filters() const {return m_filters;}
+    virtual TaxonomyElementSPtr findTaxonomyElement(ModelItemPtr       item           );
+    virtual TaxonomyElementSPtr findTaxonomyElement(TaxonomyElementPtr taxonomyElement);
 
-  void addRelation(ModelItem *ancestor,
-                   ModelItem *succesor,
-                   QString relation);
-  void removeRelation(ModelItem *ancestor,
-                      ModelItem *succesor,
-                      QString relation);
+    virtual SampleSPtr findSample(ModelItemPtr item  );
+    virtual SampleSPtr findSample(SamplePtr    sample);
 
-  RelationshipGraph *relationships() {return m_relations;}
+    virtual ChannelSPtr findChannel(ModelItemPtr item   );
+    virtual ChannelSPtr findChannel(ChannelPtr   channel);
 
-  void serializeRelations(std::ostream& stream, RelationshipGraph::PrintFormat format = RelationshipGraph::BOOST);
-  bool loadSerialization (std::istream &stream, QDir tmpDir, RelationshipGraph::PrintFormat format = RelationshipGraph::BOOST);
+    virtual SegmentationSPtr findSegmentation(ModelItemPtr    item        );
+    virtual SegmentationSPtr findSegmentation(SegmentationPtr segmentation);
 
-private slots:
-  void itemModified(ModelItem *item);
+    virtual FilterSPtr findFilter(ModelItemPtr item  );
+    virtual FilterSPtr findFilter(FilterPtr    filter);
 
-private:
-  void addTaxonomy(TaxonomyElement *tax);
+    // signal emission methods, used by undo commands to signal finished operations.
+    void emitSegmentationAdded(SegmentationSList);
+    void emitChannelAdded(ChannelSList);
 
-private:
-  EspinaFactory        *m_factory;
-  Taxonomy             *m_tax;
-  QList<Sample *>       m_samples;
-  QList<Channel *>      m_channels;
-  QList<Segmentation *> m_segmentations;
-  QList<Filter *>       m_filters;
+  signals:
+    void taxonomyAdded  (TaxonomySPtr taxonomy);
+    void taxonomyRemoved(TaxonomySPtr taxonomy);
 
-  QList<QDir>           m_tmpDirs;
-  RelationshipGraph    *m_relations;
+    void sampleAdded  (SampleSPtr samples);
+    void sampleRemoved(SampleSPtr samples);
 
-  unsigned int          m_lastId;
-  bool                  m_changed;
-};
+    void channelAdded  (ChannelSPtr channel);
+    void channelRemoved(ChannelSPtr channel);
+
+    void segmentationAdded  (SegmentationSPtr segmentations);
+    void segmentationRemoved(SegmentationSPtr segmentations);
+
+    void filterAdded  (FilterSPtr filter);
+    void filterRemoved(FilterSPtr filter);
+
+  private slots:
+    void itemModified(ModelItemPtr item);
+
+  private:
+    void addTaxonomy(TaxonomyElementSPtr root);
+
+    void addSampleImplementation   (SampleSPtr sample);
+    void removeSampleImplementation(SampleSPtr sample);
+
+    void addChannelImplementation   (ChannelSPtr channel);
+    void removeChannelImplementation(ChannelSPtr channel);
+
+    void addSegmentationImplementation   (SegmentationSPtr segmentation);
+    void removeSegmentationImplementation(SegmentationSPtr segmentation);
+
+    void addFilterImplementation   (FilterSPtr filter);
+    void removeFilterImplementation(FilterSPtr filter);
+
+  private:
+    EspinaFactory *m_factory;
+
+    ChannelSList      m_channels;
+    FilterSList       m_filters;
+    SampleSList       m_samples;
+    SegmentationSList m_segmentations;
+    TaxonomySPtr      m_tax;
+
+    QList<QDir>          m_tmpDirs;
+    RelationshipGraphPtr m_relations;
+
+    unsigned int m_lastId;
+    bool         m_changed;
+    bool         m_isTraceable;
+  };
+
+  typedef EspinaModel *               EspinaModelPtr;
+  typedef boost::shared_ptr<EspinaModel> EspinaModelSPtr;
+
+} // namespace EspINA
 
 #endif // ESPinaModelMODEL_H

@@ -2,11 +2,13 @@
  * vtkPlanarSplitRepresentation2D.h
  *
  *  Created on: Nov 6, 2012
- *      Author: F√©lix de las Pozas √Ålvarez
+ *      Author: FÈlix de las Pozas ¡lvarez
  */
 
 #ifndef VTKPLANARSPLITREPRESENTATION2D_H_
 #define VTKPLANARSPLITREPRESENTATION2D_H_
+
+#include "EspinaGUI_Export.h"
 
 // EspINA
 #include <Core/EspinaTypes.h>
@@ -22,9 +24,12 @@ class vtkActor;
 class vtkPointHandleRepresentation2D;
 class vtkHandleRepresentation;
 
-class VTK_WIDGETS_EXPORT vtkPlanarSplitRepresentation2D
-: public vtkWidgetRepresentation
+namespace EspINA
 {
+
+  class EspinaGUI_EXPORT vtkPlanarSplitRepresentation2D
+  : public vtkWidgetRepresentation
+  {
     vtkTypeMacro(vtkPlanarSplitRepresentation2D,vtkWidgetRepresentation);
 
   public:
@@ -110,6 +115,8 @@ class VTK_WIDGETS_EXPORT vtkPlanarSplitRepresentation2D
   private:
     vtkPlanarSplitRepresentation2D(const vtkPlanarSplitRepresentation2D&);  //Not implemented
     void operator=(const vtkPlanarSplitRepresentation2D&);  //Not implemented
-};
+  };
+
+} // namespace EspINA
 
 #endif /* VTKPLANARSPLITREPRESENTATION2D_H_ */

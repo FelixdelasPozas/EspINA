@@ -90,13 +90,16 @@
 #ifndef __vtkNonRotatingBoxWidget_h
 #define __vtkNonRotatingBoxWidget_h
 
+#include "EspinaGUI_Export.h"
+
 #include "vtkAbstractWidget.h"
 
 class vtkBoxRepresentation;
 class vtkHandleWidget;
 
 
-class VTK_WIDGETS_EXPORT vtkNonRotatingBoxWidget : public vtkAbstractWidget
+class EspinaGUI_EXPORT vtkNonRotatingBoxWidget
+: public vtkAbstractWidget
 {
 public:
   // Description:

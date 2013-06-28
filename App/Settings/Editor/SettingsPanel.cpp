@@ -23,8 +23,10 @@
 #include <QSettings>
 #include <QString>
 
+using namespace EspINA;
+
 //------------------------------------------------------------------------
-EditorToolBar::SettingsPanel::SettingsPanel(EditorToolBar::Settings *settings)
+EditorToolBar::SettingsPanel::SettingsPanel(EditorToolBarSettings *settings)
 : m_settings(settings)
 {
   setupUi(this);
@@ -47,6 +49,12 @@ void EditorToolBar::SettingsPanel::acceptChanges()
 }
 
 //------------------------------------------------------------------------
+void EditorToolBar::SettingsPanel::rejectChanges()
+{
+
+}
+
+//------------------------------------------------------------------------
 bool EditorToolBar::SettingsPanel::modified() const
 {
   return m_brushRadius->value()  != m_settings->brushRadius()
@@ -57,9 +65,9 @@ bool EditorToolBar::SettingsPanel::modified() const
 }
 
 //------------------------------------------------------------------------
-ISettingsPanel* EditorToolBar::SettingsPanel::clone()
+ISettingsPanelPtr EditorToolBar::SettingsPanel::clone()
 {
-  return new SettingsPanel(m_settings);
+  return ISettingsPanelPtr(new SettingsPanel(m_settings));
 }
 
 

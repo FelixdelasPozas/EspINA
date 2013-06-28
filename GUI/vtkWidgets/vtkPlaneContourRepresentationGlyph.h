@@ -1,6 +1,8 @@
 #ifndef _VTKPLANECONTOURREPRESENTATIONGLYPH_H_
 #define _VTKPLANECONTOURREPRESENTATIONGLYPH_H_
 
+#include "EspinaGUI_Export.h"
+
 #include "vtkPlaneContourRepresentation.h"
 #include "vtkContourToPolygonFilter.h"
 #include <QColor>
@@ -12,9 +14,12 @@ class vtkPolyData;
 class vtkGlyph3D;
 class vtkPoints;
 
-class VTK_WIDGETS_EXPORT vtkPlaneContourRepresentationGlyph
-: public vtkPlaneContourRepresentation
+namespace EspINA
 {
+
+  class EspinaGUI_EXPORT vtkPlaneContourRepresentationGlyph
+  : public vtkPlaneContourRepresentation
+  {
   public:
     // Description:
     // Instantiate this class.
@@ -176,6 +181,8 @@ class VTK_WIDGETS_EXPORT vtkPlaneContourRepresentationGlyph
     vtkSmartPointer<vtkPolyDataMapper> m_polygonMapper;
     bool useContourPolygon;
     QColor m_polygonColor;
-};
+  };
+
+} // namespace EspINA
 
 #endif // _VTKPLANECONTOURREPRESENTATIONGLYPH_H_

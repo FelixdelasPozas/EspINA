@@ -26,54 +26,76 @@
 #ifndef MAINTOOLBAR_H
 #define MAINTOOLBAR_H
 
-#include <QToolBar>
+// EspINA
+#include <Core/Interfaces/IToolBar.h>
+#include <Core/EspinaTypes.h>
+#include <Core/Model/EspinaModel.h>
+#include <GUI/Pickers/ISelector.h>
+#include <Tools/SegmentationRemover/SegmentationRemover.h>
+#include <Tools/Measure/MeasureTool.h>
+#include <Tools/Ruler/RulerTool.h>
 
-#include <GUI/Pickers/IPicker.h>
-
+// Qt
 #include <QModelIndex>
 
-class QComboTreeView;
-class EspinaModel;
-class PixelSelector;
-class Segmentation;
-class SegRemover;
-class QComboBox;
-class QTreeView;
 class QUndoStack;
-class ViewManager;
+class QComboTreeView;
 
-class MainToolBar
-: public QToolBar
+namespace EspINA
 {
-  Q_OBJECT
-public:
-  explicit MainToolBar(EspinaModel *model,
-                       QUndoStack  *undoStack,
-                       ViewManager *vm,
-                       QWidget* parent = 0);
+  class PixelSelector;
+  class SegmentationRemover;
+  class ViewManager;
 
-public slots:
-  void setShowSegmentations(bool visible);
+  class MainToolBar
+  : public IToolBar
+  {
+    Q_OBJECT
+  public:
+    explicit MainToolBar(EspinaModel *model,
+                         QUndoStack  *undoStack,
+                         ViewManager *viewManager,
+                         QWidget     *parent = 0);
+    virtual ~MainToolBar();
 
-protected slots:
-  void setActiveTaxonomy(const QModelIndex &index);
-  void updateTaxonomy(QModelIndex left, QModelIndex right);
-  void removeSegmentation(bool active);
-  void removeSegmentation(Segmentation *seg);
-  void toggleCrosshair(bool);
-  void abortRemoval();
+  virtual void resetToolbar();// slot
 
-signals:
-  void showSegmentations(bool);
+  public slots:
+    void setShowSegmentations(bool visible);
 
-private:
-  EspinaModel   *m_model;
-  QUndoStack    *m_undoStack;
-  ViewManager   *m_viewManager;
 
-  QAction        *m_toggleSegVisibility, *m_removeSegmentation, *m_toggleCrosshair;
-  QComboTreeView *m_taxonomySelector;
-  SegRemover     *m_segRemover;
-};
+  protected slots:
+    void setActiveTaxonomy(const QModelIndex &index);
+    void updateTaxonomy(TaxonomySPtr taxonomy);
+    void removeSegmentation(bool active);
+    void removeSegmentation(SegmentationPtr seg);
+    void toggleCrosshair(bool);
+    void abortRemoval();
+    void toggleMeasureTool(bool);
+    void toggleRuler(bool);
+    void resetRootItem();
+    void abortOperation();
+
+  signals:
+    void showSegmentations(bool);
+
+  private:
+    EspinaModel *m_model;
+    QUndoStack  *m_undoStack;
+    ViewManager *m_viewManager;
+
+    QAction             *m_toggleSegVisibility;
+    QAction             *m_removeSegmentation;
+    QAction             *m_toggleCrosshair;
+    QAction             *m_measureButton;
+    QAction             *m_rulerButton;
+    QComboTreeView      *m_categorySelector;
+
+    SegmentationRemoverSPtr m_segRemover;
+    MeasureToolSPtr         m_measureTool;
+    RulerToolSPtr           m_rulerTool;
+  };
+
+} // namespace EspINA
 
 #endif // MAINTOOLBAR_H

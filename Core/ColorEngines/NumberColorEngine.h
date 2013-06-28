@@ -19,22 +19,27 @@
 #ifndef NUMBERCOLORENGINE_H
 #define NUMBERCOLORENGINE_H
 
+#include "EspinaCore_Export.h"
 
 #include "Core/ColorEngines/IColorEngine.h"
 
 #include <QMap>
 
-class NumberColorEngine
-: public ColorEngine
+namespace EspINA
 {
-public:
-  virtual QColor color(Segmentation* seg);
-  virtual LUTPtr lut(Segmentation* seg);
-  virtual ColorEngine::Composition supportedComposition() const
-  { return ColorEngine::Color; }
+  class EspinaCore_EXPORT NumberColorEngine
+  : public ColorEngine
+  {
+  public:
+    virtual QColor color(SegmentationPtr seg);
+    virtual LUTPtr lut  (SegmentationPtr seg);
+    virtual ColorEngine::Composition supportedComposition() const
+    { return ColorEngine::Color; }
 
-private:
-  QMap<QString, vtkSmartPointer<vtkLookupTable> > m_LUT;
-};
+  private:
+    QMap<QString, vtkSmartPointer<vtkLookupTable> > m_LUT;
+  };
+
+}// namespace EspINA
 
 #endif // NUMBERCOLORENGINE_H

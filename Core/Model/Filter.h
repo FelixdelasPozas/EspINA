@@ -20,223 +20,304 @@
 #ifndef FILTER_H
 #define FILTER_H
 
+#include "EspinaCore_Export.h"
+
 #include "Core/Model/ModelItem.h"
 
-#include "Core/EspinaTypes.h"
-#include <Core/EspinaVolume.h>
-
-#include <boost/shared_ptr.hpp>
+#include <Core/EspinaRegion.h>
+#include <Core/Model/Output.h>
+#include <GUI/Representations/GraphicalRepresentationFactory.h>
 
 #include <itkImageFileReader.h>
-#include <vtkPolyData.h>
 
 #include <QDir>
 
 class QUndoStack;
-class ViewManager;
 class vtkImplicitFunction;
+class vtkPolyData;
 
-const QString CREATELINK = "CreateSegmentation";
-
-class Filter
-: public ModelItem
+namespace EspINA
 {
-protected:
-  typedef itk::ImageFileReader<itkVolumeType> EspinaVolumeReader;
+  class ViewManager;
 
-public:
-  typedef int OutputId;
+  typedef QList<ChannelRepresentationSPtr>      ChannelRepresentationSList;
+  typedef QList<SegmentationRepresentationSPtr> SegmentationRepresentationSList;
 
-  typedef QMap<QString, Filter *> NamedInputs;
-
-  static const QString NamedInput(const QString &label, OutputId oId)
-  { return QString("%1_%2").arg(label).arg(oId); }
-
-  struct Output
-  {
-    explicit Output(Filter               *filter = NULL,
-                    OutputId              id     = INVALID_OUTPUT_ID,
-                    EspinaVolume::Pointer volume = EspinaVolume::Pointer()
-                   )
-    : isCached(false)
-    , isEdited(false)
-    , filter(filter)
-    , id(id)
-    , volume(volume)
-    {}
-
-    bool                  isCached;
-    bool                  isEdited;
-    Filter               *filter;
-    OutputId              id;
-    EspinaVolume::Pointer volume;
-
-    bool isValid() const
-    {
-      return NULL != filter
-          && INVALID_OUTPUT_ID < id
-          && volume.get()
-          && volume->toITK().IsNotNull();
-    }
-
-    static const int INVALID_OUTPUT_ID = -1;
-  };
-
-  typedef QList<Output> OutputList;
-
-  class FilterInspector
+  class EspinaCore_EXPORT Filter
+  : public ModelItem
   {
   public:
-    virtual ~FilterInspector(){}
+    static const QString CREATELINK;
 
-    virtual QWidget *createWidget(QUndoStack *stack, ViewManager *viewManager) = 0;
+    typedef QMap<QString, FilterSPtr> NamedInputs;
+
+    static const QString NamedInput(const QString &label, FilterOutputId oId)
+    { return QString("%1_%2").arg(label).arg(oId); }
+
+
+    typedef QString FilterType;
+
+    class FilterInspector
+    {
+    public:
+      virtual ~FilterInspector(){}
+
+      virtual QWidget *createWidget(QUndoStack *stack, ViewManager *viewManager) = 0;
+    };
+
+    typedef boost::shared_ptr<FilterInspector> FilterInspectorPtr;
+
+    struct Link
+    {
+      FilterPtr filter;
+      FilterOutputId  outputPort;
+    };
+
+    static const ModelItem::ArgumentId ID;
+    static const ModelItem::ArgumentId INPUTS;
+    static const ModelItem::ArgumentId EDIT;
+
+  protected:
+    typedef itk::ImageFileReader<itkVolumeType> EspinaVolumeReader;
+
+  public:
+    virtual ~Filter();
+
+    void setTraceable(bool traceable)
+    { m_traceable = traceable; }
+    bool isTraceable() const
+    { return m_traceable; }
+
+    virtual void setCacheDir(QDir dir);
+    QDir cacheDir() const { return m_cacheDir; }
+
+    void setId(int id) {m_args[ID] = QString::number(id);}
+    QString id() const {return m_args[ID];}
+
+    // Implements Model Item Interface common to filters
+    virtual QVariant data(int role = Qt::DisplayRole) const;
+    virtual QString serialize() const;
+    virtual ModelItemType type() const {return FILTER;}
+
+    virtual void initialize(const Arguments &args = Arguments()){};
+    //virtual void initializeExtensions(const Arguments &args = Arguments()){};
+
+    FilterType filterType() { return m_type; }
+
+    /// Return filter's output or NULL pointer if there is no output with given oId
+    virtual OutputSPtr output(FilterOutputId oId) const = 0;
+
+    /// Update all filter outputs
+    /// If a snapshot exits, filter will try to load it from disk
+    virtual void update() = 0;
+
+    /// Update filter output oId.
+    /// If a snapshot exits, filter will try to load it from disk
+    virtual void update(FilterOutputId oId) = 0;
+
+    /// Return whether or not i is an output of the filter
+    virtual bool validOutput(FilterOutputId oId) = 0;
+
+    /// Some filters may need to stablish connections with other items on the model
+    /// in order to keep updated
+    virtual void upkeeping() {}
+
+    void setFilterInspector(FilterInspectorPtr filterInspector)
+    { m_filterInspector = filterInspector; }
+
+    virtual void setGraphicalRepresentationFactory(GraphicalRepresentationFactorySPtr factory)
+    { m_graphicalRepresentationFactory = factory; }
+
+    /// Return a widget used to configure filter's parameters
+    /// Filter Inspector are available for traceable filters and those executed
+    /// on current session
+    FilterInspectorPtr const filterInspector() 
+    { return (m_traceable || m_executed)?m_filterInspector:FilterInspectorPtr(); }
+
+    /// Create a snapshot with all the data of this filter that need to be stored
+    /// in seg files.
+    virtual bool dumpSnapshot(Snapshot &snapshot);
+
+    /// returns if the filter has been executed at least once in the session
+    bool executed() { return m_executed; }
+
+    /// Reader to access snapshot data in filter's cache dir
+    itkVolumeType::Pointer readVolumeFromCache(const QString &file);
+
+    virtual int numberOfOutputs() const = 0;
+
+    virtual QList<FilterOutputId> availableOutputIds() const = 0;
+
+  protected:
+    explicit Filter(NamedInputs namedInputs,
+                    Arguments   args,
+                    FilterType  type);
+
+    /// Current outputs must be ignored due to changes on filter state
+    virtual bool ignoreCurrentOutputs() const = 0;
+
+    /// Whether the filter needs to be updated or not
+    /// A filter will need an update if there exists an invalid output or no outputs exist at all
+    virtual bool needUpdate() const = 0;
+
+    /// Whether the filter needs to be updated or not
+    /// Default implementation will request an update if there is no filter output
+    /// or it is an invalid output
+    virtual bool needUpdate(FilterOutputId oId) const = 0;
+
+    /// Try to locate an snapshot of the filter in tmpDir
+    /// Returns true if all volume snapshot can be recovered
+    /// and false otherwise
+    virtual bool fetchSnapshot(FilterOutputId oId) = 0;
+
+    virtual void createOutput(FilterOutputId id) = 0;
+
+    /// Method which actually executes the filter to generate all its outputs
+    virtual void run() = 0;
+
+    /// Method which actually executes the filter to generate output oId
+    virtual void run(FilterOutputId oId) = 0;
+
+  protected:
+
+    OutputSList       m_inputs;
+    NamedInputs       m_namedInputs;
+    mutable Arguments m_args;
+    FilterType        m_type;
+
+    GraphicalRepresentationFactorySPtr m_graphicalRepresentationFactory;
+
+    int  m_cacheId;
+    QDir m_cacheDir;
+    bool m_traceable;
+    bool m_executed;
+
+  private:
+    FilterInspectorPtr m_filterInspector;
   };
 
-  typedef boost::shared_ptr<FilterInspector> FilterInspectorPtr;
-
-  static const ModelItem::ArgumentId ID;
-  static const ModelItem::ArgumentId INPUTS;
-  static const ModelItem::ArgumentId EDIT;
-
-public:
-  virtual ~Filter(){}
-
-  void setTmpDir(QDir dir);
-
-  void setTmpId(int id) {m_args[ID] = QString::number(id);}
-  QString tmpId() const {return m_args[ID];}
-
-  // Implements Model Item Interface common to filters
-  virtual ItemType type() const {return ModelItem::FILTER;}
-  virtual void initialize(Arguments args = Arguments()){};
-  virtual void initializeExtensions(Arguments args = Arguments()){};
-  virtual QString serialize() const;
-
-  struct Link
+  class EspinaCore_EXPORT ChannelFilter
+  : public Filter
   {
-    Filter      *filter;
-    OutputId outputPort;
+  public:
+    virtual ~ChannelFilter(){}
+
+    /// Returns filter's outputs
+    ChannelOutputSList outputs() const {return m_outputs.values();}
+
+    /// Return filter's output or NULL pointer if there is no output with given oId
+    virtual OutputSPtr output(FilterOutputId oId) const
+    { return m_outputs.value(oId, ChannelOutputSPtr()); }
+
+    virtual void update()
+    { Filter::update(); }
+
+    /// Update filter output oId.
+    /// If a snapshot exits, filter will try to load it from disk
+    virtual void update(FilterOutputId oId);
+
+    virtual bool validOutput(FilterOutputId oId);
+
+    virtual int numberOfOutputs() const { return m_outputs.size(); }
+    virtual QList<FilterOutputId> availableOutputIds() const { return m_outputs.keys(); }
+
+  protected:
+    explicit ChannelFilter(NamedInputs namedInputs,
+                           Arguments   args,
+                           FilterType  type)
+    : Filter(namedInputs, args, type){}
+
+    /// Try to locate an snapshot of the filter in tmpDir
+    /// Returns true if all volume snapshot can be recovered
+    /// and false otherwise
+    virtual bool fetchSnapshot(FilterOutputId oId) {return false;}
+
+    virtual void createOutput(FilterOutputId id);
+
+    virtual ChannelRepresentationSPtr createRepresentationProxy(FilterOutputId id, const FilterOutput::OutputRepresentationName &type) = 0;
+
+    virtual void addOutputRepresentation(FilterOutputId id, ChannelRepresentationSPtr  data);
+    virtual void addOutputRepresentations(FilterOutputId id, ChannelRepresentationSList repList);
+
+    /// Whether the filter needs to be updated or not
+    /// A filter will need an update if there exists an invalid output or no outputs exist at all
+    virtual bool needUpdate() const;
+
+    /// Whether the filter needs to be updated or not
+    /// Default implementation will request an update if there is no filter output
+    /// or it is an invalid output
+    virtual bool needUpdate(FilterOutputId oId) const = 0;
+
+  protected:
+    QMap<FilterOutputId, ChannelOutputSPtr> m_outputs;
   };
 
-  ///NOTE: Current implementation will expand the image
-  ///      when drawing with value != 0
+  class EspinaCore_EXPORT SegmentationFilter
+  : public Filter
+  {
+  public:
+    virtual ~SegmentationFilter(){}
 
-  /// Manually Edit Filter Output
-  virtual void draw(OutputId oId,
-                    vtkImplicitFunction *brush,
-                    const Nm bounds[6],
-                    itkVolumeType::PixelType value = SEG_VOXEL_VALUE);
-  // DEPRECATED: ?
-  virtual void draw(OutputId oId,
-                    itkVolumeType::IndexType index,
-                    itkVolumeType::PixelType value = SEG_VOXEL_VALUE);
-  virtual void draw(OutputId oId,
-                    Nm x, Nm y, Nm z,
-                    itkVolumeType::PixelType value = SEG_VOXEL_VALUE);
-  virtual void draw(OutputId oId,
-                    vtkPolyData *contour,
-                    Nm slice,
-                    PlaneType plane,
-                    itkVolumeType::PixelType value = SEG_VOXEL_VALUE);
-  virtual void draw(OutputId oId,
-                    itkVolumeType::Pointer volume);
+    /// Returns filter's outputs
+    SegmentationOutputSList outputs() const {return m_outputs.values();}
 
-  //TODO 2012-11-20 cambiar nombre y usar FilterOutput
-  virtual void restoreOutput(OutputId oId,
-                           itkVolumeType::Pointer volume);
+    /// Return filter's output or NULL pointer if there is no output with given oId
+    virtual OutputSPtr output(FilterOutputId oId) const
+    { return m_outputs.value(oId, SegmentationOutputSPtr()); }
 
-  /// Returns filter's outputs
-  OutputList outputs() const {return m_outputs.values();}
-  /// Returns a list of outputs edited by the user //NOTE: Deberia ser private?
-  OutputList editedOutputs() const;
-  /// Return whether or not i is an output of the filter
-  bool validOutput(OutputId oId);
-  /// Return an output with id i. Ids are not necessarily sequential
-  virtual const Output output(OutputId oId) const;
-  virtual Output &output(OutputId oId);
-  /// Convencience method to get the volume associated wit output i
-  EspinaVolume::Pointer volume(OutputId oId) {return output(oId).volume;}
-  const EspinaVolume::Pointer volume(OutputId oId) const {return output(oId).volume;}
-  /// Determine whether the filter needs to be updated or not
-  /// Default implementation will request an update if there are no filter outputs
-  /// or there is at least one invalid output
-  virtual bool needUpdate() const = 0;
-  /// Updates filter outputs.
-  /// If a snapshot exits it will try to load it from disk
-  void update();
+    virtual void update()
+    { Filter::update(); }
 
-  /// Turn on internal filters' release data flags
-  virtual void releaseDataFlagOn(){}
-  /// Turn off internal filters' release data flags
-  virtual void releaseDataFlagOff(){}
+    /// Update filter output oId.
+    /// If a snapshot exits, filter will try to load it from disk
+    virtual void update(FilterOutputId oId);
 
-  void setFilterInspector(FilterInspectorPtr filterInspector)
-  { m_filterInspector = filterInspector; }
-  /// Return a widget used to configure filter's parameters
-  FilterInspectorPtr const filterInspector() { return m_filterInspector; }
+    virtual bool validOutput(FilterOutputId oId);
 
-  void updateCacheFlags();
+    virtual bool dumpSnapshot(Snapshot &snapshot);
 
-protected:
-  explicit Filter(NamedInputs namedInputs,
-                  Arguments args);
+    virtual int numberOfOutputs() const { return m_outputs.size(); }
+    virtual QList<FilterOutputId> availableOutputIds() const { return m_outputs.keys(); }
 
-  /// Subclasses need to specify which subtype of EspinaVolume they use
-  virtual void createOutput(OutputId id, itkVolumeType::Pointer volume = NULL) = 0;
-  virtual void createOutput(OutputId id, EspinaVolume::Pointer volume) = 0;
-  virtual void createOutput(OutputId id, const EspinaRegion &region, itkVolumeType::SpacingType spacing) = 0;
-  /// Method which actually executes the filter
-  virtual void run() {};
-  /// Try to locate an snapshot of the filter in tmpDir
-  /// Returns true if all volume snapshot can be recovered
-  /// and false otherwise
-  virtual bool prefetchFilter();
+  protected:
+    explicit SegmentationFilter(NamedInputs namedInputs,
+                                Arguments   args,
+                                FilterType  type)
+    : Filter(namedInputs, args, type){}
 
-  /// Reader to access snapshots
-  EspinaVolumeReader::Pointer tmpFileReader(const QString file);
+    virtual void setCacheDir(QDir dir);
 
-  /// Update output isEdited flag and filter EDIT argument
-  void markAsEdited(OutputId oId);
+    QString cacheOutputId(FilterOutputId oId) const
+    { return QString("%1_%2").arg(id()).arg(oId); }
 
-protected:
-  QList<EspinaVolume::Pointer> m_inputs;
-  NamedInputs                  m_namedInputs;
-  mutable Arguments            m_args;
+    /// Try to locate an snapshot of the filter in tmpDir
+    /// Returns true if all volume snapshot can be recovered
+    /// and false otherwise
+    virtual bool fetchSnapshot(FilterOutputId oId);
 
-  QMap<OutputId, Output> m_outputs;
+    virtual void createOutput(FilterOutputId id);
 
-private:
-  FilterInspectorPtr m_filterInspector;
-  QDir m_tmpDir;
-};
+    virtual SegmentationRepresentationSPtr createRepresentationProxy(FilterOutputId id, const FilterOutput::OutputRepresentationName &type) = 0;
 
-class ChannelFilter
-: public Filter
-{
-public:
-  virtual ~ChannelFilter(){}
+    virtual void addOutputRepresentation(FilterOutputId id, SegmentationRepresentationSPtr rep);
+    virtual void addOutputRepresentations(FilterOutputId id, SegmentationRepresentationSList repList);
 
-protected:
-  explicit ChannelFilter(NamedInputs namedInputs, Arguments args)
-  : Filter(namedInputs, args){}
+    /// Whether the filter needs to be updated or not
+    /// A filter will need an update if there exists an invalid output or no outputs exist at all
+    virtual bool needUpdate() const;
 
-  virtual void createOutput(OutputId id, itkVolumeType::Pointer volume = NULL);
-  virtual void createOutput(OutputId id, EspinaVolume::Pointer volume);
-  virtual void createOutput(OutputId id, const EspinaRegion &region, itkVolumeType::SpacingType spacing);
-};
+    /// Whether the filter needs to be updated or not
+    /// Default implementation will request an update if there is no filter output
+    /// or it is an invalid output
+    virtual bool needUpdate(FilterOutputId oId) const = 0;
 
-class SegmentationFilter
-: public Filter
-{
-public:
-  virtual ~SegmentationFilter(){}
+  protected:
+    QMap<FilterOutputId, SegmentationOutputSPtr> m_outputs;
+  };
 
-protected:
-  explicit SegmentationFilter(NamedInputs namedInputs, Arguments args)
-  : Filter(namedInputs, args){}
+  FilterPtr  EspinaCore_EXPORT filterPtr(ModelItemPtr item);
+  FilterSPtr EspinaCore_EXPORT filterPtr(ModelItemSPtr &item);
 
-  virtual void createOutput(OutputId id, itkVolumeType::Pointer volume = NULL);
-  virtual void createOutput(OutputId id, EspinaVolume::Pointer volume);
-  virtual void createOutput(OutputId id, const EspinaRegion &region, itkVolumeType::SpacingType spacing);
-};
+} // namespace EspINA
+
 #endif // FILTER_H

@@ -20,100 +20,122 @@
 #ifndef EDITORTOOLBAR_H
 #define EDITORTOOLBAR_H
 
-#include <QToolBar>
-
-#include "Tools/Brushes/Brush.h"
-
-// EspINA
+#include <Core/Interfaces/IToolBar.h>
 #include <Core/Interfaces/IFactoryExtension.h>
 #include <Core/Interfaces/IFilterCreator.h>
-#include <Core/Model/Segmentation.h>
 
-class Channel;
-class ITool;
-class Brush;
-class ViewManager;
+#include "App/Tools/Brushes/Brush.h"
+
+// EspINA
+#include <Core/Model/Segmentation.h>
+#include <GUI/ISettingsPanel.h>
+
 class ActionSelector;
-class ContourSelector;
-class ContourWidget;
-class EspinaModel;
-class FreeFormSource;
 class QAction;
 class QUndoStack;
-class ModelItem;
 
-class EditorToolBar
-: public QToolBar
-, public IFactoryExtension
-, public IFilterCreator
+
+namespace EspINA
 {
-  Q_OBJECT
-  Q_INTERFACES(IFactoryExtension IFilterCreator)
-  class FreeFormCommand;
-  class CODECommand;//CloseOpenDilateErode Command
+  class ITool;
+  class ViewManager;
+  class ContourSelector;
+  class ContourWidget;
+  class FreeFormSource;
+  class EditorToolBarSettings;
 
-public:
-  class Settings;
-  class SettingsPanel;
+  class EditorToolBar
+  : public IToolBar
+  , public IFactoryExtension
+  , public IFilterCreator
+  {
+    Q_OBJECT
+    Q_INTERFACES
+    (
+      EspINA::IFactoryExtension
+      EspINA::IFilterCreator
+    )
 
-public:
-  explicit EditorToolBar(EspinaModel *model,
-                         QUndoStack *undoStack,
-                         ViewManager *vm,
-                         QWidget *parent = 0);
+    class FreeFormCommand;
+    class CODECommand;// Close/Open/Dilate/Erode Command
 
-  virtual void initFactoryExtension(EspinaFactory* factory);
+  public:
+    class SettingsPanel;
 
-  virtual Filter* createFilter(const QString              &filter,
-                               const Filter::NamedInputs  &inputs,
-                               const ModelItem::Arguments &args);
-protected slots:
-  void changeCircularBrushMode(Brush::BrushMode mode);
-  void changeSphericalBrushMode(Brush::BrushMode mode);
-  void changeDrawTool(QAction *action);
-  void cancelDrawOperation();
-  void changeSplitTool(QAction *action);
-  void cancelSplitOperation();
-  void combineSegmentations();
-  void substractSegmentations();
-  void closeSegmentations();
-  void openSegmentations();
-  void dilateSegmentations();
-  void erodeSegmentations();
-  void fillHoles();
-  void updateAvailableOperations();
-  void resetState();
+  public:
+    explicit EditorToolBar(EspinaModel *model,
+                           QUndoStack  *undoStack,
+                           ViewManager *viewManager,
+                           QWidget     *parent = 0);
+    virtual ~EditorToolBar();
 
-private:
-  void initDrawTools();
-  void initSplitTools();
-  void initMorphologicalTools();
-  void initCODETools();
-  void initFillTool();
+    virtual void initFactoryExtension(EspinaFactory *factory);
 
-private:
-  ActionSelector *m_drawToolSelector;
-  QMap<QAction *, ITool *> m_drawTools;
+    virtual FilterSPtr createFilter(const QString              &filter,
+                                    const Filter::NamedInputs  &inputs,
+                                    const ModelItem::Arguments &args);
 
-  ActionSelector *m_splitToolSelector;
-  QMap<QAction *, ITool *> m_splitTools;
+    virtual void resetToolbar();
 
-  QAction *m_addition;
-  QAction *m_substraction;
+    virtual void abortOperation();
 
-  QAction *m_erode;
-  QAction *m_dilate;
-  QAction *m_open;
-  QAction *m_close;
+  protected slots:
+    void changeCircularBrushMode(Brush::BrushMode mode);
+    void changeSphericalBrushMode(Brush::BrushMode mode);
+    void changeContourMode(Brush::BrushMode mode);
+    void changeDrawTool(QAction *action);
+    void cancelDrawOperation();
+    void changeSplitTool(QAction *action);
+    void cancelSplitOperation();
+    void mergeSegmentations();
+    void subtractSegmentations();
+    void closeSegmentations();
+    void openSegmentations();
+    void dilateSegmentations();
+    void erodeSegmentations();
+    void fillHoles();
+    void updateAvailableOperations();
+    void startContourOperation();
 
-  QAction *m_fill;
-  ContourWidget *m_contourWidget;
+  private:
+    void initDrawTools();
+    void initSplitTools();
+    void initMorphologicalTools();
+    void initCODETools();
+    void initFillTool();
 
-  EspinaModel *m_model;
-  QUndoStack  *m_undoStack;
-  ViewManager *m_viewManager;
+  private:
+    EspinaModel *m_model;
+    QUndoStack  *m_undoStack;
+    ViewManager *m_viewManager;
 
-  Settings        *m_settings;
-};
+    // GUI
+    ActionSelector *m_drawToolSelector;
+    QMap<QAction *, IToolSPtr> m_drawTools;
+
+    ActionSelector *m_splitToolSelector;
+    QMap<QAction *, IToolSPtr> m_splitTools;
+
+    QAction *m_addition;
+    QAction *m_subtract;
+
+    QAction *m_erode;
+    QAction *m_dilate;
+    QAction *m_open;
+    QAction *m_close;
+
+    QAction *m_discTool;
+    QAction *m_sphereTool;
+    QAction *m_contourTool;
+
+    QAction *m_fill;
+    ContourWidget *m_contourWidget;
+
+    EditorToolBarSettings  *m_settings;
+    ISettingsPanelPrototype editorSettings;
+  };
+
+} // namespace EspINA
+
 
 #endif // EDITORTOOLBAR_H

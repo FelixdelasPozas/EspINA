@@ -22,9 +22,25 @@
 #include <QStringList>
 #include "Core/Extensions/ModelItemExtension.h"
 #include "Core/Model/RelationshipGraph.h"
+#include "EspinaModel.h"
 
 #include <QDebug>
 #include <QCryptographicHash>
+
+using namespace EspINA;
+
+template<class T>
+QString arg3(const T val[3])
+{
+  return QString("%1,%2,%3").arg(val[0]).arg(val[1]).arg(val[2]);
+}
+
+template<class T>
+QString arg6(const T val[6])
+{
+  return QString("%1,%2,%3,%4,%5,%6").arg(val[0]).arg(val[1]).arg(val[2]).arg(val[3]).arg(val[4]).arg(val[5]);
+}
+
 
 const ModelItem::ArgumentId ModelItem::EXTENSIONS = "Extensions";
 
@@ -97,6 +113,11 @@ QString ModelItem::Arguments::hash() const
   return QString(hasher.result().toHex());
 }
 
+//------------------------------------------------------------------------
+ModelItem::~ModelItem()
+{
+//   qDebug() << "Destroying ModelItem";
+}
 
 //------------------------------------------------------------------------
 QString ModelItem::serialize() const
@@ -104,123 +125,32 @@ QString ModelItem::serialize() const
   return QString("none");
 }
 
-
 //------------------------------------------------------------------------
-ModelItem::Vector ModelItem::relatedItems(ModelItem::RelationType rel, const QString filter)
+ModelItemSList ModelItem::relatedItems(RelationType relType,
+                                       const QString& relName)
 {
-  Vector res;
-
-  Q_ASSERT(m_relations);
-  m_vertex = m_relations->vertex(this);
-  if (rel == IN || rel == INOUT)
-    foreach(VertexProperty v, m_relations->ancestors(m_vertex, filter))
-      res << v.item;
-
-  if (rel == OUT || rel == INOUT)
-    foreach(VertexProperty v, m_relations->succesors(m_vertex, filter))
-      res << v.item;
+  ModelItemSList res;
+  if (m_model)
+    res = m_model->relatedItems(this, relType, relName);
 
   return res;
 }
 
 //------------------------------------------------------------------------
-ModelItem::RelationList ModelItem::relations(const QString filter)
+RelationList ModelItem::relations(const QString &relName)
 {
   RelationList res;
+  if (m_model)
+    res = m_model->relations(this, relName);
 
-  Q_ASSERT(m_relations);
-  m_vertex = m_relations->vertex(this);
-  foreach(Edge edge, m_relations->edges(m_vertex, filter))
-  {
-    Relation rel;
-    rel.ancestor = edge.source.item;
-    rel.succesor = edge.target.item;
-    rel.relation = edge.relationship.c_str();
-    res << rel;
-  }
-
-//   qDebug() << m_vertex<<"Model Relations" << res.size();
   return res;
 }
 
 //------------------------------------------------------------------------
-QStringList ModelItem::availableInformations() const
+ModelItemPtr EspINA::indexPtr(const QModelIndex& index)
 {
-  QStringList informations;
-  foreach (ModelItemExtension *ext, m_insertionOrderedExtensions)
-    informations << ext->availableInformations();
+  ModelItemPtr ptr = static_cast<ModelItemPtr>(index.internalPointer());
+  Q_ASSERT(ptr);
 
-  return informations;
-}
-
-//------------------------------------------------------------------------
-QStringList ModelItem::availableRepresentations() const
-{
-  QStringList representations;
-  foreach (ModelItemExtension *ext, m_insertionOrderedExtensions)
-    representations << ext->availableRepresentations();
-
-  return representations;
-}
-
-//------------------------------------------------------------------------
-QVariant ModelItem::information(QString name)
-{
-  Q_ASSERT(m_informations.contains(name));
-  return m_informations[name]->information(name);
-}
-
-//------------------------------------------------------------------------
-Representation* ModelItem::representation(QString name) const
-{
-  Q_ASSERT(m_representations.contains(name));
-  return m_representations[name];
-}
-
-//------------------------------------------------------------------------
-ModelItemExtension* ModelItem::extension(QString name) const
-{
-  return m_extensions.value(name, NULL);
-}
-
-
-//------------------------------------------------------------------------
-void ModelItem::addExtension(ModelItemExtension *ext)
-{
-  if (m_extensions.contains(ext->id()))
-  {
-     qWarning() << "Extension already registered";
-     Q_ASSERT(false);
-  }
-
-  bool hasDependencies = true;
-  foreach(QString reqExtId, ext->dependencies())
-    hasDependencies = hasDependencies && m_extensions.contains(reqExtId);
-
-  if (hasDependencies)
-  {
-    m_extensions.insert(ext->id(),ext);
-    m_insertionOrderedExtensions << ext;
-//     foreach(ISegmentationRepresentation::RepresentationId rep, ext->availableRepresentations())
-//       m_representations.insert(rep, ext);
-    foreach(QString info, ext->availableInformations())
-    {
-      m_informations.insert(info, ext);
-//       EXTENSION_DEBUG("New Information: " << info);
-    }
-    // Try to satisfy pending extensions
-    foreach(ModelItemExtension *pending, m_pendingExtensions)
-      addExtension(pending);
-  } 
-  else
-  {
-    if (!m_pendingExtensions.contains(ext->id()))
-      m_pendingExtensions.insert(ext->id(),ext);
-  }
-}
-
-//------------------------------------------------------------------------
-ModelItem* indexPtr(const QModelIndex& index)
-{
-  return static_cast<ModelItem *>(index.internalPointer());
+  return ptr;
 }

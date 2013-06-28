@@ -34,6 +34,7 @@ QWidget* ActionSelector::createWidget(QWidget* parent)
 {
   m_button = new ActionSelectorWidget(parent);
   m_button->setIconSize(QSize(22,22));
+  m_button->setCheckable(true);
 
   foreach(QAction *action, m_actions)
     m_button->addAction(action);
@@ -80,18 +81,25 @@ bool ActionSelector::isChecked()
 }
 
 //------------------------------------------------------------------------
+void ActionSelector::setChecked(bool value)
+{
+  m_button->setChecked(value);
+}
+
+//------------------------------------------------------------------------
 QAction* ActionSelector::getCurrentAction()
 {
-  return this->m_button->getButtonAction();
+  return m_button->getButtonAction();
 }
 
 //------------------------------------------------------------------------
 QString ActionSelector::getCurrentActionAsQString()
 {
-  return this->m_button->getButtonAction()->text();
+  return m_button->getButtonAction()->text();
 }
 
+//------------------------------------------------------------------------
 void ActionSelector::setIcon(const QIcon &icon)
 {
-  this->m_button->setIcon(icon);
+  m_button->setIcon(icon);
 }

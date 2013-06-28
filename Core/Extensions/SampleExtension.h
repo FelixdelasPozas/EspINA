@@ -22,28 +22,30 @@
 
 #include "Core/Extensions/ModelItemExtension.h"
 
-#include <QSharedPointer>
-
-class Sample;
-
-class SampleExtension
-: public ModelItemExtension
-{
-public:
-  typedef QSharedPointer<SampleExtension> SPtr;
-
-public:
-  virtual ~SampleExtension(){}
-
-  virtual void initialize(Sample *sample, ModelItem::Arguments arg = ModelItem::Arguments()) = 0;
-  virtual QString serialize() const = 0;
-
-  virtual SampleExtension *clone() = 0;
-
-protected:
-  explicit SampleExtension() : m_sample(NULL) {}
-
-  Sample *m_sample;
-};
+// namespace EspINA
+// {
+//   class SampleExtension
+//   : public ModelItemExtension
+//   {
+//   public:
+//     virtual ~SampleExtension(){}
+// 
+//     virtual void initialize(const ModelItem::Arguments &arg = ModelItem::Arguments()) = 0;
+//     virtual QString serialize() const = 0;
+// 
+//     virtual SampleExtensionPtr clone() = 0;
+// 
+//   protected:
+//     explicit SampleExtension() : m_sample(NULL) {}
+// 
+//     SamplePtr m_sample;
+//   };
+// 
+//   typedef boost::shared_ptr<SampleExtension> SampleExtensionSPtr;
+//   typedef QList<SampleExtensionPtr>       SampleExtensionSList;
+// 
+//   SampleExtensionPtr sampleExtensionPtr(ModelItemExtensionPtr extension);
+// 
+// }// namespace EspINA
 
 #endif // SAMPLEEXTENSION_H
