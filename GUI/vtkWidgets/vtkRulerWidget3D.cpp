@@ -46,6 +46,7 @@ namespace EspINA
     m_actor->SetFlyModeToClosestTriad();
     m_actor->SetFontFactor(1);
     m_actor->SetNumberOfLabels(0);
+    m_actor->DragableOff();
 
     // don't want axis labels, as the measure goes in the axis title
     vtkTextProperty *labelText = m_actor->GetAxisLabelTextProperty();
@@ -75,9 +76,11 @@ namespace EspINA
 
     if(value)
     {
-      SetCurrentRenderer(Interactor->GetRenderWindow()->GetRenderers()->GetFirstRenderer());
-      m_actor->SetCamera(CurrentRenderer->GetActiveCamera());
-      m_actor->Modified();
+      if (m_actor->GetCamera() == NULL || CurrentRenderer->GetActiveCamera() != m_actor->GetCamera())
+      {
+        m_actor->SetCamera(CurrentRenderer->GetActiveCamera());
+        m_actor->Modified();
+      }
       CurrentRenderer->AddViewProp(m_actor);
     }
     else
@@ -101,6 +104,7 @@ namespace EspINA
     m_actor->SetZLabel(QObject::tr("Z: %1 nm").arg(bounds[5]-bounds[4]).toStdString().c_str());
     m_actor->SetVisibility(true);
     m_actor->Modified();
+    CurrentRenderer->GetRenderWindow()->Render();
   }
 
 } /* namespace EspINA */
