@@ -27,6 +27,7 @@ ContourRepresentationSettings::ContourRepresentationSettings()
 : m_init(false)
 {
   setupUi(this);
+  m_borderWidth->setEnabled(false);
 }
 
 //----------------------------------------------------------------------------
