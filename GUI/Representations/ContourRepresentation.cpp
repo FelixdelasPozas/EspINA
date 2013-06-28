@@ -54,7 +54,8 @@ ContourRepresentation::ContourRepresentation(SegmentationVolumeSPtr data,
 //-----------------------------------------------------------------------------
 GraphicalRepresentationSettings *ContourRepresentation::settingsWidget()
 {
-  return new ContourRepresentationSettings();
+  return new GraphicalRepresentationEmptySettings();
+  //return new  ContourRepresentationSettings();
 }
 
 //-----------------------------------------------------------------------------
