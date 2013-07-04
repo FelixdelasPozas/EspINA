@@ -80,10 +80,13 @@ void FreeFormSource::setGraphicalRepresentationFactory(GraphicalRepresentationFa
 bool FreeFormSource::dumpSnapshot(Snapshot &snapshot)
 {
   OutputSPtr filterOutput = output(0);
-  filterOutput->setCached(filterOutput->isCached() || m_model->isTraceable());
+  if (filterOutput) 
+  {
+    filterOutput->setCached(filterOutput->isCached() || m_model->isTraceable());
 
-  SegmentationVolumeSPtr editedVolume = segmentationVolume(filterOutput);
-  editedVolume->clearEditedRegions();
+    SegmentationVolumeSPtr editedVolume = segmentationVolume(filterOutput);
+    editedVolume->clearEditedRegions();
+  }
 
   return EspINA::SegmentationFilter::dumpSnapshot(snapshot);
 }

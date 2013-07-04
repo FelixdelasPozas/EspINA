@@ -345,6 +345,8 @@ void SGSFilterInspector::Widget::modifyFilter()
     warning.setText(tr("New segmentation may be incomplete due to VOI restriction."));
     warning.exec();
   }
+
+  m_viewManager->updateSegmentationRepresentations();
 }
 
 //----------------------------------------------------------------------------

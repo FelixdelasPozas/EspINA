@@ -111,7 +111,7 @@ void ChannelSliceRepresentation::updateRepresentation()
 {
   if (m_actor != NULL)
   {
-    m_reslice->Update();
+    m_reslice->UpdateWholeExtent();
     m_mapToColors->Update();
     m_shiftScaleFilter->Update();
     m_actor->Update();
@@ -223,13 +223,47 @@ SegmentationSliceRepresentation::SegmentationSliceRepresentation(SegmentationVol
 , m_actor(NULL)
 {
   setLabel(tr("Solid"));
+  //qDebug() << "Creating Solid Representation";
 }
 
+//-----------------------------------------------------------------------------
+SegmentationSliceRepresentation::~SegmentationSliceRepresentation()
+{
+  //qDebug() << "Destroying Solid Representation";
+}
 //-----------------------------------------------------------------------------
 GraphicalRepresentationSettings *SegmentationSliceRepresentation::settingsWidget()
 {
   return new SegmentationSliceRepresentationSettings();
 }
+
+//-----------------------------------------------------------------------------
+QString SegmentationSliceRepresentation::serializeSettings()
+{
+  QStringList values;
+
+  values << GraphicalRepresentation::serializeSettings();
+  values << QString("%1").arg(m_color.alphaF());
+
+  return values.join(";");
+}
+
+//-----------------------------------------------------------------------------
+void SegmentationSliceRepresentation::restoreSettings(QString settings)
+{
+  if (!settings.isEmpty())
+  {
+    QStringList values = settings.split(";");
+
+    double alphaF = values[1].toDouble();
+
+    QColor currentColor = color();
+    currentColor.setAlphaF(alphaF);
+
+    GraphicalRepresentation::restoreSettings(values[0]);
+  }
+}
+
 
 //-----------------------------------------------------------------------------
 void SegmentationSliceRepresentation::setColor(const QColor &color)

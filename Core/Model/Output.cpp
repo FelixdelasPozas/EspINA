@@ -35,11 +35,14 @@ using namespace EspINA;
 
 const int EspINA::FilterOutput::INVALID_OUTPUT_ID = -1;
 
+EspinaTimeStamp EspINA::FilterOutput::s_tick = 0;
+
 //----------------------------------------------------------------------------
 FilterOutput::FilterOutput(Filter *filter, const FilterOutputId &id)
 : m_id(id)
 , m_isCached(false)
 , m_filter(filter)
+, m_timeStamp(s_tick++)
 {
 }
 

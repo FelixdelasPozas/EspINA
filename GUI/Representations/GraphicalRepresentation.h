@@ -80,6 +80,10 @@ class GraphicalRepresentationSettings;
 
     virtual GraphicalRepresentationSettings *settingsWidget() = 0;
 
+    virtual QString serializeSettings();
+
+    virtual void restoreSettings(QString settings);
+
     virtual void setColor(const QColor &color)
     { m_color = color; }
 

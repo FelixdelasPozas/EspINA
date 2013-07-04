@@ -21,6 +21,7 @@
 #include <QTranslator>
 
 #include <GUI/ViewManager.h>
+#include <GUI/Extensions/Visualization/VisualizationState.h>
 #include <EspinaMainWindow.h>
 #include <Core/Model/EspinaFactory.h>
 #include <Core/Extensions/EdgeDistances/AdaptiveEdges.h>
@@ -84,20 +85,23 @@ int main(int argc, char **argv)
     EspINA::AdaptiveEdges            adaptiveEdgesExtension;
     EspINA::EdgeDistance             edgeDistanceExtension;
     EspINA::MorphologicalInformation morphologicalExtension;
-    EspINA::SegmentationTags         tagsExtension;
     EspINA::SegmentationNotes        notesExtension;
+    EspINA::SegmentationTags         tagsExtension;
+    EspINA::VisualizationState       visualizationExtension;
 
     factory.registerChannelExtension     (&adaptiveEdgesExtension);
     factory.registerSegmentationExtension(&edgeDistanceExtension);
     factory.registerSegmentationExtension(&morphologicalExtension);
     factory.registerSegmentationExtension(&notesExtension);
     factory.registerSegmentationExtension(&tagsExtension);
+    factory.registerSegmentationExtension(&visualizationExtension);
 
     EspINA::EspinaMainWindow espina(&model, &viewManager, plugins);
     espina.show();
 
     res = app.exec();
 
+    factory.unregisterSegmentationExtension(&visualizationExtension);
     factory.unregisterSegmentationExtension(&tagsExtension);
     factory.unregisterSegmentationExtension(&notesExtension);
     factory.unregisterSegmentationExtension(&morphologicalExtension);

@@ -165,7 +165,7 @@ void ContourRepresentation::updateRepresentation()
 {
   if (m_actor != NULL)
   {
-    m_reslice->Update();
+    m_reslice->UpdateWholeExtent();
     m_mapper->Update();
     m_actor->Modified();
   }

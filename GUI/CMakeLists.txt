@@ -57,6 +57,7 @@ set (GUI_SOURCES
   ${GUI_UI}
   Analysis/InformationSelector.cpp
   Analysis/xlsUtils.cpp
+  Extensions/Visualization/VisualizationState.cpp
   IO/EspinaIO.cpp
   Pickers/BrushPicker.cpp
   Pickers/ContourSelector.cpp

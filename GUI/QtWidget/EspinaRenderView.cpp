@@ -22,6 +22,7 @@
 #include <Core/Model/Channel.h>
 #include <Core/Model/Segmentation.h>
 #include "GUI/Representations/GraphicalRepresentation.h"
+#include <GUI/Extensions/Visualization/VisualizationState.h>
 
 // VTK
 #include <vtkMath.h>
@@ -334,12 +335,19 @@ bool EspinaRenderView::updateChannelRepresentation(ChannelPtr channel, bool rend
 
   if (state.visible)
   {
-    double requestedBrightness = channel->brightness();
-    double requestedContrast   = channel->contrast();
-    double requestedOpacity    = channel->opacity();
-    QColor requestedStain      = QColor::fromHsvF(hue, sat, 1.0);
+    double          requestedBrightness = channel->brightness();
+    double          requestedContrast   = channel->contrast();
+    double          requestedOpacity    = channel->opacity();
+    QColor          requestedStain      = QColor::fromHsvF(hue, sat, 1.0);
+    EspinaTimeStamp requestedTimeStamp  = channel->output()->timeStamp();
 
-    outputChanged     = state.output     != channel->output();
+    Q_ASSERT(channel->output());
+    if (!state.output)
+    {
+      state.timeStamp = channel->output()->timeStamp();
+    }
+
+    outputChanged     = state.output     != channel->output()   || state.timeStamp != requestedTimeStamp;
     brightnessChanged = state.brightness != requestedBrightness || outputChanged;
     contrastChanged   = state.contrast   != requestedContrast   || outputChanged;
     opacityChanged    = state.opacity    != requestedOpacity    || outputChanged;
@@ -350,6 +358,7 @@ bool EspinaRenderView::updateChannelRepresentation(ChannelPtr channel, bool rend
     state.opacity     = requestedOpacity;
     state.stain       = requestedStain;
     state.output      = channel->output();
+    state.timeStamp   = requestedTimeStamp;
   }
 
   if (outputChanged)
@@ -453,21 +462,31 @@ bool EspinaRenderView::updateSegmentationRepresentation(SegmentationPtr seg, boo
 
   if (state.visible)
   {
-    QColor requestedColor       = m_viewManager->color(seg);
-    bool   requestedHighlighted = seg->isSelected();
+    QColor          requestedColor       = m_viewManager->color(seg);
+    bool            requestedHighlighted = seg->isSelected();
+    EspinaTimeStamp requestedTimeStamp   = seg->output()->timeStamp();
 
-    outputChanged    = state.output    != seg->output();
+    Q_ASSERT(seg->output());
+    if (!state.output)
+    {
+      state.timeStamp = requestedTimeStamp;
+    }
+
+    outputChanged    = state.output    != seg->output()        || state.timeStamp != requestedTimeStamp;
     colorChanged     = state.color     != requestedColor       || outputChanged;
     highlightChanged = state.highlited != requestedHighlighted || outputChanged;
 
     state.color     = requestedColor;
     state.highlited = requestedHighlighted;
     state.output    = seg->output();
+    state.timeStamp = requestedTimeStamp;
   }
 
   if (outputChanged)
   {
     removeGraphicalRepresentations(state);
+
+    VisualizationState *extension = dynamic_cast<VisualizationState *>(seg->informationExtension(VisualizationStateID));
 
     foreach(GraphicalRepresentationSPtr prototype, seg->representations())
     {
@@ -483,7 +502,12 @@ bool EspinaRenderView::updateSegmentationRepresentation(SegmentationPtr seg, boo
 
         state.representations << boost::dynamic_pointer_cast<SegmentationGraphicalRepresentation>(representationClone);
       }
+      if (extension)
+      {
+        prototype->restoreSettings(extension->settings(prototype->label()));
+      }
     }
+
   }
 
   bool hasChanged = visibilityChanged || colorChanged || highlightChanged;

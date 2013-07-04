@@ -160,8 +160,6 @@ namespace EspINA
 
     ConnectedThresholdFilterType::Pointer ctif;
     ExtractType::Pointer                  voiFilter;
-    ExtractType::Pointer                  extractFilter;
-    Image2LabelFilterType::Pointer        image2label;
     bmcifType::Pointer                    bmcif;
 
     friend class FilterInspector;

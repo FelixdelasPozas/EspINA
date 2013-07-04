@@ -240,6 +240,8 @@ void RawChannelVolume::setVolume(itkVolumeType::Pointer volume, bool disconnect)
     itk2vtk->Update();
     m_VTKGenerationTime = m_volume->GetMTime();
   }
+
+  markAsModified(true);
 }
 
 //----------------------------------------------------------------------------
@@ -434,6 +436,8 @@ bool RawSegmentationVolume::setInternalData(SegmentationRepresentationSPtr rhs)
 {
   RawSegmentationVolumeSPtr volume = boost::dynamic_pointer_cast<RawSegmentationVolume>(rhs);
   setVolume(volume->toITK(), true);
+
+  markAsModified(true);
 
   return true;
 }
@@ -738,8 +742,11 @@ void RawSegmentationVolume::draw(itkVolumeType::Pointer volume,
   {
     expandToFitRegion(drawnRegion);
 
-    itkVolumeIterator it = drawnVolume.iterator(drawnRegion);
-    itkVolumeIterator ot = iterator(drawnRegion);
+    itkVolumeType::RegionType commonRegion = m_volume->GetLargestPossibleRegion();
+    commonRegion.Crop(volume->GetLargestPossibleRegion());
+
+    itkVolumeIterator it = itkVolumeIterator(volume,   commonRegion);
+    itkVolumeIterator ot = itkVolumeIterator(m_volume, commonRegion);
 
     it.GoToBegin();
     ot.GoToBegin();
@@ -1068,7 +1075,7 @@ const vtkAlgorithmOutput* RawSegmentationVolume::toVTK() const
 //----------------------------------------------------------------------------
 itkVolumeType::Pointer RawSegmentationVolume::cloneVolume() const
 {
-  return cloneVolume(volumeRegion());
+  return cloneVolume(m_volume->GetLargestPossibleRegion());
 }
 
 //----------------------------------------------------------------------------
@@ -1080,10 +1087,13 @@ itkVolumeType::Pointer RawSegmentationVolume::cloneVolume(const EspinaRegion &re
 //----------------------------------------------------------------------------
 itkVolumeType::Pointer RawSegmentationVolume::cloneVolume(const RawSegmentationVolume::VolumeRegion &region) const
 {
+  itkVolumeType::RegionType cloneRegion = m_volume->GetLargestPossibleRegion();
+  cloneRegion.Crop(region);
+
   ExtractType::Pointer extractor = ExtractType::New();
   extractor->SetNumberOfThreads(1);
   extractor->SetInput(m_volume);
-  extractor->SetExtractionRegion(region);
+  extractor->SetExtractionRegion(cloneRegion);
   extractor->Update();
 
   itkVolumeType::Pointer res = extractor->GetOutput();

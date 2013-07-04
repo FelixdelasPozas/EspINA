@@ -30,6 +30,7 @@
 #include <GUI/ViewManager.h>
 #include <GUI/Representations/GraphicalRepresentationSettings.h>
 #include <GUI/Representations/GraphicalRepresentation.h>
+#include <GUI/Extensions/Visualization/VisualizationState.h>
 
 #include <Undo/ChangeTaxonomyCommand.h>
 #include <Undo/RemoveSegmentation.h>
@@ -347,6 +348,13 @@ void DefaultContextualMenu::displayVisualizationSettings()
     {
       foreach (SegmentationPtr segmentation, m_segmentations)
       {
+        VisualizationState *extension = dynamic_cast<VisualizationState *>(segmentation->informationExtension(VisualizationStateID));
+        if (!extension)
+        {
+          extension = new VisualizationState();
+          segmentation->addExtension(extension);
+        }
+
         foreach (GraphicalRepresentationSPtr representation, segmentation->output()->graphicalRepresentations())
         {
           QStandardItem *key = findRepresentationItem(representations.keys(), representation);
@@ -357,6 +365,7 @@ void DefaultContextualMenu::displayVisualizationSettings()
             representation->setActive(true);
             representations[key]->Set(representation);
           }
+          extension->setSettings(representation->label(), representation->serializeSettings());
         }
       }
     }

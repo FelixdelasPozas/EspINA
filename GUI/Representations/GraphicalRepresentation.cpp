@@ -56,6 +56,19 @@ void GraphicalRepresentation::setActive(bool value, EspinaRenderView *view)
   }
 }
 
+QString GraphicalRepresentation::serializeSettings()
+{
+  return isActive()?"On":"Off"; 
+}
+
+void GraphicalRepresentation::restoreSettings(QString settings)
+{
+  if (settings == "On")
+    setActive(true);
+  else if (settings == "Off")
+    setActive(false);
+}
+
 //-----------------------------------------------------------------------------
 void GraphicalRepresentation::setVisible(bool visible)
 {

@@ -113,9 +113,14 @@ namespace EspINA
   public:
     explicit SegmentationSliceRepresentation(SegmentationVolumeSPtr data,
                                              SliceView             *view);
-    virtual ~SegmentationSliceRepresentation() {};
+    virtual ~SegmentationSliceRepresentation();
 
     virtual GraphicalRepresentationSettings *settingsWidget();
+
+    virtual QString serializeSettings();
+
+    virtual void restoreSettings(QString settings);
+
 
     virtual void setColor(const QColor &color);
 

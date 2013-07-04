@@ -52,6 +52,7 @@ namespace EspINA
   class EspinaCore_EXPORT FilterOutput
   : public QObject
   {
+    static EspinaTimeStamp s_tick;
     Q_OBJECT
   protected:
     static const int INVALID_OUTPUT_ID;
@@ -64,7 +65,7 @@ namespace EspINA
     {
     public:
       EditedRegion(int id, const OutputRepresentationName &name, const EspinaRegion &region)
-      : Id(id), Name(name), Region(region) {}
+      : Id(id), Name(name), Region(region){}
       virtual ~EditedRegion() {}
 
       int                      Id;
@@ -118,6 +119,13 @@ namespace EspINA
     void clearGraphicalRepresentations()
     { m_repPrototypes.clear(); }
 
+    EspinaTimeStamp timeStamp()
+    { return m_timeStamp; }
+
+    // NOTE: Temporal solution to change output when filters are updated
+    void updateModificationTime() 
+    { m_timeStamp = s_tick++; }
+
   protected slots:
     void onRepresentationChanged();
 
@@ -130,6 +138,9 @@ namespace EspINA
     FilterPtr      m_filter;
 
     GraphicalRepresentationSList m_repPrototypes;
+
+  private:
+    EspinaTimeStamp m_timeStamp;
   };
 
   typedef FilterOutput                  * OutputPtr;
@@ -202,6 +213,7 @@ namespace EspINA
     { return m_representations.value(name, SegmentationRepresentationSPtr()); }
 
   private:
+    
     QMap<OutputRepresentationName, SegmentationRepresentationSPtr> m_representations;
 
     EditedRegionSList m_editerRegions;

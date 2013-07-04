@@ -102,7 +102,7 @@ void Brush::DrawCommand::redo()
     if (m_seg->filter()->validOutput(m_output))
     {
       SegmentationVolumeSPtr volume = segmentationVolume(m_seg->output());
-      m_newVolume = volume->cloneVolume(strokeRegion);
+      m_newVolume = volume->cloneVolume(strokeRegion.intersection(volume->espinaRegion()));
     }
   }
 

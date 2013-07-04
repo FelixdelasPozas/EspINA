@@ -114,6 +114,8 @@ namespace EspINA
     UNDEFINED = 255
   };
 
+  typedef unsigned long long EspinaTimeStamp;
+
   typedef QPair<QString, QByteArray> SnapshotEntry;
   typedef QList<SnapshotEntry>       Snapshot;
 

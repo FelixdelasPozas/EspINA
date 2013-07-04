@@ -53,23 +53,25 @@ namespace EspINA
   protected:
     struct ChannelState
     {
-      double     brightness;
-      double     contrast;
-      double     opacity;
-      OutputSPtr output;
-      QColor     stain;
-      bool       visible;
+      double          brightness;
+      double          contrast;
+      double          opacity;
+      OutputSPtr      output;
+      EspinaTimeStamp timeStamp;
+      QColor          stain;
+      bool            visible;
 
       ChannelGraphicalRepresentationList representations;
     };
 
     struct SegmentationState
     {
-      Nm         depth;
-      QColor     color;
-      bool       highlited;
-      OutputSPtr output;
-      bool       visible;
+      Nm              depth;
+      QColor          color;
+      bool            highlited;
+      OutputSPtr      output;
+      EspinaTimeStamp timeStamp;
+      bool            visible;
 
       SegmentationGraphicalRepresentationList representations;
     };

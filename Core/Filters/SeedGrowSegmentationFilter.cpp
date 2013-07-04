@@ -124,6 +124,7 @@ void SeedGrowSegmentationFilter::run(FilterOutputId oId)
     roi.SetIndex(i, voi[inf]);
     roi.SetSize (i, voi[sup] - voi[inf] + 1);
   }
+
   voiFilter->SetNumberOfThreads(1);
   voiFilter->SetInput(input->toITK());
   voiFilter->SetExtractionRegion(roi);
@@ -147,26 +148,8 @@ void SeedGrowSegmentationFilter::run(FilterOutputId oId)
 //   qDebug() << "Lower Intensity:" << std::max(seedIntensity - m_param.lowerThreshold(), 0.0);
 //   qDebug() << "Upper Intensity:" << std::min(seedIntensity + m_param.upperThreshold(), 255.0);
 //   qDebug() << "SEED: " << seed[0] << " " << seed[1] << " " << seed[2];
-
-//   qDebug() << "Converting from ITK to LabelMap";
-  image2label = Image2LabelFilterType::New();
-  image2label->ReleaseDataFlagOn();
-  image2label->SetInput(ctif->GetOutput());
-  image2label->Update();
-
-//   qDebug() << "Getting Segmentation Region";
-  // Get the roi of the object
-  LabelMapType    *labelMap  = image2label->GetOutput();
-  LabelObjectType *object    = labelMap->GetLabelObject(LABEL_VALUE);
-  LabelObjectType::RegionType objectROI = object->GetBoundingBox();
-//   vtkDebugMacro(<< "Extracting Segmentation Region");
-  extractFilter = ExtractType::New();
-  extractFilter->SetInput(ctif->GetOutput());
-  extractFilter->SetExtractionRegion(objectROI);
-  extractFilter->ReleaseDataFlagOn();
-  extractFilter->Update();
-
-  itkVolumeType::Pointer volume;
+  RawSegmentationVolumeSPtr volumeRepresentation(new RawSegmentationVolume(ctif->GetOutput()));
+  volumeRepresentation->fitToContent();
 
   if (m_param.closeValue() > 0)
   {
@@ -176,18 +159,14 @@ void SeedGrowSegmentationFilter::run(FilterOutputId oId)
     ball.CreateStructuringElement();
 
     bmcif = bmcifType::New();
-    bmcif->SetInput(extractFilter->GetOutput());
+    bmcif->SetInput(volumeRepresentation->toITK());
     bmcif->SetKernel(ball);
     bmcif->SetForegroundValue(LABEL_VALUE);
     bmcif->ReleaseDataFlagOn();
     bmcif->Update();
 
-    volume = bmcif->GetOutput();
+    volumeRepresentation->setVolume(bmcif->GetOutput());
   }
-  else
-    volume = extractFilter->GetOutput();
-
-  RawSegmentationVolumeSPtr volumeRepresentation(new RawSegmentationVolume(volume));
 
   SegmentationRepresentationSList repList;
   repList << volumeRepresentation;
@@ -196,6 +175,8 @@ void SeedGrowSegmentationFilter::run(FilterOutputId oId)
   addOutputRepresentations(0, repList);
 
   m_ignoreCurrentOutputs = false;
+
+  m_outputs[0]->updateModificationTime();
 
   emit modified(this);
 }

@@ -47,8 +47,6 @@ namespace EspINA
   typedef itk::ImageRegionIteratorWithIndex<itkVolumeType>      itkVolumeIterator;
   typedef itk::ImageRegionConstIteratorWithIndex<itkVolumeType> itkVolumeConstIterator;
 
-  typedef unsigned long long EspinaTimeStamp;
-
   class EspinaCore_EXPORT FilterOutput::OutputRepresentation
   : public QObject
   {
