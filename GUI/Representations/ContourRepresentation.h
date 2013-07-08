@@ -1,6 +1,6 @@
 /*
  <one line to give the program's name and a brief idea of what it does.>
- Copyright (C) 2013 Félix de las Pozas Álvarez <felixdelaspozas@gmail.com>
+ Copyright (C) 2013 Fï¿½lix de las Pozas ï¿½lvarez <felixdelaspozas@gmail.com>
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -28,11 +28,14 @@
 
 // VTK
 #include <vtkSmartPointer.h>
+#include <vtkTubeFilter.h>
 
 class vtkImageReslice;
 class vtkPolyDataMapper;
 class vtkActor;
 class vtkVoxelContour2D;
+class vtkImageCanvasSource2D;
+class vtkTexture;
 
 namespace EspINA
 {
@@ -45,6 +48,9 @@ namespace EspINA
   {
     Q_OBJECT
     public:
+      typedef enum { tiny = 0, small, medium, large, huge } LineWidth;
+      typedef enum { normal = 0, dotted, dashed } LinePattern;
+
       ContourRepresentation(SegmentationVolumeSPtr data,
                             EspinaRenderView      *view);
       virtual ~ContourRepresentation() {};
@@ -66,10 +72,14 @@ namespace EspINA
 
       virtual QList<vtkProp*> getActors();
 
-      void setLineWidth(int width);
-      int lineWidth() const;
+      void setLineWidth(LineWidth width);
+      LineWidth lineWidth() const;
 
-      void setLinePattern(int pattern);
+      void setLinePattern(LinePattern pattern);
+      LinePattern linePattern() const;
+
+      void updateWidth();
+      void updatePattern();
 
     protected:
       virtual GraphicalRepresentationSPtr cloneImplementation(SliceView *view);
@@ -86,16 +96,21 @@ namespace EspINA
       void initializePipeline();
 
     private:
+      void generateTexture();
       SegmentationVolumeSPtr m_data;
 
       vtkSmartPointer<vtkImageReslice>         m_reslice;
       vtkSmartPointer<vtkVoxelContour2D>       m_voxelContour;
+      vtkSmartPointer<vtkImageCanvasSource2D>  m_textureIcon;
+      vtkSmartPointer<vtkTexture>              m_texture;
+      vtkSmartPointer<vtkTubeFilter>           m_tubes;
       vtkSmartPointer<vtkPolyDataMapper>       m_mapper;
       vtkSmartPointer<vtkActor>                m_actor;
       static TransparencySelectionHighlighter *s_highlighter;
 
-      int m_width;
-      int m_pattern;
+      LineWidth m_width;
+      LinePattern m_pattern;
+      Nm m_minSpacing;
     };
 
     typedef boost::shared_ptr<ContourRepresentation> ContourRepresentationSPtr;

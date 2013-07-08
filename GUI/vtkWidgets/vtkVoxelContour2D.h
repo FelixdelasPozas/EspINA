@@ -1,6 +1,6 @@
 /*
  <one line to give the program's name and a brief idea of what it does.>
- Copyright (C) 2013 Félix de las Pozas Álvarez <felixdelaspozas@gmail.com>
+ Copyright (C) 2013 Fï¿½lix de las Pozas ï¿½lvarez <felixdelaspozas@gmail.com>
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -58,6 +58,10 @@ class EspinaGUI_EXPORT vtkVoxelContour2D
     void AddInput(vtkDataObject*);
     void AddInput(int, vtkDataObject*);
 
+    // get the smallest of the spacing of the plane that contains the contour
+    // (used to compute contour width in ContourRepresentation)
+    double getMinimumSpacing() const;
+
   protected:
     vtkVoxelContour2D();
     ~vtkVoxelContour2D();
@@ -94,6 +98,8 @@ class EspinaGUI_EXPORT vtkVoxelContour2D
   private:
     vtkVoxelContour2D(const vtkVoxelContour2D&);  // Not implemented.
     void operator=(const vtkVoxelContour2D&);  // Not implemented.
+
+    double m_minSpacing;
 };
 
 #endif /* VTKVOXELCONTOUR2D_H_ */

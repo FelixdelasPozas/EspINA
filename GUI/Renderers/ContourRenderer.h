@@ -1,6 +1,6 @@
 /*
  <one line to give the program's name and a brief idea of what it does.>
- Copyright (C) 2013 Félix de las Pozas Álvarez <felixdelaspozas@gmail.com>
+ Copyright (C) 2013 Felix de las Pozas Alvarez <felixdelaspozas@gmail.com>
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -53,14 +53,6 @@ namespace EspINA
                                           bool repeat = false);
 
       virtual void setView(EspinaRenderView* view);
-
-      void RendererEventCallbackFunction(vtkObject* caller,
-                                         long unsigned int eventId,
-                                         void* callData);
-    private:
-      inline void computeWidth();
-
-      int m_width;
   };
 
 } /* namespace EspINA */

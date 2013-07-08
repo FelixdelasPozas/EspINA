@@ -75,7 +75,7 @@ void SimpleMeshRepresentation::updateRepresentation()
 {
   if (isVisible() && (m_actor != NULL))
   {
-    m_mapper->Update();
+    m_mapper->UpdateWholeExtent();
     m_actor->GetProperty()->Modified();
     m_actor->Modified();
   }

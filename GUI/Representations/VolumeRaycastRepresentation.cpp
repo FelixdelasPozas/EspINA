@@ -100,7 +100,7 @@ void VolumeRaycastRepresentation::updateRepresentation()
 {
   if (m_actor != NULL)
   {
-    m_mapper->Update();
+    m_mapper->UpdateWholeExtent();
     m_colorFunction->Modified();
     m_actor->Modified();
     m_actor->Update();

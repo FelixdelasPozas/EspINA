@@ -98,6 +98,9 @@ namespace EspINA
       CurrentRenderer->GetActiveCamera()->AddObserver(vtkCommand::ModifiedEvent, m_command);
       CurrentRenderer->AddActor2D(m_up);
       CurrentRenderer->AddActor2D(m_right);
+
+      if (vtkMath::AreBoundsInitialized(m_bounds))
+        drawActors();
     }
     else
     {

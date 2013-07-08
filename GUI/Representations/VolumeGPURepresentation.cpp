@@ -105,7 +105,7 @@ void VolumeGPURaycastRepresentation::updateRepresentation()
   {
     m_colorFunction->Modified();
     m_actor->Modified();
-    m_mapper->Update();
+    m_mapper->UpdateWholeExtent();
     m_actor->Update();
   }
 }

@@ -101,8 +101,8 @@ void SmoothedMeshRepresentation::updateRepresentation()
 {
   if (isVisible() && (m_actor != NULL))
   {
-    m_decimate->Update();
-    m_mapper->Update();
+    m_decimate->UpdateWholeExtent();
+    m_mapper->UpdateWholeExtent();
     m_actor->GetProperty()->Modified();
     m_actor->Modified();
   }

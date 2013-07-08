@@ -1,6 +1,6 @@
 /*
  <one line to give the program's name and a brief idea of what it does.>
- Copyright (C) 2013 Félix de las Pozas Álvarez <felixdelaspozas@gmail.com>
+ Copyright (C) 2013 Fï¿½lix de las Pozas ï¿½lvarez <felixdelaspozas@gmail.com>
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -36,6 +36,7 @@ vtkStandardNewMacro(vtkVoxelContour2D);
 
 //-----------------------------------------------------------------------------
 vtkVoxelContour2D::vtkVoxelContour2D()
+: m_minSpacing(0.0)
 {
   this->SetNumberOfInputPorts(1);
   this->SetNumberOfOutputPorts(1);
@@ -101,6 +102,8 @@ int vtkVoxelContour2D::RequestData(vtkInformation *request,
   // apparently all our slices are in the axial plane, go figure...
   if (extent[4] != extent[5])
     Q_ASSERT(false);
+
+  m_minSpacing = std::min(spacing[0], spacing[1]);
 
   unsigned char previousValue;
   unsigned char *voxel = NULL;
@@ -334,3 +337,10 @@ void vtkVoxelContour2D::AddInput(int index, vtkDataObject* input)
     this->AddInputConnection(index, input->GetProducerPort());
   }
 }
+
+//----------------------------------------------------------------------------
+double vtkVoxelContour2D::getMinimumSpacing() const
+{
+  return m_minSpacing;
+}
+

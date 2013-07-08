@@ -360,7 +360,7 @@ void SegmentationSliceRepresentation::updateRepresentation()
 {
   if (m_actor != NULL)
   {
-    m_reslice->Update();
+    m_reslice->UpdateWholeExtent();
     m_mapToColors->Update();
     m_actor->Update();
   }

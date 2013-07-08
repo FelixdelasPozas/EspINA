@@ -1,6 +1,6 @@
 /*
  <one line to give the program's name and a brief idea of what it does.>
- Copyright (C) 2013 Félix de las Pozas Álvarez <felixdelaspozas@gmail.com>
+ Copyright (C) 2013 Felix de las Pozas Alvarez <felixdelaspozas@gmail.com>
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -24,15 +24,12 @@
 
 // VTK
 #include <vtkPropPicker.h>
-#include <vtkCommand.h>
-#include <vtkCamera.h>
 
 namespace EspINA
 {
   //-----------------------------------------------------------------------------
   ContourRenderer::ContourRenderer(QObject *parent)
   : MeshRenderer(parent)
-  , m_width(5)
   {
   }
 
@@ -55,9 +52,6 @@ namespace EspINA
         list << rep;
         m_representations.insert(item, list);
       }
-
-      computeWidth();
-      contour->setLineWidth(m_width);
 
       if (m_enable)
         foreach(vtkProp* prop, rep->getActors())
@@ -159,35 +153,6 @@ namespace EspINA
   void ContourRenderer::setView(EspinaRenderView* view)
   {
     m_view = view;
-    m_view->mainRenderer()->AddObserver(vtkCommand::StartEvent, this, &ContourRenderer::RendererEventCallbackFunction);
-    m_view->mainRenderer()->AddObserver(vtkCommand::EndEvent, this, &ContourRenderer::RendererEventCallbackFunction);
-  }
-
-  //-----------------------------------------------------------------------------
-  void ContourRenderer::computeWidth()
-  {
-    // NOTES: final with range is (1-5)
-    // bounds enforced with std::min/max functions.
-    m_width = 6 - (m_view->mainRenderer()->GetActiveCamera()->GetParallelScale() / 100.0);
-    m_width = std::max(1, std::min(m_width, 5));
-  }
-
-  //-----------------------------------------------------------------------------
-  void ContourRenderer::RendererEventCallbackFunction(vtkObject *caller, unsigned long int eventId, void *callData)
-  {
-    computeWidth();
-
-    double scale = m_view->mainRenderer()->GetActiveCamera()->GetParallelScale();
-    if ((m_representations.size() == 0) || scale > 400 || scale < 100)
-      return;
-
-    foreach(GraphicalRepresentationSList list, m_representations.values())
-      foreach(GraphicalRepresentationSPtr rep, list)
-      {
-        ContourRepresentationSPtr contour = boost::dynamic_pointer_cast<ContourRepresentation>(rep);
-        if (contour.get() != NULL)
-          contour->setLineWidth(m_width);
-      }
   }
 
 } /* namespace EspINA */

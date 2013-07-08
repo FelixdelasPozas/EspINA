@@ -27,7 +27,15 @@ ContourRepresentationSettings::ContourRepresentationSettings()
 : m_init(false)
 {
   setupUi(this);
-  m_borderWidth->setEnabled(false);
+  m_widthCombo->addItem("Tiny");
+  m_widthCombo->addItem("Small");
+  m_widthCombo->addItem("Medium");
+  m_widthCombo->addItem("Large");
+  m_widthCombo->addItem("Huge");
+
+  m_patternCombo->addItem("Solid");
+  m_patternCombo->addItem("Dotted");
+  m_patternCombo->addItem("Dashed");
 }
 
 //----------------------------------------------------------------------------
@@ -37,15 +45,15 @@ void ContourRepresentationSettings::Get(GraphicalRepresentationSPtr representati
 
   if (!m_init)
   {
-    m_borderWidth->setValue(contourRepresentation->lineWidth());
+    m_widthCombo->setCurrentIndex(contourRepresentation->lineWidth());
+    m_patternCombo->setCurrentIndex(contourRepresentation->linePattern());
     m_init = true;
   }
 
-  if (m_borderWidth->value() != contourRepresentation->lineWidth())
+  if (m_widthCombo->currentIndex() != contourRepresentation->lineWidth())
   {
-    m_borderWidth->setMinimum(0);
-    m_borderWidth->setValue(0);
-    m_borderWidth->setSpecialValueText(" ");
+    m_widthCombo->setCurrentIndex(2);
+    m_patternCombo->setCurrentIndex(0);
   }
 }
 
@@ -56,7 +64,7 @@ void ContourRepresentationSettings::Set(GraphicalRepresentationSPtr representati
 
   if (m_init)
   {
-    if (m_borderWidth->value() > 0)
-      contourRepresentation->setLineWidth(m_borderWidth->value());
+    contourRepresentation->setLineWidth((ContourRepresentation::LineWidth)m_widthCombo->currentIndex());
+    contourRepresentation->setLinePattern((ContourRepresentation::LinePattern)m_patternCombo->currentIndex());
   }
 }
