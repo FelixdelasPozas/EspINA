@@ -30,6 +30,9 @@
 #include <Core/Model/EspinaFactory.h>
 #include <GUI/Representations/BasicGraphicalRepresentationFactory.h>
 
+// VTK
+#include <vtkMath.h>
+
 namespace EspINA
 {
   //-----------------------------------------------------------------------------
@@ -132,31 +135,26 @@ namespace EspINA
     contour.PolyData->GetBounds(m_bounds);
 
     // bounds need to be corrected in the contour plane and adapted to
-    // the soon-to-be-created segmentation volume
+    // the soon-to-be-created segmentation volume.
+    // FIXME: This bounds are wrong to correct a bug in cloneVolume().
+    // "two wrongs make a right" this time.
     volume->spacing(spacingNm);
-    m_bounds[2*plane    ] -= spacingNm[plane]/2;
     m_bounds[(2*plane)+1] = m_bounds[2*plane] + spacingNm[plane];
 
     for (int i = 0; i < 3; i++)
     {
-      int voxelIndex = 0;
-      if (m_bounds[2*i] >= 0)
-        voxelIndex = int(m_bounds[2*i]/spacingNm[i] + 0.5);
-      else
-        voxelIndex = floor(m_bounds[2*i]/spacingNm[i] + 0.5);
+      if (i == plane)
+        continue;
 
-      Nm limit       = m_bounds[2*i+1] - 0.25*spacingNm[i];
-      Nm voxelBottom = (voxelIndex - 0.5) * spacingNm[i];
+      int voxelIndex = vtkMath::Round((m_bounds[2*i]+spacingNm[i]/2)/spacingNm[i]);
+      m_bounds[2*i] = voxelIndex * spacingNm[i];
 
-      m_bounds[2*i] = voxelBottom;
-
-      while (voxelBottom < limit)
-        voxelBottom += spacingNm[i];
-
-      m_bounds[(2*i)+1] = voxelBottom;
+      voxelIndex = vtkMath::Floor((m_bounds[(2*i)+1]+spacingNm[i]/2)/spacingNm[i]);
+      m_bounds[(2*i)+1] = (voxelIndex+1) * spacingNm[i] - spacingNm[i]/2;
     }
 
     EspinaRegion contourRegion(m_bounds);
+
     if (!contourRegion.isInside(volume->espinaRegion()))
     {
       m_needReduction = true;
@@ -167,7 +165,7 @@ namespace EspINA
     else
       m_prevVolume = volume->cloneVolume(contourRegion);
 
-    Nm pos = contour.PolyData->GetPoints()->GetPoint(0)[plane] - spacingNm[plane]/2;
+    Nm pos = m_bounds[2*plane];
     itkVolumeType::PixelType value = ((contour.Mode == Brush::BRUSH) ? SEG_VOXEL_VALUE : SEG_BG_VALUE);
     volume->draw(contour.PolyData, pos, plane, value);
     m_newVolume = volume->cloneVolume(contourRegion);
@@ -258,33 +256,29 @@ namespace EspINA
       m_contour.PolyData->Delete();
       m_contour.PolyData = NULL;
     }
+
     Nm polyBounds[6], spacingNm[3];
     PlaneType plane = contour.Plane;
     contour.PolyData->GetBounds(polyBounds);
-    
+
     // bounds need to be corrected in the contour plane and adapted to
     // the soon-to-be-created segmentation volume
+    // FIXME: This bounds are wrong on purpose, as we want to correct a bug
+    // in RawVolume::volumeRegionAux(). "two wrongs make a right" again.
     m_channel->volume()->spacing(spacingNm);
-    polyBounds[2*plane    ] -= spacingNm[plane]/2;
-    polyBounds[(2*plane)+1] = polyBounds[2*plane] + spacingNm[plane];
+
+    polyBounds[(2*plane)+1] = polyBounds[(2*plane)] + spacingNm[plane]/2;
 
     for (int i = 0; i < 3; i++)
     {
-      int voxelIndex;
-      if (polyBounds[2*i] >= 0)
-        voxelIndex = int(polyBounds[2*i]/spacingNm[i] + 0.5);
-      else
-        voxelIndex = floor(polyBounds[2*i]/spacingNm[i] + 0.5);
+      if (i == plane)
+        continue;
 
-      Nm voxelTop = voxelIndex * spacingNm[i] - spacingNm[i]/2;
-      Nm limit       = polyBounds[2*i+1] - 0.25*spacingNm[i];
-      Nm voxelBottom = (voxelIndex - 0.5) * spacingNm[i];
+      int voxelIndex = vtkMath::Round((polyBounds[2*i]+spacingNm[i]/2)/spacingNm[i]);
+      polyBounds[2*i] = voxelIndex * spacingNm[i];
 
-      while (voxelBottom < limit)
-        voxelBottom += spacingNm[i];
-
-      polyBounds[2*i] = voxelTop;
-      polyBounds[(2*i)+1] = voxelBottom;
+      voxelIndex = vtkMath::Floor((polyBounds[(2*i)+1]+spacingNm[i]/2)/spacingNm[i]);
+      polyBounds[(2*i)+1] = ((voxelIndex+1) * spacingNm[i]) - spacingNm[i]/2;
     }
 
     m_filter = FilterSPtr(new FreeFormSource(EspinaRegion(polyBounds),
@@ -292,11 +286,16 @@ namespace EspINA
                           FilledContour::FILTER_TYPE));
     SetBasicGraphicalRepresentationFactory (m_filter);
 
-    Nm pos = contour.PolyData->GetPoints()->GetPoint(0)[plane] - spacingNm[plane]/2;
+    // correct bounds now after the filter has been created
+    Nm pos = polyBounds[2*plane];
+    for (int i = 0; i < 3; i++)
+      polyBounds[2*i] -= spacingNm[i]/2;
+
     itkVolumeType::PixelType value = ((contour.Mode == Brush::BRUSH) ? SEG_VOXEL_VALUE : SEG_BG_VALUE);
 
     SegmentationVolumeSPtr currentVolume = segmentationVolume(m_filter->output(0));
     currentVolume->draw(contour.PolyData, pos, plane, value, true);
+    currentVolume->fitToContent();
     m_segmentation = m_model->factory()->createSegmentation(m_filter, 0);
 
     m_model->addFilter(m_filter);

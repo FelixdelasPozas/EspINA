@@ -525,15 +525,30 @@ void RawSegmentationVolume::draw(vtkPolyData *contour,
   contour->ComputeBounds();
   contour->GetBounds(contourBounds);
 
-  EspinaRegion polyDataRegion = espinaRegionAux(m_volume, contourBounds);
+  // vtkPolyDataToImageStencil filter only works in XY plane so we must rotate the contour to that plane
+  double spacingNm[3];
+  this->spacing(spacingNm);
 
+  // FIXME: contour bounds need to be corrected to obtain the correct EspinaRegion for the volume
+  // this bounds are wrong on purpose to get the right volume.
+  contourBounds[(2*plane)+1] = contourBounds[(2*plane)] + spacingNm[plane]/2;
+  for (int i = 0; i < 3; i++)
+  {
+    if (i == plane)
+      continue;
+
+    int voxelIndex = vtkMath::Round((contourBounds[2*i]+spacingNm[i]/2)/spacingNm[i]);
+    contourBounds[2*i] = voxelIndex * spacingNm[i];
+
+    voxelIndex = vtkMath::Floor((contourBounds[(2*i)+1]+spacingNm[i]/2)/spacingNm[i]);
+    contourBounds[(2*i)+1] = ((voxelIndex+1) * spacingNm[i]) - spacingNm[i]/2;
+  }
+
+  EspinaRegion polyDataRegion = espinaRegionAux(m_volume, contourBounds);
   if(!polyDataRegion.isInside(espinaRegion()))
     expandToFitRegion(polyDataRegion);
 
   addEditedRegion(polyDataRegion);
-
-  // vtkPolyDataToImageStencil filter only works in XY plane so we must rotate the contour to that plane
-  itkVolumeType::SpacingType spacing = m_volume->GetSpacing();
 
   int count = contour->GetPoints()->GetNumberOfPoints();
   vtkSmartPointer<vtkPolyData> rotatedContour = vtkSmartPointer<vtkPolyData>::New();
@@ -543,17 +558,6 @@ void RawSegmentationVolume::draw(vtkPolyData *contour,
 
   points->SetNumberOfPoints(count);
   vtkIdType numLines = count + 1;
-
-  // NOTE 1: sliceposition should always be less or equal to slice parameter as it represents the
-  // extent*spacing position of the slice, this is so because the user could be drawing using
-  // "fit to slices" and round() will go to the upper integer if slice is greater than spacing/2.
-  // Floor() gives wrong values if extent*spacing = slice as it will give an smaller number, and
-  // I don't want to rely on static_cast<int>(number) to achieve the wanted effect.
-  // NOTE 2: image reslicing starts in spacing[reslicing plane]/2 instead of 0, so we correct this
-  // to match the drawing with what the user sees on screen.
-  double slicePosition = vtkMath::Round((slice + spacing[plane]/2)/spacing[plane]) * spacing[plane];
-  if (slicePosition > (slice + (spacing[plane]/2)))
-    slicePosition = vtkMath::Floor((slice + spacing[plane]/2)/spacing[plane]) * spacing[plane];
 
   if (numLines > 0)
   {
@@ -578,7 +582,7 @@ void RawSegmentationVolume::draw(vtkPolyData *contour,
           Q_ASSERT(false);
           break;
       }
-      pos[2] = slicePosition;
+      pos[2] = slice;
 
       points->InsertPoint(index, pos);
       lineIndices[index] = index;
@@ -619,18 +623,18 @@ void RawSegmentationVolume::draw(vtkPolyData *contour,
     case AXIAL:
       break;
     case CORONAL:
-      temporal = spacing[1];
-      spacing[1] = spacing[2];
-      spacing[2] = temporal;
+      temporal = spacingNm[1];
+      spacingNm[1] = spacingNm[2];
+      spacingNm[2] = temporal;
 
       extent[2] = extent[4];
       extent[3] = extent[5];
       break;
     case SAGITTAL:
-      temporal = spacing[0];
-      spacing[0] = spacing[1];
-      spacing[1] = spacing[2];
-      spacing[2] = temporal;
+      temporal = spacingNm[0];
+      spacingNm[0] = spacingNm[1];
+      spacingNm[1] = spacingNm[2];
+      spacingNm[2] = temporal;
 
       extent[0] = extent[2];
       extent[1] = extent[3];
@@ -641,12 +645,13 @@ void RawSegmentationVolume::draw(vtkPolyData *contour,
       Q_ASSERT(false);
       break;
   }
-  extent[4] = extent[5] = contourRegionIndex[plane];
+  extent[4] = contourRegionIndex[plane];
+  extent[5] = contourRegionIndex[plane] + contourRegionSize[plane] -1;
 
   vtkSmartPointer<vtkPolyDataToImageStencil> polyDataToStencil = vtkSmartPointer<vtkPolyDataToImageStencil>::New();
   polyDataToStencil->SetInputConnection(rotatedContour->GetProducerPort());
   polyDataToStencil->SetOutputOrigin(0,0,0);
-  polyDataToStencil->SetOutputSpacing(spacing[0], spacing[1], spacing[2]);
+  polyDataToStencil->SetOutputSpacing(spacingNm[0], spacingNm[1], spacingNm[2]);
   polyDataToStencil->SetOutputWholeExtent(extent[0], extent[1], extent[2], extent[3], extent[4], extent[5]);
   polyDataToStencil->SetTolerance(0);
 
@@ -691,12 +696,16 @@ void RawSegmentationVolume::draw(vtkPolyData *contour,
         }
 
         pixel = reinterpret_cast<unsigned char*>(outputImage->GetScalarPointer(x, y, z));
-        Q_ASSERT(m_volume->GetLargestPossibleRegion().IsInside(imageIndex));
+        // FIXME: rounding errors can make the m_volume->LargestPossibleRegion() be different (off by one voxel)
+        if (!m_volume->GetLargestPossibleRegion().IsInside(imageIndex))
+          continue;
+
         if (*pixel == 1)
           m_volume->SetPixel(imageIndex, value);
       }
     }
   }
+  std::cout << std::flush;
 
   markAsModified(emitSignal);
 }
@@ -1060,12 +1069,12 @@ const vtkAlgorithmOutput* RawSegmentationVolume::toVTK() const
     itk2vtk = itk2vtkFilterType::New();
     itk2vtk->ReleaseDataFlagOn();
     itk2vtk->SetInput(m_volume);
-    itk2vtk->Update();
+    itk2vtk->UpdateLargestPossibleRegion();
     m_VTKGenerationTime = m_volume->GetMTime();
   }
   else if (m_volume->GetMTime() != m_VTKGenerationTime)
   {
-    itk2vtk->Update();
+    itk2vtk->UpdateLargestPossibleRegion();
     m_VTKGenerationTime = m_volume->GetMTime();
   }
 
