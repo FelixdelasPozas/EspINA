@@ -56,9 +56,6 @@
 // Boost
 #include <boost/concept_check.hpp>
 
-// ITK
-#include <itkImageToVTKImageFilter.h>
-
 // VTK
 #include <vtkAbstractWidget.h>
 #include <vtkAlgorithmOutput.h>
@@ -856,7 +853,7 @@ void SliceView::scrollValueChanged(int value /*slice index */)
   // at the end block of setSlicingStep
   m_crosshairPoint[m_plane] = voxelCenter(value, m_plane);
 
-  m_state->setSlicingPosition(m_slicingMatrix, voxelBottom(value, m_plane));
+  m_state->setSlicingPosition(m_slicingMatrix, voxelCenter(value, m_plane));
 
   m_spinBox->blockSignals(true);
   m_spinBox->setValue(m_fitToSlices ? value + 1: slicingPosition());
@@ -873,7 +870,7 @@ void SliceView::spinValueChanged(double value /* nm or slices depending on m_fit
   int sliceIndex = m_fitToSlices ? (value - 1) : voxelSlice(value, m_plane);
   m_crosshairPoint[m_plane] = voxelCenter(sliceIndex, m_plane);
 
-  m_state->setSlicingPosition(m_slicingMatrix, voxelBottom(sliceIndex, m_plane));
+  m_state->setSlicingPosition(m_slicingMatrix, voxelCenter(sliceIndex, m_plane));
 
   m_scrollBar->blockSignals(true);
   m_scrollBar->setValue(m_fitToSlices? (value - 1) : vtkMath::Round(value/m_slicingStep[m_plane]));
