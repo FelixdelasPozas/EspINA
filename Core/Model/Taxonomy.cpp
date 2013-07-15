@@ -251,7 +251,6 @@ Taxonomy::~Taxonomy()
 TaxonomyElementSPtr Taxonomy::createElement(const QString&     qualifiedName,
                                             TaxonomyElementPtr parent)
 {
-  Q_ASSERT(!qualifiedName.isEmpty());
   TaxonomyElementPtr parentNode = parent;
 
   if (!parentNode)
@@ -259,15 +258,25 @@ TaxonomyElementSPtr Taxonomy::createElement(const QString&     qualifiedName,
 
   TaxonomyElementSPtr requestedTaxonomy;
 
-  QStringList path = qualifiedName.split("/", QString::SkipEmptyParts);
-  for (int i = 0; i < path.size(); ++i)
+  if (!qualifiedName.isEmpty())
   {
-    requestedTaxonomy = parentNode->element(path.at(i));
-    if (!requestedTaxonomy)
+    QStringList path = qualifiedName.split("/", QString::SkipEmptyParts);
+    for (int i = 0; i < path.size(); ++i)
     {
-      requestedTaxonomy = parentNode->createElement(path.at(i));
+      requestedTaxonomy = parentNode->element(path.at(i));
+      if (!requestedTaxonomy)
+      {
+        requestedTaxonomy = parentNode->createElement(path.at(i));
+      }
+      parentNode = requestedTaxonomy.get();
     }
-    parentNode = requestedTaxonomy.get();
+  }
+  else
+  {
+    requestedTaxonomy = parentNode->element(QString("Unspecified"));
+
+    if (!requestedTaxonomy)
+      requestedTaxonomy = parentNode->createElement(QString("Unspecified"));
   }
 
   return requestedTaxonomy;

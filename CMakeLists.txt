@@ -8,7 +8,7 @@ set (Espina_DIR ${PROJECT_BINARY_DIR})
 # Version Number
 set (ESPINA_VERSION_MAJOR 1)
 set (ESPINA_VERSION_MINOR 3)
-set (ESPINA_VERSION_PATCH 0)
+set (ESPINA_VERSION_PATCH 2)
 
 
 set (TEST_ESPINA_MODELS CACHE BOOL "Build EspINA Model Test wrappers")
