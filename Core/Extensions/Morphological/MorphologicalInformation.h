@@ -41,9 +41,26 @@ namespace EspINA
     typedef itk::LabelMap<LabelObjectType> LabelMapType;
     typedef itk::LabelImageToShapeLabelMapFilter<itkVolumeType, LabelMapType> Image2LabelFilterType;
 
-    struct ExtensionData
+    struct EspinaCore_EXPORT ExtensionData
     {
       ExtensionData();
+
+	    bool operator==(const ExtensionData& other) const
+	    {
+		    bool retVal = (Size == other.Size);
+		    retVal |= (PhysicalSize == other.PhysicalSize);
+		    retVal |= (FeretDiameter == other.FeretDiameter);
+		    for (int i = 0; i < 3; ++i)
+		    {
+			    retVal |= (Centroid[i] == other.Centroid[i]);
+			    retVal |= (BinaryPrincipalMoments[i] == other.BinaryPrincipalMoments[i]);
+			    retVal |= (EquivalentEllipsoidSize[i] == other.EquivalentEllipsoidSize[i]);
+			    for (int j = 0; j < 3; ++j)
+				    retVal |= (BinaryPrincipalAxes[i][j] == other.BinaryPrincipalAxes[i][j]);
+		    }
+
+		    return retVal;
+	    }
 
       double Size;
       double PhysicalSize;
@@ -66,7 +83,7 @@ namespace EspINA
     virtual ~MorphologicalInformation();
 
     virtual ModelItem::ExtId id();
-
+    
     virtual ModelItem::ExtIdList dependencies() const
     { return Segmentation::Extension::dependencies(); }
 

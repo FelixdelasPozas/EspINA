@@ -45,6 +45,18 @@ class StereologicalInclusion;
 
     struct CF
     {
+      bool operator==(const struct CF& other) const
+      {
+        bool retVal = Type == other.Type;
+        for (int i = 0; i < 3; ++i)
+        {
+          retVal |= Inclusion[i] == other.Inclusion[i];
+          retVal |= Exclusion[i] == other.Exclusion[i];
+        }
+
+        return retVal;
+      }
+
       CFType Type;
       Nm     Inclusion[3];
       Nm     Exclusion[3];
@@ -103,6 +115,7 @@ class StereologicalInclusion;
 
   typedef CountingFrameExtension * CountingFrameExtensionPtr;
   CountingFrameExtensionPtr CountingFramePlugin_EXPORT countingFrameExtensionPtr(Channel::ExtensionPtr extension);
+
 }
 
 #endif // COUNTINGFRAMEEXTENSION_H

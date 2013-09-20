@@ -23,25 +23,24 @@
 #include "EspinaCore_Export.h"
 
 #include <QThread>
-
 #include <Core/EspinaTypes.h>
 
 namespace EspINA
 {
-class AdaptiveEdges;
+  class AdaptiveEdges;
 
-class EspinaCore_EXPORT EdgeDetector
-: public QThread
-{
-public:
-  explicit EdgeDetector(AdaptiveEdges *extension, QObject* parent = 0);
-  virtual ~EdgeDetector();
+  class EspinaCore_EXPORT EdgeDetector
+  : public QThread
+  {
+  public:
+    explicit EdgeDetector(AdaptiveEdges *extension, QObject* parent = 0);
+    virtual ~EdgeDetector();
 
-protected:
-  virtual void run();
+  protected:
+    virtual void run();
 
-private:
-  AdaptiveEdges *m_extension;
+  private:
+    AdaptiveEdges *m_extension;
 };
 
 }// namespace EspINA

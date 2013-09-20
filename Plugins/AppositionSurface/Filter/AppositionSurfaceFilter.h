@@ -46,12 +46,12 @@ namespace EspINA
   : public BasicSegmentationFilter
   {
     Q_OBJECT
-    static const double       THRESHOLDFACTOR           = 0.01; // Percentage of a single step
-    static const unsigned int MAXSAVEDSTATUSES          = 10;
-    static const int          MAXITERATIONSFACTOR       = 100;
-    static const float        DISPLACEMENTSCALE         = 1;
-    static const float        CLIPPINGTHRESHOLD         = 0.5;
-    static const float        DISTANCESMOOTHSIGMAFACTOR = 0.67448; // probit(0.25)
+    static const double       THRESHOLDFACTOR;
+    static const unsigned int MAXSAVEDSTATUSES;
+    static const int          MAXITERATIONSFACTOR;
+    static const float        DISPLACEMENTSCALE;
+    static const float        CLIPPINGTHRESHOLD;
+    static const float        DISTANCESMOOTHSIGMAFACTOR;
 
     typedef float DistanceType;
     typedef vtkSmartPointer<vtkPoints>   Points;

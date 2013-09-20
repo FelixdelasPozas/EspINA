@@ -46,6 +46,14 @@ namespace EspINA
     {
       explicit ExtensionData() : IsExcluded(false) {}
 
+      bool operator==(const ExtensionData &other) const
+      {
+        bool retVal = (IsExcluded == other.IsExcluded);
+        retVal |= (ExclusionCFs == other.ExclusionCFs);
+
+        return retVal;
+      }
+
       bool IsExcluded;
       QMap<CountingFrame::Id, bool> ExclusionCFs;
     };

@@ -54,6 +54,13 @@ const char * AppositionSurfaceFilter::MESH_ORIGIN = "Origin";
 
 const ModelItem::ArgumentId AppositionSurfaceFilter::ORIGIN = "Origin Segmentation";
 
+const double       AppositionSurfaceFilter::THRESHOLDFACTOR           = 0.01; // Percentage of a single step
+const unsigned int AppositionSurfaceFilter::MAXSAVEDSTATUSES          = 10;
+const int          AppositionSurfaceFilter::MAXITERATIONSFACTOR       = 100;
+const float        AppositionSurfaceFilter::DISPLACEMENTSCALE         = 1;
+const float        AppositionSurfaceFilter::CLIPPINGTHRESHOLD         = 0.5;
+const float        AppositionSurfaceFilter::DISTANCESMOOTHSIGMAFACTOR = 0.67448; // probit(0.25)
+
 //----------------------------------------------------------------------------
 AppositionSurfaceFilter::AppositionSurfaceFilter(NamedInputs inputs, Arguments args, FilterType type)
 : BasicSegmentationFilter(inputs, args, type)

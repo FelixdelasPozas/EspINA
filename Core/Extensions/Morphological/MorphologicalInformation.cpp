@@ -32,7 +32,6 @@
 
 using namespace EspINA;
 
-
 const QString MorphologicalInformation::EXTENSION_FILE = "MorphologicalInformation/MorphologicalInformation.csv";
 
 const std::string FILE_VERSION = MorphologicalInformationID.toStdString() + " 1.0\n";

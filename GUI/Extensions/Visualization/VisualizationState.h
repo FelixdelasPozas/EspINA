@@ -20,9 +20,10 @@
 #ifndef VISUALIZATIONSTATE_H
 #define VISUALIZATIONSTATE_H
 
-#include "EspinaCore_Export.h"
+#include "EspinaGUI_Export.h"
 
 #include "Core/Extensions/SegmentationExtension.h"
+#include "Core/Extensions/ModelItemExtension.h"
 #include "Core/EspinaTypes.h"
 
 // ITK
@@ -33,13 +34,17 @@ namespace EspINA
 {
   const ModelItem::ExtId VisualizationStateID = "VisualizationExtension";
 
-  class EspinaCore_EXPORT VisualizationState
+  class EspinaGUI_EXPORT VisualizationState
   : public Segmentation::Information
   {
-
-    struct ExtensionData
+    struct EspinaGUI_EXPORT ExtensionData
     {
       ExtensionData();
+
+      bool operator==(const ExtensionData& other) const
+      {
+        return (Settings == other.Settings);
+      }
 
       QMap<QString, QString> Settings;
     };
@@ -61,7 +66,7 @@ namespace EspINA
 
     virtual Segmentation::InfoTagList availableInformations() const;
 
-    virtual bool validTaxonomy(const QString &qualifiedName) const 
+    virtual bool validTaxonomy(const QString &qualifiedName) const
     { return true;}
 
     virtual void setSegmentation(SegmentationPtr seg);

@@ -43,6 +43,11 @@ namespace EspINA
   {
     struct ExtensionData
     {
+      bool operator==(const ExtensionData& other) const
+	  {
+		  return Note == other.Note;
+	  }
+
       QString Note;
     };
 

@@ -135,21 +135,22 @@ set (GUI_SOURCES
   )
 
 set(GUI_EXTERNAL_LIBS
-  QVTK
   EspinaCore
+  QVTK
+  ${QT_LIBRARIES}
   ${VTK_LIBRARIES}
   ${ITK_LIBRARIES}
   ${XLSLIB_LIBRARIES}
 )
 
-if(MINGW)
+if(DEFINED MINGW OR DEFINED MSVC)
   if(DEFINED ESPINA_VERSION_MAJOR)
     configure_file("${CMAKE_CURRENT_SOURCE_DIR}/windllprops.rc.in" "${CMAKE_CURRENT_BINARY_DIR}/windllprops.rc")
     SET(GUI_SOURCES ${GUI_SOURCES} ${CMAKE_CURRENT_BINARY_DIR}/windllprops.rc)
     SET(CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> -O coff -o <OBJECT> -i <SOURCE>")
     ENABLE_LANGUAGE(RC)
   endif(DEFINED ESPINA_VERSION_MAJOR)
-endif(MINGW)
+endif(DEFINED MINGW OR DEFINED MSVC)
 
 if(APPLE)
    include_directories ( /System/Library/Frameworks )

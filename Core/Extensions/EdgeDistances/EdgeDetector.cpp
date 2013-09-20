@@ -16,11 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+// EspINA
 #include "EdgeDetector.h"
-
 #include "AdaptiveEdges.h"
-
 #include "Core/Model/Channel.h"
 
 //VTK

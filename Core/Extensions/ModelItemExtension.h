@@ -19,41 +19,58 @@
 #ifndef MODELITEMEXTENSION_H
 #define MODELITEMEXTENSION_H
 
-#include "EspinaCore_Export.h"
-
 #include "Core/Model/ModelItem.h"
 
 #include <QDir>
 #include <QMap>
 #include <QStringList>
 #include <QVariant>
+#include <QList>
 
 #include <quazipfile.h>
 
+// this class is used in EspinaGUI VisualizationState.h and
+// MSVC doesn't like this being defined as __declspec(dllimport)
+// because it generates unresolved symbols while linking, so now its
+// always exported when included, this solves that problem
+#ifdef __linux__
+  #define Always_EXPORT
+#else
+  #define Always_EXPORT __declspec(dllexport)
+#endif
+
 namespace EspINA
 {
-
-  class EspinaCore_EXPORT ModelItem::Extension
+  class Always_EXPORT ModelItem::Extension
   : public QObject
   {
   public:
-    template<class D>
-    class CacheEntry
+    template<class D> class Always_EXPORT CacheEntry
     {
     public:
       explicit CacheEntry()
       : Dirty(false)
       {}
 
+	    bool operator==(const CacheEntry<D>& other) const
+	    {
+		    return (Dirty == other.Dirty && Data == other.Data);
+	    }
+
       bool Dirty;
       D    Data;
     };
 
-    template <class K, class D>
-    class EspinaCore_EXPORT Cache
+    template <class K, class D> class Always_EXPORT Cache
     : public QMap<K, CacheEntry<D> >
     {
       typedef QMap<K, CacheEntry<D> > Base;
+
+    bool operator==(const Cache& other) const
+		{
+    	Cache other_noConst = const_cast<Cache>(other);
+    	return (this == other_noConst);
+		}
 
     public:
       explicit Cache()
@@ -81,7 +98,7 @@ namespace EspINA
       {
         foreach(K key, this->keys())
         {
-          if (this->value(key).Dirty 
+          if (this->value(key).Dirty
           || key->m_model == NULL
           || (cond && cond(key)))
             Base::remove(key);

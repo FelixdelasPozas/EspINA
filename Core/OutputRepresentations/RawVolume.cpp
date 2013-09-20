@@ -138,7 +138,7 @@ int voxelIndex(Nm point, Nm spacing)
   return voxel;
 }
 
-/// Espina regions are defined using bounds. Bounds are given as a range of 
+/// Espina regions are defined using bounds. Bounds are given as a range of
 /// nm composing a volume. This range is inclusive in its lower limit and exclusive
 /// in its upper limit, i.e. [lower bound, upper bound). Thus, is important not to
 /// take upper bound as part of it when the volume is multiple of the spacing
@@ -186,7 +186,7 @@ VolumeRepresentation::VolumeRegion volumeRegionAux(itkVolumeType::Pointer volume
 //   {
 //     min[i] = int(region[2*i  ]/spacing[i]);
 //     max[i] = int(region[2*i+1]/spacing[i]);
-// 
+//
 //     res.SetIndex(i,          min[i]);
 //     res.SetSize (i, max[i] - min[i] + 1);
 //   }
@@ -363,7 +363,7 @@ void RawChannelVolume::markAsModified(bool emitSignal)
 //                                    itkVolumeType::SpacingType spacing,
 //                                    FilterOutput *output)
 // {
-// 
+//
 // }
 
 //----------------------------------------------------------------------------
@@ -387,7 +387,7 @@ RawSegmentationVolume::RawSegmentationVolume(FilterOutput *output)
 }
 
 //----------------------------------------------------------------------------
-RawSegmentationVolume::RawSegmentationVolume(itkVolumeType::Pointer volume, 
+RawSegmentationVolume::RawSegmentationVolume(itkVolumeType::Pointer volume,
                                              FilterOutput *output)
 : SegmentationVolume(output)
 , m_volume(volume)
@@ -537,7 +537,7 @@ void RawSegmentationVolume::draw(vtkPolyData *contour,
     if (i == plane)
       continue;
 
-    int voxelIndex = vtkMath::Round((contourBounds[2*i]+spacingNm[i]/2)/spacingNm[i]);
+    int voxelIndex = vtkMath::Floor((contourBounds[2*i]+spacingNm[i]/2)/spacingNm[i]);
     contourBounds[2*i] = voxelIndex * spacingNm[i];
 
     voxelIndex = vtkMath::Floor((contourBounds[(2*i)+1]+spacingNm[i]/2)/spacingNm[i]);

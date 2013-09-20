@@ -25,11 +25,13 @@ include_directories (${PROJECT_BINARY_DIR}/GUI)
 include_directories (${PROJECT_BINARY_DIR}/Undo)
 link_directories    (${ESPINA_LIBRARY_DIRECTORIES})
 
-
 # for building espina plugins in the correct directory
 cmake_policy(SET CMP0013 OLD)
-
-set (LIBRARY_OUTPUT_PATH   "${CMAKE_BINARY_DIR}/libs"             )
+if (MINGW OR MSVC)
+  set (LIBRARY_OUTPUT_PATH   "${CMAKE_BINARY_DIR}/App"             )
+else (MINGW OR MSVC)
+  set (LIBRARY_OUTPUT_PATH   "${CMAKE_BINARY_DIR}/libs"             )
+endif (MINGW OR MSVC)
 set (ESPINA_PLUGINS_DIR    "${PROJECT_BINARY_DIR}/App/plugins"    )
 set (ESPINA_INCLUDE        "${PROJECT_SOURCE_DIR}")
 set (ESPINA_BINARY_INCLUDE "${PROJECT_BINARY_DIR}")
@@ -56,9 +58,9 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/CMake/Modules/")
 
 find_package(Quazip REQUIRED)
 # WIN64: deshabilitado, configurar a mano. Provoca el error "include called with wrong number of arguments.  Include only takes one file"
-if (NOT DEFINED MINGW)
+if (NOT DEFINED MINGW AND NOT DEFINED MSVC)
   include(${QUAZIP_USE_FILE})
-endif (NOT DEFINED MINGW)
+endif (NOT DEFINED MINGW AND NOT DEFINED MSVC)
 
 find_package(Qt4 REQUIRED)
 include(${QT_USE_FILE})
@@ -76,9 +78,20 @@ link_directories ( ${Boost_LIBRARY_DIRS} )
 #      ITK_REQUIRED_CXX_FLAG: -ftemplate-depth-50
 #      so we override CXX_FLAGS to unset previous flag
 #set(CMAKE_CXX_FLAGS " -Wall -Wno-deprecated -msse2")
-set(CMAKE_CXX_FLAGS " -Wall -Wno-deprecated")
+if (NOT DEFINED MINGW AND NOT DEFINED MSVC)
+  set(CMAKE_CXX_FLAGS " -Wall -Wno-deprecated")
+else(NOT DEFINED MINGW AND NOT DEFINED MSVC)
+  if (DEFINED MINGW)
+    configure_file("${CMAKE_CURRENT_SOURCE_DIR}/tools/inno-setup/EspINA-Mingw64.iss.in" "${CMAKE_CURRENT_BINARY_DIR}/tools/inno-setup/EspINA-Mingw64.iss")
+  endif (DEFINED MINGW)
+  if (DEFINED MSVC)
+    configure_file("${CMAKE_CURRENT_SOURCE_DIR}/tools/inno-setup/EspINA-MSVC.iss.in" "${CMAKE_CURRENT_BINARY_DIR}/tools/inno-setup/EspINA-MSVC.iss")
+  endif(DEFINED MSVC)
+endif (NOT DEFINED MINGW AND NOT DEFINED MSVC)
 
-if (UNIX AND NOT APPLE) # Check if it works on OS X, it has only been tested in Unix
+
+
+if (UNIX AND NOT DEFINED APPLE AND NOT DEFINED MSVC) # Check if it works on OS X, it has only been tested in Unix
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-local-typedefs")
   message(STATUS "CXX_FLAGS" ${CMAKE_CXX_FLAGS})
 endif()

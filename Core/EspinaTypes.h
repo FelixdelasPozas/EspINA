@@ -58,15 +58,15 @@ namespace EspINA
 
 //   class   ModelItemExtension;
 //   typedef ModelItemExtension *ModelItemExtensionPtr;
-// 
+//
 //   class   SampleExtension;
 //   typedef SampleExtension           *SampleExtensionPtr;
 //   typedef QList<SampleExtensionPtr>  SampleExtensionList;
-// 
+//
 //   class   ChannelExtension;
 //   typedef ChannelExtension           *ChannelExtensionPtr;
 //   typedef QList<ChannelExtensionPtr>  ChannelExtensionList;
-// 
+//
 //   class   SegmentationExtension;
 //   typedef SegmentationExtension           *SegmentationExtensionPtr;
 //   typedef QList<SegmentationExtensionPtr>  SegmentationExtensionList;

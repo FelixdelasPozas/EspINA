@@ -47,9 +47,6 @@ VolumeGPURaycastRepresentation::VolumeGPURaycastRepresentation(SegmentationVolum
 //-----------------------------------------------------------------------------
 VolumeGPURaycastRepresentation::~VolumeGPURaycastRepresentation()
 {
-  // this is needed or we'll have a memory leak
-  if (m_mapper)
-    m_mapper->ReleaseGraphicsResources(m_view->renderWindow());
 }
 
 //-----------------------------------------------------------------------------
@@ -62,11 +59,11 @@ GraphicalRepresentationSettings *VolumeGPURaycastRepresentation::settingsWidget(
 void VolumeGPURaycastRepresentation::setColor(const QColor &color)
 {
   SegmentationGraphicalRepresentation::setColor(color);
-  
+
   if (m_actor != NULL)
   {
     LUTPtr colors = s_highlighter->lut(m_color, m_highlight);
-    
+
     double rgba[4], rgb[3], hsv[3];
     colors->GetTableValue(1, rgba);
     memcpy(rgb, rgba, 3*sizeof(double));
@@ -94,7 +91,7 @@ bool VolumeGPURaycastRepresentation::hasActor(vtkProp *actor) const
 {
   if (m_actor == NULL)
     return false;
-  
+
   return m_actor.GetPointer() == actor;
 }
 

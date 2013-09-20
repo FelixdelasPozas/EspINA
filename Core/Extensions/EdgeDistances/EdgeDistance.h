@@ -32,9 +32,18 @@ namespace EspINA
   class EspinaCore_EXPORT EdgeDistance
   : public Segmentation::Information
   {
-    struct ExtensionData
+    struct EspinaCore_EXPORT ExtensionData
     {
       ExtensionData();
+
+	    bool operator==(const ExtensionData& other) const
+	    {
+		    bool retVal = true;
+		    for (int i = 0; i < 6; ++i)
+			    retVal |= (Distances[i] == other.Distances[i]);
+
+		    return retVal;
+	    }
 
       Nm   Distances[6];
     };

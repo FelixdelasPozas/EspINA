@@ -19,8 +19,9 @@
 
 #include "VisualizationState.h"
 
-#include "Core/Model/Segmentation.h"
+#include <Core/Model/Segmentation.h>
 #include <Core/Model/EspinaModel.h>
+#include <Core/Extensions/ModelItemExtension.h>
 #include <Core/Model/Filter.h>
 
 // ITK
@@ -30,7 +31,8 @@
 #include <QApplication>
 #include <QDebug>
 
-using namespace EspINA;
+namespace EspINA
+{
 
 
 const QString VisualizationState::EXTENSION_FILE = "VisualizationState/VisualizationState.cfg";
@@ -82,7 +84,7 @@ void VisualizationState::setSegmentation(SegmentationPtr seg)
 
 //   connect(m_segmentation, SIGNAL(outputModified()),
 //           this, SLOT(invalidate()));
-// 
+//
 //   if (m_segmentation->outputIsModified())
 //     invalidate();
 //   else
@@ -144,7 +146,7 @@ void VisualizationState::loadCache(QuaZipFile   &file,
           {
             extensionSegmentation->output()->updateModificationTime();
             state = SEG_ID;
-          } else 
+          } else
           {
             repLabel = line.trimmed();
             state = REP_SETTINGS;
@@ -172,7 +174,7 @@ static bool invalidData(SegmentationPtr seg)
   if (seg->hasInformationExtension(VisualizationStateID))
   {
     invalid = !seg->informationExtension(VisualizationStateID)->isEnabled();
-//   } else 
+//   } else
 //   {
 //     invalid = seg->outputIsModified();
   }
@@ -263,4 +265,5 @@ void VisualizationState::setSettings(QString key, QString settings)
 QString VisualizationState::settings(QString key)
 {
   return s_cache[m_segmentation].Data.Settings.value(key, QString());
+}
 }

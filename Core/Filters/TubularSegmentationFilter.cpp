@@ -92,9 +92,9 @@ namespace EspINA
       int cx = vtkMath::Round(node.x() / m_param.spacing()[0]);
       int cy = vtkMath::Round(node.y() / m_param.spacing()[1]);
       int cz = vtkMath::Round(node.z() / m_param.spacing()[2]);
-      int rx = round(node.w()/m_param.spacing()[0]);
-      int ry = round(node.w()/m_param.spacing()[1]);
-      int rz = round(node.w()/m_param.spacing()[2]);
+      int rx = vtkMath::Round(node.w()/m_param.spacing()[0]);
+      int ry = vtkMath::Round(node.w()/m_param.spacing()[1]);
+      int rz = vtkMath::Round(node.w()/m_param.spacing()[2]);
 
       if (!init)
       {

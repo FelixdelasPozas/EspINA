@@ -48,6 +48,19 @@ namespace EspINA
       , Threshold(50)
       {}
 
+	  bool operator==(const ExtensionData& other) const
+	  {
+		  bool retVal = (ComputedVolume == other.ComputedVolume);
+		  retVal |= (UseAdaptiveEdges == other.UseAdaptiveEdges);
+		  retVal |= (BackgroundColor == other.BackgroundColor);
+		  retVal |= (Threshold == other.Threshold);
+		  retVal |= (Edges == other.Edges);
+		  for (int i = 0; i < 6; ++i)
+			  retVal |= (Faces[i] == other.Faces[i]);
+
+		  return retVal;
+	  }
+
       Nm   ComputedVolume;
       bool UseAdaptiveEdges;
       int BackgroundColor;

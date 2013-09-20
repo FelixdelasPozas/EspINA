@@ -34,6 +34,24 @@ namespace EspINA
       {
           explicit ExtensionData();
 
+          bool operator==(const ExtensionData& other) const
+          {
+            bool retVal = Area == other.Area;
+            retVal |= Perimeter == other.Perimeter;
+            retVal |= Tortuosity == other.Tortuosity;
+            retVal |= SynapticSource == other.SynapticSource;
+            retVal |= MeanGaussCurvature == other.MeanGaussCurvature;
+            retVal |= StdDevGaussCurvature == other.StdDevGaussCurvature;
+            retVal |= MeanMeanCurvature == other.MeanMeanCurvature;
+            retVal |= StdDevMeanCurvature == other.StdDevMeanCurvature;
+            retVal |= MeanMinCurvature == other.MeanMinCurvature;
+            retVal |= StdDevMinCurvature == other.StdDevMinCurvature;
+            retVal |= MeanMaxCurvature == other.MeanMaxCurvature;
+            retVal |= StdDevMaxCurvature == other.StdDevMaxCurvature;
+
+            return retVal;
+          }
+
           Nm Area;
           Nm Perimeter;
           double Tortuosity;

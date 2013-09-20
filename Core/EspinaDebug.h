@@ -19,8 +19,8 @@
 
 #define PICKING_DEBUG(exp) if (DEBUG_PICKING)      \
 			  qDebug() << "Slice View:" Picked: << exp;
-			  
-			  
+
+
 #define COUT_6VECT(vect) std::cout << #vect << ": " << vect[0] << " " << vect[1] << " " << vect[2] << " " << vect[3] << " " << vect[4] << " "<< vect[5] << std::endl;
 
 #endif// ESPINA_DEBUG_H
