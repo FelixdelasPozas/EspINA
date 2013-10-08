@@ -103,7 +103,7 @@ vtkPlaneContourRepresentationGlyph::vtkPlaneContourRepresentationGlyph()
   activeNormals->Delete();
 
   this->Glypher = vtkGlyph3D::New();
-  this->Glypher->SetInput(this->FocalData);
+  //TODO 2013-10-08 this->Glypher->SetInput(this->FocalData);
   this->Glypher->SetVectorModeToUseNormal();
   this->Glypher->OrientOn();
   this->Glypher->ScalingOn();
@@ -111,7 +111,7 @@ vtkPlaneContourRepresentationGlyph::vtkPlaneContourRepresentationGlyph()
   this->Glypher->SetScaleFactor(1.0);
 
   this->ActiveGlypher = vtkGlyph3D::New();
-  this->ActiveGlypher->SetInput(this->ActiveFocalData);
+  //TODO 2013-10-08 this->ActiveGlypher->SetInput(this->ActiveFocalData);
   this->ActiveGlypher->SetVectorModeToUseNormal();
   this->ActiveGlypher->OrientOn();
   this->ActiveGlypher->ScalingOn();
@@ -151,17 +151,17 @@ vtkPlaneContourRepresentationGlyph::vtkPlaneContourRepresentationGlyph()
   tpd->Delete();
   t->Delete();
 
-  this->Glypher->SetSource(this->CursorShape);
-  this->ActiveGlypher->SetSource(this->ActiveCursorShape);
+  //TODO 2013-10-08 this->Glypher->SetSource(this->CursorShape);
+  //TODO 2013-10-08 this->ActiveGlypher->SetSource(this->ActiveCursorShape);
 
   this->Mapper = vtkPolyDataMapper::New();
-  this->Mapper->SetInput(this->Glypher->GetOutput());
+  //TODO 2013-10-08 this->Mapper->SetInput(this->Glypher->GetOutput());
   this->Mapper->SetResolveCoincidentTopologyToPolygonOffset();
   this->Mapper->ScalarVisibilityOff();
   this->Mapper->ImmediateModeRenderingOn();
 
   this->ActiveMapper = vtkPolyDataMapper::New();
-  this->ActiveMapper->SetInput(this->ActiveGlypher->GetOutput());
+  //TODO 2013-10-08 this->ActiveMapper->SetInput(this->ActiveGlypher->GetOutput());
   this->ActiveMapper->SetResolveCoincidentTopologyToPolygonOffset();
   this->ActiveMapper->ScalarVisibilityOff();
   this->ActiveMapper->ImmediateModeRenderingOn();
@@ -179,7 +179,7 @@ vtkPlaneContourRepresentationGlyph::vtkPlaneContourRepresentationGlyph()
 
   this->Lines = vtkPolyData::New();
   this->LinesMapper = vtkPolyDataMapper::New();
-  this->LinesMapper->SetInput(this->Lines);
+  //TODO 2013-10-08 this->LinesMapper->SetInput(this->Lines);
 
   this->LinesActor = vtkActor::New();
   this->LinesActor->SetMapper(this->LinesMapper);
@@ -258,8 +258,8 @@ void vtkPlaneContourRepresentationGlyph::SetCursorShape(vtkPolyData *shape)
     if (this->CursorShape)
       this->CursorShape->Register(this);
 
-    if (this->CursorShape)
-      this->Glypher->SetSource(this->CursorShape);
+    //TODO 2013-10-08 if (this->CursorShape)
+      //TODO 2013-10-08 this->Glypher->SetSource(this->CursorShape);
 
     this->Modified();
   }
@@ -281,8 +281,8 @@ void vtkPlaneContourRepresentationGlyph::SetActiveCursorShape(vtkPolyData *shape
     if (this->ActiveCursorShape)
       this->ActiveCursorShape->Register(this);
 
-    if (this->ActiveCursorShape)
-      this->ActiveGlypher->SetSource(this->ActiveCursorShape);
+    //TODO 2013-10-08 if (this->ActiveCursorShape)
+      //TODO 2013-10-08 this->ActiveGlypher->SetSource(this->ActiveCursorShape);
 
     this->Modified();
   }
@@ -921,17 +921,17 @@ void vtkPlaneContourRepresentationGlyph::CreateSelectedNodesRepresentation()
   normals->Delete();
 
   this->SelectedNodesGlypher = vtkGlyph3D::New();
-  this->SelectedNodesGlypher->SetInput(this->SelectedNodesData);
+  //TODO 2013-10-08 this->SelectedNodesGlypher->SetInput(this->SelectedNodesData);
   this->SelectedNodesGlypher->SetVectorModeToUseNormal();
   this->SelectedNodesGlypher->OrientOn();
   this->SelectedNodesGlypher->ScalingOn();
   this->SelectedNodesGlypher->SetScaleModeToDataScalingOff();
   this->SelectedNodesGlypher->SetScaleFactor(1.0);
 
-  this->SelectedNodesGlypher->SetSource(this->SelectedNodesCursorShape);
+  //TODO 2013-10-08 this->SelectedNodesGlypher->SetSource(this->SelectedNodesCursorShape);
 
   this->SelectedNodesMapper = vtkPolyDataMapper::New();
-  this->SelectedNodesMapper->SetInput(this->SelectedNodesGlypher->GetOutput());
+  //TODO 2013-10-08 this->SelectedNodesMapper->SetInput(this->SelectedNodesGlypher->GetOutput());
   this->SelectedNodesMapper->SetResolveCoincidentTopologyToPolygonOffset();
   this->SelectedNodesMapper->ScalarVisibilityOff();
   this->SelectedNodesMapper->ImmediateModeRenderingOn();
@@ -985,7 +985,7 @@ void vtkPlaneContourRepresentationGlyph::UseContourPolygon(bool value)
         return;
 
       this->m_polygonFilter = vtkSmartPointer<vtkContourToPolygonFilter>::New();
-      this->m_polygonFilter->SetInputConnection(this->Lines->GetProducerPort());
+      //TODO 2013-10-08 this->m_polygonFilter->SetInputConnection(this->Lines->GetProducerPort());
       this->m_polygonFilter->SetReleaseDataFlag(true);
       this->m_polygonFilter->Update();
 

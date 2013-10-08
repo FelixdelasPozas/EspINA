@@ -143,7 +143,7 @@ void VolumeRaycastRepresentation::initializePipeline()
   vtkSmartPointer<vtkPiecewiseFunction> piecewise = vtkSmartPointer<vtkPiecewiseFunction>::New();
   piecewise->AddPoint(0, 0.0);
   piecewise->AddPoint(255, 1.0);
-  piecewise->Update();
+  Q_ASSERT(false);//TODO 2013-10-08 piecewise->Update();
 
   vtkSmartPointer<vtkVolumeProperty> property = vtkSmartPointer<vtkVolumeProperty>::New();
   property->SetColor(m_colorFunction);

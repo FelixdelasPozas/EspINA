@@ -26,6 +26,8 @@ qt4_wrap_cpp(CORE_MOC
   Model/Proxies/TaxonomyProxy.h
   Model/Proxies/InformationProxy.h
   Model/Proxies/ConnectomicProxy.h
+  MultiTasking/Task.h
+  MultiTasking/Scheduler.h
   OutputRepresentations/ChannelVolumeProxy.h
   OutputRepresentations/VolumeProxy.h
   Interfaces/IDockWidget.h
@@ -37,55 +39,25 @@ qt4_wrap_cpp(CORE_MOC
 set (CORE_SOURCES 
   ${CORE_MOC}
   ${CORE_UI}
-  EspinaRegion.cpp
-  EspinaSettings.cpp
-  Model/Output.cpp
-  Model/OutputRepresentation.cpp
-  EspinaTypes.cpp
   ColorEngines/MultiColorEngine.cpp
   ColorEngines/NumberColorEngine.cpp
-  ColorEngines/TransparencySelectionHighlighter.cpp
   ColorEngines/TaxonomyColorEngine.cpp
+  ColorEngines/TransparencySelectionHighlighter.cpp
   ColorEngines/UserColorEngine.cpp
-  IO/SegFileReader.cpp
-  Interfaces/IColorEngineProvider.cpp
-  Interfaces/IDockWidget.cpp
-  Interfaces/IDynamicMenu.cpp
-  Interfaces/IFactoryExtension.cpp
-  Interfaces/IFileReader.cpp
-  Interfaces/IFilterCreator.cpp
-  Interfaces/IToolBar.cpp
-  Interfaces/IToolBarFactory.cpp
+  EspinaRegion.cpp
+  EspinaSettings.cpp
+  EspinaTypes.cpp
+  EspinaTypes.cpp
   Extensions/ChannelExtension.cpp
-  Extensions/EdgeDistances/EdgeDetector.cpp
   Extensions/EdgeDistances/AdaptiveEdges.cpp
+  Extensions/EdgeDistances/EdgeDetector.cpp
   Extensions/EdgeDistances/EdgeDistance.cpp
   Extensions/ModelItemExtension.cpp
   Extensions/Morphological/MorphologicalInformation.cpp
+  Extensions/Notes/SegmentationNotes.cpp 
   Extensions/SampleExtension.cpp
   Extensions/SegmentationExtension.cpp
-  Extensions/Notes/SegmentationNotes.cpp 
   Extensions/Tags/TagExtension.cpp
-  Model/Channel.cpp
-  Model/EspinaFactory.cpp
-  Model/EspinaModel.cpp
-  Model/Filter.cpp
-  Model/QtModelUtils.cpp
-  Model/MarchingCubesMesh.cpp 
-  Model/ModelItem.cpp
-  Model/ModelTest.cpp
-  Model/PickableItem.cpp
-  Model/RelationshipGraph.cpp
-  Model/Sample.cpp
-  Model/Segmentation.cpp
-  Model/Taxonomy.cpp
-  EspinaTypes.cpp
-  Model/Proxies/ChannelProxy.cpp
-  Model/Proxies/LocationProxy.cpp
-  Model/Proxies/TaxonomyProxy.cpp
-  Model/Proxies/RelationProxy.cpp
-  Model/Proxies/InformationProxy.cpp
-  Model/Proxies/ConnectomicProxy.cpp
   Filters/BasicSegmentationFilter.cpp
   Filters/ChannelReader.cpp
   Filters/ClosingFilter.cpp
@@ -99,18 +71,50 @@ set (CORE_SOURCES
   Filters/SeedGrowSegmentationFilter.cpp
   Filters/SplitFilter.cpp
   Filters/TubularSegmentationFilter.cpp
+  IO/SegFileReader.cpp
+  Interfaces/IColorEngineProvider.cpp
+  Interfaces/IDockWidget.cpp
+  Interfaces/IDynamicMenu.cpp
+  Interfaces/IFactoryExtension.cpp
+  Interfaces/IFileReader.cpp
+  Interfaces/IFilterCreator.cpp
+  Interfaces/IToolBar.cpp
+  Interfaces/IToolBarFactory.cpp
+  Model/Channel.cpp
+  Model/EspinaFactory.cpp
+  Model/EspinaModel.cpp
+  Model/Filter.cpp
+  Model/HierarchyItem.cpp
+  Model/MarchingCubesMesh.cpp 
+  Model/ModelItem.cpp
+  Model/ModelTest.cpp
+  Model/Output.cpp
+  Model/OutputRepresentation.cpp
+  Model/PickableItem.cpp
+  Model/Proxies/ChannelProxy.cpp
+  Model/Proxies/ConnectomicProxy.cpp
+  Model/Proxies/InformationProxy.cpp
+  Model/Proxies/LocationProxy.cpp
+  Model/Proxies/RelationProxy.cpp
+  Model/Proxies/TaxonomyProxy.cpp
+  Model/QtModelUtils.cpp
+  Model/RelationshipGraph.cpp
+  Model/Sample.cpp
+  Model/Segmentation.cpp
+  Model/Taxonomy.cpp
+  MultiTasking/Scheduler.cpp
+  MultiTasking/Task.cpp
   OutputRepresentations/ChannelVolumeProxy.cpp 
-  OutputRepresentations/MeshType.cpp
   OutputRepresentations/MeshProxy.cpp 
+  OutputRepresentations/MeshType.cpp
+  OutputRepresentations/RasterizedVolume.cpp
   OutputRepresentations/RawMesh.cpp 
   OutputRepresentations/RawVolume.cpp
-  OutputRepresentations/RasterizedVolume.cpp
   OutputRepresentations/VolumeProxy.cpp 
   OutputRepresentations/VolumeRepresentation.cpp 
-  VTK/vtkTube.cxx
-  Utils/SegmentationCollision.cpp
-  Model/HierarchyItem.cpp
   Utils/Measure.cpp
+  Utils/SegmentationCollision.cpp
+  VTK/vtkTube.cxx
   )
 
 set(CORE_EXTERNAL_LIBS

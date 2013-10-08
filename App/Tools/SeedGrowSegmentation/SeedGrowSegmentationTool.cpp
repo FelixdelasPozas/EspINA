@@ -550,7 +550,7 @@ void SeedGrowSegmentationTool::addPreview(EspinaRenderView *view)
     i2v->GetOutput()->SetOrigin(point[0] - (extent[0]*spacing[0]), 0, 0); // resolves "Fit to slices" discrepancy
     plane = 0;
   }
-  i2v->GetOutput()->Update();
+  i2v->Update();
   delete[] point;
 
   vtkSmartPointer<vtkImageResliceToColors> reslice = vtkSmartPointer<vtkImageResliceToColors>::New();
@@ -560,7 +560,7 @@ void SeedGrowSegmentationTool::addPreview(EspinaRenderView *view)
   reslice->AutoCropOutputOff();
   reslice->InterpolateOff();
   reslice->SetResliceAxes(matrix);
-  reslice->SetInputConnection(i2v->GetOutput()->GetProducerPort());
+  reslice->SetInputData(i2v->GetOutput());
   reslice->SetOutputDimensionality(2);
   reslice->SetLookupTable(lut);
   reslice->Update();

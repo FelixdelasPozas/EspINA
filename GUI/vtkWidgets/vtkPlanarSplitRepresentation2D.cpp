@@ -415,10 +415,10 @@ void vtkPlanarSplitRepresentation2D::setSegmentationBounds(double *bounds)
     connectivity[1] = (i+1)%4;
     polyData->InsertNextCell(VTK_LINE, 2, connectivity);
   }
-  polyData->Update();
+  //TODO 2013-10-08 polyData->Update();
 
   vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  mapper->SetInputConnection(polyData->GetProducerPort());
+  //TODO 2013-10-08 mapper->SetInputConnection(polyData->GetProducerPort());
 
   m_boundsActor = vtkSmartPointer<vtkActor>::New();
   m_boundsActor->SetMapper(mapper);

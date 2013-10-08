@@ -74,8 +74,8 @@ vtkClipClosedSurface::vtkClipClosedSurface()
 
   // A whole bunch of objects needed during execution
   this->IdList = 0;
-  this->CellArray = 0;
-  this->Polygon = 0;
+  //TODO 2013-10-08 this->CellArray = 0;
+  //TODO 2013-10-08 this->Polygon = 0;
 }
 
 //----------------------------------------------------------------------------
@@ -84,8 +84,8 @@ vtkClipClosedSurface::~vtkClipClosedSurface()
   if (this->ClippingPlanes) { this->ClippingPlanes->Delete(); } 
 
   if (this->IdList) { this->IdList->Delete(); }
-  if (this->CellArray) { this->CellArray->Delete(); }
-  if (this->Polygon) { this->Polygon->Delete(); }
+  //TODO 2013-10-08 if (this->CellArray) { this->CellArray->Delete(); }
+  //TODO 2013-10-08 if (this->Polygon) { this->Polygon->Delete(); }
 }
 
 //----------------------------------------------------------------------------
@@ -151,32 +151,34 @@ void vtkClipClosedSurface::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-#ifndef VTK_LEGACY_REMOVE
-int vtkClipClosedSurface::GetGenerateColorScalars()
-{
-  VTK_LEGACY_BODY(GetGenerateColorScalars, "5.7");
-  return (this->GetScalarMode() != 0);
-}
-
-void vtkClipClosedSurface::SetGenerateColorScalars(int val)
-{
-  VTK_LEGACY_BODY(SetGenerateColorScalars, "5.7");
-  if (val) { this->SetScalarModeToColors(); }
-  else { this->SetScalarModeToNone(); }
-}
-
-void vtkClipClosedSurface::GenerateColorScalarsOn()
-{
-  VTK_LEGACY_BODY(GenerateColorScalarsOn, "5.7");
-  this->SetScalarModeToColors();
-}
-
-void vtkClipClosedSurface::GenerateColorScalarsOff()
-{
-  VTK_LEGACY_BODY(GenerateColorScalarsOff, "5.7");
-  this->SetScalarModeToNone();
-}
-#endif
+//TODO 2013-10-08  {
+// #ifndef VTK_LEGACY_REMOVE
+// int vtkClipClosedSurface::GetGenerateColorScalars()
+// {
+//   VTK_LEGACY_BODY(GetGenerateColorScalars, "5.7");
+//   return (this->GetScalarMode() != 0);
+// }
+// 
+// void vtkClipClosedSurface::SetGenerateColorScalars(int val)
+// {
+//   VTK_LEGACY_BODY(SetGenerateColorScalars, "5.7");
+//   if (val) { this->SetScalarModeToColors(); }
+//   else { this->SetScalarModeToNone(); }
+// }
+// 
+// void vtkClipClosedSurface::GenerateColorScalarsOn()
+// {
+//   VTK_LEGACY_BODY(GenerateColorScalarsOn, "5.7");
+//   this->SetScalarModeToColors();
+// }
+// 
+// void vtkClipClosedSurface::GenerateColorScalarsOff()
+// {
+//   VTK_LEGACY_BODY(GenerateColorScalarsOff, "5.7");
+//   this->SetScalarModeToNone();
+// }
+// #endif
+//}
 
 //----------------------------------------------------------------------------
 int vtkClipClosedSurface::ComputePipelineMTime(
@@ -351,8 +353,8 @@ int vtkClipClosedSurface::RequestData(
 
   // Create objects needed for temporary storage
   if (this->IdList == 0) { this->IdList = vtkIdList::New(); }
-  if (this->CellArray == 0) { this->CellArray = vtkCellArray::New(); }
-  if (this->Polygon == 0) { this->Polygon = vtkPolygon::New(); }
+  //TODO 2013-10-08 if (this->CellArray == 0) { this->CellArray = vtkCellArray::New(); }
+  //TODO 2013-10-08 if (this->Polygon == 0) { this->Polygon = vtkPolygon::New(); }
 
   // Get the input points
   vtkPoints *inputPoints = input->GetPoints();
@@ -648,9 +650,7 @@ int vtkClipClosedSurface::RequestData(
       tmpContourData->SetLines(newLines);
       tmpContourData->BuildCells();
 
-      this->MakePolysFromContours(tmpContourData, numClipLines,
-                                  numClipAndContourLines - numClipLines,
-                                  newPolys, pc);
+      //TODO 2013-10-08 this->MakePolysFromContours(tmpContourData, numClipLines, numClipAndContourLines - numClipLines, newPolys, pc);
 
       // Add scalars for the newly-created polys
       scalars = vtkUnsignedCharArray::SafeDownCast(outPolyData->GetScalars());
@@ -1068,7 +1068,7 @@ void vtkClipClosedSurface::ClipAndContourPolys(
   vtkCellData *outPolyData, vtkCellData *outLineData)
 {
   vtkIdList *idList = this->IdList;
-  vtkPolygon *polygon = this->Polygon;
+  vtkPolygon *polygon;//TODO 2013-10-08 = this->Polygon;
 
   // How many sides for output polygons?
   int polyMax = VTK_INT_MAX;
@@ -1378,33 +1378,35 @@ public:
 };
 
 //----------------------------------------------------------------------------
-void vtkClipClosedSurface::MakePolysFromContours(
-  vtkPolyData *data, vtkIdType firstLine, vtkIdType numLines,
-  vtkCellArray *outputPolys, const double normal[3])
-{
-  // If no cut lines were generated, there's nothing to do
-  if (numLines <= 0)
-    {
-    return;
-    }
-
-  int rval = vtkContourToPolygonFilterToClipClosedSurfaceFriendship::
-               MakePolysFromContours(
-    data, firstLine, numLines, outputPolys, normal,
-    this->CellArray, this->Polygon, this->IdList);
-
-  if (rval == 0 && this->TriangulationErrorDisplay)
-    {
-    vtkErrorMacro("Triangulation failed, data may not be watertight.");
-    }
-}
+// TODO 2013-10-08 {
+// void vtkClipClosedSurface::MakePolysFromContours(
+//   vtkPolyData *data, vtkIdType firstLine, vtkIdType numLines,
+//   vtkCellArray *outputPolys, const double normal[3])
+// {
+//   // If no cut lines were generated, there's nothing to do
+//   if (numLines <= 0)
+//     {
+//     return;
+//     }
+// 
+//   int rval = vtkContourToPolygonFilterToClipClosedSurfaceFriendship::
+//                MakePolysFromContours(
+//     data, firstLine, numLines, outputPolys, normal,
+//     this->CellArray, this->Polygon, this->IdList);
+// 
+//   if (rval == 0 && this->TriangulationErrorDisplay)
+//     {
+//     vtkErrorMacro("Triangulation failed, data may not be watertight.");
+//     }
+// }
+// }
 
 // ---------------------------------------------------
 int vtkClipClosedSurface::TriangulatePolygon(
   vtkIdList *polygon, vtkPoints *points, vtkCellArray *triangles)
 {
-  return vtkContourToPolygonFilterToClipClosedSurfaceFriendship::
-           TriangulatePolygon(
-      polygon, points, triangles,
-      this->CellArray, this->Polygon, this->IdList);
+  //TODO 2013-10-08 return vtkContourToPolygonFilterToClipClosedSurfaceFriendship::
+  //TODO 2013-10-08          TriangulatePolygon(
+  //TODO 2013-10-08     polygon, points, triangles,
+  //TODO 2013-10-08     this->CellArray, this->Polygon, this->IdList);
 }

@@ -137,7 +137,7 @@ void ContourRepresentation::initializePipeline()
   m_voxelContour->Update();
 
   m_tubes = vtkSmartPointer<vtkTubeFilter>::New();
-  m_tubes->SetInput(m_voxelContour->GetOutput());
+  m_tubes->SetInputData(m_voxelContour->GetOutput());
   m_tubes->SetCapping(false);
   m_tubes->SetGenerateTCoordsToUseLength();
   m_tubes->SetNumberOfSides(4);

@@ -418,10 +418,10 @@ void BrushPicker::startPreview(EspinaRenderView* view)
 
   m_preview = vtkSmartPointer<vtkImageData>::New();
   m_preview->SetOrigin(0, 0, 0);
-  m_preview->SetScalarTypeToUnsignedChar();
-  m_preview->SetExtent(extent);
+  Q_ASSERT(false);//TODO 2013-10-08 m_preview->SetScalarTypeToUnsignedChar();
+  Q_ASSERT(false);//TODO 2013-10-08 m_preview->SetExtent(extent);
   m_preview->SetSpacing(m_spacing[0], m_spacing[1], m_spacing[2]);
-  m_preview->AllocateScalars();
+  Q_ASSERT(false);//TODO 2013-10-08 m_preview->AllocateScalars();
   memset(m_preview->GetScalarPointer(), 0, m_preview->GetNumberOfPoints());
 
   // if erasing hide seg and copy contents of slice to preview actor
@@ -499,7 +499,7 @@ void BrushPicker::startPreview(EspinaRenderView* view)
         m_preview->SetOrigin(m_pBounds[0] - (extent[0] * m_spacing[0]), 0, 0); // resolves "Fit to slices" discrepancy
       }
 
-  m_preview->Update();
+  Q_ASSERT(false);//TODO 2013-10-08 m_preview->Update();
 
   vtkSmartPointer<vtkImageResliceToColors> reslice = vtkSmartPointer<vtkImageResliceToColors>::New();
   reslice->OptimizationOn();
@@ -508,7 +508,7 @@ void BrushPicker::startPreview(EspinaRenderView* view)
   reslice->AutoCropOutputOff();
   reslice->InterpolateOff();
   reslice->SetResliceAxes(matrix);
-  reslice->SetInputConnection(m_preview->GetProducerPort());
+  reslice->SetInputData(m_preview);
   reslice->SetOutputDimensionality(2);
   reslice->SetLookupTable(m_lut);
   reslice->Update();

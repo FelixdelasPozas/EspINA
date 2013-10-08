@@ -345,7 +345,7 @@ const vtkAlgorithmOutput* RawChannelVolume::toVTK() const
     m_VTKGenerationTime = m_volume->GetMTime();
   }
 
-  return itk2vtk->GetOutput()->GetProducerPort();
+  Q_ASSERT(false);//TODO 2013-10-08 return itk2vtk->GetOutput()->GetProducerPort();
 }
 
 //----------------------------------------------------------------------------
@@ -601,8 +601,6 @@ void RawSegmentationVolume::draw(vtkPolyData *contour,
   points->Delete();
   lines->Delete();
 
-  rotatedContour->Update();
-
   VolumeRepresentation::VolumeRegion contourRegion = volumeRegionAux(polyDataRegion, m_volume->GetSpacing());
   VolumeRepresentation::VolumeRegion::IndexType contourRegionIndex = contourRegion.GetIndex();
   VolumeRepresentation::VolumeRegion::SizeType contourRegionSize = contourRegion.GetSize();
@@ -649,7 +647,7 @@ void RawSegmentationVolume::draw(vtkPolyData *contour,
   extent[5] = contourRegionIndex[plane] + contourRegionSize[plane] -1;
 
   vtkSmartPointer<vtkPolyDataToImageStencil> polyDataToStencil = vtkSmartPointer<vtkPolyDataToImageStencil>::New();
-  polyDataToStencil->SetInputConnection(rotatedContour->GetProducerPort());
+  polyDataToStencil->SetInputData(rotatedContour);
   polyDataToStencil->SetOutputOrigin(0,0,0);
   polyDataToStencil->SetOutputSpacing(spacingNm[0], spacingNm[1], spacingNm[2]);
   polyDataToStencil->SetOutputWholeExtent(extent[0], extent[1], extent[2], extent[3], extent[4], extent[5]);
@@ -1078,7 +1076,7 @@ const vtkAlgorithmOutput* RawSegmentationVolume::toVTK() const
     m_VTKGenerationTime = m_volume->GetMTime();
   }
 
-  return itk2vtk->GetOutput()->GetProducerPort();
+  Q_ASSERT(false);//TODO 2013-10-08 return itk2vtk->GetOutput()->GetProducerPort();
 }
 
 //----------------------------------------------------------------------------

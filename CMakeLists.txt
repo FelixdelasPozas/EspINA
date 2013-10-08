@@ -2,6 +2,11 @@ project (EspINA)
 
 cmake_minimum_required (VERSION 2.8.6)
 
+add_definitions(
+  -std=c++11
+  -fpermissive
+  )
+
 # needed for plugin compilation
 set (Espina_DIR ${PROJECT_BINARY_DIR})
 
@@ -12,11 +17,35 @@ set (ESPINA_VERSION_PATCH 2)
 
 
 set (TEST_ESPINA_MODELS CACHE BOOL "Build EspINA Model Test wrappers")
-set (BUILD_TESTING OFF  CACHE BOOL "Build EspINA Unitary Tests")
-set (USE_DASHBOARD OFF  CACHE BOOL "Use EspINA Unitary Tests Dashboard")
 
+# Configure Doxygen API Documentation
+set (BUILD_DOCUMENTATION CACHE BOOL "Build EspINA API Documentation")
+
+if (BUILD_DOCUMENTATION)
+  find_package(Doxygen)
+
+  if (DOXYGEN_FOUND)
+    set(DOXYGEN_INPUT Doc/Doxyfile)
+    set(DOXYGEN_OUTPUT build)
+
+    add_custom_command(
+      OUTPUT ${DOXYGEN_OUTPUT}
+      COMMAND ${CMAKE_COMMAND} -E echo_append "Building API Documentation..."
+      COMMAND DOXYGEN_OUTPUT_DIR=Doc/ ${DOXYGEN_EXECUTABLE} ${DOXYGEN_INPUT}
+      COMMAND ${CMAKE_COMMAND} -E echo "Done."
+      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+      DEPENDS ${DOXYGEN_INPUT}
+      )
+
+    add_custom_target(apidoc ALL DEPENDS ${DOXYGEN_OUTPUT})
+
+  endif (DOXYGEN_FOUND)
+endif (BUILD_DOCUMENTATION)
+
+# Notify basic plugins to avoid searching for EspINA CMake files
 set (COMPILING_ESPINA 1)
 
+# Libraries and plugins output directory
 set (ESPINA_LIBRARY_DIRECTORIES ${PROJECT_BINARY_DIR}/libs )
 
 include_directories (${CMAKE_SOURCE_DIR})
@@ -25,7 +54,7 @@ include_directories (${PROJECT_BINARY_DIR}/GUI)
 include_directories (${PROJECT_BINARY_DIR}/Undo)
 link_directories    (${ESPINA_LIBRARY_DIRECTORIES})
 
-# for building espina plugins in the correct directory
+# Build EspINA plugins in the correct directory
 cmake_policy(SET CMP0013 OLD)
 if (MINGW OR MSVC)
   set (LIBRARY_OUTPUT_PATH   "${CMAKE_BINARY_DIR}/App"             )
@@ -47,12 +76,6 @@ configure_file (
   "${PROJECT_BINARY_DIR}/EspinaConfig.cmake"
   )
 
-if (${USE_DASHBOARD})
-
- eset (BUILDNAME "${BUILDNAME}" CACHE STRING "Name of build on the dashboard")
-  mark_as_advanced (BUILDNAME)
-
-endif()
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/CMake/Modules/")
 
@@ -103,15 +126,23 @@ add_subdirectory( Undo    )
 add_subdirectory( App     )
 add_subdirectory( Plugins )
 
+# Testing
+set (BUILD_TESTING OFF  CACHE BOOL "Build EspINA Unitary Tests")
 
 if (BUILD_TESTING)
 
   include (CTest)
-  enable_testing()
 
+  configure_file(
+    "${PROJECT_SOURCE_DIR}/CTestCustom.cmake"
+    "${PROJECT_BINARY_DIR}/CTestCustom.cmake"
+    )
   add_subdirectory(Tests)
 
 endif()
+
+
+
 
 ### TODO: Review from previous version
 # TRANSLATIONS

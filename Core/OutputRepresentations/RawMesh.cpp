@@ -63,7 +63,7 @@ bool RawMesh::dumpSnapshot(const QString &prefix, Snapshot &snapshot) const
     m_mesh->GetPointData()->AddArray(spacingArray);
 
     vtkSmartPointer<vtkGenericDataObjectWriter> polyWriter = vtkSmartPointer<vtkGenericDataObjectWriter>::New();
-    polyWriter->SetInputConnection(m_mesh->GetProducerPort());
+    polyWriter->SetInputData(m_mesh);
     polyWriter->SetFileTypeToBinary();
     polyWriter->SetWriteToOutputString(true);
     polyWriter->Write();
@@ -187,7 +187,7 @@ void RawMesh::restoreEditedRegions(const QDir &cacheDir, const QString &outputId
 //----------------------------------------------------------------------------
 vtkAlgorithmOutput *RawMesh::mesh()
 {
-  return m_mesh->GetProducerPort();
+  Q_ASSERT(false);//TODO 2013-10-08 return m_mesh->GetProducerPort();
 }
 
 //----------------------------------------------------------------------------

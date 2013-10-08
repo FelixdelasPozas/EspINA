@@ -115,7 +115,7 @@ vtkAlgorithmOutput *MarchingCubesMesh::mesh()
   if (m_marchingCubes == NULL)
     updateMesh();
 
-  return m_marchingCubes->GetOutput()->GetProducerPort();
+  Q_ASSERT(false);//TODO 2013-10-08 return m_marchingCubes->GetOutput()->GetProducerPort();
 }
 
 //----------------------------------------------------------------------------

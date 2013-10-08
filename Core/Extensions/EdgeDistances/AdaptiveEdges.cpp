@@ -256,7 +256,7 @@ bool AdaptiveEdges::saveCache(Snapshot &snapshot)
       if (data.Edges)
       {
         channelId += QString("-%1").arg(channel->outputId());
-        polyWriter->SetInputConnection(data.Edges->GetProducerPort());
+        polyWriter->SetInputData(data.Edges); 
         polyWriter->SetFileTypeToBinary();
         polyWriter->WriteToOutputStringOn();
         polyWriter->Write();
@@ -270,7 +270,7 @@ bool AdaptiveEdges::saveCache(Snapshot &snapshot)
       {
         if (data.Faces[i])
         {
-          polyWriter->SetInputConnection(data.Faces[i]->GetProducerPort());
+          polyWriter->SetInputData(data.Faces[i]);
           polyWriter->Update();
           polyWriter->Write();
 
@@ -346,7 +346,7 @@ void AdaptiveEdges::computeDistanceToEdge(SegmentationPtr seg)
       vtkSmartPointer<vtkDistancePolyDataFilter> distanceFilter = vtkSmartPointer<vtkDistancePolyDataFilter>::New();
       distanceFilter->SignedDistanceOff();
       distanceFilter->SetInputConnection( 0, meshRepresentation(seg->output())->mesh());
-      distanceFilter->SetInputConnection( 1, data.Faces[face]->GetProducerPort());
+      distanceFilter->SetInputData(1, data.Faces[face]);
       distanceFilter->Update();
       distance[face] = distanceFilter->GetOutput()->GetPointData()->GetScalars()->GetRange()[0];
     }

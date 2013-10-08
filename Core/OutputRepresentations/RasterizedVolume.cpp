@@ -115,9 +115,9 @@ void RasterizedVolume::rasterize(double *imageBounds) const
   m_emptyImage = vtkSmartPointer<vtkImageData>::New();
   m_emptyImage->SetSpacing(m_spacing[0], m_spacing[1], m_spacing[2]);
   m_emptyImage->SetExtent(extent);
-  m_emptyImage->SetScalarTypeToUnsignedChar();
-  m_emptyImage->AllocateScalars();
-  m_emptyImage->Update();
+  Q_ASSERT(false);//TODO 2013-10-08 m_emptyImage->SetScalarTypeToUnsignedChar();
+  Q_ASSERT(false);//TODO 2013-10-08 m_emptyImage->AllocateScalars();
+  Q_ASSERT(false);//TODO 2013-10-08 m_emptyImage->Update();
 
   memset(m_emptyImage->GetScalarPointer(), SEG_BG_VALUE, m_emptyImage->GetNumberOfPoints());
 
@@ -138,7 +138,7 @@ void RasterizedVolume::rasterize(double *imageBounds) const
       }
       
       m_rasterizationTime = m_mesh->GetMTime();
-      m_vtkVolume = m_emptyImage->GetProducerPort();
+      Q_ASSERT(false);//TODO 2013-10-08 m_vtkVolume = m_emptyImage->GetProducerPort();
 }
 
 //----------------------------------------------------------------------------

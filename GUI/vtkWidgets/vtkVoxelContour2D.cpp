@@ -163,7 +163,7 @@ int vtkVoxelContour2D::RequestData(vtkInformation *request,
   newLines->Delete();
 
   vtkSmartPointer<vtkCleanPolyData> cleaner = vtkSmartPointer<vtkCleanPolyData>::New();
-  cleaner->SetInput(temp);
+  //TODO 2013-10-08 cleaner->SetInput(temp);
   cleaner->PointMergingOn();
   cleaner->SetTolerance(0.0);
   cleaner->Update();
@@ -267,7 +267,7 @@ int vtkVoxelContour2D::RequestDataObject(vtkInformation* vtkNotUsed(request),
     output = vtkPolyData::New();
     outInfo->Set(vtkDataObject::DATA_OBJECT(), output);
     output->FastDelete();
-    output->SetPipelineInformation(outInfo);
+    //TODO 2013-10-08 output->SetPipelineInformation(outInfo);
     this->GetOutputPortInformation(0)->Set(vtkDataObject::DATA_EXTENT_TYPE(), output->GetExtentType());
   }
 
@@ -314,7 +314,7 @@ void vtkVoxelContour2D::SetInput(int index, vtkDataObject* input)
 {
   if(input)
   {
-    this->SetInputConnection(index, input->GetProducerPort());
+    //TODO 2013-10-08 this->SetInputConnection(index, input->GetProducerPort());
   }
   else
   {
@@ -334,7 +334,7 @@ void vtkVoxelContour2D::AddInput(int index, vtkDataObject* input)
 {
   if(input)
   {
-    this->AddInputConnection(index, input->GetProducerPort());
+    //TODO 2013-10-08 this->AddInputConnection(index, input->GetProducerPort());
   }
 }
 

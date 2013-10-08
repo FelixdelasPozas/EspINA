@@ -543,7 +543,7 @@ void TaxonomyLayout::updateSelection()
   }
 
   bool enabled = (numTax == 1);
-  m_createTaxonomy->setEnabled(m_model->taxonomy());
+  m_createTaxonomy->setEnabled(m_model->taxonomy().get());
   m_createSubTaxonomy->setEnabled(enabled);
   m_changeTaxonomyColor->setEnabled(enabled);
 }

@@ -369,10 +369,10 @@ void SliceView::initBorder(vtkPolyData* data, vtkActor* actor)
   }
   data->SetPoints(corners);
   data->SetLines(borders);
-  data->Update();
+  // data->Update(); According to VTK6 update should be done to the filter producing it
 
   vtkSmartPointer<vtkPolyDataMapper> Mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  Mapper->SetInput(data);
+  Mapper->SetInputData(data);
   actor->SetMapper(Mapper);
   actor->GetProperty()->SetLineWidth(2);
   actor->SetPickable(false);
@@ -473,10 +473,9 @@ void SliceView::buildCrosshairs()
   m_HCrossLineData = vtkSmartPointer<vtkPolyData>::New();
   m_HCrossLineData->SetPoints(HPoints);
   m_HCrossLineData->SetLines (HLine);
-  m_HCrossLineData->Update();
 
   vtkSmartPointer<vtkPolyDataMapper> HMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  HMapper->SetInput(m_HCrossLineData);
+  HMapper->SetInputData(m_HCrossLineData);
 
   m_HCrossLine = vtkSmartPointer<vtkActor>::New();
   m_HCrossLine->SetMapper(HMapper);
@@ -495,10 +494,9 @@ void SliceView::buildCrosshairs()
   m_VCrossLineData = vtkSmartPointer<vtkPolyData>::New();
   m_VCrossLineData->SetPoints(VPoints);
   m_VCrossLineData->SetLines(VLine);
-  m_VCrossLineData->Update();
 
   vtkSmartPointer<vtkPolyDataMapper> VMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  VMapper->SetInput(m_VCrossLineData);
+  VMapper->SetInputData(m_VCrossLineData);
 
   m_VCrossLine = vtkSmartPointer<vtkActor>::New();
   m_VCrossLine->SetMapper(VMapper);

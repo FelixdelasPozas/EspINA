@@ -189,7 +189,7 @@ bool SplitFilter::dumpSnapshot(QList<QPair<QString, QByteArray> > &fileList)
     if (m_stencil != NULL)
     {
       vtkSmartPointer<vtkImageStencilToImage> convert = vtkSmartPointer<vtkImageStencilToImage>::New();
-      convert->SetInputConnection(m_stencil->GetProducerPort());
+      convert->SetInputData(m_stencil);
       convert->SetInsideValue(1);
       convert->SetOutsideValue(0);
       convert->SetOutputScalarTypeToUnsignedChar();

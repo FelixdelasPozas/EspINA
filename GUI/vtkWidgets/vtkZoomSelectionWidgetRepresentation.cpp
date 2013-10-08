@@ -54,7 +54,7 @@ vtkZoomSelectionWidgetRepresentation::vtkZoomSelectionWidgetRepresentation()
 
   // Setup actor and mapper
   vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  mapper->SetInputConnection(polyData->GetProducerPort());
+  //TODO 2013-10-08 mapper->SetInputConnection(polyData->GetProducerPort());
 
   m_lineActor->SetMapper(mapper);
   m_lineActor->GetProperty()->SetColor(1,1,1);

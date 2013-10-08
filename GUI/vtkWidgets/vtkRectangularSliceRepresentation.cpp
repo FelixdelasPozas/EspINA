@@ -81,7 +81,7 @@ vtkRectangularSliceRepresentation::vtkRectangularSliceRepresentation()
 
     this->EdgePolyData[i]->SetPoints(this->Vertex);
     this->EdgePolyData[i]->SetLines(vtkCellArray::New());
-    this->EdgeMapper[i]->SetInput(this->EdgePolyData[i]);
+    //TODO 2013-10-08 this->EdgeMapper[i]->SetInput(this->EdgePolyData[i]);
     this->EdgeActor[i]->SetMapper(this->EdgeMapper[i]);
     this->EdgeActor[i]->SetProperty(this->EdgeProperty);
 

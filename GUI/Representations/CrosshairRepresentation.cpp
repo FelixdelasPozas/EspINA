@@ -160,9 +160,9 @@ void CrosshairRepresentation::updateRepresentation()
     m_coronalScaler ->Update();
     m_sagittalScaler->Update();
 
-    m_axialSquare   ->Update();
-    m_coronalSquare ->Update();
-    m_sagittalSquare->Update();
+    Q_ASSERT(false);//TODO 2013-10-08 m_axialSquare   ->Update();
+    Q_ASSERT(false);//TODO 2013-10-08 m_coronalSquare ->Update();
+    Q_ASSERT(false);//TODO 2013-10-08 m_sagittalSquare->Update();
 
     m_axial   ->Update();
     m_coronal ->Update();
@@ -257,7 +257,7 @@ void CrosshairRepresentation::updatePipelineConnections()
     m_axialSquare->Reset();
     m_axialSquare->SetPoints(axialPoints);
     m_axialSquare->SetLines(axialLines);
-    m_axialSquare->Update();
+    Q_ASSERT(false);//TODO 2013-10-08 m_axialSquare->Update();
 
     double cp0[3] = { m_bounds[0], m_bounds[2], m_bounds[4] };
     double cp1[3] = { m_bounds[0], m_bounds[2], m_bounds[5] };
@@ -286,7 +286,7 @@ void CrosshairRepresentation::updatePipelineConnections()
     m_coronalSquare->Reset();
     m_coronalSquare->SetPoints(coronalPoints);
     m_coronalSquare->SetLines(coronalLines);
-    m_coronalSquare->Update();
+    Q_ASSERT(false);//TODO 2013-10-08 m_coronalSquare->Update();
 
     double sp0[3] =  { m_bounds[0], m_bounds[2], m_bounds[4] };
     double sp1[3] =  { m_bounds[0], m_bounds[2], m_bounds[5] };
@@ -315,7 +315,7 @@ void CrosshairRepresentation::updatePipelineConnections()
     m_sagittalSquare->Reset();
     m_sagittalSquare->SetPoints(sagittalPoints);
     m_sagittalSquare->SetLines(sagittalLines);
-    m_sagittalSquare->Update();
+    Q_ASSERT(false);//TODO 2013-10-08 m_sagittalSquare->Update();
   }
 }
 
@@ -425,15 +425,15 @@ void CrosshairRepresentation::initializePipeline()
   sagittalImagemap->SetInputConnection(m_sagittalScaler->GetOutputPort());
 
   m_axial = vtkSmartPointer<vtkImageActor>::New();
-  m_axial->SetInput(axialImagemap->GetOutput());
+  Q_ASSERT(false);//TODO 2013-10-08 m_axial->SetInput(axialImagemap->GetOutput());
   m_axial->SetInterpolate(false);
 
   m_coronal = vtkSmartPointer<vtkImageActor>::New();
-  m_coronal->SetInput(coronalImagemap->GetOutput());
+  Q_ASSERT(false);//TODO 2013-10-08 m_coronal->SetInput(coronalImagemap->GetOutput());
   m_coronal->SetInterpolate(false);
 
   m_sagittal = vtkSmartPointer<vtkImageActor>::New();
-  m_sagittal->SetInput(sagittalImagemap->GetOutput());
+  Q_ASSERT(false);//TODO 2013-10-08 m_sagittal->SetInput(sagittalImagemap->GetOutput());
   m_sagittal->SetInterpolate(false);
 
   // rotate actors
@@ -481,7 +481,7 @@ void CrosshairRepresentation::initializePipeline()
   m_axialSquare->Reset();
   m_axialSquare->SetPoints(axialPoints);
   m_axialSquare->SetLines(axialLines);
-  m_axialSquare->Update();
+  Q_ASSERT(false);//TODO 2013-10-08 m_axialSquare->Update();
 
   double cp0[3] = { m_bounds[0], m_bounds[2], m_bounds[4] };
   double cp1[3] = { m_bounds[0], m_bounds[2], m_bounds[5] };
@@ -511,7 +511,7 @@ void CrosshairRepresentation::initializePipeline()
   m_coronalSquare->Reset();
   m_coronalSquare->SetPoints(coronalPoints);
   m_coronalSquare->SetLines(coronalLines);
-  m_coronalSquare->Update();
+  Q_ASSERT(false);//TODO 2013-10-08 m_coronalSquare->Update();
 
   double sp0[3] =  { m_bounds[0], m_bounds[2], m_bounds[4] };
   double sp1[3] =  { m_bounds[0], m_bounds[2], m_bounds[5] };
@@ -541,14 +541,14 @@ void CrosshairRepresentation::initializePipeline()
   m_sagittalSquare->Reset();
   m_sagittalSquare->SetPoints(sagittalPoints);
   m_sagittalSquare->SetLines(sagittalLines);
-  m_sagittalSquare->Update();
+  Q_ASSERT(false);//TODO 2013-10-08 m_sagittalSquare->Update();
 
   vtkSmartPointer<vtkPolyDataMapper> axialSquareMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  axialSquareMapper->SetInput(m_axialSquare);
+  Q_ASSERT(false);//TODO 2013-10-08 axialSquareMapper->SetInput(m_axialSquare);
   vtkSmartPointer<vtkPolyDataMapper> coronalSquareMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  coronalSquareMapper->SetInput(m_coronalSquare);
+  Q_ASSERT(false);//TODO 2013-10-08 coronalSquareMapper->SetInput(m_coronalSquare);
   vtkSmartPointer<vtkPolyDataMapper> sagittalSquareMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  sagittalSquareMapper->SetInput(m_sagittalSquare);
+  Q_ASSERT(false);//TODO 2013-10-08 sagittalSquareMapper->SetInput(m_sagittalSquare);
 
   // these colors have been defined in DefaultEspinaView.cpp for the 2D crosshair
   double cyan[3] = { 0, 1, 1 };
