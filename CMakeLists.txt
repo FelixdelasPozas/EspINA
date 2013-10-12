@@ -25,16 +25,20 @@ if (BUILD_DOCUMENTATION)
   find_package(Doxygen)
 
   if (DOXYGEN_FOUND)
-    set(DOXYGEN_INPUT Doc/Doxyfile)
-    set(DOXYGEN_OUTPUT build)
+    configure_file(
+      "Doc/Doxyfile.in"
+      "${PROJECT_BINARY_DIR}/Doxyfile"
+      )
+    set(DOXYGEN_INPUT ${PROJECT_BINARY_DIR}/Doxyfile)
+    set(DOXYGEN_OUTPUT ${PROJECT_BINARY_DIR}/Doc)
 
     add_custom_command(
       OUTPUT ${DOXYGEN_OUTPUT}
       COMMAND ${CMAKE_COMMAND} -E echo_append "Building API Documentation..."
-      COMMAND DOXYGEN_OUTPUT_DIR=Doc/ ${DOXYGEN_EXECUTABLE} ${DOXYGEN_INPUT}
+      COMMAND DOXYGEN_OUTPUT_DIR=${DOXYGEN_OUTPUT} ${DOXYGEN_EXECUTABLE} ${DOXYGEN_INPUT}
       COMMAND ${CMAKE_COMMAND} -E echo "Done."
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-      DEPENDS ${DOXYGEN_INPUT}
+      DEPENDS ${DOXYGEN_INPUT} espina
       )
 
     add_custom_target(apidoc ALL DEPENDS ${DOXYGEN_OUTPUT})

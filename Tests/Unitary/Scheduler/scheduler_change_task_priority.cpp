@@ -26,48 +26,75 @@
  * 
  */
 
-#include "Bounds.h"
+#include <Scheduler.h>
 
+#include "SleepyTask.h"
+
+#include <iostream>
+#include <memory>
+#include <unistd.h>
+
+#include <QThreadPool>
+ 
 using namespace EspINA;
 using namespace std;
 
-int bounds_invalid_list_constructor( int argc, char** argv )
+int scheduler_change_task_priority( int argc, char** argv )
 {
   int error = 0;
-  try {
-    Bounds bounds{0,1,2,3};
-    error = EXIT_FAILURE;
-    cerr << bounds << endl;
-  } catch (Wrong_number_initial_values& e) {
+  
+  int schedulerPeriod = 50000;
+  Scheduler scheduler(schedulerPeriod);//0.5sec
+  
+  int numThreads = QThreadPool::globalInstance()->maxThreadCount();
+  int numTasks   = numThreads + 5;
+  
+  std::vector<unique_ptr<SleepyTask>> tasks;
+  
+  for (int i = 0; i < numTasks; ++i) {
+    tasks.push_back(unique_ptr<SleepyTask>(new SleepyTask(50000, &scheduler)));
+    tasks.at(i)->setDescription(QString("Task %1").arg(i));
+    tasks.at(i)->submit();
   }
-
-  try {
-    Bounds bounds{0,1,2,3,4,5,6,7,8};
-    error = EXIT_FAILURE;
-    cerr << bounds << endl;
-  } catch (Wrong_number_initial_values& e) {
+  
+  usleep(schedulerPeriod);
+  
+  for (int i = 0; i < numThreads; ++i) {
+    if (tasks.at(i)->Result != 0) {
+      error = 1;      
+      std::cerr << "Task " << i << " should be running" << std::endl;
+    }
   }
-
-  try {
-    Bounds bounds{0,1,2,3,4,5,6,7};
-    error = EXIT_FAILURE;
-    cerr << "Invalid Token" << bounds << endl;
-  } catch (Invalid_bounds_token& e) {
+  
+  if (tasks.at(numTasks-1)->Result != -1) {
+    error = 1;      
+    std::cerr << "Last Task should be paused by the dispatcher" << std::endl;
   }
+  
+  tasks.at(numTasks-1)->setPriority(Priority::VERY_HIGHT);
+  
+  usleep(schedulerPeriod);
 
-  try {
-    Bounds bounds{0,1,2,3,4,5,6,7,8,9,10,11};
-    error = EXIT_FAILURE;
-    cerr << "Invalid Token" << bounds << endl;
-  } catch (Invalid_bounds_token& e) {
+  for (int i = 0; i < numThreads - 1; ++i) {
+    if (tasks.at(i)->Result != 0) {
+      error = 1;      
+      std::cerr << "Task " << i << " should be running" << std::endl;
+    }
   }
-
-  try {
-    Bounds bounds{'(',1,2,3,4,5,6,7,8,9,10,11};
-    error = EXIT_FAILURE;
-    cerr << "Invalid Token" << bounds << endl;
-  } catch (Invalid_bounds_token& e) {
+  
+  if (tasks.at(numTasks-1)->Result != 0) {
+    error = 1;      
+    std::cerr << "Last Task should be paused by the dispatcher" << std::endl;
   }
-
+  
+  usleep(numTasks * 500000);
+  
+  for (int i = 0; i < numTasks; ++i) {
+    if (tasks.at(i)->Result != 1) {
+      error = 1;      
+      std::cerr << "Task " << i << " should have finishd" << std::endl;
+    }
+  }
+  
   return error;
 }

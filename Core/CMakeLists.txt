@@ -39,6 +39,7 @@ qt4_wrap_cpp(CORE_MOC
 set (CORE_SOURCES 
   ${CORE_MOC}
   ${CORE_UI}
+  Bounds.cpp
   ColorEngines/MultiColorEngine.cpp
   ColorEngines/NumberColorEngine.cpp
   ColorEngines/TaxonomyColorEngine.cpp

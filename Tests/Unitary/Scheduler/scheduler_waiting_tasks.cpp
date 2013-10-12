@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2013, Jorge Peña Pastor <jpena@cesvima.upm.es>
  * All rights reserved.
- *
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -12,7 +12,7 @@
  *     * Neither the name of the <organization> nor the
  *     names of its contributors may be used to endorse or promote products
  *     derived from this software without specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY Jorge Peña Pastor <jpena@cesvima.upm.es> ''AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -23,53 +23,64 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * 
  */
 
-#ifndef ESPINA_DISPATCHER_H
-#define ESPINA_DISPATCHER_H
+#include <Scheduler.h>
 
-#include "Task.h"
+#include "SleepyTask.h"
 
-namespace EspINA {
+#include <iostream>
+#include <memory>
+#include <unistd.h>
 
-  class TaskQueue 
-  : public QList<Task *> {
-  public:
-    void orderedInsert(Task *worker);
-  };
+#include <QThreadPool>
+#include <QApplication>
+ 
+using namespace EspINA;
+using namespace std;
 
-  class Scheduler 
-  : public QObject
-  {
-    Q_OBJECT
-  public:
-    explicit Scheduler(int period/*ns*/, QObject* parent = 0);
-
-    virtual ~Scheduler();
-
-    void addTask(Task* task);
-    
-    void removeTask(Task* task);
-
-    void abortExecutingTasks();
-    
-    void changePriority(Task* task, int prevPriority);
-
-  public slots:
-    void scheduleTasks();
-
-  private:
-    int m_period;
-
-    TaskQueue m_runningTasks[5];
-    
-    Task::Id m_lastId;
-
-    int    m_maxNumRunningThreads;
-    QMutex m_mutex;
-    bool   m_abort;
-  };
+int scheduler_waiting_tasks( int argc, char** argv )
+{
+  int error = 0;
+  int schedulerPeriod = 50000;
+  
+  Scheduler scheduler(schedulerPeriod);//0.5sec
+  
+  int numThreads = QThreadPool::globalInstance()->maxThreadCount();
+  int numTasks   = numThreads + 1;
+  
+  std::vector<unique_ptr<SleepyTask>> tasks;
+  
+  for (int i = 0; i < numTasks; ++i) {
+    tasks.push_back(unique_ptr<SleepyTask>(new SleepyTask(10000, &scheduler)));
+    tasks.at(i)->setDescription(QString("Task %1").arg(i));
+    tasks.at(i)->submit();
+  }
+  
+  usleep(schedulerPeriod);
+  
+  for (int i = 0; i < numThreads; ++i) {
+    if (tasks.at(i)->Result != 0) {
+      error = 1;      
+      std::cerr << "Task " << i << " should be running" << std::endl;
+    }
+  }
+  
+  if (tasks.at(numTasks-1)->Result != -1) {
+    error = 1;      
+    std::cerr << "Last Task should be paused by the dispatcher" << std::endl;
+  }
+  
+  
+  usleep(numTasks * 100000);
+  
+  for (int i = 0; i < numTasks; ++i) {
+    if (tasks.at(i)->Result != 1) {
+      error = 1;      
+      std::cerr << "Task " << i << " should have finishd" << std::endl;
+    }
+  }
+  
+  return error;
 }
-
-#endif // ESPINA_DISPATCHER_H

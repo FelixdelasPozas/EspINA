@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2013, Jorge Peña Pastor <jpena@cesvima.upm.es>
  * All rights reserved.
- *
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -12,7 +12,7 @@
  *     * Neither the name of the <organization> nor the
  *     names of its contributors may be used to endorse or promote products
  *     derived from this software without specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY Jorge Peña Pastor <jpena@cesvima.upm.es> ''AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -23,53 +23,62 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * 
  */
 
-#ifndef ESPINA_DISPATCHER_H
-#define ESPINA_DISPATCHER_H
+#include "Bounds.h"
 
-#include "Task.h"
+using namespace EspINA;
+using namespace std;
 
-namespace EspINA {
+int bounds_comparison_operators( int argc, char** argv )
+{
+  int error = 0;
 
-  class TaskQueue 
-  : public QList<Task *> {
-  public:
-    void orderedInsert(Task *worker);
-  };
+  Bounds b1{1,2,3,4,5,6};
+  Bounds b2{2,4,3,4,5,6};
+  Bounds b3{'[',1,2,3,4,5,6,')'};
+  Bounds b4{'(',1,2,3,4,5,6,']'};
 
-  class Scheduler 
-  : public QObject
-  {
-    Q_OBJECT
-  public:
-    explicit Scheduler(int period/*ns*/, QObject* parent = 0);
+  if (!(b1 == b1)) {
+    cerr << b1 << " is equal to " << b1 << endl;
+    error = EXIT_FAILURE;
+  }
+  
+  if (b1 != b1) {
+    cerr << b1 << " is equal to " << b1 << endl;
+    error = EXIT_FAILURE;
+  }
+  
+  if (b1 == b2) {
+    cerr << b1 << " is not equal to " << b2 << endl;
+    error = EXIT_FAILURE;
+  }
+  
+  if (!(b1 != b2)) {
+    cerr << b1 << " is not equal to " << b2  << endl;
+    error = EXIT_FAILURE;
+  }
+  
+  if (!(b1 == b3)) {
+    cerr << b1 << " is equal to " << b3 << endl;
+    error = EXIT_FAILURE;
+  }
+  
+  if (b1 != b3) {
+    cerr << b1 << " is equal to " << b3 << endl;
+    error = EXIT_FAILURE;
+  }
+  
+  if (b1 == b4) {
+    cerr << b1 << " is not equal to " << b4 << endl;
+    error = EXIT_FAILURE;
+  }
+  
+  if (!(b1 != b4)) {
+    cerr << b1 << " is not equal to " << b4 << endl;
+    error = EXIT_FAILURE;
+  }
 
-    virtual ~Scheduler();
-
-    void addTask(Task* task);
-    
-    void removeTask(Task* task);
-
-    void abortExecutingTasks();
-    
-    void changePriority(Task* task, int prevPriority);
-
-  public slots:
-    void scheduleTasks();
-
-  private:
-    int m_period;
-
-    TaskQueue m_runningTasks[5];
-    
-    Task::Id m_lastId;
-
-    int    m_maxNumRunningThreads;
-    QMutex m_mutex;
-    bool   m_abort;
-  };
+  return error;
 }
-
-#endif // ESPINA_DISPATCHER_H

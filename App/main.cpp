@@ -30,6 +30,8 @@
 #include <Core/Extensions/Tags/TagExtension.h>
 #include <Core/Extensions/Notes/SegmentationNotes.h>
 
+using namespace EspINA;
+
 int main(int argc, char **argv)
 {
   QApplication app(argc, argv);
@@ -39,9 +41,9 @@ int main(int argc, char **argv)
   translator.load("espina_es");
   app.installTranslator(&translator);
 
-  EspINA::EspinaFactory factory;
-  EspINA::EspinaModel   model(&factory);
-  EspINA::ViewManager   viewManager;
+  EspinaFactory factory;
+  EspinaModel   model(&factory);
+  ViewManager   viewManager;
 
   QDir pluginsDir = QDir(app.applicationDirPath());
 
@@ -79,12 +81,12 @@ int main(int argc, char **argv)
 
   int res = 0;
   {
-    EspINA::AdaptiveEdges            adaptiveEdgesExtension;
-    EspINA::EdgeDistance             edgeDistanceExtension;
-    EspINA::MorphologicalInformation morphologicalExtension;
-    EspINA::SegmentationNotes        notesExtension;
-    EspINA::SegmentationTags         tagsExtension;
-    EspINA::VisualizationState       visualizationExtension;
+    AdaptiveEdges            adaptiveEdgesExtension;
+    EdgeDistance             edgeDistanceExtension;
+    MorphologicalInformation morphologicalExtension;
+    SegmentationNotes        notesExtension;
+    SegmentationTags         tagsExtension;
+    VisualizationState       visualizationExtension;
 
     factory.registerChannelExtension     (&adaptiveEdgesExtension);
     factory.registerSegmentationExtension(&edgeDistanceExtension);
@@ -93,7 +95,7 @@ int main(int argc, char **argv)
     factory.registerSegmentationExtension(&tagsExtension);
     factory.registerSegmentationExtension(&visualizationExtension);
 
-    EspINA::EspinaMainWindow espina(&model, &viewManager, plugins);
+    EspinaMainWindow espina(&model, &viewManager, plugins);
     espina.show();
 
     res = app.exec();

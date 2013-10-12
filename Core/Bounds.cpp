@@ -105,7 +105,7 @@ Bounds::Bounds(std::initializer_list<double> bounds)
       break;
     }
     default:
-      throw Wrong_size_error{};
+      throw Wrong_number_initial_values{};
   }
 
 }

@@ -72,6 +72,8 @@ class Scheduler;
     virtual void resume();
 
     virtual bool isPaused() const;
+    
+    bool isRunning() const {return !isPaused();}
 
     bool isAborted() const { return m_pendingAbort; }
     
@@ -82,17 +84,17 @@ class Scheduler;
   public slots:
     void setPriority(const int value);
 
-    /** \brief Notify the dispatcher this worker is ready to be executed
+    /** \brief Notify the scheduler this task is ready to be executed
      * 
-     *  From this time, it is reponsability of the dispatcher to active this worker
+     *  From this time, it is reponsability of the scheduler to active this task
      */
     void submit();
 
-    /** \brief Cancel worker execution
+    /** \brief Abort task execution
      * 
-     *  It is up to the worker to implement the mechanism needed to cancel its execution
+     *  It is up to the task to implement the mechanism needed to pause, resume or abort its execution
      */
-    void cancel();
+    void abort();
     
   protected:
     bool canExecute();

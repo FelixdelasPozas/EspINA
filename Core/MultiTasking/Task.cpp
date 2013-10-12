@@ -55,7 +55,7 @@ Task::Task(Scheduler* scheduler)
 //-----------------------------------------------------------------------------
 Task::~Task()
 {
-  std::cout << "Destroying " << m_description.toStdString() << std::endl;
+  std::cout << "Destroying " << m_description.toStdString() << " in " << (m_isThreadAttached?"attached":"") << " thread " << QThread::currentThread() << std::endl;
   m_scheduler->removeTask(this);
   
   m_mutex.lock();
@@ -107,7 +107,7 @@ bool Task::isPaused() const
 }
 
 //-----------------------------------------------------------------------------
-void Task::cancel() {
+void Task::abort() {
   m_mutex.lock();
   std::cout << m_description.toStdString() << " has been cancelled" << std::endl;
   m_pendingAbort = true;
@@ -185,8 +185,6 @@ void Task::start()
     moveToThread(thread);
     
     connect(thread, SIGNAL(started()), this, SLOT(run()));
-    //connect(worker, SIGNAL(finished()), this, SLOT(scheduleWorkers()));
-    connect(this, SIGNAL(destroyed(QObject*)), thread, SLOT(quit()));
     connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
     
     thread->start();

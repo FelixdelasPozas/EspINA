@@ -163,6 +163,7 @@ EspinaMainWindow::EspinaMainWindow(EspinaModel      *model,
 , m_model      (model)
 , m_undoStack  (new QUndoStack())
 , m_viewManager(viewManager)
+, m_scheduler{5000}//5ms
 , m_settings     (new GeneralSettings())
 , m_settingsPanel(new GeneralSettingsPanel(m_model, m_settings))
 , m_view(NULL)

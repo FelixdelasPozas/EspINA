@@ -52,11 +52,12 @@ void TaskQueue::orderedInsert(Task* worker)
 }
 
 //-----------------------------------------------------------------------------
-Scheduler::Scheduler(QObject* parent)
+Scheduler::Scheduler(int period, QObject* parent)
 : QObject(parent)
-, m_lastId(0)
-, m_maxNumRunningThreads(QThreadPool::globalInstance()->maxThreadCount())
-, m_abort(false)
+, m_period{period}
+, m_lastId{0}
+, m_maxNumRunningThreads{QThreadPool::globalInstance()->maxThreadCount()}
+, m_abort{false}
 {
   QThread *thread = new QThread();
   moveToThread(thread);
@@ -107,6 +108,8 @@ void Scheduler::changePriority(Task* task, int prevPriority )
 void Scheduler::scheduleTasks() {
   
   while(!m_abort){
+    QApplication::processEvents();
+
     m_mutex.lock();
     std::cout << "Start Scheduling on thread " << thread() << std::endl;
     
@@ -157,8 +160,8 @@ void Scheduler::scheduleTasks() {
         }
       }
     }
-    
     m_mutex.unlock();
-    usleep(50000); // 0.05 sec
+    
+    usleep(m_period);
   }
 }

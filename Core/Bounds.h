@@ -33,7 +33,7 @@
 
 namespace EspINA {
 
-  struct Wrong_size_error {};
+  struct Wrong_number_initial_values {};
 
   struct Invalid_bounds_token {};
 
@@ -53,30 +53,55 @@ namespace EspINA {
     return plane == Plane::XY? 2:(plane == Plane::YZ?0:1);
   }
 
+  /** \brief Set of values defining a region in the 3D space
+   * 
+   * Boundary values can be defined to belong or not to the region itself
+   */
   class Bounds {
   public:
+    /**
+     * Create invalid bounds
+     */
     Bounds();
 
+    /** \brief Create Bounds from an initial list of values
+     * 
+     *  There are three formats to initialize Bounds instances:
+     *  - {min_x, max_x, min_y, max_y, min_z, max_z} \n
+     *    Lower values are inlcuded.\n
+     *    Uppaer values are excluded.\n
+     *  - {'LI',min_x, max_x, min_y, max_y, min_z, max_z,'UI'}.
+     *  - {'LI',min_x, max_x,'UI','LI', min_y, max_y,'UI', 'LI', min_z, max_z,'UI'}.\n
+     *    Lower values are included or not according to LI value.\n
+     *    '[' includes values and '(' excludes thems.\n
+     *    Upper values are included or not according to UI value.\n
+     *    ']' includes values and ')' excludes thems.
+     */
     Bounds(std::initializer_list<double> bounds);
 
+    /** \brief Return whether or not Bounds define a valid region of the 3D space 
+     * 
+     *  Any region whose lower bounds are greater than its upper bounds is considered to be an
+     *  empty region, and thus invalid.
+     */
     bool areValid() const { return m_bounds[0] <= m_bounds[1] && m_bounds[2] <= m_bounds[3] &&m_bounds[4] <= m_bounds[5]; }
 
     double& operator[](int idx) { return m_bounds[idx]; }
     const double& operator[](int idx) const { return m_bounds[idx]; }
 
-    /** \brief 
+    /** \brief Set wheter or not lower bounds in the given direction should be included in the region defined by the bounds
      */
     void setLowerInclusion(const Axis dir, const bool value) { m_lowerInclusion[idx(dir)] = value; }
 
-    /** \brief Wheter or not lower bounds are included.
+    /** \brief Return wheter or not lower bounds in the given direction should be included in the region defined by the bounds
      */
     bool areLowerIncluded(const Axis dir) const { return m_lowerInclusion[idx(dir)]; }
 
-    /** \brief 
+    /** \brief Set wheter or not upper bounds in the given direction should be included in the region defined by the bounds
      */
     void setUpperInclusion(const Axis dir, const bool value) { m_upperInclusion[idx(dir)] = value; }
 
-    /** \brief Wheter or not upper bounds are included.
+    /** \brief Return wheter or not upper bounds in the given direction should be included in the region defined by the bounds
      */
     bool areUpperIncluded(const Axis dir) const { return m_upperInclusion[idx(dir)]; }
 

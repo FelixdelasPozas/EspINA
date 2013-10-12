@@ -29,6 +29,7 @@
 #include <Core/Interfaces/IFilterCreator.h>
 #include <Core/EspinaTypes.h>
 #include <Core/Model/EspinaModel.h>
+#include <Core/MultiTasking/Scheduler.h>
 #include <GUI/ISettingsPanel.h>
 #include <GUI/Renderers/Renderer.h>
 
@@ -131,6 +132,7 @@ namespace EspINA
     EspinaModel     *m_model;
     QUndoStack      *m_undoStack;
     ViewManager     *m_viewManager;
+    Scheduler        m_scheduler;
     GeneralSettings *m_settings;
 
     // GUI
