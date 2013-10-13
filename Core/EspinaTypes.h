@@ -20,6 +20,11 @@ namespace EspINA
   class   Taxonomy;
   typedef boost::shared_ptr<Taxonomy> TaxonomySPtr;
 
+  class   Category;
+  using   CategoryPtr  = Category *;
+  using   CategoryList = QList<CategoryPtr>;
+  using   CategorySPtr = std::shared_ptr<Category>;
+
   class   TaxonomyElement;
   typedef TaxonomyElement *                  TaxonomyElementPtr;
   typedef QList<TaxonomyElementPtr>          TaxonomyElementList;

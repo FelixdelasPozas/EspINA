@@ -1,6 +1,5 @@
 # Bound tests
-create_test_sourcelist(TEST_SOURCES
-  Scheduler_Tests.cpp # this file is created by this command
+create_test_sourcelist(TEST_SOURCES Scheduler_Tests.cpp # this file is created by this command
   scheduler_simple_task_execution.cpp
   scheduler_simple_task_abort.cpp
   scheduler_simple_task_pause.cpp

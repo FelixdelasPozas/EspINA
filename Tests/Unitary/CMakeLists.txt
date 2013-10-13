@@ -1,3 +1,1 @@
-add_subdirectory( Bounds )
-add_subdirectory( Scheduler )
-
+add_subdirectory( Core )
