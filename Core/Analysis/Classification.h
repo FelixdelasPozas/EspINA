@@ -22,7 +22,7 @@
 
 #include "EspinaCore_Export.h"
 
-#include "Core/Classification/Category.h"
+#include "Core/Analysis/Category.h"
 
 
 // Qt dependencies

@@ -13,13 +13,15 @@ create_test_sourcelist(Bounds_Tests Bounds_Tests.cpp # this file is created by t
   bounds_valid_intersection.cpp
 )
 
+set(SUBJECT_DIR ${CORE_DIR}/Utils)
+
 include_directories(
-  ${CORE_DIR}
+  ${SUBJECT_DIR}
   )
 
 add_executable(Bounds_Tests
   ${Bounds_Tests}
-  ${CORE_DIR}/Bounds.cpp
+  ${SUBJECT_DIR}/Bounds.cpp
   )
 target_link_libraries(Bounds_Tests ${LIB_DEPENDECIES} )
 

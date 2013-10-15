@@ -8,19 +8,19 @@ create_test_sourcelist(TEST_SOURCES Classification_Tests.cpp # this file is crea
   classification_remove_subcategory.cpp
 )
 
-set( CLASSIFICATION_DIR "${CORE_DIR}/Classification")
+set( SUBJECT_DIR "${CORE_DIR}/Analysis")
 
 include_directories(
-  ${CLASSIFICATION_DIR}
+  ${SUBJECT_DIR}
   )
-  
+
 qt4_wrap_cpp(SUBJECT_MOCS
-  ${CLASSIFICATION_DIR}/Category.h
+  ${SUBJECT_DIR}/Category.h
 )
 
 set(SUBJECT_SOURCES
-  ${CLASSIFICATION_DIR}/Classification.cpp
-  ${CLASSIFICATION_DIR}/Category.cpp
+  ${SUBJECT_DIR}/Classification.cpp
+  ${SUBJECT_DIR}/Category.cpp
 )
 
 set(LIB_DEPENDECIES
@@ -34,7 +34,7 @@ add_executable(Classification_Tests
   ${SUBJECT_SOURCES}
   classification_testing_support.cpp
   )
-  
+
 target_link_libraries(Classification_Tests ${LIB_DEPENDECIES} )
 
 add_test("\"Classification: Create Category\""               Classification_Tests classification_create_category)

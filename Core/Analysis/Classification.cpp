@@ -1,4 +1,4 @@
-#include "Core/Classification/Classification.h"
+#include "Core/Analysis/Classification.h"
 
 #include <QFile>
 #include <QPixmap>

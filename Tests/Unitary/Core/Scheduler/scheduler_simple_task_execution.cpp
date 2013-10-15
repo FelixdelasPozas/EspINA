@@ -41,34 +41,29 @@ using namespace std;
 int scheduler_simple_task_execution( int argc, char** argv )
 {
   int error = 0;
-  
+
   QApplication app(argc, argv);
-  
+
   int period = 50000;
   Scheduler scheduler(period); //0.5sec
   SleepyTask* sleepyTask = new SleepyTask(period/5, &scheduler);
   sleepyTask->setDescription("Simple Task");
-  
+
   if (sleepyTask->Result != -1) {
     error = 1;
     std::cerr << "Unexpected initial sleepy task value" << std::endl;
   }
-  
+
   QObject::connect(sleepyTask, SIGNAL(finished()),
                    sleepyTask, SLOT(deleteLater()));
   sleepyTask->submit();
-  
+
   usleep(period); // Guarantee task is started
-  
+
   QObject::connect(sleepyTask->thread(), SIGNAL(destroyed(QObject*)),
                    &app, SLOT(quit()));
-  
+
   app.exec();
-  
-  if (sleepyTask->Result != 1) {
-    error = 1;
-    std::cerr << "Unexpected final sleepy task value" << std::endl;
-  }
-  
+
   return error;
 }

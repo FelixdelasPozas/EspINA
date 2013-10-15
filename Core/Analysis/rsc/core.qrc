@@ -1,0 +1,5 @@
+<RCC>
+  <qresource prefix="/espina">
+    <file>defaultCategories.xml</file>
+  </qresource>
+</RCC>
