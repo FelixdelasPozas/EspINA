@@ -50,13 +50,11 @@ namespace EspINA
 
     virtual ~Sample();
 
-    virtual void loadState(QString state);
+    virtual void restoreState(const State& state);
 
     virtual std::ostream saveState() const;
 
-    virtual void loadCache(const QDir& dir);
-
-    virtual void saveCache() const;
+    virtual void saveSnapshot(StorageSPtr storage) const;
 
     void setName(const QString& name)
     { m_name = name; }

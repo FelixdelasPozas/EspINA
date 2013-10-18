@@ -17,22 +17,11 @@
  *
  */
 
-#ifndef ESPINA_ANALYSISITEM_H
-#define ESPINA_ANALYSISITEM_H
+#include "Storage.h"
 
-#include <iostream>
-#include <QString>
+using namespace EspINA;
 
-namespace EspINA {
+void Persistent::Storage::saveSnapshot(Persistent::Id id, const Snapshot& snapshot)
+{
 
-  using State   = QString;
-
-  class AnalysisItem
-  {
-    virtual void restoreState(const State& state) = 0;
-
-    virtual std::ostream saveState() const = 0;
-  };
 }
-
-#endif // ESPINA_ANALYSISITEM_H

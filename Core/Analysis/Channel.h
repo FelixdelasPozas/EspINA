@@ -47,13 +47,11 @@ namespace EspINA
   public:
     virtual ~Channel();
 
-    virtual void loadState(const State& state);
+    virtual void restoreState(const State& state);
 
     virtual std::ostream saveState() const;
 
-    virtual void loadCache(const QDir& dir);
-
-    virtual void saveCache() const;
+    virtual void saveSnapshot(StorageSPtr storage) const;
 
     virtual void initializeExtensions();
 
@@ -77,6 +75,8 @@ namespace EspINA
 
     void setBrightness(double brightness);
     double brightness() const;
+
+    Bounds bounds() const;
 
     DataSPtr data(Data::Type type);
     const DataSPtr data(Data::Type type) const;

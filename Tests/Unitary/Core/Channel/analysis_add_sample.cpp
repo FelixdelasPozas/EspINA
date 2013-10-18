@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2013, Jorge Peña Pastor <jpena@cesvima.upm.es>
  * All rights reserved.
- *
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -12,7 +12,7 @@
  *     * Neither the name of the <organization> nor the
  *     names of its contributors may be used to endorse or promote products
  *     derived from this software without specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY Jorge Peña Pastor <jpena@cesvima.upm.es> ''AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -23,53 +23,23 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * 
  */
 
-#ifndef ESPINA_PERSISTENT_H
-#define ESPINA_PERSISTENT_H
+#include "Core/Analysis/Sample.h"
+#include "Core/Analysis/Channel.h"
+#include "Core/Analysis/Filter.h"
+#include "Core/Analysis/Segmentation.h"
+#include "Core/Analysis/Analysis.h"
 
-#include <QDir>
-#include <QUuid>
-#include <QPair>
+using namespace EspINA;
+using namespace std;
 
-#include <memory>
+int analysis_add_sample( int argc, char** argv )
+{
+  bool error = false;
 
-namespace EspINA {
+  Analysis analysis;
 
-  using SnapshotData = QPair<QString, QByteArray>;
-  using Snapshot     = QList<SnapshotData>;
-
-  class Persistent
-  {
-  public:
-    using Id = QUuid;
-
-    class Storage;
-    using StorageSPtr = std::shared_ptr<Storage>;
-
-
-  public:
-    explicit Persistent() : m_id{QUuid::createUuid()} {}
-    virtual ~Persistent() {}
-
-    Id id() const
-    { return m_id; }
-
-    void setId(Id id)
-    { m_id = id; }
-
-    void setPersistentStorage(StorageSPtr storage);
-
-    StorageSPtr storage() const
-    { return m_storage; }
-
-    virtual void saveSnapshot(StorageSPtr storage) const = 0;
-
-  private:
-    Id   m_id;
-    StorageSPtr m_storage;
-  };
+  return error;
 }
-
-#endif // ESPINA_PERSISTENT_H

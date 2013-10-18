@@ -17,22 +17,30 @@
  *
  */
 
-#ifndef ESPINA_ANALYSISITEM_H
-#define ESPINA_ANALYSISITEM_H
+#ifndef ESPINA_IO_SEGWRITER_H
+#define ESPINA_IO_SEGWRITER_H
 
-#include <iostream>
-#include <QString>
+#include "ErrorHandler.h"
 
-namespace EspINA {
+namespace EspINA 
+{
 
-  using State   = QString;
+  class Analysis;
+  using AnalysisPtr = Analysis *;
 
-  class AnalysisItem
+  namespace IO
   {
-    virtual void restoreState(const State& state) = 0;
+    namespace SegFile
+    {
+      ErrorHandler::STATUS load(const QFileInfo& file,
+                                AnalysisPtr      analysis,
+                                ErrorHandlerPtr  handler = nullptr);
 
-    virtual std::ostream saveState() const = 0;
-  };
+      ErrorHandler::STATUS save(AnalysisPtr      analysis,
+                                const QFileInfo& file,
+                                ErrorHandlerPtr  handler = nullptr);
+    }
+  }
 }
 
-#endif // ESPINA_ANALYSISITEM_H
+#endif // ESPINA_IO_SEGWRITER_H

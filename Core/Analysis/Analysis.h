@@ -42,12 +42,6 @@ namespace EspINA
 
     void reset();
 
-    bool hasChanged() const {return m_changed;}
-
-    void markAsChanged() {m_changed = true;}
-
-    void markAsSaved() {m_changed = false;}
-
     void setClassification(ClassificationSPtr classification);
 
     ClassificationSPtr classification() const
@@ -168,8 +162,6 @@ namespace EspINA
     FilterSList       m_filters;
     SampleSList       m_samples;
     SegmentationSList m_segmentations;
-
-    bool m_changed;
   };
 
   using AnalysisPtr  = Analysis *;

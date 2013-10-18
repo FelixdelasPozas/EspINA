@@ -17,22 +17,4 @@
  *
  */
 
-#ifndef ESPINA_ANALYSISITEM_H
-#define ESPINA_ANALYSISITEM_H
-
-#include <iostream>
-#include <QString>
-
-namespace EspINA {
-
-  using State   = QString;
-
-  class AnalysisItem
-  {
-    virtual void restoreState(const State& state) = 0;
-
-    virtual std::ostream saveState() const = 0;
-  };
-}
-
-#endif // ESPINA_ANALYSISITEM_H
+#include "SegFile.h"

@@ -37,7 +37,7 @@ Channel::~Channel()
 }
 
 //------------------------------------------------------------------------
-void Channel::loadState(const State& state)
+void Channel::restoreState(const State& state)
 {
 
 }
@@ -103,10 +103,11 @@ void Channel::invalidateExtensions()
 {
 
 }
-void Channel::loadCache(const QDir& dir)
+void Channel::saveSnapshot(Persistent::StorageSPtr storage) const
 {
 
 }
+
 double Channel::opacity() const
 {
 
@@ -116,10 +117,6 @@ void Channel::position(Nm point[3])
 
 }
 double Channel::saturation() const
-{
-
-}
-void Channel::saveCache() const
 {
 
 }

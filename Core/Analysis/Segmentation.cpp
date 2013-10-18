@@ -64,18 +64,15 @@ void Segmentation::invalidateExtensions()
 {
 
 }
-void Segmentation::loadCache(const QDir& dir)
+void Segmentation::restoreState(const State& state)
 {
 
 }
-void Segmentation::loadState(const State& state)
+void Segmentation::saveSnapshot(Persistent::StorageSPtr storage) const
 {
 
 }
-void Segmentation::saveCache() const
-{
 
-}
 ostream Segmentation::saveState() const
 {
 

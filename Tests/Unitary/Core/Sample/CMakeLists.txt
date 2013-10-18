@@ -1,0 +1,41 @@
+# Bound tests
+create_test_sourcelist(TEST_SOURCES Sample_Tests.cpp # this file is created by this command
+  sample_add_sample.cpp
+)
+
+set( SUBJECT_DIR "${CORE_DIR}/Analysis")
+
+include_directories(
+  ${SUBJECT_DIR}
+  )
+
+# qt4_wrap_cpp(SUBJECT_MOCS
+#   ${SUBJECT_DIR}/Category.h
+#   ${SUBJECT_DIR}/Data.h
+# )
+
+# set(SUBJECT_SOURCES
+#   ${SUBJECT_DIR}/Classification.cpp
+#   ${SUBJECT_DIR}/Category.cpp
+# )
+
+set(LIB_DEPENDECIES
+  ${QT_LIBRARIES}
+  ${LIB_DEPENDECIES}
+)
+
+add_executable(Sample_Tests
+  ${TEST_SOURCES}
+#   ${SUBJECT_MOCS}
+#   ${SUBJECT_SOURCES}
+  )
+
+target_link_libraries(Sample_Tests ${LIB_DEPENDECIES} )
+
+add_test("\"Sample: Default Constructor\"" Sample_Tests sample_default_constructor)
+add_test("\"Sample: Set Name\"" Sample_Tests sample_default_constructor)
+add_test("\"Sample: Set Position\"" Sample_Tests sample_default_constructor)
+add_test("\"Sample: Set Bounds\"" Sample_Tests sample_default_constructor)
+add_test("\"Sample: Save State\"" Sample_Tests channel_)
+add_test("\"Sample: Restore State\"" Sample_Tests channel_)
+add_test("\"Sample: Save Snapshot\"" Sample_Tests channel_)

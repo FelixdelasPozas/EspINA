@@ -33,6 +33,7 @@
 
 #include "Core/EspinaTypes.h"
 #include <Core/Utils/Bounds.h>
+#include "Persistent.h"
 #include <QDir>
 
 namespace EspINA
@@ -63,7 +64,7 @@ namespace EspINA
     TimeStamp lastModified()
     { return m_timeStamp; }
 
-    virtual bool dumpSnapshot (const QString &prefix, Snapshot &snapshot) const = 0;
+    virtual bool dumpSnapshot (const QString &prefix, Snapshot& snapshot) const = 0;
 
     virtual bool isValid() const = 0;
 

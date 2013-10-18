@@ -69,11 +69,7 @@ bool Filter::fetchOutputData(Output::Id id)
 {
 
 }
-void Filter::loadCache(const QDir& dir)
-{
-
-}
-void Filter::loadState(const State& state)
+void Filter::restoreState(const State& state)
 {
 
 }
@@ -81,10 +77,11 @@ unsigned int Filter::numberOfOutputs() const
 {
 
 }
-void Filter::saveCache() const
+void Filter::saveSnapshot(Persistent::StorageSPtr storage) const
 {
 
 }
+
 ostream Filter::saveState() const
 {
 

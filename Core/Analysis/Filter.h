@@ -45,13 +45,11 @@ namespace EspINA
   public:
     virtual ~Filter();
 
-    virtual void loadState(const State& state);
+    virtual void restoreState(const State& state);
 
     virtual std::ostream saveState() const;
 
-    virtual void loadCache(const QDir& dir);
-
-    virtual void saveCache() const;
+    virtual void saveSnapshot(StorageSPtr storage) const;
 
     Type type() { return m_type; }
 

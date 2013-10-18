@@ -25,6 +25,8 @@ namespace EspINA
   class IEspinaModel;
   class Filter;
 
+  namespace IO {
+  }
   class EspinaCore_EXPORT SegFileReader
   {
     static const QString FILE_VERSION;

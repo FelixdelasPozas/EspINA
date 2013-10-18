@@ -104,7 +104,6 @@ namespace EspINA
 
     bool dumpSnapshot (const QString &prefix, Snapshot &snapshot, bool saveEditedRegions);
 
-
     // TODO: Representation may have different bounds, in which case,
     // this function will be needed to represent the bounding box of all those regions
     virtual Bounds bounds() const;

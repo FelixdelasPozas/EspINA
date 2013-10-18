@@ -145,16 +145,16 @@ namespace EspINA
     /// Return all vertices whose incoming edges start on v
     Vertices succesors(Vertex v, const QString &filter = "") const;
 
-    void setItem(Vertex &v, AnalysisItemSPtr item);
-
     void read (std::istream& stream, DirectedGraph::PrintFormat format = BOOST);
 
     void write(std::ostream& stream, DirectedGraph::PrintFormat format = BOOST);
 
-    //TODO: 
+    //DEPRECATED:
     /// Update vertex's information with model's items' information
     void updateVertexInformation();
 
+  private:
+    //DEPRECATED
     /// Retrieve current vertex index of a AnalysisItem
     /// A vertex with NULL item field is returned if no vertex contains item
     Vertex vertex(AnalysisItemSPtr item) const;

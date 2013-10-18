@@ -26,9 +26,12 @@ set (CORE_SOURCES
   Analysis/Output.cpp
   Analysis/Sample.cpp
   Analysis/Segmentation.cpp
+  Analysis/Storage.cpp
+  CoreFactory.cpp
+  IO/ClassificationXML.cpp 
+  IO/SegFile.cpp 
   MultiTasking/Scheduler.cpp
   MultiTasking/Task.cpp
-  CoreFactory.cpp
   Utils/Bounds.cpp
   )
 

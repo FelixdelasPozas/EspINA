@@ -382,14 +382,14 @@ DirectedGraph::Vertices DirectedGraph::succesors(Vertex v, const QString &filter
   return result;
 }
 
-//-----------------------------------------------------------------------------
-void DirectedGraph::setItem(Vertex &v, AnalysisItemSPtr item)
-{
-  Q_ASSERT(item);
-  v.item = item;
-
-  m_graph[v.descriptor].item = v.item;
-}
+// //-----------------------------------------------------------------------------
+// void DirectedGraph::setItem(Vertex &v, AnalysisItemSPtr item)
+// {
+//   Q_ASSERT(item);
+//   v.item = item;
+// 
+//   m_graph[v.descriptor].item = v.item;
+// }
 
 // //-----------------------------------------------------------------------------
 // AnalysisItemType DirectedGraph::type(const Vertex v)

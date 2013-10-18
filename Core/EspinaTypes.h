@@ -77,9 +77,6 @@ namespace EspINA
   };
 
   using TimeStamp = unsigned long long;
-
-  typedef QPair<QString, QByteArray> SnapshotEntry;
-  typedef QList<SnapshotEntry>       Snapshot;
 } // namespace EspINA
 
 #endif// ESPINATYPES_H
