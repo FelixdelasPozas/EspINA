@@ -17,143 +17,51 @@
  *
  */
 
-//----------------------------------------------------------------------------
-// File:    Channel.h
-// Purpose: Model some processing done to a physical sample which make
-//          samples visible to the user in a specific way
-//----------------------------------------------------------------------------
-#ifndef CHANNEL_H
-#define CHANNEL_H
+#ifndef ESPINA_CHANNEL_H
+#define ESPINA_CHANNEL_H
 
 #include "EspinaCore_Export.h"
 
-#include "Core/Model/PickableItem.h"
-#include "Core/Model/HierarchyItem.h"
-
-#include <Core/OutputRepresentations/VolumeRepresentation.h>
-
-#include <QColor>
-#include <QFileInfo>
-
-// Forward declarations
-class vtkAlgorithmOutput;
+#include "Core/Analysis/Data.h"
+#include "Core/Analysis/AnalysisItem.h"
+#include "Core/Analysis/Persistent.h"
+#include "Core/Analysis/Extensions/Extensible.h"
+#include "Core/Analysis/Extensions/ChannelExtension.h"
 
 namespace EspINA
 {
   class EspinaCore_EXPORT Channel
-  : public PickableItem
-  , public HierarchyItem
+  : public AnalysisItem
+  , public Persistent
+  , public Extensible
   {
   public:
-    class Extension;
-    typedef Extension *               ExtensionPtr;
-    typedef QList<ExtensionPtr>       ExtensionList;
-    typedef QMap<ExtId, ExtensionPtr> ExtensionProvider;
-
-    // Argument Ids
-    static const ArgumentId ID;
-    static const ArgumentId HUE;
-    static const ArgumentId OPACITY;
-    static const ArgumentId SATURATION;
-    static const ArgumentId CONTRAST;
-    static const ArgumentId BRIGHTNESS;
-    static const ArgumentId VOLUME;
-
-    static const QString LINK;
-    static const QString STAIN_LINK;
-    static const QString VOLUME_LINK;
-
-    static const int AUTOMATIC_OPACITY = -1;
+    static const RelationName LINK;
+    static const RelationName STAIN_LINK;
+    static const RelationName VOLUME_LINK;
 
     // Extended Information and representation tags
     static const QString NAME;
     static const QString VOLUMETRIC;
 
-    class CArguments
-    : public ModelItem::Arguments
-    {
-    public:
-      explicit CArguments() : m_outputId(0) {}
-      explicit CArguments(const Arguments &args)
-      : Arguments(args), m_outputId(0) {}
-
-      /// Channel's hue. Value in range (0,1) U (-1), latter meaning not stained
-      void setHue(double hue)
-      {
-        (*this)[HUE] = QString::number(hue);
-      }
-
-      double hue() const
-      {
-        return (*this)[HUE].toFloat();
-      }
-
-      /// Channel's opacity. Value in range (0,1) U (-1), latter meaning automatically managed
-      void setOpacity(double opacity)
-      {
-        (*this)[OPACITY] = QString::number(opacity);
-      }
-
-      double opacity() const
-      {
-        return (*this)[OPACITY].toFloat();
-      }
-
-      /// Channel's saturation. Value in range (0,1).
-      void setSaturation(double saturation)
-      {
-        (*this)[SATURATION] = QString::number(saturation);
-      }
-
-      double saturation() const
-      {
-        return (*this)[SATURATION].toFloat();
-      }
-
-      /// Channel's contrast. Value in range (0,2).
-      void setContrast(double contrast)
-      {
-        (*this)[CONTRAST] = QString::number(contrast);
-      }
-
-      double contrast() const
-      {
-        return (*this)[CONTRAST].toFloat();
-      }
-
-      /// Channel's brightness. Value in range (-1,1).
-      void setBrightness(double brightness)
-      {
-        (*this)[BRIGHTNESS] = QString::number(brightness);
-      }
-
-      double brightness() const
-      {
-        return (*this)[BRIGHTNESS].toFloat();
-      }
-
-      void setOutputId(FilterOutputId oId)
-      {
-        (*this)[VOLUME] = QString("%1_%2")
-        .arg(VOLUME_LINK)
-        .arg(oId);
-        m_outputId = oId;
-      }
-
-      FilterOutputId outputId() const
-      {
-        return m_outputId;
-      }
-
-    private:
-      FilterOutputId m_outputId;
-    };
-
   public:
     virtual ~Channel();
 
-    void setVisible(bool visible) {m_visible = visible;}
-    bool isVisible() const {return m_visible;}
+    virtual void loadState(const State& state);
+
+    virtual std::ostream saveState() const;
+
+    virtual void loadCache(const QDir& dir);
+
+    virtual void saveCache() const;
+
+    virtual void initializeExtensions();
+
+    virtual void invalidateExtensions();
+
+    void setPosition(Nm point[3]);
+
+    void position(Nm point[3]);
 
     void setHue(double hue);
     double hue() const;
@@ -170,56 +78,49 @@ namespace EspINA
     void setBrightness(double brightness);
     double brightness() const;
 
-    /// Model Item Interface
-    virtual QVariant data(int role=Qt::DisplayRole) const;
-    virtual bool setData(const QVariant& value, int role = Qt::UserRole +1);
-    virtual ModelItemType type() const {return CHANNEL;}
-    virtual QString  serialize() const;
+    DataSPtr data(Data::Type type);
+    const DataSPtr data(Data::Type type) const;
 
-    virtual void initialize(const Arguments &args = Arguments());
+    /**
+     *  Extesion won't be available until requirements are satisfied
+     */
+    void addExtension(ChannelExtensionSPtr extension);
 
-    virtual void initializeExtensions();
-    virtual void invalidateExtensions();
+    void deleteExtension(ChannelExtensionSPtr extension);
 
-    /// Get the sample which channel belongs to
-    SampleSPtr sample();
+    /** \brief Check whether or not there is an extension with the given name
+     *
+     */
+    bool hasExtension(const ChannelExtension::Type& type) const;
 
-    /// Pickable Item Interface
-    virtual const FilterSPtr filter() const;
-    virtual FilterSPtr filter() { return PickableItem::filter(); }
-    virtual const FilterOutputId outputId() const;
-
-    ChannelVolumeSPtr volume();
-    const ChannelVolumeSPtr volume() const;
-
-    void setPosition(Nm pos[3]);
-    void position(Nm pos[3]);
-
-    /// Add a new extension to the segmentation
-    /// Extesion won't be available until requirements are satisfied
-    void addExtension(Channel::ExtensionPtr extension);
-    /// Delete extension from channel
-    void deleteExtension(Channel::ExtensionPtr extension);
-    Channel::ExtensionPtr extension(ModelItem::ExtId extensionId);
+    /** \brief Return the extension with the especified name
+     *
+     *  Important: It the channel doesn't contain any extension with
+     *  the requested name, but there exist an extension prototype registered
+     *  in the factory, a new instance will be created and attached to the
+     *  channel.
+     *  If there is no extension with the given name registered in the factory
+     *  a Undefined_Extension exception will be thrown
+     */
+    ChannelExtensionSPtr extension(const ChannelExtension::Type& type);
 
   private:
-    explicit Channel(FilterSPtr filter, FilterOutputId oId);
+    explicit Channel(OutputSPtr output);
     friend class EspinaFactory;
+
   private:
-    bool   m_visible;
-    Nm m_pos[3];
+    static const int AUTOMATIC_OPACITY = -1;
 
-    mutable CArguments m_args;
+    double m_brightness;
+    double m_contrast;
+    double m_hue;
+    double m_opacity;
+    double m_saturation;
 
-    FilterSPtr        m_filter;
-    ExtensionProvider m_extensions;
+    OutputSPtr            m_output;
+    ChannelExtensionSList m_extensions;
   };
-
-  ChannelPtr  EspinaCore_EXPORT channelPtr(ModelItemPtr      item);
-  ChannelPtr  EspinaCore_EXPORT channelPtr(PickableItemPtr   item);
-  ChannelSPtr EspinaCore_EXPORT channelPtr(ModelItemSPtr    &item);
-  ChannelSPtr EspinaCore_EXPORT channelPtr(PickableItemSPtr &item);
 
 }// namespace EspINA
 
-#endif // CHANNEL_H
+#endif // ESPINA_CHANNEL_H

@@ -44,7 +44,7 @@ int scheduler_change_task_priority( int argc, char** argv )
   int error = 0;
   
   int schedulerPeriod = 50000;
-  Scheduler scheduler(schedulerPeriod);//0.5sec
+  SchedulerSPtr scheduler = SchedulerSPtr(new Scheduler(schedulerPeriod));
   
   int numThreads = QThreadPool::globalInstance()->maxThreadCount();
   int numTasks   = numThreads + 5;
@@ -52,7 +52,7 @@ int scheduler_change_task_priority( int argc, char** argv )
   std::vector<unique_ptr<SleepyTask>> tasks;
   
   for (int i = 0; i < numTasks; ++i) {
-    tasks.push_back(unique_ptr<SleepyTask>(new SleepyTask(50000, &scheduler)));
+    tasks.push_back(unique_ptr<SleepyTask>(new SleepyTask(50000, scheduler)));
     tasks.at(i)->setDescription(QString("Task %1").arg(i));
     tasks.at(i)->submit();
   }

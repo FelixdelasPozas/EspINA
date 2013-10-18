@@ -39,7 +39,7 @@ using namespace EspINA;
 
 
 //-----------------------------------------------------------------------------
-Task::Task(Scheduler* scheduler)
+Task::Task(SchedulerSPtr scheduler)
 : m_scheduler{scheduler}
 , m_hasFinished{false}
 , m_priority{Priority::NORMAL}

@@ -70,8 +70,6 @@ void Category::setColor(const QColor &color)
   if (m_color != color)
   {
     m_color = color;
-
-    emit colorChanged(this);
   }
 }
 

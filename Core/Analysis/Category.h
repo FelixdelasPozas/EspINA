@@ -42,9 +42,7 @@ namespace EspINA
    *  Represent a group of individuals with the same characteristics
    */
   class /*EspinaCore_EXPORT*/ Category
-  : public QObject
   {
-    Q_OBJECT
 //   public:
 //     static const QString X_DIM;
 //     static const QString Y_DIM;
@@ -123,22 +121,19 @@ namespace EspINA
      */
     CategorySList subCategories()
     {return m_subCategories;}
-    
+
     /** \brief Return a list with all the sub-categories of this category
      * 
      */
     const CategorySList subCategories() const
     {return m_subCategories;}
-    
+
     /** \brief Return the category from which this is a sub-category, if any.
      * 
      */
     CategoryPtr parent() {return m_parent;}
 
     void print(int level=0);
-
-  signals:
-    void colorChanged(CategoryPtr);
 
   private:
     explicit Category(CategoryPtr parent,

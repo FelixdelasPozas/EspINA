@@ -73,9 +73,9 @@ namespace EspINA {
      *  - {'LI',min_x, max_x, min_y, max_y, min_z, max_z,'UI'}.
      *  - {'LI',min_x, max_x,'UI','LI', min_y, max_y,'UI', 'LI', min_z, max_z,'UI'}.\n
      *    Lower values are included or not according to LI value.\n
-     *    '[' includes values and '(' excludes thems.\n
+     *    '[' includes values and '(' excludes them.\n
      *    Upper values are included or not according to UI value.\n
-     *    ']' includes values and ')' excludes thems.
+     *    ']' includes values and ')' excludes them.
      */
     Bounds(std::initializer_list<double> bounds);
 

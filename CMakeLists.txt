@@ -38,7 +38,7 @@ if (BUILD_DOCUMENTATION)
       COMMAND DOXYGEN_OUTPUT_DIR=${DOXYGEN_OUTPUT} ${DOXYGEN_EXECUTABLE} ${DOXYGEN_INPUT}
       COMMAND ${CMAKE_COMMAND} -E echo "Done."
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-      DEPENDS ${DOXYGEN_INPUT} espina
+      #DEPENDS ${DOXYGEN_INPUT} espina
       )
 
     add_custom_target(apidoc ALL DEPENDS ${DOXYGEN_OUTPUT})
@@ -65,6 +65,7 @@ if (MINGW OR MSVC)
 else (MINGW OR MSVC)
   set (LIBRARY_OUTPUT_PATH   "${CMAKE_BINARY_DIR}/libs"             )
 endif (MINGW OR MSVC)
+
 set (ESPINA_PLUGINS_DIR    "${PROJECT_BINARY_DIR}/App/plugins"    )
 set (ESPINA_INCLUDE        "${PROJECT_SOURCE_DIR}")
 set (ESPINA_BINARY_INCLUDE "${PROJECT_BINARY_DIR}")
@@ -124,7 +125,7 @@ if (UNIX AND NOT DEFINED APPLE AND NOT DEFINED MSVC) # Check if it works on OS X
 endif()
 
 
-#add_subdirectory( Core    )
+add_subdirectory( Core    )
 #add_subdirectory( GUI     )
 #add_subdirectory( Undo    )
 #add_subdirectory( App     )

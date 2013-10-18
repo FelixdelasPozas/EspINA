@@ -27,290 +27,361 @@
 
 
 #include "Output.h"
-#include "OutputRepresentation.h"
-#include "Filter.h"
+
 #include <vtkMath.h>
 
 using namespace EspINA;
 
-const int EspINA::FilterOutput::INVALID_OUTPUT_ID = -1;
+//const int EspINA::FilterOutput::INVALID_OUTPUT_ID = -1;
 
-EspinaTimeStamp EspINA::FilterOutput::s_tick = 0;
+TimeStamp Output::s_tick = 0;
 
-//----------------------------------------------------------------------------
-FilterOutput::FilterOutput(Filter *filter, const FilterOutputId &id)
-: m_id(id)
-, m_isCached(false)
-, m_filter(filter)
-, m_timeStamp(s_tick++)
+Bounds Output::bounds() const
 {
+
 }
 
-//----------------------------------------------------------------------------
-void FilterOutput::update()
+void Output::clearEditedRegions()
 {
-  m_filter->update(m_id);
+
 }
 
-//----------------------------------------------------------------------------
-void FilterOutput::onRepresentationChanged()
+void Output::dumpEditedRegions(const QString& prefix, Snapshot& snapshot)
 {
-  emit modified();
+
 }
 
-
-//----------------------------------------------------------------------------
-ChannelOutput::ChannelOutput(Filter *filter, const FilterOutputId &id)
-: FilterOutput(filter, id)
+bool Output::dumpSnapshot(const QString& prefix, Snapshot& snapshot, bool saveEditedRegions)
 {
+
 }
 
-//----------------------------------------------------------------------------
-bool ChannelOutput::isValid() const
+Output::EditedRegionSList Output::editedRegions() const
 {
-  bool validData = !m_representations.isEmpty();
 
-  int i = 0;
-  while (validData && i < m_representations.size())
-  {
-    validData = m_representations[m_representations.keys()[i]]->isValid();
-    ++i;
-  }
-
-  return NULL != m_filter
-      && INVALID_OUTPUT_ID < m_id
-      && validData;
 }
 
-//----------------------------------------------------------------------------
-EspinaRegion ChannelOutput::region() const
+bool Output::isEdited() const
 {
-  EspinaRegion bb;
 
-  bool first = true;
-  foreach (ChannelRepresentationSPtr representation, m_representations)
-  {
-    if (first)
-    {
-      bb    = representation->representationBounds();
-      first = false;
-    } else
-    {
-      bb = BoundingBox(bb, representation->representationBounds());
-    }
-  }
-
-  return bb;
 }
 
-
-//----------------------------------------------------------------------------
-SegmentationOutput::SegmentationOutput(Filter *filter, const FilterOutputId &id)
-: FilterOutput(filter, id)
+bool Output::isValid() const
 {
+
 }
 
-//----------------------------------------------------------------------------
-bool SegmentationOutput::dumpSnapshot(const QString &prefix, Snapshot &snapshot, bool saveEditedRegions)
+void Output::onDataChanged()
 {
-  bool dumped = false;
 
-  int oldSize = m_editerRegions.size();
-
-  std::ostringstream outputInfo;
-  foreach(SegmentationRepresentationSPtr rep, m_representations)
-  {
-    outputInfo << rep->type().toStdString() << std::endl;
-    if (isCached())
-    {
-      dumped |= rep->dumpSnapshot(prefix, snapshot);
-    }
-
-    if (saveEditedRegions)
-    {
-      // We don't need to make a copy of latest modifications of cached representations data
-      // becasue they are implictly stored by dumpSnapshot. We just save the edited regions
-      // in case the output is not referenced by a segmentation in a future
-      // NOTE: Verify that the order of the regions doesn't matter
-      rep->commitEditedRegions(!isCached());
-    }
-  }
-
-  if (saveEditedRegions)
-  {
-    outputInfo << std::endl; // Empty line separates representation types from region info
-
-
-    int regionId = 0;
-    foreach(EditedRegionSPtr editedRegion, m_editerRegions)
-    {
-      outputInfo << editedRegion->Name.toStdString() << " ";
-      for (int i = 0; i < 6; ++i)
-      {
-        outputInfo << editedRegion->Region[i] << " ";
-      }
-      outputInfo << std::endl;
-
-      dumped |= editedRegion->dump(m_filter->cacheDir(), QString("%1_%2").arg(prefix).arg(regionId++) , snapshot);
-    }
-  }
-
-  // Because current representations can be modified and saved again,
-  // we don't commit them definetely
-  while (m_editerRegions.size() > oldSize)
-  {
-    m_editerRegions.pop_back();
-  }
-
-  QString outputInfoFile = QString("Outputs/%1.trc").arg(prefix);
-  snapshot << SnapshotEntry(outputInfoFile, outputInfo.str().c_str());
-
-  return dumped;
 }
 
-//----------------------------------------------------------------------------
-bool SegmentationOutput::isValid() const
+Output::Output(FilterPtr filter, const Output::Id& id): QObject()
 {
-  bool validData = !m_representations.isEmpty();
 
-  int i = 0;
-  while (validData && i < m_representations.size())
-  {
-    validData = m_representations[m_representations.keys()[i]]->isValid();
-    ++i;
-  }
-
-  return NULL != m_filter
-      && INVALID_OUTPUT_ID < m_id
-      && validData;
 }
 
-//----------------------------------------------------------------------------
-EspinaRegion SegmentationOutput::region() const
+void Output::push(Output::EditedRegionSList editedRegions)
 {
-  EspinaRegion bb;
 
-  bool first = true;
-  foreach (SegmentationRepresentationSPtr representation, m_representations)
-  {
-    if (first)
-    {
-      bb    = representation->representationBounds();
-      first = false;
-    } else
-    {
-      bb = BoundingBox(bb, representation->representationBounds());
-    }
-  }
+}
 
-  return bb;
+void Output::restoreEditedRegions(const QDir& cacheDir, const QString& ouptutId)
+{
+
+}
+
+void Output::setData(const Data::Type& type, Output::DataSPtr data)
+{
+
+}
+
+void Output::setEditedRegions(Output::EditedRegionSList regions)
+{
+
+}
+
+void Output::update()
+{
+
 }
 
 
-//----------------------------------------------------------------------------
-bool SegmentationOutput::isEdited() const
-{
-  bool editedData = false;
-
-  int i = 0;
-  while (!editedData && i < m_representations.size())
-  {
-    editedData = m_representations[m_representations.keys()[i]]->isEdited();
-    ++i;
-  }
-
-  return editedData;
-}
-
-//----------------------------------------------------------------------------
-void SegmentationOutput::push(FilterOutput::EditedRegionSList editedRegions)
-{
-  m_editerRegions << editedRegions;
-}
-
-//----------------------------------------------------------------------------
-void SegmentationOutput::clearEditedRegions()
-{
-  m_editerRegions.clear();
-  foreach(SegmentationRepresentationSPtr rep, m_representations)
-  {
-    rep->clearEditedRegions();
-  }
-}
-
-//----------------------------------------------------------------------------
-void SegmentationOutput::dumpEditedRegions(const QString &prefix, Snapshot &snapshot)
-{
-  //FIXME
-  std::ostringstream regions;
-
-  int oldSize = m_editerRegions.size();
-  // Verify that the order of the regions doesn't matter
-  // We need to add regions that haven't been
-  foreach(SegmentationRepresentationSPtr rep, m_representations)
-  {
-    rep->commitEditedRegions(!isCached());
-  }
-
-  foreach(EditedRegionSPtr editedRegion, m_editerRegions)
-  {
-    regions << editedRegion->Name.toStdString() << " ";
-    for (int i = 0; i < 6; ++i)
-    {
-      regions << editedRegion->Region[i] << " ";
-    }
-    regions << std::endl;
-
-    editedRegion->dump(m_filter->cacheDir(), prefix, snapshot);
-  }
-
-  snapshot << SnapshotEntry(prefix + ".trc", regions.str().c_str());
-
-  while (m_editerRegions.size() > oldSize)
-  {
-    m_editerRegions.pop_back();
-  }
-}
-
-//----------------------------------------------------------------------------
-SegmentationOutput::EditedRegionSList SegmentationOutput::editedRegions() const
-{
-  return m_editerRegions;
-}
-
-//----------------------------------------------------------------------------
-void SegmentationOutput::restoreEditedRegions(const QDir &cacheDir, const QString &ouptutId)
-{
-  foreach(SegmentationRepresentationSPtr rep, m_representations)
-  {
-    rep->restoreEditedRegions(cacheDir, ouptutId);
-  }
-}
-
-//----------------------------------------------------------------------------
-void SegmentationOutput::setEditedRegions(FilterOutput::EditedRegionSList regions)
-{
-  clearEditedRegions();
-  //FIXME set regions
-}
-
-//----------------------------------------------------------------------------
-void SegmentationOutput::setRepresentation(const FilterOutput::OutputRepresentationName &name,
-                                           SegmentationRepresentationSPtr representation)
-{
-  if (m_representations.contains(name))
-  {
-    disconnect(m_representations[name].get(), SIGNAL(representationChanged()),
-               this, SLOT(onRepresentationChanged()));
-  }
-
-  if (representation.get()) {
-    m_representations[name] = representation;
-
-    connect(m_representations[name].get(), SIGNAL(representationChanged()),
-            this, SLOT(onRepresentationChanged()));
-  } else 
-  {
-    m_representations.remove(name);
-  }
-}
+// //----------------------------------------------------------------------------
+// FilterOutput::FilterOutput(Filter *filter, const FilterOutputId &id)
+// : m_id(id)
+// , m_isCached(false)
+// , m_filter(filter)
+// , m_timeStamp(s_tick++)
+// {
+// }
+// 
+// //----------------------------------------------------------------------------
+// void FilterOutput::update()
+// {
+//   m_filter->update(m_id);
+// }
+// 
+// //----------------------------------------------------------------------------
+// void FilterOutput::onRepresentationChanged()
+// {
+//   emit modified();
+// }
+// 
+// 
+// //----------------------------------------------------------------------------
+// ChannelOutput::ChannelOutput(Filter *filter, const FilterOutputId &id)
+// : FilterOutput(filter, id)
+// {
+// }
+// 
+// //----------------------------------------------------------------------------
+// bool ChannelOutput::isValid() const
+// {
+//   bool validData = !m_representations.isEmpty();
+// 
+//   int i = 0;
+//   while (validData && i < m_representations.size())
+//   {
+//     validData = m_representations[m_representations.keys()[i]]->isValid();
+//     ++i;
+//   }
+// 
+//   return NULL != m_filter
+//       && INVALID_OUTPUT_ID < m_id
+//       && validData;
+// }
+// 
+// //----------------------------------------------------------------------------
+// EspinaRegion ChannelOutput::region() const
+// {
+//   EspinaRegion bb;
+// 
+//   bool first = true;
+//   foreach (ChannelRepresentationSPtr representation, m_representations)
+//   {
+//     if (first)
+//     {
+//       bb    = representation->representationBounds();
+//       first = false;
+//     } else
+//     {
+//       bb = BoundingBox(bb, representation->representationBounds());
+//     }
+//   }
+// 
+//   return bb;
+// }
+// 
+// 
+// //----------------------------------------------------------------------------
+// SegmentationOutput::SegmentationOutput(Filter *filter, const FilterOutputId &id)
+// : FilterOutput(filter, id)
+// {
+// }
+// 
+// //----------------------------------------------------------------------------
+// bool SegmentationOutput::dumpSnapshot(const QString &prefix, Snapshot &snapshot, bool saveEditedRegions)
+// {
+//   bool dumped = false;
+// 
+//   int oldSize = m_editerRegions.size();
+// 
+//   std::ostringstream outputInfo;
+//   foreach(SegmentationRepresentationSPtr rep, m_representations)
+//   {
+//     outputInfo << rep->type().toStdString() << std::endl;
+//     if (isCached())
+//     {
+//       dumped |= rep->dumpSnapshot(prefix, snapshot);
+//     }
+// 
+//     if (saveEditedRegions)
+//     {
+//       // We don't need to make a copy of latest modifications of cached representations data
+//       // becasue they are implictly stored by dumpSnapshot. We just save the edited regions
+//       // in case the output is not referenced by a segmentation in a future
+//       // NOTE: Verify that the order of the regions doesn't matter
+//       rep->commitEditedRegions(!isCached());
+//     }
+//   }
+// 
+//   if (saveEditedRegions)
+//   {
+//     outputInfo << std::endl; // Empty line separates representation types from region info
+// 
+// 
+//     int regionId = 0;
+//     foreach(EditedRegionSPtr editedRegion, m_editerRegions)
+//     {
+//       outputInfo << editedRegion->Name.toStdString() << " ";
+//       for (int i = 0; i < 6; ++i)
+//       {
+//         outputInfo << editedRegion->Region[i] << " ";
+//       }
+//       outputInfo << std::endl;
+// 
+//       dumped |= editedRegion->dump(m_filter->cacheDir(), QString("%1_%2").arg(prefix).arg(regionId++) , snapshot);
+//     }
+//   }
+// 
+//   // Because current representations can be modified and saved again,
+//   // we don't commit them definetely
+//   while (m_editerRegions.size() > oldSize)
+//   {
+//     m_editerRegions.pop_back();
+//   }
+// 
+//   QString outputInfoFile = QString("Outputs/%1.trc").arg(prefix);
+//   snapshot << SnapshotEntry(outputInfoFile, outputInfo.str().c_str());
+// 
+//   return dumped;
+// }
+// 
+// //----------------------------------------------------------------------------
+// bool SegmentationOutput::isValid() const
+// {
+//   bool validData = !m_representations.isEmpty();
+// 
+//   int i = 0;
+//   while (validData && i < m_representations.size())
+//   {
+//     validData = m_representations[m_representations.keys()[i]]->isValid();
+//     ++i;
+//   }
+// 
+//   return NULL != m_filter
+//       && INVALID_OUTPUT_ID < m_id
+//       && validData;
+// }
+// 
+// //----------------------------------------------------------------------------
+// EspinaRegion SegmentationOutput::region() const
+// {
+//   EspinaRegion bb;
+// 
+//   bool first = true;
+//   foreach (SegmentationRepresentationSPtr representation, m_representations)
+//   {
+//     if (first)
+//     {
+//       bb    = representation->representationBounds();
+//       first = false;
+//     } else
+//     {
+//       bb = BoundingBox(bb, representation->representationBounds());
+//     }
+//   }
+// 
+//   return bb;
+// }
+// 
+// 
+// //----------------------------------------------------------------------------
+// bool SegmentationOutput::isEdited() const
+// {
+//   bool editedData = false;
+// 
+//   int i = 0;
+//   while (!editedData && i < m_representations.size())
+//   {
+//     editedData = m_representations[m_representations.keys()[i]]->isEdited();
+//     ++i;
+//   }
+// 
+//   return editedData;
+// }
+// 
+// //----------------------------------------------------------------------------
+// void SegmentationOutput::push(FilterOutput::EditedRegionSList editedRegions)
+// {
+//   m_editerRegions << editedRegions;
+// }
+// 
+// //----------------------------------------------------------------------------
+// void SegmentationOutput::clearEditedRegions()
+// {
+//   m_editerRegions.clear();
+//   foreach(SegmentationRepresentationSPtr rep, m_representations)
+//   {
+//     rep->clearEditedRegions();
+//   }
+// }
+// 
+// //----------------------------------------------------------------------------
+// void SegmentationOutput::dumpEditedRegions(const QString &prefix, Snapshot &snapshot)
+// {
+//   //FIXME
+//   std::ostringstream regions;
+// 
+//   int oldSize = m_editerRegions.size();
+//   // Verify that the order of the regions doesn't matter
+//   // We need to add regions that haven't been
+//   foreach(SegmentationRepresentationSPtr rep, m_representations)
+//   {
+//     rep->commitEditedRegions(!isCached());
+//   }
+// 
+//   foreach(EditedRegionSPtr editedRegion, m_editerRegions)
+//   {
+//     regions << editedRegion->Name.toStdString() << " ";
+//     for (int i = 0; i < 6; ++i)
+//     {
+//       regions << editedRegion->Region[i] << " ";
+//     }
+//     regions << std::endl;
+// 
+//     editedRegion->dump(m_filter->cacheDir(), prefix, snapshot);
+//   }
+// 
+//   snapshot << SnapshotEntry(prefix + ".trc", regions.str().c_str());
+// 
+//   while (m_editerRegions.size() > oldSize)
+//   {
+//     m_editerRegions.pop_back();
+//   }
+// }
+// 
+// //----------------------------------------------------------------------------
+// SegmentationOutput::EditedRegionSList SegmentationOutput::editedRegions() const
+// {
+//   return m_editerRegions;
+// }
+// 
+// //----------------------------------------------------------------------------
+// void SegmentationOutput::restoreEditedRegions(const QDir &cacheDir, const QString &ouptutId)
+// {
+//   foreach(SegmentationRepresentationSPtr rep, m_representations)
+//   {
+//     rep->restoreEditedRegions(cacheDir, ouptutId);
+//   }
+// }
+// 
+// //----------------------------------------------------------------------------
+// void SegmentationOutput::setEditedRegions(FilterOutput::EditedRegionSList regions)
+// {
+//   clearEditedRegions();
+//   //FIXME set regions
+// }
+// 
+// //----------------------------------------------------------------------------
+// void SegmentationOutput::setRepresentation(const FilterOutput::OutputRepresentationName &name,
+//                                            SegmentationRepresentationSPtr representation)
+// {
+//   if (m_representations.contains(name))
+//   {
+//     disconnect(m_representations[name].get(), SIGNAL(representationChanged()),
+//                this, SLOT(onRepresentationChanged()));
+//   }
+// 
+//   if (representation.get()) {
+//     m_representations[name] = representation;
+// 
+//     connect(m_representations[name].get(), SIGNAL(representationChanged()),
+//             this, SLOT(onRepresentationChanged()));
+//   } else 
+//   {
+//     m_representations.remove(name);
+//   }
+// }
+// 

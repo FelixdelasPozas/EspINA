@@ -26,91 +26,52 @@
 */
 
 
-#ifndef OUTPUTREPRESENTATION_H
-#define OUTPUTREPRESENTATION_H
+#ifndef ESPINA_DATA_H
+#define ESPINA_DATA_H
 
 #include "EspinaCore_Export.h"
 
-#include "Core/Model/Output.h"
-
-#include <itkImageRegionIteratorWithIndex.h>
-
-class QDir;
-class vtkAlgorithmOutput;
-class vtkDiscreteMarchingCubes;
-class vtkImageConstantPad;
-class vtkImplicitFunction;
-class vtkPolyData;
+#include "Core/EspinaTypes.h"
+#include <Core/Utils/Bounds.h>
+#include <QDir>
 
 namespace EspINA
 {
-  typedef itk::ImageRegionIteratorWithIndex<itkVolumeType>      itkVolumeIterator;
-  typedef itk::ImageRegionConstIteratorWithIndex<itkVolumeType> itkVolumeConstIterator;
+  class Data;
+  using DataSPtr  = std::shared_ptr<Data>;
+  using DataSList = QList<DataSPtr>;
 
-  class EspinaCore_EXPORT FilterOutput::OutputRepresentation
+  class EspinaCore_EXPORT Data
   : public QObject
   {
-    static EspinaTimeStamp s_tick;
     Q_OBJECT
+
+    static TimeStamp s_tick;
+
   public:
-  virtual ~OutputRepresentation(){}
+    using Type = QString;
 
-    virtual FilterOutput::OutputRepresentationName type() const = 0; 
+  public:
+    virtual ~Data(){}
 
-    void setOutput(FilterOutput *output);
+    virtual Data::Type type() const = 0; 
 
-    EspinaTimeStamp timeStamp()
+    void setOutput(OutputPtr output);
+
+    /** \brief Last modification time stamp
+     */
+    TimeStamp lastModified()
     { return m_timeStamp; }
 
     virtual bool dumpSnapshot (const QString &prefix, Snapshot &snapshot) const = 0;
 
     virtual bool isValid() const = 0;
 
-    // TODO: Use this name to avoid collisions with bounds methods already defined
-    // in some representations. These methods will be deprecated in next version
-    // in favour of using EspinaBounds (former EspinaRegion)
-    virtual EspinaRegion representationBounds() = 0;
+    virtual Bounds bounds() = 0;
 
-  signals:
-    void representationChanged();
+    virtual bool setInternalData(DataSPtr rhs) = 0;
 
-  protected:
-    explicit OutputRepresentation(FilterOutput *output)
-    : m_output(output), m_timeStamp(s_tick++) {}
-
-    void updateModificationTime() 
-    {
-      m_timeStamp = s_tick++;
-    }
-
-  protected:
-    FilterOutput   *m_output;
-
-  private:
-    EspinaTimeStamp m_timeStamp;
-  };
-
-  class EspinaCore_EXPORT ChannelRepresentation
-  : public FilterOutput::OutputRepresentation
-  {
-  public:
-    virtual bool dumpSnapshot(const QString &prefix, Snapshot &snapshot) const
-    { return false; }
-
-    virtual bool setInternalData(ChannelRepresentationSPtr rhs) = 0;
-
-  protected:
-    explicit ChannelRepresentation(FilterOutput *output)
-    : FilterOutput::OutputRepresentation(output) {}
-  };
-
-  class EspinaCore_EXPORT SegmentationRepresentation
-  : public FilterOutput::OutputRepresentation
-  {
-  public:
-    virtual bool setInternalData(SegmentationRepresentationSPtr rhs) = 0;
-
-    virtual void addEditedRegion(const EspinaRegion &region, int cacheId = -1) = 0;
+    virtual void addEditedRegion(const Bounds& region, int cacheId = -1) = 0;
 
     /// Whether output has been manually edited
     virtual bool isEdited() const = 0;
@@ -122,10 +83,25 @@ namespace EspINA
 
     virtual void restoreEditedRegions(const QDir &cacheDir, const QString &outputId) = 0;
 
+  signals:
+    void dataChanged();//former representationChanged
+
   protected:
-    explicit SegmentationRepresentation(FilterOutput *output)
-    : OutputRepresentation(output){}
+    explicit Data(OutputPtr output)
+    : m_output(output), m_timeStamp(s_tick++) {}
+
+    void updateModificationTime() 
+    {
+      m_timeStamp = s_tick++;
+    }
+
+  protected:
+    OutputPtr m_output;
+
+  private:
+    TimeStamp m_timeStamp;
   };
+
 } // namespace EspINA
 
-#endif // OUTPUTREPRESENTATION_H
+#endif // ESPINA_DATA_H

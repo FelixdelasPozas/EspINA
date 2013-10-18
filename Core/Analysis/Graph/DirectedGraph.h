@@ -16,8 +16,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 */
-#ifndef RELATIONSHIPGRAPH_H
-#define RELATIONSHIPGRAPH_H
+#ifndef ESPINA_DIRECTED_GRAPH_H
+#define ESPINA_DIRECTED_GRAPH_H
 
 #include "EspinaCore_Export.h"
 
@@ -25,8 +25,6 @@
 
 #include "Core/EspinaTypes.h"
 
-#include <QMap>
-#include <QString>
 #include <QTextStream>
 
 #include <QDebug>
@@ -35,37 +33,39 @@ namespace EspINA
 {
   /// Graph like structure which contains all the relationships
   /// between different elements of the model
-  class EspinaCore_EXPORT RelationshipGraph
+  class EspinaCore_EXPORT DirectedGraph
   {
   public:
     // Bundled Properties
     struct Vertex
     {
       Vertex()
-      : item(NULL)
+      : item(AnalysisItemSPtr())
       , descriptor(sizeof(int))
       {}
 
-      /// A pointer to the object associated with this vertex
-      ModelItemPtr item;
-      /// Following members are needed to make the graph persistent
-      std::string  name;
-      std::string  shape;
-      std::string  args;
-      size_t       descriptor;
+      // A pointer to the object associated with this vertex
+      AnalysisItemSPtr item;
+//       // Following members are needed to make the graph persistent
+//       std::string name;
+//       std::string type;
+//       std::string state;
+      size_t      descriptor;
     };
 
     struct EdgeProperty
     {
-      /// Relationships between model items connected by an edge
       std::string relationship;
     };
 
+    /** Relationships between analysis items connected by an edge
+     *
+     */
     struct Edge
     {
-      Vertex source;
-      Vertex target;
-      std::string    relationship;
+      Vertex      source;
+      Vertex      target;
+      std::string relationship;
     };
 
     typedef QList<Vertex> Vertices;
@@ -73,6 +73,7 @@ namespace EspINA
 
   private:
     typedef unsigned int IndexType;
+    // Boost edge implementation
 
     typedef boost::adjacency_list
     < boost::listS
@@ -84,16 +85,15 @@ namespace EspINA
 
     typedef boost::graph_traits<Graph>     GraphTraits;
 
-  public:
-    typedef GraphTraits::edge_descriptor   EdgeDescriptor;
-    typedef GraphTraits::vertex_descriptor VertexDescriptor;
-    typedef GraphTraits::vertex_iterator   VertexIterator;
+    using EdgeDescriptor   = GraphTraits::edge_descriptor;
+    using VertexDescriptor = GraphTraits::vertex_descriptor;
+    using VertexIterator   = GraphTraits::vertex_iterator;
 
-    typedef GraphTraits::edge_iterator     EdgeIterator;
-    typedef GraphTraits::in_edge_iterator  InEdgeIterator;
-    typedef GraphTraits::out_edge_iterator OutEdgeIterator;
+    using EdgeIterator     = GraphTraits::edge_iterator;
+    using InEdgeIterator   = GraphTraits::in_edge_iterator;
+    using OutEdgeIterator  = GraphTraits::out_edge_iterator;
 
-    typedef std::pair<OutEdgeIterator, OutEdgeIterator> EdgeIteratorRange;
+    using EdgeIteratorRange = std::pair<OutEdgeIterator, OutEdgeIterator>;
 
   public:
     enum PrintFormat
@@ -102,23 +102,23 @@ namespace EspINA
     , DEBUG
     };
 
-    RelationshipGraph();
-    ~RelationshipGraph(){}
+    explicit DirectedGraph();
+    ~DirectedGraph(){}
 
     /// Remove all vertices and edges from the graph
     void clear() {m_graph.clear();}
 
-    void addItem   (ModelItemPtr item);
-    void removeItem(ModelItemPtr item);
+    void addItem   (AnalysisItemSPtr item);
+    void removeItem(AnalysisItemSPtr item);
 
     /// Add given relation if realtion doesn't already existsI
-    void addRelation   (ModelItemPtr  ancestor,
-                        ModelItemPtr  successor,
+    void addRelation   (AnalysisItemSPtr  ancestor,
+                        AnalysisItemSPtr  successor,
                         const QString &description);
 
     /// Remove given relation if it exists
-    void removeRelation(ModelItemPtr  ancestor,
-                        ModelItemPtr  successor,
+    void removeRelation(AnalysisItemSPtr  ancestor,
+                        AnalysisItemSPtr  successor,
                         const QString &description);
 
     /// Return all graph's edges
@@ -145,24 +145,23 @@ namespace EspINA
     /// Return all vertices whose incoming edges start on v
     Vertices succesors(Vertex v, const QString &filter = "") const;
 
-    void setItem(Vertex &v, ModelItemPtr item);
+    void setItem(Vertex &v, AnalysisItemSPtr item);
 
-    static ModelItemType type(const Vertex v);
+    void read (std::istream& stream, DirectedGraph::PrintFormat format = BOOST);
 
-    void read (std::istream& stream, RelationshipGraph::PrintFormat format = BOOST);
+    void write(std::ostream& stream, DirectedGraph::PrintFormat format = BOOST);
 
-    void write(std::ostream& stream, RelationshipGraph::PrintFormat format = BOOST);
-
-    //   void print(std::ostream& out, PrintFormat format = GRAPHVIZ);
+    //TODO: 
     /// Update vertex's information with model's items' information
     void updateVertexInformation();
 
-    /// Retrieve current vertex index of a ModelItem
+    /// Retrieve current vertex index of a AnalysisItem
     /// A vertex with NULL item field is returned if no vertex contains item
-    Vertex vertex(ModelItemPtr item) const;
-    Vertex vertex(RelationshipGraph::VertexDescriptor vd);
+    Vertex vertex(AnalysisItemSPtr item) const;
 
   private:
+    Vertex vertex(DirectedGraph::VertexDescriptor vd);
+
     bool findRelation(const VertexDescriptor source,
                       const VertexDescriptor destination,
                       const QString         &relation,
@@ -173,7 +172,7 @@ namespace EspINA
     mutable Graph m_graph;
   };
 
-  typedef boost::shared_ptr<RelationshipGraph> RelationshipGraphPtr;
+  using DirectedGraphSPtr = std::shared_ptr<DirectedGraph>;
 }
 
-#endif // RELATIONSHIPGRAPH_H
+#endif // ESPINA_DIRECTED_GRAPH_H

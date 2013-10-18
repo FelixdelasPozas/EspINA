@@ -22,7 +22,7 @@
 
 using namespace EspINA;
 
-SleepyTask::SleepyTask(int sleepTime, Scheduler* scheduler)
+SleepyTask::SleepyTask(int sleepTime, SchedulerSPtr scheduler)
 : Task{scheduler}
 , Result{-1}
 , m_sleepTime{sleepTime}
@@ -42,21 +42,21 @@ void SleepyTask::run()
   while (canExecute() && i < NUM_ITERATIONS) {
     m_mutex.lock();
     Result = 0;
-    m_mutex.unlock();    
-    
+    m_mutex.unlock();
+
     std::cout << description().toStdString() << " is working " << i+1 << "/10 on thread " << thread() << std::endl;
     usleep(m_sleepTime);
     i++;
-    
+
     emit progress(i*10);
   }
-  
+
   if (!isAborted()) {
     m_mutex.lock();
     Result = 1;
     m_mutex.unlock();
   }
-  
+
   std::cout << description().toStdString() << " ended" << std::endl;
 
   m_hasFinished = true;

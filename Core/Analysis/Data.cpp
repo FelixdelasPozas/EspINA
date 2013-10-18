@@ -26,15 +26,9 @@
 */
 
 
-#include "OutputRepresentation.h"
+#include "Data.h"
 
 using namespace EspINA;
 
 //----------------------------------------------------------------------------
-EspinaTimeStamp FilterOutput::OutputRepresentation::s_tick = 0;
-
-//----------------------------------------------------------------------------
-void FilterOutput::OutputRepresentation::setOutput(FilterOutput *output)
-{
-  m_output = output;
-}
+TimeStamp Data::s_tick = 0;

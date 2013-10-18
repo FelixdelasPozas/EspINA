@@ -51,8 +51,8 @@ int scheduler_simple_task_pause( int argc, char** argv )
     
   QApplication app(argc, argv);
   
-  Scheduler scheduler(period);
-  SleepyTask* sleepyTask = new SleepyTask(sleepTime, &scheduler);  
+  SchedulerSPtr scheduler = SchedulerSPtr(new Scheduler(period)); //0.5sec
+  SleepyTask* sleepyTask = new SleepyTask(sleepTime, scheduler);  
   sleepyTask->setDescription("Simple Task");
   
   if (sleepyTask->Result != -1) {

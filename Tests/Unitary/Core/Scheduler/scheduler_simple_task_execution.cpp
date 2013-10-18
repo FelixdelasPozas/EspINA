@@ -45,8 +45,8 @@ int scheduler_simple_task_execution( int argc, char** argv )
   QApplication app(argc, argv);
 
   int period = 50000;
-  Scheduler scheduler(period); //0.5sec
-  SleepyTask* sleepyTask = new SleepyTask(period/5, &scheduler);
+  SchedulerSPtr scheduler = SchedulerSPtr(new Scheduler(period)); //0.5sec
+  SleepyTask* sleepyTask = new SleepyTask(period/5, scheduler);
   sleepyTask->setDescription("Simple Task");
 
   if (sleepyTask->Result != -1) {

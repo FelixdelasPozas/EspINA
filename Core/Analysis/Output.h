@@ -26,171 +26,50 @@
 */
 
 
-#ifndef OUTPUT_H
-#define OUTPUT_H
+#ifndef ESPINA_OUTPUT_H
+#define ESPINA_OUTPUT_H
 
 #include "EspinaCore_Export.h"
 
-#include <Core/EspinaRegion.h>
-#include <Core/EspinaTypes.h>
+#include "Core/EspinaTypes.h"
+#include "Core/Analysis/Data.h"
 
 #include <QMap>
 
 class QDir;
-class QDir;
 namespace EspINA
 {
 
-  class Filter;
-
-  class GraphicalRepresentation;
-  typedef boost::shared_ptr<GraphicalRepresentation> GraphicalRepresentationSPtr;
-  typedef QList<GraphicalRepresentationSPtr>         GraphicalRepresentationSList;
-
-  typedef int FilterOutputId;
-
-  class EspinaCore_EXPORT FilterOutput
+  class EspinaCore_EXPORT Output
   : public QObject
   {
-    static EspinaTimeStamp s_tick;
     Q_OBJECT
-  protected:
-    static const int INVALID_OUTPUT_ID;
+  public:
+    using DataTypeList = QList<Data::Type>;
+    using Id = unsigned int;
+
+    class EditedRegion;
+
+    using EditedRegionSPtr  = std::shared_ptr<EditedRegion>;
+    using EditedRegionSList = QList<EditedRegionSPtr>;
+
+    using DataSPtr  = std::shared_ptr<Data>;
+    using DataSList = QList<DataSPtr>;
 
   public:
-    typedef QString                         OutputRepresentationName;
-    typedef QList<OutputRepresentationName> OutputRepresentationNameList;
-
-    class EditedRegion
-    {
-    public:
-      EditedRegion(int id, const OutputRepresentationName &name, const EspinaRegion &region)
-      : Id(id), Name(name), Region(region){}
-      virtual ~EditedRegion() {}
-
-      int                      Id;
-      OutputRepresentationName Name;
-      EspinaRegion             Region;
-
-      virtual bool dump(QDir           cacheDir,
-                        const QString &regionName,
-                        Snapshot      &snapshot) const = 0;
-    };
-
-    typedef boost::shared_ptr<EditedRegion> EditedRegionSPtr;
-    typedef QList<EditedRegionSPtr>         EditedRegionSList;
-
-    class OutputRepresentation;
-    typedef boost::shared_ptr<OutputRepresentation> OutputRepresentationsPtr;
-    typedef QList<OutputRepresentationsPtr>         OutputRepresentationsList;
-
-  public:
-    explicit FilterOutput(Filter               *filter = NULL,
-                          const FilterOutputId &id     = INVALID_OUTPUT_ID);
-
-    virtual bool isValid() const = 0;
-
-    FilterOutputId id() const
-    { return m_id; }
-
-    bool isCached() const
-    { return m_isCached; }
-
-    void setCached(bool value)
-    { m_isCached = value; }
+    //TODO 2013-10-16: Check required params 
+    explicit Output(FilterPtr filter     = nullptr,
+                    const Output::Id& id = INVALID_OUTPUT_ID);
 
     FilterPtr filter() const
     { return m_filter; }
 
-    /// Convenience function to update a filter's output
-    /// Some filters may execute partial updates
-    void update();
+    Id id() const
+    { return m_id; }
 
-    // TODO: Representation may have different bounds, in which case,
-    // this function will be needed to represent the bounding box of all those regions
-    virtual EspinaRegion region() const = 0;
-
-    void addGraphicalRepresentation(GraphicalRepresentationSPtr prototype)
-    { m_repPrototypes << prototype; }
-
-    GraphicalRepresentationSList graphicalRepresentations() const
-    { return m_repPrototypes; }
-
-    void clearGraphicalRepresentations()
-    { m_repPrototypes.clear(); }
-
-    EspinaTimeStamp timeStamp()
-    { return m_timeStamp; }
-
-    // NOTE: Temporal solution to change output when filters are updated
-    void updateModificationTime() 
-    { m_timeStamp = s_tick++; }
-
-  protected slots:
-    void onRepresentationChanged();
-
-  signals:
-    void modified();
-
-  protected:
-    FilterOutputId m_id;
-    bool           m_isCached; /// Whether output is used by a segmentation
-    FilterPtr      m_filter;
-
-    GraphicalRepresentationSList m_repPrototypes;
-
-  private:
-    EspinaTimeStamp m_timeStamp;
-  };
-
-  typedef FilterOutput                  * OutputPtr;
-  typedef boost::shared_ptr<FilterOutput> OutputSPtr;
-  typedef QList<OutputSPtr> OutputSList;
-
-  class ChannelRepresentation;
-  typedef boost::shared_ptr<ChannelRepresentation> ChannelRepresentationSPtr;
-
-  class EspinaCore_EXPORT ChannelOutput
-  : public FilterOutput
-  {
-  public:
-    explicit ChannelOutput(Filter *filter = 0, const FilterOutputId &id = INVALID_OUTPUT_ID);
-
-    virtual bool isValid() const;
-
-    virtual EspinaRegion region() const;
-
-    void setRepresentation(const OutputRepresentationName &name, ChannelRepresentationSPtr representation)
-    { m_representations[name] = representation; }
-
-    ChannelRepresentationSPtr representation(const OutputRepresentationName &name) const
-    { return m_representations.value(name, ChannelRepresentationSPtr()); }
-
-  private:
-    QMap<OutputRepresentationName, ChannelRepresentationSPtr> m_representations;
-  };
-
-  typedef ChannelOutput                  * ChannelOutputPtr;
-  typedef boost::shared_ptr<ChannelOutput> ChannelOutputSPtr;
-  typedef QList<ChannelOutputSPtr>         ChannelOutputSList;
-
-  class SegmentationRepresentation;
-  typedef boost::shared_ptr<SegmentationRepresentation> SegmentationRepresentationSPtr;
-
-  class EspinaCore_EXPORT SegmentationOutput
-  : public FilterOutput
-  {
-  public:
-    explicit SegmentationOutput(Filter *filter = 0, const FilterOutputId &id = INVALID_OUTPUT_ID);
-
-    bool dumpSnapshot (const QString &prefix, Snapshot &snapshot, bool saveEditedRegions);
-
-    virtual bool isValid() const;
-
-    virtual EspinaRegion region() const;
+    bool isValid() const;
 
     bool isEdited() const;
-
     void push(EditedRegionSList editedRegions);
 
     /// clear output's edited regions
@@ -207,21 +86,74 @@ namespace EspINA
     /// replace current edited regions
     void setEditedRegions(EditedRegionSList regions);
 
-    void setRepresentation(const OutputRepresentationName &name, SegmentationRepresentationSPtr representation);
+    void setData(const Data::Type& type, DataSPtr data);
 
-    SegmentationRepresentationSPtr representation(const OutputRepresentationName &name) const
-    { return m_representations.value(name, SegmentationRepresentationSPtr()); }
+    DataSPtr data(const Data::Type& type) const
+    { return m_data.value(type, DataSPtr()); }
+
+    /** \brief Request necessary pipeline execution to update this output
+     *
+     */
+    void update();
+
+    bool hasToBeSaved() const//isCached() const
+    { return m_hasToBeSaved; }
+
+    void markToSave(bool value)
+    { m_hasToBeSaved = value; }
+
+    bool dumpSnapshot (const QString &prefix, Snapshot &snapshot, bool saveEditedRegions);
+
+
+    // TODO: Representation may have different bounds, in which case,
+    // this function will be needed to represent the bounding box of all those regions
+    virtual Bounds bounds() const;
+
+    TimeStamp lastModified()
+    { return m_timeStamp; }
+
+    // NOTE: Temporal solution to change output when filters are updated
+    void updateModificationTime() 
+    { m_timeStamp = s_tick++; }
+
+  protected slots:
+    void onDataChanged(); // former onRepresentationChange
+
+  signals:
+    void modified();
 
   private:
-    
-    QMap<OutputRepresentationName, SegmentationRepresentationSPtr> m_representations;
+    static TimeStamp s_tick;
+    static const int INVALID_OUTPUT_ID;
 
-    EditedRegionSList m_editerRegions;
+    FilterPtr m_filter;
+    Id        m_id;
+
+    TimeStamp m_timeStamp;
+
+    bool              m_hasToBeSaved;
+    EditedRegionSList m_editedRegions;
+
+    QMap<Data::Type, DataSPtr> m_data;
   };
 
-  typedef SegmentationOutput                  * SegmentationOutputPtr;
-  typedef boost::shared_ptr<SegmentationOutput> SegmentationOutputSPtr;
-  typedef QList<SegmentationOutputSPtr>         SegmentationOutputSList;
+  class Output::EditedRegion
+  {
+  public:
+    EditedRegion(int id, const Data::Type& name, const Bounds& region)
+    : Id(id), Name(name), Region(region){}
+    virtual ~EditedRegion() {}
+
+    int Id;
+    Data::Type Name;
+    Bounds     Region;
+
+    virtual bool dump(QDir           cacheDir,
+                      const QString &regionName,
+                      Snapshot      &snapshot) const = 0;
+  };
+
+  using OutputIdList = QList<Output::Id>;
 } // namespace EspINA
 
-#endif // OUTPUT_H
+#endif // ESPINA_OUTPUT_H

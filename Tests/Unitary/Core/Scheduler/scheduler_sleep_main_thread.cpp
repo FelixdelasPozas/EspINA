@@ -39,23 +39,24 @@ using namespace std;
 int scheduler_sleep_main_thread( int argc, char** argv )
 {
   int error = 0;
-  
-  Scheduler scheduler(50000);//0.5sec
-  SleepyTask sleepyTask(10000, &scheduler);
-  
+
+  int period = 5000; //0.005 sec
+  SchedulerSPtr scheduler = SchedulerSPtr(new Scheduler(period));
+  SleepyTask sleepyTask(period, scheduler);
+
   if (sleepyTask.Result != -1) {
     error = 1;
     std::cerr << "Unexpected initial sleepy task value" << std::endl;
   }
-  
+
   sleepyTask.submit();
-  
-  usleep(1000000);
-  
+
+  usleep(20*period);
+
   if (sleepyTask.Result != 1) {
     error = 1;
     std::cerr << "Unexpected final sleepy task value" << std::endl;
   }
-  
+
   return error;
 }

@@ -17,30 +17,44 @@
 */
 
 
-#ifndef FILTERFACTORY_H
-#define FILTERFACTORY_H
+#ifndef ESPINA_CHANNEL_EXTENSION_H
+#define ESPINA_CHANNEL_EXTENSION_H
 
 #include "EspinaCore_Export.h"
 
 #include "Core/EspinaTypes.h"
-#include <Core/Model/ModelItem.h>
-#include <Core/Model/Filter.h>
 
 namespace EspINA
 {
-  class EspinaCore_EXPORT IFilterCreator
+  class EspinaCore_EXPORT ChannelExtension
   {
   public:
-    virtual ~IFilterCreator();
+    using Type = QString;
 
-    virtual FilterSPtr createFilter(const QString              &filter,
-                                    const Filter::NamedInputs  &inputs,
-                                    const ModelItem::Arguments &args) = 0;
+  public:
+    virtual ~ChannelExtension(){}
+
+    void setChannel(ChannelPtr channel)
+    { m_channel = channel; onChannelSet(channel); }
+
+    ChannelPtr channel() const {return m_channel;}
+
+    virtual void onChannelSet(ChannelPtr channel) = 0;
+
+    virtual void initialize() = 0;
+
+    virtual void invalidate() = 0;
+
+  protected:
+    explicit ChannelExtension() : m_channel{nullptr} {}
+
+    ChannelPtr m_channel;
   };
 
-}// namespace EspINA
+  using ChannelExtensionPtr   = ChannelExtension *;
+  using ChannelExtensionList  = QList<ChannelExtensionPtr>;
+  using ChannelExtensionSPtr  = std::shared_ptr<ChannelExtension>;
+  using ChannelExtensionSList = QList<ChannelExtensionSPtr>;
+} // namespace EspINA
 
-Q_DECLARE_INTERFACE(EspINA::IFilterCreator,
-                    "es.upm.cesvima.EspINA.IFilterCreator/1.1")
-
-#endif // FILTERFACTORY_H
+#endif // ESPINA_CHANNEL_EXTENSION_H

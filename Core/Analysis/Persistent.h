@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2013, Jorge Peña Pastor <jpena@cesvima.upm.es>
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -12,7 +12,7 @@
  *     * Neither the name of the <organization> nor the
  *     names of its contributors may be used to endorse or promote products
  *     derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY Jorge Peña Pastor <jpena@cesvima.upm.es> ''AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -23,62 +23,40 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  */
 
-#include <Scheduler.h>
+#ifndef ESPINA_PERSISTENT_H
+#define ESPINA_PERSISTENT_H
 
-#include "SleepyTask.h"
+#include <QDir>
+#include <QUuid>
 
-#include <iostream>
-#include <unistd.h>
+namespace EspINA {
 
-#include <QApplication>
-#include <QThread>
- 
-using namespace EspINA;
-using namespace std;
+  class Persistent
+  {
+  public:
+    using Id = QUuid;
 
-int scheduler_simple_task_abort( int argc, char** argv )
-{
-  
-  int error = 0;
-  
-  int period = 50000;//0.05 sec
-  
-  int tasksPerPeriod = 2;
-  int sleepTime = period/tasksPerPeriod;
-  int taskTime  = 10*sleepTime;
-    
-  QApplication app(argc, argv);
-  
-  SchedulerSPtr scheduler = SchedulerSPtr(new Scheduler(period)); //0.5sec
-  SleepyTask* sleepyTask = new SleepyTask(sleepTime, scheduler);
-  sleepyTask->setDescription("Simple Task");
-  
-  if (sleepyTask->Result != -1) {
-    error = 1;
-    std::cerr << "Unexpected initial sleepy task value" << std::endl;
-  }    
-  
-  sleepyTask->submit();
-  
-  usleep(taskTime/2);
-  
-  sleepyTask->abort();
-  
-  usleep(taskTime/2);
-  
-  if (sleepyTask->Result != 0) {
-    error = 1;
-    std::cerr << "Unexpected final sleepy task value" << std::endl;
-  }
-  QObject::connect(sleepyTask->thread(), SIGNAL(destroyed(QObject*)),
-                   &app, SLOT(quit()));
-  
-  sleepyTask->deleteLater();
-  
-  app.exec();
-  
-  return error;
+  public:
+    explicit Persistent() : m_id{QUuid::createUuid()} {}
+    virtual ~Persistent() {}
+
+    Id id() const
+    { return m_id; }
+
+    void setId(Id id)
+    { m_id = id; }
+
+    virtual void loadCache(const QDir& dir) = 0;
+
+    virtual void saveCache() const = 0;
+
+  private:
+    Id   m_id;
+    QDir m_cacheDir;
+  };
 }
+
+#endif // ESPINA_PERSISTENT_H

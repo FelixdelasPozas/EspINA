@@ -17,17 +17,24 @@
 */
 
 
-#include "SampleExtension.h"
+#ifndef FILTER_CREATOR_H
+#define FILTER_CREATOR_H
 
-using namespace EspINA;
+#include "EspinaCore_Export.h"
 
-// SampleExtensionPtr EspINA::sampleExtensionPtr(ModelItemExtensionPtr extension)
-// {
-//   SampleExtensionPtr res;
-//   res = dynamic_cast<SampleExtensionPtr>(extension);
-//   Q_ASSERT(res);
-// 
-//   return res;
-// }
-// 
-// 
+#include "Core/Analysis/Filter.h"
+#include "Core/Analysis/Output.h"
+
+namespace EspINA
+{
+  class EspinaCore_EXPORT FilterCreator
+  {
+  public:
+    virtual ~FilterCreator();
+
+    virtual FilterSPtr createFilter(OutputSList inputs, const Filter::Type &filter) = 0;
+  };
+
+}// namespace EspINA
+
+#endif // FILTER_CREATOR_H

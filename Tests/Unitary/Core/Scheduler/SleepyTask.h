@@ -26,15 +26,15 @@ namespace EspINA {
   : public Task
   {
   public:
-    explicit SleepyTask(int sleepTime, Scheduler* scheduler);
+    explicit SleepyTask(int sleepTime, SchedulerSPtr scheduler);
     virtual ~SleepyTask();
- 
+
   protected:
     virtual void run();
-    
+
   public:
     int Result;
-    
+
   private:
     int    m_sleepTime;
     QMutex m_mutex;

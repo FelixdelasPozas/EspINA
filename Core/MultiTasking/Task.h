@@ -33,10 +33,9 @@
 
 #include <QMutex>
 #include <QWaitCondition>
+#include <Core/EspinaTypes.h>
 
 namespace EspINA {
-
-class Scheduler;
 
   enum Priority { VERY_LOW, LOW, NORMAL, HIGH, VERY_HIGHT };
 
@@ -47,11 +46,11 @@ class Scheduler;
   public:
     typedef unsigned int Id;
   public:
-    explicit Task(Scheduler *scheduler);
+    explicit Task(SchedulerSPtr scheduler);
     virtual ~Task();
-    
+
     void setId(Id id) { m_id = id;}
-    
+
     Id id() const { return m_id;}
     
     void setDescription(const QString& description) {m_description = description; }
@@ -72,11 +71,11 @@ class Scheduler;
     virtual void resume();
 
     virtual bool isPaused() const;
-    
+
     bool isRunning() const {return !isPaused();}
 
     bool isAborted() const { return m_pendingAbort; }
-    
+
     bool hasFinished() const { return m_hasFinished; }
 
     int priority() const { return m_priority; }
@@ -95,7 +94,7 @@ class Scheduler;
      *  It is up to the task to implement the mechanism needed to pause, resume or abort its execution
      */
     void abort();
-    
+
   protected:
     bool canExecute();
 
@@ -106,7 +105,7 @@ class Scheduler;
     void dispatcherPause();
     void dispatcherResume();
     bool isDispatcherPaused();
-    
+
   private slots:
     void start();
 
@@ -117,7 +116,7 @@ class Scheduler;
     void finished();
 
   protected:
-    Scheduler *m_scheduler;
+    SchedulerSPtr m_scheduler;
 
     bool m_hasFinished;
   

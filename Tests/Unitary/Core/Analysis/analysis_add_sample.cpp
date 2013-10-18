@@ -26,59 +26,20 @@
  * 
  */
 
-#include <Scheduler.h>
+#include "Core/Analysis/Sample.h"
+#include "Core/Analysis/Channel.h"
+#include "Core/Analysis/Filter.h"
+#include "Core/Analysis/Segmentation.h"
+#include "Core/Analysis/Analysis.h"
 
-#include "SleepyTask.h"
-
-#include <iostream>
-#include <unistd.h>
-
-#include <QApplication>
-#include <QThread>
- 
 using namespace EspINA;
 using namespace std;
 
-int scheduler_simple_task_abort( int argc, char** argv )
+int analysis_add_sample( int argc, char** argv )
 {
-  
-  int error = 0;
-  
-  int period = 50000;//0.05 sec
-  
-  int tasksPerPeriod = 2;
-  int sleepTime = period/tasksPerPeriod;
-  int taskTime  = 10*sleepTime;
-    
-  QApplication app(argc, argv);
-  
-  SchedulerSPtr scheduler = SchedulerSPtr(new Scheduler(period)); //0.5sec
-  SleepyTask* sleepyTask = new SleepyTask(sleepTime, scheduler);
-  sleepyTask->setDescription("Simple Task");
-  
-  if (sleepyTask->Result != -1) {
-    error = 1;
-    std::cerr << "Unexpected initial sleepy task value" << std::endl;
-  }    
-  
-  sleepyTask->submit();
-  
-  usleep(taskTime/2);
-  
-  sleepyTask->abort();
-  
-  usleep(taskTime/2);
-  
-  if (sleepyTask->Result != 0) {
-    error = 1;
-    std::cerr << "Unexpected final sleepy task value" << std::endl;
-  }
-  QObject::connect(sleepyTask->thread(), SIGNAL(destroyed(QObject*)),
-                   &app, SLOT(quit()));
-  
-  sleepyTask->deleteLater();
-  
-  app.exec();
-  
+  bool error = false;
+
+  Analysis analysis;
+
   return error;
 }

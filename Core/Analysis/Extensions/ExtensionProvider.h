@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2013, Jorge Peña Pastor <jpena@cesvima.upm.es>
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -12,7 +12,7 @@
  *     * Neither the name of the <organization> nor the
  *     names of its contributors may be used to endorse or promote products
  *     derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY Jorge Peña Pastor <jpena@cesvima.upm.es> ''AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -23,62 +23,32 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  */
 
-#include <Scheduler.h>
+#ifndef ESPINA_EXTENSIONPROVIDER_H
+#define ESPINA_EXTENSIONPROVIDER_H
 
-#include "SleepyTask.h"
+#include "Core/Analysis/Extensions/ChannelExtension.h"
+#include "Core/Analysis/Extensions/SegmentationExtension.h"
 
-#include <iostream>
-#include <unistd.h>
+namespace EspINA {
 
-#include <QApplication>
-#include <QThread>
- 
-using namespace EspINA;
-using namespace std;
+  class ExtensionProvider
+  {
+  public:
+    using Type = QString;
 
-int scheduler_simple_task_abort( int argc, char** argv )
-{
-  
-  int error = 0;
-  
-  int period = 50000;//0.05 sec
-  
-  int tasksPerPeriod = 2;
-  int sleepTime = period/tasksPerPeriod;
-  int taskTime  = 10*sleepTime;
-    
-  QApplication app(argc, argv);
-  
-  SchedulerSPtr scheduler = SchedulerSPtr(new Scheduler(period)); //0.5sec
-  SleepyTask* sleepyTask = new SleepyTask(sleepTime, scheduler);
-  sleepyTask->setDescription("Simple Task");
-  
-  if (sleepyTask->Result != -1) {
-    error = 1;
-    std::cerr << "Unexpected initial sleepy task value" << std::endl;
-  }    
-  
-  sleepyTask->submit();
-  
-  usleep(taskTime/2);
-  
-  sleepyTask->abort();
-  
-  usleep(taskTime/2);
-  
-  if (sleepyTask->Result != 0) {
-    error = 1;
-    std::cerr << "Unexpected final sleepy task value" << std::endl;
-  }
-  QObject::connect(sleepyTask->thread(), SIGNAL(destroyed(QObject*)),
-                   &app, SLOT(quit()));
-  
-  sleepyTask->deleteLater();
-  
-  app.exec();
-  
-  return error;
+  public:
+    virtual ~ExtensionProvider(){}
+
+    virtual ChannelExtensionSPtr createChannelExtension(const ChannelExtension::Type& type) = 0;
+
+    virtual SegmentationExtensionSPtr createSegmentationExtension(const SegmentationExtension::Type& type) = 0;
+  };
+
+  using ExtensionProviderPtr  = ExtensionProvider *;
+  using ExtensionProviderList = QList<ExtensionProviderPtr>;
 }
+
+#endif // ESPINA_EXTENSIONPROVIDER_H

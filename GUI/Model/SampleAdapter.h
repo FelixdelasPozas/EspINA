@@ -22,65 +22,60 @@
 //          It provides channels and segmentations with a link to the
 //          physical world
 //----------------------------------------------------------------------------
-#ifndef ESPINA_SAMPLE_H
-#define ESPINA_SAMPLE_H
+#ifndef SAMPLE_H
+#define SAMPLE_H
 
 #include "EspinaCore_Export.h"
 
-#include "Core/EspinaTypes.h"
-
-#include "Core/Utils/Bounds.h"
-#include "Core/Analysis/Persistent.h"
-#include "AnalysisItem.h"
+#include "Core/Model/ModelItem.h"
 
 namespace EspINA
 {
 
   typedef QList<SampleSPtr>      SampleSList;
 
-  /** \brief Sample 
-   * 
-   */
   class EspinaCore_EXPORT Sample
-  : public AnalysisItem
-  , public Persistent
+  : public ModelItem
   {
   public:
-    explicit Sample();
-
+    explicit Sample(const QString &id);
+    explicit Sample(const QString &id, const QString &args);
     virtual ~Sample();
 
-    virtual void loadState(QString state);
+    // Relative to brain center (in nm)
+    void position   (double pos[3]);
+    void setPosition(double pos[3]);
 
-    virtual std::ostream saveState() const;
+    void bounds   (double value[6]);//nm
+    void setBounds(double value[6]);//nm
 
-    virtual void loadCache(const QDir& dir);
+    /// ModelItem Interface
+    virtual QString id() const {return m_ID;}
+    virtual QVariant data(int role=Qt::DisplayRole) const;
+    virtual QString serialize() const;
+    virtual ModelItemType type() const {return SAMPLE;}
 
-    virtual void saveCache() const;
+    virtual void initialize(const Arguments &args = Arguments());
+    virtual void initializeExtensions(const Arguments &args = Arguments());
 
-    void setName(const QString& name)
-    { m_name = name; }
+    void setId(const QString &id) {m_ID = id;}
 
-    QString name() const
-    { return m_name; }
-
-    void setPosition(Nm point[3]);
-    //Nm &&position() const;
-    void position(Nm point[3]);
-
-    /** \brief Return the spatial bounds in nm of the Sample in the Analysis frame reference
-     */
-    Bounds bounds();
-
-    /** \brief Set the spatial bounds in nm of the Sample in the Analysis frame reference
-     */
-    void setBounds(const Bounds& bounds);
+    ChannelList      channels();
+    SegmentationList segmentations();
 
   private:
-    QString m_name;
+    mutable Arguments m_args;
 
-    Bounds  m_bounds;
+    QString m_ID;
+    double  m_position[3];//nm
+    double  m_bounds[6];//nm
+
+    ChannelList      m_channels;
+    SegmentationList m_segmentations;
   };
+
+  SamplePtr  EspinaCore_EXPORT samplePtr(ModelItemPtr item);
+  SampleSPtr EspinaCore_EXPORT samplePtr(ModelItemSPtr &item);
 }// namespace EspINA
 
-#endif // ESPINA_SAMPLE_H
+#endif // SAMPLE_H

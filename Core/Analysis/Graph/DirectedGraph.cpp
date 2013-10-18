@@ -17,11 +17,7 @@
 
     */
 
-#include "RelationshipGraph.h"
-
-#include "Core/Model/Filter.h"
-#include "Core/Model/ModelItem.h"
-#include "Core/Model/Segmentation.h"
+#include "DirectedGraph.h"
 
 #include <iostream>
 #undef foreach // Due to Qt-Boost incompatibility
@@ -34,64 +30,64 @@
 using namespace boost;
 using namespace EspINA;
 
-const std::string CHANNEL_SHAPE = "trapezium";
-const std::string SEGMENTATION_SHAPE = "ellipse";
-const std::string FILTER_SHAPE = "box";
-const std::string SAMPLE_SHAPE = "invtriangle";
+const std::string CHANNEL_TYPE      = "trapezium";
+const std::string SEGMENTATION_TYPE = "ellipse";
+const std::string FILTER_TYPE       = "box";
+const std::string SAMPLE_TYPE       = "invtriangle";
 
 namespace EspINA
 {
-std::ostream& operator << ( std::ostream& out, const RelationshipGraph::Vertex& v)
+  std::ostream& operator << ( std::ostream& out, const DirectedGraph::Vertex& v)
+  {
+//     out << v.descriptor << std::endl
+//         << v.shape      << std::endl
+//         << v.name       << std::endl
+//         << v.args;
+    return out;
+}
+
+std::istream& operator >> ( std::istream& in, DirectedGraph::Vertex& v)
 {
-  out << v.descriptor << std::endl
-      << v.shape      << std::endl
-      << v.name       << std::endl
-      << v.args;
+//   const int MAX = 10000;
+//   char buff[MAX];
+//   in >> v.descriptor;
+//   in >> v.shape;
+//   in.getline(buff, 2);//Process shape's endl
+//   in.getline(buff, MAX);
+//   v.name = buff;
+//   // a trailing space is added even there's no such a space
+//   // on writing, then we have to trim it out
+//   trim(v.name);
+//   in.getline(buff, MAX);
+//   v.args = buff;
+//   trim(v.args);
+//   v.item = AnalysisItemSPtr();
+//   return in;
+}
+
+std::ostream& operator << ( std::ostream& out, const DirectedGraph::EdgeProperty& e )
+{
+//   out << e.relationship << " ";
   return out;
 }
 
-std::istream& operator >> ( std::istream& in, RelationshipGraph::Vertex& v)
+std::istream& operator >> ( std::istream& in, DirectedGraph::EdgeProperty& e)
 {
-  const int MAX = 10000;
-  char buff[MAX];
-  in >> v.descriptor;
-  in >> v.shape;
-  in.getline(buff, 2);//Process shape's endl
-  in.getline(buff, MAX);
-  v.name = buff;
-  // a trailing space is added even there's no such a space
-  // on writing, then we have to trim it out
-  trim(v.name);
-  in.getline(buff, MAX);
-  v.args = buff;
-  trim(v.args);
-  v.item = ModelItemPtr();
-  return in;
-}
-
-std::ostream& operator << ( std::ostream& out, const RelationshipGraph::EdgeProperty& e )
-{
-  out << e.relationship << " ";
-  return out;
-}
-
-std::istream& operator >> ( std::istream& in, RelationshipGraph::EdgeProperty& e)
-{
-  in >> e.relationship;
+//   in >> e.relationship;
   return in;
 }
 }
 
 //-----------------------------------------------------------------------------
-RelationshipGraph::RelationshipGraph()
+DirectedGraph::DirectedGraph()
 : m_graph(0)
 {
 }
 
 //-----------------------------------------------------------------------------
-void RelationshipGraph::addItem(ModelItemPtr item)
+void DirectedGraph::addItem(AnalysisItemSPtr item)
 {
-  Q_ASSERT(!vertex(item).item);
+  Q_ASSERT(vertex(item).item == nullptr);
 
   VertexDescriptor v = add_vertex(m_graph);
 
@@ -102,7 +98,7 @@ void RelationshipGraph::addItem(ModelItemPtr item)
 }
 
 //-----------------------------------------------------------------------------
-void RelationshipGraph::removeItem(ModelItemPtr item)
+void DirectedGraph::removeItem(AnalysisItemSPtr item)
 {
   Vertex v = vertex(item);
 
@@ -111,56 +107,56 @@ void RelationshipGraph::removeItem(ModelItemPtr item)
 }
 
 //-----------------------------------------------------------------------------
-void RelationshipGraph::updateVertexInformation()
+void DirectedGraph::updateVertexInformation()
 {
-  int id = 0;
-
-  VertexIterator vi, vi_end;
-  for(boost::tie(vi, vi_end) = boost::vertices(m_graph); vi != vi_end; vi++)
-  {
-    Vertex &vertex = m_graph[*vi];
-    ModelItemPtr item = vertex.item;
-    Q_ASSERT(item);
-    if (!item)
-    {
-      qWarning() << "RelationshipGraph: Trying to update invalid vertex";
-      continue;
-    }
-    switch (item->type())
-    {
-      case SAMPLE:
-        vertex.shape = SAMPLE_SHAPE;
-        break;
-      case CHANNEL:
-        vertex.shape = CHANNEL_SHAPE;
-        break;
-      case SEGMENTATION:
-      {
-        SegmentationPtr seg = segmentationPtr(item);
-        seg->updateCacheFlag();
-        vertex.shape = SEGMENTATION_SHAPE;
-        break;
-      }
-      case FILTER:
-      {
-        FilterPtr filter = filterPtr(item);
-        filter->setId(id++);
-        //filter->resetCacheFlags();
-        vertex.shape = FILTER_SHAPE;
-        break;
-      }
-      default:
-        Q_ASSERT(false);
-        break;
-    }
-    vertex.name       = item->data(Qt::DisplayRole).toString().toStdString();
-    vertex.args       = item->serialize().toStdString();
-    vertex.descriptor = *vi;
-  }
+//   int id = 0;
+// 
+//   VertexIterator vi, vi_end;
+//   for(boost::tie(vi, vi_end) = boost::vertices(m_graph); vi != vi_end; vi++)
+//   {
+//     Vertex &vertex = m_graph[*vi];
+//     AnalysisItemSPtr item = vertex.item;
+//     Q_ASSERT(item);
+//     if (!item)
+//     {
+//       qWarning() << "DirectedGraph: Trying to update invalid vertex";
+//       continue;
+//     }
+//     switch (item->type())
+//     {
+//       case SAMPLE:
+//         vertex.shape = SAMPLE_TYPE;
+//         break;
+//       case CHANNEL:
+//         vertex.shape = CHANNEL_TYPE;
+//         break;
+//       case SEGMENTATION:
+//       {
+//         SegmentationPtr seg = segmentationPtr(item);
+//         seg->updateCacheFlag();
+//         vertex.shape = SEGMENTATION_TYPE;
+//         break;
+//       }
+//       case FILTER:
+//       {
+//         FilterPtr filter = filterPtr(item);
+//         filter->setId(id++);
+//         //filter->resetCacheFlags();
+//         vertex.shape = FILTER_TYPE;
+//         break;
+//       }
+//       default:
+//         Q_ASSERT(false);
+//         break;
+//     }
+//     vertex.name       = item->data(Qt::DisplayRole).toString().toStdString();
+//     vertex.args       = item->serialize().toStdString();
+//     vertex.descriptor = *vi;
+//   }
 }
 
 //-----------------------------------------------------------------------------
-RelationshipGraph::Vertex RelationshipGraph::vertex(ModelItemPtr item) const
+DirectedGraph::Vertex DirectedGraph::vertex(AnalysisItemSPtr item) const
 {
   //   qDebug() << "Previous id" << item->m_vertex;
   Vertex v;
@@ -184,53 +180,53 @@ RelationshipGraph::Vertex RelationshipGraph::vertex(ModelItemPtr item) const
 }
 
 //-----------------------------------------------------------------------------
-RelationshipGraph::Vertex RelationshipGraph::vertex(RelationshipGraph::VertexDescriptor vd)
+DirectedGraph::Vertex DirectedGraph::vertex(DirectedGraph::VertexDescriptor vd)
 {
   return m_graph[vd];
 }
 
 //-----------------------------------------------------------------------------
-void RelationshipGraph::addRelation(ModelItemPtr   ancestor,
-                                    ModelItemPtr   successor,
+void DirectedGraph::addRelation(AnalysisItemSPtr   ancestor,
+                                    AnalysisItemSPtr   successor,
                                     const QString &description)
 {
-  EdgeProperty p;
-  p.relationship = description.toStdString();
-
-  VertexDescriptor ancestorVD  = vertex(ancestor).descriptor;
-  VertexDescriptor successorVD = vertex(successor).descriptor;
-
-  OutEdgeIterator edge;
-  if (findRelation(ancestorVD, successorVD, description, edge))
-  {
-    qWarning() << "RelationshipGraph: Realtion (" << ancestor->data().toString() << "==>" << description << "==>" << successor->data().toString() << ") already exists";
-  } else
-  {
-    boost::add_edge(ancestorVD, successorVD, p, m_graph);
-  }
+//   EdgeProperty p;
+//   p.relationship = description.toStdString();
+// 
+//   VertexDescriptor ancestorVD  = vertex(ancestor).descriptor;
+//   VertexDescriptor successorVD = vertex(successor).descriptor;
+// 
+//   OutEdgeIterator edge;
+//   if (findRelation(ancestorVD, successorVD, description, edge))
+//   {
+//     qWarning() << "DirectedGraph: Realtion (" << ancestor->data().toString() << "==>" << description << "==>" << successor->data().toString() << ") already exists";
+//   } else
+//   {
+//     boost::add_edge(ancestorVD, successorVD, p, m_graph);
+//   }
 }
 
 //-----------------------------------------------------------------------------
-void RelationshipGraph::removeRelation(ModelItemPtr   ancestor,
-                                       ModelItemPtr   successor,
+void DirectedGraph::removeRelation(AnalysisItemSPtr   ancestor,
+                                       AnalysisItemSPtr   successor,
                                        const QString &description)
 {
-  VertexDescriptor ancestorVD  = vertex(ancestor).descriptor;
-  VertexDescriptor successorVD = vertex(successor).descriptor;
-
-  OutEdgeIterator edge;
-  if (findRelation(ancestorVD, successorVD, description, edge))
-  {
-    boost::remove_edge(edge, m_graph);
-  } else
-  {
-    qWarning() << "RelationshipGraph: Realtion (" << ancestor->data().toString() << "==>" << description << "==>" << successor->data().toString() << ") already removed";
-  }
+//   VertexDescriptor ancestorVD  = vertex(ancestor).descriptor;
+//   VertexDescriptor successorVD = vertex(successor).descriptor;
+// 
+//   OutEdgeIterator edge;
+//   if (findRelation(ancestorVD, successorVD, description, edge))
+//   {
+//     boost::remove_edge(edge, m_graph);
+//   } else
+//   {
+//     qWarning() << "DirectedGraph: Realtion (" << ancestor->data().toString() << "==>" << description << "==>" << successor->data().toString() << ") already removed";
+//   }
 }
 
 
 //-----------------------------------------------------------------------------
-RelationshipGraph::Edges RelationshipGraph::edges(const QString &filter)
+DirectedGraph::Edges DirectedGraph::edges(const QString &filter)
 {
   Edges result;
 
@@ -250,7 +246,7 @@ RelationshipGraph::Edges RelationshipGraph::edges(const QString &filter)
 }
 
 //-----------------------------------------------------------------------------
-RelationshipGraph::Edges RelationshipGraph::inEdges(Vertex v, const QString &filter)
+DirectedGraph::Edges DirectedGraph::inEdges(Vertex v, const QString &filter)
 {
   Edges result;
 
@@ -270,7 +266,7 @@ RelationshipGraph::Edges RelationshipGraph::inEdges(Vertex v, const QString &fil
 }
 
 //-----------------------------------------------------------------------------
-RelationshipGraph::Edges RelationshipGraph::outEdges(Vertex v, const QString &filter)
+DirectedGraph::Edges DirectedGraph::outEdges(Vertex v, const QString &filter)
 {
   Edges result;
 
@@ -290,7 +286,7 @@ RelationshipGraph::Edges RelationshipGraph::outEdges(Vertex v, const QString &fi
 }
 
 //-----------------------------------------------------------------------------
-RelationshipGraph::Edges RelationshipGraph::edges(Vertex v, const QString &filter)
+DirectedGraph::Edges DirectedGraph::edges(Vertex v, const QString &filter)
 {
   Edges result;
 
@@ -301,7 +297,7 @@ RelationshipGraph::Edges RelationshipGraph::edges(Vertex v, const QString &filte
 }
 
 //-----------------------------------------------------------------------------
-void RelationshipGraph::removeEdges(Vertex v)
+void DirectedGraph::removeEdges(Vertex v)
 {
   OutEdgeIterator oei, oei_end;
   boost::tie(oei, oei_end) = boost::out_edges(v.descriptor, m_graph); 
@@ -329,7 +325,7 @@ void RelationshipGraph::removeEdges(Vertex v)
 }
 
 //-----------------------------------------------------------------------------
-RelationshipGraph::Vertices RelationshipGraph::vertices() const
+DirectedGraph::Vertices DirectedGraph::vertices() const
 {
   Vertices result;
 
@@ -346,7 +342,7 @@ RelationshipGraph::Vertices RelationshipGraph::vertices() const
 }
 
 //-----------------------------------------------------------------------------
-RelationshipGraph::Vertices RelationshipGraph::ancestors(Vertex v, const QString &filter) const
+DirectedGraph::Vertices DirectedGraph::ancestors(Vertex v, const QString &filter) const
 {
   Vertices result;
   InEdgeIterator iei, iei_end;
@@ -367,7 +363,7 @@ RelationshipGraph::Vertices RelationshipGraph::ancestors(Vertex v, const QString
 }
 
 //-----------------------------------------------------------------------------
-RelationshipGraph::Vertices RelationshipGraph::succesors(Vertex v, const QString &filter) const
+DirectedGraph::Vertices DirectedGraph::succesors(Vertex v, const QString &filter) const
 {
   Vertices result;
   OutEdgeIterator oei, oei_end;
@@ -387,7 +383,7 @@ RelationshipGraph::Vertices RelationshipGraph::succesors(Vertex v, const QString
 }
 
 //-----------------------------------------------------------------------------
-void RelationshipGraph::setItem(Vertex &v, ModelItemPtr item)
+void DirectedGraph::setItem(Vertex &v, AnalysisItemSPtr item)
 {
   Q_ASSERT(item);
   v.item = item;
@@ -395,26 +391,26 @@ void RelationshipGraph::setItem(Vertex &v, ModelItemPtr item)
   m_graph[v.descriptor].item = v.item;
 }
 
-//-----------------------------------------------------------------------------
-ModelItemType RelationshipGraph::type(const Vertex v)
-{
-  if (v.item)
-    return v.item->type();
-  else if (v.shape == SAMPLE_SHAPE)
-    return SAMPLE;
-  else if (v.shape == CHANNEL_SHAPE)
-    return CHANNEL;
-  else if (v.shape == SEGMENTATION_SHAPE)
-    return SEGMENTATION;
-  else if (v.shape == FILTER_SHAPE)
-    return FILTER;
+// //-----------------------------------------------------------------------------
+// AnalysisItemType DirectedGraph::type(const Vertex v)
+// {
+//   if (v.item)
+//     return v.item->type();
+//   else if (v.shape == SAMPLE_TYPE)
+//     return SAMPLE;
+//   else if (v.shape == CHANNEL_TYPE)
+//     return CHANNEL;
+//   else if (v.shape == SEGMENTATION_TYPE)
+//     return SEGMENTATION;
+//   else if (v.shape == FILTER_TYPE)
+//     return FILTER;
+// 
+//   Q_ASSERT(false);
+//   return TAXONOMY;
+// }
 
-  Q_ASSERT(false);
-  return TAXONOMY;
-}
-
 //-----------------------------------------------------------------------------
-void RelationshipGraph::read(std::istream& stream, RelationshipGraph::PrintFormat format)
+void DirectedGraph::read(std::istream& stream, DirectedGraph::PrintFormat format)
 {
   switch (format)
   {
@@ -426,9 +422,9 @@ void RelationshipGraph::read(std::istream& stream, RelationshipGraph::PrintForma
       boost::dynamic_properties dp;
 
       dp.property("node_id", boost::get(boost::vertex_index        , m_graph));
-      dp.property("label"  , boost::get(&Vertex::name      , m_graph));
-      dp.property("shape"  , boost::get(&Vertex::shape     , m_graph));
-      dp.property("args"   , boost::get(&Vertex::args      , m_graph));
+//       dp.property("label"  , boost::get(&Vertex::name      , m_graph));
+//       dp.property("shape"  , boost::get(&Vertex::shape     , m_graph));
+//       dp.property("args"   , boost::get(&Vertex::args      , m_graph));
       dp.property("label"  , boost::get(&EdgeProperty::relationship, m_graph));
       boost::read_graphviz(stream, m_graph, dp);
 
@@ -442,7 +438,7 @@ void RelationshipGraph::read(std::istream& stream, RelationshipGraph::PrintForma
 }
 
 //-----------------------------------------------------------------------------
-void RelationshipGraph::write(std::ostream &stream, RelationshipGraph::PrintFormat format)
+void DirectedGraph::write(std::ostream &stream, DirectedGraph::PrintFormat format)
 {
   switch (format)
   {
@@ -455,9 +451,9 @@ void RelationshipGraph::write(std::ostream &stream, RelationshipGraph::PrintForm
       boost::dynamic_properties dp;
 
       dp.property("node_id", boost::get(boost::vertex_index        , m_graph));
-      dp.property("label"  , boost::get(&Vertex::name      , m_graph));
-      dp.property("shape"  , boost::get(&Vertex::shape     , m_graph));
-      dp.property("args"   , boost::get(&Vertex::args      , m_graph));
+//       dp.property("label"  , boost::get(&Vertex::name      , m_graph));
+//       dp.property("shape"  , boost::get(&Vertex::shape     , m_graph));
+//       dp.property("args"   , boost::get(&Vertex::args      , m_graph));
       dp.property("label"  , boost::get(&EdgeProperty::relationship, m_graph));
       boost::write_graphviz_dp(stream, m_graph, dp);
 
@@ -470,7 +466,7 @@ void RelationshipGraph::write(std::ostream &stream, RelationshipGraph::PrintForm
 }
 
 //-----------------------------------------------------------------------------
-bool RelationshipGraph::findRelation(const VertexDescriptor source,
+bool DirectedGraph::findRelation(const VertexDescriptor source,
                                      const VertexDescriptor destination,
                                      const QString         &relation,
                                      OutEdgeIterator       &edge) const
