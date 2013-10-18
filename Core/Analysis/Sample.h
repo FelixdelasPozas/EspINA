@@ -46,8 +46,6 @@ namespace EspINA
   , public Persistent
   {
   public:
-    explicit Sample();
-
     virtual ~Sample();
 
     virtual void restoreState(const State& state);
@@ -64,19 +62,24 @@ namespace EspINA
 
     void setPosition(Nm point[3]);
     //Nm &&position() const;
-    void position(Nm point[3]);
-
-    /** \brief Return the spatial bounds in nm of the Sample in the Analysis frame reference
-     */
-    Bounds bounds();
+    void position(Nm point[3]) const;
 
     /** \brief Set the spatial bounds in nm of the Sample in the Analysis frame reference
      */
-    void setBounds(const Bounds& bounds);
+    void setBounds(const Bounds& bounds)
+    { m_bounds = bounds; }
+    
+    /** \brief Return the spatial bounds in nm of the Sample in the Analysis frame reference
+     */
+    Bounds bounds() const
+    { return m_bounds; }
+    
+  private:
+    explicit Sample(const QString& name);
+    friend class CoreFactory;
 
   private:
     QString m_name;
-
     Bounds  m_bounds;
   };
 }// namespace EspINA

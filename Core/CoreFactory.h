@@ -47,7 +47,7 @@ namespace EspINA
 
     void registerFilter(FilterCreatorPtr creator, const Filter::Type &filter);
 
-    SampleSPtr createSample() const;
+    SampleSPtr createSample(const QString& name = QString()) const;
 
     FilterSPtr createFilter(OutputSList inputs, Filter::Type& filter) const;
 

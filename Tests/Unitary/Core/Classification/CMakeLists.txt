@@ -1,4 +1,3 @@
-# Bound tests
 create_test_sourcelist(TEST_SOURCES Classification_Tests.cpp # this file is created by this command
   classification_create_category.cpp
   classification_create_existing_category.cpp

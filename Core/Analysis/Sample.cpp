@@ -18,9 +18,62 @@
 
 #include "Core/Analysis/Sample.h"
 
-#include <QDebug>
-
 using namespace EspINA;
+
+//------------------------------------------------------------------------
+Sample::Sample(const QString& name)
+: m_name{name}
+{
+
+}
+
+//------------------------------------------------------------------------
+Sample::~Sample()
+{
+
+}
+
+//------------------------------------------------------------------------
+void Sample::restoreState(const State& state)
+{
+
+}
+
+//------------------------------------------------------------------------
+std::ostream Sample::saveState() const
+{
+
+}
+
+//------------------------------------------------------------------------
+void Sample::saveSnapshot(Persistent::StorageSPtr storage) const
+{
+
+}
+
+//------------------------------------------------------------------------
+void Sample::setPosition(Nm point[3])
+{
+  for(int i = 0; i < 3; ++i) 
+  {
+    Nm d{m_bounds[2*i+1] - m_bounds[2*i]};
+
+    m_bounds[2*i]   = point[i];
+    m_bounds[2*i+1] = point[i] + d;
+  }
+
+}
+
+//------------------------------------------------------------------------
+void Sample::position(Nm point[3]) const
+{
+  for(int i = 0; i < 3; ++i) 
+  {
+    point[i] = m_bounds[2*i];
+  }
+}
+
+
 
 // //------------------------------------------------------------------------
 // Sample::Sample(const QString &id)

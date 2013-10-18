@@ -27,19 +27,27 @@
  */
 
 #include "Core/Analysis/Sample.h"
-#include "Core/Analysis/Channel.h"
-#include "Core/Analysis/Filter.h"
-#include "Core/Analysis/Segmentation.h"
-#include "Core/Analysis/Analysis.h"
+#include <Core/CoreFactory.h>
 
 using namespace EspINA;
 using namespace std;
 
-int analysis_add_sample( int argc, char** argv )
+int sample_save_state(int argc, char** argv)
 {
   bool error = false;
+  
+  CoreFactory factory;
 
-  Analysis analysis;
-
+  QString name = "Sample";
+  
+  SampleSPtr sample = factory.createSample(name);
+  
+  QString serialization = "TODO";
+  
+  if (sample->saveState() != serialization) {
+    cerr << "Unexpected State: " << sample->saveState() << endl;
+    error = true;
+  }
+  
   return error;
 }

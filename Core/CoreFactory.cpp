@@ -16,8 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #include "CoreFactory.h"
+
+#include "Core/Analysis/Sample.h"
 
 using namespace EspINA;
 
@@ -27,57 +28,61 @@ CoreFactory::CoreFactory()
 
 }
 
+//-----------------------------------------------------------------------------
+CoreFactory::~CoreFactory()
+{
 
-// //------------------------------------------------------------------------
-// EspinaFactory::EspinaFactory()
-// {
-//   // Register Default Extensions
-//   m_supportedFiles << CHANNEL_FILES;
-//   m_supportedExtensions << "*.mhd" << "*.mha" << "*.tif";
-// 
-//   m_supportedFiles << SEG_FILES;
-//   m_supportedExtensions << "*.seg";
-// }
-// 
-// //------------------------------------------------------------------------
-// EspinaFactory::~EspinaFactory()
-// {
-// //   qDebug() << "Destroying Espina Factory";
-// }
-// 
-// //------------------------------------------------------------------------
-// QStringList EspinaFactory::supportedFiles() const
-// {
-//   QStringList files;
-//   QString espinaFiles =  QObject::tr("EspINA Files (%1)").arg(m_supportedExtensions.join(" "));
-// 
-//   files << espinaFiles << m_supportedFiles;
-//   return files;
-// }
-// 
-// //------------------------------------------------------------------------
-// void EspinaFactory::registerFilter(IFilterCreatorPtr creator,
-//                                    const QString &filter)
-// {
-//   Q_ASSERT(m_filterCreators.contains(filter) == false);
-//   m_filterCreators[filter] = creator;
-// }
-// 
-// //------------------------------------------------------------------------
-// void EspinaFactory::registerReaderFactory(IFileReaderPtr     reader,
-//                                           const QString     &description,
-//                                           const QStringList &extensions)
-// {
-//   m_supportedFiles << description;
-// 
-//   foreach(QString extension, extensions)
-//   {
-//     Q_ASSERT(m_fileReaders.contains(extension) == false);
-//     m_fileReaders[extension] = reader;
-//     m_supportedExtensions << QString("*.%1").arg(extension);
-//   }
-// }
-// 
+}
+
+//-----------------------------------------------------------------------------
+void CoreFactory::registerFilter(FilterCreatorPtr creator, const Filter::Type& filter)
+{
+
+}
+
+//-----------------------------------------------------------------------------
+SampleSPtr CoreFactory::createSample(const QString& name) const
+{
+  return SampleSPtr(new Sample(name));
+}
+
+//-----------------------------------------------------------------------------
+FilterSPtr CoreFactory::createFilter(OutputSList inputs, Filter::Type& filter) const
+{
+
+}
+
+//-----------------------------------------------------------------------------
+ChannelSPtr CoreFactory::createChannel(OutputSPtr output) const
+{
+
+}
+
+//-----------------------------------------------------------------------------
+SegmentationSPtr CoreFactory::createSegmentation(OutputSPtr output) const
+{
+
+}
+
+//-----------------------------------------------------------------------------
+void CoreFactory::registerExtensionProvider(ExtensionProviderPtr provider)
+{
+
+}
+
+//-----------------------------------------------------------------------------
+void CoreFactory::unregisterExtensionProvider(ExtensionProviderPtr provider)
+{
+
+}
+
+
+//-----------------------------------------------------------------------------
+ExtensionProviderPtr CoreFactory::extensionProvider(const ExtensionProvider::Type& type) const
+{
+
+}
+
 // //------------------------------------------------------------------------
 // void EspinaFactory::registerChannelExtension(Channel::ExtensionPtr extension)
 // {
