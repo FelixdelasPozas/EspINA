@@ -26,16 +26,42 @@
  * 
  */
 
-#include "Core/Analysis/Analysis.h"
+#include "Core/Analysis/Graph/DirectedGraph.h"
+
+#include <Core/Analysis/AnalysisItem.h>
+#include "DummyItem.h"
 
 using namespace EspINA;
+using namespace UnitTesting;
 using namespace std;
 
-int analysis_add_sample( int argc, char** argv )
+int directed_graph_add_item( int argc, char** argv )
 {
   bool error = false;
 
-  Analysis analysis;
+  DirectedGraph graph;
+  
+  DummyItemSPtr item{new DummyItem()};
+  
+  graph.addItem(item);
+  
+  if (graph.vertices().size() != 1) 
+  {
+    cerr << "Unexpected number of vertices" << endl;
+    error = true;    
+  }
+  
+  if (graph.vertices().first().item != item) 
+  {
+    cerr << "Unexpected vertex" << endl;
+    error = true;    
+  }
+  
+  if (!graph.edges().isEmpty()) 
+  {
+    cerr << "Unexpected number of edges" << endl;
+    error = true;    
+  }
 
   return error;
 }

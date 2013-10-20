@@ -36,6 +36,13 @@ namespace EspINA
   class EspinaCore_EXPORT DirectedGraph
   {
   public:
+    struct Null_Item_Exception {};
+    struct Existing_Item_Exception {};
+    struct Existing_Relation_Exception {};
+    struct Item_Not_Found_Exception {};
+    struct Relation_Not_Found_Exception {};
+
+  public:
     // Bundled Properties
     struct Vertex
     {
@@ -121,6 +128,10 @@ namespace EspINA
                         AnalysisItemSPtr  successor,
                         const QString &description);
 
+    /// Retrieve current vertex index of a AnalysisItem
+    /// A vertex with NULL item field is returned if no vertex contains item
+    Vertex vertex(AnalysisItemSPtr item) const;
+
     /// Return all graph's edges
     Edges edges(const QString &filter = "");
 
@@ -152,12 +163,6 @@ namespace EspINA
     //DEPRECATED:
     /// Update vertex's information with model's items' information
     void updateVertexInformation();
-
-  private:
-    //DEPRECATED
-    /// Retrieve current vertex index of a AnalysisItem
-    /// A vertex with NULL item field is returned if no vertex contains item
-    Vertex vertex(AnalysisItemSPtr item) const;
 
   private:
     Vertex vertex(DirectedGraph::VertexDescriptor vd);

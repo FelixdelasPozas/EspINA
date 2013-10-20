@@ -26,16 +26,35 @@
  * 
  */
 
-#include "Core/Analysis/Analysis.h"
+#include "Core/Analysis/Graph/DirectedGraph.h"
+
+#include <Core/Analysis/AnalysisItem.h>
+#include "DummyItem.h"
 
 using namespace EspINA;
+using namespace UnitTesting;
 using namespace std;
 
-int analysis_add_sample( int argc, char** argv )
+int directed_graph_add_existing_relation(int argc, char** argv )
 {
-  bool error = false;
+  DirectedGraph graph;
+  
+  DummyItemSPtr item1{new DummyItem()};
+  DummyItemSPtr item2{new DummyItem()};
+  QString       relation{"link"};
+  
+  graph.addItem(item1);
+  
+  graph.addItem(item2);
+  
+  graph.addRelation(item1, item2, relation);
+  
+  try {
+    graph.addRelation(item1, item2, relation);
+    cerr << "Expected existing relation exception" << endl;
+  } catch (DirectedGraph::Existing_Relation_Exception e) {
+    return 0;
+  }
 
-  Analysis analysis;
-
-  return error;
+  return -1;
 }

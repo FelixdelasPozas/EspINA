@@ -87,7 +87,9 @@ DirectedGraph::DirectedGraph()
 //-----------------------------------------------------------------------------
 void DirectedGraph::addItem(AnalysisItemSPtr item)
 {
-  Q_ASSERT(vertex(item).item == nullptr);
+  if (item.get() == nullptr) throw (Null_Item_Exception());
+  
+  if (vertex(item).item != nullptr) throw (Existing_Item_Exception());
 
   VertexDescriptor v = add_vertex(m_graph);
 
@@ -101,6 +103,8 @@ void DirectedGraph::addItem(AnalysisItemSPtr item)
 void DirectedGraph::removeItem(AnalysisItemSPtr item)
 {
   Vertex v = vertex(item);
+  
+  if (v.item == nullptr) throw (Item_Not_Found_Exception());
 
   clear_vertex (v.descriptor, m_graph);
   remove_vertex(v.descriptor, m_graph);
@@ -167,7 +171,7 @@ DirectedGraph::Vertex DirectedGraph::vertex(AnalysisItemSPtr item) const
   {
     VertexDescriptor vd = *vi;
 
-    if(m_graph[vd].item == item)
+    if(m_graph[vd].item.get() == item.get())
     {
       m_graph[vd].descriptor = vd;
       v = m_graph[vd];
@@ -186,24 +190,31 @@ DirectedGraph::Vertex DirectedGraph::vertex(DirectedGraph::VertexDescriptor vd)
 }
 
 //-----------------------------------------------------------------------------
-void DirectedGraph::addRelation(AnalysisItemSPtr   ancestor,
-                                    AnalysisItemSPtr   successor,
-                                    const QString &description)
+void DirectedGraph::addRelation(AnalysisItemSPtr ancestor,
+                                AnalysisItemSPtr successor,
+                                const QString&   description)
 {
-//   EdgeProperty p;
-//   p.relationship = description.toStdString();
-// 
-//   VertexDescriptor ancestorVD  = vertex(ancestor).descriptor;
-//   VertexDescriptor successorVD = vertex(successor).descriptor;
-// 
-//   OutEdgeIterator edge;
-//   if (findRelation(ancestorVD, successorVD, description, edge))
-//   {
-//     qWarning() << "DirectedGraph: Realtion (" << ancestor->data().toString() << "==>" << description << "==>" << successor->data().toString() << ") already exists";
-//   } else
-//   {
-//     boost::add_edge(ancestorVD, successorVD, p, m_graph);
-//   }
+  if (ancestor.get() == nullptr || successor.get() == nullptr) throw (Null_Item_Exception());
+  
+  EdgeProperty p;
+  p.relationship = description.toStdString();
+
+  Vertex av = vertex(ancestor);
+  Vertex sv = vertex(successor);
+  
+  if (av.item == nullptr || sv.item == nullptr) throw (Item_Not_Found_Exception());
+  
+  VertexDescriptor avd = av.descriptor;
+  VertexDescriptor svd = sv.descriptor;
+
+  OutEdgeIterator edge;
+  if (findRelation(avd, svd, description, edge))
+  {
+    throw (Existing_Relation_Exception());
+  } else
+  {
+    boost::add_edge(avd, svd, p, m_graph);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -211,17 +222,17 @@ void DirectedGraph::removeRelation(AnalysisItemSPtr   ancestor,
                                        AnalysisItemSPtr   successor,
                                        const QString &description)
 {
-//   VertexDescriptor ancestorVD  = vertex(ancestor).descriptor;
-//   VertexDescriptor successorVD = vertex(successor).descriptor;
-// 
-//   OutEdgeIterator edge;
-//   if (findRelation(ancestorVD, successorVD, description, edge))
-//   {
-//     boost::remove_edge(edge, m_graph);
-//   } else
-//   {
-//     qWarning() << "DirectedGraph: Realtion (" << ancestor->data().toString() << "==>" << description << "==>" << successor->data().toString() << ") already removed";
-//   }
+  VertexDescriptor ancestorVD  = vertex(ancestor).descriptor;
+  VertexDescriptor successorVD = vertex(successor).descriptor;
+
+  OutEdgeIterator edge;
+  if (findRelation(ancestorVD, successorVD, description, edge))
+  {
+    boost::remove_edge(edge, m_graph);
+  } else
+  {
+    throw (Relation_Not_Found_Exception());
+  }
 }
 
 

@@ -26,16 +26,43 @@
  * 
  */
 
-#include "Core/Analysis/Analysis.h"
+#include <Core/CoreFactory.h>
+#include "Core/Analysis/Channel.h"
 
 using namespace EspINA;
 using namespace std;
 
-int analysis_add_sample( int argc, char** argv )
+bool TestHue(ChannelSPtr channel, double hue) {
+  bool error = false;
+ 
+  channel->setHue(hue);
+  if (channel->hue() != hue) {
+    cerr << "Unexepected hue value:" << hue << endl;
+    error = true;
+  }
+  
+  return error;
+}
+
+//TODO 2013-10-20: Add test to check saturation on hue changes
+int channel_set_hue(int argc, char** argv )
 {
   bool error = false;
 
-  Analysis analysis;
+  CoreFactory factory;
+  OutputSPtr output{new Output()};
 
+  ChannelSPtr channel = factory.createChannel(output);
+  
+  if (channel->hue() != -1) {
+    cerr << "Unexepected initial hue value" << endl;
+    error = true;
+  }
+  
+  error |= TestHue(channel, -1.0);
+  error |= TestHue(channel,  0.0);
+  error |= TestHue(channel,  0.5);
+  error |= TestHue(channel,  1.0);
+  
   return error;
 }

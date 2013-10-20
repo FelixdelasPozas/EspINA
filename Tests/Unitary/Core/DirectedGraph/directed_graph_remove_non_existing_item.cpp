@@ -26,16 +26,27 @@
  * 
  */
 
-#include "Core/Analysis/Analysis.h"
+#include "Core/Analysis/Graph/DirectedGraph.h"
+
+#include <Core/Analysis/AnalysisItem.h>
+#include "DummyItem.h"
 
 using namespace EspINA;
+using namespace UnitTesting;
 using namespace std;
 
-int analysis_add_sample( int argc, char** argv )
+int directed_graph_remove_non_existing_item( int argc, char** argv )
 {
-  bool error = false;
+  DirectedGraph graph;
+  
+  DummyItemSPtr item{new DummyItem()};
+  
+  try {
+    graph.removeItem(item);
+    cerr << "Remove non added item" << endl;
+  } catch (DirectedGraph::Item_Not_Found_Exception e) {
+    return 0;
+  }
 
-  Analysis analysis;
-
-  return error;
+  return -1;
 }

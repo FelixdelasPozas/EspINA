@@ -25,21 +25,21 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  */
-
-#include "Core/Analysis/Sample.h"
-#include "Core/Analysis/Channel.h"
-#include "Core/Analysis/Filter.h"
-#include "Core/Analysis/Segmentation.h"
-#include "Core/Analysis/Analysis.h"
+#include "Core/Analysis/Output.h"
 
 using namespace EspINA;
 using namespace std;
 
-int analysis_add_sample( int argc, char** argv )
+int output_invalid_output( int argc, char** argv )
 {
   bool error = false;
 
-  Analysis analysis;
+  Output output;
+
+  if (output.isValid()) {
+    cerr << "Default output constructor creates an invalid output" << endl;
+    error = true;
+  }
 
   return error;
 }

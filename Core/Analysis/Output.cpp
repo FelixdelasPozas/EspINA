@@ -27,20 +27,34 @@
 
 
 #include "Output.h"
+#include "Filter.h"
 
 #include <vtkMath.h>
 
 using namespace EspINA;
 
-//const int EspINA::FilterOutput::INVALID_OUTPUT_ID = -1;
+const int EspINA::Output::INVALID_OUTPUT_ID = -1;
 
 TimeStamp Output::s_tick = 0;
 
+//----------------------------------------------------------------------------
+Output::Output(FilterPtr filter, const Output::Id& id)
+: m_filter{filter}
+, m_id{id}
+, m_timeStamp{s_tick++}
+, m_hasToBeSaved{false}
+{
+
+}
+
+
+//----------------------------------------------------------------------------
 Bounds Output::bounds() const
 {
 
 }
 
+//----------------------------------------------------------------------------
 void Output::clearEditedRegions()
 {
 
@@ -68,15 +82,19 @@ bool Output::isEdited() const
 
 bool Output::isValid() const
 {
+  if (m_filter == nullptr) return false;
+  
+  if (m_id == INVALID_OUTPUT_ID) return false;
+  
+  foreach(DataSPtr data, m_data) 
+  {
+    if (!data->isValid()) return false;
+  }
 
+  return !m_data.isEmpty();
 }
 
 void Output::onDataChanged()
-{
-
-}
-
-Output::Output(FilterPtr filter, const Output::Id& id): QObject()
 {
 
 }
@@ -93,6 +111,21 @@ void Output::restoreEditedRegions(const QDir& cacheDir, const QString& ouptutId)
 
 void Output::setData(const Data::Type& type, Output::DataSPtr data)
 {
+  if (m_data.contains(type))
+  {
+//     disconnect(m_data[type].get(), SIGNAL(representationChanged()),
+//                this, SLOT(onRepresentationChanged()));
+  }
+
+  if (data.get()) {
+    m_data[type] = data;
+
+//     connect(m_representations[name].get(), SIGNAL(representationChanged()),
+//             this, SLOT(onRepresentationChanged()));
+  } else 
+  {
+    m_data.remove(type);
+  }
 
 }
 
@@ -103,25 +136,10 @@ void Output::setEditedRegions(Output::EditedRegionSList regions)
 
 void Output::update()
 {
-
+  m_filter->update(m_id);
 }
 
 
-// //----------------------------------------------------------------------------
-// FilterOutput::FilterOutput(Filter *filter, const FilterOutputId &id)
-// : m_id(id)
-// , m_isCached(false)
-// , m_filter(filter)
-// , m_timeStamp(s_tick++)
-// {
-// }
-// 
-// //----------------------------------------------------------------------------
-// void FilterOutput::update()
-// {
-//   m_filter->update(m_id);
-// }
-// 
 // //----------------------------------------------------------------------------
 // void FilterOutput::onRepresentationChanged()
 // {
@@ -133,23 +151,6 @@ void Output::update()
 // ChannelOutput::ChannelOutput(Filter *filter, const FilterOutputId &id)
 // : FilterOutput(filter, id)
 // {
-// }
-// 
-// //----------------------------------------------------------------------------
-// bool ChannelOutput::isValid() const
-// {
-//   bool validData = !m_representations.isEmpty();
-// 
-//   int i = 0;
-//   while (validData && i < m_representations.size())
-//   {
-//     validData = m_representations[m_representations.keys()[i]]->isValid();
-//     ++i;
-//   }
-// 
-//   return NULL != m_filter
-//       && INVALID_OUTPUT_ID < m_id
-//       && validData;
 // }
 // 
 // //----------------------------------------------------------------------------
@@ -236,23 +237,6 @@ void Output::update()
 //   snapshot << SnapshotEntry(outputInfoFile, outputInfo.str().c_str());
 // 
 //   return dumped;
-// }
-// 
-// //----------------------------------------------------------------------------
-// bool SegmentationOutput::isValid() const
-// {
-//   bool validData = !m_representations.isEmpty();
-// 
-//   int i = 0;
-//   while (validData && i < m_representations.size())
-//   {
-//     validData = m_representations[m_representations.keys()[i]]->isValid();
-//     ++i;
-//   }
-// 
-//   return NULL != m_filter
-//       && INVALID_OUTPUT_ID < m_id
-//       && validData;
 // }
 // 
 // //----------------------------------------------------------------------------
@@ -363,25 +347,3 @@ void Output::update()
 //   clearEditedRegions();
 //   //FIXME set regions
 // }
-// 
-// //----------------------------------------------------------------------------
-// void SegmentationOutput::setRepresentation(const FilterOutput::OutputRepresentationName &name,
-//                                            SegmentationRepresentationSPtr representation)
-// {
-//   if (m_representations.contains(name))
-//   {
-//     disconnect(m_representations[name].get(), SIGNAL(representationChanged()),
-//                this, SLOT(onRepresentationChanged()));
-//   }
-// 
-//   if (representation.get()) {
-//     m_representations[name] = representation;
-// 
-//     connect(m_representations[name].get(), SIGNAL(representationChanged()),
-//             this, SLOT(onRepresentationChanged()));
-//   } else 
-//   {
-//     m_representations.remove(name);
-//   }
-// }
-// 

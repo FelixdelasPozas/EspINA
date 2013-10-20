@@ -26,16 +26,40 @@
  * 
  */
 
-#include "Core/Analysis/Analysis.h"
+#include <Core/CoreFactory.h>
+#include "Core/Analysis/Channel.h"
 
 using namespace EspINA;
 using namespace std;
 
-int analysis_add_sample( int argc, char** argv )
+bool TestBrightness(ChannelSPtr channel, double brightness) {
+  bool error = false;
+ 
+  channel->setBrightness(brightness);
+  if (channel->brightness() != brightness) {
+    cerr << "Unexepected brightness value:" << brightness << endl;
+    error = true;
+  }
+  
+  return error;
+}
+int channel_set_brightness(int argc, char** argv )
 {
   bool error = false;
 
-  Analysis analysis;
+  CoreFactory factory;
+  OutputSPtr output{new Output()};
 
+  ChannelSPtr channel = factory.createChannel(output);
+  
+  if (channel->brightness() != 0) {
+    cerr << "Unexepected initial brightness value" << endl;
+    error = true;
+  }
+  
+  error |= TestBrightness(channel, -1.0);
+  error |= TestBrightness(channel,  0.5);
+  error |= TestBrightness(channel,  1.0);
+  
   return error;
 }

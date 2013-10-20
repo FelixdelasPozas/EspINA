@@ -43,7 +43,10 @@ int scheduler_change_task_priority( int argc, char** argv )
 {
   int error = 0;
   
-  int schedulerPeriod = 50000;
+  int schedulerPeriod = 5000;
+  int taskSleepTime   = 4*schedulerPeriod;
+  int taskTime        = 10*taskSleepTime;
+  
   SchedulerSPtr scheduler = SchedulerSPtr(new Scheduler(schedulerPeriod));
   
   int numThreads = QThreadPool::globalInstance()->maxThreadCount();
@@ -52,7 +55,7 @@ int scheduler_change_task_priority( int argc, char** argv )
   std::vector<unique_ptr<SleepyTask>> tasks;
   
   for (int i = 0; i < numTasks; ++i) {
-    tasks.push_back(unique_ptr<SleepyTask>(new SleepyTask(50000, scheduler)));
+    tasks.push_back(unique_ptr<SleepyTask>(new SleepyTask(taskSleepTime, scheduler)));
     tasks.at(i)->setDescription(QString("Task %1").arg(i));
     tasks.at(i)->submit();
   }
@@ -87,7 +90,7 @@ int scheduler_change_task_priority( int argc, char** argv )
     std::cerr << "Last Task should be paused by the dispatcher" << std::endl;
   }
   
-  usleep(numTasks * 500000);
+  usleep((numTasks + 1) * taskTime);
   
   for (int i = 0; i < numTasks; ++i) {
     if (tasks.at(i)->Result != 1) {

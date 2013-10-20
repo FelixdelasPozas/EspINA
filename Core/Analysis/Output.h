@@ -70,6 +70,7 @@ namespace EspINA
     bool isValid() const;
 
     bool isEdited() const;
+
     void push(EditedRegionSList editedRegions);
 
     /// clear output's edited regions

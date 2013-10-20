@@ -26,20 +26,41 @@
  * 
  */
 
-#include "Core/Analysis/Sample.h"
+#include <Core/CoreFactory.h>
 #include "Core/Analysis/Channel.h"
-#include "Core/Analysis/Filter.h"
-#include "Core/Analysis/Segmentation.h"
-#include "Core/Analysis/Analysis.h"
 
 using namespace EspINA;
 using namespace std;
 
-int analysis_add_sample( int argc, char** argv )
+bool TestSaturation(ChannelSPtr channel, double saturation) {
+  bool error = false;
+ 
+  channel->setSaturation(saturation);
+  if (channel->saturation() != saturation) {
+    cerr << "Unexepected saturation value:" << saturation << endl;
+    error = true;
+  }
+  
+  return error;
+}
+
+int channel_set_saturation(int argc, char** argv )
 {
   bool error = false;
 
-  Analysis analysis;
+  CoreFactory factory;
+  OutputSPtr output{new Output()};
 
+  ChannelSPtr channel = factory.createChannel(output);
+  
+  if (channel->saturation() != 0) {
+    cerr << "Unexepected initial saturation value" << endl;
+    error = true;
+  }
+  
+  error |= TestSaturation(channel,  0.0);
+  error |= TestSaturation(channel,  0.5);
+  error |= TestSaturation(channel,  1.0);
+  
   return error;
 }

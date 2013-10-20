@@ -26,16 +26,33 @@
  * 
  */
 
-#include "Core/Analysis/Analysis.h"
+#include <Core/CoreFactory.h>
+#include "Core/Analysis/Channel.h"
 
 using namespace EspINA;
 using namespace std;
 
-int analysis_add_sample( int argc, char** argv )
+int channel_set_invalid_contrast(int argc, char** argv )
 {
   bool error = false;
 
-  Analysis analysis;
+  CoreFactory factory;
+  OutputSPtr output{new Output()};
 
+  ChannelSPtr channel = factory.createChannel(output);
+
+  channel->setContrast(-0.5);
+  if (channel->contrast() != 0.0) {
+    cerr << "Unexepected contrast value:" << channel->contrast() << endl;
+    error = true;
+  }
+  
+  channel->setContrast(2.5);
+  if (channel->contrast() != 2.0) {
+    cerr << "Unexepected contrast value:" << channel->contrast() << endl;
+    error = true;
+  }
+  
+  
   return error;
 }

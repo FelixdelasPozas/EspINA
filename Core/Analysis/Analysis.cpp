@@ -37,7 +37,7 @@
 using namespace EspINA;
 
 //------------------------------------------------------------------------
-Analysis::Analysis(CoreFactorySPtr factory)
+Analysis::Analysis()
 {
 
 }

@@ -77,6 +77,7 @@ namespace EspINA
      *   If there is no output with given oId, nullptr will be returned
      *
      */
+    //NOTE: Is still abstract?
     virtual OutputSPtr output(Output::Id id) const = 0;
 
     // TODO 2013-11-17: Move to utils or sth similar
@@ -122,6 +123,8 @@ namespace EspINA
 
     /// Method which actually executes the filter to generate output oId
     virtual void execute(Output::Id id) = 0;
+    
+    virtual bool invalidateEditedRegions() = 0;
 
   protected:
     using OutputMap = QMap<Output::Id, OutputSPtr>;

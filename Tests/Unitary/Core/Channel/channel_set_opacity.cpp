@@ -26,16 +26,42 @@
  * 
  */
 
-#include "Core/Analysis/Analysis.h"
+#include <Core/CoreFactory.h>
+#include "Core/Analysis/Channel.h"
 
 using namespace EspINA;
 using namespace std;
 
-int analysis_add_sample( int argc, char** argv )
+bool TestOpacity(ChannelSPtr channel, double opacity) {
+  bool error = false;
+ 
+  channel->setOpacity(opacity);
+  if (channel->opacity() != opacity) {
+    cerr << "Unexepected opacity value:" << opacity << endl;
+    error = true;
+  }
+  
+  return error;
+}
+
+int channel_set_opacity(int argc, char** argv )
 {
   bool error = false;
 
-  Analysis analysis;
+  CoreFactory factory;
+  OutputSPtr output{new Output()};
 
+  ChannelSPtr channel = factory.createChannel(output);
+  
+  if (channel->opacity() != -1.0) {
+    cerr << "Unexepected initial opacity value" << endl;
+    error = true;
+  }
+  
+  error |= TestOpacity(channel, -1.0);
+  error |= TestOpacity(channel,  0.0);
+  error |= TestOpacity(channel,  0.5);
+  error |= TestOpacity(channel,  1.0);
+  
   return error;
 }

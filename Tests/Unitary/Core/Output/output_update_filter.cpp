@@ -25,17 +25,62 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  */
-
-#include "Core/Analysis/Analysis.h"
+#include "Core/Analysis/Output.h"
+#include <Core/Analysis/Filter.h>
+#include <Core/MultiTasking/Scheduler.h>
 
 using namespace EspINA;
 using namespace std;
 
-int analysis_add_sample( int argc, char** argv )
+
+int output_update_filter( int argc, char** argv )
 {
+  class DummyFilter
+  : public Filter 
+  {
+  public:
+    explicit DummyFilter()
+    : Filter(OutputSList(), "Dummy", SchedulerSPtr(new Scheduler(10000000)))
+    , UpdatedOutput{-1}{}
+    virtual OutputSPtr output(Output::Id id) const {}
+    
+    int UpdatedOutput;
+    
+  protected:
+    virtual void loadFilterCache(const QDir& dir){}
+    virtual void saveFilterCache(const Persistent::Id id) const{}
+    virtual bool needUpdate() const {return true;}
+    virtual bool needUpdate(Output::Id id) const {return true;}
+    virtual DataSPtr createDataProxy(Output::Id id, const Data::Type& type){}
+    virtual void execute(){}
+    virtual void execute(Output::Id id){UpdatedOutput = id;}
+    virtual bool invalidateEditedRegions() {return false;}
+  };
+  
   bool error = false;
 
-  Analysis analysis;
+  DummyFilter *filter{new DummyFilter()};
 
+  Output::Id id = 0;
+  
+  Output output(filter, id);
+  
+  output.update();
+  
+  if (filter->UpdatedOutput != id) {
+    cerr << "Unexpected filter update for output " << id << endl;
+    error = true;
+  }
+  
+  id = 5;
+  Output output2(filter, id);
+  
+  output2.update();
+  
+  if (filter->UpdatedOutput != id) {
+    cerr << "Unexpected filter update for output " << id << endl;
+    error = true;
+  }
+  
   return error;
 }

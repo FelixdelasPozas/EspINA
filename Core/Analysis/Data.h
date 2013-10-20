@@ -57,7 +57,8 @@ namespace EspINA
 
     virtual Data::Type type() const = 0; 
 
-    void setOutput(OutputPtr output);
+    void setOutput(OutputPtr output)
+    { m_output = output; }
 
     /** \brief Last modification time stamp
      */
@@ -88,8 +89,8 @@ namespace EspINA
     void dataChanged();//former representationChanged
 
   protected:
-    explicit Data(OutputPtr output)
-    : m_output(output), m_timeStamp(s_tick++) {}
+    explicit Data()
+    : m_output(nullptr), m_timeStamp(s_tick++) {}
 
     void updateModificationTime() 
     {

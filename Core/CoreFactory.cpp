@@ -19,6 +19,7 @@
 #include "CoreFactory.h"
 
 #include "Core/Analysis/Sample.h"
+#include "Core/Analysis/Channel.h"
 
 using namespace EspINA;
 
@@ -55,7 +56,7 @@ FilterSPtr CoreFactory::createFilter(OutputSList inputs, Filter::Type& filter) c
 //-----------------------------------------------------------------------------
 ChannelSPtr CoreFactory::createChannel(OutputSPtr output) const
 {
-
+  return ChannelSPtr(new Channel(output));
 }
 
 //-----------------------------------------------------------------------------
@@ -195,30 +196,6 @@ ExtensionProviderPtr CoreFactory::extensionProvider(const ExtensionProvider::Typ
 //     handler->error(QObject::tr("%1 file extension is not supported").arg(ext));
 // 
 //   return success;
-// }
-// 
-// //------------------------------------------------------------------------
-// SampleSPtr EspinaFactory::createSample(const QString &id, const QString &args)
-// {
-//   SampleSPtr sample;
-// 
-//   if (args.isNull())
-//     sample = SampleSPtr(new Sample(id));
-//   else
-//     sample = SampleSPtr(new Sample(id, args));
-// 
-//   return sample;
-// }
-// 
-// //------------------------------------------------------------------------
-// ChannelSPtr EspinaFactory::createChannel(FilterSPtr filter,
-//                                          const FilterOutputId &oId)
-// {
-//   ChannelSPtr channel(new Channel(filter, oId));
-// //   foreach(ChannelExtensionPtr ext, m_channelExtensions)
-// //     channel->addExtension(ext->clone());
-// 
-//   return channel;
 // }
 // 
 // //------------------------------------------------------------------------

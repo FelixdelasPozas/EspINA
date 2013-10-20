@@ -26,16 +26,28 @@
  * 
  */
 
-#include "Core/Analysis/Analysis.h"
+#include "Core/Analysis/Graph/DirectedGraph.h"
 
 using namespace EspINA;
 using namespace std;
 
-int analysis_add_sample( int argc, char** argv )
+int directed_graph_default_constructor( int argc, char** argv )
 {
   bool error = false;
 
-  Analysis analysis;
-
+  DirectedGraph graph;
+  
+  if (!graph.vertices().isEmpty()) 
+  {
+    cerr << "Unexpected vertices in default constructed graph" << endl;
+    error = true;    
+  }
+  
+  if (!graph.edges().isEmpty()) 
+  {
+    cerr << "Unexpected edges in default constructed graph" << endl;
+    error = true;    
+  }
+  
   return error;
 }

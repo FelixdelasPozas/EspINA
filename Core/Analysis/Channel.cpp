@@ -31,6 +31,33 @@
 
 using namespace EspINA;
 
+const double MIN_BRIGHTNESS = -1.0;
+const double MAX_BRIGHTNESS =  1.0;
+
+const double MIN_CONTRAST = 0.0;
+const double MAX_CONTRAST = 2.0;
+
+const double MIN_HUE =  0.0;
+const double MAX_HUE =  1.0;
+const double NO_HUE  = -1.0;
+
+const double MIN_OPACITY  =  0.0;
+const double MAX_OPACITY  =  1.0;
+const double AUTO_OPACITY = -1.0;
+
+const double MIN_SATURATION = 0.0;
+const double MAX_SATURATION = 1.0;
+
+//------------------------------------------------------------------------
+Channel::Channel(OutputSPtr output) 
+: m_brightness{0.0}
+, m_contrast{1.0}
+, m_hue{NO_HUE}
+, m_opacity{AUTO_OPACITY}
+, m_saturation{0.0}
+{
+}
+
 //------------------------------------------------------------------------
 Channel::~Channel()
 {
@@ -50,19 +77,6 @@ ostream Channel::saveState() const
 
 //------------------------------------------------------------------------
 void Channel::addExtension(ChannelExtensionSPtr extension)
-{
-
-}
-
-double Channel::brightness() const
-{
-
-}
-Channel::Channel(OutputSPtr output)
-{
-
-}
-double Channel::contrast() const
 {
 
 }
@@ -91,10 +105,6 @@ bool Channel::hasExtension(const ChannelExtension::Type& type) const
 
 }
 
-double Channel::hue() const
-{
-
-}
 void Channel::initializeExtensions()
 {
 
@@ -108,31 +118,7 @@ void Channel::saveSnapshot(Persistent::StorageSPtr storage) const
 
 }
 
-double Channel::opacity() const
-{
-
-}
 void Channel::position(Nm point[3])
-{
-
-}
-double Channel::saturation() const
-{
-
-}
-void Channel::setBrightness(double brightness)
-{
-
-}
-void Channel::setContrast(double contrast)
-{
-
-}
-void Channel::setHue(double hue)
-{
-
-}
-void Channel::setOpacity(double opacity)
 {
 
 }
@@ -140,12 +126,81 @@ void Channel::setPosition(Nm point[3])
 {
 
 }
-void Channel::setSaturation(double saturation)
-{
 
+//------------------------------------------------------------------------
+void Channel::setHue(double hue)
+{
+  if (hue < MIN_HUE && hue != NO_HUE)
+  {
+    m_hue = MIN_HUE;
+  } else if (hue > MAX_HUE) 
+  {
+    m_hue = MAX_HUE;
+  } else 
+  {
+    m_hue = hue;    
+  }
 }
 
+//------------------------------------------------------------------------
+void Channel::setOpacity(double opacity)
+{
+  if (opacity < MIN_OPACITY && opacity != AUTO_OPACITY)
+  {
+    m_opacity = MIN_OPACITY;
+  } else if (opacity > MAX_OPACITY) 
+  {
+    m_opacity = MAX_OPACITY;
+  } else 
+  {
+    m_opacity = opacity;    
+  }
+}
 
+//------------------------------------------------------------------------
+void Channel::setSaturation(double saturation)
+{
+  if (saturation < MIN_SATURATION)
+  {
+    m_saturation = MIN_SATURATION;
+  } else if (saturation > MAX_SATURATION) 
+  {
+    m_saturation = MAX_SATURATION;
+  } else 
+  {
+    m_saturation = saturation;    
+  }
+}
+
+//------------------------------------------------------------------------
+void Channel::setContrast(double contrast)
+{
+  if (contrast < MIN_CONTRAST)
+  {
+    m_contrast = MIN_CONTRAST;
+  } else if (contrast > MAX_CONTRAST) 
+  {
+    m_contrast = MAX_CONTRAST;
+  } else 
+  {
+    m_contrast = contrast;    
+  }
+}
+
+//------------------------------------------------------------------------
+void Channel::setBrightness(double brightness)
+{
+  if (brightness < MIN_BRIGHTNESS)
+  {
+    m_brightness = MIN_BRIGHTNESS;
+  } else if (brightness > MAX_BRIGHTNESS) 
+  {
+    m_brightness = MAX_BRIGHTNESS;
+  } else 
+  {
+    m_brightness = brightness;    
+  }
+}
 
 
 // static const State::Id ID;

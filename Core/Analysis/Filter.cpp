@@ -34,9 +34,80 @@
 
 using namespace EspINA;
 
+//----------------------------------------------------------------------------
 Filter::~Filter()
 {
 
+}
+
+//----------------------------------------------------------------------------
+void Filter::restoreState(const State& state)
+{
+
+}
+
+//----------------------------------------------------------------------------
+ostream Filter::saveState() const
+{
+
+}
+
+//----------------------------------------------------------------------------
+void Filter::saveSnapshot(Persistent::StorageSPtr storage) const
+{
+
+}
+
+//----------------------------------------------------------------------------
+bool Filter::update()
+{
+  if (numberOfOutputs() == 0)
+  {
+    foreach(OutputSPtr input, m_inputs)
+    {
+      input->update();
+    }
+
+    execute();
+  }
+  else
+  {
+    foreach(Output::Id id, availableOutputIds())
+    {
+      update(id);
+    }
+  }
+}
+
+//----------------------------------------------------------------------------
+bool Filter::update(Output::Id id)
+{
+  bool invalidateRegions = invalidateEditedRegions();
+  bool outputNeedsUpdate = needUpdate(id);
+
+   if (invalidateRegions || outputNeedsUpdate)
+   {
+     // Invalidate previous edited regions
+     if (invalidateRegions && m_outputs.contains(id))
+     {
+       m_outputs[id]->clearEditedRegions();
+     }
+
+     if (!fetchOutputData(id))
+     {
+       foreach(OutputSPtr input, m_inputs)
+       {
+         input->update();
+       }
+
+       execute(id);
+
+       if (m_outputs.contains(id))
+       {
+         //m_outputs[id]->restoreEditedRegions(m_cacheDir, cacheOutputId(oId));
+       }
+     }
+   }
 }
 
 void Filter::addData(Output::Id id, DataSPtr data)
@@ -59,41 +130,27 @@ void Filter::createOutput(Output::Id id)
 
 }
 
+//----------------------------------------------------------------------------
 Filter::Filter(OutputSList inputs, Filter::Type type, SchedulerSPtr scheduler)
 : Task(scheduler)
+, m_type(type)
+, m_inputs(inputs)
 {
 
 }
 
+//----------------------------------------------------------------------------
 bool Filter::fetchOutputData(Output::Id id)
 {
-
+  return false;
 }
-void Filter::restoreState(const State& state)
-{
 
-}
+
 unsigned int Filter::numberOfOutputs() const
 {
 
 }
-void Filter::saveSnapshot(Persistent::StorageSPtr storage) const
-{
 
-}
-
-ostream Filter::saveState() const
-{
-
-}
-bool Filter::update()
-{
-
-}
-bool Filter::update(Output::Id id)
-{
-
-}
 bool Filter::validOutput(Output::Id id)
 {
 
@@ -188,73 +245,8 @@ bool Filter::validOutput(Output::Id id)
 // }
 // 
 // //----------------------------------------------------------------------------
-// void Filter::update()
-// {
-//   if (numberOfOutputs() == 0)
-//   {
-//     m_inputs.clear();
-// 
-//     QStringList namedInputList = m_args[INPUTS].split(",", QString::SkipEmptyParts);
-//     foreach(QString namedInput, namedInputList)
-//     {
-//       QStringList input = namedInput.split("_");
-//       FilterSPtr inputFilter = m_namedInputs[input[0]];
-//       FilterOutputId iId = input[1].toInt();
-//       inputFilter->update(iId);
-//       m_inputs << inputFilter->output(iId);
-//     }
-// 
-//     run();
-// 
-//     m_executed = true;
-//   }
-//   else
-//   {
-//     foreach(FilterOutputId oId, availableOutputIds())
-//     {
-//       update(oId);
-//     }
-//   }
-// }
-// 
-// //----------------------------------------------------------------------------
 // void SegmentationFilter::update(FilterOutputId oId)
 // {
-//   bool ignoreOutputs     = ignoreCurrentOutputs();
-//   bool outputNeedsUpdate = needUpdate(oId);
-// 
-//    if (ignoreOutputs || outputNeedsUpdate)
-//    {
-//      // Invalidate previous edited regions
-//      if (ignoreOutputs && m_outputs.contains(oId))
-//      {
-//        m_outputs[oId]->clearEditedRegions();
-//      }
-// 
-//      if (!fetchSnapshot(oId))
-//      {
-//        m_inputs.clear();
-// 
-//        QStringList namedInputList = m_args[INPUTS].split(",", QString::SkipEmptyParts);
-//        foreach(QString namedInput, namedInputList)
-//        {
-//          QStringList input = namedInput.split("_");
-//          FilterSPtr inputFilter = m_namedInputs[input[0]];
-//          FilterOutputId iId = input[1].toInt();
-//          inputFilter->update(iId);
-//          m_inputs << inputFilter->output(iId);
-//        }
-// 
-//        run(oId);
-// 
-//        if (m_outputs.contains(oId))
-//        {
-//          m_outputs[oId]->restoreEditedRegions(m_cacheDir, cacheOutputId(oId));
-//        }
-// 
-//        m_executed = true;
-//      }
-//    }
 // }
 // 
 // //----------------------------------------------------------------------------

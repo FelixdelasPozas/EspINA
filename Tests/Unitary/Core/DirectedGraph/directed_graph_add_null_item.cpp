@@ -26,16 +26,27 @@
  * 
  */
 
-#include "Core/Analysis/Analysis.h"
+#include "Core/Analysis/Graph/DirectedGraph.h"
+
+#include <Core/Analysis/AnalysisItem.h>
+#include "DummyItem.h"
 
 using namespace EspINA;
+using namespace UnitTesting;
 using namespace std;
 
-int analysis_add_sample( int argc, char** argv )
+int directed_graph_add_null_item( int argc, char** argv )
 {
-  bool error = false;
-
-  Analysis analysis;
-
-  return error;
+  DirectedGraph graph;
+  
+  DummyItemSPtr item;
+  
+  try {
+    graph.addItem(item);
+    cerr << "Invalid NULL item added to graph" << endl;
+  } catch (DirectedGraph::Null_Item_Exception e) {
+    return 0;
+  }
+  
+  return -1;
 }

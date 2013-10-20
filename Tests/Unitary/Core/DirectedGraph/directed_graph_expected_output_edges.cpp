@@ -26,16 +26,63 @@
  * 
  */
 
-#include "Core/Analysis/Analysis.h"
+#include "Core/Analysis/Graph/DirectedGraph.h"
+
+#include <Core/Analysis/AnalysisItem.h>
+#include "DummyItem.h"
 
 using namespace EspINA;
+using namespace UnitTesting;
 using namespace std;
 
-int analysis_add_sample( int argc, char** argv )
+using Vertex = DirectedGraph::Vertex;
+
+int directed_graph_expected_output_edges( int argc, char** argv )
 {
   bool error = false;
 
-  Analysis analysis;
+  DirectedGraph graph;
+  
+  DummyItemSPtr item1{new DummyItem()};
+  DummyItemSPtr item2{new DummyItem()};
+  DummyItemSPtr item3{new DummyItem()};
 
+  QString link   {"link"   };
+  QString input1 {"input1" };
+  QString input2 {"input2" };
+  QString output1{"output1"};
+  QString output2{"output2"};
+  
+  graph.addItem(item1);
+  graph.addItem(item2);
+  graph.addItem(item3);
+  
+  graph.addRelation(item1, item2, input1);
+  graph.addRelation(item1, item2, input2);
+  
+  graph.addRelation(item2, item3, output1);
+  graph.addRelation(item2, item3, output2);
+  
+  graph.addRelation(item1, item2, link);
+  graph.addRelation(item2, item3, link);
+  
+  Vertex v1 = graph.vertex(item1);
+  if (graph.outEdges(v1).size() != 3) {
+    cerr << "Unexpected number of edges for vertex " << v1.descriptor << endl;
+    error = true;    
+  }
+  
+  Vertex v2 = graph.vertex(item2);
+  if (graph.outEdges(v2).size() != 3) {
+    cerr << "Unexpected number of edges for vertex " << v2.descriptor << endl;
+    error = true;    
+  }
+  
+  Vertex v3 = graph.vertex(item3);
+  if (graph.outEdges(v3).size() != 0) {
+    cerr << "Unexpected number of edges for vertex " << v3.descriptor << endl;
+    error = true;    
+  }
+  
   return error;
 }

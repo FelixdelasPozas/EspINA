@@ -26,16 +26,49 @@
  * 
  */
 
-#include "Core/Analysis/Analysis.h"
+#include "Core/Analysis/Graph/DirectedGraph.h"
+
+#include <Core/Analysis/AnalysisItem.h>
+#include "DummyItem.h"
 
 using namespace EspINA;
+using namespace UnitTesting;
 using namespace std;
 
-int analysis_add_sample( int argc, char** argv )
+int directed_graph_add_relation_between_non_existing_items( int argc, char** argv )
 {
-  bool error = false;
+  bool error1 = true;
+  bool error2 = true;
 
-  Analysis analysis;
+  DirectedGraph graph;
+  
+  DummyItemSPtr item1{new DummyItem()};
+  DummyItemSPtr item2{new DummyItem()};
+  DummyItemSPtr unexistingItem{new DummyItem()};
+  QString       relation{"link"};
+  
+  graph.addItem(item1);
+  
+  graph.addItem(item2);
+  
+  try {
+    graph.addRelation(item1, unexistingItem, relation);
+    cerr << "Added relation to unexisting item" << endl;
+  } catch (DirectedGraph::Item_Not_Found_Exception e) {
+    error1 = false;
+  }
+  
+  try {
+    graph.addRelation(unexistingItem, item2, relation);
+    cerr << "Added relation to unexisting item" << endl;
+  } catch (DirectedGraph::Item_Not_Found_Exception e) {
+    error2 = false;
+  }
+  
+  if (!graph.edges().isEmpty()) {
+    cerr << "Unexpected number of edges" << endl;
+    error1 = true;    
+  }
 
-  return error;
+  return error1 || error2;
 }

@@ -61,20 +61,74 @@ namespace EspINA
 
     void position(Nm point[3]);
 
+    /** \brief Set channel's hue
+     *
+     *  Hue value belongs to [0,1] U -1.\n
+     *  Not stained channels hue value is -1
+     */
     void setHue(double hue);
-    double hue() const;
 
+    /** \brief Channel's hue
+     *
+     *  Hue value belongs to [0,1] U -1.\n
+     *  Not stained channels hue value is -1
+     */
+    double hue() const
+    { return m_hue; }
+
+    /** \brief Set channel's opacity
+     * 
+     * Opacity value belong to [0,1] U -1 \n
+     * -1 value means opacity is automatically managed
+     */
     void setOpacity(double opacity);
-    double opacity() const;
+    
+    /** \brief Channel's opacity
+     * 
+     * Opacity value belong to [0,1] U -1 \n
+     * -1 value means opacity is automatically managed
+     */
+    double opacity() const
+    { return m_opacity; }
 
+    /** \brief Set channel's saturation
+     *
+     *  Saturation value belongs to [0,1].
+     */
     void setSaturation(double saturation);
-    double saturation() const;
 
+    /** \brief Channel's saturation
+     *
+     *  Saturation value belongs to [0,1]
+     */
+    double saturation() const
+    { return m_saturation; }
+
+    /** \brief Set channel's contrast
+     *
+     *  Contrast value belongs to [0,2]
+     */
     void setContrast(double contrast);
-    double contrast() const;
 
+    /** \brief Channel's contrast
+     *
+     *  Contrast value belongs to [0,2]
+     */
+    double contrast() const
+    { return m_contrast; }
+
+    /** \brief Set channel's brightness
+     *
+     *  Brightness value belongs to [-1,1]
+     */
     void setBrightness(double brightness);
-    double brightness() const;
+
+    /** \brief Channel's brightness
+     *
+     *  Brightness value belongs to [-1,1]
+     */
+    double brightness() const
+    { return m_brightness; }
 
     Bounds bounds() const;
 
@@ -106,7 +160,7 @@ namespace EspINA
 
   private:
     explicit Channel(OutputSPtr output);
-    friend class EspinaFactory;
+    friend class CoreFactory;
 
   private:
     static const int AUTOMATIC_OPACITY = -1;

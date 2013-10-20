@@ -35,10 +35,7 @@ namespace EspINA
   class EspinaCore_EXPORT Analysis
   {
   public:
-    explicit Analysis(CoreFactorySPtr factory = CoreFactorySPtr());
-
-    virtual CoreFactorySPtr factory() const
-    { return m_factory; }
+    explicit Analysis();
 
     void reset();
 
