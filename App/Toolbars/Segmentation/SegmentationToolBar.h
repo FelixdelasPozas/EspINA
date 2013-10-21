@@ -58,7 +58,7 @@ namespace EspINA
     )
 
   public:
-    SegmentationToolBar(EspinaModel *model,
+    SegmentationToolBar(ModelAdapter *model,
                         QUndoStack  *undoStack,
                         ViewManager *vm,
                         QWidget     *parent=NULL);
@@ -94,7 +94,7 @@ namespace EspINA
     void buildPickers();
 
   private:
-    EspinaModel *m_model;
+    ModelAdapter *m_model;
     QUndoStack  *m_undoStack;
     ViewManager *m_viewManager;
 

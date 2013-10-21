@@ -27,7 +27,7 @@ using namespace EspINA;
 //------------------------------------------------------------------------
 ChangeTaxonomyCommand::ChangeTaxonomyCommand(SegmentationList   segmentations,
                                              TaxonomyElementPtr taxonomy,
-                                             EspinaModel       *model,
+                                             ModelAdapter       *model,
                                              ViewManager       *viewManager,
                                              QUndoCommand      *parent)
 : QUndoCommand(parent)

@@ -52,7 +52,7 @@ namespace EspINA
   };
 
   //------------------------------------------------------------------------
-  NodesInformationDialog::NodesInformationDialog(EspinaModel *model,
+  NodesInformationDialog::NodesInformationDialog(ModelAdapter *model,
                                                  QUndoStack *undoStack,
                                                  ViewManager *vm,
                                                  TubularSegmentationFilter::Pointer filter,

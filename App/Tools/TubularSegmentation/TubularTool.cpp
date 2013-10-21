@@ -47,7 +47,7 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  TubularTool::TubularTool(ViewManager *vm, QUndoStack *undo, EspinaModel *model)
+  TubularTool::TubularTool(ViewManager *vm, QUndoStack *undo, ModelAdapter *model)
   : m_model(model)
   , m_enabled(true)
   , m_inUse(false)

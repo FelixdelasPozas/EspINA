@@ -33,7 +33,7 @@ namespace EspINA
 {
   typedef QString ReaderId;
 
-  class EspinaModel;
+  class ModelAdapter;
   class ViewManager;
 
   class EspinaCore_EXPORT IFileReader
@@ -41,7 +41,7 @@ namespace EspINA
   public:
     virtual ~IFileReader();
 
-    virtual void initFileReader(EspinaModel *model,
+    virtual void initFileReader(ModelAdapter *model,
                                 QUndoStack  *undoStack,
                                 ViewManager *viewManager) = 0;
 

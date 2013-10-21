@@ -24,8 +24,9 @@ namespace EspINA
   using ClassificationSPtr = std::shared_ptr<Classification>;
 
   class AnalysisItem;
-  using AnalysisItemPtr  = AnalysisItem *;
-  using AnalysisItemSPtr = std::shared_ptr<AnalysisItem>;
+  using AnalysisItemPtr   = AnalysisItem *;
+  using AnalysisItemSPtr  = std::shared_ptr<AnalysisItem>;
+  using AnalysisItemSList = QList<AnalysisItemSPtr>;
 
   class Sample;
   using SamplePtr   = Sample *;
@@ -57,8 +58,6 @@ namespace EspINA
   using OutputSPtr  = std::shared_ptr<Output>;
   using OutputSList = QList<OutputSPtr>;
 
-  using RelationName = QString;
-
   class CoreFactory;
   using CoreFactorySPtr = std::shared_ptr<CoreFactory>;
 
@@ -75,6 +74,8 @@ namespace EspINA
     RELATION_OUT,
     RELATION_INOUT
   };
+  using RelationName = QString;
+
 
   using TimeStamp = unsigned long long;
 } // namespace EspINA

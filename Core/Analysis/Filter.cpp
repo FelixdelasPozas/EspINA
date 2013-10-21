@@ -59,6 +59,12 @@ void Filter::saveSnapshot(Persistent::StorageSPtr storage) const
 }
 
 //----------------------------------------------------------------------------
+void Filter::unload()
+{
+
+}
+
+//----------------------------------------------------------------------------
 bool Filter::update()
 {
   if (numberOfOutputs() == 0)

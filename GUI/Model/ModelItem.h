@@ -30,7 +30,7 @@
 
 namespace EspINA
 {
-  class EspinaModel;
+  class ModelAdapter;
   class IEspinaModel;
 
   template<class T>
@@ -117,9 +117,9 @@ namespace EspINA
     void modified(ModelItemPtr);
 
   protected:
-    EspinaModel *m_model;
+    ModelAdapter *m_model;
 
-    friend class EspinaModel;
+    friend class ModelAdapter;
   };
 
   ModelItemPtr EspinaCore_EXPORT indexPtr(const QModelIndex &index);

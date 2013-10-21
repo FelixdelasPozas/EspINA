@@ -30,14 +30,14 @@
 
 namespace EspINA
 {
-  class EspinaModel;
+  class ModelAdapter;
 
   class EspinaUndo_EXPORT AddTaxonomyCommand
   : public QUndoCommand
   {
   public:
     explicit AddTaxonomyCommand(TaxonomySPtr  taxonomy,
-                                EspinaModel  *model,
+                                ModelAdapter  *model,
                                 QUndoCommand *parent = NULL);
     virtual void redo();
     virtual void undo();
@@ -46,7 +46,7 @@ namespace EspINA
     void swapTaxonomy();
 
   private:
-    EspinaModel *m_model;
+    ModelAdapter *m_model;
 
     TaxonomySPtr m_prevTaxonomy;
   };
@@ -58,12 +58,12 @@ namespace EspINA
   public:
     explicit AddTaxonomyElement(TaxonomyElementSPtr parentTaxonomy,
                                 TaxonomyElementSPtr element,
-                                EspinaModel        *model,
+                                ModelAdapter        *model,
                                 QUndoCommand       *parent = NULL);
 
     explicit AddTaxonomyElement(TaxonomyElementPtr parentTaxonomy,
                                 const QString     &name,
-                                EspinaModel       *model,
+                                ModelAdapter       *model,
                                 QColor            color,
                                 QUndoCommand      *parent = NULL);
     virtual ~AddTaxonomyElement();
@@ -72,7 +72,7 @@ namespace EspINA
     virtual void undo();
 
   private:
-    EspinaModel *m_model;
+    ModelAdapter *m_model;
 
     QString m_name;
     QColor  m_color;
@@ -88,7 +88,7 @@ namespace EspINA
   public:
     explicit MoveTaxonomiesCommand(TaxonomyElementList taxonomies,
                                    TaxonomyElementPtr  parentTaxonomy,
-                                   EspinaModel         *model,
+                                   ModelAdapter         *model,
                                    QUndoCommand        *parent = NULL);
     virtual ~MoveTaxonomiesCommand();
 
@@ -96,7 +96,7 @@ namespace EspINA
     virtual void undo();
 
   private:
-    EspinaModel *m_model;
+    ModelAdapter *m_model;
 
     TaxonomyElementSPtr m_parentTaxonomy;
     QMap<TaxonomyElementSPtr, TaxonomyElementSPtr> m_oldTaxonomyParents;
@@ -109,7 +109,7 @@ namespace EspINA
   {
   public:
     explicit RemoveTaxonomyElementCommand(TaxonomyElementPtr taxonomy,
-                                          EspinaModel       *model,
+                                          ModelAdapter       *model,
                                           QUndoCommand      *parent=NULL);
     virtual ~RemoveTaxonomyElementCommand();
 
@@ -117,7 +117,7 @@ namespace EspINA
     virtual void undo();
 
   private:
-    EspinaModel *m_model;
+    ModelAdapter *m_model;
 
     TaxonomyElementSPtr m_taxonomy;
     TaxonomyElementSPtr m_parent;

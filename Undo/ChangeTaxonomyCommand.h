@@ -32,7 +32,7 @@
 
 namespace EspINA
 {
-  class EspinaModel;
+  class ModelAdapter;
   class ViewManager;
 
   class EspinaUndo_EXPORT ChangeTaxonomyCommand
@@ -41,7 +41,7 @@ namespace EspINA
   public:
     explicit ChangeTaxonomyCommand(SegmentationList   segmentations,
                                    TaxonomyElementPtr taxonomy,
-                                   EspinaModel       *model,
+                                   ModelAdapter       *model,
                                    ViewManager       *viewManager,
                                    QUndoCommand      *parent = NULL);
     virtual ~ChangeTaxonomyCommand();
@@ -50,7 +50,7 @@ namespace EspINA
     virtual void undo();
 
   private:
-    EspinaModel *m_model;
+    ModelAdapter *m_model;
     ViewManager *m_viewManager;
 
     TaxonomyElementSPtr m_taxonomy;

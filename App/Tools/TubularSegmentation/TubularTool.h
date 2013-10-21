@@ -23,7 +23,7 @@ namespace EspINA
 {
   class ISelector;
   class Channel;
-  class EspinaModel;
+  class ModelAdapter;
   class Segmentation;
   class ViewManager;
   class TubularWidget;
@@ -49,7 +49,7 @@ namespace EspINA
       };
 
     public:
-      explicit TubularTool(ViewManager *, QUndoStack *, EspinaModel *);
+      explicit TubularTool(ViewManager *, QUndoStack *, ModelAdapter *);
       virtual ~TubularTool();
 
       virtual QCursor cursor() const;
@@ -81,7 +81,7 @@ namespace EspINA
     private:
       ChannelSPtr                         m_channel;
       SegmentationSPtr                    m_seg;
-      EspinaModel                        *m_model;
+      ModelAdapter                        *m_model;
       bool                                m_enabled;
       bool                                m_inUse;
       bool                                m_roundExtremes;

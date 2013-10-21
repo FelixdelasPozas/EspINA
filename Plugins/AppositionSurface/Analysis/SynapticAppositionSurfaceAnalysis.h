@@ -39,7 +39,7 @@ class QUndoStack;
 
 namespace EspINA
 {
-  class EspinaModel;
+  class ModelAdapter;
   class ViewManager;
 
   class AppositionSurfacePlugin_EXPORT SynapticAppositionSurfaceAnalysis
@@ -49,7 +49,7 @@ namespace EspINA
     Q_OBJECT
   public:
     explicit SynapticAppositionSurfaceAnalysis(SegmentationList segmentations,
-                                               EspinaModel     *model,
+                                               ModelAdapter     *model,
                                                QUndoStack      *undoStack,
                                                ViewManager     *viewManager,
                                                QWidget         *parent);
@@ -65,7 +65,7 @@ namespace EspINA
     bool exportToXLS(const QString &filename);
 
   private:
-    EspinaModel *m_model;
+    ModelAdapter *m_model;
     QUndoStack  *m_undoStack;
     ViewManager *m_viewManager;
 

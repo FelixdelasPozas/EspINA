@@ -54,6 +54,8 @@ namespace EspINA
 
     virtual void saveSnapshot(StorageSPtr storage) const;
 
+    virtual void unload();
+
     void setName(const QString& name)
     { m_name = name; }
 

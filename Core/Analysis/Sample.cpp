@@ -52,6 +52,12 @@ void Sample::saveSnapshot(Persistent::StorageSPtr storage) const
 }
 
 //------------------------------------------------------------------------
+void Sample::unload()
+{
+
+}
+
+//------------------------------------------------------------------------
 void Sample::setPosition(Nm point[3])
 {
   for(int i = 0; i < 3; ++i) 

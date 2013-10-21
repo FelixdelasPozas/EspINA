@@ -31,7 +31,7 @@ class QUndoStack;
 
 namespace EspINA
 {
-  class EspinaModel;
+  class ModelAdapter;
   class ViewManager;
 
   class EspinaCore_EXPORT IToolBar

@@ -156,7 +156,7 @@ EspinaMainWindow::DynamicMenuNode::~DynamicMenuNode()
 }
 
 //------------------------------------------------------------------------
-EspinaMainWindow::EspinaMainWindow(EspinaModel      *model,
+EspinaMainWindow::EspinaMainWindow(ModelAdapter      *model,
                                    ViewManager      *viewManager,
                                    QList<QObject *> &plugins)
 : QMainWindow()

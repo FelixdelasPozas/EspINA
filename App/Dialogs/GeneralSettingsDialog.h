@@ -31,7 +31,7 @@
 
 namespace EspINA
 {
-  class EspinaModel;
+  class ModelAdapter;
   class GeneralSettings;
 
   class GeneralSettingsPanel
@@ -39,7 +39,7 @@ namespace EspINA
   , Ui::GeneralSettingsPanel
   {
   public:
-    GeneralSettingsPanel(EspinaModel *model, GeneralSettings *settings);
+    GeneralSettingsPanel(ModelAdapter *model, GeneralSettings *settings);
     virtual ~GeneralSettingsPanel();
 
     virtual const QString shortDescription() {return "Session";}
@@ -53,7 +53,7 @@ namespace EspINA
     virtual ISettingsPanelPtr clone();
 
   private:
-    EspinaModel     *m_model;
+    ModelAdapter     *m_model;
     GeneralSettings *m_settings;
   };
 

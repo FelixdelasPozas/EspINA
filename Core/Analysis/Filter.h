@@ -51,6 +51,8 @@ namespace EspINA
 
     virtual void saveSnapshot(StorageSPtr storage) const;
 
+    virtual void unload();
+
     Type type() { return m_type; }
 
     /** \brief Update all filter outputs

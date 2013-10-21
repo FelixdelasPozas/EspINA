@@ -51,7 +51,7 @@ using namespace EspINA;
 
 //------------------------------------------------------------------------
 DefaultContextualMenu::DefaultContextualMenu(SegmentationList selection,
-                                             EspinaModel     *model,
+                                             ModelAdapter     *model,
                                              QUndoStack      *undoStack,
                                              ViewManager     *viewManager,
                                              QWidget         *parent)

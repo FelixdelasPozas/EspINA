@@ -28,13 +28,13 @@ class QUndoStack;
 
 namespace EspINA
 {
-  class EspinaModel;
+  class ModelAdapter;
   class ViewManager;
 
   class EspinaCore_EXPORT IToolBarFactory
   {
   public:
-    virtual void initToolBarFactory(EspinaModel *model,
+    virtual void initToolBarFactory(ModelAdapter *model,
                                     QUndoStack  *undoStack,
                                     ViewManager *viewManager) = 0;
     virtual ~IToolBarFactory();

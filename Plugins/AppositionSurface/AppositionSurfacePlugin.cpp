@@ -67,7 +67,7 @@ AppositionSurface::~AppositionSurface()
 }
 
 //-----------------------------------------------------------------------------
-void AppositionSurface::initToolBarFactory(EspinaModel *model, QUndoStack *undoStack, ViewManager *viewManager)
+void AppositionSurface::initToolBarFactory(ModelAdapter *model, QUndoStack *undoStack, ViewManager *viewManager)
 {
   m_model = model;
   m_undoStack = undoStack;

@@ -49,6 +49,8 @@ namespace EspINA
 
     virtual void saveSnapshot(StorageSPtr storage) const;
 
+    virtual void unload();
+
     virtual void initializeExtensions();
 
     virtual void invalidateExtensions();

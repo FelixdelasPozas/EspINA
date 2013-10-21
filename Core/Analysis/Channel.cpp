@@ -118,10 +118,20 @@ void Channel::saveSnapshot(Persistent::StorageSPtr storage) const
 
 }
 
+//------------------------------------------------------------------------
+void Channel::unload()
+{
+
+}
+
+
+//------------------------------------------------------------------------
 void Channel::position(Nm point[3])
 {
 
 }
+
+//------------------------------------------------------------------------
 void Channel::setPosition(Nm point[3])
 {
 

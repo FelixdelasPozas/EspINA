@@ -53,6 +53,8 @@ namespace EspINA
 
     virtual void saveSnapshot(StorageSPtr storage) const;
 
+    virtual void unload();
+
     virtual void initializeExtensions();
 
     virtual void invalidateExtensions();
@@ -82,7 +84,7 @@ namespace EspINA
      * -1 value means opacity is automatically managed
      */
     void setOpacity(double opacity);
-    
+
     /** \brief Channel's opacity
      * 
      * Opacity value belong to [0,1] U -1 \n

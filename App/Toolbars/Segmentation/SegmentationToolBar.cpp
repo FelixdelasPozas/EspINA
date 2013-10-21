@@ -52,7 +52,7 @@ const ModelItem::ArgumentId TYPE = "Type";
 
 
 //-----------------------------------------------------------------------------
-SegmentationToolBar::SegmentationToolBar(EspinaModel *model,
+SegmentationToolBar::SegmentationToolBar(ModelAdapter *model,
                                          QUndoStack  *undoStack,
                                          ViewManager *viewManager,
                                          QWidget     *parent)

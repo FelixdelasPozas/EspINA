@@ -28,7 +28,7 @@ namespace EspINA
   //------------------------------------------------------------------------
   AppositionSurfaceAction::AppositionSurfaceAction(ViewManager *vm,
                                                    QUndoStack *undo,
-                                                   EspinaModel *model,
+                                                   ModelAdapter *model,
                                                    QObject *parent)
   : QAction(parent)
   , m_viewManager(vm)

@@ -34,7 +34,7 @@ namespace EspINA
 {
   class ViewManager;
   class ITool;
-  class EspinaModel;
+  class ModelAdapter;
 
   /// Display Information of all segmentations that have been created
   class NodesInformationDialog
@@ -43,7 +43,7 @@ namespace EspINA
   {
     Q_OBJECT
     public:
-      explicit NodesInformationDialog(EspinaModel *model,
+      explicit NodesInformationDialog(ModelAdapter *model,
                                       QUndoStack *undoStack,
                                       ViewManager *vm,
                                       TubularSegmentationFilter::Pointer filter,
@@ -56,7 +56,7 @@ namespace EspINA
     private:
       QUndoStack                           *m_undoStack;
       ViewManager                          *m_viewManager;
-      EspinaModel                          *m_model;
+      ModelAdapter                          *m_model;
       boost::shared_ptr<QSortFilterProxyModel> m_sort;
       TubularSegmentationFilter::Pointer    m_filter;
       QWidget                              *m_lastWidget;

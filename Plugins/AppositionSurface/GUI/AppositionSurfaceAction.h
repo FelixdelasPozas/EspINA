@@ -2,7 +2,7 @@
  * AppositionSurfaceAction.h
  *
  *  Created on: Jan 16, 2013
- *      Author: Félix de las Pozas Álvarez
+ *      Author: Fï¿½lix de las Pozas ï¿½lvarez
  */
 
 #ifndef APPOSITIONSURFACEACTION_H_
@@ -17,7 +17,7 @@
 namespace EspINA
 {
   class ViewManager;
-  class EspinaModel;
+  class ModelAdapter;
 
   class AppositionSurfacePlugin_EXPORT AppositionSurfaceAction
   : public QAction
@@ -26,7 +26,7 @@ namespace EspINA
     public:
       explicit AppositionSurfaceAction(ViewManager *vm,
                                        QUndoStack  *undo,
-                                       EspinaModel *model,
+                                       ModelAdapter *model,
                                        QObject     *parent = 0);
       virtual ~AppositionSurfaceAction();
 
@@ -36,7 +36,7 @@ namespace EspINA
     private:
       ViewManager *m_viewManager;
       QUndoStack  *m_undoStack;
-      EspinaModel *m_model;
+      ModelAdapter *m_model;
   };
 
 } /* namespace EspINA */

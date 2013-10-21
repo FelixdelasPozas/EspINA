@@ -24,7 +24,7 @@ using namespace EspINA;
 
 //------------------------------------------------------------------------
 AddTaxonomyCommand::AddTaxonomyCommand(TaxonomySPtr taxonomy,
-                                       EspinaModel  *model,
+                                       ModelAdapter  *model,
                                        QUndoCommand *parent)
 : QUndoCommand(parent)
 , m_model(model)
@@ -57,7 +57,7 @@ void AddTaxonomyCommand::swapTaxonomy()
 //------------------------------------------------------------------------
 AddTaxonomyElement::AddTaxonomyElement(TaxonomyElementSPtr parentTaxonomy,
                                        TaxonomyElementSPtr element,
-                                       EspinaModel        *model,
+                                       ModelAdapter        *model,
                                        QUndoCommand       *parent)
 : QUndoCommand(parent)
 , m_model(model)
@@ -72,7 +72,7 @@ AddTaxonomyElement::AddTaxonomyElement(TaxonomyElementSPtr parentTaxonomy,
 //------------------------------------------------------------------------
 AddTaxonomyElement::AddTaxonomyElement(TaxonomyElementPtr parentTaxonomy,
                                        const QString     &name,
-                                       EspinaModel       *model,
+                                       ModelAdapter       *model,
                                        QColor             color,
                                        QUndoCommand      *parent)
 : QUndoCommand(parent)
@@ -114,7 +114,7 @@ void AddTaxonomyElement::undo()
 //------------------------------------------------------------------------
 MoveTaxonomiesCommand::MoveTaxonomiesCommand(TaxonomyElementList taxonomies,
                                              TaxonomyElementPtr  parentTaxonomy,
-                                             EspinaModel         *model,
+                                             ModelAdapter         *model,
                                              QUndoCommand        *parent)
 : QUndoCommand    (parent)
 , m_model         (model)
@@ -154,7 +154,7 @@ void MoveTaxonomiesCommand::undo()
 
 //------------------------------------------------------------------------
 RemoveTaxonomyElementCommand::RemoveTaxonomyElementCommand(TaxonomyElementPtr taxonomy,
-                                                           EspinaModel       *model,
+                                                           ModelAdapter       *model,
                                                            QUndoCommand      *parent)
 : QUndoCommand(parent)
 , m_model(model)

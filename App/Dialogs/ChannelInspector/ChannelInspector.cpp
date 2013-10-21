@@ -2,7 +2,7 @@
  * ChannelInspector.cpp
  *
  *  Created on: Dec 16, 2012
- *      Author: Félix de las Pozas Álvarez
+ *      Author: Fï¿½lix de las Pozas ï¿½lvarez
  */
 
 // EspINA
@@ -40,7 +40,7 @@ using namespace EspINA;
 typedef itk::ChangeInformationImageFilter<itkVolumeType> ChangeImageInformationFilter;
 
 //------------------------------------------------------------------------
-ChannelInspector::ChannelInspector(Channel *channel, EspinaModel *model, QWidget *parent)
+ChannelInspector::ChannelInspector(Channel *channel, ModelAdapter *model, QWidget *parent)
 : QDialog(parent)
 , m_spacingModified(false)
 , m_edgesModified(false)

@@ -2,7 +2,7 @@
  * AppositionSurfaceCommand.h
  *
  *  Created on: Jan 16, 2013
- *      Author: Félix de las Pozas Álvarez
+ *      Author: Fï¿½lix de las Pozas ï¿½lvarez
  */
 
 #ifndef APPOSITIONSURFACECOMMAND_H_
@@ -20,7 +20,7 @@
 
 namespace EspINA
 {
-  class EspinaModel;
+  class ModelAdapter;
   class ViewManager;
 
   class AppositionSurfacePlugin_EXPORT AppositionSurfaceCommand
@@ -31,7 +31,7 @@ namespace EspINA
 
     public:
       explicit AppositionSurfaceCommand(SegmentationList   inputs,
-                                        EspinaModel       *model,
+                                        ModelAdapter       *model,
                                         ViewManager       *vm,
                                         SegmentationSList &createdSegmentations);
       virtual ~AppositionSurfaceCommand() {};
@@ -40,7 +40,7 @@ namespace EspINA
       virtual void undo();
 
     private:
-      EspinaModel *m_model;
+      ModelAdapter *m_model;
       ViewManager *m_viewManager;
 
       TaxonomyElementSPtr m_taxonomy;

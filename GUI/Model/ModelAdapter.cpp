@@ -37,7 +37,7 @@
 using namespace EspINA;
 
 //------------------------------------------------------------------------
-EspinaModel::EspinaModel(EspinaFactory *factory)
+ModelAdapter::ModelAdapter(EspinaFactory *factory)
 : m_factory   (factory)
 , m_relations (new RelationshipGraph())
 , m_lastId    (0)
@@ -47,7 +47,7 @@ EspinaModel::EspinaModel(EspinaFactory *factory)
 }
 
 //------------------------------------------------------------------------
-EspinaModel::~EspinaModel()
+ModelAdapter::~ModelAdapter()
 {
 //   qDebug() << "########################################################";
 //   qDebug() << "            Destroying EspINA Model";
@@ -55,7 +55,7 @@ EspinaModel::~EspinaModel()
 }
 
 //------------------------------------------------------------------------
-bool EspinaModel::isTraceable() const
+bool ModelAdapter::isTraceable() const
 {
   int i = 0;
   bool result = m_isTraceable;
@@ -71,7 +71,7 @@ bool EspinaModel::isTraceable() const
 
 
 //------------------------------------------------------------------------
-void EspinaModel::reset()
+void ModelAdapter::reset()
 {
   beginResetModel();
   {
@@ -118,7 +118,7 @@ void EspinaModel::reset()
 }
 
 //-----------------------------------------------------------------------------
-QVariant EspinaModel::data(const QModelIndex& index, int role) const
+QVariant ModelAdapter::data(const QModelIndex& index, int role) const
 {
   if (!index.isValid())
     return QVariant();
@@ -163,7 +163,7 @@ QVariant EspinaModel::data(const QModelIndex& index, int role) const
 }
 
 //------------------------------------------------------------------------
-bool EspinaModel::setData ( const QModelIndex& index, const QVariant& value, int role )
+bool ModelAdapter::setData ( const QModelIndex& index, const QVariant& value, int role )
 {
   bool result = false;
   if (index.isValid() && index.parent().isValid())// Root indexes cannot be modified
@@ -192,7 +192,7 @@ bool EspinaModel::setData ( const QModelIndex& index, const QVariant& value, int
 }
 
 //------------------------------------------------------------------------
-QMap<int, QVariant> EspinaModel::itemData(const QModelIndex &index) const
+QMap<int, QVariant> ModelAdapter::itemData(const QModelIndex &index) const
 {
   QMap<int, QVariant> data = QAbstractItemModel::itemData(index);
 
@@ -204,7 +204,7 @@ QMap<int, QVariant> EspinaModel::itemData(const QModelIndex &index) const
 }
 
 //------------------------------------------------------------------------
-Qt::ItemFlags EspinaModel::flags(const QModelIndex& index) const
+Qt::ItemFlags ModelAdapter::flags(const QModelIndex& index) const
 {
   if (!index.isValid())
     return QAbstractItemModel::flags(index);
@@ -226,13 +226,13 @@ Qt::ItemFlags EspinaModel::flags(const QModelIndex& index) const
 
 
 //------------------------------------------------------------------------
-int EspinaModel::columnCount(const QModelIndex &parent) const
+int ModelAdapter::columnCount(const QModelIndex &parent) const
 {
     return 1;
 }
 
 //------------------------------------------------------------------------
-int EspinaModel::rowCount(const QModelIndex &parent) const
+int ModelAdapter::rowCount(const QModelIndex &parent) const
 {
   int count = 0;
     // There are 4 root indexes
@@ -276,7 +276,7 @@ int EspinaModel::rowCount(const QModelIndex &parent) const
 }
 
 //------------------------------------------------------------------------
-QModelIndex EspinaModel::parent(const QModelIndex& child) const
+QModelIndex ModelAdapter::parent(const QModelIndex& child) const
 {
   if (!child.isValid())
     return QModelIndex();
@@ -314,7 +314,7 @@ QModelIndex EspinaModel::parent(const QModelIndex& child) const
 
 //------------------------------------------------------------------------
 // Returned index is compossed by the row, column and an element.
-QModelIndex EspinaModel::index (int row, int column, const QModelIndex& parent) const
+QModelIndex ModelAdapter::index (int row, int column, const QModelIndex& parent) const
 {
   if (!hasIndex(row, column, parent))
     return QModelIndex();
@@ -379,7 +379,7 @@ QModelIndex EspinaModel::index (int row, int column, const QModelIndex& parent) 
 }
 
 //------------------------------------------------------------------------
-void EspinaModel::addSample(SampleSPtr sample)
+void ModelAdapter::addSample(SampleSPtr sample)
 {
 
   int row = m_samples.size();
@@ -395,7 +395,7 @@ void EspinaModel::addSample(SampleSPtr sample)
 }
 
 //------------------------------------------------------------------------
-void EspinaModel::addSample(SampleSList samples)
+void ModelAdapter::addSample(SampleSList samples)
 {
   int start = m_samples.size();
   int end   = start + samples.size() - 1;
@@ -414,7 +414,7 @@ void EspinaModel::addSample(SampleSList samples)
 
 
 //------------------------------------------------------------------------
-void EspinaModel::removeSample(SampleSPtr sample)
+void ModelAdapter::removeSample(SampleSPtr sample)
 {
   Q_ASSERT(m_samples.contains(sample));
 
@@ -431,7 +431,7 @@ void EspinaModel::removeSample(SampleSPtr sample)
 }
 
 //------------------------------------------------------------------------
-void EspinaModel::addChannel(ChannelSPtr channel)
+void ModelAdapter::addChannel(ChannelSPtr channel)
 {
   int row = m_channels.size();
 
@@ -445,7 +445,7 @@ void EspinaModel::addChannel(ChannelSPtr channel)
 }
 
 //------------------------------------------------------------------------
-void EspinaModel::addChannel(ChannelSList channels)
+void ModelAdapter::addChannel(ChannelSList channels)
 {
   int start = m_channels.size();
   int end   = start + channels.size() - 1;
@@ -461,14 +461,14 @@ void EspinaModel::addChannel(ChannelSList channels)
 }
 
 //------------------------------------------------------------------------
-void EspinaModel::emitChannelAdded(ChannelSList channels)
+void ModelAdapter::emitChannelAdded(ChannelSList channels)
 {
   foreach(ChannelSPtr channel, channels)
     emit channelAdded(channel);
 }
 
 //------------------------------------------------------------------------
-void EspinaModel::removeChannel(ChannelSPtr channel)
+void ModelAdapter::removeChannel(ChannelSPtr channel)
 {
   Q_ASSERT(m_channels.contains(channel));
 
@@ -486,7 +486,7 @@ void EspinaModel::removeChannel(ChannelSPtr channel)
 }
 
 //------------------------------------------------------------------------
-void EspinaModel::addSegmentation(SegmentationSPtr segmentation)
+void ModelAdapter::addSegmentation(SegmentationSPtr segmentation)
 {
   int row = m_segmentations.size();
 
@@ -500,7 +500,7 @@ void EspinaModel::addSegmentation(SegmentationSPtr segmentation)
 }
 
 //------------------------------------------------------------------------
-void EspinaModel::addSegmentation(SegmentationSList segmentations)
+void ModelAdapter::addSegmentation(SegmentationSList segmentations)
 {
   int start = m_segmentations.size();
   int end   = start + segmentations.size() - 1;
@@ -516,14 +516,14 @@ void EspinaModel::addSegmentation(SegmentationSList segmentations)
 }
 
 //------------------------------------------------------------------------
-void EspinaModel::emitSegmentationAdded(SegmentationSList segmentations)
+void ModelAdapter::emitSegmentationAdded(SegmentationSList segmentations)
 {
   foreach(SegmentationSPtr segmentation, segmentations)
     emit segmentationAdded(segmentation);
 }
 
 //------------------------------------------------------------------------
-void EspinaModel::removeSegmentation(SegmentationSPtr segmentation)
+void ModelAdapter::removeSegmentation(SegmentationSPtr segmentation)
 {
   Q_ASSERT(m_segmentations.contains(segmentation));
 
@@ -541,7 +541,7 @@ void EspinaModel::removeSegmentation(SegmentationSPtr segmentation)
 }
 
 //------------------------------------------------------------------------
-void EspinaModel::removeSegmentation(SegmentationSList segs)
+void ModelAdapter::removeSegmentation(SegmentationSList segs)
 {
   foreach(SegmentationSPtr seg, segs)
   {
@@ -551,7 +551,7 @@ void EspinaModel::removeSegmentation(SegmentationSList segs)
 }
 
 //------------------------------------------------------------------------
-void EspinaModel::addFilter(FilterSPtr filter)
+void ModelAdapter::addFilter(FilterSPtr filter)
 {
   int row = m_filters.size();
 
@@ -566,7 +566,7 @@ void EspinaModel::addFilter(FilterSPtr filter)
 }
 
 //------------------------------------------------------------------------
-void EspinaModel::addFilter(FilterSList filters)
+void ModelAdapter::addFilter(FilterSList filters)
 {
   int start = m_filters.size();
   int end   = start + filters.size() - 1;
@@ -584,7 +584,7 @@ void EspinaModel::addFilter(FilterSList filters)
 }
 
 //------------------------------------------------------------------------
-void EspinaModel::removeFilter(FilterSPtr filter)
+void ModelAdapter::removeFilter(FilterSPtr filter)
 {
   Q_ASSERT(m_filters.contains(filter));
 
@@ -600,7 +600,7 @@ void EspinaModel::removeFilter(FilterSPtr filter)
 }
 
 //------------------------------------------------------------------------
-void EspinaModel::changeTaxonomy(SegmentationSPtr    segmentation,
+void ModelAdapter::changeTaxonomy(SegmentationSPtr    segmentation,
                                  TaxonomyElementSPtr taxonomy)
 {
   segmentation->setTaxonomy(taxonomy);
@@ -613,7 +613,7 @@ void EspinaModel::changeTaxonomy(SegmentationSPtr    segmentation,
 
 
 //------------------------------------------------------------------------
-void EspinaModel::changeTaxonomyParent(TaxonomyElementSPtr subTaxonomy,
+void ModelAdapter::changeTaxonomyParent(TaxonomyElementSPtr subTaxonomy,
                                        TaxonomyElementSPtr parent)
 {
   TaxonomyElementPtr oldParent = subTaxonomy->parent();
@@ -647,7 +647,7 @@ void EspinaModel::changeTaxonomyParent(TaxonomyElementSPtr subTaxonomy,
 
 
 //------------------------------------------------------------------------
-void EspinaModel::addRelation(ModelItemSPtr  ancestor,
+void ModelAdapter::addRelation(ModelItemSPtr  ancestor,
                               ModelItemSPtr  successor,
                               const QString &relation)
 {
@@ -662,7 +662,7 @@ void EspinaModel::addRelation(ModelItemSPtr  ancestor,
 }
 
 //------------------------------------------------------------------------
-void EspinaModel::removeRelation(ModelItemSPtr  ancestor,
+void ModelAdapter::removeRelation(ModelItemSPtr  ancestor,
                                  ModelItemSPtr  successor,
                                  const QString &relation)
 {
@@ -677,7 +677,7 @@ void EspinaModel::removeRelation(ModelItemSPtr  ancestor,
 }
 
 //------------------------------------------------------------------------
-ModelItemSList EspinaModel::relatedItems(ModelItemPtr   item,
+ModelItemSList ModelAdapter::relatedItems(ModelItemPtr   item,
                                          RelationType   relType,
                                          const QString &relName)
 {
@@ -697,7 +697,7 @@ ModelItemSList EspinaModel::relatedItems(ModelItemPtr   item,
 }
 
 //------------------------------------------------------------------------
-RelationList EspinaModel::relations(ModelItemPtr   item,
+RelationList ModelAdapter::relations(ModelItemPtr   item,
                                     const QString &relName)
 {
   RelationList res;
@@ -719,7 +719,7 @@ RelationList EspinaModel::relations(ModelItemPtr   item,
 
 
 //------------------------------------------------------------------------
-QModelIndex EspinaModel::index(ModelItemPtr item) const
+QModelIndex ModelAdapter::index(ModelItemPtr item) const
 {
   QModelIndex res;
   switch (item->type())
@@ -747,20 +747,20 @@ QModelIndex EspinaModel::index(ModelItemPtr item) const
 }
 
 //------------------------------------------------------------------------
-QModelIndex EspinaModel::index(ModelItemSPtr item) const
+QModelIndex ModelAdapter::index(ModelItemSPtr item) const
 {
   return index(item.get());
 }
 
 
 //------------------------------------------------------------------------
-QModelIndex EspinaModel::taxonomyRoot() const
+QModelIndex ModelAdapter::taxonomyRoot() const
 {
     return createIndex ( 0, 0, 0 );
 }
 
 //------------------------------------------------------------------------
-QModelIndex EspinaModel::taxonomyIndex(TaxonomyElementPtr node) const
+QModelIndex ModelAdapter::taxonomyIndex(TaxonomyElementPtr node) const
 {
   // We avoid setting the Taxonomy descriptor as parent of an index
   if ( !m_tax || m_tax->root().get() == node)
@@ -776,14 +776,14 @@ QModelIndex EspinaModel::taxonomyIndex(TaxonomyElementPtr node) const
 }
 
 //------------------------------------------------------------------------
-QModelIndex EspinaModel::taxonomyIndex(TaxonomyElementSPtr node) const
+QModelIndex ModelAdapter::taxonomyIndex(TaxonomyElementSPtr node) const
 {
   return taxonomyIndex(node.get());
 }
 
 
 //------------------------------------------------------------------------
-void EspinaModel::setTaxonomy(TaxonomySPtr taxonomy)
+void ModelAdapter::setTaxonomy(TaxonomySPtr taxonomy)
 {
   if (m_tax)
   {
@@ -807,7 +807,7 @@ void EspinaModel::setTaxonomy(TaxonomySPtr taxonomy)
 }
 
 //------------------------------------------------------------------------
-void EspinaModel::addTaxonomy(TaxonomySPtr taxonomy)
+void ModelAdapter::addTaxonomy(TaxonomySPtr taxonomy)
 {
   if (m_tax)
   {
@@ -823,14 +823,14 @@ void EspinaModel::addTaxonomy(TaxonomySPtr taxonomy)
 }
 
 //------------------------------------------------------------------------
-void EspinaModel::itemModified(ModelItemPtr item)
+void ModelAdapter::itemModified(ModelItemPtr item)
 {
   QModelIndex itemIndex = index(item);
   emit dataChanged(itemIndex, itemIndex);
 }
 
 //------------------------------------------------------------------------
-void EspinaModel::addTaxonomy(TaxonomyElementSPtr root)
+void ModelAdapter::addTaxonomy(TaxonomyElementSPtr root)
 {
   Q_ASSERT(false);//DEPRECATED?
 //   foreach (TaxonomyElementSPtr node, root->subElements())
@@ -843,7 +843,7 @@ void EspinaModel::addTaxonomy(TaxonomyElementSPtr root)
 }
 
 //------------------------------------------------------------------------
-void EspinaModel::addSampleImplementation(SampleSPtr sample)
+void ModelAdapter::addSampleImplementation(SampleSPtr sample)
 {
   Q_ASSERT(sample);
   Q_ASSERT(!m_samples.contains(sample));
@@ -857,7 +857,7 @@ void EspinaModel::addSampleImplementation(SampleSPtr sample)
 }
 
 //------------------------------------------------------------------------
-void EspinaModel::removeSampleImplementation(SampleSPtr sample)
+void ModelAdapter::removeSampleImplementation(SampleSPtr sample)
 {
   Q_ASSERT(sample);
   Q_ASSERT(relations(sample.get()).isEmpty());
@@ -869,7 +869,7 @@ void EspinaModel::removeSampleImplementation(SampleSPtr sample)
 }
 
 //------------------------------------------------------------------------
-void EspinaModel::addChannelImplementation(ChannelSPtr channel)
+void ModelAdapter::addChannelImplementation(ChannelSPtr channel)
 {
   Q_ASSERT(channel);
   Q_ASSERT(!m_channels.contains(channel));
@@ -883,7 +883,7 @@ void EspinaModel::addChannelImplementation(ChannelSPtr channel)
 }
 
 //------------------------------------------------------------------------
-void EspinaModel::removeChannelImplementation(ChannelSPtr channel)
+void ModelAdapter::removeChannelImplementation(ChannelSPtr channel)
 {
   Q_ASSERT(channel != NULL);
 
@@ -896,7 +896,7 @@ void EspinaModel::removeChannelImplementation(ChannelSPtr channel)
 }
 
 //------------------------------------------------------------------------
-void EspinaModel::addSegmentationImplementation(SegmentationSPtr segmentation)
+void ModelAdapter::addSegmentationImplementation(SegmentationSPtr segmentation)
 {
   Q_ASSERT(segmentation.get() != NULL);
   Q_ASSERT(m_segmentations.contains(segmentation) == false);
@@ -917,7 +917,7 @@ void EspinaModel::addSegmentationImplementation(SegmentationSPtr segmentation)
 }
 
 //------------------------------------------------------------------------
-void EspinaModel::removeSegmentationImplementation(SegmentationSPtr segmentation)
+void ModelAdapter::removeSegmentationImplementation(SegmentationSPtr segmentation)
 {
   Q_ASSERT(segmentation);
 
@@ -930,7 +930,7 @@ void EspinaModel::removeSegmentationImplementation(SegmentationSPtr segmentation
 }
 
 //------------------------------------------------------------------------
-void EspinaModel::addFilterImplementation(FilterSPtr filter)
+void ModelAdapter::addFilterImplementation(FilterSPtr filter)
 {
   Q_ASSERT(!m_filters.contains(filter));
 
@@ -941,7 +941,7 @@ void EspinaModel::addFilterImplementation(FilterSPtr filter)
 }
 
 //------------------------------------------------------------------------
-void EspinaModel::removeFilterImplementation(FilterSPtr filter)
+void ModelAdapter::removeFilterImplementation(FilterSPtr filter)
 {
   m_filters.removeOne(filter);
   m_relations->removeItem(filter.get());
@@ -951,7 +951,7 @@ void EspinaModel::removeFilterImplementation(FilterSPtr filter)
 
 
 //------------------------------------------------------------------------
-ModelItemSPtr EspinaModel::find(ModelItemPtr item)
+ModelItemSPtr ModelAdapter::find(ModelItemPtr item)
 {
   ModelItemSPtr res;
   switch (item->type())
@@ -977,13 +977,13 @@ ModelItemSPtr EspinaModel::find(ModelItemPtr item)
 }
 
 //------------------------------------------------------------------------
-TaxonomyElementSPtr EspinaModel::findTaxonomyElement(ModelItemPtr item)
+TaxonomyElementSPtr ModelAdapter::findTaxonomyElement(ModelItemPtr item)
 {
   return findTaxonomyElement(taxonomyElementPtr(item));
 }
 
 //------------------------------------------------------------------------
-TaxonomyElementSPtr EspinaModel::findTaxonomyElement(TaxonomyElementPtr taxonomyElement)
+TaxonomyElementSPtr ModelAdapter::findTaxonomyElement(TaxonomyElementPtr taxonomyElement)
 {
   if (taxonomyElement == m_tax->root().get())
     return m_tax->root();
@@ -993,13 +993,13 @@ TaxonomyElementSPtr EspinaModel::findTaxonomyElement(TaxonomyElementPtr taxonomy
 }
 
 //------------------------------------------------------------------------
-SampleSPtr EspinaModel::findSample(ModelItemPtr item)
+SampleSPtr ModelAdapter::findSample(ModelItemPtr item)
 {
   return findSample(samplePtr(item));
 }
 
 //------------------------------------------------------------------------
-SampleSPtr EspinaModel::findSample(SamplePtr sample)
+SampleSPtr ModelAdapter::findSample(SamplePtr sample)
 {
   SampleSPtr res;
 
@@ -1015,13 +1015,13 @@ SampleSPtr EspinaModel::findSample(SamplePtr sample)
 }
 
 //------------------------------------------------------------------------
-ChannelSPtr EspinaModel::findChannel(ModelItemPtr item)
+ChannelSPtr ModelAdapter::findChannel(ModelItemPtr item)
 {
   return findChannel(channelPtr(item));
 }
 
 //------------------------------------------------------------------------
-ChannelSPtr EspinaModel::findChannel(ChannelPtr channel)
+ChannelSPtr ModelAdapter::findChannel(ChannelPtr channel)
 {
   ChannelSPtr res;
 
@@ -1037,13 +1037,13 @@ ChannelSPtr EspinaModel::findChannel(ChannelPtr channel)
 }
 
 //------------------------------------------------------------------------
-FilterSPtr EspinaModel::findFilter(ModelItemPtr item)
+FilterSPtr ModelAdapter::findFilter(ModelItemPtr item)
 {
   return findFilter(filterPtr(item));
 }
 
 //------------------------------------------------------------------------
-FilterSPtr EspinaModel::findFilter(FilterPtr filter)
+FilterSPtr ModelAdapter::findFilter(FilterPtr filter)
 {
   FilterSPtr res;
 
@@ -1059,13 +1059,13 @@ FilterSPtr EspinaModel::findFilter(FilterPtr filter)
 }
 
 //------------------------------------------------------------------------
-SegmentationSPtr EspinaModel::findSegmentation(ModelItemPtr item)
+SegmentationSPtr ModelAdapter::findSegmentation(ModelItemPtr item)
 {
   return findSegmentation(segmentationPtr(item));
 }
 
 //------------------------------------------------------------------------
-SegmentationSPtr EspinaModel::findSegmentation(SegmentationPtr segmentation)
+SegmentationSPtr ModelAdapter::findSegmentation(SegmentationPtr segmentation)
 {
   SegmentationSPtr res;
 
@@ -1081,7 +1081,7 @@ SegmentationSPtr EspinaModel::findSegmentation(SegmentationPtr segmentation)
 }
 
 //------------------------------------------------------------------------
-TaxonomyElementSPtr EspinaModel::createTaxonomyElement(TaxonomyElementPtr parent, const QString &name)
+TaxonomyElementSPtr ModelAdapter::createTaxonomyElement(TaxonomyElementPtr parent, const QString &name)
 {
   TaxonomyElementPtr parentNode = m_tax->root().get();
   if (parent)
@@ -1104,13 +1104,13 @@ TaxonomyElementSPtr EspinaModel::createTaxonomyElement(TaxonomyElementPtr parent
 }
 
 //------------------------------------------------------------------------
-TaxonomyElementSPtr EspinaModel::createTaxonomyElement(TaxonomyElementSPtr parent, const QString &name)
+TaxonomyElementSPtr ModelAdapter::createTaxonomyElement(TaxonomyElementSPtr parent, const QString &name)
 {
   return createTaxonomyElement(parent.get(), name);
 }
 
 //------------------------------------------------------------------------
-void EspinaModel::addTaxonomyElement(TaxonomyElementSPtr parent, TaxonomyElementSPtr element)
+void ModelAdapter::addTaxonomyElement(TaxonomyElementSPtr parent, TaxonomyElementSPtr element)
 {
   TaxonomyElementPtr parentNode = m_tax->root().get();
   if (parent)
@@ -1137,7 +1137,7 @@ void EspinaModel::addTaxonomyElement(TaxonomyElementSPtr parent, TaxonomyElement
 }
 
 //------------------------------------------------------------------------
-void EspinaModel::removeTaxonomyElement(TaxonomyElementSPtr parent, TaxonomyElementSPtr element)
+void ModelAdapter::removeTaxonomyElement(TaxonomyElementSPtr parent, TaxonomyElementSPtr element)
 {
   QModelIndex elementIndex = index(element);
 
@@ -1151,13 +1151,13 @@ void EspinaModel::removeTaxonomyElement(TaxonomyElementSPtr parent, TaxonomyElem
 }
 
 //------------------------------------------------------------------------
-QModelIndex EspinaModel::sampleRoot() const
+QModelIndex ModelAdapter::sampleRoot() const
 {
   return createIndex (1, 0, 1);
 }
 
 //------------------------------------------------------------------------
-QModelIndex EspinaModel::sampleIndex(SamplePtr sample) const
+QModelIndex ModelAdapter::sampleIndex(SamplePtr sample) const
 {
   QModelIndex index;
 
@@ -1176,20 +1176,20 @@ QModelIndex EspinaModel::sampleIndex(SamplePtr sample) const
 }
 
 //------------------------------------------------------------------------
-QModelIndex EspinaModel::sampleIndex(SampleSPtr sample) const
+QModelIndex ModelAdapter::sampleIndex(SampleSPtr sample) const
 {
   return sampleIndex(sample.get());
 }
 
 
 //------------------------------------------------------------------------
-QModelIndex EspinaModel::channelRoot() const
+QModelIndex ModelAdapter::channelRoot() const
 {
   return createIndex (2, 0, 2);
 }
 
 //------------------------------------------------------------------------
-QModelIndex EspinaModel::channelIndex(ChannelPtr channel) const
+QModelIndex ModelAdapter::channelIndex(ChannelPtr channel) const
 {
   QModelIndex index;
 
@@ -1208,19 +1208,19 @@ QModelIndex EspinaModel::channelIndex(ChannelPtr channel) const
 }
 
 //------------------------------------------------------------------------
-QModelIndex EspinaModel::channelIndex(ChannelSPtr channel) const
+QModelIndex ModelAdapter::channelIndex(ChannelSPtr channel) const
 {
   return channelIndex(channel.get());
 }
 
 //------------------------------------------------------------------------
-QModelIndex EspinaModel::segmentationRoot() const
+QModelIndex ModelAdapter::segmentationRoot() const
 {
     return createIndex (3, 0, 3);
 }
 
 //------------------------------------------------------------------------
-QModelIndex EspinaModel::segmentationIndex(SegmentationPtr seg) const
+QModelIndex ModelAdapter::segmentationIndex(SegmentationPtr seg) const
 {
   QModelIndex index;
 
@@ -1239,19 +1239,19 @@ QModelIndex EspinaModel::segmentationIndex(SegmentationPtr seg) const
 }
 
 //------------------------------------------------------------------------
-QModelIndex EspinaModel::segmentationIndex(SegmentationSPtr seg) const
+QModelIndex ModelAdapter::segmentationIndex(SegmentationSPtr seg) const
 {
   return segmentationIndex(seg.get());
 }
 
 //------------------------------------------------------------------------
-QModelIndex EspinaModel::filterRoot() const
+QModelIndex ModelAdapter::filterRoot() const
 {
   return createIndex(4,0,4);
 }
 
 //------------------------------------------------------------------------
-QModelIndex EspinaModel::filterIndex(FilterPtr filter) const
+QModelIndex ModelAdapter::filterIndex(FilterPtr filter) const
 {
   QModelIndex index;
 
@@ -1270,7 +1270,7 @@ QModelIndex EspinaModel::filterIndex(FilterPtr filter) const
 }
 
 //------------------------------------------------------------------------
-QModelIndex EspinaModel::filterIndex(FilterSPtr filter) const
+QModelIndex ModelAdapter::filterIndex(FilterSPtr filter) const
 {
   return filterIndex(filter.get());
 }

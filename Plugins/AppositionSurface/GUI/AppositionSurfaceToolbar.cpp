@@ -44,7 +44,7 @@
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
-AppositionSurfaceToolbar::AppositionSurfaceToolbar(EspinaModel *model,
+AppositionSurfaceToolbar::AppositionSurfaceToolbar(ModelAdapter *model,
                                                    QUndoStack  *undoStack,
                                                    ViewManager *viewManager)
 : m_model(model)

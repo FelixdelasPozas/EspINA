@@ -41,7 +41,7 @@ class RenameTaxonomyCommand
 public:
   explicit RenameTaxonomyCommand(TaxonomyElementPtr taxonomyItem,
                                  const QString &name,
-                                 EspinaModel   *model,
+                                 ModelAdapter   *model,
                                  QUndoCommand  *parent = 0)
   : QUndoCommand(parent)
   , m_model(model)
@@ -65,7 +65,7 @@ private:
   }
 
 private:
-  EspinaModel       *m_model;
+  ModelAdapter       *m_model;
   TaxonomyElementPtr m_taxonomyItem;
   QString            m_name;
 };
@@ -77,7 +77,7 @@ class TaxonomyItemDelegate
 : public QItemDelegate
 {
 public:
-  explicit TaxonomyItemDelegate(EspinaModel *model,
+  explicit TaxonomyItemDelegate(ModelAdapter *model,
                                 QUndoStack  *undoStack,
                                 QObject     *parent = 0)
   : QItemDelegate(parent)
@@ -109,7 +109,7 @@ public:
   }
 
 private:
-  EspinaModel *m_model;
+  ModelAdapter *m_model;
   QUndoStack  *m_undoStack;
 };
 
@@ -130,7 +130,7 @@ bool TaxonomyLayout::SortFilter::lessThan(const QModelIndex& left, const QModelI
 
 //------------------------------------------------------------------------
 TaxonomyLayout::TaxonomyLayout(CheckableTreeView     *view,
-                               EspinaModel           *model,
+                               ModelAdapter           *model,
                                QUndoStack            *undoStack,
                                ViewManager           *viewManager)
 : Layout    (view, model, undoStack, viewManager)

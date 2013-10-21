@@ -23,7 +23,7 @@ namespace EspINA
   class ViewManager;
   class SliceView;
   class HueSelector;
-  class EspinaModel;
+  class ModelAdapter;
 
 
   class ChannelInspector
@@ -32,7 +32,7 @@ namespace EspINA
   {
     Q_OBJECT
   public:
-    explicit ChannelInspector(Channel *, EspinaModel *, QWidget *parent = 0);
+    explicit ChannelInspector(Channel *, ModelAdapter *, QWidget *parent = 0);
     virtual ~ChannelInspector();
 
     // re-implemented from base class because we need to reset channel
@@ -70,7 +70,7 @@ namespace EspINA
 
     Channel     *m_channel;
     ViewManager *m_viewManager;
-    EspinaModel *m_model;
+    ModelAdapter *m_model;
 
     SliceView   *m_view;
     HueSelector *m_hueSelector;

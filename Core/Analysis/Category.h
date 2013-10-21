@@ -41,6 +41,7 @@ namespace EspINA
    * 
    *  Represent a group of individuals with the same characteristics
    */
+  //TODO 2013-10-21: Mark edit operations as private, except for Classification
   class /*EspinaCore_EXPORT*/ Category
   {
 //   public:

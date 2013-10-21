@@ -33,7 +33,7 @@
 using namespace EspINA;
 
 //------------------------------------------------------------------------
-GeneralSettingsPanel::GeneralSettingsPanel(EspinaModel *model, GeneralSettings *settings)
+GeneralSettingsPanel::GeneralSettingsPanel(ModelAdapter *model, GeneralSettings *settings)
 : m_model(model)
 , m_settings(settings)
 {

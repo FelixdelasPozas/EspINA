@@ -66,6 +66,11 @@ namespace EspINA {
 
     virtual void saveSnapshot(StorageSPtr storage) const = 0;
 
+    /** \brief Release all resources loaded in memory
+     *
+     */
+    virtual void unload() = 0;
+
   private:
     Id   m_id;
     StorageSPtr m_storage;

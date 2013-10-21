@@ -35,7 +35,7 @@ using namespace EspINA;
 AddRelationCommand::AddRelationCommand(ModelItemSPtr  ancestor,
                                        ModelItemSPtr  succesor,
                                        const QString &relation,
-                                       EspinaModel   *model)
+                                       ModelAdapter   *model)
 : QUndoCommand()
 , m_model(model)
 , m_ancestor(ancestor)
@@ -60,7 +60,7 @@ void AddRelationCommand::undo()
 RemoveRelationCommand::RemoveRelationCommand(ModelItemSPtr  ancestor,
                                              ModelItemSPtr  succesor,
                                              const QString &relation,
-                                             EspinaModel   *model)
+                                             ModelAdapter   *model)
 : QUndoCommand()
 , m_model(model)
 , m_ancestor(ancestor)

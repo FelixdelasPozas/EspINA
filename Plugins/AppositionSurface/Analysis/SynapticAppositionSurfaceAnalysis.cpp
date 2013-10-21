@@ -48,7 +48,7 @@ using namespace xlslib_core;
 
 //----------------------------------------------------------------------------
 SynapticAppositionSurfaceAnalysis::SynapticAppositionSurfaceAnalysis(SegmentationList segmentations,
-                                                                     EspinaModel      *model,
+                                                                     ModelAdapter      *model,
                                                                      QUndoStack       *undoStack,
                                                                      ViewManager      *viewManager,
                                                                      QWidget          *parent)

@@ -28,7 +28,7 @@ namespace EspINA
 
   //-----------------------------------------------------------------------------
   AppositionSurfaceCommand::AppositionSurfaceCommand(SegmentationList   inputs,
-                                                     EspinaModel       *model,
+                                                     ModelAdapter       *model,
                                                      ViewManager       *vm,
                                                      SegmentationSList &createdSegmentations)
   : m_model(model)

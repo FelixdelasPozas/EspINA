@@ -77,6 +77,11 @@ ostream Segmentation::saveState() const
 {
 
 }
+void Segmentation::unload()
+{
+
+}
+
 Segmentation::Segmentation(OutputSPtr output)
 {
 
