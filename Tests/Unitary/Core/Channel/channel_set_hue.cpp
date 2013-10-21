@@ -26,8 +26,8 @@
  * 
  */
 
-#include <Core/CoreFactory.h>
 #include "Core/Analysis/Channel.h"
+#include <Core/Analysis/Output.h>
 
 using namespace EspINA;
 using namespace std;
@@ -49,10 +49,9 @@ int channel_set_hue(int argc, char** argv )
 {
   bool error = false;
 
-  CoreFactory factory;
   OutputSPtr output{new Output()};
 
-  ChannelSPtr channel = factory.createChannel(output);
+  ChannelSPtr channel(new Channel(output));
   
   if (channel->hue() != -1) {
     cerr << "Unexepected initial hue value" << endl;

@@ -29,9 +29,7 @@ qt4_wrap_cpp(SUBJECT_MOCS
 add_executable(Channel_Tests
   ${Channel_Tests}
   ${SUBJECT_MOCS}
-  ${CORE_DIR}/CoreFactory.cpp
   ${CORE_DIR}/Utils/Bounds.cpp
-  ${CORE_DIR}/Analysis/Sample.cpp
   ${CORE_DIR}/Analysis/Channel.cpp
   ${CORE_DIR}/Analysis/Filter.cpp
   ${CORE_DIR}/Analysis/Output.cpp

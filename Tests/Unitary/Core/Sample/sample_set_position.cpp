@@ -27,7 +27,6 @@
  */
 
 #include "Core/Analysis/Sample.h"
-#include <Core/CoreFactory.h>
 
 using namespace EspINA;
 using namespace std;
@@ -36,15 +35,13 @@ int sample_set_position( int argc, char** argv )
 {
   bool error = false;
   
-  CoreFactory factory;
-
-  SampleSPtr sample = factory.createSample();
+  Sample sample;
   
   Bounds bounds{0, 10, 0, 10, 0, 10};
-  sample->setBounds(bounds);
+  sample.setBounds(bounds);
   
   Nm origin[3];
-  sample->position(origin);
+  sample.position(origin);
   
   for (int i = 0; i < 3; ++i) {
     if (origin[i] != 0) {
@@ -57,9 +54,9 @@ int sample_set_position( int argc, char** argv )
  
   Nm translatedOrigin[3] = {10, 10, 10};
   
-  sample->setPosition(translatedOrigin);
+  sample.setPosition(translatedOrigin);
   
-  sample->position(origin);
+  sample.position(origin);
   
   for (int i = 0; i < 3; ++i) {
     if (origin[i] != 10) {

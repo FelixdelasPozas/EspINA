@@ -16,12 +16,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-//----------------------------------------------------------------------------
-// File:    Sample.h
-// Purpose: Model a physical sample.
-//          It provides channels and segmentations with a link to the
-//          physical world
-//----------------------------------------------------------------------------
 #ifndef ESPINA_SAMPLE_H
 #define ESPINA_SAMPLE_H
 
@@ -46,6 +40,7 @@ namespace EspINA
   , public Persistent
   {
   public:
+    explicit Sample(const QString& name=QString());
     virtual ~Sample();
 
     virtual void restoreState(const State& state);
@@ -77,7 +72,6 @@ namespace EspINA
     { return m_bounds; }
     
   private:
-    explicit Sample(const QString& name);
     friend class CoreFactory;
 
   private:

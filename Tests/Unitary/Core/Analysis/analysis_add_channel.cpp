@@ -25,14 +25,17 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  */
-#include "Core/Analysis/Output.h"
+
+#include <Core/Analysis/Analysis.h>
+#include <Core/Analysis/Channel.h>
+#include <Core/Analysis/Output.h>
 #include <Core/Analysis/Filter.h>
 #include <Core/MultiTasking/Scheduler.h>
 
 using namespace EspINA;
 using namespace std;
 
-int output_valid_output( int argc, char** argv )
+int analysis_add_channel( int argc, char** argv )
 {
   class DummyFilter
   : public Filter 
@@ -53,35 +56,63 @@ int output_valid_output( int argc, char** argv )
     virtual bool invalidateEditedRegions() {return false;}
   };
   
-  class DummyData 
-  : public Data
-  {
-  public:
-    virtual Type type() const {return "Dummy";}
-    virtual bool isValid() const {return true;}
-    virtual Bounds bounds(){}
-    virtual bool setInternalData(DataSPtr rhs){}
-    virtual void addEditedRegion(const Bounds& region, int cacheId = -1){}
-    virtual void clearEditedRegions(){}
-    virtual void commitEditedRegions(bool withData) const{}
-    virtual bool dumpSnapshot(const QString& prefix, Snapshot& snapshot) const{}
-    virtual bool isEdited() const{}
-    virtual void restoreEditedRegions(const QDir& cacheDir, const QString& outputId){}
-
-  };
-
   bool error = false;
 
+  Analysis analysis;
+    
   DummyFilter filter;
+  OutputSPtr output{new Output(&filter, 0)}; //WARNING: Filter cannot be stored in the pipeline as it is not an smart pointer!
+  ChannelSPtr channel(new Channel(output));
 
-  Output output(&filter, 0);
+  analysis.add(channel);
+ 
+  if (analysis.channels().first() != channel) {
+    cerr << "Unexpected channel retrieved from analysis" << endl;
+    error = true;
+  }
   
-  DataSPtr data{new DummyData()};
-  data->setOutput(&output);
-  output.setData(data->type(), data);
+  if (analysis.classification().get() != nullptr) {
+    cerr << "Unexpected classification in analysis" << endl;
+    error = true;
+  }
   
-  if (!output.isValid()) {
-    cerr << "Output is not initialized with a valid filter and a valid output" << endl;
+  if (!analysis.samples().isEmpty()) {
+    cerr << "Unexpected number of samples in analysis" << endl;
+    error = true;
+  }
+  
+  if (analysis.channels().size() != 1) {
+    cerr << "Unexpected number of channels in analysis" << endl;
+    error = true;
+  }
+  
+  if (!analysis.segmentations().isEmpty()) {
+    cerr << "Unexpected number of segmentations in analysis" << endl;
+    error = true;
+  }
+  
+  if (analysis.pipeline()->vertices().size() != 2) {
+    cerr << "Unexpected number of vertices in analysis pipeline" << endl;
+    error = true;
+  }
+  
+//   if (analysis.pipeline()->vertices().first().item != channel) {
+//     cerr << "Unexpected channel retrieved from analysis pipeline" << endl;
+//     error = true;
+//   }
+  
+  if (analysis.pipeline()->edges().size() != 1) {
+    cerr << "Unexpected number of edges in analysis pipeline" << endl;
+    error = true;
+  }
+  
+  if (!analysis.relationships()->vertices().isEmpty()) {
+    cerr << "Unexpected number of vertices in analysis relationships" << endl;
+    error = true;
+  }
+  
+  if (!analysis.relationships()->edges().isEmpty()) {
+    cerr << "Unexpected number of edges in analysis relationships" << endl;
     error = true;
   }
   

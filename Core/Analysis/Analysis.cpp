@@ -18,30 +18,82 @@
 
 #include "Analysis.h"
 
-// // EspINA
-// #include "Core/Model/Channel.h"
-// #include "Core/Model/EspinaFactory.h"
-// #include "Core/Model/ModelItem.h"
-// #include "Core/Model/Sample.h"
-// #include "Core/Model/Segmentation.h"
-// #include "Core/Model/Taxonomy.h"
-// #include "Core/IO/SegFileReader.h"
-// #include "Core/IO/IOErrorHandler.h"
-// #include <Core/Extensions/SegmentationExtension.h>
-// #include <Core/Extensions/ChannelExtension.h>
-// #include "Core/Filters/ChannelReader.h"
-// 
-// // Qt
-// #include <QDebug>
+#include "Core/Analysis/Sample.h"
+#include "Core/Analysis/Channel.h"
 
 using namespace EspINA;
 
 //------------------------------------------------------------------------
 Analysis::Analysis()
+: m_classification{nullptr}
+, m_relations{new DirectedGraph()}
+, m_pipeline{new DirectedGraph()}
 {
 
 }
 
+//------------------------------------------------------------------------
+void Analysis::reset()
+{
+
+}
+
+//------------------------------------------------------------------------
+void Analysis::setClassification(ClassificationSPtr classification)
+{
+
+}
+
+//------------------------------------------------------------------------
+void Analysis::add(SampleSPtr sample)
+{
+  m_samples << sample;
+  m_pipeline->addItem(sample);
+}
+
+//------------------------------------------------------------------------
+void Analysis::add(SampleSList samples)
+{
+
+}
+
+//------------------------------------------------------------------------
+void Analysis::add(ChannelSPtr channel)
+{
+  m_channels << channel;
+  m_pipeline->addItem(channel);
+}
+
+//------------------------------------------------------------------------
+void Analysis::add(ChannelSList channels)
+{
+
+}
+
+//------------------------------------------------------------------------
+void Analysis::add(SegmentationSPtr segmentation)
+{
+
+}
+
+//------------------------------------------------------------------------
+void Analysis::add(SegmentationSList segmentations)
+{
+
+}
+
+
+//------------------------------------------------------------------------
+void Analysis::addRelation(AnalysisItemSPtr    ancestor,
+                           AnalysisItemSPtr    succesor,
+                           const RelationName& relation)
+{
+  if (!m_relations->contais(ancestor)) m_relations->addItem(ancestor);
+ 
+  if (!m_relations->contais(succesor)) m_relations->addItem(succesor);
+  
+  m_relations->addRelation(ancestor, succesor, relation);
+}
 
 
 // //------------------------------------------------------------------------
@@ -654,20 +706,6 @@ Analysis::Analysis()
 // }
 // 
 // 
-// //------------------------------------------------------------------------
-// void EspinaModel::addRelation(ModelItemSPtr  ancestor,
-//                               ModelItemSPtr  successor,
-//                               const QString &relation)
-// {
-//   m_relations->addRelation(ancestor.get(), successor.get(), relation);
-// 
-//   QModelIndex ancestorIndex  = index(ancestor);
-//   QModelIndex successorIndex = index(successor);
-// 
-//   emit dataChanged(ancestorIndex,  ancestorIndex);
-//   emit dataChanged(successorIndex, successorIndex);
-//   markAsChanged();
-// }
 // 
 // //------------------------------------------------------------------------
 // void EspinaModel::removeRelation(ModelItemSPtr  ancestor,

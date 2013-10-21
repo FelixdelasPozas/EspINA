@@ -127,6 +127,8 @@ namespace EspINA
     void removeRelation(AnalysisItemSPtr  ancestor,
                         AnalysisItemSPtr  successor,
                         const QString &description);
+    
+    bool contais(AnalysisItemSPtr item);
 
     /// Retrieve current vertex index of a AnalysisItem
     /// A vertex with NULL item field is returned if no vertex contains item

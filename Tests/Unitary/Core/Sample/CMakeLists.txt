@@ -32,10 +32,8 @@ set(LIB_DEPENDECIES
 
 add_executable(Sample_Tests
   ${TEST_SOURCES}
-  ${CORE_DIR}/CoreFactory.cpp
   ${CORE_DIR}/Utils/Bounds.cpp
   ${SUBJECT_DIR}/Sample.cpp
-  ${SUBJECT_DIR}/Channel.cpp
 )
 
 target_link_libraries(Sample_Tests ${LIB_DEPENDECIES} )

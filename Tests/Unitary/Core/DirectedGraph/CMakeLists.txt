@@ -7,6 +7,7 @@ create_test_sourcelist(TEST_SOURCES DirectedGraph_Tests.cpp # this file is creat
   directed_graph_add_relation.cpp
   directed_graph_add_relation_between_invalid_items.cpp
   directed_graph_add_relation_between_non_existing_items.cpp
+  directed_graph_contains_item.cpp
   directed_graph_default_constructor.cpp
   directed_graph_expected_edges.cpp
   directed_graph_expected_filtered_edges.cpp
@@ -44,6 +45,7 @@ target_link_libraries(DirectedGraph_Tests ${LIB_DEPENDECIES} )
 add_test("\"DirectedGraph: Default Constructor\""                     DirectedGraph_Tests directed_graph_default_constructor)
 add_test("\"DirectedGraph: Add Null Item\""                           DirectedGraph_Tests directed_graph_add_null_item)
 add_test("\"DirectedGraph: Add Item\""                                DirectedGraph_Tests directed_graph_add_item)
+add_test("\"DirectedGraph: Contains Item\""                           DirectedGraph_Tests directed_graph_contains_item)
 add_test("\"DirectedGraph: Remove Item\""                             DirectedGraph_Tests directed_graph_remove_item)
 add_test("\"DirectedGraph: Add Relation\""                            DirectedGraph_Tests directed_graph_add_relation)
 add_test("\"DirectedGraph: Remove Relation\""                         DirectedGraph_Tests directed_graph_remove_relation)

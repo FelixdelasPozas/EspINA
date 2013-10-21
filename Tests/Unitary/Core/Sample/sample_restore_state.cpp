@@ -27,7 +27,6 @@
  */
 
 #include "Core/Analysis/Sample.h"
-#include <Core/CoreFactory.h>
 
 using namespace EspINA;
 using namespace std;
@@ -36,18 +35,16 @@ int sample_restore_state(int argc, char** argv )
 {
   bool error = false;
   
-  CoreFactory factory;
-
   State state = "TODO";
   
-  SampleSPtr sample = factory.createSample();
+  Sample sample;
   
-  sample->restoreState(state);
+  sample.restoreState(state);
   
   QString name = "Sample";
   
-  if (sample->name() != name) {
-    cerr << "Sample Name: " << sample->name().toStdString() << " is not " << name.toStdString() << endl;
+  if (sample.name() != name) {
+    cerr << "Sample Name: " << sample.name().toStdString() << " is not " << name.toStdString() << endl;
     error = true;
   }
   

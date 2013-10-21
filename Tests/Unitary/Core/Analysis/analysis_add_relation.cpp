@@ -25,63 +25,72 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  */
-#include "Core/Analysis/Output.h"
-#include <Core/Analysis/Filter.h>
-#include <Core/MultiTasking/Scheduler.h>
+
+#include "Core/Analysis/Analysis.h"
+#include "Core/Analysis/Sample.h"
 
 using namespace EspINA;
 using namespace std;
 
-int output_valid_output( int argc, char** argv )
+int analysis_add_relation( int argc, char** argv )
 {
-  class DummyFilter
-  : public Filter 
-  {
-  public:
-    explicit DummyFilter()
-    : Filter(OutputSList(), "Dummy", SchedulerSPtr(new Scheduler(10000000))){}
-    virtual OutputSPtr output(Output::Id id) const {}
-
-  protected:
-    virtual void loadFilterCache(const QDir& dir){}
-    virtual void saveFilterCache(const Persistent::Id id) const{}
-    virtual bool needUpdate() const{}
-    virtual bool needUpdate(Output::Id id) const{}
-    virtual DataSPtr createDataProxy(Output::Id id, const Data::Type& type){}
-    virtual void execute(){}
-    virtual void execute(Output::Id id){}
-    virtual bool invalidateEditedRegions() {return false;}
-  };
-  
-  class DummyData 
-  : public Data
-  {
-  public:
-    virtual Type type() const {return "Dummy";}
-    virtual bool isValid() const {return true;}
-    virtual Bounds bounds(){}
-    virtual bool setInternalData(DataSPtr rhs){}
-    virtual void addEditedRegion(const Bounds& region, int cacheId = -1){}
-    virtual void clearEditedRegions(){}
-    virtual void commitEditedRegions(bool withData) const{}
-    virtual bool dumpSnapshot(const QString& prefix, Snapshot& snapshot) const{}
-    virtual bool isEdited() const{}
-    virtual void restoreEditedRegions(const QDir& cacheDir, const QString& outputId){}
-
-  };
-
   bool error = false;
 
-  DummyFilter filter;
+  Analysis analysis;
+  
+  SampleSPtr sample1{new Sample("sample 1")};
+  SampleSPtr sample2{new Sample("sample 2")};
 
-  Output output(&filter, 0);
+  analysis.add(sample1);
+  analysis.add(sample2);
   
-  DataSPtr data{new DummyData()};
-  data->setOutput(&output);
-  output.setData(data->type(), data);
+  RelationName relation{"link"};
+  analysis.addRelation(sample1, sample2, relation);
+ 
+  for(auto sample : {sample1, sample2}) {
+    if (!analysis.samples().contains(sample)) {
+      cerr << "Analysis doesn't contains sample " << sample->name().toStdString() << endl;
+      error = true;
+    }
+  }
   
-  if (!output.isValid()) {
-    cerr << "Output is not initialized with a valid filter and a valid output" << endl;
+  if (analysis.classification().get() != nullptr) {
+    cerr << "Unexpected classification in analysis" << endl;
+    error = true;
+  }
+  
+  if (analysis.samples().size() != 2) {
+    cerr << "Unexpected number of samples in analysis" << endl;
+    error = true;
+  }
+  
+  if (!analysis.channels().isEmpty()) {
+    cerr << "Unexpected number of channels in analysis" << endl;
+    error = true;
+  }
+  
+  if (!analysis.segmentations().isEmpty()) {
+    cerr << "Unexpected number of segmentations in analysis" << endl;
+    error = true;
+  }
+  
+  if (analysis.pipeline()->vertices().size() != 2) {
+    cerr << "Unexpected number of vertices in analysis pipeline" << endl;
+    error = true;
+  }
+  
+  if (!analysis.pipeline()->edges().isEmpty()) {
+    cerr << "Unexpected number of edges in analysis pipeline" << endl;
+    error = true;
+  }
+  
+  if (analysis.relationships()->vertices().size() != 2) {
+    cerr << "Unexpected number of vertices in analysis relationships" << endl;
+    error = true;
+  }
+  
+  if (analysis.relationships()->edges().size() != 1) {
+    cerr << "Unexpected number of edges in analysis relationships" << endl;
     error = true;
   }
   

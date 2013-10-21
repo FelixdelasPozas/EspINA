@@ -27,7 +27,6 @@
  */
 
 #include "Core/Analysis/Sample.h"
-#include <Core/CoreFactory.h>
 
 using namespace EspINA;
 using namespace std;
@@ -36,16 +35,14 @@ int sample_save_state(int argc, char** argv)
 {
   bool error = false;
   
-  CoreFactory factory;
-
   QString name = "Sample";
   
-  SampleSPtr sample = factory.createSample(name);
+  Sample sample;
   
   QString serialization = "TODO";
   
-  if (sample->saveState() != serialization) {
-    cerr << "Unexpected State: " << sample->saveState() << endl;
+  if (sample.saveState() != serialization) {
+    cerr << "Unexpected State: " << sample.saveState() << endl;
     error = true;
   }
   

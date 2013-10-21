@@ -45,6 +45,7 @@ namespace EspINA
     static const QString VOLUMETRIC;
 
   public:
+    explicit Channel(OutputSPtr output);
     virtual ~Channel();
 
     virtual void restoreState(const State& state);
@@ -159,10 +160,6 @@ namespace EspINA
      *  a Undefined_Extension exception will be thrown
      */
     ChannelExtensionSPtr extension(const ChannelExtension::Type& type);
-
-  private:
-    explicit Channel(OutputSPtr output);
-    friend class CoreFactory;
 
   private:
     static const int AUTOMATIC_OPACITY = -1;

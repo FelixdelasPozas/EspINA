@@ -17,11 +17,6 @@
 */
 
 
-//----------------------------------------------------------------------------
-// File:    EspinaModel.h
-// Purpose: Provide a model to centralize all data required by the application
-//          Notify different views about changes in data
-//----------------------------------------------------------------------------
 #ifndef ESPINA_ANALYSIS_H
 #define ESPINA_ANALYSIS_H
 
@@ -152,8 +147,6 @@ namespace EspINA
     ClassificationSPtr m_classification;
     DirectedGraphSPtr  m_relations;
     DirectedGraphSPtr  m_pipeline;
-
-    CoreFactorySPtr m_factory;
 
     ChannelSList      m_channels;
     FilterSList       m_filters;

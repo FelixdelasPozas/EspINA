@@ -27,6 +27,7 @@
  */
 
 #include "Core/Analysis/Analysis.h"
+#include "Core/Analysis/Sample.h"
 
 using namespace EspINA;
 using namespace std;
@@ -36,6 +37,59 @@ int analysis_add_sample( int argc, char** argv )
   bool error = false;
 
   Analysis analysis;
-
+  
+  SampleSPtr sample(new Sample());
+  analysis.add(sample);
+ 
+  if (analysis.samples().first() != sample) {
+    cerr << "Unexpected sample retrieved from analysis" << endl;
+    error = true;
+  }
+  
+  if (analysis.classification().get() != nullptr) {
+    cerr << "Unexpected classification in analysis" << endl;
+    error = true;
+  }
+  
+  if (analysis.samples().size() != 1) {
+    cerr << "Unexpected number of samples in analysis" << endl;
+    error = true;
+  }
+  
+  if (!analysis.channels().isEmpty()) {
+    cerr << "Unexpected number of channels in analysis" << endl;
+    error = true;
+  }
+  
+  if (!analysis.segmentations().isEmpty()) {
+    cerr << "Unexpected number of segmentations in analysis" << endl;
+    error = true;
+  }
+  
+  if (analysis.pipeline()->vertices().size() != 1) {
+    cerr << "Unexpected number of vertices in analysis pipeline" << endl;
+    error = true;
+  }
+  
+  if (analysis.pipeline()->vertices().first().item != sample) {
+    cerr << "Unexpected sample retrieved from analysis pipeline" << endl;
+    error = true;
+  }
+  
+  if (!analysis.pipeline()->edges().isEmpty()) {
+    cerr << "Unexpected number of edges in analysis pipeline" << endl;
+    error = true;
+  }
+  
+  if (!analysis.relationships()->vertices().isEmpty()) {
+    cerr << "Unexpected number of vertices in analysis relationships" << endl;
+    error = true;
+  }
+  
+  if (!analysis.relationships()->edges().isEmpty()) {
+    cerr << "Unexpected number of edges in analysis relationships" << endl;
+    error = true;
+  }
+  
   return error;
 }

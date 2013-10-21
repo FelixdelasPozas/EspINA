@@ -27,7 +27,6 @@
  */
 
 #include "Core/Analysis/Sample.h"
-#include <Core/CoreFactory.h>
 
 using namespace EspINA;
 using namespace std;
@@ -36,22 +35,20 @@ int sample_set_name( int argc, char** argv )
 {
   bool error = false;
   
-  CoreFactory factory;
-
   QString name = "Sample";
   
-  SampleSPtr sample = factory.createSample(name);
+  Sample sample(name);
   
-  if (sample->name() != name) {
-    cerr << "Sample Name: " << sample->name().toStdString() << " is not " << name.toStdString() << endl;
+  if (sample.name() != name) {
+    cerr << "Sample Name: " << sample.name().toStdString() << " is not " << name.toStdString() << endl;
     error = true;
   }
   
   name = "Sample2";
-  sample->setName(name);
+  sample.setName(name);
   
-  if (sample->name() != name) {
-    cerr << "Sample Name: " << sample->name().toStdString() << " is not renamed to " << name.toStdString() << endl;
+  if (sample.name() != name) {
+    cerr << "Sample Name: " << sample.name().toStdString() << " is not renamed to " << name.toStdString() << endl;
     error = true;
   }
 

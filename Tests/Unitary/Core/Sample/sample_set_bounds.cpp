@@ -27,7 +27,6 @@
  */
 
 #include "Core/Analysis/Sample.h"
-#include <Core/CoreFactory.h>
 
 using namespace EspINA;
 using namespace std;
@@ -36,20 +35,18 @@ int sample_set_bounds( int argc, char** argv )
 {
   bool error = false;
   
-  CoreFactory factory;
-
-  SampleSPtr sample = factory.createSample();
+  Sample sample;
   
-  if (sample->bounds() != Bounds()) {
-    cerr << "Unexpected default bounds " << sample->bounds() << endl;
+  if (sample.bounds() != Bounds()) {
+    cerr << "Unexpected default bounds " << sample.bounds() << endl;
     error = true;
   }
   
   Bounds bounds{0, 10, 0, 10, 0, 10};
-  sample->setBounds(bounds);
+  sample.setBounds(bounds);
   
-  if (sample->bounds() != bounds) {
-    cerr << "Unexpected bounds " << sample->bounds() << " instead of " << bounds << endl;
+  if (sample.bounds() != bounds) {
+    cerr << "Unexpected bounds " << sample.bounds() << " instead of " << bounds << endl;
     error = true;
   }
   

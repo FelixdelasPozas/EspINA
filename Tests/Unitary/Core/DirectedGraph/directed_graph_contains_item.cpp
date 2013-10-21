@@ -25,64 +25,36 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  */
-#include "Core/Analysis/Output.h"
-#include <Core/Analysis/Filter.h>
-#include <Core/MultiTasking/Scheduler.h>
+
+#include "Core/Analysis/Graph/DirectedGraph.h"
+
+#include <Core/Analysis/AnalysisItem.h>
+#include "DummyItem.h"
 
 using namespace EspINA;
+using namespace UnitTesting;
 using namespace std;
 
-int output_valid_output( int argc, char** argv )
+int directed_graph_contains_item( int argc, char** argv )
 {
-  class DummyFilter
-  : public Filter 
-  {
-  public:
-    explicit DummyFilter()
-    : Filter(OutputSList(), "Dummy", SchedulerSPtr(new Scheduler(10000000))){}
-    virtual OutputSPtr output(Output::Id id) const {}
-
-  protected:
-    virtual void loadFilterCache(const QDir& dir){}
-    virtual void saveFilterCache(const Persistent::Id id) const{}
-    virtual bool needUpdate() const{}
-    virtual bool needUpdate(Output::Id id) const{}
-    virtual DataSPtr createDataProxy(Output::Id id, const Data::Type& type){}
-    virtual void execute(){}
-    virtual void execute(Output::Id id){}
-    virtual bool invalidateEditedRegions() {return false;}
-  };
-  
-  class DummyData 
-  : public Data
-  {
-  public:
-    virtual Type type() const {return "Dummy";}
-    virtual bool isValid() const {return true;}
-    virtual Bounds bounds(){}
-    virtual bool setInternalData(DataSPtr rhs){}
-    virtual void addEditedRegion(const Bounds& region, int cacheId = -1){}
-    virtual void clearEditedRegions(){}
-    virtual void commitEditedRegions(bool withData) const{}
-    virtual bool dumpSnapshot(const QString& prefix, Snapshot& snapshot) const{}
-    virtual bool isEdited() const{}
-    virtual void restoreEditedRegions(const QDir& cacheDir, const QString& outputId){}
-
-  };
-
   bool error = false;
 
-  DummyFilter filter;
+  DirectedGraph graph;
+  
+  DummyItemSPtr item{new DummyItem()};
+  
+  if (graph.contais(item)) 
+  {
+    cerr << "Unexpected item found in graph vertices" << endl;
+    error = true;    
+  }
 
-  Output output(&filter, 0);
+  graph.addItem(item);
   
-  DataSPtr data{new DummyData()};
-  data->setOutput(&output);
-  output.setData(data->type(), data);
-  
-  if (!output.isValid()) {
-    cerr << "Output is not initialized with a valid filter and a valid output" << endl;
-    error = true;
+  if (!graph.contais(item)) 
+  {
+    cerr << "Item not found in graph vertices" << endl;
+    error = true;    
   }
   
   return error;

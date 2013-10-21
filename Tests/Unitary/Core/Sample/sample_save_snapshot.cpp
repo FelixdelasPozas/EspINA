@@ -28,7 +28,6 @@
 
 #include <Core/Analysis/Sample.h>
 #include <Core/Analysis/Storage.h>
-#include <Core/CoreFactory.h>
 
 using namespace EspINA;
 using namespace std;
@@ -37,12 +36,11 @@ int sample_save_snapshot( int argc, char** argv )
 {
   bool error = false;
   
-  CoreFactory factory;
   Persistent::StorageSPtr storage;
 
-  SampleSPtr sample = factory.createSample();
+  Sample sample;
   
-  sample->saveSnapshot(storage);
+  sample.saveSnapshot(storage);
 
   return error;
 }

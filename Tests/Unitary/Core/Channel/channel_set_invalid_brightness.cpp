@@ -26,8 +26,8 @@
  * 
  */
 
-#include <Core/CoreFactory.h>
 #include "Core/Analysis/Channel.h"
+#include "Core/Analysis/Output.h"
 
 using namespace EspINA;
 using namespace std;
@@ -36,10 +36,9 @@ int channel_set_invalid_brightness(int argc, char** argv )
 {
   bool error = false;
 
-  CoreFactory factory;
   OutputSPtr output{new Output()};
 
-  ChannelSPtr channel = factory.createChannel(output);
+  ChannelSPtr channel(new Channel(output));
   
   channel->setBrightness(-1.5);
   if (channel->brightness() != -1.0) {

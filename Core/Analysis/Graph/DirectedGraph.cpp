@@ -235,6 +235,21 @@ void DirectedGraph::removeRelation(AnalysisItemSPtr   ancestor,
   }
 }
 
+//-----------------------------------------------------------------------------
+bool DirectedGraph::contais(AnalysisItemSPtr item)
+{
+  VertexIterator vi, vi_end;
+  boost::tie(vi, vi_end) = boost::vertices(m_graph);
+  while(vi != vi_end)
+  {
+    if(m_graph[*vi].item.get() == item.get()) return true;
+
+    ++vi;
+  }
+
+  return false;
+}
+
 
 //-----------------------------------------------------------------------------
 DirectedGraph::Edges DirectedGraph::edges(const QString &filter)
