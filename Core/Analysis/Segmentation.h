@@ -27,25 +27,28 @@
 
 #include "EspinaCore_Export.h"
 
-#include "Core/Analysis/AnalysisItem.h"
-#include "Core/Analysis/Data.h"
+#include "Core/Analysis/ViewItem.h"
 #include "Core/Analysis/Extensions/Extensible.h"
 #include "Core/Analysis/Extensions/SegmentationExtension.h"
 #include "Core/Analysis/Persistent.h"
+#include "Core/Analysis/Output.h"
 
 namespace EspINA
 {
   class EspinaCore_EXPORT Segmentation
-  : public AnalysisItem
+  : public ViewItem
   , public Persistent
   , public Extensible
   {
   public:
+    explicit Segmentation(FilterSPtr filter, Output::Id output);
     virtual ~Segmentation();
+
+    virtual void changeOutput(OutputSPtr output);
 
     virtual void restoreState(const State& state);
 
-    virtual std::ostream saveState() const;
+    virtual State saveState() const;
 
     virtual void saveSnapshot(StorageSPtr storage) const;
 
@@ -55,7 +58,6 @@ namespace EspINA
 
     virtual void invalidateExtensions();
 
-    void changeOutput(OutputSPtr output);
 
     void setNumber(unsigned int number) {m_number = number;}
 
@@ -94,14 +96,9 @@ namespace EspINA
     virtual QVariant information(const SegmentationExtension::InfoTag& tag) const;
 
   private:
-    explicit Segmentation(OutputSPtr output);
-    friend class EspinaFactory;
-
-  private:
     unsigned int  m_number;
     QSet<QString> m_users;
 
-    OutputSPtr   m_output;
     CategorySPtr m_category;
 
     SegmentationExtensionSList m_extensions;

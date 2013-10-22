@@ -13,7 +13,7 @@ qt4_wrap_cpp(CORE_MOC
   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
   )
 
-set (CORE_SOURCES
+set (CORE_SOURCES 
   ${CORE_MOC}
   ${CORE_UI}
   Analysis/Analysis.cpp
@@ -27,6 +27,7 @@ set (CORE_SOURCES
   Analysis/Sample.cpp
   Analysis/Segmentation.cpp
   Analysis/Storage.cpp
+  Analysis/ViewItem.cpp
   CoreFactory.cpp
   IO/ClassificationXML.cpp 
   IO/SegFile.cpp 

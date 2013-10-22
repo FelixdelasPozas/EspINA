@@ -50,32 +50,30 @@ int channel_add_extension(int argc, char** argv )
   protected:
     virtual void onChannelSet(ChannelPtr channel) { ValidChannel = true; }
   };
-  
+
   bool error = false;
 
-  OutputSPtr output{new Output()};
+  ChannelSPtr channel{new Channel(FilterSPtr(),0)};
 
-  ChannelSPtr channel(new Channel(output));
-  
   DummyExtension *dummy = new DummyExtension();
   ChannelExtensionSPtr extension{dummy};
-  
+
   if (channel->extension(extension->type())) {
     cerr << "Unexepected initial extension" << endl;
     error = true;
   }
-  
+
   channel->addExtension(extension);
-  
+
   if (!channel->extension(extension->type())) {
     cerr << "Couldn't find expected extension" << endl;
     error = true;
   }
-  
+
   if (!dummy->Initialized || !dummy->ValidChannel) {
     cerr << "Extension was not correctly initialized" << endl;
     error = true;
   }
-  
+
   return error;
 }

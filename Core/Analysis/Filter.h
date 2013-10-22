@@ -47,7 +47,7 @@ namespace EspINA
 
     virtual void restoreState(const State& state);
 
-    virtual std::ostream saveState() const;
+    virtual State saveState() const;
 
     virtual void saveSnapshot(StorageSPtr storage) const;
 

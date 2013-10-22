@@ -44,7 +44,7 @@ namespace EspINA
     virtual void initialize() = 0;
 
     virtual void invalidate() = 0;
-    
+
     virtual Type type() const = 0;
 
   protected:

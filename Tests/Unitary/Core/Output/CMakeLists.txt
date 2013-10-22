@@ -31,6 +31,7 @@ add_executable(Output_Tests
   ${CORE_DIR}/Analysis/Filter.cpp
   ${CORE_DIR}/Analysis/Output.cpp
   ${CORE_DIR}/Analysis/Data.cpp
+  ${CORE_DIR}/Analysis/ViewItem.cpp
   )
 
 target_link_libraries(Output_Tests ${LIB_DEPENDECIES} )

@@ -36,10 +36,8 @@ int channel_set_invalid_hue(int argc, char** argv )
 {
   bool error = false;
 
-  OutputSPtr output{new Output()};
+  ChannelSPtr channel{new Channel(FilterSPtr(),0)};
 
-  ChannelSPtr channel(new Channel(output));
-  
   channel->setHue(-0.5);
   if (channel->hue() != 0.0) {
     cerr << "Unexepected hue value:" << channel->hue() << endl;

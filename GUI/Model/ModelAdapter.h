@@ -21,13 +21,23 @@
 
 #include "EspinaGUI_Export.h"
 
-#include <Core/Analysis/Analysis.h>
+#include "GUI/Model/SampleAdapter.h"
 
 #include <QAbstractItemModel>
 
 namespace EspINA
 {
-  class EspinaFactory;
+  struct Relation
+  {
+    ItemAdapterSPtr ancestor;
+    ItemAdapterSPtr succesor;
+    RelationName    relation;
+  };
+  typedef QList<Relation> RelationList;
+
+  class Analysis;
+  using AnalysisSPtr = std::shared_ptr<Analysis>;
+
 
   /**
   *
@@ -40,8 +50,8 @@ namespace EspINA
   *   - Category 2
   *     - ...
   *   - ...
-  * - SampleRoot
-  *   - Sample1
+  * - SampleAdapterRoot
+  *   - SampleAdapter1
   *   - ...
   * - ChannelRoot
   *   - Channel1
@@ -61,6 +71,8 @@ namespace EspINA
     explicit ModelAdapter(AnalysisSPtr analysis);
     virtual ~ModelAdapter();
 
+    void setAnalysis(AnalysisSPtr analysis);
+
     void reset();
 
     // Implement QAbstractItemModel Interface
@@ -74,8 +86,8 @@ namespace EspINA
     virtual QModelIndex parent(const QModelIndex& child) const;
     virtual QModelIndex index(int row, int column, const QModelIndex& parent = QModelIndex()) const;
 
-    QModelIndex index(AnalysisItemPtr item) const;
-    QModelIndex index(AnalysisItemSPtr item) const;
+    QModelIndex index(ItemAdapterPtr item) const;
+    QModelIndex index(ItemAdapterSPtr item) const;
 
     // Special Nodes of the model to refer different roots
     QModelIndex classificationRoot() const;
@@ -83,8 +95,8 @@ namespace EspINA
     QModelIndex categoryIndex(CategorySPtr category) const;
 
     QModelIndex sampleRoot() const;
-    QModelIndex sampleIndex(SamplePtr  sample) const;
-    QModelIndex sampleIndex(SampleSPtr sample) const;
+    QModelIndex sampleIndex(SampleItemPtr  sample) const;
+    QModelIndex sampleIndex(SampleAdapterSPtr sample) const;
 
     QModelIndex channelRoot() const;
     QModelIndex channelIndex(ChannelPtr  channel) const;
@@ -108,21 +120,21 @@ namespace EspINA
     //TODO 2013-10-21: Throw exception if they don't belong to the same classification
     void reparentCategory(CategorySPtr category, CategorySPtr parent);
 
-    void add(SampleSPtr        sample);
-    void add(SampleSList       samples);
+    void add(SampleAdapterSPtr        sample);
+    void add(SampleAdapterSList       samples);
     void add(ChannelSPtr       channel);
     void add(ChannelSList      channels);
     void add(SegmentationSPtr  segmentation);
     void add(SegmentationSList segmentations);
 
-    void remove(SampleSPtr        sample);
-    void remove(SampleSList       samples);
+    void remove(SampleAdapterSPtr        sample);
+    void remove(SampleAdapterSList       samples);
     void remove(ChannelSPtr       channel);
     void remove(ChannelSList      channels);
     void remove(SegmentationSPtr  segmentation);
     void remove(SegmentationSList segmentations);
 
-    SampleSList samples() const
+    SampleAdapterSList samples() const
     { return m_samples; }
 
     ChannelSList channels() const
@@ -135,44 +147,42 @@ namespace EspINA
                                  CategorySPtr     category);
 
 
-    void addRelation(AnalysisItemSPtr    ancestor,
-                     AnalysisItemSPtr    succesor,
+    void addRelation(ItemAdapterSPtr     ancestor,
+                     ItemAdapterSPtr     succesor,
                      const RelationName& relation);
 
-    void deleteRelation(AnalysisItemSPtr    ancestor,
-                        AnalysisItemSPtr    succesor,
+    void deleteRelation(ItemAdapterSPtr     ancestor,
+                        ItemAdapterSPtr     succesor,
                         const RelationName& relation);
 
-    AnalysisItemSList relatedItems(AnalysisItemSPtr    item,
-                                   RelationType        type,
-                                   const RelationName& filter = "");
+    ItemAdapterSList relatedItems(ItemAdapterSPtr    item,
+                                  RelationType        type,
+                                  const RelationName& filter = "");
 
-    RelationList relations(AnalysisItemSPtr    item,
+    RelationList relations(ItemAdapterSPtr     item,
                            RelationType        type,
                            const RelationName& filter = "");
 
-    //const DirectedGraphSPtr relationships() const
-    //{ return m_relations; }
 
-    //---------------------------------------------------------------------------
-    /************************** SmartPointer API *******************************/
-    //---------------------------------------------------------------------------
-    virtual ModelItemSPtr find(ModelItemPtr item);
-
-    virtual CategorySPtr findCategory(ModelItemPtr       item           );
-    virtual CategorySPtr findCategory(CategoryPtr taxonomyElement);
-
-    virtual SampleSPtr findSample(ModelItemPtr item  );
-    virtual SampleSPtr findSample(SamplePtr    sample);
-
-    virtual ChannelSPtr findChannel(ModelItemPtr item   );
-    virtual ChannelSPtr findChannel(ChannelPtr   channel);
-
-    virtual SegmentationSPtr findSegmentation(ModelItemPtr    item        );
-    virtual SegmentationSPtr findSegmentation(SegmentationPtr segmentation);
-
-    virtual FilterSPtr findFilter(ModelItemPtr item  );
-    virtual FilterSPtr findFilter(FilterPtr    filter);
+//     //---------------------------------------------------------------------------
+//     /************************** SmartPointer API *******************************/
+//     //---------------------------------------------------------------------------
+//     virtual ModelItemSPtr find(ModelItemPtr item);
+// 
+//     virtual CategorySPtr findCategory(ModelItemPtr       item           );
+//     virtual CategorySPtr findCategory(CategoryPtr taxonomyElement);
+// 
+//     virtual SampleAdapterSPtr findSampleAdapter(ModelItemPtr item  );
+//     virtual SampleAdapterSPtr findSampleAdapter(SampleAdapterPtr    sample);
+// 
+//     virtual ChannelSPtr findChannel(ModelItemPtr item   );
+//     virtual ChannelSPtr findChannel(ChannelPtr   channel);
+// 
+//     virtual SegmentationSPtr findSegmentation(ModelItemPtr    item        );
+//     virtual SegmentationSPtr findSegmentation(SegmentationPtr segmentation);
+// 
+//     virtual FilterSPtr findFilter(ModelItemPtr item  );
+//     virtual FilterSPtr findFilter(FilterPtr    filter);
 
     // signal emission methods, used by undo commands to signal finished operations.
     void emitSegmentationAdded(SegmentationSList);
@@ -182,8 +192,8 @@ namespace EspINA
     void taxonomyAdded  (ClassificationSPtr taxonomy);
     void taxonomyRemoved(ClassificationSPtr taxonomy);
 
-    void sampleAdded  (SampleSPtr samples);
-    void sampleRemoved(SampleSPtr samples);
+    void sampleAdded  (SampleAdapterSPtr samples);
+    void sampleRemoved(SampleAdapterSPtr samples);
 
     void channelAdded  (ChannelSPtr channel);
     void channelRemoved(ChannelSPtr channel);
@@ -200,8 +210,8 @@ namespace EspINA
   private:
     void addClassification(CategorySPtr root);
 
-    void addSampleImplementation   (SampleSPtr sample);
-    void removeSampleImplementation(SampleSPtr sample);
+    void addSampleAdapterImplementation   (SampleAdapterSPtr sample);
+    void removeSampleAdapterImplementation(SampleAdapterSPtr sample);
 
     void addChannelImplementation   (ChannelSPtr channel);
     void removeChannelImplementation(ChannelSPtr channel);
@@ -217,7 +227,7 @@ namespace EspINA
 
     ChannelSList      m_channels;
     FilterSList       m_filters;
-    SampleSList       m_samples;
+    SampleAdapterSList       m_samples;
     SegmentationSList m_segmentations;
     ClassificationSPtr      m_classification;
 

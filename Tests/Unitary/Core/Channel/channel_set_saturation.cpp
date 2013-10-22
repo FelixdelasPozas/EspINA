@@ -48,9 +48,7 @@ int channel_set_saturation(int argc, char** argv )
 {
   bool error = false;
 
-  OutputSPtr output{new Output()};
-
-  ChannelSPtr channel(new Channel(output));
+  ChannelSPtr channel{new Channel(FilterSPtr(),0)};
   
   if (channel->saturation() != 0) {
     cerr << "Unexepected initial saturation value" << endl;

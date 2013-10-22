@@ -39,19 +39,19 @@ namespace EspINA
   //const QString CHANNEL_FILES = QObject::tr("Channel Files (*.mha *.mhd *.tif *.tiff)");
   //const QString SEG_FILES     = QObject::tr("Espina Analysis (*.seg)");
 
-  class EspinaCore_EXPORT CoreFactory
+  class EspinaCore_EXPORT ModelFactory
   {
   public:
-    explicit CoreFactory();
-    ~CoreFactory();
+    explicit ModelFactory();
+    ~ModelFactory();
 
     void registerFilter(FilterCreatorPtr creator, const Filter::Type &filter);
 
     SampleSPtr createSample(const QString& name = QString()) const;
 
-    FilterSPtr createFilter(OutputSList inputs, Filter::Type& filter) const;
+    FilterAdapterSPtr createFilter(OutputSList inputs, Filter::Type& filter) const;
 
-    ChannelSPtr createChannel(FilterSPtr filter, Output::Id output) const;
+    ChannelAdapterSPtr createChannel(FilterAdapterSPtr filter, Output::Id output) const;
 
     SegmentationSPtr createSegmentation(OutputSPtr output) const;
 

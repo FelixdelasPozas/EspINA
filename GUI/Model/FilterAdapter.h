@@ -17,22 +17,32 @@
  *
  */
 
-#ifndef ESPINA_TESTS_DUMMYITEM_H
-#define ESPINA_TESTS_DUMMYITEM_H
+#ifndef ESPINA_FILTERADAPTER_H
+#define ESPINA_FILTERADAPTER_H
 
-#include <Core/Analysis/AnalysisItem.h>
-#include <memory>
+#include <Core/EspinaTypes.h>
 
-namespace UnitTesting {
+namespace EspINA {
 
-  class DummyItem 
-  : public EspINA::AnalysisItem
+  class FilterInspector;
+  using FilterInspectorSPtr = std::shared_ptr<FilterInspector>;
+
+  class FilterAdapter
   {
   public:
-    virtual void restoreState(const EspINA::State& state){}
-    virtual EspINA::State saveState() const{}
-  };
+    void setFilterInspector(FilterInspectorSPtr inspector);
+    FilterInspectorSPtr filterInspector();
 
-  using DummyItemSPtr = std::shared_ptr<DummyItem>;
+    OutputAdapterSPtr output();
+
+  private:
+    explicit FilterAdapter(FilterSPtr filter);
+
+    
+
+    FilterSPtr m_filter;
+    FilterInspectorSPtr m_inspector;
+  };
 }
-#endif // ESPINA_TESTS_DUMMYITEM_H
+
+#endif // ESPINA_FILTERADAPTER_H

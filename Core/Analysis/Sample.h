@@ -29,8 +29,7 @@
 
 namespace EspINA
 {
-
-  typedef QList<SampleSPtr>      SampleSList;
+  using SampleSList = QList<SampleSPtr>;
 
   /** \brief Sample 
    * 
@@ -45,7 +44,7 @@ namespace EspINA
 
     virtual void restoreState(const State& state);
 
-    virtual std::ostream saveState() const;
+    virtual State saveState() const;
 
     virtual void saveSnapshot(StorageSPtr storage) const;
 
@@ -65,14 +64,11 @@ namespace EspINA
      */
     void setBounds(const Bounds& bounds)
     { m_bounds = bounds; }
-    
+
     /** \brief Return the spatial bounds in nm of the Sample in the Analysis frame reference
      */
     Bounds bounds() const
     { return m_bounds; }
-    
-  private:
-    friend class CoreFactory;
 
   private:
     QString m_name;

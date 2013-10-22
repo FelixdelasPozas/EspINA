@@ -40,7 +40,7 @@ void Sample::restoreState(const State& state)
 }
 
 //------------------------------------------------------------------------
-std::ostream Sample::saveState() const
+State Sample::saveState() const
 {
 
 }

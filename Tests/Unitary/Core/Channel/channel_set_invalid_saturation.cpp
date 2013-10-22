@@ -36,9 +36,7 @@ int channel_set_invalid_saturation(int argc, char** argv )
 {
   bool error = false;
 
-  OutputSPtr output{new Output()};
-
-  ChannelSPtr channel(new Channel(output));
+  ChannelSPtr channel{new Channel(FilterSPtr(),0)};
   
   channel->setSaturation(-0.5);
   if (channel->saturation() != 0.0) {

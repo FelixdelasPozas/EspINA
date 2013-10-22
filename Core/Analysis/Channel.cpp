@@ -49,8 +49,9 @@ const double MIN_SATURATION = 0.0;
 const double MAX_SATURATION = 1.0;
 
 //------------------------------------------------------------------------
-Channel::Channel(OutputSPtr output) 
-: m_brightness{0.0}
+Channel::Channel(FilterSPtr filter, Output::Id output) 
+: ViewItem(filter, output)
+, m_brightness{0.0}
 , m_contrast{1.0}
 , m_hue{NO_HUE}
 , m_opacity{AUTO_OPACITY}
@@ -64,28 +65,25 @@ Channel::~Channel()
 }
 
 //------------------------------------------------------------------------
+void Channel::changeOutput(OutputSPtr output)
+{
+
+}
+
+//------------------------------------------------------------------------
 void Channel::restoreState(const State& state)
 {
 
 }
 
 //------------------------------------------------------------------------
-ostream Channel::saveState() const
+State Channel::saveState() const
 {
 
 }
 
 //------------------------------------------------------------------------
 void Channel::addExtension(ChannelExtensionSPtr extension)
-{
-
-}
-
-DataSPtr Channel::data(Data::Type type)
-{
-
-}
-const DataSPtr Channel::data(Data::Type type) const
 {
 
 }
@@ -210,6 +208,12 @@ void Channel::setBrightness(double brightness)
   {
     m_brightness = brightness;    
   }
+}
+
+//------------------------------------------------------------------------
+Bounds Channel::bounds() const
+{
+
 }
 
 

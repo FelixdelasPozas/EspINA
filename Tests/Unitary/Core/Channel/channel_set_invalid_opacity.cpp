@@ -36,9 +36,7 @@ int channel_set_invalid_opacity(int argc, char** argv )
 {
   bool error = false;
 
-  OutputSPtr output{new Output()};
-
-  ChannelSPtr channel(new Channel(output));
+  ChannelSPtr channel{new Channel(FilterSPtr(),0)};
   
   channel->setOpacity(-0.5);
   if (channel->opacity() != 0.0) {

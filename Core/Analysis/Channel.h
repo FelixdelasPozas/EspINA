@@ -23,15 +23,16 @@
 #include "EspinaCore_Export.h"
 
 #include "Core/Analysis/Data.h"
-#include "Core/Analysis/AnalysisItem.h"
+#include "Core/Analysis/ViewItem.h"
 #include "Core/Analysis/Persistent.h"
 #include "Core/Analysis/Extensions/Extensible.h"
 #include "Core/Analysis/Extensions/ChannelExtension.h"
+#include "Core/Analysis/Output.h"
 
 namespace EspINA
 {
   class EspinaCore_EXPORT Channel
-  : public AnalysisItem
+  : public ViewItem
   , public Persistent
   , public Extensible
   {
@@ -45,12 +46,14 @@ namespace EspINA
     static const QString VOLUMETRIC;
 
   public:
-    explicit Channel(OutputSPtr output);
+    explicit Channel(FilterSPtr filter, Output::Id output);
     virtual ~Channel();
+
+    virtual void changeOutput(OutputSPtr output);
 
     virtual void restoreState(const State& state);
 
-    virtual std::ostream saveState() const;
+    virtual State saveState() const;
 
     virtual void saveSnapshot(StorageSPtr storage) const;
 
@@ -135,9 +138,6 @@ namespace EspINA
 
     Bounds bounds() const;
 
-    DataSPtr data(Data::Type type);
-    const DataSPtr data(Data::Type type) const;
-
     /**
      *  Extesion won't be available until requirements are satisfied
      */
@@ -170,7 +170,8 @@ namespace EspINA
     double m_opacity;
     double m_saturation;
 
-    OutputSPtr            m_output;
+    FilterSPtr            m_filter;
+    Output::Id            m_output;
     ChannelExtensionSList m_extensions;
   };
 

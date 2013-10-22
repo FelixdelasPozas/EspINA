@@ -25,13 +25,13 @@
 
 namespace EspINA {
 
-  using State   = QString;
+  using State = QString;
 
   class AnalysisItem
   {
     virtual void restoreState(const State& state) = 0;
 
-    virtual std::ostream saveState() const = 0;
+    virtual State saveState() const = 0;
   };
 }
 

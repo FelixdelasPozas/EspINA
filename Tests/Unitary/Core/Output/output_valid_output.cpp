@@ -52,7 +52,7 @@ int output_valid_output( int argc, char** argv )
     virtual void execute(Output::Id id){}
     virtual bool invalidateEditedRegions() {return false;}
   };
-  
+
   class DummyData 
   : public Data
   {
@@ -75,15 +75,15 @@ int output_valid_output( int argc, char** argv )
   DummyFilter filter;
 
   Output output(&filter, 0);
-  
+
   DataSPtr data{new DummyData()};
   data->setOutput(&output);
   output.setData(data->type(), data);
-  
+
   if (!output.isValid()) {
     cerr << "Output is not initialized with a valid filter and a valid output" << endl;
     error = true;
   }
-  
+
   return error;
 }

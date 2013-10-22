@@ -34,17 +34,17 @@ using namespace std;
 int sample_save_state(int argc, char** argv)
 {
   bool error = false;
-  
+
   QString name = "Sample";
-  
+
   Sample sample;
-  
+
   QString serialization = "TODO";
-  
+
   if (sample.saveState() != serialization) {
-    cerr << "Unexpected State: " << sample.saveState() << endl;
+    cerr << "Unexpected State: " << sample.saveState().toStdString() << endl;
     error = true;
   }
-  
+
   return error;
 }

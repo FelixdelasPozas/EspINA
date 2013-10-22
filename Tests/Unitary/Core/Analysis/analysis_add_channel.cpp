@@ -61,8 +61,7 @@ int analysis_add_channel( int argc, char** argv )
   Analysis analysis;
     
   DummyFilter filter;
-  OutputSPtr output{new Output(&filter, 0)}; //WARNING: Filter cannot be stored in the pipeline as it is not an smart pointer!
-  ChannelSPtr channel(new Channel(output));
+  ChannelSPtr channel(new Channel(FilterSPtr(), 0));
 
   analysis.add(channel);
  

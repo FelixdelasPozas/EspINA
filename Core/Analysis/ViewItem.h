@@ -17,22 +17,33 @@
  *
  */
 
-#ifndef ESPINA_TESTS_DUMMYITEM_H
-#define ESPINA_TESTS_DUMMYITEM_H
+#ifndef ESPINA_VIEWITEM_H
+#define ESPINA_VIEWITEM_H
 
-#include <Core/Analysis/AnalysisItem.h>
-#include <memory>
+#include "Core/Analysis/AnalysisItem.h"
+#include "Core/Analysis/Output.h"
 
-namespace UnitTesting {
+namespace EspINA {
 
-  class DummyItem 
-  : public EspINA::AnalysisItem
+  class ViewItem
+  : public AnalysisItem
   {
   public:
-    virtual void restoreState(const EspINA::State& state){}
-    virtual EspINA::State saveState() const{}
-  };
+    explicit ViewItem(FilterSPtr filter, Output::Id output);
+    virtual ~ViewItem(){}
 
-  using DummyItemSPtr = std::shared_ptr<DummyItem>;
+    OutputSPtr output();
+    const OutputSPtr output() const;
+
+    DataSPtr data(Data::Type type);
+    const DataSPtr data(Data::Type type) const;
+
+    virtual void changeOutput(OutputSPtr output) = 0;
+
+  private:
+    FilterSPtr m_filter;
+    Output::Id m_output;
+  };
 }
-#endif // ESPINA_TESTS_DUMMYITEM_H
+
+#endif // ESPINA_VIEWITEM_H

@@ -25,31 +25,45 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  */
-
-#include "Core/Analysis/Channel.h"
 #include "Core/Analysis/Output.h"
+#include <Core/Analysis/Filter.h>
+#include <Core/Analysis/Channel.h>
+#include <Core/MultiTasking/Scheduler.h>
 
 using namespace EspINA;
 using namespace std;
 
-int channel_set_invalid_contrast(int argc, char** argv )
+int output_valid_output( int argc, char** argv )
 {
+  class DummyFilter
+  : public Filter 
+  {
+  public:
+    explicit DummyFilter()
+    : Filter(OutputSList(), "Dummy", SchedulerSPtr(new Scheduler(10000000)))
+    , m_output(new Output(this))
+    {}
+    virtual OutputSPtr output(Output::Id id) const {}
+
+  protected:
+    virtual void loadFilterCache(const QDir& dir){}
+    virtual void saveFilterCache(const Persistent::Id id) const{}
+    virtual bool needUpdate() const{}
+    virtual bool needUpdate(Output::Id id) const{}
+    virtual DataSPtr createDataProxy(Output::Id id, const Data::Type& type){}
+    virtual void execute(){}
+    virtual void execute(Output::Id id){}
+    virtual bool invalidateEditedRegions() {return false;}
+
+  private:
+    Output m_output;
+  };
+
   bool error = false;
 
-  ChannelSPtr channel{new Channel(FilterSPtr(),0)};
+  FilterSPtr filter{new DummyFilter()};
 
-  channel->setContrast(-0.5);
-  if (channel->contrast() != 0.0) {
-    cerr << "Unexepected contrast value:" << channel->contrast() << endl;
-    error = true;
-  }
-  
-  channel->setContrast(2.5);
-  if (channel->contrast() != 2.0) {
-    cerr << "Unexepected contrast value:" << channel->contrast() << endl;
-    error = true;
-  }
-  
-  
+  Channel channel(filter, 0);
+
   return error;
 }

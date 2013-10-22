@@ -49,9 +49,7 @@ int channel_set_hue(int argc, char** argv )
 {
   bool error = false;
 
-  OutputSPtr output{new Output()};
-
-  ChannelSPtr channel(new Channel(output));
+  ChannelSPtr channel(new Channel(FilterSPtr(), 0));
   
   if (channel->hue() != -1) {
     cerr << "Unexepected initial hue value" << endl;

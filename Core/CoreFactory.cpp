@@ -54,9 +54,9 @@ FilterSPtr CoreFactory::createFilter(OutputSList inputs, Filter::Type& filter) c
 }
 
 //-----------------------------------------------------------------------------
-ChannelSPtr CoreFactory::createChannel(OutputSPtr output) const
+EspINA::ChannelSPtr CoreFactory::createChannel(FilterSPtr filter, Output::Id output) const
 {
-  return ChannelSPtr(new Channel(output));
+  return ChannelSPtr(new Channel(filter, output));
 }
 
 //-----------------------------------------------------------------------------

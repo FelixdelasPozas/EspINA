@@ -29,12 +29,24 @@
 using namespace std;
 using namespace EspINA;
 
-void Segmentation::addExtension(SegmentationExtensionSPtr extension)
+Segmentation::Segmentation(FilterSPtr filter, Output::Id output)
+: ViewItem(filter, output)
+{
+
+}
+
+Segmentation::~Segmentation()
 {
 
 }
 
 void Segmentation::changeOutput(OutputSPtr output)
+{
+
+}
+
+
+void Segmentation::addExtension(SegmentationExtensionSPtr extension)
 {
 
 }
@@ -73,7 +85,7 @@ void Segmentation::saveSnapshot(Persistent::StorageSPtr storage) const
 
 }
 
-ostream Segmentation::saveState() const
+State Segmentation::saveState() const
 {
 
 }
@@ -82,15 +94,7 @@ void Segmentation::unload()
 
 }
 
-Segmentation::Segmentation(OutputSPtr output)
-{
-
-}
 void Segmentation::setCategory(CategorySPtr category)
-{
-
-}
-Segmentation::~Segmentation()
 {
 
 }
