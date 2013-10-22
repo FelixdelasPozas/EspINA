@@ -20,7 +20,8 @@
 #ifndef ESPINA_ANALYSISITEM_H
 #define ESPINA_ANALYSISITEM_H
 
-#include <iostream>
+#include "Core/Analysis/Persistent.h"
+
 #include <QString>
 
 namespace EspINA {

@@ -9,4 +9,5 @@ add_subdirectory( DirectedGraph )
 add_subdirectory( Output )
 add_subdirectory( Scheduler )
 add_subdirectory( Sample )
+add_subdirectory( Segmentation )
 

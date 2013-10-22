@@ -17,7 +17,8 @@
 
  */
 #include "Segmentation.h"
-
+#include "Category.h"
+#include "Classification.h"
 
 #include <vtkAlgorithm.h>
 #include <vtkAlgorithmOutput.h>
@@ -25,80 +26,123 @@
 
 #include <QDebug>
 #include <QPainter>
+#include <QTextStream>
+#include <QUuid>
+#include <string>
 
 using namespace std;
 using namespace EspINA;
 
 Segmentation::Segmentation(FilterSPtr filter, Output::Id output)
 : ViewItem(filter, output)
+, m_number{0}
+, m_users{QSet<QString>()}
+, m_category{nullptr}
 {
 
 }
 
+//------------------------------------------------------------------------
 Segmentation::~Segmentation()
 {
-
+  m_category = nullptr;
 }
 
-void Segmentation::changeOutput(OutputSPtr output)
-{
-
-}
-
-
+//------------------------------------------------------------------------
 void Segmentation::addExtension(SegmentationExtensionSPtr extension)
 {
-
+  // TODO
 }
 
+//------------------------------------------------------------------------
+void Segmentation::changeOutput(OutputSPtr output)
+{
+  // TODO
+}
+
+//------------------------------------------------------------------------
 SegmentationExtensionSPtr Segmentation::extension(const SegmentationExtension::Type& type) const
 {
-
+  // TODO
+  return SegmentationExtensionSPtr();
 }
+
+//------------------------------------------------------------------------
 bool Segmentation::hasExtension(const SegmentationExtension::Type& type) const
 {
-
+  // TODO
+  return false;
 }
+
+//------------------------------------------------------------------------
 QVariant Segmentation::information(const SegmentationExtension::InfoTag& tag) const
 {
-
+  // TODO
+  return QVariant();
 }
+
+//------------------------------------------------------------------------
 SegmentationExtension::InfoTagList Segmentation::informationTags() const
 {
-
+  // TODO
+  return SegmentationExtension::InfoTagList();
 }
 
+//------------------------------------------------------------------------
 void Segmentation::initializeExtensions()
 {
-
+  // TODO
 }
+
+//------------------------------------------------------------------------
 void Segmentation::invalidateExtensions()
 {
-
+  // TODO
 }
+
+//------------------------------------------------------------------------
 void Segmentation::restoreState(const State& state)
 {
-
+  // TODO
 }
+
+//------------------------------------------------------------------------
 void Segmentation::saveSnapshot(Persistent::StorageSPtr storage) const
 {
-
+  // TODO
 }
 
+//------------------------------------------------------------------------
 State Segmentation::saveState() const
 {
+  State retState;
 
+  retState = QString("NUMBER=") + QString::number(m_number) + QString(";");
+  QStringList usersList = m_users.toList();
+
+  QStringList::iterator it = usersList.begin();
+  retState += QString("USERS=");
+  while (it != usersList.end())
+    retState += (*it) + QString("/");
+  retState += QString(";");
+
+  retState += QString("OUTPUT=") + QString::number(output()->id()) + QString(";");
+  retState += QString("CATEGORY=") + m_category->classificationName() + QString(";");
+
+  return retState;
 }
+
+//------------------------------------------------------------------------
 void Segmentation::unload()
 {
-
+  // TODO
 }
 
+//------------------------------------------------------------------------
 void Segmentation::setCategory(CategorySPtr category)
 {
-
+  m_category = category;
 }
-
 
 // static const ArgumentId ALIAS;
 // static const ArgumentId NUMBER;

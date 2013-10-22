@@ -50,14 +50,14 @@ namespace EspINA {
 
 
   public:
-    explicit Persistent() : m_id{QUuid::createUuid()} {}
+    explicit Persistent() : m_quuid{QUuid::createUuid()} {}
     virtual ~Persistent() {}
 
-    Id id() const
-    { return m_id; }
+    Id quuid() const
+    { return m_quuid; }
 
     void setId(Id id)
-    { m_id = id; }
+    { m_quuid = id; }
 
     void setPersistentStorage(StorageSPtr storage);
 
@@ -72,7 +72,7 @@ namespace EspINA {
     virtual void unload() = 0;
 
   private:
-    Id   m_id;
+    Id          m_quuid;
     StorageSPtr m_storage;
   };
 }

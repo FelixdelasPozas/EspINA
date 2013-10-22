@@ -28,6 +28,7 @@
 #include <QColor>
 #include <QMap>
 #include <QString>
+#include <QList>
 #include <QTextStream>
 #include <QVariant>
 
@@ -35,7 +36,7 @@ namespace EspINA
 {
   const QString DEFAULT_CATEGORY_COLOR = "#00FF00"; //Red
 
-  typedef QList<CategorySPtr>      CategorySList;
+  typedef QList<CategorySPtr> CategorySList;
   
   /** \brief Category for taxons
    * 

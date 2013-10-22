@@ -25,7 +25,7 @@
 
 #include "Core/Utils/Bounds.h"
 #include "Core/Analysis/Persistent.h"
-#include "AnalysisItem.h"
+#include "Core/Analysis/AnalysisItem.h"
 
 namespace EspINA
 {
