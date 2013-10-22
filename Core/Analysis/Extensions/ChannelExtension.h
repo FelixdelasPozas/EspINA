@@ -44,9 +44,12 @@ namespace EspINA
     virtual void initialize() = 0;
 
     virtual void invalidate() = 0;
+    
+    virtual Type type() const = 0;
 
   protected:
-    explicit ChannelExtension() : m_channel{nullptr} {}
+    explicit ChannelExtension() 
+    : m_channel{nullptr} {}
 
     ChannelPtr m_channel;
   };
