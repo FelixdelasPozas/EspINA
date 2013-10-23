@@ -34,6 +34,7 @@ set (CORE_SOURCES
   MultiTasking/Scheduler.cpp
   MultiTasking/Task.cpp
   Utils/Bounds.cpp
+  Utils/BinaryMask.cpp
   )
 
 set(CORE_EXTERNAL_LIBS
