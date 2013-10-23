@@ -57,9 +57,7 @@ namespace EspINA
     using DataSList = QList<DataSPtr>;
 
   public:
-    //TODO 2013-10-16: Check required params 
-    explicit Output(FilterPtr filter     = nullptr,
-                    const Output::Id& id = INVALID_OUTPUT_ID);
+    explicit Output(FilterPtr filter, const Output::Id& id);
 
     FilterPtr filter() const
     { return m_filter; }

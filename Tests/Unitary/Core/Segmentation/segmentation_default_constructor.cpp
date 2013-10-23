@@ -31,7 +31,7 @@ class DummyFilter
   public:
     explicit DummyFilter()
     : Filter(OutputSList(), "Dummy", SchedulerSPtr(new Scheduler(10000000)))
-    , m_output(new Output(this)) {}
+    , m_output(new Output(this, 0)) {}
     virtual OutputSPtr output(Output::Id id) const {}
 
   protected:

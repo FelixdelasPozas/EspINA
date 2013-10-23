@@ -34,7 +34,7 @@ int output_invalid_output( int argc, char** argv )
 {
   bool error = false;
 
-  Output output;
+  Output output(nullptr, 0);
 
   if (output.isValid()) {
     cerr << "Default output constructor creates an invalid output" << endl;

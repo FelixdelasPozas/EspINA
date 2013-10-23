@@ -17,31 +17,6 @@
  *
  */
 
-#ifndef ESPINA_FILTERADAPTER_H
-#define ESPINA_FILTERADAPTER_H
+#include "OutputAdapter.h"
 
-#include <Core/EspinaTypes.h>
-
-namespace EspINA {
-
-  class FilterInspector;
-  using FilterInspectorSPtr = std::shared_ptr<FilterInspector>;
-
-  class FilterAdapter
-  {
-  public:
-    void setFilterInspector(FilterInspectorSPtr inspector);
-    FilterInspectorSPtr filterInspector();
-
-    OutputAdapterSPtr output();
-
-  private:
-    explicit FilterAdapter(FilterSPtr filter);
-
-
-    FilterSPtr m_filter;
-    FilterInspectorSPtr m_inspector;
-  };
-}
-
-#endif // ESPINA_FILTERADAPTER_H
+using namespace EspINA;
