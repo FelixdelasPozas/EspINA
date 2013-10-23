@@ -21,14 +21,45 @@
 #include "Core/Analysis/Filter.h"
 #include "Core/Analysis/Segmentation.h"
 #include "Core/Analysis/Analysis.h"
+#include "Core/MultiTasking/Scheduler.h"
 
 using namespace EspINA;
-using namespace std;
+
+class DummyFilter
+: public Filter
+{
+  public:
+    explicit DummyFilter()
+    : Filter(OutputSList(), "Dummy", SchedulerSPtr(new Scheduler(10000000)))
+    , m_output(new Output(this, 0)) {}
+    virtual OutputSPtr output(Output::Id id) const { return m_output; }
+
+  protected:
+    virtual void loadFilterCache(const QDir& dir){}
+    virtual void saveFilterCache(const Persistent::Id id) const {}
+    virtual bool needUpdate() const {}
+    virtual bool needUpdate(Output::Id id) const {}
+    virtual DataSPtr createDataProxy(Output::Id id, const Data::Type& type) {}
+    virtual void execute() {}
+    virtual void execute(Output::Id id) {}
+    virtual bool invalidateEditedRegions(){ return false; }
+
+  private:
+    OutputSPtr m_output;
+};
 
 int segmentation_change_output(int argc, char** argv)
 {
-  SegmentationSPtr segmentation{new Segmentation(FilterSPtr(), 0)};
+  FilterSPtr filter{ new DummyFilter() };
+  SegmentationSPtr segmentation{new Segmentation(filter, 0)};
 
-  // TODO
-  return true;
+  OutputSPtr oldOutput = segmentation->output();
+
+  Output::Id newId = 2;
+  OutputSPtr newOutput{ new Output(filter.get(), newId)};
+
+  segmentation->changeOutput(newOutput);
+
+  // TODO: real change output
+  return (newOutput != segmentation->output());
 }

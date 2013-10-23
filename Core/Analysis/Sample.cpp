@@ -40,9 +40,8 @@ void Sample::restoreState(const State& state)
 }
 
 //------------------------------------------------------------------------
-State Sample::saveState() const
+void Sample::saveState(State& state) const
 {
-  return State();
 }
 
 //------------------------------------------------------------------------

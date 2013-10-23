@@ -35,10 +35,13 @@ namespace EspINA {
     OutputSPtr output();
     const OutputSPtr output() const;
 
+    const Output::Id outputId() const { return m_output; };
+
     DataSPtr data(Data::Type type);
     const DataSPtr data(Data::Type type) const;
 
     virtual void changeOutput(OutputSPtr output) = 0;
+    void changeOutputId(Output::Id outputId) { m_output = outputId; };
 
   private:
     FilterSPtr m_filter;

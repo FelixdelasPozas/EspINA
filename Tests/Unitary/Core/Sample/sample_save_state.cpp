@@ -40,9 +40,11 @@ int sample_save_state(int argc, char** argv)
   Sample sample;
 
   QString serialization = "TODO";
+  State state;
+  sample.saveState(state);
 
-  if (sample.saveState() != serialization) {
-    cerr << "Unexpected State: " << sample.saveState().toStdString() << endl;
+  if (state != serialization) {
+    cerr << "Unexpected State: " << state.toStdString() << endl;
     error = true;
   }
 

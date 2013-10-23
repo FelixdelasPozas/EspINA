@@ -23,25 +23,60 @@
 #include "Core/Analysis/Analysis.h"
 #include "Core/Analysis/Classification.h"
 #include "Core/Analysis/Category.h"
+#include <Core/MultiTasking/Scheduler.h>
 
 #include <iostream>
 #include <QDebug>
 
 using namespace EspINA;
 
+class DummyFilter
+: public Filter
+{
+  public:
+    explicit DummyFilter()
+    : Filter(OutputSList(), "Dummy", SchedulerSPtr(new Scheduler(10000000)))
+    , m_output(new Output(this, 0)) {}
+    virtual OutputSPtr output(Output::Id id) const { return m_output; }
+
+  protected:
+    virtual void loadFilterCache(const QDir& dir){}
+    virtual void saveFilterCache(const Persistent::Id id) const {}
+    virtual bool needUpdate() const {}
+    virtual bool needUpdate(Output::Id id) const {}
+    virtual DataSPtr createDataProxy(Output::Id id, const Data::Type& type) {}
+    virtual void execute() {}
+    virtual void execute(Output::Id id) {}
+    virtual bool invalidateEditedRegions(){ return false; }
+
+  private:
+    OutputSPtr m_output;
+};
+
 int segmentation_save_state(int argc, char** argv)
 {
-  SegmentationSPtr segmentation{new Segmentation(FilterSPtr(), 0)};
+  FilterSPtr filter{new DummyFilter()};
+  SegmentationSPtr segmentation{new Segmentation(filter, 0)};
+
+  State forgedState;
+  forgedState = QString("ID=") + segmentation->quuid().toString() + QString(";");
+
+  segmentation->setNumber(1);
+  forgedState += QString("NUMBER=1;");
+
+  segmentation->modifiedByUser("AUser");
+  forgedState += QString("USERS=AUser;");
+
+  forgedState += QString("OUTPUT=0;");
 
   Classification classification;
   classification.createCategory(QString("Prueba"), classification.root());
 
-  segmentation->setNumber(1);
   segmentation->setCategory(classification.category(QString("Prueba")));
+  forgedState += QString("CATEGORY=Prueba;");
 
-  State state = segmentation->saveState();
-  qDebug() << state;
+  State state;
+  segmentation->saveState(state);
 
-  // TODO: cambiar y comprobar output id
-  return true;
+  return (state != forgedState);
 }

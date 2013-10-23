@@ -77,7 +77,7 @@ void Channel::restoreState(const State& state)
 }
 
 //------------------------------------------------------------------------
-State Channel::saveState() const
+void Channel::saveState(State& state) const
 {
 
 }

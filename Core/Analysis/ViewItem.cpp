@@ -18,30 +18,32 @@
  */
 
 #include "ViewItem.h"
+#include "Core/Analysis/Filter.h"
 
 using namespace EspINA;
 
 ViewItem::ViewItem(FilterSPtr filter, Output::Id output)
+: m_filter{filter}
+, m_output{output}
 {
-
 }
 
 OutputSPtr ViewItem::output()
 {
-
+  return m_filter->output(m_output);
 }
 
 const OutputSPtr ViewItem::output() const
 {
-
+  return m_filter->output(m_output);
 }
 
 DataSPtr ViewItem::data(Data::Type type)
 {
-
+  return m_filter->output(m_output)->data(type);
 }
 
 const DataSPtr ViewItem::data(Data::Type type) const
 {
-
+  return m_filter->output(m_output)->data(type);
 }

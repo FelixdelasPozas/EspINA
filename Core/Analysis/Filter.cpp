@@ -47,9 +47,8 @@ void Filter::restoreState(const State& state)
 }
 
 //----------------------------------------------------------------------------
-State Filter::saveState() const
+void Filter::saveState(State& state) const
 {
-  return State();
 }
 
 //----------------------------------------------------------------------------

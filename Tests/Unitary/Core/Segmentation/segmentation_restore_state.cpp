@@ -21,18 +21,48 @@
 #include "Core/Analysis/Filter.h"
 #include "Core/Analysis/Segmentation.h"
 #include "Core/Analysis/Analysis.h"
+#include "Core/MultiTasking/Scheduler.h"
 
 using namespace EspINA;
 using namespace std;
 
+class DummyFilter
+: public Filter
+{
+  public:
+    explicit DummyFilter()
+    : Filter(OutputSList(), "Dummy", SchedulerSPtr(new Scheduler(10000000)))
+    , m_output(new Output(this, 0)) {}
+    virtual OutputSPtr output(Output::Id id) const { return m_output; }
+
+  protected:
+    virtual void loadFilterCache(const QDir& dir){}
+    virtual void saveFilterCache(const Persistent::Id id) const {}
+    virtual bool needUpdate() const {}
+    virtual bool needUpdate(Output::Id id) const {}
+    virtual DataSPtr createDataProxy(Output::Id id, const Data::Type& type) {}
+    virtual void execute() {}
+    virtual void execute(Output::Id id) {}
+    virtual bool invalidateEditedRegions(){ return false; }
+
+  private:
+    OutputSPtr m_output;
+};
+
 int segmentation_restore_state(int argc, char** argv)
 {
-  SegmentationSPtr segmentation{new Segmentation(FilterSPtr(), 0)};
+  FilterSPtr filter{new DummyFilter()};
+  SegmentationSPtr segmentation{new Segmentation(filter, 0)};
 
-//  error |= (segmentation->number() != 1);
-//  error |= (segmentation->category() != nullptr);
-//  error |= (segmentation->users() != QList<QString>());
-//  error |= (segmentation->output()->id() != 1);
+  State forgedState = QString("ID=") + QUuid::createUuid().toString() + QString(";");
+  forgedState += QString("NUMBER=2;USERS=FakeUser1/FakeUser2;OUTPUT=3;CATEGORY=Prueba;");
 
-  return true;
+  segmentation->restoreState(forgedState);
+
+  State state;
+  segmentation->saveState(state);
+
+  // TODO: fix Segmentation class to get access to a CategorySPtr
+  // TODO: discrepancy between output()->id() & outputId();
+  return (forgedState != state);
 }

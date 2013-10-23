@@ -30,7 +30,7 @@ namespace UnitTesting {
   {
   public:
     virtual void restoreState(const EspINA::State& state){}
-    virtual EspINA::State saveState() const{}
+    virtual void saveState(EspINA::State& state) const{}
   };
 
   using DummyItemSPtr = std::shared_ptr<DummyItem>;

@@ -34,6 +34,8 @@
 #include <QPair>
 
 #include <memory>
+#include <QString>
+#include <QDebug>
 
 namespace EspINA {
 

@@ -32,7 +32,7 @@ class DummyFilter
     explicit DummyFilter()
     : Filter(OutputSList(), "Dummy", SchedulerSPtr(new Scheduler(10000000)))
     , m_output(new Output(this, 0)) {}
-    virtual OutputSPtr output(Output::Id id) const {}
+    virtual OutputSPtr output(Output::Id id) const { return m_output; }
 
   protected:
     virtual void loadFilterCache(const QDir& dir){}
@@ -45,7 +45,7 @@ class DummyFilter
     virtual bool invalidateEditedRegions(){ return false; }
 
   private:
-    Output *m_output;
+    OutputSPtr m_output;
 };
 
 int segmentation_default_constructor(int argc, char** argv)
@@ -72,7 +72,6 @@ int segmentation_default_constructor(int argc, char** argv)
     return true;
   }
 
-  // TODO: falta implementación de ViewItem
   if (segmentation->output()->id() != 0)
   {
     cerr << "Segmentation output id is wrong!" << std::endl;

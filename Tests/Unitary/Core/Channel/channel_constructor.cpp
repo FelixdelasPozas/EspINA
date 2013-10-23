@@ -28,6 +28,7 @@
 #include "Core/Analysis/Output.h"
 #include <Core/Analysis/Filter.h>
 #include <Core/Analysis/Channel.h>
+#include <Core/Analysis/Storage.h>
 #include <Core/MultiTasking/Scheduler.h>
 
 using namespace EspINA;
@@ -48,6 +49,7 @@ int output_valid_output( int argc, char** argv )
   protected:
     virtual void loadFilterCache(const QDir& dir){}
     virtual void saveFilterCache(const Persistent::Id id) const{}
+    virtual void saveSnapshot(StorageSPtr storage) {};
     virtual bool needUpdate() const{}
     virtual bool needUpdate(Output::Id id) const{}
     virtual DataSPtr createDataProxy(Output::Id id, const Data::Type& type){}

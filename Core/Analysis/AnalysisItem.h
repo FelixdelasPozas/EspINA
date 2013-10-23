@@ -32,7 +32,7 @@ namespace EspINA {
   {
     virtual void restoreState(const State& state) = 0;
 
-    virtual State saveState() const = 0;
+    virtual void saveState(State& state) const = 0;
   };
 }
 

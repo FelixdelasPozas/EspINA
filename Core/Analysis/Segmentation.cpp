@@ -101,35 +101,64 @@ void Segmentation::invalidateExtensions()
 }
 
 //------------------------------------------------------------------------
-void Segmentation::restoreState(const State& state)
-{
-  // TODO
-}
-
-//------------------------------------------------------------------------
 void Segmentation::saveSnapshot(Persistent::StorageSPtr storage) const
 {
   // TODO
 }
 
 //------------------------------------------------------------------------
-State Segmentation::saveState() const
+void Segmentation::saveState(State& state) const
 {
-  State retState;
-
-  retState = QString("NUMBER=") + QString::number(m_number) + QString(";");
+  state = QString("ID=") + quuid().toString() + QString(";");
+  state += QString("NUMBER=") + QString::number(m_number) + QString(";");
   QStringList usersList = m_users.toList();
 
   QStringList::iterator it = usersList.begin();
-  retState += QString("USERS=");
+  state += QString("USERS=");
   while (it != usersList.end())
-    retState += (*it) + QString("/");
-  retState += QString(";");
+  {
+    state += (*it);
+    ++it;
+    if (it != usersList.end())
+      state += QString("/");
+  }
+  state += QString(";");
 
-  retState += QString("OUTPUT=") + QString::number(output()->id()) + QString(";");
-  retState += QString("CATEGORY=") + m_category->classificationName() + QString(";");
+  if (output())
+    state += QString("OUTPUT=") + QString::number(outputId()) + QString(";");
 
-  return retState;
+  if (m_category)
+    state += QString("CATEGORY=") + m_category->classificationName() + QString(";");
+}
+
+//------------------------------------------------------------------------
+void Segmentation::restoreState(const State& state)
+{
+  QStringList strings = state.split(';');
+  QStringList::iterator it = strings.begin();
+  for (auto it = strings.begin(); it != strings.end(); ++it)
+  {
+    qDebug() << *it;
+    QStringList tokens = (*it).split('=');
+    if (tokens.size() != 2)
+      continue;
+
+    if (tokens[0].compare("QUUID") == 0)
+      setId(QUuid(tokens[1]));
+
+    if (tokens[0].compare("NUMBER") == 0)
+      m_number = tokens[1].toUInt();
+
+    if (tokens[0].compare("USERS") == 0)
+      m_users = tokens[1].split('/').toSet();
+
+    if (tokens[0].compare("OUTPUT") == 0)
+      changeOutputId(tokens[1].toUInt());
+
+    // TODO: unable to get CategorySPtr
+//    if (tokens[0].compare("CATEGORY") == 0)
+//      m_category = new Category(nullptr, tokens[1]);
+  }
 }
 
 //------------------------------------------------------------------------
