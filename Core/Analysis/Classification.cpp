@@ -10,8 +10,9 @@ using namespace EspINA;
 
 const QString Classification::ROOT = QString();
 
-Classification::Classification()
-: m_root(new Category(NULL, ROOT))
+Classification::Classification(const QString& name)
+: m_name(name)
+, m_root(new Category(NULL, ROOT))
 {
 }
 
@@ -106,6 +107,12 @@ CategorySPtr Classification::parent(const CategorySPtr subCategory) const
   }
 
   return parent;
+}
+
+//-----------------------------------------------------------------------------
+bool Classification::operator==(const Classification& rhs)
+{
+  return m_name == rhs.m_name;
 }
 
 //-----------------------------------------------------------------------------

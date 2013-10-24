@@ -42,8 +42,14 @@ namespace EspINA
     static const QString ROOT;
 
   public:
-    explicit Classification();
+    explicit Classification(const QString& name=QString());
     ~Classification();
+
+    void setName(const QString& name)
+    { m_name = name; }
+
+    QString name() const
+    { return m_name; }
 
     CategorySPtr createCategory(const QString &relativeName,
                                 CategorySPtr parent = CategorySPtr());
@@ -55,11 +61,18 @@ namespace EspINA
     CategorySList categories() {return m_root->subCategories();}
     CategorySPtr  parent(const CategorySPtr categor) const;
 
+    bool operator==(const Classification& rhs);
+
+    bool operator!=(const Classification& rhs)
+    { return !operator==(rhs); }
+
     void print(int indent = 0);
 
   private:
+    QString      m_name;
     CategorySPtr m_root;
   };
+
 
 }// namespace EspINA
 

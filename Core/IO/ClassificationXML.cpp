@@ -18,15 +18,56 @@
  */
 
 #include "ClassificationXML.h"
+#include <Core/Analysis/Classification.h>
+
+#include <QXmlStreamReader>
 
 using namespace EspINA;
 using namespace EspINA::IO;
+
+void dumpCategoryXML(CategorySPtr category, QXmlStreamWriter& stream) 
+{  
+  stream.writeStartElement("category");
+  stream.writeAttribute("name", category->name());
+  stream.writeAttribute("color", category->color().name());
+
+  foreach(QString prop, category->properties()){
+    stream.writeAttribute(prop, category->property(prop).toString());
+  }
+
+  foreach(CategorySPtr subCategory, category->subCategories()){
+    dumpCategoryXML(subCategory, stream);
+  }
+
+  stream.writeEndElement();
+}
 
 STATUS ClassificationXML::save(ClassificationSPtr classification,
                                const QFileInfo&   file,
                                ErrorHandlerPtr    handler)
 {
+  QFile xmlFile(file.absoluteFilePath());
+  if (!xmlFile.open(QIODevice::WriteOnly))
+  {
+    return STATUS::IO_ERROR;
+  }
 
+  QXmlStreamWriter stream(&xmlFile);
+
+  stream.setAutoFormatting(true);
+  stream.writeStartDocument();
+  stream.writeStartElement("classification");
+  stream.writeAttribute("name", classification->name());
+
+  foreach(CategorySPtr category, classification->categories())
+  {
+    dumpCategoryXML(category, stream);
+  }
+
+  stream.writeEndElement();
+  stream.writeEndDocument();
+
+  return STATUS::SUCCESS;
 }
 
 
@@ -34,5 +75,17 @@ STATUS ClassificationXML::load(const QFileInfo&   file,
                                ClassificationSPtr classification,
                                ErrorHandlerPtr    handler)
 {
+  QFile xmlFile(file);
+  if (!xmlFile.open(QIODevice::ReadOnly | QIODevice::Text))
+  {
+    return STATUS::IO_ERROR;
+  }
 
+  QXmlStreamReader xmlStream(&xmlFile);
+
+  TaxonomySPtr tax = readXML(xmlStream);
+
+  xmlFile.close();
+
+  return STATUS::SUCCESS;
 }

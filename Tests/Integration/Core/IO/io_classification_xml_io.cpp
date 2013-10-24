@@ -37,7 +37,7 @@ int io_classification_xml_io(int argc, char** argv)
 {
   bool error = false;
 
-  ClassificationSPtr classification{new Classification()};
+  ClassificationSPtr classification{new Classification("test")};
 
   classification->createCategory("1");
   classification->createCategory("1/1");
@@ -58,7 +58,7 @@ int io_classification_xml_io(int argc, char** argv)
     error = true;
   }
 
-  if (classification != loadedClassification) {
+  if (*(classification.get()) != *(loadedClassification.get())) {
     cerr << "Unexpected Loaded Classification" << endl;
     error = true;
   }
