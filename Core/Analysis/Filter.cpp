@@ -52,7 +52,7 @@ void Filter::saveState(State& state) const
 }
 
 //----------------------------------------------------------------------------
-void Filter::saveSnapshot(Persistent::StorageSPtr storage) const
+Snapshot Filter::saveSnapshot() const
 {
 
 }

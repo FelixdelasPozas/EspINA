@@ -50,7 +50,7 @@ namespace EspINA
 
     virtual void saveState(State& state) const;
 
-    virtual void saveSnapshot(StorageSPtr storage) const;
+    virtual Snapshot saveSnapshot() const;
 
     virtual void unload();
 

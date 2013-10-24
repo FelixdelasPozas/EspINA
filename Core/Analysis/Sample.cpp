@@ -45,7 +45,7 @@ void Sample::saveState(State& state) const
 }
 
 //------------------------------------------------------------------------
-void Sample::saveSnapshot(Persistent::StorageSPtr storage) const
+Snapshot Sample::saveSnapshot() const
 {
 
 }

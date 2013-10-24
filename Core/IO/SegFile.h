@@ -32,13 +32,13 @@ namespace EspINA
   {
     namespace SegFile
     {
-      ErrorHandler::STATUS load(const QFileInfo& file,
-                                AnalysisPtr      analysis,
-                                ErrorHandlerPtr  handler = nullptr);
+      STATUS load(const QFileInfo& file,
+                  AnalysisPtr      analysis,
+                  ErrorHandlerPtr  handler = nullptr);
 
-      ErrorHandler::STATUS save(AnalysisPtr      analysis,
-                                const QFileInfo& file,
-                                ErrorHandlerPtr  handler = nullptr);
+      STATUS save(AnalysisPtr      analysis,
+                  const QFileInfo& file,
+                  ErrorHandlerPtr  handler = nullptr);
     }
   }
 }

@@ -13,8 +13,6 @@ if (${USE_DASHBOARD})
 
 endif()
 
-
-
 set( CORE_DIR ${CMAKE_SOURCE_DIR}/Core )
 
 
@@ -24,12 +22,8 @@ if (BUILD_UNIT_TESTS)
 
 endif(BUILD_UNIT_TESTS)
 
-#SET(HELPER_SOURCES
-#  ${CMAKE_SOURCE_DIR}/App/Undo/AtomicModelOperations.cpp
-#  ${CMAKE_SOURCE_DIR}/Undo/ChangeTaxonomyCommand.cpp
-#  )
-#SET(LIB_DEPENDECIES
-#  vtkRendering
-#  vtkIO
-#)
+if (BUILD_CI_TESTS)
 
+  add_subdirectory(Integration)
+
+endif(BUILD_CI_TESTS)

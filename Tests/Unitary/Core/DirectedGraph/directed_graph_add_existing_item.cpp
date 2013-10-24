@@ -28,7 +28,7 @@
 
 #include "Core/Analysis/Graph/DirectedGraph.h"
 
-#include <Core/Analysis/AnalysisItem.h>
+#include <Core/Analysis/Persistent.h>
 #include "DummyItem.h"
 
 using namespace EspINA;
@@ -38,17 +38,17 @@ using namespace std;
 int directed_graph_add_existing_item( int argc, char** argv )
 {
   DirectedGraph graph;
-  
+
   DummyItemSPtr item{new DummyItem()};
-  
+
   graph.addItem(item);
-  
+
   try {
     graph.addItem(item);
     cerr << "Expected existing item exception" << endl;
   } catch (DirectedGraph::Existing_Item_Exception e) {
     return 0;
   }
-  
+
   return -1;
 }

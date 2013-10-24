@@ -111,7 +111,9 @@ void Channel::invalidateExtensions()
 {
 
 }
-void Channel::saveSnapshot(Persistent::StorageSPtr storage) const
+
+//------------------------------------------------------------------------
+Snapshot Channel::saveSnapshot() const
 {
 
 }

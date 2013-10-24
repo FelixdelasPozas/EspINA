@@ -41,6 +41,7 @@ namespace EspINA {
 
   using SnapshotData = QPair<QString, QByteArray>;
   using Snapshot     = QList<SnapshotData>;
+  using State = QString;
 
   class Persistent
   {
@@ -49,7 +50,6 @@ namespace EspINA {
 
     class Storage;
     using StorageSPtr = std::shared_ptr<Storage>;
-
 
   public:
     explicit Persistent() : m_quuid{QUuid::createUuid()} {}
@@ -61,12 +61,17 @@ namespace EspINA {
     void setId(Id id)
     { m_quuid = id; }
 
-    void setPersistentStorage(StorageSPtr storage);
+    void setPersistentStorage(StorageSPtr storage)
+    { m_storage = storage; }
 
     StorageSPtr storage() const
     { return m_storage; }
 
-    virtual void saveSnapshot(StorageSPtr storage) const = 0;
+    virtual void restoreState(const State& state) = 0;
+
+    virtual void saveState(State& state) const = 0;
+
+    virtual Snapshot saveSnapshot() const = 0;
 
     /** \brief Release all resources loaded in memory
      *
@@ -77,6 +82,8 @@ namespace EspINA {
     Id          m_quuid;
     StorageSPtr m_storage;
   };
+  
+  using PersistentPtr = Persistent *;
 }
 
 #endif // ESPINA_PERSISTENT_H

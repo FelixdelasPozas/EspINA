@@ -74,12 +74,12 @@ int analysis_add_relation( int argc, char** argv )
     error = true;
   }
   
-  if (analysis.pipeline()->vertices().size() != 2) {
+  if (analysis.content()->vertices().size() != 2) {
     cerr << "Unexpected number of vertices in analysis pipeline" << endl;
     error = true;
   }
   
-  if (!analysis.pipeline()->edges().isEmpty()) {
+  if (!analysis.content()->edges().isEmpty()) {
     cerr << "Unexpected number of edges in analysis pipeline" << endl;
     error = true;
   }

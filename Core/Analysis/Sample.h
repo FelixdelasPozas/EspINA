@@ -25,7 +25,6 @@
 
 #include "Core/Utils/Bounds.h"
 #include "Core/Analysis/Persistent.h"
-#include "Core/Analysis/AnalysisItem.h"
 
 namespace EspINA
 {
@@ -35,8 +34,7 @@ namespace EspINA
    * 
    */
   class EspinaCore_EXPORT Sample
-  : public AnalysisItem
-  , public Persistent
+  : public Persistent
   {
   public:
     explicit Sample(const QString& name=QString());
@@ -46,7 +44,7 @@ namespace EspINA
 
     virtual void saveState(State& state) const;
 
-    virtual void saveSnapshot(StorageSPtr storage) const;
+    virtual Snapshot saveSnapshot() const;
 
     virtual void unload();
 

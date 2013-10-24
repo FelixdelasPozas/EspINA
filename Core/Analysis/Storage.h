@@ -27,7 +27,13 @@ namespace EspINA {
   class Persistent::Storage
   {
   public:
+    explicit Storage(const QDir& parent);
+    ~Storage();
+
     void saveSnapshot(Persistent::Id id, const Snapshot& snapshot);
+
+  private:
+    QUuid m_uuid;
   };
 }
 

@@ -45,13 +45,9 @@ namespace EspINA
     explicit Classification();
     ~Classification();
 
-    /// Create taxonmy element with qualified name relative to parent node
-    CategorySPtr createCategory(const QString &classificationName,
-                                CategoryPtr parent);
-    CategorySPtr createCategory(const QString &name,
+    CategorySPtr createCategory(const QString &relativeName,
                                 CategorySPtr parent = CategorySPtr());
 
-    void removeCategory(CategoryPtr element);
     void removeCategory(CategorySPtr element);
 
     CategorySPtr  root(){return m_root;}

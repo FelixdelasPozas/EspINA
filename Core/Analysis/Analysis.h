@@ -30,6 +30,12 @@ namespace EspINA
   class EspinaCore_EXPORT Analysis
   {
   public:
+    struct Existing_Item_Exception{};
+    struct Existing_Relation_Exception{};
+    struct Item_Not_Found_Exception {};
+    struct Relation_Not_Found_Exception {};
+
+  public:
     explicit Analysis();
 
     void reset();
@@ -39,12 +45,13 @@ namespace EspINA
     ClassificationSPtr classification() const
     {return m_classification;}
 
-    void add(SampleSPtr        sample);
-    void add(SampleSList       samples);
-    void add(ChannelSPtr       channel);
-    void add(ChannelSList      channels);
-    void add(SegmentationSPtr  segmentation);
-    void add(SegmentationSList segmentations);
+    void add(SampleSPtr            sample);
+    void add(SampleSList           samples);
+    void add(ChannelSPtr           channel);
+    void add(ChannelSList          channels);
+    void add(SegmentationSPtr      segmentation);
+    void add(SegmentationSList     segmentations);
+    void add(ExtensionProviderSPtr provider);
 
     void remove(SampleSPtr        sample);
     void remove(SampleSList       samples);
@@ -52,6 +59,7 @@ namespace EspINA
     void remove(ChannelSList      channels);
     void remove(SegmentationSPtr  segmentation);
     void remove(SegmentationSList segmentations);
+    void remove(ExtensionProviderSPtr provider);
 
     SampleSList samples() const
     { return m_samples; }
@@ -62,12 +70,12 @@ namespace EspINA
     SegmentationSList segmentations() const
     { return m_segmentations; }
 
-    void addRelation(AnalysisItemSPtr    ancestor,
-                     AnalysisItemSPtr    succesor,
+    void addRelation(PersistentSPtr    ancestor,
+                     PersistentSPtr    succesor,
                      const RelationName& relation);
 
-    void deleteRelation(AnalysisItemSPtr    ancestor,
-                        AnalysisItemSPtr    succesor,
+    void deleteRelation(PersistentSPtr    ancestor,
+                        PersistentSPtr    succesor,
                         const RelationName& relation);
 
 //     virtual ModelItemSList relatedItems(ModelItemPtr   item,
@@ -75,28 +83,30 @@ namespace EspINA
 //                                      const QString &relName = "");
 //     virtual RelationList relations(ModelItemPtr   item,
 //                                    const QString &relName = "");
+    ExtensionProviderSList extensionProviders() const
+    { return m_providers; }
 
     const DirectedGraphSPtr relationships()
     { return m_relations; }
 
-    const DirectedGraphSPtr pipeline()
-    { return m_pipeline; }
+    const DirectedGraphSPtr content()
+    { return m_content; }
 
 //     //---------------------------------------------------------------------------
 //     /************************** SmartPointer API *******************************/
 //     //---------------------------------------------------------------------------
-//     AnalysisItemSPtr find(AnalysisItemPtr item);
+//     PersistentSPtr find(PersistentPtr item);
 // 
-//     SampleSPtr findSample(AnalysisItemPtr item  );
+//     SampleSPtr findSample(PersistentPtr item  );
 //     SampleSPtr findSample(SamplePtr       sample);
 // 
-//     ChannelSPtr findChannel(AnalysisItemPtr item   );
+//     ChannelSPtr findChannel(PersistentPtr item   );
 //     ChannelSPtr findChannel(ChannelPtr      channel);
 // 
-//     SegmentationSPtr findSegmentation(AnalysisItemPtr item        );
+//     SegmentationSPtr findSegmentation(PersistentPtr item        );
 //     SegmentationSPtr findSegmentation(SegmentationPtr segmentation);
 // 
-//     FilterSPtr findFilter(AnalysisItemPtr item  );
+//     FilterSPtr findFilter(PersistentPtr item  );
 //     FilterSPtr findFilter(FilterPtr       filter);
 
 //     // signal emission methods, used by undo commands to signal finished operations.
@@ -120,38 +130,48 @@ namespace EspINA
 //     void filterRemoved(FilterSPtr filter);
 
   private:
-    void add(FilterSPtr  filter  );
-    void add(FilterSList filters );
+//     void add(FilterSPtr  filter  );
+//     void add(FilterSList filters );
+// 
+//     void remove(FilterSPtr filter);
 
-    void remove(FilterSPtr filter);
+    bool removeIfIsolated(DirectedGraphSPtr graph ,PersistentSPtr item);
 
-    void addClassification(CategorySPtr root);
+    void addIfNotExists(FilterSPtr filter);
+    void removeIfIsolated(FilterSPtr filter);
 
-    void addSampleImplementation   (SampleSPtr sample);
-    void removeSampleImplementation(SampleSPtr sample);
+    bool findRelation(PersistentSPtr    ancestor,
+                      PersistentSPtr    succesor,
+                      const RelationName& relation);
 
-    void addChannelImplementation   (ChannelSPtr channel);
-    void removeChannelImplementation(ChannelSPtr channel);
+//     void addClassification(CategorySPtr root);
 
-    void addSegmentationImplementation   (SegmentationSPtr segmentation);
-    void removeSegmentationImplementation(SegmentationSPtr segmentation);
+//     void addSampleImplementation   (SampleSPtr sample);
+//     void removeSampleImplementation(SampleSPtr sample);
+// 
+//     void addChannelImplementation   (ChannelSPtr channel);
+//     void removeChannelImplementation(ChannelSPtr channel);
+// 
+//     void addSegmentationImplementation   (SegmentationSPtr segmentation);
+//     void removeSegmentationImplementation(SegmentationSPtr segmentation);
+// 
+//     void addFilterImplementation   (FilterSPtr filter);
+//     void removeFilterImplementation(FilterSPtr filter);
 
-    void addFilterImplementation   (FilterSPtr filter);
-    void removeFilterImplementation(FilterSPtr filter);
-
-    FilterSList filters() const
-    { return m_filters; }
+//     FilterSList filters() const
+//     { return m_filters; }
 
 
   private:
     ClassificationSPtr m_classification;
     DirectedGraphSPtr  m_relations;
-    DirectedGraphSPtr  m_pipeline;
+    DirectedGraphSPtr  m_content;
 
-    ChannelSList      m_channels;
-    FilterSList       m_filters;
-    SampleSList       m_samples;
-    SegmentationSList m_segmentations;
+    ChannelSList           m_channels;
+    FilterSList            m_filters; // NOTE: Could be removed
+    SampleSList            m_samples;
+    SegmentationSList      m_segmentations;
+    ExtensionProviderSList m_providers;
   };
 
   using AnalysisPtr  = Analysis *;

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2013, Jorge Peña Pastor <jpena@cesvima.upm.es>
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -12,7 +12,7 @@
  *     * Neither the name of the <organization> nor the
  *     names of its contributors may be used to endorse or promote products
  *     derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY Jorge Peña Pastor <jpena@cesvima.upm.es> ''AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -23,12 +23,11 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  */
 
 #include "Core/Analysis/Graph/DirectedGraph.h"
 
-#include <Core/Analysis/AnalysisItem.h>
 #include "DummyItem.h"
 
 using namespace EspINA;
@@ -40,22 +39,22 @@ int directed_graph_contains_item( int argc, char** argv )
   bool error = false;
 
   DirectedGraph graph;
-  
+
   DummyItemSPtr item{new DummyItem()};
-  
-  if (graph.contais(item)) 
+
+  if (graph.contains(item))
   {
     cerr << "Unexpected item found in graph vertices" << endl;
-    error = true;    
+    error = true;
   }
 
   graph.addItem(item);
-  
-  if (!graph.contais(item)) 
+
+  if (!graph.contains(item))
   {
     cerr << "Item not found in graph vertices" << endl;
-    error = true;    
+    error = true;
   }
-  
+
   return error;
 }

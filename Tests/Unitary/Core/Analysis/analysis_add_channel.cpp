@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2013, Jorge Peña Pastor <jpena@cesvima.upm.es>
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -12,7 +12,7 @@
  *     * Neither the name of the <organization> nor the
  *     names of its contributors may be used to endorse or promote products
  *     derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY Jorge Peña Pastor <jpena@cesvima.upm.es> ''AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -23,7 +23,7 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  */
 
 #include <Core/Analysis/Analysis.h>
@@ -38,7 +38,7 @@ using namespace std;
 int analysis_add_channel( int argc, char** argv )
 {
   class DummyFilter
-  : public Filter 
+  : public Filter
   {
   public:
     explicit DummyFilter()
@@ -55,65 +55,70 @@ int analysis_add_channel( int argc, char** argv )
     virtual void execute(Output::Id id){}
     virtual bool invalidateEditedRegions() {return false;}
   };
-  
+
   bool error = false;
 
   Analysis analysis;
-    
-  DummyFilter filter;
-  ChannelSPtr channel(new Channel(FilterSPtr(), 0));
+
+  FilterSPtr filter{new DummyFilter()};
+  ChannelSPtr channel(new Channel(filter, 0));
 
   analysis.add(channel);
- 
+
+  if (!analysis.channels().contains(channel)) {
+    cerr << "Analysis doesn't contain addded channel" << endl;
+    error = true;
+  }
+
   if (analysis.channels().first() != channel) {
     cerr << "Unexpected channel retrieved from analysis" << endl;
     error = true;
   }
-  
+
   if (analysis.classification().get() != nullptr) {
     cerr << "Unexpected classification in analysis" << endl;
     error = true;
   }
-  
+
   if (!analysis.samples().isEmpty()) {
     cerr << "Unexpected number of samples in analysis" << endl;
     error = true;
   }
-  
+
   if (analysis.channels().size() != 1) {
     cerr << "Unexpected number of channels in analysis" << endl;
     error = true;
   }
-  
+
   if (!analysis.segmentations().isEmpty()) {
     cerr << "Unexpected number of segmentations in analysis" << endl;
     error = true;
   }
-  
-  if (analysis.pipeline()->vertices().size() != 2) {
+
+  if (analysis.content()->vertices().size() != 2) {
     cerr << "Unexpected number of vertices in analysis pipeline" << endl;
     error = true;
   }
-  
+
 //   if (analysis.pipeline()->vertices().first().item != channel) {
 //     cerr << "Unexpected channel retrieved from analysis pipeline" << endl;
 //     error = true;
 //   }
-  
-  if (analysis.pipeline()->edges().size() != 1) {
+
+  if (analysis.content()->edges().size() != 1) {
     cerr << "Unexpected number of edges in analysis pipeline" << endl;
     error = true;
   }
-  
+
   if (!analysis.relationships()->vertices().isEmpty()) {
     cerr << "Unexpected number of vertices in analysis relationships" << endl;
     error = true;
   }
-  
+
   if (!analysis.relationships()->edges().isEmpty()) {
     cerr << "Unexpected number of edges in analysis relationships" << endl;
     error = true;
   }
-  
+
   return error;
 }

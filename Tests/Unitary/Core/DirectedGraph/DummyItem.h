@@ -20,17 +20,19 @@
 #ifndef ESPINA_TESTS_DUMMYITEM_H
 #define ESPINA_TESTS_DUMMYITEM_H
 
-#include <Core/Analysis/AnalysisItem.h>
+#include <Core/Analysis/Persistent.h>
 #include <memory>
 
 namespace UnitTesting {
 
   class DummyItem 
-  : public EspINA::AnalysisItem
+  : public EspINA::Persistent
   {
   public:
     virtual void restoreState(const EspINA::State& state){}
     virtual void saveState(EspINA::State& state) const{}
+    virtual EspINA::Snapshot saveSnapshot() const{}
+    virtual void unload(){}
   };
 
   using DummyItemSPtr = std::shared_ptr<DummyItem>;

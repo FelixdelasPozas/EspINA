@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2013, Jorge Peña Pastor <jpena@cesvima.upm.es>
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -12,7 +12,7 @@
  *     * Neither the name of the <organization> nor the
  *     names of its contributors may be used to endorse or promote products
  *     derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY Jorge Peña Pastor <jpena@cesvima.upm.es> ''AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -23,12 +23,11 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  */
 
 #include "Core/Analysis/Graph/DirectedGraph.h"
 
-#include <Core/Analysis/AnalysisItem.h>
 #include "DummyItem.h"
 
 using namespace EspINA;
@@ -42,7 +41,7 @@ int directed_graph_expected_edges( int argc, char** argv )
   bool error = false;
 
   DirectedGraph graph;
-  
+
   DummyItemSPtr item1{new DummyItem()};
   DummyItemSPtr item2{new DummyItem()};
   DummyItemSPtr item3{new DummyItem()};
@@ -52,47 +51,47 @@ int directed_graph_expected_edges( int argc, char** argv )
   QString input2 {"input2" };
   QString output1{"output1"};
   QString output2{"output2"};
-  
+
   graph.addItem(item1);
   graph.addItem(item2);
   graph.addItem(item3);
-  
+
   graph.addRelation(item1, item2, input1);
   graph.addRelation(item1, item2, input2);
-  
+
   graph.addRelation(item2, item3, output1);
   graph.addRelation(item2, item3, output2);
-  
+
   graph.addRelation(item1, item2, link);
   graph.addRelation(item2, item3, link);
-  
+
   if (graph.vertices().size() != 3) {
     cerr << "Unexpected number of vertices" << endl;
-    error = true;    
+    error = true;
   }
-  
+
   if (graph.edges().size() != 6) {
     cerr << "Unexpected number of edges" << endl;
-    error = true;    
+    error = true;
   }
-  
+
   Vertex v1 = graph.vertex(item1);
   if (graph.edges(v1).size() != 3) {
     cerr << "Unexpected number of edges for vertex " << v1.descriptor << endl;
-    error = true;    
+    error = true;
   }
-  
+
   Vertex v2 = graph.vertex(item2);
   if (graph.edges(v2).size() != 6) {
     cerr << "Unexpected number of edges for vertex " << v2.descriptor << endl;
-    error = true;    
+    error = true;
   }
-  
+
   Vertex v3 = graph.vertex(item3);
   if (graph.edges(v3).size() != 3) {
     cerr << "Unexpected number of edges for vertex " << v3.descriptor << endl;
-    error = true;    
+    error = true;
   }
-  
+
   return error;
 }

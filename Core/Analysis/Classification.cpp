@@ -22,26 +22,26 @@ Classification::~Classification()
 }
 
 //-----------------------------------------------------------------------------
-CategorySPtr Classification::createCategory(const QString& classificationName,
-                                            CategoryPtr parent)
+CategorySPtr Classification::createCategory(const QString& relativeName,
+                                            CategorySPtr   parent)
 {
-  CategoryPtr parentNode = parent;
+  CategoryPtr parentNode = parent.get();
 
   if (!parentNode)
     parentNode = m_root.get();
 
   CategorySPtr requestedClassification;
 
-  if (!classificationName.isEmpty())
+  if (!relativeName.isEmpty())
   {
-    QStringList path = classificationName.split("/", QString::SkipEmptyParts);
+    QStringList path = relativeName.split("/", QString::SkipEmptyParts);
     for (int i = 0; i < path.size(); ++i)
     {
       requestedClassification = parentNode->subCategory(path.at(i));
       if (i == path.size() - 1 && requestedClassification != nullptr) {
         throw Category::AlreadyDefinedCategoryException();        
       }
-      
+
       if (!requestedClassification)
       {
         requestedClassification = parentNode->createSubCategory(path.at(i));
@@ -61,30 +61,17 @@ CategorySPtr Classification::createCategory(const QString& classificationName,
 }
 
 //-----------------------------------------------------------------------------
-CategorySPtr Classification::createCategory(const QString& name,
-                                            CategorySPtr   parent)
-{
-  return createCategory(name, parent.get());
-}
-
-//-----------------------------------------------------------------------------
-void Classification::removeCategory(CategoryPtr subCategory)
+void Classification::removeCategory(CategorySPtr subCategory)
 {
   Q_ASSERT(subCategory);
 
-  if (subCategory != m_root.get())
+  if (subCategory != m_root)
   {
     CategoryPtr parentElement = subCategory->parent();
     parentElement->removeSubCategory(subCategory);
   }
   else
     m_root.reset();
-}
-
-//-----------------------------------------------------------------------------
-void Classification::removeCategory(CategorySPtr subCategory)
-{
-  removeCategory(subCategory.get());
 }
 
 //-----------------------------------------------------------------------------

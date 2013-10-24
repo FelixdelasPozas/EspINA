@@ -19,15 +19,16 @@ namespace EspINA
   namespace IO 
   {
 
+  enum class STATUS
+  { SUCCESS
+  , FILE_NOT_FOUND
+  , INVALID_VERSION
+  , IO_ERROR
+  };
+
   class ErrorHandler
   {
   public:
-    enum class STATUS
-    { SUCCESS
-    , FILE_NOT_FOUND
-    , INVALID_VERSION
-    , IO_ERROR
-    };
 
   public:
     virtual ~ErrorHandler() {}

@@ -101,9 +101,9 @@ void Segmentation::invalidateExtensions()
 }
 
 //------------------------------------------------------------------------
-void Segmentation::saveSnapshot(Persistent::StorageSPtr storage) const
+Snapshot Segmentation::saveSnapshot() const
 {
-  // TODO
+
 }
 
 //------------------------------------------------------------------------
@@ -125,10 +125,10 @@ void Segmentation::saveState(State& state) const
   state += QString(";");
 
   if (output())
-    state += QString("OUTPUT=") + QString::number(outputId()) + QString(";");
+    state += QString("OUTPUT=%1;").arg(output()->id());
 
   if (m_category)
-    state += QString("CATEGORY=") + m_category->classificationName() + QString(";");
+    state += QString("CATEGORY=%1;").arg(m_category->classificationName());
 }
 
 //------------------------------------------------------------------------

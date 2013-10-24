@@ -34,13 +34,11 @@ using namespace std;
 
 int sample_save_snapshot( int argc, char** argv )
 {
-  bool error = false;
-  
-  Persistent::StorageSPtr storage;
+  bool error = true;
 
   Sample sample;
-  
-  sample.saveSnapshot(storage);
+
+  Snapshot snapshot = sample.saveSnapshot();
 
   return error;
 }

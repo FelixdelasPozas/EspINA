@@ -29,18 +29,22 @@
 #ifndef ESPINA_EXTENSIONPROVIDER_H
 #define ESPINA_EXTENSIONPROVIDER_H
 
+#include "Core/Analysis/Persistent.h"
 #include "Core/Analysis/Extensions/ChannelExtension.h"
 #include "Core/Analysis/Extensions/SegmentationExtension.h"
 
 namespace EspINA {
 
   class ExtensionProvider
+  : public Persistent
   {
   public:
     using Type = QString;
 
   public:
     virtual ~ExtensionProvider(){}
+
+    virtual Type type() const = 0;
 
     virtual ChannelExtensionSPtr createChannelExtension(const ChannelExtension::Type& type) = 0;
 

@@ -28,7 +28,6 @@
 
 #include "Core/Analysis/Graph/DirectedGraph.h"
 
-#include <Core/Analysis/AnalysisItem.h>
 #include "DummyItem.h"
 
 using namespace EspINA;

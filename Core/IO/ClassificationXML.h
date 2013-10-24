@@ -29,22 +29,22 @@ namespace EspINA {
   namespace IO {
     namespace ClassificationXML
     {
-      ErrorHandler::STATUS load(const QFileInfo&   file,
-                                ClassificationSPtr classification,
-                                ErrorHandlerPtr    handler = nullptr);
+      STATUS load(const QFileInfo&   file,
+                  ClassificationSPtr classification,
+                  ErrorHandlerPtr    handler = nullptr);
 
-      ErrorHandler::STATUS save(ClassificationSPtr classification,
-                                const QFileInfo&   file,
-                                ErrorHandlerPtr    handler = nullptr);
+      STATUS save(ClassificationSPtr classification,
+                  const QFileInfo&   file,
+                  ErrorHandlerPtr    handler = nullptr);
 
 
-      ErrorHandler::STATUS dump(const ClassificationSPtr classification,
-                                QString&                 serialization,
-                                ErrorHandlerPtr          handler = nullptr);
+      STATUS dump(const ClassificationSPtr classification,
+                  QString&                 serialization,
+                  ErrorHandlerPtr          handler = nullptr);
 
-      ErrorHandler::STATUS parse(const QString&     serialization,
-                                 ClassificationSPtr classification,
-                                 ErrorHandlerPtr    handler = nullptr);
+      STATUS parse(const QString&     serialization,
+                   ClassificationSPtr classification,
+                   ErrorHandlerPtr    handler = nullptr);
     }
   }
 }

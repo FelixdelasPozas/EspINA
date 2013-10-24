@@ -23,10 +23,10 @@ namespace EspINA
   using ClassificationPtr  = Classification *;
   using ClassificationSPtr = std::shared_ptr<Classification>;
 
-  class AnalysisItem;
-  using AnalysisItemPtr   = AnalysisItem *;
-  using AnalysisItemSPtr  = std::shared_ptr<AnalysisItem>;
-  using AnalysisItemSList = QList<AnalysisItemSPtr>;
+  class Persistent;
+  using PersistentPtr   = Persistent *;
+  using PersistentSPtr  = std::shared_ptr<Persistent>;
+  using PersistentSList = QList<PersistentSPtr>;
 
   class Sample;
   using SamplePtr   = Sample *;
@@ -57,6 +57,10 @@ namespace EspINA
   using OutputPtr   = Output *;
   using OutputSPtr  = std::shared_ptr<Output>;
   using OutputSList = QList<OutputSPtr>;
+
+  class ExtensionProvider;
+  using ExtensionProviderSPtr  = std::shared_ptr<ExtensionProvider>;
+  using ExtensionProviderSList = QList<ExtensionProviderSPtr>;
 
   class CoreFactory;
   using CoreFactorySPtr = std::shared_ptr<CoreFactory>;

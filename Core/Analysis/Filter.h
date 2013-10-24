@@ -25,7 +25,6 @@
 #include "Core/EspinaTypes.h"
 #include "Core/Analysis/Output.h"
 #include "Core/Analysis/Persistent.h"
-#include "Core/Analysis/AnalysisItem.h"
 #include "Core/MultiTasking/Task.h"
 
 #include <QDir>
@@ -33,8 +32,7 @@
 namespace EspINA
 {
   class EspinaCore_EXPORT Filter
-  : public AnalysisItem
-  , public Persistent
+  : public Persistent
   , public Task
   {
   public:
@@ -49,7 +47,7 @@ namespace EspINA
 
     virtual void saveState(State& state) const;
 
-    virtual void saveSnapshot(StorageSPtr storage) const;
+    virtual Snapshot saveSnapshot() const;
 
     virtual void unload();
 

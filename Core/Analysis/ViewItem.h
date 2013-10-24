@@ -20,22 +20,24 @@
 #ifndef ESPINA_VIEWITEM_H
 #define ESPINA_VIEWITEM_H
 
-#include "Core/Analysis/AnalysisItem.h"
 #include "Core/Analysis/Output.h"
 
 namespace EspINA {
 
   class ViewItem
-  : public AnalysisItem
   {
   public:
     explicit ViewItem(FilterSPtr filter, Output::Id output);
     virtual ~ViewItem(){}
 
+    FilterSPtr filter()
+    { return m_filter; }
+
+    const FilterSPtr filter() const
+    { return m_filter; }
+
     OutputSPtr output();
     const OutputSPtr output() const;
-
-    const Output::Id outputId() const { return m_output; };
 
     DataSPtr data(Data::Type type);
     const DataSPtr data(Data::Type type) const;

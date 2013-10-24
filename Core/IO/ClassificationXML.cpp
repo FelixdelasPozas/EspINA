@@ -18,3 +18,21 @@
  */
 
 #include "ClassificationXML.h"
+
+using namespace EspINA;
+using namespace EspINA::IO;
+
+STATUS ClassificationXML::save(ClassificationSPtr classification,
+                               const QFileInfo&   file,
+                               ErrorHandlerPtr    handler)
+{
+
+}
+
+
+STATUS ClassificationXML::load(const QFileInfo&   file,
+                               ClassificationSPtr classification,
+                               ErrorHandlerPtr    handler)
+{
+
+}

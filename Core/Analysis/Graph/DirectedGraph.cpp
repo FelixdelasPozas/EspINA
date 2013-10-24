@@ -61,7 +61,7 @@ std::istream& operator >> ( std::istream& in, DirectedGraph::Vertex& v)
 //   in.getline(buff, MAX);
 //   v.args = buff;
 //   trim(v.args);
-//   v.item = AnalysisItemSPtr();
+//   v.item = PersistentSPtr();
 //   return in;
 }
 
@@ -85,7 +85,7 @@ DirectedGraph::DirectedGraph()
 }
 
 //-----------------------------------------------------------------------------
-void DirectedGraph::addItem(AnalysisItemSPtr item)
+void DirectedGraph::addItem(PersistentSPtr item)
 {
   if (item.get() == nullptr) throw (Null_Item_Exception());
   
@@ -100,7 +100,7 @@ void DirectedGraph::addItem(AnalysisItemSPtr item)
 }
 
 //-----------------------------------------------------------------------------
-void DirectedGraph::removeItem(AnalysisItemSPtr item)
+void DirectedGraph::removeItem(PersistentSPtr item)
 {
   Vertex v = vertex(item);
   
@@ -119,7 +119,7 @@ void DirectedGraph::updateVertexInformation()
 //   for(boost::tie(vi, vi_end) = boost::vertices(m_graph); vi != vi_end; vi++)
 //   {
 //     Vertex &vertex = m_graph[*vi];
-//     AnalysisItemSPtr item = vertex.item;
+//     PersistentSPtr item = vertex.item;
 //     Q_ASSERT(item);
 //     if (!item)
 //     {
@@ -160,7 +160,7 @@ void DirectedGraph::updateVertexInformation()
 }
 
 //-----------------------------------------------------------------------------
-DirectedGraph::Vertex DirectedGraph::vertex(AnalysisItemSPtr item) const
+DirectedGraph::Vertex DirectedGraph::vertex(PersistentSPtr item) const
 {
   //   qDebug() << "Previous id" << item->m_vertex;
   Vertex v;
@@ -190,8 +190,8 @@ DirectedGraph::Vertex DirectedGraph::vertex(DirectedGraph::VertexDescriptor vd)
 }
 
 //-----------------------------------------------------------------------------
-void DirectedGraph::addRelation(AnalysisItemSPtr ancestor,
-                                AnalysisItemSPtr successor,
+void DirectedGraph::addRelation(PersistentSPtr ancestor,
+                                PersistentSPtr successor,
                                 const QString&   description)
 {
   if (ancestor.get() == nullptr || successor.get() == nullptr) throw (Null_Item_Exception());
@@ -218,8 +218,8 @@ void DirectedGraph::addRelation(AnalysisItemSPtr ancestor,
 }
 
 //-----------------------------------------------------------------------------
-void DirectedGraph::removeRelation(AnalysisItemSPtr   ancestor,
-                                       AnalysisItemSPtr   successor,
+void DirectedGraph::removeRelation(PersistentSPtr   ancestor,
+                                       PersistentSPtr   successor,
                                        const QString &description)
 {
   VertexDescriptor ancestorVD  = vertex(ancestor).descriptor;
@@ -236,7 +236,7 @@ void DirectedGraph::removeRelation(AnalysisItemSPtr   ancestor,
 }
 
 //-----------------------------------------------------------------------------
-bool DirectedGraph::contais(AnalysisItemSPtr item)
+bool DirectedGraph::contains(PersistentSPtr item)
 {
   VertexIterator vi, vi_end;
   boost::tie(vi, vi_end) = boost::vertices(m_graph);
@@ -409,7 +409,7 @@ DirectedGraph::Vertices DirectedGraph::succesors(Vertex v, const QString &filter
 }
 
 // //-----------------------------------------------------------------------------
-// void DirectedGraph::setItem(Vertex &v, AnalysisItemSPtr item)
+// void DirectedGraph::setItem(Vertex &v, PersistentSPtr item)
 // {
 //   Q_ASSERT(item);
 //   v.item = item;
@@ -418,7 +418,7 @@ DirectedGraph::Vertices DirectedGraph::succesors(Vertex v, const QString &filter
 // }
 
 // //-----------------------------------------------------------------------------
-// AnalysisItemType DirectedGraph::type(const Vertex v)
+// PersistentType DirectedGraph::type(const Vertex v)
 // {
 //   if (v.item)
 //     return v.item->type();
@@ -436,55 +436,30 @@ DirectedGraph::Vertices DirectedGraph::succesors(Vertex v, const QString &filter
 // }
 
 //-----------------------------------------------------------------------------
-void DirectedGraph::read(std::istream& stream, DirectedGraph::PrintFormat format)
+void IO::read(std::istream& stream, DirectedGraphSPtr graph, IO::PrintFormat format)
 {
   switch (format)
   {
-    case BOOST:
-      stream >> boost::read(m_graph);
+    case PrintFormat::BOOST:
+      stream >> boost::read(graph->m_graph);
       break;
-    case GRAPHVIZ:
-    {
-      boost::dynamic_properties dp;
-
-      dp.property("node_id", boost::get(boost::vertex_index        , m_graph));
-//       dp.property("label"  , boost::get(&Vertex::name      , m_graph));
-//       dp.property("shape"  , boost::get(&Vertex::shape     , m_graph));
-//       dp.property("args"   , boost::get(&Vertex::args      , m_graph));
-      dp.property("label"  , boost::get(&EdgeProperty::relationship, m_graph));
-      boost::read_graphviz(stream, m_graph, dp);
-
-      break;
-    }
     default:
       qWarning("Format Unkown");
       break;
   };
-
 }
 
 //-----------------------------------------------------------------------------
-void DirectedGraph::write(std::ostream &stream, DirectedGraph::PrintFormat format)
+void IO::write(const DirectedGraphSPtr graph, std::ostream& stream, IO::PrintFormat format)
 {
   switch (format)
   {
-    case BOOST:
-      stream << boost::write(m_graph) << std::endl;
-      //       std::cout << boost::write(m_graph) << std::endl;
+    case PrintFormat::BOOST:
+      stream << boost::write(graph->m_graph) << std::endl;
       break;
-    case GRAPHVIZ:
-    {
-      boost::dynamic_properties dp;
-
-      dp.property("node_id", boost::get(boost::vertex_index        , m_graph));
-//       dp.property("label"  , boost::get(&Vertex::name      , m_graph));
-//       dp.property("shape"  , boost::get(&Vertex::shape     , m_graph));
-//       dp.property("args"   , boost::get(&Vertex::args      , m_graph));
-      dp.property("label"  , boost::get(&EdgeProperty::relationship, m_graph));
-      boost::write_graphviz_dp(stream, m_graph, dp);
-
+    case PrintFormat::DEBUG:
+      std::cout << boost::write(graph->m_graph) << std::endl;
       break;
-    }
     default:
       qWarning("Format Unkown");
       break;
