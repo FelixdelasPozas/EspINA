@@ -30,6 +30,9 @@ namespace EspINA
   {
   public:
     using Type = QString;
+    
+    struct Existing_Extension{};
+    struct Extension_Not_Found{};
 
   public:
     virtual ~ChannelExtension(){}

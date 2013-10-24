@@ -53,12 +53,12 @@ namespace EspINA
     void add(SegmentationSList     segmentations);
     void add(ExtensionProviderSPtr provider);
 
-    void remove(SampleSPtr        sample);
-    void remove(SampleSList       samples);
-    void remove(ChannelSPtr       channel);
-    void remove(ChannelSList      channels);
-    void remove(SegmentationSPtr  segmentation);
-    void remove(SegmentationSList segmentations);
+    void remove(SampleSPtr            sample);
+    void remove(SampleSList           samples);
+    void remove(ChannelSPtr           channel);
+    void remove(ChannelSList          channels);
+    void remove(SegmentationSPtr      segmentation);
+    void remove(SegmentationSList     segmentations);
     void remove(ExtensionProviderSPtr provider);
 
     SampleSList samples() const
@@ -130,11 +130,6 @@ namespace EspINA
 //     void filterRemoved(FilterSPtr filter);
 
   private:
-//     void add(FilterSPtr  filter  );
-//     void add(FilterSList filters );
-// 
-//     void remove(FilterSPtr filter);
-
     bool removeIfIsolated(DirectedGraphSPtr graph ,PersistentSPtr item);
 
     void addIfNotExists(FilterSPtr filter);
@@ -143,23 +138,6 @@ namespace EspINA
     bool findRelation(PersistentSPtr    ancestor,
                       PersistentSPtr    succesor,
                       const RelationName& relation);
-
-//     void addClassification(CategorySPtr root);
-
-//     void addSampleImplementation   (SampleSPtr sample);
-//     void removeSampleImplementation(SampleSPtr sample);
-// 
-//     void addChannelImplementation   (ChannelSPtr channel);
-//     void removeChannelImplementation(ChannelSPtr channel);
-// 
-//     void addSegmentationImplementation   (SegmentationSPtr segmentation);
-//     void removeSegmentationImplementation(SegmentationSPtr segmentation);
-// 
-//     void addFilterImplementation   (FilterSPtr filter);
-//     void removeFilterImplementation(FilterSPtr filter);
-
-//     FilterSList filters() const
-//     { return m_filters; }
 
 
   private:

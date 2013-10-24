@@ -85,28 +85,55 @@ void Channel::saveState(State& state) const
 //------------------------------------------------------------------------
 void Channel::addExtension(ChannelExtensionSPtr extension)
 {
-
+  if (m_extensions.contains(extension)) throw (ChannelExtension::Existing_Extension());
+  
+  extension->setChannel(this);
+  extension->initialize();
+  
+  m_extensions << extension;
 }
 
+//------------------------------------------------------------------------
 void Channel::deleteExtension(ChannelExtensionSPtr extension)
 {
-
+  if (!m_extensions.contains(extension)) throw (ChannelExtension::Extension_Not_Found());
+  
+  extension->invalidate();
+  
+  m_extensions.removeOne(extension);
+  
+  Q_ASSERT(!m_extensions.contains(extension));
 }
 
+//------------------------------------------------------------------------
 ChannelExtensionSPtr Channel::extension(const ChannelExtension::Type& type)
 {
-
+//   foreach(ChannelExtensionSPtr extension, m_extensions) 
+//   {
+//     if (extension->type() == type) return extension;
+//   }
+  
+  return ChannelExtensionSPtr();
 }
 
+//------------------------------------------------------------------------
 bool Channel::hasExtension(const ChannelExtension::Type& type) const
 {
-
+  foreach(ChannelExtensionSPtr extension, m_extensions) 
+  {
+    if (extension->type() == type) return true;
+  }
+  
+  return false;
 }
 
+//------------------------------------------------------------------------
 void Channel::initializeExtensions()
 {
 
 }
+
+//------------------------------------------------------------------------
 void Channel::invalidateExtensions()
 {
 

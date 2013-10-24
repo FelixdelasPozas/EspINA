@@ -58,14 +58,14 @@ int channel_add_extension(int argc, char** argv )
   DummyExtension *dummy = new DummyExtension();
   ChannelExtensionSPtr extension{dummy};
 
-  if (channel->extension(extension->type())) {
+  if (channel->hasExtension(extension->type())) {
     cerr << "Unexepected initial extension" << endl;
     error = true;
   }
 
   channel->addExtension(extension);
 
-  if (!channel->extension(extension->type())) {
+  if (!channel->hasExtension(extension->type())) {
     cerr << "Couldn't find expected extension" << endl;
     error = true;
   }

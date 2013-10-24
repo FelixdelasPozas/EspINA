@@ -27,24 +27,38 @@
  */
 
 #include <Core/Analysis/Analysis.h>
-#include <Core/Analysis/Segmentation.h>
-#include "analysis_testing_support.h"
+#include <Core/Analysis/Extensions/ExtensionProvider.h>
 
 using namespace EspINA;
 using namespace std;
 
-int analysis_remove_segmentation( int argc, char** argv )
+int analysis_remove_extension_provider(int argc, char** argv )
 {
+  class DummyProvider 
+  : public ExtensionProvider
+  {
+  public:
+    virtual void restoreState(const State& state) {}
+    virtual void saveState(State& state) const{}
+    virtual Snapshot saveSnapshot() const{}
+    virtual void unload() {}
+    virtual Type type() const {}
+    virtual ChannelExtensionSPtr createChannelExtension(const ChannelExtension::Type& type) {}
+    virtual SegmentationExtensionSPtr createSegmentationExtension(const SegmentationExtension::Type& type) {}
+  };
+  
   bool error = false;
 
   Analysis analysis;
 
-  FilterSPtr filter{new Testing::DummyFilter()};
-  SegmentationSPtr segmentation(new Segmentation(filter, 0));
+  ExtensionProviderSPtr provider(new DummyProvider());
+  analysis.add(provider);
+  analysis.remove(provider);
 
-  analysis.add(segmentation);
-
-  analysis.remove(segmentation);
+  if (analysis.extensionProviders().contains(provider)) {
+    cerr << "Unexpected extension provider retrieved from analysis" << endl;
+    error = true;
+  }
 
   if (analysis.classification().get() != nullptr) {
     cerr << "Unexpected classification in analysis" << endl;
@@ -65,7 +79,7 @@ int analysis_remove_segmentation( int argc, char** argv )
     cerr << "Unexpected number of segmentations in analysis" << endl;
     error = true;
   }
-
+  
   if (!analysis.extensionProviders().isEmpty()) {
     cerr << "Unexpected number of extension providers in analysis" << endl;
     error = true;
@@ -73,6 +87,11 @@ int analysis_remove_segmentation( int argc, char** argv )
 
   if (!analysis.content()->vertices().isEmpty()) {
     cerr << "Unexpected number of vertices in analysis content" << endl;
+    error = true;
+  }
+
+  if (!analysis.content()->vertices().isEmpty()) {
+    cerr << "Unexpected extension provider retrieved from analysis content" << endl;
     error = true;
   }
 

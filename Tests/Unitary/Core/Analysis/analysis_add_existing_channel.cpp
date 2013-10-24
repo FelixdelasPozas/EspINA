@@ -31,36 +31,18 @@
 #include <Core/Analysis/Output.h>
 #include <Core/Analysis/Filter.h>
 #include <Core/MultiTasking/Scheduler.h>
+#include "analysis_testing_support.h"
 
 using namespace EspINA;
 using namespace std;
 
 int analysis_add_existing_channel( int argc, char** argv )
 {
-  class DummyFilter
-  : public Filter
-  {
-  public:
-    explicit DummyFilter()
-    : Filter(OutputSList(), "Dummy", SchedulerSPtr(new Scheduler(10000000))){}
-    virtual OutputSPtr output(Output::Id id) const {}
-
-  protected:
-    virtual void loadFilterCache(const QDir& dir){}
-    virtual void saveFilterCache(const Persistent::Id id) const{}
-    virtual bool needUpdate() const{}
-    virtual bool needUpdate(Output::Id id) const{}
-    virtual DataSPtr createDataProxy(Output::Id id, const Data::Type& type){}
-    virtual void execute(){}
-    virtual void execute(Output::Id id){}
-    virtual bool invalidateEditedRegions() {return false;}
-  };
-
   bool error = true;
 
   Analysis analysis;
 
-  FilterSPtr filter{new DummyFilter()};
+  FilterSPtr filter{new Testing::DummyFilter()};
   ChannelSPtr channel(new Channel(filter, 0));
 
   analysis.add(channel);
@@ -97,22 +79,27 @@ int analysis_add_existing_channel( int argc, char** argv )
     error = true;
   }
 
-  if (analysis.content()->vertices().size() != 2) {
-    cerr << "Unexpected number of vertices in analysis pipeline" << endl;
+  if (!analysis.extensionProviders().isEmpty()) {
+    cerr << "Unexpected number of extension providers in analysis" << endl;
     error = true;
   }
 
-//   if (analysis.pipeline()->vertices().first().item != channel) {
-//     cerr << "Unexpected channel retrieved from analysis pipeline" << endl;
+  if (analysis.content()->vertices().size() != 2) {
+    cerr << "Unexpected number of vertices in analysis content" << endl;
+    error = true;
+  }
+
+//   if (analysis.content()->vertices().first().item != channel) {
+//     cerr << "Unexpected channel retrieved from analysis content" << endl;
 //     error = true;
 //   }
 
   if (analysis.content()->edges().size() != 1) {
-    cerr << "Unexpected number of edges in analysis pipeline" << endl;
+    cerr << "Unexpected number of edges in analysis content" << endl;
     error = true;
   }
 
-  if (!analysis.relationships()->vertices().isEmpty()) {
+  if (analysis.relationships()->vertices().size() != 1) {
     cerr << "Unexpected number of vertices in analysis relationships" << endl;
     error = true;
   }

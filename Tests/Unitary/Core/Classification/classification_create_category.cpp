@@ -42,20 +42,20 @@ int classification_create_category( int argc, char** argv )
   
   error |= TestClassificationName(category1, name1);
 
-  QString name3_1 = "Level 1/Level 2/Level 3-1";
-  CategorySPtr category3_1 = classification.createCategory(name3_1);
+  QString name2_1 = "Level 1/Level 2/Level 2-1";
+  CategorySPtr category3_1 = classification.createCategory(name2_1);
   
-  error |= TestClassificationName(category3_1, name3_1);
+  error |= TestClassificationName(category3_1, name2_1);
   
   QString name2 = "Level 1/Level 2";
   CategorySPtr category2 = classification.category(name2);
   
   error |= TestClassificationName(category2, name2);
   
-  QString name3_2 = "Level 1/Level 2/Level 3-2";
-  CategorySPtr category3_2 = classification.createCategory("Level 3-2", category2);
+  QString name2_2 = "Level 1/Level 2/Level 2-2";
+  CategorySPtr category3_2 = classification.createCategory("Level 2-2", category2);
   
-  error |= TestClassificationName(category3_2, name3_2);
+  error |= TestClassificationName(category3_2, name2_2);
   
   if (classification.parent(category2) != category1) {
     cerr << category2->name().toStdString() << " parent is not " << category1->name().toStdString() << endl;
@@ -71,6 +71,6 @@ int classification_create_category( int argc, char** argv )
     cerr << category3_2->name().toStdString() << " parent is not " << category2->name().toStdString() << endl;
     error = true;
   }
-
+  
   return error;
 }

@@ -28,39 +28,18 @@
 
 #include <Core/Analysis/Analysis.h>
 #include <Core/Analysis/Segmentation.h>
-#include <Core/Analysis/Output.h>
-#include <Core/Analysis/Filter.h>
-#include <Core/MultiTasking/Scheduler.h>
+#include "analysis_testing_support.h"
 
 using namespace EspINA;
 using namespace std;
 
 int analysis_add_segmentations( int argc, char** argv )
 {
-  class DummyFilter
-  : public Filter
-  {
-  public:
-    explicit DummyFilter()
-    : Filter(OutputSList(), "Dummy", SchedulerSPtr(new Scheduler(10000000))){}
-    virtual OutputSPtr output(Output::Id id) const {}
-
-  protected:
-    virtual void loadFilterCache(const QDir& dir){}
-    virtual void saveFilterCache(const Persistent::Id id) const{}
-    virtual bool needUpdate() const{}
-    virtual bool needUpdate(Output::Id id) const{}
-    virtual DataSPtr createDataProxy(Output::Id id, const Data::Type& type){}
-    virtual void execute(){}
-    virtual void execute(Output::Id id){}
-    virtual bool invalidateEditedRegions() {return false;}
-  };
-
   bool error = false;
 
   Analysis analysis;
 
-  FilterSPtr filter{new DummyFilter()};
+  FilterSPtr filter{new Testing::DummyFilter()};
   SegmentationSList segmentations;
   segmentations << SegmentationSPtr{new Segmentation(filter, 0)}
                 << SegmentationSPtr{new Segmentation(filter, 0)}
@@ -95,24 +74,29 @@ int analysis_add_segmentations( int argc, char** argv )
     error = true;
   }
 
+  if (!analysis.extensionProviders().isEmpty()) {
+    cerr << "Unexpected number of extension providers in analysis" << endl;
+    error = true;
+  }
+
   if (analysis.content()->vertices().size() != segmentations.size() + 1) { // They share filter
-    cerr << "Unexpected number of vertices in analysis pipeline" << endl;
+    cerr << "Unexpected number of vertices in analysis content" << endl;
     error = true;
   }
 
   foreach(SegmentationSPtr segmentation, segmentations) {
     if (!analysis.content()->contains(segmentation)) {
-      cerr << "Unexpected segmentation retrieved from analysis pipeline" << endl;
+      cerr << "Unexpected segmentation retrieved from analysis content" << endl;
       error = true;
     }
   }
 
   if (analysis.content()->edges().size() != segmentations.size()) {
-    cerr << "Unexpected number of edges in analysis pipeline" << endl;
+    cerr << "Unexpected number of edges in analysis content" << endl;
     error = true;
   }
 
-  if (!analysis.relationships()->vertices().isEmpty()) {
+  if (analysis.relationships()->vertices().size() != segmentations.size()) {
     cerr << "Unexpected number of vertices in analysis relationships" << endl;
     error = true;
   }

@@ -27,24 +27,36 @@
  */
 
 #include <Core/Analysis/Analysis.h>
+#include <Core/Analysis/Sample.h>
+#include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Segmentation.h>
 #include "analysis_testing_support.h"
 
 using namespace EspINA;
 using namespace std;
 
-int analysis_remove_segmentation( int argc, char** argv )
+int analysis_reset( int argc, char** argv )
 {
   bool error = false;
 
   Analysis analysis;
 
+  SampleSPtr sample{new Sample()};
+  
   FilterSPtr filter{new Testing::DummyFilter()};
-  SegmentationSPtr segmentation(new Segmentation(filter, 0));
 
+  ChannelSPtr channel(new Channel(filter, 0));
+ 
+  SegmentationSPtr segmentation{new Segmentation(filter, 0)};
+  
+  ExtensionProviderSPtr provider{new Testing::DummyProvider()};
+
+  analysis.add(sample);
+  analysis.add(channel);
   analysis.add(segmentation);
-
-  analysis.remove(segmentation);
+  analysis.add(provider);
+  
+  analysis.reset();
 
   if (analysis.classification().get() != nullptr) {
     cerr << "Unexpected classification in analysis" << endl;

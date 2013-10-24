@@ -71,21 +71,26 @@ int analysis_remove_samples( int argc, char** argv )
     cerr << "Unexpected number of segmentations in analysis" << endl;
     error = true;
   }
+  
+  if (!analysis.extensionProviders().isEmpty()) {
+    cerr << "Unexpected number of extension providers in analysis" << endl;
+    error = true;
+  }
 
   if (!analysis.content()->vertices().isEmpty()) {
-    cerr << "Unexpected number of vertices in analysis pipeline" << endl;
+    cerr << "Unexpected number of vertices in analysis content" << endl;
     error = true;
   }
 
   foreach(SampleSPtr sample, samples) {
     if (analysis.content()->contains(sample)) {
-      cerr << "Unexpected sample retrieved from analysis pipeline" << endl;
+      cerr << "Unexpected sample retrieved from analysis content" << endl;
       error = true;
     }
   }
 
   if (!analysis.content()->edges().isEmpty()) {
-    cerr << "Unexpected number of edges in analysis pipeline" << endl;
+    cerr << "Unexpected number of edges in analysis content" << endl;
     error = true;
   }
 

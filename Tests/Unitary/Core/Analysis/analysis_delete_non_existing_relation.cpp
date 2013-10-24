@@ -80,17 +80,22 @@ int analysis_delete_non_existing_relation( int argc, char** argv )
     error = true;
   }
 
+  if (!analysis.extensionProviders().isEmpty()) {
+    cerr << "Unexpected number of extension providers in analysis" << endl;
+    error = true;
+  }
+
   if (analysis.content()->vertices().size() != 2) {
-    cerr << "Unexpected number of vertices in analysis pipeline" << endl;
+    cerr << "Unexpected number of vertices in analysis content" << endl;
     error = true;
   }
 
   if (!analysis.content()->edges().isEmpty()) {
-    cerr << "Unexpected number of edges in analysis pipeline" << endl;
+    cerr << "Unexpected number of edges in analysis content" << endl;
     error = true;
   }
 
-  if (!analysis.relationships()->vertices().isEmpty()) {
+  if (analysis.relationships()->vertices().size() != 2) {
     cerr << "Unexpected number of vertices in analysis relationships" << endl;
     error = true;
   }

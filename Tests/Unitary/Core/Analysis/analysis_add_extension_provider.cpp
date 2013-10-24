@@ -27,24 +27,25 @@
  */
 
 #include <Core/Analysis/Analysis.h>
-#include <Core/Analysis/Segmentation.h>
+#include <Core/Analysis/Extensions/ExtensionProvider.h>
 #include "analysis_testing_support.h"
 
 using namespace EspINA;
 using namespace std;
 
-int analysis_remove_segmentation( int argc, char** argv )
+int analysis_add_extension_provider(int argc, char** argv )
 {
   bool error = false;
 
   Analysis analysis;
 
-  FilterSPtr filter{new Testing::DummyFilter()};
-  SegmentationSPtr segmentation(new Segmentation(filter, 0));
+  ExtensionProviderSPtr provider(new Testing::DummyProvider());
+  analysis.add(provider);
 
-  analysis.add(segmentation);
-
-  analysis.remove(segmentation);
+  if (analysis.extensionProviders().first() != provider) {
+    cerr << "Unexpected extension provider retrieved from analysis" << endl;
+    error = true;
+  }
 
   if (analysis.classification().get() != nullptr) {
     cerr << "Unexpected classification in analysis" << endl;
@@ -65,14 +66,19 @@ int analysis_remove_segmentation( int argc, char** argv )
     cerr << "Unexpected number of segmentations in analysis" << endl;
     error = true;
   }
-
-  if (!analysis.extensionProviders().isEmpty()) {
+  
+  if (analysis.extensionProviders().size() != 1) {
     cerr << "Unexpected number of extension providers in analysis" << endl;
     error = true;
   }
 
-  if (!analysis.content()->vertices().isEmpty()) {
+  if (analysis.content()->vertices().size() != 1) {
     cerr << "Unexpected number of vertices in analysis content" << endl;
+    error = true;
+  }
+
+  if (analysis.content()->vertices().first().item != provider) {
+    cerr << "Unexpected extension provider retrieved from analysis content" << endl;
     error = true;
   }
 

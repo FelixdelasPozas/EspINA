@@ -40,12 +40,13 @@ int channel_delete_extension(int argc, char** argv )
   public:
     bool Initialized;
     bool ValidChannel;
+    bool Invalidated;
   public:
     explicit DummyExtension() 
-    : Initialized{false}, ValidChannel{false} {}
+    : Initialized{false}, ValidChannel{false}, Invalidated{false} {}
 
     virtual void initialize() { Initialized = true; }
-    virtual void invalidate() {}
+    virtual void invalidate() { Invalidated = true; }
     virtual Type type() const { return "Dummy"; }
   protected:
     virtual void onChannelSet(ChannelPtr channel) { ValidChannel = true; }
@@ -60,15 +61,20 @@ int channel_delete_extension(int argc, char** argv )
   
   channel->addExtension(extension);
   
-  if (!channel->extension(extension->type())) {
+  if (!channel->hasExtension(extension->type())) {
     cerr << "Couldn't find expected extension" << endl;
     error = true;
   }
 
   channel->deleteExtension(extension);
   
-  if (channel->extension(extension->type())) {
+  if (channel->hasExtension(extension->type())) {
     cerr << "Unexpected deleted extension" << endl;
+    error = true;
+  }
+  
+  if (!dummy->Invalidated)  {
+    cerr << "Extension was not correctly deleted" << endl;
     error = true;
   }
   
