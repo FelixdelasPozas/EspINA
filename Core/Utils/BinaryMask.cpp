@@ -137,7 +137,7 @@ namespace EspINA
     using ImageSize = typename itkImageType::RegionType::SizeType;
     using ImageSpacing = typename itkImageType::SpacingType;
     using ImageIterator = typename itk::ImageRegionConstIterator<itkImageType>;
-    using MaskIterator = typename BinaryMask<T>::Iterator;
+    using MaskIterator = typename BinaryMask<T>::const_iterator;
 
     ImageIndex index;
     index[0] = m_origin[0];
@@ -163,17 +163,15 @@ namespace EspINA
     image->FillBuffer(m_backgroundValue);
 
     ImageIterator iit(image, region);
-    MaskIterator mit(m_image, m_bounds);
+    MaskIterator mit(&this, m_bounds);
 
     // TODO: use itk & mask raw buffers to make a fast copy
     for (iit.GoToBegin(); iit != iit.End(); ++iit, ++mit)
-      *iit = mit.get();
+      *iit = *mit;
 
     return image;
   }
 
-  //-------------------------------------------------------------------------------------
-  // TODO: iterators implementation
 };
 
 

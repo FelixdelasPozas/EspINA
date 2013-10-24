@@ -22,25 +22,20 @@
 
 #include "Core/Utils/Bounds.h"
 
-#include "itkImage.h"
+#include <itkImage.h>
 #include <itkSmartPointer.h>
 
 namespace EspINA
 {
-  //- Binary Mask class -----------------------------------------------------------------
-  template<typename T> class BinaryMask
+  template<typename T > class BinaryMask
   {
-    using PixelType    = T;
-    using IndexType    = struct index { int x; int y; int z; index(): x(0), y(0), z(0) {} };
-    using Spacing      = struct spacing { int x; int y; int z; spacing(): x(0), y(0), z(0) {} };
-    using itkImageType = itk::Image<T,3>;
-
-    class Iterator;
-    class ConstIterator;
-    class RegionIterator;
-    class RegionConstIterator;
-
     public:
+      using PixelType    = T;
+      using IndexType    = struct index { int x; int y; int z; index(): x(0), y(0), z(0) {} };
+      using Spacing      = struct spacing { int x; int y; int z; spacing(): x(0), y(0), z(0) {} };
+      using itkImageType = itk::Image<T,3>;
+
+      //- BINARY MASK CLASS  ----------------------------------------------------------------
       explicit BinaryMask(const Bounds& bounds, const Spacing spacing);
       virtual ~BinaryMask();
 
@@ -58,6 +53,9 @@ namespace EspINA
 
       typename itkImageType::Pointer itkImage() const;
 
+      friend class const_iterator;
+      friend class region_const_iterator;
+
     private:
       Bounds        m_bounds;
       PixelType     m_backgroundValue;
@@ -68,66 +66,181 @@ namespace EspINA
       unsigned long m_size[3];
       IndexType     m_origin;
 
-      friend class Iterator;
-      friend class ConstIterator;
-      friend class RegionIterator;
-      friend class RegionConstIterator;
-  };
-
-  //- Binary Mask class iterator --------------------------------------------------------
-  template<typename T> class BinaryMask<T>::Iterator
-  {
     public:
-      Iterator(BinaryMask<T> image, Bounds bounds);
-      ~Iterator();
+      //- CONST ITERATOR CLASS --------------------------------------------------------------
+      class const_iterator
+      : public std::iterator<std::bidirectional_iterator_tag, T>
+      {
+          using pointer = BinaryMask<T>*;
 
-      T get() const;
-      void set();
+          const_iterator(pointer mask)
+          : m_mask(mask), m_pos(0), m_bitPos(0)
+          {
+          }
 
-      Iterator& operator++();
-      Iterator& operator--();
+          bool operator==(const const_iterator& other) const
+          {
+            return ((m_mask == other.m_mask) && (m_pos == other.m_pos) && (m_bitPos == other.m_bitPos));
+          }
+
+          bool operator!=(const const_iterator& other) const
+          {
+            return ((m_mask != other.m_mask) || (m_pos != other.m_pos) || (m_bitPos == other.m_bitPos));
+          }
+
+          const T& operator*() const
+          {
+            if ((m_mask->m_image[m_pos] & (1 << m_bitPos)) == (1 << m_bitPos))
+              return m_mask->m_foregroundValue;
+
+            return m_mask->m_backgroundValue;
+          }
+
+          const_iterator& operator--()
+          {
+            if (m_pos == 0 && m_bitPos == 0)
+              throw;
+
+            if (m_bitPos == 0)
+            {
+              m_bitPos = 7;
+              --m_pos;
+            }
+            else
+              --m_bitPos;
+
+            return *this;
+          }
+
+          const_iterator &operator++()
+          {
+            unsigned long long limit = m_mask->m_size[0] * m_mask->m_size[1] * m_mask->m_size[2];
+
+            if ((m_pos == limit - 1) && (m_bitPos == (limit % m_mask->m_integerSize)))
+              throw;
+
+            if (m_bitPos == 7)
+            {
+              m_bitPos = 0;
+              ++m_pos;
+            }
+            else
+              ++m_bitPos;
+
+            return *this;
+          }
+
+        private:
+          pointer            m_mask;
+          unsigned long long m_pos;
+          int                m_bitPos;
+      };
+
+      //- CONST REGION ITERATOR CLASS -------------------------------------------------------
+      class const_region_iterator
+      : public std::iterator<std::bidirectional_iterator_tag, T>
+      {
+          using pointer = BinaryMask<T>*;
+
+          const_region_iterator(pointer mask, const Bounds bounds)
+          : m_mask(mask), m_bounds(bounds)
+          {
+            m_extent[0] = static_cast<int>(m_bounds[0]/m_mask->m_spacing.x);
+            m_extent[1] = static_cast<int>(m_bounds[1]/m_mask->m_spacing.x);
+            m_extent[2] = static_cast<int>(m_bounds[2]/m_mask->m_spacing.y);
+            m_extent[3] = static_cast<int>(m_bounds[3]/m_mask->m_spacing.y);
+            m_extent[4] = static_cast<int>(m_bounds[4]/m_mask->m_spacing.z);
+            m_extent[5] = static_cast<int>(m_bounds[5]/m_mask->m_spacing.z);
+
+            m_index.x = m_extent[0];
+            m_index.x = m_extent[2];
+            m_index.x = m_extent[4];
+          }
+
+          bool operator==(const const_region_iterator& other) const
+          {
+            bool retValue = true;
+            retValue &= (m_mask == other.m_mask);
+            retValue &= ((m_bounds[0] == other.m_bounds[0]) && (m_bounds[1] == other.m_bounds[1]) && (m_bounds[2] == other.m_bounds[2]) &&
+                         (m_bounds[3] == other.m_bounds[3]) && (m_bounds[4] == other.m_bounds[4]) && (m_bounds[5] == other.m_bounds[5]));
+            retValue &= (memcmp(m_extent, other.m_extent, 6*sizeof(unsigned long long)) = 0);
+            retValue &= ((m_index.x == other.m_index.x) && (m_index.y == other.m_index.y) && (m_index.z == other.m_index.z));
+
+            return retValue;
+          }
+
+          bool operator!=(const const_region_iterator& other) const
+          {
+            bool retValue = true;
+            retValue &= (m_mask != other.m_mask);
+            retValue &= ((m_bounds[0] != other.m_bounds[0]) && (m_bounds[1] != other.m_bounds[1]) && (m_bounds[2] != other.m_bounds[2]) &&
+                         (m_bounds[3] != other.m_bounds[3]) && (m_bounds[4] != other.m_bounds[4]) && (m_bounds[5] != other.m_bounds[5]));
+            retValue &= (memcmp(m_extent, other.m_extent, 6*sizeof(unsigned long long)) != 0);
+            retValue &= ((m_index.x != other.m_index.x) && (m_index.y != other.m_index.y) && (m_index.z != other.m_index.z));
+
+            return retValue;
+          }
+
+          const T& operator*() const
+          {
+            return m_mask->pixel(m_index);
+          }
+
+          const_region_iterator& operator--()
+          {
+            if ((m_index.x == m_extent[0]) && (m_index.y == m_extent[2]) && (m_index.z == m_extent[4]))
+              throw;
+
+            if (m_index.x == m_extent[0])
+            {
+              m_index.x = m_extent[1];
+              if (m_index.y == m_extent[2])
+              {
+                m_index.y = m_extent[3];
+                --m_index.z;
+              }
+              else
+                --m_index.y;
+            }
+            else
+              --m_index.x;
+
+            return *this;
+          }
+
+          const_region_iterator &operator++()
+          {
+            if ((m_index.x == m_extent[1]) && (m_index.y == m_extent[3]) && (m_index.z == m_extent[5]))
+              throw;
+
+            if (m_index.x == m_extent[1])
+            {
+              m_index.x = m_extent[0];
+              if (m_index.y == m_extent[3])
+              {
+                m_index.y = m_extent[2];
+                ++m_index.z;
+              }
+              else
+                ++m_index.y;
+            }
+            else
+              ++m_index.x;
+
+            return *this;
+          }
+
+          friend class region_const_iterator;
+
+        private:
+          pointer            m_mask;
+          Bounds             m_bounds;
+          unsigned long long m_extent[6];
+          IndexType          m_index;
+      };
+
   };
 
-  //- Binary Mask class const iterator --------------------------------------------------
-  template<typename T> class BinaryMask<T>::ConstIterator
-  {
-    public:
-      ConstIterator(BinaryMask<T> image, Bounds bounds);
-      ~ConstIterator();
-
-      const T get() const;
-
-      ConstIterator& operator++();
-      ConstIterator& operator--();
-  };
-
-  //- Binary Mask region iterator--------------------------------------------------------
-  template<typename T> class BinaryMask<T>::RegionIterator
-  {
-    public:
-      RegionIterator(BinaryMask<T> image, Bounds bounds);
-      ~RegionIterator();
-
-      T get() const;
-      void set();
-
-      RegionIterator& operator++();
-      RegionIterator& operator--();
-  };
-
-  //- Binary Mask region const interator ------------------------------------------------
-  template<typename T> class BinaryMask<T>::RegionConstIterator
-  {
-    public:
-      RegionConstIterator(BinaryMask<T> image, Bounds bounds);
-      ~RegionConstIterator();
-
-      const T get() const;
-
-      RegionConstIterator& operator++();
-      RegionConstIterator& operator--();
-  };
-
-}
+} // namespace EspINA
 
 #endif // ESPINA_BINARY_MASK_H
