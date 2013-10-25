@@ -24,6 +24,7 @@
 #include "SegFile.h"
 #include "ClassificationXML.h"
 #include <Core/Analysis/Persistent.h>
+#include <Core/Analysis/Classification.h>
 #include <Core/Analysis/Extensions/ExtensionProvider.h>
 #include <Core/Analysis/Graph/DirectedGraph.h>
 #include <Core/Analysis/Storage.h>
@@ -81,18 +82,21 @@ AnalysisSPtr SegFile_V5::load(QuaZip& zip, ErrorHandlerPtr handler)
 
     throw (Parse_Exception());
   }
+  
+  std::cerr << print(analysis->classification()).toStdString();
 
   bool hasFile = zip.goToFirstFile();
   while (hasFile)
   {
     QFileInfo file = zip.getCurrentFileName();
 
-    if (file == FORMAT_INFO_FILE)    continue;
-    if (file == CLASSIFICATION_FILE) continue;
-    if (file == CONTENT_FILE) continue;
-    if (file == RELATIONS_FILE) continue;
-
-    storage->saveSnapshot(SnapshotData(file.fileName(), readCurrentFileFromZip(zip, handler)));
+    if (file != FORMAT_INFO_FILE
+     && file != CLASSIFICATION_FILE
+     && file != CONTENT_FILE
+     && file != RELATIONS_FILE)
+    {
+      storage->saveSnapshot(SnapshotData(file.fileName(), readCurrentFileFromZip(zip, handler)));
+    }
 
     hasFile = zip.goToNextFile();
   }

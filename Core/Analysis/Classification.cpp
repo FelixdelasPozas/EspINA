@@ -110,13 +110,14 @@ CategorySPtr Classification::parent(const CategorySPtr subCategory) const
 }
 
 //-----------------------------------------------------------------------------
-bool Classification::operator==(const Classification& rhs)
+QString EspINA::print(ClassificationSPtr classification, int indent)
 {
-  return m_name == rhs.m_name;
-}
+  QString out = QString("Classification: %1\n").arg(classification->name());
 
-//-----------------------------------------------------------------------------
-void Classification::print(int indent)
-{
-  m_root->print(indent);
+  foreach(CategorySPtr category, classification->categories())
+  {
+    out += QString("%1").arg(print(category, indent));
+  }
+
+  return out;
 }

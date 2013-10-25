@@ -61,19 +61,12 @@ namespace EspINA
     CategorySList categories() {return m_root->subCategories();}
     CategorySPtr  parent(const CategorySPtr categor) const;
 
-    bool operator==(const Classification& rhs);
-
-    bool operator!=(const Classification& rhs)
-    { return !operator==(rhs); }
-
-    void print(int indent = 0);
-
   private:
     QString      m_name;
     CategorySPtr m_root;
   };
 
-
+  QString print(ClassificationSPtr classification, int indent = 0);
 }// namespace EspINA
 
 #endif // ESPINA_CLASSIFICATION_H

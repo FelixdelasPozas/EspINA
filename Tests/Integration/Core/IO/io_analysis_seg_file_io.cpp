@@ -60,8 +60,15 @@ int io_analysis_seg_file_io( int argc, char** argv )
     error = true;
   }
 
-//   Analysis analysis2;
-//   IO::SegFile::load(file, &analysis2);
+  AnalysisSPtr analysis2;
+  try
+  {
+   analysis2 = SegFile::load(file);
+  } catch (...) 
+  {
+    cerr << "Couldn't load seg file" << endl;
+    error = true;
+  }
 
   return error;
 }

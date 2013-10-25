@@ -153,26 +153,25 @@ QVariant Category::property(const QString& prop) const
 
 
 //------------------------------------------------------------------------
-void Category::print(int level)
+QString EspINA::print(CategorySPtr category, int level)
 {
-  if (!m_name.isEmpty())
+  QString out = QString("%1%2\n").arg(QString(level*2, ' ')).arg(category->name());
+
+  foreach(QString property, category->properties())
   {
-    std::cout <<
-    std::string(level*2, ' ') << m_name.toStdString() << std::endl;
-    if (m_properties.size() > 0)
-    {
-      std::cout << std::string(level*2, ' ') << "<" << std::endl;
-      foreach(QString key, m_properties.keys())
-      {
-        std::cout << std::string((level+1)*2, ' ')
-        << key.toStdString() << ": " << m_properties[key].toString().toStdString()
-        << std::endl;
-      }
-      std::cout << std::string(level*2, ' ') << ">" << std::endl;
-    }
+    //       std::cout << std::string(level*2, ' ') << "<" << std::endl;
+    //       foreach(QString key, m_properties.keys())
+    //       {
+    //         std::cout << std::string((level+1)*2, ' ')
+    //         << key.toStdString() << ": " << m_properties[key].toString().toStdString()
+    //         << std::endl;
+    //       }
+    //       std::cout << std::string(level*2, ' ') << ">" << std::endl;
   }
 
-  foreach (CategorySPtr node, m_subCategories) {
-    node->print(level+1);
+  foreach (CategorySPtr subCategory, category->subCategories()) {
+    out += QString("%1").arg(print(subCategory, level+1));
   }
+
+  return out;
 }

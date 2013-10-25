@@ -45,7 +45,7 @@ int classification_remove_category( int argc, char** argv )
     cerr << "Initial classification must contain category " << name.toStdString() << endl;
     error = true;
   }
-  
+
   classification.removeCategory(category);
 
   if (classification.category(name) != nullptr) {

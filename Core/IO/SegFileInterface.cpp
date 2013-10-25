@@ -89,6 +89,12 @@ QByteArray SegFileInterface::readCurrentFileFromZip(QuaZip& zip,
                                                     ErrorHandlerPtr handler)
 {
   QuaZipFile zFile(&zip);
+  if (!zFile.open(QIODevice::ReadOnly))
+  {
+    if (handler)
+      handler->error(QObject::tr("Couldn't extract %1 from seg file").arg(zFile.getFileName()));
 
+    throw (IO_Error_Exception());
+  }
   return zFile.readAll();
 }

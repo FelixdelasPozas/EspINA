@@ -29,15 +29,15 @@ namespace EspINA {
   namespace IO {
     namespace ClassificationXML
     {
+      struct IO_Exception{};
       struct Parse_Exception{};
 
-      STATUS load(const QFileInfo&   file,
-                  ClassificationSPtr classification,
-                  ErrorHandlerPtr    handler = nullptr);
+      ClassificationSPtr load(const QFileInfo&   file,
+                              ErrorHandlerPtr    handler = nullptr);
 
-      STATUS save(ClassificationSPtr classification,
-                  const QFileInfo&   file,
-                  ErrorHandlerPtr    handler = nullptr);
+      void save(ClassificationSPtr classification,
+                const QFileInfo&   file,
+                ErrorHandlerPtr    handler = nullptr);
 
 
       QByteArray dump(const ClassificationSPtr classification,

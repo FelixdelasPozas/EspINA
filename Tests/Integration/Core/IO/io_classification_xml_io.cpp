@@ -47,19 +47,27 @@ int io_classification_xml_io(int argc, char** argv)
   classification->createCategory("3/1/1");
 
   QFileInfo file("classification.xml");
-  if (ClassificationXML::save(classification, file) != STATUS::SUCCESS) {
+  try
+  {
+    ClassificationXML::save(classification, file);
+  } catch (...) {
     cerr << "Couldn't save classification" << endl;
     error = true;
   }
 
-  ClassificationSPtr loadedClassification{new Classification()};
-  if (ClassificationXML::load(file, loadedClassification) != STATUS::SUCCESS) {
+  ClassificationSPtr loadedClassification;
+  try
+  {
+    loadedClassification = ClassificationXML::load(file);
+  } catch (...) {
     cerr << "Couldn't load classification" << endl;
     error = true;
   }
 
-  if (*(classification.get()) != *(loadedClassification.get())) {
+  if (print(classification) != print(loadedClassification)) {
     cerr << "Unexpected Loaded Classification" << endl;
+    cerr << print(classification).toStdString();
+    cerr << print(loadedClassification).toStdString();
     error = true;
   }
 

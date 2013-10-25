@@ -37,7 +37,7 @@ namespace EspINA
   const QString DEFAULT_CATEGORY_COLOR = "#00FF00"; //Red
 
   typedef QList<CategorySPtr> CategorySList;
-  
+
   /** \brief Category for taxons
    * 
    *  Represent a group of individuals with the same characteristics
@@ -134,9 +134,6 @@ namespace EspINA
      * 
      */
     CategoryPtr parent() {return m_parent;}
-
-    void print(int level=0);
-
   private:
     explicit Category(CategoryPtr parent,
                       const QString &name,
@@ -152,6 +149,9 @@ namespace EspINA
 
     friend class Classification;
   };
+
+  QString print(CategorySPtr category, int level=0);
+
 
 }// namespace EspINA
 

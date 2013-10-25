@@ -41,7 +41,7 @@ namespace EspINA {
 
   using SnapshotData = QPair<QString, QByteArray>;
   using Snapshot     = QList<SnapshotData>;
-  using State = QString;
+  using State        = QString;
 
   class Persistent
   {

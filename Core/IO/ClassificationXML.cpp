@@ -25,24 +25,47 @@
 using namespace EspINA;
 using namespace EspINA::IO;
 
-//-----------------------------------------------------------------------------
-STATUS ClassificationXML::load(const QFileInfo&   file,
-                               ClassificationSPtr classification,
-                               ErrorHandlerPtr    handler)
+ClassificationSPtr parse(QXmlStreamReader& stream)
 {
-  //QFile xmlFile(file);
-//   if (!xmlFile.open(QIODevice::ReadOnly | QIODevice::Text))
-//   {
-    return STATUS::IO_ERROR;
-//   }
-// 
-//   QXmlStreamReader xmlStream(&xmlFile);
-// 
-//   TaxonomySPtr tax = readXML(xmlStream);
-// 
-//   xmlFile.close();
+  stream.readNextStartElement();
 
-  return STATUS::SUCCESS;
+  QStringRef name = stream.attributes().value("name");
+
+  ClassificationSPtr classification{new Classification(name.toString())};
+
+  CategorySPtr parent;
+
+  while (!stream.atEnd())
+  {
+    stream.readNextStartElement();
+    if (stream.name() == "category" || stream.name() == "node") //node was used by taxonomies
+    {
+      if (stream.isStartElement())
+      {
+        name  = stream.attributes().value("name");
+        QStringRef color = stream.attributes().value("color");
+
+        CategorySPtr category = classification->createCategory(name.toString(), parent);
+        category->setColor(color.toString());
+
+        QXmlStreamAttribute attrib;
+        foreach(attrib, stream.attributes())
+        {
+          if (attrib.name() == "name" || attrib.name() == "color")
+          continue;
+          category->addProperty(attrib.name().toString(), attrib.value().toString());
+        }
+
+        parent = category;
+      }
+      else if (stream.isEndElement())
+      {
+        parent = classification->parent(parent);
+      }
+    }
+  }
+
+  return classification;
 }
 
 //-----------------------------------------------------------------------------
@@ -65,7 +88,7 @@ void dumpCategoryXML(CategorySPtr category, QXmlStreamWriter& stream)
 
 
 //-----------------------------------------------------------------------------
-STATUS dumpClassificationXML(ClassificationSPtr classification, QXmlStreamWriter& stream) {
+void dumpClassificationXML(ClassificationSPtr classification, QXmlStreamWriter& stream) {
 
   stream.setAutoFormatting(true);
   stream.writeStartDocument();
@@ -79,24 +102,40 @@ STATUS dumpClassificationXML(ClassificationSPtr classification, QXmlStreamWriter
 
   stream.writeEndElement();
   stream.writeEndDocument();
+}
 
-  return STATUS::SUCCESS;
+
+//-----------------------------------------------------------------------------
+ClassificationSPtr ClassificationXML::load(const QFileInfo&   file,
+                                           ErrorHandlerPtr    handler = nullptr)
+{
+  ClassificationSPtr classification{new Classification()};
+
+  QFile xmlFile(file.absoluteFilePath());
+  if (!xmlFile.open(QIODevice::ReadOnly | QIODevice::Text))
+  {
+    if (handler)
+      handler->error(QObject::tr("Could not load file %1").arg(file.fileName()));
+    throw (IO_Exception());
+  }
+
+  QXmlStreamReader stream(&xmlFile);
+
+  return parse(stream);
 }
 
 //-----------------------------------------------------------------------------
-STATUS ClassificationXML::save(ClassificationSPtr classification,
-                               const QFileInfo&   file,
-                               ErrorHandlerPtr    handler)
+void ClassificationXML::save(ClassificationSPtr classification, const QFileInfo& file, ErrorHandlerPtr handler)
 {
   QFile xmlFile(file.absoluteFilePath());
   if (!xmlFile.open(QIODevice::WriteOnly))
   {
-    return STATUS::IO_ERROR;
+    throw (ClassificationXML::IO_Exception());
   }
 
   QXmlStreamWriter stream(&xmlFile);
 
-  return dumpClassificationXML(classification, stream);
+  dumpClassificationXML(classification, stream);
 }
 
 
@@ -112,9 +151,12 @@ QByteArray ClassificationXML::dump(const ClassificationSPtr classification,
   return serialization;
 }
 
+#include <QDebug>
 //-----------------------------------------------------------------------------
 ClassificationSPtr ClassificationXML::parse(const QByteArray& serialization,
                                             ErrorHandlerPtr handler)
 {
-  return ClassificationSPtr();
+  QXmlStreamReader stream(serialization);
+
+  return parse(stream);
 }

@@ -30,16 +30,62 @@
 using namespace boost;
 using namespace EspINA;
 
-const std::string CHANNEL_TYPE      = "trapezium";
-const std::string SEGMENTATION_TYPE = "ellipse";
-const std::string FILTER_TYPE       = "box";
-const std::string SAMPLE_TYPE       = "invtriangle";
+const std::string CHANNEL_TYPE            = "trapezium";
+const std::string SEGMENTATION_TYPE       = "ellipse";
+const std::string FILTER_TYPE             = "box";
+const std::string SAMPLE_TYPE             = "invtriangle";
+const std::string EXTENSION_PROVIDER_TYPE = "diamond";
 
 namespace EspINA
 {
+  std::string shape(const PersistentSPtr item)
+  {
+    if (dynamic_cast<SamplePtr>(item.get()))
+    {
+      return SAMPLE_TYPE;
+    } else if (dynamic_cast<ChannelPtr>(item.get()))
+    {
+      return CHANNEL_TYPE;
+    } else if (dynamic_cast<FilterPtr>(item.get()))
+    {
+      return FILTER_TYPE;
+    } else if (dynamic_cast<SegmentationSPtr>(item.get()))
+    {
+      return CHANNEL_TYPE;
+    }
+    switch (item->type())
+    {
+      case :
+        break;
+      case CHANNEL:
+        vertex.shape = CHANNEL_TYPE;
+        break;
+      case SEGMENTATION:
+      {
+        SegmentationPtr seg = segmentationPtr(item);
+        seg->updateCacheFlag();
+        vertex.shape = SEGMENTATION_TYPE;
+        break;
+      }
+      case FILTER:
+      {
+        FilterPtr filter = filterPtr(item);
+        filter->setId(id++);
+        //filter->resetCacheFlags();
+        vertex.shape = FILTER_TYPE;
+        break;
+      }
+      default:
+        Q_ASSERT(false);
+        break;
+    }
+    
+  }
+
   std::ostream& operator << ( std::ostream& out, const DirectedGraph::Vertex& v)
   {
-//     out << v.descriptor << std::endl
+    out << v.descriptor << std::endl;
+    out << shape(v.item) << std::endl;
 //         << v.shape      << std::endl
 //         << v.name       << std::endl
 //         << v.args;
@@ -67,7 +113,7 @@ std::istream& operator >> ( std::istream& in, DirectedGraph::Vertex& v)
 
 std::ostream& operator << ( std::ostream& out, const DirectedGraph::EdgeProperty& e )
 {
-//   out << e.relationship << " ";
+  out << e.relationship << " ";
   return out;
 }
 
