@@ -29,6 +29,8 @@ namespace EspINA {
   namespace IO {
     namespace ClassificationXML
     {
+      struct Parse_Exception{};
+
       STATUS load(const QFileInfo&   file,
                   ClassificationSPtr classification,
                   ErrorHandlerPtr    handler = nullptr);
@@ -38,13 +40,11 @@ namespace EspINA {
                   ErrorHandlerPtr    handler = nullptr);
 
 
-      STATUS dump(const ClassificationSPtr classification,
-                  QString&                 serialization,
-                  ErrorHandlerPtr          handler = nullptr);
+      QByteArray dump(const ClassificationSPtr classification,
+                      ErrorHandlerPtr          handler = nullptr);
 
-      STATUS parse(const QString&     serialization,
-                   ClassificationSPtr classification,
-                   ErrorHandlerPtr    handler = nullptr);
+      ClassificationSPtr parse(const QByteArray&  serialization,
+                               ErrorHandlerPtr    handler = nullptr);
     }
   }
 }

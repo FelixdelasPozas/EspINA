@@ -17,30 +17,29 @@
  *
  */
 
-#ifndef ESPINA_STORAGE_H
-#define ESPINA_STORAGE_H
+#ifndef ESPINA_SEGFILE_V4_H
+#define ESPINA_SEGFILE_V4_H
 
-#include "Core/Analysis/Persistent.h"
+#include "SegFileInterface.h"
 
 namespace EspINA {
+  namespace IO {
+    namespace SegFile {
+      class SegFile_V4
+      : public SegFileInterface
+      {
+      public:
+        static const QString FORMAT_INFO_FILE;
 
-  class Persistent::Storage
-  {
-  public:
-    explicit Storage(const QDir& parent);
-    ~Storage();
-
-    void saveSnapshot(Persistent::Id id, const Snapshot& snapshot);
-
-    /** \brief Write snapshot data to storage destination
-     *
-     *  This version uses disk as storage destination
-     */
-    void saveSnapshot(SnapshotData data);
-
-  private:
-    QUuid m_uuid;
-  };
+      public:
+        virtual AnalysisSPtr load(QuaZip&         zip,
+                                  ErrorHandlerPtr handler = nullptr);
+        virtual void save(AnalysisPtr    analysis,
+                          QuaZip&         zip,
+                          ErrorHandlerPtr handler = nullptr);
+      };
+    }
+  }
 }
 
-#endif // ESPINA_STORAGE_H
+#endif // ESPINA_SEGFILE_V4_H

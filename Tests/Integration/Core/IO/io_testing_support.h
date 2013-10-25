@@ -25,7 +25,7 @@
 #include <Core/MultiTasking/Scheduler.h>
 
 namespace EspINA {
-  namespace Testing {
+  namespace IO_Testing {
     class DummyFilter
     : public Filter
     {
@@ -35,7 +35,7 @@ namespace EspINA {
       virtual OutputSPtr output(Output::Id id) const {return OutputSPtr{new Output(this, 0)};}
 
     protected:
-    virtual Snapshot saveFilterSnapshot() const {return Snapshot(); }
+      virtual Snapshot saveFilterSnapshot() const {return Snapshot(); }
       virtual bool needUpdate() const{}
       virtual bool needUpdate(Output::Id id) const{}
       virtual DataSPtr createDataProxy(Output::Id id, const Data::Type& type){}
@@ -44,7 +44,7 @@ namespace EspINA {
       virtual bool invalidateEditedRegions() {return false;}
     };
 
-    class DummyProvider
+    class DummyProvider 
     : public ExtensionProvider
     {
     public:

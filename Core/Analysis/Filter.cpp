@@ -54,7 +54,13 @@ void Filter::saveState(State& state) const
 //----------------------------------------------------------------------------
 Snapshot Filter::saveSnapshot() const
 {
+  Snapshot snapshot;
 
+  // TODO: Save output edited regions
+
+  snapshot << saveFilterSnapshot();
+
+ return snapshot;
 }
 
 //----------------------------------------------------------------------------

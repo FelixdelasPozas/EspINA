@@ -36,8 +36,7 @@ class DummyFilter
     virtual OutputSPtr output(Output::Id id) const { return m_output; }
 
   protected:
-    virtual void loadFilterCache(const QDir& dir){}
-    virtual void saveFilterCache(const Persistent::Id id) const {}
+    virtual Snapshot saveFilterSnapshot() const{}
     virtual bool needUpdate() const {}
     virtual bool needUpdate(Output::Id id) const {}
     virtual DataSPtr createDataProxy(Output::Id id, const Data::Type& type) {}

@@ -17,30 +17,25 @@
  *
  */
 
-#ifndef ESPINA_STORAGE_H
-#define ESPINA_STORAGE_H
+#include "SegFile_V4.h"
 
-#include "Core/Analysis/Persistent.h"
+using namespace EspINA;
+using namespace EspINA::IO;
 
-namespace EspINA {
+const QString SegFile::SegFile_V4::FORMAT_INFO_FILE = "settings.ini";
+const QString TRACE_FILE    = "trace.dot";
+const QString TAXONOMY_FILE = "taxonomy.xml";
+const QString FILE_VERSION  = "version"; //backward compatibility
 
-  class Persistent::Storage
-  {
-  public:
-    explicit Storage(const QDir& parent);
-    ~Storage();
+AnalysisSPtr SegFile::SegFile_V4::load(QuaZip&         zip,
+                                       ErrorHandlerPtr handler)
+{
 
-    void saveSnapshot(Persistent::Id id, const Snapshot& snapshot);
-
-    /** \brief Write snapshot data to storage destination
-     *
-     *  This version uses disk as storage destination
-     */
-    void saveSnapshot(SnapshotData data);
-
-  private:
-    QUuid m_uuid;
-  };
 }
 
-#endif // ESPINA_STORAGE_H
+void SegFile::SegFile_V4::save(AnalysisPtr     analysis,
+                               QuaZip&         zip,
+                               ErrorHandlerPtr handler)
+{
+  Q_ASSERT(false);
+}

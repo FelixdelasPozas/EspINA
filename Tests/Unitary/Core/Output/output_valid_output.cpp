@@ -43,8 +43,7 @@ int output_valid_output( int argc, char** argv )
     virtual OutputSPtr output(Output::Id id) const {}
 
   protected:
-    virtual void loadFilterCache(const QDir& dir){}
-    virtual void saveFilterCache(const Persistent::Id id) const{}
+    virtual Snapshot saveFilterSnapshot() const {return Snapshot(); }
     virtual bool needUpdate() const{}
     virtual bool needUpdate(Output::Id id) const{}
     virtual DataSPtr createDataProxy(Output::Id id, const Data::Type& type){}

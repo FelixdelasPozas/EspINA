@@ -28,49 +28,40 @@
 
 #include <Core/Analysis/Analysis.h>
 #include <Core/Analysis/Channel.h>
-#include <Core/Analysis/Output.h>
-#include <Core/Analysis/Filter.h>
+#include <Core/Analysis/Classification.h>
 #include <Core/MultiTasking/Scheduler.h>
 #include <Core/IO/SegFile.h>
+#include "io_testing_support.h"
 
 using namespace EspINA;
+using namespace EspINA::IO;
 using namespace std;
 
-int io_save_analysis_as_seg_file( int argc, char** argv )
+int io_analysis_seg_file_io( int argc, char** argv )
 {
-  class DummyFilter
-  : public Filter
-  {
-  public:
-    explicit DummyFilter()
-    : Filter(OutputSList(), "Dummy", SchedulerSPtr(new Scheduler(10000000))){}
-    virtual OutputSPtr output(Output::Id id) const {}
-
-  protected:
-    virtual void loadFilterCache(const QDir& dir){}
-    virtual void saveFilterCache(const Persistent::Id id) const{}
-    virtual bool needUpdate() const{}
-    virtual bool needUpdate(Output::Id id) const{}
-    virtual DataSPtr createDataProxy(Output::Id id, const Data::Type& type){}
-    virtual void execute(){}
-    virtual void execute(Output::Id id){}
-    virtual bool invalidateEditedRegions() {return false;}
-  };
-
   bool error = false;
 
   Analysis analysis;
 
-  FilterSPtr filter{new DummyFilter()};
+  ClassificationSPtr classification{new Classification("Test")};
+  analysis.setClassification(classification);
+
+  FilterSPtr filter{new IO_Testing::DummyFilter()};
   ChannelSPtr channel(new Channel(filter, 0));
 
   analysis.add(channel);
 
   QFileInfo file("analysis.seg");
-  IO::SegFile::save(&analysis, file);
+  try {
+    SegFile::save(&analysis, file);
+  }
+  catch (SegFile::IO_Error_Exception e) {
+    cerr << "Couldn't save seg file" << endl;
+    error = true;
+  }
 
-  Analysis analysis2;
-  IO::SegFile::load(file, &analysis2);
+//   Analysis analysis2;
+//   IO::SegFile::load(file, &analysis2);
 
   return error;
 }

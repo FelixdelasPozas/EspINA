@@ -13,6 +13,10 @@ if (${USE_DASHBOARD})
 
 endif()
 
+include_directories(
+  ${CMAKE_BINARY_DIR}
+  )
+
 set( CORE_DIR ${CMAKE_SOURCE_DIR}/Core )
 
 

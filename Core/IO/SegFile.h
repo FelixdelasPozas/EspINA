@@ -17,30 +17,33 @@
  *
  */
 
-#ifndef ESPINA_IO_SEGWRITER_H
-#define ESPINA_IO_SEGWRITER_H
+#ifndef ESPINA_IO_SEGFILE_H
+#define ESPINA_IO_SEGFILE_H
 
 #include "ErrorHandler.h"
+#include <Core/Analysis/Analysis.h>
 
 namespace EspINA 
 {
-
-  class Analysis;
-  using AnalysisPtr = Analysis *;
-
   namespace IO
   {
     namespace SegFile
     {
-      STATUS load(const QFileInfo& file,
-                  AnalysisPtr      analysis,
-                  ErrorHandlerPtr  handler = nullptr);
+      struct IO_Error_Exception{};
 
-      STATUS save(AnalysisPtr      analysis,
-                  const QFileInfo& file,
-                  ErrorHandlerPtr  handler = nullptr);
+      struct Classification_Not_Found_Exception{};
+
+      struct File_Not_Found_Exception{};
+
+      struct Parse_Exception{};
+
+      AnalysisSPtr load(const QFileInfo& file,
+                        ErrorHandlerPtr  handler = nullptr);
+
+      void save(AnalysisPtr      analysis,
+                const QFileInfo& file,
+                ErrorHandlerPtr  handler = nullptr);
     }
   }
 }
-
-#endif // ESPINA_IO_SEGWRITER_H
+#endif // ESPINA_IO_SEGFILE_H

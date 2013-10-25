@@ -47,8 +47,7 @@ int output_update_filter( int argc, char** argv )
     int UpdatedOutput;
     
   protected:
-    virtual void loadFilterCache(const QDir& dir){}
-    virtual void saveFilterCache(const Persistent::Id id) const{}
+    virtual Snapshot saveFilterSnapshot() const {}
     virtual bool needUpdate() const {return true;}
     virtual bool needUpdate(Output::Id id) const {return true;}
     virtual DataSPtr createDataProxy(Output::Id id, const Data::Type& type){}

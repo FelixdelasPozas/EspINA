@@ -87,9 +87,7 @@ namespace EspINA
   protected:
     explicit Filter(OutputSList inputs, Type  type, SchedulerSPtr scheduler);
 
-    virtual void loadFilterCache(const QDir& dir) = 0;
-
-    virtual void saveFilterCache(const Persistent::Id id) const = 0;
+    virtual Snapshot saveFilterSnapshot() const = 0;
 
     /** \brief Return true if a filter must be executed to update its outputs
      */

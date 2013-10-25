@@ -21,7 +21,24 @@
 
 using namespace EspINA;
 
+
+Persistent::Storage::Storage(const QDir& parent)
+{
+
+}
+
+Persistent::Storage::~Storage()
+{
+
+}
+
+void Persistent::Storage::saveSnapshot(SnapshotData data)
+{
+
+}
+
 void Persistent::Storage::saveSnapshot(Persistent::Id id, const Snapshot& snapshot)
 {
 
 }
+
