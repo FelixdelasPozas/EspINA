@@ -74,8 +74,8 @@ class TmpSegFile
 {
 public:
   TmpSegFile(QDir& tmpDir) 
-  : m_tmpDir{tmpDir}
-  , File{tmpDir.absoluteFilePath(QUuid::createUuid().toString())} 
+  : File{tmpDir.absoluteFilePath(QUuid::createUuid().toString())}
+  , m_tmpDir{tmpDir}
   {}
 
   ~TmpSegFile() 
