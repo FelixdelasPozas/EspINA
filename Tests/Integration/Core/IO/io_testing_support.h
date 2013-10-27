@@ -31,7 +31,8 @@ namespace EspINA {
     {
     public:
       explicit DummyFilter()
-      : Filter(OutputSList(), "Dummy", SchedulerSPtr(new Scheduler(10000000))){}
+      : Filter(OutputSList(), "DummyFilter", SchedulerSPtr(new Scheduler(10000000)))
+      { setName("DummyFilter");}
       virtual OutputSPtr output(Output::Id id) const {return OutputSPtr{new Output(this, 0)};}
 
     protected:

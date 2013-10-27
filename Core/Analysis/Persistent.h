@@ -46,7 +46,7 @@ namespace EspINA {
   class Persistent
   {
   public:
-    using Id = QUuid;
+    using Uuid = QUuid;
 
     class Storage;
     using StorageSPtr = std::shared_ptr<Storage>;
@@ -55,10 +55,10 @@ namespace EspINA {
     explicit Persistent() : m_quuid{QUuid::createUuid()} {}
     virtual ~Persistent() {}
 
-    Id quuid() const
+    Uuid uuid() const
     { return m_quuid; }
 
-    void setId(Id id)
+    void setUuid(Uuid id)
     { m_quuid = id; }
 
     void setPersistentStorage(StorageSPtr storage)
@@ -67,8 +67,16 @@ namespace EspINA {
     StorageSPtr storage() const
     { return m_storage; }
 
+    void setName(const QString& name)
+    { m_name = name; }
+
+    QString name() const
+    { return m_name; }
+
+
     virtual void restoreState(const State& state) = 0;
 
+    //NOTE: If we want to allow ReadOnly objects to keep state we need to avoid new lines
     virtual void saveState(State& state) const = 0;
 
     virtual Snapshot saveSnapshot() const = 0;
@@ -79,10 +87,11 @@ namespace EspINA {
     virtual void unload() = 0;
 
   private:
-    Id          m_quuid;
+    Uuid          m_quuid;
+    QString     m_name;
     StorageSPtr m_storage;
   };
-  
+
   using PersistentPtr = Persistent *;
 }
 

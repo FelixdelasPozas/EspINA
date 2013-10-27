@@ -26,41 +26,45 @@
  * 
  */
 
-#include "Core/Analysis/Graph/DirectedGraph.h"
+#include "Core/Analysis/Data/Volumetric/SparseVolume.h"
+#include "Tests/Unitary/Core/Data/Volumetric/Testing_Support.h"
 
-#include "DummyItem.h"
+#include <vtkSmartPointer.h>
 
 using namespace EspINA;
-using namespace UnitTesting;
 using namespace std;
 
-int directed_graph_add_item( int argc, char** argv )
+typedef unsigned char VoxelType;
+typedef itk::Image<VoxelType> ImageType;
+
+int sparse_volume_resize_reduce_volume( int argc, char** argv )
 {
-  bool error = false;
+  bool pass = true;
 
-  DirectedGraph graph;
-  
-  DummyItemSPtr item{new DummyItem()};
-  
-  graph.add(item);
-  
-  if (graph.vertices().size() != 1) 
-  {
-    cerr << "Unexpected number of vertices" << endl;
-    error = true;    
-  }
-  
-  if (graph.vertices().first() != item) 
-  {
-    cerr << "Unexpected vertex" << endl;
-    error = true;    
-  }
-  
-  if (!graph.edges().isEmpty()) 
-  {
-    cerr << "Unexpected number of edges" << endl;
-    error = true;    
+  VoxelType bg = 0;
+  VoxelType fg = 255;
+
+  Bounds initialBounds{0, 20, 0, 20, 0, 20};
+  SparseVolume<ImageType> volume(initialBounds);
+  volume.draw(vtkSmartPointer<vtkNaiveFunction>::New(), initialBounds, fg);
+
+  if (!Testing_Support<ImageType>::Test_Pixel_Values(volume.itkImage(), fg)) {
+    cerr << "Initial values are not initialized to " << fg << endl;
+    pass = false;
   }
 
-  return error;
+  Bounds reducedBounds{0, 10, 0, 10, 0, 10};
+  volume.resize(reducedBounds);
+
+  if (volume.bounds() != reducedBounds) {
+    cerr << "Reduced bounds " << volume.bounds() << " don't match requested bounds " << reducedBounds << endl;
+    pass = false;
+  }
+
+  if (!Testing_Support<ImageType>::Test_Pixel_Values(volume.itkImage(reducedBounds), fg)) {
+    cerr << "Initial pixel values have been modified" << endl;
+    pass = false;
+  }
+
+  return !pass;
 }

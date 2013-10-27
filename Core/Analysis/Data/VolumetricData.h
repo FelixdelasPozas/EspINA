@@ -26,6 +26,7 @@
 #include <vtkSmartPointer.h>
 #include <vtkImageData.h>
 
+class vtkImplicitFunction;
 namespace EspINA
 {
 
@@ -34,10 +35,9 @@ namespace EspINA
   {
   public:
     using itkImageSPtr = typename T::Pointer;
-    using vtkImageSPtr = vtkSmartPointer<vtkImageData>;
 
   public:
-    explicit VolumetricData();
+    explicit VolumetricData(){}
     virtual ~VolumetricData() {}
 
     /** \brief Return memory usage in MB
@@ -86,7 +86,7 @@ namespace EspINA
      *
      *  If given bounds are not contained inside the volume bounds, the intersection will be applied
      */
-    virtual void draw(const vtkImplicitFunction *brush,
+    virtual void draw(const vtkImplicitFunction* brush,
                       const Bounds&      bounds,
                       const typename T::ValueType value) = 0;
 
@@ -117,57 +117,64 @@ namespace EspINA
     virtual void undo() = 0;
 
     //TODO: Update to new storage model
-    static QString cachePath(const QString &fileName)
-    { return QString("%1/%2").arg(SegmentationVolume::TYPE).arg(fileName); }
+//     static QString cachePath(const QString &fileName)
+//     { return QString("%1/%2").arg(SegmentationVolume::TYPE).arg(fileName); }
 
   protected:
-    EditedVolumeRegionSList editedRegions() const = 0;
+//     EditedVolumeRegionSList editedRegions() const = 0;
+// 
+//     void setEditedRegions(EditedVolumeRegionSList regions) = 0;
 
-    void setEditedRegions(EditedVolumeRegionSList regions) = 0;
+  private:
+    typename T::ValueType m_bgValue;
 
     friend class Output;
   };
+  
+  
 
-  /// Get the vtk-equivalent extent defining the volume
-  virtual void extent(int out[6]) const = 0;
-
-
-  /** \brief Volume's voxel's index at given spatial position
-   *
-   *  It doesn't check whether the index is valid or not
-   */
-  virtual typename T::IndexType index(Nm x, Nm y, Nm z) = 0;
-
-  /// Set voxels at coordinates (x,y,z) to value
-  ///NOTE: Current implementation will expand the image
-  ///      when drawing with value != 0
-  virtual void draw(Nm x, Nm y, Nm z,
-                    itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
-                    bool emitSignal = true) = 0;
-
-
-  /// Set voxels inside contour to value
-  ///NOTE: Current implementation will expand the image
-  ///      when drawing with value != 0
-  virtual void draw(vtkPolyData *contour,
-                    Nm slice,
-                    PlaneType plane,
-                    itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
-                    bool emitSignal = true) = 0;
-
-  //NOTE: To Deprecate?
-  /// Fill output's volume with given value
-  virtual void fill(itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
-                    bool emitSignal = true) = 0;
-
-  /// Fill output's volume's region with given value
-  virtual void fill(const EspinaRegion &region,
-                    itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
-                    bool emitSignal = true) = 0;
-
-  // NOTE: Needs to steal pointer from itkImage
-  virtual const vtkImageSPtr vtkImage() const = 0;
-  virtual const vtkImageSPtr vtkImage(const Bounds& bounds) const = 0;
+//   /// Get the vtk-equivalent extent defining the volume
+//   void extent(int out[6]) const = 0;
+// 
+// 
+//   /** \brief Volume's voxel's index at given spatial position
+//    *
+//    *  It doesn't check whether the index is valid or not
+//    */
+//   typename T::IndexType index(Nm x, Nm y, Nm z) = 0;
+// 
+//   /// Set voxels at coordinates (x,y,z) to value
+//   ///NOTE: Current implementation will expand the image
+//   ///      when drawing with value != 0
+//   void draw(Nm x, Nm y, Nm z,
+//             itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
+//             bool emitSignal = true) = 0;
+// 
+// 
+//   /// Set voxels inside contour to value
+//   ///NOTE: Current implementation will expand the image
+//   ///      when drawing with value != 0
+//   void draw(vtkPolyData *contour,
+//             Nm slice,
+//             PlaneType plane,
+//             itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
+//             bool emitSignal = true) = 0;
+// 
+//   //NOTE: To Deprecate?
+//   /// Fill output's volume with given value
+//   void fill(itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
+//                     bool emitSignal = true) = 0;
+// 
+//   /// Fill output's volume's region with given value
+//   void fill(const EspinaRegion &region,
+//                     itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
+//                     bool emitSignal = true) = 0;
+// 
+//   using vtkImageSPtr = vtkSmartPointer<vtkImageData>;
+// 
+//   // NOTE: Needs to steal pointer from itkImage
+//   const vtkImageSPtr vtkImage() const = 0;
+//   const vtkImageSPtr vtkImage(const Bounds& bounds) const = 0;
 //     virtual itkVolumeIterator iterator() = 0;
 //     virtual itkVolumeIterator iterator(const EspinaRegion &region) = 0;
 // 
@@ -202,7 +209,7 @@ namespace EspINA
 
 
 
-    virtual bool collision(SegmentationVolumeSPtr segmentation) = 0;
+    //bool collision(VolumetricDataSPtr volume) = 0;
 
 } // namespace EspINA
 

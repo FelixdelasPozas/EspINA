@@ -77,7 +77,7 @@ int analysis_add_extension_provider(int argc, char** argv )
     error = true;
   }
 
-  if (analysis.content()->vertices().first().item != provider) {
+  if (analysis.content()->vertices().first() != provider) {
     cerr << "Unexpected extension provider retrieved from analysis content" << endl;
     error = true;
   }

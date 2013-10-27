@@ -26,41 +26,51 @@
  * 
  */
 
-#include "Core/Analysis/Graph/DirectedGraph.h"
+#include "Core/Analysis/Data/Volumetric/SparseVolume.h"
+#include "Tests/Unitary/Core/Data/Volumetric/Testing_Support.h"
 
-#include "DummyItem.h"
+#include <vtkSmartPointer.h>
 
 using namespace EspINA;
-using namespace UnitTesting;
 using namespace std;
 
-int directed_graph_add_item( int argc, char** argv )
+typedef unsigned char VoxelType;
+typedef itk::Image<VoxelType, 3> ImageType;
+
+
+int sparse_volume_resize_expand_volume( int argc, char** argv )
 {
-  bool error = false;
+  bool pass = true;
 
-  DirectedGraph graph;
-  
-  DummyItemSPtr item{new DummyItem()};
-  
-  graph.add(item);
-  
-  if (graph.vertices().size() != 1) 
-  {
-    cerr << "Unexpected number of vertices" << endl;
-    error = true;    
-  }
-  
-  if (graph.vertices().first() != item) 
-  {
-    cerr << "Unexpected vertex" << endl;
-    error = true;    
-  }
-  
-  if (!graph.edges().isEmpty()) 
-  {
-    cerr << "Unexpected number of edges" << endl;
-    error = true;    
+  VoxelType bg = 0;
+  VoxelType fg = 255;
+
+  Bounds initialBounds{0, 20, 0, 20, 0, 20};
+  SparseVolume<ImageType> volume(initialBounds);
+  volume.draw(vtkSmartPointer<vtkNaiveFunction>::New(), initialBounds, fg);
+
+  if (!Testing_Support<ImageType>::Test_Pixel_Values(volume.itkImage(), fg)) {
+    cerr << "Initial values are not initialized to " << fg << endl;
+    pass = false;
   }
 
-  return error;
+  Bounds resizedBounds{0, 40, 0, 40, 0, 40};
+  volume.resize(resizedBounds);
+
+  if (volume.bounds() != resizedBounds) {
+    cerr << "Resized bounds " << volume.bounds() << " don't match requested bounds " << resizedBounds << endl;
+  }
+
+  if (!Testing_Support<ImageType>::Test_Pixel_Values(volume.itkImage(initialBounds), fg)) {
+    cerr << "Initial pixel values have been modified" << endl;
+    pass = false;
+  }
+
+  Bounds expandedBounds{20, 40, 20, 40, 20, 40};
+  if (!Testing_Support<ImageType>::Test_Pixel_Values(volume.itkImage(expandedBounds), volume.backgroundValue())) {
+    cerr << "Expanded pixel values are different from backround value" << volume.backgroundValue() << endl;
+    pass = false;
+  }
+
+  return !pass;
 }

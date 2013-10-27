@@ -42,9 +42,9 @@ int directed_graph_remove_item( int argc, char** argv )
   
   DummyItemSPtr item{new DummyItem()};
   
-  graph.addItem(item);
+  graph.add(item);
   
-  graph.removeItem(item);
+  graph.remove(item);
 
   if (!graph.vertices().isEmpty()) 
   {

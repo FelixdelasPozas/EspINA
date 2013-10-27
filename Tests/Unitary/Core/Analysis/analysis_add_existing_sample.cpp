@@ -84,7 +84,7 @@ int analysis_add_existing_sample( int argc, char** argv )
     error = true;
   }
 
-  if (analysis.content()->vertices().first().item != sample) {
+  if (analysis.content()->vertices().first() != sample) {
     cerr << "Unexpected sample retrieved from analysis content" << endl;
     error = true;
   }

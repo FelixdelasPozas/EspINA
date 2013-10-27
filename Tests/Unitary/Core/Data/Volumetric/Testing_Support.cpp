@@ -17,30 +17,10 @@
  *
  */
 
-#ifndef ESPINA_STORAGE_H
-#define ESPINA_STORAGE_H
+#include "Testing_Support.h"
 
-#include "Core/Analysis/Persistent.h"
+#include <vtkObjectFactory.h>
 
-namespace EspINA {
+using namespace EspINA;
 
-  class Persistent::Storage
-  {
-  public:
-    explicit Storage(const QDir& parent);
-    ~Storage();
-
-    void saveSnapshot(Persistent::Uuid id, const Snapshot& snapshot);
-
-    /** \brief Write snapshot data to storage destination
-     *
-     *  This version uses disk as storage destination
-     */
-    void saveSnapshot(SnapshotData data);
-
-  private:
-    QUuid m_uuid;
-  };
-}
-
-#endif // ESPINA_STORAGE_H
+vtkStandardNewMacro(vtkNaiveFunction);

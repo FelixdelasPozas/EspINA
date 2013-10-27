@@ -32,8 +32,8 @@
 namespace EspINA
 {
   class EspinaCore_EXPORT Channel
-  : public ViewItem
-  , public Persistent
+  : public Persistent
+  , public ViewItem
   , public Extensible
   {
   public:
@@ -49,8 +49,6 @@ namespace EspINA
     explicit Channel(FilterSPtr filter, Output::Id output);
     virtual ~Channel();
 
-    virtual void changeOutput(OutputSPtr output);
-
     virtual void restoreState(const State& state);
 
     virtual void saveState(State& state) const;
@@ -58,6 +56,8 @@ namespace EspINA
     virtual Snapshot saveSnapshot() const;
 
     virtual void unload();
+
+    virtual void changeOutput(OutputSPtr output);
 
     virtual void initializeExtensions();
 

@@ -61,8 +61,8 @@ void Analysis::add(SampleSPtr sample)
   if (m_samples.contains(sample)) throw (Existing_Item_Exception());
 
   m_samples << sample;
-  m_content->addItem(sample);
-  m_relations->addItem(sample);
+  m_content->add(sample);
+  m_relations->add(sample);
 }
 
 //------------------------------------------------------------------------
@@ -85,13 +85,13 @@ void Analysis::add(ChannelSPtr channel)
 
   addIfNotExists(filter);
 
-  m_content->addItem(channel);
+  m_content->add(channel);
 
   RelationName relation = QString("%1").arg(channel->output()->id());
 
   m_content->addRelation(filter, channel, relation);
-  
-  m_relations->addItem(channel);
+
+  m_relations->add(channel);
 }
 
 //------------------------------------------------------------------------
@@ -114,13 +114,13 @@ void Analysis::add(SegmentationSPtr segmentation)
 
   addIfNotExists(filter);
 
-  m_content->addItem(segmentation);
+  m_content->add(segmentation);
 
   RelationName relation = QString("%1").arg(segmentation->output()->id());
 
   m_content->addRelation(filter, segmentation, relation);
   
-  m_relations->addItem(segmentation);
+  m_relations->add(segmentation);
 }
 
 //------------------------------------------------------------------------
@@ -138,7 +138,7 @@ void Analysis::add(ExtensionProviderSPtr provider)
   if (m_providers.contains(provider)) throw (Existing_Item_Exception());
   
   m_providers << provider;
-  m_content->addItem(provider);
+  m_content->add(provider);
 }
 
 //------------------------------------------------------------------------
@@ -148,8 +148,8 @@ void Analysis::remove(SampleSPtr sample)
 
   m_samples.removeOne(sample);
 
-  m_content->removeItem(sample);
-  m_relations->removeItem(sample);
+  m_content->remove(sample);
+  m_relations->remove(sample);
 }
 
 //------------------------------------------------------------------------
@@ -169,8 +169,8 @@ void Analysis::remove(ChannelSPtr channel)
 
   m_channels.removeOne(channel);
 
-  m_content->removeItem(channel);
-  m_relations->removeItem(channel);
+  m_content->remove(channel);
+  m_relations->remove(channel);
 
   removeIfIsolated(channel->filter());
 }
@@ -191,8 +191,8 @@ void Analysis::remove(SegmentationSPtr segmentation)
 
   m_segmentations.removeOne(segmentation);
 
-  m_content->removeItem(segmentation);
-  m_relations->removeItem(segmentation);
+  m_content->remove(segmentation);
+  m_relations->remove(segmentation);
 
   removeIfIsolated(segmentation->filter());
 }
@@ -213,7 +213,7 @@ void Analysis::remove(ExtensionProviderSPtr provider)
 
   m_providers.removeOne(provider);
 
-  m_content->removeItem(provider);
+  m_content->remove(provider);
 }
 
 //------------------------------------------------------------------------
@@ -245,11 +245,9 @@ bool Analysis::removeIfIsolated(DirectedGraphSPtr graph, PersistentSPtr item)
 {
   bool removed = false;
 
-  DirectedGraph::Vertex v = graph->vertex(item);
-
-  if (graph->contains(item) && graph->edges(v).isEmpty())
+  if (graph->contains(item) && graph->edges(item).isEmpty())
   {
-    graph->removeItem(item);
+    graph->remove(item);
     removed = true;
   }
 
@@ -263,7 +261,7 @@ void Analysis::addIfNotExists(FilterSPtr filter)
   if (!m_content->contains(filter)) 
   {
     m_filters << filter;
-    m_content->addItem(filter);
+    m_content->add(filter);
   }
 }
 
@@ -282,10 +280,9 @@ bool Analysis::findRelation(PersistentSPtr    ancestor,
                             PersistentSPtr    succesor,
                             const RelationName& relation)
 {
-  DirectedGraph::Vertex v = m_relations->vertex(ancestor);
-  foreach(DirectedGraph::Edge edge, m_relations->outEdges(v, relation))
+  foreach(DirectedGraph::Edge edge, m_relations->outEdges(ancestor, relation))
   {
-   if (edge.relationship == relation.toStdString() && edge.target.item == succesor) return true;
+    if (edge.relationship == relation.toStdString() && edge.target == succesor) return true;
   }
 
   return false;

@@ -26,41 +26,47 @@
  * 
  */
 
-#include "Core/Analysis/Graph/DirectedGraph.h"
+#include "Core/Analysis/Data/Volumetric/SparseVolume.h"
+#include "Tests/Unitary/Core/Data/Volumetric/Testing_Support.h"
 
-#include "DummyItem.h"
+#include <vtkSmartPointer.h>
 
 using namespace EspINA;
-using namespace UnitTesting;
 using namespace std;
 
-int directed_graph_add_item( int argc, char** argv )
+
+typedef unsigned char VoxelType;
+typedef itk::Image<VoxelType, 3> ImageType;
+
+int sparse_volume_draw_implicit_function_non_inclusive_bounds( int argc, char** argv )
 {
-  bool error = false;
+  bool pass = true;
 
-  DirectedGraph graph;
-  
-  DummyItemSPtr item{new DummyItem()};
-  
-  graph.add(item);
-  
-  if (graph.vertices().size() != 1) 
-  {
-    cerr << "Unexpected number of vertices" << endl;
-    error = true;    
-  }
-  
-  if (graph.vertices().first() != item) 
-  {
-    cerr << "Unexpected vertex" << endl;
-    error = true;    
-  }
-  
-  if (!graph.edges().isEmpty()) 
-  {
-    cerr << "Unexpected number of edges" << endl;
-    error = true;    
+  auto bg = 0;
+  auto fg = 255;
+
+  Bounds bounds{0, 4, 0, 4, 0, 4};
+  SparseVolume<ImageType> canvas(bounds);
+
+  if (!Testing_Support<ImageType>::Test_Pixel_Values(canvas.itkImage(), bg)) {
+    cerr << "Initial values are not initialized to " << bg << endl;
+    pass = false;
   }
 
-  return error;
+  auto brush = vtkSmartPointer<vtkNaiveFunction>::New();
+  canvas.draw(brush, Bounds(), fg);
+  if (!Testing_Support<ImageType>::Test_Pixel_Values(canvas.itkImage(), bg)) {
+    cerr << "Drawing on invalid bounds shouldn't change voxel values" << endl;
+    pass = false;
+  }
+
+  Bounds biggerBounds{-2, 6, -2, 6, -2, 6};
+  canvas.draw(brush, biggerBounds, fg);
+
+  if (!Testing_Support<ImageType>::Test_Pixel_Values(canvas.itkImage(), fg)) {
+    cerr << "Voxel values have not change to " << fg << endl;
+    pass = false;
+  }
+
+  return !pass;
 }

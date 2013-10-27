@@ -17,30 +17,24 @@
  *
  */
 
-#ifndef ESPINA_STORAGE_H
-#define ESPINA_STORAGE_H
+#ifndef ESPINA_ITK_VOLUME_TEST_H
+#define ESPINA_ITK_VOLUME_TEST_H
 
-#include "Core/Analysis/Persistent.h"
+#include <ItkVolume.h>
 
-namespace EspINA {
+namespace EspINA
+{
 
-  class Persistent::Storage
+  class Itk_Volume_Test
   {
   public:
-    explicit Storage(const QDir& parent);
-    ~Storage();
+    static bool SameLargestRegion(const ItkVolume& volume, const ImageType::Pointer image);
 
-    void saveSnapshot(Persistent::Uuid id, const Snapshot& snapshot);
+    static bool SamePixelValues(const ItkVolume& volume, const ImageType::Pointer image);
 
-    /** \brief Write snapshot data to storage destination
-     *
-     *  This version uses disk as storage destination
-     */
-    void saveSnapshot(SnapshotData data);
-
-  private:
-    QUuid m_uuid;
+    static bool SameMemoryAllocated(const ItkVolume& volume, const ImageType::Pointer image);
   };
-}
 
-#endif // ESPINA_STORAGE_H
+} // namespace EspINA
+
+#endif // ESPINA_ITK_VOLUME_TEST_H

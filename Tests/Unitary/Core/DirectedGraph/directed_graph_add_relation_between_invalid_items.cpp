@@ -46,9 +46,9 @@ int directed_graph_add_relation_between_invalid_items( int argc, char** argv )
   DummyItemSPtr invalidItem;
   QString       relation{"link"};
 
-  graph.addItem(item1);
+  graph.add(item1);
 
-  graph.addItem(item2);
+  graph.add(item2);
 
   try {
     graph.addRelation(item1, invalidItem, relation);

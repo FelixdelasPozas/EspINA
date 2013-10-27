@@ -32,6 +32,7 @@
 using namespace EspINA;
 using namespace EspINA::IO;
 using namespace EspINA::IO::SegFile;
+using namespace EspINA::IO::Graph;
 
 const QString SegFile::SegFile_V5::FORMAT_INFO_FILE = "formatInfo.ini";
 
@@ -82,8 +83,6 @@ AnalysisSPtr SegFile_V5::load(QuaZip& zip, ErrorHandlerPtr handler)
 
     throw (Parse_Exception());
   }
-  
-  std::cerr << print(analysis->classification()).toStdString();
 
   bool hasFile = zip.goToFirstFile();
   while (hasFile)
@@ -164,7 +163,7 @@ void SegFile_V5::save(AnalysisPtr analysis, QuaZip& zip, ErrorHandlerPtr handler
   }
 
   foreach(DirectedGraph::Vertex v, analysis->content()->vertices()) {
-    PersistentPtr item = dynamic_cast<PersistentPtr>(v.item.get());
+    PersistentPtr item = dynamic_cast<PersistentPtr>(v.get());
     foreach(SnapshotData data, item->saveSnapshot())
     {
       try
@@ -204,8 +203,9 @@ void SegFile_V5::loadContent(AnalysisSPtr            analysis,
   std::istringstream stream(textStream.readAll().toStdString().c_str());
   read(stream, content);
 
+  throw(-1); //TODO
 //   qDebug() << "Check";
-  write(content, std::cout);
+//  write(content, std::cout);
 // 
 //   typedef QPair<ModelItemSPtr, ModelItem::Arguments> NonInitilizedItem;
 // 

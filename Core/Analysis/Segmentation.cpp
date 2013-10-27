@@ -109,7 +109,7 @@ Snapshot Segmentation::saveSnapshot() const
 //------------------------------------------------------------------------
 void Segmentation::saveState(State& state) const
 {
-  state = QString("ID=") + quuid().toString() + QString(";");
+  state = QString("ID=") + uuid().toString() + QString(";");
   state += QString("NUMBER=") + QString::number(m_number) + QString(";");
   QStringList usersList = m_users.toList();
 
@@ -144,7 +144,7 @@ void Segmentation::restoreState(const State& state)
       continue;
 
     if (tokens[0].compare("QUUID") == 0)
-      setId(QUuid(tokens[1]));
+      setUuid(QUuid(tokens[1]));
 
     if (tokens[0].compare("NUMBER") == 0)
       m_number = tokens[1].toUInt();

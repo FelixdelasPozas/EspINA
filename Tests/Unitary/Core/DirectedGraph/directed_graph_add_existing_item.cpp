@@ -41,10 +41,10 @@ int directed_graph_add_existing_item( int argc, char** argv )
 
   DummyItemSPtr item{new DummyItem()};
 
-  graph.addItem(item);
+  graph.add(item);
 
   try {
-    graph.addItem(item);
+    graph.add(item);
     cerr << "Expected existing item exception" << endl;
   } catch (DirectedGraph::Existing_Item_Exception e) {
     return 0;

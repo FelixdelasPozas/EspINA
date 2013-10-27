@@ -28,6 +28,7 @@ add_executable(IO_Tests
   ${CORE_DIR}/IO/SegFileInterface.cpp
   ${CORE_DIR}/IO/SegFile_V4.cpp
   ${CORE_DIR}/IO/SegFile_V5.cpp
+  ${CORE_DIR}/IO/GraphIO.cpp
   ${CORE_DIR}/Utils/Bounds.cpp
   ${CORE_DIR}/Analysis/Analysis.cpp
   ${CORE_DIR}/Analysis/Category.cpp

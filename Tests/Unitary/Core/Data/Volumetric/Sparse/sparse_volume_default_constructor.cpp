@@ -26,40 +26,47 @@
  * 
  */
 
-#include "Core/Analysis/Graph/DirectedGraph.h"
-
-#include "DummyItem.h"
+#include "Core/Analysis/Data/Volumetric/SparseVolume.h"
 
 using namespace EspINA;
-using namespace UnitTesting;
 using namespace std;
 
-int directed_graph_add_item( int argc, char** argv )
-{
-  bool error = false;
+typedef unsigned char VoxelType;
+typedef itk::Image<VoxelType, 3> ImageType;
 
-  DirectedGraph graph;
-  
-  DummyItemSPtr item{new DummyItem()};
-  
-  graph.add(item);
-  
-  if (graph.vertices().size() != 1) 
-  {
-    cerr << "Unexpected number of vertices" << endl;
-    error = true;    
+int sparse_volume_default_constructor( int argc, char** argv )
+{
+  int error = 0;
+
+  SparseVolume<ImageType> volume;
+
+  Bounds defaultBounds = volume.bounds();
+
+  if (defaultBounds.areValid()) {
+    cerr << "Default constructed ItkVolume bounds: " << defaultBounds << ". Expected invalid bounds" << endl;
+    error = EXIT_FAILURE;
   }
-  
-  if (graph.vertices().first() != item) 
-  {
-    cerr << "Unexpected vertex" << endl;
-    error = true;    
+
+  for (Axis dir : {Axis::X, Axis::Y, Axis::Z}) {
+    if (!defaultBounds.areLowerIncluded(dir)) {
+      cerr << "Default volume bounds must have lower bounds included" << endl;
+      error = EXIT_FAILURE;
+    }
+
+    if (defaultBounds.areUpperIncluded(dir)) {
+      cerr << "Default volume bounds must have upper bounds excluded" << endl;
+      error = EXIT_FAILURE;
+    }
   }
-  
-  if (!graph.edges().isEmpty()) 
-  {
-    cerr << "Unexpected number of edges" << endl;
-    error = true;    
+
+  if (volume.memoryUsage() != 0) {
+    cerr << "Default constructed ItkVolume memory usage must be 0" << endl;
+    error = EXIT_FAILURE;
+  }
+
+  if (volume.backgroundValue() != 0) {
+    cerr << "Default background value must be 0" << endl;
+    error = EXIT_FAILURE;
   }
 
   return error;

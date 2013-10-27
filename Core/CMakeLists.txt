@@ -33,6 +33,7 @@ set (CORE_SOURCES
   IO/SegFile.cpp
   IO/SegFile_V4.cpp
   IO/SegFile_V5.cpp
+  IO/GraphIO.cpp 
   MultiTasking/Scheduler.cpp
   MultiTasking/Task.cpp
   Utils/Bounds.cpp

@@ -58,7 +58,7 @@ int segmentation_save_state(int argc, char** argv)
   SegmentationSPtr segmentation{new Segmentation(filter, 0)};
 
   State forgedState;
-  forgedState = QString("ID=") + segmentation->quuid().toString() + QString(";");
+  forgedState = QString("ID=") + segmentation->uuid().toString() + QString(";");
 
   segmentation->setNumber(1);
   forgedState += QString("NUMBER=1;");

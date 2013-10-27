@@ -46,9 +46,9 @@ int directed_graph_add_relation_between_non_existing_items( int argc, char** arg
   DummyItemSPtr unexistingItem{new DummyItem()};
   QString       relation{"link"};
 
-  graph.addItem(item1);
+  graph.add(item1);
 
-  graph.addItem(item2);
+  graph.add(item2);
 
   try {
     graph.addRelation(item1, unexistingItem, relation);

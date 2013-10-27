@@ -24,6 +24,7 @@
 #include <boost/graph/adjacency_list.hpp>
 
 #include "Core/EspinaTypes.h"
+#include "Core/IO/GraphIO.h"
 
 #include <QTextStream>
 
@@ -31,20 +32,6 @@
 
 namespace EspINA
 {
-  class DirectedGraph;
-  using DirectedGraphSPtr = std::shared_ptr<DirectedGraph>;
-
-  namespace IO {
-    enum class PrintFormat
-    { BOOST
-    , DEBUG
-    };
-
-    void read (std::istream& stream, DirectedGraphSPtr graph, PrintFormat format = PrintFormat::BOOST);
-
-    void write(const DirectedGraphSPtr graph, std::ostream& stream, PrintFormat format = PrintFormat::BOOST);
-  }
-
   /// Graph like structure which contains all the relationships
   /// between different elements of the model
   class EspinaCore_EXPORT DirectedGraph
@@ -57,22 +44,7 @@ namespace EspINA
     struct Relation_Not_Found_Exception {};
 
   public:
-    // Bundled Properties
-    struct Vertex
-    {
-      Vertex()
-      : item(PersistentSPtr())
-      , descriptor(sizeof(int))
-      {}
-
-      // A pointer to the object associated with this vertex
-      PersistentSPtr item;
-//       // Following members are needed to make the graph persistent
-//       std::string name;
-//       std::string type;
-//       std::string state;
-      size_t      descriptor;
-    };
+    using Vertex = PersistentSPtr;
 
     struct EdgeProperty
     {
@@ -123,68 +95,61 @@ namespace EspINA
     /// Remove all vertices and edges from the graph
     void clear() {m_graph.clear();}
 
-    void addItem   (PersistentSPtr item);
-    void removeItem(PersistentSPtr item);
+    void add   (Vertex vertex);
+    void remove(Vertex vertex);
 
     /// Add given relation if realtion doesn't already existsI
-    void addRelation   (PersistentSPtr  ancestor,
-                        PersistentSPtr  successor,
-                        const QString &description);
+    void addRelation(Vertex ancestor,
+                     Vertex successor,
+                     const QString &description);
 
     /// Remove given relation if it exists
-    void removeRelation(PersistentSPtr  ancestor,
-                        PersistentSPtr  successor,
+    void removeRelation(Vertex  ancestor,
+                        Vertex  successor,
                         const QString &description);
 
-    bool contains(PersistentSPtr item);
-
-    /// Retrieve current vertex index of a Persistent
-    /// A vertex with NULL item field is returned if no vertex contains item
-    Vertex vertex(PersistentSPtr item) const;
+    bool contains(Vertex vertex);
 
     /// Return all graph's edges
     Edges edges(const QString &filter = "");
 
     /// Return a list of edges whose destination vertex is v
-    Edges inEdges(Vertex v, const QString &filter = "");
+    Edges inEdges(Vertex vertex, const QString &filter = "");
 
     /// Return a list of edges whose source vertex is v
-    Edges outEdges(Vertex v, const QString &filter = "");
+    Edges outEdges(Vertex vertex, const QString &filter = "");
 
     /// Return a list of edges whose source or destination vertex is v
-    Edges edges   (Vertex v, const QString &filter = "");
+    Edges edges   (Vertex vertex, const QString &filter = "");
 
     /// Remove all edges whose source or destination vertex is v
-    void removeEdges(Vertex v);
+    void removeEdges(Vertex vertex);
 
     /// Return all graph's vertices
     Vertices vertices() const;
 
     /// Return all vertices whose outgoing edges end on v
-    Vertices ancestors(Vertex v, const QString &filter = "") const;
+    Vertices ancestors(Vertex vertex, const QString &filter = "") const;
 
     /// Return all vertices whose incoming edges start on v
-    Vertices succesors(Vertex v, const QString &filter = "") const;
-
-    //DEPRECATED:
-    /// Update vertex's information with model's items' information
-    void updateVertexInformation();
+    Vertices succesors(Vertex vertex, const QString &filter = "") const;
 
   private:
-    Vertex vertex(DirectedGraph::VertexDescriptor vd);
+    DirectedGraph::Vertex vertex(VertexDescriptor descriptor) const;
+    DirectedGraph::VertexDescriptor descriptor(Vertex vertex) const;
 
-    bool findRelation(const VertexDescriptor source,
-                      const VertexDescriptor destination,
-                      const QString         &relation,
-                      OutEdgeIterator       &edge
-                     ) const;
+    DirectedGraph::OutEdgeIterator findRelation(const VertexDescriptor source,
+                                                const VertexDescriptor destination,
+                                                const QString         &relation) const;
 
   private:
     mutable Graph m_graph;
 
-    friend void IO::read(std::istream& stream, DirectedGraphSPtr graph, IO::PrintFormat format);
-    friend void IO::write(const DirectedGraphSPtr graph, std::ostream& stream, IO::PrintFormat format);
+   friend void IO::Graph::read(std::istream& stream, DirectedGraphSPtr graph, IO::Graph::PrintFormat format);
+   friend void IO::Graph::write(const DirectedGraphSPtr graph, std::ostream& stream, IO::Graph::PrintFormat format);
   };
+
+  using DirectedGraphSPtr = std::shared_ptr<DirectedGraph>;
 }
 
 #endif // ESPINA_DIRECTED_GRAPH_H

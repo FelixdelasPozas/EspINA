@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2013, Jorge Peña Pastor <jpena@cesvima.upm.es>
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -12,7 +12,7 @@
  *     * Neither the name of the <organization> nor the
  *     names of its contributors may be used to endorse or promote products
  *     derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY Jorge Peña Pastor <jpena@cesvima.upm.es> ''AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -23,7 +23,7 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  */
 
 #include "Core/Analysis/Graph/DirectedGraph.h"
@@ -41,7 +41,7 @@ int directed_graph_expected_filtered_input_edges( int argc, char** argv )
   bool error = false;
 
   DirectedGraph graph;
-  
+
   DummyItemSPtr item1{new DummyItem()};
   DummyItemSPtr item2{new DummyItem()};
   DummyItemSPtr item3{new DummyItem()};
@@ -51,55 +51,53 @@ int directed_graph_expected_filtered_input_edges( int argc, char** argv )
   QString input2 {"input2" };
   QString output1{"output1"};
   QString output2{"output2"};
-  
-  graph.addItem(item1);
-  graph.addItem(item2);
-  graph.addItem(item3);
-  
+
+  graph.add(item1);
+  graph.add(item2);
+  graph.add(item3);
+
   graph.addRelation(item1, item2, input1);
   graph.addRelation(item1, item2, input2);
-  
+
   graph.addRelation(item2, item3, output1);
   graph.addRelation(item2, item3, output2);
-  
+
   graph.addRelation(item1, item2, link);
   graph.addRelation(item2, item3, link);
-  
-  Vertex v1 = graph.vertex(item1);
+
   for(auto rel : {input1, input2, output1, output2, link}) {
-    if (graph.inEdges(v1, rel).size() != 0) {
-      cerr << "Unexpected number of edges for vertex " << v1.descriptor << " " << rel.toStdString() << endl;
-      error = true;    
+    if (graph.inEdges(item1, rel).size() != 0) {
+      cerr << "Unexpected number of edges for vertex "<< rel.toStdString() << endl;
+      error = true;
     }
   }
-  
-  Vertex v2 = graph.vertex(item2);
+
   for(auto rel : {input1, input2, link}) {
-    if (graph.inEdges(v2, rel).size() != 1) {
-      cerr << "Unexpected number of edges for vertex " << v2.descriptor << " " << rel.toStdString() << endl;
-      error = true;    
+    if (graph.inEdges(item2, rel).size() != 1) {
+      cerr << "Unexpected number of edges for vertex "<< rel.toStdString() << endl;
+      error = true;
     }
   }
+
   for(auto rel : {output1, output2}) {
-    if (graph.inEdges(v2, rel).size() != 0) {
-      cerr << "Unexpected number of edges for vertex " << v2.descriptor << " " << rel.toStdString() << endl;
-      error = true;    
+    if (graph.inEdges(item2, rel).size() != 0) {
+      cerr << "Unexpected number of edges for vertex "<< rel.toStdString() << endl;
+      error = true;
     }
   }
-  
-  Vertex v3 = graph.vertex(item3);
+
   for(auto rel : {output1, output2, link}) {
-    if (graph.inEdges(v3, rel).size() != 1) {
-      cerr << "Unexpected number of edges for vertex " << v3.descriptor << " " << rel.toStdString() << endl;
-      error = true;    
+    if (graph.inEdges(item3, rel).size() != 1) {
+      cerr << "Unexpected number of edges for vertex "<< rel.toStdString() << endl;
+      error = true;
     }
   }
   for(auto rel : {input1, input2}) {
-    if (graph.inEdges(v3, rel).size() != 0) {
-      cerr << "Unexpected number of edges for vertex " << v3.descriptor << " " << rel.toStdString() << endl;
-      error = true;    
+    if (graph.inEdges(item3, rel).size() != 0) {
+      cerr << "Unexpected number of edges for vertex "<< rel.toStdString() << endl;
+      error = true;
     }
   }
-  
+
   return error;
 }

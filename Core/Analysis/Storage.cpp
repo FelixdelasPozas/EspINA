@@ -37,7 +37,7 @@ void Persistent::Storage::saveSnapshot(SnapshotData data)
 
 }
 
-void Persistent::Storage::saveSnapshot(Persistent::Id id, const Snapshot& snapshot)
+void Persistent::Storage::saveSnapshot(Persistent::Uuid id, const Snapshot& snapshot)
 {
 
 }

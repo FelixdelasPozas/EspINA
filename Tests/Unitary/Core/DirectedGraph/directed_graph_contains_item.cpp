@@ -48,7 +48,7 @@ int directed_graph_contains_item( int argc, char** argv )
     error = true;
   }
 
-  graph.addItem(item);
+  graph.add(item);
 
   if (!graph.contains(item))
   {

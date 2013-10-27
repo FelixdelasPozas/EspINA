@@ -52,9 +52,9 @@ int directed_graph_expected_edges( int argc, char** argv )
   QString output1{"output1"};
   QString output2{"output2"};
 
-  graph.addItem(item1);
-  graph.addItem(item2);
-  graph.addItem(item3);
+  graph.add(item1);
+  graph.add(item2);
+  graph.add(item3);
 
   graph.addRelation(item1, item2, input1);
   graph.addRelation(item1, item2, input2);
@@ -75,21 +75,18 @@ int directed_graph_expected_edges( int argc, char** argv )
     error = true;
   }
 
-  Vertex v1 = graph.vertex(item1);
-  if (graph.edges(v1).size() != 3) {
-    cerr << "Unexpected number of edges for vertex " << v1.descriptor << endl;
+  if (graph.edges(item1).size() != 3) {
+    cerr << "Unexpected number of edges for vertex " << endl;
     error = true;
   }
 
-  Vertex v2 = graph.vertex(item2);
-  if (graph.edges(v2).size() != 6) {
-    cerr << "Unexpected number of edges for vertex " << v2.descriptor << endl;
+  if (graph.edges(item2).size() != 6) {
+    cerr << "Unexpected number of edges for vertex " << endl;
     error = true;
   }
 
-  Vertex v3 = graph.vertex(item3);
-  if (graph.edges(v3).size() != 3) {
-    cerr << "Unexpected number of edges for vertex " << v3.descriptor << endl;
+  if (graph.edges(item3).size() != 3) {
+    cerr << "Unexpected number of edges for vertex " << endl;
     error = true;
   }
 

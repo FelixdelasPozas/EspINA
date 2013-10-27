@@ -26,40 +26,62 @@
  * 
  */
 
-#include "Core/Analysis/Graph/DirectedGraph.h"
-
-#include "DummyItem.h"
+#include "Core/Analysis/Data/Volumetric/SparseVolume.h"
+#include "Tests/Unitary/Core/Data/Volumetric/Testing_Support.h"
 
 using namespace EspINA;
-using namespace UnitTesting;
 using namespace std;
 
-int directed_graph_add_item( int argc, char** argv )
-{
-  bool error = false;
+typedef unsigned char VoxelType;
+typedef itk::Image<VoxelType, 3> ImageType;
 
-  DirectedGraph graph;
-  
-  DummyItemSPtr item{new DummyItem()};
-  
-  graph.add(item);
-  
-  if (graph.vertices().size() != 1) 
-  {
-    cerr << "Unexpected number of vertices" << endl;
-    error = true;    
+int sparse_volume_bounds_constructor( int argc, char** argv )
+{
+  int error = 0;
+
+  const int w = 10;
+  const int h = 20;
+  const int d = 30;
+
+  const Bounds expectedBounds{0, w, 0, h, 0, d};
+  SparseVolume<ImageType> volume(expectedBounds);
+
+  Bounds bounds = volume.bounds();
+  if (bounds != expectedBounds) {
+    cerr << "Volume bounds " << bounds << " don't match contructor bounds " << expectedBounds << endl;
+    error = EXIT_FAILURE;
   }
-  
-  if (graph.vertices().first() != item) 
-  {
-    cerr << "Unexpected vertex" << endl;
-    error = true;    
+
+  if (!bounds.areValid()) {
+    cerr << "Bounds: " << bounds << ". Expected valid bounds" << endl;
+    error = EXIT_FAILURE;
   }
-  
-  if (!graph.edges().isEmpty()) 
-  {
-    cerr << "Unexpected number of edges" << endl;
-    error = true;    
+
+  for (auto dir : {Axis::X, Axis::Y, Axis::Z}) {
+    if (!bounds.areLowerIncluded(dir)) {
+      cerr << "Bounds must have lower bounds included" << endl;
+      error = EXIT_FAILURE;
+    }
+
+    if (bounds.areUpperIncluded(dir)) {
+      cerr << "Bounds must have upper bounds excluded" << endl;
+      error = EXIT_FAILURE;
+    }
+  }
+
+  if (volume.memoryUsage() != 0) {
+    cerr << "Default constructed Sparse Volume memory usage must be 0" << endl;
+    error = EXIT_FAILURE;
+  }
+
+  if (volume.backgroundValue() != 0) {
+    cerr << "Default background value must be 0" << endl;
+    error = EXIT_FAILURE;
+  }
+
+  if (!Testing_Support<ImageType>::Test_Pixel_Values(volume.itkImage(), volume.backgroundValue())) {
+    cerr << "Default constructed volume pixels must be set to background value" << endl;
+    error = EXIT_FAILURE;
   }
 
   return error;

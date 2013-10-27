@@ -243,4 +243,6 @@ namespace EspINA
 
 } // namespace EspINA
 
+//#include "Core/Utils/BinaryMask.cpp"
+
 #endif // ESPINA_BINARY_MASK_H

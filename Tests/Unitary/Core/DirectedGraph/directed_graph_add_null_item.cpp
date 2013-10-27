@@ -41,7 +41,7 @@ int directed_graph_add_null_item( int argc, char** argv )
   DummyItemSPtr item;
   
   try {
-    graph.addItem(item);
+    graph.add(item);
     cerr << "Invalid NULL item added to graph" << endl;
   } catch (DirectedGraph::Null_Item_Exception e) {
     return 0;

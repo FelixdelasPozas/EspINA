@@ -7,7 +7,6 @@
 #include <QList>
 //#define QT_SHAREDPOINTER_TRACK_POINTERS
 #include <QSet>
-#include <boost/graph/graph_concepts.hpp>
 
 namespace EspINA
 {

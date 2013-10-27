@@ -48,6 +48,7 @@ int io_analysis_seg_file_io( int argc, char** argv )
 
   FilterSPtr filter{new IO_Testing::DummyFilter()};
   ChannelSPtr channel(new Channel(filter, 0));
+  channel->setName("channel");
 
   analysis.add(channel);
 

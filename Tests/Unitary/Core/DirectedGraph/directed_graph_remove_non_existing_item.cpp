@@ -41,7 +41,7 @@ int directed_graph_remove_non_existing_item( int argc, char** argv )
   DummyItemSPtr item{new DummyItem()};
   
   try {
-    graph.removeItem(item);
+    graph.remove(item);
     cerr << "Remove non added item" << endl;
   } catch (DirectedGraph::Item_Not_Found_Exception e) {
     return 0;

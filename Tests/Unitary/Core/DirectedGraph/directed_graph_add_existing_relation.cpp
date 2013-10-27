@@ -43,9 +43,9 @@ int directed_graph_add_existing_relation(int argc, char** argv )
   DummyItemSPtr item2{new DummyItem()};
   QString       relation{"link"};
 
-  graph.addItem(item1);
+  graph.add(item1);
 
-  graph.addItem(item2);
+  graph.add(item2);
 
   graph.addRelation(item1, item2, relation);
 
