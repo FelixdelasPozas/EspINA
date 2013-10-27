@@ -18,8 +18,29 @@
 
 #include "ModelFactory.h"
 
-#include "Core/Analysis/Sample.h"
-#include "Core/Analysis/Channel.h"
-
 using namespace EspINA;
 
+ModelFactory::ModelFactory()
+{
+
+}
+
+ModelFactory::~ModelFactory()
+{
+
+}
+
+void ModelFactory::registerFilter(FilterCreatorPtr creator, const Filter::Type& filter)
+{
+
+}
+
+SampleAdapterSPtr ModelFactory::createSample(const QString& name) const
+{
+
+}
+
+// FilterAdapterSPtr ModelFactory::createFilter(OutputSList inputs, Filter::Type& filter) const
+// {
+// 
+// }

@@ -17,7 +17,8 @@ include_directories(
   ${CMAKE_BINARY_DIR}
   )
 
-set( CORE_DIR ${CMAKE_SOURCE_DIR}/Core )
+set( CORE_DIR ${CMAKE_SOURCE_DIR}/Core)
+set( GUI_DIR  ${CMAKE_SOURCE_DIR}/GUI)
 
 
 if (BUILD_UNIT_TESTS)

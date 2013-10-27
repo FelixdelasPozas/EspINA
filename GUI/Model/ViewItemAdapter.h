@@ -52,7 +52,6 @@ namespace EspINA {
 
     const DataSPtr get(Data::Type type) const;
 
-
     /// Convenience method to access output's representations
     GraphicalRepresentationSList representations() const
     { return output()->graphicalRepresentations(); }

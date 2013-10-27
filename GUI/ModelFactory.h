@@ -17,14 +17,14 @@
 */
 
 
-#ifndef ESPINA_CORE_FACTORY_H
-#define ESPINA_CORE_FACTORY_H
+#ifndef ESPINA_MODEL_FACTORY_H
+#define ESPINA_MODEL_FACTORY_H
 
-#include "EspinaCore_Export.h"
+#include "EspinaGUI_Export.h"
 
-#include "Core/EspinaTypes.h"
-#include "Core/Analysis/Filter.h"
-#include "Core/Analysis/Extensions/ExtensionProvider.h"
+#include <Core/Analysis/Filter.h>
+
+#include <memory>
 
 #include <QStringList>
 #include <QMap>
@@ -36,10 +36,26 @@ namespace EspINA
 
   class ExtensionProvider;
 
+  class SampleAdapter;
+  using SampleAdapterSPtr = std::shared_ptr<SampleAdapter>;
+
+//   class FilterAdapter;
+//   using FilterAdapterSPtr = std::shared_ptr<FilterAdapter>;
+
   //const QString CHANNEL_FILES = QObject::tr("Channel Files (*.mha *.mhd *.tif *.tiff)");
   //const QString SEG_FILES     = QObject::tr("Espina Analysis (*.seg)");
+  template<class T>
+  class FilterAdapter
+  : public T
+  {
+  public:
+    FilterAdapter(OutputSList inputs, Filter::Type& type)
+    : T(inputs, type){}
 
-  class EspinaCore_EXPORT ModelFactory
+   void setFilterInspector(){}
+  };
+
+  class EspinaGUI_EXPORT ModelFactory
   {
   public:
     explicit ModelFactory();
@@ -47,29 +63,35 @@ namespace EspINA
 
     void registerFilter(FilterCreatorPtr creator, const Filter::Type &filter);
 
-    SampleSPtr createSample(const QString& name = QString()) const;
+    SampleAdapterSPtr createSample(const QString& name = QString()) const;
 
-    FilterAdapterSPtr createFilter(OutputSList inputs, Filter::Type& filter) const;
+    //FilterAdapterSPtr createFilter(OutputSList inputs, Filter::Type& filter) const;
 
-    ChannelAdapterSPtr createChannel(FilterAdapterSPtr filter, Output::Id output) const;
+    template<typename T>
+    std::shared_ptr<FilterAdapter<T>> createFilter(OutputSList inputs, Filter::Type& filter) const
+    {
+      return std::shared_ptr<FilterAdapter<T>>(new FilterAdapter<T>(inputs, filter));
+    }
 
-    SegmentationSPtr createSegmentation(OutputSPtr output) const;
-
-    void registerExtensionProvider  (ExtensionProviderPtr provider);
-    void unregisterExtensionProvider(ExtensionProviderPtr provider);
-
-    ExtensionProviderList extensionProviders() const
-    { return m_extensionProviders;}
-
-    /** \brief Return the extension provider with the given type or nullptr if not found
-     *
-     */
-    ExtensionProviderPtr extensionProvider(const ExtensionProvider::Type& type) const;
+//     ChannelAdapterSPtr createChannel(FilterAdapterSPtr filter, Output::Id output) const;
+// 
+//     SegmentationSPtr createSegmentation(OutputSPtr output) const;
+// 
+//     void registerExtensionProvider  (ExtensionProviderPtr provider);
+//     void unregisterExtensionProvider(ExtensionProviderPtr provider);
+// 
+//     ExtensionProviderList extensionProviders() const
+//     { return m_extensionProviders;}
+// 
+//     /** \brief Return the extension provider with the given type or nullptr if not found
+//      *
+//      */
+ //   ExtensionProviderPtr extensionProvider(const ExtensionProvider::Type& type) const;
 
   private:
     QMap<Filter::Type, FilterCreatorPtr> m_filterCreators;
 
-    ExtensionProviderList m_extensionProviders;
+    //ExtensionProviderList m_extensionProviders;
   };
 }// namespace EspINA
 
