@@ -17,8 +17,76 @@
 */
 
 #include <Core/Utils/BinaryMask.h>
+#include <Core/Utils/Bounds.h>
+#include <Core/EspinaTypes.h>
+
+using namespace EspINA;
+
+using BMask = BinaryMask<unsigned char>;
 
 int binaryMask_iterator(int argc, char** argv)
 {
-  return true;
+  bool error = false;
+
+  Bounds bounds{ 0,9,0,9,0,9 };
+  BMask *mask = new BMask(bounds);
+
+  BMask::iterator it(mask);
+
+  ++it;
+  it.goToBegin();
+
+  try
+  {
+    --it;
+    error |= true;
+  }
+  catch(BMask::Underflow_Exception const &e)
+  {
+    error |= false;
+  }
+
+  it.goToEnd();
+  unsigned char test;
+  try
+  {
+    test = it.Get();
+    error |= true;
+  }
+  catch(BMask::Out_Of_Bounds_Exception const &e)
+  {
+    error |= false;
+  }
+
+  try
+  {
+    ++it;
+    error |= true;
+  }
+  catch (BMask::Overflow_Exception const &e)
+  {
+    error |= false;
+  }
+
+  it.goToBegin();
+  unsigned int count = 0;
+  while(!it.isAtEnd())
+  {
+    error |= (mask->backgroundValue() != it.Get());
+    it.Set();
+    ++count;
+    ++it;
+  }
+
+  error |= (count != mask->numberOfVoxels());
+  error |= (count != 1000);
+
+  it.goToBegin();
+  while(!it.isAtEnd())
+  {
+    error |= (mask->foregroundValue() != it.Get());
+    ++it;
+  }
+
+  return error;
 }

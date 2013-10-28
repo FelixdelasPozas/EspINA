@@ -17,8 +17,86 @@
 */
 
 #include <Core/Utils/BinaryMask.h>
+#include <Core/Utils/Bounds.h>
+#include <Core/EspinaTypes.h>
+
+using namespace EspINA;
+
+using BMask = BinaryMask<unsigned char>;
 
 int binaryMask_region_iterator(int argc, char** argv)
 {
-  return true;
+  bool error = false;
+
+  Bounds bounds{ 0,4,0,4,0,4 };
+  BMask *mask = new BMask(bounds);
+
+  Bounds badRegionBounds{ -1,18,-1,18,-1,18 };
+
+  try
+  {
+    BMask::region_iterator badIt(mask, badRegionBounds);
+    error |= true;
+  }
+  catch(BMask::Region_Not_Contained_In_Mask const &e)
+  {
+    error |= false;
+  }
+
+  Bounds goodRegionBounds{ 1,3,1,3,1,3 };
+  BMask::region_iterator rit(mask, goodRegionBounds);
+
+  rit.goToEnd();
+  unsigned char test;
+  try
+  {
+    test = rit.Get();
+    error |= true;
+  }
+  catch(BMask::Out_Of_Bounds_Exception const &e)
+  {
+    error |= false;
+  }
+
+  try
+  {
+    ++rit;
+    error |= true;
+  }
+  catch (BMask::Overflow_Exception const &e)
+  {
+    error |= false;
+  }
+
+  rit.goToBegin();
+  try
+  {
+    --rit;
+    error |= true;
+  }
+  catch(BMask::Underflow_Exception const &e)
+  {
+    error |= false;
+  }
+
+  rit.goToBegin();
+  unsigned int count = 0;
+  while(!rit.isAtEnd())
+  {
+    error |= (mask->backgroundValue() != rit.Get());
+    rit.Set();
+    ++count;
+    ++rit;
+  }
+
+  error |= (count != 27);
+
+  rit.goToBegin();
+  while(!rit.isAtEnd())
+  {
+    error |= (mask->foregroundValue() != rit.Get());
+    ++rit;
+  }
+
+  return error;
 }

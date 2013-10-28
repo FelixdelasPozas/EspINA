@@ -17,8 +17,44 @@
 */
 
 #include <Core/Utils/BinaryMask.h>
+#include <Core/Utils/Bounds.h>
+#include <Core/EspinaTypes.h>
+
+using namespace EspINA;
+
+using BMask = BinaryMask<unsigned char>;
 
 int binaryMask_region_const_iterator(int argc, char** argv)
 {
-  return true;
+  bool error = false;
+
+  Bounds bounds{ 0,9,0,9,0,9 };
+  BMask *mask = new BMask(bounds);
+
+  Bounds regionBounds{ 1,8,1,8,1,8 };
+  BMask::const_region_iterator crit(mask, regionBounds);
+
+  // the rest have been tested in non-const iterator
+  crit.goToEnd();
+  try
+  {
+    crit.Set();
+    error |= true;
+  }
+  catch (BMask::Const_Violation_Exception const &e)
+  {
+    error |= false;
+  }
+
+  try
+  {
+    crit.Unset();
+    error |= true;
+  }
+  catch (BMask::Const_Violation_Exception const &e)
+  {
+    error |= false;
+  }
+
+  return error;
 }

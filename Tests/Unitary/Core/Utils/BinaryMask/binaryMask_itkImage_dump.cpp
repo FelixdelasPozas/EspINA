@@ -20,7 +20,7 @@
 #include <Core/Utils/Bounds.h>
 #include <Core/EspinaTypes.h>
 
-#include <itkImageRegionConstIterator.h>
+#include <itkImageRegionExclusionConstIteratorWithIndex.h>
 
 using namespace EspINA;
 
@@ -31,21 +31,40 @@ int binaryMask_itkImage_dump(int argc, char** argv)
   Bounds bounds{ 0,4,0,4,0,4 };
   BMask *mask = new BMask(bounds);
 
+  Bounds regionBounds{ 1,3,1,3,1,3 };
+  BMask::region_iterator crit(mask, regionBounds);
+
+  while (!crit.isAtEnd())
+  {
+    crit.Set();
+    ++crit;
+  }
+  mask->setForegroundValue(1);
+
   itkVolumeType::Pointer image = mask->itkImage();
   //image->Print(std::cout);
   itkVolumeType::RegionType region = image->GetLargestPossibleRegion();
-
-  itk::ImageRegionConstIterator<itkVolumeType> it(image, region);
+  region.Print(std::cout);
+  itk::ImageRegionConstIteratorWithIndex<itkVolumeType> it(image, region);
+  itkVolumeType::IndexType imageIndex;
 
   int count = 0;
-  it.GoToBegin();
-  while (!it.IsAtEnd())
+  for(auto x = 0; x < 5; ++x)
   {
-    std::cout << "." << (int)it.Get();
-    ++it;
-    ++count;
+    for(auto y = 0; y < 5; ++y)
+    {
+      for(auto z = 0; z < 5; ++z)
+      {
+        imageIndex[0] = x;
+        imageIndex[1] = y;
+        imageIndex[2] = z;
+
+        std::cout << (int)image->GetPixel(imageIndex);
+      }
+      std::cout << std::endl;
+    }
+    std::cout << std::endl;
   }
-  std::cout << std::endl << "count:" << count << std::endl;
 
   return true;
 }

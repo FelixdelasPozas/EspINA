@@ -46,19 +46,35 @@ int binaryMask_modify_mask(int argc, char** argv)
 
   cit.goToBegin();
   i = 0;
+  QString volumeBits;
   while (!cit.isAtEnd())
   {
-    if (i % 2)
-      error |= (mask->foregroundValue() != cit.Get());
-    else
-      error |= (mask->backgroundValue() != cit.Get());
+    try
+    {
+      if (i % 2)
+      {
+        error |= (mask->foregroundValue() != cit.Get());
+        volumeBits += "1";
+      }
+      else
+      {
+        error |= (mask->backgroundValue() != cit.Get());
+        volumeBits += "0";
+      }
+    }
+    catch(...)
+    {
+      return true;
+    }
 
     ++cit;
     ++i;
   }
 
-  error |= (i != mask->numberOfVoxels() + 1);
-  qDebug() << i << mask->numberOfVoxels();
+  error |= (i != mask->numberOfVoxels());
+  error |= (125 != volumeBits.length());
+  QString volumeTestValue("01010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010");
+  error |= (volumeBits != volumeTestValue);
 
   return error;
 }

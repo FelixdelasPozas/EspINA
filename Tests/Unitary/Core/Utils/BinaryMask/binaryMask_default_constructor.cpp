@@ -42,5 +42,12 @@ int binaryMask_default_constructor(int argc, char** argv)
   error |= (1 != mask->foregroundValue());
   error |= (125 != mask->numberOfVoxels());
 
+  BMask::const_iterator cit(mask);
+  while (!cit.isAtEnd())
+  {
+    error |= (cit.Get() != mask->backgroundValue());
+    ++cit;
+  }
+
   return error;
 }

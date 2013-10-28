@@ -30,7 +30,7 @@
 // itk
 #include <itkImageRegion.h>
 #include <itkImageRegionConstIterator.h>
-#include <itkImageRegionIterator.h>
+#include <itkImageRegionIteratorWithIndex.hxx>
 
 // qt
 #include <QDebug>
@@ -92,11 +92,11 @@ namespace EspINA
     newIndex.x = index.x - m_origin.x;
     newIndex.y = index.y - m_origin.y;
     newIndex.z = index.z - m_origin.z;
-    unsigned long valuePosition = newIndex.x + (newIndex.y * m_size[1]) + (newIndex.z * m_size[2]*m_size[1]);
+    unsigned long valuePosition = newIndex.x + (newIndex.y * m_size[0]) + (newIndex.z * m_size[0]*m_size[1]);
     unsigned long imageOffset = valuePosition / m_integerSize;
     unsigned long valueOffset = valuePosition % m_integerSize;
 
-    qDebug() << "SET offset" << m_image[imageOffset] << "bit offset" << valueOffset << "mask" << (1 << valueOffset);
+//    qDebug() << "SET offset" << m_image[imageOffset] << "bit offset" << valueOffset << "mask" << (1 << valueOffset);
     m_image[imageOffset] = m_image[imageOffset] | (1 << valueOffset);
 
     qDebug() << "SET buffer pos" << imageOffset << "bit position" << valueOffset;
@@ -120,7 +120,7 @@ namespace EspINA
     newIndex.x = index.x - m_origin.x;
     newIndex.y = index.y - m_origin.y;
     newIndex.z = index.z - m_origin.z;
-    unsigned long valuePosition = newIndex.x + (newIndex.y * m_size[1]) + (newIndex.z * m_size[2]*m_size[1]);
+    unsigned long valuePosition = newIndex.x + (newIndex.y * m_size[0]) + (newIndex.z * m_size[0]*m_size[1]);
     unsigned long imageOffset = valuePosition / m_integerSize;
     unsigned long valueOffset = valuePosition % m_integerSize;
 
@@ -147,7 +147,7 @@ namespace EspINA
     newIndex.x = index.x - m_origin.x;
     newIndex.y = index.y - m_origin.y;
     newIndex.z = index.z - m_origin.z;
-    unsigned long valuePosition = index.x + (index.y * m_size[1]) + (index.z * m_size[2]*m_size[1]);
+    unsigned long valuePosition = newIndex.x + (newIndex.y * m_size[0]) + (newIndex.z * m_size[0]*m_size[1]);
     unsigned long imageOffset = valuePosition / m_integerSize;
     unsigned long valueOffset = valuePosition % m_integerSize;
 
@@ -168,8 +168,8 @@ namespace EspINA
     using ImageIndex = typename itkImageType::RegionType::IndexType;
     using ImageSize = typename itkImageType::RegionType::SizeType;
     using ImageSpacing = typename itkImageType::SpacingType;
-    using ImageIterator = typename itk::ImageRegionIterator<itkImageType>;
-    using MaskIterator = typename BinaryMask<T>::const_iterator;
+    using ImageIterator = typename itk::ImageRegionIteratorWithIndex<itkImageType>;
+    using MaskIterator = typename BinaryMask<T>::const_region_iterator;
 
     ImageIndex index;
     index[0] = m_origin.x;
@@ -201,11 +201,21 @@ namespace EspINA
 
     ImageIterator iit(image, region);
 
-    MaskIterator mit(this);
+    MaskIterator mit(this, m_bounds);
+
+    ImageIndex imageIndex;
+    IndexType maskIndex;
+
 
     // TODO: use itk & mask raw buffers to make a fast copy
-    for (auto i = 0; i < region.GetNumberOfPixels(); ++i, ++iit, ++mit)
-      iit.Set(mit.Get());
+    for (auto i = 0; i < region.GetNumberOfPixels(); ++i, ++mit)
+    {
+      maskIndex = mit.getIndex();
+      imageIndex[0] = maskIndex.x;
+      imageIndex[1] = maskIndex.y;
+      imageIndex[2] = maskIndex.z;
+      image->SetPixel(imageIndex, mit.Get());
+    }
 
     return image;
   }

@@ -38,6 +38,12 @@ namespace EspINA
       using Spacing      = struct spacing { Nm x; Nm y; Nm z; spacing(): x(1), y(1), z(1) {} };
       using itkImageType = itk::Image<T,3>;
 
+      struct Const_Violation_Exception{};
+      struct Out_Of_Bounds_Exception{};
+      struct Overflow_Exception{};
+      struct Underflow_Exception{};
+      struct Region_Not_Contained_In_Mask{};
+
       //- BINARY MASK CLASS  ----------------------------------------------------------------
       explicit BinaryMask(const Bounds& bounds, const Spacing spacing = Spacing());
       virtual ~BinaryMask() {};
@@ -52,9 +58,9 @@ namespace EspINA
 
       unsigned long long numberOfVoxels()              { return m_size[0] * m_size[1] * m_size[2]; }
 
-      inline void setPixel(const IndexType& index);
-      inline void unsetPixel(const IndexType& index);
-      inline PixelType pixel(const IndexType& index) const;
+      void setPixel(const IndexType& index);
+      void unsetPixel(const IndexType& index);
+      PixelType pixel(const IndexType& index) const;
 
       typename itkImageType::Pointer itkImage() const;
 
@@ -91,9 +97,10 @@ namespace EspINA
 
           iterator end()
           {
-            unsigned long long pos = ((m_mask->m_size[0] * m_mask->m_size[1] * m_mask->m_size[2]) / m_mask->m_integerSize) + 1;
+            unsigned long long pos = ((m_mask->m_size[0] * m_mask->m_size[1] * m_mask->m_size[2]) / m_mask->m_integerSize);
+            unsigned long long bitpos = ((m_mask->m_size[0] * m_mask->m_size[1] * m_mask->m_size[2]) % m_mask->m_integerSize);
 
-            return iterator(*this, pos);
+            return iterator(*this, pos, bitpos);
           }
 
           void goToBegin()
@@ -104,13 +111,14 @@ namespace EspINA
 
           void goToEnd()
           {
-            m_pos = ((m_mask->m_size[0] * m_mask->m_size[1] * m_mask->m_size[2]) / m_mask->m_integerSize) + 1;
-            m_bitPos = 0;
+            m_pos = ((m_mask->m_size[0] * m_mask->m_size[1] * m_mask->m_size[2]) / m_mask->m_integerSize);
+            m_bitPos = ((m_mask->m_size[0] * m_mask->m_size[1] * m_mask->m_size[2]) % m_mask->m_integerSize);
           }
 
           bool isAtEnd() const
           {
-            return (m_pos == ((m_mask->m_size[0] * m_mask->m_size[1] * m_mask->m_size[2]) / m_mask->m_integerSize) + 1);
+            return ((m_pos == ((m_mask->m_size[0] * m_mask->m_size[1] * m_mask->m_size[2]) / m_mask->m_integerSize)) &&
+                    (m_bitPos == ((m_mask->m_size[0] * m_mask->m_size[1] * m_mask->m_size[2]) % m_mask->m_integerSize)));
           }
 
           bool operator==(const iterator& other) const
@@ -124,10 +132,10 @@ namespace EspINA
             return ((m_mask != other.m_mask) || (m_pos != other.m_pos) || (m_bitPos == other.m_bitPos));
           }
 
-          const T& Get() const
+          const T& Get() const throw(Out_Of_Bounds_Exception)
           {
             if (isAtEnd())
-              throw;
+              throw Out_Of_Bounds_Exception();
 
             if ((m_mask->m_image[m_pos] & (1 << m_bitPos)) == (1 << m_bitPos))
               return m_mask->m_foregroundValue;
@@ -135,22 +143,26 @@ namespace EspINA
             return m_mask->m_backgroundValue;
           }
 
-          void Set()
+          void Set() throw(Out_Of_Bounds_Exception)
           {
+            if (isAtEnd())
+              throw Out_Of_Bounds_Exception();
+
             m_mask->m_image[m_pos] = m_mask->m_image[m_pos] | (1 << m_bitPos);
           }
 
-          iterator& operator--()
+          void Unset() throw(Out_Of_Bounds_Exception)
+          {
+            if (isAtEnd())
+              throw Out_Of_Bounds_Exception();
+
+            m_mask->m_image[m_pos] = m_mask->m_image[m_pos] & ~(1 << m_bitPos);
+          }
+
+          iterator& operator--() throw(Underflow_Exception)
           {
             if (m_pos == 0 && m_bitPos == 0)
-              throw;
-
-            if (isAtEnd())
-            {
-              m_pos = (m_mask->m_size[0] * m_mask->m_size[1] * m_mask->m_size[2]) / m_mask->m_integerSize;
-              m_bitPos = (m_mask->m_size[0] * m_mask->m_size[1] * m_mask->m_size[2]) % m_mask->m_integerSize;
-              return *this;
-            }
+              throw Underflow_Exception();
 
             if (m_bitPos == 0)
             {
@@ -163,19 +175,10 @@ namespace EspINA
             return *this;
           }
 
-          iterator &operator++()
+          iterator &operator++() throw (Overflow_Exception)
           {
-            unsigned long long limit = (m_mask->m_size[0] * m_mask->m_size[1] * m_mask->m_size[2]) / m_mask->m_integerSize;
-            int bitLimit = (m_mask->m_size[0] * m_mask->m_size[1] * m_mask->m_size[2]) % m_mask->m_integerSize;
-
             if (isAtEnd())
-              throw;
-
-            if ((m_pos == limit) && (m_bitPos == bitLimit))
-            {
-              m_pos = limit + 1;
-              m_bitPos = 0;
-            }
+              throw Overflow_Exception();
 
             if (m_bitPos == m_mask->m_integerSize-1)
             {
@@ -213,8 +216,8 @@ namespace EspINA
 
           virtual ~const_iterator() {};
 
-        private:
-          void Set();
+          void Set() throw(Const_Violation_Exception) { throw Const_Violation_Exception(); }
+          void Unset() throw(Const_Violation_Exception) { throw Const_Violation_Exception(); }
       };
 
       //- REGION ITERATOR CLASS -------------------------------------------------------------
@@ -222,9 +225,12 @@ namespace EspINA
       : public std::iterator<std::bidirectional_iterator_tag, T>
       {
         public:
-          region_iterator(BinaryMask<T> *mask, const Bounds &bounds)
+          region_iterator(BinaryMask<T> *mask, const Bounds &bounds) throw (Region_Not_Contained_In_Mask)
           : m_mask(mask), m_bounds(bounds)
           {
+            if (intersection(bounds, mask->bounds()) != bounds)
+              throw Region_Not_Contained_In_Mask();
+
             m_extent[0] = static_cast<int>(m_bounds[0]/m_mask->m_spacing.x);
             m_extent[1] = static_cast<int>(m_bounds[1]/m_mask->m_spacing.x);
             m_extent[2] = static_cast<int>(m_bounds[2]/m_mask->m_spacing.y);
@@ -238,6 +244,11 @@ namespace EspINA
           }
 
           virtual ~region_iterator() {};
+
+          const IndexType getIndex() const
+          {
+            return m_index;
+          }
 
           region_iterator begin()
           {
@@ -302,18 +313,40 @@ namespace EspINA
             return retValue;
           }
 
-          const T& Get() const
+          const T& Get() const throw(Out_Of_Bounds_Exception)
           {
+            if (isAtEnd())
+              throw Out_Of_Bounds_Exception();
+
+            qDebug() << "RIT GET" << m_index.x << m_index.y << m_index.z;
+
             // NOTE: we need this to avoid returning a temporary value
             m_getReturnValue = m_mask->pixel(m_index);
 
             return m_getReturnValue;
           }
 
-          region_iterator& operator--()
+          void Set() throw(Out_Of_Bounds_Exception)
+          {
+            if (isAtEnd())
+              throw Out_Of_Bounds_Exception();
+
+            qDebug() << "RIT SET" << m_index.x << m_index.y << m_index.z;
+            m_mask->setPixel(m_index);
+          }
+
+          void Unset() throw(Out_Of_Bounds_Exception)
+          {
+            if (isAtEnd())
+              throw Out_Of_Bounds_Exception();
+
+            m_mask->unsetPixel(m_index);
+          }
+
+          region_iterator& operator--() throw(Underflow_Exception)
           {
             if ((m_index.x == m_extent[0]) && (m_index.y == m_extent[2]) && (m_index.z == m_extent[4]))
-              throw;
+              throw Underflow_Exception();
 
             if (m_index.x == m_extent[0])
             {
@@ -332,10 +365,18 @@ namespace EspINA
             return *this;
           }
 
-          region_iterator &operator++()
+          region_iterator &operator++() throw(Overflow_Exception)
           {
+            if ((m_index.x == m_extent[1] + 1) && (m_index.y == m_extent[3] + 1) && (m_index.z == m_extent[5] + 1))
+              throw Overflow_Exception();
+
             if ((m_index.x == m_extent[1]) && (m_index.y == m_extent[3]) && (m_index.z == m_extent[5]))
-              throw;
+            {
+              m_index.x = m_extent[1] + 1;
+              m_index.y = m_extent[3] + 1;
+              m_index.z = m_extent[5] + 1;
+              return *this;
+            }
 
             if (m_index.x == m_extent[1])
             {
@@ -384,8 +425,9 @@ namespace EspINA
           }
 
           virtual ~const_region_iterator() {};
-        private:
-          void Set();
+
+          void Set() throw(Const_Violation_Exception) { throw Const_Violation_Exception(); }
+          void Unset() throw(Const_Violation_Exception) { throw Const_Violation_Exception(); }
       };
 
   };
