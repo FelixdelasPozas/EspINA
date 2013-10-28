@@ -34,7 +34,7 @@ namespace EspINA
 
   class ModelAdapter;
 
-  //class ItemAdapter;
+  class ItemAdapter;
   using ItemAdapterPtr   = ItemAdapter*;
   using ItemAdapterSPtr  = std::shared_ptr<ItemAdapter>;
   using ItemAdapterSList = QList<ItemAdapterSPtr>;
@@ -54,15 +54,15 @@ namespace EspINA
     Q_OBJECT
   public:
     explicit ItemAdapter() {}
-    virtual ~ItemAdapter();
+    virtual ~ItemAdapter(){}
 
-    bool operator==();
+    //bool operator==();
 
     virtual QVariant data(int role=Qt::DisplayRole) const = 0;
 
     virtual bool setData(const QVariant& value, int role = Qt::UserRole +1) = 0;
 
-    virtual Type type() const = 0;
+    virtual ItemAdapter::Type type() const = 0;
 
   public slots:
     virtual void notifyModification()
@@ -72,13 +72,13 @@ namespace EspINA
     void modified(ItemAdapterPtr);
 
   protected:
-    virtual AnalysisItemSPtr item() const = 0;
+    virtual PersistentSPtr item() const = 0;
 
     friend class ModelAdapter;
   };
 
-  ItemAdapterPtr EspinaGUI_EXPORT indexPtr(const QModelIndex &index);
+  //ItemAdapterPtr EspinaGUI_EXPORT indexPtr(const QModelIndex &index);
 
 } // EspINA
 
-#endif //MODELITEM_H
+#endif // ESPINA_ITEM_ADAPTER_H

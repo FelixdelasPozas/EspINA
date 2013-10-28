@@ -53,7 +53,7 @@ void IMeshRepresentation::setColor(const QColor &color)
 //-----------------------------------------------------------------------------
 void IMeshRepresentation::setHighlighted(bool highlighted)
 {
-  GraphicalRepresentation::setHighlighted(highlighted);
+  Representation::setHighlighted(highlighted);
 
   if (m_actor != NULL)
   {

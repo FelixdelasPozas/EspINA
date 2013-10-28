@@ -73,7 +73,7 @@ namespace EspINA
     virtual bool isInside(Nm point[3]);
 
     virtual RenderableView canRenderOnView() const
-    { return GraphicalRepresentation::RENDERABLEVIEW_SLICE; }
+    { return Representation::RENDERABLEVIEW_SLICE; }
 
     virtual bool hasActor(vtkProp *actor) const;
 
@@ -131,7 +131,7 @@ namespace EspINA
     virtual bool isInside(Nm point[3]);
 
     virtual RenderableView canRenderOnView() const
-    { return GraphicalRepresentation::RENDERABLEVIEW_SLICE; }
+    { return Representation::RENDERABLEVIEW_SLICE; }
 
     virtual bool hasActor(vtkProp *actor) const;
 

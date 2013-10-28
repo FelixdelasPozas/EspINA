@@ -17,40 +17,6 @@
  *
  */
 
-#ifndef ESPINA_VIEWITEM_H
-#define ESPINA_VIEWITEM_H
+#include "OutputAdapter.h"
 
-#include "Core/Analysis/Output.h"
-
-namespace EspINA {
-
-  class ViewItem
-  {
-  public:
-    explicit ViewItem(FilterSPtr filter, Output::Id output);
-    virtual ~ViewItem(){}
-
-    FilterSPtr filter()
-    { return m_filter; }
-
-    const FilterSPtr filter() const
-    { return m_filter; }
-
-    OutputSPtr output();
-    const OutputSPtr output() const;
-
-    DataSPtr data(Data::Type type);
-    const DataSPtr data(Data::Type type) const;
-
-    virtual void changeOutput(OutputSPtr output) = 0;
-    void changeOutputId(Output::Id outputId) { m_output = outputId; };
-
-  private:
-    FilterSPtr m_filter;
-    Output::Id m_output;
-  };
-
-  using ViewItemSPtr = std::shared_ptr<ViewItem>;
-}
-
-#endif // ESPINA_VIEWITEM_H
+using namespace EspINA;

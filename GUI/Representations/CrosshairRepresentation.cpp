@@ -88,7 +88,7 @@ GraphicalRepresentationSettings *CrosshairRepresentation::settingsWidget()
 //-----------------------------------------------------------------------------
 void CrosshairRepresentation::setColor(const QColor &color)
 {
-  GraphicalRepresentation::setColor(color);
+  Representation::setColor(color);
 
   if (m_axial != NULL)
   {

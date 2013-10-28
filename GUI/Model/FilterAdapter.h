@@ -20,28 +20,77 @@
 #ifndef ESPINA_FILTERADAPTER_H
 #define ESPINA_FILTERADAPTER_H
 
-#include <Core/EspinaTypes.h>
+#include <Core/Analysis/Filter.h>
 
 namespace EspINA {
 
   class FilterInspector;
   using FilterInspectorSPtr = std::shared_ptr<FilterInspector>;
 
-  class FilterAdapter
+  class Representation;
+  using RepresentationSPtr = std::shared_ptr<Representation>;
+
+  class OutputAdapter;
+  using OutputAdapterSPtr  = std::shared_ptr<OutputAdapter>;
+  using OutputAdapterSList = QList<OutputAdapterSPtr>;
+
+  class RepresentationFactory;
+  using RepresentationFactorySPtr = std::shared_ptr<RepresentationFactory>;
+
+  class FilterAdapterInterface
   {
   public:
-    void setFilterInspector(FilterInspectorSPtr inspector);
-    FilterInspectorSPtr filterInspector();
+    virtual ~FilterAdapterInterface(){}
 
-    OutputAdapterSPtr output();
+    void setFilterInspector(FilterInspectorSPtr inspector){}
+    FilterInspectorSPtr filterInspector(){}
+
+    void setRepresentationFactory(RepresentationFactorySPtr factory){}
+
+    virtual void update() = 0;//TODO Copy adapted filter interface
+
+    OutputAdapterSPtr output(Output::Id id){}
+
+  protected:
+    virtual FilterSPtr adaptedFilter() = 0;
+    virtual OutputSPtr adaptedOutput(Output::Id id) = 0;
 
   private:
-    explicit FilterAdapter(FilterSPtr filter);
-
-
-    FilterSPtr m_filter;
     FilterInspectorSPtr m_inspector;
+
+    RepresentationFactorySPtr m_factory;
+    OutputAdapterSList        m_outputs;
+
+    friend class ModelFactory;
   };
+
+  template<class T>
+  class FilterAdapter
+  : public FilterAdapterInterface
+  {
+  public:
+    std::shared_ptr<T> get()
+    { return m_filter; }
+
+    virtual void update()
+    { m_filter->update(); }
+
+  protected:
+    virtual FilterSPtr adaptedFilter()
+    { return m_filter; }
+
+    virtual OutputSPtr adaptedOutput(Output::Id id)
+    { return m_filter->output(id); }
+
+  private:
+    FilterAdapter(std::shared_ptr<T> filter) {}
+
+    std::shared_ptr<T> m_filter;
+
+    friend class ModelFactory;
+  };
+
+  using FilterAdapterSPtr = std::shared_ptr<FilterAdapterInterface>;
 }
 
 #endif // ESPINA_FILTERADAPTER_H

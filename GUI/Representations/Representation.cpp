@@ -32,7 +32,7 @@
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
-GraphicalRepresentation::GraphicalRepresentation(EspinaRenderView *view) 
+Representation::GraphicalRepresentation(EspinaRenderView *view) 
 : m_color(Qt::white)
 , m_highlight(false)
 , m_view(view)
@@ -41,7 +41,7 @@ GraphicalRepresentation::GraphicalRepresentation(EspinaRenderView *view)
 {}
 
 //-----------------------------------------------------------------------------
-void GraphicalRepresentation::setActive(bool value, EspinaRenderView *view)
+void Representation::setActive(bool value, EspinaRenderView *view)
 {
   if (!view || view == m_view)
   {
@@ -56,12 +56,12 @@ void GraphicalRepresentation::setActive(bool value, EspinaRenderView *view)
   }
 }
 
-QString GraphicalRepresentation::serializeSettings()
+QString Representation::serializeSettings()
 {
   return isActive()?"On":"Off"; 
 }
 
-void GraphicalRepresentation::restoreSettings(QString settings)
+void Representation::restoreSettings(QString settings)
 {
   if (settings == "On")
     setActive(true);
@@ -70,7 +70,7 @@ void GraphicalRepresentation::restoreSettings(QString settings)
 }
 
 //-----------------------------------------------------------------------------
-void GraphicalRepresentation::setVisible(bool visible)
+void Representation::setVisible(bool visible)
 {
   m_visible = visible;
 
@@ -78,7 +78,7 @@ void GraphicalRepresentation::setVisible(bool visible)
 }
 
 //-----------------------------------------------------------------------------
-GraphicalRepresentationSPtr GraphicalRepresentation::clone(SliceView *view)
+GraphicalRepresentationSPtr Representation::clone(SliceView *view)
 {
   GraphicalRepresentationSPtr representation = cloneImplementation(view);
 
@@ -93,7 +93,7 @@ GraphicalRepresentationSPtr GraphicalRepresentation::clone(SliceView *view)
 }
 
 //-----------------------------------------------------------------------------
-GraphicalRepresentationSPtr GraphicalRepresentation::clone(VolumeView *view)
+GraphicalRepresentationSPtr Representation::clone(VolumeView *view)
 {
   GraphicalRepresentationSPtr representation = cloneImplementation(view);
 
@@ -104,14 +104,14 @@ GraphicalRepresentationSPtr GraphicalRepresentation::clone(VolumeView *view)
 }
 
 //-----------------------------------------------------------------------------
-vtkMatrix4x4 *GraphicalRepresentation::slicingMatrix(SliceView *view) const
+vtkMatrix4x4 *Representation::slicingMatrix(SliceView *view) const
 {
   return view->m_slicingMatrix;
 }
 
 //-----------------------------------------------------------------------------
 ChannelGraphicalRepresentation::ChannelGraphicalRepresentation(EspinaRenderView *view)
-: GraphicalRepresentation(view)
+: Representation(view)
 , m_brightness(0)
 , m_contrast(1)
 , m_opacity(1)

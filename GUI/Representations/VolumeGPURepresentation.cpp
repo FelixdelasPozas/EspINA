@@ -75,7 +75,7 @@ void VolumeGPURaycastRepresentation::setColor(const QColor &color)
 //-----------------------------------------------------------------------------
 void VolumeGPURaycastRepresentation::setHighlighted(bool highlight)
 {
-  GraphicalRepresentation::setHighlighted(highlight);
+  Representation::setHighlighted(highlight);
   setColor(m_color);
 }
 

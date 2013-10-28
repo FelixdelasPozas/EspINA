@@ -78,7 +78,7 @@ GraphicalRepresentationSettings *ChannelSliceRepresentation::settingsWidget()
 //-----------------------------------------------------------------------------
 void ChannelSliceRepresentation::setColor(const QColor &color)
 {
-  GraphicalRepresentation::setColor(color);
+  Representation::setColor(color);
 
   if (m_actor != NULL)
   {
@@ -242,7 +242,7 @@ QString SegmentationSliceRepresentation::serializeSettings()
 {
   QStringList values;
 
-  values << GraphicalRepresentation::serializeSettings();
+  values << Representation::serializeSettings();
   values << QString("%1").arg(m_color.alphaF());
 
   return values.join(";");
@@ -260,7 +260,7 @@ void SegmentationSliceRepresentation::restoreSettings(QString settings)
     QColor currentColor = color();
     currentColor.setAlphaF(alphaF);
 
-    GraphicalRepresentation::restoreSettings(values[0]);
+    Representation::restoreSettings(values[0]);
   }
 }
 
@@ -268,7 +268,7 @@ void SegmentationSliceRepresentation::restoreSettings(QString settings)
 //-----------------------------------------------------------------------------
 void SegmentationSliceRepresentation::setColor(const QColor &color)
 {
-  GraphicalRepresentation::setColor(color);
+  Representation::setColor(color);
 
   if (m_actor != NULL)
     m_mapToColors->SetLookupTable(s_highlighter->lut(m_color, m_highlight));
@@ -285,7 +285,7 @@ QColor SegmentationSliceRepresentation::color() const
   if (!m_clones.isEmpty())
     return m_clones.first()->color();
   else
-    return EspINA::GraphicalRepresentation::color();
+    return EspINA::Representation::color();
 }
 
 

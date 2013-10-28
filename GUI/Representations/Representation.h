@@ -16,8 +16,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef IESPINAREPRESENTATION_H
-#define IESPINAREPRESENTATION_H
+#ifndef ESPINA_REPRESENTATION_H
+#define ESPINA_REPRESENTATION_H
 
 #include "EspinaGUI_Export.h"
 
@@ -26,11 +26,7 @@
 #include <QString>
 #include <QColor>
 
-// boost
-#include <boost/shared_ptr.hpp>
-
 // EspINA
-#include <Core/Model/Output.h>
 #include <Core/EspinaTypes.h>
 
 class vtkProp3D;
@@ -40,17 +36,22 @@ class vtkLookupTable;
 
 namespace EspINA
 {
-
-class GraphicalRepresentationSettings;
+  class RepresentationSettings;
 
   class EspinaRenderView;
   class SliceView;
   class VolumeView;
 
-  class EspinaGUI_EXPORT GraphicalRepresentation
+  class Representation;
+  using RepresentationSPtr  = std::shared_ptr<Representation>;
+  using RepresentationSList = QList<RepresentationSPtr>;
+
+  class EspinaGUI_EXPORT Representation
   : public QObject
   {
   public:
+    using Type = QString;
+
     enum RenderableViews
     {
       RENDERABLEVIEW_SLICE     = 0x1,
@@ -60,9 +61,9 @@ class GraphicalRepresentationSettings;
     Q_DECLARE_FLAGS(RenderableView, RenderableViews);
 
   public:
-    explicit GraphicalRepresentation(EspinaRenderView *view);
+    explicit Representation(EspinaRenderView *view);
 
-    virtual ~GraphicalRepresentation(){}
+    virtual ~Representation(){}
 
     void setActive(bool value, EspinaRenderView *view = NULL);
 
@@ -78,7 +79,7 @@ class GraphicalRepresentationSettings;
     QString label() const
     { return m_label; }
 
-    virtual GraphicalRepresentationSettings *settingsWidget() = 0;
+    virtual RepresentationSettings *settingsWidget() = 0;
 
     virtual QString serializeSettings();
 
@@ -109,8 +110,8 @@ class GraphicalRepresentationSettings;
 
     virtual RenderableView canRenderOnView() const { return RENDERABLEVIEW_UNDEFINED; };
 
-    GraphicalRepresentationSPtr clone(SliceView *view);
-    GraphicalRepresentationSPtr clone(VolumeView *view);
+    RepresentationSPtr clone(SliceView *view);
+    RepresentationSPtr clone(VolumeView *view);
 
     virtual bool hasActor(vtkProp *actor) const = 0;
 
@@ -119,18 +120,18 @@ class GraphicalRepresentationSettings;
     virtual QList<vtkProp*> getActors() = 0;
 
   protected:
-    virtual GraphicalRepresentationSPtr cloneImplementation(SliceView *view) = 0;
-    virtual GraphicalRepresentationSPtr cloneImplementation(VolumeView *view) = 0;
+    virtual RepresentationSPtr cloneImplementation(SliceView *view) = 0;
+    virtual RepresentationSPtr cloneImplementation(VolumeView *view) = 0;
 
     virtual void updateVisibility(bool visible) = 0;
 
     vtkMatrix4x4 *slicingMatrix(SliceView *view) const;
 
   protected:
-    QColor            m_color;
-    bool              m_highlight;
-    EspinaRenderView *m_view;
-    GraphicalRepresentationSList m_clones;
+    QColor              m_color;
+    bool                m_highlight;
+    EspinaRenderView*   m_view;
+    RepresentationSList m_clones;
 
   private:
     bool    m_active;
@@ -138,57 +139,58 @@ class GraphicalRepresentationSettings;
     QString m_label;
   };
 
-  class EspinaGUI_EXPORT ChannelGraphicalRepresentation
-  : public GraphicalRepresentation
-  {
-  public:
-    explicit ChannelGraphicalRepresentation(EspinaRenderView *view);
+  using RepresentationTypeList = QList<Representation::Type>;
+//   class EspinaGUI_EXPORT ChannelGraphicalRepresentation
+//   : public Representation
+//   {
+//   public:
+//     explicit ChannelGraphicalRepresentation(EspinaRenderView *view);
+// 
+//     /// Brightness value in range [-1,1]
+//     virtual void setBrightness(double value)
+//     { m_brightness = value; }
+// 
+//     /// Brightness value in range [-1,1]
+//     double brightness() const
+//     { return m_brightness; }
+// 
+//     /// Contrast value in range [0,2]
+//     virtual void setContrast(double value)
+//     { m_contrast = value; }
+// 
+//     /// Contrast value in range [0,2]
+//     double contrast() const
+//     { return m_contrast; }
+// 
+//     /// Opacity value in range [0,1]
+//     virtual void setOpacity(double value)
+//     { m_opacity = value; }
+// 
+//     /// Opacity value in range [0,1]
+//     double opacity() const
+//     { return m_opacity; }
+// 
+//   protected:
+//     double            m_brightness;
+//     double            m_contrast;
+//     double            m_opacity;
+//   };
 
-    /// Brightness value in range [-1,1]
-    virtual void setBrightness(double value)
-    { m_brightness = value; }
+//   typedef boost::shared_ptr<ChannelGraphicalRepresentation> ChannelGraphicalRepresentationSPtr;
+//   typedef QList<ChannelGraphicalRepresentationSPtr> ChannelGraphicalRepresentationList;
+// 
+//   class EspinaGUI_EXPORT SegmentationGraphicalRepresentation
+//   : public Representation
+//   {
+//   public:
+//     explicit SegmentationGraphicalRepresentation(EspinaRenderView *view)
+//     : Representation(view) {}
+//   };
+// 
+//   typedef boost::shared_ptr<SegmentationGraphicalRepresentation> SegmentationGraphicalRepresentationSPtr;
+//   typedef QList<SegmentationGraphicalRepresentationSPtr> SegmentationGraphicalRepresentationList;
 
-    /// Brightness value in range [-1,1]
-    double brightness() const
-    { return m_brightness; }
-
-    /// Contrast value in range [0,2]
-    virtual void setContrast(double value)
-    { m_contrast = value; }
-
-    /// Contrast value in range [0,2]
-    double contrast() const
-    { return m_contrast; }
-
-    /// Opacity value in range [0,1]
-    virtual void setOpacity(double value)
-    { m_opacity = value; }
-
-    /// Opacity value in range [0,1]
-    double opacity() const
-    { return m_opacity; }
-
-  protected:
-    double            m_brightness;
-    double            m_contrast;
-    double            m_opacity;
-  };
-
-  typedef boost::shared_ptr<ChannelGraphicalRepresentation> ChannelGraphicalRepresentationSPtr;
-  typedef QList<ChannelGraphicalRepresentationSPtr> ChannelGraphicalRepresentationList;
-
-  class EspinaGUI_EXPORT SegmentationGraphicalRepresentation
-  : public GraphicalRepresentation
-  {
-  public:
-    explicit SegmentationGraphicalRepresentation(EspinaRenderView *view)
-    : GraphicalRepresentation(view) {}
-  };
-
-  typedef boost::shared_ptr<SegmentationGraphicalRepresentation> SegmentationGraphicalRepresentationSPtr;
-  typedef QList<SegmentationGraphicalRepresentationSPtr> SegmentationGraphicalRepresentationList;
-
-  Q_DECLARE_OPERATORS_FOR_FLAGS(GraphicalRepresentation::RenderableView)
+  Q_DECLARE_OPERATORS_FOR_FLAGS(Representation::RenderableView)
 } // namespace EspINA
 
-#endif // IESPINAREPRESENTATION_H
+#endif // ESPINA_REPRESENTATION_H

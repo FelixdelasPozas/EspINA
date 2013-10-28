@@ -70,10 +70,10 @@ bool Output::dumpSnapshot(const QString& prefix, Snapshot& snapshot, bool saveEd
 
 }
 
-Output::EditedRegionSList Output::editedRegions() const
-{
-
-}
+// Output::EditedRegionSList Output::editedRegions() const
+// {
+// 
+// }
 
 bool Output::isEdited() const
 {
@@ -129,10 +129,10 @@ void Output::setData(const Data::Type& type, Output::DataSPtr data)
 
 }
 
-void Output::setEditedRegions(Output::EditedRegionSList regions)
-{
-
-}
+// void Output::setEditedRegions(Output::EditedRegionSList regions)
+// {
+// 
+// }
 
 void Output::update()
 {

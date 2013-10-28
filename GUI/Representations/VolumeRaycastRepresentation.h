@@ -1,6 +1,6 @@
 /*
  <one line to give the program's name and a brief idea of what it does.>
- Copyright (C) 2013 Félix de las Pozas Álvarez <felixdelaspozas@gmail.com>
+ Copyright (C) 2013 Fï¿½lix de las Pozas ï¿½lvarez <felixdelaspozas@gmail.com>
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -56,7 +56,7 @@ namespace EspINA
       virtual bool isInside(Nm point[3]);
 
       virtual RenderableView canRenderOnView() const
-      { return GraphicalRepresentation::RENDERABLEVIEW_VOLUME; }
+      { return Representation::RENDERABLEVIEW_VOLUME; }
 
       virtual bool hasActor(vtkProp *actor) const;
 

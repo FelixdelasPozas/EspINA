@@ -17,6 +17,6 @@
  *
  */
 
-#include "ViewItem.h"
+#include "ViewItemAdapter.h"
 
 using namespace EspINA;

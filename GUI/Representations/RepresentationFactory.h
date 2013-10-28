@@ -17,40 +17,25 @@
  *
  */
 
-#ifndef ESPINA_VIEWITEM_H
-#define ESPINA_VIEWITEM_H
+#ifndef ESPINA_REPRESENTATION_FACTORY_H
+#define ESPINA_REPRESENTATION_FACTORY_H
 
-#include "Core/Analysis/Output.h"
+#include "EspinaGUI_Export.h"
 
-namespace EspINA {
+#include "GUI/Representations/Representation.h"
+#include <GUI/Model/OutputAdapter.h>
 
-  class ViewItem
+namespace EspINA
+{
+  class EspinaGUI_EXPORT RepresentationFactory
   {
   public:
-    explicit ViewItem(FilterSPtr filter, Output::Id output);
-    virtual ~ViewItem(){}
+    virtual ~RepresentationFactory() {};
 
-    FilterSPtr filter()
-    { return m_filter; }
-
-    const FilterSPtr filter() const
-    { return m_filter; }
-
-    OutputSPtr output();
-    const OutputSPtr output() const;
-
-    DataSPtr data(Data::Type type);
-    const DataSPtr data(Data::Type type) const;
-
-    virtual void changeOutput(OutputSPtr output) = 0;
-    void changeOutputId(Output::Id outputId) { m_output = outputId; };
-
-  private:
-    FilterSPtr m_filter;
-    Output::Id m_output;
+    virtual void createRepresentation(OutputAdapterSPtr output, Representation::Type type);
   };
 
-  using ViewItemSPtr = std::shared_ptr<ViewItem>;
+  using RepresentationFactorySPtr = std::shared_ptr<RepresentationFactory>;
 }
 
-#endif // ESPINA_VIEWITEM_H
+#endif // ESPINA_REPRESENTATION_FACTORY_H

@@ -22,7 +22,7 @@
 
 #include "EspinaGUI_Export.h"
 
-#include <Core/Analysis/Filter.h>
+#include "GUI/Model/FilterAdapter.h"
 
 #include <memory>
 
@@ -38,27 +38,20 @@ namespace EspINA
 
   class SampleAdapter;
   using SampleAdapterSPtr = std::shared_ptr<SampleAdapter>;
+  
+  class ChannelAdapter;
+  using ChannelAdapterSPtr = std::shared_ptr<ChannelAdapter>;
 
 //   class FilterAdapter;
 //   using FilterAdapterSPtr = std::shared_ptr<FilterAdapter>;
 
   //const QString CHANNEL_FILES = QObject::tr("Channel Files (*.mha *.mhd *.tif *.tiff)");
   //const QString SEG_FILES     = QObject::tr("Espina Analysis (*.seg)");
-  template<class T>
-  class FilterAdapter
-  : public T
-  {
-  public:
-    FilterAdapter(OutputSList inputs, Filter::Type& type)
-    : T(inputs, type){}
-
-   void setFilterInspector(){}
-  };
 
   class EspinaGUI_EXPORT ModelFactory
   {
   public:
-    explicit ModelFactory();
+    explicit ModelFactory(SchedulerSPtr scheduler);
     ~ModelFactory();
 
     void registerFilter(FilterCreatorPtr creator, const Filter::Type &filter);
@@ -68,12 +61,13 @@ namespace EspINA
     //FilterAdapterSPtr createFilter(OutputSList inputs, Filter::Type& filter) const;
 
     template<typename T>
-    std::shared_ptr<FilterAdapter<T>> createFilter(OutputSList inputs, Filter::Type& filter) const
+    std::shared_ptr<FilterAdapter<T>> createFilter(OutputSList inputs, Filter::Type& type) const
     {
-      return std::shared_ptr<FilterAdapter<T>>(new FilterAdapter<T>(inputs, filter));
+      std::shared_ptr<T> filter{new T(inputs, type, m_scheduler)};
+      return std::shared_ptr<FilterAdapter<T>>(new FilterAdapter<T>(filter));
     }
 
-//     ChannelAdapterSPtr createChannel(FilterAdapterSPtr filter, Output::Id output) const;
+    ChannelAdapterSPtr createChannel(FilterAdapterSPtr filter, Output::Id output) const;
 // 
 //     SegmentationSPtr createSegmentation(OutputSPtr output) const;
 // 
@@ -89,6 +83,7 @@ namespace EspINA
  //   ExtensionProviderPtr extensionProvider(const ExtensionProvider::Type& type) const;
 
   private:
+    SchedulerSPtr m_scheduler;
     QMap<Filter::Type, FilterCreatorPtr> m_filterCreators;
 
     //ExtensionProviderList m_extensionProviders;

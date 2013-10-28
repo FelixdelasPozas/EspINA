@@ -17,16 +17,21 @@
  *
  */
 
-#ifndef ESPINA_VIEWITEM_H
-#define ESPINA_VIEWITEM_H
+#ifndef ESPINA_VIEW_ITEM_ADAPTER_H
+#define ESPINA_VIEW_ITEM_ADAPTER_H
 
 #include "GUI/Model/ItemAdapter.h"
 
 #include <Core/Analysis/Data.h>
+#include <Core/Analysis/Output.h>
+#include <Core/Analysis/ViewItem.h>
 
 namespace EspINA {
 
-  class EspinaGUI_Export ViewItemAdapter
+  class FilterAdapter;
+  using FilterAdapterSPtr = std::shared_ptr<FilterAdapter>;
+
+  class EspinaGUI_EXPORT ViewItemAdapter
   : public ItemAdapter
   {
   public:
@@ -38,36 +43,34 @@ namespace EspINA {
     void setSelected(bool value)
     {m_isSelected = value;}
 
-    FilterAdapterSPtr filter();
-    const FilterSPtr filter() const;
-
-    virtual const FilterOutputId outputId() const = 0;
+    FilterAdapterSPtr filter(){}
+    const FilterAdapterSPtr filter() const{}
 
     /// Convenience method
-    OutputSPtr output();
+    OutputSPtr output(){}
     /// Convenience method
-    const OutputSPtr output() const;
+    const OutputSPtr output() const{}
 
-    DataSPtr get(Data::Type type);
+    DataSPtr get(Data::Type type){}
 
-    const DataSPtr get(Data::Type type) const;
+    const DataSPtr get(Data::Type type) const{}
 
-    /// Convenience method to access output's representations
-    GraphicalRepresentationSList representations() const
-    { return output()->graphicalRepresentations(); }
+//     /// Convenience method to access output's representations
+//     RepresentationSList representations() const
+//     { return output()->graphicalRepresentations(); }
 
 
-    /// Return whether item's volume has been modified or not after its creation
-    bool outputIsModified() { return m_outputIsModified; }
+//     /// Return whether item's volume has been modified or not after its creation
+//     bool outputIsModified() { return m_outputIsModified; }
 
-  protected slots:
-    void onOutputModified() { m_outputIsModified = true; emit outputModified(); emit modified(this);}
-
-  signals:
-    void outputModified();
-
+//   protected slots:
+//     void onOutputModified() { m_outputIsModified = true; emit outputModified(); emit modified(this);}
+// 
+//   signals:
+//     void outputModified();
+// 
   protected:
-    explicit ViewItemAdapter(ViewItemSPtr item);
+    explicit ViewItemAdapter(ViewItemSPtr item){}
 
   protected:
     ViewItemSPtr m_viewItem;
@@ -77,4 +80,4 @@ namespace EspINA {
   };
 } // namespace EspINA
 
-#endif // ESPINA_VIEWITEM_H
+#endif // ESPINA_VIEW_ITEM_ADAPTER_H

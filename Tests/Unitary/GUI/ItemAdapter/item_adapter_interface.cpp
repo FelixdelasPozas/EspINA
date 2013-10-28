@@ -26,30 +26,26 @@
  * 
  */
 
-#include "GUI/ModelFactory.h"
+#include "GUI/Model/ViewItemAdapter.h"
 
-#include "Core/MultiTasking/Scheduler.h"
-
-#include "model_factory_testing_support.h"
-
-using namespace std;
 using namespace EspINA;
-using namespace EspINA::Testing;
+using namespace std;
 
-
-int model_factory_create_template_filter(int argc, char** argv)
+int item_adapter_interface(int argc, char** argv)
 {
+  class DummyItem
+  : public ViewItemAdapter
+  {
+  public:
+    virtual QVariant data(int role = Qt::DisplayRole) const{}
+    virtual PersistentSPtr item() const{}
+    virtual bool setData(const QVariant& value, int role = Qt::UserRole +1){}
+    virtual Type type() const {}
+  };
+
   bool error = false;
-
-  SchedulerSPtr sch;
-  ModelFactory factory(sch);
-
-  Filter::Type type{"Dummy"};
-  auto filter = factory.createFilter<DummyFilter>(OutputSList(), type);
-
-  filter->get()->dummyMethod();
-  filter->setFilterInspector(FilterInspectorSPtr());
-  filter->output(0);
+  
+  DummyItem item;
 
   return error;
 }

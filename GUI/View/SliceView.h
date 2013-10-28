@@ -267,7 +267,7 @@ namespace EspINA
     // Representations
     QMap<EspinaWidget *, SliceWidget *>      m_widgets;
 
-    friend class GraphicalRepresentation;
+    friend class Representation;
   };
 
   class EspinaGUI_EXPORT SliceView::Settings

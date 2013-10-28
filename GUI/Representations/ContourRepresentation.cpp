@@ -64,7 +64,7 @@ GraphicalRepresentationSettings *ContourRepresentation::settingsWidget()
 //-----------------------------------------------------------------------------
 void ContourRepresentation::setColor(const QColor &color)
 {
-  GraphicalRepresentation::setColor(color);
+  Representation::setColor(color);
 
   if (m_actor != NULL)
   {

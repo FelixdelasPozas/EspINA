@@ -18,9 +18,13 @@
 
 #include "ModelFactory.h"
 
+#include <Core/Analysis/Channel.h>
+#include "Model/ChannelAdapter.h"
+
 using namespace EspINA;
 
-ModelFactory::ModelFactory()
+ModelFactory::ModelFactory(SchedulerSPtr scheduler)
+: m_scheduler(scheduler)
 {
 
 }
@@ -40,7 +44,9 @@ SampleAdapterSPtr ModelFactory::createSample(const QString& name) const
 
 }
 
-// FilterAdapterSPtr ModelFactory::createFilter(OutputSList inputs, Filter::Type& filter) const
-// {
-// 
-// }
+ChannelAdapterSPtr ModelFactory::createChannel(FilterAdapterSPtr filter, Output::Id output) const
+{
+  ChannelSPtr channel{new Channel(filter->adaptedFilter(), output)};
+
+  return ChannelAdapterSPtr{new ChannelAdapter(channel)};
+}

@@ -77,13 +77,13 @@ namespace EspINA
     /// dump output's edited regions information to snapshot
     void dumpEditedRegions(const QString &prefix, Snapshot &snapshot);
 
-    EditedRegionSList editedRegions() const;
+//     EditedRegionSList editedRegions() const;
 
     /// restore output's edited regions information from cache
     void restoreEditedRegions(const QDir &cacheDir, const QString &ouptutId);
 
-    /// replace current edited regions
-    void setEditedRegions(EditedRegionSList regions);
+//     /// replace current edited regions
+//     void setEditedRegions(EditedRegionSList regions);
 
     void setData(const Data::Type& type, DataSPtr data);
 

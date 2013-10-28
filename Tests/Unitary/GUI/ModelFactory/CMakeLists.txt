@@ -13,6 +13,7 @@ qt4_wrap_cpp(SUBJECT_MOCS
   ${CORE_DIR}/Analysis/Output.h
   ${CORE_DIR}/MultiTasking/Scheduler.h
   ${CORE_DIR}/MultiTasking/Task.h
+  ${GUI_DIR}/Model/ItemAdapter.h
 )
 
 set(LIB_DEPENDECIES
@@ -35,6 +36,7 @@ add_executable(Model_Factory_Tests
   ${CORE_DIR}/MultiTasking/Scheduler.cpp
   ${CORE_DIR}/MultiTasking/Task.cpp
   ${GUI_DIR}/ModelFactory.cpp
+  ${GUI_DIR}/Model/ChannelAdapter.cpp
   )
 
 target_link_libraries(Model_Factory_Tests ${LIB_DEPENDECIES} )
