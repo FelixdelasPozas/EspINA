@@ -22,6 +22,8 @@
 
 #include <itkImageRegionExclusionConstIteratorWithIndex.h>
 
+#include <QString>
+
 using namespace EspINA;
 
 using BMask = BinaryMask<unsigned char>;
@@ -41,14 +43,20 @@ int binaryMask_itkImage_dump(int argc, char** argv)
   }
   mask->setForegroundValue(1);
 
+  QString maskValues;
+  BMask::region_iterator ri(mask, mask->bounds());
+  while(!ri.isAtEnd())
+  {
+    maskValues += QString(ri.Get());
+    ++ri;
+  }
+
   itkVolumeType::Pointer image = mask->itkImage();
-  //image->Print(std::cout);
   itkVolumeType::RegionType region = image->GetLargestPossibleRegion();
-  region.Print(std::cout);
   itk::ImageRegionConstIteratorWithIndex<itkVolumeType> it(image, region);
   itkVolumeType::IndexType imageIndex;
 
-  int count = 0;
+  QString itkVolumeValues;
   for(auto x = 0; x < 5; ++x)
   {
     for(auto y = 0; y < 5; ++y)
@@ -59,12 +67,10 @@ int binaryMask_itkImage_dump(int argc, char** argv)
         imageIndex[1] = y;
         imageIndex[2] = z;
 
-        std::cout << (int)image->GetPixel(imageIndex);
+        itkVolumeValues += QString(image->GetPixel(imageIndex));
       }
-      std::cout << std::endl;
     }
-    std::cout << std::endl;
   }
 
-  return true;
+  return (itkVolumeValues != maskValues);
 }

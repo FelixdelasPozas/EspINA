@@ -26,7 +26,7 @@
 #include <itkImage.h>
 #include <itkSmartPointer.h>
 
-#include <QDebug>
+#include <math.h>
 
 namespace EspINA
 {
@@ -231,16 +231,16 @@ namespace EspINA
             if (intersection(bounds, mask->bounds()) != bounds)
               throw Region_Not_Contained_In_Mask();
 
-            m_extent[0] = static_cast<int>(m_bounds[0]/m_mask->m_spacing.x);
-            m_extent[1] = static_cast<int>(m_bounds[1]/m_mask->m_spacing.x);
-            m_extent[2] = static_cast<int>(m_bounds[2]/m_mask->m_spacing.y);
-            m_extent[3] = static_cast<int>(m_bounds[3]/m_mask->m_spacing.y);
-            m_extent[4] = static_cast<int>(m_bounds[4]/m_mask->m_spacing.z);
-            m_extent[5] = static_cast<int>(m_bounds[5]/m_mask->m_spacing.z);
+            m_extent[0] = static_cast<int>(std::round(m_bounds[0]/m_mask->m_spacing.x));
+            m_extent[1] = static_cast<int>(std::round(m_bounds[1]/m_mask->m_spacing.x));
+            m_extent[2] = static_cast<int>(std::round(m_bounds[2]/m_mask->m_spacing.y));
+            m_extent[3] = static_cast<int>(std::round(m_bounds[3]/m_mask->m_spacing.y));
+            m_extent[4] = static_cast<int>(std::round(m_bounds[4]/m_mask->m_spacing.z));
+            m_extent[5] = static_cast<int>(std::round(m_bounds[5]/m_mask->m_spacing.z));
 
             m_index.x = m_extent[0];
-            m_index.x = m_extent[2];
-            m_index.x = m_extent[4];
+            m_index.y = m_extent[2];
+            m_index.z = m_extent[4];
           }
 
           virtual ~region_iterator() {};
@@ -318,8 +318,6 @@ namespace EspINA
             if (isAtEnd())
               throw Out_Of_Bounds_Exception();
 
-            qDebug() << "RIT GET" << m_index.x << m_index.y << m_index.z;
-
             // NOTE: we need this to avoid returning a temporary value
             m_getReturnValue = m_mask->pixel(m_index);
 
@@ -331,7 +329,6 @@ namespace EspINA
             if (isAtEnd())
               throw Out_Of_Bounds_Exception();
 
-            qDebug() << "RIT SET" << m_index.x << m_index.y << m_index.z;
             m_mask->setPixel(m_index);
           }
 

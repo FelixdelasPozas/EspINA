@@ -32,9 +32,6 @@
 #include <itkImageRegionConstIterator.h>
 #include <itkImageRegionIteratorWithIndex.hxx>
 
-// qt
-#include <QDebug>
-
 namespace EspINA
 {
 
@@ -53,22 +50,14 @@ namespace EspINA
     m_size[1] = (std::floor(bounds[3]/m_spacing.y) - std::ceil(bounds[2]/m_spacing.y)) + 1;
     m_size[2] = (std::floor(bounds[5]/m_spacing.z) - std::ceil(bounds[4]/m_spacing.z)) + 1;
 
-    qDebug() << "x size:" << m_size[0] << "y size:" << m_size[1] << "z_size:" << m_size[2];
-    qDebug() << "integer size:" << m_integerSize << "bits";
-
     m_origin.x = static_cast<int>(std::floor(m_bounds[0]/m_spacing.x));
     m_origin.y = static_cast<int>(std::floor(m_bounds[2]/m_spacing.y));
     m_origin.z = static_cast<int>(std::floor(m_bounds[4]/m_spacing.z));
-
-    qDebug() << "origin:" << m_origin.x << m_origin.y << m_origin.z;
 
     long int bufferSize = (m_size[0] * m_size[1] * m_size[2]) / m_integerSize;
     int remainder = (m_size[0] * m_size[1] * m_size[2]) % m_integerSize;
     if (remainder != 0)
       bufferSize++;
-
-    qDebug() << "buffer size" << bufferSize << "bytes - nº virtual voxels:" << bufferSize*m_integerSize << "nº real voxels:" << m_size[0] * m_size[1] * m_size[2];
-    qDebug() << "sizeof int" << sizeof(int) << "buffersize*sizeof(int)" << bufferSize*sizeof(int);
 
     m_image = new int[bufferSize];
     memset(m_image, 0, bufferSize*sizeof(int));
@@ -96,10 +85,7 @@ namespace EspINA
     unsigned long imageOffset = valuePosition / m_integerSize;
     unsigned long valueOffset = valuePosition % m_integerSize;
 
-//    qDebug() << "SET offset" << m_image[imageOffset] << "bit offset" << valueOffset << "mask" << (1 << valueOffset);
     m_image[imageOffset] = m_image[imageOffset] | (1 << valueOffset);
-
-    qDebug() << "SET buffer pos" << imageOffset << "bit position" << valueOffset;
   }
 
   //-------------------------------------------------------------------------------------
@@ -125,8 +111,6 @@ namespace EspINA
     unsigned long valueOffset = valuePosition % m_integerSize;
 
     m_image[imageOffset] = m_image[imageOffset] & ~(1 << valueOffset);
-
-    qDebug() << "UNSET buffer pos" << imageOffset << "bit position" << valueOffset;
   }
 
   //-------------------------------------------------------------------------------------
@@ -151,7 +135,6 @@ namespace EspINA
     unsigned long imageOffset = valuePosition / m_integerSize;
     unsigned long valueOffset = valuePosition % m_integerSize;
 
-    qDebug() << "PIXEL buffer pos" << imageOffset << "bit position" << valueOffset;
     bool set = ((m_image[imageOffset] & (1 << valueOffset)) == (1 << valueOffset));
     if (set)
       return m_foregroundValue;
