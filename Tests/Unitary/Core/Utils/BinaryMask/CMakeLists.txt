@@ -7,6 +7,7 @@ create_test_sourcelist(BinaryMask_Tests BinaryMask_Tests.cpp # this file is crea
   binaryMask_region_iterator.cpp
   binaryMask_region_const_iterator.cpp
   binaryMask_itkImage_dump.cpp
+  binaryMask_itkImage_constructor.cpp
 )
 
 set(LIB_DEPENDECIES
@@ -36,3 +37,4 @@ add_test("\"Binary Mask: Const Iterator\""                          BinaryMask_T
 add_test("\"Binary Mask: Region Iterator\""                         BinaryMask_Tests binaryMask_region_iterator)
 add_test("\"Binary Mask: Region Const Iterator\""                   BinaryMask_Tests binaryMask_region_const_iterator)
 add_test("\"Binary Mask: ItkImage Dump\""                           BinaryMask_Tests binaryMask_itkImage_dump)
+add_test("\"Binary Mask: Constructor for a given image\""           BinaryMask_Tests binaryMask_itkImage_constructor)

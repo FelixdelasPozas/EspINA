@@ -32,8 +32,58 @@
 #include <itkImageRegionConstIterator.h>
 #include <itkImageRegionIteratorWithIndex.hxx>
 
+#include <QDebug>
+
 namespace EspINA
 {
+  //-------------------------------------------------------------------------------------
+  template<typename T> BinaryMask<T>::BinaryMask(const itkPointer image, const T &backgroundValue)
+  : m_backgroundValue(backgroundValue)
+  , m_foregroundValue(255)
+  , m_integerSize(sizeof(int)*8)
+  {
+    BinaryMask<T>::itkRegion region = image->GetLargestPossibleRegion();
+    BinaryMask<T>::itkIndex index = region.GetIndex();
+    m_origin.x = index[0];
+    m_origin.y = index[1];
+    m_origin.z = index[2];
+
+    BinaryMask<T>::itkSpacing spacing = image->GetSpacing();
+    m_spacing.x = spacing[0];
+    m_spacing.y = spacing[1];
+    m_spacing.z = spacing[2];
+
+    BinaryMask<T>::itkSize size = region.GetSize();
+    m_size[0] = size[0];
+    m_size[1] = size[1];
+    m_size[2] = size[2];
+
+    Bounds bounds{ index[0] * spacing[0], (index[0]+size[0]) * spacing[0],
+                   index[1] * spacing[1], (index[1]+size[1]) * spacing[1],
+                   index[2] * spacing[2], (index[2]+size[2]) * spacing[2]};
+    m_bounds = bounds;
+
+    unsigned long long bufferSize = size[0] * size[1] * size[2] / m_integerSize;
+    if (0 != (size[0] * size[1] * size[2] % m_integerSize))
+      bufferSize++;
+
+    m_image = new int[bufferSize];
+    memset(m_image, 0, bufferSize*sizeof(int));
+
+    BinaryMask<T>::itkConstIterator iit(image, image->GetLargestPossibleRegion());
+    BinaryMask<T>::iterator mit(this);
+
+    iit.GoToBegin();
+    mit.goToBegin();
+    while(!mit.isAtEnd())
+    {
+      if (iit.Value() != m_backgroundValue)
+        mit.Set();
+
+      ++mit;
+      ++iit;
+    }
+  }
 
   //-------------------------------------------------------------------------------------
   template<typename T> BinaryMask<T>::BinaryMask(const Bounds& bounds, Spacing spacing)
