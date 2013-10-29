@@ -92,8 +92,7 @@ namespace EspINA {
     ///NOTE: Current implementation will expand the image
     ///      when drawing with value != 0
     virtual void draw(itkVolumeType::IndexType index,
-                      itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
-                      bool emitSignal = true){}
+                      itkVolumeType::PixelType value = SEG_VOXEL_VALUE){}
 
 
     virtual void fitToContent(){}
@@ -101,6 +100,12 @@ namespace EspINA {
     virtual void resize(const Bounds &bounds);
 
     virtual void undo() {}
+
+    virtual bool isValid() const{}
+
+    virtual Snapshot snapshot() const{}
+
+    virtual Snapshot editedRegionsSnapshot() const {}
 
   protected:
     /** \brief Replace sparse volume voxels within data region with data voxels

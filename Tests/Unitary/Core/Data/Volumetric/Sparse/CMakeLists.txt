@@ -8,18 +8,29 @@ create_test_sourcelist(SparseVolume_Tests SparseVolume_Tests.cpp # this file is 
   sparse_volume_resize_reduce_volume.cpp
 )
 
-set(LIB_DEPENDECIES
+qt4_wrap_cpp(SUBJECT_MOCS
+  ${CORE_DIR}/Analysis/Data.h
+#   ${CORE_DIR}/Analysis/Output.h
+#   ${CORE_DIR}/MultiTasking/Scheduler.h
+#   ${CORE_DIR}/MultiTasking/Task.h
+)
+
+add_executable(SparseVolume_Tests
+  ${SparseVolume_Tests}
+  ${SUBJECT_MOCS}
+  ${CORE_DIR}/Analysis/Data.cpp
+  ${CORE_DIR}/Analysis/Data/VolumetricData.cpp
+  ${CORE_DIR}/Utils/Bounds.cpp
+  ${CORE_DIR}/Utils/BinaryMask.cpp
+  ../Testing_Support.cpp
+  )
+
+  set(LIB_DEPENDECIES
   ${QT_LIBRARIES}
   ${VTK_LIBRARIES}
   ${ITK_LIBRARIES}
 )
 
-add_executable(SparseVolume_Tests
-  ${SparseVolume_Tests}
-  ../Testing_Support.cpp
-  ${CORE_DIR}/Utils/Bounds.cpp
-  ${CORE_DIR}/Utils/BinaryMask.cpp
-  )
 
 target_link_libraries(SparseVolume_Tests ${LIB_DEPENDECIES})
 

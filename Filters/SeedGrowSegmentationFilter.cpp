@@ -65,12 +65,14 @@ void SeedGrowSegmentationFilter::setVOI(const Bounds& bounds)
 
 }
 
-void SeedGrowSegmentationFilter::setVOI(const BinaryMask<unsigned char>& mask)
+template<typename T>
+void SeedGrowSegmentationFilter::setVOI(const BinaryMask<T>& mask)
 {
 
 }
 
-EspINA::BinaryMask<unsigned char> SeedGrowSegmentationFilter::voi() const
+template<typename T>
+EspINA::BinaryMask<T> SeedGrowSegmentationFilter::voi() const
 {
 
 }

@@ -19,10 +19,12 @@
 #include "seed_grow_segmentation_testing_support.h"
 
 #include <Core/Analysis/Filter.h>
-#include <Core/Analysis/Data/VolumetricData.h>
+#include <Core/Analysis/Data/Volumetric/SparseVolume.h>
 
 using namespace EspINA;
 using namespace EspINA::Testing;
+
+using ChannelVolume = SparseVolume<itkVolumeType>;
 
 OutputSPtr EspINA::Testing::inputChannel()
 {
@@ -46,7 +48,9 @@ OutputSPtr EspINA::Testing::inputChannel()
 
   OutputSPtr output{new Output(new DummyFilter(),0)};
 
-  //output->setData(VolumetricData::TYPE, new SparseVolume<unsigned char>());
+  DataSPtr data{new ChannelVolume()};
+
+  output->setData(data);
 
   return output;
 }

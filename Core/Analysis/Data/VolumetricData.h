@@ -23,6 +23,9 @@
 #include "EspinaCore_Export.h"
 
 #include "Core/Analysis/Data.h"
+
+#include "Volumetric/VolumetricDataProxy.h"
+
 #include <vtkSmartPointer.h>
 #include <vtkImageData.h>
 
@@ -32,29 +35,28 @@ namespace EspINA
 
   template<typename T>
   class EspinaCore_EXPORT VolumetricData
-  //: public Data
+  : public Data
   {
   public:
-    //static Type TYPE;
+    static const Data::Type VOLUMETRIC_TYPE;
 
     using itkImageSPtr = typename T::Pointer;
 
   public:
-    explicit VolumetricData(){}
+    explicit VolumetricData() {}
     virtual ~VolumetricData() {}
 
-//     virtual Type type() const
-//     { return TYPE; }
+    virtual Data::Type type() const
+    { return VOLUMETRIC_TYPE; }
+
+    virtual DataProxySPtr createProxy() const
+    { return DataProxySPtr{new VolumetricDataProxy<T>()}; }
 
     /** \brief Return memory usage in MB
      *
      * Returns the amount of memory allocated to hold the volume representation
      */
     virtual double memoryUsage() const = 0;
-
-    /** \brief Return bounds of the whole volume representation
-     */
-    virtual Bounds bounds() const = 0;
 
     virtual void setOrigin(const typename T::PointType origin) = 0;
 
@@ -79,13 +81,13 @@ namespace EspINA
     /** \brief Set volume background value
      *
      */
-    void setBackgroundValue(const typename T::ValueType value)
+    virtual void setBackgroundValue(const typename T::ValueType value)
     {  m_bgValue = value; }
 
     /** \brief Return volume background value
      *
      */
-    typename T::ValueType backgroundValue() const
+    virtual typename T::ValueType backgroundValue() const
     {  return m_bgValue; }
 
     /** \brief Change every voxel value which satisfies the implicit function to the value given as parameter
@@ -103,8 +105,7 @@ namespace EspINA
     ///NOTE: Current implementation will expand the image
     ///      when drawing with value != 0
     virtual void draw(itkVolumeType::IndexType index,
-                      itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
-                      bool emitSignal = true) = 0;
+                      itkVolumeType::PixelType value = SEG_VOXEL_VALUE) = 0;
 
     /** \brief Resize the volume to the minimum bounds containing all non background values
      *
@@ -122,22 +123,14 @@ namespace EspINA
      */
     virtual void undo() = 0;
 
-    //TODO: Update to new storage model
-//     static QString cachePath(const QString &fileName)
-//     { return QString("%1/%2").arg(SegmentationVolume::TYPE).arg(fileName); }
-
-  protected:
-//     EditedVolumeRegionSList editedRegions() const = 0;
-// 
-//     void setEditedRegions(EditedVolumeRegionSList regions) = 0;
-
   private:
     typename T::ValueType m_bgValue;
 
     friend class Output;
   };
-  
-  
+
+  template<typename T>
+  const Data::Type VolumetricData<T>::VOLUMETRIC_TYPE = "VolumetricData";
 
 //   /// Get the vtk-equivalent extent defining the volume
 //   void extent(int out[6]) const = 0;
@@ -193,27 +186,6 @@ namespace EspINA
 // 
 //   VolumetricDataPtr  EspinaCore_EXPORT volumetricData(OutputPtr  output); //NOTE: Use viewitem??
 //   VolumetricDataSPtr EspinaCore_EXPORT volumetricData(OutputSPtr output);
-
-
-//     class EditedVolumeRegion
-//     : public Output::EditedRegion
-//     {
-//     public:
-//       EditedVolumeRegion(int id, const EspinaRegion &region)
-//       : EditedRegion(id, SegmentationVolume::TYPE, region){}
-// 
-//       virtual bool dump(QDir           cacheDir,
-//                         const QString &regionName,
-//                         Snapshot      &snapshot) const;
-// 
-//       itkVolumeType::Pointer Volume;
-//     };
-// 
-//     typedef boost::shared_ptr<EditedVolumeRegion> EditedVolumeRegionSPtr;
-//     typedef QList<EditedVolumeRegionSPtr>         EditedVolumeRegionSList;
-
-
-
 
     //bool collision(VolumetricDataSPtr volume) = 0;
 

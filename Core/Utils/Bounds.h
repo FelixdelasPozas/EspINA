@@ -30,6 +30,7 @@
 #define ESPINA_BOUNDS_H
 
 #include <iostream>
+#include <QList>
 
 namespace EspINA {
 
@@ -115,6 +116,8 @@ namespace EspINA {
     bool   m_lowerInclusion[3];
     bool   m_upperInclusion[3];
   };
+
+  using BoundsList = QList<Bounds>;
 
 
   /** \brief Return wether b1 intersects b2 or notice

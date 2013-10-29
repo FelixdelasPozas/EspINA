@@ -17,13 +17,20 @@
  *
  */
 
-// #include "VolumeRepresentation.h"
+#include "VolumetricData.h"
+
 // #include <itkMetaImageIO.h>
 // #include <itkImageFileWriter.h>
 // #include <QDir>
-// 
-// using namespace EspINA;
-// 
+
+using namespace EspINA;
+
+
+const Data::Type VOLUMETRIC_TYPE = "VolumetricData";
+
+// //----------------------------------------------------------------------------
+
+
 // typedef itk::ImageFileWriter<itkVolumeType> EspinaVolumeWriter;
 // 
 // //----------------------------------------------------------------------------

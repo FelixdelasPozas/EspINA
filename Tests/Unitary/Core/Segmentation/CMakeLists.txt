@@ -41,6 +41,7 @@ set(SUBJECT_SOURCES
   ${CORE_DIR}/Analysis/Classification.cpp
   ${CORE_DIR}/MultiTasking/Scheduler.cpp
   ${CORE_DIR}/MultiTasking/Task.cpp
+  ${CORE_DIR}/Utils/Bounds.cpp
  )
 
 set(LIB_DEPENDECIES

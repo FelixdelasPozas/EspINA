@@ -56,7 +56,11 @@ Snapshot Filter::saveSnapshot() const
 {
   Snapshot snapshot;
 
-  // TODO: Save output edited regions
+  foreach(OutputSPtr output, m_outputs)
+  {
+    snapshot << output->snapshot();
+  }
+  snapshot <<
 
   snapshot << saveFilterSnapshot();
 

@@ -27,7 +27,9 @@
 
 
 #include "Output.h"
-#include "Filter.h"
+
+#include "Core/Analysis/Filter.h"
+#include "Core/Analysis/DataProxy.h"
 
 #include <vtkMath.h>
 
@@ -47,6 +49,39 @@ Output::Output(FilterPtr filter, const Output::Id& id)
 
 }
 
+//----------------------------------------------------------------------------
+Snapshot Output::snapshot()
+{
+  Snapshot snapshot;
+
+  std::ostringstream stream;
+
+  foreach(DataProxySPtr dataProxy, m_data) 
+  {
+    DataSPtr data = dataProxy->get();
+
+    stream << data->type().toStdString() << " " << data->bounds() << "\n";
+    foreach(Bounds region, data->editedRegions())
+    {
+      stream << region << "\n";
+    }
+    stream << "\n";
+
+    if (m_hasToBeSaved)
+    {
+      snapshot << data->snapshot();
+    }
+    else
+    {
+      snapshot << data->editedRegionsSnapshot();
+    }
+  }
+
+  QString file = QString("Outputs/%1_%2.trc").arg(m_filter->uuid()).arg(m_id);
+  snapshot << SnapshotData(file, stream.str().c_str());
+
+  return snapshot;
+}
 
 //----------------------------------------------------------------------------
 Bounds Output::bounds() const
@@ -57,18 +92,21 @@ Bounds Output::bounds() const
 //----------------------------------------------------------------------------
 void Output::clearEditedRegions()
 {
-
+  foreach(DataProxySPtr data, m_data)
+  {
+    data->get()->clearEditedRegions();
+  }
 }
 
-void Output::dumpEditedRegions(const QString& prefix, Snapshot& snapshot)
-{
+// void Output::dumpEditedRegions(const QString& prefix, Snapshot& snapshot)
+// {
+// 
+// }
 
-}
-
-bool Output::dumpSnapshot(const QString& prefix, Snapshot& snapshot, bool saveEditedRegions)
-{
-
-}
+// bool Output::dumpSnapshot(const QString& prefix, Snapshot& snapshot, bool saveEditedRegions)
+// {
+// 
+// }
 
 // Output::EditedRegionSList Output::editedRegions() const
 // {
@@ -83,12 +121,12 @@ bool Output::isEdited() const
 bool Output::isValid() const
 {
   if (m_filter == nullptr) return false;
-  
+
   if (m_id == INVALID_OUTPUT_ID) return false;
-  
-  foreach(DataSPtr data, m_data) 
+
+  foreach(DataProxySPtr data, m_data) 
   {
-    if (!data->isValid()) return false;
+    if (!data->get()->isValid()) return false;
   }
 
   return !m_data.isEmpty();
@@ -99,35 +137,40 @@ void Output::onDataChanged()
 
 }
 
-void Output::push(Output::EditedRegionSList editedRegions)
+// void Output::restoreEditedRegions(const QDir& cacheDir, const QString& ouptutId)
+// {
+// 
+// }
+
+void Output::setData(Output::DataSPtr data)
 {
+  Data::Type type = data->type();
 
-}
-
-void Output::restoreEditedRegions(const QDir& cacheDir, const QString& ouptutId)
-{
-
-}
-
-void Output::setData(const Data::Type& type, Output::DataSPtr data)
-{
-  if (m_data.contains(type))
-  {
-//     disconnect(m_data[type].get(), SIGNAL(representationChanged()),
-//                this, SLOT(onRepresentationChanged()));
-  }
-
-  if (data.get()) {
-    m_data[type] = data;
-
-//     connect(m_representations[name].get(), SIGNAL(representationChanged()),
-//             this, SLOT(onRepresentationChanged()));
-  } else 
+  if (data.get())
   {
     m_data.remove(type);
-  }
+  } else
+  {
+    if (!m_data.contains(type))
+    {
+      m_data[type] = data->createProxy();
+    }
 
+    m_data[type]->set(data);
+    data->setOutput(this);
+  }
 }
+
+Output::DataSPtr Output::data(const Data::Type& type) const
+{
+  DataSPtr result;
+
+  if (m_data.contains(type))
+    result = m_data.value(type)->get();
+
+  return result;
+}
+
 
 // void Output::setEditedRegions(Output::EditedRegionSList regions)
 // {

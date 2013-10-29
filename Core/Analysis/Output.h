@@ -65,30 +65,20 @@ namespace EspINA
     Id id() const
     { return m_id; }
 
+    Snapshot snapshot();
+
     bool isValid() const;
 
     bool isEdited() const;
 
-    void push(EditedRegionSList editedRegions);
-
-    /// clear output's edited regions
     void clearEditedRegions();
 
-    /// dump output's edited regions information to snapshot
-    void dumpEditedRegions(const QString &prefix, Snapshot &snapshot);
+//     /// restore output's edited regions information from cache
+//     void restoreEditedRegions(const QDir &cacheDir, const QString &ouptutId);
 
-//     EditedRegionSList editedRegions() const;
+    void setData(DataSPtr data);
 
-    /// restore output's edited regions information from cache
-    void restoreEditedRegions(const QDir &cacheDir, const QString &ouptutId);
-
-//     /// replace current edited regions
-//     void setEditedRegions(EditedRegionSList regions);
-
-    void setData(const Data::Type& type, DataSPtr data);
-
-    DataSPtr data(const Data::Type& type) const
-    { return m_data.value(type, DataSPtr()); }
+    DataSPtr data(const Data::Type& type) const;
 
     /** \brief Request necessary pipeline execution to update this output
      *
@@ -100,8 +90,6 @@ namespace EspINA
 
     void markToSave(bool value)
     { m_hasToBeSaved = value; }
-
-    bool dumpSnapshot (const QString &prefix, Snapshot &snapshot, bool saveEditedRegions);
 
     // TODO: Representation may have different bounds, in which case,
     // this function will be needed to represent the bounding box of all those regions
@@ -132,23 +120,7 @@ namespace EspINA
     bool              m_hasToBeSaved;
     EditedRegionSList m_editedRegions;
 
-    QMap<Data::Type, DataSPtr> m_data;
-  };
-
-  class Output::EditedRegion
-  {
-  public:
-    EditedRegion(int id, const Data::Type& name, const Bounds& region)
-    : Id(id), Name(name), Region(region){}
-    virtual ~EditedRegion() {}
-
-    int Id;
-    Data::Type Name;
-    Bounds     Region;
-
-    virtual bool dump(QDir           cacheDir,
-                      const QString &regionName,
-                      Snapshot      &snapshot) const = 0;
+    QMap<Data::Type, DataProxySPtr> m_data;
   };
 
   using OutputIdList = QList<Output::Id>;

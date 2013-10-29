@@ -63,10 +63,15 @@ namespace EspINA
     void seed(Nm seed[3])const;
 
     void setVOI(const Bounds& bounds);
-    void setVOI(const BinaryMask<unsigned char>& mask);
-    BinaryMask<unsigned char> voi() const;
+
+    template<typename T>
+    void setVOI(const BinaryMask<T>& mask);
+
+    template<typename T>
+    BinaryMask<T> voi() const;
 
     void setClosingRadius(unsigned char value);
+
     unsigned char closingRadius();
 
     virtual OutputSPtr output(Output::Id id) const;

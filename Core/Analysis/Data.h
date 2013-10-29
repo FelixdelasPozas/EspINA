@@ -41,6 +41,9 @@ namespace EspINA
   class Data;
   using DataSPtr  = std::shared_ptr<Data>;
   using DataSList = QList<DataSPtr>;
+  
+  class DataProxy;
+  using DataProxySPtr = std::shared_ptr<DataProxy>;
 
   class EspinaCore_EXPORT Data
   : public QObject
@@ -57,33 +60,31 @@ namespace EspINA
 
     virtual Data::Type type() const = 0; 
 
-    void setOutput(OutputPtr output)
-    { m_output = output; }
+    virtual DataProxySPtr createProxy() const = 0;
 
     /** \brief Last modification time stamp
      */
-    TimeStamp lastModified()
+    virtual TimeStamp lastModified()
     { return m_timeStamp; }
 
-    virtual bool dumpSnapshot (const QString &prefix, Snapshot& snapshot) const = 0;
+    virtual BoundsList editedRegions() const
+    { return m_editedRegions; }
+
+    virtual void clearEditedRegions()
+    { m_editedRegions.clear(); }
+
+    virtual Snapshot snapshot() const = 0;
+
+    virtual Snapshot editedRegionsSnapshot() const = 0;
 
     virtual bool isValid() const = 0;
 
-    virtual Bounds bounds() = 0;
+    virtual Bounds bounds() const = 0;
 
-    virtual bool setInternalData(DataSPtr rhs) = 0;
+    bool isEdited() const
+    { return !editedRegions().isEmpty(); }
 
-    virtual void addEditedRegion(const Bounds& region, int cacheId = -1) = 0;
-
-    /// Whether output has been manually edited
-    virtual bool isEdited() const = 0;
-
-    virtual void clearEditedRegions() = 0;
-
-    /// Update output's edited region list
-    virtual void commitEditedRegions(bool withData) const = 0;
-
-    virtual void restoreEditedRegions(const QDir &cacheDir, const QString &outputId) = 0;
+//     virtual void restoreEditedRegions(const QDir &cacheDir, const QString &outputId) = 0;
 
   signals:
     void dataChanged();//former representationChanged
@@ -97,11 +98,19 @@ namespace EspINA
       m_timeStamp = s_tick++;
     }
 
+  private:
+    void setOutput(OutputPtr output)
+    { m_output = output; }
+
+
   protected:
-    OutputPtr m_output;
+    OutputPtr  m_output;
+    BoundsList m_editedRegions;
 
   private:
     TimeStamp m_timeStamp;
+    
+    friend class Output;
   };
 
 } // namespace EspINA
