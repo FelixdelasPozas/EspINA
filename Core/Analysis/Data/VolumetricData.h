@@ -32,13 +32,19 @@ namespace EspINA
 
   template<typename T>
   class EspinaCore_EXPORT VolumetricData
+  //: public Data
   {
   public:
+    //static Type TYPE;
+
     using itkImageSPtr = typename T::Pointer;
 
   public:
     explicit VolumetricData(){}
     virtual ~VolumetricData() {}
+
+//     virtual Type type() const
+//     { return TYPE; }
 
     /** \brief Return memory usage in MB
      *

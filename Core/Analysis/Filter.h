@@ -77,7 +77,7 @@ namespace EspINA
      *   If there is no output with given oId, nullptr will be returned
      *
      */
-    //NOTE: Is still abstract?
+    //NOTE: Is it still abstract?
     virtual OutputSPtr output(Output::Id id) const = 0;
 
     // TODO 2013-11-17: Move to utils or sth similar
