@@ -26,44 +26,30 @@
  * 
  */
 
-#include "Core/Analysis/Sample.h"
+#ifndef ESPINA_SPATIAL_H
+#define ESPINA_SPATIAL_H
 
-using namespace EspINA;
-using namespace std;
+#include <iostream>
+#include <QList>
 
-int sample_set_position( int argc, char** argv )
-{
-  bool error = false;
-  
-  Sample sample;
-  
-  Bounds bounds{0, 10, 0, 10, 0, 10};
-  sample.setBounds(bounds);
+namespace EspINA {
 
-  NmVector3 origin = sample.position();
+  enum class Axis { X=0, Y=1, Z=2 };
 
-  for (int i = 0; i < 3; ++i) {
-    if (origin[i] != 0) {
-      cerr << "Unexpected original position " << i << ":" << origin[i] << endl;
-      error = true;
-    }
+  constexpr int idx(const Axis axis) {
+    return axis == Axis::X? 0:(axis == Axis::Y?1:2);
   }
 
-  Bounds translatedBounds{10, 20, 10, 20, 10, 20};
- 
-  NmVector3 translatedOrigin{10, 10, 10};
-
-  sample.setPosition(translatedOrigin);
-
-  origin = sample.position();
-
-  for (int i = 0; i < 3; ++i) {
-    if (origin[i] != 10) {
-      cerr << "Unexpected translated position " << i << ":" << origin[i] << endl;
-      error = true;
-    }
+  constexpr Axis toAxis(int i) {
+    return i == 0?Axis::X:(i == 1?Axis::Y:Axis::Z);
   }
 
+  enum class Plane { XY, YZ, XZ };
 
-  return error;
+  constexpr int idx(const Plane plane) {
+    return plane == Plane::XY? 2:(plane == Plane::YZ?0:1);
+  }
 }
+
+
+#endif // ESPINA_SPATIAL_H

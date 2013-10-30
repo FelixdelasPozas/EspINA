@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
+    Copyright (C) 2011  Jorge Peña <jorge.pena.pastor@gmail.com>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,24 +17,25 @@
 */
 
 
-#ifndef FILTER_CREATOR_H
-#define FILTER_CREATOR_H
+#ifndef ESPINA_EXTENSION_PROVIDER_FACTORY_H
+#define ESPINA_EXTENSION_PROVIDER_FACTORY_H
 
 #include "EspinaCore_Export.h"
 
-#include "Core/Analysis/Filter.h"
-#include "Core/Analysis/Output.h"
+#include "Core/Analysis/Extensions/ExtensionProvider.h"
 
 namespace EspINA
 {
-  class EspinaCore_EXPORT FilterCreator
+  class EspinaCore_EXPORT ExtensionProviderFactory
   {
   public:
-    virtual ~FilterCreator();
+    virtual ~ExtensionProviderFactory() {}
 
-    virtual FilterSPtr createFilter(OutputSList inputs, const Filter::Type &filter) = 0;
+    virtual ExtensionProviderSPtr createExtensionProvider(const ExtensionProvider::Type provider) const = 0;
   };
+
+  using ExtensionProviderFactoryPtr = ExtensionProviderFactory *;
 
 }// namespace EspINA
 
-#endif // FILTER_CREATOR_H
+#endif // ESPINA_EXTENSION_PROVIDER_FACTORY_H

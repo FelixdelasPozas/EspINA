@@ -26,44 +26,50 @@
  * 
  */
 
-#include "Core/Analysis/Sample.h"
+#ifndef ESPINA_NM_VECTOR_3_H
+#define ESPINA_NM_VECTOR_3_H
 
-using namespace EspINA;
-using namespace std;
+#include "Core/Utils/Spatial.h"
 
-int sample_set_position( int argc, char** argv )
-{
-  bool error = false;
-  
-  Sample sample;
-  
-  Bounds bounds{0, 10, 0, 10, 0, 10};
-  sample.setBounds(bounds);
+#include <iostream>
+#include <QList>
 
-  NmVector3 origin = sample.position();
+namespace EspINA {
 
-  for (int i = 0; i < 3; ++i) {
-    if (origin[i] != 0) {
-      cerr << "Unexpected original position " << i << ":" << origin[i] << endl;
-      error = true;
-    }
-  }
+  using Nm = double;
 
-  Bounds translatedBounds{10, 20, 10, 20, 10, 20};
- 
-  NmVector3 translatedOrigin{10, 10, 10};
+  /** \brief Set of values defining a point in the 3D space
+   * 
+   */
+  class NmVector3 {
+  public:
+    struct Wrong_number_initial_values {};
 
-  sample.setPosition(translatedOrigin);
+  public:
+    NmVector3();
 
-  origin = sample.position();
-
-  for (int i = 0; i < 3; ++i) {
-    if (origin[i] != 10) {
-      cerr << "Unexpected translated position " << i << ":" << origin[i] << endl;
-      error = true;
-    }
-  }
+    /** \brief Create a vector from an initial list of values
+     *
+     */
+    NmVector3(std::initializer_list<Nm> values);
 
 
-  return error;
+    Nm& operator[](int idx) { return m_values[idx]; }
+    const Nm& operator[](int idx) const { return m_values[idx]; }
+
+    Nm& operator[](const Axis dir) { return m_values[idx(dir)]; }
+    const Nm& operator[](const Axis dir) const { return m_values[idx(dir)]; }
+
+  private:
+    Nm m_values[3];
+  };
+
+  std::ostream& operator<<(std::ostream& os, const NmVector3& values);
+
+  bool operator==(const NmVector3& lhs, const NmVector3& rhs);
+
+  bool operator!=(const NmVector3& lhs, const NmVector3& rhs);
 }
+
+
+#endif // ESPINA_NM_VECTOR_3_H

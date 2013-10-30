@@ -60,7 +60,6 @@ Snapshot Filter::saveSnapshot() const
   {
     snapshot << output->snapshot();
   }
-  snapshot <<
 
   snapshot << saveFilterSnapshot();
 

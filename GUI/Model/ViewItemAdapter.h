@@ -28,14 +28,14 @@
 
 namespace EspINA {
 
-  class FilterAdapter;
-  using FilterAdapterSPtr = std::shared_ptr<FilterAdapter>;
+  class FilterAdapterInterface;
+  using FilterAdapterSPtr = std::shared_ptr<FilterAdapterInterface>;
 
   class EspinaGUI_EXPORT ViewItemAdapter
   : public ItemAdapter
   {
   public:
-    virtual ~ViewItemAdapter();
+    virtual ~ViewItemAdapter(){}
 
     bool isSelected() const
     {return m_isSelected;}
@@ -70,7 +70,8 @@ namespace EspINA {
 //     void outputModified();
 // 
   protected:
-    explicit ViewItemAdapter(ViewItemSPtr item){}
+    explicit ViewItemAdapter(ViewItemSPtr item)
+    : m_viewItem{item} {}
 
   protected:
     ViewItemSPtr m_viewItem;

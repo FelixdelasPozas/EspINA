@@ -127,7 +127,7 @@ endif()
 
 
 add_subdirectory( Core    )
-#add_subdirectory( GUI     )
+add_subdirectory( GUI     )
 add_subdirectory( Filters )
 #add_subdirectory( Undo    )
 #add_subdirectory( App     )

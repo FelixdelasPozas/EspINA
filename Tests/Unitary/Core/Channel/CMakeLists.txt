@@ -32,6 +32,7 @@ add_executable(Channel_Tests
   ${Channel_Tests}
   ${SUBJECT_MOCS}
   ${CORE_DIR}/Utils/Bounds.cpp
+  ${CORE_DIR}/Utils/NmVector3.cpp
   ${CORE_DIR}/Analysis/Channel.cpp
   ${CORE_DIR}/Analysis/Filter.cpp
   ${CORE_DIR}/Analysis/Output.cpp

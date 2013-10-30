@@ -38,7 +38,7 @@ namespace EspINA
   : public Data
   {
   public:
-    static const Data::Type VOLUMETRIC_TYPE;
+    static const Data::Type TYPE;
 
     using itkImageSPtr = typename T::Pointer;
 
@@ -47,7 +47,7 @@ namespace EspINA
     virtual ~VolumetricData() {}
 
     virtual Data::Type type() const
-    { return VOLUMETRIC_TYPE; }
+    { return TYPE; }
 
     virtual DataProxySPtr createProxy() const
     { return DataProxySPtr{new VolumetricDataProxy<T>()}; }
@@ -130,7 +130,7 @@ namespace EspINA
   };
 
   template<typename T>
-  const Data::Type VolumetricData<T>::VOLUMETRIC_TYPE = "VolumetricData";
+  const Data::Type VolumetricData<T>::TYPE = "VolumetricData";
 
 //   /// Get the vtk-equivalent extent defining the volume
 //   void extent(int out[6]) const = 0;

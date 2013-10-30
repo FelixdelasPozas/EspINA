@@ -21,9 +21,11 @@
 
 #include "EspinaGUI_Export.h"
 
-#include "GUI/Model/SampleAdapter.h"
-
 #include <QAbstractItemModel>
+
+#include "GUI/Model/SampleAdapter.h"
+#include "GUI/Model/ChannelAdapter.h"
+#include "GUI/Model/ClassificationAdapter.h"
 
 namespace EspINA
 {
@@ -37,7 +39,6 @@ namespace EspINA
 
   class Analysis;
   using AnalysisSPtr = std::shared_ptr<Analysis>;
-
 
   /**
   *
@@ -71,7 +72,7 @@ namespace EspINA
     explicit ModelAdapter(AnalysisSPtr analysis);
     virtual ~ModelAdapter();
 
-    void setAnalysis(AnalysisSPtr analysis);
+   // void setAnalysis(AnalysisSPtr analysis); ==> external function
 
     void reset();
 
@@ -91,60 +92,60 @@ namespace EspINA
 
     // Special Nodes of the model to refer different roots
     QModelIndex classificationRoot() const;
-    QModelIndex categoryIndex(CategoryPtr  category) const;
-    QModelIndex categoryIndex(CategorySPtr category) const;
+    QModelIndex categoryIndex(CategoryAdapterPtr  category) const;
+    QModelIndex categoryIndex(CategoryAdapterSPtr category) const;
 
     QModelIndex sampleRoot() const;
-    QModelIndex sampleIndex(SampleItemPtr  sample) const;
+    QModelIndex sampleIndex(SampleAdapterPtr  sample) const;
     QModelIndex sampleIndex(SampleAdapterSPtr sample) const;
 
     QModelIndex channelRoot() const;
-    QModelIndex channelIndex(ChannelPtr  channel) const;
-    QModelIndex channelIndex(ChannelSPtr channel) const;
+    QModelIndex channelIndex(ChannelAdapterPtr  channel) const;
+    QModelIndex channelIndex(ChannelAdapterSPtr channel) const;
 
     QModelIndex segmentationRoot() const;
-    QModelIndex segmentationIndex(SegmentationPtr  segmentation) const;
-    QModelIndex segmentationIndex(SegmentationSPtr segmentation) const;
+    QModelIndex segmentationIndex(SegmentationAdapterPtr  segmentation) const;
+    QModelIndex segmentationIndex(SegmentationAdapterSPtr segmentation) const;
 
     // Classification
-    void setClassification(ClassificationSPtr classification);
+    void setClassification(ClassificationAdapterSPtr classification);
 
-    const ClassificationSPtr classification() const;
+    const ClassificationAdapterSPtr classification() const;
 
-    CategorySPtr createCategory(const QString& name, CategoryPtr  parent=nullptr);
-    CategorySPtr createCategory(const QString& name, CategorySPtr parent=CategorySPtr());
+    CategoryAdapterSPtr createCategory(const QString& name, CategoryAdapterPtr  parent=nullptr);
+    CategoryAdapterSPtr createCategory(const QString& name, CategoryAdapterSPtr parent=CategoryAdapterSPtr());
 
-    void addCategory   (CategorySPtr category, CategorySPtr parent);
-    void removeCategory(CategorySPtr category, CategorySPtr parent);
+    void addCategory   (CategoryAdapterSPtr category, CategoryAdapterSPtr parent);
+    void removeCategory(CategoryAdapterSPtr category, CategoryAdapterSPtr parent);
 
     //TODO 2013-10-21: Throw exception if they don't belong to the same classification
-    void reparentCategory(CategorySPtr category, CategorySPtr parent);
+    void reparentCategory(CategoryAdapterSPtr category, CategoryAdapterSPtr parent);
 
     void add(SampleAdapterSPtr        sample);
     void add(SampleAdapterSList       samples);
     void add(ChannelSPtr       channel);
     void add(ChannelSList      channels);
-    void add(SegmentationSPtr  segmentation);
-    void add(SegmentationSList segmentations);
+    void add(SegmentationAdapterSPtr  segmentation);
+    void add(SegmentationAdapterSList segmentations);
 
     void remove(SampleAdapterSPtr        sample);
     void remove(SampleAdapterSList       samples);
     void remove(ChannelSPtr       channel);
     void remove(ChannelSList      channels);
-    void remove(SegmentationSPtr  segmentation);
-    void remove(SegmentationSList segmentations);
+    void remove(SegmentationAdapterSPtr  segmentation);
+    void remove(SegmentationAdapterSList segmentations);
 
     SampleAdapterSList samples() const
     { return m_samples; }
 
-    ChannelSList channels() const
+    ChannelAdapterSList channels() const
     { return m_channels; }
 
-    SegmentationSList segmentations() const
+    SegmentationAdapterSList segmentations() const
     { return m_segmentations; }
 
-    void setSegmentationCategory(SegmentationSPtr segmentation,
-                                 CategorySPtr     category);
+    void setSegmentationCategory(SegmentationAdapterSPtr segmentation,
+                                 CategoryAdapterSPtr     category);
 
 
     void addRelation(ItemAdapterSPtr     ancestor,
@@ -169,8 +170,8 @@ namespace EspINA
 //     //---------------------------------------------------------------------------
 //     virtual ModelItemSPtr find(ModelItemPtr item);
 // 
-//     virtual CategorySPtr findCategory(ModelItemPtr       item           );
-//     virtual CategorySPtr findCategory(CategoryPtr taxonomyElement);
+//     virtual CategoryAdapterSPtr findCategory(ModelItemPtr       item           );
+//     virtual CategoryAdapterSPtr findCategory(CategoryAdapterPtr taxonomyElement);
 // 
 //     virtual SampleAdapterSPtr findSampleAdapter(ModelItemPtr item  );
 //     virtual SampleAdapterSPtr findSampleAdapter(SampleAdapterPtr    sample);
@@ -178,14 +179,14 @@ namespace EspINA
 //     virtual ChannelSPtr findChannel(ModelItemPtr item   );
 //     virtual ChannelSPtr findChannel(ChannelPtr   channel);
 // 
-//     virtual SegmentationSPtr findSegmentation(ModelItemPtr    item        );
-//     virtual SegmentationSPtr findSegmentation(SegmentationPtr segmentation);
+//     virtual SegmentationAdapterSPtr findSegmentation(ModelItemPtr    item        );
+//     virtual SegmentationAdapterSPtr findSegmentation(SegmentationAdapterPtr segmentation);
 // 
 //     virtual FilterSPtr findFilter(ModelItemPtr item  );
 //     virtual FilterSPtr findFilter(FilterPtr    filter);
 
     // signal emission methods, used by undo commands to signal finished operations.
-    void emitSegmentationAdded(SegmentationSList);
+    void emitSegmentationAdded(SegmentationAdapterSList);
     void emitChannelAdded(ChannelSList);
 
   signals:
@@ -198,49 +199,39 @@ namespace EspINA
     void channelAdded  (ChannelSPtr channel);
     void channelRemoved(ChannelSPtr channel);
 
-    void segmentationAdded  (SegmentationSPtr segmentations);
-    void segmentationRemoved(SegmentationSPtr segmentations);
-
-    void filterAdded  (FilterSPtr filter);
-    void filterRemoved(FilterSPtr filter);
+    void segmentationAdded  (SegmentationAdapterSPtr segmentations);
+    void segmentationRemoved(SegmentationAdapterSPtr segmentations);
 
   private slots:
     void itemModified(ModelItemPtr item);
 
   private:
-    void addClassification(CategorySPtr root);
-
-    void addSampleAdapterImplementation   (SampleAdapterSPtr sample);
-    void removeSampleAdapterImplementation(SampleAdapterSPtr sample);
-
-    void addChannelImplementation   (ChannelSPtr channel);
-    void removeChannelImplementation(ChannelSPtr channel);
-
-    void addSegmentationImplementation   (SegmentationSPtr segmentation);
-    void removeSegmentationImplementation(SegmentationSPtr segmentation);
-
-    void addFilterImplementation   (FilterSPtr filter);
-    void removeFilterImplementation(FilterSPtr filter);
+//     void addClassification(CategoryAdapterSPtr root);
+// 
+//     void addSampleAdapterImplementation   (SampleAdapterSPtr sample);
+//     void removeSampleAdapterImplementation(SampleAdapterSPtr sample);
+// 
+//     void addChannelImplementation   (ChannelSPtr channel);
+//     void removeChannelImplementation(ChannelSPtr channel);
+// 
+//     void addSegmentationImplementation   (SegmentationAdapterSPtr segmentation);
+//     void removeSegmentationImplementation(SegmentationAdapterSPtr segmentation);
+// 
+//     void addFilterImplementation   (FilterSPtr filter);
+//     void removeFilterImplementation(FilterSPtr filter);
 
   private:
-    EspinaFactory *m_factory;
-
-    ChannelSList      m_channels;
-    FilterSList       m_filters;
-    SampleAdapterSList       m_samples;
-    SegmentationSList m_segmentations;
-    ClassificationSPtr      m_classification;
-
-    QList<QDir>          m_tmpDirs;
-    RelationshipGraphPtr m_relations;
-
-    unsigned int m_lastId;
-    bool         m_changed;
-    bool         m_isTraceable;
+    SampleAdapterSList        m_samples;
+    ChannelAdapterSList       m_channels;
+    FilterAdapterSList        m_filters;
+    SegmentationAdapterSList  m_segmentations;
+    ClassificationAdapterSPtr m_classification;
   };
 
-  typedef ModelAdapter *               EspinaModelPtr;
-  typedef boost::shared_ptr<ModelAdapter> EspinaModelSPtr;
+  using ModelAdapterPtr  = ModelAdapter *;
+  using ModelAdapterSPtr = std::shared_ptr<ModelAdapter>;
+
+  //ItemAdapterPtr EspinaGUI_EXPORT itemAdapter(const QModelIndex &index);
 
 } // namespace EspINA
 

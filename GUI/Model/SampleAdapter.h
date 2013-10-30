@@ -16,44 +16,34 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef ESPINA_SAMPLE_H
-#define ESPINA_SAMPLE_H
+#ifndef ESPINA_SAMPLE_ADAPTER_H
+#define ESPINA_SAMPLE_ADAPTER_H
 
-#include "EspinaCore_Export.h"
-
-#include "Core/EspinaTypes.h"
-
-#include "Core/Utils/Bounds.h"
+#include "GUI/Model/ItemAdapter.h"
 #include <Core/Utils/NmVector3.h>
-#include "Core/Analysis/Persistent.h"
+#include <Core/Utils/Bounds.h>
 
 namespace EspINA
 {
-  using SampleSList = QList<SampleSPtr>;
-
   /** \brief Sample 
    * 
    */
-  class EspinaCore_EXPORT Sample
-  : public Persistent
+  class EspinaGUI_EXPORT SampleAdapter
+  : public ItemAdapter
   {
   public:
-    explicit Sample(const QString& name=QString());
-    virtual ~Sample();
+    virtual ~SampleAdapter();
 
-    virtual void restoreState(const State& state);
+    virtual QVariant data(int role = Qt::DisplayRole) const;
 
-    virtual void saveState(State& state) const;
+    virtual bool setData(const QVariant& value, int role = Qt::UserRole +1);
 
-    virtual Snapshot saveSnapshot() const;
+    virtual ItemAdapter::Type type() const
+    { return Type::SAMPLE; }
 
-    virtual void unload();
+    void setName(const QString& name);
 
-    void setName(const QString& name)
-    { m_name = name; }
-
-    QString name() const
-    { return m_name; }
+    QString name() const;
 
     void setPosition(const NmVector3& point);
 
@@ -61,18 +51,25 @@ namespace EspINA
 
     /** \brief Set the spatial bounds in nm of the Sample in the Analysis frame reference
      */
-    void setBounds(const Bounds& bounds)
-    { m_bounds = bounds; }
+    void setBounds(const Bounds& bounds);
 
     /** \brief Return the spatial bounds in nm of the Sample in the Analysis frame reference
      */
-    Bounds bounds() const
-    { return m_bounds; }
+    Bounds bounds() const;
 
   private:
-    QString m_name;
-    Bounds  m_bounds;
+    explicit SampleAdapter(SampleSPtr sample);
+
+  private:
+    SampleSPtr m_sample;
+
+    friend class ModelFactory;
+    friend class ModelAdapter;
   };
+
+  using SampleAdapterPtr   = SampleAdapter *;
+  using SampleAdapterSPtr  = std::shared_ptr<SampleAdapter>;
+  using SampleAdapterSList = QList<SampleAdapterSPtr>;
 }// namespace EspINA
 
-#endif // ESPINA_SAMPLE_H
+#endif // ESPINA_SAMPLE_ADAPTER_H

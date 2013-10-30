@@ -33,6 +33,7 @@
 
 #include "Core/EspinaTypes.h"
 #include "Core/Analysis/Data.h"
+#include <Core/Utils/NmVector3.h>
 
 #include <QMap>
 
@@ -64,6 +65,12 @@ namespace EspINA
 
     Id id() const
     { return m_id; }
+
+    void setSpacing(const NmVector3& spacing)
+    { m_spacing = spacing; }
+
+    NmVector3 spacing() const
+    { return m_spacing; }
 
     Snapshot snapshot();
 
@@ -114,6 +121,7 @@ namespace EspINA
 
     FilterPtr m_filter;
     Id        m_id;
+    NmVector3 m_spacing;
 
     TimeStamp m_timeStamp;
 

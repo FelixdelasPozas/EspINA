@@ -26,44 +26,56 @@
  * 
  */
 
-#include "Core/Analysis/Sample.h"
+#include "NmVector3.h"
 
 using namespace EspINA;
-using namespace std;
 
-int sample_set_position( int argc, char** argv )
+//-----------------------------------------------------------------------------
+NmVector3::NmVector3()
+: m_values{0, 0, 0}
 {
-  bool error = false;
-  
-  Sample sample;
-  
-  Bounds bounds{0, 10, 0, 10, 0, 10};
-  sample.setBounds(bounds);
+}
 
-  NmVector3 origin = sample.position();
+//-----------------------------------------------------------------------------
+NmVector3::NmVector3(std::initializer_list<Nm> values)
+{
+  int i = 0;
+  if (values.size() != 3) throw Wrong_number_initial_values();
 
+  for (auto v=values.begin(); v!=values.end(); ++v, ++i) {
+        m_values[i] = *v;
+  }
+}
+
+//-----------------------------------------------------------------------------
+std::ostream& EspINA::operator<<(std::ostream& os, const NmVector3& values)
+{
+  os << "{";
+  int i = 0;
+  for (auto axis : {Axis::X , Axis::Y, Axis::Z}) {
+    if (i > 0) {os << ",";}
+    os << values[i];
+    i += 1;
+  }
+  os << "}";
+
+  return os;
+}
+
+
+
+//-----------------------------------------------------------------------------
+bool EspINA::operator==(const NmVector3 &lhs, const NmVector3 &rhs)
+{
   for (int i = 0; i < 3; ++i) {
-    if (origin[i] != 0) {
-      cerr << "Unexpected original position " << i << ":" << origin[i] << endl;
-      error = true;
-    }
+    if (lhs[i] != rhs[i]) return false;
   }
 
-  Bounds translatedBounds{10, 20, 10, 20, 10, 20};
- 
-  NmVector3 translatedOrigin{10, 10, 10};
+  return true;
+}
 
-  sample.setPosition(translatedOrigin);
-
-  origin = sample.position();
-
-  for (int i = 0; i < 3; ++i) {
-    if (origin[i] != 10) {
-      cerr << "Unexpected translated position " << i << ":" << origin[i] << endl;
-      error = true;
-    }
-  }
-
-
-  return error;
+//-----------------------------------------------------------------------------
+bool EspINA::operator!=(const NmVector3 &lhs, const NmVector3 &rhs)
+{
+  return !(lhs == rhs);
 }

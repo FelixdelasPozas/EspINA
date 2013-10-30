@@ -48,15 +48,13 @@ namespace EspINA
       SAMPLE,
       CHANNEL,
       SEGMENTATION,
+      CLASSIFICATION,
       CATEGORY
     };
 
     Q_OBJECT
   public:
-    explicit ItemAdapter() {}
     virtual ~ItemAdapter(){}
-
-    //bool operator==();
 
     virtual QVariant data(int role=Qt::DisplayRole) const = 0;
 
@@ -76,9 +74,6 @@ namespace EspINA
 
     friend class ModelAdapter;
   };
-
-  //ItemAdapterPtr EspinaGUI_EXPORT indexPtr(const QModelIndex &index);
-
 } // EspINA
 
 #endif // ESPINA_ITEM_ADAPTER_H

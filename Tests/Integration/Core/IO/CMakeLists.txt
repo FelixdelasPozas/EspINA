@@ -30,6 +30,7 @@ add_executable(IO_Tests
   ${CORE_DIR}/IO/SegFile_V5.cpp
   ${CORE_DIR}/IO/GraphIO.cpp
   ${CORE_DIR}/Utils/Bounds.cpp
+  ${CORE_DIR}/Utils/NmVector3.cpp
   ${CORE_DIR}/Analysis/Analysis.cpp
   ${CORE_DIR}/Analysis/Category.cpp
   ${CORE_DIR}/Analysis/Classification.cpp

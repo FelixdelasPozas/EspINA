@@ -20,68 +20,82 @@
 
 #include "Core/Analysis/Sample.h"
 #include "Core/Analysis/Channel.h"
+#include <Core/Analysis/Segmentation.h>
 
 using namespace EspINA;
 
 //------------------------------------------------------------------------
 CoreFactory::CoreFactory()
 {
-
 }
 
 //-----------------------------------------------------------------------------
 CoreFactory::~CoreFactory()
 {
-
 }
 
 //-----------------------------------------------------------------------------
-void CoreFactory::registerFilter(FilterCreatorPtr creator, const Filter::Type& filter)
+void CoreFactory::registerFilter(FilterFactoryPtr factory, const Filter::Type& filter)
+throw (Factory_Already_Registered_Exception)
 {
+  if (m_filterFactories.contains(filter)) throw Factory_Already_Registered_Exception();
 
+  m_filterFactories[filter] = factory;
+}
+
+
+//-----------------------------------------------------------------------------
+void CoreFactory::registerExtensionProvider(ExtensionProviderFactoryPtr factory, const ExtensionProvider::Type& provider)
+throw (Factory_Already_Registered_Exception)
+{
+  if (m_providerFactories.contains(provider)) throw Factory_Already_Registered_Exception();
+
+  m_providerFactories[provider] = factory;
 }
 
 //-----------------------------------------------------------------------------
 SampleSPtr CoreFactory::createSample(const QString& name) const
 {
-  return SampleSPtr(new Sample(name));
+  return SampleSPtr{new Sample(name)};
 }
 
 //-----------------------------------------------------------------------------
-FilterSPtr CoreFactory::createFilter(OutputSList inputs, Filter::Type& filter) const
+FilterSPtr CoreFactory::createFilter(OutputSList inputs, const Filter::Type& filter) const
+throw (Unknown_Type_Exception)
 {
-
+  if (m_filterFactories.contains(filter))
+  {
+    return m_filterFactories[filter]->createFilter(inputs, filter);
+  } else
+  {
+    throw Unknown_Type_Exception();
+  }
 }
+
 
 //-----------------------------------------------------------------------------
 EspINA::ChannelSPtr CoreFactory::createChannel(FilterSPtr filter, Output::Id output) const
 {
-  return ChannelSPtr(new Channel(filter, output));
+  return ChannelSPtr{new Channel(filter, output)};
 }
 
 //-----------------------------------------------------------------------------
-SegmentationSPtr CoreFactory::createSegmentation(OutputSPtr output) const
+EspINA::SegmentationSPtr CoreFactory::createSegmentation(FilterSPtr filter, Output::Id output) const
 {
-
+  return SegmentationSPtr{new Segmentation(filter, output)};
 }
 
 //-----------------------------------------------------------------------------
-void CoreFactory::registerExtensionProvider(ExtensionProviderPtr provider)
+ExtensionProviderSPtr CoreFactory::createExtensionProvider(const ExtensionProvider::Type provider) const
+throw (Unknown_Type_Exception)
 {
-
-}
-
-//-----------------------------------------------------------------------------
-void CoreFactory::unregisterExtensionProvider(ExtensionProviderPtr provider)
-{
-
-}
-
-
-//-----------------------------------------------------------------------------
-ExtensionProviderPtr CoreFactory::extensionProvider(const ExtensionProvider::Type& type) const
-{
-
+  if (m_providerFactories.contains(provider))
+  {
+    return m_providerFactories[provider]->createExtensionProvider(provider);
+  } else
+  {
+    throw Unknown_Type_Exception();
+  }
 }
 
 // //------------------------------------------------------------------------

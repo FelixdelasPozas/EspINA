@@ -23,7 +23,6 @@
 #include "GUI/Model/ViewItemAdapter.h"
 
 #include <Core/Analysis/Extensions/ChannelExtension.h>
-#include <Core/Utils/Bounds.h>
 
 namespace EspINA
 {
@@ -41,9 +40,9 @@ namespace EspINA
     virtual ItemAdapter::Type type() const
     { return Type::CHANNEL; }
 
-    void setPosition(Nm point[3]);
+    void setPosition(const NmVector3& point);
 
-    void position(Nm point[3]);
+    NmVector3 position() const;
 
     /** \brief Set channel's hue
      *
@@ -135,8 +134,7 @@ namespace EspINA
     ChannelExtensionSPtr extension(const ChannelExtension::Type& type);
 
   protected:
-    virtual PersistentSPtr item() const
-    { return m_channel; }
+    virtual PersistentSPtr item() const;
 
   private:
     explicit ChannelAdapter(ChannelSPtr channel);
@@ -147,6 +145,10 @@ namespace EspINA
     friend class ModelFactory;
     friend class ModelAdapter;
   };
+
+  using ChannelAdapterPtr   = ChannelAdapter *;
+  using ChannelAdapterSPtr  = std::shared_ptr<ChannelAdapter>;
+  using ChannelAdapterSList = QList<ChannelAdapterSPtr>;
 }// namespace EspINA
 
 #endif // CHANNEL_H

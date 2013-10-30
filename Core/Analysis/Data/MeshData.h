@@ -17,50 +17,40 @@
  *
  */
 
-#ifndef MESHTYPE_H
-#define MESHTYPE_H
+#ifndef ESPINA_MESH_DATA_H
+#define ESPINA_MESH_DATA_H
 
 #include "EspinaCore_Export.h"
 
-#include <Core/Model/OutputRepresentation.h>
+#include "Core/Analysis/Data.h"
+
+#include <vtkSmartPointer.h>
+#include <vtkPolyData.h>
 
 namespace EspINA
 {
-  class EspinaCore_EXPORT MeshRepresentation
-  : public SegmentationRepresentation
+  class EspinaCore_EXPORT MeshData
+  : public Data
   {
   public:
-    static const FilterOutput::OutputRepresentationName TYPE;
+    static const Data::Type TYPE;
 
   public:
-    explicit MeshRepresentation(itkVolumeType::SpacingType spacing, FilterOutput *output = NULL)
-    : SegmentationRepresentation(output)
-    , m_spacing(spacing) {}
+    explicit MeshData() {}
 
-    virtual FilterOutput::OutputRepresentationName type() const
+    virtual Data::Type type() const
     { return TYPE; }
 
-    virtual EspinaRegion representationBounds();
+    virtual DataProxySPtr createProxy() const
+    {}
 
-    virtual void addEditedRegion(const EspinaRegion &region, int cacheId = -1) {}
-
-    virtual vtkAlgorithmOutput *mesh() = 0;
-
-    itkVolumeType::SpacingType spacing() const
-    { return m_spacing; }
-
-  protected:
-    static QString cachePath(const QString &fileName)
-    { return QString("%1/%2").arg(MeshRepresentation::TYPE).arg(fileName); }
-
-  protected:
-    itkVolumeType::SpacingType m_spacing;
+    virtual vtkSmartPointer<vtkPolyData> mesh() = 0;
   };
 
-  typedef boost::shared_ptr<MeshRepresentation> MeshRepresentationSPtr;
+  using MeshDataSPtr = std::shared_ptr<MeshData>;
 
-  MeshRepresentationSPtr EspinaCore_EXPORT meshRepresentation(OutputSPtr             output);
-  MeshRepresentationSPtr EspinaCore_EXPORT meshRepresentation(SegmentationOutputSPtr output);
+  MeshDataSPtr EspinaCore_EXPORT meshRepresentation(OutputSPtr output);
+
 } // namespace EspINA
 
-#endif // MESHTYPE_H
+#endif // ESPINA_MESH_DATA_H

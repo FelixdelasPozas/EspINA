@@ -7,6 +7,7 @@
 #include <QList>
 //#define QT_SHAREDPOINTER_TRACK_POINTERS
 #include <QSet>
+#include <QVector3D>
 
 namespace EspINA
 {

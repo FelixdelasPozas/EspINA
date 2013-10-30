@@ -28,7 +28,7 @@ set (CORE_SOURCES
   Analysis/Segmentation.cpp
   Analysis/Storage.cpp
   Analysis/ViewItem.cpp
-  CoreFactory.cpp
+  Factory/CoreFactory.cpp
   IO/ClassificationXML.cpp
   IO/SegFile.cpp
   IO/SegFile_V4.cpp
@@ -37,6 +37,7 @@ set (CORE_SOURCES
   MultiTasking/Scheduler.cpp
   MultiTasking/Task.cpp
   Utils/Bounds.cpp
+  Utils/NmVector3.cpp
   Utils/BinaryMask.cpp
   )
 

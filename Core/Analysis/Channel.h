@@ -63,9 +63,9 @@ namespace EspINA
 
     virtual void invalidateExtensions();
 
-    void setPosition(Nm point[3]);
+    void setPosition(const NmVector3& point);
 
-    void position(Nm point[3]);
+    NmVector3 position() const;
 
     /** \brief Set channel's hue
      *

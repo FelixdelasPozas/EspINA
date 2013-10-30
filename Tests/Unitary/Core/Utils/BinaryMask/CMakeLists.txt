@@ -7,7 +7,7 @@ create_test_sourcelist(BinaryMask_Tests BinaryMask_Tests.cpp # this file is crea
   binaryMask_region_iterator.cpp
   binaryMask_region_const_iterator.cpp
   binaryMask_itkImage_dump.cpp
-  #binaryMask_itkImage_constructor.cpp
+  binaryMask_itkImage_constructor.cpp
 )
 
 set(LIB_DEPENDECIES

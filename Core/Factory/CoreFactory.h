@@ -22,55 +22,44 @@
 
 #include "EspinaCore_Export.h"
 
-#include "Core/EspinaTypes.h"
-#include "Core/Analysis/Filter.h"
-#include "Core/Analysis/Extensions/ExtensionProvider.h"
+#include "Core/Factory/ExtensionProviderFactory.h"
+#include "Core/Factory/FilterFactory.h"
 
 #include <QStringList>
 #include <QMap>
 
 namespace EspINA
 {
-  class FilterCreator;
-  using FilterCreatorPtr = FilterCreator *;
-
-  class ExtensionProvider;
-
-  //const QString CHANNEL_FILES = QObject::tr("Channel Files (*.mha *.mhd *.tif *.tiff)");
-  //const QString SEG_FILES     = QObject::tr("Espina Analysis (*.seg)");
 
   class EspinaCore_EXPORT CoreFactory
   {
   public:
+    struct Factory_Already_Registered_Exception{};
+    struct Unknown_Type_Exception{};
+
+  public:
     explicit CoreFactory();
     ~CoreFactory();
 
-    void registerFilter(FilterCreatorPtr creator, const Filter::Type &filter);
+    void registerFilter(FilterFactoryPtr factory, const Filter::Type &filter) throw (Factory_Already_Registered_Exception);
+
+    void registerExtensionProvider(ExtensionProviderFactoryPtr factory, const ExtensionProvider::Type& provider) throw (Factory_Already_Registered_Exception);
 
     SampleSPtr createSample(const QString& name = QString()) const;
 
-    FilterSPtr createFilter(OutputSList inputs, Filter::Type& filter) const;
+    FilterSPtr createFilter(OutputSList inputs, const Filter::Type& filter) const throw (Unknown_Type_Exception);
 
     ChannelSPtr createChannel(FilterSPtr filter, Output::Id output) const;
 
-    SegmentationSPtr createSegmentation(OutputSPtr output) const;
+    SegmentationSPtr createSegmentation(FilterSPtr filter, Output::Id output) const;
 
-    void registerExtensionProvider  (ExtensionProviderPtr provider);
-    void unregisterExtensionProvider(ExtensionProviderPtr provider);
-
-    ExtensionProviderList extensionProviders() const
-    { return m_extensionProviders;}
-
-    /** \brief Return the extension provider with the given type or nullptr if not found
-     *
-     */
-    ExtensionProviderPtr extensionProvider(const ExtensionProvider::Type& type) const;
+    ExtensionProviderSPtr createExtensionProvider(const ExtensionProvider::Type provider) const throw (Unknown_Type_Exception);
 
   private:
-    QMap<Filter::Type, FilterCreatorPtr> m_filterCreators;
-
-    ExtensionProviderList m_extensionProviders;
+    QMap<Filter::Type, FilterFactoryPtr>                       m_filterFactories;
+    QMap<ExtensionProvider::Type, ExtensionProviderFactoryPtr> m_providerFactories;
   };
+
 }// namespace EspINA
 
 #endif // ESPINA_CORE_FACTORY_H

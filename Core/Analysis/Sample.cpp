@@ -57,7 +57,7 @@ void Sample::unload()
 }
 
 //------------------------------------------------------------------------
-void Sample::setPosition(Nm point[3])
+void Sample::setPosition(const NmVector3& point)
 {
   for(int i = 0; i < 3; ++i) 
   {
@@ -70,12 +70,16 @@ void Sample::setPosition(Nm point[3])
 }
 
 //------------------------------------------------------------------------
-void Sample::position(Nm point[3]) const
+NmVector3 Sample::position() const
 {
+  NmVector3 pos;
+
   for(int i = 0; i < 3; ++i) 
   {
-    point[i] = m_bounds[2*i];
+    pos[i] = m_bounds[2*i];
   }
+
+  return pos;
 }
 
 

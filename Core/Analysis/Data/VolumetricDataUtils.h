@@ -35,24 +35,26 @@ namespace EspINA
    */
   template<typename T>
   typename T::RegionType equivalentRegion(const T *image, const Bounds& bounds);
-  
+
   /** \brief Return the bounds for a given image region
    * 
    * Bounds are given in nm using (0,0) as origin
    */
   template<typename T>
   Bounds equivalentBounds(const T *image, const typename T::RegionType& region);
-  
+
   // NOTE: Probably move into an independent module
   static double memory_size_in_MB(int number_of_pixels){
     return number_of_pixels / 1024.0 / 1024.0;
   }
-  
+
   template<typename T>
   typename T::Pointer create_itkImage(const Bounds&                 bounds,
                                       const typename T::ValueType   value   = 0,
                                       const typename T::SpacingType spacing = typename T::SpacingType(),
                                       const typename T::PointType   origin  = typename T::PointType());
+
+
 //   /// Get the vtk-equivalent extent defining the volume
 //   void extent(int out[6]) const = 0;
 // 

@@ -33,6 +33,7 @@ set(LIB_DEPENDECIES
 add_executable(Sample_Tests
   ${TEST_SOURCES}
   ${CORE_DIR}/Utils/Bounds.cpp
+  ${CORE_DIR}/Utils/NmVector3.cpp
   ${SUBJECT_DIR}/Sample.cpp
 )
 

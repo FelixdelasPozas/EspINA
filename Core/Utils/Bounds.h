@@ -29,6 +29,8 @@
 #ifndef ESPINA_BOUNDS_H
 #define ESPINA_BOUNDS_H
 
+#include "Core/Utils/Spatial.h"
+
 #include <iostream>
 #include <QList>
 
@@ -37,22 +39,6 @@ namespace EspINA {
   struct Wrong_number_initial_values {};
 
   struct Invalid_bounds_token {};
-
-  enum class Axis { X=0, Y=1, Z=2 };
-
-  constexpr int idx(const Axis axis) {
-    return axis == Axis::X? 0:(axis == Axis::Y?1:2);
-  }
-
-  constexpr Axis toAxis(int i) {
-    return i == 0?Axis::X:(i == 1?Axis::Y:Axis::Z);
-  }
-
-  enum class Plane { XY, YZ, XZ };
-
-  constexpr int idx(const Plane plane) {
-    return plane == Plane::XY? 2:(plane == Plane::YZ?0:1);
-  }
 
   /** \brief Set of values defining a region in the 3D space
    * 

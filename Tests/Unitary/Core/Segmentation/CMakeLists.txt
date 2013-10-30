@@ -42,6 +42,7 @@ set(SUBJECT_SOURCES
   ${CORE_DIR}/MultiTasking/Scheduler.cpp
   ${CORE_DIR}/MultiTasking/Task.cpp
   ${CORE_DIR}/Utils/Bounds.cpp
+  ${CORE_DIR}/Utils/NmVector3.cpp
  )
 
 set(LIB_DEPENDECIES

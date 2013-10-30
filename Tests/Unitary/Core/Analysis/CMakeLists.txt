@@ -49,6 +49,7 @@ add_executable(Analysis_Tests
   ${Analysis_Tests}
   ${SUBJECT_MOCS}
   ${CORE_DIR}/Utils/Bounds.cpp
+  ${CORE_DIR}/Utils/NmVector3.cpp
   ${CORE_DIR}/Analysis/Analysis.cpp
   ${CORE_DIR}/Analysis/Category.cpp
   ${CORE_DIR}/Analysis/Classification.cpp

@@ -18,6 +18,8 @@
 */
 #include "ChannelAdapter.h"
 
+#include <Core/Analysis/Channel.h>
+
 using namespace EspINA;
 
 ChannelAdapter::ChannelAdapter(ChannelSPtr channel)
@@ -30,8 +32,6 @@ ChannelAdapter::~ChannelAdapter()
 {
 
 }
-
-
 
 void ChannelAdapter::addExtension(ChannelExtensionSPtr extension)
 {
@@ -99,7 +99,12 @@ void ChannelAdapter::setOpacity(double opacity)
 }
 
 
-void ChannelAdapter::setPosition(Nm point[3])
+void ChannelAdapter::setPosition(const NmVector3& point)
+{
+
+}
+
+NmVector3 ChannelAdapter::position() const
 {
 
 }
@@ -110,10 +115,6 @@ ChannelExtensionSPtr ChannelAdapter::extension(const ChannelExtension::Type& typ
 
 }
 
-void ChannelAdapter::position(Nm point[3])
-{
-
-}
 
 void ChannelAdapter::setContrast(double contrast)
 {
@@ -129,6 +130,12 @@ void ChannelAdapter::setSaturation(double saturation)
 {
 
 }
+
+PersistentSPtr ChannelAdapter::item() const
+{
+  return m_channel;
+}
+
 // #include "Core/Model/EspinaFactory.h"
 // #include "Core/Model/Filter.h"
 // #include "Core/Extensions/ChannelExtension.h"

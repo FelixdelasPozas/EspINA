@@ -153,13 +153,13 @@ void Channel::unload()
 
 
 //------------------------------------------------------------------------
-void Channel::position(Nm point[3])
+NmVector3 Channel::position() const
 {
 
 }
 
 //------------------------------------------------------------------------
-void Channel::setPosition(Nm point[3])
+void Channel::setPosition(const NmVector3& point)
 {
 
 }

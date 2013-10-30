@@ -26,44 +26,31 @@
  * 
  */
 
-#include "Core/Analysis/Sample.h"
+#include "core_factory_testing_support.h"
+#include <Core/Factory/CoreFactory.h>
 
-using namespace EspINA;
 using namespace std;
+using namespace EspINA;
+using namespace EspINA::Testing;
 
-int sample_set_position( int argc, char** argv )
+int core_factory_register_filter_factory(int argc, char** argv)
 {
   bool error = false;
-  
-  Sample sample;
-  
-  Bounds bounds{0, 10, 0, 10, 0, 10};
-  sample.setBounds(bounds);
 
-  NmVector3 origin = sample.position();
+  DummyFilterFactory filterFactory;
 
-  for (int i = 0; i < 3; ++i) {
-    if (origin[i] != 0) {
-      cerr << "Unexpected original position " << i << ":" << origin[i] << endl;
-      error = true;
-    }
+  CoreFactory factory;
+
+  Filter::Type type{"Dummy"};
+
+  factory.registerFilter(&filterFactory, type);
+
+  FilterSPtr filter = factory.createFilter(OutputSList(), type);
+
+  if (filter == nullptr) {
+    cerr << type.toStdString() << " filter was not created" << endl;
+    error = true;
   }
-
-  Bounds translatedBounds{10, 20, 10, 20, 10, 20};
- 
-  NmVector3 translatedOrigin{10, 10, 10};
-
-  sample.setPosition(translatedOrigin);
-
-  origin = sample.position();
-
-  for (int i = 0; i < 3; ++i) {
-    if (origin[i] != 10) {
-      cerr << "Unexpected translated position " << i << ":" << origin[i] << endl;
-      error = true;
-    }
-  }
-
 
   return error;
 }
