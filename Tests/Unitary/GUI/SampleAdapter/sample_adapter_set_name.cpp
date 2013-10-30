@@ -25,30 +25,34 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  */
-#include "output_testing_support.h"
 
-using namespace std;
+#include "GUI/Model/SampleAdapter.h"
+#include "GUI/ModelFactory.h"
+
 using namespace EspINA;
-using namespace EspINA::Testing;
+using namespace std;
 
-int output_valid_output( int argc, char** argv )
+int sample_adapter_set_name( int argc, char** argv )
 {
   bool error = false;
 
-  DummyFilter filter;
+  QString name = "Sample";
 
-  Output output(&filter, 0);
+  SchedulerSPtr sch;
+  ModelFactory factory(sch);
 
-  DataSPtr data{new DummyData()};
-  output.setData(data);
+  SampleAdapterSPtr sample = factory.createSample(name);
 
-  if (!output.isValid()) {
-    cerr << "Output is not initialized with a valid filter and a valid output" << endl;
+  if (sample->name() != name) {
+    cerr << "Sample Name: " << sample->name().toStdString() << " is not " << name.toStdString() << endl;
     error = true;
   }
 
-  if (output.data(data->type()) != data) {
-    cerr << "Unxpected output data for type" << data->type().toStdString() << endl;
+  name = "Sample2";
+  sample->setName(name);
+
+  if (sample->name() != name) {
+    cerr << "Sample Name: " << sample->name().toStdString() << " is not renamed to " << name.toStdString() << endl;
     error = true;
   }
 

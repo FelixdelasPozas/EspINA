@@ -25,32 +25,34 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  */
-#include "output_testing_support.h"
 
-using namespace std;
+#include "GUI/Model/SampleAdapter.h"
+#include <GUI/ModelFactory.h>
+
 using namespace EspINA;
-using namespace EspINA::Testing;
+using namespace std;
 
-int output_valid_output( int argc, char** argv )
+int sample_adapter_set_bounds( int argc, char** argv )
 {
   bool error = false;
 
-  DummyFilter filter;
+  SchedulerSPtr sch;
+  ModelFactory factory(sch);
 
-  Output output(&filter, 0);
-
-  DataSPtr data{new DummyData()};
-  output.setData(data);
-
-  if (!output.isValid()) {
-    cerr << "Output is not initialized with a valid filter and a valid output" << endl;
+  SampleAdapterSPtr sample = factory.createSample();
+  
+  if (sample->bounds() != Bounds()) {
+    cerr << "Unexpected default bounds " << sample->bounds() << endl;
     error = true;
   }
-
-  if (output.data(data->type()) != data) {
-    cerr << "Unxpected output data for type" << data->type().toStdString() << endl;
+  
+  Bounds bounds{0, 10, 0, 10, 0, 10};
+  sample->setBounds(bounds);
+  
+  if (sample->bounds() != bounds) {
+    cerr << "Unexpected bounds " << sample->bounds() << " instead of " << bounds << endl;
     error = true;
   }
-
+  
   return error;
 }

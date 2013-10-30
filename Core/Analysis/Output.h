@@ -85,6 +85,8 @@ namespace EspINA
 
     void setData(DataSPtr data);
 
+    void removeData(const Data::Type& type);
+
     DataSPtr data(const Data::Type& type) const;
 
     /** \brief Request necessary pipeline execution to update this output

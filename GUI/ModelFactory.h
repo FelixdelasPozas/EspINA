@@ -61,7 +61,7 @@ namespace EspINA
     //FilterAdapterSPtr createFilter(OutputSList inputs, Filter::Type& filter) const;
 
     template<typename T>
-    std::shared_ptr<FilterAdapter<T>> createFilter(OutputSList inputs, Filter::Type& type) const
+    std::shared_ptr<FilterAdapter<T>> createFilter(OutputSList inputs, Filter::Type type) const
     {
       std::shared_ptr<T> filter{new T(inputs, type, m_scheduler)};
       return std::shared_ptr<FilterAdapter<T>>(new FilterAdapter<T>(filter));

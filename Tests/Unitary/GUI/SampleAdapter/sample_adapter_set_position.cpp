@@ -25,32 +25,49 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  */
-#include "output_testing_support.h"
 
-using namespace std;
+#include "GUI/Model/SampleAdapter.h"
+#include <GUI/ModelFactory.h>
+
 using namespace EspINA;
-using namespace EspINA::Testing;
+using namespace std;
 
-int output_valid_output( int argc, char** argv )
+int sample_adapter_set_position( int argc, char** argv )
 {
   bool error = false;
+  
+  SchedulerSPtr sch;
+  ModelFactory factory(sch);
 
-  DummyFilter filter;
+  SampleAdapterSPtr sample = factory.createSample();
+  
+  Bounds bounds{0, 10, 0, 10, 0, 10};
+  sample->setBounds(bounds);
 
-  Output output(&filter, 0);
+  NmVector3 origin = sample->position();
 
-  DataSPtr data{new DummyData()};
-  output.setData(data);
-
-  if (!output.isValid()) {
-    cerr << "Output is not initialized with a valid filter and a valid output" << endl;
-    error = true;
+  for (int i = 0; i < 3; ++i) {
+    if (origin[i] != 0) {
+      cerr << "Unexpected original position " << i << ":" << origin[i] << endl;
+      error = true;
+    }
   }
 
-  if (output.data(data->type()) != data) {
-    cerr << "Unxpected output data for type" << data->type().toStdString() << endl;
-    error = true;
+  Bounds translatedBounds{10, 20, 10, 20, 10, 20};
+
+  NmVector3 translatedOrigin{10, 10, 10};
+
+  sample->setPosition(translatedOrigin);
+
+  origin = sample->position();
+
+  for (int i = 0; i < 3; ++i) {
+    if (origin[i] != 10) {
+      cerr << "Unexpected translated position " << i << ":" << origin[i] << endl;
+      error = true;
+    }
   }
+
 
   return error;
 }

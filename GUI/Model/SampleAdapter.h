@@ -57,6 +57,9 @@ namespace EspINA
      */
     Bounds bounds() const;
 
+  protected:
+    virtual PersistentSPtr item() const;
+
   private:
     explicit SampleAdapter(SampleSPtr sample);
 

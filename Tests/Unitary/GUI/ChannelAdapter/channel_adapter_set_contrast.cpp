@@ -25,32 +25,46 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  */
-#include "output_testing_support.h"
+
+#include "GUI/Model/ChannelAdapter.h"
+#include <GUI/ModelFactory.h>
+#include <Core/Analysis/Output.h>
+#include <Tests/Unitary/GUI/gui_testing_support.h>
 
 using namespace std;
 using namespace EspINA;
 using namespace EspINA::Testing;
 
-int output_valid_output( int argc, char** argv )
+bool TestContrast(ChannelAdapterSPtr channel, double contrast) {
+  bool error = false;
+ 
+  channel->setContrast(contrast);
+  if (channel->contrast() != contrast) {
+    cerr << "Unexepected contrast value:" << contrast << endl;
+    error = true;
+  }
+  
+  return error;
+}
+
+int channel_adapter_set_contrast(int argc, char** argv )
 {
   bool error = false;
 
-  DummyFilter filter;
+  SchedulerSPtr sch{new Scheduler(1e6)};
+  ModelFactory factory(sch);
 
-  Output output(&filter, 0);
-
-  DataSPtr data{new DummyData()};
-  output.setData(data);
-
-  if (!output.isValid()) {
-    cerr << "Output is not initialized with a valid filter and a valid output" << endl;
+  FilterAdapterSPtr filter   = factory.createFilter<DummyFilter>(OutputSList(), DummyFilter::TYPE);
+  ChannelAdapterSPtr channel = factory.createChannel(filter, 0);
+  
+  if (channel->contrast() != 1) {
+    cerr << "Unexepected initial contrast value" << endl;
     error = true;
   }
-
-  if (output.data(data->type()) != data) {
-    cerr << "Unxpected output data for type" << data->type().toStdString() << endl;
-    error = true;
-  }
-
+  
+  error |= TestContrast(channel, 0.0);
+  error |= TestContrast(channel, 1.0);
+  error |= TestContrast(channel, 2.0);
+  
   return error;
 }

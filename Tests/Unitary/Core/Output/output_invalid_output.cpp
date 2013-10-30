@@ -26,9 +26,45 @@
  * 
  */
 #include "Core/Analysis/Output.h"
+#include <Core/Analysis/DataProxy.h>
+#include "output_testing_support.h"
 
 using namespace EspINA;
 using namespace std;
+
+class InvalidDataProxy;
+
+class InvalidData
+: public Data
+{
+public:
+  virtual DataProxySPtr createProxy() const;
+  virtual Bounds bounds() const{}
+  virtual Snapshot editedRegionsSnapshot() const{}
+  virtual bool isValid() const {return false;}
+  virtual Snapshot snapshot() const{}
+  virtual Type type() const { return "InvalidData";}
+};
+
+using InvalidDataSPtr = std::shared_ptr<InvalidData>;
+
+class InvalidDataProxy
+: public DataProxy
+{
+public:
+  virtual DataSPtr get() const
+  { return m_data; }
+  virtual void set(DataSPtr data)
+  { m_data = std::dynamic_pointer_cast<InvalidData>(data); }
+
+private:
+  InvalidDataSPtr m_data;
+};
+
+DataProxySPtr InvalidData::createProxy() const
+{
+  return DataProxySPtr{new InvalidDataProxy()};
+}
 
 int output_invalid_output( int argc, char** argv )
 {
@@ -38,6 +74,23 @@ int output_invalid_output( int argc, char** argv )
 
   if (output.isValid()) {
     cerr << "Default output constructor creates an invalid output" << endl;
+    error = true;
+  }
+
+  Testing::DummyFilter filter;
+  Output output2(&filter, 0);
+  
+  if (output2.isValid()) {
+    cerr << "Output has no associated data" << endl;
+    error = true;
+  }
+
+  InvalidDataSPtr data{new InvalidData()};
+
+  output2.setData(data);
+
+  if (output2.isValid()) {
+    cerr << "There is at least one output data which is invalid. Output cannot be valid" << endl;
     error = true;
   }
 

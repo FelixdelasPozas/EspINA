@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2013, Jorge Peña Pastor <jpena@cesvima.upm.es>
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -12,7 +12,7 @@
  *     * Neither the name of the <organization> nor the
  *     names of its contributors may be used to endorse or promote products
  *     derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY Jorge Peña Pastor <jpena@cesvima.upm.es> ''AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -23,32 +23,37 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  */
-#include "output_testing_support.h"
+
+#include "GUI/Model/ChannelAdapter.h"
+#include <GUI/ModelFactory.h>
+#include <Core/Analysis/Output.h>
+#include <Tests/Unitary/GUI/gui_testing_support.h>
 
 using namespace std;
 using namespace EspINA;
 using namespace EspINA::Testing;
 
-int output_valid_output( int argc, char** argv )
+int channel_adapter_set_invalid_saturation(int argc, char** argv )
 {
   bool error = false;
 
-  DummyFilter filter;
+  SchedulerSPtr sch{new Scheduler(1e6)};
+  ModelFactory factory(sch);
 
-  Output output(&filter, 0);
+  FilterAdapterSPtr filter   = factory.createFilter<DummyFilter>(OutputSList(), DummyFilter::TYPE);
+  ChannelAdapterSPtr channel = factory.createChannel(filter, 0);
 
-  DataSPtr data{new DummyData()};
-  output.setData(data);
-
-  if (!output.isValid()) {
-    cerr << "Output is not initialized with a valid filter and a valid output" << endl;
+  channel->setSaturation(-0.5);
+  if (channel->saturation() != 0.0) {
+    cerr << "Unexepected saturation value:" << channel->saturation() << endl;
     error = true;
   }
 
-  if (output.data(data->type()) != data) {
-    cerr << "Unxpected output data for type" << data->type().toStdString() << endl;
+  channel->setSaturation(1.5);
+  if (channel->saturation() != 1.0) {
+    cerr << "Unexepected saturation value:" << channel->saturation() << endl;
     error = true;
   }
 

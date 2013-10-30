@@ -29,6 +29,7 @@ add_executable(Model_Factory_Tests
   ${SUBJECT_MOCS}
   ${CORE_DIR}/Utils/Bounds.cpp
   ${CORE_DIR}/Utils/NmVector3.cpp
+  ${CORE_DIR}/Analysis/Sample.cpp
   ${CORE_DIR}/Analysis/Channel.cpp
   ${CORE_DIR}/Analysis/Filter.cpp
   ${CORE_DIR}/Analysis/Output.cpp
@@ -37,6 +38,7 @@ add_executable(Model_Factory_Tests
   ${CORE_DIR}/MultiTasking/Scheduler.cpp
   ${CORE_DIR}/MultiTasking/Task.cpp
   ${GUI_DIR}/ModelFactory.cpp
+  ${GUI_DIR}/Model/SampleAdapter.cpp
   ${GUI_DIR}/Model/ChannelAdapter.cpp
   )
 

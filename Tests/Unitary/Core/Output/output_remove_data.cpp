@@ -31,7 +31,7 @@ using namespace std;
 using namespace EspINA;
 using namespace EspINA::Testing;
 
-int output_valid_output( int argc, char** argv )
+int output_remove_data( int argc, char** argv )
 {
   bool error = false;
 
@@ -42,12 +42,14 @@ int output_valid_output( int argc, char** argv )
   DataSPtr data{new DummyData()};
   output.setData(data);
 
-  if (!output.isValid()) {
-    cerr << "Output is not initialized with a valid filter and a valid output" << endl;
+  output.removeData(data->type());
+
+  if (output.isValid()) {
+    cerr << "Output has no data" << endl;
     error = true;
   }
 
-  if (output.data(data->type()) != data) {
+  if (output.data(data->type()) != nullptr) {
     cerr << "Unxpected output data for type" << data->type().toStdString() << endl;
     error = true;
   }

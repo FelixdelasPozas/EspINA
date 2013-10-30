@@ -31,8 +31,18 @@ using namespace std;
 using namespace EspINA;
 using namespace EspINA::Testing;
 
-int output_valid_output( int argc, char** argv )
+int output_replace_data( int argc, char** argv )
 {
+  class NoProxyData
+  : public DummyData
+  {
+  public:
+    struct Invalid_Create_Proxy_Exception{};
+
+  public:
+    virtual DataProxySPtr createProxy() const { throw Invalid_Create_Proxy_Exception(); }
+  };
+
   bool error = false;
 
   DummyFilter filter;
@@ -42,12 +52,16 @@ int output_valid_output( int argc, char** argv )
   DataSPtr data{new DummyData()};
   output.setData(data);
 
-  if (!output.isValid()) {
-    cerr << "Output is not initialized with a valid filter and a valid output" << endl;
+  DataSPtr noProxyData{new NoProxyData()};
+  try {
+    output.setData(noProxyData);
+  } catch (NoProxyData::Invalid_Create_Proxy_Exception e) 
+  {
+    cerr << "Output is creating a new data proxy instead of replacing proxy delegate" << endl;
     error = true;
   }
 
-  if (output.data(data->type()) != data) {
+  if (output.data(data->type()) != noProxyData) {
     cerr << "Unxpected output data for type" << data->type().toStdString() << endl;
     error = true;
   }

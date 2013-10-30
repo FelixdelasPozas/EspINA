@@ -52,6 +52,7 @@ include_directories(
 set (GUI_SOURCES 
   ${GUI_MOC}
   ${GUI_UI}
+  Model/SampleAdapter.cpp
   Model/ChannelAdapter.cpp
 #   Analysis/InformationSelector.cpp
 #   Analysis/xlsUtils.cpp

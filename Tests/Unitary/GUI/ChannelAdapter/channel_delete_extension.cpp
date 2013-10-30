@@ -25,32 +25,58 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  */
-#include "output_testing_support.h"
 
-using namespace std;
+#include "Core/Analysis/Channel.h"
+#include <Core/Analysis/Output.h>
+
 using namespace EspINA;
-using namespace EspINA::Testing;
+using namespace std;
 
-int output_valid_output( int argc, char** argv )
+int channel_delete_extension(int argc, char** argv )
 {
+  class DummyExtension
+  : public ChannelExtension
+  {
+  public:
+    bool Initialized;
+    bool ValidChannel;
+    bool Invalidated;
+  public:
+    explicit DummyExtension() 
+    : Initialized{false}, ValidChannel{false}, Invalidated{false} {}
+
+    virtual void initialize() { Initialized = true; }
+    virtual void invalidate() { Invalidated = true; }
+    virtual Type type() const { return "Dummy"; }
+  protected:
+    virtual void onChannelSet(ChannelPtr channel) { ValidChannel = true; }
+  };
+  
   bool error = false;
 
-  DummyFilter filter;
+  ChannelSPtr channel(new Channel(FilterSPtr(), 0));
 
-  Output output(&filter, 0);
-
-  DataSPtr data{new DummyData()};
-  output.setData(data);
-
-  if (!output.isValid()) {
-    cerr << "Output is not initialized with a valid filter and a valid output" << endl;
+  DummyExtension *dummy = new DummyExtension();
+  ChannelExtensionSPtr extension{dummy};
+  
+  channel->addExtension(extension);
+  
+  if (!channel->hasExtension(extension->type())) {
+    cerr << "Couldn't find expected extension" << endl;
     error = true;
   }
 
-  if (output.data(data->type()) != data) {
-    cerr << "Unxpected output data for type" << data->type().toStdString() << endl;
+  channel->deleteExtension(extension);
+  
+  if (channel->hasExtension(extension->type())) {
+    cerr << "Unexpected deleted extension" << endl;
     error = true;
   }
-
+  
+  if (!dummy->Invalidated)  {
+    cerr << "Extension was not correctly deleted" << endl;
+    error = true;
+  }
+  
   return error;
 }
