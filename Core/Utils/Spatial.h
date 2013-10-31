@@ -44,7 +44,7 @@ namespace EspINA {
     return i == 0?Axis::X:(i == 1?Axis::Y:Axis::Z);
   }
 
-  enum class Plane { XY, YZ, XZ };
+  enum class Plane { XY, XZ, YZ };
 
   constexpr int idx(const Plane plane) {
     return plane == Plane::XY? 2:(plane == Plane::YZ?0:1);

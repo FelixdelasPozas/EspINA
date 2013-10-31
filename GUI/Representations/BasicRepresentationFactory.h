@@ -17,25 +17,26 @@
  *
  */
 
-#ifndef ESPINA_GRAPHICALREPRESENTATIONSETTINGS_H
-#define ESPINA_GRAPHICALREPRESENTATIONSETTINGS_H
+#ifndef ESPINA_BASIC_REPRESENTATION_FACTORY_H
+#define ESPINA_BASIC_REPRESENTATION_FACTORY_H
 
-#include <QWidget>
-#include <Core/Model/Output.h>
+#include "EspinaGUI_Export.h"
+#include "GUI/Representations/RepresentationFactory.h"
+#include <GUI/Model/FilterAdapter.h>
+
 
 namespace EspINA
 {
-
-  class GraphicalRepresentationSettings 
-  : public QWidget
+  class EspinaGUI_EXPORT BasicRepresentationFactory
+  : public RepresentationFactory
   {
   public:
-    virtual ~GraphicalRepresentationSettings(){}
+    virtual ~BasicRepresentationFactory() {};
 
-    virtual void Get(GraphicalRepresentationSPtr representation) = 0;
-    virtual void Set(GraphicalRepresentationSPtr representation) = 0;
+    virtual void createRepresentation(OutputAdapterSPtr output, Representation::Type type);
   };
 
-} // namespace EspINA
+  void EspinaGUI_EXPORT SetBasicRepresentationFactory(FilterAdapterSPtr filter);
+}
 
-#endif // ESPINA_GRAPHICALREPRESENTATIONSETTINGS_H
+#endif // ESPINA_BASIC_REPRESENTATION_FACTORY_H

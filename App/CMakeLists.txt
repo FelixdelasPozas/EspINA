@@ -161,6 +161,8 @@ set (ESPINA_SOURCES
 set (ESPINA_LIBRARIES
   EspinaCore
   EspinaGUI
+  EspinaFilters
+  EspinaSupport
   EspinaUndo
 )
 

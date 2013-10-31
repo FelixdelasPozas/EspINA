@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>GraphicalRepresentationEmptySettings</class>
- <widget class="QWidget" name="GraphicalRepresentationEmptySettings">
+ <class>RepresentationEmptySettings</class>
+ <widget class="QWidget" name="RepresentationEmptySettings">
   <property name="geometry">
    <rect>
     <x>0</x>

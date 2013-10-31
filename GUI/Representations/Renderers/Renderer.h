@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
+    Copyright (C) 2012  Jorge Peï¿½a Pastor <jpena@cesvima.upm.es>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,15 +16,16 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef IRENDERER
-#define IRENDERER
+#ifndef ESPINA_RENDERER_H
+#define ESPINA_RENDERER_H
 
 #include "EspinaGUI_Export.h"
 
 // EspINA
 #include <Core/EspinaTypes.h>
-#include <GUI/ViewManager.h>
-#include <GUI/Representations/GraphicalRepresentation.h>
+#include <GUI/Representations/Representation.h>
+#include <GUI/Model/ViewItemAdapter.h>
+#include <GUI/View/SelectableView.h>
 
 // Qt
 #include <QString>
@@ -36,20 +37,23 @@
 
 namespace EspINA
 {
-  class EspinaRenderView;
+  class RenderView;
 
-  class IRenderer;
-  typedef boost::shared_ptr<IRenderer> IRendererSPtr;
+  class Renderer;
+  using RendererPtr   = Renderer *;
+  using RendererSPtr  = std::shared_ptr<Renderer>;
+  using RendererList  = QList<RendererPtr>;
+  using RendererSList = QList<RendererSPtr>;
+
   /// Base class which define the API to render and manage
   /// item visibily in Espina Views (currently only supported
   /// for VolumeView class)
-
-  class EspinaGUI_EXPORT IRenderer
+  class EspinaGUI_EXPORT Renderer
   : public QObject
   {
     Q_OBJECT
   public:
-    virtual ~IRenderer(){}
+    virtual ~Renderer(){}
 
     /// Following methods are used by view settings' panel and the
     /// view itself to create the corresponding UI to manage rendering
@@ -58,25 +62,31 @@ namespace EspINA
     virtual const QIcon icon() const         { return QIcon(); }
 
     /// sets renderer
-    virtual void setView(EspinaRenderView* view) { m_view = view; }
+    virtual void setView(RenderView* view) { m_view = view; }
 
-    virtual void addRepresentation(PickableItemPtr item, GraphicalRepresentationSPtr rep) = 0;
-    virtual void removeRepresentation(GraphicalRepresentationSPtr rep) = 0;
-    virtual bool hasRepresentation(GraphicalRepresentationSPtr rep) = 0;
-    virtual bool managesRepresentation(GraphicalRepresentationSPtr rep) = 0;
+    virtual void addRepresentation(ViewItemAdapterPtr item, RepresentationSPtr rep) = 0;
+    virtual void removeRepresentation(RepresentationSPtr rep) = 0;
+    virtual bool hasRepresentation(RepresentationSPtr rep) = 0;
+    virtual bool managesRepresentation(RepresentationSPtr rep) = 0;
 
     // Hide/Show all items rendered by the Renderer
     virtual void hide() = 0;
     virtual void show() = 0;
 
-    virtual IRendererSPtr clone() = 0;
+    virtual RendererSPtr clone() = 0;
 
     // get number of vtkActors added to vtkRendered from this Renderer
     virtual unsigned int getNumberOfvtkActors() = 0;
 
     virtual bool isHidden() { return !m_enable; }
 
-    Q_DECLARE_FLAGS(RenderabledItems, EspINA::ModelItemType);
+    enum RenderableType {
+      CHANNEL,
+      SEGMENTATION,
+    };
+
+    Q_DECLARE_FLAGS(RenderabledItems, EspINA::Renderer::RenderableType);
+
     virtual RenderabledItems getRenderableItemsType() { return RenderabledItems(); }
 
     enum RendererTypes
@@ -90,13 +100,14 @@ namespace EspINA
     virtual RendererType getRenderType() { return RendererType(RENDERER_UNDEFINED_VIEW); }
 
     // naive item filtering, to be modified/enhanced in the future
-    virtual bool itemCanBeRendered(ModelItemPtr item) { return true; }
+    virtual bool itemCanBeRendered(ItemAdapterPtr item) { return true; }
 
     // return the number of elements actually been managed by this renderer
     virtual int itemsBeenRendered() = 0;
 
-    virtual ViewManager::Selection pick(int x, int y, Nm z, vtkSmartPointer<vtkRenderer> renderer, RenderabledItems itemType = RenderabledItems(), bool repeat = false) = 0;
-    virtual void getPickCoordinates(Nm *point) = 0;
+    virtual SelectableView::Selection pick(int x, int y, Nm z, vtkSmartPointer<vtkRenderer> renderer, RenderabledItems itemType = RenderabledItems(), bool repeat = false) = 0;
+
+    virtual NmVector3 getPickCoordinates() const = 0;
 
   public slots:
     virtual void setEnable(bool value)
@@ -113,24 +124,19 @@ namespace EspINA
     void renderRequested();
 
   protected:
-    explicit IRenderer(QObject* parent = 0)
+    explicit Renderer(QObject* parent = 0)
     : m_enable(false)
-    , m_view (NULL)
+    , m_view (nullptr)
     {}
 
   protected:
     bool m_enable;
-    QMap<PickableItemPtr, GraphicalRepresentationSList> m_representations;
-    EspinaRenderView *m_view;
+    QMap<ViewItemAdapterPtr, RepresentationSList> m_representations;
+    RenderView* m_view;
   };
 
-  typedef QList<IRenderer *>   IRendererList;
-  typedef QList<IRendererSPtr> IRendererSList;
-
-  Q_DECLARE_OPERATORS_FOR_FLAGS(IRenderer::RenderabledItems)
-  Q_DECLARE_OPERATORS_FOR_FLAGS(IRenderer::RendererType)
+  Q_DECLARE_OPERATORS_FOR_FLAGS(Renderer::RenderabledItems)
+  Q_DECLARE_OPERATORS_FOR_FLAGS(Renderer::RendererType)
 }// namespace EspINA
 
-
-
-#endif // IRENDERER
+#endif // ESPINA_RENDERER_H

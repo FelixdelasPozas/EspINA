@@ -93,8 +93,13 @@ namespace EspINA
     explicit SegmentationAdapter(SegmentationSPtr segmentation);
 
   private:
-    SegmentationSPtr m_segmentation;
-    //CategoryAdapterSPtr m_category;
+    SegmentationSPtr    m_segmentation;
+    CategoryAdapterSPtr m_category;
   };
+
+  using SegmentationAdapterPtr   = SegmentationAdapter *;
+  using SegmentationAdapterList  = QList<SegmentationAdapterPtr>;
+  using SegmentationAdapterSPtr  = std::shared_ptr<SegmentationAdapter>;
+  using SegmentationAdapterSList = QList<SegmentationAdapterSPtr>;
 }
 #endif // ESPINA_SEGMENTATION_ADAPTER_H

@@ -16,8 +16,8 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef IMESHREPRESENTATION_H_
-#define IMESHREPRESENTATION_H_
+#ifndef ESPINA_MESH_REPRESENTATION_BASE_H
+#define ESPINA_MESH_REPRESENTATION_BASE_H
 
 #include "EspinaGUI_Export.h"
 
@@ -38,14 +38,14 @@ namespace EspINA
   class TransparencySelectionHighlighter;
   class VolumeView;
 
-  class EspinaGUI_EXPORT IMeshRepresentation
+  class EspinaGUI_EXPORT MeshRepresentationBase
   : public SegmentationGraphicalRepresentation
   {
     Q_OBJECT
     public:
-      explicit IMeshRepresentation(MeshRepresentationSPtr data,
+      explicit MeshRepresentationBase(MeshRepresentationSPtr data,
                                    EspinaRenderView *view);
-      virtual ~IMeshRepresentation() {};
+      virtual ~MeshRepresentationBase() {};
 
       virtual void setColor(const QColor &color);
 
@@ -87,8 +87,8 @@ namespace EspINA
 
   // one shouldn't address objects of this class directly but use the subclasses,
   // however this is here for convenience.
-  typedef boost::shared_ptr<IMeshRepresentation> IMeshRepresentationSPtr;
+  typedef boost::shared_ptr<MeshRepresentationBase> IMeshRepresentationSPtr;
   typedef QList<IMeshRepresentationSPtr> IMeshRepresentationSList;
 
-} /* namespace EspINA */
-#endif /* IMESHREPRESENTATION_H_ */
+} // namespace EspINA
+#endif // ESPINA_MESH_REPRESENTATION_BASE_H

@@ -147,6 +147,7 @@ namespace EspINA
   };
 
   using ChannelAdapterPtr   = ChannelAdapter *;
+  using ChannelAdapterList  = QList<ChannelAdapterPtr>;
   using ChannelAdapterSPtr  = std::shared_ptr<ChannelAdapter>;
   using ChannelAdapterSList = QList<ChannelAdapterSPtr>;
 }// namespace EspINA

@@ -52,7 +52,7 @@ namespace EspINA
   }
 
   //----------------------------------------------------------------------------
-  bool RulerTool::filterEvent(QEvent *e, EspinaRenderView *view)
+  bool RulerTool::filterEvent(QEvent *e, RenderView *view)
   {
     // this is a passive tool
     return false;

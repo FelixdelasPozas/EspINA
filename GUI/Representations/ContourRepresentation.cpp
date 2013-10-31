@@ -45,7 +45,7 @@ TransparencySelectionHighlighter *ContourRepresentation::s_highlighter = new Tra
 
 //-----------------------------------------------------------------------------
 ContourRepresentation::ContourRepresentation(SegmentationVolumeSPtr data,
-                                             EspinaRenderView      *view)
+                                             RenderView      *view)
 : SegmentationGraphicalRepresentation(view)
 , m_data(data)
 , m_width(medium)

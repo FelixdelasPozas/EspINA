@@ -73,14 +73,14 @@ ViewManager::~ViewManager()
 }
 
 //----------------------------------------------------------------------------
-void ViewManager::registerView(IEspinaView* view)
+void ViewManager::registerView(SelectableView* view)
 {
   Q_ASSERT(!m_espinaViews.contains(view));
   m_espinaViews << view;
 }
 
 //----------------------------------------------------------------------------
-void ViewManager::registerView(EspinaRenderView* view)
+void ViewManager::registerView(RenderView* view)
 {
   Q_ASSERT(!m_renderViews.contains(view));
   m_renderViews << view;
@@ -100,14 +100,14 @@ void ViewManager::registerView(SliceView* view)
 }
 
 //----------------------------------------------------------------------------
-void ViewManager::unregisterView(IEspinaView* view)
+void ViewManager::unregisterView(SelectableView* view)
 {
   Q_ASSERT(m_espinaViews.contains(view));
   m_espinaViews.removeAll(view);
 }
 
 //----------------------------------------------------------------------------
-void ViewManager::unregisterView(EspinaRenderView* view)
+void ViewManager::unregisterView(RenderView* view)
 {
   Q_ASSERT(m_renderViews.contains(view));
   m_renderViews.removeAll(view);
@@ -129,7 +129,7 @@ void ViewManager::unregisterView(SliceView* view)
 //----------------------------------------------------------------------------
 void ViewManager::setSelectionEnabled(bool enable)
 {
-  foreach(EspinaRenderView *view, m_renderViews)
+  foreach(RenderView *view, m_renderViews)
     view->setSelectionEnabled(enable);
 }
 
@@ -255,7 +255,7 @@ void ViewManager::unsetActiveTool(IToolSPtr tool)
 }
 
 //----------------------------------------------------------------------------
-bool ViewManager::filterEvent(QEvent* e, EspinaRenderView* view)
+bool ViewManager::filterEvent(QEvent* e, RenderView* view)
 {
   bool res = false;
 
@@ -287,7 +287,7 @@ QCursor ViewManager::cursor() const
 //----------------------------------------------------------------------------
 void ViewManager::updateViews()
 {
-  foreach(EspinaRenderView *view, m_renderViews)
+  foreach(RenderView *view, m_renderViews)
   {
     view->updateView();
   }
@@ -311,7 +311,7 @@ void ViewManager::setActiveChannel(ChannelPtr channel)
 void ViewManager::addWidget(EspinaWidget* widget)
 {
   widget->setViewManager(this);
-  foreach(EspinaRenderView *rView, m_renderViews)
+  foreach(RenderView *rView, m_renderViews)
   {
     rView->addWidget(widget);
   }
@@ -320,7 +320,7 @@ void ViewManager::addWidget(EspinaWidget* widget)
 //----------------------------------------------------------------------------
 void ViewManager::removeWidget(EspinaWidget* widget)
 {
-  foreach(EspinaRenderView *rView, m_renderViews)
+  foreach(RenderView *rView, m_renderViews)
   {
     rView->removeWidget(widget);
   }
@@ -329,7 +329,7 @@ void ViewManager::removeWidget(EspinaWidget* widget)
 //----------------------------------------------------------------------------
 void ViewManager::resetViewCameras()
 {
-  foreach(EspinaRenderView *view, m_renderViews)
+  foreach(RenderView *view, m_renderViews)
   {
     view->resetCamera();
   }
@@ -359,7 +359,7 @@ void ViewManager::updateSegmentationRepresentations(SegmentationPtr segmentation
       }
   }
 
-  foreach(IEspinaView *view, m_espinaViews)
+  foreach(SelectableView *view, m_espinaViews)
   {
     view->updateSegmentationRepresentations(segList);
   }
@@ -395,7 +395,7 @@ void ViewManager::updateSegmentationRepresentations(SegmentationList list)
     }
   }
 
-  foreach(IEspinaView *view, m_espinaViews)
+  foreach(SelectableView *view, m_espinaViews)
   {
     view->updateSegmentationRepresentations(segList);
   }
@@ -404,7 +404,7 @@ void ViewManager::updateSegmentationRepresentations(SegmentationList list)
 //----------------------------------------------------------------------------
 void ViewManager::updateChannelRepresentations(ChannelList list)
 {
-  foreach(IEspinaView *view, m_espinaViews)
+  foreach(SelectableView *view, m_espinaViews)
   {
     view->updateChannelRepresentations(list);
   }
@@ -413,7 +413,7 @@ void ViewManager::updateChannelRepresentations(ChannelList list)
 //----------------------------------------------------------------------------
 void ViewManager::showCrosshair(bool value)
 {
-  foreach(EspinaRenderView *rView, m_renderViews)
+  foreach(RenderView *rView, m_renderViews)
     rView->showCrosshairs(value);
 }
 
@@ -473,7 +473,7 @@ void ViewManager::setColorEngine(ColorEngine* engine)
 //----------------------------------------------------------------------------
 void ViewManager::focusViewsOn(Nm *center)
 {
-  foreach(EspinaRenderView *rView, m_renderViews)
+  foreach(RenderView *rView, m_renderViews)
     rView->centerViewOn(center, true);
 }
 

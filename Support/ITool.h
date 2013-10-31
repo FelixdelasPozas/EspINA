@@ -31,18 +31,18 @@ class QEvent;
 
 namespace EspINA
 {
-  class EspinaRenderView;
+  class RenderView;
 
   class EspinaGUI_EXPORT ITool
   : public QObject
   {
   public:
     virtual QCursor cursor() const = 0;
-    virtual bool filterEvent(QEvent *e, EspinaRenderView *view=NULL) = 0;
+    virtual bool filterEvent(QEvent *e, RenderView *view=NULL) = 0;
     virtual void setInUse(bool value) = 0;
     virtual void setEnabled(bool value) = 0;
     virtual bool enabled() const = 0;
-    virtual void lostEvent(EspinaRenderView*) {};
+    virtual void lostEvent(RenderView*) {};
   };
 
   typedef boost::shared_ptr<ITool> IToolSPtr;

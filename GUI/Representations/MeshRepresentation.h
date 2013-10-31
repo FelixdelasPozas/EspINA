@@ -16,27 +16,27 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MESHREPRESENTATION_H_
-#define MESHREPRESENTATION_H_
+#ifndef ESPINA_MESH_REPRESENTATION_H
+#define ESPINA_MESH_REPRESENTATION_H
 
 #include "EspinaGUI_Export.h"
 
 // EspINA
-#include "IMeshRepresentation.h"
+#include "MeshRepresentationBase.h"
 
 namespace EspINA
 {
   class TransparencySelectionHighlighter;
   class VolumeView;
 
-  class EspinaGUI_EXPORT SimpleMeshRepresentation
-  : public IMeshRepresentation
+  class EspinaGUI_EXPORT MeshRepresentation
+  : public MeshRepresentationBase
   {
     Q_OBJECT
     public:
-      explicit SimpleMeshRepresentation(MeshRepresentationSPtr data,
+      explicit MeshRepresentation(MeshRepresentationSPtr data,
                                   EspinaRenderView *view);
-      virtual ~SimpleMeshRepresentation() {};
+      virtual ~MeshRepresentation() {};
 
       virtual GraphicalRepresentationSettings *settingsWidget();
 
@@ -55,5 +55,6 @@ namespace EspINA
   typedef boost::shared_ptr<SimpleMeshRepresentation> SimpleMeshRepresentationSPtr;
   typedef QList<SimpleMeshRepresentationSPtr> MeshRepresentationSList;
 
-} /* namespace EspINA */
-#endif /* MESHREPRESENTATION_H_ */
+} // namespace EspINA
+
+#endif // ESPINA_MESH_REPRESENTATION_H

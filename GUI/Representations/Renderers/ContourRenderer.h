@@ -52,7 +52,7 @@ namespace EspINA
                                           RenderabledItems itemType = RenderabledItems(),
                                           bool repeat = false);
 
-      virtual void setView(EspinaRenderView* view);
+      virtual void setView(RenderView* view);
   };
 
 } /* namespace EspINA */

@@ -38,11 +38,13 @@ namespace EspINA
 {
   class RepresentationSettings;
 
-  class EspinaRenderView;
+  class RenderView;
   class SliceView;
   class VolumeView;
 
   class Representation;
+  using RepresentationPtr   = Representation *;
+  using RepresentationList  = QList<RepresentationPtr>;
   using RepresentationSPtr  = std::shared_ptr<Representation>;
   using RepresentationSList = QList<RepresentationSPtr>;
 
@@ -61,11 +63,11 @@ namespace EspINA
     Q_DECLARE_FLAGS(RenderableView, RenderableViews);
 
   public:
-    explicit Representation(EspinaRenderView *view);
+    explicit Representation(RenderView *view);
 
     virtual ~Representation(){}
 
-    void setActive(bool value, EspinaRenderView *view = NULL);
+    void setActive(bool value, RenderView *view = NULL);
 
     /// Whether or not the user has selected this representation to be displayed
     /// Representation will only be currently displayed if it is visibility has also
@@ -130,7 +132,7 @@ namespace EspINA
   protected:
     QColor              m_color;
     bool                m_highlight;
-    EspinaRenderView*   m_view;
+    RenderView*   m_view;
     RepresentationSList m_clones;
 
   private:

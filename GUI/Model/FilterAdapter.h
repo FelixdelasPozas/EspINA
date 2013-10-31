@@ -90,7 +90,8 @@ namespace EspINA {
     friend class ModelFactory;
   };
 
-  using FilterAdapterSPtr = std::shared_ptr<FilterAdapterInterface>;
+  using FilterAdapterSPtr  = std::shared_ptr<FilterAdapterInterface>;
+  using FilterAdapterSList = QList<FilterAdapterSPtr>;
 }
 
 #endif // ESPINA_FILTERADAPTER_H

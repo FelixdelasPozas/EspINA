@@ -17,6 +17,26 @@
  *
  */
 
-#include "GraphicalRepresentationSettings.h"
+#ifndef ESPINA_REPRESENTATION_SETTINGS_H
+#define ESPINA_REPRESENTATION_SETTINGS_H
 
-using namespace EspINA;
+#include <QWidget>
+
+#include "Representation.h"
+
+namespace EspINA
+{
+
+  class RepresentationSettings 
+  : public QWidget
+  {
+  public:
+    virtual ~RepresentationSettings(){}
+
+    virtual void Get(RepresentationSPtr representation) = 0;
+    virtual void Set(RepresentationSPtr representation) = 0;
+  };
+
+} // namespace EspINA
+
+#endif // ESPINA_REPRESENTATION_SETTINGS_H

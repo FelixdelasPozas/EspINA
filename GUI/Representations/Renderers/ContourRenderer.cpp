@@ -150,7 +150,7 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  void ContourRenderer::setView(EspinaRenderView* view)
+  void ContourRenderer::setView(RenderView* view)
   {
     m_view = view;
   }

@@ -5,10 +5,10 @@ include_directories(
   ${CMAKE_CURRENT_BINARY_DIR} #For wrap/ui files
 )
 
-# qt4_wrap_cpp(GUI_MOC
+qt4_wrap_cpp(GUI_MOC
 #   Analysis/InformationSelector.h
 #   Pickers/BrushPicker.h
-#   Pickers/ISelector.h
+  Selectors/Selector.h
 #   QtWidget/ActionSelector.h
 #   QtWidget/ActionSelectorWidget.h
 #   QtWidget/CheckableTableView.h
@@ -35,25 +35,58 @@ include_directories(
 #   ViewManager.h
 #   vtkWidgets/TubularWidget.h
 #   vtkWidgets/ContourWidget.h
-#   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
-#   )
+  OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
+  )
 
-# qt4_wrap_ui (GUI_UI
+qt4_wrap_ui (GUI_UI
 #   Analysis/InformationSelector.ui
 #   QtWidget/HueSelector.ui
 #   QtWidget/NoteEditor.ui
 #   QtWidget/SegmentationVisualizationSettingsDialog.ui
 #   QtWidget/TagSelector.ui
-#   Representations/GraphicalRepresentationEmptySettings.ui
+  Representations/RepresentationEmptySettings.ui
 #   Representations/ContourRepresentationSettings.ui
 #   Representations/SliceRepresentationSettings.ui
-#   )
+  )
 
 set (GUI_SOURCES 
   ${GUI_MOC}
   ${GUI_UI}
   Model/SampleAdapter.cpp
   Model/ChannelAdapter.cpp
+  Model/SegmentationAdapter.cpp
+  Model/ClassificationAdapter.cpp
+  Model/CategoryAdapter.cpp
+  Model/OutputAdapter.cpp
+  Model/ModelAdapter.cpp
+#   Model/Proxies/ChannelProxy.cpp
+#   Model/Proxies/ClassificationProxy.cpp
+#   Model/Proxies/ConnectomicProxy.cpp
+#   Model/Proxies/InformationProxy.cpp
+#   Model/Proxies/LocationProxy.cpp
+#   Model/Proxies/RelationProxy.cpp
+  Representations/Representation.cpp
+#   Representations/ContourRepresentation.cpp
+#   Representations/ContourRepresentationSettings.cpp
+#   Representations/CrosshairRepresentation.cpp
+  Representations/RepresentationEmptySettings.cpp 
+#   Representations/MeshRepresentationBase.cpp
+#   Representations/SliceRepresentation.cpp
+#   Representations/SliceRepresentationSettings.cpp 
+#   Representations/MeshRepresentation.cpp
+#   Representations/SmoothedMeshRepresentation.cpp
+#   Representations/VolumetricGPURepresentation.cpp
+#   Representations/VolumetricRepresentation.cpp
+#   Representations/Renderers/ContourRenderer.cpp 
+#   Representations/Renderers/CrosshairRenderer.cpp
+#   Representations/Renderers/SliceRenderer.cpp
+#   Representations/Renderers/MeshRenderer.cpp
+#   Representations/Renderers/SmoothedMeshRenderer.cpp
+#   Representations/Renderers/VolumetricRenderer.cpp
+#   Representations/Renderers/VolumetricGPURenderer.cpp
+  Selectors/Selector.cpp
+  View/RenderView.cpp
+
 #   Analysis/InformationSelector.cpp
 #   Analysis/xlsUtils.cpp
 #   Extensions/Visualization/VisualizationState.cpp
@@ -77,25 +110,6 @@ set (GUI_SOURCES
 #   QtWidget/SliceViewState.cpp
 #   QtWidget/VolumeView.cpp
 #   QtWidget/vtkInteractorStyleEspinaSlice.cpp
-#   Representations/ContourRepresentation.cpp
-#   Representations/ContourRepresentationSettings.cpp
-#   Representations/CrosshairRepresentation.cpp
-#   Representations/GraphicalRepresentation.cpp
-#   Representations/GraphicalRepresentationEmptySettings.cpp 
-#   Representations/IMeshRepresentation.cpp
-#   Representations/SliceRepresentation.cpp
-#   Representations/SliceRepresentationSettings.cpp 
-#   Representations/SimpleMeshRepresentation.cpp
-#   Representations/SmoothedMeshRepresentation.cpp
-#   Representations/VolumeGPURepresentation.cpp
-#   Representations/VolumeRaycastRepresentation.cpp
-#   Renderers/ContourRenderer.cpp 
-#   Renderers/CrosshairRenderer.cpp
-#   Renderers/SliceRenderer.cpp
-#   Renderers/MeshRenderer.cpp
-#   Renderers/SmoothedMeshRenderer.cpp
-#   Renderers/VolumetricRenderer.cpp
-#   Renderers/VolumetricGPURenderer.cpp
 #   vtkWidgets/ContourWidget.cpp
 #   vtkWidgets/EspinaWidget.cpp
 #   vtkWidgets/PlanarSplitSliceWidget.cpp
@@ -160,7 +174,7 @@ if(APPLE)
    set(GUI_EXTERNAL_LIBS ${GUI_EXTERNAL_LIBS} ${COCOA_LIBRARY} ${GLUT_LIBRARY} ${OpenGL_LIBRARY})
 endif (APPLE)
 
-add_library           (EspinaGUI SHARED ${GUI_SOURCES})
+add_library (EspinaGUI SHARED ${GUI_SOURCES})
 GENERATE_EXPORT_HEADER(
              EspinaGUI
              BASE_NAME EspinaGUI

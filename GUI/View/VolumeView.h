@@ -16,22 +16,14 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-//----------------------------------------------------------------------------
-// File:    VolumeView.h
-// Purpose: Display 3D representations for model's elements
-//----------------------------------------------------------------------------
-
 #ifndef VOLUMEVIEW_H
 #define VOLUMEVIEW_H
 
-#include "EspinaGUI_Export.h"
+#include "GUI/View/RenderView.h"
 
 // EspINA
-#include "Core/EspinaTypes.h"
-#include "GUI/QtWidget/EspinaRenderView.h"
-#include "GUI/Renderers/Renderer.h"
-#include "GUI/Representations/GraphicalRepresentation.h"
-#include "GUI/ViewManager.h"
+#include "GUI/Representations/Renderers/Renderer.h"
+#include "GUI/Representations/Representation.h"
 
 // VTK
 #include <vtkSmartPointer.h>
@@ -56,95 +48,85 @@ namespace EspINA
   class IViewWidget;
 
   class EspinaGUI_EXPORT VolumeView
-  : public EspinaRenderView
+  : public RenderView
   {
     Q_OBJECT
   public:
-    class EspinaGUI_EXPORT Settings
-    {
-      const QString RENDERERS;
-    public:
-      explicit Settings(const EspinaFactory *factory,
-                        const QString        prefix=QString(),
-                        VolumeView          *parent=NULL);
-
-      void setRenderers(IRendererList values);
-      IRendererList renderers() const;
-
-    private:
-      IRendererList m_renderers;
-      VolumeView *parent;
-    };
-
-    typedef boost::shared_ptr<Settings> SettingsPtr;
-
-  public:
-    explicit VolumeView(const EspinaFactory *factory,
-                        ViewManager* viewManager,
-                        bool additionalScrollBars = false,
+    explicit VolumeView(bool additionalScrollBars = false,
                         QWidget* parent = 0);
     virtual ~VolumeView();
 
     virtual void reset();
-    virtual void centerViewOn(Nm center[3], bool);
-    void setCameraFocus(const Nm center[3]);
 
-    virtual GraphicalRepresentationSPtr cloneRepresentation(GraphicalRepresentationSPtr prototype);
+    virtual void centerViewOn(const NmVector3& point, bool force = false);
+
+    void setCameraFocus(const NmVector3& center);
+
+    void setRenderers(RendererList values);
+
+    RendererList renderers() const;
+
+    virtual RepresentationSPtr cloneRepresentation(RepresentationSPtr prototype);
 
   public slots: //Needed to interact with renderers
     virtual void updateView();
+
     virtual void updateSelection(){};
 
   public:
     virtual void resetCamera();
 
-    virtual void addChannel   (ChannelPtr channel);
-    virtual void removeChannel(ChannelPtr channel);
-    virtual bool updateChannelRepresentation(ChannelPtr channel, bool render = true);
+    virtual void addChannel   (ChannelAdapterPtr channel);
+    virtual void removeChannel(ChannelAdapterPtr channel);
+    virtual bool updateRepresentation(ChannelAdapterPtr channel, bool render = true);
 
-    virtual bool updateSegmentationRepresentation(SegmentationPtr seg, bool render = true);
+    virtual bool updateRepresentation(SegmentationAdapterPtr seg, bool render = true);
 
     virtual void addWidget   (EspinaWidget *widget);
     virtual void removeWidget(EspinaWidget *widget);
 
-    virtual ISelector::PickList pick(ISelector::PickableItems filter,
-                                   ISelector::DisplayRegionList regions);
+    virtual Selector::SelectionList pick(Selector::SelectionFlags filter, Selector::DisplayRegionList regions);
 
-    virtual void setSelectionEnabled(bool enable){}
+    virtual Selector::Selection select(Selector::SelectionFlags flags, Selector::SelectionMask mask) {/*TODO*/}
 
-    SettingsPtr settings() {return m_settings;}
+    void changePlanePosition(Plane, Nm);
 
-    void changePlanePosition(PlaneType, Nm);
+    void addRendererControls(RendererSPtr renderer);
 
-    void addRendererControls(IRendererSPtr renderer);
     void removeRendererControls(const QString name);
 
     void showCrosshairs(bool) {};
-    virtual void worldCoordinates(const QPoint &displayPos, double worldPos[3]) {};
+
+    virtual bool eventFilter(QObject* caller, QEvent* e);
 
   public slots:
     void updateEnabledRenderersCount(bool);
 
   signals:
-    void centerChanged(Nm, Nm, Nm);
+    void centerChanged(NmVector3);
 
   protected:
     void selectPickedItems(int x, int y, bool append);
 
     virtual void updateChannelsOpactity(){}
 
-  private:
-    void setupUI();
-    void buildControls();
-    void updateRenderersControls();
-    void updateScrollBarsLimits();
-
   protected slots:
-    virtual bool eventFilter(QObject* caller, QEvent* e);
+
     virtual void scrollBarMoved(int);
 
     void exportScene();
+
     void onTakeSnapshot();
+
+  private:
+    void setupUI();
+
+    void buildControls();
+
+    void updateRenderersControls();
+
+    void updateScrollBarsLimits();
+
 
   private:
     // GUI
@@ -161,11 +143,9 @@ namespace EspINA
     QScrollBar  *m_sagittalScrollBar;
     bool m_additionalScrollBars;
 
-    SettingsPtr m_settings;
-
-    Nm m_center[3];
+    NmVector3 m_center;
     QMap<EspinaWidget *, vtkAbstractWidget *> m_widgets;
-    IRendererSList   m_itemRenderers;
+    RendererSList   m_renderers;
   };
 
 } // namespace EspINA

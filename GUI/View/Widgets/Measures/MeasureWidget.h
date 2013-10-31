@@ -28,7 +28,7 @@ class QEvent;
 namespace EspINA
 {
   class MeasureSliceWidget;
-  class EspinaRenderView;
+  class RenderView;
 
   class EspinaGUI_EXPORT MeasureWidget
   : public EspinaWidget
@@ -56,7 +56,7 @@ namespace EspINA
     // implements vtkCommand
     void Execute(vtkObject *, unsigned long int, void*);
 
-    bool filterEvent(QEvent *e, EspinaRenderView *view);
+    bool filterEvent(QEvent *e, RenderView *view);
 
   private:
     explicit MeasureWidget();

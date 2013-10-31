@@ -37,7 +37,7 @@ SliceWidget::SliceWidget(vtkAbstractWidget *widget)
 }
 
 //----------------------------------------------------------------------------
-bool EspinaWidget::filterEvent(QEvent* e, EspinaRenderView* view)
+bool EspinaWidget::filterEvent(QEvent* e, RenderView* view)
 {
   if ( QEvent::MouseButtonPress != e->type()
     && QEvent::MouseButtonRelease != e->type()

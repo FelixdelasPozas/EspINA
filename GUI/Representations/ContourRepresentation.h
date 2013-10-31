@@ -16,15 +16,16 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CONTOURREPRESENTATION_H_
-#define CONTOURREPRESENTATION_H_
+#ifndef ESPINA_CONTOUR_REPRESENTATION_H
+#define ESPINA_CONTOUR_REPRESENTATION_H
 
 #include "EspinaGUI_Export.h"
 
 // EspINA
-#include <GUI/Representations/GraphicalRepresentation.h>
-#include <Core/OutputRepresentations/VolumeRepresentation.h>
-#include <GUI/QtWidget/SliceView.h>
+#include "GUI/Representations/Representation.h"
+
+#include <Core/Analysis/Data/VolumetricData.h>
+#include <GUI/View/SliceView.h>
 
 // VTK
 #include <vtkSmartPointer.h>
@@ -43,8 +44,10 @@ namespace EspINA
   class SliceView;
   class VolumeView;
 
+  using SegmentationVolumeSPtr = std::shared_ptr<VolumetricData<itkVolumeType>>;
+
   class EspinaGUI_EXPORT ContourRepresentation
-  : public SegmentationGraphicalRepresentation
+  : public Representation
   {
     Q_OBJECT
     public:
@@ -52,10 +55,10 @@ namespace EspINA
       typedef enum { normal = 0, dotted, dashed } LinePattern;
 
       ContourRepresentation(SegmentationVolumeSPtr data,
-                            EspinaRenderView      *view);
+                            RenderView      *view);
       virtual ~ContourRepresentation() {};
 
-      virtual GraphicalRepresentationSettings *settingsWidget();
+      virtual RepresentationSettings *settingsWidget();
 
       virtual void setColor(const QColor &color);
 
@@ -82,9 +85,9 @@ namespace EspINA
       void updatePattern();
 
     protected:
-      virtual GraphicalRepresentationSPtr cloneImplementation(SliceView *view);
-      virtual GraphicalRepresentationSPtr cloneImplementation(VolumeView *view)
-      { return GraphicalRepresentationSPtr(); }
+      virtual RepresentationSPtr cloneImplementation(SliceView *view);
+      virtual RepresentationSPtr cloneImplementation(VolumeView *view)
+      { return RepresentationSPtr(); }
 
       virtual void updateVisibility(bool visible);
 

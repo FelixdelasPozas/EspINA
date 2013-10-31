@@ -17,27 +17,24 @@
  *
  */
 
-#ifndef ESPINA_BASICGRAPHICALREPRESENTATIONFACTORY_H
-#define ESPINA_BASICGRAPHICALREPRESENTATIONFACTORY_H
+#include "RepresentationEmptySettings.h"
 
-#include "EspinaGUI_Export.h"
+using namespace EspINA;
 
-#include <GUI/Representations/GraphicalRepresentationFactory.h>
-
-namespace EspINA
+//----------------------------------------------------------------------------
+RepresentationEmptySettings::RepresentationEmptySettings()
 {
-  class EspinaGUI_EXPORT BasicGraphicalRepresentationFactory
-  : public GraphicalRepresentationFactory
-  {
-  public:
-    virtual ~BasicGraphicalRepresentationFactory() {};
-
-    virtual void createGraphicalRepresentations(ChannelOutputSPtr output);
-    virtual void createGraphicalRepresentations(SegmentationOutputSPtr output);
-  };
-
-  void EspinaGUI_EXPORT SetBasicGraphicalRepresentationFactory(Filter    *filter);
-  void EspinaGUI_EXPORT SetBasicGraphicalRepresentationFactory(FilterSPtr filter);
+  setupUi(this);
 }
 
-#endif // ESPINA_BASICGRAPHICALREPRESENTATIONFACTORY_H
+//----------------------------------------------------------------------------
+void RepresentationEmptySettings::Get(RepresentationSPtr representation)
+{
+
+}
+
+//----------------------------------------------------------------------------
+void RepresentationEmptySettings::Set(RepresentationSPtr representation)
+{
+
+}

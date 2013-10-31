@@ -26,7 +26,7 @@
 namespace EspINA
 {
   class ViewManager;
-  class EspinaRenderView;
+  class RenderView;
   class RulerWidget;
   
   class RulerTool
@@ -39,7 +39,7 @@ namespace EspINA
 
       // implements ITool
       virtual QCursor cursor() const { return Qt::CrossCursor; };
-      virtual bool filterEvent(QEvent *e, EspinaRenderView *view=NULL);
+      virtual bool filterEvent(QEvent *e, RenderView *view=NULL);
       virtual void setInUse(bool value);
       virtual void setEnabled(bool value);
       virtual bool enabled() const;

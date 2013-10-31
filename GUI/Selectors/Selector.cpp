@@ -17,31 +17,31 @@
 */
 
 
-#include "ISelector.h"
+#include "GUI/Selectors/Selector.h"
 
 using namespace EspINA;
 
-const ISelector::Tag ISelector::SAMPLE = "EspINA_Sample";
-const ISelector::Tag ISelector::CHANNEL = "EspINA_Channel";
-const ISelector::Tag ISelector::SEGMENTATION = "EspINA_Segmentation";
+const Selector::SelectionTag Selector::SAMPLE = "EspINA_Sample";
+const Selector::SelectionTag Selector::CHANNEL = "EspINA_Channel";
+const Selector::SelectionTag Selector::SEGMENTATION = "EspINA_Segmentation";
 
 //-----------------------------------------------------------------------------
-bool ISelector::filterEvent(QEvent* e, EspinaRenderView* view)
+bool Selector::filterEvent(QEvent* e, RenderView* view)
 {
   return false;
 }
 
 //-----------------------------------------------------------------------------
-void ISelector::setCursor(QCursor cursor)
+void Selector::setCursor(const QCursor& cursor)
 {
   m_cursor = cursor;
 }
 
 //-----------------------------------------------------------------------------
-void ISelector::setPickable(QString type, bool pick)
+void Selector::setSelectionTag(const Selector::SelectionTag tag, bool selectable)
 {
-  if (pick)
-    m_filters.insert(type);
+  if (selectable)
+    m_flags.insert(tag);
   else
-    m_filters.remove(type);
+    m_flags.remove(tag);
 }

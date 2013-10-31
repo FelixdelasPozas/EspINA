@@ -16,16 +16,15 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CROSSHAIRREPRESENTATION_H_
-#define CROSSHAIRREPRESENTATION_H_
+#ifndef ESPINA_CROSSHAIR_REPRESENTATION_H
+#define ESPINA_CROSSHAIR_REPRESENTATION_H
 
 #include "EspinaGUI_Export.h"
 
 // EspINA
-#include "GUI/Representations/GraphicalRepresentation.h"
-#include <Core/EspinaTypes.h>
-#include <Core/OutputRepresentations/VolumeRepresentation.h>
-#include <GUI/QtWidget/VolumeView.h>
+#include "GUI/Representations/Representation.h"
+#include <Core/Analysis/Data/VolumetricData.h>
+#include <GUI/View/VolumeView.h>
 
 // VTK
 #include <vtkSmartPointer.h>
@@ -43,11 +42,13 @@ namespace EspINA
 {
   class SliceView;
   class VolumeView;
-  class EspinaRenderView;
+  class RenderView;
   class CrosshairRenderer;
-  
+
+  using ChannelVolumeSPtr = std::shared_ptr<VolumetricData<itkVolumeType>>;
+
   class EspinaGUI_EXPORT CrosshairRepresentation
-  :public ChannelGraphicalRepresentation
+  :public Representation
   {
     Q_OBJECT
     public:
@@ -59,7 +60,7 @@ namespace EspINA
 
       virtual void setContrast(double value);
 
-      virtual GraphicalRepresentationSettings *settingsWidget();
+      virtual RepresentationSettings *settingsWidget();
 
       virtual void setColor(const QColor &color);
 
@@ -84,10 +85,10 @@ namespace EspINA
       void setTiling(bool value) { m_tiling = value; }
 
   protected:
-      virtual GraphicalRepresentationSPtr cloneImplementation(SliceView *view)
-      { return GraphicalRepresentationSPtr(); }
+      virtual RepresentationSPtr cloneImplementation(SliceView *view)
+      { return RepresentationSPtr(); }
 
-      virtual GraphicalRepresentationSPtr cloneImplementation(VolumeView *view);
+      virtual RepresentationSPtr cloneImplementation(VolumeView *view);
 
     virtual void updateVisibility(bool visible);
 
@@ -131,5 +132,6 @@ namespace EspINA
   typedef boost::shared_ptr<CrosshairRepresentation> CrosshairRepresentationSPtr;
   typedef QList<CrosshairRepresentationSPtr> CrosshairRepresentationSList;
 
-} /* namespace EspINA */
-#endif /* CROSSHAIRREPRESENTATION_H_ */
+} // namespace EspINA
+
+#endif // ESPINA_CROSSHAIR_REPRESENTATION_H

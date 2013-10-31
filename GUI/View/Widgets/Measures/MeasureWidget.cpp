@@ -250,7 +250,7 @@ void MeasureWidget::Execute(vtkObject *caller, unsigned long int eventId, void* 
 
 // fixes a bug in vtkDistanceRepresentation that misplaces the handles when zooming the view
 //----------------------------------------------------------------------------
-bool MeasureWidget::filterEvent(QEvent *e, EspinaRenderView *view)
+bool MeasureWidget::filterEvent(QEvent *e, RenderView *view)
 {
   if (e->type() == QEvent::KeyPress)
   {

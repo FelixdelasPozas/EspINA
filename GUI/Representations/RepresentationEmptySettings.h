@@ -17,26 +17,26 @@
  *
  */
 
-#ifndef ESPINA_GRAPHICALPRESENTATIONEMPTYSETTINGS_H
-#define ESPINA_GRAPHICALPRESENTATIONEMPTYSETTINGS_H
+#ifndef ESPINA_REPRESENTATION_EMPTY_SETTINGS_H
+#define ESPINA_REPRESENTATION_EMPTY_SETTINGS_H
 
-#include "GUI/Representations/GraphicalRepresentationSettings.h"
-#include "ui_GraphicalRepresentationEmptySettings.h"
+#include "GUI/Representations/RepresentationSettings.h"
+#include "ui_RepresentationEmptySettings.h"
 
 namespace EspINA
 {
 
-  class GraphicalRepresentationEmptySettings 
-  : public GraphicalRepresentationSettings
-  , private Ui::GraphicalRepresentationEmptySettings
+  class RepresentationEmptySettings 
+  : public RepresentationSettings
+  , private Ui::RepresentationEmptySettings
   {
   public:
-    explicit GraphicalRepresentationEmptySettings();
+    explicit RepresentationEmptySettings();
 
-    virtual void Get(GraphicalRepresentationSPtr representation);
-    virtual void Set(GraphicalRepresentationSPtr representation);
+    virtual void Get(RepresentationSPtr representation);
+    virtual void Set(RepresentationSPtr representation);
   };
 
 } // namespace EspINA
 
-#endif // ESPINA_GRAPHICALPRESENTATIONEMPTYSETTINGS_H
+#endif // ESPINA_REPRESENTATION_EMPTY_SETTINGS_H

@@ -17,24 +17,24 @@
  *
  */
 
-#ifndef ESPINA_CONTOURREPRESENTATIONSETTINGS_H
-#define ESPINA_CONTOURREPRESENTATIONSETTINGS_H
+#ifndef ESPINA_CONTOUR_REPRESENTATION_SETTINGS_H
+#define ESPINA_CONTOUR_REPRESENTATION_SETTINGS_H
 
-#include "GUI/Representations/GraphicalRepresentationSettings.h"
+#include "GUI/Representations/RepresentationSettings.h"
 #include "ui_ContourRepresentationSettings.h"
 
 namespace EspINA
 {
 
   class ContourRepresentationSettings 
-  : public GraphicalRepresentationSettings
+  : public RepresentationSettings
   , private Ui::ContourRepresentationSettings
   {
   public:
     explicit ContourRepresentationSettings();
 
-    virtual void Get(GraphicalRepresentationSPtr representation);
-    virtual void Set(GraphicalRepresentationSPtr representation);
+    virtual void Get(RepresentationSPtr representation);
+    virtual void Set(RepresentationSPtr representation);
 
   private:
     bool m_init;
@@ -42,4 +42,4 @@ namespace EspINA
 
 } // namespace EspINA
 
-#endif // ESPINA_CONTOURREPRESENTATIONSETTINGS_H
+#endif // ESPINA_CONTOUR_REPRESENTATION_SETTINGS_H

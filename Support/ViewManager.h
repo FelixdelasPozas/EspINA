@@ -49,8 +49,8 @@ class QEvent;
 namespace EspINA
 {
   class SliceSelectorWidget;
-  class EspinaRenderView;
-  class IEspinaView;
+  class RenderView;
+  class SelectableView;
   class ISelector;
   class ITool;
   class IVOI;
@@ -65,17 +65,17 @@ namespace EspINA
     explicit ViewManager();
     ~ViewManager();
 
-    void registerView(IEspinaView *view);
-    void registerView(EspinaRenderView *view);
+    void registerView(SelectableView *view);
+    void registerView(RenderView *view);
     void registerView(SliceView *view);
 
-    void unregisterView(IEspinaView *view);
-    void unregisterView(EspinaRenderView *view);
+    void unregisterView(SelectableView *view);
+    void unregisterView(RenderView *view);
     void unregisterView(SliceView *view);
 
   private:
-    QList<IEspinaView *>      m_espinaViews;
-    QList<EspinaRenderView *> m_renderViews;
+    QList<SelectableView *>      m_espinaViews;
+    QList<RenderView *> m_renderViews;
     QList<SliceView *>        m_sliceViews;
 
     //---------------------------------------------------------------------------
@@ -120,7 +120,7 @@ namespace EspINA
     /// Delegate active voi event handling. If the event is not filtered by
     /// active voi, then active tool, if any, filter the event. If it neither
     /// filter the event, the function returns false. Otherwise, returns true.
-    bool filterEvent(QEvent *event, EspinaRenderView *view=NULL);
+    bool filterEvent(QEvent *event, RenderView *view=NULL);
     QCursor cursor() const;
 
   private:
@@ -138,11 +138,6 @@ namespace EspINA
     /*********************** View Synchronization API **************************/
     //---------------------------------------------------------------------------
   public:
-    enum SliceSelector
-    {
-      None=0x0, From = 0x1, To = 0x2
-    };
-    Q_DECLARE_FLAGS(SliceSelectors, SliceSelector)
 
     /// Reset Camera
     void resetViewCameras();

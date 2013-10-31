@@ -79,6 +79,9 @@ namespace EspINA {
     bool m_isSelected;
     bool m_outputIsModified; // sticky bit
   };
+
+  using ViewItemAdapterPtr  = ViewItemAdapter *;
+  using ViewItemAdapterList = ViewItemAdapterPtr;
 } // namespace EspINA
 
 #endif // ESPINA_VIEW_ITEM_ADAPTER_H

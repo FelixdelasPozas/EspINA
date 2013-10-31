@@ -26,13 +26,14 @@
 */
 
 
-#include "GraphicalRepresentation.h"
-#include <GUI/QtWidget/SliceView.h>
+#include "Representation.h"
+
+#include <GUI/View/SliceView.h>
 
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
-Representation::GraphicalRepresentation(EspinaRenderView *view) 
+Representation::Representation(RenderView *view) 
 : m_color(Qt::white)
 , m_highlight(false)
 , m_view(view)
@@ -41,7 +42,7 @@ Representation::GraphicalRepresentation(EspinaRenderView *view)
 {}
 
 //-----------------------------------------------------------------------------
-void Representation::setActive(bool value, EspinaRenderView *view)
+void Representation::setActive(bool value, RenderView *view)
 {
   if (!view || view == m_view)
   {
@@ -50,7 +51,7 @@ void Representation::setActive(bool value, EspinaRenderView *view)
     updateVisibility(isVisible());
   }
 
-  foreach (GraphicalRepresentationSPtr clone, m_clones)
+  foreach (RepresentationSPtr clone, m_clones)
   {
     clone->setActive(value, view);
   }
@@ -78,9 +79,9 @@ void Representation::setVisible(bool visible)
 }
 
 //-----------------------------------------------------------------------------
-GraphicalRepresentationSPtr Representation::clone(SliceView *view)
+RepresentationSPtr Representation::clone(SliceView *view)
 {
-  GraphicalRepresentationSPtr representation = cloneImplementation(view);
+  RepresentationSPtr representation = cloneImplementation(view);
 
   if (representation)
   {
@@ -93,9 +94,9 @@ GraphicalRepresentationSPtr Representation::clone(SliceView *view)
 }
 
 //-----------------------------------------------------------------------------
-GraphicalRepresentationSPtr Representation::clone(VolumeView *view)
+RepresentationSPtr Representation::clone(VolumeView *view)
 {
-  GraphicalRepresentationSPtr representation = cloneImplementation(view);
+  RepresentationSPtr representation = cloneImplementation(view);
 
   if (representation)
     m_clones << representation;
@@ -110,10 +111,10 @@ vtkMatrix4x4 *Representation::slicingMatrix(SliceView *view) const
 }
 
 //-----------------------------------------------------------------------------
-ChannelGraphicalRepresentation::ChannelGraphicalRepresentation(EspinaRenderView *view)
-: Representation(view)
-, m_brightness(0)
-, m_contrast(1)
-, m_opacity(1)
-{
-}
+// ChannelRepresentation::ChannelRepresentation(RenderView *view)
+// : Representation(view)
+// , m_brightness(0)
+// , m_contrast(1)
+// , m_opacity(1)
+// {
+// }

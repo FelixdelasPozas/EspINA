@@ -26,6 +26,8 @@
 #include "GUI/Model/SampleAdapter.h"
 #include "GUI/Model/ChannelAdapter.h"
 #include "GUI/Model/ClassificationAdapter.h"
+#include "GUI/Model/SegmentationAdapter.h"
+#include "GUI/Model/FilterAdapter.h"
 
 namespace EspINA
 {
@@ -123,15 +125,15 @@ namespace EspINA
 
     void add(SampleAdapterSPtr        sample);
     void add(SampleAdapterSList       samples);
-    void add(ChannelSPtr       channel);
-    void add(ChannelSList      channels);
+    void add(ChannelAdapterSPtr       channel);
+    void add(ChannelAdapterSList      channels);
     void add(SegmentationAdapterSPtr  segmentation);
     void add(SegmentationAdapterSList segmentations);
 
     void remove(SampleAdapterSPtr        sample);
     void remove(SampleAdapterSList       samples);
-    void remove(ChannelSPtr       channel);
-    void remove(ChannelSList      channels);
+    void remove(ChannelAdapterSPtr       channel);
+    void remove(ChannelAdapterSList      channels);
     void remove(SegmentationAdapterSPtr  segmentation);
     void remove(SegmentationAdapterSList segmentations);
 
@@ -171,7 +173,7 @@ namespace EspINA
 //     virtual ModelItemSPtr find(ModelItemPtr item);
 // 
 //     virtual CategoryAdapterSPtr findCategory(ModelItemPtr       item           );
-//     virtual CategoryAdapterSPtr findCategory(CategoryAdapterPtr taxonomyElement);
+//     virtual CategoryAdapterSPtr findCategory(CategoryAdapterPtr classificationElement);
 // 
 //     virtual SampleAdapterSPtr findSampleAdapter(ModelItemPtr item  );
 //     virtual SampleAdapterSPtr findSampleAdapter(SampleAdapterPtr    sample);
@@ -187,23 +189,23 @@ namespace EspINA
 
     // signal emission methods, used by undo commands to signal finished operations.
     void emitSegmentationAdded(SegmentationAdapterSList);
-    void emitChannelAdded(ChannelSList);
+    void emitChannelAdded(ChannelAdapterSList);
 
   signals:
-    void taxonomyAdded  (ClassificationSPtr taxonomy);
-    void taxonomyRemoved(ClassificationSPtr taxonomy);
+    void classificationAdded  (ClassificationSPtr classification);
+    void classificationRemoved(ClassificationSPtr classification);
 
     void sampleAdded  (SampleAdapterSPtr samples);
     void sampleRemoved(SampleAdapterSPtr samples);
 
-    void channelAdded  (ChannelSPtr channel);
-    void channelRemoved(ChannelSPtr channel);
+    void channelAdded  (ChannelAdapterSPtr channel);
+    void channelRemoved(ChannelAdapterSPtr channel);
 
     void segmentationAdded  (SegmentationAdapterSPtr segmentations);
     void segmentationRemoved(SegmentationAdapterSPtr segmentations);
 
   private slots:
-    void itemModified(ModelItemPtr item);
+    void itemModified(ItemAdapterSPtr item);
 
   private:
 //     void addClassification(CategoryAdapterSPtr root);

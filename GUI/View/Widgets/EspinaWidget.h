@@ -31,7 +31,7 @@ class vtkRenderWindowInteractor;
 
 namespace EspINA
 {
-  class EspinaRenderView;
+  class RenderView;
   class SliceView;
   class ViewManager;
   class VolumeView;
@@ -66,7 +66,7 @@ namespace EspINA
 
     virtual SliceWidget *createSliceWidget(SliceView *view) = 0;
 
-    bool filterEvent(QEvent *e, EspinaRenderView *view);
+    bool filterEvent(QEvent *e, RenderView *view);
     virtual bool processEvent(vtkRenderWindowInteractor *iren,
                               long unsigned int event) = 0;
     virtual void setEnabled(bool enable) = 0;

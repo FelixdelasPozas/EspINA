@@ -17,32 +17,44 @@
 */
 
 
-//----------------------------------------------------------------------------
-// File:    IEspinaView.h
-// Purpose: Group different specific views and the way they are displayed
-//          (i.e. main window widget, dock widgets, independent widget, etc)
-//----------------------------------------------------------------------------
+#ifndef ESPINA_SELECTABLE_VIEW_H
+#define ESPINA_SELECTABLE_VIEW_H
 
-#ifndef IESPINAVIEW_H
-#define IESPINAVIEW_H
-
-#include "EspinaGUI_Export.h"
-
-#include <Core/EspinaTypes.h>
+#include <GUI/Model/ChannelAdapter.h>
+#include <GUI/Model/SegmentationAdapter.h>
 
 namespace EspINA
 {
-  class EspinaGUI_EXPORT IEspinaView
+
+  /** \brief Interface for views displaying items whose selection state may change
+   * 
+   */
+  class EspinaGUI_EXPORT SelectableView
   {
   public:
-    explicit IEspinaView(){}
-    virtual ~IEspinaView(){}
+    using Selection = QList<ViewItemAdapterList>;
 
-    virtual void updateChannelRepresentations     (ChannelList      list = ChannelList()) = 0;
-    virtual void updateSegmentationRepresentations(SegmentationList list = SegmentationList()) = 0;
+  public:
+    virtual ~SelectableView(){}
+
+    void setSelectionEnabled(bool value)
+    { m_selectionEnabled = value; }
+
+    bool selectionEnabled() const
+    { return m_selectionEnabled; }
+
+    virtual void updateRepresentations() = 0;
+
+    virtual void updateRepresentations(ChannelAdapterList list) = 0;
+
+    virtual void updateRepresentations(SegmentationAdapterList list) = 0;
+
     virtual void updateSelection() = 0;
+
+  private:
+    bool m_selectionEnabled;
   };
 
 } // namespace EspINA
 
-#endif //IESPINAVIEW_H
+#endif // ESPINA_SELECTABLE_VIEW_H
