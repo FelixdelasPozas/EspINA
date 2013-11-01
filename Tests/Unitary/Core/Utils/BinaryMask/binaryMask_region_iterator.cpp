@@ -20,6 +20,7 @@
 #include <Core/Utils/Bounds.h>
 #include <Core/EspinaTypes.h>
 
+#include <QDebug>
 using namespace EspINA;
 
 using BMask = BinaryMask<unsigned char>;
@@ -28,8 +29,7 @@ int binaryMask_region_iterator(int argc, char** argv)
 {
   bool error = false;
 
-  Bounds bounds{ 0,4,0,4,0,4 };
-  BMask *mask = new BMask(bounds);
+  BMask *mask = new BMask(Bounds{ 0,4,0,4,0,4 });
 
   Bounds badRegionBounds{ -1,18,-1,18,-1,18 };
 
@@ -38,12 +38,12 @@ int binaryMask_region_iterator(int argc, char** argv)
     BMask::region_iterator badIt(mask, badRegionBounds);
     error |= true;
   }
-  catch(BMask::Region_Not_Contained_In_Mask const &e)
+  catch(BMask::Region_Not_Contained_In_Mask_Exception const &e)
   {
     error |= false;
   }
 
-  Bounds goodRegionBounds{ 1,3,1,3,1,3 };
+  Bounds goodRegionBounds{ 1,4,2,3,2,4 };
   BMask::region_iterator rit(mask, goodRegionBounds);
 
   rit.goToEnd();
@@ -79,24 +79,36 @@ int binaryMask_region_iterator(int argc, char** argv)
     error |= false;
   }
 
+  mask->setForegroundValue(1);
   rit.goToBegin();
   unsigned int count = 0;
+  QString inputValues, outputValues;
   while(!rit.isAtEnd())
   {
     error |= (mask->backgroundValue() != rit.Get());
     rit.Set();
+    inputValues += QString::number(rit.Get());
     ++count;
     ++rit;
   }
 
-  error |= (count != 27);
+  error |= (count != 24);
 
   rit.goToBegin();
   while(!rit.isAtEnd())
   {
     error |= (mask->foregroundValue() != rit.Get());
+    outputValues += QString::number(rit.Get());
     ++rit;
   }
+
+  BMask *otherMask = new BMask(Bounds{0,9,0,9,0,9}, BMask::Spacing(2.5,2.5,2.5));
+
+  qDebug() << otherMask->numberOfVoxels();
+
+  error |= (otherMask->numberOfVoxels() != 64);
+
+  error |= (outputValues != inputValues);
 
   return error;
 }

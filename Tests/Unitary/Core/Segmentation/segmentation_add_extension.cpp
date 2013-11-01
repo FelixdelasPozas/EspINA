@@ -21,12 +21,34 @@
 #include "Core/Analysis/Filter.h"
 #include "Core/Analysis/Segmentation.h"
 #include "Core/Analysis/Analysis.h"
+#include "Core/Analysis/Classification.h"
+
+#include "SegmentationExtensionSupport.h"
 
 using namespace EspINA;
 using namespace std;
 
 int segmentation_add_extension(int argc, char** argv)
 {
-  // TODO: falta extension provider
-  return true;
+  bool error = false;
+
+  SegmentationExtensionSPtr extension{ new DummySegmentationExtension() };
+  Classification classification;
+  SegmentationSPtr segmentation{new Segmentation(FilterSPtr(), 0)};
+
+  segmentation->addExtension(extension);
+
+  error |= (!segmentation->hasExtension("DummySegmentationExtension"));
+  error |= (segmentation->hasExtension("NoExistingSegmentation"));
+
+  using Tag = SegmentationExtension::InfoTag;
+  SegmentationExtension::InfoTagList list;
+  list << Tag("Tag1") << Tag("Tag2");
+
+  error |= (segmentation->extension("DummySegmentationExtension") != extension);
+  error |= (segmentation->informationTags() != list);
+  error |= (segmentation->information(Tag("Tag1")) != QVariant("prueba1"));
+  error |= (segmentation->information(Tag("Tag2")) != QVariant("prueba2"));
+
+  return error;
 }

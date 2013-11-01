@@ -86,7 +86,7 @@ namespace EspINA
   }
 
   //-------------------------------------------------------------------------------------
-  template<typename T> BinaryMask<T>::BinaryMask(const Bounds& bounds, Spacing spacing)
+  template<typename T> BinaryMask<T>::BinaryMask(const Bounds& bounds, Spacing spacing) throw(Invalid_Bounds_Exception)
   : m_bounds{bounds}
   , m_backgroundValue(0)
   , m_foregroundValue(255)
@@ -94,7 +94,7 @@ namespace EspINA
   , m_spacing(spacing)
   {
     if (!bounds.areValid())
-      throw;
+      throw Invalid_Bounds_Exception();
 
     m_size[0] = (std::floor(bounds[1]/m_spacing.x) - std::ceil(bounds[0]/m_spacing.x)) + 1;
     m_size[1] = (std::floor(bounds[3]/m_spacing.y) - std::ceil(bounds[2]/m_spacing.y)) + 1;
@@ -114,7 +114,7 @@ namespace EspINA
   }
 
   //-------------------------------------------------------------------------------------
-  template<typename T> void BinaryMask<T>::setPixel(const IndexType& index)
+  template<typename T> void BinaryMask<T>::setPixel(const IndexType& index) throw(Out_Of_Bounds_Exception)
   {
     Nm point[3] = { static_cast<Nm>(index.x*m_spacing.x),
                     static_cast<Nm>(index.y*m_spacing.y),
@@ -123,7 +123,7 @@ namespace EspINA
         point[1] < m_bounds[2] || point[1] > m_bounds[3] ||
         point[2] < m_bounds[4] || point[2] > m_bounds[5])
     {
-      throw;
+      throw Out_Of_Bounds_Exception();
     }
 
     // we must adjust the index
@@ -139,7 +139,7 @@ namespace EspINA
   }
 
   //-------------------------------------------------------------------------------------
-  template<typename T> void BinaryMask<T>::unsetPixel(const IndexType& index)
+  template<typename T> void BinaryMask<T>::unsetPixel(const IndexType& index) throw(Out_Of_Bounds_Exception)
   {
     Nm point[3] = { static_cast<Nm>(index.x*m_spacing.x),
                     static_cast<Nm>(index.y*m_spacing.y),
@@ -148,7 +148,7 @@ namespace EspINA
         point[1] < m_bounds[2] || point[1] > m_bounds[3] ||
         point[2] < m_bounds[4] || point[2] > m_bounds[5])
     {
-      throw;
+      throw Out_Of_Bounds_Exception();
     }
 
     // we must adjust the index
@@ -164,7 +164,7 @@ namespace EspINA
   }
 
   //-------------------------------------------------------------------------------------
-  template<typename T> typename BinaryMask<T>::PixelType BinaryMask<T>::pixel(const IndexType& index) const
+  template<typename T> typename BinaryMask<T>::PixelType BinaryMask<T>::pixel(const IndexType& index) const throw(Out_Of_Bounds_Exception)
   {
     Nm point[3] = { static_cast<Nm>(index.x*m_spacing.x),
                     static_cast<Nm>(index.y*m_spacing.y),
@@ -173,7 +173,7 @@ namespace EspINA
         point[1] < m_bounds[2] || point[1] > m_bounds[3] ||
         point[2] < m_bounds[4] || point[2] > m_bounds[5])
     {
-      throw;
+      throw Out_Of_Bounds_Exception();
     }
 
     // we must adjust the index

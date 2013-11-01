@@ -34,6 +34,9 @@ namespace EspINA
     using InfoTag     = QString;
     using InfoTagList = QList<InfoTag>;
 
+    struct Existing_Extension{};
+    struct Extension_Not_Found{};
+
   public:
     virtual ~SegmentationExtension() {}
 
@@ -57,8 +60,10 @@ namespace EspINA
     virtual QString toolTipText() const
     { return QString(); }
 
+    virtual Type type() const = 0;
+
   protected:
-    SegmentationExtension() : m_segmentation{nullptr} {}
+    SegmentationExtension() : m_segmentation{nullptr}, m_enabled{false} {}
 
     SegmentationPtr m_segmentation;
     bool            m_enabled;
@@ -68,6 +73,7 @@ namespace EspINA
   using SegmentationExtensionList  = QList<SegmentationExtensionPtr>;
   using SegmentationExtensionSPtr  = std::shared_ptr<SegmentationExtension>;
   using SegmentationExtensionSList = QList<SegmentationExtensionSPtr>;
+  using SegmentationExtensionSMap  = QMap<QString,SegmentationExtensionSPtr>;
 } // namespace EspINA
 
 #endif // SEGMENTATIONEXTENSION_H

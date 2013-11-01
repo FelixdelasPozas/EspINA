@@ -37,9 +37,11 @@ namespace EspINA
       using PixelType        = T;
       using IndexType        = struct index { int x; int y; int z;
                                               index(): x(0), y(0), z(0) {};
+                                              index(const int xv, const int yv, const int zv): x(xv), y(yv), z(zv) {};
                                               index(const index &i): x(i.x), y(i.y), z(i.z) {}; };
       using Spacing          = struct spacing { Nm x; Nm y; Nm z;
                                               spacing(): x(1), y(1), z(1) {};
+                                              spacing(const Nm xv, const Nm yv, const Nm zv): x(xv), y(yv), z(zv) {};
                                               spacing(const spacing &s): x(s.x), y(s.y), z(s.z) {}; };
       using itkImageType     = itk::Image<T,3>;
       using itkPointer       = typename itkImageType::Pointer;
@@ -53,7 +55,8 @@ namespace EspINA
       struct Out_Of_Bounds_Exception{};
       struct Overflow_Exception{};
       struct Underflow_Exception{};
-      struct Region_Not_Contained_In_Mask{};
+      struct Region_Not_Contained_In_Mask_Exception{};
+      struct Invalid_Bounds_Exception{};
 
       //- BINARY MASK CLASS  ----------------------------------------------------------------
 
@@ -61,7 +64,7 @@ namespace EspINA
        *
        *  Foreground and background will be set to default values.
        */
-      explicit BinaryMask(const Bounds& bounds, const Spacing spacing = Spacing());
+      explicit BinaryMask(const Bounds& bounds, const Spacing spacing = Spacing()) throw(Invalid_Bounds_Exception);
 
       /** \brief Binary Mask constructor from an image and a background value. Every other
        *   value in the image will be considered as foreground.
@@ -105,16 +108,16 @@ namespace EspINA
 
       /** \brief Set pixel value to foreground value
        */
-      void setPixel(const IndexType& index);
+      void setPixel(const IndexType& index) throw(Out_Of_Bounds_Exception);
 
       /** \brief Set pixel value to background value
        */
-      void unsetPixel(const IndexType& index);
+      void unsetPixel(const IndexType& index) throw(Out_Of_Bounds_Exception);
 
       /** \brief Return the value of specified voxel in the mask.
        *  The returned value will be of type T.
        */
-      PixelType pixel(const IndexType& index) const;
+      PixelType pixel(const IndexType& index) const throw(Out_Of_Bounds_Exception);
 
       /** \brief Returns the itk::image<T> equivalent of a BinaryMask<T>
        */
@@ -339,11 +342,11 @@ namespace EspINA
            *  NOTE: Can throw a Region_Not_Contained_In_Mask if the given region is not
            *        inside the largest possible region of the mask.
            */
-          region_iterator(BinaryMask<T> *mask, const Bounds &bounds) throw (Region_Not_Contained_In_Mask)
+          region_iterator(BinaryMask<T> *mask, const Bounds &bounds) throw (Region_Not_Contained_In_Mask_Exception)
           : m_mask(mask), m_bounds(bounds)
           {
             if (intersection(bounds, mask->bounds()) != bounds)
-              throw Region_Not_Contained_In_Mask();
+              throw Region_Not_Contained_In_Mask_Exception();
 
             m_extent[0] = static_cast<int>(std::round(m_bounds[0]/m_mask->m_spacing.x));
             m_extent[1] = static_cast<int>(std::round(m_bounds[1]/m_mask->m_spacing.x));
@@ -419,7 +422,7 @@ namespace EspINA
            */
           bool isAtEnd() const
           {
-            return ((m_index.x == m_extent[1] + 1) && (m_index.x == m_extent[3] + 1) && (m_index.x == m_extent[5] + 1));
+            return ((m_index.x == m_extent[1] + 1) && (m_index.y == m_extent[3] + 1) && (m_index.z == m_extent[5] + 1));
           }
 
           /** \brief Equal operator between region_iterator and a region_iterator or a const_region_iterator of the mask.

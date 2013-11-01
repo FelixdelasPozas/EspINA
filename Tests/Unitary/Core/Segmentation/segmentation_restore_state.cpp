@@ -63,5 +63,6 @@ int segmentation_restore_state(int argc, char** argv)
 
   // TODO: fix Segmentation class to get access to a CategorySPtr
   // TODO: discrepancy between output()->id() & outputId();
+  // TODO: no way to change output
   return (forgedState != state);
 }

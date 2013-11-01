@@ -21,12 +21,46 @@
 #include "Core/Analysis/Filter.h"
 #include "Core/Analysis/Segmentation.h"
 #include "Core/Analysis/Analysis.h"
+#include "Core/Analysis/Classification.h"
+
+#include "SegmentationExtensionSupport.h"
 
 using namespace EspINA;
 using namespace std;
 
 int segmentation_delete_extension(int argc, char** argv)
 {
-  // TODO: falta provider
-  return true;
+  bool error = false;
+
+  SegmentationExtensionSPtr extension{ new DummySegmentationExtension() };
+  Classification classification;
+  SegmentationSPtr segmentation{new Segmentation(FilterSPtr(), 0)};
+
+  segmentation->addExtension(extension);
+
+  error |= (!segmentation->hasExtension("DummySegmentationExtension"));
+  error |= (segmentation->hasExtension("NoExistingSegmentation"));
+
+  SegmentationExtensionSPtr otherExtension = segmentation->extension("DummySegmentationExtension");
+
+  segmentation->deleteExtension(otherExtension);
+
+  error |= (otherExtension != extension);
+  error |= (otherExtension->type() != "DummySegmentationExtension");
+  error |= (segmentation->hasExtension("DummySegmentationExtension"));
+
+  SegmentationExtensionSPtr nonIncludedExtension{ new DummySegmentationExtension() };
+
+  try
+  {
+    segmentation->deleteExtension(nonIncludedExtension);
+    error |= true;
+  }
+  catch(SegmentationExtension::Extension_Not_Found &e)
+  {
+    error |= false;
+  }
+
+  return error;
 }
+

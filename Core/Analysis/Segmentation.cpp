@@ -39,71 +39,110 @@ Segmentation::Segmentation(FilterSPtr filter, Output::Id output)
 , m_users{QSet<QString>()}
 , m_category{nullptr}
 {
-
 }
 
 //------------------------------------------------------------------------
 Segmentation::~Segmentation()
 {
   m_category = nullptr;
+
+  for (auto extension: m_extensions)
+    extension = nullptr;
+
+  m_extensions.clear();
 }
 
 //------------------------------------------------------------------------
-void Segmentation::addExtension(SegmentationExtensionSPtr extension)
+void Segmentation::addExtension(SegmentationExtensionSPtr extension) throw (SegmentationExtension::Existing_Extension)
 {
-  // TODO
+  if (m_extensions.keys().contains(extension->type()))
+    throw SegmentationExtension::Existing_Extension();
+
+  extension->setSegmentation(this);
+  extension->initialize();
+
+  m_extensions.insert(extension->type(), extension);
+}
+
+//------------------------------------------------------------------------
+void Segmentation::deleteExtension(SegmentationExtensionSPtr extension) throw (SegmentationExtension::Extension_Not_Found)
+{
+  if (!m_extensions.keys().contains(extension->type()))
+    throw SegmentationExtension::Extension_Not_Found();
+
+  extension->invalidate();
+
+  m_extensions.remove(extension->type());
 }
 
 //------------------------------------------------------------------------
 void Segmentation::changeOutput(OutputSPtr output)
 {
-  // TODO
+  // TODO: no way to change output
 }
 
 //------------------------------------------------------------------------
-SegmentationExtensionSPtr Segmentation::extension(const SegmentationExtension::Type& type) const
+SegmentationExtensionSPtr Segmentation::extension(const SegmentationExtension::Type& type) const throw(SegmentationExtension::Extension_Not_Found)
 {
-  // TODO
-  return SegmentationExtensionSPtr();
+  if (!m_extensions.keys().contains(type))
+  {
+    // TODO: no way to get extension provider
+    throw SegmentationExtension::Extension_Not_Found();
+
+//    if (!m_provider.values().contains(type))
+//      throw SegmentationExtension::Extension_Not_Found();
+//
+//    m_extensions.insert(type, m_provider->value(type).clone());
+  }
+
+  return m_extensions.value(type);
 }
 
 //------------------------------------------------------------------------
 bool Segmentation::hasExtension(const SegmentationExtension::Type& type) const
 {
-  // TODO
-  return false;
+  return m_extensions.keys().contains(type);
 }
 
 //------------------------------------------------------------------------
 QVariant Segmentation::information(const SegmentationExtension::InfoTag& tag) const
 {
-  // TODO
+  for(auto extension: m_extensions.values())
+    if (extension->availableInformations().contains(tag))
+      return extension->information(tag);
+
   return QVariant();
 }
 
 //------------------------------------------------------------------------
 SegmentationExtension::InfoTagList Segmentation::informationTags() const
 {
-  // TODO
-  return SegmentationExtension::InfoTagList();
+  SegmentationExtension::InfoTagList list;
+
+  for (auto extension: m_extensions.values())
+    list << extension->availableInformations();
+
+  return list;
 }
 
 //------------------------------------------------------------------------
 void Segmentation::initializeExtensions()
 {
-  // TODO
+  for(auto extension: m_extensions.values())
+    extension->initialize();
 }
 
 //------------------------------------------------------------------------
 void Segmentation::invalidateExtensions()
 {
-  // TODO
+  for(auto extension: m_extensions.values())
+    extension->invalidate();
 }
 
 //------------------------------------------------------------------------
 Snapshot Segmentation::saveSnapshot() const
 {
-
+  return Snapshot();
 }
 
 //------------------------------------------------------------------------

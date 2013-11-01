@@ -87,7 +87,7 @@ namespace EspINA {
     virtual void unload() = 0;
 
   private:
-    Uuid          m_quuid;
+    Uuid        m_quuid;
     QString     m_name;
     StorageSPtr m_storage;
   };
