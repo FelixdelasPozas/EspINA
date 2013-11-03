@@ -12,6 +12,7 @@
 
 // EspINA
 #include <Core/EspinaTypes.h>
+#include <Core/Utils/Spatial.h>
 
 // vtk
 #include <vtkWidgetRepresentation.h>
@@ -86,7 +87,7 @@ namespace EspINA
     vtkGetObjectMacro(Point2Representation,vtkHandleRepresentation);
 
     // set representation orientation
-    virtual void setOrientation(PlaneType);
+    virtual void setOrientation(Plane orientation);
 
     // set segmentation bounds to draw the actor
     virtual void setSegmentationBounds(double *);
@@ -109,8 +110,8 @@ namespace EspINA
     vtkHandleRepresentation *Point2Representation;
 
     // Selection tolerance for the handles
-    int m_tolerance;
-    PlaneType m_plane;
+    int    m_tolerance;
+    Plane  m_plane;
     double m_epsilon;
   private:
     vtkPlanarSplitRepresentation2D(const vtkPlanarSplitRepresentation2D&);  //Not implemented

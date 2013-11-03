@@ -39,7 +39,7 @@ int analysis_remove_extension_provider(int argc, char** argv )
   {
   public:
     virtual void restoreState(const State& state) {}
-    virtual void saveState(State& state) const{}
+    virtual State saveState() const{}
     virtual Snapshot saveSnapshot() const{}
     virtual void unload() {}
     virtual Type type() const {}

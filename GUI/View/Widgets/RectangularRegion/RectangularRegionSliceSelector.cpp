@@ -20,7 +20,7 @@
 #include "RectangularRegionSliceSelector.h"
 #include "RectangularRegion.h"
 
-#include "GUI/QtWidget/SliceView.h"
+#include "GUI/View/SliceView.h"
 
 #include <QPushButton>
 
@@ -53,7 +53,7 @@ RectangularRegionSliceSelector::~RectangularRegionSliceSelector()
 
 
 //----------------------------------------------------------------------------
-void RectangularRegionSliceSelector::setPlane(const PlaneType plane)
+void RectangularRegionSliceSelector::setPlane(const Plane plane)
 {
   SliceSelectorWidget::setPlane(plane);
   update();
@@ -91,12 +91,13 @@ void RectangularRegionSliceSelector::update()
   Nm bounds[6];
   m_region->bounds(bounds);
 
+  int i = normalDirIndex(m_plane);
   m_leftWidget->setText(QString("%1(%2)")
                                .arg(m_leftLabel)
-                               .arg(bounds[2*m_plane  ]));
+                               .arg(bounds[2*i]));
   m_rightWidget->setText(QString("%1(%2)")
                                 .arg(m_rightLabel)
-                                .arg(bounds[2*m_plane+1]));
+                                .arg(bounds[2*i+1]));
 }
 
 //----------------------------------------------------------------------------
@@ -107,10 +108,12 @@ void RectangularRegionSliceSelector::leftWidgetClicked()
     Nm bounds[6];
     m_region->bounds(bounds);
 
-    bounds[2*m_plane] = m_view->slicingPosition();
+    int i = normalDirIndex(m_plane);
 
-    if (bounds[2*m_plane] > bounds[2*m_plane+1])
-      std::swap(bounds[2*m_plane],bounds[2*m_plane+1]);
+    bounds[2*i] = m_view->slicingPosition();
+
+    if (bounds[2*i] > bounds[2*i+1])
+      std::swap(bounds[2*i],bounds[2*i+1]);
 
     m_region->setBounds(bounds);
     update();
@@ -125,13 +128,14 @@ void RectangularRegionSliceSelector::rightWidgetClicked()
     Nm bounds[6];
     m_region->bounds(bounds);
 
-    bounds[2*m_plane+1] = m_view->slicingPosition();
+    int i = normalDirIndex(m_plane);
 
-    if (bounds[2*m_plane] > bounds[2*m_plane+1])
-      std::swap(bounds[2*m_plane],bounds[2*m_plane+1]);
+    bounds[2*i+1] = m_view->slicingPosition();
+
+    if (bounds[2*i] > bounds[2*i+1])
+      std::swap(bounds[2*i],bounds[2*i+1]);
 
     m_region->setBounds(bounds);
     update();
   }
-
 }

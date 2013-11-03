@@ -36,6 +36,7 @@ namespace EspINA
         virtual ~SegFileInterface(){}
 
         virtual AnalysisSPtr load(QuaZip&         zip,
+                                  CoreFactorySPtr factory,
                                   ErrorHandlerPtr handler = nullptr) = 0;
 
         virtual void save(AnalysisPtr     analysis,

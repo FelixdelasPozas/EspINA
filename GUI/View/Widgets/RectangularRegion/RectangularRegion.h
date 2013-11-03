@@ -17,12 +17,10 @@
 */
 
 
-#ifndef RECTANGULARREGION_H
-#define RECTANGULARREGION_H
+#ifndef ESPINA_RECTANGULAR_REGION_H
+#define ESPINA_RECTANGULAR_REGION_H
 
-#include "EspinaGUI_Export.h"
-
-#include "GUI/vtkWidgets/EspinaWidget.h"
+#include <GUI/View/Widgets/EspinaWidget.h>
 
 // Qt
 #include <QList>
@@ -80,5 +78,4 @@ namespace EspINA
   };
 }// namespace EspINA
 
-
-#endif // RECTANGULARREGION_H
+#endif // ESPINA_RECTANGULAR_REGION_H

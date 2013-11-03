@@ -19,7 +19,7 @@
 
 #include "QComboTreeView.h"
 
-#include <Core/Model/QtModelUtils.h>
+#include <GUI/Utils/QtModelUtils.h>
 
 //----------------------------------------------------------------------------
 QComboTreeView::QComboTreeView(QWidget* parent)

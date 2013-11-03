@@ -19,10 +19,9 @@
 #ifndef RULERSLICEWIDGET_H_
 #define RULERSLICEWIDGET_H_
 
-#include "EspinaGUI_Export.h"
 
 // EspINA
-#include "EspinaWidget.h"
+#include <GUI/View/Widgets/EspinaWidget.h>
 
 namespace EspINA
 {
@@ -36,11 +35,11 @@ namespace EspINA
       virtual void setEnabled(int);
       virtual void setBounds(Nm *bounds);
 
-      virtual void setSlice(Nm pos, PlaneType plane);
+      virtual void setSlice(Nm pos, Plane plane);
 
     private:
-      Nm        m_pos;
-      PlaneType m_plane;
+      Nm    m_pos;
+      Plane m_plane;
 
       bool m_insideBounds;
       bool m_enabled;

@@ -114,7 +114,7 @@ vtkPlanarSplitWidget::vtkPlanarSplitWidget()
   this->CallbackMapper->SetCallbackMethod(vtkCommand::LeftButtonReleaseEvent,
                                           vtkWidgetEvent::EndSelect,
                                           this, vtkPlanarSplitWidget::EndSelectAction);
-  m_plane = AXIAL;
+  m_plane = Plane::XY;
   m_permanentlyDisabled = false;
 
   m_segmentationBounds[0] = 0;
@@ -471,7 +471,7 @@ vtkSmartPointer<vtkPoints> vtkPlanarSplitWidget::getPoints()
 }
 
 //----------------------------------------------------------------------
-void vtkPlanarSplitWidget::setOrientation(PlaneType plane)
+void vtkPlanarSplitWidget::setOrientation(Plane plane)
 {
   m_plane = plane;
   if (this->WidgetRep)

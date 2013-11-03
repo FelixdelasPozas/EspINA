@@ -22,6 +22,7 @@
 
 #include <iostream>
 #include <memory>
+#include <Core/Analysis/Persistent.h>
 
 namespace EspINA
 {
@@ -38,9 +39,37 @@ namespace EspINA
       };
 
       struct Unknown_Type_Found{};
+      
+      enum class VertexType
+      {
+        SAMPLE, FILTER, CHANNEL, SEGMENTATION, EXTENSION_PROVIDER
+      };
+
+      class ReadOnlyVertex
+      : public Persistent
+      {
+      public:
+        explicit ReadOnlyVertex(VertexType type)
+        : m_type{type}{}
+
+        VertexType type() const
+        { return m_type; }
+
+        virtual void restoreState(const State& state)
+        { m_state = state; }
+        virtual State saveState() const
+        { return m_state; }
+        virtual Snapshot saveSnapshot() const{}
+        virtual void unload(){}
+
+      private:
+        VertexType m_type;
+        State      m_state;
+      };
 
       void read (std::istream& stream, DirectedGraphSPtr graph, PrintFormat format = PrintFormat::BOOST);
       void write(const DirectedGraphSPtr graph, std::ostream& stream, PrintFormat format = PrintFormat::BOOST);
+
 //       class GraphIO
 //       {
 //       public:

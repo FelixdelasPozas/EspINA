@@ -33,7 +33,7 @@ vtkCxxSetObjectMacro(vtkPlanarSplitRepresentation2D,HandleRepresentation,vtkHand
 
 vtkPlanarSplitRepresentation2D::vtkPlanarSplitRepresentation2D()
 {
-  m_plane = AXIAL;
+  m_plane = Plane::XY;
   m_epsilon = -0.1;
   m_tolerance = 15;
   m_point1[0] = m_point1[1] = m_point1[2] = 0;
@@ -42,16 +42,16 @@ vtkPlanarSplitRepresentation2D::vtkPlanarSplitRepresentation2D()
   m_line = vtkSmartPointer<vtkLineSource>::New();
   m_line->Update();
   m_lineActor = vtkSmartPointer<vtkActor>::New();
-  m_boundsPoints = NULL;
-  m_boundsActor = NULL;
+  m_boundsPoints = nullptr;
+  m_boundsActor = nullptr;
 
   HandleRepresentation = vtkPointHandleRepresentation2D::New();
   vtkProperty2D *property = reinterpret_cast<vtkPointHandleRepresentation2D*>(HandleRepresentation)->GetProperty();
   property->SetColor(0,1,0);
   property->SetLineWidth(2);
 
-  Point1Representation = NULL;
-  Point2Representation = NULL;
+  Point1Representation = nullptr;
+  Point2Representation = nullptr;
 
   this->InteractionState = Outside;
 }
@@ -68,7 +68,7 @@ vtkPlanarSplitRepresentation2D::~vtkPlanarSplitRepresentation2D()
   if (this->Point2Representation)
     this->Point2Representation->Delete();
 
-  if (m_boundsActor != NULL)
+  if (m_boundsActor != nullptr)
     this->Renderer->RemoveActor(m_boundsActor);
 }
 
@@ -95,8 +95,10 @@ void vtkPlanarSplitRepresentation2D::setPoints(vtkSmartPointer<vtkPoints> points
   if (points->GetNumberOfPoints() == 2)
     points->GetPoint(1, m_point2);
 
-  m_point1[m_plane] = m_epsilon;
-  m_point2[m_plane] = m_epsilon;
+  int i = normalDirIndex(m_plane);
+
+  m_point1[i] = m_epsilon;
+  m_point2[i] = m_epsilon;
 
   this->BuildRepresentation();
 }
@@ -111,14 +113,16 @@ void vtkPlanarSplitRepresentation2D::setPoint1(Nm *point)
   this->Renderer->DisplayToWorld();
   this->Renderer->GetWorldPoint(worldPos);
 
+  int i = normalDirIndex(m_plane);
+
   m_point1[0] = worldPos[0];
   m_point1[1] = worldPos[1];
   m_point1[2] = worldPos[2];
-  m_point1[m_plane] = m_epsilon;
+  m_point1[i] = m_epsilon;
   m_point2[0] = worldPos[0];
   m_point2[1] = worldPos[1];
   m_point2[2] = worldPos[2];
-  m_point2[m_plane] = m_epsilon;
+  m_point2[i] = m_epsilon;
 
 
   this->BuildRepresentation();
@@ -133,10 +137,12 @@ void vtkPlanarSplitRepresentation2D::setPoint2(Nm *point)
   this->Renderer->DisplayToWorld();
   this->Renderer->GetWorldPoint(worldPos);
 
+  int i = normalDirIndex(m_plane);
+
   m_point2[0] = worldPos[0];
   m_point2[1] = worldPos[1];
   m_point2[2] = worldPos[2];
-  m_point2[m_plane] = m_epsilon;
+  m_point2[i] = m_epsilon;
 
   this->BuildRepresentation();
 }
@@ -177,8 +183,9 @@ void vtkPlanarSplitRepresentation2D::BuildRepresentation()
     m_lineActor->GetProperty()->SetColor(1,1,1);
     m_lineActor->GetProperty()->SetLineWidth(2);
 
-    m_point1[m_plane] = m_epsilon;
-    m_point2[m_plane] = m_epsilon;
+    int i = normalDirIndex(m_plane);
+    m_point1[i] = m_epsilon;
+    m_point2[i] = m_epsilon;
     Point1Representation->SetWorldPosition(m_point1);
     Point1Representation->SetTolerance(m_tolerance);
     Point2Representation->SetWorldPosition(m_point2);
@@ -237,7 +244,7 @@ int vtkPlanarSplitRepresentation2D::RenderOpaqueGeometry(vtkViewport *v)
 //----------------------------------------------------------------------
 int vtkPlanarSplitRepresentation2D::ComputeInteractionState(int vtkNotUsed(X), int vtkNotUsed(Y), int vtkNotUsed(modify))
 {
-  if (this->Point1Representation == NULL || this->Point2Representation == NULL)
+  if (this->Point1Representation == nullptr || this->Point2Representation == nullptr)
   {
     this->InteractionState = Outside;
     return this->InteractionState;
@@ -299,10 +306,10 @@ void vtkPlanarSplitRepresentation2D::InstantiateHandleRepresentation()
 }
 
 //----------------------------------------------------------------------
-void vtkPlanarSplitRepresentation2D::setOrientation(PlaneType plane)
+void vtkPlanarSplitRepresentation2D::setOrientation(Plane plane)
 {
   m_plane = plane;
-  m_epsilon = ((AXIAL == m_plane) ? -0.1 : 0.1);
+  m_epsilon = ((Plane::XY == m_plane) ? -0.1 : 0.1);
 }
 
 //----------------------------------------------------------------------
@@ -315,19 +322,21 @@ void vtkPlanarSplitRepresentation2D::MoveHandle(int handleNum, int X, int Y)
   this->Renderer->DisplayToWorld();
   this->Renderer->GetWorldPoint(worldPos);
 
+  int i = normalDirIndex(m_plane);
+
   switch(handleNum)
   {
     case 0:
       m_point1[0] = worldPos[0];
       m_point1[1] = worldPos[1];
       m_point1[2] = worldPos[2];
-      m_point1[m_plane] = m_epsilon;
+      m_point1[i] = m_epsilon;
       break;
     case 1:
       m_point2[0] = worldPos[0];
       m_point2[1] = worldPos[1];
       m_point2[2] = worldPos[2];
-      m_point2[m_plane] = m_epsilon;
+      m_point2[i] = m_epsilon;
       break;
     default:
       Q_ASSERT(false);
@@ -345,7 +354,7 @@ void vtkPlanarSplitRepresentation2D::setSegmentationBounds(double *bounds)
 
   switch (this->m_plane)
   {
-    case AXIAL:
+    case Plane::XY:
       point[0] = bounds[0];
       point[1] = bounds[2];
       point[2] = m_epsilon;
@@ -363,7 +372,7 @@ void vtkPlanarSplitRepresentation2D::setSegmentationBounds(double *bounds)
       point[2] = m_epsilon;
       m_boundsPoints->InsertPoint(3, point);
       break;
-    case CORONAL:
+    case Plane::XZ:
       point[0] = bounds[0];
       point[1] = m_epsilon;
       point[2] = bounds[4];
@@ -381,7 +390,7 @@ void vtkPlanarSplitRepresentation2D::setSegmentationBounds(double *bounds)
       point[2] = bounds[4];
       m_boundsPoints->InsertPoint(3, point);
       break;
-    case SAGITTAL:
+    case Plane::YZ:
       point[0] = m_epsilon;
       point[1] = bounds[2];
       point[2] = bounds[4];
@@ -433,9 +442,9 @@ void vtkPlanarSplitRepresentation2D::setSegmentationBounds(double *bounds)
 //----------------------------------------------------------------------
 void vtkPlanarSplitRepresentation2D::removeBoundsActor()
 {
-  if (m_boundsActor != NULL)
+  if (m_boundsActor != nullptr)
   {
     this->Renderer->RemoveActor(m_boundsActor);
-    m_boundsActor = NULL;
+    m_boundsActor = nullptr;
   }
 }

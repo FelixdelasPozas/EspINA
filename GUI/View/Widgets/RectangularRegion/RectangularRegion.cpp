@@ -19,13 +19,10 @@
 
 #include "RectangularRegion.h"
 
-#include "EspinaInteractorAdapter.h"
-#include "vtkNonRotatingBoxWidget.h"
 #include "vtkRectangularSliceWidget.h"
+#include <GUI/View/Widgets/EspinaInteractorAdapter.h>
 
-#include "GUI/QtWidget/EspinaRenderView.h"
-#include <GUI/QtWidget/SliceView.h>
-#include "GUI/ViewManager.h"
+#include <GUI/View/SliceView.h>
 
 #include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
@@ -36,7 +33,7 @@
 
 using namespace EspINA;
 
-typedef EspinaInteractorAdapter<vtkRectangularSliceWidget> SliceWidgetAdapter;
+using SliceWidgetAdapter = EspinaInteractorAdapter<vtkRectangularSliceWidget>;
 
 class RectangularSliceWidget
 : public SliceWidget
@@ -81,7 +78,7 @@ RectangularRegion::~RectangularRegion()
 //----------------------------------------------------------------------------
 vtkAbstractWidget* RectangularRegion::create3DWidget(VolumeView *view)
 {
-  return NULL;
+  return nullptr;
 }
 
 //----------------------------------------------------------------------------

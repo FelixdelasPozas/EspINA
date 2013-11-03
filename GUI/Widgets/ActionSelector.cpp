@@ -16,9 +16,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-#include "GUI/QtWidget/ActionSelector.h"
-#include "GUI/QtWidget/ActionSelectorWidget.h"
+#include "GUI/Widgets/ActionSelector.h"
+#include "GUI/Widgets/ActionSelectorWidget.h"
 
 #include <QDebug>
 

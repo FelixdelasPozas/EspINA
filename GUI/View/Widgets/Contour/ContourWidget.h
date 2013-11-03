@@ -8,8 +8,8 @@
 #ifndef CONTOURWIDGET_H_
 #define CONTOURWIDGET_H_
 
-#include "GUI/vtkWidgets/EspinaWidget.h"
-#include <Core/EspinaTypes.h>
+#include <GUI/View/Widgets/EspinaWidget.h>
+
 #include <App/Tools/Brushes/Brush.h>
 
 #include <QMap>

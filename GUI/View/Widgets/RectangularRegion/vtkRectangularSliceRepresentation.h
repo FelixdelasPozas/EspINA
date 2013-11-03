@@ -6,6 +6,7 @@
 #include "vtkWidgetRepresentation.h"
 
 #include <Core/EspinaTypes.h>
+#include <Core/Utils/Spatial.h>
 
 class vtkLookupTable;
 class vtkPolyDataAlgorithm;
@@ -69,7 +70,7 @@ public:
   // and which slice (in case of planar views) is selected
 //   vtkSetMacro(ViewType,int);
 //   vtkSetMacro(Slice,int);
-  virtual void SetPlane(PlaneType plane);
+  virtual void SetPlane(Plane plane);
   virtual void SetSlice(Nm pos);
   virtual void SetCuboidBounds(double bounds[6]);
   virtual void GetCuboidBounds(double bounds[6]);
@@ -142,8 +143,8 @@ protected:
 
   virtual void CreateDefaultProperties();
 
-  int hCoord() const {return SAGITTAL == Plane?2:0;}
-  int vCoord() const {return CORONAL  == Plane?2:1;}
+  int hCoord() const {return Plane::YZ == plane?2:0;}
+  int vCoord() const {return Plane::XZ == plane?2:1;}
 
   // Helper methods to create face representations
   virtual void CreateRegion();
@@ -159,7 +160,7 @@ protected:
   void MoveBottomEdge(double *p1, double *p2);
   void Translate(double *p1, double *p2);
 
-  PlaneType Plane;
+  Plane plane;
   Nm Slice;
   bool Init;
 

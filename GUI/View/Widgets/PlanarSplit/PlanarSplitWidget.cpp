@@ -8,11 +8,9 @@
 // EspINA
 #include "PlanarSplitWidget.h"
 #include "PlanarSplitSliceWidget.h"
-#include "EspinaInteractorAdapter.h"
 #include "vtkPlanarSplitWidget.h"
-
-#include "GUI/ViewManager.h"
-#include <GUI/QtWidget/SliceView.h>
+#include <GUI/View/Widgets/EspinaInteractorAdapter.h>
+#include <GUI/View/SliceView.h>
 
 // vtk
 #include <vtkAbstractWidget.h>
@@ -27,8 +25,8 @@
 
 using namespace EspINA;
 
-typedef EspinaInteractorAdapter<vtkPlanarSplitWidget> PlanarSplitWidgetAdapter;
-typedef EspinaInteractorAdapter<vtkImplicitPlaneWidget2> PlanarSplitWidgetVolumeAdapter;
+using PlanarSplitWidgetAdapter = EspinaInteractorAdapter<vtkPlanarSplitWidget>;
+using PlanarSplitWidgetVolumeAdapter = EspinaInteractorAdapter<vtkImplicitPlaneWidget2>;
 
 //-----------------------------------------------------------------------------
 PlanarSplitWidget::PlanarSplitWidget()
@@ -81,10 +79,10 @@ vtkAbstractWidget *PlanarSplitWidget::create3DWidget(VolumeView *view)
 //-----------------------------------------------------------------------------
 SliceWidget *PlanarSplitWidget::createSliceWidget(SliceView* view)
 {
-  PlaneType plane = view->plane();
+  Plane plane = view->plane();
   switch(plane)
   {
-    case AXIAL:
+    case Plane::XY:
       if (!m_axial)
       {
         PlanarSplitWidgetAdapter *widget = new PlanarSplitWidgetAdapter();
@@ -95,7 +93,7 @@ SliceWidget *PlanarSplitWidget::createSliceWidget(SliceView* view)
       }
       return m_axial;
       break;
-    case CORONAL:
+    case Plane::XZ:
       if (!m_coronal)
       {
         PlanarSplitWidgetAdapter *widget = new PlanarSplitWidgetAdapter();
@@ -106,7 +104,7 @@ SliceWidget *PlanarSplitWidget::createSliceWidget(SliceView* view)
       }
       return m_coronal;
       break;
-    case SAGITTAL:
+    case Plane::YZ:
       if (!m_sagittal)
       {
         PlanarSplitWidgetAdapter *widget = new PlanarSplitWidgetAdapter();
@@ -258,7 +256,7 @@ void PlanarSplitWidget::Execute(vtkObject *caller, unsigned long eventId, void *
   }
 
   // disabling a widget modifies it's representation (bounds actor)
-  m_viewManager->updateViews();
+  //TODO: m_viewManager->updateViews();
 }
 
 //-----------------------------------------------------------------------------
@@ -359,26 +357,26 @@ vtkSmartPointer<vtkPlane> PlanarSplitWidget::getImplicitPlane(const double spaci
   return plane;
 }
 
-vtkSmartPointer< vtkImageStencilData > PlanarSplitWidget::getStencilForVolume(SegmentationVolumeSPtr volume)
-{
-  if (!this->planeIsValid())
-    return NULL;
-
-  int segExtent[6];
-  volume->extent(segExtent);
-
-  double spacing[3];
-  volume->spacing(spacing);
-
-  vtkSmartPointer<vtkImplicitFunctionToImageStencil> plane2stencil = vtkSmartPointer<vtkImplicitFunctionToImageStencil>::New();
-  plane2stencil->SetInput(this->getImplicitPlane(spacing));
-  plane2stencil->SetOutputOrigin(0, 0, 0);
-  plane2stencil->SetOutputSpacing(spacing);
-  plane2stencil->SetOutputWholeExtent(segExtent);
-  plane2stencil->Update();
-
-  vtkSmartPointer<vtkImageStencilData> stencil = vtkSmartPointer<vtkImageStencilData>::New();
-  stencil = plane2stencil->GetOutput();
-
-  return stencil;
-}
+// vtkSmartPointer< vtkImageStencilData > PlanarSplitWidget::getStencilForVolume(SegmentationVolumeSPtr volume)
+// {
+//   if (!this->planeIsValid())
+//     return NULL;
+// 
+//   int segExtent[6];
+//   volume->extent(segExtent);
+// 
+//   double spacing[3];
+//   volume->spacing(spacing);
+// 
+//   vtkSmartPointer<vtkImplicitFunctionToImageStencil> plane2stencil = vtkSmartPointer<vtkImplicitFunctionToImageStencil>::New();
+//   plane2stencil->SetInput(this->getImplicitPlane(spacing));
+//   plane2stencil->SetOutputOrigin(0, 0, 0);
+//   plane2stencil->SetOutputSpacing(spacing);
+//   plane2stencil->SetOutputWholeExtent(segExtent);
+//   plane2stencil->Update();
+// 
+//   vtkSmartPointer<vtkImageStencilData> stencil = vtkSmartPointer<vtkImageStencilData>::New();
+//   stencil = plane2stencil->GetOutput();
+// 
+//   return stencil;
+// }

@@ -5,12 +5,13 @@
  *      Author: Félix de las Pozas Alvarez
  */
 
-// EspINA
 #include "ContourWidget.h"
-#include "GUI/vtkWidgets/EspinaInteractorAdapter.h"
-#include "GUI/vtkWidgets/SliceContourWidget.h"
-#include "GUI/vtkWidgets/vtkPlaneContourWidget.h"
-#include <GUI/QtWidget/SliceView.h>
+
+// EspINA
+#include "GUI/View/SliceView.h"
+#include "GUI/View/Widgets/Contour/SliceContourWidget.h"
+#include "GUI/View/Widgets/Contour/vtkPlaneContourWidget.h"
+#include "GUI/View/Widgets/EspinaInteractorAdapter.h"
 
 // C++
 #include <iostream>
@@ -18,12 +19,13 @@
 using namespace EspINA;
 
 typedef EspinaInteractorAdapter<vtkPlaneContourWidget> ContourWidgetAdapter;
+using ContourWidgetAdapter = EspinaInteractorAdapter<vtkPlaneContourWidget>
 
 //----------------------------------------------------------------------------
 ContourWidget::ContourWidget()
-: m_axialSliceContourWidget(NULL)
-, m_coronalSliceContourWidget(NULL)
-, m_sagittalSliceContourWidget(NULL)
+: m_axialSliceContourWidget(nullptr)
+, m_coronalSliceContourWidget(nullptr)
+, m_sagittalSliceContourWidget(nullptr)
 , m_color(Qt::black)
 {
 }
@@ -31,19 +33,19 @@ ContourWidget::ContourWidget()
 //----------------------------------------------------------------------------
 ContourWidget::~ContourWidget()
 {
-  if (NULL != m_axialSliceContourWidget)
+  if (nullptr != m_axialSliceContourWidget)
   {
     m_axialSliceContourWidget->SetEnabled(false);
     delete m_axialSliceContourWidget;
   }
 
-  if (NULL != m_coronalSliceContourWidget)
+  if (nullptr != m_coronalSliceContourWidget)
   {
     m_coronalSliceContourWidget->SetEnabled(false);
     delete m_coronalSliceContourWidget;
   }
 
-  if (NULL != m_sagittalSliceContourWidget)
+  if (nullptr != m_sagittalSliceContourWidget)
   {
     m_sagittalSliceContourWidget->SetEnabled(false);
     delete m_sagittalSliceContourWidget;
@@ -53,7 +55,7 @@ ContourWidget::~ContourWidget()
 //----------------------------------------------------------------------------
 vtkAbstractWidget *ContourWidget::create3DWidget(VolumeView *view)
 {
-  return NULL;
+  return nullptr;
 }
 
 //----------------------------------------------------------------------------
@@ -67,17 +69,17 @@ SliceWidget *ContourWidget::createSliceWidget(SliceView *view)
   switch(view->plane())
   {
     case AXIAL:
-      Q_ASSERT(NULL == m_axialSliceContourWidget);
+      Q_ASSERT(nullptr == m_axialSliceContourWidget);
       m_axialSliceContourWidget = new SliceContourWidget(widget);
       return m_axialSliceContourWidget;
       break;
     case CORONAL:
-      Q_ASSERT(NULL == m_coronalSliceContourWidget);
+      Q_ASSERT(nullptr == m_coronalSliceContourWidget);
       m_coronalSliceContourWidget = new SliceContourWidget(widget);
       return m_coronalSliceContourWidget;
       break;
     case SAGITTAL:
-      Q_ASSERT(NULL == m_sagittalSliceContourWidget);
+      Q_ASSERT(nullptr == m_sagittalSliceContourWidget);
       m_sagittalSliceContourWidget = new SliceContourWidget(widget);
       return m_sagittalSliceContourWidget;
       break;
@@ -87,7 +89,7 @@ SliceWidget *ContourWidget::createSliceWidget(SliceView *view)
   }
 
   Q_ASSERT(false);
-  return NULL;
+  return nullptr;
 }
 
 //----------------------------------------------------------------------------
@@ -109,13 +111,13 @@ bool ContourWidget::processEvent(vtkRenderWindowInteractor* iren,
 //----------------------------------------------------------------------------
 void ContourWidget::setEnabled(bool enable)
 {
-  if (NULL != m_axialSliceContourWidget)
+  if (nullptr != m_axialSliceContourWidget)
     m_axialSliceContourWidget->SetEnabled(enable);
 
-  if (NULL != m_coronalSliceContourWidget)
+  if (nullptr != m_coronalSliceContourWidget)
     m_coronalSliceContourWidget->SetEnabled(enable);
 
-  if (NULL != m_sagittalSliceContourWidget)
+  if (nullptr != m_sagittalSliceContourWidget)
     m_sagittalSliceContourWidget->SetEnabled(enable);
 }
 
@@ -159,19 +161,19 @@ void ContourWidget::startContourFromWidget()
   {
     emit rasterizeContours(resultList);
 
-    if (resultList[0].PolyData != NULL)
+    if (resultList[0].PolyData != nullptr)
     {
       resultList[0].PolyData->Delete();
       m_axialSliceContourWidget->Initialize();
     }
 
-    if (resultList[1].PolyData != NULL)
+    if (resultList[1].PolyData != nullptr)
     {
       resultList[1].PolyData->Delete();
       m_coronalSliceContourWidget->Initialize();
     }
 
-    if (resultList[2].PolyData != NULL)
+    if (resultList[2].PolyData != nullptr)
     {
       resultList[2].PolyData->Delete();
       m_sagittalSliceContourWidget->Initialize();
@@ -214,7 +216,7 @@ void ContourWidget::initialize()
 //----------------------------------------------------------------------------
 void ContourWidget::initialize(ContourData contour)
 {
-  if (contour.PolyData == NULL)
+  if (contour.PolyData == nullptr)
     initialize();
 
   switch (contour.Plane)

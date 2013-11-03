@@ -36,19 +36,25 @@ namespace EspINA {
 
   enum class Axis { X=0, Y=1, Z=2 };
 
-  constexpr int idx(const Axis axis) {
+  constexpr int idx(const Axis axis)
+  {
     return axis == Axis::X? 0:(axis == Axis::Y?1:2);
   }
 
-  constexpr Axis toAxis(int i) {
+  constexpr Axis toAxis(int i)
+  {
     return i == 0?Axis::X:(i == 1?Axis::Y:Axis::Z);
   }
 
   enum class Plane { XY, XZ, YZ };
 
-  constexpr int idx(const Plane plane) {
+  constexpr int idx(const Plane plane)
+  {
     return plane == Plane::XY? 2:(plane == Plane::YZ?0:1);
   }
+
+  constexpr int normalDirIndex(const Plane plane)
+  { return idx(plane); }
 }
 
 

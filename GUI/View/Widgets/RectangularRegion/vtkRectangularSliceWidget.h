@@ -16,15 +16,13 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef VTKRBOUNDINGREGIONSLICEWIDGET_H
-#define VTKRBOUNDINGREGIONSLICEWIDGET_H
-
-#include "EspinaGUI_Export.h"
+#ifndef ESPINA_VTK_RECTANGULAR_SLICE_WIDGET_H
+#define ESPINA_VTK_RECTANGULAR_SLICE_WIDGET_H
 
 #include "vtkAbstractWidget.h"
 
 #include <Core/EspinaTypes.h>
-#include "GUI/vtkWidgets/RectangularRegion.h"
+#include "GUI/View/Widgets/RectangularRegion/RectangularRegion.h"
 
 class vtkPolyData;
 class vtkRectangularSliceRepresentation;
@@ -45,7 +43,7 @@ namespace EspINA
     vtkTypeMacro(vtkRectangularSliceWidget, vtkAbstractWidget);
     void PrintSelf(ostream& os, vtkIndent indent);
 
-    virtual void SetPlane(PlaneType plane);
+    virtual void SetPlane(Plane plane);
     virtual void SetSlice(Nm pos);
     virtual void SetBounds(double bounds[6]);
     virtual void GetBounds(double bounds[6]);
@@ -77,7 +75,7 @@ namespace EspINA
     // helper methods for cursoe management
     virtual void SetCursor(int state);
 
-    PlaneType Plane;
+    Plane m_plane;
     Nm Slice;
     double Bounds[6];
     double m_color[3];
@@ -90,4 +88,4 @@ namespace EspINA
 
 } // namespace EspINA
 
-#endif //VTKRBOUNDINGREGIONSLICEWIDGET_H
+#endif // ESPINA_VTK_RECTANGULAR_SLICE_WIDGET_H

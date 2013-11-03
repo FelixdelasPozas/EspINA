@@ -20,15 +20,8 @@
 #ifndef BRUSH_H
 #define BRUSH_H
 
-#include <Core/EspinaRegion.h>
-#include <Core/EspinaTypes.h>
-#include <Core/Model/Segmentation.h>
-#include <Core/Model/EspinaModel.h>
-#include <Core/Model/Filter.h>
-#include "GUI/Pickers/ISelector.h"
-#include "GUI/Tools/ITool.h"
-#include "GUI/ViewManager.h"
 #include "App/Toolbars/Editor/Settings.h"
+#include <Support/ITool.h>
 
 class QUndoStack;
 
@@ -49,7 +42,7 @@ namespace EspINA
   public:
     enum BrushMode {BRUSH, ERASER};
 
-    typedef QPair<vtkImplicitFunction *, EspinaRegion> BrushShape;
+    typedef QPair<vtkImplicitFunction*, EspinaRegion> BrushShape;
     typedef QList<BrushShape> BrushShapeList;
 
     class DrawCommand;

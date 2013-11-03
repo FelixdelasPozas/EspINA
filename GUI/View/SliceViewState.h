@@ -20,7 +20,7 @@
 #ifndef SLICEVIEW_STATE_H
 #define SLICEVIEW_STATE_H
 
-#include "GUI/QtWidget/SliceView.h"
+#include "GUI/View/SliceView.h"
 
 class vtkCamera;
 class vtkMatrix4x4;

@@ -17,12 +17,12 @@
 */
 
 
-#ifndef SLICESELECTORWIDGET_H
-#define SLICESELECTORWIDGET_H
+#ifndef ESPINA_SLICE_SELECTOR_WIDGET_H
+#define ESPINA_SLICE_SELECTOR_WIDGET_H
 
 #include "EspinaGUI_Export.h"
 
-#include <Core/EspinaTypes.h>
+#include <Core/Utils/Spatial.h>
 #include <QObject>
 
 namespace EspINA
@@ -35,22 +35,25 @@ namespace EspINA
   public:
     virtual ~SliceSelectorWidget() {}
 
-    virtual void setPlane(const PlaneType plane) { m_plane = plane; }
-    virtual void setView(SliceView *view) { m_view = view; }
+    virtual void setPlane(const Plane plane)
+    { m_plane = plane; }
 
-    virtual QWidget *leftWidget() const = 0;
-    virtual QWidget *rightWidget()   const = 0;
+    virtual void setView(SliceView* view)
+    { m_view = view; }
+
+    virtual QWidget* leftWidget()  const = 0;
+    virtual QWidget* rightWidget() const = 0;
 
     virtual SliceSelectorWidget *clone() = 0;
 
   protected:
     explicit SliceSelectorWidget()
-    : m_plane(AXIAL), m_view(NULL) {}
+    : m_plane(Plane::XY), m_view(nullptr) {}
 
-    PlaneType  m_plane;
-    SliceView *m_view;
+    Plane      m_plane;
+    SliceView* m_view;
   };
 
 } // namespace EspINA
 
-#endif // SLICESELECTORWIDGET_H
+#endif // ESPINA_SLICE_SELECTOR_WIDGET_H

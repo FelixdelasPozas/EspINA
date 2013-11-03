@@ -20,9 +20,7 @@
 #ifndef RECTANGULARREGIONSLICESELECTOR_H
 #define RECTANGULARREGIONSLICESELECTOR_H
 
-#include "EspinaGUI_Export.h"
-
-#include "GUI/QtWidget/SliceSelectorWidget.h"
+#include <GUI/Widgets/SliceSelectorWidget.h>
 
 class QPushButton;
 
@@ -38,7 +36,7 @@ namespace EspINA
     explicit RectangularRegionSliceSelector(RectangularRegion *region);
     virtual ~RectangularRegionSliceSelector();
 
-    virtual void setPlane(const PlaneType plane);
+    virtual void setPlane(const Plane plane);
 
     virtual QWidget *leftWidget () const;
     virtual QWidget *rightWidget() const;

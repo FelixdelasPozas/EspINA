@@ -49,7 +49,7 @@ namespace EspINA {
     {
     public:
       virtual void restoreState(const State& state) {}
-      virtual void saveState(State& state) const{}
+    virtual State saveState() const {}
       virtual Snapshot saveSnapshot() const {return Snapshot();}
       virtual void unload() {}
       virtual Type type() const {}

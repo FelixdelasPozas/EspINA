@@ -55,65 +55,54 @@ namespace EspINA {
     {
       return EXTENSION_PROVIDER_TYPE;
     } else {
-      throw (Unknown_Type_Found());
+      throw Unknown_Type_Found();
     }
   }
 
   std::ostream& operator<<(std::ostream& out, const DirectedGraph::Vertex& v)
   {
-    State state;
-    v->saveState(state);
-
     out << type(v) << std::endl;
     out << v->name().toStdString() << std::endl;
     out << v->uuid().toString().toStdString() << std::endl;
-    out << state.toStdString();
+    out << v->saveState().toStdString();
 
     return out;
   }
 
-//   PersistentSPtr restoreObject(const std::string& shape)
-//   {
-//     if (shape == SAMPLE_TYPE)
-//     {
-//       return PersistentSPtr{new Sample()};
-//     } else if (shape == CHANNEL_TYPE)
-//     {
-//       return PersistentSPtr{new Channel()};
-//     } else if (shape == FILTER_TYPE)
-//     {
-//       return PersistentSPtr{new Filter()};
-//     } else if (shape == SEGMENTATION_TYPE)
-//     {
-//       return PersistentSPtr{new Segmentation()};
-//     } else if (shape == EXTENSION_PROVIDER_TYPE)
-//     {
-//       return PersistentSPtr{new ExtensionProvider()};
-//     } else {
-//       throw (2);
-//     }
-//   }
-
-  class ReadOnlyItem
-  : public Persistent
+  VertexType vertexType(const std::string& shape)
   {
-  public:
-    virtual void restoreState(const State& state){}
-    virtual Snapshot saveSnapshot() const{}
-    virtual void saveState(State& state) const{}
-    virtual void unload(){}
-  };
+    if (shape == SAMPLE_TYPE)
+    {
+      return VertexType::SAMPLE;
+    } else if (shape == CHANNEL_TYPE)
+    {
+      return VertexType::CHANNEL;
+    } else if (shape == FILTER_TYPE)
+    {
+      return VertexType::FILTER;
+    } else if (shape == SEGMENTATION_TYPE)
+    {
+      return VertexType::SEGMENTATION;
+    } else if (shape == EXTENSION_PROVIDER_TYPE)
+    {
+      return VertexType::EXTENSION_PROVIDER;
+    } else {
+      throw Unknown_Type_Found();
+    }
+  }
+
 
   std::istream& operator>> (std::istream& in, DirectedGraph::Vertex& v)
   {
     const int MAX = 10000;
     char buff[MAX];
 
-    v = PersistentSPtr{new ReadOnlyItem()};
-
     std::string type;
     in >> type;
     qDebug() << "Type" << QString(type.c_str());
+
+    v = PersistentSPtr{new ReadOnlyVertex(vertexType(type))};
+
     in.getline(buff, 2);//Consume type's endl
     in.getline(buff, MAX);
     QString name(buff);

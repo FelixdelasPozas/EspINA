@@ -74,8 +74,5 @@ int segmentation_save_state(int argc, char** argv)
   segmentation->setCategory(classification.category(QString("Prueba")));
   forgedState += QString("CATEGORY=Prueba;");
 
-  State state;
-  segmentation->saveState(state);
-
-  return (state != forgedState);
+  return (segmentation->saveState() != forgedState);
 }

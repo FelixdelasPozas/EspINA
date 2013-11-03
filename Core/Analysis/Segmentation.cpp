@@ -146,9 +146,9 @@ Snapshot Segmentation::saveSnapshot() const
 }
 
 //------------------------------------------------------------------------
-void Segmentation::saveState(State& state) const
+State Segmentation::saveState() const
 {
-  state = QString("ID=") + uuid().toString() + QString(";");
+  State state = QString("ID=") + uuid().toString() + QString(";");
   state += QString("NUMBER=") + QString::number(m_number) + QString(";");
   QStringList usersList = m_users.toList();
 
@@ -168,6 +168,8 @@ void Segmentation::saveState(State& state) const
 
   if (m_category)
     state += QString("CATEGORY=%1;").arg(m_category->classificationName());
+  
+  return state;
 }
 
 //------------------------------------------------------------------------

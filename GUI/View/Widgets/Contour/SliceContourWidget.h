@@ -8,12 +8,11 @@
 #ifndef SLICECONTOURWIDGET_H_
 #define SLICECONTOURWIDGET_H_
 
-#include "EspinaGUI_Export.h"
 
 // EspINA
 #include "vtkPlaneContourWidget.h"
-#include "EspinaWidget.h"
 #include "ContourWidget.h"
+
 #include <Core/EspinaTypes.h>
 #include <App/Tools/Brushes/Brush.h>
 

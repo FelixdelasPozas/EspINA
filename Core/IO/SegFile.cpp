@@ -40,7 +40,9 @@ const QString SEG_FILE_VERSION = "5";
 
 using SegFileReaderSPtr = std::shared_ptr<SegFileInterface>;
 
-AnalysisSPtr SegFile::load(const QFileInfo& file, ErrorHandlerPtr handler)
+AnalysisSPtr SegFile::load(const QFileInfo& file,
+                           CoreFactorySPtr  factory,
+                           ErrorHandlerPtr  handler)
 {
   QuaZip zip(file.filePath());
   if (!zip.open(QuaZip::mdUnzip))
@@ -66,7 +68,7 @@ AnalysisSPtr SegFile::load(const QFileInfo& file, ErrorHandlerPtr handler)
     reader = SegFileReaderSPtr{new SegFile_V5()};
   }
 
-  return reader->load(zip, handler);
+  return reader->load(zip, factory, handler);
 }
 
 //-----------------------------------------------------------------------------

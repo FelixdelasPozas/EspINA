@@ -18,7 +18,7 @@
 
 #include "EspinaWidget.h"
 
-#include "GUI/QtWidget/EspinaRenderView.h"
+#include "GUI/View/RenderView.h"
 
 #include <vtkAbstractWidget.h>
 #include <vtkWidgetRepresentation.h>

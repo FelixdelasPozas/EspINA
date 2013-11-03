@@ -39,25 +39,42 @@ ChannelAdapter::~ChannelAdapter()
 //------------------------------------------------------------------------
 QVariant ChannelAdapter::data(int role) const
 {
-
+  switch (role)
+  {
+    case Qt::DisplayRole:
+      return m_channel->name();
+    case Qt::CheckStateRole:
+      return isVisible()?Qt::Checked:Qt::Unchecked;
+    default:
+      return QVariant();
+  }
 }
 
 //------------------------------------------------------------------------
 bool ChannelAdapter::setData(const QVariant& value, int role)
 {
-
+  switch (role)
+  {
+    case Qt::EditRole:
+      return true;
+    case Qt::CheckStateRole:
+      setVisible(value.toBool());
+      return true;
+    default:
+      return false;
+  }
 }
 
 //------------------------------------------------------------------------
 void ChannelAdapter::setPosition(const NmVector3& point)
 {
-
+  m_channel->setPosition(point);
 }
 
 //------------------------------------------------------------------------
 NmVector3 ChannelAdapter::position() const
 {
-
+  return m_channel->position();
 }
 
 //------------------------------------------------------------------------

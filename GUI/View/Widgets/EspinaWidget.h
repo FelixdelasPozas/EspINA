@@ -22,7 +22,9 @@
 
 #include "EspinaGUI_Export.h"
 
+#include <Core/Utils/Spatial.h>
 #include <Core/EspinaTypes.h>
+
 #include <vtkAbstractWidget.h>
 #include <vtkWidgetRepresentation.h>
 
@@ -42,7 +44,7 @@ namespace EspINA
     explicit SliceWidget(vtkAbstractWidget *widget);
     virtual ~SliceWidget() {};
 
-    virtual void setSlice(Nm pos, PlaneType plane) {};
+    virtual void setSlice(Nm pos, Plane plane) {};
 
     operator vtkAbstractWidget *()                  { return m_widget; }
     operator const vtkAbstractWidget *const() const { return m_widget; }

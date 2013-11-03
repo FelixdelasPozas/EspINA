@@ -47,8 +47,9 @@ void Filter::restoreState(const State& state)
 }
 
 //----------------------------------------------------------------------------
-void Filter::saveState(State& state) const
+State Filter::saveState() const
 {
+
 }
 
 //----------------------------------------------------------------------------
@@ -150,7 +151,7 @@ Filter::Filter(OutputSList inputs, Filter::Type type, SchedulerSPtr scheduler)
 , m_type(type)
 , m_inputs(inputs)
 {
-
+  setName(m_type);
 }
 
 //----------------------------------------------------------------------------

@@ -77,7 +77,7 @@ namespace EspINA {
     virtual void restoreState(const State& state) = 0;
 
     //NOTE: If we want to allow ReadOnly objects to keep state we need to avoid new lines
-    virtual void saveState(State& state) const = 0;
+    virtual State saveState() const = 0;
 
     virtual Snapshot saveSnapshot() const = 0;
 

@@ -5,14 +5,11 @@
  *      Author: Félix de las Pozas Álvarez
  */
 
-#ifndef PLANARSPLITSLICEWIDGET_H_
-#define PLANARSPLITSLICEWIDGET_H_
-
-#include "EspinaGUI_Export.h"
+#ifndef ESPINA_PLANAR_SPLIT_WIDGET_H
+#define ESPINA_PLANAR_SPLIT_WIDGET_H
 
 // EspINA
-#include "GUI/vtkWidgets//EspinaWidget.h"
-#include <Core/EspinaTypes.h>
+#include <GUI/View/Widgets/EspinaWidget.h>
 
 // vtk
 #include <vtkSmartPointer.h>
@@ -31,9 +28,9 @@ namespace EspINA
     explicit PlanarSplitSliceWidget(vtkAbstractWidget *widget);
     virtual ~PlanarSplitSliceWidget();
 
-    virtual void setSlice(Nm pos, PlaneType plane);
+    virtual void setSlice(Nm pos, Plane plane);
 
-    virtual void setOrientation(PlaneType);
+    virtual void setOrientation(Plane plane);
 
     virtual void setPoints(vtkSmartPointer<vtkPoints>);
     vtkSmartPointer<vtkPoints> getPoints();
@@ -44,10 +41,10 @@ namespace EspINA
     virtual void disableWidget();
 
   private:
-    PlaneType m_plane;
-    bool m_mainWidget;
+    Plane m_plane;
+    bool  m_mainWidget;
   };
 
 }// namespace EspINA
 
-#endif /* PLANARSPLITSLICEWIDGET_H_ */
+#endif // ESPINA_PLANAR_SPLIT_WIDGET_H

@@ -19,13 +19,9 @@
 #include "VolumeView.h"
 
 // EspINA
-#include "GUI/Renderers/CrosshairRenderer.h"
-#include <Core/EspinaSettings.h>
-#include <Core/Model/Segmentation.h>
-#include <Core/Model/Channel.h>
-#include <Core/Model/EspinaFactory.h>
 
-// QT
+// Qt
+#include <QApplication>
 #include <QEvent>
 #include <QSettings>
 #include <QFileDialog>
@@ -55,13 +51,9 @@
 #include <vtkOrientationMarkerWidget.h>
 #include <vtkTextProperty.h>
 
-// Qt
-#include <QApplication>
-#include "GUI/Representations/CrosshairRepresentation.h"
-#include <vtkAxisActor2D.h>
 
 using namespace EspINA;
-
+/*
 //-----------------------------------------------------------------------------
 VolumeView::VolumeView(bool additionalScrollBars, QWidget* parent
 : EspinaRenderView      (viewManager, parent)
@@ -974,3 +966,4 @@ IRendererList VolumeView::Settings::renderers() const
 {
   return m_renderers;
 }
+ */

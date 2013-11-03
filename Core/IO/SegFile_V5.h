@@ -34,6 +34,7 @@ namespace EspINA {
 
       public:
         virtual AnalysisSPtr load(QuaZip&         zip,
+                                  CoreFactorySPtr factory = CoreFactorySPtr(),
                                   ErrorHandlerPtr handler = nullptr);
 
         virtual void save(AnalysisPtr     analysis, 
@@ -43,11 +44,18 @@ namespace EspINA {
         void loadContent(AnalysisSPtr            analysis,
                          QuaZip&                 zip,
                          Persistent::StorageSPtr storage,
+                         CoreFactorySPtr         factory,
                          ErrorHandlerPtr         handler = nullptr);
 
         void loadRelations(AnalysisSPtr    analysis,
                            QuaZip&         zip,
                            ErrorHandlerPtr handler = nullptr);
+
+        PersistentSPtr parseVertex(AnalysisSPtr          analysis,
+                                   DirectedGraphSPtr     content,
+                                   DirectedGraph::Vertex roVertex,
+                                   CoreFactorySPtr       factory, 
+                                   ErrorHandlerPtr       handler = nullptr);
       };
     }
   }

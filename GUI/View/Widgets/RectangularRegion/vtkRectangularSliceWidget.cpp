@@ -38,7 +38,7 @@ vtkStandardNewMacro(vtkRectangularSliceWidget);
 
 //----------------------------------------------------------------------------
 vtkRectangularSliceWidget::vtkRectangularSliceWidget()
-: Plane(AXIAL)
+: m_plane(Plane::XY)
 , Slice(0)
 , m_pattern(0xFFFF)
 {
@@ -257,7 +257,7 @@ void vtkRectangularSliceWidget::EndSelectAction(vtkAbstractWidget *w)
 }
 
 //----------------------------------------------------------------------
-void vtkRectangularSliceWidget::SetPlane(PlaneType plane)
+void vtkRectangularSliceWidget::SetPlane(Plane plane)
 {
   if (!this->WidgetRep)
     CreateDefaultRepresentation();
@@ -266,7 +266,7 @@ void vtkRectangularSliceWidget::SetPlane(PlaneType plane)
     reinterpret_cast<vtkRectangularSliceRepresentation*>(this->WidgetRep);
   rep->SetPlane(plane);
 
-  Plane = plane;
+  m_plane = plane;
 }
 
 //----------------------------------------------------------------------

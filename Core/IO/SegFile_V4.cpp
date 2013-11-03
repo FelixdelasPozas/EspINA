@@ -28,6 +28,7 @@ const QString TAXONOMY_FILE = "taxonomy.xml";
 const QString FILE_VERSION  = "version"; //backward compatibility
 
 AnalysisSPtr SegFile::SegFile_V4::load(QuaZip&         zip,
+                                       CoreFactorySPtr factory,
                                        ErrorHandlerPtr handler)
 {
 

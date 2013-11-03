@@ -12,6 +12,7 @@
 
 // EspINA
 #include <Core/EspinaTypes.h>
+#include <Core/Utils/Spatial.h>
 
 // vtk
 #include <vtkAbstractWidget.h>
@@ -87,7 +88,7 @@ namespace EspINA
     vtkSmartPointer<vtkPoints> getPoints();
 
     // set widget orientation
-    virtual void setOrientation(PlaneType);
+    virtual void setOrientation(Plane orientation);
 
     virtual void PrintSelf(ostream &os, vtkIndent indent);
 
@@ -101,7 +102,7 @@ namespace EspINA
     // The state of the widget
     int WidgetState;
     int CurrentHandle;
-    PlaneType m_plane;
+    Plane  m_plane;
     double m_segmentationBounds[6];
 
     // Callback interface to capture events when

@@ -6,8 +6,8 @@
  */
 
 // EspINA
-#include "GUI/vtkWidgets/PlanarSplitSliceWidget.h"
-#include "GUI/vtkWidgets/vtkPlanarSplitWidget.h"
+#include "GUI/View/Widgets/PlanarSplit/PlanarSplitSliceWidget.h"
+#include "GUI/View/Widgets/PlanarSplit/vtkPlanarSplitWidget.h"
 
 // vtk
 #include <vtkPoints.h>
@@ -17,7 +17,7 @@ using namespace EspINA;
 //-----------------------------------------------------------------------------
 PlanarSplitSliceWidget::PlanarSplitSliceWidget(vtkAbstractWidget *widget)
 : SliceWidget(widget)
-, m_plane(AXIAL)
+, m_plane(Plane::XY)
 , m_mainWidget(true)
 {
 }
@@ -30,7 +30,7 @@ PlanarSplitSliceWidget::~PlanarSplitSliceWidget()
 }
 
 //-----------------------------------------------------------------------------
-void PlanarSplitSliceWidget::setSlice(Nm pos, PlaneType plane)
+void PlanarSplitSliceWidget::setSlice(Nm pos, Plane plane)
 {
   // nothing to do in this case
 }
@@ -66,7 +66,7 @@ vtkSmartPointer<vtkPoints> PlanarSplitSliceWidget::getPoints()
 }
 
 //-----------------------------------------------------------------------------
-void PlanarSplitSliceWidget::setOrientation(PlaneType plane)
+void PlanarSplitSliceWidget::setOrientation(Plane plane)
 {
   m_plane = plane;
   vtkPlanarSplitWidget *widget = reinterpret_cast<vtkPlanarSplitWidget*>(m_widget);

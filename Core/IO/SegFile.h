@@ -38,6 +38,7 @@ namespace EspINA
       struct Parse_Exception{};
 
       AnalysisSPtr load(const QFileInfo& file,
+                        CoreFactorySPtr  factory = CoreFactorySPtr(),
                         ErrorHandlerPtr  handler = nullptr);
 
       void save(AnalysisPtr      analysis,

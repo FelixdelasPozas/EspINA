@@ -38,10 +38,16 @@ namespace EspINA {
     virtual ~ViewItemAdapter(){}
 
     bool isSelected() const
-    {return m_isSelected;}
+    { return m_isSelected; }
 
     void setSelected(bool value)
-    {m_isSelected = value;}
+    { m_isSelected = value; }
+
+    void setVisible(bool value)
+    { m_isVisible = value; }
+
+    bool isVisible() const
+    { return m_isVisible; }
 
     FilterAdapterSPtr filter(){}
     const FilterAdapterSPtr filter() const{}
@@ -77,6 +83,7 @@ namespace EspINA {
     ViewItemSPtr m_viewItem;
 
     bool m_isSelected;
+    bool m_isVisible;
     bool m_outputIsModified; // sticky bit
   };
 

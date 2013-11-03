@@ -17,44 +17,34 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef ESPINA_CATEGORY_H
-#define ESPINA_CATEGORY_H
+#ifndef ESPINA_CATEGORY_ADAPTER_H
+#define ESPINA_CATEGORY_ADAPTER_H
 
-//#include "EspinaCore_Export.h"
+#include "ItemAdapter.h"
 
-#include "Core/EspinaTypes.h"
-
-// Qt dependencies
-#include <QColor>
-#include <QMap>
-#include <QString>
-#include <QList>
-#include <QTextStream>
 #include <QVariant>
+#include <QColor>
+
 
 namespace EspINA
 {
-  const QString DEFAULT_CATEGORY_COLOR = "#00FF00"; //Red
-
-  typedef QList<CategorySPtr> CategorySList;
+  class CategoryAdapter;
+  using CategoryAdapterPtr   = CategoryAdapter *;
+  using CategoryAdapterSPtr  = std::shared_ptr<CategoryAdapter>;
+  using CategoryAdapterSList = QList<CategoryAdapterSPtr>;
 
   /** \brief Category for taxons
-   * 
+   *
    *  Represent a group of individuals with the same characteristics
    */
-  //TODO 2013-10-21: Mark edit operations as private, except for Classification
-  class /*EspinaCore_EXPORT*/ Category
+  class EspinaCore_EXPORT CategoryAdapter
+  : public ItemAdapter
   {
-//   public:
-//     static const QString X_DIM;
-//     static const QString Y_DIM;
-//     static const QString Z_DIM;
-
   public:
     struct AlreadyDefinedCategoryException {};
 
   public:
-    ~Category();
+    ~CategoryAdapter();
 
     /** \brief Specify the name of the category 
      * 
@@ -79,80 +69,79 @@ namespace EspINA
 
     void setColor(const QColor &color);
 
-    QColor color() const {return m_color;}
+    QColor color() const;
 
     /** \brief Add a 
      * 
      */
     void addProperty   (const QString &prop, const QVariant &value);
+
     void deleteProperty(const QString &prop);
 
     QVariant    property(const QString &prop) const;
-    QStringList properties() const
-    {return m_properties.keys();}
+
+    QStringList properties() const;
 
     /** \brief Create a new sub category with the given name
      * 
      */
-    CategorySPtr createSubCategory(const QString &name);
+    CategoryAdapterSPtr createSubCategory(const QString &name);
 
     /** \brief Make sub-category a sub category of this category
      * 
      *  If the sub-category belonged to another category, it won't belong
      *  anymore
      */
-    void addSubCategory(CategorySPtr subCategory);
+    void addSubCategory(CategoryAdapterSPtr subCategory);
 
     /** \brief Remove sub-category from this category
      * 
      *  If the sub-category doesn't belong to this category
      *  nothing will happen
      */
-    void removeSubCategory(CategoryPtr  subCategory);
-    void removeSubCategory(CategorySPtr subCategory)
+    void removeSubCategory(CategoryAdapterPtr  subCategory);
+
+    void removeSubCategory(CategoryAdapterSPtr subCategory)
     { removeSubCategory(subCategory.get()); }
 
     /** \brief Return the sub-category with the given name.
      * 
      *  If no sub-category has the requested name, nullptr will be returned
      */
-    CategorySPtr subCategory(const QString &name) const;
+    CategoryAdapterSPtr subCategory(const QString &name) const;
 
     /** \brief Return a list with all the sub-categories of this category
      * 
      */
-    CategorySList subCategories()
+    CategoryAdapterSList subCategories()
     {return m_subCategories;}
 
     /** \brief Return a list with all the sub-categories of this category
      * 
      */
-    const CategorySList subCategories() const
+    const CategoryAdapterSList subCategories() const
     {return m_subCategories;}
 
     /** \brief Return the category from which this is a sub-category, if any.
      * 
      */
-    CategoryPtr parent() {return m_parent;}
-  private:
-    explicit Category(CategoryPtr parent,
-                      const QString &name,
-                      const QString &RGBColor = DEFAULT_CATEGORY_COLOR );
+    CategoryAdapterPtr parent() {return m_parent;}
+
+  protected:
+    virtual PersistentSPtr item() const;
 
   private:
-    CategoryPtr    m_parent; // Parent node can't be a shared pointer to avoid circular dependencies
-    CategorySList  m_subCategories;
+    explicit CategoryAdapter(CategorySPtr category);
 
-    QString m_name;
-    QColor  m_color;
-    QMap<QString, QVariant> m_properties;
+  private:
+    CategorySPtr         m_category;
+    CategoryAdapterPtr   m_parent; // Parent node can't be a shared pointer to avoid circular dependencies
+    CategoryAdapterSList m_subCategories;
 
     friend class Classification;
   };
 
-  QString print(CategorySPtr category, int level=0);
-
-
+  QString print(CategoryAdapterSPtr category, int level=0);
 }// namespace EspINA
 
-#endif // ESPINA_CATEGORY_H
+#endif // ESPINA_CATEGORY_ADAPTER_H

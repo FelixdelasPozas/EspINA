@@ -63,7 +63,6 @@ namespace EspINA
 
     CategorySPtr createCategory(const QString &relativeName,
                                 CategoryAdapterSPtr parent = CategoryAdapterSPtr());
-
     void removeCategory(CategorySPtr element);
 
     CategoryAdapterSPtr root();

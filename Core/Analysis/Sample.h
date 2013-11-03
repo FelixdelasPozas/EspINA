@@ -43,7 +43,7 @@ namespace EspINA
 
     virtual void restoreState(const State& state);
 
-    virtual void saveState(State& state) const;
+    virtual State saveState() const;
 
     virtual Snapshot saveSnapshot() const;
 

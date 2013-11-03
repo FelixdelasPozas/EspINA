@@ -19,17 +19,17 @@
 // EspINA
 #include "RulerWidget.h"
 #include "RulerSliceWidget.h"
-#include "EspinaInteractorAdapter.h"
 #include "vtkRulerWidget.h"
 #include "vtkRulerWidget3D.h"
-#include "GUI/QtWidget/SliceView.h"
+#include <GUI/View/Widgets/EspinaInteractorAdapter.h>
+#include "GUI/View/SliceView.h"
 
 // VTK
 #include <vtkCubeAxesActor2D.h>
 
 namespace EspINA
 {
-  typedef EspinaInteractorAdapter<vtkRulerWidget> RulerWidgetAdapter;
+  using RulerWidgetAdapter = EspinaInteractorAdapter<vtkRulerWidget>;
 
   //----------------------------------------------------------------------------
   RulerWidget::RulerWidget()

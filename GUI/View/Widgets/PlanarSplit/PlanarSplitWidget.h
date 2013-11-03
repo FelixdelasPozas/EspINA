@@ -11,9 +11,7 @@
 #include "EspinaGUI_Export.h"
 
 // EspINA
-#include "GUI/vtkWidgets/EspinaWidget.h"
-#include <Core/EspinaTypes.h>
-#include <Core/OutputRepresentations/VolumeRepresentation.h>
+#include <GUI/View/Widgets/EspinaWidget.h>
 
 // vtk
 #include <vtkSmartPointer.h>
@@ -63,7 +61,7 @@ namespace EspINA
     virtual void setPlanePoints(vtkSmartPointer<vtkPoints>);
     virtual vtkSmartPointer<vtkPoints> getPlanePoints();
     virtual vtkSmartPointer<vtkPlane> getImplicitPlane(const double spacing[3]);
-    virtual vtkSmartPointer<vtkImageStencilData> getStencilForVolume(SegmentationVolumeSPtr volume);
+    //TODO: virtual vtkSmartPointer<vtkImageStencilData> getStencilForVolume(SegmentationVolumeSPtr volume);
     virtual void setSegmentationBounds(double *);
     virtual bool planeIsValid();
 

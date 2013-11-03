@@ -18,11 +18,9 @@
 
 #ifndef RULERWIDGET_H_
 #define RULERWIDGET_H_
-
-#include "EspinaGUI_Export.h"
+#include <GUI/View/Widgets/EspinaWidget.h>
 
 // EspINA
-#include <GUI/vtkWidgets/EspinaWidget.h>
 
 // VTK
 class vtkCubeAxesActor2D;
@@ -40,8 +38,8 @@ namespace EspINA
       explicit RulerWidget();
       virtual ~RulerWidget();
 
-      // implements EspinaWidget
-      void setViewManager(ViewManager *vm) {m_viewManager = vm;}
+//       // implements EspinaWidget
+//       void setViewManager(ViewManager *vm) {m_viewManager = vm;}
 
       virtual vtkAbstractWidget *create3DWidget(VolumeView *view);
 
