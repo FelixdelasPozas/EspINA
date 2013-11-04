@@ -17,84 +17,112 @@
 */
 
 
-#ifndef RAWVOLUME_H
-#define RAWVOLUME_H
+#ifndef ESPINA_RAW_VOLUME_H
+#define ESPINA_RAW_VOLUME_H
 
 #include "EspinaCore_Export.h"
 
 // EspINA
 #include "Core/EspinaTypes.h"
-#include "Core/EspinaRegion.h"
-#include "Core/OutputRepresentations/VolumeRepresentation.h"
+#include "Core/Utils/Bounds.h"
+#include "Core/Analysis/Data/VolumetricData.h"
 
 // VTK
 #include <itkImageToVTKImageFilter.h>
 #include <vtkSmartPointer.h>
 
-// boost
-#include <boost/shared_ptr.hpp>
-
 namespace EspINA
 {
-  class EspinaCore_EXPORT RawChannelVolume
-  : public ChannelVolume
+  template<class T>
+  class EspinaCore_EXPORT RawVolume
+  : public VolumetricData<T>
   {
   public:
-    explicit RawChannelVolume(itkVolumeType::Pointer volume,
-                           FilterOutput *output = NULL);
+
+    const typename VolumetricData<T>::TYPE TYPE = "RawVolumeType";
+
+    explicit RawVolume(itkVolumeType::Pointer volume,
+                       OutputSPtr output = nullptr);
 //     explicit RawChannelVolume(const EspinaRegion& region,
 //                            itkVolumeType::SpacingType spacing,
 //                            FilterOutput *output = NULL);
-    virtual ~RawChannelVolume(){}
+    virtual ~RawVolume(){}
 
     virtual bool isValid() const
     { return m_volume.IsNotNull(); }
 
     virtual void setVolume(itkVolumeType::Pointer volume, bool disconnect = false);
 
-    virtual bool setInternalData(ChannelRepresentationSPtr rhs);
+    virtual bool setInternalData(DataSPtr rhs);
+
+    double memoryUsage() const;
+
+    void setOrigin(const typename T::PointType origin);
+
+    typename T::PointType origin() const;
+
+    void setSpacing(const typename T::SpacingType spacing);
+
+    typename T::SpacingType spacing() const;
 
     /// Volume's voxel's index at given spatial position
     /// It doesn't check whether the index is valid or not
     virtual itkVolumeType::IndexType index(Nm x, Nm y, Nm z);
 
-    /// Get the vtk-equivalent extent defining the volume
-    virtual void extent(int out[6]) const;
+//    /// Get the vtk-equivalent extent defining the volume
+//    virtual void extent(int out[6]) const;
+//
+//    /// Get the vtk-equivalent bounds defining the volume
+//    virtual void bounds(double out[6]) const;
+//    ///
+//    virtual void spacing(double out[3]) const;
+//
+//    virtual itkVolumeType::SpacingType spacing() const;
 
-    /// Get the vtk-equivalent bounds defining the volume
-    virtual void bounds(double out[6]) const;
-    ///
-    virtual void spacing(double out[3]) const;
-
-    virtual itkVolumeType::SpacingType spacing() const;
-
-    /// Return the smallest valid espina region  which contains bounds
-    virtual EspinaRegion espinaRegion(Nm bounds[6]) const;
-
-    /// Equivalent to bounds method
-    virtual EspinaRegion espinaRegion() const;
+//    /// Return the smallest valid espina region  which contains bounds
+//    virtual EspinaRegion espinaRegion(Nm bounds[6]) const;
+//
+//    /// Equivalent to bounds method
+//    virtual EspinaRegion espinaRegion() const;
 
     /// Largest possible region
-    virtual VolumeRegion volumeRegion() const;
+    virtual Bounds bounds() const;
 
-    /// Volume's region equivalent to the normalized region
-    virtual VolumeRegion volumeRegion(const EspinaRegion &region) const; 
+//    virtual itkVolumeIterator iterator();
+//    virtual itkVolumeIterator iterator(const EspinaRegion &region);
+//
+//    virtual itkVolumeConstIterator constIterator();
+//    virtual itkVolumeConstIterator constIterator(const EspinaRegion &region);
 
-    virtual itkVolumeIterator iterator();
-    virtual itkVolumeIterator iterator(const EspinaRegion &region);
+    virtual const typename VolumetricData<T>::itkImageSPtr itkImage() const;
 
-    virtual itkVolumeConstIterator constIterator();
-    virtual itkVolumeConstIterator constIterator(const EspinaRegion &region);
+    virtual const typename VolumetricData<T>::itkImageSPtr itkImage(const Bounds& bounds) const;
 
-    virtual itkVolumeType::Pointer toITK();
+//    virtual itkVolumeType::Pointer toITK();
+//
+//    virtual const itkVolumeType::Pointer toITK() const;
+//
+//    virtual vtkAlgorithmOutput *toVTK();
+//
+//    virtual const vtkAlgorithmOutput *toVTK() const;
+//
+//    virtual void markAsModified(bool emitSignal = true);
 
-    virtual const itkVolumeType::Pointer toITK() const;
+    void draw(const vtkImplicitFunction* brush,
+              const Bounds&      bounds,
+              const typename T::ValueType value);
 
-    virtual vtkAlgorithmOutput *toVTK();
+    void draw(const typename VolumetricData<T>::itkImageSPtr volume,
+              const Bounds&                                  bounds = Bounds());
 
-    virtual const vtkAlgorithmOutput *toVTK() const;
+    void draw(itkVolumeType::IndexType index,
+              itkVolumeType::PixelType value = SEG_VOXEL_VALUE);
 
-    virtual void markAsModified(bool emitSignal = true);
+    void fitToContent() {};
+
+    void resize(const Bounds &bounds) {};
+
+    void undo() {};
 
   protected:
     mutable itkVolumeType::Pointer m_volume;
@@ -107,168 +135,168 @@ namespace EspINA
     mutable unsigned long int m_ITKGenerationTime;
   };
 
-  typedef boost::shared_ptr<RawChannelVolume> RawChannelVolumeSPtr;
+  template <class T> using RawVolumePtr = RawVolume<T> *;
+  template <class T> using RawVolumeSPtr = std::shared<RawVolume<T>>;
 
-  RawChannelVolumeSPtr EspinaCore_EXPORT rawChannelVolume(OutputSPtr output);
+  template< class T > RawVolumeSPtr<T> EspinaCore_EXPORT rawVolume(OutputSPtr output);
 
-  class EspinaCore_EXPORT RawSegmentationVolume
-  : public SegmentationVolume
-  {
-  public:
-    explicit RawSegmentationVolume(FilterOutput *output = NULL);
-    explicit RawSegmentationVolume(itkVolumeType::Pointer volume,
-                                   FilterOutput *output = NULL);
-    explicit RawSegmentationVolume(const EspinaRegion &region,
-                                   itkVolumeType::SpacingType spacing,
-                                   FilterOutput *output = NULL);
-    virtual ~RawSegmentationVolume(){}
+//  RawChannelVolumeSPtr EspinaCore_EXPORT rawChannelVolume(OutputSPtr output);
 
-    virtual bool setInternalData(SegmentationRepresentationSPtr rhs);
-
-    /// Set voxels belonging to the implicit function defined by brush to value
-    ///NOTE: Current implementation will expand the image
-    ///      when drawing with value != 0
-    virtual void draw(vtkImplicitFunction *brush,
-                      const Nm bounds[6],
-                      itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
-                      bool emitSignal = true);
-
-    /// Set voxels at index to value
-    ///NOTE: Current implementation will expand the image
-    ///      when drawing with value != 0
-    virtual void draw(itkVolumeType::IndexType index,
-                      itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
-                      bool emitSignal = true);
-
-    /// Set voxels at coordinates (x,y,z) to value
-    ///NOTE: Current implementation will expand the image
-    ///      when drawing with value != 0
-    virtual void draw(Nm x, Nm y, Nm z,
-                      itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
-                      bool emitSignal = true);
-
-    /// Set voxels inside contour to value
-    ///NOTE: Current implementation will expand the image
-    ///      when drawing with value != 0
-    virtual void draw(vtkPolyData *contour,
-                      Nm slice,
-                      PlaneType plane,
-                      itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
-                      bool emitSignal = true);
-
-    /// Draw volume on top of output's voulume
-    virtual void draw(itkVolumeType::Pointer volume,
-                      bool emitSignal = true);
-
-    /// Fill output's volume with given value
-    virtual void fill(itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
-                      bool emitSignal = true);
-
-    /// Fill output's volume's region with given value
-    virtual void fill(const EspinaRegion &region,
-                      itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
-                      bool emitSignal = true);
-
-    virtual bool dumpSnapshot(const QString &prefix, Snapshot &snapshot) const;
-    virtual bool fetchSnapshot(Filter *filter, const QString &prefix);
-
-    virtual bool isEdited() const
-    {return !m_editedRegions.isEmpty();}
-
-    virtual bool isValid() const
-    { return m_volume.IsNotNull(); }
-
-    virtual void addEditedRegion(const EspinaRegion &region, int id = -1);
-
-    virtual void clearEditedRegions();
-
-    virtual void commitEditedRegions(bool withData) const;
-
-    virtual void restoreEditedRegions(const QDir &cacheDir, const QString &outputId);
-
-    virtual EditedVolumeRegionSList editedRegions() const
-    { return m_editedRegions; }
-
-    virtual void setEditedRegions(EditedVolumeRegionSList regions)
-    { m_editedRegions = regions; }
-
-    virtual void setVolume(itkVolumeType::Pointer volume, bool disconnect=false);
-
-    /// Volume's voxel's index at given spatial position
-    /// It doesn't check whether the index is valid or not
-    virtual itkVolumeType::IndexType index(Nm x, Nm y, Nm z);
-
-    /// Get the vtk-equivalent extent defining the volume
-    virtual void extent(int out[6]) const;
-
-    /// Get the vtk-equivalent bounds defining the volume
-    virtual void bounds(double out[6]) const;
-    ///
-    virtual void spacing(double out[3]) const;
-
-    virtual itkVolumeType::SpacingType spacing() const;
-
-    /// Return the smallest valid espina region  which contains bounds
-    virtual EspinaRegion espinaRegion(Nm bounds[6]) const;
-
-    /// Equivalent to bounds method
-    virtual EspinaRegion espinaRegion() const;
-
-    /// Largest possible region
-    virtual VolumeRegion volumeRegion() const;
-
-    /// Volume's region equivalent to the normalized region
-    virtual VolumeRegion volumeRegion(const EspinaRegion &region) const; 
-
-    virtual itkVolumeIterator iterator();
-    virtual itkVolumeIterator iterator(const EspinaRegion &region);
-
-    virtual itkVolumeConstIterator constIterator();
-    virtual itkVolumeConstIterator constIterator(const EspinaRegion &region);
-
-    virtual itkVolumeType::Pointer toITK();
-    virtual const itkVolumeType::Pointer toITK() const;
-
-    virtual vtkAlgorithmOutput *toVTK();
-    virtual const vtkAlgorithmOutput *toVTK() const;
-
-    virtual itkVolumeType::Pointer cloneVolume() const;
-    virtual itkVolumeType::Pointer cloneVolume(const EspinaRegion &region) const;
-    virtual itkVolumeType::Pointer cloneVolume(const VolumeRegion &region) const;
-
-    virtual void markAsModified(bool emitSignal = true);
-    virtual void update();
-
-    /// Expands the volume to contain @region.
-    virtual void expandToFitRegion(EspinaRegion region);
-
-    /// Reduce volume dimensions to adjust it to the bounding box of the
-    /// contained segmentation
-    virtual bool fitToContent() throw(itk::ExceptionObject);
-
-    virtual bool collision(SegmentationVolumeSPtr v);
-
-  private:
-    explicit RawSegmentationVolume(const VolumeRegion &region,
-                                   itkVolumeType::SpacingType spacing,
-                                   FilterOutput *output);
-
-  protected:
-    mutable itkVolumeType::Pointer m_volume;
-    EditedVolumeRegionSList        m_editedRegions;
-
-    // itk to vtk filter
-    typedef itk::ImageToVTKImageFilter<itkVolumeType> itk2vtkFilterType;
-    mutable itk2vtkFilterType::Pointer itk2vtk;
-
-    mutable unsigned long int m_VTKGenerationTime;
-    mutable unsigned long int m_ITKGenerationTime;
-  };
-
-  typedef boost::shared_ptr<RawSegmentationVolume> RawSegmentationVolumeSPtr;
-
-  RawSegmentationVolumeSPtr EspinaCore_EXPORT rawSegmentationVolume(OutputSPtr output);
+//  template <class T>
+//  class EspinaCore_EXPORT RawSegmentationVolume<class T>
+//  : public VolumetricData<T>
+//  {
+//  public:
+//    explicit RawSegmentationVolume(FilterOutput *output = NULL);
+//    explicit RawSegmentationVolume(itkVolumeType::Pointer volume,
+//                                   FilterOutput *output = NULL);
+//    explicit RawSegmentationVolume(const EspinaRegion &region,
+//                                   itkVolumeType::SpacingType spacing,
+//                                   FilterOutput *output = NULL);
+//    virtual ~RawSegmentationVolume(){}
+//
+//    virtual bool setInternalData(SegmentationRepresentationSPtr rhs);
+//
+//    /// Set voxels belonging to the implicit function defined by brush to value
+//    ///NOTE: Current implementation will expand the image
+//    ///      when drawing with value != 0
+//    virtual void draw(vtkImplicitFunction *brush,
+//                      const Nm bounds[6],
+//                      itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
+//                      bool emitSignal = true);
+//
+//    /// Set voxels at index to value
+//    ///NOTE: Current implementation will expand the image
+//    ///      when drawing with value != 0
+//    virtual void draw(itkVolumeType::IndexType index,
+//                      itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
+//                      bool emitSignal = true);
+//
+//    /// Set voxels at coordinates (x,y,z) to value
+//    ///NOTE: Current implementation will expand the image
+//    ///      when drawing with value != 0
+//    virtual void draw(Nm x, Nm y, Nm z,
+//                      itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
+//                      bool emitSignal = true);
+//
+//    /// Set voxels inside contour to value
+//    ///NOTE: Current implementation will expand the image
+//    ///      when drawing with value != 0
+//    virtual void draw(vtkPolyData *contour,
+//                      Nm slice,
+//                      PlaneType plane,
+//                      itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
+//                      bool emitSignal = true);
+//
+//    /// Draw volume on top of output's voulume
+//    virtual void draw(itkVolumeType::Pointer volume,
+//                      bool emitSignal = true);
+//
+//    /// Fill output's volume with given value
+//    virtual void fill(itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
+//                      bool emitSignal = true);
+//
+//    /// Fill output's volume's region with given value
+//    virtual void fill(const EspinaRegion &region,
+//                      itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
+//                      bool emitSignal = true);
+//
+//    virtual bool dumpSnapshot(const QString &prefix, Snapshot &snapshot) const;
+//    virtual bool fetchSnapshot(Filter *filter, const QString &prefix);
+//
+//    virtual bool isEdited() const
+//    {return !m_editedRegions.isEmpty();}
+//
+//    virtual bool isValid() const
+//    { return m_volume.IsNotNull(); }
+//
+//    virtual void addEditedRegion(const EspinaRegion &region, int id = -1);
+//
+//    virtual void clearEditedRegions();
+//
+//    virtual void commitEditedRegions(bool withData) const;
+//
+//    virtual void restoreEditedRegions(const QDir &cacheDir, const QString &outputId);
+//
+//    virtual EditedVolumeRegionSList editedRegions() const
+//    { return m_editedRegions; }
+//
+//    virtual void setEditedRegions(EditedVolumeRegionSList regions)
+//    { m_editedRegions = regions; }
+//
+//    virtual void setVolume(itkVolumeType::Pointer volume, bool disconnect=false);
+//
+//    /// Volume's voxel's index at given spatial position
+//    /// It doesn't check whether the index is valid or not
+//    virtual itkVolumeType::IndexType index(Nm x, Nm y, Nm z);
+//
+//    /// Get the vtk-equivalent extent defining the volume
+//    virtual void extent(int out[6]) const;
+//
+//    /// Get the vtk-equivalent bounds defining the volume
+//    virtual void bounds(double out[6]) const;
+//    ///
+//    virtual void spacing(double out[3]) const;
+//
+//    virtual itkVolumeType::SpacingType spacing() const;
+//
+//    /// Return the smallest valid espina region  which contains bounds
+//    virtual EspinaRegion espinaRegion(Nm bounds[6]) const;
+//
+//    /// Equivalent to bounds method
+//    virtual EspinaRegion espinaRegion() const;
+//
+//    /// Largest possible region
+//    virtual VolumeRegion volumeRegion() const;
+//
+//    /// Volume's region equivalent to the normalized region
+//    virtual VolumeRegion volumeRegion(const EspinaRegion &region) const;
+//
+//    virtual itkVolumeIterator iterator();
+//    virtual itkVolumeIterator iterator(const EspinaRegion &region);
+//
+//    virtual itkVolumeConstIterator constIterator();
+//    virtual itkVolumeConstIterator constIterator(const EspinaRegion &region);
+//
+//    virtual itkVolumeType::Pointer toITK();
+//    virtual const itkVolumeType::Pointer toITK() const;
+//
+//    virtual vtkAlgorithmOutput *toVTK();
+//    virtual const vtkAlgorithmOutput *toVTK() const;
+//
+//    virtual itkVolumeType::Pointer cloneVolume() const;
+//    virtual itkVolumeType::Pointer cloneVolume(const EspinaRegion &region) const;
+//    virtual itkVolumeType::Pointer cloneVolume(const VolumeRegion &region) const;
+//
+//    virtual void markAsModified(bool emitSignal = true);
+//    virtual void update();
+//
+//    /// Expands the volume to contain @region.
+//    virtual void expandToFitRegion(EspinaRegion region);
+//
+//    /// Reduce volume dimensions to adjust it to the bounding box of the
+//    /// contained segmentation
+//    virtual bool fitToContent() throw(itk::ExceptionObject);
+//
+//    virtual bool collision(SegmentationVolumeSPtr v);
+//
+//  private:
+//    explicit RawSegmentationVolume(const VolumeRegion &region,
+//                                   itkVolumeType::SpacingType spacing,
+//                                   FilterOutput *output);
+//
+//  protected:
+//    mutable itkVolumeType::Pointer m_volume;
+//    EditedVolumeRegionSList        m_editedRegions;
+//
+//    // itk to vtk filter
+//    typedef itk::ImageToVTKImageFilter<itkVolumeType> itk2vtkFilterType;
+//    mutable itk2vtkFilterType::Pointer itk2vtk;
+//
+//    mutable unsigned long int m_VTKGenerationTime;
+//    mutable unsigned long int m_ITKGenerationTime;
+//  };
 
 } // namespace EspINA
 
-#endif // RAWVOLUME_H
+#endif // ESPINA_RAW_VOLUME_H

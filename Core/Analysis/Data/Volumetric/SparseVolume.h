@@ -39,6 +39,8 @@ namespace EspINA {
 
   struct Invalid_image_bounds{};
 
+  template class VolumetricData<itk::Image<unsigned char, 3>>;
+
   /** \brief Volume representation intended to save memory and speed up
    *  edition opertaions
    *
@@ -101,11 +103,11 @@ namespace EspINA {
 
     virtual void undo() {}
 
-    virtual bool isValid() const{}
+    virtual bool isValid() const{ return false; }
 
-    virtual Snapshot snapshot() const{}
+    virtual Snapshot snapshot() const{ return Snapshot(); }
 
-    virtual Snapshot editedRegionsSnapshot() const {}
+    virtual Snapshot editedRegionsSnapshot() const { return Snapshot(); }
 
   protected:
     /** \brief Replace sparse volume voxels within data region with data voxels

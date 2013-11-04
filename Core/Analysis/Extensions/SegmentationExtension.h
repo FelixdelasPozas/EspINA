@@ -67,6 +67,7 @@ namespace EspINA
 
     SegmentationPtr m_segmentation;
     bool            m_enabled;
+
   };
 
   using SegmentationExtensionPtr   = SegmentationExtension *;

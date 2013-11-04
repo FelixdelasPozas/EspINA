@@ -28,6 +28,15 @@ set (CORE_SOURCES
   Analysis/Segmentation.cpp
   Analysis/Storage.cpp
   Analysis/ViewItem.cpp
+  Analysis/Data/MeshData.cpp
+  Analysis/Data/VolumetricData.cpp
+  Analysis/Data/VolumetricDataUtils.cpp
+#  Analysis/Data/Volumetric/RasterizedVolume.cpp
+#  Analysis/Data/Volumetric/RawVolume.cpp
+#  Analysis/Data/Volumetric/SparseVolume.cpp
+#  Analysis/Data/Mesh/MarchingCubesMesh.cpp
+#  Analysis/Data/Mesh/MeshProxy.cpp
+#  Analysis/Data/Mesh/RawMesh.cpp
   Factory/CoreFactory.cpp
   IO/ClassificationXML.cpp
   IO/SegFile.cpp

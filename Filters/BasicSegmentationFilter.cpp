@@ -17,77 +17,79 @@
  *
  */
 
+// Filters library
 #include "BasicSegmentationFilter.h"
 
-#include <Core/OutputRepresentations/VolumeRepresentation.h>
-#include <Core/OutputRepresentations/VolumeProxy.h>
-#include <Core/OutputRepresentations/MeshProxy.h>
-#include <Core/OutputRepresentations/RawVolume.h>
-#include <Core/OutputRepresentations/RawMesh.h>
-#include <Core/OutputRepresentations/RasterizedVolume.h>
-#include <Core/Model/MarchingCubesMesh.h>
+// Core library
+#include <Core/Analysis/Data/VolumetricData.h>
+#include <Core/Analysis/Data/Volumetric/VolumetricDataProxy.h>
+#include <Core/Analysis/Data/Volumetric/RasterizedVolume.h>
+#include <Core/Analysis/Data/MeshData.h>
+#include <Core/Analysis/Data/Mesh/MeshProxy.h>
+#include <Core/Analysis/Data/Mesh/MarchingCubesMesh.h>
 
+// VTK
 #include <vtkMath.h>
 
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
-BasicSegmentationFilter::BasicSegmentationFilter(NamedInputs namedInputs, ModelItem::Arguments args, FilterType type)
-: SegmentationFilter(namedInputs, args, type)
+BasicSegmentationFilter::BasicSegmentationFilter(OutputSList inputs, Type type, SchedulerSPtr scheduler)
+: Filter(inputs, type, scheduler)
 {
 
 }
 
 //-----------------------------------------------------------------------------
-SegmentationRepresentationSPtr BasicSegmentationFilter::createRepresentationProxy(FilterOutputId id, const FilterOutput::OutputRepresentationName &type)
+DataSPtr BasicSegmentationFilter::createDataProxy(Output::Id id, const Data::Type &type)
 {
-  SegmentationRepresentationSPtr proxy;
+  DataSPtr proxy;
 
-  Q_ASSERT(m_outputs.contains(id));
-  Q_ASSERT( NULL == m_outputs[id]->representation(type));
+  Q_ASSERT(m_outputs.keys().contains(id));
+  Q_ASSERT(nullptr == m_outputs[id]->data(type));
 
-  if (SegmentationVolume::TYPE == type)
-    proxy = VolumeProxySPtr(new VolumeProxy());
-  else if (MeshRepresentation::TYPE == type)
+  if (VolumetricData::TYPE == type)
+    proxy = VolumetricDataProxy(new VolumetricDataProxy());
+  else if (MeshData::TYPE == type)
     proxy = MeshProxySPtr(new MeshProxy());
   else
     Q_ASSERT(false);
 
-  m_outputs[id]->setRepresentation(type, proxy);
+  m_outputs[id]->setData(proxy);
 
   return proxy;
 }
 
-//-----------------------------------------------------------------------------
-bool BasicSegmentationFilter::fetchSnapshot(FilterOutputId oId)
-{
-  bool fetched = false;
-
-  if (!ignoreCurrentOutputs() && m_outputs.contains(oId))
-  {
-    QString filterPrefix = QString("%1_%2").arg(m_cacheId).arg(oId);
-
-    RawSegmentationVolumeSPtr volume(new RawSegmentationVolume(m_outputs[oId].get()));
-    bool fetchVolume = volume->fetchSnapshot(this, filterPrefix);
-
-    RawMeshSPtr mesh(new RawMesh(m_outputs[oId].get()));
-    bool fetchMesh   = mesh->fetchSnapshot(this, filterPrefix);
-
-    SegmentationRepresentationSList repList;
-    if (fetchVolume)
-      repList << volume;
-    else if (fetchMesh)
-      repList << SegmentationVolumeSPtr(new RasterizedVolume(mesh));
-
-    if (fetchMesh)
-      repList << mesh;
-    else if (fetchVolume)
-      repList << MeshRepresentationSPtr(new MarchingCubesMesh(volume));//TODO: Pass the volume or the proxy?
-
-    addOutputRepresentations(oId, repList);
-
-    fetched = fetchVolume || fetchMesh;
-  }
-
-  return fetched;
-}
+////-----------------------------------------------------------------------------
+//bool BasicSegmentationFilter::fetchSnapshot(FilterOutputId oId)
+//{
+//  bool fetched = false;
+//
+//  if (!ignoreCurrentOutputs() && m_outputs.contains(oId))
+//  {
+//    QString filterPrefix = QString("%1_%2").arg(m_cacheId).arg(oId);
+//
+//    RawSegmentationVolumeSPtr volume(new RawSegmentationVolume(m_outputs[oId].get()));
+//    bool fetchVolume = volume->fetchSnapshot(this, filterPrefix);
+//
+//    RawMeshSPtr mesh(new RawMesh(m_outputs[oId].get()));
+//    bool fetchMesh   = mesh->fetchSnapshot(this, filterPrefix);
+//
+//    SegmentationRepresentationSList repList;
+//    if (fetchVolume)
+//      repList << volume;
+//    else if (fetchMesh)
+//      repList << SegmentationVolumeSPtr(new RasterizedVolume(mesh));
+//
+//    if (fetchMesh)
+//      repList << mesh;
+//    else if (fetchVolume)
+//      repList << MeshRepresentationSPtr(new MarchingCubesMesh(volume));//TODO: Pass the volume or the proxy?
+//
+//    addOutputRepresentations(oId, repList);
+//
+//    fetched = fetchVolume || fetchMesh;
+//  }
+//
+//  return fetched;
+//}

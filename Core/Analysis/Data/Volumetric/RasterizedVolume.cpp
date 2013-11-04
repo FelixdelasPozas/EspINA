@@ -28,61 +28,68 @@
 using namespace EspINA;
 
 //----------------------------------------------------------------------------
-RasterizedVolume::RasterizedVolume(MeshRepresentationSPtr mesh, FilterOutput *output)
-: RawSegmentationVolume(output)
-, m_mesh(dynamic_cast<vtkPolyData *>(mesh->mesh()->GetProducer()->GetOutputDataObject(0)))
-, m_spacing(mesh->spacing())
+template<class T>
+RasterizedVolume<T>::RasterizedVolume(MeshDataSPtr mesh, OutputSPtr output)
+: RawVolume<T>(output)
+, m_mesh(mesh->mesh())
+//, m_spacing(mesh->spacing())
 , m_rasterizationTime(0)
 {
 }
 
 //----------------------------------------------------------------------------
-bool RasterizedVolume::dumpSnapshot(const QString &prefix, Snapshot &snapshot) const
+template<class T>
+bool RasterizedVolume<T>::dumpSnapshot(const QString &prefix, Snapshot &snapshot) const
 {
   updateITKVolume();
 
   return RawSegmentationVolume::dumpSnapshot(prefix, snapshot);
 }
 
-//----------------------------------------------------------------------------
-itkVolumeType::Pointer RasterizedVolume::toITK()
-{
-  return static_cast<const RasterizedVolume *>(this)->toITK();
-}
+////----------------------------------------------------------------------------
+//template<class T>
+//itkVolumeType::Pointer RasterizedVolume<T>::toITK()
+//{
+//  return static_cast<const RasterizedVolume *>(this)->toITK();
+//}
+//
+////----------------------------------------------------------------------------
+//template<class T>
+//const itkVolumeType::Pointer RasterizedVolume<T>::toITK() const
+//{
+//  Q_ASSERT(m_mesh);
+//
+//  updateITKVolume();
+//
+//  return m_volume;
+//}
+//
+////----------------------------------------------------------------------------
+//template<class T>
+//vtkAlgorithmOutput *RasterizedVolume<T>::toVTK()
+//{
+//  return const_cast<vtkAlgorithmOutput *>(
+//    static_cast<const RasterizedVolume *>(this)->toVTK());
+//}
+//
+//
+////----------------------------------------------------------------------------
+//template<class T>
+//const vtkAlgorithmOutput *RasterizedVolume<T>::toVTK() const
+//{
+//  Q_ASSERT(m_mesh);
+//
+//  if ((m_vtkVolume == NULL) || (m_mesh->GetMTime() != m_rasterizationTime))
+//  {
+//    rasterize(m_mesh->GetBounds());
+//  }
+//
+//  return m_vtkVolume.GetPointer();
+//}
 
 //----------------------------------------------------------------------------
-const itkVolumeType::Pointer RasterizedVolume::toITK() const
-{
-  Q_ASSERT(m_mesh);
-
-  updateITKVolume();
-
-  return m_volume;
-}
-
-//----------------------------------------------------------------------------
-vtkAlgorithmOutput *RasterizedVolume::toVTK()
-{
-  return const_cast<vtkAlgorithmOutput *>(
-    static_cast<const RasterizedVolume *>(this)->toVTK());
-}
-
-
-//----------------------------------------------------------------------------
-const vtkAlgorithmOutput *RasterizedVolume::toVTK() const
-{
-  Q_ASSERT(m_mesh);
-
-  if ((m_vtkVolume == NULL) || (m_mesh->GetMTime() != m_rasterizationTime))
-  {
-    rasterize(m_mesh->GetBounds());
-  }
-
-  return m_vtkVolume.GetPointer();
-}
-
-//----------------------------------------------------------------------------
-void RasterizedVolume::rasterize(double *imageBounds) const
+template<class T>
+void RasterizedVolume<T>::rasterize(double *imageBounds) const
 {
   qDebug() << "Rasterize Volume from Mesh";
   if (m_vtkVolume != NULL &&
@@ -142,7 +149,8 @@ void RasterizedVolume::rasterize(double *imageBounds) const
 }
 
 //----------------------------------------------------------------------------
-void RasterizedVolume::transformVTK2ITK() const
+template<class T>
+void RasterizedVolume<T>::transformVTK2ITK() const
 {
   if (NULL == m_vtkVolume)
     toVTK();
@@ -186,7 +194,8 @@ void RasterizedVolume::transformVTK2ITK() const
 }
 
 //----------------------------------------------------------------------------
-void RasterizedVolume::updateITKVolume() const
+template<class T>
+void RasterizedVolume<T>::updateITKVolume() const
 {
   if (m_volume.IsNull() || (m_vtkExporter == NULL) || m_vtkExporter->GetInputConnection(0,0) != m_vtkVolume)
   {
@@ -203,11 +212,12 @@ void RasterizedVolume::updateITKVolume() const
 }
 
 //----------------------------------------------------------------------------
-RasterizedVolumeSPtr EspINA::rasterizedVolume(OutputSPtr output)
+template<class T>
+RasterizedVolumeSPtr<T> rasterizedVolume(OutputSPtr output)
 {
-  SegmentationOutputSPtr segmentationOutput = boost::dynamic_pointer_cast<SegmentationOutput>(output);
-  Q_ASSERT(segmentationOutput.get());
-  return boost::dynamic_pointer_cast<RasterizedVolume>(segmentationOutput->representation(SegmentationVolume::TYPE));
+  RasterizedVolumeSPtr<T> volume = std::dynamic_pointer_cast<RasterizedVolumeSPtr<T>>(output->data(RasterizedVolume<T>::Type));
+  Q_ASSERT(volume.get());
+  return volume;
 }
 
 

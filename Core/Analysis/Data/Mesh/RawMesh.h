@@ -22,36 +22,54 @@
 
 #include "EspinaCore_Export.h"
 
-#include <Core/OutputRepresentations/MeshType.h>
+#include <Core/Analysis/Data/MeshData.h>
+
 #include <vtkSmartPointer.h>
 
 namespace EspINA
 {
   class EspinaCore_EXPORT RawMesh
-  : public MeshRepresentation
+  : public MeshData
   {
   public:
-    explicit RawMesh(FilterOutput *output=NULL);
+    explicit RawMesh(OutputSPtr output = nullptr);
     explicit RawMesh(vtkSmartPointer<vtkPolyData> mesh,
                      itkVolumeType::SpacingType spacing,
-                     FilterOutput *output = NULL);
+                     OutputSPtr output = nullptr);
+    virtual ~RawMesh() {};
 
-    virtual bool dumpSnapshot(const QString &prefix, Snapshot &snapshot) const;
-    virtual bool fetchSnapshot(Filter *filter, const QString &prefix);
     virtual bool isValid() const;
-    virtual bool setInternalData(SegmentationRepresentationSPtr rhs);
-    virtual bool isEdited() const;
-    virtual void clearEditedRegions();
-    virtual void commitEditedRegions(bool withData) const;
-    virtual void restoreEditedRegions(const QDir &cacheDir, const QString &outputId);
+    virtual bool setInternalData(MeshDataSPtr rhs);
 
-    virtual vtkAlgorithmOutput *mesh();
+    Data::Type type()
+    { return RawMesh::TYPE; }
+
+    virtual DataProxySPtr createProxy() const
+    { DataProxySPtr proxy{ new MeshProxySPtr() }; return proxy; }
+
+    Snapshot snapshot() const
+    { return Snapshot(); }
+
+    virtual Snapshot editedRegionsSnapshot() const
+    { return Snapshot(); }
+
+    virtual Bounds bounds() const
+    {
+      Nm bounds[6];
+      m_mesh->GetBounds(bounds);
+
+      return Bounds{bounds[0], bounds[1], bounds[2], bounds[3], bounds[4], bounds[5]};
+    }
+
+    virtual vtkSmartPointer<vtkPolyData> mesh()
+    { return m_mesh; }
 
   private:
     vtkSmartPointer<vtkPolyData> m_mesh;
   };
 
-  typedef boost::shared_ptr<RawMesh> RawMeshSPtr;
+  using RawMeshPtr = RawMesh *;
+  using RawMeshSPtr = std::shared_ptr<RawMesh>;
 
   RawMeshSPtr EspinaCore_EXPORT rawMesh(OutputSPtr output);
 }

@@ -17,7 +17,10 @@
  *
  */
 
-#include "MeshType.h"
+#include "MeshData.h"
+
+#include <Core/Analysis/Output.h>
+#include <Core/Analysis/Data/Mesh/MeshProxy.h>
 
 #include <vtkAlgorithmOutput.h>
 #include <vtkPolyData.h>
@@ -26,26 +29,33 @@
 using namespace EspINA;
 
 //----------------------------------------------------------------------------
-const FilterOutput::OutputRepresentationName MeshRepresentation::TYPE = "MeshOutputType";
+const Data::Type MeshData::TYPE = "MeshData";
 
 //----------------------------------------------------------------------------
-EspinaRegion MeshRepresentation::representationBounds()
+MeshData::MeshData()
+: m_mesh(nullptr)
 {
-  vtkPolyData *polyData = dynamic_cast<vtkPolyData *>(mesh()->GetProducer()->GetOutputDataObject(0));
-
-  return EspinaRegion(polyData->GetBounds());
 }
 
 //----------------------------------------------------------------------------
-MeshRepresentationSPtr EspINA::meshRepresentation(OutputSPtr output)
+Bounds MeshData::bounds()
 {
-  SegmentationOutputSPtr segmentationOutput = boost::dynamic_pointer_cast<SegmentationOutput>(output);
-  Q_ASSERT(segmentationOutput.get());
-  return boost::dynamic_pointer_cast<MeshRepresentation>(segmentationOutput->representation(MeshRepresentation::TYPE));
+  Nm bounds[6];
+  m_mesh->GetBounds(bounds);
+
+  return Bounds{ bounds[0], bounds[1], bounds[2], bounds[3], bounds[4], bounds[5] };
 }
 
 //----------------------------------------------------------------------------
-MeshRepresentationSPtr EspINA::meshRepresentation(SegmentationOutputSPtr output)
+DataProxySPtr MeshData::createProxy() const
 {
-  return boost::dynamic_pointer_cast<MeshRepresentation>(output->representation(MeshRepresentation::TYPE));
+  return DataProxySPtr proxy{ new MeshProxy(); };
+}
+
+//----------------------------------------------------------------------------
+MeshDataSPtr meshRepresentation(OutputSPtr output)
+{
+  MeshDataSPtr meshData = std::dynamic_pointer_cast<MeshDataSPtr>(output->data(MeshData::Type));
+  Q_ASSERT(meshData.get());
+  return meshData;
 }

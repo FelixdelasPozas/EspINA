@@ -31,8 +31,8 @@
 
 #include "EspinaCore_Export.h"
 
-#include "Core/OutputRepresentations/MeshType.h"
-#include <Core/OutputRepresentations/VolumeRepresentation.h>
+#include "Core/Analysis/Data/MeshData.h"
+#include "Core/Analysis/Data/VolumetricData.h"
 
 #include <vtkSmartPointer.h>
 
@@ -46,7 +46,7 @@ namespace EspINA
   {
     Q_OBJECT
   public:
-    explicit MarchingCubesMesh(SegmentationVolumeSPtr volume, FilterOutput *output = NULL);
+    explicit MarchingCubesMesh(VolumetricData volume, FilterOutput *output = NULL);
     virtual ~MarchingCubesMesh();
 
     virtual bool setInternalData(SegmentationRepresentationSPtr rhs);

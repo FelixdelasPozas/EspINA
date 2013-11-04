@@ -91,6 +91,7 @@ namespace EspINA
     
     virtual bool invalidateEditedRegions();
   };
+
 //   class ViewManager;
 // 
 //   class SeedGrowSegmentationFilter

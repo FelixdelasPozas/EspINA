@@ -22,10 +22,13 @@
 
 #include "EspinaCore_Export.h"
 
-#include "Core/Analysis/Data.h"
+#include <Core/Analysis/Data.h>
+#include <Core/Utils/Bounds.h>
 
 #include <vtkSmartPointer.h>
 #include <vtkPolyData.h>
+
+#include <memory>
 
 namespace EspINA
 {
@@ -36,15 +39,28 @@ namespace EspINA
     static const Data::Type TYPE;
 
   public:
-    explicit MeshData() {}
+    explicit MeshData();
+
+    Bounds bounds();
 
     virtual Data::Type type() const
     { return TYPE; }
 
-    virtual DataProxySPtr createProxy() const
-    {}
+    virtual DataProxySPtr createProxy() const;
 
-    virtual vtkSmartPointer<vtkPolyData> mesh() = 0;
+    virtual vtkSmartPointer<vtkPolyData> mesh()
+    { return m_mesh; };
+
+    virtual double memoryUsage() const = 0;
+
+    virtual void fitToContent() = 0;
+
+    virtual void resize(const Bounds &bounds) = 0;
+
+    virtual void undo() = 0;
+
+  protected:
+    vtkSmartPointer<vtkPolyData> m_mesh;
   };
 
   using MeshDataSPtr = std::shared_ptr<MeshData>;

@@ -23,16 +23,16 @@
 #include "EspinaCore_Export.h"
 
 #include "Core/Analysis/Data.h"
-
-#include "Volumetric/VolumetricDataProxy.h"
+#include "Core/Analysis/DataProxy.h"
 
 #include <vtkSmartPointer.h>
 #include <vtkImageData.h>
 
+#include <memory>
+
 class vtkImplicitFunction;
 namespace EspINA
 {
-
   template<typename T>
   class EspinaCore_EXPORT VolumetricData
   : public Data
@@ -49,8 +49,7 @@ namespace EspINA
     virtual Data::Type type() const
     { return TYPE; }
 
-    virtual DataProxySPtr createProxy() const
-    { return DataProxySPtr{new VolumetricDataProxy<T>()}; }
+    virtual DataProxySPtr createProxy() const;
 
     /** \brief Return memory usage in MB
      *
@@ -131,6 +130,12 @@ namespace EspINA
 
   template<typename T>
   const Data::Type VolumetricData<T>::TYPE = "VolumetricData";
+
+  template< class T > using VolumetricDataPtr = VolumetricData<T> *;
+  template< class T > using VolumetricDataSPtr = std::shared_ptr<VolumetricData<T>>;
+
+  template< class T > VolumetricDataPtr<T> EspinaCore_EXPORT volumetricData(OutputPtr output); //NOTE: Use viewitem??
+  template< class T > VolumetricDataSPtr<T> EspinaCore_EXPORT volumetricData(OutputSPtr output);
 
 //   /// Get the vtk-equivalent extent defining the volume
 //   void extent(int out[6]) const = 0;

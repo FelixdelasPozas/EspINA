@@ -39,9 +39,9 @@ qt4_wrap_cpp(GUI_MOC
 qt4_wrap_ui (GUI_UI
 #   Analysis/InformationSelector.ui
 #   QtWidget/HueSelector.ui
-#   QtWidget/NoteEditor.ui
+  Widgets/NoteEditor.ui
 #   QtWidget/SegmentationVisualizationSettingsDialog.ui
-#   QtWidget/TagSelector.ui
+  Widgets/TagSelector.ui
   Representations/RepresentationEmptySettings.ui
 #   Representations/ContourRepresentationSettings.ui
 #   Representations/SliceRepresentationSettings.ui

@@ -26,6 +26,9 @@
  * 
  */
 
+#include "SparseVolume.h"
+#include <Core/Utils/Bounds.h>
+
 namespace EspINA {
 
 const int UNSET = 0;

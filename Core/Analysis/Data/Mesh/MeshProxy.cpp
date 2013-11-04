@@ -22,22 +22,24 @@
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
-MeshProxy::MeshProxy(FilterOutput *output)
-: MeshRepresentation(itkVolumeType::SpacingType(), output)
+template<typename T>
+MeshProxy<T>::MeshProxy(OutputSPtr *output)
+: m_meshData(nullptr)
 {
-
 }
 
 //-----------------------------------------------------------------------------
-bool MeshProxy::setInternalData(SegmentationRepresentationSPtr rhs)
+template<typename T>
+bool MeshProxy<T>::setInternalData(MeshDataSPtr rhs)
 {
-  m_meshRepresentation = boost::dynamic_pointer_cast<MeshRepresentation>(rhs);
+  m_mesh = rhs;
 
-  return m_meshRepresentation != NULL;
+  return m_mesh != nullptr;
 }
 
 //-----------------------------------------------------------------------------
-bool MeshProxy::dumpSnapshot(const QString &prefix, Snapshot &snapshot) const
+template<typename T>
+bool MeshProxy<T>::dumpSnapshot(const QString &prefix, Snapshot &snapshot) const
 {
   bool dumped = false;
 
@@ -59,7 +61,8 @@ bool MeshProxy::dumpSnapshot(const QString &prefix, Snapshot &snapshot) const
 // }
 
 //-----------------------------------------------------------------------------
-bool MeshProxy::isValid() const
+template<typename T>
+bool MeshProxy<T>::isValid() const
 {
   bool res = false;
 
@@ -70,18 +73,21 @@ bool MeshProxy::isValid() const
 }
 
 //-----------------------------------------------------------------------------
-EspinaRegion MeshProxy::representationBounds()
+template<typename T>
+Bounds MeshProxy<T>::bounds()
 {
-  EspinaRegion res;
+  // TODO
+//  EspinaRegion res;
+//
+//  if (m_meshRepresentation)
+//    res = m_meshRepresentation->representationBounds();
 
-  if (m_meshRepresentation)
-    res = m_meshRepresentation->representationBounds();
-
-  return res;
+  return Bounds();
 }
 
 //-----------------------------------------------------------------------------
-bool MeshProxy::isEdited() const
+template<typename T>
+bool MeshProxy<T>::isEdited() const
 {
   bool res = false;
 
@@ -92,28 +98,32 @@ bool MeshProxy::isEdited() const
 }
 
 //-----------------------------------------------------------------------------
-void MeshProxy::clearEditedRegions()
+template<typename T>
+void MeshProxy<T>::clearEditedRegions()
 {
   if (m_meshRepresentation)
     m_meshRepresentation->clearEditedRegions();
 }
 
 //-----------------------------------------------------------------------------
-void MeshProxy::commitEditedRegions(bool withData) const
+template<typename T>
+void MeshProxy<T>::commitEditedRegions(bool withData) const
 {
   if (m_meshRepresentation)
     m_meshRepresentation->commitEditedRegions(withData);
 }
 
 //-----------------------------------------------------------------------------
-void MeshProxy::restoreEditedRegions(const QDir &cacheDir, const QString &outputId)
+template<typename T>
+void MeshProxy<T>::restoreEditedRegions(const QDir &cacheDir, const QString &outputId)
 {
   if (m_meshRepresentation)
     m_meshRepresentation->restoreEditedRegions(cacheDir, outputId);
 }
 
 //-----------------------------------------------------------------------------
-vtkAlgorithmOutput *MeshProxy::mesh()
+template<typename T>
+vtkAlgorithmOutput *MeshProxy<T>::mesh()
 {
   vtkAlgorithmOutput *res = NULL;
 

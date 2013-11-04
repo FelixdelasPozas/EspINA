@@ -33,6 +33,8 @@
 #include "Core/Analysis/Extensions/ChannelExtension.h"
 #include "Core/Analysis/Extensions/SegmentationExtension.h"
 
+#include <QMap>
+
 namespace EspINA {
 
   class ExtensionProvider
@@ -49,6 +51,9 @@ namespace EspINA {
     virtual ChannelExtensionSPtr createChannelExtension(const ChannelExtension::Type& type) = 0;
 
     virtual SegmentationExtensionSPtr createSegmentationExtension(const SegmentationExtension::Type& type) = 0;
+
+  protected:
+    QMap<SegmentationPtr, SegmentationExtensionSPtr> m_extensions;
   };
 
   using ExtensionProviderPtr  = ExtensionProvider *;

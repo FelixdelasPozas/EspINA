@@ -18,7 +18,7 @@
  */
 
 #include "RawMesh.h"
-#include <Core/Model/Filter.h>
+#include <Core/Analysis/Filter.h>
 
 #include <vtkGenericDataObjectReader.h>
 #include <vtkGenericDataObjectWriter.h>
@@ -30,9 +30,8 @@
 using namespace EspINA;
 
 //----------------------------------------------------------------------------
-RawMesh::RawMesh(FilterOutput *output)
-: MeshRepresentation(itkVolumeType::SpacingType(), output)
-, m_mesh(NULL)
+RawMesh::RawMesh(OutputSPtr output)
+: m_mesh(nullptr)
 {
 
 }
@@ -40,79 +39,78 @@ RawMesh::RawMesh(FilterOutput *output)
 //----------------------------------------------------------------------------
 RawMesh::RawMesh(vtkSmartPointer<vtkPolyData> mesh,
                  itkVolumeType::SpacingType spacing,
-                 FilterOutput *output)
-: MeshRepresentation(spacing, output)
-, m_mesh(mesh)
+                 OutputSPtr output)
+: m_mesh(mesh)
 {
 
 }
 
-//----------------------------------------------------------------------------
-bool RawMesh::dumpSnapshot(const QString &prefix, Snapshot &snapshot) const
-{
-  bool dumped = false;
+////----------------------------------------------------------------------------
+//bool RawMesh::dumpSnapshot(const QString &prefix, Snapshot &snapshot) const
+//{
+//  bool dumped = false;
+//
+//  if (m_mesh)
+//  {
+//    vtkSmartPointer<vtkDoubleArray> spacingArray = vtkSmartPointer<vtkDoubleArray>::New();
+//    spacingArray->SetName("Spacing");
+//    spacingArray->SetNumberOfValues(3);
+//    for (int i = 0; i < 3; ++i)
+//      spacingArray->SetValue(i, m_spacing[i]);
+//
+//    m_mesh->GetPointData()->AddArray(spacingArray);
+//
+//    vtkSmartPointer<vtkGenericDataObjectWriter> polyWriter = vtkSmartPointer<vtkGenericDataObjectWriter>::New();
+//    polyWriter->SetInputData(m_mesh);
+//    polyWriter->SetFileTypeToBinary();
+//    polyWriter->SetWriteToOutputString(true);
+//    polyWriter->Write();
+//
+//    QByteArray polyArray(polyWriter->GetOutputString(), polyWriter->GetOutputStringLength());
+//
+//    snapshot << SnapshotEntry(cachePath(prefix + "-AS.vtp"), polyArray);
+//
+//    dumped = true;
+//  }
+//
+//  return dumped;
+//}
 
-  if (m_mesh)
-  {
-    vtkSmartPointer<vtkDoubleArray> spacingArray = vtkSmartPointer<vtkDoubleArray>::New();
-    spacingArray->SetName("Spacing");
-    spacingArray->SetNumberOfValues(3);
-    for (int i = 0; i < 3; ++i)
-      spacingArray->SetValue(i, m_spacing[i]);
+using VTKReader = vtkSmartPointer<vtkGenericDataObjectReader>;
 
-    m_mesh->GetPointData()->AddArray(spacingArray);
-
-    vtkSmartPointer<vtkGenericDataObjectWriter> polyWriter = vtkSmartPointer<vtkGenericDataObjectWriter>::New();
-    polyWriter->SetInputData(m_mesh);
-    polyWriter->SetFileTypeToBinary();
-    polyWriter->SetWriteToOutputString(true);
-    polyWriter->Write();
-
-    QByteArray polyArray(polyWriter->GetOutputString(), polyWriter->GetOutputStringLength());
-
-    snapshot << SnapshotEntry(cachePath(prefix + "-AS.vtp"), polyArray);
-
-    dumped = true;
-  }
-
-  return dumped;
-}
-
-typedef vtkSmartPointer<vtkGenericDataObjectReader> VTKReader;
-
-//----------------------------------------------------------------------------
-bool RawMesh::fetchSnapshot(Filter *filter, const QString &prefix)
-{
-  bool fetched = false;
-
-  QDir cacheDir = filter->cacheDir();
-
-  QString meshFileName = cachePath(QString("%1-AS.vtp").arg(prefix));
-  // Version 3 seg files compatibility
-  if (!cacheDir.exists(meshFileName))
-  { 
-    meshFileName = QString("%1-AS.vtp").arg(prefix);
-  }
-
-  if (cacheDir.exists(meshFileName))
-  {
-    QString meshFile = cacheDir.absoluteFilePath(meshFileName);
-
-    VTKReader polyASReader = VTKReader::New();
-    polyASReader->SetFileName(meshFile.toUtf8());
-    polyASReader->SetReadAllFields(true);
-    polyASReader->Update();
-
-    m_mesh = vtkSmartPointer<vtkPolyData>(polyASReader->GetPolyDataOutput());
-
-    //vtkSmartPointer<vtkDoubleArray> spacingArray
-    vtkDataArray   *dataArray    = m_mesh->GetPointData()->GetArray("Spacing");
-    vtkDoubleArray *spacingArray = dynamic_cast<vtkDoubleArray *>(dataArray);
-    for (int i = 0; i < 3; ++i)
-      m_spacing[i] = spacingArray->GetValue(i);
-
-    fetched = true;
-  }
+////----------------------------------------------------------------------------
+//bool RawMesh::fetchSnapshot(Filter *filter, const QString &prefix)
+//{
+//  bool fetched = false;
+//
+//  QDir cacheDir = filter->cacheDir();
+//
+//  QString meshFileName = cachePath(QString("%1-AS.vtp").arg(prefix));
+//  // Version 3 seg files compatibility
+//  if (!cacheDir.exists(meshFileName))
+//  {
+//    meshFileName = QString("%1-AS.vtp").arg(prefix);
+//  }
+//
+//  if (cacheDir.exists(meshFileName))
+//  {
+//    QString meshFile = cacheDir.absoluteFilePath(meshFileName);
+//
+//    VTKReader polyASReader = VTKReader::New();
+//    polyASReader->SetFileName(meshFile.toUtf8());
+//    polyASReader->SetReadAllFields(true);
+//    polyASReader->Update();
+//
+//    m_mesh = vtkSmartPointer<vtkPolyData>(polyASReader->GetPolyDataOutput());
+//
+//    //vtkSmartPointer<vtkDoubleArray> spacingArray
+//    vtkDataArray   *dataArray    = m_mesh->GetPointData()->GetArray("Spacing");
+//    vtkDoubleArray *spacingArray = dynamic_cast<vtkDoubleArray *>(dataArray);
+//    for (int i = 0; i < 3; ++i)
+//      m_spacing[i] = spacingArray->GetValue(i);
+//
+//    fetched = true;
+//  }
 
 //   QString vectorName = QString().number(m_cacheId) + QString("-Vectors.dat");
 // 
@@ -145,8 +143,8 @@ bool RawMesh::fetchSnapshot(Filter *filter, const QString &prefix)
 //     returnValue = true;
 //   }
 
-  return fetched;
-}
+//  return fetched;
+//}
 
 //----------------------------------------------------------------------------
 bool RawMesh::isValid() const
@@ -155,8 +153,9 @@ bool RawMesh::isValid() const
 }
 
 //----------------------------------------------------------------------------
-bool RawMesh::setInternalData(SegmentationRepresentationSPtr rhs)
+bool RawMesh::setInternalData(MeshDataSPtr rhs)
 {
+  m_mesh = rhs->mesh();
   return true;
 }
 
@@ -171,29 +170,24 @@ void RawMesh::clearEditedRegions()
 {
 
 }
-
-//----------------------------------------------------------------------------
-void RawMesh::commitEditedRegions(bool withData) const
-{
-
-}
-
-//----------------------------------------------------------------------------
-void RawMesh::restoreEditedRegions(const QDir &cacheDir, const QString &outputId)
-{
-
-}
-
-//----------------------------------------------------------------------------
-vtkAlgorithmOutput *RawMesh::mesh()
-{
-  Q_ASSERT(false);//TODO 2013-10-08 return m_mesh->GetProducerPort();
-}
+//
+////----------------------------------------------------------------------------
+//void RawMesh::commitEditedRegions(bool withData) const
+//{
+//
+//}
+//
+////----------------------------------------------------------------------------
+//void RawMesh::restoreEditedRegions(const QDir &cacheDir, const QString &outputId)
+//{
+//
+//}
 
 //----------------------------------------------------------------------------
 RawMeshSPtr EspINA::rawMesh(OutputSPtr output)
 {
-  SegmentationOutputSPtr segmentationOutput = boost::dynamic_pointer_cast<SegmentationOutput>(output);
-  Q_ASSERT(segmentationOutput.get());
-  return boost::dynamic_pointer_cast<RawMesh>(segmentationOutput->representation(MeshRepresentation::TYPE));
+  RawMeshSPtr meshData = std::dynamic_pointer_cast<RawMeshSPtr>(output->data(RawMesh::TYPE));
+
+  Q_ASSERT(mesh.get());
+  return meshData;
 }

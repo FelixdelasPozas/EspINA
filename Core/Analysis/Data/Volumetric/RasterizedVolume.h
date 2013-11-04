@@ -22,9 +22,10 @@
 
 #include "EspinaCore_Export.h"
 
-#include <Core/OutputRepresentations/VolumeRepresentation.h>
-#include "RawVolume.h"
-#include "MeshType.h"
+#include <Core/Analysis/Data/VolumetricData.h>
+#include <Core/Analysis/Data/Volumetric/RawVolume.h>
+#include <Core/Analysis/Data/MeshData.h>
+#include <Core/Analysis/Data/Mesh/RawMesh.h>
 
 // ITK
 #include <itkVTKImageImport.h>
@@ -36,25 +37,42 @@
 
 namespace EspINA
 {
+  template<class T>
   class EspinaCore_EXPORT RasterizedVolume
-  : public RawSegmentationVolume
+  : public RawVolume<T>
   {
   public:
-    explicit RasterizedVolume(MeshRepresentationSPtr  mesh,
-                              FilterOutput *output = NULL);
+    explicit RasterizedVolume(MeshDataSPtr  mesh,
+                              OutputSPtr    output = nullptr);
+    virtual ~RasterizedVolume() {};
 
     virtual bool isValid() const
-    { return m_mesh != NULL || RawSegmentationVolume::isValid();}
+    { return m_mesh != nullptr || RawVolume<T>::isValid();}
 
-    virtual bool dumpSnapshot(const QString &prefix, Snapshot &snapshot) const;
+//    virtual bool dumpSnapshot(const QString &prefix, Snapshot &snapshot) const;
+//
+//    virtual itkVolumeType::Pointer toITK();
+//
+//    virtual const itkVolumeType::Pointer toITK() const;
+//
+//    virtual vtkAlgorithmOutput *toVTK();
+//
+//    virtual const vtkAlgorithmOutput *toVTK() const;
 
-    virtual itkVolumeType::Pointer toITK();
+    double memoryUsage() const;
 
-    virtual const itkVolumeType::Pointer toITK() const;
+    void setOrigin(const typename T::PointType origin);
 
-    virtual vtkAlgorithmOutput *toVTK();
+    typename T::PointType origin() const;
 
-    virtual const vtkAlgorithmOutput *toVTK() const;
+    void setSpacing(const typename T::SpacingType spacing);
+
+    typename T::SpacingType spacing() const;
+
+    const VolumetricData<T>::itkImageSPtr itkImage() const;
+
+    const VolumetricData<T>::itkImageSPtr itkImage(const Bounds& bounds) const;
+
 
   private:
     void rasterize(double *bounds) const;
@@ -62,25 +80,27 @@ namespace EspINA
     void updateITKVolume() const;
 
   private:
-    vtkPolyData * m_mesh;
-    itkVolumeType::SpacingType   m_spacing;
+    vtkSmartPointer<vtkPolyData> m_mesh;
+    itkVolumeType::SpacingType  m_spacing;
 
     mutable vtkSmartPointer<vtkAlgorithmOutput>          m_vtkVolume;
 
     mutable vtkSmartPointer<vtkImageData>                m_emptyImage;
     mutable vtkSmartPointer<vtkImplicitPolyDataDistance> m_distance;
 
-    typedef itk::VTKImageImport<itkVolumeType> itkImageImporter;
-    mutable itkImageImporter::Pointer                    m_itkImporter;
+    using itkImageImporter = itk::VTKImageImport<T>;
+
+    mutable typename itkImageImporter::Pointer           m_itkImporter;
     mutable vtkSmartPointer<vtkImageExport>              m_vtkExporter;
 
     mutable unsigned long int m_rasterizationTime;
     mutable double            m_rasterizationBounds[6];
   };
 
-  typedef boost::shared_ptr<RasterizedVolume> RasterizedVolumeSPtr;
+  template<class T> using RasterizedVolumePtr = RasterizedVolume<T> *;
+  template<class T> using RasterizedVolumeSPtr = std::shared_ptr<RasterizedVolume<T>>;
 
-  RasterizedVolumeSPtr EspinaCore_EXPORT rasterizedVolume(OutputSPtr output);
+  template<class T> RasterizedVolumeSPtr<T> EspinaCore_EXPORT rasterizedVolume(OutputSPtr output);
 }
 
 #endif // ESPINA_RASTERIZEDVOLUME_H

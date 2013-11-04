@@ -17,6 +17,7 @@ set (FILTERS_SOURCES
   ${FILTERS_MOC}
   ${FILTERS_UI}
   SeedGrowSegmentationFilter.cpp
+  BasicSegmentationFilter.cpp
   )
 
 set(FILTERS_EXTERNAL_LIBS
