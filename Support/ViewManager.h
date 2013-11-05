@@ -54,7 +54,7 @@ namespace EspINA
   class ISelector;
   class ITool;
   class IVOI;
-  class SliceView;
+  class View2D;
   class Measure;
 
   class EspinaGUI_EXPORT ViewManager
@@ -67,16 +67,16 @@ namespace EspINA
 
     void registerView(SelectableView *view);
     void registerView(RenderView *view);
-    void registerView(SliceView *view);
+    void registerView(View2D *view);
 
     void unregisterView(SelectableView *view);
     void unregisterView(RenderView *view);
-    void unregisterView(SliceView *view);
+    void unregisterView(View2D *view);
 
   private:
     QList<SelectableView *>      m_espinaViews;
     QList<RenderView *> m_renderViews;
-    QList<SliceView *>        m_sliceViews;
+    QList<View2D *>        m_sliceViews;
 
     //---------------------------------------------------------------------------
     /*************************** Selection API *********************************/

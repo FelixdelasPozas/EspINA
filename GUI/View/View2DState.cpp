@@ -17,7 +17,7 @@
 */
 
 
-#include "SliceViewState.h"
+#include "View2DState.h"
 
 #include <vtkCamera.h>
 #include <vtkMatrix4x4.h>
@@ -27,7 +27,7 @@
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
-void SliceView::AxialState::setCrossHairs(vtkPolyData* hline,
+void View2D::AxialState::setCrossHairs(vtkPolyData* hline,
                                           vtkPolyData* vline,
                                           const NmVector3& center,
                                           const Bounds&    bounds,
@@ -49,7 +49,7 @@ void SliceView::AxialState::setCrossHairs(vtkPolyData* hline,
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::AxialState::updateCamera(vtkCamera* camera, const NmVector3& center)
+void View2D::AxialState::updateCamera(vtkCamera* camera, const NmVector3& center)
 {
   double oldPos[3];
   camera->GetPosition(oldPos);
@@ -62,7 +62,7 @@ void SliceView::AxialState::updateCamera(vtkCamera* camera, const NmVector3& cen
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::SagittalState::setCrossHairs(vtkPolyData* hline,
+void View2D::SagittalState::setCrossHairs(vtkPolyData* hline,
                                              vtkPolyData* vline,
                                              const NmVector3& center,
                                              const Bounds&    bounds,
@@ -84,14 +84,14 @@ void SliceView::SagittalState::setCrossHairs(vtkPolyData* hline,
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::SagittalState::updateActor(vtkProp3D* actor)
+void View2D::SagittalState::updateActor(vtkProp3D* actor)
 {
   actor->RotateX(-90);
   actor->RotateY(-90);
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::SagittalState::updateCamera(vtkCamera* camera,
+void View2D::SagittalState::updateCamera(vtkCamera* camera,
                                             const NmVector3& center)
 {
   camera->SetPosition(center[0] + 1,center[1], center[2]);
@@ -100,7 +100,7 @@ void SliceView::SagittalState::updateCamera(vtkCamera* camera,
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::CoronalState::setCrossHairs(vtkPolyData*     hline,
+void View2D::CoronalState::setCrossHairs(vtkPolyData*     hline,
                                             vtkPolyData*     vline,
                                             const NmVector3& center,
                                             const Bounds&    bounds,
@@ -122,13 +122,13 @@ void SliceView::CoronalState::setCrossHairs(vtkPolyData*     hline,
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::CoronalState::updateActor(vtkProp3D* actor)
+void View2D::CoronalState::updateActor(vtkProp3D* actor)
 {
   actor->RotateX(-90);
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::CoronalState::updateCamera(vtkCamera* camera,
+void View2D::CoronalState::updateCamera(vtkCamera* camera,
                                            const NmVector3& center)
 {
   camera->SetPosition(center[0], center[1]+1, center[2]);

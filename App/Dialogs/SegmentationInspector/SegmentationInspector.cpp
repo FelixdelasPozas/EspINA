@@ -54,7 +54,7 @@ SegmentationInspector::SegmentationInspector(SegmentationList segmentations,
 , m_undoStack(undoStack)
 , m_viewManager(viewManager)
 , m_tabularReport(new TabularReport(viewManager))
-, m_view(new VolumeView(model->factory(), viewManager, true))
+, m_view(new View3D(model->factory(), viewManager, true))
 , m_filterArea(new QScrollArea(this))
 {
   m_view->setViewType(VOLUME);

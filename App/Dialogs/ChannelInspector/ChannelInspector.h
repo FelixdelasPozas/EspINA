@@ -21,7 +21,7 @@ namespace EspINA
 {
   class Channel;
   class ViewManager;
-  class SliceView;
+  class View2D;
   class HueSelector;
   class ModelAdapter;
 
@@ -72,7 +72,7 @@ namespace EspINA
     ViewManager *m_viewManager;
     ModelAdapter *m_model;
 
-    SliceView   *m_view;
+    View2D   *m_view;
     HueSelector *m_hueSelector;
 
     bool m_adaptiveEdgesEnabled;

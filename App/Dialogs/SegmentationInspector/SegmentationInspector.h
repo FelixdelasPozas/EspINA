@@ -37,7 +37,7 @@ namespace EspINA
 {
 
   class TabularReport;
-  class VolumeView;
+  class View3D;
 
   class SegmentationInspector
   : public QWidget
@@ -90,7 +90,7 @@ namespace EspINA
 
     TabularReport *m_tabularReport;
 
-    VolumeView *m_view;
+    View3D *m_view;
     QScrollArea *m_filterArea;
   };
 

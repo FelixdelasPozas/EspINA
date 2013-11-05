@@ -16,9 +16,10 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "View2D.h"
+
 // EspINA
-#include "SliceView.h"
-#include "SliceViewState.h"
+#include "View2DState.h"
 #include "Widgets/EspinaWidget.h"
 #include <GUI/View/vtkInteractorStyleEspinaSlice.h>
 #include <Core/Analysis/Channel.h>
@@ -77,12 +78,12 @@
 
 using namespace EspINA;
 
-const double SliceView::SEGMENTATION_SHIFT = 0.05;
+const double View2D::SEGMENTATION_SHIFT = 0.05;
 
 //-----------------------------------------------------------------------------
 // SLICE VIEW
 //-----------------------------------------------------------------------------
-SliceView::SliceView(Plane plane, QWidget* parent)
+View2D::View2D(Plane plane, QWidget* parent)
 : RenderView(parent)
 , m_mainLayout(new QVBoxLayout())
 , m_controlLayout(new QHBoxLayout())
@@ -173,7 +174,7 @@ SliceView::SliceView(Plane plane, QWidget* parent)
 }
 
 //-----------------------------------------------------------------------------
-SliceView::~SliceView()
+View2D::~View2D()
 {
 //   qDebug() << "********************************************************";
 //   qDebug() << "              Destroying Slice View" << m_plane;
@@ -185,20 +186,20 @@ SliceView::~SliceView()
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::setFitToSlices(bool value)
+void View2D::setFitToSlices(bool value)
 {
   m_fitToSlices = value;
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::setInvertSliceOrder(bool value)
+void View2D::setInvertSliceOrder(bool value)
 {
   m_invertSliceOrder = value;
 }
 
 
 //-----------------------------------------------------------------------------
-void SliceView::setRenderers(RendererSList renderers)
+void View2D::setRenderers(RendererSList renderers)
 {
   foreach(RendererSPtr renderer, renderers)
   {
@@ -210,7 +211,7 @@ void SliceView::setRenderers(RendererSList renderers)
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::reset()
+void View2D::reset()
 {
   foreach(EspinaWidget *widget, m_widgets.keys())
     removeWidget(widget);
@@ -241,7 +242,7 @@ Nm rulerScale(Nm value)
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::updateRuler()
+void View2D::updateRuler()
 {
   if (!m_renderer || !m_view->GetRenderWindow())
     return;
@@ -273,7 +274,7 @@ void SliceView::updateRuler()
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::updateThumbnail()
+void View2D::updateThumbnail()
 {
   if (!m_showThumbnail || !m_sceneReady)
     return;
@@ -321,7 +322,7 @@ void SliceView::updateThumbnail()
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::updateSceneBounds()
+void View2D::updateSceneBounds()
 {
   RenderView::updateSceneBounds();
 
@@ -339,7 +340,7 @@ void SliceView::updateSceneBounds()
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::initBorder(vtkPolyData* data, vtkActor* actor)
+void View2D::initBorder(vtkPolyData* data, vtkActor* actor)
 {
   vtkSmartPointer<vtkPoints> corners = vtkSmartPointer<vtkPoints>::New();
   corners->InsertNextPoint(m_sceneBounds[0], m_sceneBounds[2], 0); //UL
@@ -368,7 +369,7 @@ void SliceView::initBorder(vtkPolyData* data, vtkActor* actor)
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::updateBorder(vtkPolyData* data,
+void View2D::updateBorder(vtkPolyData* data,
                              double left, double right,
                              double upper, double lower)
 {
@@ -399,51 +400,51 @@ void SliceView::updateBorder(vtkPolyData* data,
 }
 
 //-----------------------------------------------------------------------------
-Nm SliceView::voxelBottom(int sliceIndex, Plane plane) const
+Nm View2D::voxelBottom(int sliceIndex, Plane plane) const
 {
   return  m_sceneBounds[2*m_normalCoord] + sliceIndex * m_slicingStep[m_normalCoord];
 }
 
 //-----------------------------------------------------------------------------
-Nm SliceView::voxelBottom(Nm position, Plane plane) const
+Nm View2D::voxelBottom(Nm position, Plane plane) const
 {
   return voxelBottom(voxelSlice(position, plane), plane);
 }
 
 //-----------------------------------------------------------------------------
-Nm SliceView::voxelCenter(int sliceIndex, Plane plane) const
+Nm View2D::voxelCenter(int sliceIndex, Plane plane) const
 {
   return m_sceneBounds[2*m_normalCoord] + (sliceIndex + 0.5) * m_slicingStep[m_normalCoord];
 }
 
 //-----------------------------------------------------------------------------
-Nm SliceView::voxelCenter(Nm position, Plane plane) const
+Nm View2D::voxelCenter(Nm position, Plane plane) const
 {
   return voxelCenter(voxelSlice(position, plane), plane);
 }
 
 
 //-----------------------------------------------------------------------------
-Nm SliceView::voxelTop(int sliceIndex, Plane plane) const
+Nm View2D::voxelTop(int sliceIndex, Plane plane) const
 {
   return m_sceneBounds[2*m_normalCoord] + (sliceIndex + 1.0) * m_slicingStep[m_normalCoord];
 }
 
 //-----------------------------------------------------------------------------
-Nm SliceView::voxelTop(Nm position, Plane plane) const
+Nm View2D::voxelTop(Nm position, Plane plane) const
 {
   return voxelTop(voxelSlice(position, plane), plane);
 }
 
 
 //-----------------------------------------------------------------------------
-int SliceView::voxelSlice(Nm position, Plane plane) const
+int View2D::voxelSlice(Nm position, Plane plane) const
 {
   return int((position-m_sceneBounds[2*m_normalCoord])/m_slicingStep[m_normalCoord]);
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::buildCrosshairs()
+void View2D::buildCrosshairs()
 {
   vtkSmartPointer<vtkPoints> HPoints = vtkSmartPointer<vtkPoints>::New();
   HPoints->InsertNextPoint(-0.5, 0, 0);
@@ -489,7 +490,7 @@ void SliceView::buildCrosshairs()
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::setupUI()
+void View2D::setupUI()
 {
   m_view->installEventFilter(this);
 
@@ -541,14 +542,14 @@ void SliceView::setupUI()
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::setCrosshairColors(double hcolor[3], double vcolor[3])
+void View2D::setCrosshairColors(double hcolor[3], double vcolor[3])
 {
   m_HCrossLine->GetProperty()->SetColor(hcolor);
   m_VCrossLine->GetProperty()->SetColor(vcolor);
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::showCrosshairs(bool visible)
+void View2D::showCrosshairs(bool visible)
 {
   if (visible)
   {
@@ -564,7 +565,7 @@ void SliceView::showCrosshairs(bool visible)
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::setThumbnailVisibility(bool visible)
+void View2D::setThumbnailVisibility(bool visible)
 {
   m_showThumbnail = visible;
 
@@ -574,7 +575,7 @@ void SliceView::setThumbnailVisibility(bool visible)
 }
 
 //-----------------------------------------------------------------------------
-Selector::SelectionList SliceView::pick(Selector::SelectionFlags    filter,
+Selector::SelectionList View2D::pick(Selector::SelectionFlags    filter,
                                         Selector::DisplayRegionList regions)
 {
   bool multiSelection = false;
@@ -620,7 +621,7 @@ Selector::SelectionList SliceView::pick(Selector::SelectionFlags    filter,
 
 
 //-----------------------------------------------------------------------------
-void SliceView::updateView()
+void View2D::updateView()
 {
   if (isVisible())
   {
@@ -634,7 +635,7 @@ void SliceView::updateView()
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::resetCamera()
+void View2D::resetCamera()
 {
   NmVector3 origin{ 0, 0, 0 };
 
@@ -654,7 +655,7 @@ void SliceView::resetCamera()
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::addWidget(EspinaWidget *eWidget)
+void View2D::addWidget(EspinaWidget *eWidget)
 {
   Q_ASSERT(!m_widgets.contains(eWidget));
 
@@ -678,7 +679,7 @@ void SliceView::addWidget(EspinaWidget *eWidget)
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::removeWidget(EspinaWidget *eWidget)
+void View2D::removeWidget(EspinaWidget *eWidget)
 {
   if (!m_widgets.contains(eWidget))
     return;
@@ -690,7 +691,7 @@ void SliceView::removeWidget(EspinaWidget *eWidget)
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::addActor(vtkProp* actor)
+void View2D::addActor(vtkProp* actor)
 {
   vtkProp3D *actor3D = reinterpret_cast<vtkProp3D*>(actor);
   m_state->updateActor(actor3D);
@@ -710,7 +711,7 @@ void SliceView::addActor(vtkProp* actor)
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::removeActor(vtkProp* actor)
+void View2D::removeActor(vtkProp* actor)
 {
   m_renderer->RemoveActor(actor);
   m_thumbnail->RemoveActor(actor);
@@ -719,7 +720,7 @@ void SliceView::removeActor(vtkProp* actor)
 }
 
 //-----------------------------------------------------------------------------
-Bounds SliceView::previewBounds(bool cropToSceneBounds) const
+Bounds View2D::previewBounds(bool cropToSceneBounds) const
 {
   // Display Orientation (up means up according to screen)
   // but in vtk coordinates UR[V] < LL[V]
@@ -758,14 +759,14 @@ Bounds SliceView::previewBounds(bool cropToSceneBounds) const
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::sliceViewCenterChanged(NmVector3 center)
+void View2D::sliceViewCenterChanged(NmVector3 center)
 {
   //qDebug() << "Slice View: " << m_plane << " has new center";
   emit centerChanged(center);
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::scrollValueChanged(int value /*slice index */)
+void View2D::scrollValueChanged(int value /*slice index */)
 {
   // WARNING: Any modification to this method must be taken into account
   // at the end block of setSlicingStep
@@ -783,7 +784,7 @@ void SliceView::scrollValueChanged(int value /*slice index */)
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::spinValueChanged(double value /* nm or slices depending on m_fitToSlices */)
+void View2D::spinValueChanged(double value /* nm or slices depending on m_fitToSlices */)
 {
   int sliceIndex = m_fitToSlices ? (value - 1) : voxelSlice(value, m_plane);
   
@@ -801,21 +802,21 @@ void SliceView::spinValueChanged(double value /* nm or slices depending on m_fit
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::selectFromSlice()
+void View2D::selectFromSlice()
 {
 //   m_fromSlice->setToolTip(tr("From Slice %1").arg(m_spinBox->value()));
 //   emit sliceSelected(slicingPosition(), m_plane, ViewManager::From);
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::selectToSlice()
+void View2D::selectToSlice()
 {
 //   m_toSlice->setToolTip(tr("To Slice %1").arg(m_spinBox->value()));
 //   emit sliceSelected(slicingPosition(), m_plane, ViewManager::To);
 }
 
 //-----------------------------------------------------------------------------
-bool SliceView::eventFilter(QObject* caller, QEvent* e)
+bool View2D::eventFilter(QObject* caller, QEvent* e)
 {
   static bool inFocus = false;
 
@@ -951,7 +952,7 @@ bool SliceView::eventFilter(QObject* caller, QEvent* e)
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::centerCrosshairOnMousePosition()
+void View2D::centerCrosshairOnMousePosition()
 {
   int xPos, yPos;
   eventPosition(xPos, yPos);
@@ -1000,7 +1001,7 @@ void SliceView::centerCrosshairOnMousePosition()
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::centerViewOnMousePosition()
+void View2D::centerViewOnMousePosition()
 {
   int xPos, yPos;
   eventPosition(xPos, yPos);
@@ -1018,7 +1019,7 @@ void SliceView::centerViewOnMousePosition()
 }
 
 //-----------------------------------------------------------------------------
-SelectableView::Selection SliceView::pickChannels(double vx, double vy,
+SelectableView::Selection View2D::pickChannels(double vx, double vy,
                                                   bool repeatable)
 {
   SelectableView::Selection selection;
@@ -1035,7 +1036,7 @@ SelectableView::Selection SliceView::pickChannels(double vx, double vy,
 }
 
 //-----------------------------------------------------------------------------
-SelectableView::Selection SliceView::pickSegmentations(double vx, double vy,
+SelectableView::Selection View2D::pickSegmentations(double vx, double vy,
                                                        bool repeatable)
 {
   SelectableView::Selection selection;
@@ -1050,7 +1051,7 @@ SelectableView::Selection SliceView::pickSegmentations(double vx, double vy,
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::selectPickedItems(bool append)
+void View2D::selectPickedItems(bool append)
 {
   int vx, vy;
   eventPosition(vx, vy);
@@ -1087,7 +1088,7 @@ void SliceView::selectPickedItems(bool append)
 }
 
 //-----------------------------------------------------------------------------
-SelectableView::Selection SliceView::currentSelection()
+SelectableView::Selection View2D::currentSelection()
 {
   SelectableView::Selection selection;
 
@@ -1105,7 +1106,7 @@ SelectableView::Selection SliceView::currentSelection()
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::updateWidgetVisibility()
+void View2D::updateWidgetVisibility()
 {
   foreach(SliceWidget * widget, m_widgets)
   {
@@ -1114,7 +1115,7 @@ void SliceView::updateWidgetVisibility()
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::updateChannelsOpactity()
+void View2D::updateChannelsOpactity()
 {
   // TODO: Define opacity behaviour
   double opacity = suggestedChannelOpacity();
@@ -1132,13 +1133,13 @@ void SliceView::updateChannelsOpactity()
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::onTakeSnapshot()
+void View2D::onTakeSnapshot()
 {
   takeSnapshot(m_renderer);
 }
 
 //-----------------------------------------------------------------------------
-bool SliceView::pick(vtkPropPicker *picker, int x, int y, Nm pickPos[3])
+bool View2D::pick(vtkPropPicker *picker, int x, int y, Nm pickPos[3])
 {
   if (m_thumbnail->GetDraw() && picker->Pick(x, y, 0.1, m_thumbnail))
     return false;//ePick Fail
@@ -1153,7 +1154,7 @@ bool SliceView::pick(vtkPropPicker *picker, int x, int y, Nm pickPos[3])
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::setShowPreprocessing(bool visible)
+void View2D::setShowPreprocessing(bool visible)
 {
   if (m_channelStates.size() < 2)
     return;
@@ -1176,7 +1177,7 @@ void SliceView::setShowPreprocessing(bool visible)
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::setRulerVisibility(bool visible)
+void View2D::setRulerVisibility(bool visible)
 {
   m_rulerVisibility = visible;
   updateRuler();
@@ -1229,13 +1230,13 @@ void SliceView::setRulerVisibility(bool visible)
 
 
 //----------------------------------------------------------------------------
-NmVector3 SliceView::slicingStep() const
+NmVector3 View2D::slicingStep() const
 {
   return m_slicingStep;
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::setSlicingStep(const NmVector3& steps)
+void View2D::setSlicingStep(const NmVector3& steps)
 {
   if (steps[0] <= 0 || steps[1] <= 0 || steps[2] <= 0)
   {
@@ -1273,14 +1274,14 @@ void SliceView::setSlicingStep(const NmVector3& steps)
 }
 
 //-----------------------------------------------------------------------------
-Nm SliceView::slicingPosition() const
+Nm View2D::slicingPosition() const
 {
   return m_crosshairPoint[m_normalCoord];
 }
 
 
 //-----------------------------------------------------------------------------
-void SliceView::setSlicingBounds(const Bounds& bounds)
+void View2D::setSlicingBounds(const Bounds& bounds)
 {
   if (bounds[1] < bounds[0] || bounds[3] < bounds[2] || bounds[5] < bounds[4])
   {
@@ -1321,7 +1322,7 @@ void SliceView::setSlicingBounds(const Bounds& bounds)
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::centerViewOn(const NmVector3& center, bool force)
+void View2D::centerViewOn(const NmVector3& center, bool force)
 {
   NmVector3 centerVoxel;
   // Adjust crosshairs to fit slicing steps
@@ -1385,7 +1386,7 @@ void SliceView::centerViewOn(const NmVector3& center, bool force)
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::centerViewOnPosition(const NmVector3& center)
+void View2D::centerViewOnPosition(const NmVector3& center)
 {
   if (!isVisible() || m_crosshairPoint == center)
     return;
@@ -1396,7 +1397,7 @@ void SliceView::centerViewOnPosition(const NmVector3& center)
 }
 
 //-----------------------------------------------------------------------------
-Selector::WorldRegion SliceView::worldRegion(const Selector::DisplayRegion& region,
+Selector::WorldRegion View2D::worldRegion(const Selector::DisplayRegion& region,
                                               ViewItemAdapterPtr item)
 {
   Selector::WorldRegion wRegion = Selector::WorldRegion::New();
@@ -1434,7 +1435,7 @@ Selector::WorldRegion SliceView::worldRegion(const Selector::DisplayRegion& regi
 }
 
 //-----------------------------------------------------------------------------
-RepresentationSPtr SliceView::cloneRepresentation(RepresentationSPtr prototype)
+RepresentationSPtr View2D::cloneRepresentation(RepresentationSPtr prototype)
 {
   RepresentationSPtr rep = RepresentationSPtr();
 
@@ -1445,7 +1446,7 @@ RepresentationSPtr SliceView::cloneRepresentation(RepresentationSPtr prototype)
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::addRendererControls(RendererSPtr renderer)
+void View2D::addRendererControls(RendererSPtr renderer)
 {
   renderer->setView(this);
   renderer->setEnable(true);
@@ -1492,7 +1493,7 @@ void SliceView::addRendererControls(RendererSPtr renderer)
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::removeRendererControls(QString name)
+void View2D::removeRendererControls(QString name)
 {
   RendererSPtr removedRenderer;
   foreach (RendererSPtr renderer, m_renderers)
@@ -1544,7 +1545,7 @@ void SliceView::removeRendererControls(QString name)
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::updateCrosshairPoint(Plane plane, Nm slicePos)
+void View2D::updateCrosshairPoint(Plane plane, Nm slicePos)
 {
   int normalCoord = normalCoordinateIndex(plane);
 

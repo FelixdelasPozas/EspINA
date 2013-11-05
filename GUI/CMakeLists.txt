@@ -10,11 +10,8 @@ qt4_wrap_cpp(GUI_MOC
   Representations/Renderers/Renderer.h
   Selectors/Selector.h
   View/RenderView.h
-  View/SliceView.h
-  View/VolumeView.h
-#   View/Widgets/Contour/ContourWidget.h
-#   View/Widgets/RectangularRegion/RectangularRegion.h
-#   View/Widgets/RectangularRegion/RectangularRegionSliceSelector.h
+  View/View2D.h
+  View/View3D.h
   Widgets/ActionSelector.h
   Widgets/ActionSelectorWidget.h
   Widgets/CheckableTableView.h
@@ -23,6 +20,9 @@ qt4_wrap_cpp(GUI_MOC
   Widgets/NoteEditor.h
   Widgets/QComboTreeView.h
   Widgets/TagSelector.h
+#   View/Widgets/Contour/ContourWidget.h
+#   View/Widgets/RectangularRegion/RectangularRegion.h
+#   View/Widgets/RectangularRegion/RectangularRegionSliceSelector.h
 #   Analysis/InformationSelector.h
 #   Pickers/BrushPicker.h
 #   QtWidget/SegmentationVisualizationSettingsDialog.h
@@ -42,12 +42,12 @@ qt4_wrap_cpp(GUI_MOC
   )
 
 qt4_wrap_ui (GUI_UI
+  Representations/RepresentationEmptySettings.ui
+  Widgets/NoteEditor.ui
+  Widgets/TagSelector.ui
 #   Analysis/InformationSelector.ui
 #   QtWidget/HueSelector.ui
-  Widgets/NoteEditor.ui
 #   QtWidget/SegmentationVisualizationSettingsDialog.ui
-  Widgets/TagSelector.ui
-  Representations/RepresentationEmptySettings.ui
 #   Representations/ContourRepresentationSettings.ui
   Representations/SliceRepresentationSettings.ui
   )
@@ -55,7 +55,6 @@ qt4_wrap_ui (GUI_UI
 set (GUI_SOURCES 
   ${GUI_MOC}
   ${GUI_UI}
-
   ColorEngines/CategoryColorEngine.cpp
   ColorEngines/MultiColorEngine.cpp
   ColorEngines/NumberColorEngine.cpp
@@ -75,9 +74,18 @@ set (GUI_SOURCES
   Representations/RepresentationEmptySettings.cpp 
   Selectors/Selector.cpp
   View/RenderView.cpp
-  View/SliceView.cpp
-  View/SliceViewState.cpp
-  View/VolumeView.cpp
+  View/View2D.cpp
+  View/View2DState.cpp
+  View/View3D.cpp
+  View/vtkInteractorStyleEspinaSlice.cpp
+  Widgets/ActionSelector.cpp
+  Widgets/ActionSelectorWidget.cpp
+  Widgets/CheckableTableView.cpp
+  Widgets/CheckableTreeView.cpp
+  Widgets/HueSelector.cpp
+  Widgets/NoteEditor.cpp 
+  Widgets/QComboTreeView.cpp
+  Widgets/TagSelector.cpp 
 #   View/Widgets/Contour/ContourWidget.cpp
 #   View/Widgets/Contour/SliceContourWidget.cpp
 #   View/Widgets/Contour/vtkContourToPolygonFilter.cxx
@@ -100,15 +108,6 @@ set (GUI_SOURCES
 #   View/Widgets/Zoom/ZoomSelectionWidget.cpp
 #   View/Widgets/Zoom/vtkZoomSelectionWidget.cpp
 #   View/Widgets/Zoom/vtkZoomSelectionWidgetRepresentation.cpp
-  Widgets/ActionSelector.cpp
-  Widgets/ActionSelectorWidget.cpp
-  Widgets/CheckableTableView.cpp
-  Widgets/CheckableTreeView.cpp
-  Widgets/HueSelector.cpp
-  Widgets/NoteEditor.cpp 
-  Widgets/QComboTreeView.cpp
-  Widgets/TagSelector.cpp 
-  View/vtkInteractorStyleEspinaSlice.cpp
 #   Analysis/InformationSelector.cpp
 #   Analysis/xlsUtils.cpp
 #   Extensions/Visualization/VisualizationState.cpp

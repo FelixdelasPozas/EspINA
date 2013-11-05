@@ -22,7 +22,7 @@
 #include <GUI/Selectors/Selector.h>
 #include "GUI/View/RenderView.h"
 #include "GUI/Model/ItemAdapter.h"
-#include "GUI/View/SliceView.h"
+#include "GUI/View/View2D.h"
 
 // VTK
 #include <vtkPropPicker.h>
@@ -188,12 +188,12 @@ namespace EspINA
   {
     SelectableView::Selection selection;
     QList<vtkProp *> removedProps;
-    SliceView *view = reinterpret_cast<SliceView *>(m_view);
+    View2D *view = reinterpret_cast<View2D *>(m_view);
 
     if (!renderer || !renderer.GetPointer() || (!itemType.testFlag(EspINA::CHANNEL) && !itemType.testFlag(EspINA::SEGMENTATION)))
       return selection;
 
-    Nm pickPoint[3] = { static_cast<Nm>(x), static_cast<Nm>(y), ((view->plane() == Plane::XY) ? -SliceView::SEGMENTATION_SHIFT : SliceView::SEGMENTATION_SHIFT) };
+    Nm pickPoint[3] = { static_cast<Nm>(x), static_cast<Nm>(y), ((view->plane() == Plane::XY) ? -View2D::SEGMENTATION_SHIFT : View2D::SEGMENTATION_SHIFT) };
 
     while (m_picker->Pick(pickPoint, renderer))
     {

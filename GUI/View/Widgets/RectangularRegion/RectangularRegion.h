@@ -44,9 +44,9 @@ namespace EspINA
     explicit RectangularRegion(double bounds[6], ViewManager *vm);
     virtual ~RectangularRegion();
 
-    virtual vtkAbstractWidget *create3DWidget(VolumeView *view);
+    virtual vtkAbstractWidget *create3DWidget(View3D *view);
 
-    virtual SliceWidget *createSliceWidget(SliceView *view);
+    virtual SliceWidget *createSliceWidget(View2D *view);
 
     virtual bool processEvent(vtkRenderWindowInteractor* iren,
                               long unsigned int event);

@@ -49,9 +49,9 @@ namespace EspINA
     {return new PlanarSplitWidget();};
 
     // EspinaWidget implementation
-    virtual vtkAbstractWidget *create3DWidget(VolumeView *view);
+    virtual vtkAbstractWidget *create3DWidget(View3D *view);
 
-    virtual SliceWidget *createSliceWidget(SliceView *view);
+    virtual SliceWidget *createSliceWidget(View2D *view);
 
     virtual bool processEvent(vtkRenderWindowInteractor *iren,
                               long unsigned int event);

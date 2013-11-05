@@ -34,9 +34,9 @@ class vtkRenderWindowInteractor;
 namespace EspINA
 {
   class RenderView;
-  class SliceView;
+  class View2D;
   class ViewManager;
-  class VolumeView;
+  class View3D;
 
   class EspinaGUI_EXPORT SliceWidget
   {
@@ -64,9 +64,9 @@ namespace EspINA
 
     void setViewManager(ViewManager *vm) {m_viewManager = vm;}
 
-    virtual vtkAbstractWidget *create3DWidget(VolumeView *view) = 0;
+    virtual vtkAbstractWidget *create3DWidget(View3D *view) = 0;
 
-    virtual SliceWidget *createSliceWidget(SliceView *view) = 0;
+    virtual SliceWidget *createSliceWidget(View2D *view) = 0;
 
     bool filterEvent(QEvent *e, RenderView *view);
     virtual bool processEvent(vtkRenderWindowInteractor *iren,

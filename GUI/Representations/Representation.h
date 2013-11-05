@@ -40,8 +40,8 @@ namespace EspINA
   class RepresentationSettings;
 
   class RenderView;
-  class SliceView;
-  class VolumeView;
+  class View2D;
+  class View3D;
 
   class Representation;
   using RepresentationPtr   = Representation *;
@@ -137,8 +137,8 @@ namespace EspINA
 
     virtual RenderableView canRenderOnView() const { return RENDERABLEVIEW_UNDEFINED; };
 
-    RepresentationSPtr clone(SliceView *view);
-    RepresentationSPtr clone(VolumeView *view);
+    RepresentationSPtr clone(View2D *view);
+    RepresentationSPtr clone(View3D *view);
 
     virtual bool hasActor(vtkProp *actor) const = 0;
 
@@ -153,8 +153,8 @@ namespace EspINA
     { return m_crosshair; }
 
   protected:
-    virtual RepresentationSPtr cloneImplementation(SliceView *view) = 0;
-    virtual RepresentationSPtr cloneImplementation(VolumeView *view) = 0;
+    virtual RepresentationSPtr cloneImplementation(View2D *view) = 0;
+    virtual RepresentationSPtr cloneImplementation(View3D *view) = 0;
 
     virtual void updateVisibility(bool visible) = 0;
 

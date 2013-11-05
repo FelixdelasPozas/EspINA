@@ -106,7 +106,7 @@ namespace EspINA
     if (!renderer || !renderer.GetPointer() || !itemType.testFlag(EspINA::SEGMENTATION))
       return selection;
 
-    Nm pickPoint[3] = { static_cast<Nm>(x), static_cast<Nm>(y), ((m_view->getViewType() == AXIAL) ? -SliceView::SEGMENTATION_SHIFT : SliceView::SEGMENTATION_SHIFT) };
+    Nm pickPoint[3] = { static_cast<Nm>(x), static_cast<Nm>(y), ((m_view->getViewType() == AXIAL) ? -View2D::SEGMENTATION_SHIFT : View2D::SEGMENTATION_SHIFT) };
 
     while (m_picker->Pick(pickPoint, renderer))
     {

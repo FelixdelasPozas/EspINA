@@ -62,7 +62,7 @@ class SliceWidget;
 
   /// Slice View Widget
   /// Display channels and segmentations as slices
-  class EspinaGUI_EXPORT SliceView
+  class EspinaGUI_EXPORT View2D
   : public RenderView
   {
     Q_OBJECT
@@ -81,8 +81,8 @@ class SliceWidget;
     Q_DECLARE_FLAGS(SliceSelectors, SliceSelector)
 
   public:
-    explicit SliceView(Plane plane = Plane::XY, QWidget* parent = 0);
-    virtual ~SliceView();
+    explicit View2D(Plane plane = Plane::XY, QWidget* parent = 0);
+    virtual ~View2D();
 
     void setFitToSlices(bool value);
 
@@ -109,7 +109,7 @@ class SliceWidget;
 
     double segmentationDepth() const
     {
-      return Plane::XY == m_plane ? -SliceView::SEGMENTATION_SHIFT : SliceView::SEGMENTATION_SHIFT;
+      return Plane::XY == m_plane ? -View2D::SEGMENTATION_SHIFT : View2D::SEGMENTATION_SHIFT;
     }
 
     /** \brief Set the distance between two consecutive slices when displacement is set to SLICES
@@ -313,7 +313,7 @@ class SliceWidget;
     friend class Representation;
   };
 
-  Q_DECLARE_OPERATORS_FOR_FLAGS(SliceView::SliceSelectors)
+  Q_DECLARE_OPERATORS_FOR_FLAGS(View2D::SliceSelectors)
 
 } // namespace EspINA
 #endif // ESPINA_SLICEVIEW_H

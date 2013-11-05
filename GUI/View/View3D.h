@@ -16,8 +16,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef VOLUMEVIEW_H
-#define VOLUMEVIEW_H
+#ifndef ESPINA_VIEW_3D_H
+#define ESPINA_VIEW_3D_H
 
 #include "GUI/View/RenderView.h"
 
@@ -47,14 +47,14 @@ namespace EspINA
   class ColorEngine;
   class IViewWidget;
 
-  class EspinaGUI_EXPORT VolumeView
+  class EspinaGUI_EXPORT View3D
   : public RenderView
   {
     Q_OBJECT
   public:
-    explicit VolumeView(bool additionalScrollBars = false,
+    explicit View3D(bool additionalScrollBars = false,
                         QWidget* parent = 0);
-    virtual ~VolumeView();
+    virtual ~View3D();
 
     virtual void reset();
 
@@ -150,4 +150,4 @@ namespace EspINA
 
 } // namespace EspINA
 
-#endif // VOLUMEVIEW_H
+#endif // ESPINA_VIEW_3D_H

@@ -61,14 +61,14 @@ namespace EspINA
   }
 
   //----------------------------------------------------------------------------
-  vtkAbstractWidget *RulerWidget::create3DWidget(VolumeView *view)
+  vtkAbstractWidget *RulerWidget::create3DWidget(View3D *view)
   {
     m_volume = vtkRulerWidget3D::New();
     return m_volume;
   }
 
   //----------------------------------------------------------------------------
-  SliceWidget *RulerWidget::createSliceWidget(SliceView *view)
+  SliceWidget *RulerWidget::createSliceWidget(View2D *view)
   {
     RulerSliceWidget *widget = NULL;
 

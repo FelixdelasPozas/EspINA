@@ -53,13 +53,13 @@ ContourWidget::~ContourWidget()
 }
 
 //----------------------------------------------------------------------------
-vtkAbstractWidget *ContourWidget::create3DWidget(VolumeView *view)
+vtkAbstractWidget *ContourWidget::create3DWidget(View3D *view)
 {
   return nullptr;
 }
 
 //----------------------------------------------------------------------------
-SliceWidget *ContourWidget::createSliceWidget(SliceView *view)
+SliceWidget *ContourWidget::createSliceWidget(View2D *view)
 {
   ContourWidgetAdapter *widget = new ContourWidgetAdapter();
   widget->setContourWidget(this);

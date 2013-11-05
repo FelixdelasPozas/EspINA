@@ -34,7 +34,7 @@
 #include <Core/Analysis/Data/VolumetricData.h>
 #include <Core/Utils/Spatial.h>
 #include <GUI/Representations/GraphicalRepresentation.h>
-#include <GUI/View/SliceView.h>
+#include <GUI/View/View2D.h>
 
 // ITK
 #include <itkImageToVTKImageFilter.h>
@@ -53,7 +53,7 @@ class vtkImageImport;
 namespace EspINA
 {
   class TransparencySelectionHighlighter;
-  class SliceView;
+  class View2D;
 
   using SegmentationVolumeSPtr = std::shared_ptr<VolumetricData<itkVolumeType>>;
   using ChannelVolumeSPtr = std::shared_ptr<VolumetricData<itkVolumeType>>;
@@ -63,7 +63,7 @@ namespace EspINA
   {
   public:
     explicit ChannelSliceRepresentation(ChannelVolumeSPtr data,
-                                        SliceView        *view);
+                                        View2D        *view);
     virtual ~ChannelSliceRepresentation();
 
     virtual RepresentationSettings *settingsWidget();
@@ -94,9 +94,9 @@ namespace EspINA
     { return m_plane; }
 
   protected:
-    virtual RepresentationSPtr cloneImplementation(SliceView *view);
+    virtual RepresentationSPtr cloneImplementation(View2D *view);
 
-    virtual RepresentationSPtr cloneImplementation(VolumeView *view)
+    virtual RepresentationSPtr cloneImplementation(View3D *view)
     { return RepresentationSPtr(); }
 
     virtual void updateVisibility(bool visible);
@@ -105,7 +105,7 @@ namespace EspINA
     { updateRepresentation(); }
 
   private:
-    void setView(SliceView *view) { m_view = view; };
+    void setView(View2D *view) { m_view = view; };
     void initializePipeline();
 
   private:
@@ -128,7 +128,7 @@ namespace EspINA
   {
   public:
     explicit SegmentationSliceRepresentation(SegmentationVolumeSPtr data,
-                                             SliceView        *view);
+                                             View2D                *view);
     virtual ~SegmentationSliceRepresentation();
 
     virtual RepresentationSettings *settingsWidget();
@@ -161,9 +161,9 @@ namespace EspINA
     { return m_plane; }
 
   protected:
-    virtual RepresentationSPtr cloneImplementation(SliceView *view);
+    virtual RepresentationSPtr cloneImplementation(View2D *view);
 
-    virtual RepresentationSPtr cloneImplementation(VolumeView *view)
+    virtual RepresentationSPtr cloneImplementation(View3D *view)
     { return RepresentationSPtr(); }
 
     virtual void updateVisibility(bool visible);
@@ -171,7 +171,7 @@ namespace EspINA
     virtual void onCrosshairChanged(const NmVector3& point);
 
   private:
-    void setView(SliceView *view) { m_view = view; };
+    void setView(View2D *view) { m_view = view; };
     void initializePipeline();
 
   private:

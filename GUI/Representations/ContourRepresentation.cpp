@@ -121,7 +121,7 @@ void ContourRepresentation::initializePipeline()
   connect(m_data.get(), SIGNAL(representationChanged()),
           this, SLOT(updatePipelineConnections()));
 
-  SliceView *view = reinterpret_cast<SliceView *>(m_view);
+  View2D *view = reinterpret_cast<View2D *>(m_view);
 
     
   m_reslice = vtkSmartPointer<vtkImageReslice>::New();
@@ -215,7 +215,7 @@ QList<vtkProp*> ContourRepresentation::getActors()
 }
 
 //-----------------------------------------------------------------------------
-RepresentationSPtr ContourRepresentation::cloneImplementation(SliceView *view)
+RepresentationSPtr ContourRepresentation::cloneImplementation(View2D *view)
 {
   ContourRepresentation *representation = new ContourRepresentation(m_data, view);
   representation->setView(view);

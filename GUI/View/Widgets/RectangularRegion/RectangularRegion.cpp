@@ -76,13 +76,13 @@ RectangularRegion::~RectangularRegion()
 }
 
 //----------------------------------------------------------------------------
-vtkAbstractWidget* RectangularRegion::create3DWidget(VolumeView *view)
+vtkAbstractWidget* RectangularRegion::create3DWidget(View3D *view)
 {
   return nullptr;
 }
 
 //----------------------------------------------------------------------------
-SliceWidget* RectangularRegion::createSliceWidget(SliceView *view)
+SliceWidget* RectangularRegion::createSliceWidget(View2D *view)
 {
   SliceWidgetAdapter *wi = new SliceWidgetAdapter();
   Q_ASSERT(wi);

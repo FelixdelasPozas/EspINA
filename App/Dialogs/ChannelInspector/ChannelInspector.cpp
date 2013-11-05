@@ -47,7 +47,7 @@ ChannelInspector::ChannelInspector(Channel *channel, ModelAdapter *model, QWidge
 , m_channel(channel)
 , m_viewManager(new ViewManager())
 , m_model(model)
-, m_view(new SliceView(m_model->factory(), m_viewManager, AXIAL))
+, m_view(new View2D(m_model->factory(), m_viewManager, AXIAL))
 {
   setupUi(this);
 

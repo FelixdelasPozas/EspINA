@@ -43,8 +43,8 @@ namespace EspINA
 
   class RepresentationSettings;
   class TransparencySelectionHighlighter;
-  class SliceView;
-  class VolumeView;
+  class View2D;
+  class View3D;
 
   using DefaultVolumetricDataSPtr = std::shared_ptr<VolumetricData<itkVolumeType>>;
 
@@ -91,8 +91,8 @@ namespace EspINA
       void updatePattern();
 
     protected:
-      virtual RepresentationSPtr cloneImplementation(SliceView *view);
-      virtual RepresentationSPtr cloneImplementation(VolumeView *view)
+      virtual RepresentationSPtr cloneImplementation(View2D *view);
+      virtual RepresentationSPtr cloneImplementation(View3D *view)
       { return RepresentationSPtr(); }
 
       virtual void updateVisibility(bool visible);
@@ -101,7 +101,7 @@ namespace EspINA
       void updatePipelineConnections();
 
     private:
-      void setView(SliceView *view) {m_view = view; };
+      void setView(View2D *view) {m_view = view; };
       void initializePipeline();
 
     private:

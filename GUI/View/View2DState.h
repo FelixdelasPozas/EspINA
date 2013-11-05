@@ -17,10 +17,10 @@
 */
 
 
-#ifndef SLICEVIEW_STATE_H
-#define SLICEVIEW_STATE_H
+#ifndef ESPINA_VIEW_2D_STATE_H
+#define ESPINA_VIEW_2D_STATE_H
 
-#include "GUI/View/SliceView.h"
+#include "GUI/View/View2D.h"
 
 class vtkCamera;
 class vtkPolyData;
@@ -28,7 +28,7 @@ class vtkProp3D;
 
 namespace EspINA
 {
-  class SliceView::State
+  class View2D::State
   {
   public:
     virtual ~State() {}
@@ -45,8 +45,8 @@ namespace EspINA
                               const NmVector3& center) = 0;
   };
 
-  class SliceView::AxialState
-  : public SliceView::State
+  class View2D::AxialState
+  : public View2D::State
   {
   public:
     explicit AxialState(){}
@@ -61,8 +61,8 @@ namespace EspINA
                               const NmVector3& center);
   };
 
-  class SliceView::SagittalState
-  : public SliceView::State
+  class View2D::SagittalState
+  : public View2D::State
   {
   public:
     explicit SagittalState(){}
@@ -77,8 +77,8 @@ namespace EspINA
                               const NmVector3& center);
   };
 
-  class SliceView::CoronalState
-  : public SliceView::State
+  class View2D::CoronalState
+  : public View2D::State
   {
   public:
     explicit CoronalState(){}
@@ -94,4 +94,4 @@ namespace EspINA
   };
 } // namespace EspINA
 
-#endif // SLICEVIEW_STATE_H
+#endif // ESPINA_VIEW_2D_STATE_H

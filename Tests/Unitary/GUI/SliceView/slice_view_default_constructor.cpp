@@ -26,7 +26,7 @@
  * 
  */
 
-#include "GUI/View/SliceView.h"
+#include "GUI/View/View2D.h"
 
 using namespace EspINA;
 using namespace std;
@@ -35,7 +35,7 @@ int slice_view_default_constructor(int argc, char** argv)
 {
   bool error = false;
 
-  SliceView view;
+  View2D view;
 
   return error;
 }

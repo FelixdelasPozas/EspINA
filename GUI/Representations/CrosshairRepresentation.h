@@ -40,8 +40,8 @@ class vtkImageShiftScale;
 
 namespace EspINA
 {
-  class SliceView;
-  class VolumeView;
+  class View2D;
+  class View3D;
   class RenderView;
   class CrosshairRenderer;
 
@@ -53,7 +53,7 @@ namespace EspINA
     Q_OBJECT
     public:
       explicit CrosshairRepresentation(ChannelVolumeSPtr data,
-                                       VolumeView       *view);
+                                       View3D       *view);
       virtual ~CrosshairRepresentation() {};
 
       virtual void setBrightness(double value);
@@ -85,10 +85,10 @@ namespace EspINA
       void setTiling(bool value) { m_tiling = value; }
 
   protected:
-      virtual RepresentationSPtr cloneImplementation(SliceView *view)
+      virtual RepresentationSPtr cloneImplementation(View2D *view)
       { return RepresentationSPtr(); }
 
-      virtual RepresentationSPtr cloneImplementation(VolumeView *view);
+      virtual RepresentationSPtr cloneImplementation(View3D *view);
 
     virtual void updateVisibility(bool visible);
 
@@ -96,7 +96,7 @@ namespace EspINA
       void updatePipelineConnections();
 
     private:
-      void setView(VolumeView *view) { m_view = view; };
+      void setView(View3D *view) { m_view = view; };
       void initializePipeline();
 
     private:

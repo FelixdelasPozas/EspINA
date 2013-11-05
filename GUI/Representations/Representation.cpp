@@ -28,7 +28,7 @@
 
 #include "Representation.h"
 
-#include <GUI/View/SliceView.h>
+#include <GUI/View/View2D.h>
 
 using namespace EspINA;
 
@@ -82,7 +82,7 @@ void Representation::setVisible(bool visible)
 }
 
 //-----------------------------------------------------------------------------
-RepresentationSPtr Representation::clone(SliceView *view)
+RepresentationSPtr Representation::clone(View2D *view)
 {
   RepresentationSPtr representation = cloneImplementation(view);
 
@@ -97,7 +97,7 @@ RepresentationSPtr Representation::clone(SliceView *view)
 }
 
 //-----------------------------------------------------------------------------
-RepresentationSPtr Representation::clone(VolumeView *view)
+RepresentationSPtr Representation::clone(View3D *view)
 {
   RepresentationSPtr representation = cloneImplementation(view);
 

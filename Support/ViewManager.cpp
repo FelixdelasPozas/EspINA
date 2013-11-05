@@ -89,7 +89,7 @@ void ViewManager::registerView(RenderView* view)
 }
 
 //----------------------------------------------------------------------------
-void ViewManager::registerView(SliceView* view)
+void ViewManager::registerView(View2D* view)
 {
   Q_ASSERT(!m_renderViews.contains(view));
   m_renderViews << view;
@@ -116,7 +116,7 @@ void ViewManager::unregisterView(RenderView* view)
 }
 
 //----------------------------------------------------------------------------
-void ViewManager::unregisterView(SliceView* view)
+void ViewManager::unregisterView(View2D* view)
 {
   Q_ASSERT(m_renderViews.contains(view));
   m_renderViews.removeAll(view);
@@ -421,14 +421,14 @@ void ViewManager::showCrosshair(bool value)
 void ViewManager::addSliceSelectors(SliceSelectorWidget* widget,
                                     ViewManager::SliceSelectors selectors)
 {
-  foreach(SliceView *view, m_sliceViews)
+  foreach(View2D *view, m_sliceViews)
     view->addSliceSelectors(widget, selectors);
 }
 
 //----------------------------------------------------------------------------
 void ViewManager::removeSliceSelectors(SliceSelectorWidget* widget)
 {
-  foreach(SliceView *view, m_sliceViews)
+  foreach(View2D *view, m_sliceViews)
     view->removeSliceSelectors(widget);
 }
 

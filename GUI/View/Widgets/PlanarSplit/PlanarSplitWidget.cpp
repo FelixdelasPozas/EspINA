@@ -69,7 +69,7 @@ PlanarSplitWidget::~PlanarSplitWidget()
 }
 
 //-----------------------------------------------------------------------------
-vtkAbstractWidget *PlanarSplitWidget::create3DWidget(VolumeView *view)
+vtkAbstractWidget *PlanarSplitWidget::create3DWidget(View3D *view)
 {
   m_volume = vtkImplicitPlaneWidget2::New();
   m_volume->AddObserver(vtkCommand::EndInteractionEvent, this);
@@ -77,7 +77,7 @@ vtkAbstractWidget *PlanarSplitWidget::create3DWidget(VolumeView *view)
 }
 
 //-----------------------------------------------------------------------------
-SliceWidget *PlanarSplitWidget::createSliceWidget(SliceView* view)
+SliceWidget *PlanarSplitWidget::createSliceWidget(View2D* view)
 {
   Plane plane = view->plane();
   switch(plane)

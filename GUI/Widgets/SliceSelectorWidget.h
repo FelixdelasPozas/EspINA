@@ -27,7 +27,7 @@
 
 namespace EspINA
 {
-  class SliceView;
+  class View2D;
 
   class EspinaGUI_EXPORT SliceSelectorWidget
   : public QObject

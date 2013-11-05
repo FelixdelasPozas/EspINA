@@ -30,7 +30,7 @@
 #include "RepresentationSettings.h"
 #include "SliceRepresentationSettings.h"
 #include "RepresentationEmptySettings.h"
-#include <GUI/View/SliceView.h>
+#include <GUI/View/View2D.h>
 #include <GUI/ColorEngines/TransparencySelectionHighlighter.h>
 #include <Core/Utils/Bounds.h>
 
@@ -50,7 +50,7 @@ using namespace EspINA;
 
 //-----------------------------------------------------------------------------
 ChannelSliceRepresentation::ChannelSliceRepresentation(ChannelVolumeSPtr data,
-                                                       SliceView        *view)
+                                                       View2D*           view)
 : Representation(view)
 , m_data(data)
 , m_importer(nullptr)
@@ -145,7 +145,7 @@ void ChannelSliceRepresentation::updateRepresentation()
 }
 
 //-----------------------------------------------------------------------------
-RepresentationSPtr ChannelSliceRepresentation::cloneImplementation(SliceView *view)
+RepresentationSPtr ChannelSliceRepresentation::cloneImplementation(View2D *view)
 {
   ChannelSliceRepresentation *representation =  new ChannelSliceRepresentation(m_data, view);
   representation->setView(view);
@@ -240,7 +240,7 @@ TransparencySelectionHighlighter *SegmentationSliceRepresentation::s_highlighter
 
 //-----------------------------------------------------------------------------
 SegmentationSliceRepresentation::SegmentationSliceRepresentation(SegmentationVolumeSPtr data,
-                                                                 SliceView             *view)
+                                                                 View2D                *view)
 : Representation(view)
 , m_data(data)
 , m_importer(nullptr)
@@ -344,7 +344,7 @@ bool SegmentationSliceRepresentation::isInside(const NmVector3 &point) const
 //-----------------------------------------------------------------------------
 void SegmentationSliceRepresentation::initializePipeline()
 {
-  SliceView* view = reinterpret_cast<SliceView *>(m_view);
+  View2D* view = reinterpret_cast<View2D *>(m_view);
 
   Bounds dataBounds = m_data->bounds();
   Bounds imageBounds{ '[', dataBounds[0], dataBounds[1], dataBounds[2], dataBounds[3], dataBounds[4], dataBounds[5], ']' };
@@ -415,7 +415,7 @@ QList<vtkProp*> SegmentationSliceRepresentation::getActors()
 }
 
 //-----------------------------------------------------------------------------
-RepresentationSPtr SegmentationSliceRepresentation::cloneImplementation(SliceView *view)
+RepresentationSPtr SegmentationSliceRepresentation::cloneImplementation(View2D *view)
 {
   SegmentationSliceRepresentation *representation = new SegmentationSliceRepresentation(m_data, view);
   representation->setView(view);
