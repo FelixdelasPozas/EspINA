@@ -52,6 +52,9 @@ namespace EspINA {
     void update()
     { m_output->update();}
 
+    NmVector3 spacing() const
+    { return m_output->spacing(); }
+
     TimeStamp lastModified()
     { return m_output->lastModified(); }
 

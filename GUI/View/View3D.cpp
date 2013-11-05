@@ -19,6 +19,7 @@
 #include "View3D.h"
 
 // EspINA
+#include "GUI/View/Widgets/EspinaWidget.h"
 
 // Qt
 #include <QApplication>
@@ -53,33 +54,24 @@
 
 
 using namespace EspINA;
-/*
+
 //-----------------------------------------------------------------------------
-VolumeView::VolumeView(bool additionalScrollBars, QWidget* parent
-: EspinaRenderView      (viewManager, parent)
-, m_mainLayout          (new QVBoxLayout())
-, m_controlLayout       (new QHBoxLayout())
-, m_additionalScrollBars(additionalScrollBars)
-, m_settings            (new Settings(factory, QString(), this))
+View3D::View3D(bool showCrosshairPlaneSelectors, QWidget* parent)
+: RenderView{parent}
+, m_mainLayout{new QVBoxLayout()}
+, m_controlLayout{new QHBoxLayout()}
+, m_showCrosshairPlaneSelectors(showCrosshairPlaneSelectors)
 {
   setupUI();
 
   setLayout(m_mainLayout);
 
-  // Color background
-  QPalette pal = this->palette();
-  pal.setColor(QPalette::Base, pal.color(QPalette::Window));
-  this->setPalette(pal);
-
-  memset(m_center,0,3*sizeof(double));
-  connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection, bool)),
-          this, SLOT(updateSelection(ViewManager::Selection,bool)));
-
-  viewManager->registerView(this);
+//TODO 2013-10-05   connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection, bool)),
+//           this, SLOT(updateSelection(ViewManager::Selection,bool)));
 }
 
 //-----------------------------------------------------------------------------
-VolumeView::~VolumeView()
+View3D::~View3D()
 {
 //   qDebug() << "********************************************************";
 //   qDebug() << "              Destroying Volume View";
@@ -88,25 +80,57 @@ VolumeView::~VolumeView()
   // Representation destructors may need to access slice view in their destructors
   m_channelStates.clear();
   m_segmentationStates.clear();
+}
 
-  m_viewManager->unregisterView(this);
+void View3D::setRenderers(RendererSList renderers)
+{
+  QStringList   activeRenderersNames;
+  RendererSList activeRenderers = m_renderers.values();
+
+  // remove controls for unused renderers // TODO 2013-10-05
+//   foreach(RendererSPtr oldRenderer, m_renderers)
+//   {
+//     bool selected = false;
+//     int i = 0;
+//     while (!selected && i < values.size())
+//       selected = values[i++]->name() == oldRenderer->name();
+// 
+//     if (!selected)
+//       parent->removeRendererControls(oldRenderer->name());
+//     else
+//       activeRenderers << oldRenderer;
+//   }
+
+  // add controls for added renderers
+  foreach(RendererSPtr renderer, renderers)
+  {
+    if (!canRender(renderer, RendererType::RENDERER_VOLUMEVIEW))
+      continue;
+
+    activeRenderersNames << renderer->name();
+    if (!activeRenderers.contains(renderer))
+    {
+      activeRenderers << renderer;
+      addRendererControls(renderer->clone());
+    }
+  }
 }
 
 //-----------------------------------------------------------------------------
-void VolumeView::reset()
+void View3D::reset()
 {
   foreach(EspinaWidget *widget, m_widgets.keys())
   {
     removeWidget(widget);
   }
 
-  foreach(SegmentationPtr segmentation, m_segmentationStates.keys())
+  foreach(SegmentationAdapterPtr segmentation, m_segmentationStates.keys())
   {
     removeSegmentation(segmentation);
   }
 
   // After removing segmentations there should be only channels
-  foreach(ChannelPtr channel, m_channelStates.keys())
+  foreach(ChannelAdapterPtr channel, m_channelStates.keys())
   {
     removeChannel(channel);
   }
@@ -115,7 +139,7 @@ void VolumeView::reset()
   Q_ASSERT(m_segmentationStates.isEmpty());
   Q_ASSERT(m_widgets.isEmpty());
 
-  QMap<QPushButton *, IRendererSPtr>::iterator it = m_renderers.begin();
+  QMap<QPushButton *, RendererSPtr>::iterator it = m_renderers.begin();
   while (it != m_renderers.end())
   {
     it.key()->setChecked(false);
@@ -127,7 +151,7 @@ void VolumeView::reset()
 }
 
 //-----------------------------------------------------------------------------
-void VolumeView::addRendererControls(IRendererSPtr renderer)
+void View3D::addRendererControls(RendererSPtr renderer)
 {
   QPushButton *button;
 
@@ -147,29 +171,28 @@ void VolumeView::addRendererControls(IRendererSPtr renderer)
   renderer->setView(this);
 
   // add representations to renderer
-  foreach(SegmentationPtr segmentation, m_segmentationStates.keys())
+  foreach(SegmentationAdapterPtr segmentation, m_segmentationStates.keys())
   {
-    if (renderer->itemCanBeRendered(segmentation))
-      foreach(GraphicalRepresentationSPtr rep, m_segmentationStates[segmentation].representations)
+    if (renderer->canRender(segmentation))
+      foreach(RepresentationSPtr rep, m_segmentationStates[segmentation].representations)
          if (renderer->managesRepresentation(rep)) renderer->addRepresentation(segmentation, rep);
   }
 
-  foreach(ChannelPtr channel, m_channelStates.keys())
+  foreach(ChannelAdapterPtr channel, m_channelStates.keys())
   {
-    if (renderer->itemCanBeRendered(channel))
-      foreach(GraphicalRepresentationSPtr rep, m_channelStates[channel].representations)
+    if (renderer->canRender(channel))
+      foreach(RepresentationSPtr rep, m_channelStates[channel].representations)
         if (renderer->managesRepresentation(rep)) renderer->addRepresentation(channel, rep);
   }
 
-  m_renderers << renderer;
   m_renderers[button] = renderer;
 
   if (!renderer->isHidden())
   {
-    if (renderer->getRenderableItemsType().testFlag(EspINA::SEGMENTATION))
+    if (canRender(renderer, RenderableType::SEGMENTATION))
       this->m_numEnabledSegmentationRenders++;
 
-    if (renderer->getRenderableItemsType().testFlag(EspINA::CHANNEL))
+    if (canRender(renderer, RenderableType::CHANNEL))
       this->m_numEnabledChannelRenders++;
   }
 
@@ -190,7 +213,7 @@ void VolumeView::addRendererControls(IRendererSPtr renderer)
 }
 
 //-----------------------------------------------------------------------------
-void VolumeView::removeRendererControls(const QString name)
+void View3D::removeRendererControls(const QString name)
 {
   for (int i = 0; i < m_controlLayout->count(); i++)
   {
@@ -205,8 +228,8 @@ void VolumeView::removeRendererControls(const QString name)
     }
   }
 
-  IRendererSPtr removedRenderer;
-  foreach (IRendererSPtr renderer, m_renderers)
+  RendererSPtr removedRenderer;
+  foreach (RendererSPtr renderer, m_renderers)
   {
     if (renderer->name() == name)
     {
@@ -220,10 +243,10 @@ void VolumeView::removeRendererControls(const QString name)
     if (!removedRenderer->isHidden())
       removedRenderer->hide();
 
-    if (!removedRenderer->isHidden() && (removedRenderer->getRenderableItemsType().testFlag(EspINA::SEGMENTATION)))
+    if (!removedRenderer->isHidden() && canRender(removedRenderer, RenderableType::SEGMENTATION))
       this->m_numEnabledSegmentationRenders--;
 
-    if (!removedRenderer->isHidden() && (removedRenderer->getRenderableItemsType().testFlag(EspINA::CHANNEL)))
+    if (!removedRenderer->isHidden() && canRender(removedRenderer, RenderableType::CHANNEL))
       this->m_numEnabledChannelRenders--;
 
     if (0 == m_numEnabledSegmentationRenders)
@@ -239,7 +262,7 @@ void VolumeView::removeRendererControls(const QString name)
       }
     }
 
-    QMap<QPushButton*, IRendererSPtr>::iterator it = m_renderers.begin();
+    QMap<QPushButton*, RendererSPtr>::iterator it = m_renderers.begin();
     bool erased = false;
     while(!erased && it != m_renderers.end())
     {
@@ -251,15 +274,13 @@ void VolumeView::removeRendererControls(const QString name)
       else
         ++it;
     }
-
-    m_renderers.removeAll(removedRenderer);
   }
 
   updateRenderersControls();
 }
 
 //-----------------------------------------------------------------------------
-void VolumeView::buildControls()
+void View3D::buildControls()
 {
   m_controlLayout = new QHBoxLayout();
   m_controlLayout->addStretch();
@@ -295,45 +316,49 @@ void VolumeView::buildControls()
   m_controlLayout->addWidget(&m_export);
   m_controlLayout->addItem(horizontalSpacer);
 
-  foreach(IRenderer *renderer, m_settings->renderers())
-    if (renderer->getRenderType().testFlag(IRenderer::RENDERER_VOLUMEVIEW))
+  foreach(RendererSPtr renderer, m_renderers)
+  {
+    if (canRender(renderer, RendererType::RENDERER_VOLUMEVIEW))
+    {
       this->addRendererControls(renderer->clone());
+    }
+  }
 
   m_mainLayout->addLayout(m_controlLayout);
 }
 
 //-----------------------------------------------------------------------------
-void VolumeView::centerViewOn(Nm *center, bool notUsed)
+void View3D::centerViewOn(const NmVector3& point, bool force)
 {
   if (!isVisible() ||
-      (m_center[0] == center[0] &&
-       m_center[1] == center[1] &&
-       m_center[2] == center[2]))
+      (m_center[0] == point[0] &&
+       m_center[1] == point[1] &&
+       m_center[2] == point[2]))
     return;
 
-  memcpy(m_center, center, 3*sizeof(double));
+  m_center = point;
 
   bool updated = false;
-  foreach(IRendererSPtr ren, m_renderers)
+  //TODO: 2013-10-05 Find another solution
+//   foreach(RendererSPtr ren, m_renderers)
+//   {
+//     if (QString("Crosshairs") == ren->name())
+//     {
+//       CrosshairRenderer *crossren = reinterpret_cast<CrosshairRenderer *>(ren.get());
+//       crossren->setCrosshair(center);
+//     }
+// 
+//     updated |= !ren->isHidden() && (ren->itemsBeenRendered() != 0);
+//   }
+
+  if (m_showCrosshairPlaneSelectors && !m_channelStates.empty())
   {
-    if (QString("Crosshairs") == ren->name())
+    NmVector3 minSpacing = m_channelStates.begin().key()->output()->spacing();
+
+    foreach(ChannelAdapterPtr channel, m_channelStates.keys())
     {
-      CrosshairRenderer *crossren = reinterpret_cast<CrosshairRenderer *>(ren.get());
-      crossren->setCrosshair(center);
-    }
-
-    updated |= !ren->isHidden() && (ren->itemsBeenRendered() != 0);
-  }
-
-  if (m_additionalScrollBars && !m_channelStates.empty())
-  {
-    Nm minSpacing[3];
-    m_channelStates.begin().key()->volume()->spacing(minSpacing);
-
-    foreach(ChannelPtr channel, m_channelStates.keys())
-    {
-      double spacing[3];
-      channel->volume()->spacing(spacing);
+      NmVector3 spacing;
+      spacing = channel->output()->spacing();
       if (spacing[0] < minSpacing[0])
         minSpacing[0] = spacing[0];
 
@@ -344,7 +369,7 @@ void VolumeView::centerViewOn(Nm *center, bool notUsed)
         minSpacing[2] = spacing[2];
     }
 
-    int iCenter[3] = { vtkMath::Round(center[0]/minSpacing[0]), vtkMath::Round(center[1]/minSpacing[1]), vtkMath::Round(center[2]/minSpacing[2]) };
+    int iCenter[3] = { vtkMath::Round(point[0]/minSpacing[0]), vtkMath::Round(point[1]/minSpacing[1]), vtkMath::Round(point[2]/minSpacing[2]) };
     m_axialScrollBar->blockSignals(true);
     m_coronalScrollBar->blockSignals(true);
     m_sagittalScrollBar->blockSignals(true);
@@ -358,20 +383,20 @@ void VolumeView::centerViewOn(Nm *center, bool notUsed)
 
   if (updated)
   {
-    setCameraFocus(center);
+    setCameraFocus(point);
     updateView();
   }
 }
 
 //-----------------------------------------------------------------------------
-void VolumeView::setCameraFocus(const Nm center[3])
+void View3D::setCameraFocus(const NmVector3& center)
 {
   m_renderer->GetActiveCamera()->SetFocalPoint(center[0],center[1],center[2]);
   m_renderer->ResetCameraClippingRange();
 }
 
 //-----------------------------------------------------------------------------
-void VolumeView::resetCamera()
+void View3D::resetCamera()
 {
   this->m_renderer->GetActiveCamera()->SetViewUp(0,1,0);
   this->m_renderer->GetActiveCamera()->SetPosition(0,0,-1);
@@ -381,19 +406,16 @@ void VolumeView::resetCamera()
 }
 
 //-----------------------------------------------------------------------------
-void VolumeView::addChannel(ChannelPtr channel)
+void View3D::addChannel(ChannelAdapterPtr channel)
 {
   RenderView::addChannel(channel);
-
-  double bounds[6];
-  channel->volume()->bounds(bounds);
 
   updateRenderersControls();
   updateScrollBarsLimits();
 }
 
 //-----------------------------------------------------------------------------
-void VolumeView::removeChannel(ChannelPtr channel)
+void View3D::removeChannel(ChannelAdapterPtr channel)
 {
   RenderView::removeChannel(channel);
 
@@ -402,18 +424,18 @@ void VolumeView::removeChannel(ChannelPtr channel)
 }
 
 //-----------------------------------------------------------------------------
-bool VolumeView::updateChannelRepresentation(ChannelPtr channel, bool render)
+bool View3D::updateRepresentation(ChannelAdapterPtr channel, bool render)
 {
-  bool returnVal = RenderView::updateChannelRepresentation(channel, render);
+  bool returnVal = RenderView::updateRepresentation(channel, render);
 
   updateRenderersControls();
   return returnVal;
 }
 
 //-----------------------------------------------------------------------------
-bool VolumeView::updateSegmentationRepresentation(SegmentationPtr seg, bool render)
+bool View3D::updateRepresentation(SegmentationAdapterPtr seg, bool render)
 {
-  bool returnVal = RenderView::updateSegmentationRepresentation(seg, render);
+  bool returnVal = RenderView::updateRepresentation(seg, render);
 
   updateRenderersControls();
   return returnVal;
@@ -421,7 +443,7 @@ bool VolumeView::updateSegmentationRepresentation(SegmentationPtr seg, bool rend
 
 
 //-----------------------------------------------------------------------------
-void VolumeView::addWidget(EspinaWidget* eWidget)
+void View3D::addWidget(EspinaWidget* eWidget)
 {
   if(m_widgets.contains(eWidget))
     return;
@@ -454,14 +476,14 @@ void VolumeView::addWidget(EspinaWidget* eWidget)
 }
 
 //-----------------------------------------------------------------------------
-void VolumeView::removeWidget(EspinaWidget* eWidget)
+void View3D::removeWidget(EspinaWidget* eWidget)
 {
   if (!m_widgets.contains(eWidget))
     return;
 
   vtkAbstractWidget *widget = m_widgets[eWidget];
   widget->Off();
-  widget->SetInteractor(NULL);
+  widget->SetInteractor(nullptr);
   widget->RemoveAllObservers();
   m_widgets.remove(eWidget);
 
@@ -469,15 +491,22 @@ void VolumeView::removeWidget(EspinaWidget* eWidget)
 }
 
 //-----------------------------------------------------------------------------
-ISelector::PickList VolumeView::pick(ISelector::PickableItems filter, ISelector::DisplayRegionList regions)
+Bounds View3D::previewBounds(bool cropToSceneBounds) const
 {
-  return ISelector::PickList();
+
 }
 
 //-----------------------------------------------------------------------------
-void VolumeView::setupUI()
+Selector::SelectionList View3D::pick(Selector::SelectionFlags    filter,
+                                     Selector::DisplayRegionList regions)
 {
-  if (m_additionalScrollBars)
+  return Selector::SelectionList();
+}
+
+//-----------------------------------------------------------------------------
+void View3D::setupUI()
+{
+  if (m_showCrosshairPlaneSelectors)
   {
     m_additionalGUI = new QHBoxLayout();
     m_axialScrollBar = new QScrollBar(Qt::Horizontal);
@@ -524,10 +553,15 @@ void VolumeView::setupUI()
   m_view->installEventFilter(this);
 
   buildControls();
+
+  // Color background
+  QPalette pal = this->palette();
+  pal.setColor(QPalette::Base, pal.color(QPalette::Window));
+  this->setPalette(pal);
 }
 
 //-----------------------------------------------------------------------------
-void VolumeView::updateView()
+void View3D::updateView()
 {
   if(isVisible())
   {
@@ -537,22 +571,22 @@ void VolumeView::updateView()
 }
 
 //-----------------------------------------------------------------------------
-void VolumeView::selectPickedItems(int vx, int vy, bool append)
+void View3D::selectPickedItems(int vx, int vy, bool append)
 {
 
-  ViewManager::Selection selection, pickedItems;
+  SelectableView::Selection selection, pickedItems;
   if (append)
-    selection = m_viewManager->selection();
+    selection = currentSelection();
 
   // If no append, segmentations have priority over channels
-  foreach(IRendererSPtr renderer, m_renderers)
+  foreach(RendererSPtr renderer, m_renderers)
   {
-    if (!renderer->isHidden() && (renderer->getRenderableItemsType().testFlag(EspINA::SEGMENTATION)))
+    if (!renderer->isHidden() && canRender(renderer, RenderableType::SEGMENTATION))
     {
-      pickedItems = renderer->pick(vx, vy, 0, m_renderer, IRenderer::RenderabledItems(EspINA::SEGMENTATION), append);
+      pickedItems = renderer->pick(vx, vy, 0, m_renderer, RenderableItems(RenderableType::SEGMENTATION), append);
       if (!pickedItems.empty())
       {
-        foreach(PickableItemPtr item, pickedItems)
+        foreach(ViewItemAdapterPtr item, pickedItems)
           if (!selection.contains(item))
             selection << item;
           else
@@ -563,14 +597,14 @@ void VolumeView::selectPickedItems(int vx, int vy, bool append)
 
   pickedItems.clear();
 
-  foreach(IRendererSPtr renderer, m_renderers)
+  foreach(RendererSPtr renderer, m_renderers)
   {
-    if (!renderer->isHidden() && (renderer->getRenderableItemsType().testFlag(EspINA::CHANNEL)))
+    if (!renderer->isHidden() && canRender(renderer, RenderableType::CHANNEL))
     {
-      pickedItems = renderer->pick(vx, vy, 0, m_renderer, IRenderer::RenderabledItems(EspINA::CHANNEL), append);
+      pickedItems = renderer->pick(vx, vy, 0, m_renderer, RenderableItems(RenderableType::CHANNEL), append);
       if (!pickedItems.empty())
       {
-        foreach(PickableItemPtr item, pickedItems)
+        foreach(ViewItemAdapterPtr item, pickedItems)
           if (!selection.contains(item))
             selection << item;
           else
@@ -581,15 +615,16 @@ void VolumeView::selectPickedItems(int vx, int vy, bool append)
 
   if (!append && !selection.empty())
   {
-    PickableItemPtr returnItem = selection.first();
+    ViewItemAdapterPtr returnItem = selection.first();
     selection.clear();
     selection << returnItem;
   }
-  m_viewManager->setSelection(selection);
+
+  emit selectionChanged(selection);
 }
 
 //-----------------------------------------------------------------------------
-bool VolumeView::eventFilter(QObject* caller, QEvent* e)
+bool View3D::eventFilter(QObject* caller, QEvent* e)
 {
   // there is not a "singleclick" event so we need to remember the position of the
   // press event and compare it with the position of the release event (for picking).
@@ -606,17 +641,16 @@ bool VolumeView::eventFilter(QObject* caller, QEvent* e)
     {
       if (me->modifiers() == Qt::CTRL)
       {
-        foreach(IRendererSPtr renderer, m_renderers)
+        foreach(RendererSPtr renderer, m_renderers)
         {
           if (!renderer->isHidden())
           {
-            ViewManager::Selection selection = renderer->pick(newX, newY, 0, m_renderer, IRenderer::RenderabledItems(EspINA::SEGMENTATION|EspINA::CHANNEL), false);
+            SelectableView::Selection selection = renderer->pick(newX, newY, 0, m_renderer, RenderableItems(RenderableType::SEGMENTATION|RenderableType::CHANNEL), false);
             if (!selection.empty())
             {
-              double point[3];
-              renderer->getPickCoordinates(point);
+              NmVector3 point = renderer->pickCoordinates();
 
-              emit centerChanged(point[0], point[1], point[2]);
+              emit centerChanged(point);
               break;
             }
           }
@@ -642,7 +676,7 @@ bool VolumeView::eventFilter(QObject* caller, QEvent* e)
 }
 
 //-----------------------------------------------------------------------------
-void VolumeView::exportScene()
+void View3D::exportScene()
 {
   QFileDialog fileDialog(this, tr("Save Scene"), QString(), tr("All supported formats (*.x3d *.pov *.vrml);; POV-Ray files (*.pov);; VRML files (*.vrml);; X3D format (*.x3d)"));
   fileDialog.setObjectName("SaveSceneFileDialog");
@@ -714,31 +748,32 @@ void VolumeView::exportScene()
 }
 
 //-----------------------------------------------------------------------------
-void VolumeView::onTakeSnapshot()
+void View3D::onTakeSnapshot()
 {
   takeSnapshot(m_renderer);
 }
 
 //-----------------------------------------------------------------------------
-void VolumeView::changePlanePosition(PlaneType plane, Nm dist)
+void View3D::changePlanePosition(Plane plane, Nm dist)
 {
   bool needUpdate = false;
-  foreach(IRendererSPtr ren, m_renderers)
-  {
-    if (QString("Crosshairs") == ren->name())
-    {
-      CrosshairRenderer *crossren = reinterpret_cast<CrosshairRenderer *>(ren.get());
-      crossren->setPlanePosition(plane, dist);
-      needUpdate = !crossren->isHidden() && (crossren->itemsBeenRendered() != 0);
-    }
-  }
+  //TODO: 2013-10-05 More Find another method
+//   foreach(RendererSPtr ren, m_renderers)
+//   {
+//     if (QString("Crosshairs") == ren->name())
+//     {
+//       CrosshairRenderer *crossren = reinterpret_cast<CrosshairRenderer *>(ren.get());
+//       crossren->setPlanePosition(plane, dist);
+//       needUpdate = !crossren->isHidden() && (crossren->itemsBeenRendered() != 0);
+//     }
+//   }
 
   if (needUpdate)
     updateView();
 }
 
 //-----------------------------------------------------------------------------
-void VolumeView::updateEnabledRenderersCount(bool value)
+void View3D::updateEnabledRenderersCount(bool value)
 {
   int updateValue = (value ? +1 : -1);
 
@@ -750,15 +785,15 @@ void VolumeView::updateEnabledRenderersCount(bool value)
   }
 
   // get enabled/disabled renderer that triggered the signal
-  IRendererSPtr renderer;
+  RendererSPtr renderer;
   QPushButton *button = dynamic_cast<QPushButton*>(sender());
   if (button)
     renderer = m_renderers[button];
 
-  if (renderer && (renderer->getRenderableItemsType().testFlag(EspINA::CHANNEL)))
+  if (renderer && canRender(renderer, RenderableType::CHANNEL))
   {
     m_numEnabledChannelRenders += updateValue;
-    if (m_additionalScrollBars)
+    if (m_showCrosshairPlaneSelectors)
     {
       m_axialScrollBar->setEnabled(value);
       m_coronalScrollBar->setEnabled(value);
@@ -766,7 +801,7 @@ void VolumeView::updateEnabledRenderersCount(bool value)
     }
   }
 
-  if (renderer && (renderer->getRenderableItemsType().testFlag(EspINA::SEGMENTATION)))
+  if (renderer && canRender(renderer, RenderableType::SEGMENTATION))
   {
     m_numEnabledSegmentationRenders += updateValue;
     if (0 != m_numEnabledSegmentationRenders)
@@ -787,17 +822,17 @@ void VolumeView::updateEnabledRenderersCount(bool value)
 }
 
 //-----------------------------------------------------------------------------
-void VolumeView::updateRenderersControls()
+void View3D::updateRenderersControls()
 {
   bool canTakeSnapshot = false;
   bool canBeExported = false;
-  QMap<QPushButton *, IRendererSPtr>::iterator it;
+  QMap<QPushButton *, RendererSPtr>::iterator it;
   for(it = m_renderers.begin(); it != m_renderers.end(); ++it)
   {
-    bool canRenderItems = it.value()->itemsBeenRendered() != 0;
+    bool canRenderItems = it.value()->numberOfRenderedItems() != 0;
 
     canTakeSnapshot |= (!it.value()->isHidden()) && canRenderItems;
-    canBeExported |= canTakeSnapshot && (it.value()->getNumberOfvtkActors() != 0);
+    canBeExported |= canTakeSnapshot && (it.value()->numberOfvtkActors() != 0);
 
     it.key()->setEnabled(canRenderItems);
     if (!canRenderItems)
@@ -809,18 +844,16 @@ void VolumeView::updateRenderersControls()
 }
 
 //-----------------------------------------------------------------------------
-void VolumeView::scrollBarMoved(int value)
+void View3D::scrollBarMoved(int value)
 {
-  Nm point[3];
-  Nm minSpacing[3];
+  NmVector3 point;
 
   Q_ASSERT(!m_channelStates.isEmpty());
-  m_channelStates.keys().first()->volume()->spacing(minSpacing);
+  NmVector3 minSpacing = m_channelStates.keys().first()->output()->spacing();
 
-  foreach(ChannelPtr channel, m_channelStates.keys())
+  foreach(ChannelAdapterPtr channel, m_channelStates.keys())
   {
-    double spacing[3];
-    channel->volume()->spacing(spacing);
+    NmVector3 spacing = channel->output()->spacing();
     if (spacing[0] < minSpacing[0])
       minSpacing[0] = spacing[0];
 
@@ -831,25 +864,28 @@ void VolumeView::scrollBarMoved(int value)
       minSpacing[2] = spacing[2];
   }
 
-  point[0] = m_axialScrollBar->value() * minSpacing[0];
-  point[1] = m_coronalScrollBar->value() * minSpacing[1];
+  point[0] = m_axialScrollBar   ->value() * minSpacing[0];
+  point[1] = m_coronalScrollBar ->value() * minSpacing[1];
   point[2] = m_sagittalScrollBar->value() * minSpacing[2];
 
-  foreach(IRendererSPtr renderer, m_renderers)
-    if (renderer->getRenderableItemsType().testFlag(EspINA::CHANNEL))
-    {
-      CrosshairRenderer *crossRender = dynamic_cast<CrosshairRenderer *>(renderer.get());
-      if (crossRender != NULL)
-        crossRender->setCrosshair(point);
-    }
+  // TODO 2013-10-05 Find another method
+//   foreach(RendererSPtr renderer, m_renderers)
+//   {
+//     if (canRender(renderer, RenderableType::CHANNEL))
+//     {
+//       CrosshairRenderer *crossRender = dynamic_cast<CrosshairRenderer *>(renderer.get());
+//       if (crossRender != nullptr)
+//         crossRender->setCrosshair(point);
+//     }
+//   }
 
   m_view->update();
 }
 
 //-----------------------------------------------------------------------------
-void VolumeView::updateScrollBarsLimits()
+void View3D::updateScrollBarsLimits()
 {
-  if (!m_additionalScrollBars)
+  if (!m_showCrosshairPlaneSelectors)
     return;
 
   if(m_channelStates.isEmpty())
@@ -863,13 +899,12 @@ void VolumeView::updateScrollBarsLimits()
     return;
   }
 
-  int maxExtent[6];
-  m_channelStates.keys().first()->volume()->extent(maxExtent);
+  // TODO: Review this, before it was extent
+  Bounds maxExtent = m_channelStates.keys().first()->bounds();
 
-  foreach (ChannelPtr channel, m_channelStates.keys())
+  foreach (ChannelAdapterPtr channel, m_channelStates.keys())
   {
-    int extent[6];
-    channel->volume()->extent(extent);
+    Bounds extent = channel->bounds();
     for (int i = 0, j = 1; i < 6; i += 2, j += 2)
     {
       maxExtent[i] = std::min(extent[i], maxExtent[i]);
@@ -886,84 +921,12 @@ void VolumeView::updateScrollBarsLimits()
 }
 
 //-----------------------------------------------------------------------------
-GraphicalRepresentationSPtr VolumeView::cloneRepresentation(GraphicalRepresentationSPtr prototype)
+RepresentationSPtr View3D::cloneRepresentation(RepresentationSPtr prototype)
 {
-  GraphicalRepresentationSPtr rep = GraphicalRepresentationSPtr();
+  RepresentationSPtr rep = RepresentationSPtr();
 
-  if (prototype->canRenderOnView().testFlag(GraphicalRepresentation::RENDERABLEVIEW_VOLUME))
+  if (prototype->canRenderOnView().testFlag(Representation::RENDERABLEVIEW_VOLUME))
     rep = prototype->clone(this);
 
   return rep;
 }
-
-//-----------------------------------------------------------------------------
-// VOLUMEVIEW::SETTINGS
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-VolumeView::Settings::Settings(const EspinaFactory *factory,
-                               const QString        prefix,
-                               VolumeView          *parent)
-: RENDERERS(prefix + "VolumeView::renderers")
-{
-  this->parent = parent;
-  QSettings settings(CESVIMA, ESPINA);
-
-  if (!settings.contains(RENDERERS))
-    settings.setValue(RENDERERS, QStringList() << "Crosshairs" << "Volumetric" << "Volumetric GPU" << "Mesh" << "Smoothed Mesh");
-
-  QMap<QString, IRenderer *> renderers = factory->renderers();
-  foreach(QString name, settings.value(RENDERERS).toStringList())
-  {
-    IRenderer *renderer = renderers.value(name, NULL);
-    if (renderer && renderer->getRenderType().testFlag(IRenderer::RENDERER_VOLUMEVIEW))
-      m_renderers << renderer;
-  }
-}
-
-//-----------------------------------------------------------------------------
-void VolumeView::Settings::setRenderers(IRendererList values)
-{
-  QSettings settings(CESVIMA, ESPINA);
-  QStringList activeRenderersNames;
-  IRendererList activeRenderers;
-
-  // remove controls for unused renderers
-  foreach(IRenderer *oldRenderer, m_renderers)
-  {
-    bool selected = false;
-    int i = 0;
-    while (!selected && i < values.size())
-      selected = values[i++]->name() == oldRenderer->name();
-
-    if (!selected)
-      parent->removeRendererControls(oldRenderer->name());
-    else
-      activeRenderers << oldRenderer;
-  }
-
-  // add controls for added renderers
-  foreach(IRenderer *renderer, values)
-  {
-    if (!renderer->getRenderType().testFlag(IRenderer::RENDERER_VOLUMEVIEW))
-      continue;
-
-    activeRenderersNames << renderer->name();
-    if (!activeRenderers.contains(renderer))
-    {
-      activeRenderers << renderer;
-      parent->addRendererControls(renderer->clone());
-    }
-  }
-
-  settings.setValue(RENDERERS, activeRenderersNames);
-  settings.sync();
-  m_renderers = activeRenderers;
-}
-
-//-----------------------------------------------------------------------------
-IRendererList VolumeView::Settings::renderers() const
-{
-  return m_renderers;
-}
- */

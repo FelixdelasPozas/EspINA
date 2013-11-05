@@ -44,46 +44,38 @@ class QScrollBar;
 
 namespace EspINA
 {
-  class ColorEngine;
-  class IViewWidget;
-
   class EspinaGUI_EXPORT View3D
   : public RenderView
   {
     Q_OBJECT
   public:
-    explicit View3D(bool additionalScrollBars = false,
-                        QWidget* parent = 0);
+    explicit View3D(bool     showCrosshairPlaneSelectors = false,
+                    QWidget* parent = 0);
     virtual ~View3D();
 
-    virtual void reset();
-
-    virtual void centerViewOn(const NmVector3& point, bool force = false);
+    void setRenderers(RendererSList renderers);
 
     void setCameraFocus(const NmVector3& center);
 
-    void setRenderers(RendererList values);
+    virtual void reset();
 
-    RendererList renderers() const;
-
-    virtual RepresentationSPtr cloneRepresentation(RepresentationSPtr prototype);
-
-  public slots: //Needed to interact with renderers
-    virtual void updateView();
-
-    virtual void updateSelection(){};
-
-  public:
     virtual void resetCamera();
 
+    virtual void centerViewOn(const NmVector3& center, bool force = false);
+
+    virtual void addWidget   (EspinaWidget *widget);
+
+    virtual void removeWidget(EspinaWidget *widget);
+
+    virtual Bounds previewBounds(bool cropToSceneBounds = true) const;
+
     virtual void addChannel   (ChannelAdapterPtr channel);
+
     virtual void removeChannel(ChannelAdapterPtr channel);
+
     virtual bool updateRepresentation(ChannelAdapterPtr channel, bool render = true);
 
     virtual bool updateRepresentation(SegmentationAdapterPtr seg, bool render = true);
-
-    virtual void addWidget   (EspinaWidget *widget);
-    virtual void removeWidget(EspinaWidget *widget);
 
     virtual Selector::SelectionList pick(Selector::SelectionFlags filter, Selector::DisplayRegionList regions);
 
@@ -95,9 +87,14 @@ namespace EspINA
 
     void removeRendererControls(const QString name);
 
-    void showCrosshairs(bool) {};
-
     virtual bool eventFilter(QObject* caller, QEvent* e);
+
+    virtual RepresentationSPtr cloneRepresentation(RepresentationSPtr prototype);
+
+  public slots: //Needed to interact with renderers
+    virtual void updateView();
+
+    virtual void updateSelection(){};
 
   public slots:
     void updateEnabledRenderersCount(bool);
@@ -111,8 +108,7 @@ namespace EspINA
     virtual void updateChannelsOpactity(){}
 
   protected slots:
-
-    virtual void scrollBarMoved(int);
+    void scrollBarMoved(int);
 
     void exportScene();
 
@@ -141,11 +137,11 @@ namespace EspINA
     QScrollBar  *m_axialScrollBar;
     QScrollBar  *m_coronalScrollBar;
     QScrollBar  *m_sagittalScrollBar;
-    bool m_additionalScrollBars;
+
+    bool m_showCrosshairPlaneSelectors;
 
     NmVector3 m_center;
     QMap<EspinaWidget *, vtkAbstractWidget *> m_widgets;
-    RendererSList   m_renderers;
   };
 
 } // namespace EspINA

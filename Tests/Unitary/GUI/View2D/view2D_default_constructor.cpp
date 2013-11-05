@@ -31,7 +31,7 @@
 using namespace EspINA;
 using namespace std;
 
-int slice_view_default_constructor(int argc, char** argv)
+int view2D_default_constructor(int argc, char** argv)
 {
   bool error = false;
 

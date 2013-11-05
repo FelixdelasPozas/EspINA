@@ -123,6 +123,7 @@ namespace EspINA
 
     virtual Selector::Selection select(Selector::SelectionFlags flags, Selector::SelectionMask mask) = 0;
 
+    virtual Selection currentSelection() const;
     //virtual void worldCoordinates(const QPoint &displayPos, double worldPos[3]) = 0;
 
     virtual vtkRenderWindow *renderWindow();
@@ -139,8 +140,6 @@ namespace EspINA
 
     virtual void centerViewOn(const NmVector3& point, bool force=false) = 0;
 
-    virtual void showCrosshairs(bool visible) = 0;
-
     virtual void setContextualMenu(ContextualMenuSPtr contextMenu)
     { m_contextMenu = contextMenu; }
 
@@ -154,6 +153,9 @@ namespace EspINA
     { return m_showSegmentations; }
 
     void setSegmentationsVisibility(bool visibility);
+
+  signals:
+    void selectionChanged(SelectableView::Selection);
 
   protected slots:
     virtual void updateSceneBounds();
@@ -182,7 +184,6 @@ namespace EspINA
 
     QVTKWidget*  m_view;
     vtkSmartPointer<vtkRenderer> m_renderer;
-
 
     Bounds    m_sceneBounds;
     NmVector3 m_sceneResolution;// Min distance between 2 voxels in each axis

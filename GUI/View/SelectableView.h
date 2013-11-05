@@ -52,6 +52,8 @@ namespace EspINA
 
     virtual void updateSelection() = 0;
 
+    virtual Selection currentSelection() const = 0;
+
   private:
     bool m_selectionEnabled;
   };

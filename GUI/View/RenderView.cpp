@@ -55,6 +55,7 @@ RenderView::RenderView(QWidget* parent)
 //-----------------------------------------------------------------------------
 RenderView::~RenderView()
 {
+  m_renderers.clear();
 }
 
 
@@ -561,6 +562,24 @@ void RenderView::eventPosition(int& x, int& y)
     Q_ASSERT(rwi);
     rwi->GetEventPosition(x, y);
   }
+}
+
+//-----------------------------------------------------------------------------
+SelectableView::Selection RenderView::currentSelection() const
+{
+  SelectableView::Selection selection;
+
+  foreach(ChannelAdapterPtr channel, m_channelStates.keys())
+  {
+    if (channel->isSelected()) selection << channel;
+  }
+
+  foreach(SegmentationAdapterPtr segmentation, m_segmentationStates.keys())
+  {
+    if (segmentation->isSelected()) selection << segmentation;
+  }
+
+  return selection;
 }
 
 //-----------------------------------------------------------------------------

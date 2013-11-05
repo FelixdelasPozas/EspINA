@@ -16,8 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ESPINA_SLICEVIEW_H
-#define ESPINA_SLICEVIEW_H
+#ifndef ESPINA_VIEW_2D_H
+#define ESPINA_VIEW_2D_H
 
 #include "GUI/View/RenderView.h"
 #include <GUI/Model/ChannelAdapter.h>
@@ -29,23 +29,14 @@
 #include <vtkSmartPointer.h>
 
 //Forward declaration
-class vtkImageResliceToColors;
-class vtkImageReslice;
-class vtkImageMapToColors;
-class vtkImageShiftScale;
-class vtkImageActor;
-class vtkInteractorStyleEspinaSlice;
-class vtkRenderWindow;
 class vtkPolyData;
 class vtkAxisActor2D;
 class vtkPropPicker;
 class vtkRenderer;
-class vtkView;
 class QVTKWidget;
 class QToolButton;
 
 // GUI
-class QLabel;
 class QScrollBar;
 class QDoubleSpinBox;
 class QVBoxLayout;
@@ -56,7 +47,6 @@ namespace EspINA
 {
 
 class SliceWidget;
-  class ColorEngine;
   class Representation;
   class EspinaWidget;
 
@@ -107,6 +97,8 @@ class SliceWidget;
 
     virtual void reset();
 
+    virtual void resetCamera();
+
     double segmentationDepth() const
     {
       return Plane::XY == m_plane ? -View2D::SEGMENTATION_SHIFT : View2D::SEGMENTATION_SHIFT;
@@ -144,15 +136,9 @@ class SliceWidget;
 
     virtual void updateView();
 
-    virtual void resetCamera();
-
-    virtual void showCrosshairs(bool show);
+    virtual void setCrosshairVisibility(bool show);
 
     void updateCrosshairPoint(Plane plane, Nm slicePos);
-
-    void addRendererControls(RendererSPtr renderer);
-
-    void removeRendererControls(const QString name);
 
     virtual RepresentationSPtr cloneRepresentation(RepresentationSPtr prototype);
 
@@ -174,6 +160,17 @@ class SliceWidget;
 
     virtual void updateSelection(){};
 
+  signals:
+    void centerChanged(NmVector3);
+
+    void focusChanged(NmVector3);
+
+    void channelSelected(ChannelAdapterPtr);
+
+    void segmentationSelected(SegmentationAdapterPtr, bool);
+
+    void sliceChanged(Plane, Nm);
+
   protected slots:
     void sliceViewCenterChanged(NmVector3 center);
 
@@ -188,22 +185,6 @@ class SliceWidget;
     void updateWidgetVisibility();
 
     virtual void updateChannelsOpactity();
-
-  private slots:
-    void onTakeSnapshot();
-
-  signals:
-    void centerChanged(NmVector3);
-
-    void focusChanged(NmVector3);
-
-    void channelSelected(ChannelAdapterPtr);
-
-    void segmentationSelected(SegmentationAdapterPtr, bool);
-
-    void sliceChanged(Plane, Nm);
-    
-    void selectionChanged(SelectableView::Selection);
 
   protected:
     /// Update GUI controls
@@ -226,12 +207,14 @@ class SliceWidget;
 
     void selectPickedItems(bool append);
 
-    SelectableView::Selection currentSelection();
-
     /// Converts point from Display coordinates to World coordinates
     Selector::WorldRegion worldRegion(const Selector::DisplayRegion &region, ViewItemAdapterPtr item);
 
   private:
+    void addRendererControls(RendererSPtr renderer);
+
+    void removeRendererControls(const QString name);
+
     void updateRuler();
 
     void updateThumbnail();
@@ -259,6 +242,10 @@ class SliceWidget;
     void buildCrosshairs();
 
     void setupUI();
+
+  private slots:
+    void onTakeSnapshot();
+
 
   private:
     // GUI
@@ -316,4 +303,5 @@ class SliceWidget;
   Q_DECLARE_OPERATORS_FOR_FLAGS(View2D::SliceSelectors)
 
 } // namespace EspINA
-#endif // ESPINA_SLICEVIEW_H
+
+#endif // ESPINA_VIEW_2D_H

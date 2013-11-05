@@ -1,6 +1,6 @@
 # Slice View Tests
-create_test_sourcelist(TEST_SOURCES SliceView_Tests.cpp # this file is created by this command
-  slice_view_default_constructor.cpp
+create_test_sourcelist(TEST_SOURCES View2D_Tests.cpp # this file is created by this command
+  view2D_default_constructor.cpp
 )
 
 include_directories(
@@ -26,7 +26,7 @@ set(LIB_DEPENDECIES
 #   ${LIB_DEPENDECIES}
 )
 
-add_executable(SliceView_Tests
+add_executable(View2D_Tests
   ${TEST_SOURCES}
   ${SUBJECT_MOCS}
   ${GUI_DIR}/ColorEngines/NumberColorEngine.cpp
@@ -44,6 +44,6 @@ add_executable(SliceView_Tests
   ${GUI_DIR}/View/vtkInteractorStyleEspinaSlice.cpp
   )
 
-target_link_libraries(SliceView_Tests ${LIB_DEPENDECIES} )
+target_link_libraries(View2D_Tests ${LIB_DEPENDECIES} )
 
-add_test("\"Slice View: Default Constructor\"" SliceView_Tests slice_view_default_constructor)
+add_test("\"View 2D: Default Constructor\"" View2D_Tests view2D_default_constructor)

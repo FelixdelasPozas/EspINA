@@ -180,7 +180,6 @@ View2D::~View2D()
 //   qDebug() << "              Destroying Slice View" << m_plane;
 //   qDebug() << "********************************************************";
   // Representation destructors may need to access slice view in their destructors
-  m_renderers.clear();
   m_channelStates.clear();
   m_segmentationStates.clear();
 }
@@ -203,7 +202,7 @@ void View2D::setRenderers(RendererSList renderers)
 {
   foreach(RendererSPtr renderer, renderers)
   {
-    if (renderer->renderType().testFlag(Renderer::RENDERER_SLICEVIEW))
+    if (canRender(renderer, RendererType::RENDERER_SLICEVIEW))
     {
       addRendererControls(renderer->clone());
     }
@@ -549,7 +548,7 @@ void View2D::setCrosshairColors(double hcolor[3], double vcolor[3])
 }
 
 //-----------------------------------------------------------------------------
-void View2D::showCrosshairs(bool visible)
+void View2D::setCrosshairVisibility(bool visible)
 {
   if (visible)
   {
@@ -1088,24 +1087,6 @@ void View2D::selectPickedItems(bool append)
 }
 
 //-----------------------------------------------------------------------------
-SelectableView::Selection View2D::currentSelection()
-{
-  SelectableView::Selection selection;
-
-  foreach(ChannelAdapterPtr channel, m_channelStates.keys())
-  {
-    if (channel->isSelected()) selection << channel;
-  }
-
-  foreach(SegmentationAdapterPtr segmentation, m_segmentationStates.keys())
-  {
-    if (segmentation->isSelected()) selection << segmentation;
-  }
-
-  return selection;
-}
-
-//-----------------------------------------------------------------------------
 void View2D::updateWidgetVisibility()
 {
   foreach(SliceWidget * widget, m_widgets)
@@ -1322,12 +1303,12 @@ void View2D::setSlicingBounds(const Bounds& bounds)
 }
 
 //-----------------------------------------------------------------------------
-void View2D::centerViewOn(const NmVector3& center, bool force)
+void View2D::centerViewOn(const NmVector3& point, bool force)
 {
   NmVector3 centerVoxel;
   // Adjust crosshairs to fit slicing steps
   for (int i = 0; i < 3; i++)
-    centerVoxel[i] = voxelCenter(center[i], toPlane(i));
+    centerVoxel[i] = voxelCenter(point[i], toPlane(i));
 
   if (!isVisible() ||
      (m_crosshairPoint[0] == centerVoxel[0] &&
@@ -1343,7 +1324,7 @@ void View2D::centerViewOn(const NmVector3& center, bool force)
   m_scrollBar->blockSignals(true);
   m_spinBox->blockSignals(true);
 
-  int slicingPos = voxelSlice(center[m_normalCoord], m_plane);
+  int slicingPos = voxelSlice(point[m_normalCoord], m_plane);
 
   m_scrollBar->setValue(slicingPos);
 

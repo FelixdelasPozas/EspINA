@@ -52,6 +52,15 @@ namespace EspINA
 
   Q_DECLARE_FLAGS(RenderableItems, RenderableType);
 
+  enum RendererType
+  {
+    RENDERER_UNDEFINED_VIEW = 0x1,
+    RENDERER_SLICEVIEW      = 0x2,
+    RENDERER_VOLUMEVIEW     = 0x4
+  };
+
+  Q_DECLARE_FLAGS(RendererTypes, RendererType);
+
   /// Base class which define the API to render and manage
   /// item visibily in Espina Views (currently only supported
   /// for VolumeView class)
@@ -89,15 +98,7 @@ namespace EspINA
 
     virtual RenderableItems renderableItems() { return RenderableItems(); }
 
-    enum RendererTypes
-    {
-      RENDERER_UNDEFINED_VIEW = 0x1,
-      RENDERER_SLICEVIEW      = 0x2,
-      RENDERER_VOLUMEVIEW     = 0x4
-    };
-    Q_DECLARE_FLAGS(RendererType, RendererTypes);
-
-    virtual RendererType renderType() { return RendererType(RENDERER_UNDEFINED_VIEW); }
+    virtual RendererTypes renderType() { return RendererTypes(RENDERER_UNDEFINED_VIEW); }
 
     // naive item filtering, to be modified/enhanced in the future
     virtual bool canRender(ItemAdapterPtr item)
@@ -136,10 +137,11 @@ namespace EspINA
     RenderView* m_view;
   };
 
+  bool EspinaGUI_EXPORT canRender(RendererSPtr renderer, RendererType type);
   bool EspinaGUI_EXPORT canRender(RendererSPtr renderer, RenderableType type);
 
   Q_DECLARE_OPERATORS_FOR_FLAGS(RenderableItems)
-  Q_DECLARE_OPERATORS_FOR_FLAGS(Renderer::RendererType)
+  Q_DECLARE_OPERATORS_FOR_FLAGS(RendererTypes)
 }// namespace EspINA
 
 #endif // ESPINA_RENDERER_H
