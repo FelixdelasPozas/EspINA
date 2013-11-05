@@ -21,6 +21,7 @@
 #define ESPINA_VIEW_ITEM_ADAPTER_H
 
 #include "GUI/Model/ItemAdapter.h"
+#include "OutputAdapter.h"
 
 #include <Core/Analysis/Data.h>
 #include <Core/Analysis/Output.h>
@@ -53,9 +54,9 @@ namespace EspINA {
     const FilterAdapterSPtr filter() const{}
 
     /// Convenience method
-    OutputSPtr output(){}
+    OutputAdapterSPtr output(){}
     /// Convenience method
-    const OutputSPtr output() const{}
+    const OutputAdapterSPtr output() const{}
 
     DataSPtr get(Data::Type type){}
 

@@ -40,13 +40,13 @@ class DummyFilter
     virtual OutputSPtr output(Output::Id id) const { return m_output; }
 
   protected:
-    virtual Snapshot saveFilterSnapshot() const{}
-    virtual bool needUpdate() const {}
-    virtual bool needUpdate(Output::Id id) const {}
-    virtual DataSPtr createDataProxy(Output::Id id, const Data::Type& type) {}
+    virtual Snapshot saveFilterSnapshot() const{ return Snapshot(); }
+    virtual bool needUpdate() const { return false; }
+    virtual bool needUpdate(Output::Id id) const { return false; }
+    virtual DataSPtr createDataProxy(Output::Id id, const Data::Type& type) { return DataSPtr(); }
     virtual void execute() {}
     virtual void execute(Output::Id id) {}
-    virtual bool invalidateEditedRegions(){ return false; }
+    virtual bool invalidateEditedRegions() { return false; }
 
   private:
     OutputSPtr m_output;

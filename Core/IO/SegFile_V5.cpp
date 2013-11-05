@@ -85,7 +85,7 @@ AnalysisSPtr SegFile_V5::load(QuaZip&         zip,
   try
   {
     analysis->setClassification(ClassificationXML::parse(readCurrentFileFromZip(zip, handler)));
-  } catch (ClassificationXML::Parse_Exception e) 
+  } catch (ClassificationXML::Parse_Exception e)
   {
     if (handler)
       handler->error(QObject::tr("Error while loading classification"));
@@ -110,7 +110,10 @@ AnalysisSPtr SegFile_V5::load(QuaZip&         zip,
   }
 
   loadContent(analysis, zip, storage, factory, handler);
+
   loadRelations(analysis, zip, handler);
+
+  return analysis;
 }
 
 //-----------------------------------------------------------------------------
@@ -118,7 +121,7 @@ void SegFile_V5::save(AnalysisPtr analysis, QuaZip& zip, ErrorHandlerPtr handler
 {
   try {
     addFileToZip(FORMAT_INFO_FILE, formatInfo(), zip, handler);
-  } catch (IO_Error_Exception e) 
+  } catch (IO_Error_Exception e)
   {
     if (handler)
       handler->error("Error while saving Analysis Format Information");
@@ -151,7 +154,7 @@ void SegFile_V5::save(AnalysisPtr analysis, QuaZip& zip, ErrorHandlerPtr handler
   write(analysis->content(), content);
   try {
     addFileToZip(CONTENT_FILE, content.str().c_str(), zip, handler);
-  } catch (IO_Error_Exception e) 
+  } catch (IO_Error_Exception e)
   {
     if (handler)
       handler->error("Error while saving Analysis Pipeline");
@@ -199,6 +202,145 @@ void SegFile_V5::save(AnalysisPtr analysis, QuaZip& zip, ErrorHandlerPtr handler
   }
 }
 
+struct Vertex_Not_Found_Exception{};
+
+//-----------------------------------------------------------------------------
+PersistentSPtr findVertex(DirectedGraph::Vertices vertices, Persistent::Uuid uuid)
+{
+  foreach(DirectedGraph::Vertex vertex, vertices)
+  {
+    if (vertex->uuid() == uuid) return vertex;
+  }
+
+  throw Vertex_Not_Found_Exception();
+}
+
+//-----------------------------------------------------------------------------
+SampleSPtr SegFile_V5::createSample(DirectedGraph::Vertex   roVertex,
+                                    AnalysisSPtr            analysis,
+                                    Persistent::StorageSPtr storage,
+                                    CoreFactorySPtr         factory,
+                                    ErrorHandlerPtr         handler)
+{
+  SampleSPtr sample = factory->createSample();
+
+  sample->setName(roVertex->name());
+  sample->setUuid(roVertex->uuid());
+  sample->restoreState(roVertex->saveState());
+  sample->setPersistentStorage(storage);
+
+  analysis->add(sample);
+
+  return sample;
+}
+
+//-----------------------------------------------------------------------------
+FilterSPtr SegFile_V5::createFilter(DirectedGraph::Vertex   roVertex,
+                                    DirectedGraphSPtr       content,
+                                    DirectedGraph::Vertices loadedVertices,
+                                    Persistent::StorageSPtr storage,
+                                    CoreFactorySPtr         factory,
+                                    ErrorHandlerPtr         handler)
+{
+  DirectedGraph::Edges inputConections = content->inEdges(roVertex);
+
+  OutputSList inputs;
+  foreach(DirectedGraph::Edge edge, inputConections)
+  {
+    DirectedGraph::Vertex input = findVertex(loadedVertices, edge.source->uuid());
+
+    FilterSPtr filter = std::dynamic_pointer_cast<Filter>(input);
+    Output::Id id     = atoi(edge.relationship.c_str());
+
+    inputs << filter->output(id);
+  }
+
+  FilterSPtr filter = factory->createFilter(inputs, roVertex->name());
+  filter->setName(roVertex->name());
+  filter->setUuid(roVertex->uuid());
+  filter->restoreState(roVertex->saveState());
+  filter->setPersistentStorage(storage);
+
+  return filter;
+}
+
+//-----------------------------------------------------------------------------
+QPair<FilterSPtr, Output::Id> findOutput(DirectedGraph::Vertex   roVertex,
+                                         DirectedGraphSPtr       content,
+                                         DirectedGraph::Vertices loadedVertices)
+{
+  QPair<FilterSPtr, Output::Id> output;
+
+  DirectedGraph::Edges inputConections = content->inEdges(roVertex);
+  Q_ASSERT(inputConections.size() == 1);
+
+  DirectedGraph::Edge edge = inputConections.first();
+
+  PersistentSPtr input = findVertex(loadedVertices, edge.source->uuid());
+
+  output.first  = std::dynamic_pointer_cast<Filter>(input);
+  output.second = atoi(edge.relationship.c_str());
+
+  return output;
+}
+//-----------------------------------------------------------------------------
+ChannelSPtr SegFile_V5::createChannel(DirectedGraph::Vertex   roVertex,
+                                      AnalysisSPtr            analysis,
+                                      DirectedGraphSPtr       content,
+                                      DirectedGraph::Vertices loadedVertices,
+                                      Persistent::StorageSPtr storage,
+                                      CoreFactorySPtr         factory,
+                                      ErrorHandlerPtr         handler)
+{
+  auto output = findOutput(roVertex, content, loadedVertices);
+
+  ChannelSPtr channel = factory->createChannel(output.first, output.second);
+
+  channel->setName(roVertex->name());
+  channel->setUuid(roVertex->uuid());
+  channel->restoreState(roVertex->saveState());
+  channel->setPersistentStorage(storage);
+
+  analysis->add(channel);
+
+  return channel;
+}
+
+//-----------------------------------------------------------------------------
+SegmentationSPtr SegFile_V5::createSegmentation(DirectedGraph::Vertex   roVertex,
+                                                AnalysisSPtr            analysis,
+                                                DirectedGraphSPtr       content,
+                                                DirectedGraph::Vertices loadedVertices,
+                                                Persistent::StorageSPtr storage,
+                                                CoreFactorySPtr         factory,
+                                                ErrorHandlerPtr         handler)
+{
+  auto output = findOutput(roVertex, content, loadedVertices);
+
+  SegmentationSPtr segmentation = factory->createSegmentation(output.first, output.second);
+
+  segmentation->setName(roVertex->name());
+  segmentation->setUuid(roVertex->uuid());
+  segmentation->restoreState(roVertex->saveState());
+  segmentation->setPersistentStorage(storage);
+
+  analysis->add(segmentation);
+
+  return segmentation;
+}
+
+//-----------------------------------------------------------------------------
+void SegFile_V5::createExtensionProvider(DirectedGraph::Vertex   roVertex,
+                                         AnalysisSPtr            analysis,
+                                         Persistent::StorageSPtr storage,
+                                         CoreFactorySPtr         factory,
+                                         ErrorHandlerPtr         handler)
+{
+  ExtensionProviderSPtr provider = factory->createExtensionProvider(roVertex->name());
+
+  analysis->add(provider);
+}
+
 //-----------------------------------------------------------------------------
 void SegFile_V5::loadContent(AnalysisSPtr            analysis,
                              QuaZip&                 zip,
@@ -213,218 +355,48 @@ void SegFile_V5::loadContent(AnalysisSPtr            analysis,
   std::istringstream stream(textStream.readAll().toStdString().c_str());
   read(stream, content);
 
+  DirectedGraph::Vertices loadedVertices;
+
   foreach(DirectedGraph::Vertex roVertex, content->vertices())
   {
-    PersistentSPtr vertex = parseVertex(analysis, content, roVertex, factory, handler);
-  }
+    ReadOnlyVertex *rov = dynamic_cast<ReadOnlyVertex *>(roVertex.get());
 
-//   qDebug() << "Check";
-//  write(content, std::cout);
-// 
-//   typedef QPair<ModelItemSPtr, ModelItem::Arguments> NonInitilizedItem;
-// 
-//   SegmentationSList newSegmentations;
-//   RelationshipGraph::Vertices segmentationNodes;
-// 
-//   EspinaFactory *factory = model->factory();
-// 
-//   foreach(RelationshipGraph::Vertex v, input->vertices())
-//   {
-//     // Input may be modified inside parse vertex, so we need to update
-//     // vertex structure
-//     RelationshipGraph::Vertex vertex = input->vertex(v.descriptor);
-//     if (!parseVertex(input, vertex, model, tmpDir, segmentationNodes))
-//     return false;
-//   }
-// 
-//   foreach(RelationshipGraph::Vertex v, segmentationNodes)
-//   {
-//     RelationshipGraph::Vertices ancestors = input->ancestors(v, Filter::CREATELINK);
-//     Q_ASSERT(ancestors.size() == 1);
-// 
-//     ModelItem::Arguments args (QString(v.args.c_str()));
-//     FilterOutputId outputId = args[Segmentation::OUTPUT].toInt();
-// 
-//     ModelItemPtr item = ancestors.first().item;
-//     FilterSPtr filter = model->findFilter(item);
-// 
-//     filter->update(outputId);
-//     if (filter->validOutput(outputId))
-//     {
-//       ModelItem::Arguments extArgs(args.value(ModelItem::EXTENSIONS, QString()));
-//       args.remove(ModelItem::EXTENSIONS);
-//       SegmentationSPtr seg = factory->createSegmentation(filter, outputId);
-//       seg->initialize(args);
-//       seg->setNumber(args[Segmentation::NUMBER].toInt());
-// 
-//       QString taxonomyQualifiedName = args[Segmentation::TAXONOMY];
-//       TaxonomyElementSPtr taxonomy = model->taxonomy()->element(taxonomyQualifiedName);
-//       if (taxonomy.get() != NULL)
-//       seg->setTaxonomy(taxonomy);
-//       else
-//       {
-//         taxonomy = model->taxonomy()->createElement(taxonomyQualifiedName);
-//         seg->setTaxonomy(taxonomy);
-//       }
-//       newSegmentations << seg;
-//       input->setItem(v, seg.get());
-//     }
-//   }
-// 
-//   model->addSegmentation(newSegmentations);
-// 
-//   foreach(RelationshipGraph::Edge e, input->edges())
-//   {
-//     // Should store just the modelitem?
-//     Q_ASSERT(e.source.item);
-//     Q_ASSERT(e.target.item);
-// 
-//     ModelItemSPtr source = model->find(e.source.item);
-//     ModelItemSPtr target = model->find(e.target.item);
-// 
-//     model->addRelation(source, target, e.relationship.c_str());
-//   }
-// 
-//   foreach(FilterSPtr filter, model->filters())
-//     filter->upkeeping();
-// 
-//   // the user could have canceled the load of channels with no
-//   // segmentations, so there could be empty samples.
-//   foreach(SampleSPtr sample, model->samples())
-//     if (sample->channels().isEmpty())
-//       model->removeSample(sample);
-// 
-//   return true;
-}
-
-//-----------------------------------------------------------------------------
-PersistentSPtr SegFile_V5::parseVertex(AnalysisSPtr          analysis,
-                                       DirectedGraphSPtr     content,
-                                       DirectedGraph::Vertex roVertex,
-                                       CoreFactorySPtr       factory,
-                                       ErrorHandlerPtr       handler)
-{
-  ReadOnlyVertex *rov = dynamic_cast<ReadOnlyVertex *>(roVertex.get());
-
-  PersistentSPtr vertex;
-  switch(rov->type())
-  {
-    case VertexType::SAMPLE:
+    PersistentSPtr vertex;
+    switch(rov->type())
     {
-      SampleSPtr sample = factory->createSample();
-      sample->restoreState(roVertex->saveState());
-      //sample->setPersistentStorage(storage);
-      analysis->add(sample);
-      break;
-    }
-    case VertexType::CHANNEL:
-    {
-//       ModelItem::Arguments args(rov.args.c_str());
-//       ModelItem::Arguments extArgs(args.value(ModelItem::EXTENSIONS, QString()));
-//       args.remove(ModelItem::EXTENSIONS);
-//       
-//       // TODO: Move link management code inside Channel's Arguments class
-//       QStringList link = args[Channel::VOLUME].split("_");
-//       Q_ASSERT(link.size() == 2);
-//       RelationshipGraph::Vertices ancestors = input->ancestors(rov, link[0]);
-//       Q_ASSERT(ancestors.size() == 1);
-//       ModelItemPtr item = ancestors.first().item;
-//       Q_ASSERT(FILTER == item->type());
-//       FilterSPtr filter = model->findFilter(item);
-//       Q_ASSERT(filter.get() != NULL);
-//       
-//       FilterOutputId channelId = link[1].toInt();
-//       filter->update(channelId);
-//       ChannelSPtr channel = factory->createChannel(filter, channelId);
-//       channel->initialize(args);
-//       
-//       if (filter->validOutput(channelId) && channel->volume()->toITK().IsNotNull())
-//       {
-//         model->addChannel(channel);
-//         input->setItem(rov, channel.get());
-//       }
-//       else
-//       {
-//         RelationshipGraph::Vertices successors = input->succesors(rov, QString());
-//         if (!successors.empty())
-//         {
-//           QApplication::setOverrideCursor(Qt::ArrowCursor);
-//           QMessageBox mBox;
-//           mBox.setIcon(QMessageBox::Critical);
-//           mBox.setWindowTitle(QMessageBox::tr("EspINA"));
-//           mBox.setText(QMessageBox::tr("Channel \"%1\" couldn't be loaded and there are elements that depend on it. File loading aborted.").arg(QString(v.name.c_str())));
-//           mBox.setStandardButtons(QMessageBox::Ok);
-//           mBox.exec();
-//           QApplication::restoreOverrideCursor();
-//           return false;
-//         }
-//         
-//         model->removeFilter(filter);
-//         input->removeEdges(rov);
-//       }
-      break;
-    }
-    case VertexType::FILTER:
-    {
-      DirectedGraph::Edges inputConections = content->inEdges(roVertex);
-
-      DirectedGraph::Vertices analysisVertices = analysis->content()->vertices();
-
-      OutputSList inputs;
-      foreach(DirectedGraph::Edge edge, inputConections)
+      case VertexType::SAMPLE:
       {
-        std::cout << edge.relationship << std::endl;
+        vertex = createSample(roVertex, analysis, storage, factory, handler);
+        break;
       }
-
-      FilterSPtr filter = factory->createFilter(inputs, roVertex->name());
-
-//       Filter::NamedInputs inputs;
-//       Filter::Arguments args(rov.args.c_str());
-//       QStringList inputLinks = args[Filter::INPUTS].split(",", QString::SkipEmptyParts);
-//       
-//       // We need to update id values for future filters
-//       foreach(QString inputLink, inputLinks)
-//       {
-//         QStringList link = inputLink.split("_");
-//         Q_ASSERT(link.size() == 2);
-//         RelationshipGraph::Vertices ancestors = input->ancestors(rov, link[0]);
-//         if (ancestors.size() != 1)
-//         {
-//           qWarning() << QString("Seg File Reader: unexpected number of filters (%1) for %2 relationship").arg(ancestors.size()).arg(link[0]);
-//         }
-//         Q_ASSERT(ancestors.size() == 1);
-//         //qDebug() << "\t" << QString(ancestors.first().args.c_str());
-//         RelationshipGraph::Vertex &ancestor = ancestors.first();
-//         if (!ancestor.item)
-//         {
-//           parseVertex(input, ancestor, model, tmpDir, segmentationNodes);
-//           qWarning() << QString("Seg File Reader: Unordered relationship (%1 --%2--> %3) fixed.").arg(ancestor.args.c_str()).arg(link[0]).arg(rov.args.c_str());
-//         }
-//         ModelItemPtr item = ancestor.item;
-//         Q_ASSERT(FILTER == item->type());
-//         FilterSPtr filter = model->findFilter(item);
-//         inputs[link[0]] = filter;
-//       }
-//       
-//       FilterSPtr filter = factory->createFilter(v.name.c_str(), inputs, args);
-//       filter->setCacheDir(tmpDir);
-//       model->addFilter(filter);
-//       input->setItem(rov, filter.get());
-      break;
+      case VertexType::CHANNEL:
+      {
+        vertex = createChannel(roVertex, analysis, content, loadedVertices, storage, factory, handler);
+        break;
+      }
+      case VertexType::FILTER:
+      {
+        vertex = createFilter(roVertex, content, loadedVertices, storage, factory, handler);
+        break;
+      }
+      case VertexType::SEGMENTATION:
+      {
+        vertex = createSegmentation(roVertex, analysis, content, loadedVertices, storage, factory, handler);
+        break;
+      }
+      case VertexType::EXTENSION_PROVIDER:
+        createExtensionProvider(roVertex, analysis, storage, factory, handler);
+        break;
+      default:
+        throw Graph::Unknown_Type_Found();
+        break;
     }
-    case VertexType::SEGMENTATION:
+
+    if (vertex != nullptr)
     {
-      //segmentationNodes << rov;
-      break;
+      loadedVertices << vertex;
     }
-    case VertexType::EXTENSION_PROVIDER:
-      break;
-    default:
-      throw Graph::Unknown_Type_Found();
-      break;
   }
-
-  return vertex;
 }
 
 //-----------------------------------------------------------------------------
@@ -432,7 +404,21 @@ void SegFile_V5::loadRelations(AnalysisSPtr    analysis,
                                QuaZip&         zip,
                                ErrorHandlerPtr handler)
 {
+  DirectedGraphSPtr relations(new DirectedGraph());
 
+  QTextStream textStream(readFileFromZip(RELATIONS_FILE, zip, handler));
+
+  std::istringstream stream(textStream.readAll().toStdString().c_str());
+  read(stream, relations);
+
+  DirectedGraph::Vertices loadedVertices = analysis->content()->vertices();
+
+  foreach(DirectedGraph::Edge edge, relations->edges())
+  {
+    PersistentSPtr source = findVertex(loadedVertices, edge.source->uuid());
+    PersistentSPtr target = findVertex(loadedVertices, edge.target->uuid());
+    analysis->addRelation(source, target, edge.relationship.c_str());
+  }
 }
 
 

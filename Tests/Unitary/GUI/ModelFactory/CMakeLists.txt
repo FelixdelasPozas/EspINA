@@ -1,7 +1,6 @@
 # Model Factory Tests
 create_test_sourcelist(TEST_SOURCES Model_Factory_Tests.cpp # this file is created by this command
   model_factory_create_filter.cpp
-  model_factory_create_template_filter.cpp
 )
 
 # include_directories(
@@ -14,6 +13,7 @@ qt4_wrap_cpp(SUBJECT_MOCS
   ${CORE_DIR}/MultiTasking/Scheduler.h
   ${CORE_DIR}/MultiTasking/Task.h
   ${GUI_DIR}/Model/ItemAdapter.h
+  ${GUI_DIR}/Model/OutputAdapter.h
 )
 
 set(LIB_DEPENDECIES
@@ -40,9 +40,9 @@ add_executable(Model_Factory_Tests
   ${GUI_DIR}/ModelFactory.cpp
   ${GUI_DIR}/Model/SampleAdapter.cpp
   ${GUI_DIR}/Model/ChannelAdapter.cpp
+  ${GUI_DIR}/Model/OutputAdapter.cpp
   )
 
 target_link_libraries(Model_Factory_Tests ${LIB_DEPENDECIES} )
 
-add_test("\"Model Factory: Create Filter\""          Model_Factory_Tests model_factory_create_filter)
-add_test("\"Model Factory: Create Template Filter\"" Model_Factory_Tests model_factory_create_template_filter)
+add_test("\"Model Factory: Create Filter\"" Model_Factory_Tests model_factory_create_filter)

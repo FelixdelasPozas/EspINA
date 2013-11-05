@@ -69,9 +69,9 @@ namespace EspINA
 
     typename T::SpacingType spacing() const;
 
-    const VolumetricData<T>::itkImageSPtr itkImage() const;
+    virtual const typename VolumetricData<T>::itkImageSPtr itkImage() const;
 
-    const VolumetricData<T>::itkImageSPtr itkImage(const Bounds& bounds) const;
+    virtual const typename VolumetricData<T>::itkImageSPtr itkImage(const Bounds& bounds) const;
 
 
   private:

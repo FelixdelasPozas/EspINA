@@ -38,7 +38,7 @@ namespace EspINA
     struct Unknown_Type_Exception{};
 
   public:
-    explicit CoreFactory();
+    explicit CoreFactory(SchedulerSPtr scheduler = SchedulerSPtr());
     ~CoreFactory();
 
     void registerFilter(FilterFactoryPtr factory, const Filter::Type &filter) throw (Factory_Already_Registered_Exception);
@@ -56,6 +56,8 @@ namespace EspINA
     ExtensionProviderSPtr createExtensionProvider(const ExtensionProvider::Type provider) const throw (Unknown_Type_Exception);
 
   private:
+    SchedulerSPtr m_scheduler;
+
     QMap<Filter::Type, FilterFactoryPtr>                       m_filterFactories;
     QMap<ExtensionProvider::Type, ExtensionProviderFactoryPtr> m_providerFactories;
   };

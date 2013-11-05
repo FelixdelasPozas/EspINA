@@ -24,31 +24,33 @@
 
 namespace EspINA {
   namespace Testing {
+    class DummyFilter
+    : public Filter
+    {
+    public:
+      explicit DummyFilter(OutputSList inputs, const Filter::Type& type, SchedulerSPtr scheduler)
+      : Filter(inputs, type, scheduler){}
+
+      virtual OutputSPtr output(Output::Id id) const {return OutputSPtr();}
+
+      void dummyMethod(){}
+
+    protected:
+      virtual Snapshot saveFilterSnapshot() const {return Snapshot(); }
+      virtual bool needUpdate() const { return false; }
+      virtual bool needUpdate(Output::Id id) const{ return false; }
+      virtual DataSPtr createDataProxy(Output::Id id, const Data::Type& type){ return DataSPtr();}
+      virtual void execute(){}
+      virtual void execute(Output::Id id){}
+      virtual bool invalidateEditedRegions() {return false;}
+    };
+
     class DummyFilterFactory
     : public FilterFactory
     {
-      virtual FilterSPtr createFilter(OutputSList inputs, const Filter::Type& filter) const
-      { return FilterSPtr();}
+      virtual FilterSPtr createFilter(OutputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const
+      { return FilterSPtr(new DummyFilter(inputs, filter, scheduler));}
     };
-//     class DummyFilter
-//     : public Filter
-//     {
-//     public:
-//       explicit DummyFilter(OutputSList inputs, Filter::Type& type, SchedulerSPtr scheduler)
-//       : Filter(inputs, type, scheduler){}
-// 
-//       virtual OutputSPtr output(Output::Id id) const {return OutputSPtr{new Output(this, 0)};}
-// 
-//       void dummyMethod(){}
-//     protected:
-//       virtual Snapshot saveFilterSnapshot() const {return Snapshot(); }
-//       virtual bool needUpdate() const{}
-//       virtual bool needUpdate(Output::Id id) const{}
-//       virtual DataSPtr createDataProxy(Output::Id id, const Data::Type& type){}
-//       virtual void execute(){}
-//       virtual void execute(Output::Id id){}
-//       virtual bool invalidateEditedRegions() {return false;}
-//     };
 // 
 //     class DummyProvider
 //     : public ExtensionProvider

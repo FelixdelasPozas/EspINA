@@ -49,13 +49,13 @@ Bounds MeshData::bounds()
 //----------------------------------------------------------------------------
 DataProxySPtr MeshData::createProxy() const
 {
-  return DataProxySPtr proxy{ new MeshProxy(); };
+  return DataProxySPtr{new MeshProxy()};
 }
 
 //----------------------------------------------------------------------------
 MeshDataSPtr meshRepresentation(OutputSPtr output)
 {
-  MeshDataSPtr meshData = std::dynamic_pointer_cast<MeshDataSPtr>(output->data(MeshData::Type));
+  MeshDataSPtr meshData = std::dynamic_pointer_cast<MeshData>(output->data(MeshData::TYPE));
   Q_ASSERT(meshData.get());
   return meshData;
 }

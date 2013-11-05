@@ -125,7 +125,8 @@ namespace EspINA
     };
 
     using MeshProxyPtr = MeshProxy *;
-    using MeshProxySPtr = std::shared<MeshProxy>;
+    using MeshProxySPtr = std::shared_ptr<MeshProxy>;
+
 
   } // namespace EspINA
 

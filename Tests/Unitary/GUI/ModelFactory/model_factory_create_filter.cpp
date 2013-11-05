@@ -26,12 +26,30 @@
  * 
  */
 
-//using namespace EspINA;
-//using namespace std;
+#include "GUI/ModelFactory.h"
+
+#include "Core/MultiTasking/Scheduler.h"
+
+#include "model_factory_testing_support.h"
+
+using namespace std;
+using namespace EspINA;
+using namespace EspINA::Testing;
+
 
 int model_factory_create_filter(int argc, char** argv)
 {
   bool error = false;
+
+  SchedulerSPtr sch{new Scheduler(1e6)};
+  ModelFactory factory(sch);
+
+  Filter::Type type{"Dummy"};
+  auto filter = factory.createFilter<DummyFilter>(OutputSList(), type);
+
+  filter->get()->dummyMethod();
+  filter->setFilterInspector(FilterInspectorSPtr());
+  filter->output(0);
 
   return error;
 }

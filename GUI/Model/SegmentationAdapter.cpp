@@ -19,23 +19,92 @@
 #include "SegmentationAdapter.h"
 
 // // EspINA
-// #include "Core/Model/Channel.h"
-// #include "Core/Model/EspinaFactory.h"
-// #include "Core/Model/ModelItem.h"
-// #include "Core/Model/Sample.h"
-// #include "Core/Model/Segmentation.h"
-// #include "Core/Model/Taxonomy.h"
-// #include "Core/IO/SegFileReader.h"
-// #include "Core/IO/IOErrorHandler.h"
-// #include <Core/Extensions/SegmentationExtension.h>
-// #include <Core/Extensions/ChannelExtension.h>
-// #include "Core/Filters/ChannelReader.h"
-// 
-// // Qt
-// #include <QDebug>
-// 
-// using namespace EspINA;
-// 
+#include <Core/Analysis/Segmentation.h>
+
+
+using namespace EspINA;
+
+SegmentationAdapter::SegmentationAdapter(SegmentationSPtr segmentation)
+: ViewItemAdapter(segmentation)
+{
+}
+
+void SegmentationAdapter::setNumber(unsigned int number)
+{
+
+}
+
+unsigned int SegmentationAdapter::number() const
+{
+
+}
+
+bool SegmentationAdapter::hasExtension(const SegmentationExtension::Type& type) const
+{
+
+}
+
+SegmentationExtensionSPtr SegmentationAdapter::extension(const SegmentationExtension::Type& type) const
+{
+
+}
+
+void SegmentationAdapter::addExtension(SegmentationExtensionSPtr extension)
+{
+
+}
+
+CategoryAdapterSPtr SegmentationAdapter::category() const
+{
+
+}
+
+QVariant SegmentationAdapter::data(int role) const
+{
+
+}
+
+QVariant SegmentationAdapter::information(const SegmentationExtension::InfoTag& tag) const
+{
+
+}
+
+PersistentSPtr SegmentationAdapter::item() const
+{
+
+}
+
+SegmentationExtension::InfoTagList SegmentationAdapter::informationTags() const
+{
+
+}
+
+void SegmentationAdapter::modifiedByUser(const QString& user)
+{
+
+}
+
+void SegmentationAdapter::setCategory(CategoryAdapterSPtr category)
+{
+
+}
+
+bool SegmentationAdapter::setData(const QVariant& value, int role)
+{
+
+}
+
+QStringList SegmentationAdapter::users() const
+{
+
+}
+
+SegmentationAdapter::~SegmentationAdapter()
+{
+
+}
+
+
 // //------------------------------------------------------------------------
 // ModelAdapter::ModelAdapter(EspinaFactory *factory)
 // : m_factory   (factory)

@@ -16,10 +16,9 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "TaxonomyColorEngine.h"
+#include "CategoryColorEngine.h"
 
-#include "Core/Model/Segmentation.h"
-#include "Core/Model/Taxonomy.h"
+#include <GUI/Model/CategoryAdapter.h>
 
 using namespace EspINA;
 
@@ -27,23 +26,23 @@ const double SELECTED_ALPHA = 1.0;
 const double UNSELECTED_ALPHA = 0.6;
 
 //-----------------------------------------------------------------------------
-QColor TaxonomyColorEngine::color(SegmentationPtr seg)
+QColor CategoryColorEngine::color(SegmentationAdapterPtr seg)
 {
-  if (seg && seg->taxonomy())
-    return seg->taxonomy()->color();
+  if (seg && seg->category())
+    return seg->category()->color();
   else
     return Qt::red;
 }
 
 //-----------------------------------------------------------------------------
-LUTPtr TaxonomyColorEngine::lut(SegmentationPtr seg)
+LUTSPtr CategoryColorEngine::lut(SegmentationAdapterPtr seg)
 {
   // Get (or create if it doesn't exit) the lut for the segmentations' images
   QString lutName;
-  if (seg && seg->taxonomy())
-    lutName = seg->taxonomy()->qualifiedName();
+  if (seg && seg->category())
+    lutName = seg->category()->classificationName();
 
-  vtkSmartPointer<vtkLookupTable> seg_lut;
+  LUTSPtr seg_lut;
 
   if (!m_LUT.contains(lutName))
   {
@@ -60,21 +59,23 @@ LUTPtr TaxonomyColorEngine::lut(SegmentationPtr seg)
 
     m_LUT.insert(lutName, seg_lut);
 
+    // TODO: review signals use
     if (lutName != "")
-      connect(seg->taxonomy().get(), SIGNAL(colorChanged(TaxonomyElementPtr)),
-              this, SLOT(updateTaxonomyColor(TaxonomyElementPtr)));
+      connect(seg->category().get(), SIGNAL(colorChanged(CategoryElementPtr)),
+              this, SLOT(updateCategoryColor(CategoryElementPtr)));
   }
   else
   {
-    // fix a corner case when a segmentation and it's taxonomy have been deleted
-    // but the lookuptable hasn't, so when the segmentation and taxonomy are been
+    Q_ASSERT(false);
+    // fix a corner case when a segmentation and it's category have been deleted
+    // but the lookuptable hasn't, so when the segmentation and category are
     // created again with a different color the ColorEngine returns the lookuptable
     // with the old color.
-    if (seg->taxonomy()) // TODO: sometimes happens, segs without taxonomy, fixed?
+    if (seg->category()) // TODO: sometimes happens, segs without category, fixed?
     {
       double rgb[3];
       m_LUT[lutName]->GetColor(1, rgb);
-      QColor segColor = seg->taxonomy()->color();
+      QColor segColor = seg->category()->color();
 
       if (segColor != QColor(rgb[0], rgb[1], rgb[2]))
         m_LUT[lutName]->SetTableValue(1, segColor.redF(), segColor.greenF(), segColor.blueF(), (seg->isSelected() ? SELECTED_ALPHA : UNSELECTED_ALPHA));
@@ -87,10 +88,10 @@ LUTPtr TaxonomyColorEngine::lut(SegmentationPtr seg)
 }
 
 //-----------------------------------------------------------------------------
-void TaxonomyColorEngine::updateTaxonomyColor(TaxonomyElementPtr tax)
+void CategoryColorEngine::updateCategoryColor(CategoryAdapterSPtr category)
 {
-  QString lutName = tax->qualifiedName();
-  QColor c = tax->color();
+  QString lutName = category->classificationName();
+  QColor c = category->color();
 
   if (!m_LUT.contains(lutName))
     return;

@@ -16,38 +16,40 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef TAXONOMYCOLORENGINE_H
-#define TAXONOMYCOLORENGINE_H
+#ifndef ESPINA_CATEGORY_COLOR_ENGINE_H
+#define ESPINA_CATEGORY_COLOR_ENGINE_H
 
-#include "EspinaCore_Export.h"
 
-#include "Core/ColorEngines/IColorEngine.h"
+#include "GUI/ColorEngines/ColorEngine.h"
+
 #include <QMap>
 
 namespace EspINA
 {
 
-class EspinaCore_EXPORT TaxonomyColorEngine
+class EspinaGUI_EXPORT CategoryColorEngine
 : public ColorEngine
 {
   Q_OBJECT
 public:
-  explicit TaxonomyColorEngine(){}
+  explicit CategoryColorEngine(){}
 
-  virtual QColor color(SegmentationPtr seg);
-  virtual LUTPtr lut  (SegmentationPtr seg);
+  virtual QColor  color(SegmentationAdapterPtr seg);
+
+  virtual LUTSPtr lut  (SegmentationAdapterPtr seg);
+
   virtual ColorEngine::Composition supportedComposition() const
   { return ColorEngine::Color; }
 
 protected slots:
-  void updateTaxonomyColor(TaxonomyElementPtr tax);
+  void updateCategoryColor(CategoryAdapterSPtr tax);
 
 private:
-  QMap<QString, vtkSmartPointer<vtkLookupTable> > m_LUT;
+  QMap<QString, LUTSPtr> m_LUT;
 };
 
-typedef boost::shared_ptr<TaxonomyColorEngine> TaxonomyColorEnginePtr;
+using CategoryColorEngineSPtr = std::shared_ptr<CategoryColorEngine>;
 
 }// namespace EspINA
 
-#endif // TAXONOMYCOLORENGINE_H
+#endif // ESPINA_CATEGORY_COLOR_ENGINE_H

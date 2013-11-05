@@ -21,7 +21,7 @@
 #define ESPINA_BINARY_MASK_H
 
 #include "Core/Utils/Bounds.h"
-#include <Core/EspinaTypes.h>
+#include <Core/Utils/Spatial.h>
 
 #include <itkImage.h>
 #include <itkSmartPointer.h>

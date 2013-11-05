@@ -23,7 +23,6 @@
 #include "GUI/View/SliceView.h"
 
 class vtkCamera;
-class vtkMatrix4x4;
 class vtkPolyData;
 class vtkProp3D;
 
@@ -34,21 +33,16 @@ namespace EspINA
   public:
     virtual ~State() {}
 
-    virtual void setCrossHairs(vtkPolyData *hline,
-                               vtkPolyData *vline,
-                               double center[3],
-                               double bounds[6],
-                               double slicingStep[3]) = 0;
-
-    virtual void setSlicingPosition(vtkMatrix4x4 *matrix,
-                                    double value) = 0;
+    virtual void setCrossHairs(vtkPolyData*     hline,
+                               vtkPolyData*     vline,
+                               const NmVector3& center,
+                               const Bounds&    bounds,
+                               const NmVector3& slicingStep) = 0;
 
     virtual void updateActor(vtkProp3D *actor) = 0;
 
     virtual void updateCamera(vtkCamera *camera,
-                              double center[3]) = 0;
-
-    virtual void updateSlicingMatrix(vtkMatrix4x4 *matrix) = 0;
+                              const NmVector3& center) = 0;
   };
 
   class SliceView::AxialState
@@ -57,17 +51,14 @@ namespace EspINA
   public:
     explicit AxialState(){}
 
-    virtual void setCrossHairs(vtkPolyData* hline,
-                               vtkPolyData* vline,
-                               double center[3],
-                               double bounds[6],
-                               double slicingStep[3]);
-    virtual void setSlicingPosition(vtkMatrix4x4 *matrix,
-                                    double value);
+    virtual void setCrossHairs(vtkPolyData*     hline,
+                               vtkPolyData*     vline,
+                               const NmVector3& center,
+                               const Bounds&    bounds,
+                               const NmVector3& slicingStep);
     virtual void updateActor(vtkProp3D *actor) {};
     virtual void updateCamera(vtkCamera *camera,
-                              double center[3]);
-    virtual void updateSlicingMatrix(vtkMatrix4x4 *matrix);
+                              const NmVector3& center);
   };
 
   class SliceView::SagittalState
@@ -76,17 +67,14 @@ namespace EspINA
   public:
     explicit SagittalState(){}
 
-    virtual void setCrossHairs(vtkPolyData* hline,
-                               vtkPolyData* vline,
-                               double center[3],
-                               double bounds[6],
-                               double slicingStep[3]);
-    virtual void setSlicingPosition(vtkMatrix4x4 *matrix,
-                                    double value);
+    virtual void setCrossHairs(vtkPolyData*     hline,
+                               vtkPolyData*     vline,
+                               const NmVector3& center,
+                               const Bounds&    bounds,
+                               const NmVector3& slicingStep);
     virtual void updateActor(vtkProp3D *actor);
     virtual void updateCamera(vtkCamera *camera,
-                              double center[3]);
-    virtual void updateSlicingMatrix(vtkMatrix4x4 *matrix);
+                              const NmVector3& center);
   };
 
   class SliceView::CoronalState
@@ -95,17 +83,14 @@ namespace EspINA
   public:
     explicit CoronalState(){}
 
-    virtual void setCrossHairs(vtkPolyData* hline,
-                               vtkPolyData* vline,
-                               double center[3],
-                               double bounds[6],
-                               double slicingStep[3]);
-    virtual void setSlicingPosition(vtkMatrix4x4 *matrix,
-                                    double value);
+    virtual void setCrossHairs(vtkPolyData*     hline,
+                               vtkPolyData*     vline,
+                               const NmVector3& center,
+                               const Bounds&    bounds,
+                               const NmVector3& slicingStep);
     virtual void updateActor(vtkProp3D *actor);
     virtual void updateCamera(vtkCamera *camera,
-                              double center[3]);
-    virtual void updateSlicingMatrix(vtkMatrix4x4 *matrix);
+                              const NmVector3& center);
   };
 } // namespace EspINA
 

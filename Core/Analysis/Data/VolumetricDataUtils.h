@@ -21,6 +21,7 @@
 #define ESPINA_VOLUMETRIC_DATA_UTILS_H
 
 #include <Core/Utils/Bounds.h>
+#include <Core/Utils/NmVector3.h>
 
 namespace EspINA
 {
@@ -57,14 +58,15 @@ namespace EspINA
 
 //   /// Get the vtk-equivalent extent defining the volume
 //   void extent(int out[6]) const = 0;
-// 
-// 
-//   /** \brief Volume's voxel's index at given spatial position
-//    *
-//    *  It doesn't check whether the index is valid or not
-//    */
-//   typename T::IndexType index(Nm x, Nm y, Nm z) = 0;
-// 
+
+
+  /** \brief Volume's voxel's index at given spatial position
+   * 
+   *  It doesn't check whether the index is valid or not
+   */   
+  template<typename T>
+  typename T::IndexType index( Nm x, Nm y, Nm z);
+
 //   /// Set voxels at coordinates (x,y,z) to value
 //   ///NOTE: Current implementation will expand the image
 //   ///      when drawing with value != 0
@@ -132,6 +134,6 @@ namespace EspINA
 //     virtual bool collision(SegmentationVolumeSPtr segmentation) = 0;
 }
 
-#include "Core/Analysis/Data/VolumetricDataUtils.cpp"
+#include "Core/Analysis/Data/VolumetricDataUtils.txx"
 
 #endif // ESPINA_VOLUMETRIC_DATA_UTILS_H

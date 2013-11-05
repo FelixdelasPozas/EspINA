@@ -18,5 +18,24 @@
  */
 
 #include "OutputAdapter.h"
+#include <GUI/Representations/RepresentationFactory.h>
 
 using namespace EspINA;
+
+//------------------------------------------------------------------------
+OutputAdapter::OutputAdapter(OutputSPtr output, RepresentationFactorySPtr factory)
+: m_output{output}
+, m_factory{factory}
+{
+}
+
+//------------------------------------------------------------------------
+RepresentationSPtr OutputAdapter::representation(Representation::Type type) const
+{
+  if (!m_representations.contains(type))
+  {
+    m_representations[type] = m_factory->createRepresentation(m_output, type);
+  }
+
+  return m_representations[type];
+}

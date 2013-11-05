@@ -34,7 +34,10 @@ using namespace EspINA;
 
 //-----------------------------------------------------------------------------
 Representation::Representation(RenderView *view) 
-: m_color(Qt::white)
+: m_brightness(0)
+, m_contrast(1)
+, m_opacity(1)
+, m_color(Qt::white)
 , m_highlight(false)
 , m_view(view)
 , m_active(true)
@@ -103,18 +106,3 @@ RepresentationSPtr Representation::clone(VolumeView *view)
 
   return representation;
 }
-
-//-----------------------------------------------------------------------------
-vtkMatrix4x4 *Representation::slicingMatrix(SliceView *view) const
-{
-  return view->m_slicingMatrix;
-}
-
-//-----------------------------------------------------------------------------
-// ChannelRepresentation::ChannelRepresentation(RenderView *view)
-// : Representation(view)
-// , m_brightness(0)
-// , m_contrast(1)
-// , m_opacity(1)
-// {
-// }

@@ -21,6 +21,7 @@
 #define ESPINA_FILTERADAPTER_H
 
 #include <Core/Analysis/Filter.h>
+#include "OutputAdapter.h"
 
 namespace EspINA {
 
@@ -42,24 +43,29 @@ namespace EspINA {
   public:
     virtual ~FilterAdapterInterface(){}
 
-    void setFilterInspector(FilterInspectorSPtr inspector){}
-    FilterInspectorSPtr filterInspector(){}
+    void setFilterInspector(FilterInspectorSPtr inspector)
+    { m_inspector = inspector; }
 
-    void setRepresentationFactory(RepresentationFactorySPtr factory){}
+    FilterInspectorSPtr filterInspector()
+    { return m_inspector; }
+
+    void setRepresentationFactory(RepresentationFactorySPtr factory)
+    { m_factory = factory; }
 
     virtual void update() = 0;//TODO Copy adapted filter interface
 
-    OutputAdapterSPtr output(Output::Id id){}
+    OutputAdapterSPtr output(Output::Id id)
+    { return m_outputs.at(id); }
 
   protected:
     virtual FilterSPtr adaptedFilter() = 0;
     virtual OutputSPtr adaptedOutput(Output::Id id) = 0;
 
-  private:
-    FilterInspectorSPtr m_inspector;
-
     RepresentationFactorySPtr m_factory;
     OutputAdapterSList        m_outputs;
+
+  private:
+    FilterInspectorSPtr m_inspector;
 
     friend class ModelFactory;
   };
@@ -73,7 +79,14 @@ namespace EspINA {
     { return m_filter; }
 
     virtual void update()
-    { m_filter->update(); }
+    {
+      m_outputs.clear();
+      m_filter->update();
+      for(int i = 0; i < m_filter->numberOfOutputs(); ++i)
+      {
+        m_outputs << OutputAdapterSPtr{new OutputAdapter(m_filter->output(i), m_factory)};
+      }
+    }
 
   protected:
     virtual FilterSPtr adaptedFilter()

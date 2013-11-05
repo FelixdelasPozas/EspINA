@@ -29,8 +29,6 @@ set (CORE_SOURCES
   Analysis/Storage.cpp
   Analysis/ViewItem.cpp
   Analysis/Data/MeshData.cpp
-  Analysis/Data/VolumetricData.cpp
-  Analysis/Data/VolumetricDataUtils.cpp
 #  Analysis/Data/Volumetric/RasterizedVolume.cpp
 #  Analysis/Data/Volumetric/RawVolume.cpp
 #  Analysis/Data/Volumetric/SparseVolume.cpp
@@ -42,6 +40,7 @@ set (CORE_SOURCES
   IO/SegFile.cpp
   IO/SegFile_V4.cpp
   IO/SegFile_V5.cpp
+  IO/SegFileInterface.cpp
   IO/GraphIO.cpp 
   MultiTasking/Scheduler.cpp
   MultiTasking/Task.cpp

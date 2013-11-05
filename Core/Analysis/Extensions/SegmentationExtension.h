@@ -31,6 +31,7 @@ namespace EspINA
   {
   public:
     using Type        = QString;
+    using TypeList    = QList<Type>;
     using InfoTag     = QString;
     using InfoTagList = QList<InfoTag>;
 
@@ -40,9 +41,9 @@ namespace EspINA
   public:
     virtual ~SegmentationExtension() {}
 
-    virtual void initialize() = 0;
+    virtual Type type() const = 0;
 
-    virtual void invalidate() = 0;
+    virtual TypeList dependencies() const = 0;
 
     void setSegmentation(SegmentationPtr seg)
     { m_segmentation = seg; onSegmentationSet(seg); }
@@ -55,12 +56,10 @@ namespace EspINA
 
     virtual InfoTagList availableInformations() const = 0;
 
-    virtual QVariant information(const InfoTag &tag) = 0;
+    virtual QVariant information(const InfoTag &tag) const = 0;
 
     virtual QString toolTipText() const
     { return QString(); }
-
-    virtual Type type() const = 0;
 
   protected:
     SegmentationExtension() : m_segmentation{nullptr}, m_enabled{false} {}

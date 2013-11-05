@@ -20,8 +20,6 @@
 #ifndef ESPINA_VOLUMETRIC_DATA_PROXY_H
 #define ESPINA_VOLUMETRIC_DATA_PROXY_H
 
-#include "EspinaCore_Export.h"
-
 #include <Core/Analysis/DataProxy.h>
 #include "Core/Analysis/Data.h"
 

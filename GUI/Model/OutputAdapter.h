@@ -35,11 +35,11 @@ namespace EspINA {
   public:
     OutputAdapter(OutputSPtr output, RepresentationFactorySPtr factory);
 
-    Output::Id id() const;
+    Output::Id id() const
+    { return m_output->id(); }
 
-    Bounds bounds() const;
-
-    void addRepresentation(Representation::Type type);
+    Bounds bounds() const
+    { return m_output->bounds(); }
 
     RepresentationSPtr representation(Representation::Type type) const;
 
@@ -48,6 +48,12 @@ namespace EspINA {
 
     RepresentationTypeList representationTypes() const
     { return m_representations.keys(); }
+
+    void update()
+    { m_output->update();}
+
+    TimeStamp lastModified()
+    { return m_output->lastModified(); }
 
   private:
     OutputSPtr m_output;

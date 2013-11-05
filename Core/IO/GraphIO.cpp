@@ -99,22 +99,19 @@ namespace EspINA {
 
     std::string type;
     in >> type;
-    qDebug() << "Type" << QString(type.c_str());
-
+    in.getline(buff, 2);//Consume type's endl
     v = PersistentSPtr{new ReadOnlyVertex(vertexType(type))};
 
-    in.getline(buff, 2);//Consume type's endl
     in.getline(buff, MAX);
     QString name(buff);
-    qDebug() << "Name" << name;
     v->setName(name);
+
     in.getline(buff, MAX);
     QString uuid(buff);
-    qDebug() << "UUID" << uuid;
     v->setUuid(uuid);
+
     in.getline(buff, MAX);
     State state(buff);
-    qDebug() << "State" << state;
     v->restoreState(state);
 
     return in;

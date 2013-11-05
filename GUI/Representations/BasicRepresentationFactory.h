@@ -33,7 +33,7 @@ namespace EspINA
   public:
     virtual ~BasicRepresentationFactory() {};
 
-    virtual void createRepresentation(OutputAdapterSPtr output, Representation::Type type);
+    virtual RepresentationSPtr createRepresentation(OutputSPtr output, Representation::Type type);
   };
 
   void EspinaGUI_EXPORT SetBasicRepresentationFactory(FilterAdapterSPtr filter);

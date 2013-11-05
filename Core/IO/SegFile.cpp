@@ -25,6 +25,7 @@
 #include "Core/IO/SegFile_V5.h"
 #include <Core/Analysis/Storage.h>
 #include <Core/Analysis/Analysis.h>
+#include <Core/Factory/CoreFactory.h>
 
 #include <quazip.h>
 #include <quazipfile.h>
@@ -68,7 +69,13 @@ AnalysisSPtr SegFile::load(const QFileInfo& file,
     reader = SegFileReaderSPtr{new SegFile_V5()};
   }
 
-  return reader->load(zip, factory, handler);
+  CoreFactorySPtr coreFactory = factory;
+  if (coreFactory == nullptr)
+  {
+    coreFactory = CoreFactorySPtr(new CoreFactory());
+  }
+
+  return reader->load(zip, coreFactory, handler);
 }
 
 //-----------------------------------------------------------------------------

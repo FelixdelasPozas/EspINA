@@ -23,6 +23,7 @@
 #include "EspinaGUI_Export.h"
 
 #include <vtkInteractorStyleImage.h>
+#include <vtkSmartPointer.h>
 
 // Interactor Style to be used with Slice Views
 class EspinaGUI_EXPORT vtkInteractorStyleEspinaSlice
@@ -61,5 +62,6 @@ private:
   void operator=(const vtkInteractorStyleEspinaSlice&);// Not implemented
 };
 
+using SliceViewInteractor = vtkSmartPointer<vtkInteractorStyleEspinaSlice>;
 
 #endif // VTKINTERACTORSTYLEESPINASLICE_H

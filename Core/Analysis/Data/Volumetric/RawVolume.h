@@ -135,10 +135,10 @@ namespace EspINA
     mutable unsigned long int m_ITKGenerationTime;
   };
 
-  template <class T> using RawVolumePtr = RawVolume<T> *;
-  template <class T> using RawVolumeSPtr = std::shared<RawVolume<T>>;
+  template <class T> using RawVolumePtr  = RawVolume<T> *;
+  template <class T> using RawVolumeSPtr = std::shared_ptr<RawVolume<T>>;
 
-  template< class T > RawVolumeSPtr<T> EspinaCore_EXPORT rawVolume(OutputSPtr output);
+  template <class T> RawVolumeSPtr<T> EspinaCore_EXPORT rawVolume(OutputSPtr output);
 
 //  RawChannelVolumeSPtr EspinaCore_EXPORT rawChannelVolume(OutputSPtr output);
 

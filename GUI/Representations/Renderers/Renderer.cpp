@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2012  <copyright holder> <email>
+    Copyright (C) 2012  Jorge Pe�a Pastor <jpena@cesvima.upm.es>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,30 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "Renderer.h"
 
-#ifndef ESPINA_MULTI_COLOR_ENGINE_H
-#define ESPINA_MULTI_COLOR_ENGINE_H
-
-#include <QList>
-#include "ColorEngine.h"
-
-namespace EspINA
+bool EspinaGUI_EXPORT EspINA::canRender(RendererSPtr renderer, RenderableType type)
 {
-  class EspinaGUI_EXPORT MultiColorEngine
-  : public ColorEngine
-  {
-  public:
-    virtual QColor  color(SegmentationAdapterPtr seg);
-    virtual LUTSPtr lut  (SegmentationAdapterPtr seg);
-    virtual ColorEngine::Composition supportedComposition() const;
-
-    virtual void add(ColorEngineSPtr engine);
-    virtual void remove(ColorEngineSPtr engine);
-
-  protected:
-    QList<ColorEngineSPtr> m_engines;
-  };
-
-}// namespace EspINA
-
-#endif // ESPINA_MULTI_COLOR_ENGINE_H
+  return renderer->renderableItems().testFlag(type);
+}

@@ -25,7 +25,6 @@
 #include "Core/Analysis/Data.h"
 #include "Core/Analysis/ViewItem.h"
 #include "Core/Analysis/Persistent.h"
-#include "Core/Analysis/Extensions/Extensible.h"
 #include "Core/Analysis/Extensions/ChannelExtension.h"
 #include "Core/Analysis/Output.h"
 
@@ -34,7 +33,6 @@ namespace EspINA
   class EspinaCore_EXPORT Channel
   : public Persistent
   , public ViewItem
-  , public Extensible
   {
   public:
     static const RelationName LINK;
@@ -58,10 +56,6 @@ namespace EspINA
     virtual void unload();
 
     virtual void changeOutput(OutputSPtr output);
-
-    virtual void initializeExtensions();
-
-    virtual void invalidateExtensions();
 
     void setPosition(const NmVector3& point);
 
@@ -161,9 +155,9 @@ namespace EspINA
      */
     ChannelExtensionSPtr extension(const ChannelExtension::Type& type);
 
-  private:
     static const int AUTOMATIC_OPACITY = -1;
 
+  private:
     double m_brightness;
     double m_contrast;
     double m_hue;

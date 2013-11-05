@@ -35,6 +35,7 @@ namespace EspINA
     using Selection = QList<ViewItemAdapterList>;
 
   public:
+    SelectableView() : m_selectionEnabled(true) {}
     virtual ~SelectableView(){}
 
     void setSelectionEnabled(bool value)

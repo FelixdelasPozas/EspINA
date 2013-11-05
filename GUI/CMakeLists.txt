@@ -6,6 +6,7 @@ include_directories(
 )
 
 qt4_wrap_cpp(GUI_MOC
+  ColorEngines/ColorEngine.h
   Representations/Renderers/Renderer.h
   Selectors/Selector.h
   View/RenderView.h
@@ -51,6 +52,12 @@ set (GUI_SOURCES
   ${GUI_MOC}
   ${GUI_UI}
 
+  ColorEngines/CategoryColorEngine.cpp
+  ColorEngines/MultiColorEngine.cpp
+  ColorEngines/NumberColorEngine.cpp
+  ColorEngines/TransparencySelectionHighlighter.cpp
+  ColorEngines/UserColorEngine.cpp
+  Extension/Visualization/VisualizationState.cpp
   Model/CategoryAdapter.cpp
   Model/ChannelAdapter.cpp
   Model/ClassificationAdapter.cpp
@@ -58,10 +65,10 @@ set (GUI_SOURCES
   Model/OutputAdapter.cpp
   Model/SampleAdapter.cpp
   Model/SegmentationAdapter.cpp
+  Representations/Renderers/Renderer.cpp
   Representations/Representation.cpp
   Representations/RepresentationEmptySettings.cpp 
   Selectors/Selector.cpp
-  View/RenderView.cpp
   View/RenderView.cpp
   View/SliceView.cpp
   View/SliceViewState.cpp
@@ -96,6 +103,7 @@ set (GUI_SOURCES
   Widgets/NoteEditor.cpp 
   Widgets/QComboTreeView.cpp
   Widgets/TagSelector.cpp 
+  View/vtkInteractorStyleEspinaSlice.cpp
 #   Analysis/InformationSelector.cpp
 #   Analysis/xlsUtils.cpp
 #   Extensions/Visualization/VisualizationState.cpp
@@ -111,7 +119,6 @@ set (GUI_SOURCES
 #   Pickers/ISelector.cpp
 #   Pickers/PixelSelector.cpp
 #   QtWidget/SegmentationVisualizationSettingsDialog.cpp
-#   QtWidget/vtkInteractorStyleEspinaSlice.cpp
 #   Representations/BasicGraphicalRepresentationFactory.cpp 
 #   Representations/ContourRepresentation.cpp
 #   Representations/ContourRepresentationSettings.cpp

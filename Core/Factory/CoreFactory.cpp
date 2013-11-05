@@ -25,9 +25,12 @@
 using namespace EspINA;
 
 //------------------------------------------------------------------------
-CoreFactory::CoreFactory()
+CoreFactory::CoreFactory(SchedulerSPtr scheduler)
+: m_scheduler{scheduler}
 {
+
 }
+
 
 //-----------------------------------------------------------------------------
 CoreFactory::~CoreFactory()
@@ -65,7 +68,7 @@ throw (Unknown_Type_Exception)
 {
   if (m_filterFactories.contains(filter))
   {
-    return m_filterFactories[filter]->createFilter(inputs, filter);
+    return m_filterFactories[filter]->createFilter(inputs, filter, m_scheduler);
   } else
   {
     throw Unknown_Type_Exception();

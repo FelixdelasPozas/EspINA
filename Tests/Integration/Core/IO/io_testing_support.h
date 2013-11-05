@@ -32,17 +32,21 @@ namespace EspINA {
     public:
       explicit DummyFilter()
       : Filter(OutputSList(), "DummyFilter", SchedulerSPtr(new Scheduler(10000000)))
-      { setName("DummyFilter");}
-      virtual OutputSPtr output(Output::Id id) const {return OutputSPtr{new Output(this, 0)};}
+      { setName("DummyFilter");
+        m_output = OutputSPtr{new Output(this, 0)};
+      }
+      virtual OutputSPtr output(Output::Id id) const {return m_output;}
 
     protected:
       virtual Snapshot saveFilterSnapshot() const {return Snapshot(); }
-      virtual bool needUpdate() const{}
-      virtual bool needUpdate(Output::Id id) const{}
-      virtual DataSPtr createDataProxy(Output::Id id, const Data::Type& type){}
+      virtual bool needUpdate() const {return false;}
+      virtual bool needUpdate(Output::Id id) const {return false;}
+      virtual DataSPtr createDataProxy(Output::Id id, const Data::Type& type) {return DataSPtr();}
       virtual void execute(){}
       virtual void execute(Output::Id id){}
       virtual bool invalidateEditedRegions() {return false;}
+      
+      OutputSPtr m_output;
     };
 
     class DummyProvider 
@@ -50,12 +54,12 @@ namespace EspINA {
     {
     public:
       virtual void restoreState(const State& state) {}
-      virtual void saveState(State& state) const{}
+      virtual State saveState() const {return State();}
       virtual Snapshot saveSnapshot() const {return Snapshot();}
       virtual void unload() {}
-      virtual Type type() const {}
-      virtual ChannelExtensionSPtr createChannelExtension(const ChannelExtension::Type& type) {}
-      virtual SegmentationExtensionSPtr createSegmentationExtension(const SegmentationExtension::Type& type) {}
+      virtual Type type() const { return Type();}
+      virtual ChannelExtensionSPtr createChannelExtension(const ChannelExtension::Type& type) { return ChannelExtensionSPtr();}
+      virtual SegmentationExtensionSPtr createSegmentationExtension(const SegmentationExtension::Type& type) {return SegmentationExtensionSPtr();}
     };
   }
 }

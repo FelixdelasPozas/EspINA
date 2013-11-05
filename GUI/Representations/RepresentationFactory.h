@@ -32,7 +32,7 @@ namespace EspINA
   public:
     virtual ~RepresentationFactory() {};
 
-    virtual void createRepresentation(OutputAdapterSPtr output, Representation::Type type);
+    virtual RepresentationSPtr createRepresentation(OutputSPtr output, Representation::Type type) = 0;
   };
 
   using RepresentationFactorySPtr = std::shared_ptr<RepresentationFactory>;

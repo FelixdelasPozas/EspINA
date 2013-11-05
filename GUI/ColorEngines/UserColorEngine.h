@@ -17,25 +17,23 @@
 */
 
 
-#ifndef USERCOLORENGINE_H
-#define USERCOLORENGINE_H
+#ifndef ESPINA_USER_COLOR_ENGINE_H
+#define ESPINA_USER_COLOR_ENGINE_H
 
-#include "EspinaCore_Export.h"
-
-#include "Core/ColorEngines/IColorEngine.h"
+#include "GUI/ColorEngines/ColorEngine.h"
 
 #include <QMap>
 
 namespace EspINA
 {
-  class EspinaCore_EXPORT UserColorEngine
+  class EspinaGUI_EXPORT UserColorEngine
   : public ColorEngine
   {
   public:
     explicit UserColorEngine();
 
-    virtual QColor color(SegmentationPtr seg);
-    virtual LUTPtr lut  (SegmentationPtr seg);
+    virtual QColor color(SegmentationAdapterPtr seg);
+    virtual LUTSPtr lut (SegmentationAdapterPtr seg);
     virtual ColorEngine::Composition supportedComposition() const
     { return ColorEngine::Color; }
 
@@ -46,9 +44,9 @@ namespace EspINA
     QMap<QString, QColor> m_userColors;
     QList<QColor>         m_colors;
     int                   m_lastColor;
-    QMap<QString, vtkSmartPointer<vtkLookupTable> > m_LUT;
+    QMap<QString, LUTSPtr> m_LUT;
   };
 
 }// namespace EspINA
 
-#endif // USERCOLORENGINE_H
+#endif // ESPINA_USER_COLOR_ENGINE_H

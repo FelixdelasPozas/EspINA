@@ -91,7 +91,7 @@ void RectangularRegionSliceSelector::update()
   Nm bounds[6];
   m_region->bounds(bounds);
 
-  int i = normalDirIndex(m_plane);
+  int i = normalCoordinateIndex(m_plane);
   m_leftWidget->setText(QString("%1(%2)")
                                .arg(m_leftLabel)
                                .arg(bounds[2*i]));
@@ -108,7 +108,7 @@ void RectangularRegionSliceSelector::leftWidgetClicked()
     Nm bounds[6];
     m_region->bounds(bounds);
 
-    int i = normalDirIndex(m_plane);
+    int i = normalCoordinateIndex(m_plane);
 
     bounds[2*i] = m_view->slicingPosition();
 
@@ -128,7 +128,7 @@ void RectangularRegionSliceSelector::rightWidgetClicked()
     Nm bounds[6];
     m_region->bounds(bounds);
 
-    int i = normalDirIndex(m_plane);
+    int i = normalCoordinateIndex(m_plane);
 
     bounds[2*i+1] = m_view->slicingPosition();
 

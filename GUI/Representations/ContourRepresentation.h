@@ -25,7 +25,7 @@
 #include "GUI/Representations/Representation.h"
 
 #include <Core/Analysis/Data/VolumetricData.h>
-#include <GUI/View/SliceView.h>
+#include <Core/Utils/NmVector3.h>
 
 // VTK
 #include <vtkSmartPointer.h>
@@ -40,11 +40,13 @@ class vtkTexture;
 
 namespace EspINA
 {
+
+  class RepresentationSettings;
   class TransparencySelectionHighlighter;
   class SliceView;
   class VolumeView;
 
-  using SegmentationVolumeSPtr = std::shared_ptr<VolumetricData<itkVolumeType>>;
+  using DefaultVolumetricDataSPtr = std::shared_ptr<VolumetricData<itkVolumeType>>;
 
   class EspinaGUI_EXPORT ContourRepresentation
   : public Representation
@@ -54,9 +56,13 @@ namespace EspINA
       typedef enum { tiny = 0, small, medium, large, huge } LineWidth;
       typedef enum { normal = 0, dotted, dashed } LinePattern;
 
-      ContourRepresentation(SegmentationVolumeSPtr data,
+      ContourRepresentation(DefaultVolumetricDataSPtr data,
                             RenderView      *view);
       virtual ~ContourRepresentation() {};
+      
+      virtual setPlane(Plane plane);
+      
+      virtual setSlice(Nm slice);
 
       virtual RepresentationSettings *settingsWidget();
 
@@ -64,7 +70,7 @@ namespace EspINA
 
       virtual void setHighlighted(bool highlighted);
 
-      virtual bool isInside(Nm point[3]);
+      virtual bool isInside(const NmVector3& point);
 
       virtual RenderableView canRenderOnView() const
       { return Representation::RenderableView(Representation::RENDERABLEVIEW_SLICE); }
@@ -100,7 +106,7 @@ namespace EspINA
 
     private:
       void generateTexture();
-      SegmentationVolumeSPtr m_data;
+      DefaultVolumetricDataSPtr m_data;
 
       vtkSmartPointer<vtkImageReslice>         m_reslice;
       vtkSmartPointer<vtkVoxelContour2D>       m_voxelContour;
@@ -116,8 +122,9 @@ namespace EspINA
       Nm m_minSpacing;
     };
 
-    typedef boost::shared_ptr<ContourRepresentation> ContourRepresentationSPtr;
-    typedef QList<ContourRepresentationSPtr> ContourRepresentationSList;
-
+    using ContourRepresentationPtr  = ContourRepresentation *;
+    using ContourRepresentationSPtr = std::shared_ptr<ContourRepresentation>;
+    using ContourRepresentationSList = QList<ContourRepresentationSPtr>;
+    
 } /* namespace EspINA */
 #endif /* CONTOURREPRESENTATION_H_ */

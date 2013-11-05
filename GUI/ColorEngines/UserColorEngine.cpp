@@ -17,8 +17,7 @@
  */
 
 #include "UserColorEngine.h"
-
-#include "Core/Model/Segmentation.h"
+#include <GUI/Model/CategoryAdapter.h>
 
 #include <vtkColorTransferFunction.h>
 #include <vtkMath.h>
@@ -45,7 +44,7 @@ m_lastColor(0)
 }
 
 //-----------------------------------------------------------------------------
-QColor UserColorEngine::color(SegmentationPtr seg)
+QColor UserColorEngine::color(SegmentationAdapterPtr seg)
 {
   QString user = seg->users().last();
 
@@ -58,7 +57,7 @@ QColor UserColorEngine::color(SegmentationPtr seg)
 }
 
 //-----------------------------------------------------------------------------
-LUTPtr UserColorEngine::lut(SegmentationPtr seg)
+LUTSPtr UserColorEngine::lut(SegmentationAdapterPtr seg)
 {
   // Get (or create if it doesn't exit) the lut for the segmentations' images
   QString lutName = seg->users().join("");
@@ -82,13 +81,14 @@ LUTPtr UserColorEngine::lut(SegmentationPtr seg)
   }
   else
   {
+    Q_ASSERT(false);
     // fix a corner case when a segmentation and it's user entry have been deleted
     // but the lookuptable hasn't, so when the segmentation and user are been
     // created again with a different color the ColorEngine returns the lookuptable
     // with the old color.
     double rgb[3];
     m_LUT[lutName]->GetColor(1, rgb);
-    QColor segColor = seg->taxonomy()->color();
+    QColor segColor = seg->category()->color();
 
     if (segColor != QColor(rgb[0], rgb[1], rgb[2]))
       m_LUT[lutName]->SetTableValue(1, segColor.redF(), segColor.greenF(), segColor.blueF(), (seg->isSelected() ? SELECTED_ALPHA : UNSELECTED_ALPHA));

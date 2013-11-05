@@ -42,7 +42,7 @@ class vtkImageConstantPad;
 namespace EspINA
 {
   class EspinaCore_EXPORT MarchingCubesMesh
-  : public MeshRepresentation
+  : public MeshData
   {
     Q_OBJECT
   public:

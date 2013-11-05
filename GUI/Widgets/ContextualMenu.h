@@ -24,6 +24,7 @@
 
 #include <Core/EspinaTypes.h>
 #include "GUI/Model/ViewItemAdapter.h"
+#include <GUI/View/SelectableView.h>
 
 #include <QMenu>
 
@@ -36,7 +37,7 @@ namespace EspINA
     explicit ContextualMenu(QWidget *parent = 0)
     : QMenu(parent) {}
 
-    virtual void setSelection(ViewItemAdapterList selection) = 0;
+    virtual void setSelection(SelectableView::Selection selection) = 0;
   };
 
   using ContextualMenuSPtr = std::shared_ptr<ContextualMenu>;

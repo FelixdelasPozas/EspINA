@@ -125,20 +125,8 @@ bool Channel::hasExtension(const ChannelExtension::Type& type) const
   {
     if (extension->type() == type) return true;
   }
-  
+
   return false;
-}
-
-//------------------------------------------------------------------------
-void Channel::initializeExtensions()
-{
-
-}
-
-//------------------------------------------------------------------------
-void Channel::invalidateExtensions()
-{
-
 }
 
 //------------------------------------------------------------------------

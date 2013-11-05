@@ -46,7 +46,7 @@ namespace EspINA {
   public:
     typedef unsigned int Id;
   public:
-    explicit Task(SchedulerSPtr scheduler);
+    explicit Task(SchedulerSPtr scheduler = SchedulerSPtr());
     virtual ~Task();
 
     void setId(Id id) { m_id = id;}

@@ -22,7 +22,7 @@
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
-QColor MultiColorEngine::color(SegmentationPtr seg)
+QColor MultiColorEngine::color(SegmentationAdapterPtr seg)
 {
   if (m_engines.isEmpty())
     return QColor(Qt::red);
@@ -66,14 +66,14 @@ QColor MultiColorEngine::color(SegmentationPtr seg)
 }
 
 //-----------------------------------------------------------------------------
-LUTPtr MultiColorEngine::lut(SegmentationPtr seg)
+LUTSPtr MultiColorEngine::lut(SegmentationAdapterPtr seg)
 {
   if (m_engines.size() == 1)
     return m_engines.first()->lut(seg);
 
   double alpha = 0.8;
   QColor c = color(seg);
-  LUTPtr seg_lut = LUTPtr::New();
+  LUTSPtr seg_lut = LUTSPtr::New();
   seg_lut->Allocate();
   seg_lut->SetNumberOfTableValues(2);
   seg_lut->Build();
@@ -89,20 +89,20 @@ ColorEngine::Composition MultiColorEngine::supportedComposition() const
 {
   ColorEngine::Composition composition = None;
 
-  foreach(ColorEnginePtr engine, m_engines)
+  foreach(ColorEngineSPtr engine, m_engines)
     composition |= engine->supportedComposition();
 
   return composition;
 }
 
 //-----------------------------------------------------------------------------
-void MultiColorEngine::addColorEngine(ColorEnginePtr engine)
+void MultiColorEngine::add(ColorEngineSPtr engine)
 {
   m_engines << engine;
 }
 
 //-----------------------------------------------------------------------------
-void MultiColorEngine::removeColorEngine(ColorEnginePtr engine)
+void MultiColorEngine::remove(ColorEngineSPtr engine)
 {
   m_engines.removeAll(engine);
 }

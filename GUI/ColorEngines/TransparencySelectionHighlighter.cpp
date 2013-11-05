@@ -18,8 +18,6 @@
 
 #include "TransparencySelectionHighlighter.h"
 
-#include "Core/Model/Segmentation.h"
-
 #include <QDebug>
 
 using namespace EspINA;
@@ -41,7 +39,7 @@ QColor TransparencySelectionHighlighter::color(const QColor& original,
 }
 
 //-----------------------------------------------------------------------------
-LUTPtr TransparencySelectionHighlighter::lut(const QColor& original,
+LUTSPtr TransparencySelectionHighlighter::lut(const QColor& original,
                                              bool highlight)
 {
   QColor segColor = color(original, highlight);
@@ -58,7 +56,7 @@ LUTPtr TransparencySelectionHighlighter::lut(const QColor& original,
       segColor.alphaF()
     };
 
-    LUTPtr segLUT = LUTPtr::New();
+    LUTSPtr segLUT = LUTSPtr::New();
     segLUT->Allocate();
     segLUT->SetNumberOfTableValues(2);
     segLUT->Build();

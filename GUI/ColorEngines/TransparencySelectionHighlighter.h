@@ -17,25 +17,24 @@
 */
 
 
-#ifndef TRANSPARENCYSELECTIONHIGHLIGHTER_H
-#define TRANSPARENCYSELECTIONHIGHLIGHTER_H
+#ifndef ESPINA_TRANSPARENCY_SELECTION_HIGHLIGHTER_H
+#define ESPINA_TRANSPARENCY_SELECTION_HIGHLIGHTER_H
 
-#include "EspinaCore_Export.h"
 
-#include "Core/ColorEngines/IColorEngine.h"
+#include "GUI/ColorEngines/ColorEngine.h"
 
 #include <QMap>
 
 namespace EspINA
 {
 // NOTE 2012-10-11 Consider unifying its interface with ColorEngine
-class EspinaCore_EXPORT TransparencySelectionHighlighter
+class EspinaGUI_EXPORT TransparencySelectionHighlighter
 {
-  typedef QMap<QString, LUTPtr> LUTMap;
+  using LUTMap = QMap<QString, LUTSPtr>;
 
 public:
-  QColor color(const QColor &original, bool highlight=false);
-  LUTPtr lut  (const QColor &original, bool highlight=false);
+  QColor  color(const QColor &original, bool highlight=false);
+  LUTSPtr lut  (const QColor &original, bool highlight=false);
 
 private:
   QString colorKey(const QColor &color) const;
@@ -46,4 +45,4 @@ private:
 
 }// namespace EspINA
 
-#endif // TRANSPARENCYSELECTIONHIGHLIGHTER_H
+#endif // ESPINA_TRANSPARENCY_SELECTION_HIGHLIGHTER_H

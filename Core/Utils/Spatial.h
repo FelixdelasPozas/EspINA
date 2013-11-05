@@ -53,8 +53,15 @@ namespace EspINA {
     return plane == Plane::XY? 2:(plane == Plane::YZ?0:1);
   }
 
-  constexpr int normalDirIndex(const Plane plane)
+  constexpr int normalCoordinateIndex(const Plane plane)
   { return idx(plane); }
+
+  constexpr Plane toPlane(int i)
+  {
+    return i == 0?Plane::YZ:(i == 1?Plane::XZ:Plane::XY);
+  }
+
+  using Nm = double;
 }
 
 

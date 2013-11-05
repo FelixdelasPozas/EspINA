@@ -17,15 +17,13 @@
  */
 #include "NumberColorEngine.h"
 
-#include "Core/Model/Segmentation.h"
-
 using namespace EspINA;
 
 const double SELECTED_ALPHA   = 1.0;
 const double UNSELECTED_ALPHA = 0.6;
 
 //-----------------------------------------------------------------------------
-QColor NumberColorEngine::color(SegmentationPtr seg)
+QColor NumberColorEngine::color(SegmentationAdapterPtr seg)
 {
   if (!seg)
     return Qt::red;
@@ -34,14 +32,14 @@ QColor NumberColorEngine::color(SegmentationPtr seg)
 }
 
 //-----------------------------------------------------------------------------
-LUTPtr NumberColorEngine::lut(SegmentationPtr seg)
+LUTSPtr NumberColorEngine::lut(SegmentationAdapterPtr seg)
 {
   // Get (or create if it doesn't exit) the lut for the segmentations' images
   QString lutName = QString::number(seg->number());
 //   if (seg->isSelected())
 //     lutName.append("_selected");
 
-  vtkSmartPointer<vtkLookupTable> seg_lut;
+  LUTSPtr seg_lut;
 
   if (!m_LUT.contains(lutName))
   {

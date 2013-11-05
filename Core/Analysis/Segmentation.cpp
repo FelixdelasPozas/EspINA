@@ -59,7 +59,6 @@ void Segmentation::addExtension(SegmentationExtensionSPtr extension) throw (Segm
     throw SegmentationExtension::Existing_Extension();
 
   extension->setSegmentation(this);
-  extension->initialize();
 
   m_extensions.insert(extension->type(), extension);
 }
@@ -69,8 +68,6 @@ void Segmentation::deleteExtension(SegmentationExtensionSPtr extension) throw (S
 {
   if (!m_extensions.keys().contains(extension->type()))
     throw SegmentationExtension::Extension_Not_Found();
-
-  extension->invalidate();
 
   m_extensions.remove(extension->type());
 }
@@ -123,20 +120,6 @@ SegmentationExtension::InfoTagList Segmentation::informationTags() const
     list << extension->availableInformations();
 
   return list;
-}
-
-//------------------------------------------------------------------------
-void Segmentation::initializeExtensions()
-{
-  for(auto extension: m_extensions.values())
-    extension->initialize();
-}
-
-//------------------------------------------------------------------------
-void Segmentation::invalidateExtensions()
-{
-  for(auto extension: m_extensions.values())
-    extension->invalidate();
 }
 
 //------------------------------------------------------------------------

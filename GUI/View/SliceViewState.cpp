@@ -26,20 +26,12 @@
 
 using namespace EspINA;
 
-double AxialSliceMatrix[16] =
-{
-  1,  0,  0,  0,
-  0,  1,  0,  0,
-  0,  0,  1,  0,
-  0,  0,  0,  1
-};
-
 //-----------------------------------------------------------------------------
 void SliceView::AxialState::setCrossHairs(vtkPolyData* hline,
                                           vtkPolyData* vline,
-                                          double center[3],
-                                          double bounds[6],
-                                          double slicingStep[3])
+                                          const NmVector3& center,
+                                          const Bounds&    bounds,
+                                          const NmVector3& slicingStep)
 {
   // the -0.1 is needed to draw the crosshair over the actors, right now the
   // segmentation's actors are been drawn -0.05 over the channel's actors at
@@ -57,13 +49,7 @@ void SliceView::AxialState::setCrossHairs(vtkPolyData* hline,
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::AxialState::setSlicingPosition(vtkMatrix4x4* matrix, double value)
-{
-  matrix->SetElement(2, 3, value);
-}
-
-//-----------------------------------------------------------------------------
-void SliceView::AxialState::updateCamera(vtkCamera* camera, double center[3])
+void SliceView::AxialState::updateCamera(vtkCamera* camera, const NmVector3& center)
 {
   double oldPos[3];
   camera->GetPosition(oldPos);
@@ -76,26 +62,11 @@ void SliceView::AxialState::updateCamera(vtkCamera* camera, double center[3])
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::AxialState::updateSlicingMatrix(vtkMatrix4x4* matrix)
-{
-  matrix->DeepCopy(AxialSliceMatrix);
-}
-
-//-----------------------------------------------------------------------------
-double SagitalSliceMatrix[16] =
-{
-  0,  0, -1,  0,
-  1,  0,  0,  0,
-  0, -1,  0,  0,
-  0,  0,  0,  1
-};
-
-//-----------------------------------------------------------------------------
 void SliceView::SagittalState::setCrossHairs(vtkPolyData* hline,
                                              vtkPolyData* vline,
-                                             double center[3],
-                                             double bounds[6],
-                                             double slicingStep[3])
+                                             const NmVector3& center,
+                                             const Bounds&    bounds,
+                                             const NmVector3& slicingStep)
 {
   // the +0.1 is needed to draw the crosshair over the actors, right now the
   // segmentation's actors are been drawn +0.05 over the channel's actors at
@@ -113,13 +84,6 @@ void SliceView::SagittalState::setCrossHairs(vtkPolyData* hline,
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::SagittalState::setSlicingPosition(vtkMatrix4x4* matrix,
-                                                double value)
-{
-  matrix->SetElement(0, 3, value);
-}
-
-//-----------------------------------------------------------------------------
 void SliceView::SagittalState::updateActor(vtkProp3D* actor)
 {
   actor->RotateX(-90);
@@ -128,7 +92,7 @@ void SliceView::SagittalState::updateActor(vtkProp3D* actor)
 
 //-----------------------------------------------------------------------------
 void SliceView::SagittalState::updateCamera(vtkCamera* camera,
-                                            double center[3])
+                                            const NmVector3& center)
 {
   camera->SetPosition(center[0] + 1,center[1], center[2]);
   camera->SetFocalPoint(center[0], center[1], center[2]);
@@ -136,26 +100,11 @@ void SliceView::SagittalState::updateCamera(vtkCamera* camera,
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::SagittalState::updateSlicingMatrix(vtkMatrix4x4* matrix)
-{
-  matrix->DeepCopy(SagitalSliceMatrix);
-}
-
-//-----------------------------------------------------------------------------
-double CoronalSliceMatrix[16] =
-{
-  1,  0,  0,  0,
-  0,  0,  1,  0,
-  0, -1,  0,  0,
-  0,  0,  0,  1
-};
-
-//-----------------------------------------------------------------------------
-void SliceView::CoronalState::setCrossHairs(vtkPolyData* hline,
-                                            vtkPolyData* vline,
-                                            double center[3],
-                                            double bounds[6],
-                                            double slicingStep[3])
+void SliceView::CoronalState::setCrossHairs(vtkPolyData*     hline,
+                                            vtkPolyData*     vline,
+                                            const NmVector3& center,
+                                            const Bounds&    bounds,
+                                            const NmVector3& slicingStep)
 {
   // the +0.1 is needed to draw the crosshair over the actors, right now the
   // segmentation's actors are been drawn -0.05 over the channel's actors at
@@ -173,12 +122,6 @@ void SliceView::CoronalState::setCrossHairs(vtkPolyData* hline,
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::CoronalState::setSlicingPosition(vtkMatrix4x4* matrix, double value)
-{
-  matrix->SetElement(1, 3, value);
-}
-
-//-----------------------------------------------------------------------------
 void SliceView::CoronalState::updateActor(vtkProp3D* actor)
 {
   actor->RotateX(-90);
@@ -186,15 +129,9 @@ void SliceView::CoronalState::updateActor(vtkProp3D* actor)
 
 //-----------------------------------------------------------------------------
 void SliceView::CoronalState::updateCamera(vtkCamera* camera,
-                                           double center[3])
+                                           const NmVector3& center)
 {
   camera->SetPosition(center[0], center[1]+1, center[2]);
   camera->SetFocalPoint(center[0], center[1], center[2]);
   camera->SetViewUp(0, 0, -1);
-}
-
-//-----------------------------------------------------------------------------
-void SliceView::CoronalState::updateSlicingMatrix(vtkMatrix4x4* matrix)
-{
-  matrix->DeepCopy(CoronalSliceMatrix);
 }

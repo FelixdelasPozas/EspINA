@@ -45,6 +45,13 @@ namespace EspINA
   using RendererList  = QList<RendererPtr>;
   using RendererSList = QList<RendererSPtr>;
 
+  enum RenderableType {
+    CHANNEL,
+    SEGMENTATION,
+  };
+
+  Q_DECLARE_FLAGS(RenderableItems, RenderableType);
+
   /// Base class which define the API to render and manage
   /// item visibily in Espina Views (currently only supported
   /// for VolumeView class)
@@ -80,14 +87,7 @@ namespace EspINA
 
     virtual bool isHidden() { return !m_enable; }
 
-    enum RenderableType {
-      CHANNEL,
-      SEGMENTATION,
-    };
-
-    Q_DECLARE_FLAGS(RenderabledItems, EspINA::Renderer::RenderableType);
-
-    virtual RenderabledItems getRenderableItemsType() { return RenderabledItems(); }
+    virtual RenderableItems renderableItems() { return RenderableItems(); }
 
     enum RendererTypes
     {
@@ -100,14 +100,16 @@ namespace EspINA
     virtual RendererType getRenderType() { return RendererType(RENDERER_UNDEFINED_VIEW); }
 
     // naive item filtering, to be modified/enhanced in the future
-    virtual bool itemCanBeRendered(ItemAdapterPtr item) { return true; }
+    virtual bool canRender(ItemAdapterPtr item)
+    { return true; }
+
 
     // return the number of elements actually been managed by this renderer
-    virtual int itemsBeenRendered() = 0;
+    virtual int numberOfRenderedItems() = 0;
 
-    virtual SelectableView::Selection pick(int x, int y, Nm z, vtkSmartPointer<vtkRenderer> renderer, RenderabledItems itemType = RenderabledItems(), bool repeat = false) = 0;
+    virtual SelectableView::Selection pick(int x, int y, Nm z, vtkSmartPointer<vtkRenderer> renderer, RenderableItems itemType = RenderableItems(), bool repeat = false) = 0;
 
-    virtual NmVector3 getPickCoordinates() const = 0;
+    virtual NmVector3 pickCoordinates() const = 0;
 
   public slots:
     virtual void setEnable(bool value)
@@ -135,7 +137,10 @@ namespace EspINA
     RenderView* m_view;
   };
 
-  Q_DECLARE_OPERATORS_FOR_FLAGS(Renderer::RenderabledItems)
+  bool EspinaGUI_EXPORT canRender(RendererSPtr renderer, RenderableType type);
+
+
+  Q_DECLARE_OPERATORS_FOR_FLAGS(RenderableItems)
   Q_DECLARE_OPERATORS_FOR_FLAGS(Renderer::RendererType)
 }// namespace EspINA
 

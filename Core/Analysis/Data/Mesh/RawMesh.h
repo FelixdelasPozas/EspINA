@@ -23,6 +23,7 @@
 #include "EspinaCore_Export.h"
 
 #include <Core/Analysis/Data/MeshData.h>
+#include "MeshProxy.h"
 
 #include <vtkSmartPointer.h>
 
@@ -45,7 +46,7 @@ namespace EspINA
     { return RawMesh::TYPE; }
 
     virtual DataProxySPtr createProxy() const
-    { DataProxySPtr proxy{ new MeshProxySPtr() }; return proxy; }
+    { return DataProxySPtr{new MeshProxySPtr() }; }
 
     Snapshot snapshot() const
     { return Snapshot(); }

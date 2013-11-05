@@ -84,21 +84,23 @@ class SliceWidget;
     explicit SliceView(Plane plane = Plane::XY, QWidget* parent = 0);
     virtual ~SliceView();
 
+    void setFitToSlices(bool value);
+
+    bool fitToSlices() const
+    { return m_fitToSlices; }
+
     void setInvertWheel(bool value)
     { m_invertWheel = value; }
 
     bool invertWheel() const
     { return m_invertWheel; }
 
-    void setInvertSliceOrder(bool value)
-    { m_invertSliceOrder = value; }
+    void setInvertSliceOrder(bool value);
 
-    bool invertSliceOrder() const;
+    bool invertSliceOrder() const
+    { return m_invertSliceOrder; }
 
-    void setShowAxis(bool value);
-
-    bool showAxis() const
-    { return m_ShowAxis; }
+    void setRenderers(RendererSList renderers);
 
     Plane plane() const
     { return m_plane; }
@@ -113,7 +115,7 @@ class SliceWidget;
     /** \brief Set the distance between two consecutive slices when displacement is set to SLICES
      *
      */
-    void setSlicingStep(const NmVector3 steps);
+    void setSlicingStep(const NmVector3& steps);
 
     NmVector3 slicingStep() const;
 
@@ -128,6 +130,7 @@ class SliceWidget;
     void setThumbnailVisibility(bool visible);
 
     virtual void addWidget   (EspinaWidget* widget);
+
     virtual void removeWidget(EspinaWidget* eWidget);
 
     virtual void addActor   (vtkProp *actor);
@@ -199,6 +202,8 @@ class SliceWidget;
     void segmentationSelected(SegmentationAdapterPtr, bool);
 
     void sliceChanged(Plane, Nm);
+    
+    void selectionChanged(SelectableView::Selection);
 
   protected:
     /// Update GUI controls
@@ -220,6 +225,8 @@ class SliceWidget;
     SelectableView::Selection pickSegmentations(double vx, double vy, bool repeatable = true);
 
     void selectPickedItems(bool append);
+
+    SelectableView::Selection currentSelection();
 
     /// Converts point from Display coordinates to World coordinates
     Selector::WorldRegion worldRegion(const Selector::DisplayRegion &region, ViewItemAdapterPtr item);
@@ -267,15 +274,12 @@ class SliceWidget;
     // VTK View
     vtkSmartPointer<vtkRenderer>    m_thumbnail;
     vtkSmartPointer<vtkAxisActor2D> m_ruler;
-    bool                            m_rulerVisibility;
-    bool                            m_fitToSlices;
 
     // View State
     NmVector3 m_crosshairPoint;
     NmVector3 m_slicingStep;
 
-    vtkMatrix4x4* m_slicingMatrix;
-    State* m_state;
+    std::unique_ptr<State> m_state;
 
     bool m_showThumbnail;
 
@@ -293,16 +297,18 @@ class SliceWidget;
     vtkSmartPointer<vtkPolyData> m_channelBorderData, m_viewportBorderData;
     vtkSmartPointer<vtkActor>    m_channelBorder, m_viewportBorder;
 
-    bool          m_sceneReady;
-    RendererSList m_renderers;
+    bool               m_sceneReady;
 
     // Representations
     QMap<EspinaWidget *, SliceWidget *> m_widgets;
 
     Plane m_plane;
-    bool  m_invertWheel;
+    int   m_normalCoord;
+
+    bool  m_fitToSlices;
     bool  m_invertSliceOrder;
-    bool  m_ShowAxis;
+    bool  m_invertWheel;
+    bool  m_rulerVisibility;
 
     friend class Representation;
   };

@@ -18,13 +18,13 @@
 
 // EspINA
 #include "ContourRepresentation.h"
-#include "GraphicalRepresentationEmptySettings.h"
+#include "RepresentationEmptySettings.h"
 #include "ContourRepresentationSettings.h"
-#include <Core/ColorEngines/TransparencySelectionHighlighter.h>
+#include <GUI/ColorEngines/TransparencySelectionHighlighter.h>
 #include <Core/EspinaTypes.h>
-#include <GUI/QtWidget/SliceView.h>
-#include <GUI/QtWidget/VolumeView.h>
-#include <GUI/vtkWidgets/vtkVoxelContour2D.h>
+#include <GUI/View/SliceView.h>
+#include <GUI/View/VolumeView.h>
+#include <GUI/View/Widgets/Contour/vtkVoxelContour2D.h>
 
 // VTK
 #include <vtkActor.h>
@@ -44,9 +44,9 @@ using namespace EspINA;
 TransparencySelectionHighlighter *ContourRepresentation::s_highlighter = new TransparencySelectionHighlighter();
 
 //-----------------------------------------------------------------------------
-ContourRepresentation::ContourRepresentation(SegmentationVolumeSPtr data,
+ContourRepresentation::ContourRepresentation(DefaultVolumetricDataSPtr data,
                                              RenderView      *view)
-: SegmentationGraphicalRepresentation(view)
+: Representation(view)
 , m_data(data)
 , m_width(medium)
 , m_pattern(normal)
@@ -56,7 +56,7 @@ ContourRepresentation::ContourRepresentation(SegmentationVolumeSPtr data,
 }
 
 //-----------------------------------------------------------------------------
-GraphicalRepresentationSettings *ContourRepresentation::settingsWidget()
+RepresentationSettings *ContourRepresentation::settingsWidget()
 {
   return new  ContourRepresentationSettings();
 }
@@ -66,9 +66,9 @@ void ContourRepresentation::setColor(const QColor &color)
 {
   Representation::setColor(color);
 
-  if (m_actor != NULL)
+  if (m_actor != nullptr)
   {
-    vtkSmartPointer<vtkLookupTable> lut = s_highlighter->lut(m_color, m_highlight);
+    LUTSPtr lut = s_highlighter->lut(m_color, m_highlight);
 
     double rgba[4];
     s_highlighter->lut(m_color, m_highlight)->GetTableValue(1, rgba);
@@ -82,9 +82,9 @@ void ContourRepresentation::setColor(const QColor &color)
 //-----------------------------------------------------------------------------
 void ContourRepresentation::setHighlighted(bool highlighted)
 {
-  SegmentationGraphicalRepresentation::setHighlighted(highlighted);
+  Representation::setHighlighted(highlighted);
 
-  if (m_actor != NULL)
+  if (m_actor != nullptr)
   {
     double rgba[4];
     s_highlighter->lut(m_color, m_highlight)->GetTableValue(1, rgba);
@@ -98,22 +98,21 @@ void ContourRepresentation::setHighlighted(bool highlighted)
 //-----------------------------------------------------------------------------
 bool ContourRepresentation::hasActor(vtkProp *actor) const
 {
-  if (m_actor == NULL)
+  if (m_actor == nullptr)
     return false;
 
   return m_actor.GetPointer() == actor;
 }
 
 //-----------------------------------------------------------------------------
-bool ContourRepresentation::isInside(Nm point[3])
+  bool ContourRepresentation::isInside(const NmVector3 &point)
 {
   Q_ASSERT(m_data.get());
-  Q_ASSERT(m_data->toITK().IsNotNull());
 
-  itkVolumeType::IndexType voxel = m_data->index(point[0], point[1], point[2]);
-
-  return m_data->volumeRegion().IsInside(voxel)
-  && m_data->toITK()->GetPixel(voxel) == SEG_VOXEL_VALUE;
+  Bounds bounds{'[', point[0], point[0], point[1], point[1], point[2], point[2], ']'};
+  itkImageType voxel = m_data->itkImage(bounds);
+  
+  return (SEG_BG_VALUE == *(static_cast<unsigned char*>(voxel.GetBufferPointer()));
 }
 
 //-----------------------------------------------------------------------------
@@ -124,8 +123,9 @@ void ContourRepresentation::initializePipeline()
 
   SliceView *view = reinterpret_cast<SliceView *>(m_view);
 
+    
   m_reslice = vtkSmartPointer<vtkImageReslice>::New();
-  m_reslice->SetInputConnection(m_data->toVTK());
+  m_reslice->SetInputConnection(m_data->itkImage());
   m_reslice->SetOutputDimensionality(2);
   m_reslice->SetResliceAxes(slicingMatrix(view));
   m_reslice->AutoCropOutputOn();
@@ -192,7 +192,7 @@ void ContourRepresentation::initializePipeline()
 //-----------------------------------------------------------------------------
 void ContourRepresentation::updateRepresentation()
 {
-  if (m_actor != NULL)
+  if (m_actor != nullptr)
   {
     m_reslice->UpdateWholeExtent();
     m_mapper->UpdateWholeExtent();
@@ -206,7 +206,7 @@ QList<vtkProp*> ContourRepresentation::getActors()
 {
   QList<vtkProp *> list;
 
-  if (m_actor == NULL)
+  if (m_actor == nullptr)
     initializePipeline();
 
   list << m_actor.GetPointer();
@@ -215,25 +215,25 @@ QList<vtkProp*> ContourRepresentation::getActors()
 }
 
 //-----------------------------------------------------------------------------
-GraphicalRepresentationSPtr ContourRepresentation::cloneImplementation(SliceView *view)
+RepresentationSPtr ContourRepresentation::cloneImplementation(SliceView *view)
 {
   ContourRepresentation *representation = new ContourRepresentation(m_data, view);
   representation->setView(view);
 
-  return GraphicalRepresentationSPtr(representation);
+  return RepresentationSPtr(representation);
 }
 
 //-----------------------------------------------------------------------------
 void ContourRepresentation::updateVisibility(bool visible)
 {
-  if (m_actor != NULL)
+  if (m_actor != nullptr)
     m_actor->SetVisibility(visible);
 }
 
 //-----------------------------------------------------------------------------
 void ContourRepresentation::updatePipelineConnections()
 {
-  if (m_actor == NULL)
+  if (m_actor == nullptr)
     return;
 
   if (m_reslice->GetInputConnection(0,0) != m_data->toVTK())
@@ -252,7 +252,7 @@ void ContourRepresentation::setLineWidth(ContourRepresentation::LineWidth width)
   m_width = width;
   updateWidth();
 
-  foreach (GraphicalRepresentationSPtr clone, m_clones)
+  foreach (RepresentationSPtr clone, m_clones)
   {
     ContourRepresentation *contourClone = dynamic_cast<ContourRepresentation *>(clone.get());
     contourClone->setLineWidth(width);
@@ -274,7 +274,7 @@ void ContourRepresentation::setLinePattern(ContourRepresentation::LinePattern pa
   m_pattern = pattern;
   updatePattern();
 
-  foreach (GraphicalRepresentationSPtr clone, m_clones)
+  foreach (RepresentationSPtr clone, m_clones)
   {
     ContourRepresentation *contourClone = dynamic_cast<ContourRepresentation *>(clone.get());
     contourClone->setLinePattern(pattern);
@@ -325,16 +325,16 @@ void ContourRepresentation::updatePattern()
         break;
     }
 
-    if (m_actor.GetPointer() != NULL)
+    if (m_actor.GetPointer() != nullptr)
     {
       m_actor->GetProperty()->SetLineStipplePattern(linePattern);
-      m_actor->SetTexture(NULL);
+      m_actor->SetTexture(nullptr);
       m_actor->GetProperty()->Modified();
     }
   }
   else
   {
-    if (m_actor.GetPointer() != NULL)
+    if (m_actor.GetPointer() != nullptr)
     {
       generateTexture();
       m_actor->SetTexture(m_texture);

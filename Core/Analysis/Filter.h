@@ -63,9 +63,7 @@ namespace EspINA
 
     unsigned int numberOfOutputs() const;
 
-    OutputIdList availableOutputIds() const;
-
-    OutputSList outputs() const {return m_outputs.values();}
+    OutputSList outputs() const {return m_outputs;}
 
     /** \brief Return whether or not i is a valid output for the filter
      *
@@ -105,12 +103,7 @@ namespace EspINA
      */
     bool fetchOutputData(Output::Id id);
 
-    void createOutput(Output::Id id);
-
-    virtual DataSPtr createDataProxy(Output::Id id, const Data::Type &type) = 0;
-
-    virtual void addData(Output::Id id, DataSPtr  data);
-    virtual void addData(Output::Id id, DataSList dataList);
+    //virtual DataSPtr createDataProxy(Output::Id id, const Data::Type &type) = 0;
 
     virtual void run() { update(); }
 
@@ -121,15 +114,13 @@ namespace EspINA
 
     /// Method which actually executes the filter to generate output oId
     virtual void execute(Output::Id id) = 0;
-    
+
     virtual bool invalidateEditedRegions() = 0;
 
   protected:
-    using OutputMap = QMap<Output::Id, OutputSPtr>;
-
     Type        m_type;
     OutputSList m_inputs;
-    OutputMap   m_outputs;
+    OutputSList m_outputs;
   };
 } // namespace EspINA
 

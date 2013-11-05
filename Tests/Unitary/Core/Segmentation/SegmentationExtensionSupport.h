@@ -30,9 +30,7 @@ class DummySegmentationExtension
   public:
     DummySegmentationExtension() {};
     virtual ~DummySegmentationExtension() {};
-
-    void initialize() {};
-    void invalidate() {};
+    virtual TypeList dependencies() const{ return TypeList(); }
 
     void onSegmentationSet(SegmentationPtr seg) {};
     bool validCategory(const QString &classificationName) const { return true; };
@@ -44,7 +42,7 @@ class DummySegmentationExtension
       return list;
     };
 
-    QVariant information(const InfoTag &tag)
+    QVariant information(const InfoTag &tag) const
     {
       if (tag == InfoTag("Tag1"))
           return QVariant("prueba1");

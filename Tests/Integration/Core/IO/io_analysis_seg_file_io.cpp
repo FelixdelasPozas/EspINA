@@ -29,17 +29,91 @@
 #include <Core/Analysis/Analysis.h>
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Classification.h>
+#include <Core/Analysis/Sample.h>
 #include <Core/MultiTasking/Scheduler.h>
 #include <Core/IO/SegFile.h>
+#include <Core/Factory/FilterFactory.h>
+#include <Core/Factory/CoreFactory.h>
 #include "io_testing_support.h"
 
 using namespace EspINA;
 using namespace EspINA::IO;
 using namespace std;
 
+bool operator!=(Analysis &lhs, Analysis &rhs)
+{
+  if (print(lhs.classification()) != print(rhs.classification()))
+  {
+    cerr << "Classification missmatch" << endl;
+    return true;
+  }
+
+  if (lhs.samples().size() != rhs.samples().size())
+  {
+    cerr << "Samples size missmatch" << endl;
+    return true;
+  }
+
+  if (lhs.channels().size() != rhs.channels().size())
+  {
+    cerr << "Channels size missmatch" << endl;
+    return true;
+  }
+
+  if (lhs.segmentations().size() != rhs.segmentations().size())
+  {
+    cerr << "Segmentations size missmatch" << endl;
+    return true;
+  }
+
+  if (lhs.extensionProviders().size() != rhs.extensionProviders().size())
+  {
+    cerr << "Extension Providers size missmatch" << endl;
+    return true;
+  }
+
+  if (lhs.content()->vertices().size() != rhs.content()->vertices().size())
+  {
+    cerr << "Content vertices size missmatch" << endl;
+    return true;
+  }
+
+  if (lhs.content()->edges().size() != rhs.content()->edges().size())
+  {
+    cerr << "Contetn edges size missmatch" << endl;
+    return true;
+  }
+
+  if (lhs.relationships()->vertices().size() != rhs.relationships()->vertices().size())
+  {
+    cerr << "Relationships vertices size missmatch" << endl;
+    return true;
+  }
+
+  if (lhs.relationships()->edges().size() != rhs.relationships()->edges().size())
+  {
+    cerr << "Relationships edges size missmatch" << endl;
+    return true;
+  }
+
+  return false;
+}
+
 int io_analysis_seg_file_io( int argc, char** argv )
 {
+  class DummyFilterFactory
+  : public FilterFactory
+  {
+    virtual FilterSPtr createFilter(OutputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const
+    {
+      return FilterSPtr{new IO_Testing::DummyFilter()};
+    }
+  } dummyFactory;
+
   bool error = false;
+
+  CoreFactorySPtr factory{new CoreFactory()};
+  factory->registerFilter(&dummyFactory, "DummyFilter");
 
   Analysis analysis;
 
@@ -51,6 +125,11 @@ int io_analysis_seg_file_io( int argc, char** argv )
   channel->setName("channel");
 
   analysis.add(channel);
+
+  SampleSPtr sample{new Sample("C3P0")};
+  analysis.add(sample);
+
+  analysis.addRelation(sample, channel, "Stain");
 
   QFileInfo file("analysis.seg");
   try {
@@ -64,12 +143,20 @@ int io_analysis_seg_file_io( int argc, char** argv )
   AnalysisSPtr analysis2;
   try
   {
-   analysis2 = SegFile::load(file);
-  } catch (...) 
+   analysis2 = SegFile::load(file, factory);
+  } catch (...)
   {
     cerr << "Couldn't load seg file" << endl;
     error = true;
   }
+
+  if (analysis != *(analysis2.get()))
+  {
+    cerr << "Loaded analysis don't match saved analysis" << endl;
+    error = true;
+  }
+
+  file.absoluteDir().remove(file.fileName());
 
   return error;
 }

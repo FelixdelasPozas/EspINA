@@ -49,7 +49,7 @@ void Filter::restoreState(const State& state)
 //----------------------------------------------------------------------------
 State Filter::saveState() const
 {
-
+  return State();
 }
 
 //----------------------------------------------------------------------------
@@ -87,9 +87,9 @@ bool Filter::update()
   }
   else
   {
-    foreach(Output::Id id, availableOutputIds())
+    for(int i = 0; i < m_outputs.size(); ++i)
     {
-      update(id);
+      update(i);
     }
   }
 }
@@ -103,7 +103,7 @@ bool Filter::update(Output::Id id)
    if (invalidateRegions || outputNeedsUpdate)
    {
      // Invalidate previous edited regions
-     if (invalidateRegions && m_outputs.contains(id))
+     if (invalidateRegions && id < m_outputs.size())
      {
        m_outputs[id]->clearEditedRegions();
      }
@@ -117,7 +117,7 @@ bool Filter::update(Output::Id id)
 
        execute(id);
 
-       if (m_outputs.contains(id))
+       if (id < m_outputs.size())
        {
          //m_outputs[id]->restoreEditedRegions(m_cacheDir, cacheOutputId(oId));
        }
@@ -125,25 +125,6 @@ bool Filter::update(Output::Id id)
    }
 }
 
-void Filter::addData(Output::Id id, DataSPtr data)
-{
-
-}
-
-void Filter::addData(Output::Id id, DataSList dataList)
-{
-
-}
-
-OutputIdList Filter::availableOutputIds() const
-{
-
-}
-
-void Filter::createOutput(Output::Id id)
-{
-
-}
 
 //----------------------------------------------------------------------------
 Filter::Filter(OutputSList inputs, Filter::Type type, SchedulerSPtr scheduler)

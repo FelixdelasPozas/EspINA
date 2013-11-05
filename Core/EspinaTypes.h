@@ -67,8 +67,6 @@ namespace EspINA
 
   using itkVolumeType = itk::Image<unsigned char , 3>;
 
-  using Nm = double;
-
   const itkVolumeType::PixelType SEG_VOXEL_VALUE = 255;
   const itkVolumeType::PixelType SEG_BG_VALUE = 0;
 

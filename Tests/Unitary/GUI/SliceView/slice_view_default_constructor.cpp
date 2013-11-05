@@ -26,30 +26,16 @@
  * 
  */
 
-#include "GUI/ModelFactory.h"
+#include "GUI/View/SliceView.h"
 
-#include "Core/MultiTasking/Scheduler.h"
-
-#include "model_factory_testing_support.h"
-
-using namespace std;
 using namespace EspINA;
-using namespace EspINA::Testing;
+using namespace std;
 
-
-int model_factory_create_template_filter(int argc, char** argv)
+int slice_view_default_constructor(int argc, char** argv)
 {
   bool error = false;
 
-  SchedulerSPtr sch;
-  ModelFactory factory(sch);
-
-  Filter::Type type{"Dummy"};
-  auto filter = factory.createFilter<DummyFilter>(OutputSList(), type);
-
-  filter->get()->dummyMethod();
-  filter->setFilterInspector(FilterInspectorSPtr());
-  filter->output(0);
+  SliceView view;
 
   return error;
 }

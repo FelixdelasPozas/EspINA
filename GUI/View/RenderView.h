@@ -29,6 +29,7 @@
 #include <GUI/Representations/Representation.h>
 #include <GUI/Representations/Renderers/Renderer.h>
 #include <GUI/Widgets/ContextualMenu.h>
+#include <GUI/ColorEngines/ColorEngine.h>
 
 // Qt
 #include <QMenu>
@@ -55,12 +56,12 @@ namespace EspINA
       double     brightness;
       double     contrast;
       double     opacity;
-      OutputSPtr output;
       TimeStamp  timeStamp;
       QColor     stain;
       bool       visible;
 
-      RepresentationList representations;
+      OutputAdapterSPtr   output;
+      RepresentationSList representations;
     };
 
     struct SegmentationState
@@ -68,11 +69,11 @@ namespace EspINA
       Nm         depth;
       QColor     color;
       bool       highlited;
-      OutputSPtr output;
       TimeStamp  timeStamp;
       bool       visible;
 
-      RepresentationList representations;
+      OutputAdapterSPtr   output;
+      RepresentationSList representations;
     };
 
   public:
@@ -84,6 +85,12 @@ namespace EspINA
 
     SelectorSPtr selector() const
     { return m_selector; }
+
+    void setColorEngine(ColorEngineSPtr engine)
+    { m_colorEngine = engine; }
+
+    ColorEngineSPtr colorEngine() const
+    { return m_colorEngine; }
 
     virtual void reset() = 0;
 
@@ -170,15 +177,18 @@ namespace EspINA
     void removeRepresentations(SegmentationState &state);
 
   protected:
-    SelectorSPtr m_selector;
+    SelectorSPtr    m_selector;
+    ColorEngineSPtr m_colorEngine;
+
     QVTKWidget*  m_view;
     vtkSmartPointer<vtkRenderer> m_renderer;
+
 
     Bounds    m_sceneBounds;
     NmVector3 m_sceneResolution;// Min distance between 2 voxels in each axis
 
-    unsigned int m_numEnabledSegmentationRenders;
     unsigned int m_numEnabledChannelRenders;
+    unsigned int m_numEnabledSegmentationRenders;
 
     ContextualMenuSPtr m_contextMenu;
 

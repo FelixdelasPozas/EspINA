@@ -28,6 +28,7 @@
 
 // EspINA
 #include <Core/EspinaTypes.h>
+#include <Core/Utils/NmVector3.h>
 
 class vtkProp3D;
 class vtkProp;
@@ -93,6 +94,30 @@ namespace EspINA
     virtual QColor color() const
     { return m_color; }
 
+    /// Brightness value in range [-1,1]
+    virtual void setBrightness(double value)
+    { m_brightness = value; }
+
+    /// Brightness value in range [-1,1]
+    double brightness() const
+    { return m_brightness; }
+
+    /// Contrast value in range [0,2]
+    virtual void setContrast(double value)
+    { m_contrast = value; }
+
+    /// Contrast value in range [0,2]
+    double contrast() const
+    { return m_contrast; }
+
+    /// Opacity value in range [0,1]
+    virtual void setOpacity(double value)
+    { m_opacity = value; }
+
+    /// Opacity value in range [0,1]
+    double opacity() const
+    { return m_opacity; }
+
     virtual void setHighlighted(bool highlighted)
     { m_highlight = highlighted; }
 
@@ -108,7 +133,7 @@ namespace EspINA
     bool isVisible() const
     { return m_visible && m_active; }
 
-    virtual bool isInside(Nm point[3]) = 0;
+    virtual bool isInside(const NmVector3& point) const = 0;
 
     virtual RenderableView canRenderOnView() const { return RENDERABLEVIEW_UNDEFINED; };
 
@@ -121,18 +146,31 @@ namespace EspINA
 
     virtual QList<vtkProp*> getActors() = 0;
 
+    void setCrosshairPoint(const NmVector3& point)
+    { m_crosshair = point; onCrosshairChanged(m_crosshair); }
+
+    NmVector3 crosshairPoint() const
+    { return m_crosshair; }
+
   protected:
     virtual RepresentationSPtr cloneImplementation(SliceView *view) = 0;
     virtual RepresentationSPtr cloneImplementation(VolumeView *view) = 0;
 
     virtual void updateVisibility(bool visible) = 0;
 
-    vtkMatrix4x4 *slicingMatrix(SliceView *view) const;
+    virtual void onCrosshairChanged(const NmVector3& point) = 0;
+
 
   protected:
-    QColor              m_color;
-    bool                m_highlight;
+    double m_brightness;
+    double m_contrast;
+    double m_opacity;
+    QColor m_color;
+    bool   m_highlight;
+
     RenderView*   m_view;
+    NmVector3     m_crosshair;
+
     RepresentationSList m_clones;
 
   private:
@@ -142,55 +180,6 @@ namespace EspINA
   };
 
   using RepresentationTypeList = QList<Representation::Type>;
-//   class EspinaGUI_EXPORT ChannelGraphicalRepresentation
-//   : public Representation
-//   {
-//   public:
-//     explicit ChannelGraphicalRepresentation(EspinaRenderView *view);
-// 
-//     /// Brightness value in range [-1,1]
-//     virtual void setBrightness(double value)
-//     { m_brightness = value; }
-// 
-//     /// Brightness value in range [-1,1]
-//     double brightness() const
-//     { return m_brightness; }
-// 
-//     /// Contrast value in range [0,2]
-//     virtual void setContrast(double value)
-//     { m_contrast = value; }
-// 
-//     /// Contrast value in range [0,2]
-//     double contrast() const
-//     { return m_contrast; }
-// 
-//     /// Opacity value in range [0,1]
-//     virtual void setOpacity(double value)
-//     { m_opacity = value; }
-// 
-//     /// Opacity value in range [0,1]
-//     double opacity() const
-//     { return m_opacity; }
-// 
-//   protected:
-//     double            m_brightness;
-//     double            m_contrast;
-//     double            m_opacity;
-//   };
-
-//   typedef boost::shared_ptr<ChannelGraphicalRepresentation> ChannelGraphicalRepresentationSPtr;
-//   typedef QList<ChannelGraphicalRepresentationSPtr> ChannelGraphicalRepresentationList;
-// 
-//   class EspinaGUI_EXPORT SegmentationGraphicalRepresentation
-//   : public Representation
-//   {
-//   public:
-//     explicit SegmentationGraphicalRepresentation(EspinaRenderView *view)
-//     : Representation(view) {}
-//   };
-// 
-//   typedef boost::shared_ptr<SegmentationGraphicalRepresentation> SegmentationGraphicalRepresentationSPtr;
-//   typedef QList<SegmentationGraphicalRepresentationSPtr> SegmentationGraphicalRepresentationList;
 
   Q_DECLARE_OPERATORS_FOR_FLAGS(Representation::RenderableView)
 } // namespace EspINA

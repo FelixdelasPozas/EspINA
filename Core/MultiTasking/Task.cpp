@@ -49,14 +49,20 @@ Task::Task(SchedulerSPtr scheduler)
 , m_id{0}
 , m_isThreadAttached(false)
 {
-  moveToThread(scheduler->thread());
+  if (m_scheduler != nullptr)
+  {
+    moveToThread(m_scheduler->thread());
+  }
 }
 
 //-----------------------------------------------------------------------------
 Task::~Task()
 {
   std::cout << "Destroying " << m_description.toStdString() << " in " << (m_isThreadAttached?"attached":"") << " thread " << QThread::currentThread() << std::endl;
-  m_scheduler->removeTask(this);
+  if (m_scheduler != nullptr)
+  {
+    m_scheduler->removeTask(this);
+  }
   
   m_mutex.lock();
   if (m_isThreadAttached) thread()->quit();
@@ -70,13 +76,22 @@ void Task::setPriority(const int value)
 
   if (previous != value) {
     m_priority = value;
-    m_scheduler->changePriority(this, previous);
+
+    if (m_scheduler != nullptr)
+    {
+      m_scheduler->changePriority(this, previous);
+    }
   }
 }
 
 //-----------------------------------------------------------------------------
 void Task::submit() {
-  m_scheduler->addTask(this);
+  if (m_scheduler != nullptr)
+  {
+    m_scheduler->addTask(this);
+  } else {
+    run();
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -139,7 +154,7 @@ bool Task::canExecute() {
 void Task::dispatcherPause()
 {
   m_mutex.lock();
-  std::cout << m_description.toStdString() << " has been paused" << std::endl;
+  //std::cout << m_description.toStdString() << " has been paused" << std::endl;
   m_pendingPause = true;
   m_mutex.unlock();
 }
@@ -149,7 +164,7 @@ void Task::dispatcherResume()
 {
   m_mutex.lock();
   if (!m_pendingUserPause) {
-    std::cout << m_description.toStdString() << " has been resumed" << std::endl;
+    //std::cout << m_description.toStdString() << " has been resumed" << std::endl;
     m_paused.wakeAll();
   }
   m_mutex.unlock();
@@ -160,7 +175,6 @@ bool Task::isDispatcherPaused()
 {
   return m_pendingPause;
 }
-
 
 class TestThread 
 : public QThread {
@@ -175,7 +189,7 @@ void Task::start()
 {
   QMutexLocker lock(&m_mutex);
   
-  std::cout << "Starting " << description().toStdString() << " inside thread " << thread() << std::endl;
+  //std::cout << "Starting " << description().toStdString() << " inside thread " << thread() << std::endl;
   
   if (!m_isThreadAttached) {
     TestThread *thread = new TestThread();

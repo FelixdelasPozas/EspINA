@@ -19,7 +19,6 @@ add_executable(SparseVolume_Tests
   ${SparseVolume_Tests}
   ${SUBJECT_MOCS}
   ${CORE_DIR}/Analysis/Data.cpp
-  ${CORE_DIR}/Analysis/Data/VolumetricData.cpp
   ${CORE_DIR}/Utils/Bounds.cpp
   ${CORE_DIR}/Utils/BinaryMask.cpp
   ../Testing_Support.cpp

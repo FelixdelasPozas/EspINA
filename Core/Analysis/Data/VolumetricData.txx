@@ -17,22 +17,18 @@
  *
  */
 
-#include "VolumetricData.h"
 #include <Core/Analysis/Data/Volumetric/VolumetricDataProxy.h>
-#include <Core/Analysis/DataProxy.h>
 
 // #include <itkMetaImageIO.h>
 // #include <itkImageFileWriter.h>
 // #include <QDir>
 
-using namespace EspINA;
-
-
-const Data::Type VOLUMETRIC_TYPE = "VolumetricData";
-
-template<class T>
-DataProxySPtr VolumetricData<T>::createProxy() const
-{ return DataProxySPtr{new VolumetricDataProxy<T>()}; }
+namespace EspINA 
+{
+  template <class T>
+  DataProxySPtr VolumetricData<T>::createProxy() const
+  { return DataProxySPtr{new VolumetricDataProxy<T>()}; }
+}
 
 // //----------------------------------------------------------------------------
 

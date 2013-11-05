@@ -2,7 +2,7 @@
  * vtkPlanarSplitRepresentation2D.cpp
  *
  *  Created on: Nov 6, 2012
- *      Author: Félix de las Pozas Álvarez
+ *      Author: Fï¿½lix de las Pozas ï¿½lvarez
  */
 
 // EspINA
@@ -95,7 +95,7 @@ void vtkPlanarSplitRepresentation2D::setPoints(vtkSmartPointer<vtkPoints> points
   if (points->GetNumberOfPoints() == 2)
     points->GetPoint(1, m_point2);
 
-  int i = normalDirIndex(m_plane);
+  int i = normalCoordinateIndex(m_plane);
 
   m_point1[i] = m_epsilon;
   m_point2[i] = m_epsilon;
@@ -113,7 +113,7 @@ void vtkPlanarSplitRepresentation2D::setPoint1(Nm *point)
   this->Renderer->DisplayToWorld();
   this->Renderer->GetWorldPoint(worldPos);
 
-  int i = normalDirIndex(m_plane);
+  int i = normalCoordinateIndex(m_plane);
 
   m_point1[0] = worldPos[0];
   m_point1[1] = worldPos[1];
@@ -137,7 +137,7 @@ void vtkPlanarSplitRepresentation2D::setPoint2(Nm *point)
   this->Renderer->DisplayToWorld();
   this->Renderer->GetWorldPoint(worldPos);
 
-  int i = normalDirIndex(m_plane);
+  int i = normalCoordinateIndex(m_plane);
 
   m_point2[0] = worldPos[0];
   m_point2[1] = worldPos[1];
@@ -183,7 +183,7 @@ void vtkPlanarSplitRepresentation2D::BuildRepresentation()
     m_lineActor->GetProperty()->SetColor(1,1,1);
     m_lineActor->GetProperty()->SetLineWidth(2);
 
-    int i = normalDirIndex(m_plane);
+    int i = normalCoordinateIndex(m_plane);
     m_point1[i] = m_epsilon;
     m_point2[i] = m_epsilon;
     Point1Representation->SetWorldPosition(m_point1);
@@ -322,7 +322,7 @@ void vtkPlanarSplitRepresentation2D::MoveHandle(int handleNum, int X, int Y)
   this->Renderer->DisplayToWorld();
   this->Renderer->GetWorldPoint(worldPos);
 
-  int i = normalDirIndex(m_plane);
+  int i = normalCoordinateIndex(m_plane);
 
   switch(handleNum)
   {

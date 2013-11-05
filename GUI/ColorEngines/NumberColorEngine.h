@@ -16,30 +16,32 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef NUMBERCOLORENGINE_H
-#define NUMBERCOLORENGINE_H
+#ifndef ESPINA_NUMBER_COLOR_ENGINE_H
+#define ESPINA_NUMBER_COLOR_ENGINE_H
 
-#include "EspinaCore_Export.h"
-
-#include "Core/ColorEngines/IColorEngine.h"
+#include "GUI/ColorEngines/ColorEngine.h"
 
 #include <QMap>
 
 namespace EspINA
 {
-  class EspinaCore_EXPORT NumberColorEngine
+  class EspinaGUI_EXPORT NumberColorEngine
   : public ColorEngine
   {
   public:
-    virtual QColor color(SegmentationPtr seg);
-    virtual LUTPtr lut  (SegmentationPtr seg);
+    virtual QColor  color(SegmentationAdapterPtr seg);
+
+    virtual LUTSPtr lut  (SegmentationAdapterPtr seg);
+
     virtual ColorEngine::Composition supportedComposition() const
     { return ColorEngine::Color; }
 
   private:
-    QMap<QString, vtkSmartPointer<vtkLookupTable> > m_LUT;
+    QMap<QString, LUTSPtr> m_LUT;
   };
+
+  using NumberColorEngineSPtr = std::shared_ptr<NumberColorEngine>;
 
 }// namespace EspINA
 
-#endif // NUMBERCOLORENGINE_H
+#endif // ESPINA_NUMBER_COLOR_ENGINE_H

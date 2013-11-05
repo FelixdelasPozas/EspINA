@@ -128,72 +128,18 @@ namespace EspINA
     friend class Output;
   };
 
+
   template<typename T>
   const Data::Type VolumetricData<T>::TYPE = "VolumetricData";
 
   template< class T > using VolumetricDataPtr = VolumetricData<T> *;
   template< class T > using VolumetricDataSPtr = std::shared_ptr<VolumetricData<T>>;
 
-  template< class T > VolumetricDataPtr<T> EspinaCore_EXPORT volumetricData(OutputPtr output); //NOTE: Use viewitem??
+  template< class T > VolumetricDataPtr<T>  EspinaCore_EXPORT volumetricData(OutputPtr output); //NOTE: Use viewitem??
   template< class T > VolumetricDataSPtr<T> EspinaCore_EXPORT volumetricData(OutputSPtr output);
 
-//   /// Get the vtk-equivalent extent defining the volume
-//   void extent(int out[6]) const = 0;
-// 
-// 
-//   /** \brief Volume's voxel's index at given spatial position
-//    *
-//    *  It doesn't check whether the index is valid or not
-//    */
-//   typename T::IndexType index(Nm x, Nm y, Nm z) = 0;
-// 
-//   /// Set voxels at coordinates (x,y,z) to value
-//   ///NOTE: Current implementation will expand the image
-//   ///      when drawing with value != 0
-//   void draw(Nm x, Nm y, Nm z,
-//             itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
-//             bool emitSignal = true) = 0;
-// 
-// 
-//   /// Set voxels inside contour to value
-//   ///NOTE: Current implementation will expand the image
-//   ///      when drawing with value != 0
-//   void draw(vtkPolyData *contour,
-//             Nm slice,
-//             PlaneType plane,
-//             itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
-//             bool emitSignal = true) = 0;
-// 
-//   //NOTE: To Deprecate?
-//   /// Fill output's volume with given value
-//   void fill(itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
-//                     bool emitSignal = true) = 0;
-// 
-//   /// Fill output's volume's region with given value
-//   void fill(const EspinaRegion &region,
-//                     itkVolumeType::PixelType value = SEG_VOXEL_VALUE,
-//                     bool emitSignal = true) = 0;
-// 
-//   using vtkImageSPtr = vtkSmartPointer<vtkImageData>;
-// 
-//   // NOTE: Needs to steal pointer from itkImage
-//   const vtkImageSPtr vtkImage() const = 0;
-//   const vtkImageSPtr vtkImage(const Bounds& bounds) const = 0;
-//     virtual itkVolumeIterator iterator() = 0;
-//     virtual itkVolumeIterator iterator(const EspinaRegion &region) = 0;
-// 
-//     virtual itkVolumeConstIterator constIterator() = 0;
-//     virtual itkVolumeConstIterator constIterator(const EspinaRegion &region) = 0;
-
-  //TODO: Templatizate
-//   using VolumetricDataPtr  = VolumetricData*;
-//   using VolumetricDataSPtr = std::shared_ptr<VolumetricData>;
-// 
-//   VolumetricDataPtr  EspinaCore_EXPORT volumetricData(OutputPtr  output); //NOTE: Use viewitem??
-//   VolumetricDataSPtr EspinaCore_EXPORT volumetricData(OutputSPtr output);
-
-    //bool collision(VolumetricDataSPtr volume) = 0;
-
 } // namespace EspINA
+
+#include "Core/Analysis/Data/VolumetricData.txx"
 
 #endif // ESPINA_VOLUMETRIC_DATA_H

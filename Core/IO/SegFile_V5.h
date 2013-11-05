@@ -41,6 +41,41 @@ namespace EspINA {
                           QuaZip&         zip,
                           ErrorHandlerPtr handler = nullptr);
       private:
+        SampleSPtr createSample(DirectedGraph::Vertex   roVertex,
+                                AnalysisSPtr            analysis,
+                                Persistent::StorageSPtr storage,
+                                CoreFactorySPtr         factory, 
+                                ErrorHandlerPtr         handler = nullptr);
+
+        FilterSPtr createFilter(DirectedGraph::Vertex   roVertex,
+                                DirectedGraphSPtr       content,
+                                DirectedGraph::Vertices loadedVertices,
+                                Persistent::StorageSPtr storage,
+                                CoreFactorySPtr         factory, 
+                                ErrorHandlerPtr         handler = nullptr);
+
+        ChannelSPtr createChannel(DirectedGraph::Vertex   roVertex,
+                                  AnalysisSPtr            analysis,
+                                  DirectedGraphSPtr       content,
+                                  DirectedGraph::Vertices loadedVertices,
+                                  Persistent::StorageSPtr storage,
+                                  CoreFactorySPtr         factory, 
+                                  ErrorHandlerPtr         handler = nullptr);
+
+        SegmentationSPtr createSegmentation(DirectedGraph::Vertex   roVertex,
+                                            AnalysisSPtr            analysis,
+                                            DirectedGraphSPtr       content,
+                                            DirectedGraph::Vertices loadedVertices,
+                                            Persistent::StorageSPtr storage,
+                                            CoreFactorySPtr         factory, 
+                                            ErrorHandlerPtr         handler = nullptr);
+
+        void createExtensionProvider(DirectedGraph::Vertex   roVertex,
+                                     AnalysisSPtr            analysis,
+                                     Persistent::StorageSPtr storage,
+                                     CoreFactorySPtr         factory, 
+                                     ErrorHandlerPtr         handler = nullptr);
+
         void loadContent(AnalysisSPtr            analysis,
                          QuaZip&                 zip,
                          Persistent::StorageSPtr storage,
@@ -51,11 +86,6 @@ namespace EspINA {
                            QuaZip&         zip,
                            ErrorHandlerPtr handler = nullptr);
 
-        PersistentSPtr parseVertex(AnalysisSPtr          analysis,
-                                   DirectedGraphSPtr     content,
-                                   DirectedGraph::Vertex roVertex,
-                                   CoreFactorySPtr       factory, 
-                                   ErrorHandlerPtr       handler = nullptr);
       };
     }
   }

@@ -16,23 +16,21 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef COLORENGINE_H
-#define COLORENGINE_H
+#ifndef ESPINA_COLOR_ENGINE_H
+#define ESPINA_COLOR_ENGINE_H
 
-#include "EspinaCore_Export.h"
-
-#include "Core/EspinaTypes.h"
+#include "EspinaGUI_Export.h"
+#include <GUI/Model/SegmentationAdapter.h>
 
 #include <QColor>
 #include <vtkLookupTable.h>
 #include <vtkSmartPointer.h>
 
-
 namespace EspINA
 {
-  typedef vtkSmartPointer<vtkLookupTable> LUTPtr;
+  using LUTSPtr = vtkSmartPointer<vtkLookupTable>;
 
-  class EspinaCore_EXPORT ColorEngine
+  class EspinaGUI_EXPORT ColorEngine
   : public QObject
   {
     Q_OBJECT
@@ -47,8 +45,8 @@ namespace EspINA
     Q_DECLARE_FLAGS(Composition, Components)
 
   public:
-    virtual QColor color(SegmentationPtr seg) = 0;
-    virtual LUTPtr lut(SegmentationPtr seg) = 0;
+    virtual QColor color(SegmentationAdapterPtr seg) = 0;
+    virtual LUTSPtr lut (SegmentationAdapterPtr seg) = 0;
 
     virtual Composition supportedComposition() const = 0;
 
@@ -56,7 +54,7 @@ namespace EspINA
     void lutModified();
   };
 
-  typedef boost::shared_ptr<ColorEngine> ColorEnginePtr;
+  using ColorEngineSPtr = std::shared_ptr<ColorEngine>;
 
   Q_DECLARE_OPERATORS_FOR_FLAGS(ColorEngine::Composition)
 
