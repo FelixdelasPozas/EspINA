@@ -19,13 +19,9 @@
 #include "ViewManager.h"
 
 // EspINA
-#include <Core/ColorEngines/IColorEngine.h>
-#include <Core/Model/PickableItem.h>
-#include <Core/Model/Segmentation.h>
-#include <GUI/QtWidget/SliceView.h>
-#include <GUI/Tools/IVOI.h>
-#include <Core/EspinaSettings.h>
 #include <Core/Utils/Measure.h>
+#include <GUI/View/RenderView.h>
+#include <GUI/View/View2D.h>
 
 #include <vtkMath.h>
 
@@ -43,25 +39,26 @@ const QString FIT_TO_SLICES ("ViewManager::FitToSlices");
 ViewManager::ViewManager()
 : m_fitToSlices(new QAction(tr("Fit To Slices"), this))
 , m_resolutionUnits(QString("nm"))
-, m_activeChannel(NULL)
-, m_activeTaxonomy(NULL)
+, m_activeChannel(nullptr)
+, m_activeCategory(nullptr)
+, m_viewResolution{1., 1., 1.}
 {
-  QSettings settings(CESVIMA, ESPINA);
+//   QSettings settings(CESVIMA, ESPINA);
   bool fitEnabled;
 
-  if (!settings.allKeys().contains(FIT_TO_SLICES))
-  {
-    settings.setValue(FIT_TO_SLICES, true);
-    fitEnabled = true;
-  }
-  else
-    fitEnabled = settings.value(FIT_TO_SLICES, true).toBool();
+//   if (!settings.allKeys().contains(FIT_TO_SLICES))
+//   {
+//     settings.setValue(FIT_TO_SLICES, true);
+//     fitEnabled = true;
+//   }
+//   else
+//     fitEnabled = settings.value(FIT_TO_SLICES, true).toBool();
 
   m_fitToSlices->setCheckable(true);
   m_fitToSlices->setChecked(fitEnabled);
 
-  connect(m_fitToSlices, SIGNAL(toggled(bool)), this, SLOT(toggleFitToSlices(bool)));
-  m_viewResolution[0] = m_viewResolution[1] = m_viewResolution[2] = 1.0;
+  connect(m_fitToSlices, SIGNAL(toggled(bool)),
+          this,          SLOT(setFitToSlices(bool)));
 }
 
 //----------------------------------------------------------------------------
@@ -130,17 +127,21 @@ void ViewManager::unregisterView(View2D* view)
 void ViewManager::setSelectionEnabled(bool enable)
 {
   foreach(RenderView *view, m_renderViews)
+  {
     view->setSelectionEnabled(enable);
+  }
 }
 
 //----------------------------------------------------------------------------
-void ViewManager::setSelection(ViewManager::Selection selection)
+void ViewManager::setSelection(SelectableView::Selection selection)
 {
-  if (m_selection == selection)
-    return;
+  if (m_selection == selection) return;
+
 
   for (int i = 0; i < m_selection.size(); i++)
+  {
     m_selection[i]->setSelected(false);
+  }
 
   m_selection = selection;
 
@@ -157,13 +158,13 @@ void ViewManager::setSelection(ViewManager::Selection selection)
 }
 
 //----------------------------------------------------------------------------
-SegmentationList ViewManager::selectedSegmentations() const
+SegmentationAdapterList ViewManager::selectedSegmentations() const
 {
-  SegmentationList selection;
+  SegmentationAdapterList selection;
 
-  foreach(PickableItemPtr item, m_selection)
+  foreach(ViewItemAdapterPtr item, m_selection)
   {
-    if (EspINA::SEGMENTATION == item->type())
+    if (ItemAdapter::Type::SEGMENTATION == item->type())
       selection << segmentationPtr(item);
   }
 
@@ -182,7 +183,7 @@ void ViewManager::clearSelection(bool notifyViews)
 }
 
 //----------------------------------------------------------------------------
-void ViewManager::setVOI(IVOISPtr voi)
+void ViewManager::setVOITool(VOIToolSPtr voi)
 {
   if (m_voi && m_voi != voi)
     m_voi->setInUse(false);
@@ -200,7 +201,7 @@ void ViewManager::setVOI(IVOISPtr voi)
 }
 
 //----------------------------------------------------------------------------
-void ViewManager::unsetActiveVOI()
+void ViewManager::unsetActiveVOITool()
 {
   if (m_voi)
   {
@@ -212,7 +213,7 @@ void ViewManager::unsetActiveVOI()
 
 
 //----------------------------------------------------------------------------
-void ViewManager::setActiveTool(IToolSPtr tool)
+void ViewManager::setActiveTool(ToolSPtr tool)
 {
   Q_ASSERT(tool);
 
@@ -225,10 +226,7 @@ void ViewManager::setActiveTool(IToolSPtr tool)
   {
     if (m_voi)
     {
-      double *voiBounds = m_voi->region();
-      if (!vtkMath::AreBoundsInitialized(voiBounds))
-        unsetActiveVOI();
-        //setVOI(IVOISPtr());
+      unsetActiveVOITool();
     }
     m_tool->setInUse(true);
   }
@@ -245,7 +243,7 @@ void ViewManager::unsetActiveTool()
 }
 
 //----------------------------------------------------------------------------
-void ViewManager::unsetActiveTool(IToolSPtr tool)
+void ViewManager::unsetActiveTool(ToolSPtr tool)
 {
   if (m_tool == tool)
   {
@@ -294,17 +292,22 @@ void ViewManager::updateViews()
 }
 
 //----------------------------------------------------------------------------
-void ViewManager::toggleFitToSlices(bool enabled)
+void ViewManager::setFitToSlices(bool enabled)
 {
-  QSettings settings(CESVIMA, ESPINA);
-  settings.setValue(FIT_TO_SLICES, enabled);
-  settings.sync();
+//   QSettings settings(CESVIMA, ESPINA);
+//   settings.setValue(FIT_TO_SLICES, enabled);
+//   settings.sync();
+  foreach(View2D *view, m_sliceViews)
+  {
+    view->setFitToSlices(enabled);
+  }
 }
 
 //----------------------------------------------------------------------------
-void ViewManager::setActiveChannel(ChannelPtr channel)
+void ViewManager::setActiveChannel(ChannelAdapterPtr channel)
 {
   m_activeChannel = channel;
+
   emit activeChannelChanged(channel);
 }
 //----------------------------------------------------------------------------
@@ -336,14 +339,15 @@ void ViewManager::resetViewCameras()
 }
 
 //----------------------------------------------------------------------------
-void ViewManager::updateSegmentationRepresentations(SegmentationPtr segmentation)
+void ViewManager::updateSegmentationRepresentations(SegmentationAdapterPtr segmentation)
 {
-  QStack<SegmentationPtr> itemsStack;
-  SegmentationList segList;
+  QStack<SegmentationAdapterPtr> itemsStack;
+  SegmentationAdapterList segList;
 
   itemsStack.push_front(segmentation);
   segList << segmentation;
 
+  /* TODO 2013-10-05
   while (!itemsStack.isEmpty())
   {
     SegmentationPtr seg = itemsStack.pop();
@@ -357,21 +361,21 @@ void ViewManager::updateSegmentationRepresentations(SegmentationPtr segmentation
           segList << relatedSeg;
         }
       }
-  }
+  } */
 
   foreach(SelectableView *view, m_espinaViews)
   {
-    view->updateSegmentationRepresentations(segList);
+    view->updateRepresentations(segList);
   }
 }
 
 //----------------------------------------------------------------------------
-void ViewManager::updateSegmentationRepresentations(SegmentationList list)
+void ViewManager::updateSegmentationRepresentations(SegmentationAdapterList list)
 {
-  QStack<SegmentationPtr> itemsStack;
-  SegmentationList segList;
+  QStack<SegmentationAdapterPtr> itemsStack;
+  SegmentationAdapterList segList;
 
-  foreach(SegmentationPtr seg, list)
+  foreach(SegmentationAdapterPtr seg, list)
   {
     if (segList.contains(seg))
       continue;
@@ -379,117 +383,94 @@ void ViewManager::updateSegmentationRepresentations(SegmentationList list)
     itemsStack.push_front(seg);
     segList << seg;
 
-    while (!itemsStack.isEmpty())
-    {
-      SegmentationPtr segmentation = itemsStack.pop();
-      foreach(ModelItemSPtr item, segmentation->relatedItems(EspINA::RELATION_OUT))
-        if (item->type() == SEGMENTATION)
-        {
-          SegmentationPtr relatedSeg = segmentationPtr(item.get());
-          if (relatedSeg->isInputSegmentationDependent() && !segList.contains(relatedSeg))
-          {
-            itemsStack.push_front(relatedSeg);
-            segList << relatedSeg;
-          }
-        }
-    }
+//     while (!itemsStack.isEmpty())
+//     {
+//       SegmentationPtr segmentation = itemsStack.pop();
+//       foreach(ModelItemSPtr item, segmentation->relatedItems(EspINA::RELATION_OUT))
+//         if (item->type() == SEGMENTATION)
+//         {
+//           SegmentationPtr relatedSeg = segmentationPtr(item.get());
+//           if (relatedSeg->isInputSegmentationDependent() && !segList.contains(relatedSeg))
+//           {
+//             itemsStack.push_front(relatedSeg);
+//             segList << relatedSeg;
+//           }
+//         }
+//     }
   }
 
   foreach(SelectableView *view, m_espinaViews)
   {
-    view->updateSegmentationRepresentations(segList);
+    view->updateRepresentations(segList);
   }
 }
 
 //----------------------------------------------------------------------------
-void ViewManager::updateChannelRepresentations(ChannelList list)
+void ViewManager::updateChannelRepresentations(ChannelAdapterList list)
 {
   foreach(SelectableView *view, m_espinaViews)
   {
-    view->updateChannelRepresentations(list);
+    view->updateRepresentations(list);
   }
 }
 
 //----------------------------------------------------------------------------
-void ViewManager::showCrosshair(bool value)
+void ViewManager::setCrosshairVisibility(bool value)
 {
-  foreach(RenderView *rView, m_renderViews)
-    rView->showCrosshairs(value);
+  foreach(View2D *rView, m_sliceViews)
+    rView->setCrosshairVisibility(value);
 }
 
-//----------------------------------------------------------------------------
-void ViewManager::addSliceSelectors(SliceSelectorWidget* widget,
-                                    ViewManager::SliceSelectors selectors)
-{
-  foreach(View2D *view, m_sliceViews)
-    view->addSliceSelectors(widget, selectors);
-}
+// //----------------------------------------------------------------------------
+// void ViewManager::addSliceSelectors(SliceSelectorWidget* widget,
+//                                     ViewManager::SliceSelectors selectors)
+// {
+//   foreach(View2D *view, m_sliceViews)
+//     view->addSliceSelectors(widget, selectors);
+// }
+// 
+// //----------------------------------------------------------------------------
+// void ViewManager::removeSliceSelectors(SliceSelectorWidget* widget)
+// {
+//   foreach(View2D *view, m_sliceViews)
+//     view->removeSliceSelectors(widget);
+// }
+// 
 
 //----------------------------------------------------------------------------
-void ViewManager::removeSliceSelectors(SliceSelectorWidget* widget)
-{
-  foreach(View2D *view, m_sliceViews)
-    view->removeSliceSelectors(widget);
-}
-
-
-//----------------------------------------------------------------------------
-QColor ViewManager::color(SegmentationPtr seg)
-{
-  QColor segColor(Qt::blue);
-  if (m_colorEngine)
-    segColor = m_colorEngine->color(seg);
-
-  return segColor;
-}
-
-//----------------------------------------------------------------------------
-LUTPtr ViewManager::lut(SegmentationPtr seg)
-{
-  // Get (or create if it doesn't exit) the lut for the segmentations' images
-  if (m_colorEngine)
-    return m_colorEngine->lut(seg);
-
-  double alpha = 0.8;
-  QColor c(Qt::blue);
-  seg_lut = vtkLookupTable::New();
-  seg_lut->Allocate();
-  seg_lut->SetNumberOfTableValues(2);
-  seg_lut->Build();
-  seg_lut->SetTableValue(0, 0.0, 0.0, 0.0, 0.0);
-  seg_lut->SetTableValue(1, c.redF(), c.greenF(), c.blueF(), alpha);
-  seg_lut->Modified();
-
-  return seg_lut;
-}
-
-//----------------------------------------------------------------------------
-void ViewManager::setColorEngine(ColorEngine* engine)
+void ViewManager::setColorEngine(ColorEngineSPtr engine)
 {
   m_colorEngine = engine;
+
+  foreach(RenderView *view, m_renderViews)
+  {
+    view->setColorEngine(engine);
+  }
+
   updateSegmentationRepresentations();
 }
 
 //----------------------------------------------------------------------------
-void ViewManager::focusViewsOn(Nm *center)
+void ViewManager::focusViewsOn(const NmVector3& point)
 {
   foreach(RenderView *rView, m_renderViews)
-    rView->centerViewOn(center, true);
+    rView->centerViewOn(point, true);
 }
 
 //----------------------------------------------------------------------------
-Nm *ViewManager::viewResolution()
+NmVector3 ViewManager::viewResolution()
 {
   if (m_renderViews.empty())
-    return NULL;
+    return NmVector3{1., 1., 1.};
 
   // ASSERT: the first view is not from type VOLUME and all the views have to
   // have the same view resolution, so we can get the correct resolution from
   // any of them
-  memcpy(m_viewResolution, m_renderViews.first()->sceneResolution(), sizeof(Nm)*3);
+  m_viewResolution = m_renderViews.first()->sceneResolution();
 
   double smaller = std::min(m_viewResolution[0], std::min(m_viewResolution[1], m_viewResolution[2]));
   m_resolutionUnits = Measure(smaller).getUnits();
+
   return m_viewResolution;
 }
 

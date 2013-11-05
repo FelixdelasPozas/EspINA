@@ -101,5 +101,7 @@ namespace EspINA
   using SegmentationAdapterList  = QList<SegmentationAdapterPtr>;
   using SegmentationAdapterSPtr  = std::shared_ptr<SegmentationAdapter>;
   using SegmentationAdapterSList = QList<SegmentationAdapterSPtr>;
+  
+  SegmentationAdapterPtr segmentationPtr(ViewItemAdapterPtr item);
 }
 #endif // ESPINA_SEGMENTATION_ADAPTER_H

@@ -57,6 +57,9 @@ namespace EspINA
   private:
     bool m_selectionEnabled;
   };
+  
+  using SelectableViewPtr  = SelectableView*;
+  using SelectableViewSPtr = std::shared_ptr<SelectableView>;
 
 } // namespace EspINA
 

@@ -33,7 +33,7 @@ namespace EspINA
   class EditorToolBarSettings;
 
   class Brush // TODO 2012-11-27 Crear una clase base para pintar independientemente de lo que se haga con el resultado
-  : public ITool
+  : public Tool
   {
     Q_OBJECT
 

@@ -21,17 +21,17 @@
 // File:    ViewManager.h
 // Purpose: Singleton to register and keep views updated
 //----------------------------------------------------------------------------
-#ifndef VIEWMANAGER_H
-#define VIEWMANAGER_H
+#ifndef ESPINA_VIEW_MANAGER_H
+#define ESPINA_VIEW_MANAGER_H
 
-#include "EspinaGUI_Export.h"
+#include "EspinaSupport_Export.h"
 
 // EspINA
-#include "Core/EspinaTypes.h"
-#include "Core/ColorEngines/IColorEngine.h"
-#include "GUI/Tools/IVOI.h"
-#include "GUI/vtkWidgets/EspinaWidget.h"
 #include <Core/Utils/Measure.h>
+#include <GUI/View/SelectableView.h>
+#include <GUI/View/Widgets/EspinaWidget.h>
+#include <GUI/ColorEngines/ColorEngine.h>
+#include <Support/VOITool.h>
 
 // Qt
 #include <QList>
@@ -51,13 +51,11 @@ namespace EspINA
   class SliceSelectorWidget;
   class RenderView;
   class SelectableView;
-  class ISelector;
-  class ITool;
-  class IVOI;
+  class Selector;
   class View2D;
   class Measure;
 
-  class EspinaGUI_EXPORT ViewManager
+  class EspinaSupport_EXPORT ViewManager
   : public QObject
   {
     Q_OBJECT
@@ -65,67 +63,85 @@ namespace EspINA
     explicit ViewManager();
     ~ViewManager();
 
-    void registerView(SelectableView *view);
-    void registerView(RenderView *view);
-    void registerView(View2D *view);
+    void registerView(SelectableView* view);
+    void registerView(RenderView*     view);
+    void registerView(View2D*         view);
 
-    void unregisterView(SelectableView *view);
-    void unregisterView(RenderView *view);
-    void unregisterView(View2D *view);
+    void unregisterView(SelectableView* view);
+    void unregisterView(RenderView*     view);
+    void unregisterView(View2D*         view);
 
   private:
-    QList<SelectableView *>      m_espinaViews;
-    QList<RenderView *> m_renderViews;
-    QList<View2D *>        m_sliceViews;
+    QList<SelectableView *> m_espinaViews;
+    QList<RenderView *>     m_renderViews;
+    QList<View2D *>         m_sliceViews;
 
     //---------------------------------------------------------------------------
     /*************************** Selection API *********************************/
     //---------------------------------------------------------------------------
   public:
-    typedef QList<PickableItemPtr> Selection; // Ya esta definido en IPicker...
-
-    /// Enable item selection in render views
+    /** \brief Enable item selection in views controlled by the ViewManager
+     * 
+     */
     void setSelectionEnabled(bool enable);
-    /// Synchronize @selection between all registered views
-    void setSelection(Selection selection);
-    /// Returns current selection
-    Selection selection() const { return m_selection; }
-    SegmentationList selectedSegmentations() const;
-    //   const Nm *selectionCenter() const
-    //   { return m_selectionCenter; }
+
+    /** \brief Request all controlled views to update their selection
+     *
+     */
+    void setSelection(SelectableView::Selection selection);
+
+    /** \brief Return selection shared amongs all the views controlled by the ViewManager
+     *
+     */
+    SelectableView::Selection selection() const
+    { return m_selection; }
+
+    // convenience function
+    SegmentationAdapterList selectedSegmentations() const;
+
+    // NOTE: Avoid notify views-->possibly because we are mixing control methods
     void clearSelection(bool notifyViews = true);
 
   signals:
-    void selectionChanged(ViewManager::Selection, bool);
+    void selectionChanged(SelectableView::Selection, bool);
 
   private:
-    Selection m_selection;
+    SelectableView::Selection m_selection;
 
     //---------------------------------------------------------------------------
-    /*************************** Picking API *********************************/
+    /***************************** Tool API **********************************/
     //---------------------------------------------------------------------------
   public:
-    void setVOI(IVOISPtr voi);
-    void unsetActiveVOI();
-    IVOISPtr voi() {return m_voi;}
-    IVOI::Region voiRegion() {return m_voi?m_voi->region():NULL;}
-    /// Set @tool as active tool. If other tool is already active,
-    /// it will be disactivated
-    void setActiveTool(IToolSPtr tool);
-    /// Unset any active tool
+    void setVOITool(VOIToolSPtr voi);
+    void unsetActiveVOITool();
+
+    VOIToolSPtr voiTool()
+    { return m_voi; }
+
+    VOI currentVOI() const
+    { return m_voi?m_voi->currentVOI():VOI(); }
+
+    /** \brief Set @tool as active tool. 
+     *
+     * If other tool is already active, it will be deactivated
+     */
+    void setActiveTool(ToolSPtr tool);
+
     void unsetActiveTool();
-    /// Unset @tool as active tool
-    void unsetActiveTool(IToolSPtr tool);
+
+    void unsetActiveTool(ToolSPtr tool);
+
     /// Filter @view's @event.
     /// Delegate active voi event handling. If the event is not filtered by
     /// active voi, then active tool, if any, filter the event. If it neither
     /// filter the event, the function returns false. Otherwise, returns true.
-    bool filterEvent(QEvent *event, RenderView *view=NULL);
+    bool filterEvent(QEvent *event, RenderView *view=nullptr);
+
     QCursor cursor() const;
 
   private:
-    IVOISPtr  m_voi;
-    IToolSPtr m_tool;
+    VOIToolSPtr m_voi;
+    ToolSPtr    m_tool;
 
     //---------------------------------------------------------------------------
     /***************************** Widget API **********************************/
@@ -138,40 +154,48 @@ namespace EspINA
     /*********************** View Synchronization API **************************/
     //---------------------------------------------------------------------------
   public:
-
     /// Reset Camera
     void resetViewCameras();
+
     /// Focus
-    void focusViewsOn(Nm *);
+    void focusViewsOn(const NmVector3& point);
+
     /// Toggle crosshair
-    void showCrosshair(bool);
-    /// Set Slice Selection flags to all registered Slice Views
-    void addSliceSelectors(SliceSelectorWidget *widget,
-                           ViewManager::SliceSelectors selectors);
-    /// Unset Slice Selection flags to all registered Slice Views
-    void removeSliceSelectors(SliceSelectorWidget *widget);
+    void setCrosshairVisibility(bool visible);
 
-    QAction *fitToSlices() {return m_fitToSlices;}
+//     /// Set Slice Selection flags to all registered Slice Views
+//     void addSliceSelectors(SliceSelectorWidget *widget,
+//                            ViewManager::SliceSelectors selectors);
+//     /// Unset Slice Selection flags to all registered Slice Views
+//     void removeSliceSelectors(SliceSelectorWidget *widget);
 
-    Nm *viewResolution();
+    QAction *fitToSlices()
+    {return m_fitToSlices;}
+
+    NmVector3 viewResolution();
+
     MeasureSPtr measure(Nm distance);
 
   public slots:
     /// Update Segmentation Representation
-    void updateSegmentationRepresentations(SegmentationPtr segmentation);
+    void updateSegmentationRepresentations(SegmentationAdapterPtr segmentation);
+
     /// Update Segmentation Representation
-    void updateSegmentationRepresentations(SegmentationList list = SegmentationList());
+    void updateSegmentationRepresentations(SegmentationAdapterList list = SegmentationAdapterList());
+
     /// Update Channel Representation
-    void updateChannelRepresentations(ChannelList list = ChannelList());
+    void updateChannelRepresentations(ChannelAdapterList list = ChannelAdapterList());
+
     /// Request all registered views to update themselves
     void updateViews();
+
     /// Change fit to slice settings
-    void toggleFitToSlices(bool);
+    void setFitToSlices(bool enabled);
 
 private:
-  QAction *m_fitToSlices;
-  Nm m_viewResolution[3];
-  QString m_resolutionUnits;
+  QAction*  m_fitToSlices;
+  NmVector3 m_viewResolution;
+  QString   m_resolutionUnits;
 
     //---------------------------------------------------------------------------
     /*********************** Active Elements API *******************************/
@@ -180,34 +204,35 @@ private:
     // proper type is required                                                 //
     //---------------------------------------------------------------------------
   public:
-    void setActiveChannel(ChannelPtr channel);
-    ChannelPtr activeChannel() { return m_activeChannel; }
-    void setActiveTaxonomy(TaxonomyElementPtr taxonomy) { m_activeTaxonomy = taxonomy; }
-    TaxonomyElementPtr activeTaxonomy() { return m_activeTaxonomy; }
+    void setActiveChannel(ChannelAdapterPtr channel);
+
+    ChannelAdapterPtr activeChannel() const
+    { return m_activeChannel; }
+
+    void setActiveCategory(CategoryAdapterPtr category)
+    { m_activeCategory = category; }
+
+    CategoryAdapterPtr activeTaxonomy() const
+    { return m_activeCategory; }
 
   signals:
-    void activeChannelChanged(ChannelPtr);
-    void activeTaxonomyChanged(TaxonomyElementPtr);
+    void activeChannelChanged(ChannelAdapterPtr);
+    void activeCategoryChanged(CategoryAdapterPtr);
 
     //---------------------------------------------------------------------------
     /************************* Color Engine API ********************************/
     //---------------------------------------------------------------------------
   public:
-    QColor color(SegmentationPtr seg);
-    LUTPtr lut  (SegmentationPtr seg);
-
-    void setColorEngine(ColorEngine *engine);
+    void setColorEngine(ColorEngineSPtr engine);
 
   private:
-    ChannelPtr         m_activeChannel;
-    TaxonomyElementPtr m_activeTaxonomy;
+    ChannelAdapterPtr  m_activeChannel;
+    CategoryAdapterPtr m_activeCategory;
 
-    ColorEngine *m_colorEngine;
-    vtkSmartPointer<vtkLookupTable> seg_lut;
+    ColorEngineSPtr m_colorEngine;
   };
 
-  Q_DECLARE_OPERATORS_FOR_FLAGS(ViewManager::SliceSelectors)
+//   Q_DECLARE_OPERATORS_FOR_FLAGS(ViewManager::SliceSelectors)
 }
 
-
-#endif // VIEWMANAGER_H
+#endif // ESPINA_VIEW_MANAGER_H

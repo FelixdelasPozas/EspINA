@@ -33,7 +33,7 @@ class QUndoStack;
 namespace EspINA
 {
   class ViewManager;
-  class ITool;
+  class Tool;
   class ModelAdapter;
 
   /// Display Information of all segmentations that have been created
@@ -60,7 +60,7 @@ namespace EspINA
       boost::shared_ptr<QSortFilterProxyModel> m_sort;
       TubularSegmentationFilter::Pointer    m_filter;
       QWidget                              *m_lastWidget;
-      ITool                                *tubularTool;
+      Tool                                *tubularTool;
   };
 }
 #endif // SPINEINFORMATIONDIALOG_H

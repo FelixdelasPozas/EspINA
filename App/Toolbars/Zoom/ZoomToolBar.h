@@ -27,7 +27,7 @@ class QAction;
 namespace EspINA
 {
   class ViewManager;
-  class ITool;
+  class Tool;
   class ZoomTool;
 
   class ZoomToolBar

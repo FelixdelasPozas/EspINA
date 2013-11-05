@@ -16,36 +16,26 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef ESPINA_VOI_TOOL_H
+#define ESPINA_VOI_TOOL_H
 
-#ifndef ITOOL_H
-#define ITOOL_H
-
-#include "EspinaGUI_Export.h"
-
-#include <QObject>
-
-#include <QCursor>
-#include <boost/shared_ptr.hpp>
-
-class QEvent;
+#include "Support/Tool.h"
+#include <GUI/Selectors/Selector.h>
 
 namespace EspINA
 {
-  class RenderView;
+  using VOI = std::shared_ptr<Selector::SelectionMask>;
 
-  class EspinaGUI_EXPORT ITool
-  : public QObject
+  class EspinaSupport_EXPORT VOITool
+  : public Tool
   {
   public:
-    virtual QCursor cursor() const = 0;
-    virtual bool filterEvent(QEvent *e, RenderView *view=NULL) = 0;
-    virtual void setInUse(bool value) = 0;
-    virtual void setEnabled(bool value) = 0;
-    virtual bool enabled() const = 0;
-    virtual void lostEvent(RenderView*) {};
+    typedef double * Region;
+
+    virtual VOI currentVOI() = 0;
   };
 
-  typedef boost::shared_ptr<ITool> IToolSPtr;
+  using VOIToolSPtr = std::shared_ptr<VOITool>;
 } // namespace EspINA
 
-#endif // ITOOL_H
+#endif // IVOI_H

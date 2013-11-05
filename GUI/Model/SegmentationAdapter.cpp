@@ -104,6 +104,11 @@ SegmentationAdapter::~SegmentationAdapter()
 
 }
 
+SegmentationAdapterPtr EspINA::segmentationPtr(ViewItemAdapterPtr item)
+{
+  return dynamic_cast<SegmentationAdapterPtr>(item);
+}
+
 
 // //------------------------------------------------------------------------
 // ModelAdapter::ModelAdapter(EspinaFactory *factory)
