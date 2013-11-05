@@ -31,10 +31,13 @@
 #include "EspinaGUI_Export.h"
 
 // EspINA
-#include "GUI/Representations/GraphicalRepresentation.h"
-#include <Core/OutputRepresentations/VolumeRepresentation.h>
-#include <Core/Model/HierarchyItem.h>
-#include <GUI/QtWidget/SliceView.h>
+#include <Core/Analysis/Data/VolumetricData.h>
+#include <Core/Utils/Spatial.h>
+#include <GUI/Representations/GraphicalRepresentation.h>
+#include <GUI/View/SliceView.h>
+
+// ITK
+#include <itkImageToVTKImageFilter.h>
 
 // VTK
 #include <vtkSmartPointer.h>
@@ -45,32 +48,35 @@ class vtkImageMapToColors;
 class vtkImageShiftScale;
 class vtkImageActor;
 class vtkLookupTable;
+class vtkImageImport;
 
 namespace EspINA
 {
   class TransparencySelectionHighlighter;
   class SliceView;
 
+  using SegmentationVolumeSPtr = std::shared_ptr<VolumetricData<itkVolumeType>>;
+  using ChannelVolumeSPtr = std::shared_ptr<VolumetricData<itkVolumeType>>;
+
   class EspinaGUI_EXPORT ChannelSliceRepresentation
-  : public ChannelGraphicalRepresentation
+  : public Representation
   {
-    Q_OBJECT
   public:
     explicit ChannelSliceRepresentation(ChannelVolumeSPtr data,
                                         SliceView        *view);
-    virtual ~ChannelSliceRepresentation() {};
+    virtual ~ChannelSliceRepresentation();
+
+    virtual RepresentationSettings *settingsWidget();
+
+    virtual void setColor(const QColor &color);
 
     virtual void setBrightness(double value);
 
     virtual void setContrast(double value);
 
-    virtual GraphicalRepresentationSettings *settingsWidget();
-
-    virtual void setColor(const QColor &color);
-
     virtual void setOpacity(double value);
 
-    virtual bool isInside(Nm point[3]);
+    virtual bool isInside(const NmVector3 &point) const;
 
     virtual RenderableView canRenderOnView() const
     { return Representation::RENDERABLEVIEW_SLICE; }
@@ -81,16 +87,22 @@ namespace EspINA
 
     virtual QList<vtkProp*> getActors();
 
-  protected:
-    virtual GraphicalRepresentationSPtr cloneImplementation(SliceView *view);
+    void setPlane(Plane plane)
+    { m_plane = plane; }
 
-    virtual GraphicalRepresentationSPtr cloneImplementation(VolumeView *view)
-    { return GraphicalRepresentationSPtr(); }
+    Plane plane()
+    { return m_plane; }
+
+  protected:
+    virtual RepresentationSPtr cloneImplementation(SliceView *view);
+
+    virtual RepresentationSPtr cloneImplementation(VolumeView *view)
+    { return RepresentationSPtr(); }
 
     virtual void updateVisibility(bool visible);
 
-  private slots:
-    void updatePipelineConnections();
+    virtual void onCrosshairChanged(const NmVector3& point)
+    { updateRepresentation(); }
 
   private:
     void setView(SliceView *view) { m_view = view; };
@@ -98,8 +110,13 @@ namespace EspINA
 
   private:
     ChannelVolumeSPtr m_data;
+    Plane             m_plane;
 
-    vtkSmartPointer<vtkImageReslice>     m_reslice;
+    using ExporterType = itk::ImageToVTKImageFilter<itkVolumeType>;
+
+
+    ExporterType::Pointer                m_exporter;
+    vtkSmartPointer<vtkImageImport>      m_importer;
     vtkSmartPointer<vtkImageMapToColors> m_mapToColors;
     vtkSmartPointer<vtkImageShiftScale>  m_shiftScaleFilter;
     vtkSmartPointer<vtkImageActor>       m_actor;
@@ -107,20 +124,18 @@ namespace EspINA
   };
 
   class EspinaGUI_EXPORT SegmentationSliceRepresentation
-  : public SegmentationGraphicalRepresentation
+  : public Representation
   {
-    Q_OBJECT
   public:
     explicit SegmentationSliceRepresentation(SegmentationVolumeSPtr data,
-                                             SliceView             *view);
+                                             SliceView        *view);
     virtual ~SegmentationSliceRepresentation();
 
-    virtual GraphicalRepresentationSettings *settingsWidget();
+    virtual RepresentationSettings *settingsWidget();
 
     virtual QString serializeSettings();
 
     virtual void restoreSettings(QString settings);
-
 
     virtual void setColor(const QColor &color);
 
@@ -128,7 +143,7 @@ namespace EspINA
 
     virtual void setHighlighted(bool highlighted);
 
-    virtual bool isInside(Nm point[3]);
+    virtual bool isInside(const NmVector3 &point) const;
 
     virtual RenderableView canRenderOnView() const
     { return Representation::RENDERABLEVIEW_SLICE; }
@@ -139,16 +154,21 @@ namespace EspINA
 
     virtual QList<vtkProp*> getActors();
 
-  protected:
-    virtual GraphicalRepresentationSPtr cloneImplementation(SliceView *view);
+    void setPlane(Plane plane)
+    { m_plane = plane; }
 
-    virtual GraphicalRepresentationSPtr cloneImplementation(VolumeView *view)
-    { return GraphicalRepresentationSPtr(); }
+    Plane plane()
+    { return m_plane; }
+
+  protected:
+    virtual RepresentationSPtr cloneImplementation(SliceView *view);
+
+    virtual RepresentationSPtr cloneImplementation(VolumeView *view)
+    { return RepresentationSPtr(); }
 
     virtual void updateVisibility(bool visible);
 
-  private slots:
-    void updatePipelineConnections();
+    virtual void onCrosshairChanged(const NmVector3& point);
 
   private:
     void setView(SliceView *view) { m_view = view; };
@@ -156,19 +176,23 @@ namespace EspINA
 
   private:
     SegmentationVolumeSPtr m_data;
+    Plane                  m_plane;
 
-    vtkSmartPointer<vtkImageReslice>     m_reslice;
+    using ExporterType = itk::ImageToVTKImageFilter<itkVolumeType>;
+
+    ExporterType::Pointer                m_exporter;
+    vtkSmartPointer<vtkImageImport>      m_importer;
     vtkSmartPointer<vtkImageMapToColors> m_mapToColors;
     vtkSmartPointer<vtkImageActor>       m_actor;
 
     static TransparencySelectionHighlighter *s_highlighter;
   };
 
-  typedef boost::shared_ptr<ChannelSliceRepresentation> ChannelSliceRepresentationSPtr;
-  typedef QList<ChannelSliceRepresentationSPtr> ChannelSliceRepresentationSList;
+  using ChannelSliceRepresentationPtr  = ChannelSliceRepresentation *;
+  using ChannelSliceRepresentationSPtr = std::shared_ptr<ChannelSliceRepresentation>;
 
-  typedef boost::shared_ptr<SegmentationSliceRepresentation> SegmentationSliceRepresentationSPtr;
-  typedef QList<SegmentationSliceRepresentationSPtr> SegmentationSliceRepresentationSList;
+  using SegmentationSliceRepresentationPtr  = SegmentationSliceRepresentation *;
+  using SegmentationSliceRepresentationSPtr = std::shared_ptr<SegmentationSliceRepresentation>;
 
 } // namespace EspINA
 

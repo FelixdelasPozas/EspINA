@@ -28,13 +28,13 @@ RepresentationEmptySettings::RepresentationEmptySettings()
 }
 
 //----------------------------------------------------------------------------
-void RepresentationEmptySettings::Get(RepresentationSPtr representation)
+void RepresentationEmptySettings::get(RepresentationSPtr representation)
 {
 
 }
 
 //----------------------------------------------------------------------------
-void RepresentationEmptySettings::Set(RepresentationSPtr representation)
+void RepresentationEmptySettings::set(RepresentationSPtr representation)
 {
 
 }

@@ -1,6 +1,6 @@
 /*
  <one line to give the program's name and a brief idea of what it does.>
- Copyright (C) 2013 Félix de las Pozas Álvarez <felixdelaspozas@gmail.com>
+ Copyright (C) 2013 Fï¿½lix de las Pozas ï¿½lvarez <felixdelaspozas@gmail.com>
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -19,23 +19,24 @@
 // EspINA
 #include "SliceRenderer.h"
 #include "GUI/Representations/SliceRepresentation.h"
-#include <GUI/ViewManager.h>
-#include "GUI/QtWidget/EspinaRenderView.h"
-#include <Core/Model/PickableItem.h>
-#include <GUI/QtWidget/SliceView.h>
+#include <GUI/Selectors/Selector.h>
+#include "GUI/View/RenderView.h"
+#include "GUI/Model/ItemAdapter.h"
+#include "GUI/View/SliceView.h"
 
 // VTK
 #include <vtkPropPicker.h>
-#include <QDebug>
 
 // Qt
 #include <QApplication>
+#include <QDebug>
+#include <QMap>
 
 namespace EspINA
 {
   //-----------------------------------------------------------------------------
   SliceRenderer::SliceRenderer(QObject *parent)
-  : IRenderer(parent)
+  : Renderer(parent)
   , m_picker(vtkSmartPointer<vtkPropPicker>::New())
   {
     m_picker->PickFromListOn();
@@ -44,10 +45,10 @@ namespace EspINA
   //-----------------------------------------------------------------------------
   SliceRenderer::~SliceRenderer()
   {
-    foreach(PickableItemPtr item, m_representations.keys())
+    foreach(ViewItemAdapterPtr item, m_representations.keys())
     {
       if (m_enable)
-        foreach(GraphicalRepresentationSPtr rep, m_representations[item])
+        foreach(RepresentationSPtr rep, m_representations[item])
         {
           foreach(vtkProp *prop, rep->getActors())
           {
@@ -62,17 +63,17 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  void SliceRenderer::addRepresentation(PickableItemPtr item, GraphicalRepresentationSPtr rep)
+  void SliceRenderer::addRepresentation(ViewItemAdapterPtr item, RepresentationSPtr rep)
   {
-    ChannelSliceRepresentationSPtr channelSlice = boost::dynamic_pointer_cast<ChannelSliceRepresentation>(rep);
-    SegmentationSliceRepresentationSPtr segmentationSlice = boost::dynamic_pointer_cast<SegmentationSliceRepresentation>(rep);
-    if (channelSlice.get() != NULL || segmentationSlice.get() != NULL)
+    SegmentationSliceRepresentationSPtr segSlice = std::dynamic_pointer_cast<SegmentationSliceRepresentation>(rep);
+    ChannelSliceRepresentationSPtr channelSlice = std::dynamic_pointer_cast<ChannelSliceRepresentation>(rep);
+    if ((segSlice.get() != nullptr) || (channelSlice.get() != nullptr))
     {
       if (m_representations.keys().contains(item))
         m_representations[item] << rep;
       else
       {
-        GraphicalRepresentationSList list;
+        RepresentationSList list;
         list << rep;
         m_representations.insert(item, list);
       }
@@ -87,13 +88,14 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  void SliceRenderer::removeRepresentation(GraphicalRepresentationSPtr rep)
+  void SliceRenderer::removeRepresentation(RepresentationSPtr rep)
   {
-    ChannelSliceRepresentationSPtr channelSlice = boost::dynamic_pointer_cast<ChannelSliceRepresentation>(rep);
-    SegmentationSliceRepresentationSPtr segmentationSlice = boost::dynamic_pointer_cast<SegmentationSliceRepresentation>(rep);
-    if (channelSlice.get() != NULL || segmentationSlice.get() != NULL)
+    SegmentationSliceRepresentationSPtr segSlice = std::dynamic_pointer_cast<SegmentationSliceRepresentation>(rep);
+    ChannelSliceRepresentationSPtr channelSlice = std::dynamic_pointer_cast<ChannelSliceRepresentation>(rep);
+
+    if ((segSlice.get() != nullptr) || (channelSlice.get() != nullptr))
     {
-      foreach(PickableItemPtr item, m_representations.keys())
+      foreach(ViewItemAdapterPtr item, m_representations.keys())
         if (m_representations[item].contains(rep))
         {
           if (m_enable)
@@ -112,17 +114,17 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  bool SliceRenderer::managesRepresentation(GraphicalRepresentationSPtr rep)
+  bool SliceRenderer::managesRepresentation(RepresentationSPtr rep)
   {
-    ChannelSliceRepresentationSPtr channelSlice = boost::dynamic_pointer_cast<ChannelSliceRepresentation>(rep);
-    SegmentationSliceRepresentationSPtr segmentationSlice = boost::dynamic_pointer_cast<SegmentationSliceRepresentation>(rep);
-    return (channelSlice.get() != NULL || segmentationSlice.get() != NULL);
+    SegmentationSliceRepresentationSPtr segSlice = std::dynamic_pointer_cast<SegmentationSliceRepresentation>(rep);
+    ChannelSliceRepresentationSPtr channelSlice = std::dynamic_pointer_cast<ChannelSliceRepresentation>(rep);
+    return ((segSlice.get() != nullptr) || (channelSlice.get() != nullptr));
   }
 
   //-----------------------------------------------------------------------------
-  bool SliceRenderer::hasRepresentation(GraphicalRepresentationSPtr rep)
+  bool SliceRenderer::hasRepresentation(RepresentationSPtr rep)
   {
-    foreach (PickableItemPtr item, m_representations.keys())
+    foreach (ViewItemAdapterPtr item, m_representations.keys())
       if (m_representations[item].contains(rep))
         return true;
 
@@ -135,8 +137,8 @@ namespace EspINA
     if (!m_enable)
       return;
 
-    foreach (PickableItemPtr item, m_representations.keys())
-      foreach(GraphicalRepresentationSPtr rep, m_representations[item])
+    foreach (ViewItemAdapterPtr item, m_representations.keys())
+      foreach(RepresentationSPtr rep, m_representations[item])
         foreach(vtkProp* prop, rep->getActors())
         {
           m_view->removeActor(prop);
@@ -153,8 +155,8 @@ namespace EspINA
        return;
 
      QApplication::setOverrideCursor(Qt::WaitCursor);
-     foreach (PickableItemPtr item, m_representations.keys())
-       foreach(GraphicalRepresentationSPtr rep, m_representations[item])
+     foreach (ViewItemAdapterPtr item, m_representations.keys())
+       foreach(RepresentationSPtr rep, m_representations[item])
          foreach(vtkProp* prop, rep->getActors())
          {
            m_view->addActor(prop);
@@ -166,26 +168,32 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  unsigned int SliceRenderer::getNumberOfvtkActors()
+  unsigned int SliceRenderer::numberOfvtkActors()
   {
     unsigned int returnVal = 0;
-    foreach (PickableItemPtr item, m_representations.keys())
-      foreach(GraphicalRepresentationSPtr rep, m_representations[item])
+    foreach (ViewItemAdapterPtr item, m_representations.keys())
+      foreach(RepresentationSPtr rep, m_representations[item])
         if (rep->isVisible()) ++returnVal;
 
     return returnVal;
   }
 
   //-----------------------------------------------------------------------------
-  ViewManager::Selection SliceRenderer::pick(int x, int y, Nm z, vtkSmartPointer<vtkRenderer> renderer, RenderabledItems itemType, bool repeat)
+  SelectableView::Selection SliceRenderer::pick(int x,
+                                                int y,
+                                                Nm z,
+                                                vtkSmartPointer<vtkRenderer> renderer,
+                                                RenderableItems itemType,
+                                                bool repeat)
   {
-    ViewManager::Selection selection;
+    SelectableView::Selection selection;
     QList<vtkProp *> removedProps;
+    SliceView *view = reinterpret_cast<SliceView *>(m_view);
 
     if (!renderer || !renderer.GetPointer() || (!itemType.testFlag(EspINA::CHANNEL) && !itemType.testFlag(EspINA::SEGMENTATION)))
       return selection;
 
-    Nm pickPoint[3] = { static_cast<Nm>(x), static_cast<Nm>(y), ((m_view->getViewType() == AXIAL) ? -SliceView::SEGMENTATION_SHIFT : SliceView::SEGMENTATION_SHIFT) };
+    Nm pickPoint[3] = { static_cast<Nm>(x), static_cast<Nm>(y), ((view->plane() == Plane::XY) ? -SliceView::SEGMENTATION_SHIFT : SliceView::SEGMENTATION_SHIFT) };
 
     while (m_picker->Pick(pickPoint, renderer))
     {
@@ -194,18 +202,21 @@ namespace EspINA
 
       Nm point[3];
       m_picker->GetPickPosition(point);
-      point[m_view->getViewType()] = z;
+      point[normalCoordinateIndex(view->plane())] = z;
 
       m_picker->DeletePickList(pickedProp);
       removedProps << pickedProp;
 
-      foreach(PickableItemPtr item, m_representations.keys())
+      foreach(ViewItemAdapterPtr item, m_representations.keys())
       {
-        if (!itemType.testFlag(item->type()))
-        continue;
+        if (!((item->type() == ViewItemAdapter::Type::CHANNEL && itemType.testFlag(RenderableType::CHANNEL)) ||
+              (item->type() == ViewItemAdapter::Type::SEGMENTATION && itemType.testFlag(RenderableType::SEGMENTATION))))
+          continue;
 
-        foreach(GraphicalRepresentationSPtr rep, m_representations[item])
-          if (rep->isVisible() && rep->hasActor(pickedProp) && rep->isInside(point) && !selection.contains(item))
+        foreach(RepresentationSPtr rep, m_representations[item])
+        {
+          NmVector3 vecPoint{ point[0], point[1], point[2] };
+          if (rep->isVisible() && rep->hasActor(pickedProp) && rep->isInside(vecPoint) && !selection.contains(item))
           {
             selection << item;
 
@@ -219,6 +230,7 @@ namespace EspINA
 
             break;
           }
+        }
       }
     }
 
@@ -229,9 +241,12 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  void SliceRenderer::getPickCoordinates(Nm *point)
+  NmVector3 SliceRenderer::pickCoordinates() const
   {
+    Nm point[3];
     m_picker->GetPickPosition(point);
+
+    return NmVector3{ point[0], point[1], point[2] };
   }
 
 

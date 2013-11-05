@@ -64,9 +64,9 @@ namespace EspINA
 
     /// Following methods are used by view settings' panel and the
     /// view itself to create the corresponding UI to manage rendering
-    virtual const QString name() const       { return QString(); }
-    virtual const QString tooltip() const    { return QString(); }
-    virtual const QIcon icon() const         { return QIcon(); }
+    virtual const QString name()    const { return QString(); }
+    virtual const QString tooltip() const { return QString(); }
+    virtual const QIcon icon()      const { return QIcon(); }
 
     /// sets renderer
     virtual void setView(RenderView* view) { m_view = view; }
@@ -83,7 +83,7 @@ namespace EspINA
     virtual RendererSPtr clone() = 0;
 
     // get number of vtkActors added to vtkRendered from this Renderer
-    virtual unsigned int getNumberOfvtkActors() = 0;
+    virtual unsigned int numberOfvtkActors() = 0;
 
     virtual bool isHidden() { return !m_enable; }
 
@@ -97,12 +97,11 @@ namespace EspINA
     };
     Q_DECLARE_FLAGS(RendererType, RendererTypes);
 
-    virtual RendererType getRenderType() { return RendererType(RENDERER_UNDEFINED_VIEW); }
+    virtual RendererType renderType() { return RendererType(RENDERER_UNDEFINED_VIEW); }
 
     // naive item filtering, to be modified/enhanced in the future
     virtual bool canRender(ItemAdapterPtr item)
     { return true; }
-
 
     // return the number of elements actually been managed by this renderer
     virtual int numberOfRenderedItems() = 0;
@@ -138,7 +137,6 @@ namespace EspINA
   };
 
   bool EspinaGUI_EXPORT canRender(RendererSPtr renderer, RenderableType type);
-
 
   Q_DECLARE_OPERATORS_FOR_FLAGS(RenderableItems)
   Q_DECLARE_OPERATORS_FOR_FLAGS(Renderer::RendererType)

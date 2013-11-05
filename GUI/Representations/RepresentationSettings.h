@@ -33,8 +33,8 @@ namespace EspINA
   public:
     virtual ~RepresentationSettings(){}
 
-    virtual void Get(RepresentationSPtr representation) = 0;
-    virtual void Set(RepresentationSPtr representation) = 0;
+    virtual void get(RepresentationSPtr representation) = 0;
+    virtual void set(RepresentationSPtr representation) = 0;
   };
 
 } // namespace EspINA

@@ -23,16 +23,19 @@
 using namespace EspINA;
 
 //----------------------------------------------------------------------------
-SegmentationSliceRepresentationSettings::SegmentationSliceRepresentationSettings()
+SliceRepresentationSettings::SliceRepresentationSettings()
 : m_init(false)
 {
   setupUi(this);
 }
 
 //----------------------------------------------------------------------------
-void SegmentationSliceRepresentationSettings::Get(GraphicalRepresentationSPtr representation)
+void SliceRepresentationSettings::get(RepresentationSPtr representation)
 {
-  SegmentationSliceRepresentation *sliceRepresentation = dynamic_cast<SegmentationSliceRepresentation *>(representation.get());
+  SegmentationSliceRepresentationSPtr sliceRepresentation = std::dynamic_pointer_cast<SegmentationSliceRepresentation>(representation);
+
+  if (sliceRepresentation.get() == nullptr)
+    return;
 
   int opacity = int(sliceRepresentation->color().alphaF()*100);
 
@@ -51,9 +54,12 @@ void SegmentationSliceRepresentationSettings::Get(GraphicalRepresentationSPtr re
 }
 
 //----------------------------------------------------------------------------
-void SegmentationSliceRepresentationSettings::Set(GraphicalRepresentationSPtr representation)
+void SliceRepresentationSettings::set(RepresentationSPtr representation)
 {
-  SegmentationSliceRepresentation *sliceRepresentation = dynamic_cast<SegmentationSliceRepresentation *>(representation.get());
+  SegmentationSliceRepresentationSPtr sliceRepresentation = std::dynamic_pointer_cast<SegmentationSliceRepresentation>(representation);
+
+  if (sliceRepresentation.get() == nullptr)
+    return;
 
   if (m_init)
   {

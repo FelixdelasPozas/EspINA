@@ -20,21 +20,21 @@
 #ifndef ESPINA_SLICEREPRESENTATIONSETTINGS_H
 #define ESPINA_SLICEREPRESENTATIONSETTINGS_H
 
-#include "GUI/Representations/GraphicalRepresentationSettings.h"
+#include "GUI/Representations/RepresentationSettings.h"
 #include "ui_SliceRepresentationSettings.h"
 
 namespace EspINA
 {
 
-  class SegmentationSliceRepresentationSettings 
-  : public GraphicalRepresentationSettings
+  class SliceRepresentationSettings
+  : public RepresentationSettings
   , private Ui::SliceRepresentationSettings
   {
   public:
-    explicit SegmentationSliceRepresentationSettings();
+    explicit SliceRepresentationSettings();
 
-    virtual void Get(GraphicalRepresentationSPtr representation);
-    virtual void Set(GraphicalRepresentationSPtr representation);
+    virtual void get(RepresentationSPtr representation);
+    virtual void set(RepresentationSPtr representation);
 
   private:
     bool m_init;

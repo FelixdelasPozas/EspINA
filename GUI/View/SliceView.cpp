@@ -202,7 +202,7 @@ void SliceView::setRenderers(RendererSList renderers)
 {
   foreach(RendererSPtr renderer, renderers)
   {
-    if (renderer->getRenderType().testFlag(Renderer::RENDERER_SLICEVIEW))
+    if (renderer->renderType().testFlag(Renderer::RENDERER_SLICEVIEW))
     {
       addRendererControls(renderer->clone());
     }

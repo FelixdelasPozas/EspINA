@@ -34,6 +34,10 @@ qt4_wrap_cpp(GUI_MOC
 #   Representations/SmoothedMeshRepresentation.h
 #   Representations/VolumeGPURepresentation.h
 #   Representations/VolumeRaycastRepresentation.h
+  Representations/Renderers/Renderer.h
+  Representations/Renderers/SliceRenderer.h
+  Representations/SliceRepresentationSettings.h
+  Representations/RepresentationEmptySettings.h
   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
   )
 
@@ -45,7 +49,7 @@ qt4_wrap_ui (GUI_UI
   Widgets/TagSelector.ui
   Representations/RepresentationEmptySettings.ui
 #   Representations/ContourRepresentationSettings.ui
-#   Representations/SliceRepresentationSettings.ui
+  Representations/SliceRepresentationSettings.ui
   )
 
 set (GUI_SOURCES 
@@ -66,6 +70,7 @@ set (GUI_SOURCES
   Model/SampleAdapter.cpp
   Model/SegmentationAdapter.cpp
   Representations/Renderers/Renderer.cpp
+  Representations/Renderers/SliceRenderer.cpp
   Representations/Representation.cpp
   Representations/RepresentationEmptySettings.cpp 
   Selectors/Selector.cpp
@@ -132,8 +137,8 @@ set (GUI_SOURCES
 #   Representations/Renderers/SmoothedMeshRenderer.cpp
 #   Representations/Renderers/VolumetricGPURenderer.cpp
 #   Representations/Renderers/VolumetricRenderer.cpp
-#   Representations/SliceRepresentation.cpp
-#   Representations/SliceRepresentationSettings.cpp 
+  Representations/SliceRepresentation.cpp
+  Representations/SliceRepresentationSettings.cpp 
 #   Representations/SmoothedMeshRepresentation.cpp
 #   Representations/VolumetricGPURepresentation.cpp
 #   Representations/VolumetricRepresentation.cpp
