@@ -27,6 +27,7 @@
  */
 
 #include "classification_testing_support.h"
+#include <Category.h>
 
 using namespace EspINA;
 using namespace std;
@@ -34,26 +35,26 @@ using namespace std;
 int classification_create_category( int argc, char** argv )
 {
   bool error = false;
-  
+
   Classification classification;
   
   QString name1 = "Level 1";
-  CategorySPtr category1= classification.createCategory(name1);
+  CategorySPtr category1= classification.createNode(name1);
   
   error |= TestClassificationName(category1, name1);
 
   QString name2_1 = "Level 1/Level 2/Level 2-1";
-  CategorySPtr category3_1 = classification.createCategory(name2_1);
+  CategorySPtr category3_1 = classification.createNode(name2_1);
   
   error |= TestClassificationName(category3_1, name2_1);
   
   QString name2 = "Level 1/Level 2";
-  CategorySPtr category2 = classification.category(name2);
+  CategorySPtr category2 = classification.node(name2);
   
   error |= TestClassificationName(category2, name2);
   
   QString name2_2 = "Level 1/Level 2/Level 2-2";
-  CategorySPtr category3_2 = classification.createCategory("Level 2-2", category2);
+  CategorySPtr category3_2 = classification.createNode("Level 2-2", category2);
   
   error |= TestClassificationName(category3_2, name2_2);
   

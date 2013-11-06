@@ -20,9 +20,10 @@
 #ifndef ESPINA_CATEGORY_H
 #define ESPINA_CATEGORY_H
 
-//#include "EspinaCore_Export.h"
+#include "Core/EspinaCore_Export.h"
 
 #include "Core/EspinaTypes.h"
+#include "Core/Utils/Tree.h"
 
 // Qt dependencies
 #include <QColor>
@@ -43,7 +44,7 @@ namespace EspINA
    *  Represent a group of individuals with the same characteristics
    */
   //TODO 2013-10-21: Mark edit operations as private, except for Classification
-  class /*EspinaCore_EXPORT*/ Category
+  class EspinaCore_EXPORT Category
   {
 //   public:
 //     static const QString X_DIM;
@@ -147,10 +148,13 @@ namespace EspINA
     QColor  m_color;
     QMap<QString, QVariant> m_properties;
 
-    friend class Classification;
+    template<typename T> friend class Tree;
   };
 
   QString print(CategorySPtr category, int level=0);
+
+  using Classification     = Tree<Category>;
+  using ClassificationSPtr = std::shared_ptr<Classification>;
 
 
 }// namespace EspINA

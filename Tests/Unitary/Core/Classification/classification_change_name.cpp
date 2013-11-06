@@ -26,8 +26,8 @@
  * 
  */
 
-#include "Classification.h"
 #include "classification_testing_support.h"
+#include <Category.h>
 
 using namespace EspINA;
 using namespace std;
@@ -35,16 +35,16 @@ using namespace std;
 int classification_change_name( int argc, char** argv )
 {
   bool error = false;
-  
+
   Classification classification;
-  
+
   QString firstName = "Apples";
-  CategorySPtr category = classification.createCategory(firstName);
-  
+  CategorySPtr category = classification.createNode(firstName);
+
   error |= TestName(category, firstName);
-  
+
   QString secondName = "Oragnes";
-  
+
   category->setName(secondName);
   error |= TestName(category, secondName);
 

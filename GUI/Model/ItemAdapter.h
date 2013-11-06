@@ -73,7 +73,17 @@ namespace EspINA
     virtual PersistentSPtr item() const = 0;
 
     friend class ModelAdapter;
+//     friend bool operator==(ItemAdapterSPtr lhs, PersistentSPtr  rhs);
+//     friend bool operator==(PersistentSPtr  lhs, ItemAdapterSPtr rhs);
   };
+
+//   bool operator==(ItemAdapterSPtr lhs, PersistentSPtr  rhs);
+//   bool operator==(PersistentSPtr  lhs, ItemAdapterSPtr rhs);
+// 
+//   bool operator!=(ItemAdapterSPtr lhs, PersistentSPtr  rhs);
+//   bool operator!=(PersistentSPtr  lhs, ItemAdapterSPtr rhs);
 } // EspINA
+
+
 
 #endif // ESPINA_ITEM_ADAPTER_H

@@ -18,7 +18,6 @@ qt4_wrap_cpp(SUBJECT_MOCS
 )
 
 set(SUBJECT_SOURCES
-  ${SUBJECT_DIR}/Classification.cpp
   ${SUBJECT_DIR}/Category.cpp
 )
 

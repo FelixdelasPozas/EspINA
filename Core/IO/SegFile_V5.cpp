@@ -25,7 +25,6 @@
 #include "ClassificationXML.h"
 
 #include <Core/Analysis/Channel.h>
-#include <Core/Analysis/Classification.h>
 #include <Core/Analysis/Extensions/ExtensionProvider.h>
 #include <Core/Analysis/Filter.h>
 #include <Core/Analysis/Graph/DirectedGraph.h>

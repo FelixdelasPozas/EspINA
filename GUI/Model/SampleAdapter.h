@@ -25,6 +25,11 @@
 
 namespace EspINA
 {
+  class SampleAdapter;
+  using SampleAdapterPtr   = SampleAdapter *;
+  using SampleAdapterSPtr  = std::shared_ptr<SampleAdapter>;
+  using SampleAdapterSList = QList<SampleAdapterSPtr>;
+
   /** \brief Sample 
    * 
    */
@@ -68,11 +73,17 @@ namespace EspINA
 
     friend class ModelFactory;
     friend class ModelAdapter;
+
+    friend bool operator==(SampleAdapterSPtr lhs, SampleSPtr        rhs);
+    friend bool operator==(SampleSPtr        lhs, SampleAdapterSPtr rhs);
   };
 
-  using SampleAdapterPtr   = SampleAdapter *;
-  using SampleAdapterSPtr  = std::shared_ptr<SampleAdapter>;
-  using SampleAdapterSList = QList<SampleAdapterSPtr>;
+  bool operator==(SampleAdapterSPtr lhs, SampleSPtr        rhs);
+  bool operator==(SampleSPtr        lhs, SampleAdapterSPtr rhs);
+
+  bool operator!=(SampleAdapterSPtr lhs, SampleSPtr        rhs);
+  bool operator!=(SampleSPtr        lhs, SampleAdapterSPtr rhs);
+
 }// namespace EspINA
 
 #endif // ESPINA_SAMPLE_ADAPTER_H

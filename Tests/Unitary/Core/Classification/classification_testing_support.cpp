@@ -27,6 +27,8 @@
  */
 #include "classification_testing_support.h"
 
+#include <Core/Analysis/Category.h>
+
 using namespace EspINA;
 using namespace std;
 

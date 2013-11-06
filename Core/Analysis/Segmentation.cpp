@@ -18,7 +18,6 @@
  */
 #include "Segmentation.h"
 #include "Category.h"
-#include "Classification.h"
 
 #include <vtkAlgorithm.h>
 #include <vtkAlgorithmOutput.h>

@@ -22,94 +22,113 @@
 
 using namespace EspINA;
 
-ModelAdapter::ModelAdapter(AnalysisSPtr analysis): QAbstractItemModel()
+//------------------------------------------------------------------------
+ModelAdapter::ModelAdapter(AnalysisSPtr analysis)
+: QAbstractItemModel()
 {
 
 }
 
+//------------------------------------------------------------------------
 ModelAdapter::~ModelAdapter()
 {
 
 }
 
+//------------------------------------------------------------------------
 void ModelAdapter::add(SampleAdapterSPtr sample)
 {
 
 }
 
+//------------------------------------------------------------------------
 void ModelAdapter::add(SampleAdapterSList samples)
 {
 
 }
 
+//------------------------------------------------------------------------
 void ModelAdapter::add(ChannelAdapterSPtr channel)
 {
 
 }
 
+//------------------------------------------------------------------------
 void ModelAdapter::add(ChannelAdapterSList channels)
 {
 
 }
 
+//------------------------------------------------------------------------
 void ModelAdapter::add(SegmentationAdapterSPtr segmentation)
 {
 
 }
 
+//------------------------------------------------------------------------
 void ModelAdapter::add(SegmentationAdapterSList segmentations)
 {
 
 }
 
+//------------------------------------------------------------------------
 void ModelAdapter::addCategory(CategoryAdapterSPtr category, CategoryAdapterSPtr parent)
 {
 
 }
 
+//------------------------------------------------------------------------
 void ModelAdapter::addRelation(ItemAdapterSPtr ancestor, ItemAdapterSPtr succesor, const RelationName& relation)
 {
 
 }
 
+//------------------------------------------------------------------------
 QModelIndex ModelAdapter::categoryIndex(CategoryAdapterPtr category) const
 {
 
 }
 
+//------------------------------------------------------------------------
 QModelIndex ModelAdapter::categoryIndex(CategoryAdapterSPtr category) const
 {
 
 }
 
+//------------------------------------------------------------------------
 QModelIndex ModelAdapter::channelIndex(ChannelAdapterPtr channel) const
 {
 
 }
 
+//------------------------------------------------------------------------
 QModelIndex ModelAdapter::channelIndex(ChannelAdapterSPtr channel) const
 {
 
 }
 
+//------------------------------------------------------------------------
 QModelIndex ModelAdapter::channelRoot() const
 {
-
+  return createIndex(2, 0, 2);
 }
 
+//------------------------------------------------------------------------
 const ClassificationAdapterSPtr ModelAdapter::classification() const
 {
 
 }
 
+//------------------------------------------------------------------------
 QModelIndex ModelAdapter::classificationRoot() const
 {
-
+  return createIndex(0, 0, 0);
 }
 
+//------------------------------------------------------------------------
 int ModelAdapter::columnCount(const QModelIndex& parent) const
 {
-
+  return 1;
 }
 
 CategoryAdapterSPtr ModelAdapter::createCategory(const QString& name, CategoryAdapterPtr parent)
@@ -122,9 +141,41 @@ CategoryAdapterSPtr ModelAdapter::createCategory(const QString& name, CategoryAd
 
 }
 
+//------------------------------------------------------------------------
 QVariant ModelAdapter::data(const QModelIndex& index, int role) const
 {
+  if (!index.isValid())
+    return QVariant();
 
+  if (index == classificationRoot())
+  {
+    if (role == Qt::DisplayRole)
+      return tr("Classification");
+    return QVariant();
+  }
+
+  if (index == sampleRoot())
+  {
+    if (role == Qt::DisplayRole)
+      return tr("Samples");
+    return QVariant();
+  }
+
+  if (index == channelRoot())
+  {
+    if (role == Qt::DisplayRole)
+      return tr("Channels");
+    return QVariant();
+  }
+
+  if (index == segmentationRoot())
+  {
+    if (role == Qt::DisplayRole)
+      return "Segmentations";
+    return QVariant();
+  }
+
+  return itemAdapter(index)->data(role);
 }
 
 void ModelAdapter::deleteRelation(ItemAdapterSPtr ancestor, ItemAdapterSPtr succesor, const RelationName& relation)
@@ -149,15 +200,62 @@ Qt::ItemFlags ModelAdapter::flags(const QModelIndex& index) const
 
 QModelIndex ModelAdapter::index(int row, int column, const QModelIndex& parent) const
 {
+  if (!hasIndex(row, column, parent))
+    return QModelIndex();
 
+  if (!parent.isValid())
+  {
+    Q_ASSERT (row < 4);
+    if (row == 0)
+      return classificationRoot();
+    if (row == 1)
+      return sampleRoot();
+    if (row == 2)
+      return channelRoot();
+    if (row == 3)
+      return segmentationRoot();
+  }
+
+  ItemAdapterPtr internalPtr;
+
+  if (parent == sampleRoot())
+  {
+    Q_ASSERT(row < m_samples.size());
+    internalPtr = m_samples[row].get();
+  }
+  else if (parent == channelRoot())
+  {
+    Q_ASSERT(row < m_channels.size());
+    internalPtr = m_channels[row].get();
+  }
+  else if (parent == segmentationRoot())
+  {
+    Q_ASSERT(row < m_segmentations.size());
+    internalPtr = m_segmentations[row].get();
+  }
+  else
+  {
+    CategoryAdapterPtr parentTax;
+    if (parent == classificationRoot())
+    {
+      parentTax = m_classification->root().get();
+    }
+    else
+    {
+      // Neither Samples nor Segmentations have children
+      parentTax = categoryAdapterPtr(parent);
+    }
+    //WARNING: Now m_tax can be NULL, but even in that situation,
+    //         it shouldn't report any children
+    Q_ASSERT(parentTax);
+    Q_ASSERT(row < parentTax->subCategories().size());
+    internalPtr = parentTax->subCategories()[row].get();
+  }
+
+  return createIndex(row, column, internalPtr);
 }
 
 QModelIndex ModelAdapter::index(ItemAdapterPtr item) const
-{
-
-}
-
-QModelIndex ModelAdapter::index(ItemAdapterSPtr item) const
 {
 
 }
@@ -172,9 +270,38 @@ void ModelAdapter::itemModified(ItemAdapterSPtr item)
 
 }
 
+//------------------------------------------------------------------------
 QModelIndex ModelAdapter::parent(const QModelIndex& child) const
 {
+  if (!child.isValid())
+    return QModelIndex();
 
+  if ( child == classificationRoot()
+    || child == sampleRoot()
+    || child == channelRoot()
+    || child == segmentationRoot())
+    return QModelIndex();
+
+  ItemAdapterPtr childItem = itemAdapter(child);
+
+  switch (childItem->type())
+  {
+    case ItemAdapter::Type::CATEGORY:
+    {
+      CategoryAdapterPtr category = categoryAdapterPtr(childItem);
+      return categoryIndex(category->parent());
+    }
+    case ItemAdapter::Type::SAMPLE:
+      return sampleRoot();
+    case ItemAdapter::Type::CHANNEL:
+      return channelRoot();
+    case ItemAdapter::Type::SEGMENTATION:
+      return segmentationRoot();
+    default:
+      throw -1;
+  };
+
+  return QModelIndex();
 }
 
 ItemAdapterSList ModelAdapter::relatedItems(ItemAdapterSPtr item, RelationType type, const RelationName& filter)
@@ -234,7 +361,42 @@ void ModelAdapter::reset()
 
 int ModelAdapter::rowCount(const QModelIndex& parent) const
 {
+  int count = 0;
 
+  // There are 4 root indexes
+  if ( !parent.isValid() )
+  {
+    count = 4;
+  }
+  else if ( parent == classificationRoot() )
+  {
+    count = m_classification?m_classification->categories().size():0;
+  }
+  else if ( parent == sampleRoot() )
+  {
+    count = m_samples.size();
+  }
+  else if ( parent == channelRoot() )
+  {
+    count = m_channels.size();
+  }
+  else if ( parent == segmentationRoot() )
+  {
+    count = m_segmentations.size();
+  }
+  else
+  {
+    // Cast to base type
+    ItemAdapterPtr parentItem = itemAdapter(parent);
+    if (ItemAdapter::Type::CATEGORY == parentItem->type())
+    {
+      CategoryAdapterPtr parentCategory = categoryAdapterPtr(parentItem);
+      count = parentCategory->subCategories().size();
+    }
+  }
+
+  // Otherwise Samples and Segmentations have no children
+  return count;
 }
 
 QModelIndex ModelAdapter::sampleIndex(SampleAdapterPtr sample) const
@@ -249,7 +411,7 @@ QModelIndex ModelAdapter::sampleIndex(SampleAdapterSPtr sample) const
 
 QModelIndex ModelAdapter::sampleRoot() const
 {
-
+  return createIndex(1, 0, 1);
 }
 
 QModelIndex ModelAdapter::segmentationIndex(SegmentationAdapterPtr segmentation) const
@@ -264,7 +426,7 @@ QModelIndex ModelAdapter::segmentationIndex(SegmentationAdapterSPtr segmentation
 
 QModelIndex ModelAdapter::segmentationRoot() const
 {
-
+  return createIndex(3, 0, 3);
 }
 
 void ModelAdapter::setAnalysis(AnalysisSPtr analysis)
@@ -279,7 +441,30 @@ void ModelAdapter::setClassification(ClassificationAdapterSPtr classification)
 
 bool ModelAdapter::setData(const QModelIndex& index, const QVariant& value, int role)
 {
-    return QAbstractItemModel::setData(index, value, role);
+  bool result = false;
+  if (index.isValid() && index.parent().isValid())// Root indexes cannot be modified
+  {
+    // Other elements can set their own data
+    ItemAdapterPtr indexItem = itemAdapter(index);
+    result = indexItem->setData(value, role);
+    if (result)
+    {
+      emit dataChanged(index,index);
+      if (ItemAdapter::Type::CATEGORY == indexItem->type())
+      {
+        CategoryAdapterPtr category = categoryAdapterPtr(indexItem);
+        foreach(SegmentationAdapterSPtr segmentation, m_segmentations)
+        {
+          if (segmentation->category().get() == category)
+          {
+            QModelIndex index = segmentationIndex(segmentation);
+            emit dataChanged(index, index);
+          }
+        }
+      }
+    }
+  }
+  return result;
 }
 
 void ModelAdapter::setSegmentationCategory(SegmentationAdapterSPtr segmentation, CategoryAdapterSPtr category)
@@ -287,44 +472,12 @@ void ModelAdapter::setSegmentationCategory(SegmentationAdapterSPtr segmentation,
 
 }
 
+ItemAdapterPtr EspINA::itemAdapter(const QModelIndex& index)
+{
+  return static_cast<ItemAdapterPtr>(index.internalPointer());
+}
 
 
-
-
-// //------------------------------------------------------------------------
-// ModelAdapter::ModelAdapter(EspinaFactory *factory)
-// : m_factory   (factory)
-// , m_relations (new RelationshipGraph())
-// , m_lastId    (0)
-// , m_changed   (false)
-// , m_isTraceable(true)
-// {
-// }
-// 
-// //------------------------------------------------------------------------
-// ModelAdapter::~ModelAdapter()
-// {
-// //   qDebug() << "########################################################";
-// //   qDebug() << "            Destroying EspINA Model";
-// //   qDebug() << "########################################################";
-// }
-// 
-// //------------------------------------------------------------------------
-// bool ModelAdapter::isTraceable() const
-// {
-//   int i = 0;
-//   bool result = m_isTraceable;
-// 
-//   while (result && i < m_filters.size())
-//   {
-//     result &= m_filters[i]->isTraceable();
-//     ++i;
-//   }
-// 
-//   return result;
-// }
-// 
-// 
 // //------------------------------------------------------------------------
 // void ModelAdapter::reset()
 // {
@@ -372,80 +525,6 @@ void ModelAdapter::setSegmentationCategory(SegmentationAdapterSPtr segmentation,
 //   m_isTraceable = true;
 // }
 // 
-// //-----------------------------------------------------------------------------
-// QVariant ModelAdapter::data(const QModelIndex& index, int role) const
-// {
-//   if (!index.isValid())
-//     return QVariant();
-// 
-//   if (index == taxonomyRoot())
-//   {
-//     if (role == Qt::DisplayRole)
-//       return tr("Categories");
-//     return QVariant();
-//   }
-// 
-//   if (index == sampleRoot())
-//   {
-//     if (role == Qt::DisplayRole)
-//       return tr("Samples");
-//     return QVariant();
-//   }
-// 
-//   if (index == channelRoot())
-//   {
-//     if (role == Qt::DisplayRole)
-//       return tr("Channels");
-//     return QVariant();
-//   }
-// 
-//   if (index == segmentationRoot())
-//   {
-//     if (role == Qt::DisplayRole)
-//       return "Segmentations";
-//     return QVariant();
-//   }
-// 
-//   if (index == filterRoot())
-//   {
-//     if (role == Qt::DisplayRole)
-//       return "Filters";
-//     return QVariant();
-//   }
-// 
-//   ModelItemPtr indexItem = indexPtr(index);
-//   return indexItem->data(role);
-// }
-// 
-// //------------------------------------------------------------------------
-// bool ModelAdapter::setData ( const QModelIndex& index, const QVariant& value, int role )
-// {
-//   bool result = false;
-//   if (index.isValid() && index.parent().isValid())// Root indexes cannot be modified
-//   {
-//     // Other elements can set their own data
-//     ModelItemPtr indexItem = indexPtr(index);
-//     result = indexItem->setData(value, role);
-//     if (result)
-//     {
-//       emit dataChanged(index,index);
-//       if (EspINA::TAXONOMY == indexItem->type())
-//       {
-//         TaxonomyElementPtr taxonomy = taxonomyElementPtr(indexItem);
-//         foreach(SegmentationSPtr segmentation, m_segmentations)
-//         {
-//           if (segmentation->taxonomy().get() == taxonomy)
-//           {
-//             QModelIndex index = segmentationIndex(segmentation);
-//             emit dataChanged(index, index);
-//           }
-//         }
-//       }
-//     }
-//   }
-//   return result;
-// }
-// 
 // //------------------------------------------------------------------------
 // QMap<int, QVariant> ModelAdapter::itemData(const QModelIndex &index) const
 // {
@@ -477,160 +556,6 @@ void ModelAdapter::setSegmentationCategory(SegmentationAdapterSPtr segmentation,
 //     return QAbstractItemModel::flags(index) | Qt::ItemIsUserCheckable;
 //   else
 //     return QAbstractItemModel::flags(index);
-// }
-// 
-// 
-// //------------------------------------------------------------------------
-// int ModelAdapter::columnCount(const QModelIndex &parent) const
-// {
-//     return 1;
-// }
-// 
-// //------------------------------------------------------------------------
-// int ModelAdapter::rowCount(const QModelIndex &parent) const
-// {
-//   int count = 0;
-//     // There are 4 root indexes
-//     if ( !parent.isValid() )
-//     {
-//         count = 5;
-//     }
-//     else if ( parent == taxonomyRoot() )
-//     {
-//         count = m_tax?m_tax->elements().size() :0;
-//     }
-//     else if ( parent == sampleRoot() )
-//     {
-//       count = m_samples.size();
-//     }
-//     else if ( parent == channelRoot() )
-//     {
-//       count = m_channels.size();
-//     }
-//     else if ( parent == segmentationRoot() )
-//     {
-//       count = m_segmentations.size();
-//     }
-//     else if ( parent == filterRoot() )
-//     {
-//       count = m_filters.size();
-//     }
-//     else
-//     {
-//       // Cast to base type
-//       ModelItemPtr parentItem = indexPtr(parent);
-//       if (TAXONOMY == parentItem->type())
-//       {
-//         TaxonomyElementPtr taxItem = taxonomyElementPtr(parentItem);
-//         count = taxItem->subElements().size();
-//       }
-//     }
-// 
-//     // Otherwise Samples and Segmentations have no children
-//     return count;
-// }
-// 
-// //------------------------------------------------------------------------
-// QModelIndex ModelAdapter::parent(const QModelIndex& child) const
-// {
-//   if (!child.isValid())
-//     return QModelIndex();
-// 
-//   if ( child == taxonomyRoot()
-//     || child == sampleRoot()
-//     || child == channelRoot()
-//     || child == segmentationRoot()
-//     || child == filterRoot() )
-//     return QModelIndex();
-// 
-//   ModelItemPtr childItem = indexPtr(child);
-// 
-//   switch (childItem->type())
-//   {
-//     case TAXONOMY:
-//     {
-//       TaxonomyElementPtr taxElement = taxonomyElementPtr(childItem);
-//       return taxonomyIndex(taxElement->parent());
-//     }
-//     case SAMPLE:
-//       return sampleRoot();
-//     case CHANNEL:
-//       return channelRoot();
-//     case SEGMENTATION:
-//       return segmentationRoot();
-//     case FILTER:
-//       return filterRoot();
-//     default:
-//       Q_ASSERT(false);
-//       return QModelIndex();
-//   };
-//   return QModelIndex();
-// }
-// 
-// //------------------------------------------------------------------------
-// // Returned index is compossed by the row, column and an element.
-// QModelIndex ModelAdapter::index (int row, int column, const QModelIndex& parent) const
-// {
-//   if (!hasIndex(row, column, parent))
-//     return QModelIndex();
-// 
-//   if (!parent.isValid())
-//   {
-//     Q_ASSERT (row < 5);
-//     if (row == 0)
-//       return taxonomyRoot();
-//     if (row == 1)
-//       return sampleRoot();
-//     if (row == 2)
-//       return channelRoot();
-//     if (row == 3)
-//       return segmentationRoot();
-//     if (row == 4)
-//       return filterRoot();
-//   }
-// 
-//   ModelItemPtr internalPtr;
-// 
-//   if (parent == sampleRoot())
-//   {
-//     Q_ASSERT(row < m_samples.size());
-//     internalPtr = m_samples[row].get();
-//   }
-//   else if (parent == channelRoot())
-//   {
-//     Q_ASSERT(row < m_channels.size());
-//     internalPtr = m_channels[row].get();
-//   }
-//   else if (parent == segmentationRoot())
-//   {
-//     Q_ASSERT(row < m_segmentations.size());
-//     internalPtr = m_segmentations[row].get();
-//   }
-//   else if (parent == filterRoot())
-//   {
-//     Q_ASSERT(row < m_filters.size());
-//     internalPtr = m_filters[row].get();
-//   } else
-//   {
-//     TaxonomyElementPtr parentTax;
-//     if (parent == taxonomyRoot())
-//     {
-//       parentTax = m_tax->root().get();
-//     }
-//     else
-//     {
-//       // Neither Samples nor Segmentations have children
-//       ModelItemPtr parentItem = indexPtr(parent);
-//       parentTax = taxonomyElementPtr(parentItem);
-//     }
-//     //WARNING: Now m_tax can be NULL, but even in that situation,
-//     //         it shouldn't report any children
-//     Q_ASSERT(parentTax);
-//     Q_ASSERT(row < parentTax->subElements().size());
-//     internalPtr = parentTax->subElements()[row].get();
-//   }
-// 
-//   return createIndex(row, column, internalPtr);
 // }
 // 
 // //------------------------------------------------------------------------
@@ -1008,11 +933,6 @@ void ModelAdapter::setSegmentationCategory(SegmentationAdapterSPtr segmentation,
 // }
 // 
 // 
-// //------------------------------------------------------------------------
-// QModelIndex ModelAdapter::taxonomyRoot() const
-// {
-//     return createIndex ( 0, 0, 0 );
-// }
 // 
 // //------------------------------------------------------------------------
 // QModelIndex ModelAdapter::taxonomyIndex(TaxonomyElementPtr node) const
@@ -1406,12 +1326,6 @@ void ModelAdapter::setSegmentationCategory(SegmentationAdapterSPtr segmentation,
 // }
 // 
 // //------------------------------------------------------------------------
-// QModelIndex ModelAdapter::sampleRoot() const
-// {
-//   return createIndex (1, 0, 1);
-// }
-// 
-// //------------------------------------------------------------------------
 // QModelIndex ModelAdapter::sampleIndex(SamplePtr sample) const
 // {
 //   QModelIndex index;
@@ -1434,13 +1348,6 @@ void ModelAdapter::setSegmentationCategory(SegmentationAdapterSPtr segmentation,
 // QModelIndex ModelAdapter::sampleIndex(SampleSPtr sample) const
 // {
 //   return sampleIndex(sample.get());
-// }
-// 
-// 
-// //------------------------------------------------------------------------
-// QModelIndex ModelAdapter::channelRoot() const
-// {
-//   return createIndex (2, 0, 2);
 // }
 // 
 // //------------------------------------------------------------------------
@@ -1466,12 +1373,6 @@ void ModelAdapter::setSegmentationCategory(SegmentationAdapterSPtr segmentation,
 // QModelIndex ModelAdapter::channelIndex(ChannelSPtr channel) const
 // {
 //   return channelIndex(channel.get());
-// }
-// 
-// //------------------------------------------------------------------------
-// QModelIndex ModelAdapter::segmentationRoot() const
-// {
-//     return createIndex (3, 0, 3);
 // }
 // 
 // //------------------------------------------------------------------------

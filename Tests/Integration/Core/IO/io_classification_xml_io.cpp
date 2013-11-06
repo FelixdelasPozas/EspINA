@@ -26,7 +26,6 @@
  *
  */
 
-#include <Core/Analysis/Classification.h>
 #include <Core/IO/ClassificationXML.h>
 
 using namespace std;
@@ -39,12 +38,12 @@ int io_classification_xml_io(int argc, char** argv)
 
   ClassificationSPtr classification{new Classification("test")};
 
-  classification->createCategory("1");
-  classification->createCategory("1/1");
-  classification->createCategory("1/2");
-  classification->createCategory("2");
-  classification->createCategory("3");
-  classification->createCategory("3/1/1");
+  classification->createNode("1");
+  classification->createNode("1/1");
+  classification->createNode("1/2");
+  classification->createNode("2");
+  classification->createNode("3");
+  classification->createNode("3/1/1");
 
   QFileInfo file("classification.xml");
   try

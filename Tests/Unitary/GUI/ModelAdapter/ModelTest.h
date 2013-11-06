@@ -43,13 +43,11 @@
 #ifndef MODELTEST_H
 #define MODELTEST_H
 
-#include "EspinaCore_Export.h"
-
 #include <QtCore/QObject>
 #include <QtCore/QAbstractItemModel>
 #include <QtCore/QStack>
 
-class EspinaCore_EXPORT ModelTest
+class ModelTest
 : public QObject
 {
   Q_OBJECT

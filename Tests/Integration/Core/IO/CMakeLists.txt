@@ -34,7 +34,6 @@ add_executable(IO_Tests
   ${CORE_DIR}/Factory/CoreFactory.cpp
   ${CORE_DIR}/Analysis/Analysis.cpp
   ${CORE_DIR}/Analysis/Category.cpp
-  ${CORE_DIR}/Analysis/Classification.cpp
   ${CORE_DIR}/Analysis/Sample.cpp
   ${CORE_DIR}/Analysis/Segmentation.cpp
   ${CORE_DIR}/Analysis/Channel.cpp

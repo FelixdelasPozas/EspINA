@@ -47,13 +47,13 @@
 #include <QtTest/QtTest>
 #include <iostream>
 
-#undef Q_ASSERT
-#undef QVERIFY
-#define QVERIFY(statement) \
-    if (!(statement)) \
-    {std::cout << "ERROR: " << #statement << " " << __FILE__ << " "<< __LINE__ << std::endl;\
-    return;}
-#define Q_ASSERT  QVERIFY
+// #undef Q_ASSERT
+// #undef QVERIFY
+// #define QVERIFY(statement) \
+//     if (!(statement)) \
+//     {std::cout << "ERROR: " << #statement << " " << __FILE__ << " "<< __LINE__ << std::endl;\
+//     return;}
+// #define Q_ASSERT  QVERIFY
 
 Q_DECLARE_METATYPE ( QModelIndex )
 

@@ -18,7 +18,6 @@
  */
 
 #include "ClassificationXML.h"
-#include <Core/Analysis/Classification.h>
 
 #include <QXmlStreamReader>
 
@@ -45,7 +44,7 @@ ClassificationSPtr parse(QXmlStreamReader& stream)
         name  = stream.attributes().value("name");
         QStringRef color = stream.attributes().value("color");
 
-        CategorySPtr category = classification->createCategory(name.toString(), parent);
+        CategorySPtr category = classification->createNode(name.toString(), parent);
         category->setColor(color.toString());
 
         QXmlStreamAttribute attrib;
@@ -95,7 +94,7 @@ void dumpClassificationXML(ClassificationSPtr classification, QXmlStreamWriter& 
   stream.writeStartElement("classification");
   stream.writeAttribute("name", classification->name());
 
-  foreach(CategorySPtr category, classification->categories())
+  foreach(CategorySPtr category, classification->root()->subCategories())
   {
     dumpCategoryXML(category, stream);
   }

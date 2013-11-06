@@ -27,6 +27,7 @@
  */
 
 #include "classification_testing_support.h"
+#include <Category.h>
 
 using namespace EspINA;
 using namespace std;
@@ -34,15 +35,15 @@ using namespace std;
 int classification_remove_subcategory( int argc, char** argv )
 {
   bool error = false;
-  
+
   Classification classification;
-  
+
   QString name1 = "Level 1";
-  CategorySPtr category1= classification.createCategory(name1);
+  CategorySPtr category1= classification.createNode(name1);
 
   QString name2 = "Level 2";
   CategorySPtr category2 = category1->createSubCategory(name2);
-  
+
   if (category2->parent() != category1.get()) {
     cerr << category2->name().toStdString() << " parent should be " << category1->name().toStdString() << endl;
     error = true;
@@ -52,7 +53,7 @@ int classification_remove_subcategory( int argc, char** argv )
     cerr << category1->name().toStdString() << " should contain " << category2->name().toStdString() << endl;
     error = true;
   }
-  
+
   category1->removeSubCategory(category2);
 
   if (category2->parent() == category1.get()) {

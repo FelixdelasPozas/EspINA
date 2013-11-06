@@ -22,7 +22,6 @@
 #include "Core/Analysis/Segmentation.h"
 #include "Core/Analysis/Analysis.h"
 #include "Core/Analysis/Category.h"
-#include "Core/Analysis/Classification.h"
 
 #include <QString>
 
@@ -36,7 +35,7 @@ int segmentation_change_category(int argc, char** argv)
   SegmentationSPtr segmentation{new Segmentation(FilterSPtr(), 0)};
   CategorySPtr category1 = segmentation->category();
 
-  CategorySPtr category2 = classification.createCategory(QString("Prueba"), classification.root());
+  CategorySPtr category2 = classification.createNode(QString("Prueba"), classification.root());
   segmentation->setCategory(category2);
 
   if (category1 != nullptr)

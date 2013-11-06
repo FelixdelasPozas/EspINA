@@ -28,7 +28,8 @@
 #ifndef CLASSIFICATION_TESTING_SUPPORT_H
 #define CLASSIFICATION_TESTING_SUPPORT_H
 
-#include "Classification.h"
+#include <Core/EspinaTypes.h>
+#include "Core/Utils/Tree.h"
 
 namespace EspINA {
 

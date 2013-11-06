@@ -20,8 +20,8 @@
 #ifndef ESPINA_IO_CLASSIFICATIONXML_H
 #define ESPINA_IO_CLASSIFICATIONXML_H
 
-#include <Core/EspinaTypes.h>
 #include "Core/IO/ErrorHandler.h"
+#include <Core/Analysis/Category.h>
 
 #include <QFileInfo>
 

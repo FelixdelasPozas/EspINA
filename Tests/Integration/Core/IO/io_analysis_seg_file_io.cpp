@@ -28,7 +28,6 @@
 
 #include <Core/Analysis/Analysis.h>
 #include <Core/Analysis/Channel.h>
-#include <Core/Analysis/Classification.h>
 #include <Core/Analysis/Sample.h>
 #include <Core/MultiTasking/Scheduler.h>
 #include <Core/IO/SegFile.h>

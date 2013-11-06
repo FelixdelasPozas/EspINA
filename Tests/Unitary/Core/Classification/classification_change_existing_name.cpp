@@ -26,7 +26,7 @@
  * 
  */
 
-#include "Classification.h"
+#include <Category.h>
 
 using namespace EspINA;
 using namespace std;
@@ -34,15 +34,15 @@ using namespace std;
 int classification_change_existing_name( int argc, char** argv )
 {
   bool error = false;
-  
+
   Classification classification;
 
   QString name1 = "Apples";
   QString name2 = "Oranges";
-  
-  CategorySPtr level1 = classification.createCategory(name1);
-  CategorySPtr level2 = classification.createCategory(name2);
-  
+
+  CategorySPtr level1 = classification.createNode(name1);
+  CategorySPtr level2 = classification.createNode(name2);
+
   try {
     level2->setName(name1);    
     std::cerr << "AlreadyDefinedCategoryException expected" << std::endl;

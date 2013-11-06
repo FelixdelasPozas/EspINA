@@ -104,3 +104,28 @@ PersistentSPtr SampleAdapter::item() const
 {
   return m_sample;
 }
+
+//------------------------------------------------------------------------
+bool EspINA::operator==(SampleAdapterSPtr lhs, SampleSPtr rhs)
+{
+  return lhs->m_sample == rhs;
+}
+
+//------------------------------------------------------------------------
+bool EspINA::operator==(SampleSPtr lhs, SampleAdapterSPtr rhs)
+{
+  return lhs == rhs->m_sample;
+}
+
+
+//------------------------------------------------------------------------
+bool EspINA::operator!=(SampleAdapterSPtr lhs, SampleSPtr rhs)
+{
+  return !operator==(lhs, rhs);
+}
+
+//------------------------------------------------------------------------
+bool EspINA::operator!=(SampleSPtr lhs, SampleAdapterSPtr rhs)
+{
+  return !operator==(lhs, rhs);
+}

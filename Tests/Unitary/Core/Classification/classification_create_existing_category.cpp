@@ -26,7 +26,7 @@
  * 
  */
 
-#include "Classification.h"
+#include <Category.h>
 
 using namespace EspINA;
 using namespace std;
@@ -34,17 +34,17 @@ using namespace std;
 int classification_create_existing_category( int argc, char** argv )
 {
   bool error = false;
-  
+
   Classification classification;
-  
+
   QString name = "Apples";
-  CategorySPtr category1 = classification.createCategory(name);
-  
+  CategorySPtr category1 = classification.createNode(name);
+
   try {
-    CategorySPtr category1 = classification.createCategory(name);
+    CategorySPtr category1 = classification.createNode(name);
     std::cerr << "AlreadyDefinedCategoryException expected" << std::endl;
     error = true;
-  } catch (Category::AlreadyDefinedCategoryException e) {
+  } catch (Already_Defined_Node_Exception e) {
     
   }
   

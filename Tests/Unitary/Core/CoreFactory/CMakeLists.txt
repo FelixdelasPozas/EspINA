@@ -31,7 +31,6 @@ add_executable(Core_Factory_Tests
   ${CORE_DIR}/Analysis/Channel.cpp
   ${CORE_DIR}/Analysis/Filter.cpp
   ${CORE_DIR}/Analysis/Segmentation.cpp
-  ${CORE_DIR}/Analysis/Classification.cpp
   ${CORE_DIR}/Analysis/Category.cpp
   ${CORE_DIR}/Analysis/Output.cpp
   ${CORE_DIR}/Analysis/Data.cpp

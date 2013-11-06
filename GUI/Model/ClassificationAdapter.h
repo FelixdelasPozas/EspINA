@@ -24,6 +24,7 @@
 
 #include "GUI/Model/ItemAdapter.h"
 #include "GUI/Model/CategoryAdapter.h"
+#include <Core/Analysis/Category.h>
 
 
 // Qt dependencies

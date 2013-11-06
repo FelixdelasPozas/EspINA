@@ -21,7 +21,6 @@
 #include "Core/Analysis/Filter.h"
 #include "Core/Analysis/Segmentation.h"
 #include "Core/Analysis/Analysis.h"
-#include "Core/Analysis/Classification.h"
 
 #include "SegmentationExtensionSupport.h"
 

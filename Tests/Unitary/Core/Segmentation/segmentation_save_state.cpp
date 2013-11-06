@@ -21,7 +21,6 @@
 #include "Core/Analysis/Filter.h"
 #include "Core/Analysis/Segmentation.h"
 #include "Core/Analysis/Analysis.h"
-#include "Core/Analysis/Classification.h"
 #include "Core/Analysis/Category.h"
 #include <Core/MultiTasking/Scheduler.h>
 
@@ -69,9 +68,9 @@ int segmentation_save_state(int argc, char** argv)
   forgedState += QString("OUTPUT=0;");
 
   Classification classification;
-  classification.createCategory(QString("Prueba"), classification.root());
+  classification.createNode(QString("Prueba"), classification.root());
 
-  segmentation->setCategory(classification.category(QString("Prueba")));
+  segmentation->setCategory(classification.node(QString("Prueba")));
   forgedState += QString("CATEGORY=Prueba;");
 
   return (segmentation->saveState() != forgedState);

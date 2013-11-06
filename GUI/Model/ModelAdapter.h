@@ -234,7 +234,7 @@ namespace EspINA
   using ModelAdapterPtr  = ModelAdapter *;
   using ModelAdapterSPtr = std::shared_ptr<ModelAdapter>;
 
-  //ItemAdapterPtr EspinaGUI_EXPORT itemAdapter(const QModelIndex &index);
+  ItemAdapterPtr EspinaGUI_EXPORT itemAdapter(const QModelIndex &index);
 
 } // namespace EspINA
 

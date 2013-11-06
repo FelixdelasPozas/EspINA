@@ -27,7 +27,6 @@
  */
 
 #include "Core/Analysis/Analysis.h"
-#include "Core/Analysis/Classification.h"
 
 using namespace EspINA;
 using namespace std;

@@ -19,7 +19,6 @@ set (CORE_SOURCES
   Analysis/Analysis.cpp
   Analysis/Category.cpp
   Analysis/Channel.cpp
-  Analysis/Classification.cpp
   Analysis/Data.cpp
   Analysis/Data/MeshData.cpp
   Analysis/Filter.cpp

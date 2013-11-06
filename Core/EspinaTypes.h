@@ -19,10 +19,6 @@ namespace EspINA
   using CategoryList = QList<CategoryPtr>;
   using CategorySPtr = std::shared_ptr<Category>;
 
-  class Classification;
-  using ClassificationPtr  = Classification *;
-  using ClassificationSPtr = std::shared_ptr<Classification>;
-
   class Persistent;
   using PersistentPtr   = Persistent *;
   using PersistentSPtr  = std::shared_ptr<Persistent>;

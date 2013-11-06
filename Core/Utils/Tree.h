@@ -17,33 +17,34 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef ESPINA_CLASSIFICATION_H
-#define ESPINA_CLASSIFICATION_H
+#ifndef ESPINA_TREE_H
+#define ESPINA_TREE_H
 
-#include "EspinaCore_Export.h"
-
-#include "Core/Analysis/Category.h"
-
+#include "Core/EspinaCore_Export.h"
 
 // Qt dependencies
-#include <QColor>
 #include <QMap>
-#include <QString>
-#include <QTextStream>
-#include <QVariant>
+#include <QStringList>
+
+#include <memory>
 
 namespace EspINA
 {
   //const QString DEFAULT_CATEGORY_COLOR = "#00FF00"; //Red
 
+  struct Already_Defined_Node_Exception{};
+
   /// Tree-like structure representing taxonomical relationships
-  class EspinaCore_EXPORT Classification
+  template<typename T>
+  class EspinaCore_EXPORT Tree
   {
-    static const QString ROOT;
+  public:
+      using Node     = std::shared_ptr<T>;
+      using NodeList = QList<Node>;
 
   public:
-    explicit Classification(const QString& name=QString());
-    ~Classification();
+    explicit Tree(const QString& name=QString());
+    ~Tree();
 
     void setName(const QString& name)
     { m_name = name; }
@@ -51,22 +52,24 @@ namespace EspINA
     QString name() const
     { return m_name; }
 
-    CategorySPtr createCategory(const QString &relativeName,
-                                CategorySPtr parent = CategorySPtr());
+    Node createNode(const QString &relativeName,
+                 Node parent = Node());
 
-    void removeCategory(CategorySPtr element);
+    void removeNode(Node element);
 
-    CategorySPtr  root(){return m_root;}
-    CategorySPtr  category(const QString &classificationName);
-    CategorySList categories() {return m_root->subCategories();}
-    CategorySPtr  parent(const CategorySPtr categor) const;
+    Node  root(){return m_root;}
+    Node  node(const QString &classificationName);
+    Node  parent(const Node node) const;
 
   private:
-    QString      m_name;
-    CategorySPtr m_root;
+    QString m_name;
+    Node    m_root;
   };
 
-  QString print(ClassificationSPtr classification, int indent = 0);
+  template<typename T>
+  QString print(std::shared_ptr<Tree<T>> tree, int indent = 0);
+
+#include "Core/Utils/Tree.txx"
 }// namespace EspINA
 
-#endif // ESPINA_CLASSIFICATION_H
+#endif // ESPINA_TREE_H

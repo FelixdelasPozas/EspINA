@@ -36,14 +36,28 @@
 // 
 using namespace EspINA;
 
+//------------------------------------------------------------------------
 QString CategoryAdapter::classificationName() const
 {
 
 }
 
+//------------------------------------------------------------------------
 QColor CategoryAdapter::color() const
 {
 
+}
+
+//------------------------------------------------------------------------
+CategoryAdapterPtr EspINA::categoryAdapterPtr(const QModelIndex& index)
+{
+  return static_cast<CategoryAdapterPtr>(index.internalPointer());
+}
+
+//------------------------------------------------------------------------
+CategoryAdapterPtr EspINA::categoryAdapterPtr(ItemAdapterPtr item)
+{
+  return static_cast<CategoryAdapterPtr>(item);
 }
 
 

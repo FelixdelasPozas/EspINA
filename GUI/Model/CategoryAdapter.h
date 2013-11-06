@@ -37,7 +37,7 @@ namespace EspINA
    *
    *  Represent a group of individuals with the same characteristics
    */
-  class EspinaCore_EXPORT CategoryAdapter
+  class EspinaGUI_EXPORT CategoryAdapter
   : public ItemAdapter
   {
   public:
@@ -137,9 +137,10 @@ namespace EspINA
     CategorySPtr         m_category;
     CategoryAdapterPtr   m_parent; // Parent node can't be a shared pointer to avoid circular dependencies
     CategoryAdapterSList m_subCategories;
-
-    friend class Classification;
   };
+
+  CategoryAdapterPtr EspinaGUI_EXPORT categoryAdapterPtr(const QModelIndex& index);
+  CategoryAdapterPtr EspinaGUI_EXPORT categoryAdapterPtr(ItemAdapterPtr item);
 
   QString print(CategoryAdapterSPtr category, int level=0);
 }// namespace EspINA

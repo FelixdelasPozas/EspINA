@@ -26,7 +26,7 @@
  * 
  */
 
-#include "Classification.h"
+#include <Category.h>
 
 using namespace EspINA;
 using namespace std;
@@ -39,16 +39,16 @@ int classification_remove_category( int argc, char** argv )
   
   QString name = "Category";
   
-  CategorySPtr category = classification.createCategory(name);
+  CategorySPtr category = classification.createNode(name);
   
-  if (classification.category(name) == nullptr) {
+  if (classification.node(name) == nullptr) {
     cerr << "Initial classification must contain category " << name.toStdString() << endl;
     error = true;
   }
 
-  classification.removeCategory(category);
+  classification.removeNode(category);
 
-  if (classification.category(name) != nullptr) {
+  if (classification.node(name) != nullptr) {
     cerr << "Classification shouldn't contain category " << name.toStdString() << " after being removed" << endl;
     error = true;
   }

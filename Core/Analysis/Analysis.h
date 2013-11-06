@@ -24,6 +24,7 @@
 
 #include "Core/EspinaTypes.h"
 #include "Core/Analysis/Graph/DirectedGraph.h"
+#include "Category.h"
 
 namespace EspINA
 {
