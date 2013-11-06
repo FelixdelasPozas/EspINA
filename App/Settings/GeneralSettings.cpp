@@ -17,8 +17,8 @@
 */
 
 #include "GeneralSettings.h"
+#include <Support/Settings/EspinaSettings.h>
 
-#include <Core/EspinaSettings.h>
 
 #include <QDir>
 #include <QSettings>

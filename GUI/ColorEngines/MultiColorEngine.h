@@ -40,6 +40,7 @@ namespace EspINA
     QList<ColorEngineSPtr> m_engines;
   };
 
+  using MultiColorEngineSPtr = std::shared_ptr<MultiColorEngine>;
 }// namespace EspINA
 
 #endif // ESPINA_MULTI_COLOR_ENGINE_H

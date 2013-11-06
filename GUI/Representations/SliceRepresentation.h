@@ -168,7 +168,8 @@ namespace EspINA
 
     virtual void updateVisibility(bool visible);
 
-    virtual void onCrosshairChanged(const NmVector3& point);
+    virtual void onCrosshairChanged(const NmVector3& point)
+    { updateRepresentation(); }
 
   private:
     void setView(View2D *view) { m_view = view; };

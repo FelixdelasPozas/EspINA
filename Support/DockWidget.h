@@ -16,38 +16,39 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef IDOCKWIDGET_H
-#define IDOCKWIDGET_H
+#ifndef ESPINA_DOCK_WIDGET_H
+#define ESPINA_DOCK_WIDGET_H
 
-#include "EspinaCore_Export.h"
+#include "Support/EspinaSupport_Export.h"
+#include <GUI/Model/ModelAdapter.h>
+#include "ViewManager.h"
 
 #include <QtPlugin>
 #include <QDockWidget>
-
-#include <Core/Model/EspinaModel.h>
 
 class QUndoStack;
 
 namespace EspINA
 {
-  class ViewManager;
-
-  class EspinaCore_EXPORT IDockWidget
+  class EspinaSupport_EXPORT DockWidget
   : public QDockWidget
   {
     Q_OBJECT
   public:
-    explicit IDockWidget(QWidget* parent = 0);
-    virtual ~IDockWidget();
+    explicit DockWidget(QWidget* parent = 0)
+    : QDockWidget(parent) {}
 
-    virtual void initDockWidget(EspinaModel *model,
-                                QUndoStack  *undoStack,
-                                ViewManager *viewManager) = 0;
+    virtual ~DockWidget(){}
+
+    virtual void initDockWidget(ModelAdapterSPtr model,
+                                QUndoStack      *undoStack,
+                                ViewManagerSPtr  viewManager) = 0;
   public slots:
     virtual void reset() = 0;
   };
 }
 
-Q_DECLARE_INTERFACE(EspINA::IDockWidget,
-                    "es.upm.cesvima.EspINA.DockWidgetInterface/1.4")
-#endif //IDOCKWIDGET_H
+Q_DECLARE_INTERFACE(EspINA::DockWidget,
+                    "es.upm.cesvima.EspINA.DockWidgetInterface/2.0")
+
+#endif // ESPINA_DOCK_WIDGET_H

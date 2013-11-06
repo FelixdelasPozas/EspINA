@@ -20,8 +20,9 @@
 #ifndef ESPINA_TOOL_GROUP_H
 #define ESPINA_TOOL_GROUP_H
 
-#include "EspinaSupport_Export.h"
-#include "Tool.h"
+#include "Support/EspinaSupport_Export.h"
+
+#include "Support/Tool.h"
 #include <GUI/Selectors/Selector.h>
 
 #include <memory>
@@ -54,4 +55,4 @@ namespace EspINA
   using ToolGroupSPtr = std::shared_ptr<ToolGroup>;
 } // namespace EspINA
 
-#endif // ESPINA_TOOL_H
+#endif // ESPINA_TOOL_GROUP_H

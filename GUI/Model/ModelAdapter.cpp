@@ -18,24 +18,279 @@
 
 #include "ModelAdapter.h"
 
-// // EspINA
-// #include "Core/Model/Channel.h"
-// #include "Core/Model/EspinaFactory.h"
-// #include "Core/Model/ModelItem.h"
-// #include "Core/Model/Sample.h"
-// #include "Core/Model/Segmentation.h"
-// #include "Core/Model/Taxonomy.h"
-// #include "Core/IO/SegFileReader.h"
-// #include "Core/IO/IOErrorHandler.h"
-// #include <Core/Extensions/SegmentationExtension.h>
-// #include <Core/Extensions/ChannelExtension.h>
-// #include "Core/Filters/ChannelReader.h"
-// 
-// // Qt
-// #include <QDebug>
-// 
-// using namespace EspINA;
-// 
+// EspINA
+
+using namespace EspINA;
+
+ModelAdapter::ModelAdapter(AnalysisSPtr analysis): QAbstractItemModel()
+{
+
+}
+
+ModelAdapter::~ModelAdapter()
+{
+
+}
+
+void ModelAdapter::add(SampleAdapterSPtr sample)
+{
+
+}
+
+void ModelAdapter::add(SampleAdapterSList samples)
+{
+
+}
+
+void ModelAdapter::add(ChannelAdapterSPtr channel)
+{
+
+}
+
+void ModelAdapter::add(ChannelAdapterSList channels)
+{
+
+}
+
+void ModelAdapter::add(SegmentationAdapterSPtr segmentation)
+{
+
+}
+
+void ModelAdapter::add(SegmentationAdapterSList segmentations)
+{
+
+}
+
+void ModelAdapter::addCategory(CategoryAdapterSPtr category, CategoryAdapterSPtr parent)
+{
+
+}
+
+void ModelAdapter::addRelation(ItemAdapterSPtr ancestor, ItemAdapterSPtr succesor, const RelationName& relation)
+{
+
+}
+
+QModelIndex ModelAdapter::categoryIndex(CategoryAdapterPtr category) const
+{
+
+}
+
+QModelIndex ModelAdapter::categoryIndex(CategoryAdapterSPtr category) const
+{
+
+}
+
+QModelIndex ModelAdapter::channelIndex(ChannelAdapterPtr channel) const
+{
+
+}
+
+QModelIndex ModelAdapter::channelIndex(ChannelAdapterSPtr channel) const
+{
+
+}
+
+QModelIndex ModelAdapter::channelRoot() const
+{
+
+}
+
+const ClassificationAdapterSPtr ModelAdapter::classification() const
+{
+
+}
+
+QModelIndex ModelAdapter::classificationRoot() const
+{
+
+}
+
+int ModelAdapter::columnCount(const QModelIndex& parent) const
+{
+
+}
+
+CategoryAdapterSPtr ModelAdapter::createCategory(const QString& name, CategoryAdapterPtr parent)
+{
+
+}
+
+CategoryAdapterSPtr ModelAdapter::createCategory(const QString& name, CategoryAdapterSPtr parent)
+{
+
+}
+
+QVariant ModelAdapter::data(const QModelIndex& index, int role) const
+{
+
+}
+
+void ModelAdapter::deleteRelation(ItemAdapterSPtr ancestor, ItemAdapterSPtr succesor, const RelationName& relation)
+{
+
+}
+
+void ModelAdapter::emitChannelAdded(ChannelAdapterSList )
+{
+
+}
+
+void ModelAdapter::emitSegmentationAdded(SegmentationAdapterSList )
+{
+
+}
+
+Qt::ItemFlags ModelAdapter::flags(const QModelIndex& index) const
+{
+    return QAbstractItemModel::flags(index);
+}
+
+QModelIndex ModelAdapter::index(int row, int column, const QModelIndex& parent) const
+{
+
+}
+
+QModelIndex ModelAdapter::index(ItemAdapterPtr item) const
+{
+
+}
+
+QModelIndex ModelAdapter::index(ItemAdapterSPtr item) const
+{
+
+}
+
+QMap< int, QVariant > ModelAdapter::itemData(const QModelIndex& index) const
+{
+    return QAbstractItemModel::itemData(index);
+}
+
+void ModelAdapter::itemModified(ItemAdapterSPtr item)
+{
+
+}
+
+QModelIndex ModelAdapter::parent(const QModelIndex& child) const
+{
+
+}
+
+ItemAdapterSList ModelAdapter::relatedItems(ItemAdapterSPtr item, RelationType type, const RelationName& filter)
+{
+
+}
+
+RelationList ModelAdapter::relations(ItemAdapterSPtr item, RelationType type, const RelationName& filter)
+{
+
+}
+
+void ModelAdapter::remove(SampleAdapterSPtr sample)
+{
+
+}
+
+void ModelAdapter::remove(SampleAdapterSList samples)
+{
+
+}
+
+void ModelAdapter::remove(ChannelAdapterSPtr channel)
+{
+
+}
+
+void ModelAdapter::remove(ChannelAdapterSList channels)
+{
+
+}
+
+void ModelAdapter::remove(SegmentationAdapterSPtr segmentation)
+{
+
+}
+
+void ModelAdapter::remove(SegmentationAdapterSList segmentations)
+{
+
+}
+
+void ModelAdapter::removeCategory(CategoryAdapterSPtr category, CategoryAdapterSPtr parent)
+{
+
+}
+
+void ModelAdapter::reparentCategory(CategoryAdapterSPtr category, CategoryAdapterSPtr parent)
+{
+
+}
+
+void ModelAdapter::reset()
+{
+
+}
+
+int ModelAdapter::rowCount(const QModelIndex& parent) const
+{
+
+}
+
+QModelIndex ModelAdapter::sampleIndex(SampleAdapterPtr sample) const
+{
+
+}
+
+QModelIndex ModelAdapter::sampleIndex(SampleAdapterSPtr sample) const
+{
+
+}
+
+QModelIndex ModelAdapter::sampleRoot() const
+{
+
+}
+
+QModelIndex ModelAdapter::segmentationIndex(SegmentationAdapterPtr segmentation) const
+{
+
+}
+
+QModelIndex ModelAdapter::segmentationIndex(SegmentationAdapterSPtr segmentation) const
+{
+
+}
+
+QModelIndex ModelAdapter::segmentationRoot() const
+{
+
+}
+
+void ModelAdapter::setAnalysis(AnalysisSPtr analysis)
+{
+
+}
+
+void ModelAdapter::setClassification(ClassificationAdapterSPtr classification)
+{
+
+}
+
+bool ModelAdapter::setData(const QModelIndex& index, const QVariant& value, int role)
+{
+    return QAbstractItemModel::setData(index, value, role);
+}
+
+void ModelAdapter::setSegmentationCategory(SegmentationAdapterSPtr segmentation, CategoryAdapterSPtr category)
+{
+
+}
+
+
+
+
+
 // //------------------------------------------------------------------------
 // ModelAdapter::ModelAdapter(EspinaFactory *factory)
 // : m_factory   (factory)

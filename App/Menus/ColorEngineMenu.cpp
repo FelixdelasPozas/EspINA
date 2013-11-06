@@ -17,9 +17,8 @@
  */
 
 #include "ColorEngineMenu.h"
-#include <Core/EspinaSettings.h>
-#include <GUI/ViewManager.h>
-#include <QMenu>
+#include <Support/Settings/EspinaSettings.h>
+
 #include <QActionGroup>
 #include <QSettings>
 
@@ -28,7 +27,7 @@ using namespace EspINA;
 const QString COLOR_ENGINE("ColorEngine");
 
 //-----------------------------------------------------------------------------
-ColorEngineMenu::ColorEngineMenu(ViewManager *vm,
+ColorEngineMenu::ColorEngineMenu(ViewManagerSPtr vm,
                                  const QString& title,
                                  QWidget* parent)
 : QMenu(title, parent)
@@ -45,11 +44,11 @@ ColorEngineMenu::~ColorEngineMenu()
 }
 
 //-----------------------------------------------------------------------------
-void ColorEngineMenu::addColorEngine(const QString& title, ColorEnginePtr engine)
+void ColorEngineMenu::addColorEngine(const QString& title, ColorEngineSPtr engine)
 {
-  QAction *taxonomy = addAction(title);
-  taxonomy->setCheckable(true);
-  m_availableEngines[taxonomy] = engine;
+  QAction *action = addAction(title);
+  action->setCheckable(true);
+  m_availableEngines[action] = engine;
 }
 
 //-----------------------------------------------------------------------------
@@ -57,7 +56,7 @@ void ColorEngineMenu::restoreUserSettings()
 {
   QSettings settings(CESVIMA, ESPINA);
 
-  QStringList activeActions = settings.value(COLOR_ENGINE, QStringList("Taxonomy")).toStringList();
+  QStringList activeActions = settings.value(COLOR_ENGINE, QStringList("Category")).toStringList();
 
   foreach(QAction *action, m_availableEngines.keys())
   {
@@ -73,11 +72,11 @@ void ColorEngineMenu::restoreUserSettings()
 void ColorEngineMenu::setColorEngine(QAction* action)
 {
   if (action->isChecked())
-    m_engine->addColorEngine(m_availableEngines[action]);
+    m_engine->add(m_availableEngines[action]);
   else
-    m_engine->removeColorEngine(m_availableEngines[action]);
+    m_engine->remove(m_availableEngines[action]);
 
-  m_viewManager->setColorEngine(m_engine.get());
+  m_viewManager->setColorEngine(m_engine);
 
   // Save user preferences
   QSettings settings(CESVIMA, ESPINA);
@@ -92,4 +91,3 @@ void ColorEngineMenu::setColorEngine(QAction* action)
   settings.setValue(COLOR_ENGINE, activeActions);
   settings.sync();
 }
-

@@ -36,7 +36,8 @@ namespace EspINA
                                     SchedulerSPtr       scheduler) const = 0;
   };
 
-  using FilterFactoryPtr = FilterFactory *;
+  using FilterFactoryPtr  = FilterFactory *;
+  using FilterFactorySPtr = std::shared_ptr<FilterFactory>;
 
 }// namespace EspINA
 

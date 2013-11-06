@@ -17,36 +17,31 @@ set (CORE_SOURCES
   ${CORE_MOC}
   ${CORE_UI}
   Analysis/Analysis.cpp
-  Analysis/Graph/DirectedGraph.cpp
   Analysis/Category.cpp
   Analysis/Channel.cpp
   Analysis/Classification.cpp
   Analysis/Data.cpp
+  Analysis/Data/MeshData.cpp
   Analysis/Filter.cpp
+  Analysis/Graph/DirectedGraph.cpp
   Analysis/Output.cpp
   Analysis/Sample.cpp
   Analysis/Segmentation.cpp
   Analysis/Storage.cpp
   Analysis/ViewItem.cpp
-  Analysis/Data/MeshData.cpp
-#  Analysis/Data/Volumetric/RasterizedVolume.cpp
-#  Analysis/Data/Volumetric/RawVolume.cpp
-#  Analysis/Data/Volumetric/SparseVolume.cpp
-#  Analysis/Data/Mesh/MarchingCubesMesh.cpp
-#  Analysis/Data/Mesh/MeshProxy.cpp
-#  Analysis/Data/Mesh/RawMesh.cpp
   Factory/CoreFactory.cpp
   IO/ClassificationXML.cpp
+  IO/GraphIO.cpp 
   IO/SegFile.cpp
+  IO/SegFileInterface.cpp
   IO/SegFile_V4.cpp
   IO/SegFile_V5.cpp
-  IO/SegFileInterface.cpp
-  IO/GraphIO.cpp 
   MultiTasking/Scheduler.cpp
   MultiTasking/Task.cpp
-  Utils/Bounds.cpp
-  Utils/NmVector3.cpp
   Utils/BinaryMask.cpp
+  Utils/Bounds.cpp
+  Utils/Measure.cpp
+  Utils/NmVector3.cpp
   )
 
 set(CORE_EXTERNAL_LIBS

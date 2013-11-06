@@ -17,16 +17,12 @@
  */
 
 
-#ifndef DEFAULTESPINAVIEW_H
-#define DEFAULTESPINAVIEW_H
+#ifndef ESPINA_DEFAULT_VIEW_H
+#define ESPINA_DEFAULT_VIEW_H
 
 #include <QAbstractItemView>
 
 #include <Core/EspinaTypes.h>
-#include <Core/Model/EspinaFactory.h>
-#include <GUI/QtWidget/SliceView.h>
-#include <GUI/QtWidget/VolumeView.h>
-#include <GUI/QtWidget/SegmentationContextualMenu.h>
 
 // Forward-declaration
 class QMainWindow;
@@ -40,19 +36,19 @@ namespace EspINA
   class ViewManager;
   class VolumeViewSettingsPanel;
 
-  class DefaultEspinaView
+  class DefaultView
   : public QAbstractItemView
   {
     Q_OBJECT
     class SettingsPanel;
 
   public:
-    explicit DefaultEspinaView(EspinaModel *model,
+    explicit DefaultView(EspinaModel *model,
                                QUndoStack  *undoStack,
                                ViewManager *viewManager,
                                QMainWindow *parent=0
     );
-    virtual ~DefaultEspinaView();
+    virtual ~DefaultView();
 
     virtual void createViewMenu(QMenu* menu);
 
@@ -128,7 +124,7 @@ namespace EspINA
     SegmentationContextualMenuSPtr m_contextMenu;
   };
 
-  class DefaultEspinaView::SettingsPanel
+  class DefaultView::SettingsPanel
   : public ISettingsPanel
   {
   public:
@@ -158,6 +154,8 @@ namespace EspINA
     VolumeView::SettingsPtr m_vol;
     VolumeViewSettingsPanel *m_volPanel;
   };
+  
+  using DefaultViewSPtr = std::shared_ptr<DefaultView>;
 
 } // namespace EspINA
 

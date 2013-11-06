@@ -22,12 +22,12 @@
 
 #include <QDialog>
 
-#include <GUI/ISettingsPanel.h>
 
 #include "ui_GeneralSettingsPanel.h"
 #include "ui_GeneralSettingsDialog.h"
 
 #include <Core/EspinaTypes.h>
+#include <Support/Settings/ISettingsPanel.h>
 
 namespace EspINA
 {

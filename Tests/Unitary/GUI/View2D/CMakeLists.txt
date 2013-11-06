@@ -12,7 +12,6 @@ qt4_wrap_cpp(SUBJECT_MOCS
   ${GUI_DIR}/ColorEngines/ColorEngine.h
   ${GUI_DIR}/Model/ItemAdapter.h
   ${GUI_DIR}/Model/OutputAdapter.h
-  ${GUI_DIR}/Model/SegmentationAdapter.h
   ${GUI_DIR}/View/RenderView.h
   ${GUI_DIR}/View/View2D.h
 )

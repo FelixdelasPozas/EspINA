@@ -24,93 +24,109 @@
 
 #include "EspinaConfig.h"
 #include "RecentDocuments.h"
-
-#include <Core/Interfaces/IDynamicMenu.h>
-#include <Core/Interfaces/IFilterCreator.h>
-#include <Core/EspinaTypes.h>
-#include <Core/Model/EspinaModel.h>
-#include <Core/MultiTasking/Scheduler.h>
-#include <GUI/ISettingsPanel.h>
-#include <GUI/Renderers/Renderer.h>
+#include <Support/ViewManager.h>
+#include <Support/DynamicMenu.h>
+#include <Support/DockWidget.h>
+#include <Support/ToolBar.h>
+#include <GUI/Model/ModelAdapter.h>
+#include <GUI/ModelFactory.h>
+#include <Core/IO/ErrorHandler.h>
+#include <Core/Factory/FilterFactory.h>
 
 #include <QTimer>
 
 class QLabel;
-class EspinaIOErrorHandler;
 class QPluginLoader;
 class QAction;
 class QFrame;
 class QUndoStack;
 class QShortcut;
 
-#ifdef TEST_ESPINA_MODELS
-class ModelTest;
-#endif
-
 namespace EspINA
 {
 
-  class IDockWidget;
-  class IToolBar;
+class MainToolBar;
+
   class ColorEngineMenu;
-  class DefaultEspinaView;
   class GeneralSettings;
-  class MainToolBar;
-  class ViewManager;
 
   class EspinaMainWindow
   : public QMainWindow
-  , public IFilterCreator
   {
     Q_OBJECT
+    class FilterFactory;
+
+    enum class MenuState 
+    { OPEN_STATE,
+      ADD_STATE
+    };
+
   public:
-    explicit EspinaMainWindow(EspinaModel      *model,
-                              ViewManager      *viewManager,
+    explicit EspinaMainWindow(AnalysisSPtr     analysis,
+                              ModelAdapterSPtr model,
+                              ViewManagerSPtr  viewManager,
+                              ModelFactorySPtr factory,
                               QList<QObject *> &plugins);
     virtual ~EspinaMainWindow();
 
-    virtual FilterSPtr createFilter(const QString& filter,
-                                    const Filter::NamedInputs& inputs,
-                                    const ModelItem::Arguments& args);
   public slots:
     bool closeCurrentAnalysis();
 
     void openRecentAnalysis();
     /// Close former analysis and load a new one
     void openAnalysis();
+
     void openAnalysis(const QFileInfo file);
     /// Add new data from file to current analysis
+
     void addToAnalysis();
+
     void addRecentToAnalysis();
+
     void addFileToAnalysis(const QFileInfo file);
+
     /// Save Current Analysis
     void saveAnalysis();
+
     void saveSessionAnalysis();
 
   private slots:
     void updateStatus(QString msg);
+
     void updateTooltip(QAction *action);
+
     void showPreferencesDialog();
+
     void showAboutDialog();
+
     void showConnectomicsInformation();
+
     void showRawInformation();
 
-    void openState() {m_menuState = OPEN_STATE;}
-    void addState()  {m_menuState = ADD_STATE;}
+    void openState() {m_menuState = MenuState::OPEN_STATE;}
+
+    void addState()  {m_menuState = MenuState::ADD_STATE;}
 
     void autosave();
+
     void cancelOperation() {emit analysisClosed(); }
 
     /// undo slots
     void undoTextChanged(QString);
+
     void redoTextChanged(QString);
+
     void canRedoChanged(bool);
+
     void canUndoChanged(bool);
+
     void undoAction(bool);
+
     void redoAction(bool);
 
   signals:
     void analysisClosed();
+
     void abortOperation();
 
   protected:
@@ -118,21 +134,27 @@ namespace EspINA
 
   private:
     void createActivityMenu();
-    void createDynamicMenu(MenuEntry entry);
-    void checkAutosave();
-    void registerDockWidget(Qt::DockWidgetArea area, IDockWidget *dock);
-    void registerToolBar(IToolBar *toolbar);
-    void updateTraceabilityStatus();
 
+    void createDynamicMenu(MenuEntry entry);
+
+    void checkAutosave();
+
+    void registerDockWidget(Qt::DockWidgetArea area, DockWidget *dock);
+
+    void registerToolBar(ToolBar *toolbar);
 
     void loadPlugins(QList<QObject *> &plugins);
 
   private:
     // EspINA
-    EspinaModel     *m_model;
+    AnalysisSPtr     m_analysis;
+    ModelAdapterSPtr m_model;
+    ViewManagerSPtr  m_viewManager;
+    ModelFactorySPtr m_factory;
     QUndoStack      *m_undoStack;
-    ViewManager     *m_viewManager;
-    Scheduler        m_scheduler;
+
+    FilterFactorySPtr m_filterFactory;
+
     GeneralSettings *m_settings;
 
     // GUI
@@ -148,27 +170,22 @@ namespace EspINA
     QAction         *m_undoAction;
     QAction         *m_redoAction;
 
-    ISettingsPanelPrototype m_settingsPanel;
+ //   ISettingsPanelPrototype m_settingsPanel;
 
-    MainToolBar *m_mainToolBar;
-    DefaultEspinaView *m_view;
+    MainToolBar    *m_mainToolBar;
+//    DefaultViewSPtr m_view;
 
     RecentDocuments m_recentDocuments1;
     RecentDocuments m_recentDocuments2; // fixes duplicated actions warning in some systems
 
     QList<QPluginLoader *> m_plugins;
 
-    #ifdef TEST_ESPINA_MODELS
-    boost::shared_ptr<ModelTest>   m_modelTester;
-    #endif
-
-    enum MenuState {OPEN_STATE, ADD_STATE};
     MenuState m_menuState;
 
     bool m_busy;
     QShortcut *cancel;
 
-    QList<IRendererSPtr> m_defaultRenderers;
+    //RendererSList m_defaultRenderers;
 
     struct DynamicMenuNode
     {
@@ -185,9 +202,9 @@ namespace EspINA
     QFileInfo m_sessionFile;
 
     // Status Bar
-    QLabel   *m_traceableStatus;
+    //QLabel   *m_traceableStatus;
 
-    EspinaIOErrorHandler *m_errorHandler;
+    IO::ErrorHandlerPtr m_errorHandler;
   };
 
 } // namespace EspINA

@@ -59,8 +59,6 @@ namespace EspINA
 
       virtual RendererTypes renderType()         { return RendererTypes(RENDERER_SLICEVIEW); }
 
-      virtual bool canRender(ItemAdapterPtr item);
-
       virtual int numberOfRenderedItems()       { return m_representations.size(); }
 
       virtual SelectableView::Selection pick(int x,

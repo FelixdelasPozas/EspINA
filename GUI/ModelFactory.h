@@ -85,9 +85,10 @@ namespace EspINA
   private:
     SchedulerSPtr m_scheduler;
     QMap<Filter::Type, FilterCreatorPtr> m_filterCreators;
-
     //ExtensionProviderList m_extensionProviders;
   };
+
+  using ModelFactorySPtr = std::shared_ptr<ModelFactory>;
 }// namespace EspINA
 
 #endif // ESPINA_CORE_FACTORY_H

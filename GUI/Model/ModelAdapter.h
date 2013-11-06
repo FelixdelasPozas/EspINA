@@ -74,7 +74,7 @@ namespace EspINA
     explicit ModelAdapter(AnalysisSPtr analysis);
     virtual ~ModelAdapter();
 
-   // void setAnalysis(AnalysisSPtr analysis); ==> external function
+    void setAnalysis(AnalysisSPtr analysis);
 
     void reset();
 
@@ -223,6 +223,7 @@ namespace EspINA
 //     void removeFilterImplementation(FilterSPtr filter);
 
   private:
+    AnalysisSPtr              m_analysis;
     SampleAdapterSList        m_samples;
     ChannelAdapterSList       m_channels;
     FilterAdapterSList        m_filters;

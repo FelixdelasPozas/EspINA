@@ -34,7 +34,20 @@
 // // Qt
 // #include <QDebug>
 // 
-// using namespace EspINA;
+using namespace EspINA;
+
+QString CategoryAdapter::classificationName() const
+{
+
+}
+
+QColor CategoryAdapter::color() const
+{
+
+}
+
+
+
 // 
 // //------------------------------------------------------------------------
 // ModelAdapter::ModelAdapter(EspinaFactory *factory)

@@ -18,7 +18,8 @@
 
 
 #include "RecentDocuments.h"
-#include <Core/EspinaSettings.h>
+
+#include <Support/Settings/EspinaSettings.h>
 
 #include <QAction>
 #include <QSettings>

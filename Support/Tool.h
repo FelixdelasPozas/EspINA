@@ -20,7 +20,7 @@
 #ifndef ESPINA_TOOL_H
 #define ESPINA_TOOL_H
 
-#include "EspinaSupport_Export.h"
+#include "Support/EspinaSupport_Export.h"
 
 #include <memory>
 

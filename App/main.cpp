@@ -20,15 +20,10 @@
 #include <QPluginLoader>
 #include <QTranslator>
 
-#include <GUI/ViewManager.h>
-#include <GUI/Extensions/Visualization/VisualizationState.h>
-#include <EspinaMainWindow.h>
-#include <Core/Model/EspinaFactory.h>
-#include <Core/Extensions/EdgeDistances/AdaptiveEdges.h>
-#include <Core/Extensions/EdgeDistances/EdgeDistance.h>
-#include <Core/Extensions/Morphological/MorphologicalInformation.h>
-#include <Core/Extensions/Tags/TagExtension.h>
-#include <Core/Extensions/Notes/SegmentationNotes.h>
+#include "EspinaMainWindow.h"
+
+#include <Core/MultiTasking/Scheduler.h>
+#include <Core/Analysis/Analysis.h>
 
 using namespace EspINA;
 
@@ -41,9 +36,13 @@ int main(int argc, char **argv)
   translator.load("espina_es");
   app.installTranslator(&translator);
 
-  EspinaFactory factory;
-  EspinaModel   model(&factory);
-  ViewManager   viewManager;
+  const int PERIOD_NS = 1000000;
+
+  SchedulerSPtr    scheduler  {new Scheduler(PERIOD_NS)};
+  ModelFactorySPtr factory    {new ModelFactory(scheduler)};
+  AnalysisSPtr     analysis   {new Analysis()};
+  ModelAdapterSPtr model      {new ModelAdapter(analysis)};
+  ViewManagerSPtr  viewManager{new ViewManager()};
 
   QDir pluginsDir = QDir(app.applicationDirPath());
 
@@ -81,31 +80,10 @@ int main(int argc, char **argv)
 
   int res = 0;
   {
-    AdaptiveEdges            adaptiveEdgesExtension;
-    EdgeDistance             edgeDistanceExtension;
-    MorphologicalInformation morphologicalExtension;
-    SegmentationNotes        notesExtension;
-    SegmentationTags         tagsExtension;
-    VisualizationState       visualizationExtension;
-
-    factory.registerChannelExtension     (&adaptiveEdgesExtension);
-    factory.registerSegmentationExtension(&edgeDistanceExtension);
-    factory.registerSegmentationExtension(&morphologicalExtension);
-    factory.registerSegmentationExtension(&notesExtension);
-    factory.registerSegmentationExtension(&tagsExtension);
-    factory.registerSegmentationExtension(&visualizationExtension);
-
-    EspinaMainWindow espina(&model, &viewManager, plugins);
+    EspinaMainWindow espina(analysis, model, viewManager, factory, plugins);
     espina.show();
 
     res = app.exec();
-
-    factory.unregisterSegmentationExtension(&visualizationExtension);
-    factory.unregisterSegmentationExtension(&tagsExtension);
-    factory.unregisterSegmentationExtension(&notesExtension);
-    factory.unregisterSegmentationExtension(&morphologicalExtension);
-    factory.unregisterSegmentationExtension(&edgeDistanceExtension);
-    factory.unregisterChannelExtension     (&adaptiveEdgesExtension);
   }
 
 //   qDebug() << "\nUnloading Plugins: \n";

@@ -17,59 +17,17 @@
 */
 
 #include "EspinaMainWindow.h"
-
-#include "Dialogs/AboutDialog.h"
-#include "Dialogs/GeneralSettingsDialog.h"
-#include "Dialogs/Connectomics/ConnectomicsDialog.h"
-#include "Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.h"
-#include "Docks/ChannelExplorer/ChannelExplorer.h"
-#include "Docks/FilterInspectorDock/FilterInspectorDock.h"
-#include "Docks/SegmentationExplorer/SegmentationExplorer.h"
-#include "Dialogs/TabularReport/TabularReport.h"
-#include "Dialogs/TabularReport/RawInformationDialog.h"
-#include "Docks/TaxonomyExplorer/TaxonomyExplorer.h"
 #include "Menus/ColorEngineMenu.h"
 #include "Settings/GeneralSettings.h"
-#include "Toolbars/Editor/EditorToolBar.h"
-#include "Toolbars/Main/MainToolBar.h"
-#include "Toolbars/Segmentation/SegmentationToolBar.h"
-#include "Toolbars/VOI/VolumeOfInterest.h"
-#include "Toolbars/Zoom/ZoomToolBar.h"
-#include "Toolbars/Composition/CompositionToolBar.h"
-#include "Views/DefaultEspinaView.h"
+#include "Dialogs/AboutDialog.h"
+#include <GUI/ColorEngines/CategoryColorEngine.h>
+#include <GUI/ColorEngines/NumberColorEngine.h>
+#include <GUI/ColorEngines/UserColorEngine.h>
+#include <Support/Settings/EspinaSettings.h>
+#include <Core/IO/SegFile.h>
+
 
 // EspINA
-#include <Core/ColorEngines/NumberColorEngine.h>
-#include <Core/ColorEngines/TaxonomyColorEngine.h>
-#include <Core/ColorEngines/UserColorEngine.h>
-#include <Core/EspinaSettings.h>
-#include <Core/IO/IOErrorHandler.h>
-#include <Core/Interfaces/IColorEngineProvider.h>
-#include <Core/Interfaces/IDockWidget.h>
-#include <Core/Interfaces/IFactoryExtension.h>
-#include <Core/Interfaces/IFileReader.h>
-#include <Core/Interfaces/IToolBar.h>
-#include <Core/Interfaces/IToolBarFactory.h>
-#include <Core/Model/EspinaFactory.h>
-#include <Core/Model/EspinaModel.h>
-#include <Core/Extensions/EdgeDistances/AdaptiveEdges.h>
-#include <GUI/QtWidget/IEspinaView.h>
-#include <GUI/Renderers/CrosshairRenderer.h>
-#include <GUI/Renderers/MeshRenderer.h>
-#include <GUI/Renderers/SmoothedMeshRenderer.h>
-#include <GUI/Renderers/VolumetricGPURenderer.h>
-#include <GUI/Renderers/VolumetricRenderer.h>
-#include <GUI/Renderers/SliceRenderer.h>
-#include <GUI/Renderers/ContourRenderer.h>
-#include <GUI/ViewManager.h>
-#include <Core/Filters/ChannelReader.h>
-#include <App/Undo/UndoableEspinaModel.h>
-#include <GUI/IO/EspinaIO.h>
-#include <GUI/Representations/BasicGraphicalRepresentationFactory.h>
-
-#ifdef TEST_ESPINA_MODELS
-  #include <Core/Model/ModelTest.h>
-#endif
 
 // Std
 #include <sstream>
@@ -83,10 +41,10 @@ const QString AUTOSAVE_FILE = "espina-autosave.seg";
 
 //------------------------------------------------------------------------
 class EspinaIOErrorHandler
-: public IOErrorHandler
+: public IO::ErrorHandler
   {
     public:
-      EspinaIOErrorHandler(QWidget *parent = NULL)
+      EspinaIOErrorHandler(QWidget *parent = nullptr)
       : m_parent(parent) {};
 
       void setDefaultDir(const QDir &dir) {m_defaultDir = dir;}
@@ -135,13 +93,13 @@ class EspinaIOErrorHandler
 
   private:
     QWidget *m_parent;
-    QDir m_defaultDir;
+    QDir     m_defaultDir;
 };
 
 
 //------------------------------------------------------------------------
 EspinaMainWindow::DynamicMenuNode::DynamicMenuNode()
-: menu(NULL)
+: menu(nullptr)
 {
 
 }
@@ -156,52 +114,48 @@ EspinaMainWindow::DynamicMenuNode::~DynamicMenuNode()
 }
 
 //------------------------------------------------------------------------
-EspinaMainWindow::EspinaMainWindow(ModelAdapter      *model,
-                                   ViewManager      *viewManager,
-                                   QList<QObject *> &plugins)
+EspinaMainWindow::EspinaMainWindow(AnalysisSPtr analysis,
+                                   ModelAdapterSPtr model,
+                                   ViewManagerSPtr viewManager,
+                                   ModelFactorySPtr factory,
+                                   QList< QObject* >& plugins)
 : QMainWindow()
-, m_model      (model)
-, m_undoStack  (new QUndoStack())
+, m_analysis(analysis)
+, m_model(model)
 , m_viewManager(viewManager)
-, m_scheduler{5000}//5ms
-, m_settings     (new GeneralSettings())
-, m_settingsPanel(new GeneralSettingsPanel(m_model, m_settings))
-, m_view(NULL)
+, m_factory(factory)
+, m_undoStack(new QUndoStack())
+//, m_filterFactory(new EspinaMainWindow::FilterFactory())
+// , m_settings     (new GeneralSettings())
+// , m_settingsPanel(new GeneralSettingsPanel(m_model, m_settings))
 , m_busy(false)
 , m_undoStackSavedIndex(0)
-, m_traceableStatus(new QLabel(statusBar()))
-, m_errorHandler(new EspinaIOErrorHandler(this))
+//, m_errorHandler(new EspinaIOErrorHandler(this))
 {
-#ifdef TEST_ESPINA_MODELS
-  m_modelTester = boost::shared_ptr<ModelTest>(new ModelTest(m_model));
-#endif
-
   m_dynamicMenuRoot = new DynamicMenuNode();
-  m_dynamicMenuRoot->menu = NULL;
+  m_dynamicMenuRoot->menu = nullptr;
 
-  connect(m_undoStack,   SIGNAL(indexChanged(int)),
-          m_viewManager, SLOT  (updateViews()));
+  connect(m_undoStack,         SIGNAL(indexChanged(int)),
+          m_viewManager.get(), SLOT  (updateViews()));
 
   QIcon addIcon = QIcon(":espina/add.svg");
   QIcon fileIcon = qApp->style()->standardIcon(QStyle::SP_FileIcon);
   QIcon openIcon = qApp->style()->standardIcon(QStyle::SP_DialogOpenButton);
   QIcon saveIcon = qApp->style()->standardIcon(QStyle::SP_DialogSaveButton);
 
-  EspinaFactory *factory = m_model->factory();
+  // TODO Move to Default EspinaView
+//   m_defaultRenderers << IRendererSPtr(new CrosshairRenderer());
+//   m_defaultRenderers << IRendererSPtr(new VolumetricRenderer());
+//   m_defaultRenderers << IRendererSPtr(new VolumetricGPURenderer());
+//   m_defaultRenderers << IRendererSPtr(new MeshRenderer());
+//   m_defaultRenderers << IRendererSPtr(new SmoothedMeshRenderer());
+//   m_defaultRenderers << IRendererSPtr(new SliceRenderer());
+//   m_defaultRenderers << IRendererSPtr(new ContourRenderer());
+// 
+//   foreach(IRendererSPtr renderer, m_defaultRenderers)
+//     factory->registerRenderer(renderer.get());
 
-  // TODO: Pass smartpointers direcrtly to factory
-  m_defaultRenderers << IRendererSPtr(new CrosshairRenderer());
-  m_defaultRenderers << IRendererSPtr(new VolumetricRenderer());
-  m_defaultRenderers << IRendererSPtr(new VolumetricGPURenderer());
-  m_defaultRenderers << IRendererSPtr(new MeshRenderer());
-  m_defaultRenderers << IRendererSPtr(new SmoothedMeshRenderer());
-  m_defaultRenderers << IRendererSPtr(new SliceRenderer());
-  m_defaultRenderers << IRendererSPtr(new ContourRenderer());
-
-  foreach(IRendererSPtr renderer, m_defaultRenderers)
-    factory->registerRenderer(renderer.get());
-
-  factory->registerFilter(this, ChannelReader::TYPE);
+  //TODO factory->registerFilter(m_filterFactory, ChannelReader::TYPE);
 
   /*** FILE MENU ***/
   QMenu *fileMenu = new QMenu(tr("File"), this);
@@ -311,10 +265,9 @@ EspinaMainWindow::EspinaMainWindow(ModelAdapter      *model,
   m_viewMenu = new QMenu(tr("View"));
 
   m_colorEngines = new ColorEngineMenu(m_viewManager, tr("Color By"));
-  m_colorEngines->addColorEngine(tr("Number"), ColorEnginePtr(new NumberColorEngine()));
-  TaxonomyColorEnginePtr taxonomyEngine(new TaxonomyColorEngine());
-  m_colorEngines->addColorEngine(tr("Taxonomy"),taxonomyEngine);
-  m_colorEngines->addColorEngine(tr("User"), ColorEnginePtr(new UserColorEngine()));
+  m_colorEngines->addColorEngine(tr("Number"),  ColorEngineSPtr{new NumberColorEngine()});
+  m_colorEngines->addColorEngine(tr("Category"),ColorEngineSPtr{new CategoryColorEngine()});
+  m_colorEngines->addColorEngine(tr("User"),    ColorEngineSPtr{new UserColorEngine()});
 
   m_dockMenu = new QMenu(tr("Pannels"));
 
@@ -336,32 +289,33 @@ EspinaMainWindow::EspinaMainWindow(ModelAdapter      *model,
   }
   menuBar()->addMenu(settingsMenu);
 
-  m_mainToolBar = new MainToolBar(m_model, m_undoStack, m_viewManager);
-  registerToolBar(m_mainToolBar);
-
-  ZoomToolBar *zoomToolBar = new ZoomToolBar(m_viewManager);
-  registerToolBar(zoomToolBar);
-
-  VolumeOfInterest *voiToolBar = new VolumeOfInterest(m_model, m_viewManager);
-  registerToolBar(voiToolBar);
-
-  SegmentationToolBar *seedToolBar = new SegmentationToolBar(m_model, m_undoStack, m_viewManager);
-  registerToolBar(seedToolBar);
-
-  EditorToolBar *editorToolBar = new EditorToolBar(m_model, m_undoStack, m_viewManager);
-  registerToolBar(editorToolBar);
-
-  CompositionToolBar *compositionBar = new CompositionToolBar(m_model, m_undoStack, m_viewManager);
-  registerToolBar(compositionBar);
-
-  ChannelExplorer *channelExplorer = new ChannelExplorer(m_model, m_undoStack, m_viewManager, this);
-  registerDockWidget(Qt::LeftDockWidgetArea, channelExplorer);
-
-  SegmentationExplorer *segExplorer = new SegmentationExplorer(m_model, m_undoStack, m_viewManager, this);
-  registerDockWidget(Qt::LeftDockWidgetArea, segExplorer);
-
-  FilterInspectorDock *filterInspectorDock = new FilterInspectorDock(m_undoStack, m_viewManager, this);
-  registerDockWidget(Qt::LeftDockWidgetArea, filterInspectorDock);
+  // TODO
+//   m_mainToolBar = new MainToolBar(m_model, m_undoStack, m_viewManager);
+//   registerToolBar(m_mainToolBar);
+// 
+//   ZoomToolBar *zoomToolBar = new ZoomToolBar(m_viewManager);
+//   registerToolBar(zoomToolBar);
+// 
+//   VolumeOfInterest *voiToolBar = new VolumeOfInterest(m_model, m_viewManager);
+//   registerToolBar(voiToolBar);
+// 
+//   SegmentationToolBar *seedToolBar = new SegmentationToolBar(m_model, m_undoStack, m_viewManager);
+//   registerToolBar(seedToolBar);
+// 
+//   EditorToolBar *editorToolBar = new EditorToolBar(m_model, m_undoStack, m_viewManager);
+//   registerToolBar(editorToolBar);
+// 
+//   CompositionToolBar *compositionBar = new CompositionToolBar(m_model, m_undoStack, m_viewManager);
+//   registerToolBar(compositionBar);
+// 
+//   ChannelExplorer *channelExplorer = new ChannelExplorer(m_model, m_undoStack, m_viewManager, this);
+//   registerDockWidget(Qt::LeftDockWidgetArea, channelExplorer);
+// 
+//   SegmentationExplorer *segExplorer = new SegmentationExplorer(m_model, m_undoStack, m_viewManager, this);
+//   registerDockWidget(Qt::LeftDockWidgetArea, segExplorer);
+// 
+//   FilterInspectorDock *filterInspectorDock = new FilterInspectorDock(m_undoStack, m_viewManager, this);
+//   registerDockWidget(Qt::LeftDockWidgetArea, filterInspectorDock);
 
 //   QAction *connectomicsAction = new QAction(tr("Connectomics Information"), this);
 //   m_dynamicMenuRoot->submenus[0]->menu->addAction(connectomicsAction);
@@ -371,21 +325,21 @@ EspinaMainWindow::EspinaMainWindow(ModelAdapter      *model,
   connect(rawInformationAction, SIGNAL(triggered(bool)),
           this, SLOT(showRawInformation()));
 
-
   loadPlugins(plugins);
 
   m_colorEngines->restoreUserSettings();
   m_viewMenu->addMenu(m_dockMenu);
   m_viewMenu->addSeparator();
 
-  DefaultEspinaView *defaultView = new DefaultEspinaView(m_model, m_undoStack, m_viewManager, this);
-
-  statusBar()->clearMessage();
-
-  defaultView->createViewMenu(m_viewMenu);
-  connect(m_mainToolBar, SIGNAL(showSegmentations(bool)),
-          defaultView, SLOT(showSegmentations(bool)));
-  m_view = defaultView;
+  //TODO 2013-10-06
+//   DefaultViewSPtr defaultView = new DefaultEspinaView(m_model, m_undoStack, m_viewManager, this);
+// 
+//   statusBar()->clearMessage();
+// 
+//   defaultView->createViewMenu(m_viewMenu);
+//   connect(m_mainToolBar, SIGNAL(showSegmentations(bool)),
+//           defaultView, SLOT(showSegmentations(bool)));
+//   m_view = defaultView;
 
   QSettings settings(CESVIMA, ESPINA);
 
@@ -399,7 +353,7 @@ EspinaMainWindow::EspinaMainWindow(ModelAdapter      *model,
   settings.endGroup();
   restoreState(settings.value("state").toByteArray());
 
-  m_autosave.setInterval(m_settings->autosaveInterval()*60*1000);
+//TODO 2013-10-06   m_autosave.setInterval(m_settings->autosaveInterval()*60*1000);
   m_autosave.start();
   connect(&m_autosave, SIGNAL(timeout()),
           this, SLOT(autosave()));
@@ -410,8 +364,7 @@ EspinaMainWindow::EspinaMainWindow(ModelAdapter      *model,
 
   checkAutosave();
 
-  statusBar()->addPermanentWidget(m_traceableStatus);
-  updateTraceabilityStatus();
+  //statusBar()->addPermanentWidget(m_traceableStatus);
 }
 
 //------------------------------------------------------------------------
@@ -421,54 +374,54 @@ EspinaMainWindow::~EspinaMainWindow()
 //   qDebug() << "              Destroying Main Window";
 //   qDebug() << "********************************************************";
 
-  foreach(IRendererSPtr renderer, m_defaultRenderers)
-    m_model->factory()->unregisterRenderer(renderer.get());
+//   foreach(IRendererSPtr renderer, m_defaultRenderers)
+//     m_model->factory()->unregisterRenderer(renderer.get());
 
   delete m_settings;
   delete m_undoStack;
   delete m_dynamicMenuRoot;
 }
 
-//------------------------------------------------------------------------
-FilterSPtr EspinaMainWindow::createFilter(const QString& filter,
-                                          const Filter::NamedInputs& inputs,
-                                          const ModelItem::Arguments& args)
-{
-  if (ChannelReader::TYPE == filter)
-  {
-    FilterSPtr reader(new ChannelReader(inputs, args, ChannelReader::TYPE, m_errorHandler));
-    SetBasicGraphicalRepresentationFactory(reader);
-    return reader;
-  }
-
-  Q_ASSERT(false);
-  return FilterSPtr();
-}
-
+// //------------------------------------------------------------------------
+// FilterSPtr EspinaMainWindow::createFilter(const QString& filter,
+//                                           const Filter::NamedInputs& inputs,
+//                                           const ModelItem::Arguments& args)
+// {
+//   if (ChannelReader::TYPE == filter)
+//   {
+//     FilterSPtr reader(new ChannelReader(inputs, args, ChannelReader::TYPE, m_errorHandler));
+//     SetBasicGraphicalRepresentationFactory(reader);
+//     return reader;
+//   }
+// 
+//   Q_ASSERT(false);
+//   return FilterSPtr();
+// }
+// 
 //------------------------------------------------------------------------
 void EspinaMainWindow::loadPlugins(QList<QObject *> &plugins)
 {
   foreach (QObject *plugin, plugins)
   {
-    IFactoryExtension *factoryExtension = qobject_cast<IFactoryExtension *>(plugin);
-    if (factoryExtension)
-    {
-      qDebug() << plugin << "- Factory Extension...... OK";
-      factoryExtension->initFactoryExtension(m_model->factory());
-    }
+//     IFactoryExtension *factoryExtension = qobject_cast<IFactoryExtension *>(plugin);
+//     if (factoryExtension)
+//     {
+//       qDebug() << plugin << "- Factory Extension...... OK";
+//       factoryExtension->initFactoryExtension(m_model->factory());
+//     }
+// 
+//     IToolBarFactory *toolbarFactory = qobject_cast<IToolBarFactory *>(plugin);
+//     if (toolbarFactory)
+//     {
+//       qDebug() << plugin << "- ToolBar ... OK";
+//       toolbarFactory->initToolBarFactory(m_model, m_undoStack, m_viewManager);
+//       foreach(IToolBar *toolbar, toolbarFactory->toolBars())
+//       {
+//         registerToolBar(toolbar);
+//       }
+//     }
 
-    IToolBarFactory *toolbarFactory = qobject_cast<IToolBarFactory *>(plugin);
-    if (toolbarFactory)
-    {
-      qDebug() << plugin << "- ToolBar ... OK";
-      toolbarFactory->initToolBarFactory(m_model, m_undoStack, m_viewManager);
-      foreach(IToolBar *toolbar, toolbarFactory->toolBars())
-      {
-        registerToolBar(toolbar);
-      }
-    }
-
-    IDynamicMenu *menu = qobject_cast<IDynamicMenu *>(plugin);
+    DynamicMenu *menu = qobject_cast<DynamicMenu *>(plugin);
     if (menu)
     {
       qDebug() << plugin << "- Menus ..... OK";
@@ -476,15 +429,15 @@ void EspinaMainWindow::loadPlugins(QList<QObject *> &plugins)
         createDynamicMenu(entry);
     }
 
-    IColorEngineProvider *provider = qobject_cast<IColorEngineProvider *>(plugin);
-    if (provider)
-    {
-      qDebug() << plugin << "- Color Engine Provider ..... OK";
-      foreach(IColorEngineProvider::Engine engine, provider->colorEngines())
-        m_colorEngines->addColorEngine(engine.first, engine.second);
-    }
+//     IColorEngineProvider *provider = qobject_cast<IColorEngineProvider *>(plugin);
+//     if (provider)
+//     {
+//       qDebug() << plugin << "- Color Engine Provider ..... OK";
+//       foreach(IColorEngineProvider::Engine engine, provider->colorEngines())
+//         m_colorEngines->addColorEngine(engine.first, engine.second);
+//     }
 
-    IDockWidget *dock = qobject_cast<IDockWidget *>(plugin);
+    DockWidget *dock = qobject_cast<DockWidget *>(plugin);
     if (dock)
     {
       qDebug() << plugin << "- Dock ...... OK";
@@ -492,12 +445,12 @@ void EspinaMainWindow::loadPlugins(QList<QObject *> &plugins)
       dock->initDockWidget(m_model, m_undoStack, m_viewManager);
     }
 
-    IFileReader *fileReader = qobject_cast<IFileReader *>(plugin);
-    if (fileReader)
-    {
-      qDebug() << plugin << "- File Reader ...... OK";
-      fileReader->initFileReader(m_model, m_undoStack, m_viewManager);
-    }
+//     IFileReader *fileReader = qobject_cast<IFileReader *>(plugin);
+//     if (fileReader)
+//     {
+//       qDebug() << plugin << "- File Reader ...... OK";
+//       fileReader->initFileReader(m_model, m_undoStack, m_viewManager);
+//     }
   }
 }
 
@@ -579,7 +532,7 @@ void EspinaMainWindow::checkAutosave()
 }
 
 //------------------------------------------------------------------------
-void EspinaMainWindow::registerDockWidget(Qt::DockWidgetArea area, IDockWidget* dock)
+void EspinaMainWindow::registerDockWidget(Qt::DockWidgetArea area, DockWidget* dock)
 {
   connect(this, SIGNAL(analysisClosed()),
           dock, SLOT(reset()));
@@ -589,29 +542,13 @@ void EspinaMainWindow::registerDockWidget(Qt::DockWidgetArea area, IDockWidget* 
 }
 
 //------------------------------------------------------------------------
-void EspinaMainWindow::registerToolBar(IToolBar* toolbar)
+void EspinaMainWindow::registerToolBar(ToolBar* toolbar)
 {
   connect(this, SIGNAL(analysisClosed()),
           toolbar, SLOT(resetToolbar()));
   connect(this, SIGNAL(abortOperation()),
           toolbar, SLOT(abortOperation()));
   addToolBar(toolbar);
-}
-
-
-//------------------------------------------------------------------------
-void EspinaMainWindow::updateTraceabilityStatus()
-{
-  if (m_model->isTraceable())
-  {
-    m_traceableStatus->setPixmap(QPixmap(":/espina/traceable.png").scaled(22, 22));
-    m_traceableStatus->setToolTip(tr("Current Session is traceable"));
-  }
-  else
-  {
-    m_traceableStatus->setPixmap(QPixmap(":/espina/non_traceable.png").scaled(22, 22));
-    m_traceableStatus->setToolTip(tr("Current Session is NOT traceable"));
-  }
 }
 
 //------------------------------------------------------------------------
@@ -656,7 +593,7 @@ bool EspinaMainWindow::closeCurrentAnalysis()
 {
   emit analysisClosed();
 
-  if (m_model->hasChanged() || m_undoStack->index() != m_undoStackSavedIndex)
+  if (m_undoStack->index() != m_undoStackSavedIndex)
   {
     QMessageBox warning;
     warning.setWindowTitle(tr("EspINA"));
@@ -677,17 +614,16 @@ bool EspinaMainWindow::closeCurrentAnalysis()
     }
   }
 
-  m_viewManager->setActiveChannel(ChannelPtr());
-  m_viewManager->setActiveTaxonomy(TaxonomyElementPtr());
-  m_viewManager->unsetActiveVOI();
-  m_viewManager->unsetActiveTool();
+  m_viewManager->setActiveChannel(ChannelAdapterPtr());
+  m_viewManager->setActiveCategory(CategoryAdapterPtr());
+  m_viewManager->unsetActiveToolGroup();
   m_viewManager->clearSelection();
   m_undoStack->clear();
   m_undoStackSavedIndex = m_undoStack->index();
   m_model->reset();
 
   // resets slice views matrices to avoid an esthetic bug
-  Nm origin[3] = { 0,0,0 };
+  NmVector3 origin;
   m_viewManager->focusViewsOn(origin);
 
   m_addMenu->setEnabled(false);
@@ -698,9 +634,6 @@ bool EspinaMainWindow::closeCurrentAnalysis()
 
   setWindowTitle(QString("EspINA Interactive Neuron Analyzer"));
   m_dynamicMenuRoot->submenus.first()->menu->setEnabled(false);
-  updateTraceabilityStatus();
-
-  SegFileReader::removeTemporalDir();
 
   return true;
 }
@@ -709,7 +642,7 @@ bool EspinaMainWindow::closeCurrentAnalysis()
 void EspinaMainWindow::openAnalysis()
 {
   const QString title   = tr("Start New Analysis From File");
-  const QString filters = m_model->factory()->supportedFiles().join(";;");
+  const QString filters;//TODO 2013-10-06 = m_factory->supportedFiles().join(";;");
 
   QList<QUrl> urls;
   urls << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::DesktopLocation))
@@ -731,7 +664,6 @@ void EspinaMainWindow::openAnalysis()
   if (fileDialog.exec() == QDialog::Accepted)
   {
     openAnalysis(fileDialog.selectedFiles().first());
-    m_model->markAsSaved();
   }
 }
 
@@ -743,46 +675,46 @@ void EspinaMainWindow::openAnalysis(const QFileInfo file)
 
   QFileInfo fileInfo(file);
 
-  IOErrorHandler::STATUS loaded;
-  {
-    m_errorHandler->setDefaultDir(fileInfo.dir());
-    QApplication::setOverrideCursor(Qt::WaitCursor);
-    closeCurrentAnalysis();
-
-    loaded =  EspinaIO::loadFile(file,
-                                 m_model,
-                                 m_errorHandler);
-    QApplication::restoreOverrideCursor();
-  }
-
-  if (IOErrorHandler::SUCCESS != loaded)
-  {
-    QMessageBox box(QMessageBox::Warning,
-                    tr("EspINA"),
-                    tr("File \"%1\" could not be loaded.\n"
-                    "Do you want to remove it from recent documents list?")
-                    .arg(fileInfo.fileName()),
-                    QMessageBox::Yes|QMessageBox::No);
-
-    if (box.exec() == QMessageBox::Yes)
-    {
-      m_recentDocuments1.removeDocument(file.absoluteFilePath());
-      m_recentDocuments2.updateDocumentList();
-    }
-    // NOTE: avoid triggering the save dialog at closeCurrentAnalysis()
-    // as this is an incomplete load and the model is inconsistent
-    m_model->markAsSaved();
-
-    closeCurrentAnalysis();
-    return;
-  }
-
-  if (!m_model->taxonomy())
-  {
-    TaxonomySPtr defaultTaxonomy = IOTaxonomy::openXMLTaxonomy(":/espina/defaultTaxonomy.xml");
-    //defaultTaxonomy->print();
-    m_model->setTaxonomy(defaultTaxonomy);
-  }
+  IO::STATUS loaded;
+//   {
+//     m_errorHandler->setDefaultDir(fileInfo.dir());
+//     QApplication::setOverrideCursor(Qt::WaitCursor);
+//     closeCurrentAnalysis();
+// 
+//     loaded =  EspinaIO::loadFile(file,
+//                                  m_model,
+//                                  m_errorHandler);
+//     QApplication::restoreOverrideCursor();
+//   }
+// 
+//   if (IOErrorHandler::SUCCESS != loaded)
+//   {
+//     QMessageBox box(QMessageBox::Warning,
+//                     tr("EspINA"),
+//                     tr("File \"%1\" could not be loaded.\n"
+//                     "Do you want to remove it from recent documents list?")
+//                     .arg(fileInfo.fileName()),
+//                     QMessageBox::Yes|QMessageBox::No);
+// 
+//     if (box.exec() == QMessageBox::Yes)
+//     {
+//       m_recentDocuments1.removeDocument(file.absoluteFilePath());
+//       m_recentDocuments2.updateDocumentList();
+//     }
+//     // NOTE: avoid triggering the save dialog at closeCurrentAnalysis()
+//     // as this is an incomplete load and the model is inconsistent
+//     m_model->markAsSaved();
+// 
+//     closeCurrentAnalysis();
+//     return;
+//   }
+// 
+//   if (!m_model->taxonomy())
+//   {
+//     TaxonomySPtr defaultTaxonomy = IOTaxonomy::openXMLTaxonomy(":/espina/defaultTaxonomy.xml");
+//     //defaultTaxonomy->print();
+//     m_model->setTaxonomy(defaultTaxonomy);
+//   }
 
   m_viewManager->resetViewCameras();
   m_addMenu->setEnabled(true);
@@ -797,7 +729,6 @@ void EspinaMainWindow::openAnalysis(const QFileInfo file)
 
   QApplication::restoreOverrideCursor();
 
-  updateTraceabilityStatus();
   m_dynamicMenuRoot->submenus.first()->menu->setEnabled(true);
   updateStatus(QString("File Loaded in %1m%2s").arg(mins).arg(secs));
 
@@ -813,7 +744,7 @@ void EspinaMainWindow::openAnalysis(const QFileInfo file)
   m_saveAnalysis ->setEnabled(true);
   m_closeAnalysis->setEnabled(true);
 
-  ChannelPtr channel = m_model->channels().first().get();
+  ChannelAdapterPtr channel = m_model->channels().first().get();
   m_viewManager->setActiveChannel(channel);
 
   setWindowTitle(file.fileName());
@@ -828,15 +759,16 @@ void EspinaMainWindow::openAnalysis(const QFileInfo file)
   m_viewManager->updateSegmentationRepresentations();
   m_viewManager->updateViews();
 
-  if (EspinaIO::isChannelExtension(fileInfo.suffix()))
-  {
-    AdaptiveEdgesDialog edgesDialog(this);
-    edgesDialog.exec();
-    if (edgesDialog.useAdaptiveEdges())
-    {
-      channel->addExtension(new AdaptiveEdges(true, edgesDialog.color(), edgesDialog.threshold()));
-    }
-  }
+  //TODO 2013-10-06
+//   if (EspinaIO::isChannelExtension(fileInfo.suffix()))
+//   {
+//     AdaptiveEdgesDialog edgesDialog(this);
+//     edgesDialog.exec();
+//     if (edgesDialog.useAdaptiveEdges())
+//     {
+//       channel->addExtension(new AdaptiveEdges(true, edgesDialog.color(), edgesDialog.threshold()));
+//     }
+//   }
 
   m_model->emitChannelAdded(m_model->channels());
   m_model->emitSegmentationAdded(m_model->segmentations());
@@ -849,10 +781,9 @@ void EspinaMainWindow::openRecentAnalysis()
 
   if (action && !action->data().isNull())
   {
-    if (OPEN_STATE == m_menuState)
+    if (MenuState::OPEN_STATE == m_menuState)
     {
       openAnalysis(action->data().toString());
-      m_model->markAsSaved();
     }
     else
       addFileToAnalysis(action->data().toString());
@@ -872,7 +803,7 @@ void EspinaMainWindow::addToAnalysis()
   fileDialog.setWindowTitle(tr("Add Data To Analysis"));
   //fileDialog.setFilters(m_model->factory()->supportedFiles());
   QStringList channelFiles;
-  channelFiles << CHANNEL_FILES;
+  //TODO 2013-10-06: channelFiles << CHANNEL_FILES;
   fileDialog.setFileMode(QFileDialog::ExistingFiles);
   fileDialog.setFilters(channelFiles);
   fileDialog.setDirectory(m_sessionFile.absoluteDir());
@@ -901,69 +832,65 @@ void EspinaMainWindow::addRecentToAnalysis()
 //------------------------------------------------------------------------
 void EspinaMainWindow::addFileToAnalysis(const QFileInfo file)
 {
-  // Prevent loading seg files from recent files until multiple seg analysis is fully supported
-  if (!EspinaIO::isChannelExtension(file.suffix()))
-    return;
-
-  QApplication::setOverrideCursor(Qt::WaitCursor);
-  QElapsedTimer timer;
-  timer.start();
-
-  ChannelSList existingChannels = m_model->channels();
-  SegmentationSList existingSegmentations = m_model->segmentations();
-
-  UndoableEspinaModel undoableModel(m_model, m_undoStack);
-  m_undoStack->beginMacro(tr("Add %1 to analysis").arg(file.fileName()));
-  if (IOErrorHandler::SUCCESS == EspinaIO::loadFile(file, &undoableModel))
-  {
-    int secs = timer.elapsed()/1000.0;
-    int mins = 0;
-    if (secs > 60)
-    {
-      mins = secs / 60;
-      secs = secs % 60;
-    }
-
-    updateStatus(QString("File Loaded in %1m%2s").arg(mins).arg(secs));
-    QApplication::restoreOverrideCursor();
-    m_recentDocuments1.addDocument(file.absoluteFilePath());
-    m_recentDocuments2.updateDocumentList();
-
-    if (EspinaIO::isChannelExtension(file.suffix()))
-    {
-      ChannelSPtr channel;
-      int i = 0;
-      while (!channel && i < m_model->channels().size())
-      {
-        ChannelSPtr iChannel = m_model->channels()[i];
-        if (file.fileName() == iChannel->data().toString())
-          channel = iChannel;
-        ++i;
-      }
-
-      AdaptiveEdgesDialog edgesDialog(this);
-      edgesDialog.exec();
-      if (edgesDialog.useAdaptiveEdges())
-      {
-        channel->addExtension(new AdaptiveEdges(true, edgesDialog.color(), edgesDialog.threshold()));
-      }
-    }
-
-    ChannelSList newChannels;
-    SegmentationSList newSegmentations;
-    foreach(ChannelSPtr channel, m_model->channels())
-      if (!existingChannels.contains(channel))
-        newChannels << channel;
-
-    foreach(SegmentationSPtr segmentation, m_model->segmentations())
-      if (!existingSegmentations.contains(segmentation))
-        newSegmentations << segmentation;
-
-    m_model->emitChannelAdded(newChannels);
-    m_model->emitSegmentationAdded(newSegmentations);
-
-  }
-  m_undoStack->endMacro();
+//   QApplication::setOverrideCursor(Qt::WaitCursor);
+//   QElapsedTimer timer;
+//   timer.start();
+// 
+//   ChannelSList existingChannels = m_model->channels();
+//   SegmentationSList existingSegmentations = m_model->segmentations();
+// 
+//   UndoableEspinaModel undoableModel(m_model, m_undoStack);
+//   m_undoStack->beginMacro(tr("Add %1 to analysis").arg(file.fileName()));
+//   if (IOErrorHandler::SUCCESS == EspinaIO::loadFile(file, &undoableModel))
+//   {
+//     int secs = timer.elapsed()/1000.0;
+//     int mins = 0;
+//     if (secs > 60)
+//     {
+//       mins = secs / 60;
+//       secs = secs % 60;
+//     }
+// 
+//     updateStatus(QString("File Loaded in %1m%2s").arg(mins).arg(secs));
+//     QApplication::restoreOverrideCursor();
+//     m_recentDocuments1.addDocument(file.absoluteFilePath());
+//     m_recentDocuments2.updateDocumentList();
+// 
+//     if (EspinaIO::isChannelExtension(file.suffix()))
+//     {
+//       ChannelSPtr channel;
+//       int i = 0;
+//       while (!channel && i < m_model->channels().size())
+//       {
+//         ChannelSPtr iChannel = m_model->channels()[i];
+//         if (file.fileName() == iChannel->data().toString())
+//           channel = iChannel;
+//         ++i;
+//       }
+// 
+//       AdaptiveEdgesDialog edgesDialog(this);
+//       edgesDialog.exec();
+//       if (edgesDialog.useAdaptiveEdges())
+//       {
+//         channel->addExtension(new AdaptiveEdges(true, edgesDialog.color(), edgesDialog.threshold()));
+//       }
+//     }
+// 
+//     ChannelSList newChannels;
+//     SegmentationSList newSegmentations;
+//     foreach(ChannelSPtr channel, m_model->channels())
+//       if (!existingChannels.contains(channel))
+//         newChannels << channel;
+// 
+//     foreach(SegmentationSPtr segmentation, m_model->segmentations())
+//       if (!existingSegmentations.contains(segmentation))
+//         newSegmentations << segmentation;
+// 
+//     m_model->emitChannelAdded(newChannels);
+//     m_model->emitSegmentationAdded(newSegmentations);
+// 
+//   }
+//   m_undoStack->endMacro();
 }
 
 //------------------------------------------------------------------------
@@ -985,7 +912,7 @@ void EspinaMainWindow::saveAnalysis()
   fileDialog.selectFile(suggestedFileName);
   fileDialog.setDefaultSuffix(QString(tr("seg")));
   fileDialog.setWindowTitle(tr("Save EspINA Analysis"));
-  fileDialog.setFilter(SEG_FILES);
+  //TODO 2013-10-06: fileDialog.setFilter(SEG_FILES);
   fileDialog.setDirectory(m_sessionFile.absoluteDir());
   fileDialog.setOption(QFileDialog::DontUseNativeDialog, false);
   fileDialog.setViewMode(QFileDialog::Detail);
@@ -1006,7 +933,7 @@ void EspinaMainWindow::saveAnalysis()
   QApplication::setOverrideCursor(Qt::WaitCursor);
   m_busy = true;
 
-  SegFileReader::saveSegFile(analysisFile, m_model);
+  IO::SegFile::save(m_analysis.get(), analysisFile, nullptr);
 
   QApplication::restoreOverrideCursor();
   updateStatus(tr("File Saved Successfully in %1").arg(analysisFile));
@@ -1016,7 +943,6 @@ void EspinaMainWindow::saveAnalysis()
   m_recentDocuments2.updateDocumentList();
 
   m_undoStackSavedIndex = m_undoStack->index();
-  m_model->markAsSaved();
 
   QStringList fileParts = analysisFile.split(QDir::separator());
   setWindowTitle(fileParts[fileParts.size()-1]);
@@ -1031,7 +957,7 @@ void EspinaMainWindow::saveSessionAnalysis()
   QApplication::setOverrideCursor(Qt::WaitCursor);
   m_busy = true;
 
-  SegFileReader::saveSegFile(m_sessionFile, m_model);
+  IO::SegFile::save(m_analysis.get(), m_sessionFile, nullptr);
 
   QApplication::restoreOverrideCursor();
   updateStatus(tr("File Saved Successfuly in %1").arg(m_sessionFile.fileName()));
@@ -1041,7 +967,6 @@ void EspinaMainWindow::saveSessionAnalysis()
   m_recentDocuments2.updateDocumentList();
 
   m_undoStackSavedIndex = m_undoStack->index();
-  m_model->markAsSaved();
 }
 
 //------------------------------------------------------------------------
@@ -1063,19 +988,19 @@ void EspinaMainWindow::updateTooltip(QAction* action)
 //------------------------------------------------------------------------
 void EspinaMainWindow::showPreferencesDialog()
 {
-  GeneralSettingsDialog dialog;
+  //TODO 2013-10-06
+//   GeneralSettingsDialog dialog;
+// 
+//   dialog.registerPanel(m_settingsPanel.get());
+//   dialog.registerPanel(m_view->settingsPanel());
+//   dialog.resize(800, 600);
 
-  dialog.registerPanel(m_settingsPanel.get());
-  dialog.registerPanel(m_view->settingsPanel());
-  dialog.resize(800, 600);
-
-  foreach(ISettingsPanelPtr panel, m_model->factory()->settingsPanels())
-  {
-    dialog.registerPanel(panel);
-  }
-
-  dialog.exec();
-  updateTraceabilityStatus();
+//   foreach(ISettingsPanelPtr panel, m_model->factory()->settingsPanels())
+//   {
+//     dialog.registerPanel(panel);
+//   }
+/*
+  dialog.exec(); */
 }
 
 //------------------------------------------------------------------------
@@ -1089,8 +1014,9 @@ void EspinaMainWindow::showAboutDialog()
 //------------------------------------------------------------------------
 void EspinaMainWindow::autosave()
 {
-  if (!m_model->hasChanged())
-    return;
+  // TODO: Use stack index --> create a method
+//   if (!m_model->hasChanged())
+//     return;
 
   m_busy = true;
 
@@ -1100,7 +1026,7 @@ void EspinaMainWindow::autosave()
 
   const QFileInfo analysisFile = autosavePath.absoluteFilePath(AUTOSAVE_FILE);
 
-  SegFileReader::saveSegFile(analysisFile, m_model);
+  IO::SegFile::save(m_analysis.get(), analysisFile, nullptr);
 
   updateStatus(tr("Analysis autosaved at %1").arg(QTime::currentTime().toString()));
   m_busy = false;
@@ -1110,24 +1036,24 @@ void EspinaMainWindow::autosave()
 //------------------------------------------------------------------------
 void EspinaMainWindow::showConnectomicsInformation()
 {
-  ConnectomicsDialog *dialog = new ConnectomicsDialog(m_model, m_viewManager, this);
-  dialog->show();
+//   ConnectomicsDialog *dialog = new ConnectomicsDialog(m_model, m_viewManager, this);
+//   dialog->show();
 }
 
 //------------------------------------------------------------------------
 void EspinaMainWindow::showRawInformation()
 {
-  if (!m_model->segmentations().isEmpty())
-  {
-    RawInformationDialog *dialog = new RawInformationDialog(m_model, m_viewManager, this);
-    connect(dialog, SIGNAL(finished(int)),
-            dialog, SLOT(deleteLater()));
-    dialog->show();
-  }
-  else
-  {
-    QMessageBox::warning(this, ESPINA, tr("Current analysis does not contain any segmentations"));
-  }
+//   if (!m_model->segmentations().isEmpty())
+//   {
+//     RawInformationDialog *dialog = new RawInformationDialog(m_model, m_viewManager, this);
+//     connect(dialog, SIGNAL(finished(int)),
+//             dialog, SLOT(deleteLater()));
+//     dialog->show();
+//   }
+//   else
+//   {
+//     QMessageBox::warning(this, ESPINA, tr("Current analysis does not contain any segmentations"));
+//   }
 }
 
 //------------------------------------------------------------------------

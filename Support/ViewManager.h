@@ -24,7 +24,7 @@
 #ifndef ESPINA_VIEW_MANAGER_H
 #define ESPINA_VIEW_MANAGER_H
 
-#include "EspinaSupport_Export.h"
+#include "Support/EspinaSupport_Export.h"
 
 // EspINA
 #include <Core/Utils/Measure.h>
@@ -222,6 +222,8 @@ private:
   private:
     ColorEngineSPtr m_colorEngine;
   };
+
+  using ViewManagerSPtr = std::shared_ptr<ViewManager>;
 
 //   Q_DECLARE_OPERATORS_FOR_FLAGS(ViewManager::SliceSelectors)
 }

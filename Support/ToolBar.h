@@ -16,10 +16,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef ITOOLBAR_H
-#define ITOOLBAR_H
+#ifndef ESPINA_TOOLBAR_H
+#define ESPINA_TOOLBAR_H
 
-#include "EspinaCore_Export.h"
+#include "Support/EspinaSupport_Export.h"
 
 // Qt
 #include <QToolBar>
@@ -31,17 +31,22 @@ class QUndoStack;
 
 namespace EspINA
 {
-  class ModelAdapter;
-  class ViewManager;
-
-  class EspinaCore_EXPORT IToolBar
+  class EspinaSupport_EXPORT ToolBar
   : public QToolBar
   {
     Q_OBJECT
   public:
-    explicit IToolBar(QWidget *parent = 0);
-    explicit IToolBar(const QString &title, QWidget *parent = 0);
-    virtual ~IToolBar();
+    explicit ToolBar(QWidget *parent = 0)
+    : QToolBar(parent)
+    , m_undoIndex(INT_MAX)
+    {}
+
+    explicit ToolBar(const QString &title, QWidget *parent = 0)
+    : QToolBar(title, parent)
+    , m_undoIndex(INT_MAX)
+    {}
+
+    virtual ~ToolBar() {}
 
   public slots:
     /// Restore toolbar state to its initial state. Every widgets and tools

@@ -16,10 +16,10 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef IDYNAMICMENU_H
-#define IDYNAMICMENU_H
+#ifndef ESPINA_DYNAMIC_MENU_H
+#define ESPINA_DYNAMIC_MENU_H
 
-#include "EspinaCore_Export.h"
+#include "Support/EspinaSupport_Export.h"
 
 #include <QPair>
 #include <QStringList>
@@ -28,12 +28,12 @@ class QAction;
 
 namespace EspINA
 {
-  typedef QPair<QStringList, QAction *> MenuEntry;
+  using MenuEntry = QPair<QStringList, QAction *>;
 
-  class EspinaCore_EXPORT IDynamicMenu
+  class EspinaSupport_EXPORT DynamicMenu
   {
     public:
-      virtual ~IDynamicMenu();
+      virtual ~DynamicMenu() {}
 
       virtual QList<MenuEntry> menuEntries() = 0;
 
@@ -41,7 +41,7 @@ namespace EspINA
   };
 }
 
-Q_DECLARE_INTERFACE(EspINA::IDynamicMenu,
-                    "es.upm.cesvima.EspINA.DynamicMenuInterface/1.1")
+Q_DECLARE_INTERFACE(EspINA::DynamicMenu,
+                    "es.upm.cesvima.EspINA.DynamicMenuInterface/1.2")
 
-#endif //IDYNAMICMENU_H
+#endif // ESPINA_DYNAMIC_MENU_H

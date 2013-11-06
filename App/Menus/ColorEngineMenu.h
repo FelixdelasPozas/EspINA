@@ -17,43 +17,41 @@
  */
 
 
-#ifndef COLORENGINESETTINGS_H
-#define COLORENGINESETTINGS_H
+#ifndef ESPINA_COLOR_ENGINE_MENU_H
+#define ESPINA_COLOR_ENGINE_MENU_H
 
 #include <QMenu>
-
-#include <Core/ColorEngines/IColorEngine.h>
-#include <Core/ColorEngines/MultiColorEngine.h>
-
-#include <QMap>
+#include <Support/ViewManager.h>
+#include <GUI/ColorEngines/MultiColorEngine.h>
 
 namespace EspINA
 {
-  class ViewManager;
-
   class ColorEngineMenu
   : public QMenu
   {
     Q_OBJECT
   public:
-    explicit ColorEngineMenu(ViewManager *vm, const QString &title, QWidget *parent = 0);
+    explicit ColorEngineMenu(ViewManagerSPtr vm, const QString &title, QWidget *parent = 0);
     virtual ~ColorEngineMenu();
 
-    ColorEnginePtr engine() const {return m_engine;}
+    ColorEngineSPtr engine() const 
+    {return m_engine;}
 
-    void addColorEngine(const QString &title, ColorEnginePtr engine);
+    void addColorEngine(const QString &title, ColorEngineSPtr engine);
+
     void restoreUserSettings();
 
   protected slots:
     void setColorEngine(QAction *action);
 
   signals:
-    void colorEngineChanged(ColorEnginePtr);
+    void colorEngineChanged(ColorEngineSPtr);
 
   private:
-    ViewManager *m_viewManager;
-    boost::shared_ptr<MultiColorEngine> m_engine;
-    QMap<QAction *, ColorEnginePtr>  m_availableEngines;
+    ViewManagerSPtr      m_viewManager;
+    MultiColorEngineSPtr m_engine;
+
+    QMap<QAction *, ColorEngineSPtr>  m_availableEngines;
   };
 
 } // namespace EspINA
