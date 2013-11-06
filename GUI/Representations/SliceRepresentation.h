@@ -25,8 +25,8 @@
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef SLICEREPRESENTATION_H
-#define SLICEREPRESENTATION_H
+#ifndef ESPINA_SLICE_REPRESENTATION_H
+#define ESPINA_SLICE_REPRESENTATION_H
 
 #include "EspinaGUI_Export.h"
 
@@ -55,14 +55,11 @@ namespace EspINA
   class TransparencySelectionHighlighter;
   class View2D;
 
-  using SegmentationVolumeSPtr = std::shared_ptr<VolumetricData<itkVolumeType>>;
-  using ChannelVolumeSPtr = std::shared_ptr<VolumetricData<itkVolumeType>>;
-
   class EspinaGUI_EXPORT ChannelSliceRepresentation
   : public Representation
   {
   public:
-    explicit ChannelSliceRepresentation(ChannelVolumeSPtr data,
+    explicit ChannelSliceRepresentation(DefaultVolumetricDataSPtr data,
                                         View2D        *view);
     virtual ~ChannelSliceRepresentation();
 
@@ -88,10 +85,10 @@ namespace EspINA
     virtual QList<vtkProp*> getActors();
 
     void setPlane(Plane plane)
-    { m_plane = plane; }
+    { m_planeIndex = normalCoordinateIndex(plane); }
 
     Plane plane()
-    { return m_plane; }
+    { return toPlane(m_planeIndex); }
 
   protected:
     virtual RepresentationSPtr cloneImplementation(View2D *view);
@@ -109,11 +106,11 @@ namespace EspINA
     void initializePipeline();
 
   private:
-    ChannelVolumeSPtr m_data;
-    Plane             m_plane;
+    DefaultVolumetricDataSPtr m_data;
+    int m_planeIndex;
+    Nm m_reslicePoint;
 
     using ExporterType = itk::ImageToVTKImageFilter<itkVolumeType>;
-
 
     ExporterType::Pointer                m_exporter;
     vtkSmartPointer<vtkImageImport>      m_importer;
@@ -127,8 +124,8 @@ namespace EspINA
   : public Representation
   {
   public:
-    explicit SegmentationSliceRepresentation(SegmentationVolumeSPtr data,
-                                             View2D                *view);
+    explicit SegmentationSliceRepresentation(DefaultVolumetricDataSPtr data,
+                                             View2D *view);
     virtual ~SegmentationSliceRepresentation();
 
     virtual RepresentationSettings *settingsWidget();
@@ -155,10 +152,10 @@ namespace EspINA
     virtual QList<vtkProp*> getActors();
 
     void setPlane(Plane plane)
-    { m_plane = plane; }
+    { m_planeIndex = normalCoordinateIndex(plane); }
 
     Plane plane()
-    { return m_plane; }
+    { return toPlane(m_planeIndex); }
 
   protected:
     virtual RepresentationSPtr cloneImplementation(View2D *view);
@@ -176,8 +173,9 @@ namespace EspINA
     void initializePipeline();
 
   private:
-    SegmentationVolumeSPtr m_data;
-    Plane                  m_plane;
+    DefaultVolumetricDataSPtr m_data;
+    int m_planeIndex;
+    Nm m_reslicePoint;
 
     using ExporterType = itk::ImageToVTKImageFilter<itkVolumeType>;
 
@@ -197,4 +195,4 @@ namespace EspINA
 
 } // namespace EspINA
 
-#endif // SLICEREPRESENTATION_H
+#endif // ESPINA_SLICE_REPRESENTATION_H

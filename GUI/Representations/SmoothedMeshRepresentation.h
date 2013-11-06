@@ -1,6 +1,6 @@
 /*
  <one line to give the program's name and a brief idea of what it does.>
- Copyright (C) 2013 Félix de las Pozas Álvarez <felixdelaspozas@gmail.com>
+ Copyright (C) 2013 Fï¿½lix de las Pozas ï¿½lvarez <felixdelaspozas@gmail.com>
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -16,47 +16,44 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SMOOTHEDMESHREPRESENTATION_H_
-#define SMOOTHEDMESHREPRESENTATION_H_
+#ifndef ESPINA_SMOOTHED_MESH_REPRESENTATION_H_
+#define ESPINA_SMOOTHED_MESH_REPRESENTATION_H_
 
 #include "EspinaGUI_Export.h"
 
 // EspINA
-#include "IMeshRepresentation.h"
+#include "MeshRepresentation.h"
 
 class vtkDecimatePro;
 
 namespace EspINA
 {
   class EspinaGUI_EXPORT SmoothedMeshRepresentation
-  : public IMeshRepresentation
+  : public MeshRepresentation
   {
     Q_OBJECT
   public:
-    explicit SmoothedMeshRepresentation(MeshRepresentationSPtr mesh,
-                                        EspinaRenderView *view);
+    explicit SmoothedMeshRepresentation(MeshDataSPtr mesh,
+                                        RenderView *view);
     virtual ~SmoothedMeshRepresentation() {};
 
-    virtual GraphicalRepresentationSettings *settingsWidget();
+    virtual RepresentationSettings *settingsWidget();
 
     virtual void updateRepresentation();
 
   protected:
-    virtual GraphicalRepresentationSPtr cloneImplementation(VolumeView *view);
-
-  private slots:
-    void updatePipelineConnections();
+    virtual RepresentationSPtr cloneImplementation(View3D *view);
 
   private:
-    void setView(VolumeView *view) { m_view = view; };
+    void setView(RenderView *view) { m_view = view; };
     void initializePipeline();
 
   private:
     vtkSmartPointer<vtkDecimatePro>                m_decimate;
   };
 
-  typedef boost::shared_ptr<SmoothedMeshRepresentation> SmoothedMeshRepresentationSPtr;
-  typedef QList<SmoothedMeshRepresentationSPtr> SmoothedMeshRepresentationSList;
+  using SmoothedMeshRepresentationSPtr  = std::shared_ptr<SmoothedMeshRepresentation>;
+  using SmoothedMeshRepresentationSList = QList<SmoothedMeshRepresentationSPtr>;
 
 } /* namespace EspINA */
-#endif /* SMOOTHEDMESHREPRESENTATION_H_ */
+#endif /* ESPINA_SMOOTHED_MESH_REPRESENTATION_H_ */

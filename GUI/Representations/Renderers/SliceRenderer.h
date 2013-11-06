@@ -16,8 +16,8 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SLICERENDERER_H_
-#define SLICERENDERER_H_
+#ifndef ESPINA_SLICE_RENDERER_H_
+#define ESPINA_SLICE_RENDERER_H_
 
 #include "EspinaGUI_Export.h"
 
@@ -55,9 +55,9 @@ namespace EspINA
 
       virtual unsigned int numberOfvtkActors();
 
-      virtual RenderableItems renderableItems()  { return RenderableItems(EspINA::CHANNEL|EspINA::SEGMENTATION); }
+      virtual RenderableItems renderableItems() { return RenderableItems(EspINA::CHANNEL|EspINA::SEGMENTATION); }
 
-      virtual RendererTypes renderType()         { return RendererTypes(RENDERER_SLICEVIEW); }
+      virtual RendererTypes renderType()        { return RendererTypes(RENDERER_SLICEVIEW); }
 
       virtual int numberOfRenderedItems()       { return m_representations.size(); }
 
@@ -74,5 +74,5 @@ namespace EspINA
       vtkSmartPointer<vtkPropPicker> m_picker;
   };
 
-} /* namespace EspINA */
-#endif /* SLICERENDERER_H_ */
+} // namespace EspINA
+#endif // ESPINA_SLICE_RENDERER_H_

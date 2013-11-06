@@ -17,9 +17,9 @@
  */
 
 // EspINA
-#include "GUI/Representations/IMeshRepresentation.h"
-#include <Core/ColorEngines/TransparencySelectionHighlighter.h>
-#include "GUI/QtWidget/EspinaRenderView.h"
+#include "GUI/Representations/MeshRepresentationBase.h"
+#include <GUI/ColorEngines/TransparencySelectionHighlighter.h>
+#include "GUI/View/RenderView.h"
 
 // VTK
 #include <vtkActor.h>
@@ -27,23 +27,23 @@
 
 using namespace EspINA;
 
-TransparencySelectionHighlighter *IMeshRepresentation::s_highlighter = new TransparencySelectionHighlighter();
+TransparencySelectionHighlighter *MeshRepresentationBase::s_highlighter = new TransparencySelectionHighlighter();
 
 //-----------------------------------------------------------------------------
-IMeshRepresentation::IMeshRepresentation(MeshRepresentationSPtr mesh, EspinaRenderView *view)
-: SegmentationGraphicalRepresentation(view)
+MeshRepresentationBase::MeshRepresentationBase(MeshDataSPtr mesh, RenderView *view)
+: Representation(view)
 , m_data(mesh)
 {
 }
 
 //-----------------------------------------------------------------------------
-void IMeshRepresentation::setColor(const QColor &color)
+void MeshRepresentationBase::setColor(const QColor &color)
 {
-  SegmentationGraphicalRepresentation::setColor(color);
+  Representation::setColor(color);
 
-  if (m_actor != NULL)
+  if (m_actor != nullptr)
   {
-    LUTPtr colors = s_highlighter->lut(m_color, m_highlight);
+    LUTSPtr colors = s_highlighter->lut(m_color, m_highlight);
     double *rgba = colors->GetTableValue(1);
     m_actor->GetProperty()->SetColor(rgba[0], rgba[1], rgba[2]);
     m_actor->GetProperty()->SetOpacity(rgba[3]);
@@ -51,13 +51,13 @@ void IMeshRepresentation::setColor(const QColor &color)
 }
 
 //-----------------------------------------------------------------------------
-void IMeshRepresentation::setHighlighted(bool highlighted)
+void MeshRepresentationBase::setHighlighted(bool highlighted)
 {
   Representation::setHighlighted(highlighted);
 
-  if (m_actor != NULL)
+  if (m_actor != nullptr)
   {
-    LUTPtr colors = s_highlighter->lut(m_color, m_highlight);
+    LUTSPtr colors = s_highlighter->lut(m_color, m_highlight);
     double *rgba = colors->GetTableValue(1);
     m_actor->GetProperty()->SetColor(rgba[0], rgba[1], rgba[2]);
     m_actor->GetProperty()->SetOpacity(rgba[3]);
@@ -65,35 +65,35 @@ void IMeshRepresentation::setHighlighted(bool highlighted)
 }
 
 //-----------------------------------------------------------------------------
-bool IMeshRepresentation::hasActor(vtkProp *actor) const
+bool MeshRepresentationBase::hasActor(vtkProp *actor) const
 {
-  if (m_actor == NULL)
+  if (m_actor == nullptr)
     return false;
 
   return m_actor.GetPointer() == actor;
 }
 
 //-----------------------------------------------------------------------------
-bool IMeshRepresentation::isInside(Nm *point)
+bool MeshRepresentationBase::isInside(const NmVector3 &point) const
 {
   // FIXME: unused now, buy maybe useful in the future
   return false;
 }
 
 //-----------------------------------------------------------------------------
-QList<vtkProp *> IMeshRepresentation::getActors()
+QList<vtkProp *> MeshRepresentationBase::getActors()
 {
   QList<vtkProp *> list;
 
-  if (m_actor == NULL)
+  if (m_actor == nullptr)
     initializePipeline();
 
   list << m_actor.GetPointer();
   return list;
 }
 //-----------------------------------------------------------------------------
-void IMeshRepresentation::updateVisibility(bool visible)
+void MeshRepresentationBase::updateVisibility(bool visible)
 {
-  if (m_actor != NULL)
+  if (m_actor != nullptr)
     m_actor->SetVisibility(visible);
 }

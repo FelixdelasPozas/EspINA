@@ -86,6 +86,8 @@ namespace EspINA
 
 //     virtual void restoreEditedRegions(const QDir &cacheDir, const QString &outputId) = 0;
 
+
+
   signals:
     void dataChanged();//former representationChanged
 

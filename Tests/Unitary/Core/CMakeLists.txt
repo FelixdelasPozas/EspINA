@@ -3,7 +3,7 @@ set(LIB_DEPENDECIES
 
 add_subdirectory( Analysis )
 add_subdirectory( Bounds )
-add_subdirectory( Data )
+#add_subdirectory( Data )
 add_subdirectory( Channel )
 add_subdirectory( Classification )
 add_subdirectory( CoreFactory )

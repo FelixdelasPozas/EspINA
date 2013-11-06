@@ -16,14 +16,13 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CONTOURRENDERER_H_
-#define CONTOURRENDERER_H_
+#ifndef ESPINA_CONTOUR_RENDERER_H_
+#define ESPINA_CONTOUR_RENDERER_H_
 
 #include "EspinaGUI_Export.h"
 
 // EspINA
 #include "MeshRenderer.h"
-#include <Core/Model/Output.h>
 
 namespace EspINA
 {
@@ -38,22 +37,22 @@ namespace EspINA
       virtual const QString name()    const   { return "Contour"; }
       virtual const QString tooltip() const   { return "Segmentation's Contours"; }
 
-      virtual void addRepresentation(PickableItemPtr item, GraphicalRepresentationSPtr rep);
-      virtual void removeRepresentation(GraphicalRepresentationSPtr rep);
-      virtual bool managesRepresentation(GraphicalRepresentationSPtr rep);
+      virtual void addRepresentation(ViewItemAdapterPtr item, RepresentationSPtr rep);
+      virtual void removeRepresentation(RepresentationSPtr rep);
+      virtual bool managesRepresentation(RepresentationSPtr rep);
 
-      virtual IRendererSPtr clone()                     { return IRendererSPtr(new ContourRenderer()); }
-      virtual RendererType getRenderType()              { return RendererType(RENDERER_SLICEVIEW); }
+      virtual RendererSPtr clone()            { return RendererSPtr(new ContourRenderer()); }
+      virtual RendererTypes renderType()      { return RendererTypes(RENDERER_SLICEVIEW); }
 
-      virtual ViewManager::Selection pick(int x,
-                                          int y,
-                                          Nm z,
-                                          vtkSmartPointer<vtkRenderer> renderer,
-                                          RenderabledItems itemType = RenderabledItems(),
-                                          bool repeat = false);
+      virtual SelectableView::Selection pick(int x,
+                                             int y,
+                                             Nm z,
+                                             vtkSmartPointer<vtkRenderer> renderer,
+                                             RenderableItems itemType = RenderableItems(),
+                                             bool repeat = false);
 
       virtual void setView(RenderView* view);
   };
 
-} /* namespace EspINA */
-#endif /* CONTOURRENDERER_H_ */
+} // namespace EspINA
+#endif // ESPINA_CONTOUR_RENDERER_H_

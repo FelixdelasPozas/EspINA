@@ -1,10 +1,10 @@
-find_package(XLSLIB REQUIRED)
+#find_package(XLSLIB REQUIRED)
 
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_BINARY_DIR} # Generated EspinaConfig.h
   ${CMAKE_CURRENT_BINARY_DIR}  #For wrap/ui files
-  ${XLSLIB_INCLUDE_DIRS}
+#  ${XLSLIB_INCLUDE_DIRS}
   )
 
 #------------------------------------------------------------------------------

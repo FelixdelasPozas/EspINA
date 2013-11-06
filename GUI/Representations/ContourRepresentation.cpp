@@ -22,8 +22,8 @@
 #include "ContourRepresentationSettings.h"
 #include <GUI/ColorEngines/TransparencySelectionHighlighter.h>
 #include <Core/EspinaTypes.h>
-#include <GUI/View/SliceView.h>
-#include <GUI/View/VolumeView.h>
+#include <GUI/View/View2D.h>
+#include <GUI/View/View3D.h>
 #include <GUI/View/Widgets/Contour/vtkVoxelContour2D.h>
 
 // VTK
@@ -48,6 +48,7 @@ ContourRepresentation::ContourRepresentation(DefaultVolumetricDataSPtr data,
                                              RenderView      *view)
 : Representation(view)
 , m_data(data)
+, m_planeIndex(-1)
 , m_width(medium)
 , m_pattern(normal)
 , m_minSpacing(0)
@@ -105,35 +106,44 @@ bool ContourRepresentation::hasActor(vtkProp *actor) const
 }
 
 //-----------------------------------------------------------------------------
-  bool ContourRepresentation::isInside(const NmVector3 &point)
+bool ContourRepresentation::isInside(const NmVector3 &point) const
 {
   Q_ASSERT(m_data.get());
 
-  Bounds bounds{'[', point[0], point[0], point[1], point[1], point[2], point[2], ']'};
-  itkImageType voxel = m_data->itkImage(bounds);
-  
-  return (SEG_BG_VALUE == *(static_cast<unsigned char*>(voxel.GetBufferPointer()));
+  Bounds bounds{ '[', point[0], point[0], point[1], point[1], point[2], point[2], ']'};
+
+  itkVolumeType::Pointer voxel = m_data->itkImage(bounds);
+
+  return (SEG_VOXEL_VALUE == *(static_cast<unsigned char*>(voxel->GetBufferPointer())));
 }
 
 //-----------------------------------------------------------------------------
 void ContourRepresentation::initializePipeline()
 {
-  connect(m_data.get(), SIGNAL(representationChanged()),
-          this, SLOT(updatePipelineConnections()));
+  if (m_planeIndex == -1)
+    return;
 
-  View2D *view = reinterpret_cast<View2D *>(m_view);
+  m_reslicePoint = m_crosshair[m_planeIndex];
 
-    
-  m_reslice = vtkSmartPointer<vtkImageReslice>::New();
-  m_reslice->SetInputConnection(m_data->itkImage());
-  m_reslice->SetOutputDimensionality(2);
-  m_reslice->SetResliceAxes(slicingMatrix(view));
-  m_reslice->AutoCropOutputOn();
-  m_reslice->SetNumberOfThreads(1);
-  m_reslice->Update();
+  Bounds imageBounds = m_data->bounds();
+  imageBounds.setUpperInclusion(true);
+  imageBounds.setLowerInclusion(true);
+  imageBounds[2*m_planeIndex] = m_reslicePoint;
+  imageBounds[(2*m_planeIndex)+1] = m_reslicePoint;
+
+  m_exporter = ExporterType::New();
+  m_exporter->ReleaseDataFlagOn();
+  m_exporter->SetInput(m_data->itkImage(imageBounds));
+  m_exporter->UpdateLargestPossibleRegion();
+
+  m_importer = vtkSmartPointer<vtkImageImport>::New();
+  m_importer->SetInputData(m_exporter->GetOutput());
+  m_importer->SetDataExtentToWholeExtent();
+  m_importer->SetDataScalarTypeToUnsignedChar();
+  m_importer->UpdateWholeExtent();
 
   m_voxelContour = vtkSmartPointer<vtkVoxelContour2D>::New();
-  m_voxelContour->SetInputConnection(m_reslice->GetOutputPort());
+  m_voxelContour->SetInputConnection(m_importer->GetOutputPort());
   m_voxelContour->Update();
 
   m_tubes = vtkSmartPointer<vtkTubeFilter>::New();
@@ -185,16 +195,27 @@ void ContourRepresentation::initializePipeline()
   // need to reposition the actor so it will always be over the channels actors'
   double pos[3];
   m_actor->GetPosition(pos);
-  pos[view->plane()] = view->segmentationDepth();
+  pos[m_planeIndex] = static_cast<View2D *>(m_view)->segmentationDepth();
   m_actor->SetPosition(pos);
 }
 
 //-----------------------------------------------------------------------------
 void ContourRepresentation::updateRepresentation()
 {
-  if (m_actor != nullptr)
+  if (m_actor != nullptr && (m_crosshair[m_planeIndex] != m_reslicePoint))
   {
-    m_reslice->UpdateWholeExtent();
+    m_reslicePoint = m_crosshair[m_planeIndex];
+    Bounds imageBounds = m_data->bounds();
+    imageBounds.setLowerInclusion(true);
+    imageBounds.setUpperInclusion(true);
+    imageBounds[2*m_planeIndex] = m_reslicePoint;
+    imageBounds[(2*m_planeIndex)+1] = m_reslicePoint;
+
+    m_exporter->SetInput(m_data->itkImage(imageBounds));
+    m_exporter->UpdateLargestPossibleRegion();
+    m_importer->SetDataExtentToWholeExtent();
+    m_importer->UpdateWholeExtent();
+    m_voxelContour->Update();
     m_mapper->UpdateWholeExtent();
     m_tubes->Modified();
     m_actor->Modified();
@@ -231,19 +252,6 @@ void ContourRepresentation::updateVisibility(bool visible)
 }
 
 //-----------------------------------------------------------------------------
-void ContourRepresentation::updatePipelineConnections()
-{
-  if (m_actor == nullptr)
-    return;
-
-  if (m_reslice->GetInputConnection(0,0) != m_data->toVTK())
-  {
-    m_reslice->SetInputConnection(m_data->toVTK());
-    m_reslice->Update();
-  }
-}
-
-//-----------------------------------------------------------------------------
 void ContourRepresentation::setLineWidth(ContourRepresentation::LineWidth width)
 {
   if (m_width == width)
@@ -252,7 +260,7 @@ void ContourRepresentation::setLineWidth(ContourRepresentation::LineWidth width)
   m_width = width;
   updateWidth();
 
-  foreach (RepresentationSPtr clone, m_clones)
+  for (auto clone: m_clones)
   {
     ContourRepresentation *contourClone = dynamic_cast<ContourRepresentation *>(clone.get());
     contourClone->setLineWidth(width);
@@ -274,7 +282,7 @@ void ContourRepresentation::setLinePattern(ContourRepresentation::LinePattern pa
   m_pattern = pattern;
   updatePattern();
 
-  foreach (RepresentationSPtr clone, m_clones)
+  for (auto clone: m_clones)
   {
     ContourRepresentation *contourClone = dynamic_cast<ContourRepresentation *>(clone.get());
     contourClone->setLinePattern(pattern);

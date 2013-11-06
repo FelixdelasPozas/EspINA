@@ -18,8 +18,7 @@
 
 // EspINA
 #include "MeshRenderer.h"
-#include <GUI/Representations/SimpleMeshRepresentation.h>
-#include "GUI/QtWidget/EspinaRenderView.h"
+#include <GUI/Representations/MeshRepresentation.h>
 
 // VTK
 #include <vtkPropPicker.h>
@@ -31,7 +30,7 @@ namespace EspINA
 {
   //-----------------------------------------------------------------------------
   MeshRenderer::MeshRenderer(QObject *parent)
-  : IRenderer(parent)
+  : Renderer(parent)
   , m_picker(vtkSmartPointer<vtkPropPicker>::New())
   {
     m_picker->PickFromListOn();
@@ -40,12 +39,12 @@ namespace EspINA
   //-----------------------------------------------------------------------------
   MeshRenderer::~MeshRenderer()
   {
-    foreach(PickableItemPtr item, m_representations.keys())
+    for (auto item: m_representations.keys())
     {
       if (m_enable)
-        foreach(GraphicalRepresentationSPtr rep, m_representations[item])
+        for (auto rep: m_representations[item])
         {
-          foreach(vtkProp *prop, rep->getActors())
+          for (auto prop: rep->getActors())
           {
             m_view->removeActor(prop);
             m_picker->DeletePickList(prop);
@@ -58,22 +57,22 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  void MeshRenderer::addRepresentation(PickableItemPtr item, GraphicalRepresentationSPtr rep)
+  void MeshRenderer::addRepresentation(ViewItemAdapterPtr item, RepresentationSPtr rep)
   {
-    SimpleMeshRepresentationSPtr mesh = boost::dynamic_pointer_cast<SimpleMeshRepresentation>(rep);
-    if (mesh.get() != NULL)
+    MeshRepresentationSPtr mesh = std::dynamic_pointer_cast<MeshRepresentation>(rep);
+    if (mesh.get() != nullptr)
     {
       if (m_representations.keys().contains(item))
         m_representations[item] << rep;
       else
       {
-        GraphicalRepresentationSList list;
+        RepresentationSList list;
         list << rep;
         m_representations.insert(item, list);
       }
 
       if (m_enable)
-        foreach(vtkProp* prop, rep->getActors())
+        for (auto prop: rep->getActors())
         {
           m_view->addActor(prop);
           m_picker->AddPickList(prop);
@@ -82,16 +81,16 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  void MeshRenderer::removeRepresentation(GraphicalRepresentationSPtr rep)
+  void MeshRenderer::removeRepresentation(RepresentationSPtr rep)
   {
-    SimpleMeshRepresentationSPtr mesh = boost::dynamic_pointer_cast<SimpleMeshRepresentation>(rep);
-    if (mesh.get() != NULL)
+    MeshRepresentationSPtr mesh = std::dynamic_pointer_cast<MeshRepresentation>(rep);
+    if (mesh.get() != nullptr)
     {
-      foreach(PickableItemPtr item, m_representations.keys())
+      for (auto item: m_representations.keys())
         if (m_representations[item].contains(rep))
         {
           if (m_enable)
-            foreach(vtkProp* prop, rep->getActors())
+            for (auto prop: rep->getActors())
             {
               m_view->removeActor(prop);
               m_picker->DeletePickList(prop);
@@ -106,16 +105,16 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  bool MeshRenderer::managesRepresentation(GraphicalRepresentationSPtr rep)
+  bool MeshRenderer::managesRepresentation(RepresentationSPtr rep)
   {
-    SimpleMeshRepresentationSPtr mesh = boost::dynamic_pointer_cast<SimpleMeshRepresentation>(rep);
-    return (mesh.get() != NULL);
+    MeshRepresentationSPtr mesh = std::dynamic_pointer_cast<MeshRepresentation>(rep);
+    return (mesh.get() != nullptr);
   }
 
   //-----------------------------------------------------------------------------
-  bool MeshRenderer::hasRepresentation(GraphicalRepresentationSPtr rep)
+  bool MeshRenderer::hasRepresentation(RepresentationSPtr rep)
   {
-    foreach (PickableItemPtr item, m_representations.keys())
+    for (auto item: m_representations.keys())
       if (m_representations[item].contains(rep))
         return true;
 
@@ -128,9 +127,9 @@ namespace EspINA
     if (!m_enable)
       return;
 
-    foreach (PickableItemPtr item, m_representations.keys())
-      foreach(GraphicalRepresentationSPtr rep, m_representations[item])
-        foreach(vtkProp* prop, rep->getActors())
+    for (auto item: m_representations.keys())
+      for (auto rep: m_representations[item])
+        for (auto prop: rep->getActors())
         {
           m_view->removeActor(prop);
           m_picker->DeletePickList(prop);
@@ -146,9 +145,9 @@ namespace EspINA
        return;
 
      QApplication::setOverrideCursor(Qt::WaitCursor);
-     foreach (PickableItemPtr item, m_representations.keys())
-       foreach(GraphicalRepresentationSPtr rep, m_representations[item])
-         foreach(vtkProp* prop, rep->getActors())
+     for (auto item: m_representations.keys())
+       for (auto rep: m_representations[item])
+         for (auto prop: rep->getActors())
          {
            m_view->addActor(prop);
            m_picker->AddPickList(prop);
@@ -159,20 +158,20 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  unsigned int MeshRenderer::getNumberOfvtkActors()
+  unsigned int MeshRenderer::numberOfvtkActors()
   {
     unsigned int returnVal = 0;
-    foreach (PickableItemPtr item, m_representations.keys())
-      foreach(GraphicalRepresentationSPtr rep, m_representations[item])
+    for (auto item: m_representations.keys())
+      for (auto rep: m_representations[item])
         if (rep->isVisible()) ++returnVal;
 
     return returnVal;
   }
 
   //-----------------------------------------------------------------------------
-  ViewManager::Selection MeshRenderer::pick(int x, int y, Nm z, vtkSmartPointer<vtkRenderer> renderer, RenderabledItems itemType,  bool repeat)
+  SelectableView::Selection MeshRenderer::pick(int x, int y, Nm z, vtkSmartPointer<vtkRenderer> renderer, RenderableItems itemType,  bool repeat)
   {
-    ViewManager::Selection selection;
+    SelectableView::Selection selection;
     QList<vtkProp *> removedProps;
 
     if (!renderer || !renderer.GetPointer() || !itemType.testFlag(EspINA::SEGMENTATION))
@@ -186,8 +185,8 @@ namespace EspINA
       m_picker->DeletePickList(pickedProp);
       removedProps << pickedProp;
 
-      foreach(PickableItemPtr item, m_representations.keys())
-        foreach(GraphicalRepresentationSPtr rep, m_representations[item])
+      for (auto item: m_representations.keys())
+        for (auto rep: m_representations[item])
         if (rep->isVisible() && rep->hasActor(pickedProp) && !selection.contains(item))
         {
           selection << item;
@@ -204,16 +203,19 @@ namespace EspINA
         }
     }
 
-    foreach(vtkProp *actor, removedProps)
+    for(auto actor: removedProps)
       m_picker->AddPickList(actor);
 
     return selection;
   }
 
   //-----------------------------------------------------------------------------
-  void MeshRenderer::getPickCoordinates(Nm *point)
+  NmVector3 MeshRenderer::pickCoordinates() const
   {
+    Nm point[3];
     m_picker->GetPickPosition(point);
+
+    return NmVector3{point[0], point[1], point[2]};
   }
 
 } // namespace EspINA

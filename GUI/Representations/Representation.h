@@ -68,7 +68,7 @@ namespace EspINA
 
     virtual ~Representation(){}
 
-    void setActive(bool value, RenderView *view = NULL);
+    void setActive(bool value, RenderView *view = nullptr);
 
     /// Whether or not the user has selected this representation to be displayed
     /// Representation will only be currently displayed if it is visibility has also

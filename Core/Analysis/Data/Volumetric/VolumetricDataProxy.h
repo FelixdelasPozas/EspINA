@@ -54,7 +54,7 @@ namespace EspINA
      * Returns the amount of memory allocated to hold the volume representation
      */
     virtual double memoryUsage() const
-    { m_data->memoryUsage(); }
+    { return m_data->memoryUsage(); }
 
     virtual Bounds bounds() const
     { return m_data->bounds(); }

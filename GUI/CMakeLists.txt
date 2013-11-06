@@ -12,10 +12,14 @@ qt4_wrap_cpp(GUI_MOC
   Model/ItemAdapter.h
   Model/OutputAdapter.h
   Representations/Renderers/Renderer.h
-  Representations/Renderers/Renderer.h
+  Representations/Renderers/ContourRenderer.h
   Representations/Renderers/SliceRenderer.h
+  Representations/MeshRepresentationBase.h
+  Representations/MeshRepresentation.h
+  Representations/SmoothedMeshRepresentation.h
   Representations/RepresentationEmptySettings.h
   Representations/SliceRepresentationSettings.h
+  Representations/ContourRepresentationSettings.h
   Selectors/Selector.h
   View/RenderView.h
   View/View2D.h
@@ -34,6 +38,7 @@ qt4_wrap_cpp(GUI_MOC
 qt4_wrap_ui (GUI_UI
   Representations/RepresentationEmptySettings.ui
   Representations/SliceRepresentationSettings.ui
+  Representations/ContourRepresentationSettings.ui
   Widgets/NoteEditor.ui
   Widgets/TagSelector.ui
   )
@@ -56,9 +61,16 @@ set (GUI_SOURCES
   Model/SegmentationAdapter.cpp
   ModelFactory.cpp
   Representations/Renderers/Renderer.cpp
+  Representations/Renderers/ContourRenderer.cpp
+  Representations/Renderers/MeshRenderer.cpp
   Representations/Renderers/SliceRenderer.cpp
+  Representations/ContourRepresentationSettings.cpp
   Representations/Representation.cpp
-  Representations/RepresentationEmptySettings.cpp 
+  Representations/RepresentationEmptySettings.cpp
+  Representations/ContourRepresentation.cpp
+  Representations/SmoothedMeshRepresentation.cpp
+  Representations/MeshRepresentationBase.cpp
+  Representations/MeshRepresentation.cpp 
   Representations/SliceRepresentation.cpp
   Representations/SliceRepresentationSettings.cpp 
   Selectors/Selector.cpp
@@ -69,6 +81,7 @@ set (GUI_SOURCES
   View/View3D.cpp
   View/vtkInteractorStyleEspinaSlice.cpp
   View/Widgets/EspinaWidget.cpp
+  View/Widgets/Contour/vtkVoxelContour2D.cpp
   Widgets/ActionSelector.cpp
   Widgets/ActionSelectorWidget.cpp
   Widgets/CheckableTableView.cpp

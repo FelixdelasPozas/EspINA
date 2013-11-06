@@ -16,20 +16,14 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MESHRENDERER_H
-#define MESHRENDERER_H
+#ifndef ESPINA_MESH_RENDERER_H
+#define ESPINA_MESH_RENDERER_H
 
 #include "EspinaGUI_Export.h"
 
 // EspINA
 #include "Renderer.h"
-#include "GUI/Representations/GraphicalRepresentation.h"
-#include <Core/Model/Output.h>
-#include <GUI/ViewManager.h>
-#include <Core/EspinaTypes.h>
-
-// VTK
-#include <vtkSmartPointer.h>
+#include "GUI/Representations/Representation.h"
 
 class vtkPropPicker;
 
@@ -38,7 +32,7 @@ namespace EspINA
   class ViewManager;
 
   class EspinaGUI_EXPORT MeshRenderer
-  : public IRenderer
+  : public Renderer
   {
     public:
       explicit MeshRenderer(QObject* parent = 0);
@@ -48,28 +42,32 @@ namespace EspINA
       virtual const QString name()    const   { return "Mesh"; }
       virtual const QString tooltip() const   { return "Segmentation's Meshes"; }
 
-      virtual void addRepresentation(PickableItemPtr item, GraphicalRepresentationSPtr rep);
-      virtual void removeRepresentation(GraphicalRepresentationSPtr rep);
-      virtual bool hasRepresentation(GraphicalRepresentationSPtr rep);
-      virtual bool managesRepresentation(GraphicalRepresentationSPtr rep);
+      virtual void addRepresentation(ViewItemAdapterPtr item, RepresentationSPtr rep);
+      virtual void removeRepresentation(RepresentationSPtr rep);
+      virtual bool hasRepresentation(RepresentationSPtr rep);
+      virtual bool managesRepresentation(RepresentationSPtr rep);
 
       virtual void hide();
       virtual void show();
 
-      virtual unsigned int getNumberOfvtkActors();
+      virtual RendererSPtr clone()              { return RendererSPtr(new MeshRenderer()); }
 
-      virtual IRendererSPtr clone()                     { return IRendererSPtr(new MeshRenderer()); }
-      virtual RendererType getRenderType()              { return RendererType(RENDERER_VOLUMEVIEW); }
-      virtual RenderabledItems getRenderableItemsType() { return RenderabledItems(EspINA::SEGMENTATION); }
-      virtual int itemsBeenRendered()                   { return m_representations.size(); }
+      virtual unsigned int numberOfvtkActors();
 
-      virtual ViewManager::Selection pick(int x,
-                                          int y,
-                                          Nm z,
-                                          vtkSmartPointer<vtkRenderer> renderer,
-                                          RenderabledItems itemType = RenderabledItems(),
-                                          bool repeat = false);
-      virtual void getPickCoordinates(Nm *point);
+      virtual RenderableItems renderableItems() { return RenderableItems(EspINA::SEGMENTATION); }
+
+      virtual RendererTypes renderType()        { return RendererTypes(RENDERER_VOLUMEVIEW); }
+
+      virtual int numberOfRenderedItems()       { return m_representations.size(); }
+
+      virtual SelectableView::Selection pick(int x,
+                                             int y,
+                                             Nm z,
+                                             vtkSmartPointer<vtkRenderer> renderer,
+                                             RenderableItems itemType = RenderableItems(),
+                                             bool repeat = false);
+
+      virtual NmVector3 pickCoordinates() const;
 
     protected:
       vtkSmartPointer<vtkPropPicker> m_picker;
@@ -77,4 +75,4 @@ namespace EspINA
 
 } // namespace EspINA
 
-#endif // MESHRENDERER_H
+#endif // ESPINA_MESH_RENDERER_H

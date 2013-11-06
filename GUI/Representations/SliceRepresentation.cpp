@@ -49,12 +49,13 @@
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
-ChannelSliceRepresentation::ChannelSliceRepresentation(ChannelVolumeSPtr data,
-                                                       View2D*           view)
+ChannelSliceRepresentation::ChannelSliceRepresentation(DefaultVolumetricDataSPtr data,
+                                                       View2D *view)
 : Representation(view)
 , m_data(data)
-, m_importer(nullptr)
+, m_planeIndex(-1)
 , m_exporter(nullptr)
+, m_importer(nullptr)
 , m_mapToColors(nullptr)
 , m_shiftScaleFilter(nullptr)
 , m_actor(nullptr)
@@ -126,25 +127,6 @@ bool ChannelSliceRepresentation::hasActor(vtkProp *actor) const
 }
 
 //-----------------------------------------------------------------------------
-void ChannelSliceRepresentation::updateRepresentation()
-{
-  if (m_actor != nullptr)
-  {
-    Bounds imageBounds = m_data->bounds();
-    imageBounds[2*normalCoordinateIndex(m_plane)] = m_crosshair[normalCoordinateIndex(m_plane)];
-    imageBounds[2*normalCoordinateIndex(m_plane)+1] = m_crosshair[normalCoordinateIndex(m_plane)];
-
-    m_exporter->SetInput(m_data->itkImage(imageBounds));
-    m_exporter->UpdateLargestPossibleRegion();
-    m_importer->SetDataExtentToWholeExtent();
-    m_importer->UpdateWholeExtent();
-    m_mapToColors->Update();
-    m_shiftScaleFilter->Update();
-    m_actor->Update();
-  }
-}
-
-//-----------------------------------------------------------------------------
 RepresentationSPtr ChannelSliceRepresentation::cloneImplementation(View2D *view)
 {
   ChannelSliceRepresentation *representation =  new ChannelSliceRepresentation(m_data, view);
@@ -163,10 +145,16 @@ void ChannelSliceRepresentation::updateVisibility(bool visible)
 //-----------------------------------------------------------------------------
 void ChannelSliceRepresentation::initializePipeline()
 {
-  Bounds dataBounds = m_data->bounds();
-  Bounds imageBounds{ '[', dataBounds[0], dataBounds[1], dataBounds[2], dataBounds[3], dataBounds[4], dataBounds[5], ']' };
-  imageBounds[2*normalCoordinateIndex(m_plane)] = m_crosshair[normalCoordinateIndex(m_plane)];
-  imageBounds[2*normalCoordinateIndex(m_plane)+1] = m_crosshair[normalCoordinateIndex(m_plane)];
+  if (m_planeIndex == -1)
+    return;
+
+  m_reslicePoint = m_crosshair[m_planeIndex];
+
+  Bounds imageBounds = m_data->bounds();
+  imageBounds.setUpperInclusion(true);
+  imageBounds.setLowerInclusion(true);
+  imageBounds[2*m_planeIndex] = m_reslicePoint;
+  imageBounds[(2*m_planeIndex)+1] = m_reslicePoint;
 
   m_exporter = ExporterType::New();
   m_exporter->ReleaseDataFlagOn();
@@ -213,6 +201,28 @@ void ChannelSliceRepresentation::initializePipeline()
 }
 
 //-----------------------------------------------------------------------------
+void ChannelSliceRepresentation::updateRepresentation()
+{
+  if (m_actor != nullptr && (m_crosshair[m_planeIndex] != m_reslicePoint))
+  {
+    m_reslicePoint = m_crosshair[m_planeIndex];
+    Bounds imageBounds = m_data->bounds();
+    imageBounds.setLowerInclusion(true);
+    imageBounds.setUpperInclusion(true);
+    imageBounds[2*m_planeIndex] = m_reslicePoint;
+    imageBounds[(2*m_planeIndex)+1] = m_reslicePoint;
+
+    m_exporter->SetInput(m_data->itkImage(imageBounds));
+    m_exporter->UpdateLargestPossibleRegion();
+    m_importer->SetDataExtentToWholeExtent();
+    m_importer->UpdateWholeExtent();
+    m_mapToColors->Update();
+    m_shiftScaleFilter->Update();
+    m_actor->Update();
+  }
+}
+
+//-----------------------------------------------------------------------------
 QList<vtkProp*> ChannelSliceRepresentation::getActors()
 {
   QList<vtkProp*> list;
@@ -239,10 +249,11 @@ bool ChannelSliceRepresentation::isInside(const NmVector3 &point) const
 TransparencySelectionHighlighter *SegmentationSliceRepresentation::s_highlighter = new TransparencySelectionHighlighter();
 
 //-----------------------------------------------------------------------------
-SegmentationSliceRepresentation::SegmentationSliceRepresentation(SegmentationVolumeSPtr data,
-                                                                 View2D                *view)
+SegmentationSliceRepresentation::SegmentationSliceRepresentation(DefaultVolumetricDataSPtr data,
+                                                                 View2D *view)
 : Representation(view)
 , m_data(data)
+, m_planeIndex(-1)
 , m_importer(nullptr)
 , m_exporter(nullptr)
 , m_mapToColors(nullptr)
@@ -344,12 +355,18 @@ bool SegmentationSliceRepresentation::isInside(const NmVector3 &point) const
 //-----------------------------------------------------------------------------
 void SegmentationSliceRepresentation::initializePipeline()
 {
+  if (m_planeIndex == -1)
+    return;
+
+  m_reslicePoint = m_crosshair[m_planeIndex];
+
   View2D* view = reinterpret_cast<View2D *>(m_view);
 
-  Bounds dataBounds = m_data->bounds();
-  Bounds imageBounds{ '[', dataBounds[0], dataBounds[1], dataBounds[2], dataBounds[3], dataBounds[4], dataBounds[5], ']' };
-  imageBounds[2*normalCoordinateIndex(m_plane)] = m_crosshair[normalCoordinateIndex(m_plane)];
-  imageBounds[2*normalCoordinateIndex(m_plane)+1] = m_crosshair[normalCoordinateIndex(m_plane)];
+  Bounds imageBounds = m_data->bounds();
+  imageBounds.setUpperInclusion(true);
+  imageBounds.setLowerInclusion(true);
+  imageBounds[2*m_planeIndex] = m_reslicePoint;
+  imageBounds[(2*m_planeIndex)+1] = m_reslicePoint;
 
   m_exporter = ExporterType::New();
   m_exporter->ReleaseDataFlagOn();
@@ -378,19 +395,21 @@ void SegmentationSliceRepresentation::initializePipeline()
   // need to reposition the actor so it will always be over the channels actors'
   double pos[3];
   m_actor->GetPosition(pos);
-  pos[normalCoordinateIndex(m_plane)] = view->segmentationDepth();
+  pos[m_planeIndex] = view->segmentationDepth();
   m_actor->SetPosition(pos);
 }
 
 //-----------------------------------------------------------------------------
 void SegmentationSliceRepresentation::updateRepresentation()
 {
-  if (m_actor != nullptr)
+  if (m_actor != nullptr && (m_crosshair[m_planeIndex] != m_reslicePoint))
   {
-    Bounds dataBounds = m_data->bounds();
-    Bounds imageBounds{ '[', dataBounds[0], dataBounds[1], dataBounds[2], dataBounds[3], dataBounds[4], dataBounds[5], ']' };
-    imageBounds[2*normalCoordinateIndex(m_plane)] = m_crosshair[normalCoordinateIndex(m_plane)];
-    imageBounds[2*normalCoordinateIndex(m_plane)+1] = m_crosshair[normalCoordinateIndex(m_plane)];
+    m_reslicePoint = m_crosshair[m_planeIndex];
+    Bounds imageBounds = m_data->bounds();
+    imageBounds.setUpperInclusion(true);
+    imageBounds.setLowerInclusion(true);
+    imageBounds[2*m_planeIndex] = m_reslicePoint;
+    imageBounds[(2*m_planeIndex)+1] = m_reslicePoint;
 
     m_exporter->SetInput(m_data->itkImage(imageBounds));
     m_exporter->UpdateLargestPossibleRegion();

@@ -27,7 +27,11 @@
 #include <Core/Analysis/Data/VolumetricData.h>
 #include <Core/Utils/NmVector3.h>
 
+// ITK
+#include <itkImageToVTKImageFilter.h>
+
 // VTK
+#include <vtkImageImport.h>
 #include <vtkSmartPointer.h>
 #include <vtkTubeFilter.h>
 
@@ -40,18 +44,14 @@ class vtkTexture;
 
 namespace EspINA
 {
-
   class RepresentationSettings;
   class TransparencySelectionHighlighter;
   class View2D;
   class View3D;
 
-  using DefaultVolumetricDataSPtr = std::shared_ptr<VolumetricData<itkVolumeType>>;
-
   class EspinaGUI_EXPORT ContourRepresentation
   : public Representation
   {
-    Q_OBJECT
     public:
       typedef enum { tiny = 0, small, medium, large, huge } LineWidth;
       typedef enum { normal = 0, dotted, dashed } LinePattern;
@@ -60,17 +60,13 @@ namespace EspINA
                             RenderView      *view);
       virtual ~ContourRepresentation() {};
       
-      virtual setPlane(Plane plane);
-      
-      virtual setSlice(Nm slice);
-
       virtual RepresentationSettings *settingsWidget();
 
       virtual void setColor(const QColor &color);
 
       virtual void setHighlighted(bool highlighted);
 
-      virtual bool isInside(const NmVector3& point);
+      virtual bool isInside(const NmVector3& point) const;
 
       virtual RenderableView canRenderOnView() const
       { return Representation::RenderableView(Representation::RENDERABLEVIEW_SLICE); }
@@ -90,6 +86,15 @@ namespace EspINA
       void updateWidth();
       void updatePattern();
 
+      void setPlane(Plane plane)
+      { m_planeIndex = normalCoordinateIndex(plane); }
+
+      Plane plane()
+      { return toPlane(m_planeIndex); }
+
+      void onCrosshairChanged(const NmVector3 &point)
+      { updateRepresentation(); }
+
     protected:
       virtual RepresentationSPtr cloneImplementation(View2D *view);
       virtual RepresentationSPtr cloneImplementation(View3D *view)
@@ -97,18 +102,20 @@ namespace EspINA
 
       virtual void updateVisibility(bool visible);
 
-    private slots:
-      void updatePipelineConnections();
-
     private:
-      void setView(View2D *view) {m_view = view; };
+      void setView(RenderView *view) { m_view = view; };
       void initializePipeline();
 
     private:
       void generateTexture();
       DefaultVolumetricDataSPtr m_data;
+      int m_planeIndex;
+      Nm m_reslicePoint;
 
-      vtkSmartPointer<vtkImageReslice>         m_reslice;
+      using ExporterType = itk::ImageToVTKImageFilter<itkVolumeType>;
+
+      ExporterType::Pointer                    m_exporter;
+      vtkSmartPointer<vtkImageImport>          m_importer;
       vtkSmartPointer<vtkVoxelContour2D>       m_voxelContour;
       vtkSmartPointer<vtkImageCanvasSource2D>  m_textureIcon;
       vtkSmartPointer<vtkTexture>              m_texture;

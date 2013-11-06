@@ -80,6 +80,11 @@ namespace EspINA {
      */
     void setLowerInclusion(const Axis dir, const bool value) { m_lowerInclusion[idx(dir)] = value; }
 
+    /** \brief Set wheter or not lower bounds should be included in the region defined by the bounds
+     */
+    void setLowerInclusion(const bool value)
+    { m_lowerInclusion[idx(Axis::X)] = m_lowerInclusion[idx(Axis::Y)] = m_lowerInclusion[idx(Axis::Z)] = value; }
+
     /** \brief Return wheter or not lower bounds in the given direction should be included in the region defined by the bounds
      */
     bool areLowerIncluded(const Axis dir) const { return m_lowerInclusion[idx(dir)]; }
@@ -87,6 +92,11 @@ namespace EspINA {
     /** \brief Set wheter or not upper bounds in the given direction should be included in the region defined by the bounds
      */
     void setUpperInclusion(const Axis dir, const bool value) { m_upperInclusion[idx(dir)] = value; }
+
+    /** \brief Set wheter or not upper bounds should be included in the region defined by the bounds
+     */
+    void setUpperInclusion(const bool value)
+    { m_upperInclusion[idx(Axis::X)] = m_upperInclusion[idx(Axis::Y)] = m_upperInclusion[idx(Axis::Z)] = value; }
 
     /** \brief Return wheter or not upper bounds in the given direction should be included in the region defined by the bounds
      */

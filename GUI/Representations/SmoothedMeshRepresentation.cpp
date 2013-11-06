@@ -18,11 +18,11 @@
 
 // EspINA
 #include "SmoothedMeshRepresentation.h"
-#include "GraphicalRepresentationEmptySettings.h"
-#include "GUI/QtWidget/EspinaRenderView.h"
-#include "GUI/QtWidget/VolumeView.h"
-#include "Core/ColorEngines/IColorEngine.h"
-#include <Core/ColorEngines/TransparencySelectionHighlighter.h>
+#include "RepresentationEmptySettings.h"
+#include "GUI/View/RenderView.h"
+#include "GUI/View/View3D.h"
+#include "GUI/ColorEngines/ColorEngine.h"
+#include <GUI/ColorEngines/TransparencySelectionHighlighter.h>
 
 // VTK
 #include <vtkDecimatePro.h>
@@ -35,8 +35,8 @@
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
-SmoothedMeshRepresentation::SmoothedMeshRepresentation(MeshRepresentationSPtr mesh, EspinaRenderView *view)
-: IMeshRepresentation(mesh, view)
+SmoothedMeshRepresentation::SmoothedMeshRepresentation(MeshDataSPtr mesh, RenderView *view)
+: MeshRepresentation(mesh, view)
 {
   setLabel(tr("Smoothed Mesh"));
 }
@@ -44,16 +44,13 @@ SmoothedMeshRepresentation::SmoothedMeshRepresentation(MeshRepresentationSPtr me
 //-----------------------------------------------------------------------------
 void SmoothedMeshRepresentation::initializePipeline()
 {
-  connect(m_data.get(), SIGNAL(representationChanged()),
-          this, SLOT(updatePipelineConnections()));
-
   m_decimate = vtkSmartPointer<vtkDecimatePro>::New();
   m_decimate->ReleaseDataFlagOn();
   m_decimate->SetGlobalWarningDisplay(false);
   m_decimate->SetTargetReduction(0.95);
   m_decimate->PreserveTopologyOn();
   m_decimate->SplittingOff();
-  m_decimate->SetInputConnection(m_data->mesh());
+  m_decimate->SetInputData(m_data->mesh());
 
   vtkSmartPointer<vtkWindowedSincPolyDataFilter> smoother = vtkSmartPointer<vtkWindowedSincPolyDataFilter>::New();
   smoother->ReleaseDataFlagOn();
@@ -81,7 +78,7 @@ void SmoothedMeshRepresentation::initializePipeline()
   m_actor->SetMapper(m_mapper);
   m_actor->GetProperty()->SetSpecular(0.2);
 
-  LUTPtr colors = s_highlighter->lut(m_color, m_highlight);
+  LUTSPtr colors = s_highlighter->lut(m_color, m_highlight);
 
   double *rgba = colors->GetTableValue(1);
   m_actor->GetProperty()->SetColor(rgba[0], rgba[1], rgba[2]);
@@ -91,15 +88,15 @@ void SmoothedMeshRepresentation::initializePipeline()
 }
 
 //-----------------------------------------------------------------------------
-GraphicalRepresentationSettings *SmoothedMeshRepresentation::settingsWidget()
+RepresentationSettings *SmoothedMeshRepresentation::settingsWidget()
 {
-  return new GraphicalRepresentationEmptySettings();
+  return new RepresentationEmptySettings();
 }
 
 //-----------------------------------------------------------------------------
 void SmoothedMeshRepresentation::updateRepresentation()
 {
-  if (isVisible() && (m_actor != NULL))
+  if (isVisible() && (m_actor != nullptr))
   {
     m_decimate->UpdateWholeExtent();
     m_mapper->UpdateWholeExtent();
@@ -109,20 +106,10 @@ void SmoothedMeshRepresentation::updateRepresentation()
 }
 
 //-----------------------------------------------------------------------------
-GraphicalRepresentationSPtr SmoothedMeshRepresentation::cloneImplementation(VolumeView *view)
+RepresentationSPtr SmoothedMeshRepresentation::cloneImplementation(View3D *view)
 {
   SmoothedMeshRepresentation *representation = new SmoothedMeshRepresentation(m_data, view);
   representation->setView(view);
 
-  return GraphicalRepresentationSPtr(representation);
-}
-
-//-----------------------------------------------------------------------------
-void SmoothedMeshRepresentation::updatePipelineConnections()
-{
-  if ((m_actor != NULL) && (m_decimate->GetInputConnection(0, 0) != m_data->mesh()))
-  {
-    m_decimate->SetInputConnection(m_data->mesh());
-    m_decimate->Update();
-  }
+  return RepresentationSPtr(representation);
 }

@@ -39,7 +39,7 @@ ContourRepresentationSettings::ContourRepresentationSettings()
 }
 
 //----------------------------------------------------------------------------
-void ContourRepresentationSettings::Get(GraphicalRepresentationSPtr representation)
+void ContourRepresentationSettings::get(RepresentationSPtr representation)
 {
   ContourRepresentation *contourRepresentation = dynamic_cast<ContourRepresentation *>(representation.get());
 
@@ -58,7 +58,7 @@ void ContourRepresentationSettings::Get(GraphicalRepresentationSPtr representati
 }
 
 //----------------------------------------------------------------------------
-void ContourRepresentationSettings::Set(GraphicalRepresentationSPtr representation)
+void ContourRepresentationSettings::set(RepresentationSPtr representation)
 {
   ContourRepresentation *contourRepresentation = dynamic_cast<ContourRepresentation *>(representation.get());
 

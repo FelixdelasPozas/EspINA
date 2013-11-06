@@ -1,6 +1,6 @@
 /*
  <one line to give the program's name and a brief idea of what it does.>
- Copyright (C) 2013 Félix de las Pozas Álvarez <felixdelaspozas@gmail.com>
+ Copyright (C) 2013 Fï¿½lix de las Pozas ï¿½lvarez <felixdelaspozas@gmail.com>
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -34,27 +34,25 @@ namespace EspINA
   {
     Q_OBJECT
     public:
-      explicit MeshRepresentation(MeshRepresentationSPtr data,
-                                  EspinaRenderView *view);
+      explicit MeshRepresentation(MeshDataSPtr data,
+                                  RenderView *view);
       virtual ~MeshRepresentation() {};
 
-      virtual GraphicalRepresentationSettings *settingsWidget();
+      virtual RepresentationSettings *settingsWidget();
 
       virtual void updateRepresentation();
 
-  protected:
-      virtual GraphicalRepresentationSPtr cloneImplementation(VolumeView *view);
+      void onCrosshairChanged(const NmVector3 &point) {};
 
-    private slots:
-      void updatePipelineConnections();
+  protected:
+      virtual RepresentationSPtr cloneImplementation(View3D *view);
 
     private:
       void initializePipeline();
   };
 
-  typedef boost::shared_ptr<SimpleMeshRepresentation> SimpleMeshRepresentationSPtr;
-  typedef QList<SimpleMeshRepresentationSPtr> MeshRepresentationSList;
-
+  using MeshRepresentationSPtr  = std::shared_ptr<MeshRepresentation>;
+  using MeshRepresentationSList = QList<MeshRepresentationSPtr>;
 } // namespace EspINA
 
 #endif // ESPINA_MESH_REPRESENTATION_H

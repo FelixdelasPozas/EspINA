@@ -17,10 +17,10 @@
  */
 
 // EspINA
-#include "GUI/Representations/SimpleMeshRepresentation.h"
-#include "GraphicalRepresentationEmptySettings.h"
-#include <GUI/QtWidget/VolumeView.h>
-#include <Core/ColorEngines/TransparencySelectionHighlighter.h>
+#include "GUI/Representations/MeshRepresentation.h"
+#include "RepresentationEmptySettings.h"
+#include <GUI/View/View3D.h>
+#include <GUI/ColorEngines/TransparencySelectionHighlighter.h>
 
 // VTK
 #include <vtkPolyDataMapper.h>
@@ -30,32 +30,28 @@
 
 using namespace EspINA;
 
-
 //-----------------------------------------------------------------------------
-SimpleMeshRepresentation::SimpleMeshRepresentation(MeshRepresentationSPtr mesh, EspinaRenderView *view)
-: IMeshRepresentation(mesh, view)
+MeshRepresentation::MeshRepresentation(MeshDataSPtr mesh, RenderView *view)
+: MeshRepresentationBase(mesh, view)
 {
   setLabel(tr("Mesh"));
 }
 
 //-----------------------------------------------------------------------------
-void SimpleMeshRepresentation::initializePipeline()
+void MeshRepresentation::initializePipeline()
 {
-  connect(m_data.get(), SIGNAL(representationChanged()),
-          this, SLOT(updatePipelineConnections()));
-
   m_mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
   m_mapper->ReleaseDataFlagOn();
   m_mapper->ImmediateModeRenderingOn();
   m_mapper->ScalarVisibilityOff();
-  m_mapper->SetInputConnection(m_data->mesh());
+  m_mapper->SetInputData(m_data->mesh());
   m_mapper->Update();
 
   m_actor = vtkSmartPointer<vtkActor>::New();
   m_actor->SetMapper(m_mapper);
   m_actor->GetProperty()->SetSpecular(0.2);
 
-  LUTPtr colors = s_highlighter->lut(m_color, m_highlight);
+  LUTSPtr colors = s_highlighter->lut(m_color, m_highlight);
 
   double *rgba = colors->GetTableValue(1);
   m_actor->GetProperty()->SetColor(rgba[0], rgba[1], rgba[2]);
@@ -65,15 +61,15 @@ void SimpleMeshRepresentation::initializePipeline()
 }
 
 //-----------------------------------------------------------------------------
-GraphicalRepresentationSettings *SimpleMeshRepresentation::settingsWidget()
+RepresentationSettings *MeshRepresentation::settingsWidget()
 {
-  return new GraphicalRepresentationEmptySettings();
+  return new RepresentationEmptySettings();
 }
 
 //-----------------------------------------------------------------------------
-void SimpleMeshRepresentation::updateRepresentation()
+void MeshRepresentation::updateRepresentation()
 {
-  if (isVisible() && (m_actor != NULL))
+  if (isVisible() && (m_actor != nullptr))
   {
     m_mapper->UpdateWholeExtent();
     m_actor->GetProperty()->Modified();
@@ -82,20 +78,10 @@ void SimpleMeshRepresentation::updateRepresentation()
 }
 
 //-----------------------------------------------------------------------------
-GraphicalRepresentationSPtr SimpleMeshRepresentation::cloneImplementation(VolumeView *view)
+RepresentationSPtr MeshRepresentation::cloneImplementation(View3D *view)
 {
-  SimpleMeshRepresentation *representation = new SimpleMeshRepresentation(m_data, view);
+  MeshRepresentation *representation = new MeshRepresentation(m_data, view);
   representation->setView(view);
 
-  return GraphicalRepresentationSPtr(representation);
-}
-
-//-----------------------------------------------------------------------------
-void SimpleMeshRepresentation::updatePipelineConnections()
-{
-  if ((m_actor != NULL) && (m_mapper->GetInputConnection(0,0) != m_data->mesh()))
-  {
-    m_mapper->SetInputConnection(m_data->mesh());
-    m_mapper->Update();
-  }
+  return RepresentationSPtr(representation);
 }

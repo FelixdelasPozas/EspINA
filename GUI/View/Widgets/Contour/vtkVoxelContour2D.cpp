@@ -17,7 +17,9 @@
  */
 
 // EspINA
-#include "Core/EspinaTypes.h"
+#include <Core/EspinaTypes.h>
+#include <Core/Utils/NmVector3.h>
+
 #include "vtkVoxelContour2D.h"
 
 // VTK

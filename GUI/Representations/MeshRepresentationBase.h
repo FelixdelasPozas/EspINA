@@ -22,10 +22,9 @@
 #include "EspinaGUI_Export.h"
 
 // EspINA
-#include "GraphicalRepresentation.h"
-#include <GUI/QtWidget/EspinaRenderView.h>
-#include <Core/OutputRepresentations/MeshType.h>
-#include <GUI/QtWidget/VolumeView.h>
+#include "Representation.h"
+#include <Core/Analysis/Data/MeshData.h>
+#include <GUI/View/View3D.h>
 
 // VTK
 #include <vtkSmartPointer.h>
@@ -39,19 +38,19 @@ namespace EspINA
   class VolumeView;
 
   class EspinaGUI_EXPORT MeshRepresentationBase
-  : public SegmentationGraphicalRepresentation
+  : public Representation
   {
     Q_OBJECT
     public:
-      explicit MeshRepresentationBase(MeshRepresentationSPtr data,
-                                   EspinaRenderView *view);
+      explicit MeshRepresentationBase(MeshDataSPtr data,
+                                      RenderView *view);
       virtual ~MeshRepresentationBase() {};
 
       virtual void setColor(const QColor &color);
 
       virtual void setHighlighted(bool highlighted);
 
-      virtual bool isInside(Nm point[3]);
+      virtual bool isInside(const NmVector3 &point) const;
 
       virtual RenderableView canRenderOnView() const
       { return Representation::RENDERABLEVIEW_VOLUME; }
@@ -63,22 +62,19 @@ namespace EspINA
       virtual QList<vtkProp *> getActors();
 
   protected:
-      virtual GraphicalRepresentationSPtr cloneImplementation(SliceView *view)
-      { return GraphicalRepresentationSPtr(); }
+      virtual RepresentationSPtr cloneImplementation(View2D *view)
+      { return RepresentationSPtr(); }
 
-      virtual GraphicalRepresentationSPtr cloneImplementation(VolumeView *view) = 0;
+      virtual RepresentationSPtr cloneImplementation(View3D *view) = 0;
 
     virtual void updateVisibility(bool visible);
-    virtual void setView(VolumeView *view) { m_view = view; };
-
-    private slots:
-      virtual void updatePipelineConnections() = 0;
+    virtual void setView(RenderView *view) { m_view = view; };
 
     private:
       virtual void initializePipeline() = 0;
 
     protected:
-      MeshRepresentationSPtr m_data;
+      MeshDataSPtr m_data;
       vtkSmartPointer<vtkPolyDataMapper> m_mapper;
       vtkSmartPointer<vtkActor>          m_actor;
 
@@ -87,8 +83,8 @@ namespace EspINA
 
   // one shouldn't address objects of this class directly but use the subclasses,
   // however this is here for convenience.
-  typedef boost::shared_ptr<MeshRepresentationBase> IMeshRepresentationSPtr;
-  typedef QList<IMeshRepresentationSPtr> IMeshRepresentationSList;
+  using MeshRepresentationBaseSPtr  = std::shared_ptr<MeshRepresentationBase>;
+  using MeshRepresentationBaseSList = QList<MeshRepresentationBaseSPtr>;
 
 } // namespace EspINA
 #endif // ESPINA_MESH_REPRESENTATION_BASE_H

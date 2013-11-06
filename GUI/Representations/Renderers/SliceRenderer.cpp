@@ -45,12 +45,12 @@ namespace EspINA
   //-----------------------------------------------------------------------------
   SliceRenderer::~SliceRenderer()
   {
-    foreach(ViewItemAdapterPtr item, m_representations.keys())
+    for (auto item: m_representations.keys())
     {
       if (m_enable)
-        foreach(RepresentationSPtr rep, m_representations[item])
+        for (auto rep: m_representations[item])
         {
-          foreach(vtkProp *prop, rep->getActors())
+          for (auto prop: rep->getActors())
           {
             m_view->removeActor(prop);
             m_picker->DeletePickList(prop);
@@ -79,7 +79,7 @@ namespace EspINA
       }
 
       if (m_enable)
-        foreach(vtkProp* prop, rep->getActors())
+        for (auto prop: rep->getActors())
         {
           m_view->addActor(prop);
           m_picker->AddPickList(prop);
@@ -95,11 +95,11 @@ namespace EspINA
 
     if ((segSlice.get() != nullptr) || (channelSlice.get() != nullptr))
     {
-      foreach(ViewItemAdapterPtr item, m_representations.keys())
+      for (auto item: m_representations.keys())
         if (m_representations[item].contains(rep))
         {
           if (m_enable)
-            foreach(vtkProp* prop, rep->getActors())
+            for (auto prop: rep->getActors())
             {
               m_view->removeActor(prop);
               m_picker->DeletePickList(prop);
@@ -124,7 +124,7 @@ namespace EspINA
   //-----------------------------------------------------------------------------
   bool SliceRenderer::hasRepresentation(RepresentationSPtr rep)
   {
-    foreach (ViewItemAdapterPtr item, m_representations.keys())
+    for (auto item: m_representations.keys())
       if (m_representations[item].contains(rep))
         return true;
 
@@ -137,9 +137,9 @@ namespace EspINA
     if (!m_enable)
       return;
 
-    foreach (ViewItemAdapterPtr item, m_representations.keys())
-      foreach(RepresentationSPtr rep, m_representations[item])
-        foreach(vtkProp* prop, rep->getActors())
+    for (auto item: m_representations.keys())
+      for (auto rep: m_representations[item])
+        for (auto prop: rep->getActors())
         {
           m_view->removeActor(prop);
           m_picker->DeletePickList(prop);
@@ -155,9 +155,9 @@ namespace EspINA
        return;
 
      QApplication::setOverrideCursor(Qt::WaitCursor);
-     foreach (ViewItemAdapterPtr item, m_representations.keys())
-       foreach(RepresentationSPtr rep, m_representations[item])
-         foreach(vtkProp* prop, rep->getActors())
+     for (auto item: m_representations.keys())
+       for (auto rep: m_representations[item])
+         for (auto prop: rep->getActors())
          {
            m_view->addActor(prop);
            m_picker->AddPickList(prop);
@@ -171,8 +171,8 @@ namespace EspINA
   unsigned int SliceRenderer::numberOfvtkActors()
   {
     unsigned int returnVal = 0;
-    foreach (ViewItemAdapterPtr item, m_representations.keys())
-      foreach(RepresentationSPtr rep, m_representations[item])
+    for (auto item:  m_representations.keys())
+      for (auto rep: m_representations[item])
         if (rep->isVisible()) ++returnVal;
 
     return returnVal;
@@ -207,13 +207,13 @@ namespace EspINA
       m_picker->DeletePickList(pickedProp);
       removedProps << pickedProp;
 
-      foreach(ViewItemAdapterPtr item, m_representations.keys())
+      for (auto item: m_representations.keys())
       {
         if (!((item->type() == ViewItemAdapter::Type::CHANNEL && itemType.testFlag(RenderableType::CHANNEL)) ||
               (item->type() == ViewItemAdapter::Type::SEGMENTATION && itemType.testFlag(RenderableType::SEGMENTATION))))
           continue;
 
-        foreach(RepresentationSPtr rep, m_representations[item])
+        for (auto rep: m_representations[item])
         {
           NmVector3 vecPoint{ point[0], point[1], point[2] };
           if (rep->isVisible() && rep->hasActor(pickedProp) && rep->isInside(vecPoint) && !selection.contains(item))
@@ -222,7 +222,7 @@ namespace EspINA
 
             if (!repeat)
             {
-              foreach(vtkProp *actor, removedProps)
+              for (auto actor: removedProps)
                 m_picker->AddPickList(actor);
 
               return selection;
@@ -234,7 +234,8 @@ namespace EspINA
       }
     }
 
-    foreach(vtkProp *actor, removedProps)
+
+    for (auto actor: removedProps)
       m_picker->AddPickList(actor);
 
     return selection;

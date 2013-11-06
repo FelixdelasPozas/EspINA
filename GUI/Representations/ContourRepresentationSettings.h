@@ -33,8 +33,8 @@ namespace EspINA
   public:
     explicit ContourRepresentationSettings();
 
-    virtual void Get(RepresentationSPtr representation);
-    virtual void Set(RepresentationSPtr representation);
+    virtual void get(RepresentationSPtr representation);
+    virtual void set(RepresentationSPtr representation);
 
   private:
     bool m_init;

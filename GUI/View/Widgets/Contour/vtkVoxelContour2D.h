@@ -16,8 +16,8 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef VTKVOXELCONTOUR2D_H_
-#define VTKVOXELCONTOUR2D_H_
+#ifndef ESPINA_VTKVOXELCONTOUR2D_H_
+#define ESPINA_VTKVOXELCONTOUR2D_H_
 
 #include "EspinaGUI_Export.h"
 
@@ -102,4 +102,4 @@ class EspinaGUI_EXPORT vtkVoxelContour2D
     double m_minSpacing;
 };
 
-#endif /* VTKVOXELCONTOUR2D_H_ */
+#endif // ESPINA_VTKVOXELCONTOUR2D_H_

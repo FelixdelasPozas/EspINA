@@ -17,10 +17,9 @@
  */
 
 // EspINA
+#include <GUI/View/View2D.h>
 #include "ContourRenderer.h"
 #include "GUI/Representations/ContourRepresentation.h"
-#include "GUI/QtWidget/EspinaRenderView.h"
-#include <GUI/QtWidget/SliceView.h>
 
 // VTK
 #include <vtkPropPicker.h>
@@ -39,22 +38,22 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  void ContourRenderer::addRepresentation(PickableItemPtr item, GraphicalRepresentationSPtr rep)
+  void ContourRenderer::addRepresentation(ViewItemAdapterPtr item, RepresentationSPtr rep)
   {
-    ContourRepresentationSPtr contour = boost::dynamic_pointer_cast<ContourRepresentation>(rep);
-    if (contour.get() != NULL)
+    ContourRepresentationSPtr contour = std::dynamic_pointer_cast<ContourRepresentation>(rep);
+    if (contour.get() != nullptr)
     {
       if (m_representations.keys().contains(item))
         m_representations[item] << rep;
       else
       {
-        GraphicalRepresentationSList list;
+        RepresentationSList list;
         list << rep;
         m_representations.insert(item, list);
       }
 
       if (m_enable)
-        foreach(vtkProp* prop, rep->getActors())
+        for (auto prop: rep->getActors())
         {
           prop->SetPickable(true);
           m_view->addActor(prop);
@@ -64,16 +63,16 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  void ContourRenderer::removeRepresentation(GraphicalRepresentationSPtr rep)
+  void ContourRenderer::removeRepresentation(RepresentationSPtr rep)
   {
-    ContourRepresentationSPtr contour = boost::dynamic_pointer_cast<ContourRepresentation>(rep);
-    if (contour.get() != NULL)
+    ContourRepresentationSPtr contour = std::dynamic_pointer_cast<ContourRepresentation>(rep);
+    if (contour.get() != nullptr)
     {
-      foreach(PickableItemPtr item, m_representations.keys())
+      for (auto item: m_representations.keys())
         if (m_representations[item].contains(rep))
         {
           if (m_enable)
-            foreach(vtkProp* prop, rep->getActors())
+            for (auto prop: rep->getActors())
             {
               m_view->removeActor(prop);
               m_picker->DeletePickList(prop);
@@ -88,25 +87,26 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  bool ContourRenderer::managesRepresentation(GraphicalRepresentationSPtr rep)
+  bool ContourRenderer::managesRepresentation(RepresentationSPtr rep)
   {
-    ContourRepresentationSPtr contour = boost::dynamic_pointer_cast<ContourRepresentation>(rep);
-    return (contour.get() != NULL);
+    ContourRepresentationSPtr contour = std::dynamic_pointer_cast<ContourRepresentation>(rep);
+    return (contour.get() != nullptr);
   }
 
   //-----------------------------------------------------------------------------
-  ViewManager::Selection ContourRenderer::pick(int x, int y, Nm z, vtkSmartPointer<vtkRenderer> renderer, RenderabledItems itemType, bool repeat)
+  SelectableView::Selection ContourRenderer::pick(int x, int y, Nm z, vtkSmartPointer<vtkRenderer> renderer, RenderableItems itemType, bool repeat)
   {
     // FIXME: apparently the contours can't be picked, even when the actors
     // have been marked as pickable a call to m_picker->Pick() always returns
     // empty (just actors hard to pinpoint?)
-    ViewManager::Selection selection;
+    SelectableView::Selection selection;
     QList<vtkProp *> removedProps;
 
     if (!renderer || !renderer.GetPointer() || !itemType.testFlag(EspINA::SEGMENTATION))
       return selection;
 
-    Nm pickPoint[3] = { static_cast<Nm>(x), static_cast<Nm>(y), ((m_view->getViewType() == AXIAL) ? -View2D::SEGMENTATION_SHIFT : View2D::SEGMENTATION_SHIFT) };
+    View2D *view = static_cast<View2D *>(m_view);
+    Nm pickPoint[3] = { static_cast<Nm>(x), static_cast<Nm>(y), ((view->plane() == Plane::XY) ? -View2D::SEGMENTATION_SHIFT : View2D::SEGMENTATION_SHIFT) };
 
     while (m_picker->Pick(pickPoint, renderer))
     {
@@ -115,24 +115,25 @@ namespace EspINA
 
       Nm point[3];
       m_picker->GetPickPosition(point);
-      point[m_view->getViewType()] = z;
+      point[normalCoordinateIndex(view->plane())] = z;
 
       m_picker->DeletePickList(pickedProp);
       removedProps << pickedProp;
 
-      foreach(PickableItemPtr item, m_representations.keys())
+      for (auto item: m_representations.keys())
       {
-        if (!itemType.testFlag(item->type()))
-        continue;
+        if (!(item->type() == ViewItemAdapter::Type::SEGMENTATION && itemType.testFlag(RenderableType::SEGMENTATION)))
+          continue;
 
-        foreach(GraphicalRepresentationSPtr rep, m_representations[item])
-          if (rep->isVisible() && rep->hasActor(pickedProp) && rep->isInside(point) && !selection.contains(item))
+        NmVector3 vecPoint{ point[0], point[1], point[2] };
+        for (auto rep: m_representations[item])
+          if (rep->isVisible() && rep->hasActor(pickedProp) && rep->isInside(vecPoint) && !selection.contains(item))
           {
             selection << item;
 
             if (!repeat)
             {
-              foreach(vtkProp *actor, removedProps)
+              for (auto actor: removedProps)
                 m_picker->AddPickList(actor);
 
               return selection;
@@ -143,7 +144,7 @@ namespace EspINA
       }
     }
 
-    foreach(vtkProp *actor, removedProps)
+    for (auto actor: removedProps)
       m_picker->AddPickList(actor);
 
     return selection;
