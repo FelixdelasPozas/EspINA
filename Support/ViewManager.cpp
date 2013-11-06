@@ -83,6 +83,9 @@ void ViewManager::registerView(RenderView* view)
   m_renderViews << view;
   Q_ASSERT(!m_espinaViews.contains(view));
   m_espinaViews << view;
+
+  view->setSelector(m_selector);
+  view->setColorEngine(m_colorEngine);
 }
 
 //----------------------------------------------------------------------------
@@ -154,7 +157,7 @@ void ViewManager::setSelection(SelectableView::Selection selection)
 
   //TODO 2012-10-07 computeSelectionCenter();
 
-  emit selectionChanged(m_selection, true);
+  emit selectionChanged(m_selection);
 }
 
 //----------------------------------------------------------------------------
@@ -172,114 +175,42 @@ SegmentationAdapterList ViewManager::selectedSegmentations() const
 }
 
 //----------------------------------------------------------------------------
-void ViewManager::clearSelection(bool notifyViews)
+void ViewManager::clearSelection()
 {
   if (!m_selection.isEmpty())
   {
     m_selection.clear();
 
-    emit selectionChanged(m_selection, notifyViews);
+    emit selectionChanged(m_selection);
   }
 }
 
 //----------------------------------------------------------------------------
-void ViewManager::setVOITool(VOIToolSPtr voi)
+void ViewManager::setToolGroup(ToolGroupSPtr group)
 {
-  if (m_voi && m_voi != voi)
-    m_voi->setInUse(false);
+  unsetActiveToolGroup();
 
-  m_voi = voi;
+  m_toolGroup = group;
+}
 
-  if (m_tool && m_voi)
+//----------------------------------------------------------------------------
+void ViewManager::unsetActiveToolGroup()
+{
+  if (m_toolGroup)
   {
-    m_tool->setInUse(false);
-    m_tool.reset();
+    m_toolGroup->setInUse(false);
+    m_toolGroup.reset();
   }
-
-  if (m_voi)
-    m_voi->setInUse(true);
 }
 
+
 //----------------------------------------------------------------------------
-void ViewManager::unsetActiveVOITool()
+void ViewManager::unsetActiveToolGroup(ToolGroupSPtr group)
 {
-  if (m_voi)
+  if (m_toolGroup == group)
   {
-    m_voi->setEnabled(false);
-    m_voi->setInUse(false);
-    m_voi.reset();
+    unsetActiveToolGroup();
   }
-}
-
-
-//----------------------------------------------------------------------------
-void ViewManager::setActiveTool(ToolSPtr tool)
-{
-  Q_ASSERT(tool);
-
-  if (m_tool && m_tool != tool)
-    m_tool->setInUse(false);
-
-  m_tool = tool;
-
-  if (m_tool)
-  {
-    if (m_voi)
-    {
-      unsetActiveVOITool();
-    }
-    m_tool->setInUse(true);
-  }
-}
-
-//----------------------------------------------------------------------------
-void ViewManager::unsetActiveTool()
-{
-  if (m_tool)
-  {
-    m_tool->setInUse(false);
-    m_tool.reset();
-  }
-}
-
-//----------------------------------------------------------------------------
-void ViewManager::unsetActiveTool(ToolSPtr tool)
-{
-  if (m_tool == tool)
-  {
-    m_tool->setInUse(false);
-    m_tool.reset();
-  }
-}
-
-//----------------------------------------------------------------------------
-bool ViewManager::filterEvent(QEvent* e, RenderView* view)
-{
-  bool res = false;
-
-  if (m_voi)
-    res = m_voi->filterEvent(e, view);
-
-  if (res && m_tool)
-    m_tool->lostEvent(view);
-
-  if (!res && m_tool)
-    res = m_tool->filterEvent(e, view);
-
-  return res;
-}
-
-//----------------------------------------------------------------------------
-QCursor ViewManager::cursor() const
-{
-  QCursor activeCursor(Qt::ArrowCursor);
-
-  if (m_tool)
-    activeCursor = m_tool->cursor();
-  else if (m_voi && m_voi->enabled())
-    activeCursor = m_voi->cursor();
-
-  return activeCursor;
 }
 
 //----------------------------------------------------------------------------

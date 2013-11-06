@@ -31,7 +31,7 @@
 #include <GUI/View/SelectableView.h>
 #include <GUI/View/Widgets/EspinaWidget.h>
 #include <GUI/ColorEngines/ColorEngine.h>
-#include <Support/VOITool.h>
+#include "ToolGroup.h"
 
 // Qt
 #include <QList>
@@ -54,6 +54,8 @@ namespace EspINA
   class Selector;
   class View2D;
   class Measure;
+
+  using ROI = Selector::SelectionMaskSPtr;
 
   class EspinaSupport_EXPORT ViewManager
   : public QObject
@@ -99,49 +101,37 @@ namespace EspINA
     // convenience function
     SegmentationAdapterList selectedSegmentations() const;
 
-    // NOTE: Avoid notify views-->possibly because we are mixing control methods
-    void clearSelection(bool notifyViews = true);
+    void clearSelection();
 
   signals:
-    void selectionChanged(SelectableView::Selection, bool);
+    void selectionChanged(SelectableView::Selection);
 
   private:
     SelectableView::Selection m_selection;
 
     //---------------------------------------------------------------------------
-    /***************************** Tool API **********************************/
+    /************************* Tool Group API ********************************/
     //---------------------------------------------------------------------------
   public:
-    void setVOITool(VOIToolSPtr voi);
-    void unsetActiveVOITool();
+    void setToolGroup(ToolGroupSPtr group);
 
-    VOIToolSPtr voiTool()
-    { return m_voi; }
+    void unsetActiveToolGroup();
 
-    VOI currentVOI() const
-    { return m_voi?m_voi->currentVOI():VOI(); }
+    void unsetActiveToolGroup(ToolGroupSPtr group);
 
-    /** \brief Set @tool as active tool. 
-     *
-     * If other tool is already active, it will be deactivated
-     */
-    void setActiveTool(ToolSPtr tool);
+    ToolGroupSPtr toolGroup()
+    { return m_toolGroup; }
 
-    void unsetActiveTool();
+    void setCurrentROI(ROI roi)
+    { m_roi = roi; }
 
-    void unsetActiveTool(ToolSPtr tool);
-
-    /// Filter @view's @event.
-    /// Delegate active voi event handling. If the event is not filtered by
-    /// active voi, then active tool, if any, filter the event. If it neither
-    /// filter the event, the function returns false. Otherwise, returns true.
-    bool filterEvent(QEvent *event, RenderView *view=nullptr);
-
-    QCursor cursor() const;
+    ROI currentROI() const
+    { return m_roi; }
 
   private:
-    VOIToolSPtr m_voi;
-    ToolSPtr    m_tool;
+    ROI m_roi;
+    ToolGroupSPtr m_toolGroup;
+    SelectorSPtr  m_selector;
 
     //---------------------------------------------------------------------------
     /***************************** Widget API **********************************/
@@ -219,6 +209,10 @@ private:
     void activeChannelChanged(ChannelAdapterPtr);
     void activeCategoryChanged(CategoryAdapterPtr);
 
+  private:
+    ChannelAdapterPtr  m_activeChannel;
+    CategoryAdapterPtr m_activeCategory;
+
     //---------------------------------------------------------------------------
     /************************* Color Engine API ********************************/
     //---------------------------------------------------------------------------
@@ -226,9 +220,6 @@ private:
     void setColorEngine(ColorEngineSPtr engine);
 
   private:
-    ChannelAdapterPtr  m_activeChannel;
-    CategoryAdapterPtr m_activeCategory;
-
     ColorEngineSPtr m_colorEngine;
   };
 

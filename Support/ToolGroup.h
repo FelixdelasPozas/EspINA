@@ -16,26 +16,42 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef ESPINA_VOI_TOOL_H
-#define ESPINA_VOI_TOOL_H
 
-#include "Support/Tool.h"
+#ifndef ESPINA_TOOL_GROUP_H
+#define ESPINA_TOOL_GROUP_H
+
+#include "EspinaSupport_Export.h"
+#include "Tool.h"
 #include <GUI/Selectors/Selector.h>
+
+#include <memory>
+
+#include <QAction>
 
 namespace EspINA
 {
-  using VOI = std::shared_ptr<Selector::SelectionMask>;
+  class RenderView;
 
-  class EspinaSupport_EXPORT VOITool
-  : public Tool
+  class EspinaSupport_EXPORT ToolGroup
+  : public QAction
   {
   public:
-    typedef double * Region;
+    virtual void setInUse(bool value) = 0;
 
-    virtual VOI currentVOI() = 0;
+    virtual void setEnabled(bool value) = 0;
+
+    virtual bool enabled() const = 0;
+
+    virtual void setActiveTool(ToolSPtr tool) = 0;
+
+    virtual SelectorSPtr selector() const = 0;
+//     { return m_selector; }
+// 
+//   protected:
+//     SelectorSPtr m_selector;
   };
 
-  using VOIToolSPtr = std::shared_ptr<VOITool>;
+  using ToolGroupSPtr = std::shared_ptr<ToolGroup>;
 } // namespace EspINA
 
-#endif // IVOI_H
+#endif // ESPINA_TOOL_H

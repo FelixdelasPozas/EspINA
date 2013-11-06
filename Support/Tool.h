@@ -24,6 +24,7 @@
 
 #include <memory>
 
+#include <QObject>
 #include <QCursor>
 
 class QEvent;

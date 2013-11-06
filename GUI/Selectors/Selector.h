@@ -48,8 +48,9 @@ namespace EspINA
   {
     Q_OBJECT
   public:
-    using SelectionTag  = QString;
-    using SelectionMask = BinaryMask<unsigned char>;
+    using SelectionTag      = QString;
+    using SelectionMask     = BinaryMask<unsigned char>;
+    using SelectionMaskSPtr = std::shared_ptr<BinaryMask<unsigned char>>;
 
     static const SelectionTag SAMPLE;
     static const SelectionTag CHANNEL;
