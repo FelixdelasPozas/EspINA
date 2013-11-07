@@ -26,6 +26,11 @@
 
 namespace EspINA
 {
+  class ChannelAdapter;
+  using ChannelAdapterPtr   = ChannelAdapter *;
+  using ChannelAdapterList  = QList<ChannelAdapterPtr>;
+  using ChannelAdapterSPtr  = std::shared_ptr<ChannelAdapter>;
+  using ChannelAdapterSList = QList<ChannelAdapterSPtr>;
 
   class EspinaGUI_EXPORT ChannelAdapter
   : public ViewItemAdapter
@@ -144,12 +149,16 @@ namespace EspINA
 
     friend class ModelFactory;
     friend class ModelAdapter;
+    friend bool operator==(ChannelAdapterSPtr lhs, ChannelSPtr        rhs);
+    friend bool operator==(ChannelSPtr        lhs, ChannelAdapterSPtr rhs);
   };
 
-  using ChannelAdapterPtr   = ChannelAdapter *;
-  using ChannelAdapterList  = QList<ChannelAdapterPtr>;
-  using ChannelAdapterSPtr  = std::shared_ptr<ChannelAdapter>;
-  using ChannelAdapterSList = QList<ChannelAdapterSPtr>;
+  bool operator==(ChannelAdapterSPtr lhs, ChannelSPtr        rhs);
+  bool operator==(ChannelSPtr        lhs, ChannelAdapterSPtr rhs);
+
+  bool operator!=(ChannelAdapterSPtr lhs, ChannelSPtr        rhs);
+  bool operator!=(ChannelSPtr        lhs, ChannelAdapterSPtr rhs);
+
 }// namespace EspINA
 
 #endif // CHANNEL_H

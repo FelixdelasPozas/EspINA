@@ -26,83 +26,69 @@
  *
  */
 
-#include <Core/Analysis/Analysis.h>
-#include <Core/Analysis/Channel.h>
-#include <Core/Analysis/Output.h>
-#include <Core/Analysis/Filter.h>
-#include <Core/MultiTasking/Scheduler.h>
-#include "analysis_testing_support.h"
+#include "Core/Analysis/Analysis.h"
+#include <GUI/Model/ClassificationAdapter.h>
+
+#include <GUI/Model/ModelAdapter.h>
+#include "ModelTest.h"
 
 using namespace EspINA;
 using namespace std;
 
-int analysis_add_channel( int argc, char** argv )
+int model_adapter_set_empty_classification( int argc, char** argv )
 {
   bool error = false;
 
-  Analysis analysis;
 
-  FilterSPtr filter{new Testing::DummyFilter()};
-  ChannelSPtr channel(new Channel(filter, 0));
+  AnalysisSPtr analysis{new Analysis()};
+  ModelAdapter modelAdapter(analysis);
+  ModelTest    modelTester(&modelAdapter);
 
-  analysis.add(channel);
+  ClassificationAdapterSPtr classification;
 
-  if (!analysis.channels().contains(channel)) {
-    cerr << "Analysis doesn't contain addded channel" << endl;
-    error = true;
-  }
+  modelAdapter.setClassification(classification);
 
-  if (analysis.channels().first() != channel) {
-    cerr << "Unexpected channel retrieved from analysis" << endl;
-    error = true;
-  }
+//   if (analysis->classification() != classification) {
+//     cerr << "Unexpected classification in analysis" << endl;
+//     error = true;
+//   }
 
-  if (analysis.classification().get() != nullptr) {
-    cerr << "Unexpected classification in analysis" << endl;
-    error = true;
-  }
-
-  if (!analysis.samples().isEmpty()) {
+  if (!analysis->samples().isEmpty()) {
     cerr << "Unexpected number of samples in analysis" << endl;
     error = true;
   }
 
-  if (analysis.channels().size() != 1) {
+  if (!analysis->channels().isEmpty()) {
     cerr << "Unexpected number of channels in analysis" << endl;
     error = true;
   }
 
-  if (!analysis.segmentations().isEmpty()) {
+  if (!analysis->segmentations().isEmpty()) {
     cerr << "Unexpected number of segmentations in analysis" << endl;
     error = true;
   }
 
-  if (!analysis.extensionProviders().isEmpty()) {
+  if (!analysis->extensionProviders().isEmpty()) {
     cerr << "Unexpected number of extension providers in analysis" << endl;
     error = true;
   }
 
-  if (analysis.content()->vertices().size() != 2) {
+  if (!analysis->content()->vertices().isEmpty()) {
     cerr << "Unexpected number of vertices in analysis content" << endl;
     error = true;
   }
 
-//   if (analysis.content()->vertices().first().item != channel) {
-//     cerr << "Unexpected channel retrieved from analysis content" << endl;
-//     error = true;
-//   }
-
-  if (analysis.content()->edges().size() != 1) {
+  if (!analysis->content()->edges().isEmpty()) {
     cerr << "Unexpected number of edges in analysis content" << endl;
     error = true;
   }
 
-  if (analysis.relationships()->vertices().size() != 1) {
+  if (!analysis->relationships()->vertices().isEmpty()) {
     cerr << "Unexpected number of vertices in analysis relationships" << endl;
     error = true;
   }
 
-  if (!analysis.relationships()->edges().isEmpty()) {
+  if (!analysis->relationships()->edges().isEmpty()) {
     cerr << "Unexpected number of edges in analysis relationships" << endl;
     error = true;
   }

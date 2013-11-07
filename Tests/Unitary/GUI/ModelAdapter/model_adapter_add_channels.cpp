@@ -27,17 +27,25 @@
  */
 
 #include <Core/Analysis/Analysis.h>
-#include <Core/Analysis/Sample.h>
+#include <Core/Analysis/Channel.h>
+#include <Core/Analysis/Output.h>
+#include <Core/Analysis/Filter.h>
+#include <Core/MultiTasking/Scheduler.h>
+
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/ModelFactory.h>
+
+#include "model_adapter_testing_support.h"
 #include "ModelTest.h"
 
-using namespace EspINA;
 using namespace std;
+using namespace EspINA;
+using namespace Testing;
 
-int model_adapter_add_samples( int argc, char** argv )
+int model_adapter_add_channels(int argc, char** argv )
 {
   bool error = false;
+
 
   AnalysisSPtr analysis{new Analysis()};
 
@@ -47,19 +55,26 @@ int model_adapter_add_samples( int argc, char** argv )
   SchedulerSPtr sch;
   ModelFactory factory(sch);
 
-  SampleAdapterSList samples;
-  samples << factory.createSample() << factory.createSample() << factory.createSample();
+  OutputSList inputs;
+  Filter::Type type{"DummyFilter"};
 
-  modelAdapter.add(samples);
+  FilterAdapterSPtr filter = factory.createFilter<DummyFilter>(inputs, type);
 
-  for(auto sample : samples) {
+  ChannelAdapterSList channels;
+  channels << factory.createChannel(filter, 0)
+           << factory.createChannel(filter, 0)
+           << factory.createChannel(filter, 0);
+
+  modelAdapter.add(channels);
+
+  for(auto channel : channels) {
     bool found = false;
-    for (auto aSample : analysis->samples())
+    for (auto aChannel : analysis->channels())
     {
-      found |= aSample == sample;
+      found |= aChannel == channel;
     }
     if (!found) {
-      cerr << "Unexpected sample retrieved from analysis" << endl;
+      cerr << "Unexpected channel retrieved from analysis" << endl;
       error = true;
     }
   }
@@ -69,12 +84,12 @@ int model_adapter_add_samples( int argc, char** argv )
     error = true;
   }
 
-  if (analysis->samples().size() != samples.size()) {
+  if (!analysis->samples().isEmpty()) {
     cerr << "Unexpected number of samples in analysis" << endl;
     error = true;
   }
 
-  if (!analysis->channels().isEmpty()) {
+  if (analysis->channels().size() != channels.size()) {
     cerr << "Unexpected number of channels in analysis" << endl;
     error = true;
   }
@@ -89,29 +104,17 @@ int model_adapter_add_samples( int argc, char** argv )
     error = true;
   }
 
-  if (analysis->content()->vertices().size() != samples.size()) {
+  if (analysis->content()->vertices().size() != channels.size() + 1) { // They share the filter
     cerr << "Unexpected number of vertices in analysis content" << endl;
     error = true;
   }
 
-//   for(auto sample : samples) {
-//     bool found = false;
-//     for (auto vSample : analysis->content()->vertices())
-//     {
-//       found |= vSample == sample;
-//     }
-//     if (!found) {
-//       cerr << "Unexpected sample retrieved from analysis" << endl;
-//       error = true;
-//     }
-//   }
-
-  if (!analysis->content()->edges().isEmpty()) {
+  if (analysis->content()->edges().size() != channels.size()) {
     cerr << "Unexpected number of edges in analysis content" << endl;
     error = true;
   }
 
-  if (analysis->relationships()->vertices().size() != samples.size()) {
+  if (analysis->relationships()->vertices().size() != channels.size()) {
     cerr << "Unexpected number of vertices in analysis relationships" << endl;
     error = true;
   }

@@ -46,6 +46,13 @@ namespace EspINA
   public:
     ~CategoryAdapter();
 
+    virtual QVariant data(int role = Qt::DisplayRole) const;
+
+    virtual bool setData(const QVariant& value, int role = Qt::UserRole +1);
+
+    virtual Type type() const
+    { return Type::CATEGORY; }
+
     /** \brief Specify the name of the category 
      * 
      */
@@ -132,11 +139,15 @@ namespace EspINA
 
   private:
     explicit CategoryAdapter(CategorySPtr category);
+    explicit CategoryAdapter(CategoryAdapterPtr parent, const QString& name );
 
   private:
     CategorySPtr         m_category;
     CategoryAdapterPtr   m_parent; // Parent node can't be a shared pointer to avoid circular dependencies
     CategoryAdapterSList m_subCategories;
+
+    friend class ClassificationAdapter;
+    template<typename T> friend class Tree;
   };
 
   CategoryAdapterPtr EspinaGUI_EXPORT categoryAdapterPtr(const QModelIndex& index);

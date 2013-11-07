@@ -37,6 +37,18 @@
 using namespace EspINA;
 
 //------------------------------------------------------------------------
+QVariant CategoryAdapter::data(int role) const
+{
+
+}
+
+//------------------------------------------------------------------------
+bool CategoryAdapter::setData(const QVariant& value, int role)
+{
+
+}
+
+//------------------------------------------------------------------------
 QString CategoryAdapter::classificationName() const
 {
 
@@ -61,6 +73,88 @@ CategoryAdapterPtr EspINA::categoryAdapterPtr(ItemAdapterPtr item)
 }
 
 
+//------------------------------------------------------------------------
+void CategoryAdapter::setName(const QString& name)
+{
+
+}
+
+//------------------------------------------------------------------------
+QString CategoryAdapter::name() const
+{
+
+}
+
+void CategoryAdapter::addProperty(const QString& prop, const QVariant& value)
+{
+
+}
+
+void CategoryAdapter::addSubCategory(CategoryAdapterSPtr subCategory)
+{
+
+}
+
+CategoryAdapter::CategoryAdapter(CategorySPtr category)
+{
+
+}
+
+CategoryAdapter::CategoryAdapter(CategoryAdapterPtr parent, const QString& name)
+{
+
+}
+
+
+CategoryAdapterSPtr CategoryAdapter::createSubCategory(const QString& name)
+{
+
+}
+
+void CategoryAdapter::deleteProperty(const QString& prop)
+{
+
+}
+
+PersistentSPtr CategoryAdapter::item() const
+{
+
+}
+
+QStringList CategoryAdapter::properties() const
+{
+
+}
+
+QVariant CategoryAdapter::property(const QString& prop) const
+{
+
+}
+
+void CategoryAdapter::removeSubCategory(CategoryAdapterPtr subCategory)
+{
+
+}
+
+void CategoryAdapter::setColor(const QColor& color)
+{
+
+}
+
+CategoryAdapterSPtr CategoryAdapter::subCategory(const QString& name) const
+{
+
+}
+
+CategoryAdapter::~CategoryAdapter()
+{
+
+}
+
+QString EspINA::print(CategoryAdapterSPtr category, int level)
+{
+
+}
 
 // 
 // //------------------------------------------------------------------------

@@ -71,6 +71,9 @@ namespace EspINA
   {
     Q_OBJECT
   public:
+    struct Existing_Item_Exception{};
+
+  public:
     explicit ModelAdapter(AnalysisSPtr analysis);
     virtual ~ModelAdapter();
 
@@ -192,8 +195,8 @@ namespace EspINA
     void emitChannelAdded(ChannelAdapterSList);
 
   signals:
-    void classificationAdded  (ClassificationSPtr classification);
-    void classificationRemoved(ClassificationSPtr classification);
+    void classificationAdded  (ClassificationAdapterSPtr classification);
+    void classificationRemoved(ClassificationAdapterSPtr classification);
 
     void sampleAdded  (SampleAdapterSPtr samples);
     void sampleRemoved(SampleAdapterSPtr samples);
@@ -210,10 +213,10 @@ namespace EspINA
   private:
 //     void addClassification(CategoryAdapterSPtr root);
 // 
-//     void addSampleAdapterImplementation   (SampleAdapterSPtr sample);
+    void addImplementation(SampleAdapterSPtr  sample);
+    void addImplementation(ChannelAdapterSPtr channel);
 //     void removeSampleAdapterImplementation(SampleAdapterSPtr sample);
 // 
-//     void addChannelImplementation   (ChannelSPtr channel);
 //     void removeChannelImplementation(ChannelSPtr channel);
 // 
 //     void addSegmentationImplementation   (SegmentationAdapterSPtr segmentation);

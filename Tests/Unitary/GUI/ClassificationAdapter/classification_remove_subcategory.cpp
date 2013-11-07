@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2013, Jorge Peña Pastor <jpena@cesvima.upm.es>
  * All rights reserved.
- *
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -12,7 +12,7 @@
  *     * Neither the name of the <organization> nor the
  *     names of its contributors may be used to endorse or promote products
  *     derived from this software without specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY Jorge Peña Pastor <jpena@cesvima.upm.es> ''AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -23,69 +23,49 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * 
  */
 
-#include "Core/Analysis/Analysis.h"
-#include "Core/Analysis/Classification.h"
+#include "classification_testing_support.h"
+#include <Category.h>
 
 using namespace EspINA;
 using namespace std;
 
-int analysis_set_classification( int argc, char** argv )
+int classification_remove_subcategory( int argc, char** argv )
 {
   bool error = false;
 
-  Analysis analysis;
+  Classification classification;
 
-  ClassificationSPtr classification(new Classification());
+  QString name1 = "Level 1";
+  CategorySPtr category1= classification.createNode(name1);
 
-  analysis.setClassification(classification);
+  QString name2 = "Level 2";
+  CategorySPtr category2 = category1->createSubCategory(name2);
 
-  if (analysis.classification() != classification) {
-    cerr << "Unexpected classification in analysis" << endl;
+  if (category2->parent() != category1.get()) {
+    cerr << category2->name().toStdString() << " parent should be " << category1->name().toStdString() << endl;
     error = true;
   }
 
-  if (!analysis.samples().isEmpty()) {
-    cerr << "Unexpected number of samples in analysis" << endl;
+  if (category1->subCategory(name2) != category2) {
+    cerr << category1->name().toStdString() << " should contain " << category2->name().toStdString() << endl;
     error = true;
   }
 
-  if (!analysis.channels().isEmpty()) {
-    cerr << "Unexpected number of channels in analysis" << endl;
-    error = true;
-  }
+  category1->removeSubCategory(category2);
 
-  if (!analysis.segmentations().isEmpty()) {
-    cerr << "Unexpected number of segmentations in analysis" << endl;
+  if (category2->parent() == category1.get()) {
+    cerr << category2->name().toStdString() << " parent shouldn't be " << category1->name().toStdString() << endl;
     error = true;
   }
-
-  if (!analysis.extensionProviders().isEmpty()) {
-    cerr << "Unexpected number of extension providers in analysis" << endl;
+  
+  if (category1->subCategory(name2) != nullptr) {
+    cerr << category1->name().toStdString() << " shouldn't contain " << category2->name().toStdString() << endl;
     error = true;
   }
-
-  if (!analysis.content()->vertices().isEmpty()) {
-    cerr << "Unexpected number of vertices in analysis content" << endl;
-    error = true;
-  }
-
-  if (!analysis.content()->edges().isEmpty()) {
-    cerr << "Unexpected number of edges in analysis content" << endl;
-    error = true;
-  }
-
-  if (!analysis.relationships()->vertices().isEmpty()) {
-    cerr << "Unexpected number of vertices in analysis relationships" << endl;
-    error = true;
-  }
-
-  if (!analysis.relationships()->edges().isEmpty()) {
-    cerr << "Unexpected number of edges in analysis relationships" << endl;
-    error = true;
-  }
+  
 
   return error;
 }

@@ -62,8 +62,8 @@ namespace EspINA
 
     QString name() const;
 
-    CategorySPtr createCategory(const QString &relativeName,
-                                CategoryAdapterSPtr parent = CategoryAdapterSPtr());
+    CategoryAdapterSPtr createCategory(const QString &relativeName,
+                                       CategoryAdapterSPtr parent = CategoryAdapterSPtr());
     void removeCategory(CategorySPtr element);
 
     CategoryAdapterSPtr root();
@@ -81,7 +81,8 @@ namespace EspINA
     explicit ClassificationAdapter(ClassificationSPtr classification);
 
   private:
-    ClassificationSPtr m_classification;
+    ClassificationSPtr    m_classification;
+    Tree<CategoryAdapter> m_adaptedClassification;
   };
 
   using ClassificationAdapterSPtr = std::shared_ptr<ClassificationAdapter>;

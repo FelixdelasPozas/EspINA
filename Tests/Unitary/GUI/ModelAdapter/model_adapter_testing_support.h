@@ -30,8 +30,8 @@ namespace EspINA {
     : public Filter
     {
     public:
-      explicit DummyFilter()
-      : Filter(OutputSList(), "Dummy", SchedulerSPtr(new Scheduler(10000000))){}
+      explicit DummyFilter(OutputSList input, Filter::Type type, SchedulerSPtr scheduler)
+      : Filter(input, type, scheduler){}
       virtual OutputSPtr output(Output::Id id) const {return OutputSPtr{new Output(this, 0)};}
 
     protected:

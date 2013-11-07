@@ -17,6 +17,7 @@
 */
 
 #include "ModelAdapter.h"
+#include <Core/Analysis/Analysis.h>
 
 // EspINA
 
@@ -24,7 +25,7 @@ using namespace EspINA;
 
 //------------------------------------------------------------------------
 ModelAdapter::ModelAdapter(AnalysisSPtr analysis)
-: QAbstractItemModel()
+: m_analysis(analysis)
 {
 
 }
@@ -36,27 +37,91 @@ ModelAdapter::~ModelAdapter()
 }
 
 //------------------------------------------------------------------------
+void ModelAdapter::addImplementation(SampleAdapterSPtr sample)
+{
+  if (m_samples.contains(sample)) throw Existing_Item_Exception();
+
+  m_analysis->add(sample->m_sample);
+  m_samples << sample;
+
+  //   connect(sample.get(), SIGNAL(modified(ModelItemPtr)),
+  //           this, SLOT(itemModified(ModelItemPtr)));
+}
+
+//------------------------------------------------------------------------
 void ModelAdapter::add(SampleAdapterSPtr sample)
 {
+  int row = m_samples.size();
 
+  beginInsertRows(sampleRoot(), row, row);
+  {
+    addImplementation(sample);
+  }
+  endInsertRows();
+
+  emit sampleAdded(sample);
 }
 
 //------------------------------------------------------------------------
 void ModelAdapter::add(SampleAdapterSList samples)
 {
+  int start = m_samples.size();
+  int end   = start + samples.size() - 1;
 
+  beginInsertRows(sampleRoot(), start, end);
+  {
+    for(auto sample : samples)
+    {
+      addImplementation(sample);
+    }
+  }
+  endInsertRows();
+
+  for(auto sample : samples)
+  {
+    emit sampleAdded(sample);
+  }
+}
+
+//------------------------------------------------------------------------
+void ModelAdapter::addImplementation(ChannelAdapterSPtr channel)
+{
+  if (m_channels.contains(channel)) throw Existing_Item_Exception();
+
+  m_analysis->add(channel->m_channel);
+  m_channels << channel;
+
+//   connect(channel.get(), SIGNAL(modified(ModelItemPtr)),
+//           this, SLOT(itemModified(ModelItemPtr)));
 }
 
 //------------------------------------------------------------------------
 void ModelAdapter::add(ChannelAdapterSPtr channel)
 {
+  int row = m_channels.size();
+
+  beginInsertRows(channelRoot(), row, row);
+  {
+    addImplementation(channel);
+  }
+  endInsertRows();
 
 }
 
 //------------------------------------------------------------------------
 void ModelAdapter::add(ChannelAdapterSList channels)
 {
+  int start = m_channels.size();
+  int end   = start + channels.size() - 1;
 
+  beginInsertRows(channelRoot(), start, end);
+  {
+    for(auto channel : channels)
+    {
+      addImplementation(channel);
+    }
+  }
+  endInsertRows();
 }
 
 //------------------------------------------------------------------------
@@ -399,11 +464,13 @@ int ModelAdapter::rowCount(const QModelIndex& parent) const
   return count;
 }
 
+//------------------------------------------------------------------------
 QModelIndex ModelAdapter::sampleIndex(SampleAdapterPtr sample) const
 {
 
 }
 
+//------------------------------------------------------------------------
 QModelIndex ModelAdapter::sampleIndex(SampleAdapterSPtr sample) const
 {
 
@@ -414,31 +481,54 @@ QModelIndex ModelAdapter::sampleRoot() const
   return createIndex(1, 0, 1);
 }
 
+//------------------------------------------------------------------------
 QModelIndex ModelAdapter::segmentationIndex(SegmentationAdapterPtr segmentation) const
 {
 
 }
 
+//------------------------------------------------------------------------
 QModelIndex ModelAdapter::segmentationIndex(SegmentationAdapterSPtr segmentation) const
 {
 
 }
 
+//------------------------------------------------------------------------
 QModelIndex ModelAdapter::segmentationRoot() const
 {
   return createIndex(3, 0, 3);
 }
 
+//------------------------------------------------------------------------
 void ModelAdapter::setAnalysis(AnalysisSPtr analysis)
 {
 
 }
 
+//------------------------------------------------------------------------
 void ModelAdapter::setClassification(ClassificationAdapterSPtr classification)
 {
+  if (m_classification)
+  {
+    ClassificationAdapterSPtr oldClassification = classification;
+    beginRemoveRows(classificationRoot(), 0, rowCount(classificationRoot()) - 1);
+    m_classification.reset();
+    endRemoveRows();
 
+    emit classificationRemoved(oldClassification);
+  }
+
+  if (classification)
+  {
+    beginInsertRows(classificationRoot(), 0, classification->root()->subCategories().size() - 1);
+    m_classification = classification;
+    endInsertRows();
+
+    emit classificationAdded(m_classification);
+  }
 }
 
+//------------------------------------------------------------------------
 bool ModelAdapter::setData(const QModelIndex& index, const QVariant& value, int role)
 {
   bool result = false;
@@ -471,6 +561,7 @@ void ModelAdapter::setSegmentationCategory(SegmentationAdapterSPtr segmentation,
 {
 
 }
+
 
 ItemAdapterPtr EspINA::itemAdapter(const QModelIndex& index)
 {
@@ -558,40 +649,6 @@ ItemAdapterPtr EspINA::itemAdapter(const QModelIndex& index)
 //     return QAbstractItemModel::flags(index);
 // }
 // 
-// //------------------------------------------------------------------------
-// void ModelAdapter::addSample(SampleSPtr sample)
-// {
-// 
-//   int row = m_samples.size();
-// 
-//   beginInsertRows(sampleRoot(), row, row);
-//   {
-//     addSampleImplementation(sample);
-//   }
-//   endInsertRows();
-// 
-//   emit sampleAdded(sample);
-//   markAsChanged();
-// }
-// 
-// //------------------------------------------------------------------------
-// void ModelAdapter::addSample(SampleSList samples)
-// {
-//   int start = m_samples.size();
-//   int end   = start + samples.size() - 1;
-// 
-//   beginInsertRows(sampleRoot(), start, end);
-//   {
-//     foreach(SampleSPtr sample, samples)
-//       addSampleImplementation(sample);
-//   }
-//   endInsertRows();
-// 
-//   foreach(SampleSPtr sample, samples)
-//     emit sampleAdded(sample);
-//   markAsChanged();
-// }
-// 
 // 
 // //------------------------------------------------------------------------
 // void ModelAdapter::removeSample(SampleSPtr sample)
@@ -610,35 +667,6 @@ ItemAdapterPtr EspINA::itemAdapter(const QModelIndex& index)
 //   Q_ASSERT (!m_samples.contains(sample));
 // }
 // 
-// //------------------------------------------------------------------------
-// void ModelAdapter::addChannel(ChannelSPtr channel)
-// {
-//   int row = m_channels.size();
-// 
-//   beginInsertRows(channelRoot(), row, row);
-//   {
-//     addChannelImplementation(channel);
-//   }
-//   endInsertRows();
-// 
-//   markAsChanged();
-// }
-// 
-// //------------------------------------------------------------------------
-// void ModelAdapter::addChannel(ChannelSList channels)
-// {
-//   int start = m_channels.size();
-//   int end   = start + channels.size() - 1;
-// 
-//   beginInsertRows(channelRoot(), start, end);
-//   {
-//     foreach(ChannelSPtr channel, channels)
-//       addChannelImplementation(channel);
-//   }
-//   endInsertRows();
-// 
-//   markAsChanged();
-// }
 // 
 // //------------------------------------------------------------------------
 // void ModelAdapter::emitChannelAdded(ChannelSList channels)
@@ -960,25 +988,6 @@ ItemAdapterPtr EspINA::itemAdapter(const QModelIndex& index)
 // //------------------------------------------------------------------------
 // void ModelAdapter::setTaxonomy(TaxonomySPtr taxonomy)
 // {
-//   if (m_tax)
-//   {
-//     TaxonomySPtr oldTax = taxonomy;
-//     beginRemoveRows(taxonomyRoot(), 0, rowCount(taxonomyRoot()) - 1);
-//     m_tax.reset();
-//     endRemoveRows();
-// 
-//     emit taxonomyRemoved(oldTax);
-//   }
-// 
-//   if (taxonomy)
-//   {
-//     beginInsertRows(taxonomyRoot(), 0, taxonomy->elements().size() - 1);
-//     m_tax = taxonomy;
-//     endInsertRows();
-// 
-//     emit taxonomyAdded(m_tax);
-//   }
-//   markAsChanged();
 // }
 // 
 // //------------------------------------------------------------------------
@@ -1041,20 +1050,6 @@ ItemAdapterPtr EspINA::itemAdapter(const QModelIndex& index)
 //   m_relations->removeItem(sample.get());
 // 
 //   sample->m_model = NULL;
-// }
-// 
-// //------------------------------------------------------------------------
-// void ModelAdapter::addChannelImplementation(ChannelSPtr channel)
-// {
-//   Q_ASSERT(channel);
-//   Q_ASSERT(!m_channels.contains(channel));
-// 
-//   channel->m_model = this;
-//   m_channels << channel;
-//   m_relations->addItem(channel.get());
-// 
-//   connect(channel.get(), SIGNAL(modified(ModelItemPtr)),
-//           this, SLOT(itemModified(ModelItemPtr)));
 // }
 // 
 // //------------------------------------------------------------------------

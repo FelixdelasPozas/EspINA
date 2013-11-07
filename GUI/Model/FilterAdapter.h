@@ -96,7 +96,8 @@ namespace EspINA {
     { return m_filter->output(id); }
 
   private:
-    FilterAdapter(std::shared_ptr<T> filter) {}
+    FilterAdapter(std::shared_ptr<T> filter)
+    : m_filter{filter}{}
 
     std::shared_ptr<T> m_filter;
 

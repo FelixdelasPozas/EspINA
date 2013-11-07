@@ -26,50 +26,33 @@
  *
  */
 
-#include <Core/Analysis/Analysis.h>
-#include <Core/Analysis/Sample.h>
+#include "Core/Analysis/Analysis.h"
+#include <GUI/Model/ClassificationAdapter.h>
+
 #include <GUI/Model/ModelAdapter.h>
-#include <GUI/ModelFactory.h>
 #include "ModelTest.h"
 
 using namespace EspINA;
 using namespace std;
 
-int model_adapter_add_samples( int argc, char** argv )
+int model_adapter_set_classification( int argc, char** argv )
 {
-  bool error = false;
+  bool error = true;//TODO
 
   AnalysisSPtr analysis{new Analysis()};
-
   ModelAdapter modelAdapter(analysis);
   ModelTest    modelTester(&modelAdapter);
 
-  SchedulerSPtr sch;
-  ModelFactory factory(sch);
+  ClassificationAdapterSPtr classification;
 
-  SampleAdapterSList samples;
-  samples << factory.createSample() << factory.createSample() << factory.createSample();
+  modelAdapter.setClassification(classification);
 
-  modelAdapter.add(samples);
+//   if (analysis->classification() != classification) {
+//     cerr << "Unexpected classification in analysis" << endl;
+//     error = true;
+//   }
 
-  for(auto sample : samples) {
-    bool found = false;
-    for (auto aSample : analysis->samples())
-    {
-      found |= aSample == sample;
-    }
-    if (!found) {
-      cerr << "Unexpected sample retrieved from analysis" << endl;
-      error = true;
-    }
-  }
-
-  if (analysis->classification().get() != nullptr) {
-    cerr << "Unexpected classification in analysis" << endl;
-    error = true;
-  }
-
-  if (analysis->samples().size() != samples.size()) {
+  if (!analysis->samples().isEmpty()) {
     cerr << "Unexpected number of samples in analysis" << endl;
     error = true;
   }
@@ -89,29 +72,17 @@ int model_adapter_add_samples( int argc, char** argv )
     error = true;
   }
 
-  if (analysis->content()->vertices().size() != samples.size()) {
+  if (!analysis->content()->vertices().isEmpty()) {
     cerr << "Unexpected number of vertices in analysis content" << endl;
     error = true;
   }
-
-//   for(auto sample : samples) {
-//     bool found = false;
-//     for (auto vSample : analysis->content()->vertices())
-//     {
-//       found |= vSample == sample;
-//     }
-//     if (!found) {
-//       cerr << "Unexpected sample retrieved from analysis" << endl;
-//       error = true;
-//     }
-//   }
 
   if (!analysis->content()->edges().isEmpty()) {
     cerr << "Unexpected number of edges in analysis content" << endl;
     error = true;
   }
 
-  if (analysis->relationships()->vertices().size() != samples.size()) {
+  if (!analysis->relationships()->vertices().isEmpty()) {
     cerr << "Unexpected number of vertices in analysis relationships" << endl;
     error = true;
   }

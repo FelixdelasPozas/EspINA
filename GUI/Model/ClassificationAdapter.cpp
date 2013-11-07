@@ -24,8 +24,10 @@ using namespace EspINA;
 
 //------------------------------------------------------------------------
 ClassificationAdapter::ClassificationAdapter(const QString& name)
+: m_classification{new Tree<Category>(name)}
+, m_adaptedClassification(name)
 {
-
+  m_adaptedClassification.root()->m_category = m_classification->root();
 }
 
 //------------------------------------------------------------------------
@@ -63,4 +65,51 @@ CategoryAdapterSList ClassificationAdapter::categories()
 
 }
 
+//------------------------------------------------------------------------
+CategoryAdapterSPtr ClassificationAdapter::category(const QString& classificationName)
+{
 
+}
+
+//------------------------------------------------------------------------
+ClassificationAdapter::ClassificationAdapter(ClassificationSPtr classification)
+{
+
+}
+
+//------------------------------------------------------------------------
+CategoryAdapterSPtr ClassificationAdapter::createCategory(const QString& relativeName, CategoryAdapterSPtr parent)
+{
+  
+}
+
+//------------------------------------------------------------------------
+QString ClassificationAdapter::name() const
+{
+  return m_classification->name();
+}
+
+//------------------------------------------------------------------------
+CategoryAdapterSPtr ClassificationAdapter::parent(const CategoryAdapterSPtr categor) const
+{
+
+}
+
+
+//------------------------------------------------------------------------
+void ClassificationAdapter::removeCategory(CategorySPtr element)
+{
+
+}
+
+//------------------------------------------------------------------------
+void ClassificationAdapter::setName(const QString& name)
+{
+
+}
+
+//------------------------------------------------------------------------
+QString EspINA::print(ClassificationSPtr classification, int indent)
+{
+
+}

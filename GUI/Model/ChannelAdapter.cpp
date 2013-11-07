@@ -160,11 +160,6 @@ bool ChannelAdapter::hasExtension(const ChannelExtension::Type& type) const
 
 }
 
-
-
-
-
-
 ChannelExtensionSPtr ChannelAdapter::extension(const ChannelExtension::Type& type)
 {
 
@@ -174,4 +169,29 @@ ChannelExtensionSPtr ChannelAdapter::extension(const ChannelExtension::Type& typ
 PersistentSPtr ChannelAdapter::item() const
 {
   return m_channel;
+}
+
+//------------------------------------------------------------------------
+bool EspINA::operator==(ChannelAdapterSPtr lhs, ChannelSPtr rhs)
+{
+  return lhs->m_channel == rhs;
+}
+
+//------------------------------------------------------------------------
+bool EspINA::operator==(ChannelSPtr lhs, ChannelAdapterSPtr rhs)
+{
+  return lhs == rhs->m_channel;
+}
+
+
+//------------------------------------------------------------------------
+bool EspINA::operator!=(ChannelAdapterSPtr lhs, ChannelSPtr rhs)
+{
+  return !operator==(lhs, rhs);
+}
+
+//------------------------------------------------------------------------
+bool EspINA::operator!=(ChannelSPtr lhs, ChannelAdapterSPtr rhs)
+{
+  return !operator==(lhs, rhs);
 }
