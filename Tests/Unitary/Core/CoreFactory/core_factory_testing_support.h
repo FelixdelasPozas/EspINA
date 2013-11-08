@@ -32,6 +32,8 @@ namespace EspINA {
       : Filter(inputs, type, scheduler){}
 
       virtual OutputSPtr output(Output::Id id) const {return OutputSPtr();}
+      virtual void restoreState(const State& state){}
+      virtual State saveState() const{return State();}
 
       void dummyMethod(){}
 

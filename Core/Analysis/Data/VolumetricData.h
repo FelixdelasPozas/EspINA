@@ -24,6 +24,7 @@
 
 #include "Core/Analysis/Data.h"
 #include "Core/Analysis/DataProxy.h"
+#include <Core/Analysis/Output.h>
 
 #include <vtkSmartPointer.h>
 #include <vtkImageData.h>
@@ -39,8 +40,6 @@ namespace EspINA
   {
   public:
     static const Data::Type TYPE;
-
-    using itkImageSPtr = typename T::Pointer;
 
   public:
     explicit VolumetricData() {}
@@ -69,13 +68,13 @@ namespace EspINA
      *
      * This may request extra memory to allocate the requested region.
      */
-    virtual const itkImageSPtr itkImage() const  = 0;
+    virtual const typename T::Pointer itkImage() const  = 0;
 
     /** \brief Return a read only ItkImage of volume representation contained in bounds.
      *
      * This may request extra memory to allocate the requested region.
      */
-    virtual const itkImageSPtr itkImage(const Bounds& bounds) const = 0;
+    virtual const typename T::Pointer itkImage(const Bounds& bounds) const = 0;
 
     /** \brief Set volume background value
      *
@@ -93,18 +92,18 @@ namespace EspINA
      *
      *  If given bounds are not contained inside the volume bounds, the intersection will be applied
      */
-    virtual void draw(const vtkImplicitFunction* brush,
-                      const Bounds&      bounds,
+    virtual void draw(const vtkImplicitFunction*  brush,
+                      const Bounds&               bounds,
                       const typename T::ValueType value) = 0;
 
-    virtual void draw(const itkImageSPtr volume,
-                      const Bounds&      bounds = Bounds()) = 0;
+    virtual void draw(const typename T::Pointer volume,
+                      const Bounds&             bounds = Bounds()) = 0;
 
     /// Set voxels at index to value
     ///NOTE: Current implementation will expand the image
     ///      when drawing with value != 0
-    virtual void draw(itkVolumeType::IndexType index,
-                      itkVolumeType::PixelType value = SEG_VOXEL_VALUE) = 0;
+    virtual void draw(const typename T::IndexType index,
+                      const typename T::PixelType value = SEG_VOXEL_VALUE) = 0;
 
     /** \brief Resize the volume to the minimum bounds containing all non background values
      *
@@ -132,11 +131,12 @@ namespace EspINA
   template<typename T>
   const Data::Type VolumetricData<T>::TYPE = "VolumetricData";
 
-  template< class T > using VolumetricDataPtr = VolumetricData<T> *;
-  template< class T > using VolumetricDataSPtr = std::shared_ptr<VolumetricData<T>>;
+  template<class T> using VolumetricDataPtr  = VolumetricData<T> *;
+  template<class T> using VolumetricDataSPtr = std::shared_ptr<VolumetricData<T>>;
 
-  template< class T > VolumetricDataPtr<T>  EspinaCore_EXPORT volumetricData(OutputPtr output); //NOTE: Use viewitem??
-  template< class T > VolumetricDataSPtr<T> EspinaCore_EXPORT volumetricData(OutputSPtr output);
+  template<class T> VolumetricDataPtr<T>  EspinaCore_EXPORT volumetricData(OutputPtr output); //NOTE: Use viewitem?
+  template<class T> VolumetricDataSPtr<T> EspinaCore_EXPORT volumetricData(OutputSPtr output)
+  { return std::dynamic_pointer_cast<VolumetricData<T>>(output->data(VolumetricData<T>::TYPE)); }
 
   // TODO Delete later
   using DefaultVolumetricDataSPtr = std::shared_ptr<VolumetricData<itkVolumeType>>;

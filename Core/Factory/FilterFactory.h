@@ -34,6 +34,8 @@ namespace EspINA
     virtual FilterSPtr createFilter(OutputSList         inputs,
                                     const Filter::Type& filter,
                                     SchedulerSPtr       scheduler) const = 0;
+
+    virtual QList<Filter::Type> providedFilters() const = 0;
   };
 
   using FilterFactoryPtr  = FilterFactory *;

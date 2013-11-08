@@ -46,8 +46,8 @@ namespace EspINA
   using RendererSList = QList<RendererSPtr>;
 
   enum RenderableType {
-    CHANNEL,
-    SEGMENTATION,
+    CHANNEL      = 0x1,
+    SEGMENTATION = 0x2,
   };
 
   Q_DECLARE_FLAGS(RenderableItems, RenderableType);

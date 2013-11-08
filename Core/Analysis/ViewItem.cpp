@@ -24,26 +24,32 @@ using namespace EspINA;
 
 ViewItem::ViewItem(FilterSPtr filter, Output::Id output)
 : m_filter{filter}
-, m_output{output}
+, m_outputId{output}
 {
 }
 
 OutputSPtr ViewItem::output()
 {
-  return m_filter->output(m_output);
+  return m_filter->output(m_outputId);
 }
 
 const OutputSPtr ViewItem::output() const
 {
-  return m_filter->output(m_output);
+  return m_filter->output(m_outputId);
 }
 
 DataSPtr ViewItem::data(Data::Type type)
 {
-  return m_filter->output(m_output)->data(type);
+  return m_filter->output(m_outputId)->data(type);
 }
 
 const DataSPtr ViewItem::data(Data::Type type) const
 {
-  return m_filter->output(m_output)->data(type);
+  return m_filter->output(m_outputId)->data(type);
+}
+
+void ViewItem::changeOutput(FilterSPtr filter, Output::Id output)
+{
+  m_filter = filter;
+  m_outputId = output;
 }

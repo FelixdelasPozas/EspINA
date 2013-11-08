@@ -69,9 +69,13 @@ namespace EspINA
 
     virtual Bounds previewBounds(bool cropToSceneBounds = true) const;
 
-    virtual void addChannel   (ChannelAdapterPtr channel);
+    virtual void add(ChannelAdapterPtr channel);
+    virtual void add(SegmentationAdapterPtr seg)
+    { RenderView::add(seg); }
 
-    virtual void removeChannel(ChannelAdapterPtr channel);
+    virtual void remove(ChannelAdapterPtr channel);
+    virtual void remove(SegmentationAdapterPtr seg)
+    { RenderView::remove(seg); }
 
     virtual bool updateRepresentation(ChannelAdapterPtr channel, bool render = true);
 

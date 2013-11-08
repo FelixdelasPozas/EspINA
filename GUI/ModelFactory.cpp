@@ -22,12 +22,14 @@
 #include "GUI/Model/SampleAdapter.h"
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Sample.h>
+#include <Core/Factory/CoreFactory.h>
 
 using namespace EspINA;
 
 //------------------------------------------------------------------------
 ModelFactory::ModelFactory(SchedulerSPtr scheduler)
 : m_scheduler(scheduler)
+, m_factory(new CoreFactory(m_scheduler))
 {
 
 }
@@ -39,10 +41,44 @@ ModelFactory::~ModelFactory()
 }
 
 //------------------------------------------------------------------------
-void ModelFactory::registerFilter(FilterCreatorPtr creator, const Filter::Type& filter)
+void ModelFactory::registerFilterFactory(FilterFactoryPtr factory)
 {
-
+  m_factory->registerFilter(factory);
 }
+
+//------------------------------------------------------------------------
+void ModelFactory::registerAnalysisReader(AnalysisReaderPtr reader)
+{
+  auto extensions = reader->supportedFileExtensions();
+  for(auto description : extensions.keys())
+  {
+    for(auto fileExtension : extensions[description])
+    {
+      m_readerExtensions[fileExtension] << reader;
+    }
+  }
+  m_readers << reader;
+}
+
+//------------------------------------------------------------------------
+FileExtensions ModelFactory::supportedFileExtensions()
+{
+  FileExtensions extensions;
+
+  for(auto loader : m_readers)
+  {
+    extensions << loader->fileExtensionDescriptions();
+  }
+
+  return extensions;
+}
+
+//------------------------------------------------------------------------
+AnalysisReaderList ModelFactory::readers(const QFileInfo& file)
+{
+  return m_readerExtensions[file.suffix()];
+}
+
 
 //------------------------------------------------------------------------
 SampleAdapterSPtr ModelFactory::createSample(const QString& name) const
@@ -57,5 +93,5 @@ ChannelAdapterSPtr ModelFactory::createChannel(FilterAdapterSPtr filter, Output:
 {
   ChannelSPtr channel{new Channel(filter->adaptedFilter(), output)};
 
-  return ChannelAdapterSPtr{new ChannelAdapter(channel)};
+  return ChannelAdapterSPtr{new ChannelAdapter(filter, channel)};
 }

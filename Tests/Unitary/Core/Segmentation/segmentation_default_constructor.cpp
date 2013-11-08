@@ -33,6 +33,8 @@ class DummyFilter
     : Filter(OutputSList(), "Dummy", SchedulerSPtr(new Scheduler(10000000)))
     , m_output(new Output(this, 0)) {}
     virtual OutputSPtr output(Output::Id id) const { return m_output; }
+    virtual void restoreState(const State& state){}
+    virtual State saveState() const{return State();}
 
   protected:
     virtual Snapshot saveFilterSnapshot() const{}

@@ -13,7 +13,6 @@ qt4_wrap_cpp(GUI_MOC
   Model/OutputAdapter.h
   Representations/Renderers/Renderer.h
   Representations/Renderers/ContourRenderer.h
-  Representations/Renderers/SliceRenderer.h
   Representations/MeshRepresentationBase.h
   Representations/MeshRepresentation.h
   Representations/SmoothedMeshRepresentation.h
@@ -60,6 +59,7 @@ set (GUI_SOURCES
   Model/SampleAdapter.cpp
   Model/SegmentationAdapter.cpp
   ModelFactory.cpp
+  Representations/BasicRepresentationFactory.cpp
   Representations/Renderers/Renderer.cpp
   Representations/Renderers/ContourRenderer.cpp
   Representations/Renderers/MeshRenderer.cpp

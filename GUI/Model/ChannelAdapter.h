@@ -142,7 +142,7 @@ namespace EspINA
     virtual PersistentSPtr item() const;
 
   private:
-    explicit ChannelAdapter(ChannelSPtr channel);
+    explicit ChannelAdapter(FilterAdapterSPtr filter, ChannelSPtr channel);
 
   private:
     ChannelSPtr m_channel;
@@ -159,6 +159,7 @@ namespace EspINA
   bool operator!=(ChannelAdapterSPtr lhs, ChannelSPtr        rhs);
   bool operator!=(ChannelSPtr        lhs, ChannelAdapterSPtr rhs);
 
+  ChannelAdapterPtr EspinaGUI_EXPORT channelPtr(ViewItemAdapterPtr item);
 }// namespace EspINA
 
 #endif // CHANNEL_H

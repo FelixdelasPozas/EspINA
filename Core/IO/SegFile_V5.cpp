@@ -335,9 +335,9 @@ void SegFile_V5::createExtensionProvider(DirectedGraph::Vertex   roVertex,
                                          CoreFactorySPtr         factory,
                                          ErrorHandlerPtr         handler)
 {
-  ExtensionProviderSPtr provider = factory->createExtensionProvider(roVertex->name());
-
-  analysis->add(provider);
+//   ExtensionProviderSPtr provider = factory->createExtensionProvider(roVertex->name());
+// 
+//   analysis->add(provider);
 }
 
 //-----------------------------------------------------------------------------

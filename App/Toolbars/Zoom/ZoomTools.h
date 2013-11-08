@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
+    Copyright (C) 2012 Félix de las Pozas Álvarez <@>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,49 +16,45 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef ESPINA_TOOLBAR_H
-#define ESPINA_TOOLBAR_H
+#ifndef ESPINA_ZOOM_TOOLS_H
+#define ESPINA_ZOOM_TOOLS_H
 
-#include "Support/EspinaSupport_Export.h"
-
-// Qt
-#include <QToolBar>
-
-// c++
-#include <limits.h>
-
-class QUndoStack;
+#include <Support/ToolGroup.h>
 
 namespace EspINA
 {
-  class EspinaSupport_EXPORT ToolBar
-  : public QToolBar
+  class ZoomTools
+  : public ToolGroup
   {
     Q_OBJECT
+
   public:
-    explicit ToolBar(QWidget *parent = 0)
-    : QToolBar(parent)
-    , m_undoIndex(INT_MAX)
-    {}
+    explicit ZoomTools(ViewManagerSPtr viewManager, QWidget *parent = 0);
+    virtual ~ZoomTools();
 
-    explicit ToolBar(const QString &title, QWidget *parent = 0)
-    : QToolBar(title, parent)
-    , m_undoIndex(INT_MAX)
-    {}
+    virtual void setActiveTool(ToolSPtr tool);
 
-    virtual ~ToolBar() {}
+    virtual void setEnabled(bool value);
+
+    virtual bool enabled() const;
+
+    virtual void setInUse(bool value);
+
+    virtual ToolSList tools();
+
+    virtual SelectorSPtr selector() const;
 
   public slots:
-    /// Restore toolbar state to its initial state. Every widgets and tools
-    /// created by this toolbar must be removed
-    virtual void resetToolbar() = 0;
+    void resetViews();
+    void initZoomTool(bool);
 
-    virtual void abortOperation() = 0;
+  private:
+    //ZoomToolSPtr    m_zoomTool;
 
-  protected:
-    int m_undoIndex;
+    QAction *m_resetViews;
+    QAction *m_zoomToolAction;
   };
 
 } // namespace EspINA
 
-#endif //ITOOLBAR_H
+#endif // ESPINA_ZOOM_TOOLS_H

@@ -39,15 +39,17 @@ namespace EspINA {
     OutputSPtr output();
     const OutputSPtr output() const;
 
+    Output::Id outputId() const
+    { return m_outputId; }
+
     DataSPtr data(Data::Type type);
     const DataSPtr data(Data::Type type) const;
 
-    virtual void changeOutput(OutputSPtr output) = 0;
-    void changeOutputId(Output::Id outputId) { m_output = outputId; };
+    void changeOutput(FilterSPtr filter, Output::Id output);
 
   private:
     FilterSPtr m_filter;
-    Output::Id m_output;
+    Output::Id m_outputId;
   };
 
   using ViewItemSPtr = std::shared_ptr<ViewItem>;

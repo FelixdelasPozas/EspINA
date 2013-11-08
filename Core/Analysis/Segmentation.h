@@ -45,8 +45,6 @@ namespace EspINA
       explicit Segmentation(FilterSPtr filter, Output::Id output);
       virtual ~Segmentation();
 
-      virtual void changeOutput(OutputSPtr output);
-
       virtual void restoreState(const State& state);
 
       virtual State saveState() const;

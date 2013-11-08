@@ -216,10 +216,10 @@ void View2D::reset()
     removeWidget(widget);
 
   foreach(SegmentationAdapterPtr segmentation, m_segmentationStates.keys())
-    removeSegmentation(segmentation);
+    remove(segmentation);
 
   foreach(ChannelAdapterPtr channel, m_channelStates.keys())
-    removeChannel(channel);
+    remove(channel);
 }
 
 //-----------------------------------------------------------------------------
@@ -541,10 +541,13 @@ void View2D::setupUI()
 }
 
 //-----------------------------------------------------------------------------
-void View2D::setCrosshairColors(double hcolor[3], double vcolor[3])
+void View2D::setCrosshairColors(const QColor& hColor, const QColor& vColor)
 {
-  m_HCrossLine->GetProperty()->SetColor(hcolor);
-  m_VCrossLine->GetProperty()->SetColor(vcolor);
+  double hc[3] = {hColor.redF(), hColor.greenF(), hColor.blueF()};
+  double vc[3] = {vColor.redF(), vColor.greenF(), vColor.blueF()};
+
+  m_HCrossLine->GetProperty()->SetColor(hc);
+  m_VCrossLine->GetProperty()->SetColor(vc);
 }
 
 //-----------------------------------------------------------------------------

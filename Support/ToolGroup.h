@@ -23,7 +23,9 @@
 #include "Support/EspinaSupport_Export.h"
 
 #include "Support/Tool.h"
+
 #include <GUI/Selectors/Selector.h>
+#include "Support/ViewManager.h"
 
 #include <memory>
 
@@ -36,8 +38,9 @@ namespace EspINA
   class EspinaSupport_EXPORT ToolGroup
   : public QAction
   {
+    Q_OBJECT
   public:
-    virtual void setInUse(bool value) = 0;
+    ToolGroup(ViewManagerSPtr viewManager, const QIcon& icon, const QString& text, QObject* parent);
 
     virtual void setEnabled(bool value) = 0;
 
@@ -45,14 +48,18 @@ namespace EspINA
 
     virtual void setActiveTool(ToolSPtr tool) = 0;
 
+    virtual ToolSList tools() = 0;
+
     virtual SelectorSPtr selector() const = 0;
-//     { return m_selector; }
-// 
-//   protected:
-//     SelectorSPtr m_selector;
+
+  public slots:
+    virtual void setInUse(bool value) = 0;
+
+  protected:
+    ViewManagerSPtr m_viewManager;
   };
 
-  using ToolGroupSPtr = std::shared_ptr<ToolGroup>;
+  using ToolGroupPtr = ToolGroup *;
 } // namespace EspINA
 
 #endif // ESPINA_TOOL_GROUP_H

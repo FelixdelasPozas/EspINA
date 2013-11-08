@@ -17,6 +17,7 @@
 */
 
 #include "ViewManager.h"
+#include "ToolGroup.h"
 
 // EspINA
 #include <Core/Utils/Measure.h>
@@ -30,6 +31,7 @@
 #include <QString>
 #include <QStack>
 #include <QDebug>
+#include <QToolBar>
 
 using namespace EspINA;
 
@@ -42,6 +44,8 @@ ViewManager::ViewManager()
 , m_activeChannel(nullptr)
 , m_activeCategory(nullptr)
 , m_viewResolution{1., 1., 1.}
+, m_toolGroup{nullptr}
+, m_contextualToolBar{nullptr}
 {
 //   QSettings settings(CESVIMA, ESPINA);
   bool fitEnabled;
@@ -186,11 +190,22 @@ void ViewManager::clearSelection()
 }
 
 //----------------------------------------------------------------------------
-void ViewManager::setToolGroup(ToolGroupSPtr group)
+void ViewManager::setToolGroup(ToolGroupPtr group)
 {
   unsetActiveToolGroup();
 
   m_toolGroup = group;
+
+  if (m_contextualToolBar)
+  {
+    for(auto tool : group->tools())
+    {
+      for(auto action : tool->actions())
+      {
+        m_contextualToolBar->addAction(action);
+      }
+    }
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -199,17 +214,27 @@ void ViewManager::unsetActiveToolGroup()
   if (m_toolGroup)
   {
     m_toolGroup->setInUse(false);
-    m_toolGroup.reset();
+    m_toolGroup = nullptr;
+  }
+
+  if (m_contextualToolBar)
+  {
+    m_contextualToolBar->clear();
   }
 }
 
 
 //----------------------------------------------------------------------------
-void ViewManager::unsetActiveToolGroup(ToolGroupSPtr group)
+void ViewManager::unsetActiveToolGroup(ToolGroupPtr group)
 {
   if (m_toolGroup == group)
   {
-    unsetActiveToolGroup();
+    m_toolGroup = nullptr;
+  }
+
+  if (m_contextualToolBar)
+  {
+    m_contextualToolBar->clear();
   }
 }
 

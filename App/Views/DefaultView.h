@@ -23,40 +23,39 @@
 #include <QAbstractItemView>
 
 #include <Core/EspinaTypes.h>
+#include <GUI/Model/ModelAdapter.h>
+#include <GUI/View/View2D.h>
+#include <GUI/View/View3D.h>
+#include <Support/ViewManager.h>
 
 // Forward-declaration
 class QMainWindow;
 class QDockWidget;
+class QUndoStack;
 
 namespace EspINA
 {
-  class EspinaFactory;
-  class SliceViewSettingsPanel;
-  class ColorEngine;
-  class ViewManager;
-  class VolumeViewSettingsPanel;
-
   class DefaultView
   : public QAbstractItemView
   {
     Q_OBJECT
-    class SettingsPanel;
-
   public:
-    explicit DefaultView(EspinaModel *model,
-                               QUndoStack  *undoStack,
-                               ViewManager *viewManager,
-                               QMainWindow *parent=0
+    explicit DefaultView(ModelAdapterSPtr model,
+                         ViewManagerSPtr  viewManager,
+                         QUndoStack      *undoStack,
+                         QMainWindow     *parent=0
     );
     virtual ~DefaultView();
 
-    virtual void createViewMenu(QMenu* menu);
+    void setCrosshairColor(const Plane plane, const QColor& color);
 
-    virtual ISettingsPanelPtr settingsPanel();
+    virtual void createViewMenu(QMenu *menu);
 
     virtual QModelIndex indexAt(const QPoint& point) const
     { return QModelIndex(); }
+
     virtual void scrollTo(const QModelIndex& index, QAbstractItemView::ScrollHint hint = EnsureVisible){}
+
     virtual QRect visualRect(const QModelIndex& index) const
     { return QRect(); }
 
@@ -64,20 +63,32 @@ namespace EspINA
 
   protected:
     // AbstractItemView Interface
-    virtual QRegion visualRegionForSelection(const QItemSelection& selection) const {return QRegion();}
-    virtual void setSelection(const QRect& rect, QItemSelectionModel::SelectionFlags command) {}
-    virtual bool isIndexHidden(const QModelIndex& index) const {return true;}
-    virtual int verticalOffset() const {return 0;}
-    virtual int horizontalOffset() const {return 0;}
-    virtual QModelIndex moveCursor(QAbstractItemView::CursorAction cursorAction, Qt::KeyboardModifiers modifiers){return QModelIndex();}
+    virtual QRegion visualRegionForSelection(const QItemSelection& selection) const
+    {return QRegion();}
 
-    void addChannel   (ChannelPtr channel);
-    void removeChannel(ChannelPtr channel);
-    bool updateChannel(ChannelPtr channel);
+    virtual void setSelection(const QRect& rect, QItemSelectionModel::SelectionFlags command)
+    {}
 
-    void addSegmentation   (SegmentationPtr seg);
-    void removeSegmentation(SegmentationPtr seg);
-    bool updateSegmentation(SegmentationPtr seg);
+    virtual bool isIndexHidden(const QModelIndex& index) const
+    {return true;}
+
+    virtual int verticalOffset() const
+    {return 0;}
+
+    virtual int horizontalOffset() const
+    {return 0;}
+
+    virtual QModelIndex moveCursor(QAbstractItemView::CursorAction cursorAction, Qt::KeyboardModifiers modifiers)
+    {return QModelIndex();}
+
+    void add(ChannelAdapterPtr      channel);
+    void add(SegmentationAdapterPtr segmentation);
+
+    void remove(ChannelAdapterPtr      channel);
+    void remove(SegmentationAdapterPtr segmentation);
+
+    bool updateRepresentation(ChannelAdapterPtr      channel);
+    bool updateRepresentation(SegmentationAdapterPtr segmentation);
 
   protected slots:
     void sourceModelReset();
@@ -91,9 +102,9 @@ namespace EspINA
 
     //  virtual void setCameraFocus(const Nm focus[3]);
     //
-    virtual void setCrosshairPoint(Nm x, Nm y, Nm z, bool force = false);
+    virtual void setCrosshairPoint(const NmVector3& point, bool force = false);
     //  virtual void setSliceSelectors(SliceView::SliceSelectors selectors);
-    virtual void changePlanePosition(PlaneType, Nm);
+    virtual void changePlanePosition(Plane, Nm);
 
   protected:
     virtual void rowsInserted(const QModelIndex& parent, int start, int end);
@@ -105,58 +116,60 @@ namespace EspINA
     //   void selectFromSlice(double slice, PlaneType plane);
     //   void selectToSlice(double slice, PlaneType plane);
 
-    void initSliceView(SliceView *view);
+    void initView2D(View2D *view);
 
   private:
-    EspinaModel *m_model;
-    ViewManager *m_viewManager;
+    ModelAdapterSPtr m_model;
+    ViewManagerSPtr  m_viewManager;
 
     bool m_showProcessing;
     bool m_showSegmentations;
-    Nm   m_slicingStep[3];
 
-    SliceView  *xyView, *yzView, *xzView;
-    VolumeView *volView;
-    QDockWidget *volDock, *yzDock, *xzDock;
+    NmVector3 m_slicingStep;
+
+    QColor m_xLine, m_yLine, m_zLine;
+
+    View2D *viewXY, *viewYZ, *viewXZ;
+    View3D *view3D;
+    QDockWidget *dock3D, *dockYZ, *dockXZ;
     QAction     *m_showRuler, *m_showThumbnail;
 
-    ISettingsPanelPrototype m_settingsPanel;
-    SegmentationContextualMenuSPtr m_contextMenu;
+    ContextualMenuSPtr m_contextMenu;
   };
 
-  class DefaultView::SettingsPanel
-  : public ISettingsPanel
-  {
-  public:
-    explicit SettingsPanel(SliceView::SettingsSPtr xy,
-                           SliceView::SettingsSPtr yz,
-                           SliceView::SettingsSPtr xz,
-                           VolumeView::SettingsPtr vol,
-                           EspinaFactoryPtr factory);
+//   class DefaultView::SettingsPanel
+//   : public ISettingsPanel
+//   {
+//   public:
+//     explicit SettingsPanel(SliceView::SettingsSPtr xy,
+//                            SliceView::SettingsSPtr yz,
+//                            SliceView::SettingsSPtr xz,
+//                            VolumeView::SettingsPtr vol,
+//                            EspinaFactoryPtr factory);
+// 
+//     virtual const QString shortDescription() {return tr("View");}
+//     virtual const QString longDescription() {return tr("%1").arg(shortDescription());}
+//     virtual const QIcon icon() {return QIcon(":/espina/show_all.svg");}
+// 
+//     virtual void acceptChanges();
+//     virtual void rejectChanges();
+//     virtual bool modified() const;
+// 
+//     virtual ISettingsPanelPtr clone();
+// 
+//   private:
+//     SliceView::SettingsSPtr m_xy, m_yz, m_xz;
+//     EspinaFactory *m_factory;
+// 
+//     Nm m_slicingStep;
+// 
+//     SliceViewSettingsPanel *m_xyPanel, *m_yzPanel, *m_xzPanel;
+//     VolumeView::SettingsPtr m_vol;
+//     VolumeViewSettingsPanel *m_volPanel;
+//   };
 
-    virtual const QString shortDescription() {return tr("View");}
-    virtual const QString longDescription() {return tr("%1").arg(shortDescription());}
-    virtual const QIcon icon() {return QIcon(":/espina/show_all.svg");}
-
-    virtual void acceptChanges();
-    virtual void rejectChanges();
-    virtual bool modified() const;
-
-    virtual ISettingsPanelPtr clone();
-
-  private:
-    SliceView::SettingsSPtr m_xy, m_yz, m_xz;
-    EspinaFactory *m_factory;
-
-    Nm m_slicingStep;
-
-    SliceViewSettingsPanel *m_xyPanel, *m_yzPanel, *m_xzPanel;
-    VolumeView::SettingsPtr m_vol;
-    VolumeViewSettingsPanel *m_volPanel;
-  };
-  
   using DefaultViewSPtr = std::shared_ptr<DefaultView>;
 
 } // namespace EspINA
 
-#endif // DEFAULTESPINAVIEW_H
+#endif // ESPINA_DEFAULT_VIEW_H

@@ -41,25 +41,26 @@ namespace EspINA
     explicit CoreFactory(SchedulerSPtr scheduler = SchedulerSPtr());
     ~CoreFactory();
 
-    void registerFilter(FilterFactoryPtr factory, const Filter::Type &filter) throw (Factory_Already_Registered_Exception);
-
-    void registerExtensionProvider(ExtensionProviderFactoryPtr factory, const ExtensionProvider::Type& provider) throw (Factory_Already_Registered_Exception);
+    void registerFilter(FilterFactoryPtr factory) throw (Factory_Already_Registered_Exception);
 
     SampleSPtr createSample(const QString& name = QString()) const;
 
     FilterSPtr createFilter(OutputSList inputs, const Filter::Type& filter) const throw (Unknown_Type_Exception);
 
+    template<typename T>
+    std::shared_ptr<T> createFilter(OutputSList inputs, Filter::Type type) const
+    {
+      return std::shared_ptr<T>{new T(inputs, type, m_scheduler)};
+    }
+
     ChannelSPtr createChannel(FilterSPtr filter, Output::Id output) const;
 
     SegmentationSPtr createSegmentation(FilterSPtr filter, Output::Id output) const;
 
-    ExtensionProviderSPtr createExtensionProvider(const ExtensionProvider::Type provider) const throw (Unknown_Type_Exception);
-
   private:
     SchedulerSPtr m_scheduler;
 
-    QMap<Filter::Type, FilterFactoryPtr>                       m_filterFactories;
-    QMap<ExtensionProvider::Type, ExtensionProviderFactoryPtr> m_providerFactories;
+    QMap<Filter::Type, FilterFactoryPtr> m_filterFactories;
   };
 
 }// namespace EspINA

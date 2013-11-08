@@ -33,6 +33,11 @@
 
 using namespace EspINA;
 
+RepresentationSPtr BasicRepresentationFactory::createRepresentation(OutputSPtr output, Representation::Type type)
+{
+
+}
+
 // void BasicGraphicalRepresentationFactory::createGraphicalRepresentations(ChannelOutputSPtr output)
 // {
 //   ChannelVolumeSPtr volumeData = channelVolume(output);

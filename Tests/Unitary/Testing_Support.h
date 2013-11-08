@@ -28,6 +28,7 @@
 
 namespace EspINA
 {
+  namespace Testing {
 
   class vtkNaiveFunction
   : public vtkImplicitFunction 
@@ -63,6 +64,7 @@ namespace EspINA
 
 #include "Testing_Support.txx"
 
+  } // namespace Testing
 } // namespace EspINA
 
 #endif // ESPINA_TESTING_SUPPORT_H

@@ -19,6 +19,7 @@
 // EspINA
 #include "RenderView.h"
 #include <Core/Analysis/Channel.h>
+#include <Core/Analysis/Data/VolumetricData.h>
 #include <GUI/ColorEngines/NumberColorEngine.h>
 #include <GUI/Extension/Visualization/VisualizationState.h>
 
@@ -170,24 +171,32 @@ void RenderView::setSegmentationsVisibility(bool visible)
   updateRepresentations(SegmentationAdapterList());
 }
 
+DefaultVolumetricDataSPtr volumetricData(ViewItemAdapterPtr item)
+{
+  return std::dynamic_pointer_cast<VolumetricData<itkVolumeType>>(item->get(VolumetricData<itkVolumeType>::TYPE));
+}
+
 //-----------------------------------------------------------------------------
 void RenderView::updateSceneBounds()
 {
   if (!m_channelStates.isEmpty())
   {
-    // TODO 2013-10-04 Get channel volumetric data
-//     m_channelStates.keys().first()->volume()->spacing(m_sceneResolution);
-//     m_channelStates.keys().first()->volume()->bounds(m_sceneBounds);
-
     ChannelAdapterList channels = m_channelStates.keys();
-    for (int i = 0; i < channels.size(); ++i)
+    DefaultVolumetricDataSPtr volume = volumetricData(channels.first());
+    for(int i = 0; i < 3; ++i)
     {
-      double channelSpacing[3];
-      double channelBounds[6];
+      m_sceneResolution[i] = volume->spacing()[i];
+    }
+    m_sceneBounds = volume->bounds();
 
-    // TODO 2013-10-04 Get channel volumetric data
-//       channels[i]->volume()->spacing(channelSpacing);
-//       channels[i]->volume()->bounds(channelBounds);
+    for (int i = 1; i < channels.size(); ++i)
+    {
+      itkVolumeType::SpacingType channelSpacing;
+      Bounds channelBounds;
+
+      DefaultVolumetricDataSPtr volume = volumetricData(channels[i]);
+      channelSpacing = volume->spacing();
+      channelBounds  = volume->bounds();
 
       for (int i = 0; i < 3; i++)
       {
@@ -203,7 +212,7 @@ void RenderView::updateSceneBounds()
 }
 
 //-----------------------------------------------------------------------------
-void RenderView::addSegmentation(SegmentationAdapterPtr seg)
+void RenderView::add(SegmentationAdapterPtr seg)
 {
   Q_ASSERT(!m_segmentationStates.contains(seg));
 
@@ -219,7 +228,7 @@ void RenderView::addSegmentation(SegmentationAdapterPtr seg)
 }
 
 //-----------------------------------------------------------------------------
-void RenderView::removeSegmentation(SegmentationAdapterPtr seg)
+void RenderView::remove(SegmentationAdapterPtr seg)
 {
   Q_ASSERT(m_segmentationStates.contains(seg));
 
@@ -232,7 +241,7 @@ void RenderView::removeSegmentation(SegmentationAdapterPtr seg)
 }
 
 //-----------------------------------------------------------------------------
-void RenderView::addChannel(ChannelAdapterPtr channel)
+void RenderView::add(ChannelAdapterPtr channel)
 {
   Q_ASSERT(!m_channelStates.contains(channel));
 
@@ -258,7 +267,7 @@ void RenderView::addChannel(ChannelAdapterPtr channel)
 
 
 //-----------------------------------------------------------------------------
-void RenderView::removeChannel(ChannelAdapterPtr channel)
+void RenderView::remove(ChannelAdapterPtr channel)
 {
   Q_ASSERT(m_channelStates.contains(channel));
 
@@ -375,8 +384,8 @@ bool RenderView::updateRepresentation(ChannelAdapterPtr channel, bool render)
 
   if (!m_sceneCameraInitialized && state.visible)
   {
-    resetCamera();
     m_sceneCameraInitialized = true;
+    resetCamera();
   }
 
   if (render && isVisible())

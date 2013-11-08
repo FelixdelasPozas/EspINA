@@ -24,8 +24,9 @@
 
 using namespace EspINA;
 
-SegmentationAdapter::SegmentationAdapter(SegmentationSPtr segmentation)
-: ViewItemAdapter(segmentation)
+SegmentationAdapter::SegmentationAdapter(FilterAdapterSPtr filter, SegmentationSPtr segmentation)
+: ViewItemAdapter(filter, segmentation)
+, m_segmentation{segmentation}
 {
 }
 

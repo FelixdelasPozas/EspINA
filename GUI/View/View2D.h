@@ -117,7 +117,7 @@ class SliceWidget;
 
     void centerViewOnPosition(const NmVector3& center); // this does not change slice positions
 
-    void setCrosshairColors(double hcolor[3], double vcolor[3]);
+    void setCrosshairColors(const QColor& hColor, const QColor& vColor);
 
     void setThumbnailVisibility(bool visible);
 

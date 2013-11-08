@@ -55,7 +55,7 @@ namespace EspINA
 
       virtual unsigned int numberOfvtkActors();
 
-      virtual RenderableItems renderableItems() { return RenderableItems(EspINA::CHANNEL|EspINA::SEGMENTATION); }
+      virtual RenderableItems renderableItems() { return RenderableItems(RenderableType::CHANNEL|RenderableType::SEGMENTATION); }
 
       virtual RendererTypes renderType()        { return RendererTypes(RENDERER_SLICEVIEW); }
 

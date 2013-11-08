@@ -42,8 +42,9 @@ namespace EspINA
                                    const QString &hint = QString()) = 0;
   };
 
-  using ErrorHandlerPtr = ErrorHandler*;
   } // namespace IO
+
+  using ErrorHandlerPtr = IO::ErrorHandler*;
 } // namespace EspINA
 
 #endif // ESPINA_IO_ERRORHANDLER_H

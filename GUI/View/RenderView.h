@@ -94,14 +94,15 @@ namespace EspINA
 
     virtual void reset() = 0;
 
-    virtual void addChannel   (ChannelAdapterPtr channel);
-    virtual void removeChannel(ChannelAdapterPtr channel);
-    virtual bool updateRepresentation (ChannelAdapterPtr  channel, bool render = true);
-    virtual void updateRepresentations(ChannelAdapterList list);
+    virtual void add(ChannelAdapterPtr channel);
+    virtual void add(SegmentationAdapterPtr seg);
 
-    virtual void addSegmentation   (SegmentationAdapterPtr seg);
-    virtual void removeSegmentation(SegmentationAdapterPtr seg);
+    virtual void remove(ChannelAdapterPtr channel);
+    virtual void remove(SegmentationAdapterPtr seg);
+
+    virtual bool updateRepresentation (ChannelAdapterPtr  channel, bool render = true);
     virtual bool updateRepresentation (SegmentationAdapterPtr  seg, bool render = true);
+    virtual void updateRepresentations(ChannelAdapterList list);
     virtual void updateRepresentations(SegmentationAdapterList list);
 
     virtual void updateRepresentations();

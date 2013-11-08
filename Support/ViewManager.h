@@ -31,7 +31,7 @@
 #include <GUI/View/SelectableView.h>
 #include <GUI/View/Widgets/EspinaWidget.h>
 #include <GUI/ColorEngines/ColorEngine.h>
-#include "ToolGroup.h"
+#include <GUI/Selectors/Selector.h>
 
 // Qt
 #include <QList>
@@ -42,6 +42,7 @@
 #include <vtkLookupTable.h>
 #include <vtkSmartPointer.h>
 
+class QToolBar;
 class QAction;
 class QCursor;
 class QEvent;
@@ -54,6 +55,9 @@ namespace EspINA
   class Selector;
   class View2D;
   class Measure;
+
+  class ToolGroup;
+  using ToolGroupPtr = ToolGroup*;
 
   using ROI = Selector::SelectionMaskSPtr;
 
@@ -113,13 +117,16 @@ namespace EspINA
     /************************* Tool Group API ********************************/
     //---------------------------------------------------------------------------
   public:
-    void setToolGroup(ToolGroupSPtr group);
+    void setContextualBar(QToolBar *toolbar)
+    { m_contextualToolBar = toolbar; }
+
+    void setToolGroup(ToolGroupPtr group);
 
     void unsetActiveToolGroup();
 
-    void unsetActiveToolGroup(ToolGroupSPtr group);
+    void unsetActiveToolGroup(ToolGroupPtr group);
 
-    ToolGroupSPtr toolGroup()
+    ToolGroupPtr toolGroup()
     { return m_toolGroup; }
 
     void setCurrentROI(ROI roi)
@@ -130,8 +137,9 @@ namespace EspINA
 
   private:
     ROI m_roi;
-    ToolGroupSPtr m_toolGroup;
-    SelectorSPtr  m_selector;
+    QToolBar    *m_contextualToolBar;
+    ToolGroupPtr m_toolGroup;
+    SelectorSPtr m_selector;
 
     //---------------------------------------------------------------------------
     /***************************** Widget API **********************************/

@@ -35,6 +35,8 @@ namespace EspINA {
       { setName("DummyFilter");
         m_output = OutputSPtr{new Output(this, 0)};
       }
+      virtual void restoreState(const State& state) {}
+      virtual State saveState() const {return State();}
       virtual OutputSPtr output(Output::Id id) const {return m_output;}
 
     protected:

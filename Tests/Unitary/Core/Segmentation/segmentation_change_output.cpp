@@ -32,6 +32,8 @@ class DummyFilter
     explicit DummyFilter()
     : Filter(OutputSList(), "Dummy", SchedulerSPtr(new Scheduler(10000000)))
     , m_output(new Output(this, 0)) {}
+    virtual void restoreState(const State& state) {}
+    virtual State saveState() const {return State();}
     virtual OutputSPtr output(Output::Id id) const { return m_output; }
 
   protected:
@@ -55,10 +57,21 @@ int segmentation_change_output(int argc, char** argv)
   OutputSPtr oldOutput = segmentation->output();
 
   Output::Id newId = 2;
-  OutputSPtr newOutput{ new Output(filter.get(), newId)};
+  FilterSPtr newFilter{new DummyFilter()};
 
-  segmentation->changeOutput(newOutput);
+  segmentation->changeOutput(newFilter, newId);
 
   // TODO: real change output
-  return (newOutput != segmentation->output());
+  bool error = false;
+  if (newFilter->output(newId) != segmentation->output())
+  {
+    error = true;
+  }
+
+  if (oldOutput == segmentation->output())
+  {
+    error = true;
+  }
+
+  return error;
 }

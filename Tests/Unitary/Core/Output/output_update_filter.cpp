@@ -42,6 +42,8 @@ int output_update_filter( int argc, char** argv )
     explicit DummyFilter()
     : Filter(OutputSList(), "Dummy", SchedulerSPtr(new Scheduler(10000000)))
     , UpdatedOutput{-1}{}
+    virtual void restoreState(const State& state) {}
+    virtual State saveState() const{ return State();}
     virtual OutputSPtr output(Output::Id id) const {}
     
     int UpdatedOutput;

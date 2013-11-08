@@ -165,7 +165,7 @@ namespace EspINA
     double m_saturation;
 
     FilterSPtr            m_filter;
-    Output::Id            m_output;
+    Output::Id            m_outputId;
     ChannelExtensionSList m_extensions;
   };
 

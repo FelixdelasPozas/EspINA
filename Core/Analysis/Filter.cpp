@@ -41,18 +41,6 @@ Filter::~Filter()
 }
 
 //----------------------------------------------------------------------------
-void Filter::restoreState(const State& state)
-{
-
-}
-
-//----------------------------------------------------------------------------
-State Filter::saveState() const
-{
-  return State();
-}
-
-//----------------------------------------------------------------------------
 Snapshot Filter::saveSnapshot() const
 {
   Snapshot snapshot;
@@ -142,15 +130,30 @@ bool Filter::fetchOutputData(Output::Id id)
 }
 
 
+//----------------------------------------------------------------------------
 unsigned int Filter::numberOfOutputs() const
 {
-
+  return m_outputs.size();
 }
 
+//----------------------------------------------------------------------------
 bool Filter::validOutput(Output::Id id)
+throw (Undefined_Output_Exception)
 {
-
+  return id < m_outputs.size() && m_outputs[id]->isValid();
 }
+
+//----------------------------------------------------------------------------
+OutputSPtr Filter::output(Output::Id id) const
+throw (Undefined_Output_Exception)
+{
+  update(id);
+
+  if (id >= m_outputs.size()) throw Undefined_Output_Exception();
+
+  return m_outputs[id];
+}
+
 
 //     static const ModelItem::ArgumentId ID;
 //     static const ModelItem::ArgumentId INPUTS;

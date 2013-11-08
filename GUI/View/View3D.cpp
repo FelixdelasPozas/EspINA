@@ -126,13 +126,13 @@ void View3D::reset()
 
   foreach(SegmentationAdapterPtr segmentation, m_segmentationStates.keys())
   {
-    removeSegmentation(segmentation);
+    remove(segmentation);
   }
 
   // After removing segmentations there should be only channels
   foreach(ChannelAdapterPtr channel, m_channelStates.keys())
   {
-    removeChannel(channel);
+    remove(channel);
   }
 
   Q_ASSERT(m_channelStates.isEmpty());
@@ -406,18 +406,18 @@ void View3D::resetCamera()
 }
 
 //-----------------------------------------------------------------------------
-void View3D::addChannel(ChannelAdapterPtr channel)
+void View3D::add(ChannelAdapterPtr channel)
 {
-  RenderView::addChannel(channel);
+  RenderView::add(channel);
 
   updateRenderersControls();
   updateScrollBarsLimits();
 }
 
 //-----------------------------------------------------------------------------
-void View3D::removeChannel(ChannelAdapterPtr channel)
+void View3D::remove(ChannelAdapterPtr channel)
 {
-  RenderView::removeChannel(channel);
+  RenderView::remove(channel);
 
   updateRenderersControls();
   updateScrollBarsLimits();

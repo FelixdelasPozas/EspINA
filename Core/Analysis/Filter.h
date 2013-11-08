@@ -20,7 +20,7 @@
 #ifndef ESPINA_FILTER_H
 #define ESPINA_FILTER_H
 
-#include "EspinaCore_Export.h"
+#include "Filters/EspinaFilters_Export.h"
 
 #include "Core/EspinaTypes.h"
 #include "Core/Analysis/Output.h"
@@ -31,21 +31,19 @@
 
 namespace EspINA
 {
-  class EspinaCore_EXPORT Filter
+  class EspinaFilters_EXPORT Filter
   : public Persistent
   , public Task
   {
   public:
     using Type = QString;
 
+    struct Undefined_Output_Exception{};
+
 //   protected:
 //     typedef itk::ImageFileReader<itkVolumeType> EspinaVolumeReader;
   public:
     virtual ~Filter();
-
-    virtual void restoreState(const State& state);
-
-    virtual State saveState() const;
 
     virtual Snapshot saveSnapshot() const;
 
@@ -68,15 +66,14 @@ namespace EspINA
     /** \brief Return whether or not i is a valid output for the filter
      *
      */
-    bool validOutput(Output::Id id);
+    bool validOutput(Output::Id id) throw(Undefined_Output_Exception);
 
     /** \brief Return filter's output 
      * 
      *   If there is no output with given oId, nullptr will be returned
      *
      */
-    //NOTE: Is it still abstract?
-    virtual OutputSPtr output(Output::Id id) const = 0;
+    OutputSPtr output(Output::Id id) const throw(Undefined_Output_Exception);
 
     // TODO 2013-11-17: Move to utils or sth similar
 //     /// Reader to access snapshot data in filter's cache dir

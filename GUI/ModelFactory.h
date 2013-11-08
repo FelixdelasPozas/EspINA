@@ -23,6 +23,8 @@
 #include "EspinaGUI_Export.h"
 
 #include "GUI/Model/FilterAdapter.h"
+#include <Core/Factory/AnalysisReader.h>
+#include <Core/Factory/FilterFactory.h>
 
 #include <memory>
 
@@ -31,9 +33,6 @@
 
 namespace EspINA
 {
-  class FilterCreator;
-  using FilterCreatorPtr = FilterCreator *;
-
   class ExtensionProvider;
 
   class SampleAdapter;
@@ -54,11 +53,17 @@ namespace EspINA
     explicit ModelFactory(SchedulerSPtr scheduler);
     ~ModelFactory();
 
-    void registerFilter(FilterCreatorPtr creator, const Filter::Type &filter);
+    void registerAnalysisReader(AnalysisReaderPtr reader);
+    void registerFilterFactory (FilterFactoryPtr  factory);
+
+    FileExtensions supportedFileExtensions();
+
+    AnalysisReaderList readers(const QFileInfo& file);
+
+    AnalysisSPtr read(AnalysisReaderPtr reader, const QFileInfo& file, ErrorHandlerPtr handler = nullptr)
+    { return reader->read(file, m_factory, handler); }
 
     SampleAdapterSPtr createSample(const QString& name = QString()) const;
-
-    //FilterAdapterSPtr createFilter(OutputSList inputs, Filter::Type& filter) const;
 
     template<typename T>
     std::shared_ptr<FilterAdapter<T>> createFilter(OutputSList inputs, Filter::Type type) const
@@ -68,24 +73,15 @@ namespace EspINA
     }
 
     ChannelAdapterSPtr createChannel(FilterAdapterSPtr filter, Output::Id output) const;
-// 
+//
 //     SegmentationSPtr createSegmentation(OutputSPtr output) const;
-// 
-//     void registerExtensionProvider  (ExtensionProviderPtr provider);
-//     void unregisterExtensionProvider(ExtensionProviderPtr provider);
-// 
-//     ExtensionProviderList extensionProviders() const
-//     { return m_extensionProviders;}
-// 
-//     /** \brief Return the extension provider with the given type or nullptr if not found
-//      *
-//      */
- //   ExtensionProviderPtr extensionProvider(const ExtensionProvider::Type& type) const;
 
   private:
-    SchedulerSPtr m_scheduler;
-    QMap<Filter::Type, FilterCreatorPtr> m_filterCreators;
-    //ExtensionProviderList m_extensionProviders;
+    SchedulerSPtr   m_scheduler;
+    CoreFactorySPtr m_factory;
+
+    QMap<QString, AnalysisReaderList> m_readerExtensions;
+    AnalysisReaderList m_readers;
   };
 
   using ModelFactorySPtr = std::shared_ptr<ModelFactory>;

@@ -36,7 +36,7 @@ namespace EspINA
     virtual RepresentationSPtr createRepresentation(OutputSPtr output, Representation::Type type);
   };
 
-  void EspinaGUI_EXPORT SetBasicRepresentationFactory(FilterAdapterSPtr filter);
+  //void EspinaGUI_EXPORT SetBasicRepresentationFactory(FilterAdapterSPtr filter);
 }
 
 #endif // ESPINA_BASIC_REPRESENTATION_FACTORY_H

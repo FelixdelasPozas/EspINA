@@ -5,20 +5,19 @@
  *      Author: Félix de las Pozas Álvarez
  */
 
-#ifndef ZOOMTOOL_H_
-#define ZOOMTOOL_H_
+#ifndef ESPINA_ZOOM_TOOL_H
+#define ESPINA_ZOOM_TOOL_H
 
-#include <GUI/Tools/ITool.h>
+#include <Support/Tool.h>
 
 class QCursor;
 
 namespace EspINA
 {
-  class ViewManager;
   class ZoomSelectionWidget;
 
   class ZoomTool
-  : public ITool
+  : public Tool
   {
   public:
     explicit ZoomTool(ViewManager *);

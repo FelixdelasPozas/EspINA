@@ -52,10 +52,11 @@ namespace EspINA {
     void setRepresentationFactory(RepresentationFactorySPtr factory)
     { m_factory = factory; }
 
+    virtual void update(Output::Id id) = 0;
     virtual void update() = 0;//TODO Copy adapted filter interface
 
     OutputAdapterSPtr output(Output::Id id)
-    { return m_outputs.at(id); }
+    { update(id); return m_outputs.at(id); }
 
   protected:
     virtual FilterSPtr adaptedFilter() = 0;
@@ -77,6 +78,16 @@ namespace EspINA {
   public:
     std::shared_ptr<T> get()
     { return m_filter; }
+
+    virtual void update(Output::Id id)
+    {
+      m_outputs.clear();
+      m_filter->update(id);
+      for(int i = 0; i < m_filter->numberOfOutputs(); ++i)
+      {
+        m_outputs << OutputAdapterSPtr{new OutputAdapter(m_filter->output(i), m_factory)};
+      }
+    }
 
     virtual void update()
     {
@@ -102,6 +113,7 @@ namespace EspINA {
     std::shared_ptr<T> m_filter;
 
     friend class ModelFactory;
+    friend class ModelAdapter;
   };
 
   using FilterAdapterSPtr  = std::shared_ptr<FilterAdapterInterface>;

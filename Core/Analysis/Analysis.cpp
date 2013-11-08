@@ -87,7 +87,7 @@ void Analysis::add(ChannelSPtr channel)
 
   m_content->add(channel);
 
-  RelationName relation = QString("%1").arg(channel->output()->id());
+  RelationName relation = QString("%1").arg(channel->outputId());
 
   m_content->addRelation(filter, channel, relation);
 

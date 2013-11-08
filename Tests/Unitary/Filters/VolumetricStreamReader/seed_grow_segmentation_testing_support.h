@@ -17,10 +17,15 @@
  *
  */
 
-#include "Testing_Support.h"
+#ifndef ESPINA_SEEDGROWSEGMENTATION_TESTINGSUPPORT_H
+#define ESPINA_SEEDGROWSEGMENTATION_TESTINGSUPPORT_H
 
-#include <vtkObjectFactory.h>
+#include <Core/Analysis/Output.h>
 
-using namespace EspINA;
+namespace EspINA {
+  namespace Testing {
+    OutputSPtr inputChannel();
+  }
+}
 
-vtkStandardNewMacro(vtkNaiveFunction);
+#endif // ESPINA_SEEDGROWSEGMENTATION_TESTINGSUPPORT_H

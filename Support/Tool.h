@@ -28,6 +28,7 @@
 #include <QCursor>
 
 class QEvent;
+class QAction;
 
 namespace EspINA
 {
@@ -48,9 +49,12 @@ namespace EspINA
     virtual bool enabled() const = 0;
 
     virtual void lostEvent(RenderView*) {};
+
+    virtual QList<QAction *> actions() const = 0;
   };
 
-  using ToolSPtr = std::shared_ptr<Tool>;
+  using ToolSPtr  = std::shared_ptr<Tool>;
+  using ToolSList = QList<ToolSPtr>;
 } // namespace EspINA
 
 #endif // ESPINA_TOOL_H

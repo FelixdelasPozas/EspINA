@@ -90,7 +90,7 @@ namespace EspINA
     virtual PersistentSPtr item() const;
 
   private:
-    explicit SegmentationAdapter(SegmentationSPtr segmentation);
+    explicit SegmentationAdapter(FilterAdapterSPtr filter, SegmentationSPtr segmentation);
 
   private:
     SegmentationSPtr    m_segmentation;
@@ -101,7 +101,7 @@ namespace EspINA
   using SegmentationAdapterList  = QList<SegmentationAdapterPtr>;
   using SegmentationAdapterSPtr  = std::shared_ptr<SegmentationAdapter>;
   using SegmentationAdapterSList = QList<SegmentationAdapterSPtr>;
-  
-  SegmentationAdapterPtr segmentationPtr(ViewItemAdapterPtr item);
+
+  SegmentationAdapterPtr EspinaGUI_EXPORT segmentationPtr(ViewItemAdapterPtr item);
 }
 #endif // ESPINA_SEGMENTATION_ADAPTER_H

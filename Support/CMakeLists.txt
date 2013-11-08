@@ -7,6 +7,7 @@ include_directories(
 
 qt4_wrap_cpp(Support_MOC
   ViewManager.h
+  ToolGroup.h
   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
   )
 
@@ -17,6 +18,7 @@ set (Support_SOURCES
   ${Support_MOC}
   ${Support_UI}
   ViewManager.cpp
+  ToolGroup.cpp
   )
 
 set(Support_EXTERNAL_LIBS

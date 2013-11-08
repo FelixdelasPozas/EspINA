@@ -190,7 +190,7 @@ namespace EspINA
     QList<vtkProp *> removedProps;
     View2D *view = reinterpret_cast<View2D *>(m_view);
 
-    if (!renderer || !renderer.GetPointer() || (!itemType.testFlag(EspINA::CHANNEL) && !itemType.testFlag(EspINA::SEGMENTATION)))
+    if (!renderer || !renderer.GetPointer() || (!itemType.testFlag(RenderableType::CHANNEL) && !itemType.testFlag(RenderableType::SEGMENTATION)))
       return selection;
 
     Nm pickPoint[3] = { static_cast<Nm>(x), static_cast<Nm>(y), ((view->plane() == Plane::XY) ? -View2D::SEGMENTATION_SHIFT : View2D::SEGMENTATION_SHIFT) };

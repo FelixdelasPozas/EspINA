@@ -72,12 +72,6 @@ void Segmentation::deleteExtension(SegmentationExtensionSPtr extension) throw (S
 }
 
 //------------------------------------------------------------------------
-void Segmentation::changeOutput(OutputSPtr output)
-{
-  // TODO: no way to change output
-}
-
-//------------------------------------------------------------------------
 SegmentationExtensionSPtr Segmentation::extension(const SegmentationExtension::Type& type) const throw(SegmentationExtension::Extension_Not_Found)
 {
   if (!m_extensions.keys().contains(type))
@@ -175,8 +169,8 @@ void Segmentation::restoreState(const State& state)
     if (tokens[0].compare("USERS") == 0)
       m_users = tokens[1].split('/').toSet();
 
-    if (tokens[0].compare("OUTPUT") == 0)
-      changeOutputId(tokens[1].toUInt());
+//     if (tokens[0].compare("OUTPUT") == 0)
+//       changeOutputId(tokens[1].toUInt());
 
     // TODO: unable to get CategorySPtr
 //    if (tokens[0].compare("CATEGORY") == 0)

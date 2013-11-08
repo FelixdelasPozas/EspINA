@@ -23,11 +23,13 @@
 #include <QMainWindow>
 
 #include "EspinaConfig.h"
+#include "EspinaErrorHandler.h"
 #include "RecentDocuments.h"
+#include "Views/DefaultView.h"
+#include "IO/ChannelReader.h"
 #include <Support/ViewManager.h>
 #include <Support/DynamicMenu.h>
 #include <Support/DockWidget.h>
-#include <Support/ToolBar.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/ModelFactory.h>
 #include <Core/IO/ErrorHandler.h>
@@ -76,7 +78,7 @@ class MainToolBar;
     /// Close former analysis and load a new one
     void openAnalysis();
 
-    void openAnalysis(const QFileInfo file);
+    void openAnalysis(const QStringList files);
     /// Add new data from file to current analysis
 
     void addToAnalysis();
@@ -141,9 +143,11 @@ class MainToolBar;
 
     void registerDockWidget(Qt::DockWidgetArea area, DockWidget *dock);
 
-    void registerToolBar(ToolBar *toolbar);
+    void registerToolGroup(ToolGroupPtr tools);
 
     void loadPlugins(QList<QObject *> &plugins);
+
+    bool isModelModified();
 
   private:
     // EspINA
@@ -154,6 +158,7 @@ class MainToolBar;
     QUndoStack      *m_undoStack;
 
     FilterFactorySPtr m_filterFactory;
+    ChannelReaderSPtr m_channelReader;
 
     GeneralSettings *m_settings;
 
@@ -166,14 +171,17 @@ class MainToolBar;
     ColorEngineMenu *m_colorEngines;
     QMenu           *m_dockMenu;
 
+    QToolBar *m_mainBar;
+    QToolBar *m_contextualBar;
+
     // UNDO
     QAction         *m_undoAction;
     QAction         *m_redoAction;
 
  //   ISettingsPanelPrototype m_settingsPanel;
 
-    MainToolBar    *m_mainToolBar;
-//    DefaultViewSPtr m_view;
+    MainToolBar   *m_mainToolBar;
+    DefaultViewSPtr m_view;
 
     RecentDocuments m_recentDocuments1;
     RecentDocuments m_recentDocuments2; // fixes duplicated actions warning in some systems
@@ -204,7 +212,7 @@ class MainToolBar;
     // Status Bar
     //QLabel   *m_traceableStatus;
 
-    IO::ErrorHandlerPtr m_errorHandler;
+    EspinaErrorHandlerSPtr m_errorHandler;
   };
 
 } // namespace EspINA

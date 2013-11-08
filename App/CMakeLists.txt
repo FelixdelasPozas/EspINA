@@ -42,7 +42,7 @@ qt4_wrap_cpp (ESPINA_MOC
 #   Toolbars/Segmentation/SegmentationToolBar.h
 #   Toolbars/Segmentation/ThresholdAction.h
 #   Toolbars/VOI/VolumeOfInterest.h
-#   Toolbars/Zoom/ZoomToolBar.h
+  Toolbars/Zoom/ZoomTools.h
 #   Tools/Brushes/Brush.h
 #   Tools/Contour/FilledContour.h
 #   Tools/PlanarSplit/PlanarSplitTool.h
@@ -51,7 +51,7 @@ qt4_wrap_cpp (ESPINA_MOC
 #   Tools/SeedGrowSegmentation/SeedGrowSegmentationTool.h
 #   Tools/SegmentationRemover/SegmentationRemover.h
 #   Tools/VOI/RectangularVOI.h
-#   Views/DefaultEspinaView.h
+  Views/DefaultView.h
 #   Dialogs/Connectomics/ConnectomicsDialog.h
 #   Dialogs/ChannelInspector/ChannelInspector.h
 #   Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.h
@@ -85,12 +85,14 @@ qt4_wrap_ui (ESPINA_UI
 #   FilterInspectors/TubularSegmentation/NodesInformationDialog.ui
   )
 
-set (ESPINA_SOURCES 
+set (ESPINA_SOURCES
   ${ESPINA_RCC}
   ${ESPINA_MOC}
   ${ESPINA_UI}
   main.cpp
+  EspinaErrorHandler.cpp 
   EspinaMainWindow.cpp
+  IO/ChannelReader.cpp
   RecentDocuments.cpp
 #   Dialogs/SegmentationInspector/SegmentationInspector.cpp
 #   Dialogs/TabularReport/TabularReport.cpp
@@ -125,7 +127,7 @@ set (ESPINA_SOURCES
 #   Toolbars/Segmentation/ThresholdAction.cpp
 #   Toolbars/VOI/Settings.cpp
 #   Toolbars/VOI/VolumeOfInterest.cpp
-#   Toolbars/Zoom/ZoomToolBar.cpp
+  Toolbars/Zoom/ZoomTools.cpp
 #   Tools/Brushes/Brush.cpp
 #   Tools/Brushes/CircularBrush.cpp
 #   Tools/Brushes/SphericalBrush.cpp
@@ -149,7 +151,7 @@ set (ESPINA_SOURCES
 #   Undo/UnloadSampleCommand.cpp
 #   Undo/VolumeSnapshotCommand.cpp
 #   Undo/ContourUndoCommand.cpp
-#   Views/DefaultEspinaView.cpp
+  Views/DefaultView.cpp
 #   Dialogs/Connectomics/ConnectomicsDialog.cpp
 #   Dialogs/ChannelInspector/ChannelInspector.cpp
 #   Tools/TubularSegmentation/TubularTool.cpp

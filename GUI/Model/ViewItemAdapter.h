@@ -22,6 +22,7 @@
 
 #include "GUI/Model/ItemAdapter.h"
 #include "OutputAdapter.h"
+#include "FilterAdapter.h"
 
 #include <Core/Analysis/Data.h>
 #include <Core/Analysis/Output.h>
@@ -50,17 +51,24 @@ namespace EspINA {
     bool isVisible() const
     { return m_isVisible; }
 
-    FilterAdapterSPtr filter(){}
-    const FilterAdapterSPtr filter() const{}
+    FilterAdapterSPtr filter()
+    { return m_filter; }
+    const FilterAdapterSPtr filter() const
+    { return m_filter; }
 
     /// Convenience method
-    OutputAdapterSPtr output(){}
+    OutputAdapterSPtr output()
+    { return m_filter->output(m_viewItem->outputId()); }
+
     /// Convenience method
-    const OutputAdapterSPtr output() const{}
+    const OutputAdapterSPtr output() const
+    { return m_filter->output(m_viewItem->outputId()); }
 
-    DataSPtr get(Data::Type type){}
+    DataSPtr get(Data::Type type)
+    { return m_viewItem->data(type); }
 
-    const DataSPtr get(Data::Type type) const{}
+    const DataSPtr get(Data::Type type) const
+    { return m_viewItem->data(type); }
 
 //     /// Convenience method to access output's representations
 //     RepresentationSList representations() const
@@ -77,11 +85,16 @@ namespace EspINA {
 //     void outputModified();
 // 
   protected:
-    explicit ViewItemAdapter(ViewItemSPtr item)
-    : m_viewItem{item} {}
+    explicit ViewItemAdapter(FilterAdapterSPtr filter, ViewItemSPtr item)
+    : m_filter{filter}
+    , m_viewItem{item}
+    , m_isSelected{false}
+    , m_isVisible{true}
+    , m_outputIsModified{false}{}
 
   protected:
-    ViewItemSPtr m_viewItem;
+    FilterAdapterSPtr m_filter;
+    ViewItemSPtr      m_viewItem;
 
     bool m_isSelected;
     bool m_isVisible;

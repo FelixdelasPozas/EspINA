@@ -31,16 +31,12 @@ namespace EspINA
 
   const QString AUTOSAVE_PATH("Autosave::Path");
   const QString AUTOSAVE_INTERVAL("Autosave::Interval");
-  const QString TRACEABILITY("Traceability");
 
   class GeneralSettings
   {
   public:
     explicit GeneralSettings();
     ~GeneralSettings();
-
-    bool useTraceability() const { return m_traceability; }
-    void setUseTraceability(bool traceable);
 
     QString userName() const {return m_userName;}
     void setUserName(QString name);
@@ -54,7 +50,6 @@ namespace EspINA
 private:
   QSettings *m_settings;
 
-  bool    m_traceability;
   QString m_userName;
   int     m_autosaveInterval;
   QDir    m_autosavePath;

@@ -25,7 +25,7 @@ bool EspINA::canRender(RendererSPtr renderer, RendererType type)
 }
 
 //-----------------------------------------------------------------------------
-bool EspinaGUI_EXPORT EspINA::canRender(RendererSPtr renderer, RenderableType type)
+bool EspINA::canRender(RendererSPtr renderer, RenderableType type)
 {
   return renderer->renderableItems().testFlag(type);
 }

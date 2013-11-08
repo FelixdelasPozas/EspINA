@@ -23,8 +23,8 @@
 using namespace EspINA;
 
 //------------------------------------------------------------------------
-ChannelAdapter::ChannelAdapter(ChannelSPtr channel)
-: ViewItemAdapter(channel)
+ChannelAdapter::ChannelAdapter(FilterAdapterSPtr filter, ChannelSPtr channel)
+: ViewItemAdapter(filter, channel)
 , m_channel(channel)
 {
 
@@ -194,4 +194,10 @@ bool EspINA::operator!=(ChannelAdapterSPtr lhs, ChannelSPtr rhs)
 bool EspINA::operator!=(ChannelSPtr lhs, ChannelAdapterSPtr rhs)
 {
   return !operator==(lhs, rhs);
+}
+
+//------------------------------------------------------------------------
+ChannelAdapterPtr EspINA::channelPtr(ViewItemAdapterPtr item)
+{
+  return static_cast<ChannelAdapterPtr>(item);
 }
