@@ -28,9 +28,9 @@ using namespace EspINA::IO;
 const Filter::Type VOLUMETRIC_STREAM_READER = "ChannelReader::VolumetricStreamReader";
 
 //------------------------------------------------------------------------
-QList<Filter::Type> ChannelReader::providedFilters() const
+FilterTypeList ChannelReader::providedFilters() const
 {
-  QList<Filter::Type> filters;
+  FilterTypeList filters;
 
   filters << VOLUMETRIC_STREAM_READER;
 

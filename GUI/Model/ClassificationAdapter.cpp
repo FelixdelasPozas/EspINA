@@ -57,12 +57,13 @@ PersistentSPtr ClassificationAdapter::item() const
 //------------------------------------------------------------------------
 CategoryAdapterSPtr ClassificationAdapter::root()
 {
+  return m_adaptedClassification.root();
 }
 
 //------------------------------------------------------------------------
 CategoryAdapterSList ClassificationAdapter::categories()
 {
-
+  return m_adaptedClassification.root()->subCategories();
 }
 
 //------------------------------------------------------------------------
@@ -74,13 +75,57 @@ CategoryAdapterSPtr ClassificationAdapter::category(const QString& classificatio
 //------------------------------------------------------------------------
 ClassificationAdapter::ClassificationAdapter(ClassificationSPtr classification)
 {
-
 }
 
 //------------------------------------------------------------------------
 CategoryAdapterSPtr ClassificationAdapter::createCategory(const QString& relativeName, CategoryAdapterSPtr parent)
 {
-  
+  CategoryAdapterPtr parentCategoryAdapter = parent.get();
+
+  if (!parentCategoryAdapter)
+  {
+    parentCategoryAdapter = m_adaptedClassification.root().get();
+  }
+
+  CategoryPtr parentCategory = parentCategoryAdapter->m_category.get();
+
+  CategorySPtr        requestedCategory;
+  CategoryAdapterSPtr requestedCategoryAdapter;
+
+  if (!relativeName.isEmpty())
+  {
+    QStringList path = relativeName.split("/", QString::SkipEmptyParts);
+    for (int i = 0; i < path.size(); ++i)
+    {
+      requestedCategory = parentCategory->subCategory(path.at(i));
+      if (i == path.size() - 1 && requestedCategory != nullptr) {
+        throw Already_Defined_Node_Exception();
+      }
+
+      if (!requestedCategory)
+      {
+        requestedCategory        = parentCategory->createSubCategory(path.at(i));
+        requestedCategoryAdapter = CategoryAdapterSPtr{new CategoryAdapter(requestedCategory)};
+        parentCategoryAdapter->addSubCategory(requestedCategoryAdapter);
+      }
+
+      parentCategory        = requestedCategory.get();
+      parentCategoryAdapter = requestedCategoryAdapter.get();
+    }
+  } else {
+    QString defaultName{"Undefined"};
+
+    requestedCategory = parentCategory->subCategory(defaultName);
+
+    if (!requestedCategory)
+    {
+      requestedCategory        = parentCategory->createSubCategory(defaultName);
+      requestedCategoryAdapter = CategoryAdapterSPtr{new CategoryAdapter(requestedCategory)};
+      parentCategoryAdapter->addSubCategory(requestedCategoryAdapter);
+    }
+  }
+
+  return requestedCategoryAdapter;
 }
 
 //------------------------------------------------------------------------
@@ -90,9 +135,9 @@ QString ClassificationAdapter::name() const
 }
 
 //------------------------------------------------------------------------
-CategoryAdapterSPtr ClassificationAdapter::parent(const CategoryAdapterSPtr categor) const
+CategoryAdapterSPtr ClassificationAdapter::parent(const CategoryAdapterSPtr category) const
 {
-
+  
 }
 
 
@@ -105,7 +150,7 @@ void ClassificationAdapter::removeCategory(CategorySPtr element)
 //------------------------------------------------------------------------
 void ClassificationAdapter::setName(const QString& name)
 {
-
+  m_classification->setName(name);
 }
 
 //------------------------------------------------------------------------

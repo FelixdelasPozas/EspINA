@@ -35,7 +35,7 @@ namespace EspINA {
     virtual QString type() const
     { return "ChannelReader"; }
 
-    virtual QList<Filter::Type> providedFilters() const;
+    virtual FilterTypeList providedFilters() const;
 
     virtual FilterSPtr createFilter(OutputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const;
 

@@ -49,7 +49,7 @@ const double MIN_SATURATION = 0.0;
 const double MAX_SATURATION = 1.0;
 
 //------------------------------------------------------------------------
-Channel::Channel(FilterSPtr filter, Output::Id output) 
+Channel::Channel(FilterSPtr filter, const Output::Id output) 
 : ViewItem(filter, output)
 , m_brightness{0.0}
 , m_contrast{1.0}

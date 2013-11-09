@@ -22,7 +22,7 @@
 
 using namespace EspINA;
 
-ViewItem::ViewItem(FilterSPtr filter, Output::Id output)
+ViewItem::ViewItem(FilterSPtr filter, const Output::Id output)
 : m_filter{filter}
 , m_outputId{output}
 {

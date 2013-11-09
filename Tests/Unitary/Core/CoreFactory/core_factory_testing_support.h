@@ -50,6 +50,11 @@ namespace EspINA {
     class DummyFilterFactory
     : public FilterFactory
     {
+    public:
+      static Filter::Type dummyType() { return "DummyFilter"; }
+      virtual FilterTypeList providedFilters() const
+      { FilterTypeList list; list << dummyType(); return list; }
+
       virtual FilterSPtr createFilter(OutputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const
       { return FilterSPtr(new DummyFilter(inputs, filter, scheduler));}
     };

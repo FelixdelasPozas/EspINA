@@ -27,7 +27,7 @@ namespace EspINA {
   class ViewItem
   {
   public:
-    explicit ViewItem(FilterSPtr filter, Output::Id output);
+    explicit ViewItem(FilterSPtr filter, const Output::Id output);
     virtual ~ViewItem(){}
 
     FilterSPtr filter()

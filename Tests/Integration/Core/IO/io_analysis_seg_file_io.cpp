@@ -103,6 +103,8 @@ int io_analysis_seg_file_io( int argc, char** argv )
   class DummyFilterFactory
   : public FilterFactory
   {
+    virtual FilterTypeList providedFilters() const
+    { FilterTypeList list; list << "DummyFilter"; return list; }
     virtual FilterSPtr createFilter(OutputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const
     {
       return FilterSPtr{new IO_Testing::DummyFilter()};
@@ -112,7 +114,7 @@ int io_analysis_seg_file_io( int argc, char** argv )
   bool error = false;
 
   CoreFactorySPtr factory{new CoreFactory()};
-  factory->registerFilter(&dummyFactory, "DummyFilter");
+  factory->registerFilter(&dummyFactory);
 
   Analysis analysis;
 

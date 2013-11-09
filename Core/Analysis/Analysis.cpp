@@ -116,7 +116,7 @@ void Analysis::add(SegmentationSPtr segmentation)
 
   m_content->add(segmentation);
 
-  RelationName relation = QString("%1").arg(segmentation->output()->id());
+  RelationName relation = QString("%1").arg(segmentation->outputId());
 
   m_content->addRelation(filter, segmentation, relation);
   

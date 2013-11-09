@@ -21,34 +21,34 @@ typename Tree<T>::Node Tree<T>::createNode(const QString& relativeName, Node par
   if (!parentNode)
     parentNode = m_root.get();
 
-  Node requestedTree;
+  Node requestedNode;
 
   if (!relativeName.isEmpty())
   {
     QStringList path = relativeName.split("/", QString::SkipEmptyParts);
     for (int i = 0; i < path.size(); ++i)
     {
-      requestedTree = parentNode->subCategory(path.at(i));
-      if (i == path.size() - 1 && requestedTree != nullptr) {
+      requestedNode = parentNode->subCategory(path.at(i));
+      if (i == path.size() - 1 && requestedNode != nullptr) {
         throw Already_Defined_Node_Exception();
       }
 
-      if (!requestedTree)
+      if (!requestedNode)
       {
-        requestedTree = parentNode->createSubCategory(path.at(i));
+        requestedNode = parentNode->createSubCategory(path.at(i));
       }
-      parentNode = requestedTree.get();
+      parentNode = requestedNode.get();
     }
   }
   else
   {
-    requestedTree = parentNode->subCategory(QString("Unspecified"));
+    requestedNode = parentNode->subCategory(QString("Unspecified"));
 
-    if (!requestedTree)
-      requestedTree = parentNode->createSubCategory(QString("Unspecified"));
+    if (!requestedNode)
+      requestedNode = parentNode->createSubCategory(QString("Unspecified"));
   }
 
-  return requestedTree;
+  return requestedNode;
 }
 
 //-----------------------------------------------------------------------------

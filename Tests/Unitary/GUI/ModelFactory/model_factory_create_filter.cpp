@@ -41,7 +41,7 @@ int model_factory_create_filter(int argc, char** argv)
 {
   bool error = false;
 
-  SchedulerSPtr sch{new Scheduler(1e6)};
+  SchedulerSPtr sch;
   ModelFactory factory(sch);
 
   Filter::Type type{"Dummy"};

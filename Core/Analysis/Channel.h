@@ -44,7 +44,7 @@ namespace EspINA
     static const QString VOLUMETRIC;
 
   public:
-    explicit Channel(FilterSPtr filter, Output::Id output);
+    explicit Channel(EspINA::FilterSPtr filter, const EspINA::Output::Id output);
     virtual ~Channel();
 
     virtual void restoreState(const State& state);

@@ -27,20 +27,23 @@ set(LIB_DEPENDECIES
 add_executable(Model_Factory_Tests
   ${TEST_SOURCES}
   ${SUBJECT_MOCS}
-  ${CORE_DIR}/Utils/Bounds.cpp
-  ${CORE_DIR}/Utils/NmVector3.cpp
-  ${CORE_DIR}/Analysis/Sample.cpp
+  ${CORE_DIR}/Analysis/Category.cpp
   ${CORE_DIR}/Analysis/Channel.cpp
+  ${CORE_DIR}/Analysis/Data.cpp
   ${CORE_DIR}/Analysis/Filter.cpp
   ${CORE_DIR}/Analysis/Output.cpp
-  ${CORE_DIR}/Analysis/Data.cpp
+  ${CORE_DIR}/Analysis/Sample.cpp
+  ${CORE_DIR}/Analysis/Segmentation.cpp
   ${CORE_DIR}/Analysis/ViewItem.cpp
+  ${CORE_DIR}/Factory/CoreFactory.cpp
   ${CORE_DIR}/MultiTasking/Scheduler.cpp
   ${CORE_DIR}/MultiTasking/Task.cpp
-  ${GUI_DIR}/ModelFactory.cpp
-  ${GUI_DIR}/Model/SampleAdapter.cpp
+  ${CORE_DIR}/Utils/Bounds.cpp
+  ${CORE_DIR}/Utils/NmVector3.cpp
   ${GUI_DIR}/Model/ChannelAdapter.cpp
   ${GUI_DIR}/Model/OutputAdapter.cpp
+  ${GUI_DIR}/Model/SampleAdapter.cpp
+  ${GUI_DIR}/ModelFactory.cpp
   )
 
 target_link_libraries(Model_Factory_Tests ${LIB_DEPENDECIES} )

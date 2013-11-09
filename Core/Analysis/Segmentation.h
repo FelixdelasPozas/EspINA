@@ -42,7 +42,7 @@ namespace EspINA
       struct Existing_Extension{};
 
     public:
-      explicit Segmentation(FilterSPtr filter, Output::Id output);
+      explicit Segmentation(FilterSPtr filter, const Output::Id output);
       virtual ~Segmentation();
 
       virtual void restoreState(const State& state);

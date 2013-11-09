@@ -26,6 +26,8 @@
 
 namespace EspINA
 {
+  using FilterTypeList = QList<Filter::Type>;
+
   class EspinaCore_EXPORT FilterFactory
   {
   public:
@@ -35,7 +37,7 @@ namespace EspINA
                                     const Filter::Type& filter,
                                     SchedulerSPtr       scheduler) const = 0;
 
-    virtual QList<Filter::Type> providedFilters() const = 0;
+    virtual FilterTypeList providedFilters() const = 0;
   };
 
   using FilterFactoryPtr  = FilterFactory *;

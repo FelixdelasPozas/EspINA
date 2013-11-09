@@ -31,22 +31,17 @@ class DummyFilter
   public:
     explicit DummyFilter()
     : Filter(OutputSList(), "Dummy", SchedulerSPtr(new Scheduler(10000000)))
-    , m_output(new Output(this, 0)) {}
+    { m_outputs << OutputSPtr(new Output(this, 0)); }
     virtual void restoreState(const State& state) {}
     virtual State saveState() const {return State();}
-    virtual OutputSPtr output(Output::Id id) const { return m_output; }
 
   protected:
     virtual Snapshot saveFilterSnapshot() const{}
-    virtual bool needUpdate() const {}
-    virtual bool needUpdate(Output::Id id) const {}
-    virtual DataSPtr createDataProxy(Output::Id id, const Data::Type& type) {}
+    virtual bool needUpdate() const {return false;}
+    virtual bool needUpdate(Output::Id id) const { return false;}
     virtual void execute() {}
     virtual void execute(Output::Id id) {}
     virtual bool invalidateEditedRegions(){ return false; }
-
-  private:
-    OutputSPtr m_output;
 };
 
 int segmentation_change_output(int argc, char** argv)
@@ -56,14 +51,13 @@ int segmentation_change_output(int argc, char** argv)
 
   OutputSPtr oldOutput = segmentation->output();
 
-  Output::Id newId = 2;
   FilterSPtr newFilter{new DummyFilter()};
 
-  segmentation->changeOutput(newFilter, newId);
+  segmentation->changeOutput(newFilter, 0);
 
   // TODO: real change output
   bool error = false;
-  if (newFilter->output(newId) != segmentation->output())
+  if (newFilter->output(0) != segmentation->output())
   {
     error = true;
   }

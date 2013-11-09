@@ -72,7 +72,7 @@ namespace EspINA
 
     CategoryAdapterSList categories();
 
-    CategoryAdapterSPtr parent(const CategoryAdapterSPtr categor) const;
+    CategoryAdapterSPtr parent(const CategoryAdapterSPtr category) const;
 
   protected:
     virtual PersistentSPtr item() const;

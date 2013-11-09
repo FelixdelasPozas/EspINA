@@ -41,14 +41,12 @@ int core_factory_register_filter_factory(int argc, char** argv)
 
   CoreFactory factory;
 
-  Filter::Type type{"Dummy"};
+  factory.registerFilter(&filterFactory);
 
-  factory.registerFilter(&filterFactory, type);
-
-  FilterSPtr filter = factory.createFilter(OutputSList(), type);
+  FilterSPtr filter = factory.createFilter(OutputSList(), DummyFilterFactory::dummyType());
 
   if (filter == nullptr) {
-    cerr << type.toStdString() << " filter was not created" << endl;
+    cerr << DummyFilterFactory::dummyType().toStdString() << " filter was not created" << endl;
     error = true;
   }
 
