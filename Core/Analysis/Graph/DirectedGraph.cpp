@@ -208,29 +208,30 @@ DirectedGraph::Edges DirectedGraph::edges(Vertex vertex, const QString& filter)
 //-----------------------------------------------------------------------------
 void DirectedGraph::removeEdges(Vertex vertex)
 {
-//   OutEdgeIterator oei, oei_end;
-//   boost::tie(oei, oei_end) = boost::out_edges(v.descriptor, m_graph); 
-//   while(oei != oei_end)
-//   {
-//     boost::remove_edge(oei, m_graph);
-//     boost::tie(oei, oei_end) = boost::out_edges(v.descriptor, m_graph); 
-//   }
-// 
-//   Vertices ancestorList = ancestors(v);
-//   for (int i = 0; i < ancestorList.size(); i++)
-//   {
-//     VertexDescriptor ancestorId = ancestorList[i].descriptor;
-//     boost::tie(oei, oei_end) = boost::out_edges(ancestorId, m_graph); 
-//     while(oei != oei_end)
-//     {
-//       if (target(*oei, m_graph) == v.descriptor)
-//       {
-//         boost::remove_edge(oei, m_graph);
-//         boost::tie(oei, oei_end) = boost::out_edges(ancestorId, m_graph); 
-//       } else
-//         oei++;
-//     }
-//   }
+  OutEdgeIterator oei, oei_end;
+  VertexDescriptor vd = descriptor(vertex);
+  boost::tie(oei, oei_end) = boost::out_edges(vd, m_graph); 
+  while(oei != oei_end)
+  {
+    boost::remove_edge(oei, m_graph);
+    boost::tie(oei, oei_end) = boost::out_edges(vd, m_graph); 
+  }
+
+  Vertices ancestorList = ancestors(vertex);
+  for (int i = 0; i < ancestorList.size(); i++)
+  {
+    VertexDescriptor avd = descriptor(ancestorList[i]);
+    boost::tie(oei, oei_end) = boost::out_edges(avd, m_graph); 
+    while(oei != oei_end)
+    {
+      if (target(*oei, m_graph) == vd)
+      {
+        boost::remove_edge(oei, m_graph);
+        boost::tie(oei, oei_end) = boost::out_edges(avd, m_graph); 
+      } else
+        oei++;
+    }
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -250,70 +251,45 @@ DirectedGraph::Vertices DirectedGraph::vertices() const
 //-----------------------------------------------------------------------------
 DirectedGraph::Vertices DirectedGraph::ancestors(Vertex vertex, const QString& filter) const
 {
-//   Vertices result;
-//   InEdgeIterator iei, iei_end;
-// 
-//   //   qDebug() << "Ancestors of:" << m_graph[v].name.c_str();
-//   for(boost::tie(iei, iei_end) = boost::in_edges(v.descriptor, m_graph); iei != iei_end; iei++)
-//   {
-//     //     qDebug() << "\t" << source(*iei, m_graph) << m_graph[source(*iei,m_graph)].name.c_str();
-//     if (filter.isEmpty() || m_graph[*iei].relationship == filter.toStdString())
-//     {
-//       //       qDebug() << "Pass Filter:"  << m_graph[source(*iei, m_graph)].descriptor << m_graph[source(*iei, m_graph)].name.c_str();
-//       VertexDescriptor v = source(*iei, m_graph);
-//       m_graph[v].descriptor = v;
-//       result << m_graph[v];
-//     }
-//   }
-//   return result;
+  Vertices result;
+  InEdgeIterator iei, iei_end;
+
+  VertexDescriptor vd = descriptor(vertex);
+  //   qDebug() << "Ancestors of:" << m_graph[v].name.c_str();
+  for(boost::tie(iei, iei_end) = boost::in_edges(vd, m_graph); iei != iei_end; iei++)
+  {
+    //     qDebug() << "\t" << source(*iei, m_graph) << m_graph[source(*iei,m_graph)].name.c_str();
+    if (filter.isEmpty() || m_graph[*iei].relationship == filter.toStdString())
+    {
+      //       qDebug() << "Pass Filter:"  << m_graph[source(*iei, m_graph)].descriptor << m_graph[source(*iei, m_graph)].name.c_str();
+      VertexDescriptor avd = source(*iei, m_graph);
+      result << m_graph[avd];
+    }
+  }
+
+  return result;
 }
 
 //-----------------------------------------------------------------------------
 DirectedGraph::Vertices DirectedGraph::succesors(Vertex vertex, const QString& filter) const
 {
-//   Vertices result;
-//   OutEdgeIterator oei, oei_end;
-// 
-//   //   qDebug() << "Successors of:" << m_graph[v].name.c_str();
-//   for(boost::tie(oei, oei_end) = boost::out_edges(v.descriptor, m_graph); oei != oei_end; oei++)
-//   {
-//     //     qDebug() << "\t" << m_graph[target(*oei,m_graph)].name.c_str();
-//     if (filter.isEmpty() || m_graph[*oei].relationship == filter.toStdString())
-//     {
-//       VertexDescriptor v = target(*oei, m_graph);
-//       m_graph[v].descriptor = v;
-//       result << m_graph[v];
-//     }
-//   }
-//   return result;
+  Vertices result;
+  OutEdgeIterator oei, oei_end;
+
+  VertexDescriptor vd = descriptor(vertex);
+  //   qDebug() << "Successors of:" << m_graph[v].name.c_str();
+  for(boost::tie(oei, oei_end) = boost::out_edges(vd, m_graph); oei != oei_end; oei++)
+  {
+    //     qDebug() << "\t" << m_graph[target(*oei,m_graph)].name.c_str();
+    if (filter.isEmpty() || m_graph[*oei].relationship == filter.toStdString())
+    {
+      VertexDescriptor svd = target(*oei, m_graph);
+      result << m_graph[svd];
+    }
+  }
+
+  return result;
 }
-
-// //-----------------------------------------------------------------------------
-// void DirectedGraph::setItem(Vertex &v, Vertex item)
-// {
-//   Q_ASSERT(item);
-//   v.item = item;
-// 
-//   m_graph[v.descriptor].item = v.item;
-// }
-
-// //-----------------------------------------------------------------------------
-// PersistentType DirectedGraph::type(const Vertex v)
-// {
-//   if (v.item)
-//     return v.item->type();
-//   else if (v.shape == SAMPLE_TYPE)
-//     return SAMPLE;
-//   else if (v.shape == CHANNEL_TYPE)
-//     return CHANNEL;
-//   else if (v.shape == SEGMENTATION_TYPE)
-//     return SEGMENTATION;
-//   else if (v.shape == FILTER_TYPE)
-//     return FILTER;
-// 
-//   Q_ASSERT(false);
-//   return TAXONOMY;
-// }
 
 //-----------------------------------------------------------------------------
 DirectedGraph::Vertex DirectedGraph::vertex(VertexDescriptor descriptor) const
