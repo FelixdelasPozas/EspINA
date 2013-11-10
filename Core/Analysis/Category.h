@@ -155,8 +155,6 @@ namespace EspINA
 
   using Classification     = Tree<Category>;
   using ClassificationSPtr = std::shared_ptr<Classification>;
-
-
 }// namespace EspINA
 
 #endif // ESPINA_CATEGORY_H

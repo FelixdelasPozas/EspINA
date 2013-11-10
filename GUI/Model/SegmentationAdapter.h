@@ -86,9 +86,6 @@ namespace EspINA
 
     virtual QVariant information(const SegmentationExtension::InfoTag& tag) const;
 
-  protected:
-    virtual PersistentSPtr item() const;
-
   private:
     explicit SegmentationAdapter(FilterAdapterSPtr filter, SegmentationSPtr segmentation);
 

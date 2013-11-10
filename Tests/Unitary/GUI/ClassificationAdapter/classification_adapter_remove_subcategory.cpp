@@ -26,30 +26,46 @@
  * 
  */
 
-#include <Category.h>
+#include "classification_adapter_testing_support.h"
 
-using namespace EspINA;
+#include <GUI/Model/ClassificationAdapter.h>
+
 using namespace std;
+using namespace EspINA;
 
-int classification_change_existing_name( int argc, char** argv )
+int classification_adapter_remove_subcategory( int argc, char** argv )
 {
   bool error = false;
 
-  Classification classification;
+  ClassificationAdapter classification;
 
-  QString name1 = "Apples";
-  QString name2 = "Oranges";
+  QString name1 = "Level 1";
+  CategoryAdapterSPtr category1= classification.createCategory(name1);
 
-  CategorySPtr level1 = classification.createNode(name1);
-  CategorySPtr level2 = classification.createNode(name2);
+  QString name2 = "Level 2";
+  CategoryAdapterSPtr category2 = category1->createSubCategory(name2);
 
-  try {
-    level2->setName(name1);    
-    std::cerr << "AlreadyDefinedCategoryException expected" << std::endl;
+  if (category2->parent() != category1.get()) {
+    cerr << category2->name().toStdString() << " parent should be " << category1->name().toStdString() << endl;
     error = true;
-  } catch (Category::AlreadyDefinedCategoryException e) {
-    
   }
-  
+
+  if (category1->subCategory(name2) != category2) {
+    cerr << category1->name().toStdString() << " should contain " << category2->name().toStdString() << endl;
+    error = true;
+  }
+
+  category1->removeSubCategory(category2);
+
+  if (category2->parent() == category1.get()) {
+    cerr << category2->name().toStdString() << " parent shouldn't be " << category1->name().toStdString() << endl;
+    error = true;
+  }
+
+  if (category1->subCategory(name2) != nullptr) {
+    cerr << category1->name().toStdString() << " shouldn't contain " << category2->name().toStdString() << endl;
+    error = true;
+  }
+
   return error;
 }

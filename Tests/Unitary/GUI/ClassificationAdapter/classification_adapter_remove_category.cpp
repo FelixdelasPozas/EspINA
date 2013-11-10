@@ -26,27 +26,34 @@
  * 
  */
 
-#include "classification_testing_support.h"
-#include <Category.h>
+#include "classification_adapter_testing_support.h"
 
-using namespace EspINA;
+#include <GUI/Model/ClassificationAdapter.h>ategory.h>
+
 using namespace std;
+using namespace EspINA;
 
-int classification_change_name( int argc, char** argv )
+int classification_adapter_remove_category( int argc, char** argv )
 {
   bool error = false;
 
-  Classification classification;
+  ClassificationAdapter classification;
 
-  QString firstName = "Apples";
-  CategorySPtr category = classification.createNode(firstName);
+  QString name = "Category";
 
-  error |= TestName(category, firstName);
+  CategoryAdapterSPtr category = classification.createCategory(name);
+  
+  if (classification.category(name) == nullptr) {
+    cerr << "Initial classification must contain category " << name.toStdString() << endl;
+    error = true;
+  }
 
-  QString secondName = "Oragnes";
+  classification.removeCategory(category);
 
-  category->setName(secondName);
-  error |= TestName(category, secondName);
+  if (classification.category(name) != nullptr) {
+    cerr << "Classification shouldn't contain category " << name.toStdString() << " after being removed" << endl;
+    error = true;
+  }
 
   return error;
 }

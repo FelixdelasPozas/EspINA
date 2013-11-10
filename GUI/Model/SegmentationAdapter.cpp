@@ -70,11 +70,6 @@ QVariant SegmentationAdapter::information(const SegmentationExtension::InfoTag& 
 
 }
 
-PersistentSPtr SegmentationAdapter::item() const
-{
-
-}
-
 SegmentationExtension::InfoTagList SegmentationAdapter::informationTags() const
 {
 

@@ -70,8 +70,22 @@ namespace EspINA
     void modified(ItemAdapterPtr);
 
   protected:
-    virtual PersistentSPtr item() const = 0;
-
+    int typeId(Type type) const
+    {
+      switch (type) {
+        case Type::SAMPLE:
+          return 0;
+        case Type::CHANNEL:
+          return 1;
+        case Type::SEGMENTATION:
+          return 2;
+        case Type::CLASSIFICATION:
+          return 4;
+        case Type::CATEGORY:
+          return 5;
+      }
+      return -1;
+    }
     friend class ModelAdapter;
 //     friend bool operator==(ItemAdapterSPtr lhs, PersistentSPtr  rhs);
 //     friend bool operator==(PersistentSPtr  lhs, ItemAdapterSPtr rhs);

@@ -138,9 +138,6 @@ namespace EspINA
      */
     ChannelExtensionSPtr extension(const ChannelExtension::Type& type);
 
-  protected:
-    virtual PersistentSPtr item() const;
-
   private:
     explicit ChannelAdapter(FilterAdapterSPtr filter, ChannelSPtr channel);
 

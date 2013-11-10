@@ -134,9 +134,6 @@ namespace EspINA
      */
     CategoryAdapterPtr parent() {return m_parent;}
 
-  protected:
-    virtual PersistentSPtr item() const;
-
   private:
     explicit CategoryAdapter(CategorySPtr category);
     explicit CategoryAdapter(CategoryAdapterPtr parent, const QString& name );
@@ -148,6 +145,7 @@ namespace EspINA
 
     friend class ClassificationAdapter;
     template<typename T> friend class Tree;
+    friend QString print(CategoryAdapterSPtr category, int level=0);
   };
 
   CategoryAdapterPtr EspinaGUI_EXPORT categoryAdapterPtr(const QModelIndex& index);

@@ -25,31 +25,32 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  */
+#include "classification_adapter_testing_support.h"
 
-#include <Category.h>
+#include <GUI/Model/ClassificationAdapter.h>
 
-using namespace EspINA;
 using namespace std;
+using namespace EspINA;
 
-int classification_remove_category( int argc, char** argv )
+int classification_adapter_create_existing_category( int argc, char** argv )
 {
   bool error = false;
-  
-  Classification classification;
-  
-  QString name = "Category";
-  
-  CategorySPtr category = classification.createNode(name);
-  
-  if (classification.node(name) == nullptr) {
-    cerr << "Initial classification must contain category " << name.toStdString() << endl;
+
+  ClassificationAdapter classification;
+
+  QString name = "Apples";
+  CategoryAdapterSPtr category1 = classification.createCategory(name);
+
+  try {
+    CategoryAdapterSPtr category2 = classification.createCategory(name);
+    cerr << "AlreadyDefinedCategoryException expected" << endl;
     error = true;
+  } catch (Already_Defined_Node_Exception e) {
+
   }
 
-  classification.removeNode(category);
-
-  if (classification.node(name) != nullptr) {
-    cerr << "Classification shouldn't contain category " << name.toStdString() << " after being removed" << endl;
+  if (classification.categories().size() != 1) {
+    cerr << "Unexpected number of categories"<< endl;
     error = true;
   }
 

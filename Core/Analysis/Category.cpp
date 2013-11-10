@@ -76,8 +76,6 @@ void Category::setColor(const QColor &color)
 //------------------------------------------------------------------------
 CategorySPtr Category::createSubCategory(const QString& name)
 {
-//   Q_ASSERT(!element(name));
-
   CategorySPtr subCategory(new Category(this, name));
   subCategory->setColor(m_color);
 

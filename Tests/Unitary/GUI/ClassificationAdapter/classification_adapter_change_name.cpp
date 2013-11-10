@@ -26,27 +26,28 @@
  * 
  */
 
-#include <Category.h>
+#include "classification_adapter_testing_support.h"
 
-using namespace EspINA;
+#include <GUI/Model/ClassificationAdapter.h>
+
 using namespace std;
+using namespace EspINA;
 
-int classification_create_existing_category( int argc, char** argv )
+int classification_adapter_change_name( int argc, char** argv )
 {
   bool error = false;
 
-  Classification classification;
+  ClassificationAdapter classification;
 
-  QString name = "Apples";
-  CategorySPtr category1 = classification.createNode(name);
+  QString firstName = "Apples";
+  CategoryAdapterSPtr category = classification.createCategory(firstName);
 
-  try {
-    CategorySPtr category1 = classification.createNode(name);
-    std::cerr << "AlreadyDefinedCategoryException expected" << std::endl;
-    error = true;
-  } catch (Already_Defined_Node_Exception e) {
-    
-  }
-  
+  error |= TestName(category, firstName);
+
+  QString secondName = "Oragnes";
+
+  category->setName(secondName);
+  error |= TestName(category, secondName);
+
   return error;
 }
