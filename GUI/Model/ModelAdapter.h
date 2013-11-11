@@ -72,6 +72,9 @@ namespace EspINA
     Q_OBJECT
   public:
     struct Existing_Item_Exception{};
+    struct Existing_Relation_Exception{};
+    struct Item_Not_Found_Exception {};
+    struct Relation_Not_Found_Exception {};
 
   public:
     explicit ModelAdapter(AnalysisSPtr analysis);
@@ -159,15 +162,9 @@ namespace EspINA
                         ItemAdapterSPtr     succesor,
                         const RelationName& relation);
 
-    ItemAdapterSList relatedItems(ItemAdapterSPtr    item,
-                                  RelationType        type,
-                                  const RelationName& filter = "");
+    ItemAdapterSList relatedItems(ItemAdapterPtr item, RelationType type, const RelationName& filter);
 
-    RelationList relations(ItemAdapterSPtr     item,
-                           RelationType        type,
-                           const RelationName& filter = "");
-
-
+    RelationList relations(ItemAdapterPtr item, RelationType type, const RelationName& filter);
 //     //---------------------------------------------------------------------------
 //     /************************** SmartPointer API *******************************/
 //     //---------------------------------------------------------------------------
@@ -211,17 +208,13 @@ namespace EspINA
   private:
 //     void addClassification(CategoryAdapterSPtr root);
 // 
-    void addImplementation(SampleAdapterSPtr  sample);
-    void addImplementation(ChannelAdapterSPtr channel);
-//     void removeSampleAdapterImplementation(SampleAdapterSPtr sample);
-// 
-//     void removeChannelImplementation(ChannelSPtr channel);
-// 
-//     void addSegmentationImplementation   (SegmentationAdapterSPtr segmentation);
-//     void removeSegmentationImplementation(SegmentationAdapterSPtr segmentation);
-// 
-//     void addFilterImplementation   (FilterSPtr filter);
-//     void removeFilterImplementation(FilterSPtr filter);
+    void addImplementation(SampleAdapterSPtr       sample);
+    void addImplementation(ChannelAdapterSPtr      channel);
+    void addImplementation(SegmentationAdapterSPtr segmentation);
+
+    void removeImplementation(SampleAdapterSPtr       sample);
+    void removeImplementation(ChannelAdapterSPtr      channel);
+    void removeImplementation(SegmentationAdapterSPtr segmentation);
 
   private:
     AnalysisSPtr              m_analysis;

@@ -48,7 +48,9 @@ int model_adapter_add_samples( int argc, char** argv )
   ModelFactory factory(sch);
 
   SampleAdapterSList samples;
-  samples << factory.createSample() << factory.createSample() << factory.createSample();
+  samples << factory.createSample()
+          << factory.createSample()
+          << factory.createSample();
 
   modelAdapter.add(samples);
 

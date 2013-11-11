@@ -191,7 +191,7 @@ bool EspINA::operator!=(ChannelSPtr lhs, ChannelAdapterSPtr rhs)
 }
 
 //------------------------------------------------------------------------
-ChannelAdapterPtr EspINA::channelPtr(ViewItemAdapterPtr item)
+ChannelAdapterPtr EspINA::channelPtr(ItemAdapterPtr item)
 {
   return static_cast<ChannelAdapterPtr>(item);
 }

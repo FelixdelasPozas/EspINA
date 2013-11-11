@@ -80,6 +80,8 @@ namespace EspINA
   private:
     ClassificationSPtr    m_classification;
     Tree<CategoryAdapter> m_adaptedClassification;
+
+    friend class ModelAdapter;
   };
 
   using ClassificationAdapterSPtr = std::shared_ptr<ClassificationAdapter>;

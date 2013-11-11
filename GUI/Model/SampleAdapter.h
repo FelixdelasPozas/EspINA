@@ -27,6 +27,7 @@ namespace EspINA
 {
   class SampleAdapter;
   using SampleAdapterPtr   = SampleAdapter *;
+  using SampleAdapterList  = QList<SampleAdapterPtr>;
   using SampleAdapterSPtr  = std::shared_ptr<SampleAdapter>;
   using SampleAdapterSList = QList<SampleAdapterSPtr>;
 
@@ -80,6 +81,8 @@ namespace EspINA
 
   bool operator!=(SampleAdapterSPtr lhs, SampleSPtr        rhs);
   bool operator!=(SampleSPtr        lhs, SampleAdapterSPtr rhs);
+
+  SampleAdapterPtr EspinaGUI_EXPORT samplePtr(ItemAdapterPtr item);
 
 }// namespace EspINA
 

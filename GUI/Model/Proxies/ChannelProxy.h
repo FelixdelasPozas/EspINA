@@ -20,15 +20,13 @@
 // File:    ChannelProxy.h
 // Purpose: Rearrange model items to group Channels by Samples
 //----------------------------------------------------------------------------
-#ifndef CHANNELPROXY_H
-#define CHANNELPROXY_H
+#ifndef ESPINA_CHANNEL_PROXY_H
+#define ESPINA_CHANNEL_PROXY_H
 
-#include "EspinaCore_Export.h"
 
 #include <QAbstractProxyModel>
 
-#include <Core/EspinaTypes.h>
-#include <Core/Model/EspinaModel.h>
+#include <GUI/Model/ModelAdapter.h>
 
 namespace EspINA
 {
@@ -36,15 +34,15 @@ namespace EspINA
   class ViewManager;
 
   /// Group Channels by Sample
-  class EspinaCore_EXPORT ChannelProxy
+  class EspinaGUI_EXPORT ChannelProxy
   : public QAbstractProxyModel
   {
     Q_OBJECT
   public:
-    explicit ChannelProxy(ViewManager *vm, QObject* parent = 0);
+    explicit ChannelProxy(ModelAdapterSPtr sourceModel, QObject* parent = 0);
     virtual ~ChannelProxy();
 
-    virtual void setSourceModel(EspinaModel *sourceModel);
+    virtual void setSourceModel(ModelAdapterSPtr sourceModel);
 
     virtual QVariant data(const QModelIndex& proxyIndex, int role = Qt::DisplayRole) const;
 
@@ -72,17 +70,16 @@ namespace EspINA
     bool indices(const QModelIndex &topLeft, const QModelIndex &bottomRight, QModelIndexList &result);
     //   QModelIndexList indices(const QModelIndex& parent, int start, int end);
     QModelIndexList proxyIndices(const QModelIndex& parent, int start, int end) const;
-    int numChannels(SamplePtr sample) const;
-    int numSubSamples(SamplePtr sample) const;
+    int numChannels(SampleAdapterPtr sample) const;
+    int numSubSamples(SampleAdapterPtr sample) const;
 
   private:
-    EspinaModel *m_model;
-    ViewManager *m_viewManager;
+    ModelAdapterSPtr m_model;
 
-    SampleList m_samples;
-    mutable QMap<SamplePtr, ModelItemList> m_channels;
+    SampleAdapterList m_samples;
+    mutable QMap<SampleAdapterPtr, ItemAdapterList> m_channels;
   };
 
 } // namespace EspINA
 
-#endif // CHANNELPROXY_H
+#endif // ESPINA_CHANNEL_PROXY_H

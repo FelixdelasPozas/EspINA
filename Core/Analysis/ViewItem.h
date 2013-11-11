@@ -25,6 +25,7 @@
 namespace EspINA {
 
   class ViewItem
+  : public Persistent
   {
   public:
     explicit ViewItem(FilterSPtr filter, const Output::Id output);

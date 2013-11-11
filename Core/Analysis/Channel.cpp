@@ -48,6 +48,8 @@ const double AUTO_OPACITY = -1.0;
 const double MIN_SATURATION = 0.0;
 const double MAX_SATURATION = 1.0;
 
+const QString Channel::STAIN_LINK  = "Stain";
+
 //------------------------------------------------------------------------
 Channel::Channel(FilterSPtr filter, const Output::Id output) 
 : ViewItem(filter, output)
@@ -253,7 +255,6 @@ Bounds Channel::bounds() const
 // const ModelItem::ArgumentId Channel::VOLUME     = "Volume";
 // 
 // const QString Channel::LINK       = "Channel";
-// const QString Channel::STAIN_LINK  = "Stain";
 // const QString Channel::VOLUME_LINK = "Volume";
 // 
 // const QString Channel::NAME       = "Name";

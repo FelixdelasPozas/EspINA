@@ -45,11 +45,14 @@ add_executable(ChannelAdapter_Tests
   ${CORE_DIR}/Utils/Bounds.cpp
   ${CORE_DIR}/Utils/NmVector3.cpp
   ${CORE_DIR}/Utils/NmVector3.cpp
-  ${GUI_DIR}/Model/SampleAdapter.cpp
+  ${GUI_DIR}/Model/CategoryAdapter.cpp
   ${GUI_DIR}/Model/ChannelAdapter.cpp
   ${GUI_DIR}/Model/OutputAdapter.cpp
-  ${GUI_DIR}/Representations/RepresentationFactoryGroup.cpp
+  ${GUI_DIR}/Model/SampleAdapter.cpp
+  ${GUI_DIR}/Model/SegmentationAdapter.cpp
+  ${GUI_DIR}/Model/ViewItemAdapter.cpp
   ${GUI_DIR}/ModelFactory.cpp
+  ${GUI_DIR}/Representations/RepresentationFactoryGroup.cpp
   ../gui_testing_support.cpp
 )
 

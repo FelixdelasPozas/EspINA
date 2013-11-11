@@ -102,7 +102,8 @@ void CategoryAdapter::addSubCategory(CategoryAdapterSPtr subCategory)
 
 //------------------------------------------------------------------------
 CategoryAdapter::CategoryAdapter(CategorySPtr category)
-: m_category(category)
+: ItemAdapter(PersistentSPtr())
+, m_category(category)
 , m_parent(nullptr)
 {
 
@@ -110,7 +111,8 @@ CategoryAdapter::CategoryAdapter(CategorySPtr category)
 
 //------------------------------------------------------------------------
 CategoryAdapter::CategoryAdapter(CategoryAdapterPtr parent, const QString& name)
-: m_parent(parent)
+: ItemAdapter(PersistentSPtr())
+, m_parent(parent)
 {
 }
 

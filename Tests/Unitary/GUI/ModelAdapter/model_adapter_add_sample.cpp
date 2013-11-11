@@ -31,8 +31,8 @@
 #include <GUI/ModelFactory.h>
 #include "ModelTest.h"
 
-using namespace EspINA;
 using namespace std;
+using namespace EspINA;
 
 int model_adapter_add_sample(int argc, char** argv )
 {

@@ -46,7 +46,6 @@ int model_adapter_add_channels(int argc, char** argv )
 {
   bool error = false;
 
-
   AnalysisSPtr analysis{new Analysis()};
 
   ModelAdapter modelAdapter(analysis);

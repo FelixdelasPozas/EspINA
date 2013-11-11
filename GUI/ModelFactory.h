@@ -23,6 +23,7 @@
 #include "EspinaGUI_Export.h"
 
 #include "GUI/Model/FilterAdapter.h"
+#include "Model/SegmentationAdapter.h"
 #include "Representations/RepresentationFactoryGroup.h"
 #include <Core/Factory/AnalysisReader.h>
 #include <Core/Factory/FilterFactory.h>
@@ -77,11 +78,13 @@ namespace EspINA
 
     ChannelAdapterSPtr createChannel(FilterAdapterSPtr filter, Output::Id output) const;
 
-    ChannelAdapterSPtr adaptChannel(FilterAdapterSPtr filter, ChannelSPtr channel) const;
-    
+    SegmentationAdapterSPtr createSegmentation(FilterAdapterSPtr filter, Output::Id output) const;
+
     FilterAdapterSPtr  adaptFilter(FilterSPtr filter);
-//
-//     SegmentationSPtr createSegmentation(OutputSPtr output) const;
+
+    ChannelAdapterSPtr adaptChannel(FilterAdapterSPtr filter, ChannelSPtr channel) const;
+
+    SegmentationAdapterSPtr adaptSegmentation(FilterAdapterSPtr filter, SegmentationSPtr segmentation) const;
 
     RepresentationFactorySPtr channelRepresentationFactory() const
     { return m_channelRepresentationFactory; }

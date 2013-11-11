@@ -36,6 +36,7 @@ namespace EspINA
 
   class ItemAdapter;
   using ItemAdapterPtr   = ItemAdapter*;
+  using ItemAdapterList  = QList<ItemAdapterPtr>;
   using ItemAdapterSPtr  = std::shared_ptr<ItemAdapter>;
   using ItemAdapterSList = QList<ItemAdapterSPtr>;
 
@@ -54,6 +55,9 @@ namespace EspINA
 
     Q_OBJECT
   public:
+    explicit ItemAdapter(PersistentSPtr analysisItem)
+    : m_analysisItem(analysisItem) {}
+
     virtual ~ItemAdapter(){}
 
     virtual QVariant data(int role=Qt::DisplayRole) const = 0;
@@ -86,6 +90,9 @@ namespace EspINA
       }
       return -1;
     }
+
+    PersistentSPtr m_analysisItem;
+
     friend class ModelAdapter;
 //     friend bool operator==(ItemAdapterSPtr lhs, PersistentSPtr  rhs);
 //     friend bool operator==(PersistentSPtr  lhs, ItemAdapterSPtr rhs);

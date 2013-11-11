@@ -11,6 +11,7 @@ qt4_wrap_cpp(GUI_MOC
   Model/ModelAdapter.h
   Model/ItemAdapter.h
   Model/OutputAdapter.h
+  Model/Proxies/ChannelProxy.h
   Representations/Renderers/Renderer.h
   Representations/Renderers/ContourRenderer.h
   Representations/MeshRepresentationBase.h
@@ -56,6 +57,7 @@ set (GUI_SOURCES
   Model/ClassificationAdapter.cpp
   Model/ModelAdapter.cpp
   Model/OutputAdapter.cpp
+  Model/Proxies/ChannelProxy.cpp
   Model/SampleAdapter.cpp
   Model/SegmentationAdapter.cpp
   Model/ViewItemAdapter.cpp

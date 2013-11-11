@@ -27,82 +27,87 @@
  */
 
 #include <Core/Analysis/Analysis.h>
-#include <Core/Analysis/Segmentation.h>
+#include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Output.h>
 #include <Core/Analysis/Filter.h>
 #include <Core/MultiTasking/Scheduler.h>
-#include "analysis_testing_support.h"
 
-using namespace EspINA;
+#include <GUI/Model/ModelAdapter.h>
+#include <GUI/ModelFactory.h>
+
+#include "model_adapter_testing_support.h"
+#include "ModelTest.h"
+
 using namespace std;
+using namespace EspINA;
+using namespace Testing;
 
-int analysis_add_segmentation( int argc, char** argv )
+int model_adapter_add_segmentation( int argc, char** argv )
 {
   bool error = false;
 
-  Analysis analysis;
+  AnalysisSPtr analysis{new Analysis()};
 
-  FilterSPtr filter{new Testing::DummyFilter()};
-  SegmentationSPtr segmentation(new Segmentation(filter, 0));
+  ModelAdapter modelAdapter(analysis);
+  ModelTest    modelTester(&modelAdapter);
 
-  analysis.add(segmentation);
+  SchedulerSPtr sch;
+  ModelFactory factory(sch);
 
-  if (analysis.segmentations().first() != segmentation) {
+  OutputSList inputs;
+  Filter::Type type{"DummyFilter"};
+
+  FilterAdapterSPtr       filter       = factory.createFilter<DummyFilter>(inputs, type);
+  SegmentationAdapterSPtr segmentation = factory.createSegmentation(filter, 0);
+
+  modelAdapter.add(segmentation);
+
+  if (analysis->segmentations().first() != segmentation) {
     cerr << "Unexpected segmentation retrieved from analysis" << endl;
     error = true;
   }
 
-  if (analysis.classification().get() != nullptr) {
+  if (analysis->classification().get() != nullptr) {
     cerr << "Unexpected classification in analysis" << endl;
     error = true;
   }
 
-  if (!analysis.samples().isEmpty()) {
+  if (!analysis->samples().isEmpty()) {
     cerr << "Unexpected number of samples in analysis" << endl;
     error = true;
   }
 
-  if (!analysis.channels().isEmpty()) {
+  if (!analysis->channels().isEmpty()) {
     cerr << "Unexpected number of channels in analysis" << endl;
     error = true;
   }
 
-  if (analysis.segmentations().size() != 1) {
+  if (analysis->segmentations().size() != 1) {
     cerr << "Unexpected number of segmentations in analysis" << endl;
     error = true;
   }
 
-  if (!analysis.extensionProviders().isEmpty()) {
+  if (!analysis->extensionProviders().isEmpty()) {
     cerr << "Unexpected number of extension providers in analysis" << endl;
     error = true;
   }
 
-  if (analysis.content()->vertices().size() != 2) {
+  if (analysis->content()->vertices().size() != 2) {
     cerr << "Unexpected number of vertices in analysis content" << endl;
     error = true;
   }
 
-  if (!analysis.content()->contains(segmentation)) {
-    cerr << "Couldn't find segmentation in analysis content" << endl;
-    error = true;
-  }
-  
-  if (!analysis.content()->contains(segmentation->filter())) {
-    cerr << "Couldn't find segmentation filter in analysis content" << endl;
-    error = true;
-  }
-
-  if (analysis.content()->edges().size() != 1) {
+  if (analysis->content()->edges().size() != 1) {
     cerr << "Unexpected number of edges in analysis content" << endl;
     error = true;
   }
 
-  if (analysis.relationships()->vertices().size() != 1) {
+  if (analysis->relationships()->vertices().size() != 1) {
     cerr << "Unexpected number of vertices in analysis relationships" << endl;
     error = true;
   }
 
-  if (!analysis.relationships()->edges().isEmpty()) {
+  if (!analysis->relationships()->edges().isEmpty()) {
     cerr << "Unexpected number of edges in analysis relationships" << endl;
     error = true;
   }

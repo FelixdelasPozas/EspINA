@@ -20,7 +20,7 @@ qt4_wrap_cpp (ESPINA_MOC
 #   Dialogs/TabularReport/TabularReport.h
 #   Dialogs/TabularReport/TabularReportEntry.h
 #   Dialogs/GeneralSettingsDialog.h
-#   Docks/ChannelExplorer/ChannelExplorer.h
+  Docks/ChannelExplorer/ChannelExplorer.h
 #   Docks/FilterInspectorDock/FilterInspectorDock.h
 #   Docks/SegmentationExplorer/SegmentationExplorer.h
 #   Docks/SegmentationExplorer/SegmentationExplorerLayout.h
@@ -68,7 +68,7 @@ qt4_wrap_ui (ESPINA_UI
 #   Dialogs/TabularReport/TabularReport.ui
   Dialogs/AboutDialog.ui
 #   Dialogs/GeneralSettingsDialog.ui
-#   Docks/ChannelExplorer/ChannelExplorer.ui
+  Docks/ChannelExplorer/ChannelExplorer.ui
 #   Docks/SegmentationExplorer/SegmentationExplorer.ui
 #   Docks/TabularReport/TabularReport.ui
 #   FilterInspectors/SeedGrowSegmentation/SGSFilterInspectorWidget.ui
@@ -100,7 +100,7 @@ set (ESPINA_SOURCES
 #   Dialogs/TabularReport/TabularReportEntry.cpp 
   Dialogs/AboutDialog.cpp
 #   Dialogs/GeneralSettingsDialog.cpp
-#   Docks/ChannelExplorer/ChannelExplorer.cpp
+  Docks/ChannelExplorer/ChannelExplorer.cpp
 #   Docks/FilterInspectorDock/FilterInspectorDock.cpp
 #   Docks/SegmentationExplorer/LayoutComposition.cpp
 #   Docks/SegmentationExplorer/LayoutLocation.cpp

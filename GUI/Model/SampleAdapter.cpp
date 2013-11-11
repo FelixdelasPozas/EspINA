@@ -25,7 +25,8 @@ using namespace EspINA;
 
 //------------------------------------------------------------------------
 SampleAdapter::SampleAdapter(SampleSPtr sample)
-: m_sample(sample)
+: ItemAdapter(sample)
+, m_sample(sample)
 {
 
 }
@@ -122,4 +123,10 @@ bool EspINA::operator!=(SampleAdapterSPtr lhs, SampleSPtr rhs)
 bool EspINA::operator!=(SampleSPtr lhs, SampleAdapterSPtr rhs)
 {
   return !operator==(lhs, rhs);
+}
+
+//------------------------------------------------------------------------
+SampleAdapterPtr EspINA::samplePtr(ItemAdapterPtr item)
+{
+  return static_cast<SampleAdapterPtr>(item);
 }

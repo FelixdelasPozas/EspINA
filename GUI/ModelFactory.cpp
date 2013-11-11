@@ -22,6 +22,7 @@
 #include "GUI/Model/SampleAdapter.h"
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Sample.h>
+#include <Core/Analysis/Segmentation.h>
 #include <Core/Factory/CoreFactory.h>
 
 using namespace EspINA;
@@ -112,6 +113,21 @@ ChannelAdapterSPtr ModelFactory::createChannel(FilterAdapterSPtr filter, Output:
 }
 
 //------------------------------------------------------------------------
+SegmentationAdapterSPtr ModelFactory::createSegmentation(FilterAdapterSPtr filter, Output::Id output) const
+{
+  SegmentationSPtr segmentation{new Segmentation(filter->adaptedFilter(), output)};
+
+  return adaptSegmentation(filter, segmentation);
+}
+
+//------------------------------------------------------------------------
+FilterAdapterSPtr ModelFactory::adaptFilter(FilterSPtr filter)
+{
+  return FilterAdapterSPtr{new FilterAdapter<Filter>(filter)};
+}
+
+
+//------------------------------------------------------------------------
 ChannelAdapterSPtr ModelFactory::adaptChannel(FilterAdapterSPtr filter, ChannelSPtr channel) const
 {
   ChannelAdapterSPtr adapter{new ChannelAdapter(filter, channel)};
@@ -121,7 +137,11 @@ ChannelAdapterSPtr ModelFactory::adaptChannel(FilterAdapterSPtr filter, ChannelS
 }
 
 //------------------------------------------------------------------------
-FilterAdapterSPtr ModelFactory::adaptFilter(FilterSPtr filter)
+SegmentationAdapterSPtr ModelFactory::adaptSegmentation(FilterAdapterSPtr filter, SegmentationSPtr segmentation) const
 {
-  return FilterAdapterSPtr{new FilterAdapter<Filter>(filter)};
+  SegmentationAdapterSPtr adapter{new SegmentationAdapter(filter, segmentation)};
+  adapter->setRepresentationFactory(m_segmentationRepresentationFactory);
+
+  return adapter;
 }
+

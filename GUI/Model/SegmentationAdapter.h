@@ -34,6 +34,12 @@ namespace EspINA
   using CategoryAdapterPtr   = CategoryAdapter *;
   using CategoryAdapterSPtr  = std::shared_ptr<CategoryAdapter>;
 
+  class SegmentationAdapter;
+  using SegmentationAdapterPtr   = SegmentationAdapter *;
+  using SegmentationAdapterList  = QList<SegmentationAdapterPtr>;
+  using SegmentationAdapterSPtr  = std::shared_ptr<SegmentationAdapter>;
+  using SegmentationAdapterSList = QList<SegmentationAdapterSPtr>;
+
   class EspinaGUI_EXPORT SegmentationAdapter
   : public ViewItemAdapter
   {
@@ -92,12 +98,19 @@ namespace EspINA
   private:
     SegmentationSPtr    m_segmentation;
     CategoryAdapterSPtr m_category;
+
+    friend class ModelFactory;
+    friend class ModelAdapter;
+
+    friend bool operator==(SegmentationAdapterSPtr lhs, SegmentationSPtr        rhs);
+    friend bool operator==(SegmentationSPtr        lhs, SegmentationAdapterSPtr rhs);
   };
 
-  using SegmentationAdapterPtr   = SegmentationAdapter *;
-  using SegmentationAdapterList  = QList<SegmentationAdapterPtr>;
-  using SegmentationAdapterSPtr  = std::shared_ptr<SegmentationAdapter>;
-  using SegmentationAdapterSList = QList<SegmentationAdapterSPtr>;
+  bool operator==(SegmentationAdapterSPtr lhs, SegmentationSPtr        rhs);
+  bool operator==(SegmentationSPtr        lhs, SegmentationAdapterSPtr rhs);
+
+  bool operator!=(SegmentationAdapterSPtr lhs, SegmentationSPtr        rhs);
+  bool operator!=(SegmentationSPtr        lhs, SegmentationAdapterSPtr rhs);
 
   SegmentationAdapterPtr EspinaGUI_EXPORT segmentationPtr(ViewItemAdapterPtr item);
 }

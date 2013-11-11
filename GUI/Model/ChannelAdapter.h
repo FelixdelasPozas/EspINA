@@ -146,6 +146,7 @@ namespace EspINA
 
     friend class ModelFactory;
     friend class ModelAdapter;
+
     friend bool operator==(ChannelAdapterSPtr lhs, ChannelSPtr        rhs);
     friend bool operator==(ChannelSPtr        lhs, ChannelAdapterSPtr rhs);
   };
@@ -156,7 +157,7 @@ namespace EspINA
   bool operator!=(ChannelAdapterSPtr lhs, ChannelSPtr        rhs);
   bool operator!=(ChannelSPtr        lhs, ChannelAdapterSPtr rhs);
 
-  ChannelAdapterPtr EspinaGUI_EXPORT channelPtr(ViewItemAdapterPtr item);
+  ChannelAdapterPtr EspinaGUI_EXPORT channelPtr(ItemAdapterPtr item);
 }// namespace EspINA
 
 #endif // CHANNEL_H

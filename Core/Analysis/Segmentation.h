@@ -29,14 +29,12 @@
 
 #include "Core/Analysis/ViewItem.h"
 #include "Core/Analysis/Extensions/SegmentationExtension.h"
-#include "Core/Analysis/Persistent.h"
 #include "Core/Analysis/Output.h"
 
 namespace EspINA
 {
   class EspinaCore_EXPORT Segmentation
   : public ViewItem
-  , public Persistent
   {
     public:
       struct Existing_Extension{};

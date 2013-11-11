@@ -19,10 +19,9 @@
 #include "ChannelProxy.h"
 
 // Espina
-#include "Core/Model/Channel.h"
-#include "Core/Model/EspinaModel.h"
-#include "Core/Model/Sample.h"
-#include "GUI/ViewManager.h"
+#include <GUI/Model/SampleAdapter.h>
+#include <GUI/Model/ChannelAdapter.h>
+#include <Core/Analysis/Channel.h>
 
 // Qt
 #include <QPixmap>
@@ -31,14 +30,13 @@
 
 using namespace EspINA;
 
-typedef QSet<ModelItemPtr> ChannelSet;
+typedef QSet<ItemAdapterPtr> ChannelSet;
 
 //------------------------------------------------------------------------
-ChannelProxy::ChannelProxy(ViewManager *vm, QObject* parent)
+ChannelProxy::ChannelProxy(ModelAdapterSPtr sourceModel, QObject* parent)
 : QAbstractProxyModel(parent)
-, m_model(NULL)
-, m_viewManager(vm)
 {
+  setSourceModel(sourceModel);
 }
 
 //------------------------------------------------------------------------
@@ -47,21 +45,21 @@ ChannelProxy::~ChannelProxy()
 }
 
 //------------------------------------------------------------------------
-void ChannelProxy::setSourceModel(EspinaModel *sourceModel)
+void ChannelProxy::setSourceModel(ModelAdapterSPtr sourceModel)
 {
   m_model = sourceModel;
-  connect(sourceModel, SIGNAL(rowsInserted(const QModelIndex&, int, int)),
+  connect(sourceModel.get(), SIGNAL(rowsInserted(const QModelIndex&, int, int)),
           this, SLOT(sourceRowsInserted(const QModelIndex&, int, int)));
-  connect(sourceModel, SIGNAL(rowsRemoved(const QModelIndex&, int, int)),
+  connect(sourceModel.get(), SIGNAL(rowsRemoved(const QModelIndex&, int, int)),
           this, SLOT(sourceRowsRemoved(QModelIndex, int, int)));
-  connect(sourceModel, SIGNAL(rowsAboutToBeRemoved(const QModelIndex&, int, int)),
+  connect(sourceModel.get(), SIGNAL(rowsAboutToBeRemoved(const QModelIndex&, int, int)),
           this, SLOT(sourceRowsAboutToBeRemoved(QModelIndex, int, int)));
-  connect(sourceModel, SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)),
+  connect(sourceModel.get(), SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)),
           this, SLOT(sourceDataChanged(const QModelIndex &,const QModelIndex &)));
-  connect(sourceModel, SIGNAL(modelAboutToBeReset()),
+  connect(sourceModel.get(), SIGNAL(modelAboutToBeReset()),
           this, SLOT(sourceModelReset()));
 
-  QAbstractProxyModel::setSourceModel(sourceModel);
+  QAbstractProxyModel::setSourceModel(sourceModel.get());
 
   sourceRowsInserted(m_model->sampleRoot() , 0, m_model->rowCount(m_model->sampleRoot())  - 1);
   sourceRowsInserted(m_model->channelRoot(), 0, m_model->rowCount(m_model->channelRoot()) - 1);
@@ -73,14 +71,14 @@ QVariant ChannelProxy::data(const QModelIndex& proxyIndex, int role) const
   if (!proxyIndex.isValid())
     return QVariant();
 
-  ModelItemPtr item = indexPtr(proxyIndex);
+  ItemAdapterPtr item = itemAdapter(proxyIndex);
   switch (item->type())
   {
-    case SAMPLE:
+    case ItemAdapter::Type::SAMPLE:
     {
       if (Qt::DisplayRole == role)
       {
-        SamplePtr sample = samplePtr(item);
+        SampleAdapterPtr sample = samplePtr(item);
         int numSegs = numChannels(sample);
         QString suffix = (numSegs>0)?QString(" (%1)").arg(numChannels(sample)):QString();
         return item->data(role).toString() + suffix;
@@ -89,17 +87,17 @@ QVariant ChannelProxy::data(const QModelIndex& proxyIndex, int role) const
       else
         return item->data(role);
     }
-    case CHANNEL:
+    case ItemAdapter::Type::CHANNEL:
       if (Qt::DecorationRole == role)
       {
         QPixmap channelIcon(3,16);
         channelIcon.fill(proxyIndex.parent().data(role).value<QColor>());
         return channelIcon;
-      }else if (Qt::FontRole == role)
-      {
-        QFont myFont;
-        myFont.setBold(m_viewManager->activeChannel() == item);
-        return myFont;
+//       }else if (Qt::FontRole == role)
+//       {
+//         QFont myFont;
+//         myFont.setBold(m_viewManager->activeChannel() == item);
+//         return myFont;
       }else
         return item->data(role);
     default:
@@ -123,11 +121,11 @@ int ChannelProxy::rowCount(const QModelIndex& parent) const
     return m_samples.size();
 
   // Cast to base type
-  ModelItemPtr parentItem = indexPtr(parent);
+  ItemAdapterPtr parentItem = itemAdapter(parent);
   int rows = 0;
-  if (SAMPLE == parentItem->type())
+  if (ItemAdapter::Type::SAMPLE == parentItem->type())
   {
-    SamplePtr sample = samplePtr(parentItem);
+    SampleAdapterPtr sample = samplePtr(parentItem);
     rows = numSubSamples(sample) + numChannels(sample);
   }
   return rows;
@@ -142,9 +140,9 @@ QModelIndex ChannelProxy::index(int row, int column, const QModelIndex& parent) 
   if (!parent.isValid())
     return mapFromSource(m_model->index(row, column, m_model->sampleRoot()));
 
-  ModelItemPtr parentItem = indexPtr(parent);
-  Q_ASSERT(EspINA::SAMPLE == parentItem->type());
-  SamplePtr parentSample = samplePtr(parentItem);
+  ItemAdapterPtr parentItem = itemAdapter(parent);
+  Q_ASSERT(ItemAdapter::Type::SAMPLE == parentItem->type());
+  SampleAdapterPtr parentSample = samplePtr(parentItem);
 
   int subSamples = numSubSamples(parentSample);
   if (row < subSamples)
@@ -152,7 +150,7 @@ QModelIndex ChannelProxy::index(int row, int column, const QModelIndex& parent) 
 
   int channelRow = row - subSamples;
   Q_ASSERT(channelRow < numChannels(parentSample));
-  ModelItemPtr internalPtr = m_channels[parentSample][channelRow];
+  ItemAdapterPtr internalPtr = m_channels[parentSample][channelRow];
 
   return createIndex(row, column, internalPtr);
 }
@@ -163,31 +161,25 @@ QModelIndex ChannelProxy::parent(const QModelIndex& child) const
   if (!child.isValid())
     return QModelIndex();
 
-  ModelItemPtr childItem = indexPtr(child);
+  ItemAdapterPtr childItem = itemAdapter(child);
   Q_ASSERT(childItem);
 
   QModelIndex parent;
   // Checks if Sample
-  switch (childItem->type())
+  if (ItemAdapter::Type::SAMPLE == childItem->type())
   {
-    case EspINA::SAMPLE:
+    //TODO: Support nested samples
+    parent = QModelIndex();
+  } else if (ItemAdapter::Type::CHANNEL == childItem->type())
+  {
+    for(auto sample : m_channels.keys())
     {
-      //TODO: Support nested samples
-      parent = QModelIndex();
-      break;
+      if (m_channels[sample].contains(childItem))
+        parent = mapFromSource(m_model->sampleIndex(sample));
     }
-    case EspINA::CHANNEL:
-    {
-      foreach(SamplePtr sample, m_channels.keys())
-      {
-        if (m_channels[sample].contains(childItem))
-          parent = mapFromSource(m_model->sampleIndex(sample));
-      }
-      break;
-    }
-    default:
-      Q_ASSERT(false);
-      break;
+  } else
+  {
+    throw -1;
   }
 
   return parent;
@@ -200,47 +192,40 @@ QModelIndex ChannelProxy::mapFromSource(const QModelIndex& sourceIndex) const
   if (!sourceIndex.isValid())
     return QModelIndex();
 
-  if (sourceIndex == m_model->taxonomyRoot() ||
-      sourceIndex == m_model->sampleRoot()   ||
-      sourceIndex == m_model->channelRoot()  ||
-      sourceIndex == m_model->filterRoot()   ||
+  if (sourceIndex == m_model->classificationRoot() ||
+      sourceIndex == m_model->sampleRoot()         ||
+      sourceIndex == m_model->channelRoot()        ||
       sourceIndex == m_model->segmentationRoot())
     return QModelIndex();
 
-  ModelItemPtr sourceItem = indexPtr(sourceIndex);
+  ItemAdapterPtr sourceItem = itemAdapter(sourceIndex);
   QModelIndex proxyIndex;
-  switch (sourceItem->type())
+  if (ItemAdapter::Type::SAMPLE == sourceItem->type())
   {
-    case EspINA::SAMPLE:
+    //Samples are shown in the same order than in the original model
+    proxyIndex = createIndex(sourceIndex.row(),
+                             sourceIndex.column(),
+                             sourceIndex.internalPointer());
+  }
+  else if (ItemAdapter::Type::CHANNEL == sourceItem->type())
+  {
+    ChannelAdapterPtr channel = channelPtr(sourceItem);
+    Q_ASSERT(channel);
+    ItemAdapterSList samples = m_model->relatedItems(channel, EspINA::RELATION_IN, Channel::STAIN_LINK);
+    if (samples.size() > 0)
     {
-//       Sample *sample = dynamic_cast<Sample *>(sourceItem);
-//       Q_ASSERT(sample);
-      //Samples are shown in the same order than in the original model
-      proxyIndex = createIndex(sourceIndex.row(),
-                               sourceIndex.column(),
-                               sourceIndex.internalPointer());
-      break;
-    }
-    case EspINA::CHANNEL:
-    {
-      ChannelPtr channel = channelPtr(sourceItem);
-      Q_ASSERT(channel);
-      ModelItemSList samples = channel->relatedItems(EspINA::RELATION_IN, Channel::STAIN_LINK);
-      if (samples.size() > 0)
+      SampleAdapterPtr sample = samplePtr(samples[0].get());
+      int row = m_channels[sample].indexOf(sourceItem);
+      if (row >= 0)
       {
-        SamplePtr sample = samplePtr(samples[0].get());
-        int row = m_channels[sample].indexOf(sourceItem);
-        if (row >= 0)
-        {
-          row += numSubSamples(sample);
-          proxyIndex = createIndex(row, 0, sourceIndex.internalPointer());
-        }
+        row += numSubSamples(sample);
+        proxyIndex = createIndex(row, 0, sourceIndex.internalPointer());
       }
-      break;
     }
-    default:
-      proxyIndex = QModelIndex();
-      break;
+  }
+  else 
+  {
+    proxyIndex = QModelIndex();
   }
 
   return proxyIndex;
@@ -252,26 +237,20 @@ QModelIndex ChannelProxy::mapToSource(const QModelIndex& proxyIndex) const
   if (!proxyIndex.isValid())
     return QModelIndex();
 
-  ModelItemPtr proxyItem = indexPtr(proxyIndex);
+  ItemAdapterPtr proxyItem = itemAdapter(proxyIndex);
 
   QModelIndex sourceIndex;
-  switch (proxyItem->type())
+  if (ItemAdapter::Type::SAMPLE == proxyItem->type())
   {
-    case SAMPLE:
-    {
-      SamplePtr proxySample = samplePtr(proxyItem);
-      sourceIndex = m_model->sampleIndex(proxySample);
-      break;
-    }
-    case CHANNEL:
-    {
-      ChannelPtr proxyChannel = channelPtr(proxyItem);
-      sourceIndex = m_model->channelIndex(proxyChannel);
-      break;
-    }
-    default:
-      Q_ASSERT(false);
-      break;
+    SampleAdapterPtr proxySample = samplePtr(proxyItem);
+    sourceIndex = m_model->sampleIndex(proxySample);
+  } else if (ItemAdapter::Type::CHANNEL == proxyItem->type())
+  {
+    ChannelAdapterPtr proxyChannel = channelPtr(proxyItem);
+    sourceIndex = m_model->channelIndex(proxyChannel);
+  } else 
+  {
+    throw -1;
   }
 
   return sourceIndex;
@@ -280,23 +259,24 @@ QModelIndex ChannelProxy::mapToSource(const QModelIndex& proxyIndex) const
 //------------------------------------------------------------------------
 int ChannelProxy::numChannels(QModelIndex sampleIndex, bool recursive) const
 {
-  ModelItemPtr item = indexPtr(sampleIndex);
-  if (SAMPLE != item->type())
+  ItemAdapterPtr item = itemAdapter(sampleIndex);
+  if (ItemAdapter::Type::SAMPLE != item->type())
     return 0;
 
-  SamplePtr sample = samplePtr(item);
+  SampleAdapterPtr sample = samplePtr(item);
   int total = numChannels(sample);
+
   return total;
 }
 
 //------------------------------------------------------------------------
 int ChannelProxy::numSubSamples(QModelIndex sampleIndex) const
 {
-  ModelItemPtr item = indexPtr(sampleIndex);
-  if (EspINA::SAMPLE != item->type())
+  ItemAdapterPtr item = itemAdapter(sampleIndex);
+  if (ItemAdapter::Type::SAMPLE != item->type())
     return 0;
 
-  SamplePtr sample = samplePtr(item);
+  SampleAdapterPtr sample = samplePtr(item);
   return numSubSamples(sample);
 }
 
@@ -326,9 +306,8 @@ void ChannelProxy::sourceRowsInserted(const QModelIndex& sourceParent, int start
   if (!sourceParent.isValid())
     return;
 
-  if (sourceParent == m_model->taxonomyRoot() ||
-      sourceParent == m_model->segmentationRoot() ||
-      sourceParent == m_model->filterRoot())
+  if (sourceParent == m_model->classificationRoot() ||
+      sourceParent == m_model->segmentationRoot())
     return;
 
   if (sourceParent == m_model->sampleRoot())
@@ -338,19 +317,18 @@ void ChannelProxy::sourceRowsInserted(const QModelIndex& sourceParent, int start
       for (int row = start; row <= end; row++)
       {
         QModelIndex sampleIndex = m_model->index(row, 0, sourceParent);
-        ModelItemPtr sourceRow = indexPtr(sampleIndex);
-        Q_ASSERT(EspINA::SAMPLE == sourceRow->type());
-        SamplePtr sample = samplePtr(sourceRow);
+        ItemAdapterPtr sourceRow = itemAdapter(sampleIndex);
+        Q_ASSERT(ItemAdapter::Type::SAMPLE == sourceRow->type());
+        SampleAdapterPtr sample = samplePtr(sourceRow);
         m_samples << sample;
-        ModelItemSList channels = sample->relatedItems(EspINA::RELATION_OUT,
-                                                       Channel::STAIN_LINK);
+        ItemAdapterSList channels = m_model->relatedItems(sample, EspINA::RELATION_OUT, Channel::STAIN_LINK);
         if (!channels.isEmpty())
         {
           int start = 0;
           int end   = start + channels.size() - 1;
           beginInsertRows(sampleIndex, start, end);
           {
-            foreach(ModelItemSPtr item, channels)
+            for(ItemAdapterSPtr item : channels)
             {
               m_channels[sample] << item.get();
             }
@@ -371,19 +349,18 @@ void ChannelProxy::sourceRowsAboutToBeRemoved(const QModelIndex& sourceParent, i
   if (!sourceParent.isValid())
     return;
 
-  if (sourceParent == m_model->taxonomyRoot() ||
-      sourceParent == m_model->segmentationRoot()  ||
-      sourceParent == m_model->filterRoot())
+  if (sourceParent == m_model->classificationRoot() ||
+      sourceParent == m_model->segmentationRoot())
     return;
 
   QModelIndex sourceIndex = m_model->index(start, 0, sourceParent);
   QModelIndex proxyIndex = mapFromSource(sourceIndex);
-  ModelItemPtr item = indexPtr(sourceIndex);
+  ItemAdapterPtr item = itemAdapter(sourceIndex);
 
-  if (EspINA::SAMPLE == item->type())
+  if (ItemAdapter::Type::SAMPLE == item->type())
   {
     beginRemoveRows(proxyIndex.parent(), start,end);
-    SamplePtr sample = samplePtr(item);
+    SampleAdapterPtr sample = samplePtr(item);
     m_samples.removeOne(sample);
     m_channels.remove(sample);
     endRemoveRows();
@@ -435,11 +412,13 @@ QModelIndexList ChannelProxy::proxyIndices(const QModelIndex& parent, int start,
 }
 
 //------------------------------------------------------------------------
-void debugChannelSets(QString name, QSet<ModelItem *> set)
+void debugChannelSets(QString name, QSet<ItemAdapterPtr> set)
 {
   qDebug() << name;
-  foreach(ModelItem *item, set)
+  for(ItemAdapterPtr item : set)
+  {
     qDebug() << item->data(Qt::DisplayRole).toString();
+  }
 }
 
 //------------------------------------------------------------------------
@@ -454,16 +433,15 @@ void ChannelProxy::sourceDataChanged(const QModelIndex& sourceTopLeft,
     QModelIndex proxyIndex = mapFromSource(source);
     if (proxyIndex.isValid())
     {
-      ModelItemPtr proxyItem = indexPtr(proxyIndex);
-      if (EspINA::SAMPLE == proxyItem->type())
+      ItemAdapterPtr proxyItem = itemAdapter(proxyIndex);
+      if (ItemAdapter::Type::SAMPLE == proxyItem->type())
       {
-        SamplePtr sample = samplePtr(proxyItem);
-        ModelItemSList channels = sample->relatedItems(EspINA::RELATION_OUT,
-                                                       Channel::STAIN_LINK);
+        SampleAdapterPtr sample = samplePtr(proxyItem);
+        ItemAdapterSList channels = m_model->relatedItems(sample, EspINA::RELATION_OUT, Channel::STAIN_LINK);
         ChannelSet prevChannels = m_channels[sample].toSet();
         // debugChannelSets("Previous Channels", prevChannels);
         ChannelSet currentChannels;
-        foreach(ModelItemSPtr channel, channels)
+        for(auto channel : channels)
         {
           currentChannels << channel.get();
         }
@@ -477,9 +455,9 @@ void ChannelProxy::sourceDataChanged(const QModelIndex& sourceTopLeft,
 
         if (remChannels.size() > 0)
         {
-          foreach(ModelItemPtr seg, remChannels)
+          for(auto remChannel : remChannels)
           {
-            int row = m_channels[sample].indexOf(seg);
+            int row = m_channels[sample].indexOf(remChannel);
             beginRemoveRows(proxyIndex, row, row);
             m_channels[sample].removeAt(row);
             endRemoveRows();
@@ -512,13 +490,13 @@ void ChannelProxy::sourceModelReset()
 
 
 //------------------------------------------------------------------------
-int ChannelProxy::numChannels(SamplePtr sample) const
+int ChannelProxy::numChannels(SampleAdapterPtr sample) const
 {
   return m_channels[sample].size();
 }
 
 //------------------------------------------------------------------------
-int ChannelProxy::numSubSamples(SamplePtr sample) const
+int ChannelProxy::numSubSamples(SampleAdapterPtr sample) const
 {
   return m_model->rowCount(m_model->sampleIndex(sample));
 }

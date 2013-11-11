@@ -24,7 +24,8 @@ using namespace EspINA;
 
 //------------------------------------------------------------------------
 ClassificationAdapter::ClassificationAdapter(const QString& name)
-: m_classification{new Tree<Category>(name)}
+: ItemAdapter(PersistentSPtr())
+, m_classification{new Tree<Category>(name)}
 , m_adaptedClassification(name)
 {
   m_adaptedClassification.root()->m_category = m_classification->root();
@@ -91,6 +92,7 @@ CategoryAdapterSPtr ClassificationAdapter::category(const QString& classificatio
 
 //------------------------------------------------------------------------
 ClassificationAdapter::ClassificationAdapter(ClassificationSPtr classification)
+: ItemAdapter(PersistentSPtr())
 {
 }
 

@@ -37,20 +37,22 @@ using namespace std;
 
 int model_adapter_set_classification( int argc, char** argv )
 {
-  bool error = true;//TODO
+  bool error = false;
 
   AnalysisSPtr analysis{new Analysis()};
   ModelAdapter modelAdapter(analysis);
   ModelTest    modelTester(&modelAdapter);
 
-  ClassificationAdapterSPtr classification;
+  ClassificationAdapterSPtr classification{new ClassificationAdapter()};
+  classification->setName("Test");
+  classification->createCategory("Level 1/Level 2");
 
   modelAdapter.setClassification(classification);
 
-//   if (analysis->classification() != classification) {
-//     cerr << "Unexpected classification in analysis" << endl;
-//     error = true;
-//   }
+  if (analysis->classification()->name() != classification->name()) {
+    cerr << "Unexpected classification name in analysis" << endl;
+    error = true;
+  }
 
   if (!analysis->samples().isEmpty()) {
     cerr << "Unexpected number of samples in analysis" << endl;

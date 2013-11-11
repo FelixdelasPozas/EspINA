@@ -65,6 +65,10 @@ AnalysisSPtr ChannelReader::read(const QFileInfo file,
 {
   AnalysisSPtr analysis{new Analysis()};
 
+  auto sample = factory->createSample("Fake Sample");
+
+  analysis->add(sample);
+
   auto filter = factory->createFilter<VolumetricStreamReader>(OutputSList(), VOLUMETRIC_STREAM_READER);
   filter->setFileName(file);
   ChannelSPtr channel = factory->createChannel(filter, 0);

@@ -39,7 +39,6 @@ int model_adapter_set_empty_classification( int argc, char** argv )
 {
   bool error = false;
 
-
   AnalysisSPtr analysis{new Analysis()};
   ModelAdapter modelAdapter(analysis);
   ModelTest    modelTester(&modelAdapter);

@@ -21,6 +21,7 @@
 #include "Settings/GeneralSettings.h"
 #include "Dialogs/AboutDialog.h"
 #include "Toolbars/Zoom/ZoomTools.h"
+#include "Docks/ChannelExplorer/ChannelExplorer.h"
 #include <GUI/ColorEngines/CategoryColorEngine.h>
 #include <GUI/ColorEngines/NumberColorEngine.h>
 #include <GUI/ColorEngines/UserColorEngine.h>
@@ -264,8 +265,8 @@ EspinaMainWindow::EspinaMainWindow(AnalysisSPtr       analysis,
 //   CompositionToolBar *compositionBar = new CompositionToolBar(m_model, m_undoStack, m_viewManager);
 //   registerToolBar(compositionBar);
 // 
-//   ChannelExplorer *channelExplorer = new ChannelExplorer(m_model, m_undoStack, m_viewManager, this);
-//   registerDockWidget(Qt::LeftDockWidgetArea, channelExplorer);
+  ChannelExplorer *channelExplorer = new ChannelExplorer(m_model, m_viewManager, m_undoStack, this);
+  registerDockWidget(Qt::LeftDockWidgetArea, channelExplorer);
 // 
 //   SegmentationExplorer *segExplorer = new SegmentationExplorer(m_model, m_undoStack, m_viewManager, this);
 //   registerDockWidget(Qt::LeftDockWidgetArea, segExplorer);

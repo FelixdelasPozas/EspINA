@@ -24,15 +24,13 @@
 
 #include "Core/Analysis/Data.h"
 #include "Core/Analysis/ViewItem.h"
-#include "Core/Analysis/Persistent.h"
 #include "Core/Analysis/Extensions/ChannelExtension.h"
 #include "Core/Analysis/Output.h"
 
 namespace EspINA
 {
   class EspinaCore_EXPORT Channel
-  : public Persistent
-  , public ViewItem
+  : public ViewItem
   {
   public:
     static const RelationName LINK;
@@ -44,7 +42,7 @@ namespace EspINA
     static const QString VOLUMETRIC;
 
   public:
-    explicit Channel(EspINA::FilterSPtr filter, const EspINA::Output::Id output);
+    explicit Channel(FilterSPtr filter, const Output::Id output);
     virtual ~Channel();
 
     virtual void restoreState(const State& state);

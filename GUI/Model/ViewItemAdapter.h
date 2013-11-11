@@ -71,12 +71,12 @@ namespace EspINA {
     { return m_viewItem->data(type); }
 
     RepresentationSPtr representation(Representation::Type representation) const;
-    
+
     RepresentationSList representations() const
     { return m_representations.values(); }
-    
+
     RepresentationTypeList representationTypes() const;
-    
+
     void setRepresentationFactory(RepresentationFactorySPtr factory)
     { m_factory = factory; }
 
@@ -95,12 +95,7 @@ namespace EspINA {
 //     void outputModified();
 // 
   protected:
-    explicit ViewItemAdapter(FilterAdapterSPtr filter, ViewItemSPtr item)
-    : m_filter{filter}
-    , m_viewItem{item}
-    , m_isSelected{false}
-    , m_isVisible{true}
-    , m_outputIsModified{false}{}
+    explicit ViewItemAdapter(FilterAdapterSPtr filter, ViewItemSPtr item);
 
   protected:
     FilterAdapterSPtr m_filter;

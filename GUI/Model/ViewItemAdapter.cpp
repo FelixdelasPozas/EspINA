@@ -18,10 +18,22 @@
  */
 
 #include "ViewItemAdapter.h"
+
+#include <Core/Analysis/ViewItem.h>
 #include <GUI/Representations/RepresentationFactory.h>
 
 using namespace EspINA;
 
+//------------------------------------------------------------------------
+ViewItemAdapter::ViewItemAdapter(FilterAdapterSPtr filter, ViewItemSPtr item)
+: ItemAdapter(item)
+, m_filter{filter}
+, m_viewItem{item}
+, m_isSelected{false}
+, m_isVisible{true}
+, m_outputIsModified{false}
+{
+}
 
 //------------------------------------------------------------------------
 RepresentationSPtr ViewItemAdapter::representation(Representation::Type representation) const

@@ -53,6 +53,9 @@ namespace EspINA {
     DataSPtr data(const Data::Type& type) const
     { return m_output->data(type); }
 
+    bool isValid() const
+    {return m_output->isValid(); }
+
   private:
     OutputSPtr m_output;
   };

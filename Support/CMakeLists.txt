@@ -8,6 +8,7 @@ include_directories(
 qt4_wrap_cpp(Support_MOC
   ViewManager.h
   ToolGroup.h
+  DockWidget.h
   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
   )
 
