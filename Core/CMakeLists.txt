@@ -28,6 +28,7 @@ set (CORE_SOURCES
   Analysis/Segmentation.cpp
   Analysis/Storage.cpp
   Analysis/ViewItem.cpp
+  Analysis/Data/VolumetricData.cpp
   Factory/CoreFactory.cpp
   IO/ClassificationXML.cpp
   IO/GraphIO.cpp 

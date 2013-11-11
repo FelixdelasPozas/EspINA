@@ -38,7 +38,7 @@ using namespace EspINA;
 SmoothedMeshRepresentation::SmoothedMeshRepresentation(MeshDataSPtr mesh, RenderView *view)
 : MeshRepresentation(mesh, view)
 {
-  setLabel(tr("Smoothed Mesh"));
+  setType(tr("Smoothed Mesh"));
 }
 
 //-----------------------------------------------------------------------------

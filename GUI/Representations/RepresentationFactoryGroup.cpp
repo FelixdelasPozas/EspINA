@@ -17,12 +17,27 @@
  *
  */
 
-#include "OutputAdapter.h"
+#include "RepresentationFactoryGroup.h"
 
 using namespace EspINA;
 
-//------------------------------------------------------------------------
-OutputAdapter::OutputAdapter(OutputSPtr output)
-: m_output{output}
+void RepresentationFactoryGroup::addRepresentationFactory(RepresentationFactorySPtr factory)
 {
+  for(auto representation : factory->representations())
+  {
+    if (m_factories.contains(representation)) throw Representation_Already_Provided_Exception();
+
+    m_factories[representation] = factory;
+  }
+}
+
+RepresentationTypeList RepresentationFactoryGroup::representations() const
+{
+  return m_factories.keys();
+}
+
+
+RepresentationSPtr RepresentationFactoryGroup::createRepresentation(OutputSPtr output, Representation::Type type)
+{
+  return m_factories[type]->createRepresentation(output, type);
 }

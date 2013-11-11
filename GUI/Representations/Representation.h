@@ -76,11 +76,8 @@ namespace EspINA
     bool isActive() const
     { return m_active; }
 
-    void setLabel(const QString &label)
-    { m_label = label; }
-
-    QString label() const
-    { return m_label; }
+    Type type() const
+    { return m_type; }
 
     virtual RepresentationSettings *settingsWidget() = 0;
 
@@ -146,8 +143,10 @@ namespace EspINA
 
     virtual QList<vtkProp*> getActors() = 0;
 
+    virtual bool crosshairDependent() const = 0;
+
     void setCrosshairPoint(const NmVector3& point)
-    { m_crosshair = point; onCrosshairChanged(m_crosshair); }
+    { m_crosshair = point; }
 
     NmVector3 crosshairPoint() const
     { return m_crosshair; }
@@ -158,7 +157,8 @@ namespace EspINA
 
     virtual void updateVisibility(bool visible) = 0;
 
-    virtual void onCrosshairChanged(const NmVector3& point) = 0;
+    void setType(const Representation::Type &type)
+    { m_type = type; }
 
 
   protected:
@@ -174,9 +174,9 @@ namespace EspINA
     RepresentationSList m_clones;
 
   private:
-    bool    m_active;
-    bool    m_visible;
-    QString m_label;
+    bool m_active;
+    bool m_visible;
+    Type m_type;
   };
 
   using RepresentationTypeList = QList<Representation::Type>;

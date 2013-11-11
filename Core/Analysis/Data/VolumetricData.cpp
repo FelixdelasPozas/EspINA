@@ -17,12 +17,11 @@
  *
  */
 
-#include "OutputAdapter.h"
+#include <Core/Analysis/Data/VolumetricData.h>
 
 using namespace EspINA;
 
-//------------------------------------------------------------------------
-OutputAdapter::OutputAdapter(OutputSPtr output)
-: m_output{output}
+EspINA::DefaultVolumetricDataSPtr EspINA::volumetricData(OutputSPtr output)
 {
+  return std::dynamic_pointer_cast<VolumetricData<itkVolumeType>>(output->data(VolumetricData<itkVolumeType>::TYPE));
 }

@@ -44,6 +44,9 @@ namespace EspINA
 
       void onCrosshairChanged(const NmVector3 &point) {};
 
+      virtual bool crosshairDependent() const
+      { return false; }
+
   protected:
       virtual RepresentationSPtr cloneImplementation(View3D *view);
 

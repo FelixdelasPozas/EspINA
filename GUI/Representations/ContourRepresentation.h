@@ -92,8 +92,9 @@ namespace EspINA
       Plane plane()
       { return toPlane(m_planeIndex); }
 
-      void onCrosshairChanged(const NmVector3 &point)
-      { updateRepresentation(); }
+      virtual bool crosshairDependent() const
+      { return true; }
+
 
     protected:
       virtual RepresentationSPtr cloneImplementation(View2D *view);

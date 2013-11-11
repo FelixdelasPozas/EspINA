@@ -77,8 +77,6 @@ namespace EspINA
     explicit ModelAdapter(AnalysisSPtr analysis);
     virtual ~ModelAdapter();
 
-    void setAnalysis(AnalysisSPtr analysis);
-
     void reset();
 
     // Implement QAbstractItemModel Interface
@@ -236,6 +234,7 @@ namespace EspINA
 
   using ModelAdapterPtr  = ModelAdapter *;
   using ModelAdapterSPtr = std::shared_ptr<ModelAdapter>;
+  
 
   ItemAdapterPtr EspinaGUI_EXPORT itemAdapter(const QModelIndex &index);
 

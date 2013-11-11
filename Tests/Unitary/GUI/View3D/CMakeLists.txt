@@ -31,6 +31,7 @@ add_executable(View3D_Tests
   ${SUBJECT_MOCS}
   ${GUI_DIR}/ColorEngines/NumberColorEngine.cpp
   ${GUI_DIR}/Extension/Visualization/VisualizationState.cpp
+  ${GUI_DIR}/Model/ViewItemAdapter.cpp
   ${GUI_DIR}/Model/ChannelAdapter.cpp
   ${GUI_DIR}/Model/OutputAdapter.cpp
   ${GUI_DIR}/Model/SegmentationAdapter.cpp

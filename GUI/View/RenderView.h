@@ -136,6 +136,9 @@ namespace EspINA
     const Bounds sceneBounds() const
     {return m_sceneBounds;}
 
+    const NmVector3 crosshairPoint() const
+    { return m_crosshairPoint; }
+
     const NmVector3 sceneResolution() const
     {return m_sceneResolution;}
 
@@ -148,7 +151,7 @@ namespace EspINA
 
     virtual void removeRendererControls(const QString name) = 0;
 
-    virtual RepresentationSPtr cloneRepresentation(RepresentationSPtr prototype) = 0;
+    virtual RepresentationSPtr cloneRepresentation(ViewItemAdapterPtr item, Representation::Type representation) = 0;
 
     bool segmentationsVisibility() const
     { return m_showSegmentations; }
@@ -187,6 +190,7 @@ namespace EspINA
     vtkSmartPointer<vtkRenderer> m_renderer;
 
     Bounds    m_sceneBounds;
+    NmVector3 m_crosshairPoint;
     NmVector3 m_sceneResolution;// Min distance between 2 voxels in each axis
 
     unsigned int m_numEnabledChannelRenders;

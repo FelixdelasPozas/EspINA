@@ -502,23 +502,6 @@ QModelIndex ModelAdapter::segmentationRoot() const
 }
 
 //------------------------------------------------------------------------
-void ModelAdapter::setAnalysis(AnalysisSPtr analysis)
-{
-//   if (analysis)
-//   {
-//     //TODO Remove includes
-//     ChannelSPtr channelbase = analysis->channels().first();
-//     std::shared_ptr<VolumetricStreamReader> base = std::dynamic_pointer_cast<VolumetricStreamReader>(channelbase->filter());
-//     FilterAdapterSPtr filter{new FilterAdapter<VolumetricStreamReader>(base)};
-//     //TODO Register representations in factory
-//     RepresentationFactorySPtr repFactory{new BasicRepresentationFactory()};
-//     filter->setRepresentationFactory(repFactory);
-//     ChannelAdapterSPtr channel{new ChannelAdapter(filter, channelbase)};
-//     add(channel);
-//   }
-}
-
-//------------------------------------------------------------------------
 void ModelAdapter::setClassification(ClassificationAdapterSPtr classification)
 {
   if (m_classification)

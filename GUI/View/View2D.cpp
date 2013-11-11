@@ -1419,12 +1419,15 @@ Selector::WorldRegion View2D::worldRegion(const Selector::DisplayRegion& region,
 }
 
 //-----------------------------------------------------------------------------
-RepresentationSPtr View2D::cloneRepresentation(RepresentationSPtr prototype)
+RepresentationSPtr View2D::cloneRepresentation(ViewItemAdapterPtr item, Representation::Type representation)
 {
-  RepresentationSPtr rep = RepresentationSPtr();
+  RepresentationSPtr prototype = item->representation(representation);
+  RepresentationSPtr rep;
 
   if (prototype->canRenderOnView().testFlag(Representation::RENDERABLEVIEW_SLICE))
+  {
     rep = prototype->clone(this);
+  }
 
   return rep;
 }

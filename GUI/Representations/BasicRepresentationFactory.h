@@ -27,11 +27,24 @@
 
 namespace EspINA
 {
-  class EspinaGUI_EXPORT BasicRepresentationFactory
+  class EspinaGUI_EXPORT BasicChannelRepresentationFactory
   : public RepresentationFactory
   {
   public:
-    virtual ~BasicRepresentationFactory() {};
+    virtual ~BasicChannelRepresentationFactory() {};
+
+    virtual RepresentationTypeList representations() const;
+
+    virtual RepresentationSPtr createRepresentation(OutputSPtr output, Representation::Type type);
+  };
+
+  class EspinaGUI_EXPORT BasicSegmentationRepresentationFactory
+  : public RepresentationFactory
+  {
+  public:
+    virtual ~BasicSegmentationRepresentationFactory(){}
+
+    virtual RepresentationTypeList representations() const;
 
     virtual RepresentationSPtr createRepresentation(OutputSPtr output, Representation::Type type);
   };

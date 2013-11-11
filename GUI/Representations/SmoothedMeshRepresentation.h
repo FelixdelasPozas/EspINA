@@ -41,6 +41,9 @@ namespace EspINA
 
     virtual void updateRepresentation();
 
+    virtual bool crosshairDependent() const
+    { return false; }
+
   protected:
     virtual RepresentationSPtr cloneImplementation(View3D *view);
 

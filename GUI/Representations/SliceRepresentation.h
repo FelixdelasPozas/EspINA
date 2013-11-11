@@ -48,7 +48,6 @@ class vtkImageMapToColors;
 class vtkImageShiftScale;
 class vtkImageActor;
 class vtkLookupTable;
-class vtkImageImport;
 
 namespace EspINA
 {
@@ -59,8 +58,10 @@ namespace EspINA
   : public Representation
   {
   public:
-    explicit ChannelSliceRepresentation(DefaultVolumetricDataSPtr data,
-                                        View2D        *view);
+    static const Representation::Type TYPE;
+
+  public:
+    explicit ChannelSliceRepresentation(DefaultVolumetricDataSPtr data, View2D *view);
     virtual ~ChannelSliceRepresentation();
 
     virtual RepresentationSettings *settingsWidget();
@@ -90,6 +91,9 @@ namespace EspINA
     Plane plane()
     { return toPlane(m_planeIndex); }
 
+    virtual bool crosshairDependent() const
+    { return true; }
+
   protected:
     virtual RepresentationSPtr cloneImplementation(View2D *view);
 
@@ -97,9 +101,6 @@ namespace EspINA
     { return RepresentationSPtr(); }
 
     virtual void updateVisibility(bool visible);
-
-    virtual void onCrosshairChanged(const NmVector3& point)
-    { updateRepresentation(); }
 
   private:
     void setView(View2D *view) { m_view = view; };
@@ -113,7 +114,6 @@ namespace EspINA
     using ExporterType = itk::ImageToVTKImageFilter<itkVolumeType>;
 
     ExporterType::Pointer                m_exporter;
-    vtkSmartPointer<vtkImageImport>      m_importer;
     vtkSmartPointer<vtkImageMapToColors> m_mapToColors;
     vtkSmartPointer<vtkImageShiftScale>  m_shiftScaleFilter;
     vtkSmartPointer<vtkImageActor>       m_actor;
@@ -157,6 +157,9 @@ namespace EspINA
     Plane plane()
     { return toPlane(m_planeIndex); }
 
+    virtual bool crosshairDependent() const
+    { return true; }
+
   protected:
     virtual RepresentationSPtr cloneImplementation(View2D *view);
 
@@ -164,9 +167,6 @@ namespace EspINA
     { return RepresentationSPtr(); }
 
     virtual void updateVisibility(bool visible);
-
-    virtual void onCrosshairChanged(const NmVector3& point)
-    { updateRepresentation(); }
 
   private:
     void setView(View2D *view) { m_view = view; };
@@ -180,7 +180,6 @@ namespace EspINA
     using ExporterType = itk::ImageToVTKImageFilter<itkVolumeType>;
 
     ExporterType::Pointer                m_exporter;
-    vtkSmartPointer<vtkImageImport>      m_importer;
     vtkSmartPointer<vtkImageMapToColors> m_mapToColors;
     vtkSmartPointer<vtkImageActor>       m_actor;
 

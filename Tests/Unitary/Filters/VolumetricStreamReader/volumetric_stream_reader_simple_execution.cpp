@@ -69,7 +69,7 @@ int volumetric_stream_reader_simple_execution(int argc, char** argv)
     error = true;
   }
 
-  DefaultVolumetricDataSPtr volume = volumetricData<itkVolumeType>(reader.output(0));
+  DefaultVolumetricDataSPtr volume = volumetricData(reader.output(0));
 
   Bounds imageBounds = equivalentBounds<itkVolumeType>(image, image->GetLargestPossibleRegion());
   if (volume->bounds() != imageBounds) {

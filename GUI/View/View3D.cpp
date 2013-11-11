@@ -921,9 +921,10 @@ void View3D::updateScrollBarsLimits()
 }
 
 //-----------------------------------------------------------------------------
-RepresentationSPtr View3D::cloneRepresentation(RepresentationSPtr prototype)
+RepresentationSPtr View3D::cloneRepresentation(ViewItemAdapterPtr item, Representation::Type representation)
 {
-  RepresentationSPtr rep = RepresentationSPtr();
+  RepresentationSPtr prototype = item->representation(representation);
+  RepresentationSPtr rep;
 
   if (prototype->canRenderOnView().testFlag(Representation::RENDERABLEVIEW_VOLUME))
     rep = prototype->clone(this);

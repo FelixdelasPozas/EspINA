@@ -93,7 +93,7 @@ namespace EspINA
 
     virtual bool eventFilter(QObject* caller, QEvent* e);
 
-    virtual RepresentationSPtr cloneRepresentation(RepresentationSPtr prototype);
+    virtual RepresentationSPtr cloneRepresentation(EspINA::ViewItemAdapterPtr item, EspINA::Representation::Type representation);
 
   public slots: //Needed to interact with renderers
     virtual void updateView();

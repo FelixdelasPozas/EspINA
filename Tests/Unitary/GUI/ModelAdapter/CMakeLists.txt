@@ -62,6 +62,7 @@ add_executable(ModelAdapter_Tests
   ${GUI_DIR}/Model/OutputAdapter.cpp
   ${GUI_DIR}/Model/SampleAdapter.cpp
   ${GUI_DIR}/Model/SegmentationAdapter.cpp
+  ${GUI_DIR}/Representations/RepresentationFactoryGroup.cpp
   ${GUI_DIR}/ModelFactory.cpp
   ModelTest.cpp
   )

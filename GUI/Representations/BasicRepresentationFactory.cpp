@@ -18,6 +18,8 @@
  */
 
 #include "BasicRepresentationFactory.h"
+#include "SliceRepresentation.h"
+#include <Core/Analysis/Data/VolumetricData.h>
 
 // #include "SliceRepresentation.h"
 // #include "SimpleMeshRepresentation.h"
@@ -33,9 +35,44 @@
 
 using namespace EspINA;
 
-RepresentationSPtr BasicRepresentationFactory::createRepresentation(OutputSPtr output, Representation::Type type)
+//-----------------------------------------------------------------------------
+RepresentationTypeList BasicChannelRepresentationFactory::representations() const
 {
+  RepresentationTypeList representations;
 
+  representations << ChannelSliceRepresentation::TYPE;
+
+  return representations;
+}
+
+
+//-----------------------------------------------------------------------------
+RepresentationSPtr BasicChannelRepresentationFactory::createRepresentation(OutputSPtr output, Representation::Type representation)
+{
+  RepresentationSPtr rep;
+
+  if (representation == ChannelSliceRepresentation::TYPE)
+  {
+    DefaultVolumetricDataSPtr volume = volumetricData(output);
+
+    rep = RepresentationSPtr{new ChannelSliceRepresentation(volume, nullptr)};
+  }
+
+  return rep;
+}
+
+//-----------------------------------------------------------------------------
+RepresentationTypeList BasicSegmentationRepresentationFactory::representations() const
+{
+  RepresentationTypeList representations;
+
+  return representations;
+}
+
+//-----------------------------------------------------------------------------
+RepresentationSPtr BasicSegmentationRepresentationFactory::createRepresentation(OutputSPtr output, Representation::Type type)
+{
+  return RepresentationSPtr();
 }
 
 // void BasicGraphicalRepresentationFactory::createGraphicalRepresentations(ChannelOutputSPtr output)

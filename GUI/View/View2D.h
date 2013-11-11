@@ -140,7 +140,7 @@ class SliceWidget;
 
     void updateCrosshairPoint(Plane plane, Nm slicePos);
 
-    virtual RepresentationSPtr cloneRepresentation(RepresentationSPtr prototype);
+    virtual RepresentationSPtr cloneRepresentation(EspINA::ViewItemAdapterPtr item, EspINA::Representation::Type representation);
 
   public slots:
     /// Show/Hide Preprocessing
@@ -263,7 +263,6 @@ class SliceWidget;
     vtkSmartPointer<vtkAxisActor2D> m_ruler;
 
     // View State
-    NmVector3 m_crosshairPoint;
     NmVector3 m_slicingStep;
 
     std::unique_ptr<State> m_state;

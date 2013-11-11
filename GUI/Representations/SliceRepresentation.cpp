@@ -48,6 +48,8 @@
 
 using namespace EspINA;
 
+const Representation::Type ChannelSliceRepresentation::TYPE = "Slice";
+
 //-----------------------------------------------------------------------------
 ChannelSliceRepresentation::ChannelSliceRepresentation(DefaultVolumetricDataSPtr data,
                                                        View2D *view)
@@ -55,13 +57,12 @@ ChannelSliceRepresentation::ChannelSliceRepresentation(DefaultVolumetricDataSPtr
 , m_data(data)
 , m_planeIndex(-1)
 , m_exporter(nullptr)
-, m_importer(nullptr)
 , m_mapToColors(nullptr)
 , m_shiftScaleFilter(nullptr)
 , m_actor(nullptr)
 , m_lut(nullptr)
 {
-  setLabel(tr("Solid"));
+  setType(TYPE);
   //qDebug() << "Creating Solid Representation";
 }
 
@@ -131,6 +132,7 @@ RepresentationSPtr ChannelSliceRepresentation::cloneImplementation(View2D *view)
 {
   ChannelSliceRepresentation *representation =  new ChannelSliceRepresentation(m_data, view);
   representation->setView(view);
+  representation->m_planeIndex = normalCoordinateIndex(view->plane());
 
   return RepresentationSPtr(representation);
 }
@@ -151,28 +153,23 @@ void ChannelSliceRepresentation::initializePipeline()
   m_reslicePoint = m_crosshair[m_planeIndex];
 
   Bounds imageBounds = m_data->bounds();
-  imageBounds.setUpperInclusion(true);
   imageBounds.setLowerInclusion(true);
+  imageBounds.setUpperInclusion(toAxis(m_planeIndex), true);
   imageBounds[2*m_planeIndex] = m_reslicePoint;
   imageBounds[(2*m_planeIndex)+1] = m_reslicePoint;
 
+  itkVolumeType::Pointer slice = m_data->itkImage(imageBounds);
   m_exporter = ExporterType::New();
   m_exporter->ReleaseDataFlagOn();
-  m_exporter->SetInput(m_data->itkImage(imageBounds));
-  m_exporter->UpdateLargestPossibleRegion();
-
-  m_importer = vtkSmartPointer<vtkImageImport>::New();
-  m_importer->SetInputData(m_exporter->GetOutput());
-  m_importer->SetDataExtentToWholeExtent();
-  m_importer->SetDataScalarTypeToUnsignedChar();
-  m_importer->UpdateWholeExtent();
+  m_exporter->SetInput(slice);
+  m_exporter->Update();
 
   m_shiftScaleFilter = vtkSmartPointer<vtkImageShiftScale>::New();
-  m_shiftScaleFilter->SetInputConnection(m_importer->GetOutputPort());
+  m_shiftScaleFilter->SetInputData(m_exporter->GetOutput());
   m_shiftScaleFilter->SetShift(static_cast<int>(m_brightness*255));
   m_shiftScaleFilter->SetScale(m_contrast);
   m_shiftScaleFilter->SetClampOverflow(true);
-  m_shiftScaleFilter->SetOutputScalarType(m_importer->GetOutput()->GetScalarType());
+  m_shiftScaleFilter->SetOutputScalarType(m_exporter->GetOutput()->GetScalarType());
   m_shiftScaleFilter->Update();
 
   m_lut = vtkSmartPointer<vtkLookupTable>::New();
@@ -203,19 +200,20 @@ void ChannelSliceRepresentation::initializePipeline()
 //-----------------------------------------------------------------------------
 void ChannelSliceRepresentation::updateRepresentation()
 {
+  setCrosshairPoint(m_view->crosshairPoint());
+
   if (m_actor != nullptr && (m_crosshair[m_planeIndex] != m_reslicePoint))
   {
     m_reslicePoint = m_crosshair[m_planeIndex];
     Bounds imageBounds = m_data->bounds();
     imageBounds.setLowerInclusion(true);
-    imageBounds.setUpperInclusion(true);
+    imageBounds.setUpperInclusion(toAxis(m_planeIndex), true);
     imageBounds[2*m_planeIndex] = m_reslicePoint;
     imageBounds[(2*m_planeIndex)+1] = m_reslicePoint;
 
-    m_exporter->SetInput(m_data->itkImage(imageBounds));
-    m_exporter->UpdateLargestPossibleRegion();
-    m_importer->SetDataExtentToWholeExtent();
-    m_importer->UpdateWholeExtent();
+    itkVolumeType::Pointer slice = m_data->itkImage(imageBounds);
+    m_exporter->SetInput(slice);
+    m_exporter->Update();
     m_mapToColors->Update();
     m_shiftScaleFilter->Update();
     m_actor->Update();
@@ -254,12 +252,11 @@ SegmentationSliceRepresentation::SegmentationSliceRepresentation(DefaultVolumetr
 : Representation(view)
 , m_data(data)
 , m_planeIndex(-1)
-, m_importer(nullptr)
 , m_exporter(nullptr)
 , m_mapToColors(nullptr)
 , m_actor(nullptr)
 {
-  setLabel(tr("Solid"));
+  setType(tr("Solid"));
   //qDebug() << "Creating Solid Representation";
 }
 
@@ -373,16 +370,11 @@ void SegmentationSliceRepresentation::initializePipeline()
   m_exporter->SetInput(m_data->itkImage(imageBounds));
   m_exporter->UpdateLargestPossibleRegion();
 
-  m_importer = vtkSmartPointer<vtkImageImport>::New();
-  m_importer->SetInputData(m_exporter->GetOutput());
-  m_importer->SetDataExtentToWholeExtent();
-  m_importer->UpdateWholeExtent();
-
   // actor should be allocated first or the next call to setColor() would do nothing
   m_actor = vtkSmartPointer<vtkImageActor>::New();
 
   m_mapToColors = vtkSmartPointer<vtkImageMapToColors>::New();
-  m_mapToColors->SetInputData(m_importer->GetOutput());
+  m_mapToColors->SetInputData(m_exporter->GetOutput());
   setColor(m_color);
   m_mapToColors->SetNumberOfThreads(1);
   m_mapToColors->Update();
@@ -413,8 +405,6 @@ void SegmentationSliceRepresentation::updateRepresentation()
 
     m_exporter->SetInput(m_data->itkImage(imageBounds));
     m_exporter->UpdateLargestPossibleRegion();
-    m_importer->SetDataExtentToWholeExtent();
-    m_importer->UpdateWholeExtent();
     m_mapToColors->Update();
     m_actor->Update();
   }

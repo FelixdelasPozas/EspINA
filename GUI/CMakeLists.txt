@@ -58,6 +58,8 @@ set (GUI_SOURCES
   Model/OutputAdapter.cpp
   Model/SampleAdapter.cpp
   Model/SegmentationAdapter.cpp
+  Model/ViewItemAdapter.cpp
+  Model/Utils/ModelAdapterUtils.cpp
   ModelFactory.cpp
   Representations/BasicRepresentationFactory.cpp
   Representations/Renderers/Renderer.cpp
@@ -67,6 +69,7 @@ set (GUI_SOURCES
   Representations/ContourRepresentationSettings.cpp
   Representations/Representation.cpp
   Representations/RepresentationEmptySettings.cpp
+  Representations/RepresentationFactoryGroup.cpp 
   Representations/ContourRepresentation.cpp
   Representations/SmoothedMeshRepresentation.cpp
   Representations/MeshRepresentationBase.cpp

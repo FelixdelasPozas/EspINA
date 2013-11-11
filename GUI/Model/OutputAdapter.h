@@ -33,21 +33,13 @@ namespace EspINA {
   {
     Q_OBJECT
   public:
-    OutputAdapter(OutputSPtr output, RepresentationFactorySPtr factory);
+    OutputAdapter(OutputSPtr output);
 
     Output::Id id() const
     { return m_output->id(); }
 
     Bounds bounds() const
     { return m_output->bounds(); }
-
-    RepresentationSPtr representation(Representation::Type type) const;
-
-    RepresentationSList representations() const
-    { return m_representations.values(); }
-
-    RepresentationTypeList representationTypes() const
-    { return m_representations.keys(); }
 
     void update()
     { m_output->update();}
@@ -58,10 +50,11 @@ namespace EspINA {
     TimeStamp lastModified()
     { return m_output->lastModified(); }
 
+    DataSPtr data(const Data::Type& type) const
+    { return m_output->data(type); }
+
   private:
     OutputSPtr m_output;
-    RepresentationFactorySPtr m_factory;
-    QMap<Representation::Type, RepresentationSPtr> m_representations;
   };
 
   using OutputAdapterSPtr = std::shared_ptr<OutputAdapter>;

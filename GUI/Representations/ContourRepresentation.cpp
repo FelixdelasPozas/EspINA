@@ -53,7 +53,7 @@ ContourRepresentation::ContourRepresentation(DefaultVolumetricDataSPtr data,
 , m_pattern(normal)
 , m_minSpacing(0)
 {
-  setLabel(tr("Contour"));
+  setType(tr("Contour"));
 }
 
 //-----------------------------------------------------------------------------

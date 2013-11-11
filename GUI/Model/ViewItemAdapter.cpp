@@ -18,5 +18,24 @@
  */
 
 #include "ViewItemAdapter.h"
+#include <GUI/Representations/RepresentationFactory.h>
 
 using namespace EspINA;
+
+
+//------------------------------------------------------------------------
+RepresentationSPtr ViewItemAdapter::representation(Representation::Type representation) const
+{
+  if (!m_representations.contains(representation))
+  {
+    m_representations[representation] = m_factory->createRepresentation(m_viewItem->output(), representation);
+  }
+
+  return m_representations[representation];
+}
+
+//------------------------------------------------------------------------
+RepresentationTypeList ViewItemAdapter::representationTypes() const
+{
+  return m_factory->representations();
+}

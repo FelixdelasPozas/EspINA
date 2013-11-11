@@ -347,30 +347,31 @@ bool RenderView::updateRepresentation(ChannelAdapterPtr channel, bool render)
   {
     removeRepresentations(state);
 
-    foreach(RepresentationSPtr prototype, channel->output()->representations())
+    for(auto representationName : channel->representationTypes())
     {
-      RepresentationSPtr representationClone = cloneRepresentation(prototype);
-      if (representationClone.get() != nullptr)
+      RepresentationSPtr representation = cloneRepresentation(channel, representationName);
+      if (representation.get() != nullptr)
       {
         foreach(RendererSPtr renderer, m_renderers)
-          if (renderer->canRender(channel) && renderer->managesRepresentation(representationClone))
+          if (renderer->canRender(channel) && renderer->managesRepresentation(representation))
           {
-            representationClone->setVisible(visibilityChanged);
-            renderer->addRepresentation(channel, representationClone);
+            representation->setVisible(requestedVisibility);
+            renderer->addRepresentation(channel, representation);
           }
 
-        state.representations << std::dynamic_pointer_cast<Representation>(representationClone);
+        state.representations << representation;
       }
     }
   }
 
   bool hasChanged = visibilityChanged || brightnessChanged || contrastChanged || opacityChanged || stainChanged;
-  if (hasChanged)
+  foreach (RepresentationSPtr representation, state.representations)
   {
-    opacityChanged &= Channel::AUTOMATIC_OPACITY != state.opacity;
-
-    foreach (RepresentationSPtr representation, state.representations)
+    bool crosshairChanged = representation->crosshairDependent() && representation->crosshairPoint() != crosshairPoint();
+    if (hasChanged || crosshairChanged)
     {
+      opacityChanged &= Channel::AUTOMATIC_OPACITY != state.opacity;
+
       RepresentationSPtr rep = std::dynamic_pointer_cast<Representation>(representation);
       if (brightnessChanged) rep->setBrightness(state.brightness);
       if (contrastChanged  ) rep->setContrast(state.contrast);
@@ -468,26 +469,26 @@ bool RenderView::updateRepresentation(SegmentationAdapterPtr seg, bool render)
   {
     removeRepresentations(state);
 
-    foreach(RepresentationSPtr prototype, seg->output()->representations())
+    for(auto representationName : seg->representationTypes())
     {
-      RepresentationSPtr representationClone = cloneRepresentation(prototype);
-      if (representationClone.get() != nullptr)
+      RepresentationSPtr representation = cloneRepresentation(seg, representationName);
+      if (representation.get() != nullptr)
       {
         foreach(RendererSPtr renderer, m_renderers)
-          if (renderer->canRender(seg) && renderer->managesRepresentation(representationClone))
+          if (renderer->canRender(seg) && renderer->managesRepresentation(representation))
           {
-            representationClone->setVisible(requestedVisibility);
-            renderer->addRepresentation(seg, representationClone);
+            representation->setVisible(requestedVisibility);
+            renderer->addRepresentation(seg, representation);
           }
 
-        state.representations << std::dynamic_pointer_cast<Representation>(representationClone);
-      }
+        state.representations << representation;
 
-      if (seg->hasExtension(VisualizationState::TYPE))
-      {
-        VisualizationStateSPtr stateExtension = std::dynamic_pointer_cast<VisualizationState>(seg->extension(VisualizationState::TYPE));
+        if (seg->hasExtension(VisualizationState::TYPE))
+        {
+          VisualizationStateSPtr stateExtension = std::dynamic_pointer_cast<VisualizationState>(seg->extension(VisualizationState::TYPE));
 
-        prototype->restoreSettings(stateExtension->state(prototype->label()));
+          representation->restoreSettings(stateExtension->state(representation->type()));
+        }
       }
     }
   }

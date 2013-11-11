@@ -48,10 +48,6 @@ namespace EspINA {
 
     FilterInspectorSPtr filterInspector()
     { return m_inspector; }
-
-    void setRepresentationFactory(RepresentationFactorySPtr factory)
-    { m_factory = factory; }
-
     virtual void update(Output::Id id) = 0;
     virtual void update() = 0;//TODO Copy adapted filter interface
 
@@ -62,7 +58,6 @@ namespace EspINA {
     virtual FilterSPtr adaptedFilter() = 0;
     virtual OutputSPtr adaptedOutput(Output::Id id) = 0;
 
-    RepresentationFactorySPtr m_factory;
     OutputAdapterSList        m_outputs;
 
   private:
@@ -85,7 +80,7 @@ namespace EspINA {
       m_filter->update(id);
       for(int i = 0; i < m_filter->numberOfOutputs(); ++i)
       {
-        m_outputs << OutputAdapterSPtr{new OutputAdapter(m_filter->output(i), m_factory)};
+        m_outputs << OutputAdapterSPtr{new OutputAdapter(m_filter->output(i))};
       }
     }
 
@@ -95,7 +90,7 @@ namespace EspINA {
       m_filter->update();
       for(int i = 0; i < m_filter->numberOfOutputs(); ++i)
       {
-        m_outputs << OutputAdapterSPtr{new OutputAdapter(m_filter->output(i), m_factory)};
+        m_outputs << OutputAdapterSPtr{new OutputAdapter(m_filter->output(i))};
       }
     }
 

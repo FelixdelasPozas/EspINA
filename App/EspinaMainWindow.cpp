@@ -26,6 +26,8 @@
 #include <GUI/ColorEngines/UserColorEngine.h>
 #include <Support/Settings/EspinaSettings.h>
 #include <Core/IO/SegFile.h>
+#include <GUI/Model/Utils/ModelAdapterUtils.h>
+#include <GUI/Representations/BasicRepresentationFactory.h>
 
 
 // EspINA
@@ -90,6 +92,8 @@ EspinaMainWindow::EspinaMainWindow(AnalysisSPtr       analysis,
 
   m_factory->registerAnalysisReader(m_channelReader.get());
   m_factory->registerFilterFactory (m_channelReader.get());
+  m_factory->registerChannelRepresentationFactory(RepresentationFactorySPtr{new BasicChannelRepresentationFactory()});
+  m_factory->registerSegmentationRepresentationFactory(RepresentationFactorySPtr{new BasicSegmentationRepresentationFactory()});
 
   // TODO Move to Default EspinaView
 //   m_defaultRenderers << IRendererSPtr(new CrosshairRenderer());
@@ -103,7 +107,6 @@ EspinaMainWindow::EspinaMainWindow(AnalysisSPtr       analysis,
 //   foreach(IRendererSPtr renderer, m_defaultRenderers)
 //     factory->registerRenderer(renderer.get());
 
-  //TODO factory->registerFilter(m_filterFactory, ChannelReader::TYPE);
 
   /*** FILE MENU ***/
   QMenu *fileMenu = new QMenu(tr("File"), this);
@@ -333,22 +336,6 @@ EspinaMainWindow::~EspinaMainWindow()
   delete m_dynamicMenuRoot;
 }
 
-// //------------------------------------------------------------------------
-// FilterSPtr EspinaMainWindow::createFilter(const QString& filter,
-//                                           const Filter::NamedInputs& inputs,
-//                                           const ModelItem::Arguments& args)
-// {
-//   if (ChannelReader::TYPE == filter)
-//   {
-//     FilterSPtr reader(new ChannelReader(inputs, args, ChannelReader::TYPE, m_errorHandler));
-//     SetBasicGraphicalRepresentationFactory(reader);
-//     return reader;
-//   }
-// 
-//   Q_ASSERT(false);
-//   return FilterSPtr();
-// }
-// 
 //------------------------------------------------------------------------
 void EspinaMainWindow::loadPlugins(QList<QObject *> &plugins)
 {
@@ -688,7 +675,7 @@ void EspinaMainWindow::openAnalysis(const QStringList files)
   {
     // TODO: Merge if size > 1
     AnalysisSPtr mergedAnalysis = analyses.first();
-    m_model->setAnalysis(mergedAnalysis);
+    ModelAdapterUtils::setAnalysis(m_model, mergedAnalysis, m_factory);
     m_analysis = mergedAnalysis;
 
     m_viewManager->resetViewCameras();

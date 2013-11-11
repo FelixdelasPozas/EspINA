@@ -134,12 +134,15 @@ namespace EspINA
   template<class T> using VolumetricDataPtr  = VolumetricData<T> *;
   template<class T> using VolumetricDataSPtr = std::shared_ptr<VolumetricData<T>>;
 
-  template<class T> VolumetricDataPtr<T>  EspinaCore_EXPORT volumetricData(OutputPtr output); //NOTE: Use viewitem?
-  template<class T> VolumetricDataSPtr<T> EspinaCore_EXPORT volumetricData(OutputSPtr output)
-  { return std::dynamic_pointer_cast<VolumetricData<T>>(output->data(VolumetricData<T>::TYPE)); }
+  //template<class T> VolumetricDataPtr<T>  EspinaCore_EXPORT volumetricData(OutputPtr output); //NOTE: Use viewitem?
+//   template<class T> VolumetricDataSPtr<T> EspinaCore_EXPORT volumetricData(OutputSPtr output)
+//   { return std::dynamic_pointer_cast<VolumetricData<T>>(output->data(VolumetricData<T>::TYPE)); }
 
   // TODO Delete later
   using DefaultVolumetricDataSPtr = std::shared_ptr<VolumetricData<itkVolumeType>>;
+
+  DefaultVolumetricDataSPtr EspinaCore_EXPORT volumetricData(OutputSPtr output);
+
 
 } // namespace EspINA
 

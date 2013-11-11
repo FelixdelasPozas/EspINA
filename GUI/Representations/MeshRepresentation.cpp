@@ -34,7 +34,7 @@ using namespace EspINA;
 MeshRepresentation::MeshRepresentation(MeshDataSPtr mesh, RenderView *view)
 : MeshRepresentationBase(mesh, view)
 {
-  setLabel(tr("Mesh"));
+  setType(tr("Mesh"));
 }
 
 //-----------------------------------------------------------------------------

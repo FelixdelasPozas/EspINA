@@ -27,12 +27,16 @@
 
 namespace EspINA
 {
+  using RepresentationTypeList = QList<Representation::Type>;
+
   class EspinaGUI_EXPORT RepresentationFactory
   {
   public:
     virtual ~RepresentationFactory() {};
 
-    virtual RepresentationSPtr createRepresentation(OutputSPtr output, Representation::Type type) = 0;
+    virtual RepresentationTypeList representations() const = 0;
+
+    virtual RepresentationSPtr createRepresentation(OutputSPtr output, Representation::Type representation) = 0;
   };
 
   using RepresentationFactorySPtr = std::shared_ptr<RepresentationFactory>;

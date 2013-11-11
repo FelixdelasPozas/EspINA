@@ -17,12 +17,30 @@
  *
  */
 
-#include "OutputAdapter.h"
+#ifndef ESPINA_REPRESENTATION_FACTORY_GROUP_H
+#define ESPINA_REPRESENTATION_FACTORY_GROUP_H
 
-using namespace EspINA;
+#include <GUI/Representations/RepresentationFactory.h>
 
-//------------------------------------------------------------------------
-OutputAdapter::OutputAdapter(OutputSPtr output)
-: m_output{output}
-{
+namespace EspINA {
+
+  class EspinaGUI_EXPORT RepresentationFactoryGroup 
+  : public RepresentationFactory
+  {
+  public:
+    struct Representation_Already_Provided_Exception{};
+  public:
+    void addRepresentationFactory(RepresentationFactorySPtr factory);
+
+    virtual RepresentationTypeList representations() const;
+
+    virtual EspINA::RepresentationSPtr createRepresentation(OutputSPtr output, Representation::Type type);
+
+  private:
+    QMap<Representation::Type, RepresentationFactorySPtr> m_factories;
+  };
+
+  using RepresentationFactoryGroupSPtr = std::shared_ptr<RepresentationFactoryGroup>;
 }
+
+#endif // ESPINA_REPRESENTATION_FACTORY_GROUP_H

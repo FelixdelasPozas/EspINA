@@ -70,6 +70,16 @@ namespace EspINA {
     const DataSPtr get(Data::Type type) const
     { return m_viewItem->data(type); }
 
+    RepresentationSPtr representation(Representation::Type representation) const;
+    
+    RepresentationSList representations() const
+    { return m_representations.values(); }
+    
+    RepresentationTypeList representationTypes() const;
+    
+    void setRepresentationFactory(RepresentationFactorySPtr factory)
+    { m_factory = factory; }
+
 //     /// Convenience method to access output's representations
 //     RepresentationSList representations() const
 //     { return output()->graphicalRepresentations(); }
@@ -96,6 +106,9 @@ namespace EspINA {
     FilterAdapterSPtr m_filter;
     ViewItemSPtr      m_viewItem;
 
+    RepresentationFactorySPtr m_factory;
+    mutable QMap<Representation::Type, RepresentationSPtr> m_representations;
+
     bool m_isSelected;
     bool m_isVisible;
     bool m_outputIsModified; // sticky bit
@@ -103,6 +116,7 @@ namespace EspINA {
 
   using ViewItemAdapterPtr  = ViewItemAdapter *;
   using ViewItemAdapterList = ViewItemAdapterPtr;
+  using ViewItemAdapterSPtr = std::shared_ptr<ViewItemAdapter>;
 } // namespace EspINA
 
 #endif // ESPINA_VIEW_ITEM_ADAPTER_H

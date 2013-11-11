@@ -30,6 +30,8 @@ using namespace EspINA;
 ModelFactory::ModelFactory(SchedulerSPtr scheduler)
 : m_scheduler(scheduler)
 , m_factory(new CoreFactory(m_scheduler))
+, m_channelRepresentationFactory(new RepresentationFactoryGroup())
+, m_segmentationRepresentationFactory(new RepresentationFactoryGroup())
 {
 
 }
@@ -59,6 +61,19 @@ void ModelFactory::registerAnalysisReader(AnalysisReaderPtr reader)
   }
   m_readers << reader;
 }
+
+//------------------------------------------------------------------------
+void ModelFactory::registerChannelRepresentationFactory(RepresentationFactorySPtr factory)
+{
+  m_channelRepresentationFactory->addRepresentationFactory(factory);
+}
+
+//------------------------------------------------------------------------
+void ModelFactory::registerSegmentationRepresentationFactory(RepresentationFactorySPtr factory)
+{
+  m_segmentationRepresentationFactory->addRepresentationFactory(factory);
+}
+
 
 //------------------------------------------------------------------------
 FileExtensions ModelFactory::supportedFileExtensions()
@@ -93,5 +108,20 @@ ChannelAdapterSPtr ModelFactory::createChannel(FilterAdapterSPtr filter, Output:
 {
   ChannelSPtr channel{new Channel(filter->adaptedFilter(), output)};
 
-  return ChannelAdapterSPtr{new ChannelAdapter(filter, channel)};
+  return adaptChannel(filter, channel);
+}
+
+//------------------------------------------------------------------------
+ChannelAdapterSPtr ModelFactory::adaptChannel(FilterAdapterSPtr filter, ChannelSPtr channel) const
+{
+  ChannelAdapterSPtr adapter{new ChannelAdapter(filter, channel)};
+  adapter->setRepresentationFactory(m_channelRepresentationFactory);
+
+  return adapter;
+}
+
+//------------------------------------------------------------------------
+FilterAdapterSPtr ModelFactory::adaptFilter(FilterSPtr filter)
+{
+  return FilterAdapterSPtr{new FilterAdapter<Filter>(filter)};
 }

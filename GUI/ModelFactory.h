@@ -23,6 +23,7 @@
 #include "EspinaGUI_Export.h"
 
 #include "GUI/Model/FilterAdapter.h"
+#include "Representations/RepresentationFactoryGroup.h"
 #include <Core/Factory/AnalysisReader.h>
 #include <Core/Factory/FilterFactory.h>
 
@@ -55,6 +56,8 @@ namespace EspINA
 
     void registerAnalysisReader(AnalysisReaderPtr reader);
     void registerFilterFactory (FilterFactoryPtr  factory);
+    void registerChannelRepresentationFactory(RepresentationFactorySPtr factory);
+    void registerSegmentationRepresentationFactory(RepresentationFactorySPtr factory);
 
     FileExtensions supportedFileExtensions();
 
@@ -73,12 +76,24 @@ namespace EspINA
     }
 
     ChannelAdapterSPtr createChannel(FilterAdapterSPtr filter, Output::Id output) const;
+
+    ChannelAdapterSPtr adaptChannel(FilterAdapterSPtr filter, ChannelSPtr channel) const;
+    
+    FilterAdapterSPtr  adaptFilter(FilterSPtr filter);
 //
 //     SegmentationSPtr createSegmentation(OutputSPtr output) const;
+
+    RepresentationFactorySPtr channelRepresentationFactory() const
+    { return m_channelRepresentationFactory; }
+
+    RepresentationFactorySPtr segmentationRepresentationFactory() const
+    { return m_segmentationRepresentationFactory; }
 
   private:
     SchedulerSPtr   m_scheduler;
     CoreFactorySPtr m_factory;
+    RepresentationFactoryGroupSPtr m_channelRepresentationFactory;
+    RepresentationFactoryGroupSPtr m_segmentationRepresentationFactory;
 
     QMap<QString, AnalysisReaderList> m_readerExtensions;
     AnalysisReaderList m_readers;

@@ -48,6 +48,7 @@ add_executable(ChannelAdapter_Tests
   ${GUI_DIR}/Model/SampleAdapter.cpp
   ${GUI_DIR}/Model/ChannelAdapter.cpp
   ${GUI_DIR}/Model/OutputAdapter.cpp
+  ${GUI_DIR}/Representations/RepresentationFactoryGroup.cpp
   ${GUI_DIR}/ModelFactory.cpp
   ../gui_testing_support.cpp
 )
