@@ -17,43 +17,52 @@
 */
 
 
-#ifndef THRESHOLDACTION_H
-#define THRESHOLDACTION_H
+#ifndef ESPINA_THRESHOLD_ACTION
+#define ESPINA_THRESHOLD_ACTION
 
 #include <QWidgetAction>
 
 class QSpinBox;
 class QLabel;
 
-class ThresholdAction
-: public QWidgetAction
+namespace EspINA
 {
-  Q_OBJECT
+  class SeedThreshold
+  : public QWidgetAction
+  {
+    Q_OBJECT
+  public:
+    explicit SeedThreshold(QObject* parent = nullptr);
 
-public:
-  explicit ThresholdAction(QObject* parent);
+    virtual QWidget* createWidget(QWidget* parent);
 
-  virtual QWidget* createWidget(QWidget* parent);
+    int lowerThreshold()
+    {return m_threshold[0];}
 
-  int lowerThreshold() {return m_threshold[0];}
-  int upperThreshold() {return m_threshold[m_symmetrical?1:0];}
-  void setSymmetricalThreshold(bool symmetrical);
-  bool isSymmetrical() const {return m_symmetrical;}
+    int upperThreshold()
+    {return m_threshold[m_symmetrical?1:0];}
 
-public slots:
-  void setLowerThreshold(int th);
-  void setUpperThreshold(int th);
+    void setSymmetricalThreshold(bool symmetrical);
 
-signals:
-  void lowerThresholdChanged(int);
-  void upperThresholdChanged(int);
+    bool isSymmetrical() const
+    {return m_symmetrical;}
 
-private:
-  QLabel   *m_lthLabel, *m_uthLabel;
-  QSpinBox *m_lth, *m_uth;
+  public slots:
+    void setLowerThreshold(int th);
+    void setUpperThreshold(int th);
 
-  int  m_threshold[2];
-  bool m_symmetrical;
-};
+  signals:
+    void lowerThresholdChanged(int);
+    void upperThresholdChanged(int);
 
-#endif // THRESHOLDACTION_H
+  private:
+    QLabel   *m_lthLabel, *m_uthLabel;
+    QSpinBox *m_lth, *m_uth;
+
+    int  m_threshold[2];
+    bool m_symmetrical;
+  };
+
+} // namespace EspINA
+
+#endif // ESPINA_THRESHOLD_ACTION

@@ -20,6 +20,7 @@
 #define ESPINA_ZOOM_TOOLS_H
 
 #include <Support/ToolGroup.h>
+#include "ResetZoom.h"
 
 namespace EspINA
 {
@@ -49,10 +50,7 @@ namespace EspINA
     void initZoomTool(bool);
 
   private:
-    //ZoomToolSPtr    m_zoomTool;
-
-    QAction *m_resetViews;
-    QAction *m_zoomToolAction;
+    ResetZoomSPtr m_resetZoom;
   };
 
 } // namespace EspINA

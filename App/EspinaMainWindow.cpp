@@ -20,7 +20,8 @@
 #include "Menus/ColorEngineMenu.h"
 #include "Settings/GeneralSettings.h"
 #include "Dialogs/AboutDialog.h"
-#include "Toolbars/Zoom/ZoomTools.h"
+#include "ToolGroups/Segmentation/SegmentationTools.h"
+#include "ToolGroups/Zoom/ZoomTools.h"
 #include "Docks/ChannelExplorer/ChannelExplorer.h"
 #include <GUI/ColorEngines/CategoryColorEngine.h>
 #include <GUI/ColorEngines/NumberColorEngine.h>
@@ -243,21 +244,25 @@ EspinaMainWindow::EspinaMainWindow(AnalysisSPtr       analysis,
 
   m_mainBar = addToolBar("Main ToolBar");
   m_mainBar->setMovable(false);
+  m_mainBar->setObjectName("Main ToolBar");
   addToolBarBreak();
   m_contextualBar = addToolBar("Contextual ToolBar");
   m_contextualBar->setMovable(false);
+  m_contextualBar->setObjectName("Contextual ToolBar");
+  m_contextualBar->setMinimumHeight(38);
+  m_viewManager->setContextualBar(m_contextualBar);
 
 //   m_mainToolBar = new MainToolBar(m_model, m_undoStack, m_viewManager);
 //   registerToolBar(m_mainToolBar);
-// 
+
   ToolGroupPtr defaultActiveTool = new ZoomTools(m_viewManager);
   registerToolGroup(defaultActiveTool);
 // 
 //   VolumeOfInterest *voiToolBar = new VolumeOfInterest(m_model, m_viewManager);
 //   registerToolBar(voiToolBar);
 // 
-//   SegmentationToolBar *seedToolBar = new SegmentationToolBar(m_model, m_undoStack, m_viewManager);
-//   registerToolBar(seedToolBar);
+  ToolGroupPtr segmentationTools = new SegmentationTools(m_model, m_viewManager, m_undoStack);
+  registerToolGroup(segmentationTools);
 // 
 //   EditorToolBar *editorToolBar = new EditorToolBar(m_model, m_undoStack, m_viewManager);
 //   registerToolBar(editorToolBar);

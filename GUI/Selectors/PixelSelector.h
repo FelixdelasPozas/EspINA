@@ -17,49 +17,49 @@
  *
  */
 
-#ifndef PIXELSELECTOR_H_
-#define PIXELSELECTOR_H_
+#ifndef ESPINA_PIXEL_SELECTOR_H
+#define ESPINA_PIXEL_SELECTOR_H
 
-#include "EspinaGUI_Export.h"
-
-#include "GUI/Pickers/ISelector.h"
+#include "GUI/Selectors/Selector.h"
 
 class QSize;
 
 namespace EspINA
 {
   class EspinaGUI_EXPORT PixelSelector
-  : public ISelector
+  : public Selector
   {
   public:
     explicit PixelSelector() {}
     virtual ~PixelSelector(){}
 
-    virtual void onMouseDown(const QPoint &pos, EspinaRenderView* view);
-    virtual bool filterEvent(QEvent* e, EspinaRenderView* view = 0);
-    /// NOTE: It is user responsability to free the pointer returned
-    virtual double *getPickPoint(EspinaRenderView *view);
-    virtual ISelector::PickList generatePickList(EspinaRenderView*);
+    virtual void onMouseDown(const QPoint &pos, RenderView* view){}
+
+    virtual bool filterEvent(QEvent* e, RenderView* view = 0){}
+
+//     /// NOTE: It is user responsability to free the pointer returned
+//     virtual double *getPickPoint(EspinaRenderView *view);
+//     virtual ISelector::PickList generatePickList(EspinaRenderView*);
   };
 
 
-  class EspinaGUI_EXPORT BestPixelSelector
-  : public PixelSelector
-  {
-  public:
-    explicit BestPixelSelector();
-    virtual ~BestPixelSelector();
-
-    void setBestPixelValue(int value) {m_bestPixel = value;}
-
-    virtual void onMouseDown(const QPoint& pos, EspinaRenderView* view);
-    /// NOTE: It is user responsability to free the pointer returned
-    virtual double *getPickPoint(EspinaRenderView *view);
-
-  private:
-    QSize *m_window;
-    int    m_bestPixel;
-  };
+//   class EspinaGUI_EXPORT BestPixelSelector
+//   : public PixelSelector
+//   {
+//   public:
+//     explicit BestPixelSelector();
+//     virtual ~BestPixelSelector();
+// 
+//     void setBestPixelValue(int value) {m_bestPixel = value;}
+// 
+//     virtual void onMouseDown(const QPoint& pos, EspinaRenderView* view);
+//     /// NOTE: It is user responsability to free the pointer returned
+//     virtual double *getPickPoint(EspinaRenderView *view);
+// 
+//   private:
+//     QSize *m_window;
+//     int    m_bestPixel;
+//   };
 
 } // namespace EspINA
 

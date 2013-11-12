@@ -17,9 +17,9 @@
 */
 
 
-#include "ThresholdAction.h"
+#include "SeedThreshold.h"
 
-#include <Core/EspinaSettings.h>
+#include <Support/Settings/EspinaSettings.h>
 
 #include <QDebug>
 #include <QHBoxLayout>
@@ -34,14 +34,16 @@ const int MAX_THRESHOLD = 255;
 const QString LTHRESHOLD = "SeedGrowSegmentation::LowerThreshold";
 const QString UTHRESHOLD = "SeedGrowSegmentation::UpperThreshold";
 
+using namespace EspINA;
+
 //------------------------------------------------------------------------
-ThresholdAction::ThresholdAction(QObject* parent)
+SeedThreshold::SeedThreshold(QObject* parent)
 : QWidgetAction(parent)
-, m_lthLabel   (NULL)
-, m_uthLabel   (NULL)
-, m_lth        (NULL)
-, m_uth        (NULL)
-, m_symmetrical(false)
+, m_lthLabel   (nullptr)
+, m_uthLabel   (nullptr)
+, m_lth        (nullptr)
+, m_uth        (nullptr)
+, m_symmetrical(true)
 {
   QSettings settings(CESVIMA, ESPINA);
   m_threshold[0] = settings.value(LTHRESHOLD, DEFAULT_THRESHOLD).toInt();
@@ -49,7 +51,7 @@ ThresholdAction::ThresholdAction(QObject* parent)
 }
 
 //------------------------------------------------------------------------
-QWidget* ThresholdAction::createWidget(QWidget* parent)
+QWidget* SeedThreshold::createWidget(QWidget* parent)
 {
   QWidget *w = new QWidget(parent);
   QHBoxLayout *layout = new QHBoxLayout();
@@ -75,6 +77,8 @@ QWidget* ThresholdAction::createWidget(QWidget* parent)
   m_uth->setMaximum(255);
   m_uth->setValue(m_threshold[1]);
   m_uth->setToolTip(tr("Determine the size of color value range for a given pixel"));
+  
+  setSymmetricalThreshold(true);
 
   connect(m_uth,SIGNAL(valueChanged(int)),
           this, SLOT(setUpperThreshold(int)));
@@ -90,7 +94,7 @@ QWidget* ThresholdAction::createWidget(QWidget* parent)
 }
 
 //-----------------------------------------------------------------------------
-void ThresholdAction::setSymmetricalThreshold(bool symmetrical)
+void SeedThreshold::setSymmetricalThreshold(bool symmetrical)
 {
   m_uthLabel->setVisible(!symmetrical);
   m_uth->setVisible(!symmetrical);
@@ -101,7 +105,7 @@ void ThresholdAction::setSymmetricalThreshold(bool symmetrical)
 
 
 //-----------------------------------------------------------------------------
-void ThresholdAction::setLowerThreshold(int th)
+void SeedThreshold::setLowerThreshold(int th)
 {
   if (th < MIN_THRESHOLD)
     m_threshold[0] = MIN_THRESHOLD;
@@ -120,7 +124,7 @@ void ThresholdAction::setLowerThreshold(int th)
 }
 
 //-----------------------------------------------------------------------------
-void ThresholdAction::setUpperThreshold(int th)
+void SeedThreshold::setUpperThreshold(int th)
 {
   if (th < MIN_THRESHOLD)
     m_threshold[1] = MIN_THRESHOLD;

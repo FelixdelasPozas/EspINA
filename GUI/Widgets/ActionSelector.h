@@ -33,7 +33,7 @@ class EspinaGUI_EXPORT ActionSelector
 {
   Q_OBJECT
 public:
-  explicit ActionSelector(QObject *parent);
+  explicit ActionSelector(QObject *parent=nullptr);
 
   virtual QWidget* createWidget(QWidget *parent);
 

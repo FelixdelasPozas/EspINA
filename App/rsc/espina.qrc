@@ -76,6 +76,7 @@
     <file>roi_out.svg</file>
     <file>voi.svg</file>
     <file>zoom_cursor.png</file>
+    <file>zoom_tools.png</file>
     <file>zoom_reset.png</file>
     <file>zoom_selection.png</file>
     <file>create_seg_from_parts.svg</file>

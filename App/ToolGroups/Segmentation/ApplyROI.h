@@ -17,31 +17,43 @@
 */
 
 
-#ifndef DEFAULTVOIACTION_H
-#define DEFAULTVOIACTION_H
+#ifndef ESPINA_DEFAULT_VOI_ACTION_H
+#define ESPINA_DEFAULT_VOI_ACTION_H
 
 #include <QWidgetAction>
 
+#include <QLabel>
+#include <QSpinBox>
 
-class DefaultVOIAction
-: public QWidgetAction
+namespace EspINA
 {
-  Q_OBJECT
 
-public:
-  explicit DefaultVOIAction(QObject* parent);
+  class ApplyROI
+  : public QWidgetAction
+  {
+    Q_OBJECT
 
-  virtual QWidget* createWidget(QWidget* parent);
+  public:
+    explicit ApplyROI(QObject* parent=nullptr);
 
-  bool useDefaultVOI() {return m_useVOI;}
+    virtual QWidget* createWidget(QWidget* parent);
 
-protected slots:
-  void setUseDefaultVOI(bool val) {m_useVOI = val; emit useVOI(val);}
+    bool applyROI()
+    {return m_useROI;}
 
-signals:
-  void useVOI(bool);
-private:
-  bool m_useVOI;
-};
+  protected slots:
+    void onValueChanged(bool val);
 
-#endif // DEFAULTVOIACTION_H
+  signals:
+    void useROI(bool);
+
+  private:
+    bool    m_useROI;
+
+    QLabel   *m_labelROI[3];
+    QSpinBox *m_spinBoxROI[3];
+  };
+
+} // namespace EspINA
+
+#endif // ESPINA_DEFAULT_VOI_ACTION_H

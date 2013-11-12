@@ -31,8 +31,8 @@ using namespace EspINA;
 
 //----------------------------------------------------------------------------
 ZoomTools::ZoomTools(ViewManagerSPtr viewManager, QWidget* parent)
-: ToolGroup(viewManager, QIcon(":/espina/zoom_reset.png"), tr("Zoom Tools"), parent)
-//, m_zoomTool(new ZoomTool(m_viewManager))
+: ToolGroup(viewManager, QIcon(":/espina/zoom_tools.png"), tr("Zoom Tools"), parent)
+, m_resetZoom(new ResetZoom())
 {
 //   setObjectName("ZoomToolBar");
 // 
@@ -56,9 +56,6 @@ ZoomTools::ZoomTools(ViewManagerSPtr viewManager, QWidget* parent)
 //----------------------------------------------------------------------------
 ZoomTools::~ZoomTools()
 {
-  // NOTE: Lo destruye Qt?
-  delete m_resetViews;
-  delete m_zoomToolAction;
 }
 
 //----------------------------------------------------------------------------
@@ -102,12 +99,20 @@ void ZoomTools::setInUse(bool value)
   {
     m_viewManager->unsetActiveToolGroup(this);
   }
+
+  blockSignals(true);
+  setChecked(value);
+  blockSignals(false);
 }
 
 //----------------------------------------------------------------------------
 ToolSList ZoomTools::tools()
 {
+  ToolSList zoomTools;
 
+  zoomTools << m_resetZoom;
+
+  return zoomTools;
 }
 
 //----------------------------------------------------------------------------

@@ -38,17 +38,17 @@ qt4_wrap_cpp (ESPINA_MOC
 #   Toolbars/Composition/CompositionToolBar.h
 #   Toolbars/Editor/EditorToolBar.h
 #   Toolbars/Main/MainToolBar.h
-#   Toolbars/Segmentation/DefaultVOIAction.h
 #   Toolbars/Segmentation/SegmentationToolBar.h
-#   Toolbars/Segmentation/ThresholdAction.h
 #   Toolbars/VOI/VolumeOfInterest.h
-  Toolbars/Zoom/ZoomTools.h
+  ToolGroups/Zoom/ZoomTools.h
+  ToolGroups/Segmentation/ApplyROI.h
+  ToolGroups/Segmentation/SeedThreshold.h
+  ToolGroups/Segmentation/SegmentationTools.h
 #   Tools/Brushes/Brush.h
 #   Tools/Contour/FilledContour.h
 #   Tools/PlanarSplit/PlanarSplitTool.h
 #   Tools/Measure/MeasureTool.h
 #   Tools/Ruler/RulerTool.h
-#   Tools/SeedGrowSegmentation/SeedGrowSegmentationTool.h
 #   Tools/SegmentationRemover/SegmentationRemover.h
 #   Tools/VOI/RectangularVOI.h
   Views/DefaultView.h
@@ -85,7 +85,7 @@ qt4_wrap_ui (ESPINA_UI
 #   FilterInspectors/TubularSegmentation/NodesInformationDialog.ui
   )
 
-set (ESPINA_SOURCES
+set (ESPINA_SOURCES 
   ${ESPINA_RCC}
   ${ESPINA_MOC}
   ${ESPINA_UI}
@@ -121,13 +121,15 @@ set (ESPINA_SOURCES
 #   Toolbars/Editor/EditorToolBar.cpp
 #   Toolbars/Editor/Settings.cpp
 #   Toolbars/Main/MainToolBar.cpp
-#   Toolbars/Segmentation/DefaultVOIAction.cpp
-#   Toolbars/Segmentation/SegmentationToolBar.cpp
 #   Toolbars/Segmentation/SeedGrowSegmentationSettings.cpp
-#   Toolbars/Segmentation/ThresholdAction.cpp
 #   Toolbars/VOI/Settings.cpp
 #   Toolbars/VOI/VolumeOfInterest.cpp
-  Toolbars/Zoom/ZoomTools.cpp
+  ToolGroups/Segmentation/ApplyROI.cpp
+  ToolGroups/Segmentation/SegmentationTools.cpp
+  ToolGroups/Segmentation/SeedGrowSegmentationTool.cpp
+  ToolGroups/Segmentation/SeedThreshold.cpp
+  ToolGroups/Zoom/ZoomTools.cpp
+  ToolGroups/Zoom/ResetZoom.cpp
 #   Tools/Brushes/Brush.cpp
 #   Tools/Brushes/CircularBrush.cpp
 #   Tools/Brushes/SphericalBrush.cpp

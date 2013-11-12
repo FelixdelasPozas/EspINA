@@ -1,10 +1,5 @@
 // EspINA
 #include "PixelSelector.h"
-#include <Core/EspinaTypes.h>
-#include <Core/Model/Channel.h>
-#include <Core/Model/Segmentation.h>
-#include <Core/Model/PickableItem.h>
-#include <GUI/QtWidget/EspinaRenderView.h>
 
 // Qt
 #include <QMouseEvent>
@@ -24,7 +19,7 @@
 #include <itkExtractImageFilter.h>
 
 using namespace EspINA;
-
+/*
 //-----------------------------------------------------------------------------
 ISelector::PickList PixelSelector::generatePickList(EspinaRenderView* view)
 {
@@ -297,3 +292,4 @@ double *BestPixelSelector::getPickPoint(EspinaRenderView *view)
   requestedPoint[2] = bestPoint[2];
   return requestedPoint;
 }
+ */
