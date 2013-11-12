@@ -80,7 +80,9 @@ namespace EspINA
 
     SegmentationAdapterSPtr createSegmentation(FilterAdapterSPtr filter, Output::Id output) const;
 
-    FilterAdapterSPtr  adaptFilter(FilterSPtr filter);
+    SampleAdapterSPtr adaptSample(SampleSPtr sample) const;
+
+    FilterAdapterSPtr  adaptFilter(FilterSPtr filter) const;
 
     ChannelAdapterSPtr adaptChannel(FilterAdapterSPtr filter, ChannelSPtr channel) const;
 

@@ -45,7 +45,7 @@ using namespace Testing;
 
 int channel_proxy_add_channel( int argc, char** argv )
 {
-  bool error = true;
+  bool error = false;
 
   AnalysisSPtr analysis{new Analysis()};
 
@@ -56,6 +56,11 @@ int channel_proxy_add_channel( int argc, char** argv )
   SchedulerSPtr sch;
   ModelFactory factory(sch);
 
+  QString name = "Sample";
+
+  SampleAdapterSPtr sample = factory.createSample(name);
+  modelAdapter->add(sample);
+
   OutputSList inputs;
   Filter::Type type{"DummyFilter"};
 
@@ -64,60 +69,33 @@ int channel_proxy_add_channel( int argc, char** argv )
 
   modelAdapter->add(channel);
 
-  if (analysis->channels().first() != channel) {
-    cerr << "Unexpected channel retrieved from analysis" << endl;
+  modelAdapter->addRelation(sample, channel, Channel::STAIN_LINK);
+
+  if (proxy.rowCount() != 1)
+  {
+    cerr << "Unexpected number of items displayed" << endl;
     error = true;
   }
 
-  if (analysis->classification().get() != nullptr) {
-    cerr << "Unexpected classification in analysis" << endl;
+  QModelIndex sampleIndex = proxy.index(0,0);
+  QString sampleName = sampleIndex.data(Qt::DisplayRole).toString();
+  if (!sampleName.contains(name))
+  {
+    cerr << "Unexpected display role value: " << sampleName.toStdString() << endl;
     error = true;
   }
 
-  if (!analysis->samples().isEmpty()) {
-    cerr << "Unexpected number of samples in analysis" << endl;
+  if (proxy.rowCount(sampleIndex) != 1)
+  {
+    cerr << "Unexpected number of items displayed" << endl;
     error = true;
   }
 
-  if (analysis->channels().size() != 1) {
-    cerr << "Unexpected number of channels in analysis" << endl;
-    error = true;
-  }
-
-  if (!analysis->segmentations().isEmpty()) {
-    cerr << "Unexpected number of segmentations in analysis" << endl;
-    error = true;
-  }
-
-  if (!analysis->extensionProviders().isEmpty()) {
-    cerr << "Unexpected number of extension providers in analysis" << endl;
-    error = true;
-  }
-
-  if (analysis->content()->vertices().size() != 2) {
-    cerr << "Unexpected number of vertices in analysis content" << endl;
-    error = true;
-  }
-
-//   if (analysis->content()->vertices().first().item != channel) {
-//     cerr << "Unexpected channel retrieved from analysis content" << endl;
+//   if (sampleIndex.child(0, 0).data(Qt::DisplayRole).toString() != name)
+//   {
+//     cerr << "Unexpected display role value" << endl;
 //     error = true;
 //   }
-
-  if (analysis->content()->edges().size() != 1) {
-    cerr << "Unexpected number of edges in analysis content" << endl;
-    error = true;
-  }
-
-  if (analysis->relationships()->vertices().size() != 1) {
-    cerr << "Unexpected number of vertices in analysis relationships" << endl;
-    error = true;
-  }
-
-  if (!analysis->relationships()->edges().isEmpty()) {
-    cerr << "Unexpected number of edges in analysis relationships" << endl;
-    error = true;
-  }
 
   return error;
 }

@@ -20,6 +20,8 @@
 #include "ChannelReader.h"
 #include <Filters/VolumetricStreamReader.h>
 #include <Core/Factory/CoreFactory.h>
+#include <Core/Analysis/Channel.h>
+#include <Core/Analysis/Sample.h>
 
 using namespace EspINA;
 using namespace EspINA::IO;
@@ -72,8 +74,11 @@ AnalysisSPtr ChannelReader::read(const QFileInfo file,
   auto filter = factory->createFilter<VolumetricStreamReader>(OutputSList(), VOLUMETRIC_STREAM_READER);
   filter->setFileName(file);
   ChannelSPtr channel = factory->createChannel(filter, 0);
+  channel->setName(file.fileName());
 
   analysis->add(channel);
+
+  analysis->addRelation(sample, channel, Channel::STAIN_LINK);
 
   return analysis;
 }

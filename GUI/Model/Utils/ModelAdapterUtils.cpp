@@ -20,37 +20,72 @@
 
 #include "ModelAdapterUtils.h"
 
-#include <Filters/VolumetricStreamReader.h>
+#include <QString>
+
+#include <Core/Analysis/Sample.h>
 #include <Core/Analysis/Channel.h>
+#include <Core/Analysis/Segmentation.h>
 
 using namespace EspINA;
 
+//------------------------------------------------------------------------
 void EspINA::ModelAdapterUtils::setAnalysis(ModelAdapterSPtr model, AnalysisSPtr analysis, ModelFactorySPtr factory)
 {
   if (analysis)
   {
     model->reset();
 
-    QMap<FilterSPtr, FilterAdapterSPtr> filters;
+    QMap<FilterSPtr,       FilterAdapterSPtr>       filters;
+    QMap<SegmentationSPtr, SegmentationAdapterSPtr> segmentations;
+
+    QMap<PersistentSPtr, ItemAdapterSPtr> items;
+
     // Adaptar la clasificacion
-    // Adaptar las muestras
-    // Adaptar los canales --> adaptar sus filtros
-    // Adaptar las segementaciones --> adaptar sus filtros
-    //TODO Remove includes
-    ChannelSPtr channelbase = analysis->channels().first();
-//     std::shared_ptr<VolumetricStreamReader> base = std::dynamic_pointer_cast<VolumetricStreamReader>(channelbase->filter());
-    FilterAdapterSPtr filter = filters.value(channelbase->filter(), FilterAdapterSPtr());
 
-    if (!filter)
+    // Adapt Samples
+    for(auto sample : analysis->samples())
     {
-      filter = factory->adaptFilter(channelbase->filter());
+      auto adapted = factory->adaptSample(sample);
+      items[sample] = adapted;
+      model->add(adapted);
     }
-    ChannelAdapterSPtr channel = factory->adaptChannel(filter, channelbase);
+    // Adapt channels --> adapt non adapted filters
+    for(auto channel : analysis->channels())
+    {
+      FilterAdapterSPtr filter = filters.value(channel->filter(), FilterAdapterSPtr());
+      if (!filter)
+      {
+        filter = factory->adaptFilter(channel->filter());
+      }
 
-    model->add(channel);
+      auto adapted = factory->adaptChannel(filter, channel);
+      items[channel] = adapted;
+      model->add(adapted);
+    }
+    // Adapt segmentation --> adapt non adapted filters
+    for(auto segmentation : analysis->segmentations())
+    {
+      FilterAdapterSPtr filter = filters.value(segmentation->filter(), FilterAdapterSPtr());
+      if (!filter)
+      {
+        filter = factory->adaptFilter(segmentation->filter());
+      }
+
+      model->add(factory->adaptSegmentation(filter, segmentation));
+    }
+
+    for(auto relation : analysis->relationships()->edges())
+    {
+      ItemAdapterSPtr source = items[relation.source];
+      ItemAdapterSPtr target = items[relation.target];
+      RelationName name(relation.relationship.c_str());
+
+      model->addRelation(source, target, name);
+    }
   }
 }
 
+//------------------------------------------------------------------------
 DefaultVolumetricDataSPtr EspINA::ModelAdapterUtils::volumetricData(OutputSPtr output)
 {
   return std::dynamic_pointer_cast<VolumetricData<itkVolumeType>>(output->data(VolumetricData<itkVolumeType>::TYPE));

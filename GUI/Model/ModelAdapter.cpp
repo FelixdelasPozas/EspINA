@@ -19,6 +19,7 @@
 #include "ModelAdapter.h"
 
 #include <Core/Analysis/Analysis.h>
+#include <Core/Analysis/Sample.h>
 #include <Core/Analysis/Channel.h>
 
 // EspINA
@@ -178,15 +179,21 @@ void ModelAdapter::addCategory(CategoryAdapterSPtr category, CategoryAdapterSPtr
 }
 
 //------------------------------------------------------------------------
-void ModelAdapter::addRelation(ItemAdapterSPtr ancestor, ItemAdapterSPtr succesor, const RelationName& relation)
+void ModelAdapter::addRelation(ItemAdapterSPtr ancestor, ItemAdapterSPtr successor, const RelationName& relation)
 {
   try 
   {
-    m_analysis->addRelation(ancestor->m_analysisItem, succesor->m_analysisItem, relation);
+    m_analysis->addRelation(ancestor->m_analysisItem, successor->m_analysisItem, relation);
   } catch (Analysis::Existing_Relation_Exception e)
   {
     throw Existing_Relation_Exception();
   }
+
+  QModelIndex ancestorIndex  = index(ancestor);
+  QModelIndex successorIndex = index(successor);
+
+  emit dataChanged(ancestorIndex,  ancestorIndex);
+  emit dataChanged(successorIndex, successorIndex);
 }
 
 //------------------------------------------------------------------------
@@ -310,7 +317,7 @@ QVariant ModelAdapter::data(const QModelIndex& index, int role) const
   return itemAdapter(index)->data(role);
 }
 
-// //------------------------------------------------------------------------
+//------------------------------------------------------------------------
 void ModelAdapter::deleteRelation(ItemAdapterSPtr ancestor, ItemAdapterSPtr succesor, const RelationName& relation)
 {
   try 
@@ -322,25 +329,25 @@ void ModelAdapter::deleteRelation(ItemAdapterSPtr ancestor, ItemAdapterSPtr succ
   }
 }
 
-// //------------------------------------------------------------------------
+//------------------------------------------------------------------------
 void ModelAdapter::emitChannelAdded(ChannelAdapterSList )
 {
 
 }
 
-// //------------------------------------------------------------------------
+//------------------------------------------------------------------------
 void ModelAdapter::emitSegmentationAdded(SegmentationAdapterSList )
 {
 
 }
 
-// //------------------------------------------------------------------------
+//------------------------------------------------------------------------
 Qt::ItemFlags ModelAdapter::flags(const QModelIndex& index) const
 {
     return QAbstractItemModel::flags(index);
 }
 
-// //------------------------------------------------------------------------
+//------------------------------------------------------------------------
 QModelIndex ModelAdapter::index(int row, int column, const QModelIndex& parent) const
 {
   if (!hasIndex(row, column, parent))
@@ -378,21 +385,21 @@ QModelIndex ModelAdapter::index(int row, int column, const QModelIndex& parent) 
   }
   else
   {
-    CategoryAdapterPtr parentTax;
+    CategoryAdapterPtr parentCategory;
     if (parent == classificationRoot())
     {
-      parentTax = m_classification->root().get();
+      parentCategory = m_classification->root().get();
     }
     else
     {
       // Neither Samples nor Segmentations have children
-      parentTax = categoryAdapterPtr(parent);
+      parentCategory = categoryPtr(parent);
     }
-    //WARNING: Now m_tax can be NULL, but even in that situation,
+    //WARNING: Now m_classification can be NULL, but even in that situation,
     //         it shouldn't report any children
-    Q_ASSERT(parentTax);
-    Q_ASSERT(row < parentTax->subCategories().size());
-    internalPtr = parentTax->subCategories()[row].get();
+    Q_ASSERT(parentCategory);
+    Q_ASSERT(row < parentCategory->subCategories().size());
+    internalPtr = parentCategory->subCategories()[row].get();
   }
 
   return createIndex(row, column, internalPtr);
@@ -401,10 +408,34 @@ QModelIndex ModelAdapter::index(int row, int column, const QModelIndex& parent) 
 // //------------------------------------------------------------------------
 QModelIndex ModelAdapter::index(ItemAdapterPtr item) const
 {
-
+  QModelIndex res;
+  switch (item->type())
+  {
+    case ItemAdapter::Type::CATEGORY:
+      res = categoryIndex(categoryPtr(item));
+      break;
+    case ItemAdapter::Type::SAMPLE:
+      res = sampleIndex(samplePtr(item));
+      break;
+    case ItemAdapter::Type::CHANNEL:
+      res = channelIndex(channelPtr(item));
+      break;
+    case ItemAdapter::Type::SEGMENTATION:
+      res = segmentationIndex(segmentationPtr(item));
+      break;
+    default:
+      throw Item_Not_Found_Exception();
+  }
+  return res;
 }
 
-// //------------------------------------------------------------------------
+//------------------------------------------------------------------------
+QModelIndex ModelAdapter::index(ItemAdapterSPtr item) const
+{
+  return index(item.get());
+}
+
+//------------------------------------------------------------------------
 QMap< int, QVariant > ModelAdapter::itemData(const QModelIndex& index) const
 {
     return QAbstractItemModel::itemData(index);
@@ -434,7 +465,7 @@ QModelIndex ModelAdapter::parent(const QModelIndex& child) const
   {
     case ItemAdapter::Type::CATEGORY:
     {
-      CategoryAdapterPtr category = categoryAdapterPtr(childItem);
+      CategoryAdapterPtr category = categoryPtr(childItem);
       return categoryIndex(category->parent());
     }
     case ItemAdapter::Type::SAMPLE:
@@ -454,7 +485,18 @@ QModelIndex ModelAdapter::parent(const QModelIndex& child) const
 ItemAdapterSList ModelAdapter::relatedItems(ItemAdapterPtr item, RelationType type, const RelationName& filter)
 {
   ItemAdapterSList items;
-  //TODO
+  if (type == RELATION_IN || type == RELATION_INOUT) {
+    for(auto ancestor : m_analysis->relationships()->ancestors(item->m_analysisItem, filter)) {
+      items << find(ancestor);
+    }
+  }
+
+  if (type == RELATION_OUT || type == RELATION_INOUT) {
+    for(auto successor : m_analysis->relationships()->succesors(item->m_analysisItem, filter)) {
+      items << find(successor);
+    }
+  }
+
   return items;
 }
 
@@ -462,6 +504,22 @@ ItemAdapterSList ModelAdapter::relatedItems(ItemAdapterPtr item, RelationType ty
 RelationList ModelAdapter::relations(ItemAdapterPtr item, RelationType type, const RelationName& filter)
 {
 
+}
+
+//------------------------------------------------------------------------
+ItemAdapterSPtr ModelAdapter::find(PersistentSPtr item)
+{
+  for(auto sample : m_samples)
+  {
+    PersistentSPtr base = sample->m_sample;
+    if (base == item) return sample;
+  }
+
+  for(auto channel : m_channels)
+  {
+    PersistentSPtr base = channel->m_channel;
+    if (base == item) return channel;
+  }
 }
 
 //------------------------------------------------------------------------
@@ -626,7 +684,7 @@ int ModelAdapter::rowCount(const QModelIndex& parent) const
     ItemAdapterPtr parentItem = itemAdapter(parent);
     if (ItemAdapter::Type::CATEGORY == parentItem->type())
     {
-      CategoryAdapterPtr parentCategory = categoryAdapterPtr(parentItem);
+      CategoryAdapterPtr parentCategory = categoryPtr(parentItem);
       count = parentCategory->subCategories().size();
     }
   }
@@ -734,7 +792,7 @@ bool ModelAdapter::setData(const QModelIndex& index, const QVariant& value, int 
       emit dataChanged(index,index);
       if (ItemAdapter::Type::CATEGORY == indexItem->type())
       {
-        CategoryAdapterPtr category = categoryAdapterPtr(indexItem);
+        CategoryAdapterPtr category = categoryPtr(indexItem);
         foreach(SegmentationAdapterSPtr segmentation, m_segmentations)
         {
           if (segmentation->category().get() == category)

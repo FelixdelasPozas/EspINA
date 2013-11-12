@@ -101,7 +101,7 @@ SampleAdapterSPtr ModelFactory::createSample(const QString& name) const
 {
   SampleSPtr sample{new Sample(name)};
 
-  return SampleAdapterSPtr{new SampleAdapter(sample)};
+  return adaptSample(sample);
 }
 
 //------------------------------------------------------------------------
@@ -121,7 +121,13 @@ SegmentationAdapterSPtr ModelFactory::createSegmentation(FilterAdapterSPtr filte
 }
 
 //------------------------------------------------------------------------
-FilterAdapterSPtr ModelFactory::adaptFilter(FilterSPtr filter)
+SampleAdapterSPtr ModelFactory::adaptSample(SampleSPtr sample) const
+{
+  return SampleAdapterSPtr{new SampleAdapter(sample)};
+}
+
+//------------------------------------------------------------------------
+FilterAdapterSPtr ModelFactory::adaptFilter(FilterSPtr filter) const
 {
   return FilterAdapterSPtr{new FilterAdapter<Filter>(filter)};
 }

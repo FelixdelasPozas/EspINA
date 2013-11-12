@@ -194,13 +194,13 @@ CategoryAdapter::~CategoryAdapter()
 }
 
 //------------------------------------------------------------------------
-CategoryAdapterPtr EspINA::categoryAdapterPtr(const QModelIndex& index)
+CategoryAdapterPtr EspINA::categoryPtr(const QModelIndex& index)
 {
   return static_cast<CategoryAdapterPtr>(index.internalPointer());
 }
 
 //------------------------------------------------------------------------
-CategoryAdapterPtr EspINA::categoryAdapterPtr(ItemAdapterPtr item)
+CategoryAdapterPtr EspINA::categoryPtr(ItemAdapterPtr item)
 {
   return static_cast<CategoryAdapterPtr>(item);
 }

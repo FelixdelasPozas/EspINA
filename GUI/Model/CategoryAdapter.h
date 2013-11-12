@@ -148,8 +148,8 @@ namespace EspINA
     friend QString print(CategoryAdapterSPtr category, int level=0);
   };
 
-  CategoryAdapterPtr EspinaGUI_EXPORT categoryAdapterPtr(const QModelIndex& index);
-  CategoryAdapterPtr EspinaGUI_EXPORT categoryAdapterPtr(ItemAdapterPtr item);
+  CategoryAdapterPtr EspinaGUI_EXPORT categoryPtr(const QModelIndex& index);
+  CategoryAdapterPtr EspinaGUI_EXPORT categoryPtr(ItemAdapterPtr item);
 
   QString print(CategoryAdapterSPtr category, int level=0);
 }// namespace EspINA

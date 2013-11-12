@@ -165,10 +165,16 @@ namespace EspINA
     ItemAdapterSList relatedItems(ItemAdapterPtr item, RelationType type, const RelationName& filter);
 
     RelationList relations(ItemAdapterPtr item, RelationType type, const RelationName& filter);
-//     //---------------------------------------------------------------------------
-//     /************************** SmartPointer API *******************************/
-//     //---------------------------------------------------------------------------
-//     virtual ModelItemSPtr find(ModelItemPtr item);
+
+    // signal emission methods, used by undo commands to signal finished operations.
+    void emitSegmentationAdded(SegmentationAdapterSList);
+    void emitChannelAdded(ChannelAdapterSList);
+
+  private:
+    //---------------------------------------------------------------------------
+    /************************** SmartPointer API *******************************/
+    //---------------------------------------------------------------------------
+    virtual ItemAdapterSPtr find(PersistentSPtr item);
 // 
 //     virtual CategoryAdapterSPtr findCategory(ModelItemPtr       item           );
 //     virtual CategoryAdapterSPtr findCategory(CategoryAdapterPtr classificationElement);
@@ -185,9 +191,6 @@ namespace EspINA
 //     virtual FilterSPtr findFilter(ModelItemPtr item  );
 //     virtual FilterSPtr findFilter(FilterPtr    filter);
 
-    // signal emission methods, used by undo commands to signal finished operations.
-    void emitSegmentationAdded(SegmentationAdapterSList);
-    void emitChannelAdded(ChannelAdapterSList);
 
   signals:
     void classificationAdded  (ClassificationAdapterSPtr classification);
@@ -227,7 +230,6 @@ namespace EspINA
 
   using ModelAdapterPtr  = ModelAdapter *;
   using ModelAdapterSPtr = std::shared_ptr<ModelAdapter>;
-  
 
   ItemAdapterPtr EspinaGUI_EXPORT itemAdapter(const QModelIndex &index);
 

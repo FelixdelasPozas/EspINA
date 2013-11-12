@@ -37,7 +37,7 @@ using namespace EspINA;
 
 int channel_proxy_add_sample(int argc, char** argv )
 {
-  bool error = true;
+  bool error = false;
 
   AnalysisSPtr analysis{new Analysis()};
 
@@ -53,58 +53,15 @@ int channel_proxy_add_sample(int argc, char** argv )
   SampleAdapterSPtr sample = factory.createSample(name);
   modelAdapter->add(sample);
 
-//   if (!analysis->samples().contains(sample)) {
-//     cerr << "Unexpected sample retrieved from analysis" << endl;
-//     error = true;
-//   }
-// 
-  if (analysis->samples().first() != sample) {
-    cerr << "Unexpected sample retrieved from analysis" << endl;
+  if (proxy.rowCount() != 1)
+  {
+    cerr << "Unexpected number of items displayed" << endl;
     error = true;
   }
 
-  if (analysis->classification().get() != nullptr) {
-    cerr << "Unexpected classification in analysis" << endl;
-    error = true;
-  }
-
-  if (analysis->samples().size() != 1) {
-    cerr << "Unexpected number of samples in analysis" << endl;
-    error = true;
-  }
-
-  if (!analysis->channels().isEmpty()) {
-    cerr << "Unexpected number of channels in analysis" << endl;
-    error = true;
-  }
-
-  if (!analysis->segmentations().isEmpty()) {
-    cerr << "Unexpected number of segmentations in analysis" << endl;
-    error = true;
-  }
-
-  if (!analysis->extensionProviders().isEmpty()) {
-    cerr << "Unexpected number of extension providers in analysis" << endl;
-    error = true;
-  }
-
-  if (analysis->content()->vertices().size() != 1) {
-    cerr << "Unexpected number of vertices in analysis content" << endl;
-    error = true;
-  }
-
-  if (!analysis->content()->edges().isEmpty()) {
-    cerr << "Unexpected number of edges in analysis content" << endl;
-    error = true;
-  }
-
-  if (analysis->relationships()->vertices().size() != 1) {
-    cerr << "Unexpected number of vertices in analysis relationships" << endl;
-    error = true;
-  }
-
-  if (!analysis->relationships()->edges().isEmpty()) {
-    cerr << "Unexpected number of edges in analysis relationships" << endl;
+  if (proxy.index(0,0).data(Qt::DisplayRole).toString() != name)
+  {
+    cerr << "Unexpected display role value" << endl;
     error = true;
   }
 
