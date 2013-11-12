@@ -59,8 +59,8 @@ namespace EspINA
       TimeStamp  timeStamp;
       QColor     stain;
       bool       visible;
+      OutputSPtr output;
 
-      OutputAdapterSPtr   output;
       RepresentationSList representations;
     };
 
@@ -71,8 +71,8 @@ namespace EspINA
       bool       highlited;
       TimeStamp  timeStamp;
       bool       visible;
+      OutputSPtr output;
 
-      OutputAdapterSPtr   output;
       RepresentationSList representations;
     };
 

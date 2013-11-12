@@ -10,7 +10,6 @@ qt4_wrap_cpp(GUI_MOC
   ColorEngines/CategoryColorEngine.h
   Model/ModelAdapter.h
   Model/ItemAdapter.h
-  Model/OutputAdapter.h
   Model/Proxies/ChannelProxy.h
   Representations/Renderers/Renderer.h
   Representations/Renderers/ContourRenderer.h
@@ -56,7 +55,6 @@ set (GUI_SOURCES
   Model/ChannelAdapter.cpp
   Model/ClassificationAdapter.cpp
   Model/ModelAdapter.cpp
-  Model/OutputAdapter.cpp
   Model/Proxies/ChannelProxy.cpp
   Model/SampleAdapter.cpp
   Model/SegmentationAdapter.cpp

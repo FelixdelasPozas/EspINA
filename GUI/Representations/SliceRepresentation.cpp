@@ -161,6 +161,7 @@ void ChannelSliceRepresentation::initializePipeline()
   itkVolumeType::Pointer slice = m_data->itkImage(imageBounds);
   m_exporter = ExporterType::New();
   m_exporter->ReleaseDataFlagOn();
+  m_exporter->SetNumberOfThreads(1);
   m_exporter->SetInput(slice);
   m_exporter->Update();
 
@@ -212,10 +213,15 @@ void ChannelSliceRepresentation::updateRepresentation()
     imageBounds[(2*m_planeIndex)+1] = m_reslicePoint;
 
     itkVolumeType::Pointer slice = m_data->itkImage(imageBounds);
+    m_exporter = ExporterType::New();
+    m_exporter->ReleaseDataFlagOn();
+    m_exporter->SetNumberOfThreads(1);
     m_exporter->SetInput(slice);
     m_exporter->Update();
-    m_mapToColors->Update();
+    m_shiftScaleFilter->SetInputData(m_exporter->GetOutput());
     m_shiftScaleFilter->Update();
+    m_mapToColors->Update();
+    m_actor->SetDisplayExtent(m_exporter->GetOutput()->GetExtent());
     m_actor->Update();
   }
 }
@@ -428,6 +434,7 @@ RepresentationSPtr SegmentationSliceRepresentation::cloneImplementation(View2D *
 {
   SegmentationSliceRepresentation *representation = new SegmentationSliceRepresentation(m_data, view);
   representation->setView(view);
+  representation->m_planeIndex = normalCoordinateIndex(view->plane());
 
   return RepresentationSPtr(representation);
 }

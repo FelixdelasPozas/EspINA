@@ -56,7 +56,7 @@ namespace EspINA
                                const NmVector3& center,
                                const Bounds&    bounds,
                                const NmVector3& slicingStep);
-    virtual void updateActor(vtkProp3D *actor) {};
+    virtual void updateActor(vtkProp3D *actor);
     virtual void updateCamera(vtkCamera *camera,
                               const NmVector3& center);
   };

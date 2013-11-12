@@ -33,7 +33,7 @@ namespace EspINA
   {
     void setAnalysis(ModelAdapterSPtr model, AnalysisSPtr analysis, ModelFactorySPtr factory);
 
-    DefaultVolumetricDataSPtr volumetricData(OutputAdapterSPtr output);
+    DefaultVolumetricDataSPtr volumetricData(OutputSPtr output);
   }
 } // namespace EspINA
 #endif // ESPINA_MODEL_ADAPTER_UTILS_H

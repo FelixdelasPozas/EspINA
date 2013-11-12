@@ -51,7 +51,6 @@ qt4_wrap_cpp(SUBJECT_MOCS
   ${CORE_DIR}/MultiTasking/Task.h
   ${GUI_DIR}/Model/ModelAdapter.h
   ${GUI_DIR}/Model/ItemAdapter.h
-  ${GUI_DIR}/Model/OutputAdapter.h
   ${GUI_DIR}/Model/Proxies/ChannelProxy.h
   ModelTest.h
 )
@@ -80,7 +79,6 @@ add_executable(ChannelProxy_Tests
   ${GUI_DIR}/Model/CategoryAdapter.cpp
   ${GUI_DIR}/Model/ChannelAdapter.cpp
   ${GUI_DIR}/Model/ClassificationAdapter.cpp
-  ${GUI_DIR}/Model/OutputAdapter.cpp
   ${GUI_DIR}/Model/SampleAdapter.cpp
   ${GUI_DIR}/Model/SegmentationAdapter.cpp
   ${GUI_DIR}/Model/ViewItemAdapter.cpp

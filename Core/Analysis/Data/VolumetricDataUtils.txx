@@ -40,6 +40,8 @@ typename T::RegionType equivalentRegion(const T* image, const Bounds& bounds)
     if (bounds[2*i] == bounds[2*i+1] && (bounds.areLowerIncluded(dir) || bounds.areUpperIncluded(dir))) {
       p1[i] = bounds[2*i];
     }
+    p0[i] -= s[i]/2;
+    p1[i] -= s[i]/2;
   }
 
   typename T::IndexType i0, i1;

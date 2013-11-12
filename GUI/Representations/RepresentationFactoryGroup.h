@@ -21,6 +21,7 @@
 #define ESPINA_REPRESENTATION_FACTORY_GROUP_H
 
 #include <GUI/Representations/RepresentationFactory.h>
+#include <QMap>
 
 namespace EspINA {
 

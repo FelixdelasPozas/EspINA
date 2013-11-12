@@ -49,6 +49,12 @@ void View2D::AxialState::setCrossHairs(vtkPolyData* hline,
 }
 
 //-----------------------------------------------------------------------------
+void View2D::AxialState::updateActor(vtkProp3D* actor)
+{
+
+}
+
+//-----------------------------------------------------------------------------
 void View2D::AxialState::updateCamera(vtkCamera* camera, const NmVector3& center)
 {
   double oldPos[3];
@@ -86,7 +92,7 @@ void View2D::SagittalState::setCrossHairs(vtkPolyData* hline,
 //-----------------------------------------------------------------------------
 void View2D::SagittalState::updateActor(vtkProp3D* actor)
 {
-  actor->RotateX(-90);
+//   actor->RotateX(-90);
   actor->RotateY(-90);
 }
 
@@ -94,8 +100,8 @@ void View2D::SagittalState::updateActor(vtkProp3D* actor)
 void View2D::SagittalState::updateCamera(vtkCamera* camera,
                                             const NmVector3& center)
 {
-  camera->SetPosition(center[0] + 1,center[1], center[2]);
-  camera->SetFocalPoint(center[0], center[1], center[2]);
+//   camera->SetPosition(center[0] + 1,center[1], center[2]);
+//   camera->SetFocalPoint(center[0], center[1], center[2]);
   camera->SetRoll(180);
 }
 
@@ -124,14 +130,14 @@ void View2D::CoronalState::setCrossHairs(vtkPolyData*     hline,
 //-----------------------------------------------------------------------------
 void View2D::CoronalState::updateActor(vtkProp3D* actor)
 {
-  actor->RotateX(-90);
+  actor->RotateX(90);
 }
 
 //-----------------------------------------------------------------------------
 void View2D::CoronalState::updateCamera(vtkCamera* camera,
                                            const NmVector3& center)
 {
-  camera->SetPosition(center[0], center[1]+1, center[2]);
-  camera->SetFocalPoint(center[0], center[1], center[2]);
-  camera->SetViewUp(0, 0, -1);
+//   camera->SetPosition(center[0], center[1]+1, center[2]);
+//   camera->SetFocalPoint(center[0], center[1], center[2]);
+//   camera->SetViewUp(0, 0, -1);
 }

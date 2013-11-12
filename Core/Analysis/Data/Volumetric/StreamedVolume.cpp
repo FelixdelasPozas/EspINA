@@ -87,6 +87,23 @@ void StreamedVolume<T>::setSpacing(const typename T::SpacingType spacing)
   m_spacing = spacing;
 }
 
+//-----------------------------------------------------------------------------
+template<typename T>
+typename T::SpacingType StreamedVolume<T>::spacing() const
+{
+  if (!isValid()) throw File_Not_Found_Exception();
+
+  auto reader = StreamReaderType<T>::New();
+  reader->ReleaseDataFlagOn();
+  reader->SetFileName(m_fileName.toStdString());
+  reader->UpdateOutputInformation();
+
+  auto image = reader->GetOutput();
+  m_spacing = image->GetSpacing();
+
+  return m_spacing;
+}
+
 
 //-----------------------------------------------------------------------------
 template<typename T>

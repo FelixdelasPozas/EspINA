@@ -51,7 +51,7 @@ void EspINA::ModelAdapterUtils::setAnalysis(ModelAdapterSPtr model, AnalysisSPtr
   }
 }
 
-DefaultVolumetricDataSPtr EspINA::ModelAdapterUtils::volumetricData(OutputAdapterSPtr output)
+DefaultVolumetricDataSPtr EspINA::ModelAdapterUtils::volumetricData(OutputSPtr output)
 {
   return std::dynamic_pointer_cast<VolumetricData<itkVolumeType>>(output->data(VolumetricData<itkVolumeType>::TYPE));
 }

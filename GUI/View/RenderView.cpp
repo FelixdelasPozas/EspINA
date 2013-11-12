@@ -352,7 +352,7 @@ bool RenderView::updateRepresentation(ChannelAdapterPtr channel, bool render)
       RepresentationSPtr representation = cloneRepresentation(channel, representationName);
       if (representation.get() != nullptr)
       {
-        foreach(RendererSPtr renderer, m_renderers)
+        for(auto renderer : m_renderers)
           if (renderer->canRender(channel) && renderer->managesRepresentation(representation))
           {
             representation->setVisible(requestedVisibility);
@@ -372,14 +372,13 @@ bool RenderView::updateRepresentation(ChannelAdapterPtr channel, bool render)
     {
       opacityChanged &= Channel::AUTOMATIC_OPACITY != state.opacity;
 
-      RepresentationSPtr rep = std::dynamic_pointer_cast<Representation>(representation);
-      if (brightnessChanged) rep->setBrightness(state.brightness);
-      if (contrastChanged  ) rep->setContrast(state.contrast);
-      if (stainChanged     ) rep->setColor(state.stain);
-      if (opacityChanged   ) rep->setOpacity(state.opacity);
-      if (visibilityChanged) rep->setVisible(state.visible);
+      if (brightnessChanged) representation->setBrightness(state.brightness);
+      if (contrastChanged  ) representation->setContrast(state.contrast);
+      if (stainChanged     ) representation->setColor(state.stain);
+      if (opacityChanged   ) representation->setOpacity(state.opacity);
+      if (visibilityChanged) representation->setVisible(state.visible);
 
-      rep->updateRepresentation();
+      representation->updateRepresentation();
     }
   }
 
@@ -388,6 +387,8 @@ bool RenderView::updateRepresentation(ChannelAdapterPtr channel, bool render)
     m_sceneCameraInitialized = true;
     resetCamera();
   }
+
+  m_renderer->ResetCameraClippingRange();
 
   if (render && isVisible())
   {

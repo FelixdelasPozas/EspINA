@@ -21,8 +21,8 @@
 #define ESPINA_VIEW_ITEM_ADAPTER_H
 
 #include "GUI/Model/ItemAdapter.h"
-#include "OutputAdapter.h"
 #include "FilterAdapter.h"
+#include <GUI/Representations/Representation.h>
 
 #include <Core/Analysis/Data.h>
 #include <Core/Analysis/Output.h>
@@ -57,11 +57,11 @@ namespace EspINA {
     { return m_filter; }
 
     /// Convenience method
-    OutputAdapterSPtr output()
+    OutputSPtr output()
     { return m_filter->output(m_viewItem->outputId()); }
 
     /// Convenience method
-    const OutputAdapterSPtr output() const
+    const OutputSPtr output() const
     { return m_filter->output(m_viewItem->outputId()); }
 
     DataSPtr get(Data::Type type)

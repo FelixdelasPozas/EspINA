@@ -11,7 +11,6 @@ include_directories(
 qt4_wrap_cpp(SUBJECT_MOCS
   ${GUI_DIR}/ColorEngines/ColorEngine.h
   ${GUI_DIR}/Model/ItemAdapter.h
-  ${GUI_DIR}/Model/OutputAdapter.h
   ${GUI_DIR}/Model/SegmentationAdapter.h
   ${GUI_DIR}/View/RenderView.h
   ${GUI_DIR}/View/View3D.h
@@ -33,7 +32,6 @@ add_executable(View3D_Tests
   ${GUI_DIR}/Extension/Visualization/VisualizationState.cpp
   ${GUI_DIR}/Model/CategoryAdapter.cpp
   ${GUI_DIR}/Model/ChannelAdapter.cpp
-  ${GUI_DIR}/Model/OutputAdapter.cpp
   ${GUI_DIR}/Model/SegmentationAdapter.cpp
   ${GUI_DIR}/Model/ViewItemAdapter.cpp
   ${GUI_DIR}/Representations/Renderers/Renderer.cpp

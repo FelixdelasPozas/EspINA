@@ -21,7 +21,6 @@
 #define ESPINA_FILTERADAPTER_H
 
 #include <Core/Analysis/Filter.h>
-#include "OutputAdapter.h"
 
 namespace EspINA {
 
@@ -51,14 +50,10 @@ namespace EspINA {
     virtual void update(Output::Id id) = 0;
     virtual void update() = 0;//TODO Copy adapted filter interface
 
-    OutputAdapterSPtr output(Output::Id id)
-    { update(id); return m_outputs.at(id); }
+    virtual OutputSPtr output(Output::Id id) = 0;
 
   protected:
     virtual FilterSPtr adaptedFilter() = 0;
-    virtual OutputSPtr adaptedOutput(Output::Id id) = 0;
-
-    OutputAdapterSList        m_outputs;
 
   private:
     FilterInspectorSPtr m_inspector;
@@ -75,31 +70,17 @@ namespace EspINA {
     { return m_filter; }
 
     virtual void update(Output::Id id)
-    {
-      m_outputs.clear();
-      m_filter->update(id);
-      for(int i = 0; i < m_filter->numberOfOutputs(); ++i)
-      {
-        m_outputs << OutputAdapterSPtr{new OutputAdapter(m_filter->output(i))};
-      }
-    }
+    { m_filter->update(id); }
 
     virtual void update()
-    {
-      m_outputs.clear();
-      m_filter->update();
-      for(int i = 0; i < m_filter->numberOfOutputs(); ++i)
-      {
-        m_outputs << OutputAdapterSPtr{new OutputAdapter(m_filter->output(i))};
-      }
-    }
+    { m_filter->update(); }
+
+    virtual OutputSPtr output(Output::Id id)
+    { return m_filter->output(id); }
 
   protected:
     virtual FilterSPtr adaptedFilter()
     { return m_filter; }
-
-    virtual OutputSPtr adaptedOutput(Output::Id id)
-    { return m_filter->output(id); }
 
   private:
     FilterAdapter(std::shared_ptr<T> filter)

@@ -80,8 +80,7 @@ namespace EspINA {
 
     virtual void setSpacing(const typename T::SpacingType spacing);
 
-    virtual typename T::SpacingType spacing() const
-    { return m_spacing; }
+    virtual typename T::SpacingType spacing() const;
 
     virtual const typename T::Pointer itkImage() const;
 

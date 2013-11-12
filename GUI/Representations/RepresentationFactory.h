@@ -23,7 +23,6 @@
 #include "EspinaGUI_Export.h"
 
 #include "GUI/Representations/Representation.h"
-#include <GUI/Model/OutputAdapter.h>
 
 namespace EspINA
 {
