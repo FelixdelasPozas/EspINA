@@ -49,9 +49,7 @@ namespace EspINA
     m_origin.z = index[2];
 
     BinaryMask<T>::itkSpacing spacing = image->GetSpacing();
-    m_spacing.x = spacing[0];
-    m_spacing.y = spacing[1];
-    m_spacing.z = spacing[2];
+    m_spacing = NmVector3{ spacing[0], spacing[1], spacing[2]};
 
     BinaryMask<T>::itkSize size = region.GetSize();
     m_size[0] = size[0];
@@ -86,7 +84,7 @@ namespace EspINA
   }
 
   //-------------------------------------------------------------------------------------
-  template<typename T> BinaryMask<T>::BinaryMask(const Bounds& bounds, Spacing spacing) throw(Invalid_Bounds_Exception)
+  template<typename T> BinaryMask<T>::BinaryMask(const Bounds& bounds, NmVector3 spacing) throw(Invalid_Bounds_Exception)
   : m_bounds{bounds}
   , m_backgroundValue(0)
   , m_foregroundValue(255)
@@ -96,13 +94,13 @@ namespace EspINA
     if (!bounds.areValid())
       throw Invalid_Bounds_Exception();
 
-    m_size[0] = (std::floor(bounds[1]/m_spacing.x) - std::ceil(bounds[0]/m_spacing.x)) + 1;
-    m_size[1] = (std::floor(bounds[3]/m_spacing.y) - std::ceil(bounds[2]/m_spacing.y)) + 1;
-    m_size[2] = (std::floor(bounds[5]/m_spacing.z) - std::ceil(bounds[4]/m_spacing.z)) + 1;
+    m_size[0] = (std::floor(bounds[1]/m_spacing[0]) - std::ceil(bounds[0]/m_spacing[0])) + 1;
+    m_size[1] = (std::floor(bounds[3]/m_spacing[1]) - std::ceil(bounds[2]/m_spacing[1])) + 1;
+    m_size[2] = (std::floor(bounds[5]/m_spacing[2]) - std::ceil(bounds[4]/m_spacing[2])) + 1;
 
-    m_origin.x = static_cast<int>(std::floor(m_bounds[0]/m_spacing.x));
-    m_origin.y = static_cast<int>(std::floor(m_bounds[2]/m_spacing.y));
-    m_origin.z = static_cast<int>(std::floor(m_bounds[4]/m_spacing.z));
+    m_origin.x = static_cast<int>(std::floor(m_bounds[0]/m_spacing[0]));
+    m_origin.y = static_cast<int>(std::floor(m_bounds[2]/m_spacing[1]));
+    m_origin.z = static_cast<int>(std::floor(m_bounds[4]/m_spacing[2]));
 
     long int bufferSize = (m_size[0] * m_size[1] * m_size[2]) / m_integerSize;
     int remainder = (m_size[0] * m_size[1] * m_size[2]) % m_integerSize;
@@ -116,9 +114,9 @@ namespace EspINA
   //-------------------------------------------------------------------------------------
   template<typename T> void BinaryMask<T>::setPixel(const IndexType& index) throw(Out_Of_Bounds_Exception)
   {
-    Nm point[3] = { static_cast<Nm>(index.x*m_spacing.x),
-                    static_cast<Nm>(index.y*m_spacing.y),
-                    static_cast<Nm>(index.z*m_spacing.z) };
+    Nm point[3] = { static_cast<Nm>(index.x*m_spacing[0]),
+                    static_cast<Nm>(index.y*m_spacing[1]),
+                    static_cast<Nm>(index.z*m_spacing[2]) };
     if (point[0] < m_bounds[0] || point[0] > m_bounds[1] ||
         point[1] < m_bounds[2] || point[1] > m_bounds[3] ||
         point[2] < m_bounds[4] || point[2] > m_bounds[5])
@@ -141,9 +139,9 @@ namespace EspINA
   //-------------------------------------------------------------------------------------
   template<typename T> void BinaryMask<T>::unsetPixel(const IndexType& index) throw(Out_Of_Bounds_Exception)
   {
-    Nm point[3] = { static_cast<Nm>(index.x*m_spacing.x),
-                    static_cast<Nm>(index.y*m_spacing.y),
-                    static_cast<Nm>(index.z*m_spacing.z) };
+    Nm point[3] = { static_cast<Nm>(index.x*m_spacing[0]),
+                    static_cast<Nm>(index.y*m_spacing[1]),
+                    static_cast<Nm>(index.z*m_spacing[2]) };
     if (point[0] < m_bounds[0] || point[0] > m_bounds[1] ||
         point[1] < m_bounds[2] || point[1] > m_bounds[3] ||
         point[2] < m_bounds[4] || point[2] > m_bounds[5])
@@ -166,9 +164,9 @@ namespace EspINA
   //-------------------------------------------------------------------------------------
   template<typename T> typename BinaryMask<T>::PixelType BinaryMask<T>::pixel(const IndexType& index) const throw(Out_Of_Bounds_Exception)
   {
-    Nm point[3] = { static_cast<Nm>(index.x*m_spacing.x),
-                    static_cast<Nm>(index.y*m_spacing.y),
-                    static_cast<Nm>(index.z*m_spacing.z) };
+    Nm point[3] = { static_cast<Nm>(index.x*m_spacing[0]),
+                    static_cast<Nm>(index.y*m_spacing[1]),
+                    static_cast<Nm>(index.z*m_spacing[2]) };
     if (point[0] < m_bounds[0] || point[0] > m_bounds[1] ||
         point[1] < m_bounds[2] || point[1] > m_bounds[3] ||
         point[2] < m_bounds[4] || point[2] > m_bounds[5])
@@ -216,9 +214,9 @@ namespace EspINA
     region.SetIndex(index);
     region.SetSize(size);
     ImageSpacing spacing;
-    spacing[0] = m_spacing.x;
-    spacing[1] = m_spacing.y;
-    spacing[2] = m_spacing.z;
+    spacing[0] = m_spacing[0];
+    spacing[1] = m_spacing[1];
+    spacing[2] = m_spacing[2];
 
     ImagePoint origin;
     origin[0] = m_origin.x;

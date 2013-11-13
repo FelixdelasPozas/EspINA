@@ -81,9 +81,9 @@ namespace EspINA
 
   private:
     vtkSmartPointer<vtkPolyData> m_mesh;
-    itkVolumeType::SpacingType  m_spacing;
+    itkVolumeType::SpacingType   m_spacing;
 
-    mutable vtkSmartPointer<vtkAlgorithmOutput>          m_vtkVolume;
+    mutable vtkSmartPointer<vtkImageData>                m_vtkVolume;
 
     mutable vtkSmartPointer<vtkImageData>                m_emptyImage;
     mutable vtkSmartPointer<vtkImplicitPolyDataDistance> m_distance;

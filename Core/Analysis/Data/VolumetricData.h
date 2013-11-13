@@ -45,6 +45,10 @@ namespace EspINA
     explicit VolumetricData() {}
     virtual ~VolumetricData() {}
 
+    /* \brief Returns the bounds of the volume, adjusted for spacing
+     */
+    virtual Bounds bounds() const = 0;
+
     virtual Data::Type type() const
     { return TYPE; }
 

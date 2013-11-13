@@ -51,6 +51,8 @@ namespace EspINA
     virtual bool isValid() const
     { return m_volume.IsNotNull(); }
 
+    virtual const Bounds bounds() const;
+
     virtual void setVolume(itkVolumeType::Pointer volume, bool disconnect = false);
 
     virtual bool setInternalData(DataSPtr rhs);

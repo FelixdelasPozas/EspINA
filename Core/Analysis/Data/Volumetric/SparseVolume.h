@@ -62,6 +62,7 @@ namespace EspINA {
 
   public:
     explicit SparseVolume();
+    virtual ~SparseVolume() {}
 
     explicit SparseVolume(const Bounds& bounds);
 

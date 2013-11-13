@@ -42,6 +42,7 @@ set (CORE_SOURCES
   Utils/Bounds.cpp
   Utils/Measure.cpp
   Utils/NmVector3.cpp
+  Utils/SparseBinaryVolume.cpp
   )
 
 set(CORE_EXTERNAL_LIBS

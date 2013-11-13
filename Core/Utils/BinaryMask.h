@@ -20,6 +20,7 @@
 #ifndef ESPINA_BINARY_MASK_H
 #define ESPINA_BINARY_MASK_H
 
+#include <Core/Utils/NmVector3.h>
 #include "Core/Utils/Bounds.h"
 #include <Core/Utils/Spatial.h>
 
@@ -28,6 +29,8 @@
 #include <itkImageRegionConstIterator.h>
 
 #include <math.h>
+
+#include <QByteArray>
 
 namespace EspINA
 {
@@ -39,10 +42,6 @@ namespace EspINA
                                               index(): x(0), y(0), z(0) {};
                                               index(const int xv, const int yv, const int zv): x(xv), y(yv), z(zv) {};
                                               index(const index &i): x(i.x), y(i.y), z(i.z) {}; };
-      using Spacing          = struct spacing { Nm x; Nm y; Nm z;
-                                              spacing(): x(1), y(1), z(1) {};
-                                              spacing(const Nm xv, const Nm yv, const Nm zv): x(xv), y(yv), z(zv) {};
-                                              spacing(const spacing &s): x(s.x), y(s.y), z(s.z) {}; };
       using itkImageType     = itk::Image<T,3>;
       using itkPointer       = typename itkImageType::Pointer;
       using itkIndex         = typename itkImageType::IndexType;
@@ -64,7 +63,7 @@ namespace EspINA
        *
        *  Foreground and background will be set to default values.
        */
-      explicit BinaryMask(const Bounds& bounds, const Spacing spacing = Spacing()) throw(Invalid_Bounds_Exception);
+      explicit BinaryMask(const Bounds& bounds, const NmVector3 spacing = NmVector3{1,1,1}) throw(Invalid_Bounds_Exception);
 
       /** \brief Binary Mask constructor from an image and a background value. Every other
        *   value in the image will be considered as foreground.
@@ -80,7 +79,7 @@ namespace EspINA
 
       /** \brief Returns mask spacing.
        */
-      Spacing spacing() const                          { return m_spacing; }
+      NmVector3 spacing() const                        { return m_spacing; }
 
       /** \brief Returns background value of the mask.
        *   Unset bits in the image will be interpreted as having this value.
@@ -105,6 +104,14 @@ namespace EspINA
       /** \brief Returns the number of voxels of the mask.
        */
       unsigned long long numberOfVoxels()              { return m_size[0] * m_size[1] * m_size[2]; }
+
+      /* \brief Returns the size of the array used for internal storage
+       */
+      unsigned long long bufferSize()                  { return (m_size[0] * m_size[1] * m_size[2])/m_integerSize; }
+
+      /* \brief Returns the buffer as a QByteArray
+       */
+      QByteArray buffer()                              { return QByteArray( reinterpret_cast<const char*>(m_image), static_cast<int>(m_size[0] * m_size[1] * m_size[2])); }
 
       /** \brief Set pixel value to foreground value
        */
@@ -135,7 +142,7 @@ namespace EspINA
       PixelType     m_foregroundValue;
       int          *m_image;
       int           m_integerSize;
-      Spacing       m_spacing;
+      NmVector3     m_spacing;
       unsigned long m_size[3];
       IndexType     m_origin;
 
@@ -145,10 +152,19 @@ namespace EspINA
       : public std::iterator<std::bidirectional_iterator_tag, T>
       {
         public:
-          /** \brief iterator for a given mask constructor
+          /** \brief iterator for a given mask constructor.
            */
           iterator(BinaryMask<T> *mask)
           : m_mask(mask), m_pos(0), m_bitPos(0)
+          {
+          }
+
+          /** \brief Constructor for begin() and end() iterators, and others.
+           */
+          iterator(const iterator& it, const unsigned long long pos = 0, const int bitPos = 0)
+          : m_mask(it.m_mask)
+          , m_pos(pos)
+          , m_bitPos(bitPos)
           {
           }
 
@@ -231,6 +247,14 @@ namespace EspINA
             return m_mask->m_backgroundValue;
           }
 
+          /* \brief Convenience method when one doesn't need to know the foreground/background
+           * values of the mask.
+           */
+          bool isSet()
+          {
+            return (Get() == m_mask->m_foregroundValue);
+          }
+
           /** \brief Sets the value of the pointed element of the mask to foreground value.
            *  NOTE: Can throw an Out_Of_Bounds_Exception if the iterator is positioned at
            *  one-past-the-end element of the mask.
@@ -296,15 +320,6 @@ namespace EspINA
           }
 
         protected:
-          /** \brief Private constructor for begin() and end() iterators
-           */
-          iterator(const iterator& it, const unsigned long long pos = 0, const int bitPos = 0)
-          : m_mask(it.m_mask)
-          , m_pos(pos)
-          , m_bitPos(bitPos)
-          {
-          }
-
           BinaryMask<T>     *m_mask;
           unsigned long long m_pos;
           int                m_bitPos;
@@ -348,16 +363,29 @@ namespace EspINA
             if (intersection(bounds, mask->bounds()) != bounds)
               throw Region_Not_Contained_In_Mask_Exception();
 
-            m_extent[0] = static_cast<int>(std::round(m_bounds[0]/m_mask->m_spacing.x));
-            m_extent[1] = static_cast<int>(std::round(m_bounds[1]/m_mask->m_spacing.x));
-            m_extent[2] = static_cast<int>(std::round(m_bounds[2]/m_mask->m_spacing.y));
-            m_extent[3] = static_cast<int>(std::round(m_bounds[3]/m_mask->m_spacing.y));
-            m_extent[4] = static_cast<int>(std::round(m_bounds[4]/m_mask->m_spacing.z));
-            m_extent[5] = static_cast<int>(std::round(m_bounds[5]/m_mask->m_spacing.z));
+            m_extent[0] = static_cast<int>(std::round(m_bounds[0]/m_mask->m_spacing[0]));
+            m_extent[1] = static_cast<int>(std::round(m_bounds[1]/m_mask->m_spacing[0]));
+            m_extent[2] = static_cast<int>(std::round(m_bounds[2]/m_mask->m_spacing[1]));
+            m_extent[3] = static_cast<int>(std::round(m_bounds[3]/m_mask->m_spacing[1]));
+            m_extent[4] = static_cast<int>(std::round(m_bounds[4]/m_mask->m_spacing[2]));
+            m_extent[5] = static_cast<int>(std::round(m_bounds[5]/m_mask->m_spacing[2]));
 
             m_index.x = m_extent[0];
             m_index.y = m_extent[2];
             m_index.z = m_extent[4];
+          }
+
+          /** \brief Constructor for begin() and end() iterators, and others.
+           */
+          region_iterator(const region_iterator &it, const IndexType &index)
+          : m_mask(it.m_mask)
+          , m_bounds(it.m_bounds)
+          {
+            memcpy(m_extent, it.m_extent, 6*sizeof(unsigned long long));
+
+            m_index.x = index.x;
+            m_index.y = index.y;
+            m_index.z = index.z;
           }
 
           virtual ~region_iterator() {};
@@ -468,6 +496,14 @@ namespace EspINA
             return m_getReturnValue;
           }
 
+          /* \brief Convenience method when one doesn't need to know the foreground/background
+           * values of the mask.
+           */
+          bool isSet()
+          {
+            return (Get() == m_mask->m_foregroundValue);
+          }
+
           /** \brief Sets the value of the pointed element of the mask to foreground value.
            *  NOTE: Can throw an Out_Of_Bounds_Exception if the iterator is positioned at
            *  one-past-the-end element of the region.
@@ -553,19 +589,6 @@ namespace EspINA
           }
 
         protected:
-          /** \brief Private constructor for begin() and end() iterators
-           */
-          region_iterator(const region_iterator &it, const IndexType &index)
-          : m_mask(it.m_mask)
-          , m_bounds(it.m_bounds)
-          {
-            memcpy(m_extent, it.m_extent, 6*sizeof(unsigned long long));
-
-            m_index.x = index.x;
-            m_index.y = index.y;
-            m_index.z = index.z;
-          }
-
           BinaryMask<T>     *m_mask;
           Bounds             m_bounds;
           unsigned long long m_extent[6];

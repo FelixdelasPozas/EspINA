@@ -102,7 +102,7 @@ int binaryMask_region_iterator(int argc, char** argv)
     ++rit;
   }
 
-  BMask *otherMask = new BMask(Bounds{0,9,0,9,0,9}, BMask::Spacing(2.5,2.5,2.5));
+  BMask *otherMask = new BMask(Bounds{0,9,0,9,0,9}, NmVector3{2.5,2.5,2.5});
 
   qDebug() << otherMask->numberOfVoxels();
 

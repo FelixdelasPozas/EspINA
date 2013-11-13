@@ -70,8 +70,8 @@ int binaryMask_itkImage_constructor(int argc, char** argv)
 
   BMask *mask = new BMask(image, 0);
 
-  BMask::Spacing otherSpacing(mask->spacing());
-  error |= ((otherSpacing.x != spacing[0]) && (otherSpacing.y != spacing[1]) && (otherSpacing.z != spacing[2]));
+  NmVector3 otherSpacing(mask->spacing());
+  error |= ((otherSpacing[0] != spacing[0]) && (otherSpacing[1] != spacing[1]) && (otherSpacing[2] != spacing[2]));
 
   Bounds bounds = mask->bounds();
   error |= ((index[0] * spacing[0] != bounds[0]) && ((index[0]+size[0]) * spacing[0] != bounds[1]) &&

@@ -264,11 +264,10 @@ itkVolumeType::IndexType RawVolume<T>::index(Nm x, Nm y, Nm z)
 }
 
 //----------------------------------------------------------------------------
-template<class T>
+template<typename T>
 Bounds RawVolume<T>::bounds() const
 {
-    // TODO
-  return Bounds();
+  return equivalentBounds(m_volume, m_volume->GetLargestPossibleRegion());
 }
 
 ////----------------------------------------------------------------------------

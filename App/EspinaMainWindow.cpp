@@ -249,7 +249,8 @@ EspinaMainWindow::EspinaMainWindow(AnalysisSPtr       analysis,
   m_contextualBar = addToolBar("Contextual ToolBar");
   m_contextualBar->setMovable(false);
   m_contextualBar->setObjectName("Contextual ToolBar");
-  m_contextualBar->setMinimumHeight(38);
+  m_contextualBar->setMinimumHeight(44);
+  m_contextualBar->setMaximumHeight(44);
   m_viewManager->setContextualBar(m_contextualBar);
 
 //   m_mainToolBar = new MainToolBar(m_model, m_undoStack, m_viewManager);

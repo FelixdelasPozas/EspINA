@@ -26,6 +26,7 @@ add_executable(BinaryMask_Tests
 #  ${SUBJECT_MOCS}
   ${CORE_DIR}/Utils/BinaryMask.cpp
   ${CORE_DIR}/Utils/Bounds.cpp
+  ${CORE_DIR}/Utils/NmVector3.cpp
   )
   
 target_link_libraries(BinaryMask_Tests ${LIB_DEPENDECIES} )
