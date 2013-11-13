@@ -53,6 +53,41 @@ namespace EspINA
       CATEGORY
     };
 
+    static int typeId(Type type)
+    {
+      switch (type) {
+        case Type::SAMPLE:
+          return 0;
+        case Type::CHANNEL:
+          return 1;
+        case Type::SEGMENTATION:
+          return 2;
+        case Type::CLASSIFICATION:
+          return 4;
+        case Type::CATEGORY:
+          return 5;
+      }
+      return -1;
+    }
+
+    static Type type(int id)
+    {
+      switch (id) {
+        case 0:
+          return Type::SAMPLE;
+        case 1:
+          return Type::CHANNEL;
+        case 2:
+          return Type::SEGMENTATION;
+        case 4:
+          return Type::CLASSIFICATION;
+        case 5:
+          return Type::CATEGORY;
+        default:
+          throw -1;
+      }
+    }
+
     Q_OBJECT
   public:
     explicit ItemAdapter(PersistentSPtr analysisItem)
@@ -74,22 +109,6 @@ namespace EspINA
     void modified(ItemAdapterPtr);
 
   protected:
-    int typeId(Type type) const
-    {
-      switch (type) {
-        case Type::SAMPLE:
-          return 0;
-        case Type::CHANNEL:
-          return 1;
-        case Type::SEGMENTATION:
-          return 2;
-        case Type::CLASSIFICATION:
-          return 4;
-        case Type::CATEGORY:
-          return 5;
-      }
-      return -1;
-    }
 
     PersistentSPtr m_analysisItem;
 

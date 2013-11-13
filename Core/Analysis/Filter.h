@@ -38,6 +38,8 @@ namespace EspINA
   public:
     using Type = QString;
 
+    struct Invalid_Number_Of_Inputs_Exception{};
+    struct Invalid_Input_Data_Exception{};
     struct Undefined_Output_Exception{};
 
 //   protected:
@@ -102,7 +104,11 @@ namespace EspINA
 
     //virtual DataSPtr createDataProxy(Output::Id id, const Data::Type &type) = 0;
 
-    virtual void run() { update(); }
+    virtual void run() 
+    {
+      update();
+      emit finished();
+    }
 
     /** \brief Method which actually executes the filter to generate all its outputs
      *

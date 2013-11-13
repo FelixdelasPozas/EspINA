@@ -20,12 +20,31 @@
 
 using namespace EspINA;
 
-ToolGroup::ToolGroup(ViewManagerSPtr viewManager, const QIcon& icon, const QString& text, QObject* parent)
+//-----------------------------------------------------------------------------
+ToolGroup::ToolGroup(ViewManagerSPtr viewManager,
+                     const QIcon    &icon,
+                     const QString  &text,
+                     QObject        *parent)
 : QAction(icon, text, parent)
 , m_viewManager{viewManager}
 {
   setCheckable(true);
 
   connect(this, SIGNAL(toggled(bool)),
-          this, SLOT(setInUse(bool)));
+          this, SLOT(showTools(bool)));
+}
+
+//-----------------------------------------------------------------------------
+void ToolGroup::showTools(bool value)
+{
+  if (value)
+  {
+    m_viewManager->displayTools(this);
+  } else
+  {
+    m_viewManager->hideTools(this);
+  }
+  blockSignals(true);
+  setChecked(value);
+  blockSignals(false);
 }

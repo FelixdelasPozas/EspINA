@@ -30,6 +30,7 @@ namespace EspINA
 {
   class CategoryAdapter;
   using CategoryAdapterPtr   = CategoryAdapter *;
+  using CategoryAdapterList  = QList<CategoryAdapterPtr>;
   using CategoryAdapterSPtr  = std::shared_ptr<CategoryAdapter>;
   using CategoryAdapterSList = QList<CategoryAdapterSPtr>;
 
@@ -144,14 +145,15 @@ namespace EspINA
     CategoryAdapterSList m_subCategories;
 
     friend class ClassificationAdapter;
+    friend class SegmentationAdapter;
     template<typename T> friend class Tree;
-    friend QString print(CategoryAdapterSPtr category, int level=0);
+    friend QString print(CategoryAdapterSPtr category, int level);
   };
 
   CategoryAdapterPtr EspinaGUI_EXPORT categoryPtr(const QModelIndex& index);
   CategoryAdapterPtr EspinaGUI_EXPORT categoryPtr(ItemAdapterPtr item);
 
-  QString print(CategoryAdapterSPtr category, int level=0);
+  QString EspinaGUI_EXPORT print(CategoryAdapterSPtr category, int level=0);
 }// namespace EspINA
 
 #endif // ESPINA_CATEGORY_ADAPTER_H

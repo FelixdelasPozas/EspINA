@@ -17,13 +17,12 @@
  */
 
 
-#ifndef SEGMENTATIONEXPLORERLAYOUT_H
-#define SEGMENTATIONEXPLORERLAYOUT_H
+#ifndef ESPINA_SEGMENTATION_EXPLORER_LAYOUT_H
+#define ESPINA_SEGMENTATION_EXPLORER_LAYOUT_H
 
 #include "SegmentationExplorer.h"
 
-#include <Core/Model/ModelItem.h>
-#include <Core/Model/EspinaModel.h>
+#include <GUI/Widgets/CheckableTreeView.h>
 
 #include <QItemDelegate>
 #include <QSortFilterProxyModel>
@@ -54,20 +53,21 @@ namespace EspINA
 
   public:
     explicit Layout(CheckableTreeView *view,
-                    EspinaModel       *model,
-                    QUndoStack        *undoStack,
-                    ViewManager       *viewManager);
+                    ModelAdapterSPtr  model,
+                    ViewManagerSPtr   viewManager,
+                    QUndoStack        *undoStack);
 
     virtual ~Layout();
 
     virtual void createSpecificControls(QHBoxLayout *specificControlLayout);
 
     virtual QAbstractItemModel *model()
-    {return m_model; }
+    {return m_model.get(); }
 
-    virtual ModelItemPtr item(const QModelIndex &index) const {return indexPtr(index);}
+    virtual ItemAdapterPtr item(const QModelIndex &index) const
+    {return itemAdapter(index);}
 
-    virtual QModelIndex index(ModelItemPtr item) const
+    virtual QModelIndex index(ItemAdapterPtr item) const
     { return m_model->index(item); }
 
     virtual void setFilterRegExp(const QString &regExp) = 0;
@@ -79,15 +79,16 @@ namespace EspINA
 
     virtual QItemDelegate *itemDelegate() const = 0;
 
-    typedef QString SegmentationInspectorKey;
-    static SegmentationInspectorKey toKey(SegmentationList segmentations);
-    static SegmentationInspectorKey toKey(SegmentationPtr segmentation);
+    using SegmentationInspectorKey = QString;
+
+    static SegmentationInspectorKey toKey(SegmentationAdapterList segmentations);
+    static SegmentationInspectorKey toKey(SegmentationAdapterPtr segmentation);
 
     virtual void reset();
 
   protected:
-    void deleteSegmentations(SegmentationList segmentations);
-    void showSegmentationInformation(SegmentationList segmentations);
+    void deleteSegmentations(SegmentationAdapterList segmentations);
+    void showSegmentationInformation(SegmentationAdapterList segmentations);
 
     QModelIndexList indices(const QModelIndex &index, bool recursive=false);
 
@@ -96,16 +97,16 @@ namespace EspINA
     void rowsAboutToBeRemoved(const QModelIndex parent, int start, int end);
 
   protected:
-    EspinaModel *m_model;
-    QUndoStack  *m_undoStack;
-    ViewManager *m_viewManager;
+    ModelAdapterSPtr m_model;
+    ViewManagerSPtr  m_viewManager;
+    QUndoStack      *m_undoStack;
 
     CheckableTreeView *m_view;
 
     QMap<SegmentationInspectorKey, SegmentationInspector *> m_inspectors;
   };
 
-  bool sortSegmentationLessThan(ModelItemPtr left, ModelItemPtr right);
+  bool sortSegmentationLessThan(ItemAdapterPtr left, ItemAdapterPtr right);
 
 } // namespace EspINA
 

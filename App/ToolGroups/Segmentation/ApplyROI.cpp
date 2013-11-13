@@ -45,7 +45,7 @@ QWidget* ApplyROI::createWidget(QWidget* parent)
   QWidget *widget = new QWidget(parent);
 
   QCheckBox *roiCheckBox = new QCheckBox(tr("Apply ROI"), parent);
-  roiCheckBox->setCheckState(Qt::Checked);
+  roiCheckBox->setCheckState(m_useROI?Qt::Checked:Qt::Unchecked);
 
   QString labels[3] = {"X:", "Y:", "Z:"};
   for(int i = 0; i < 3; ++i)

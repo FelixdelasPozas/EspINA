@@ -16,18 +16,33 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "SeedGrowSegmentationFilter.h"
+#include <Core/Analysis/Data/VolumetricData.h>
+#include <unistd.h>
 
 using namespace EspINA;
 
 SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(OutputSList inputs, Filter::Type type, SchedulerSPtr scheduler)
 : Filter(inputs, type, scheduler)
+, m_lowerTh(10)
+, m_prevLowerTh(m_lowerTh)
+, m_upperTh(10)
+, m_prevUpperTh(m_upperTh)
+, m_seed({0,0,0})
+, m_prevSeed(m_seed)
+, m_radius(0)
+, m_prevRadius(m_radius)
 {
 
 }
 
-OutputSPtr SeedGrowSegmentationFilter::output(Output::Id id) const
+void SeedGrowSegmentationFilter::restoreState(const State& state)
 {
 
+}
+
+State SeedGrowSegmentationFilter::saveState() const
+{
+  return State();
 }
 
 void SeedGrowSegmentationFilter::setLowerThreshold(int th)
@@ -37,27 +52,27 @@ void SeedGrowSegmentationFilter::setLowerThreshold(int th)
 
 int SeedGrowSegmentationFilter::lowerThreshold() const
 {
-
+  return m_lowerTh;
 }
 
 void SeedGrowSegmentationFilter::setUpperThreshold(int th)
 {
-
+  m_upperTh = th;
 }
 
 int SeedGrowSegmentationFilter::upperThreshold() const
 {
-
+  return m_upperTh;
 }
 
-void SeedGrowSegmentationFilter::setSeed(Nm seed[3])
+void SeedGrowSegmentationFilter::setSeed(const NmVector3& seed)
 {
-
+  m_seed = seed;
 }
 
-void SeedGrowSegmentationFilter::seed(Nm seed[3]) const
+NmVector3 SeedGrowSegmentationFilter::seed() const
 {
-
+  return m_seed;
 }
 
 void SeedGrowSegmentationFilter::setVOI(const Bounds& bounds)
@@ -77,14 +92,14 @@ EspINA::BinaryMask<T> SeedGrowSegmentationFilter::voi() const
 
 }
 
-void SeedGrowSegmentationFilter::setClosingRadius(unsigned char value)
+void SeedGrowSegmentationFilter::setClosingRadius(int radius)
 {
-
+  m_radius = radius;
 }
 
-unsigned char SeedGrowSegmentationFilter::closingRadius()
+int SeedGrowSegmentationFilter::closingRadius()
 {
-
+  return m_radius;;
 }
 
 Snapshot SeedGrowSegmentationFilter::saveFilterSnapshot() const
@@ -92,32 +107,141 @@ Snapshot SeedGrowSegmentationFilter::saveFilterSnapshot() const
 
 }
 
+//----------------------------------------------------------------------------
 bool SeedGrowSegmentationFilter::needUpdate() const
 {
-
+  return m_outputs.isEmpty();
 }
 
-DataSPtr SeedGrowSegmentationFilter::createDataProxy(Output::Id id, const Data::Type& type)
-{
-
-}
-
-
+//----------------------------------------------------------------------------
 bool SeedGrowSegmentationFilter::needUpdate(Output::Id id) const
 {
+  if (id != 0) throw Undefined_Output_Exception();
 
+  bool paramsModified = m_lowerTh != m_prevLowerTh
+                     || m_upperTh != m_prevUpperTh
+                     || m_seed    != m_prevSeed
+                     || m_radius  != m_prevRadius;
+
+  return m_outputs.isEmpty() || !validOutput(id) || paramsModified;
 }
 
+//----------------------------------------------------------------------------
 void SeedGrowSegmentationFilter::execute()
 {
-
+  execute(0);
 }
 
+//----------------------------------------------------------------------------
 void SeedGrowSegmentationFilter::execute(Output::Id id)
 {
+  if (m_inputs.size() != 1) throw Invalid_Number_Of_Inputs_Exception();
+
+  auto input = volumetricData(m_inputs[0]);
+  if (!input) throw Invalid_Input_Data_Exception();
+
+//   int voi[6];
+//   m_param.voi(voi);
+// 
+// //   qDebug() << "Bound VOI to input extent";
+//   int inputExtent[6];
+//   input->extent(inputExtent);
+//   for (int i = 0; i < 3; i++)
+//   {
+//     int inf = 2*i, sup = 2*i+1;
+//     voi[inf] = std::max(voi[inf], inputExtent[inf]);
+//     voi[sup] = std::min(voi[sup], inputExtent[sup]);
+//   }
+// 
+// //   qDebug() << "Apply VOI";
+//   voiFilter = ExtractType::New();
+//   ExtractType::InputImageRegionType roi;
+//   for (int i = 0; i < 3; i++)
+//   {
+//     int inf = 2*i, sup = 2*i+1;
+//     roi.SetIndex(i, voi[inf]);
+//     roi.SetSize (i, voi[sup] - voi[inf] + 1);
+//   }
+// 
+//   voiFilter->SetNumberOfThreads(1);
+//   voiFilter->SetInput(input->toITK());
+//   voiFilter->SetExtractionRegion(roi);
+//   voiFilter->ReleaseDataFlagOn();
+//   voiFilter->Update();
+
+  emit progress(25);
+
+//   qDebug() << "Computing Original Size Connected Threshold";
+  Bounds seedBounds;
+  for (int i = 0; i < 3; ++i)
+  {
+    seedBounds[2*i] = seedBounds[2*i+1] = m_seed[i];
+  }
+  seedBounds.setUpperInclusion(true);
+
+  itkVolumeType::Pointer   seedVoxel     = input->itkImage(seedBounds);
+  itkVolumeType::ValueType seedIntensity = 50;//TODO
+  itkVolumeType::IndexType seed;
+  seed.Fill(50);
+
+  m_connectedFilter = ConnectedFilterType::New();
+  m_connectedFilter->SetInput(input->itkImage());
+  //m_connectedFilter->SetReplaceValue(LABEL_VALUE);
+  m_connectedFilter->SetLower(std::max(seedIntensity - m_lowerTh, 0));
+  m_connectedFilter->SetUpper(std::min(seedIntensity + m_upperTh, 255));
+  m_connectedFilter->AddSeed(seed);
+  m_connectedFilter->SetNumberOfThreads(4);
+  m_connectedFilter->ReleaseDataFlagOn();
+  m_connectedFilter->Update();
+
+  emit progress(75);
+
+//   qDebug() << "Intensity at Seed:" << seedIntensity;
+//   qDebug() << "Lower Intensity:" << std::max(seedIntensity - m_param.lowerThreshold(), 0.0);
+//   qDebug() << "Upper Intensity:" << std::min(seedIntensity + m_param.upperThreshold(), 255.0);
+//   qDebug() << "SEED: " << seed[0] << " " << seed[1] << " " << seed[2];
+
+//   RawSegmentationVolumeSPtr volumeRepresentation(new RawSegmentationVolume(ctif->GetOutput()));
+//   volumeRepresentation->fitToContent();
+// 
+//   if (m_param.closeValue() > 0)
+//   {
+// //     qDebug() << "Closing Segmentation";
+//     StructuringElementType ball;
+//     ball.SetRadius(4);
+//     ball.CreateStructuringElement();
+// 
+//     bmcif = bmcifType::New();
+//     bmcif->SetInput(volumeRepresentation->toITK());
+//     bmcif->SetKernel(ball);
+//     bmcif->SetForegroundValue(LABEL_VALUE);
+//     bmcif->ReleaseDataFlagOn();
+//     bmcif->Update();
+// 
+//     volumeRepresentation->setVolume(bmcif->GetOutput());
+//   }
+
+  emit progress(100);
+
+  if (m_outputs.isEmpty())
+  {
+    m_outputs << OutputSPtr(new Output(this, 0));
+  }
+
+  //DefaultVolumetricDataSPtr volume{new };
+
+  m_prevLowerTh = m_lowerTh;
+  m_prevUpperTh = m_upperTh;
+  m_prevSeed    = m_seed;
+  m_prevRadius  = m_radius;
+
+
+//   repList << volumeRepresentation;
+//   repList << MeshRepresentationSPtr(new MarchingCubesMesh(volumeRepresentation));
 
 }
 
+//----------------------------------------------------------------------------
 bool SeedGrowSegmentationFilter::invalidateEditedRegions()
 {
 
@@ -201,90 +325,6 @@ bool SeedGrowSegmentationFilter::invalidateEditedRegions()
 // //-----------------------------------------------------------------------------
 // void SeedGrowSegmentationFilter::run(FilterOutputId oId)
 // {
-//   //qDebug() << "Run SGS";
-//   Q_ASSERT(0 == oId);
-//   Q_ASSERT(m_inputs.size() == 1);
-// 
-//   ChannelVolumeSPtr input = channelVolume(m_inputs[0]);
-//   Q_ASSERT(input);
-// 
-//   int voi[6];
-//   m_param.voi(voi);
-// 
-// //   qDebug() << "Bound VOI to input extent";
-//   int inputExtent[6];
-//   input->extent(inputExtent);
-//   for (int i = 0; i < 3; i++)
-//   {
-//     int inf = 2*i, sup = 2*i+1;
-//     voi[inf] = std::max(voi[inf], inputExtent[inf]);
-//     voi[sup] = std::min(voi[sup], inputExtent[sup]);
-//   }
-// 
-// //   qDebug() << "Apply VOI";
-//   voiFilter = ExtractType::New();
-//   ExtractType::InputImageRegionType roi;
-//   for (int i = 0; i < 3; i++)
-//   {
-//     int inf = 2*i, sup = 2*i+1;
-//     roi.SetIndex(i, voi[inf]);
-//     roi.SetSize (i, voi[sup] - voi[inf] + 1);
-//   }
-// 
-//   voiFilter->SetNumberOfThreads(1);
-//   voiFilter->SetInput(input->toITK());
-//   voiFilter->SetExtractionRegion(roi);
-//   voiFilter->ReleaseDataFlagOn();
-//   voiFilter->Update();
-// 
-// //   qDebug() << "Computing Original Size Connected Threshold";
-//   itkVolumeType::IndexType seed = m_param.seed();
-//   double seedIntensity = input->toITK()->GetPixel(seed);
-//   ctif = ConnectedThresholdFilterType::New();
-//   ctif->SetInput(voiFilter->GetOutput());
-//   ctif->SetReplaceValue(LABEL_VALUE);
-//   ctif->SetLower(std::max(seedIntensity - m_param.lowerThreshold(), 0.0));
-//   ctif->SetUpper(std::min(seedIntensity + m_param.upperThreshold(), 255.0));
-//   ctif->AddSeed(seed);
-//   ctif->SetNumberOfThreads(4);
-//   ctif->ReleaseDataFlagOn();
-//   ctif->Update();
-// 
-// //   qDebug() << "Intensity at Seed:" << seedIntensity;
-// //   qDebug() << "Lower Intensity:" << std::max(seedIntensity - m_param.lowerThreshold(), 0.0);
-// //   qDebug() << "Upper Intensity:" << std::min(seedIntensity + m_param.upperThreshold(), 255.0);
-// //   qDebug() << "SEED: " << seed[0] << " " << seed[1] << " " << seed[2];
-//   RawSegmentationVolumeSPtr volumeRepresentation(new RawSegmentationVolume(ctif->GetOutput()));
-//   volumeRepresentation->fitToContent();
-// 
-//   if (m_param.closeValue() > 0)
-//   {
-// //     qDebug() << "Closing Segmentation";
-//     StructuringElementType ball;
-//     ball.SetRadius(4);
-//     ball.CreateStructuringElement();
-// 
-//     bmcif = bmcifType::New();
-//     bmcif->SetInput(volumeRepresentation->toITK());
-//     bmcif->SetKernel(ball);
-//     bmcif->SetForegroundValue(LABEL_VALUE);
-//     bmcif->ReleaseDataFlagOn();
-//     bmcif->Update();
-// 
-//     volumeRepresentation->setVolume(bmcif->GetOutput());
-//   }
-// 
-//   SegmentationRepresentationSList repList;
-//   repList << volumeRepresentation;
-//   repList << MeshRepresentationSPtr(new MarchingCubesMesh(volumeRepresentation));
-// 
-//   addOutputRepresentations(0, repList);
-// 
-//   m_ignoreCurrentOutputs = false;
-// 
-//   m_outputs[0]->updateModificationTime();
-// 
-//   emit modified(this);
 // }
 // 
 // 
@@ -334,17 +374,3 @@ bool SeedGrowSegmentationFilter::invalidateEditedRegions()
 // 
 //   return incompleteSeg;
 // }
-// 
-// //-----------------------------------------------------------------------------
-// void SeedGrowSegmentationFilter::setSeed(itkVolumeType::IndexType seed, bool ignoreUpdate)
-// {
-//   m_param.setSeed(seed);
-//   m_ignoreCurrentOutputs = !ignoreUpdate;
-// }
-// 
-// //-----------------------------------------------------------------------------
-// itkVolumeType::IndexType SeedGrowSegmentationFilter::seed() const
-// {
-//   return m_param.seed();
-// }
-// 

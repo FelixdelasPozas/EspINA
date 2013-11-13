@@ -31,6 +31,9 @@ namespace EspINA
   class EspinaCore_EXPORT FilterFactory
   {
   public:
+    struct Unknown_Filter_Exception{};
+
+  public:
     virtual ~FilterFactory(){}
 
     virtual FilterSPtr createFilter(OutputSList         inputs,

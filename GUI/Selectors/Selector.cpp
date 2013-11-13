@@ -26,6 +26,25 @@ const Selector::SelectionTag Selector::CHANNEL = "EspINA_Channel";
 const Selector::SelectionTag Selector::SEGMENTATION = "EspINA_Segmentation";
 
 //-----------------------------------------------------------------------------
+void Selector::setInUse(bool value)
+{
+  if (m_inUse != value)
+  {
+    m_inUse = value;
+
+    emit selectorInUse(m_inUse);
+
+//     if (m_inUse)
+//     {
+//       emit startUsingSelector();
+//     } else
+//     {
+//       emit stopUsingSelector();
+//     }
+  }
+}
+
+//-----------------------------------------------------------------------------
 bool Selector::filterEvent(QEvent* e, RenderView* view)
 {
   return false;

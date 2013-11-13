@@ -46,14 +46,10 @@ namespace EspINA
 
     virtual bool enabled() const = 0;
 
-    virtual void setActiveTool(ToolSPtr tool) = 0;
-
     virtual ToolSList tools() = 0;
 
-    virtual SelectorSPtr selector() const = 0;
-
   public slots:
-    virtual void setInUse(bool value) = 0;
+    virtual void showTools(bool value);
 
   protected:
     ViewManagerSPtr m_viewManager;

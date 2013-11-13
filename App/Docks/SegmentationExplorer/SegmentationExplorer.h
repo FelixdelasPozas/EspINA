@@ -17,37 +17,28 @@
 */
 
 
-#ifndef SEGMENTATIONEXPLORER_H
-#define SEGMENTATIONEXPLORER_H
+#ifndef ESPINA_SEGMENTATION_EXPLORER_H
+#define ESPINA_SEGMENTATION_EXPLORER_H
 
 //----------------------------------------------------------------------------
 // File:    SegmentationExplorer.h
 // Purpose: Dock widget to manage segmentations in the model
 //----------------------------------------------------------------------------
-#include <Core/Interfaces/IDockWidget.h>
+#include <Support/DockWidget.h>
 
-#include "GUI/QtWidget/IEspinaView.h"
 #include <ui_SegmentationExplorer.h>
-
-#include <GUI/ViewManager.h>
 
 class QUndoStack;
 
-#include "EspinaConfig.h"
-#include <Core/Model/EspinaModel.h>
 #include <QStringListModel>
-
-#ifdef TEST_ESPINA_MODELS
-class ModelTest;
-#endif
 
 namespace EspINA
 {
   class SegmentationInspector;
 
   class SegmentationExplorer
-  : public IDockWidget
-  , public IEspinaView
+  : public DockWidget
+  , public SelectableView
   {
     Q_OBJECT
     class GUI;
@@ -55,15 +46,15 @@ namespace EspINA
     class Layout;
 
   public:
-    explicit SegmentationExplorer(EspinaModel *model,
-                                  QUndoStack  *undoStack,
-                                  ViewManager *viewManager,
-                                  QWidget     *parent = 0);
+    explicit SegmentationExplorer(ModelAdapterSPtr model,
+                                  ViewManagerSPtr  viewManager,
+                                  QUndoStack      *undoStack,
+                                  QWidget         *parent = 0);
     virtual ~SegmentationExplorer();
 
-    virtual void initDockWidget(EspinaModel *model,
-                                QUndoStack  *undoStack,
-                                ViewManager *viewManager);
+    virtual void initDockWidget(ModelAdapterSPtr model,
+                                QUndoStack      *undoStack,
+                                ViewManagerSPtr  viewManager){}
 
     virtual void reset(); // slot
 
@@ -83,33 +74,30 @@ namespace EspINA
 
     void focusOnSegmentation(const QModelIndex &index);
 
-    void updateSelection(ViewManager::Selection selection);
-    void updateSelection(QItemSelection selected, QItemSelection deselected);
+    virtual Selection currentSelection() const{}//TODO
 
-    virtual void updateSegmentationRepresentations(SegmentationList list = SegmentationList());
-    virtual void updateChannelRepresentations(ChannelList list = ChannelList());
+    virtual void updateSelection(){}//TODO
 
-    virtual void updateSelection();
+    virtual void updateRepresentations(ChannelAdapterList list){}//TODO
+
+    virtual void updateRepresentations(SegmentationAdapterList list){}//TODO
+
+    virtual void updateRepresentations(){}//TODO
 
     void updateSearchFilter();
 
   protected:
-    EspinaModel *m_baseModel;
-    QUndoStack  *m_undoStack;
-    ViewManager *m_viewManager;
+    ModelAdapterSPtr m_baseModel;
+    ViewManagerSPtr  m_viewManager;
+    QUndoStack      *m_undoStack;
 
     GUI *m_gui;
     QStringList      m_layoutNames;
     QStringListModel m_layoutModel;
     QList<Layout *>  m_layouts;
     Layout          *m_layout;
-
-  private:
-    #ifdef TEST_ESPINA_MODELS
-    boost::shared_ptr<ModelTest>   m_modelTester;
-    #endif
   };
 
 } // namespace EspINA
 
-#endif // SEGMENTATIONEXPLORER_H
+#endif // ESPINA_SEGMENTATION_EXPLORER_H

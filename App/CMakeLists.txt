@@ -21,10 +21,10 @@ qt4_wrap_cpp (ESPINA_MOC
 #   Dialogs/TabularReport/TabularReportEntry.h
 #   Dialogs/GeneralSettingsDialog.h
   Docks/ChannelExplorer/ChannelExplorer.h
+  Docks/SegmentationExplorer/SegmentationExplorer.h
+  Docks/SegmentationExplorer/Layouts/ClassificationLayout.h
 #   Docks/FilterInspectorDock/FilterInspectorDock.h
-#   Docks/SegmentationExplorer/SegmentationExplorer.h
-#   Docks/SegmentationExplorer/SegmentationExplorerLayout.h
-#   Docks/SegmentationExplorer/LayoutTaxonomy.h
+  Docks/SegmentationExplorer/SegmentationExplorerLayout.h
 #   Docks/SegmentationExplorer/LayoutLocation.h
 #   Docks/SegmentationExplorer/LayoutComposition.h
 #   FilterInspectors/CODE/CODEFilterInspector.h
@@ -43,6 +43,7 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Zoom/ZoomTools.h
   ToolGroups/Segmentation/ApplyROI.h
   ToolGroups/Segmentation/SeedThreshold.h
+  ToolGroups/Segmentation/SeedGrowSegmentationTool.h
   ToolGroups/Segmentation/SegmentationTools.h
 #   Tools/Brushes/Brush.h
 #   Tools/Contour/FilledContour.h
@@ -69,7 +70,7 @@ qt4_wrap_ui (ESPINA_UI
   Dialogs/AboutDialog.ui
 #   Dialogs/GeneralSettingsDialog.ui
   Docks/ChannelExplorer/ChannelExplorer.ui
-#   Docks/SegmentationExplorer/SegmentationExplorer.ui
+  Docks/SegmentationExplorer/SegmentationExplorer.ui
 #   Docks/TabularReport/TabularReport.ui
 #   FilterInspectors/SeedGrowSegmentation/SGSFilterInspectorWidget.ui
 #   Settings/GeneralSettingsPanel.ui
@@ -101,12 +102,12 @@ set (ESPINA_SOURCES
   Dialogs/AboutDialog.cpp
 #   Dialogs/GeneralSettingsDialog.cpp
   Docks/ChannelExplorer/ChannelExplorer.cpp
+  Docks/SegmentationExplorer/SegmentationExplorer.cpp
+  Docks/SegmentationExplorer/Layouts/ClassificationLayout.cpp
+  Docks/SegmentationExplorer/SegmentationExplorerLayout.cpp
 #   Docks/FilterInspectorDock/FilterInspectorDock.cpp
 #   Docks/SegmentationExplorer/LayoutComposition.cpp
 #   Docks/SegmentationExplorer/LayoutLocation.cpp
-#   Docks/SegmentationExplorer/LayoutTaxonomy.cpp
-#   Docks/SegmentationExplorer/SegmentationExplorerLayout.cpp
-#   Docks/SegmentationExplorer/SegmentationExplorer.cpp
 #   FilterInspectors/CODE/CODEFilterInspector.cpp
 #   FilterInspectors/SeedGrowSegmentation/SGSFilterInspector.cpp
   Menus/ColorEngineMenu.cpp

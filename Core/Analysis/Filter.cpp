@@ -66,7 +66,7 @@ bool Filter::update()
 {
   if (numberOfOutputs() == 0)
   {
-    foreach(OutputSPtr input, m_inputs)
+    for(auto input : m_inputs)
     {
       input->update();
     }

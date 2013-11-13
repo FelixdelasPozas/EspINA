@@ -50,6 +50,7 @@ qt4_wrap_cpp(SUBJECT_MOCS
   ${CORE_DIR}/MultiTasking/Scheduler.h
   ${CORE_DIR}/MultiTasking/Task.h
   ${GUI_DIR}/Model/ModelAdapter.h
+  ${GUI_DIR}/Model/FilterAdapter.h
   ${GUI_DIR}/Model/ItemAdapter.h
   ${GUI_DIR}/Model/Proxies/ChannelProxy.h
   ModelTest.h

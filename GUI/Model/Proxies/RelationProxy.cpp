@@ -29,7 +29,7 @@
 
 using namespace EspINA;
 
-typedef QSet<ModelItemPtr> SegSet;
+typedef QSet<ModelItemPtr> SegmentationSet;
 
 //------------------------------------------------------------------------
 RelationProxy::RelationProxy(QObject* parent)

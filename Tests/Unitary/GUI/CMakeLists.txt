@@ -1,4 +1,5 @@
 add_subdirectory(ChannelAdapter)
+add_subdirectory(ClassificationProxy)
 add_subdirectory(ChannelProxy)
 add_subdirectory(ClassificationAdapter)
 add_subdirectory(ModelAdapter)

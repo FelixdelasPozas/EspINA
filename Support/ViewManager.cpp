@@ -190,9 +190,14 @@ void ViewManager::clearSelection()
 }
 
 //----------------------------------------------------------------------------
-void ViewManager::setToolGroup(ToolGroupPtr group)
+void ViewManager::displayTools(ToolGroupPtr group)
 {
-  unsetActiveToolGroup();
+  if (m_toolGroup)
+  {
+    m_toolGroup->showTools(false);
+  }
+
+  hideTools(m_toolGroup);
 
   m_toolGroup = group;
 
@@ -209,32 +214,32 @@ void ViewManager::setToolGroup(ToolGroupPtr group)
 }
 
 //----------------------------------------------------------------------------
-void ViewManager::unsetActiveToolGroup()
-{
-  if (m_toolGroup)
-  {
-    m_toolGroup->setInUse(false);
-    m_toolGroup = nullptr;
-  }
-
-  if (m_contextualToolBar)
-  {
-    m_contextualToolBar->clear();
-  }
-}
-
-
-//----------------------------------------------------------------------------
-void ViewManager::unsetActiveToolGroup(ToolGroupPtr group)
+void ViewManager::hideTools(ToolGroupPtr group)
 {
   if (m_toolGroup == group)
   {
     m_toolGroup = nullptr;
+
+    if (m_contextualToolBar)
+    {
+      m_contextualToolBar->clear();
+    }
+  }
+}
+
+//----------------------------------------------------------------------------
+void ViewManager::setSelector(SelectorSPtr selector)
+{
+  if (m_selector)
+  {
+    m_selector->setInUse(false);
   }
 
-  if (m_contextualToolBar)
+  m_selector = selector;
+  m_selector->setInUse(true);
+  for(auto view : m_renderViews)
   {
-    m_contextualToolBar->clear();
+    view->setSelector(m_selector);
   }
 }
 

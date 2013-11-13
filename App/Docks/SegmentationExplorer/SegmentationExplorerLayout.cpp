@@ -18,11 +18,12 @@
 
 
 #include "SegmentationExplorerLayout.h"
-#include <Dialogs/SegmentationInspector/SegmentationInspector.h>
 
-#include <Core/Model/Segmentation.h>
-#include <Core/Extensions/Tags/TagExtension.h>
-#include <Undo/RemoveSegmentation.h>
+//#include <Dialogs/SegmentationInspector/SegmentationInspector.h>
+
+// #include <Core/Model/Segmentation.h>
+// #include <Core/Extensions/Tags/TagExtension.h>
+// #include <Undo/RemoveSegmentation.h>
 #include <QUndoStack>
 
 using namespace EspINA;
@@ -51,20 +52,20 @@ bool SegmentationFilterProxyModel::filterAcceptsRow(int source_row, const QModel
 
   if (!acceptRows)
   {
-    ModelItemPtr item = indexPtr(rowIndex);
-    if (EspINA::SEGMENTATION == item->type())
-    {
-      SegmentationPtr segmentation = segmentationPtr(item);
-      SegmentationTags *tagExtension = dynamic_cast<SegmentationTags *>(
-        segmentation->informationExtension(SegmentationTagsID));
-
-      QStringList tags = tagExtension->tags();
-      int i = 0;
-      while (!acceptRows && i < tags.size())
-      {
-        acceptRows = tags[i].contains(filterRegExp());
-        ++i;
-      }
+    ItemAdapterPtr item = itemAdapter(rowIndex);
+    if (ItemAdapter::Type::SEGMENTATION == item->type())
+    {//TODO
+//       SegmentationAdapterPtr segmentation = segmentationPtr(item);
+//       SegmentationTags *tagExtension = dynamic_cast<SegmentationTags *>(
+//         segmentation->informationExtension(SegmentationTagsID));
+// 
+//       QStringList tags = tagExtension->tags();
+//       int i = 0;
+//       while (!acceptRows && i < tags.size())
+//       {
+//         acceptRows = tags[i].contains(filterRegExp());
+//         ++i;
+//       }
     }
   }
 
@@ -80,15 +81,15 @@ bool SegmentationFilterProxyModel::filterAcceptsRow(int source_row, const QModel
 
 //------------------------------------------------------------------------
 SegmentationExplorer::Layout::Layout(CheckableTreeView *view,
-                                     EspinaModel       *model,
-                                     QUndoStack        *undoStack,
-                                     ViewManager       *viewManager)
+                                     ModelAdapterSPtr   model,
+                                     ViewManagerSPtr    viewManager,
+                                     QUndoStack        *undoStack)
 : m_model      (model      )
-, m_undoStack  (undoStack  )
 , m_viewManager(viewManager)
+, m_undoStack  (undoStack  )
 , m_view       (view       )
 {
-  connect(m_model, SIGNAL(rowsAboutToBeRemoved(QModelIndex, int , int)),
+  connect(m_model.get(), SIGNAL(rowsAboutToBeRemoved(QModelIndex, int , int)),
           this, SLOT(rowsAboutToBeRemoved(QModelIndex, int,int)));
 }
 
@@ -103,26 +104,26 @@ void SegmentationExplorer::Layout::createSpecificControls(QHBoxLayout *specificC
 }
 
 //------------------------------------------------------------------------
-void SegmentationExplorer::Layout::deleteSegmentations(SegmentationList segmentations)
-{
-  m_undoStack->beginMacro("Delete Segmentations");
-  m_undoStack->push(new RemoveSegmentation(segmentations, m_model, m_viewManager));
-  m_undoStack->endMacro();
+void SegmentationExplorer::Layout::deleteSegmentations(SegmentationAdapterList segmentations)
+{ // TODO
+//   m_undoStack->beginMacro("Delete Segmentations");
+//   m_undoStack->push(new RemoveSegmentation(segmentations, m_model, m_viewManager));
+//   m_undoStack->endMacro();
 }
 
 //------------------------------------------------------------------------
-void SegmentationExplorer::Layout::showSegmentationInformation(SegmentationList segmentations)
-{
-  SegmentationInspector *inspector = m_inspectors.value(toKey(segmentations));
-  if (!inspector)
-  {
-    inspector = new SegmentationInspector(segmentations, m_model, m_undoStack, m_viewManager);
-    connect(inspector, SIGNAL(inspectorClosed(SegmentationInspector*)), this,
-        SLOT(releaseInspectorResources(SegmentationInspector*)));
-    m_inspectors[toKey(segmentations)] = inspector;
-  }
-  inspector->show();
-  inspector->raise();
+void SegmentationExplorer::Layout::showSegmentationInformation(SegmentationAdapterList segmentations)
+{ //TODO
+//   SegmentationInspector *inspector = m_inspectors.value(toKey(segmentations));
+//   if (!inspector)
+//   {
+//     inspector = new SegmentationInspector(segmentations, m_model, m_undoStack, m_viewManager);
+//     connect(inspector, SIGNAL(inspectorClosed(SegmentationInspector*)), this,
+//         SLOT(releaseInspectorResources(SegmentationInspector*)));
+//     m_inspectors[toKey(segmentations)] = inspector;
+//   }
+//   inspector->show();
+//   inspector->raise();
 }
 
 //------------------------------------------------------------------------
@@ -157,40 +158,40 @@ void SegmentationExplorer::Layout::rowsAboutToBeRemoved(const QModelIndex parent
     for(int row = start; row <= end; row++)
     {
       QModelIndex child = parent.child(row, 0);
-      ModelItemPtr item = indexPtr(child);
-      if (EspINA::SEGMENTATION == item->type())
-      {
-        SegmentationInspectorKey segKey = toKey(segmentationPtr(item));
-
-        foreach(SegmentationInspectorKey key, m_inspectors.keys())
-          if (key.contains(segKey))
-          {
-            SegmentationInspector *inspector = m_inspectors[key];
-            if (key == segKey)
-            {
-              m_inspectors.remove(key);
-              inspector->close();
-            }
-            else
-            {
-              QString newKey(key);
-
-              m_inspectors.remove(key);
-              m_inspectors.insert(newKey.remove(segKey), inspector);
-
-              inspector->removeSegmentation(segmentationPtr(item));
-            }
-          }
+      ItemAdapterPtr item = itemAdapter(child);
+      if (ItemAdapter::Type::SEGMENTATION == item->type())
+      {//TODO
+//         SegmentationInspectorKey segKey = toKey(segmentationPtr(item));
+// 
+//         foreach(SegmentationInspectorKey key, m_inspectors.keys())
+//           if (key.contains(segKey))
+//           {
+//             SegmentationInspector *inspector = m_inspectors[key];
+//             if (key == segKey)
+//             {
+//               m_inspectors.remove(key);
+//               inspector->close();
+//             }
+//             else
+//             {
+//               QString newKey(key);
+// 
+//               m_inspectors.remove(key);
+//               m_inspectors.insert(newKey.remove(segKey), inspector);
+// 
+//               inspector->removeSegmentation(segmentationPtr(item));
+//             }
+//           }
       }
     }
   }
 }
 
 //------------------------------------------------------------------------
-QString SegmentationExplorer::Layout::toKey(SegmentationList segmentations)
+QString SegmentationExplorer::Layout::toKey(SegmentationAdapterList segmentations)
 {
   QString result;
-  foreach(SegmentationPtr seg, segmentations)
+  for(auto seg : segmentations)
     result += QString().number(reinterpret_cast<unsigned long long>(seg)) + QString("|");
 
   return result;
@@ -198,28 +199,28 @@ QString SegmentationExplorer::Layout::toKey(SegmentationList segmentations)
 
 //------------------------------------------------------------------------
 void SegmentationExplorer::Layout::reset()
-{
-  foreach(SegmentationInspectorKey key, m_inspectors.keys())
-  {
-    m_inspectors[key]->close();
-    m_inspectors.remove(key);
-  }
+{//TODO
+//   foreach(SegmentationInspectorKey key, m_inspectors.keys())
+//   {
+//     m_inspectors[key]->close();
+//     m_inspectors.remove(key);
+//   }
 }
 
 //------------------------------------------------------------------------
-QString SegmentationExplorer::Layout::toKey(SegmentationPtr segmentation)
+QString SegmentationExplorer::Layout::toKey(SegmentationAdapterPtr segmentation)
 {
   QString result = QString().number(reinterpret_cast<unsigned long long>(segmentation)) + QString("|");
   return result;
 }
 
 //------------------------------------------------------------------------
-bool EspINA::sortSegmentationLessThan(ModelItemPtr left, ModelItemPtr right)
+bool EspINA::sortSegmentationLessThan(ItemAdapterPtr left, ItemAdapterPtr right)
 {
-  SegmentationPtr leftSeg  = segmentationPtr(left);
-  SegmentationPtr rightSeg = segmentationPtr(right);
+  SegmentationAdapterPtr leftSeg  = segmentationPtr(left);
+  SegmentationAdapterPtr rightSeg = segmentationPtr(right);
 
-  if (leftSeg->taxonomy()->name() == rightSeg->taxonomy()->name())
+  if (leftSeg->category()->name() == rightSeg->category()->name())
   {
     if (leftSeg->number() == rightSeg->number())
       return left ->data(Qt::ToolTipRole).toString() < right->data(Qt::ToolTipRole).toString();
@@ -228,7 +229,7 @@ bool EspINA::sortSegmentationLessThan(ModelItemPtr left, ModelItemPtr right)
   }
   else 
   {
-    return leftSeg->taxonomy()->name() < rightSeg->taxonomy()->name();
+    return leftSeg->category()->name() < rightSeg->category()->name();
   }
 
 }

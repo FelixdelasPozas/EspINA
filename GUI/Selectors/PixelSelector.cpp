@@ -1,5 +1,7 @@
 // EspINA
 #include "PixelSelector.h"
+#include <GUI/View/RenderView.h>
+#include <Core/Analysis/Data/VolumetricData.h>
 
 // Qt
 #include <QMouseEvent>
@@ -19,12 +21,65 @@
 #include <itkExtractImageFilter.h>
 
 using namespace EspINA;
-/*
+
 //-----------------------------------------------------------------------------
-ISelector::PickList PixelSelector::generatePickList(EspinaRenderView* view)
+void PixelSelector::onMouseDown(const QPoint &pos, RenderView* view)
+{
+  SelectionList selection = generateSelection(view);
+
+  //if (selection.empty() || 0 == selection.first().first->GetNumberOfPoints())
+    //return;
+
+  emit itemsSelected(selection);
+}
+
+//-----------------------------------------------------------------------------
+bool PixelSelector::filterEvent(QEvent *e, RenderView *view)
+{
+  // If successor didn't abort the filtering, apply its own filtering
+  if (QEvent::MouseButtonPress == e->type())
+  {
+    auto me = static_cast<QMouseEvent*>(e);
+    if (me->button() == Qt::LeftButton)
+    {
+      onMouseDown(me->pos(), view);
+      auto selection = generateSelection(view);
+      if (selection.empty())
+        return false;
+
+      for(auto item : selection)
+      {
+        if (0 == item.first->GetNumberOfPoints()) return false;
+      }
+
+      return true;
+    }
+  }
+
+  return Selector::filterEvent(e,view);
+}
+
+//-----------------------------------------------------------------------------
+NmVector3 PixelSelector::getPickPoint(RenderView *view)
+{
+  SelectionList selection = generateSelection(view);
+
+  if (selection.empty()
+  || (selection.first().second->type() != ItemAdapter::Type::CHANNEL)
+  || 0 == selection.first().first->GetNumberOfPoints())
+    Q_ASSERT(false);
+
+  double point[3];
+  selection.first().first->GetPoint(0, point);
+
+  return NmVector3{point[0], point[1], point[2]};
+}
+
+//-----------------------------------------------------------------------------
+Selector::SelectionList PixelSelector::generateSelection(RenderView *view)
 {
   DisplayRegionList regions;
-  QPolygon singlePixel;
+  QPolygon          singlePixel;
 
   int xPos, yPos;
   view->eventPosition(xPos, yPos);
@@ -32,56 +87,8 @@ ISelector::PickList PixelSelector::generatePickList(EspinaRenderView* view)
   singlePixel << QPoint(xPos,yPos);
   regions << singlePixel;
 
-  return view->pick(m_filters, regions);
+  return view->pick(m_flags, regions);
 }
-
-//-----------------------------------------------------------------------------
-void PixelSelector::onMouseDown(const QPoint &pos, EspinaRenderView* view)
-{
-  PickList pickList = generatePickList(view);
-  if (pickList.empty() || 0 == pickList.first().first->GetNumberOfPoints())
-    return;
-
-  emit itemsPicked(pickList);
-}
-
-//-----------------------------------------------------------------------------
-double *PixelSelector::getPickPoint(EspinaRenderView *view)
-{
-  PickList pickList = generatePickList(view);
-  if (pickList.empty() || (pickList.first().second->type() != EspINA::CHANNEL) || 0 == pickList.first().first->GetNumberOfPoints())
-    return NULL;
-
-  double *point = new double[3];
-  pickList.first().first->GetPoint(0, point);
-  return point;
-}
-
-//-----------------------------------------------------------------------------
-bool PixelSelector::filterEvent(QEvent* e, EspinaRenderView* view)
-{
-  // If successor didn't abort the filtering, apply its own filtering
-  if (e->type() == QEvent::MouseButtonPress)
-  {
-    QMouseEvent* me = static_cast<QMouseEvent*>(e);
-    if (me->button() == Qt::LeftButton)
-    {
-      onMouseDown(me->pos(), view);
-      PickList pickList = generatePickList(view);
-      if (pickList.empty())
-        return false;
-
-      foreach(PickedItem item, pickList)
-        if (0 == item.first->GetNumberOfPoints())
-          return false;
-
-      return true;
-    }
-  }
-
-  return ISelector::filterEvent(e,view);
-}
-
 
 int quadDist(int cx, int cy, int x, int y)
 {
@@ -109,43 +116,47 @@ BestPixelSelector::~BestPixelSelector()
 }
 
 //-----------------------------------------------------------------------------
-void BestPixelSelector::onMouseDown(const QPoint& pos, EspinaRenderView* view)
+void BestPixelSelector::onMouseDown(const QPoint& pos, RenderView* view)
 {
-  PickList pickList = generatePickList(view);
-  if (pickList.empty() || (pickList.first().second->type() != EspINA::CHANNEL)  || 0 == pickList.first().first->GetNumberOfPoints())
+  auto selection = generateSelection(view);
+  if   (selection.empty()
+    || (ItemAdapter::Type::CHANNEL != selection.first().second->type())
+    || 0 == selection.first().first->GetNumberOfPoints())
     return;
 
-  double *point = getPickPoint(view);
+  auto point = getPickPoint(view);
 
-  pickList.first().first->SetPoint(0, point[0], point[1], point[2]);
-  delete point;
-  emit itemsPicked(pickList);
+  selection.first().first->SetPoint(0, point[0], point[1], point[2]);
+
+  emit itemsSelected(selection);
 }
 
 //-----------------------------------------------------------------------------
-double *BestPixelSelector::getPickPoint(EspinaRenderView *view)
+NmVector3 BestPixelSelector::getPickPoint(RenderView *view)
 {
-  PickList pickList = generatePickList(view);
-  if (pickList.empty() || (pickList.first().second->type() != EspINA::CHANNEL) || 0 == pickList.first().first->GetNumberOfPoints())
-    return NULL;
+  auto selection = generateSelection(view);
+  if   (selection.empty()
+    || (ItemAdapter::Type::CHANNEL != selection.first().second->type())
+    || 0 == selection.first().first->GetNumberOfPoints())
+    Q_ASSERT(false);
 
-  PickableItemPtr pickedItem = pickList.first().second;
-  ChannelPtr channel = channelPtr(pickedItem);
+  auto selectedItem  = selection.first().second;
+  auto channel       = channelPtr(selectedItem);
 
-  itkVolumeType::Pointer channelVol = channel->volume()->toITK();
   double pickedPoint[3];
-  pickList.first().first->GetPoint(0, pickedPoint);
+  selection.first().first->GetPoint(0, pickedPoint);
 
-  itkVolumeType::SpacingType spacing = channelVol->GetSpacing();
-  double bounds[6];
-  view->previewBounds(bounds);
+  auto volume = volumetricData(channel->output());
+  auto spacing = volume->spacing();
+
+  Bounds bounds = view->previewBounds();
 
   int extent[6];
   for (int i = 0; i < 6; i++)
     extent[i] = bounds[i]/spacing[i/2];
 
   // limit extent to defined QSize
-  PickList tempPickList;
+  Selector::SelectionList tmpSelectionList;
   DisplayRegionList regions;
   QPolygon singlePixel;
 
@@ -157,11 +168,11 @@ double *BestPixelSelector::getPickPoint(EspinaRenderView *view)
   singlePixel << QPoint(xPos-(m_window->width()/2), yPos);
   regions.clear();
   regions << singlePixel;
-  tempPickList = view->pick(m_filters, regions);
-  if (!tempPickList.empty())
+  tmpSelectionList = view->pick(m_flags, regions);
+  if (!tmpSelectionList.empty())
   {
     double L_point[3];
-    tempPickList.first().first->GetPoint(0, L_point);
+    tmpSelectionList.first().first->GetPoint(0, L_point);
     if (L_point[0] < pickedPoint[0])
       extent[0] = L_point[0]/spacing[0];
 
@@ -177,11 +188,11 @@ double *BestPixelSelector::getPickPoint(EspinaRenderView *view)
   singlePixel << QPoint(xPos, yPos-(m_window->height()/2));
   regions.clear();
   regions << singlePixel;
-  tempPickList = view->pick(m_filters, regions);
-  if (!tempPickList.empty())
+  tmpSelectionList = view->pick(m_flags, regions);
+  if (!tmpSelectionList.empty())
   {
     double T_point[3];
-    tempPickList.first().first->GetPoint(0, T_point);
+    tmpSelectionList.first().first->GetPoint(0, T_point);
     if (T_point[0] > pickedPoint[0])
       extent[1] = T_point[0]/spacing[0];
 
@@ -197,11 +208,11 @@ double *BestPixelSelector::getPickPoint(EspinaRenderView *view)
   singlePixel << QPoint(xPos+(m_window->width()/2), yPos);
   regions.clear();
   regions << singlePixel;
-  tempPickList = view->pick(m_filters, regions);
-  if (!tempPickList.empty())
+  tmpSelectionList = view->pick(m_flags, regions);
+  if (!tmpSelectionList.empty())
   {
     double R_point[3];
-    tempPickList.first().first->GetPoint(0, R_point);
+    tmpSelectionList.first().first->GetPoint(0, R_point);
     if (R_point[0] > pickedPoint[0])
       extent[1] = R_point[0]/spacing[0];
 
@@ -217,11 +228,11 @@ double *BestPixelSelector::getPickPoint(EspinaRenderView *view)
   singlePixel << QPoint(xPos, yPos+(m_window->height()/2));
   regions.clear();
   regions << singlePixel;
-  tempPickList = view->pick(m_filters, regions);
-  if (!tempPickList.empty())
+  tmpSelectionList = view->pick(m_flags, regions);
+  if (!tmpSelectionList.empty())
   {
     double B_point[3];
-    tempPickList.first().first->GetPoint(0, B_point);
+    tmpSelectionList.first().first->GetPoint(0, B_point);
     if (B_point[0] < pickedPoint[0])
       extent[0] = B_point[0]/spacing[0];
 
@@ -246,7 +257,8 @@ double *BestPixelSelector::getPickPoint(EspinaRenderView *view)
   region.SetSize(regionSize);
   region.SetIndex(regionIndex);
 
-  itk::ImageRegionConstIterator<itkVolumeType> it(channelVol,region);
+  itkVolumeType::Pointer preview = volume->itkImage(bounds);
+  itk::ImageRegionConstIterator<itkVolumeType> it(preview, region);
   it.GoToBegin();
 
   unsigned char bestValue = abs(it.Get() - m_bestPixel);
@@ -285,11 +297,11 @@ double *BestPixelSelector::getPickPoint(EspinaRenderView *view)
     ++it;
   }
 
-  // NOTE: check that point is deleted later
-  double *requestedPoint = new double[3];
+  NmVector3 requestedPoint;
+
   requestedPoint[0] = bestPoint[0];
   requestedPoint[1] = bestPoint[1];
   requestedPoint[2] = bestPoint[2];
+
   return requestedPoint;
 }
- */

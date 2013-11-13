@@ -52,7 +52,7 @@ unsigned int SegmentationAdapter::number() const
 
 bool SegmentationAdapter::hasExtension(const SegmentationExtension::Type& type) const
 {
-
+  return false;
 }
 
 SegmentationExtensionSPtr SegmentationAdapter::extension(const SegmentationExtension::Type& type) const
@@ -67,7 +67,7 @@ void SegmentationAdapter::addExtension(SegmentationExtensionSPtr extension)
 
 CategoryAdapterSPtr SegmentationAdapter::category() const
 {
-
+  return m_category;
 }
 
 QVariant SegmentationAdapter::data(int role) const
@@ -192,7 +192,8 @@ void SegmentationAdapter::modifiedByUser(const QString& user)
 
 void SegmentationAdapter::setCategory(CategoryAdapterSPtr category)
 {
-
+  m_segmentation->setCategory(category->m_category);
+  m_category = category;
 }
 
 bool SegmentationAdapter::setData(const QVariant& value, int role)

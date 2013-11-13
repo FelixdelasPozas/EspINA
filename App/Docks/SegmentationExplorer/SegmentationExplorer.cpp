@@ -18,25 +18,14 @@
 
 #include "SegmentationExplorer.h"
 
-#include "Dialogs/SegmentationInspector/SegmentationInspector.h"
+//#include "Dialogs/SegmentationInspector/SegmentationInspector.h"
 #include "Docks/SegmentationExplorer/SegmentationExplorerLayout.h"
-#include "LayoutComposition.h"
-#include "LayoutLocation.h"
-#include "LayoutTaxonomy.h"
+// #include "LayoutComposition.h"
+// #include "LayoutLocation.h"
+#include "Layouts/ClassificationLayout.h"
 
 // EspINA
-#include <Core/Model/EspinaModel.h>
-#include <Core/Model/Proxies/TaxonomyProxy.h>
-#include <Core/Model/Sample.h>
-#include <Core/Model/Segmentation.h>
-#include <Core/Model/HierarchyItem.h>
-#include <Core/Extensions/Tags/TagExtension.h>
-#include <GUI/ISettingsPanel.h>
-#include <Undo/RemoveSegmentation.h>
-
-#ifdef TEST_ESPINA_MODELS
-#include <Core/Model/ModelTest.h>
-#endif
+// #include <Undo/RemoveSegmentation.h>
 
 // Qt
 #include <QContextMenuEvent>
@@ -70,25 +59,25 @@ SegmentationExplorer::GUI::GUI()
 
 
 //------------------------------------------------------------------------
-SegmentationExplorer::SegmentationExplorer(EspinaModel *model,
-                                           QUndoStack  *undoStack,
-                                           ViewManager *vm,
-                                           QWidget     *parent)
-: IDockWidget(parent)
+SegmentationExplorer::SegmentationExplorer(ModelAdapterSPtr model,
+                                           ViewManagerSPtr  viewManager,
+                                           QUndoStack      *undoStack,
+                                           QWidget         *parent)
+: DockWidget(parent)
 , m_baseModel  (model)
+, m_viewManager(viewManager)
 , m_undoStack  (undoStack)
-, m_viewManager(vm)
 , m_gui        (new GUI())
-, m_layout     (NULL)
+, m_layout     (nullptr)
 {
   setObjectName("SegmentationExplorer");
 
   setWindowTitle(tr("Segmentation Explorer"));
 
   //   addLayout("Debug", new Layout(m_baseModel));
-  addLayout("Category",    new TaxonomyLayout   (m_gui->view, m_baseModel, m_undoStack, m_viewManager));
-  addLayout("Location",    new LocationLayout   (m_gui->view, m_baseModel, m_undoStack, m_viewManager));
-  addLayout("Composition", new CompositionLayout(m_gui->view, m_baseModel, m_undoStack, m_viewManager));
+  addLayout("Category",    new ClassificationLayout(m_gui->view, m_baseModel, m_viewManager, m_undoStack));
+//   addLayout("Location",    new LocationLayout   (m_gui->view, m_baseModel, m_viewManager, m_undoStack));
+//   addLayout("Composition", new CompositionLayout(m_gui->view, m_baseModel, m_viewManager, m_undoStack));
 
   m_layoutModel.setStringList(m_layoutNames);
   m_gui->groupList->setModel(&m_layoutModel);
@@ -104,8 +93,8 @@ SegmentationExplorer::SegmentationExplorer(EspinaModel *model,
           this, SLOT(showSelectedItemsInformation()));
   connect(m_gui->deleteButton, SIGNAL(clicked(bool)),
           this, SLOT(deleteSelectedItems()));
-  connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection, bool)),
-          this, SLOT(updateSelection(ViewManager::Selection)));
+//   connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection, bool)),
+//           this, SLOT(updateSelection(ViewManager::Selection)));//TODO
   connect(m_gui->searchText, SIGNAL(textChanged(QString)),
           this, SLOT(updateSearchFilter()));
 
@@ -113,11 +102,12 @@ SegmentationExplorer::SegmentationExplorer(EspinaModel *model,
 
   m_gui->view->installEventFilter(this);
 
-  QCompleter *completer = new QCompleter(&SegmentationTags::TagModel, this);
-  completer->setCaseSensitivity(Qt::CaseInsensitive);
-  completer->setCompletionMode(QCompleter::InlineCompletion);
-  completer->setModelSorting(QCompleter::CaseInsensitivelySortedModel);
-  m_gui->searchText->setCompleter(completer);
+  //TODO
+//   QCompleter *completer = new QCompleter(&SegmentationTags::TagModel, this);
+//   completer->setCaseSensitivity(Qt::CaseInsensitive);
+//   completer->setCompletionMode(QCompleter::InlineCompletion);
+//   completer->setModelSorting(QCompleter::CaseInsensitivelySortedModel);
+//   m_gui->searchText->setCompleter(completer);
   m_gui->tagsLabel->setVisible(false);
   m_gui->selectedTags->setVisible(false);
 }
@@ -128,22 +118,13 @@ SegmentationExplorer::~SegmentationExplorer()
 //   qDebug() << "********************************************************";
 //   qDebug() << "          Destroying Segmentation Explorer";
 //   qDebug() << "********************************************************";
-  foreach(Layout *layout, m_layouts)
-    delete layout;
-}
-
-//------------------------------------------------------------------------
-void SegmentationExplorer::initDockWidget(EspinaModel *model,
-                                          QUndoStack  *undoStack,
-                                          ViewManager *viewManager)
-{
+  for(auto layout : m_layouts) delete layout;
 }
 
 //------------------------------------------------------------------------
 void SegmentationExplorer::reset()
 {
-  foreach(Layout *layout, m_layouts)
-    layout->reset();
+  for(auto layout : m_layouts) layout->reset();
 }
 
 //------------------------------------------------------------------------
@@ -171,75 +152,75 @@ bool SegmentationExplorer::eventFilter(QObject *sender, QEvent *e)
 //------------------------------------------------------------------------
 void SegmentationExplorer::updateGUI(const QModelIndexList &selectedIndexes)
 {
-  m_gui->showInformationButton->setEnabled(m_layout->hasInformationToShow());
-  m_gui->deleteButton->setEnabled(!selectedIndexes.empty());
-
-  QSet<QString> tagSet;
-  foreach(QModelIndex index, selectedIndexes)
-  {
-    ModelItemPtr item = m_layout->item(index);
-    if (EspINA::SEGMENTATION == item->type())
-    {
-      SegmentationPtr segmentation = segmentationPtr(item);
-      tagSet.unite(segmentation->information(SegmentationTags::TAGS).toStringList().toSet());
-    }
-  }
-
-  QStringList tags = tagSet.toList();
-  tags.sort();
-  m_gui->selectedTags->setText(tags.join(", "));
-
-  bool tagVisibility = !tags.isEmpty();
-  m_gui->tagsLabel->setVisible(tagVisibility);
-  m_gui->selectedTags->setVisible(tagVisibility);
+//   m_gui->showInformationButton->setEnabled(m_layout->hasInformationToShow());
+//   m_gui->deleteButton->setEnabled(!selectedIndexes.empty());
+// 
+//   QSet<QString> tagSet;
+//   foreach(QModelIndex index, selectedIndexes)
+//   {
+//     ModelItemPtr item = m_layout->item(index);
+//     if (EspINA::SEGMENTATION == item->type())
+//     {
+//       SegmentationPtr segmentation = segmentationPtr(item);
+//       tagSet.unite(segmentation->information(SegmentationTags::TAGS).toStringList().toSet());
+//     }
+//   }
+// 
+//   QStringList tags = tagSet.toList();
+//   tags.sort();
+//   m_gui->selectedTags->setText(tags.join(", "));
+// 
+//   bool tagVisibility = !tags.isEmpty();
+//   m_gui->tagsLabel->setVisible(tagVisibility);
+//   m_gui->selectedTags->setVisible(tagVisibility);
 }
 
 //------------------------------------------------------------------------
 void SegmentationExplorer::changeLayout(int index)
 {
-  Q_ASSERT(index < m_layouts.size());
-  if (m_layout)
-  {
-    disconnect(m_gui->view->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
-               this, SLOT(updateSelection(QItemSelection, QItemSelection)));
-
-    disconnect(m_layout->model(), SIGNAL(rowsInserted(const QModelIndex&, int, int)),
-               this,              SLOT(updateSelection()));
-    disconnect(m_layout->model(), SIGNAL(rowsRemoved(const QModelIndex&, int, int)),
-               this,              SLOT(updateSelection()));
-    disconnect(m_layout->model(), SIGNAL(modelReset()),
-               this,              SLOT(updateSelection()));
-
-    QLayoutItem *specificControl;
-    while ((specificControl = m_gui->specificControlLayout->takeAt(0)) != 0)
-    {
-      delete specificControl->widget();
-      delete specificControl;
-    }
-  }
-
-  m_layout = m_layouts[index];
-#ifdef TEST_ESPINA_MODELS
-  m_modelTester = boost::shared_ptr<ModelTest>(new ModelTest(m_layout->model()));
-#endif
-  m_gui->view->setModel(m_layout->model());
-
-  connect(m_gui->view->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
-          this,                          SLOT(updateSelection(QItemSelection, QItemSelection)));
-
-  connect(m_layout->model(), SIGNAL(rowsInserted(const QModelIndex&, int, int)),
-          this,              SLOT(updateSelection()));
-  connect(m_layout->model(), SIGNAL(rowsRemoved(const QModelIndex&, int, int)),
-          this,              SLOT(updateSelection()));
-  connect(m_layout->model(), SIGNAL(modelReset()),
-          this,              SLOT(updateSelection()));
-
-  m_layout->createSpecificControls(m_gui->specificControlLayout);
-
-  m_gui->view->setItemDelegate(m_layout->itemDelegate());
-  m_gui->showInformationButton->setEnabled(false);
-
-  updateSelection(m_viewManager->selection());
+//   Q_ASSERT(index < m_layouts.size());
+//   if (m_layout)
+//   {
+//     disconnect(m_gui->view->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
+//                this, SLOT(updateSelection(QItemSelection, QItemSelection)));
+// 
+//     disconnect(m_layout->model(), SIGNAL(rowsInserted(const QModelIndex&, int, int)),
+//                this,              SLOT(updateSelection()));
+//     disconnect(m_layout->model(), SIGNAL(rowsRemoved(const QModelIndex&, int, int)),
+//                this,              SLOT(updateSelection()));
+//     disconnect(m_layout->model(), SIGNAL(modelReset()),
+//                this,              SLOT(updateSelection()));
+// 
+//     QLayoutItem *specificControl;
+//     while ((specificControl = m_gui->specificControlLayout->takeAt(0)) != 0)
+//     {
+//       delete specificControl->widget();
+//       delete specificControl;
+//     }
+//   }
+// 
+//   m_layout = m_layouts[index];
+// #ifdef TEST_ESPINA_MODELS
+//   m_modelTester = boost::shared_ptr<ModelTest>(new ModelTest(m_layout->model()));
+// #endif
+//   m_gui->view->setModel(m_layout->model());
+// 
+//   connect(m_gui->view->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
+//           this,                          SLOT(updateSelection(QItemSelection, QItemSelection)));
+// 
+//   connect(m_layout->model(), SIGNAL(rowsInserted(const QModelIndex&, int, int)),
+//           this,              SLOT(updateSelection()));
+//   connect(m_layout->model(), SIGNAL(rowsRemoved(const QModelIndex&, int, int)),
+//           this,              SLOT(updateSelection()));
+//   connect(m_layout->model(), SIGNAL(modelReset()),
+//           this,              SLOT(updateSelection()));
+// 
+//   m_layout->createSpecificControls(m_gui->specificControlLayout);
+// 
+//   m_gui->view->setItemDelegate(m_layout->itemDelegate());
+//   m_gui->showInformationButton->setEnabled(false);
+// 
+//   updateSelection(m_viewManager->selection());
 }
 
 //------------------------------------------------------------------------
@@ -263,93 +244,93 @@ void SegmentationExplorer::showSelectedItemsInformation()
 //------------------------------------------------------------------------
 void SegmentationExplorer::focusOnSegmentation(const QModelIndex& index)
 {
-  ModelItemPtr item = m_layout->item(index);
-
-  if (EspINA::SEGMENTATION != item->type())
-    return;
-
-  Nm bounds[6];
-  SegmentationPtr seg = segmentationPtr(item);
-  SegmentationVolumeSPtr volume = segmentationVolume(seg->output());
-  volume->bounds(bounds);
-  Nm center[3] = { (bounds[0] + bounds[1])/2, (bounds[2] + bounds[3])/2, (bounds[4] + bounds[5])/2 };
-  m_viewManager->focusViewsOn(center);
+//   ModelItemPtr item = m_layout->item(index);
+// 
+//   if (EspINA::SEGMENTATION != item->type())
+//     return;
+// 
+//   Nm bounds[6];
+//   SegmentationPtr seg = segmentationPtr(item);
+//   SegmentationVolumeSPtr volume = segmentationVolume(seg->output());
+//   volume->bounds(bounds);
+//   Nm center[3] = { (bounds[0] + bounds[1])/2, (bounds[2] + bounds[3])/2, (bounds[4] + bounds[5])/2 };
+//   m_viewManager->focusViewsOn(center);
 }
 
-//------------------------------------------------------------------------
-void SegmentationExplorer::updateSelection(ViewManager::Selection selection)
-{
-  if (!isVisible() || signalsBlocked())
-    return;
-
-  m_gui->view->blockSignals(true);
-  m_gui->view->selectionModel()->blockSignals(true);
-  m_gui->view->selectionModel()->reset();
-  foreach(PickableItemPtr item, selection)
-  {
-    QModelIndex index = m_layout->index(item);
-    if (index.isValid())
-      m_gui->view->selectionModel()->select(index, QItemSelectionModel::Select);
-  }
-  m_gui->view->selectionModel()->blockSignals(false);
-  m_gui->view->blockSignals(false);
-  // Center the view at the first selected item
-  if (!selection.isEmpty())
-  {
-    QModelIndex currentIndex = m_layout->index(selection.first());
-    m_gui->view->selectionModel()->setCurrentIndex(currentIndex, QItemSelectionModel::Select);
-    m_gui->view->scrollTo(currentIndex);
-  }
-
-  updateGUI(m_gui->view->selectionModel()->selection().indexes());
-
-  // Update all visible items
-  m_gui->view->viewport()->update();
-}
-
-//------------------------------------------------------------------------
-void SegmentationExplorer::updateSelection(QItemSelection selected, QItemSelection deselected)
-{
-  ViewManager::Selection selection;
-  QModelIndexList selectedIndexes = m_gui->view->selectionModel()->selection().indexes();
-  foreach(QModelIndex index, selectedIndexes)
-  {
-    ModelItemPtr item = m_layout->item(index);
-    if (EspINA::SEGMENTATION == item->type())
-      selection << pickableItemPtr(item);
-  }
-
-  updateGUI(selectedIndexes);
-
-  // signal blocking is necessary because we don't want to change our current selection indexes,
-  // and that will happen if a updateSelection(ViewManager::Selection) is called.
-  this->blockSignals(true);
-  m_viewManager->setSelection(selection);
-  this->blockSignals(false);
-}
-
-//------------------------------------------------------------------------
-void SegmentationExplorer::updateSegmentationRepresentations(SegmentationList list)
-{
-  m_viewManager->updateSegmentationRepresentations(list);
-  m_viewManager->updateViews();
-}
-
-//------------------------------------------------------------------------
-void SegmentationExplorer::updateChannelRepresentations(ChannelList list)
-{
-  m_viewManager->updateChannelRepresentations(list);
-  m_viewManager->updateViews();
-}
-
-//------------------------------------------------------------------------
-void SegmentationExplorer::updateSelection()
-{
-  if (!isVisible() || signalsBlocked())
-    return;
-
-  updateGUI(m_gui->view->selectionModel()->selection().indexes());
-}
+// //------------------------------------------------------------------------
+// void SegmentationExplorer::updateSelection(ViewManager::Selection selection)
+// {
+//   if (!isVisible() || signalsBlocked())
+//     return;
+// 
+//   m_gui->view->blockSignals(true);
+//   m_gui->view->selectionModel()->blockSignals(true);
+//   m_gui->view->selectionModel()->reset();
+//   foreach(PickableItemPtr item, selection)
+//   {
+//     QModelIndex index = m_layout->index(item);
+//     if (index.isValid())
+//       m_gui->view->selectionModel()->select(index, QItemSelectionModel::Select);
+//   }
+//   m_gui->view->selectionModel()->blockSignals(false);
+//   m_gui->view->blockSignals(false);
+//   // Center the view at the first selected item
+//   if (!selection.isEmpty())
+//   {
+//     QModelIndex currentIndex = m_layout->index(selection.first());
+//     m_gui->view->selectionModel()->setCurrentIndex(currentIndex, QItemSelectionModel::Select);
+//     m_gui->view->scrollTo(currentIndex);
+//   }
+// 
+//   updateGUI(m_gui->view->selectionModel()->selection().indexes());
+// 
+//   // Update all visible items
+//   m_gui->view->viewport()->update();
+// }
+// 
+// //------------------------------------------------------------------------
+// void SegmentationExplorer::updateSelection(QItemSelection selected, QItemSelection deselected)
+// {
+//   ViewManager::Selection selection;
+//   QModelIndexList selectedIndexes = m_gui->view->selectionModel()->selection().indexes();
+//   foreach(QModelIndex index, selectedIndexes)
+//   {
+//     ModelItemPtr item = m_layout->item(index);
+//     if (EspINA::SEGMENTATION == item->type())
+//       selection << pickableItemPtr(item);
+//   }
+// 
+//   updateGUI(selectedIndexes);
+// 
+//   // signal blocking is necessary because we don't want to change our current selection indexes,
+//   // and that will happen if a updateSelection(ViewManager::Selection) is called.
+//   this->blockSignals(true);
+//   m_viewManager->setSelection(selection);
+//   this->blockSignals(false);
+// }
+// 
+// //------------------------------------------------------------------------
+// void SegmentationExplorer::updateSegmentationRepresentations(SegmentationList list)
+// {
+//   m_viewManager->updateSegmentationRepresentations(list);
+//   m_viewManager->updateViews();
+// }
+// 
+// //------------------------------------------------------------------------
+// void SegmentationExplorer::updateChannelRepresentations(ChannelList list)
+// {
+//   m_viewManager->updateChannelRepresentations(list);
+//   m_viewManager->updateViews();
+// }
+// 
+// //------------------------------------------------------------------------
+// void SegmentationExplorer::updateSelection()
+// {
+//   if (!isVisible() || signalsBlocked())
+//     return;
+// 
+//   updateGUI(m_gui->view->selectionModel()->selection().indexes());
+// }
 
 //------------------------------------------------------------------------
 void SegmentationExplorer::updateSearchFilter()

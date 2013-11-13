@@ -36,6 +36,7 @@ namespace EspINA
 
   class SegmentationAdapter;
   using SegmentationAdapterPtr   = SegmentationAdapter *;
+  using SegmentationAdapterSet   = QSet<SegmentationAdapterPtr>;
   using SegmentationAdapterList  = QList<SegmentationAdapterPtr>;
   using SegmentationAdapterSPtr  = std::shared_ptr<SegmentationAdapter>;
   using SegmentationAdapterSList = QList<SegmentationAdapterSPtr>;

@@ -21,42 +21,65 @@
 #define ESPINA_SEED_GROW_SEGMENTATION_TOOL_H
 
 #include <Support/Tool.h>
+#include <Support/ViewManager.h>
 
 #include "SeedThreshold.h"
 #include "ApplyROI.h"
 #include <GUI/Widgets/ActionSelector.h>
+#include <GUI/Widgets/CategorySelector.h>
 #include <GUI/Selectors/Selector.h>
+#include <GUI/ModelFactory.h>
 
 namespace EspINA {
 
-  class SeedGrowSegmentationTool 
+  class SeedGrowSegmentationTool
   : public Tool
+  , public FilterFactory
   {
+    Q_OBJECT
   public:
-    explicit SeedGrowSegmentationTool();
+    explicit SeedGrowSegmentationTool(ModelAdapterSPtr model,
+                                      ModelFactorySPtr factory,
+                                      ViewManagerSPtr  viewManager);
     virtual ~SeedGrowSegmentationTool();
 
-    virtual QList<QAction *> actions() const;
+    virtual FilterTypeList providedFilters() const;
 
-    virtual bool enabled() const;
+    virtual FilterSPtr createFilter(OutputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const;
 
     virtual void setEnabled(bool value);
 
-    virtual void setInUse(bool value);
+    virtual bool enabled() const;
 
-    virtual bool filterEvent(QEvent* e, RenderView *view);
-
-    virtual QCursor cursor() const;
+    virtual QList<QAction *> actions() const;
 
   private:
     void addVoxelSelector(QAction *action, SelectorSPtr selector);
 
+  private slots:
+    void changeSelector(QAction *action);
+
+    void launchTask(Selector::SelectionList selectedItems);
+
+    void onTaskProgres(int progress);
+
+    void createSegmentation();
+
   private:
-    ActionSelector *m_selector;
-    SeedThreshold  *m_seedThreshold;
-    ApplyROI       *m_applyROI;
+    ModelAdapterSPtr m_model;
+    ModelFactorySPtr m_factory;
+    ViewManagerSPtr  m_viewManager;
+
+    bool             m_enabled;
+
+    CategorySelector *m_categorySelector;
+    ActionSelector   *m_selectorSwitch;
+    SeedThreshold    *m_seedThreshold;
+    ApplyROI         *m_applyROI;
 
     QMap<QAction *, SelectorSPtr> m_voxelSelectors;
+
+    FilterAdapterSPtr m_executingTask;
   };
 
   using SeedGrowSegmentationToolSPtr = std::shared_ptr<SeedGrowSegmentationTool>;

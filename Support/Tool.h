@@ -38,17 +38,9 @@ namespace EspINA
   : public QObject
   {
   public:
-    virtual QCursor cursor() const = 0;
-
-    virtual bool filterEvent(QEvent *e, RenderView *view=nullptr) = 0;
-
-    virtual void setInUse(bool value) = 0;
-
     virtual void setEnabled(bool value) = 0;
 
     virtual bool enabled() const = 0;
-
-    virtual void lostEvent(RenderView*) {};
 
     virtual QList<QAction *> actions() const = 0;
   };

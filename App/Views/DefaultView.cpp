@@ -96,6 +96,11 @@ DefaultView::DefaultView(ModelAdapterSPtr model,
   connect(view3D, SIGNAL(centerChanged(NmVector3)),
           this, SLOT(setCrosshairPoint(NmVector3)));
 
+  m_viewManager->registerView(viewXY);
+  m_viewManager->registerView(viewXZ);
+  m_viewManager->registerView(viewYZ);
+  m_viewManager->registerView(view3D);
+
   parent->addDockWidget(Qt::RightDockWidgetArea, dock3D);
   parent->addDockWidget(Qt::RightDockWidgetArea, dockYZ);
   parent->addDockWidget(Qt::RightDockWidgetArea, dockXZ);

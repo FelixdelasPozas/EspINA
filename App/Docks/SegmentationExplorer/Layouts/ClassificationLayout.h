@@ -17,21 +17,21 @@
  */
 
 
-#ifndef TAXONOMYLAYOUT_H
-#define TAXONOMYLAYOUT_H
+#ifndef ESPINA_CLASSIFICATION_LAYOUT_H
+#define ESPINA_CLASSIFICATION_LAYOUT_H
 
-#include "SegmentationExplorerLayout.h"
-
-#include <Core/Model/Proxies/TaxonomyProxy.h>
-#include <Core/ColorEngines/TaxonomyColorEngine.h>
+#include <Docks/SegmentationExplorer/SegmentationExplorerLayout.h>
+#include <GUI/Widgets/CheckableTreeView.h>
+#include <GUI/Model/Proxies/ClassificationProxy.h>
 
 #include <QSortFilterProxyModel>
 
-class TaxonomyItemDelegate;
+
+class CategorytemDelegate;
 
 namespace EspINA
 {
-  class TaxonomyLayout
+  class ClassificationLayout
   : public SegmentationExplorer::Layout
   {
     Q_OBJECT
@@ -44,21 +44,21 @@ namespace EspINA
     };
 
   public:
-    explicit TaxonomyLayout(CheckableTreeView     *view,
-                            EspinaModel           *model,
-                            QUndoStack            *undoStack,
-                            ViewManager           *viewManager);
-    virtual ~TaxonomyLayout();
+    explicit ClassificationLayout(CheckableTreeView *view,
+                                  ModelAdapterSPtr   model,
+                                  ViewManagerSPtr    viewManager,
+                                  QUndoStack        *undoStack);
+    virtual ~ClassificationLayout();
 
     virtual void createSpecificControls(QHBoxLayout *specificControlLayout);
 
     virtual QAbstractItemModel* model()
     { return m_sort.get(); }
 
-    virtual ModelItemPtr item(const QModelIndex& index) const
-    { return indexPtr(m_sort->mapToSource(index)); }
+    virtual ItemAdapterPtr item(const QModelIndex& index) const
+    { return itemAdapter(m_sort->mapToSource(index)); }
 
-    virtual QModelIndex index(ModelItemPtr item) const
+    virtual QModelIndex index(ItemAdapterPtr item) const
     { return m_sort->mapFromSource(m_proxy->mapFromSource(Layout::index(item))); }
 
     virtual void setFilterRegExp(const QString &regExp)
@@ -72,28 +72,28 @@ namespace EspINA
     virtual QItemDelegate *itemDelegate() const;
 
   private:
-    bool selectedItems(TaxonomyElementList &taxonomies, SegmentationSet &segmentations);
+    bool selectedItems(CategoryAdapterList &categories, SegmentationAdapterSet &segmentations);
 
   private slots:
     void createTaxonomy();
     void createSubTaxonomy();
     void changeTaxonomyColor();
-    void selectTaxonomyElements();
+    void selectCategoryAdapters();
 
-    void segmentationsDragged(SegmentationList    segmentations,
-                              TaxonomyElementPtr  taxonomy);
+    void segmentationsDragged(SegmentationAdapterList segmentations,
+                              CategoryAdapterPtr      category);
 
-    void taxonomiesDragged(TaxonomyElementList subTaxonomies,
-                           TaxonomyElementPtr  taxonomy);
+    void categoriesDragged(CategoryAdapterList subCategories,
+                           CategoryAdapterPtr  category);
 
     void updateSelection();
     void disconnectSelectionModel();
 
   private:
-    boost::shared_ptr<TaxonomyProxy> m_proxy;
-    boost::shared_ptr<SortFilter>    m_sort;
+    std::shared_ptr<ClassificationProxy> m_proxy;
+    std::shared_ptr<SortFilter>          m_sort;
 
-    TaxonomyItemDelegate *m_delegate;
+    CategorytemDelegate *m_delegate;
     QPushButton *m_createTaxonomy;
     QPushButton *m_createSubTaxonomy;
     QPushButton *m_changeTaxonomyColor;
@@ -101,4 +101,4 @@ namespace EspINA
 
 } // namespace EspINA
 
-#endif // TAXONOMYLAYOUT_H
+#endif // ESPINA_CLASSIFICATION_LAYOUT_H

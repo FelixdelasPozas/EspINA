@@ -27,23 +27,18 @@ using namespace EspINA;
 
 //-----------------------------------------------------------------------------
 SegmentationTools::SegmentationTools(ModelAdapterSPtr model,
+                                     ModelFactorySPtr factory,
                                      ViewManagerSPtr  viewManager,
                                      QUndoStack      *undoStack,
                                      QWidget         *parent)
 : ToolGroup(viewManager, QIcon(":/espina/pixelSelector.svg"), tr("Segmentation Tools"), parent)
-, m_sgsTool(new SeedGrowSegmentationTool())
+, m_sgsTool(new SeedGrowSegmentationTool(model, factory, viewManager))
 {
 
 }
 
 //-----------------------------------------------------------------------------
 SegmentationTools::~SegmentationTools()
-{
-
-}
-
-//-----------------------------------------------------------------------------
-void SegmentationTools::setActiveTool(ToolSPtr tool)
 {
 
 }
@@ -56,27 +51,6 @@ void SegmentationTools::setEnabled(bool value)
 
 //-----------------------------------------------------------------------------
 bool SegmentationTools::enabled() const
-{
-
-}
-
-//-----------------------------------------------------------------------------
-void SegmentationTools::setInUse(bool value)
-{
-  if (value)
-  {
-    m_viewManager->setToolGroup(this);
-  } else
-  {
-    m_viewManager->unsetActiveToolGroup(this);
-  }
-  blockSignals(true);
-  setChecked(value);
-  blockSignals(false);
-}
-
-//-----------------------------------------------------------------------------
-SelectorSPtr SegmentationTools::selector() const
 {
 
 }

@@ -120,14 +120,13 @@ namespace EspINA
     void setContextualBar(QToolBar *toolbar)
     { m_contextualToolBar = toolbar; }
 
-    void setToolGroup(ToolGroupPtr group);
+    void displayTools(ToolGroupPtr group);
 
-    void unsetActiveToolGroup();
+    void hideTools(ToolGroupPtr group);
 
-    void unsetActiveToolGroup(ToolGroupPtr group);
-
-    ToolGroupPtr toolGroup()
-    { return m_toolGroup; }
+//     ToolGroupPtr toolGroup()
+//     { return m_toolGroup; }
+    void setSelector(SelectorSPtr selector);
 
     void setCurrentROI(ROI roi)
     { m_roi = roi; }
@@ -136,7 +135,7 @@ namespace EspINA
     { return m_roi; }
 
   private:
-    ROI m_roi;
+    ROI          m_roi;
     QToolBar    *m_contextualToolBar;
     ToolGroupPtr m_toolGroup;
     SelectorSPtr m_selector;

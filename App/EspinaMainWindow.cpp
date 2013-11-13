@@ -23,6 +23,7 @@
 #include "ToolGroups/Segmentation/SegmentationTools.h"
 #include "ToolGroups/Zoom/ZoomTools.h"
 #include "Docks/ChannelExplorer/ChannelExplorer.h"
+#include "Docks/SegmentationExplorer/SegmentationExplorer.h"
 #include <GUI/ColorEngines/CategoryColorEngine.h>
 #include <GUI/ColorEngines/NumberColorEngine.h>
 #include <GUI/ColorEngines/UserColorEngine.h>
@@ -262,7 +263,7 @@ EspinaMainWindow::EspinaMainWindow(AnalysisSPtr       analysis,
 //   VolumeOfInterest *voiToolBar = new VolumeOfInterest(m_model, m_viewManager);
 //   registerToolBar(voiToolBar);
 // 
-  ToolGroupPtr segmentationTools = new SegmentationTools(m_model, m_viewManager, m_undoStack);
+  ToolGroupPtr segmentationTools = new SegmentationTools(m_model, m_factory, m_viewManager, m_undoStack);
   registerToolGroup(segmentationTools);
 // 
 //   EditorToolBar *editorToolBar = new EditorToolBar(m_model, m_undoStack, m_viewManager);
@@ -271,11 +272,11 @@ EspinaMainWindow::EspinaMainWindow(AnalysisSPtr       analysis,
 //   CompositionToolBar *compositionBar = new CompositionToolBar(m_model, m_undoStack, m_viewManager);
 //   registerToolBar(compositionBar);
 // 
-  ChannelExplorer *channelExplorer = new ChannelExplorer(m_model, m_viewManager, m_undoStack, this);
+  auto channelExplorer = new ChannelExplorer(m_model, m_viewManager, m_undoStack, this);
   registerDockWidget(Qt::LeftDockWidgetArea, channelExplorer);
-// 
-//   SegmentationExplorer *segExplorer = new SegmentationExplorer(m_model, m_undoStack, m_viewManager, this);
-//   registerDockWidget(Qt::LeftDockWidgetArea, segExplorer);
+
+  auto segmentationExplorer = new SegmentationExplorer(m_model, m_viewManager, m_undoStack, this);
+  registerDockWidget(Qt::LeftDockWidgetArea, segmentationExplorer);
 // 
 //   FilterInspectorDock *filterInspectorDock = new FilterInspectorDock(m_undoStack, m_viewManager, this);
 //   registerDockWidget(Qt::LeftDockWidgetArea, filterInspectorDock);
@@ -284,7 +285,7 @@ EspinaMainWindow::EspinaMainWindow(AnalysisSPtr       analysis,
 //   m_dynamicMenuRoot->submenus[0]->menu->addAction(connectomicsAction);
 //   connect(connectomicsAction, SIGNAL(triggered()), this, SLOT(showConnectomicsInformation()));
 
-  defaultActiveTool->setInUse(true);
+  defaultActiveTool->showTools(true);
 
   QAction *rawInformationAction = m_dynamicMenuRoot->submenus[0]->menu->addAction(tr("Raw Information"));
   connect(rawInformationAction, SIGNAL(triggered(bool)),
@@ -325,6 +326,7 @@ EspinaMainWindow::EspinaMainWindow(AnalysisSPtr       analysis,
 
   checkAutosave();
 
+  closeCurrentAnalysis();
   //statusBar()->addPermanentWidget(m_traceableStatus);
 }
 
@@ -569,7 +571,7 @@ bool EspinaMainWindow::closeCurrentAnalysis()
 
   m_viewManager->setActiveChannel(ChannelAdapterPtr());
   m_viewManager->setActiveCategory(CategoryAdapterPtr());
-  m_viewManager->unsetActiveToolGroup();
+  //m_viewManager->hideTools();
   m_viewManager->clearSelection();
   m_undoStack->clear();
   m_undoStackSavedIndex = m_undoStack->index();
@@ -587,6 +589,9 @@ bool EspinaMainWindow::closeCurrentAnalysis()
   m_sessionFile = QFileInfo();
 
   setWindowTitle(QString("EspINA Interactive Neuron Analyzer"));
+
+  m_mainBar->setEnabled(false);
+  m_contextualBar->setEnabled(false);
   m_dynamicMenuRoot->submenus.first()->menu->setEnabled(false);
 
   return true;
@@ -726,6 +731,9 @@ void EspinaMainWindow::openAnalysis(const QStringList files)
     m_sessionFile = files.first();
     bool enableSave = files.size() == 1 && m_sessionFile.suffix().toLower() == QString("seg");
     m_saveSessionAnalysis->setEnabled(enableSave);
+
+    m_mainBar->setEnabled(true);
+    m_contextualBar->setEnabled(true);
 
     m_viewManager->updateSegmentationRepresentations();
     m_viewManager->updateViews();

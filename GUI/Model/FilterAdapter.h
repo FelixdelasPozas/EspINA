@@ -38,7 +38,9 @@ namespace EspINA {
   using RepresentationFactorySPtr = std::shared_ptr<RepresentationFactory>;
 
   class FilterAdapterInterface
+  : public QObject
   {
+    Q_OBJECT
   public:
     virtual ~FilterAdapterInterface(){}
 
@@ -47,10 +49,22 @@ namespace EspINA {
 
     FilterInspectorSPtr filterInspector()
     { return m_inspector; }
+
+    virtual void submit() = 0;
+
     virtual void update(Output::Id id) = 0;
+
     virtual void update() = 0;//TODO Copy adapted filter interface
 
     virtual OutputSPtr output(Output::Id id) = 0;
+
+    virtual unsigned int numberOfOutputs() const = 0;
+
+  signals:
+    void progress(int);
+    void resumed();
+    void paused();
+    void finished();
 
   protected:
     virtual FilterSPtr adaptedFilter() = 0;
@@ -69,6 +83,9 @@ namespace EspINA {
     std::shared_ptr<T> get()
     { return m_filter; }
 
+    virtual void submit()
+    { m_filter->submit(); }
+
     virtual void update(Output::Id id)
     { m_filter->update(id); }
 
@@ -78,13 +95,26 @@ namespace EspINA {
     virtual OutputSPtr output(Output::Id id)
     { return m_filter->output(id); }
 
+    virtual unsigned int numberOfOutputs() const
+    { return m_filter->numberOfOutputs(); }
+
   protected:
     virtual FilterSPtr adaptedFilter()
     { return m_filter; }
 
   private:
     FilterAdapter(std::shared_ptr<T> filter)
-    : m_filter{filter}{}
+    : m_filter{filter}
+    {
+      connect(m_filter.get(), SIGNAL(progress(int)),
+              this, SIGNAL(progress(int)));
+      connect(m_filter.get(), SIGNAL(resumed()),
+              this, SIGNAL(resumed()));
+      connect(m_filter.get(), SIGNAL(paused()),
+              this, SIGNAL(paused()));
+      connect(m_filter.get(), SIGNAL(finished()),
+              this, SIGNAL(finished()));
+    }
 
     std::shared_ptr<T> m_filter;
 

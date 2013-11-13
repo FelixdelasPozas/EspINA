@@ -33,17 +33,11 @@ namespace EspINA
     explicit ZoomTools(ViewManagerSPtr viewManager, QWidget *parent = 0);
     virtual ~ZoomTools();
 
-    virtual void setActiveTool(ToolSPtr tool);
-
     virtual void setEnabled(bool value);
 
     virtual bool enabled() const;
 
-    virtual void setInUse(bool value);
-
     virtual ToolSList tools();
-
-    virtual SelectorSPtr selector() const;
 
   public slots:
     void resetViews();

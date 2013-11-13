@@ -47,22 +47,17 @@ namespace EspINA
 
   public:
     SegmentationTools(ModelAdapterSPtr model,
+                      ModelFactorySPtr factory,
                       ViewManagerSPtr  viewManager,
                       QUndoStack      *undoStack,
-                      QWidget         *parent=nullptr);
+                      QWidget         *parent = nullptr);
     virtual ~SegmentationTools();
-
-    virtual void setActiveTool(ToolSPtr tool);
 
     virtual void setEnabled(bool value);
 
     virtual bool enabled() const;
 
-    virtual void setInUse(bool value);
-
     virtual ToolSList tools();
-
-    virtual SelectorSPtr selector() const;
 
   private:
     SeedGrowSegmentationToolSPtr m_sgsTool;

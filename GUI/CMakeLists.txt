@@ -9,8 +9,10 @@ qt4_wrap_cpp(GUI_MOC
   ColorEngines/ColorEngine.h
   ColorEngines/CategoryColorEngine.h
   Model/ModelAdapter.h
+  Model/FilterAdapter.h
   Model/ItemAdapter.h
   Model/Proxies/ChannelProxy.h
+  Model/Proxies/ClassificationProxy.h
   Representations/Renderers/Renderer.h
   Representations/Renderers/ContourRenderer.h
   Representations/MeshRepresentationBase.h
@@ -29,6 +31,7 @@ qt4_wrap_cpp(GUI_MOC
   Widgets/CheckableTreeView.h
   Widgets/HueSelector.h
   Widgets/NoteEditor.h
+  Widgets/CategorySelector.h
   Widgets/QComboTreeView.h
   Widgets/TagSelector.h
   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
@@ -56,6 +59,7 @@ set (GUI_SOURCES
   Model/ClassificationAdapter.cpp
   Model/ModelAdapter.cpp
   Model/Proxies/ChannelProxy.cpp
+  Model/Proxies/ClassificationProxy.cpp
   Model/SampleAdapter.cpp
   Model/SegmentationAdapter.cpp
   Model/ViewItemAdapter.cpp
@@ -77,6 +81,7 @@ set (GUI_SOURCES
   Representations/SliceRepresentation.cpp
   Representations/SliceRepresentationSettings.cpp 
   Selectors/Selector.cpp
+  Selectors/PixelSelector.cpp
   Utils/QtModelUtils.cpp
   View/RenderView.cpp
   View/View2D.cpp
@@ -91,6 +96,7 @@ set (GUI_SOURCES
   Widgets/CheckableTreeView.cpp
   Widgets/HueSelector.cpp
   Widgets/NoteEditor.cpp 
+  Widgets/CategorySelector.cpp
   Widgets/QComboTreeView.cpp
   Widgets/TagSelector.cpp 
   )

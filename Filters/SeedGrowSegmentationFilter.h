@@ -23,33 +23,44 @@
 #include "Core/Analysis/Filter.h"
 #include <Core/Utils/BinaryMask.h>
 
-// #include <itkImage.h>
-// #include <itkVTKImageToImageFilter.h>
-// #include <itkImageToVTKImageFilter.h>
-// #include <itkConnectedThresholdImageFilter.h>
-// #include <itkStatisticsLabelObject.h>
-// #include <itkLabelImageToShapeLabelMapFilter.h>
-// #include <itkBinaryBallStructuringElement.h>
-// #include <itkBinaryMorphologicalClosingImageFilter.h>
-// #include <itkExtractImageFilter.h>
+#include <itkImage.h>
+#include <itkVTKImageToImageFilter.h>
+#include <itkImageToVTKImageFilter.h>
+#include <itkConnectedThresholdImageFilter.h>
+#include <itkStatisticsLabelObject.h>
+#include <itkLabelImageToShapeLabelMapFilter.h>
+#include <itkBinaryBallStructuringElement.h>
+#include <itkBinaryMorphologicalClosingImageFilter.h>
+#include <itkExtractImageFilter.h>
 
 class vtkImageData;
 class vtkConnectedThresholdImageFilter;
 
 namespace EspINA
 {
-  
   class SeedGrowSegmentationFilter
   : public Filter
   {
+    using ExtractFilterType = itk::ExtractImageFilter<itkVolumeType, itkVolumeType>;
+    using ConnectedFilterType = itk::ConnectedThresholdImageFilter<itkVolumeType, itkVolumeType>;
+    using LabelObjectType = itk::StatisticsLabelObject<unsigned int, 3>;
+    using LabelMapType = itk::LabelMap<LabelObjectType>;
+    using Image2LabelFilterType = itk::LabelImageToShapeLabelMapFilter<itkVolumeType, LabelMapType>;
+    using StructuringElementType = itk::BinaryBallStructuringElement<itkVolumeType::PixelType, 3>;
+    using ClosingFilterType = itk::BinaryMorphologicalClosingImageFilter<itkVolumeType, itkVolumeType, StructuringElementType>;
   public:
     explicit SeedGrowSegmentationFilter(OutputSList inputs, Type type, SchedulerSPtr scheduler);
+
+    virtual void restoreState(const State& state);
+
+    virtual State saveState() const;
 
     void setLowerThreshold(int th);
 
     int lowerThreshold() const;
 
     void setUpperThreshold(int th);
+
     int upperThreshold() const;
 
     // Convenience method to set symmetrical lower/upper thresholds
@@ -59,8 +70,8 @@ namespace EspINA
       setUpperThreshold(th);
     };
 
-    void setSeed(Nm seed[3]);
-    void seed(Nm seed[3])const;
+    void setSeed(const NmVector3& seed);
+    NmVector3 seed() const;
 
     void setVOI(const Bounds& bounds);
 
@@ -70,26 +81,32 @@ namespace EspINA
     template<typename T>
     BinaryMask<T> voi() const;
 
-    void setClosingRadius(unsigned char value);
+    void setClosingRadius(int radius);
 
-    unsigned char closingRadius();
-
-    virtual OutputSPtr output(Output::Id id) const;
+    int closingRadius();
 
   protected:
     virtual Snapshot saveFilterSnapshot() const;
-    
+
     virtual bool needUpdate() const;
-    
+
     virtual bool needUpdate(Output::Id id) const;
-    
-    virtual DataSPtr createDataProxy(Output::Id id, const Data::Type& type);
-    
+
     virtual void execute();
-    
+
     virtual void execute(Output::Id id);
-    
+
     virtual bool invalidateEditedRegions();
+
+  private:
+    int       m_lowerTh, m_prevLowerTh;
+    int       m_upperTh, m_prevUpperTh;
+    NmVector3 m_seed,    m_prevSeed;
+    int       m_radius,  m_prevRadius;
+
+    ConnectedFilterType::Pointer m_connectedFilter;
+    ExtractFilterType::Pointer   m_extractFilter;
+    ClosingFilterType::Pointer   m_closingFilter;
   };
 
 //   class ViewManager;

@@ -37,7 +37,7 @@ using namespace std;
 
 int channel_proxy_empty_analysis_constructor(int argc, char** argv )
 {
-  bool error = true;
+  bool error = false;
 
   AnalysisSPtr analysis{new Analysis()};
 

@@ -56,7 +56,7 @@ namespace EspINA
     static const SelectionTag CHANNEL;
     static const SelectionTag SEGMENTATION;
 
-    // DEPRECATED
+    // TO BE DEPRECATED
     typedef QPolygonF                  DisplayRegion;
     typedef QList<DisplayRegion>       DisplayRegionList;
     typedef vtkSmartPointer<vtkPoints> WorldRegion;
@@ -69,11 +69,14 @@ namespace EspINA
 
   public:
     explicit Selector()
-    : m_multiSelection(false)
+    : m_inUse(false)
+    , m_multiSelection(false)
     , m_cursor(Qt::CrossCursor)
     {}
 
     virtual ~Selector(){};
+
+    void setInUse(bool value);
 
     virtual bool filterEvent(QEvent *e, RenderView *view=nullptr) = 0;
 
@@ -95,7 +98,14 @@ namespace EspINA
 
     void itemsSelected(Selector::Selection);
 
+    void selectorInUse(bool);
+
+    void startUsingSelector();
+
+    void stopUsingSelector();
+
   protected:
+    bool           m_inUse;
     SelectionFlags m_flags;
     bool           m_multiSelection;
     QCursor        m_cursor;

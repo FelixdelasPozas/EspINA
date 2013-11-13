@@ -33,34 +33,35 @@ namespace EspINA
     explicit PixelSelector() {}
     virtual ~PixelSelector(){}
 
-    virtual void onMouseDown(const QPoint &pos, RenderView* view){}
+    virtual void onMouseDown(const QPoint &pos, RenderView* view);
 
-    virtual bool filterEvent(QEvent* e, RenderView* view = 0){}
+    virtual bool filterEvent(QEvent* e, RenderView* view = 0);
 
-//     /// NOTE: It is user responsability to free the pointer returned
-//     virtual double *getPickPoint(EspinaRenderView *view);
-//     virtual ISelector::PickList generatePickList(EspinaRenderView*);
+    virtual NmVector3 getPickPoint(RenderView *view);
+
+    virtual Selector::SelectionList generateSelection(RenderView *);
   };
 
 
-//   class EspinaGUI_EXPORT BestPixelSelector
-//   : public PixelSelector
-//   {
-//   public:
-//     explicit BestPixelSelector();
-//     virtual ~BestPixelSelector();
-// 
-//     void setBestPixelValue(int value) {m_bestPixel = value;}
-// 
-//     virtual void onMouseDown(const QPoint& pos, EspinaRenderView* view);
-//     /// NOTE: It is user responsability to free the pointer returned
-//     virtual double *getPickPoint(EspinaRenderView *view);
-// 
-//   private:
-//     QSize *m_window;
-//     int    m_bestPixel;
-//   };
+  class EspinaGUI_EXPORT BestPixelSelector
+  : public PixelSelector
+  {
+  public:
+    explicit BestPixelSelector();
+    virtual ~BestPixelSelector();
+
+    void setBestPixelValue(int value)
+    {m_bestPixel = value;}
+
+    virtual void onMouseDown(const QPoint& pos, RenderView* view);
+
+    virtual NmVector3 getPickPoint(RenderView* view);
+
+  private:
+    QSize *m_window;
+    int    m_bestPixel;
+  };
 
 } // namespace EspINA
 
-#endif //PIXELSELECTOR_H_
+#endif // ESPINA_PIXEL_SELECTOR_H

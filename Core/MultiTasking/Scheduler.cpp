@@ -75,7 +75,7 @@ Scheduler::~Scheduler()
 //-----------------------------------------------------------------------------
 void Scheduler::addTask(Task* task) {
   task->setId(m_lastId++);
-  
+
   QMutexLocker lock(&m_mutex);
   m_runningTasks[task->priority()].orderedInsert(task);
 }
@@ -98,7 +98,7 @@ void Scheduler::abortExecutingTasks()
 void Scheduler::changePriority(Task* task, int prevPriority )
 {
   QMutexLocker lock(&m_mutex);
-  
+
   //std::cout << "Changing priority of " << task->description().toStdString() << std::endl;
   m_runningTasks[prevPriority].removeOne(task);
   m_runningTasks[task->priority()].orderedInsert(task);
@@ -106,22 +106,22 @@ void Scheduler::changePriority(Task* task, int prevPriority )
 
 //-----------------------------------------------------------------------------
 void Scheduler::scheduleTasks() {
-  
+
   while(!m_abort){
     QApplication::processEvents();
 
     m_mutex.lock();
     //std::cout << "Start Scheduling on thread " << thread() << std::endl;
-    
+
     int numTask = 0;
     for (int priority = 4; priority >= 0; --priority) {
       numTask += m_runningTasks[priority].size();
     }
-    
+
     int num_running_threads = 0;
-    
+
 //     std::cout << "Scheduler has "<< numTask << " tasks:" << std::endl;
-    
+
     for (int priority = 4; priority >= 0; --priority) {
 //       std::cout << "Updating Priority " << priority << std::endl;
       

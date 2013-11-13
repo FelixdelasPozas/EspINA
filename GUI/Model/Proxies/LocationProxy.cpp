@@ -31,7 +31,7 @@
 
 using namespace EspINA;
 
-typedef QSet<ModelItemPtr> SegSet;
+typedef QSet<ModelItemPtr> SegmentationSet;
 
 //------------------------------------------------------------------------
 LocationProxy::LocationProxy(QObject* parent)

@@ -59,50 +59,15 @@ ZoomTools::~ZoomTools()
 }
 
 //----------------------------------------------------------------------------
-void ZoomTools::resetViews()
-{
-  m_viewManager->resetViewCameras();
-  m_viewManager->updateViews();
-}
-
-//----------------------------------------------------------------------------
-bool ZoomTools::enabled() const
-{
-
-}
-
-//----------------------------------------------------------------------------
-SelectorSPtr ZoomTools::selector() const
-{
-
-}
-
-//----------------------------------------------------------------------------
-void ZoomTools::setActiveTool(ToolSPtr tool)
-{
-
-}
-
-//----------------------------------------------------------------------------
 void ZoomTools::setEnabled(bool value)
 {
 
 }
 
 //----------------------------------------------------------------------------
-void ZoomTools::setInUse(bool value)
+bool ZoomTools::enabled() const
 {
-  if (value)
-  {
-    m_viewManager->setToolGroup(this);
-  } else
-  {
-    m_viewManager->unsetActiveToolGroup(this);
-  }
 
-  blockSignals(true);
-  setChecked(value);
-  blockSignals(false);
 }
 
 //----------------------------------------------------------------------------
@@ -129,6 +94,14 @@ void ZoomTools::initZoomTool(bool value)
 //     m_viewManager->setSelectionEnabled(true);
 //   }
 }
+
+//----------------------------------------------------------------------------
+void ZoomTools::resetViews()
+{
+  m_viewManager->resetViewCameras();
+  m_viewManager->updateViews();
+}
+
 
 // //----------------------------------------------------------------------------
 // void ZoomTools::resetToolbar()

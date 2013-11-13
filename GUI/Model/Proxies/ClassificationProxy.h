@@ -16,28 +16,26 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef TAXONOMYPROXY_H
-#define TAXONOMYPROXY_H
-
-#include "EspinaCore_Export.h"
+#ifndef ESPINA_CLASSIFICATION_PROXY_H
+#define ESPINA_CLASSIFICATION_PROXY_H
 
 #include <QAbstractProxyModel>
-
-#include <Core/EspinaTypes.h>
-#include <Core/Model/EspinaModel.h>
+#include <GUI/Model/ModelAdapter.h>
 
 namespace EspINA
 {
-  /// Group by Taxonomy Espina Proxy
-  class EspinaCore_EXPORT TaxonomyProxy
+  /** \brief Group Segmentations by Category
+   *
+   */
+  class EspinaGUI_EXPORT ClassificationProxy
   : public QAbstractProxyModel
   {
     Q_OBJECT
   public:
-    TaxonomyProxy(QObject *parent=0);
-    virtual ~TaxonomyProxy();
+    ClassificationProxy(ModelAdapterSPtr sourceModel, QObject *parent=0);
+    virtual ~ClassificationProxy();
 
-    virtual void setSourceModel(EspinaModel *sourceModel);
+    virtual void setSourceModel(ModelAdapterSPtr sourceModel);
 
     virtual QVariant data(const QModelIndex& proxyIndex, int role = Qt::DisplayRole) const;
     virtual bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole);
@@ -56,14 +54,14 @@ namespace EspINA
     virtual Qt::DropActions supportedDropActions() const {return Qt::MoveAction;}
     virtual bool dropMimeData(const QMimeData* data, Qt::DropAction action, int row, int column, const QModelIndex& parent);
 
-    int numSegmentations(QModelIndex taxIndex, bool recursive = false) const;
-    int numSegmentations(TaxonomyElementPtr taxonomy, bool recursive = false) const;
+    int numSegmentations(QModelIndex  categoryIndexx, bool recursive = false) const;
+    int numSegmentations(CategoryAdapterPtr category, bool recursive = false) const;
 
-    int numTaxonomies(QModelIndex taxIndex) const;
-    int numTaxonomies(TaxonomyElementPtr taxonomy) const;
+    int numSubCategories(QModelIndex  categoryIndexx) const;
+    int numSubCategories(CategoryAdapterPtr category) const;
 
-    QModelIndexList segmentations(QModelIndex taxIndex, bool recursive=false) const;
-    SegmentationList segmentations(TaxonomyElementPtr taxonomy, bool recursive = false) const;
+    QModelIndexList         segmentations(QModelIndex  categoryIndexx, bool recursive = false) const;
+    SegmentationAdapterList segmentations(CategoryAdapterPtr category, bool recursive = false) const;
 
   protected slots:
     void sourceRowsInserted(const QModelIndex & sourceParent, int start, int end);
@@ -75,30 +73,31 @@ namespace EspINA
     void sourceModelReset();
 
   signals:
-    void taxonomiesDragged(TaxonomyElementList sources, TaxonomyElementPtr parent);
-    void segmentationsDragged(SegmentationList sources, TaxonomyElementPtr taxonomy);
+    void categoriesDragged(CategoryAdapterList sources, CategoryAdapterPtr parent);
+    void segmentationsDragged(SegmentationAdapterList sources, CategoryAdapterPtr category);
 
   protected:
     bool indices(const QModelIndex& topLeft, const QModelIndex& bottomRight, QModelIndexList& result);
-    SegmentationPtr findSegmentation(QString tooltip);
+    SegmentationAdapterPtr findSegmentation(QString tooltip);
     QModelIndexList sourceIndices(const QModelIndex& parent, int start, int end) const;
     QModelIndexList proxyIndices(const QModelIndex& parent, int start, int end) const;
 
-    void addTaxonomicalElement(TaxonomyElementPtr taxonomy);
-    void removeTaxonomy(TaxonomyElementPtr taxonomy);
+    void addCategory(CategoryAdapterPtr category);
+    void removeCategory(CategoryAdapterPtr category);
 
   private:
-    EspinaModel *m_model;
-    // Keep a reference to the taxonomies which belong to the root taxonomy
-    TaxonomyElementList m_rootTaxonomies;
+    ModelAdapterSPtr m_model;
+    // Keep a reference to the categories which belong to the classification root
+    CategoryAdapterList m_rootCategories;
+
     // We need to rely on our own row count for each item in the proxy's model
     // If we rely on the source's model, there are some inconsistencies during
     // rows insertion/deletion
-    mutable QMap<TaxonomyElementPtr, int          >  m_numTaxonomies;
-    mutable QMap<TaxonomyElementPtr, ModelItemList>  m_taxonomySegmentations;
-    mutable QMap<TaxonomyElementPtr, Qt::CheckState> m_taxonomyVisibility;
+    mutable QMap<CategoryAdapterPtr, int            >  m_numCategories;
+    mutable QMap<CategoryAdapterPtr, ItemAdapterList>  m_categorySegmentations;
+    mutable QMap<CategoryAdapterPtr, Qt::CheckState >  m_categoryVisibility;
   };
 
 } // namespace EspINA
 
-#endif // TAXONOMYPROXY_H
+#endif // ESPINA_CLASSIFICATION_PROXY_H
