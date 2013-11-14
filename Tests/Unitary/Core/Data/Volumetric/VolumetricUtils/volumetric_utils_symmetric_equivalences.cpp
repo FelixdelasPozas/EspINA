@@ -25,42 +25,35 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  */
+#include <Core/EspinaTypes.h>
+#include <Core/Analysis/Data/VolumetricDataUtils.h>
 
-#include "Filters/SeedGrowSegmentationFilter.h"
 
-#include "seed_grow_segmentation_testing_support.h"
-
-using namespace EspINA;
-using namespace EspINA::Testing;
 using namespace std;
+using namespace EspINA;
 
-int seed_grow_segmentation_simple_execution(int argc, char** argv)
+int volumetric_utils_symmetric_equivalences( int argc, char** argv )
 {
-  bool error = false;
+  int error = 0;
 
-  OutputSList   inputs;
-  inputs << inputChannel();
+  itkVolumeType::SizeType size{1, 1, 1};
 
-  Filter::Type  type{"SGS"};
+  itkVolumeType::RegionType expectedRegion;
+  expectedRegion.SetSize(size);
 
-  SchedulerSPtr scheduler;
+  itkVolumeType::Pointer image = itkVolumeType::New();
+  image->SetRegions(expectedRegion);
+  image->Allocate();
 
-  SeedGrowSegmentationFilter sgsf(inputs, type, scheduler);
-
-  sgsf.setThreshold(10);
-  sgsf.update();
-
-  if (sgsf.numberOfOutputs() != 1) {
-    cerr << "Unexpected number of outputs were created by the filter: " << sgsf.numberOfOutputs() << endl;  
-    error = true;
-  }
-
-  Bounds inputBounds  = inputs[0]->bounds();
-  Bounds outputBounds = sgsf.output(0)->bounds();
-
-  if (inputBounds != outputBounds) {
-    cerr << inputBounds << " != " << outputBounds << endl;
-    error = true;
+  // This is true only for those bounds computed directly from a region
+  itkVolumeType::RegionType region = equivalentRegion<itkVolumeType>(image, equivalentBounds<itkVolumeType>(image, expectedRegion));
+  if (region != expectedRegion) {
+    cerr << "The equivalent region of the equivalent bounds of a given region should be the same given region." << endl;
+    cerr << "Unexpected Equivalent Region:" << endl;
+    region.Print(cerr);
+    cerr << "Expected Region:" << endl;
+    expectedRegion.Print(cerr);
+    error = EXIT_FAILURE;
   }
 
   return error;

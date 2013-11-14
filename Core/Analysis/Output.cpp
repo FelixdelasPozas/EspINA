@@ -86,7 +86,20 @@ Snapshot Output::snapshot()
 //----------------------------------------------------------------------------
 Bounds Output::bounds() const
 {
+  Bounds bounds;
 
+  for(auto data : m_data)
+  {
+    if (bounds.areValid())
+    {
+      bounds = boundingBox(bounds, data->get()->bounds());
+    } else
+    {
+      bounds = data->get()->bounds();
+    }
+  }
+
+  return bounds;
 }
 
 //----------------------------------------------------------------------------

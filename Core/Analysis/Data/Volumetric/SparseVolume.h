@@ -55,7 +55,6 @@ namespace EspINA {
   class SparseVolume
   : public VolumetricData<T>
   {
-    using itkImageSPtr  = typename T::Pointer;
     using BlockMask     = BinaryMask<unsigned char>;
     using BlockMaskPtr  = BlockMask*;
     using BlockMaskUPtr = std::unique_ptr<BlockMask>;
@@ -88,14 +87,11 @@ namespace EspINA {
                       const Bounds&               bounds,
                       const typename T::ValueType value);
 
-    virtual void draw(const itkImageSPtr volume,
-                      const Bounds&      bounds = Bounds()){}
+    virtual void draw(const typename T::Pointer volume,
+                      const Bounds&             bounds = Bounds()){}
 
-    /// Set voxels at index to value
-    ///NOTE: Current implementation will expand the image
-    ///      when drawing with value != 0
-    virtual void draw(itkVolumeType::IndexType index,
-                      itkVolumeType::PixelType value = SEG_VOXEL_VALUE){}
+    virtual void draw(const typename T::IndexType index,
+                      const typename T::PixelType value = SEG_VOXEL_VALUE){}
 
 
     virtual void fitToContent(){}
@@ -175,7 +171,7 @@ namespace EspINA {
       typename BT::Pointer m_image;
     };
 
-    typedef itk::ImageRegionIterator<T> ImageIterator;
+    using ImageIterator = itk::ImageRegionIterator<T>;
 
   private:
     // TODO: Movable
@@ -191,7 +187,6 @@ namespace EspINA {
   private:
     typename T::PointType   m_origin;
     typename T::SpacingType m_spacing;
-    typename T::ValueType   m_bgValue;
 
     using BlockUPtr = std::unique_ptr<Block>;
     using BlockList = std::vector<BlockUPtr>;

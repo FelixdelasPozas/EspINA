@@ -42,7 +42,9 @@ namespace EspINA
     static const Data::Type TYPE;
 
   public:
-    explicit VolumetricData() {}
+    explicit VolumetricData()
+    : m_bgValue(0) {}
+
     virtual ~VolumetricData() {}
 
     /* \brief Returns the bounds of the volume, adjusted for spacing

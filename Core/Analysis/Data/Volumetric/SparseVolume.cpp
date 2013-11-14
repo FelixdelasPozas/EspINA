@@ -139,7 +139,7 @@ const typename T::Pointer SparseVolume<T>::itkImage(const Bounds& bounds) const
 {
   if (!areInside(bounds, this->bounds())) throw Invalid_image_bounds();
 
-  auto image = create_itkImage<T>(bounds, m_bgValue, m_spacing, m_origin);
+  auto image = create_itkImage<T>(bounds, backgroundValue(), m_spacing, m_origin);
 
   auto mask = createMask(bounds);
 
@@ -151,7 +151,7 @@ const typename T::Pointer SparseVolume<T>::itkImage(const Bounds& bounds) const
   while (i >= 0 && numPixels > 0)
   {
     Block *block = m_blocks[i].get();
-    
+
     auto   blockBounds  = block->bounds(); //equivalentBounds(blockImage, blockImage->GetLargestPossibleRegion());
     Bounds commonBounds = intersection(bounds, blockBounds);
 
@@ -172,20 +172,22 @@ const typename T::Pointer SparseVolume<T>::itkImage(const Bounds& bounds) const
 
 //-----------------------------------------------------------------------------
 template<typename T>
-void SparseVolume<T>::draw(const vtkImplicitFunction *brush, const Bounds &bounds, const typename T::ValueType value)
+void SparseVolume<T>::draw(const vtkImplicitFunction  *brush,
+                           const Bounds               &bounds,
+                           const typename T::ValueType value)
 {
-  //cout << "Volume bounds" << m_bounds << endl;
-  //cout << "Requested bounds" << bounds << endl;
+//   //cout << "Volume bounds" << m_bounds << endl;
+//   //cout << "Requested bounds" << bounds << endl;
 //   Bounds blockBounds = intersection(bounds, m_bounds);
 //   if (blockBounds.areValid()) {
 // 
-//     BinaryMask *mask = new BinaryMask(blockBounds);//ImageType::Pointer blockImage = create_itkImage(blockBounds, m_bgValue, m_spacing, m_origin);
-//     
+//     BlockMaskUPtr mask{new BlockMask(blockBounds)};//ImageType::Pointer blockImage = create_itkImage(blockBounds, m_bgValue, m_spacing, m_origin);
+// 
 //     //cout << "Block bounds" << blockBounds << endl;
 //     //blockImage->GetLargestPossibleRegion().Print(cout);
 //     //cout << "Number of block Pixels:" << blockImage->GetLargestPossibleRegion().GetNumberOfPixels() << endl;
 // 
-//     bool drawOp = value != m_bgValue;
+//     bool drawOp = value != backgroundValue();
 // 
 //     ImageIterator it = ImageIterator(blockImage, equivalentRegion(blockImage, blockBounds));
 //     for (it.GoToBegin(); !it.IsAtEnd(); ++it )
@@ -224,7 +226,7 @@ void SparseVolume<T>::resize(const Bounds &bounds)
 template<typename T>
 typename SparseVolume<T>::BlockMaskUPtr SparseVolume<T>::createMask(const Bounds& bounds) const
 {
-  typename BlockMask::Spacing spacing;
+  BlockMask::itkSpacing spacing;
 //  BlockMaskUPtr mask(new BlockMask(bounds, spacing));
 
 //   mask->SetRegions(image->GetLargestPossibleRegion());

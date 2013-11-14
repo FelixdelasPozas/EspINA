@@ -93,9 +93,6 @@ namespace EspINA {
     virtual void draw(const typename T::Pointer volume,
                       const Bounds&             bounds = Bounds()){}
 
-    /// Set voxels at index to value
-    ///NOTE: Current implementation will expand the image
-    ///      when drawing with value != 0
     virtual void draw(const typename T::IndexType index,
                       const typename T::PixelType value = SEG_VOXEL_VALUE){}
 

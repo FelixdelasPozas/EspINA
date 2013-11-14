@@ -25,60 +25,61 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  */
+#include <Core/EspinaTypes.h>
+#include <Core/Analysis/Data/VolumetricDataUtils.h>
 
-#include "Core/Analysis/Data/Volumetric/SparseVolume.h"
-#include "Tests/Unitary/Testing_Support.h"
-
-#include <vtkSmartPointer.h>
 
 using namespace std;
 using namespace EspINA;
-using namespace EspINA::Testing;
 
-typedef unsigned char VoxelType;
-typedef itk::Image<VoxelType, 3> ImageType;
 
-int sparse_volume_draw_implicit_function( int argc, char** argv )
-{
+bool Test_Create_Region_From_Bounds(const Bounds& bounds, bool passIfEquivalent = true) {
   bool pass = true;
 
-  auto bg = 0;
-  auto fg = 255;
+  itkVolumeType::SizeValueType s[3];
+  for (int i = 0; i < 3; ++i) {
+    Axis dir = toAxis(i);
+    s[i] = bounds.lenght(dir);
+    if (bounds.areUpperIncluded(dir) || (s[i] == 0 &&  (bounds.areLowerIncluded(dir)))) {
+      s[i] += 1;
+    }
+  }
 
-  Bounds bounds{0, 4, 0, 4, 0, 4};
-  SparseVolume<ImageType> canvas(bounds);
+  itkVolumeType::SizeType size{s[0], s[1], s[2]};
 
-  if (!Testing_Support<ImageType>::Test_Pixel_Values(canvas.itkImage(), bg)) {
-    cerr << "Initial values are not initialized to " << bg << endl;
+  itkVolumeType::RegionType expectedRegion;
+  expectedRegion.SetSize(size);
+
+  itkVolumeType::Pointer image = itkVolumeType::New();
+  image->SetRegions(expectedRegion);
+  image->Allocate();
+//   cerr << "Bounds: " << bounds << ":" << endl;
+//   cerr << "Expected Region:" << endl;
+//   expectedRegion.Print(cerr);
+//   cerr << "Equivalent Region:" << endl;
+//   equivalentRegion(image, bounds).Print(cerr);
+
+  if ((equivalentRegion<itkVolumeType>(image, bounds) == expectedRegion) != passIfEquivalent) {
+    cerr << "Bounds: " << bounds << ":" << endl;
+    cerr << "Expected Region:" << endl;
+    expectedRegion.Print(cerr);
+    cerr << "Equivalent Region:" << endl;
+    equivalentRegion<itkVolumeType>(image, bounds).Print(cerr);
+
     pass = false;
   }
 
-  Bounds lowerHalfVolume{0, 4, 0, 4, 0, 2};
-  if (!Testing_Support<ImageType>::Test_Pixel_Values(canvas.itkImage(lowerHalfVolume), bg, lowerHalfVolume)) {
-    cerr << "Pixel values inside " << lowerHalfVolume << " should be " << bg << endl;
-    pass = false;
-  }
+  return pass;
+}
 
-  auto brush = vtkSmartPointer<vtkNaiveFunction>::New();
-  canvas.draw(brush, lowerHalfVolume, fg);
+int volumetric_utils_bounds_to_region( int argc, char** argv )
+{
+  bool pass = false;//TODO Update this test
 
-  if (!Testing_Support<ImageType>::Test_Pixel_Values(canvas.itkImage(lowerHalfVolume), fg, lowerHalfVolume)) {
-    cerr << "Pixel values inside " << lowerHalfVolume << " should be " << fg << endl;
-    pass = false;
-  }
-
-  Bounds upperHalfVolume{0, 4, 0, 4, 2, 4};
-  if (!Testing_Support<ImageType>::Test_Pixel_Values(canvas.itkImage(upperHalfVolume), bg, upperHalfVolume)) {
-    cerr << "Pixel values inside " << upperHalfVolume << " should be " << bg << endl;
-    pass = false;
-  }
-
-  canvas.draw(brush, lowerHalfVolume, bg);
-
-  if (!Testing_Support<ImageType>::Test_Pixel_Values(canvas.itkImage(lowerHalfVolume), bg, lowerHalfVolume)) {
-    cerr << "Pixel values inside " << lowerHalfVolume << " should be " << bg << endl;
-    pass = false;
-  }
+  pass &= Test_Create_Region_From_Bounds({'[',0,0,0,0,0,0,')'});
+  pass &= Test_Create_Region_From_Bounds({'[',0,0,0,0,0,0,')'});
+  pass &= Test_Create_Region_From_Bounds({'[',0,1,0,1,0,1,')'});
+  pass &= Test_Create_Region_From_Bounds({'[',0,1,0,1,0,1,']'});
 
   return !pass;
 }

@@ -17,15 +17,16 @@
 */
 #include "SeedGrowSegmentationFilter.h"
 #include <Core/Analysis/Data/VolumetricData.h>
+#include <Core/Analysis/Data/Volumetric/SparseVolume.h>
 #include <unistd.h>
 
 using namespace EspINA;
 
 SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(OutputSList inputs, Filter::Type type, SchedulerSPtr scheduler)
 : Filter(inputs, type, scheduler)
-, m_lowerTh(10)
+, m_lowerTh(250)//TODO Change, current value for testing
 , m_prevLowerTh(m_lowerTh)
-, m_upperTh(10)
+, m_upperTh(250)
 , m_prevUpperTh(m_upperTh)
 , m_seed({0,0,0})
 , m_prevSeed(m_seed)
@@ -182,7 +183,7 @@ void SeedGrowSegmentationFilter::execute(Output::Id id)
   itkVolumeType::Pointer   seedVoxel     = input->itkImage(seedBounds);
   itkVolumeType::ValueType seedIntensity = 50;//TODO
   itkVolumeType::IndexType seed;
-  seed.Fill(50);
+  seed.Fill(0);
 
   m_connectedFilter = ConnectedFilterType::New();
   m_connectedFilter->SetInput(input->itkImage());
@@ -228,7 +229,12 @@ void SeedGrowSegmentationFilter::execute(Output::Id id)
     m_outputs << OutputSPtr(new Output(this, 0));
   }
 
-  //DefaultVolumetricDataSPtr volume{new };
+  itkVolumeType::Pointer output = m_connectedFilter->GetOutput();
+  Bounds bounds = equivalentBounds<itkVolumeType>(output, output->GetLargestPossibleRegion());
+
+  DefaultVolumetricDataSPtr volume{new SparseVolume<itkVolumeType>(bounds)};
+
+  m_outputs[0]->setData(volume);
 
   m_prevLowerTh = m_lowerTh;
   m_prevUpperTh = m_upperTh;

@@ -25,58 +25,39 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  */
+#include <Core/EspinaTypes.h>
+#include <Tests/Unitary/Testing_Support.h>
 
-#include "Core/Analysis/Data/Volumetric/SparseVolume.h"
-#include "Tests/Unitary/Testing_Support.h"
-
-#include <vtkSmartPointer.h>
 
 using namespace std;
 using namespace EspINA;
 using namespace EspINA::Testing;
 
-typedef unsigned char VoxelType;
-typedef itk::Image<VoxelType, 3> ImageType;
-
-int sparse_volume_draw_implicit_function( int argc, char** argv )
+int volumetric_utils_equivalent_bounds( int argc, char** argv )
 {
-  bool pass = true;
+  bool pass = false;//true TODO Update this test
 
-  auto bg = 0;
-  auto fg = 255;
+  itkVolumeType::PointType origin1;
+  origin1.Fill(0);
 
-  Bounds bounds{0, 4, 0, 4, 0, 4};
-  SparseVolume<ImageType> canvas(bounds);
+  itkVolumeType::PointType origin2;
+  origin2.Fill(5);
 
-  if (!Testing_Support<ImageType>::Test_Pixel_Values(canvas.itkImage(), bg)) {
-    cerr << "Initial values are not initialized to " << bg << endl;
+  itkVolumeType::SpacingType spacing;
+  spacing.Fill(2.5);
+
+  itkVolumeType::Pointer img1 = Testing_Support<itkVolumeType>::Create_Test_Image(origin1, {2,2,2}, {10,20,30}, spacing, 0);
+  itkVolumeType::Pointer img2 = Testing_Support<itkVolumeType>::Create_Test_Image(origin2, {0,0,0}, {10,20,30}, spacing, 0);
+
+  if (img1->GetLargestPossibleRegion() == img2->GetLargestPossibleRegion()) {
+    cerr << "Region1 should be different from Region2" << endl;
     pass = false;
   }
 
-  Bounds lowerHalfVolume{0, 4, 0, 4, 0, 2};
-  if (!Testing_Support<ImageType>::Test_Pixel_Values(canvas.itkImage(lowerHalfVolume), bg, lowerHalfVolume)) {
-    cerr << "Pixel values inside " << lowerHalfVolume << " should be " << bg << endl;
-    pass = false;
-  }
-
-  auto brush = vtkSmartPointer<vtkNaiveFunction>::New();
-  canvas.draw(brush, lowerHalfVolume, fg);
-
-  if (!Testing_Support<ImageType>::Test_Pixel_Values(canvas.itkImage(lowerHalfVolume), fg, lowerHalfVolume)) {
-    cerr << "Pixel values inside " << lowerHalfVolume << " should be " << fg << endl;
-    pass = false;
-  }
-
-  Bounds upperHalfVolume{0, 4, 0, 4, 2, 4};
-  if (!Testing_Support<ImageType>::Test_Pixel_Values(canvas.itkImage(upperHalfVolume), bg, upperHalfVolume)) {
-    cerr << "Pixel values inside " << upperHalfVolume << " should be " << bg << endl;
-    pass = false;
-  }
-
-  canvas.draw(brush, lowerHalfVolume, bg);
-
-  if (!Testing_Support<ImageType>::Test_Pixel_Values(canvas.itkImage(lowerHalfVolume), bg, lowerHalfVolume)) {
-    cerr << "Pixel values inside " << lowerHalfVolume << " should be " << bg << endl;
+  Bounds bounds1 = equivalentBounds<itkVolumeType>(img1, img1->GetLargestPossibleRegion());
+  Bounds bounds2 = equivalentBounds<itkVolumeType>(img2, img2->GetLargestPossibleRegion());
+  if (bounds1 != bounds2) {
+    cerr << bounds1 << " should be equal to " << bounds2 << endl;
     pass = false;
   }
 

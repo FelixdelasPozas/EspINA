@@ -13,6 +13,7 @@ qt4_wrap_cpp(SUBJECT_MOCS
 add_executable(SGSF_Tests 
   ${TEST_SOURCES}
   ${SUBJECT_MOCS}
+  ${CORE_DIR}/Analysis/Data/VolumetricData.cpp
   ${CORE_DIR}/Analysis/Filter.cpp
   ${CORE_DIR}/Analysis/Data.cpp
   ${CORE_DIR}/Analysis/Output.cpp

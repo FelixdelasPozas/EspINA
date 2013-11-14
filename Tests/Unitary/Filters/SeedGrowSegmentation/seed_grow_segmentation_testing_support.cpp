@@ -34,13 +34,12 @@ OutputSPtr EspINA::Testing::inputChannel()
   public:
     explicit DummyFilter()
     : Filter(OutputSList(), "Dummy", SchedulerSPtr()){}
-    virtual OutputSPtr output(Output::Id id) const {}
-
+    virtual void restoreState(const State& state){}
+    virtual State saveState() const{return State();}
   protected:
     virtual Snapshot saveFilterSnapshot() const {return Snapshot(); }
     virtual bool needUpdate() const{ return false;}
     virtual bool needUpdate(Output::Id id) const{ return false;}
-    virtual DataSPtr createDataProxy(Output::Id id, const Data::Type& type){}
     virtual void execute(){}
     virtual void execute(Output::Id id){}
     virtual bool invalidateEditedRegions() {return false;}
@@ -48,7 +47,10 @@ OutputSPtr EspINA::Testing::inputChannel()
 
   OutputSPtr output{new Output(new DummyFilter(),0)};
 
-  DataSPtr data{new ChannelVolume()};
+  Bounds bounds{0,100,0,100,0,100};
+
+  DefaultVolumetricDataSPtr data{new ChannelVolume(bounds)};
+  data->setBackgroundValue(50);
 
   output->setData(data);
 

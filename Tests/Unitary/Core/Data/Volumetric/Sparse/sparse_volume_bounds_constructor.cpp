@@ -27,10 +27,11 @@
  */
 
 #include "Core/Analysis/Data/Volumetric/SparseVolume.h"
-#include "Tests/Unitary/Core/Data/Volumetric/Testing_Support.h"
+#include "Tests/Unitary/Testing_Support.h"
 
-using namespace EspINA;
 using namespace std;
+using namespace EspINA;
+using namespace EspINA::Testing;
 
 typedef unsigned char VoxelType;
 typedef itk::Image<VoxelType, 3> ImageType;
