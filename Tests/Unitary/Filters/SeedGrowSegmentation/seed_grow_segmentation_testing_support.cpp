@@ -47,7 +47,7 @@ OutputSPtr EspINA::Testing::inputChannel()
 
   OutputSPtr output{new Output(new DummyFilter(),0)};
 
-  Bounds bounds{0,100,0,100,0,100};
+  Bounds bounds{-0.5, 99.5, -0.5,99.5,-0.5,99.5};
 
   DefaultVolumetricDataSPtr data{new ChannelVolume(bounds)};
   data->setBackgroundValue(50);

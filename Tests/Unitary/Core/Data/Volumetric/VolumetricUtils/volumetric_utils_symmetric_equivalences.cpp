@@ -56,5 +56,15 @@ int volumetric_utils_symmetric_equivalences( int argc, char** argv )
     error = EXIT_FAILURE;
   }
 
+  Bounds expectedBounds{-0.5, 0.5, -0.5, 0.5, -0.5, 0.5};
+
+  Bounds bounds = equivalentBounds<itkVolumeType>(image, equivalentRegion<itkVolumeType>(image, expectedBounds));
+  if (bounds != expectedBounds) {
+    cerr << "The equivalent region of the equivalent bounds of a given region should be the same given region." << endl;
+    cerr << "Unexpected Equivalent Bounds: " << bounds << endl;
+    cerr << "Expected Bounds: " << expectedBounds << endl;
+    error = EXIT_FAILURE;
+  }
+
   return error;
 }

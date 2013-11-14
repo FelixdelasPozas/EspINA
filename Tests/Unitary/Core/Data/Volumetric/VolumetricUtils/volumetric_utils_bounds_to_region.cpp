@@ -74,10 +74,11 @@ bool Test_Create_Region_From_Bounds(const Bounds& bounds, bool passIfEquivalent 
 
 int volumetric_utils_bounds_to_region( int argc, char** argv )
 {
-  bool pass = false;//TODO Update this test
+  bool pass = true;
 
+  pass &= Test_Create_Region_From_Bounds({'[',-0.5,0,-0.5,0,-0.5,0,')'});
   pass &= Test_Create_Region_From_Bounds({'[',0,0,0,0,0,0,')'});
-  pass &= Test_Create_Region_From_Bounds({'[',0,0,0,0,0,0,')'});
+  pass &= Test_Create_Region_From_Bounds({'[',0,0,0,0,0,0,']'});
   pass &= Test_Create_Region_From_Bounds({'[',0,1,0,1,0,1,')'});
   pass &= Test_Create_Region_From_Bounds({'[',0,1,0,1,0,1,']'});
 
