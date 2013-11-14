@@ -19,12 +19,13 @@
 #ifndef ESPINA_SPARSE_BINARY_VOLUME_H_
 #define ESPINA_SPARSE_BINARY_VOLUME_H_
 
+// EspINA
 #include <Core/EspinaTypes.h>
 #include <Core/Analysis/Data/VolumetricData.h>
-
-#include <vtkSmartPointer.h>
-
 #include "BinaryMask.h"
+
+// VTK
+#include <vtkSmartPointer.h>
 
 class vtkImageData;
 
@@ -107,6 +108,14 @@ namespace EspINA
      */
     itkVolumeType::Pointer itkImage(const Bounds& bounds) const throw(Bounds_Not_Inside_Mask_Exception);
 
+    /* \brief Return the mask image as a vtkImageData of unsigned char scalars.
+     */
+    vtkSmartPointer<vtkImageData> vtkImage() const;
+
+    /* \brief Return a region of the mask image as a vtkImageData of unsigned char scalars.
+     */
+    vtkSmartPointer<vtkImageData> vtkImage(const Bounds& bounds) const throw(Bounds_Not_Inside_Mask_Exception);
+
     /* \brief Draw method to modify mask using a implicit function.
      */
     void draw(const vtkImplicitFunction*  brush,
@@ -123,6 +132,26 @@ namespace EspINA
      */
     void draw(const NmVector3 &index,
               const bool value = true);
+
+    /* \brief Draw method to expand the image bounds (only if necessary) and modify
+     * the mask using a implicit function.
+     */
+    void expandAndDraw(const vtkImplicitFunction*  brush,
+                       const Bounds&               bounds,
+                       const unsigned char         drawValue);
+
+    /* \brief Draw method to expand the image bounds (only if necessary) and modify
+     * the mask using a templated itk::Image.
+     */
+    template <class T> void expandAndDraw(const typename T::Pointer   image,
+                                          const Bounds&               bounds = Bounds(),
+                                          const typename T::PixelType backgroundValue = 0);
+
+    /* \brief Draw method to expand the image bounds (only if necessary) and modify
+     *  a voxel of the mask.
+     */
+    void expandAndDraw(const NmVector3 &index,
+                       const bool value = true);
 
     /* \brief Reduce the bounds to the smallest one that contains the mask (clipping empty borders).
      */
@@ -159,6 +188,11 @@ namespace EspINA
      * Sparse Volume will take ownership of the block.
      */
     void delBlock(BlockMaskUPtr mask);
+
+    /* \brief Compute a mask from a given size
+     *
+     */
+    BinaryMaskSPtr<unsigned char> computeMask(const Bounds &bounds) const;
 
   private:
     enum class BlockType

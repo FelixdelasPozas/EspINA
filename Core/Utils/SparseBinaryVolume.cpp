@@ -151,46 +151,117 @@ namespace EspINA
   //----------------------------------------------------------------------------
   itkVolumeType::Pointer SparseBinaryVolume::itkImage(const Bounds& bounds) const throw(Bounds_Not_Inside_Mask_Exception)
   {
-    // bounds must be completely inside m_bounds, no partial bounds allowed
+    // bounds must be completely inside m_bounds, no partial-inside/partial-outside
+    // bounds allowed
     if (!intersect(m_bounds, bounds) || (intersection(m_bounds, bounds) != bounds))
       throw Bounds_Not_Inside_Mask_Exception();
 
-    itkVolumeType::Pointer image = itkVolumeType::New();
+    BinaryMaskSPtr<unsigned char> mask = computeMask(bounds);
 
-    itkVolumeType::IndexType index;
-    index[0] = bounds[0]/m_spacing[0];
-    index[1] = bounds[2]/m_spacing[1];
-    index[2] = bounds[4]/m_spacing[2];
+    return mask->itkImage();
+  }
 
-    itkVolumeType::SizeType size;
-    size[0] = bounds[1]/m_spacing[0] - bounds[0]/m_spacing[0] + 1;
-    size[1] = bounds[3]/m_spacing[1] - bounds[2]/m_spacing[1] + 1;
-    size[2] = bounds[5]/m_spacing[2] - bounds[4]/m_spacing[2] + 1;
+  //----------------------------------------------------------------------------
+  vtkSmartPointer<vtkImageData> SparseBinaryVolume::vtkImage() const
+  {
+    return vtkImage(m_bounds);
+  }
 
-    itkVolumeType::RegionType region;
-    region.SetIndex(index);
-    region.SetSize(size);
+  //----------------------------------------------------------------------------
+  vtkSmartPointer<vtkImageData> SparseBinaryVolume::vtkImage(const Bounds& bounds) const throw(Bounds_Not_Inside_Mask_Exception)
+  {
+    // bounds must be completely inside m_bounds, no partial-inside/partial-outside
+    // bounds allowed
+    if (!intersect(m_bounds, bounds) || (intersection(m_bounds, bounds) != bounds))
+      throw Bounds_Not_Inside_Mask_Exception();
 
-    itkVolumeType::SpacingType spacing;
-    spacing[0] = m_spacing[0];
-    spacing[1] = m_spacing[1];
-    spacing[2] = m_spacing[2];
+    BinaryMaskSPtr<unsigned char> mask = computeMask(bounds);
 
-    itkVolumeType::PointType origin;
-    origin[0] = m_origin[0];
-    origin[1] = m_origin[1];
-    origin[2] = m_origin[2];
+    int extent[6]{ static_cast<int>(bounds[0]/m_spacing[0]), static_cast<int>(bounds[1]/m_spacing[0]),
+                   static_cast<int>(bounds[2]/m_spacing[1]), static_cast<int>(bounds[3]/m_spacing[1]),
+                   static_cast<int>(bounds[4]/m_spacing[2]), static_cast<int>(bounds[5]/m_spacing[2]) };
 
-    image->SetRegions(region);
-    image->SetSpacing(spacing);
-    image->SetOrigin(origin);
-    image->Allocate();
+    vtkSmartPointer<vtkImageData> image = vtkSmartPointer<vtkImageData>::New();
+    image->SetExtent(extent);
 
-    itk::ImageRegionIterator<itkVolumeType> iit(image, region);
+    vtkInformation *info = image->GetInformation();
+    vtkImageData::SetScalarType(VTK_UNSIGNED_CHAR, info);
+    vtkImageData::SetNumberOfScalarComponents(1, info);
+    image->SetInformation(info);
+    image->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
+    image->Modified();
 
-    // TODO: pending sparse mask iterators
+    unsigned char *imagePointer = reinterpret_cast<unsigned char*>(image->GetScalarPointer());
+    memset(imagePointer, 0, (extent[1]-extent[0] + 1) * (extent[3]-extent[2] + 1) * (extent[5]-extent[4] + 1));
+
+    BinaryMask<unsigned char>::iterator mit(mask.get());
+
+    mit.goToBegin();
+    while (!mit.isAtEnd())
+    {
+
+      if (mit.isSet())
+        *imagePointer = SEG_VOXEL_VALUE;
+      ++imagePointer;
+      ++mit;
+    }
 
     return image;
+  }
+
+  //----------------------------------------------------------------------------
+  void SparseBinaryVolume::expandAndDraw(const vtkImplicitFunction*  brush,
+                                         const Bounds&               bounds,
+                                         const unsigned char         drawValue)
+  {
+    if (bounds != intersection(bounds, m_bounds))
+    {
+      m_bounds[0] = std::min(bounds[0], m_bounds[0]);
+      m_bounds[1] = std::max(bounds[1], m_bounds[1]);
+      m_bounds[2] = std::min(bounds[2], m_bounds[2]);
+      m_bounds[3] = std::max(bounds[3], m_bounds[3]);
+      m_bounds[4] = std::min(bounds[4], m_bounds[4]);
+      m_bounds[5] = std::max(bounds[5], m_bounds[5]);
+    }
+
+    draw(brush, bounds, drawValue);
+  }
+
+  //----------------------------------------------------------------------------
+  template <class T> void SparseBinaryVolume::expandAndDraw(const typename T::Pointer   image,
+                                                            const Bounds&               bounds,
+                                                            const typename T::PixelType backgroundValue)
+  {
+      if (bounds != intersection(bounds, m_bounds))
+      {
+        m_bounds[0] = std::min(bounds[0], m_bounds[0]);
+        m_bounds[1] = std::max(bounds[1], m_bounds[1]);
+        m_bounds[2] = std::min(bounds[2], m_bounds[2]);
+        m_bounds[3] = std::max(bounds[3], m_bounds[3]);
+        m_bounds[4] = std::min(bounds[4], m_bounds[4]);
+        m_bounds[5] = std::max(bounds[5], m_bounds[5]);
+      }
+
+      draw(image, bounds, backgroundValue);
+  }
+
+  //----------------------------------------------------------------------------
+  void SparseBinaryVolume::expandAndDraw(const NmVector3 &index,
+                                         const bool value)
+  {
+    Bounds bounds{index[0], index[0], index[1], index[1], index[2], index[2]};
+
+    if (bounds != intersection(bounds, m_bounds))
+    {
+      m_bounds[0] = std::min(bounds[0], m_bounds[0]);
+      m_bounds[1] = std::max(bounds[1], m_bounds[1]);
+      m_bounds[2] = std::min(bounds[2], m_bounds[2]);
+      m_bounds[3] = std::max(bounds[3], m_bounds[3]);
+      m_bounds[4] = std::min(bounds[4], m_bounds[4]);
+      m_bounds[5] = std::max(bounds[5], m_bounds[5]);
+    }
+
+    draw(index, value);
   }
 
   //----------------------------------------------------------------------------
@@ -444,6 +515,66 @@ namespace EspINA
 
     if (!m_blocks_bounding_box.areValid())
       throw Invalid_Internal_State_Exception();
+  }
+
+  //----------------------------------------------------------------------------
+  BinaryMaskSPtr<unsigned char> SparseBinaryVolume::computeMask(const Bounds &bounds) const
+  {
+    BinaryMask<unsigned char> *mask = new BinaryMask<unsigned char>(bounds, m_spacing);
+
+    for (unsigned int i = m_blocks.size() -1; i >= 0; ++i)
+    {
+      if (!intersect(bounds, m_blocks[i]->bounds()))
+        continue;
+
+      Bounds intersectionBounds = intersection(bounds, m_blocks[i]->bounds());
+      BinaryMask<unsigned char>::region_iterator mri(mask, intersectionBounds);
+      BinaryMask<unsigned char>::const_region_iterator bri(m_blocks[i]->const_region_iterator(intersectionBounds));
+
+      mri.goToBegin();
+      bri.goToBegin();
+
+      switch(m_blocks[i]->type())
+      {
+        case BlockType::Set:
+          while(!mri.isAtEnd())
+          {
+            if (bri.isSet())
+              mri.Set();
+            else
+              mri.Unset();
+
+            ++mri;
+            ++bri;
+          }
+          break;
+        case BlockType::Add:
+          while(!mri.isAtEnd())
+          {
+            if (bri.isSet())
+              mri.Set();
+
+            ++mri;
+            ++bri;
+          }
+          break;
+        case BlockType::Del:
+          while(!mri.isAtEnd())
+          {
+            if (bri.isSet())
+              mri.Unset();
+
+            ++mri;
+            ++bri;
+          }
+          break;
+        default:
+          Q_ASSERT(false);
+          break;
+      }
+    }
+
+    return BinaryMaskSPtr<unsigned char>(mask);
   }
 
 } // namespace EspINA

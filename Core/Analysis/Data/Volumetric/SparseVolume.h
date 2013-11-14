@@ -135,6 +135,7 @@ namespace EspINA {
       virtual ~Block(){}
 
       virtual Bounds bounds() const = 0;
+      virtual unsigned long long numberOfVoxels() = 0;
     };
 
     class AddBlock 
@@ -143,6 +144,10 @@ namespace EspINA {
       AddBlock(BlockMaskUPtr mask) : m_mask{mask} {}
 
       Bounds bounds() const { return m_mask->bounds(); }
+
+      unsigned long long numberOfVoxels()
+      { return m_mask->numberOfVoxels(); }
+
     private:
       BlockMaskUPtr m_mask;
     };
@@ -153,6 +158,10 @@ namespace EspINA {
       DelBlock(BlockMaskUPtr mask) : m_mask{mask} {}
 
       Bounds bounds() const { return m_mask->bounds(); }
+
+      unsigned long long numberOfVoxels()
+      { return m_mask->numberOfVoxels(); }
+
     private:
       BlockMaskUPtr m_mask;
     };
@@ -166,6 +175,9 @@ namespace EspINA {
 
       Bounds bounds() const 
       { return equivalentBounds<BT>(m_image, m_image->GetLargestPossibleRegion()); }
+
+      unsigned long long numberOfVoxels()
+      { return m_image->GetBufferedRegion().GetNumberOfPixels(); }
 
     private:
       typename BT::Pointer m_image;

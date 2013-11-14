@@ -59,12 +59,10 @@ double SparseVolume<T>::memoryUsage() const
 {
   double numPixels = 0;
 
-//  for (auto block : m_blocks) {
-//    numPixels += block.image->GetBufferedRegion().GetNumberOfPixels();
-//  }
-//
-//  return memory_size_in_MB(numPixels);
-  return numPixels;
+  for (unsigned int i = 0; i < m_blocks.size(); ++i)
+    numPixels += m_blocks[i]->numberOfVoxels();
+
+  return memory_size_in_MB(numPixels);
 }
 
 
