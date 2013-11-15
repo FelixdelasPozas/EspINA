@@ -74,9 +74,9 @@ typename T::RegionType equivalentRegion(const T* image, const Bounds& bounds)
   return region;
 }
 
-template<typename T>
 //-----------------------------------------------------------------------------
-Bounds equivalentBounds(const T* image, const typename T::RegionType& region)
+template<typename T>
+Bounds equivalentBounds(const typename T::Pointer image, const typename T::RegionType& region)
 {
   Bounds bounds;
 

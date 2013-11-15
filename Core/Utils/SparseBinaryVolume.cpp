@@ -214,15 +214,9 @@ namespace EspINA
                                          const Bounds&               bounds,
                                          const unsigned char         drawValue)
   {
-    if (bounds != intersection(bounds, m_bounds))
-    {
-      m_bounds[0] = std::min(bounds[0], m_bounds[0]);
-      m_bounds[1] = std::max(bounds[1], m_bounds[1]);
-      m_bounds[2] = std::min(bounds[2], m_bounds[2]);
-      m_bounds[3] = std::max(bounds[3], m_bounds[3]);
-      m_bounds[4] = std::min(bounds[4], m_bounds[4]);
-      m_bounds[5] = std::max(bounds[5], m_bounds[5]);
-    }
+    Bounds intersectionBounds = intersection(bounds, m_bounds);
+    if (bounds != intersectionBounds)
+      m_bounds = boundingBox(m_bounds, intersectionBounds);
 
     draw(brush, bounds, drawValue);
   }
@@ -232,15 +226,9 @@ namespace EspINA
                                                             const Bounds&               bounds,
                                                             const typename T::PixelType backgroundValue)
   {
-      if (bounds != intersection(bounds, m_bounds))
-      {
-        m_bounds[0] = std::min(bounds[0], m_bounds[0]);
-        m_bounds[1] = std::max(bounds[1], m_bounds[1]);
-        m_bounds[2] = std::min(bounds[2], m_bounds[2]);
-        m_bounds[3] = std::max(bounds[3], m_bounds[3]);
-        m_bounds[4] = std::min(bounds[4], m_bounds[4]);
-        m_bounds[5] = std::max(bounds[5], m_bounds[5]);
-      }
+      Bounds intersectionBounds = intersection(bounds, m_bounds);
+      if (bounds != intersectionBounds)
+        m_bounds = boundingBox(m_bounds, intersectionBounds);
 
       draw(image, bounds, backgroundValue);
   }
@@ -251,15 +239,9 @@ namespace EspINA
   {
     Bounds bounds{index[0], index[0], index[1], index[1], index[2], index[2]};
 
-    if (bounds != intersection(bounds, m_bounds))
-    {
-      m_bounds[0] = std::min(bounds[0], m_bounds[0]);
-      m_bounds[1] = std::max(bounds[1], m_bounds[1]);
-      m_bounds[2] = std::min(bounds[2], m_bounds[2]);
-      m_bounds[3] = std::max(bounds[3], m_bounds[3]);
-      m_bounds[4] = std::min(bounds[4], m_bounds[4]);
-      m_bounds[5] = std::max(bounds[5], m_bounds[5]);
-    }
+    Bounds intersectionBounds = intersection(bounds, m_bounds);
+    if (bounds != intersectionBounds)
+      m_bounds = boundingBox(m_bounds, intersectionBounds);
 
     draw(index, value);
   }
@@ -389,21 +371,13 @@ namespace EspINA
         index = it.getIndex();
         if (it.isSet())
         {
+          Bounds voxelBounds{ index.x * m_spacing[0], index.x * m_spacing[0],
+                              index.y * m_spacing[1], index.y * m_spacing[1],
+                              index.z * m_spacing[2],index.z * m_spacing[2]};
           if (!bounds.areValid())
-          {
-            bounds[0] = bounds[1] = index.x * m_spacing[0];
-            bounds[2] = bounds[3] = index.y * m_spacing[1];
-            bounds[4] = bounds[5] = index.z * m_spacing[2];
-          }
+            bounds = voxelBounds;
           else
-          {
-            bounds[0] = std::min(bounds[0], index.x * m_spacing[0]);
-            bounds[1] = std::max(bounds[1], index.x * m_spacing[0]);
-            bounds[2] = std::min(bounds[2], index.y * m_spacing[1]);
-            bounds[3] = std::max(bounds[3], index.y * m_spacing[1]);
-            bounds[4] = std::min(bounds[4], index.z * m_spacing[2]);
-            bounds[5] = std::max(bounds[5], index.z * m_spacing[2]);
-          }
+            bounds = boundingBox(bounds, voxelBounds);
         }
         ++it;
       }
@@ -506,12 +480,7 @@ namespace EspINA
   //----------------------------------------------------------------------------
   void SparseBinaryVolume::updateBlocksBoundingBox(const Bounds& bounds) throw(Invalid_Internal_State_Exception)
   {
-    m_blocks_bounding_box[0] = std::min(m_blocks_bounding_box[0], bounds[0]);
-    m_blocks_bounding_box[1] = std::max(m_blocks_bounding_box[1], bounds[1]);
-    m_blocks_bounding_box[2] = std::min(m_blocks_bounding_box[2], bounds[2]);
-    m_blocks_bounding_box[3] = std::max(m_blocks_bounding_box[3], bounds[3]);
-    m_blocks_bounding_box[4] = std::min(m_blocks_bounding_box[4], bounds[4]);
-    m_blocks_bounding_box[5] = std::max(m_blocks_bounding_box[5], bounds[5]);
+    m_blocks_bounding_box = boundingBox(m_blocks_bounding_box, bounds);
 
     if (!m_blocks_bounding_box.areValid())
       throw Invalid_Internal_State_Exception();

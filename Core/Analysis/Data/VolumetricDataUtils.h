@@ -37,12 +37,12 @@ namespace EspINA
   template<typename T>
   typename T::RegionType equivalentRegion(const T *image, const Bounds& bounds);
 
-  /** \brief Return the bounds for a given image region
+  /** \brief Return the bounds for a given image region and an image
    * 
    * Bounds are given in nm using (0,0) as origin
    */
   template<typename T>
-  Bounds equivalentBounds(const T *image, const typename T::RegionType& region);
+  Bounds equivalentBounds(const typename T::Pointer image, const typename T::RegionType& region);
 
   // NOTE: Probably move into an independent module
   static double memory_size_in_MB(int number_of_pixels){

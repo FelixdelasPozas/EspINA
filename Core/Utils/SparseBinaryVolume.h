@@ -31,6 +31,11 @@ class vtkImageData;
 
 namespace EspINA
 {
+
+  class SparseBinaryVolume;
+  using SparseBinaryVolumePtr  = SparseBinaryVolume *;
+  using SparseBinaryVolumeSPtr = std::shared_ptr<SparseBinaryVolume>;
+
   class SparseBinaryVolume
   {
     struct Invalid_Image_Bounds_Exception{};
@@ -40,6 +45,13 @@ namespace EspINA
     struct Cant_Undo_Exception{};
     struct Invalid_Internal_State_Exception{};
     struct Interpolation_Needed_Exception{};
+
+    // iterator exceptions (to match with BinaryMask::iterators exceptions
+    struct Out_Of_Bounds_Exception{};
+    struct Underflow_Exception{};
+    struct Overflow_Exception{};
+    struct Const_Violation_Exception{};
+    struct Region_Not_Contained_In_Mask_Exception{};
 
   /** \brief Volume representation intended to save memory and speed up
    *  edition operations
@@ -275,6 +287,245 @@ namespace EspINA
     BlockList    m_redoBlocks;
     Bounds       m_bounds;
     Bounds       m_blocks_bounding_box;
+
+  public:
+    //- ITERATOR CLASS --------------------------------------------------------------------
+    class iterator
+    : public std::iterator<std::bidirectional_iterator_tag, unsigned char>
+    {
+      public:
+        /** \brief iterator for a given mask constructor.
+         * NOTE: it creates a mask for the whole region to iterate. In this case, the whole image.
+         */
+        iterator(SparseBinaryVolumeSPtr mask)
+        : m_it(mask->computeMask(mask->bounds()).get(), mask->bounds())
+        , m_mask(mask)
+        {
+        }
+
+        /** \brief Constructor for begin() and end() iterators, and others.
+         */
+        iterator(const iterator& it, const unsigned long long pos = 0, const int bitPos = 0)
+        : m_it(it.m_it)
+        , m_mask(it.m_mask)
+        {
+        }
+
+        virtual ~iterator() {};
+
+        /** \brief Returns an iterator positioned at the beginning of the mask
+         *  NOTE: In the STL if a container is empty it.begin() == it.end(). That
+         *        is not the intended here.
+         */
+        iterator begin()
+        {
+          return iterator(*this);
+        }
+
+        /** \brief Returns an iterator positioned at one-past-the-end element of the mask.
+         *  NOTE: In the STL if a container is empty it.begin() == it.end(). That
+         *        is not the intended here.
+         *  NOTE: Trying to get or set a value of this iterator position will throw an
+         *        exception.
+         */
+        iterator end()
+        {
+          m_it.goToEnd();
+
+          return *this;
+        }
+
+        /** \brief Sets the position of the iterator to the beginning of the mask.
+         */
+        void goToBegin()
+        {
+          m_it.goToBegin();
+        }
+
+        /** \brief Returns an iterator positioned at one-past-the-end element of the mask.
+         */
+        void goToEnd()
+        {
+          m_it.goToEnd();
+        }
+
+        /** \brief Returns true if the iterator is positioned at the end of the mask.
+         */
+        bool isAtEnd() const
+        {
+          return (m_it.isAtEnd());
+        }
+
+        /** \brief Equal operator between iterator and an iterator or a const_iterator of the mask.
+         */
+        bool operator==(const iterator& other) const
+        {
+          return (m_it == other.m_it);
+        }
+
+        /** \brief Non equal operator between iterator and an iterator or a const_iterator of the mask.
+         */
+        bool operator!=(const iterator& other) const
+        {
+          return (m_it != other.m_it);
+        }
+
+        /** \brief Returns the value at the position of the iterator.
+         *  NOTE: Can throw an Out_Of_Bounds_Exception if the iterator is positioned at
+         *  one-past-the-end element of the mask.
+         */
+        bool Get() const throw(Out_Of_Bounds_Exception)
+        {
+          if (isAtEnd())
+            throw Out_Of_Bounds_Exception();
+
+          if (SEG_BG_VALUE != m_it.Get())
+            return true;
+
+          return false;
+        }
+
+        /* \brief Convenience method when one doesn't need to know the foreground/background
+         * values of the mask.
+         */
+        bool isSet()
+        {
+          return (m_it.Get() == SEG_VOXEL_VALUE);
+        }
+
+        /** \brief Sets the value of the pointed element of the mask to foreground value.
+         *  NOTE: Can throw an Out_Of_Bounds_Exception if the iterator is positioned at
+         *  one-past-the-end element of the mask.
+         */
+        void Set() throw(Out_Of_Bounds_Exception)
+        {
+          if (isAtEnd())
+            throw Out_Of_Bounds_Exception();
+
+          BinaryMask<unsigned char>::IndexType index = m_it.getIndex();
+          NmVector3 spacing = m_mask->spacing();
+          NmVector3 point{ index.x * spacing[0], index.y * spacing[1], index.z * spacing[2] };
+          m_mask->draw(point, true);
+        }
+
+        /** \brief Sets the value of the pointed element of the mask to background value.
+         *  NOTE: Can throw an Out_Of_Bounds_Exception if the iterator is positioned at
+         *  one-past-the-end element of the mask.
+         */
+        void Unset() throw(Out_Of_Bounds_Exception)
+        {
+          if (isAtEnd())
+            throw Out_Of_Bounds_Exception();
+
+          BinaryMask<unsigned char>::IndexType index = m_it.getIndex();
+          NmVector3 spacing = m_mask->spacing();
+          NmVector3 point{ index.x * spacing[0], index.y * spacing[1], index.z * spacing[2] };
+          m_mask->draw(point, false);
+        }
+
+        /** \brief Decrements the iterator position.
+         *  NOTE: Can throw an Underflow_Exception if the iterator is positioned at
+         *  the beginning of the mask.
+         */
+        iterator& operator--() throw(Underflow_Exception)
+        {
+          --m_it;
+          return *this;
+        }
+
+        /** \brief Increments the iterator position.
+         *  NOTE: Can throw an Overflow_Exception if the iterator is positioned at
+         *  one-past-the-end element of the mask.
+         */
+        iterator &operator++() throw (Overflow_Exception)
+        {
+          ++m_it;
+          return *this;
+        }
+
+      protected:
+        /* \brief Constructor for region_iterator version.
+         */
+        iterator(SparseBinaryVolumeSPtr mask, const Bounds &bounds)
+        : m_it(mask->computeMask(bounds).get(), bounds)
+        , m_mask(mask)
+        {}
+
+        BinaryMask<unsigned char>::region_iterator m_it;
+        SparseBinaryVolumeSPtr                     m_mask;
+
+        friend class region_iterator;
+    };
+
+    //- CONST ITERATOR CLASS --------------------------------------------------------------
+    class const_iterator
+    : public iterator
+    {
+      public:
+        /** \brief const_iterator for a given mask constructor
+         */
+        const_iterator(SparseBinaryVolumeSPtr mask)
+        : iterator(mask)
+        {
+        };
+
+        virtual ~const_iterator() {};
+
+        /** \brief Forbidden Set() will throw a Const_Violation_Exception exception.
+         */
+        void Set() throw(Const_Violation_Exception) { throw Const_Violation_Exception(); }
+
+        /** \brief Forbidden Unset() will throw a Const_Violation_Exception exception.
+         */
+        void Unset() throw(Const_Violation_Exception) { throw Const_Violation_Exception(); }
+    };
+
+    //- REGION ITERATOR CLASS -------------------------------------------------------------
+    class region_iterator
+    : public iterator
+    {
+      public:
+        /** \brief region_iterator for a given region of a given mask constructor.
+         *  NOTE: Can throw a Region_Not_Contained_In_Mask if the given region is not
+         *        inside the largest possible region of the mask.
+         */
+        // TODO
+        region_iterator(SparseBinaryVolumeSPtr mask, const Bounds &bounds) throw (Region_Not_Contained_In_Mask_Exception)
+        : iterator(mask, bounds)
+        {
+          if (bounds != intersection(mask->bounds(), bounds))
+            throw Region_Not_Contained_In_Mask_Exception();
+        }
+
+        virtual ~region_iterator() {};
+
+      protected:
+
+    };
+
+    //- CONST REGION ITERATOR CLASS -------------------------------------------------------
+    class const_region_iterator
+    : public region_iterator
+    {
+      public:
+        /** \brief const_region_iterator for a given region of a given mask constructor
+         */
+        const_region_iterator(SparseBinaryVolumeSPtr mask, const Bounds &bounds)
+        : region_iterator(mask, bounds)
+        {
+        }
+
+        virtual ~const_region_iterator() {};
+
+        /** \brief Forbidden Set() will throw a Const_Violation_Exception exception.
+         */
+        void Set() throw(Const_Violation_Exception) { throw Const_Violation_Exception(); }
+
+        /** \brief Forbidden Unet() will throw a Const_Violation_Exception exception.
+         */
+        void Unset() throw(Const_Violation_Exception) { throw Const_Violation_Exception(); }
+    };
+
   };
 } // namespace EspINA
 

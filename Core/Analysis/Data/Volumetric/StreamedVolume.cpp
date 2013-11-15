@@ -67,9 +67,9 @@ Bounds StreamedVolume<T>::bounds() const
   reader->SetFileName(m_fileName.toStdString());
   reader->UpdateOutputInformation();
 
-  auto image = reader->GetOutput();
+  typename T::Pointer image = reader->GetOutput();
 
-  return equivalentBounds(image, image->GetLargestPossibleRegion());
+  return equivalentBounds<T>(image, image->GetLargestPossibleRegion());
 }
 
 //-----------------------------------------------------------------------------

@@ -20,6 +20,7 @@
 #ifndef ESPINA_BINARY_MASK_H
 #define ESPINA_BINARY_MASK_H
 
+#include <Core/EspinaTypes.h>
 #include <Core/Utils/NmVector3.h>
 #include "Core/Utils/Bounds.h"
 #include <Core/Utils/Spatial.h>
@@ -43,7 +44,6 @@ namespace EspINA
                                               index(const int xv, const int yv, const int zv): x(xv), y(yv), z(zv) {};
                                               index(const index &i): x(i.x), y(i.y), z(i.z) {}; };
       using itkImageType     = itk::Image<T,3>;
-      using itkPointer       = typename itkImageType::Pointer;
       using itkIndex         = typename itkImageType::IndexType;
       using itkRegion        = typename itkImageType::RegionType;
       using itkSpacing       = typename itkImageType::SpacingType;
@@ -70,7 +70,7 @@ namespace EspINA
        *
        *  Sets background value to suggested values. Foreground resorts to default value.
        */
-      explicit BinaryMask(const itkPointer image, const T &backgroundValue);
+      explicit BinaryMask(const typename itkImageType::Pointer image, const T &backgroundValue = SEG_BG_VALUE);
       virtual ~BinaryMask() {};
 
       /** \brief Returns mask bounds.

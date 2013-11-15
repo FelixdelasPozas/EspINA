@@ -49,7 +49,7 @@ int binaryMask_itkImage_constructor(int argc, char** argv)
   spacing[1] = 4;
   spacing[2] = 5;
 
-  BMask::itkPointer image = BMask::itkImageType::New();
+  BMask::itkImageType::Pointer image = BMask::itkImageType::New();
   image->SetRegions(region);
   image->SetSpacing(spacing);
   image->Allocate();

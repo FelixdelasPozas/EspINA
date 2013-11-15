@@ -20,6 +20,8 @@
 // EspINA
 #include "BinaryMask.h"
 #include <Core/EspinaTypes.h>
+#include <Core/Utils/Bounds.h>
+#include <Core/Analysis/Data/VolumetricDataUtils.h>
 
 // C++
 #include <memory>
@@ -37,28 +39,33 @@
 namespace EspINA
 {
   //-------------------------------------------------------------------------------------
-  template<typename T> BinaryMask<T>::BinaryMask(const itkPointer image, const T &backgroundValue)
+  template<typename T> BinaryMask<T>::BinaryMask(const typename itkImageType::Pointer image, const T &backgroundValue)
   : m_backgroundValue(backgroundValue)
-  , m_foregroundValue(255)
+  , m_foregroundValue(SEG_VOXEL_VALUE)
   , m_integerSize(sizeof(int)*8)
   {
-    BinaryMask<T>::itkRegion region = image->GetLargestPossibleRegion();
-    BinaryMask<T>::itkIndex index = region.GetIndex();
+    itkRegion region = image->GetLargestPossibleRegion();
+    itkIndex index = region.GetIndex();
     m_origin.x = index[0];
     m_origin.y = index[1];
     m_origin.z = index[2];
 
-    BinaryMask<T>::itkSpacing spacing = image->GetSpacing();
+    itkSpacing spacing = image->GetSpacing();
     m_spacing = NmVector3{ spacing[0], spacing[1], spacing[2]};
 
-    BinaryMask<T>::itkSize size = region.GetSize();
+    itkSize size = region.GetSize();
     m_size[0] = size[0];
     m_size[1] = size[1];
     m_size[2] = size[2];
 
-    Bounds bounds{ index[0] * spacing[0], (index[0]+size[0]) * spacing[0],
-                   index[1] * spacing[1], (index[1]+size[1]) * spacing[1],
-                   index[2] * spacing[2], (index[2]+size[2]) * spacing[2]};
+    itkVolumeType::Pointer fakeImage = itkVolumeType::New();
+    itkVolumeType::SpacingType fakeImageSpacing = image->GetSpacing();
+    itkVolumeType::RegionType fakeRegion = region;
+
+    fakeImage->SetRegions(region);
+    fakeImage->SetSpacing(fakeImageSpacing);
+
+    Bounds bounds = equivalentBounds<itkVolumeType>(fakeImage, fakeRegion);
     m_bounds = bounds;
 
     unsigned long long bufferSize = size[0] * size[1] * size[2] / m_integerSize;
@@ -68,8 +75,8 @@ namespace EspINA
     m_image = new int[bufferSize];
     memset(m_image, 0, bufferSize*sizeof(int));
 
-    BinaryMask<T>::itkConstIterator iit(image, image->GetLargestPossibleRegion());
-    BinaryMask<T>::iterator mit(this);
+    itkConstIterator iit(image, image->GetLargestPossibleRegion());
+    iterator mit(this);
 
     iit.GoToBegin();
     mit.goToBegin();
@@ -93,6 +100,13 @@ namespace EspINA
   {
     if (!bounds.areValid())
       throw Invalid_Bounds_Exception();
+
+    // adjust bounds like in equivalentBounds()
+    for (int i = 0; i < 3; ++i)
+    {
+      m_bounds[2*i] -= spacing[i]/2;
+      m_bounds[(2*i)+1] -= spacing[i]/2;
+    }
 
     m_size[0] = (std::floor(bounds[1]/m_spacing[0]) - std::ceil(bounds[0]/m_spacing[0])) + 1;
     m_size[1] = (std::floor(bounds[3]/m_spacing[1]) - std::ceil(bounds[2]/m_spacing[1])) + 1;
