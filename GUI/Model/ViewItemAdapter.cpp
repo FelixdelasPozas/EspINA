@@ -51,3 +51,9 @@ RepresentationTypeList ViewItemAdapter::representationTypes() const
 {
   return m_factory->representations();
 }
+
+//------------------------------------------------------------------------
+ViewItemAdapterPtr EspINA::viewItemAdapter(ItemAdapterPtr item)
+{
+  return static_cast<ViewItemAdapterPtr>(item);
+}

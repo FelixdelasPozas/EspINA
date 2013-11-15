@@ -64,11 +64,7 @@ class MainToolBar;
     };
 
   public:
-    explicit EspinaMainWindow(AnalysisSPtr     analysis,
-                              ModelAdapterSPtr model,
-                              ViewManagerSPtr  viewManager,
-                              ModelFactorySPtr factory,
-                              QList<QObject *> &plugins);
+    explicit EspinaMainWindow(QList<QObject *> &plugins);
     virtual ~EspinaMainWindow();
 
   public slots:
@@ -151,10 +147,11 @@ class MainToolBar;
 
   private:
     // EspINA
+    SchedulerSPtr    m_scheduler;
+    ModelFactorySPtr m_factory;
     AnalysisSPtr     m_analysis;
     ModelAdapterSPtr m_model;
     ViewManagerSPtr  m_viewManager;
-    ModelFactorySPtr m_factory;
     QUndoStack      *m_undoStack;
 
     FilterFactorySPtr m_filterFactory;

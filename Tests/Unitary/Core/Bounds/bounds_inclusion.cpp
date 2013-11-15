@@ -34,7 +34,7 @@ using namespace std;
 bool Test_Bounds_Are_Inside(const Bounds& contained, const Bounds& container, bool pass_if_inside = true) {
   bool pass = true;
 
-  if (areInside(contained, container) != pass_if_inside) {
+  if (contains(container, contained) != pass_if_inside) {
     cerr << contained << " should ";
     if (!pass_if_inside) cerr << "not ";
     cerr << "be inside of " << container << endl;
@@ -76,7 +76,7 @@ int bounds_inclusion( int argc, char** argv )
 
   Bounds bounds{0,10,0,10,0,10};
 
-  if (!areInside(bounds, bounds)) {
+  if (!contains(bounds, bounds)) {
     cerr << "Every bound should be inside of itself" << endl;
     pass = false;
   }

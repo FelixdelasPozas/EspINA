@@ -44,7 +44,7 @@ bool Test_Create_Bounds_From_Region(int w, int h, int d, bool passIfEquivalent =
   image->SetRegions(region);
   image->Allocate();
 
-  Bounds expectedBounds{0, w, 0, h, 0, d};
+  Bounds expectedBounds{-0.5, w-0.5, -0.5, h-0.5, -0.5, d-0.5};
 
   if ((equivalentBounds<itkVolumeType>(image, region) == expectedBounds) != passIfEquivalent) {
     cerr << "Region:" << endl;
@@ -60,7 +60,7 @@ bool Test_Create_Bounds_From_Region(int w, int h, int d, bool passIfEquivalent =
 
 int volumetric_utils_region_to_bounds( int argc, char** argv )
 {
-  bool pass = false;//true TODO Update test
+  bool pass = true;
 
   pass &= Test_Create_Bounds_From_Region(1, 1, 1);
 

@@ -35,7 +35,7 @@ using namespace EspINA::Testing;
 
 int volumetric_utils_equivalent_bounds( int argc, char** argv )
 {
-  bool pass = false;//true TODO Update this test
+  bool pass = true;
 
   itkVolumeType::PointType origin1;
   origin1.Fill(0);

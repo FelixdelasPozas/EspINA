@@ -49,11 +49,14 @@ namespace EspINA
 
   public:
     explicit ClassificationAdapter(const QString& name=QString());
+
+    explicit ClassificationAdapter(ClassificationSPtr classification);
+
     ~ClassificationAdapter();
 
-    virtual QVariant data(int role = Qt::DisplayRole) const;
-
     virtual bool setData(const QVariant& value, int role = Qt::UserRole +1);
+
+    virtual QVariant data(int role = Qt::DisplayRole) const;
 
     virtual ItemAdapter::Type type() const
     { return Type::CLASSIFICATION; }
@@ -75,11 +78,11 @@ namespace EspINA
     CategoryAdapterSPtr parent(const CategoryAdapterSPtr category) const;
 
   private:
-    explicit ClassificationAdapter(ClassificationSPtr classification);
+    void adaptCategory(CategoryAdapterSPtr category);
 
   private:
     ClassificationSPtr    m_classification;
-    Tree<CategoryAdapter> m_adaptedClassification;
+    Tree<CategoryAdapter> m_classificationAdapter;
 
     friend class ModelAdapter;
   };

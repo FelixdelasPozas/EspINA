@@ -220,7 +220,7 @@ std::ostream& EspINA::operator<<(std::ostream& os, const Bounds& bounds)
 
 
 //-----------------------------------------------------------------------------
-bool EspINA::areInside(const Bounds &contained, const Bounds &container)
+bool EspINA::contains(const Bounds &container, const Bounds &contained)
 {
   int i = 0;
   for (Axis dir : {Axis::X, Axis::Y, Axis::Z}) {
@@ -239,6 +239,32 @@ bool EspINA::areInside(const Bounds &contained, const Bounds &container)
   }
 
   return true;
+}
+
+//-----------------------------------------------------------------------------
+bool EspINA::contains(const Bounds& bounds, const NmVector3& point)
+{
+  int i = 0;
+  int j = 0;
+
+  for (Axis dir : {Axis::X, Axis::Y, Axis::Z}) {
+    if (point[j] < bounds[i]) {
+      return false;
+    } else if (point[j] == bounds[i] && !bounds.areLowerIncluded(dir)) {
+      return false;
+    }
+    ++i;
+    if (bounds[i] < point[j]) {
+      return false;
+    } else if (point[j] == bounds[i] && !bounds.areUpperIncluded(dir)) {
+      return false;
+    }
+    ++i;
+    ++j;
+  }
+
+  return true;
+
 }
 
 

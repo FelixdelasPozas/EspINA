@@ -100,7 +100,7 @@ namespace EspINA {
 
     virtual void undo() {}
 
-    virtual bool isValid() const{ return false; }
+    virtual bool isValid() const;
 
     virtual Snapshot snapshot() const{ return Snapshot(); }
 

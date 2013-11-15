@@ -78,6 +78,8 @@ namespace EspINA
 
     virtual void updateSelection(){}//TODO
 
+    void onModelSelectionChanged(QItemSelection selected, QItemSelection deselected);
+
     virtual void updateRepresentations(ChannelAdapterList list){}//TODO
 
     virtual void updateRepresentations(SegmentationAdapterList list){}//TODO

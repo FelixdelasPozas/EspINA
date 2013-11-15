@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-#include "seed_grow_segmentation_testing_support.h"
+#include "volumetric_stream_reader_testing_support.h"
 
 #include <Core/Analysis/Filter.h>
 #include <Core/Analysis/Data/Volumetric/SparseVolume.h>

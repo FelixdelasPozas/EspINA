@@ -41,6 +41,8 @@ void EspINA::ModelAdapterUtils::setAnalysis(ModelAdapterSPtr model, AnalysisSPtr
     QMap<PersistentSPtr, ItemAdapterSPtr> items;
 
     // Adaptar la clasificacion
+    ClassificationAdapterSPtr classification{new ClassificationAdapter(analysis->classification())};
+    model->setClassification(classification);
 
     // Adapt Samples
     for(auto sample : analysis->samples())

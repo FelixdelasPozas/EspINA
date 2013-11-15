@@ -30,15 +30,15 @@ namespace EspINA
 {
   class ViewManager;
 
-  class FilterInspectorDock
+  class HistoryDock
   : public IDockWidget
   {
     Q_OBJECT
   public:
-    explicit FilterInspectorDock(QUndoStack *undoStack,
+    explicit HistoryDock(QUndoStack *undoStack,
                              ViewManager *vm,
                              QWidget* parent = 0);
-    virtual ~FilterInspectorDock();
+    virtual ~HistoryDock();
 
     virtual void initDockWidget(EspinaModel *model,
                                 QUndoStack  *undoStack,

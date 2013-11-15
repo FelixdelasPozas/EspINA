@@ -36,14 +36,6 @@ int main(int argc, char **argv)
   translator.load("espina_es");
   app.installTranslator(&translator);
 
-  const int PERIOD_NS = 1000000;
-
-  SchedulerSPtr    scheduler  {new Scheduler(PERIOD_NS)};
-  ModelFactorySPtr factory    {new ModelFactory(scheduler)};
-  AnalysisSPtr     analysis   {new Analysis()};
-  ModelAdapterSPtr model      {new ModelAdapter(analysis)};
-  ViewManagerSPtr  viewManager{new ViewManager()};
-
   QDir pluginsDir = QDir(app.applicationDirPath());
 
   #if defined(Q_OS_MAC)
@@ -80,7 +72,7 @@ int main(int argc, char **argv)
 
   int res = 0;
   {
-    EspinaMainWindow espina(analysis, model, viewManager, factory, plugins);
+    EspinaMainWindow espina(plugins);
     espina.show();
 
     res = app.exec();

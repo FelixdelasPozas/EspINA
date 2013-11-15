@@ -42,10 +42,12 @@ typename T::RegionType equivalentRegion(const T* image, const Bounds& bounds)
 
     p0[i] = correctedBounds[2*i];
     p1[i] = correctedBounds[2*i+1];
-    if (!correctedBounds.areUpperIncluded(dir)) p1[i] -= s[i];
+    if (!correctedBounds.areUpperIncluded(dir)) p1[i] = std::max(p0[i], p1[i] - s[i]);
 
-    if (correctedBounds[2*i] == correctedBounds[2*i+1] && (correctedBounds.areLowerIncluded(dir) || correctedBounds.areUpperIncluded(dir))) {
-      p1[i] = bounds[2*i];
+    bool correctedBoundsAreEqual = abs(correctedBounds[2*i] - correctedBounds[2*i+1]) < std::numeric_limits<double>::epsilon();
+
+    if (correctedBoundsAreEqual && (correctedBounds.areLowerIncluded(dir) || correctedBounds.areUpperIncluded(dir))) {
+      p1[i] = correctedBounds[2*i];
     }
     p0[i] -= s[i]/2;
     p1[i] -= s[i]/2;

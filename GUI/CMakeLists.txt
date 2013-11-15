@@ -6,34 +6,35 @@ include_directories(
 )
 
 qt4_wrap_cpp(GUI_MOC
-  ColorEngines/ColorEngine.h
   ColorEngines/CategoryColorEngine.h
-  Model/ModelAdapter.h
+  ColorEngines/ColorEngine.h
   Model/FilterAdapter.h
   Model/ItemAdapter.h
+  Model/ModelAdapter.h
   Model/Proxies/ChannelProxy.h
   Model/Proxies/ClassificationProxy.h
-  Representations/Renderers/Renderer.h
-  Representations/Renderers/ContourRenderer.h
-  Representations/MeshRepresentationBase.h
+  Representations/ContourRepresentationSettings.h
   Representations/MeshRepresentation.h
-  Representations/SmoothedMeshRepresentation.h
+  Representations/MeshRepresentationBase.h
+  Representations/Renderers/ContourRenderer.h
+  Representations/Renderers/Renderer.h
   Representations/RepresentationEmptySettings.h
   Representations/SliceRepresentationSettings.h
-  Representations/ContourRepresentationSettings.h
+  Representations/SmoothedMeshRepresentation.h
   Selectors/Selector.h
   View/RenderView.h
   View/View2D.h
   View/View3D.h
   Widgets/ActionSelector.h
   Widgets/ActionSelectorWidget.h
+  Widgets/CategorySelector.h
   Widgets/CheckableTableView.h
   Widgets/CheckableTreeView.h
   Widgets/HueSelector.h
   Widgets/NoteEditor.h
-  Widgets/CategorySelector.h
   Widgets/QComboTreeView.h
   Widgets/TagSelector.h
+  Widgets/TaskProgress.h
   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
   )
 
@@ -45,7 +46,7 @@ qt4_wrap_ui (GUI_UI
   Widgets/TagSelector.ui
   )
 
-set (GUI_SOURCES 
+set (GUI_SOURCES
   ${GUI_MOC}
   ${GUI_UI}
   ColorEngines/CategoryColorEngine.cpp
@@ -62,43 +63,44 @@ set (GUI_SOURCES
   Model/Proxies/ClassificationProxy.cpp
   Model/SampleAdapter.cpp
   Model/SegmentationAdapter.cpp
-  Model/ViewItemAdapter.cpp
   Model/Utils/ModelAdapterUtils.cpp
+  Model/ViewItemAdapter.cpp
   ModelFactory.cpp
   Representations/BasicRepresentationFactory.cpp
-  Representations/Renderers/Renderer.cpp
+  Representations/ContourRepresentation.cpp
+  Representations/ContourRepresentationSettings.cpp
+  Representations/MeshRepresentation.cpp 
+  Representations/MeshRepresentationBase.cpp
   Representations/Renderers/ContourRenderer.cpp
   Representations/Renderers/MeshRenderer.cpp
+  Representations/Renderers/Renderer.cpp
   Representations/Renderers/SliceRenderer.cpp
-  Representations/ContourRepresentationSettings.cpp
   Representations/Representation.cpp
   Representations/RepresentationEmptySettings.cpp
   Representations/RepresentationFactoryGroup.cpp 
-  Representations/ContourRepresentation.cpp
-  Representations/SmoothedMeshRepresentation.cpp
-  Representations/MeshRepresentationBase.cpp
-  Representations/MeshRepresentation.cpp 
   Representations/SliceRepresentation.cpp
   Representations/SliceRepresentationSettings.cpp 
-  Selectors/Selector.cpp
+  Representations/SmoothedMeshRepresentation.cpp
   Selectors/PixelSelector.cpp
+  Selectors/Selector.cpp
   Utils/QtModelUtils.cpp
   View/RenderView.cpp
   View/View2D.cpp
   View/View2DState.cpp
   View/View3D.cpp
-  View/vtkInteractorStyleEspinaSlice.cpp
-  View/Widgets/EspinaWidget.cpp
   View/Widgets/Contour/vtkVoxelContour2D.cpp
+  View/Widgets/EspinaWidget.cpp
+  View/vtkInteractorStyleEspinaSlice.cpp
   Widgets/ActionSelector.cpp
   Widgets/ActionSelectorWidget.cpp
+  Widgets/CategorySelector.cpp
   Widgets/CheckableTableView.cpp
   Widgets/CheckableTreeView.cpp
   Widgets/HueSelector.cpp
   Widgets/NoteEditor.cpp 
-  Widgets/CategorySelector.cpp
   Widgets/QComboTreeView.cpp
   Widgets/TagSelector.cpp 
+  Widgets/TaskProgress.cpp 
   )
 
 set(GUI_EXTERNAL_LIBS

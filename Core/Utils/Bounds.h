@@ -29,7 +29,10 @@
 #ifndef ESPINA_BOUNDS_H
 #define ESPINA_BOUNDS_H
 
+#include "EspinaCore_Export.h"
+
 #include "Core/Utils/Spatial.h"
+#include "NmVector3.h"
 
 #include <iostream>
 #include <QList>
@@ -121,33 +124,34 @@ namespace EspINA {
    *  In case just the bounds have one value in common, both
    *  bounds must be inclussive
    */
-  bool intersect(const Bounds& b1, const Bounds& b2);
+  bool EspinaCore_EXPORT intersect(const Bounds& b1, const Bounds& b2);
 
   /** \brief Return the bounds which belong both to b1 and b2
    *
    *  In case just the bounds have one value in common, both
    *  bounds must be inclussive
    */
-  Bounds intersection(const Bounds& b1, const Bounds& b2);
+  Bounds EspinaCore_EXPORT intersection(const Bounds& b1, const Bounds& b2);
 
   /** \brief Return the minimum bouds containing b1 and b2
    *
    */
-  Bounds boundingBox(const Bounds &b1, const Bounds& b2);
+  Bounds EspinaCore_EXPORT boundingBox(const Bounds &b1, const Bounds& b2);
 
   /** \brief Return whether a bound is contained inside another
    *
    *  Boundaires are inside if and only if both boundaries
    *  are equally included
    */
-  bool areInside(const Bounds& contained, const Bounds& container);
+  bool EspinaCore_EXPORT contains(const Bounds& container, const Bounds& contained);
 
+  bool  EspinaCore_EXPORT contains(const Bounds& bounds, const NmVector3& point);
 
-  std::ostream& operator<<(std::ostream& os, const Bounds& bounds);
+  std::ostream& EspinaCore_EXPORT operator<<(std::ostream& os, const Bounds& bounds);
 
-  bool operator==(const Bounds& lhs, const Bounds& rhs);
+  bool EspinaCore_EXPORT operator==(const Bounds& lhs, const Bounds& rhs);
 
-  bool operator!=(const Bounds& lhs, const Bounds& rhs);
+  bool EspinaCore_EXPORT operator!=(const Bounds& lhs, const Bounds& rhs);
 }
 
 

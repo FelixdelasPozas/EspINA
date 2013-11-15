@@ -26,10 +26,22 @@ using namespace EspINA;
 ClassificationAdapter::ClassificationAdapter(const QString& name)
 : ItemAdapter(PersistentSPtr())
 , m_classification{new Tree<Category>(name)}
-, m_adaptedClassification(name)
+, m_classificationAdapter(name)
 {
-  m_adaptedClassification.root()->m_category = m_classification->root();
+  m_classificationAdapter.root()->m_category = m_classification->root();
 }
+
+//------------------------------------------------------------------------
+ClassificationAdapter::ClassificationAdapter(ClassificationSPtr classification)
+: ItemAdapter(PersistentSPtr())
+, m_classification(classification)
+, m_classificationAdapter(classification->name())
+{
+  m_classificationAdapter.root()->m_category = m_classification->root();
+
+  adaptCategory(m_classificationAdapter.root());
+}
+
 
 //------------------------------------------------------------------------
 ClassificationAdapter::~ClassificationAdapter()
@@ -47,7 +59,7 @@ bool ClassificationAdapter::setData(const QVariant& value, int role)
   }
   if (role == Qt::DecorationRole)
   {
-    m_adaptedClassification.root()->setData(value, role);
+    m_classificationAdapter.root()->setData(value, role);
     return true;
   }
   return false;
@@ -63,7 +75,7 @@ QVariant ClassificationAdapter::data(int role) const
       return name();
     case Qt::DecorationRole:
     {
-      return m_adaptedClassification.root()->data(role);
+      return m_classificationAdapter.root()->data(role);
     }
     case TypeRole:
       return typeId(ItemAdapter::Type::CLASSIFICATION);
@@ -75,25 +87,19 @@ QVariant ClassificationAdapter::data(int role) const
 //------------------------------------------------------------------------
 CategoryAdapterSPtr ClassificationAdapter::root()
 {
-  return m_adaptedClassification.root();
+  return m_classificationAdapter.root();
 }
 
 //------------------------------------------------------------------------
 CategoryAdapterSList ClassificationAdapter::categories()
 {
-  return m_adaptedClassification.root()->subCategories();
+  return m_classificationAdapter.root()->subCategories();
 }
 
 //------------------------------------------------------------------------
 CategoryAdapterSPtr ClassificationAdapter::category(const QString& classificationName)
 {
-  return m_adaptedClassification.node(classificationName);
-}
-
-//------------------------------------------------------------------------
-ClassificationAdapter::ClassificationAdapter(ClassificationSPtr classification)
-: ItemAdapter(PersistentSPtr())
-{
+  return m_classificationAdapter.node(classificationName);
 }
 
 //------------------------------------------------------------------------
@@ -103,7 +109,7 @@ CategoryAdapterSPtr ClassificationAdapter::createCategory(const QString& relativ
 
   if (!parentCategoryAdapter)
   {
-    parentCategoryAdapter = m_adaptedClassification.root().get();
+    parentCategoryAdapter = m_classificationAdapter.root().get();
   }
 
   CategoryPtr parentCategory = parentCategoryAdapter->m_category.get();
@@ -150,29 +156,40 @@ CategoryAdapterSPtr ClassificationAdapter::createCategory(const QString& relativ
 }
 
 //------------------------------------------------------------------------
+void ClassificationAdapter::setName(const QString& name)
+{
+  m_classification->setName(name);
+}
+
+//------------------------------------------------------------------------
 QString ClassificationAdapter::name() const
 {
   return m_classification->name();
 }
 
 //------------------------------------------------------------------------
-CategoryAdapterSPtr ClassificationAdapter::parent(const CategoryAdapterSPtr category) const
-{
-  return m_adaptedClassification.parent(category);
-}
-
-
-//------------------------------------------------------------------------
 void ClassificationAdapter::removeCategory(CategoryAdapterSPtr element)
 {
   m_classification->removeNode(element->m_category);
-  m_adaptedClassification.removeNode(element);
+  m_classificationAdapter.removeNode(element);
 }
 
 //------------------------------------------------------------------------
-void ClassificationAdapter::setName(const QString& name)
+CategoryAdapterSPtr ClassificationAdapter::parent(const CategoryAdapterSPtr category) const
 {
-  m_classification->setName(name);
+  return m_classificationAdapter.parent(category);
+}
+
+//------------------------------------------------------------------------
+void ClassificationAdapter::adaptCategory(CategoryAdapterSPtr category)
+{
+  for(auto subCategory : category->m_category->subCategories())
+  {
+    CategoryAdapterSPtr subCategoryAdapter{new CategoryAdapter(subCategory)};
+    category->addSubCategory(subCategoryAdapter);
+
+    adaptCategory(subCategoryAdapter);
+  }
 }
 
 //------------------------------------------------------------------------

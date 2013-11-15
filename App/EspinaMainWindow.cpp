@@ -29,8 +29,11 @@
 #include <GUI/ColorEngines/UserColorEngine.h>
 #include <Support/Settings/EspinaSettings.h>
 #include <Core/IO/SegFile.h>
+#include <Core/IO/ClassificationXML.h>
+#include <Core/MultiTasking/Scheduler.h>
 #include <GUI/Model/Utils/ModelAdapterUtils.h>
 #include <GUI/Representations/BasicRepresentationFactory.h>
+#include <GUI/Widgets/TaskProgress.h>
 
 
 // EspINA
@@ -61,23 +64,22 @@ EspinaMainWindow::DynamicMenuNode::~DynamicMenuNode()
   }
 }
 
+const int PERIOD_NS = 1000000;
+
 //------------------------------------------------------------------------
-EspinaMainWindow::EspinaMainWindow(AnalysisSPtr       analysis,
-                                   ModelAdapterSPtr   model,
-                                   ViewManagerSPtr    viewManager,
-                                   ModelFactorySPtr   factory,
-                                   QList< QObject* >& plugins)
+EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 : QMainWindow()
-, m_analysis(analysis)
-, m_model(model)
-, m_viewManager(viewManager)
-, m_factory(factory)
+, m_scheduler(new Scheduler(PERIOD_NS))
+, m_factory(new ModelFactory(m_scheduler))
+, m_analysis(new Analysis())
+, m_model(new ModelAdapter(m_analysis))
+, m_viewManager(new ViewManager())
 , m_undoStack(new QUndoStack())
 //, m_filterFactory(new EspinaMainWindow::FilterFactory())
 , m_channelReader{new ChannelReader()}
 , m_settings     (new GeneralSettings())
 // , m_settingsPanel(new GeneralSettingsPanel(m_model, m_settings))
-, m_view{new DefaultView(model, viewManager, m_undoStack, this)}
+, m_view{new DefaultView(m_model, m_viewManager, m_undoStack, this)}
 , m_busy(false)
 , m_undoStackSavedIndex(0)
 , m_errorHandler(new EspinaErrorHandler(this))
@@ -327,7 +329,10 @@ EspinaMainWindow::EspinaMainWindow(AnalysisSPtr       analysis,
   checkAutosave();
 
   closeCurrentAnalysis();
-  //statusBar()->addPermanentWidget(m_traceableStatus);
+
+  auto taskProgress = new TaskProgress(m_scheduler);
+  taskProgress->setMaximumWidth(100);
+  statusBar()->addPermanentWidget(taskProgress);
 }
 
 //------------------------------------------------------------------------
@@ -687,6 +692,14 @@ void EspinaMainWindow::openAnalysis(const QStringList files)
   {
     // TODO: Merge if size > 1
     AnalysisSPtr mergedAnalysis = analyses.first();
+
+    if (!mergedAnalysis->classification())
+    {
+      QFileInfo defaultClassification(":/espina/defaultTaxonomy.xml");
+      auto classification = IO::ClassificationXML::load(defaultClassification);
+      mergedAnalysis->setClassification(classification);
+    }
+
     ModelAdapterUtils::setAnalysis(m_model, mergedAnalysis, m_factory);
     m_analysis = mergedAnalysis;
 
@@ -711,7 +724,7 @@ void EspinaMainWindow::openAnalysis(const QStringList files)
 
     if (!m_model->channels().isEmpty())
     {
-      ChannelAdapterPtr channel = m_model->channels().first().get();
+      auto channel = m_model->channels().first().get();
       m_viewManager->setActiveChannel(channel);
 
     //TODO 2013-10-06

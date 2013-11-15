@@ -65,7 +65,7 @@ bool Test_Create_Region_From_Slice_Bounds(int w, int h, int d, bool passIfEquiva
 
 int volumetric_utils_slice_bounds_to_region(int argc, char** argv)
 {
-  bool pass = false;//TODO check test
+  bool pass = true;
 
   pass &= Test_Create_Region_From_Slice_Bounds(1, 1, 1);
 

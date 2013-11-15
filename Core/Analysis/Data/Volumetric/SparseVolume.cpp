@@ -135,7 +135,7 @@ const typename T::Pointer SparseVolume<T>::itkImage() const
 template<typename T>
 const typename T::Pointer SparseVolume<T>::itkImage(const Bounds& bounds) const
 {
-  if (!areInside(bounds, this->bounds())) throw Invalid_image_bounds();
+  if (!contains(this->bounds(), bounds)) throw Invalid_image_bounds();
 
   auto image = create_itkImage<T>(bounds, backgroundValue(), m_spacing, m_origin);
 
@@ -218,6 +218,13 @@ void SparseVolume<T>::resize(const Bounds &bounds)
 //   for (auto block : m_blocks) {
 //     
 //   }
+}
+
+//-----------------------------------------------------------------------------
+template<typename T>
+bool SparseVolume<T>::isValid() const
+{
+  return m_bounds.areValid();
 }
 
 //-----------------------------------------------------------------------------

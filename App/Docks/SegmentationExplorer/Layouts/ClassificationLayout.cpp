@@ -138,9 +138,9 @@ ClassificationLayout::ClassificationLayout(CheckableTreeView *view,
   m_sort->setSourceModel(m_proxy.get());
   m_sort->setDynamicSortFilter(true);
 
-  connect(m_proxy.get(), SIGNAL(segmentationsDragged(SegmentationList,CategoryAdapterPtr)),
-          this,           SLOT  (segmentationsDragged(SegmentationList,CategoryAdapterPtr)));
-  connect(m_proxy.get(), SIGNAL(taxonomiesDragged(CategoryAdapterList,CategoryAdapterPtr)),
+  connect(m_proxy.get(), SIGNAL(segmentationsDragged(SegmentationAdapterList,CategoryAdapterPtr)),
+          this,           SLOT  (segmentationsDragged(SegmentationAdapterList,CategoryAdapterPtr)));
+  connect(m_proxy.get(), SIGNAL(categoriesDragged(CategoryAdapterList,CategoryAdapterPtr)),
           this,           SLOT  (categoriesDragged(CategoryAdapterList,CategoryAdapterPtr)));
 
   connect(m_model.get(), SIGNAL(rowsInserted(const QModelIndex&, int, int)),

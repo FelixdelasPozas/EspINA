@@ -47,6 +47,7 @@ int seed_grow_segmentation_simple_execution(int argc, char** argv)
 
   SeedGrowSegmentationFilter sgsf(inputs, type, scheduler);
 
+  sgsf.setSeed({50, 50, 50});
   sgsf.setThreshold(10);
   sgsf.update();
 

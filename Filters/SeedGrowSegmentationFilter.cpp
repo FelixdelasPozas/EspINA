@@ -24,9 +24,9 @@ using namespace EspINA;
 
 SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(OutputSList inputs, Filter::Type type, SchedulerSPtr scheduler)
 : Filter(inputs, type, scheduler)
-, m_lowerTh(250)//TODO Change, current value for testing
+, m_lowerTh(0)
 , m_prevLowerTh(m_lowerTh)
-, m_upperTh(250)
+, m_upperTh(0)
 , m_prevUpperTh(m_upperTh)
 , m_seed({0,0,0})
 , m_prevSeed(m_seed)
@@ -172,7 +172,8 @@ void SeedGrowSegmentationFilter::execute(Output::Id id)
 
   emit progress(25);
 
-//   qDebug() << "Computing Original Size Connected Threshold";
+  Q_ASSERT(contains(input->bounds(), m_seed));
+
   Bounds seedBounds;
   for (int i = 0; i < 3; ++i)
   {
@@ -181,17 +182,16 @@ void SeedGrowSegmentationFilter::execute(Output::Id id)
   seedBounds.setUpperInclusion(true);
 
   itkVolumeType::Pointer   seedVoxel     = input->itkImage(seedBounds);
-  itkVolumeType::ValueType seedIntensity = 50;//TODO
-  itkVolumeType::IndexType seed;
-  seed.Fill(0);
+  itkVolumeType::IndexType seedIndex     = seedVoxel->GetLargestPossibleRegion().GetIndex();
+  itkVolumeType::ValueType seedIntensity = seedVoxel->GetPixel(seedIndex);
 
   m_connectedFilter = ConnectedFilterType::New();
   m_connectedFilter->SetInput(input->itkImage());
   //m_connectedFilter->SetReplaceValue(LABEL_VALUE);
   m_connectedFilter->SetLower(std::max(seedIntensity - m_lowerTh, 0));
   m_connectedFilter->SetUpper(std::min(seedIntensity + m_upperTh, 255));
-  m_connectedFilter->AddSeed(seed);
-  m_connectedFilter->SetNumberOfThreads(4);
+  m_connectedFilter->AddSeed(seedIndex);
+  m_connectedFilter->SetNumberOfThreads(1);
   m_connectedFilter->ReleaseDataFlagOn();
   m_connectedFilter->Update();
 
@@ -250,7 +250,7 @@ void SeedGrowSegmentationFilter::execute(Output::Id id)
 //----------------------------------------------------------------------------
 bool SeedGrowSegmentationFilter::invalidateEditedRegions()
 {
-
+  return false;
 }
 
 
