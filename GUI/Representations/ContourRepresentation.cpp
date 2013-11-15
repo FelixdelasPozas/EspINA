@@ -45,7 +45,7 @@ TransparencySelectionHighlighter *ContourRepresentation::s_highlighter = new Tra
 
 //-----------------------------------------------------------------------------
 ContourRepresentation::ContourRepresentation(DefaultVolumetricDataSPtr data,
-                                             RenderView      *view)
+                                             RenderView               *view)
 : Representation(view)
 , m_data(data)
 , m_planeIndex(-1)

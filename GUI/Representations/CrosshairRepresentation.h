@@ -22,21 +22,25 @@
 #include "EspinaGUI_Export.h"
 
 // EspINA
-#include "GUI/Representations/Representation.h"
+#include "Representation.h"
 #include <Core/Analysis/Data/VolumetricData.h>
-#include <GUI/View/VolumeView.h>
+#include <Core/Utils/Spatial.h>
+#include <GUI/View/RenderView.h>
 
 // VTK
 #include <vtkSmartPointer.h>
 
+// ITK
+#include <itkImageToVTKImageFilter.h>
+
+
 class QColor;
 class vtkActor;
 class vtkImageActor;
-class vtkImageReslice;
 class vtkPolyData;
-class vtkMatrix4x4;
 class vtkLookupTable;
 class vtkImageShiftScale;
+class vtkImageImport;
 
 namespace EspINA
 {
@@ -53,7 +57,7 @@ namespace EspINA
     Q_OBJECT
     public:
       explicit CrosshairRepresentation(ChannelVolumeSPtr data,
-                                       View3D       *view);
+                                       RenderView       *view);
       virtual ~CrosshairRepresentation() {};
 
       virtual void setBrightness(double value);
@@ -66,7 +70,7 @@ namespace EspINA
 
       virtual void setOpacity(double value);
 
-      virtual bool isInside(Nm point[3]);
+      virtual bool isInside(const NmVector3 &point) const;
 
       virtual RenderableView canRenderOnView() const
       { return Representation::RENDERABLEVIEW_VOLUME; }
@@ -77,9 +81,12 @@ namespace EspINA
 
       virtual QList<vtkProp*> getActors();
 
+      virtual bool crosshairDependent() const
+      { return true; }
+
       void setCrosshairColors(double axialColor[3], double coronalColor[3], double sagittalColor[3]);
-      void setCrosshair(Nm point[3]);
-      void setPlanePosition(PlaneType plane, Nm dist);
+      void setCrosshair(NmVector3 point);
+      void setPlanePosition(Plane plane, Nm dist);
 
       bool tiling()              { return m_tiling; }
       void setTiling(bool value) { m_tiling = value; }
@@ -96,15 +103,21 @@ namespace EspINA
       void updatePipelineConnections();
 
     private:
-      void setView(View3D *view) { m_view = view; };
       void initializePipeline();
 
     private:
+      void setView(RenderView *view) { m_view = view; };
+
       ChannelVolumeSPtr                   m_data;
 
-      vtkSmartPointer<vtkImageReslice>    m_axialReslice;
-      vtkSmartPointer<vtkImageReslice>    m_coronalReslice;
-      vtkSmartPointer<vtkImageReslice>    m_sagittalReslice;
+      using ExporterType = itk::ImageToVTKImageFilter<itkVolumeType>;
+
+      ExporterType::Pointer               m_axialExporter;
+      ExporterType::Pointer               m_coronalExporter;
+      ExporterType::Pointer               m_sagittalExporter;
+      vtkSmartPointer<vtkImageImport>     m_axialImporter;
+      vtkSmartPointer<vtkImageImport>     m_coronalImporter;
+      vtkSmartPointer<vtkImageImport>     m_sagittalImporter;
       vtkSmartPointer<vtkImageActor>      m_axial;
       vtkSmartPointer<vtkImageActor>      m_coronal;
       vtkSmartPointer<vtkImageActor>      m_sagittal;
@@ -114,22 +127,19 @@ namespace EspINA
       vtkSmartPointer<vtkPolyData>        m_axialSquare;
       vtkSmartPointer<vtkPolyData>        m_coronalSquare;
       vtkSmartPointer<vtkPolyData>        m_sagittalSquare;
-      vtkSmartPointer<vtkMatrix4x4>       m_matAxial;
-      vtkSmartPointer<vtkMatrix4x4>       m_matCoronal;
-      vtkSmartPointer<vtkMatrix4x4>       m_matSagittal;
       vtkSmartPointer<vtkLookupTable>     m_lut;
       vtkSmartPointer<vtkImageShiftScale> m_axialScaler;
       vtkSmartPointer<vtkImageShiftScale> m_coronalScaler;
       vtkSmartPointer<vtkImageShiftScale> m_sagittalScaler;
 
-      double m_bounds[6];
-      Nm m_point[3];
+      Bounds m_bounds;
+      NmVector3 m_point;
       bool m_tiling;
 
       friend class CrosshairRenderer;
   };
 
-  typedef boost::shared_ptr<CrosshairRepresentation> CrosshairRepresentationSPtr;
+  typedef std::shared_ptr<CrosshairRepresentation> CrosshairRepresentationSPtr;
   typedef QList<CrosshairRepresentationSPtr> CrosshairRepresentationSList;
 
 } // namespace EspINA

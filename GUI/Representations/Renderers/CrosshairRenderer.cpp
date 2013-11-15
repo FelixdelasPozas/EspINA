@@ -18,10 +18,7 @@
 
 // EspINA
 #include "CrosshairRenderer.h"
-#include "GUI/Representations/CrosshairRepresentation.h"
-#include <Core/Model/Channel.h>
-#include <GUI/ViewManager.h>
-#include "GUI/QtWidget/EspinaRenderView.h"
+#include <GUI/Representations/CrosshairRepresentation.h>
 
 // VTK
 #include <vtkSmartPointer.h>
@@ -34,7 +31,7 @@ using namespace EspINA;
 
 //-----------------------------------------------------------------------------
 CrosshairRenderer::CrosshairRenderer(QObject* parent)
-: IRenderer(parent)
+: Renderer(parent)
 , m_picker(vtkSmartPointer<vtkPropPicker>::New())
 {
   m_picker->PickFromListOn();
@@ -43,12 +40,12 @@ CrosshairRenderer::CrosshairRenderer(QObject* parent)
 //-----------------------------------------------------------------------------
 CrosshairRenderer::~CrosshairRenderer()
 {
-  foreach(PickableItemPtr item, m_representations.keys())
+  for(auto item: m_representations.keys())
   {
     if (m_enable)
-      foreach(GraphicalRepresentationSPtr rep, m_representations[item])
+      for(auto rep: m_representations[item])
       {
-        foreach(vtkProp *prop, rep->getActors())
+        for(auto prop: rep->getActors())
         {
           m_view->removeActor(prop);
           m_picker->DeletePickList(prop);
@@ -61,22 +58,22 @@ CrosshairRenderer::~CrosshairRenderer()
 }
 
 //-----------------------------------------------------------------------------
-void CrosshairRenderer::addRepresentation(PickableItemPtr item, GraphicalRepresentationSPtr rep)
+void CrosshairRenderer::addRepresentation(ViewItemAdapterPtr item, RepresentationSPtr rep)
 {
-  CrosshairRepresentationSPtr crossRep = boost::dynamic_pointer_cast<CrosshairRepresentation>(rep);
-  if (crossRep.get() != NULL)
+  auto crossRep = std::dynamic_pointer_cast<CrosshairRepresentation>(rep);
+  if (crossRep.get() != nullptr)
   {
     if (m_representations.keys().contains(item))
       m_representations[item] << rep;
     else
     {
-      GraphicalRepresentationSList list;
+      RepresentationSList list;
       list << rep;
       m_representations.insert(item, list);
     }
 
     if (m_enable)
-      foreach(vtkProp* prop, rep->getActors())
+      for(auto prop: rep->getActors())
       {
         m_view->addActor(prop);
         m_picker->AddPickList(prop);
@@ -85,16 +82,16 @@ void CrosshairRenderer::addRepresentation(PickableItemPtr item, GraphicalReprese
 }
 
 //-----------------------------------------------------------------------------
-void CrosshairRenderer::removeRepresentation(GraphicalRepresentationSPtr rep)
+void CrosshairRenderer::removeRepresentation(RepresentationSPtr rep)
 {
-  CrosshairRepresentationSPtr crossRep = boost::dynamic_pointer_cast<CrosshairRepresentation>(rep);
-  if (crossRep.get() != NULL)
+  auto crossRep = std::dynamic_pointer_cast<CrosshairRepresentation>(rep);
+  if (crossRep.get() != nullptr)
   {
-    foreach(PickableItemPtr item, m_representations.keys())
+    for(auto item: m_representations.keys())
       if (m_representations[item].contains(rep))
       {
         if (m_enable)
-          foreach(vtkProp* prop, rep->getActors())
+          for(auto prop: rep->getActors())
           {
             m_view->removeActor(prop);
             m_picker->DeletePickList(prop);
@@ -109,11 +106,11 @@ void CrosshairRenderer::removeRepresentation(GraphicalRepresentationSPtr rep)
 }
 
 //-----------------------------------------------------------------------------
-bool CrosshairRenderer::hasRepresentation(GraphicalRepresentationSPtr rep)
+bool CrosshairRenderer::hasRepresentation(RepresentationSPtr rep)
 {
-  CrosshairRepresentationSPtr crossRep = boost::dynamic_pointer_cast<CrosshairRepresentation>(rep);
-  if (crossRep.get() != NULL)
-    foreach(PickableItemPtr item, m_representations.keys())
+  auto crossRep = std::dynamic_pointer_cast<CrosshairRepresentation>(rep);
+  if (crossRep.get() != nullptr)
+    for(auto item: m_representations.keys())
       if (m_representations[item].contains(rep))
         return true;
 
@@ -121,10 +118,10 @@ bool CrosshairRenderer::hasRepresentation(GraphicalRepresentationSPtr rep)
 }
 
 //-----------------------------------------------------------------------------
-bool CrosshairRenderer::managesRepresentation(GraphicalRepresentationSPtr rep)
+bool CrosshairRenderer::managesRepresentation(RepresentationSPtr rep)
 {
-  CrosshairRepresentationSPtr crossRep = boost::dynamic_pointer_cast<CrosshairRepresentation>(rep);
-  return (crossRep.get() != NULL);
+  auto crossRep = std::dynamic_pointer_cast<CrosshairRepresentation>(rep);
+  return (crossRep.get() != nullptr);
 }
 
 //-----------------------------------------------------------------------------
@@ -133,9 +130,9 @@ void CrosshairRenderer::hide()
   if (!m_enable)
     return;
 
-  foreach (PickableItemPtr item, m_representations.keys())
-    foreach(GraphicalRepresentationSPtr rep, m_representations[item])
-      foreach(vtkProp* prop, rep->getActors())
+  for (auto item: m_representations.keys())
+    for(auto rep: m_representations[item])
+      for(auto prop: rep->getActors())
       {
         m_view->removeActor(prop);
         m_picker->DeletePickList(prop);
@@ -151,9 +148,9 @@ void CrosshairRenderer::show()
     return;
 
   QApplication::setOverrideCursor(Qt::WaitCursor);
-  foreach (PickableItemPtr item, m_representations.keys())
-    foreach(GraphicalRepresentationSPtr rep, m_representations[item])
-      foreach(vtkProp* prop, rep->getActors())
+  for(auto item: m_representations.keys())
+    for(auto rep: m_representations[item])
+      for(auto prop: rep->getActors())
       {
         m_view->addActor(prop);
         m_picker->AddPickList(prop);
@@ -164,12 +161,12 @@ void CrosshairRenderer::show()
 }
 
 //-----------------------------------------------------------------------------
-unsigned int CrosshairRenderer::getNumberOfvtkActors()
+unsigned int CrosshairRenderer::numberOfvtkActors()
 {
   unsigned int numActors = 0;
 
-  foreach (PickableItemPtr item, m_representations.keys())
-    foreach(GraphicalRepresentationSPtr rep, m_representations[item])
+  for(auto item: m_representations.keys())
+    for(auto rep: m_representations[item])
       if (rep->isVisible())
         numActors += 6;
 
@@ -178,9 +175,9 @@ unsigned int CrosshairRenderer::getNumberOfvtkActors()
 
 
 //-----------------------------------------------------------------------------
-ViewManager::Selection CrosshairRenderer::pick(int x, int y, Nm z, vtkSmartPointer<vtkRenderer> renderer, RenderabledItems itemType, bool repeat)
+SelectableView::Selection CrosshairRenderer::pick(int x, int y, Nm z, vtkSmartPointer<vtkRenderer> renderer, RenderableItems itemType, bool repeat)
 {
-  ViewManager::Selection selection;
+  SelectableView::Selection selection;
   QList<vtkProp*> removedProps;
 
   if (!renderer || !renderer.GetPointer() || !itemType.testFlag(EspINA::CHANNEL))
@@ -188,28 +185,28 @@ ViewManager::Selection CrosshairRenderer::pick(int x, int y, Nm z, vtkSmartPoint
 
   while (m_picker->Pick(x, y, 0, renderer))
   {
-    vtkProp *pickedProp = m_picker->GetViewProp();
+    auto pickedProp = m_picker->GetViewProp();
     Q_ASSERT(pickedProp);
 
     m_picker->DeletePickList(pickedProp);
     removedProps << pickedProp;
 
-    foreach(PickableItemPtr item, m_representations.keys())
-      foreach(GraphicalRepresentationSPtr rep, m_representations[item])
+    for(auto item: m_representations.keys())
+      for(auto rep: m_representations[item])
         if (rep->isVisible() && rep->hasActor(pickedProp) && !selection.contains(item))
         {
           selection << item;
 
           if (!repeat)
           {
-            foreach(vtkProp *actor, removedProps)
+            for(auto actor: removedProps)
               m_picker->AddPickList(actor);
 
             return selection;
           }
 
           // channels have multiple actors, we must eliminate five more of them and continue searching
-          foreach(vtkProp *actor, rep->getActors())
+          for(auto actor: rep->getActors())
           if (actor != pickedProp)
           {
             m_picker->DeletePickList(actor);
@@ -220,47 +217,50 @@ ViewManager::Selection CrosshairRenderer::pick(int x, int y, Nm z, vtkSmartPoint
         }
   }
 
-  foreach(vtkProp *actor, removedProps)
+  for(auto actor: removedProps)
     m_picker->AddPickList(actor);
 
   return selection;
 }
 
 //-----------------------------------------------------------------------------
-void CrosshairRenderer::getPickCoordinates(double *point)
+NmVector3 CrosshairRenderer::pickCoordinates() const
 {
+  double point[3];
   m_picker->GetPickPosition(point);
+
+  return NmVector3{point[0], point[1], point[2]};
 }
 
 //-----------------------------------------------------------------------------
 void CrosshairRenderer::setCrosshairColors(double axialColor[3], double coronalColor[3], double sagittalColor[3])
 {
-  foreach(PickableItemPtr item, m_representations.keys())
-    foreach(GraphicalRepresentationSPtr rep, m_representations[item])
+  for(auto item: m_representations.keys())
+    for(auto rep: m_representations[item])
     {
-      CrosshairRepresentationSPtr crossRep = boost::dynamic_pointer_cast<CrosshairRepresentation>(rep);
+      auto crossRep = std::dynamic_pointer_cast<CrosshairRepresentation>(rep);
       crossRep->setCrosshairColors(axialColor, coronalColor, sagittalColor);
     }
 }
 
 //-----------------------------------------------------------------------------
-void CrosshairRenderer::setCrosshair(Nm point[3])
+void CrosshairRenderer::setCrosshair(NmVector3 point)
 {
-  foreach(PickableItemPtr item, m_representations.keys())
-    foreach(GraphicalRepresentationSPtr rep, m_representations[item])
+  for(auto item: m_representations.keys())
+    for(auto rep: m_representations[item])
     {
-      CrosshairRepresentationSPtr crossRep = boost::dynamic_pointer_cast<CrosshairRepresentation>(rep);
+      auto crossRep = std::dynamic_pointer_cast<CrosshairRepresentation>(rep);
       crossRep->setCrosshair(point);
     }
 }
 
 //-----------------------------------------------------------------------------
-void CrosshairRenderer::setPlanePosition(PlaneType plane, Nm dist)
+void CrosshairRenderer::setPlanePosition(Plane plane, Nm dist)
 {
-  foreach(PickableItemPtr item, m_representations.keys())
-    foreach(GraphicalRepresentationSPtr rep, m_representations[item])
+  for(auto item: m_representations.keys())
+    for(auto rep: m_representations[item])
     {
-      CrosshairRepresentationSPtr crossRep = boost::dynamic_pointer_cast<CrosshairRepresentation>(rep);
+      auto crossRep = std::dynamic_pointer_cast<CrosshairRepresentation>(rep);
       crossRep->setPlanePosition(plane, dist);
     }
 }

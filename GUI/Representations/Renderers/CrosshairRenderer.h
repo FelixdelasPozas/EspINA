@@ -21,9 +21,9 @@
 #include "EspinaGUI_Export.h"
 
 // EspINA
-#include "GUI/Renderers/Renderer.h"
+#include "Renderer.h"
+#include <GUI/Representations/CrosshairRepresentation.h>
 #include <Core/EspinaTypes.h>
-#include "GUI/ViewManager.h"
 
 // Qt
 #include <QMap>
@@ -41,45 +41,52 @@ namespace EspINA
   class ViewManager;
 
   class EspinaGUI_EXPORT CrosshairRenderer
-  : public IRenderer
+  : public Renderer
   {
   public:
     explicit CrosshairRenderer(QObject* parent = 0);
     virtual ~CrosshairRenderer();
 
-    virtual const QIcon icon() const {return QIcon(":/espina/show_planes.svg");}
-    virtual const QString name() const {return "Crosshairs";}
+    virtual const QIcon icon()      const {return QIcon(":/espina/show_planes.svg");}
+    virtual const QString name()    const {return "Crosshairs";}
     virtual const QString tooltip() const {return "Sample's Crosshairs";}
 
-    virtual void addRepresentation(PickableItemPtr seg, GraphicalRepresentationSPtr rep);
-    virtual void removeRepresentation(GraphicalRepresentationSPtr rep);
-    virtual bool hasRepresentation(GraphicalRepresentationSPtr rep);
-    virtual bool managesRepresentation(GraphicalRepresentationSPtr rep);
+    virtual void addRepresentation(ViewItemAdapterPtr item, RepresentationSPtr rep);
+    virtual void removeRepresentation(RepresentationSPtr rep);
+    virtual bool hasRepresentation(RepresentationSPtr rep);
+    virtual bool managesRepresentation(RepresentationSPtr rep);
 
     virtual void hide();
     virtual void show();
-    virtual unsigned int getNumberOfvtkActors();
+
+    virtual RendererSPtr clone() { return RendererSPtr(new CrosshairRenderer()); }
+
+    virtual unsigned int numberOfvtkActors();
+
+    virtual RenderableItems renderableItems() { return RenderableItems(EspINA::CHANNEL); };
+
+    virtual RendererTypes renderType() { return RendererTypes(RENDERER_VOLUMEVIEW); }
+
+    virtual bool canRender(ItemAdapterPtr item)
+    { return (item->type() == ItemAdapter::Type::CHANNEL); }
+
+    virtual int numberOfRenderedItems()         { return m_representations.size(); };
+
+    virtual SelectableView::Selection pick(int x,
+                                           int y,
+                                           Nm z,
+                                           vtkSmartPointer<vtkRenderer> renderer,
+                                           RenderableItems itemType = RenderableItems(),
+                                           bool repeat = false);
+
+    virtual NmVector3 pickCoordinates() const;
 
     void setCrosshairColors(double axialColor[3], double coronalColor[3], double sagittalColor[3]);
-    void setCrosshair(Nm point[3]);
-    void setPlanePosition(PlaneType plane, Nm dist);
-
-    virtual IRendererSPtr clone()           { return IRendererSPtr(new CrosshairRenderer()); }
-    virtual int itemsBeenRendered()         { return m_representations.size(); };
-
-    virtual RendererType getRenderType() { return RendererType(RENDERER_VOLUMEVIEW); }
-    virtual RenderabledItems getRenderableItemsType() { return RenderabledItems(EspINA::CHANNEL); };
-
-    virtual ViewManager::Selection pick(int x,
-                                        int y,
-                                        Nm z,
-                                        vtkSmartPointer<vtkRenderer> renderer,
-                                        RenderabledItems itemType = RenderabledItems(),
-                                        bool repeat = false);
-    virtual void getPickCoordinates(double *point);
+    void setCrosshair(NmVector3 point);
+    void setPlanePosition(Plane plane, Nm dist);
 
   private:
-    vtkSmartPointer<vtkPropPicker>                   m_picker;
+    vtkSmartPointer<vtkPropPicker> m_picker;
   };
 
 } // namespace EspINA

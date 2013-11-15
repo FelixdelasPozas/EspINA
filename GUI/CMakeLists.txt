@@ -14,6 +14,7 @@ qt4_wrap_cpp(GUI_MOC
   Model/Proxies/ChannelProxy.h
   Model/Proxies/ClassificationProxy.h
   Representations/ContourRepresentationSettings.h
+  Representations/CrosshairRepresentation.h
   Representations/MeshRepresentation.h
   Representations/MeshRepresentationBase.h
   Representations/Renderers/ContourRenderer.h
@@ -71,10 +72,12 @@ set (GUI_SOURCES
   Representations/ContourRepresentationSettings.cpp
   Representations/MeshRepresentation.cpp 
   Representations/MeshRepresentationBase.cpp
+  Representations/CrosshairRepresentation.cpp
   Representations/Renderers/ContourRenderer.cpp
   Representations/Renderers/MeshRenderer.cpp
   Representations/Renderers/Renderer.cpp
   Representations/Renderers/SliceRenderer.cpp
+  Representations/Renderers/CrosshairRenderer.cpp
   Representations/Representation.cpp
   Representations/RepresentationEmptySettings.cpp
   Representations/RepresentationFactoryGroup.cpp 
