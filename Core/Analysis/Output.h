@@ -72,7 +72,7 @@ namespace EspINA
     NmVector3 spacing() const
     { return m_spacing; }
 
-    Snapshot snapshot();
+    Snapshot snapshot() const;
 
     bool isValid() const;
 

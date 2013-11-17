@@ -27,8 +27,8 @@ void PixelSelector::onMouseDown(const QPoint &pos, RenderView* view)
 {
   SelectionList selection = generateSelection(view);
 
-  //if (selection.empty() || 0 == selection.first().first->GetNumberOfPoints())
-    //return;
+  if (selection.empty() || 0 == selection.first().first->GetNumberOfPoints())
+    return;
 
   emit itemsSelected(selection);
 }

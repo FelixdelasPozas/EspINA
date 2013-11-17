@@ -122,6 +122,7 @@ namespace EspINA {
     friend class ModelAdapter;
   };
 
+  using FilterAdapterPtr   = FilterAdapterInterface *;
   using FilterAdapterSPtr  = std::shared_ptr<FilterAdapterInterface>;
   using FilterAdapterSList = QList<FilterAdapterSPtr>;
 }

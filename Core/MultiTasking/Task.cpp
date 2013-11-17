@@ -90,7 +90,7 @@ void Task::submit() {
   {
     m_scheduler->addTask(this);
   } else {
-    run();
+    runWrapper();
   }
 }
 
@@ -151,6 +151,16 @@ bool Task::canExecute() {
 }
 
 //-----------------------------------------------------------------------------
+void Task::runWrapper()
+{
+  run();
+
+  m_hasFinished = !m_pendingAbort;
+
+  emit finished();
+}
+
+//-----------------------------------------------------------------------------
 void Task::dispatcherPause()
 {
   m_mutex.lock();
@@ -188,19 +198,19 @@ public:
 void Task::start()
 {
   QMutexLocker lock(&m_mutex);
-  
+
   //std::cout << "Starting " << description().toStdString() << " inside thread " << thread() << std::endl;
-  
+
   if (!m_isThreadAttached) {
     TestThread *thread = new TestThread();
-    
+
     m_isThreadAttached = true;
-    
+
     moveToThread(thread);
-    
-    connect(thread, SIGNAL(started()), this, SLOT(run()));
+
+    connect(thread, SIGNAL(started()),  this,   SLOT(runWrapper()));
     connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
-    
+
     thread->start();
   }
 }

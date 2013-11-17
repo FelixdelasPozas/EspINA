@@ -50,7 +50,7 @@ Output::Output(FilterPtr filter, const Output::Id& id)
 }
 
 //----------------------------------------------------------------------------
-Snapshot Output::snapshot()
+Snapshot Output::snapshot() const
 {
   Snapshot snapshot;
 

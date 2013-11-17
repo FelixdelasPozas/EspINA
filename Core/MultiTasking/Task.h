@@ -97,9 +97,10 @@ namespace EspINA {
 
   protected:
     bool canExecute();
+    virtual void run() = 0;
 
   protected slots:
-    virtual void run() = 0;
+    void runWrapper();
 
   protected:
     void dispatcherPause();

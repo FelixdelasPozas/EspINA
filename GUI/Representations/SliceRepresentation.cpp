@@ -242,11 +242,7 @@ QList<vtkProp*> ChannelSliceRepresentation::getActors()
 //-----------------------------------------------------------------------------
 bool ChannelSliceRepresentation::isInside(const NmVector3 &point) const
 {
-  Bounds bounds{ '[', point[0], point[0], point[1], point[1], point[2], point[2], ']'};
-
-  itkVolumeType::Pointer voxel = m_data->itkImage(bounds);
-
-  return (SEG_VOXEL_VALUE == *(static_cast<unsigned char*>(voxel->GetBufferPointer())));
+  return contains(m_data->bounds(), point);
 };
 
 //-----------------------------------------------------------------------------

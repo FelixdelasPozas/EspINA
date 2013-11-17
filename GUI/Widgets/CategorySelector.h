@@ -39,8 +39,17 @@ namespace EspINA
 
     virtual QWidget* createWidget(QWidget* parent);
 
+    CategoryAdapterSPtr selectedCategory() const
+    { return m_selectedCategory; }
+
+  private slots:
+    void categorySelected(const QModelIndex& index);
+    void resetRootItem();
+
   private:
     ModelAdapterSPtr m_model;
+
+    CategoryAdapterSPtr m_selectedCategory;
   };
 
 } // namespace EspINA

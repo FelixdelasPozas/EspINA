@@ -27,6 +27,7 @@ using namespace EspINA;
 CategorySelector::CategorySelector(ModelAdapterSPtr model, QObject* parent)
 : QWidgetAction{parent}
 , m_model{model}
+, m_selectedCategory{nullptr}
 {
 }
 
@@ -36,9 +37,38 @@ QWidget* CategorySelector::createWidget(QWidget* parent)
 {
   QComboTreeView *categorySelector = new QComboTreeView(parent);
 
-//   m_categorySelector->setModel(model);
-//   m_categorySelector->setRootModelIndex(model->taxonomyRoot());
-//   m_categorySelector->setMinimumHeight(28);
+  categorySelector->setModel(m_model.get());
+  categorySelector->setRootModelIndex(m_model->classificationRoot());
+  categorySelector->setMinimumHeight(28);
+
+  connect(categorySelector, SIGNAL(activated(QModelIndex)),
+          this,             SLOT(categorySelected(QModelIndex)));
+//   connect(m_model.get(),    SIGNAL(taxonomyAdded(TaxonomySPtr)),
+//           this,  SLOT(updateTaxonomy(TaxonomySPtr)));
+  connect(m_model.get(), SIGNAL(modelReset()),
+          this,          SLOT(resetRootItem()));
+
+  categorySelected(categorySelector->currentModelIndex());
 
   return categorySelector;
+}
+
+//------------------------------------------------------------------------
+void CategorySelector::categorySelected(const QModelIndex& index)
+{
+  if (!index.isValid())
+    return;
+
+  auto item = itemAdapter(index);
+  Q_ASSERT(ItemAdapter::Type::CATEGORY == item->type());
+
+  auto category = categoryPtr(item);
+
+  m_selectedCategory = m_model->findCategory(category);
+}
+
+//------------------------------------------------------------------------
+void CategorySelector::resetRootItem()
+{
+  //categorySelector->setRootModelIndex(m_model->taxonomyRoot());
 }

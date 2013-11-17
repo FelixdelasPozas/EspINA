@@ -28,6 +28,7 @@
 #include "GUI/Model/ClassificationAdapter.h"
 #include "GUI/Model/SegmentationAdapter.h"
 #include "GUI/Model/FilterAdapter.h"
+#include <GUI/ModelFactory.h>
 
 namespace EspINA
 {
@@ -77,8 +78,10 @@ namespace EspINA
     struct Relation_Not_Found_Exception {};
 
   public:
-    explicit ModelAdapter(AnalysisSPtr analysis);
+    explicit ModelAdapter();
     virtual ~ModelAdapter();
+
+    void setAnalysis(AnalysisSPtr analysis, ModelFactorySPtr factory);
 
     void reset();
 
@@ -170,14 +173,13 @@ namespace EspINA
     void emitSegmentationAdded(SegmentationAdapterSList);
     void emitChannelAdded(ChannelAdapterSList);
 
-  private:
     //---------------------------------------------------------------------------
     /************************** SmartPointer API *******************************/
     //---------------------------------------------------------------------------
-    virtual ItemAdapterSPtr find(PersistentSPtr item);
-// 
+    ItemAdapterSPtr find(PersistentSPtr item);
+
 //     virtual CategoryAdapterSPtr findCategory(ModelItemPtr       item           );
-//     virtual CategoryAdapterSPtr findCategory(CategoryAdapterPtr classificationElement);
+    CategoryAdapterSPtr findCategory(CategoryAdapterPtr category);
 // 
 //     virtual SampleAdapterSPtr findSampleAdapter(ModelItemPtr item  );
 //     virtual SampleAdapterSPtr findSampleAdapter(SampleAdapterPtr    sample);
@@ -209,8 +211,7 @@ namespace EspINA
     void itemModified(ItemAdapterSPtr item);
 
   private:
-//     void addClassification(CategoryAdapterSPtr root);
-// 
+
     void addImplementation(SampleAdapterSPtr       sample);
     void addImplementation(ChannelAdapterSPtr      channel);
     void addImplementation(SegmentationAdapterSPtr segmentation);

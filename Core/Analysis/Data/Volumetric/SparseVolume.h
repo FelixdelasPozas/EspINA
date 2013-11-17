@@ -102,7 +102,7 @@ namespace EspINA {
 
     virtual bool isValid() const;
 
-    virtual Snapshot snapshot() const{ return Snapshot(); }
+    virtual Snapshot snapshot() const;
 
     virtual Snapshot editedRegionsSnapshot() const { return Snapshot(); }
 

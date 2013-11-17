@@ -229,6 +229,15 @@ bool SparseVolume<T>::isValid() const
 
 //-----------------------------------------------------------------------------
 template<typename T>
+Snapshot SparseVolume<T>::snapshot() const
+{
+  Snapshot snapshot;
+
+  return snapshot;
+}
+
+//-----------------------------------------------------------------------------
+template<typename T>
 typename SparseVolume<T>::BlockMaskUPtr SparseVolume<T>::createMask(const Bounds& bounds) const
 {
   BlockMask::itkSpacing spacing;

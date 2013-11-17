@@ -30,6 +30,7 @@
 #include <GUI/Selectors/Selector.h>
 #include <GUI/ModelFactory.h>
 
+class QUndoStack;
 namespace EspINA {
 
   class SeedGrowSegmentationTool
@@ -40,7 +41,8 @@ namespace EspINA {
   public:
     explicit SeedGrowSegmentationTool(ModelAdapterSPtr model,
                                       ModelFactorySPtr factory,
-                                      ViewManagerSPtr  viewManager);
+                                      ViewManagerSPtr  viewManager,
+                                      QUndoStack      *undoStack);
     virtual ~SeedGrowSegmentationTool();
 
     virtual FilterTypeList providedFilters() const;
@@ -69,6 +71,7 @@ namespace EspINA {
     ModelAdapterSPtr m_model;
     ModelFactorySPtr m_factory;
     ViewManagerSPtr  m_viewManager;
+    QUndoStack      *m_undoStack;
 
     bool             m_enabled;
 
@@ -79,7 +82,7 @@ namespace EspINA {
 
     QMap<QAction *, SelectorSPtr> m_voxelSelectors;
 
-    FilterAdapterSPtr m_executingTask;
+    QMap<FilterAdapterPtr, FilterAdapterSPtr> m_executingTasks;
   };
 
   using SeedGrowSegmentationToolSPtr = std::shared_ptr<SeedGrowSegmentationTool>;

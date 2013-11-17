@@ -298,8 +298,6 @@ QModelIndexList ChannelProxy::channels(QModelIndex sampleIndex, bool recursive) 
   return res;
 }
 
-// In order to have relations between elements it is necessary
-// to insert then first, thus we don't consider related items here
 //------------------------------------------------------------------------
 void ChannelProxy::sourceRowsInserted(const QModelIndex& sourceParent, int start, int end)
 {
@@ -321,25 +319,49 @@ void ChannelProxy::sourceRowsInserted(const QModelIndex& sourceParent, int start
         Q_ASSERT(ItemAdapter::Type::SAMPLE == sourceRow->type());
         SampleAdapterPtr sample = samplePtr(sourceRow);
         m_samples << sample;
-        ItemAdapterSList channels = m_model->relatedItems(sample, EspINA::RELATION_OUT, Channel::STAIN_LINK);
+        auto channels = m_model->relatedItems(sample, EspINA::RELATION_OUT, Channel::STAIN_LINK);
         if (!channels.isEmpty())
         {
-          int start = 0;
-          int end   = start + channels.size() - 1;
-          beginInsertRows(sampleIndex, start, end);
-          {
-            for(ItemAdapterSPtr item : channels)
+          int channelStart = 0;
+          int channelEnd   = channelStart + channels.size() - 1;
+            for(auto channel : channels)
             {
-              m_channels[sample] << item.get();
+              if (channel)
+              {
+                m_channels[sample] << channel.get();
+              }
             }
+        }
+      }
+    }
+    endInsertRows();
+  } else if (sourceParent == m_model->channelRoot())
+  {
+    for (int row = start; row <= end; row++)
+    {
+      auto channelIndex = m_model->index(row, 0, sourceParent);
+      auto sourceRow = itemAdapter(channelIndex);
+      Q_ASSERT(ItemAdapter::Type::CHANNEL == sourceRow->type());
+      auto channel = channelPtr(sourceRow);
+
+      auto samples = m_model->relatedItems(channel, EspINA::RELATION_IN, Channel::STAIN_LINK);
+      Q_ASSERT(samples.size() == 1);
+      if (!samples.isEmpty())
+      {
+        auto sample      = samplePtr(samples.first().get());
+        auto sampleIndex = m_model->sampleIndex(sample);
+        int channelStart = m_model->rowCount(sampleIndex);
+        int channelEnd   = channelStart + end - start;
+        if (sample && channel && (!m_channels.contains(sample) || m_channels[sample].contains(channel)))
+        {
+          beginInsertRows(sampleIndex, channelStart, channelEnd);
+          {
+            m_channels[sample] << channel;
           }
           endInsertRows();
         }
       }
     }
-    endInsertRows();
-
-    return;
   }
 }
 

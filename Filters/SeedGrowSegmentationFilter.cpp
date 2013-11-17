@@ -105,7 +105,7 @@ int SeedGrowSegmentationFilter::closingRadius()
 
 Snapshot SeedGrowSegmentationFilter::saveFilterSnapshot() const
 {
-
+  return Snapshot();
 }
 
 //----------------------------------------------------------------------------

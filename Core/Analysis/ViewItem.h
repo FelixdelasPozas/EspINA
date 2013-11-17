@@ -29,7 +29,7 @@ namespace EspINA {
   {
   public:
     explicit ViewItem(FilterSPtr filter, const Output::Id output);
-    virtual ~ViewItem(){}
+    virtual ~ViewItem();
 
     FilterSPtr filter()
     { return m_filter; }

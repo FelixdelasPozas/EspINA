@@ -173,9 +173,10 @@ void SegFile_V5::save(AnalysisPtr analysis, QuaZip& zip, ErrorHandlerPtr handler
     throw (e);
   }
 
-  foreach(DirectedGraph::Vertex v, analysis->content()->vertices()) {
+  for(auto v : analysis->content()->vertices())
+  {
     PersistentPtr item = dynamic_cast<PersistentPtr>(v.get());
-    foreach(SnapshotData data, item->saveSnapshot())
+    for(auto data : item->saveSnapshot())
     {
       try
       {
@@ -187,18 +188,18 @@ void SegFile_V5::save(AnalysisPtr analysis, QuaZip& zip, ErrorHandlerPtr handler
     }
   }
 
-  foreach(ExtensionProviderSPtr provider, analysis->extensionProviders()) {
-    foreach(SnapshotData data, provider->saveSnapshot())
-    {
-      try
-      {
-        addFileToZip(data.first, data.second, zip, handler);
-      } catch (IO_Error_Exception e)
-      {
-        throw (e);
-      }
-    }
-  }
+//   foreach(ExtensionProviderSPtr provider, analysis->extensionProviders()) {
+//     foreach(SnapshotData data, provider->saveSnapshot())
+//     {
+//       try
+//       {
+//         addFileToZip(data.first, data.second, zip, handler);
+//       } catch (IO_Error_Exception e)
+//       {
+//         throw (e);
+//       }
+//     }
+//   }
 }
 
 struct Vertex_Not_Found_Exception{};

@@ -209,7 +209,7 @@ private:
     void setActiveCategory(CategoryAdapterPtr category)
     { m_activeCategory = category; }
 
-    CategoryAdapterPtr activeTaxonomy() const
+    CategoryAdapterPtr activeCategory() const
     { return m_activeCategory; }
 
   signals:

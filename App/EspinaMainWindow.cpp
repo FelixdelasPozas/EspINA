@@ -72,7 +72,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 , m_scheduler(new Scheduler(PERIOD_NS))
 , m_factory(new ModelFactory(m_scheduler))
 , m_analysis(new Analysis())
-, m_model(new ModelAdapter(m_analysis))
+, m_model(new ModelAdapter())
 , m_viewManager(new ViewManager())
 , m_undoStack(new QUndoStack())
 //, m_filterFactory(new EspinaMainWindow::FilterFactory())
@@ -700,7 +700,8 @@ void EspinaMainWindow::openAnalysis(const QStringList files)
       mergedAnalysis->setClassification(classification);
     }
 
-    ModelAdapterUtils::setAnalysis(m_model, mergedAnalysis, m_factory);
+    //ModelAdapterUtils::setAnalysis(m_model, mergedAnalysis, m_factory);
+    m_model->setAnalysis(mergedAnalysis, m_factory);
     m_analysis = mergedAnalysis;
 
     m_viewManager->resetViewCameras();

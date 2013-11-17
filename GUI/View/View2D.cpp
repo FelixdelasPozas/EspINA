@@ -578,24 +578,24 @@ void View2D::setThumbnailVisibility(bool visible)
 
 //-----------------------------------------------------------------------------
 Selector::SelectionList View2D::pick(Selector::SelectionFlags    filter,
-                                        Selector::DisplayRegionList regions)
+                                     Selector::DisplayRegionList regions)
 {
   bool multiSelection = false;
   Selector::SelectionList selectedItems;
 
   // Select all products that belongs to all regions
   // NOTE: Should first loop be removed? Only useful to select disconnected regions...
-  foreach(const Selector::DisplayRegion &region, regions)
+  for(const Selector::DisplayRegion &region : regions)
   {
-    foreach(QPointF p, region)
+    for(auto p : region)
     {
-      foreach(Selector::SelectionTag tag, filter)
+      for(auto tag : filter)
       {
         if (Selector::CHANNEL == tag)
         {
-          foreach(RendererSPtr renderer, m_renderers)
+          for(auto renderer : m_renderers)
             if (canRender(renderer, RenderableType::CHANNEL))
-              foreach(ViewItemAdapterPtr item, renderer->pick(p.x(), p.y(), slicingPosition(), m_renderer, RenderableItems(RenderableType::CHANNEL), multiSelection))
+              for(auto item : renderer->pick(p.x(), p.y(), slicingPosition(), m_renderer, RenderableItems(RenderableType::CHANNEL), multiSelection))
               {
                 Selector::WorldRegion wRegion = worldRegion(region, item);
                 selectedItems << Selector::SelectedItem(wRegion, item);
@@ -605,9 +605,9 @@ Selector::SelectionList View2D::pick(Selector::SelectionFlags    filter,
         {
           if (Selector::SEGMENTATION == tag)
           {
-            foreach(RendererSPtr renderer, m_renderers)
+            for(auto renderer : m_renderers)
               if (canRender(renderer, RenderableType::SEGMENTATION))
-                foreach(ViewItemAdapterPtr item, renderer->pick(p.x(), p.y(), slicingPosition(), m_renderer, RenderableItems(RenderableType::SEGMENTATION), multiSelection))
+                for(auto item : renderer->pick(p.x(), p.y(), slicingPosition(), m_renderer, RenderableItems(RenderableType::SEGMENTATION), multiSelection))
                 {
                   Selector::WorldRegion wRegion = worldRegion(region, item);
                   selectedItems << Selector::SelectedItem(wRegion, item);

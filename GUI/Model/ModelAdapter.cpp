@@ -21,14 +21,15 @@
 #include <Core/Analysis/Analysis.h>
 #include <Core/Analysis/Sample.h>
 #include <Core/Analysis/Channel.h>
+#include <Core/Analysis/Segmentation.h>
 
 // EspINA
 
 using namespace EspINA;
 
 //------------------------------------------------------------------------
-ModelAdapter::ModelAdapter(AnalysisSPtr analysis)
-: m_analysis(analysis)
+ModelAdapter::ModelAdapter()
+: m_analysis(new Analysis())
 {
 
 }
@@ -37,6 +38,58 @@ ModelAdapter::ModelAdapter(AnalysisSPtr analysis)
 ModelAdapter::~ModelAdapter()
 {
 
+}
+
+//------------------------------------------------------------------------
+void ModelAdapter::setAnalysis(AnalysisSPtr analysis, ModelFactorySPtr factory)
+{
+  reset();
+
+  QMap<FilterSPtr, FilterAdapterSPtr>       filters;
+
+  m_analysis = analysis;
+
+  // Adaptar la clasificacion
+  ClassificationAdapterSPtr classification{new ClassificationAdapter(analysis->classification())};
+  beginInsertRows(classificationRoot(), 0, classification->root()->subCategories().size() - 1);
+  m_classification = classification;
+  endInsertRows();
+
+  // Adapt Samples
+  beginInsertRows(sampleRoot(), 0, analysis->samples().size() - 1);
+  for(auto sample : analysis->samples())
+  {
+    m_samples << factory->adaptSample(sample);
+  }
+  endInsertRows();
+
+  // Adapt channels --> adapt non adapted filters
+  beginInsertRows(channelRoot(), 0, analysis->channels().size() - 1);
+  for(auto channel : analysis->channels())
+  {
+    FilterAdapterSPtr filter = filters.value(channel->filter(), FilterAdapterSPtr());
+    if (!filter)
+    {
+      filter = factory->adaptFilter(channel->filter());
+    }
+
+    m_channels << factory->adaptChannel(filter, channel);
+  }
+  endInsertRows();
+
+  // Adapt segmentation --> adapt non adapted filters
+  beginInsertRows(segmentationRoot(), 0, analysis->segmentations().size() - 1);
+  for(auto segmentation : analysis->segmentations())
+  {
+    FilterAdapterSPtr filter = filters.value(segmentation->filter(), FilterAdapterSPtr());
+    if (!filter)
+    {
+      filter = factory->adaptFilter(segmentation->filter());
+    }
+
+    m_segmentations << factory->adaptSegmentation(filter, segmentation);
+  }
+  endInsertRows();
 }
 
 //------------------------------------------------------------------------
@@ -139,6 +192,7 @@ void ModelAdapter::addImplementation(SegmentationAdapterSPtr segmentation)
 
   m_analysis->add(segmentation->m_segmentation);
   m_segmentations << segmentation;
+  std::cout << m_analysis->segmentations().size() << std::endl;
 
 //   connect(segmentation.get(), SIGNAL(modified(ModelItemPtr)),
 //           this, SLOT(itemModified(ModelItemPtr)));
@@ -520,6 +574,25 @@ ItemAdapterSPtr ModelAdapter::find(PersistentSPtr item)
     PersistentSPtr base = channel->m_channel;
     if (base == item) return channel;
   }
+
+  for(auto segmentation : m_segmentations)
+  {
+    PersistentSPtr base = segmentation->m_segmentation;
+    if (base == item) return segmentation;
+  }
+
+  return ItemAdapterSPtr();
+}
+
+//------------------------------------------------------------------------
+CategoryAdapterSPtr ModelAdapter::findCategory(CategoryAdapterPtr category)
+{
+  if (category == m_classification->root().get())
+    return m_classification->root();
+
+  auto parent = category->parent();
+
+  return parent->subCategory(category->name());
 }
 
 //------------------------------------------------------------------------
@@ -1261,23 +1334,6 @@ ItemAdapterPtr EspINA::itemAdapter(const QModelIndex& index)
 // 
 //   return res;
 // }
-// 
-// //------------------------------------------------------------------------
-// TaxonomyElementSPtr ModelAdapter::findTaxonomyElement(ModelItemPtr item)
-// {
-//   return findTaxonomyElement(taxonomyElementPtr(item));
-// }
-// 
-// //------------------------------------------------------------------------
-// TaxonomyElementSPtr ModelAdapter::findTaxonomyElement(TaxonomyElementPtr taxonomyElement)
-// {
-//   if (taxonomyElement == m_tax->root().get())
-//     return m_tax->root();
-// 
-//   TaxonomyElementPtr parent = taxonomyElement->parent();
-//   return parent->element(taxonomyElement->name());
-// }
-// 
 // 
 // //------------------------------------------------------------------------
 // FilterSPtr ModelAdapter::findFilter(ModelItemPtr item)

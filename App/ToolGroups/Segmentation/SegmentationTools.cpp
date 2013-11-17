@@ -32,7 +32,7 @@ SegmentationTools::SegmentationTools(ModelAdapterSPtr model,
                                      QUndoStack      *undoStack,
                                      QWidget         *parent)
 : ToolGroup(viewManager, QIcon(":/espina/pixelSelector.svg"), tr("Segmentation Tools"), parent)
-, m_sgsTool(new SeedGrowSegmentationTool(model, factory, viewManager))
+, m_sgsTool(new SeedGrowSegmentationTool(model, factory, viewManager, undoStack))
 {
 
 }

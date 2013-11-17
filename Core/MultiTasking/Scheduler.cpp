@@ -45,7 +45,7 @@ void TaskQueue::orderedInsert(Task* worker)
   int  w = 0;
   bool found = false;
   while (!found && w < size()) {
-    found = at(w)->id() > worker->id();     
+    found = at(w)->id() > worker->id();
     if (!found) ++w;
   }
   insert(w, worker);
@@ -124,11 +124,11 @@ void Scheduler::scheduleTasks() {
 
     for (int priority = 4; priority >= 0; --priority) {
 //       std::cout << "Updating Priority " << priority << std::endl;
-      
+
       foreach(Task *worker, m_runningTasks[priority]) {
-        
+
         bool is_thread_attached = worker->m_isThreadAttached;
-        
+
         if (num_running_threads < m_maxNumRunningThreads && !(worker->isPaused() || worker->isAborted() || worker->hasFinished() )) {
           if (is_thread_attached) {
             if (worker->isDispatcherPaused()) {
@@ -149,7 +149,7 @@ void Scheduler::scheduleTasks() {
 //             std::cout << "- " << worker->description().toStdString() << " was aborted" << std::endl;
             m_runningTasks[worker->priority()].removeOne(worker);
           } else if (worker->hasFinished()) {
-//             std::cout << "- " << worker->description().toStdString() << " has finished" << std::endl;
+//              std::cout << "- " << worker->description().toStdString() << " has finished" << std::endl;
             m_runningTasks[worker->priority()].removeOne(worker);
           } else if (is_thread_attached) {
             worker->dispatcherPause();
@@ -161,7 +161,7 @@ void Scheduler::scheduleTasks() {
       }
     }
     m_mutex.unlock();
-    
+
     usleep(m_period);
   }
 }
