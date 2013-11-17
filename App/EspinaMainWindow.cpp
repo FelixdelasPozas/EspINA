@@ -31,6 +31,7 @@
 #include <Core/IO/SegFile.h>
 #include <Core/IO/ClassificationXML.h>
 #include <Core/MultiTasking/Scheduler.h>
+#include <Core/Utils/AnalysisUtils.h>
 #include <GUI/Model/Utils/ModelAdapterUtils.h>
 #include <GUI/Representations/BasicRepresentationFactory.h>
 #include <GUI/Widgets/TaskProgress.h>
@@ -690,8 +691,11 @@ void EspinaMainWindow::openAnalysis(const QStringList files)
 
   if (!analyses.isEmpty())
   {
-    // TODO: Merge if size > 1
     AnalysisSPtr mergedAnalysis = analyses.first();
+    for(int i = 1; i < analyses.size(); ++i)
+    {
+      mergedAnalysis = merge(mergedAnalysis, analyses[i]);
+    }
 
     if (!mergedAnalysis->classification())
     {

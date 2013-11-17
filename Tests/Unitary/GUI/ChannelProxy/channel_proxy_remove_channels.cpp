@@ -49,22 +49,24 @@ int channel_proxy_remove_channels(int argc, char** argv )
 
   AnalysisSPtr analysis{new Analysis()};
 
-  ModelAdapterSPtr modelAdapter(new ModelAdapter(analysis));
+  ModelAdapterSPtr modelAdapter(new ModelAdapter());
   ChannelProxy     proxy(modelAdapter);
   ModelTest        modelTester(&proxy);
 
   SchedulerSPtr sch;
-  ModelFactory factory(sch);
+  ModelFactorySPtr factory{new ModelFactory(sch)};
+
+  modelAdapter->setAnalysis(analysis, factory);
 
   OutputSList inputs;
   Filter::Type type{"DummyFilter"};
 
-  FilterAdapterSPtr filter = factory.createFilter<DummyFilter>(inputs, type);
+  FilterAdapterSPtr filter = factory->createFilter<DummyFilter>(inputs, type);
 
   ChannelAdapterSList channels;
-  channels << factory.createChannel(filter, 0)
-           << factory.createChannel(filter, 0)
-           << factory.createChannel(filter, 0);
+  channels << factory->createChannel(filter, 0)
+           << factory->createChannel(filter, 0)
+           << factory->createChannel(filter, 0);
 
   modelAdapter->add(channels);
 

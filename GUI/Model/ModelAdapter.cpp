@@ -49,11 +49,14 @@ void ModelAdapter::setAnalysis(AnalysisSPtr analysis, ModelFactorySPtr factory)
 
   m_analysis = analysis;
 
-  // Adaptar la clasificacion
-  ClassificationAdapterSPtr classification{new ClassificationAdapter(analysis->classification())};
-  beginInsertRows(classificationRoot(), 0, classification->root()->subCategories().size() - 1);
-  m_classification = classification;
-  endInsertRows();
+  // Adapt classification
+  if (analysis->classification())
+  {
+    ClassificationAdapterSPtr classification{new ClassificationAdapter(analysis->classification())};
+    beginInsertRows(classificationRoot(), 0, classification->root()->subCategories().size() - 1);
+    m_classification = classification;
+    endInsertRows();
+  }
 
   // Adapt Samples
   beginInsertRows(sampleRoot(), 0, analysis->samples().size() - 1);

@@ -345,8 +345,7 @@ void ChannelProxy::sourceRowsInserted(const QModelIndex& sourceParent, int start
       auto channel = channelPtr(sourceRow);
 
       auto samples = m_model->relatedItems(channel, EspINA::RELATION_IN, Channel::STAIN_LINK);
-      Q_ASSERT(samples.size() == 1);
-      if (!samples.isEmpty())
+      if (samples.size() == 1)
       {
         auto sample      = samplePtr(samples.first().get());
         auto sampleIndex = m_model->sampleIndex(sample);

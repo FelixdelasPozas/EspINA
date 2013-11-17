@@ -42,9 +42,14 @@ int channel_proxy_set_empty_classification( int argc, char** argv )
 
   AnalysisSPtr analysis{new Analysis()};
 
-  ModelAdapterSPtr modelAdapter(new ModelAdapter(analysis));
+  ModelAdapterSPtr modelAdapter(new ModelAdapter());
   ChannelProxy     proxy(modelAdapter);
   ModelTest        modelTester(&proxy);
+
+  SchedulerSPtr sch;
+  ModelFactorySPtr factory{new ModelFactory(sch)};
+
+  modelAdapter->setAnalysis(analysis, factory);
 
   ClassificationAdapterSPtr classification;
 

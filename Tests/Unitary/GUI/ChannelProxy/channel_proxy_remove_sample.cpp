@@ -41,16 +41,18 @@ int channel_proxy_remove_sample(int argc, char** argv)
 
   AnalysisSPtr analysis{new Analysis()};
 
-  ModelAdapterSPtr modelAdapter(new ModelAdapter(analysis));
+  ModelAdapterSPtr modelAdapter(new ModelAdapter());
   ChannelProxy     proxy(modelAdapter);
   ModelTest        modelTester(&proxy);
 
   SchedulerSPtr sch;
-  ModelFactory factory(sch);
+  ModelFactorySPtr factory{new ModelFactory(sch)};
+
+  modelAdapter->setAnalysis(analysis, factory);
 
   QString name = "Sample";
 
-  SampleAdapterSPtr sample = factory.createSample(name);
+  SampleAdapterSPtr sample = factory->createSample(name);
   modelAdapter->add(sample);
 
   modelAdapter->remove(sample);

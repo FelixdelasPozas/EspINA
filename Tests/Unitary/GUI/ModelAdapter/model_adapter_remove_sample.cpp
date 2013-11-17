@@ -40,15 +40,17 @@ int model_adapter_remove_sample(int argc, char** argv)
 
   AnalysisSPtr analysis{new Analysis()};
 
-  ModelAdapter modelAdapter(analysis);
+  ModelAdapter modelAdapter;
   ModelTest    modelTester(&modelAdapter);
 
   SchedulerSPtr sch;
-  ModelFactory factory(sch);
+  ModelFactorySPtr factory{new ModelFactory(sch)};
+
+  modelAdapter.setAnalysis(analysis, factory);
 
   QString name = "Sample";
 
-  SampleAdapterSPtr sample = factory.createSample(name);
+  SampleAdapterSPtr sample = factory->createSample(name);
   modelAdapter.add(sample);
 
   modelAdapter.remove(sample);

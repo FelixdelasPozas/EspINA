@@ -38,9 +38,7 @@ int model_adapter_empty_analysis_constructor(int argc, char** argv )
 {
   bool error = false;
 
-  AnalysisSPtr analysis{new Analysis()};
-
-  ModelAdapter modelAdapter(analysis);
+  ModelAdapter modelAdapter;
   ModelTest    modelTester(&modelAdapter);
 
   return error;

@@ -38,6 +38,7 @@ set (CORE_SOURCES
   IO/SegFile_V5.cpp
   MultiTasking/Scheduler.cpp
   MultiTasking/Task.cpp
+  Utils/AnalysisUtils.cpp
   Utils/BinaryMask.cpp
   Utils/Bounds.cpp
   Utils/Measure.cpp

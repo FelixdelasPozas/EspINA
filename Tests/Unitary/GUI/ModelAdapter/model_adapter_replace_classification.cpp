@@ -40,8 +40,14 @@ int model_adapter_replace_classification( int argc, char** argv )
   bool error = false;
 
   AnalysisSPtr analysis{new Analysis()};
-  ModelAdapter modelAdapter(analysis);
+
+  ModelAdapter modelAdapter;
   ModelTest    modelTester(&modelAdapter);
+
+  SchedulerSPtr sch;
+  ModelFactorySPtr factory{new ModelFactory(sch)};
+
+  modelAdapter.setAnalysis(analysis, factory);
 
   ClassificationAdapterSPtr classification{new ClassificationAdapter()};
   classification->setName("Test");

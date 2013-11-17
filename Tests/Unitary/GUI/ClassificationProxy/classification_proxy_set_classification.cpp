@@ -40,9 +40,7 @@ int classification_proxy_set_classification( int argc, char** argv )
 {
   bool error = false;
 
-  AnalysisSPtr analysis{new Analysis()};
-
-  ModelAdapterSPtr    modelAdapter(new ModelAdapter(analysis));
+  ModelAdapterSPtr    modelAdapter(new ModelAdapter());
   ClassificationProxy proxy(modelAdapter);
   ModelTest           modelTester(&proxy);
 

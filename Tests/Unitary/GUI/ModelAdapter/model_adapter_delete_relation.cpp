@@ -40,15 +40,16 @@ int model_adapter_delete_relation( int argc, char** argv )
 
   AnalysisSPtr analysis{new Analysis()};
 
-  ModelAdapter modelAdapter(analysis);
+  ModelAdapter modelAdapter;
   ModelTest    modelTester(&modelAdapter);
 
   SchedulerSPtr sch;
-  ModelFactory factory(sch);
+  ModelFactorySPtr factory{new ModelFactory(sch)};
 
+  modelAdapter.setAnalysis(analysis, factory);
 
-  SampleAdapterSPtr sample1 = factory.createSample("Sample 1");
-  SampleAdapterSPtr sample2 = factory.createSample("Sample 2");
+  SampleAdapterSPtr sample1 = factory->createSample("Sample 1");
+  SampleAdapterSPtr sample2 = factory->createSample("Sample 2");
 
   modelAdapter.add(sample1);
   modelAdapter.add(sample2);

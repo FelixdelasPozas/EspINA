@@ -41,16 +41,18 @@ int model_adapter_add_samples( int argc, char** argv )
 
   AnalysisSPtr analysis{new Analysis()};
 
-  ModelAdapter modelAdapter(analysis);
+  ModelAdapter modelAdapter;
   ModelTest    modelTester(&modelAdapter);
 
   SchedulerSPtr sch;
-  ModelFactory factory(sch);
+  ModelFactorySPtr factory{new ModelFactory(sch)};
+
+  modelAdapter.setAnalysis(analysis, factory);
 
   SampleAdapterSList samples;
-  samples << factory.createSample()
-          << factory.createSample()
-          << factory.createSample();
+  samples << factory->createSample()
+          << factory->createSample()
+          << factory->createSample();
 
   modelAdapter.add(samples);
 

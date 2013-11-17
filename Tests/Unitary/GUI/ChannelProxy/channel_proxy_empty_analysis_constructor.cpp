@@ -39,9 +39,7 @@ int channel_proxy_empty_analysis_constructor(int argc, char** argv )
 {
   bool error = false;
 
-  AnalysisSPtr analysis{new Analysis()};
-
-  ModelAdapterSPtr modelAdapter(new ModelAdapter(analysis));
+  ModelAdapterSPtr modelAdapter(new ModelAdapter());
   ChannelProxy     proxy(modelAdapter);
   ModelTest        modelTester(&proxy);
 

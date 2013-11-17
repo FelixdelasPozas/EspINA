@@ -36,7 +36,7 @@
 #include <GUI/Model/Proxies/ClassificationProxy.h>
 #include <GUI/ModelFactory.h>
 
-#include "channel_proxy_testing_support.h"
+#include "classification_proxy_testing_support.h"
 #include "ModelTest.h"
 
 using namespace std;
@@ -47,9 +47,8 @@ int classification_proxy_add_segmentation_without_category( int argc, char** arg
 {
   bool error = false;
 
-  AnalysisSPtr analysis{new Analysis()};
 
-  ModelAdapterSPtr    modelAdapter(new ModelAdapter(analysis));
+  ModelAdapterSPtr    modelAdapter(new ModelAdapter());
   ClassificationProxy proxy(modelAdapter);
   ModelTest           modelTester(&proxy);
 

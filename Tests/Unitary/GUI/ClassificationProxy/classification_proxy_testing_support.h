@@ -31,10 +31,10 @@ namespace EspINA {
     {
     public:
       explicit DummyFilter(OutputSList input, Filter::Type type, SchedulerSPtr scheduler)
-      : Filter(input, type, scheduler){}
-    virtual void restoreState(const State& state) {}
-    virtual State saveState() const {return State();}
-      virtual OutputSPtr output(Output::Id id) const {return OutputSPtr{new Output(this, 0)};}
+      : Filter(input, type, scheduler)
+      { m_outputs << OutputSPtr{new Output(this, 0)};}
+      virtual void restoreState(const State& state) {}
+      virtual State saveState() const {return State();}
 
     protected:
     virtual Snapshot saveFilterSnapshot() const {return Snapshot(); }

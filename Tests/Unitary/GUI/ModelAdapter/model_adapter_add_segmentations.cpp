@@ -48,21 +48,23 @@ int model_adapter_add_segmentations( int argc, char** argv )
 
   AnalysisSPtr analysis{new Analysis()};
 
-  ModelAdapter modelAdapter(analysis);
+  ModelAdapter modelAdapter;
   ModelTest    modelTester(&modelAdapter);
 
   SchedulerSPtr sch;
-  ModelFactory factory(sch);
+  ModelFactorySPtr factory{new ModelFactory(sch)};
+
+  modelAdapter.setAnalysis(analysis, factory);
 
   OutputSList inputs;
   Filter::Type type{"DummyFilter"};
 
-  FilterAdapterSPtr filter = factory.createFilter<DummyFilter>(inputs, type);
+  FilterAdapterSPtr filter = factory->createFilter<DummyFilter>(inputs, type);
 
   SegmentationAdapterSList segmentations;
-  segmentations << factory.createSegmentation(filter, 0)
-                << factory.createSegmentation(filter, 0)
-                << factory.createSegmentation(filter, 0);
+  segmentations << factory->createSegmentation(filter, 0)
+                << factory->createSegmentation(filter, 0)
+                << factory->createSegmentation(filter, 0);
 
   modelAdapter.add(segmentations);
 

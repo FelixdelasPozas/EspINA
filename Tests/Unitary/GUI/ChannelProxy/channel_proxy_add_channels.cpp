@@ -45,16 +45,20 @@ using namespace Testing;
 
 int channel_proxy_add_channels(int argc, char** argv )
 {
-  bool error = true;
+  bool error = false;
 
-  AnalysisSPtr analysis{new Analysis()};
-
-  ModelAdapterSPtr modelAdapter(new ModelAdapter(analysis));
+  ModelAdapterSPtr modelAdapter(new ModelAdapter());
   ChannelProxy     proxy(modelAdapter);
   ModelTest        modelTester(&proxy);
 
   SchedulerSPtr sch;
   ModelFactory factory(sch);
+
+  QString name = "Sample";
+
+  SampleAdapterSPtr sample = factory.createSample(name);
+
+  modelAdapter->add(sample);
 
   OutputSList inputs;
   Filter::Type type{"DummyFilter"};
@@ -68,60 +72,27 @@ int channel_proxy_add_channels(int argc, char** argv )
 
   modelAdapter->add(channels);
 
-  for(auto channel : channels) {
-    bool found = false;
-    for (auto aChannel : analysis->channels())
-    {
-      found |= aChannel == channel;
-    }
-    if (!found) {
-      cerr << "Unexpected channel retrieved from analysis" << endl;
-      error = true;
-    }
+  for(int i = 0; i < 3; ++i) {
+    modelAdapter->addRelation(sample, channels[i], Channel::STAIN_LINK);
   }
 
-  if (analysis->classification().get() != nullptr) {
-    cerr << "Unexpected classification in analysis" << endl;
+  if (proxy.rowCount() != 1)
+  {
+    cerr << "Unexpected number of items displayed" << endl;
     error = true;
   }
 
-  if (!analysis->samples().isEmpty()) {
-    cerr << "Unexpected number of samples in analysis" << endl;
+  QModelIndex sampleIndex = proxy.index(0,0);
+  QString sampleName = sampleIndex.data(Qt::DisplayRole).toString();
+  if (!sampleName.contains(name))
+  {
+    cerr << "Unexpected display role value: " << sampleName.toStdString() << endl;
     error = true;
   }
 
-  if (analysis->channels().size() != channels.size()) {
-    cerr << "Unexpected number of channels in analysis" << endl;
-    error = true;
-  }
-
-  if (!analysis->segmentations().isEmpty()) {
-    cerr << "Unexpected number of segmentations in analysis" << endl;
-    error = true;
-  }
-
-  if (!analysis->extensionProviders().isEmpty()) {
-    cerr << "Unexpected number of extension providers in analysis" << endl;
-    error = true;
-  }
-
-  if (analysis->content()->vertices().size() != channels.size() + 1) { // They share the filter
-    cerr << "Unexpected number of vertices in analysis content" << endl;
-    error = true;
-  }
-
-  if (analysis->content()->edges().size() != channels.size()) {
-    cerr << "Unexpected number of edges in analysis content" << endl;
-    error = true;
-  }
-
-  if (analysis->relationships()->vertices().size() != channels.size()) {
-    cerr << "Unexpected number of vertices in analysis relationships" << endl;
-    error = true;
-  }
-
-  if (!analysis->relationships()->edges().isEmpty()) {
-    cerr << "Unexpected number of edges in analysis relationships" << endl;
+  if (proxy.rowCount(sampleIndex) != 3)
+  {
+    cerr << "Unexpected number of items displayed" << endl;
     error = true;
   }
 
