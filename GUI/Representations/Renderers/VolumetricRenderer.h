@@ -58,7 +58,7 @@ namespace EspINA
 
     RenderableItems renderableItems() { return RenderableItems(EspINA::SEGMENTATION); }
 
-    RendererTypes renderType() { return RendererTypes(RENDERER_VOLUMEVIEW); }
+    RendererTypes renderType() { return RendererTypes(RENDERER_VIEW3D); }
 
     bool canRender(ItemAdapterPtr item)
     { return (item->type() == ItemAdapter::Type::SEGMENTATION); }

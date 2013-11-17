@@ -104,7 +104,7 @@ void View3D::setRenderers(RendererSList renderers)
   // add controls for added renderers
   foreach(RendererSPtr renderer, renderers)
   {
-    if (!canRender(renderer, RendererType::RENDERER_VOLUMEVIEW))
+    if (!canRender(renderer, RendererType::RENDERER_VIEW3D))
       continue;
 
     activeRenderersNames << renderer->name();
@@ -318,7 +318,7 @@ void View3D::buildControls()
 
   foreach(RendererSPtr renderer, m_renderers)
   {
-    if (canRender(renderer, RendererType::RENDERER_VOLUMEVIEW))
+    if (canRender(renderer, RendererType::RENDERER_VIEW3D))
     {
       this->addRendererControls(renderer->clone());
     }

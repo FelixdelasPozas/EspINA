@@ -55,15 +55,15 @@ namespace EspINA
   enum RendererType
   {
     RENDERER_UNDEFINED_VIEW = 0x1,
-    RENDERER_SLICEVIEW      = 0x2,
-    RENDERER_VOLUMEVIEW     = 0x4
+    RENDERER_VIEW2D         = 0x2,
+    RENDERER_VIEW3D         = 0x4
   };
 
   Q_DECLARE_FLAGS(RendererTypes, RendererType);
 
   /// Base class which define the API to render and manage
   /// item visibily in Espina Views (currently only supported
-  /// for VolumeView class)
+  /// for View3D class)
   class EspinaGUI_EXPORT Renderer
   : public QObject
   {

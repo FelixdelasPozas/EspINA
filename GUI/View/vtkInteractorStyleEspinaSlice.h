@@ -62,6 +62,6 @@ private:
   void operator=(const vtkInteractorStyleEspinaSlice&);// Not implemented
 };
 
-using SliceViewInteractor = vtkSmartPointer<vtkInteractorStyleEspinaSlice>;
+using View2DInteractor = vtkSmartPointer<vtkInteractorStyleEspinaSlice>;
 
 #endif // VTKINTERACTORSTYLEESPINASLICE_H

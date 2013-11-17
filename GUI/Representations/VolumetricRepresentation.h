@@ -40,7 +40,6 @@ class vtkVolume;
 namespace EspINA
 {
   class TransparencySelectionHighlighter;
-  class VolumeView;
   
   template<class T>
   class EspinaGUI_EXPORT VolumetricRepresentation

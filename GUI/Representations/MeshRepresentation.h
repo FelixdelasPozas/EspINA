@@ -27,7 +27,6 @@
 namespace EspINA
 {
   class TransparencySelectionHighlighter;
-  class VolumeView;
 
   class EspinaGUI_EXPORT MeshRepresentation
   : public MeshRepresentationBase

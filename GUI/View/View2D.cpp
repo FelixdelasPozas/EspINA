@@ -151,7 +151,7 @@ View2D::View2D(Plane plane, QWidget* parent)
   m_ruler->SizeFontRelativeToAxisOff();
   m_renderer->AddActor(m_ruler);
 
-  SliceViewInteractor interactor = SliceViewInteractor::New();
+  View2DInteractor interactor = View2DInteractor::New();
   interactor->AutoAdjustCameraClippingRangeOn();
   interactor->KeyPressActivationOff();
   renderWindow->AddRenderer(m_renderer);
@@ -202,7 +202,7 @@ void View2D::setRenderers(RendererSList renderers)
 {
   foreach(RendererSPtr renderer, renderers)
   {
-    if (canRender(renderer, RendererType::RENDERER_SLICEVIEW))
+    if (canRender(renderer, RendererType::RENDERER_VIEW2D))
     {
       addRendererControls(renderer->clone());
     }
@@ -1224,7 +1224,7 @@ void View2D::setSlicingStep(const NmVector3& steps)
 {
   if (steps[0] <= 0 || steps[1] <= 0 || steps[2] <= 0)
   {
-    qFatal("SliceView: Invalid Step value. Slicing Step not changed");
+    qFatal("View2D: Invalid Step value. Slicing Step not changed");
     return;
   }
 
@@ -1269,7 +1269,7 @@ void View2D::setSlicingBounds(const Bounds& bounds)
 {
   if (bounds[1] < bounds[0] || bounds[3] < bounds[2] || bounds[5] < bounds[4])
   {
-    qFatal("SliceView: Invalid Slicing Ranges. Ranges not changed");
+    qFatal("View2D: Invalid Slicing Ranges. Ranges not changed");
     return;
   }
 

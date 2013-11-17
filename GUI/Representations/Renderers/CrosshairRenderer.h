@@ -65,7 +65,7 @@ namespace EspINA
 
     virtual RenderableItems renderableItems() { return RenderableItems(EspINA::CHANNEL); };
 
-    virtual RendererTypes renderType() { return RendererTypes(RENDERER_VOLUMEVIEW); }
+    virtual RendererTypes renderType() { return RendererTypes(RENDERER_VIEW3D); }
 
     virtual bool canRender(ItemAdapterPtr item)
     { return (item->type() == ItemAdapter::Type::CHANNEL); }

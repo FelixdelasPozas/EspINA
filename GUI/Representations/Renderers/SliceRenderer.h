@@ -57,7 +57,7 @@ namespace EspINA
 
       virtual RenderableItems renderableItems() { return RenderableItems(RenderableType::CHANNEL|RenderableType::SEGMENTATION); }
 
-      virtual RendererTypes renderType()        { return RendererTypes(RENDERER_SLICEVIEW); }
+      virtual RendererTypes renderType()        { return RendererTypes(RENDERER_VIEW2D); }
 
       virtual int numberOfRenderedItems()       { return m_representations.size(); }
 

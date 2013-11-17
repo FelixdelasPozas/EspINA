@@ -42,7 +42,7 @@ namespace EspINA
       virtual bool managesRepresentation(RepresentationSPtr rep);
 
       virtual RendererSPtr clone()            { return RendererSPtr(new ContourRenderer()); }
-      virtual RendererTypes renderType()      { return RendererTypes(RENDERER_SLICEVIEW); }
+      virtual RendererTypes renderType()      { return RendererTypes(RENDERER_VIEW2D); }
 
       virtual SelectableView::Selection pick(int x,
                                              int y,

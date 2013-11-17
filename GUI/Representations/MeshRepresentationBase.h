@@ -35,7 +35,6 @@ class vtkActor;
 namespace EspINA
 {
   class TransparencySelectionHighlighter;
-  class VolumeView;
 
   class EspinaGUI_EXPORT MeshRepresentationBase
   : public Representation
