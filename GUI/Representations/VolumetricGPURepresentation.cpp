@@ -17,10 +17,10 @@
  */
 
 // EspINA
-#include "GUI/Representations/VolumeGPURepresentation.h"
-#include "GraphicalRepresentationEmptySettings.h"
-#include "GUI/QtWidget/VolumeView.h"
-#include <Core/ColorEngines/TransparencySelectionHighlighter.h>
+#include "VolumetricGPURepresentation.h"
+#include "RepresentationEmptySettings.h"
+#include "GUI/View/View3D.h"
+#include <GUI/ColorEngines/TransparencySelectionHighlighter.h>
 
 // VTK
 #include <vtkGPUVolumeRayCastMapper.h>
@@ -34,35 +34,39 @@
 
 using namespace EspINA;
 
-TransparencySelectionHighlighter *VolumeGPURaycastRepresentation::s_highlighter = new TransparencySelectionHighlighter();
+template<class T> TransparencySelectionHighlighter *VolumetricGPURepresentation<T>::s_highlighter = new TransparencySelectionHighlighter();
 
 //-----------------------------------------------------------------------------
-VolumeGPURaycastRepresentation::VolumeGPURaycastRepresentation(SegmentationVolumeSPtr data, EspinaRenderView *view)
-: SegmentationGraphicalRepresentation(view)
+template<class T>
+VolumetricGPURepresentation<T>::VolumetricGPURepresentation(VolumetricDataSPtr<T> data, RenderView *view)
+: Representation(view)
 , m_data(data)
 {
   setLabel(tr("Volume GPU"));
 }
 
 //-----------------------------------------------------------------------------
-VolumeGPURaycastRepresentation::~VolumeGPURaycastRepresentation()
+template<class T>
+VolumetricGPURepresentation<T>::~VolumetricGPURepresentation()
 {
 }
 
 //-----------------------------------------------------------------------------
-GraphicalRepresentationSettings *VolumeGPURaycastRepresentation::settingsWidget()
+template<class T>
+RepresentationSettings *VolumetricGPURepresentation<T>::settingsWidget()
 {
-  return new GraphicalRepresentationEmptySettings();
+  return new RepresentationEmptySettings();
 }
 
 //-----------------------------------------------------------------------------
-void VolumeGPURaycastRepresentation::setColor(const QColor &color)
+template<class T>
+void VolumetricGPURepresentation<T>::setColor(const QColor &color)
 {
-  SegmentationGraphicalRepresentation::setColor(color);
+  Representation::setColor(color);
 
-  if (m_actor != NULL)
+  if (m_actor != nullptr)
   {
-    LUTPtr colors = s_highlighter->lut(m_color, m_highlight);
+    LUTSPtr colors = s_highlighter->lut(m_color, m_highlight);
 
     double rgba[4], rgb[3], hsv[3];
     colors->GetTableValue(1, rgba);
@@ -73,32 +77,36 @@ void VolumeGPURaycastRepresentation::setColor(const QColor &color)
 }
 
 //-----------------------------------------------------------------------------
-void VolumeGPURaycastRepresentation::setHighlighted(bool highlight)
+template<class T>
+void VolumetricGPURepresentation<T>::setHighlighted(bool highlight)
 {
   Representation::setHighlighted(highlight);
   setColor(m_color);
 }
 
 //-----------------------------------------------------------------------------
-bool VolumeGPURaycastRepresentation::isInside(Nm *point)
+template<class T>
+bool VolumetricGPURepresentation<T>::isInside(const NmVector3 &point) const
 {
   // FIXME: unused now, buy maybe useful in the future
   return false;
 }
 
 //-----------------------------------------------------------------------------
-bool VolumeGPURaycastRepresentation::hasActor(vtkProp *actor) const
+template<class T>
+bool VolumetricGPURepresentation<T>::hasActor(vtkProp *actor) const
 {
-  if (m_actor == NULL)
+  if (m_actor == nullptr)
     return false;
 
   return m_actor.GetPointer() == actor;
 }
 
 //-----------------------------------------------------------------------------
-void VolumeGPURaycastRepresentation::updateRepresentation()
+template<class T>
+void VolumetricGPURepresentation<T>::updateRepresentation()
 {
-  if (m_actor != NULL)
+  if (m_actor != nullptr)
   {
     m_colorFunction->Modified();
     m_actor->Modified();
@@ -108,22 +116,17 @@ void VolumeGPURaycastRepresentation::updateRepresentation()
 }
 
 //-----------------------------------------------------------------------------
-void VolumeGPURaycastRepresentation::updatePipelineConnections()
+template<class T>
+void VolumetricGPURepresentation<T>::initializePipeline()
 {
-  if ((m_actor != NULL) && (m_mapper->GetInputConnection(0,0) != m_data->toVTK()))
-  {
-    m_mapper->SetInputConnection(m_data->toVTK());
-    m_mapper->Update();
-  }
-}
+  itkVolumeType::Pointer volume = m_data->itkImage();
+  m_exporter = ExporterType::New();
+  m_exporter->ReleaseDataFlagOn();
+  m_exporter->SetNumberOfThreads(1);
+  m_exporter->SetInput(volume);
+  m_exporter->Update();
 
-//-----------------------------------------------------------------------------
-void VolumeGPURaycastRepresentation::initializePipeline()
-{
-  connect(m_data.get(), SIGNAL(representationChanged()),
-          this, SLOT(updatePipelineConnections()));
-
-  itkVolumeType::RegionType region = m_data->toITK()->GetLargestPossibleRegion();
+  itkVolumeType::RegionType region = volume->GetLargestPossibleRegion();
   vtkIdType numPixels = region.GetSize()[0] * region.GetSize()[1] * region.GetSize()[2] + 1024;
 
   vtkSmartPointer<vtkVolumeRayCastCompositeFunction> composite = vtkSmartPointer<vtkVolumeRayCastCompositeFunction>::New();
@@ -135,7 +138,7 @@ void VolumeGPURaycastRepresentation::initializePipeline()
   m_mapper->SetBlendModeToComposite();
   m_mapper->SetMaxMemoryFraction(1);
   m_mapper->SetMaxMemoryInBytes(numPixels);
-  m_mapper->SetInputConnection(m_data->toVTK());
+  m_mapper->SetInputData(m_exporter->GetOutput());
   m_mapper->Update();
 
   // actor should be allocated first of the next call to setColor would do nothing
@@ -170,11 +173,12 @@ void VolumeGPURaycastRepresentation::initializePipeline()
 }
 
 //-----------------------------------------------------------------------------
-QList<vtkProp*> VolumeGPURaycastRepresentation::getActors()
+template<class T>
+QList<vtkProp*> VolumetricGPURepresentation<T>::getActors()
 {
   QList<vtkProp*> list;
 
-  if (m_actor == NULL)
+  if (m_actor == nullptr)
     initializePipeline();
 
   list << m_actor.GetPointer();
@@ -183,17 +187,19 @@ QList<vtkProp*> VolumeGPURaycastRepresentation::getActors()
 }
 
 //-----------------------------------------------------------------------------
-GraphicalRepresentationSPtr VolumeGPURaycastRepresentation::cloneImplementation(VolumeView *view)
+template<class T>
+RepresentationSPtr VolumetricGPURepresentation<T>::cloneImplementation(View3D *view)
 {
-  VolumeGPURaycastRepresentation *representation = new VolumeGPURaycastRepresentation(m_data, view);
+  VolumetricGPURepresentation *representation = new VolumetricGPURepresentation(m_data, view);
   representation->setView(view);
 
-  return GraphicalRepresentationSPtr(representation);
+  return RepresentationSPtr(representation);
 }
 
 //-----------------------------------------------------------------------------
-void VolumeGPURaycastRepresentation::updateVisibility(bool visible)
+template<class T>
+void VolumetricGPURepresentation<T>::updateVisibility(bool visible)
 {
-  if (m_actor != NULL)
+  if (m_actor != nullptr)
     m_actor->SetVisibility(visible);
 }

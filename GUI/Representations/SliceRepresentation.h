@@ -33,7 +33,7 @@
 // EspINA
 #include <Core/Analysis/Data/VolumetricData.h>
 #include <Core/Utils/Spatial.h>
-#include <GUI/Representations/GraphicalRepresentation.h>
+#include <GUI/Representations/Representation.h>
 #include <GUI/View/View2D.h>
 
 // ITK

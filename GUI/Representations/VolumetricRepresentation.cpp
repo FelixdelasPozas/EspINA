@@ -17,12 +17,12 @@
  */
 
 // EspINA
-#include "VolumeRaycastRepresentation.h"
-#include "GraphicalRepresentationEmptySettings.h"
-#include "GUI/QtWidget/EspinaRenderView.h"
-#include "GUI/QtWidget/VolumeView.h"
-#include "Core/ColorEngines/IColorEngine.h"
-#include "Core/ColorEngines/TransparencySelectionHighlighter.h"
+#include "VolumetricRepresentation.h"
+#include "RepresentationEmptySettings.h"
+#include "GUI/View/RenderView.h"
+#include "GUI/View/View3D.h"
+#include "GUI/ColorEngines/ColorEngine.h"
+#include "GUI/ColorEngines/TransparencySelectionHighlighter.h"
 
 // VTK
 #include <vtkVolumeRayCastMapper.h>
@@ -35,35 +35,39 @@
 
 using namespace EspINA;
 
-TransparencySelectionHighlighter *VolumeRaycastRepresentation::s_highlighter = new TransparencySelectionHighlighter();
+template<class T> TransparencySelectionHighlighter *VolumetricRepresentation<T>::s_highlighter = new TransparencySelectionHighlighter();
 
 //-----------------------------------------------------------------------------
-VolumeRaycastRepresentation::VolumeRaycastRepresentation(SegmentationVolumeSPtr data, EspinaRenderView *view)
-: SegmentationGraphicalRepresentation(view)
+template<class T>
+VolumetricRepresentation<T>::VolumetricRepresentation(VolumetricDataSPtr<T> data, RenderView *view)
+: Representation(view)
 , m_data(data)
 {
   setLabel(tr("Volume Raycast"));
 }
 
 //-----------------------------------------------------------------------------
-VolumeRaycastRepresentation::~VolumeRaycastRepresentation()
+template<class T>
+VolumetricRepresentation<T>::~VolumetricRepresentation()
 {
 }
 
 //-----------------------------------------------------------------------------
-GraphicalRepresentationSettings *VolumeRaycastRepresentation::settingsWidget()
+template<class T>
+RepresentationSettings *VolumetricRepresentation<T>::settingsWidget()
 {
-  return new GraphicalRepresentationEmptySettings();
+  return new RepresentationEmptySettings();
 }
 
 //-----------------------------------------------------------------------------
-void VolumeRaycastRepresentation::setColor(const QColor &color)
+template<class T>
+void VolumetricRepresentation<T>::setColor(const QColor &color)
 {
-  SegmentationGraphicalRepresentation::setColor(color);
+  Representation::setColor(color);
 
-  if (m_actor != NULL)
+  if (m_actor != nullptr)
   {
-    LUTPtr colors = s_highlighter->lut(m_color, m_highlight);
+    LUTSPtr colors = s_highlighter->lut(m_color, m_highlight);
     double rgba[4], rgb[3], hsv[3];
     colors->GetTableValue(1, rgba);
     memcpy(rgb, rgba, 3*sizeof(double));
@@ -73,33 +77,39 @@ void VolumeRaycastRepresentation::setColor(const QColor &color)
 }
 
 //-----------------------------------------------------------------------------
-void VolumeRaycastRepresentation::setHighlighted(bool highlight)
+template<class T>
+void VolumetricRepresentation<T>::setHighlighted(bool highlight)
 {
   Representation::setHighlighted(highlight);
   setColor(m_color);
 }
 
 //-----------------------------------------------------------------------------
-bool VolumeRaycastRepresentation::isInside(Nm *point)
+template<class T>
+bool VolumetricRepresentation<T>::isInside(const NmVector3 &point) const
 {
   // FIXME: unused now, buy maybe useful in the future
   return false;
 }
 
 //-----------------------------------------------------------------------------
-bool VolumeRaycastRepresentation::hasActor(vtkProp *actor) const
+template<class T>
+bool VolumetricRepresentation<T>::hasActor(vtkProp *actor) const
 {
-  if (m_actor == NULL)
+  if (m_actor == nullptr)
     return false;
 
   return m_actor.GetPointer() == actor;
 }
 
 //-----------------------------------------------------------------------------
-void VolumeRaycastRepresentation::updateRepresentation()
+template<class T>
+void VolumetricRepresentation<T>::updateRepresentation()
 {
-  if (m_actor != NULL)
+  if (m_actor != nullptr)
   {
+    m_exporter->SetInput(m_data->itkImage());
+    m_exporter->Update();
     m_mapper->UpdateWholeExtent();
     m_colorFunction->Modified();
     m_actor->Modified();
@@ -108,20 +118,15 @@ void VolumeRaycastRepresentation::updateRepresentation()
 }
 
 //-----------------------------------------------------------------------------
-void VolumeRaycastRepresentation::updatePipelineConnections()
+template<class T>
+void VolumetricRepresentation<T>::initializePipeline()
 {
-  if ((m_actor != NULL) && (m_mapper->GetInputConnection(0,0) != m_data->toVTK()))
-  {
-    m_mapper->SetInputConnection(m_data->toVTK());
-    m_mapper->Update();
-  }
-}
-
-//-----------------------------------------------------------------------------
-void VolumeRaycastRepresentation::initializePipeline()
-{
-  connect(m_data.get(), SIGNAL(representationChanged()),
-          this, SLOT(updatePipelineConnections()));
+  itkVolumeType::Pointer volume = m_data->itkImage();
+  m_exporter = ExporterType::New();
+  m_exporter->ReleaseDataFlagOn();
+  m_exporter->SetNumberOfThreads(1);
+  m_exporter->SetInput(volume);
+  m_exporter->Update();
 
   vtkSmartPointer<vtkVolumeRayCastCompositeFunction> composite = vtkSmartPointer<vtkVolumeRayCastCompositeFunction>::New();
   m_mapper = vtkSmartPointer<vtkVolumeRayCastMapper>::New();
@@ -129,7 +134,7 @@ void VolumeRaycastRepresentation::initializePipeline()
   m_mapper->SetBlendModeToComposite();
   m_mapper->SetVolumeRayCastFunction(composite);
   m_mapper->IntermixIntersectingGeometryOff();
-  m_mapper->SetInputConnection(m_data->toVTK());
+  m_mapper->SetInputData(m_exporter->GetOutput());
   m_mapper->Update();
 
   // actor should be allocated first of the next call to setColor would do nothing
@@ -161,11 +166,12 @@ void VolumeRaycastRepresentation::initializePipeline()
 }
 
 //-----------------------------------------------------------------------------
-QList<vtkProp*> VolumeRaycastRepresentation::getActors()
+template<class T>
+QList<vtkProp*> VolumetricRepresentation<T>::getActors()
 {
   QList<vtkProp*> list;
 
-  if (m_actor == NULL)
+  if (m_actor == nullptr)
     initializePipeline();
 
   list << m_actor.GetPointer();
@@ -174,17 +180,19 @@ QList<vtkProp*> VolumeRaycastRepresentation::getActors()
 }
 
 //-----------------------------------------------------------------------------
-GraphicalRepresentationSPtr VolumeRaycastRepresentation::cloneImplementation(VolumeView *view)
+template<class T>
+RepresentationSPtr VolumetricRepresentation<T>::cloneImplementation(View3D *view)
 {
-  VolumeRaycastRepresentation *representation = new VolumeRaycastRepresentation(m_data, view);
+  VolumetricRepresentation *representation = new VolumetricRepresentation(m_data, view);
   representation->setView(view);
 
-  return GraphicalRepresentationSPtr(representation);
+  return RepresentationSPtr(representation);
 }
 
 //-----------------------------------------------------------------------------
-void VolumeRaycastRepresentation::updateVisibility(bool visible)
+template<class T>
+void VolumetricRepresentation<T>::updateVisibility(bool visible)
 {
-  if (m_actor != NULL)
+  if (m_actor != nullptr)
     m_actor->SetVisibility(visible);
 }

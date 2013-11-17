@@ -22,50 +22,58 @@
 #include "EspinaGUI_Export.h"
 
 // EspINA
-#include "GUI/Renderers/Renderer.h"
-#include "GUI/Representations/VolumeRaycastRepresentation.h"
+#include "GUI/Representations/Renderers/Renderer.h"
+#include "GUI/Representations/VolumetricRepresentation.h"
 #include <Core/EspinaTypes.h>
-#include <GUI/ViewManager.h>
+#include <Support/ViewManager.h>
 
 // VTK
 #include <vtkVolumePicker.h>
 
 namespace EspINA
 {
+  template<class T>
   class EspinaGUI_EXPORT VolumetricRenderer
-  : public IRenderer
+  : public Renderer
   {
   public:
     explicit VolumetricRenderer(QObject* parent = 0);
     virtual ~VolumetricRenderer();
 
-    virtual const QIcon icon() const {return QIcon(":/espina/voxel.png");}
-    virtual const QString name() const {return "Volumetric";}
-    virtual const QString tooltip() const {return "Segmentation's Volumes";}
+    const QIcon icon()      const {return QIcon(":/espina/voxel.png");}
+    const QString name()    const {return "Volumetric";}
+    const QString tooltip() const {return "Segmentation's Volumes";}
 
-    virtual void addRepresentation(PickableItemPtr item, GraphicalRepresentationSPtr rep);
-    virtual void removeRepresentation(GraphicalRepresentationSPtr rep);
-    virtual bool hasRepresentation(GraphicalRepresentationSPtr rep);
-    virtual bool managesRepresentation(GraphicalRepresentationSPtr rep);
+    void addRepresentation(ViewItemAdapterPtr item, RepresentationSPtr rep);
+    void removeRepresentation(RepresentationSPtr rep);
+    bool hasRepresentation(RepresentationSPtr rep);
+    bool managesRepresentation(RepresentationSPtr rep);
 
-    virtual void hide();
-    virtual void show();
-    virtual unsigned int getNumberOfvtkActors() { return 0; }
+    void hide();
+    void show();
 
-    virtual IRendererSPtr clone() {return IRendererSPtr(new VolumetricRenderer());}
+    RendererSPtr clone() {return RendererSPtr(new VolumetricRenderer());}
 
-    virtual RendererType getRenderType() { return RendererType(RENDERER_VOLUMEVIEW); }
-    virtual RenderabledItems getRenderableItemsType() { return RenderabledItems(EspINA::SEGMENTATION); }
-    virtual int itemsBeenRendered() { return m_representations.size(); }
+    unsigned int numberOfvtkActors() { return 0; }
+
+    RenderableItems renderableItems() { return RenderableItems(EspINA::SEGMENTATION); }
+
+    RendererTypes renderType() { return RendererTypes(RENDERER_VOLUMEVIEW); }
+
+    bool canRender(ItemAdapterPtr item)
+    { return (item->type() == ItemAdapter::Type::SEGMENTATION); }
+
+    int numberOfRenderedItems() { return m_representations.size(); }
 
     // to pick items been rendered
-    virtual ViewManager::Selection pick(int x,
-                                        int y,
-                                        Nm z,
-                                        vtkSmartPointer<vtkRenderer> renderer,
-                                        RenderabledItems itemType = RenderabledItems(),
-                                        bool repeat = false);
-    virtual void getPickCoordinates(double *point);
+    SelectableView::Selection pick(int x,
+                                   int y,
+                                   Nm z,
+                                   vtkSmartPointer<vtkRenderer> renderer,
+                                   RenderableItems itemType = RenderableItems(),
+                                   bool repeat = false);
+
+    NmVector3 pickCoordinates() const;
 
   protected:
     vtkSmartPointer<vtkVolumePicker> m_picker;

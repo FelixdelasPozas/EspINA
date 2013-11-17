@@ -1,6 +1,6 @@
 /*
  <one line to give the program's name and a brief idea of what it does.>
- Copyright (C) 2013 Félix de las Pozas Álvarez <felixdelaspozas@gmail.com>
+ Copyright (C) 2013 Fï¿½lix de las Pozas ï¿½lvarez <felixdelaspozas@gmail.com>
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -25,22 +25,23 @@
 
 namespace EspINA
 {
+  template<class T>
   class EspinaGUI_EXPORT VolumetricGPURenderer
-  : public VolumetricRenderer
+  : public VolumetricRenderer<T>
   {
     public:
       explicit VolumetricGPURenderer(QObject* parent = 0);
       virtual ~VolumetricGPURenderer();
 
-      virtual const QIcon icon() const {return QIcon(":/espina/voxelGPU.png");}
-      virtual const QString name() const {return "Volumetric GPU";}
+      virtual const QIcon icon()      const {return QIcon(":/espina/voxelGPU.png");}
+      virtual const QString name()    const {return "Volumetric GPU";}
       virtual const QString tooltip() const {return "Segmentation's GPU Rendered Volumes";}
 
-      virtual void addRepresentation(PickableItemPtr item, GraphicalRepresentationSPtr rep);
-      virtual void removeRepresentation(GraphicalRepresentationSPtr rep);
-      virtual bool managesRepresentation(GraphicalRepresentationSPtr rep);
+      virtual void addRepresentation(ViewItemAdapterPtr item, RepresentationSPtr rep);
+      virtual void removeRepresentation(RepresentationSPtr rep);
+      virtual bool managesRepresentation(RepresentationSPtr rep);
 
-      virtual IRendererSPtr clone() {return IRendererSPtr(new VolumetricGPURenderer());}
+      virtual RendererSPtr clone() {return RendererSPtr(new VolumetricGPURenderer());}
   };
 
 } /* namespace EspINA */

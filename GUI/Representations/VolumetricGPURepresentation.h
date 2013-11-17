@@ -22,13 +22,16 @@
 #include "EspinaGUI_Export.h"
 
 // EspINA
-#include "GraphicalRepresentation.h"
-#include "GUI/QtWidget/EspinaRenderView.h"
-#include <Core/OutputRepresentations/VolumeRepresentation.h>
-#include <GUI/QtWidget/VolumeView.h>
+#include "Representation.h"
+#include "GUI/View/RenderView.h"
+#include <Core/Analysis/Data/VolumetricData.h>
+#include <GUI/View/View3D.h>
 
 // VTK
 #include <vtkSmartPointer.h>
+
+// ITK
+#include <itkImageToVTKImageFilter.h>
 
 class vtkGPUVolumeRayCastMapper;
 class vtkColorTransferFunction;
@@ -39,22 +42,22 @@ namespace EspINA
   class TransparencySelectionHighlighter;
   class VolumeView;
   
-  class EspinaGUI_EXPORT VolumeGPURaycastRepresentation
-  : public SegmentationGraphicalRepresentation
+  template<class T>
+  class EspinaGUI_EXPORT VolumetricGPURepresentation
+  : public Representation
   {
-    Q_OBJECT
     public:
-      explicit VolumeGPURaycastRepresentation(SegmentationVolumeSPtr data,
-                                              EspinaRenderView *view);
-      virtual ~VolumeGPURaycastRepresentation();
+      explicit VolumetricGPURepresentation(VolumetricDataSPtr<T> data,
+                                           RenderView *view);
+      virtual ~VolumetricGPURepresentation();
 
-      virtual GraphicalRepresentationSettings *settingsWidget();
+      virtual RepresentationSettings *settingsWidget();
 
       virtual void setColor(const QColor &color);
 
       virtual void setHighlighted(bool highlighted);
 
-      virtual bool isInside(Nm point[3]);
+      virtual bool isInside(const NmVector3 &point) const;
 
       virtual RenderableView canRenderOnView() const
       { return Representation::RENDERABLEVIEW_VOLUME; }
@@ -66,23 +69,23 @@ namespace EspINA
       virtual QList<vtkProp*> getActors();
 
   protected:
-      virtual GraphicalRepresentationSPtr cloneImplementation(SliceView *view)
-      { return GraphicalRepresentationSPtr(); }
+      virtual RepresentationSPtr cloneImplementation(View2D *view)
+      { return RepresentationSPtr(); }
 
-      virtual GraphicalRepresentationSPtr cloneImplementation(VolumeView *view);
+      virtual RepresentationSPtr cloneImplementation(View3D *view);
 
     virtual void updateVisibility(bool visible);
 
-    private slots:
-      void updatePipelineConnections();
-
     private:
-      void setView(VolumeView *view) { m_view = view; };
+      void setView(View3D *view) { m_view = view; };
       void initializePipeline();
 
     private:
-      SegmentationVolumeSPtr m_data;
+      VolumetricDataSPtr<T> m_data;
 
+      using ExporterType = itk::ImageToVTKImageFilter<itkVolumeType>;
+
+      ExporterType::Pointer                      m_exporter;
       vtkSmartPointer<vtkGPUVolumeRayCastMapper> m_mapper;
       vtkSmartPointer<vtkColorTransferFunction>  m_colorFunction;
       vtkSmartPointer<vtkVolume>                 m_actor;
@@ -90,8 +93,9 @@ namespace EspINA
       static TransparencySelectionHighlighter *s_highlighter;
     };
 
-  typedef boost::shared_ptr<VolumeGPURaycastRepresentation> VolumeGPURepresentationSPtr;
-  typedef QList<VolumeGPURepresentationSPtr> VolumeGPURepresentationSList;
+  template<class T> using VolumetricGPURepresentationPtr  = VolumetricGPURepresentation<T> *;
+  template<class T> using VolumetricGPURepresentationSPtr = std::shared_ptr<VolumetricGPURepresentation<T>>;
+  template<class T> using VolumetricGPURepresentationSList = QList<VolumetricGPURepresentationSPtr<T>>;
 
 } /* namespace EspINA */
 #endif /* VOLUMEGPUREPRESENTATION_H_ */

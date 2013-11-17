@@ -91,16 +91,13 @@ namespace EspINA
       bool tiling()              { return m_tiling; }
       void setTiling(bool value) { m_tiling = value; }
 
-  protected:
+    protected:
       virtual RepresentationSPtr cloneImplementation(View2D *view)
       { return RepresentationSPtr(); }
 
       virtual RepresentationSPtr cloneImplementation(View3D *view);
 
     virtual void updateVisibility(bool visible);
-
-    private slots:
-      void updatePipelineConnections();
 
     private:
       void initializePipeline();

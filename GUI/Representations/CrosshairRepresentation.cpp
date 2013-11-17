@@ -156,32 +156,9 @@ bool CrosshairRepresentation::hasActor(vtkProp *actor) const
 //-----------------------------------------------------------------------------
 void CrosshairRepresentation::updateRepresentation()
 {
-  if (m_axial != nullptr)
-  {
-    // TODO: importer/exporter
+  if (m_axial == nullptr)
+    return;
 
-    m_axialScaler->Update();
-    m_coronalScaler->Update();
-    m_sagittalScaler->Update();
-
-    m_axialSquare->Modified();
-    m_coronalSquare->Modified();
-    m_sagittalSquare->Modified();
-
-    m_axial->Update();
-    m_coronal->Update();
-    m_sagittal->Update();
-
-    m_axialBorder->Modified();
-    m_coronalBorder->Modified();
-    m_sagittalBorder->Modified();
-  }
-}
-
-// TODO
-//-----------------------------------------------------------------------------
-void CrosshairRepresentation::updatePipelineConnections()
-{
   int reslicePoint = m_point[normalCoordinateIndex(Plane::XY)];
 
   Bounds imageBounds = m_data->bounds();
@@ -317,9 +294,16 @@ void CrosshairRepresentation::updatePipelineConnections()
   m_sagittalSquare->SetPoints(sagittalPoints);
   m_sagittalSquare->SetLines(sagittalLines);
   m_sagittalSquare->Modified();
+
+  m_axial->Update();
+  m_coronal->Update();
+  m_sagittal->Update();
+
+  m_axialBorder->Modified();
+  m_coronalBorder->Modified();
+  m_sagittalBorder->Modified();
 }
 
-// TODO
 //-----------------------------------------------------------------------------
 void CrosshairRepresentation::initializePipeline()
 {
@@ -432,15 +416,15 @@ void CrosshairRepresentation::initializePipeline()
   sagittalImagemap->SetInputConnection(m_sagittalScaler->GetOutputPort());
 
   m_axial = vtkSmartPointer<vtkImageActor>::New();
-  Q_ASSERT(false); //TODO 2013-10-08 m_axial->SetInput(axialImagemap->GetOutput());
+  m_axial->SetInputData(axialImagemap->GetOutput());
   m_axial->SetInterpolate(false);
 
   m_coronal = vtkSmartPointer<vtkImageActor>::New();
-  Q_ASSERT(false); //TODO 2013-10-08 m_coronal->SetInput(coronalImagemap->GetOutput());
+  m_coronal->SetInputData(coronalImagemap->GetOutput());
   m_coronal->SetInterpolate(false);
 
   m_sagittal = vtkSmartPointer<vtkImageActor>::New();
-  Q_ASSERT(false); //TODO 2013-10-08 m_sagittal->SetInput(sagittalImagemap->GetOutput());
+  m_sagittal->SetInputData(sagittalImagemap->GetOutput());
   m_sagittal->SetInterpolate(false);
 
   // rotate actors
@@ -548,7 +532,7 @@ void CrosshairRepresentation::initializePipeline()
   m_sagittalSquare->Reset();
   m_sagittalSquare->SetPoints(sagittalPoints);
   m_sagittalSquare->SetLines(sagittalLines);
-  Q_ASSERT(false); //TODO 2013-10-08 m_sagittalSquare->Update();
+  m_sagittalSquare->Modified();
 
   auto axialSquareMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
   axialSquareMapper->SetInputData(m_axialSquare);

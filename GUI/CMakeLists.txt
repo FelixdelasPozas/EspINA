@@ -19,6 +19,8 @@ qt4_wrap_cpp(GUI_MOC
   Representations/MeshRepresentationBase.h
   Representations/Renderers/ContourRenderer.h
   Representations/Renderers/Renderer.h
+  Representations/Renderers/VolumetricRenderer.h
+  Representations/Renderers/VolumetricGPURenderer.h
   Representations/RepresentationEmptySettings.h
   Representations/SliceRepresentationSettings.h
   Representations/SmoothedMeshRepresentation.h
@@ -78,12 +80,16 @@ set (GUI_SOURCES
   Representations/Renderers/Renderer.cpp
   Representations/Renderers/SliceRenderer.cpp
   Representations/Renderers/CrosshairRenderer.cpp
+  Representations/Renderers/VolumetricRenderer.cpp
+  Representations/Renderers/VolumetricGPURenderer.cpp
   Representations/Representation.cpp
   Representations/RepresentationEmptySettings.cpp
   Representations/RepresentationFactoryGroup.cpp 
   Representations/SliceRepresentation.cpp
   Representations/SliceRepresentationSettings.cpp 
   Representations/SmoothedMeshRepresentation.cpp
+  Representations/VolumetricRepresentation.cpp
+  Representations/VolumetricGPURepresentation.cpp
   Selectors/PixelSelector.cpp
   Selectors/Selector.cpp
   Utils/QtModelUtils.cpp
