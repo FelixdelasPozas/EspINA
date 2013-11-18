@@ -179,7 +179,7 @@ void ChannelSliceRepresentation::initializePipeline()
   m_lut->SetHueRange(m_color.hueF(), m_color.hueF());
   m_lut->SetSaturationRange(0.0, m_color.saturationF());
   m_lut->SetValueRange(0.0, 1.0);
-  m_lut->SetAlphaRange(1.0,1.0);
+  m_lut->SetAlphaRange(0.5,0.5);
   m_lut->SetNumberOfColors(256);
   m_lut->SetRampToLinear();
   m_lut->Build();
@@ -206,13 +206,19 @@ void ChannelSliceRepresentation::updateRepresentation()
   if (m_actor != nullptr && (m_crosshair[m_planeIndex] != m_reslicePoint))
   {
     m_reslicePoint = m_crosshair[m_planeIndex];
+
     Bounds imageBounds = m_data->bounds();
+
     imageBounds.setLowerInclusion(true);
     imageBounds.setUpperInclusion(toAxis(m_planeIndex), true);
-    imageBounds[2*m_planeIndex] = m_reslicePoint;
-    imageBounds[(2*m_planeIndex)+1] = m_reslicePoint;
+
+    imageBounds[2*m_planeIndex]   = m_reslicePoint;
+    imageBounds[2*m_planeIndex+1] = m_reslicePoint;
 
     itkVolumeType::Pointer slice = m_data->itkImage(imageBounds);
+    cout << "Channel: " << imageBounds << endl;
+    slice->GetLargestPossibleRegion().Print(cout);
+
     m_exporter = ExporterType::New();
     m_exporter->ReleaseDataFlagOn();
     m_exporter->SetNumberOfThreads(1);
@@ -248,6 +254,8 @@ bool ChannelSliceRepresentation::isInside(const NmVector3 &point) const
 //-----------------------------------------------------------------------------
 TransparencySelectionHighlighter *SegmentationSliceRepresentation::s_highlighter = new TransparencySelectionHighlighter();
 
+const Representation::Type SegmentationSliceRepresentation::TYPE = "Slice";
+
 //-----------------------------------------------------------------------------
 SegmentationSliceRepresentation::SegmentationSliceRepresentation(DefaultVolumetricDataSPtr data,
                                                                  View2D *view)
@@ -258,7 +266,7 @@ SegmentationSliceRepresentation::SegmentationSliceRepresentation(DefaultVolumetr
 , m_mapToColors(nullptr)
 , m_actor(nullptr)
 {
-  setType(tr("Solid"));
+  setType(TYPE);
   //qDebug() << "Creating Solid Representation";
 }
 
@@ -362,15 +370,20 @@ void SegmentationSliceRepresentation::initializePipeline()
   View2D* view = reinterpret_cast<View2D *>(m_view);
 
   Bounds imageBounds = m_data->bounds();
-  imageBounds.setUpperInclusion(true);
+
   imageBounds.setLowerInclusion(true);
-  imageBounds[2*m_planeIndex] = m_reslicePoint;
-  imageBounds[(2*m_planeIndex)+1] = m_reslicePoint;
+  imageBounds.setUpperInclusion(toAxis(m_planeIndex), true);
+
+  imageBounds[2*m_planeIndex]   = m_reslicePoint;
+  imageBounds[2*m_planeIndex+1] = m_reslicePoint;
+
+  itkVolumeType::Pointer slice = m_data->itkImage(imageBounds);
 
   m_exporter = ExporterType::New();
   m_exporter->ReleaseDataFlagOn();
-  m_exporter->SetInput(m_data->itkImage(imageBounds));
-  m_exporter->UpdateLargestPossibleRegion();
+  m_exporter->SetNumberOfThreads(1);
+  m_exporter->SetInput(slice);
+  m_exporter->Update();
 
   // actor should be allocated first or the next call to setColor() would do nothing
   m_actor = vtkSmartPointer<vtkImageActor>::New();
@@ -396,18 +409,31 @@ void SegmentationSliceRepresentation::initializePipeline()
 //-----------------------------------------------------------------------------
 void SegmentationSliceRepresentation::updateRepresentation()
 {
+  setCrosshairPoint(m_view->crosshairPoint());
+
   if (m_actor != nullptr && (m_crosshair[m_planeIndex] != m_reslicePoint))
   {
     m_reslicePoint = m_crosshair[m_planeIndex];
-    Bounds imageBounds = m_data->bounds();
-    imageBounds.setUpperInclusion(true);
-    imageBounds.setLowerInclusion(true);
-    imageBounds[2*m_planeIndex] = m_reslicePoint;
-    imageBounds[(2*m_planeIndex)+1] = m_reslicePoint;
 
-    m_exporter->SetInput(m_data->itkImage(imageBounds));
-    m_exporter->UpdateLargestPossibleRegion();
+    Bounds imageBounds = m_data->bounds();
+
+    imageBounds.setLowerInclusion(true);
+    imageBounds.setUpperInclusion(toAxis(m_planeIndex), true);
+
+    imageBounds[2*m_planeIndex]   = m_reslicePoint;
+    imageBounds[2*m_planeIndex+1] = m_reslicePoint;
+
+    itkVolumeType::Pointer slice = m_data->itkImage(imageBounds);
+    cout << "Segmentation: " << imageBounds << endl;
+    slice->GetLargestPossibleRegion().Print(cout);
+
+    m_exporter = ExporterType::New();
+    m_exporter->ReleaseDataFlagOn();
+    m_exporter->SetNumberOfThreads(1);
+    m_exporter->SetInput(slice);
+    m_exporter->Update();
     m_mapToColors->Update();
+    m_actor->SetDisplayExtent(m_exporter->GetOutput()->GetExtent());
     m_actor->Update();
   }
 }

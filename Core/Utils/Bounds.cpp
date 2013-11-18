@@ -222,6 +222,8 @@ std::ostream& EspINA::operator<<(std::ostream& os, const Bounds& bounds)
 //-----------------------------------------------------------------------------
 bool EspINA::contains(const Bounds &container, const Bounds &contained)
 {
+  return intersection(container, contained) == contained;
+
   int i = 0;
   for (Axis dir : {Axis::X, Axis::Y, Axis::Z}) {
     if (contained[i] < container[i]) {

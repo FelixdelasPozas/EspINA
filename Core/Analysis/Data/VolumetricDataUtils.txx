@@ -105,14 +105,23 @@ Bounds equivalentBounds(const typename T::Pointer image, const typename T::Regio
 template<typename T>
 //-----------------------------------------------------------------------------
 typename T::Pointer create_itkImage(const Bounds&                bounds,
-                                    const typename T::ValueType   value,
-                                    const typename T::SpacingType spacing,
-                                    const typename T::PointType   origin)
+                                    const typename T::ValueType  value,
+                                    const NmVector3             &spacing,
+                                    const NmVector3             &origin)
 {
+  typename T::PointType   itkOrigin;
+  typename T::SpacingType itkSpacing;
+
+  for(int i = 0; i < 3; ++i)
+  {
+    itkOrigin[i]  = origin[i];
+    itkSpacing[i] = spacing[i];
+  }
+
   typename T::Pointer image = T::New();
   // Origin and spacing must be set before calling equivalentRegion on image
-  image->SetOrigin(origin);
-  image->SetSpacing(spacing);
+  image->SetOrigin(itkOrigin);
+  image->SetSpacing(itkSpacing);
   image->SetRegions(equivalentRegion<T>(image, bounds));
   image->Allocate();
   image->FillBuffer(value);

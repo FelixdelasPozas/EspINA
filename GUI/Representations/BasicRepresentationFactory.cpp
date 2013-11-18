@@ -47,18 +47,18 @@ RepresentationTypeList BasicChannelRepresentationFactory::representations() cons
 
 
 //-----------------------------------------------------------------------------
-RepresentationSPtr BasicChannelRepresentationFactory::createRepresentation(OutputSPtr output, Representation::Type representation)
+RepresentationSPtr BasicChannelRepresentationFactory::createRepresentation(OutputSPtr output, Representation::Type type)
 {
-  RepresentationSPtr rep;
+  RepresentationSPtr representation;
 
-  if (representation == ChannelSliceRepresentation::TYPE)
+  if (type == ChannelSliceRepresentation::TYPE)
   {
     DefaultVolumetricDataSPtr volume = volumetricData(output);
 
-    rep = RepresentationSPtr{new ChannelSliceRepresentation(volume, nullptr)};
+    representation = RepresentationSPtr{new ChannelSliceRepresentation(volume, nullptr)};
   }
 
-  return rep;
+  return representation;
 }
 
 //-----------------------------------------------------------------------------
@@ -66,13 +66,24 @@ RepresentationTypeList BasicSegmentationRepresentationFactory::representations()
 {
   RepresentationTypeList representations;
 
+  representations << SegmentationSliceRepresentation::TYPE;
+
   return representations;
 }
 
 //-----------------------------------------------------------------------------
 RepresentationSPtr BasicSegmentationRepresentationFactory::createRepresentation(OutputSPtr output, Representation::Type type)
 {
-  return RepresentationSPtr();
+  RepresentationSPtr representation;
+
+  if (type == SegmentationSliceRepresentation::TYPE)
+  {
+    DefaultVolumetricDataSPtr volume = volumetricData(output);
+
+    representation = RepresentationSPtr{new SegmentationSliceRepresentation(volume, nullptr)};
+  }
+
+  return representation;
 }
 
 // void BasicGraphicalRepresentationFactory::createGraphicalRepresentations(ChannelOutputSPtr output)

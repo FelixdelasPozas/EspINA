@@ -62,13 +62,13 @@ namespace EspINA
      */
     virtual double memoryUsage() const = 0;
 
-    virtual void setOrigin(const typename T::PointType origin) = 0;
+    virtual void setOrigin(const NmVector3& origin) = 0;
 
-    virtual typename T::PointType origin() const = 0;
+    virtual NmVector3 origin() const = 0;
 
-    virtual void setSpacing(const typename T::SpacingType spacing) = 0;
+    virtual void setSpacing(const NmVector3& spacing) = 0;
 
-    virtual typename T::SpacingType spacing() const = 0;
+    virtual NmVector3 spacing() const = 0;
 
     /** \brief Return a read only ItkImage equivalent to the whole volume representation.
      *

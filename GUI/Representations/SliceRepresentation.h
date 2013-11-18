@@ -124,6 +124,9 @@ namespace EspINA
   : public Representation
   {
   public:
+    static const Representation::Type TYPE;
+
+  public:
     explicit SegmentationSliceRepresentation(DefaultVolumetricDataSPtr data,
                                              View2D *view);
     virtual ~SegmentationSliceRepresentation();

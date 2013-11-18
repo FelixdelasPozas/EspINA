@@ -37,13 +37,16 @@ using namespace std;
 using namespace EspINA;
 using namespace EspINA::Testing;
 
-int analysis_merge_merge_analyses_with_same_sample( int argc, char** argv )
+int analysis_merge_merge_analyses_with_category_overlaping(int argc, char** argv)
 {
   bool error = false;
 
   AnalysisSPtr analysis1{new Analysis()};
 
-  SampleSPtr sample1{new Sample("Sample")};
+  ClassificationSPtr classification1{new Classification("Classification1")};
+  CategorySPtr       category1 = classification1->createNode("Category 1/Sub Category 1");
+
+  SampleSPtr sample1{new Sample("Sample1")};
 
   FilterSPtr filter1{new DummyFilter()};
 
@@ -52,14 +55,19 @@ int analysis_merge_merge_analyses_with_same_sample( int argc, char** argv )
 
   SegmentationSPtr segmentation1{new Segmentation(filter1, 0)};
   segmentation1->setName("Segmentation 1");
+  segmentation1->setCategory(category1);
 
+  analysis1->setClassification(classification1);
   analysis1->add(sample1);
   analysis1->add(channel1);
   analysis1->add(segmentation1);
 
   AnalysisSPtr analysis2{new Analysis()};
 
-  SampleSPtr sample2{new Sample("Sample")};
+  ClassificationSPtr classification2{new Classification("Classification2")};
+  CategorySPtr       category2 = classification2->createNode("Category 1/Sub Category 2");
+
+  SampleSPtr sample2{new Sample("Sample2")};
 
   FilterSPtr filter2{new DummyFilter()};
 
@@ -68,19 +76,26 @@ int analysis_merge_merge_analyses_with_same_sample( int argc, char** argv )
 
   SegmentationSPtr segmentation2{new Segmentation(filter2, 0)};
   segmentation2->setName("Segmentation 2");
+  segmentation2->setCategory(category2);
 
+  analysis2->setClassification(classification2);
   analysis2->add(sample2);
   analysis2->add(channel2);
   analysis2->add(segmentation2);
 
   AnalysisSPtr merged = merge(analysis1, analysis2);
 
-  if (merged->classification().get() != nullptr) {
+  if (merged->classification() == nullptr) {
     cerr << "Unexpected classification in analysis" << endl;
     error = true;
   }
 
-  if (merged->samples().size() != 1) {
+  if (merged->classification()->root()->subCategories().size() != 1) {
+    cerr << "Unexpected classification root categories" << endl;
+    error = true;
+  }
+
+  if (merged->samples().size() != 2) {
     cerr << "Unexpected number of samples in analysis" << endl;
     error = true;
   }
@@ -92,6 +107,18 @@ int analysis_merge_merge_analyses_with_same_sample( int argc, char** argv )
 
   if (merged->segmentations().size() != 2) {
     cerr << "Unexpected number of segmentations in analysis" << endl;
+    error = true;
+  }
+
+  if (merged->segmentations()[0]->category()->name() != "Sub Category 1")
+  {
+    cerr << "Unexpected category name for segmentation 1" << endl;
+    error = true;
+  }
+
+  if (merged->segmentations()[1]->category()->name() != "Sub Category 2")
+  {
+    cerr << "Unexpected category name for segmentation 2" << endl;
     error = true;
   }
 

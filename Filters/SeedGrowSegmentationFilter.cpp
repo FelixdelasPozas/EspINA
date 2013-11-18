@@ -187,7 +187,7 @@ void SeedGrowSegmentationFilter::execute(Output::Id id)
 
   m_connectedFilter = ConnectedFilterType::New();
   m_connectedFilter->SetInput(input->itkImage());
-  //m_connectedFilter->SetReplaceValue(LABEL_VALUE);
+  m_connectedFilter->SetReplaceValue(SEG_VOXEL_VALUE);
   m_connectedFilter->SetLower(std::max(seedIntensity - m_lowerTh, 0));
   m_connectedFilter->SetUpper(std::min(seedIntensity + m_upperTh, 255));
   m_connectedFilter->AddSeed(seedIndex);
@@ -232,7 +232,9 @@ void SeedGrowSegmentationFilter::execute(Output::Id id)
   itkVolumeType::Pointer output = m_connectedFilter->GetOutput();
   Bounds bounds = equivalentBounds<itkVolumeType>(output, output->GetLargestPossibleRegion());
 
-  DefaultVolumetricDataSPtr volume{new SparseVolume<itkVolumeType>(bounds)};
+  NmVector3 spacing = m_inputs[0]->spacing();
+
+  DefaultVolumetricDataSPtr volume{new SparseVolume<itkVolumeType>(bounds, spacing)};
 
   m_outputs[0]->setData(volume);
 

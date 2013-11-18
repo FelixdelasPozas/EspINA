@@ -191,8 +191,8 @@ void RenderView::updateSceneBounds()
 
     for (int i = 1; i < channels.size(); ++i)
     {
-      itkVolumeType::SpacingType channelSpacing;
-      Bounds channelBounds;
+      NmVector3 channelSpacing;
+      Bounds    channelBounds;
 
       DefaultVolumetricDataSPtr volume = volumetricData(channels[i]);
       channelSpacing = volume->spacing();
@@ -365,7 +365,7 @@ bool RenderView::updateRepresentation(ChannelAdapterPtr channel, bool render)
   }
 
   bool hasChanged = visibilityChanged || brightnessChanged || contrastChanged || opacityChanged || stainChanged;
-  foreach (RepresentationSPtr representation, state.representations)
+  for(auto representation : state.representations)
   {
     bool crosshairChanged = representation->crosshairDependent() && representation->crosshairPoint() != crosshairPoint();
     if (hasChanged || crosshairChanged)
@@ -475,7 +475,7 @@ bool RenderView::updateRepresentation(SegmentationAdapterPtr seg, bool render)
       RepresentationSPtr representation = cloneRepresentation(seg, representationName);
       if (representation.get() != nullptr)
       {
-        foreach(RendererSPtr renderer, m_renderers)
+        for(auto renderer : m_renderers)
           if (renderer->canRender(seg) && renderer->managesRepresentation(representation))
           {
             representation->setVisible(requestedVisibility);
@@ -495,10 +495,12 @@ bool RenderView::updateRepresentation(SegmentationAdapterPtr seg, bool render)
   }
 
   bool hasChanged = visibilityChanged || colorChanged || highlightChanged;
-  if (hasChanged)
+  for(auto representation : state.representations)
   {
-    foreach(RepresentationSPtr representation, state.representations)
+    bool crosshairChanged = representation->crosshairDependent() && representation->crosshairPoint() != crosshairPoint();
+    if (hasChanged || crosshairChanged)
     {
+      if (crosshairChanged)
       if (colorChanged)      representation->setColor(m_colorEngine->color(seg));
       if (highlightChanged)  representation->setHighlighted(state.highlited);
       if (visibilityChanged) representation->setVisible(state.visible);

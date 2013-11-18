@@ -33,9 +33,11 @@
 
 namespace EspINA {
 
-  AnalysisSPtr EspinaCore_EXPORT merge(AnalysisSPtr lhs, AnalysisSPtr rhs);
+  AnalysisSPtr EspinaCore_EXPORT merge(AnalysisSPtr& lhs, AnalysisSPtr& rhs);
 
-  SampleSPtr EspinaCore_EXPORT findSample(SampleSPtr sample, EspINA::SampleSList samples);
+  SampleSPtr EspinaCore_EXPORT findSample(SampleSPtr sample, SampleSList samples);
+
+  ChannelSPtr EspinaCore_EXPORT findChannel(ChannelSPtr sample, ChannelSList channels);
 }
 
 

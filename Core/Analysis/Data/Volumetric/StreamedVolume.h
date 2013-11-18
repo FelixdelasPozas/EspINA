@@ -73,14 +73,14 @@ namespace EspINA {
 
     virtual Bounds bounds() const;
 
-    virtual void setOrigin(const typename T::PointType origin);
+    virtual void setOrigin(const NmVector3& origin);
 
-    virtual typename T::PointType origin() const
+    virtual NmVector3 origin() const
     { return m_origin; }
 
-    virtual void setSpacing(const typename T::SpacingType spacing);
+    virtual void setSpacing(const NmVector3& spacing);
 
-    virtual typename T::SpacingType spacing() const;
+    virtual NmVector3 spacing() const;
 
     virtual const typename T::Pointer itkImage() const;
 
@@ -114,8 +114,8 @@ namespace EspINA {
     typedef itk::ImageRegionIterator<T> ImageIterator;
 
   private:
-    typename T::PointType   m_origin;
-    typename T::SpacingType m_spacing;
+    NmVector3 m_origin;
+    NmVector3 m_spacing;
 
     Bounds  m_bounds;
     QString m_fileName;

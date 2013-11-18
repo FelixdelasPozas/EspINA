@@ -52,8 +52,8 @@ namespace EspINA
   template<typename T>
   typename T::Pointer create_itkImage(const Bounds&                 bounds,
                                       const typename T::ValueType   value   = 0,
-                                      const typename T::SpacingType spacing = typename T::SpacingType(),
-                                      const typename T::PointType   origin  = typename T::PointType());
+                                      const NmVector3& spacing = {1, 1, 1},
+                                      const NmVector3& origin  = {0, 0, 0});
 
 
 //   /// Get the vtk-equivalent extent defining the volume

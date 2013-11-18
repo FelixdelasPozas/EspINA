@@ -29,50 +29,114 @@
 #include "AnalysisUtils.h"
 
 #include <Core/Analysis/Sample.h>
+#include <Core/Analysis/Segmentation.h>
+#include <Core/Analysis/Channel.h>
 
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
-EspINA::AnalysisSPtr EspINA::merge(AnalysisSPtr lhs, AnalysisSPtr rhs)
+EspINA::AnalysisSPtr EspINA::merge(AnalysisSPtr& lhs, AnalysisSPtr& rhs)
 {
   AnalysisSPtr mergedAnalysis{new Analysis()};
-  
-  if (lhs->classification() && !rhs->classification())
-  { // Use lhs classification
 
-  } else if (!lhs->classification() && rhs->classification())
-  { // Use rhs classification
+  QMap<CategorySPtr, CategorySPtr> mergedCategory;
 
-  } else if (lhs->classification() && rhs->classification())
-  { // Create merged classification
+  QString classificationName1;
+  QString classificationName2;
 
+  CategorySList roots;
+
+  if (lhs->classification())
+  {
+    classificationName1 = lhs->classification()->name();
+    roots << lhs->classification()->root();
   }
 
-  QMap<SampleSPtr, SampleSPtr> samples;
+  if (rhs->classification())
+  {
+    classificationName2 = rhs->classification()->name();
+    roots << rhs->classification()->root();
+  }
+
+  QString classificationName;
+
+  if (!classificationName1.isEmpty() && classificationName2.isEmpty())
+  {
+    classificationName = classificationName1;
+  } else if (classificationName1.isEmpty() && !classificationName2.isEmpty())
+  {
+    classificationName = classificationName2;
+  } else if (!classificationName1.isEmpty())
+  {
+    classificationName = QObject::tr("%1 %2 merge").arg(classificationName1).arg(classificationName2);
+  }
+
+  if (!roots.isEmpty())
+  {
+    ClassificationSPtr classification{new Classification(classificationName)};
+    for(auto root : roots)
+    {
+      CategorySList categories;
+      categories << root->subCategories();
+      while (!categories.isEmpty())
+      {
+        auto category = categories.takeFirst();
+        try
+        {
+          mergedCategory[category] = classification->createNode(category->classificationName());
+        } catch (Already_Defined_Node_Exception e)
+        {
+          mergedCategory[category] = classification->node(category->classificationName());
+        }
+        categories << category->subCategories();
+      }
+    }
+
+    mergedAnalysis->setClassification(classification);
+  }
+
+  QMap<SampleSPtr, SampleSPtr>   mergedSamples;
+  QMap<ChannelSPtr, ChannelSPtr> mergedChannels;
 
   for(auto analysis : {lhs, rhs}) 
   {
     for(auto sample : analysis->samples())
     {
-      if (!findSample(sample, mergedAnalysis->samples()))
+      auto mergedSample = findSample(sample, mergedAnalysis->samples());
+      if (!mergedSample)
       {
-        SampleSPtr mergedSample{new Sample(sample->name())};
-        mergedAnalysis->add(mergedSample);
+        mergedSample = sample;
+        mergedAnalysis->add(sample);
       }
+      mergedSamples[sample] = mergedSample;
     }
 
-    //TODO: BUG: Errors may result if two analysis share the same objects, thus
-    // we need to copy them
     for(auto channel : analysis->channels())
     {
-      mergedAnalysis->add(channel);
+      auto mergedChannel = findChannel(channel, mergedAnalysis->channels());
+      if (!mergedChannel)
+      {
+        mergedChannel = channel;
+        mergedAnalysis->add(channel);
+      }
+      mergedChannels[channel] = mergedChannel;
     }
 
     for(auto segmentation : analysis->segmentations())
     {
+      auto category = segmentation->category();
+      if (category)
+      {
+        segmentation->setCategory(mergedCategory[category]);
+      }
       mergedAnalysis->add(segmentation);
     }
   }
+
+  // TODO: Relationships
+
+  lhs.reset();
+  rhs.reset();
 
   return mergedAnalysis;
 }
@@ -86,4 +150,15 @@ SampleSPtr EspINA::findSample(SampleSPtr sample, SampleSList samples)
   }
 
   return SampleSPtr();
+}
+
+//-----------------------------------------------------------------------------
+ChannelSPtr EspINA::findChannel(ChannelSPtr channel, ChannelSList channels)
+{
+  for(auto result : channels)
+  {
+    if (channel->name() == result->name()) return result;
+  }
+
+  return ChannelSPtr();
 }

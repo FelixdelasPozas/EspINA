@@ -88,6 +88,8 @@ void VolumetricStreamReader::execute(Output::Id id)
 
   DefaultVolumetricDataSPtr volume{new StreamedVolume<itkVolumeType>(m_fileName)};
 
+  m_outputs[0]->setSpacing(volume->spacing());
+
   m_outputs[0]->setData(volume);
 }
 

@@ -32,20 +32,20 @@ template<typename T> using StreamExtractType = itk::ExtractImageFilter<T, T>;
 //-----------------------------------------------------------------------------
 template<typename T>
 StreamedVolume<T>::StreamedVolume()
+: m_origin {0, 0, 0}
+, m_spacing{1, 1, 1}
 {
   setBackgroundValue(0);
-  m_origin.Fill(0);
-  m_spacing.Fill(1);
 }
 
 //-----------------------------------------------------------------------------
 template<typename T>
 StreamedVolume<T>::StreamedVolume(const QFileInfo &fileName)
 : m_fileName{fileName.absoluteFilePath()}
+, m_origin {0, 0, 0}
+, m_spacing{1, 1, 1}
 {
   setBackgroundValue(0);
-  m_origin.Fill(0);
-  m_spacing.Fill(1);
 }
 
 //-----------------------------------------------------------------------------
@@ -74,7 +74,7 @@ Bounds StreamedVolume<T>::bounds() const
 
 //-----------------------------------------------------------------------------
 template<typename T>
-void StreamedVolume<T>::setOrigin(const typename T::PointType origin)
+void StreamedVolume<T>::setOrigin(const NmVector3& origin)
 {
   m_origin = origin;
 }
@@ -82,14 +82,14 @@ void StreamedVolume<T>::setOrigin(const typename T::PointType origin)
 
 //-----------------------------------------------------------------------------
 template<typename T>
-void StreamedVolume<T>::setSpacing(const typename T::SpacingType spacing)
+void StreamedVolume<T>::setSpacing(const NmVector3& spacing)
 {
   m_spacing = spacing;
 }
 
 //-----------------------------------------------------------------------------
 template<typename T>
-typename T::SpacingType StreamedVolume<T>::spacing() const
+NmVector3 StreamedVolume<T>::spacing() const
 {
   if (!isValid()) throw File_Not_Found_Exception();
 
@@ -99,9 +99,14 @@ typename T::SpacingType StreamedVolume<T>::spacing() const
   reader->UpdateOutputInformation();
 
   auto image = reader->GetOutput();
-  m_spacing = image->GetSpacing();
 
-  return m_spacing;
+  NmVector3 spacing;
+  for(int i = 0; i < 3; ++i)
+  {
+    spacing[i] = image->GetSpacing()[i];
+  }
+
+  return spacing;
 }
 
 

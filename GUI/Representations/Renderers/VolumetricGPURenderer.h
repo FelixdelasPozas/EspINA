@@ -16,8 +16,8 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef VOLUMETRICGPURENDERER_H_
-#define VOLUMETRICGPURENDERER_H_
+#ifndef ESPINA_VOLUMETRIC_GPU_RENDERER_H
+#define ESPINA_VOLUMETRIC_GPU_RENDERER_H
 
 #include "EspinaGUI_Export.h"
 
@@ -44,5 +44,8 @@ namespace EspINA
       virtual RendererSPtr clone() {return RendererSPtr(new VolumetricGPURenderer());}
   };
 
-} /* namespace EspINA */
-#endif /* VOLUMETRICGPURENDERER_H_ */
+#include "VolumetricGPURenderer.cpp"
+
+} // namespace EspINA
+
+#endif // ESPINA_VOLUMETRIC_GPU_RENDERER_H

@@ -81,7 +81,6 @@ set (GUI_SOURCES
   Representations/Renderers/SliceRenderer.cpp
   Representations/Renderers/CrosshairRenderer.cpp
   Representations/Renderers/VolumetricRenderer.cpp
-  Representations/Renderers/VolumetricGPURenderer.cpp
   Representations/Representation.cpp
   Representations/RepresentationEmptySettings.cpp
   Representations/RepresentationFactoryGroup.cpp 

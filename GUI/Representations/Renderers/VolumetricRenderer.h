@@ -16,8 +16,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef VOLUMETRICRENDERER_H
-#define VOLUMETRICRENDERER_H
+#ifndef ESPINA_VOLUMETRIC_RENDERER_H
+#define ESPINA_VOLUMETRIC_RENDERER_H
 
 #include "EspinaGUI_Export.h"
 
@@ -81,4 +81,4 @@ namespace EspINA
 
 } // namespace EspINA
 
-#endif // VOLUMETRICRENDERER_H
+#endif // ESPINA_VOLUMETRIC_RENDERER_H

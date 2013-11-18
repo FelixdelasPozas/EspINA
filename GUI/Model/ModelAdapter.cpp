@@ -195,7 +195,6 @@ void ModelAdapter::addImplementation(SegmentationAdapterSPtr segmentation)
 
   m_analysis->add(segmentation->m_segmentation);
   m_segmentations << segmentation;
-  std::cout << m_analysis->segmentations().size() << std::endl;
 
 //   connect(segmentation.get(), SIGNAL(modified(ModelItemPtr)),
 //           this, SLOT(itemModified(ModelItemPtr)));

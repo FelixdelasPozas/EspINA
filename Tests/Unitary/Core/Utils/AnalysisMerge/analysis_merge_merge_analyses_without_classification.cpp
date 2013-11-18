@@ -95,5 +95,11 @@ int analysis_merge_merge_analyses_without_classification( int argc, char** argv 
     error = true;
   }
 
+  if (analysis1 || analysis2)
+  {
+    cerr << "Initial analyses pointers are not null" << endl;
+    error = true;
+  }
+
   return error;
 }

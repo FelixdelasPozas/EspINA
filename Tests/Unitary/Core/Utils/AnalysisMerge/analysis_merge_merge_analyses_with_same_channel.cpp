@@ -37,13 +37,13 @@ using namespace std;
 using namespace EspINA;
 using namespace EspINA::Testing;
 
-int analysis_merge_merge_analyses_with_same_sample( int argc, char** argv )
+int analysis_merge_merge_analyses_with_same_channel( int argc, char** argv )
 {
   bool error = false;
 
   AnalysisSPtr analysis1{new Analysis()};
 
-  SampleSPtr sample1{new Sample("Sample")};
+  SampleSPtr sample1{new Sample("Sample 1")};
 
   FilterSPtr filter1{new DummyFilter()};
 
@@ -59,12 +59,12 @@ int analysis_merge_merge_analyses_with_same_sample( int argc, char** argv )
 
   AnalysisSPtr analysis2{new Analysis()};
 
-  SampleSPtr sample2{new Sample("Sample")};
+  SampleSPtr sample2{new Sample("Sample 2")};
 
   FilterSPtr filter2{new DummyFilter()};
 
   ChannelSPtr channel2(new Channel(filter2, 0));
-  channel2->setName("Channel 2");
+  channel2->setName("Channel 1");
 
   SegmentationSPtr segmentation2{new Segmentation(filter2, 0)};
   segmentation2->setName("Segmentation 2");
@@ -80,12 +80,12 @@ int analysis_merge_merge_analyses_with_same_sample( int argc, char** argv )
     error = true;
   }
 
-  if (merged->samples().size() != 1) {
+  if (merged->samples().size() != 2) {
     cerr << "Unexpected number of samples in analysis" << endl;
     error = true;
   }
 
-  if (merged->channels().size() != 2) {
+  if (merged->channels().size() != 1) {
     cerr << "Unexpected number of channels in analysis" << endl;
     error = true;
   }

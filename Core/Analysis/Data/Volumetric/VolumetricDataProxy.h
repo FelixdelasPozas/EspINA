@@ -59,16 +59,16 @@ namespace EspINA
     virtual Bounds bounds() const
     { return m_data->bounds(); }
 
-    virtual void setOrigin(const typename T::PointType origin)
+    virtual void setOrigin(const NmVector3& origin)
     { m_data->setOrigin(origin); }
 
-    virtual typename T::PointType origin() const
+    virtual NmVector3 origin() const
     { return m_data->origin(); }
 
-    virtual void setSpacing(const typename T::SpacingType spacing)
+    virtual void setSpacing(const NmVector3& spacing)
     { m_data->setSpacing(spacing); }
 
-    virtual typename T::SpacingType spacing() const
+    virtual NmVector3 spacing() const
     { return m_data->spacing(); }
 
     /** \brief Return a read only ItkImage equivalent to the whole volume representation.

@@ -37,20 +37,19 @@ const int SET   = 1;
 //-----------------------------------------------------------------------------
 template<typename T>
 SparseVolume<T>::SparseVolume()
+: m_origin {0, 0, 0}
+, m_spacing{1, 1, 1}
 {
   setBackgroundValue(0);
-  m_origin.Fill(0);
-  m_spacing.Fill(1);
 }
 
 //-----------------------------------------------------------------------------
 template<typename T>
-SparseVolume<T>::SparseVolume(const Bounds &bounds)
+SparseVolume<T>::SparseVolume(const Bounds& bounds, const NmVector3& spacing)
 : m_bounds{bounds}
+, m_spacing{spacing}
 {
   setBackgroundValue(0);
-  m_origin.Fill(0);
-  m_spacing.Fill(1);
 }
 
 //-----------------------------------------------------------------------------
@@ -75,7 +74,7 @@ Bounds SparseVolume<T>::bounds() const
 
 //-----------------------------------------------------------------------------
 template<typename T>
-void SparseVolume<T>::setOrigin(const typename T::PointType origin)
+void SparseVolume<T>::setOrigin(const NmVector3& origin)
 {
   m_origin = origin;
 }
@@ -83,7 +82,7 @@ void SparseVolume<T>::setOrigin(const typename T::PointType origin)
 
 //-----------------------------------------------------------------------------
 template<typename T>
-void SparseVolume<T>::setSpacing(const typename T::SpacingType spacing)
+void SparseVolume<T>::setSpacing(const NmVector3& spacing)
 {
   m_spacing = spacing;
 }
@@ -95,7 +94,7 @@ void SparseVolume<T>::setBlock(typename T::Pointer image)
 {
   std::unique_ptr<Block> block(new SetBlock<T>(image));
   m_blocks.push_back(block);
-  
+
   Bounds bounds = equivalentBounds<T>(image, image->GetLargestPossibleRegion());
 
   updateBlocksBoundingBox(bounds);
@@ -137,7 +136,8 @@ const typename T::Pointer SparseVolume<T>::itkImage(const Bounds& bounds) const
 {
   if (!contains(this->bounds(), bounds)) throw Invalid_image_bounds();
 
-  auto image = create_itkImage<T>(bounds, backgroundValue(), m_spacing, m_origin);
+  //auto image = create_itkImage<T>(bounds, backgroundValue(), m_spacing, m_origin);
+  auto image = create_itkImage<T>(bounds, SEG_VOXEL_VALUE, m_spacing, m_origin);
 
   auto mask = createMask(bounds);
 
