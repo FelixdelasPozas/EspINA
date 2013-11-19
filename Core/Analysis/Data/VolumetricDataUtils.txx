@@ -32,8 +32,6 @@ typename T::RegionType equivalentRegion(const T* image, const Bounds& bounds)
                           bounds[2] + (s[1]/2), bounds[3] + (s[1]/2),
                           bounds[4] + (s[2]/2), bounds[5] + (s[2]/2) };
 
-  typename T::PointType   o = image->GetOrigin();
-
   typename T::PointType p0, p1;
   for (int i = 0; i < 3; ++i) {
     Axis dir = toAxis(i);

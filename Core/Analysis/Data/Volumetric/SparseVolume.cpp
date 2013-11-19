@@ -26,8 +26,17 @@
  * 
  */
 
+// EspINA
 #include "SparseVolume.h"
+#include <Core/Analysis/Data/VolumetricDataUtils.h>
 #include <Core/Utils/Bounds.h>
+
+// ITK
+#include <itkImageRegionIterator.h>
+#include <itkExtractImageFilter.h>
+
+// VTK
+#include <vtkImplicitFunction.h>
 
 namespace EspINA {
 
@@ -36,20 +45,14 @@ const int SET   = 1;
 
 //-----------------------------------------------------------------------------
 template<typename T>
-SparseVolume<T>::SparseVolume()
-: m_origin {0, 0, 0}
-, m_spacing{1, 1, 1}
+SparseVolume<T>::SparseVolume(const Bounds& bounds, const NmVector3& spacing) throw (Invalid_Image_Bounds_Exception)
+: m_spacing{spacing}
+, m_bounds{bounds}
 {
-  setBackgroundValue(0);
-}
+  if (!bounds.areValid())
+    throw Invalid_Image_Bounds_Exception();
 
-//-----------------------------------------------------------------------------
-template<typename T>
-SparseVolume<T>::SparseVolume(const Bounds& bounds, const NmVector3& spacing)
-: m_bounds{bounds}
-, m_spacing{spacing}
-{
-  setBackgroundValue(0);
+  this->setBackgroundValue(0);
 }
 
 //-----------------------------------------------------------------------------
@@ -92,8 +95,8 @@ void SparseVolume<T>::setSpacing(const NmVector3& spacing)
 template<typename T>
 void SparseVolume<T>::setBlock(typename T::Pointer image)
 {
-  std::unique_ptr<Block> block(new SetBlock<T>(image));
-  m_blocks.push_back(block);
+  BlockUPtr block(new Block(image, false));
+  m_blocks.push_back(std::move(block));
 
   Bounds bounds = equivalentBounds<T>(image, image->GetLargestPossibleRegion());
 
@@ -105,68 +108,92 @@ void SparseVolume<T>::setBlock(typename T::Pointer image)
 template<typename T>
 void SparseVolume<T>::addBlock(BlockMaskUPtr mask)
 {
-  BlockUPtr block(new AddBlock(mask));
-  m_blocks.push_back(block);
+  BlockUPtr block(new Block(std::move(mask), false));
+  m_blocks.push_back(std::move(block));
 
   updateBlocksBoundingBox(mask->bounds());
 }
-
-
-//-----------------------------------------------------------------------------
-template<typename T>
-void SparseVolume<T>::delBlock(BlockMaskUPtr mask)
-{
-  BlockUPtr block(new DelBlock(mask));
-  m_blocks.push_back(block);
-
-  updateBlocksBoundingBox(mask->bounds());
-}
-
 
 //-----------------------------------------------------------------------------
 template<typename T>
 const typename T::Pointer SparseVolume<T>::itkImage() const
 {
-  return itkImage(bounds());
+  return itkImage(m_bounds);
 }
 
 //-----------------------------------------------------------------------------
 template<typename T>
 const typename T::Pointer SparseVolume<T>::itkImage(const Bounds& bounds) const
 {
-  if (!contains(this->bounds(), bounds)) throw Invalid_image_bounds();
+  if (!intersect(m_bounds, bounds) || (bounds != intersection(m_bounds, bounds)))
+    throw Invalid_Image_Bounds_Exception();
 
-  //auto image = create_itkImage<T>(bounds, backgroundValue(), m_spacing, m_origin);
-  auto image = create_itkImage<T>(bounds, SEG_VOXEL_VALUE, m_spacing, m_origin);
+  auto image = create_itkImage<T>(bounds, this->backgroundValue(), m_spacing, m_origin);
+  BinaryMask<unsigned char> *mask = new BinaryMask<unsigned char>(bounds, m_spacing);
+  int numVoxels = image->GetLargestPossibleRegion().GetNumberOfPixels();
 
-  auto mask = createMask(bounds);
-
-  int numPixels = image->GetLargestPossibleRegion().GetNumberOfPixels();
-
-  // Transverse most recent blocks first while there are still requested pixels
-  // that have not been set
-  int i = m_blocks.size() - 1;
-  while (i >= 0 && numPixels > 0)
+  for (unsigned int i = m_blocks.size() -1; i >= 0; --i)
   {
-    Block *block = m_blocks[i].get();
+    if (!intersect(bounds, m_blocks[i]->bounds()))
+      continue;
 
-    auto   blockBounds  = block->bounds(); //equivalentBounds(blockImage, blockImage->GetLargestPossibleRegion());
-    Bounds commonBounds = intersection(bounds, blockBounds);
+    if (numVoxels == 0)
+      break;
 
-    bool validBounds = commonBounds.areValid();
-    for (int i = 0, j = 0; i < 6; i +=2, j +=2) {
-      validBounds &= !(commonBounds[i] == commonBounds[j] && !commonBounds.areLowerIncluded(toAxis(i)) && !commonBounds.areUpperIncluded(toAxis(i)));
+    Bounds intersectionBounds = intersection(bounds, m_blocks[i]->bounds());
+
+    BinaryMask<unsigned char>::region_iterator mit(mask, intersectionBounds);
+    itk::ImageRegionIterator<T> iit(image, equivalentRegion<T>(image, intersectionBounds));
+
+    mit.goToBegin();
+    iit = iit.Begin();
+    switch(m_blocks[i]->type())
+    {
+      case BlockType::Set:
+        {
+          itk::ImageRegionIterator<T> bit(m_blocks[i]->m_image, equivalentRegion<T>(m_blocks[i]->m_image, intersectionBounds));
+          bit = bit.Begin();
+          while(!mit.isAtEnd())
+          {
+            if (!mit.isSet())
+            {
+              iit.Set(bit.Value());
+              mit.Set();
+              --numVoxels;
+            }
+            ++mit;
+            ++bit;
+            ++iit;
+          }
+        }
+        break;
+      case BlockType::Add:
+        {
+          BinaryMask<unsigned char>::region_iterator bit(m_blocks[i]->m_mask.get(), intersectionBounds);
+          bit.goToBegin();
+
+          while(!mit.isAtEnd())
+          {
+            if (!mit.isSet() && bit.isSet())
+            {
+              iit.Set(m_blocks[i]->m_mask->foregroundValue());
+              mit.Set();
+              --numVoxels;
+            }
+            ++mit;
+            ++bit;
+            ++iit;
+          }
+        }
+        break;
+      default:
+        Q_ASSERT(false);
+        break;
     }
-    //std::cout << "Check Block Intersection: " << bounds << " ∩ " << blockBounds << " = " << commonBounds << std::endl;
-    if (validBounds) {
-      //      updateCommonPixels(block, commonBounds, image, mask, numPixels);
-    }
-    --i;
   }
-
+  delete mask;
   return image;
 }
-
 
 //-----------------------------------------------------------------------------
 template<typename T>
@@ -174,38 +201,78 @@ void SparseVolume<T>::draw(const vtkImplicitFunction  *brush,
                            const Bounds               &bounds,
                            const typename T::ValueType value)
 {
-//   //cout << "Volume bounds" << m_bounds << endl;
-//   //cout << "Requested bounds" << bounds << endl;
-//   Bounds blockBounds = intersection(bounds, m_bounds);
-//   if (blockBounds.areValid()) {
-// 
-//     BlockMaskUPtr mask{new BlockMask(blockBounds)};//ImageType::Pointer blockImage = create_itkImage(blockBounds, m_bgValue, m_spacing, m_origin);
-// 
-//     //cout << "Block bounds" << blockBounds << endl;
-//     //blockImage->GetLargestPossibleRegion().Print(cout);
-//     //cout << "Number of block Pixels:" << blockImage->GetLargestPossibleRegion().GetNumberOfPixels() << endl;
-// 
-//     bool drawOp = value != backgroundValue();
-// 
-//     ImageIterator it = ImageIterator(blockImage, equivalentRegion(blockImage, blockBounds));
-//     for (it.GoToBegin(); !it.IsAtEnd(); ++it )
-//     {
-//       double tx = it.GetIndex()[0]*m_spacing[0] + m_origin[0];
-//       double ty = it.GetIndex()[1]*m_spacing[1] + m_origin[1];
-//       double tz = it.GetIndex()[2]*m_spacing[2] + m_origin[2];
-// 
-//       if (brush->FunctionValue(tx, ty, tz) <= 0)
-//         it.Set(maskValue);
-//     }
-// 
-//     if (drawOp) {
-//       addBlock(blockImage, value);
-//     } else {
-//       delBlock(blockImage);
-//     }
-//   }
+  if (!intersect(m_bounds, bounds))
+    return;
+
+  Bounds intersectionBounds = intersection(m_bounds, bounds);
+
+  BinaryMask<unsigned char> *mask = new BinaryMask<unsigned char>(intersectionBounds, m_spacing);
+  mask->setForegroundValue(value);
+  BinaryMask<unsigned char>::region_iterator it(mask, intersectionBounds);
+
+  it.goToBegin();
+  while (!it.isAtEnd())
+  {
+    BinaryMask<unsigned char>::IndexType index = it.getIndex();
+    const double point[3]{ index.x * m_spacing[0], index.y * m_spacing[1], index.z * m_spacing[2]};
+    if (const_cast<vtkImplicitFunction *>(brush)->FunctionValue(point[0], point[1], point[2]) <= 0)
+      it.Set();
+    ++it;
+  }
+
+  addBlock(BlockMaskUPtr(mask));
 }
 
+//-----------------------------------------------------------------------------
+template<typename T>
+void SparseVolume<T>::draw(const typename T::Pointer volume,
+                           const Bounds&             bounds)
+{
+  if (!intersect(m_bounds, bounds))
+    return;
+
+  Bounds intersectionBounds = intersection(m_bounds, bounds);
+
+  using ExtractorType = itk::ExtractImageFilter<T,T>;
+  typename ExtractorType::Pointer extractor = ExtractorType::New();
+  typename T::RegionType region = equivalentRegion<T>(volume, intersectionBounds);
+  extractor->SetExtractionRegion(region);
+  extractor->SetInPlace(false);
+  extractor->SetNumberOfThreads(1);
+  extractor->ReleaseDataBeforeUpdateFlagOn();
+  extractor->Update();
+
+  typename T::Pointer block = extractor->GetOutput();
+  block->DisconnectPipeline();
+
+  setBlock(block);
+}
+
+//-----------------------------------------------------------------------------
+template<class T>
+void SparseVolume<T>::draw(const typename T::IndexType index,
+                           const typename T::PixelType value)
+{
+    Bounds bounds { index[0] * m_spacing[0], index[0] * m_spacing[0],
+                    index[1] * m_spacing[1], index[1] * m_spacing[1],
+                    index[2] * m_spacing[2], index[2] * m_spacing[2] };
+
+    if (!intersect(m_bounds, bounds))
+      return;
+
+    Bounds intersectionBounds = intersection(m_bounds, bounds);
+    BinaryMask<unsigned char> *mask = new BinaryMask<unsigned char>(intersectionBounds, m_spacing);
+    mask->setForegroundValue(value);
+    BinaryMask<unsigned char>::region_iterator it(mask, intersectionBounds);
+    it.goToBegin();
+    it.Set();
+
+    addBlock(BlockMaskUPtr(mask));
+}
+
+// TODO: expand and draw
+// TODO: extract region of sparse volume as vtkImageData
+// TODO: iterators?
 
 //-----------------------------------------------------------------------------
 template<typename T>
@@ -214,10 +281,7 @@ void SparseVolume<T>::resize(const Bounds &bounds)
   m_bounds = bounds;
   m_blocks_bounding_box = intersection(m_bounds, m_blocks_bounding_box);
 
-  // TODO: Reduce existing blocks
-//   for (auto block : m_blocks) {
-//     
-//   }
+  // TODO: Reduce existing blocks??
 }
 
 //-----------------------------------------------------------------------------
@@ -235,69 +299,6 @@ Snapshot SparseVolume<T>::snapshot() const
 
   return snapshot;
 }
-
-//-----------------------------------------------------------------------------
-template<typename T>
-typename SparseVolume<T>::BlockMaskUPtr SparseVolume<T>::createMask(const Bounds& bounds) const
-{
-  BlockMask::itkSpacing spacing;
-//  BlockMaskUPtr mask(new BlockMask(bounds, spacing));
-
-//   mask->SetRegions(image->GetLargestPossibleRegion());
-//   mask->Allocate();
-//   mask->FillBuffer(0);
-
-  return BlockMaskUPtr();
-}
-
-// bool SparseVolume::updatePixel(const BlockType op, ImageIterator bit, ImageIterator itt) const
-// {
-//   bool updated = false;
-//   switch (op) {
-//     case BlockType::ADD:
-//       if (bit.Get() != m_bgValue) {
-//         itt.Set(bit.Get());
-//         updated = true;
-//       }
-//       break;
-//     case BlockType::DEL:
-//       if (bit.Get() != m_bgValue) {
-//         itt.Set(m_bgValue);
-//         updated = true;
-//       }
-//       break;
-//     case BlockType::SET:
-//       itt.Set(m_bgValue);
-//       updated = true;
-//       break;
-//   }
-// 
-//   return updated;
-// }
-// 
-// //-----------------------------------------------------------------------------
-// void SparseVolume::updateCommonPixels(const BlockType op, const Bounds& bounds, const ImageType::Pointer block, ImageType::Pointer image, ImageType::Pointer mask, int& remainingPixels) const
-// {
-//   ImageType::RegionType commonBlockRegion = equivalentRegion(block, bounds);
-//   ImageType::RegionType commonImageRegion = equivalentRegion(image, bounds);
-// 
-//   ImageIterator iit = ImageIterator(image, commonImageRegion); // image iterator
-//   ImageIterator mit = ImageIterator(mask,  commonImageRegion); // mask  iterator
-//   ImageIterator bit = ImageIterator(block, commonBlockRegion); // block iterator
-// 
-//   iit.GoToBegin(); mit.GoToBegin(); bit.GoToBegin();
-//   while (remainingPixels > 0 && !iit.IsAtEnd())
-//   {
-//     if (mit.Get() == UNSET && updatePixel(op, bit, iit))
-//     {
-//       --remainingPixels;
-//       mit.Set(SET);
-//     }
-//     ++iit;
-//     ++mit;
-//     ++bit;
-//   }
-// }
 
 //-----------------------------------------------------------------------------
 template<typename T>

@@ -489,52 +489,74 @@ namespace EspINA
   //----------------------------------------------------------------------------
   BinaryMaskSPtr<unsigned char> SparseBinaryVolume::computeMask(const Bounds &bounds) const
   {
-    BinaryMask<unsigned char> *mask = new BinaryMask<unsigned char>(bounds, m_spacing);
+    auto mask = new BinaryMask<unsigned char>(bounds, m_spacing);
+    auto bitsetMask = new BinaryMask<unsigned char>(bounds, m_spacing);
+    unsigned long long numVoxels = bitsetMask->numberOfVoxels();
 
-    for (unsigned int i = m_blocks.size() -1; i >= 0; ++i)
+    for (unsigned int i = m_blocks.size() -1; i >= 0; --i)
     {
       if (!intersect(bounds, m_blocks[i]->bounds()))
         continue;
 
+      if (numVoxels == 0)
+        break;
+
       Bounds intersectionBounds = intersection(bounds, m_blocks[i]->bounds());
+
+      BinaryMask<unsigned char>::region_iterator bitsetIt(bitsetMask, intersectionBounds);
       BinaryMask<unsigned char>::region_iterator mri(mask, intersectionBounds);
       BinaryMask<unsigned char>::const_region_iterator bri(m_blocks[i]->const_region_iterator(intersectionBounds));
 
       mri.goToBegin();
       bri.goToBegin();
+      bitsetIt.goToBegin();
 
       switch(m_blocks[i]->type())
       {
         case BlockType::Set:
           while(!mri.isAtEnd())
           {
-            if (bri.isSet())
+            if (!bitsetIt.isSet() && bri.isSet())
               mri.Set();
             else
               mri.Unset();
 
+            bitsetIt.Set();
+            --numVoxels;
+
             ++mri;
             ++bri;
+            ++bitsetIt;
           }
           break;
         case BlockType::Add:
           while(!mri.isAtEnd())
           {
-            if (bri.isSet())
+            if (!bitsetIt.isSet() && bri.isSet())
+            {
               mri.Set();
+              bitsetIt.Set();
+              --numVoxels;
+            }
 
             ++mri;
             ++bri;
+            ++bitsetIt;
           }
           break;
         case BlockType::Del:
           while(!mri.isAtEnd())
           {
-            if (bri.isSet())
+            if (!bitsetIt.isSet() && bri.isSet())
+            {
               mri.Unset();
+              bitsetIt.Set();
+              --numVoxels;
+            }
 
             ++mri;
             ++bri;
+            ++bitsetIt;
           }
           break;
         default:

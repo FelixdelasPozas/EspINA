@@ -61,7 +61,6 @@ namespace EspINA
    *
    *  Add operation will replace every voxel with a value different to
    *  the background value.
-   *  Sub operation will
    */
     using BlockMask     = BinaryMask<unsigned char>;
     using BlockMaskPtr  = BlockMask*;
@@ -91,8 +90,7 @@ namespace EspINA
      */
     double memoryUsage() const;
 
-    /* \brief Returns the bounds of the mask, meaning its the smallest bounds that contains all the
-     * blocks of the mask.
+    /* \brief Returns the bounds of the mask.
      */
     Bounds bounds() const;
 

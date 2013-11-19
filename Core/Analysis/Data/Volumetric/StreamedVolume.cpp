@@ -45,7 +45,7 @@ StreamedVolume<T>::StreamedVolume(const QFileInfo &fileName)
 , m_origin {0, 0, 0}
 , m_spacing{1, 1, 1}
 {
-  setBackgroundValue(0);
+  this->setBackgroundValue(0);
 }
 
 //-----------------------------------------------------------------------------

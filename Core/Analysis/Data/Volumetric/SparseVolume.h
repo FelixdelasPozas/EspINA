@@ -29,15 +29,15 @@
 #ifndef ESPINA_SPARSE_VOLUME_H
 #define ESPINA_SPARSE_VOLUME_H
 
-#include "Core/Analysis/Data/VolumetricData.h"
-#include <Core/Analysis/Data/VolumetricDataUtils.h>
-#include "Core/Utils/BinaryMask.h"
+#include "EspinaCore_Export.h"
 
-#include <itkImageRegionIterator.h>
+#include <Core/Analysis/Data/VolumetricData.h>
+#include <Core/Analysis/Data/VolumetricDataUtils.h>
+#include <Core/Utils/BinaryMask.h>
 
 namespace EspINA {
 
-  struct Invalid_image_bounds{};
+  struct Invalid_Image_Bounds_Exception{};
 
   template class VolumetricData<itk::Image<unsigned char, 3>>;
 
@@ -52,7 +52,7 @@ namespace EspINA {
    *  Sub operation will 
    */
   template<typename T>
-  class SparseVolume
+  class EspinaCore_EXPORT SparseVolume
   : public VolumetricData<T>
   {
     using BlockMask     = BinaryMask<unsigned char>;
@@ -60,60 +60,107 @@ namespace EspINA {
     using BlockMaskUPtr = std::unique_ptr<BlockMask>;
 
   public:
-    explicit SparseVolume();
+    /* \brief SparseVolume constructor to create a empty mask with the given bounds and spacing.
+     */
+    explicit SparseVolume(const Bounds& bounds = Bounds(), const NmVector3& spacing = {1, 1, 1}) throw(Invalid_Image_Bounds_Exception);
+
+    /* \brief Class destructor
+     */
     virtual ~SparseVolume() {}
 
-    explicit SparseVolume(const Bounds& bounds, const NmVector3& spacing = {1, 1, 1});
-
+    /* \brief Returns the memory used to store the image in megabytes.
+     */
     virtual double memoryUsage() const;
 
+    /* \brief Returns the bounds of the volume.
+     */
     virtual Bounds bounds() const;
 
+    /* \brief Set volume origin.
+     */
     virtual void setOrigin(const NmVector3& origin);
 
+    /* \brief Returns volume origin.
+     */
     virtual NmVector3 origin() const
     { return m_origin; }
 
+    /* \brief Set volume spacing.
+     */
     virtual void setSpacing(const NmVector3& spacing);
 
+    /* \brief Returns volume spacing.
+     */
     virtual NmVector3 spacing() const
     { return m_spacing; }
 
+    /* \brief Returns the equivalent itk image of the volume.
+     */
     virtual const typename T::Pointer itkImage() const;
 
+    /* \brief Returns the equivalent itk image of a region of the volume.
+     */
     virtual const typename T::Pointer itkImage(const Bounds& bounds) const;
 
+    /* \brief Method to modify the volume using a implicit function.
+     * NOTE: draw methods are constrained to volume bounds.
+     */
     virtual void draw(const vtkImplicitFunction*  brush,
                       const Bounds&               bounds,
-                      const typename T::ValueType value);
+                      const typename T::ValueType value = SEG_VOXEL_VALUE);
 
+    /* \brief Method to modify the volume using an itk image.
+     * NOTE: draw methods are constrained to volume bounds.
+     */
     virtual void draw(const typename T::Pointer volume,
-                      const Bounds&             bounds = Bounds()){}
+                      const Bounds&             bounds = Bounds());
 
+    /* \brief Method to modify a voxel of the volume using an itk index.
+     * NOTE: draw methods are constrained to volume bounds.
+     */
     virtual void draw(const typename T::IndexType index,
-                      const typename T::PixelType value = SEG_VOXEL_VALUE){}
+                      const typename T::PixelType value = SEG_VOXEL_VALUE);
 
+    // ------------------------------------------------------------------------
+    // TODO: expand and draw
+    // TODO: extract region of sparse volume as vtkImageData
+    // TODO: iterators?
+    // TODO: fitToContent(), undo(), redo() y pila de cambios como en SparseBinary
+    // TODO: snapshot(), editedregionSnapshot()
+    // TODO: volumen 3d itkVolumeType to SparseVolume (algoritmo de octree)
+    // ------------------------------------------------------------------------
 
+    /* \brief Resizes the image to the minimum bounds that can contain the volume.
+     * The resultant image is always smaller of equal in size to the original one.
+     */
     virtual void fitToContent(){}
 
+    /* \brief Resize the volume bounds. The given bounds must containt the original.
+     */
     virtual void resize(const Bounds &bounds);
 
+    /* \brief Method to undo the last change made to the volume.
+     */
     virtual void undo() {}
 
+    /* \brief Returns if the volume has been correctly initialized.
+     */
     virtual bool isValid() const;
 
+    /* \brief Persistent Interface to save the mask state.
+     */
     virtual Snapshot snapshot() const;
 
     virtual Snapshot editedRegionsSnapshot() const { return Snapshot(); }
 
   protected:
-    /** \brief Replace sparse volume voxels within data region with data voxels
+    /* \brief Replace sparse volume voxels within data region with data voxels
      *
      * Sparse Volume will take ownership of the block
      */
     void setBlock(typename T::Pointer image);
 
-    /** \brief Set non background data voxels of sparse volume to data voxel values
+    /* \brief Set non background data voxels of sparse volume to data voxel values
      *
      * For every voxel in data, set the value of its equivalent sparse volume voxel to
      * the value of the data voxel
@@ -121,87 +168,76 @@ namespace EspINA {
      */
     void addBlock(BlockMaskUPtr mask);
 
-    /** \brief Set non background data voxels of sparse volume to background value
-     *
-     * For every voxel in data, set the value of its equivalent sparse volume voxel to
-     * the background value
-     * Sparse Volume will take ownership of the block
-     */
-    void delBlock(BlockMaskUPtr mask);
+  private:
+    enum class BlockType
+    { Set = 0, Add = 1 };
+
+    class Block;
+    using BlockUPtr = std::unique_ptr<Block>;
+    using BlockList = std::vector<BlockUPtr>;
+
+    class Block
+    {
+      public:
+        struct Invalid_Iteration_Bounds_Exception{};
+
+      public:
+        Block(BlockMaskUPtr mask, bool locked)
+        : m_type(BlockType::Add)
+        , m_locked(locked)
+        , m_mask(std::move(mask))
+        , m_image(nullptr)
+        {}
+
+        Block(typename T::Pointer image, bool locked)
+        : m_type(BlockType::Set)
+        , m_locked(locked)
+        , m_mask(nullptr)
+        , m_image(image)
+        {}
+
+        ~Block()
+        {}
+
+        Bounds bounds() const
+        {
+          if (m_image != nullptr)
+            return equivalentBounds<T>(m_image, m_image->GetLargestPossibleRegion());
+          else
+            return m_mask->bounds();
+        }
+
+        unsigned long long numberOfVoxels()
+        {
+          if (m_image != nullptr)
+            return m_image->GetBufferedRegion().GetNumberOfPixels();
+          else
+            return m_mask->numberOfVoxels();
+        }
+
+        BlockType type() const
+        { return m_type; }
+
+        bool isLocked() const
+        { return m_locked; }
+
+      protected:
+        friend class SparseVolume;
+
+        BlockType     m_type;
+        bool          m_locked;
+
+        BlockMaskUPtr       m_mask;
+        typename T::Pointer m_image;
+    };
 
   private:
-    class Block {
-    public:
-      virtual ~Block(){}
-
-      virtual Bounds bounds() const = 0;
-      virtual unsigned long long numberOfVoxels() = 0;
-    };
-
-    class AddBlock 
-    : public Block {
-    public:
-      AddBlock(BlockMaskUPtr mask) : m_mask{mask} {}
-
-      Bounds bounds() const { return m_mask->bounds(); }
-
-      unsigned long long numberOfVoxels()
-      { return m_mask->numberOfVoxels(); }
-
-    private:
-      BlockMaskUPtr m_mask;
-    };
-
-    class DelBlock 
-    : public Block {
-    public:
-      DelBlock(BlockMaskUPtr mask) : m_mask{mask} {}
-
-      Bounds bounds() const { return m_mask->bounds(); }
-
-      unsigned long long numberOfVoxels()
-      { return m_mask->numberOfVoxels(); }
-
-    private:
-      BlockMaskUPtr m_mask;
-    };
-
-    template<typename BT>
-    class SetBlock 
-    : public Block {
-    public:
-      SetBlock(typename BT::Pointer image) 
-      : m_image{image} {}
-
-      Bounds bounds() const 
-      { return equivalentBounds<BT>(m_image, m_image->GetLargestPossibleRegion()); }
-
-      unsigned long long numberOfVoxels()
-      { return m_image->GetBufferedRegion().GetNumberOfPixels(); }
-
-    private:
-      typename BT::Pointer m_image;
-    };
-
-    using ImageIterator = itk::ImageRegionIterator<T>;
-
-  private:
-    // TODO: Movable
     BlockMaskUPtr createMask(const Bounds& bounds) const;
-// 
-//     bool updatePixel(const BlockType op, ImageIterator bit, ImageIterator itt) const;
-// 
-//     void updateCommonPixels(const BlockType op, const Bounds& bounds, const ImageType::Pointer block, ImageType::Pointer image, ImageType::Pointer mask, int& remainingPixels) const;
-
     void updateBlocksBoundingBox(const Bounds& bounds);
-
 
   private:
     NmVector3 m_origin;
     NmVector3 m_spacing;
-
-    using BlockUPtr = std::unique_ptr<Block>;
-    using BlockList = std::vector<BlockUPtr>;
 
     BlockList m_blocks;
     Bounds    m_bounds;
