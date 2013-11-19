@@ -16,6 +16,7 @@ include (GenerateExportHeader)
 set (EXTENSIONS_SOURCES
   ${EXTENSIONS_MOC}
   ${EXTENSIONS_UI}
+  Tags/TagExtension.cpp
   )
 
 set(EXTENSIONS_EXTERNAL_LIBS

@@ -62,7 +62,10 @@ namespace EspINA
     { return QString(); }
 
   protected:
-    SegmentationExtension() : m_segmentation{nullptr}, m_enabled{false} {}
+    SegmentationExtension() 
+    : m_segmentation{nullptr}
+    , m_enabled{false} 
+    {}
 
     SegmentationPtr m_segmentation;
     bool            m_enabled;

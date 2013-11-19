@@ -217,7 +217,7 @@ Bounds espinaRegionAux(itkVolumeType::Pointer volume, const Nm bounds[6])
 
 //----------------------------------------------------------------------------
 template<class T>
-RawVolume<T>::RawVolume(itkVolumeType::Pointer volume,
+ItkVolume<T>::ItkVolume(itkVolumeType::Pointer volume,
                         OutputSPtr output)
 : m_volume(volume)
 , m_VTKGenerationTime(0)
@@ -228,7 +228,7 @@ RawVolume<T>::RawVolume(itkVolumeType::Pointer volume,
 
 //----------------------------------------------------------------------------
 template<class T>
-void RawVolume<T>::setVolume(itkVolumeType::Pointer volume, bool disconnect)
+void ItkVolume<T>::setVolume(itkVolumeType::Pointer volume, bool disconnect)
 {
   m_volume = volume;
   m_volume->ReleaseDataFlagOff();
@@ -248,7 +248,7 @@ void RawVolume<T>::setVolume(itkVolumeType::Pointer volume, bool disconnect)
 
 //----------------------------------------------------------------------------
 template<class T>
-bool RawVolume<T>::setInternalData(DataSPtr rhs)
+bool ItkVolume<T>::setInternalData(DataSPtr rhs)
 {
   //  RawChannelVolumeSPtr volume = boost::dynamic_pointer_cast<RawChannelVolume>(rhs);
   //  setVolume(volume->toITK(), true);
@@ -258,14 +258,14 @@ bool RawVolume<T>::setInternalData(DataSPtr rhs)
 
 //----------------------------------------------------------------------------
 template<class T>
-itkVolumeType::IndexType RawVolume<T>::index(Nm x, Nm y, Nm z)
+itkVolumeType::IndexType ItkVolume<T>::index(Nm x, Nm y, Nm z)
 {
   return volumeIndex(m_volume, x, y, z);
 }
 
 //----------------------------------------------------------------------------
 template<typename T>
-Bounds RawVolume<T>::bounds() const
+Bounds ItkVolume<T>::bounds() const
 {
   return equivalentBounds(m_volume, m_volume->GetLargestPossibleRegion());
 }
@@ -449,7 +449,7 @@ RawVolumeSPtr<T> EspINA::rawVolume(OutputSPtr output)
 
 //----------------------------------------------------------------------------
 template<class T>
-void RawVolume<T>::draw(const vtkImplicitFunction *brush,
+void ItkVolume<T>::draw(const vtkImplicitFunction *brush,
                         const Bounds &bounds,
                         const typename T::ValueType value)
 {
@@ -480,7 +480,7 @@ void RawVolume<T>::draw(const vtkImplicitFunction *brush,
 
 //----------------------------------------------------------------------------
 template<class T>
-void RawVolume<T>::draw(itkVolumeType::IndexType index,
+void ItkVolume<T>::draw(itkVolumeType::IndexType index,
                         itkVolumeType::PixelType value)
 {
 //  itkVolumeType::SpacingType spacing = m_volume->GetSpacing();

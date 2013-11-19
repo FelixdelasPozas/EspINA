@@ -34,19 +34,19 @@
 namespace EspINA
 {
   template<class T>
-  class EspinaCore_EXPORT RawVolume
+  class EspinaCore_EXPORT ItkVolume
   : public VolumetricData<T>
   {
   public:
 
     const typename VolumetricData<T>::TYPE TYPE = "RawVolumeType";
 
-    explicit RawVolume(itkVolumeType::Pointer volume,
+    explicit ItkVolume(itkVolumeType::Pointer volume,
                        OutputSPtr output = nullptr);
 //     explicit RawChannelVolume(const EspinaRegion& region,
 //                            itkVolumeType::SpacingType spacing,
 //                            FilterOutput *output = NULL);
-    virtual ~RawVolume(){}
+    virtual ~ItkVolume(){}
 
     virtual bool isValid() const
     { return m_volume.IsNotNull(); }
@@ -137,8 +137,8 @@ namespace EspINA
     mutable unsigned long int m_ITKGenerationTime;
   };
 
-  template <class T> using RawVolumePtr  = RawVolume<T> *;
-  template <class T> using RawVolumeSPtr = std::shared_ptr<RawVolume<T>>;
+  template <class T> using RawVolumePtr  = ItkVolume<T> *;
+  template <class T> using RawVolumeSPtr = std::shared_ptr<ItkVolume<T>>;
 
   template <class T> RawVolumeSPtr<T> EspinaCore_EXPORT rawVolume(OutputSPtr output);
 

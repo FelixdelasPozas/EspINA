@@ -25,81 +25,50 @@
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef TAGEXTENSION_H
-#define TAGEXTENSION_H
+#ifndef ESPINA_TAG_EXTENSION_H
+#define ESPINA_TAG_EXTENSION_H
 
-#include "EspinaCore_Export.h"
+#include "Extensions/EspinaExtensions_Export.h"
 
-#include <Core/Extensions/SegmentationExtension.h>
+#include <Core/Analysis/Extensions/SegmentationExtension.h>
+#include <GUI/Model/SegmentationAdapter.h>
 
 #include <QStringListModel>
 
 namespace EspINA
 {
 
-  const ModelItem::ExtId SegmentationTagsID = "SegmentationTags";
 
-  class EspinaCore_EXPORT SegmentationTags
-  : public Segmentation::Information
+  class EspinaExtensions_EXPORT SegmentationTags
+  : public SegmentationExtension
   {
-    struct ExtensionData
-    {
-	  bool operator==(const ExtensionData& other) const
-	  {
-		  return Tags == other.Tags;
-	  }
-
-      QStringList Tags;
-    };
-
-    typedef Cache<SegmentationPtr, ExtensionData> ExtensionCache;
-
-    static ExtensionCache s_cache;
-    static QStringList s_availableTags;
-
-    const static QString EXTENSION_FILE;
+    const static QString FILE;
 
   public:
-    static const Segmentation::InfoTag TAGS;
+    static const InfoTag TAGS;
+    static const Type    TYPE;
 
-    static QStringListModel TagModel;
-
+    //static QStringListModel TagModel;
   public:
     explicit SegmentationTags();
     virtual ~SegmentationTags();
 
-    static SegmentationTags *extension(SegmentationPtr segmentation);
+    virtual Type type() const
+    { return TYPE; }
 
-    virtual Segmentation::ExtId id();
+    virtual TypeList dependencies() const
+    { return TypeList(); }
 
-    virtual Segmentation::ExtIdList dependencies() const
-    { return Segmentation::Extension::dependencies(); }
+    virtual void onSegmentationSet(SegmentationPtr seg);
 
-    virtual Segmentation::InfoTagList availableInformations() const;
-
-    virtual bool validTaxonomy(const QString &qualifiedName) const
+    virtual bool validCategory(const QString& classificationName) const
     { return true; }
 
-    virtual void setSegmentation(SegmentationPtr seg);
+    virtual InfoTagList availableInformations() const;
 
-    virtual QVariant information(const Segmentation::InfoTag &tag);
+    virtual QVariant information(const InfoTag& tag) const;
 
     virtual QString toolTipText() const;
-
-    virtual bool isCacheFile(const QString &file) const
-    { return EXTENSION_FILE == file; }
-
-    virtual void loadCache(QuaZipFile &file,
-                           const QDir &tmpDir,
-                           IEspinaModel *model);
-
-    virtual bool saveCache(Snapshot &snapshot);
-
-    virtual Segmentation::InformationExtension clone();
-
-    virtual void initialize();
-
-    virtual void invalidate(SegmentationPtr segmentation = 0);
 
     void addTag(const QString &tag);
 
@@ -110,12 +79,20 @@ namespace EspINA
     void setTags(const QStringList &tags);
 
     QStringList tags() const
-    { return s_cache[m_segmentation].Data.Tags; }
+    { return m_tags; }
 
   private:
     void addTagImplementation(const QString &tag);
+
     void updateAvailableTags();
+
+    QStringList m_tags;
   };
+
+  using SegmentationTagsPtr  = SegmentationTags *;
+  using SegmentationTagsSPtr = std::shared_ptr<SegmentationTags>;
+
+  SegmentationTagsSPtr EspinaExtensions_EXPORT tagsExtension(SegmentationAdapterPtr segmentation);
 
 } // namespace EspINA
 

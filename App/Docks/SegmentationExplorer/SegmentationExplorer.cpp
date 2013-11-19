@@ -23,6 +23,7 @@
 // #include "LayoutComposition.h"
 // #include "LayoutLocation.h"
 #include "Layouts/ClassificationLayout.h"
+#include <Extensions/Tags/TagExtension.h>
 
 // EspINA
 // #include <Undo/RemoveSegmentation.h>
@@ -162,7 +163,11 @@ void SegmentationExplorer::updateGUI(const QModelIndexList &selectedIndexes)
     if (ItemAdapter::Type::SEGMENTATION == item->type())
     {
       auto segmentation = segmentationPtr(item);
-      //TODO tagSet.unite(segmentation->information(SegmentationTags::TAGS).toStringList().toSet());
+      if (segmentation->hasExtension(SegmentationTags::TYPE))
+      {
+        auto extension = tagsExtension(segmentation);
+        tagSet.unite(extension->tags().toSet());
+      }
     }
   }
 

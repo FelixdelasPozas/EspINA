@@ -90,7 +90,16 @@ void ModelAdapter::setAnalysis(AnalysisSPtr analysis, ModelFactorySPtr factory)
       filter = factory->adaptFilter(segmentation->filter());
     }
 
-    m_segmentations << factory->adaptSegmentation(filter, segmentation);
+    auto adapted = factory->adaptSegmentation(filter, segmentation);
+
+    auto categoy = segmentation->category();
+
+    if (categoy)
+    {
+      adapted->setCategory(m_classification->category(categoy->classificationName()));
+    }
+
+    m_segmentations << adapted;
   }
   endInsertRows();
 }

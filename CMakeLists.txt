@@ -126,12 +126,13 @@ if (UNIX AND NOT DEFINED APPLE AND NOT DEFINED MSVC) # Check if it works on OS X
 endif()
 
 
-add_subdirectory( Core    )
-add_subdirectory( GUI     )
-add_subdirectory( Filters )
-add_subdirectory( Support )
+add_subdirectory( Core       )
+add_subdirectory( GUI        )
+add_subdirectory( Extensions )
+add_subdirectory( Filters    )
+add_subdirectory( Support    )
 #add_subdirectory( Undo    )
-add_subdirectory( App     )
+add_subdirectory( App        )
 #add_subdirectory( Plugins )
 
 # Testing

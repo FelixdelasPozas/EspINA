@@ -307,6 +307,14 @@ ChannelSPtr SegFile_V5::createChannel(DirectedGraph::Vertex   roVertex,
 }
 
 //-----------------------------------------------------------------------------
+QString categoryName(const State& state)
+{
+  QStringList params = state.split(";");
+
+  return params[2].split("=")[1];
+}
+
+//-----------------------------------------------------------------------------
 SegmentationSPtr SegFile_V5::createSegmentation(DirectedGraph::Vertex   roVertex,
                                                 AnalysisSPtr            analysis,
                                                 DirectedGraphSPtr       content,
@@ -319,10 +327,16 @@ SegmentationSPtr SegFile_V5::createSegmentation(DirectedGraph::Vertex   roVertex
 
   SegmentationSPtr segmentation = factory->createSegmentation(output.first, output.second);
 
+  State roState = roVertex->saveState();
   segmentation->setName(roVertex->name());
   segmentation->setUuid(roVertex->uuid());
-  segmentation->restoreState(roVertex->saveState());
+  segmentation->restoreState(roState);
   segmentation->setPersistentStorage(storage);
+
+  auto name     = categoryName(roState);
+  auto category = analysis->classification()->node(name);
+
+  segmentation->setCategory(category);
 
   analysis->add(segmentation);
 

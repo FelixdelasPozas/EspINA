@@ -91,6 +91,7 @@ set (GUI_SOURCES
   Representations/VolumetricGPURepresentation.cpp
   Selectors/PixelSelector.cpp
   Selectors/Selector.cpp
+  Utils/Conditions.cpp
   Utils/QtModelUtils.cpp
   View/RenderView.cpp
   View/View2D.cpp
