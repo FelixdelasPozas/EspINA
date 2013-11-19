@@ -101,20 +101,19 @@ namespace EspINA
     if (!bounds.areValid())
       throw Invalid_Bounds_Exception();
 
-    // adjust bounds like in equivalentBounds()
-    for (int i = 0; i < 3; ++i)
-    {
-      m_bounds[2*i] -= spacing[i]/2;
-      m_bounds[(2*i)+1] -= spacing[i]/2;
-    }
+    double dSpacing[3]{ spacing[0], spacing[1], spacing[2]};
+    itkVolumeType::Pointer image = itkVolumeType::New();
+    image->SetSpacing(dSpacing);
 
-    m_size[0] = (std::floor(bounds[1]/m_spacing[0]) - std::ceil(bounds[0]/m_spacing[0])) + 1;
-    m_size[1] = (std::floor(bounds[3]/m_spacing[1]) - std::ceil(bounds[2]/m_spacing[1])) + 1;
-    m_size[2] = (std::floor(bounds[5]/m_spacing[2]) - std::ceil(bounds[4]/m_spacing[2])) + 1;
+    itkVolumeType::RegionType region = equivalentRegion<itkVolumeType>(image, bounds);
 
-    m_origin.x = static_cast<int>(std::floor(m_bounds[0]/m_spacing[0]));
-    m_origin.y = static_cast<int>(std::floor(m_bounds[2]/m_spacing[1]));
-    m_origin.z = static_cast<int>(std::floor(m_bounds[4]/m_spacing[2]));
+    m_size[0] = region.GetSize(0);
+    m_size[1] = region.GetSize(1);
+    m_size[2] = region.GetSize(2);
+
+    m_origin.x = region.GetIndex(0);
+    m_origin.y = region.GetIndex(1);
+    m_origin.z = region.GetIndex(2);
 
     long int bufferSize = (m_size[0] * m_size[1] * m_size[2]) / m_integerSize;
     int remainder = (m_size[0] * m_size[1] * m_size[2]) % m_integerSize;

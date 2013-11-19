@@ -21,6 +21,7 @@
 #define ESPINA_BINARY_MASK_H
 
 #include <Core/EspinaTypes.h>
+#include <Core/Analysis/Data/VolumetricDataUtils.h>
 #include <Core/Utils/NmVector3.h>
 #include "Core/Utils/Bounds.h"
 #include <Core/Utils/Spatial.h>
@@ -363,12 +364,17 @@ namespace EspINA
             if (intersection(bounds, mask->bounds()) != bounds)
               throw Region_Not_Contained_In_Mask_Exception();
 
-            m_extent[0] = static_cast<int>(std::round(m_bounds[0]/m_mask->m_spacing[0]));
-            m_extent[1] = static_cast<int>(std::round(m_bounds[1]/m_mask->m_spacing[0]));
-            m_extent[2] = static_cast<int>(std::round(m_bounds[2]/m_mask->m_spacing[1]));
-            m_extent[3] = static_cast<int>(std::round(m_bounds[3]/m_mask->m_spacing[1]));
-            m_extent[4] = static_cast<int>(std::round(m_bounds[4]/m_mask->m_spacing[2]));
-            m_extent[5] = static_cast<int>(std::round(m_bounds[5]/m_mask->m_spacing[2]));
+            itkVolumeType::Pointer fakeImage = itkVolumeType::New();
+            double dSpacing[3]{m_mask->m_spacing[0], m_mask->m_spacing[1], m_mask->m_spacing[2] };
+            fakeImage->SetSpacing(dSpacing);
+            itkVolumeType::RegionType region = equivalentRegion<itkVolumeType>(fakeImage, m_bounds);
+
+            m_extent[0] = region.GetIndex(0);
+            m_extent[1] = region.GetIndex(0) + region.GetSize(0) - 1;
+            m_extent[2] = region.GetIndex(1);
+            m_extent[3] = region.GetIndex(1) + region.GetSize(1) - 1;
+            m_extent[4] = region.GetIndex(2);
+            m_extent[5] = region.GetIndex(2) + region.GetSize(2) - 1;
 
             m_index.x = m_extent[0];
             m_index.y = m_extent[2];

@@ -132,7 +132,10 @@ const typename T::Pointer SparseVolume<T>::itkImage(const Bounds& bounds) const
   BinaryMask<unsigned char> *mask = new BinaryMask<unsigned char>(bounds, m_spacing);
   int numVoxels = image->GetLargestPossibleRegion().GetNumberOfPixels();
 
-  for (unsigned int i = m_blocks.size() -1; i >= 0; --i)
+  if (m_blocks.size() == 0)
+    return image;
+
+  for (int i = m_blocks.size() -1; i >= 0; --i)
   {
     if (!intersect(bounds, m_blocks[i]->bounds()))
       continue;
@@ -233,16 +236,24 @@ void SparseVolume<T>::draw(const typename T::Pointer volume,
 
   Bounds intersectionBounds = intersection(m_bounds, bounds);
 
-  using ExtractorType = itk::ExtractImageFilter<T,T>;
-  typename ExtractorType::Pointer extractor = ExtractorType::New();
-  typename T::RegionType region = equivalentRegion<T>(volume, intersectionBounds);
-  extractor->SetExtractionRegion(region);
-  extractor->SetInPlace(false);
-  extractor->SetNumberOfThreads(1);
-  extractor->ReleaseDataBeforeUpdateFlagOn();
-  extractor->Update();
+  typename T::Pointer block;
 
-  typename T::Pointer block = extractor->GetOutput();
+  if (intersectionBounds != m_bounds)
+  {
+    using ExtractorType = itk::ExtractImageFilter<T,T>;
+    typename ExtractorType::Pointer extractor = ExtractorType::New();
+    typename T::RegionType region = equivalentRegion<T>(volume, intersectionBounds);
+    extractor->SetExtractionRegion(region);
+    extractor->SetInPlace(false);
+    extractor->SetNumberOfThreads(1);
+    extractor->ReleaseDataBeforeUpdateFlagOn();
+    extractor->Update();
+
+    block = extractor->GetOutput();
+  }
+  else
+    block = volume;
+
   block->DisconnectPipeline();
 
   setBlock(block);
@@ -269,10 +280,6 @@ void SparseVolume<T>::draw(const typename T::IndexType index,
 
     addBlock(BlockMaskUPtr(mask));
 }
-
-// TODO: expand and draw
-// TODO: extract region of sparse volume as vtkImageData
-// TODO: iterators?
 
 //-----------------------------------------------------------------------------
 template<typename T>

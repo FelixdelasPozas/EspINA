@@ -232,8 +232,8 @@ void RenderView::remove(SegmentationAdapterPtr seg)
 {
   Q_ASSERT(m_segmentationStates.contains(seg));
 
-  foreach(RepresentationSPtr rep, m_segmentationStates[seg].representations)
-    foreach(RendererSPtr renderer, m_renderers)
+  for(auto rep: m_segmentationStates[seg].representations)
+    for(auto renderer: m_renderers)
       if (renderer->hasRepresentation(rep))
         renderer->removeRepresentation(rep);
 
@@ -271,8 +271,8 @@ void RenderView::remove(ChannelAdapterPtr channel)
 {
   Q_ASSERT(m_channelStates.contains(channel));
 
-  foreach(RepresentationSPtr representation, m_channelStates[channel].representations)
-    foreach(RendererSPtr renderer, m_renderers)
+  for(auto representation: m_channelStates[channel].representations)
+    for(auto renderer: m_renderers)
       if (renderer->hasRepresentation(representation))
         renderer->removeRepresentation(representation);
 
@@ -626,13 +626,9 @@ void RenderView::resetView()
 //-----------------------------------------------------------------------------
 void RenderView::removeRepresentations(ChannelState &state)
 {
-  foreach(RepresentationSPtr rep, state.representations)
-  {
-    foreach(RendererSPtr renderer, m_renderers)
-    {
+  for(auto rep: state.representations)
+    for(auto renderer: m_renderers)
       renderer->removeRepresentation(rep);
-    }
-  }
 
   state.representations.clear();
 }
@@ -640,13 +636,9 @@ void RenderView::removeRepresentations(ChannelState &state)
 //-----------------------------------------------------------------------------
 void RenderView::removeRepresentations(SegmentationState &state)
 {
-  foreach(RepresentationSPtr rep, state.representations)
-  {
-    foreach(RendererSPtr renderer, m_renderers)
-    {
+  for(auto rep: state.representations)
+    for(auto renderer: m_renderers)
       renderer->removeRepresentation(rep);
-    }
-  }
 
   state.representations.clear();
 }

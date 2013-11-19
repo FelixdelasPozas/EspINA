@@ -270,6 +270,7 @@ void SeedGrowSegmentationFilter::execute(Output::Id id)
   NmVector3 spacing = m_inputs[0]->spacing();
 
   DefaultVolumetricDataSPtr volume{new SparseVolume<itkVolumeType>(bounds, spacing)};
+  volume->draw(output, bounds);
 
   m_outputs[0]->setData(volume);
 
