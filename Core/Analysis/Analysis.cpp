@@ -23,6 +23,7 @@
 #include "Core/Analysis/Channel.h"
 #include "Core/Analysis/Segmentation.h"
 #include "Core/Analysis/Extensions/ExtensionProvider.h"
+#include <Core/Utils/AnalysisUtils.h>
 
 using namespace EspINA;
 
@@ -262,6 +263,16 @@ void Analysis::addIfNotExists(FilterSPtr filter)
   {
     m_filters << filter;
     m_content->add(filter);
+
+    for(int i = 0; i < filter->inputs().size(); ++i)
+    {
+      auto input       = filter->inputs()[i];
+      auto inputFilter = input->filter();
+      auto ancestor    = find<Filter>(inputFilter, m_filters);
+      Q_ASSERT(ancestor);
+
+      m_content->addRelation(ancestor, filter, QString("%1").arg(i));
+    }
   }
 }
 
@@ -280,7 +291,7 @@ bool Analysis::findRelation(PersistentSPtr    ancestor,
                             PersistentSPtr    succesor,
                             const RelationName& relation)
 {
-  foreach(DirectedGraph::Edge edge, m_relations->outEdges(ancestor, relation))
+  for(auto edge : m_relations->outEdges(ancestor, relation))
   {
     if (edge.relationship == relation.toStdString() && edge.target == succesor) return true;
   }

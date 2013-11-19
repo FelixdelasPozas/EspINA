@@ -23,40 +23,17 @@
 #include "Core/Analysis/Analysis.h"
 #include "Core/Analysis/Category.h"
 #include <Core/MultiTasking/Scheduler.h>
+#include "segmentation_testing_support.h"
 
 #include <iostream>
 #include <QDebug>
 
 using namespace EspINA;
-
-class DummyFilter
-: public Filter
-{
-  public:
-    explicit DummyFilter()
-    : Filter(OutputSList(), "Dummy", SchedulerSPtr(new Scheduler(10000000)))
-    , m_output(new Output(this, 0)) {}
-    virtual void restoreState(const State& state) {}
-    virtual State saveState() const {return State();}
-    virtual OutputSPtr output(Output::Id id) const { return m_output; }
-
-  protected:
-    virtual Snapshot saveFilterSnapshot() const{ return Snapshot(); }
-    virtual bool needUpdate() const { return false; }
-    virtual bool needUpdate(Output::Id id) const { return false; }
-    virtual DataSPtr createDataProxy(Output::Id id, const Data::Type& type) { return DataSPtr(); }
-    virtual void execute() {}
-    virtual void execute(Output::Id id) {}
-    virtual bool invalidateEditedRegions() { return false; }
-
-  private:
-    OutputSPtr m_output;
-};
+using namespace EspINA::Testing;
 
 int segmentation_save_state(int argc, char** argv)
 {
-  FilterSPtr filter{new DummyFilter()};
-  SegmentationSPtr segmentation{new Segmentation(filter, 0)};
+  SegmentationSPtr segmentation{new Segmentation(FilterSPtr{new DummyFilter()}, 0)};
 
   State forgedState;
   forgedState = QString("ID=") + segmentation->uuid().toString() + QString(";");

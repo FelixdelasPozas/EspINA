@@ -134,10 +134,11 @@ namespace EspINA
     bool removeIfIsolated(DirectedGraphSPtr graph ,PersistentSPtr item);
 
     void addIfNotExists(FilterSPtr filter);
+
     void removeIfIsolated(FilterSPtr filter);
 
-    bool findRelation(PersistentSPtr    ancestor,
-                      PersistentSPtr    succesor,
+    bool findRelation(PersistentSPtr      ancestor,
+                      PersistentSPtr      succesor,
                       const RelationName& relation);
 
 

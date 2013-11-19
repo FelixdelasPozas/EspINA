@@ -22,27 +22,10 @@
 #include "Core/Analysis/Segmentation.h"
 #include "Core/Analysis/Analysis.h"
 #include "Core/MultiTasking/Scheduler.h"
+#include "segmentation_testing_support.h"
 
 using namespace EspINA;
-
-class DummyFilter
-: public Filter
-{
-  public:
-    explicit DummyFilter()
-    : Filter(OutputSList(), "Dummy", SchedulerSPtr(new Scheduler(10000000)))
-    { m_outputs << OutputSPtr(new Output(this, 0)); }
-    virtual void restoreState(const State& state) {}
-    virtual State saveState() const {return State();}
-
-  protected:
-    virtual Snapshot saveFilterSnapshot() const{}
-    virtual bool needUpdate() const {return false;}
-    virtual bool needUpdate(Output::Id id) const { return false;}
-    virtual void execute() {}
-    virtual void execute(Output::Id id) {}
-    virtual bool invalidateEditedRegions(){ return false; }
-};
+using namespace EspINA::Testing;
 
 int segmentation_change_output(int argc, char** argv)
 {

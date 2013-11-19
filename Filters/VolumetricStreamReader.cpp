@@ -37,7 +37,7 @@ VolumetricStreamReader::VolumetricStreamReader(OutputSList inputs, Type type, Sc
 //----------------------------------------------------------------------------
 void VolumetricStreamReader::restoreState(const State& state)
 {
-
+  m_fileName = QFileInfo(state.section("", 6).trimmed());
 }
 
 //----------------------------------------------------------------------------

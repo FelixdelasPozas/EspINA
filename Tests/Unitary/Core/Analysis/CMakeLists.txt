@@ -2,7 +2,7 @@
 create_test_sourcelist(Analysis_Tests Analysis_Tests.cpp # this file is created by this command
   analysis_add_channel.cpp
   analysis_add_channels.cpp
-  analysis_add_extension_provider
+  analysis_add_basic_pipeline.cpp
   analysis_add_existing_channel.cpp
   analysis_add_existing_extension_provider
   analysis_add_existing_relation.cpp
@@ -71,7 +71,7 @@ add_test("\"Analysis: Add Channel\""                             Analysis_Tests 
 add_test("\"Analysis: Add Channels\""                            Analysis_Tests analysis_add_channels)
 add_test("\"Analysis: Add Segmentation\""                        Analysis_Tests analysis_add_segmentation)
 add_test("\"Analysis: Add Segmentations\""                       Analysis_Tests analysis_add_segmentations)
-add_test("\"Analysis: Add Extension Provider\""                  Analysis_Tests analysis_add_extension_provider)
+add_test("\"Analysis: Add Basic Pipeline\""                      Analysis_Tests analysis_add_basic_pipeline)
 add_test("\"Analysis: Add Relation\""                            Analysis_Tests analysis_add_relation)
 add_test("\"Analysis: Add Relation Between Non Existing Items\"" Analysis_Tests analysis_add_relation)
 add_test("\"Analysis: Add Existing Sample\""                     Analysis_Tests analysis_add_existing_sample)

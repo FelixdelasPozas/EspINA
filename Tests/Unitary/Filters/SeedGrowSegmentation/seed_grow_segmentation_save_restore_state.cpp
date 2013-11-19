@@ -26,30 +26,62 @@
  * 
  */
 
-#ifndef ESPINA_ANALYSIS_UTILS_H
-#define ESPINA_ANALYSIS_UTILS_H
+#include "Filters/SeedGrowSegmentationFilter.h"
 
-#include <Core/Analysis/Analysis.h>
+#include "seed_grow_segmentation_testing_support.h"
 
-namespace EspINA {
+using namespace std;
+using namespace EspINA;
+using namespace EspINA::Testing;
 
-  AnalysisSPtr EspinaCore_EXPORT merge(AnalysisSPtr& lhs, AnalysisSPtr& rhs);
+int seed_grow_segmentation_save_restore_state(int argc, char** argv)
+{
+  bool error = false;
 
-  SampleSPtr EspinaCore_EXPORT findSample(SampleSPtr sample, SampleSList samples);
+  OutputSList   inputs;
+  inputs << inputChannel();
 
-  ChannelSPtr EspinaCore_EXPORT findChannel(ChannelSPtr sample, ChannelSList channels);
+  Filter::Type  type{"SGS"};
 
-  template<typename T> 
-  std::shared_ptr<T> EspinaCore_EXPORT find(T *item, QList<std::shared_ptr<T>> list)
-  {
-    for(auto smartItem : list)
-    {
-      if (smartItem.get() == item) return smartItem;
-    }
+  SchedulerSPtr scheduler;
 
-    return std::shared_ptr<T>();
+  SeedGrowSegmentationFilter sgsf(inputs, type, scheduler);
+
+  NmVector3 seed{1, 2, 3};
+  int lth = 10;
+  int uth = 20;
+  int cr  = 5;
+
+  sgsf.setSeed(seed);
+  sgsf.setLowerThreshold(lth);
+  sgsf.setUpperThreshold(uth);
+  sgsf.setClosingRadius(cr);
+
+  State state{sgsf.saveState()};
+
+  SeedGrowSegmentationFilter restoredSgsf(inputs, type, scheduler);
+
+  restoredSgsf.restoreState(state);
+
+  if (restoredSgsf.seed() != seed){
+    cerr << "Wrong seed value " << endl;
+    error = true;
   }
+
+  if (restoredSgsf.lowerThreshold() != lth){
+    cerr << "Wrong lower threshold value " << endl;
+    error = true;
+  }
+
+  if (restoredSgsf.upperThreshold() != uth){
+    cerr << "Wrong upper threshold value " << endl;
+    error = true;
+  }
+
+  if (restoredSgsf.closingRadius() != cr){
+    cerr << "Wrong closing radius value " << endl;
+    error = true;
+  }
+
+  return error;
 }
-
-
-#endif // ESPINA_NM_VECTOR_3_H

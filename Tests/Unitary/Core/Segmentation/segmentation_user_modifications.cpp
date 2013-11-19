@@ -21,13 +21,15 @@
 #include "Core/Analysis/Filter.h"
 #include "Core/Analysis/Segmentation.h"
 #include "Core/Analysis/Analysis.h"
+#include "segmentation_testing_support.h"
 
-using namespace EspINA;
 using namespace std;
+using namespace EspINA;
+using namespace EspINA::Testing;
 
 int segmentation_user_modifications(int argc, char** argv)
 {
-  SegmentationSPtr segmentation{new Segmentation(FilterSPtr(), 0)};
+  SegmentationSPtr segmentation{new Segmentation(FilterSPtr{new DummyFilter()}, 0)};
 
   QStringList oldList = segmentation->users();
   QString newUser{"Prueba"};

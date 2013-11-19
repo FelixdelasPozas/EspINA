@@ -32,77 +32,112 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(OutputSList inputs, Filte
 , m_prevSeed(m_seed)
 , m_radius(0)
 , m_prevRadius(m_radius)
+, m_usesROI(false)
 {
 
 }
 
+//------------------------------------------------------------------------
 void SeedGrowSegmentationFilter::restoreState(const State& state)
 {
+  if (!state.isEmpty())
+  {
+    QStringList params = state.split(";");
 
+    QString     seedParam = params[0].split("=")[1];
+    QStringList seed      = seedParam.split(","); 
+    for(int i = 0; i < 3; ++i)
+    {
+      m_seed[i] = seed[i].toDouble();
+    }
+    m_lowerTh = params[1].split("=")[1].toInt();
+    m_upperTh = params[2].split("=")[1].toInt();
+    m_radius  = params[3].split("=")[1].toInt();
+    m_usesROI = params[4].split("=")[1].toInt();
+  }
 }
 
+//------------------------------------------------------------------------
 State SeedGrowSegmentationFilter::saveState() const
 {
-  return State();
+  State state = QString("Seed=%1;LowerTh=%2;UpperTh=%3;ClosingRadius=%4;ROI=%5")
+                .arg(QString("%1,%2,%3").arg(m_seed[0]).arg(m_seed[1]).arg(m_seed[2]))
+                .arg(m_lowerTh)
+                .arg(m_upperTh)
+                .arg(m_radius)
+                .arg(m_usesROI);
+  return state;
 }
 
+//------------------------------------------------------------------------
 void SeedGrowSegmentationFilter::setLowerThreshold(int th)
 {
-
+  m_lowerTh = th;
 }
 
+//------------------------------------------------------------------------
 int SeedGrowSegmentationFilter::lowerThreshold() const
 {
   return m_lowerTh;
 }
 
+//------------------------------------------------------------------------
 void SeedGrowSegmentationFilter::setUpperThreshold(int th)
 {
   m_upperTh = th;
 }
 
+//------------------------------------------------------------------------
 int SeedGrowSegmentationFilter::upperThreshold() const
 {
   return m_upperTh;
 }
 
+//------------------------------------------------------------------------
 void SeedGrowSegmentationFilter::setSeed(const NmVector3& seed)
 {
   m_seed = seed;
 }
 
+//------------------------------------------------------------------------
 NmVector3 SeedGrowSegmentationFilter::seed() const
 {
   return m_seed;
 }
 
-void SeedGrowSegmentationFilter::setVOI(const Bounds& bounds)
+//------------------------------------------------------------------------
+void SeedGrowSegmentationFilter::setROI(const Bounds& bounds)
 {
 
 }
 
+//------------------------------------------------------------------------
 template<typename T>
-void SeedGrowSegmentationFilter::setVOI(const BinaryMask<T>& mask)
+void SeedGrowSegmentationFilter::setROI(const BinaryMask<T>& mask)
 {
 
 }
 
+//------------------------------------------------------------------------
 template<typename T>
-EspINA::BinaryMask<T> SeedGrowSegmentationFilter::voi() const
+EspINA::BinaryMask<T> SeedGrowSegmentationFilter::roi() const
 {
 
 }
 
+//------------------------------------------------------------------------
 void SeedGrowSegmentationFilter::setClosingRadius(int radius)
 {
   m_radius = radius;
 }
 
+//------------------------------------------------------------------------
 int SeedGrowSegmentationFilter::closingRadius()
 {
   return m_radius;;
 }
 
+//------------------------------------------------------------------------
 Snapshot SeedGrowSegmentationFilter::saveFilterSnapshot() const
 {
   return Snapshot();

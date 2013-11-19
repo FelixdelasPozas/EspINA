@@ -53,6 +53,9 @@ namespace EspINA
 
     Type type() { return m_type; }
 
+    OutputSList inputs() const
+    { return m_inputs; }
+
     /** \brief Update all filter outputs
      *
      *  If filter inputs are outdated a pull request will be done

@@ -22,11 +22,26 @@
 
 #include "ErrorHandler.h"
 #include <Core/Analysis/Analysis.h>
+#include <Core/Factory/AnalysisReader.h>
 
 namespace EspINA 
 {
   namespace IO
   {
+    class SegFileReader
+    : public AnalysisReader
+    {
+    public:
+      virtual QString type() const
+      { return "SegFileReader"; }
+
+      virtual ExtensionList supportedFileExtensions() const;
+
+      virtual AnalysisSPtr read(const QFileInfo file,
+                                CoreFactorySPtr factory,
+                                ErrorHandlerPtr handler = nullptr); 
+    };
+
     namespace SegFile
     {
       struct IO_Error_Exception{};

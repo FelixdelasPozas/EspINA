@@ -81,7 +81,9 @@ class MainToolBar;
 
     void addRecentToAnalysis();
 
-    void addFileToAnalysis(const QFileInfo file);
+    void addToAnalysis(const QStringList files);
+
+    AnalysisSPtr loadedAnalysis(const QStringList files);
 
     /// Save Current Analysis
     void saveAnalysis();
@@ -154,8 +156,9 @@ class MainToolBar;
     ViewManagerSPtr  m_viewManager;
     QUndoStack      *m_undoStack;
 
-    FilterFactorySPtr m_filterFactory;
-    ChannelReaderSPtr m_channelReader;
+    FilterFactorySPtr  m_filterFactory;
+    ChannelReaderSPtr  m_channelReader;
+    AnalysisReaderSPtr m_segFileReader;
 
     GeneralSettings *m_settings;
 

@@ -22,38 +22,15 @@
 #include "Core/Analysis/Segmentation.h"
 #include "Core/Analysis/Analysis.h"
 #include "Core/MultiTasking/Scheduler.h"
+#include "segmentation_testing_support.h"
 
-using namespace EspINA;
 using namespace std;
-
-class DummyFilter
-: public Filter
-{
-  public:
-    explicit DummyFilter()
-    : Filter(OutputSList(), "Dummy", SchedulerSPtr(new Scheduler(10000000)))
-    , m_output(new Output(this, 0)) {}
-    virtual void restoreState(const State& state) {}
-    virtual State saveState() const {return State();}
-    virtual OutputSPtr output(Output::Id id) const { return m_output; }
-
-  protected:
-    virtual Snapshot saveFilterSnapshot() const{}
-    virtual bool needUpdate() const {}
-    virtual bool needUpdate(Output::Id id) const {}
-    virtual DataSPtr createDataProxy(Output::Id id, const Data::Type& type) {}
-    virtual void execute() {}
-    virtual void execute(Output::Id id) {}
-    virtual bool invalidateEditedRegions(){ return false; }
-
-  private:
-    OutputSPtr m_output;
-};
+using namespace EspINA;
+using namespace EspINA::Testing;
 
 int segmentation_restore_state(int argc, char** argv)
 {
-  FilterSPtr filter{new DummyFilter()};
-  SegmentationSPtr segmentation{new Segmentation(filter, 0)};
+  SegmentationSPtr segmentation{new Segmentation(FilterSPtr{new DummyFilter()}, 0)};
 
   State forgedState = QString("ID=") + QUuid::createUuid().toString() + QString(";");
   forgedState += QString("NUMBER=2;USERS=FakeUser1/FakeUser2;OUTPUT=3;CATEGORY=Prueba;");

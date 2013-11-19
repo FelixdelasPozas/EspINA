@@ -32,6 +32,7 @@ namespace EspINA
   {
   public:
     struct Unknown_Filter_Exception{};
+    struct Filter_Not_Provided_Exception{};
 
   public:
     virtual ~FilterFactory(){}

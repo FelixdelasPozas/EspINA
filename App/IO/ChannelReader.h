@@ -29,9 +29,6 @@ namespace EspINA {
   , public IO::AnalysisReader
   {
   public:
-    struct Filter_Not_Provided_Exception{};
-
-  public:
     virtual QString type() const
     { return "ChannelReader"; }
 

@@ -66,6 +66,7 @@ namespace EspINA
   using FileExtensions     = IO::AnalysisReader::ExtensionDescriptionList;
   using AnalysisReaderPtr  = IO::AnalysisReader *;
   using AnalysisReaderList = QList<AnalysisReaderPtr>;
+  using AnalysisReaderSPtr = std::shared_ptr<IO::AnalysisReader>;
 
 }// namespace EspINA
 

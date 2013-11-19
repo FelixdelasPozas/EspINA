@@ -61,9 +61,9 @@ namespace EspINA {
 
   std::ostream& operator<<(std::ostream& out, const DirectedGraph::Vertex& v)
   {
+    out << v->uuid().toString().toStdString() << std::endl;
     out << type(v) << std::endl;
     out << v->name().toStdString() << std::endl;
-    out << v->uuid().toString().toStdString() << std::endl;
     out << v->saveState().toStdString();
 
     return out;
@@ -97,21 +97,22 @@ namespace EspINA {
     const int MAX = 10000;
     char buff[MAX];
 
+    in.getline(buff, MAX);
+    QString uuid(buff);
+
     std::string type;
     in >> type;
     in.getline(buff, 2);//Consume type's endl
-    v = PersistentSPtr{new ReadOnlyVertex(vertexType(type))};
 
     in.getline(buff, MAX);
     QString name(buff);
-    v->setName(name);
-
-    in.getline(buff, MAX);
-    QString uuid(buff);
-    v->setUuid(uuid);
 
     in.getline(buff, MAX);
     State state(buff);
+
+    v = PersistentSPtr{new ReadOnlyVertex(vertexType(type))};
+    v->setName(name);
+    v->setUuid(uuid);
     v->restoreState(state);
 
     return in;

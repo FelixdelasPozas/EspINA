@@ -293,8 +293,6 @@ void DefaultView::rowsInserted(const QModelIndex& parent, int start, int end)
     {
       case ItemAdapter::Type::CHANNEL:
       {
-        Q_ASSERT(start == end);
-        // Only 1-row-at-a-time insertions are allowed
         ChannelAdapterPtr channel = channelPtr(item);
         //   qDebug() << "Add Channel:" << channel->data(Qt::DisplayRole).toString();
 

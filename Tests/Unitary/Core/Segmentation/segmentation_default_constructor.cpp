@@ -21,34 +21,15 @@
 #include "Core/Analysis/Segmentation.h"
 #include "Core/Analysis/Filter.h"
 #include "Core/Analysis/Output.h"
+#include "segmentation_testing_support.h"
 
-using namespace EspINA;
 using namespace std;
-
-class DummyFilter
-: public Filter
-{
-  public:
-    explicit DummyFilter()
-    : Filter(OutputSList(), "Dummy", SchedulerSPtr(new Scheduler(10000000)))
-    { m_outputs << OutputSPtr(new Output(this, 0)); }
-
-    virtual void restoreState(const State& state){}
-    virtual State saveState() const{return State();}
-
-  protected:
-    virtual Snapshot saveFilterSnapshot() const{}
-    virtual bool needUpdate() const {return false;}
-    virtual bool needUpdate(Output::Id id) const { return false;}
-    virtual void execute() {}
-    virtual void execute(Output::Id id) {}
-    virtual bool invalidateEditedRegions(){ return false; }
-};
+using namespace EspINA;
+using namespace EspINA::Testing;
 
 int segmentation_default_constructor(int argc, char** argv)
 {
   FilterSPtr filter{new DummyFilter()};
-
   SegmentationSPtr segmentation{new Segmentation(filter, 0)};
 
   if (segmentation->number() != 0)

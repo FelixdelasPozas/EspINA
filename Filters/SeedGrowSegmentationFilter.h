@@ -73,13 +73,13 @@ namespace EspINA
     void setSeed(const NmVector3& seed);
     NmVector3 seed() const;
 
-    void setVOI(const Bounds& bounds);
+    void setROI(const Bounds& bounds);
 
     template<typename T>
-    void setVOI(const BinaryMask<T>& mask);
+    void setROI(const BinaryMask<T>& mask);
 
     template<typename T>
-    BinaryMask<T> voi() const;
+    BinaryMask<T> roi() const;
 
     void setClosingRadius(int radius);
 
@@ -103,6 +103,7 @@ namespace EspINA
     int       m_upperTh, m_prevUpperTh;
     NmVector3 m_seed,    m_prevSeed;
     int       m_radius,  m_prevRadius;
+    bool      m_usesROI;
 
     ConnectedFilterType::Pointer m_connectedFilter;
     ExtractFilterType::Pointer   m_extractFilter;

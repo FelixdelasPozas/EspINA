@@ -27,25 +27,33 @@
  */
 
 #include <Core/Analysis/Analysis.h>
-#include <Core/Analysis/Extensions/ExtensionProvider.h>
+#include <Core/Analysis/Segmentation.h>
+#include <Core/Analysis/Channel.h>
 #include "analysis_testing_support.h"
 
-using namespace EspINA;
 using namespace std;
+using namespace EspINA;
+using namespace EspINA::Testing;
 
-int analysis_add_extension_provider(int argc, char** argv )
+int analysis_add_basic_pipeline(int argc, char** argv )
 {
   bool error = false;
 
   Analysis analysis;
 
-  ExtensionProviderSPtr provider(new Testing::DummyProvider());
-  analysis.add(provider);
+  FilterSPtr filter{new DummyFilter()};
 
-  if (analysis.extensionProviders().first() != provider) {
-    cerr << "Unexpected extension provider retrieved from analysis" << endl;
-    error = true;
-  }
+  ChannelSPtr channel(new Channel(filter, 0));
+
+  OutputSList inputs;
+  inputs << filter->output(0);
+
+  FilterSPtr filterWithInputs{new DummyFilterWithInputs(inputs)};
+
+  SegmentationSPtr segmentation(new Segmentation(filterWithInputs, 0));
+
+  analysis.add(channel);
+  analysis.add(segmentation);
 
   if (analysis.classification().get() != nullptr) {
     cerr << "Unexpected classification in analysis" << endl;
@@ -57,37 +65,28 @@ int analysis_add_extension_provider(int argc, char** argv )
     error = true;
   }
 
-  if (!analysis.channels().isEmpty()) {
+  if (analysis.channels().size() != 1) {
     cerr << "Unexpected number of channels in analysis" << endl;
     error = true;
   }
 
-  if (!analysis.segmentations().isEmpty()) {
+  if (analysis.segmentations().size() != 1) {
     cerr << "Unexpected number of segmentations in analysis" << endl;
     error = true;
   }
-  
-  if (analysis.extensionProviders().size() != 1) {
-    cerr << "Unexpected number of extension providers in analysis" << endl;
-    error = true;
-  }
 
-  if (analysis.content()->vertices().size() != 1) {
+  if (analysis.content()->vertices().size() != 4) {
     cerr << "Unexpected number of vertices in analysis content" << endl;
     error = true;
   }
 
-  if (analysis.content()->vertices().first() != provider) {
-    cerr << "Unexpected extension provider retrieved from analysis content" << endl;
-    error = true;
-  }
 
-  if (!analysis.content()->edges().isEmpty()) {
+  if (analysis.content()->edges().size() != 3) {
     cerr << "Unexpected number of edges in analysis content" << endl;
     error = true;
   }
 
-  if (!analysis.relationships()->vertices().isEmpty()) {
+  if (analysis.relationships()->vertices().size() != 2) {
     cerr << "Unexpected number of vertices in analysis relationships" << endl;
     error = true;
   }

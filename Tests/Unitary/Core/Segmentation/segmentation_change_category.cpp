@@ -22,17 +22,19 @@
 #include "Core/Analysis/Segmentation.h"
 #include "Core/Analysis/Analysis.h"
 #include "Core/Analysis/Category.h"
+#include "segmentation_testing_support.h"
 
 #include <QString>
 
-using namespace EspINA;
 using namespace std;
+using namespace EspINA;
+using namespace EspINA::Testing;
 
 int segmentation_change_category(int argc, char** argv)
 {
   Classification classification;
 
-  SegmentationSPtr segmentation{new Segmentation(FilterSPtr(), 0)};
+  SegmentationSPtr segmentation{new Segmentation(FilterSPtr{new DummyFilter()}, 0)};
   CategorySPtr category1 = segmentation->category();
 
   CategorySPtr category2 = classification.createNode(QString("Prueba"), classification.root());

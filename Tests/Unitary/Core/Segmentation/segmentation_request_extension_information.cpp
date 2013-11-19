@@ -23,9 +23,11 @@
 #include "Core/Analysis/Analysis.h"
 
 #include "SegmentationExtensionSupport.h"
+#include "segmentation_testing_support.h"
 
-using namespace EspINA;
 using namespace std;
+using namespace EspINA;
+using namespace EspINA::Testing;
 
 int segmentation_request_extension_information(int argc, char** argv)
 {
@@ -34,7 +36,7 @@ int segmentation_request_extension_information(int argc, char** argv)
 
   SegmentationExtensionSPtr extension{ new DummySegmentationExtension() };
   Classification classification;
-  SegmentationSPtr segmentation{new Segmentation(FilterSPtr(), 0)};
+  SegmentationSPtr segmentation{new Segmentation(FilterSPtr{new DummyFilter()}, 0)};
 
   segmentation->addExtension(extension);
 

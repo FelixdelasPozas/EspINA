@@ -49,12 +49,6 @@ namespace EspINA
 
     virtual void unload();
 
-    void setName(const QString& name)
-    { m_name = name; }
-
-    QString name() const
-    { return m_name; }
-
     void setPosition(const NmVector3& point);
 
     NmVector3 position() const;
@@ -70,7 +64,6 @@ namespace EspINA
     { return m_bounds; }
 
   private:
-    QString m_name;
     Bounds  m_bounds;
   };
 }// namespace EspINA

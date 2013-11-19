@@ -357,7 +357,7 @@ void SegFile_V5::loadContent(AnalysisSPtr            analysis,
 
   DirectedGraph::Vertices loadedVertices;
 
-  foreach(DirectedGraph::Vertex roVertex, content->vertices())
+  for(DirectedGraph::Vertex roVertex : content->vertices())
   {
     ReadOnlyVertex *rov = dynamic_cast<ReadOnlyVertex *>(roVertex.get());
 
@@ -413,10 +413,11 @@ void SegFile_V5::loadRelations(AnalysisSPtr    analysis,
 
   DirectedGraph::Vertices loadedVertices = analysis->content()->vertices();
 
-  foreach(DirectedGraph::Edge edge, relations->edges())
+  for(auto edge : relations->edges())
   {
     PersistentSPtr source = findVertex(loadedVertices, edge.source->uuid());
     PersistentSPtr target = findVertex(loadedVertices, edge.target->uuid());
+
     analysis->addRelation(source, target, edge.relationship.c_str());
   }
 }

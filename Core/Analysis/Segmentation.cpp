@@ -147,7 +147,7 @@ State Segmentation::saveState() const
 
   if (m_category)
     state += QString("CATEGORY=%1;").arg(m_category->classificationName());
-  
+
   return state;
 }
 
@@ -158,7 +158,6 @@ void Segmentation::restoreState(const State& state)
   QStringList::iterator it = strings.begin();
   for (auto it = strings.begin(); it != strings.end(); ++it)
   {
-    qDebug() << *it;
     QStringList tokens = (*it).split('=');
     if (tokens.size() != 2)
       continue;

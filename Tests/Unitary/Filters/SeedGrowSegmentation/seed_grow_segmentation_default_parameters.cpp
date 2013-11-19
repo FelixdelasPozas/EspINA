@@ -26,30 +26,46 @@
  * 
  */
 
-#ifndef ESPINA_ANALYSIS_UTILS_H
-#define ESPINA_ANALYSIS_UTILS_H
+#include "Filters/SeedGrowSegmentationFilter.h"
 
-#include <Core/Analysis/Analysis.h>
+#include "seed_grow_segmentation_testing_support.h"
 
-namespace EspINA {
+using namespace std;
+using namespace EspINA;
+using namespace EspINA::Testing;
 
-  AnalysisSPtr EspinaCore_EXPORT merge(AnalysisSPtr& lhs, AnalysisSPtr& rhs);
+int seed_grow_segmentation_default_parameters(int argc, char** argv)
+{
+  bool error = false;
 
-  SampleSPtr EspinaCore_EXPORT findSample(SampleSPtr sample, SampleSList samples);
+  OutputSList   inputs;
+  inputs << inputChannel();
 
-  ChannelSPtr EspinaCore_EXPORT findChannel(ChannelSPtr sample, ChannelSList channels);
+  Filter::Type  type{"SGS"};
 
-  template<typename T> 
-  std::shared_ptr<T> EspinaCore_EXPORT find(T *item, QList<std::shared_ptr<T>> list)
-  {
-    for(auto smartItem : list)
-    {
-      if (smartItem.get() == item) return smartItem;
-    }
+  SchedulerSPtr scheduler;
 
-    return std::shared_ptr<T>();
+  SeedGrowSegmentationFilter sgsf(inputs, type, scheduler);
+
+  if (sgsf.seed() != NmVector3{0, 0, 0}){
+    cerr << "Wrong initial seed value " << endl;
+    error = true;
   }
+
+  if (sgsf.lowerThreshold() != 0){
+    cerr << "Wrong initial lower threshold value " << endl;
+    error = true;
+  }
+
+  if (sgsf.upperThreshold() != 0){
+    cerr << "Wrong initial upper threshold value " << endl;
+    error = true;
+  }
+
+  if (sgsf.closingRadius() != 0){
+    cerr << "Wrong initial closing radius value " << endl;
+    error = true;
+  }
+
+  return error;
 }
-
-
-#endif // ESPINA_NM_VECTOR_3_H

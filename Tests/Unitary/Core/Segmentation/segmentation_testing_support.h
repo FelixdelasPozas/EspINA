@@ -21,8 +21,6 @@
 #define TESTING_DUMMYFILTER_H
 
 #include <Core/Analysis/Filter.h>
-#include <Core/Analysis/Extensions/ExtensionProvider.h>
-#include <Core/MultiTasking/Scheduler.h>
 
 namespace EspINA {
   namespace Testing {
@@ -43,38 +41,6 @@ namespace EspINA {
       virtual void execute(){}
       virtual void execute(Output::Id id){}
       virtual bool invalidateEditedRegions() {return false;}
-    };
-
-    class DummyFilterWithInputs
-    : public Filter
-    {
-    public:
-      explicit DummyFilterWithInputs(OutputSList inputs)
-      : Filter(inputs, "DummyWithInputs", SchedulerSPtr())
-      { m_outputs << OutputSPtr{new Output(this, 0)};}
-      virtual void restoreState(const State& state) {}
-      virtual State saveState() const {return State();}
-
-    protected:
-    virtual Snapshot saveFilterSnapshot() const {return Snapshot(); }
-      virtual bool needUpdate() const {return false; }
-      virtual bool needUpdate(Output::Id id) const { return false; }
-      virtual void execute(){}
-      virtual void execute(Output::Id id){}
-      virtual bool invalidateEditedRegions() {return false;}
-    };
-
-    class DummyProvider
-    : public ExtensionProvider
-    {
-    public:
-      virtual void restoreState(const State& state) {}
-    virtual State saveState() const {}
-      virtual Snapshot saveSnapshot() const {return Snapshot();}
-      virtual void unload() {}
-      virtual Type type() const {}
-      virtual ChannelExtensionSPtr createChannelExtension(const ChannelExtension::Type& type) {}
-      virtual SegmentationExtensionSPtr createSegmentationExtension(const SegmentationExtension::Type& type) {}
     };
   }
 }

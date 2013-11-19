@@ -38,9 +38,31 @@ using namespace EspINA::IO::SegFile;
 const QString SEG_FILE_VERSION = "5";
 //const QString SEG_FILE_COMPATIBLE_VERSION = "1";
 
+using SegFileLoaderSPtr = std::shared_ptr<SegFileInterface>;
 
-using SegFileReaderSPtr = std::shared_ptr<SegFileInterface>;
+//-----------------------------------------------------------------------------
+AnalysisReader::ExtensionList SegFileReader::supportedFileExtensions() const
+{
+  ExtensionList supportedExtensions;
 
+  Extensions extensions;
+  extensions << "seg";
+
+  supportedExtensions["EspINA Analysis"] = extensions;
+
+  return supportedExtensions;
+}
+
+
+//-----------------------------------------------------------------------------
+AnalysisSPtr SegFileReader::read(const QFileInfo file,
+                                 CoreFactorySPtr factory,
+                                 ErrorHandlerPtr handler)
+{
+  return load(file, factory, handler);
+}
+
+//-----------------------------------------------------------------------------
 AnalysisSPtr SegFile::load(const QFileInfo& file,
                            CoreFactorySPtr  factory,
                            ErrorHandlerPtr  handler)
@@ -54,7 +76,7 @@ AnalysisSPtr SegFile::load(const QFileInfo& file,
     throw (IO_Error_Exception());
   }
 
-  SegFileReaderSPtr reader;
+  SegFileLoaderSPtr loader;
   if (!zip.setCurrentFile(SegFile_V5::FORMAT_INFO_FILE))
   {
     if (!zip.setCurrentFile(SegFile_V5::FORMAT_INFO_FILE))
@@ -62,11 +84,11 @@ AnalysisSPtr SegFile::load(const QFileInfo& file,
       throw (IO_Error_Exception());
     }
     // NOTE: it may be necessary to select another reader depending on the file content
-    reader = SegFileReaderSPtr{new SegFile_V4()};
+    loader = SegFileLoaderSPtr{new SegFile_V4()};
   } else 
   {
     // NOTE: it may be necessary to select another reader depending on the file content
-    reader = SegFileReaderSPtr{new SegFile_V5()};
+    loader = SegFileLoaderSPtr{new SegFile_V5()};
   }
 
   CoreFactorySPtr coreFactory = factory;
@@ -75,7 +97,7 @@ AnalysisSPtr SegFile::load(const QFileInfo& file,
     coreFactory = CoreFactorySPtr(new CoreFactory());
   }
 
-  return reader->load(zip, coreFactory, handler);
+  return loader->load(zip, coreFactory, handler);
 }
 
 //-----------------------------------------------------------------------------

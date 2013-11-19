@@ -24,6 +24,7 @@
 #include "ToolGroups/Zoom/ZoomTools.h"
 #include "Docks/ChannelExplorer/ChannelExplorer.h"
 #include "Docks/SegmentationExplorer/SegmentationExplorer.h"
+#include "IO/ChannelReader.h"
 #include <GUI/ColorEngines/CategoryColorEngine.h>
 #include <GUI/ColorEngines/NumberColorEngine.h>
 #include <GUI/ColorEngines/UserColorEngine.h>
@@ -78,6 +79,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 , m_undoStack(new QUndoStack())
 //, m_filterFactory(new EspinaMainWindow::FilterFactory())
 , m_channelReader{new ChannelReader()}
+, m_segFileReader{new IO::SegFileReader()}
 , m_settings     (new GeneralSettings())
 // , m_settingsPanel(new GeneralSettingsPanel(m_model, m_settings))
 , m_view{new DefaultView(m_model, m_viewManager, m_undoStack, this)}
@@ -97,6 +99,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   QIcon saveIcon = qApp->style()->standardIcon(QStyle::SP_DialogSaveButton);
 
   m_factory->registerAnalysisReader(m_channelReader.get());
+  m_factory->registerAnalysisReader(m_segFileReader.get());
   m_factory->registerFilterFactory (m_channelReader.get());
   m_factory->registerChannelRepresentationFactory(RepresentationFactorySPtr{new BasicChannelRepresentationFactory()});
   m_factory->registerSegmentationRepresentationFactory(RepresentationFactorySPtr{new BasicSegmentationRepresentationFactory()});
@@ -638,65 +641,12 @@ void EspinaMainWindow::openAnalysis(const QStringList files)
   QElapsedTimer timer;
   timer.start();
 
-  QList<AnalysisSPtr> analyses;
-
   closeCurrentAnalysis();
 
-  QApplication::setOverrideCursor(Qt::WaitCursor);
-  for(auto file : files)
+  AnalysisSPtr mergedAnalysis = loadedAnalysis(files);
+
+  if (mergedAnalysis) 
   {
-    AnalysisReaderList readers = m_factory->readers(file);
-
-    if (readers.isEmpty())
-    {
-      QApplication::restoreOverrideCursor();
-      QMessageBox::warning(this, tr("File Extension is not supported"), file);
-      QApplication::setOverrideCursor(Qt::WaitCursor);
-      continue;
-    }
-
-    AnalysisReaderPtr  reader  = readers.first();
-
-    if (readers.size() > 1) 
-    {
-      //TODO
-    }
-
-    try {
-      analyses << m_factory->read(reader, file, m_errorHandler.get());
-
-      if (file != m_settings->autosavePath().absoluteFilePath(AUTOSAVE_FILE))
-      {
-        m_recentDocuments1.addDocument(file);
-        m_recentDocuments2.updateDocumentList();
-      }
-    } catch (...)
-    {
-      QApplication::restoreOverrideCursor();
-      QMessageBox box(QMessageBox::Warning,
-                      tr("EspINA"),
-                      tr("File \"%1\" could not be loaded.\n"
-                      "Do you want to remove it from recent documents list?")
-                      .arg(file),
-                      QMessageBox::Yes|QMessageBox::No);
-
-      if (box.exec() == QMessageBox::Yes)
-      {
-        m_recentDocuments1.removeDocument(file);
-        m_recentDocuments2.updateDocumentList();
-      }
-      QApplication::setOverrideCursor(Qt::WaitCursor);
-    }
-  }
-
-  if (!analyses.isEmpty())
-  {
-    AnalysisSPtr mergedAnalysis = analyses.first();
-    for(int i = 1; i < analyses.size(); ++i)
-    {
-      mergedAnalysis = merge(mergedAnalysis, analyses[i]);
-    }
-
     if (!mergedAnalysis->classification())
     {
       QFileInfo defaultClassification(":/espina/defaultTaxonomy.xml");
@@ -759,8 +709,6 @@ void EspinaMainWindow::openAnalysis(const QStringList files)
     m_model->emitChannelAdded(m_model->channels());
     m_model->emitSegmentationAdded(m_model->segmentations());
   }
-
-  QApplication::restoreOverrideCursor();
 }
 
 //------------------------------------------------------------------------
@@ -770,12 +718,15 @@ void EspinaMainWindow::openRecentAnalysis()
 
   if (action && !action->data().isNull())
   {
+    QStringList files(action->data().toString());
     if (MenuState::OPEN_STATE == m_menuState)
     {
-      openAnalysis(QStringList(action->data().toString()));
+      openAnalysis(files);
     }
     else
-      addFileToAnalysis(action->data().toString());
+    {
+      addToAnalysis(files);
+    }
   }
 }
 
@@ -803,8 +754,9 @@ void EspinaMainWindow::addToAnalysis()
   fileDialog.setAcceptMode(QFileDialog::AcceptOpen);
 
   if (fileDialog.exec() == QFileDialog::Accepted)
-    foreach(QString fileName, fileDialog.selectedFiles())
-      addFileToAnalysis(QFileInfo(fileName));
+  {
+    addToAnalysis(fileDialog.selectedFiles());
+  }
 }
 
 //------------------------------------------------------------------------
@@ -815,71 +767,103 @@ void EspinaMainWindow::addRecentToAnalysis()
   if (!action || action->data().isNull())
     return;
 
-  addFileToAnalysis(action->data().toString());
+  QStringList files(action->data().toString());
+
+  addToAnalysis(files);
 }
 
 //------------------------------------------------------------------------
-void EspinaMainWindow::addFileToAnalysis(const QFileInfo file)
+void EspinaMainWindow::addToAnalysis(const QStringList files)
 {
-//   QApplication::setOverrideCursor(Qt::WaitCursor);
-//   QElapsedTimer timer;
-//   timer.start();
-// 
-//   ChannelSList existingChannels = m_model->channels();
-//   SegmentationSList existingSegmentations = m_model->segmentations();
-// 
-//   UndoableEspinaModel undoableModel(m_model, m_undoStack);
-//   m_undoStack->beginMacro(tr("Add %1 to analysis").arg(file.fileName()));
-//   if (IOErrorHandler::SUCCESS == EspinaIO::loadFile(file, &undoableModel))
-//   {
-//     int secs = timer.elapsed()/1000.0;
-//     int mins = 0;
-//     if (secs > 60)
-//     {
-//       mins = secs / 60;
-//       secs = secs % 60;
-//     }
-// 
-//     updateStatus(QString("File Loaded in %1m%2s").arg(mins).arg(secs));
-//     QApplication::restoreOverrideCursor();
-//     m_recentDocuments1.addDocument(file.absoluteFilePath());
-//     m_recentDocuments2.updateDocumentList();
-// 
-//     if (EspinaIO::isChannelExtension(file.suffix()))
-//     {
-//       ChannelSPtr channel;
-//       int i = 0;
-//       while (!channel && i < m_model->channels().size())
-//       {
-//         ChannelSPtr iChannel = m_model->channels()[i];
-//         if (file.fileName() == iChannel->data().toString())
-//           channel = iChannel;
-//         ++i;
-//       }
-// 
-//       AdaptiveEdgesDialog edgesDialog(this);
-//       edgesDialog.exec();
-//       if (edgesDialog.useAdaptiveEdges())
-//       {
-//         channel->addExtension(new AdaptiveEdges(true, edgesDialog.color(), edgesDialog.threshold()));
-//       }
-//     }
-// 
-//     ChannelSList newChannels;
-//     SegmentationSList newSegmentations;
-//     foreach(ChannelSPtr channel, m_model->channels())
-//       if (!existingChannels.contains(channel))
-//         newChannels << channel;
-// 
-//     foreach(SegmentationSPtr segmentation, m_model->segmentations())
-//       if (!existingSegmentations.contains(segmentation))
-//         newSegmentations << segmentation;
-// 
-//     m_model->emitChannelAdded(newChannels);
-//     m_model->emitSegmentationAdded(newSegmentations);
-// 
-//   }
-//   m_undoStack->endMacro();
+  QElapsedTimer timer;
+  timer.start();
+
+  AnalysisSPtr newAnalyses    = loadedAnalysis(files);
+  AnalysisSPtr mergedAnalysis = merge(m_analysis, newAnalyses);
+  m_model->setAnalysis(mergedAnalysis, m_factory);
+  m_analysis = mergedAnalysis;
+
+  int secs = timer.elapsed()/1000.0;
+  int mins = 0;
+  if (secs > 60)
+  {
+    mins = secs / 60;
+    secs = secs % 60;
+  }
+
+  updateStatus(QString("File Loaded in %1m%2s").arg(mins).arg(secs));
+
+  for(auto file : files)
+  {
+    m_recentDocuments1.addDocument(file);
+  }
+  m_recentDocuments2.updateDocumentList();
+}
+
+//------------------------------------------------------------------------
+AnalysisSPtr EspinaMainWindow::loadedAnalysis(const QStringList files)
+{
+  QList<AnalysisSPtr> analyses;
+
+  QApplication::setOverrideCursor(Qt::WaitCursor);
+  for(auto file : files)
+  {
+    AnalysisReaderList readers = m_factory->readers(file);
+
+    if (readers.isEmpty())
+    {
+      QApplication::restoreOverrideCursor();
+      QMessageBox::warning(this, tr("File Extension is not supported"), file);
+      QApplication::setOverrideCursor(Qt::WaitCursor);
+      continue;
+    }
+
+    AnalysisReaderPtr  reader  = readers.first();
+
+    if (readers.size() > 1) 
+    {
+      //TODO choose reader
+    }
+
+    try {
+      analyses << m_factory->read(reader, file, m_errorHandler.get());
+
+      if (file != m_settings->autosavePath().absoluteFilePath(AUTOSAVE_FILE))
+      {
+        m_recentDocuments1.addDocument(file);
+        m_recentDocuments2.updateDocumentList();
+      }
+    } catch (...)
+    {
+      QApplication::restoreOverrideCursor();
+      QMessageBox box(QMessageBox::Warning,
+                      tr("EspINA"),
+                      tr("File \"%1\" could not be loaded.\n"
+                      "Do you want to remove it from recent documents list?")
+                      .arg(file),
+                      QMessageBox::Yes|QMessageBox::No);
+
+      if (box.exec() == QMessageBox::Yes)
+      {
+        m_recentDocuments1.removeDocument(file);
+        m_recentDocuments2.updateDocumentList();
+      }
+      QApplication::setOverrideCursor(Qt::WaitCursor);
+    }
+  }
+
+  AnalysisSPtr mergedAnalysis;
+  if (!analyses.isEmpty())
+  {
+    mergedAnalysis = analyses.first();
+    for(int i = 1; i < analyses.size(); ++i)
+    {
+      mergedAnalysis = merge(mergedAnalysis, analyses[i]);
+    }
+  }
+  QApplication::restoreOverrideCursor();
+
+  return mergedAnalysis;
 }
 
 //------------------------------------------------------------------------
