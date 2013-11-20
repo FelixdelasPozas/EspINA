@@ -19,26 +19,78 @@
 
 #include "Storage.h"
 
+#include <iostream>
+
+using namespace std;
 using namespace EspINA;
 
+//----------------------------------------------------------------------------
+bool removeRecursively(const QString & dirName)
+{
+  bool result = true;
+  QDir dir(dirName);
 
+  if (dir.exists(dirName))
+  {
+    for(QFileInfo info : dir.entryInfoList(QDir::NoDotAndDotDot | QDir::System | QDir::Hidden  | QDir::AllDirs | QDir::Files, QDir::DirsFirst)) {
+      if (info.isDir())
+      {
+        result = removeRecursively(info.absoluteFilePath());
+      }
+      else
+      {
+        result = QFile::remove(info.absoluteFilePath());
+      }
+
+      if (!result)
+      {
+        return result;
+      }
+    }
+    result = dir.rmdir(dirName);
+  }
+
+  return result;
+}
+
+//----------------------------------------------------------------------------
 Persistent::Storage::Storage(const QDir& parent)
 {
+  QString path = QUuid::createUuid().toString();
 
+  parent.mkdir(path);
+
+  m_storageDir = QDir(parent.absoluteFilePath(path));
 }
 
+//----------------------------------------------------------------------------
 Persistent::Storage::~Storage()
 {
-
+  removeRecursively(m_storageDir.absolutePath());
 }
 
+//----------------------------------------------------------------------------
 void Persistent::Storage::saveSnapshot(SnapshotData data)
 {
+  QFileInfo fileName(m_storageDir.absoluteFilePath(data.first));
 
+  m_storageDir.mkpath(fileName.absolutePath());
+
+  QFile file(fileName.absoluteFilePath());
+  file.open(QIODevice::WriteOnly);
+  file.write(data.second);
+  file.close();
 }
 
-void Persistent::Storage::saveSnapshot(Persistent::Uuid id, const Snapshot& snapshot)
+//----------------------------------------------------------------------------
+QByteArray Persistent::Storage::snapshot(const QString& descriptor) const
 {
+  QString fileName = m_storageDir.absoluteFilePath(descriptor);
 
+  QFile file(fileName);
+  file.open(QIODevice::ReadOnly);
+  QByteArray data = file.readAll();
+  file.close();
+
+  return data;
 }
-

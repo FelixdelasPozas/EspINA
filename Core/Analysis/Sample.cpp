@@ -39,13 +39,13 @@ void Sample::restoreState(const State& state)
 }
 
 //------------------------------------------------------------------------
-State Sample::saveState() const
+State Sample::state() const
 {
   return State();
 }
 
 //------------------------------------------------------------------------
-Snapshot Sample::saveSnapshot() const
+Snapshot Sample::snapshot() const
 {
   return Snapshot();
 }

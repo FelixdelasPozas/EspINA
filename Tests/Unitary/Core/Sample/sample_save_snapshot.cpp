@@ -38,7 +38,7 @@ int sample_save_snapshot( int argc, char** argv )
 
   Sample sample;
 
-  Snapshot snapshot = sample.saveSnapshot();
+  Snapshot snapshot = sample.snapshot();
 
   return error;
 }

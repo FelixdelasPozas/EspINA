@@ -64,7 +64,7 @@ namespace EspINA {
     out << v->uuid().toString().toStdString() << std::endl;
     out << type(v) << std::endl;
     out << v->name().toStdString() << std::endl;
-    out << v->saveState().toStdString();
+    out << v->state().toStdString();
 
     return out;
   }

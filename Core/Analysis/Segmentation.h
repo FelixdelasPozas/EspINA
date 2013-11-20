@@ -45,22 +45,28 @@ namespace EspINA
 
       virtual void restoreState(const State& state);
 
-      virtual State saveState() const;
+      virtual State state() const;
 
-      virtual Snapshot saveSnapshot() const;
+      virtual Snapshot snapshot() const;
 
       virtual void unload();
 
-      void setNumber(unsigned int number)      { m_number = number; }
+      void setNumber(unsigned int number)
+      { m_number = number; }
 
-      unsigned int number() const              { return m_number; }
+      unsigned int number() const
+      { return m_number; }
 
       void setCategory(CategorySPtr category);
-      CategorySPtr category() const            { return m_category; }
 
-      void modifiedByUser(const QString& user) { m_users << user; }
+      CategorySPtr category() const
+      { return m_category; }
 
-      QStringList users() const                { return m_users.toList(); }
+      void modifiedByUser(const QString& user)
+      { m_users << user; }
+
+      QStringList users() const
+      { return m_users.toList(); }
 
       /**
        * Extesion won't be available until requirements are satisfied

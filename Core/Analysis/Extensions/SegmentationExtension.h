@@ -23,6 +23,7 @@
 #include "EspinaCore_Export.h"
 
 #include "Core/EspinaTypes.h"
+#include <Core/Analysis/Persistent.h>
 #include <QVariant>
 
 namespace EspINA
@@ -42,6 +43,12 @@ namespace EspINA
     virtual ~SegmentationExtension() {}
 
     virtual Type type() const = 0;
+
+    virtual bool invalidateOnChange() const = 0;
+
+    virtual State state() const = 0;
+
+    virtual Snapshot snapshot() const = 0;
 
     virtual TypeList dependencies() const = 0;
 

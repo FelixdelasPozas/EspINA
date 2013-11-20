@@ -32,6 +32,7 @@
 #include "Core/Analysis/DataProxy.h"
 
 #include <vtkMath.h>
+#include <QXmlStreamWriter>
 
 using namespace EspINA;
 
@@ -54,18 +55,27 @@ Snapshot Output::snapshot() const
 {
   Snapshot snapshot;
 
-  std::ostringstream stream;
+  QByteArray xml;
+  QXmlStreamWriter stream(&xml);
+  stream.setAutoFormatting(true);
 
-  foreach(DataProxySPtr dataProxy, m_data) 
+  stream.writeStartDocument();
+  for(auto dataProxy : m_data) 
   {
     DataSPtr data = dataProxy->get();
 
-    stream << data->type().toStdString() << " " << data->bounds() << "\n";
-    foreach(Bounds region, data->editedRegions())
+    stream.writeStartElement(data->type());
+    stream.writeAttribute("Bounds", data->bounds().toString());
+    stream.writeStartElement("Edited Regions");
+    for(int i = 0; i < data->editedRegions().size(); ++i)
     {
-      stream << region << "\n";
+      auto region = data->editedRegions()[i];
+      stream.writeStartElement(QString::number(i));
+      stream.writeAttribute("Bounds", region.toString());
+      stream.writeEndElement();
     }
-    stream << "\n";
+    stream.writeEndElement();
+    stream.writeEndElement();
 
     if (m_hasToBeSaved)
     {
@@ -76,9 +86,10 @@ Snapshot Output::snapshot() const
       snapshot << data->editedRegionsSnapshot();
     }
   }
+  stream.writeEndDocument();
 
-  QString file = QString("Outputs/%1_%2.trc").arg(m_filter->uuid()).arg(m_id);
-  snapshot << SnapshotData(file, stream.str().c_str());
+  QString file = QString("Outputs/%1_%2.xml").arg(m_filter->uuid()).arg(m_id);
+  snapshot << SnapshotData(file, xml);
 
   return snapshot;
 }

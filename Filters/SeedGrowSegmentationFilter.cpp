@@ -58,7 +58,7 @@ void SeedGrowSegmentationFilter::restoreState(const State& state)
 }
 
 //------------------------------------------------------------------------
-State SeedGrowSegmentationFilter::saveState() const
+State SeedGrowSegmentationFilter::state() const
 {
   State state = QString("Seed=%1;LowerTh=%2;UpperTh=%3;ClosingRadius=%4;ROI=%5")
                 .arg(QString("%1,%2,%3").arg(m_seed[0]).arg(m_seed[1]).arg(m_seed[2]))
@@ -154,12 +154,7 @@ bool SeedGrowSegmentationFilter::needUpdate(Output::Id id) const
 {
   if (id != 0) throw Undefined_Output_Exception();
 
-  bool paramsModified = m_lowerTh != m_prevLowerTh
-                     || m_upperTh != m_prevUpperTh
-                     || m_seed    != m_prevSeed
-                     || m_radius  != m_prevRadius;
-
-  return m_outputs.isEmpty() || !validOutput(id) || paramsModified;
+  return m_outputs.isEmpty() || !validOutput(id) || ignoreStorageContent();
 }
 
 //----------------------------------------------------------------------------
@@ -265,7 +260,8 @@ void SeedGrowSegmentationFilter::execute(Output::Id id)
   }
 
   itkVolumeType::Pointer output = m_connectedFilter->GetOutput();
-  Bounds bounds = equivalentBounds<itkVolumeType>(output, output->GetLargestPossibleRegion());
+
+  Bounds bounds = minimalBounds(output);
 
   NmVector3 spacing = m_inputs[0]->spacing();
 
@@ -286,119 +282,31 @@ void SeedGrowSegmentationFilter::execute(Output::Id id)
 }
 
 //----------------------------------------------------------------------------
+bool SeedGrowSegmentationFilter::ignoreStorageContent() const
+{
+  return m_lowerTh != m_prevLowerTh
+      || m_upperTh != m_prevUpperTh
+      || m_seed    != m_prevSeed
+      || m_radius  != m_prevRadius;
+}
+
+//----------------------------------------------------------------------------
 bool SeedGrowSegmentationFilter::invalidateEditedRegions()
 {
   return false;
 }
 
+//----------------------------------------------------------------------------
+Bounds SeedGrowSegmentationFilter::minimalBounds(itkVolumeType::Pointer image) const
+{
+  Bounds bounds;
 
-// #include "Core/Model/EspinaModel.h"
-// #include <Core/Model/MarchingCubesMesh.h>
-// #include <Core/OutputRepresentations/VolumeProxy.h>
-// #include <Core/OutputRepresentations/MeshProxy.h>
-// #include <Core/OutputRepresentations/RawVolume.h>
-// #include <GUI/Representations/SliceRepresentation.h>
-// 
-// #include <QDebug>
-// 
-// #include <vtkAlgorithm.h>
-// #include <vtkAlgorithmOutput.h>
-// #include <vtkImageData.h>
-// 
-// 
-// const QString SeedGrowSegmentationFilter::INPUTLINK = "Input";
-// 
-// typedef ModelItem::ArgumentId ArgumentId;
-// const ArgumentId SeedGrowSegmentationFilter::SEED       = "Seed";
-// const ArgumentId SeedGrowSegmentationFilter::LTHRESHOLD = "LowerThreshold";
-// const ArgumentId SeedGrowSegmentationFilter::UTHRESHOLD = "UpperThreshold";
-// const ArgumentId SeedGrowSegmentationFilter::VOI        = "VOI";
-// const ArgumentId SeedGrowSegmentationFilter::CLOSE      = "Close";
-// 
-// const unsigned char LABEL_VALUE = 255;
-// 
-// 
-// //----------------------------------------------------------------------------
-// SeedGrowSegmentationFilter::Parameters::Parameters(ModelItem::Arguments &args)
-// : m_args(args)
-// {
-// }
-// 
-// //-----------------------------------------------------------------------------
-// SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(NamedInputs inputs,
-//                                                        Arguments   args,
-//                                                        FilterType  type)
-// : BasicSegmentationFilter(inputs, args, type)
-// , m_ignoreCurrentOutputs   (false)
-// , m_param           (m_args)
-// {
-// }
-// 
-// //-----------------------------------------------------------------------------
-// SeedGrowSegmentationFilter::~SeedGrowSegmentationFilter()
-// {
-// }
-// 
-// //-----------------------------------------------------------------------------
-// QVariant SeedGrowSegmentationFilter::data(int role) const
-// {
-//   if (Qt::ToolTipRole == role)
-//   {
-//     QString tooltip;
-// 
-//     if (!m_outputs[0]->isEdited() && isTouchingVOI())
-//       tooltip = condition(":/espina/voi.svg", "Touch VOI");
-// 
-//     return tooltip;
-//   } else
-//     return EspINA::Filter::data(role);
-// }
-// 
-// //-----------------------------------------------------------------------------
-// bool SeedGrowSegmentationFilter::needUpdate(FilterOutputId oId) const
-// {
-//   return SegmentationFilter::needUpdate(oId);
-// }
-// 
-// //-----------------------------------------------------------------------------
-// void SeedGrowSegmentationFilter::run()
-// {
-//   run(0);
-// }
-// 
-// //-----------------------------------------------------------------------------
-// void SeedGrowSegmentationFilter::run(FilterOutputId oId)
-// {
-// }
-// 
-// 
-// //-----------------------------------------------------------------------------
-// void SeedGrowSegmentationFilter::setLowerThreshold(int th, bool ignoreUpdate)
-// {
-//   if (th < 0)
-//     return;
-// 
-//   m_param.setLowerThreshold(th);
-//   m_ignoreCurrentOutputs = !ignoreUpdate;
-// }
-// 
-// //-----------------------------------------------------------------------------
-// void SeedGrowSegmentationFilter::setUpperThreshold(int th, bool ignoreUpdate)
-// {
-//   if (th < 0)
-//     return;
-// 
-//   m_param.setUpperThreshold(th);
-//   m_ignoreCurrentOutputs = !ignoreUpdate;
-// }
-// 
-// //-----------------------------------------------------------------------------
-// void SeedGrowSegmentationFilter::setVOI(int VOI[6], bool ignoreUpdate)
-// {
-//   m_param.setVOI(VOI);
-//   m_ignoreCurrentOutputs = !ignoreUpdate;
-// }
-// 
+  bounds = equivalentBounds<itkVolumeType>(image, image->GetLargestPossibleRegion());
+
+  return bounds;
+}
+
+
 // //-----------------------------------------------------------------------------
 // bool SeedGrowSegmentationFilter::isTouchingVOI() const
 // {

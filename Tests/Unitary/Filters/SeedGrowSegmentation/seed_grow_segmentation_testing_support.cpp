@@ -35,13 +35,14 @@ OutputSPtr EspINA::Testing::inputChannel()
     explicit DummyFilter()
     : Filter(OutputSList(), "Dummy", SchedulerSPtr()){}
     virtual void restoreState(const State& state){}
-    virtual State saveState() const{return State();}
+    virtual State state() const{return State();}
   protected:
     virtual Snapshot saveFilterSnapshot() const {return Snapshot(); }
     virtual bool needUpdate() const{ return false;}
     virtual bool needUpdate(Output::Id id) const{ return false;}
     virtual void execute(){}
     virtual void execute(Output::Id id){}
+    virtual bool ignoreStorageContent() const {return false;}
     virtual bool invalidateEditedRegions() {return false;}
   };
 

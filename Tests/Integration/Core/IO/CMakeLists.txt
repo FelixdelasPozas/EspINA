@@ -1,6 +1,7 @@
 # Analysis tests
 create_test_sourcelist(IO_Tests IO_Tests.cpp # this file is created by this command
   io_analysis_seg_file_io.cpp
+  io_load_seg_file_analysis_without_registered_filters.cpp
   io_classification_xml_io.cpp
 )
 
@@ -45,8 +46,10 @@ add_executable(IO_Tests
   ${CORE_DIR}/Analysis/Graph/DirectedGraph.cpp
   ${CORE_DIR}/MultiTasking/Scheduler.cpp
   ${CORE_DIR}/MultiTasking/Task.cpp
+  io_testing_support.cpp
   )
 target_link_libraries(IO_Tests ${LIB_DEPENDECIES} )
 
-add_test("\"IO: Classification XML IO\"" IO_Tests io_classification_xml_io)
-add_test("\"IO: Analysis Seg File IO\""  IO_Tests io_analysis_seg_file_io)
+add_test("\"IO: Classification XML IO\""                     IO_Tests io_classification_xml_io)
+add_test("\"IO: Analysis Seg File IO\""                      IO_Tests io_analysis_seg_file_io)
+add_test("\"IO: Load Seg File Without Registered Filters\""  IO_Tests io_load_seg_file_analysis_without_registered_filters)

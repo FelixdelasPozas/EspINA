@@ -53,7 +53,7 @@ namespace EspINA
 
     virtual void restoreState(const State& state);
 
-    virtual State saveState() const;
+    virtual State state() const;
 
     void setLowerThreshold(int th);
 
@@ -96,7 +96,12 @@ namespace EspINA
 
     virtual void execute(Output::Id id);
 
+    virtual bool ignoreStorageContent() const;
+
     virtual bool invalidateEditedRegions();
+
+  private:
+    Bounds minimalBounds(itkVolumeType::Pointer image) const;
 
   private:
     int       m_lowerTh, m_prevLowerTh;

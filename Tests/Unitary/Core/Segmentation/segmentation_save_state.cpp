@@ -36,15 +36,12 @@ int segmentation_save_state(int argc, char** argv)
   SegmentationSPtr segmentation{new Segmentation(FilterSPtr{new DummyFilter()}, 0)};
 
   State forgedState;
-  forgedState = QString("ID=") + segmentation->uuid().toString() + QString(";");
 
   segmentation->setNumber(1);
-  forgedState += QString("NUMBER=1;");
+  forgedState = QString("NUMBER=1;");
 
   segmentation->modifiedByUser("AUser");
   forgedState += QString("USERS=AUser;");
-
-  forgedState += QString("OUTPUT=0;");
 
   Classification classification;
   classification.createNode(QString("Prueba"), classification.root());
@@ -52,5 +49,5 @@ int segmentation_save_state(int argc, char** argv)
   segmentation->setCategory(classification.node(QString("Prueba")));
   forgedState += QString("CATEGORY=Prueba;");
 
-  return (segmentation->saveState() != forgedState);
+  return (segmentation->state() != forgedState);
 }

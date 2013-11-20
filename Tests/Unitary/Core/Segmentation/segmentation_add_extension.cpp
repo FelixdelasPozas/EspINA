@@ -33,10 +33,10 @@ int segmentation_add_extension(int argc, char** argv)
 {
   bool error = false;
 
-  SegmentationExtensionSPtr extension{ new DummySegmentationExtension() };
   Classification classification;
   SegmentationSPtr segmentation{new Segmentation(FilterSPtr{new DummyFilter()}, 0)};
 
+  SegmentationExtensionSPtr extension{ new DummySegmentationExtension() };
   segmentation->addExtension(extension);
 
   error |= (!segmentation->hasExtension("DummySegmentationExtension"));

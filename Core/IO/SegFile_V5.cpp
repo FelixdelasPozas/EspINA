@@ -95,14 +95,14 @@ AnalysisSPtr SegFile_V5::load(QuaZip&         zip,
   bool hasFile = zip.goToFirstFile();
   while (hasFile)
   {
-    QFileInfo file = zip.getCurrentFileName();
+    QString file = zip.getCurrentFileName();
 
     if (file != FORMAT_INFO_FILE
      && file != CLASSIFICATION_FILE
      && file != CONTENT_FILE
      && file != RELATIONS_FILE)
     {
-      storage->saveSnapshot(SnapshotData(file.fileName(), readCurrentFileFromZip(zip, handler)));
+      storage->saveSnapshot(SnapshotData(file, readCurrentFileFromZip(zip, handler)));
     }
 
     hasFile = zip.goToNextFile();
@@ -176,7 +176,7 @@ void SegFile_V5::save(AnalysisPtr analysis, QuaZip& zip, ErrorHandlerPtr handler
   for(auto v : analysis->content()->vertices())
   {
     PersistentPtr item = dynamic_cast<PersistentPtr>(v.get());
-    for(auto data : item->saveSnapshot())
+    for(auto data : item->snapshot())
     {
       try
       {
@@ -226,13 +226,51 @@ SampleSPtr SegFile_V5::createSample(DirectedGraph::Vertex   roVertex,
 
   sample->setName(roVertex->name());
   sample->setUuid(roVertex->uuid());
-  sample->restoreState(roVertex->saveState());
+  sample->restoreState(roVertex->state());
   sample->setPersistentStorage(storage);
 
   analysis->add(sample);
 
   return sample;
 }
+
+class ReadOnlyFilter
+: public Filter
+{
+public:
+  explicit ReadOnlyFilter(OutputSList inputs, Type type)
+  : Filter(inputs, type, SchedulerSPtr()) {}
+
+  virtual void restoreState(const State& state)
+  { m_state = state; }
+
+  virtual State state() const 
+  { return m_state; }
+
+protected:
+  virtual Snapshot saveFilterSnapshot() const {return Snapshot(); }
+
+  virtual bool needUpdate() const 
+  { return m_outputs.isEmpty();}
+
+  virtual bool needUpdate(Output::Id id) const
+  { return id >= m_outputs.size() || !m_outputs[id]->isValid(); }
+
+  virtual void execute()
+  {}
+
+  virtual void execute(Output::Id id)
+  {}
+
+  virtual bool ignoreStorageContent() const
+  { return false; }
+
+  virtual bool invalidateEditedRegions()
+  {return false;}
+
+private:
+  State m_state;
+};
 
 //-----------------------------------------------------------------------------
 FilterSPtr SegFile_V5::createFilter(DirectedGraph::Vertex   roVertex,
@@ -245,7 +283,7 @@ FilterSPtr SegFile_V5::createFilter(DirectedGraph::Vertex   roVertex,
   DirectedGraph::Edges inputConections = content->inEdges(roVertex);
 
   OutputSList inputs;
-  foreach(DirectedGraph::Edge edge, inputConections)
+  for(auto edge : inputConections)
   {
     DirectedGraph::Vertex input = findVertex(loadedVertices, edge.source->uuid());
 
@@ -255,10 +293,17 @@ FilterSPtr SegFile_V5::createFilter(DirectedGraph::Vertex   roVertex,
     inputs << filter->output(id);
   }
 
-  FilterSPtr filter = factory->createFilter(inputs, roVertex->name());
+  FilterSPtr filter;
+  try
+  {
+    filter = factory->createFilter(inputs, roVertex->name());
+  } catch (CoreFactory::Unknown_Type_Exception e)
+  {
+    filter = FilterSPtr{new ReadOnlyFilter(inputs, roVertex->name())};
+  }
   filter->setName(roVertex->name());
   filter->setUuid(roVertex->uuid());
-  filter->restoreState(roVertex->saveState());
+  filter->restoreState(roVertex->state());
   filter->setPersistentStorage(storage);
 
   return filter;
@@ -298,7 +343,7 @@ ChannelSPtr SegFile_V5::createChannel(DirectedGraph::Vertex   roVertex,
 
   channel->setName(roVertex->name());
   channel->setUuid(roVertex->uuid());
-  channel->restoreState(roVertex->saveState());
+  channel->restoreState(roVertex->state());
   channel->setPersistentStorage(storage);
 
   analysis->add(channel);
@@ -307,7 +352,7 @@ ChannelSPtr SegFile_V5::createChannel(DirectedGraph::Vertex   roVertex,
 }
 
 //-----------------------------------------------------------------------------
-QString categoryName(const State& state)
+QString parseCategoryName(const State& state)
 {
   QStringList params = state.split(";");
 
@@ -327,16 +372,20 @@ SegmentationSPtr SegFile_V5::createSegmentation(DirectedGraph::Vertex   roVertex
 
   SegmentationSPtr segmentation = factory->createSegmentation(output.first, output.second);
 
-  State roState = roVertex->saveState();
+  State roState = roVertex->state();
   segmentation->setName(roVertex->name());
   segmentation->setUuid(roVertex->uuid());
   segmentation->restoreState(roState);
   segmentation->setPersistentStorage(storage);
 
-  auto name     = categoryName(roState);
-  auto category = analysis->classification()->node(name);
+  auto categoryName = parseCategoryName(roState);
 
-  segmentation->setCategory(category);
+  if (!categoryName.isEmpty())
+  {
+    auto category = analysis->classification()->node(categoryName);
+
+    segmentation->setCategory(category);
+  }
 
   analysis->add(segmentation);
 

@@ -44,7 +44,7 @@ namespace EspINA
 
     virtual void restoreState(const State& state);
 
-    virtual State saveState() const;
+    virtual State state() const;
 
     void setFileName(const QFileInfo& fileName);
 
@@ -59,6 +59,9 @@ namespace EspINA
     virtual void execute();
 
     virtual void execute(Output::Id id);
+
+    virtual bool ignoreStorageContent() const
+    {return false;}
 
     virtual bool invalidateEditedRegions()
     { return false; }

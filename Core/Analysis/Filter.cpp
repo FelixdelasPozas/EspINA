@@ -41,7 +41,7 @@ Filter::~Filter()
 }
 
 //----------------------------------------------------------------------------
-Snapshot Filter::saveSnapshot() const
+Snapshot Filter::snapshot() const
 {
   Snapshot snapshot;
 
@@ -98,7 +98,7 @@ bool Filter::update(Output::Id id)
 
      if (!fetchOutputData(id))
      {
-       foreach(OutputSPtr input, m_inputs)
+       for(OutputSPtr input : m_inputs)
        {
          input->update();
        }
@@ -126,7 +126,24 @@ Filter::Filter(OutputSList inputs, Filter::Type type, SchedulerSPtr scheduler)
 //----------------------------------------------------------------------------
 bool Filter::fetchOutputData(Output::Id id)
 {
-  return false;
+  bool fetched = false;
+
+  if (!ignoreStorageContent() && storage())
+  {
+    bool found = true;
+
+    if (found)
+    {
+      for(int i = m_outputs.size(); i <= id; ++i)
+      {
+        m_outputs << OutputSPtr{new Output(this, i)};
+      }
+    }
+
+    fetched = true;
+  }
+
+  return fetched;
 }
 
 
@@ -238,73 +255,6 @@ throw (Undefined_Output_Exception)
 // }
 // 
 // //----------------------------------------------------------------------------
-// bool SegmentationFilter::needUpdate(FilterOutputId oId) const
-// {
-//   return !m_outputs.contains(oId) || !m_outputs[oId]->isValid();
-// }
-// 
-// //----------------------------------------------------------------------------
-// void SegmentationFilter::update(FilterOutputId oId)
-// {
-// }
-// 
-// //----------------------------------------------------------------------------
-// bool SegmentationFilter::fetchSnapshot(FilterOutputId oId)
-// {
-//   return false;
-// }
-// 
-// //----------------------------------------------------------------------------
-// void ChannelFilter::createOutput(FilterOutputId id)
-// {
-//   if (!m_outputs.contains(id))
-//     m_outputs[id] = ChannelOutputSPtr(new ChannelOutput(this, id));
-//   else
-//     qWarning() << "Filter: " << data().toString() << " has already created output" << id;
-// }
-// 
-// //----------------------------------------------------------------------------
-// void ChannelFilter::addOutputRepresentation(FilterOutputId id, ChannelRepresentationSPtr rep)
-// {
-//   ChannelRepresentationSList representations;
-//   representations << rep;
-// 
-//   addOutputRepresentations(id, representations);
-// }
-// 
-// //----------------------------------------------------------------------------
-// void ChannelFilter::addOutputRepresentations(FilterOutputId id, ChannelRepresentationSList repList)
-// {
-//   if (!m_outputs.contains(id))
-//     createOutput(id);
-// 
-//   Q_ASSERT(m_outputs.contains(id));
-// 
-//   ChannelOutputSPtr currentOutput = m_outputs[id];
-// 
-//   foreach(ChannelRepresentationSPtr representation, repList)
-//   {
-//     ChannelRepresentationSPtr proxyRepresentation = currentOutput->representation(representation->type());
-// 
-//     representation->setOutput(currentOutput.get());
-// 
-//     if (!proxyRepresentation)
-//       proxyRepresentation = createRepresentationProxy(id, representation->type());
-// 
-//     if (!proxyRepresentation->setInternalData(representation))
-//     {
-//       qWarning() << "Filter: Couldn't copy internal data";
-//       Q_ASSERT(false);
-//     }
-//   }
-// 
-//   currentOutput->clearGraphicalRepresentations();
-// 
-//   if (m_graphicalRepresentationFactory)
-//     m_graphicalRepresentationFactory->createGraphicalRepresentations(currentOutput);
-// }
-// 
-// //----------------------------------------------------------------------------
 // itkVolumeType::Pointer Filter::readVolumeFromCache(const QString &file)
 // {
 //   itkVolumeType::Pointer volume;
@@ -359,50 +309,6 @@ throw (Undefined_Output_Exception)
 // 
 //   return volume;
 // }
-// 
-// 
-// //----------------------------------------------------------------------------
-// void ChannelFilter::update(FilterOutputId oId)
-// {
-//   bool ignoreOutputs     = ignoreCurrentOutputs();
-//   bool outputNeedsUpdate = needUpdate(oId);
-// 
-//    if (ignoreOutputs || outputNeedsUpdate)
-//    {
-//      if (!fetchSnapshot(oId))
-//      {
-//        m_inputs.clear();
-// 
-//        QStringList namedInputList = m_args[INPUTS].split(",", QString::SkipEmptyParts);
-//        foreach(QString namedInput, namedInputList)
-//        {
-//          QStringList input = namedInput.split("_");
-//          FilterSPtr inputFilter = m_namedInputs[input[0]];
-//          FilterOutputId iId = input[1].toInt();
-//          inputFilter->update(iId);
-//          m_inputs << inputFilter->output(iId);
-//        }
-// 
-//        run(oId);
-// 
-//        m_executed = true;
-//      }
-//    }
-// }
-// 
-// //----------------------------------------------------------------------------
-// bool ChannelFilter::validOutput(FilterOutputId oId)
-// {
-//   return m_outputs.contains(oId);
-// }
-// 
-// 
-// //----------------------------------------------------------------------------
-// bool SegmentationFilter::validOutput(FilterOutputId oId)
-// {
-//   return m_outputs.contains(oId);
-// }
-// 
 // //----------------------------------------------------------------------------
 // bool SegmentationFilter::dumpSnapshot(Snapshot &snapshot)
 // {
@@ -454,42 +360,6 @@ throw (Undefined_Output_Exception)
 // 
 //   return update;
 // }
-// 
-// //----------------------------------------------------------------------------
-// bool ChannelFilter::needUpdate(FilterOutputId oId) const
-// {
-//   return !m_outputs.contains(oId) || !m_outputs[oId]->isValid();
-// }
-// 
-// 
-// //----------------------------------------------------------------------------
-// FilterPtr EspINA::filterPtr(ModelItemPtr item)
-// {
-//   Q_ASSERT(EspINA::FILTER == item->type());
-//   FilterPtr ptr = dynamic_cast<FilterPtr>(item);
-//   Q_ASSERT(ptr);
-// 
-//   return ptr;
-// }
-// 
-// //----------------------------------------------------------------------------
-// FilterSPtr EspINA::filterPtr(ModelItemSPtr& item)
-// {
-//   Q_ASSERT(EspINA::FILTER == item->type());
-//   FilterSPtr ptr = boost::dynamic_pointer_cast<Filter>(item);
-//   Q_ASSERT(ptr.get() != NULL);
-// 
-//   return ptr;
-// 
-// }
-// 
-// //----------------------------------------------------------------------------
-// bool Filter::dumpSnapshot(Snapshot &snapshot)
-// {
-//   return false;
-// }
-// 
-// 
 // //----------------------------------------------------------------------------
 // void SegmentationFilter::setCacheDir(QDir dir)
 // {

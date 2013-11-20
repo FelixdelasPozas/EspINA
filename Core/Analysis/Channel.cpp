@@ -79,7 +79,7 @@ void Channel::restoreState(const State& state)
 }
 
 //------------------------------------------------------------------------
-State Channel::saveState() const
+State Channel::state() const
 {
   State state;
 
@@ -132,7 +132,7 @@ bool Channel::hasExtension(const ChannelExtension::Type& type) const
 }
 
 //------------------------------------------------------------------------
-Snapshot Channel::saveSnapshot() const
+Snapshot Channel::snapshot() const
 {
   return Snapshot();
 }

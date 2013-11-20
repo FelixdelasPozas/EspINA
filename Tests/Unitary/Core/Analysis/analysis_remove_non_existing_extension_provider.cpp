@@ -39,8 +39,8 @@ int analysis_remove_non_existing_extension_provider(int argc, char** argv )
   {
   public:
     virtual void restoreState(const State& state) {}
-    virtual State saveState() const {}
-    virtual Snapshot saveSnapshot() const{}
+    virtual State state() const {}
+    virtual Snapshot snapshot() const{}
     virtual void unload() {}
     virtual Type type() const {}
     virtual ChannelExtensionSPtr createChannelExtension(const ChannelExtension::Type& type) {}

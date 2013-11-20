@@ -15,6 +15,11 @@ create_test_sourcelist(Bounds_Tests Bounds_Tests.cpp # this file is created by t
 
 set(SUBJECT_DIR ${CORE_DIR}/Utils)
 
+set(LIB_DEPENDECIES
+  ${QT_LIBRARIES}
+  ${LIB_DEPENDECIES}
+)
+
 include_directories(
   ${SUBJECT_DIR}
   )

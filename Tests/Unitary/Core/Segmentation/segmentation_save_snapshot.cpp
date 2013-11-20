@@ -21,32 +21,43 @@
 #include "Core/Analysis/Filter.h"
 #include "Core/Analysis/Segmentation.h"
 #include "Core/Analysis/Analysis.h"
-#include "Core/MultiTasking/Scheduler.h"
+
+#include "SegmentationExtensionSupport.h"
 #include "segmentation_testing_support.h"
 
 using namespace std;
 using namespace EspINA;
 using namespace EspINA::Testing;
 
-int segmentation_restore_state(int argc, char** argv)
+int segmentation_save_snapshot(int argc, char** argv)
 {
   bool error = false;
 
+  SegmentationExtensionSPtr extension{ new DummySegmentationExtension() };
+  Classification classification;
   SegmentationSPtr segmentation{new Segmentation(FilterSPtr{new DummyFilter()}, 0)};
 
-  State forgedState = QString("NUMBER=2;USERS=FakeUser1,FakeUser2;CATEGORY=Prueba;");
+  segmentation->addExtension(extension);
 
-  segmentation->restoreState(forgedState);
+  Snapshot snapshot = segmentation->snapshot();
 
-  if (segmentation->number() != 2)
+  if (snapshot.size() != 2)
   {
-    cerr << "Unexpected restored number" << endl;
+    cerr << "Invalid number of snapshot data" << endl;
     error = true;
   }
 
-  if (!(segmentation->users().contains("FakeUser1") && segmentation->users().contains("FakeUser2")))
+  QString dir = "Segmentations/" + segmentation->uuid().toString() + "/";
+
+  if (snapshot[0].first != dir + "DummySegmentationExtension.txt")
   {
-    cerr << "Unexpected user" << endl;
+    cerr << "Extension Snapshot not found" << endl;
+    error = true;
+  }
+
+  if (snapshot[1].first != dir + "extensions.xml")
+  {
+    cerr << "Extensions file not found" << endl;
     error = true;
   }
 

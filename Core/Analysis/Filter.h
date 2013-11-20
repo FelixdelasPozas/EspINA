@@ -47,7 +47,7 @@ namespace EspINA
   public:
     virtual ~Filter();
 
-    virtual Snapshot saveSnapshot() const;
+    virtual Snapshot snapshot() const;
 
     virtual void unload();
 
@@ -115,8 +115,18 @@ namespace EspINA
      */
     virtual void execute() = 0;
 
-    /// Method which actually executes the filter to generate output oId
+    /** \brief Method which actually executes the filter to generate output oId
+     *
+     */
     virtual void execute(Output::Id id) = 0;
+
+    /** \brief Determine whether or not data at persistent storage is still valid
+     *
+     *  Due to lazy execution some filters may change their state (i.e. parameters)
+     *  before actually accessing triggering an update. Fetching storage data in such
+     *  cases may lead to output inconsistencies
+     */
+    virtual bool ignoreStorageContent() const = 0;
 
     virtual bool invalidateEditedRegions() = 0;
 

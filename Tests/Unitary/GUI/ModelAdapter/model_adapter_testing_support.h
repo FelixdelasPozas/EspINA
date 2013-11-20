@@ -34,7 +34,7 @@ namespace EspINA {
       : Filter(input, type, scheduler)
       { m_outputs << OutputSPtr{new Output(this, 0)};}
       virtual void restoreState(const State& state) {}
-      virtual State saveState() const {return State();}
+      virtual State state() const {return State();}
 
     protected:
     virtual Snapshot saveFilterSnapshot() const {return Snapshot(); }
@@ -43,6 +43,7 @@ namespace EspINA {
       virtual DataSPtr createDataProxy(Output::Id id, const Data::Type& type){}
       virtual void execute(){}
       virtual void execute(Output::Id id){}
+      virtual bool ignoreStorageContent() const {return false;}
       virtual bool invalidateEditedRegions() {return false;}
     };
 
@@ -51,8 +52,8 @@ namespace EspINA {
     {
     public:
       virtual void restoreState(const State& state) {}
-    virtual State saveState() const {}
-      virtual Snapshot saveSnapshot() const {return Snapshot();}
+    virtual State state() const {}
+      virtual Snapshot snapshot() const {return Snapshot();}
       virtual void unload() {}
       virtual Type type() const {}
       virtual ChannelExtensionSPtr createChannelExtension(const ChannelExtension::Type& type) {}

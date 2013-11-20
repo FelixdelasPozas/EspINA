@@ -30,8 +30,8 @@ namespace UnitTesting {
   {
   public:
     virtual void restoreState(const EspINA::State& state){}
-    virtual EspINA::State saveState() const { return EspINA::State(); }
-    virtual EspINA::Snapshot saveSnapshot() const {return EspINA::Snapshot();}
+    virtual EspINA::State state() const { return EspINA::State(); }
+    virtual EspINA::Snapshot snapshot() const {return EspINA::Snapshot();}
     virtual void unload(){}
   };
 

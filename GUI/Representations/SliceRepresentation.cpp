@@ -216,8 +216,6 @@ void ChannelSliceRepresentation::updateRepresentation()
     imageBounds[2*m_planeIndex+1] = m_reslicePoint;
 
     itkVolumeType::Pointer slice = m_data->itkImage(imageBounds);
-    cout << "Channel: " << imageBounds << endl;
-    slice->GetLargestPossibleRegion().Print(cout);
 
     m_exporter = ExporterType::New();
     m_exporter->ReleaseDataFlagOn();
@@ -424,8 +422,6 @@ void SegmentationSliceRepresentation::updateRepresentation()
     imageBounds[2*m_planeIndex+1] = m_reslicePoint;
 
     itkVolumeType::Pointer slice = m_data->itkImage(imageBounds);
-    cout << "Segmentation: " << imageBounds << endl;
-    slice->GetLargestPossibleRegion().Print(cout);
 
     m_exporter = ExporterType::New();
     m_exporter->ReleaseDataFlagOn();

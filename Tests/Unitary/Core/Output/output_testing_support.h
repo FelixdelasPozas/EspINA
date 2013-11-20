@@ -35,7 +35,7 @@ namespace EspINA {
       : Filter(OutputSList(), "DummyFilter", SchedulerSPtr(new Scheduler(10000000))){}
       virtual OutputSPtr output(Output::Id id) const {return OutputSPtr{new Output(this, 0)};}
       virtual void restoreState(const State& state){}
-      virtual State saveState() const{return State();}
+      virtual State state() const{return State();}
 
     protected:
     virtual Snapshot saveFilterSnapshot() const {return Snapshot(); }
@@ -44,6 +44,7 @@ namespace EspINA {
       virtual DataSPtr createDataProxy(Output::Id id, const Data::Type& type){}
       virtual void execute(){}
       virtual void execute(Output::Id id){}
+      virtual bool ignoreStorageContent() const {return false;}
       virtual bool invalidateEditedRegions() {return false;}
     };
   }

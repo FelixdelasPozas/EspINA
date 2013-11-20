@@ -41,7 +41,7 @@ void VolumetricStreamReader::restoreState(const State& state)
 }
 
 //----------------------------------------------------------------------------
-State VolumetricStreamReader::saveState() const
+State VolumetricStreamReader::state() const
 {
   State state;
 

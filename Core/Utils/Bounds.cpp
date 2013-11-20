@@ -111,6 +111,23 @@ Bounds::Bounds(std::initializer_list<double> bounds)
 }
 
 //-----------------------------------------------------------------------------
+QString Bounds::toString() const
+{
+  QString string = "{";
+  int i = 0;
+  for (auto axis : {Axis::X , Axis::Y, Axis::Z}) {
+    if (i > 0) {string += ",";}
+    string += areLowerIncluded(axis)?"[":"(";
+    string += QString("%1,%2").arg(m_bounds[i]).arg(m_bounds[i+1]);
+    string += areUpperIncluded(axis)?"]":")";
+    i += 2;
+  }
+  string += "}";
+
+  return string;
+}
+
+//-----------------------------------------------------------------------------
 bool EspINA::intersect(const Bounds& b1, const Bounds& b2)
 {
   auto lessThan         = [](double a, double b){return a <  b;};
@@ -204,16 +221,7 @@ Bounds EspINA::boundingBox(const Bounds& b1, const Bounds& b2)
 //-----------------------------------------------------------------------------
 std::ostream& EspINA::operator<<(std::ostream& os, const Bounds& bounds)
 {
-  os << "{";
-  int i = 0;
-  for (auto axis : {Axis::X , Axis::Y, Axis::Z}) {
-    if (i > 0) {os << ",";}
-    os << (bounds.areLowerIncluded(axis)?"[":"(");
-    os << bounds[i] << "," << bounds[i+1];
-    os << (bounds.areUpperIncluded(axis)?"]":")");
-    i += 2;
-  }
-  os << "}";
+  os << bounds.toString().toStdString();
 
   return os;
 }

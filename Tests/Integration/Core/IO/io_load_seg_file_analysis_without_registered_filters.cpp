@@ -42,23 +42,11 @@ using namespace EspINA;
 using namespace EspINA::IO;
 using namespace EspINA::IO_Testing;
 
-int io_analysis_seg_file_io( int argc, char** argv )
+int io_load_seg_file_analysis_without_registered_filters( int argc, char** argv )
 {
-  class DummyFilterFactory
-  : public FilterFactory
-  {
-    virtual FilterTypeList providedFilters() const
-    { FilterTypeList list; list << "DummyFilter"; return list; }
-    virtual FilterSPtr createFilter(OutputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const
-    {
-      return FilterSPtr{new DummyFilter()};
-    }
-  } dummyFactory;
-
   bool error = false;
 
   CoreFactorySPtr factory{new CoreFactory()};
-  factory->registerFilter(&dummyFactory);
 
   Analysis analysis;
 

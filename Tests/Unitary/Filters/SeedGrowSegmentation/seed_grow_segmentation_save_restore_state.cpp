@@ -57,7 +57,7 @@ int seed_grow_segmentation_save_restore_state(int argc, char** argv)
   sgsf.setUpperThreshold(uth);
   sgsf.setClosingRadius(cr);
 
-  State state{sgsf.saveState()};
+  State state{sgsf.state()};
 
   SeedGrowSegmentationFilter restoredSgsf(inputs, type, scheduler);
 

@@ -30,16 +30,17 @@ namespace EspINA {
     explicit Storage(const QDir& parent);
     ~Storage();
 
-    void saveSnapshot(Persistent::Uuid id, const Snapshot& snapshot);
-
     /** \brief Write snapshot data to storage destination
      *
      *  This version uses disk as storage destination
      */
     void saveSnapshot(SnapshotData data);
 
+    QByteArray snapshot(const QString& descriptor) const;
+
   private:
     QUuid m_uuid;
+    QDir  m_storageDir;
   };
 }
 

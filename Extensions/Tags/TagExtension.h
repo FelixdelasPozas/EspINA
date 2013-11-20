@@ -56,6 +56,15 @@ namespace EspINA
     virtual Type type() const
     { return TYPE; }
 
+    virtual bool invalidateOnChange() const
+    { return false; }
+
+    virtual State state() const
+    { return m_tags.join(","); }
+
+    virtual Snapshot snapshot() const
+    { return Snapshot(); }
+
     virtual TypeList dependencies() const
     { return TypeList(); }
 

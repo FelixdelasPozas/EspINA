@@ -27,6 +27,7 @@
 #include <QPainter>
 #include <QTextStream>
 #include <QUuid>
+#include <QXmlStreamReader>
 #include <string>
 
 using namespace std;
@@ -101,8 +102,12 @@ bool Segmentation::hasExtension(const SegmentationExtension::Type& type) const
 QVariant Segmentation::information(const SegmentationExtension::InfoTag& tag) const
 {
   for(auto extension: m_extensions.values())
+  {
     if (extension->availableInformations().contains(tag))
+    {
       return extension->information(tag);
+    }
+  }
 
   return QVariant();
 }
@@ -119,13 +124,45 @@ SegmentationExtension::InfoTagList Segmentation::informationTags() const
 }
 
 //------------------------------------------------------------------------
-Snapshot Segmentation::saveSnapshot() const
+Snapshot Segmentation::snapshot() const
 {
-  return Snapshot();
+  Snapshot snapshot;
+
+  QString dir = QString("Segmentations/%1/").arg(uuid());
+
+  if (!m_extensions.isEmpty())
+  {
+    QByteArray xml;
+
+    QXmlStreamWriter stream(&xml);
+
+    stream.setAutoFormatting(true);
+    stream.writeStartDocument();
+
+    for(auto extension : m_extensions)
+    {
+      stream.writeStartElement(extension->type());
+      stream.writeAttribute("InvalidateOnChange", QString("%1").arg(extension->invalidateOnChange()));
+      stream.writeCharacters(extension->state());
+      stream.writeEndElement();
+
+      for(auto data: extension->snapshot())
+      {
+        QString file = dir + data.first;
+        snapshot << SnapshotData(file, data.second);
+      }
+    }
+    stream.writeEndDocument();
+
+    QString file = dir + "extensions.xml";
+    snapshot << SnapshotData(file, xml);
+  }
+
+  return snapshot;
 }
 
 //------------------------------------------------------------------------
-State Segmentation::saveState() const
+State Segmentation::state() const
 {
   State state = QString("NUMBER=") + QString::number(m_number) + QString(";");
   QStringList usersList = m_users.toList();
@@ -143,9 +180,7 @@ State Segmentation::saveState() const
 
 //   if (output())
 //     state += QString("OUTPUT=%1;").arg(output()->id());
-
-  if (m_category)
-    state += QString("CATEGORY=%1;").arg(m_category->classificationName());
+  state += QString("CATEGORY=%1;").arg(m_category?m_category->classificationName():"");
 
   return state;
 }
@@ -165,15 +200,7 @@ void Segmentation::restoreState(const State& state)
       m_number = tokens[1].toUInt();
 
     if (tokens[0].compare("USERS") == 0)
-      m_users = tokens[1].split('/').toSet();
-
-//     if (tokens[0].compare("OUTPUT") == 0)
-//       changeOutputId(tokens[1].toUInt());
-
-   // NOTE: This category has to be replaced by the reader
-   //       with analysis classification's equivalent category
-//    if (tokens[0].compare("CATEGORY") == 0)
-//      m_category = new Category(nullptr, tokens[1]);
+      m_users = tokens[1].split(',').toSet();
   }
 }
 

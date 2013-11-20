@@ -43,8 +43,7 @@ int output_update_filter( int argc, char** argv )
     : Filter(OutputSList(), "Dummy", SchedulerSPtr(new Scheduler(10000000)))
     , UpdatedOutput{-1}{}
     virtual void restoreState(const State& state) {}
-    virtual State saveState() const{ return State();}
-    virtual OutputSPtr output(Output::Id id) const {}
+    virtual State state() const{ return State();}
     
     int UpdatedOutput;
     
@@ -55,6 +54,7 @@ int output_update_filter( int argc, char** argv )
     virtual DataSPtr createDataProxy(Output::Id id, const Data::Type& type){}
     virtual void execute(){}
     virtual void execute(Output::Id id){UpdatedOutput = id;}
+    virtual bool ignoreStorageContent() const {return false;}
     virtual bool invalidateEditedRegions() {return false;}
   };
   

@@ -35,7 +35,7 @@ namespace EspINA {
       { m_outputs << OutputSPtr(new Output(this, 0)); }
 
       virtual void restoreState(const State& state) {}
-      virtual State saveState() const {return State();}
+      virtual State state() const {return State();}
 
       void dummyMethod(){}
     protected:
@@ -44,6 +44,7 @@ namespace EspINA {
       virtual bool needUpdate(Output::Id id) const{return false;}
       virtual void execute(){}
       virtual void execute(Output::Id id){}
+      virtual bool ignoreStorageContent() const {return false;}
       virtual bool invalidateEditedRegions() {return false;}
     };
 
@@ -53,7 +54,7 @@ namespace EspINA {
     public:
       virtual void restoreState(const State& state) {}
       virtual void saveState(State& state) const{}
-      virtual Snapshot saveSnapshot() const {return Snapshot();}
+      virtual Snapshot snapshot() const {return Snapshot();}
       virtual void unload() {}
       virtual Type type() const {}
       virtual ChannelExtensionSPtr createChannelExtension(const ChannelExtension::Type& type) {}

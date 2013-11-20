@@ -60,63 +60,66 @@ namespace EspINA {
     using BlockMaskUPtr = std::unique_ptr<BlockMask>;
 
   public:
-    /* \brief SparseVolume constructor to create a empty mask with the given bounds and spacing.
+    /** \brief SparseVolume constructor to create a empty mask with the given bounds and spacing.
      */
     explicit SparseVolume(const Bounds& bounds = Bounds(), const NmVector3& spacing = {1, 1, 1}) throw(Invalid_Image_Bounds_Exception);
 
-    /* \brief Class destructor
+    /** \brief Class destructor
      */
     virtual ~SparseVolume() {}
 
-    /* \brief Returns the memory used to store the image in megabytes.
+    /** \brief Returns the memory used to store the image in megabytes.
      */
     virtual double memoryUsage() const;
 
-    /* \brief Returns the bounds of the volume.
+    /** \brief Returns the bounds of the volume.
      */
     virtual Bounds bounds() const;
 
-    /* \brief Set volume origin.
+    /** \brief Set volume origin.
      */
     virtual void setOrigin(const NmVector3& origin);
 
-    /* \brief Returns volume origin.
+    /** \brief Returns volume origin.
      */
     virtual NmVector3 origin() const
     { return m_origin; }
 
-    /* \brief Set volume spacing.
+    /** \brief Set volume spacing.
      */
     virtual void setSpacing(const NmVector3& spacing);
 
-    /* \brief Returns volume spacing.
+    /** \brief Returns volume spacing.
      */
     virtual NmVector3 spacing() const
     { return m_spacing; }
 
-    /* \brief Returns the equivalent itk image of the volume.
+    /** \brief Returns the equivalent itk image of the volume.
      */
     virtual const typename T::Pointer itkImage() const;
 
-    /* \brief Returns the equivalent itk image of a region of the volume.
+    /** \brief Returns the equivalent itk image of a region of the volume.
      */
     virtual const typename T::Pointer itkImage(const Bounds& bounds) const;
 
-    /* \brief Method to modify the volume using a implicit function.
-     * NOTE: draw methods are constrained to volume bounds.
+    /** \brief Method to modify the volume using a implicit function.
+     *
+     *  Draw methods are constrained to volume bounds.
      */
     virtual void draw(const vtkImplicitFunction*  brush,
                       const Bounds&               bounds,
                       const typename T::ValueType value = SEG_VOXEL_VALUE);
 
-    /* \brief Method to modify the volume using an itk image.
-     * NOTE: draw methods are constrained to volume bounds.
+    /** \brief Method to modify the volume using an itk image.
+     *
+     *  Draw methods are constrained to volume bounds.
      */
     virtual void draw(const typename T::Pointer volume,
                       const Bounds&             bounds = Bounds());
 
-    /* \brief Method to modify a voxel of the volume using an itk index.
-     * NOTE: draw methods are constrained to volume bounds.
+    /** \brief Method to modify a voxel of the volume using an itk index.
+     *
+     *  Draw methods are constrained to volume bounds.
      */
     virtual void draw(const typename T::IndexType index,
                       const typename T::PixelType value = SEG_VOXEL_VALUE);
@@ -130,41 +133,42 @@ namespace EspINA {
     // TODO: volumen 3d itkVolumeType to SparseVolume (algoritmo de octree)
     // ------------------------------------------------------------------------
 
-    /* \brief Resizes the image to the minimum bounds that can contain the volume.
-     * The resultant image is always smaller of equal in size to the original one.
+    /** \brief Resizes the image to the minimum bounds that can contain the volume.
+     *
+     *  The resultant image is always smaller of equal in size to the original one.
      */
     virtual void fitToContent(){}
 
-    /* \brief Resize the volume bounds. The given bounds must containt the original.
+    /** \brief Resize the volume bounds. The given bounds must containt the original.
      */
     virtual void resize(const Bounds &bounds);
 
-    /* \brief Method to undo the last change made to the volume.
+    /** \brief Method to undo the last change made to the volume.
      */
     virtual void undo() {}
 
-    /* \brief Returns if the volume has been correctly initialized.
+    /** \brief Returns if the volume has been correctly initialized.
      */
     virtual bool isValid() const;
 
-    /* \brief Persistent Interface to save the mask state.
+    /** \brief Persistent Interface to save the mask state.
      */
     virtual Snapshot snapshot() const;
 
     virtual Snapshot editedRegionsSnapshot() const { return Snapshot(); }
 
   protected:
-    /* \brief Replace sparse volume voxels within data region with data voxels
+    /** \brief Replace sparse volume voxels within data region with data voxels
      *
-     * Sparse Volume will take ownership of the block
+     *  Sparse Volume will take ownership of the block
      */
     void setBlock(typename T::Pointer image);
 
-    /* \brief Set non background data voxels of sparse volume to data voxel values
+    /** \brief Set non background data voxels of sparse volume to data voxel values
      *
-     * For every voxel in data, set the value of its equivalent sparse volume voxel to
-     * the value of the data voxel
-     * Sparse Volume will take ownership of the block
+     *  For every voxel in data, set the value of its equivalent sparse volume voxel to
+     *  the value of the data voxel
+     *  Sparse Volume will take ownership of the block
      */
     void addBlock(BlockMaskUPtr mask);
 

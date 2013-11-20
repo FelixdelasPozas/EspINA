@@ -36,6 +36,7 @@
 
 #include <iostream>
 #include <QList>
+#include <QString>
 
 namespace EspINA {
 
@@ -74,14 +75,19 @@ namespace EspINA {
      *  Any region whose lower bounds are greater than its upper bounds is considered to be an
      *  empty region, and thus invalid.
      */
-    bool areValid() const { return m_bounds[0] <= m_bounds[1] && m_bounds[2] <= m_bounds[3] &&m_bounds[4] <= m_bounds[5]; }
+    bool areValid() const
+    { return m_bounds[0] <= m_bounds[1] && m_bounds[2] <= m_bounds[3] &&m_bounds[4] <= m_bounds[5]; }
 
-    double& operator[](int idx) { return m_bounds[idx]; }
-    const double& operator[](int idx) const { return m_bounds[idx]; }
+    double& operator[](int idx)
+    { return m_bounds[idx]; }
+
+    const double& operator[](int idx) const
+    { return m_bounds[idx]; }
 
     /** \brief Set wheter or not lower bounds in the given direction should be included in the region defined by the bounds
      */
-    void setLowerInclusion(const Axis dir, const bool value) { m_lowerInclusion[idx(dir)] = value; }
+    void setLowerInclusion(const Axis dir, const bool value)
+    { m_lowerInclusion[idx(dir)] = value; }
 
     /** \brief Set wheter or not lower bounds should be included in the region defined by the bounds
      */
@@ -90,11 +96,13 @@ namespace EspINA {
 
     /** \brief Return wheter or not lower bounds in the given direction should be included in the region defined by the bounds
      */
-    bool areLowerIncluded(const Axis dir) const { return m_lowerInclusion[idx(dir)]; }
+    bool areLowerIncluded(const Axis dir) const
+    { return m_lowerInclusion[idx(dir)]; }
 
     /** \brief Set wheter or not upper bounds in the given direction should be included in the region defined by the bounds
      */
-    void setUpperInclusion(const Axis dir, const bool value) { m_upperInclusion[idx(dir)] = value; }
+    void setUpperInclusion(const Axis dir, const bool value)
+    { m_upperInclusion[idx(dir)] = value; }
 
     /** \brief Set wheter or not upper bounds should be included in the region defined by the bounds
      */
@@ -103,12 +111,16 @@ namespace EspINA {
 
     /** \brief Return wheter or not upper bounds in the given direction should be included in the region defined by the bounds
      */
-    bool areUpperIncluded(const Axis dir) const { return m_upperInclusion[idx(dir)]; }
+    bool areUpperIncluded(const Axis dir) const
+    { return m_upperInclusion[idx(dir)]; }
 
     /** \brief Return the distance between both sides of the bounds in a given direction
      *
      */
-    double lenght(const Axis dir) const { return m_bounds[2*idx(dir)+1] - m_bounds[2*idx(dir)]; }
+    double lenght(const Axis dir) const
+    { return m_bounds[2*idx(dir)+1] - m_bounds[2*idx(dir)]; }
+
+    QString toString() const;
 
   private:
     double m_bounds[6];
