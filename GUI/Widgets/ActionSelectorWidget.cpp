@@ -23,7 +23,7 @@ ActionSelectorWidget::ActionSelectorWidget(QWidget* parent)
 : QToolButton(parent)
 , m_actions(new QMenu())
 {
-  m_selectedAction = NULL;
+  m_selectedAction = nullptr;
   setCheckable(true);
   setAutoRaise(true);
   setMenu(m_actions);

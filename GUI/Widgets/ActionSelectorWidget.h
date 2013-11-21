@@ -17,8 +17,8 @@
 */
 
 
-#ifndef ACTIONSELECTORWIDGET_H
-#define ACTIONSELECTORWIDGET_H
+#ifndef ESPINA_ACTION_SELECTOR_WIDGET_H
+#define ESPINA_ACTION_SELECTOR_WIDGET_H
 
 #include "EspinaGUI_Export.h"
 
@@ -52,4 +52,4 @@ protected:
   QAction *m_selectedAction;
 };
 
-#endif // ACTIONSELECTORWIDGET_H
+#endif // ESPINA_ACTION_SELECTOR_WIDGET_H

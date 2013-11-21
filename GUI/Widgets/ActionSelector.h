@@ -17,8 +17,8 @@
 */
 
 
-#ifndef ACTIONSELECTOR_H
-#define ACTIONSELECTOR_H
+#ifndef ESPINA_ACTION_SELECTOR_H
+#define ESPINA_ACTION_SELECTOR_H
 
 #include "EspinaGUI_Export.h"
 
@@ -33,7 +33,7 @@ class EspinaGUI_EXPORT ActionSelector
 {
   Q_OBJECT
 public:
-  explicit ActionSelector(QObject *parent=nullptr);
+  explicit ActionSelector(QObject *parent = nullptr);
 
   virtual QWidget* createWidget(QWidget *parent);
 
@@ -60,4 +60,4 @@ private:
   ActionSelectorWidget *m_button;
 };
 
-#endif // ACTIONSELECTOR_H
+#endif // ESPINA_ACTION_SELECTOR_H

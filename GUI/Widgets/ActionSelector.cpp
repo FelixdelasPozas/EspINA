@@ -25,7 +25,7 @@
 ActionSelector::ActionSelector(QObject *parent)
 : QWidgetAction(parent)
 {
-  m_button = NULL;
+  m_button = nullptr;
 }
 
 //------------------------------------------------------------------------
@@ -50,7 +50,7 @@ void ActionSelector::addAction(QAction* action)
 {
   m_actions.append(action);
 
-  if (NULL != m_button)
+  if (nullptr != m_button)
     m_button->addAction(action);
 }
 
@@ -69,36 +69,47 @@ void ActionSelector::onActionCanceled()
 //------------------------------------------------------------------------
 void ActionSelector::setDefaultAction(QAction *action)
 {
-  if (m_actions.contains(action))
+  if (m_actions.contains(action) && m_button != nullptr)
     m_button->setButtonAction(action);
 }
 
 //------------------------------------------------------------------------
 bool ActionSelector::isChecked()
 {
-  return m_button->isChecked();
+  if (nullptr != m_button)
+    return m_button->isChecked();
+  else
+    return false;
 }
 
 //------------------------------------------------------------------------
 void ActionSelector::setChecked(bool value)
 {
-  m_button->setChecked(value);
+  if (nullptr != m_button)
+    m_button->setChecked(value);
 }
 
 //------------------------------------------------------------------------
 QAction* ActionSelector::getCurrentAction()
 {
-  return m_button->getButtonAction();
+  if (nullptr != m_button)
+    return m_button->getButtonAction();
+  else
+    return nullptr;
 }
 
 //------------------------------------------------------------------------
 QString ActionSelector::getCurrentActionAsQString()
 {
-  return m_button->getButtonAction()->text();
+  if (nullptr != m_button)
+    return m_button->getButtonAction()->text();
+  else
+    return QString();
 }
 
 //------------------------------------------------------------------------
 void ActionSelector::setIcon(const QIcon &icon)
 {
-  m_button->setIcon(icon);
+  if (nullptr != m_button)
+    m_button->setIcon(icon);
 }
