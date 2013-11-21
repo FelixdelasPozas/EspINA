@@ -94,15 +94,16 @@ View2D::View2D(Plane plane, QWidget* parent)
 , m_zoomButton(new QPushButton())
 , m_snapshot(new QPushButton())
 , m_ruler(vtkSmartPointer<vtkAxisActor2D>::New())
+, m_slicingStep{1, 1, 1}
 , m_showThumbnail(true)
 // , m_sliceSelector(QPair<SliceSelectorWidget*,SliceSelectorWidget*>(nullptr, nullptr))
 , m_inThumbnail(false)
 , m_sceneReady(false)
-, m_slicingStep{1, 1, 1}
 , m_plane{plane}
+, m_normalCoord{normalCoordinateIndex(plane)}
 , m_fitToSlices{true}
-, m_invertWheel{false}
 , m_invertSliceOrder{false}
+, m_invertWheel{false}
 , m_rulerVisibility{true}
 {
   setupUI();
@@ -119,7 +120,6 @@ View2D::View2D(Plane plane, QWidget* parent)
       m_state = std::unique_ptr<State>(new SagittalState());
       break;
   };
-  m_normalCoord = normalCoordinateIndex(m_plane);
 
   // Init Render Window
   vtkRenderWindow* renderWindow = m_view->GetRenderWindow();
@@ -135,6 +135,7 @@ View2D::View2D(Plane plane, QWidget* parent)
   m_thumbnail->SetViewport(0.75, 0.0, 1.0, 0.25);
   m_thumbnail->SetLayer(1);
   m_thumbnail->InteractiveOff();
+  m_thumbnail->GetActiveCamera()->ParallelProjectionOn();
   m_thumbnail->DrawOff();
 
   // Init Ruler
@@ -160,11 +161,12 @@ View2D::View2D(Plane plane, QWidget* parent)
 
   m_channelBorderData = vtkSmartPointer<vtkPolyData>::New();
   m_channelBorder     = vtkSmartPointer<vtkActor>::New();
-  initBorder(m_channelBorderData, m_channelBorder);
+  initBorders(m_channelBorderData, m_channelBorder);
+  m_state->updateActor(m_channelBorder);
 
   m_viewportBorderData = vtkSmartPointer<vtkPolyData>::New();
   m_viewportBorder     = vtkSmartPointer<vtkActor>::New();
-  initBorder(m_viewportBorderData, m_viewportBorder);
+  initBorders(m_viewportBorderData, m_viewportBorder);
 
   buildCrosshairs();
 
@@ -200,25 +202,21 @@ void View2D::setInvertSliceOrder(bool value)
 //-----------------------------------------------------------------------------
 void View2D::setRenderers(RendererSList renderers)
 {
-  foreach(RendererSPtr renderer, renderers)
-  {
+  for(auto renderer: renderers)
     if (canRender(renderer, RendererType::RENDERER_VIEW2D))
-    {
       addRendererControls(renderer->clone());
-    }
-  }
 }
 
 //-----------------------------------------------------------------------------
 void View2D::reset()
 {
-  foreach(EspinaWidget *widget, m_widgets.keys())
+  for(auto widget: m_widgets.keys())
     removeWidget(widget);
 
-  foreach(SegmentationAdapterPtr segmentation, m_segmentationStates.keys())
+  for(auto segmentation: m_segmentationStates.keys())
     remove(segmentation);
 
-  foreach(ChannelAdapterPtr channel, m_channelStates.keys())
+  for(auto channel: m_channelStates.keys())
     remove(channel);
 }
 
@@ -288,33 +286,68 @@ void View2D::updateThumbnail()
   coords->SetViewport(m_renderer);
   coords->SetCoordinateSystemToNormalizedViewport();
 
-  int h = m_plane==Plane::YZ?2:0;
-  int v = m_plane==Plane::XZ?2:1;
   coords->SetValue(0, 0); // Viewport Lower Left Corner
   value = coords->GetComputedWorldValue(m_renderer);
-  viewLower = value[v]; // Lower Margin in World Coordinates
-  viewLeft  = value[h]; // Left Margin in World Coordinates
+  viewLeft  = value[0]; // Left Margin in World Coordinates
+  viewLower = value[1]; // Lower Margin in World Coordinates
 
   coords->SetValue(1, 1);
   value = coords->GetComputedWorldValue(m_renderer);
-  viewUpper = value[v]; // Upper Margin in World Coordinates
-  viewRight = value[h]; // Right Margin in Worl Coordinates
+  viewRight = value[0]; // Right Margin in World Coordinates
+  viewUpper = value[1]; // Upper Margin in World Coordinates
 
+  int h = m_plane == Plane::YZ ? 2 : 0;
+  int v = m_plane == Plane::XZ ? 2 : 1;
   double sceneLeft  = m_sceneBounds[2*h];
   double sceneRight = m_sceneBounds[2*h+1];
   double sceneUpper = m_sceneBounds[2*v];
   double sceneLower = m_sceneBounds[2*v+1];
 
-  bool leftHidden   = sceneLeft  < viewLeft;
-  bool rightHidden  = sceneRight > viewRight;
-  bool upperHidden  = sceneUpper < viewUpper;
-  bool lowerHidden  = sceneLower > viewLower;
+  // BEWARE: here be dragons
+  // Because the position and the rotation of the cameras the
+  // comparisons are different for each view
+  double zDepth;
+  bool leftHidden, rightHidden, upperHidden, lowerHidden;
+  switch(m_plane)
+  {
+    case Plane::XY:
+      leftHidden   = sceneLeft  < viewLeft;
+      rightHidden  = sceneRight > viewRight;
+      upperHidden  = sceneUpper < viewUpper;
+      lowerHidden  = sceneLower > viewLower;
+      zDepth = m_sceneBounds[4];
+      break;
+    case Plane::XZ:
+    {
+      double tempUpper = viewLower;
+      double tempLower = viewUpper;
+
+      leftHidden   = sceneLeft  < viewLeft;
+      rightHidden  = sceneRight > viewRight;
+      upperHidden  = sceneUpper < tempUpper;
+      lowerHidden  = sceneLower > tempLower;
+      zDepth = m_sceneBounds[3];
+      break;
+    }
+    case Plane::YZ:
+    {
+      double tempRight = viewLeft;
+      double tempLeft  = viewRight;
+
+      leftHidden   = sceneLeft  < tempLeft;
+      rightHidden  = sceneRight > tempRight;
+      upperHidden  = sceneUpper < viewUpper;
+      lowerHidden  = sceneLower > viewLower;
+      zDepth = m_sceneBounds[1];
+      break;
+    }
+  }
 
   if (leftHidden || rightHidden || upperHidden || lowerHidden)
   {
     m_thumbnail->DrawOn();
-    updateBorder(m_channelBorderData, sceneLeft, sceneRight, sceneUpper, sceneLower);
-    updateBorder(m_viewportBorderData, viewLeft, viewRight, viewUpper, viewLower);
+    updateViewBorder(m_viewportBorderData, viewLeft, viewRight, viewUpper, viewLower, zDepth);
+    m_thumbnail->ResetCameraClippingRange();
   }
   else
     m_thumbnail->DrawOff();
@@ -332,6 +365,9 @@ void View2D::updateSceneBounds()
 
   setSlicingStep(m_sceneResolution);
 
+  // reset thumbnail channel border
+  updateChannelBorder(m_channelBorderData, m_channelBorder);
+
   // we need to update the view only if a signal has been sent
   // (the volume of a channel has been updated)
   if (sender() != nullptr)
@@ -339,13 +375,16 @@ void View2D::updateSceneBounds()
 }
 
 //-----------------------------------------------------------------------------
-void View2D::initBorder(vtkPolyData* data, vtkActor* actor)
+void View2D::initBorders(vtkPolyData* data, vtkActor* actor)
 {
+  double unusedPoint[3]{0,0,0};
   vtkSmartPointer<vtkPoints> corners = vtkSmartPointer<vtkPoints>::New();
-  corners->InsertNextPoint(m_sceneBounds[0], m_sceneBounds[2], 0); //UL
-  corners->InsertNextPoint(m_sceneBounds[0], m_sceneBounds[3], 0); //UR
-  corners->InsertNextPoint(m_sceneBounds[1], m_sceneBounds[3], 0); //LR
-  corners->InsertNextPoint(m_sceneBounds[1], m_sceneBounds[2], 0); //LL
+  corners->SetNumberOfPoints(4);
+  corners->InsertNextPoint(unusedPoint);
+  corners->InsertNextPoint(unusedPoint);
+  corners->InsertNextPoint(unusedPoint);
+  corners->InsertNextPoint(unusedPoint);
+
   vtkSmartPointer<vtkCellArray> borders = vtkSmartPointer<vtkCellArray>::New();
   borders->EstimateSize(4, 2);
   for (int i=0; i < 4; i++)
@@ -356,45 +395,58 @@ void View2D::initBorder(vtkPolyData* data, vtkActor* actor)
   }
   data->SetPoints(corners);
   data->SetLines(borders);
-  // data->Update(); According to VTK6 update should be done to the filter producing it
+  data->Modified();
 
   vtkSmartPointer<vtkPolyDataMapper> Mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
   Mapper->SetInputData(data);
   actor->SetMapper(Mapper);
   actor->GetProperty()->SetLineWidth(2);
   actor->SetPickable(false);
-
-  m_thumbnail->AddActor(actor);
 }
 
 //-----------------------------------------------------------------------------
-void View2D::updateBorder(vtkPolyData* data,
-                             double left, double right,
-                             double upper, double lower)
+void View2D::updateChannelBorder(vtkPolyData* data, vtkActor* actor)
 {
-  vtkPoints *corners = data->GetPoints();
-
-  switch (m_plane)
+  vtkSmartPointer<vtkPoints> corners = data->GetPoints();
+  switch(m_plane)
   {
     case Plane::XY:
-      corners->SetPoint(0, left,  upper, -0.1); //UL
-      corners->SetPoint(1, right, upper, -0.1); //UR
-      corners->SetPoint(2, right, lower, -0.1); //LR
-      corners->SetPoint(3, left,  lower, -0.1); //LL
+      corners->SetPoint(0, m_sceneBounds[0], m_sceneBounds[2], m_sceneBounds[4]); //UL
+      corners->SetPoint(1, m_sceneBounds[0], m_sceneBounds[3], m_sceneBounds[4]); //UR
+      corners->SetPoint(2, m_sceneBounds[1], m_sceneBounds[3], m_sceneBounds[4]); //LR
+      corners->SetPoint(3, m_sceneBounds[1], m_sceneBounds[2], m_sceneBounds[4]); //LL
       break;
     case Plane::XZ:
-      corners->SetPoint(0, left,  0.1, upper); //UL
-      corners->SetPoint(1, right, 0.1, upper); //UR
-      corners->SetPoint(2, right, 0.1, lower); //LR
-      corners->SetPoint(3, left,  0.1, lower); //LL
+      corners->SetPoint(0, m_sceneBounds[0], m_sceneBounds[3], m_sceneBounds[4]); //UL
+      corners->SetPoint(1, m_sceneBounds[0], m_sceneBounds[3], m_sceneBounds[5]); //UR
+      corners->SetPoint(2, m_sceneBounds[1], m_sceneBounds[3], m_sceneBounds[5]); //LR
+      corners->SetPoint(3, m_sceneBounds[1], m_sceneBounds[3], m_sceneBounds[4]); //LL
       break;
     case Plane::YZ:
-      corners->SetPoint(0, 0.1, upper,  left); //UL
-      corners->SetPoint(1, 0.1, lower,  left); //UR
-      corners->SetPoint(2, 0.1, lower, right); //LR
-      corners->SetPoint(3, 0.1, upper, right); //LL
+      corners->SetPoint(0, m_sceneBounds[1], m_sceneBounds[2], m_sceneBounds[4]); //UL
+      corners->SetPoint(1, m_sceneBounds[1], m_sceneBounds[2], m_sceneBounds[5]); //UR
+      corners->SetPoint(2, m_sceneBounds[1], m_sceneBounds[3], m_sceneBounds[5]); //LR
+      corners->SetPoint(3, m_sceneBounds[1], m_sceneBounds[3], m_sceneBounds[4]); //LL
+      break;
+    default:
+      Q_ASSERT(false);
       break;
   }
+  actor->Modified();
+}
+
+//-----------------------------------------------------------------------------
+void View2D::updateViewBorder(vtkPolyData* data,
+                          double left, double right,
+                          double upper, double lower,
+                          double zHeight)
+{
+  vtkPoints *corners = data->GetPoints();
+  corners->SetPoint(0, left,  upper, zHeight); //UL
+  corners->SetPoint(1, right, upper, zHeight); //UR
+  corners->SetPoint(2, right, lower, zHeight); //LR
+  corners->SetPoint(3, left,  lower, zHeight); //LL
+
   data->Modified();
 }
 
@@ -621,7 +673,6 @@ Selector::SelectionList View2D::pick(Selector::SelectionFlags    filter,
   return selectedItems;
 }
 
-
 //-----------------------------------------------------------------------------
 void View2D::updateView()
 {
@@ -839,11 +890,9 @@ bool View2D::eventFilter(QObject* caller, QEvent* e)
     return true;
   }
 
-  foreach (EspinaWidget *widget, m_widgets.keys())
-  {
+  for(auto widget: m_widgets.keys())
     if (widget->filterEvent(e, this))
       return true;
-  }
 
   if (QEvent::Wheel == e->type())
   {
@@ -896,10 +945,10 @@ bool View2D::eventFilter(QObject* caller, QEvent* e)
     eventPosition(x, y);
     SelectableView::Selection selection = pickSegmentations(x, y, m_renderer);
     QString toopTip;
-    foreach(ViewItemAdapterPtr pick, selection)
-    {
+
+    for(auto pick: selection)
       toopTip = toopTip.append(pick->data(Qt::ToolTipRole).toString());
-    }
+
     m_view->setToolTip(toopTip);
   }
 
@@ -963,7 +1012,7 @@ void View2D::centerCrosshairOnMousePosition()
   bool channelPicked = false;
   if (m_inThumbnail)
   {
-    foreach(RendererSPtr renderer, m_renderers)
+    for(auto renderer: m_renderers)
     {
       if (canRender(renderer, RenderableType::CHANNEL))
       {
@@ -979,7 +1028,7 @@ void View2D::centerCrosshairOnMousePosition()
   }
   else
   {
-    foreach(RendererSPtr renderer, m_renderers)
+    for(auto renderer: m_renderers)
     {
       if (canRender(renderer, RenderableType::CHANNEL))
       {
@@ -1008,7 +1057,7 @@ void View2D::centerViewOnMousePosition()
   int xPos, yPos;
   eventPosition(xPos, yPos);
 
-  foreach(RendererSPtr renderer, m_renderers)
+  for(auto renderer: m_renderers)
     if (canRender(renderer, RenderableType::CHANNEL))
     {
       SelectableView::Selection selection = renderer->pick(xPos, yPos, slicingPosition(), m_thumbnail, RenderableItems(RenderableType::CHANNEL), false);
@@ -1026,9 +1075,9 @@ SelectableView::Selection View2D::pickChannels(double vx, double vy,
 {
   SelectableView::Selection selection;
 
-  foreach(RendererSPtr renderer, m_renderers)
+  for(auto renderer: m_renderers)
     if (canRender(renderer, RenderableType::CHANNEL))
-      foreach(ViewItemAdapterPtr item, renderer->pick(vx,vy, slicingPosition(), m_renderer, RenderableItems(RenderableType::CHANNEL), repeatable))
+      for(auto item: renderer->pick(vx,vy, slicingPosition(), m_renderer, RenderableItems(RenderableType::CHANNEL), repeatable))
       {
         if (!selection.contains(item))
           selection << item;
@@ -1043,9 +1092,9 @@ SelectableView::Selection View2D::pickSegmentations(double vx, double vy,
 {
   SelectableView::Selection selection;
 
-  foreach(RendererSPtr renderer, m_renderers)
+  for(auto renderer: m_renderers)
     if (canRender(renderer, RenderableType::SEGMENTATION))
-      foreach(ViewItemAdapterPtr item, renderer->pick(vx,vy, slicingPosition(), m_renderer, RenderableItems(RenderableType::SEGMENTATION), repeatable))
+      for(auto item: renderer->pick(vx,vy, slicingPosition(), m_renderer, RenderableItems(RenderableType::SEGMENTATION), repeatable))
         if (!selection.contains(item))
           selection << item;
 
@@ -1063,7 +1112,7 @@ void View2D::selectPickedItems(bool append)
     selection = currentSelection();
 
   // segmentations have priority over channels
-  foreach(ViewItemAdapterPtr item, pickSegmentations(vx, vy, append))
+  for(auto item: pickSegmentations(vx, vy, append))
   {
     if (selection.contains(item))
       selection.removeAll(item);
@@ -1075,7 +1124,7 @@ void View2D::selectPickedItems(bool append)
   }
 
   if (selection.isEmpty() || append)
-    foreach(ViewItemAdapterPtr item, pickChannels(vx, vy, append))
+    for(auto item: pickChannels(vx, vy, append))
     {
       if (selection.contains(item))
         selection.removeAll(item);
@@ -1092,7 +1141,7 @@ void View2D::selectPickedItems(bool append)
 //-----------------------------------------------------------------------------
 void View2D::updateWidgetVisibility()
 {
-  foreach(SliceWidget * widget, m_widgets)
+  for(auto widget: m_widgets)
   {
     widget->setSlice(slicingPosition(), m_plane);
   }
@@ -1104,16 +1153,10 @@ void View2D::updateChannelsOpactity()
   // TODO: Define opacity behaviour
   double opacity = suggestedChannelOpacity();
 
-  foreach(ChannelAdapterPtr channel, m_channelStates.keys())
-  {
+  for(auto channel: m_channelStates.keys())
     if (Channel::AUTOMATIC_OPACITY == channel->opacity())
-    {
-      foreach(RepresentationSPtr representation, m_channelStates[channel].representations)
-      {
+      for(auto representation: m_channelStates[channel].representations)
         representation->setOpacity(opacity);
-      }
-    }
-  }
 }
 
 //-----------------------------------------------------------------------------
@@ -1386,12 +1429,12 @@ Selector::WorldRegion View2D::worldRegion(const Selector::DisplayRegion& region,
 {
   Selector::WorldRegion wRegion = Selector::WorldRegion::New();
 
-  foreach(QPointF point, region)
+  for(auto point: region)
   {
     Nm pickPos[3];
     if (ItemAdapter::Type::CHANNEL == item->type())
     {
-      foreach(RendererSPtr renderer, m_renderers)
+      for(auto renderer: m_renderers)
         if (canRender(renderer, RenderableType::CHANNEL) &&
             !renderer->pick(point.x(), point.y(), slicingPosition(), m_renderer, RenderableItems(RenderableType::CHANNEL), false).isEmpty())
         {
@@ -1403,7 +1446,7 @@ Selector::WorldRegion View2D::worldRegion(const Selector::DisplayRegion& region,
     }
     else
     {
-      foreach(RendererSPtr renderer, m_renderers)
+      for(auto renderer: m_renderers)
         if (canRender(renderer, RenderableType::SEGMENTATION) &&
             !renderer->pick(point.x(), point.y(), slicingPosition(), m_renderer, RenderableItems(RenderableType::SEGMENTATION), false).isEmpty())
         {
@@ -1439,17 +1482,17 @@ void View2D::addRendererControls(RendererSPtr renderer)
   renderer->setEnable(true);
 
   // add representations to renderer
-  foreach(SegmentationAdapterPtr segmentation, m_segmentationStates.keys())
+  for(auto segmentation: m_segmentationStates.keys())
   {
     if (renderer->canRender(segmentation))
-      foreach(RepresentationSPtr rep, m_segmentationStates[segmentation].representations)
+      for(auto rep: m_segmentationStates[segmentation].representations)
          if (renderer->managesRepresentation(rep)) renderer->addRepresentation(segmentation, rep);
   }
 
-  foreach(ChannelAdapterPtr channel, m_channelStates.keys())
+  for(auto channel: m_channelStates.keys())
   {
     if (renderer->canRender(channel))
-      foreach(RepresentationSPtr rep, m_channelStates[channel].representations)
+      for(auto rep: m_channelStates[channel].representations)
         if (renderer->managesRepresentation(rep)) renderer->addRepresentation(channel, rep);
   }
 
@@ -1483,14 +1526,12 @@ void View2D::addRendererControls(RendererSPtr renderer)
 void View2D::removeRendererControls(QString name)
 {
   RendererSPtr removedRenderer;
-  foreach (RendererSPtr renderer, m_renderers)
-  {
+  for(auto renderer: m_renderers)
     if (renderer->name() == name)
     {
       removedRenderer = renderer;
       break;
     }
-  }
 
   if (removedRenderer)
   {

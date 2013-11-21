@@ -219,11 +219,14 @@ class SliceWidget;
 
     void updateThumbnail();
 
-    void initBorder(vtkPolyData* data, vtkActor* actor);
+    void initBorders(vtkPolyData* data, vtkActor *actor);
 
-    void updateBorder(vtkPolyData *data,
-                      double left, double right,
-                      double upper, double lower);
+    void updateChannelBorder(vtkPolyData* data, vtkActor* actor);
+
+    void updateViewBorder(vtkPolyData *data,
+                          double left, double right,
+                          double upper, double lower,
+                          double zHeight);
 
     Nm  voxelBottom(int sliceIndex, Plane plane) const;
 
@@ -283,7 +286,7 @@ class SliceWidget;
     vtkSmartPointer<vtkPolyData> m_channelBorderData, m_viewportBorderData;
     vtkSmartPointer<vtkActor>    m_channelBorder, m_viewportBorder;
 
-    bool               m_sceneReady;
+    bool  m_sceneReady;
 
     // Representations
     QMap<EspinaWidget *, SliceWidget *> m_widgets;
