@@ -26,6 +26,7 @@ ActionSelector::ActionSelector(QObject *parent)
 : QWidgetAction(parent)
 {
   m_button = nullptr;
+  m_defaultAction = -1;
 }
 
 //------------------------------------------------------------------------
@@ -35,8 +36,11 @@ QWidget* ActionSelector::createWidget(QWidget* parent)
   m_button->setIconSize(QSize(22,22));
   m_button->setCheckable(true);
 
-  foreach(QAction *action, m_actions)
+  for(auto action: m_actions)
     m_button->addAction(action);
+
+  if (m_defaultAction != -1)
+    m_button->setButtonAction(m_actions.at(m_defaultAction));
 
   connect(m_button, SIGNAL(actionTriggered(QAction*)), this, SLOT(actionTriggered(QAction*)));
   connect(m_button, SIGNAL(actionCanceled()), this, SLOT(onActionCanceled()));
@@ -69,8 +73,13 @@ void ActionSelector::onActionCanceled()
 //------------------------------------------------------------------------
 void ActionSelector::setDefaultAction(QAction *action)
 {
-  if (m_actions.contains(action) && m_button != nullptr)
-    m_button->setButtonAction(action);
+  if (m_actions.contains(action))
+  {
+    if (m_button != nullptr)
+      m_button->setButtonAction(action);
+
+    m_defaultAction = m_actions.indexOf(action);
+  }
 }
 
 //------------------------------------------------------------------------

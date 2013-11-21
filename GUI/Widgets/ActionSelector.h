@@ -56,7 +56,8 @@ signals:
   void triggered(QAction *);
 
 private:
-  QList<QAction *>  m_actions;
+  QList<QAction *>      m_actions;
+  int                   m_defaultAction;
   ActionSelectorWidget *m_button;
 };
 

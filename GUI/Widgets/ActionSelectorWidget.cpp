@@ -33,8 +33,11 @@ ActionSelectorWidget::ActionSelectorWidget(QWidget* parent)
 
 void ActionSelectorWidget::addAction(QAction* action)
 {
-  m_actions->addAction(action);
-  changeAction(action);
+  if (!m_actions->actions().contains(action))
+  {
+    m_actions->addAction(action);
+    changeAction(action);
+  }
 }
 
 void ActionSelectorWidget::cancelAction()
