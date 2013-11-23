@@ -22,6 +22,9 @@
 #include <Core/Factory/CoreFactory.h>
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Sample.h>
+#include <Core/Analysis/Storage.h>
+#include <itkImageFileReader.h>
+#include <itkImageFileWriter.h>
 
 using namespace EspINA;
 using namespace EspINA::IO;
@@ -74,6 +77,26 @@ AnalysisSPtr ChannelReader::read(const QFileInfo file,
   analysis->add(sample);
 
   auto filter = factory->createFilter<VolumetricStreamReader>(OutputSList(), VOLUMETRIC_STREAM_READER);
+
+  if (file.fileName().contains(".tif"))
+  {
+    using VolumeReader = itk::ImageFileReader<itkVolumeType>;
+    using VolumeWriter = itk::ImageFileWriter<itkVolumeType>;
+
+    VolumeReader::Pointer reader = VolumeReader::New();
+    reader->SetFileName(file.absoluteFilePath().toUtf8().data());
+    reader->Update();
+
+    Persistent::StorageSPtr storage = filter->storage();
+
+    file = QFileInfo(storage->absoluteFilePath(file.baseName() + ".mhd"));
+
+    VolumeWriter::Pointer writer = VolumeWriter::New();
+    writer->SetFileName(file.absoluteFilePath().toUtf8().data());
+    writer->SetInput(reader->GetOutput());
+    writer->Write();
+  }
+
   filter->setFileName(file);
   ChannelSPtr channel = factory->createChannel(filter, 0);
   channel->setName(file.fileName());

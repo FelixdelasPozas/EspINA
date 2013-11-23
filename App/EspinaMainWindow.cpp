@@ -263,13 +263,13 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 //   m_mainToolBar = new MainToolBar(m_model, m_undoStack, m_viewManager);
 //   registerToolBar(m_mainToolBar);
 
-  ToolGroupPtr defaultActiveTool = new ZoomTools(m_viewManager);
+  ToolGroupPtr defaultActiveTool = new ZoomTools(m_viewManager, this);
   registerToolGroup(defaultActiveTool);
 // 
 //   VolumeOfInterest *voiToolBar = new VolumeOfInterest(m_model, m_viewManager);
 //   registerToolBar(voiToolBar);
 // 
-  ToolGroupPtr segmentationTools = new SegmentationTools(m_model, m_factory, m_viewManager, m_undoStack);
+  ToolGroupPtr segmentationTools = new SegmentationTools(m_model, m_factory, m_viewManager, m_undoStack, this);
   registerToolGroup(segmentationTools);
 // 
 //   EditorToolBar *editorToolBar = new EditorToolBar(m_model, m_undoStack, m_viewManager);
