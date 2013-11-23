@@ -36,39 +36,38 @@ typedef itk::Image<VoxelType, 3> ImageType;
 
 int sparse_volume_default_constructor( int argc, char** argv )
 {
-  int error = 1;
+  int error = 0;
 
-  // TODO: update
-//  SparseVolume<ImageType> volume;
-//
-//  Bounds defaultBounds = volume.bounds();
-//
-//  if (defaultBounds.areValid()) {
-//    cerr << "Default constructed ItkVolume bounds: " << defaultBounds << ". Expected invalid bounds" << endl;
-//    error = EXIT_FAILURE;
-//  }
-//
-//  for (Axis dir : {Axis::X, Axis::Y, Axis::Z}) {
-//    if (!defaultBounds.areLowerIncluded(dir)) {
-//      cerr << "Default volume bounds must have lower bounds included" << endl;
-//      error = EXIT_FAILURE;
-//    }
-//
-//    if (defaultBounds.areUpperIncluded(dir)) {
-//      cerr << "Default volume bounds must have upper bounds excluded" << endl;
-//      error = EXIT_FAILURE;
-//    }
-//  }
-//
-//  if (volume.memoryUsage() != 0) {
-//    cerr << "Default constructed ItkVolume memory usage must be 0" << endl;
-//    error = EXIT_FAILURE;
-//  }
-//
-//  if (volume.backgroundValue() != 0) {
-//    cerr << "Default background value must be 0" << endl;
-//    error = EXIT_FAILURE;
-//  }
+ SparseVolume<ImageType> volume;
+
+ Bounds defaultBounds = volume.bounds();
+
+ if (defaultBounds.areValid()) {
+   cerr << "Default constructed ItkVolume bounds: " << defaultBounds << ". Expected invalid bounds" << endl;
+   error = EXIT_FAILURE;
+ }
+
+ for (Axis dir : {Axis::X, Axis::Y, Axis::Z}) {
+   if (!defaultBounds.areLowerIncluded(dir)) {
+     cerr << "Default volume bounds must have lower bounds included" << endl;
+     error = EXIT_FAILURE;
+   }
+
+   if (defaultBounds.areUpperIncluded(dir)) {
+     cerr << "Default volume bounds must have upper bounds excluded" << endl;
+     error = EXIT_FAILURE;
+   }
+ }
+
+ if (volume.memoryUsage() != 0) {
+   cerr << "Default constructed ItkVolume memory usage must be 0" << endl;
+   error = EXIT_FAILURE;
+ }
+
+ if (volume.backgroundValue() != 0) {
+   cerr << "Default background value must be 0" << endl;
+   error = EXIT_FAILURE;
+ }
 
   return error;
 }

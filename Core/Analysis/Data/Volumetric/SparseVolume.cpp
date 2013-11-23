@@ -112,10 +112,12 @@ void SparseVolume<T>::setBlock(typename T::Pointer image)
 template<typename T>
 void SparseVolume<T>::addBlock(BlockMaskUPtr mask)
 {
+  Bounds bounds = mask->bounds();
+
   BlockUPtr block(new Block(std::move(mask), false));
   m_blocks.push_back(std::move(block));
 
-  updateBlocksBoundingBox(mask->bounds());
+  updateBlocksBoundingBox(bounds);
 }
 
 //-----------------------------------------------------------------------------
