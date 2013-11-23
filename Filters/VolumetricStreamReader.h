@@ -26,7 +26,6 @@
 
 namespace EspINA
 {
-  
   /** \brief Read a volume on demand from disk
    * 
    * If volume format is not MetaImage, then a MetaImage copy

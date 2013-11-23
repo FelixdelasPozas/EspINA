@@ -135,9 +135,12 @@ const typename T::Pointer SparseVolume<T>::itkImage(const Bounds& bounds) const
   if (!intersect(m_bounds, bounds) || (bounds != intersection(m_bounds, bounds)))
     throw Invalid_Image_Bounds_Exception();
 
-  auto image = create_itkImage<T>(bounds, this->backgroundValue(), m_spacing, m_origin);
-  BinaryMask<unsigned char> *mask = new BinaryMask<unsigned char>(bounds, m_spacing);
-  int numVoxels = image->GetLargestPossibleRegion().GetNumberOfPixels();
+  auto image       = create_itkImage<T>(bounds, this->backgroundValue(), m_spacing, m_origin);
+  auto imageRegion = image->GetLargestPossibleRegion();
+  auto maskBounds  = equivalentBounds<T>(image, imageRegion);
+  auto mask        = new BinaryMask<unsigned char>(maskBounds, m_spacing);
+  int numVoxels    = imageRegion.GetNumberOfPixels();
+  Q_ASSERT(numVoxels == mask->numberOfVoxels());
 
   if (m_blocks.size() == 0)
     return image;
@@ -161,7 +164,8 @@ const typename T::Pointer SparseVolume<T>::itkImage(const Bounds& bounds) const
     {
       case BlockType::Set:
         {
-          itk::ImageRegionIterator<T> bit(m_blocks[i]->m_image, equivalentRegion<T>(m_blocks[i]->m_image, intersectionBounds));
+          auto blockRegion = equivalentRegion<T>(m_blocks[i]->m_image, intersectionBounds);
+          itk::ImageRegionIterator<T> bit(m_blocks[i]->m_image, blockRegion);
           bit = bit.Begin();
           while(!mit.isAtEnd())
           {
