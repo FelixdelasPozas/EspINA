@@ -106,7 +106,11 @@ namespace EspINA {
     virtual bool isValid() const
     { return QFileInfo(m_fileName).exists(); }
 
-    virtual Snapshot snapshot() const{ return Snapshot(); }
+    virtual bool fetchData(Persistent::StorageSPtr storage, const QString& prefix)
+    { return false; }
+
+    virtual Snapshot snapshot(Persistent::StorageSPtr storage, const QString& prefix) const
+    { return Snapshot(); }
 
     virtual Snapshot editedRegionsSnapshot() const { return Snapshot(); }
 

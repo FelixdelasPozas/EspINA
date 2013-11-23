@@ -27,21 +27,25 @@
  */
 
 // EspINA
-#include "SparseVolume.h"
-#include <Core/Analysis/Data/VolumetricDataUtils.h>
 #include <Core/Utils/Bounds.h>
+#include <Core/Analysis/Persistent.h>
 
 // ITK
 #include <itkImageRegionIterator.h>
 #include <itkExtractImageFilter.h>
+#include <itkMetaImageIO.h>
+#include <itkImageFileWriter.h>
+#include <itkImageFileReader.h>
 
 // VTK
 #include <vtkImplicitFunction.h>
+#include <QDir>
 
 namespace EspINA {
 
-const int UNSET = 0;
-const int SET   = 1;
+  const int UNSET = 0;
+
+  const int SET   = 1;
 
 //-----------------------------------------------------------------------------
 template<typename T>
@@ -49,8 +53,8 @@ SparseVolume<T>::SparseVolume(const Bounds& bounds, const NmVector3& spacing) th
 : m_spacing{spacing}
 , m_bounds{bounds}
 {
-  if (!bounds.areValid())
-    throw Invalid_Image_Bounds_Exception();
+//   if (!bounds.areValid())
+//     throw Invalid_Image_Bounds_Exception();
 
   this->setBackgroundValue(0);
 }
@@ -125,6 +129,9 @@ const typename T::Pointer SparseVolume<T>::itkImage() const
 template<typename T>
 const typename T::Pointer SparseVolume<T>::itkImage(const Bounds& bounds) const
 {
+  if (!m_bounds.areValid())
+    throw Invalid_Image_Bounds_Exception();
+
   if (!intersect(m_bounds, bounds) || (bounds != intersection(m_bounds, bounds)))
     throw Invalid_Image_Bounds_Exception();
 
@@ -300,9 +307,87 @@ bool SparseVolume<T>::isValid() const
 
 //-----------------------------------------------------------------------------
 template<typename T>
-Snapshot SparseVolume<T>::snapshot() const
+bool SparseVolume<T>::fetchData(Persistent::StorageSPtr storage, const QString& prefix)
 {
+  using VolumeReader = itk::ImageFileReader<itkVolumeType>;
+
+  bool dataFetched = false;
+  bool error       = false;
+
+  int i = 0;
+  QFileInfo blockFile(storage->absoluteFilePath(prefix + QString("VolumetricData_%1.mhd").arg(i)));
+
+  m_spacing = NmVector3();
+
+  while (blockFile.exists())
+  {
+    VolumeReader::Pointer reader = VolumeReader::New();
+    reader->SetFileName(blockFile.absoluteFilePath().toUtf8().data());
+    reader->Update();
+
+    auto image = reader->GetOutput();
+
+    if (m_spacing == NmVector3())
+    {
+      for(int s=0; s < 3; ++s)
+      {
+        m_spacing[s] = image->GetSpacing()[s];
+      }
+    } else 
+    {
+      for(int s=0; s < 3; ++s)
+      {
+        error |= m_spacing[s] != image->GetSpacing()[s];
+      }
+    }
+
+    setBlock(image);
+
+    ++i;
+    blockFile = storage->absoluteFilePath(prefix + QString("VolumetricData_%1.mhd").arg(i));
+    dataFetched = true;
+  }
+
+  m_bounds  = m_blocks_bounding_box;
+
+  return dataFetched && !error;
+}
+
+//-----------------------------------------------------------------------------
+template<typename T>
+Snapshot SparseVolume<T>::snapshot(Persistent::StorageSPtr storage, const QString& prefix) const
+{
+  using VolumeWriter = itk::ImageFileWriter<itkVolumeType>;
   Snapshot snapshot;
+
+  compact();
+
+  for(int i = 0; i < m_blocks.size(); ++i)
+  {
+    VolumeWriter::Pointer writer = VolumeWriter::New();
+
+    storage->makePath(prefix);
+
+    QString name = prefix;
+    name += QString("%1_%2").arg(this->type()).arg(i);
+
+    QString mhd = name + ".mhd";
+    QString raw = name + ".raw";
+
+
+    Q_ASSERT(BlockType::Set == m_blocks[i]->type());
+
+    auto volume = m_blocks[i]->m_image;
+    bool releaseFlag = volume->GetReleaseDataFlag();
+    volume->ReleaseDataFlagOff();
+    writer->SetFileName(storage->absoluteFilePath(mhd).toUtf8().data());
+    writer->SetInput(volume);
+    writer->Write();
+    volume->SetReleaseDataFlag(releaseFlag);
+
+    snapshot << SnapshotData(mhd, storage->snapshot(mhd));
+    snapshot << SnapshotData(raw, storage->snapshot(raw));
+  }
 
   return snapshot;
 }
@@ -316,6 +401,20 @@ void SparseVolume<T>::updateBlocksBoundingBox(const Bounds& bounds)
   } else {
     m_blocks_bounding_box = bounds;
   }
+}
+
+
+//-----------------------------------------------------------------------------
+template<typename T>
+void SparseVolume<T>::compact()
+{
+  m_blocks.clear();
+
+  typename T::Pointer image = itkImage();
+
+  auto region = image->GetLargestPossibleRegion();
+
+  setBlock(image);
 }
 
 }

@@ -22,10 +22,14 @@
 
 #include "Core/IO/SegFileInterface.h"
 #include <Core/Analysis/Storage.h>
+#include <Core/Analysis/Output.h>
 
 namespace EspINA {
+
   namespace IO {
+
     namespace SegFile {
+
       class SegFile_V5
       : public SegFileInterface
       {
@@ -41,6 +45,13 @@ namespace EspINA {
                           QuaZip&         zip,
                           ErrorHandlerPtr handler = nullptr);
       private:
+        PersistentSPtr findVertex(DirectedGraph::Vertices vertices,
+                                  Persistent::Uuid uuid);
+
+        QPair<FilterSPtr, Output::Id> findOutput(DirectedGraph::Vertex   roVertex,
+                                                 DirectedGraphSPtr       content,
+                                                 DirectedGraph::Vertices loadedVertices);
+
         SampleSPtr createSample(DirectedGraph::Vertex   roVertex,
                                 AnalysisSPtr            analysis,
                                 Persistent::StorageSPtr storage,
@@ -61,6 +72,8 @@ namespace EspINA {
                                   Persistent::StorageSPtr storage,
                                   CoreFactorySPtr         factory, 
                                   ErrorHandlerPtr         handler = nullptr);
+
+        QString parseCategoryName(const State& state);
 
         SegmentationSPtr createSegmentation(DirectedGraph::Vertex   roVertex,
                                             AnalysisSPtr            analysis,

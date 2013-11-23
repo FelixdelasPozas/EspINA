@@ -48,11 +48,11 @@ void SeedGrowSegmentationFilter::restoreState(const State& state)
     QStringList seed      = seedParam.split(","); 
     for(int i = 0; i < 3; ++i)
     {
-      m_seed[i] = seed[i].toDouble();
+      m_prevSeed[i] = m_seed[i] = seed[i].toDouble();
     }
-    m_lowerTh = params[1].split("=")[1].toInt();
-    m_upperTh = params[2].split("=")[1].toInt();
-    m_radius  = params[3].split("=")[1].toInt();
+    m_prevLowerTh = m_lowerTh = params[1].split("=")[1].toInt();
+    m_prevUpperTh = m_upperTh = params[2].split("=")[1].toInt();
+    m_prevRadius  = m_radius  = params[3].split("=")[1].toInt();
     m_usesROI = params[4].split("=")[1].toInt();
   }
 }

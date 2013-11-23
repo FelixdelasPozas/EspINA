@@ -184,6 +184,7 @@ namespace EspINA
         point[1] < m_bounds[2] || point[1] > m_bounds[3] ||
         point[2] < m_bounds[4] || point[2] > m_bounds[5])
     {
+      Q_ASSERT(false);
       throw Out_Of_Bounds_Exception();
     }
 

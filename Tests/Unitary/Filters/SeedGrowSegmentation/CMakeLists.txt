@@ -20,6 +20,7 @@ add_executable(SGSF_Tests
   ${CORE_DIR}/Analysis/Filter.cpp
   ${CORE_DIR}/Analysis/Data.cpp
   ${CORE_DIR}/Analysis/Output.cpp
+  ${CORE_DIR}/Analysis/Storage.cpp
   ${CORE_DIR}/MultiTasking/Scheduler.cpp
   ${CORE_DIR}/MultiTasking/Task.cpp
   ${CORE_DIR}/Utils/Bounds.cpp

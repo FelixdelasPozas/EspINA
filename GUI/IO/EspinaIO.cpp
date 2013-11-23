@@ -38,7 +38,7 @@
 using namespace EspINA;
 
 const QString TRACE_FILE    = "trace.dot";
-const QString TAXONOMY_FILE = "taxonomy.xml";
+const QString CLASSIFICATION_FILE = "taxonomy.xml";
 
 typedef itk::ImageFileWriter<itkVolumeType> EspinaVolumeWriter;
 

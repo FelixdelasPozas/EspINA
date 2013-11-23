@@ -39,7 +39,7 @@
 using namespace EspINA;
 
 const QString TRACE_FILE = "trace.dot";
-const QString TAXONOMY_FILE = "taxonomy.xml";
+const QString CLASSIFICATION_FILE = "taxonomy.xml";
 
 typedef itk::ImageFileWriter<itkVolumeType> EspinaVolumeWriter;
 
@@ -89,7 +89,7 @@ IOErrorHandler::STATUS SegFileReader::loadSegFile(QFileInfo file,
     {
       if (handler)
         handler->error("IOEspinaFile: Could not extract the file" + file.filePath());
-      if (file == TAXONOMY_FILE || file == TRACE_FILE)
+      if (file == CLASSIFICATION_FILE || file == TRACE_FILE)
         return IOErrorHandler::IO_ERROR;
 
       continue;
@@ -117,7 +117,7 @@ IOErrorHandler::STATUS SegFileReader::loadSegFile(QFileInfo file,
       model->setTraceable(false);
     }
     else
-      if (file.fileName() == TAXONOMY_FILE)
+      if (file.fileName() == CLASSIFICATION_FILE)
       {
         Q_ASSERT(taxonomy.get() == NULL);
         taxonomy = IOTaxonomy::loadXMLTaxonomy(espinaFile.readAll());
@@ -261,7 +261,7 @@ IOErrorHandler::STATUS SegFileReader::saveSegFile(QFileInfo file,
   // Save Taxonomy
   QString taxonomy;
   IOTaxonomy::writeXMLTaxonomy(model->taxonomy(), taxonomy);
-  if (!zipFile(QString(TAXONOMY_FILE), taxonomy.toAscii(), outFile))
+  if (!zipFile(QString(CLASSIFICATION_FILE), taxonomy.toAscii(), outFile))
   {
     removeTemporalDir(temporalDir);
     return IOErrorHandler::IO_ERROR;

@@ -27,14 +27,15 @@ using namespace EspINA;
 using namespace EspINA::IO;
 
 
-const Filter::Type VOLUMETRIC_STREAM_READER = "ChannelReader::VolumetricStreamReader";
+const Filter::Type VOLUMETRIC_STREAM_READER    = "ChannelReader::VolumetricStreamReader";
+const Filter::Type ESPINA_1_3_2_CHANNEL_READER = "Channel Reader";
 
 //------------------------------------------------------------------------
 FilterTypeList ChannelReader::providedFilters() const
 {
   FilterTypeList filters;
 
-  filters << VOLUMETRIC_STREAM_READER;
+  filters << VOLUMETRIC_STREAM_READER << ESPINA_1_3_2_CHANNEL_READER;
 
   return filters;
 }
@@ -42,7 +43,8 @@ FilterTypeList ChannelReader::providedFilters() const
 //------------------------------------------------------------------------
 FilterSPtr ChannelReader::createFilter(OutputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const
 {
-  if (filter != VOLUMETRIC_STREAM_READER) throw Filter_Not_Provided_Exception();
+  if (filter != VOLUMETRIC_STREAM_READER 
+   && filter != ESPINA_1_3_2_CHANNEL_READER) throw Filter_Not_Provided_Exception();
 
   return FilterSPtr{new VolumetricStreamReader(inputs, filter, scheduler)};
 }

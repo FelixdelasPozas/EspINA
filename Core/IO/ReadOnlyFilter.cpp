@@ -17,37 +17,6 @@
  *
  */
 
-#ifndef ESPINA_STORAGE_H
-#define ESPINA_STORAGE_H
+#include "ReadOnlyFilter.h"
 
-#include "Core/Analysis/Persistent.h"
-
-namespace EspINA {
-
-  class Persistent::Storage
-  {
-  public:
-    explicit Storage(const QDir& parent);
-    ~Storage();
-
-    /** \brief Write snapshot data to storage destination
-     *
-     *  This version uses disk as storage destination
-     */
-    void saveSnapshot(SnapshotData data);
-
-    QByteArray snapshot(const QString& descriptor) const;
-
-    void makePath(const QString& path)
-    { m_storageDir.mkpath(path); }
-
-    QString absoluteFilePath(const QString &path) const
-    { return m_storageDir.absoluteFilePath(path); }
-
-  private:
-    QUuid m_uuid;
-    QDir  m_storageDir;
-  };
-}
-
-#endif // ESPINA_STORAGE_H
+using namespace EspINA;

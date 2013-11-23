@@ -32,7 +32,6 @@
 #include "Core/Analysis/DataProxy.h"
 
 #include <vtkMath.h>
-#include <QXmlStreamWriter>
 
 using namespace EspINA;
 
@@ -51,45 +50,39 @@ Output::Output(FilterPtr filter, const Output::Id& id)
 }
 
 //----------------------------------------------------------------------------
-Snapshot Output::snapshot() const
+Snapshot Output::snapshot(Persistent::StorageSPtr storage,
+                          QXmlStreamWriter       &xml,
+                          const QString          &prefix) const
 {
   Snapshot snapshot;
 
-  QByteArray xml;
-  QXmlStreamWriter stream(&xml);
-  stream.setAutoFormatting(true);
-
-  stream.writeStartDocument();
   for(auto dataProxy : m_data) 
   {
     DataSPtr data = dataProxy->get();
 
-    stream.writeStartElement(data->type());
-    stream.writeAttribute("Bounds", data->bounds().toString());
-    stream.writeStartElement("Edited Regions");
+        xml.writeStartElement("Data");
+        xml.writeAttribute("type",   data->type());
+        xml.writeAttribute("bounds", data->bounds().toString());
+
     for(int i = 0; i < data->editedRegions().size(); ++i)
     {
       auto region = data->editedRegions()[i];
-      stream.writeStartElement(QString::number(i));
-      stream.writeAttribute("Bounds", region.toString());
-      stream.writeEndElement();
+            xml.writeStartElement("Edited Region");
+            xml.writeAttribute("id",     QString::number(i));
+            xml.writeAttribute("bounds", region.toString());
+            xml.writeEndElement();
     }
-    stream.writeEndElement();
-    stream.writeEndElement();
+        xml.writeEndElement();
 
     if (m_hasToBeSaved)
     {
-      snapshot << data->snapshot();
+      snapshot << data->snapshot(storage, prefix);
     }
     else
     {
       snapshot << data->editedRegionsSnapshot();
     }
   }
-  stream.writeEndDocument();
-
-  QString file = QString("Outputs/%1_%2.xml").arg(m_filter->uuid()).arg(m_id);
-  snapshot << SnapshotData(file, xml);
 
   return snapshot;
 }
@@ -140,7 +133,7 @@ bool Output::isValid() const
 
   if (m_id == INVALID_OUTPUT_ID) return false;
 
-  foreach(DataProxySPtr data, m_data) 
+  for(DataProxySPtr data : m_data) 
   {
     if (!data->get()->isValid()) return false;
   }

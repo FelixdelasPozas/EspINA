@@ -79,6 +79,7 @@ void VolumetricStreamReader::execute()
 //----------------------------------------------------------------------------
 void VolumetricStreamReader::execute(Output::Id id)
 {
+  //m_fileName = QFileInfo("/media/storage/Stacks/Skeletos/Revisadas_stack_1/218-354 REGISTERED-bc_corrected.tif");
   if (!m_fileName.exists()) throw File_Not_Found_Exception();
 
   if (m_outputs.isEmpty()) 

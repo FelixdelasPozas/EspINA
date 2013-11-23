@@ -23,6 +23,7 @@
 
 #include "SegFile.h"
 #include "ClassificationXML.h"
+#include "ReadOnlyFilter.h"
 
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Extensions/ExtensionProvider.h>
@@ -33,7 +34,6 @@
 #include <Core/Analysis/Segmentation.h>
 #include <Core/Analysis/Storage.h>
 #include <Core/Factory/CoreFactory.h>
-
 
 using namespace EspINA;
 using namespace EspINA::IO;
@@ -205,7 +205,7 @@ void SegFile_V5::save(AnalysisPtr analysis, QuaZip& zip, ErrorHandlerPtr handler
 struct Vertex_Not_Found_Exception{};
 
 //-----------------------------------------------------------------------------
-PersistentSPtr findVertex(DirectedGraph::Vertices vertices, Persistent::Uuid uuid)
+PersistentSPtr SegFile_V5::findVertex(DirectedGraph::Vertices vertices, Persistent::Uuid uuid)
 {
   foreach(DirectedGraph::Vertex vertex, vertices)
   {
@@ -227,50 +227,12 @@ SampleSPtr SegFile_V5::createSample(DirectedGraph::Vertex   roVertex,
   sample->setName(roVertex->name());
   sample->setUuid(roVertex->uuid());
   sample->restoreState(roVertex->state());
-  sample->setPersistentStorage(storage);
+  sample->setStorage(storage);
 
   analysis->add(sample);
 
   return sample;
 }
-
-class ReadOnlyFilter
-: public Filter
-{
-public:
-  explicit ReadOnlyFilter(OutputSList inputs, Type type)
-  : Filter(inputs, type, SchedulerSPtr()) {}
-
-  virtual void restoreState(const State& state)
-  { m_state = state; }
-
-  virtual State state() const 
-  { return m_state; }
-
-protected:
-  virtual Snapshot saveFilterSnapshot() const {return Snapshot(); }
-
-  virtual bool needUpdate() const 
-  { return m_outputs.isEmpty();}
-
-  virtual bool needUpdate(Output::Id id) const
-  { return id >= m_outputs.size() || !m_outputs[id]->isValid(); }
-
-  virtual void execute()
-  {}
-
-  virtual void execute(Output::Id id)
-  {}
-
-  virtual bool ignoreStorageContent() const
-  { return false; }
-
-  virtual bool invalidateEditedRegions()
-  {return false;}
-
-private:
-  State m_state;
-};
 
 //-----------------------------------------------------------------------------
 FilterSPtr SegFile_V5::createFilter(DirectedGraph::Vertex   roVertex,
@@ -304,15 +266,15 @@ FilterSPtr SegFile_V5::createFilter(DirectedGraph::Vertex   roVertex,
   filter->setName(roVertex->name());
   filter->setUuid(roVertex->uuid());
   filter->restoreState(roVertex->state());
-  filter->setPersistentStorage(storage);
+  filter->setStorage(storage);
 
   return filter;
 }
 
 //-----------------------------------------------------------------------------
-QPair<FilterSPtr, Output::Id> findOutput(DirectedGraph::Vertex   roVertex,
-                                         DirectedGraphSPtr       content,
-                                         DirectedGraph::Vertices loadedVertices)
+QPair<FilterSPtr, Output::Id> SegFile_V5::findOutput(DirectedGraph::Vertex   roVertex,
+                                                     DirectedGraphSPtr       content,
+                                                     DirectedGraph::Vertices loadedVertices)
 {
   QPair<FilterSPtr, Output::Id> output;
 
@@ -328,6 +290,7 @@ QPair<FilterSPtr, Output::Id> findOutput(DirectedGraph::Vertex   roVertex,
 
   return output;
 }
+
 //-----------------------------------------------------------------------------
 ChannelSPtr SegFile_V5::createChannel(DirectedGraph::Vertex   roVertex,
                                       AnalysisSPtr            analysis,
@@ -344,7 +307,7 @@ ChannelSPtr SegFile_V5::createChannel(DirectedGraph::Vertex   roVertex,
   channel->setName(roVertex->name());
   channel->setUuid(roVertex->uuid());
   channel->restoreState(roVertex->state());
-  channel->setPersistentStorage(storage);
+  channel->setStorage(storage);
 
   analysis->add(channel);
 
@@ -352,7 +315,7 @@ ChannelSPtr SegFile_V5::createChannel(DirectedGraph::Vertex   roVertex,
 }
 
 //-----------------------------------------------------------------------------
-QString parseCategoryName(const State& state)
+QString SegFile_V5::parseCategoryName(const State& state)
 {
   QStringList params = state.split(";");
 
@@ -376,7 +339,7 @@ SegmentationSPtr SegFile_V5::createSegmentation(DirectedGraph::Vertex   roVertex
   segmentation->setName(roVertex->name());
   segmentation->setUuid(roVertex->uuid());
   segmentation->restoreState(roState);
-  segmentation->setPersistentStorage(storage);
+  segmentation->setStorage(storage);
 
   auto categoryName = parseCategoryName(roState);
 

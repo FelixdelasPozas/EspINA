@@ -57,11 +57,11 @@ int binaryMask_itkImage_dump(int argc, char** argv)
   itkVolumeType::IndexType imageIndex;
 
   QString itkVolumeValues;
-  for(auto x = 0; x < 5; ++x)
+  for(auto x = 0; x < 4; ++x)
   {
-    for(auto y = 0; y < 5; ++y)
+    for(auto y = 0; y < 4; ++y)
     {
-      for(auto z = 0; z < 5; ++z)
+      for(auto z = 0; z < 4; ++z)
       {
         imageIndex[0] = x;
         imageIndex[1] = y;

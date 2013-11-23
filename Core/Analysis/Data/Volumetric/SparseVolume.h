@@ -33,6 +33,7 @@
 
 #include <Core/Analysis/Data/VolumetricData.h>
 #include <Core/Analysis/Data/VolumetricDataUtils.h>
+#include <Core/Analysis/Storage.h>
 #include <Core/Utils/BinaryMask.h>
 
 namespace EspINA {
@@ -151,11 +152,19 @@ namespace EspINA {
      */
     virtual bool isValid() const;
 
+    /** \brief Try to load data from storage
+     *
+     *  Return if any data was fetched
+     */
+    virtual bool fetchData(const Persistent::StorageSPtr storage, const QString& prefix);
+
     /** \brief Persistent Interface to save the mask state.
      */
-    virtual Snapshot snapshot() const;
+    virtual Snapshot snapshot(Persistent::StorageSPtr storage, const QString& prefix) const;
 
     virtual Snapshot editedRegionsSnapshot() const { return Snapshot(); }
+
+    void compact();
 
   protected:
     /** \brief Replace sparse volume voxels within data region with data voxels
@@ -248,7 +257,7 @@ namespace EspINA {
     Bounds    m_blocks_bounding_box;
   };
 }
-
 #include "SparseVolume.cpp"
+
 
 #endif // ESPINA_SPARSE_VOLUME_H

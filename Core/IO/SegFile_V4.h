@@ -21,13 +21,19 @@
 #define ESPINA_SEGFILE_V4_H
 
 #include "SegFileInterface.h"
+#include <Core/Analysis/Output.h>
 
 namespace EspINA {
+
   namespace IO {
+
     namespace SegFile {
+
       class SegFile_V4
       : public SegFileInterface
       {
+        using UuidMap = QMap<int, QUuid>;
+
       public:
         static const QString FORMAT_INFO_FILE;
 
@@ -35,9 +41,38 @@ namespace EspINA {
         virtual AnalysisSPtr load(QuaZip&         zip,
                                   CoreFactorySPtr factory = CoreFactorySPtr(),
                                   ErrorHandlerPtr handler = nullptr);
+
         virtual void save(AnalysisPtr    analysis,
                           QuaZip&         zip,
                           ErrorHandlerPtr handler = nullptr);
+
+      private:
+        PersistentSPtr findVertex(int id);
+
+        QPair<FilterSPtr, Output::Id> findOutput(DirectedGraph::Vertex   roVertex,
+                                                 const QString          &linkName);
+
+        SampleSPtr createSample(DirectedGraph::Vertex roVertex);
+
+        FilterSPtr createFilter(DirectedGraph::Vertex roVertex);
+
+        ChannelSPtr createChannel(DirectedGraph::Vertex roVertex);
+
+        QString parseCategoryName(const State& state);
+
+        SegmentationSPtr createSegmentation(DirectedGraph::Vertex roVertex);
+
+        void loadTrace(QuaZip& zip);
+
+      private:
+        AnalysisSPtr            m_analysis;
+        Persistent::StorageSPtr m_storage;
+        QMap<int, QUuid>        m_vertexUuids;
+        QMap<int, QUuid>        m_filerUuids;
+        DirectedGraph::Vertices m_loadedVertices;
+        DirectedGraphSPtr       m_trace;
+        CoreFactorySPtr         m_factory;
+        ErrorHandlerPtr         m_handler;
       };
     }
   }

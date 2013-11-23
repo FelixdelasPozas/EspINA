@@ -36,7 +36,7 @@ typedef itk::Image<VoxelType, 3> ImageType;
 
 int sparse_volume_default_constructor( int argc, char** argv )
 {
-  int error = 0;
+  int error = 1;
 
   // TODO: update
 //  SparseVolume<ImageType> volume;

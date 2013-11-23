@@ -45,20 +45,26 @@ namespace EspINA
 
     SampleSPtr createSample(const QString& name = QString()) const;
 
-    FilterSPtr createFilter(OutputSList inputs, const Filter::Type& filter) const throw (Unknown_Type_Exception);
+    FilterSPtr createFilter(OutputSList inputs, const Filter::Type& type) const throw (Unknown_Type_Exception);
 
     template<typename T>
     std::shared_ptr<T> createFilter(OutputSList inputs, Filter::Type type) const
     {
-      return std::shared_ptr<T>{new T(inputs, type, m_scheduler)};
+      auto filter = std::shared_ptr<T>{new T(inputs, type, m_scheduler)};
+      filter->setStorage(m_defaultStorage);
+      return filter;
     }
 
     ChannelSPtr createChannel(FilterSPtr filter, Output::Id output) const;
 
     SegmentationSPtr createSegmentation(FilterSPtr filter, Output::Id output) const;
 
+    void setPresistentStorage(Persistent::StorageSPtr storage)
+    { m_defaultStorage = storage; }
+
   private:
     SchedulerSPtr m_scheduler;
+    Persistent::StorageSPtr m_defaultStorage;
 
     QMap<Filter::Type, FilterFactoryPtr> m_filterFactories;
   };

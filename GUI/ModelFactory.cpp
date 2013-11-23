@@ -99,7 +99,7 @@ AnalysisReaderList ModelFactory::readers(const QFileInfo& file)
 //------------------------------------------------------------------------
 SampleAdapterSPtr ModelFactory::createSample(const QString& name) const
 {
-  SampleSPtr sample{new Sample(name)};
+  SampleSPtr sample{m_factory->createSample(name)};
 
   return adaptSample(sample);
 }
@@ -107,7 +107,7 @@ SampleAdapterSPtr ModelFactory::createSample(const QString& name) const
 //------------------------------------------------------------------------
 ChannelAdapterSPtr ModelFactory::createChannel(FilterAdapterSPtr filter, Output::Id output) const
 {
-  ChannelSPtr channel{new Channel(filter->adaptedFilter(), output)};
+  ChannelSPtr channel{m_factory->createChannel(filter->adaptedFilter(), output)};
 
   return adaptChannel(filter, channel);
 }
@@ -115,7 +115,7 @@ ChannelAdapterSPtr ModelFactory::createChannel(FilterAdapterSPtr filter, Output:
 //------------------------------------------------------------------------
 SegmentationAdapterSPtr ModelFactory::createSegmentation(FilterAdapterSPtr filter, Output::Id output) const
 {
-  SegmentationSPtr segmentation{new Segmentation(filter->adaptedFilter(), output)};
+  SegmentationSPtr segmentation{m_factory->createSegmentation(filter->adaptedFilter(), output)};
 
   return adaptSegmentation(filter, segmentation);
 }

@@ -37,6 +37,7 @@ namespace EspINA {
   const std::string SAMPLE_TYPE             = "invtriangle";
   const std::string EXTENSION_PROVIDER_TYPE = "diamond";
 
+//------------------------------------------------------------------------
   std::string type(const PersistentSPtr item)
   {
     if (dynamic_cast<SamplePtr>(item.get()))
@@ -59,6 +60,7 @@ namespace EspINA {
     }
   }
 
+//------------------------------------------------------------------------
   std::ostream& operator<<(std::ostream& out, const DirectedGraph::Vertex& v)
   {
     out << v->uuid().toString().toStdString() << std::endl;
@@ -69,6 +71,7 @@ namespace EspINA {
     return out;
   }
 
+//------------------------------------------------------------------------
   VertexType vertexType(const std::string& shape)
   {
     if (shape == SAMPLE_TYPE)
@@ -92,7 +95,8 @@ namespace EspINA {
   }
 
 
-  std::istream& operator>> (std::istream& in, DirectedGraph::Vertex& v)
+//------------------------------------------------------------------------
+std::istream& operator>> (std::istream& in, DirectedGraph::Vertex& v)
   {
     const int MAX = 10000;
     char buff[MAX];
@@ -110,7 +114,7 @@ namespace EspINA {
     in.getline(buff, MAX);
     State state(buff);
 
-    v = PersistentSPtr{new ReadOnlyVertex(vertexType(type))};
+    v = PersistentSPtr{new ReadOnlyVertex(vertexType(type), uuid.toInt())};
     v->setName(name);
     v->setUuid(uuid);
     v->restoreState(state);
@@ -118,19 +122,22 @@ namespace EspINA {
     return in;
   }
 
+//------------------------------------------------------------------------
   std::ostream& operator<<(std::ostream& out, const DirectedGraph::EdgeProperty& e)
   {
     out << e.relationship << " ";
     return out;
   }
 
-  std::istream& operator>>(std::istream& in, DirectedGraph::EdgeProperty& e)
+//------------------------------------------------------------------------
+  static std::istream& operator>>(std::istream& in, DirectedGraph::EdgeProperty& e)
   {
     in >> e.relationship;
     return in;
   }
 }
 
+//------------------------------------------------------------------------
 void Graph::read(std::istream& stream, DirectedGraphSPtr graph, PrintFormat format)
 {
   if (format == PrintFormat::BOOST) {
@@ -138,6 +145,7 @@ void Graph::read(std::istream& stream, DirectedGraphSPtr graph, PrintFormat form
   }
 }
 
+//------------------------------------------------------------------------
 void Graph::write(const DirectedGraphSPtr graph, std::ostream& stream, PrintFormat format)
 {
   if (format == PrintFormat::BOOST) {

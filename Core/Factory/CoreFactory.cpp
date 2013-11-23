@@ -21,6 +21,7 @@
 #include "Core/Analysis/Sample.h"
 #include "Core/Analysis/Channel.h"
 #include <Core/Analysis/Segmentation.h>
+#include <Core/Analysis/Storage.h>
 
 using namespace EspINA;
 
@@ -28,7 +29,11 @@ using namespace EspINA;
 CoreFactory::CoreFactory(SchedulerSPtr scheduler)
 : m_scheduler{scheduler}
 {
+  QDir tmpDir = QDir::tempPath();
+  tmpDir.mkpath("espina");
+  tmpDir.cd("espina");
 
+  m_defaultStorage = Persistent::StorageSPtr{new Persistent::Storage(tmpDir)};
 }
 
 
@@ -57,12 +62,14 @@ SampleSPtr CoreFactory::createSample(const QString& name) const
 }
 
 //-----------------------------------------------------------------------------
-FilterSPtr CoreFactory::createFilter(OutputSList inputs, const Filter::Type& filter) const
+FilterSPtr CoreFactory::createFilter(OutputSList inputs, const Filter::Type& type) const
 throw (Unknown_Type_Exception)
 {
-  if (m_filterFactories.contains(filter))
+  if (m_filterFactories.contains(type))
   {
-    return m_filterFactories[filter]->createFilter(inputs, filter, m_scheduler);
+    auto filter = m_filterFactories[type]->createFilter(inputs, type, m_scheduler);
+    filter->setStorage(m_defaultStorage);
+    return filter;
   } else
   {
     throw Unknown_Type_Exception();
@@ -73,13 +80,21 @@ throw (Unknown_Type_Exception)
 //-----------------------------------------------------------------------------
 EspINA::ChannelSPtr CoreFactory::createChannel(FilterSPtr filter, Output::Id output) const
 {
-  return ChannelSPtr{new Channel(filter, output)};
+  ChannelSPtr channel{new Channel(filter, output)};
+
+  channel->setStorage(m_defaultStorage);
+
+  return channel;
 }
 
 //-----------------------------------------------------------------------------
 EspINA::SegmentationSPtr CoreFactory::createSegmentation(FilterSPtr filter, Output::Id output) const
 {
-  return SegmentationSPtr{new Segmentation(filter, output)};
+  SegmentationSPtr segmentation{new Segmentation(filter, output)};
+
+  segmentation->setStorage(m_defaultStorage);
+
+  return segmentation;
 }
 
 // //------------------------------------------------------------------------

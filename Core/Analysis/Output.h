@@ -36,6 +36,7 @@
 #include <Core/Utils/NmVector3.h>
 
 #include <QMap>
+#include <QXmlStreamWriter>
 
 class QDir;
 namespace EspINA
@@ -72,7 +73,9 @@ namespace EspINA
     NmVector3 spacing() const
     { return m_spacing; }
 
-    Snapshot snapshot() const;
+    Snapshot snapshot(Persistent::StorageSPtr storage,
+                      QXmlStreamWriter       &xml,
+                      const QString          &prefix) const;
 
     bool isValid() const;
 

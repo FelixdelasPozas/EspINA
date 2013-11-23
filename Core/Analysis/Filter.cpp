@@ -18,6 +18,9 @@
 
 // EspINA
 #include "Filter.h"
+#include <Core/Utils/BinaryMask.h>
+#include <Core/Analysis/Storage.h>
+#include "Data/Volumetric/SparseVolume.h"
 
 // ITK
 #include <itkMetaImageIO.h>
@@ -28,6 +31,7 @@
 #include <QMessageBox>
 #include <QWidget>
 #include <QDebug>
+#include <QXmlStreamWriter>
 
 // VTK
 #include <vtkMath.h>
@@ -45,9 +49,29 @@ Snapshot Filter::snapshot() const
 {
   Snapshot snapshot;
 
-  foreach(OutputSPtr output, m_outputs)
+  if (!m_outputs.isEmpty())
   {
-    snapshot << output->snapshot();
+    QByteArray       buffer;
+    QXmlStreamWriter xml(&buffer);
+
+    xml.setAutoFormatting(true);
+    xml.writeStartDocument();
+
+    for(OutputSPtr output : m_outputs)
+    {
+      xml.writeStartElement("Output");
+      xml.writeAttribute("id",     QString::number(output->id()));
+      xml.writeAttribute("bounds", output->bounds().toString());
+      snapshot << output->snapshot(storage(), xml, prefix());
+    }
+
+    xml.writeEndDocument();
+
+    // Prevent saving channel read only outputs
+    if (!snapshot.isEmpty())
+    {
+      snapshot << SnapshotData(outputFile(), buffer);
+    }
   }
 
   snapshot << saveFilterSnapshot();
@@ -126,21 +150,57 @@ Filter::Filter(OutputSList inputs, Filter::Type type, SchedulerSPtr scheduler)
 //----------------------------------------------------------------------------
 bool Filter::fetchOutputData(Output::Id id)
 {
-  bool fetched = false;
-
   if (!ignoreStorageContent() && storage())
   {
-    bool found = true;
+    QByteArray buffer = storage()->snapshot(outputFile());
 
-    if (found)
+    if (!buffer.isEmpty())
     {
-      for(int i = m_outputs.size(); i <= id; ++i)
+      QXmlStreamReader xml(buffer);
+
+      OutputSPtr output;
+      DataSPtr   data;
+
+      m_outputs.clear();
+
+      while(!xml.atEnd())
       {
-        m_outputs << OutputSPtr{new Output(this, i)};
+        xml.readNextStartElement();
+        if (xml.isStartElement())
+        {
+          if ("Output" == xml.name())
+          {
+            int id = xml.attributes().value("id").toString().toInt();
+            output = OutputSPtr{new Output(this, id)};
+          } else if ("Data" == xml.name())
+          {
+            if ("VolumetricData" == xml.attributes().value("type"))
+            {
+              data = DataSPtr{new SparseVolume<itkVolumeType>()};
+            }
+          }
+        } else if (xml.isEndElement())
+        {
+          if ("Output" == xml.name())
+          {
+            m_outputs << output;
+          } else if ("Data" == xml.name())
+          {
+            if (data->fetchData(storage(), prefix()))
+            {
+              output->setData(data);
+            } 
+          }
+        }
       }
     }
+  }
 
-    fetched = true;
+  bool fetched = !m_outputs.isEmpty();
+
+  for(auto output : m_outputs)
+  {
+    fetched &= output->isValid();
   }
 
   return fetched;

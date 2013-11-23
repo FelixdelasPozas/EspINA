@@ -56,7 +56,8 @@ namespace EspINA {
     virtual Type type() const {return "DummyData";}
     virtual bool isValid() const {return true;}
     virtual Bounds bounds() const {}
-    virtual Snapshot snapshot() const {}
+    virtual bool fetchData(const Persistent::StorageSPtr storage, const QString& prefix) { return false;}
+    virtual Snapshot snapshot(Persistent::StorageSPtr storage, const QString& prefix) const{return Snapshot();}
     virtual Snapshot editedRegionsSnapshot() const {}
     virtual DataProxySPtr createProxy() const;
   };

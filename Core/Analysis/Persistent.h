@@ -61,7 +61,7 @@ namespace EspINA {
     void setUuid(Uuid id)
     { m_quuid = id; }
 
-    void setPersistentStorage(StorageSPtr storage)
+    void setStorage(StorageSPtr storage)
     { m_storage = storage; }
 
     StorageSPtr storage() const

@@ -130,6 +130,13 @@ namespace EspINA
 
     virtual bool invalidateEditedRegions() = 0;
 
+  private:
+    QString prefix() const
+    { return "Filters/" + uuid().toString() + "/"; }
+
+    QString outputFile() const
+    { return prefix() + "outputs.xml"; }
+
   protected:
     Type        m_type;
     OutputSList m_inputs;

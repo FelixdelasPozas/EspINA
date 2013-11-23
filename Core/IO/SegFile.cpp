@@ -21,8 +21,8 @@
 
 #include <EspinaConfig.h>
 
-#include "Core/IO/SegFile_V4.h"
 #include "Core/IO/SegFile_V5.h"
+#include "Core/IO/SegFile_V4.h"
 #include <Core/Analysis/Storage.h>
 #include <Core/Analysis/Analysis.h>
 #include <Core/Factory/CoreFactory.h>
@@ -79,7 +79,7 @@ AnalysisSPtr SegFile::load(const QFileInfo& file,
   SegFileLoaderSPtr loader;
   if (!zip.setCurrentFile(SegFile_V5::FORMAT_INFO_FILE))
   {
-    if (!zip.setCurrentFile(SegFile_V5::FORMAT_INFO_FILE))
+    if (!zip.setCurrentFile(SegFile_V4::FORMAT_INFO_FILE))
     {
       throw (IO_Error_Exception());
     }

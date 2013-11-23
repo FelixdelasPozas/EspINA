@@ -92,7 +92,7 @@ int binaryMask_region_iterator(int argc, char** argv)
     ++rit;
   }
 
-  error |= (count != 24);
+  error |= (count != 6);
 
   rit.goToBegin();
   while(!rit.isAtEnd())
@@ -103,8 +103,6 @@ int binaryMask_region_iterator(int argc, char** argv)
   }
 
   BMask *otherMask = new BMask(Bounds{0,9,0,9,0,9}, NmVector3{2.5,2.5,2.5});
-
-  qDebug() << otherMask->numberOfVoxels();
 
   error |= (otherMask->numberOfVoxels() != 64);
 

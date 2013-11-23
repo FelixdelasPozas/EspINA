@@ -39,7 +39,7 @@ namespace EspINA
       };
 
       struct Unknown_Type_Found{};
-      
+
       enum class VertexType
       {
         SAMPLE, FILTER, CHANNEL, SEGMENTATION, EXTENSION_PROVIDER
@@ -49,65 +49,34 @@ namespace EspINA
       : public Persistent
       {
       public:
-        explicit ReadOnlyVertex(VertexType type)
-        : m_type{type}{}
+        explicit ReadOnlyVertex(VertexType type, int vertexId)
+        : m_type{type}, m_vertexId(vertexId) {}
 
         VertexType type() const
         { return m_type; }
 
+        int vertexId() const
+        { return m_vertexId; }
+
         virtual void restoreState(const State& state)
         { m_state = state; }
+
         virtual State state() const
         { return m_state; }
+
         virtual Snapshot snapshot() const
         { return Snapshot(); }
+
         virtual void unload(){}
 
       private:
         VertexType m_type;
+        int        m_vertexId;
         State      m_state;
       };
 
       void read (std::istream& stream, DirectedGraphSPtr graph, PrintFormat format = PrintFormat::BOOST);
       void write(const DirectedGraphSPtr graph, std::ostream& stream, PrintFormat format = PrintFormat::BOOST);
-
-//       class GraphIO
-//       {
-//       public:
-//         virtual ~GraphIO() {}
-// 
-//         void read (std::istream& stream, DirectedGraphSPtr graph, PrintFormat format = PrintFormat::BOOST);
-// 
-//         void write(const DirectedGraphSPtr graph, std::ostream& stream, PrintFormat format = PrintFormat::BOOST);
-// 
-//       protected:
-// //         virtual void readBoost (std::istream& stream, DirectedGraph::Graph& graph) = 0;
-// //         virtual void writeBoost(DirectedGraph::Graph& graph, std::ostream& stream) = 0;
-//         friend std::ostream& operator << (std::ostream& out, const DirectedGraph::Vertex& v)
-//         {
-//           out << v.descriptor << std::endl;
-//           //out << shape(v.item) << std::endl;
-//           //         << v.shape      << std::endl
-//           //         << v.name       << std::endl
-//           //         << v.args;
-//           return out;
-//         }
-//         friend std::istream& operator >> ( std::istream& in, DirectedGraph::Vertex& v)
-//         {
-//           return in;
-//         }
-//         friend std::ostream& operator << ( std::ostream& out, const DirectedGraph::EdgeProperty& e )
-//         {
-//           out << e.relationship << " ";
-//           return out;
-//         }
-// 
-//         friend std::istream& operator >> ( std::istream& in, DirectedGraph::EdgeProperty& e)
-//         {
-//           //   in >> e.relationship;
-//           return in;
-//         }
-//       };
     }
   }
 }

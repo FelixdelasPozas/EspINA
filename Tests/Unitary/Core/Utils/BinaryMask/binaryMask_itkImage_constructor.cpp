@@ -74,9 +74,9 @@ int binaryMask_itkImage_constructor(int argc, char** argv)
   error |= ((otherSpacing[0] != spacing[0]) && (otherSpacing[1] != spacing[1]) && (otherSpacing[2] != spacing[2]));
 
   Bounds bounds = mask->bounds();
-  error |= ((index[0] * spacing[0] != bounds[0]) && ((index[0]+size[0]) * spacing[0] != bounds[1]) &&
-            (index[1] * spacing[1] != bounds[2]) && ((index[1]+size[1]) * spacing[1] != bounds[3]) &&
-            (index[2] * spacing[2] != bounds[4]) && ((index[2]+size[2]) * spacing[2] != bounds[5]));
+  error |= ((index[0] * spacing[0] - spacing[0]/2 != bounds[0]) && ((index[0]+size[0]) * spacing[0] - spacing[0]/2  != bounds[1]) &&
+            (index[1] * spacing[1] - spacing[1]/2 != bounds[2]) && ((index[1]+size[1]) * spacing[1] - spacing[1]/2  != bounds[3]) &&
+            (index[2] * spacing[2] - spacing[2]/2 != bounds[4]) && ((index[2]+size[2]) * spacing[2] - spacing[2]/2  != bounds[5]));
 
   mask->setForegroundValue(1);
 

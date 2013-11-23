@@ -72,8 +72,8 @@ int binaryMask_modify_mask(int argc, char** argv)
   }
 
   error |= (i != mask->numberOfVoxels());
-  error |= (125 != volumeBits.length());
-  QString volumeTestValue("01010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010");
+  error |= (64 != volumeBits.length());
+  QString volumeTestValue("0101010101010101010101010101010101010101010101010101010101010101");
   error |= (volumeBits != volumeTestValue);
 
   return error;
