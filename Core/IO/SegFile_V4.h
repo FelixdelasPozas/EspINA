@@ -66,7 +66,7 @@ namespace EspINA {
 
       private:
         AnalysisSPtr            m_analysis;
-        Persistent::StorageSPtr m_storage;
+        TemporalStorageSPtr     m_storage;
         QMap<int, QUuid>        m_vertexUuids;
         QMap<int, QUuid>        m_filerUuids;
         DirectedGraph::Vertices m_loadedVertices;

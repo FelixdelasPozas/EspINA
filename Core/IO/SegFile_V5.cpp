@@ -32,7 +32,7 @@
 #include <Core/Analysis/Persistent.h>
 #include <Core/Analysis/Sample.h>
 #include <Core/Analysis/Segmentation.h>
-#include <Core/Analysis/Storage.h>
+#include <Core/Utils/TemporalStorage.h>
 #include <Core/Factory/CoreFactory.h>
 
 using namespace EspINA;
@@ -69,7 +69,7 @@ AnalysisSPtr SegFile_V5::load(QuaZip&         zip,
   tmpDir.mkpath("espina");
   tmpDir.cd("espina");
 
-  Persistent::StorageSPtr storage{new Persistent::Storage(tmpDir)};
+  TemporalStorageSPtr storage{new TemporalStorage(tmpDir)};
 
   AnalysisSPtr analysis{new Analysis()};
 
@@ -218,7 +218,7 @@ PersistentSPtr SegFile_V5::findVertex(DirectedGraph::Vertices vertices, Persiste
 //-----------------------------------------------------------------------------
 SampleSPtr SegFile_V5::createSample(DirectedGraph::Vertex   roVertex,
                                     AnalysisSPtr            analysis,
-                                    Persistent::StorageSPtr storage,
+                                    TemporalStorageSPtr storage,
                                     CoreFactorySPtr         factory,
                                     ErrorHandlerPtr         handler)
 {
@@ -238,7 +238,7 @@ SampleSPtr SegFile_V5::createSample(DirectedGraph::Vertex   roVertex,
 FilterSPtr SegFile_V5::createFilter(DirectedGraph::Vertex   roVertex,
                                     DirectedGraphSPtr       content,
                                     DirectedGraph::Vertices loadedVertices,
-                                    Persistent::StorageSPtr storage,
+                                    TemporalStorageSPtr storage,
                                     CoreFactorySPtr         factory,
                                     ErrorHandlerPtr         handler)
 {
@@ -296,7 +296,7 @@ ChannelSPtr SegFile_V5::createChannel(DirectedGraph::Vertex   roVertex,
                                       AnalysisSPtr            analysis,
                                       DirectedGraphSPtr       content,
                                       DirectedGraph::Vertices loadedVertices,
-                                      Persistent::StorageSPtr storage,
+                                      TemporalStorageSPtr storage,
                                       CoreFactorySPtr         factory,
                                       ErrorHandlerPtr         handler)
 {
@@ -327,7 +327,7 @@ SegmentationSPtr SegFile_V5::createSegmentation(DirectedGraph::Vertex   roVertex
                                                 AnalysisSPtr            analysis,
                                                 DirectedGraphSPtr       content,
                                                 DirectedGraph::Vertices loadedVertices,
-                                                Persistent::StorageSPtr storage,
+                                                TemporalStorageSPtr storage,
                                                 CoreFactorySPtr         factory,
                                                 ErrorHandlerPtr         handler)
 {
@@ -358,7 +358,7 @@ SegmentationSPtr SegFile_V5::createSegmentation(DirectedGraph::Vertex   roVertex
 //-----------------------------------------------------------------------------
 void SegFile_V5::createExtensionProvider(DirectedGraph::Vertex   roVertex,
                                          AnalysisSPtr            analysis,
-                                         Persistent::StorageSPtr storage,
+                                         TemporalStorageSPtr storage,
                                          CoreFactorySPtr         factory,
                                          ErrorHandlerPtr         handler)
 {
@@ -370,7 +370,7 @@ void SegFile_V5::createExtensionProvider(DirectedGraph::Vertex   roVertex,
 //-----------------------------------------------------------------------------
 void SegFile_V5::loadContent(AnalysisSPtr            analysis,
                              QuaZip&                 zip,
-                             Persistent::StorageSPtr storage,
+                             TemporalStorageSPtr storage,
                              CoreFactorySPtr         factory,
                              ErrorHandlerPtr         handler)
 {

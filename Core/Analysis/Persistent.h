@@ -29,18 +29,13 @@
 #ifndef ESPINA_PERSISTENT_H
 #define ESPINA_PERSISTENT_H
 
-#include <QDir>
-#include <QUuid>
-#include <QPair>
-
 #include <memory>
 #include <QString>
 #include <QDebug>
+#include <Core/Utils/TemporalStorage.h>
 
 namespace EspINA {
 
-  using SnapshotData = QPair<QString, QByteArray>;
-  using Snapshot     = QList<SnapshotData>;
   using State        = QString;
 
   class Persistent
@@ -48,11 +43,11 @@ namespace EspINA {
   public:
     using Uuid = QUuid;
 
-    class Storage;
-    using StorageSPtr = std::shared_ptr<Storage>;
 
   public:
-    explicit Persistent() : m_quuid{QUuid::createUuid()} {}
+    explicit Persistent() 
+    : m_quuid{QUuid::createUuid()}
+    {}
     virtual ~Persistent() {}
 
     Uuid uuid() const
@@ -61,10 +56,10 @@ namespace EspINA {
     void setUuid(Uuid id)
     { m_quuid = id; }
 
-    void setStorage(StorageSPtr storage)
+    void setStorage(TemporalStorageSPtr storage)
     { m_storage = storage; }
 
-    StorageSPtr storage() const
+    TemporalStorageSPtr storage() const
     { return m_storage; }
 
     void setName(const QString& name)
@@ -87,9 +82,9 @@ namespace EspINA {
     virtual void unload() = 0;
 
   private:
-    Uuid        m_quuid;
-    QString     m_name;
-    StorageSPtr m_storage;
+    Uuid                m_quuid;
+    QString             m_name;
+    TemporalStorageSPtr m_storage;
   };
 
   using PersistentPtr = Persistent *;

@@ -68,7 +68,6 @@ add_executable(ChannelProxy_Tests
   ${CORE_DIR}/Analysis/Output.cpp
   ${CORE_DIR}/Analysis/Sample.cpp
   ${CORE_DIR}/Analysis/Segmentation.cpp
-  ${CORE_DIR}/Analysis/Storage.cpp
   ${CORE_DIR}/Analysis/ViewItem.cpp
   ${CORE_DIR}/Factory/CoreFactory.cpp
   ${CORE_DIR}/MultiTasking/Scheduler.cpp
@@ -78,6 +77,7 @@ add_executable(ChannelProxy_Tests
   ${CORE_DIR}/Utils/BinaryMask.cpp
   ${CORE_DIR}/Utils/Bounds.cpp
   ${CORE_DIR}/Utils/NmVector3.cpp
+  ${CORE_DIR}/Utils/TemporalStorage.cpp
   ${GUI_DIR}/Model/CategoryAdapter.cpp
   ${GUI_DIR}/Model/CategoryAdapter.cpp
   ${GUI_DIR}/Model/ChannelAdapter.cpp

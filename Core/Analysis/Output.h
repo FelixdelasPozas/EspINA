@@ -73,7 +73,7 @@ namespace EspINA
     NmVector3 spacing() const
     { return m_spacing; }
 
-    Snapshot snapshot(Persistent::StorageSPtr storage,
+    Snapshot snapshot(TemporalStorageSPtr storage,
                       QXmlStreamWriter       &xml,
                       const QString          &prefix) const;
 

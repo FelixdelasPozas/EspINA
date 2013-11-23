@@ -21,7 +21,7 @@
 #include "Core/Analysis/Sample.h"
 #include "Core/Analysis/Channel.h"
 #include <Core/Analysis/Segmentation.h>
-#include <Core/Analysis/Storage.h>
+#include <Core/Utils/TemporalStorage.h>
 
 using namespace EspINA;
 
@@ -33,7 +33,7 @@ CoreFactory::CoreFactory(SchedulerSPtr scheduler)
   tmpDir.mkpath("espina");
   tmpDir.cd("espina");
 
-  m_defaultStorage = Persistent::StorageSPtr{new Persistent::Storage(tmpDir)};
+  m_defaultStorage = TemporalStorageSPtr{new TemporalStorage(tmpDir)};
 }
 
 

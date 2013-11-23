@@ -33,6 +33,7 @@ using namespace EspINA;
 ZoomTools::ZoomTools(ViewManagerSPtr viewManager, QWidget* parent)
 : ToolGroup(viewManager, QIcon(":/espina/zoom_tools.png"), tr("Zoom Tools"), parent)
 , m_resetZoom(new ResetZoom())
+, m_zoomArea(new ZoomArea(viewManager))
 {
 //   setObjectName("ZoomToolBar");
 // 
@@ -75,6 +76,7 @@ ToolSList ZoomTools::tools()
 {
   ToolSList zoomTools;
 
+  zoomTools << m_zoomArea;
   zoomTools << m_resetZoom;
 
   return zoomTools;

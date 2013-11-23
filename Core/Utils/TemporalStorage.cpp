@@ -17,7 +17,7 @@
  *
  */
 
-#include "Storage.h"
+#include "TemporalStorage.h"
 
 #include <iostream>
 
@@ -54,7 +54,7 @@ bool removeRecursively(const QString & dirName)
 }
 
 //----------------------------------------------------------------------------
-Persistent::Storage::Storage(const QDir& parent)
+TemporalStorage::TemporalStorage(const QDir& parent)
 {
   QString path = QUuid::createUuid().toString();
 
@@ -64,13 +64,13 @@ Persistent::Storage::Storage(const QDir& parent)
 }
 
 //----------------------------------------------------------------------------
-Persistent::Storage::~Storage()
+TemporalStorage::~TemporalStorage()
 {
   removeRecursively(m_storageDir.absolutePath());
 }
 
 //----------------------------------------------------------------------------
-void Persistent::Storage::saveSnapshot(SnapshotData data)
+void TemporalStorage::saveSnapshot(SnapshotData data)
 {
   QFileInfo fileName(m_storageDir.absoluteFilePath(data.first));
 
@@ -83,7 +83,7 @@ void Persistent::Storage::saveSnapshot(SnapshotData data)
 }
 
 //----------------------------------------------------------------------------
-QByteArray Persistent::Storage::snapshot(const QString& descriptor) const
+QByteArray TemporalStorage::snapshot(const QString& descriptor) const
 {
   QString fileName = m_storageDir.absoluteFilePath(descriptor);
 

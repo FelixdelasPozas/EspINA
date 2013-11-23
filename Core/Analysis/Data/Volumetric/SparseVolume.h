@@ -33,7 +33,7 @@
 
 #include <Core/Analysis/Data/VolumetricData.h>
 #include <Core/Analysis/Data/VolumetricDataUtils.h>
-#include <Core/Analysis/Storage.h>
+#include <Core/Utils/TemporalStorage.h>
 #include <Core/Utils/BinaryMask.h>
 
 namespace EspINA {
@@ -156,11 +156,11 @@ namespace EspINA {
      *
      *  Return if any data was fetched
      */
-    virtual bool fetchData(const Persistent::StorageSPtr storage, const QString& prefix);
+    virtual bool fetchData(const TemporalStorageSPtr storage, const QString& prefix);
 
     /** \brief Persistent Interface to save the mask state.
      */
-    virtual Snapshot snapshot(Persistent::StorageSPtr storage, const QString& prefix) const;
+    virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString& prefix) const;
 
     virtual Snapshot editedRegionsSnapshot() const { return Snapshot(); }
 

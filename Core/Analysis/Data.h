@@ -73,9 +73,9 @@ namespace EspINA
     virtual void clearEditedRegions()
     { m_editedRegions.clear(); }
 
-    virtual bool fetchData(const Persistent::StorageSPtr storage, const QString &prefix) = 0;
+    virtual bool fetchData(const TemporalStorageSPtr storage, const QString &prefix) = 0;
 
-    virtual Snapshot snapshot(Persistent::StorageSPtr storage, const QString &prefix) const = 0;
+    virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &prefix) const = 0;
 
     virtual Snapshot editedRegionsSnapshot() const = 0;
 

@@ -23,7 +23,7 @@
 
 #include "Core/IO/SegFile_V5.h"
 #include "Core/IO/SegFile_V4.h"
-#include <Core/Analysis/Storage.h>
+#include <Core/Utils/TemporalStorage.h>
 #include <Core/Analysis/Analysis.h>
 #include <Core/Factory/CoreFactory.h>
 

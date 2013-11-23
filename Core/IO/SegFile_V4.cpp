@@ -19,10 +19,10 @@
 
 #include "SegFile_V4.h"
 
-#include <Core/Analysis/Storage.h>
 #include "SegFile.h"
-#include "ClassificationXML.h"
 #include "ReadOnlyFilter.h"
+#include <Core/Utils/TemporalStorage.h>
+#include "ClassificationXML.h"
 
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Filter.h>
@@ -30,7 +30,6 @@
 #include <Core/Analysis/Persistent.h>
 #include <Core/Analysis/Sample.h>
 #include <Core/Analysis/Segmentation.h>
-#include <Core/Analysis/Storage.h>
 #include <Core/Factory/CoreFactory.h>
 
 using namespace EspINA;
@@ -53,7 +52,7 @@ AnalysisSPtr SegFile_V4::load(QuaZip&         zip,
   tmpDir.mkpath("espina");
   tmpDir.cd("espina");
 
-  m_storage = Persistent::StorageSPtr{new Persistent::Storage(tmpDir)};
+  m_storage = TemporalStorageSPtr{new TemporalStorage(tmpDir)};
 
   m_analysis = AnalysisSPtr{new Analysis()};
   m_factory  = factory;

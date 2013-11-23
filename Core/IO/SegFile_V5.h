@@ -21,7 +21,7 @@
 #define ESPINA_SEGFILE_V5_H
 
 #include "Core/IO/SegFileInterface.h"
-#include <Core/Analysis/Storage.h>
+#include <Core/Utils/TemporalStorage.h>
 #include <Core/Analysis/Output.h>
 
 namespace EspINA {
@@ -54,14 +54,14 @@ namespace EspINA {
 
         SampleSPtr createSample(DirectedGraph::Vertex   roVertex,
                                 AnalysisSPtr            analysis,
-                                Persistent::StorageSPtr storage,
+                                TemporalStorageSPtr storage,
                                 CoreFactorySPtr         factory, 
                                 ErrorHandlerPtr         handler = nullptr);
 
         FilterSPtr createFilter(DirectedGraph::Vertex   roVertex,
                                 DirectedGraphSPtr       content,
                                 DirectedGraph::Vertices loadedVertices,
-                                Persistent::StorageSPtr storage,
+                                TemporalStorageSPtr storage,
                                 CoreFactorySPtr         factory, 
                                 ErrorHandlerPtr         handler = nullptr);
 
@@ -69,7 +69,7 @@ namespace EspINA {
                                   AnalysisSPtr            analysis,
                                   DirectedGraphSPtr       content,
                                   DirectedGraph::Vertices loadedVertices,
-                                  Persistent::StorageSPtr storage,
+                                  TemporalStorageSPtr storage,
                                   CoreFactorySPtr         factory, 
                                   ErrorHandlerPtr         handler = nullptr);
 
@@ -79,19 +79,19 @@ namespace EspINA {
                                             AnalysisSPtr            analysis,
                                             DirectedGraphSPtr       content,
                                             DirectedGraph::Vertices loadedVertices,
-                                            Persistent::StorageSPtr storage,
+                                            TemporalStorageSPtr storage,
                                             CoreFactorySPtr         factory, 
                                             ErrorHandlerPtr         handler = nullptr);
 
         void createExtensionProvider(DirectedGraph::Vertex   roVertex,
                                      AnalysisSPtr            analysis,
-                                     Persistent::StorageSPtr storage,
+                                     TemporalStorageSPtr storage,
                                      CoreFactorySPtr         factory, 
                                      ErrorHandlerPtr         handler = nullptr);
 
         void loadContent(AnalysisSPtr            analysis,
                          QuaZip&                 zip,
-                         Persistent::StorageSPtr storage,
+                         TemporalStorageSPtr storage,
                          CoreFactorySPtr         factory,
                          ErrorHandlerPtr         handler = nullptr);
 

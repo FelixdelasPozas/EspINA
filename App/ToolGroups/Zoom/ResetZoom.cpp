@@ -41,11 +41,6 @@ void ResetZoom::setEnabled(bool value)
 
 }
 
-void ResetZoom::setInUse(bool value)
-{
-
-}
-
 bool ResetZoom::filterEvent(QEvent* e, EspINA::RenderView* view)
 {
 

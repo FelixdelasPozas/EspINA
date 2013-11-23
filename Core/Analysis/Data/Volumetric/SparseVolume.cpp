@@ -313,7 +313,7 @@ bool SparseVolume<T>::isValid() const
 
 //-----------------------------------------------------------------------------
 template<typename T>
-bool SparseVolume<T>::fetchData(Persistent::StorageSPtr storage, const QString& prefix)
+bool SparseVolume<T>::fetchData(TemporalStorageSPtr storage, const QString& prefix)
 {
   using VolumeReader = itk::ImageFileReader<itkVolumeType>;
 
@@ -361,7 +361,7 @@ bool SparseVolume<T>::fetchData(Persistent::StorageSPtr storage, const QString& 
 
 //-----------------------------------------------------------------------------
 template<typename T>
-Snapshot SparseVolume<T>::snapshot(Persistent::StorageSPtr storage, const QString& prefix) const
+Snapshot SparseVolume<T>::snapshot(TemporalStorageSPtr storage, const QString& prefix) const
 {
   using VolumeWriter = itk::ImageFileWriter<itkVolumeType>;
   Snapshot snapshot;

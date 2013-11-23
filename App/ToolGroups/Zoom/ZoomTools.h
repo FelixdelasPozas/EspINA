@@ -21,6 +21,7 @@
 
 #include <Support/ToolGroup.h>
 #include "ResetZoom.h"
+#include "ZoomArea.h"
 
 namespace EspINA
 {
@@ -44,6 +45,7 @@ namespace EspINA
     void initZoomTool(bool);
 
   private:
+    ZoomAreaSPtr  m_zoomArea;
     ResetZoomSPtr m_resetZoom;
   };
 

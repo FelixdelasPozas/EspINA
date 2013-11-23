@@ -22,7 +22,7 @@
 #include <Core/Factory/CoreFactory.h>
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Sample.h>
-#include <Core/Analysis/Storage.h>
+#include <Core/Utils/TemporalStorage.h>
 #include <itkImageFileReader.h>
 #include <itkImageFileWriter.h>
 
@@ -87,7 +87,7 @@ AnalysisSPtr ChannelReader::read(const QFileInfo file,
     reader->SetFileName(file.absoluteFilePath().toUtf8().data());
     reader->Update();
 
-    Persistent::StorageSPtr storage = filter->storage();
+    TemporalStorageSPtr storage = filter->storage();
 
     file = QFileInfo(storage->absoluteFilePath(file.baseName() + ".mhd"));
 

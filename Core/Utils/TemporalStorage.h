@@ -17,18 +17,27 @@
  *
  */
 
-#ifndef ESPINA_STORAGE_H
-#define ESPINA_STORAGE_H
+#ifndef ESPINA_TEMPORAL_STORAGE_H
+#define ESPINA_TEMPORAL_STORAGE_H
 
-#include "Core/Analysis/Persistent.h"
+#include "Core/EspinaCore_Export.h"
+
+#include <QPair>
+#include <QDir>
+#include <QUuid>
+
+#include <memory>
 
 namespace EspINA {
 
-  class Persistent::Storage
+  using SnapshotData = QPair<QString, QByteArray>;
+  using Snapshot     = QList<SnapshotData>;
+
+  class EspinaCore_EXPORT TemporalStorage
   {
   public:
-    explicit Storage(const QDir& parent);
-    ~Storage();
+    explicit TemporalStorage(const QDir& parent);
+    ~TemporalStorage();
 
     /** \brief Write snapshot data to storage destination
      *
@@ -48,6 +57,8 @@ namespace EspINA {
     QUuid m_uuid;
     QDir  m_storageDir;
   };
+
+  using TemporalStorageSPtr = std::shared_ptr<TemporalStorage>;
 }
 
-#endif // ESPINA_STORAGE_H
+#endif // ESPINA_TEMPORAL_STORAGE_H

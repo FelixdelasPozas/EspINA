@@ -19,7 +19,7 @@
 // EspINA
 #include "Filter.h"
 #include <Core/Utils/BinaryMask.h>
-#include <Core/Analysis/Storage.h>
+#include <Core/Utils/TemporalStorage.h>
 #include "Data/Volumetric/SparseVolume.h"
 
 // ITK

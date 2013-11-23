@@ -33,7 +33,6 @@ add_executable(IO_Tests
   ${CORE_DIR}/Analysis/Output.cpp
   ${CORE_DIR}/Analysis/Sample.cpp
   ${CORE_DIR}/Analysis/Segmentation.cpp
-  ${CORE_DIR}/Analysis/Storage.cpp
   ${CORE_DIR}/Analysis/ViewItem.cpp
   ${CORE_DIR}/Factory/CoreFactory.cpp
   ${CORE_DIR}/IO/ClassificationXML.cpp
@@ -47,6 +46,7 @@ add_executable(IO_Tests
   ${CORE_DIR}/Utils/BinaryMask.cpp
   ${CORE_DIR}/Utils/Bounds.cpp
   ${CORE_DIR}/Utils/NmVector3.cpp
+  ${CORE_DIR}/Utils/TemporalStorage.cpp
   io_testing_support.cpp
   )
 target_link_libraries(IO_Tests ${LIB_DEPENDECIES} )

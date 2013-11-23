@@ -32,7 +32,6 @@ add_executable(Core_Factory_Tests
   ${CORE_DIR}/Analysis/Output.cpp
   ${CORE_DIR}/Analysis/Sample.cpp
   ${CORE_DIR}/Analysis/Segmentation.cpp
-  ${CORE_DIR}/Analysis/Storage.cpp
   ${CORE_DIR}/Analysis/ViewItem.cpp
   ${CORE_DIR}/Factory/CoreFactory.cpp
   ${CORE_DIR}/MultiTasking/Scheduler.cpp
@@ -40,6 +39,7 @@ add_executable(Core_Factory_Tests
   ${CORE_DIR}/Utils/BinaryMask.cpp
   ${CORE_DIR}/Utils/Bounds.cpp
   ${CORE_DIR}/Utils/NmVector3.cpp
+  ${CORE_DIR}/Utils/TemporalStorage.cpp
   )
 
 target_link_libraries(Core_Factory_Tests ${LIB_DEPENDECIES} )

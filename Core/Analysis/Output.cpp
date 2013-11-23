@@ -50,7 +50,7 @@ Output::Output(FilterPtr filter, const Output::Id& id)
 }
 
 //----------------------------------------------------------------------------
-Snapshot Output::snapshot(Persistent::StorageSPtr storage,
+Snapshot Output::snapshot(TemporalStorageSPtr storage,
                           QXmlStreamWriter       &xml,
                           const QString          &prefix) const
 {

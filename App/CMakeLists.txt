@@ -129,8 +129,9 @@ set (ESPINA_SOURCES
   ToolGroups/Segmentation/SegmentationTools.cpp
   ToolGroups/Segmentation/SeedGrowSegmentationTool.cpp
   ToolGroups/Segmentation/SeedThreshold.cpp
-  ToolGroups/Zoom/ZoomTools.cpp
   ToolGroups/Zoom/ResetZoom.cpp
+  ToolGroups/Zoom/ZoomArea.cpp
+  ToolGroups/Zoom/ZoomTools.cpp
 #   Tools/Brushes/Brush.cpp
 #   Tools/Brushes/CircularBrush.cpp
 #   Tools/Brushes/SphericalBrush.cpp

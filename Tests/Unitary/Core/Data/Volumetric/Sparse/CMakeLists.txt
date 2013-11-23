@@ -19,10 +19,10 @@ add_executable(SparseVolume_Tests
   ${SparseVolume_Tests}
   ${SUBJECT_MOCS}
   ${CORE_DIR}/Analysis/Data.cpp
-  ${CORE_DIR}/Analysis/Storage.cpp
   ${CORE_DIR}/Utils/Bounds.cpp
   ${CORE_DIR}/Utils/NmVector3.cpp
   ${CORE_DIR}/Utils/BinaryMask.cpp
+  ${CORE_DIR}/Utils/TemporalStorage.cpp
   ../../../../Testing_Support.cpp
   )
 

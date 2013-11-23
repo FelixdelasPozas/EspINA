@@ -35,13 +35,13 @@ add_executable(Channel_Tests
   ${CORE_DIR}/Analysis/Data.cpp
   ${CORE_DIR}/Analysis/Filter.cpp
   ${CORE_DIR}/Analysis/Output.cpp
-  ${CORE_DIR}/Analysis/Storage.cpp
   ${CORE_DIR}/Analysis/ViewItem.cpp
   ${CORE_DIR}/MultiTasking/Scheduler.cpp
   ${CORE_DIR}/MultiTasking/Task.cpp
   ${CORE_DIR}/Utils/BinaryMask.cpp
   ${CORE_DIR}/Utils/Bounds.cpp
   ${CORE_DIR}/Utils/NmVector3.cpp
+  ${CORE_DIR}/Utils/TemporalStorage.cpp
   )
 target_link_libraries(Channel_Tests ${LIB_DEPENDECIES} )
 

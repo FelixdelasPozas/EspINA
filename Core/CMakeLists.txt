@@ -26,7 +26,6 @@ set (CORE_SOURCES
   Analysis/Output.cpp
   Analysis/Sample.cpp
   Analysis/Segmentation.cpp
-  Analysis/Storage.cpp
   Analysis/ViewItem.cpp
   Analysis/Data/VolumetricData.cpp
   Factory/CoreFactory.cpp
@@ -44,6 +43,7 @@ set (CORE_SOURCES
   Utils/Measure.cpp
   Utils/NmVector3.cpp
   Utils/SparseBinaryVolume.cpp
+  Utils/TemporalStorage.cpp
   )
 
 set(CORE_EXTERNAL_LIBS

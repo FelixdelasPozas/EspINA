@@ -27,7 +27,7 @@
  */
 
 #include <Core/Analysis/Sample.h>
-#include <Core/Analysis/Storage.h>
+#include <Core/Utils/TemporalStorage.h>
 
 using namespace EspINA;
 using namespace std;

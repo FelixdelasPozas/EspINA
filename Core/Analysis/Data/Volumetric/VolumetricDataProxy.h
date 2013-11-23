@@ -148,10 +148,10 @@ namespace EspINA
     virtual bool isValid() const
     { return m_data->isValid(); }
 
-    virtual bool fetchData(Persistent::StorageSPtr storage, const QString& prefix)
+    virtual bool fetchData(TemporalStorageSPtr storage, const QString& prefix)
     { return m_data->fetchData(storage, prefix); }
 
-    virtual Snapshot snapshot(Persistent::StorageSPtr storage, const QString& prefix) const
+    virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString& prefix) const
     { return m_data->snapshot(storage, prefix); }
 
     virtual Snapshot editedRegionsSnapshot() const

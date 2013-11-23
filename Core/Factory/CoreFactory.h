@@ -59,12 +59,12 @@ namespace EspINA
 
     SegmentationSPtr createSegmentation(FilterSPtr filter, Output::Id output) const;
 
-    void setPresistentStorage(Persistent::StorageSPtr storage)
+    void setPresistentStorage(TemporalStorageSPtr storage)
     { m_defaultStorage = storage; }
 
   private:
     SchedulerSPtr m_scheduler;
-    Persistent::StorageSPtr m_defaultStorage;
+    TemporalStorageSPtr m_defaultStorage;
 
     QMap<Filter::Type, FilterFactoryPtr> m_filterFactories;
   };

@@ -34,7 +34,6 @@ namespace EspINA {
 
     virtual void setEnabled(bool value);
 
-    virtual void setInUse(bool value);
 
     virtual bool filterEvent(QEvent* e, RenderView *view);
 
