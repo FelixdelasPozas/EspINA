@@ -39,8 +39,8 @@ class InvalidData
 {
 public:
   virtual DataProxySPtr createProxy() const;
-  virtual Bounds bounds() const{}
-  virtual Snapshot editedRegionsSnapshot() const{}
+  virtual const Bounds bounds() const {}
+  virtual Snapshot editedRegionsSnapshot() const {}
   virtual bool isValid() const {return false;}
   virtual bool fetchData(const TemporalStorageSPtr storage, const QString& prefix) {return false; }
   virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString& prefix) const{return Snapshot();}

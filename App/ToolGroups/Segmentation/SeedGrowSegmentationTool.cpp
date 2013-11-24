@@ -69,10 +69,13 @@ SeedGrowSegmentationTool::SeedGrowSegmentationTool(ModelAdapterSPtr model,
     selector->setCursor(cursor);
 
     addVoxelSelector(action, selector);
+
+    m_selectorSwitch->setDefaultAction(action);
   }
 
   connect(m_selectorSwitch, SIGNAL(triggered(QAction*)),
           this, SLOT(changeSelector(QAction*)));
+
   connect(m_selectorSwitch, SIGNAL(actionCanceled()),
           this, SLOT(unsetSelector()));
 }

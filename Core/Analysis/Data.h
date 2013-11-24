@@ -81,7 +81,7 @@ namespace EspINA
 
     virtual bool isValid() const = 0;
 
-    virtual Bounds bounds() const = 0;
+    virtual const Bounds bounds() const = 0;
 
     bool isEdited() const
     { return !editedRegions().isEmpty(); }

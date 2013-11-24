@@ -16,45 +16,32 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef ESPINA_EDITOR_TOOL_H
+#define ESPINA_EDITOR_TOOL_H
 
-#ifndef EDITORTOOLBAR_H
-#define EDITORTOOLBAR_H
+#include <Support/Tool.h>
+#include <Support/ViewManager.h>
 
-#include <Core/Interfaces/IToolBar.h>
-#include <Core/Interfaces/IFactoryExtension.h>
-#include <Core/Interfaces/IFilterCreator.h>
-
-#include "App/Tools/Brushes/Brush.h"
-
-// EspINA
-#include <Core/Model/Segmentation.h>
-#include <GUI/ISettingsPanel.h>
+#include <GUI/Widgets/ActionSelector.h>
+#include <GUI/Selectors/Selector.h>
+#include <GUI/ModelFactory.h>
 
 class ActionSelector;
 class QAction;
 class QUndoStack;
 
-
 namespace EspINA
 {
-  class Tool;
-  class ViewManager;
   class ContourSelector;
   class ContourWidget;
   class FreeFormSource;
   class EditorToolBarSettings;
 
   class EditorToolBar
-  : public IToolBar
-  , public IFactoryExtension
-  , public IFilterCreator
+  : public Tool
+  , public FilterFactory
   {
     Q_OBJECT
-    Q_INTERFACES
-    (
-      EspINA::IFactoryExtension
-      EspINA::IFilterCreator
-    )
 
     class FreeFormCommand;
     class CODECommand;// Close/Open/Dilate/Erode Command
@@ -63,21 +50,23 @@ namespace EspINA
     class SettingsPanel;
 
   public:
-    explicit EditorToolBar(EspinaModel *model,
-                           QUndoStack  *undoStack,
-                           ViewManager *viewManager,
-                           QWidget     *parent = 0);
+    explicit EditorToolBar(ModelAdapterSPtr model,
+                           ModelFactorySPtr factory,
+                           ViewManagerSPtr  viewManager,
+                           QUndoStack      *undoStack);
     virtual ~EditorToolBar();
+
+    virtual FilterTypeList providedFilters() const;
+
+    virtual FilterSPtr createFilter(OutputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const;
 
     virtual void initFactoryExtension(EspinaFactory *factory);
 
-    virtual FilterSPtr createFilter(const QString              &filter,
-                                    const Filter::NamedInputs  &inputs,
-                                    const ModelItem::Arguments &args);
+    virtual void setEnabled(bool value);
 
-    virtual void resetToolbar();
+    virtual bool enabled() const;
 
-    virtual void abortOperation();
+    virtual QList<QAction *> actions() const;
 
   protected slots:
     void changeCircularBrushMode(Brush::BrushMode mode);
@@ -105,16 +94,17 @@ namespace EspINA
     void initFillTool();
 
   private:
-    EspinaModel *m_model;
-    QUndoStack  *m_undoStack;
-    ViewManager *m_viewManager;
+    ModelAdapterSPtr m_model;
+    ModelFactorySPtr m_factory;
+    ViewManagerSPtr  m_viewManager;
+    QUndoStack      *m_undoStack;
 
     // GUI
     ActionSelector *m_drawToolSelector;
-    QMap<QAction *, IToolSPtr> m_drawTools;
+    QMap<QAction *, ToolSPtr> m_drawTools;
 
     ActionSelector *m_splitToolSelector;
-    QMap<QAction *, IToolSPtr> m_splitTools;
+    QMap<QAction *, ToolSPtr> m_splitTools;
 
     QAction *m_addition;
     QAction *m_subtract;
@@ -138,4 +128,4 @@ namespace EspINA
 } // namespace EspINA
 
 
-#endif // EDITORTOOLBAR_H
+#endif // ESPINA_EDITOR_TOOL_H

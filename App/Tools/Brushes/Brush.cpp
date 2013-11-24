@@ -59,7 +59,7 @@ Brush::Brush(EspinaModel *model,
 , m_inUse(false)
 , m_mode(CREATE)
 , m_erasing(false)
-, m_brush(new BrushPicker())
+, m_brush(new BrushSelector())
 , m_settings(settings)
 , m_currentOutput(-1)
 {

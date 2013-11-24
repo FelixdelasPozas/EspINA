@@ -18,9 +18,9 @@
 
 #include "ImageLogicFilter.h"
 
-#include <Core/Model/EspinaFactory.h>
-#include <Core/Model/MarchingCubesMesh.h>
-#include <Core/OutputRepresentations/RawVolume.h>
+#include <GUI/ModelFactory.h>
+#include <Core/Analysis/Data/Volumetric/ItkVolume.h>
+#include <Core/Analysis/Data/Mesh/MarchingCubesMesh.h>
 #include <GUI/Representations/SliceRepresentation.h>
 
 #include <itkImageAlgorithm.h>
@@ -29,18 +29,13 @@
 
 using namespace EspINA;
 
+const Filter::Type ImageLogicFilter_FILTER = "ImageLogicFilter";
 
 //-----------------------------------------------------------------------------
-typedef ModelItem::ArgumentId ArgumentId;
-const ArgumentId ImageLogicFilter::OPERATION = "Operation";
-
-
-//-----------------------------------------------------------------------------
-ImageLogicFilter::ImageLogicFilter(NamedInputs inputs,
-                                   Arguments   args,
-                                   FilterType  type)
-: BasicSegmentationFilter(inputs, args, type)
-, m_param(m_args)
+ImageLogicFilter::ImageLogicFilter(OutputSList inputs,
+                                   Type        type,
+                                   Scheduler   scheduler)
+: BasicSegmentationFilter(inputs, type, scheduler)
 {
 }
 
@@ -50,14 +45,14 @@ ImageLogicFilter::~ImageLogicFilter()
 }
 
 //-----------------------------------------------------------------------------
-bool ImageLogicFilter::needUpdate(FilterOutputId oId) const
+bool ImageLogicFilter::needUpdate(Output::Id oId) const
 {
-  bool update =SegmentationFilter::needUpdate(oId);
+  bool update = Filter::needUpdate(oId);
 
-  if (!update && !m_inputs.isEmpty()) //TODO 2012-12-10 Check this update
+  if (!update && !m_inputs.isEmpty())
   {
-    Q_ASSERT(m_namedInputs.size()  >= 1);
     Q_ASSERT(m_outputs.size() == 1);
+
 
     SegmentationVolumeSPtr outputVolume = segmentationVolume(m_outputs[0]);
     int i = 1;

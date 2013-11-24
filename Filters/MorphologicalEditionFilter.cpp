@@ -19,47 +19,45 @@
 
 #include "MorphologicalEditionFilter.h"
 
-#include <Core/Model/EspinaFactory.h>
+#include <GUI/ModelFactory.h>
 #include <GUI/Representations/SliceRepresentation.h>
 
 #include <QDebug>
 
 using namespace EspINA;
 
-typedef ModelItem::ArgumentId ArgumentId;
-const ArgumentId MorphologicalEditionFilter::RADIUS = "Radius";
-const QString MorphologicalEditionFilter::INPUTLINK = "Input";
-
 const unsigned int LABEL_VALUE = 255;
 
-
 //-----------------------------------------------------------------------------
-MorphologicalEditionFilter::MorphologicalEditionFilter(NamedInputs inputs,
-                                                       Arguments   args,
-                                                       FilterType  type)
-: BasicSegmentationFilter(inputs, args, type)
+template<class T>
+MorphologicalEditionFilter<T>::MorphologicalEditionFilter(OutputSList   inputs,
+                                                       Type          type,
+                                                       SchedulerSPtr scheduler)
+: BasicSegmentationFilter(inputs, type, scheduler)
 , m_ignoreCurrentOutputs(false)
 , m_isOutputEmpty(true)
-, m_params(m_args)
+, m_radius(0)
 {
 }
 
 //-----------------------------------------------------------------------------
-MorphologicalEditionFilter::~MorphologicalEditionFilter()
+template<class T>
+MorphologicalEditionFilter<T>::~MorphologicalEditionFilter()
 {
+
 }
 
 //-----------------------------------------------------------------------------
-bool MorphologicalEditionFilter::needUpdate(FilterOutputId oId) const
+template<class T>
+bool MorphologicalEditionFilter<T>::needUpdate(Output::Id oId) const
 {
-  bool update =SegmentationFilter::needUpdate(oId);
+  bool update = Filter::needUpdate(oId);
 
   if (!update)
   {
-    Q_ASSERT(m_namedInputs.size()  == 1);
     Q_ASSERT(m_outputs.size() == 1);
 
-    SegmentationVolumeSPtr outputVolume = segmentationVolume(m_outputs[0]);
+    VolumetricDataSPtr<T> outputVolume = segmentationVolume(m_outputs[0]);
     Q_ASSERT(outputVolume.get());
     Q_ASSERT(outputVolume->toITK().IsNotNull());
     if (!m_inputs.isEmpty())

@@ -16,14 +16,13 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Core/Analysis/Data/Volumetric/RawVolume.h"
-
+#include "ItkVolume.h"
 #include "Core/Analysis/Filter.h"
 
 // ITK
 #include <itkExtractImageFilter.h>
-#include <itkImageRegionExclusionIteratorWithIndex.h>
-#include <itkLabelImageToShapeLabelMapFilter.h>
+//#include <itkImageRegionExclusionIteratorWithIndex.h>
+//#include <itkLabelImageToShapeLabelMapFilter.h>
 #include <itkStatisticsLabelObject.h>
 #include <itkRegionOfInterestImageFilter.h>
 #include <itkMetaImageIO.h>
@@ -48,6 +47,8 @@
 #include <QFileInfo>
 #include <QDir>
 
+#include <iostream>
+
 using namespace EspINA;
 
 typedef itk::StatisticsLabelObject<unsigned int, 3>                       LabelObjectType;
@@ -60,7 +61,8 @@ typedef itk::RegionOfInterestImageFilter<itkVolumeType, itkVolumeType>    ROIFil
 
 
 //----------------------------------------------------------------------------
-itkVolumeType::IndexType volumeIndex(itkVolumeType::Pointer volume, Nm x, Nm y, Nm z)
+template<class T>
+itkVolumeType::IndexType volumeIndex(typename T::Pointer volume, Nm x, Nm y, Nm z)
 {
   itkVolumeType::PointType   origin  = volume->GetOrigin();
   itkVolumeType::SpacingType spacing = volume->GetSpacing();
@@ -74,7 +76,8 @@ itkVolumeType::IndexType volumeIndex(itkVolumeType::Pointer volume, Nm x, Nm y, 
 }
 
 //----------------------------------------------------------------------------
-void volumeExtent(itkVolumeType::Pointer volume, int out[6])
+template<class T>
+void volumeExtent(typename T::Pointer volume, int out[6])
 {
   if (volume)
   {
@@ -96,10 +99,11 @@ void volumeExtent(itkVolumeType::Pointer volume, int out[6])
 }
 
 //----------------------------------------------------------------------------
-void volumeBounds(itkVolumeType::PointType   origin,
-                  itkVolumeType::RegionType  region,
-                  itkVolumeType::SpacingType spacing,
-                  double                     out[6])
+template<class T>
+void volumeBounds(typename T::PointType   origin,
+                  typename T::RegionType  region,
+                  typename T::SpacingType spacing,
+                  double                  out[6])
 {
   for(int i=0; i<3; i++)
   {
@@ -109,13 +113,14 @@ void volumeBounds(itkVolumeType::PointType   origin,
   }
 }
 //----------------------------------------------------------------------------
-void volumeBounds(itkVolumeType::Pointer volume, double out[6])
+template<class T>
+void volumeBounds(typename T::Pointer volume, double out[6])
 {
   if (volume)
   {
-    itkVolumeType::SpacingType spacing = volume->GetSpacing();
-    itkVolumeType::RegionType  region  = volume->GetLargestPossibleRegion();
-    itkVolumeType::PointType   origin  = volume->GetOrigin();
+    typename T::SpacingType spacing = volume->GetSpacing();
+    typename T::RegionType  region  = volume->GetLargestPossibleRegion();
+    typename T::PointType   origin  = volume->GetOrigin();
 
     volumeBounds(origin, region, spacing, out);
   }
@@ -123,8 +128,8 @@ void volumeBounds(itkVolumeType::Pointer volume, double out[6])
     vtkMath::UninitializeBounds(out);
 }
 
-#include <iostream>
 //----------------------------------------------------------------------------
+template<class T>
 int voxelIndex(Nm point, Nm spacing)
 {
   int voxel = 0;
@@ -143,10 +148,11 @@ int voxelIndex(Nm point, Nm spacing)
 /// in its upper limit, i.e. [lower bound, upper bound). Thus, is important not to
 /// take upper bound as part of it when the volume is multiple of the spacing
 //----------------------------------------------------------------------------
-itkVolumeType::RegionType volumeRegionAux(Bounds                     region,
-                                          itkVolumeType::SpacingType spacing)
+template<class T>
+itkVolumeType::RegionType volumeRegionAux(Bounds                  region,
+                                          typename T::SpacingType spacing)
 {
-  itkVolumeType::RegionType res;
+  typename T::RegionType res;
 
   for (int i = 0; i < 3; i++)
   {
@@ -170,17 +176,18 @@ itkVolumeType::RegionType volumeRegionAux(Bounds                     region,
 }
 
 //----------------------------------------------------------------------------
-itkVolumeType::RegionType volumeRegionAux(itkVolumeType::Pointer volume,
-                                          const Bounds&          region)
+template<class T>
+itkVolumeType::RegionType volumeRegionAux(typename T::Pointer volume,
+                                          const Bounds&       region)
 {
-  itkVolumeType::SpacingType spacing = volume->GetSpacing();
-  itkVolumeType::RegionType volumeRegion;
+  typename T::SpacingType spacing = volume->GetSpacing();
+  typename T::RegionType volumeRegion;
 
 //   Nm bounds[6];
 //   volumeBounds(volume, bounds);
 //   VolumeRepresentation::VolumeRegion vr = volumeRegionAux(EspinaRegion(bounds), spacing);
 
-  itkVolumeType::RegionType res = volumeRegionAux(region, spacing);
+  typename T::RegionType res = volumeRegionAux(region, spacing);
 //   itkVolumeType::IndexType min, max;
 //   for (int i = 0; i < 3; i++)
 //   {
@@ -191,7 +198,7 @@ itkVolumeType::RegionType volumeRegionAux(itkVolumeType::Pointer volume,
 //     res.SetSize (i, max[i] - min[i] + 1);
 //   }
 
-  itkVolumeType::PointType origin = volume->GetOrigin();
+  typename T::PointType origin = volume->GetOrigin();
   if (origin[0] != 0 || origin[1] != 0 || origin[2] != 0)
   {
     qWarning() << "Non zero origin";
@@ -203,10 +210,11 @@ itkVolumeType::RegionType volumeRegionAux(itkVolumeType::Pointer volume,
 }
 
 //----------------------------------------------------------------------------
-Bounds espinaRegionAux(itkVolumeType::Pointer volume, const Nm bounds[6])
+template<class T>
+Bounds espinaRegionAux(typename T::Pointer volume, const Nm bounds[6])
 {
   Bounds EspinaBounds{bounds[0], bounds[1], bounds[2], bounds[3], bounds[4], bounds[5] };
-  itkVolumeType::RegionType volumeRegion = volumeRegionAux(volume, EspinaBounds);
+  typename T::RegionType volumeRegion = volumeRegionAux(volume, EspinaBounds);
 
   Nm regionBounds[6];
   volumeBounds(volume->GetOrigin(), volumeRegion, volume->GetSpacing(), regionBounds);
@@ -217,8 +225,8 @@ Bounds espinaRegionAux(itkVolumeType::Pointer volume, const Nm bounds[6])
 
 //----------------------------------------------------------------------------
 template<class T>
-ItkVolume<T>::ItkVolume(itkVolumeType::Pointer volume,
-                        OutputSPtr output)
+ItkVolume<T>::ItkVolume(typename T::Pointer volume,
+                        OutputSPtr          output)
 : m_volume(volume)
 , m_VTKGenerationTime(0)
 , m_ITKGenerationTime(0)
@@ -228,7 +236,7 @@ ItkVolume<T>::ItkVolume(itkVolumeType::Pointer volume,
 
 //----------------------------------------------------------------------------
 template<class T>
-void ItkVolume<T>::setVolume(itkVolumeType::Pointer volume, bool disconnect)
+void ItkVolume<T>::setVolume(typename T::Pointer volume, bool disconnect)
 {
   m_volume = volume;
   m_volume->ReleaseDataFlagOff();
@@ -258,7 +266,7 @@ bool ItkVolume<T>::setInternalData(DataSPtr rhs)
 
 //----------------------------------------------------------------------------
 template<class T>
-itkVolumeType::IndexType ItkVolume<T>::index(Nm x, Nm y, Nm z)
+typename T::IndexType ItkVolume<T>::index(Nm x, Nm y, Nm z)
 {
   return volumeIndex(m_volume, x, y, z);
 }
@@ -480,8 +488,8 @@ void ItkVolume<T>::draw(const vtkImplicitFunction *brush,
 
 //----------------------------------------------------------------------------
 template<class T>
-void ItkVolume<T>::draw(itkVolumeType::IndexType index,
-                        itkVolumeType::PixelType value)
+void ItkVolume<T>::draw(typename T::IndexType index,
+                        typename T::PixelType value)
 {
 //  itkVolumeType::SpacingType spacing = m_volume->GetSpacing();
 //  double voxelBounds[6] = { index[0]*spacing[0],

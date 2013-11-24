@@ -201,6 +201,7 @@ void ViewManager::displayTools(ToolGroupPtr group)
 
   m_toolGroup = group;
 
+  QAction *separator; // Cheap way of removing last separator without an 'if' in the external loop
   if (m_contextualToolBar)
   {
     for(auto tool : group->tools())
@@ -209,7 +210,9 @@ void ViewManager::displayTools(ToolGroupPtr group)
       {
         m_contextualToolBar->addAction(action);
       }
+      separator = m_contextualToolBar->addSeparator();
     }
+    m_contextualToolBar->removeAction(separator);
   }
 }
 
@@ -236,7 +239,10 @@ void ViewManager::setSelector(SelectorSPtr selector)
   }
 
   m_selector = selector;
-  m_selector->setInUse(true);
+
+  if (m_selector)
+    m_selector->setInUse(true);
+
   for(auto view : m_renderViews)
   {
     view->setSelector(m_selector);

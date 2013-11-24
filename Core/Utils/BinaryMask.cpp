@@ -62,14 +62,15 @@ namespace EspINA
     itkVolumeType::SpacingType fakeImageSpacing = image->GetSpacing();
     itkVolumeType::RegionType fakeRegion = region;
 
+
     fakeImage->SetRegions(region);
     fakeImage->SetSpacing(fakeImageSpacing);
 
     Bounds bounds = equivalentBounds<itkVolumeType>(fakeImage, fakeRegion);
     m_bounds = bounds;
 
-    unsigned long long bufferSize = size[0] * size[1] * size[2] / m_integerSize;
-    if (0 != (size[0] * size[1] * size[2] % m_integerSize))
+    unsigned long long bufferSize = region.GetNumberOfPixels() / m_integerSize;
+    if (0 != (region.GetNumberOfPixels() % m_integerSize))
       bufferSize++;
 
     m_image = new int[bufferSize];
@@ -115,8 +116,9 @@ namespace EspINA
     m_origin.y = region.GetIndex(1);
     m_origin.z = region.GetIndex(2);
 
-    long int bufferSize = (m_size[0] * m_size[1] * m_size[2]) / m_integerSize;
-    int remainder = (m_size[0] * m_size[1] * m_size[2]) % m_integerSize;
+
+    long int bufferSize = region.GetNumberOfPixels() / m_integerSize;
+    int remainder = region.GetNumberOfPixels() % m_integerSize;
     if (remainder != 0)
       bufferSize++;
 

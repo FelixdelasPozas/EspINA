@@ -25,6 +25,7 @@ qt4_wrap_cpp(GUI_MOC
   Representations/SliceRepresentationSettings.h
   Representations/SmoothedMeshRepresentation.h
   Selectors/Selector.h
+  Selectors/BrushSelector.h
   View/RenderView.h
   View/View2D.h
   View/View3D.h
@@ -89,6 +90,7 @@ set (GUI_SOURCES
   Representations/SmoothedMeshRepresentation.cpp
   Representations/VolumetricRepresentation.cpp
   Representations/VolumetricGPURepresentation.cpp
+  Selectors/BrushSelector.cpp
   Selectors/PixelSelector.cpp
   Selectors/Selector.cpp
   Utils/Conditions.cpp

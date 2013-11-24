@@ -34,7 +34,7 @@ namespace EspINA
   //    VolumetricRepresentation
   //    MeshRepresentation
   //    SmoothedMeshRepresentation
-  class BasicSegmentationFilter
+  class EspinaFilters_EXPORT BasicSegmentationFilter
   : public Filter
   {
   public:

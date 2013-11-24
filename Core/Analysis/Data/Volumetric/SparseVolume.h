@@ -36,7 +36,8 @@
 #include <Core/Utils/TemporalStorage.h>
 #include <Core/Utils/BinaryMask.h>
 
-namespace EspINA {
+namespace EspINA
+{
 
   struct Invalid_Image_Bounds_Exception{};
 
@@ -75,7 +76,7 @@ namespace EspINA {
 
     /** \brief Returns the bounds of the volume.
      */
-    virtual Bounds bounds() const;
+    virtual const Bounds bounds() const;
 
     /** \brief Set volume origin.
      */
@@ -256,7 +257,11 @@ namespace EspINA {
     Bounds    m_bounds;
     Bounds    m_blocks_bounding_box;
   };
+
+  using SparseVolumePtr  = SparseVolume<itkVolumeType> *;
+  using SparseVolumeSPtr = std::shared_ptr<SparseVolume<itkVolumeType>>;
 }
+
 #include "SparseVolume.cpp"
 
 

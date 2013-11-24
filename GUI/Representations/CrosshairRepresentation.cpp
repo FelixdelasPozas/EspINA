@@ -44,7 +44,7 @@
 using namespace EspINA;
 
 //------------------------------------------------------------------------
-CrosshairRepresentation::CrosshairRepresentation(ChannelVolumeSPtr data, RenderView *view)
+CrosshairRepresentation::CrosshairRepresentation(VolumeSPtr data, RenderView *view)
 : Representation(view)
 , m_data(data)
 , m_axialExporter(nullptr)

@@ -103,7 +103,6 @@ void SeedThreshold::setSymmetricalThreshold(bool symmetrical)
   m_symmetrical = symmetrical;
 }
 
-
 //-----------------------------------------------------------------------------
 void SeedThreshold::setLowerThreshold(int th)
 {

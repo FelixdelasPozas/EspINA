@@ -45,6 +45,12 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Segmentation/SeedThreshold.h
   ToolGroups/Segmentation/SeedGrowSegmentationTool.h
   ToolGroups/Segmentation/SegmentationTools.h
+  ToolGroups/Editor/EditionTools.h
+  ToolGroups/Editor/SplitTool.h
+  ToolGroups/Editor/MorphologicalEditionTool.h
+  ToolGroups/Editor/ManualEditionTool.h
+  ToolGroups/Editor/SpinBoxAction.h
+  ToolGroups/Editor/MorphologicalEditionTool.h
 #   Tools/Brushes/Brush.h
 #   Tools/Contour/FilledContour.h
 #   Tools/PlanarSplit/PlanarSplitTool.h
@@ -132,6 +138,11 @@ set (ESPINA_SOURCES
   ToolGroups/Zoom/ResetZoom.cpp
   ToolGroups/Zoom/ZoomArea.cpp
   ToolGroups/Zoom/ZoomTools.cpp
+  ToolGroups/Editor/EditionTools.cpp
+  ToolGroups/Editor/SplitTool.cpp
+  ToolGroups/Editor/MorphologicalEditionTool.cpp
+  ToolGroups/Editor/ManualEditionTool.cpp
+  ToolGroups/Editor/SpinBoxAction.cpp
 #   Tools/Brushes/Brush.cpp
 #   Tools/Brushes/CircularBrush.cpp
 #   Tools/Brushes/SphericalBrush.cpp

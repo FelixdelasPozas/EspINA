@@ -16,75 +16,70 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef ESPINA_IMAGE_LOGIC_FILTER_H
+#define ESPINA_IMAGE_LOGIC_FILTER_H
 
-#ifndef IMAGELOGICFILTER_H
-#define IMAGELOGICFILTER_H
-
-#include "EspinaCore_Export.h"
+#include "EspinaFilters_Export.h"
 
 #include "BasicSegmentationFilter.h"
-#include <Core/Model/Segmentation.h>
+#include <GUI/Model/ModelAdapter.h>
 
 // #include <itkConstantPadImageFilter.h>
 // #include <itkOrImageFilter.h>
+//   typedef itk::ConstantPadImageFilter<EspinaVolume, EspinaVolume> PadFilterType;
+//   typedef itk::OrImageFilter<EspinaVolume, EspinaVolume, EspinaVolume> OrFilterType;
 
 namespace EspINA
 {
-class EspinaCore_EXPORT ImageLogicFilter
-: public BasicSegmentationFilter
-{
-//   typedef itk::ConstantPadImageFilter<EspinaVolume, EspinaVolume> PadFilterType;
-//   typedef itk::OrImageFilter<EspinaVolume, EspinaVolume, EspinaVolume> OrFilterType;
-public:
-  enum Operation
+  class EspinaFilters_EXPORT ImageLogicFilter
+  : public BasicSegmentationFilter
   {
-    ADDITION,
-    SUBTRACTION,
-    NOSIGN
+    public:
+      enum class Operation
+      {
+        ADDITION, SUBTRACTION, NOSIGN
+      };
+
+    public:
+      virtual ~ImageLogicFilter();
+
+      virtual Snapshot snapshot() const;
+
+      virtual void unload();
+
+
+
+    protected:
+      explicit ImageLogicFilter(OutputSList inputs, Type type, SchedulerSPtr scheduler);
+
+      virtual Snapshot saveFilterSnapshot() const;
+
+      virtual bool needUpdate() const;
+
+      virtual bool needUpdate(Output::Id oId) const;
+
+      virtual bool fetchOutputData(Output::Id oId);
+
+
+
+      virtual void run();
+
+      virtual void execute();
+
+      virtual void execute(Output::Id oId);
+
+      virtual bool ignoreStorageContent() const
+      { return false; }
+
+      virtual bool invalidateEditedRegions();
+
+    protected:
+      void addition();
+      void subtraction();
+
+    private:
   };
-
-  static const ModelItem::ArgumentId OPERATION;
-
-  class Parameters
-  {
-  public:
-    explicit Parameters(Arguments &args) : m_args(args) {}
-
-    void setOperation(Operation op)
-    {
-      m_args[OPERATION] = QString::number(op);
-    }
-    Operation operation() const {return Operation(m_args[OPERATION].toInt());}
-  private:
-    Arguments &m_args;
-  };
-
-public:
-  explicit ImageLogicFilter(NamedInputs inputs,
-                            Arguments   args,
-                            FilterType  type);
-  virtual ~ImageLogicFilter();
-
-
-protected:
-  virtual bool ignoreCurrentOutputs() const
-  { return false; }
-
-  virtual bool needUpdate(FilterOutputId oId) const;
-
-  virtual void run();
-
-  virtual void run(FilterOutputId oId);
-
-protected:
-  void addition();
-  void subtraction();
-
-private:
-  Parameters   m_param;
-};
 
 } // namespace EspINA
 
-
-#endif // IMAGELOGICFILTER_H
+#endif // ESPINA_IMAGE_LOGIC_FILTER_H

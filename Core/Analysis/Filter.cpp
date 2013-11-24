@@ -115,7 +115,7 @@ bool Filter::update(Output::Id id)
    if (invalidateRegions || outputNeedsUpdate)
    {
      // Invalidate previous edited regions
-     if (invalidateRegions && id < m_outputs.size())
+     if (invalidateRegions && id < static_cast<unsigned int>(m_outputs.size()))
      {
        m_outputs[id]->clearEditedRegions();
      }
@@ -129,7 +129,7 @@ bool Filter::update(Output::Id id)
 
        execute(id);
 
-       if (id < m_outputs.size())
+       if (id < static_cast<unsigned int>(m_outputs.size()))
        {
          //m_outputs[id]->restoreEditedRegions(m_cacheDir, cacheOutputId(oId));
        }

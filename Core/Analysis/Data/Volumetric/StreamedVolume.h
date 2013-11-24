@@ -71,7 +71,7 @@ namespace EspINA {
 
     virtual double memoryUsage() const;
 
-    virtual Bounds bounds() const;
+    virtual const Bounds bounds() const;
 
     virtual void setOrigin(const NmVector3& origin);
 

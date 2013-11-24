@@ -26,7 +26,6 @@ ActionSelectorWidget::ActionSelectorWidget(QWidget* parent)
   m_selectedAction = nullptr;
   setCheckable(true);
   setAutoRaise(true);
-  setMenu(m_actions);
   connect(this, SIGNAL(triggered(QAction*)), this, SLOT(changeAction(QAction*)));
   connect(this, SIGNAL(toggled(bool)), this, SLOT(triggerAction(bool)));
 }
@@ -38,6 +37,14 @@ void ActionSelectorWidget::addAction(QAction* action)
     m_actions->addAction(action);
     changeAction(action);
   }
+
+  if (m_actions->actions().size() != 1)
+  {
+    setMenu(m_actions);
+    this->setToolTip(QString());
+  }
+  else
+    this->setToolTip(action->text());
 }
 
 void ActionSelectorWidget::cancelAction()

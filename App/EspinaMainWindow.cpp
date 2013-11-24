@@ -20,6 +20,7 @@
 #include "Menus/ColorEngineMenu.h"
 #include "Settings/GeneralSettings.h"
 #include "Dialogs/AboutDialog.h"
+#include "ToolGroups/Editor/EditionTools.h"
 #include "ToolGroups/Segmentation/SegmentationTools.h"
 #include "ToolGroups/Zoom/ZoomTools.h"
 #include "Docks/ChannelExplorer/ChannelExplorer.h"
@@ -36,7 +37,6 @@
 #include <GUI/Model/Utils/ModelAdapterUtils.h>
 #include <GUI/Representations/BasicRepresentationFactory.h>
 #include <GUI/Widgets/TaskProgress.h>
-
 
 // EspINA
 
@@ -263,17 +263,17 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 //   m_mainToolBar = new MainToolBar(m_model, m_undoStack, m_viewManager);
 //   registerToolBar(m_mainToolBar);
 
-  ToolGroupPtr defaultActiveTool = new ZoomTools(m_viewManager, this);
+  auto defaultActiveTool = new ZoomTools(m_viewManager, this);
   registerToolGroup(defaultActiveTool);
 // 
 //   VolumeOfInterest *voiToolBar = new VolumeOfInterest(m_model, m_viewManager);
 //   registerToolBar(voiToolBar);
 // 
-  ToolGroupPtr segmentationTools = new SegmentationTools(m_model, m_factory, m_viewManager, m_undoStack, this);
+  auto segmentationTools = new SegmentationTools(m_model, m_factory, m_viewManager, m_undoStack, this);
   registerToolGroup(segmentationTools);
-// 
-//   EditorToolBar *editorToolBar = new EditorToolBar(m_model, m_undoStack, m_viewManager);
-//   registerToolBar(editorToolBar);
+
+  auto editionTools = new EditionTools(m_model, m_factory, m_viewManager, m_undoStack, this);
+  registerToolGroup(editionTools);
 // 
 //   CompositionToolBar *compositionBar = new CompositionToolBar(m_model, m_undoStack, m_viewManager);
 //   registerToolBar(compositionBar);

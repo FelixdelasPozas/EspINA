@@ -49,15 +49,15 @@ namespace EspINA
   class RenderView;
   class CrosshairRenderer;
 
-  using ChannelVolumeSPtr = std::shared_ptr<VolumetricData<itkVolumeType>>;
+  using VolumeSPtr = std::shared_ptr<VolumetricData<itkVolumeType>>;
 
   class EspinaGUI_EXPORT CrosshairRepresentation
   :public Representation
   {
     Q_OBJECT
     public:
-      explicit CrosshairRepresentation(ChannelVolumeSPtr data,
-                                       RenderView       *view);
+      explicit CrosshairRepresentation(VolumeSPtr data,
+                                       RenderView *view);
       virtual ~CrosshairRepresentation() {};
 
       virtual void setBrightness(double value);
@@ -105,7 +105,7 @@ namespace EspINA
     private:
       void setView(RenderView *view) { m_view = view; };
 
-      ChannelVolumeSPtr                   m_data;
+      VolumeSPtr                   m_data;
 
       using ExporterType = itk::ImageToVTKImageFilter<itkVolumeType>;
 

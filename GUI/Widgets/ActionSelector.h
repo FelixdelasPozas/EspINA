@@ -45,10 +45,13 @@ public:
   bool isChecked();
   void setChecked(bool value);
   void setIcon(const QIcon &);
+  void setEnabled(bool);
+  bool isEnabled() const;
 
 protected slots:
   void actionTriggered(QAction *action);
   void onActionCanceled();
+  void destroySignalEmmited();
 
 signals:
   void cancelAction();
@@ -59,6 +62,7 @@ private:
   QList<QAction *>      m_actions;
   int                   m_defaultAction;
   ActionSelectorWidget *m_button;
+  bool                  m_enabled;
 };
 
 #endif // ESPINA_ACTION_SELECTOR_H

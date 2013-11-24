@@ -231,24 +231,21 @@ const QString SPLIT_TOOLTIP      = QObject::tr("Split segmentation");
 const QString FILL_HOLES_TOOLTIP = QObject::tr("Fill internal holes in selected segmentations");
 
 //----------------------------------------------------------------------------
-EditorToolBar::EditorToolBar(EspinaModel *model,
-                             QUndoStack  *undoStack,
-                             ViewManager *vm,
-                             QWidget* parent)
-: IToolBar(parent)
-, m_model(model)
-, m_undoStack(undoStack)
+EditorToolBar::EditorToolBar(ModelAdapterSPtr model,
+                             ModelFactorySPtr factory,
+                             ViewManagerSPtr  viewManager,
+                             QUndoStack      *undoStack)
+: m_model(model)
+, m_factory(factory)
 , m_viewManager(vm)
+, m_undoStack(undoStack)
+, m_enabled(false)
 , m_drawToolSelector(new ActionSelector(this))
-, m_splitToolSelector(new ActionSelector(this))
-, m_settings(new EditorToolBarSettings())
-, editorSettings(new SettingsPanel(m_settings))
+//, m_splitToolSelector(new ActionSelector(this))
+//, m_settings(new EditorToolBarSettings())
+//, editorSettings(new SettingsPanel(m_settings))
 {
-  setObjectName(tr("EditorToolBar"));
-
-  setWindowTitle(tr("Editor Tool Bar"));
-
-  initFactoryExtension(m_model->factory());
+  m_factory->registerFilterFactory(this);
 
   initDrawTools();
   initSplitTools();
@@ -256,8 +253,6 @@ EditorToolBar::EditorToolBar(EspinaModel *model,
   initCODETools();
   initFillTool();
 
-  connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection, bool)),
-          this, SLOT(updateAvailableOperations()));
   updateAvailableOperations();
 
   m_drawToolSelector->setCheckable(true);
@@ -450,264 +445,264 @@ void EditorToolBar::cancelSplitOperation()
 //----------------------------------------------------------------------------
 void EditorToolBar::mergeSegmentations()
 {
-  m_viewManager->unsetActiveTool();
-
-  SegmentationList input = m_viewManager->selectedSegmentations();
-  if (input.size() > 1)
-  {
-    SegmentationSList createdSegmentations;
-    m_viewManager->clearSelection(true);
-    m_undoStack->beginMacro("Merge Segmentations");
-    m_undoStack->push(
-      new ImageLogicCommand(input,
-                            ImageLogicFilter::ADDITION,
-                            m_viewManager->activeTaxonomy(),
-                            m_model,
-                            createdSegmentations));
-    m_model->emitSegmentationAdded(createdSegmentations);
-    m_undoStack->endMacro();
-  }
+//  m_viewManager->unsetActiveTool();
+//
+//  SegmentationList input = m_viewManager->selectedSegmentations();
+//  if (input.size() > 1)
+//  {
+//    SegmentationSList createdSegmentations;
+//    m_viewManager->clearSelection(true);
+//    m_undoStack->beginMacro("Merge Segmentations");
+//    m_undoStack->push(
+//      new ImageLogicCommand(input,
+//                            ImageLogicFilter::ADDITION,
+//                            m_viewManager->activeTaxonomy(),
+//                            m_model,
+//                            createdSegmentations));
+//    m_model->emitSegmentationAdded(createdSegmentations);
+//    m_undoStack->endMacro();
+//  }
 }
 
 //----------------------------------------------------------------------------
 void EditorToolBar::subtractSegmentations()
 {
-  m_viewManager->unsetActiveTool();
-
-  SegmentationList input = m_viewManager->selectedSegmentations();
-  if (input.size() > 1)
-  {
-    SegmentationSList createdSegmentations;
-    m_viewManager->clearSelection(true);
-    m_undoStack->beginMacro("Subtract Segmentations");
-    m_undoStack->push(new ImageLogicCommand(input,
-                                            ImageLogicFilter::SUBTRACTION,
-                                            m_viewManager->activeTaxonomy(),
-                                            m_model,
-                                            createdSegmentations));
-    m_model->emitSegmentationAdded(createdSegmentations);
-    m_undoStack->endMacro();
-  }
+//  m_viewManager->unsetActiveTool();
+//
+//  SegmentationList input = m_viewManager->selectedSegmentations();
+//  if (input.size() > 1)
+//  {
+//    SegmentationSList createdSegmentations;
+//    m_viewManager->clearSelection(true);
+//    m_undoStack->beginMacro("Subtract Segmentations");
+//    m_undoStack->push(new ImageLogicCommand(input,
+//                                            ImageLogicFilter::SUBTRACTION,
+//                                            m_viewManager->activeTaxonomy(),
+//                                            m_model,
+//                                            createdSegmentations));
+//    m_model->emitSegmentationAdded(createdSegmentations);
+//    m_undoStack->endMacro();
+//  }
 }
 
 //----------------------------------------------------------------------------
 void EditorToolBar::closeSegmentations()
 {
-  m_viewManager->unsetActiveTool();
-
-  SegmentationList input = m_viewManager->selectedSegmentations();
-  if (input.size() > 0)
-  {
-    CODECommand *closeCommand = new CODECommand(input, CODECommand::CLOSE, m_settings->closeRadius(), m_model, m_viewManager);
-    if (closeCommand->getRemovedSegmentations().size() > 0)
-    {
-      QMessageBox info;
-      info.setWindowTitle(CLOSING_TOOLTIP);
-      info.setIcon(QMessageBox::Warning);
-      QString message(tr("The following segmentations will be deleted by the CLOSE operation:\n"));
-      foreach(SegmentationPtr seg, closeCommand->getRemovedSegmentations())
-        message += QString("  - ") + seg->data().toString() + QString("\n");
-      message += tr("\nDo you want to continue with the operation?");
-      info.setText(message);
-      info.setStandardButtons(QMessageBox::Yes|QMessageBox::No);
-      if (info.exec() == QMessageBox::No)
-      {
-        delete closeCommand;
-        return;
-      }
-    }
-
-    m_undoStack->beginMacro(tr("Close Segmentation"));
-    m_undoStack->push(closeCommand);
-    m_undoStack->endMacro();
-  }
+//  m_viewManager->unsetActiveTool();
+//
+//  SegmentationList input = m_viewManager->selectedSegmentations();
+//  if (input.size() > 0)
+//  {
+//    CODECommand *closeCommand = new CODECommand(input, CODECommand::CLOSE, m_settings->closeRadius(), m_model, m_viewManager);
+//    if (closeCommand->getRemovedSegmentations().size() > 0)
+//    {
+//      QMessageBox info;
+//      info.setWindowTitle(CLOSING_TOOLTIP);
+//      info.setIcon(QMessageBox::Warning);
+//      QString message(tr("The following segmentations will be deleted by the CLOSE operation:\n"));
+//      foreach(SegmentationPtr seg, closeCommand->getRemovedSegmentations())
+//        message += QString("  - ") + seg->data().toString() + QString("\n");
+//      message += tr("\nDo you want to continue with the operation?");
+//      info.setText(message);
+//      info.setStandardButtons(QMessageBox::Yes|QMessageBox::No);
+//      if (info.exec() == QMessageBox::No)
+//      {
+//        delete closeCommand;
+//        return;
+//      }
+//    }
+//
+//    m_undoStack->beginMacro(tr("Close Segmentation"));
+//    m_undoStack->push(closeCommand);
+//    m_undoStack->endMacro();
+//  }
 }
 
 //----------------------------------------------------------------------------
 void EditorToolBar::openSegmentations()
 {
-  m_viewManager->unsetActiveTool();
-
-  SegmentationList input = m_viewManager->selectedSegmentations();
-  if (input.size() > 0)
-  {
-    CODECommand *openCommand = new CODECommand(input, CODECommand::OPEN, m_settings->openRadius(), m_model, m_viewManager);
-    if (openCommand->getRemovedSegmentations().size() > 0)
-    {
-      QMessageBox info;
-      info.setWindowTitle("Open Segmentations");
-      info.setIcon(QMessageBox::Warning);
-      QString message(tr("The following segmentations will be deleted by the OPEN operation:\n"));
-      foreach(SegmentationPtr seg, openCommand->getRemovedSegmentations())
-        message += QString("  - ") + seg->data().toString() + QString("\n");
-      message += tr("\nDo you want to continue with the operation?");
-      info.setText(message);
-      info.setStandardButtons(QMessageBox::Yes|QMessageBox::No);
-      if (info.exec() == QMessageBox::No)
-      {
-        delete openCommand;
-        return;
-      }
-    }
-
-    m_undoStack->beginMacro(tr("Open Segmentation"));
-    m_undoStack->push(openCommand);
-    m_undoStack->endMacro();
-  }
+//  m_viewManager->unsetActiveTool();
+//
+//  SegmentationList input = m_viewManager->selectedSegmentations();
+//  if (input.size() > 0)
+//  {
+//    CODECommand *openCommand = new CODECommand(input, CODECommand::OPEN, m_settings->openRadius(), m_model, m_viewManager);
+//    if (openCommand->getRemovedSegmentations().size() > 0)
+//    {
+//      QMessageBox info;
+//      info.setWindowTitle("Open Segmentations");
+//      info.setIcon(QMessageBox::Warning);
+//      QString message(tr("The following segmentations will be deleted by the OPEN operation:\n"));
+//      foreach(SegmentationPtr seg, openCommand->getRemovedSegmentations())
+//        message += QString("  - ") + seg->data().toString() + QString("\n");
+//      message += tr("\nDo you want to continue with the operation?");
+//      info.setText(message);
+//      info.setStandardButtons(QMessageBox::Yes|QMessageBox::No);
+//      if (info.exec() == QMessageBox::No)
+//      {
+//        delete openCommand;
+//        return;
+//      }
+//    }
+//
+//    m_undoStack->beginMacro(tr("Open Segmentation"));
+//    m_undoStack->push(openCommand);
+//    m_undoStack->endMacro();
+//  }
 }
 
 //----------------------------------------------------------------------------
 void EditorToolBar::dilateSegmentations()
 {
-  m_viewManager->unsetActiveTool();
-
-  SegmentationList input = m_viewManager->selectedSegmentations();
-  if (input.size() > 0)
-  {
-    int r = m_settings->dilateRadius();
-    m_undoStack->beginMacro(tr("Dilate Segmentation"));
-    m_undoStack->push(new CODECommand(input, CODECommand::DILATE, r, m_model, m_viewManager));
-    m_undoStack->endMacro();
-  }
+//  m_viewManager->unsetActiveTool();
+//
+//  SegmentationList input = m_viewManager->selectedSegmentations();
+//  if (input.size() > 0)
+//  {
+//    int r = m_settings->dilateRadius();
+//    m_undoStack->beginMacro(tr("Dilate Segmentation"));
+//    m_undoStack->push(new CODECommand(input, CODECommand::DILATE, r, m_model, m_viewManager));
+//    m_undoStack->endMacro();
+//  }
 }
 
 //----------------------------------------------------------------------------
 void EditorToolBar::erodeSegmentations()
 {
-  m_viewManager->unsetActiveTool();
-
-  SegmentationList input = m_viewManager->selectedSegmentations();
-  if (input.size() > 0)
-  {
-    CODECommand *erodeCommand = new CODECommand(input, CODECommand::ERODE, m_settings->erodeRadius(), m_model, m_viewManager);
-    if(erodeCommand->getRemovedSegmentations().size() > 0)
-    {
-      QMessageBox info;
-      info.setWindowTitle("Erode Segmentations");
-      info.setIcon(QMessageBox::Warning);
-      QString message(tr("The following segmentations will be deleted by the ERODE operation:\n"));
-      foreach(SegmentationPtr seg, erodeCommand->getRemovedSegmentations())
-        message += QString("  - ") + seg->data().toString() + QString("\n");
-      message += tr("\nDo you want to continue with the operation?");
-      info.setText(message);
-      info.setStandardButtons(QMessageBox::Yes|QMessageBox::No);
-      if (info.exec() == QMessageBox::No)
-      {
-        delete erodeCommand;
-        return;
-      }
-    }
-
-    m_undoStack->beginMacro(tr("Erode Segmentation"));
-    m_undoStack->push(erodeCommand);
-    m_undoStack->endMacro();
-  }
+//  m_viewManager->unsetActiveTool();
+//
+//  SegmentationList input = m_viewManager->selectedSegmentations();
+//  if (input.size() > 0)
+//  {
+//    CODECommand *erodeCommand = new CODECommand(input, CODECommand::ERODE, m_settings->erodeRadius(), m_model, m_viewManager);
+//    if(erodeCommand->getRemovedSegmentations().size() > 0)
+//    {
+//      QMessageBox info;
+//      info.setWindowTitle("Erode Segmentations");
+//      info.setIcon(QMessageBox::Warning);
+//      QString message(tr("The following segmentations will be deleted by the ERODE operation:\n"));
+//      foreach(SegmentationPtr seg, erodeCommand->getRemovedSegmentations())
+//        message += QString("  - ") + seg->data().toString() + QString("\n");
+//      message += tr("\nDo you want to continue with the operation?");
+//      info.setText(message);
+//      info.setStandardButtons(QMessageBox::Yes|QMessageBox::No);
+//      if (info.exec() == QMessageBox::No)
+//      {
+//        delete erodeCommand;
+//        return;
+//      }
+//    }
+//
+//    m_undoStack->beginMacro(tr("Erode Segmentation"));
+//    m_undoStack->push(erodeCommand);
+//    m_undoStack->endMacro();
+//  }
 }
 
 //----------------------------------------------------------------------------
 void EditorToolBar::fillHoles()
 {
-  m_viewManager->unsetActiveTool();
-
-  SegmentationList input = m_viewManager->selectedSegmentations();
-  if (input.size() > 0)
-  {
-    m_undoStack->push(new FillHolesCommand(input, m_model, m_viewManager));
-  }
+//  m_viewManager->unsetActiveTool();
+//
+//  SegmentationList input = m_viewManager->selectedSegmentations();
+//  if (input.size() > 0)
+//  {
+//    m_undoStack->push(new FillHolesCommand(input, m_model, m_viewManager));
+//  }
 }
 
 //----------------------------------------------------------------------------
 void EditorToolBar::initDrawTools()
 {
-  // draw with a disc
-  m_discTool = new QAction(QIcon(":/espina/pencil2D.png"),
-                                  tr("Modify segmentation drawing 2D discs"),
-                                  m_drawToolSelector);
-
-  CircularBrushSPtr circularBrush(new CircularBrush(m_model,
-                                                    m_settings,
-                                                    m_undoStack,
-                                                    m_viewManager));
-  connect(circularBrush.get(), SIGNAL(stopDrawing()),
-          this, SLOT(cancelDrawOperation()));
-  connect(circularBrush.get(), SIGNAL(brushModeChanged(Brush::BrushMode)),
-          this, SLOT(changeCircularBrushMode(Brush::BrushMode)));
-
-  m_drawTools[m_discTool] =  circularBrush;
-  m_drawToolSelector->addAction(m_discTool);
-
-  // draw with a sphere
-  m_sphereTool = new QAction(QIcon(":espina/pencil3D.png"),
-                             tr("Modify segmentation drawing 3D spheres"),
-                             m_drawToolSelector);
-
-  SphericalBrushSPtr sphericalBrush(new SphericalBrush(m_model,
-                                                       m_settings,
-                                                       m_undoStack,
-                                                       m_viewManager));
-  connect(sphericalBrush.get(), SIGNAL(stopDrawing()),
-          this, SLOT(cancelDrawOperation()));
-  connect(sphericalBrush.get(), SIGNAL(brushModeChanged(Brush::BrushMode)),
-          this, SLOT(changeSphericalBrushMode(Brush::BrushMode)));
-
-  m_drawTools[m_sphereTool] = sphericalBrush;
-  m_drawToolSelector->addAction(m_sphereTool);
-
-  // draw with contour
-  m_contourTool = new QAction(QIcon(":espina/lasso.png"),
-                              tr("Modify segmentation drawing contour"),
-                              m_drawToolSelector);
-
-  FilledContourSPtr contour(new FilledContour(m_model,
-                                              m_undoStack,
-                                              m_viewManager));
-
-  connect(contour.get(), SIGNAL(changeMode(Brush::BrushMode)),
-          this, SLOT(changeContourMode(Brush::BrushMode)));
-  connect(contour.get(), SIGNAL(stopDrawing()),
-          this, SLOT(cancelDrawOperation()));
-  connect(contour.get(), SIGNAL(startDrawing()),
-          this, SLOT(startContourOperation()));
-
-
-  m_drawTools[m_contourTool] = contour;
-  m_drawToolSelector->addAction(m_contourTool);
-
-  // Add Draw Tool Selector to Editor Tool Bar
-  m_drawToolSelector->setCheckable(true);
-  addAction(m_drawToolSelector);
-  connect(m_drawToolSelector, SIGNAL(triggered(QAction*)),
-          this, SLOT(changeDrawTool(QAction*)));
-  connect(m_drawToolSelector, SIGNAL(actionCanceled()),
-          this, SLOT(cancelDrawOperation()));
-  m_drawToolSelector->setDefaultAction(m_discTool);
+//  // draw with a disc
+//  m_discTool = new QAction(QIcon(":/espina/pencil2D.png"),
+//                                  tr("Modify segmentation drawing 2D discs"),
+//                                  m_drawToolSelector);
+//
+//  CircularBrushSPtr circularBrush(new CircularBrush(m_model,
+//                                                    m_settings,
+//                                                    m_undoStack,
+//                                                    m_viewManager));
+//  connect(circularBrush.get(), SIGNAL(stopDrawing()),
+//          this, SLOT(cancelDrawOperation()));
+//  connect(circularBrush.get(), SIGNAL(brushModeChanged(Brush::BrushMode)),
+//          this, SLOT(changeCircularBrushMode(Brush::BrushMode)));
+//
+//  m_drawTools[m_discTool] =  circularBrush;
+//  m_drawToolSelector->addAction(m_discTool);
+//
+//  // draw with a sphere
+//  m_sphereTool = new QAction(QIcon(":espina/pencil3D.png"),
+//                             tr("Modify segmentation drawing 3D spheres"),
+//                             m_drawToolSelector);
+//
+//  SphericalBrushSPtr sphericalBrush(new SphericalBrush(m_model,
+//                                                       m_settings,
+//                                                       m_undoStack,
+//                                                       m_viewManager));
+//  connect(sphericalBrush.get(), SIGNAL(stopDrawing()),
+//          this, SLOT(cancelDrawOperation()));
+//  connect(sphericalBrush.get(), SIGNAL(brushModeChanged(Brush::BrushMode)),
+//          this, SLOT(changeSphericalBrushMode(Brush::BrushMode)));
+//
+//  m_drawTools[m_sphereTool] = sphericalBrush;
+//  m_drawToolSelector->addAction(m_sphereTool);
+//
+//  // draw with contour
+//  m_contourTool = new QAction(QIcon(":espina/lasso.png"),
+//                              tr("Modify segmentation drawing contour"),
+//                              m_drawToolSelector);
+//
+//  FilledContourSPtr contour(new FilledContour(m_model,
+//                                              m_undoStack,
+//                                              m_viewManager));
+//
+//  connect(contour.get(), SIGNAL(changeMode(Brush::BrushMode)),
+//          this, SLOT(changeContourMode(Brush::BrushMode)));
+//  connect(contour.get(), SIGNAL(stopDrawing()),
+//          this, SLOT(cancelDrawOperation()));
+//  connect(contour.get(), SIGNAL(startDrawing()),
+//          this, SLOT(startContourOperation()));
+//
+//
+//  m_drawTools[m_contourTool] = contour;
+//  m_drawToolSelector->addAction(m_contourTool);
+//
+//  // Add Draw Tool Selector to Editor Tool Bar
+//  m_drawToolSelector->setCheckable(true);
+//  addAction(m_drawToolSelector);
+//  connect(m_drawToolSelector, SIGNAL(triggered(QAction*)),
+//          this, SLOT(changeDrawTool(QAction*)));
+//  connect(m_drawToolSelector, SIGNAL(actionCanceled()),
+//          this, SLOT(cancelDrawOperation()));
+//  m_drawToolSelector->setDefaultAction(m_discTool);
 }
 
 //----------------------------------------------------------------------------
 void EditorToolBar::initSplitTools()
 {
-  QAction *planarSplit = new QAction(QIcon(":/espina/planar_split.svg"),
-                                    SPLIT_TOOLTIP,
-                                    m_splitToolSelector);
-
-  PlanarSplitToolSPtr planarSplitTool(new PlanarSplitTool(m_model,
-                                                          m_undoStack,
-                                                          m_viewManager));
-  connect(planarSplitTool.get(), SIGNAL(splittingStopped()),
-          this, SLOT(cancelSplitOperation()));
-
-  m_splitTools[planarSplit] = planarSplitTool;
-  m_splitToolSelector->addAction(planarSplit);
-
-
-  // Add Split Tool Selector to Editor Tool Bar
-  addAction(m_splitToolSelector);
-  connect(m_splitToolSelector, SIGNAL(triggered(QAction*)),
-          this, SLOT(changeSplitTool(QAction*)));
-  connect(m_splitToolSelector, SIGNAL(actionCanceled()),
-          this, SLOT(cancelSplitOperation()));
-
-  m_splitToolSelector->setDefaultAction(planarSplit);
+//  QAction *planarSplit = new QAction(QIcon(":/espina/planar_split.svg"),
+//                                    SPLIT_TOOLTIP,
+//                                    m_splitToolSelector);
+//
+//  PlanarSplitToolSPtr planarSplitTool(new PlanarSplitTool(m_model,
+//                                                          m_undoStack,
+//                                                          m_viewManager));
+//  connect(planarSplitTool.get(), SIGNAL(splittingStopped()),
+//          this, SLOT(cancelSplitOperation()));
+//
+//  m_splitTools[planarSplit] = planarSplitTool;
+//  m_splitToolSelector->addAction(planarSplit);
+//
+//
+//  // Add Split Tool Selector to Editor Tool Bar
+//  addAction(m_splitToolSelector);
+//  connect(m_splitToolSelector, SIGNAL(triggered(QAction*)),
+//          this, SLOT(changeSplitTool(QAction*)));
+//  connect(m_splitToolSelector, SIGNAL(actionCanceled()),
+//          this, SLOT(cancelSplitOperation()));
+//
+//  m_splitToolSelector->setDefaultAction(planarSplit);
 }
 
 //----------------------------------------------------------------------------

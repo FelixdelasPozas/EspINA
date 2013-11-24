@@ -24,6 +24,7 @@
 //------------------------------------------------------------------------
 ActionSelector::ActionSelector(QObject *parent)
 : QWidgetAction(parent)
+, m_enabled(true)
 {
   m_button = nullptr;
   m_defaultAction = -1;
@@ -35,6 +36,8 @@ QWidget* ActionSelector::createWidget(QWidget* parent)
   m_button = new ActionSelectorWidget(parent);
   m_button->setIconSize(QSize(22,22));
   m_button->setCheckable(true);
+  m_button->setEnabled(m_enabled);
+  connect(m_button, SIGNAL(destroyed(QObject*)), this, SLOT(destroySignalEmmited()));
 
   for(auto action: m_actions)
     m_button->addAction(action);
@@ -123,4 +126,24 @@ void ActionSelector::setIcon(const QIcon &icon)
 {
   if (nullptr != m_button)
     m_button->setIcon(icon);
+}
+
+//------------------------------------------------------------------------
+void ActionSelector::setEnabled(bool value)
+{
+  m_enabled = value;
+  if (nullptr != m_button)
+    m_button->setEnabled(value);
+}
+
+//------------------------------------------------------------------------
+bool ActionSelector::isEnabled() const
+{
+  return m_enabled;
+}
+
+//------------------------------------------------------------------------
+void ActionSelector::destroySignalEmmited()
+{
+  m_button = nullptr;
 }

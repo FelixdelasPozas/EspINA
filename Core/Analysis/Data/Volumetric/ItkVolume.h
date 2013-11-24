@@ -39,9 +39,7 @@ namespace EspINA
   {
   public:
 
-    const typename VolumetricData<T>::TYPE TYPE = "RawVolumeType";
-
-    explicit ItkVolume(itkVolumeType::Pointer volume,
+    explicit ItkVolume(typename T::Pointer volume,
                        OutputSPtr output = nullptr);
 //     explicit RawChannelVolume(const EspinaRegion& region,
 //                            itkVolumeType::SpacingType spacing,
@@ -53,23 +51,23 @@ namespace EspINA
 
     virtual const Bounds bounds() const;
 
-    virtual void setVolume(itkVolumeType::Pointer volume, bool disconnect = false);
+    virtual void setVolume(typename T::Pointer volume, bool disconnect = false);
 
     virtual bool setInternalData(DataSPtr rhs);
 
     double memoryUsage() const;
 
-    void setOrigin(const typename T::PointType origin);
+    void setOrigin(const NmVector3 &origin);
 
-    typename T::PointType origin() const;
+    NmVector3 origin() const;
 
-    void setSpacing(const typename T::SpacingType spacing);
+    void setSpacing(const NmVector3 &spacing);
 
-    typename T::SpacingType spacing() const;
+    NmVector3 spacing() const;
 
     /// Volume's voxel's index at given spatial position
     /// It doesn't check whether the index is valid or not
-    virtual itkVolumeType::IndexType index(Nm x, Nm y, Nm z);
+    virtual typename T::IndexType index(Nm x, Nm y, Nm z);
 
 //    /// Get the vtk-equivalent extent defining the volume
 //    virtual void extent(int out[6]) const;
@@ -87,18 +85,15 @@ namespace EspINA
 //    /// Equivalent to bounds method
 //    virtual EspinaRegion espinaRegion() const;
 
-    /// Largest possible region
-    virtual Bounds bounds() const;
-
 //    virtual itkVolumeIterator iterator();
 //    virtual itkVolumeIterator iterator(const EspinaRegion &region);
 //
 //    virtual itkVolumeConstIterator constIterator();
 //    virtual itkVolumeConstIterator constIterator(const EspinaRegion &region);
 
-    virtual const typename VolumetricData<T>::itkImageSPtr itkImage() const;
+    virtual const typename T::Pointer itkImage() const;
 
-    virtual const typename VolumetricData<T>::itkImageSPtr itkImage(const Bounds& bounds) const;
+    virtual const typename T::Pointer itkImage(const Bounds& bounds) const;
 
 //    virtual itkVolumeType::Pointer toITK();
 //
@@ -110,15 +105,15 @@ namespace EspINA
 //
 //    virtual void markAsModified(bool emitSignal = true);
 
-    void draw(const vtkImplicitFunction* brush,
-              const Bounds&      bounds,
+    void draw(const vtkImplicitFunction  *brush,
+              const Bounds&               bounds,
               const typename T::ValueType value);
 
-    void draw(const typename VolumetricData<T>::itkImageSPtr volume,
-              const Bounds&                                  bounds = Bounds());
+    void draw(const typename T::Pointer volume,
+              const Bounds&             bounds = Bounds());
 
-    void draw(itkVolumeType::IndexType index,
-              itkVolumeType::PixelType value = SEG_VOXEL_VALUE);
+    void draw(typename T::IndexType index,
+              typename T::PixelType value = SEG_VOXEL_VALUE);
 
     void fitToContent() {};
 
@@ -127,20 +122,20 @@ namespace EspINA
     void undo() {};
 
   protected:
-    mutable itkVolumeType::Pointer m_volume;
+    mutable typename T::Pointer m_volume;
 
     // itk to vtk filter
-    typedef itk::ImageToVTKImageFilter<itkVolumeType> itk2vtkFilterType;
-    mutable itk2vtkFilterType::Pointer itk2vtk;
+    typedef itk::ImageToVTKImageFilter<T> itk2vtkFilterType;
+    mutable typename itk2vtkFilterType::Pointer itk2vtk;
 
     mutable unsigned long int m_VTKGenerationTime;
     mutable unsigned long int m_ITKGenerationTime;
   };
 
-  template <class T> using RawVolumePtr  = ItkVolume<T> *;
-  template <class T> using RawVolumeSPtr = std::shared_ptr<ItkVolume<T>>;
+  using RawVolumePtr  = ItkVolume<itkVolumeType> *;
+  using RawVolumeSPtr = std::shared_ptr<ItkVolume<itkVolumeType>>;
 
-  template <class T> RawVolumeSPtr<T> EspinaCore_EXPORT rawVolume(OutputSPtr output);
+  RawVolumeSPtr EspinaCore_EXPORT rawVolume(OutputSPtr output);
 
 //  RawChannelVolumeSPtr EspinaCore_EXPORT rawChannelVolume(OutputSPtr output);
 
@@ -298,6 +293,8 @@ namespace EspINA
 //    mutable unsigned long int m_VTKGenerationTime;
 //    mutable unsigned long int m_ITKGenerationTime;
 //  };
+
+#include "ItkVolume.cpp"
 
 } // namespace EspINA
 

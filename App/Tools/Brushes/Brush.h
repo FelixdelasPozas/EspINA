@@ -27,7 +27,7 @@ class QUndoStack;
 
 namespace EspINA
 {
-  class BrushPicker;
+  class BrushSelector;
   class ViewManager;
   class VolumeSnapshotCommand;
   class EditorToolBarSettings;
@@ -36,9 +36,7 @@ namespace EspINA
   : public Tool
   {
     Q_OBJECT
-
     enum DrawMode {CREATE, MODIFY};
-
   public:
     enum BrushMode {BRUSH, ERASER};
 
@@ -48,7 +46,7 @@ namespace EspINA
     class DrawCommand;
     class SnapshotCommand;
 
-    static const Filter::FilterType FREEFORM_SOURCE_TYPE;
+    static const Filter::Type FREEFORM_SOURCE_TYPE;
 
   public:
     explicit Brush(EspinaModel *model,
@@ -91,7 +89,7 @@ namespace EspINA
     bool         m_inUse;
     DrawMode     m_mode;
     bool         m_erasing;
-    BrushPicker *m_brush;
+    BrushSelector *m_brush;
     EditorToolBarSettings *m_settings;
 
     FilterSPtr       m_currentSource;
