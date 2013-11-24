@@ -78,6 +78,8 @@ void Scheduler::addTask(Task* task) {
 
   QMutexLocker lock(&m_mutex);
   m_runningTasks[task->priority()].orderedInsert(task);
+
+  emit taskAdded(task);
 }
 
 //-----------------------------------------------------------------------------
@@ -85,6 +87,8 @@ void Scheduler::removeTask(Task* task)
 {
   QMutexLocker lock(&m_mutex);
   m_runningTasks[task->priority()].removeOne(task);
+
+  emit taskRemoved(task);
 }
 
 //-----------------------------------------------------------------------------
@@ -125,37 +129,37 @@ void Scheduler::scheduleTasks() {
     for (int priority = 4; priority >= 0; --priority) {
 //       std::cout << "Updating Priority " << priority << std::endl;
 
-      foreach(Task *worker, m_runningTasks[priority]) {
+      for(Task *task : m_runningTasks[priority])
+      {
+        bool is_thread_attached = task->m_isThreadAttached;
 
-        bool is_thread_attached = worker->m_isThreadAttached;
-
-        if (num_running_threads < m_maxNumRunningThreads && !(worker->isPaused() || worker->isAborted() || worker->hasFinished() )) {
+        if (num_running_threads < m_maxNumRunningThreads && !(task->isPaused() || task->isAborted() || task->hasFinished() )) {
           if (is_thread_attached) {
-            if (worker->isDispatcherPaused()) {
-              worker->dispatcherResume();
-//               std::cout << "- " << worker->description().toStdString() << " resumed" << std::endl;
+            if (task->isDispatcherPaused()) {
+              task->dispatcherResume();
+              // std::cout << "- " << worker->description().toStdString() << " resumed" << std::endl;
             } else {
-//               std::cout << "- " << worker->description().toStdString() << " already running" << std::endl;
+              // std::cout << "- " << worker->description().toStdString() << " already running" << std::endl;
             }
           } else {
-            worker->start();
-//             std::cout << "- " << worker->description().toStdString() << " started" << std::endl;
+            task->start();
+            // std::cout << "- " << worker->description().toStdString() << " started" << std::endl;
           }
           num_running_threads++;
         } else {
-          if (worker->isPaused()) {
-//             std::cout << "- " << worker->description().toStdString() << " was paused by the user" << std::endl;
-          } else if (worker->isAborted()) {
-//             std::cout << "- " << worker->description().toStdString() << " was aborted" << std::endl;
-            m_runningTasks[worker->priority()].removeOne(worker);
-          } else if (worker->hasFinished()) {
-//              std::cout << "- " << worker->description().toStdString() << " has finished" << std::endl;
-            m_runningTasks[worker->priority()].removeOne(worker);
+          if (task->isPaused()) {
+            // std::cout << "- " << worker->description().toStdString() << " was paused by the user" << std::endl;
+          } else if (task->isAborted() || task->hasFinished()) {
+            // std::cout << "- " << worker->description().toStdString() << " was aborted" << std::endl;
+            // std::cout << "- " << worker->description().toStdString() << " has finished" << std::endl;
+            m_runningTasks[task->priority()].removeOne(task);
+            emit taskRemoved(task);
+
           } else if (is_thread_attached) {
-            worker->dispatcherPause();
-//             std::cout << "- " << worker->description().toStdString() << " was paused by scheduler" << std::endl;
+            task->dispatcherPause();
+            // std::cout << "- " << worker->description().toStdString() << " was paused by scheduler" << std::endl;
           } else {
-//             std::cout << "- " << worker->description().toStdString() << " is ready to start" << std::endl;
+            // std::cout << "- " << worker->description().toStdString() << " is ready to start" << std::endl;
           }
         }
       }

@@ -36,7 +36,6 @@
 #include <Core/Utils/AnalysisUtils.h>
 #include <GUI/Model/Utils/ModelAdapterUtils.h>
 #include <GUI/Representations/BasicRepresentationFactory.h>
-#include <GUI/Widgets/TaskProgress.h>
 
 // EspINA
 
@@ -60,7 +59,7 @@ EspinaMainWindow::DynamicMenuNode::DynamicMenuNode()
 //------------------------------------------------------------------------
 EspinaMainWindow::DynamicMenuNode::~DynamicMenuNode()
 {
-  foreach(DynamicMenuNode *node, submenus)
+  for(DynamicMenuNode *node : submenus)
   {
     delete node;
   }
@@ -83,6 +82,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 , m_settings     (new GeneralSettings())
 // , m_settingsPanel(new GeneralSettingsPanel(m_model, m_settings))
 , m_view{new DefaultView(m_model, m_viewManager, m_undoStack, this)}
+, m_schedulerProgress(new SchedulerProgress(m_scheduler, this))
 , m_busy(false)
 , m_undoStackSavedIndex(0)
 , m_errorHandler(new EspinaErrorHandler(this))
@@ -334,9 +334,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 
   closeCurrentAnalysis();
 
-  auto taskProgress = new TaskProgress(m_scheduler);
-  taskProgress->setMaximumWidth(100);
-  statusBar()->addPermanentWidget(taskProgress);
+  statusBar()->addPermanentWidget(m_schedulerProgress.get());
 }
 
 //------------------------------------------------------------------------

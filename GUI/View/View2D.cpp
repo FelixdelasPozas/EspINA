@@ -918,6 +918,9 @@ bool View2D::eventFilter(QObject* caller, QEvent* e)
     if (m_selector)
     {
       m_view->setCursor(m_selector->cursor());
+    } else
+    {
+      m_view->setCursor(Qt::ArrowCursor);
     }
     e->accept();}
    else if (QEvent::Leave == e->type())
@@ -967,8 +970,11 @@ bool View2D::eventFilter(QObject* caller, QEvent* e)
     || QEvent::KeyPress           == e->type()
     || QEvent::KeyRelease         == e->type())
   {
-    m_view->setCursor(Qt::ArrowCursor);
-    if (!m_inThumbnail && m_selector)
+    if (m_inThumbnail)
+    {
+      m_view->setCursor(Qt::ArrowCursor);
+    }
+    else if (m_selector)
     {
       m_view->setCursor(m_selector->cursor());
     }

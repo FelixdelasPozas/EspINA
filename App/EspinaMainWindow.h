@@ -32,6 +32,7 @@
 #include <Support/DockWidget.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/ModelFactory.h>
+#include <GUI/Widgets/SchedulerProgress.h>
 #include <Core/IO/ErrorHandler.h>
 #include <Core/Factory/FilterFactory.h>
 
@@ -180,8 +181,9 @@ class MainToolBar;
 
  //   ISettingsPanelPrototype m_settingsPanel;
 
-    MainToolBar   *m_mainToolBar;
-    DefaultViewSPtr m_view;
+    MainToolBar     *m_mainToolBar;
+    DefaultViewSPtr  m_view;
+    SchedulerProgressSPtr m_schedulerProgress;
 
     RecentDocuments m_recentDocuments1;
     RecentDocuments m_recentDocuments2; // fixes duplicated actions warning in some systems

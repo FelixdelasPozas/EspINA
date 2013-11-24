@@ -38,6 +38,7 @@ qt4_wrap_cpp(GUI_MOC
   Widgets/NoteEditor.h
   Widgets/QComboTreeView.h
   Widgets/TagSelector.h
+  Widgets/SchedulerProgress.h
   Widgets/TaskProgress.h
   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
   )
@@ -48,6 +49,8 @@ qt4_wrap_ui (GUI_UI
   Representations/ContourRepresentationSettings.ui
   Widgets/NoteEditor.ui
   Widgets/TagSelector.ui
+  Widgets/SchedulerProgress.ui
+  Widgets/TaskProgress.ui
   )
 
 set (GUI_SOURCES
@@ -111,7 +114,8 @@ set (GUI_SOURCES
   Widgets/NoteEditor.cpp 
   Widgets/QComboTreeView.cpp
   Widgets/TagSelector.cpp 
-  Widgets/TaskProgress.cpp 
+  Widgets/SchedulerProgress.cpp
+  Widgets/TaskProgress.cpp
   )
 
 set(GUI_EXTERNAL_LIBS

@@ -49,21 +49,25 @@ namespace EspINA {
     virtual ~Scheduler();
 
     void addTask(Task* task);
-    
+
     void removeTask(Task* task);
 
     void abortExecutingTasks();
-    
+
     void changePriority(Task* task, int prevPriority);
 
   public slots:
     void scheduleTasks();
 
+  signals:
+    void taskAdded(Task *);
+    void taskRemoved(Task *);
+
   private:
     int m_period;
 
     TaskQueue m_runningTasks[5];
-    
+
     Task::Id m_lastId;
 
     int    m_maxNumRunningThreads;
