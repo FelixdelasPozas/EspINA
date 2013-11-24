@@ -125,6 +125,12 @@ namespace EspINA
   }
 
   //-------------------------------------------------------------------------------------
+  template<typename T>
+  BinaryMask<T>::~BinaryMask()
+  {
+    if (m_image) delete[] m_image;
+  }
+  //-------------------------------------------------------------------------------------
   template<typename T> void BinaryMask<T>::setPixel(const IndexType& index) throw(Out_Of_Bounds_Exception)
   {
     Nm point[3] = { static_cast<Nm>(index.x*m_spacing[0]),

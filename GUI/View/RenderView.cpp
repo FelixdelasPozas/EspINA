@@ -407,13 +407,19 @@ void RenderView::updateRepresentations(ChannelAdapterList list)
     ChannelAdapterList updateChannels;
 
     if (list.empty())
+    {
       updateChannels = m_channelStates.keys();
+    }
     else
+    {
       updateChannels = list;
+    }
 
     bool updated = false;
-    foreach(ChannelAdapterPtr channel, updateChannels)
+    for(ChannelAdapterPtr channel : updateChannels)
+    {
       updated |= updateRepresentation(channel, false);
+    }
 
     if (updated)
       updateView();
@@ -423,8 +429,7 @@ void RenderView::updateRepresentations(ChannelAdapterList list)
 //-----------------------------------------------------------------------------
 bool RenderView::updateRepresentation(SegmentationAdapterPtr seg, bool render)
 {
-  if (!isVisible())
-    return false;
+  if (!isVisible()) return false;
 
   if (!m_segmentationStates.contains(seg))
   {
@@ -500,7 +505,6 @@ bool RenderView::updateRepresentation(SegmentationAdapterPtr seg, bool render)
     bool crosshairChanged = representation->crosshairDependent() && representation->crosshairPoint() != crosshairPoint();
     if (hasChanged || crosshairChanged)
     {
-      if (crosshairChanged)
       if (colorChanged)      representation->setColor(m_colorEngine->color(seg));
       if (highlightChanged)  representation->setHighlighted(state.highlited);
       if (visibilityChanged) representation->setVisible(state.visible);
@@ -531,11 +535,15 @@ void RenderView::updateRepresentations(SegmentationAdapterList list)
       updateSegmentations = list;
 
     bool updated = false;
-    foreach(SegmentationAdapterPtr seg, updateSegmentations)
+    for(SegmentationAdapterPtr seg : updateSegmentations)
+    {
       updated |= updateRepresentation(seg, false);
+    }
 
     if (updated)
+    {
       updateView();
+    }
   }
 }
 

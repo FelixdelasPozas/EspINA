@@ -313,7 +313,10 @@ void SegmentationSliceRepresentation::setColor(const QColor &color)
   Representation::setColor(color);
 
   if (m_actor != nullptr)
+  {
     m_mapToColors->SetLookupTable(s_highlighter->lut(m_color, m_highlight));
+    m_mapToColors->Update();
+  }
 
   for (auto clone: m_clones)
     clone->setColor(color);
@@ -388,13 +391,14 @@ void SegmentationSliceRepresentation::initializePipeline()
 
   m_mapToColors = vtkSmartPointer<vtkImageMapToColors>::New();
   m_mapToColors->SetInputData(m_exporter->GetOutput());
-  setColor(m_color);
+  m_mapToColors->SetLookupTable(s_highlighter->lut(m_color));
   m_mapToColors->SetNumberOfThreads(1);
   m_mapToColors->Update();
 
   m_actor->SetInterpolate(false);
   m_actor->GetMapper()->BorderOn();
   m_actor->GetMapper()->SetInputConnection(m_mapToColors->GetOutputPort());
+  m_actor->SetDisplayExtent(m_exporter->GetOutput()->GetExtent());
   m_actor->Update();
 
   // need to reposition the actor so it will always be over the channels actors'
@@ -428,6 +432,8 @@ void SegmentationSliceRepresentation::updateRepresentation()
     m_exporter->SetNumberOfThreads(1);
     m_exporter->SetInput(slice);
     m_exporter->Update();
+    m_mapToColors->SetInputData(m_exporter->GetOutput());
+    //m_mapToColors->SetLookupTable(s_highlighter->lut(m_color));
     m_mapToColors->Update();
     m_actor->SetDisplayExtent(m_exporter->GetOutput()->GetExtent());
     m_actor->Update();

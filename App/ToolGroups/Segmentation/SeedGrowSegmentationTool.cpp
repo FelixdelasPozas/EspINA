@@ -73,6 +73,8 @@ SeedGrowSegmentationTool::SeedGrowSegmentationTool(ModelAdapterSPtr model,
 
   connect(m_selectorSwitch, SIGNAL(triggered(QAction*)),
           this, SLOT(changeSelector(QAction*)));
+  connect(m_selectorSwitch, SIGNAL(actionCanceled()),
+          this, SLOT(unsetSelector()));
 }
 
 //-----------------------------------------------------------------------------
@@ -146,7 +148,16 @@ void SeedGrowSegmentationTool::addVoxelSelector(QAction* action, SelectorSPtr se
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentationTool::changeSelector(QAction* action)
 {
-  m_viewManager->setSelector(m_voxelSelectors[action]);
+  m_currentSelector = m_voxelSelectors[action];
+
+  m_viewManager->setSelector(m_currentSelector);
+}
+
+//-----------------------------------------------------------------------------
+void SeedGrowSegmentationTool::unsetSelector()
+{
+  m_viewManager->unsetSelector(m_currentSelector);
+  m_currentSelector.reset();
 }
 
 //-----------------------------------------------------------------------------
@@ -243,6 +254,9 @@ void SeedGrowSegmentationTool::createSegmentation()
   m_model->add(segmentation);
 
   m_executingTasks.remove(filter);
+
+  m_viewManager->updateSegmentationRepresentations(segmentation.get());
+  m_viewManager->updateViews();
 
 //   m_undoStack->beginMacro(tr("Seed Grow Segmentation"));
 //    m_undoStack->push(new SeedGrowSegmentationCommand(channel,

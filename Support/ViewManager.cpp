@@ -244,6 +244,20 @@ void ViewManager::setSelector(SelectorSPtr selector)
 }
 
 //----------------------------------------------------------------------------
+void ViewManager::unsetSelector(SelectorSPtr selector)
+{
+  if (m_selector == selector)
+  {
+    m_selector.reset();
+
+    for(auto view : m_renderViews)
+    {
+      view->setSelector(m_selector);
+    }
+  }
+}
+
+//----------------------------------------------------------------------------
 void ViewManager::updateViews()
 {
   foreach(RenderView *view, m_renderViews)

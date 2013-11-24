@@ -61,6 +61,8 @@ namespace EspINA {
   private slots:
     void changeSelector(QAction *action);
 
+    void unsetSelector();
+
     void launchTask(Selector::SelectionList selectedItems);
 
     void onTaskProgres(int progress);
@@ -81,6 +83,7 @@ namespace EspINA {
     ApplyROI         *m_applyROI;
 
     QMap<QAction *, SelectorSPtr> m_voxelSelectors;
+    SelectorSPtr m_currentSelector;
 
     QMap<FilterAdapterPtr, FilterAdapterSPtr> m_executingTasks;
   };

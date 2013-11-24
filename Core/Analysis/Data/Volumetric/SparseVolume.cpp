@@ -414,9 +414,9 @@ void SparseVolume<T>::updateBlocksBoundingBox(const Bounds& bounds)
 template<typename T>
 void SparseVolume<T>::compact()
 {
-  m_blocks.clear();
-
   typename T::Pointer image = itkImage();
+
+  m_blocks.clear();
 
   auto region = image->GetLargestPossibleRegion();
 

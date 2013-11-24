@@ -42,8 +42,10 @@ QWidget* ActionSelector::createWidget(QWidget* parent)
   if (m_defaultAction != -1)
     m_button->setButtonAction(m_actions.at(m_defaultAction));
 
-  connect(m_button, SIGNAL(actionTriggered(QAction*)), this, SLOT(actionTriggered(QAction*)));
-  connect(m_button, SIGNAL(actionCanceled()), this, SLOT(onActionCanceled()));
+  connect(m_button, SIGNAL(actionTriggered(QAction*)),
+          this,     SLOT(actionTriggered(QAction*)));
+  connect(m_button, SIGNAL(actionCanceled()),
+          this,     SLOT(onActionCanceled()));
   connect(this, SIGNAL(cancelAction()), m_button, SLOT(cancelAction()));
 
   return m_button;

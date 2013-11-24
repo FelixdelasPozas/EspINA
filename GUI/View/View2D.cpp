@@ -961,17 +961,14 @@ bool View2D::eventFilter(QObject* caller, QEvent* e)
       return true;
   }
 
-  if ( QEvent::MouseMove == e->type()
-    || QEvent::MouseButtonPress == e->type()
+  if ( QEvent::MouseMove          == e->type()
+    || QEvent::MouseButtonPress   == e->type()
     || QEvent::MouseButtonRelease == e->type()
-    || QEvent::KeyPress == e->type()
-    || QEvent::KeyRelease == e->type())
+    || QEvent::KeyPress           == e->type()
+    || QEvent::KeyRelease         == e->type())
   {
-    if (m_inThumbnail)
-    {
-      m_view->setCursor(Qt::ArrowCursor);
-    }
-    else if (m_selector)
+    m_view->setCursor(Qt::ArrowCursor);
+    if (!m_inThumbnail && m_selector)
     {
       m_view->setCursor(m_selector->cursor());
     }

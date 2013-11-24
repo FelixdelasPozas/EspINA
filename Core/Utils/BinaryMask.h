@@ -72,7 +72,7 @@ namespace EspINA
        *  Sets background value to suggested values. Foreground resorts to default value.
        */
       explicit BinaryMask(const typename itkImageType::Pointer image, const T &backgroundValue = SEG_BG_VALUE);
-      virtual ~BinaryMask() {};
+      virtual ~BinaryMask();
 
       /** \brief Returns mask bounds.
        */

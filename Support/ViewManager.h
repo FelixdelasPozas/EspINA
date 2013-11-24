@@ -128,6 +128,8 @@ namespace EspINA
 //     { return m_toolGroup; }
     void setSelector(SelectorSPtr selector);
 
+    void unsetSelector(SelectorSPtr selector);
+
     void setCurrentROI(ROI roi)
     { m_roi = roi; }
 
