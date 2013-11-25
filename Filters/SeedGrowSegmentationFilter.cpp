@@ -215,15 +215,16 @@ void SeedGrowSegmentationFilter::execute(Output::Id id)
   itkVolumeType::IndexType seedIndex     = seedVoxel->GetLargestPossibleRegion().GetIndex();
   itkVolumeType::ValueType seedIntensity = seedVoxel->GetPixel(seedIndex);
 
-  m_connectedFilter = ConnectedFilterType::New();
-  m_connectedFilter->SetInput(input->itkImage());
-  m_connectedFilter->SetReplaceValue(SEG_VOXEL_VALUE);
-  m_connectedFilter->SetLower(std::max(seedIntensity - m_lowerTh, 0));
-  m_connectedFilter->SetUpper(std::min(seedIntensity + m_upperTh, 255));
-  m_connectedFilter->AddSeed(seedIndex);
-  m_connectedFilter->SetNumberOfThreads(1);
-  m_connectedFilter->ReleaseDataFlagOn();
-  m_connectedFilter->Update();
+  auto connectedFilter = ConnectedFilterType::New();
+
+  connectedFilter->SetInput(input->itkImage());
+  connectedFilter->SetReplaceValue(SEG_VOXEL_VALUE);
+  connectedFilter->SetLower(std::max(seedIntensity - m_lowerTh, 0));
+  connectedFilter->SetUpper(std::min(seedIntensity + m_upperTh, 255));
+  connectedFilter->AddSeed(seedIndex);
+  connectedFilter->SetNumberOfThreads(1);
+  connectedFilter->ReleaseDataFlagOn();
+  connectedFilter->Update();
 
   emit progress(75);
 
@@ -259,7 +260,7 @@ void SeedGrowSegmentationFilter::execute(Output::Id id)
     m_outputs << OutputSPtr(new Output(this, 0));
   }
 
-  itkVolumeType::Pointer output = m_connectedFilter->GetOutput();
+  itkVolumeType::Pointer output = connectedFilter->GetOutput();
 
   Bounds bounds = minimalBounds(output);
 
@@ -301,8 +302,30 @@ Bounds SeedGrowSegmentationFilter::minimalBounds(itkVolumeType::Pointer image) c
 {
   Bounds bounds;
 
-  bounds = equivalentBounds<itkVolumeType>(image, image->GetLargestPossibleRegion());
+  itk::ImageRegionConstIterator<itkVolumeType> it(image, image->GetLargestPossibleRegion());
+  auto spacing = image->GetSpacing();
 
+  it.GoToBegin();
+  while (!it.IsAtEnd())
+  {
+    if (it.Get())
+    {
+      auto index   = it.GetIndex();
+      Bounds voxelBounds;
+      for (int i = 0; i < 3; ++i)
+      {
+        voxelBounds[2*i]   = (index[i] * spacing[i]) - spacing[i]/2;
+        voxelBounds[2*i+1] = ((index[i]+1) * spacing[i]) - spacing[i]/2;
+      }
+
+      if (!bounds.areValid())
+        bounds = voxelBounds;
+      else
+        bounds = boundingBox(bounds, voxelBounds);
+    }
+    ++it;
+  }
+  
   return bounds;
 }
 

@@ -27,7 +27,7 @@ template<typename T>
 typename T::RegionType equivalentRegion(const T* image, const Bounds& bounds)
 {
   typename T::SpacingType s = image->GetSpacing();
-  
+
   Bounds correctedBounds{ bounds[0] + (s[0]/2), bounds[1] + (s[0]/2),
                           bounds[2] + (s[1]/2), bounds[3] + (s[1]/2),
                           bounds[4] + (s[2]/2), bounds[5] + (s[2]/2) };
@@ -40,7 +40,8 @@ typename T::RegionType equivalentRegion(const T* image, const Bounds& bounds)
 
     p0[i] = correctedBounds[2*i];
     p1[i] = correctedBounds[2*i+1];
-    if (!correctedBounds.areUpperIncluded(dir)) p1[i] = std::max(p0[i], p1[i] - s[i]);
+    if (correctedBounds.areLowerIncluded(dir)) p0[i] = std::min(correctedBounds[2*i+1], p0[i] + s[i]/2.0);
+    if (!correctedBounds.areUpperIncluded(dir)) p1[i] = std::max(correctedBounds[2*i], p1[i] - s[i]/2.0);
 
     bool correctedBoundsAreEqual = abs(correctedBounds[2*i] - correctedBounds[2*i+1]) < std::numeric_limits<double>::epsilon();
 

@@ -142,10 +142,11 @@ namespace EspINA
       PixelType     m_backgroundValue;
       PixelType     m_foregroundValue;
       int          *m_image;
-      int           m_integerSize;
+      unsigned int  m_integerSize;
       NmVector3     m_spacing;
       unsigned long m_size[3];
       IndexType     m_origin;
+      unsigned long long m_bufferSize;
 
     public:
       //- ITERATOR CLASS --------------------------------------------------------------------

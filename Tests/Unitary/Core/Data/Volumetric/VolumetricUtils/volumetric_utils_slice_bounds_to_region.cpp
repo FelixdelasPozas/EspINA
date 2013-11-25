@@ -50,6 +50,7 @@ bool Test_Create_Region_From_Slice_Bounds(int w, int h, int d, bool passIfEquiva
 
     dim[i] = 0;
     Bounds bounds{0, dim[0], 0, dim[1], 0, dim[2]};
+    for (int j = 0; j < 6; ++j) bounds[j] -= 0.5;
     if ((equivalentRegion<itkVolumeType>(image, bounds) == expectedRegion) != passIfEquivalent) {
       cerr << "Expected Region:" << endl;
       expectedRegion.Print(cerr);

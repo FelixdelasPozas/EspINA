@@ -62,19 +62,18 @@ namespace EspINA
     itkVolumeType::SpacingType fakeImageSpacing = image->GetSpacing();
     itkVolumeType::RegionType fakeRegion = region;
 
-
     fakeImage->SetRegions(region);
     fakeImage->SetSpacing(fakeImageSpacing);
 
     Bounds bounds = equivalentBounds<itkVolumeType>(fakeImage, fakeRegion);
     m_bounds = bounds;
 
-    unsigned long long bufferSize = region.GetNumberOfPixels() / m_integerSize;
+    m_bufferSize = region.GetNumberOfPixels() / m_integerSize;
     if (0 != (region.GetNumberOfPixels() % m_integerSize))
-      bufferSize++;
+      m_bufferSize++;
 
-    m_image = new int[bufferSize];
-    memset(m_image, 0, bufferSize*sizeof(int));
+    m_image = new int[m_bufferSize];
+    memset(m_image, 0, m_bufferSize*sizeof(int));
 
     itkConstIterator iit(image, image->GetLargestPossibleRegion());
     iterator mit(this);
@@ -117,13 +116,13 @@ namespace EspINA
     m_origin.z = region.GetIndex(2);
 
 
-    long int bufferSize = region.GetNumberOfPixels() / m_integerSize;
+    m_bufferSize = region.GetNumberOfPixels() / m_integerSize;
     int remainder = region.GetNumberOfPixels() % m_integerSize;
     if (remainder != 0)
-      bufferSize++;
+      m_bufferSize++;
 
-    m_image = new int[bufferSize];
-    memset(m_image, 0, bufferSize*sizeof(int));
+    m_image = new int[m_bufferSize];
+    memset(m_image, 0, m_bufferSize*sizeof(int));
   }
 
   //-------------------------------------------------------------------------------------
@@ -154,6 +153,7 @@ namespace EspINA
     unsigned long imageOffset = valuePosition / m_integerSize;
     unsigned long valueOffset = valuePosition % m_integerSize;
 
+    Q_ASSERT(imageOffset < m_bufferSize);
     m_image[imageOffset] = m_image[imageOffset] | (1 << valueOffset);
   }
 
@@ -179,18 +179,17 @@ namespace EspINA
     unsigned long imageOffset = valuePosition / m_integerSize;
     unsigned long valueOffset = valuePosition % m_integerSize;
 
+    Q_ASSERT(imageOffset < m_bufferSize);
     m_image[imageOffset] = m_image[imageOffset] & ~(1 << valueOffset);
   }
 
   //-------------------------------------------------------------------------------------
   template<typename T> typename BinaryMask<T>::PixelType BinaryMask<T>::pixel(const IndexType& index) const throw(Out_Of_Bounds_Exception)
   {
-    Nm point[3] = { static_cast<Nm>(index.x*m_spacing[0]),
+    NmVector3 point{static_cast<Nm>(index.x*m_spacing[0]),
                     static_cast<Nm>(index.y*m_spacing[1]),
                     static_cast<Nm>(index.z*m_spacing[2]) };
-    if (point[0] < m_bounds[0] || point[0] > m_bounds[1] ||
-        point[1] < m_bounds[2] || point[1] > m_bounds[3] ||
-        point[2] < m_bounds[4] || point[2] > m_bounds[5])
+    if (!contains(m_bounds, point))
     {
       Q_ASSERT(false);
       throw Out_Of_Bounds_Exception();
@@ -201,10 +200,11 @@ namespace EspINA
     newIndex.x = index.x - m_origin.x;
     newIndex.y = index.y - m_origin.y;
     newIndex.z = index.z - m_origin.z;
-    unsigned long valuePosition = newIndex.x + (newIndex.y * m_size[0]) + (newIndex.z * m_size[0]*m_size[1]);
-    unsigned long imageOffset = valuePosition / m_integerSize;
-    unsigned long valueOffset = valuePosition % m_integerSize;
+    unsigned long long valuePosition = newIndex.x + (newIndex.y * m_size[0]) + (newIndex.z * m_size[0]*m_size[1]);
+    unsigned long long imageOffset = valuePosition / m_integerSize;
+    unsigned long long valueOffset = valuePosition % m_integerSize;
 
+    Q_ASSERT(imageOffset < m_bufferSize);
     bool set = ((m_image[imageOffset] & (1 << valueOffset)) == (1 << valueOffset));
     if (set)
       return m_foregroundValue;

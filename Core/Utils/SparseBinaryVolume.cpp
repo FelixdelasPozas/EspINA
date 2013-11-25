@@ -358,7 +358,6 @@ namespace EspINA
     Bounds bounds;
     BinaryMask<unsigned char>::IndexType index;
 
-
     for (unsigned int i = 0; i < m_blocks.size(); ++i)
     {
       if (m_blocks[i]->type() == BlockType::Del)
@@ -373,7 +372,7 @@ namespace EspINA
         {
           Bounds voxelBounds{ index.x * m_spacing[0], index.x * m_spacing[0],
                               index.y * m_spacing[1], index.y * m_spacing[1],
-                              index.z * m_spacing[2],index.z * m_spacing[2]};
+                              index.z * m_spacing[2], index.z * m_spacing[2]};
           if (!bounds.areValid())
             bounds = voxelBounds;
           else

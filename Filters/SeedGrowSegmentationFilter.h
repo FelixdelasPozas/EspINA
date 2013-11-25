@@ -110,7 +110,6 @@ namespace EspINA
     int       m_radius,  m_prevRadius;
     bool      m_usesROI;
 
-    ConnectedFilterType::Pointer m_connectedFilter;
     ExtractFilterType::Pointer   m_extractFilter;
     ClosingFilterType::Pointer   m_closingFilter;
   };

@@ -366,7 +366,7 @@ void SegmentationSliceRepresentation::initializePipeline()
   if (m_planeIndex == -1)
     return;
 
-  m_reslicePoint = m_crosshair[m_planeIndex];
+  auto reslicePoint = m_crosshair[m_planeIndex];
 
   View2D* view = reinterpret_cast<View2D *>(m_view);
 
@@ -375,10 +375,15 @@ void SegmentationSliceRepresentation::initializePipeline()
   imageBounds.setLowerInclusion(true);
   imageBounds.setUpperInclusion(toAxis(m_planeIndex), true);
 
-  imageBounds[2*m_planeIndex]   = m_reslicePoint;
-  imageBounds[2*m_planeIndex+1] = m_reslicePoint;
+  imageBounds[2*m_planeIndex]   = reslicePoint;
+  imageBounds[2*m_planeIndex+1] = reslicePoint;
 
-  itkVolumeType::Pointer slice = m_data->itkImage(imageBounds);
+  itkVolumeType::Pointer slice = itkVolumeType::New();
+  itkVolumeType::RegionType region;
+  slice->SetRegions(region);
+  slice->Allocate();
+
+ // itkVolumeType::Pointer slice = ;//m_data->itkImage(imageBounds);
 
   m_exporter = ExporterType::New();
   m_exporter->ReleaseDataFlagOn();
@@ -413,11 +418,13 @@ void SegmentationSliceRepresentation::updateRepresentation()
 {
   setCrosshairPoint(m_view->crosshairPoint());
 
-  if (m_actor != nullptr && (m_crosshair[m_planeIndex] != m_reslicePoint))
+  Bounds imageBounds = m_data->bounds();
+
+  bool valid = imageBounds[2*m_planeIndex] <= m_crosshair[m_planeIndex] && m_crosshair[m_planeIndex] <= imageBounds[2*m_planeIndex+1];
+
+  if (m_actor != nullptr && (m_crosshair[m_planeIndex] != m_reslicePoint) && valid)
   {
     m_reslicePoint = m_crosshair[m_planeIndex];
-
-    Bounds imageBounds = m_data->bounds();
 
     imageBounds.setLowerInclusion(true);
     imageBounds.setUpperInclusion(toAxis(m_planeIndex), true);
@@ -438,6 +445,8 @@ void SegmentationSliceRepresentation::updateRepresentation()
     m_actor->SetDisplayExtent(m_exporter->GetOutput()->GetExtent());
     m_actor->Update();
   }
+
+  m_actor->SetVisibility(valid);
 }
 
 //-----------------------------------------------------------------------------

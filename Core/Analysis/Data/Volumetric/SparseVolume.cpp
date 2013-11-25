@@ -155,7 +155,7 @@ namespace EspINA
       if (numVoxels == 0)
         break;
 
-      Bounds intersectionBounds = intersection(bounds, m_blocks[i]->bounds());
+      Bounds intersectionBounds = intersection(maskBounds, m_blocks[i]->bounds());
 
       BinaryMask<unsigned char>::region_iterator mit(mask, intersectionBounds);
       itk::ImageRegionIterator<T> iit(image, equivalentRegion<T>(image, intersectionBounds));
@@ -247,15 +247,21 @@ namespace EspINA
     if (!intersect(m_bounds, bounds))
       return;
 
-    Bounds intersectionBounds = intersection(m_bounds, bounds);
+    Bounds drawBounds   = intersection(m_bounds, bounds);
+    Bounds volumeBounds = equivalentBounds<itkVolumeType>(volume, volume->GetLargestPossibleRegion());
 
     typename T::Pointer block;
 
-    if (intersectionBounds != m_bounds)
+    if (drawBounds != volumeBounds)
     {
       using ExtractorType = itk::ExtractImageFilter<T,T>;
-      typename ExtractorType::Pointer extractor = ExtractorType::New();
-      typename T::RegionType region = equivalentRegion<T>(volume, intersectionBounds);
+
+      drawBounds = intersection(drawBounds, volumeBounds);
+
+      auto extractor = ExtractorType::New();
+      auto region    = equivalentRegion<T>(volume, drawBounds);
+
+      extractor->SetInput(volume);
       extractor->SetExtractionRegion(region);
       extractor->SetInPlace(false);
       extractor->SetNumberOfThreads(1);
