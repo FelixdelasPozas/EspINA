@@ -219,6 +219,7 @@ void SeedGrowSegmentationTool::launchTask(Selector::SelectionList selectedItems)
     filter->setSeed(seed);
     filter->setUpperThreshold(m_seedThreshold->upperThreshold());
     filter->setLowerThreshold(m_seedThreshold->lowerThreshold());
+    filter->setDescription(tr("Seed Grow Segmentation"));
 
     m_executingTasks[adapter.get()] = adapter;
 
@@ -243,23 +244,26 @@ void SeedGrowSegmentationTool::createSegmentation()
 {
   auto filter = dynamic_cast<FilterAdapterPtr>(sender());
 
-  auto adapter = m_executingTasks[filter];
+  if (!filter->isAborted())
+  {
+    auto adapter = m_executingTasks[filter];
 
-  if (filter->numberOfOutputs() != 1) throw Filter::Undefined_Output_Exception();
+    if (filter->numberOfOutputs() != 1) throw Filter::Undefined_Output_Exception();
 
-  auto segmentation = m_factory->createSegmentation(adapter, 0);
+    auto segmentation = m_factory->createSegmentation(adapter, 0);
 
-  auto category = m_categorySelector->selectedCategory();
-  Q_ASSERT(category);
+    auto category = m_categorySelector->selectedCategory();
+    Q_ASSERT(category);
 
-  segmentation->setCategory(category);
+    segmentation->setCategory(category);
 
-  m_model->add(segmentation);
+    m_model->add(segmentation);
+
+    m_viewManager->updateSegmentationRepresentations(segmentation.get());
+    m_viewManager->updateViews();
+  }
 
   m_executingTasks.remove(filter);
-
-  m_viewManager->updateSegmentationRepresentations(segmentation.get());
-  m_viewManager->updateViews();
 
 //   m_undoStack->beginMacro(tr("Seed Grow Segmentation"));
 //    m_undoStack->push(new SeedGrowSegmentationCommand(channel,

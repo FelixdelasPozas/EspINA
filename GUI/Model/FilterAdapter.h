@@ -50,6 +50,10 @@ namespace EspINA {
     FilterInspectorSPtr filterInspector()
     { return m_inspector; }
 
+    virtual bool isAborted() const = 0;
+
+    virtual bool hasFinished() const = 0;
+
     virtual void submit() = 0;
 
     virtual void update(Output::Id id) = 0;
@@ -82,6 +86,12 @@ namespace EspINA {
   public:
     std::shared_ptr<T> get()
     { return m_filter; }
+
+    virtual bool isAborted() const
+    { return m_filter->isAborted(); }
+
+    virtual bool hasFinished() const
+    { return m_filter->hasFinished(); }
 
     virtual void submit()
     { m_filter->submit(); }

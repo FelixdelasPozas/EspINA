@@ -52,12 +52,12 @@ namespace EspINA {
 
   private slots:
     void updateProgress(int value);
-    void onPlayPause();
+    void onCancel();
 
   private:
     Task *m_task;
   };
-  
+
   using TaskProgressSPtr = std::shared_ptr<TaskProgress>;
 }
 

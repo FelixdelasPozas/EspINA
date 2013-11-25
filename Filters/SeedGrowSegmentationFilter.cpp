@@ -202,6 +202,8 @@ void SeedGrowSegmentationFilter::execute(Output::Id id)
 
   emit progress(25);
 
+  if (!canExecute()) return;
+
   Q_ASSERT(contains(input->bounds(), m_seed));
 
   Bounds seedBounds;
@@ -227,6 +229,7 @@ void SeedGrowSegmentationFilter::execute(Output::Id id)
   connectedFilter->Update();
 
   emit progress(75);
+  if (!canExecute()) return;
 
 //   qDebug() << "Intensity at Seed:" << seedIntensity;
 //   qDebug() << "Lower Intensity:" << std::max(seedIntensity - m_param.lowerThreshold(), 0.0);
@@ -254,6 +257,7 @@ void SeedGrowSegmentationFilter::execute(Output::Id id)
 //   }
 
   emit progress(100);
+  if (!canExecute()) return;
 
   if (m_outputs.isEmpty())
   {

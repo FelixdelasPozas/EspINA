@@ -1,5 +1,7 @@
 <RCC>
   <qresource prefix="/espina">
+    <file>up.png</file>
+    <file>down.png</file>
     <file>new-lasso.png</file>
     <file>new-pencil2D.png</file>
     <file>new-pencil3D.png</file>

@@ -35,14 +35,15 @@ SchedulerProgress::SchedulerProgress(SchedulerSPtr   scheduler,
 : QWidget(parent, f)
 , m_scheduler(scheduler)
 , m_notification{new QWidget(0, Qt::FramelessWindowHint|Qt::WindowStaysOnTopHint)}
+, m_width{350}
 {
   setupUi(this);
 
   setVisible(false);
 
   m_notification->setLayout(new QVBoxLayout(m_notification.get()));
-  m_notification->setMinimumWidth(200);
-  m_notification->setMaximumWidth(200);
+  m_notification->setMinimumWidth(m_width);
+  m_notification->setMaximumWidth(m_width);
 
   connect(m_scheduler.get(), SIGNAL(taskAdded(Task*)),
           this, SLOT(onTaskAdded(Task*)));
@@ -64,6 +65,8 @@ throw (Duplicated_Task_Exception)
 
   connect(task, SIGNAL(progress(int)),
           this, SLOT(updateProgress()));
+
+  updateNotificationWidget();
 }
 
 //------------------------------------------------------------------------
@@ -77,6 +80,8 @@ void SchedulerProgress::onTaskRemoved(Task *task)
     m_tasks[task]->setParent(0); // In case the notification are is open
     m_tasks.remove(task);
 
+    updateNotificationWidget();
+
     updateProgress();
   }
 }
@@ -86,14 +91,13 @@ void SchedulerProgress::showTaskProgress(bool visible)
 {
   if (visible)
   {
-    int xShift = 0;//m_showTasks->width() - m_notification->sizeHint().width();
-    int yShift = -m_notification->sizeHint().height();
-
-    m_notification->move(mapToGlobal(m_showTasks->pos()+QPoint(xShift, yShift)));
     m_notification->show();
+    updateNotificationWidget();
+    m_showTasks->setIcon(QIcon(":/espina/down.png"));
   } else 
   {
     m_notification->hide();
+    m_showTasks->setIcon(QIcon(":/espina/up.png"));
   }
 }
 
@@ -120,3 +124,14 @@ void SchedulerProgress::updateProgress()
   setVisible(0 != total);
 }
 
+
+//------------------------------------------------------------------------
+void SchedulerProgress::updateNotificationWidget()
+{
+  m_notification->adjustSize();
+
+  int xShift = m_showTasks->width() - m_width;
+  int yShift = -m_notification->height();
+
+  m_notification->move(mapToGlobal(m_showTasks->pos()+QPoint(xShift, yShift)));
+}

@@ -47,10 +47,15 @@ namespace EspINA {
     void updateProgress();
 
   private:
+    void updateNotificationWidget();
+
+  private:
     SchedulerSPtr m_scheduler;
 
     QMap<Task *, TaskProgressSPtr> m_tasks;
     std::shared_ptr<QWidget>       m_notification;
+
+    int m_width;
   };
 
   using SchedulerProgressSPtr = std::shared_ptr<SchedulerProgress>;

@@ -52,9 +52,9 @@ namespace EspINA {
     void setId(Id id) { m_id = id;}
 
     Id id() const { return m_id;}
-    
+
     void setDescription(const QString& description) {m_description = description; }
-    
+
     QString description() const {return m_description;}
  
     /** \brief Pause worker execution

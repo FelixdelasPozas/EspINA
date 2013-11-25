@@ -36,9 +36,9 @@ TaskProgress::TaskProgress(Task* task)
 , m_task(task)
 {
   setupUi(this);
-  //m_descriptionLabel->setText(description);
-  connect(m_playButton, SIGNAL(clicked(bool)),
-          this, SLOT(onPlayPause()));
+  m_descriptionLabel->setText(task->description());
+  connect(m_cancelButton, SIGNAL(clicked(bool)),
+          this, SLOT(onCancel()));
   connect(m_task, SIGNAL(progress(int)),
           this, SLOT(updateProgress(int)));
 }
@@ -53,9 +53,7 @@ void TaskProgress::updateProgress(int value)
   m_progressBar->setValue(value);
 }
 
-void TaskProgress::onPlayPause()
+void TaskProgress::onCancel()
 {
-//   m_worker->resume();
-//   playButton->setEnabled(false);
-//   pauseButton->setEnabled(true);
+  m_task->abort();
 }
