@@ -66,7 +66,7 @@ namespace EspINA
     { return false; }
 
   private:
-    QFileInfo m_fileName;
+    QFileInfo       m_fileName;
   };
 
 }// namespace EspINA

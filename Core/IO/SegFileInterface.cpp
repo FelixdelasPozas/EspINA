@@ -32,7 +32,7 @@ using namespace EspINA::IO::SegFile;
 void SegFileInterface::addFileToZip(const QString&    fileName,
                                     const QByteArray& content,
                                     QuaZip&           zip,
-                                    ErrorHandlerPtr   handler)
+                                    ErrorHandlerSPtr  handler)
 {
   QuaZipFile zFile(&zip);
   QuaZipNewInfo zFileInfo = QuaZipNewInfo(fileName, fileName);
@@ -69,9 +69,9 @@ void SegFileInterface::addFileToZip(const QString&    fileName,
 }
 
 //-----------------------------------------------------------------------------
-QByteArray SegFileInterface::readFileFromZip(const QString&  fileName,
-                                             QuaZip&         zip,
-                                             ErrorHandlerPtr handler)
+QByteArray SegFileInterface::readFileFromZip(const QString&   fileName,
+                                             QuaZip&          zip,
+                                             ErrorHandlerSPtr handler)
 {
   if (!zip.setCurrentFile(fileName))
   {
@@ -86,7 +86,7 @@ QByteArray SegFileInterface::readFileFromZip(const QString&  fileName,
 
 //-----------------------------------------------------------------------------
 QByteArray SegFileInterface::readCurrentFileFromZip(QuaZip& zip,
-                                                    ErrorHandlerPtr handler)
+                                                    ErrorHandlerSPtr handler)
 {
   QuaZipFile zFile(&zip);
   if (!zFile.open(QIODevice::ReadOnly))

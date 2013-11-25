@@ -61,9 +61,9 @@ QByteArray formatInfo()
 }
 
 //-----------------------------------------------------------------------------
-AnalysisSPtr SegFile_V5::load(QuaZip&         zip,
-                              CoreFactorySPtr factory,
-                              ErrorHandlerPtr handler)
+AnalysisSPtr SegFile_V5::load(QuaZip&          zip,
+                              CoreFactorySPtr  factory,
+                              ErrorHandlerSPtr handler)
 {
   QDir tmpDir = QDir::tempPath();
   tmpDir.mkpath("espina");
@@ -116,7 +116,7 @@ AnalysisSPtr SegFile_V5::load(QuaZip&         zip,
 }
 
 //-----------------------------------------------------------------------------
-void SegFile_V5::save(AnalysisPtr analysis, QuaZip& zip, ErrorHandlerPtr handler)
+void SegFile_V5::save(AnalysisPtr analysis, QuaZip& zip, ErrorHandlerSPtr handler)
 {
   try {
     addFileToZip(FORMAT_INFO_FILE, formatInfo(), zip, handler);
@@ -220,7 +220,7 @@ SampleSPtr SegFile_V5::createSample(DirectedGraph::Vertex   roVertex,
                                     AnalysisSPtr            analysis,
                                     TemporalStorageSPtr storage,
                                     CoreFactorySPtr         factory,
-                                    ErrorHandlerPtr         handler)
+                                    ErrorHandlerSPtr         handler)
 {
   SampleSPtr sample = factory->createSample();
 
@@ -240,7 +240,7 @@ FilterSPtr SegFile_V5::createFilter(DirectedGraph::Vertex   roVertex,
                                     DirectedGraph::Vertices loadedVertices,
                                     TemporalStorageSPtr storage,
                                     CoreFactorySPtr         factory,
-                                    ErrorHandlerPtr         handler)
+                                    ErrorHandlerSPtr         handler)
 {
   DirectedGraph::Edges inputConections = content->inEdges(roVertex);
 
@@ -263,6 +263,7 @@ FilterSPtr SegFile_V5::createFilter(DirectedGraph::Vertex   roVertex,
   {
     filter = FilterSPtr{new ReadOnlyFilter(inputs, roVertex->name())};
   }
+  filter->setErrorHandler(handler);
   filter->setName(roVertex->name());
   filter->setUuid(roVertex->uuid());
   filter->restoreState(roVertex->state());
@@ -296,9 +297,9 @@ ChannelSPtr SegFile_V5::createChannel(DirectedGraph::Vertex   roVertex,
                                       AnalysisSPtr            analysis,
                                       DirectedGraphSPtr       content,
                                       DirectedGraph::Vertices loadedVertices,
-                                      TemporalStorageSPtr storage,
+                                      TemporalStorageSPtr     storage,
                                       CoreFactorySPtr         factory,
-                                      ErrorHandlerPtr         handler)
+                                      ErrorHandlerSPtr        handler)
 {
   auto output = findOutput(roVertex, content, loadedVertices);
 
@@ -327,9 +328,9 @@ SegmentationSPtr SegFile_V5::createSegmentation(DirectedGraph::Vertex   roVertex
                                                 AnalysisSPtr            analysis,
                                                 DirectedGraphSPtr       content,
                                                 DirectedGraph::Vertices loadedVertices,
-                                                TemporalStorageSPtr storage,
+                                                TemporalStorageSPtr     storage,
                                                 CoreFactorySPtr         factory,
-                                                ErrorHandlerPtr         handler)
+                                                ErrorHandlerSPtr        handler)
 {
   auto output = findOutput(roVertex, content, loadedVertices);
 
@@ -356,11 +357,11 @@ SegmentationSPtr SegFile_V5::createSegmentation(DirectedGraph::Vertex   roVertex
 }
 
 //-----------------------------------------------------------------------------
-void SegFile_V5::createExtensionProvider(DirectedGraph::Vertex   roVertex,
-                                         AnalysisSPtr            analysis,
-                                         TemporalStorageSPtr storage,
-                                         CoreFactorySPtr         factory,
-                                         ErrorHandlerPtr         handler)
+void SegFile_V5::createExtensionProvider(DirectedGraph::Vertex roVertex,
+                                         AnalysisSPtr          analysis,
+                                         TemporalStorageSPtr   storage,
+                                         CoreFactorySPtr       factory,
+                                         ErrorHandlerSPtr      handler)
 {
 //   ExtensionProviderSPtr provider = factory->createExtensionProvider(roVertex->name());
 // 
@@ -368,11 +369,11 @@ void SegFile_V5::createExtensionProvider(DirectedGraph::Vertex   roVertex,
 }
 
 //-----------------------------------------------------------------------------
-void SegFile_V5::loadContent(AnalysisSPtr            analysis,
-                             QuaZip&                 zip,
+void SegFile_V5::loadContent(AnalysisSPtr        analysis,
+                             QuaZip&             zip,
                              TemporalStorageSPtr storage,
-                             CoreFactorySPtr         factory,
-                             ErrorHandlerPtr         handler)
+                             CoreFactorySPtr     factory,
+                             ErrorHandlerSPtr    handler)
 {
   DirectedGraphSPtr content(new DirectedGraph());
 
@@ -426,9 +427,9 @@ void SegFile_V5::loadContent(AnalysisSPtr            analysis,
 }
 
 //-----------------------------------------------------------------------------
-void SegFile_V5::loadRelations(AnalysisSPtr    analysis,
-                               QuaZip&         zip,
-                               ErrorHandlerPtr handler)
+void SegFile_V5::loadRelations(AnalysisSPtr     analysis,
+                               QuaZip&          zip,
+                               ErrorHandlerSPtr handler)
 {
   DirectedGraphSPtr relations(new DirectedGraph());
 

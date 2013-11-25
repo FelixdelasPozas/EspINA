@@ -35,26 +35,26 @@ namespace EspINA
       public:
         virtual ~SegFileInterface(){}
 
-        virtual AnalysisSPtr load(QuaZip&         zip,
-                                  CoreFactorySPtr factory,
-                                  ErrorHandlerPtr handler = nullptr) = 0;
+        virtual AnalysisSPtr load(QuaZip&          zip,
+                                  CoreFactorySPtr  factory,
+                                  ErrorHandlerSPtr handler = ErrorHandlerSPtr()) = 0;
 
         virtual void save(AnalysisPtr     analysis,
                           QuaZip&         zip,
-                          ErrorHandlerPtr handler = nullptr) = 0;
+                          ErrorHandlerSPtr handler = ErrorHandlerSPtr()) = 0;
 
       protected:
         void addFileToZip(const QString&    fileName,
                           const QByteArray& content,
                           QuaZip&           zip,
-                          ErrorHandlerPtr   handler=nullptr);
+                          ErrorHandlerSPtr  handler = ErrorHandlerSPtr());
 
         QByteArray readFileFromZip(const QString&  fileName,
                                    QuaZip&         zip,
-                                   ErrorHandlerPtr handler=nullptr);
+                                   ErrorHandlerSPtr handler = ErrorHandlerSPtr());
 
-        QByteArray readCurrentFileFromZip(QuaZip&         zip,
-                                          ErrorHandlerPtr handler=nullptr);
+        QByteArray readCurrentFileFromZip(QuaZip&          zip,
+                                          ErrorHandlerSPtr handler = ErrorHandlerSPtr());
       };
     }
   }

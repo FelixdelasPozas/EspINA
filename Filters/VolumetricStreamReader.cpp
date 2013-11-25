@@ -23,6 +23,9 @@
 
 #include <QDebug>
 #include <QFileDialog>
+#include <itkImageFileReader.h>
+#include <itkImageFileWriter.h>
+#include <Core/IO/ErrorHandler.h>
 
 using namespace EspINA;
 
@@ -37,7 +40,8 @@ VolumetricStreamReader::VolumetricStreamReader(OutputSList inputs, Type type, Sc
 //----------------------------------------------------------------------------
 void VolumetricStreamReader::restoreState(const State& state)
 {
-  m_fileName = QFileInfo(state.section("", 6).trimmed());
+  QString file = state.split(";")[0];
+  m_fileName = QFileInfo(file.section("", 6).trimmed());
 }
 
 //----------------------------------------------------------------------------
@@ -79,15 +83,46 @@ void VolumetricStreamReader::execute()
 //----------------------------------------------------------------------------
 void VolumetricStreamReader::execute(Output::Id id)
 {
-  //m_fileName = QFileInfo("/media/storage/Stacks/Skeletos/Revisadas_stack_1/218-354 REGISTERED-bc_corrected.tif");
-  if (!m_fileName.exists()) throw File_Not_Found_Exception();
+  if (!m_fileName.exists())
+  {
+    if (handler())
+    {
+      m_fileName = m_handler->fileNotFound(m_fileName);
+    }
+
+    if (!m_fileName.exists())
+    {
+      throw File_Not_Found_Exception();
+    }
+  }
+
+  m_fileName = QFileInfo("/media/storage/Stacks/Skeletos/Revisadas_stack_1/218-354 REGISTERED-bc_corrected.tif");
+
+  QFileInfo mhdFile = m_fileName;
+
+  if (mhdFile.fileName().contains(".tif"))
+  {
+    using VolumeReader = itk::ImageFileReader<itkVolumeType>;
+    using VolumeWriter = itk::ImageFileWriter<itkVolumeType>;
+
+    VolumeReader::Pointer reader = VolumeReader::New();
+    reader->SetFileName(mhdFile.absoluteFilePath().toUtf8().data());
+    reader->Update();
+
+    mhdFile = QFileInfo(storage()->absoluteFilePath(mhdFile.baseName() + ".mhd"));
+
+    VolumeWriter::Pointer writer = VolumeWriter::New();
+    writer->SetFileName(mhdFile.absoluteFilePath().toUtf8().data());
+    writer->SetInput(reader->GetOutput());
+    writer->Write();
+  }
 
   if (m_outputs.isEmpty()) 
   {
     m_outputs << OutputSPtr{new Output(this, 0)};
   }
 
-  DefaultVolumetricDataSPtr volume{new StreamedVolume<itkVolumeType>(m_fileName)};
+  DefaultVolumetricDataSPtr volume{new StreamedVolume<itkVolumeType>(mhdFile)};
 
   m_outputs[0]->setSpacing(volume->spacing());
 

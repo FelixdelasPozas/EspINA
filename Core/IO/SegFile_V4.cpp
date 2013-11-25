@@ -44,9 +44,9 @@ const QString CLASSIFICATION_FILE = "taxonomy.xml";
 const QString FILE_VERSION        = "version"; //backward compatibility
 
 //-----------------------------------------------------------------------------
-AnalysisSPtr SegFile_V4::load(QuaZip&         zip,
-                              CoreFactorySPtr factory,
-                              ErrorHandlerPtr handler)
+AnalysisSPtr SegFile_V4::load(QuaZip&          zip,
+                              CoreFactorySPtr  factory,
+                              ErrorHandlerSPtr handler)
 {
   QDir tmpDir = QDir::tempPath();
   tmpDir.mkpath("espina");
@@ -169,9 +169,9 @@ AnalysisSPtr SegFile_V4::load(QuaZip&         zip,
 }
 
 //-----------------------------------------------------------------------------
-void SegFile_V4::save(AnalysisPtr     analysis,
-                      QuaZip&         zip,
-                      ErrorHandlerPtr handler)
+void SegFile_V4::save(AnalysisPtr      analysis,
+                      QuaZip&          zip,
+                      ErrorHandlerSPtr handler)
 {
   Q_ASSERT(false);
 }
@@ -233,6 +233,7 @@ FilterSPtr SegFile_V4::createFilter(DirectedGraph::Vertex roVertex)
   {
     filter = FilterSPtr{new ReadOnlyFilter(inputs, roVertex->name())};
   }
+  filter->setErrorHandler(m_handler);
   filter->setName(roVertex->name());
   filter->restoreState(roVertex->state());
   filter->setStorage(m_storage);

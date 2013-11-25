@@ -14,6 +14,8 @@
 #include <QFileInfo>
 #include <QString>
 
+#include <memory>
+
 namespace EspINA
 {
   namespace IO 
@@ -44,7 +46,8 @@ namespace EspINA
 
   } // namespace IO
 
-  using ErrorHandlerPtr = IO::ErrorHandler*;
+  using ErrorHandlerPtr  = IO::ErrorHandler*;
+  using ErrorHandlerSPtr = std::shared_ptr<IO::ErrorHandler>;
 } // namespace EspINA
 
 #endif // ESPINA_IO_ERRORHANDLER_H

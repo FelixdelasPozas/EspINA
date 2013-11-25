@@ -105,8 +105,8 @@ void dumpClassificationXML(ClassificationSPtr classification, QXmlStreamWriter& 
 
 
 //-----------------------------------------------------------------------------
-ClassificationSPtr ClassificationXML::load(const QFileInfo&   file,
-                                           ErrorHandlerPtr    handler = nullptr)
+ClassificationSPtr ClassificationXML::load(const QFileInfo& file,
+                                           ErrorHandlerSPtr handler )
 {
   ClassificationSPtr classification{new Classification()};
 
@@ -124,7 +124,7 @@ ClassificationSPtr ClassificationXML::load(const QFileInfo&   file,
 }
 
 //-----------------------------------------------------------------------------
-void ClassificationXML::save(ClassificationSPtr classification, const QFileInfo& file, ErrorHandlerPtr handler)
+void ClassificationXML::save(ClassificationSPtr classification, const QFileInfo& file, ErrorHandlerSPtr handler)
 {
   QFile xmlFile(file.absoluteFilePath());
   if (!xmlFile.open(QIODevice::WriteOnly))
@@ -139,8 +139,7 @@ void ClassificationXML::save(ClassificationSPtr classification, const QFileInfo&
 
 
 //-----------------------------------------------------------------------------
-QByteArray ClassificationXML::dump(const ClassificationSPtr classification,
-                                   ErrorHandlerPtr handler)
+QByteArray ClassificationXML::dump(const ClassificationSPtr classification, ErrorHandlerSPtr handler)
 {
   QByteArray serialization;
   QXmlStreamWriter stream(&serialization);
@@ -153,7 +152,7 @@ QByteArray ClassificationXML::dump(const ClassificationSPtr classification,
 #include <QDebug>
 //-----------------------------------------------------------------------------
 ClassificationSPtr ClassificationXML::parse(const QByteArray& serialization,
-                                            ErrorHandlerPtr handler)
+                                            ErrorHandlerSPtr handler)
 {
   QXmlStreamReader stream(serialization);
 

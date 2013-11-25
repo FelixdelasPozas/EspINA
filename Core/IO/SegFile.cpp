@@ -40,32 +40,11 @@ const QString SEG_FILE_VERSION = "5";
 
 using SegFileLoaderSPtr = std::shared_ptr<SegFileInterface>;
 
-//-----------------------------------------------------------------------------
-AnalysisReader::ExtensionList SegFileReader::supportedFileExtensions() const
-{
-  ExtensionList supportedExtensions;
-
-  Extensions extensions;
-  extensions << "seg";
-
-  supportedExtensions["EspINA Analysis"] = extensions;
-
-  return supportedExtensions;
-}
-
-
-//-----------------------------------------------------------------------------
-AnalysisSPtr SegFileReader::read(const QFileInfo file,
-                                 CoreFactorySPtr factory,
-                                 ErrorHandlerPtr handler)
-{
-  return load(file, factory, handler);
-}
 
 //-----------------------------------------------------------------------------
 AnalysisSPtr SegFile::load(const QFileInfo& file,
                            CoreFactorySPtr  factory,
-                           ErrorHandlerPtr  handler)
+                           ErrorHandlerSPtr handler)
 {
   QuaZip zip(file.filePath());
   if (!zip.open(QuaZip::mdUnzip))
@@ -122,7 +101,7 @@ private:
 
 
 //-----------------------------------------------------------------------------
-void SegFile::save(AnalysisPtr analysis, const QFileInfo& file, ErrorHandlerPtr handler)
+void SegFile::save(AnalysisPtr analysis, const QFileInfo& file, ErrorHandlerSPtr handler)
 {
   if (file.baseName().isEmpty())
   {

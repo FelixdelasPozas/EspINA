@@ -26,6 +26,7 @@
 #include "Core/Analysis/Output.h"
 #include "Core/Analysis/Persistent.h"
 #include "Core/MultiTasking/Task.h"
+#include <Core/IO/ErrorHandler.h>
 
 #include <QDir>
 
@@ -56,6 +57,12 @@ namespace EspINA
     OutputSList inputs() const
     { return m_inputs; }
 
+    void setErrorHandler(ErrorHandlerSPtr handler)
+    { m_handler = handler; }
+
+    ErrorHandlerSPtr handler() const
+    { return m_handler; }
+
     /** \brief Update all filter outputs
      *
      *  If filter inputs are outdated a pull request will be done
@@ -79,10 +86,6 @@ namespace EspINA
      *
      */
     OutputSPtr output(Output::Id id) const throw(Undefined_Output_Exception);
-
-    // TODO 2013-11-17: Move to utils or sth similar
-//     /// Reader to access snapshot data in filter's cache dir
-//     itkVolumeType::Pointer readVolumeFromCache(const QString &file);
 
   protected:
     explicit Filter(OutputSList inputs, Type  type, SchedulerSPtr scheduler);
@@ -141,6 +144,8 @@ namespace EspINA
     Type        m_type;
     OutputSList m_inputs;
     OutputSList m_outputs;
+
+    ErrorHandlerSPtr m_handler;
   };
 } // namespace EspINA
 

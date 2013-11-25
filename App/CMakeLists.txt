@@ -100,6 +100,7 @@ set (ESPINA_SOURCES
   EspinaErrorHandler.cpp 
   EspinaMainWindow.cpp
   IO/ChannelReader.cpp
+  IO/SegFileReader.cpp
   RecentDocuments.cpp
 #   Dialogs/SegmentationInspector/SegmentationInspector.cpp
 #   Dialogs/TabularReport/TabularReport.cpp

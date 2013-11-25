@@ -57,9 +57,9 @@ namespace EspINA
 
       virtual ExtensionList supportedFileExtensions() const = 0;
 
-      virtual AnalysisSPtr read(const QFileInfo file,
-                                CoreFactorySPtr factory,
-                                ErrorHandlerPtr handler = nullptr) = 0;
+      virtual AnalysisSPtr read(const QFileInfo& file,
+                                CoreFactorySPtr  factory,
+                                ErrorHandlerSPtr handler = ErrorHandlerSPtr()) = 0;
     };
   } // namespace IO
 

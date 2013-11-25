@@ -38,9 +38,9 @@ namespace EspINA {
 
     virtual ExtensionList supportedFileExtensions() const;
 
-    virtual AnalysisSPtr read(const QFileInfo file,
-                              CoreFactorySPtr factory,
-                              ErrorHandlerPtr handler = nullptr);
+    virtual AnalysisSPtr read(const QFileInfo& file,
+                              CoreFactorySPtr  factory,
+                              ErrorHandlerSPtr handler = ErrorHandlerSPtr());
   };
 
   using ChannelReaderSPtr = std::shared_ptr<ChannelReader>;

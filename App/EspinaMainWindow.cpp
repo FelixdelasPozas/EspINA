@@ -17,27 +17,29 @@
 */
 
 #include "EspinaMainWindow.h"
-#include "Menus/ColorEngineMenu.h"
-#include "Settings/GeneralSettings.h"
+
+// EspINA
 #include "Dialogs/AboutDialog.h"
-#include "ToolGroups/Editor/EditionTools.h"
-#include "ToolGroups/Segmentation/SegmentationTools.h"
-#include "ToolGroups/Zoom/ZoomTools.h"
 #include "Docks/ChannelExplorer/ChannelExplorer.h"
 #include "Docks/SegmentationExplorer/SegmentationExplorer.h"
 #include "IO/ChannelReader.h"
+#include "IO/SegFileReader.h"
+#include "Menus/ColorEngineMenu.h"
+#include "Settings/GeneralSettings.h"
+#include "ToolGroups/Editor/EditionTools.h"
+#include "ToolGroups/Segmentation/SegmentationTools.h"
+#include "ToolGroups/Zoom/ZoomTools.h"
+#include <Core/IO/ClassificationXML.h>
+#include <Core/IO/SegFile.h>
+#include <Core/MultiTasking/Scheduler.h>
+#include <Core/Utils/AnalysisUtils.h>
 #include <GUI/ColorEngines/CategoryColorEngine.h>
 #include <GUI/ColorEngines/NumberColorEngine.h>
 #include <GUI/ColorEngines/UserColorEngine.h>
-#include <Support/Settings/EspinaSettings.h>
-#include <Core/IO/SegFile.h>
-#include <Core/IO/ClassificationXML.h>
-#include <Core/MultiTasking/Scheduler.h>
-#include <Core/Utils/AnalysisUtils.h>
 #include <GUI/Model/Utils/ModelAdapterUtils.h>
 #include <GUI/Representations/BasicRepresentationFactory.h>
+#include <Support/Settings/EspinaSettings.h>
 
-// EspINA
 
 // Std
 #include <sstream>
@@ -78,7 +80,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 , m_undoStack(new QUndoStack())
 //, m_filterFactory(new EspinaMainWindow::FilterFactory())
 , m_channelReader{new ChannelReader()}
-, m_segFileReader{new IO::SegFileReader()}
+, m_segFileReader{new SegFileReader()}
 , m_settings     (new GeneralSettings())
 // , m_settingsPanel(new GeneralSettingsPanel(m_model, m_settings))
 , m_view{new DefaultView(m_model, m_viewManager, m_undoStack, this)}
@@ -824,7 +826,7 @@ AnalysisSPtr EspinaMainWindow::loadedAnalysis(const QStringList files)
     }
 
     try {
-      analyses << m_factory->read(reader, file, m_errorHandler.get());
+      analyses << m_factory->read(reader, file, m_errorHandler);
 
       if (file != m_settings->autosavePath().absoluteFilePath(AUTOSAVE_FILE))
       {
@@ -904,7 +906,7 @@ void EspinaMainWindow::saveAnalysis()
   QApplication::setOverrideCursor(Qt::WaitCursor);
   m_busy = true;
 
-  IO::SegFile::save(m_analysis.get(), analysisFile, nullptr);
+  IO::SegFile::save(m_analysis.get(), analysisFile, m_errorHandler);
 
   QApplication::restoreOverrideCursor();
   updateStatus(tr("File Saved Successfully in %1").arg(analysisFile));

@@ -17,35 +17,26 @@
  *
  */
 
-#ifndef ESPINA_IO_SEGFILE_H
-#define ESPINA_IO_SEGFILE_H
-
-#include "ErrorHandler.h"
-#include <Core/Analysis/Analysis.h>
+#ifndef ESPINA_SEGFILEREADER_H
+#define ESPINA_SEGFILEREADER_H
 #include <Core/Factory/AnalysisReader.h>
 
-namespace EspINA 
-{
-  namespace IO
+namespace EspINA {
+
+  class SegFileReader
+  : public IO::AnalysisReader
   {
-    namespace SegFile
-    {
-      struct IO_Error_Exception{};
+  public:
+    virtual QString type() const
+    { return "SegFileReader"; }
 
-      struct Classification_Not_Found_Exception{};
+    virtual ExtensionList supportedFileExtensions() const;
 
-      struct File_Not_Found_Exception{};
+    virtual AnalysisSPtr read(const QFileInfo& file,
+                              CoreFactorySPtr  factory,
+                              ErrorHandlerSPtr handler = ErrorHandlerSPtr()); 
+  };
 
-      struct Parse_Exception{};
-
-      AnalysisSPtr load(const QFileInfo& file,
-                        CoreFactorySPtr  factory = CoreFactorySPtr(),
-                        ErrorHandlerSPtr handler = ErrorHandlerSPtr());
-
-      void save(AnalysisPtr       analysis,
-                const QFileInfo&  file,
-                ErrorHandlerSPtr  handler = ErrorHandlerSPtr());
-    }
-  }
 }
-#endif // ESPINA_IO_SEGFILE_H
+
+#endif // ESPINA_SEGFILEREADER_H

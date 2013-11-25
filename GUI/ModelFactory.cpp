@@ -81,6 +81,13 @@ FileExtensions ModelFactory::supportedFileExtensions()
 {
   FileExtensions extensions;
 
+  for(auto extension : m_readerExtensions.keys())
+  {
+    extensions << QString("*.%1").arg(extension);
+  }
+
+  extensions = QStringList(QObject::tr("All Supported Files (%1)").arg(extensions.join(" ")));
+
   for(auto loader : m_readers)
   {
     extensions << loader->fileExtensionDescriptions();

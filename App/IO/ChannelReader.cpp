@@ -66,9 +66,9 @@ AnalysisReader::ExtensionList ChannelReader::supportedFileExtensions() const
 }
 
 //------------------------------------------------------------------------
-AnalysisSPtr ChannelReader::read(const QFileInfo file,
-                                 CoreFactorySPtr factory,
-                                 ErrorHandlerPtr handler)
+AnalysisSPtr ChannelReader::read(const QFileInfo& file,
+                                 CoreFactorySPtr  factory,
+                                 ErrorHandlerSPtr handler)
 {
   AnalysisSPtr analysis{new Analysis()};
 
@@ -78,25 +78,26 @@ AnalysisSPtr ChannelReader::read(const QFileInfo file,
 
   auto filter = factory->createFilter<VolumetricStreamReader>(OutputSList(), VOLUMETRIC_STREAM_READER);
 
-  if (file.fileName().contains(".tif"))
-  {
-    using VolumeReader = itk::ImageFileReader<itkVolumeType>;
-    using VolumeWriter = itk::ImageFileWriter<itkVolumeType>;
+//   if (file.fileName().contains(".tif"))
+//   {
+//     using VolumeReader = itk::ImageFileReader<itkVolumeType>;
+//     using VolumeWriter = itk::ImageFileWriter<itkVolumeType>;
+// 
+//     VolumeReader::Pointer reader = VolumeReader::New();
+//     reader->SetFileName(file.absoluteFilePath().toUtf8().data());
+//     reader->Update();
+// 
+//     TemporalStorageSPtr storage = filter->storage();
+// 
+//     file = QFileInfo(storage->absoluteFilePath(file.baseName() + ".mhd"));
+// 
+//     VolumeWriter::Pointer writer = VolumeWriter::New();
+//     writer->SetFileName(file.absoluteFilePath().toUtf8().data());
+//     writer->SetInput(reader->GetOutput());
+//     writer->Write();
+//   }
 
-    VolumeReader::Pointer reader = VolumeReader::New();
-    reader->SetFileName(file.absoluteFilePath().toUtf8().data());
-    reader->Update();
-
-    TemporalStorageSPtr storage = filter->storage();
-
-    file = QFileInfo(storage->absoluteFilePath(file.baseName() + ".mhd"));
-
-    VolumeWriter::Pointer writer = VolumeWriter::New();
-    writer->SetFileName(file.absoluteFilePath().toUtf8().data());
-    writer->SetInput(reader->GetOutput());
-    writer->Write();
-  }
-
+  filter->setErrorHandler(handler);
   filter->setFileName(file);
   ChannelSPtr channel = factory->createChannel(filter, 0);
   channel->setName(file.fileName());

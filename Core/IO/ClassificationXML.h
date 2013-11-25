@@ -32,19 +32,19 @@ namespace EspINA {
       struct IO_Exception{};
       struct Parse_Exception{};
 
-      ClassificationSPtr load(const QFileInfo&   file,
-                              ErrorHandlerPtr    handler = nullptr);
+      ClassificationSPtr load(const QFileInfo& file,
+                              ErrorHandlerSPtr handler = ErrorHandlerSPtr());
 
       void save(ClassificationSPtr classification,
                 const QFileInfo&   file,
-                ErrorHandlerPtr    handler = nullptr);
+                ErrorHandlerSPtr    handler = ErrorHandlerSPtr());
 
 
       QByteArray dump(const ClassificationSPtr classification,
-                      ErrorHandlerPtr          handler = nullptr);
+                      ErrorHandlerSPtr         handler = ErrorHandlerSPtr());
 
-      ClassificationSPtr parse(const QByteArray&  serialization,
-                               ErrorHandlerPtr    handler = nullptr);
+      ClassificationSPtr parse(const QByteArray& serialization,
+                               ErrorHandlerSPtr  handler = ErrorHandlerSPtr());
     }
   }
 }

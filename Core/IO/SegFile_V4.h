@@ -38,13 +38,13 @@ namespace EspINA {
         static const QString FORMAT_INFO_FILE;
 
       public:
-        virtual AnalysisSPtr load(QuaZip&         zip,
-                                  CoreFactorySPtr factory = CoreFactorySPtr(),
-                                  ErrorHandlerPtr handler = nullptr);
+        virtual AnalysisSPtr load(QuaZip&          zip,
+                                  CoreFactorySPtr  factory = CoreFactorySPtr(),
+                                  ErrorHandlerSPtr handler = ErrorHandlerSPtr());
 
-        virtual void save(AnalysisPtr    analysis,
-                          QuaZip&         zip,
-                          ErrorHandlerPtr handler = nullptr);
+        virtual void save(AnalysisPtr      analysis,
+                          QuaZip&          zip,
+                          ErrorHandlerSPtr handler = ErrorHandlerSPtr());
 
       private:
         PersistentSPtr findVertex(int id);
@@ -72,7 +72,7 @@ namespace EspINA {
         DirectedGraph::Vertices m_loadedVertices;
         DirectedGraphSPtr       m_trace;
         CoreFactorySPtr         m_factory;
-        ErrorHandlerPtr         m_handler;
+        ErrorHandlerSPtr        m_handler;
       };
     }
   }

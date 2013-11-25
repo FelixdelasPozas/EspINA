@@ -17,35 +17,30 @@
  *
  */
 
-#ifndef ESPINA_IO_SEGFILE_H
-#define ESPINA_IO_SEGFILE_H
+#include "SegFileReader.h"
+#include <Core/IO/SegFile.h>
 
-#include "ErrorHandler.h"
-#include <Core/Analysis/Analysis.h>
-#include <Core/Factory/AnalysisReader.h>
+using namespace EspINA;
+using namespace EspINA::IO;
 
-namespace EspINA 
+//-----------------------------------------------------------------------------
+AnalysisReader::ExtensionList SegFileReader::supportedFileExtensions() const
 {
-  namespace IO
-  {
-    namespace SegFile
-    {
-      struct IO_Error_Exception{};
+  ExtensionList supportedExtensions;
 
-      struct Classification_Not_Found_Exception{};
+  Extensions extensions;
+  extensions << "seg";
 
-      struct File_Not_Found_Exception{};
+  supportedExtensions["EspINA Analysis"] = extensions;
 
-      struct Parse_Exception{};
-
-      AnalysisSPtr load(const QFileInfo& file,
-                        CoreFactorySPtr  factory = CoreFactorySPtr(),
-                        ErrorHandlerSPtr handler = ErrorHandlerSPtr());
-
-      void save(AnalysisPtr       analysis,
-                const QFileInfo&  file,
-                ErrorHandlerSPtr  handler = ErrorHandlerSPtr());
-    }
-  }
+  return supportedExtensions;
 }
-#endif // ESPINA_IO_SEGFILE_H
+
+
+//-----------------------------------------------------------------------------
+AnalysisSPtr SegFileReader::read(const QFileInfo& file,
+                                 CoreFactorySPtr  factory,
+                                 ErrorHandlerSPtr handler)
+{
+  return SegFile::load(file, factory, handler);
+}

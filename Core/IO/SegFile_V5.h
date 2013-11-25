@@ -37,13 +37,13 @@ namespace EspINA {
         static const QString FORMAT_INFO_FILE;
 
       public:
-        virtual AnalysisSPtr load(QuaZip&         zip,
-                                  CoreFactorySPtr factory = CoreFactorySPtr(),
-                                  ErrorHandlerPtr handler = nullptr);
+        virtual AnalysisSPtr load(QuaZip&          zip,
+                                  CoreFactorySPtr  factory = CoreFactorySPtr(),
+                                  ErrorHandlerSPtr handler = ErrorHandlerSPtr());
 
-        virtual void save(AnalysisPtr     analysis, 
-                          QuaZip&         zip,
-                          ErrorHandlerPtr handler = nullptr);
+        virtual void save(AnalysisPtr      analysis, 
+                          QuaZip&          zip,
+                          ErrorHandlerSPtr handler = ErrorHandlerSPtr());
       private:
         PersistentSPtr findVertex(DirectedGraph::Vertices vertices,
                                   Persistent::Uuid uuid);
@@ -52,26 +52,26 @@ namespace EspINA {
                                                  DirectedGraphSPtr       content,
                                                  DirectedGraph::Vertices loadedVertices);
 
-        SampleSPtr createSample(DirectedGraph::Vertex   roVertex,
-                                AnalysisSPtr            analysis,
-                                TemporalStorageSPtr storage,
-                                CoreFactorySPtr         factory, 
-                                ErrorHandlerPtr         handler = nullptr);
+        SampleSPtr createSample(DirectedGraph::Vertex roVertex,
+                                AnalysisSPtr          analysis,
+                                TemporalStorageSPtr   storage,
+                                CoreFactorySPtr       factory, 
+                                ErrorHandlerSPtr      handler = ErrorHandlerSPtr());
 
         FilterSPtr createFilter(DirectedGraph::Vertex   roVertex,
                                 DirectedGraphSPtr       content,
                                 DirectedGraph::Vertices loadedVertices,
-                                TemporalStorageSPtr storage,
+                                TemporalStorageSPtr     storage,
                                 CoreFactorySPtr         factory, 
-                                ErrorHandlerPtr         handler = nullptr);
+                                ErrorHandlerSPtr        handler = ErrorHandlerSPtr());
 
         ChannelSPtr createChannel(DirectedGraph::Vertex   roVertex,
                                   AnalysisSPtr            analysis,
                                   DirectedGraphSPtr       content,
                                   DirectedGraph::Vertices loadedVertices,
-                                  TemporalStorageSPtr storage,
+                                  TemporalStorageSPtr     storage,
                                   CoreFactorySPtr         factory, 
-                                  ErrorHandlerPtr         handler = nullptr);
+                                  ErrorHandlerSPtr        handler = ErrorHandlerSPtr());
 
         QString parseCategoryName(const State& state);
 
@@ -79,25 +79,25 @@ namespace EspINA {
                                             AnalysisSPtr            analysis,
                                             DirectedGraphSPtr       content,
                                             DirectedGraph::Vertices loadedVertices,
-                                            TemporalStorageSPtr storage,
+                                            TemporalStorageSPtr     storage,
                                             CoreFactorySPtr         factory, 
-                                            ErrorHandlerPtr         handler = nullptr);
+                                            ErrorHandlerSPtr        handler = ErrorHandlerSPtr());
 
         void createExtensionProvider(DirectedGraph::Vertex   roVertex,
                                      AnalysisSPtr            analysis,
-                                     TemporalStorageSPtr storage,
+                                     TemporalStorageSPtr     storage,
                                      CoreFactorySPtr         factory, 
-                                     ErrorHandlerPtr         handler = nullptr);
+                                     ErrorHandlerSPtr        handler = ErrorHandlerSPtr());
 
-        void loadContent(AnalysisSPtr            analysis,
-                         QuaZip&                 zip,
+        void loadContent(AnalysisSPtr        analysis,
+                         QuaZip&             zip,
                          TemporalStorageSPtr storage,
-                         CoreFactorySPtr         factory,
-                         ErrorHandlerPtr         handler = nullptr);
+                         CoreFactorySPtr     factory,
+                         ErrorHandlerSPtr    handler = ErrorHandlerSPtr());
 
-        void loadRelations(AnalysisSPtr    analysis,
-                           QuaZip&         zip,
-                           ErrorHandlerPtr handler = nullptr);
+        void loadRelations(AnalysisSPtr     analysis,
+                           QuaZip&          zip,
+                           ErrorHandlerSPtr handler = ErrorHandlerSPtr());
 
       };
     }

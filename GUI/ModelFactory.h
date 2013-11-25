@@ -65,7 +65,7 @@ namespace EspINA
 
     AnalysisReaderList readers(const QFileInfo& file);
 
-    AnalysisSPtr read(AnalysisReaderPtr reader, const QFileInfo& file, ErrorHandlerPtr handler = nullptr)
+    AnalysisSPtr read(AnalysisReaderPtr reader, const QFileInfo& file, ErrorHandlerSPtr handler = ErrorHandlerSPtr())
     { return reader->read(file, m_factory, handler); }
 
     SampleAdapterSPtr createSample(const QString& name = QString()) const;
