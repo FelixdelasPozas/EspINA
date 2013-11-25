@@ -194,6 +194,7 @@ void ChannelSliceRepresentation::initializePipeline()
   m_actor->SetInterpolate(false);
   m_actor->GetMapper()->BorderOn();
   m_actor->GetMapper()->SetInputConnection(m_mapToColors->GetOutputPort());
+  m_actor->SetDisplayExtent(m_exporter->GetOutput()->GetExtent());
   m_actor->SetVisibility(isVisible());
   m_actor->Update();
 }
@@ -224,7 +225,9 @@ void ChannelSliceRepresentation::updateRepresentation()
     m_exporter->Update();
     m_shiftScaleFilter->SetInputData(m_exporter->GetOutput());
     m_shiftScaleFilter->Update();
+    m_mapToColors->SetInputConnection(m_shiftScaleFilter->GetOutputPort());
     m_mapToColors->Update();
+    m_actor->GetMapper()->SetInputConnection(m_mapToColors->GetOutputPort());
     m_actor->SetDisplayExtent(m_exporter->GetOutput()->GetExtent());
     m_actor->Update();
   }

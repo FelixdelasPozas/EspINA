@@ -45,11 +45,11 @@ RenderView::RenderView(QWidget* parent)
 : QWidget(parent)
 , m_colorEngine{new NumberColorEngine()}
 , m_view{new QVTKWidget()}
+, m_sceneResolution{1, 1, 1}
 , m_numEnabledChannelRenders{0}
 , m_numEnabledSegmentationRenders{0}
 , m_sceneCameraInitialized(false)
 , m_showSegmentations(true)
-, m_sceneResolution{1, 1, 1}
 {
 }
 

@@ -133,10 +133,8 @@ void ViewManager::unregisterView(View2D* view)
 //----------------------------------------------------------------------------
 void ViewManager::setSelectionEnabled(bool enable)
 {
-  foreach(RenderView *view, m_renderViews)
-  {
+  for(auto view: m_renderViews)
     view->setSelectionEnabled(enable);
-  }
 }
 
 //----------------------------------------------------------------------------
@@ -169,7 +167,7 @@ SegmentationAdapterList ViewManager::selectedSegmentations() const
 {
   SegmentationAdapterList selection;
 
-  foreach(ViewItemAdapterPtr item, m_selection)
+  for(auto item: m_selection)
   {
     if (ItemAdapter::Type::SEGMENTATION == item->type())
       selection << segmentationPtr(item);
@@ -266,10 +264,8 @@ void ViewManager::unsetSelector(SelectorSPtr selector)
 //----------------------------------------------------------------------------
 void ViewManager::updateViews()
 {
-  foreach(RenderView *view, m_renderViews)
-  {
+  for(auto view: m_renderViews)
     view->updateView();
-  }
 }
 
 //----------------------------------------------------------------------------
@@ -278,10 +274,8 @@ void ViewManager::setFitToSlices(bool enabled)
 //   QSettings settings(CESVIMA, ESPINA);
 //   settings.setValue(FIT_TO_SLICES, enabled);
 //   settings.sync();
-  foreach(View2D *view, m_sliceViews)
-  {
+  for(auto view: m_sliceViews)
     view->setFitToSlices(enabled);
-  }
 }
 
 //----------------------------------------------------------------------------
@@ -295,28 +289,22 @@ void ViewManager::setActiveChannel(ChannelAdapterPtr channel)
 void ViewManager::addWidget(EspinaWidget* widget)
 {
   widget->setViewManager(this);
-  foreach(RenderView *rView, m_renderViews)
-  {
-    rView->addWidget(widget);
-  }
+  for(auto view: m_renderViews)
+    view->addWidget(widget);
 }
 
 //----------------------------------------------------------------------------
 void ViewManager::removeWidget(EspinaWidget* widget)
 {
-  foreach(RenderView *rView, m_renderViews)
-  {
-    rView->removeWidget(widget);
-  }
+  for(auto view: m_renderViews)
+    view->removeWidget(widget);
 }
 
 //----------------------------------------------------------------------------
 void ViewManager::resetViewCameras()
 {
-  foreach(RenderView *view, m_renderViews)
-  {
+  for(auto view: m_renderViews)
     view->resetCamera();
-  }
 }
 
 //----------------------------------------------------------------------------
@@ -344,10 +332,8 @@ void ViewManager::updateSegmentationRepresentations(SegmentationAdapterPtr segme
       }
   } */
 
-  foreach(SelectableView *view, m_espinaViews)
-  {
+  for(auto view: m_espinaViews)
     view->updateRepresentations(segList);
-  }
 }
 
 //----------------------------------------------------------------------------
@@ -356,7 +342,7 @@ void ViewManager::updateSegmentationRepresentations(SegmentationAdapterList list
   QStack<SegmentationAdapterPtr> itemsStack;
   SegmentationAdapterList segList;
 
-  foreach(SegmentationAdapterPtr seg, list)
+  for(auto seg: list)
   {
     if (segList.contains(seg))
       continue;
@@ -380,26 +366,22 @@ void ViewManager::updateSegmentationRepresentations(SegmentationAdapterList list
 //     }
   }
 
-  foreach(SelectableView *view, m_espinaViews)
-  {
+  for(auto view: m_espinaViews)
     view->updateRepresentations(segList);
-  }
 }
 
 //----------------------------------------------------------------------------
 void ViewManager::updateChannelRepresentations(ChannelAdapterList list)
 {
-  foreach(SelectableView *view, m_espinaViews)
-  {
+  for(auto view: m_espinaViews)
     view->updateRepresentations(list);
-  }
 }
 
 //----------------------------------------------------------------------------
 void ViewManager::setCrosshairVisibility(bool value)
 {
-  foreach(View2D *rView, m_sliceViews)
-    rView->setCrosshairVisibility(value);
+  for(auto view: m_sliceViews)
+    view->setCrosshairVisibility(value);
 }
 
 // //----------------------------------------------------------------------------
@@ -423,10 +405,8 @@ void ViewManager::setColorEngine(ColorEngineSPtr engine)
 {
   m_colorEngine = engine;
 
-  foreach(RenderView *view, m_renderViews)
-  {
+  for(auto view: m_renderViews)
     view->setColorEngine(engine);
-  }
 
   updateSegmentationRepresentations();
 }
@@ -434,8 +414,8 @@ void ViewManager::setColorEngine(ColorEngineSPtr engine)
 //----------------------------------------------------------------------------
 void ViewManager::focusViewsOn(const NmVector3& point)
 {
-  foreach(RenderView *rView, m_renderViews)
-    rView->centerViewOn(point, true);
+  for(auto view: m_renderViews)
+    view->centerViewOn(point, true);
 }
 
 //----------------------------------------------------------------------------

@@ -172,7 +172,6 @@ View2D::View2D(Plane plane, QWidget* parent)
 
   this->setAutoFillBackground(true);
   setLayout(m_mainLayout);
-
 }
 
 //-----------------------------------------------------------------------------
@@ -249,14 +248,13 @@ void View2D::updateRuler()
   vtkSmartPointer<vtkCoordinate> coords = vtkSmartPointer<vtkCoordinate>::New();
   coords->SetCoordinateSystemToNormalizedViewport();
 
-  int c = m_plane==Plane::YZ?2:0;
   coords->SetValue(0, 0); //Viewport Lower Left Corner
   value = coords->GetComputedWorldValue(m_renderer);
-  left = value[c];
+  left = value[0];
 
   coords->SetValue(1, 0); // Viewport Lower Right Corner
   value = coords->GetComputedWorldValue(m_renderer);
-  right = value[c];
+  right = value[0];
 
   Nm rulerLength = 0.07;//viewport coordinates - Configuration file
   Nm viewWidth = fabs(left-right);
@@ -319,30 +317,23 @@ void View2D::updateThumbnail()
       break;
     case Plane::XZ:
     {
-      double tempUpper = viewLower;
-      double tempLower = viewUpper;
-
       leftHidden   = sceneLeft  < viewLeft;
       rightHidden  = sceneRight > viewRight;
-      upperHidden  = sceneUpper < tempUpper;
-      lowerHidden  = sceneLower > tempLower;
+      upperHidden  = sceneUpper > viewUpper;
+      lowerHidden  = sceneLower > -viewLower;
       zDepth = m_sceneBounds[3];
       break;
     }
     case Plane::YZ:
     {
-      double tempRight = viewLeft;
-      double tempLeft  = viewRight;
-
-      leftHidden   = sceneLeft  < tempLeft;
-      rightHidden  = sceneRight > tempRight;
+      leftHidden   = sceneLeft  > viewLeft;
+      rightHidden  = sceneRight > -viewRight;
       upperHidden  = sceneUpper < viewUpper;
       lowerHidden  = sceneLower > viewLower;
       zDepth = m_sceneBounds[1];
       break;
     }
   }
-
   if (leftHidden || rightHidden || upperHidden || lowerHidden)
   {
     m_thumbnail->DrawOn();
