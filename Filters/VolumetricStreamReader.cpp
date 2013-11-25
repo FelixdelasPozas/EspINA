@@ -96,8 +96,6 @@ void VolumetricStreamReader::execute(Output::Id id)
     }
   }
 
-  m_fileName = QFileInfo("/media/storage/Stacks/Skeletos/Revisadas_stack_1/218-354 REGISTERED-bc_corrected.tif");
-
   QFileInfo mhdFile = m_fileName;
 
   if (mhdFile.fileName().contains(".tif"))
