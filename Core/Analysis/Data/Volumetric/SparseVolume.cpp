@@ -168,7 +168,6 @@ namespace EspINA
 
       BinaryMask<unsigned char>::region_iterator mit(mask, intersectionBounds);
       itk::ImageRegionIterator<T> iit(image, equivalentRegion<T>(image, intersectionBounds));
-      Q_ASSERT(equivalentRegion<T>(image, intersectionBounds).GetNumberOfPixels() <= numVoxels);
       mit.goToBegin();
       iit = iit.Begin();
       switch(m_blocks[i]->type())
@@ -429,13 +428,79 @@ namespace EspINA
   template<typename T>
   void SparseVolume<T>::compact()
   {
-    typename T::Pointer image = itkImage();
+    using SplitBounds = QPair<Bounds, int>;
+
+    int minSize[3] = {20, 20, 20};
+    for(int i = 0; i < 3; ++i)
+    {
+      minSize[i] *= m_spacing[i];
+    }
+
+    QList<SplitBounds> remaining;
+    remaining << SplitBounds(m_blocks_bounding_box, 0);
+
+    QList<Bounds> blockBounds;
+
+    while(!remaining.isEmpty())
+    {
+      SplitBounds splitBounds = remaining.takeFirst();
+      Bounds bounds = splitBounds.first;
+
+      bool emptyBounds = true;
+      int i = 0;
+      while (emptyBounds && i < m_blocks.size())
+      {
+        Bounds blockBounds = m_blocks[i]->bounds();
+        if (intersect(blockBounds, bounds))
+        {
+          emptyBounds = false;
+        }
+
+        ++i;
+      }
+
+      if (!emptyBounds)
+      {
+        bool minimumBlockSize = bounds.lenght(Axis::X) <= minSize[0]
+                             && bounds.lenght(Axis::Y) <= minSize[1]
+                             && bounds.lenght(Axis::Z) <= minSize[2];
+
+        bool needSplit = !minimumBlockSize;
+
+        if (needSplit)
+        {
+          int splitPlane = splitBounds.second;
+
+          Bounds b1{bounds};
+          Bounds b2{bounds};
+
+          //TODO: Possibly adjust splitPoint to voxel size
+          Nm splitPoint = (bounds[2*splitPlane] + bounds[2*splitPlane+1]) / 2.0;
+          b1[2*splitPlane+1] = splitPoint;
+          b2[2*splitPlane]   = splitPoint;
+
+          splitPlane = (splitPlane + 1)%3;
+
+          remaining << SplitBounds(b1, splitPlane) << SplitBounds(b2, splitPlane);
+        } else
+        {
+          blockBounds << bounds;
+        }
+      }
+    }
+
+    QList<typename T::Pointer> blockImages;
+
+    for(auto bounds : blockBounds)
+    {
+      blockImages << itkImage(bounds);
+    }
 
     m_blocks.clear();
 
-    auto region = image->GetLargestPossibleRegion();
-
-    setBlock(image);
+    for(auto image : blockImages)
+    {
+      setBlock(image);
+    }
   }
-
 }
