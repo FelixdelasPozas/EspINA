@@ -29,7 +29,7 @@ int binaryMask_region_iterator(int argc, char** argv)
 {
   bool error = false;
 
-  BMask *mask = new BMask(Bounds{ 0,4,0,4,0,4 });
+  BMask *mask = new BMask(Bounds{ -0.5,3.5,-0.5,3.5,-0.5,3.5 });
 
   Bounds badRegionBounds{ -1,18,-1,18,-1,18 };
 
@@ -43,7 +43,7 @@ int binaryMask_region_iterator(int argc, char** argv)
     error |= false;
   }
 
-  Bounds goodRegionBounds{ 1,4,2,3,2,4 };
+  Bounds goodRegionBounds{ 0.5,3.5,1.5,2.5,1.5,3.5 };
   BMask::region_iterator rit(mask, goodRegionBounds);
 
   rit.goToEnd();
@@ -102,7 +102,7 @@ int binaryMask_region_iterator(int argc, char** argv)
     ++rit;
   }
 
-  BMask *otherMask = new BMask(Bounds{0,9,0,9,0,9}, NmVector3{2.5,2.5,2.5});
+  BMask *otherMask = new BMask(Bounds{0,8.75,0,8.75,0,8.75}, NmVector3{2.5,2.5,2.5});
 
   error |= (otherMask->numberOfVoxels() != 64);
 

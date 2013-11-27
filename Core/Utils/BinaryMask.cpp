@@ -65,8 +65,7 @@ namespace EspINA
     fakeImage->SetRegions(region);
     fakeImage->SetSpacing(fakeImageSpacing);
 
-    Bounds bounds = equivalentBounds<itkVolumeType>(fakeImage, fakeRegion);
-    m_bounds = bounds;
+    m_bounds = equivalentBounds<itkVolumeType>(fakeImage, fakeRegion);
 
     m_bufferSize = region.GetNumberOfPixels() / m_integerSize;
     if (0 != (region.GetNumberOfPixels() % m_integerSize))
@@ -92,8 +91,7 @@ namespace EspINA
 
   //-------------------------------------------------------------------------------------
   template<typename T> BinaryMask<T>::BinaryMask(const Bounds& bounds, NmVector3 spacing) throw(Invalid_Bounds_Exception)
-  : m_bounds{bounds}
-  , m_backgroundValue(0)
+  : m_backgroundValue(0)
   , m_foregroundValue(255)
   , m_integerSize(sizeof(int)*8)
   , m_spacing(spacing)
@@ -106,6 +104,8 @@ namespace EspINA
     image->SetSpacing(dSpacing);
 
     itkVolumeType::RegionType region = equivalentRegion<itkVolumeType>(image, bounds);
+
+    m_bounds = equivalentBounds<itkVolumeType>(image, region);
 
     m_size[0] = region.GetSize(0);
     m_size[1] = region.GetSize(1);

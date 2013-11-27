@@ -32,24 +32,14 @@
 using namespace std;
 using namespace EspINA;
 
-bool Test_Create_Bounds_From_Region(int w, int h, int d, bool passIfEquivalent = true) {
+bool Test_Bounds(const Bounds& bounds, itkVolumeType::Pointer image, bool passIfEquivalent = true) {
   bool pass = true;
 
-  itkVolumeType::SizeType size{w, h, d};
-
-  itkVolumeType::RegionType region;
-  region.SetSize(size);
-
-  itkVolumeType::Pointer image = itkVolumeType::New();
-  image->SetRegions(region);
-  image->Allocate();
-
-  Bounds expectedBounds{-0.5, w-0.5, -0.5, h-0.5, -0.5, d-0.5};
-
-  if ((equivalentBounds<itkVolumeType>(image, region) == expectedBounds) != passIfEquivalent) {
+  Bounds equivalent = equivalentBounds<itkVolumeType>(image, image->GetLargestPossibleRegion());
+  if ((equivalent == bounds) != passIfEquivalent) {
     cerr << "Region:" << endl;
-    region.Print(cerr);
-    cerr << "Unexpected equivalent bounds:" << equivalentBounds<itkVolumeType>(image, region) << ". Expected: " << expectedBounds << endl;
+    image->GetLargestPossibleRegion().Print(cerr);
+    cerr << "Unexpected equivalent bounds:" << equivalent << ". Expected: " << bounds << endl;
 
     pass = false;
   }
@@ -62,9 +52,60 @@ int volumetric_utils_region_to_bounds( int argc, char** argv )
 {
   bool pass = true;
 
-  pass &= Test_Create_Bounds_From_Region(1, 1, 1);
+  itkVolumeType::Pointer image1 = itkVolumeType::New();
+  itkVolumeType::RegionType region1;
+  for(int i = 0; i < 3; ++i) region1.SetSize(i, 1);
+  image1->SetLargestPossibleRegion(region1);
 
-  pass &= Test_Create_Bounds_From_Region(10, 20, 30);
+  pass &= Test_Bounds({-0.5, 0.5, -0.5, 0.5, -0.5, 0.5}, image1);
+  pass &= Test_Bounds({'[',-0.5, 0.5, -0.5, 0.5, -0.5, 0.5,']'}, image1, false);
+  pass &= Test_Bounds({0, 1, 0, 1, 0, 1}, image1, false);
+
+  itkVolumeType::Pointer image2 = itkVolumeType::New();
+  itkVolumeType::RegionType region2;
+  region2.SetSize(0, 402);
+  region2.SetSize(1, 254);
+  region2.SetSize(2, 21);
+  image2->SetLargestPossibleRegion(region2);
+  itkVolumeType::PointType origin;
+  origin[0] = 2549.3;
+  origin[1] = 1783.4;
+  origin[2] = 0;
+  image2->SetOrigin(origin);
+
+  itkVolumeType::SpacingType spacing;
+  spacing[0] = 3.7;
+  spacing[1] = 3.7;
+  spacing[2] = 20;
+  image2->SetSpacing(spacing);
+
+  Bounds bounds2;
+  for(int i = 0; i < 3; ++i)
+  {
+    bounds2[2*i]   = image2->GetOrigin()[i]-image2->GetSpacing()[i]/2.0;
+    bounds2[2*i+1] = bounds2[2*i]+ region2.GetSize(i)*image2->GetSpacing()[i];
+  }
+  pass &= Test_Bounds(bounds2, image2);
+
+  itkVolumeType::Pointer image3 = itkVolumeType::New();
+  itkVolumeType::RegionType region3;
+  for (int i = 0; i < 3; ++i)
+  {
+    region3.SetIndex(i, (origin[i]+spacing[i]/2.0)/spacing[i]);
+  }
+  region3.SetSize(0, 402);
+  region3.SetSize(1, 254);
+  region3.SetSize(2, 21);
+  image3->SetLargestPossibleRegion(region3);
+  image3->SetSpacing(spacing);
+
+  Bounds bounds3;
+  for(int i = 0; i < 3; ++i)
+  {
+    bounds3[2*i]   = (region3.GetIndex()[i]-0.5) * image3->GetSpacing()[i];
+    bounds3[2*i+1] = bounds3[2*i]+ region3.GetSize(i)*image3->GetSpacing()[i];
+  }
+  pass &= Test_Bounds(bounds3, image3);
 
   return !pass;
 }

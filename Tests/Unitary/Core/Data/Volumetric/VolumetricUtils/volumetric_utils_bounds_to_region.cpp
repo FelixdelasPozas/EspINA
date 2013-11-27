@@ -33,38 +33,17 @@ using namespace std;
 using namespace EspINA;
 
 
-bool Test_Create_Region_From_Bounds(const Bounds& bounds, bool passIfEquivalent = true) {
+bool Test_Create_Region_From_Bounds(const Bounds& bounds, itkVolumeType::Pointer image, bool passIfEquivalent = true) {
   bool pass = true;
 
-  itkVolumeType::SizeValueType s[3];
-  for (int i = 0; i < 3; ++i) {
-    Axis dir = toAxis(i);
-    s[i] = bounds.lenght(dir);
-    if (bounds.areUpperIncluded(dir) || (s[i] == 0 &&  (bounds.areLowerIncluded(dir)))) {
-      s[i] += 1;
-    }
-  }
-
-  itkVolumeType::SizeType size{s[0], s[1], s[2]};
-
-  itkVolumeType::RegionType expectedRegion;
-  expectedRegion.SetSize(size);
-
-  itkVolumeType::Pointer image = itkVolumeType::New();
-  image->SetRegions(expectedRegion);
-  image->Allocate();
-//   cerr << "Bounds: " << bounds << ":" << endl;
-//   cerr << "Expected Region:" << endl;
-//   expectedRegion.Print(cerr);
-//   cerr << "Equivalent Region:" << endl;
-//   equivalentRegion(image, bounds).Print(cerr);
-
-  if ((equivalentRegion<itkVolumeType>(image, bounds) == expectedRegion) != passIfEquivalent) {
+  auto expectedRegion = image->GetLargestPossibleRegion();
+  auto region = equivalentRegion<itkVolumeType>(image, bounds);
+  if ((region == expectedRegion) != passIfEquivalent) {
     cerr << "Bounds: " << bounds << ":" << endl;
     cerr << "Expected Region:" << endl;
     expectedRegion.Print(cerr);
     cerr << "Equivalent Region:" << endl;
-    equivalentRegion<itkVolumeType>(image, bounds).Print(cerr);
+    region.Print(cerr);
 
     pass = false;
   }
@@ -76,11 +55,24 @@ int volumetric_utils_bounds_to_region( int argc, char** argv )
 {
   bool pass = true;
 
-  pass &= Test_Create_Region_From_Bounds({'[',-0.5,0,-0.5,0,-0.5,0,')'});
-  pass &= Test_Create_Region_From_Bounds({'[',0,0,0,0,0,0,')'});
-  pass &= Test_Create_Region_From_Bounds({'[',0,0,0,0,0,0,']'});
-  pass &= Test_Create_Region_From_Bounds({'[',0,1,0,1,0,1,')'});
-  pass &= Test_Create_Region_From_Bounds({'[',0,1,0,1,0,1,']'});
+  itkVolumeType::SizeType size;
+  size.Fill(1);
+  itkVolumeType::RegionType region;
+  region.SetSize(size);
+  itkVolumeType::Pointer image = itkVolumeType::New();
+  image->SetLargestPossibleRegion(region);
+  itkVolumeType::PointType origin;
+  origin.Fill(0);
+  image->SetOrigin(origin);
+  itkVolumeType::SpacingType spacing;
+  spacing.Fill(1);
+  image->SetSpacing(spacing);
+
+  pass &= Test_Create_Region_From_Bounds({'[',-0.5,0,-0.5,0,-0.5,0,')'}, image);
+  pass &= Test_Create_Region_From_Bounds({'[',0,0,0,0,0,0,')'}, image);
+  pass &= Test_Create_Region_From_Bounds({'[',0,0,0,0,0,0,']'}, image);
+  pass &= Test_Create_Region_From_Bounds({'[',0,1,0,1,0,1,')'}, image, false);
+  pass &= Test_Create_Region_From_Bounds({'[',0,1,0,1,0,1,']'}, image, false);
 
   return !pass;
 }

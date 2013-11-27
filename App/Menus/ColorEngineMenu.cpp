@@ -58,13 +58,23 @@ void ColorEngineMenu::restoreUserSettings()
 
   QStringList activeActions = settings.value(COLOR_ENGINE, QStringList("Category")).toStringList();
 
-  foreach(QAction *action, m_availableEngines.keys())
+  bool validColorEngine = false;
+
+  for(QAction *action : m_availableEngines.keys())
   {
     if (activeActions.contains(action->text()))
     {
       action->setChecked(true);
       setColorEngine(action);
+      validColorEngine = true;
     }
+  }
+
+  if (!validColorEngine && !m_availableEngines.isEmpty())
+  {
+    QAction *action = m_availableEngines.keys().first();
+    setColorEngine(action);
+    action->setChecked(true);
   }
 }
 

@@ -30,7 +30,7 @@ int binaryMask_modify_mask(int argc, char** argv)
 {
   bool error = false;
 
-  Bounds bounds{ 0,4,0,4,0,4 };
+  Bounds bounds{ -0.5,3.5,-0.5,3.5,-0.5,3.5 };
   BMask *mask = new BMask(bounds);
   BMask::iterator cit(mask);
   cit.goToBegin();

@@ -5,6 +5,7 @@ create_test_sourcelist(VolumetricUtils_Tests VolumetricUtils_Tests.cpp # this fi
   volumetric_utils_region_to_bounds.cpp
   volumetric_utils_equivalent_bounds.cpp
   volumetric_utils_symmetric_equivalences.cpp
+  volumetric_utils_create_itk_image.cpp
 )
 
 set(LIB_DEPENDECIES
@@ -28,3 +29,4 @@ add_test("\"Volumetric Utils: Slice Bounds To Region\"" VolumetricUtils_Tests vo
 add_test("\"Volumetric Utils: Region To Bounds\""       VolumetricUtils_Tests volumetric_utils_region_to_bounds)
 add_test("\"Volumetric Utils: Equivalent Bounds\""      VolumetricUtils_Tests volumetric_utils_equivalent_bounds)
 add_test("\"Volumetric Utils: Symmetric Equivalences\"" VolumetricUtils_Tests volumetric_utils_symmetric_equivalences)
+add_test("\"Volumetric Utils: Create Itk Image\""       VolumetricUtils_Tests volumetric_utils_create_itk_image)

@@ -140,7 +140,7 @@ bool EspINA::intersect(const Bounds& b1, const Bounds& b2)
   for (auto dir : {Axis::X, Axis::Y, Axis::Z}) {
     auto lower = (b1.areLowerIncluded(dir) && b2.areUpperIncluded(dir))?lessEqualThan:lessThan;
     auto upper = (b1.areUpperIncluded(dir) && b2.areLowerIncluded(dir))?greaterEqualThan:greaterThan;
- 
+
     overlap &= lower(b1[i], b2[i+1]) && upper(b1[i+1], b2[i]);
     i += 2; 
   }
@@ -161,11 +161,11 @@ Bounds EspINA::intersection(const Bounds& b1, const Bounds& b2)
     res[up] = std::min(b1[up], b2[up]);
 
     bool li = false;
-    if (b1[lo] == b2[lo])
+    if (areEqual(b1[lo], b2[lo]))
       li = b1.areLowerIncluded(dir) && b2.areLowerIncluded(dir);
-    else if (b1[up] == b2[lo])
+    else if (areEqual(b1[up], b2[lo]))
       li = b1.areUpperIncluded(dir) && b2.areLowerIncluded(dir);
-    else if (b1[lo] == b2[up])
+    else if (areEqual(b1[lo], b2[up]))
       li = b1.areLowerIncluded(dir) && b2.areUpperIncluded(dir);
     else if (b1[lo] < b2[lo])
       li = b2.areLowerIncluded(dir);
@@ -174,11 +174,11 @@ Bounds EspINA::intersection(const Bounds& b1, const Bounds& b2)
     res.setLowerInclusion(dir, li);
 
     bool ui = false;
-    if (b1[up] == b2[up])
+    if (areEqual(b1[up], b2[up]))
       ui = b1.areUpperIncluded(dir) && b2.areUpperIncluded(dir);
-    else if (b1[up] == b2[lo])
+    else if (areEqual(b1[up], b2[lo]))
       ui = b1.areUpperIncluded(dir) && b2.areLowerIncluded(dir);
-    else if (b1[lo] == b2[up])
+    else if (areEqual(b1[lo], b2[up]))
       ui = b1.areLowerIncluded(dir) && b2.areUpperIncluded(dir);
     else if (b1[up] < b2[up])
       ui = b1.areUpperIncluded(dir);
@@ -206,8 +206,8 @@ Bounds EspINA::boundingBox(const Bounds& b1, const Bounds& b2)
     bb[min] = std::min(b1[min], b2[min]);
     bb[max] = std::max(b1[max], b2[max]);
 
-    bb.setLowerInclusion(dir, (b1[min] == bb[min])?b1.areLowerIncluded(dir):b2.areLowerIncluded(dir));
-    bb.setUpperInclusion(dir, (b1[max] == bb[max])?b1.areUpperIncluded(dir):b2.areUpperIncluded(dir));
+    bb.setLowerInclusion(dir, areEqual(b1[min], bb[min])?b1.areLowerIncluded(dir):b2.areLowerIncluded(dir));
+    bb.setUpperInclusion(dir, areEqual(b1[max], bb[max])?b1.areUpperIncluded(dir):b2.areUpperIncluded(dir));
 
     min += 2;
     max += 2;
@@ -236,13 +236,13 @@ bool EspINA::contains(const Bounds &container, const Bounds &contained)
   for (Axis dir : {Axis::X, Axis::Y, Axis::Z}) {
     if (contained[i] < container[i]) {
       return false;
-    } else if (contained[i] == container[i] && !container.areLowerIncluded(dir) && contained.areLowerIncluded(dir)) {
+    } else if (areEqual(contained[i], container[i]) && !container.areLowerIncluded(dir) && contained.areLowerIncluded(dir)) {
       return false;
     }
     ++i;
     if (container[i] < contained[i]) {
       return false;
-    } else if (contained[i] == container[i] && !container.areUpperIncluded(dir) && contained.areUpperIncluded(dir)) {
+    } else if (areEqual(contained[i], container[i]) && !container.areUpperIncluded(dir) && contained.areUpperIncluded(dir)) {
       return false;
     }
     ++i;
@@ -260,13 +260,13 @@ bool EspINA::contains(const Bounds& bounds, const NmVector3& point)
   for (Axis dir : {Axis::X, Axis::Y, Axis::Z}) {
     if (point[j] < bounds[i]) {
       return false;
-    } else if (point[j] == bounds[i] && !bounds.areLowerIncluded(dir)) {
+    } else if (areEqual(point[j], bounds[i]) && !bounds.areLowerIncluded(dir)) {
       return false;
     }
     ++i;
     if (bounds[i] < point[j]) {
       return false;
-    } else if (point[j] == bounds[i] && !bounds.areUpperIncluded(dir)) {
+    } else if (areEqual(point[j], bounds[i]) && !bounds.areUpperIncluded(dir)) {
       return false;
     }
     ++i;
@@ -282,7 +282,7 @@ bool EspINA::contains(const Bounds& bounds, const NmVector3& point)
 bool EspINA::operator==(const Bounds &lhs, const Bounds &rhs)
 {
   for (int i = 0; i < 6; ++i) {
-    if (lhs[i] != rhs[i]) return false;
+    if (!areEqual(lhs[i], rhs[i])) return false;
   }
 
   for (Axis dir : {Axis::X, Axis::Y, Axis::Z}) {

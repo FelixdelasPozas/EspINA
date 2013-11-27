@@ -66,5 +66,50 @@ int volumetric_utils_symmetric_equivalences( int argc, char** argv )
     error = EXIT_FAILURE;
   }
 
+  itkVolumeType::Pointer e2 = itkVolumeType::New();
+  itkVolumeType::RegionType region2;
+  region2.SetSize(0, 402);
+  region2.SetSize(1, 254);
+  region2.SetSize(2, 21);
+  e2->SetLargestPossibleRegion(region2);
+  itkVolumeType::PointType origin;
+  origin[0] = 2549.3;
+  origin[1] = 1783.4;
+  origin[2] = 0;
+  e2->SetOrigin(origin);
+
+  itkVolumeType::SpacingType spacing;
+  spacing[0] = 3.7;
+  spacing[1] = 3.7;
+  spacing[2] = 20;
+  e2->SetSpacing(spacing);
+  
+  itkVolumeType::Pointer e3 = itkVolumeType::New();
+  itkVolumeType::RegionType region3;
+  for (int i = 0; i < 3; ++i)
+  {
+    region3.SetIndex(i, (origin[i]+spacing[i]/2.0)/spacing[i]);
+  }
+  region3.SetSize(0, 402);
+  region3.SetSize(1, 254);
+  region3.SetSize(2, 21);
+  e3->SetLargestPossibleRegion(region3);
+  e3->SetSpacing(spacing);
+  
+  itkVolumeType::Pointer e6 = itkVolumeType::New();
+  e6->SetSpacing(e2->GetSpacing());
+
+  Bounds eqb = equivalentBounds<itkVolumeType>(e2, e2->GetLargestPossibleRegion());
+
+  auto er2 = equivalentRegion<itkVolumeType>(e2, eqb);
+  auto er3 = equivalentRegion<itkVolumeType>(e3, eqb);
+  auto er6 = equivalentRegion<itkVolumeType>(e6, eqb);
+
+  if (er2.GetSize() != er3.GetSize() || er2.GetSize() != er3.GetSize())
+  {
+    cerr << "Equivalent Region sizes for same bounds doesn't match" << endl;
+    error = true;
+  }
+
   return error;
 }

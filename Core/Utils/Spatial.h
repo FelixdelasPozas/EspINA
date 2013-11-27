@@ -62,6 +62,13 @@ namespace EspINA {
   }
 
   using Nm = double;
+
+  inline bool areEqual(Nm lhs, Nm rhs)
+  {
+    const double DELTA = 0.0001;
+    return fabs(lhs - rhs) < DELTA;
+  }
+
 }
 
 

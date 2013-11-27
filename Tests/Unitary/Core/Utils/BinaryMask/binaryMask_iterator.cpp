@@ -28,7 +28,7 @@ int binaryMask_iterator(int argc, char** argv)
 {
   bool error = false;
 
-  Bounds bounds{ 0,10,0,10,0,10 };
+  Bounds bounds{-0.5,9.5,-0.5,9.5,-0.5,9.5};
   BMask *mask = new BMask(bounds);
 
   BMask::iterator it(mask);

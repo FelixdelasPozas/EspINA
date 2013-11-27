@@ -28,43 +28,35 @@ typename T::RegionType equivalentRegion(const T* image, const Bounds& bounds)
 {
   typename T::SpacingType s = image->GetSpacing();
 
-  Bounds correctedBounds{ bounds[0] + (s[0]/2), bounds[1] + (s[0]/2),
-                          bounds[2] + (s[1]/2), bounds[3] + (s[1]/2),
-                          bounds[4] + (s[2]/2), bounds[5] + (s[2]/2) };
-
   typename T::PointType p0, p1;
   for (int i = 0; i < 3; ++i) {
     Axis dir = toAxis(i);
-    correctedBounds.setLowerInclusion(dir, bounds.areLowerIncluded(dir));
-    correctedBounds.setUpperInclusion(dir, bounds.areUpperIncluded(dir));
 
-    p0[i] = correctedBounds[2*i];
-    p1[i] = correctedBounds[2*i+1];
-    if (correctedBounds.areLowerIncluded(dir)) p0[i] = std::min(correctedBounds[2*i+1], p0[i] + s[i]/2.0);
-    if (!correctedBounds.areUpperIncluded(dir)) p1[i] = std::max(correctedBounds[2*i], p1[i] - s[i]/2.0);
+    p0[i] = bounds[2*i];
+    p1[i] = bounds[2*i+1];
 
-    bool correctedBoundsAreEqual = abs(correctedBounds[2*i] - correctedBounds[2*i+1]) < std::numeric_limits<double>::epsilon();
+    int startIndex = p0[i]/s[i];
+    double voxelStart = startIndex*s[i]+s[i]/2;
 
-    if (correctedBoundsAreEqual && (correctedBounds.areLowerIncluded(dir) || correctedBounds.areUpperIncluded(dir))) {
-      p1[i] = correctedBounds[2*i];
+    double startValue = fabs(p0[i]-voxelStart);
+    bool isVoxelStart =  startValue < 0.0001;
+    if (isVoxelStart) {
+      p0[i] += s[i]/2.0;
     }
-    p0[i] -= s[i]/2;
-    p1[i] -= s[i]/2;
+
+    int index = p1[i]/s[i];
+    double voxelEnd = index*s[i]+s[i]/2;
+
+    double value = fabs(p1[i]-voxelEnd);
+    bool isVoxelEnd =  value < 0.0001;
+    if (!bounds.areUpperIncluded(dir) && isVoxelEnd) {
+      p1[i] -= s[i]/2.0;
+    }
   }
 
   typename T::IndexType i0, i1;
   image->TransformPhysicalPointToIndex(p0, i0);
   image->TransformPhysicalPointToIndex(p1, i1);
-
-//   typename T::PointType p2;
-//   image->TransformIndexToPhysicalPoint(i1, p2);
-// 
-//   for (int i = 0; i < 3; ++i) {
-//     if (p1[i] == p2[i] && correctedBounds.areUpperIncluded(toAxis(i))) {
-//       p1[i] += s[i]/2.0;
-//     }
-//   }
-//   image->TransformPhysicalPointToIndex(p1, i1);
 
   typename T::RegionType region;
   region.SetIndex(i0);

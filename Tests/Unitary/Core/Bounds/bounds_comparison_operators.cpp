@@ -44,37 +44,37 @@ int bounds_comparison_operators( int argc, char** argv )
     cerr << b1 << " is equal to " << b1 << endl;
     error = EXIT_FAILURE;
   }
-  
+
   if (b1 != b1) {
     cerr << b1 << " is equal to " << b1 << endl;
     error = EXIT_FAILURE;
   }
-  
+
   if (b1 == b2) {
     cerr << b1 << " is not equal to " << b2 << endl;
     error = EXIT_FAILURE;
   }
-  
+
   if (!(b1 != b2)) {
     cerr << b1 << " is not equal to " << b2  << endl;
     error = EXIT_FAILURE;
   }
-  
+
   if (!(b1 == b3)) {
     cerr << b1 << " is equal to " << b3 << endl;
     error = EXIT_FAILURE;
   }
-  
+
   if (b1 != b3) {
     cerr << b1 << " is equal to " << b3 << endl;
     error = EXIT_FAILURE;
   }
-  
+
   if (b1 == b4) {
     cerr << b1 << " is not equal to " << b4 << endl;
     error = EXIT_FAILURE;
   }
-  
+
   if (!(b1 != b4)) {
     cerr << b1 << " is not equal to " << b4 << endl;
     error = EXIT_FAILURE;

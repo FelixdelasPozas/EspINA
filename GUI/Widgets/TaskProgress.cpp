@@ -36,7 +36,9 @@ TaskProgress::TaskProgress(Task* task)
 , m_task(task)
 {
   setupUi(this);
-  m_descriptionLabel->setText(task->description());
+
+  m_progressBar->setTextVisible(true);
+
   connect(m_cancelButton, SIGNAL(clicked(bool)),
           this, SLOT(onCancel()));
   connect(m_task, SIGNAL(progress(int)),
@@ -50,6 +52,7 @@ TaskProgress::~TaskProgress()
 
 void TaskProgress::updateProgress(int value)
 {
+  m_progressBar->setFormat(m_task->description() + QString(": %1%").arg(value));
   m_progressBar->setValue(value);
 }
 

@@ -104,6 +104,15 @@ namespace EspINA
 
     Bounds bounds = equivalentBounds<T>(image, image->GetLargestPossibleRegion());
 
+    /*// DEBUG
+    auto i2 = T::New();
+    i2->SetSpacing(image->GetSpacing());
+    auto region = equivalentRegion<T>(i2, bounds);
+
+    image->GetLargestPossibleRegion().Print(std::cout);
+    region.Print(std::cout);
+    */
+
     updateBlocksBoundingBox(bounds);
   }
 
@@ -159,7 +168,7 @@ namespace EspINA
 
       BinaryMask<unsigned char>::region_iterator mit(mask, intersectionBounds);
       itk::ImageRegionIterator<T> iit(image, equivalentRegion<T>(image, intersectionBounds));
-
+      Q_ASSERT(equivalentRegion<T>(image, intersectionBounds).GetNumberOfPixels() <= numVoxels);
       mit.goToBegin();
       iit = iit.Begin();
       switch(m_blocks[i]->type())
