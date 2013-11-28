@@ -60,8 +60,9 @@ Snapshot Filter::snapshot() const
     for(OutputSPtr output : m_outputs)
     {
       xml.writeStartElement("Output");
-      xml.writeAttribute("id",     QString::number(output->id()));
-      xml.writeAttribute("bounds", output->bounds().toString());
+      xml.writeAttribute("id",      QString::number(output->id()));
+      xml.writeAttribute("bounds",  output->bounds().toString());
+      xml.writeAttribute("spacing", output->spacing().toString());
       snapshot << output->snapshot(storage(), xml, prefix());
     }
 
@@ -172,6 +173,12 @@ bool Filter::fetchOutputData(Output::Id id)
           {
             int id = xml.attributes().value("id").toString().toInt();
             output = OutputSPtr{new Output(this, id)};
+
+            auto spacing = xml.attributes().value("spacing");
+            if (!spacing.isEmpty())
+            {
+              output->setSpacing(NmVector3(spacing.toString()));
+            }
           } else if ("Data" == xml.name())
           {
             if ("VolumetricData" == xml.attributes().value("type"))

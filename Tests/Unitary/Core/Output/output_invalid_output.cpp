@@ -40,6 +40,8 @@ class InvalidData
 public:
   virtual DataProxySPtr createProxy() const;
   virtual const Bounds bounds() const {}
+  virtual void setSpacing(const NmVector3& spacing){}
+  virtual NmVector3 spacing() const {return NmVector3{1,1,1};}
   virtual Snapshot editedRegionsSnapshot() const {}
   virtual bool isValid() const {return false;}
   virtual bool fetchData(const TemporalStorageSPtr storage, const QString& prefix) {return false; }

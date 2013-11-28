@@ -28,12 +28,31 @@
 
 #include "NmVector3.h"
 
+#include <QStringList>
+
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
 NmVector3::NmVector3()
 : m_values{0, 0, 0}
 {
+}
+
+//-----------------------------------------------------------------------------
+NmVector3::NmVector3(const QString& string)
+: m_values{0, 0, 0}
+{
+  if (string.left(1)  != "{") throw Wrong_format_exception();
+  if (string.right(1) != "}") throw Wrong_format_exception();
+
+  auto values = string.mid(1,string.length()-2).split(",");
+
+  if (values.size() != 3) throw Wrong_format_exception();
+
+  for (int i = 0; i < 3; ++i)
+  {
+    m_values[i] = values[i].toDouble();
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -48,16 +67,17 @@ NmVector3::NmVector3(std::initializer_list<Nm> values)
 }
 
 //-----------------------------------------------------------------------------
-std::ostream& EspINA::operator<<(std::ostream& os, const NmVector3& values)
+QString NmVector3::toString() const
 {
-  os << "{";
-  int i = 0;
-  for (auto axis : {Axis::X , Axis::Y, Axis::Z}) {
-    if (i > 0) {os << ",";}
-    os << values[i];
-    i += 1;
-  }
-  os << "}";
+  return QString("{%1,%2,%3}").arg(m_values[0])
+                              .arg(m_values[1])
+                              .arg(m_values[2]);
+}
+
+//-----------------------------------------------------------------------------
+std::ostream& EspINA::operator<<(std::ostream& os, const NmVector3& vector)
+{
+  os << vector.toString().toStdString();
 
   return os;
 }

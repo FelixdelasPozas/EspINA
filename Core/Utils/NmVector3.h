@@ -33,6 +33,7 @@
 
 #include <iostream>
 #include <QList>
+#include <QString>
 
 namespace EspINA {
 
@@ -43,6 +44,7 @@ namespace EspINA {
    */
   class NmVector3 {
   public:
+    struct Wrong_format_exception {};
     struct Wrong_number_initial_values {};
 
   public:
@@ -53,6 +55,8 @@ namespace EspINA {
      */
     NmVector3(std::initializer_list<Nm> values);
 
+    NmVector3(const QString& string);
+
 
     Nm& operator[](int idx) { return m_values[idx]; }
     const Nm& operator[](int idx) const { return m_values[idx]; }
@@ -60,11 +64,13 @@ namespace EspINA {
     Nm& operator[](const Axis dir) { return m_values[idx(dir)]; }
     const Nm& operator[](const Axis dir) const { return m_values[idx(dir)]; }
 
+    QString toString() const;
+
   private:
     Nm m_values[3];
   };
 
-  std::ostream& operator<<(std::ostream& os, const NmVector3& values);
+  std::ostream& operator<<(std::ostream& os, const NmVector3& vector);
 
   bool operator==(const NmVector3& lhs, const NmVector3& rhs);
 

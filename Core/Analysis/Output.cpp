@@ -43,6 +43,7 @@ TimeStamp Output::s_tick = 0;
 Output::Output(FilterPtr filter, const Output::Id& id)
 : m_filter{filter}
 , m_id{id}
+//, m_spacing{1, 1, 1}
 , m_timeStamp{s_tick++}
 , m_hasToBeSaved{false}
 {
@@ -80,8 +81,8 @@ Snapshot Output::snapshot(TemporalStorageSPtr storage,
     DataSPtr data = dataProxy->get();
 
         xml.writeStartElement("Data");
-        xml.writeAttribute("type",   data->type());
-        xml.writeAttribute("bounds", data->bounds().toString());
+        xml.writeAttribute("type",    data->type());
+        xml.writeAttribute("bounds",  data->bounds().toString());
 
     for(int i = 0; i < data->editedRegions().size(); ++i)
     {

@@ -256,7 +256,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   m_mainBar->setObjectName("Main ToolBar");
   addToolBarBreak();
   m_contextualBar = addToolBar("Contextual ToolBar");
-  m_contextualBar->setMovable(false);
+  m_contextualBar->setMovable(true);
   m_contextualBar->setObjectName("Contextual ToolBar");
   m_contextualBar->setMinimumHeight(44);
   m_contextualBar->setMaximumHeight(44);
@@ -808,6 +808,7 @@ AnalysisSPtr EspinaMainWindow::loadedAnalysis(const QStringList files)
   QApplication::setOverrideCursor(Qt::WaitCursor);
   for(auto file : files)
   {
+    m_errorHandler->setDefaultDir(QFileInfo(file).dir());
     AnalysisReaderList readers = m_factory->readers(file);
 
     if (readers.isEmpty())

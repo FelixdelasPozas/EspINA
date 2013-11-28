@@ -75,18 +75,35 @@ void Channel::changeOutput(OutputSPtr output)
 //------------------------------------------------------------------------
 void Channel::restoreState(const State& state)
 {
-  //TODO: Parse state
-  double brightness =  0;
-  double contrast   =  1;
-  double hue        = -1;
-  double saturation =  0;
-  NmVector3 spacing{3.7, 3.7, 20.0};
-
-  setBrightness(brightness);
-  setContrast(contrast);
-  setHue(hue);
-  setSaturation(saturation);
-  output()->setSpacing(spacing);
+  for(auto element : state.split(";"))
+  {
+    auto tokens = element.split("=");
+    if ("Brightness" == tokens[0])
+    {
+      setBrightness(tokens[1].toDouble());
+    } else if ("Contrast" == tokens[0])
+    {
+      setContrast(tokens[1].toDouble());
+    } else if ("Hue" == tokens[0])
+    {
+      setHue(tokens[1].toDouble());
+    } else if ("Saturation" == tokens[0])
+    {
+      setSaturation(tokens[1].toDouble());
+    } else if ("Opacity" == tokens[0])
+    {
+      setOpacity(tokens[1].toDouble());
+    } else if ("Spacing" == tokens[0])
+    {
+      NmVector3 spacing;
+      auto values = tokens[1].split(",");
+      for(int i = 0; i < 3; ++i)
+      {
+        spacing[i] = values[i].toDouble();
+      }
+      output()->setSpacing(spacing);
+    }
+  }
 }
 
 //------------------------------------------------------------------------
@@ -94,7 +111,20 @@ State Channel::state() const
 {
   State state;
 
-  //TODO
+  auto  spacing = output()->spacing();
+  state += QString("Spacing=%1,%2,%3;").arg(spacing[0])
+                                       .arg(spacing[1])
+                                       .arg(spacing[2]);
+
+  state += QString("Brightness=%1;").arg(m_brightness);
+
+  state += QString("Contrast=%1;").arg(m_contrast);
+
+  state += QString("Hue=%1;").arg(m_hue);
+
+  state += QString("Saturation=%1;").arg(m_saturation);
+
+  state += QString("Opacity=%1;").arg(m_opacity);
 
   return state;
 }

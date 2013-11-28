@@ -274,12 +274,19 @@ QPair<FilterSPtr, Output::Id> SegFile_V4::findOutput(DirectedGraph::Vertex   roV
 //-----------------------------------------------------------------------------
 ChannelSPtr SegFile_V4::createChannel(DirectedGraph::Vertex   roVertex)
 {
-  auto output = findOutput(roVertex, "Volume");
+  DirectedGraph::Edges inputConections = m_trace->inEdges(roVertex, "Volume");
+  Q_ASSERT(inputConections.size() == 1);
 
-  ChannelSPtr channel = m_factory->createChannel(output.first, output.second);
+  DirectedGraph::Edge edge = inputConections.first();
+
+  auto vertex_v4 = std::dynamic_pointer_cast<ReadOnlyVertex>(edge.source);
+  auto filter = std::dynamic_pointer_cast<Filter>(findVertex(vertex_v4->vertexId()));
+
+  ChannelSPtr channel = m_factory->createChannel(filter, 0);
+
 
   channel->setName(roVertex->name());
-  channel->restoreState(roVertex->state());
+  channel->restoreState(roVertex->state() + vertex_v4->state());
   channel->setStorage(m_storage);
 
   m_analysis->add(channel);

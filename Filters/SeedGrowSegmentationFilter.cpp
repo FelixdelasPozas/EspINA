@@ -275,6 +275,8 @@ void SeedGrowSegmentationFilter::execute(Output::Id id)
 
   m_outputs[0]->setData(volume);
 
+  m_outputs[0]->setSpacing(spacing);
+
   m_prevLowerTh = m_lowerTh;
   m_prevUpperTh = m_upperTh;
   m_prevSeed    = m_seed;

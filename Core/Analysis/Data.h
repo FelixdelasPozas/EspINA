@@ -88,6 +88,8 @@ namespace EspINA
 
     virtual void setSpacing(const NmVector3& spacing) = 0;
 
+    virtual NmVector3 spacing() const = 0;
+
     bool isEdited() const
     { return !editedRegions().isEmpty(); }
 
