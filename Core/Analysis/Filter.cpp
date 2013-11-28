@@ -186,6 +186,7 @@ bool Filter::fetchOutputData(Output::Id id)
             m_outputs << output;
           } else if ("Data" == xml.name())
           {
+            data->setOutput(output.get());
             if (data->fetchData(storage(), prefix()))
             {
               output->setData(data);

@@ -67,8 +67,7 @@ namespace EspINA
     Id id() const
     { return m_id; }
 
-    void setSpacing(const NmVector3& spacing)
-    { m_spacing = spacing; }
+    void setSpacing(const NmVector3& spacing);
 
     NmVector3 spacing() const
     { return m_spacing; }

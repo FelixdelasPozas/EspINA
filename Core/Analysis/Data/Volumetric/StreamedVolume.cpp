@@ -42,9 +42,20 @@ StreamedVolume<T>::StreamedVolume()
 template<typename T>
 StreamedVolume<T>::StreamedVolume(const QFileInfo &fileName)
 : m_fileName{fileName.absoluteFilePath()}
-, m_origin {0, 0, 0}
-, m_spacing{1, 1, 1}
 {
+  auto reader = StreamReaderType<T>::New();
+  reader->ReleaseDataFlagOn();
+  reader->SetFileName(m_fileName.toStdString());
+  reader->UpdateOutputInformation();
+
+  typename T::Pointer image = reader->GetOutput();
+
+  for(int i = 0; i < 3; ++i)
+  {
+    m_origin[i]  = image->GetOrigin()[i];
+    m_spacing[i] = image->GetSpacing()[i];
+  }
+
   this->setBackgroundValue(0);
 }
 
@@ -69,7 +80,7 @@ const Bounds StreamedVolume<T>::bounds() const
 
   typename T::Pointer image = reader->GetOutput();
 
-  return equivalentBounds<T>(image, image->GetLargestPossibleRegion());
+  return equivalentBounds<T>(m_origin, m_spacing, image->GetLargestPossibleRegion());
 }
 
 //-----------------------------------------------------------------------------
@@ -93,20 +104,7 @@ NmVector3 StreamedVolume<T>::spacing() const
 {
   if (!isValid()) throw File_Not_Found_Exception();
 
-  auto reader = StreamReaderType<T>::New();
-  reader->ReleaseDataFlagOn();
-  reader->SetFileName(m_fileName.toStdString());
-  reader->UpdateOutputInformation();
-
-  auto image = reader->GetOutput();
-
-  NmVector3 spacing;
-  for(int i = 0; i < 3; ++i)
-  {
-    spacing[i] = image->GetSpacing()[i];
-  }
-
-  return spacing;
+  return m_spacing;
 }
 
 
@@ -124,6 +122,8 @@ const typename T::Pointer StreamedVolume<T>::itkImage() const
   typename T::Pointer image = reader->GetOutput();
   image->DisconnectPipeline();
 
+  image->SetSpacing(ItkSpacing<T>(m_spacing));
+
   return image;
 }
 
@@ -138,7 +138,7 @@ const typename T::Pointer StreamedVolume<T>::itkImage(const Bounds& bounds) cons
   reader->SetFileName(m_fileName.toStdString());
   reader->UpdateOutputInformation();
 
-  auto requestedRegion = equivalentRegion(reader->GetOutput(), bounds);
+  auto requestedRegion = equivalentRegion<T>(m_origin, m_spacing, bounds);
 
   auto extractor = StreamExtractType<T>::New();
   extractor->SetExtractionRegion(requestedRegion);
@@ -147,6 +147,8 @@ const typename T::Pointer StreamedVolume<T>::itkImage(const Bounds& bounds) cons
 
   typename T::Pointer image = extractor->GetOutput();
   image->DisconnectPipeline();
+
+  image->SetSpacing(ItkSpacing<T>(m_spacing));
 
   return image;
 }

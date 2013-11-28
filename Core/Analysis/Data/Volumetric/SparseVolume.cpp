@@ -39,7 +39,6 @@
 
 // VTK
 #include <vtkImplicitFunction.h>
-#include <QDir>
 
 namespace EspINA
 {
@@ -50,7 +49,8 @@ namespace EspINA
   //-----------------------------------------------------------------------------
   template<typename T>
   SparseVolume<T>::SparseVolume(const Bounds& bounds, const NmVector3& spacing) throw (Invalid_Image_Bounds_Exception)
-  : m_spacing{spacing}
+  : VolumetricData<T>()
+  , m_spacing{spacing}
   , m_bounds{bounds}
   {
   //   if (!bounds.areValid())
@@ -91,7 +91,19 @@ namespace EspINA
   template<typename T>
   void SparseVolume<T>::setSpacing(const NmVector3& spacing)
   {
-    m_spacing = spacing;
+    if (m_spacing != spacing)
+    {
+      for(auto block : m_blocks)
+      {
+        block->setSpacing(spacing);
+      }
+
+      auto region = equivalentRegion<T>(m_origin, m_spacing, m_bounds);
+
+      m_spacing = spacing;
+
+      m_bounds = equivalentBounds<T>(m_origin, m_spacing, region);
+    }
   }
 
 
@@ -99,8 +111,8 @@ namespace EspINA
   template<typename T>
   void SparseVolume<T>::setBlock(typename T::Pointer image)
   {
-    BlockUPtr block(new Block(image, false));
-    m_blocks.push_back(std::move(block));
+    BlockSPtr block(new Block(image, false));
+    m_blocks.push_back(block);
 
     Bounds bounds = equivalentBounds<T>(image, image->GetLargestPossibleRegion());
 
@@ -119,12 +131,12 @@ namespace EspINA
 
   //-----------------------------------------------------------------------------
   template<typename T>
-  void SparseVolume<T>::addBlock(BlockMaskUPtr mask)
+  void SparseVolume<T>::addBlock(BlockMaskSPtr mask)
   {
     Bounds bounds = mask->bounds();
 
-    BlockUPtr block(new Block(std::move(mask), false));
-    m_blocks.push_back(std::move(block));
+    BlockSPtr block(new Block(mask, false));
+    m_blocks.push_back(block);
 
     updateBlocksBoundingBox(bounds);
   }
@@ -230,9 +242,9 @@ namespace EspINA
 
     Bounds intersectionBounds = intersection(m_bounds, bounds);
 
-    BinaryMask<unsigned char> *mask = new BinaryMask<unsigned char>(intersectionBounds, m_spacing);
+    BlockMaskSPtr mask{new BinaryMask<unsigned char>(intersectionBounds, m_spacing)};
     mask->setForegroundValue(value);
-    BinaryMask<unsigned char>::region_iterator it(mask, intersectionBounds);
+    BinaryMask<unsigned char>::region_iterator it(mask.get(), intersectionBounds);
 
     it.goToBegin();
     while (!it.isAtEnd())
@@ -244,7 +256,7 @@ namespace EspINA
       ++it;
     }
 
-    addBlock(BlockMaskUPtr(mask));
+    addBlock(mask);
   }
 
   //-----------------------------------------------------------------------------
@@ -299,13 +311,13 @@ namespace EspINA
         return;
 
       Bounds intersectionBounds = intersection(m_bounds, bounds);
-      BinaryMask<unsigned char> *mask = new BinaryMask<unsigned char>(intersectionBounds, m_spacing);
+      BlockMaskSPtr mask{new BinaryMask<unsigned char>(intersectionBounds, m_spacing)};
       mask->setForegroundValue(value);
-      BinaryMask<unsigned char>::region_iterator it(mask, intersectionBounds);
+      BinaryMask<unsigned char>::region_iterator it(mask.get(), intersectionBounds);
       it.goToBegin();
       it.Set();
 
-      addBlock(BlockMaskUPtr(mask));
+      addBlock(mask);
   }
 
   //-----------------------------------------------------------------------------
@@ -337,7 +349,9 @@ namespace EspINA
     int i = 0;
     QFileInfo blockFile(storage->absoluteFilePath(prefix + QString("VolumetricData_%1.mhd").arg(i)));
 
-    m_spacing = NmVector3();
+    m_spacing = this->m_output->spacing();
+
+    auto itkSpacing = ItkSpacing<T>(m_spacing);
 
     while (blockFile.exists())
     {
@@ -352,13 +366,11 @@ namespace EspINA
         for(int s=0; s < 3; ++s)
         {
           m_spacing[s] = image->GetSpacing()[s];
+          itkSpacing[i] = m_spacing[i];
         }
       } else
       {
-        for(int s=0; s < 3; ++s)
-        {
-          error |= m_spacing[s] != image->GetSpacing()[s];
-        }
+        image->SetSpacing(itkSpacing);
       }
 
       setBlock(image);

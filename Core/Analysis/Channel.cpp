@@ -75,13 +75,26 @@ void Channel::changeOutput(OutputSPtr output)
 //------------------------------------------------------------------------
 void Channel::restoreState(const State& state)
 {
+  //TODO: Parse state
+  double brightness =  0;
+  double contrast   =  1;
+  double hue        = -1;
+  double saturation =  0;
+  NmVector3 spacing{3.7, 3.7, 20.0};
 
+  setBrightness(brightness);
+  setContrast(contrast);
+  setHue(hue);
+  setSaturation(saturation);
+  output()->setSpacing(spacing);
 }
 
 //------------------------------------------------------------------------
 State Channel::state() const
 {
   State state;
+
+  //TODO
 
   return state;
 }

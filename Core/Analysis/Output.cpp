@@ -50,6 +50,25 @@ Output::Output(FilterPtr filter, const Output::Id& id)
 }
 
 //----------------------------------------------------------------------------
+void Output::setSpacing(const NmVector3& spacing)
+{
+  if (m_spacing != spacing)
+  {
+    m_spacing = spacing;
+
+    for(auto data : m_data)
+    {
+      if (data->get()->isValid())
+      {
+        data->get()->setSpacing(spacing);
+      }
+    }
+
+    updateModificationTime();
+  }
+}
+
+//----------------------------------------------------------------------------
 Snapshot Output::snapshot(TemporalStorageSPtr storage,
                           QXmlStreamWriter       &xml,
                           const QString          &prefix) const

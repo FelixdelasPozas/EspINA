@@ -62,6 +62,9 @@ namespace EspINA
 
     virtual DataProxySPtr createProxy() const = 0;
 
+    void setOutput(OutputPtr output)
+    { m_output = output; }
+
     /** \brief Last modification time stamp
      */
     virtual TimeStamp lastModified()
@@ -83,6 +86,8 @@ namespace EspINA
 
     virtual const Bounds bounds() const = 0;
 
+    virtual void setSpacing(const NmVector3& spacing) = 0;
+
     bool isEdited() const
     { return !editedRegions().isEmpty(); }
 
@@ -99,11 +104,6 @@ namespace EspINA
     {
       m_timeStamp = s_tick++;
     }
-
-  private:
-    void setOutput(OutputPtr output)
-    { m_output = output; }
-
 
   protected:
     OutputPtr  m_output;

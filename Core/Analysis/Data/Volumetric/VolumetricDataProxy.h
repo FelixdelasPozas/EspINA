@@ -44,7 +44,10 @@ namespace EspINA
     virtual ~VolumetricDataProxy() {}
 
     virtual void set(DataSPtr data)
-    { m_data = std::dynamic_pointer_cast<VolumetricData<T>>(data); }
+    { 
+      m_data = std::dynamic_pointer_cast<VolumetricData<T>>(data);
+      m_data->setOutput(this->m_output);
+    }
 
     virtual DataSPtr get() const
     { return m_data; }

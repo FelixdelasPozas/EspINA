@@ -122,9 +122,9 @@ void VolumetricStreamReader::execute(Output::Id id)
 
   DefaultVolumetricDataSPtr volume{new StreamedVolume<itkVolumeType>(mhdFile)};
 
-  m_outputs[0]->setSpacing(volume->spacing());
-
   m_outputs[0]->setData(volume);
+
+  m_outputs[0]->setSpacing(volume->spacing());
 }
 
 // typedef itk::ChangeInformationImageFilter<itkVolumeType> ChangeInformationFilter;

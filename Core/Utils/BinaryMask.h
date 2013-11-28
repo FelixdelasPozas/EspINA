@@ -76,11 +76,15 @@ namespace EspINA
 
       /** \brief Returns mask bounds.
        */
-      Bounds bounds() const                            { return m_bounds; }
+      Bounds bounds() const
+      { return m_bounds; }
+
+      void setSpacing(const NmVector3& spacing);
 
       /** \brief Returns mask spacing.
        */
-      NmVector3 spacing() const                        { return m_spacing; }
+      NmVector3 spacing() const
+      { return m_spacing; }
 
       /** \brief Returns background value of the mask.
        *   Unset bits in the image will be interpreted as having this value.

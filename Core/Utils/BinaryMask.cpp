@@ -131,6 +131,22 @@ namespace EspINA
   {
     if (m_image) delete[] m_image;
   }
+
+  //-------------------------------------------------------------------------------------
+  template<typename T>
+  void BinaryMask<T>::setSpacing(const NmVector3& spacing)
+  {
+    if (m_spacing != spacing)
+    {
+      NmVector3 origin;//TODO: Update API to use mask with origin != (0,0,0)???
+      auto region = equivalentRegion<itkVolumeType>(origin, m_spacing, m_bounds);
+
+      m_spacing = spacing;
+
+      m_bounds = equivalentBounds<itkVolumeType>(origin, m_spacing, region);
+    }
+  }
+
   //-------------------------------------------------------------------------------------
   template<typename T> void BinaryMask<T>::setPixel(const IndexType& index) throw(Out_Of_Bounds_Exception)
   {

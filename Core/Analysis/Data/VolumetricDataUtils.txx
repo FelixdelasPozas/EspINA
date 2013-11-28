@@ -67,6 +67,15 @@ typename T::RegionType equivalentRegion(const T* image, const Bounds& bounds)
 
 //-----------------------------------------------------------------------------
 template<typename T>
+typename T::RegionType equivalentRegion(const NmVector3& origin, const NmVector3& spacing, const Bounds& bounds)
+{
+  typename T::Pointer image = define_itkImage<T>(origin, spacing);
+
+  return equivalentRegion<T>(image, bounds);
+}
+
+//-----------------------------------------------------------------------------
+template<typename T>
 Bounds equivalentBounds(const typename T::Pointer image, const typename T::RegionType& region)
 {
   Bounds bounds;
@@ -87,18 +96,25 @@ Bounds equivalentBounds(const typename T::Pointer image, const typename T::Regio
   return bounds;
 }
 
+//-----------------------------------------------------------------------------
+template<typename T>
+Bounds equivalentBounds(const NmVector3& origin, const NmVector3& spacing, const typename T::RegionType& region)
+{
+  typename T::Pointer image = define_itkImage<T>(origin, spacing);
+
+  return equivalentBounds<T>(image, region);
+}
+
 // //-----------------------------------------------------------------------------
 // double memory_size_in_MB(int number_of_pixels)
 // {
 //   return number_of_pixels / 1024.0 / 1024.0;
 // }
 
-template<typename T>
 //-----------------------------------------------------------------------------
-typename T::Pointer create_itkImage(const Bounds&                bounds,
-                                    const typename T::ValueType  value,
-                                    const NmVector3             &spacing,
-                                    const NmVector3             &origin)
+template<typename T>
+typename T::Pointer define_itkImage(const NmVector3             &origin,
+                                    const NmVector3             &spacing)
 {
   typename T::PointType   itkOrigin;
   typename T::SpacingType itkSpacing;
@@ -113,6 +129,19 @@ typename T::Pointer create_itkImage(const Bounds&                bounds,
   // Origin and spacing must be set before calling equivalentRegion on image
   image->SetOrigin(itkOrigin);
   image->SetSpacing(itkSpacing);
+
+  return image;
+}
+
+//-----------------------------------------------------------------------------
+template<typename T>
+typename T::Pointer create_itkImage(const Bounds&                bounds,
+                                    const typename T::ValueType  value,
+                                    const NmVector3             &spacing,
+                                    const NmVector3             &origin)
+{
+  typename T::Pointer image = define_itkImage<T>(origin, spacing);
+
   image->SetRegions(equivalentRegion<T>(image, bounds));
   image->Allocate();
   image->FillBuffer(value);

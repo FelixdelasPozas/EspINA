@@ -68,7 +68,7 @@ std::ostream& EspINA::operator<<(std::ostream& os, const NmVector3& values)
 bool EspINA::operator==(const NmVector3 &lhs, const NmVector3 &rhs)
 {
   for (int i = 0; i < 3; ++i) {
-    if (lhs[i] != rhs[i]) return false;
+    if (!areEqual(lhs[i], rhs[i])) return false;
   }
 
   return true;

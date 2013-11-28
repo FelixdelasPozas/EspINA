@@ -40,7 +40,10 @@ namespace EspINA
       virtual ~MeshProxy() {}
 
       virtual void set(DataSPtr data)
-      { m_data = std::dynamic_pointer_cast<MeshData>(data); }
+      { 
+        m_data = std::dynamic_pointer_cast<MeshData>(data); 
+        //TODO setOutput
+      }
 
       virtual DataSPtr get() const
       { return m_data; }

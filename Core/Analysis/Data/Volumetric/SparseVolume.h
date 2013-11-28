@@ -59,7 +59,7 @@ namespace EspINA
   {
     using BlockMask     = BinaryMask<unsigned char>;
     using BlockMaskPtr  = BlockMask*;
-    using BlockMaskUPtr = std::unique_ptr<BlockMask>;
+    using BlockMaskSPtr = std::shared_ptr<BlockMask>;
 
   public:
     /** \brief SparseVolume constructor to create a empty mask with the given bounds and spacing.
@@ -180,15 +180,15 @@ namespace EspINA
      *  the value of the data voxel
      *  Sparse Volume will take ownership of the block
      */
-    void addBlock(BlockMaskUPtr mask);
+    void addBlock(BlockMaskSPtr mask);
 
   private:
     enum class BlockType
     { Set = 0, Add = 1 };
 
     class Block;
-    using BlockUPtr = std::unique_ptr<Block>;
-    using BlockList = std::vector<BlockUPtr>;
+    using BlockSPtr = std::shared_ptr<Block>;
+    using BlockList = std::vector<BlockSPtr>;
 
     class Block
     {
@@ -196,10 +196,10 @@ namespace EspINA
         struct Invalid_Iteration_Bounds_Exception{};
 
       public:
-        Block(BlockMaskUPtr mask, bool locked)
+        Block(BlockMaskSPtr mask, bool locked)
         : m_type(BlockType::Add)
         , m_locked(locked)
-        , m_mask(std::move(mask))
+        , m_mask(mask)
         , m_image(nullptr)
         {}
 
@@ -219,6 +219,21 @@ namespace EspINA
             return equivalentBounds<T>(m_image, m_image->GetLargestPossibleRegion());
           else
             return m_mask->bounds();
+        }
+
+        void setSpacing(const NmVector3& spacing)
+        {
+          if (m_image != nullptr)
+          {
+            typename T::SpacingType itkSpacing;
+            for(int i = 0; i < 3; ++i) 
+            {
+              itkSpacing[i] = spacing[i];
+            }
+            m_image->SetSpacing(itkSpacing);
+          }
+          else
+            m_mask->setSpacing(spacing);
         }
 
         unsigned long long numberOfVoxels()
@@ -241,12 +256,12 @@ namespace EspINA
         BlockType     m_type;
         bool          m_locked;
 
-        BlockMaskUPtr       m_mask;
+        BlockMaskSPtr       m_mask;
         typename T::Pointer m_image;
     };
 
   private:
-    BlockMaskUPtr createMask(const Bounds& bounds) const;
+    BlockMaskSPtr createMask(const Bounds& bounds) const;
     void updateBlocksBoundingBox(const Bounds& bounds);
 
   private:

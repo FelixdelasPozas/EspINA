@@ -37,6 +37,9 @@ namespace EspINA
   template<typename T>
   typename T::RegionType equivalentRegion(const T *image, const Bounds& bounds);
 
+  template<typename T>
+  typename T::RegionType equivalentRegion(const NmVector3& origin, const NmVector3& spacing, const Bounds& bounds);
+
   /** \brief Return the bounds for a given image region and an image
    * 
    * Bounds are given in nm using (0,0) as origin
@@ -44,17 +47,34 @@ namespace EspINA
   template<typename T>
   Bounds equivalentBounds(const typename T::Pointer image, const typename T::RegionType& region);
 
+  template<typename T>
+  Bounds equivalentBounds(const NmVector3& origin, const NmVector3& spacing, const typename T::RegionType& region);
+
   // NOTE: Probably move into an independent module
   static double memory_size_in_MB(int number_of_pixels){
     return number_of_pixels / 1024.0 / 1024.0;
   }
 
   template<typename T>
+  typename T::Pointer define_itkImage(const NmVector3              &origin  = {0, 0, 0},
+                                      const NmVector3              &spacing = {1, 1, 1});
+
+  template<typename T>
   typename T::Pointer create_itkImage(const Bounds&                 bounds,
                                       const typename T::ValueType   value   = 0,
-                                      const NmVector3& spacing = {1, 1, 1},
-                                      const NmVector3& origin  = {0, 0, 0});
+                                      const NmVector3              &spacing = {1, 1, 1},
+                                      const NmVector3              &origin  = {0, 0, 0});
 
+  template<typename T>
+  typename T::SpacingType ItkSpacing(const NmVector3& spacing)
+  {
+    typename T::SpacingType itkSpacing;
+
+    for(int i = 0; i < 3; ++i) 
+      itkSpacing[i] = spacing[i];
+
+    return itkSpacing;
+  }
 
 //   /// Get the vtk-equivalent extent defining the volume
 //   void extent(int out[6]) const = 0;
