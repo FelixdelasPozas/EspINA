@@ -30,8 +30,8 @@ namespace EspINA {
     : public Filter
     {
     public:
-      explicit DummyFilter()
-      : Filter(OutputSList(), "Dummy", SchedulerSPtr())
+      explicit DummyFilter(OutputSList inputs = OutputSList())
+      : Filter(inputs, "Dummy", SchedulerSPtr())
       { m_outputs << OutputSPtr{new Output(this, 0)};}
       virtual void restoreState(const State& state) {}
       virtual State state() const {return State();}
@@ -44,19 +44,6 @@ namespace EspINA {
       virtual void execute(Output::Id id){}
       virtual bool ignoreStorageContent() const {return false;}
       virtual bool invalidateEditedRegions() {return false;}
-    };
-
-    class DummyProvider
-    : public ExtensionProvider
-    {
-    public:
-      virtual void restoreState(const State& state) {}
-    virtual State state() const {}
-      virtual Snapshot snapshot() const {return Snapshot();}
-      virtual void unload() {}
-      virtual Type type() const {}
-      virtual ChannelExtensionSPtr createChannelExtension(const ChannelExtension::Type& type) {}
-      virtual SegmentationExtensionSPtr createSegmentationExtension(const SegmentationExtension::Type& type) {}
     };
   }
 }

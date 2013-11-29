@@ -43,35 +43,47 @@ int analysis_merge_merge_analyses_with_same_channel( int argc, char** argv )
 
   AnalysisSPtr analysis1{new Analysis()};
 
-  SampleSPtr sample1{new Sample("Sample 1")};
+  SampleSPtr sample1{new Sample("Sample")};
 
-  FilterSPtr filter1{new DummyFilter()};
+  FilterSPtr channelFilter1{new DummyFilter()};
 
-  ChannelSPtr channel1(new Channel(filter1, 0));
+  ChannelSPtr channel1(new Channel(channelFilter1, 0));
   channel1->setName("Channel 1");
 
-  SegmentationSPtr segmentation1{new Segmentation(filter1, 0)};
+  OutputSList inputs1;
+  inputs1 << channel1->output();
+
+  FilterSPtr segmentationFilter1{new DummyFilter(inputs1)};
+
+  SegmentationSPtr segmentation1{new Segmentation(segmentationFilter1, 0)};
   segmentation1->setName("Segmentation 1");
 
   analysis1->add(sample1);
   analysis1->add(channel1);
   analysis1->add(segmentation1);
+  analysis1->addRelation(sample1, channel1, Channel::STAIN_LINK);
 
   AnalysisSPtr analysis2{new Analysis()};
 
-  SampleSPtr sample2{new Sample("Sample 2")};
+  SampleSPtr sample2{new Sample("Sample")};
 
-  FilterSPtr filter2{new DummyFilter()};
+  FilterSPtr channelFilter2{new DummyFilter()};
 
-  ChannelSPtr channel2(new Channel(filter2, 0));
+  ChannelSPtr channel2(new Channel(channelFilter2, 0));
   channel2->setName("Channel 1");
 
-  SegmentationSPtr segmentation2{new Segmentation(filter2, 0)};
+  OutputSList inputs2;
+  inputs2 << channel2->output();
+
+  FilterSPtr segmentationFilter2{new DummyFilter(inputs2)};
+
+  SegmentationSPtr segmentation2{new Segmentation(segmentationFilter2, 0)};
   segmentation2->setName("Segmentation 2");
 
   analysis2->add(sample2);
   analysis2->add(channel2);
   analysis2->add(segmentation2);
+  analysis2->addRelation(sample2, channel2, Channel::STAIN_LINK);
 
   AnalysisSPtr merged = merge(analysis1, analysis2);
 
@@ -80,7 +92,7 @@ int analysis_merge_merge_analyses_with_same_channel( int argc, char** argv )
     error = true;
   }
 
-  if (merged->samples().size() != 2) {
+  if (merged->samples().size() != 1) {
     cerr << "Unexpected number of samples in analysis" << endl;
     error = true;
   }
@@ -92,6 +104,11 @@ int analysis_merge_merge_analyses_with_same_channel( int argc, char** argv )
 
   if (merged->segmentations().size() != 2) {
     cerr << "Unexpected number of segmentations in analysis" << endl;
+    error = true;
+  }
+
+  if (merged->relationships()->edges().size() != 1) {
+    cerr << "Unexpected number of relationships in analysis" << endl;
     error = true;
   }
 

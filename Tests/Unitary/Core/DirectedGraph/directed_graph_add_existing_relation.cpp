@@ -37,6 +37,8 @@ using namespace std;
 
 int directed_graph_add_existing_relation(int argc, char** argv )
 {
+  bool error = false;
+
   DirectedGraph graph;
 
   DummyItemSPtr item1{new DummyItem()};
@@ -52,9 +54,19 @@ int directed_graph_add_existing_relation(int argc, char** argv )
   try {
     graph.addRelation(item1, item2, relation);
     cerr << "Expected existing relation exception" << endl;
+    error = true;
   } catch (DirectedGraph::Existing_Relation_Exception e) {
-    return 0;
   }
 
-  return -1;
+  DummyItemSPtr ref1{item1};
+  DummyItemSPtr ref2{item2};
+
+  try {
+    graph.addRelation(ref1, ref2, relation);
+    cerr << "Expected existing relation exception" << endl;
+    error = true;
+  } catch (DirectedGraph::Existing_Relation_Exception e) {
+  }
+
+  return error;
 }

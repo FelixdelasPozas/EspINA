@@ -67,12 +67,6 @@ Channel::~Channel()
 }
 
 //------------------------------------------------------------------------
-void Channel::changeOutput(OutputSPtr output)
-{
-
-}
-
-//------------------------------------------------------------------------
 void Channel::restoreState(const State& state)
 {
   for(auto element : state.split(";"))

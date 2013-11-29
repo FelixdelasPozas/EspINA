@@ -54,6 +54,9 @@ namespace EspINA
 
     Type type() { return m_type; }
 
+    void setInputs(OutputSList inputs)
+    { m_inputs = inputs;}
+
     OutputSList inputs() const
     { return m_inputs; }
 

@@ -53,8 +53,6 @@ namespace EspINA
 
     virtual void unload();
 
-    virtual void changeOutput(OutputSPtr output);
-
     void setPosition(const NmVector3& point);
 
     NmVector3 position() const;

@@ -37,6 +37,7 @@ using namespace std;
 
 int directed_graph_add_existing_item( int argc, char** argv )
 {
+  bool error = false;
   DirectedGraph graph;
 
   DummyItemSPtr item{new DummyItem()};
@@ -46,9 +47,18 @@ int directed_graph_add_existing_item( int argc, char** argv )
   try {
     graph.add(item);
     cerr << "Expected existing item exception" << endl;
+    error = true;
   } catch (DirectedGraph::Existing_Item_Exception e) {
-    return 0;
   }
 
-  return -1;
+  DummyItemSPtr ref{item};
+
+  try {
+    graph.add(ref);
+    cerr << "Expected existing item exception" << endl;
+    error = true;
+  } catch (DirectedGraph::Existing_Item_Exception e) {
+  }
+
+  return error;
 }

@@ -28,9 +28,10 @@
 
 #include "AnalysisUtils.h"
 
+#include <Core/Analysis/Channel.h>
+#include <Core/Analysis/Filter.h>
 #include <Core/Analysis/Sample.h>
 #include <Core/Analysis/Segmentation.h>
-#include <Core/Analysis/Channel.h>
 
 using namespace EspINA;
 
@@ -84,6 +85,7 @@ EspINA::AnalysisSPtr EspINA::merge(AnalysisSPtr& lhs, AnalysisSPtr& rhs)
         try
         {
           mergedCategory[category] = classification->createNode(category->classificationName());
+          mergedCategory[category]->setColor(category->color());
         } catch (Already_Defined_Node_Exception e)
         {
           mergedCategory[category] = classification->node(category->classificationName());
@@ -95,8 +97,11 @@ EspINA::AnalysisSPtr EspINA::merge(AnalysisSPtr& lhs, AnalysisSPtr& rhs)
     mergedAnalysis->setClassification(classification);
   }
 
-  QMap<SampleSPtr, SampleSPtr>   mergedSamples;
+  QMap<SampleSPtr,  SampleSPtr>  mergedSamples;
   QMap<ChannelSPtr, ChannelSPtr> mergedChannels;
+  QMap<FilterSPtr,  FilterSPtr>  mergedFilters;
+
+  QMap<PersistentSPtr, PersistentSPtr> mergedItems;
 
   for(auto analysis : {lhs, rhs}) 
   {
@@ -109,17 +114,50 @@ EspINA::AnalysisSPtr EspINA::merge(AnalysisSPtr& lhs, AnalysisSPtr& rhs)
         mergedAnalysis->add(sample);
       }
       mergedSamples[sample] = mergedSample;
+      mergedItems[sample]   = mergedSample;
     }
 
     for(auto channel : analysis->channels())
     {
+      // TODO: How to deal with different states (spacing) of same channels??
       auto mergedChannel = findChannel(channel, mergedAnalysis->channels());
       if (!mergedChannel)
       {
         mergedChannel = channel;
         mergedAnalysis->add(channel);
+      } else 
+      {
+        Q_ASSERT(mergedChannel->outputId() == channel->outputId());
+        // Filters using channel output as input need to be updated
+        auto filter       = channel->filter();
+        auto mergedFilter = mergedChannel->filter();
+        auto outputId     = mergedChannel->outputId();
+
+        mergedFilters[filter] = mergedFilter;
+        channel->changeOutput(mergedFilter, outputId);
+
+        for(auto vertex : analysis->content()->succesors(filter))
+        {
+          FilterSPtr succesor = std::dynamic_pointer_cast<Filter>(vertex);
+          if (succesor)
+          {
+            OutputSList updatedInputs;
+            for (auto input : succesor->inputs())
+            {
+              if (input->filter() == filter.get())
+              {
+                Q_ASSERT(input->id() < mergedFilter->numberOfOutputs());
+                updatedInputs << mergedFilter->output(input->id());
+              }
+              else 
+                updatedInputs << input;
+            }
+            succesor->setInputs(updatedInputs);
+          }
+        }
       }
       mergedChannels[channel] = mergedChannel;
+      mergedItems[channel]    = mergedChannel;
     }
 
     for(auto segmentation : analysis->segmentations())
@@ -129,11 +167,30 @@ EspINA::AnalysisSPtr EspINA::merge(AnalysisSPtr& lhs, AnalysisSPtr& rhs)
       {
         segmentation->setCategory(mergedCategory[category]);
       }
+//       if (mergedFilters.contains(segmentation->filter()))
+//       {
+//         segmentation->changeOutput(mergedFilters[segmentation->filter()], segmentation->outputId());
+//       }
       mergedAnalysis->add(segmentation);
+
+      mergedItems[segmentation] = segmentation;
+    }
+
+    for(auto relation : analysis->relationships()->edges())
+    {
+      auto source = mergedItems[relation.source];
+      auto target = mergedItems[relation.target];
+      QString relationship(relation.relationship.c_str());
+
+      try
+      {
+        mergedAnalysis->addRelation(source, target, relationship);
+      } catch (Analysis::Existing_Relation_Exception e)
+      {
+      }
     }
   }
 
-  // TODO: Relationships
 
   lhs.reset();
   rhs.reset();
