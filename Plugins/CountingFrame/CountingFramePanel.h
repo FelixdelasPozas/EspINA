@@ -16,22 +16,17 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef COUNTINGFRAME_H
-#define COUNTINGFRAME_H
+#ifndef ESPINA_COUNTING_FRAME_PANEL_H
+#define ESPINA_COUNTING_FRAME_PANEL_H
 
 #include "CountingFramePlugin_Export.h"
 
-#include "CountingFrames/CountingFrame.h"
+#include <Support/DockWidget.h>
 
-#include <Core/Interfaces/IDockWidget.h>
-#include <Core/Interfaces/IColorEngineProvider.h>
-#include <Core/Model/EspinaModel.h>
-#include <Core/EspinaTypes.h>
+#include "CountingFrames/CountingFrame.h"
 
 #include <QStandardItemModel>
 
-// TODO 2013-01-02 Create dock widgets inside this plugins, not as the plugin itself
-// do the same for the toolbars (and all other qwidgets)
 namespace EspINA
 {
   // Forward declaration
@@ -40,36 +35,25 @@ namespace EspINA
 
   /// Counting Frame Plugin
   class CountingFramePlugin_EXPORT CountingFramePanel
-  : public IDockWidget
-  , public IColorEngineProvider
+  : public DockWidget
   {
     Q_OBJECT
-    Q_INTERFACES
-    (
-      EspINA::IDockWidget
-      EspINA::IColorEngineProvider
-    )
+
     class GUI;
   public:
     static const QString ID;
 
   public:
-    explicit CountingFramePanel(QWidget* parent=NULL);
+    explicit CountingFramePanel(QWidget *parent = nullptr);
     virtual ~CountingFramePanel();
-
-    virtual void initDockWidget(EspinaModel *model,
-                                QUndoStack  *undoStack,
-                                ViewManager *viewManager);
 
     virtual void reset(); // slot
 
-    virtual EngineList colorEngines();
-
-
-    void createAdaptiveCF(Channel *channel,
+    void createAdaptiveCF(ChannelAdapterPtr channel,
                           Nm inclusion[3],
                           Nm exclusion[3]);
-    void createRectangularCF(Channel *channel,
+
+    void createRectangularCF(ChannelAdapterPtr channel,
                              Nm inclusion[3],
                              Nm exclusion[3]);
 
@@ -79,20 +63,30 @@ namespace EspINA
 
   protected slots:
     void applyTaxonomicalConstraint();
+
     void clearCountingFrames();
+
     void enableTaxonomicalConstraints(bool enable);
+
     /// Update UI depending on selected row's counting frame
     void updateUI(int row);
+
     void showInfo(CountingFrame *cf);
+
     void updateSegmentations();
+
     /// Creates a counting frame on the current focused/active
     /// sample and update all their segmentations counting frames
     /// extension discarting those that are out of the counting frame
     void createCountingFrame();
+
     /// Update active counting frame's margins
     void updateBoundingMargins();
+
     void deleteSelectedCountingFrame();
-    void channelChanged(ChannelPtr channel);
+
+    void channelChanged(ChannelAdapterPtr channel);
+
     void saveCountingFrameDescription();
 
     void changeUnitMode(bool useSlices);
@@ -106,9 +100,9 @@ namespace EspINA
 
     /// Return inclusion margins definded by the UI
     void inclusionMargins(double values[3]);
+
     /// Return exclusion margins definded by the UI
     void exclusionMargins(double values[3]);
-
 
     void registerCF(CountingFrameExtension *ext,
                     CountingFrame *cf);
@@ -118,10 +112,11 @@ namespace EspINA
     void countingFrameDeleted(CountingFrame *);
 
   private:
-    EspinaModel *m_espinaModel;
-    ViewManager *m_viewManager;
+    ModelAdapterSPtr m_model;
+    ViewManagerSPtr  m_viewManager;
 
     GUI *m_gui;
+
     bool m_useSlices;
 
     QList<CountingFrameExtension *> m_countingFramesExtensions;
@@ -136,4 +131,4 @@ namespace EspINA
 
 } // namespace EspINA
 
-#endif // COUNTINGFRAME_H
+#endif // ESPINA_COUNTING_FRAME_PANEL_H

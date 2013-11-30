@@ -154,7 +154,6 @@ void Scheduler::scheduleTasks() {
             // std::cout << "- " << worker->description().toStdString() << " has finished" << std::endl;
             m_runningTasks[task->priority()].removeOne(task);
             emit taskRemoved(task);
-
           } else if (is_thread_attached) {
             task->dispatcherPause();
             // std::cout << "- " << worker->description().toStdString() << " was paused by scheduler" << std::endl;

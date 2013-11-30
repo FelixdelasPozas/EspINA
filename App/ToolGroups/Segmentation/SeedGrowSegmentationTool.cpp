@@ -22,6 +22,7 @@
 #include <GUI/Selectors/PixelSelector.h>
 #include <GUI/Model/Utils/ModelAdapterUtils.h>
 #include <Filters/SeedGrowSegmentationFilter.h>
+#include <Undo/AddSegmentations.h>
 
 #include <QAction>
 #include <QUndoStack>
@@ -256,7 +257,9 @@ void SeedGrowSegmentationTool::createSegmentation()
 
     segmentation->setCategory(category);
 
-    m_model->add(segmentation);
+    m_undoStack->beginMacro(tr("Add Segmentation"));
+    m_undoStack->push(new AddSegmentations(segmentation, m_model));
+    m_undoStack->endMacro();
 
     m_viewManager->updateSegmentationRepresentations(segmentation.get());
     m_viewManager->updateViews();

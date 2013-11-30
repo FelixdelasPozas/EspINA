@@ -134,7 +134,7 @@ namespace EspINA
           FilterSPtr filteR;
           m_seg = m_model->factory()->createSegmentation(m_source, 0);
           m_undoStack->beginMacro("Create Tubular Segmentation");
-          m_undoStack->push(new AddSegmentation(m_channel, m_source, m_seg, m_model->findTaxonomyElement(m_viewManager->activeTaxonomy()), m_model));
+          m_undoStack->push(new AddSegmentations(m_channel, m_source, m_seg, m_model->findTaxonomyElement(m_viewManager->activeTaxonomy()), m_model));
 
           SegmentationSList createdSegmentations;
           createdSegmentations << m_seg;
@@ -178,7 +178,7 @@ namespace EspINA
       if (!m_seg && m_source->outputs().size() == 1)
       {
         m_seg = m_model->factory()->createSegmentation(m_source, 0);
-        m_undoStack->push(new AddSegmentation(m_channel, m_source, m_seg, m_model->findTaxonomyElement(m_viewManager->activeTaxonomy()), m_model));
+        m_undoStack->push(new AddSegmentations(m_channel, m_source, m_seg, m_model->findTaxonomyElement(m_viewManager->activeTaxonomy()), m_model));
         createdSegmentations << m_seg;
       }
       else

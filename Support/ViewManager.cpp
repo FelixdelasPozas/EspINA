@@ -78,6 +78,7 @@ void ViewManager::registerView(SelectableView* view)
 {
   Q_ASSERT(!m_espinaViews.contains(view));
   m_espinaViews << view;
+  //connect(view, )
 }
 
 //----------------------------------------------------------------------------
@@ -310,30 +311,33 @@ void ViewManager::resetViewCameras()
 //----------------------------------------------------------------------------
 void ViewManager::updateSegmentationRepresentations(SegmentationAdapterPtr segmentation)
 {
-  QStack<SegmentationAdapterPtr> itemsStack;
-  SegmentationAdapterList segList;
+  QStack<SegmentationAdapterPtr> stack;
+  SegmentationAdapterList segmentations;
 
-  itemsStack.push_front(segmentation);
-  segList << segmentation;
+  stack.push_front(segmentation);
+  segmentations << segmentation;
 
-  /* TODO 2013-10-05
-  while (!itemsStack.isEmpty())
-  {
-    SegmentationPtr seg = itemsStack.pop();
-    foreach(ModelItemSPtr item, seg->relatedItems(EspINA::RELATION_OUT))
-      if (item->type() == SEGMENTATION)
-      {
-        SegmentationPtr relatedSeg = segmentationPtr(item.get());
-        if (relatedSeg->isInputSegmentationDependent() && !segList.contains(relatedSeg))
-        {
-          itemsStack.push_front(relatedSeg);
-          segList << relatedSeg;
-        }
-      }
-  } */
+//   while (!stack.isEmpty())
+//   {
+//     SegmentationPtr seg = stack.pop();
+//     for(auto item : seg->relatedItems(EspINA::RELATION_OUT))
+//     {
+//       if (item->type() == SEGMENTATION)
+//       {
+//         SegmentationPtr relatedSeg = segmentationPtr(item.get());
+//         if (relatedSeg->isInputSegmentationDependent() && !segmentations.contains(relatedSeg))
+//         {
+//           stack.push_front(relatedSeg);
+//           segmentations << relatedSeg;
+//         }
+//       }
+//     }
+//   }
 
   for(auto view: m_espinaViews)
-    view->updateRepresentations(segList);
+  {
+    view->updateRepresentations(segmentations);
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -367,7 +371,9 @@ void ViewManager::updateSegmentationRepresentations(SegmentationAdapterList list
   }
 
   for(auto view: m_espinaViews)
+  {
     view->updateRepresentations(segList);
+  }
 }
 
 //----------------------------------------------------------------------------

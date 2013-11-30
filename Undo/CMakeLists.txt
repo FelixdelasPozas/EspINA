@@ -9,10 +9,9 @@ set (UNDO_SOURCES
   ${UNDO_MOC}
   ${UNDO_UI}
 #   AddChannel.cpp
-#   AddFilter.cpp
 #   AddRelation.cpp
 #   AddSample.cpp
-#   AddSegmentation.cpp
+  AddSegmentations.cpp
 #   ChangeTaxonomyCommand.cpp
 #   TaxonomiesCommand.cpp
 #   ChangeSegmentationNotes.cpp

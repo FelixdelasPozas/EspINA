@@ -17,37 +17,38 @@
 */
 
 
-#ifndef ADDFILTER_H
-#define ADDFILTER_H
+#ifndef ESPIN_ADD_SEGMENTATION_H
+#define ESPIN_ADD_SEGMENTATION_H
 
-#include "EspinaUndo_Export.h"
+#include "Undo/EspinaUndo_Export.h"
 
 // EspINA
-#include "Core/Model/Filter.h"
-#include <Core/Model/EspinaModel.h>
+#include <GUI/Model/ModelAdapter.h>
 
 // Qt
 #include <QUndoCommand>
 
 namespace EspINA
 {
-  class EspinaUndo_EXPORT AddFilter
+  class EspinaUndo_EXPORT AddSegmentations
   : public QUndoCommand
   {
-    public:
-	  explicit AddFilter(FilterSPtr   filter,
-						 EspinaModel  *model,
-						 QUndoCommand *parent = 0);
+  public:
+    explicit AddSegmentations(SegmentationAdapterSPtr segmentation,
+                              ModelAdapterSPtr        model,
+                              QUndoCommand           *parent = nullptr);
 
-	  virtual void redo();
-	  virtual void undo();
+    explicit AddSegmentations(SegmentationAdapterSList segmentations,
+                              ModelAdapterSPtr         model,
+                              QUndoCommand            *parent = nullptr);
+    virtual void redo();
+    virtual void undo();
 
-	private:
-	  EspinaModel *m_model;
+  private:
+    ModelAdapterSPtr m_model;
 
-	  FilterSPtr m_filter;
+    SegmentationAdapterSList m_segmentations;
   };
-
 } // namespace EspINA
 
-#endif // ADDFILTER_H
+#endif // ESPIN_ADD_SEGMENTATION_H

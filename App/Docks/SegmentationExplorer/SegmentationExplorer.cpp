@@ -307,10 +307,10 @@ void SegmentationExplorer::onModelSelectionChanged(QItemSelection selected, QIte
 
   updateGUI(selectedIndexes);
 
-  // signal blocking is necessary because we don't want to change our current selection indexes,
+  // signal blocking is necessary because we don't want to change our current selection indices,
   // and that will happen if a updateSelection(ViewManager::Selection) is called.
   this->blockSignals(true);
-  //TODO m_viewManager->setSelection(selection);
+  m_viewManager->setSelection(selection);
   this->blockSignals(false);
 }
 
