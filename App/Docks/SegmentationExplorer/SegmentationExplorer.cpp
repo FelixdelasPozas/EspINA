@@ -64,7 +64,7 @@ SegmentationExplorer::SegmentationExplorer(ModelAdapterSPtr model,
                                            ViewManagerSPtr  viewManager,
                                            QUndoStack      *undoStack,
                                            QWidget         *parent)
-: DockWidget(parent)
+: DockWidget   (parent)
 , m_baseModel  (model)
 , m_viewManager(viewManager)
 , m_undoStack  (undoStack)

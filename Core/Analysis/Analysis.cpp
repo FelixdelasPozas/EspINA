@@ -246,7 +246,7 @@ bool Analysis::removeIfIsolated(DirectedGraphSPtr graph, PersistentSPtr item)
 {
   bool removed = false;
 
-  if (graph->contains(item) && graph->edges(item).isEmpty())
+  if (graph->contains(item) && graph->outEdges(item).isEmpty())
   {
     graph->remove(item);
     removed = true;

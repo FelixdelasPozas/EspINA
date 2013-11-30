@@ -262,6 +262,12 @@ void ModelAdapter::addRelation(ItemAdapterSPtr ancestor, ItemAdapterSPtr success
 }
 
 //------------------------------------------------------------------------
+void ModelAdapter::addRelation(const Relation& relation)
+{
+  addRelation(relation.ancestor, relation.succesor, relation.relation);
+}
+
+//------------------------------------------------------------------------
 QModelIndex ModelAdapter::categoryIndex(CategoryAdapterPtr category) const
 {
   // We avoid setting the classification root as the parent of an index
@@ -392,6 +398,12 @@ void ModelAdapter::deleteRelation(ItemAdapterSPtr ancestor, ItemAdapterSPtr succ
   {
     throw Relation_Not_Found_Exception();
   }
+}
+
+//------------------------------------------------------------------------
+void ModelAdapter::deleteRelation(const Relation& relation)
+{
+  deleteRelation(relation.ancestor, relation.succesor, relation.relation);
 }
 
 //------------------------------------------------------------------------
@@ -568,7 +580,33 @@ ItemAdapterSList ModelAdapter::relatedItems(ItemAdapterPtr item, RelationType ty
 // //------------------------------------------------------------------------
 RelationList ModelAdapter::relations(ItemAdapterPtr item, RelationType type, const RelationName& filter)
 {
+  RelationList relations;
 
+  if (EspINA::RELATION_IN == type || EspINA::RELATION_INOUT == type)
+  {
+    for(auto edge : m_analysis->relationships()->inEdges(item->m_analysisItem, filter))
+    {
+      Relation relation;
+      relation.ancestor = find(edge.source);
+      relation.succesor = find(edge.target);
+      relation.relation = edge.relationship.c_str();
+      relations << relation;
+    }
+  }
+
+  if (EspINA::RELATION_OUT == type || EspINA::RELATION_INOUT == type)
+  {
+    for(auto edge : m_analysis->relationships()->outEdges(item->m_analysisItem, filter))
+    {
+      Relation relation;
+      relation.ancestor = find(edge.source);
+      relation.succesor = find(edge.target);
+      relation.relation = edge.relationship.c_str();
+      relations << relation;
+    }
+  }
+
+  return relations; 
 }
 
 //------------------------------------------------------------------------
@@ -605,6 +643,23 @@ CategoryAdapterSPtr ModelAdapter::findCategory(CategoryAdapterPtr category)
 
   return parent->subCategory(category->name());
 }
+
+//------------------------------------------------------------------------
+SegmentationAdapterSPtr ModelAdapter::smartPointer(SegmentationAdapterPtr segmentation)
+{
+  SegmentationAdapterSPtr pointer;
+
+  int i=0;
+  while (!pointer && i < m_segmentations.size())
+  {
+    if (m_segmentations[i].get() == segmentation)
+      pointer = m_segmentations[i];
+    i++;
+  }
+
+  return pointer;
+}
+
 
 //------------------------------------------------------------------------
 void ModelAdapter::removeImplementation(SampleAdapterSPtr sample)
@@ -726,7 +781,6 @@ void ModelAdapter::reset()
   {
     m_segmentations.clear();
     m_channels.clear();
-    m_filters.clear();
     m_samples.clear();
 
     m_classification.reset();
@@ -1282,11 +1336,6 @@ ItemAdapterPtr EspINA::itemAdapter(const QModelIndex& index)
 // }
 // 
 // //------------------------------------------------------------------------
-// void ModelAdapter::addSegmentationImplementation(SegmentationSPtr segmentation)
-// {
-// }
-// 
-// //------------------------------------------------------------------------
 // void ModelAdapter::removeSegmentationImplementation(SegmentationSPtr segmentation)
 // {
 //   Q_ASSERT(segmentation);
@@ -1372,22 +1421,6 @@ ItemAdapterPtr EspINA::itemAdapter(const QModelIndex& index)
 // SegmentationSPtr ModelAdapter::findSegmentation(ModelItemPtr item)
 // {
 //   return findSegmentation(segmentationPtr(item));
-// }
-// 
-// //------------------------------------------------------------------------
-// SegmentationSPtr ModelAdapter::findSegmentation(SegmentationPtr segmentation)
-// {
-//   SegmentationSPtr res;
-// 
-//   int i=0;
-//   while (!res && i < m_segmentations.size())
-//   {
-//     if (m_segmentations[i].get() == segmentation)
-//       res = m_segmentations[i];
-//     i++;
-//   }
-// 
-//   return res;
 // }
 // 
 // //------------------------------------------------------------------------

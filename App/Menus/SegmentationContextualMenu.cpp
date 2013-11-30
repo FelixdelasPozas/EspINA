@@ -380,7 +380,7 @@ void DefaultContextualMenu::deleteSelectedSementations()
   this->hide();
 
   m_undoStack->beginMacro("Delete Segmentations");
-  m_undoStack->push(new RemoveSegmentation(m_segmentations, m_model, m_viewManager));
+  m_undoStack->push(new RemoveSegmentations(m_segmentations, m_model, m_viewManager));
   m_undoStack->endMacro();
 
   emit deleteSegmentations();

@@ -8,17 +8,17 @@ include (GenerateExportHeader)
 set (UNDO_SOURCES
   ${UNDO_MOC}
   ${UNDO_UI}
-  AddChannel.cpp
-  AddFilter.cpp
-  AddRelation.cpp
-  AddSample.cpp
-  AddSegmentation.cpp
-  ChangeTaxonomyCommand.cpp
-  TaxonomiesCommand.cpp
-  ChangeSegmentationNotes.cpp
-  ChangeSegmentationTags.cpp
-  FillHolesCommand.cpp
-  RemoveSegmentation.cpp
+#   AddChannel.cpp
+#   AddFilter.cpp
+#   AddRelation.cpp
+#   AddSample.cpp
+#   AddSegmentation.cpp
+#   ChangeTaxonomyCommand.cpp
+#   TaxonomiesCommand.cpp
+#   ChangeSegmentationNotes.cpp
+#   ChangeSegmentationTags.cpp
+#   FillHolesCommand.cpp
+  RemoveSegmentations.cpp
   )
 
 set(UNDO_EXTERNAL_LIBS
@@ -41,5 +41,5 @@ GENERATE_EXPORT_HEADER(
              BASE_NAME EspinaUndo
              EXPORT_MACRO_NAME EspinaUndo_EXPORT
              EXPORT_FILE_NAME EspinaUndo_Export.h
-			 )
+  )
 target_link_libraries (EspinaUndo ${UNDO_EXTERNAL_LIBS})

@@ -161,13 +161,17 @@ namespace EspINA
                      ItemAdapterSPtr     succesor,
                      const RelationName& relation);
 
+    void addRelation(const Relation& relation); 
+
     void deleteRelation(ItemAdapterSPtr     ancestor,
                         ItemAdapterSPtr     succesor,
                         const RelationName& relation);
 
-    ItemAdapterSList relatedItems(ItemAdapterPtr item, RelationType type, const RelationName& filter);
+    void deleteRelation(const Relation& relation); 
 
-    RelationList relations(ItemAdapterPtr item, RelationType type, const RelationName& filter);
+    ItemAdapterSList relatedItems(ItemAdapterPtr item, RelationType type, const RelationName& filter = QString());
+
+    RelationList relations(ItemAdapterPtr item, RelationType type, const RelationName& filter = QString());
 
     // signal emission methods, used by undo commands to signal finished operations.
     void emitSegmentationAdded(SegmentationAdapterSList);
@@ -188,7 +192,7 @@ namespace EspINA
 //     virtual ChannelSPtr findChannel(ChannelPtr   channel);
 // 
 //     virtual SegmentationAdapterSPtr findSegmentation(ModelItemPtr    item        );
-//     virtual SegmentationAdapterSPtr findSegmentation(SegmentationAdapterPtr segmentation);
+    virtual SegmentationAdapterSPtr smartPointer(SegmentationAdapterPtr segmentation);
 // 
 //     virtual FilterSPtr findFilter(ModelItemPtr item  );
 //     virtual FilterSPtr findFilter(FilterPtr    filter);
@@ -224,7 +228,6 @@ namespace EspINA
     AnalysisSPtr              m_analysis;
     SampleAdapterSList        m_samples;
     ChannelAdapterSList       m_channels;
-    FilterAdapterSList        m_filters;
     SegmentationAdapterSList  m_segmentations;
     ClassificationAdapterSPtr m_classification;
   };

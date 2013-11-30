@@ -208,7 +208,7 @@ void MainToolBar::removeSegmentation(bool active)
 void MainToolBar::removeSegmentation(SegmentationPtr seg)
 {
   m_undoStack->beginMacro(tr("Delete Segmentation"));
-  m_undoStack->push(new RemoveSegmentation(seg, m_model, m_viewManager));
+  m_undoStack->push(new RemoveSegmentations(seg, m_model, m_viewManager));
   m_undoStack->endMacro();
 }
 

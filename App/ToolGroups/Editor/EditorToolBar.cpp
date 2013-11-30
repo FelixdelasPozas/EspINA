@@ -127,7 +127,7 @@ namespace EspINA
         if (filter->isOutputEmpty())
         {
           m_removedSegmentations << seg;
-          m_removedSegmentationsCommands.append(new RemoveSegmentation(seg, m_model, m_viewManager));
+          m_removedSegmentationsCommands.append(new RemoveSegmentations(seg, m_model, m_viewManager));
           delete filter;
           continue;
         }
@@ -161,7 +161,7 @@ namespace EspINA
       }
       m_viewManager->updateSegmentationRepresentations(segmentations);
 
-      foreach(RemoveSegmentation *command, m_removedSegmentationsCommands)
+      foreach(RemoveSegmentations *command, m_removedSegmentationsCommands)
         command->redo();
     }
 
@@ -186,7 +186,7 @@ namespace EspINA
       }
       m_viewManager->updateSegmentationRepresentations(segmentations);
 
-      foreach(RemoveSegmentation *command, m_removedSegmentationsCommands)
+      foreach(RemoveSegmentations *command, m_removedSegmentationsCommands)
         command->undo();
     }
 
@@ -197,7 +197,7 @@ namespace EspINA
 
     ~CODECommand()
     {
-      foreach(RemoveSegmentation *command, m_removedSegmentationsCommands)
+      foreach(RemoveSegmentations *command, m_removedSegmentationsCommands)
         delete command;
 
       m_newConnections.clear();
@@ -210,7 +210,7 @@ namespace EspINA
 
     QList<Connection> m_oldConnections, m_newConnections;
     SegmentationSList m_segmentations;
-    QList<RemoveSegmentation *> m_removedSegmentationsCommands;
+    QList<RemoveSegmentations *> m_removedSegmentationsCommands;
     SegmentationList m_removedSegmentations;
   };
 

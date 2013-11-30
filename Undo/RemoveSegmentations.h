@@ -20,14 +20,13 @@
 // File:    RemoveSegmentation.h
 // Purpose: Undo-able action to remove segmentations from the model
 //----------------------------------------------------------------------------
-#ifndef REMOVESEGMENTATION_H
-#define REMOVESEGMENTATION_H
+#ifndef ESPINA_REMOVE_SEGMENTATIONS_H
+#define ESPINA_REMOVE_SEGMENTATIONS_H
 
-#include "EspinaUndo_Export.h"
+#include "Undo/EspinaUndo_Export.h"
 
 // EspINA
-#include <Core/Model/ModelItem.h>
-#include <Core/Model/EspinaModel.h>
+#include <GUI/Model/ModelAdapter.h>
 
 // Qt
 #include <QUndoCommand>
@@ -36,29 +35,33 @@ namespace EspINA
 {
   class ViewManager;
 
-  class EspinaUndo_EXPORT RemoveSegmentation
+  class EspinaUndo_EXPORT RemoveSegmentations
   : public QUndoCommand
   {
     public:
-      explicit RemoveSegmentation(SegmentationPtr seg, EspinaModel *model, ViewManager *vm, QUndoCommand *parent = 0);
-      explicit RemoveSegmentation(SegmentationList segs, EspinaModel *model, ViewManager *vm, QUndoCommand *parent = 0);
+      explicit RemoveSegmentations(SegmentationAdapterPtr segmentation,
+                                   ModelAdapterSPtr       model,
+                                   QUndoCommand *         parent = nullptr);
+
+      explicit RemoveSegmentations(SegmentationAdapterList segmentations,
+                                   ModelAdapterSPtr        model,
+                                   QUndoCommand *          parent = nullptr);
 
       virtual void redo();
       virtual void undo();
 
     private:
-      bool isADupicatedRelation(Relation relation);
-      void addFilterDependencies(FilterSPtr filter);
+      void analyzeSegmentation(SegmentationAdapterPtr segmentation);
+//       bool isADupicatedRelation(Relation relation);
+//       void addFilterDependencies(FilterSPtr filter);
 
     private:
-      EspinaModel *m_model;
-      ViewManager *m_viewManager;
+      ModelAdapterSPtr m_model;
 
-      SegmentationSList m_segmentations;
-      FilterSList m_filters;
-      RelationList m_relations;
+      SegmentationAdapterSList m_segmentations;
+      RelationList             m_relations;
   };
 
 } // namespace EspINA
 
-#endif // REMOVESEGMENTATION_H
+#endif // ESPINA_REMOVE_SEGMENTATIONS_H

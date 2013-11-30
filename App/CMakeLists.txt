@@ -178,11 +178,11 @@ set (ESPINA_SOURCES
 
 set (ESPINA_LIBRARIES
   EspinaCore
-  EspinaGUI
   EspinaExtensions
   EspinaFilters
+  EspinaGUI
   EspinaSupport
-  #EspinaUndo
+  EspinaUndo
 )
 
 set (EXTERNAL_LIBRARIES

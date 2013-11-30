@@ -291,7 +291,7 @@ void Brush::drawStroke(PickableItemPtr item,
       }
       catch (...)
       {
-        m_undoStack->push(new RemoveSegmentation(m_currentSeg.get(), m_model, m_viewManager));
+        m_undoStack->push(new RemoveSegmentations(m_currentSeg.get(), m_model, m_viewManager));
         initBrushTool();
       }
     }

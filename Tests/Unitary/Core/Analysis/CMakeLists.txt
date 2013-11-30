@@ -3,6 +3,7 @@ create_test_sourcelist(Analysis_Tests Analysis_Tests.cpp # this file is created 
   analysis_add_channel.cpp
   analysis_add_channels.cpp
   analysis_add_basic_pipeline.cpp
+  analysis_add_complex_pipeline.cpp
   analysis_add_existing_channel.cpp
   analysis_add_existing_extension_provider
   analysis_add_existing_relation.cpp
@@ -26,6 +27,7 @@ create_test_sourcelist(Analysis_Tests Analysis_Tests.cpp # this file is created 
   analysis_remove_samples.cpp
   analysis_remove_segmentation.cpp
   analysis_remove_segmentations.cpp
+  analysis_remove_segmentation_from_basic_pipeline.cpp
   analysis_set_classification.cpp
   analysis_reset.cpp
 )
@@ -74,6 +76,7 @@ add_test("\"Analysis: Add Channels\""                            Analysis_Tests 
 add_test("\"Analysis: Add Segmentation\""                        Analysis_Tests analysis_add_segmentation)
 add_test("\"Analysis: Add Segmentations\""                       Analysis_Tests analysis_add_segmentations)
 add_test("\"Analysis: Add Basic Pipeline\""                      Analysis_Tests analysis_add_basic_pipeline)
+add_test("\"Analysis: Add Complex Pipeline\""                    Analysis_Tests analysis_add_complex_pipeline)
 add_test("\"Analysis: Add Relation\""                            Analysis_Tests analysis_add_relation)
 add_test("\"Analysis: Add Relation Between Non Existing Items\"" Analysis_Tests analysis_add_relation)
 add_test("\"Analysis: Add Existing Sample\""                     Analysis_Tests analysis_add_existing_sample)
@@ -87,6 +90,7 @@ add_test("\"Analysis: Remove Channel\""                          Analysis_Tests 
 add_test("\"Analysis: Remove Channels\""                         Analysis_Tests analysis_remove_channels)
 add_test("\"Analysis: Remove Segmentation\""                     Analysis_Tests analysis_remove_segmentation)
 add_test("\"Analysis: Remove Segmentations\""                    Analysis_Tests analysis_remove_segmentations)
+add_test("\"Analysis: Remove Segmentation from Basic Pipeline\"" Analysis_Tests analysis_remove_segmentation_from_basic_pipeline)
 add_test("\"Analysis: Remove Extension Provider\""               Analysis_Tests analysis_remove_extension_provider)
 add_test("\"Analysis: Delete Relation\""                         Analysis_Tests analysis_delete_relation)
 add_test("\"Analysis: Remove Non Existing Sample\""              Analysis_Tests analysis_remove_non_existing_sample)

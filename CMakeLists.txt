@@ -131,7 +131,7 @@ add_subdirectory( GUI        )
 add_subdirectory( Extensions )
 add_subdirectory( Filters    )
 add_subdirectory( Support    )
-#add_subdirectory( Undo    )
+add_subdirectory( Undo       )
 add_subdirectory( App        )
 #add_subdirectory( Plugins )
 

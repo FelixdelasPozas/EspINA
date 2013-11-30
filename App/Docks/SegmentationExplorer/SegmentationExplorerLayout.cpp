@@ -18,6 +18,7 @@
 
 
 #include "SegmentationExplorerLayout.h"
+#include <Undo/RemoveSegmentations.h>
 
 //#include <Dialogs/SegmentationInspector/SegmentationInspector.h>
 
@@ -105,10 +106,10 @@ void SegmentationExplorer::Layout::createSpecificControls(QHBoxLayout *specificC
 
 //------------------------------------------------------------------------
 void SegmentationExplorer::Layout::deleteSegmentations(SegmentationAdapterList segmentations)
-{ // TODO
-//   m_undoStack->beginMacro("Delete Segmentations");
-//   m_undoStack->push(new RemoveSegmentation(segmentations, m_model, m_viewManager));
-//   m_undoStack->endMacro();
+{
+  m_undoStack->beginMacro(tr("Delete Segmentations"));
+  m_undoStack->push(new RemoveSegmentations(segmentations, m_model));
+  m_undoStack->endMacro();
 }
 
 //------------------------------------------------------------------------

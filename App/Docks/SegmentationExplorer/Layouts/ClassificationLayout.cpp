@@ -217,13 +217,13 @@ void ClassificationLayout::createSpecificControls(QHBoxLayout *specificControlLa
 //------------------------------------------------------------------------
 void ClassificationLayout::contextMenu(const QPoint &pos)
 {//TODO
-//   CategoryAdapterList taxonomies;
+//   CategoryAdapterList categories;
 //   SegmentationSet     segmentations;
 // 
-//   if (!selectedItems(taxonomies, segmentations))
+//   if (!selectedItems(categories, segmentations))
 //     return;
 // 
-//   if (taxonomies.isEmpty())
+//   if (categories.isEmpty())
 //   {
 //     DefaultContextualMenu contextMenu(segmentations.toList(),
 //                                            m_model,
@@ -268,103 +268,99 @@ void ClassificationLayout::contextMenu(const QPoint &pos)
 
 //------------------------------------------------------------------------
 void ClassificationLayout::deleteSelectedItems()
-{//TODO
-//   CategoryAdapterList  taxonomies, additionalTaxonomies;
-//   SegmentationSet      segmentations;
-// 
-//   if (!selectedItems(taxonomies, segmentations))
-//     return;
-// 
-//   if (!taxonomies.isEmpty())
-//   {
-//     QModelIndexList selectedIndexes = m_view->selectionModel()->selectedIndexes();
-//     QModelIndexList additionalIndexes;
-//     foreach(QModelIndex index, selectedIndexes)
-//     {
-//       if (!index.isValid())
-//         continue;
-// 
-//       ItemAdapterPtr item = ClassificationLayout::item(index);
-//       switch (item->type())
-//       {
-//         case EspINA::TAXONOMY:
-//           additionalIndexes = indices(index, true);
-//           foreach(QModelIndex additionalIndex, additionalIndexes)
-//           {
-//             ItemAdapterPtr additionalItem = ClassificationLayout::item(additionalIndex);
-//             if (additionalItem->type() == EspINA::SEGMENTATION)
-//             {
-//               if (!segmentations.contains(segmentationPtr(additionalItem)))
-//                 segmentations << segmentationPtr(additionalItem);
-//             }
-//             else
-//             {
-//               if (!additionalTaxonomies.contains(taxonomyElementPtr(additionalItem)))
-//                 additionalTaxonomies << taxonomyElementPtr(additionalItem);
-//             }
-//           }
-//           break;
-//         default:
-//           continue;
-//           break;
-//       }
-//     }
-// 
-//     if (!segmentations.isEmpty())
-//     {
-//       QMessageBox msg;
-//       msg.setText(tr("Delete Selected Items. Warning: all elements under selected items will also be deleted"));
-//       QPushButton *none             = msg.addButton(tr("Cancel"), QMessageBox::RejectRole);
-//       /*QPushButton *recursiveTax =*/ msg.addButton(tr("Taxonomies and Segmentations"), QMessageBox::AcceptRole);
-//       QPushButton *onlySeg          = msg.addButton(tr("Only Segmentations"), QMessageBox::AcceptRole);
-// 
-//       msg.exec();
-// 
-//       if (msg.clickedButton() == none)
-//         return;
-// 
-//       if(msg.clickedButton() == onlySeg)
-//       {
-//         deleteSegmentations(segmentations.toList());
-//         return;
-//       }
-//     }
-// 
-//     // assuming taxonomies are empty, because if they weren't then !segmentations.empty()
-//     m_undoStack->beginMacro("Remove Taxonomy");
-//     deleteSegmentations(segmentations.toList());
-//     foreach(CategoryAdapterPtr taxonomy, additionalTaxonomies)
-//     {
-//       if (m_model->taxonomy()->element(taxonomy->qualifiedName()))
-//       {
-//         m_undoStack->push(new RemoveCategoryAdapterCommand(taxonomy, m_model));
-//       }
-//     }
-// 
-//     foreach(CategoryAdapterPtr taxonomy, taxonomies)
-//     {
-//       if (m_model->taxonomy()->element(taxonomy->qualifiedName()))
-//       {
-//         m_undoStack->push(new RemoveCategoryAdapterCommand(taxonomy, m_model));
-//       }
-//     }
-//     m_undoStack->endMacro();
-//   }
-//   else
-//     if (!segmentations.empty())
-//       deleteSegmentations(segmentations.toList());
+{
+  CategoryAdapterList    categories, additionalCategories;
+  SegmentationAdapterSet segmentations;
+
+  if (!selectedItems(categories, segmentations))
+    return;
+
+  if (!categories.isEmpty())
+  {
+    QModelIndexList selectedIndexes = m_view->selectionModel()->selectedIndexes();
+    QModelIndexList additionalIndexes;
+    for(QModelIndex index : selectedIndexes)
+    {
+      if (!index.isValid())
+        continue;
+
+      ItemAdapterPtr item = ClassificationLayout::item(index);
+      if (ItemAdapter::Type::CATEGORY == item->type())
+      {
+        additionalIndexes = indices(index, true);
+        for(QModelIndex additionalIndex : additionalIndexes)
+        {
+          ItemAdapterPtr additionalItem = ClassificationLayout::item(additionalIndex);
+          if (ItemAdapter::Type::SEGMENTATION == additionalItem->type())
+          {
+            auto segmentation = segmentationPtr(additionalItem);
+            if (!segmentations.contains(segmentation))
+              segmentations << segmentation;
+          }
+          else
+          {
+            auto category = categoryPtr(additionalItem);
+            if (!additionalCategories.contains(category))
+              additionalCategories << category;
+          }
+        }
+      }
+    }
+
+    if (!segmentations.isEmpty())
+    {
+      QMessageBox msg;
+      msg.setWindowTitle(tr("Delete Selected Items"));
+      msg.setText(tr("Warning: all elements under selected items will also be deleted"));
+      /*QPushButton *cancel =*/msg.addButton(tr("Cancel"), QMessageBox::RejectRole);
+      QPushButton *recursive = msg.addButton(tr("Categories and Segmentations"), QMessageBox::AcceptRole);
+      QPushButton *onlySeg   = msg.addButton(tr("Only Segmentations"), QMessageBox::AcceptRole);
+
+      msg.exec();
+
+
+      if(msg.clickedButton() == onlySeg)
+      {
+        deleteSegmentations(segmentations.toList());
+      }
+
+      if (msg.clickedButton() != recursive)
+      {
+        return;
+      }
+    }
+
+    // assuming categories are empty, because if they weren't then !segmentations.empty()
+    m_undoStack->beginMacro("Remove Category");
+    deleteSegmentations(segmentations.toList());
+
+    categories << additionalCategories;
+
+    for(auto category : categories)
+    {
+      if (m_model->classification()->category(category->classificationName()))
+      {
+        // TODO: m_undoStack->push(new RemoveCategoryAdapterCommand(category, m_model));
+      }
+    }
+    m_undoStack->endMacro();
+  }
+  else if (!segmentations.empty())
+  {
+    deleteSegmentations(segmentations.toList());
+  }
 }
 
 //------------------------------------------------------------------------
 void ClassificationLayout::showSelectedItemsInformation()
 {//TODO
-//   CategoryAdapterList  taxonomies;
+//   CategoryAdapterList  categories;
 //   SegmentationSet      segmentations;
 // 
-//   if (!selectedItems(taxonomies, segmentations))
+//   if (!selectedItems(categories, segmentations))
 //     return;
 // 
-//   if (!taxonomies.empty())
+//   if (!categories.empty())
 //   {
 //     QModelIndexList selectedIndexes = m_view->selectionModel()->selectedIndexes();
 //     QModelIndexList subIndexes;

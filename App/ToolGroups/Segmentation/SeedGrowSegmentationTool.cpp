@@ -236,7 +236,6 @@ void SeedGrowSegmentationTool::launchTask(Selector::SelectionList selectedItems)
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentationTool::onTaskProgres(int progress)
 {
-  std::cout << "Progress: " << progress << std::endl;
 }
 
 //-----------------------------------------------------------------------------
