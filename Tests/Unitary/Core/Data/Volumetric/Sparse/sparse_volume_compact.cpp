@@ -45,7 +45,7 @@ int sparse_volume_compact( int argc, char** argv )
  auto bg = 0;
  auto fg = 255;
 
- int size = 40;
+ int size = 100;
 
  Bounds bounds{0, size-1, 0, size-1, 0, size-1};
  SparseVolume<ImageType> canvas(bounds);

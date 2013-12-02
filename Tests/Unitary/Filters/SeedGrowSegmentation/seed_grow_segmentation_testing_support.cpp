@@ -47,6 +47,7 @@ OutputSPtr EspINA::Testing::inputChannel()
   };
 
   OutputSPtr output{new Output(new DummyFilter(),0)};
+  output->setSpacing({1,1,1});
 
   Bounds bounds{-0.5, 99.5, -0.5,99.5,-0.5,99.5};
 

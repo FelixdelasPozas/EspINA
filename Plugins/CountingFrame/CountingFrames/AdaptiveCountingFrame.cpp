@@ -19,9 +19,7 @@
 
 #include "AdaptiveCountingFrame.h"
 
-#include <Core/Model/Channel.h>
 #include "vtkCountingFrameSliceWidget.h"
-#include <Core/Extensions/EdgeDistances/AdaptiveEdges.h>
 #include "Extensions/CountingFrameExtension.h"
 
 #include <vtkPolyData.h>
@@ -29,7 +27,6 @@
 #include <vtkCellArray.h>
 #include <vtkCellData.h>
 #include "vtkCountingFrame3DWidget.h"
-#include <GUI/QtWidget/SliceView.h>
 
 using namespace EspINA;
 

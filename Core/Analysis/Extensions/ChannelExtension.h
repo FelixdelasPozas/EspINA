@@ -30,12 +30,14 @@ namespace EspINA
   {
   public:
     using Type = QString;
-    
+
     struct Existing_Extension{};
     struct Extension_Not_Found{};
 
   public:
     virtual ~ChannelExtension(){}
+
+    virtual Type type() const = 0;
 
     void setChannel(ChannelPtr channel)
     { m_channel = channel; onChannelSet(channel); }
@@ -44,11 +46,10 @@ namespace EspINA
 
     virtual void onChannelSet(ChannelPtr channel) = 0;
 
-    virtual void initialize() = 0;
+//     virtual void initialize() = 0;
+// 
+//     virtual void invalidate() = 0;
 
-    virtual void invalidate() = 0;
-
-    virtual Type type() const = 0;
 
   protected:
     explicit ChannelExtension() 

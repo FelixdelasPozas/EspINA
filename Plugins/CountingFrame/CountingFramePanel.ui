@@ -463,7 +463,7 @@
   <customwidget>
    <class>QComboTreeView</class>
    <extends>QComboBox</extends>
-   <header>GUI/QtWidget/QComboTreeView.h</header>
+   <header>GUI/Widgets/QComboTreeView.h</header>
   </customwidget>
  </customwidgets>
  <resources>

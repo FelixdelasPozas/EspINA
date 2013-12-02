@@ -133,7 +133,7 @@ add_subdirectory( Filters    )
 add_subdirectory( Support    )
 add_subdirectory( Undo       )
 add_subdirectory( App        )
-add_subdirectory( Plugins    )
+# add_subdirectory( Plugins    )
 
 # Testing
 set (BUILD_TESTING OFF  CACHE BOOL "Build EspINA Unitary Tests")

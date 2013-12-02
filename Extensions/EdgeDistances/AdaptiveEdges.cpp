@@ -21,11 +21,6 @@
 #include "EdgeDetector.h"
 #include "EdgeDistance.h"
 
-#include "Core/Model/Channel.h"
-#include "Core/Model/Segmentation.h"
-#include <Core/Model/EspinaModel.h>
-#include <Core/Model/Filter.h>
-#include <Core/OutputRepresentations/MeshType.h>
 
 #include <vtkAppendPolyData.h>
 #include <vtkCellArray.h>

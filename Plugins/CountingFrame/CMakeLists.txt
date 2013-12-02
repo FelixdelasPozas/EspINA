@@ -44,7 +44,7 @@ qt4_wrap_cpp(MOC_SRCS
 #   CountingFrameRenderer.h
 #   Extensions/CountingFrameExtension.h
 #   Extensions/StereologicalInclusion.h
-#   CountingFrames/CountingFrame.h
+  CountingFrames/CountingFrame.h
 
   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
   )
@@ -60,9 +60,9 @@ set (LOCAL_SOURCES
 #   CountingFrames/vtkCountingFrameCoronalSliceRepresentation.cpp
 #   CountingFrames/vtkCountingFrameSagittalSliceRepresentation.cpp
 #   ColorEngines/CountingFrameColorEngine.cpp
-#   CountingFrames/AdaptiveCountingFrame.cpp
-#   CountingFrames/CountingFrame.cpp
-#   CountingFrames/RectangularCountingFrame.cpp
+  CountingFrames/AdaptiveCountingFrame.cpp
+  CountingFrames/CountingFrame.cpp
+  CountingFrames/RectangularCountingFrame.cpp
 #   CountingFrames/vtkCountingFrameSliceRepresentation.cpp
 #   CountingFrames/vtkCountingFrameSliceWidget.cpp
 #   CountingFrames/vtkCountingFrame3DRepresentation.cpp

@@ -16,12 +16,13 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef ADAPTIVEEDGES_H
-#define ADAPTIVEEDGES_H
+#ifndef ESPINA_ADAPTIVE_EDGES_H
+#define ESPINA_ADAPTIVE_EDGES_H
 
-#include "EspinaCore_Export.h"
+#include "Extensions/EspinaExtensions_Export.h"
 
-#include "Core/Extensions/ChannelExtension.h"
+#include <Core/Analysis/Extensions/ChannelExtension.h>
+#include <Core/Utils/Spatial.h>
 
 #include <vtkSmartPointer.h>
 #include <vtkPolyData.h>
@@ -30,98 +31,49 @@
 
 namespace EspINA
 {
-  static const ModelItem::ExtId AdaptiveEdgesID = "AdaptiveEdges";
-
-  class EspinaCore_EXPORT AdaptiveEdges
-  : public Channel::Extension
+  class EspinaExtensions_EXPORT AdaptiveEdges
+  : public ChannelExtension
   {
     static const QString EXTENSION_FILE;
     static const QString EDGES_FILE;
     static const QString FACES_FILE;
 
-    struct ExtensionData
-    {
-      ExtensionData() 
-      : ComputedVolume(0)
-      , UseAdaptiveEdges(false)
-      , BackgroundColor(0)
-      , Threshold(50)
-      {}
-
-	  bool operator==(const ExtensionData& other) const
-	  {
-		  bool retVal = (ComputedVolume == other.ComputedVolume);
-		  retVal |= (UseAdaptiveEdges == other.UseAdaptiveEdges);
-		  retVal |= (BackgroundColor == other.BackgroundColor);
-		  retVal |= (Threshold == other.Threshold);
-		  retVal |= (Edges == other.Edges);
-		  for (int i = 0; i < 6; ++i)
-			  retVal |= (Faces[i] == other.Faces[i]);
-
-		  return retVal;
-	  }
-
-      Nm   ComputedVolume;
-      bool UseAdaptiveEdges;
-      int BackgroundColor;
-      int Threshold;
-
-      vtkSmartPointer<vtkPolyData> Edges;
-      vtkSmartPointer<vtkPolyData> Faces[6];
-    };
-
-    typedef Cache<ChannelPtr, ExtensionData> ExtensionCache;
-
-    static ExtensionCache s_cache;
-
   public:
     static const ModelItem::ArgumentId EDGETYPE;
 
-    explicit AdaptiveEdges(bool useAdaptiveEdges = false, int backgroundColor = 0, int threshold = 50);
+    static const Type TYPE;
+
+  public:
+    explicit AdaptiveEdges(bool useAdaptiveEdges = false,
+                           int backgroundColor   = 0,
+                           int threshold         = 50);
     virtual ~AdaptiveEdges();
 
-    virtual ModelItem::ExtId id();
-
-    virtual ModelItem::ExtIdList dependencies() const
-    {return Channel::Extension::dependencies();}
-
-    virtual bool isCacheFile(const QString &file) const
-    { return EXTENSION_FILE == file; }
-//           || file.startsWith(EDGES_FILE)
-//           || file.startsWith(FACES_FILE); }
-
-    virtual void loadCache(QuaZipFile &file, const QDir &tmpDir, IEspinaModel *model);
-
-    virtual bool saveCache(Snapshot &snapshot);
-
-    virtual Channel::ExtensionPtr clone();
-
-    virtual void initialize();
-
-    virtual void invalidate(ChannelPtr channel = NULL);
+    virtual Type type() const
+    { return TYPE; }
 
     void computeDistanceToEdge(SegmentationPtr seg);
 
     vtkSmartPointer<vtkPolyData> channelEdges();
     Nm computedVolume();
 
-    bool usesAdaptiveEdges() { return m_useAdaptiveEdges; }
-    int backgroundColor() { return m_backgroundColor; }
-    int threshold() { return m_threshold; }
+    bool usesAdaptiveEdges() const
+    { return m_useAdaptiveEdges; }
+
+    int backgroundColor() const
+    { return m_backgroundColor; }
+
+    int threshold() const
+    { return m_threshold; }
 
   private:
     void computeAdaptiveEdges();
-
-    void loadEdgesCache(ChannelPtr channel);
-
-    void loadFacesCache(ChannelPtr channel);
-
-    ChannelPtr findChannel(const QString &id,
-                           int outputId,
-                           const QDir &tmpDir,
-                           IEspinaModel *model);
-
-    QString fileId(ChannelPtr channel) const;
+//     void loadEdgesCache(ChannelPtr channel);
+// 
+//     void loadFacesCache(ChannelPtr channel);
+// 
+// 
+//     QString fileId(ChannelPtr channel) const;
 
   private:
     QMutex m_mutex;
@@ -135,11 +87,11 @@ namespace EspINA
     friend class EdgeDetector;
   };
 
-  typedef AdaptiveEdges *AdaptiveEdgesPtr;
-  typedef boost::shared_ptr<AdaptiveEdgesPtr> AdaptiveEdgesSPtr;
+  using AdaptiveEdgesPtr  = AdaptiveEdges *;
+  using AdaptiveEdgesSPtr = std::shared_ptr<AdaptiveEdges>;
 
-  AdaptiveEdgesPtr adaptiveEdgesPtr(Channel::ExtensionPtr extension);
+  AdaptiveEdgesPtr EspinaExtensions_EXPORT adaptiveEdges(ChannelExtensionPtr extension);
 
 }// namespace EspINA
 
-#endif // ADAPTIVEEDGES_H
+#endif // ESPINA_ADAPTIVE_EDGES_H

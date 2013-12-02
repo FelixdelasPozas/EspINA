@@ -23,12 +23,13 @@
 #include "CountingFramePlugin_Export.h"
 
 #include <QStandardItemModel>
+
 #include <boost/graph/graph_concepts.hpp>
 
 #include "vtkCountingFrameSliceWidget.h"
 #include "vtkCountingFrame3DWidget.h"
-#include <GUI/vtkWidgets/EspinaWidget.h>
 #include "CountingFrameInteractorAdapter.h"
+#include <GUI/View/Widgets/EspinaWidget.h>
 
 #include <vtkCommand.h>
 #include <vtkSmartPointer.h>
