@@ -44,7 +44,8 @@ namespace EspINA
     static const QString ID;
 
   public:
-    explicit CountingFramePanel(QWidget *parent = nullptr);
+    explicit CountingFramePanel(ModelAdapterSPtr model,
+                                QWidget         *parent = nullptr);
     virtual ~CountingFramePanel();
 
     virtual void reset(); // slot
@@ -109,6 +110,7 @@ namespace EspINA
 
   signals:
     void countingFrameCreated(CountingFrame *);
+
     void countingFrameDeleted(CountingFrame *);
 
   private:

@@ -16,33 +16,27 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef ESPINA_DOCK_WIDGET_H
-#define ESPINA_DOCK_WIDGET_H
+
+#ifndef ESPINA_PLUGIN_H
+#define ESPINA_PLUGIN_H
 
 #include "Support/EspinaSupport_Export.h"
 
-#include <GUI/Model/ModelAdapter.h>
-#include "ViewManager.h"
-
-#include <QDockWidget>
-
-class QUndoStack;
+#include <QtPlugin>
 
 namespace EspINA
 {
-  class EspinaSupport_EXPORT DockWidget
-  : public QDockWidget
+  class EspinaSupport_EXPORT Plugin
+  : public QObject
   {
-    Q_OBJECT
   public:
-    explicit DockWidget(QWidget *parent = nullptr)
-    : QDockWidget(parent) {}
+    virtual ~Plugin(){}
 
-    virtual ~DockWidget(){}
-
-  public slots:
-    virtual void reset() = 0;
+    virtual void init() = 0;
   };
-}
 
-#endif // ESPINA_DOCK_WIDGET_H
+} // namespace EspINA
+
+Q_DECLARE_INTERFACE(EspINA::Plugin, "es.upm.cesvima.EspINA.Plugin/1.0")
+
+#endif // ESPINA_PLUGIN_H

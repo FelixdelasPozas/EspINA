@@ -36,6 +36,13 @@
 #include <Core/Utils/TemporalStorage.h>
 #include <Core/Utils/BinaryMask.h>
 
+// ITK
+#include <itkImageRegionIterator.h>
+#include <itkExtractImageFilter.h>
+#include <itkMetaImageIO.h>
+#include <itkImageFileWriter.h>
+#include <itkImageFileReader.h>
+
 namespace EspINA
 {
 
@@ -64,15 +71,15 @@ namespace EspINA
   public:
     /** \brief SparseVolume constructor to create a empty mask with the given bounds and spacing.
      */
-    explicit SparseVolume(const Bounds& bounds = Bounds(), const NmVector3& spacing = {1, 1, 1}) throw(Invalid_Image_Bounds_Exception);
+    explicit SparseVolume(const Bounds& bounds = Bounds(), const NmVector3& spacing = {1, 1, 1});
 
     /** \brief Class destructor
      */
     virtual ~SparseVolume() {}
 
-    /** \brief Returns the memory used to store the image in megabytes.
+    /** \brief Returns the memory used to store the image in bytes
      */
-    virtual double memoryUsage() const;
+    virtual size_t memoryUsage() const;
 
     /** \brief Returns the bounds of the volume.
      */
@@ -196,53 +203,18 @@ namespace EspINA
         struct Invalid_Iteration_Bounds_Exception{};
 
       public:
-        Block(BlockMaskSPtr mask, bool locked)
-        : m_type(BlockType::Add)
-        , m_locked(locked)
-        , m_mask(mask)
-        , m_image(nullptr)
-        {}
+        virtual ~Block(){}
 
-        Block(typename T::Pointer image, bool locked)
-        : m_type(BlockType::Set)
-        , m_locked(locked)
-        , m_mask(nullptr)
-        , m_image(image)
-        {}
+        virtual Bounds bounds() const = 0;
 
-        ~Block()
-        {}
+        virtual void setSpacing(const NmVector3& spacing) = 0;
 
-        Bounds bounds() const
-        {
-          if (m_image != nullptr)
-            return equivalentBounds<T>(m_image, m_image->GetLargestPossibleRegion());
-          else
-            return m_mask->bounds();
-        }
+        virtual size_t memoryUsage() const = 0;
 
-        void setSpacing(const NmVector3& spacing)
-        {
-          if (m_image != nullptr)
-          {
-            typename T::SpacingType itkSpacing;
-            for(int i = 0; i < 3; ++i) 
-            {
-              itkSpacing[i] = spacing[i];
-            }
-            m_image->SetSpacing(itkSpacing);
-          }
-          else
-            m_mask->setSpacing(spacing);
-        }
-
-        unsigned long long numberOfVoxels()
-        {
-          if (m_image != nullptr)
-            return m_image->GetBufferedRegion().GetNumberOfPixels();
-          else
-            return m_mask->numberOfVoxels();
-        }
+        virtual void updateImage(itk::ImageRegionIterator<T>                &iit,
+                                 BinaryMask<unsigned char>::region_iterator &mit,
+                                 const Bounds                              &bounds,
+                                 long unsigned int                         &remainingVoxels) const = 0;
 
         BlockType type() const
         { return m_type; }
@@ -255,9 +227,98 @@ namespace EspINA
 
         BlockType     m_type;
         bool          m_locked;
+    };
 
-        BlockMaskSPtr       m_mask;
-        typename T::Pointer m_image;
+    class MaskBlock
+    : public Block
+    {
+    public:
+      MaskBlock(BlockMaskSPtr mask, bool locked)
+      : m_mask(mask)
+      {}
+
+      virtual Bounds bounds() const
+      { return m_mask->bounds(); }
+
+      virtual void setSpacing(const NmVector3& spacing)
+      { m_mask->setSpacing(spacing); }
+
+      virtual size_t memoryUsage() const
+      { return m_mask->memoryUsage(); }
+
+      BlockMaskSPtr m_mask;
+    };
+
+    class AddBlock
+    : public MaskBlock
+    {
+    public:
+      AddBlock(BlockMaskSPtr mask, bool locked)
+      : MaskBlock(mask, locked) {}
+
+      virtual void updateImage(itk::ImageRegionIterator<T>                &iit,
+                               BinaryMask<unsigned char>::region_iterator &mit,
+                               const Bounds                              &bounds,
+                               long unsigned int                         &remainingVoxels) const
+      {
+        BinaryMask<unsigned char>::region_iterator bit(this->m_mask.get(), bounds);
+        bit.goToBegin();
+
+        while(!mit.isAtEnd())
+        {
+          if (!mit.isSet() && bit.isSet())
+          {
+            iit.Set(this->m_mask->foregroundValue());
+            mit.Set();
+            --remainingVoxels;
+          }
+          ++mit;
+          ++bit;
+          ++iit;
+        }
+      }
+    };
+
+    class ImageBlock
+    : public Block
+    {
+    public:
+      ImageBlock(typename T::Pointer image, bool locked)
+      : m_image(image)
+      {}
+
+      virtual Bounds bounds() const
+      { return equivalentBounds<T>(m_image, m_image->GetLargestPossibleRegion()); }
+
+      virtual void setSpacing(const NmVector3& spacing)
+      { m_image->SetSpacing(ItkSpacing<T>(spacing)); }
+
+      virtual size_t memoryUsage() const
+      { return m_image->GetBufferedRegion().GetNumberOfPixels()*sizeof(typename T::ValueType); }
+
+      virtual void updateImage(itk::ImageRegionIterator<T>                &iit,
+                               BinaryMask<unsigned char>::region_iterator &mit,
+                               const Bounds                              &bounds,
+                               long unsigned int                         &remainingVoxels) const
+      {
+        auto blockRegion = equivalentRegion<T>(m_image, bounds);
+        itk::ImageRegionIterator<T> bit(m_image, blockRegion);
+        bit = bit.Begin();
+        while(!mit.isAtEnd())
+        {
+          if (!mit.isSet())
+          {
+            iit.Set(bit.Value());
+            mit.Set();
+            --remainingVoxels;
+          }
+          ++mit;
+          ++bit;
+          ++iit;
+        }
+      }
+
+      typename T::Pointer m_image;
     };
 
   private:

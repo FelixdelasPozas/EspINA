@@ -61,7 +61,7 @@ StreamedVolume<T>::StreamedVolume(const QFileInfo &fileName)
 
 //-----------------------------------------------------------------------------
 template<typename T>
-double StreamedVolume<T>::memoryUsage() const
+size_t StreamedVolume<T>::memoryUsage() const
 {
   return 0;
 }

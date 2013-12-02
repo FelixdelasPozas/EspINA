@@ -69,7 +69,7 @@ namespace EspINA {
     QFileInfo fileName() const
     { return m_fileName; }
 
-    virtual double memoryUsage() const;
+    virtual size_t memoryUsage() const;
 
     virtual const Bounds bounds() const;
 

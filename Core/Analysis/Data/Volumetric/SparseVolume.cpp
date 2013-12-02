@@ -30,12 +30,6 @@
 #include <Core/Utils/Bounds.h>
 #include <Core/Analysis/Persistent.h>
 
-// ITK
-#include <itkImageRegionIterator.h>
-#include <itkExtractImageFilter.h>
-#include <itkMetaImageIO.h>
-#include <itkImageFileWriter.h>
-#include <itkImageFileReader.h>
 
 // VTK
 #include <vtkImplicitFunction.h>
@@ -48,27 +42,33 @@ namespace EspINA
 
   //-----------------------------------------------------------------------------
   template<typename T>
-  SparseVolume<T>::SparseVolume(const Bounds& bounds, const NmVector3& spacing) throw (Invalid_Image_Bounds_Exception)
+  SparseVolume<T>::SparseVolume(const Bounds& bounds, const NmVector3& spacing)
   : VolumetricData<T>()
+  , m_origin{0,0,0}
   , m_spacing{spacing}
-  , m_bounds{bounds}
   {
-  //   if (!bounds.areValid())
-  //     throw Invalid_Image_Bounds_Exception();
+    if (bounds.areValid())
+    {
+      auto region = equivalentRegion<T>(m_origin, m_spacing, bounds);
+
+      m_bounds = equivalentBounds<T>(m_origin, m_spacing, region);
+    }
 
     this->setBackgroundValue(0);
   }
 
   //-----------------------------------------------------------------------------
   template<typename T>
-  double SparseVolume<T>::memoryUsage() const
+  size_t SparseVolume<T>::memoryUsage() const
   {
-    double numPixels = 0;
+    size_t size = 0;
 
-    for (unsigned int i = 0; i < m_blocks.size(); ++i)
-      numPixels += m_blocks[i]->numberOfVoxels();
+    for (auto block : m_blocks)
+    {
+      size += block->memoryUsage();
+    }
 
-    return memory_size_in_MB(numPixels);
+    return size;
   }
 
 
@@ -83,6 +83,8 @@ namespace EspINA
   template<typename T>
   void SparseVolume<T>::setOrigin(const NmVector3& origin)
   {
+    //NmVector3 shift = m_origin - origin;
+
     m_origin = origin;
   }
 
@@ -111,10 +113,10 @@ namespace EspINA
   template<typename T>
   void SparseVolume<T>::setBlock(typename T::Pointer image)
   {
-    BlockSPtr block(new Block(image, false));
+    BlockSPtr block(new ImageBlock(image, false));
     m_blocks.push_back(block);
 
-    Bounds bounds = equivalentBounds<T>(image, image->GetLargestPossibleRegion());
+    //Bounds bounds = equivalentBounds<T>(image, image->GetLargestPossibleRegion());
 
     /*// DEBUG
     auto i2 = T::New();
@@ -125,7 +127,7 @@ namespace EspINA
     region.Print(std::cout);
     */
 
-    updateBlocksBoundingBox(bounds);
+    updateBlocksBoundingBox(block->bounds());
   }
 
 
@@ -135,7 +137,7 @@ namespace EspINA
   {
     Bounds bounds = mask->bounds();
 
-    BlockSPtr block(new Block(mask, false));
+    BlockSPtr block(new AddBlock(mask, false));
     m_blocks.push_back(block);
 
     updateBlocksBoundingBox(bounds);
@@ -162,72 +164,32 @@ namespace EspINA
     auto imageRegion = image->GetLargestPossibleRegion();
     auto maskBounds  = equivalentBounds<T>(image, imageRegion);
     auto mask        = new BinaryMask<unsigned char>(maskBounds, m_spacing);
-    int numVoxels    = imageRegion.GetNumberOfPixels();
+    auto numVoxels   = imageRegion.GetNumberOfPixels();
     Q_ASSERT(numVoxels == mask->numberOfVoxels());
 
-    if (m_blocks.size() == 0)
-      return image;
-
-    for (int i = m_blocks.size() -1; i >= 0; --i)
+    for (int i = m_blocks.size() - 1; i >= 0; --i)
     {
-      if (!intersect(bounds, m_blocks[i]->bounds()))
+      auto block = m_blocks[i];
+
+      Bounds blockBounds = block->bounds();
+      if (!intersect(bounds, blockBounds))
         continue;
 
       if (numVoxels == 0)
         break;
 
-      Bounds intersectionBounds = intersection(maskBounds, m_blocks[i]->bounds());
+      Bounds intersectionBounds = intersection(maskBounds, blockBounds);
 
       BinaryMask<unsigned char>::region_iterator mit(mask, intersectionBounds);
       itk::ImageRegionIterator<T> iit(image, equivalentRegion<T>(image, intersectionBounds));
       mit.goToBegin();
       iit = iit.Begin();
-      switch(m_blocks[i]->type())
-      {
-        case BlockType::Set:
-          {
-            auto blockRegion = equivalentRegion<T>(m_blocks[i]->m_image, intersectionBounds);
-            itk::ImageRegionIterator<T> bit(m_blocks[i]->m_image, blockRegion);
-            bit = bit.Begin();
-            while(!mit.isAtEnd())
-            {
-              if (!mit.isSet())
-              {
-                iit.Set(bit.Value());
-                mit.Set();
-                --numVoxels;
-              }
-              ++mit;
-              ++bit;
-              ++iit;
-            }
-          }
-          break;
-        case BlockType::Add:
-          {
-            BinaryMask<unsigned char>::region_iterator bit(m_blocks[i]->m_mask.get(), intersectionBounds);
-            bit.goToBegin();
 
-            while(!mit.isAtEnd())
-            {
-              if (!mit.isSet() && bit.isSet())
-              {
-                iit.Set(m_blocks[i]->m_mask->foregroundValue());
-                mit.Set();
-                --numVoxels;
-              }
-              ++mit;
-              ++bit;
-              ++iit;
-            }
-          }
-          break;
-        default:
-          Q_ASSERT(false);
-          break;
-      }
+      block->updateImage(iit, mit, intersectionBounds, numVoxels);
     }
+
     delete mask;
+
     return image;
   }
 
@@ -406,19 +368,22 @@ namespace EspINA
       QString mhd = name + ".mhd";
       QString raw = name + ".raw";
 
+      ImageBlock * block = dynamic_cast<ImageBlock *>(m_blocks[i].get());
+      Q_ASSERT(block);
 
-      Q_ASSERT(BlockType::Set == m_blocks[i]->type());
+      if (block)
+      {
+        auto volume = block->m_image;
+        bool releaseFlag = volume->GetReleaseDataFlag();
+        volume->ReleaseDataFlagOff();
+        writer->SetFileName(storage->absoluteFilePath(mhd).toUtf8().data());
+        writer->SetInput(volume);
+        writer->Write();
+        volume->SetReleaseDataFlag(releaseFlag);
 
-      auto volume = m_blocks[i]->m_image;
-      bool releaseFlag = volume->GetReleaseDataFlag();
-      volume->ReleaseDataFlagOff();
-      writer->SetFileName(storage->absoluteFilePath(mhd).toUtf8().data());
-      writer->SetInput(volume);
-      writer->Write();
-      volume->SetReleaseDataFlag(releaseFlag);
-
-      snapshot << SnapshotData(mhd, storage->snapshot(mhd));
-      snapshot << SnapshotData(raw, storage->snapshot(raw));
+        snapshot << SnapshotData(mhd, storage->snapshot(mhd));
+        snapshot << SnapshotData(raw, storage->snapshot(raw));
+      }
     }
 
     return snapshot;
@@ -442,7 +407,7 @@ namespace EspINA
   {
     using SplitBounds = QPair<Bounds, int>;
 
-    int minSize[3] = {20, 20, 20};
+    int minSize[3] = {50, 50, 50};
     for(int i = 0; i < 3; ++i)
     {
       minSize[i] *= m_spacing[i];
@@ -486,10 +451,13 @@ namespace EspINA
           Bounds b1{bounds};
           Bounds b2{bounds};
 
-          //TODO: Possibly adjust splitPoint to voxel size
           Nm splitPoint = (bounds[2*splitPlane] + bounds[2*splitPlane+1]) / 2.0;
+
           b1[2*splitPlane+1] = splitPoint;
-          b2[2*splitPlane]   = splitPoint;
+          // Adjust splitPoint to voxel size
+          auto region1 = equivalentRegion<T>(m_origin, m_spacing, b1);
+          b1 = equivalentBounds<T>(m_origin, m_spacing, region1);          
+          b2[2*splitPlane]   = b1[2*splitPlane+1];
 
           splitPlane = (splitPlane + 1)%3;
 
@@ -505,7 +473,17 @@ namespace EspINA
 
     for(auto bounds : blockBounds)
     {
-      blockImages << itkImage(bounds);
+      typename T::Pointer image = itkImage(bounds);
+      bool empty = true;
+      itk::ImageRegionIterator<T> it(image, image->GetLargestPossibleRegion());
+      it.Begin();
+      while (empty && !it.IsAtEnd())
+      {
+        empty = it.Get() != backgroundValue();
+        ++it;
+      }
+
+      if (!empty) blockImages << itkImage(bounds);
     }
 
     m_blocks.clear();

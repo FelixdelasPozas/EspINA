@@ -52,11 +52,11 @@ namespace EspINA
     virtual DataSPtr get() const
     { return m_data; }
 
-    /** \brief Return memory usage in MB
+    /** \brief Return memory usage in bytes
      *
      * Returns the amount of memory allocated to hold the volume representation
      */
-    virtual double memoryUsage() const
+    virtual size_t memoryUsage() const
     { return m_data->memoryUsage(); }
 
     virtual const Bounds bounds() const

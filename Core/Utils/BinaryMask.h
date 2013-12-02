@@ -110,11 +110,16 @@ namespace EspINA
        */
       unsigned long long numberOfVoxels()              { return m_size[0] * m_size[1] * m_size[2]; }
 
-      /* \brief Returns the size of the array used for internal storage
+      /** \brief Returns the size of the array used for internal storage
        */
       unsigned long long bufferSize()                  { return (m_size[0] * m_size[1] * m_size[2])/m_integerSize; }
 
-      /* \brief Returns the buffer as a QByteArray
+      /** \brief Returns the number of bytes allocated by this mask
+       */
+      size_t memoryUsage() const
+      { return m_bufferSize * sizeof(int); }
+
+      /** \brief Returns the buffer as a QByteArray
        */
       QByteArray buffer()                              { return QByteArray( reinterpret_cast<const char*>(m_image), static_cast<int>(m_size[0] * m_size[1] * m_size[2])); }
 
@@ -364,15 +369,17 @@ namespace EspINA
            *        inside the largest possible region of the mask.
            */
           region_iterator(BinaryMask<T> *mask, const Bounds &bounds) throw (Region_Not_Contained_In_Mask_Exception)
-          : m_mask(mask), m_bounds(bounds)
+          : m_mask(mask)
           {
-            if (intersection(bounds, mask->bounds()) != bounds)
-              throw Region_Not_Contained_In_Mask_Exception();
+            if (intersection(bounds, mask->bounds()) != bounds) throw Region_Not_Contained_In_Mask_Exception();
+
 
             itkVolumeType::Pointer fakeImage = itkVolumeType::New();
             double dSpacing[3]{m_mask->m_spacing[0], m_mask->m_spacing[1], m_mask->m_spacing[2] };
             fakeImage->SetSpacing(dSpacing);
-            itkVolumeType::RegionType region = equivalentRegion<itkVolumeType>(fakeImage, m_bounds);
+            itkVolumeType::RegionType region = equivalentRegion<itkVolumeType>(fakeImage, bounds);
+
+            m_bounds = equivalentBounds<itkVolumeType>(fakeImage, region);
 
             m_extent[0] = region.GetIndex(0);
             m_extent[1] = region.GetIndex(0) + region.GetSize(0) - 1;

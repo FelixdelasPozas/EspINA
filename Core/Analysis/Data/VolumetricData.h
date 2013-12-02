@@ -56,11 +56,11 @@ namespace EspINA
 
     virtual DataProxySPtr createProxy() const;
 
-    /** \brief Return memory usage in MB
+    /** \brief Return memory usage in bytes
      *
      * Returns the amount of memory allocated to hold the volume representation
      */
-    virtual double memoryUsage() const = 0;
+    virtual size_t memoryUsage() const = 0;
 
     virtual void setOrigin(const NmVector3& origin) = 0;
 

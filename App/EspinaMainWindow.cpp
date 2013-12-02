@@ -39,6 +39,7 @@
 #include <GUI/Model/Utils/ModelAdapterUtils.h>
 #include <GUI/Representations/BasicRepresentationFactory.h>
 #include <Support/Settings/EspinaSettings.h>
+#include <Support/Plugin.h>
 
 
 // Std
@@ -357,8 +358,13 @@ EspinaMainWindow::~EspinaMainWindow()
 //------------------------------------------------------------------------
 void EspinaMainWindow::loadPlugins(QList<QObject *> &plugins)
 {
-  foreach (QObject *plugin, plugins)
+  for(QObject *plugin : plugins)
   {
+    Plugin *validPlugin = qobject_cast<Plugin*>(plugin);
+    if (validPlugin)
+    {
+      validPlugin->init();
+    }
 //     IFactoryExtension *factoryExtension = qobject_cast<IFactoryExtension *>(plugin);
 //     if (factoryExtension)
 //     {
@@ -377,13 +383,13 @@ void EspinaMainWindow::loadPlugins(QList<QObject *> &plugins)
 //       }
 //     }
 
-    DynamicMenu *menu = qobject_cast<DynamicMenu *>(plugin);
-    if (menu)
-    {
-      qDebug() << plugin << "- Menus ..... OK";
-      foreach(MenuEntry entry, menu->menuEntries())
-        createDynamicMenu(entry);
-    }
+//     DynamicMenu *menu = qobject_cast<DynamicMenu *>(plugin);
+//     if (menu)
+//     {
+//       qDebug() << plugin << "- Menus ..... OK";
+//       foreach(MenuEntry entry, menu->menuEntries())
+//         createDynamicMenu(entry);
+//     }
 
 //     IColorEngineProvider *provider = qobject_cast<IColorEngineProvider *>(plugin);
 //     if (provider)
@@ -393,13 +399,13 @@ void EspinaMainWindow::loadPlugins(QList<QObject *> &plugins)
 //         m_colorEngines->addColorEngine(engine.first, engine.second);
 //     }
 
-    DockWidget *dock = qobject_cast<DockWidget *>(plugin);
-    if (dock)
-    {
-      qDebug() << plugin << "- Dock ...... OK";
-      registerDockWidget(Qt::LeftDockWidgetArea, dock);
-      dock->initDockWidget(m_model, m_undoStack, m_viewManager);
-    }
+//     DockWidget *dock = qobject_cast<DockWidget *>(plugin);
+//     if (dock)
+//     {
+//       qDebug() << plugin << "- Dock ...... OK";
+//       registerDockWidget(Qt::LeftDockWidgetArea, dock);
+//       dock->initDockWidget(m_model, m_undoStack, m_viewManager);
+//     }
 
 //     IFileReader *fileReader = qobject_cast<IFileReader *>(plugin);
 //     if (fileReader)
@@ -886,7 +892,7 @@ void EspinaMainWindow::saveAnalysis()
   fileDialog.selectFile(suggestedFileName);
   fileDialog.setDefaultSuffix(QString(tr("seg")));
   fileDialog.setWindowTitle(tr("Save EspINA Analysis"));
-  //TODO 2013-10-06: fileDialog.setFilter(SEG_FILES);
+  fileDialog.setFilter(tr("EspINA Analysis (*.seg)"));
   fileDialog.setDirectory(m_sessionFile.absoluteDir());
   fileDialog.setOption(QFileDialog::DontUseNativeDialog, false);
   fileDialog.setViewMode(QFileDialog::Detail);

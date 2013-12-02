@@ -55,7 +55,7 @@ int sparse_volume_draw_implicit_function( int argc, char** argv )
 
  Bounds lowerHalfVolume{-0.5, 3.5, -0.5, 3.5, -0.5, 1.5};
  if (!Testing_Support<ImageType>::Test_Pixel_Values(canvas.itkImage(lowerHalfVolume), bg, lowerHalfVolume)) {
-   cerr << "Pixel values inside " << lowerHalfVolume << " should be " << bg << endl;
+   cerr << "Initial Pixel values inside " << lowerHalfVolume << " should be " << bg << endl;
    pass = false;
  }
 

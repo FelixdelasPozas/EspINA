@@ -17,6 +17,7 @@
  */
 
 #include "CountingFramePanel.h"
+
 #include "ui_CountingFramePanel.h"
 
 #include "CountingFrames/RectangularCountingFrame.h"
@@ -25,15 +26,6 @@
 #include "Extensions/CountingFrameExtension.h"
 #include "CountingFrameRenderer.h"
 #include "ColorEngines/CountingFrameColorEngine.h"
-
-#include <Core/Model/Channel.h>
-#include <Core/Model/EspinaModel.h>
-#include <Core/Model/EspinaFactory.h>
-#include <Core/Model/Segmentation.h>
-#include <Core/Model/Taxonomy.h>
-#include <GUI/ViewManager.h>
-#include <Core/Extensions/EdgeDistances/EdgeDistance.h>
-#include <vtkMath.h>
 
 #include <QFileDialog>
 
@@ -120,8 +112,8 @@ const QString CountingFramePanel::ID = "CountingFrameExtension";
 
 //------------------------------------------------------------------------
 CountingFramePanel::CountingFramePanel(QWidget * parent)
-: IDockWidget(parent)
-, m_espinaModel(NULL)
+: DockWidget(parent)
+, m_model(NULL)
 , m_viewManager(NULL)
 , m_gui(new GUI())
 , m_useSlices(false)
