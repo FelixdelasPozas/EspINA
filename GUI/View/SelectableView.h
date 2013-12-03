@@ -22,6 +22,7 @@
 
 #include <GUI/Model/ChannelAdapter.h>
 #include <GUI/Model/SegmentationAdapter.h>
+#include "Selection.h"
 
 namespace EspINA
 {
@@ -32,10 +33,10 @@ namespace EspINA
   class EspinaGUI_EXPORT SelectableView
   {
   public:
-    using Selection = QList<ViewItemAdapterList>;
+    SelectableView() 
+    : m_selectionEnabled(true)
+    , m_selection(new Selection()) {}
 
-  public:
-    SelectableView() : m_selectionEnabled(true) {}
     virtual ~SelectableView(){}
 
     void setSelectionEnabled(bool value)
@@ -44,18 +45,24 @@ namespace EspINA
     bool selectionEnabled() const
     { return m_selectionEnabled; }
 
+    void setSharedSelection(SelectionSPtr selection)
+    { m_selection = selection; onSelectionSet(selection); }
+
+    SelectionSPtr currentSelection() const
+    { return m_selection; }
+
     virtual void updateRepresentations() = 0;
 
     virtual void updateRepresentations(ChannelAdapterList list) = 0;
 
     virtual void updateRepresentations(SegmentationAdapterList list) = 0;
 
-    virtual void updateSelection() = 0;
-
-    virtual Selection currentSelection() const = 0;
+  protected:
+    virtual void onSelectionSet(SelectionSPtr selection) = 0;
 
   private:
-    bool m_selectionEnabled;
+    bool          m_selectionEnabled;
+    SelectionSPtr m_selection;
   };
 
   using SelectableViewPtr  = SelectableView*;

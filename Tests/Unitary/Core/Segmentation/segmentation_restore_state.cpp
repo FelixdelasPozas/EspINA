@@ -34,7 +34,7 @@ int segmentation_restore_state(int argc, char** argv)
 
   SegmentationSPtr segmentation{new Segmentation(FilterSPtr{new DummyFilter()}, 0)};
 
-  State forgedState = QString("NUMBER=2;USERS=FakeUser1,FakeUser2;CATEGORY=Prueba;");
+  State forgedState = QString("NUMBER=2;USERS=FakeUser1,FakeUser2;CATEGORY=Prueba;ALIAS=HDP4");
 
   segmentation->restoreState(forgedState);
 
@@ -47,6 +47,12 @@ int segmentation_restore_state(int argc, char** argv)
   if (!(segmentation->users().contains("FakeUser1") && segmentation->users().contains("FakeUser2")))
   {
     cerr << "Unexpected user" << endl;
+    error = true;
+  }
+
+  if (segmentation->alias() != "HDP4")
+  {
+    cerr << "Unexpected restored alias" << endl;
     error = true;
   }
 

@@ -285,6 +285,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   registerDockWidget(Qt::LeftDockWidgetArea, channelExplorer);
 
   auto segmentationExplorer = new SegmentationExplorer(m_model, m_viewManager, m_undoStack, this);
+  m_viewManager->registerView(segmentationExplorer);
   registerDockWidget(Qt::LeftDockWidgetArea, segmentationExplorer);
 // 
 //   FilterInspectorDock *filterInspectorDock = new FilterInspectorDock(m_undoStack, m_viewManager, this);
@@ -587,7 +588,7 @@ bool EspinaMainWindow::closeCurrentAnalysis()
   m_viewManager->setActiveChannel(ChannelAdapterPtr());
   m_viewManager->setActiveCategory(CategoryAdapterPtr());
   //m_viewManager->hideTools();
-  m_viewManager->clearSelection();
+  m_viewManager->selection()->clear();
   m_undoStack->clear();
   m_undoStackSavedIndex = m_undoStack->index();
   m_model->reset();

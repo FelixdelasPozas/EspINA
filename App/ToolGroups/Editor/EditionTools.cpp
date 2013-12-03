@@ -73,7 +73,7 @@ namespace EspINA
   //-----------------------------------------------------------------------------
   void EditionTools::selectionChanged()
   {
-    SegmentationAdapterList selection  = m_viewManager->selectedSegmentations();
+    SegmentationAdapterList selection  = m_viewManager->selection()->segmentations();
     int listSize = selection.size();
     m_manualEdition->setEnabled(listSize == 1 || listSize == 0);
     m_split->setEnabled(listSize == 1);

@@ -179,14 +179,14 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  SelectableView::Selection SliceRenderer::pick(int x,
+  ViewItemAdapterList SliceRenderer::pick(int x,
                                                 int y,
                                                 Nm z,
                                                 vtkSmartPointer<vtkRenderer> renderer,
                                                 RenderableItems itemType,
                                                 bool repeat)
   {
-    SelectableView::Selection selection;
+    ViewItemAdapterList selection;
     QList<vtkProp *> removedProps;
     View2D *view = reinterpret_cast<View2D *>(m_view);
 

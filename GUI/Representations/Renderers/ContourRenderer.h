@@ -44,12 +44,10 @@ namespace EspINA
       virtual RendererSPtr clone()            { return RendererSPtr(new ContourRenderer()); }
       virtual RendererTypes renderType()      { return RendererTypes(RENDERER_VIEW2D); }
 
-      virtual SelectableView::Selection pick(int x,
-                                             int y,
-                                             Nm z,
-                                             vtkSmartPointer<vtkRenderer> renderer,
-                                             RenderableItems itemType = RenderableItems(),
-                                             bool repeat = false);
+      virtual ViewItemAdapterList pick(int x, int y, Nm z,
+                                       vtkSmartPointer<vtkRenderer> renderer,
+                                       RenderableItems itemType = RenderableItems(),
+                                       bool repeat = false);
 
       virtual void setView(RenderView* view);
   };

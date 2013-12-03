@@ -66,12 +66,10 @@ namespace EspINA
     int numberOfRenderedItems() { return m_representations.size(); }
 
     // to pick items been rendered
-    SelectableView::Selection pick(int x,
-                                   int y,
-                                   Nm z,
-                                   vtkSmartPointer<vtkRenderer> renderer,
-                                   RenderableItems itemType = RenderableItems(),
-                                   bool repeat = false);
+    ViewItemAdapterList pick(int x, int y, Nm z,
+                             vtkSmartPointer<vtkRenderer> renderer,
+                             RenderableItems itemType = RenderableItems(),
+                             bool repeat = false);
 
     NmVector3 pickCoordinates() const;
 

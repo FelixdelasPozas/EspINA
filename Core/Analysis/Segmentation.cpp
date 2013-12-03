@@ -182,6 +182,11 @@ State Segmentation::state() const
 //     state += QString("OUTPUT=%1;").arg(output()->id());
   state += QString("CATEGORY=%1;").arg(m_category?m_category->classificationName():"");
 
+  if (!m_alias.isEmpty())
+  {
+    state += QString("ALIAS=%1;").arg(m_alias);
+  }
+
   return state;
 }
 
@@ -196,11 +201,16 @@ void Segmentation::restoreState(const State& state)
     if (tokens.size() != 2)
       continue;
 
-    if (tokens[0].compare("NUMBER") == 0)
+    if ("NUMBER" == tokens[0])
+    {
       m_number = tokens[1].toUInt();
-
-    if (tokens[0].compare("USERS") == 0)
+    } else if ("USERS" == tokens[0])
+    {
       m_users = tokens[1].split(',').toSet();
+    } else if ("ALIAS" == tokens[0])
+    {
+      m_alias = tokens[1];
+    }
   }
 }
 

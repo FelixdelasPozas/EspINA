@@ -175,9 +175,9 @@ unsigned int CrosshairRenderer::numberOfvtkActors()
 
 
 //-----------------------------------------------------------------------------
-SelectableView::Selection CrosshairRenderer::pick(int x, int y, Nm z, vtkSmartPointer<vtkRenderer> renderer, RenderableItems itemType, bool repeat)
+ViewItemAdapterList CrosshairRenderer::pick(int x, int y, Nm z, vtkSmartPointer<vtkRenderer> renderer, RenderableItems itemType, bool repeat)
 {
-  SelectableView::Selection selection;
+  ViewItemAdapterList selection;
   QList<vtkProp*> removedProps;
 
   if (!renderer || !renderer.GetPointer() || !itemType.testFlag(EspINA::CHANNEL))

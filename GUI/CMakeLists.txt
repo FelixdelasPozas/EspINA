@@ -19,7 +19,6 @@ qt4_wrap_cpp(GUI_MOC
   Representations/MeshRepresentationBase.h
   Representations/Renderers/ContourRenderer.h
   Representations/Renderers/Renderer.h
-  Representations/Renderers/VolumetricRenderer.h
   Representations/Renderers/VolumetricGPURenderer.h
   Representations/RepresentationEmptySettings.h
   Representations/SliceRepresentationSettings.h
@@ -27,6 +26,7 @@ qt4_wrap_cpp(GUI_MOC
   Selectors/Selector.h
   Selectors/BrushSelector.h
   View/RenderView.h
+  View/Selection.h
   View/View2D.h
   View/View3D.h
   Widgets/ActionSelector.h
@@ -53,7 +53,7 @@ qt4_wrap_ui (GUI_UI
   Widgets/TaskProgress.ui
   )
 
-set (GUI_SOURCES
+set (GUI_SOURCES 
   ${GUI_MOC}
   ${GUI_UI}
   ColorEngines/CategoryColorEngine.cpp
@@ -99,6 +99,7 @@ set (GUI_SOURCES
   Utils/Conditions.cpp
   Utils/QtModelUtils.cpp
   View/RenderView.cpp
+  View/Selection.cpp
   View/View2D.cpp
   View/View2DState.cpp
   View/View3D.cpp

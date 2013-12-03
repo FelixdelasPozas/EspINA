@@ -94,24 +94,16 @@ namespace EspINA
     /** \brief Request all controlled views to update their selection
      *
      */
-    void setSelection(SelectableView::Selection selection);
+    void setSelection(ViewItemAdapterList selection);
 
     /** \brief Return selection shared amongs all the views controlled by the ViewManager
      *
      */
-    SelectableView::Selection selection() const
+    SelectionSPtr selection() const
     { return m_selection; }
 
-    // convenience function
-    SegmentationAdapterList selectedSegmentations() const;
-
-    void clearSelection();
-
-  signals:
-    void selectionChanged(SelectableView::Selection);
-
   private:
-    SelectableView::Selection m_selection;
+    SelectionSPtr m_selection;
 
     //---------------------------------------------------------------------------
     /************************* Tool Group API ********************************/

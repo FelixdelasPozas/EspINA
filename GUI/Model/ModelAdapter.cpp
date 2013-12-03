@@ -421,7 +421,18 @@ void ModelAdapter::emitSegmentationAdded(SegmentationAdapterSList )
 //------------------------------------------------------------------------
 Qt::ItemFlags ModelAdapter::flags(const QModelIndex& index) const
 {
-    return QAbstractItemModel::flags(index);
+  auto flags = QAbstractItemModel::flags(index);
+
+  if (index.isValid())
+  {
+    QModelIndex parent = index.parent();
+    if (parent != channelRoot() || parent != segmentationRoot())
+    {
+      flags = flags | Qt::ItemIsUserCheckable;
+    }
+  }
+
+  return flags;
 }
 
 //------------------------------------------------------------------------

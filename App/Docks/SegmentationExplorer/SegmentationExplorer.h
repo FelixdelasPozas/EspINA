@@ -52,13 +52,17 @@ namespace EspINA
                                   QWidget         *parent = 0);
     virtual ~SegmentationExplorer();
 
-    virtual void initDockWidget(ModelAdapterSPtr model,
-                                QUndoStack      *undoStack,
-                                ViewManagerSPtr  viewManager){}
+    virtual void updateRepresentations(ChannelAdapterList list){}
+
+    virtual void updateRepresentations(SegmentationAdapterList list){}
+
+    virtual void updateRepresentations() {}
 
     virtual void reset(); // slot
 
   protected:
+    virtual void onSelectionSet(SelectionSPtr selection);
+
     void addLayout(const QString id, Layout *proxy);
 
     virtual bool eventFilter(QObject *sender, QEvent* e);
@@ -70,23 +74,18 @@ namespace EspINA
     void changeLayout(int index);
 
     void deleteSelectedItems();
+
     void showSelectedItemsInformation();
 
     void focusOnSegmentation(const QModelIndex &index);
 
-    virtual Selection currentSelection() const{}//TODO
-
-    virtual void updateSelection(){}//TODO
-
     void onModelSelectionChanged(QItemSelection selected, QItemSelection deselected);
 
-    virtual void updateRepresentations(ChannelAdapterList list){}//TODO
-
-    virtual void updateRepresentations(SegmentationAdapterList list){}//TODO
-
-    virtual void updateRepresentations(){}//TODO
-
     void updateSearchFilter();
+
+    void onSelectionChanged();
+
+    void onItemModified();
 
   protected:
     ModelAdapterSPtr m_baseModel;

@@ -202,8 +202,8 @@ class SliceWidget;
 
     void centerViewOnMousePosition();
 
-    SelectableView::Selection pickChannels(double vx, double vy, bool repeatable = true);
-    SelectableView::Selection pickSegmentations(double vx, double vy, bool repeatable = true);
+    ViewItemAdapterList pickChannels(double vx, double vy, bool repeatable = true);
+    ViewItemAdapterList pickSegmentations(double vx, double vy, bool repeatable = true);
 
     void selectPickedItems(bool append);
 

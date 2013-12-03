@@ -46,6 +46,7 @@ ViewManager::ViewManager()
 , m_viewResolution{1., 1., 1.}
 , m_toolGroup{nullptr}
 , m_contextualToolBar{nullptr}
+, m_selection{new Selection()}
 {
 //   QSettings settings(CESVIMA, ESPINA);
   bool fitEnabled;
@@ -77,8 +78,8 @@ ViewManager::~ViewManager()
 void ViewManager::registerView(SelectableView* view)
 {
   Q_ASSERT(!m_espinaViews.contains(view));
+  view->setSharedSelection(m_selection);
   m_espinaViews << view;
-  //connect(view, )
 }
 
 //----------------------------------------------------------------------------
@@ -86,8 +87,7 @@ void ViewManager::registerView(RenderView* view)
 {
   Q_ASSERT(!m_renderViews.contains(view));
   m_renderViews << view;
-  Q_ASSERT(!m_espinaViews.contains(view));
-  m_espinaViews << view;
+  registerView(static_cast<SelectableView *>(view));
 
   view->setSelector(m_selector);
   view->setColorEngine(m_colorEngine);
@@ -96,12 +96,9 @@ void ViewManager::registerView(RenderView* view)
 //----------------------------------------------------------------------------
 void ViewManager::registerView(View2D* view)
 {
-  Q_ASSERT(!m_renderViews.contains(view));
-  m_renderViews << view;
-  Q_ASSERT(!m_espinaViews.contains(view));
-  m_espinaViews << view;
   Q_ASSERT(!m_sliceViews.contains(view));
   m_sliceViews << view;
+  registerView(static_cast<RenderView *>(view));
 }
 
 //----------------------------------------------------------------------------
@@ -139,53 +136,11 @@ void ViewManager::setSelectionEnabled(bool enable)
 }
 
 //----------------------------------------------------------------------------
-void ViewManager::setSelection(SelectableView::Selection selection)
+void ViewManager::setSelection(ViewItemAdapterList selection)
 {
-  if (m_selection == selection) return;
-
-
-  for (int i = 0; i < m_selection.size(); i++)
-  {
-    m_selection[i]->setSelected(false);
-  }
-
-  m_selection = selection;
-
-//   qDebug() << "Selection Changed";
-  for (int i = 0; i < m_selection.size(); i++)
-  {
-    m_selection[i]->setSelected(true);
-//     qDebug() << "-" << m_selection[i]->data().toString();
-  }
+  m_selection->set(selection);
 
   //TODO 2012-10-07 computeSelectionCenter();
-
-  emit selectionChanged(m_selection);
-}
-
-//----------------------------------------------------------------------------
-SegmentationAdapterList ViewManager::selectedSegmentations() const
-{
-  SegmentationAdapterList selection;
-
-  for(auto item: m_selection)
-  {
-    if (ItemAdapter::Type::SEGMENTATION == item->type())
-      selection << segmentationPtr(item);
-  }
-
-  return selection;
-}
-
-//----------------------------------------------------------------------------
-void ViewManager::clearSelection()
-{
-  if (!m_selection.isEmpty())
-  {
-    m_selection.clear();
-
-    emit selectionChanged(m_selection);
-  }
 }
 
 //----------------------------------------------------------------------------
@@ -200,7 +155,7 @@ void ViewManager::displayTools(ToolGroupPtr group)
 
   m_toolGroup = group;
 
-  QAction *separator; // Cheap way of removing last separator without an 'if' in the external loop
+  //QAction *separator; // Cheap way of removing last separator without an 'if' in the external loop
   if (m_contextualToolBar)
   {
     for(auto tool : group->tools())
@@ -209,9 +164,9 @@ void ViewManager::displayTools(ToolGroupPtr group)
       {
         m_contextualToolBar->addAction(action);
       }
-      separator = m_contextualToolBar->addSeparator();
+      //separator = m_contextualToolBar->addSeparator();
     }
-    m_contextualToolBar->removeAction(separator);
+    //m_contextualToolBar->removeAction(separator);
   }
 }
 

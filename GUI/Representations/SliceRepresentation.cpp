@@ -204,11 +204,13 @@ void ChannelSliceRepresentation::updateRepresentation()
 {
   setCrosshairPoint(m_view->crosshairPoint());
 
-  if (m_actor != nullptr && (m_crosshair[m_planeIndex] != m_reslicePoint))
+  Bounds imageBounds = m_data->bounds();
+
+  bool valid = imageBounds[2*m_planeIndex] <= m_crosshair[m_planeIndex] && m_crosshair[m_planeIndex] <= imageBounds[2*m_planeIndex+1];
+
+  if (m_actor != nullptr && (m_crosshair[m_planeIndex] != m_reslicePoint) && valid)
   {
     m_reslicePoint = m_crosshair[m_planeIndex];
-
-    Bounds imageBounds = m_data->bounds();
 
     imageBounds.setLowerInclusion(true);
     imageBounds.setUpperInclusion(toAxis(m_planeIndex), true);
@@ -231,6 +233,8 @@ void ChannelSliceRepresentation::updateRepresentation()
     m_actor->SetDisplayExtent(m_exporter->GetOutput()->GetExtent());
     m_actor->Update();
   }
+
+  m_actor->SetVisibility(valid && isVisible());
 }
 
 //-----------------------------------------------------------------------------
@@ -370,16 +374,17 @@ void SegmentationSliceRepresentation::initializePipeline()
     return;
 
   auto reslicePoint = m_crosshair[m_planeIndex];
+  m_reslicePoint = reslicePoint + 1;
 
   View2D* view = reinterpret_cast<View2D *>(m_view);
-
+/*
   Bounds imageBounds = m_data->bounds();
 
   imageBounds.setLowerInclusion(true);
   imageBounds.setUpperInclusion(toAxis(m_planeIndex), true);
 
   imageBounds[2*m_planeIndex]   = reslicePoint;
-  imageBounds[2*m_planeIndex+1] = reslicePoint;
+  imageBounds[2*m_planeIndex+1] = reslicePoint; */
 
   itkVolumeType::Pointer slice = itkVolumeType::New();
   itkVolumeType::RegionType region;
@@ -425,7 +430,7 @@ void SegmentationSliceRepresentation::updateRepresentation()
 
   bool valid = imageBounds[2*m_planeIndex] <= m_crosshair[m_planeIndex] && m_crosshair[m_planeIndex] <= imageBounds[2*m_planeIndex+1];
 
-  if (m_actor != nullptr && (m_crosshair[m_planeIndex] != m_reslicePoint) && valid)
+  if (m_actor != nullptr && m_crosshair[m_planeIndex] != m_reslicePoint && valid)
   {
     m_reslicePoint = m_crosshair[m_planeIndex];
 
@@ -449,7 +454,7 @@ void SegmentationSliceRepresentation::updateRepresentation()
     m_actor->Update();
   }
 
-  m_actor->SetVisibility(valid);
+  m_actor->SetVisibility(valid && isVisible());
 }
 
 //-----------------------------------------------------------------------------

@@ -110,7 +110,7 @@ namespace EspINA {
   };
 
   using ViewItemAdapterPtr  = ViewItemAdapter *;
-  using ViewItemAdapterList = ViewItemAdapterPtr;
+  using ViewItemAdapterList = QList<ViewItemAdapterPtr>;
   using ViewItemAdapterSPtr = std::shared_ptr<ViewItemAdapter>;
 
   ViewItemAdapterPtr EspinaGUI_EXPORT viewItemAdapter(ItemAdapterPtr item);

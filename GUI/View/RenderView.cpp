@@ -59,6 +59,12 @@ RenderView::~RenderView()
   m_renderers.clear();
 }
 
+//-----------------------------------------------------------------------------
+void RenderView::onSelectionSet(SelectionSPtr selection)
+{
+  connect(selection.get(), SIGNAL(selectionStateChanged(SegmentationAdapterList)),
+          this, SLOT(updateSelection(SegmentationAdapterList)));
+}
 
 //-----------------------------------------------------------------------------
 void RenderView::showEvent(QShowEvent *event)
@@ -212,6 +218,32 @@ void RenderView::updateSceneBounds()
 }
 
 //-----------------------------------------------------------------------------
+void RenderView::add(ChannelAdapterPtr channel)
+{
+  Q_ASSERT(!m_channelStates.contains(channel));
+
+  channel->output()->update();
+
+  ChannelState state;
+
+  state.visible = !channel->isVisible();
+
+  m_channelStates.insert(channel, state);
+
+  // need to manage other channels' opacity too.
+  updateSceneBounds();
+
+  updateRepresentation(channel, false);
+
+  // NOTE: this signal is not disconnected when a channel is removed because is
+  // used in the redo/undo of UnloadChannelCommand
+  //TODO 2013-10-04 
+//   connect(channel->volume().get(), SIGNAL(representationChanged()),
+//           this, SLOT(updateSceneBounds()));
+}
+
+
+//-----------------------------------------------------------------------------
 void RenderView::add(SegmentationAdapterPtr seg)
 {
   Q_ASSERT(!m_segmentationStates.contains(seg));
@@ -239,32 +271,6 @@ void RenderView::remove(SegmentationAdapterPtr seg)
 
   m_segmentationStates.remove(seg);
 }
-
-//-----------------------------------------------------------------------------
-void RenderView::add(ChannelAdapterPtr channel)
-{
-  Q_ASSERT(!m_channelStates.contains(channel));
-
-  channel->output()->update();
-
-  ChannelState state;
-
-  state.visible = !channel->isVisible();
-
-  m_channelStates.insert(channel, state);
-
-  // need to manage other channels' opacity too.
-  updateSceneBounds();
-
-  updateRepresentation(channel, false);
-
-  // NOTE: this signal is not disconnected when a channel is removed because is
-  // used in the redo/undo of UnloadChannelCommand
-  //TODO 2013-10-04 
-//   connect(channel->volume().get(), SIGNAL(representationChanged()),
-//           this, SLOT(updateSceneBounds()));
-}
-
 
 //-----------------------------------------------------------------------------
 void RenderView::remove(ChannelAdapterPtr channel)
@@ -585,30 +591,28 @@ void RenderView::eventPosition(int& x, int& y)
   }
 }
 
+// //-----------------------------------------------------------------------------
+// SelectableView::Selection RenderView::currentSelection() const
+// {
+//   SelectableView::Selection selection;
+// 
+//   foreach(ChannelAdapterPtr channel, m_channelStates.keys())
+//   {
+//     if (channel->isSelected()) selection << channel;
+//   }
+// 
+//   foreach(SegmentationAdapterPtr segmentation, m_segmentationStates.keys())
+//   {
+//     if (segmentation->isSelected()) selection << segmentation;
+//   }
+// 
+//   return selection;
+// }
+
 //-----------------------------------------------------------------------------
-SelectableView::Selection RenderView::currentSelection() const
+void RenderView::updateSelection(SegmentationAdapterList selection)
 {
-  SelectableView::Selection selection;
-
-  foreach(ChannelAdapterPtr channel, m_channelStates.keys())
-  {
-    if (channel->isSelected()) selection << channel;
-  }
-
-  foreach(SegmentationAdapterPtr segmentation, m_segmentationStates.keys())
-  {
-    if (segmentation->isSelected()) selection << segmentation;
-  }
-
-  return selection;
-}
-
-//-----------------------------------------------------------------------------
-void RenderView::updateSelection(SelectableView::Selection selection, bool render)
-{
-  updateRepresentations();
-  if (render)
-    updateView();
+  updateRepresentations(selection);
 }
 
 //-----------------------------------------------------------------------------

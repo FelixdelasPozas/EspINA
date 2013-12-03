@@ -198,7 +198,20 @@ void SegmentationAdapter::setCategory(CategoryAdapterSPtr category)
 
 bool SegmentationAdapter::setData(const QVariant& value, int role)
 {
-
+  switch (role)
+  {
+    case Qt::EditRole:
+      m_segmentation->setAlias(value.toString());
+      return true;
+    case Qt::CheckStateRole:
+      setVisible(value.toBool());
+      return true;
+    case SelectionRole:
+      setSelected(value.toBool());
+      return true;
+    default:
+      return false;
+  }
 }
 
 QStringList SegmentationAdapter::users() const

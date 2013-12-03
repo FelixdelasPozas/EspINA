@@ -41,6 +41,8 @@ namespace EspINA
   using SegmentationAdapterSPtr  = std::shared_ptr<SegmentationAdapter>;
   using SegmentationAdapterSList = QList<SegmentationAdapterSPtr>;
 
+  static const int SelectionRole = Qt::UserRole + 2;
+
   class EspinaGUI_EXPORT SegmentationAdapter
   : public ViewItemAdapter
   {

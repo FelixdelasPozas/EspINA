@@ -152,12 +152,12 @@ namespace EspINA
   {
     m_viewManager->setSelector(nullptr);
 
-    SegmentationAdapterList inputs = m_viewManager->selectedSegmentations();
+    auto inputs = m_viewManager->selection()->segmentations();
 
     if (inputs.size() > 1)
     {
       SegmentationAdapterList createdSegmentations;
-      m_viewManager->clearSelection();
+      m_viewManager->selection()->clear();
 
       m_undoStack->beginMacro(tr("Merge Segmentations"));
 //      m_undoStack->push(new ImageLogicCommand(input,

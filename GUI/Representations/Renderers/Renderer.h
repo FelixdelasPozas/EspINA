@@ -107,7 +107,7 @@ namespace EspINA
     // return the number of elements actually been managed by this renderer
     virtual int numberOfRenderedItems() = 0;
 
-    virtual SelectableView::Selection pick(int x, int y, Nm z, vtkSmartPointer<vtkRenderer> renderer, RenderableItems itemType = RenderableItems(), bool repeat = false) = 0;
+    virtual ViewItemAdapterList pick(int x, int y, Nm z, vtkSmartPointer<vtkRenderer> renderer, RenderableItems itemType = RenderableItems(), bool repeat = false) = 0;
 
     virtual NmVector3 pickCoordinates() const = 0;
 

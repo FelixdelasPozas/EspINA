@@ -20,7 +20,7 @@
 #ifndef ESPINA_ITEM_ADAPTER_H
 #define ESPINA_ITEM_ADAPTER_H
 
-#include "EspinaGUI_Export.h"
+#include "GUI/EspinaGUI_Export.h"
 
 #include <QModelIndex>
 

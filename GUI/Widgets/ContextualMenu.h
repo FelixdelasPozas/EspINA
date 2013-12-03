@@ -37,7 +37,7 @@ namespace EspINA
     explicit ContextualMenu(QWidget *parent = 0)
     : QMenu(parent) {}
 
-    virtual void setSelection(SelectableView::Selection selection) = 0;
+    virtual void setSelection(SelectionSPtr selection) = 0;
   };
 
   using ContextualMenuSPtr = std::shared_ptr<ContextualMenu>;

@@ -574,19 +574,19 @@ void View3D::updateView()
 void View3D::selectPickedItems(int vx, int vy, bool append)
 {
 
-  SelectableView::Selection selection, pickedItems;
+  ViewItemAdapterList selection, pickedItems;
   if (append)
-    selection = currentSelection();
+    selection = currentSelection()->items();
 
   // If no append, segmentations have priority over channels
-  foreach(RendererSPtr renderer, m_renderers)
+  for(RendererSPtr renderer : m_renderers)
   {
     if (!renderer->isHidden() && canRender(renderer, RenderableType::SEGMENTATION))
     {
       pickedItems = renderer->pick(vx, vy, 0, m_renderer, RenderableItems(RenderableType::SEGMENTATION), append);
       if (!pickedItems.empty())
       {
-        foreach(ViewItemAdapterPtr item, pickedItems)
+        for(ViewItemAdapterPtr item : pickedItems)
           if (!selection.contains(item))
             selection << item;
           else
@@ -597,14 +597,14 @@ void View3D::selectPickedItems(int vx, int vy, bool append)
 
   pickedItems.clear();
 
-  foreach(RendererSPtr renderer, m_renderers)
+  for(RendererSPtr renderer : m_renderers)
   {
     if (!renderer->isHidden() && canRender(renderer, RenderableType::CHANNEL))
     {
       pickedItems = renderer->pick(vx, vy, 0, m_renderer, RenderableItems(RenderableType::CHANNEL), append);
       if (!pickedItems.empty())
       {
-        foreach(ViewItemAdapterPtr item, pickedItems)
+        for(ViewItemAdapterPtr item : pickedItems)
           if (!selection.contains(item))
             selection << item;
           else
@@ -620,7 +620,7 @@ void View3D::selectPickedItems(int vx, int vy, bool append)
     selection << returnItem;
   }
 
-  emit selectionChanged(selection);
+  currentSelection()->set(selection);
 }
 
 //-----------------------------------------------------------------------------
@@ -645,7 +645,7 @@ bool View3D::eventFilter(QObject* caller, QEvent* e)
         {
           if (!renderer->isHidden())
           {
-            SelectableView::Selection selection = renderer->pick(newX, newY, 0, m_renderer, RenderableItems(RenderableType::SEGMENTATION|RenderableType::CHANNEL), false);
+            ViewItemAdapterList selection = renderer->pick(newX, newY, 0, m_renderer, RenderableItems(RenderableType::SEGMENTATION|RenderableType::CHANNEL), false);
             if (!selection.empty())
             {
               NmVector3 point = renderer->pickCoordinates();

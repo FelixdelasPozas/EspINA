@@ -937,7 +937,7 @@ bool View2D::eventFilter(QObject* caller, QEvent* e)
   {
     int x, y;
     eventPosition(x, y);
-    SelectableView::Selection selection = pickSegmentations(x, y, m_renderer);
+    auto selection = pickSegmentations(x, y, m_renderer);
     QString toopTip;
 
     for(auto pick: selection)
@@ -1010,7 +1010,7 @@ void View2D::centerCrosshairOnMousePosition()
     {
       if (canRender(renderer, RenderableType::CHANNEL))
       {
-        SelectableView::Selection selection = renderer->pick(xPos, yPos, slicingPosition(), m_thumbnail, RenderableItems(RenderableType::CHANNEL));
+        auto selection = renderer->pick(xPos, yPos, slicingPosition(), m_thumbnail, RenderableItems(RenderableType::CHANNEL));
         if (!selection.isEmpty())
         {
           channelPicked = true;
@@ -1026,7 +1026,7 @@ void View2D::centerCrosshairOnMousePosition()
     {
       if (canRender(renderer, RenderableType::CHANNEL))
       {
-        SelectableView::Selection selection = renderer->pick(xPos, yPos, slicingPosition(), m_renderer, RenderableItems(RenderableType::CHANNEL));
+        auto selection = renderer->pick(xPos, yPos, slicingPosition(), m_renderer, RenderableItems(RenderableType::CHANNEL));
         if (!selection.isEmpty())
         {
           channelPicked = true;
@@ -1054,7 +1054,7 @@ void View2D::centerViewOnMousePosition()
   for(auto renderer: m_renderers)
     if (canRender(renderer, RenderableType::CHANNEL))
     {
-      SelectableView::Selection selection = renderer->pick(xPos, yPos, slicingPosition(), m_thumbnail, RenderableItems(RenderableType::CHANNEL), false);
+      auto selection = renderer->pick(xPos, yPos, slicingPosition(), m_thumbnail, RenderableItems(RenderableType::CHANNEL), false);
       if (!selection.isEmpty())
       {
         // TODO 2013-10-04: Check if it is needed inside the loop
@@ -1064,10 +1064,10 @@ void View2D::centerViewOnMousePosition()
 }
 
 //-----------------------------------------------------------------------------
-SelectableView::Selection View2D::pickChannels(double vx, double vy,
+ViewItemAdapterList View2D::pickChannels(double vx, double vy,
                                                   bool repeatable)
 {
-  SelectableView::Selection selection;
+  ViewItemAdapterList selection;
 
   for(auto renderer: m_renderers)
     if (canRender(renderer, RenderableType::CHANNEL))
@@ -1081,10 +1081,10 @@ SelectableView::Selection View2D::pickChannels(double vx, double vy,
 }
 
 //-----------------------------------------------------------------------------
-SelectableView::Selection View2D::pickSegmentations(double vx, double vy,
+ViewItemAdapterList View2D::pickSegmentations(double vx, double vy,
                                                        bool repeatable)
 {
-  SelectableView::Selection selection;
+  ViewItemAdapterList selection;
 
   for(auto renderer: m_renderers)
     if (canRender(renderer, RenderableType::SEGMENTATION))
@@ -1101,9 +1101,9 @@ void View2D::selectPickedItems(bool append)
   int vx, vy;
   eventPosition(vx, vy);
 
-  SelectableView::Selection selection;
+  ViewItemAdapterList selection;
   if (append)
-    selection = currentSelection();
+    selection = currentSelection()->items();
 
   // segmentations have priority over channels
   for(auto item: pickSegmentations(vx, vy, append))
@@ -1129,7 +1129,7 @@ void View2D::selectPickedItems(bool append)
         break;
     }
 
-    emit selectionChanged(selection);
+    currentSelection()->set(selection);
 }
 
 //-----------------------------------------------------------------------------

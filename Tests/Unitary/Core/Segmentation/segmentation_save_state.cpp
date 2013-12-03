@@ -38,16 +38,19 @@ int segmentation_save_state(int argc, char** argv)
   State forgedState;
 
   segmentation->setNumber(1);
-  forgedState = QString("NUMBER=1;");
+  forgedState = "NUMBER=1;";
 
   segmentation->modifiedByUser("AUser");
-  forgedState += QString("USERS=AUser;");
+  forgedState += "USERS=AUser;";
 
   Classification classification;
-  classification.createNode(QString("Prueba"), classification.root());
+  classification.createNode("Prueba", classification.root());
 
-  segmentation->setCategory(classification.node(QString("Prueba")));
-  forgedState += QString("CATEGORY=Prueba;");
+  segmentation->setCategory(classification.node("Prueba"));
+  forgedState += "CATEGORY=Prueba;";
+
+  segmentation->setAlias("HPD4");
+  forgedState += "ALIAS=HPD4;";
 
   return (segmentation->state() != forgedState);
 }

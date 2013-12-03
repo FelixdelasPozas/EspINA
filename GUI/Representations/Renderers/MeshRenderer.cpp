@@ -169,9 +169,9 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  SelectableView::Selection MeshRenderer::pick(int x, int y, Nm z, vtkSmartPointer<vtkRenderer> renderer, RenderableItems itemType,  bool repeat)
+  ViewItemAdapterList MeshRenderer::pick(int x, int y, Nm z, vtkSmartPointer<vtkRenderer> renderer, RenderableItems itemType,  bool repeat)
   {
-    SelectableView::Selection selection;
+    ViewItemAdapterList selection;
     QList<vtkProp *> removedProps;
 
     if (!renderer || !renderer.GetPointer() || !itemType.testFlag(EspINA::SEGMENTATION))

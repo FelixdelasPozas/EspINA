@@ -124,7 +124,7 @@ namespace EspINA
 
     virtual Selector::Selection select(Selector::SelectionFlags flags, Selector::SelectionMask mask) = 0;
 
-    virtual Selection currentSelection() const;
+//     virtual Selection currentSelection() const;
     //virtual void worldCoordinates(const QPoint &displayPos, double worldPos[3]) = 0;
 
     virtual vtkRenderWindow *renderWindow();
@@ -158,17 +158,16 @@ namespace EspINA
 
     void setSegmentationsVisibility(bool visibility);
 
-  signals:
-    void selectionChanged(SelectableView::Selection);
-
   protected slots:
     virtual void updateSceneBounds();
 
     virtual void resetView();
 
-    virtual void updateSelection(SelectableView::Selection selection, bool render);
+    virtual void updateSelection(SegmentationAdapterList selection);
 
   protected:
+    virtual void onSelectionSet(SelectionSPtr selection); 
+
     virtual void showEvent(QShowEvent *event);
 
     void takeSnapshot(vtkSmartPointer<vtkRenderer> renderer);

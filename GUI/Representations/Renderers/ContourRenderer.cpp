@@ -94,12 +94,12 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  SelectableView::Selection ContourRenderer::pick(int x, int y, Nm z, vtkSmartPointer<vtkRenderer> renderer, RenderableItems itemType, bool repeat)
+  ViewItemAdapterList ContourRenderer::pick(int x, int y, Nm z, vtkSmartPointer<vtkRenderer> renderer, RenderableItems itemType, bool repeat)
   {
     // FIXME: apparently the contours can't be picked, even when the actors
     // have been marked as pickable a call to m_picker->Pick() always returns
     // empty (just actors hard to pinpoint?)
-    SelectableView::Selection selection;
+    ViewItemAdapterList selection;
     QList<vtkProp *> removedProps;
 
     if (!renderer || !renderer.GetPointer() || !itemType.testFlag(EspINA::SEGMENTATION))

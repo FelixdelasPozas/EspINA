@@ -172,9 +172,9 @@ namespace EspINA
 
   //-----------------------------------------------------------------------------
   template<class T>
-  SelectableView::Selection VolumetricRenderer<T>::pick(int x, int y, Nm z, vtkSmartPointer<vtkRenderer> renderer, RenderableItems itemType, bool repeat)
+  ViewItemAdapterList VolumetricRenderer<T>::pick(int x, int y, Nm z, vtkSmartPointer<vtkRenderer> renderer, RenderableItems itemType, bool repeat)
   {
-    SelectableView::Selection selection;
+    ViewItemAdapterList selection;
     QList<vtkVolume *> removedProps;
 
     if (!renderer || !renderer.GetPointer() || !itemType.testFlag(EspINA::SEGMENTATION))

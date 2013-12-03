@@ -51,6 +51,12 @@ namespace EspINA
 
       virtual void unload();
 
+      void setAlias(const QString& alias)
+      { m_alias = alias; }
+
+      QString alias() const
+      { return m_alias; }
+
       void setNumber(unsigned int number)
       { m_number = number; }
 
@@ -96,6 +102,7 @@ namespace EspINA
       virtual QVariant information(const SegmentationExtension::InfoTag& tag) const;
 
     private:
+      QString                   m_alias;
       unsigned int              m_number;
       QSet<QString>             m_users;
       CategorySPtr              m_category;
