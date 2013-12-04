@@ -126,8 +126,6 @@ namespace EspINA
     double brightness() const
     { return m_brightness; }
 
-    Bounds bounds() const;
-
     /**
      *  Extesion won't be available until requirements are satisfied
      */

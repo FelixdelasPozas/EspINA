@@ -17,23 +17,23 @@
 */
 
 
-#ifndef MARGINDETECTOR_H
-#define MARGINDETECTOR_H
+#ifndef ESPINA_EDGE_DETECTOR_H
+#define ESPINA_EDGE_DETECTOR_H
 
-#include "EspinaCore_Export.h"
+#include "Extensions/EspinaExtensions_Export.h"
 
-#include <QThread>
-#include <Core/EspinaTypes.h>
+#include <Core/MultiTasking/Task.h>
 
 namespace EspINA
 {
   class AdaptiveEdges;
 
-  class EspinaCore_EXPORT EdgeDetector
-  : public QThread
+  class EspinaExtensions_EXPORT EdgeDetector
+  : public Task
   {
   public:
-    explicit EdgeDetector(AdaptiveEdges *extension, QObject* parent = 0);
+    explicit EdgeDetector(AdaptiveEdges *extension,
+                          SchedulerSPtr scheduler = SchedulerSPtr());
     virtual ~EdgeDetector();
 
   protected:
@@ -45,4 +45,4 @@ namespace EspINA
 
 }// namespace EspINA
 
-#endif // MARGINDETECTOR_H
+#endif // ESPINA_EDGE_DETECTOR_H

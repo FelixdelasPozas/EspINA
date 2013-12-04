@@ -36,7 +36,7 @@
 
 namespace EspINA {
 
-  using State        = QString;
+  using State = QString;
 
   class Persistent
   {

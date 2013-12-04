@@ -18,8 +18,10 @@
 
 // EspINA
 #include "EdgeDetector.h"
+
 #include "AdaptiveEdges.h"
-#include "Core/Model/Channel.h"
+#include <Core/Analysis/Data/VolumetricData.h>
+#include <Core/Analysis/Channel.h>
 
 //VTK
 #include <vtkCellArray.h>
@@ -29,6 +31,7 @@
 #include <vtkSmartPointer.h>
 #include <vtkPoints.h>
 #include <vtkOBBTree.h>
+#include <itkImageToVTKImageFilter.h>
 
 #include <QDebug>
 
@@ -69,11 +72,10 @@ vtkSmartPointer<vtkPoints> plane(const double corner[3],
 
 //------------------------------------------------------------------------
 EdgeDetector::EdgeDetector(AdaptiveEdges *extension,
-                           QObject* parent)
-: QThread(parent)
+                           SchedulerSPtr  scheduler)
+: Task(scheduler)
 , m_extension(extension)
 {
-  m_extension->m_mutex.lock();
 }
 
 //------------------------------------------------------------------------
@@ -84,11 +86,20 @@ EdgeDetector::~EdgeDetector()
 //------------------------------------------------------------------------
 void EdgeDetector::run()
 {
-  Channel *channel       = m_extension->channel();
+  using Itk2VtkFilter = itk::ImageToVTKImageFilter<itkVolumeType>;
 
-  vtkAlgorithm  *producer = channel->volume()->toVTK()->GetProducer();
-  vtkDataObject *output   = producer->GetOutputDataObject(0);
-  vtkImageData  *image    = vtkImageData::SafeDownCast(output);
+  m_extension->m_mutex.lock();
+
+  auto channel = m_extension->channel();
+
+  itkVolumeType::Pointer volume = volumetricData(channel->output())->itkImage();
+
+  Itk2VtkFilter::Pointer itk2vtk = Itk2VtkFilter::New();
+  itk2vtk->ReleaseDataFlagOn();
+  itk2vtk->SetInput(volume);
+  itk2vtk->Update();
+
+  vtkImageData *image = itk2vtk->GetOutput();
 
   vtkSmartPointer<vtkPoints> borderVertices = vtkSmartPointer<vtkPoints>::New();
   vtkSmartPointer<vtkCellArray> faces       = vtkSmartPointer<vtkCellArray>::New();
@@ -101,8 +112,10 @@ void EdgeDetector::run()
   int extent[6];
   image->GetExtent(extent);
 
-  AdaptiveEdges::ExtensionData &data = m_extension->s_cache[m_extension->m_channel].Data;
-  data.ComputedVolume = 0;
+  int backgroundColor = m_extension->m_backgroundColor;
+  int threshold       = m_extension->m_threshold;
+
+  m_extension->m_computedVolume = 0;
 
   //   vtkDebugMacro( << "Looking for borders");
 
@@ -115,12 +128,16 @@ void EdgeDetector::run()
   unsigned long zMax = extent[5];
   unsigned long yMax = dim[1];
   unsigned long xMax = dim[0];
+
   // defined in unsigned char values range
-  const int upperThreshold = (data.BackgroundColor + data.Threshold) > 255 ? 255 : data.BackgroundColor + data.Threshold;
-  const int lowerThreshold = (data.BackgroundColor - data.Threshold) < 0 ? 0 : data.BackgroundColor - data.Threshold;
+  const int upperThreshold = (backgroundColor + threshold) > 255 ? 255 : backgroundColor + threshold;
+  const int lowerThreshold = (backgroundColor - threshold) <   0 ?   0 : backgroundColor - threshold;
+
   vtkIdType lastCell[4];
-  for (unsigned long z = zMin; z <= zMax; z++)
+  unsigned long z = zMin;
+  while (canExecute() && z <= zMax)
   {
+    emit progress(double(z - zMin) / double(zMax - zMin)*100.0);
     // Look for images borders in z slice:
     // We are going to take all bordering pixels (almost black) and then extract its oriented
     // bounding box.
@@ -310,13 +327,22 @@ void EdgeDetector::run()
     memcpy(lastCell,cell,4*sizeof(vtkIdType));
 
     if (z != zMin)
-      data.ComputedVolume += ((RT[0] - LT[0] + 1)*(LB[1] - LT[1] + 1))*spacing[2];
+    {
+      m_extension->m_computedVolume += ((RT[0] - LT[0] + 1)*(LB[1] - LT[1] + 1))*spacing[2];
+    }
+    ++z;
   }
 
-  data.Edges->SetPoints(borderVertices);
-  data.Edges->SetPolys(faces);
+  if (isAborted())
+  {
+    m_extension->m_computedVolume = 0;
+  } else 
+  {
+    m_extension->m_edges->SetPoints(borderVertices);
+    m_extension->m_edges->SetPolys(faces);
 
-  m_extension->s_cache.markAsClean(m_extension->m_channel);
+    emit progress(100);
+  }
 
   m_extension->m_mutex.unlock();
 }

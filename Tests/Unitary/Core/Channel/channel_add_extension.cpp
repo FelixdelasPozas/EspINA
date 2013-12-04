@@ -70,7 +70,7 @@ int channel_add_extension(int argc, char** argv )
     error = true;
   }
 
-  if (!dummy->Initialized || !dummy->ValidChannel) {
+  if (!dummy->ValidChannel) {
     cerr << "Extension was not correctly initialized" << endl;
     error = true;
   }

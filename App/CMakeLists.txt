@@ -61,7 +61,7 @@ qt4_wrap_cpp (ESPINA_MOC
   Views/DefaultView.h
 #   Dialogs/Connectomics/ConnectomicsDialog.h
 #   Dialogs/ChannelInspector/ChannelInspector.h
-#   Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.h
+  Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.h
 #   Undo/BrushUndoCommand.h
 #   Tools/TubularSegmentation/TubularTool.h
 #   FilterInspectors/TubularSegmentation/TubularFilterInspector.h
@@ -87,7 +87,7 @@ qt4_wrap_ui (ESPINA_UI
 #   Settings/VolumeView/VolumeViewSettingsPanel.ui
 #   Dialogs/Connectomics/ConnectomicsDialog.ui
 #   Dialogs/ChannelInspector/ChannelInspector.ui
-#   Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.ui
+  Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.ui
 #   FilterInspectors/TubularSegmentation/TubularFilterInspector.ui
 #   FilterInspectors/TubularSegmentation/NodesInformationDialog.ui
   )
@@ -173,7 +173,7 @@ set (ESPINA_SOURCES
 #   Tools/TubularSegmentation/TubularTool.cpp
 #   FilterInspectors/TubularSegmentation/TubularFilterInspector.cpp
 #   FilterInspectors/TubularSegmentation/NodesInformationDialog.cpp
-#   Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.cpp
+  Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.cpp
   )
 
 set (ESPINA_LIBRARIES

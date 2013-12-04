@@ -25,8 +25,10 @@
 namespace EspINA {
 
   class ViewItem
-  : public Persistent
+  : public QObject
+  , public Persistent
   {
+    Q_OBJECT
   public:
     explicit ViewItem(FilterSPtr filter, const Output::Id output);
     virtual ~ViewItem();
@@ -46,11 +48,28 @@ namespace EspINA {
     DataSPtr data(Data::Type type);
     const DataSPtr data(Data::Type type) const;
 
-    void changeOutput(FilterSPtr filter, Output::Id output);
+    void changeOutput(FilterSPtr filter, Output::Id outputId);
+
+    bool isOutputModified() const
+    { return m_isOutputModified; }
+
+    Bounds bounds() const
+    { return output()->bounds(); }
+
+  protected slots:
+    void onOutputModified() 
+    {
+      m_isOutputModified = true;
+      emit outputModified(); 
+    }
+
+  signals:
+    void outputModified();
 
   private:
     FilterSPtr m_filter;
     Output::Id m_outputId;
+    bool       m_isOutputModified; // sticky bit
   };
 
   using ViewItemSPtr = std::shared_ptr<ViewItem>;

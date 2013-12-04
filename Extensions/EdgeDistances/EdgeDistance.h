@@ -17,98 +17,78 @@
  */
 
 
-#ifndef EDGEDISTANCE_H
-#define EDGEDISTANCE_H
+#ifndef ESPINA_EDGE_DISTANCE_H
+#define ESPINA_EDGE_DISTANCE_H
 
-#include "EspinaCore_Export.h"
+#include "Extensions/EspinaExtensions_Export.h"
 
-#include "Core/Extensions/SegmentationExtension.h"
-#include "Core/EspinaTypes.h"
+#include <Core/Analysis/Extensions/SegmentationExtension.h>
+#include <Core/Utils/Spatial.h>
 
 namespace EspINA
 {
-  const ModelItem::ExtId EdgeDistanceID = "EdgeDistance";
 
-  class EspinaCore_EXPORT EdgeDistance
-  : public Segmentation::Information
+  class EspinaExtensions_EXPORT EdgeDistance
+  : public SegmentationExtension
   {
-    struct EspinaCore_EXPORT ExtensionData
-    {
-      ExtensionData();
-
-	    bool operator==(const ExtensionData& other) const
-	    {
-		    bool retVal = true;
-		    for (int i = 0; i < 6; ++i)
-			    retVal |= (Distances[i] == other.Distances[i]);
-
-		    return retVal;
-	    }
-
-      Nm   Distances[6];
-    };
-
-    typedef Cache<SegmentationPtr, ExtensionData> ExtensionCache;
-
-    static ExtensionCache s_cache;
-
     static const QString EXTENSION_FILE;
-
   public:
+    static const Type TYPE;
 
-    static const Segmentation::InfoTag LEFT_DISTANCE;
-    static const Segmentation::InfoTag TOP_DISTANCE;
-    static const Segmentation::InfoTag UPPER_DISTANCE;
-    static const Segmentation::InfoTag RIGHT_DISTANCE;
-    static const Segmentation::InfoTag BOTTOM_DISTANCE;
-    static const Segmentation::InfoTag LOWER_DISTANCE;
+    static const InfoTag LEFT_DISTANCE;
+    static const InfoTag TOP_DISTANCE;
+    static const InfoTag UPPER_DISTANCE;
+    static const InfoTag RIGHT_DISTANCE;
+    static const InfoTag BOTTOM_DISTANCE;
+    static const InfoTag LOWER_DISTANCE;
 
     explicit EdgeDistance();
     virtual ~EdgeDistance();
 
-    virtual ModelItem::ExtId id();
+    virtual Type type() const
+    { return TYPE; }
 
-    virtual ModelItem::ExtIdList dependencies() const
-    { return Segmentation::Information::dependencies(); }
+    virtual State state() const;
 
-    virtual Segmentation::InfoTagList availableInformations() const;
+    virtual Snapshot snapshot() const;
 
-    virtual bool validTaxonomy(const QString &qualifiedName) const
+    virtual TypeList dependencies() const
+    { return TypeList(); }
+
+    virtual bool invalidateOnChange() const
     { return true; }
 
-    virtual void setSegmentation(SegmentationPtr seg);
+    virtual InfoTagList availableInformations() const;
 
-    virtual QVariant information(const Segmentation::InfoTag &tag);
+    virtual bool validCategory(const QString& classificationName) const
+    { return true; }
 
-    virtual bool isCacheFile(const QString &file) const
-    { return EXTENSION_FILE == file; }
-
-    virtual void loadCache(QuaZipFile &file, const QDir &tmpDir, IEspinaModel *model);
-
-    virtual bool saveCache(Snapshot &cacheList);
-
-    virtual Segmentation::InformationExtension clone();
+    virtual QVariant information(const InfoTag& tag) const;
 
     void edgeDistance(Nm distances[6]) const;
 
-    virtual void initialize();
+    virtual void invalidate();
 
-    virtual void invalidate(SegmentationPtr segmentation = NULL);
+  protected:
+    virtual void onSegmentationSet(SegmentationPtr segmentation);
 
   private:
     void updateDistances() const;
+
     void setDistances(Nm distances[6]);
 
   private:
-    friend class AdaptiveEdges;
+    mutable bool m_init;
+    mutable Nm   m_distances[6];
 
+    friend class AdaptiveEdges;
   };
 
-  typedef EdgeDistance  *EdgeDistancePtr;
-  typedef boost::shared_ptr<EdgeDistancePtr> EdgeDistanceSPtr;
+  using EdgeDistancePtr  = EdgeDistance *;
+  using EdgeDistanceSPtr = std::shared_ptr<EdgeDistance>;
 
-  EdgeDistancePtr edgeDistancePtr(ModelItem::Extension *extension);
+  EdgeDistancePtr EspinaExtensions_EXPORT edgeDistance(SegmentationExtensionPtr extension);
 
 }// namespace EspINA
 
-#endif // EDGEDISTANCE_H
+#endif // ESPINA_EDGE_DISTANCE_H

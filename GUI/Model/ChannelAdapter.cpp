@@ -141,23 +141,23 @@ void ChannelAdapter::setBrightness(double brightness)
 //------------------------------------------------------------------------
 void ChannelAdapter::addExtension(ChannelExtensionSPtr extension)
 {
-
+  m_channel->addExtension(extension);
 }
 
 Bounds ChannelAdapter::bounds() const
 {
-
+  return m_channel->bounds();
 }
 
 
 void ChannelAdapter::deleteExtension(ChannelExtensionSPtr extension)
 {
-
+  m_channel->deleteExtension(extension);
 }
 
 bool ChannelAdapter::hasExtension(const ChannelExtension::Type& type) const
 {
-
+  return m_channel->hasExtension(type);
 }
 
 ChannelExtensionSPtr ChannelAdapter::extension(const ChannelExtension::Type& type)

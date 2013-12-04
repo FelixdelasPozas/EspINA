@@ -20,62 +20,58 @@
 #include "EdgeDistance.h"
 
 #include "AdaptiveEdges.h"
-
-#include "Core/Model/Segmentation.h"
-#include "Core/Model/Channel.h"
-#include <Core/Model/EspinaModel.h>
-#include <Core/Model/Filter.h>
+#include <Core/Analysis/Channel.h>
+#include <Core/Analysis/Segmentation.h>
 
 #include <QDebug>
 
 using namespace EspINA;
 
+const SegmentationExtension::Type EdgeDistance::TYPE = "EdgeDistance";
 const QString EdgeDistance::EXTENSION_FILE = "EdgeDistances/EdgeDistance.csv";
 
-EdgeDistance::ExtensionCache EdgeDistance::s_cache;
-
-const std::string FILE_VERSION = EdgeDistanceID.toStdString() + " 1.0\n";
+const std::string FILE_VERSION = EdgeDistance::TYPE.toStdString() + " 1.0\n";
 const char SEP = ',';
 
-const Segmentation::InfoTag EdgeDistance::LEFT_DISTANCE   = "Left Distance";
-const Segmentation::InfoTag EdgeDistance::TOP_DISTANCE    = "Top Distance";
-const Segmentation::InfoTag EdgeDistance::UPPER_DISTANCE  = "Upper Distance";
-const Segmentation::InfoTag EdgeDistance::RIGHT_DISTANCE  = "Right Distance";
-const Segmentation::InfoTag EdgeDistance::BOTTOM_DISTANCE = "Bottom Distance";
-const Segmentation::InfoTag EdgeDistance::LOWER_DISTANCE  = "Lower Distance";
-
-//-----------------------------------------------------------------------------
-EdgeDistance::ExtensionData::ExtensionData()
-{
-  memset(Distances, 0, 6*sizeof(double));
-}
-
+const SegmentationExtension::InfoTag EdgeDistance::LEFT_DISTANCE   = "Left Distance";
+const SegmentationExtension::InfoTag EdgeDistance::TOP_DISTANCE    = "Top Distance";
+const SegmentationExtension::InfoTag EdgeDistance::UPPER_DISTANCE  = "Upper Distance";
+const SegmentationExtension::InfoTag EdgeDistance::RIGHT_DISTANCE  = "Right Distance";
+const SegmentationExtension::InfoTag EdgeDistance::BOTTOM_DISTANCE = "Bottom Distance";
+const SegmentationExtension::InfoTag EdgeDistance::LOWER_DISTANCE  = "Lower Distance";
 
 //-----------------------------------------------------------------------------
 EdgeDistance::EdgeDistance()
+: m_init(false)
 {
 }
 
 //-----------------------------------------------------------------------------
 EdgeDistance::~EdgeDistance()
 {
-  if (m_segmentation)
-  {
-    //qDebug() << m_seg->data().toString() << ": Deleting" << EdgeDistanceID;
-    invalidate();
-  }
 }
 
 //-----------------------------------------------------------------------------
-ModelItem::ExtId EdgeDistance::id()
+State EdgeDistance::state() const
 {
-  return EdgeDistanceID;
+  State state;
+
+  return state;
+}
+
+
+//-----------------------------------------------------------------------------
+Snapshot EdgeDistance::snapshot() const
+{
+  Snapshot snapshot;
+
+  return snapshot;
 }
 
 //-----------------------------------------------------------------------------
-Segmentation::InfoTagList EdgeDistance::availableInformations() const
+SegmentationExtension::InfoTagList EdgeDistance::availableInformations() const
 {
-  Segmentation::InfoTagList tags;
+  InfoTagList tags;
 
   tags << LEFT_DISTANCE;
   tags << RIGHT_DISTANCE;
@@ -88,208 +84,157 @@ Segmentation::InfoTagList EdgeDistance::availableInformations() const
 }
 
 //------------------------------------------------------------------------
-void EdgeDistance::setSegmentation(SegmentationPtr seg)
+void EdgeDistance::onSegmentationSet(SegmentationPtr segmentation)
 {
-  EspINA::Segmentation::Information::setSegmentation(seg);
+//   connect(segmentation->modified()),
+//           this, SLOT(invalidate()));
 
-  connect(m_segmentation, SIGNAL(outputModified()),
-          this, SLOT(invalidate()));
-
-  if (m_segmentation->outputIsModified())
-    invalidate();
-  else
-    initialize();
+  if (m_segmentation->isOutputModified())
+    invalidate(); //TODO: Change to ignore storage data
 }
 
 //-----------------------------------------------------------------------------
-QVariant EdgeDistance::information(const Segmentation::InfoTag &tag)
+QVariant EdgeDistance::information(const InfoTag &tag) const
 {
-  bool cached = s_cache.isCached(m_segmentation);
-  if (!cached)
+  if (!m_init)
   {
     updateDistances();
   }
 
-  ExtensionData &data = s_cache[m_segmentation].Data;
   if (LEFT_DISTANCE == tag)
-    return data.Distances[0];
+    return m_distances[0];
   if (RIGHT_DISTANCE == tag)
-    return data.Distances[1];
+    return m_distances[1];
   if (TOP_DISTANCE == tag)
-    return data.Distances[2];
+    return m_distances[2];
   if (BOTTOM_DISTANCE == tag)
-    return data.Distances[3];
+    return m_distances[3];
   if (UPPER_DISTANCE == tag)
-    return data.Distances[4];
+    return m_distances[4];
   if (LOWER_DISTANCE == tag)
-    return data.Distances[5];
+    return m_distances[5];
 
-  qWarning() << EdgeDistanceID << ":"  << tag << " is not provided";
+  qWarning() << TYPE << ":"  << tag << " is not provided";
   Q_ASSERT(false);
   return QVariant();
 }
 
 
 //-----------------------------------------------------------------------------
-void EdgeDistance::loadCache(QuaZipFile  &file,
-                             const QDir  &tmpDir,
-                             IEspinaModel *model)
-{
-  QString header(file.readLine());
-  if (header.toStdString() == FILE_VERSION)
-  {
-    char buffer[1024];
-    while (file.readLine(buffer, sizeof(buffer)) > 0)
-    {
-      QString line(buffer);
-      QStringList fields = line.split(SEP);
+// void EdgeDistance::loadCache(QuaZipFile  &file,
+//                              const QDir  &tmpDir,
+//                              IEspinaModel *model)
+// {
+//   QString header(file.readLine());
+//   if (header.toStdString() == FILE_VERSION)
+//   {
+//     char buffer[1024];
+//     while (file.readLine(buffer, sizeof(buffer)) > 0)
+//     {
+//       QString line(buffer);
+//       QStringList fields = line.split(SEP);
+// 
+//       SegmentationPtr extensionSegmentation = NULL;
+//       int i = 0;
+//       while (!extensionSegmentation && i < model->segmentations().size())
+//       {
+//         SegmentationSPtr segmentation = model->segmentations()[i];
+//         if ( segmentation->filter()->id()  == fields[0]
+//           && segmentation->outputId()         == fields[1].toInt()
+//           && segmentation->filter()->cacheDir() == tmpDir)
+//         {
+//           extensionSegmentation = segmentation.get();
+//         }
+//         i++;
+//       }
+//       if (extensionSegmentation)
+//       {
+//         ExtensionData &data = s_cache[extensionSegmentation].Data;
+// 
+//         for(i=0; i<6; i++)
+//         {
+//           data.Distances[i] = fields[2+i].toDouble();
+//         }
+//       } else
+//       {
+//         qWarning() << EdgeDistanceID << "Invalid Cache Entry:" << line;
+//       }
+//     }
+//   }
+// }
 
-      SegmentationPtr extensionSegmentation = NULL;
-      int i = 0;
-      while (!extensionSegmentation && i < model->segmentations().size())
-      {
-        SegmentationSPtr segmentation = model->segmentations()[i];
-        if ( segmentation->filter()->id()  == fields[0]
-          && segmentation->outputId()         == fields[1].toInt()
-          && segmentation->filter()->cacheDir() == tmpDir)
-        {
-          extensionSegmentation = segmentation.get();
-        }
-        i++;
-      }
-      if (extensionSegmentation)
-      {
-        ExtensionData &data = s_cache[extensionSegmentation].Data;
-
-        for(i=0; i<6; i++)
-        {
-          data.Distances[i] = fields[2+i].toDouble();
-        }
-      } else
-      {
-        qWarning() << EdgeDistanceID << "Invalid Cache Entry:" << line;
-      }
-    }
-  }
-}
-
-//-----------------------------------------------------------------------------
-// It's declared static to avoid collisions with other functions with same
-// signature in different compilation units
-static bool invalidData(SegmentationPtr seg)
-{
-  bool invalid = false;
-  if (seg->hasInformationExtension(EdgeDistanceID))
-  {
-    invalid = !seg->informationExtension(EdgeDistanceID)->isEnabled();
-  } else 
-  {
-    invalid = seg->outputIsModified();
-  }
-  return invalid;
-}
 
 //-----------------------------------------------------------------------------
-bool EdgeDistance::saveCache(Snapshot &cacheList)
-{
-  s_cache.purge(invalidData);
-
-  if (s_cache.isEmpty())
-    return false;
-
-  std::ostringstream cache;
-  cache << FILE_VERSION;
-
-  foreach(SegmentationPtr segmentation, s_cache.keys())
-  {
-    ExtensionData &data = s_cache[segmentation].Data;
-
-    cache << segmentation->filter()->id().toStdString();
-    cache << SEP << segmentation->outputId();
-
-    for(int i=0; i<6; i++)
-      cache << SEP << data.Distances[i];
-
-    cache << std::endl;
-  }
-
-  cacheList << SnapshotEntry(EXTENSION_FILE, cache.str().c_str());
-
-  return true;
-}
-
-//-----------------------------------------------------------------------------
-Segmentation::Information * EdgeDistance::clone()
-{
-  return new EdgeDistance();
-}
+// bool EdgeDistance::saveCache(Snapshot &cacheList)
+// {
+//   s_cache.purge(invalidData);
+// 
+//   if (s_cache.isEmpty())
+//     return false;
+// 
+//   std::ostringstream cache;
+//   cache << FILE_VERSION;
+// 
+//   foreach(SegmentationPtr segmentation, s_cache.keys())
+//   {
+//     ExtensionData &data = s_cache[segmentation].Data;
+// 
+//     cache << segmentation->filter()->id().toStdString();
+//     cache << SEP << segmentation->outputId();
+// 
+//     for(int i=0; i<6; i++)
+//       cache << SEP << data.Distances[i];
+// 
+//     cache << std::endl;
+//   }
+// 
+//   cacheList << SnapshotEntry(EXTENSION_FILE, cache.str().c_str());
+// 
+//   return true;
+// }
 
 //-----------------------------------------------------------------------------
 void EdgeDistance::edgeDistance(Nm distances[6]) const
 {
-  if (!s_cache.isCached(m_segmentation))
-      updateDistances();
+  if (!m_init) updateDistances();
 
-  memcpy(distances, s_cache[m_segmentation].Data.Distances, 6*sizeof(Nm));
+  memcpy(distances, m_distances, 6*sizeof(Nm));
 }
 
 //-----------------------------------------------------------------------------
-void EdgeDistance::initialize()
+void EdgeDistance::invalidate()
 {
-  if (m_segmentation)
-  {
-    s_cache.markAsClean(m_segmentation);
-  }
-}
-
-//-----------------------------------------------------------------------------
-void EdgeDistance::invalidate(SegmentationPtr segmentation)
-{
-  if (!segmentation)
-    segmentation = m_segmentation;
-
-  if (segmentation)
-  {
-    s_cache.markAsDirty(segmentation);
-  }
 }
 
 //-----------------------------------------------------------------------------
 void EdgeDistance::updateDistances() const
 {
   //qDebug() << "Updating" << m_seg->data().toString() << EdgeDistanceID;
-  ChannelSPtr channel = m_segmentation->channel();
-  if (channel != NULL)
+  ChannelSPtr channel; // TODO = m_segmentation->channel();
+  if (channel)
   {
-    AdaptiveEdges  *edgesExtension = NULL;
-    Channel::ExtensionPtr extension = channel->extension(AdaptiveEdgesID);
-    if (!extension)
+    if (!channel->hasExtension(AdaptiveEdges::TYPE))
     {
-      edgesExtension = new AdaptiveEdges();
-      channel->addExtension(edgesExtension);
-    } else
-    {
-      edgesExtension = adaptiveEdgesPtr(extension);
+      AdaptiveEdgesSPtr extension{new AdaptiveEdges()};
+      channel->addExtension(extension);
     }
+    AdaptiveEdgesPtr edgesExtension = adaptiveEdges(channel->extension(AdaptiveEdges::TYPE).get());
     Q_ASSERT(edgesExtension);
 
     edgesExtension->computeDistanceToEdge(m_segmentation);
   }
+
+  m_init = true;
 }
 
 //-----------------------------------------------------------------------------
 void EdgeDistance::setDistances(Nm distances[6])
 {
-  memcpy(s_cache[m_segmentation].Data.Distances, distances, 6*sizeof(Nm));
-  s_cache.markAsClean(m_segmentation);
+  memcpy(m_distances, distances, 6*sizeof(Nm));
 }
 
 //-----------------------------------------------------------------------------
-EdgeDistancePtr EspINA::edgeDistancePtr(ModelItem::ExtensionPtr extension)
+EdgeDistancePtr EspINA::edgeDistance(SegmentationExtensionPtr extension)
 {
-  EdgeDistancePtr res;
-  res = dynamic_cast<EdgeDistancePtr>(extension);
-  Q_ASSERT(res);
-
-  return res;
+  return dynamic_cast<EdgeDistancePtr>(extension);
 }

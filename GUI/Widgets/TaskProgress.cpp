@@ -52,7 +52,18 @@ TaskProgress::~TaskProgress()
 
 void TaskProgress::updateProgress(int value)
 {
-  m_progressBar->setFormat(m_task->description() + QString(": %1%").arg(value));
+  QString text = m_task->description();
+
+  int valueWidth = m_progressBar->fontMetrics().width(": 100%");
+  int charWidht  = m_progressBar->fontMetrics().width("A");
+  int maxLength  = (m_progressBar->width() - valueWidth) / charWidht;
+
+  if (text.length() > maxLength)
+  {
+    text = text.left(maxLength - 4) + "... ";
+  }
+
+  m_progressBar->setFormat(text + QString(": %1%").arg(value));
   m_progressBar->setValue(value);
 }
 

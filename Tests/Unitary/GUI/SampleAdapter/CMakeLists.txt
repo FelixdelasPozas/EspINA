@@ -8,6 +8,7 @@ create_test_sourcelist(TEST_SOURCES SampleAdapter_Tests.cpp # this file is creat
 qt4_wrap_cpp(TEST_MOCS
   ${CORE_DIR}/Analysis/Data.h
   ${CORE_DIR}/Analysis/Output.h
+  ${CORE_DIR}/Analysis/ViewItem.h
   ${CORE_DIR}/MultiTasking/Scheduler.h
   ${CORE_DIR}/MultiTasking/Task.h
   ${GUI_DIR}/Model/FilterAdapter.h

@@ -31,6 +31,8 @@
 
 namespace EspINA
 {
+  class EdgeDetector;
+
   class EspinaExtensions_EXPORT AdaptiveEdges
   : public ChannelExtension
   {
@@ -39,22 +41,24 @@ namespace EspINA
     static const QString FACES_FILE;
 
   public:
-    static const ModelItem::ArgumentId EDGETYPE;
+    static const QString EDGETYPE;
 
     static const Type TYPE;
 
   public:
-    explicit AdaptiveEdges(bool useAdaptiveEdges = false,
-                           int backgroundColor   = 0,
-                           int threshold         = 50);
+    explicit AdaptiveEdges(bool          useAdaptiveEdges = false,
+                           int           backgroundColor  = 0,
+                           int           threshold        = 50,
+                           SchedulerSPtr scheduler        = SchedulerSPtr());
     virtual ~AdaptiveEdges();
 
     virtual Type type() const
     { return TYPE; }
 
-    void computeDistanceToEdge(SegmentationPtr seg);
+    void computeDistanceToEdge(SegmentationPtr segmentation);
 
     vtkSmartPointer<vtkPolyData> channelEdges();
+
     Nm computedVolume();
 
     bool usesAdaptiveEdges() const
@@ -66,20 +70,28 @@ namespace EspINA
     int threshold() const
     { return m_threshold; }
 
+  protected:
+    virtual void onChannelSet(ChannelPtr channel)
+    { if (usesAdaptiveEdges()) computeAdaptiveEdges(); }
+
   private:
     void computeAdaptiveEdges();
-//     void loadEdgesCache(ChannelPtr channel);
-// 
-//     void loadFacesCache(ChannelPtr channel);
-// 
-// 
-//     QString fileId(ChannelPtr channel) const;
+
+    void loadEdgesCache();
+
+    void loadFacesCache();
 
   private:
     QMutex m_mutex;
-    bool   m_useAdaptiveEdges;
     int    m_backgroundColor;
+    Nm     m_computedVolume;
     int    m_threshold;
+    bool   m_useAdaptiveEdges;
+
+    EdgeDetector *m_edgeDetector;
+
+    vtkSmartPointer<vtkPolyData> m_edges;
+    vtkSmartPointer<vtkPolyData> m_faces[6];
 
     // build a surface for each face the first time they're needed
     void ComputeSurfaces();

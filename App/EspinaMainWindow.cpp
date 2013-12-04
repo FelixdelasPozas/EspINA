@@ -20,6 +20,7 @@
 
 // EspINA
 #include "Dialogs/AboutDialog.h"
+#include "Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.h"
 #include "Docks/ChannelExplorer/ChannelExplorer.h"
 #include "Docks/SegmentationExplorer/SegmentationExplorer.h"
 #include "IO/ChannelReader.h"
@@ -40,6 +41,7 @@
 #include <GUI/Representations/BasicRepresentationFactory.h>
 #include <Support/Settings/EspinaSettings.h>
 #include <Support/Plugin.h>
+#include <Extensions/EdgeDistances/AdaptiveEdges.h>
 
 
 // Std
@@ -686,19 +688,25 @@ void EspinaMainWindow::openAnalysis(const QStringList files)
 
     if (!m_model->channels().isEmpty())
     {
-      auto channel = m_model->channels().first().get();
-      m_viewManager->setActiveChannel(channel);
+      auto activeChannel = m_model->channels().first().get();
+      m_viewManager->setActiveChannel(activeChannel);
 
-    //TODO 2013-10-06
-    //   if (EspinaIO::isChannelExtension(fileInfo.suffix()))
-    //   {
-    //     AdaptiveEdgesDialog edgesDialog(this);
-    //     edgesDialog.exec();
-    //     if (edgesDialog.useAdaptiveEdges())
-    //     {
-    //       channel->addExtension(new AdaptiveEdges(true, edgesDialog.color(), edgesDialog.threshold()));
-    //     }
-    //   }
+      for (auto channel : m_model->channels())
+      {
+        if (!channel->hasExtension(AdaptiveEdges::TYPE))
+        {
+          AdaptiveEdgesDialog edgesDialog(this);
+          edgesDialog.exec();
+          if (edgesDialog.useAdaptiveEdges())
+          {
+            int color     = edgesDialog.color();
+            int threshold = edgesDialog.threshold();
+
+            AdaptiveEdgesSPtr extension{new AdaptiveEdges(true, color, threshold, m_scheduler)};
+            channel->addExtension(extension);
+          }
+        }
+      }
     }
 
     setWindowTitle(files.first());

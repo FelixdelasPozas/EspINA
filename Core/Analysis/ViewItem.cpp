@@ -59,10 +59,22 @@ const DataSPtr ViewItem::data(Data::Type type) const
 }
 
 //------------------------------------------------------------------------
-void ViewItem::changeOutput(FilterSPtr filter, Output::Id output)
+void ViewItem::changeOutput(FilterSPtr filter, Output::Id outputId)
 {
-  this->output()->markToSave(false);
-  m_filter = filter;
-  m_outputId = output;
-  this->output()->markToSave(true);
+  if (m_filter)
+  {
+    disconnect(output().get(), SIGNAL(modified()),
+               this, SLOT(onOutputModified()));
+    output()->markToSave(false);
+  }
+
+  m_filter   = filter;
+  m_outputId = outputId;
+
+  if (m_filter)
+  {
+    output()->markToSave(true);
+    connect(output().get(), SIGNAL(modified()),
+            this, SLOT(onOutputModified()));
+  }
 }

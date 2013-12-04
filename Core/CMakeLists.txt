@@ -8,6 +8,7 @@ include (GenerateExportHeader)
 qt4_wrap_cpp(CORE_MOC
   Analysis/Data.h
   Analysis/Output.h
+  Analysis/ViewItem.h
   MultiTasking/Scheduler.h
   MultiTasking/Task.h
   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED

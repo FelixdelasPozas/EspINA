@@ -268,13 +268,6 @@ void Channel::setBrightness(double brightness)
   }
 }
 
-//------------------------------------------------------------------------
-Bounds Channel::bounds() const
-{
-
-}
-
-
 // static const State::Id ID;
 // static const State::Id HUE;
 // static const State::Id OPACITY;
