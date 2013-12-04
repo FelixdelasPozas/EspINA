@@ -64,7 +64,7 @@ void CategorySelector::categorySelected(const QModelIndex& index)
 
   auto category = categoryPtr(item);
 
-  m_selectedCategory = m_model->findCategory(category);
+  m_selectedCategory = m_model->smartPointer(category);
 }
 
 //------------------------------------------------------------------------

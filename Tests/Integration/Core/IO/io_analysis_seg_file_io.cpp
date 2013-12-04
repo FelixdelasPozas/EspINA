@@ -49,7 +49,7 @@ int io_analysis_seg_file_io( int argc, char** argv )
   {
     virtual FilterTypeList providedFilters() const
     { FilterTypeList list; list << "DummyFilter"; return list; }
-    virtual FilterSPtr createFilter(OutputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const
+    virtual FilterSPtr createFilter(OutputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception)
     {
       return FilterSPtr{new DummyFilter()};
     }

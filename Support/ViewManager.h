@@ -32,6 +32,7 @@
 #include <GUI/View/Widgets/EspinaWidget.h>
 #include <GUI/ColorEngines/ColorEngine.h>
 #include <GUI/Selectors/Selector.h>
+#include <GUI/View/Selection.h>
 
 // Qt
 #include <QList>
@@ -101,6 +102,9 @@ namespace EspINA
      */
     SelectionSPtr selection() const
     { return m_selection; }
+
+  signals:
+    void selectionChanged(SelectionSPtr);
 
   private:
     SelectionSPtr m_selection;

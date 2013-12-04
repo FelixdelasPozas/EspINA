@@ -16,8 +16,10 @@ include (GenerateExportHeader)
 set (FILTERS_SOURCES
   ${FILTERS_MOC}
   ${FILTERS_UI}
+  FreeFormSource.cpp
   SeedGrowSegmentationFilter.cpp
   VolumetricStreamReader.cpp
+  Utils/vtkTube.cxx
   )
 
 set(FILTERS_EXTERNAL_LIBS

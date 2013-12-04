@@ -19,10 +19,19 @@
 #ifndef ESPINA_MANUAL_EDITION_TOOL_H_
 #define ESPINA_MANUAL_EDITION_TOOL_H_
 
+#include <Core/Factory/FilterFactory.h>
+#include <GUI/Model/ModelAdapter.h>
+#include <GUI/ModelFactory.h>
 #include <Support/Tool.h>
 
 #include <GUI/Widgets/ActionSelector.h>
 #include <GUI/Selectors/Selector.h>
+#include <Support/ViewManager.h>
+#include <GUI/Selectors/BrushSelector.h>
+#include <App/Tools/Brushes/CircularBrushSelector.h>
+#include <App/Tools/Brushes/SphericalBrushSelector.h>
+
+#include <QUndoStack>
 
 class QAction;
 
@@ -32,9 +41,14 @@ namespace EspINA
   
   class ManualEditionTool
   : public Tool
+  , public FilterFactory
   {
+    Q_OBJECT
     public:
-      ManualEditionTool();
+      ManualEditionTool(ModelAdapterSPtr model,
+                        ModelFactorySPtr factory,
+                        ViewManagerSPtr  viewManager,
+                        QUndoStack      *undoStack);
       virtual ~ManualEditionTool();
 
       virtual void setEnabled(bool value);
@@ -43,7 +57,33 @@ namespace EspINA
 
       virtual QList<QAction *> actions() const;
 
+      virtual FilterTypeList providedFilters() const;
+
+      virtual FilterSPtr createFilter(OutputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception);
+
+    signals:
+      void stopDrawing();
+      void brushModeChanged(BrushSelector::BrushMode);
+
+    public slots:
+      void drawStroke(ViewItemAdapterPtr, Selector::WorldRegion, Nm, Plane) {};
+
+    private slots:
+      void changeSelector(QAction *);
+      void changeRadius(int);
+      void selectorInUse(bool);
+      void unsetSelector();
+
     private:
+      ModelAdapterSPtr m_model;
+      ModelFactorySPtr m_factory;
+      ViewManagerSPtr  m_viewManager;
+      QUndoStack      *m_undoStack;
+
+      CircularBrushSelectorSPtr  m_circularBrushSelector;
+      SphericalBrushSelectorSPtr m_sphericalBrushSelector;
+
+      SelectorSPtr    m_actualSelector;
       ActionSelector *m_drawToolSelector;
       QMap<QAction *, SelectorSPtr> m_drawTools;
 

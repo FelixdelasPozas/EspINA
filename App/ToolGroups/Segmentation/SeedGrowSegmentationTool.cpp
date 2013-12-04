@@ -102,7 +102,7 @@ FilterTypeList SeedGrowSegmentationTool::providedFilters() const
 //-----------------------------------------------------------------------------
 FilterSPtr SeedGrowSegmentationTool::createFilter(OutputSList         inputs,
                                                   const Filter::Type& filter,
-                                                  SchedulerSPtr       scheduler) const
+                                                  SchedulerSPtr       scheduler) const throw (Unknown_Filter_Exception)
 {
   if (filter != SGS_FILTER) throw Unknown_Filter_Exception();
 

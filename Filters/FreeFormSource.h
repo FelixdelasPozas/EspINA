@@ -20,87 +20,52 @@
 #ifndef FREEFORMSOURCE_H
 #define FREEFORMSOURCE_H
 
-#include "EspinaCore_Export.h"
+// #include "EspinaFilters_Export.h" añadir EspinaFilters_EXPORT a la clase luego
 
 #include "BasicSegmentationFilter.h"
+#include <Core/Utils/BinaryMask.h>
 
 #include <QVector3D>
 
 namespace EspINA
 {
-class EspinaCore_EXPORT FreeFormSource
-: public BasicSegmentationFilter
-{
-public:
-  static const ModelItem::ArgumentId SPACING;
-
-  class Parameters
+  class EspinaFilters_EXPORT FreeFormSource
+  : public Filter
   {
-  public:
-    explicit Parameters(Arguments &args)
-    : m_args(args)
-    {
-      QStringList values = m_args[SPACING].split(",", QString::SkipEmptyParts);
-      if (values.size() == 3)
-      {
-        for(int i=0; i<3; i++)
-          m_spacing[i] = values[i].toDouble();
-      }
-    }
+    public:
+      explicit FreeFormSource(OutputSList inputs,
+                              Filter::Type     type,
+                              SchedulerSPtr    scheduler);
+      virtual ~FreeFormSource();
 
-    void setSpacing(double value[3])
-    {
-      for(int i=0; i<3; i++)
-        m_spacing[i] = value[i];
-      m_args[SPACING] = QString("%1,%2,%3")
-      .arg(value[0])
-      .arg(value[1])
-      .arg(value[2]);
-    }
-    void setSpacing(itkVolumeType::SpacingType value)
-    {
-      for(int i=0; i<3; i++)
-        m_spacing[i] = value[i];
-      m_args[SPACING] = QString("%1,%2,%3")
-      .arg(value[0])
-      .arg(value[1])
-      .arg(value[2]);
-    }
-    itkVolumeType::SpacingType spacing() const
-    {
-      return m_spacing;
-    }
-  private:
-    Arguments &m_args;
-    itkVolumeType::SpacingType m_spacing;
+      virtual void restoreState(const State &state);
+      virtual State state() const;
+
+      void setMask(BinaryMaskSPtr<unsigned char> mask)
+      { m_mask = mask; }
+
+    protected:
+      virtual Snapshot saveFilterSnapshot() const;
+
+      virtual bool needUpdate() const
+      { return needUpdate(0); }
+
+      virtual bool needUpdate(Output::Id oId) const;
+
+      virtual void execute()
+      { execute(0); }
+
+      virtual void execute(Output::Id oId);
+
+      virtual bool ignoreStorageContent() const
+      { return false; }
+
+      virtual bool invalidateEditedRegions();
+
+    private:
+      BinaryMaskSPtr<unsigned char> m_mask;
   };
 
-public:
-  explicit FreeFormSource(const EspinaRegion &bounds,
-                          itkVolumeType::SpacingType spacing,
-                          FilterType  type);
-  explicit FreeFormSource(NamedInputs inputs,
-                          Arguments   args,
-                          FilterType  type);
-  virtual ~FreeFormSource();
-
-  virtual void setGraphicalRepresentationFactory(GraphicalRepresentationFactorySPtr factory);
-
-  virtual bool dumpSnapshot(Snapshot &snapshot);
-
-protected:
-  virtual bool ignoreCurrentOutputs() const
-  { return false; }
-
-  virtual bool needUpdate(FilterOutputId oId) const;
-
-  virtual void run() { run(0); }
-
-  virtual void run(FilterOutputId oId) {}
-
-private:
-  Parameters m_param;
-};
 } // namespace EspINA
 
 

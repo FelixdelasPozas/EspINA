@@ -39,7 +39,7 @@ namespace EspINA
 
     virtual FilterSPtr createFilter(OutputSList         inputs,
                                     const Filter::Type& filter,
-                                    SchedulerSPtr       scheduler) const = 0;
+                                    SchedulerSPtr       scheduler) const throw (Unknown_Filter_Exception) = 0;
 
     virtual FilterTypeList providedFilters() const = 0;
   };

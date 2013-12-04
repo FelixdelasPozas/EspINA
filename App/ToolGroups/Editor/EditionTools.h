@@ -21,6 +21,7 @@
 
 #include <Support/ToolGroup.h>
 #include <GUI/Model/ModelAdapter.h>
+#include <GUI/View/Selection.h>
 
 #include "ManualEditionTool.h"
 #include "SplitTool.h"
@@ -49,7 +50,7 @@ namespace EspINA
       virtual ToolSList tools();
 
     public slots:
-      void selectionChanged();
+      void selectionChanged(SelectionSPtr);
 
     private:
       ManualEditionToolSPtr        m_manualEdition;

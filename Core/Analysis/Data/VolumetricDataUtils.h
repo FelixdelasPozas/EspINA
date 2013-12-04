@@ -51,7 +51,8 @@ namespace EspINA
   Bounds equivalentBounds(const NmVector3& origin, const NmVector3& spacing, const typename T::RegionType& region);
 
   // NOTE: Probably move into an independent module
-  static double memory_size_in_MB(int number_of_pixels){
+  static double memory_size_in_MB(int number_of_pixels)
+  {
     return number_of_pixels / 1024.0 / 1024.0;
   }
 

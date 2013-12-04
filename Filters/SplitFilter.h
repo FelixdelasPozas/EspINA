@@ -22,8 +22,8 @@
 
 #include "EspinaCore_Export.h"
 
-#include <Core/Model/Filter.h>
-#include <Core/OutputRepresentations/RawVolume.h>
+#include <Core/Analysis/Filter.h>
+#include <Core/Analysis/Data/VolumetricData.h>
 #include "BasicSegmentationFilter.h"
 
 #include <vtkSmartPointer.h>
@@ -35,7 +35,7 @@ namespace EspINA
   /// Split Segmentation into two components according to
   /// given stencil
   class EspinaCore_EXPORT SplitFilter
-  : public BasicSegmentationFilter
+  : public Filter
   {
   public:
     static const QString INPUTLINK;

@@ -25,16 +25,19 @@
 // EspINA
 #include <GUI/Selectors/Selector.h>
 #include <GUI/Model/SegmentationAdapter.h>
+#include <Support/ViewManager.h>
 
 // VTK
 #include <vtkSmartPointer.h>
 
 // Qt
 #include <QColor>
+#include <QDebug>
 
 class vtkLookupTable;
 class vtkImageResliceToColors;
 class vtkImageActor;
+class vtkImplicitFunction;
 class ImplicitImageSource;
 class vtkImageData;
 class Channel;
@@ -45,75 +48,97 @@ namespace EspINA
   class EspinaGUI_EXPORT BrushSelector
   : public Selector
   {
-	Q_OBJECT
-	  using Spacing = itkVolumeType::SpacingType;
+    Q_OBJECT
+    public:
+      enum BrushMode {BRUSH, ERASER};
+      enum DrawMode {CREATE, MODIFY};
 
-	public:
-	  explicit BrushSelector(ViewItemAdapterSPtr item = nullptr);
-	  virtual ~BrushSelector();
+      typedef QPair<vtkImplicitFunction*, Bounds> BrushShape;
+      typedef QList<BrushShape> BrushShapeList;
 
-	  virtual bool filterEvent(QEvent* e, RenderView* view = nullptr);
+      using Spacing = itkVolumeType::SpacingType;
 
-	  // radius of the brush in screen pixels
-	  void setRadius(int radius);
-	  int radius() const
-	  { return m_displayRadius; }
+    public:
+      explicit BrushSelector(ViewManagerSPtr vm);
+      virtual ~BrushSelector();
 
-	  void setBorderColor(QColor color);
-	  void setBrushColor(QColor color);
-	  void setBrushImage(QImage &image);
-	  QColor getBrushColor();
+      virtual bool filterEvent(QEvent* e, RenderView* view = nullptr);
 
-	  /// @item is used to specify the spacing of the stroke
-	  void setReferenceItem(ViewItemAdapterSPtr item);
-	  Spacing referenceSpacing() const;
+      // radius of the brush in screen pixels
+      void setRadius(int radius);
+      int radius() const
+      { return m_displayRadius; }
 
-	  void DrawingOn(RenderView *view);
-	  void DrawingOff(RenderView *view, ViewItemAdapterSPtr segmentation);
+      QCursor cursor() const
+      { return m_cursor; }
 
-	signals:
-	  void stroke(ViewItemAdapterSPtr, double, double, double, Nm, Plane);
-	  void stroke(ViewItemAdapterSPtr, WorldRegion, Nm, Plane);
+      void setBorderColor(QColor color);
+      void setBrushColor(QColor color);
+      void setBrushImage(QImage &image);
+      QColor getBrushColor();
 
-	private:
-	  void buildCursor();
-	  void createBrush(NmVector3 &center, QPoint pos);
-	  bool validStroke(NmVector3 &center);
-	  void startStroke(QPoint pos, RenderView *view);
-	  void updateStroke(QPoint pos, RenderView *view);
-	  void stopStroke(RenderView *view);
-	  void startPreview(RenderView *view);
-	  void updatePreview(NmVector3 center, RenderView *view);
-	  void stopPreview(RenderView *view);
+      /// @item is used to specify the spacing of the stroke
+      void setReferenceItem(ViewItemAdapterPtr item);
+      Spacing referenceSpacing() const;
 
-	private:
-	  ViewItemAdapterSPtr m_referenceItem;
+      void DrawingOn(RenderView *view);
+      void DrawingOff(RenderView *view, SegmentationAdapterPtr segmentation);
 
-	  int m_displayRadius; //In screen pixels
-	  QColor m_borderColor;
-	  QColor m_brushColor;
-	  QImage *m_brushImage;
+      BinaryMaskSPtr<unsigned char> voxelSelectionMask() const;
 
-	  bool m_tracking;
-	  QPoint m_lastDot;
-	  WorldRegion m_stroke;
+      void initBrush();
 
-	  Plane m_plane;
-	  Nm m_radius;
-	  Spacing m_spacing;
-	  int m_viewSize[2];
-	  double m_LL[3], m_UR[3];
-	  Bounds m_pBounds;
-	  double m_worldSize[2];
+    signals:
+      void stroke(ViewItemAdapterPtr, double, double, double, Nm, Plane);
+      void stroke(ViewItemAdapterPtr, Selector::WorldRegion, Nm, Plane);
 
-	  vtkSmartPointer<vtkLookupTable> m_lut;
-	  vtkSmartPointer<vtkImageData> m_preview;
-	  vtkSmartPointer<vtkImageActor> m_actor;
-	  bool m_drawing;
-	  SegmentationAdapterSPtr m_segmentation;
+    protected slots:
+      virtual BrushShape createBrushShape(ViewItemAdapterPtr item,
+                                          NmVector3 center,
+                                          Nm radius,
+                                          Plane plane) = 0;
+    private:
+      void buildCursor();
+      void createBrush(NmVector3 &center, QPoint pos);
+      bool validStroke(NmVector3 &center);
+      void startStroke(QPoint pos, RenderView *view);
+      void updateStroke(QPoint pos, RenderView *view);
+      void stopStroke(RenderView *view);
+      void startPreview(RenderView *view);
+      void updatePreview(NmVector3 center, RenderView *view);
+      void stopPreview(RenderView *view);
 
-	  static const int MAX_RADIUS = 32;
-	};
+    private:
+      ViewManagerSPtr m_viewManager;
+      ViewItemAdapterPtr m_referenceItem;
+
+    protected:
+      int m_displayRadius; //In screen pixels
+      QColor m_borderColor;
+      QColor m_brushColor;
+      QImage *m_brushImage;
+
+      bool m_tracking;
+      QPoint m_lastDot;
+      WorldRegion m_stroke;
+
+      Plane m_plane;
+      Nm m_radius;
+      Spacing m_spacing;
+      int m_viewSize[2];
+      double m_LL[3], m_UR[3];
+      Bounds m_pBounds;
+      double m_worldSize[2];
+
+      vtkSmartPointer<vtkLookupTable> m_lut;
+      vtkSmartPointer<vtkImageData> m_preview;
+      vtkSmartPointer<vtkImageActor> m_actor;
+      bool m_drawing;
+      SegmentationAdapterPtr m_segmentation;
+      BrushShapeList m_brushes;
+
+      static const int MAX_RADIUS = 32;
+    };
 
 } // namespace EspINA
 

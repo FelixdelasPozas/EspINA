@@ -27,7 +27,7 @@ namespace EspINA
 {
   template<class T>
   class EspinaFilters_EXPORT MorphologicalEditionFilter
-  : public BasicSegmentationFilter
+  : public Filter
   {
     public:
       virtual ~MorphologicalEditionFilter();

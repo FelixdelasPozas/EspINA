@@ -44,10 +44,10 @@ FilterTypeList ChannelReader::providedFilters() const
 }
 
 //------------------------------------------------------------------------
-FilterSPtr ChannelReader::createFilter(OutputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const
+FilterSPtr ChannelReader::createFilter(OutputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception)
 {
   if (filter != VOLUMETRIC_STREAM_READER 
-   && filter != ESPINA_1_3_2_CHANNEL_READER) throw Filter_Not_Provided_Exception();
+   && filter != ESPINA_1_3_2_CHANNEL_READER) throw Unknown_Filter_Exception();
 
   return FilterSPtr{new VolumetricStreamReader(inputs, filter, scheduler)};
 }

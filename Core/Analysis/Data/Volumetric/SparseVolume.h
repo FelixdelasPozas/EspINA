@@ -119,6 +119,13 @@ namespace EspINA
                       const Bounds&               bounds,
                       const typename T::ValueType value = SEG_VOXEL_VALUE);
 
+    /** \brief Method to modify the volume using a mask and a value.
+     *
+     *  Draw methods are constrained to volume bounds.
+     */
+    virtual void draw(const BinaryMaskSPtr<typename T::ValueType> mask,
+                      const typename T::ValueType value = SEG_VOXEL_VALUE);
+
     /** \brief Method to modify the volume using an itk image.
      *
      *  Draw methods are constrained to volume bounds.

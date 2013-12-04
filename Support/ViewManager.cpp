@@ -140,6 +140,7 @@ void ViewManager::setSelection(ViewItemAdapterList selection)
 {
   m_selection->set(selection);
 
+  emit selectionChanged(m_selection);
   //TODO 2012-10-07 computeSelectionCenter();
 }
 

@@ -34,7 +34,7 @@ namespace EspINA {
 
     virtual FilterTypeList providedFilters() const;
 
-    virtual FilterSPtr createFilter(OutputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const;
+    virtual FilterSPtr createFilter(OutputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception);
 
     virtual ExtensionList supportedFileExtensions() const;
 

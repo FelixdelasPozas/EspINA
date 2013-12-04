@@ -49,7 +49,7 @@ namespace EspINA {
 
         virtual bool needUpdate(Output::Id id) const
         {
-          for(int i = m_outputs.size(); i <= id; ++i)
+          for(unsigned int i = m_outputs.size(); i <= id; ++i)
           {
             m_outputs << OutputSPtr{new Output(this, i)};
           }

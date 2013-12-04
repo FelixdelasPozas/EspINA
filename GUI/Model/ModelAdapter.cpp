@@ -645,7 +645,7 @@ ItemAdapterSPtr ModelAdapter::find(PersistentSPtr item)
 }
 
 //------------------------------------------------------------------------
-CategoryAdapterSPtr ModelAdapter::findCategory(CategoryAdapterPtr category)
+CategoryAdapterSPtr ModelAdapter::smartPointer(CategoryAdapterPtr category)
 {
   if (category == m_classification->root().get())
     return m_classification->root();

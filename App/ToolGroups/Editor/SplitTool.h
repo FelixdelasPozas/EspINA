@@ -19,9 +19,14 @@
 #ifndef ESPINA_SPLIT_TOOL_H_
 #define ESPINA_SPLIT_TOOL_H_
 
-#include <Support/Tool.h>
-
+#include <GUI/Model/ModelAdapter.h>
+#include <GUI/ModelFactory.h>
 #include <GUI/Widgets/ActionSelector.h>
+
+#include <Support/Tool.h>
+#include <Support/ViewManager.h>
+
+#include <QUndoStack>
 
 class QAction;
 
@@ -32,7 +37,10 @@ namespace EspINA
   : public Tool
   {
     public:
-      SplitTool();
+      SplitTool(ModelAdapterSPtr model,
+                ModelFactorySPtr factory,
+                ViewManagerSPtr  viewManager,
+                QUndoStack      *undoStack);
       virtual ~SplitTool();
 
       virtual void setEnabled(bool value);
@@ -44,6 +52,11 @@ namespace EspINA
     private:
       ActionSelector *m_splitToolSelector;
       QMap<QAction *, ToolSPtr> m_splitTools;
+
+      ModelAdapterSPtr m_model;
+      ModelFactorySPtr m_factory;
+      ViewManagerSPtr  m_viewManager;
+      QUndoStack      *m_undoStack;
 
       bool m_enabled;
   };

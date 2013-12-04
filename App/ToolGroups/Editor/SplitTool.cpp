@@ -25,8 +25,15 @@
 namespace EspINA
 {
   //------------------------------------------------------------------------
-  SplitTool::SplitTool()
-  : m_splitToolSelector(new ActionSelector())
+  SplitTool::SplitTool(ModelAdapterSPtr model,
+                       ModelFactorySPtr factory,
+                       ViewManagerSPtr  viewManager,
+                       QUndoStack      *undoStack)
+  : m_model(model)
+  , m_factory(factory)
+  , m_viewManager(viewManager)
+  , m_undoStack(undoStack)
+  , m_splitToolSelector(new ActionSelector())
   , m_enabled(false)
   {
     QAction *planarSplit = new QAction(QIcon(":/espina/planar_split.svg"),

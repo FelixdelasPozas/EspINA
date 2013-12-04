@@ -53,7 +53,8 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Editor/ManualEditionTool.h
   ToolGroups/Editor/SpinBoxAction.h
   ToolGroups/Editor/MorphologicalEditionTool.h
-#   Tools/Brushes/Brush.h
+  Tools/Brushes/CircularBrushSelector.h
+  Tools/Brushes/SphericalBrushSelector.h
 #   Tools/Contour/FilledContour.h
 #   Tools/PlanarSplit/PlanarSplitTool.h
 #   Tools/Measure/MeasureTool.h
@@ -148,9 +149,8 @@ set (ESPINA_SOURCES
   ToolGroups/Editor/MorphologicalEditionTool.cpp
   ToolGroups/Editor/ManualEditionTool.cpp
   ToolGroups/Editor/SpinBoxAction.cpp
-#   Tools/Brushes/Brush.cpp
-#   Tools/Brushes/CircularBrush.cpp
-#   Tools/Brushes/SphericalBrush.cpp
+  Tools/Brushes/CircularBrushSelector.cpp
+  Tools/Brushes/SphericalBrushSelector.cpp
 #   Tools/Contour/FilledContour.cpp
 #   Tools/Measure/MeasureTool.cpp
 #   Tools/PlanarSplit/PlanarSplitTool.cpp
@@ -165,7 +165,6 @@ set (ESPINA_SOURCES
 #   Undo/ImageLogicCommand.cpp
 #   Undo/SeedGrowSegmentationCommand.cpp
 #   Undo/SplitUndoCommand.cpp
-#   Undo/StrokeSegmentationCommand.cpp
 #   Undo/UndoableEspinaModel.cpp
 #   Undo/UnloadChannelCommand.cpp
 #   Undo/UnloadSampleCommand.cpp

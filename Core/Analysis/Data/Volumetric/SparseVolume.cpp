@@ -30,7 +30,6 @@
 #include <Core/Utils/Bounds.h>
 #include <Core/Analysis/Persistent.h>
 
-
 // VTK
 #include <vtkImplicitFunction.h>
 
@@ -218,6 +217,15 @@ namespace EspINA
       ++it;
     }
 
+    addBlock(mask);
+  }
+
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  void SparseVolume<T>::draw(const BinaryMaskSPtr<typename T::ValueType> mask,
+                             const typename T::ValueType value)
+  {
     addBlock(mask);
   }
 

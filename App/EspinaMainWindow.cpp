@@ -690,6 +690,8 @@ void EspinaMainWindow::openAnalysis(const QStringList files)
     {
       auto activeChannel = m_model->channels().first().get();
       m_viewManager->setActiveChannel(activeChannel);
+      if (m_viewManager->activeCategory() == nullptr)
+        m_viewManager->setActiveCategory(m_model->classification()->categories().first().get());
 
       for (auto channel : m_model->channels())
       {

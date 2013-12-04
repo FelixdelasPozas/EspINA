@@ -183,7 +183,7 @@ namespace EspINA
     ItemAdapterSPtr find(PersistentSPtr item);
 
 //     virtual CategoryAdapterSPtr findCategory(ModelItemPtr       item           );
-    CategoryAdapterSPtr findCategory(CategoryAdapterPtr category);
+    CategoryAdapterSPtr smartPointer(CategoryAdapterPtr category);
 // 
 //     virtual SampleAdapterSPtr findSampleAdapter(ModelItemPtr item  );
 //     virtual SampleAdapterSPtr findSampleAdapter(SampleAdapterPtr    sample);

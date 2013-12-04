@@ -16,14 +16,12 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #include "FreeFormSource.h"
 
 // EspINA
-#include "Core/Model/EspinaFactory.h"
-#include <Core/Model/MarchingCubesMesh.h>
-#include <Core/Model/EspinaModel.h>
-#include <Core/OutputRepresentations/RawVolume.h>
+#include <GUI/ModelFactory.h>
+#include <Core/Analysis/Data/Volumetric/SparseVolume.h>
+#include <Core/Analysis/Data/VolumetricDataUtils.h>
 
 // ITK
 #include <itkImageRegionIteratorWithIndex.h>
@@ -34,33 +32,13 @@
 
 using namespace EspINA;
 
-typedef ModelItem::ArgumentId ArgumentId;
-const ArgumentId FreeFormSource::SPACING = "SPACING";
-
 //-----------------------------------------------------------------------------
-FreeFormSource::FreeFormSource(const EspinaRegion        &bounds,
-                               itkVolumeType::SpacingType spacing,
-                               Filter::FilterType        type)
-: BasicSegmentationFilter(NamedInputs(), Arguments(), type)
-, m_param(m_args)
+FreeFormSource::FreeFormSource(OutputSList   inputs,
+                               Filter::Type  type,
+                               SchedulerSPtr scheduler)
+: Filter(inputs, type, scheduler)
+, m_mask(nullptr)
 {
-  RawSegmentationVolumeSPtr volumeRepresentation(new RawSegmentationVolume(bounds, spacing));
-
-  SegmentationRepresentationSList representations;
-  representations << volumeRepresentation;
-  representations << MeshRepresentationSPtr(new MarchingCubesMesh(volumeRepresentation));
-
-  addOutputRepresentations(0, representations);
-}
-
-//-----------------------------------------------------------------------------
-FreeFormSource::FreeFormSource(NamedInputs inputs,
-                               Arguments   args,
-                               FilterType  type)
-: BasicSegmentationFilter(inputs, args, type)
-, m_param(m_args)
-{
-  Q_ASSERT(inputs.isEmpty());
 }
 
 //-----------------------------------------------------------------------------
@@ -68,31 +46,60 @@ FreeFormSource::~FreeFormSource()
 {
 }
 
-//-----------------------------------------------------------------------------
-void FreeFormSource::setGraphicalRepresentationFactory(GraphicalRepresentationFactorySPtr factory)
+//------------------------------------------------------------------------
+void FreeFormSource::restoreState(const State& state)
 {
-  EspINA::Filter::setGraphicalRepresentationFactory(factory);
-  if (factory && validOutput(0))
-    factory->createGraphicalRepresentations(m_outputs[0]);
 }
 
 //-----------------------------------------------------------------------------
-bool FreeFormSource::dumpSnapshot(Snapshot &snapshot)
+State FreeFormSource::state() const
 {
-  OutputSPtr filterOutput = output(0);
-  if (filterOutput) 
-  {
-    filterOutput->setCached(filterOutput->isCached() || m_model->isTraceable());
-
-    SegmentationVolumeSPtr editedVolume = segmentationVolume(filterOutput);
-    editedVolume->clearEditedRegions();
-  }
-
-  return EspINA::SegmentationFilter::dumpSnapshot(snapshot);
+  return State();
 }
 
 //-----------------------------------------------------------------------------
-bool FreeFormSource::needUpdate(FilterOutputId oId) const
+Snapshot FreeFormSource::saveFilterSnapshot() const
 {
-  return SegmentationFilter::needUpdate(oId);
+  return Snapshot();
+}
+
+//----------------------------------------------------------------------------
+bool FreeFormSource::needUpdate(Output::Id id) const
+{
+  if (id != 0) throw Undefined_Output_Exception();
+
+  return m_outputs.isEmpty() || !validOutput(id) || ignoreStorageContent();
+}
+
+//----------------------------------------------------------------------------
+void FreeFormSource::execute(Output::Id id)
+{
+  if (id != 0) throw Undefined_Output_Exception();
+  if (m_inputs.size() != 0) throw Invalid_Number_Of_Inputs_Exception();
+  if (m_mask == nullptr) throw Invalid_Input_Data_Exception();
+
+  emit progress(25);
+
+  if (m_outputs.isEmpty())
+    m_outputs << OutputSPtr(new Output(this, 0));
+
+  emit progress(50);
+  if (!canExecute()) return;
+
+  SparseVolume<itkVolumeType> *volume{new SparseVolume<itkVolumeType>(m_mask->bounds(), m_mask->spacing())};
+  volume->draw(m_mask);
+
+  emit progress(75);
+  if (!canExecute()) return;
+
+  m_outputs[0]->setData(DefaultVolumetricDataSPtr(volume));
+  m_outputs[0]->setSpacing(m_mask->spacing());
+
+  emit progress(100);
+}
+
+//----------------------------------------------------------------------------
+bool FreeFormSource::invalidateEditedRegions()
+{
+  return false;
 }

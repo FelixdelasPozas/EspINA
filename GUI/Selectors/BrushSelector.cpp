@@ -23,8 +23,10 @@
 #include <Core/Utils/Spatial.h>
 #include <Core/Analysis/Data/VolumetricData.h>
 #include <Core/Analysis/Data/Volumetric/SparseVolume.h>
+#include <Core/Analysis/Data/Volumetric/StreamedVolume.h>
 #include <GUI/Model/ChannelAdapter.h>
 #include <GUI/Model/SegmentationAdapter.h>
+#include <GUI/Model/CategoryAdapter.h>
 
 #include <GUI/View/RenderView.h>
 #include <GUI/View/View2D.h>
@@ -50,13 +52,15 @@
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
-BrushSelector::BrushSelector(ViewItemAdapterSPtr item)
-: m_referenceItem(item)
+BrushSelector::BrushSelector(ViewManagerSPtr vm)
+: m_viewManager(vm)
+, m_referenceItem(nullptr)
 , m_displayRadius(-1)
 , m_borderColor(Qt::blue)
 , m_brushColor(Qt::blue)
 , m_brushImage(nullptr)
 , m_tracking(false)
+, m_stroke(vtkSmartPointer<vtkPoints>::New())
 , m_plane(Plane::XY)
 , m_radius(-1)
 , m_lut(nullptr)
@@ -69,6 +73,8 @@ BrushSelector::BrushSelector(ViewItemAdapterSPtr item)
   memset(m_LL, 0, 3*sizeof(double));
   memset(m_UR, 0, 3*sizeof(double));
   memset(m_worldSize, 0, 2*sizeof(double));
+
+  buildCursor();
 }
 
 //-----------------------------------------------------------------------------
@@ -150,23 +156,24 @@ void BrushSelector::setBrushColor(QColor color)
 }
 
 //-----------------------------------------------------------------------------
-void BrushSelector::setReferenceItem(ViewItemAdapterSPtr item)
+void BrushSelector::setReferenceItem(ViewItemAdapterPtr item)
 {
   m_referenceItem = item;
   NmVector3 spacing;
 
+  DefaultVolumetricDataSPtr volume;
   if (ItemAdapter::Type::SEGMENTATION == item->type())
   {
-    SparseVolumeSPtr volume = std::dynamic_pointer_cast<SparseVolume<itkVolumeType>>(item->output()->data(VolumetricData<itkVolumeType>::TYPE));
-    spacing = volume->spacing();
+    volume = std::dynamic_pointer_cast<SparseVolume<itkVolumeType>>(item->output()->data(VolumetricData<itkVolumeType>::TYPE));
   }
   else
     if (ItemAdapter::Type::CHANNEL == item->type())
     {
-      // TODO: pending Data/Volumetric/itkVolume
-//      RawVolumeSPtr volume = rawVolume(m_referenceItem->output());
-//      spacing = volume->spacing();
+      volume = std::dynamic_pointer_cast<StreamedVolume<itkVolumeType>>(item->output()->data(VolumetricData<itkVolumeType>::TYPE));
     }
+
+  Q_ASSERT(volume);
+  spacing = volume->spacing();
 
   m_spacing[0] = spacing[0];
   m_spacing[1] = spacing[1];
@@ -202,7 +209,7 @@ void BrushSelector::buildCursor()
 {
   if (m_displayRadius == -1)
   {
-    qWarning("Brushpicker cursor radius not initialized. Using default value 20.");
+    // Selector cursor radius not initialized. Using default value 20.
     m_displayRadius = 20;
   }
 
@@ -279,7 +286,7 @@ bool BrushSelector::validStroke(NmVector3 &center)
 
   if (!m_drawing)
   {
-    SparseVolumeSPtr volume = std::dynamic_pointer_cast<SparseVolume<itkVolumeType>>(m_referenceItem->output()->data(VolumetricData<itkVolumeType>::TYPE));
+    DefaultVolumetricDataSPtr volume = std::dynamic_pointer_cast<SparseVolume<itkVolumeType>>(m_referenceItem->output()->data(VolumetricData<itkVolumeType>::TYPE));
     return intersect(brushBounds, volume->bounds());
   }
 
@@ -289,9 +296,6 @@ bool BrushSelector::validStroke(NmVector3 &center)
 //-----------------------------------------------------------------------------
 void BrushSelector::startStroke(QPoint pos, RenderView* view)
 {
-  if (!m_referenceItem)
-    return;
-
   m_pBounds = view->previewBounds(false);
 
   if (m_pBounds[0] == m_pBounds[1])
@@ -389,13 +393,13 @@ void BrushSelector::startPreview(RenderView* view)
   m_preview = vtkSmartPointer<vtkImageData>::New();
   m_preview->SetOrigin(0, 0, 0);
   vtkInformation *info = m_preview->GetInformation();
+  m_preview->SetExtent(extent);
+  m_preview->SetSpacing(m_spacing[0], m_spacing[1], m_spacing[2]);
   vtkImageData::SetScalarType(VTK_UNSIGNED_CHAR, info);
   vtkImageData::SetNumberOfScalarComponents(1, info);
   m_preview->SetInformation(info);
   m_preview->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
   m_preview->Modified();
-  m_preview->SetExtent(extent);
-  m_preview->SetSpacing(m_spacing[0], m_spacing[1], m_spacing[2]);
   memset(m_preview->GetScalarPointer(), 0, m_preview->GetNumberOfPoints());
 
   // if erasing hide seg and copy contents of slice to preview actor
@@ -403,8 +407,8 @@ void BrushSelector::startPreview(RenderView* view)
   {
     SparseVolumeSPtr volume = std::dynamic_pointer_cast<SparseVolume<itkVolumeType>>(m_referenceItem->output()->data(VolumetricData<itkVolumeType>::TYPE));
 
-//    for(auto prototype: m_segmentation->representations())
-//      prototype->setActive(false, view);
+    for(auto prototype: m_segmentation->representations())
+      prototype->setActive(false, view);
 
     Bounds bounds{volume->bounds()};
     int segExtent[6]{ static_cast<int>(bounds[0]/m_spacing[0]), static_cast<int>(bounds[1]/m_spacing[0]),
@@ -555,6 +559,7 @@ void BrushSelector::updatePreview(NmVector3 center, RenderView* view)
       default:
         break;
     }
+
     m_preview->Modified();
     view->updateView();
   }
@@ -584,7 +589,7 @@ void BrushSelector::DrawingOn(RenderView *view)
 }
 
 //-----------------------------------------------------------------------------
-void BrushSelector::DrawingOff(RenderView *view, ViewItemAdapterSPtr segmentation)
+void BrushSelector::DrawingOff(RenderView *view, SegmentationAdapterPtr segmentation)
 {
   if (m_stroke->GetNumberOfPoints() > 0)
     stopStroke(view);
@@ -597,4 +602,68 @@ void BrushSelector::DrawingOff(RenderView *view, ViewItemAdapterSPtr segmentatio
 QColor BrushSelector::getBrushColor()
 {
   return m_brushColor;
+}
+
+//-----------------------------------------------------------------------------
+BinaryMaskSPtr<unsigned char> BrushSelector::voxelSelectionMask() const
+{
+  Bounds strokeBounds;
+  for (auto brush : m_brushes)
+  {
+    if (!strokeBounds.areValid())
+      strokeBounds = brush.second;
+    else
+      strokeBounds = boundingBox(strokeBounds, brush.second);
+  }
+
+  NmVector3 spacing{ m_spacing[0], m_spacing[1], m_spacing[2] };
+  BinaryMaskPtr<unsigned char> mask = new BinaryMask<unsigned char>(strokeBounds, spacing);
+  for (auto brush : m_brushes)
+  {
+    BinaryMask<unsigned char>::region_iterator it(mask, brush.second);
+    while (!it.isAtEnd())
+    {
+      auto index = it.getIndex();
+      if (brush.first->FunctionValue(index.x * m_spacing[0], index.y * m_spacing[1], index.z * m_spacing[2]) <= 0)
+        it.Set();
+      ++it;
+    }
+  }
+
+  return BinaryMaskSPtr<unsigned char>(mask);
+}
+
+//-----------------------------------------------------------------------------
+void BrushSelector::initBrush()
+{
+  QImage noSeg = QImage(":/espina/add.svg");
+  QImage hasSeg = QImage();
+  QImage image;
+  QColor color, borderColor;
+  ViewItemAdapterPtr item = nullptr;
+
+  SelectionSPtr selection = m_viewManager->selection();
+  SegmentationAdapterList segs = selection->segmentations();
+  if (segs.size() == 1)
+  {
+    item = segs.first();
+    color = segs.first()->category()->color();
+    image = hasSeg;
+    borderColor = QColor(Qt::green);
+  }
+  else
+  {
+    item = m_viewManager->activeChannel();
+    color = m_viewManager->activeCategory()->color();
+    image = noSeg;
+    borderColor = QColor(Qt::blue);
+  }
+
+  setBrushColor(color);
+  setBrushImage(image);
+  setBorderColor(borderColor);
+  setReferenceItem(item);
+
+  m_drawing = true;
+  DrawingOn(nullptr);
 }

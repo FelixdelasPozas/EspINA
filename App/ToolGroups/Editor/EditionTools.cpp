@@ -25,20 +25,20 @@ namespace EspINA
                              ModelFactorySPtr factory,
                              ViewManagerSPtr  viewManager,
                              QUndoStack      *undoStack,
-                             QWidget         *parent = nullptr)
+                             QWidget         *parent)
   : ToolGroup(viewManager, QIcon(":/espina/pencil.png"), tr("Edition Tools"), parent)
-  , m_manualEdition(ManualEditionToolSPtr(new ManualEditionTool()))
-  , m_split(SplitToolSPtr(new SplitTool()))
   {
-    m_morphological = (MorphologicalEditionToolSPtr(new MorphologicalEditionTool(model, factory, viewManager, undoStack)));
+    m_manualEdition = ManualEditionToolSPtr(new ManualEditionTool(model, factory, viewManager, undoStack));
+    m_split = SplitToolSPtr(new SplitTool(model, factory, viewManager, undoStack));
+    m_morphological = MorphologicalEditionToolSPtr(new MorphologicalEditionTool(model, factory, viewManager, undoStack));
 
-    connect(m_viewManager.get(), SIGNAL(selectionChanged(SelectableView::Selection)), this, SLOT(selectionChanged()));
+    connect(m_viewManager.get(), SIGNAL(selectionChanged(SelectionSPtr)), this, SLOT(selectionChanged(SelectionSPtr)));
   }
 
   //-----------------------------------------------------------------------------
   EditionTools::~EditionTools()
   {
-    disconnect(m_viewManager.get(), SIGNAL(selectionChanged(SelectableView::Selection)), this, SLOT(selectionChanged()));
+    disconnect(m_viewManager.get());
   }
 
   //-----------------------------------------------------------------------------
@@ -60,7 +60,7 @@ namespace EspINA
   //-----------------------------------------------------------------------------
   ToolSList EditionTools::tools()
   {
-    selectionChanged();
+    selectionChanged(m_viewManager->selection());
 
     ToolSList availableTools;
     availableTools << m_manualEdition;
@@ -71,10 +71,9 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  void EditionTools::selectionChanged()
+  void EditionTools::selectionChanged(SelectionSPtr selection)
   {
-    SegmentationAdapterList selection  = m_viewManager->selection()->segmentations();
-    int listSize = selection.size();
+    int listSize = selection->segmentations().size();
     m_manualEdition->setEnabled(listSize == 1 || listSize == 0);
     m_split->setEnabled(listSize == 1);
     m_morphological->setEnabled(listSize != 0);
