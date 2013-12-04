@@ -33,20 +33,10 @@ QList<QAction *> ResetZoom::actions() const
 
 bool ResetZoom::enabled() const
 {
-
+  return true;
 }
 
 void ResetZoom::setEnabled(bool value)
-{
-
-}
-
-bool ResetZoom::filterEvent(QEvent* e, EspINA::RenderView* view)
-{
-
-}
-
-QCursor ResetZoom::cursor() const
 {
 
 }

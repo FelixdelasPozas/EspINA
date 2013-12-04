@@ -20,19 +20,22 @@
 #define ESPINA_ZOOM_TOOLS_H
 
 #include <Support/ToolGroup.h>
+
+#include "ToggleSegmentationsVisibility.h"
 #include "ResetZoom.h"
 #include "ZoomArea.h"
+#include "ToggleCrosshairVisibility.h"
 
 namespace EspINA
 {
-  class ZoomTools
+  class ViewTools
   : public ToolGroup
   {
     Q_OBJECT
 
   public:
-    explicit ZoomTools(ViewManagerSPtr viewManager, QWidget *parent = 0);
-    virtual ~ZoomTools();
+    explicit ViewTools(ViewManagerSPtr viewManager, QWidget *parent = 0);
+    virtual ~ViewTools();
 
     virtual void setEnabled(bool value);
 
@@ -42,9 +45,11 @@ namespace EspINA
 
   public slots:
     void resetViews();
-    void initZoomTool(bool);
+    void initViewTool(bool);
 
   private:
+    ToggleSegmentationsVisibilitySPtr m_toggleSegmentations;
+    ToggleCrosshairVisibilitySPtr     m_toggleCrosshair;
     ZoomAreaSPtr  m_zoomArea;
     ResetZoomSPtr m_resetZoom;
   };

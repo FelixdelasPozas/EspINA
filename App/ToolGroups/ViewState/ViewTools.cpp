@@ -17,9 +17,9 @@
 */
 
 // EspINA
-#include "ZoomTools.h"
+#include "ViewTools.h"
 
-// #include <Tools/Zoom/ZoomTool.h>
+// #include <Tools/Zoom/ViewTool.h>
 
 // Qt
 #include <QIcon>
@@ -30,12 +30,14 @@
 using namespace EspINA;
 
 //----------------------------------------------------------------------------
-ZoomTools::ZoomTools(ViewManagerSPtr viewManager, QWidget* parent)
-: ToolGroup(viewManager, QIcon(":/espina/zoom_tools.png"), tr("Zoom Tools"), parent)
+ViewTools::ViewTools(ViewManagerSPtr viewManager, QWidget* parent)
+: ToolGroup(viewManager, QIcon(":/espina/show_all.svg"), tr("View Tools"), parent)
+, m_toggleSegmentations(new ToggleSegmentationsVisibility(viewManager))
+, m_toggleCrosshair(new ToggleCrosshairVisibility(viewManager))
 , m_resetZoom(new ResetZoom())
 , m_zoomArea(new ZoomArea(viewManager))
 {
-//   setObjectName("ZoomToolBar");
+//   setObjectName("ViewToolBar");
 // 
 //   setWindowTitle(tr("Zoom Tool Bar"));
 // 
@@ -51,31 +53,33 @@ ZoomTools::ZoomTools(ViewManagerSPtr viewManager, QWidget* parent)
 //   m_zoomToolAction->setStatusTip(tr("Zoom selection tool"));
 //   m_zoomToolAction->setCheckable(true);
 //   connect(m_zoomToolAction, SIGNAL(triggered(bool)),
-//           this,             SLOT(initZoomTool(bool)));
+//           this,             SLOT(initViewTool(bool)));
 }
 
 //----------------------------------------------------------------------------
-ZoomTools::~ZoomTools()
+ViewTools::~ViewTools()
 {
 }
 
 //----------------------------------------------------------------------------
-void ZoomTools::setEnabled(bool value)
-{
-
-}
-
-//----------------------------------------------------------------------------
-bool ZoomTools::enabled() const
+void ViewTools::setEnabled(bool value)
 {
 
 }
 
 //----------------------------------------------------------------------------
-ToolSList ZoomTools::tools()
+bool ViewTools::enabled() const
+{
+
+}
+
+//----------------------------------------------------------------------------
+ToolSList ViewTools::tools()
 {
   ToolSList zoomTools;
 
+  zoomTools << m_toggleSegmentations;
+  zoomTools << m_toggleCrosshair;
   zoomTools << m_zoomArea;
   zoomTools << m_resetZoom;
 
@@ -83,7 +87,7 @@ ToolSList ZoomTools::tools()
 }
 
 //----------------------------------------------------------------------------
-void ZoomTools::initZoomTool(bool value)
+void ViewTools::initViewTool(bool value)
 {
 //   if(value)
 //   {
@@ -98,7 +102,7 @@ void ZoomTools::initZoomTool(bool value)
 }
 
 //----------------------------------------------------------------------------
-void ZoomTools::resetViews()
+void ViewTools::resetViews()
 {
   m_viewManager->resetViewCameras();
   m_viewManager->updateViews();
@@ -106,11 +110,11 @@ void ZoomTools::resetViews()
 
 
 // //----------------------------------------------------------------------------
-// void ZoomTools::resetToolbar()
+// void ViewTools::resetToolbar()
 // {
 //   if (m_zoomToolAction->isChecked())
 //   {
 //     m_zoomToolAction->setChecked(false);
-//     initZoomTool(false);
+//     initViewTool(false);
 //   }
 // }

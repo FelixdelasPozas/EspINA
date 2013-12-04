@@ -17,31 +17,38 @@
  *
  */
 
-#ifndef ESPINA_RESET_ZOOM_TOOL_H
-#define ESPINA_RESET_ZOOM_TOOL_H
+#ifndef ESPINA_SHOW_SEGMENTATIONS_H
+#define ESPINA_SHOW_SEGMENTATIONS_H
 
 #include <Support/Tool.h>
+#include <Support/ViewManager.h>
+#include <QAction>
 
 namespace EspINA {
 
-  class ResetZoom
+  class ToggleSegmentationsVisibility
   : public Tool
   {
+    Q_OBJECT
   public:
-    virtual QList<QAction *> actions() const;
+    ToggleSegmentationsVisibility(ViewManagerSPtr viewManager);
+
+    virtual QList< QAction* > actions() const;
 
     virtual bool enabled() const;
 
     virtual void setEnabled(bool value);
 
+  private slots:
+    void toggleVisibility(bool visible);
 
-    virtual bool filterEvent(QEvent* e, RenderView *view);
+  private:
+    ViewManagerSPtr m_viewManager;
 
-    virtual QCursor cursor() const;
+    QAction m_toggle;
   };
 
-  using ResetZoomSPtr = std::shared_ptr<ResetZoom>;
+  using ToggleSegmentationsVisibilitySPtr = std::shared_ptr<ToggleSegmentationsVisibility>;
+}
 
-} // namespace EspINA
-
-#endif // ESPINA_SEED_GROW_SEGMENTATION_TOOL_H
+#endif // ESPINA_SHOW_SEGMENTATIONS_H

@@ -29,7 +29,7 @@
 #include "Settings/GeneralSettings.h"
 #include "ToolGroups/Editor/EditionTools.h"
 #include "ToolGroups/Segmentation/SegmentationTools.h"
-#include "ToolGroups/Zoom/ZoomTools.h"
+#include "ToolGroups/ViewState/ViewTools.h"
 #include <Core/IO/ClassificationXML.h>
 #include <Core/IO/SegFile.h>
 #include <Core/MultiTasking/Scheduler.h>
@@ -268,7 +268,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 //   m_mainToolBar = new MainToolBar(m_model, m_undoStack, m_viewManager);
 //   registerToolBar(m_mainToolBar);
 
-  auto defaultActiveTool = new ZoomTools(m_viewManager, this);
+  auto defaultActiveTool = new ViewTools(m_viewManager, this);
   registerToolGroup(defaultActiveTool);
 // 
 //   VolumeOfInterest *voiToolBar = new VolumeOfInterest(m_model, m_viewManager);

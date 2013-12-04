@@ -151,7 +151,10 @@ namespace EspINA
     /// Focus
     void focusViewsOn(const NmVector3& point);
 
-    /// Toggle crosshair
+    /// Toggle segmentations visibility
+    void setSegmentationVisibility(bool visible);
+
+    /// Toggle crosshair visibility
     void setCrosshairVisibility(bool visible);
 
 //     /// Set Slice Selection flags to all registered Slice Views

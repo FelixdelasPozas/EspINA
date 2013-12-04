@@ -40,7 +40,9 @@ qt4_wrap_cpp (ESPINA_MOC
 #   Toolbars/Main/MainToolBar.h
 #   Toolbars/Segmentation/SegmentationToolBar.h
 #   Toolbars/VOI/VolumeOfInterest.h
-  ToolGroups/Zoom/ZoomTools.h
+  ToolGroups/ViewState/ViewTools.h
+  ToolGroups/ViewState/ToggleSegmentationsVisibility.h
+  ToolGroups/ViewState/ToggleCrosshairVisibility.h
   ToolGroups/Segmentation/ApplyROI.h
   ToolGroups/Segmentation/SeedThreshold.h
   ToolGroups/Segmentation/SeedGrowSegmentationTool.h
@@ -136,9 +138,11 @@ set (ESPINA_SOURCES
   ToolGroups/Segmentation/SegmentationTools.cpp
   ToolGroups/Segmentation/SeedGrowSegmentationTool.cpp
   ToolGroups/Segmentation/SeedThreshold.cpp
-  ToolGroups/Zoom/ResetZoom.cpp
-  ToolGroups/Zoom/ZoomArea.cpp
-  ToolGroups/Zoom/ZoomTools.cpp
+  ToolGroups/ViewState/ResetZoom.cpp
+  ToolGroups/ViewState/ToggleSegmentationsVisibility.cpp 
+  ToolGroups/ViewState/ToggleCrosshairVisibility.cpp
+  ToolGroups/ViewState/ViewTools.cpp
+  ToolGroups/ViewState/ZoomArea.cpp
   ToolGroups/Editor/EditionTools.cpp
   ToolGroups/Editor/SplitTool.cpp
   ToolGroups/Editor/MorphologicalEditionTool.cpp

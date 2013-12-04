@@ -64,7 +64,7 @@ State EdgeDistance::state() const
 Snapshot EdgeDistance::snapshot() const
 {
   Snapshot snapshot;
-
+  
   return snapshot;
 }
 

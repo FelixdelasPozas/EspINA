@@ -339,10 +339,21 @@ void ViewManager::updateChannelRepresentations(ChannelAdapterList list)
 }
 
 //----------------------------------------------------------------------------
+void ViewManager::setSegmentationVisibility(bool visible)
+{
+  for(auto view: m_renderViews)
+  {
+    view->setSegmentationsVisibility(visible);
+  }
+}
+
+//----------------------------------------------------------------------------
 void ViewManager::setCrosshairVisibility(bool value)
 {
   for(auto view: m_sliceViews)
+  {
     view->setCrosshairVisibility(value);
+  }
 }
 
 // //----------------------------------------------------------------------------
