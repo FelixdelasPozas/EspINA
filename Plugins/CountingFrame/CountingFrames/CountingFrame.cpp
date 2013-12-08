@@ -16,30 +16,27 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #include "CountingFrames/CountingFrame.h"
+
 #include "vtkCountingFrameSliceWidget.h"
 #include "Extensions/CountingFrameExtension.h"
-#include <Core/Model/Channel.h>
-#include <GUI/ViewManager.h>
+#include <Core/Analysis/Channel.h>
 
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
 CountingFrame::CountingFrame(Id                      id,
-                             CountingFrameExtension *channelExt,
+                             CountingFrameExtension *extension,
                              Nm                      inclusion[3],
-                             Nm                      exclusion[3],
-                             ViewManager            *vm)
+                             Nm                      exclusion[3])
 : QStandardItem()
 , INCLUSION_FACE(255)
 , EXCLUSION_FACE(0)
-, m_viewManager(vm)
-, m_channelExt(channelExt)
+, m_extension(extension)
 , m_id(id)
 , m_totalVolume(0)
 , m_inclusionVolume(0)
-, m_taxonomicalConstraint(NULL)
+, m_categoryConstraint(NULL)
 {
   memcpy(m_inclusion, inclusion, 3*sizeof(Nm));
   memcpy(m_exclusion, exclusion, 3*sizeof(Nm));
@@ -66,12 +63,13 @@ QVariant CountingFrame::data(int role) const
 {
   if (role == DescriptionRole)
   {
-    double spacing[3];
-    m_channelExt->channel()->volume()->spacing(spacing);
-    Nm voxelVol = spacing[0]*spacing[1]*spacing[2];
-    int totalVoxelVolume = totalVolume() /voxelVol;
-    int inclusionVoxelVolume = inclusionVolume() / voxelVol;
-    int exclusionVoxelVolume = exclusionVolume() / voxelVol;
+    auto spacing              = m_extension->channel()->output()->spacing();
+
+    Nm   voxelVol             = spacing[0]*spacing[1]*spacing[2];
+
+    int  totalVoxelVolume     = totalVolume()     / voxelVol;
+    int  inclusionVoxelVolume = inclusionVolume() / voxelVol;
+    int  exclusionVoxelVolume = exclusionVolume() / voxelVol;
 
     QString cube = QString::fromUtf8("\u00b3");
     QString br = "\n";
@@ -117,28 +115,32 @@ void CountingFrame::Execute(vtkObject* caller, long unsigned int eventId, void* 
 
     updateCountingFrame();
   }
-  //m_viewManager->updateViews();
 
   emitDataChanged();
 }
 
 //-----------------------------------------------------------------------------
-void CountingFrame::setTaxonomicalConstraint(const TaxonomyElementPtr taxonomy)
+void CountingFrame::setCategoryConstraint(const CategorySPtr category)
 {
-  m_taxonomicalConstraint = taxonomy;
+  m_categoryConstraint = category;
 
   emit modified(this);
 }
+
 //-----------------------------------------------------------------------------
 void CountingFrame::updateCountingFrame()
 {
   updateCountingFrameImplementation();
 
-  foreach(vtkCountingFrameWidget *w, m_widgets2D)
-    w->SetCountingFrame(m_representation, m_inclusion, m_exclusion);
+  for(vtkCountingFrameWidget *widget : m_widgets2D)
+  {
+    widget->SetCountingFrame(m_representation, m_inclusion, m_exclusion);
+  }
 
-  foreach(vtkCountingFrameWidget *w, m_widgets3D)
-    w->SetCountingFrame(m_boundingRegion, m_inclusion, m_exclusion);
+  for(vtkCountingFrameWidget *widget : m_widgets3D)
+  {
+    widget->SetCountingFrame(m_countingFrame, m_inclusion, m_exclusion);
+  }
 
   emit modified(this);
 }

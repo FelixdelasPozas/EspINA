@@ -23,23 +23,36 @@
 
 #include <Support/Plugin.h>
 
+#include "CountingFrameManager.h"
+
 namespace EspINA
 {
-  /// Counting Frame Plugin
-  class CountingFramePlugin_EXPORT CountingFramePlugin
-  : public Plugin
+  namespace CF
   {
-    Q_INTERFACES(EspINA::Plugin)
+    class CountingFramePlugin_EXPORT CountingFramePlugin
+    : public Plugin
+    {
+      Q_OBJECT
+      Q_INTERFACES(EspINA::Plugin)
 
-  public:
-    explicit CountingFramePlugin();
-    virtual ~CountingFramePlugin();
+    public:
+      explicit CountingFramePlugin();
+      virtual ~CountingFramePlugin();
 
-    virtual void init();
+      virtual void init(ModelAdapterSPtr model,
+                        ViewManagerSPtr  viewManager,
+                        QUndoStack      *undoStack);
 
-    //virtual EngineList colorEngines();
-  };
+      virtual QList< DockWidget* > dockWidgets();
 
+      //virtual EngineList colorEngines();
+    private:
+      CountingFrameManager m_manager;
+      ModelAdapterSPtr     m_model;
+      ViewManagerSPtr      m_viewManager;
+      QUndoStack          *m_undoStack;
+    };
+  }
 } // namespace EspINA
 
 #endif // ESPINA_COUNTING_FRAME_PLUGIN_H

@@ -41,17 +41,19 @@ qt4_wrap_ui (UI_BUILT_SOURCES
 # We need to wrap for Qt stuff such as signals/slots etc. to work correctly.
 qt4_wrap_cpp(MOC_SRCS 
   CountingFramePanel.h
+  CountingFramePlugin.h
 #   CountingFrameRenderer.h
 #   Extensions/CountingFrameExtension.h
 #   Extensions/StereologicalInclusion.h
-  CountingFrames/CountingFrame.h
+#   CountingFrames/CountingFrame.h
 
   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
   )
 
 
-set (LOCAL_SOURCES
-  CountingFramePanel.cpp
+set (LOCAL_SOURCES 
+  CountingFrameManager.cpp
+  Panel.cpp
 #   CountingFrameRenderer.cpp
 #   Extensions/CountingFrameExtension.cpp
 #   Extensions/StereologicalInclusion.cpp
@@ -60,9 +62,9 @@ set (LOCAL_SOURCES
 #   CountingFrames/vtkCountingFrameCoronalSliceRepresentation.cpp
 #   CountingFrames/vtkCountingFrameSagittalSliceRepresentation.cpp
 #   ColorEngines/CountingFrameColorEngine.cpp
-  CountingFrames/AdaptiveCountingFrame.cpp
-  CountingFrames/CountingFrame.cpp
-  CountingFrames/RectangularCountingFrame.cpp
+#   CountingFrames/AdaptiveCountingFrame.cpp
+#   CountingFrames/CountingFrame.cpp
+#   CountingFrames/RectangularCountingFrame.cpp
 #   CountingFrames/vtkCountingFrameSliceRepresentation.cpp
 #   CountingFrames/vtkCountingFrameSliceWidget.cpp
 #   CountingFrames/vtkCountingFrame3DRepresentation.cpp
@@ -77,9 +79,9 @@ set (PLUGIN_SOURCES
   )
 
 set (PLUGIN_LIBRARIES
+  EspinaCore
+  EspinaGUI
   EspinaSupport
-#   EspinaGUI
-#   EspinaCore
 #   EspinaUndo
   )
 

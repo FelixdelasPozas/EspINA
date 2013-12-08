@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
+    Copyright (C) 2011  Jorge Peña <jorge.pena.pastor@gmail.com>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,34 +17,25 @@
 */
 
 
-#ifndef ESPINA_PLUGIN_H
-#define ESPINA_PLUGIN_H
+#ifndef ESPINA_EXTENSION_FACTORY_H
+#define ESPINA_EXTENSION_FACTORY_H
 
-#include "Support/EspinaSupport_Export.h"
-#include <GUI/Model/ModelAdapter.h>
-#include "ViewManager.h"
-#include "DockWidget.h"
+#include "Extensions/EspinaExtensions_Export.h"
+#include <Core/Analysis/Extensions/ChannelExtension.h>
+#include <Core/Analysis/Extensions/SegmentationExtension.h>
 
-#include <QtPlugin>
-
-class QUndoStack;
 namespace EspINA
 {
-  class EspinaSupport_EXPORT Plugin
-  : public QObject
+  class EspinaExtensions_EXPORT ExtensionFactory
   {
   public:
-    virtual ~Plugin(){}
+    virtual ~ExtensionFactory() {}
 
-    virtual void init(ModelAdapterSPtr model,
-                      ViewManagerSPtr  viewManager,
-                      QUndoStack      *undoStack) = 0;
+    virtual ChannelExtensionSPtr createChannelExtension(ChannelExtension::Type type) = 0;
 
-    virtual QList<DockWidget *> dockWidgets() = 0;
+    virtual SegmentationExtensionSPtr createSegmentationExtension(SegmentationExtension::Type type) = 0;
   };
 
-} // namespace EspINA
+}// namespace EspINA
 
-Q_DECLARE_INTERFACE(EspINA::Plugin, "es.upm.cesvima.EspINA.Plugin/1.0")
-
-#endif // ESPINA_PLUGIN_H
+#endif // ESPINA_EXTENSION_FACTORY_H

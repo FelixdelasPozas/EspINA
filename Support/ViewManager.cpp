@@ -245,7 +245,7 @@ void ViewManager::setActiveChannel(ChannelAdapterPtr channel)
 //----------------------------------------------------------------------------
 void ViewManager::addWidget(EspinaWidget* widget)
 {
-  widget->setViewManager(this);
+  //widget->setViewManager(this);
   for(auto view: m_renderViews)
     view->addWidget(widget);
 }

@@ -366,7 +366,13 @@ void EspinaMainWindow::loadPlugins(QList<QObject *> &plugins)
     Plugin *validPlugin = qobject_cast<Plugin*>(plugin);
     if (validPlugin)
     {
-      validPlugin->init();
+      validPlugin->init(m_model, m_viewManager, m_undoStack);
+
+      for (auto dock : validPlugin->dockWidgets())
+      {
+        qDebug() << plugin << "- Dock " << dock->windowTitle() << " ...... OK";
+        registerDockWidget(Qt::LeftDockWidgetArea, dock);
+      }
     }
 //     IFactoryExtension *factoryExtension = qobject_cast<IFactoryExtension *>(plugin);
 //     if (factoryExtension)
@@ -402,13 +408,6 @@ void EspinaMainWindow::loadPlugins(QList<QObject *> &plugins)
 //         m_colorEngines->addColorEngine(engine.first, engine.second);
 //     }
 
-//     DockWidget *dock = qobject_cast<DockWidget *>(plugin);
-//     if (dock)
-//     {
-//       qDebug() << plugin << "- Dock ...... OK";
-//       registerDockWidget(Qt::LeftDockWidgetArea, dock);
-//       dock->initDockWidget(m_model, m_undoStack, m_viewManager);
-//     }
 
 //     IFileReader *fileReader = qobject_cast<IFileReader *>(plugin);
 //     if (fileReader)

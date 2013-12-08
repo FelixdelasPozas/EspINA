@@ -82,7 +82,7 @@ vtkAbstractWidget *RectangularCountingFrame::create3DWidget(VolumeView* view)
 {
   CountingFrame3DWidgetAdapter *wa = new CountingFrame3DWidgetAdapter();
   Q_ASSERT(wa);
-  wa->SetCountingFrame(m_boundingRegion, m_inclusion, m_exclusion);
+  wa->SetCountingFrame(m_countingFrame, m_inclusion, m_exclusion);
 
   m_widgets3D << wa;
 
@@ -167,7 +167,7 @@ void RectangularCountingFrame::updateCountingFrameImplementation()
   Nm Bottom = m_borders[3] - m_exclusion[1];
   Nm Lower  = m_borders[5] - m_exclusion[2];
 
-  m_boundingRegion = createRectangularRegion(Left, Top, Upper,
+  m_countingFrame = createRectangularRegion(Left, Top, Upper,
                                              Right, Bottom, Lower);
 
   m_representation = createRectangularRegion(m_borders[0], m_borders[2], m_borders[4],

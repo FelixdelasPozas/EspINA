@@ -17,14 +17,12 @@
  */
 
 
-#ifndef BOUNDINGREGION_H
-#define BOUNDINGREGION_H
+#ifndef ESPINA_COUNTING_FRAME_H
+#define ESPINA_COUNTING_FRAME_H
 
 #include "CountingFramePlugin_Export.h"
 
 #include <QStandardItemModel>
-
-#include <boost/graph/graph_concepts.hpp>
 
 #include "vtkCountingFrameSliceWidget.h"
 #include "vtkCountingFrame3DWidget.h"
@@ -38,9 +36,7 @@
 namespace EspINA
 {
   class CountingFrameExtension;
-  class ViewManager;
 
-  /// Bounding Regions' base class
   class CountingFramePlugin_EXPORT CountingFrame
   : public QObject
   , public QStandardItem
@@ -48,7 +44,6 @@ namespace EspINA
   , public vtkCommand
   {
     Q_OBJECT
-
   protected:
     typedef CountingFrameInteractorAdapter<vtkCountingFrameSliceWidget> CountingFrame2DWidgetAdapter;
     typedef CountingFrameInteractorAdapter<vtkCountingFrame3DWidget>    CountingFrame3DWidgetAdapter;
@@ -62,7 +57,7 @@ namespace EspINA
       , m_slicedWidget(widget)
       {}
 
-      virtual void setSlice(Nm pos, PlaneType plane)
+      virtual void setSlice(Nm pos, Plane plane)
       {
         m_slicedWidget->SetSlice(pos);
         SliceWidget::setSlice(pos, plane);
@@ -80,32 +75,49 @@ namespace EspINA
       DescriptionRole = Qt::UserRole + 1
     };
 
-    typedef int Id;
+    using Id = int;
 
   public:
     vtkTypeMacro(CountingFrame, vtkCommand);
 
     virtual ~CountingFrame(){}
 
+    CountingFrameExtension *extension()
+    { return m_extension; }
+
     void setMargins(Nm inclusion[3], Nm exclusion[3]);
+
     void margins(Nm inclusion[3], Nm exclusion[3]);
 
     virtual QVariant data(int role = Qt::UserRole + 1) const;
+
     virtual QString name() const = 0;
 
     Id id() const { return m_id; }
 
-    /// Return total volume in pixels
+    /** \brief Return total volume in pixels
+     *
+     */
     virtual double totalVolume() const
     { return m_totalVolume; }
-    /// Return inclusion volume in pixels
+
+    /** \brief Return inclusion volume in pixels
+     *
+     */
     virtual double inclusionVolume() const
     { return m_inclusionVolume; }
-    /// Return exclusion volume in pixels
+
+    /** \brief Return exclusion volume in pixels
+     *
+     */
     virtual double exclusionVolume() const
     { return totalVolume() - inclusionVolume(); }
 
-    virtual vtkSmartPointer<vtkPolyData> region() const {return m_boundingRegion;}
+    /** \brief Return the polydata defining the Counting Framge
+     *
+     */
+    virtual vtkSmartPointer<vtkPolyData> region() const
+    {return m_countingFrame;}
 
     virtual void Execute(vtkObject* caller, long unsigned int eventId, void* callData);
 
@@ -116,43 +128,44 @@ namespace EspINA
     Nm bottom()const {return m_exclusion[1];}
     Nm lower() const {return m_exclusion[2];}
 
-    void setTaxonomicalConstraint(const TaxonomyElementPtr taxonomy);
-    const TaxonomyElement * taxonomicalConstraint() const { return m_taxonomicalConstraint; }
+    void setCategoryConstraint(const CategorySPtr category);
 
+    const CategorySPtr categoyConstraint() const { return m_categoryConstraint; }
 
   signals:
     void modified(CountingFrame *);
 
   protected:
     explicit CountingFrame(Id id,
-                           CountingFrameExtension *channelExt,
+                           CountingFrameExtension *extension,
                            Nm inclusion[3],
-                           Nm exclusion[3],
-                           ViewManager *vm);
+                           Nm exclusion[3]);
 
     void updateCountingFrame();
+
     virtual void updateCountingFrameImplementation() = 0;
 
   protected:
-    ViewManager *m_viewManager;
-    CountingFrameExtension *m_channelExt;
-
-    vtkSmartPointer<vtkPolyData> m_boundingRegion;
+    vtkSmartPointer<vtkPolyData> m_countingFrame;
     vtkSmartPointer<vtkPolyData> m_representation;
+
+    CountingFrameExtension *m_extension;
 
     Id m_id;
 
     Nm m_inclusion[3];
     Nm m_exclusion[3];
-    Nm m_totalVolume, m_inclusionVolume;
 
-    const TaxonomyElement *m_taxonomicalConstraint;
+    Nm m_totalVolume;
+    Nm m_inclusionVolume;
+
+    const CategorySPtr m_categoryConstraint;
 
     QList<CountingFrame2DWidgetAdapter *> m_widgets2D;
     QList<CountingFrame3DWidgetAdapter *> m_widgets3D;
   };
 
-  typedef QList<CountingFrame *> CountingFrameList;
+  using CountingFrameList = QList<CountingFrame *>;
 
 } // namespace EspINA
 

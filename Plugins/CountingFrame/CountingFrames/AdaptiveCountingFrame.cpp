@@ -75,7 +75,7 @@ vtkAbstractWidget* AdaptiveCountingFrame::create3DWidget(VolumeView* view)
 {
   CountingFrame3DWidgetAdapter *wa = new CountingFrame3DWidgetAdapter();
   Q_ASSERT(wa);
-  wa->SetCountingFrame(m_boundingRegion, m_inclusion, m_exclusion);
+  wa->SetCountingFrame(m_countingFrame, m_inclusion, m_exclusion);
 
   m_widgets3D << wa;
 
@@ -190,7 +190,7 @@ void AdaptiveCountingFrame::updateCountingFrameImplementation()
   // upper and lower refer to Espina's orientation
   Q_ASSERT(upperSlice <= lowerSlice);
 
-  m_boundingRegion = vtkSmartPointer<vtkPolyData>::New();
+  m_countingFrame = vtkSmartPointer<vtkPolyData>::New();
   m_representation = margins;
 
   vtkSmartPointer<vtkPoints> regionVertex = vtkSmartPointer<vtkPoints>::New();
@@ -286,9 +286,9 @@ void AdaptiveCountingFrame::updateCountingFrameImplementation()
     }
   }
 
-  m_boundingRegion->SetPoints(regionVertex);
-  m_boundingRegion->SetPolys(faces);
-  vtkCellData *data = m_boundingRegion->GetCellData();
+  m_countingFrame->SetPoints(regionVertex);
+  m_countingFrame->SetPolys(faces);
+  vtkCellData *data = m_countingFrame->GetCellData();
   data->SetScalars(faceData);
   data->GetScalars()->SetName("Type");
 }

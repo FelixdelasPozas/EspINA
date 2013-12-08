@@ -24,17 +24,20 @@
 #include <Support/DockWidget.h>
 
 #include "CountingFrames/CountingFrame.h"
+#include "CountingFrameManager.h"
 
 #include <QStandardItemModel>
 
 namespace EspINA
 {
+  namespace CF
+  {
   // Forward declaration
   class Channel;
   class CountingFrameExtension;
 
   /// Counting Frame Plugin
-  class CountingFramePlugin_EXPORT CountingFramePanel
+  class CountingFramePlugin_EXPORT Panel
   : public DockWidget
   {
     Q_OBJECT
@@ -44,9 +47,11 @@ namespace EspINA
     static const QString ID;
 
   public:
-    explicit CountingFramePanel(ModelAdapterSPtr model,
-                                QWidget         *parent = nullptr);
-    virtual ~CountingFramePanel();
+    explicit Panel(CountingFrameManager *manager,
+                   ModelAdapterSPtr model,
+                   ViewManagerSPtr  viewManager,
+                   QWidget         *parent = nullptr);
+    virtual ~Panel();
 
     virtual void reset(); // slot
 
@@ -63,7 +68,7 @@ namespace EspINA
     CountingFrameList countingFrames() const;
 
   protected slots:
-    void applyTaxonomicalConstraint();
+    void applyCategoryConstraint();
 
     void clearCountingFrames();
 
@@ -76,26 +81,24 @@ namespace EspINA
 
     void updateSegmentations();
 
-    /// Creates a counting frame on the current focused/active
-    /// sample and update all their segmentations counting frames
-    /// extension discarting those that are out of the counting frame
     void createCountingFrame();
 
-    /// Update active counting frame's margins
-    void updateBoundingMargins();
+    void resetActiveCountingFrame();
 
-    void deleteSelectedCountingFrame();
+    void updateActiveCountingFrameMargins();
+
+    void deleteActiveCountingFrame();
+
+    void saveActiveCountingFrameDescription();
 
     void channelChanged(ChannelAdapterPtr channel);
-
-    void saveCountingFrameDescription();
 
     void changeUnitMode(bool useSlices);
 
   private:
     /// Find margin values which discard all segmentations that
     /// touch the channel margins
-    void computeOptimalMargins(Channel *channel,
+    void computeOptimalMargins(ChannelAdapterPtr channel,
                                Nm inclusion[3],
                                Nm exclusion[3]);
 
@@ -114,8 +117,9 @@ namespace EspINA
     void countingFrameDeleted(CountingFrame *);
 
   private:
-    ModelAdapterSPtr m_model;
-    ViewManagerSPtr  m_viewManager;
+    CountingFrameManager *m_manager;
+    ModelAdapterSPtr      m_model;
+    ViewManagerSPtr       m_viewManager;
 
     GUI *m_gui;
 
@@ -131,6 +135,7 @@ namespace EspINA
     friend class CountingFrameExtension;
   };
 
+  } // namespace CF
 } // namespace EspINA
 
 #endif // ESPINA_COUNTING_FRAME_PANEL_H

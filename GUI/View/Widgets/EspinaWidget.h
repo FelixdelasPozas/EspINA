@@ -35,7 +35,6 @@ namespace EspINA
 {
   class RenderView;
   class View2D;
-  class ViewManager;
   class View3D;
 
   class EspinaGUI_EXPORT SliceWidget
@@ -59,10 +58,8 @@ namespace EspINA
   class EspinaGUI_EXPORT EspinaWidget
   {
   public:
-    explicit EspinaWidget() : m_viewManager(NULL) {}
+    explicit EspinaWidget() {}
     virtual ~EspinaWidget(){}
-
-    void setViewManager(ViewManager *vm) {m_viewManager = vm;}
 
     virtual vtkAbstractWidget *create3DWidget(View3D *view) = 0;
 
@@ -74,9 +71,6 @@ namespace EspINA
     virtual void setEnabled(bool enable) = 0;
 
     virtual bool manipulatesSegmentations() { return false; };
-
-  protected:
-    ViewManager *m_viewManager;
   };
 
 } // namespace EspINA

@@ -16,12 +16,13 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef COUNTINGFRAMEEXTENSION_H
-#define COUNTINGFRAMEEXTENSION_H
+#ifndef ESPINA_COUNTING_FRAME_EXTENSION_H
+#define ESPINA_COUNTING_FRAME_EXTENSION_H
 
 #include "CountingFramePlugin_Export.h"
 
-#include <Core/Extensions/ChannelExtension.h>
+#include <Core/Analysis/Extensions/ChannelExtension.h>
+
 #include <Plugins/CountingFrame/CountingFrames/CountingFrame.h>
 
 namespace EspINA
@@ -33,34 +34,15 @@ class StereologicalInclusion;
 
   const ModelItem::ExtId CountingFrameExtensionID = "CountingFrameExtension";
 
-  class CountingFramePlugin_EXPORT CountingFrameExtension
-  : public Channel::Extension
-  {
-    Q_OBJECT
-
     enum CFType {
       ADAPTIVE    = 0,
       RECTANGULAR = 1
     };
 
-    struct CF
-    {
-      bool operator==(const struct CF& other) const
-      {
-        bool retVal = Type == other.Type;
-        for (int i = 0; i < 3; ++i)
-        {
-          retVal |= Inclusion[i] == other.Inclusion[i];
-          retVal |= Exclusion[i] == other.Exclusion[i];
-        }
-
-        return retVal;
-      }
-
-      CFType Type;
-      Nm     Inclusion[3];
-      Nm     Exclusion[3];
-    };
+  class CountingFramePlugin_EXPORT CountingFrameExtension
+  : public ChannelExtension
+  {
+    Q_OBJECT
 
     typedef QMap<int, CF> ExtensionData;
 
@@ -110,7 +92,12 @@ class StereologicalInclusion;
   private:
     CountingFramePanel *m_plugin;
     ViewManager        *m_viewManager;
-    CountingFrameList   m_countingFrames;
+
+    CFType Type;
+    Nm     Inclusion[3];
+    Nm     Exclusion[3];
+
+    CountingFrameList m_countingFrames;
   };
 
   typedef CountingFrameExtension * CountingFrameExtensionPtr;
@@ -118,4 +105,4 @@ class StereologicalInclusion;
 
 }
 
-#endif // COUNTINGFRAMEEXTENSION_H
+#endif // ESPINA_COUNTING_FRAME_EXTENSION_H
