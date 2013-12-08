@@ -30,6 +30,7 @@
 #include <GUI/Selectors/BrushSelector.h>
 #include <App/Tools/Brushes/CircularBrushSelector.h>
 #include <App/Tools/Brushes/SphericalBrushSelector.h>
+#include <GUI/Widgets/CategorySelector.h>
 
 #include <QUndoStack>
 
@@ -66,7 +67,7 @@ namespace EspINA
       void brushModeChanged(BrushSelector::BrushMode);
 
     public slots:
-      void drawStroke(ViewItemAdapterPtr, Selector::WorldRegion, Nm, Plane) {};
+      void drawStroke(ViewItemAdapterPtr, Selector::WorldRegion, Nm, Plane);
 
     private slots:
       void changeSelector(QAction *);
@@ -83,8 +84,9 @@ namespace EspINA
       CircularBrushSelectorSPtr  m_circularBrushSelector;
       SphericalBrushSelectorSPtr m_sphericalBrushSelector;
 
-      SelectorSPtr    m_actualSelector;
-      ActionSelector *m_drawToolSelector;
+      BrushSelectorSPtr m_actualSelector;
+      ActionSelector   *m_drawToolSelector;
+      CategorySelector *m_categorySelector;
       QMap<QAction *, SelectorSPtr> m_drawTools;
 
       SpinBoxAction *m_radiusWidget;

@@ -798,6 +798,8 @@ Bounds View2D::previewBounds(bool cropToSceneBounds) const
     bounds[2*V]   = std::max(UR[V], m_sceneBounds[2*V]);
     bounds[2*V+1] = std::min(LL[V], m_sceneBounds[2*V+1]);
   }
+  bounds.setLowerInclusion(true);
+  bounds.setUpperInclusion(true);
 
   return bounds;
 }

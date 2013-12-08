@@ -16,13 +16,15 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <Core/Analysis/Filter.h>
 #include "ManualEditionTool.h"
-#include "SpinBoxAction.h"
-#include <Support/Settings/EspinaSettings.h>
-#include <Filters/FreeFormSource.h>
+
 #include <App/Tools/Brushes/CircularBrushSelector.h>
 #include <App/Tools/Brushes/SphericalBrushSelector.h>
+#include <Core/Analysis/Filter.h>
+#include <GUI/Widgets/SpinBoxAction.h>
+#include <Filters/FreeFormSource.h>
+#include <Support/Settings/EspinaSettings.h>
+#include <Undo/AddSegmentations.h>
 
 #include <QAction>
 #include <QSettings>
@@ -45,6 +47,7 @@ namespace EspINA
   , m_viewManager(viewManager)
   , m_undoStack(undoStack)
   , m_drawToolSelector(new ActionSelector())
+  , m_categorySelector(new CategorySelector(model))
   , m_radiusWidget(new SpinBoxAction())
   , m_enabled(false)
   {
@@ -58,7 +61,7 @@ namespace EspINA
                                     tr("Modify segmentation drawing 2D discs"),
                                     m_drawToolSelector);
 
-    m_circularBrushSelector = CircularBrushSelectorSPtr(new CircularBrushSelector(m_viewManager));
+    m_circularBrushSelector = CircularBrushSelectorSPtr(new CircularBrushSelector(m_viewManager, m_categorySelector));
     connect(m_circularBrushSelector.get(), SIGNAL(stroke(ViewItemAdapterPtr, Selector::WorldRegion, Nm, Plane)),
             this,  SLOT(drawStroke(ViewItemAdapterPtr, Selector::WorldRegion, Nm, Plane)));
     connect(m_circularBrushSelector.get(), SIGNAL(selectorInUse(bool)),
@@ -75,7 +78,7 @@ namespace EspINA
                                       tr("Modify segmentation drawing 3D spheres"),
                                       m_drawToolSelector);
 
-    m_sphericalBrushSelector = SphericalBrushSelectorSPtr(new SphericalBrushSelector(m_viewManager));
+    m_sphericalBrushSelector = SphericalBrushSelectorSPtr(new SphericalBrushSelector(m_viewManager, m_categorySelector));
     connect(m_sphericalBrushSelector.get(), SIGNAL(stroke(ViewItemAdapterPtr, Selector::WorldRegion, Nm, Plane)),
             this,  SLOT(drawStroke(ViewItemAdapterPtr, Selector::WorldRegion, Nm, Plane)));
     connect(m_sphericalBrushSelector.get(), SIGNAL(stroke(ViewItemAdapterPtr, Selector::WorldRegion, Nm, Plane)),
@@ -133,10 +136,8 @@ namespace EspINA
     Q_ASSERT(m_drawTools.keys().contains(action));
 
     m_actualSelector = m_drawTools[action];
-    m_circularBrushSelector->initBrush();
-    m_circularBrushSelector->setRadius(m_radiusWidget->radius());
-    m_sphericalBrushSelector->initBrush();
-    m_sphericalBrushSelector->setRadius(m_radiusWidget->radius());
+    m_actualSelector->initBrush();
+    m_actualSelector->setRadius(m_radiusWidget->radius());
 
     m_viewManager->setSelector(m_actualSelector);
   }
@@ -153,10 +154,7 @@ namespace EspINA
   void ManualEditionTool::changeRadius(int value)
   {
     if (m_actualSelector != nullptr)
-    {
-      m_circularBrushSelector->setRadius(m_radiusWidget->radius());
-      m_sphericalBrushSelector->setRadius(m_radiusWidget->radius());
-    }
+      m_actualSelector->setRadius(m_radiusWidget->radius());
   }
 
   //-----------------------------------------------------------------------------
@@ -172,10 +170,7 @@ namespace EspINA
       SelectionSPtr selection = m_viewManager->selection();
 
       if (value && m_viewManager->activeCategory() && m_viewManager->activeChannel())
-      {
-        m_circularBrushSelector->initBrush();
-        m_sphericalBrushSelector->initBrush();
-      }
+        m_actualSelector->initBrush();
     }
   }
 
@@ -203,6 +198,7 @@ namespace EspINA
   void ManualEditionTool::setEnabled(bool value)
   {
     m_enabled = value;
+    m_categorySelector->setEnabled(value);
     m_drawToolSelector->setEnabled(value);
     m_radiusWidget->setEnabled(value);
   }
@@ -218,10 +214,55 @@ namespace EspINA
   {
     QList<QAction *> actions;
 
+    actions << m_categorySelector;
     actions << m_drawToolSelector;
     actions << m_radiusWidget;
 
     return actions;
   }
+
+  //------------------------------------------------------------------------
+  void ManualEditionTool::drawStroke(ViewItemAdapterPtr item, Selector::WorldRegion region, Nm radius, Plane plane)
+  {
+    auto mask = m_actualSelector->voxelSelectionMask();
+    SegmentationAdapterSPtr segmentation;
+
+    switch(item->type())
+    {
+      case ViewItemAdapter::Type::CHANNEL:
+      {
+        auto adapter = m_factory->createFilter<FreeFormSource>(OutputSList(), FREEFORM_FILTER);
+        auto filter = adapter->get();
+        filter->setMask(mask);
+
+        segmentation = m_factory->createSegmentation(adapter, 0);
+
+        auto category = m_categorySelector->selectedCategory();
+        Q_ASSERT(category);
+
+        segmentation->setCategory(category);
+
+        m_undoStack->beginMacro(tr("Add Segmentation"));
+        m_undoStack->push(new AddSegmentations(segmentation, m_model));
+        m_undoStack->endMacro();
+      }
+        break;
+      case ViewItemAdapter::Type::SEGMENTATION:
+      {
+        segmentation = m_model->smartPointer(reinterpret_cast<SegmentationAdapterPtr>(item));
+        m_undoStack->beginMacro(tr("Add Segmentation"));
+        // draw mask and make undo;
+        m_undoStack->endMacro();
+      }
+        break;
+      default:
+        Q_ASSERT(false);
+        break;
+    }
+
+    m_viewManager->updateSegmentationRepresentations(segmentation.get());
+    m_viewManager->updateViews();
+  }
+
 
 } // namespace EspINA

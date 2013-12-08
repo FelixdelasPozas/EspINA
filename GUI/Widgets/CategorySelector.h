@@ -42,6 +42,9 @@ namespace EspINA
     CategoryAdapterSPtr selectedCategory() const
     { return m_selectedCategory; }
 
+  signals:
+    void categoryChanged(CategoryAdapterSPtr);
+
   private slots:
     void categorySelected(const QModelIndex& index);
     void resetRootItem();

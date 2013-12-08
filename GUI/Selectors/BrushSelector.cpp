@@ -24,12 +24,14 @@
 #include <Core/Analysis/Data/VolumetricData.h>
 #include <Core/Analysis/Data/Volumetric/SparseVolume.h>
 #include <Core/Analysis/Data/Volumetric/StreamedVolume.h>
+#include <GUI/Widgets/CategorySelector.h>
 #include <GUI/Model/ChannelAdapter.h>
 #include <GUI/Model/SegmentationAdapter.h>
 #include <GUI/Model/CategoryAdapter.h>
 
 #include <GUI/View/RenderView.h>
 #include <GUI/View/View2D.h>
+#include <GUI/View/Selection.h>
 #include <Support/ViewManager.h>
 
 // Qt
@@ -52,8 +54,9 @@
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
-BrushSelector::BrushSelector(ViewManagerSPtr vm)
+BrushSelector::BrushSelector(ViewManagerSPtr vm, CategorySelector* categorySelector)
 : m_viewManager(vm)
+, m_categorySelector(categorySelector)
 , m_referenceItem(nullptr)
 , m_displayRadius(-1)
 , m_borderColor(Qt::blue)
@@ -68,6 +71,7 @@ BrushSelector::BrushSelector(ViewManagerSPtr vm)
 , m_actor(nullptr)
 , m_drawing(true)
 , m_segmentation(nullptr)
+, m_lastUpdateBounds(Bounds())
 {
   memset(m_viewSize, 0, 2*sizeof(int));
   memset(m_LL, 0, 3*sizeof(double));
@@ -75,6 +79,9 @@ BrushSelector::BrushSelector(ViewManagerSPtr vm)
   memset(m_worldSize, 0, 2*sizeof(double));
 
   buildCursor();
+
+  connect(m_categorySelector, SIGNAL(categoryChanged(CategoryAdapterSPtr)),
+          this, SLOT(categoryChanged(CategoryAdapterSPtr)));
 }
 
 //-----------------------------------------------------------------------------
@@ -250,37 +257,8 @@ void BrushSelector::createBrush(NmVector3 &center, QPoint pos)
 //-----------------------------------------------------------------------------
 bool BrushSelector::validStroke(NmVector3 &center)
 {
-  Bounds brushBounds;
+  Bounds brushBounds = buildBrushBounds(center);
 
-  switch(m_plane)
-  {
-    case Plane::XY:
-      brushBounds[0] = center[0] - m_radius;
-      brushBounds[1] = center[0] + m_radius;
-      brushBounds[2] = center[1] - m_radius;
-      brushBounds[3] = center[1] + m_radius;
-      brushBounds[4] = m_pBounds[4];
-      brushBounds[5] = m_pBounds[5];
-      break;
-    case Plane::XZ:
-      brushBounds[0] = center[0] - m_radius;
-      brushBounds[1] = center[0] + m_radius;
-      brushBounds[2] = m_pBounds[2];
-      brushBounds[3] = m_pBounds[3];
-      brushBounds[4] = center[2] - m_radius;
-      brushBounds[5] = center[2] + m_radius;
-      break;
-    case Plane::YZ:
-      brushBounds[0] = m_pBounds[0];
-      brushBounds[1] = m_pBounds[1];
-      brushBounds[2] = center[1] - m_radius;
-      brushBounds[3] = center[1] + m_radius;
-      brushBounds[4] = center[2] - m_radius;
-      brushBounds[5] = center[2] + m_radius;
-      break;
-    default:
-      break;
-  }
   if (!brushBounds.areValid())
     return false;
 
@@ -329,7 +307,6 @@ void BrushSelector::startStroke(QPoint pos, RenderView* view)
 
   NmVector3 center;
   createBrush(center, pos);
-
   startPreview(view);
 
   if (validStroke(center))
@@ -337,6 +314,7 @@ void BrushSelector::startStroke(QPoint pos, RenderView* view)
     double brush[3]{center[0], center[1], center[2]};
     m_lastDot = pos;
     m_stroke->InsertNextPoint(brush);
+    m_brushes << createBrushShape(m_referenceItem, center, m_radius, m_plane);
     updatePreview(center, view);
   }
 }
@@ -355,6 +333,7 @@ void BrushSelector::updateStroke(QPoint pos, RenderView* view)
     double brush[3]{center[0], center[1], center[2]};
     m_lastDot = pos;
     m_stroke->InsertNextPoint(brush);
+    m_brushes << createBrushShape(m_referenceItem, center, m_radius, m_plane);
     updatePreview(center, view);
   }
 }
@@ -362,12 +341,13 @@ void BrushSelector::updateStroke(QPoint pos, RenderView* view)
 //-----------------------------------------------------------------------------
 void BrushSelector::stopStroke(RenderView* view)
 {
-  stopPreview(view);
-
   if (m_stroke->GetNumberOfPoints() > 0)
     emit stroke(m_referenceItem, m_stroke, m_radius, m_plane);
 
+  stopPreview(view);
+
   m_stroke->Reset();
+  m_brushes.clear();
 
   view->updateView();
 }
@@ -470,6 +450,12 @@ void BrushSelector::startPreview(RenderView* view)
   m_actor->GetMapper()->SetInputConnection(mapToColors->GetOutputPort());
   m_actor->Update();
 
+  // preview actor must be above others or it will be occluded
+  double pos[3];
+  m_actor->GetPosition(pos);
+  pos[2] = pos[2]-View2D::SEGMENTATION_SHIFT;
+  m_actor->SetPosition(pos);
+
   view->addActor(m_actor);
   view->updateView();
 }
@@ -483,82 +469,86 @@ void BrushSelector::updatePreview(NmVector3 center, RenderView* view)
   if (!m_preview)
     startPreview(view);
 
-  Bounds brushBounds;
-
-  switch(m_plane)
-  {
-    case Plane::XY:
-      brushBounds[0] = center[0] - m_radius;
-      brushBounds[1] = center[0] + m_radius;
-      brushBounds[2] = center[1] - m_radius;
-      brushBounds[3] = center[1] + m_radius;
-      brushBounds[4] = brushBounds[5] = m_pBounds[4];
-      break;
-    case Plane::XZ:
-      brushBounds[0] = center[0] - m_radius;
-      brushBounds[1] = center[0] + m_radius;
-      brushBounds[2] = brushBounds[3] = m_pBounds[2];
-      brushBounds[4] = center[2] - m_radius;
-      brushBounds[5] = center[2] + m_radius;
-      break;
-    case Plane::YZ:
-      brushBounds[0] = brushBounds[1] = m_pBounds[0];
-      brushBounds[2] = center[1] - m_radius;
-      brushBounds[3] = center[1] + m_radius;
-      brushBounds[4] = center[2] - m_radius;
-      brushBounds[5] = center[2] + m_radius;
-      break;
-    default:
-      break;
-  }
+  Bounds brushBounds = buildBrushBounds(center);
+  QList<NmVector3> points;
+  double r2 = m_radius*m_radius;
 
   if (intersect(brushBounds, m_pBounds))
   {
-    Bounds updateBounds = intersection(m_pBounds, brushBounds);
-    double brush[3]{center[0], center[1], center[2]};
+    double point1[3] = { static_cast<double>(m_lastUdpdatePoint[0]), static_cast<double>(m_lastUdpdatePoint[1]), static_cast<double>(m_lastUdpdatePoint[2])};
+    double point2[3] = { static_cast<double>(center[0]),static_cast<double>(center[1]),static_cast<double>(center[2]) };
+    double distance = vtkMath::Distance2BetweenPoints(point1,point2);
+
+    // apply stroke interpolation
+    if ((distance >= r2) && m_lastUpdateBounds.areValid())
+    {
+      m_brushes.pop_back(); // we must delete the last one because we are going to replace it;
+
+      double vector[3] = { point2[0]-point1[0], point2[1]-point1[1], point2[2]-point1[2] };
+      int chunks = 2* static_cast<int>(distance/r2);
+      double delta[3] = { vector[0]/chunks, vector[1]/chunks, vector[2]/chunks };
+      for(auto i = 0; i < chunks; ++i)
+      {
+        points << NmVector3{m_lastUdpdatePoint[0] + static_cast<int>(delta[0] * i),
+                            m_lastUdpdatePoint[1] + static_cast<int>(delta[1] * i),
+                            m_lastUdpdatePoint[2] + static_cast<int>(delta[2] * i)};
+
+        m_brushes << createBrushShape(m_referenceItem, points.last(), m_radius, m_plane);
+      }
+    }
+    else
+      points << center;
 
     double r2 = m_radius*m_radius;
-    switch(m_plane)
+    for (auto point: points)
     {
-      case Plane::XY:
-        for (int x = updateBounds[0]/m_spacing[0]; x <= updateBounds[1]/m_spacing[0]; x++)
-          for (int y = updateBounds[2]/m_spacing[1]; y <= updateBounds[3]/m_spacing[1]; y++)
-        {
-          double pixel[3] = {x*m_spacing[0], y*m_spacing[1], m_pBounds[4]};
-          if (vtkMath::Distance2BetweenPoints(brush,pixel) < r2)
+      Bounds pointBounds = intersection(m_pBounds,buildBrushBounds(point));
+      double pointCenter[3]{ point[0], point[1], point[2] };
+      switch(m_plane)
+      {
+        case Plane::XY:
+          for (int x = pointBounds[0]/m_spacing[0]; x <= pointBounds[1]/m_spacing[0]; x++)
+            for (int y = pointBounds[2]/m_spacing[1]; y <= pointBounds[3]/m_spacing[1]; y++)
           {
-            unsigned char *pixel = static_cast<unsigned char*>(m_preview->GetScalarPointer(x,y,m_pBounds[4]/m_spacing[2]));
-            *pixel = (m_drawing ? 1 : 0);
+            double pixel[3]{x*m_spacing[0], y*m_spacing[1], m_pBounds[4]};
+            if (vtkMath::Distance2BetweenPoints(pointCenter,pixel) < r2)
+            {
+              unsigned char *pixel = static_cast<unsigned char*>(m_preview->GetScalarPointer(x,y,m_pBounds[4]/m_spacing[2]));
+              *pixel = (m_drawing ? 1 : 0);
+            }
           }
-        }
-        break;
-      case Plane::XZ:
-        for (int x = updateBounds[0]/m_spacing[0]; x <= updateBounds[1]/m_spacing[0]; x++)
-          for (int z = updateBounds[4]/m_spacing[2]; z <= updateBounds[5]/m_spacing[2]; z++)
-        {
-          double pixel[3] = {x*m_spacing[0], m_pBounds[2], z*m_spacing[2]};
-          if (vtkMath::Distance2BetweenPoints(brush,pixel) < r2)
+          break;
+        case Plane::XZ:
+          for (int x = pointBounds[0]/m_spacing[0]; x <= pointBounds[1]/m_spacing[0]; x++)
+            for (int z = pointBounds[4]/m_spacing[2]; z <= pointBounds[5]/m_spacing[2]; z++)
           {
-            unsigned char *pixel = static_cast<unsigned char*>(m_preview->GetScalarPointer(x,m_pBounds[2]/m_spacing[1],z));
-            *pixel = (m_drawing ? 1 : 0);
+            double pixel[3] = {x*m_spacing[0], m_pBounds[2], z*m_spacing[2]};
+            if (vtkMath::Distance2BetweenPoints(pointCenter,pixel) < r2)
+            {
+              unsigned char *pixel = static_cast<unsigned char*>(m_preview->GetScalarPointer(x,m_pBounds[2]/m_spacing[1],z));
+              *pixel = (m_drawing ? 1 : 0);
+            }
           }
-        }
-        break;
-      case Plane::YZ:
-        for (int y = updateBounds[2]/m_spacing[1]; y <= updateBounds[3]/m_spacing[1]; y++)
-          for (int z = updateBounds[4]/m_spacing[2]; z <= updateBounds[5]/m_spacing[2]; z++)
-        {
-          double pixel[3] = {m_pBounds[0], y*m_spacing[1], z*m_spacing[2]};
-          if (vtkMath::Distance2BetweenPoints(brush,pixel) < r2)
+          break;
+        case Plane::YZ:
+          for (int y = pointBounds[2]/m_spacing[1]; y <= pointBounds[3]/m_spacing[1]; y++)
+            for (int z = pointBounds[4]/m_spacing[2]; z <= pointBounds[5]/m_spacing[2]; z++)
           {
-            unsigned char *pixel = static_cast<unsigned char*>(m_preview->GetScalarPointer(m_pBounds[0]/m_spacing[0],y,z));
-            *pixel = (m_drawing ? 1 : 0);
+            double pixel[3] = {m_pBounds[0], y*m_spacing[1], z*m_spacing[2]};
+            if (vtkMath::Distance2BetweenPoints(pointCenter,pixel) < r2)
+            {
+              unsigned char *pixel = static_cast<unsigned char*>(m_preview->GetScalarPointer(m_pBounds[0]/m_spacing[0],y,z));
+              *pixel = (m_drawing ? 1 : 0);
+            }
           }
-        }
-        break;
-      default:
-        break;
+          break;
+        default:
+          break;
+      }
     }
+
+    m_lastUpdateBounds = brushBounds;
+    m_lastUdpdatePoint = center;
 
     m_preview->Modified();
     view->updateView();
@@ -572,6 +562,7 @@ void BrushSelector::stopPreview(RenderView* view)
   m_lut = nullptr;
   m_preview = nullptr;
   m_actor = nullptr;
+  m_lastUpdateBounds = Bounds();
 
   if (!m_drawing && m_segmentation != nullptr)
     for(auto prototype: m_segmentation->representations())
@@ -615,6 +606,8 @@ BinaryMaskSPtr<unsigned char> BrushSelector::voxelSelectionMask() const
     else
       strokeBounds = boundingBox(strokeBounds, brush.second);
   }
+  strokeBounds.setLowerInclusion(true);
+  strokeBounds.setUpperInclusion(true);
 
   NmVector3 spacing{ m_spacing[0], m_spacing[1], m_spacing[2] };
   BinaryMaskPtr<unsigned char> mask = new BinaryMask<unsigned char>(strokeBounds, spacing);
@@ -629,6 +622,9 @@ BinaryMaskSPtr<unsigned char> BrushSelector::voxelSelectionMask() const
       ++it;
     }
   }
+
+  auto value = (m_drawing ? SEG_VOXEL_VALUE : SEG_BG_VALUE);
+  mask->setForegroundValue(value);
 
   return BinaryMaskSPtr<unsigned char>(mask);
 }
@@ -654,7 +650,7 @@ void BrushSelector::initBrush()
   else
   {
     item = m_viewManager->activeChannel();
-    color = m_viewManager->activeCategory()->color();
+    color = m_categorySelector->selectedCategory()->color();
     image = noSeg;
     borderColor = QColor(Qt::blue);
   }
@@ -666,4 +662,47 @@ void BrushSelector::initBrush()
 
   m_drawing = true;
   DrawingOn(nullptr);
+}
+
+//-----------------------------------------------------------------------------
+void BrushSelector::categoryChanged(CategoryAdapterSPtr category)
+{
+  if (m_referenceItem == m_viewManager->activeChannel())
+    setBrushColor(category->color());
+}
+
+//-----------------------------------------------------------------------------
+Bounds BrushSelector::buildBrushBounds(NmVector3 center)
+{
+  Bounds bounds;
+  switch(m_plane)
+  {
+    case Plane::XY:
+      bounds[0] = center[0] - m_radius;
+      bounds[1] = center[0] + m_radius;
+      bounds[2] = center[1] - m_radius;
+      bounds[3] = center[1] + m_radius;
+      bounds[4] = bounds[5] = m_pBounds[4];
+      break;
+    case Plane::XZ:
+      bounds[0] = center[0] - m_radius;
+      bounds[1] = center[0] + m_radius;
+      bounds[2] = bounds[3] = m_pBounds[2];
+      bounds[4] = center[2] - m_radius;
+      bounds[5] = center[2] + m_radius;
+      break;
+    case Plane::YZ:
+      bounds[0] = bounds[1] = m_pBounds[0];
+      bounds[2] = center[1] - m_radius;
+      bounds[3] = center[1] + m_radius;
+      bounds[4] = center[2] - m_radius;
+      bounds[5] = center[2] + m_radius;
+      break;
+    default:
+      break;
+  }
+  bounds.setLowerInclusion(true);
+  bounds.setUpperInclusion(true);
+
+  return bounds;
 }

@@ -45,6 +45,8 @@ class PickableItem;
 
 namespace EspINA
 {
+  class CategorySelector;
+
   class EspinaGUI_EXPORT BrushSelector
   : public Selector
   {
@@ -59,7 +61,7 @@ namespace EspINA
       using Spacing = itkVolumeType::SpacingType;
 
     public:
-      explicit BrushSelector(ViewManagerSPtr vm);
+      explicit BrushSelector(ViewManagerSPtr vm, CategorySelector *categorySelector);
       virtual ~BrushSelector();
 
       virtual bool filterEvent(QEvent* e, RenderView* view = nullptr);
@@ -97,8 +99,11 @@ namespace EspINA
                                           NmVector3 center,
                                           Nm radius,
                                           Plane plane) = 0;
+      virtual void categoryChanged(CategoryAdapterSPtr category);
+
     private:
       void buildCursor();
+      Bounds buildBrushBounds(NmVector3 center);
       void createBrush(NmVector3 &center, QPoint pos);
       bool validStroke(NmVector3 &center);
       void startStroke(QPoint pos, RenderView *view);
@@ -110,6 +115,7 @@ namespace EspINA
 
     private:
       ViewManagerSPtr m_viewManager;
+      CategorySelector *m_categorySelector;
       ViewItemAdapterPtr m_referenceItem;
 
     protected:
@@ -136,9 +142,14 @@ namespace EspINA
       bool m_drawing;
       SegmentationAdapterPtr m_segmentation;
       BrushShapeList m_brushes;
+      NmVector3 m_lastUdpdatePoint;
+      Bounds    m_lastUpdateBounds;
 
       static const int MAX_RADIUS = 32;
     };
+
+  using BrushSelectorPtr  = BrushSelector *;
+  using BrushSelectorSPtr = std::shared_ptr<BrushSelector>;
 
 } // namespace EspINA
 

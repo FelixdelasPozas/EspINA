@@ -51,7 +51,6 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Editor/SplitTool.h
   ToolGroups/Editor/MorphologicalEditionTool.h
   ToolGroups/Editor/ManualEditionTool.h
-  ToolGroups/Editor/SpinBoxAction.h
   ToolGroups/Editor/MorphologicalEditionTool.h
   Tools/Brushes/CircularBrushSelector.h
   Tools/Brushes/SphericalBrushSelector.h
@@ -148,7 +147,6 @@ set (ESPINA_SOURCES
   ToolGroups/Editor/SplitTool.cpp
   ToolGroups/Editor/MorphologicalEditionTool.cpp
   ToolGroups/Editor/ManualEditionTool.cpp
-  ToolGroups/Editor/SpinBoxAction.cpp
   Tools/Brushes/CircularBrushSelector.cpp
   Tools/Brushes/SphericalBrushSelector.cpp
 #   Tools/Contour/FilledContour.cpp

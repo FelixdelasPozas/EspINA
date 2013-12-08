@@ -27,8 +27,8 @@
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
-SphericalBrushSelector::SphericalBrushSelector(ViewManagerSPtr vm)
-: BrushSelector(vm)
+SphericalBrushSelector::SphericalBrushSelector(ViewManagerSPtr vm, CategorySelector *categorySelector)
+: BrushSelector(vm, categorySelector)
 {
 }
 

@@ -29,7 +29,7 @@ namespace EspINA
   {
     Q_OBJECT
     public:
-      explicit SphericalBrushSelector(ViewManagerSPtr item);
+      explicit SphericalBrushSelector(ViewManagerSPtr vm, CategorySelector *categorySelector);
 
     protected slots:
       virtual BrushSelector::BrushShape createBrushShape(ViewItemAdapterPtr item,

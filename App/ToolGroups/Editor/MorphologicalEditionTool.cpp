@@ -17,7 +17,7 @@
  */
 
 #include "MorphologicalEditionTool.h"
-#include "SpinBoxAction.h"
+#include <GUI/Widgets/SpinBoxAction.h>
 #include <Support/Settings/EspinaSettings.h>
 #include <Filters/MorphologicalEditionFilter.h>
 
