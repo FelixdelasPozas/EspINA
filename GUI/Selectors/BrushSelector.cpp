@@ -61,6 +61,7 @@ BrushSelector::BrushSelector(ViewManagerSPtr vm, CategorySelector* categorySelec
 , m_displayRadius(-1)
 , m_borderColor(Qt::blue)
 , m_brushColor(Qt::blue)
+, m_brushOpacity(50)
 , m_brushImage(nullptr)
 , m_tracking(false)
 , m_stroke(vtkSmartPointer<vtkPoints>::New())
@@ -78,6 +79,7 @@ BrushSelector::BrushSelector(ViewManagerSPtr vm, CategorySelector* categorySelec
   memset(m_UR, 0, 3*sizeof(double));
   memset(m_worldSize, 0, 2*sizeof(double));
 
+  m_brushColor.setAlphaF(m_brushOpacity/100.);
   buildCursor();
 
   connect(m_categorySelector, SIGNAL(categoryChanged(CategoryAdapterSPtr)),
@@ -159,6 +161,14 @@ void BrushSelector::setBorderColor(QColor color)
 void BrushSelector::setBrushColor(QColor color)
 {
   m_brushColor = color;
+  buildCursor();
+}
+
+//-----------------------------------------------------------------------------
+void BrushSelector::setBrushOpacity(int value)
+{
+  m_brushOpacity = value;
+  m_brushColor.setAlphaF(m_brushOpacity/100.);
   buildCursor();
 }
 
@@ -360,7 +370,7 @@ void BrushSelector::startPreview(RenderView* view)
   m_lut->SetNumberOfTableValues(2);
   m_lut->Build();
   m_lut->SetTableValue(0, 0.0, 0.0, 0.0, 0.0);
-  m_lut->SetTableValue(1, m_brushColor.redF(), m_brushColor.greenF(), m_brushColor.blueF(), 0.8);
+  m_lut->SetTableValue(1, m_brushColor.redF(), m_brushColor.greenF(), m_brushColor.blueF(), m_brushOpacity/100.);
   m_lut->Modified();
 
   int extent[6];
@@ -654,6 +664,7 @@ void BrushSelector::initBrush()
     image = noSeg;
     borderColor = QColor(Qt::blue);
   }
+  color.setAlphaF(m_brushOpacity/100.);
 
   setBrushColor(color);
   setBrushImage(image);

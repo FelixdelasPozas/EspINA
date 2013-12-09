@@ -78,13 +78,13 @@ namespace EspINA
 
     QSettings settings(CESVIMA, ESPINA);
     m_dilateRadiusWidget->setLabelText(tr("Dilate Radius"));
-    m_dilateRadiusWidget->setRadius(settings.value(DILATE_RADIUS, 3).toInt());
+    m_dilateRadiusWidget->setValue(settings.value(DILATE_RADIUS, 3).toInt());
     m_erodeRadiusWidget->setLabelText(tr("Erode Radius"));
-    m_erodeRadiusWidget->setRadius(settings.value(ERODE_RADIUS, 3).toInt());
+    m_erodeRadiusWidget->setValue(settings.value(ERODE_RADIUS, 3).toInt());
     m_openRadiusWidget->setLabelText(tr("Open Radius"));
-    m_openRadiusWidget->setRadius(settings.value(OPEN_RADIUS, 3).toInt());
+    m_openRadiusWidget->setValue(settings.value(OPEN_RADIUS, 3).toInt());
     m_closeRadiusWidget->setLabelText(tr("Close Radius"));
-    m_closeRadiusWidget->setRadius(settings.value(CLOSE_RADIUS, 3).toInt());
+    m_closeRadiusWidget->setValue(settings.value(CLOSE_RADIUS, 3).toInt());
   }
 
   //------------------------------------------------------------------------

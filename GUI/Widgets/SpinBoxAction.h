@@ -50,8 +50,8 @@ namespace EspINA
       /** \brief Returns widget's radius value.
        *
        */
-      int radius() const
-      { return m_radius; }
+      int value() const
+      { return m_value; }
 
       /** \brief Set minimum value for widget's QSpinBox.
        *
@@ -75,10 +75,10 @@ namespace EspINA
       {
         m_enabled = value;
 
-        if (nullptr != m_radiusLabel)
+        if (nullptr != m_label)
         {
-          m_radiusSpinBox->setEnabled(value);
-          m_radiusLabel->setEnabled(value);
+          m_label->setEnabled(value);
+          m_spinBox->setEnabled(value);
         }
       }
 
@@ -92,29 +92,29 @@ namespace EspINA
       /** \brief Sets widget's radius value.
        *
        */
-      void setRadius(int value);
+      void setValue(int value);
 
       /** \brief It's necessary to connect to the destroy signal of allocated
        *         widgets so we can nullify the pointers when they are destroyed.
        */
       void destroySignalEmmited()
       {
-        m_radiusLabel = nullptr;
-        m_radiusSpinBox = nullptr;
+        m_label = nullptr;
+        m_spinBox = nullptr;
       }
 
     signals:
       /** \brief Signal to propagate changes int the widget's values.
        *
        */
-      void radiusChanged(int);
+      void valueChanged(int);
 
     private:
-      QLabel   *m_radiusLabel;
-      QSpinBox *m_radiusSpinBox;
+      QLabel   *m_label;
+      QSpinBox *m_spinBox;
 
-      int       m_radius;
-      QString   m_label;
+      int       m_value;
+      QString   m_text;
       bool      m_enabled;
       int       m_maximumValue;
       int       m_minimumValue;

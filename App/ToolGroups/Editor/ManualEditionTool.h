@@ -72,6 +72,7 @@ namespace EspINA
     private slots:
       void changeSelector(QAction *);
       void changeRadius(int);
+      void changeOpacity(int);
       void selectorInUse(bool);
       void unsetSelector();
 
@@ -90,6 +91,7 @@ namespace EspINA
       QMap<QAction *, SelectorSPtr> m_drawTools;
 
       SpinBoxAction *m_radiusWidget;
+      SpinBoxAction *m_opacityWidget;
 
       bool m_enabled;
   };

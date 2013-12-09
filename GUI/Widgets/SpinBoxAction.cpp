@@ -25,10 +25,10 @@ namespace EspINA
   //------------------------------------------------------------------------
   SpinBoxAction::SpinBoxAction(QObject *parent)
   : QWidgetAction(parent)
-  , m_radiusLabel(nullptr)
-  , m_radiusSpinBox(nullptr)
-  , m_radius(0)
-  , m_label(QString())
+  , m_label(nullptr)
+  , m_spinBox(nullptr)
+  , m_value(0)
+  , m_text(QString())
   , m_enabled(true)
   , m_maximumValue(30)
   , m_minimumValue(1)
@@ -38,11 +38,11 @@ namespace EspINA
   //------------------------------------------------------------------------
   SpinBoxAction::~SpinBoxAction()
   {
-    if (m_radiusLabel)
-      delete m_radiusLabel;
+    if (m_label)
+      delete m_label;
 
-    if (m_radiusSpinBox)
-      delete m_radiusSpinBox;
+    if (m_spinBox)
+      delete m_spinBox;
   }
 
   //------------------------------------------------------------------------
@@ -52,34 +52,34 @@ namespace EspINA
     QHBoxLayout *layout = new QHBoxLayout();
     widget->setLayout(layout);
 
-    m_radiusLabel = new QLabel(m_label);
-    m_radiusSpinBox = new QSpinBox();
+    m_label = new QLabel(m_text);
+    m_spinBox = new QSpinBox();
 
     // only catching one of them will suffice
-    connect(m_radiusSpinBox, SIGNAL(destroyed(QObject*)), this, SLOT(destroySignalEmmited()));
+    connect(m_spinBox, SIGNAL(destroyed(QObject*)), this, SLOT(destroySignalEmmited()));
 
 
-    m_radiusSpinBox->setValue(m_radius);
-    m_radiusSpinBox->setMinimum(m_minimumValue);
-    m_radiusSpinBox->setMaximum(m_maximumValue);
+    m_spinBox->setValue(m_value);
+    m_spinBox->setMinimum(m_minimumValue);
+    m_spinBox->setMaximum(m_maximumValue);
 
-    connect(m_radiusSpinBox,SIGNAL(valueChanged(int)),
-            this, SLOT(setRadius(int)));
+    connect(m_spinBox,SIGNAL(valueChanged(int)),
+            this, SLOT(setValue(int)));
 
-    layout->addWidget(m_radiusLabel);
-    layout->addWidget(m_radiusSpinBox);
+    layout->addWidget(m_label);
+    layout->addWidget(m_spinBox);
 
-    m_radiusLabel->setEnabled(m_enabled);
-    m_radiusSpinBox->setEnabled(m_enabled);
+    m_label->setEnabled(m_enabled);
+    m_spinBox->setEnabled(m_enabled);
 
     return widget;
   }
 
   //------------------------------------------------------------------------
-  void SpinBoxAction::setRadius(int value)
+  void SpinBoxAction::setValue(int value)
   {
-    m_radius = value;
-    emit radiusChanged(value);
+    m_value = value;
+    emit valueChanged(value);
   }
 
   //------------------------------------------------------------------------
@@ -87,13 +87,13 @@ namespace EspINA
   {
     m_minimumValue = value;
 
-    if (m_radiusSpinBox != nullptr)
+    if (m_spinBox != nullptr)
     {
-      m_radiusSpinBox->setMinimum(value);
-      if (m_radius < value)
+      m_spinBox->setMinimum(value);
+      if (m_value < value)
       {
-        m_radius = value;
-        m_radiusSpinBox->setValue(m_radius);
+        m_value = value;
+        m_spinBox->setValue(m_value);
       }
     }
   }
@@ -103,13 +103,13 @@ namespace EspINA
   {
     m_maximumValue = value;
 
-    if (m_radiusSpinBox != nullptr)
+    if (m_spinBox != nullptr)
     {
-      m_radiusSpinBox->setMaximum(value);
-      if (m_radius > value)
+      m_spinBox->setMaximum(value);
+      if (m_value > value)
       {
-        m_radius = value;
-        m_radiusSpinBox->setValue(m_radius);
+        m_value = value;
+        m_spinBox->setValue(m_value);
       }
     }
   }
@@ -117,10 +117,10 @@ namespace EspINA
   //------------------------------------------------------------------------
   void SpinBoxAction::setLabelText(const QString &label)
   {
-    m_label = label;
+    m_text = label;
 
-    if (m_radiusLabel != nullptr)
-      m_radiusLabel->setText(m_label);
+    if (m_label != nullptr)
+      m_label->setText(m_text);
   }
 
 

@@ -31,7 +31,8 @@
 
 using EspINA::Filter;
 
-const QString BRUSHRADIUS("ManualEditionTools::BrushRadius");
+const QString BRUSH_RADIUS("ManualEditionTools::BrushRadius");
+const QString BRUSH_OPACITY("ManualEditionTools::BrushOpacity");
 
 const Filter::Type FREEFORM_FILTER = "FreeFormSource";
 
@@ -49,12 +50,16 @@ namespace EspINA
   , m_drawToolSelector(new ActionSelector())
   , m_categorySelector(new CategorySelector(model))
   , m_radiusWidget(new SpinBoxAction())
+  , m_opacityWidget(new SpinBoxAction())
   , m_enabled(false)
   {
     m_factory->registerFilterFactory(this);
 
-    connect(m_radiusWidget, SIGNAL(radiusChanged(int)),
+    connect(m_radiusWidget, SIGNAL(valueChanged(int)),
             this, SLOT(changeRadius(int)));
+
+    connect(m_opacityWidget, SIGNAL(valueChanged(int)),
+            this, SLOT(changeOpacity(int)));
 
     // draw with a disc
     QAction *discTool = new QAction(QIcon(":/espina/pencil2D.png"),
@@ -117,15 +122,26 @@ namespace EspINA
             this, SLOT(unsetSelector()));
 
     QSettings settings(CESVIMA, ESPINA);
-    int radius = settings.value(BRUSHRADIUS, 20).toInt();
+    int radius = settings.value(BRUSH_RADIUS, 20).toInt();
+    int opacity = settings.value(BRUSH_OPACITY, 50).toInt();
 
-    m_radiusWidget->setRadius(radius);
+    m_radiusWidget->setValue(radius);
     m_radiusWidget->setLabelText(tr("Brush Radius"));
+
+    m_opacityWidget->setSpinBoxMinimum(1);
+    m_opacityWidget->setSpinBoxMaximum(100);
+    m_opacityWidget->setValue(opacity);
+    m_opacityWidget->setLabelText(tr("Stroke Opacity %"));
   }
   
   //------------------------------------------------------------------------
   ManualEditionTool::~ManualEditionTool()
   {
+    QSettings settings(CESVIMA, ESPINA);
+    settings.setValue(BRUSH_RADIUS, m_radiusWidget->value());
+    settings.setValue(BRUSH_OPACITY, m_opacityWidget->value());
+    settings.sync();
+
     if (m_actualSelector)
       m_viewManager->unsetSelector(m_actualSelector);
   }
@@ -137,7 +153,7 @@ namespace EspINA
 
     m_actualSelector = m_drawTools[action];
     m_actualSelector->initBrush();
-    m_actualSelector->setRadius(m_radiusWidget->radius());
+    m_actualSelector->setRadius(m_radiusWidget->value());
 
     m_viewManager->setSelector(m_actualSelector);
   }
@@ -145,7 +161,6 @@ namespace EspINA
   //-----------------------------------------------------------------------------
   void ManualEditionTool::unsetSelector()
   {
-    qDebug() << "unsed";
     m_viewManager->unsetSelector(m_actualSelector);
     m_actualSelector.reset();
   }
@@ -154,7 +169,14 @@ namespace EspINA
   void ManualEditionTool::changeRadius(int value)
   {
     if (m_actualSelector != nullptr)
-      m_actualSelector->setRadius(m_radiusWidget->radius());
+      m_actualSelector->setRadius(m_radiusWidget->value());
+  }
+
+  //-----------------------------------------------------------------------------
+  void ManualEditionTool::changeOpacity(int value)
+  {
+    if (m_actualSelector != nullptr)
+      m_actualSelector->setBrushOpacity(m_opacityWidget->value());
   }
 
   //-----------------------------------------------------------------------------
@@ -217,6 +239,7 @@ namespace EspINA
     actions << m_categorySelector;
     actions << m_drawToolSelector;
     actions << m_radiusWidget;
+    actions << m_opacityWidget;
 
     return actions;
   }

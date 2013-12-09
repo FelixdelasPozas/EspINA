@@ -78,6 +78,7 @@ namespace EspINA
       void setBrushColor(QColor color);
       void setBrushImage(QImage &image);
       QColor getBrushColor();
+      void setBrushOpacity(int value);
 
       /// @item is used to specify the spacing of the stroke
       void setReferenceItem(ViewItemAdapterPtr item);
@@ -119,9 +120,10 @@ namespace EspINA
       ViewItemAdapterPtr m_referenceItem;
 
     protected:
-      int m_displayRadius; //In screen pixels
-      QColor m_borderColor;
-      QColor m_brushColor;
+      int     m_displayRadius; //In screen pixels
+      QColor  m_borderColor;
+      QColor  m_brushColor;
+      int     m_brushOpacity;
       QImage *m_brushImage;
 
       bool m_tracking;
