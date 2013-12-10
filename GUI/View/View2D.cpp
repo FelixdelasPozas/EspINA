@@ -778,27 +778,31 @@ Bounds View2D::previewBounds(bool cropToSceneBounds) const
   coords->SetValue(1, 1); //UR
   memcpy(UR, coords->GetComputedWorldValue(m_renderer),3*sizeof(double));
 
-  int H = (Plane::YZ == m_plane)?2:0;
-  int V = (Plane::XZ  == m_plane)?2:1;
+//  int H = (Plane::YZ == m_plane)?2:0;
+//  int V = (Plane::XZ  == m_plane)?2:1;
 
   Bounds bounds;
+  bounds[0] = std::min(LL[0], UR[0]);
+  bounds[1] = std::max(LL[0], UR[0]);
+  bounds[2] = std::min(LL[1], UR[1]);
+  bounds[3] = std::max(LL[1], UR[1]);
+  bounds[4] = bounds[5] = slicingPosition();
 
-  bounds[2*H]   = LL[H];
-  bounds[2*H+1] = UR[H];
-  bounds[2*V]   = UR[V];
-  bounds[2*V+1] = LL[V];
-
-  bounds[2*m_normalCoord]   = slicingPosition();
-  bounds[2*m_normalCoord+1] = slicingPosition();
-
-  if (cropToSceneBounds)
-  {
-    bounds[2*H]   = std::max(LL[H], m_sceneBounds[2*H]);
-    bounds[2*H+1] = std::min(UR[H], m_sceneBounds[2*H+1]);
-    bounds[2*V]   = std::max(UR[V], m_sceneBounds[2*V]);
-    bounds[2*V+1] = std::min(LL[V], m_sceneBounds[2*V+1]);
-  }
-  bounds.setLowerInclusion(true);
+//  bounds[2*H]   = LL[H];
+//  bounds[2*H+1] = UR[H];
+//  bounds[2*V]   = UR[V];
+//  bounds[2*V+1] = LL[V];
+//
+//  bounds[2*m_normalCoord]   = slicingPosition();
+//  bounds[2*m_normalCoord+1] = slicingPosition();
+//
+//  if (cropToSceneBounds)
+//  {
+//    bounds[2*H]   = std::max(LL[H], m_sceneBounds[2*H]);
+//    bounds[2*H+1] = std::min(UR[H], m_sceneBounds[2*H+1]);
+//    bounds[2*V]   = std::max(UR[V], m_sceneBounds[2*V]);
+//    bounds[2*V+1] = std::min(LL[V], m_sceneBounds[2*V+1]);
+//  }
   bounds.setUpperInclusion(true);
 
   return bounds;

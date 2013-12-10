@@ -667,6 +667,7 @@ void EspinaMainWindow::openAnalysis(const QStringList files)
     m_analysis = mergedAnalysis;
 
     m_viewManager->resetViewCameras();
+    m_viewManager->updateViews();
     m_addMenu->setEnabled(true);
 
     int secs = timer.elapsed()/1000.0;

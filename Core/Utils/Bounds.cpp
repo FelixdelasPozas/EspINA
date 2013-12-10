@@ -237,6 +237,27 @@ std::ostream& EspINA::operator<<(std::ostream& os, const Bounds& bounds)
   return os;
 }
 
+//-----------------------------------------------------------------------------
+QDebug EspINA::operator<< (QDebug d, const Bounds &bounds)
+{
+  char borders[6];
+  for(auto i: { 0,1,2 })
+  {
+    if (bounds.areLowerIncluded(toAxis(i)))
+      borders[2*i] = '[';
+    else
+      borders[2*i] = '(';
+
+    if (bounds.areUpperIncluded(toAxis(i)))
+      borders[(2*i)+1] = ']';
+    else
+      borders[(2*i)+1] = ')';
+  }
+
+  d << borders[0] << bounds[0] << "," << bounds[1] << borders[1] << borders[2] << bounds[2] << "," << bounds[3] << borders[3] << borders[4] << bounds[4] << "," << bounds[5] << borders[5];
+  return d;
+}
+
 
 //-----------------------------------------------------------------------------
 bool EspINA::contains(const Bounds &container, const Bounds &contained)

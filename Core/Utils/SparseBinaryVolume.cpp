@@ -210,43 +210,6 @@ namespace EspINA
   }
 
   //----------------------------------------------------------------------------
-  void SparseBinaryVolume::expandAndDraw(const vtkImplicitFunction*  brush,
-                                         const Bounds&               bounds,
-                                         const unsigned char         drawValue)
-  {
-    Bounds intersectionBounds = intersection(bounds, m_bounds);
-    if (bounds != intersectionBounds)
-      m_bounds = boundingBox(m_bounds, intersectionBounds);
-
-    draw(brush, bounds, drawValue);
-  }
-
-  //----------------------------------------------------------------------------
-  template <class T> void SparseBinaryVolume::expandAndDraw(const typename T::Pointer   image,
-                                                            const Bounds&               bounds,
-                                                            const typename T::PixelType backgroundValue)
-  {
-      Bounds intersectionBounds = intersection(bounds, m_bounds);
-      if (bounds != intersectionBounds)
-        m_bounds = boundingBox(m_bounds, intersectionBounds);
-
-      draw(image, bounds, backgroundValue);
-  }
-
-  //----------------------------------------------------------------------------
-  void SparseBinaryVolume::expandAndDraw(const NmVector3 &index,
-                                         const bool value)
-  {
-    Bounds bounds{index[0], index[0], index[1], index[1], index[2], index[2]};
-
-    Bounds intersectionBounds = intersection(bounds, m_bounds);
-    if (bounds != intersectionBounds)
-      m_bounds = boundingBox(m_bounds, intersectionBounds);
-
-    draw(index, value);
-  }
-
-  //----------------------------------------------------------------------------
   void SparseBinaryVolume::draw(const vtkImplicitFunction*  brush,
                                 const Bounds&               bounds,
                                 const unsigned char         drawValue)
@@ -565,6 +528,40 @@ namespace EspINA
     }
 
     return BinaryMaskSPtr<unsigned char>(mask);
+  }
+
+  //----------------------------------------------------------------------------
+  void expandAndDraw(SparseBinaryVolumePtr       volume,
+                     const vtkImplicitFunction*  brush,
+                     const Bounds&               bounds,
+                     const unsigned char         drawValue)
+  {
+    Bounds resizeBounds = boundingBox(bounds, volume->bounds());
+    volume->resize(resizeBounds);
+    volume->draw(brush, bounds, drawValue);
+  }
+
+  //----------------------------------------------------------------------------
+  template <class T> void expandAndDraw(SparseBinaryVolumePtr       volume,
+                                        const typename T::Pointer   image,
+                                        const Bounds&               bounds,
+                                        const typename T::PixelType backgroundValue)
+  {
+      Bounds resizeBounds = boundingBox(bounds, volume->bounds());
+      volume->resize(resizeBounds);
+      volume->draw(image, bounds, backgroundValue);
+  }
+
+  //----------------------------------------------------------------------------
+  void expandAndDraw(SparseBinaryVolumePtr volume,
+                     const NmVector3      &index,
+                     const bool            value)
+  {
+
+    Bounds bounds{index[0], index[0], index[1], index[1], index[2], index[2]};
+    Bounds resizeBounds = boundingBox(bounds, volume->bounds());
+    volume->resize(resizeBounds);
+    volume->draw(index, value);
   }
 
 } // namespace EspINA

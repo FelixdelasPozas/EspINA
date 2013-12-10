@@ -45,7 +45,6 @@
 
 namespace EspINA
 {
-
   struct Invalid_Image_Bounds_Exception{};
 
   template class VolumetricData<itk::Image<unsigned char, 3>>;
@@ -144,7 +143,7 @@ namespace EspINA
     // TODO: expand and draw
     // TODO: extract region of sparse volume as vtkImageData
     // TODO: iterators?
-    // TODO: fitToContent(), undo(), redo() y pila de cambios como en SparseBinary
+    // TODO: fitToContent()
     // TODO: snapshot(), editedregionSnapshot()
     // TODO: volumen 3d itkVolumeType to SparseVolume (algoritmo de octree)
     // ------------------------------------------------------------------------
@@ -161,7 +160,7 @@ namespace EspINA
 
     /** \brief Method to undo the last change made to the volume.
      */
-    virtual void undo() {}
+    virtual void undo();
 
     /** \brief Returns if the volume has been correctly initialized.
      */

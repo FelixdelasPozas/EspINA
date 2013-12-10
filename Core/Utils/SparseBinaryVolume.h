@@ -143,26 +143,6 @@ namespace EspINA
     void draw(const NmVector3 &index,
               const bool value = true);
 
-    /* \brief Draw method to expand the image bounds (only if necessary) and modify
-     * the mask using a implicit function.
-     */
-    void expandAndDraw(const vtkImplicitFunction*  brush,
-                       const Bounds&               bounds,
-                       const unsigned char         drawValue);
-
-    /* \brief Draw method to expand the image bounds (only if necessary) and modify
-     * the mask using a templated itk::Image.
-     */
-    template <class T> void expandAndDraw(const typename T::Pointer   image,
-                                          const Bounds&               bounds = Bounds(),
-                                          const typename T::PixelType backgroundValue = 0);
-
-    /* \brief Draw method to expand the image bounds (only if necessary) and modify
-     *  a voxel of the mask.
-     */
-    void expandAndDraw(const NmVector3 &index,
-                       const bool value = true);
-
     /* \brief Reduce the bounds to the smallest one that contains the mask (clipping empty borders).
      */
     void fitToContent();
@@ -523,6 +503,33 @@ namespace EspINA
          */
         void Unset() throw(Const_Violation_Exception) { throw Const_Violation_Exception(); }
     };
+
+    using SparseBinaryVolumePtr  = SparseBinaryVolume *;
+    using SparseBinaryVolumeSPtr = std::shared_ptr<SparseBinaryVolume>;
+
+    /* \brief Draw method to expand the image bounds (only if necessary) and modify
+     * the mask using a implicit function.
+     */
+    void expandAndDraw(SparseBinaryVolumePtr       volume,
+                       const vtkImplicitFunction*  brush,
+                       const Bounds&               bounds,
+                       const unsigned char         drawValue);
+
+    /* \brief Draw method to expand the image bounds (only if necessary) and modify
+     * the mask using a templated itk::Image.
+     */
+    template <class T> void expandAndDraw(SparseBinaryVolumePtr       volume,
+                                          const typename T::Pointer   image,
+                                          const Bounds&               bounds = Bounds(),
+                                          const typename T::PixelType backgroundValue = 0);
+
+    /* \brief Draw method to expand the image bounds (only if necessary) and modify
+     *  a voxel of the mask.
+     */
+    void expandAndDraw(SparseBinaryVolumePtr volume,
+                       const NmVector3      &index,
+                       const bool            value = true);
+
 
   };
 } // namespace EspINA

@@ -25,6 +25,7 @@
 #include <Filters/FreeFormSource.h>
 #include <Support/Settings/EspinaSettings.h>
 #include <Undo/AddSegmentations.h>
+#include <App/Undo/BrushUndoCommand.h>
 
 #include <QAction>
 #include <QSettings>
@@ -131,7 +132,8 @@ namespace EspINA
     m_opacityWidget->setSpinBoxMinimum(1);
     m_opacityWidget->setSpinBoxMaximum(100);
     m_opacityWidget->setValue(opacity);
-    m_opacityWidget->setLabelText(tr("Stroke Opacity %"));
+    m_opacityWidget->setSuffix("%");
+    m_opacityWidget->setLabelText(tr("Stroke Opacity"));
   }
   
   //------------------------------------------------------------------------
@@ -261,20 +263,22 @@ namespace EspINA
         segmentation = m_factory->createSegmentation(adapter, 0);
 
         auto category = m_categorySelector->selectedCategory();
-        Q_ASSERT(category);
-
         segmentation->setCategory(category);
 
         m_undoStack->beginMacro(tr("Add Segmentation"));
         m_undoStack->push(new AddSegmentations(segmentation, m_model));
         m_undoStack->endMacro();
+
+        SegmentationAdapterList list;
+        list << segmentation.get();
+        m_viewManager->selection()->set(list);
       }
         break;
       case ViewItemAdapter::Type::SEGMENTATION:
       {
         segmentation = m_model->smartPointer(reinterpret_cast<SegmentationAdapterPtr>(item));
         m_undoStack->beginMacro(tr("Add Segmentation"));
-        // draw mask and make undo;
+        m_undoStack->push(new DrawUndoCommand(segmentation, mask));
         m_undoStack->endMacro();
       }
         break;
@@ -282,6 +286,8 @@ namespace EspINA
         Q_ASSERT(false);
         break;
     }
+
+    m_actualSelector->initBrush();
 
     m_viewManager->updateSegmentationRepresentations(segmentation.get());
     m_viewManager->updateViews();

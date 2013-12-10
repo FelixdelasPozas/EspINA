@@ -68,6 +68,11 @@ namespace EspINA
        */
       void setLabelText(const QString &label);
 
+      /** \brief Set suffix of the spin box.
+       *
+       */
+      void setSuffix(const QString &suffix);
+
       /** \brief Set widget enabled/disabled.
        *
        */
@@ -115,6 +120,7 @@ namespace EspINA
 
       int       m_value;
       QString   m_text;
+      QString   m_suffix;
       bool      m_enabled;
       int       m_maximumValue;
       int       m_minimumValue;

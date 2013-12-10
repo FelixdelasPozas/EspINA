@@ -79,7 +79,6 @@ BrushSelector::BrushSelector(ViewManagerSPtr vm, CategorySelector* categorySelec
   memset(m_UR, 0, 3*sizeof(double));
   memset(m_worldSize, 0, 2*sizeof(double));
 
-  m_brushColor.setAlphaF(m_brushOpacity/100.);
   buildCursor();
 
   connect(m_categorySelector, SIGNAL(categoryChanged(CategoryAdapterSPtr)),
@@ -168,7 +167,6 @@ void BrushSelector::setBrushColor(QColor color)
 void BrushSelector::setBrushOpacity(int value)
 {
   m_brushOpacity = value;
-  m_brushColor.setAlphaF(m_brushOpacity/100.);
   buildCursor();
 }
 
@@ -178,17 +176,7 @@ void BrushSelector::setReferenceItem(ViewItemAdapterPtr item)
   m_referenceItem = item;
   NmVector3 spacing;
 
-  DefaultVolumetricDataSPtr volume;
-  if (ItemAdapter::Type::SEGMENTATION == item->type())
-  {
-    volume = std::dynamic_pointer_cast<SparseVolume<itkVolumeType>>(item->output()->data(VolumetricData<itkVolumeType>::TYPE));
-  }
-  else
-    if (ItemAdapter::Type::CHANNEL == item->type())
-    {
-      volume = std::dynamic_pointer_cast<StreamedVolume<itkVolumeType>>(item->output()->data(VolumetricData<itkVolumeType>::TYPE));
-    }
-
+  auto volume = volumetricData(item->output());
   Q_ASSERT(volume);
   spacing = volume->spacing();
 
@@ -235,6 +223,7 @@ void BrushSelector::buildCursor()
   QPixmap pix(width, width);
   pix.fill(Qt::transparent);
   QPainter p(&pix);
+  m_brushColor.setAlphaF(m_brushOpacity/100.);
   p.setBrush(QBrush(m_brushColor));
   p.setPen(QPen(m_borderColor));
   p.drawEllipse(0, 0, width-1, width-1);
@@ -254,7 +243,7 @@ void BrushSelector::createBrush(NmVector3 &center, QPoint pos)
   int V = (Plane::XZ == m_plane) ? 2 : 1;
 
   double wPos[3];
-  int planeIndex = normalCoordinateIndex(m_plane);
+  int planeIndex = 2; // normalCoordinateIndex(m_plane);
   wPos[planeIndex] = m_pBounds[2*planeIndex];
   wPos[H] = m_LL[H] + pos.x()*m_worldSize[0]/m_viewSize[0];
   wPos[V] = m_UR[V] + pos.y()*m_worldSize[1]/m_viewSize[1];
@@ -274,7 +263,7 @@ bool BrushSelector::validStroke(NmVector3 &center)
 
   if (!m_drawing)
   {
-    DefaultVolumetricDataSPtr volume = std::dynamic_pointer_cast<SparseVolume<itkVolumeType>>(m_referenceItem->output()->data(VolumetricData<itkVolumeType>::TYPE));
+    DefaultVolumetricDataSPtr volume = volumetricData(m_referenceItem->output());
     return intersect(brushBounds, volume->bounds());
   }
 
@@ -616,8 +605,6 @@ BinaryMaskSPtr<unsigned char> BrushSelector::voxelSelectionMask() const
     else
       strokeBounds = boundingBox(strokeBounds, brush.second);
   }
-  strokeBounds.setLowerInclusion(true);
-  strokeBounds.setUpperInclusion(true);
 
   NmVector3 spacing{ m_spacing[0], m_spacing[1], m_spacing[2] };
   BinaryMaskPtr<unsigned char> mask = new BinaryMask<unsigned char>(strokeBounds, spacing);
@@ -685,35 +672,8 @@ void BrushSelector::categoryChanged(CategoryAdapterSPtr category)
 //-----------------------------------------------------------------------------
 Bounds BrushSelector::buildBrushBounds(NmVector3 center)
 {
-  Bounds bounds;
-  switch(m_plane)
-  {
-    case Plane::XY:
-      bounds[0] = center[0] - m_radius;
-      bounds[1] = center[0] + m_radius;
-      bounds[2] = center[1] - m_radius;
-      bounds[3] = center[1] + m_radius;
-      bounds[4] = bounds[5] = m_pBounds[4];
-      break;
-    case Plane::XZ:
-      bounds[0] = center[0] - m_radius;
-      bounds[1] = center[0] + m_radius;
-      bounds[2] = bounds[3] = m_pBounds[2];
-      bounds[4] = center[2] - m_radius;
-      bounds[5] = center[2] + m_radius;
-      break;
-    case Plane::YZ:
-      bounds[0] = bounds[1] = m_pBounds[0];
-      bounds[2] = center[1] - m_radius;
-      bounds[3] = center[1] + m_radius;
-      bounds[4] = center[2] - m_radius;
-      bounds[5] = center[2] + m_radius;
-      break;
-    default:
-      break;
-  }
-  bounds.setLowerInclusion(true);
-  bounds.setUpperInclusion(true);
-
+  Bounds bounds = { '[', center[0] - m_radius, center[0] + m_radius, ')' ,
+                    '[', center[1] - m_radius, center[1] + m_radius, ')' ,
+                    '[', m_pBounds[4], m_pBounds[5], ']' ,};
   return bounds;
 }

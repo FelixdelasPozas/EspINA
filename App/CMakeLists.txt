@@ -64,7 +64,7 @@ qt4_wrap_cpp (ESPINA_MOC
 #   Dialogs/Connectomics/ConnectomicsDialog.h
 #   Dialogs/ChannelInspector/ChannelInspector.h
   Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.h
-#   Undo/BrushUndoCommand.h
+  Undo/BrushUndoCommand.h
 #   Tools/TubularSegmentation/TubularTool.h
 #   FilterInspectors/TubularSegmentation/TubularFilterInspector.h
 #   FilterInspectors/TubularSegmentation/NodesInformationDialog.h
@@ -158,7 +158,7 @@ set (ESPINA_SOURCES
 #   Tools/VOI/RectangularVOI.cpp
 #   Tools/Zoom/ZoomTool.cpp
 #   Undo/AtomicModelOperations.cpp 
-#   Undo/BrushUndoCommand.cpp
+  Undo/BrushUndoCommand.cpp
 #   Undo/CompositionCommand.cpp
 #   Undo/ImageLogicCommand.cpp
 #   Undo/SeedGrowSegmentationCommand.cpp

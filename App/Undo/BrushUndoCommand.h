@@ -17,30 +17,26 @@
  */
 
 
-#ifndef BRUSHUNDOCOMMAND_H
-#define BRUSHUNDOCOMMAND_H
+#ifndef ESPINA_BRUSH_UNDOCOMMAND_H
+#define ESPINA_BRUSH_UNDOCOMMAND_H
 
+// EspINA
+#include <Core/Utils/BinaryMask.h>
+#include <GUI/Model/SegmentationAdapter.h>
+
+// Qt
 #include <QUndoCommand>
-
-#include <Tools/Brushes/Brush.h>
-
-class vtkImplicitFunction;
 
 namespace EspINA
 {
-  class ViewManager;
-
-  class Brush::DrawCommand
+  class DrawUndoCommand
   : public QObject
   , public QUndoCommand
   {
     Q_OBJECT
   public:
-    explicit DrawCommand(SegmentationSPtr seg,
-                         BrushShapeList brushes,
-                         itkVolumeType::PixelType value,
-                         ViewManager *vm,
-                         Brush *parent);
+    explicit DrawUndoCommand(SegmentationAdapterSPtr seg,
+                             BinaryMaskSPtr<unsigned char> mask);
     virtual void redo();
     virtual void undo();
 
@@ -49,42 +45,10 @@ namespace EspINA
 
 
   private:
-    typedef SegmentationVolume::EditedVolumeRegionSList EditedRegionSList;
-
-    SegmentationSPtr m_seg;
-    FilterOutputId   m_output;
-    BrushShapeList   m_brushes;
-    ViewManager     *m_viewManager;
-
-    double m_strokeBounds[6];
-
-    itkVolumeType::PixelType m_value;
-    itkVolumeType::Pointer   m_prevVolume;
-    itkVolumeType::Pointer   m_newVolume;
-    bool                     m_needReduction;
-    EditedRegionSList        m_prevRegions;
-  };
-
-  class Brush::SnapshotCommand
-  : public QUndoCommand
-  {
-  public:
-    explicit SnapshotCommand(SegmentationSPtr seg,
-                             FilterOutputId   output,
-                             ViewManager     *vm);
-
-    virtual void redo();
-    virtual void undo();
-
-  private:
-    SegmentationSPtr m_seg;
-    FilterOutputId   m_output;
-    ViewManager     *m_viewManager;
-
-    itkVolumeType::Pointer m_prevVolume;
-    itkVolumeType::Pointer m_newVolume;
+    SegmentationAdapterSPtr       m_segmentation;
+    BinaryMaskSPtr<unsigned char> m_mask;
   };
 
 } // namespace EspINA
 
-#endif // BRUSHUNDOCOMMAND_H
+#endif // ESPINA_BRUSH_UNDOCOMMAND_H

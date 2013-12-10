@@ -29,6 +29,7 @@ namespace EspINA
   , m_spinBox(nullptr)
   , m_value(0)
   , m_text(QString())
+  , m_suffix(QString())
   , m_enabled(true)
   , m_maximumValue(30)
   , m_minimumValue(1)
@@ -58,10 +59,10 @@ namespace EspINA
     // only catching one of them will suffice
     connect(m_spinBox, SIGNAL(destroyed(QObject*)), this, SLOT(destroySignalEmmited()));
 
-
     m_spinBox->setValue(m_value);
     m_spinBox->setMinimum(m_minimumValue);
     m_spinBox->setMaximum(m_maximumValue);
+    m_spinBox->setSuffix(m_suffix);
 
     connect(m_spinBox,SIGNAL(valueChanged(int)),
             this, SLOT(setValue(int)));
@@ -121,6 +122,15 @@ namespace EspINA
 
     if (m_label != nullptr)
       m_label->setText(m_text);
+  }
+
+  //------------------------------------------------------------------------
+  void SpinBoxAction::setSuffix(const QString &suffix)
+  {
+    m_suffix = suffix;
+
+    if (m_spinBox != nullptr)
+      m_spinBox->setSuffix(suffix);
   }
 
 

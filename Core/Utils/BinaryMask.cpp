@@ -66,7 +66,6 @@ namespace EspINA
     fakeImage->SetSpacing(fakeImageSpacing);
 
     m_bounds = equivalentBounds<itkVolumeType>(fakeImage, fakeRegion);
-
     m_bufferSize = region.GetNumberOfPixels() / m_integerSize;
     if (0 != (region.GetNumberOfPixels() % m_integerSize))
       m_bufferSize++;

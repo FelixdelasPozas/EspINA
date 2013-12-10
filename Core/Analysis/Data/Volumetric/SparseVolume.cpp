@@ -408,6 +408,19 @@ namespace EspINA
     }
   }
 
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  void SparseVolume<T>::undo()
+  {
+    m_blocks.pop_back();
+    Q_ASSERT(!m_blocks.empty());
+
+    Bounds bounds = m_blocks[0]->bounds();
+    for (auto block: m_blocks)
+      bounds = boundingBox(bounds, block->bounds());
+
+    m_blocks_bounding_box = bounds;
+  }
 
   //-----------------------------------------------------------------------------
   template<typename T>
