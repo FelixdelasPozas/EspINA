@@ -16,9 +16,9 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "CountingFramePanel.h"
+#include "Panel.h"
 
-#include "ui_CountingFramePanel.h"
+#include "ui_Panel.h"
 
 // #include "CountingFrames/RectangularCountingFrame.h"
 // #include "CountingFrames/AdaptiveCountingFrame.h"
@@ -30,14 +30,15 @@
 #include <QFileDialog>
 
 using namespace EspINA;
+using namespace EspINA::CF;
 
 const int ADAPTIVE = 0;
 const int RECTANGULAR = 1;
 
 //------------------------------------------------------------------------
-class CountingFramePanel::GUI
+class Panel::GUI
 : public QWidget
-, public Ui::CountingFramePanel
+, public Ui::Panel
 {
 public:
   explicit GUI();
@@ -49,7 +50,7 @@ private:
 };
 
 //------------------------------------------------------------------------
-CountingFramePanel::GUI::GUI()
+Panel::GUI::GUI()
 {
   setupUi(this);
 
@@ -62,7 +63,7 @@ CountingFramePanel::GUI::GUI()
 }
 
 //------------------------------------------------------------------------
-bool CountingFramePanel::GUI::eventFilter(QObject* object, QEvent* event)
+bool Panel::GUI::eventFilter(QObject* object, QEvent* event)
 {
   if (event->type() == QEvent::FocusIn)
   {
@@ -91,7 +92,7 @@ bool CountingFramePanel::GUI::eventFilter(QObject* object, QEvent* event)
 }
 
 //------------------------------------------------------------------------
-void CountingFramePanel::GUI::setOffsetRanges(int min, int max)
+void Panel::GUI::setOffsetRanges(int min, int max)
 {
   leftMargin->setMinimum(min);
   leftMargin->setMaximum(max);
@@ -108,12 +109,13 @@ void CountingFramePanel::GUI::setOffsetRanges(int min, int max)
   lowerMargin->setMaximum(max);
 }
 
-const QString CountingFramePanel::ID = "CountingFrameExtension";
+const QString Panel::ID = "CountingFrameExtension";
 
 //------------------------------------------------------------------------
-CountingFramePanel::CountingFramePanel(ModelAdapterSPtr model,
-                                       ViewManagerSPtr  viewManager,
-                                       QWidget         *parent)
+Panel::Panel(CountingFrameManager *manager,
+             ModelAdapterSPtr      model,
+             ViewManagerSPtr       viewManager,
+             QWidget              *parent = nullptr)
 : DockWidget(parent)
 , m_model(model)
 , m_viewManager(viewManager)
@@ -166,7 +168,7 @@ CountingFramePanel::CountingFramePanel(ModelAdapterSPtr model,
 }
 
 //------------------------------------------------------------------------
-CountingFramePanel::~CountingFramePanel()
+Panel::~Panel()
 {
 //   qDebug() << "********************************************************";
 //   qDebug() << "              Destroying Counting Frame Panel Plugin";
@@ -175,7 +177,7 @@ CountingFramePanel::~CountingFramePanel()
 }
 
 // //------------------------------------------------------------------------
-// void CountingFramePanel::initDockWidget(EspinaModel *model,
+// void Panel::initDockWidget(EspinaModel *model,
 //                                         QUndoStack  *undoStack,
 //                                         ViewManager *viewManager)
 // {
@@ -183,40 +185,40 @@ CountingFramePanel::~CountingFramePanel()
 //   m_viewManager = viewManager;
 //   connect(m_viewManager, SIGNAL(activeChannelChanged(ChannelPtr)),
 //           this, SLOT(channelChanged(ChannelPtr)));
-// 
+//
 //   Channel::ExtensionPtr channelExtension = new CountingFrameExtension(this, m_viewManager);
 //   m_espinaModel->factory()->registerChannelExtension(channelExtension);
 //   Segmentation::InformationExtension segExtension = new StereologicalInclusion();
 //   m_espinaModel->factory()->registerSegmentationExtension(segExtension);
 //   m_espinaModel->factory()->registerRenderer(new CountingFrameRenderer(this));
-// 
-// 
+//
+//
 //   m_gui->taxonomySelector->setModel(m_espinaModel);
 //   m_gui->taxonomySelector->setRootModelIndex(m_espinaModel->taxonomyRoot());
-// 
+//
 //   connect(m_viewManager->fitToSlices(), SIGNAL(toggled(bool)),
 //           this, SLOT(changeUnitMode(bool)));
 //   changeUnitMode(m_viewManager->fitToSlices()->isChecked());
 // }
 
 //------------------------------------------------------------------------
-void CountingFramePanel::reset()
+void Panel::reset()
 {
   clearCountingFrames();
   m_nextId = 1;
 }
 
 // //------------------------------------------------------------------------
-// IColorEngineProvider::EngineList CountingFramePanel::colorEngines()
+// IColorEngineProvider::EngineList Panel::colorEngines()
 // {
 //   EngineList engines;
 //   engines << Engine(tr("Counting Frame"), ColorEnginePtr(new CountingFrameColorEngine()));
-// 
+//
 //   return engines;
 // }
 
 //------------------------------------------------------------------------
-void CountingFramePanel::createAdaptiveCF(ChannelAdapterPtr channel,
+void Panel::createAdaptiveCF(ChannelAdapterPtr channel,
                                           Nm inclusion[3],
                                           Nm exclusion[3])
 {
@@ -232,7 +234,7 @@ void CountingFramePanel::createAdaptiveCF(ChannelAdapterPtr channel,
 //     channel->addExtension(cfExtension);
 //   }
 //   Q_ASSERT(cfExtension);
-// 
+//
 //   AdaptiveCountingFrame *cf = AdaptiveCountingFrame::New(m_nextId++,
 //                                                          cfExtension,
 //                                                          inclusion,
@@ -242,7 +244,7 @@ void CountingFramePanel::createAdaptiveCF(ChannelAdapterPtr channel,
 }
 
 //------------------------------------------------------------------------
-void CountingFramePanel::createRectangularCF(ChannelAdapterPtr channel,
+void Panel::createRectangularCF(ChannelAdapterPtr channel,
                                              Nm inclusion[3],
                                              Nm exclusion[3])
 {
@@ -258,10 +260,10 @@ void CountingFramePanel::createRectangularCF(ChannelAdapterPtr channel,
 //     channel->addExtension(cfExtension);
 //   }
 //   Q_ASSERT(cfExtension);
-// 
+//
 //   double borders[6];
 //   channel->volume()->bounds(borders);
-// 
+//
 //   RectangularCountingFrame *cf = RectangularCountingFrame::New(m_nextId++,
 //                                                                cfExtension,
 //                                                                borders,
@@ -272,7 +274,7 @@ void CountingFramePanel::createRectangularCF(ChannelAdapterPtr channel,
 }
 
 //------------------------------------------------------------------------
-void CountingFramePanel::deleteCountingFrame(CountingFrame *cf)
+void Panel::deleteCountingFrame(CountingFrame *cf)
 {
 //   int i = 0;
 //   CountingFrameExtension *cfExtension = NULL;
@@ -288,10 +290,10 @@ void CountingFramePanel::deleteCountingFrame(CountingFrame *cf)
 //   }
 //   m_countingFramesExtensions.removeAt(i);
 //   m_countingFrames.removeOne(cf);
-// 
+//
 //   if (cf == m_activeCF)
 //     m_activeCF = NULL;
-// 
+//
 //   for(int i = 0; i < m_gui->countingFrames->model()->rowCount(); i++)
 //   {
 //     if (m_gui->countingFrames->model()->index(i,0).data(Qt::DisplayRole) == cf->data(Qt::DisplayRole))
@@ -300,29 +302,29 @@ void CountingFramePanel::deleteCountingFrame(CountingFrame *cf)
 //       break;
 //     }
 //   }
-// 
+//
 //   emit countingFrameDeleted(cf);
-// 
+//
 //   m_viewManager->removeWidget(cf);
 //   cf->Delete();
 }
 
 //------------------------------------------------------------------------
-CountingFrameList CountingFramePanel::countingFrames() const
+CountingFrameList Panel::countingFrames() const
 {
 //   CountingFrameList cfs;
-// 
+//
 //   foreach(CountingFrameExtension *cfExtension, m_countingFramesExtensions)
 //   {
 //     cfs << cfExtension->countingFrames();
 //   }
-// 
+//
 //   return cfs;
 }
 
 
 //------------------------------------------------------------------------
-void CountingFramePanel::applyCategoryConstraint()
+void Panel::applyCategoryConstraint()
 {
 //   if (m_activeCF && m_gui->useTaxonomicalConstraint->isChecked())
 //   {
@@ -331,7 +333,7 @@ void CountingFramePanel::applyCategoryConstraint()
 //     {
 //       ModelItemPtr item = indexPtr(taxonomyIndex);
 //       Q_ASSERT(EspINA::TAXONOMY == item->type());
-// 
+//
 //       TaxonomyElementPtr taxonomy = taxonomyElementPtr(item);
 //       m_activeCF->setTaxonomicalConstraint(taxonomy);
 //     }
@@ -339,15 +341,15 @@ void CountingFramePanel::applyCategoryConstraint()
 }
 
 //------------------------------------------------------------------------
-void CountingFramePanel::clearCountingFrames()
+void Panel::clearCountingFrames()
 {
 //   while (m_gui->countingFrames->count() > 2)
 //     m_gui->countingFrames->removeItem(2);
-// 
+//
 //   m_gui->countingFrameDescription->clear();
 //   m_gui->createCF->setEnabled(false);
 //   m_gui->deleteCF->setEnabled(false);
-// 
+//
 //   foreach(CountingFrameExtension *cfExtension, m_countingFramesExtensions)
 //   {
 //     Channel *channel = cfExtension->channel();
@@ -357,15 +359,15 @@ void CountingFramePanel::clearCountingFrames()
 }
 
 //------------------------------------------------------------------------
-void CountingFramePanel::enableTaxonomicalConstraints(bool enable)
+void Panel::enableTaxonomicalConstraints(bool enable)
 {
 //   m_gui->taxonomySelector->setEnabled(enable);
-// 
+//
 //   applyTaxonomicalConstraint();
 }
 
 //------------------------------------------------------------------------
-void CountingFramePanel::updateUI(int row)
+void Panel::updateUI(int row)
 {
 //   if (row > RECTANGULAR)
 //   {
@@ -373,53 +375,53 @@ void CountingFramePanel::updateUI(int row)
 //     m_gui->createCF->setToolTip(tr("Update Counting Frame"));
 //     m_gui->deleteCF->setEnabled(true);
 //     m_gui->saveDescription->setEnabled(true);
-// 
-// 
+//
+//
 //     CountingFrame *cf = m_countingFrames.value(row-NUM_FIXED_ROWS, NULL);
 //     Q_ASSERT(cf);
-// 
+//
 //     showInfo(cf);
-// 
+//
 //   } else
 //   {
 //     m_activeCF = NULL;
-// 
+//
 //     m_gui->createCF->setIcon(QIcon(":/create-cr.svg"));
 //     m_gui->createCF->setToolTip(tr("Create Counting Frame"));
 //     m_gui->deleteCF->setEnabled(false);
 //     m_gui->saveDescription->setEnabled(false);
-// 
+//
 //     m_gui->leftMargin  ->setValue(0);
 //     m_gui->topMargin   ->setValue(0);
 //     m_gui->upperMargin ->setValue(0);
 //     m_gui->rightMargin ->setValue(0);
 //     m_gui->bottomMargin->setValue(0);
 //     m_gui->lowerMargin ->setValue(0);
-// 
+//
 //     m_gui->useTaxonomicalConstraint->setChecked(false);
-// 
+//
 //     m_gui->countingFrameDescription->clear();
-// 
+//
 //     m_gui->countingFrames->setFocus();
 //   }
-// 
+//
 //   m_gui->taxonomySelector->setEnabled(m_gui->useTaxonomicalConstraint->isChecked());
 }
 
 //------------------------------------------------------------------------
-void CountingFramePanel::createCountingFrame()
+void Panel::createCountingFrame()
 {
 //   Channel *channel = m_viewManager->activeChannel();
 //   Q_ASSERT(channel);
-// 
+//
 //   Nm inclusion[3];
 //   Nm exclusion[3];
-// 
+//
 //   QApplication::setOverrideCursor(Qt::WaitCursor);
-// 
+//
 //   computeOptimalMargins(channel, inclusion, exclusion);
 //   memset(exclusion, 0, 3*sizeof(Nm));
-// 
+//
 //   if (m_activeCF)
 //   {
 //     m_activeCF->setMargins(inclusion, exclusion);
@@ -432,14 +434,14 @@ void CountingFramePanel::createCountingFrame()
 //     else
 //       Q_ASSERT(false);
 //   }
-// 
+//
 //   updateSegmentations();
-// 
+//
 //   QApplication::restoreOverrideCursor();
 }
 
 //------------------------------------------------------------------------
-void CountingFramePanel::resetActiveCountingFrame()
+void Panel::resetActiveCountingFrame()
 {
   if (m_activeCF)
   {
@@ -459,7 +461,7 @@ void CountingFramePanel::resetActiveCountingFrame()
 }
 
 //------------------------------------------------------------------------
-void CountingFramePanel::updateActiveCountingFrameMargins()
+void Panel::updateActiveCountingFrameMargins()
 {
   if (!m_activeCF)
     return;
@@ -475,7 +477,7 @@ void CountingFramePanel::updateActiveCountingFrameMargins()
 
 
 //------------------------------------------------------------------------
-void CountingFramePanel::deleteActiveCountingFrame()
+void Panel::deleteActiveCountingFrame()
 {
   if (!m_activeCF)
     return;
@@ -486,10 +488,10 @@ void CountingFramePanel::deleteActiveCountingFrame()
 }
 
 //------------------------------------------------------------------------
-void CountingFramePanel::channelChanged(ChannelAdapterPtr channel)
+void Panel::channelChanged(ChannelAdapterPtr channel)
 {
 //   m_gui->taxonomySelector->setRootModelIndex(m_espinaModel->taxonomyRoot());
-// 
+//
 //   m_gui->createCF->setEnabled(channel != NULL);
 //   if (channel)
 //   {
@@ -498,7 +500,7 @@ void CountingFramePanel::channelChanged(ChannelAdapterPtr channel)
 //     double lenght[3];
 //     for (int i=0; i < 3; i++)
 //       lenght[i] = bounds[2*i+1]-bounds[2*i];
-// 
+//
 //     m_gui->leftMargin  ->setMaximum(lenght[0]);
 //     m_gui->topMargin   ->setMaximum(lenght[1]);
 //     m_gui->upperMargin ->setMaximum(lenght[2]);
@@ -511,53 +513,53 @@ void CountingFramePanel::channelChanged(ChannelAdapterPtr channel)
 }
 
 //------------------------------------------------------------------------
-void CountingFramePanel::showInfo(CountingFrame* cf)
+void Panel::showInfo(CountingFrame* cf)
 {
 //   if (!cf || !m_viewManager->activeChannel())
 //     return;
-// 
+//
 //   m_activeCF = cf;
-// 
+//
 //   int cfIndex = 0; //FIXME NOW m_countingFrames.indexOf(cf);
-// 
+//
 //   m_gui->countingFrames->setCurrentIndex(cfIndex + NUM_FIXED_ROWS);
-// 
+//
 //   m_gui->leftMargin  ->blockSignals(true);
 //   m_gui->topMargin   ->blockSignals(true);
 //   m_gui->upperMargin ->blockSignals(true);
 //   m_gui->rightMargin ->blockSignals(true);
 //   m_gui->bottomMargin->blockSignals(true);
 //   m_gui->lowerMargin ->blockSignals(true);
-// 
+//
 //   double spacing[3] = {1., 1., 1.};
-// 
+//
 //   if (m_useSlices)
 //   {
 //     Channel *activeChannel = m_viewManager->activeChannel();
 //     activeChannel->volume()->spacing(spacing);
 //   }
-// 
+//
 //   m_gui->leftMargin  ->setValue(cf->left());
 //   m_gui->topMargin   ->setValue(cf->top() );
 //   m_gui->upperMargin ->setValue(vtkMath::Round(cf->upper()/spacing[2]));
 //   m_gui->rightMargin ->setValue(cf->right() );
 //   m_gui->bottomMargin->setValue(cf->bottom());
 //   m_gui->lowerMargin ->setValue(vtkMath::Round(cf->lower()/spacing[2]));
-// 
+//
 //   m_gui->leftMargin  ->blockSignals(false);
 //   m_gui->topMargin   ->blockSignals(false);
 //   m_gui->upperMargin ->blockSignals(false);
 //   m_gui->rightMargin ->blockSignals(false);
 //   m_gui->bottomMargin->blockSignals(false);
 //   m_gui->lowerMargin ->blockSignals(false);
-// 
+//
 //   m_gui->useTaxonomicalConstraint->setChecked(NULL != cf->taxonomicalConstraint());
-// 
+//
 //   m_gui->countingFrameDescription->setText(cf->data(CountingFrame::DescriptionRole).toString());
 }
 
 //------------------------------------------------------------------------
-void CountingFramePanel::updateSegmentations()
+void Panel::updateSegmentations()
 {
   m_viewManager->updateSegmentationRepresentations();
   m_viewManager->updateViews();
@@ -565,7 +567,7 @@ void CountingFramePanel::updateSegmentations()
 
 
 //------------------------------------------------------------------------
-void CountingFramePanel::saveActiveCountingFrameDescription()
+void Panel::saveActiveCountingFrameDescription()
 {
   QString title   = tr("Save Counting Frame Description");
   QString fileExt = tr("Text File (*.txt)");
@@ -582,7 +584,7 @@ void CountingFramePanel::saveActiveCountingFrameDescription()
 }
 
 //------------------------------------------------------------------------
-void CountingFramePanel::changeUnitMode(bool useSlices)
+void Panel::changeUnitMode(bool useSlices)
 {
   m_useSlices = useSlices;
 
@@ -600,18 +602,18 @@ void CountingFramePanel::changeUnitMode(bool useSlices)
 }
 
 //------------------------------------------------------------------------
-void CountingFramePanel::computeOptimalMargins(ChannelAdapterPtr channel,
+void Panel::computeOptimalMargins(ChannelAdapterPtr channel,
                                                Nm inclusion[3],
                                                Nm exclusion[3])
 {
 //   double spacing[3];
 //   channel->volume()->spacing(spacing);
-// 
+//
 //   const Nm delta[3] = { 0.5*spacing[0], 0.5*spacing[1], 0.5*spacing[2] };
-// 
+//
 //   memset(inclusion, 0, 3*sizeof(Nm));
 //   memset(exclusion, 0, 3*sizeof(Nm));
-// 
+//
 //   ModelItemSList items = channel->relatedItems(EspINA::RELATION_OUT, Channel::LINK);
 //   SegmentationSList channelSegs;
 //   foreach(ModelItemSPtr item, items)
@@ -619,7 +621,7 @@ void CountingFramePanel::computeOptimalMargins(ChannelAdapterPtr channel,
 //     if (EspINA::SEGMENTATION == item->type())
 //       channelSegs << segmentationPtr(item);
 //   }
-// 
+//
 //   foreach(SegmentationSPtr seg, channelSegs)
 //   {
 //     Segmentation::InformationExtension ext = seg->informationExtension(EdgeDistanceID);
@@ -628,13 +630,13 @@ void CountingFramePanel::computeOptimalMargins(ChannelAdapterPtr channel,
 //     {
 //       Nm dist2Margin[6];
 //       marginExt->edgeDistance(dist2Margin);
-// 
+//
 //       Nm segBounds[6];
 //       Nm segSpacing[3];
 //       SegmentationVolumeSPtr volume = segmentationVolume(seg->output());
 //       volume->spacing(segSpacing);
 //       volume->bounds(segBounds);
-// 
+//
 //       for (int i=0; i < 3; i++)
 //       {
 //         double shift = i < 2? 0.5:-0.5;
@@ -651,7 +653,7 @@ void CountingFramePanel::computeOptimalMargins(ChannelAdapterPtr channel,
 }
 
 //------------------------------------------------------------------------
-void CountingFramePanel::inclusionMargins(double values[3])
+void Panel::inclusionMargins(double values[3])
 {
   values[0] = m_gui->leftMargin->value();
   values[1] = m_gui->topMargin->value();
@@ -659,7 +661,7 @@ void CountingFramePanel::inclusionMargins(double values[3])
 }
 
 //------------------------------------------------------------------------
-void CountingFramePanel::exclusionMargins(double values[3])
+void Panel::exclusionMargins(double values[3])
 {
   values[0] = m_gui->rightMargin->value();
   values[1] = m_gui->bottomMargin->value();
@@ -667,30 +669,30 @@ void CountingFramePanel::exclusionMargins(double values[3])
 }
 
 //------------------------------------------------------------------------
-void CountingFramePanel::registerCF(CountingFrameExtension* cfExtension,
+void Panel::registerCF(CountingFrameExtension* cfExtension,
                                     CountingFrame* cf)
 {
 //   cfExtension->addCountingFrame(cf);
-// 
+//
 //   // We need to emit this signal first in order to increment the number of
 //   // cf available for the CF_Renderer so when the widget is added, updatRendererButtons
 //   // activates the CF_Render
 //   emit countingFrameCreated(cf);
 //   m_viewManager->addWidget(cf);
-// 
+//
 //   if (!m_countingFramesExtensions.contains(cfExtension))
 //     m_countingFramesExtensions << cfExtension;
 //   m_countingFrames << cf;
-// 
+//
 //   connect(cf, SIGNAL(modified(CountingFrame*)),
 //           this, SLOT(showInfo(CountingFrame*)));
 //   connect(cf, SIGNAL(modified(CountingFrame*)),
 //           this, SLOT(updateSegmentations()));
-// 
+//
 //   m_gui->countingFrames->addItem(cf->data(Qt::DisplayRole).toString());
-// 
+//
 //   m_activeCF = cf; // To make applyTaxonomicalConstraint work
 //   applyTaxonomicalConstraint();
-// 
+//
 //   showInfo(cf);
 }

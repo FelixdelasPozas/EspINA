@@ -17,7 +17,7 @@
  *
  */
 
-#include "CFExtensionFactory.h"
+#include "CountingFrameManager.h"
 
 using namespace EspINA;
 using namespace EspINA::CF;

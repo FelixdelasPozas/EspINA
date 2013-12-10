@@ -29,18 +29,18 @@ include_directories(
   ${CMAKE_CURRENT_BINARY_DIR} # UI files
   )
 
-qt4_add_resources (RCC_BUILT_SOURCES 
+qt4_add_resources (RCC_BUILT_SOURCES
   rsc/CountingFrame.qrc
   )
 
 # Create Interface files
 qt4_wrap_ui (UI_BUILT_SOURCES
-  CountingFramePanel.ui
+  Panel.ui
   )
 
 # We need to wrap for Qt stuff such as signals/slots etc. to work correctly.
-qt4_wrap_cpp(MOC_SRCS 
-  CountingFramePanel.h
+qt4_wrap_cpp(MOC_SRCS
+  Panel.h
   CountingFramePlugin.h
 #   CountingFrameRenderer.h
 #   Extensions/CountingFrameExtension.h
@@ -51,7 +51,7 @@ qt4_wrap_cpp(MOC_SRCS
   )
 
 
-set (LOCAL_SOURCES 
+set (LOCAL_SOURCES
   CountingFrameManager.cpp
   Panel.cpp
 #   CountingFrameRenderer.cpp

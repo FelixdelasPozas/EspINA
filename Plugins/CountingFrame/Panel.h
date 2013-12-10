@@ -48,9 +48,9 @@ namespace EspINA
 
   public:
     explicit Panel(CountingFrameManager *manager,
-                   ModelAdapterSPtr model,
-                   ViewManagerSPtr  viewManager,
-                   QWidget         *parent = nullptr);
+                   ModelAdapterSPtr      model,
+                   ViewManagerSPtr       viewManager,
+                   QWidget              *parent = nullptr);
     virtual ~Panel();
 
     virtual void reset(); // slot

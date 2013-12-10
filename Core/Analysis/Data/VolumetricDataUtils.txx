@@ -27,6 +27,7 @@ template<typename T>
 typename T::RegionType equivalentRegion(const T* image, const Bounds& bounds)
 {
   typename T::SpacingType s = image->GetSpacing();
+  typename T::PointType   o = image->GetOrigin();
 
   typename T::PointType p0, p1;
   for (int i = 0; i < 3; ++i) {
@@ -35,20 +36,18 @@ typename T::RegionType equivalentRegion(const T* image, const Bounds& bounds)
     p0[i] = bounds[2*i];
     p1[i] = bounds[2*i+1];
 
-    int startIndex = p0[i]/s[i];
-    double voxelStart = startIndex*s[i]+s[i]/2;
+    int startIndex = (p0[i] - o[i])/s[i];
+    double voxelStart = o[i] + startIndex*s[i] + s[i]/2;
 
-    double startValue = fabs(p0[i]-voxelStart);
-    bool isVoxelStart =  startValue < 0.0001;
+    bool isVoxelStart = areEqual(p0[i], voxelStart);
     if (isVoxelStart) {
       p0[i] += s[i]/2.0;
     }
 
-    int index = p1[i]/s[i];
-    double voxelEnd = index*s[i]+s[i]/2;
+    int endIndex = (p1[i] - o[i])/s[i];
+    double voxelEnd = o[i] + endIndex*s[i] + s[i]/2;
 
-    double value = fabs(p1[i]-voxelEnd);
-    bool isVoxelEnd =  value < 0.0001;
+    bool isVoxelEnd = areEqual(p1[i], voxelEnd);
     if (!bounds.areUpperIncluded(dir) && isVoxelEnd) {
       p1[i] -= s[i]/2.0;
     }
@@ -150,3 +149,5 @@ typename T::Pointer create_itkImage(const Bounds&                bounds,
 }
 
 }
+
+
