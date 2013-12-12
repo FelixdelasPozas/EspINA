@@ -26,41 +26,67 @@
  * 
  */
 
-#include "Bounds.h"
+#include <VolumeBounds.h>
+#include "TestSupport.h"
 
 using namespace EspINA;
 using namespace std;
 
-bool Test_Bounds(const Bounds& bounds) {
-  bool pass = true;
-
-  if (!bounds.areValid()) {
-    cerr << "List constructed bounds: " << bounds << ". Expected valid bounds" << endl;
-    pass = false;
-  }
-
-  for (int i = 0; i < 6; ++i) {
-    if (bounds[i] != i + 0.5) {
-      cerr << "Wrong value initialization at " << i << " bounds: " << bounds << endl;
-      pass = false;
-    }
-  }
-
-  return pass;
-}
-
-int bounds_list_constructor( int argc, char** argv )
+int compatibility( int argc, char** argv )
 {
-  bool pass = true;
+  bool error = false;
 
-  Bounds bounds{0.5,1.5,2.5,3.5,4.5,5.5};
-  pass &= Test_Bounds(bounds);
+  Bounds b1{-1.5, 1.5, -1.5, 1.5, -1.5, 1.5};
 
-  Bounds symmetricBounds{'(',0.5,1.5,2.5,3.5,4.5,5.5,']'};
-  pass &= Test_Bounds(symmetricBounds);
+  NmVector3 spacing1{1,1,1};
 
-  Bounds specificBounds{'(',0.5,1.5,']','[',2.5,3.5,')', '[',4.5,5.5,']'};
-  pass &= Test_Bounds(specificBounds);
+  NmVector3 origin1{0,0,0};
+  NmVector3 origin2{1,1,1};
+  NmVector3 origin3{0.2,0.2,0.2};
 
-  return !pass;
+  VolumeBounds vb1{b1, spacing1, origin1};
+  VolumeBounds vb2{b1, spacing1, origin2};
+  VolumeBounds vb3{b1, spacing1, origin3};
+
+  if (!isCompatible(vb1, vb1)) {
+    cerr << vb1 << " is compatible with itself" << endl;
+    error = true;
+  }
+
+  if (!isCompatible(vb1, vb2)) {
+    cerr << vb1 << " is compatible with " << vb2 << endl;
+    error = true;
+  }
+
+  if (isCompatible(vb1, vb3)) {
+    cerr << vb1 << " is not compatble with " << vb3 << endl;
+    error = true;
+  }
+
+  Nm s = 1.5;
+  Nm b = 3*s/2;
+  NmVector3 spacing2{s,s,s};
+
+  Bounds b2{-b, b, -b, b, -b, b};
+  VolumeBounds vb4{b2, spacing2};
+  VolumeBounds vb5{b2, spacing2, spacing2};
+
+  if (vb4 != vb5.bounds() || vb5 != vb4.bounds())
+  {
+    cerr << vb4.bounds() << " is equal to " << vb5.bounds() << endl;
+    error = true;
+  }
+
+  if (!isCompatible(vb4, vb5)) {
+    cerr << vb4 << " is compatible with " << vb5 << endl;
+    error = true;
+  }
+
+  if (isCompatible(vb1, vb4)) {
+    cerr << vb4 << " is not compatible with " << vb1 << endl;
+    error = true;
+  }
+
+
+  return error;
 }

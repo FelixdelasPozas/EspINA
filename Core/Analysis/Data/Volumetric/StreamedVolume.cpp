@@ -137,6 +137,7 @@ const typename T::Pointer StreamedVolume<T>::itkImage(const Bounds& bounds) cons
   reader->ReleaseDataFlagOn();
   reader->SetFileName(m_fileName.toStdString());
   reader->UpdateOutputInformation();
+  auto reg = reader->GetOutput()->GetLargestPossibleRegion();
 
   auto requestedRegion = equivalentRegion<T>(m_origin, m_spacing, bounds);
 

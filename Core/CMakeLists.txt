@@ -45,6 +45,7 @@ set (CORE_SOURCES
   Utils/NmVector3.cpp
   Utils/SparseBinaryVolume.cpp
   Utils/TemporalStorage.cpp
+  Utils/VolumeBounds.cpp
   )
 
 set(CORE_EXTERNAL_LIBS

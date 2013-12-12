@@ -82,7 +82,6 @@ AnalysisSPtr SegFile_V4::load(QuaZip&          zip,
     throw (Parse_Exception());
   }
 
-
   loadTrace(zip);
 
   QMap<QString, QList<QByteArray>> trcFiles;
@@ -181,7 +180,7 @@ void SegFile_V4::save(AnalysisPtr      analysis,
 struct Vertex_Not_Found_Exception{};
 
 //-----------------------------------------------------------------------------
-PersistentSPtr SegFile_V4::findVertex(int id)
+PersistentSPtr SegFile_V4::findVertex(int id) const
 {
   for(DirectedGraph::Vertex vertex : m_loadedVertices)
   {
@@ -297,9 +296,18 @@ ChannelSPtr SegFile_V4::createChannel(DirectedGraph::Vertex   roVertex)
 //-----------------------------------------------------------------------------
 QString SegFile_V4::parseCategoryName(const State& state)
 {
+  QString category;
+
   QStringList params = state.split(";");
 
-  return params[2].split("=")[1];
+  for (auto param : params)
+  {
+    auto tokens = param.split("=");
+    if ("Taxonomy" == tokens[0])
+      category = tokens[1];
+  }
+
+  return category;
 }
 
 //-----------------------------------------------------------------------------
@@ -375,6 +383,26 @@ void SegFile_V4::loadTrace(QuaZip& zip)
       auto vertex_v4 = std::dynamic_pointer_cast<ReadOnlyVertex>(roVertex);
       m_loadedVertices << vertex;
       m_vertexUuids[vertex_v4->vertexId()] = vertex->uuid();
+    }
+  }
+
+  for(auto edge : m_trace->edges())
+  {
+    auto source_v4 = std::dynamic_pointer_cast<ReadOnlyVertex>(edge.source);
+    PersistentSPtr source = findVertex(source_v4->vertexId());
+
+    auto target_v4 = std::dynamic_pointer_cast<ReadOnlyVertex>(edge.target);
+    PersistentSPtr target = findVertex(target_v4->vertexId());
+
+    if (source_v4->type() != VertexType::FILTER || target_v4->type() != VertexType::FILTER)
+    {
+      try
+      {
+	m_analysis->addRelation(source, target, edge.relationship.c_str());
+      } catch (...)
+      {
+	qWarning() << "Invalid Relationship: " << edge.relationship.c_str();
+      }
     }
   }
 }

@@ -47,7 +47,7 @@ namespace EspINA {
                           ErrorHandlerSPtr handler = ErrorHandlerSPtr());
 
       private:
-        PersistentSPtr findVertex(int id);
+        PersistentSPtr findVertex(int id) const;
 
         QPair<FilterSPtr, Output::Id> findOutput(DirectedGraph::Vertex   roVertex,
                                                  const QString          &linkName);

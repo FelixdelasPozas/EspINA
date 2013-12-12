@@ -22,6 +22,7 @@
 
 #include <Core/IO/ErrorHandler.h>
 #include <memory>
+#include <QMap>
 
 class QWidget;
 
@@ -49,6 +50,8 @@ namespace EspINA {
   private:
     QWidget *m_parent;
     QDir     m_defaultDir;
+
+    QMap<QString, QFileInfo> m_files;
   };
 
   using EspinaErrorHandlerSPtr = std::shared_ptr<EspinaErrorHandler>;

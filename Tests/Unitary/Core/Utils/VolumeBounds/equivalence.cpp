@@ -26,48 +26,61 @@
  * 
  */
 
-#include "Bounds.h"
+#include <VolumeBounds.h>
+#include "TestSupport.h"
 
 using namespace EspINA;
 using namespace std;
 
-int bounds_invalid_list_constructor( int argc, char** argv )
+int equivalence(int argc, char** argv )
 {
-  int error = 0;
-  try {
-    Bounds bounds{0,1,2,3};
-    error = EXIT_FAILURE;
-    cerr << bounds << endl;
-  } catch (Wrong_number_initial_values& e) {
+  bool error = false;
+
+  Bounds b1{-1.5, 1.5, -1.5, 1.5, -1.5, 1.5};
+  Bounds b2{-0.5, 0.5, -0.5, 0.5, -0.5, 0.5};
+
+  NmVector3 spacing1{1,1,1};
+
+  NmVector3 origin1{0,0,0};
+  NmVector3 origin2{1,1,1};
+
+  VolumeBounds vb1{b1, spacing1, origin1};
+  VolumeBounds vb2{b1, spacing1, origin2};
+  VolumeBounds vb3{b2, spacing1, origin1};
+
+  if (!isEquivalent(vb1, vb1)) {
+    cerr << vb1 << " is equivalent with itself" << endl;
+    error = true;
   }
 
-  try {
-    Bounds bounds{0,1,2,3,4,5,6,7,8};
-    error = EXIT_FAILURE;
-    cerr << bounds << endl;
-  } catch (Wrong_number_initial_values& e) {
+  if (!isEquivalent(vb1, vb2)) {
+    cerr << vb1 << " is equivalent with " << vb2 << endl;
+    error = true;
   }
 
-  try {
-    Bounds bounds{0,1,2,3,4,5,6,7};
-    error = EXIT_FAILURE;
-    cerr << "Invalid Token" << bounds << endl;
-  } catch (Invalid_bounds_token& e) {
+  if (isEquivalent(vb1, vb3)) {
+    cerr << vb1 << " is not equivalent with " << vb3 << endl;
+    error = true;
   }
 
-  try {
-    Bounds bounds{0,1,2,3,4,5,6,7,8,9,10,11};
-    error = EXIT_FAILURE;
-    cerr << "Invalid Token" << bounds << endl;
-  } catch (Invalid_bounds_token& e) {
+  Nm s = 1.5;
+  Nm b = 3*s/2;
+  NmVector3 spacing2{s,s,s};
+
+  Bounds b3{-b, b, -b, b, -b, b};
+  VolumeBounds vb4{b3, spacing2};
+  VolumeBounds vb5{b3, spacing2, spacing2};
+
+  if (!isEquivalent(vb4, vb5)) {
+    cerr << vb4 << " is equivalent with " << vb5 << endl;
+    error = true;
   }
 
-  try {
-    Bounds bounds{'(',1,2,3,4,5,6,7,8,9,10,11};
-    error = EXIT_FAILURE;
-    cerr << "Invalid Token" << bounds << endl;
-  } catch (Invalid_bounds_token& e) {
+  if (isEquivalent(vb1, vb4)) {
+    cerr << vb4 << " is not compatibile with " << vb1 << endl;
+    error = true;
   }
+
 
   return error;
 }

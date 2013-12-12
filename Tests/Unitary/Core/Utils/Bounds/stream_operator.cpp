@@ -28,64 +28,39 @@
 
 #include "Bounds.h"
 
+#include <sstream>
+
 using namespace EspINA;
 using namespace std;
 
-int bounds_limit_inclusion_intersection( int argc, char** argv )
+int stream_operator( int argc, char** argv )
 {
+
   int error = 0;
 
-  Bounds b1{0,10,0,10,0,10};
-  Bounds b2{10,15,10,15,10,15};
+  Bounds b1{1,2,3,4,5,6};
 
-  if (intersect(b1, b2)) {
-    cerr << b1 << " doesn't intersect " << b2 << endl;
+  stringstream b1_stream;
+  
+  string expected_b1_stream = "{[1,2),[3,4),[5,6)}";
+  
+  b1_stream << b1;
+  
+  if (b1_stream.str() != expected_b1_stream) {
+    cerr << b1_stream.str() << " is not equal to " << expected_b1_stream << endl;
     error = EXIT_FAILURE;
   }
+  
+  Bounds b2{'(',1,2,3,4,5,6,']'};
 
-  if (intersect(b2, b1)) {
-    cerr << b2 << " doesn't intersect " << b1 << ". Intersection is symmetric" << endl;
-    error = EXIT_FAILURE;
-  }
-
-  for (auto dir : {Axis::X, Axis::Y, Axis::Z}) {
-    b1.setUpperInclusion(dir, true);
-  }
-
-  if (!intersect(b1, b2)) {
-    cerr << b1 << " intersects " << b2 << endl;
-    error = EXIT_FAILURE;
-  }
-
-  if (!intersect(b2, b1)) {
-    cerr << b2 << " intersects " << b1 << ". Intersection is symmetric" << endl;
-    error = EXIT_FAILURE;
-  }
-
-  Bounds expectedIntersection{'[',10,10,10,10,10,10,']'};
-  Bounds actualInteresction = intersection(b1, b2);
-  if (expectedIntersection != actualInteresction) {
-    cerr << b1 << b2 << endl;
-    cerr << "Expected bounds intersection " << expectedIntersection << " but got" << actualInteresction << " instead" << endl;
-    error = EXIT_FAILURE;
-  }
-
-  if (!actualInteresction.areValid()) {
-    cerr << b1 << " and " << b2 << " intersection should be a valid bounds" << endl;
-    error = EXIT_FAILURE;
-  }
-
-  for (auto dir : {Axis::X, Axis::Y, Axis::Z}) {
-    b2.setLowerInclusion(dir, false);
-  }
-
-  if (intersect(b1, b2)) {
-    cerr << b1 << " doesn't intersect " << b2 << endl;
-    error = EXIT_FAILURE;
-  }
-
-  if (intersect(b2, b1)) {
-    cerr << b2 << " doesn't intersect " << b1 << ". Intersection is symmetric" << endl;
+  stringstream b2_stream;
+  
+  string expected_b2_stream = "{(1,2],(3,4],(5,6]}";
+  
+  b2_stream << b2;
+  
+  if (b2_stream.str() != expected_b2_stream) {
+    cerr << "_" << b2_stream.str() << "_ is not equal to _" << expected_b2_stream << "_"<< endl;
     error = EXIT_FAILURE;
   }
 

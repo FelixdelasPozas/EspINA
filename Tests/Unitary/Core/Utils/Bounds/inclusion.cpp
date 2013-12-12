@@ -70,7 +70,7 @@ bool Test_Bounds_Are_Inside(const Bounds& internalBounds, const Bounds& bounds, 
   return pass;
 }
 
-int bounds_inclusion( int argc, char** argv )
+int inclusion( int argc, char** argv )
 {
   bool pass = true;
 

@@ -22,6 +22,7 @@
 
 #include <Core/Utils/Bounds.h>
 #include <Core/Utils/NmVector3.h>
+#include <Core/Utils/VolumeBounds.h>
 
 namespace EspINA
 {
@@ -49,6 +50,17 @@ namespace EspINA
 
   template<typename T>
   Bounds equivalentBounds(const NmVector3& origin, const NmVector3& spacing, const typename T::RegionType& region);
+
+  /** \brief Return the minimum complete bounds for any image of given origin and spacing
+   */
+  template<typename T>
+  VolumeBounds volumeBounds(const typename T::Pointer image, const Bounds& bounds);
+
+  /** \brief Return the minimum complete bounds for any image of given origin and spacing
+   */
+  template<typename T>
+  VolumeBounds volumeBounds(const NmVector3& origin, const NmVector3& spacing, const Bounds& bounds);
+
 
   // NOTE: Probably move into an independent module
   static double memory_size_in_MB(int number_of_pixels)

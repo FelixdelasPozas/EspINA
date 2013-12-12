@@ -46,7 +46,7 @@ bool Test_Bounds_Intersection(const Bounds& b1, const Bounds& b2, const Bounds& 
   return pass;
 }
 
-int bounds_valid_intersection( int argc, char** argv )
+int valid_intersection( int argc, char** argv )
 {
   bool pass = true;
 

@@ -29,35 +29,38 @@ using namespace EspINA;
 
 QFileInfo EspinaErrorHandler::fileNotFound(const QFileInfo& file, QDir dir, const QString& nameFilters, const QString& hint)
 {
-  QFileInfo resfile;
-  QString title     = (hint.isEmpty())        ? QObject::tr("Select file for %1:").arg(file.fileName()) : hint;
-  QDir    directory = (dir == QDir())         ? m_defaultDir : dir;
-  QString filters   = (nameFilters.isEmpty()) ? QObject::tr("%1 files (*.%1)").arg(file.suffix()) : nameFilters;
-
-  QList<QUrl> urls;
-  urls << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::DesktopLocation))
-       << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation))
-       << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::HomeLocation))
-       << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::DataLocation));
-
-  QFileDialog fileDialog(m_parent);
-  fileDialog.setFileMode(QFileDialog::ExistingFiles);
-  fileDialog.setWindowTitle(title);
-  fileDialog.setFilter(filters);
-  fileDialog.setDirectory(directory);
-  fileDialog.setOption(QFileDialog::DontUseNativeDialog, false);
-  fileDialog.setViewMode(QFileDialog::Detail);
-  fileDialog.resize(800, 480);
-  fileDialog.setSidebarUrls(urls);
-
-  QApplication::setOverrideCursor(Qt::ArrowCursor);
-  if (fileDialog.exec())
+  QString key = file.absoluteFilePath();
+  if (!m_files.contains(key))
   {
-    resfile = QFileInfo(fileDialog.selectedFiles().first());
-  }
-  QApplication::restoreOverrideCursor();
+    QString title     = (hint.isEmpty())        ? QObject::tr("Select file for %1:").arg(file.fileName()) : hint;
+    QDir    directory = (dir == QDir())         ? m_defaultDir : dir;
+    QString filters   = (nameFilters.isEmpty()) ? QObject::tr("%1 files (*.%1)").arg(file.suffix()) : nameFilters;
 
-  return resfile;
+    QList<QUrl> urls;
+    urls << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::DesktopLocation))
+    << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation))
+    << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::HomeLocation))
+    << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::DataLocation));
+
+    QFileDialog fileDialog(m_parent);
+    fileDialog.setFileMode(QFileDialog::ExistingFiles);
+    fileDialog.setWindowTitle(title);
+    fileDialog.setFilter(filters);
+    fileDialog.setDirectory(directory);
+    fileDialog.setOption(QFileDialog::DontUseNativeDialog, false);
+    fileDialog.setViewMode(QFileDialog::Detail);
+    fileDialog.resize(800, 480);
+    fileDialog.setSidebarUrls(urls);
+
+    QApplication::setOverrideCursor(Qt::ArrowCursor);
+    if (fileDialog.exec())
+    {
+      m_files[key] = QFileInfo(fileDialog.selectedFiles().first());
+    }
+    QApplication::restoreOverrideCursor();
+  }
+
+  return m_files[key];
 }
 
 void EspinaErrorHandler::error(const QString& msg)

@@ -31,16 +31,61 @@
 using namespace EspINA;
 using namespace std;
 
-int bounds_valid_bounding_box( int argc, char** argv )
+int limit_inclusion_intersection( int argc, char** argv )
 {
   int error = 0;
 
-  Bounds b1{'[',5,15,5,15,5,15,']'};
-  Bounds b2{'(',0,10,0,10,0,10,')'};
-  Bounds bb{'(',0,15,0,15,0,15,']'};
+  Bounds b1{0,10,0,10,0,10};
+  Bounds b2{10,15,10,15,10,15};
 
-  if (boundingBox(b1, b2) != bb) {
-    cerr << b1 << " and " << b2 << " expected bounding box is " << bb << ". Got " << boundingBox(b1, b2) << " instead" << endl;
+  if (intersect(b1, b2)) {
+    cerr << b1 << " doesn't intersect " << b2 << endl;
+    error = EXIT_FAILURE;
+  }
+
+  if (intersect(b2, b1)) {
+    cerr << b2 << " doesn't intersect " << b1 << ". Intersection is symmetric" << endl;
+    error = EXIT_FAILURE;
+  }
+
+  for (auto dir : {Axis::X, Axis::Y, Axis::Z}) {
+    b1.setUpperInclusion(dir, true);
+  }
+
+  if (!intersect(b1, b2)) {
+    cerr << b1 << " intersects " << b2 << endl;
+    error = EXIT_FAILURE;
+  }
+
+  if (!intersect(b2, b1)) {
+    cerr << b2 << " intersects " << b1 << ". Intersection is symmetric" << endl;
+    error = EXIT_FAILURE;
+  }
+
+  Bounds expectedIntersection{'[',10,10,10,10,10,10,']'};
+  Bounds actualInteresction = intersection(b1, b2);
+  if (expectedIntersection != actualInteresction) {
+    cerr << b1 << b2 << endl;
+    cerr << "Expected bounds intersection " << expectedIntersection << " but got" << actualInteresction << " instead" << endl;
+    error = EXIT_FAILURE;
+  }
+
+  if (!actualInteresction.areValid()) {
+    cerr << b1 << " and " << b2 << " intersection should be a valid bounds" << endl;
+    error = EXIT_FAILURE;
+  }
+
+  for (auto dir : {Axis::X, Axis::Y, Axis::Z}) {
+    b2.setLowerInclusion(dir, false);
+  }
+
+  if (intersect(b1, b2)) {
+    cerr << b1 << " doesn't intersect " << b2 << endl;
+    error = EXIT_FAILURE;
+  }
+
+  if (intersect(b2, b1)) {
+    cerr << b2 << " doesn't intersect " << b1 << ". Intersection is symmetric" << endl;
     error = EXIT_FAILURE;
   }
 

@@ -156,14 +156,15 @@ namespace EspINA
     if (!m_bounds.areValid())
       throw Invalid_Image_Bounds_Exception();
 
-    if (!intersect(m_bounds, bounds) || (bounds != intersection(m_bounds, bounds)))
+    if (!contains(m_bounds.bounds(), bounds))
       throw Invalid_Image_Bounds_Exception();
 
-    auto image       = create_itkImage<T>(bounds, this->backgroundValue(), m_spacing, m_origin);
-    auto imageRegion = image->GetLargestPossibleRegion();
-    auto maskBounds  = equivalentBounds<T>(image, imageRegion);
-    auto mask        = new BinaryMask<unsigned char>(maskBounds, m_spacing);
-    auto numVoxels   = imageRegion.GetNumberOfPixels();
+    auto image     = create_itkImage<T>(bounds, this->backgroundValue(), m_spacing, m_origin);
+    auto mask      = new BinaryMask<unsigned char>(bounds, m_spacing, m_origin);
+    auto numVoxels = image->GetLargestPossibleRegion().GetNumberOfPixels();
+
+    auto imageBounds = volumeBounds<T>(image, bounds);
+
     Q_ASSERT(numVoxels == mask->numberOfVoxels());
 
     for (int i = m_blocks.size() - 1; i >= 0; --i)
@@ -171,13 +172,13 @@ namespace EspINA
       auto block = m_blocks[i];
 
       Bounds blockBounds = block->bounds();
-      if (!intersect(bounds, blockBounds))
+      if (!intersect(imageBounds.bounds(), blockBounds))
         continue;
 
       if (numVoxels == 0)
         break;
 
-      Bounds intersectionBounds = intersection(maskBounds, blockBounds);
+      Bounds intersectionBounds = intersection(imageBounds.bounds(), blockBounds);
 
       BinaryMask<unsigned char>::region_iterator mit(mask, intersectionBounds);
       itk::ImageRegionIterator<T> iit(image, equivalentRegion<T>(image, intersectionBounds));
@@ -338,6 +339,7 @@ namespace EspINA
           m_spacing[s] = image->GetSpacing()[s];
           itkSpacing[i] = m_spacing[i];
         }
+        this->m_output->setSpacing(m_spacing);
       } else
       {
         image->SetSpacing(itkSpacing);
@@ -350,7 +352,8 @@ namespace EspINA
       dataFetched = true;
     }
 
-    m_bounds  = m_blocks_bounding_box;
+    auto blockRegion = equivalentRegion<T>(m_origin, m_spacing, m_blocks_bounding_box);
+    m_bounds = equivalentBounds<T>(m_origin, m_spacing, blockRegion);
 
     return dataFetched && !error;
   }
@@ -401,10 +404,12 @@ namespace EspINA
   template<typename T>
   void SparseVolume<T>::updateBlocksBoundingBox(const Bounds& bounds)
   {
+    Bounds corrected = validBounds<T>(m_origin, m_spacing, bounds);
+
     if (m_blocks_bounding_box.areValid()) {
-      m_blocks_bounding_box = boundingBox(m_blocks_bounding_box, bounds);
+      m_blocks_bounding_box = boundingBox(m_blocks_bounding_box, corrected);
     } else {
-      m_blocks_bounding_box = bounds;
+      m_blocks_bounding_box = corrected;
     }
   }
 
@@ -435,7 +440,7 @@ namespace EspINA
     }
 
     QList<SplitBounds> remaining;
-    remaining << SplitBounds(m_blocks_bounding_box, 0);
+    remaining << SplitBounds(m_bounds, 0);
 
     QList<Bounds> blockBounds;
 
@@ -476,8 +481,7 @@ namespace EspINA
 
           b1[2*splitPlane+1] = splitPoint;
           // Adjust splitPoint to voxel size
-          auto region1 = equivalentRegion<T>(m_origin, m_spacing, b1);
-          b1 = equivalentBounds<T>(m_origin, m_spacing, region1);          
+          b1 = validBounds<T>(m_origin, m_spacing, b1);
           b2[2*splitPlane]   = b1[2*splitPlane+1];
 
           splitPlane = (splitPlane + 1)%3;
@@ -491,21 +495,24 @@ namespace EspINA
     }
 
     QList<typename T::Pointer> blockImages;
-
+    int i = 0;
     for(auto bounds : blockBounds)
     {
+      cout << ++i << "/" << blockBounds.size() << endl;
       typename T::Pointer image = itkImage(bounds);
       bool empty = true;
       itk::ImageRegionIterator<T> it(image, image->GetLargestPossibleRegion());
       it.Begin();
       while (empty && !it.IsAtEnd())
       {
-        empty = it.Get() != backgroundValue();
+        empty = it.Get() == backgroundValue();
         ++it;
       }
 
       if (!empty) blockImages << itkImage(bounds);
     }
+
+    cout << "Compression: " << blockImages.size() << "/" << blockBounds.size() << endl;
 
     m_blocks.clear();
 

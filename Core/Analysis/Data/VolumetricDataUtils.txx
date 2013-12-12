@@ -19,6 +19,7 @@
 
 #include <Core/Utils/Spatial.h>
 #include <Core/Utils/Bounds.h>
+#include <Core/Utils/VolumeBounds.h>
 
 namespace EspINA {
 
@@ -36,20 +37,19 @@ typename T::RegionType equivalentRegion(const T* image, const Bounds& bounds)
     p0[i] = bounds[2*i];
     p1[i] = bounds[2*i+1];
 
-    int startIndex = (p0[i] - o[i])/s[i];
-    double voxelStart = o[i] + startIndex*s[i] + s[i]/2;
-
-    bool isVoxelStart = areEqual(p0[i], voxelStart);
-    if (isVoxelStart) {
+    if (isAligned(p0[i], o[i], s[i]))
+    {
       p0[i] += s[i]/2.0;
     }
 
-    int endIndex = (p1[i] - o[i])/s[i];
-    double voxelEnd = o[i] + endIndex*s[i] + s[i]/2;
-
-    bool isVoxelEnd = areEqual(p1[i], voxelEnd);
-    if (!bounds.areUpperIncluded(dir) && isVoxelEnd) {
-      p1[i] -= s[i]/2.0;
+    if (isAligned(p1[i], o[i], s[i]))
+    {
+      if (bounds.areUpperIncluded(dir)) {
+	p1[i] += s[i]/2.0;
+      } else
+      {
+	p1[i] -= s[i]/2.0;
+      }
     }
   }
 
@@ -102,6 +102,25 @@ Bounds equivalentBounds(const NmVector3& origin, const NmVector3& spacing, const
   typename T::Pointer image = define_itkImage<T>(origin, spacing);
 
   return equivalentBounds<T>(image, region);
+}
+
+//-----------------------------------------------------------------------------
+template<typename T>
+VolumeBounds equivalentBounds(const typename T::Pointer image, const Bounds& bounds)
+{
+  NmVector3 origin;
+  for (int i = 0; i < 3; ++i) origin[i] = image->GetOrigin()[i];
+
+  NmVector3 spacing;
+  for (int i = 0; i < 3; ++i) spacing[i] = image->GetSpacing()[i];
+
+  return equivalentBounds<T>(origin, spacing, bounds);
+}
+//-----------------------------------------------------------------------------
+template<typename T>
+VolumeBounds volumeBounds(const NmVector3& origin, const NmVector3& spacing, const Bounds& bounds)
+{
+  return VolumeBounds(bounds, spacing, origin);
 }
 
 // //-----------------------------------------------------------------------------

@@ -26,42 +26,54 @@
  * 
  */
 
-#include "Bounds.h"
-
-#include <sstream>
+#include "VolumeBounds.h"
 
 using namespace EspINA;
 using namespace std;
 
-int bounds_stream_operator( int argc, char** argv )
+int bounding_box( int argc, char** argv )
 {
+  bool error = false;
 
-  int error = 0;
+  Bounds b1{-1.5, 0.5, -1.5, 0.5, -1.5, 0.5};
+  Bounds b2{0.5, 1.5, 0.5, 1.5, 0.5, 1.5};
+  Bounds bb{-1.5, 1.5, -1.5, 1.5, -1.5, 1.5};
 
-  Bounds b1{1,2,3,4,5,6};
+  VolumeBounds vb1{b1};
+  VolumeBounds vb2{b2};
+  VolumeBounds vbb{bb};
 
-  stringstream b1_stream;
-  
-  string expected_b1_stream = "{[1,2),[3,4),[5,6)}";
-  
-  b1_stream << b1;
-  
-  if (b1_stream.str() != expected_b1_stream) {
-    cerr << b1_stream.str() << " is not equal to " << expected_b1_stream << endl;
-    error = EXIT_FAILURE;
+  auto bb1_1 = boundingBox(vb1, vb1);
+  if (vb1 != bb1_1)
+  {
+    cerr << bb1_1 << " is equal to " << vb1 << endl;
+    error = true;
   }
-  
-  Bounds b2{'(',1,2,3,4,5,6,']'};
 
-  stringstream b2_stream;
-  
-  string expected_b2_stream = "{(1,2],(3,4],(5,6]}";
-  
-  b2_stream << b2;
-  
-  if (b2_stream.str() != expected_b2_stream) {
-    cerr << "_" << b2_stream.str() << "_ is not equal to _" << expected_b2_stream << "_"<< endl;
-    error = EXIT_FAILURE;
+  auto bb1_2 = boundingBox(vb1, vb2);
+  if (!isEquivalent(bb1_2, vbb))
+  {
+    cerr << bb1_2 << " is equivalent to " << vbb << endl;
+    error = true;
+  }
+
+  try
+  {
+    auto bb1_invalid = boundingBox(vb1, VolumeBounds());
+    cerr << "Expected exception due to invalid bounds" << endl;
+    error = true;
+  } catch (Incompatible_Volume_Bounds_Exception e)
+  {
+  }
+
+  VolumeBounds incompatible{b1, NmVector3{2, 2, 2}};
+  try
+  {
+    auto bb1_incompatible = boundingBox(vb1, incompatible);
+    cerr << "Expected exception due to incompatible bounds" << endl;
+    error = true;
+  } catch (Incompatible_Volume_Bounds_Exception e)
+  {
   }
 
   return error;

@@ -190,6 +190,7 @@ bool Filter::fetchOutputData(Output::Id id)
         {
           if ("Output" == xml.name())
           {
+            output->markToSave(true);
             m_outputs << output;
           } else if ("Data" == xml.name())
           {

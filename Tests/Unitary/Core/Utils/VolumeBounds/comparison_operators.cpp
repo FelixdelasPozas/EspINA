@@ -26,58 +26,76 @@
  * 
  */
 
-#include "Bounds.h"
+#include <VolumeBounds.h>
 
 using namespace EspINA;
 using namespace std;
 
-int bounds_comparison_operators( int argc, char** argv )
+int comparison_operators( int argc, char** argv )
 {
-  int error = 0;
+  bool error = false;
 
-  Bounds b1{1,2,3,4,5,6};
-  Bounds b2{2,4,3,4,5,6};
-  Bounds b3{'[',1,2,3,4,5,6,')'};
-  Bounds b4{'(',1,2,3,4,5,6,']'};
+  Bounds b1{-0.5, 0.5, -0.5, 0.5, -0.5, 0.6};
+  Bounds b2{-1.5, 1.5, -1.5, 1.5, -1.5, 1.5};
 
-  if (!(b1 == b1)) {
-    cerr << b1 << " is equal to " << b1 << endl;
-    error = EXIT_FAILURE;
+  NmVector3 spacing1{1,1,1};
+  NmVector3 spacing3{3,3,3};
+
+  NmVector3 origin1{1,1,1};
+
+  VolumeBounds vb1{b1, spacing1};
+  VolumeBounds vb2{b2, spacing1};
+  VolumeBounds vb3{b2, spacing3};
+  VolumeBounds vb4{b2, spacing1, origin1};
+
+  if (!(vb1 == vb1)) {
+    cerr << vb1 << " is equal to " << vb1 << endl;
+    error = true;
   }
 
-  if (b1 != b1) {
-    cerr << b1 << " is equal to " << b1 << endl;
-    error = EXIT_FAILURE;
+  if (vb1 != vb1) {
+    cerr << vb1 << " is equal to " << vb1 << endl;
+    error = true;
   }
 
-  if (b1 == b2) {
-    cerr << b1 << " is not equal to " << b2 << endl;
-    error = EXIT_FAILURE;
+  if (vb1 == vb2) {
+    cerr << vb1 << " is not equal to " << vb2 << endl;
+    error = true;
   }
 
-  if (!(b1 != b2)) {
+  if (!(vb1 != vb2)) {
     cerr << b1 << " is not equal to " << b2  << endl;
-    error = EXIT_FAILURE;
+    error = true;
   }
 
-  if (!(b1 == b3)) {
-    cerr << b1 << " is equal to " << b3 << endl;
-    error = EXIT_FAILURE;
+  if (vb2.bounds() != vb3.bounds()) {
+    cerr << vb2.bounds() << " is equal to " << vb3.bounds() << endl;
+    error = true;
   }
 
-  if (b1 != b3) {
-    cerr << b1 << " is equal to " << b3 << endl;
-    error = EXIT_FAILURE;
+  if (vb2 == vb3) {
+    cerr << vb2 << " is not equal to " << vb3 << endl;
+    error = true;
   }
 
-  if (b1 == b4) {
-    cerr << b1 << " is not equal to " << b4 << endl;
-    error = EXIT_FAILURE;
+  if (!(vb2 != vb3)) {
+    cerr << vb2 << " is not equal to " << vb3 << endl;
+    error = true;
   }
 
-  if (!(b1 != b4)) {
-    cerr << b1 << " is not equal to " << b4 << endl;
-    error = EXIT_FAILURE;
+  if (vb2.bounds() != vb4.bounds()) {
+    cerr << vb2.bounds() << " is equal to " << vb4.bounds() << endl;
+    error = true;
+  }
+
+  if (vb2 == vb4) {
+    cerr << vb2 << " is not equal to " << vb4 << endl;
+    error = true;
+  }
+
+  if (!(vb2 != vb4)) {
+    cerr << vb2 << " is not equal to " << vb4 << endl;
+    error = true;
   }
 
   return error;

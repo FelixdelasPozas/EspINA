@@ -336,8 +336,8 @@ namespace EspINA
     NmVector3 m_spacing;
 
     BlockList m_blocks;
-    Bounds    m_bounds;
-    Bounds    m_blocks_bounding_box;
+    VolumeBounds m_bounds;
+    VolumeBounds m_blocks_bounding_box;
   };
 
   using SparseVolumePtr  = SparseVolume<itkVolumeType> *;

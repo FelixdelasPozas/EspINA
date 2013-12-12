@@ -71,8 +71,8 @@ void Output::setSpacing(const NmVector3& spacing)
 
 //----------------------------------------------------------------------------
 Snapshot Output::snapshot(TemporalStorageSPtr storage,
-                          QXmlStreamWriter       &xml,
-                          const QString          &prefix) const
+                          QXmlStreamWriter   &xml,
+                          const QString      &prefix) const
 {
   Snapshot snapshot;
 
@@ -80,17 +80,17 @@ Snapshot Output::snapshot(TemporalStorageSPtr storage,
   {
     DataSPtr data = dataProxy->get();
 
-        xml.writeStartElement("Data");
-        xml.writeAttribute("type",    data->type());
-        xml.writeAttribute("bounds",  data->bounds().toString());
+    xml.writeStartElement("Data");
+    xml.writeAttribute("type",    data->type());
+    xml.writeAttribute("bounds",  data->bounds().toString());
 
     for(int i = 0; i < data->editedRegions().size(); ++i)
     {
       auto region = data->editedRegions()[i];
-            xml.writeStartElement("Edited Region");
-            xml.writeAttribute("id",     QString::number(i));
-            xml.writeAttribute("bounds", region.toString());
-            xml.writeEndElement();
+      xml.writeStartElement("Edited Region");
+      xml.writeAttribute("id",     QString::number(i));
+      xml.writeAttribute("bounds", region.toString());
+      xml.writeEndElement();
     }
         xml.writeEndElement();
 

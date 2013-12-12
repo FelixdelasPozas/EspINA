@@ -262,19 +262,27 @@ QDebug EspINA::operator<< (QDebug d, const Bounds &bounds)
 //-----------------------------------------------------------------------------
 bool EspINA::contains(const Bounds &container, const Bounds &contained)
 {
-  return intersection(container, contained) == contained;
+  //return intersection(container, contained) == contained;
 
   int i = 0;
   for (Axis dir : {Axis::X, Axis::Y, Axis::Z}) {
-    if (contained[i] < container[i]) {
-      return false;
-    } else if (areEqual(contained[i], container[i]) && !container.areLowerIncluded(dir) && contained.areLowerIncluded(dir)) {
+    if (areEqual(contained[i], container[i]))
+    {
+      if (!container.areLowerIncluded(dir) && contained.areLowerIncluded(dir))
+      {
+	return false;
+      }
+    } else if (contained[i] < container[i]) {
       return false;
     }
     ++i;
-    if (container[i] < contained[i]) {
-      return false;
-    } else if (areEqual(contained[i], container[i]) && !container.areUpperIncluded(dir) && contained.areUpperIncluded(dir)) {
+    if (areEqual(contained[i], container[i]))
+    {
+      if (!container.areUpperIncluded(dir) && contained.areUpperIncluded(dir))
+      {
+	return false;
+      }
+    } else if (container[i] < contained[i]) {
       return false;
     }
     ++i;

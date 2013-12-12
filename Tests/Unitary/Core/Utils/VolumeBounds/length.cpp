@@ -27,32 +27,24 @@
  */
 
 #include "Bounds.h"
+#include <VolumeBounds.h>
 
 using namespace EspINA;
 using namespace std;
 
-int bounds_invalid_intersection( int argc, char** argv )
+int length( int argc, char** argv )
 {
-  int error = 0;
+  bool pass = true;
 
-  Bounds b1{0,10,0,10,0,10};
-  Bounds b2{15,25,15,25,15,25};
+  Bounds bounds{-0.5,0.5,-0.5,0.5,-0.5, 0.5,};
+  VolumeBounds volumeBounds{bounds};
 
-  if (intersect(b1, b2)) {
-    cerr << b1 << " doesn't intersect " << b2 << endl;
-    error = EXIT_FAILURE;
+  for (Axis dir : {Axis::X, Axis::Y, Axis::Z}) {
+    if (volumeBounds.lenght(dir) != 1) {
+      cerr << "Bounds length(" << idx(dir) << ") should be 1. Got " << volumeBounds.lenght(dir) << " instead." << endl;
+      pass = false;
+    }
   }
 
-  if (intersect(b2, b1)) {
-    cerr << b2 << " doesn't intersect " << b1 << ". Intersection is symmetric" << endl;
-    error = EXIT_FAILURE;
-  }
-
-  Bounds boundsIntersection = intersection(b1, b2);
-  if (boundsIntersection.areValid()) {
-    cerr << b1 << " and " << b2 << " intersection should return invalid bounds. Returned bounds: " << boundsIntersection << endl;
-    error = EXIT_FAILURE;
-  }
-
-  return error;
+  return !pass;
 }

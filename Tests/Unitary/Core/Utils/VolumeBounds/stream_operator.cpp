@@ -26,23 +26,30 @@
  * 
  */
 
-#include "Bounds.h"
+#include <VolumeBounds.h>
 
-using namespace EspINA;
+#include <sstream>
+
 using namespace std;
+using namespace EspINA;
 
-int bounds_length( int argc, char** argv )
+int stream_operator( int argc, char** argv )
 {
-  bool pass = true;
 
-  Bounds bounds{'(',0,5,1,6,2,7,')'};
+  int error = 0;
 
-  for (Axis dir : {Axis::X, Axis::Y, Axis::Z}) {
-    if (bounds.lenght(dir) != 5) {
-      cerr << "Bounds length(" << idx(dir) << ") should be 5. Got " << bounds.lenght(dir) << " instead." << endl;
-      pass = false;
-    }
+  Bounds b{-0.5, 0.5, -0.5, 0.5, -0.5, 0.5};
+  VolumeBounds vb(b);
+
+  stringstream b1_stream;
+
+  string expected_stream = "{[-0.5,0.5),[-0.5,0.5),[-0.5,0.5)}@({0,0,0},{1,1,1})";
+
+  b1_stream << vb;
+
+  if (b1_stream.str() != expected_stream) {
+    cerr << b1_stream.str() << " is not equal to " << expected_stream << endl;
+    error = EXIT_FAILURE;
   }
-
-  return !pass;
+  return error;
 }

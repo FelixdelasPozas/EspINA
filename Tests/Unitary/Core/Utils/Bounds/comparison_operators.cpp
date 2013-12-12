@@ -31,27 +31,53 @@
 using namespace EspINA;
 using namespace std;
 
-int bounds_default_constructor( int argc, char** argv )
+int comparison_operators( int argc, char** argv )
 {
-  Bounds invalidBounds;
-
   int error = 0;
 
-  if (invalidBounds.areValid()) {
-    cerr << "Default constructed bounds: " << invalidBounds << ". Expected invalid bounds" << endl;
+  Bounds b1{1,2,3,4,5,6};
+  Bounds b2{2,4,3,4,5,6};
+  Bounds b3{'[',1,2,3,4,5,6,')'};
+  Bounds b4{'(',1,2,3,4,5,6,']'};
+
+  if (!(b1 == b1)) {
+    cerr << b1 << " is equal to " << b1 << endl;
     error = EXIT_FAILURE;
   }
 
-  for (auto dir : {Axis::X, Axis::Y, Axis::Z}) {
-    if (!invalidBounds.areLowerIncluded(dir)) {
-      cerr << "Default constructed bounds must have lower bounds included" << endl;
-      error = EXIT_FAILURE;
-    }
+  if (b1 != b1) {
+    cerr << b1 << " is equal to " << b1 << endl;
+    error = EXIT_FAILURE;
+  }
 
-    if (invalidBounds.areUpperIncluded(dir)) {
-      cerr << "Default constructed bounds must have upper bounds excluded" << endl;
-      error = EXIT_FAILURE;
-    }
+  if (b1 == b2) {
+    cerr << b1 << " is not equal to " << b2 << endl;
+    error = EXIT_FAILURE;
+  }
+
+  if (!(b1 != b2)) {
+    cerr << b1 << " is not equal to " << b2  << endl;
+    error = EXIT_FAILURE;
+  }
+
+  if (!(b1 == b3)) {
+    cerr << b1 << " is equal to " << b3 << endl;
+    error = EXIT_FAILURE;
+  }
+
+  if (b1 != b3) {
+    cerr << b1 << " is equal to " << b3 << endl;
+    error = EXIT_FAILURE;
+  }
+
+  if (b1 == b4) {
+    cerr << b1 << " is not equal to " << b4 << endl;
+    error = EXIT_FAILURE;
+  }
+
+  if (!(b1 != b4)) {
+    cerr << b1 << " is not equal to " << b4 << endl;
+    error = EXIT_FAILURE;
   }
 
   return error;
