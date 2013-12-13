@@ -80,7 +80,7 @@ DefaultView::DefaultView(ModelAdapterSPtr model,
 
   dockYZ = new QDockWidget(tr("ZY"), parent);
   dockYZ->setObjectName("DockZY");
-  viewYZ->setCrosshairColors(m_yLine, m_zLine);
+  viewYZ->setCrosshairColors(m_zLine, m_yLine);
   initView2D(viewYZ);
   dockYZ->setWidget(viewYZ);
 
@@ -162,7 +162,7 @@ void DefaultView::setCrosshairColor(const Plane plane, const QColor& color)
 
   viewXY->setCrosshairColors(m_xLine, m_yLine);
   viewXZ->setCrosshairColors(m_xLine, m_zLine);
-  viewYZ->setCrosshairColors(m_yLine, m_zLine);
+  viewYZ->setCrosshairColors(m_zLine, m_yLine);
 }
 
 //-----------------------------------------------------------------------------

@@ -39,8 +39,6 @@ namespace EspINA
                                const Bounds&    bounds,
                                const NmVector3& slicingStep) = 0;
 
-    virtual void updateActor(vtkProp3D *actor) = 0;
-
     virtual void updateCamera(vtkCamera *camera,
                               const NmVector3& center) = 0;
   };
@@ -56,7 +54,7 @@ namespace EspINA
                                const NmVector3& center,
                                const Bounds&    bounds,
                                const NmVector3& slicingStep);
-    virtual void updateActor(vtkProp3D *actor);
+
     virtual void updateCamera(vtkCamera *camera,
                               const NmVector3& center);
   };
@@ -72,7 +70,7 @@ namespace EspINA
                                const NmVector3& center,
                                const Bounds&    bounds,
                                const NmVector3& slicingStep);
-    virtual void updateActor(vtkProp3D *actor);
+
     virtual void updateCamera(vtkCamera *camera,
                               const NmVector3& center);
   };
@@ -88,7 +86,7 @@ namespace EspINA
                                const NmVector3& center,
                                const Bounds&    bounds,
                                const NmVector3& slicingStep);
-    virtual void updateActor(vtkProp3D *actor);
+
     virtual void updateCamera(vtkCamera *camera,
                               const NmVector3& center);
   };

@@ -24,34 +24,33 @@
 #include <vtkPolyData.h>
 #include <vtkProp.h>
 
+#include <QDebug>
+
 using namespace EspINA;
+
+// the +0.1 is needed to draw the crosshair over the actors, right now the
+// segmentation's actors are been drawn View2D::SEGMENTATION_SHIFT over the
+// channel's actors at the view
+const double ACTORS_SHIFT = 0.1;
 
 //-----------------------------------------------------------------------------
 void View2D::AxialState::setCrossHairs(vtkPolyData* hline,
-                                          vtkPolyData* vline,
-                                          const NmVector3& center,
-                                          const Bounds&    bounds,
-                                          const NmVector3& slicingStep)
+                                       vtkPolyData* vline,
+                                       const NmVector3& center,
+                                       const Bounds&    bounds,
+                                       const NmVector3& slicingStep)
 {
-  // the -0.1 is needed to draw the crosshair over the actors, right now the
-  // segmentation's actors are been drawn -0.05 over the channel's actors at
-  // the axial view
   Nm hShift = 0.5*slicingStep[0];
   Nm vShift = 0.5*slicingStep[1];
+  Nm zShift = bounds[4]-ACTORS_SHIFT;
 
-  hline->GetPoints()->SetPoint(0, bounds[0]-hShift, center[1], -0.1);
-  hline->GetPoints()->SetPoint(1, bounds[1]+hShift, center[1], -0.1);
+  hline->GetPoints()->SetPoint(0, bounds[0]-hShift, center[1], zShift);
+  hline->GetPoints()->SetPoint(1, bounds[1]+hShift, center[1], zShift);
   hline->Modified();
 
-  vline->GetPoints()->SetPoint(0, center[0], bounds[2]-vShift, -0.1);
-  vline->GetPoints()->SetPoint(1, center[0], bounds[3]+vShift, -0.1);
+  vline->GetPoints()->SetPoint(0, center[0], bounds[2]-vShift, zShift);
+  vline->GetPoints()->SetPoint(1, center[0], bounds[3]+vShift, zShift);
   vline->Modified();
-}
-
-//-----------------------------------------------------------------------------
-void View2D::AxialState::updateActor(vtkProp3D* actor)
-{
-
 }
 
 //-----------------------------------------------------------------------------
@@ -69,39 +68,30 @@ void View2D::AxialState::updateCamera(vtkCamera* camera, const NmVector3& center
 
 //-----------------------------------------------------------------------------
 void View2D::SagittalState::setCrossHairs(vtkPolyData* hline,
-                                             vtkPolyData* vline,
-                                             const NmVector3& center,
-                                             const Bounds&    bounds,
-                                             const NmVector3& slicingStep)
+                                          vtkPolyData* vline,
+                                          const NmVector3& center,
+                                          const Bounds&    bounds,
+                                          const NmVector3& slicingStep)
 {
-  // the +0.1 is needed to draw the crosshair over the actors, right now the
-  // segmentation's actors are been drawn +0.05 over the channel's actors at
-  // the sagittal view
   Nm hShift = 0.5*slicingStep[2];
   Nm vShift = 0.5*slicingStep[1];
+  Nm zShift = bounds[1]+ACTORS_SHIFT;
 
-  hline->GetPoints()->SetPoint(0, 0.1, center[1], bounds[4]-hShift);
-  hline->GetPoints()->SetPoint(1, 0.1, center[1], bounds[5]+hShift);
+  hline->GetPoints()->SetPoint(0, zShift, center[1], bounds[4]-hShift);
+  hline->GetPoints()->SetPoint(1, zShift, center[1], bounds[5]+hShift);
   hline->Modified();
 
-  vline->GetPoints()->SetPoint(0, 0.1, bounds[2]-vShift, center[2]);
-  vline->GetPoints()->SetPoint(1, 0.1, bounds[3]+vShift, center[2]);
+  vline->GetPoints()->SetPoint(0, zShift, bounds[2]-vShift, center[2]);
+  vline->GetPoints()->SetPoint(1, zShift, bounds[3]+vShift, center[2]);
   vline->Modified();
-}
-
-//-----------------------------------------------------------------------------
-void View2D::SagittalState::updateActor(vtkProp3D* actor)
-{
-//   actor->RotateX(-90);
-  actor->RotateY(-90);
 }
 
 //-----------------------------------------------------------------------------
 void View2D::SagittalState::updateCamera(vtkCamera* camera,
                                             const NmVector3& center)
 {
-//   camera->SetPosition(center[0] + 1,center[1], center[2]);
-//   camera->SetFocalPoint(center[0], center[1], center[2]);
+  camera->SetPosition(center[0] + 1,center[1], center[2]);
+  camera->SetFocalPoint(center[0], center[1], center[2]);
   camera->SetRoll(180);
 }
 
@@ -112,32 +102,24 @@ void View2D::CoronalState::setCrossHairs(vtkPolyData*     hline,
                                             const Bounds&    bounds,
                                             const NmVector3& slicingStep)
 {
-  // the +0.1 is needed to draw the crosshair over the actors, right now the
-  // segmentation's actors are been drawn -0.05 over the channel's actors at
-  // the coronal view
   Nm hShift = 0.5*slicingStep[0];
   Nm vShift = 0.5*slicingStep[2];
+  Nm zShift = bounds[3]+ACTORS_SHIFT;
 
-  hline->GetPoints()->SetPoint(0, bounds[0]-hShift, 0.1, center[2]);
-  hline->GetPoints()->SetPoint(1, bounds[1]+hShift, 0.1, center[2]);
+  hline->GetPoints()->SetPoint(0, bounds[0]-hShift, zShift, center[2]);
+  hline->GetPoints()->SetPoint(1, bounds[1]+hShift, zShift, center[2]);
   hline->Modified();
 
-  vline->GetPoints()->SetPoint(0, center[0], 0.1, bounds[4]-vShift);
-  vline->GetPoints()->SetPoint(1, center[0], 0.1, bounds[5]+vShift);
+  vline->GetPoints()->SetPoint(0, center[0], zShift, bounds[4]-vShift);
+  vline->GetPoints()->SetPoint(1, center[0], zShift, bounds[5]+vShift);
   vline->Modified();
-}
-
-//-----------------------------------------------------------------------------
-void View2D::CoronalState::updateActor(vtkProp3D* actor)
-{
-  actor->RotateX(90);
 }
 
 //-----------------------------------------------------------------------------
 void View2D::CoronalState::updateCamera(vtkCamera* camera,
                                            const NmVector3& center)
 {
-//   camera->SetPosition(center[0], center[1]+1, center[2]);
-//   camera->SetFocalPoint(center[0], center[1], center[2]);
-//   camera->SetViewUp(0, 0, -1);
+  camera->SetPosition(center[0], center[1]+1, center[2]);
+  camera->SetFocalPoint(center[0], center[1], center[2]);
+  camera->SetViewUp(0, 0, -1);
 }

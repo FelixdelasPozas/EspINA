@@ -162,7 +162,6 @@ View2D::View2D(Plane plane, QWidget* parent)
   m_channelBorderData = vtkSmartPointer<vtkPolyData>::New();
   m_channelBorder     = vtkSmartPointer<vtkActor>::New();
   initBorders(m_channelBorderData, m_channelBorder);
-  m_state->updateActor(m_channelBorder);
 
   m_viewportBorderData = vtkSmartPointer<vtkPolyData>::New();
   m_viewportBorder     = vtkSmartPointer<vtkActor>::New();
@@ -284,60 +283,34 @@ void View2D::updateThumbnail()
   coords->SetViewport(m_renderer);
   coords->SetCoordinateSystemToNormalizedViewport();
 
+  int h = m_plane == Plane::YZ ? 2 : 0;
+  int v = m_plane == Plane::XZ ? 2 : 1;
   coords->SetValue(0, 0); // Viewport Lower Left Corner
   value = coords->GetComputedWorldValue(m_renderer);
-  viewLeft  = value[0]; // Left Margin in World Coordinates
-  viewLower = value[1]; // Lower Margin in World Coordinates
+  viewLeft  = value[h]; // Left Margin in World Coordinates
+  viewLower = value[v]; // Lower Margin in World Coordinates
 
   coords->SetValue(1, 1);
   value = coords->GetComputedWorldValue(m_renderer);
-  viewRight = value[0]; // Right Margin in World Coordinates
-  viewUpper = value[1]; // Upper Margin in World Coordinates
+  viewRight = value[h]; // Right Margin in World Coordinates
+  viewUpper = value[v]; // Upper Margin in World Coordinates
 
-  int h = m_plane == Plane::YZ ? 2 : 0;
-  int v = m_plane == Plane::XZ ? 2 : 1;
   double sceneLeft  = m_sceneBounds[2*h];
   double sceneRight = m_sceneBounds[2*h+1];
-  double sceneUpper = m_sceneBounds[2*v];
-  double sceneLower = m_sceneBounds[2*v+1];
+  double sceneLower = m_sceneBounds[2*v];
+  double sceneUpper = m_sceneBounds[2*v+1];
 
-  // BEWARE: here be dragons
-  // Because the position and the rotation of the cameras the
-  // comparisons are different for each view
-  double zDepth;
-  bool leftHidden, rightHidden, upperHidden, lowerHidden;
-  switch(m_plane)
-  {
-    case Plane::XY:
-      leftHidden   = sceneLeft  < viewLeft;
-      rightHidden  = sceneRight > viewRight;
-      upperHidden  = sceneUpper < viewUpper;
-      lowerHidden  = sceneLower > viewLower;
-      zDepth = m_sceneBounds[4];
-      break;
-    case Plane::XZ:
-    {
-      leftHidden   = sceneLeft  < viewLeft;
-      rightHidden  = sceneRight > viewRight;
-      upperHidden  = sceneUpper > viewUpper;
-      lowerHidden  = sceneLower > -viewLower;
-      zDepth = m_sceneBounds[3];
-      break;
-    }
-    case Plane::YZ:
-    {
-      leftHidden   = sceneLeft  > viewLeft;
-      rightHidden  = sceneRight > -viewRight;
-      upperHidden  = sceneUpper < viewUpper;
-      lowerHidden  = sceneLower > viewLower;
-      zDepth = m_sceneBounds[1];
-      break;
-    }
-  }
+  // viewLower and viewUpper are inverted because the roll we made
+  // in the renderer camera
+  bool leftHidden  = sceneLeft < viewLeft;
+  bool rightHidden = sceneRight > viewRight;
+  bool upperHidden = sceneUpper > viewLower;
+  bool lowerHidden = sceneLower < viewUpper;
+
   if (leftHidden || rightHidden || upperHidden || lowerHidden)
   {
     m_thumbnail->DrawOn();
-    updateViewBorder(m_viewportBorderData, viewLeft, viewRight, viewUpper, viewLower, zDepth);
+    updateBorder(m_viewportBorderData, viewLeft, viewRight, viewUpper, viewLower);
     m_thumbnail->ResetCameraClippingRange();
   }
   else
@@ -357,7 +330,14 @@ void View2D::updateSceneBounds()
   setSlicingStep(m_sceneResolution);
 
   // reset thumbnail channel border
-  updateChannelBorder(m_channelBorderData, m_channelBorder);
+  int h = m_plane == Plane::YZ ? 2 : 0;
+  int v = m_plane == Plane::XZ ? 2 : 1;
+
+  double sceneLeft  = m_sceneBounds[2*h];
+  double sceneRight = m_sceneBounds[2*h+1];
+  double sceneUpper = m_sceneBounds[2*v];
+  double sceneLower = m_sceneBounds[2*v+1];
+  updateBorder(m_channelBorderData, sceneLeft, sceneRight, sceneUpper, sceneLower);
 
   // we need to update the view only if a signal has been sent
   // (the volume of a channel has been updated)
@@ -396,48 +376,37 @@ void View2D::initBorders(vtkPolyData* data, vtkActor* actor)
 }
 
 //-----------------------------------------------------------------------------
-void View2D::updateChannelBorder(vtkPolyData* data, vtkActor* actor)
+void View2D::updateBorder(vtkPolyData* data, Nm left, Nm right, Nm upper, Nm lower)
 {
   vtkSmartPointer<vtkPoints> corners = data->GetPoints();
+  Nm zShift;
   switch(m_plane)
   {
     case Plane::XY:
-      corners->SetPoint(0, m_sceneBounds[0], m_sceneBounds[2], m_sceneBounds[4]); //UL
-      corners->SetPoint(1, m_sceneBounds[0], m_sceneBounds[3], m_sceneBounds[4]); //UR
-      corners->SetPoint(2, m_sceneBounds[1], m_sceneBounds[3], m_sceneBounds[4]); //LR
-      corners->SetPoint(3, m_sceneBounds[1], m_sceneBounds[2], m_sceneBounds[4]); //LL
+      zShift = m_sceneBounds[4]-0.1;
+      corners->SetPoint(0, left,  upper, zShift); //UL
+      corners->SetPoint(1, right, upper, zShift); //UR
+      corners->SetPoint(2, right, lower, zShift); //LR
+      corners->SetPoint(3, left,  lower, zShift); //LL
       break;
     case Plane::XZ:
-      corners->SetPoint(0, m_sceneBounds[0], m_sceneBounds[3], m_sceneBounds[4]); //UL
-      corners->SetPoint(1, m_sceneBounds[0], m_sceneBounds[3], m_sceneBounds[5]); //UR
-      corners->SetPoint(2, m_sceneBounds[1], m_sceneBounds[3], m_sceneBounds[5]); //LR
-      corners->SetPoint(3, m_sceneBounds[1], m_sceneBounds[3], m_sceneBounds[4]); //LL
+      zShift = m_sceneBounds[3]+0.1;
+      corners->SetPoint(0, left,  zShift, upper); //UL
+      corners->SetPoint(1, right, zShift, upper); //UR
+      corners->SetPoint(2, right, zShift, lower); //LR
+      corners->SetPoint(3, left,  zShift, lower); //LL
       break;
     case Plane::YZ:
-      corners->SetPoint(0, m_sceneBounds[1], m_sceneBounds[2], m_sceneBounds[4]); //UL
-      corners->SetPoint(1, m_sceneBounds[1], m_sceneBounds[2], m_sceneBounds[5]); //UR
-      corners->SetPoint(2, m_sceneBounds[1], m_sceneBounds[3], m_sceneBounds[5]); //LR
-      corners->SetPoint(3, m_sceneBounds[1], m_sceneBounds[3], m_sceneBounds[4]); //LL
+      zShift = m_sceneBounds[1]+0.1;
+      corners->SetPoint(0, zShift, upper,  left); //UL
+      corners->SetPoint(1, zShift, lower,  left); //UR
+      corners->SetPoint(2, zShift, lower, right); //LR
+      corners->SetPoint(3, zShift, upper, right); //LL
       break;
     default:
       Q_ASSERT(false);
       break;
   }
-  actor->Modified();
-}
-
-//-----------------------------------------------------------------------------
-void View2D::updateViewBorder(vtkPolyData* data,
-                          double left, double right,
-                          double upper, double lower,
-                          double zHeight)
-{
-  vtkPoints *corners = data->GetPoints();
-  corners->SetPoint(0, left,  upper, zHeight); //UL
-  corners->SetPoint(1, right, upper, zHeight); //UR
-  corners->SetPoint(2, right, lower, zHeight); //LR
-  corners->SetPoint(3, left,  lower, zHeight); //LL
-
   data->Modified();
 }
 
@@ -584,7 +553,7 @@ void View2D::setupUI()
 }
 
 //-----------------------------------------------------------------------------
-void View2D::setCrosshairColors(const QColor& hColor, const QColor& vColor)
+void View2D::setCrosshairColors(const QColor& vColor, const QColor& hColor)
 {
   double hc[3] = {hColor.redF(), hColor.greenF(), hColor.blueF()};
   double vc[3] = {vColor.redF(), vColor.greenF(), vColor.blueF()};
@@ -600,7 +569,8 @@ void View2D::setCrosshairVisibility(bool visible)
   {
     m_renderer->AddActor(m_HCrossLine);
     m_renderer->AddActor(m_VCrossLine);
-  }else
+  }
+  else
   {
     m_renderer->RemoveActor(m_HCrossLine);
     m_renderer->RemoveActor(m_VCrossLine);
@@ -669,10 +639,10 @@ void View2D::updateView()
 {
   if (isVisible())
   {
-//    qDebug() << "Updating View";
     updateRuler();
     updateWidgetVisibility();
     updateThumbnail();
+//    m_renderer->ResetCameraClippingRange();
     m_view->GetRenderWindow()->Render();
     m_view->update();
   }
@@ -718,7 +688,7 @@ void View2D::addWidget(EspinaWidget *eWidget)
       widget->GetRepresentation()->SetVisibility(true);
     widget->On();
   }
-  m_renderer->ResetCameraClippingRange();
+
   m_widgets[eWidget] = sWidget;
 }
 
@@ -737,9 +707,6 @@ void View2D::removeWidget(EspinaWidget *eWidget)
 //-----------------------------------------------------------------------------
 void View2D::addActor(vtkProp* actor)
 {
-  vtkProp3D *actor3D = reinterpret_cast<vtkProp3D*>(actor);
-  m_state->updateActor(actor3D);
-
   m_renderer->AddActor(actor);
   m_thumbnail->AddActor(actor);
 
@@ -868,7 +835,8 @@ void View2D::selectToSlice()
 //-----------------------------------------------------------------------------
 bool View2D::eventFilter(QObject* caller, QEvent* e)
 {
-  static bool inFocus = false;
+  static bool inFocus = false;          // to prevent other widgets from stealing the focus
+  static bool inThumbnailClick = false; // to implement click+drag in the thumbnail
 
   // prevent other widgets from stealing the focus while the mouse cursor over
   // this widget
@@ -878,6 +846,12 @@ bool View2D::eventFilter(QObject* caller, QEvent* e)
     QKeyEvent event(QEvent::KeyPress, Qt::Key_Tab, Qt::NoModifier);
     qApp->sendEvent(this, &event);
     return true;
+  }
+
+  if (QEvent::Resize == e->type())
+  {
+    updateView();
+    e->accept();
   }
 
   if (m_selector && m_selector->filterEvent(e, this))
@@ -970,6 +944,18 @@ bool View2D::eventFilter(QObject* caller, QEvent* e)
     if (m_inThumbnail)
     {
       m_view->setCursor(Qt::ArrowCursor);
+      QMouseEvent* me = static_cast<QMouseEvent*>(e);
+      if (((e->type() == QEvent::MouseButtonPress) && me->button() == Qt::LeftButton) || (e->type() == QEvent::MouseMove && inThumbnailClick))
+      {
+        inThumbnailClick = true;
+        centerViewOnMousePosition();
+      }
+      else
+        if ((e->type() == QEvent::MouseButtonRelease) && (me->button() == Qt::LeftButton))
+        {
+          inThumbnailClick = false;
+        }
+
     }
     else if (m_selector)
     {
@@ -1404,10 +1390,7 @@ void View2D::centerViewOn(const NmVector3& point, bool force)
                         || m_crosshairPoint[V] > ll[V] || m_crosshairPoint[V] < ur[V];// Vertically out
 
   if (centerOutOfCamera || force)
-  {
     m_state->updateCamera(m_renderer->GetActiveCamera(), m_crosshairPoint);
-    m_renderer->ResetCameraClippingRange();
-  }
 
   updateView();
 }
@@ -1419,7 +1402,7 @@ void View2D::centerViewOnPosition(const NmVector3& center)
     return;
 
   m_state->updateCamera(m_renderer->GetActiveCamera(), center);
-  m_renderer->ResetCameraClippingRange();
+
   updateView();
 }
 

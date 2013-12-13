@@ -221,12 +221,9 @@ class SliceWidget;
 
     void initBorders(vtkPolyData* data, vtkActor *actor);
 
-    void updateChannelBorder(vtkPolyData* data, vtkActor* actor);
-
-    void updateViewBorder(vtkPolyData *data,
-                          double left, double right,
-                          double upper, double lower,
-                          double zHeight);
+    void updateBorder(vtkPolyData *data,
+                      double left, double right,
+                      double upper, double lower);
 
     Nm  voxelBottom(int sliceIndex, Plane plane) const;
 
