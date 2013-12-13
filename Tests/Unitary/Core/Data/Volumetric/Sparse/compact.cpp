@@ -38,47 +38,57 @@ using namespace EspINA::Testing;
 typedef unsigned char VoxelType;
 typedef itk::Image<VoxelType, 3> ImageType;
 
-int sparse_volume_draw_implicit_function( int argc, char** argv )
+int compact( int argc, char** argv )
 {
   bool pass = true;
 
  auto bg = 0;
  auto fg = 255;
 
- Bounds bounds{-0.5, 3.5, -0.5, 3.5, -0.5, 3.5};
+ int size = 100;
+
+ Bounds bounds{0, size-1, 0, size-1, 0, size-1};
  SparseVolume<ImageType> canvas(bounds);
 
- if (!Testing_Support<ImageType>::Test_Pixel_Values(canvas.itkImage(), bg)) {
-   cerr << "Initial values are not initialized to " << bg << endl;
+ if (canvas.memoryUsage() != 0)
+ {
+   cerr << "Invalid memory usage" << endl;
    pass = false;
  }
 
- Bounds lowerHalfVolume{-0.5, 3.5, -0.5, 3.5, -0.5, 1.5};
- if (!Testing_Support<ImageType>::Test_Pixel_Values(canvas.itkImage(lowerHalfVolume), bg, lowerHalfVolume)) {
-   cerr << "Initial Pixel values inside " << lowerHalfVolume << " should be " << bg << endl;
-   pass = false;
- }
+ Bounds lowerHalfVolume{-0.5, size-0.5, -0.5, size-0.5, -0.5, size/2 - 0.5};
 
  auto brush = vtkSmartPointer<vtkNaiveFunction>::New();
  canvas.draw(brush, lowerHalfVolume, fg);
 
- if (!Testing_Support<ImageType>::Test_Pixel_Values(canvas.itkImage(lowerHalfVolume), fg, lowerHalfVolume)) {
-   cerr << "Pixel values inside " << lowerHalfVolume << " should be " << fg << endl;
+ auto numberOfEditedVoxels = size*size*size/2;
+ auto editedSize = numberOfEditedVoxels*sizeof(ImageType::ValueType);
+ auto maskSize   = editedSize/8;
+
+ if (canvas.memoryUsage() != maskSize)
+ {
+   cerr << "Invalid memory usage" << endl;
    pass = false;
  }
 
- Bounds upperHalfVolume{-0.5, 3.5, -0.5, 3.5, 1.5, 3.5};
- if (!Testing_Support<ImageType>::Test_Pixel_Values(canvas.itkImage(upperHalfVolume), bg, upperHalfVolume)) {
-   cerr << "Pixel values inside " << upperHalfVolume << " should be " << bg << endl;
+ Bounds upperHalfVolume{-0.5, size-0.5, -0.5, size-0.5, size/2 - 0.5, size-0.5};
+
+ canvas.draw(brush, upperHalfVolume, fg);
+ canvas.draw(brush, upperHalfVolume, bg);
+
+ if (canvas.memoryUsage() != 3*maskSize)
+ {
+   cerr << "Invalid memory usage" << endl;
    pass = false;
  }
 
- canvas.draw(brush, lowerHalfVolume, bg);
+ canvas.compact();
 
- if (!Testing_Support<ImageType>::Test_Pixel_Values(canvas.itkImage(lowerHalfVolume), bg, lowerHalfVolume)) {
-   cerr << "Pixel values inside " << lowerHalfVolume << " should be " << bg << endl;
+ if (canvas.memoryUsage() != editedSize)
+ {
+   cerr << "Invalid memory usage" << endl;
    pass = false;
  }
 
-  return !pass;
+ return !pass;
 }

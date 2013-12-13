@@ -227,12 +227,12 @@ namespace EspINA
       { return m_mask->bufferSize(); }
 
       Bounds bounds() const
-      { return m_mask->bounds(); }
+      { return m_mask->bounds().bounds(); } //TODO
 
       BinaryMask<unsigned char>::const_region_iterator const_region_iterator(const Bounds &bounds = Bounds()) const
       {
         if (!bounds.areValid())
-          bounds = m_mask->bounds();
+          bounds = m_mask->bounds().bounds();//TODO
 
         BinaryMask<unsigned char>::const_region_iterator it(m_mask.get(), bounds);
         return it;

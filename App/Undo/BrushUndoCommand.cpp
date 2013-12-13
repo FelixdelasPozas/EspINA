@@ -34,7 +34,7 @@ DrawUndoCommand::DrawUndoCommand(SegmentationAdapterSPtr seg, BinaryMaskSPtr<uns
 void DrawUndoCommand::redo()
 {
   auto volume = std::dynamic_pointer_cast<SparseVolume<itkVolumeType>>(volumetricData(m_segmentation->output()));
-  expandAndDraw(volume, m_mask->bounds(), m_mask);
+  expandAndDraw(volume, m_mask->bounds().bounds(), m_mask); // CHECK
 }
 
 //-----------------------------------------------------------------------------

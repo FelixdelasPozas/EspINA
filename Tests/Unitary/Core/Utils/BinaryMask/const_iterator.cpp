@@ -24,69 +24,37 @@ using namespace EspINA;
 
 using BMask = BinaryMask<unsigned char>;
 
-int binaryMask_iterator(int argc, char** argv)
+int const_iterator(int argc, char** argv)
 {
   bool error = false;
 
-  Bounds bounds{-0.5,9.5,-0.5,9.5,-0.5,9.5};
-  BMask *mask = new BMask(bounds);
+  Bounds bounds{ 0,9,0,9,0,9 };
+  BMask mask(bounds);
 
-  BMask::iterator it(mask);
+  BMask::const_iterator cit(&mask);
 
-  ++it;
-  it.goToBegin();
-
+  // the rest have been tested in non-const iterator
+  cit.goToEnd();
   try
   {
-    --it;
+    cit.Set();
     error |= true;
   }
-  catch(BMask::Underflow_Exception const &e)
-  {
-    error |= false;
-  }
-
-  it.goToEnd();
-  unsigned char test;
-  try
-  {
-    test = it.Get();
-    error |= true;
-  }
-  catch(BMask::Out_Of_Bounds_Exception const &e)
+  catch (BMask::Const_Violation_Exception const &e)
   {
     error |= false;
   }
 
   try
   {
-    ++it;
+    cit.Unset();
     error |= true;
   }
-  catch (BMask::Overflow_Exception const &e)
+  catch (BMask::Const_Violation_Exception const &e)
   {
     error |= false;
-  }
-
-  it.goToBegin();
-  unsigned int count = 0;
-  while(!it.isAtEnd())
-  {
-    error |= (mask->backgroundValue() != it.Get());
-    it.Set();
-    ++count;
-    ++it;
-  }
-
-  error |= (count != mask->numberOfVoxels());
-  error |= (count != 1000);
-
-  it.goToBegin();
-  while(!it.isAtEnd())
-  {
-    error |= (mask->foregroundValue() != it.Get());
-    ++it;
   }
 
   return error;
 }
+

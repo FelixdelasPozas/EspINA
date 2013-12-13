@@ -24,8 +24,8 @@ add_executable(SGSF_Tests
   ${CORE_DIR}/MultiTasking/Task.cpp
   ${CORE_DIR}/Utils/Bounds.cpp
   ${CORE_DIR}/Utils/NmVector3.cpp
-  ${CORE_DIR}/Utils/BinaryMask.cpp
   ${CORE_DIR}/Utils/TemporalStorage.cpp
+  ${CORE_DIR}/Utils/VolumeBounds.cpp
   ${FILTERS_DIR}/SeedGrowSegmentationFilter.cpp
   seed_grow_segmentation_testing_support.cpp
 #   ${CORE_DIR}/Analysis/Channel.cpp

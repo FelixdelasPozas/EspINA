@@ -42,12 +42,11 @@
 #include <itkMetaImageIO.h>
 #include <itkImageFileWriter.h>
 #include <itkImageFileReader.h>
+#include <vtkImplicitFunction.h>
 
 namespace EspINA
 {
   struct Invalid_Image_Bounds_Exception{};
-
-  template class VolumetricData<itk::Image<unsigned char, 3>>;
 
   /** \brief Volume representation intended to save memory and speed up
    *  edition opertaions
@@ -67,10 +66,13 @@ namespace EspINA
     using BlockMaskPtr  = BlockMask*;
     using BlockMaskSPtr = std::shared_ptr<BlockMask>;
 
+    const int UNSET = 0;
+    const int SET   = 1;
+
   public:
     /** \brief SparseVolume constructor to create a empty mask with the given bounds and spacing.
      */
-    explicit SparseVolume(const Bounds& bounds = Bounds(), const NmVector3& spacing = {1, 1, 1});
+    explicit SparseVolume(const Bounds& bounds = Bounds(), const NmVector3& spacing = {1, 1, 1}, const NmVector3& origin = NmVector3());
 
     /** \brief Class destructor
      */
@@ -82,7 +84,8 @@ namespace EspINA
 
     /** \brief Returns the bounds of the volume.
      */
-    virtual const Bounds bounds() const;
+    virtual const Bounds bounds() const
+    { return m_bounds.bounds(); }
 
     /** \brief Set volume origin.
      */
@@ -211,7 +214,7 @@ namespace EspINA
       public:
         virtual ~Block(){}
 
-        virtual Bounds bounds() const = 0;
+        virtual VolumeBounds bounds() const = 0;
 
         virtual void setSpacing(const NmVector3& spacing) = 0;
 
@@ -243,7 +246,7 @@ namespace EspINA
       : m_mask(mask)
       {}
 
-      virtual Bounds bounds() const
+      virtual VolumeBounds bounds() const
       { return m_mask->bounds(); }
 
       virtual void setSpacing(const NmVector3& spacing)
@@ -293,8 +296,10 @@ namespace EspINA
       : m_image(image)
       {}
 
-      virtual Bounds bounds() const
-      { return equivalentBounds<T>(m_image, m_image->GetLargestPossibleRegion()); }
+      virtual VolumeBounds bounds() const
+      {
+        return volumeBounds<T>(m_image, m_image->GetLargestPossibleRegion());
+      }
 
       virtual void setSpacing(const NmVector3& spacing)
       { m_image->SetSpacing(ItkSpacing<T>(spacing)); }
@@ -329,7 +334,7 @@ namespace EspINA
 
   private:
     BlockMaskSPtr createMask(const Bounds& bounds) const;
-    void updateBlocksBoundingBox(const Bounds& bounds);
+    void updateBlocksBoundingBox(const VolumeBounds& bounds);
 
   private:
     NmVector3 m_origin;
@@ -340,11 +345,486 @@ namespace EspINA
     VolumeBounds m_blocks_bounding_box;
   };
 
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  SparseVolume<T>::SparseVolume(const Bounds& bounds, const NmVector3& spacing, const NmVector3& origin)
+  : VolumetricData<T>()
+  , m_origin{origin}
+  , m_spacing{spacing}
+  {
+    if (bounds.areValid())
+    {
+      m_bounds = VolumeBounds(bounds, m_spacing, m_origin);
+    }
+
+    this->setBackgroundValue(0);
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  size_t SparseVolume<T>::memoryUsage() const
+  {
+    size_t size = 0;
+
+    for (auto block : m_blocks)
+    {
+      size += block->memoryUsage();
+    }
+
+    return size;
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  void SparseVolume<T>::setOrigin(const NmVector3& origin)
+  {
+    //TODO
+    //NmVector3 shift = m_origin - origin;
+    m_origin = origin;
+  }
+
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  void SparseVolume<T>::setSpacing(const NmVector3& spacing)
+  {
+    if (m_spacing != spacing)
+    {
+      for(auto block : m_blocks)
+      {
+        block->setSpacing(spacing);
+      }
+
+      auto region = equivalentRegion<T>(m_origin, m_spacing, m_bounds.bounds());
+
+      m_spacing = spacing;
+
+      // TODO: use m_bounds.setSpacing()
+      m_bounds = volumeBounds<T>(m_origin, m_spacing, region);
+    }
+  }
+
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  void SparseVolume<T>::setBlock(typename T::Pointer image)
+  {
+    BlockSPtr block(new ImageBlock(image, false));
+    m_blocks.push_back(block);
+
+    //Bounds bounds = equivalentBounds<T>(image, image->GetLargestPossibleRegion());
+
+    /*// DEBUG
+    auto i2 = T::New();
+    i2->SetSpacing(image->GetSpacing());
+    auto region = equivalentRegion<T>(i2, bounds);
+
+    image->GetLargestPossibleRegion().Print(std::cout);
+    region.Print(std::cout);
+    */
+
+    updateBlocksBoundingBox(block->bounds());
+  }
+
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  void SparseVolume<T>::addBlock(BlockMaskSPtr mask)
+  {
+    BlockSPtr block(new AddBlock(mask, false));
+    m_blocks.push_back(block);
+
+    updateBlocksBoundingBox(mask->bounds());
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  const typename T::Pointer SparseVolume<T>::itkImage() const
+  {
+    return itkImage(m_bounds.bounds());
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  const typename T::Pointer SparseVolume<T>::itkImage(const Bounds& bounds) const
+  {
+    if (!bounds.areValid()) throw Invalid_Image_Bounds_Exception();
+
+    VolumeBounds expectedBounds(bounds, m_spacing, m_origin);
+
+    if (!contains(m_bounds, expectedBounds)) throw Invalid_Image_Bounds_Exception();
+
+    auto image     = create_itkImage<T>(bounds, backgroundValue(), m_spacing, m_origin);
+    auto mask      = new BinaryMask<unsigned char>(bounds, m_spacing, m_origin);
+    auto numVoxels = image->GetLargestPossibleRegion().GetNumberOfPixels();
+
+    Q_ASSERT(numVoxels == mask->numberOfVoxels());
+
+    for (int i = m_blocks.size() - 1; i >= 0; --i)
+    {
+      auto block = m_blocks[i];
+
+      VolumeBounds blockBounds(block->bounds());
+
+      if (!intersect(expectedBounds, blockBounds))
+        continue;
+
+      if (numVoxels == 0)
+        break;
+
+      Bounds intersectionBounds = intersection(expectedBounds, blockBounds).bounds();
+
+      BinaryMask<unsigned char>::region_iterator mit(mask, intersectionBounds);
+      itk::ImageRegionIterator<T> iit(image, equivalentRegion<T>(image, intersectionBounds));
+      mit.goToBegin();
+      iit = iit.Begin();
+
+      block->updateImage(iit, mit, intersectionBounds, numVoxels);
+    }
+
+    delete mask;
+
+    return image;
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  void SparseVolume<T>::draw(const vtkImplicitFunction  *brush,
+                             const Bounds               &bounds,
+                             const typename T::ValueType value)
+  {
+    VolumeBounds requestedBounds(bounds, m_spacing, m_origin);
+
+    if (!intersect(m_bounds, requestedBounds))
+      return;
+
+    Bounds intersectionBounds = intersection(m_bounds, requestedBounds).bounds();
+
+    BlockMaskSPtr mask{new BinaryMask<unsigned char>(intersectionBounds, m_spacing, m_origin)};
+    mask->setForegroundValue(value);
+
+    BinaryMask<unsigned char>::region_iterator it(mask.get(), intersectionBounds);
+
+    it.goToBegin();
+    while (!it.isAtEnd())
+    {
+      NmVector3 point = it.getCenter();
+
+      if (const_cast<vtkImplicitFunction *>(brush)->FunctionValue(point[0], point[1], point[2]) <= 0)
+        it.Set();
+      ++it;
+    }
+
+    addBlock(mask);
+  }
+
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  void SparseVolume<T>::draw(const BinaryMaskSPtr<typename T::ValueType> mask,
+                             const typename T::ValueType value)
+  {
+    addBlock(mask);
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  void SparseVolume<T>::draw(const typename T::Pointer volume,
+                             const Bounds&             bounds)
+  {
+    VolumeBounds requestedBounds(bounds, m_spacing, m_origin);
+
+    if (!intersect(m_bounds, requestedBounds))
+      return;
+
+    VolumeBounds inputBounds = volumeBounds<T>(volume, bounds);
+
+    VolumeBounds drawBounds  = intersection(m_bounds, inputBounds);
+
+    typename T::Pointer block;
+
+    if (drawBounds != inputBounds)
+    {
+      using ExtractorType = itk::ExtractImageFilter<T,T>;
+
+      auto extractor = ExtractorType::New();
+      auto region    = equivalentRegion<T>(volume, drawBounds.bounds());
+
+      extractor->SetInput(volume);
+      extractor->SetExtractionRegion(region);
+      extractor->SetInPlace(false);
+      extractor->SetNumberOfThreads(1);
+      extractor->ReleaseDataBeforeUpdateFlagOn();
+      extractor->Update();
+
+      block = extractor->GetOutput();
+    }
+    else
+      block = volume;
+
+    block->DisconnectPipeline();
+
+    setBlock(block);
+  }
+
+  //-----------------------------------------------------------------------------
+  template<class T>
+  void SparseVolume<T>::draw(const typename T::IndexType index,
+                             const typename T::PixelType value)
+  {
+    Q_ASSERT(false);
+//       Bounds bounds { index[0] * m_spacing[0], index[0] * m_spacing[0],
+//                       index[1] * m_spacing[1], index[1] * m_spacing[1],
+//                       index[2] * m_spacing[2], index[2] * m_spacing[2] };
+//
+//       if (!intersect(m_bounds, bounds))
+//         return;
+//
+//       Bounds intersectionBounds = intersection(m_bounds, bounds);
+//       BlockMaskSPtr mask{new BinaryMask<unsigned char>(intersectionBounds, m_spacing)};
+//       mask->setForegroundValue(value);
+//       BinaryMask<unsigned char>::region_iterator it(mask.get(), intersectionBounds);
+//       it.goToBegin();
+//       it.Set();
+//
+//       addBlock(mask);
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  void SparseVolume<T>::resize(const Bounds &bounds)
+  {
+    m_bounds = VolumeBounds(bounds, m_spacing, m_origin);
+    m_blocks_bounding_box = intersection(m_bounds, m_blocks_bounding_box);
+
+    // TODO: Reduce existing blocks??
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  bool SparseVolume<T>::isValid() const
+  {
+    return m_bounds.areValid();
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  bool SparseVolume<T>::fetchData(TemporalStorageSPtr storage, const QString& prefix)
+  {
+    using VolumeReader = itk::ImageFileReader<itkVolumeType>;
+
+    bool dataFetched = false;
+    bool error       = false;
+
+    int i = 0;
+    QFileInfo blockFile(storage->absoluteFilePath(prefix + QString("VolumetricData_%1.mhd").arg(i)));
+
+    m_spacing = this->m_output->spacing();
+
+    auto itkSpacing = ItkSpacing<T>(m_spacing);
+
+    while (blockFile.exists())
+    {
+      VolumeReader::Pointer reader = VolumeReader::New();
+      reader->SetFileName(blockFile.absoluteFilePath().toUtf8().data());
+      reader->Update();
+
+      auto image = reader->GetOutput();
+
+      if (m_spacing == NmVector3())
+      {
+        for(int s=0; s < 3; ++s)
+        {
+          m_spacing[s] = image->GetSpacing()[s];
+          itkSpacing[i] = m_spacing[i];
+        }
+        this->m_output->setSpacing(m_spacing);
+      } else
+      {
+        image->SetSpacing(itkSpacing);
+      }
+
+      setBlock(image);
+
+      ++i;
+      blockFile = storage->absoluteFilePath(prefix + QString("VolumetricData_%1.mhd").arg(i));
+      dataFetched = true;
+    }
+
+    m_bounds = m_blocks_bounding_box;
+
+    return dataFetched && !error;
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  Snapshot SparseVolume<T>::snapshot(TemporalStorageSPtr storage, const QString& prefix) const
+  {
+    using VolumeWriter = itk::ImageFileWriter<itkVolumeType>;
+    Snapshot snapshot;
+
+    compact();
+
+    for(int i = 0; i < m_blocks.size(); ++i)
+    {
+      VolumeWriter::Pointer writer = VolumeWriter::New();
+
+      storage->makePath(prefix);
+
+      QString name = prefix;
+      name += QString("%1_%2").arg(this->type()).arg(i);
+
+      QString mhd = name + ".mhd";
+      QString raw = name + ".raw";
+
+      ImageBlock * block = dynamic_cast<ImageBlock *>(m_blocks[i].get());
+      Q_ASSERT(block);
+
+      if (block)
+      {
+        auto volume = block->m_image;
+        bool releaseFlag = volume->GetReleaseDataFlag();
+        volume->ReleaseDataFlagOff();
+        writer->SetFileName(storage->absoluteFilePath(mhd).toUtf8().data());
+        writer->SetInput(volume);
+        writer->Write();
+        volume->SetReleaseDataFlag(releaseFlag);
+
+        snapshot << SnapshotData(mhd, storage->snapshot(mhd));
+        snapshot << SnapshotData(raw, storage->snapshot(raw));
+      }
+    }
+
+    return snapshot;
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  void SparseVolume<T>::updateBlocksBoundingBox(const VolumeBounds &bounds)
+  {
+    if (m_blocks_bounding_box.areValid()) {
+      m_blocks_bounding_box = boundingBox(m_blocks_bounding_box, bounds);
+    } else {
+      m_blocks_bounding_box = bounds;
+    }
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  void SparseVolume<T>::undo()
+  {
+    m_blocks.pop_back();
+    Q_ASSERT(!m_blocks.empty());
+
+    VolumeBounds bounds = m_blocks[0]->bounds();
+
+    for (auto block: m_blocks)
+      bounds = boundingBox(bounds, block->bounds());
+
+    m_blocks_bounding_box = bounds;
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  void SparseVolume<T>::compact()
+  {
+    using SplitBounds = QPair<VolumeBounds, int>;
+
+    int minSize[3] = {50, 50, 50};
+    for(int i = 0; i < 3; ++i)
+    {
+      minSize[i] *= m_spacing[i];
+    }
+
+    QList<SplitBounds> remaining;
+    remaining << SplitBounds(m_bounds, 0);
+
+    QList<Bounds> blockBounds;
+
+    while(!remaining.isEmpty())
+    {
+      SplitBounds splitBounds = remaining.takeFirst();
+      VolumeBounds bounds = splitBounds.first;
+
+      bool emptyBounds = true;
+      int i = 0;
+      while (emptyBounds && i < m_blocks.size())
+      {
+        VolumeBounds blockBounds = m_blocks[i]->bounds();
+        if (intersect(blockBounds, bounds))
+        {
+          emptyBounds = false;
+        }
+
+        ++i;
+      }
+
+      if (!emptyBounds)
+      {
+        bool minimumBlockSize = bounds.lenght(Axis::X) <= minSize[0]
+                             && bounds.lenght(Axis::Y) <= minSize[1]
+                             && bounds.lenght(Axis::Z) <= minSize[2];
+
+        bool needSplit = !minimumBlockSize;
+
+        if (needSplit)
+        {
+          int splitPlane = splitBounds.second;
+
+          VolumeBounds b1{bounds.bounds(), bounds.spacing(), bounds.origin()};
+          VolumeBounds b2{bounds.bounds(), bounds.spacing(), bounds.origin()};
+
+          Nm splitPoint = (bounds[2*splitPlane] + bounds[2*splitPlane+1]) / 2.0;
+
+          b1.exclude(2*splitPlane+1, splitPoint);
+          b2.exclude(2*splitPlane,   splitPoint-bounds.spacing()[splitPlane]);
+
+          splitPlane = (splitPlane + 1)%3;
+
+          remaining << SplitBounds(b1, splitPlane) << SplitBounds(b2, splitPlane);
+        } else
+        {
+          blockBounds << bounds.bounds();
+        }
+      }
+    }
+
+    QList<typename T::Pointer> blockImages;
+    int i = 0;
+    for(auto bounds : blockBounds)
+    {
+      cout << "Compacting Sparse Volume: " << ++i << "/" << blockBounds.size() << " - " << bounds << endl;
+      typename T::Pointer image = itkImage(bounds);
+      bool empty = true;
+      itk::ImageRegionIterator<T> it(image, image->GetLargestPossibleRegion());
+      it.Begin();
+      while (empty && !it.IsAtEnd())
+      {
+        empty = it.Get() == backgroundValue();
+        ++it;
+      }
+
+      if (!empty) blockImages << itkImage(bounds);
+    }
+
+    cout << "Sparse Volume Compression: " << blockImages.size()*100/blockBounds.size() << "% - " << blockImages.size() << "/" << blockBounds.size() << endl;
+
+    for (int i = 0; i < blockBounds.size(); ++i)
+      for (int j = i+1; j < blockBounds.size(); ++j)
+      {
+        Q_ASSERT(!intersect(blockBounds[i], blockBounds[j]));
+      }
+
+    m_blocks.clear();
+
+    for(auto image : blockImages)
+    {
+      setBlock(image);
+    }
+  }
+
   using SparseVolumePtr  = SparseVolume<itkVolumeType> *;
   using SparseVolumeSPtr = std::shared_ptr<SparseVolume<itkVolumeType>>;
 }
-
-#include "SparseVolume.cpp"
-
 
 #endif // ESPINA_SPARSE_VOLUME_H

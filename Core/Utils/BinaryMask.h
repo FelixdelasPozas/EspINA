@@ -22,13 +22,11 @@
 
 #include <Core/EspinaTypes.h>
 #include <Core/Analysis/Data/VolumetricDataUtils.h>
-#include <Core/Utils/NmVector3.h>
-#include "Core/Utils/Bounds.h"
-#include <Core/Utils/Spatial.h>
 
 #include <itkImage.h>
 #include <itkSmartPointer.h>
 #include <itkImageRegionConstIterator.h>
+#include <itkImageRegionIteratorWithIndex.h>
 
 #include <math.h>
 
@@ -39,11 +37,17 @@ namespace EspINA
   template<typename T > class BinaryMask
   {
     public:
+
+      struct IndexType {
+	IndexType(): x(0), y(0), z(0) {};
+
+	IndexType(const int xv, const int yv, const int zv): x(xv), y(yv), z(zv) {};
+
+        IndexType(const IndexType &i): x(i.x), y(i.y), z(i.z) {};
+	int x; int y; int z;
+      };
+
       using PixelType        = T;
-      using IndexType        = struct index { int x; int y; int z;
-                                              index(): x(0), y(0), z(0) {};
-                                              index(const int xv, const int yv, const int zv): x(xv), y(yv), z(zv) {};
-                                              index(const index &i): x(i.x), y(i.y), z(i.z) {}; };
       using itkImageType     = itk::Image<T,3>;
       using itkIndex         = typename itkImageType::IndexType;
       using itkRegion        = typename itkImageType::RegionType;
@@ -64,7 +68,8 @@ namespace EspINA
        *
        *  Foreground and background will be set to default values.
        */
-      explicit BinaryMask(const Bounds& bounds, const NmVector3 spacing = NmVector3{1,1,1}) throw(Invalid_Bounds_Exception);
+      explicit BinaryMask(const Bounds& bounds, const NmVector3& spacing = NmVector3{1,1,1}, const NmVector3& origin = NmVector3())
+      throw(Invalid_Bounds_Exception);
 
       /** \brief Binary Mask constructor from an image and a background value. Every other
        *   value in the image will be considered as foreground.
@@ -76,8 +81,13 @@ namespace EspINA
 
       /** \brief Returns mask bounds.
        */
-      Bounds bounds() const
+      VolumeBounds bounds() const
       { return m_bounds; }
+
+      void setOrigin(const NmVector3& origin);
+
+      NmVector3 origin() const
+      { return m_origin; }
 
       void setSpacing(const NmVector3& spacing);
 
@@ -89,30 +99,36 @@ namespace EspINA
       /** \brief Returns background value of the mask.
        *   Unset bits in the image will be interpreted as having this value.
        */
-      PixelType backgroundValue() const                { return m_backgroundValue; }
+      PixelType backgroundValue() const
+      { return m_backgroundValue; }
 
       /** \brief Set mask's backgound value.
        *   Unset bits in the image will be interpreted as having this value.
        */
-      void setBackgroundValue(const T backgroundValue) { m_backgroundValue = backgroundValue; }
+      void setBackgroundValue(const T backgroundValue)
+      { m_backgroundValue = backgroundValue; }
 
       /** \brief Returns foreground value of the mask.
        *   Set bits in the image will be interpreted as having this value.
        */
-      PixelType foregroundValue() const                { return m_foregroundValue; }
+      PixelType foregroundValue() const
+      { return m_foregroundValue; }
 
       /** \brief Set mask's foreground value.
        *   Set bits in the image will be interpreted as having this value.
        */
-      void setForegroundValue(const T foregroundValue) { m_foregroundValue = foregroundValue; }
+      void setForegroundValue(const T foregroundValue)
+      { m_foregroundValue = foregroundValue; }
 
       /** \brief Returns the number of voxels of the mask.
        */
-      unsigned long long numberOfVoxels()              { return m_size[0] * m_size[1] * m_size[2]; }
+      unsigned long long numberOfVoxels()
+      { return m_size[0] * m_size[1] * m_size[2]; }
 
       /** \brief Returns the size of the array used for internal storage
        */
-      unsigned long long bufferSize()                  { return (m_size[0] * m_size[1] * m_size[2])/m_integerSize; }
+      unsigned long long bufferSize()
+      { return (m_size[0] * m_size[1] * m_size[2])/m_integerSize; }
 
       /** \brief Returns the number of bytes allocated by this mask
        */
@@ -121,7 +137,8 @@ namespace EspINA
 
       /** \brief Returns the buffer as a QByteArray
        */
-      QByteArray buffer()                              { return QByteArray( reinterpret_cast<const char*>(m_image), static_cast<int>(m_size[0] * m_size[1] * m_size[2])); }
+      QByteArray buffer()
+      { return QByteArray(reinterpret_cast<const char*>(m_image), static_cast<int>(m_size[0] * m_size[1] * m_size[2])); }
 
       /** \brief Set pixel value to foreground value
        */
@@ -140,21 +157,21 @@ namespace EspINA
        */
       typename itkImageType::Pointer itkImage() const;
 
-
-      friend class iterator;
+      friend class iterator;//NOTE: No hace falta
       friend class const_iterator;
       friend class region_iterator;
       friend class const_region_iterator;
 
     private:
-      Bounds        m_bounds;
+      VolumeBounds  m_bounds;
       PixelType     m_backgroundValue;
       PixelType     m_foregroundValue;
       int          *m_image;
       unsigned int  m_integerSize;
+      NmVector3     m_origin;
       NmVector3     m_spacing;
       unsigned long m_size[3];
-      IndexType     m_origin;
+      IndexType     m_indexOrigin;
       unsigned long long m_bufferSize;
 
     public:
@@ -166,7 +183,9 @@ namespace EspINA
           /** \brief iterator for a given mask constructor.
            */
           iterator(BinaryMask<T> *mask)
-          : m_mask(mask), m_pos(0), m_bitPos(0)
+          : m_mask(mask)
+	  , m_pos(0)
+	  , m_bitPos(0)
           {
           }
 
@@ -198,7 +217,7 @@ namespace EspINA
            */
           iterator end()
           {
-            unsigned long long pos = ((m_mask->m_size[0] * m_mask->m_size[1] * m_mask->m_size[2]) / m_mask->m_integerSize);
+            unsigned long long pos    = ((m_mask->m_size[0] * m_mask->m_size[1] * m_mask->m_size[2]) / m_mask->m_integerSize);
             unsigned long long bitpos = ((m_mask->m_size[0] * m_mask->m_size[1] * m_mask->m_size[2]) % m_mask->m_integerSize);
 
             return iterator(*this, pos, bitpos);
@@ -216,7 +235,7 @@ namespace EspINA
            */
           void goToEnd()
           {
-            m_pos = ((m_mask->m_size[0] * m_mask->m_size[1] * m_mask->m_size[2]) / m_mask->m_integerSize);
+            m_pos    = ((m_mask->m_size[0] * m_mask->m_size[1] * m_mask->m_size[2]) / m_mask->m_integerSize);
             m_bitPos = ((m_mask->m_size[0] * m_mask->m_size[1] * m_mask->m_size[2]) % m_mask->m_integerSize);
           }
 
@@ -224,7 +243,7 @@ namespace EspINA
            */
           bool isAtEnd() const
           {
-            return ((m_pos == ((m_mask->m_size[0] * m_mask->m_size[1] * m_mask->m_size[2]) / m_mask->m_integerSize)) &&
+            return ((m_pos    == ((m_mask->m_size[0] * m_mask->m_size[1] * m_mask->m_size[2]) / m_mask->m_integerSize)) &&
                     (m_bitPos == ((m_mask->m_size[0] * m_mask->m_size[1] * m_mask->m_size[2]) % m_mask->m_integerSize)));
           }
 
@@ -368,18 +387,15 @@ namespace EspINA
            *  NOTE: Can throw a Region_Not_Contained_In_Mask if the given region is not
            *        inside the largest possible region of the mask.
            */
-          region_iterator(BinaryMask<T> *mask, const Bounds &bounds) throw (Region_Not_Contained_In_Mask_Exception)
+          region_iterator(BinaryMask<T> *mask, const Bounds &bounds)
+          throw (Region_Not_Contained_In_Mask_Exception)
           : m_mask(mask)
           {
-            if (intersection(bounds, mask->bounds()) != bounds) throw Region_Not_Contained_In_Mask_Exception();
+            m_bounds = VolumeBounds(bounds, mask->m_spacing, mask->m_origin);
 
+            if (!contains(mask->bounds(), m_bounds)) throw Region_Not_Contained_In_Mask_Exception();
 
-            itkVolumeType::Pointer fakeImage = itkVolumeType::New();
-            double dSpacing[3]{m_mask->m_spacing[0], m_mask->m_spacing[1], m_mask->m_spacing[2] };
-            fakeImage->SetSpacing(dSpacing);
-            itkVolumeType::RegionType region = equivalentRegion<itkVolumeType>(fakeImage, bounds);
-
-            m_bounds = equivalentBounds<itkVolumeType>(fakeImage, region);
+            itkVolumeType::RegionType region = equivalentRegion<itkVolumeType>(mask->m_origin, mask->m_spacing, bounds);
 
             m_extent[0] = region.GetIndex(0);
             m_extent[1] = region.GetIndex(0) + region.GetSize(0) - 1;
@@ -413,6 +429,15 @@ namespace EspINA
           const IndexType getIndex() const
           {
             return m_index;
+          }
+
+          NmVector3 getCenter() const
+          {
+            return NmVector3{
+              m_mask->m_origin[0] + m_index.x * m_mask->m_spacing[0],
+              m_mask->m_origin[1] + m_index.y * m_mask->m_spacing[1],
+              m_mask->m_origin[2] + m_index.z * m_mask->m_spacing[2]
+            };
           }
 
           /** \brief Returns an iterator positioned at the beginning of the region of the mask
@@ -476,9 +501,9 @@ namespace EspINA
           bool operator==(const region_iterator& other) const
           {
             bool retValue = true;
-            retValue &= (m_mask == other.m_mask);
-            retValue &= ((m_bounds[0] == other.m_bounds[0]) && (m_bounds[1] == other.m_bounds[1]) && (m_bounds[2] == other.m_bounds[2]) &&
-                         (m_bounds[3] == other.m_bounds[3]) && (m_bounds[4] == other.m_bounds[4]) && (m_bounds[5] == other.m_bounds[5]));
+
+            retValue &= m_mask == other.m_mask;
+            retValue &= m_bounds == other.m_bounds;
             retValue &= (memcmp(m_extent, other.m_extent, 6*sizeof(unsigned long long)) == 0);
             retValue &= ((m_index.x == other.m_index.x) && (m_index.y == other.m_index.y) && (m_index.z == other.m_index.z));
 
@@ -489,14 +514,7 @@ namespace EspINA
            */
           bool operator!=(const region_iterator& other) const
           {
-            bool retValue = true;
-            retValue &= (m_mask != other.m_mask);
-            retValue &= ((m_bounds[0] != other.m_bounds[0]) && (m_bounds[1] != other.m_bounds[1]) && (m_bounds[2] != other.m_bounds[2]) &&
-                         (m_bounds[3] != other.m_bounds[3]) && (m_bounds[4] != other.m_bounds[4]) && (m_bounds[5] != other.m_bounds[5]));
-            retValue &= (memcmp(m_extent, other.m_extent, 6*sizeof(unsigned long long)) != 0);
-            retValue &= ((m_index.x != other.m_index.x) && (m_index.y != other.m_index.y) && (m_index.z != other.m_index.z));
-
-            return retValue;
+            return !operator==(other);
           }
 
           /** \brief Returns the value at the position of the iterator.
@@ -528,8 +546,7 @@ namespace EspINA
            */
           void Set() throw(Out_Of_Bounds_Exception)
           {
-            if (isAtEnd())
-              throw Out_Of_Bounds_Exception();
+            if (isAtEnd()) throw Out_Of_Bounds_Exception();
 
             m_mask->setPixel(m_index);
           }
@@ -540,8 +557,7 @@ namespace EspINA
            */
           void Unset() throw(Out_Of_Bounds_Exception)
           {
-            if (isAtEnd())
-              throw Out_Of_Bounds_Exception();
+            if (isAtEnd()) throw Out_Of_Bounds_Exception();
 
             m_mask->unsetPixel(m_index);
           }
@@ -608,7 +624,7 @@ namespace EspINA
 
         protected:
           BinaryMask<T>     *m_mask;
-          Bounds             m_bounds;
+          VolumeBounds       m_bounds;
           unsigned long long m_extent[6];
           IndexType          m_index;
           mutable PixelType  m_getReturnValue; // just to return the value of Get();
@@ -639,9 +655,277 @@ namespace EspINA
 
   };
 
+  //-------------------------------------------------------------------------------------
+  template<typename T> BinaryMask<T>::BinaryMask(const typename itkImageType::Pointer image, const T &backgroundValue)
+  : m_backgroundValue(backgroundValue)
+  , m_foregroundValue(SEG_VOXEL_VALUE)
+  , m_integerSize(sizeof(int)*8)
+  {
+    itkRegion region = image->GetLargestPossibleRegion();
+    itkIndex  index  = region.GetIndex();
+
+    m_indexOrigin.x = index[0];
+    m_indexOrigin.y = index[1];
+    m_indexOrigin.z = index[2];
+
+    for (int i = 0; i < 3; ++i)
+    {
+      m_origin[i]  = image->GetOrigin()[i];
+      m_spacing[i] = image->GetSpacing()[i];
+    }
+
+    m_bounds = volumeBounds<itkVolumeType>(m_origin, m_spacing, region);
+
+    itkSize size = region.GetSize();
+    m_size[0] = size[0];
+    m_size[1] = size[1];
+    m_size[2] = size[2];
+
+    m_bufferSize = region.GetNumberOfPixels() / m_integerSize;
+
+    if (region.GetNumberOfPixels() % m_integerSize != 0)
+      m_bufferSize++;
+
+    m_image = new int[m_bufferSize];
+    memset(m_image, 0, m_bufferSize*sizeof(int));
+
+    itkConstIterator iit(image, image->GetLargestPossibleRegion());
+    iterator mit(this);
+
+    iit.GoToBegin();
+    mit.goToBegin();
+    while(!mit.isAtEnd())
+    {
+      if (iit.Value() != m_backgroundValue)
+        mit.Set();
+
+      ++mit;
+      ++iit;
+    }
+  }
+
+  //-------------------------------------------------------------------------------------
+  template<typename T>
+  BinaryMask<T>::BinaryMask(const Bounds& bounds, const NmVector3& spacing, const NmVector3& origin)
+  throw(Invalid_Bounds_Exception)
+  : m_backgroundValue(0)
+  , m_foregroundValue(255)
+  , m_integerSize(sizeof(int)*8)
+  , m_origin(origin)
+  , m_spacing(spacing)
+  {
+    if (!bounds.areValid())
+      throw Invalid_Bounds_Exception();
+
+    m_bounds = VolumeBounds(bounds, m_spacing, m_origin);
+
+    itkVolumeType::RegionType region = equivalentRegion<itkVolumeType>(m_origin, m_spacing, bounds);
+
+    Q_ASSERT(isEquivalent(m_bounds, volumeBounds<itkVolumeType>(m_origin, m_spacing, region)));
+    Q_ASSERT(m_bounds == volumeBounds<itkVolumeType>(m_origin, m_spacing, region));
+
+    m_size[0] = region.GetSize(0);
+    m_size[1] = region.GetSize(1);
+    m_size[2] = region.GetSize(2);
+
+    m_indexOrigin.x = region.GetIndex(0);
+    m_indexOrigin.y = region.GetIndex(1);
+    m_indexOrigin.z = region.GetIndex(2);
+
+    m_bufferSize = region.GetNumberOfPixels() / m_integerSize;
+
+    if (region.GetNumberOfPixels() % m_integerSize != 0)
+    {
+      m_bufferSize++;
+    }
+
+    m_image = new int[m_bufferSize];
+
+    memset(m_image, 0, m_bufferSize*sizeof(int));
+  }
+
+  //-------------------------------------------------------------------------------------
+  template<typename T>
+  BinaryMask<T>::~BinaryMask()
+  {
+    if (m_image) delete[] m_image;
+  }
+
+  //-------------------------------------------------------------------------------------
+  template<typename T>
+  void BinaryMask<T>::setOrigin(const NmVector3& spacing)
+  {
+    Q_ASSERT(false);
+  }
+
+  //-------------------------------------------------------------------------------------
+  template<typename T>
+  void BinaryMask<T>::setSpacing(const NmVector3& spacing)
+  {
+    Q_ASSERT(false);
+//     if (m_spacing != spacing)
+//     {
+//       NmVector3 origin;//TODO: Update API to use mask with origin != (0,0,0)???
+//       auto region = equivalentRegion<itkVolumeType>(origin, m_spacing, m_bounds);
+//
+//       m_spacing = spacing;
+//
+//       m_bounds = equivalentBounds<itkVolumeType>(origin, m_spacing, region);
+//     }
+  }
+
+  //-------------------------------------------------------------------------------------
+  template<typename T>
+  void BinaryMask<T>::setPixel(const IndexType& index)
+  throw(Out_Of_Bounds_Exception)
+  {
+    NmVector3 point = {
+      m_origin[0] + static_cast<Nm>(index.x)*m_spacing[0],
+      m_origin[1] + static_cast<Nm>(index.y)*m_spacing[1],
+      m_origin[2] + static_cast<Nm>(index.z)*m_spacing[2]
+    };
+
+    if (!contains(m_bounds, point)) throw Out_Of_Bounds_Exception();
+
+    // we must adjust the index
+    IndexType newIndex;
+    newIndex.x = index.x - m_indexOrigin.x;
+    newIndex.y = index.y - m_indexOrigin.y;
+    newIndex.z = index.z - m_indexOrigin.z;
+
+    unsigned long valuePosition = newIndex.x + (newIndex.y * m_size[0]) + (newIndex.z * m_size[0]*m_size[1]);
+    unsigned long imageOffset   = valuePosition / m_integerSize;
+    unsigned long valueOffset   = valuePosition % m_integerSize;
+
+    Q_ASSERT(imageOffset < m_bufferSize);
+
+    m_image[imageOffset] = m_image[imageOffset] | (1 << valueOffset);
+  }
+
+  //-------------------------------------------------------------------------------------
+  template<typename T>
+  void BinaryMask<T>::unsetPixel(const IndexType& index)
+  throw(Out_Of_Bounds_Exception)
+  {
+    NmVector3 point = {
+      m_origin[0] + static_cast<Nm>(index.x)*m_spacing[0],
+      m_origin[1] + static_cast<Nm>(index.y)*m_spacing[1],
+      m_origin[2] + static_cast<Nm>(index.z)*m_spacing[2]
+    };
+
+    if (!contains(m_bounds, point)) throw Out_Of_Bounds_Exception();
+
+    // we must adjust the index
+    IndexType newIndex;
+    newIndex.x = index.x - m_indexOrigin.x;
+    newIndex.y = index.y - m_indexOrigin.y;
+    newIndex.z = index.z - m_indexOrigin.z;
+
+    unsigned long valuePosition = newIndex.x + (newIndex.y * m_size[0]) + (newIndex.z * m_size[0]*m_size[1]);
+    unsigned long imageOffset   = valuePosition / m_integerSize;
+    unsigned long valueOffset   = valuePosition % m_integerSize;
+
+    Q_ASSERT(imageOffset < m_bufferSize);
+    m_image[imageOffset] = m_image[imageOffset] & ~(1 << valueOffset);
+  }
+
+  //-------------------------------------------------------------------------------------
+  template<typename T> typename
+  BinaryMask<T>::PixelType BinaryMask<T>::pixel(const IndexType& index) const
+  throw(Out_Of_Bounds_Exception)
+  {
+    NmVector3 point = {
+      m_origin[0] + static_cast<Nm>(index.x)*m_spacing[0],
+      m_origin[1] + static_cast<Nm>(index.y)*m_spacing[1],
+      m_origin[2] + static_cast<Nm>(index.z)*m_spacing[2]
+    };
+
+    if (!contains(m_bounds, point)) throw Out_Of_Bounds_Exception();
+
+    // we must adjust the index
+    IndexType newIndex;
+    newIndex.x = index.x - m_indexOrigin.x;
+    newIndex.y = index.y - m_indexOrigin.y;
+    newIndex.z = index.z - m_indexOrigin.z;
+
+    unsigned long long valuePosition = newIndex.x + (newIndex.y * m_size[0]) + (newIndex.z * m_size[0]*m_size[1]);
+    unsigned long long imageOffset   = valuePosition / m_integerSize;
+    unsigned long long valueOffset   = valuePosition % m_integerSize;
+
+    Q_ASSERT(imageOffset < m_bufferSize);
+    bool isSet = ((m_image[imageOffset] & (1 << valueOffset)) == (1 << valueOffset));
+
+    return isSet?m_foregroundValue:m_backgroundValue;
+  }
+
+  //-------------------------------------------------------------------------------------
+  template<typename T>
+  typename BinaryMask<T>::itkImageType::Pointer BinaryMask<T>::itkImage() const
+  {
+    using ImagePointer  = typename itkImageType::Pointer;
+    using ImageRegion   = typename itkImageType::RegionType;
+    using ImagePoint    = typename itkImageType::PointType;
+    using ImageIndex    = typename itkImageType::RegionType::IndexType;
+    using ImageSize     = typename itkImageType::RegionType::SizeType;
+    using ImageSpacing  = typename itkImageType::SpacingType;
+    using ImageIterator = typename itk::ImageRegionIteratorWithIndex<itkImageType>;
+    using MaskIterator  = typename BinaryMask<T>::const_region_iterator;
+
+    ImageIndex index;
+    index[0] = m_indexOrigin.x;
+    index[1] = m_indexOrigin.y;
+    index[2] = m_indexOrigin.z;
+
+    ImageSize size;
+    size[0] = m_size[0];
+    size[1] = m_size[1];
+    size[2] = m_size[2];
+
+    ImageRegion region;
+    region.SetIndex(index);
+    region.SetSize(size);
+
+    ImageSpacing spacing;
+    spacing[0] = m_spacing[0];
+    spacing[1] = m_spacing[1];
+    spacing[2] = m_spacing[2];
+
+    ImagePoint origin;
+    origin[0] = m_indexOrigin.x;
+    origin[1] = m_indexOrigin.y;
+    origin[2] = m_indexOrigin.z;
+
+    ImagePointer image = itkImageType::New();
+    image->SetOrigin(origin);
+    image->SetRegions(region);
+    image->SetSpacing(spacing);
+    image->Allocate();
+    image->FillBuffer(m_backgroundValue);
+
+    ImageIterator iit(image, region);
+
+    MaskIterator mit(this, m_bounds.bounds());
+
+    ImageIndex imageIndex;
+    IndexType maskIndex;
+
+    // TODO: use itk & mask raw buffers to make a fast copy
+    for (auto i = 0; i < region.GetNumberOfPixels(); ++i, ++mit)
+    {
+      maskIndex = mit.getIndex();
+      imageIndex[0] = maskIndex.x;
+      imageIndex[1] = maskIndex.y;
+      imageIndex[2] = maskIndex.z;
+      image->SetPixel(imageIndex, mit.Get());
+    }
+
+    return image;
+  }
+
   template<class T> using BinaryMaskPtr  = BinaryMask<T> *;
   template<class T> using BinaryMaskSPtr = std::shared_ptr<BinaryMask<T>>;
 
 } // namespace EspINA
+
 
 #endif // ESPINA_BINARY_MASK_H

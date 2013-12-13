@@ -75,6 +75,14 @@ bool Test_Bounds_Constructor(NmVector3 origin, NmVector3 spacing)
   Bounds bounds{o0-s0/2, o0, o1, o1+s1/2, o2-0.1, o2+0.1};
   VolumeBounds volume(bounds, spacing, origin);
 
+  VolumeBounds copy{volume.bounds(), spacing, origin};
+  if (copy != volume)
+  {
+    cerr << "Unexpected volume bounds: " << copy << ". Expected value: " << volume << endl;
+    error = true;
+  }
+
+
   if (volume != reference)
   {
     cerr << "Unexpected volume bounds: " << volume << ". Expected value: " << reference << endl;
@@ -96,6 +104,8 @@ bool Test_Bounds_Constructor(NmVector3 origin, NmVector3 spacing)
     cerr << "Unexpected volume bounds: " << biggerVolume << ". Expected value: " << expected << endl;
     error = true;
   }
+
+  return error;
 }
 
 int bounds_constructor( int argc, char** argv )

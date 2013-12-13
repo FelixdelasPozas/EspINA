@@ -30,7 +30,7 @@
 
 #include <Core/EspinaTypes.h>
 #include <Core/Analysis/Data/VolumetricDataUtils.h>
-#include <boost/graph/graph_concepts.hpp>
+#include <vtkMath.h>
 
 using namespace EspINA;
 
@@ -45,6 +45,62 @@ VolumeBounds::VolumeBounds(const Bounds& bounds, const NmVector3& spacing, const
 
     m_bounds = equivalentBounds<itkVolumeType>(m_origin, m_spacing, region);
   }
+}
+
+//-----------------------------------------------------------------------------
+void VolumeBounds::exclude(int idx, Nm value)
+{
+  int i = idx/2;
+
+  if (idx % 2 == 0)
+  {
+    if (areEqual(m_bounds[idx], value))
+    {
+      m_bounds[idx] += m_spacing[i];
+
+      if (areEqual(m_bounds[2*i], m_bounds[2*i+1]))
+      {
+        qWarning() << "WARNING: Empty bounds";
+      }
+    } else if (m_bounds[idx] < value)
+    {
+      Nm p = (value - m_origin[i])/m_spacing[i];
+      int index = vtkMath::Round(p) + 1;
+      m_bounds[idx] = index*m_spacing[i] - m_spacing[i]/2;
+    }
+  } else if (value < m_bounds[idx])
+  {
+    int index = int((value - m_origin[i])/m_spacing[i]);
+    m_bounds[idx] = index*m_spacing[i] - m_spacing[i]/2;
+  }
+}
+
+//-----------------------------------------------------------------------------
+void VolumeBounds::include(int idx, Nm value)
+{
+  int i = idx/2;
+
+  if (idx % 2 != 0)
+  {
+    if (areEqual(m_bounds[idx], value))
+    {
+      m_bounds[idx] += m_spacing[i];
+
+      if (areEqual(m_bounds[2*i], m_bounds[2*i+1]))
+      {
+        qWarning() << "WARNING: Empty bounds";
+      }
+    } else if (m_bounds[idx] < value)
+    {
+      int index = (value - m_origin[i])/m_spacing[i] + 1;
+      m_bounds[idx] = index*m_spacing[i] + m_spacing[i]/2;
+    }
+  } else if (value < m_bounds[idx])
+  {
+    int index = (value - m_origin[i])/m_spacing[i];
+    m_bounds[idx] = index*m_spacing[i] - m_spacing[i]/2;
+  }
+
 }
 
 //-----------------------------------------------------------------------------
@@ -172,6 +228,22 @@ bool EspINA::contains(const VolumeBounds &container, const VolumeBounds &contain
   if (!isCompatible(container, contained)) return false;
 
   return contains(container.bounds(), contained.bounds());
+}
+
+//-----------------------------------------------------------------------------
+bool EspINA::contains(const VolumeBounds &bounds, const NmVector3 &point)
+{
+  for (int i = 0; i < 3; ++i)
+  {
+    int lo = 2*i;
+    int up = 2*i+1;
+
+    if (!areEqual(bounds[lo], point[i]) && point[i] < bounds[lo]) return false;
+
+    if ( areEqual(bounds[up], point[i]) || point[i] > bounds[up]) return false;
+  }
+
+  return true;
 }
 
 //-----------------------------------------------------------------------------

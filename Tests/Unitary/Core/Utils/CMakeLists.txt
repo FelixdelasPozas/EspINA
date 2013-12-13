@@ -1,3 +1,8 @@
+include_directories(
+  .
+  ${CORE_DIR}/Utils
+  )
+
 set(LIB_DEPENDECIES
   )
 

@@ -76,8 +76,19 @@ namespace EspINA
       NmVector3 spacing() const
       { return m_spacing; }
 
+      /** \brief Exclude the voxel corresponging to value
+       *
+       */
+      void exclude(int idx, Nm value);
+
+      /** \brief Include the voxel correspongind to value
+       *
+       */
+      void include(int idx, Nm value);
+
       Bounds bounds() const
       { return m_bounds; }
+
       QString toString() const;
 
     private:
@@ -130,7 +141,7 @@ namespace EspINA
    */
   bool EspinaCore_EXPORT contains(const VolumeBounds& container, const VolumeBounds& contained);
 
-//   bool  EspinaCore_EXPORT contains(const Bounds& bounds, const NmVector3& point);
+  bool EspinaCore_EXPORT contains(const VolumeBounds& bounds, const NmVector3& point);
 
   std::ostream& EspinaCore_EXPORT operator<<(std::ostream& os, const VolumeBounds& bounds);
 

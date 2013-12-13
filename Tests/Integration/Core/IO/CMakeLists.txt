@@ -44,8 +44,8 @@ add_executable(IO_Tests
   ${CORE_DIR}/IO/SegFile_V5.cpp
   ${CORE_DIR}/MultiTasking/Scheduler.cpp
   ${CORE_DIR}/MultiTasking/Task.cpp
-  ${CORE_DIR}/Utils/BinaryMask.cpp
   ${CORE_DIR}/Utils/Bounds.cpp
+  ${CORE_DIR}/Utils/VolumeBounds.cpp
   ${CORE_DIR}/Utils/NmVector3.cpp
   ${CORE_DIR}/Utils/TemporalStorage.cpp
   io_testing_support.cpp

@@ -35,18 +35,17 @@ using namespace std;
 using namespace EspINA;
 using namespace EspINA::Testing;
 
-
 typedef unsigned char VoxelType;
 typedef itk::Image<VoxelType, 3> ImageType;
 
-int sparse_volume_draw_implicit_function_with_bigger_bounds( int argc, char** argv )
+int draw_implicit_function( int argc, char** argv )
 {
   bool pass = true;
 
  auto bg = 0;
  auto fg = 255;
 
- Bounds bounds{0, 4, 0, 4, 0, 4};
+ Bounds bounds{-0.5, 3.5, -0.5, 3.5, -0.5, 3.5};
  SparseVolume<ImageType> canvas(bounds);
 
  if (!Testing_Support<ImageType>::Test_Pixel_Values(canvas.itkImage(), bg)) {
@@ -54,18 +53,30 @@ int sparse_volume_draw_implicit_function_with_bigger_bounds( int argc, char** ar
    pass = false;
  }
 
- auto brush = vtkSmartPointer<vtkNaiveFunction>::New();
- canvas.draw(brush, Bounds(), fg);
- if (!Testing_Support<ImageType>::Test_Pixel_Values(canvas.itkImage(), bg)) {
-   cerr << "Drawing on invalid bounds shouldn't change voxel values" << endl;
+ Bounds lowerHalfVolume{-0.5, 3.5, -0.5, 3.5, -0.5, 1.5};
+ if (!Testing_Support<ImageType>::Test_Pixel_Values(canvas.itkImage(lowerHalfVolume), bg, lowerHalfVolume)) {
+   cerr << "Initial Pixel values inside " << lowerHalfVolume << " should be " << bg << endl;
    pass = false;
  }
 
- Bounds biggerBounds{-2, 6, -2, 6, -2, 6};
- canvas.draw(brush, biggerBounds, fg);
+ auto brush = vtkSmartPointer<vtkNaiveFunction>::New();
+ canvas.draw(brush, lowerHalfVolume, fg);
 
- if (!Testing_Support<ImageType>::Test_Pixel_Values(canvas.itkImage(), fg)) {
-   cerr << "Voxel values have not change to " << fg << endl;
+ if (!Testing_Support<ImageType>::Test_Pixel_Values(canvas.itkImage(lowerHalfVolume), fg, lowerHalfVolume)) {
+   cerr << "Pixel values inside " << lowerHalfVolume << " should be " << fg << endl;
+   pass = false;
+ }
+
+ Bounds upperHalfVolume{-0.5, 3.5, -0.5, 3.5, 1.5, 3.5};
+ if (!Testing_Support<ImageType>::Test_Pixel_Values(canvas.itkImage(upperHalfVolume), bg, upperHalfVolume)) {
+   cerr << "Pixel values inside " << upperHalfVolume << " should be " << bg << endl;
+   pass = false;
+ }
+
+ canvas.draw(brush, lowerHalfVolume, bg);
+
+ if (!Testing_Support<ImageType>::Test_Pixel_Values(canvas.itkImage(lowerHalfVolume), bg, lowerHalfVolume)) {
+   cerr << "Pixel values inside " << lowerHalfVolume << " should be " << bg << endl;
    pass = false;
  }
 

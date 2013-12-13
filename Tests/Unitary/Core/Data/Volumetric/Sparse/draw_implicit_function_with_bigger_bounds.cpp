@@ -29,64 +29,45 @@
 #include "Core/Analysis/Data/Volumetric/SparseVolume.h"
 #include "Tests/Unitary/Testing_Support.h"
 
+#include <vtkSmartPointer.h>
+
 using namespace std;
 using namespace EspINA;
 using namespace EspINA::Testing;
 
+
 typedef unsigned char VoxelType;
 typedef itk::Image<VoxelType, 3> ImageType;
 
-int sparse_volume_bounds_constructor( int argc, char** argv )
+int draw_implicit_function_with_bigger_bounds( int argc, char** argv )
 {
-  int error = 0;
+  bool pass = true;
 
- const int w = 10;
- const int h = 20;
- const int d = 30;
+ auto bg = 0;
+ auto fg = 255;
 
- const Bounds constructorBounds{0, w, 0, h, 0, d};
- const Bounds expectedBounds{-0.5, w+0.5, -0.5, h+0.5, -0.5, d+0.5};
+ Bounds bounds{0, 4, 0, 4, 0, 4};
+ SparseVolume<ImageType> canvas(bounds);
 
- SparseVolume<ImageType> volume(constructorBounds);
-
- Bounds bounds = volume.bounds();
-
- if (bounds != expectedBounds) {
-   cerr << "Volume bounds " << bounds << " don't match contructor bounds " << expectedBounds << endl;
-   error = EXIT_FAILURE;
+ if (!Testing_Support<ImageType>::Test_Pixel_Values(canvas.itkImage(), bg)) {
+   cerr << "Initial values are not initialized to " << bg << endl;
+   pass = false;
  }
 
- if (!bounds.areValid()) {
-   cerr << "Bounds: " << bounds << ". Expected valid bounds" << endl;
-   error = EXIT_FAILURE;
+ auto brush = vtkSmartPointer<vtkNaiveFunction>::New();
+ canvas.draw(brush, Bounds(), fg);
+ if (!Testing_Support<ImageType>::Test_Pixel_Values(canvas.itkImage(), bg)) {
+   cerr << "Drawing on invalid bounds shouldn't change voxel values" << endl;
+   pass = false;
  }
 
- for (auto dir : {Axis::X, Axis::Y, Axis::Z}) {
-   if (!bounds.areLowerIncluded(dir)) {
-     cerr << "Bounds must have lower bounds included" << endl;
-     error = EXIT_FAILURE;
-   }
+ Bounds biggerBounds{-2, 6, -2, 6, -2, 6};
+ canvas.draw(brush, biggerBounds, fg);
 
-   if (bounds.areUpperIncluded(dir)) {
-     cerr << "Bounds must have upper bounds excluded" << endl;
-     error = EXIT_FAILURE;
-   }
+ if (!Testing_Support<ImageType>::Test_Pixel_Values(canvas.itkImage(), fg)) {
+   cerr << "Voxel values have not change to " << fg << endl;
+   pass = false;
  }
 
- if (volume.memoryUsage() != 0) {
-   cerr << "Default constructed Sparse Volume memory usage must be 0" << endl;
-   error = EXIT_FAILURE;
- }
-
- if (volume.backgroundValue() != 0) {
-   cerr << "Default background value must be 0" << endl;
-   error = EXIT_FAILURE;
- }
-
- if (!Testing_Support<ImageType>::Test_Pixel_Values(volume.itkImage(), volume.backgroundValue())) {
-   cerr << "Default constructed volume pixels must be set to background value" << endl;
-   error = EXIT_FAILURE;
- }
-
-  return error;
+  return !pass;
 }

@@ -62,5 +62,35 @@ int inclusion( int argc, char** argv )
     error = true;
   }
 
+  NmVector3 inside;
+  if (!contains(container, inside)) {
+    cerr << inside <<  " is contained inside " << container << endl;
+    error = true;
+  }
+
+  NmVector3 leftCorner{-1.5, -1.5, -1.5};
+  if (!contains(container, leftCorner)) {
+    cerr << leftCorner <<  " is contained inside " << container << endl;
+    error = true;
+  }
+
+  NmVector3 rightCorner{1.5, 1.5, 1.5};
+  if (contains(container, rightCorner)) {
+    cerr << rightCorner <<  " is not contained inside " << container << endl;
+    error = true;
+  }
+
+  NmVector3 outerLetf{-2.5, -2.5, -2.5};
+  if (contains(container, outerLetf)) {
+    cerr << outerLetf <<  " is not contained inside " << container << endl;
+    error = true;
+  }
+
+  NmVector3 outerRight{2.5, 2.5, 2.5};
+  if (contains(container, outerRight)) {
+    cerr << outerRight <<  " is not contained inside " << container << endl;
+    error = true;
+  }
+
   return error;
 }

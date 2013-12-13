@@ -29,7 +29,7 @@ using namespace EspINA;
 
 using BMask = BinaryMask<unsigned char>;
 
-int binaryMask_itkImage_constructor(int argc, char** argv)
+int itkImage_constructor(int argc, char** argv)
 {
   bool error = false;
 
@@ -37,13 +37,16 @@ int binaryMask_itkImage_constructor(int argc, char** argv)
   index[0] = 1;
   index[1] = 2;
   index[2] = 3;
+
   BMask::itkSize size;
   size[0] = 5;
   size[1] = 5;
   size[2] = 5;
+
   BMask::itkRegion region;
   region.SetIndex(index);
   region.SetSize(size);
+
   BMask::itkSpacing spacing;
   spacing[0] = 3;
   spacing[1] = 4;
@@ -68,20 +71,20 @@ int binaryMask_itkImage_constructor(int argc, char** argv)
     ++it;
   }
 
-  BMask *mask = new BMask(image, 0);
+  BMask mask(image, 0);
 
-  NmVector3 otherSpacing(mask->spacing());
+  NmVector3 otherSpacing(mask.spacing());
   error |= ((otherSpacing[0] != spacing[0]) && (otherSpacing[1] != spacing[1]) && (otherSpacing[2] != spacing[2]));
 
-  Bounds bounds = mask->bounds();
+  VolumeBounds bounds = mask.bounds();
   error |= ((index[0] * spacing[0] - spacing[0]/2 != bounds[0]) && ((index[0]+size[0]) * spacing[0] - spacing[0]/2  != bounds[1]) &&
             (index[1] * spacing[1] - spacing[1]/2 != bounds[2]) && ((index[1]+size[1]) * spacing[1] - spacing[1]/2  != bounds[3]) &&
             (index[2] * spacing[2] - spacing[2]/2 != bounds[4]) && ((index[2]+size[2]) * spacing[2] - spacing[2]/2  != bounds[5]));
 
-  mask->setForegroundValue(1);
+  mask.setForegroundValue(1);
 
   QString maskVolumeValues;
-  BMask::const_iterator ri(mask);
+  BMask::const_iterator ri(&mask);
   int b = 0;
   while(!ri.isAtEnd())
   {

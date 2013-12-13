@@ -87,7 +87,7 @@ void FreeFormSource::execute(Output::Id id)
   emit progress(50);
   if (!canExecute()) return;
 
-  SparseVolume<itkVolumeType> *volume{new SparseVolume<itkVolumeType>(m_mask->bounds(), m_mask->spacing())};
+  SparseVolume<itkVolumeType> *volume{new SparseVolume<itkVolumeType>(m_mask->bounds().bounds(), m_mask->spacing(), m_mask->origin())};
   volume->draw(m_mask);
 
   emit progress(75);

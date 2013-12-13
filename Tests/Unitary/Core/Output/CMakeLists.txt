@@ -36,10 +36,10 @@ add_executable(Output_Tests
   ${CORE_DIR}/Factory/CoreFactory.cpp
   ${CORE_DIR}/MultiTasking/Scheduler.cpp
   ${CORE_DIR}/MultiTasking/Task.cpp
-  ${CORE_DIR}/Utils/BinaryMask.cpp
   ${CORE_DIR}/Utils/Bounds.cpp
   ${CORE_DIR}/Utils/NmVector3.cpp
   ${CORE_DIR}/Utils/TemporalStorage.cpp
+  ${CORE_DIR}/Utils/VolumeBounds.cpp
   output_testing_support.cpp
   )
 

@@ -54,7 +54,17 @@ namespace EspINA
   /** \brief Return the minimum complete bounds for any image of given origin and spacing
    */
   template<typename T>
+  VolumeBounds volumeBounds(const NmVector3& origin, const NmVector3& spacing, const typename T::RegionType& region);
+
+  /** \brief Return the minimum complete bounds for any image of given origin and spacing
+   */
+  template<typename T>
   VolumeBounds volumeBounds(const typename T::Pointer image, const Bounds& bounds);
+
+  /** \brief Return the minimum complete bounds for any image of given origin and spacing
+   */
+  template<typename T>
+  VolumeBounds volumeBounds(const typename T::Pointer image, const typename T::RegionType& region);
 
   /** \brief Return the minimum complete bounds for any image of given origin and spacing
    */

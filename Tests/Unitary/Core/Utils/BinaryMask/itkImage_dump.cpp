@@ -28,30 +28,30 @@ using namespace EspINA;
 
 using BMask = BinaryMask<unsigned char>;
 
-int binaryMask_itkImage_dump(int argc, char** argv)
+int itkImage_dump(int argc, char** argv)
 {
   Bounds bounds{0,4,0,4,0,4 };
-  BMask *mask = new BMask(bounds);
+  BMask mask(bounds);
 
   Bounds regionBounds{ 1,3,1,3,1,3 };
-  BMask::region_iterator crit(mask, regionBounds);
+  BMask::region_iterator crit(&mask, regionBounds);
 
   while (!crit.isAtEnd())
   {
     crit.Set();
     ++crit;
   }
-  mask->setForegroundValue(1);
+  mask.setForegroundValue(1);
 
   QString maskValues;
-  BMask::region_iterator ri(mask, mask->bounds());
+  BMask::region_iterator ri(&mask, bounds);
   while(!ri.isAtEnd())
   {
     maskValues += QString(ri.Get());
     ++ri;
   }
 
-  itkVolumeType::Pointer image = mask->itkImage();
+  itkVolumeType::Pointer image = mask.itkImage();
   itkVolumeType::RegionType region = image->GetLargestPossibleRegion();
   itk::ImageRegionConstIteratorWithIndex<itkVolumeType> it(image, region);
   itkVolumeType::IndexType imageIndex;

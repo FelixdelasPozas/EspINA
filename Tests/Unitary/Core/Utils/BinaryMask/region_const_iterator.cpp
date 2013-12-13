@@ -20,61 +20,41 @@
 #include <Core/Utils/Bounds.h>
 #include <Core/EspinaTypes.h>
 
-#include <itkImageRegionConstIterator.h>
-
 using namespace EspINA;
 
 using BMask = BinaryMask<unsigned char>;
 
-int binaryMask_modify_mask(int argc, char** argv)
+int region_const_iterator(int argc, char** argv)
 {
   bool error = false;
 
-  Bounds bounds{ -0.5,3.5,-0.5,3.5,-0.5,3.5 };
-  BMask *mask = new BMask(bounds);
-  BMask::iterator cit(mask);
-  cit.goToBegin();
-  unsigned int i = 0;
-  while(!cit.isAtEnd())
-  {
-    if (i % 2)
-      cit.Set();
+  Bounds bounds{ 0,9,0,9,0,9 };
+  BMask mask(bounds);
 
-    ++cit;
-    ++i;
+  Bounds regionBounds{ 1,8,1,8,1,8 };
+  BMask::const_region_iterator crit(&mask, regionBounds);
+
+  // the rest have been tested in non-const iterator
+  crit.goToEnd();
+  try
+  {
+    crit.Set();
+    error |= true;
+  }
+  catch (BMask::Const_Violation_Exception const &e)
+  {
+    error |= false;
   }
 
-  cit.goToBegin();
-  i = 0;
-  QString volumeBits;
-  while (!cit.isAtEnd())
+  try
   {
-    try
-    {
-      if (i % 2)
-      {
-        error |= (mask->foregroundValue() != cit.Get());
-        volumeBits += "1";
-      }
-      else
-      {
-        error |= (mask->backgroundValue() != cit.Get());
-        volumeBits += "0";
-      }
-    }
-    catch(...)
-    {
-      return true;
-    }
-
-    ++cit;
-    ++i;
+    crit.Unset();
+    error |= true;
   }
-
-  error |= (i != mask->numberOfVoxels());
-  error |= (64 != volumeBits.length());
-  QString volumeTestValue("0101010101010101010101010101010101010101010101010101010101010101");
-  error |= (volumeBits != volumeTestValue);
+  catch (BMask::Const_Violation_Exception const &e)
+  {
+    error |= false;
+  }
 
   return error;
 }

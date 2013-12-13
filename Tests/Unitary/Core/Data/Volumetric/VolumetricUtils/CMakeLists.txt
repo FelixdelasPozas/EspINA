@@ -18,7 +18,7 @@ add_executable(VolumetricUtils_Tests
   ${CORE_DIR}/Analysis/Data.cpp
   ${CORE_DIR}/Utils/Bounds.cpp
   ${CORE_DIR}/Utils/NmVector3.cpp
-  ${CORE_DIR}/Utils/BinaryMask.cpp
+  ${CORE_DIR}/Utils/VolumeBounds.cpp
     ../../../../Testing_Support.cpp
   )
 

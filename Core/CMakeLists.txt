@@ -39,7 +39,6 @@ set (CORE_SOURCES
   MultiTasking/Scheduler.cpp
   MultiTasking/Task.cpp
   Utils/AnalysisUtils.cpp
-  Utils/BinaryMask.cpp
   Utils/Bounds.cpp
   Utils/Measure.cpp
   Utils/NmVector3.cpp

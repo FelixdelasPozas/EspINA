@@ -29,8 +29,6 @@
 #include "Core/Analysis/Data/Volumetric/SparseVolume.h"
 #include "Tests/Unitary/Testing_Support.h"
 
-#include <vtkSmartPointer.h>
-
 using namespace std;
 using namespace EspINA;
 using namespace EspINA::Testing;
@@ -38,57 +36,57 @@ using namespace EspINA::Testing;
 typedef unsigned char VoxelType;
 typedef itk::Image<VoxelType, 3> ImageType;
 
-int sparse_volume_compact( int argc, char** argv )
+int bounds_constructor( int argc, char** argv )
 {
-  bool pass = true;
+  int error = 0;
 
- auto bg = 0;
- auto fg = 255;
+ const int w = 10;
+ const int h = 20;
+ const int d = 30;
 
- int size = 100;
+ const Bounds constructorBounds{0, w, 0, h, 0, d};
+ const Bounds expectedBounds{-0.5, w+0.5, -0.5, h+0.5, -0.5, d+0.5};
 
- Bounds bounds{0, size-1, 0, size-1, 0, size-1};
- SparseVolume<ImageType> canvas(bounds);
+ SparseVolume<ImageType> volume(constructorBounds);
 
- if (canvas.memoryUsage() != 0)
- {
-   cerr << "Invalid memory usage" << endl;
-   pass = false;
+ Bounds bounds = volume.bounds();
+
+ if (bounds != expectedBounds) {
+   cerr << "Volume bounds " << bounds << " don't match contructor bounds " << expectedBounds << endl;
+   error = EXIT_FAILURE;
  }
 
- Bounds lowerHalfVolume{-0.5, size-0.5, -0.5, size-0.5, -0.5, size/2 - 0.5};
-
- auto brush = vtkSmartPointer<vtkNaiveFunction>::New();
- canvas.draw(brush, lowerHalfVolume, fg);
-
- auto numberOfEditedVoxels = size*size*size/2;
- auto editedSize = numberOfEditedVoxels*sizeof(ImageType::ValueType);
- auto maskSize   = editedSize/8;
-
- if (canvas.memoryUsage() != maskSize)
- {
-   cerr << "Invalid memory usage" << endl;
-   pass = false;
+ if (!bounds.areValid()) {
+   cerr << "Bounds: " << bounds << ". Expected valid bounds" << endl;
+   error = EXIT_FAILURE;
  }
 
- Bounds upperHalfVolume{-0.5, size-0.5, -0.5, size-0.5, size/2 - 0.5, size-0.5};
+ for (auto dir : {Axis::X, Axis::Y, Axis::Z}) {
+   if (!bounds.areLowerIncluded(dir)) {
+     cerr << "Bounds must have lower bounds included" << endl;
+     error = EXIT_FAILURE;
+   }
 
- canvas.draw(brush, upperHalfVolume, fg);
- canvas.draw(brush, upperHalfVolume, bg);
-
- if (canvas.memoryUsage() != 3*maskSize)
- {
-   cerr << "Invalid memory usage" << endl;
-   pass = false;
+   if (bounds.areUpperIncluded(dir)) {
+     cerr << "Bounds must have upper bounds excluded" << endl;
+     error = EXIT_FAILURE;
+   }
  }
 
- canvas.compact();
-
- if (canvas.memoryUsage() != editedSize)
- {
-   cerr << "Invalid memory usage" << endl;
-   pass = false;
+ if (volume.memoryUsage() != 0) {
+   cerr << "Default constructed Sparse Volume memory usage must be 0" << endl;
+   error = EXIT_FAILURE;
  }
 
- return !pass;
+ if (volume.backgroundValue() != 0) {
+   cerr << "Default background value must be 0" << endl;
+   error = EXIT_FAILURE;
+ }
+
+ if (!Testing_Support<ImageType>::Test_Pixel_Values(volume.itkImage(), volume.backgroundValue())) {
+   cerr << "Default constructed volume pixels must be set to background value" << endl;
+   error = EXIT_FAILURE;
+ }
+
+  return error;
 }

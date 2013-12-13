@@ -106,7 +106,17 @@ Bounds equivalentBounds(const NmVector3& origin, const NmVector3& spacing, const
 
 //-----------------------------------------------------------------------------
 template<typename T>
-VolumeBounds equivalentBounds(const typename T::Pointer image, const Bounds& bounds)
+VolumeBounds volumeBounds(const NmVector3& origin, const NmVector3& spacing, const typename T::RegionType& region)
+{
+  return volumeBounds<T>(define_itkImage<T>(origin, spacing), region);
+
+  //typename T::Pointer image = define_itkImage<T>(origin, spacing);
+  // return volumeBounds<T>(image, equivalentBounds<T>(image, region));
+}
+
+//-----------------------------------------------------------------------------
+template<typename T>
+VolumeBounds volumeBounds(const typename T::Pointer image, const Bounds& bounds)
 {
   NmVector3 origin;
   for (int i = 0; i < 3; ++i) origin[i] = image->GetOrigin()[i];
@@ -114,8 +124,16 @@ VolumeBounds equivalentBounds(const typename T::Pointer image, const Bounds& bou
   NmVector3 spacing;
   for (int i = 0; i < 3; ++i) spacing[i] = image->GetSpacing()[i];
 
-  return equivalentBounds<T>(origin, spacing, bounds);
+  return volumeBounds<T>(origin, spacing, bounds);
 }
+
+//-----------------------------------------------------------------------------
+template<typename T>
+VolumeBounds volumeBounds(const typename T::Pointer image, const typename T::RegionType& region)
+{
+  return volumeBounds<T>(image, equivalentBounds<T>(image, region));
+}
+
 //-----------------------------------------------------------------------------
 template<typename T>
 VolumeBounds volumeBounds(const NmVector3& origin, const NmVector3& spacing, const Bounds& bounds)

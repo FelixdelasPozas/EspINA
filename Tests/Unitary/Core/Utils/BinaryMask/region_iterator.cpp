@@ -17,25 +17,23 @@
 */
 
 #include <Core/Utils/BinaryMask.h>
-#include <Core/Utils/Bounds.h>
-#include <Core/EspinaTypes.h>
-
 #include <QDebug>
+
 using namespace EspINA;
 
 using BMask = BinaryMask<unsigned char>;
 
-int binaryMask_region_iterator(int argc, char** argv)
+int region_iterator(int argc, char** argv)
 {
   bool error = false;
 
-  BMask *mask = new BMask(Bounds{ -0.5,3.5,-0.5,3.5,-0.5,3.5 });
+  BMask mask(Bounds{ -0.5,3.5,-0.5,3.5,-0.5,3.5 });
 
   Bounds badRegionBounds{ -1,18,-1,18,-1,18 };
 
   try
   {
-    BMask::region_iterator badIt(mask, badRegionBounds);
+    BMask::region_iterator badIt(&mask, badRegionBounds);
     error |= true;
   }
   catch(BMask::Region_Not_Contained_In_Mask_Exception const &e)
@@ -44,7 +42,7 @@ int binaryMask_region_iterator(int argc, char** argv)
   }
 
   Bounds goodRegionBounds{ 0.5,3.5,1.5,2.5,1.5,3.5 };
-  BMask::region_iterator rit(mask, goodRegionBounds);
+  BMask::region_iterator rit(&mask, goodRegionBounds);
 
   rit.goToEnd();
   unsigned char test;
@@ -79,13 +77,13 @@ int binaryMask_region_iterator(int argc, char** argv)
     error |= false;
   }
 
-  mask->setForegroundValue(1);
+  mask.setForegroundValue(1);
   rit.goToBegin();
   unsigned int count = 0;
   QString inputValues, outputValues;
   while(!rit.isAtEnd())
   {
-    error |= (mask->backgroundValue() != rit.Get());
+    error |= (mask.backgroundValue() != rit.Get());
     rit.Set();
     inputValues += QString::number(rit.Get());
     ++count;
@@ -97,14 +95,14 @@ int binaryMask_region_iterator(int argc, char** argv)
   rit.goToBegin();
   while(!rit.isAtEnd())
   {
-    error |= (mask->foregroundValue() != rit.Get());
+    error |= (mask.foregroundValue() != rit.Get());
     outputValues += QString::number(rit.Get());
     ++rit;
   }
 
-  BMask *otherMask = new BMask(Bounds{0,8.75,0,8.75,0,8.75}, NmVector3{2.5,2.5,2.5});
+  BMask otherMask(Bounds{0,8.75,0,8.75,0,8.75}, NmVector3{2.5,2.5,2.5});
 
-  error |= (otherMask->numberOfVoxels() != 64);
+  error |= (otherMask.numberOfVoxels() != 64);
 
   error |= (outputValues != inputValues);
 

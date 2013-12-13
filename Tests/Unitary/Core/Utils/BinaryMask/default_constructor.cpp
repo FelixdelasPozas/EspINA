@@ -17,43 +17,35 @@
 */
 
 #include <Core/Utils/BinaryMask.h>
-#include <Core/Utils/Bounds.h>
-#include <Core/EspinaTypes.h>
+#include "TestSupport.h"
 
 using namespace EspINA;
 
 using BMask = BinaryMask<unsigned char>;
 
-int binaryMask_region_const_iterator(int argc, char** argv)
+int default_constructor(int argc, char** argv)
 {
   bool error = false;
 
-  Bounds bounds{ 0,9,0,9,0,9 };
-  BMask *mask = new BMask(bounds);
+  Bounds bounds{-0.5,3.5,-0.5,3.5,-0.5,3.5};
+  BMask mask(bounds);
 
-  Bounds regionBounds{ 1,8,1,8,1,8 };
-  BMask::const_region_iterator crit(mask, regionBounds);
+  error |= (mask.bounds() != bounds);
+  error |= (  0 != mask.backgroundValue());
+  error |= (255 != mask.foregroundValue());
 
-  // the rest have been tested in non-const iterator
-  crit.goToEnd();
-  try
-  {
-    crit.Set();
-    error |= true;
-  }
-  catch (BMask::Const_Violation_Exception const &e)
-  {
-    error |= false;
-  }
+  mask.setForegroundValue(1);
+  mask.setBackgroundValue(2);
 
-  try
+  error |= ( 2 != mask.backgroundValue());
+  error |= ( 1 != mask.foregroundValue());
+  error |= (64 != mask.numberOfVoxels());
+
+  BMask::const_iterator cit(&mask);
+  while (!cit.isAtEnd())
   {
-    crit.Unset();
-    error |= true;
-  }
-  catch (BMask::Const_Violation_Exception const &e)
-  {
-    error |= false;
+    error |= (cit.Get() != mask.backgroundValue());
+    ++cit;
   }
 
   return error;
