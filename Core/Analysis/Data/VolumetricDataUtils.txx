@@ -37,6 +37,11 @@ typename T::RegionType equivalentRegion(const T* image, const Bounds& bounds)
     p0[i] = bounds[2*i];
     p1[i] = bounds[2*i+1];
 
+    if (areEqual(p0[i], p1[i]) && !bounds.areUpperIncluded(dir) && !bounds.areLowerIncluded(dir))
+    {
+      throw Invalid_Bounds_Exception();
+    }
+
     if (isAligned(p0[i], o[i], s[i]))
     {
       p0[i] += s[i]/2.0;

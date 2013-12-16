@@ -257,7 +257,11 @@ NmVector3 BestPixelSelector::getPickPoint(RenderView *view)
   region.SetSize(regionSize);
   region.SetIndex(regionIndex);
 
-  itkVolumeType::Pointer preview = volume->itkImage(bounds);
+  Bounds finalBounds = intersection(bounds, channel->bounds());
+
+  Q_ASSERT(finalBounds.areValid());
+
+  itkVolumeType::Pointer preview = volume->itkImage(finalBounds);
   itk::ImageRegionConstIterator<itkVolumeType> it(preview, region);
   it.GoToBegin();
 

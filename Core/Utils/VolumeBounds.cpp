@@ -52,6 +52,10 @@ void VolumeBounds::exclude(int idx, Nm value)
 {
   int i = idx/2;
 
+  NmVector3 point{value, value, value};
+
+  VolumeBounds voxelBounds{Bounds(point), m_spacing, m_origin};
+
   if (idx % 2 == 0)
   {
     if (areEqual(m_bounds[idx], value))
@@ -64,14 +68,11 @@ void VolumeBounds::exclude(int idx, Nm value)
       }
     } else if (m_bounds[idx] < value)
     {
-      Nm p = (value - m_origin[i])/m_spacing[i];
-      int index = vtkMath::Round(p) + 1;
-      m_bounds[idx] = index*m_spacing[i] - m_spacing[i]/2;
+      m_bounds[idx] = voxelBounds[idx] + m_spacing[i];
     }
   } else if (value < m_bounds[idx])
   {
-    int index = int((value - m_origin[i])/m_spacing[i]);
-    m_bounds[idx] = index*m_spacing[i] - m_spacing[i]/2;
+    m_bounds[idx] = voxelBounds[idx] - m_spacing[i];
   }
 }
 
@@ -79,6 +80,10 @@ void VolumeBounds::exclude(int idx, Nm value)
 void VolumeBounds::include(int idx, Nm value)
 {
   int i = idx/2;
+
+  NmVector3 point{value, value, value};
+
+  VolumeBounds voxelBounds{Bounds(point), m_spacing, m_origin};
 
   if (idx % 2 != 0)
   {
@@ -92,15 +97,12 @@ void VolumeBounds::include(int idx, Nm value)
       }
     } else if (m_bounds[idx] < value)
     {
-      int index = (value - m_origin[i])/m_spacing[i] + 1;
-      m_bounds[idx] = index*m_spacing[i] + m_spacing[i]/2;
+      m_bounds[idx] = voxelBounds[idx];
     }
   } else if (value < m_bounds[idx])
   {
-    int index = (value - m_origin[i])/m_spacing[i];
-    m_bounds[idx] = index*m_spacing[i] - m_spacing[i]/2;
+    m_bounds[idx] = voxelBounds[idx];
   }
-
 }
 
 //-----------------------------------------------------------------------------
@@ -114,7 +116,7 @@ bool EspINA::isMultiple(Nm point, Nm spacing)
 {
   Nm indexValue = point / spacing;
 
-  Nm delta      = fabs(int(indexValue)-indexValue);
+  Nm delta      = fabs(vtkMath::Round(indexValue) - indexValue);
 
   return areEqual(delta, 0);
 }
@@ -124,7 +126,7 @@ bool EspINA::isAligned(Nm point, Nm origin, Nm spacing)
 {
   Nm indexValue = (point - spacing/2.0 - origin) / spacing;
 
-  Nm delta      = fabs(int(indexValue)-indexValue);
+  Nm delta      = fabs(vtkMath::Round(indexValue) - indexValue);
 
   return areEqual(delta, 0);
 }

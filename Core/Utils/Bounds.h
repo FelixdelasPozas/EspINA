@@ -43,6 +43,7 @@ namespace EspINA
 {
   struct Wrong_number_initial_values {};
   struct Invalid_bounds_token {};
+  struct Invalid_Bounds_Exception{};
 
   /** \brief Set of values defining a region in the 3D space
    * 
@@ -54,7 +55,7 @@ namespace EspINA
       /**
        * Create invalid bounds
        */
-      Bounds();
+      explicit Bounds();
 
       /** \brief Create Bounds from an initial list of values
        *
@@ -70,6 +71,8 @@ namespace EspINA
        *    ']' includes values and ')' excludes them.
        */
       Bounds(std::initializer_list<double> bounds);
+
+      explicit Bounds(const NmVector3& point);
 
       /** \brief Return whether or not Bounds define a valid region of the 3D space
        *

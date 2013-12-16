@@ -209,10 +209,10 @@ int inclusion_exclusion( int argc, char** argv )
     error = true;
   }
 
-  bounds2.exclude(1, -1);
+  bounds2.exclude(1, -2);
   if (bounds2[1] != -2.5)
   {
-    cerr << bounds2 <<  " doesn't exclude -1 "<< endl;
+    cerr << bounds2 <<  " doesn't exclude -2 "<< endl;
     error = true;
   }
 
@@ -234,10 +234,10 @@ int inclusion_exclusion( int argc, char** argv )
     error = true;
   }
 
-  bounds3.include(0, 2.5);
-  if (bounds3[0] != -3.5)
+  bounds3.include(0, 2);
+  if (bounds3[0] != 1.5)
   {
-    cerr << bounds3 <<  " doesn't include 2.5 "<< endl;
+    cerr << bounds3 <<  " doesn't include 2 "<< endl;
     error = true;
   }
 
@@ -255,24 +255,24 @@ int inclusion_exclusion( int argc, char** argv )
     error = true;
   }
 
-  bounds3.exclude(0, 1);
+  bounds3.exclude(0, 2);
   if (bounds3[0] != 2.5)
   {
-    cerr << bounds3 <<  " doesn't exclude 1 "<< endl;
+    cerr << bounds3 <<  " doesn't exclude 2.5 "<< endl;
     error = true;
   }
 
-  bounds3.include(0, 2.5);
-  if (bounds3[0] != 2.5)
+  bounds3.include(0, 1.5);
+  if (bounds3[0] != 1.5)
   {
-    cerr << bounds3 <<  " doesn't include 2.5 "<< endl;
+    cerr << bounds3 <<  " doesn't include 1.5 "<< endl;
     error = true;
   }
 
   bounds3.exclude(1, 4);
   if (bounds3[1] != 3.5)
   {
-    cerr << bounds3 <<  " doesn't exclude 4 "<< endl;
+    cerr << bounds3 <<  " doesn't exclude 2 "<< endl;
     error = true;
   }
 
@@ -283,24 +283,24 @@ int inclusion_exclusion( int argc, char** argv )
     error = true;
   }
 
-  bounds3.exclude(1, 3.5);
-  if (bounds3[1] != 3.5)
+  bounds3.exclude(1, 2.5);
+  if (bounds3[1] != 2.5)
   {
-    cerr << bounds3 <<  " doesn't exclude 3.5 "<< endl;
+    cerr << bounds3 <<  " doesn't exclude 2.5 "<< endl;
     error = true;
   }
 
-  bounds3.include(1, 3.5);
-  if (bounds3[1] != 4.5)
+  bounds3.include(1, 2.5);
+  if (bounds3[1] != 3.5)
   {
-    cerr << bounds3 <<  " doesn't include 4.5 "<< endl;
+    cerr << bounds3 <<  " doesn't include 3.5 "<< endl;
     error = true;
   }
 
-  bounds3.exclude(1, 3.5);
-  if (bounds3[1] != 3.5)
+  bounds3.exclude(1, 2.5);
+  if (bounds3[1] != 2.5)
   {
-    cerr << bounds3 <<  " doesn't exclude 3.5 "<< endl;
+    cerr << bounds3 <<  " doesn't exclude 2.5 "<< endl;
     error = true;
   }
 
@@ -311,10 +311,10 @@ int inclusion_exclusion( int argc, char** argv )
     error = true;
   }
 
-  bounds3.include(1, 2.5);
+  bounds3.include(1, 3);
   if (bounds3[1] != 3.5)
   {
-    cerr << bounds3 <<  " doesn't include 2.5 "<< endl;
+    cerr << bounds3 <<  " doesn't include 0.5 "<< endl;
     error = true;
   }
 

@@ -111,6 +111,19 @@ Bounds::Bounds(std::initializer_list<double> bounds)
 }
 
 //-----------------------------------------------------------------------------
+Bounds::Bounds(const NmVector3& point)
+{
+  for (int i = 0; i < 6; ++i)
+  {
+    m_bounds[i] = point[i/2];
+  }
+  for (Axis dir : {Axis::X, Axis::Y, Axis::Z}) {
+    m_lowerInclusion[idx(dir)] = true;
+    m_upperInclusion[idx(dir)] = true;
+  }
+}
+
+//-----------------------------------------------------------------------------
 QString Bounds::toString() const
 {
   QString string = "{";

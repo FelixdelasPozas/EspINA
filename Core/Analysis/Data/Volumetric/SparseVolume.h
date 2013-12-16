@@ -771,6 +771,11 @@ namespace EspINA
         {
           int splitPlane = splitBounds.second;
 
+          while (bounds.lenght(toAxis(splitPlane)) <= minSize[splitPlane])
+          {
+            splitPlane = (splitPlane + 1) % 3;
+          }
+
           VolumeBounds b1{bounds.bounds(), bounds.spacing(), bounds.origin()};
           VolumeBounds b2{bounds.bounds(), bounds.spacing(), bounds.origin()};
 
@@ -779,7 +784,7 @@ namespace EspINA
           b1.exclude(2*splitPlane+1, splitPoint);
           b2.exclude(2*splitPlane,   splitPoint-bounds.spacing()[splitPlane]);
 
-          splitPlane = (splitPlane + 1)%3;
+          splitPlane = (splitPlane + 1) % 3;
 
           remaining << SplitBounds(b1, splitPlane) << SplitBounds(b2, splitPlane);
         } else
@@ -807,7 +812,7 @@ namespace EspINA
       if (!empty) blockImages << itkImage(bounds);
     }
 
-    cout << "Sparse Volume Compression: " << blockImages.size()*100/blockBounds.size() << "% - " << blockImages.size() << "/" << blockBounds.size() << endl;
+    cout << "Sparse Volume Compression: " << 100-(blockImages.size()*100/blockBounds.size()) << "% - " << blockImages.size() << "/" << blockBounds.size() << endl;
 
     for (int i = 0; i < blockBounds.size(); ++i)
       for (int j = i+1; j < blockBounds.size(); ++j)
