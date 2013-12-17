@@ -70,9 +70,9 @@ namespace EspINA
     m_circularBrushSelector = CircularBrushSelectorSPtr(new CircularBrushSelector(m_viewManager, m_categorySelector));
     connect(m_circularBrushSelector.get(), SIGNAL(stroke(ViewItemAdapterPtr, Selector::WorldRegion, Nm, Plane)),
             this,  SLOT(drawStroke(ViewItemAdapterPtr, Selector::WorldRegion, Nm, Plane)));
-    connect(m_circularBrushSelector.get(), SIGNAL(selectorInUse(bool)),
+    connect(m_circularBrushSelector.get(), SIGNAL(eventHandlerInUse(bool)),
             m_drawToolSelector, SLOT(setChecked(bool)));
-    connect(m_circularBrushSelector.get(), SIGNAL(selectorInUse(bool)),
+    connect(m_circularBrushSelector.get(), SIGNAL(eventHandlerInUse(bool)),
             this, SLOT(selectorInUse(bool)));
 
     m_drawTools[discTool] = m_circularBrushSelector;
@@ -89,7 +89,7 @@ namespace EspINA
             this,  SLOT(drawStroke(ViewItemAdapterPtr, Selector::WorldRegion, Nm, Plane)));
     connect(m_sphericalBrushSelector.get(), SIGNAL(stroke(ViewItemAdapterPtr, Selector::WorldRegion, Nm, Plane)),
             this,  SLOT(drawStroke(ViewItemAdapterPtr, Selector::WorldRegion, Nm, Plane)));
-    connect(m_sphericalBrushSelector.get(), SIGNAL(selectorInUse(bool)),
+    connect(m_sphericalBrushSelector.get(), SIGNAL(eventHandlerInUse(bool)),
             m_drawToolSelector, SLOT(setChecked(bool)));
 
     m_drawTools[sphereTool] = m_sphericalBrushSelector;
@@ -145,7 +145,7 @@ namespace EspINA
     settings.sync();
 
     if (m_actualSelector)
-      m_viewManager->unsetSelector(m_actualSelector);
+      m_viewManager->unsetEventHandler(m_actualSelector);
   }
 
   //-----------------------------------------------------------------------------
@@ -157,13 +157,13 @@ namespace EspINA
     m_actualSelector->initBrush();
     m_actualSelector->setRadius(m_radiusWidget->value());
 
-    m_viewManager->setSelector(m_actualSelector);
+    m_viewManager->setEventHandler(m_actualSelector);
   }
 
   //-----------------------------------------------------------------------------
   void ManualEditionTool::unsetSelector()
   {
-    m_viewManager->unsetSelector(m_actualSelector);
+    m_viewManager->unsetEventHandler(m_actualSelector);
     m_actualSelector.reset();
   }
 

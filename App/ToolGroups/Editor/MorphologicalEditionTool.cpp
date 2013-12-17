@@ -150,7 +150,7 @@ namespace EspINA
   //------------------------------------------------------------------------
   void MorphologicalEditionTool::mergeSegmentations()
   {
-    m_viewManager->setSelector(nullptr);
+    m_viewManager->setEventHandler(nullptr);
 
     auto inputs = m_viewManager->selection()->segmentations();
 

@@ -854,7 +854,7 @@ bool View2D::eventFilter(QObject* caller, QEvent* e)
     e->accept();
   }
 
-  if (m_selector && m_selector->filterEvent(e, this))
+  if (m_eventHandler && m_eventHandler->filterEvent(e, this))
   {
     QWidget::eventFilter(caller, e);
 
@@ -886,10 +886,11 @@ bool View2D::eventFilter(QObject* caller, QEvent* e)
     QKeyEvent event(QEvent::KeyPress, Qt::Key_Tab, Qt::NoModifier);
     qApp->sendEvent(this, &event);
 
-    if (m_selector)
+    if (m_eventHandler)
     {
-      m_view->setCursor(m_selector->cursor());
-    } else
+      m_view->setCursor(m_eventHandler->cursor());
+    }
+    else
     {
       m_view->setCursor(Qt::ArrowCursor);
     }
@@ -957,9 +958,9 @@ bool View2D::eventFilter(QObject* caller, QEvent* e)
         }
 
     }
-    else if (m_selector)
+    else if (m_eventHandler)
     {
-      m_view->setCursor(m_selector->cursor());
+      m_view->setCursor(m_eventHandler->cursor());
     }
 
     updateRuler();

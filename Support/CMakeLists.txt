@@ -6,6 +6,7 @@ include_directories(
 )
 
 qt4_wrap_cpp(Support_MOC
+  EventHandler.h
   ViewManager.h
   ToolGroup.h
   DockWidget.h
@@ -18,6 +19,7 @@ qt4_wrap_cpp(Support_MOC
 set (Support_SOURCES 
   ${Support_MOC}
   ${Support_UI}
+  EventHandler.cpp
   ViewManager.cpp
   ToolGroup.cpp
   )

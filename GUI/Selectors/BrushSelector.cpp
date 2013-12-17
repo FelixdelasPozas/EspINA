@@ -133,7 +133,7 @@ bool BrushSelector::filterEvent(QEvent* e, RenderView* view)
         return true;
       }
 
-  return false;
+  return EventHandler::filterEvent(e, view);
 }
 
 //-----------------------------------------------------------------------------

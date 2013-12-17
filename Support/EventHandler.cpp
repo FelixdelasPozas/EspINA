@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
+    Copyright (C) 2013 Félix de las Pozas Álvarez <felixdelaspozas@gmail.com>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,20 +16,35 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-#include "GUI/Selectors/Selector.h"
+#include "EventHandler.h"
 
 using namespace EspINA;
 
-const Selector::SelectionTag Selector::SAMPLE = "EspINA_Sample";
-const Selector::SelectionTag Selector::CHANNEL = "EspINA_Channel";
-const Selector::SelectionTag Selector::SEGMENTATION = "EspINA_Segmentation";
+//-----------------------------------------------------------------------------
+EventHandler::EventHandler()
+: m_inUse(false)
+, m_cursor(Qt::CrossCursor)
+{
+}
 
 //-----------------------------------------------------------------------------
-void Selector::setSelectionTag(const Selector::SelectionTag tag, bool selectable)
+void EventHandler::setInUse(bool value)
 {
-  if (selectable)
-    m_flags.insert(tag);
-  else
-    m_flags.remove(tag);
+  if (m_inUse != value)
+  {
+    m_inUse = value;
+
+    emit eventHandlerInUse(m_inUse);
+  }
 }
+
+//-----------------------------------------------------------------------------
+bool EventHandler::filterEvent(QEvent *e, RenderView *view)
+{
+  return false;
+}
+
+
+
+
+

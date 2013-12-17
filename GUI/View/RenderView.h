@@ -25,11 +25,12 @@
 
 // EspINA
 #include <Core/EspinaTypes.h>
-#include <GUI/Selectors/Selector.h>
 #include <GUI/Representations/Representation.h>
 #include <GUI/Representations/Renderers/Renderer.h>
 #include <GUI/Widgets/ContextualMenu.h>
 #include <GUI/ColorEngines/ColorEngine.h>
+#include <GUI/Selectors/Selector.h>
+#include <Support/EventHandler.h>
 
 // Qt
 #include <QMenu>
@@ -80,11 +81,11 @@ namespace EspINA
     explicit RenderView(QWidget* parent = 0);
     virtual ~RenderView();
 
-    void setSelector(SelectorSPtr selector)
-    { m_selector = selector; }
+    void setEventHandler(EventHandlerSPtr eventHandler)
+    { m_eventHandler = eventHandler; }
 
-    SelectorSPtr selector() const
-    { return m_selector; }
+    EventHandlerSPtr eventHandler() const
+    { return m_eventHandler; }
 
     void setColorEngine(ColorEngineSPtr engine)
     { m_colorEngine = engine; }
@@ -182,8 +183,8 @@ namespace EspINA
     void removeRepresentations(SegmentationState &state);
 
   protected:
-    SelectorSPtr    m_selector;
-    ColorEngineSPtr m_colorEngine;
+    EventHandlerSPtr m_eventHandler;
+    ColorEngineSPtr  m_colorEngine;
 
     QVTKWidget*  m_view;
     vtkSmartPointer<vtkRenderer> m_renderer;

@@ -33,6 +33,7 @@
 #include <GUI/ColorEngines/ColorEngine.h>
 #include <GUI/Selectors/Selector.h>
 #include <GUI/View/Selection.h>
+#include <Support/EventHandler.h>
 
 // Qt
 #include <QList>
@@ -53,7 +54,6 @@ namespace EspINA
   class SliceSelectorWidget;
   class RenderView;
   class SelectableView;
-  class Selector;
   class View2D;
   class Measure;
 
@@ -122,9 +122,9 @@ namespace EspINA
 
 //     ToolGroupPtr toolGroup()
 //     { return m_toolGroup; }
-    void setSelector(SelectorSPtr selector);
+    void setEventHandler(EventHandlerSPtr eventHandler);
 
-    void unsetSelector(SelectorSPtr selector);
+    void unsetEventHandler(EventHandlerSPtr eventHandler);
 
     void setCurrentROI(ROI roi)
     { m_roi = roi; }
@@ -133,10 +133,10 @@ namespace EspINA
     { return m_roi; }
 
   private:
-    ROI          m_roi;
-    QToolBar    *m_contextualToolBar;
-    ToolGroupPtr m_toolGroup;
-    SelectorSPtr m_selector;
+    ROI              m_roi;
+    QToolBar        *m_contextualToolBar;
+    ToolGroupPtr     m_toolGroup;
+    EventHandlerSPtr m_eventHandler;
 
     //---------------------------------------------------------------------------
     /***************************** Widget API **********************************/

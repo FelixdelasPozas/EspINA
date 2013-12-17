@@ -56,7 +56,7 @@ bool PixelSelector::filterEvent(QEvent *e, RenderView *view)
     }
   }
 
-  return Selector::filterEvent(e,view);
+  return EventHandler::filterEvent(e,view);
 }
 
 //-----------------------------------------------------------------------------

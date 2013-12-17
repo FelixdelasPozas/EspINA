@@ -143,7 +143,7 @@ void SeedGrowSegmentationTool::addVoxelSelector(QAction* action, SelectorSPtr se
   selector->setMultiSelection(false);
   selector->setSelectionTag(Selector::CHANNEL);
 
-  connect(selector.get(), SIGNAL(selectorInUse(bool)),
+  connect(selector.get(), SIGNAL(eventHandlerInUse(bool)),
           m_selectorSwitch, SLOT(setChecked(bool)));
   connect(selector.get(), SIGNAL(itemsSelected(Selector::SelectionList)),
           this, SLOT(launchTask(Selector::SelectionList)));
@@ -154,13 +154,13 @@ void SeedGrowSegmentationTool::changeSelector(QAction* action)
 {
   m_currentSelector = m_voxelSelectors[action];
 
-  m_viewManager->setSelector(m_currentSelector);
+  m_viewManager->setEventHandler(m_currentSelector);
 }
 
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentationTool::unsetSelector()
 {
-  m_viewManager->unsetSelector(m_currentSelector);
+  m_viewManager->unsetEventHandler(m_currentSelector);
   m_currentSelector.reset();
 }
 

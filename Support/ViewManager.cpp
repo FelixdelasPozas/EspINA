@@ -89,7 +89,7 @@ void ViewManager::registerView(RenderView* view)
   m_renderViews << view;
   registerView(static_cast<SelectableView *>(view));
 
-  view->setSelector(m_selector);
+  view->setEventHandler(m_eventHandler);
   view->setColorEngine(m_colorEngine);
 }
 
@@ -186,34 +186,34 @@ void ViewManager::hideTools(ToolGroupPtr group)
 }
 
 //----------------------------------------------------------------------------
-void ViewManager::setSelector(SelectorSPtr selector)
+void ViewManager::setEventHandler(EventHandlerSPtr eventHandler)
 {
-  if (m_selector)
+  if (m_eventHandler)
   {
-    m_selector->setInUse(false);
+    m_eventHandler->setInUse(false);
   }
 
-  m_selector = selector;
+  m_eventHandler = eventHandler;
 
-  if (m_selector)
-    m_selector->setInUse(true);
+  if (m_eventHandler)
+    m_eventHandler->setInUse(true);
 
   for(auto view : m_renderViews)
   {
-    view->setSelector(m_selector);
+    view->setEventHandler(m_eventHandler);
   }
 }
 
 //----------------------------------------------------------------------------
-void ViewManager::unsetSelector(SelectorSPtr selector)
+void ViewManager::unsetEventHandler(EventHandlerSPtr eventHandler)
 {
-  if (m_selector == selector)
+  if (m_eventHandler == eventHandler)
   {
-    m_selector.reset();
+    m_eventHandler.reset();
 
     for(auto view : m_renderViews)
     {
-      view->setSelector(m_selector);
+      view->setEventHandler(m_eventHandler);
     }
   }
 }

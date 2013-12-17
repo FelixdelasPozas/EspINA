@@ -35,6 +35,7 @@
 #include <Core/EspinaTypes.h>
 #include <Core/Utils/BinaryMask.h>
 #include <GUI/Model/ViewItemAdapter.h>
+#include <Support/EventHandler.h>
 
 namespace EspINA
 {
@@ -44,9 +45,9 @@ namespace EspINA
    *
    */
   class EspinaGUI_EXPORT Selector
-  : public QObject
+  : public EventHandler
   {
-    Q_OBJECT
+  Q_OBJECT
   public:
     using SelectionTag      = QString;
     using SelectionMask     = BinaryMask<unsigned char>;
@@ -69,21 +70,10 @@ namespace EspINA
 
   public:
     explicit Selector()
-    : m_inUse(false)
-    , m_multiSelection(false)
-    , m_cursor(Qt::CrossCursor)
+    : m_multiSelection(false)
     {}
 
     virtual ~Selector(){};
-
-    void setInUse(bool value);
-
-    virtual bool filterEvent(QEvent *e, RenderView *view=nullptr) = 0;
-
-    virtual QCursor cursor() const
-    {return m_cursor;}
-
-    virtual void setCursor(const QCursor& cursor);
 
     void setSelectionTag(const SelectionTag tag, bool selectable=true);
 
@@ -98,17 +88,13 @@ namespace EspINA
 
     void itemsSelected(Selector::Selection);
 
-    void selectorInUse(bool);
-
     void startUsingSelector();
 
     void stopUsingSelector();
 
   protected:
-    bool           m_inUse;
     SelectionFlags m_flags;
     bool           m_multiSelection;
-    QCursor        m_cursor;
   };
 
   using SelectorSPtr = std::shared_ptr<Selector>;
