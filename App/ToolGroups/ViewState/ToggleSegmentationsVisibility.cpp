@@ -31,8 +31,6 @@ ToggleSegmentationsVisibility::ToggleSegmentationsVisibility(ViewManagerSPtr vie
 {
   m_toggle.setCheckable(true);
   m_toggle.setChecked(true);
-  m_toggle.setShortcut(QString("Space"));
-  m_toggle.setShortcutContext(Qt::ApplicationShortcut);
 
   connect(&m_toggle, SIGNAL(triggered(bool)),
           this,      SLOT(toggleVisibility(bool)));
@@ -52,27 +50,33 @@ QList<QAction *> ToggleSegmentationsVisibility::actions() const
 //----------------------------------------------------------------------------
 bool ToggleSegmentationsVisibility::enabled() const
 {
-  return true;
+  return m_toggle.isEnabled();
 }
 
 //----------------------------------------------------------------------------
 void ToggleSegmentationsVisibility::setEnabled(bool value)
 {
-
+  m_toggle.setEnabled(value);
 }
 
 //----------------------------------------------------------------------------
 void ToggleSegmentationsVisibility::toggleVisibility(bool visible)
 {
-  QAction *action = dynamic_cast<QAction *>(sender());
-
   if (visible)
   {
-    action->setIcon(QIcon(":/espina/show_all.svg"));
-  } else
+    m_toggle.setIcon(QIcon(":/espina/show_all.svg"));
+  }
+  else
   {
-    action->setIcon(QIcon(":/espina/hide_all.svg"));
+    m_toggle.setIcon(QIcon(":/espina/hide_all.svg"));
   }
 
   m_viewManager->setSegmentationVisibility(visible);
+}
+
+//----------------------------------------------------------------------------
+void ToggleSegmentationsVisibility::shortcut()
+{
+  toggleVisibility(!m_toggle.isChecked());
+  m_toggle.setChecked(!m_toggle.isChecked());
 }

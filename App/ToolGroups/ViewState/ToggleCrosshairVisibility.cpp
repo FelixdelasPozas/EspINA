@@ -30,8 +30,6 @@ ToggleCrosshairVisibility::ToggleCrosshairVisibility(ViewManagerSPtr viewManager
 {
   m_toggle.setCheckable(true);
   m_toggle.setChecked(false);
-  m_toggle.setShortcut(QKeySequence("C"));
-  m_toggle.setShortcutContext(Qt::ApplicationShortcut);
 
   connect(&m_toggle, SIGNAL(triggered(bool)),
           this,      SLOT(toggleVisibility(bool)));
@@ -51,27 +49,32 @@ QList<QAction *> ToggleCrosshairVisibility::actions() const
 //----------------------------------------------------------------------------
 bool ToggleCrosshairVisibility::enabled() const
 {
-  return true;
+  return m_toggle.isEnabled();
 }
 
 //----------------------------------------------------------------------------
 void ToggleCrosshairVisibility::setEnabled(bool value)
 {
-
+  m_toggle.setEnabled(value);
 }
 
 //----------------------------------------------------------------------------
 void ToggleCrosshairVisibility::toggleVisibility(bool visible)
 {
-  QAction *action = dynamic_cast<QAction *>(sender());
-
   if (visible)
   {
-    action->setIcon(QIcon(":/espina/show_planes.svg"));
+    m_toggle.setIcon(QIcon(":/espina/show_planes.svg"));
   } else
   {
-    action->setIcon(QIcon(":/espina/hide_planes.svg"));
+    m_toggle.setIcon(QIcon(":/espina/hide_planes.svg"));
   }
 
   m_viewManager->setCrosshairVisibility(visible);
+}
+
+//----------------------------------------------------------------------------
+void ToggleCrosshairVisibility::shortcut()
+{
+  toggleVisibility(!m_toggle.isChecked());
+  m_toggle.setChecked(!m_toggle.isChecked());
 }

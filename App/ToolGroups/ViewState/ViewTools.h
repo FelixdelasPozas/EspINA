@@ -26,6 +26,8 @@
 #include "ZoomArea.h"
 #include "ToggleCrosshairVisibility.h"
 
+#include <QShortcut>
+
 namespace EspINA
 {
   class ViewTools
@@ -50,8 +52,13 @@ namespace EspINA
   private:
     ToggleSegmentationsVisibilitySPtr m_toggleSegmentations;
     ToggleCrosshairVisibilitySPtr     m_toggleCrosshair;
-    ZoomAreaSPtr  m_zoomArea;
     ResetZoomSPtr m_resetZoom;
+    ZoomAreaSPtr  m_zoomArea;
+
+    bool m_enabled;
+
+    QShortcut *m_segmentationsShortcut;
+    QShortcut *m_crosshairShortcut;
   };
 
 } // namespace EspINA

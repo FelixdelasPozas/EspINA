@@ -39,6 +39,9 @@ namespace EspINA {
 
     virtual void setEnabled(bool value);
 
+  public slots:
+    void shortcut();
+
   private slots:
     void toggleVisibility(bool visible);
 

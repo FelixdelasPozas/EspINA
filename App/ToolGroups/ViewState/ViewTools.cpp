@@ -36,6 +36,8 @@ ViewTools::ViewTools(ViewManagerSPtr viewManager, QWidget* parent)
 , m_toggleCrosshair(new ToggleCrosshairVisibility(viewManager))
 , m_resetZoom(new ResetZoom())
 , m_zoomArea(new ZoomArea(viewManager))
+, m_segmentationsShortcut(new QShortcut(parent))
+, m_crosshairShortcut(new QShortcut(parent))
 {
 //   setObjectName("ViewToolBar");
 // 
@@ -54,23 +56,41 @@ ViewTools::ViewTools(ViewManagerSPtr viewManager, QWidget* parent)
 //   m_zoomToolAction->setCheckable(true);
 //   connect(m_zoomToolAction, SIGNAL(triggered(bool)),
 //           this,             SLOT(initViewTool(bool)));
+
+  m_segmentationsShortcut->setKey(Qt::Key_Space);
+  m_segmentationsShortcut->setContext(Qt::ApplicationShortcut);
+  connect(m_segmentationsShortcut,SIGNAL(activated()),m_toggleSegmentations.get(),SLOT(shortcut()));
+
+  m_crosshairShortcut->setKey(Qt::Key_C);
+  m_crosshairShortcut->setContext(Qt::ApplicationShortcut);
+  connect(m_crosshairShortcut,SIGNAL(activated()),m_toggleCrosshair.get(),SLOT(shortcut()));
 }
 
 //----------------------------------------------------------------------------
 ViewTools::~ViewTools()
 {
+  delete m_segmentationsShortcut;
+  delete m_crosshairShortcut;
 }
 
 //----------------------------------------------------------------------------
 void ViewTools::setEnabled(bool value)
 {
+  m_enabled = value;
 
+  m_toggleCrosshair->setEnabled(value);
+  m_toggleSegmentations->setEnabled(value);
+  m_zoomArea->setEnabled(value);
+  m_resetZoom->setEnabled(value);
+
+  m_segmentationsShortcut->setEnabled(value);
+  m_crosshairShortcut->setEnabled(value);
 }
 
 //----------------------------------------------------------------------------
 bool ViewTools::enabled() const
 {
-
+  return m_enabled;
 }
 
 //----------------------------------------------------------------------------
@@ -107,7 +127,6 @@ void ViewTools::resetViews()
   m_viewManager->resetViewCameras();
   m_viewManager->updateViews();
 }
-
 
 // //----------------------------------------------------------------------------
 // void ViewTools::resetToolbar()
