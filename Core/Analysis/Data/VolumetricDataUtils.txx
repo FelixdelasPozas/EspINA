@@ -190,6 +190,4 @@ typename T::Pointer create_itkImage(const Bounds&                bounds,
   return image;
 }
 
-}
-
-
+} // namespace EspINA

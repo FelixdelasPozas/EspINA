@@ -36,8 +36,8 @@ using namespace EspINA;
 
 //-----------------------------------------------------------------------------
 VolumeBounds::VolumeBounds(const Bounds& bounds, const NmVector3& spacing, const NmVector3& origin)
-: m_spacing(spacing)
-, m_origin(origin)
+: m_origin(origin)
+, m_spacing(spacing)
 {
   if (bounds.areValid() && spacing[0] > 0 && spacing[1] > 0 && spacing[2] > 0)
   {

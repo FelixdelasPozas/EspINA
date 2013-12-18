@@ -226,7 +226,7 @@ unsigned int Filter::numberOfOutputs() const
 bool Filter::validOutput(Output::Id id)
 throw (Undefined_Output_Exception)
 {
-  return id < m_outputs.size() && m_outputs[id]->isValid();
+  return id < static_cast<unsigned int>(m_outputs.size()) && m_outputs[id]->isValid();
 }
 
 //----------------------------------------------------------------------------
@@ -235,7 +235,7 @@ throw (Undefined_Output_Exception)
 {
   update(id);
 
-  if (id >= m_outputs.size()) throw Undefined_Output_Exception();
+  if (id >= static_cast<unsigned int>(m_outputs.size())) throw Undefined_Output_Exception();
 
   return m_outputs[id];
 }
