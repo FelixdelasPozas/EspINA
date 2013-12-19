@@ -110,21 +110,25 @@ namespace EspINA
   /** \brief Return the vtkImageData of specified bounds equivalent to the itkImage.
    */
   template<typename T>
-  vtkSmartPointer<vtkImageData> vtkImage(const typename T::Pointer volume, const VolumeBounds &bounds)
+  vtkSmartPointer<vtkImageData> vtkImage(const typename T::Pointer volume, const Bounds &inputBounds)
   {
     using itk2vtkImageFilter = itk::ImageToVTKImageFilter<T>;
     using ExtractFilter = itk::ExtractImageFilter<T,T>;
 
     typename T::Pointer itkImage;
 
+    auto spacing = volume->GetSpacing();
+    auto origin = volume->GetOrigin();
+    VolumeBounds iBounds(inputBounds, NmVector3{spacing[0], spacing[1], spacing[2]}, NmVector3{origin[0], origin[1], origin[2]});
+
     auto vBounds = volumeBounds<T>(volume, volume->GetLargestPossibleRegion());
     // check if the requested bounds are inside the volume bounds, else fail miserably
-    Q_ASSERT(intersection(vBounds, bounds) == bounds);
+    Q_ASSERT(contains(vBounds, iBounds));
 
-    if (vBounds != bounds)
+    if (!isEquivalent(vBounds, iBounds))
     {
       auto extractor = ExtractFilter::New();
-      extractor->SetExtractionRegion(equivalentRegion<T>(volume, bounds.bounds()));
+      extractor->SetExtractionRegion(equivalentRegion<T>(volume, inputBounds));
       extractor->SetInput(volume);
       extractor->Update();
 
@@ -147,9 +151,9 @@ namespace EspINA
    *         volumetric data.
    */
   template<typename T>
-  vtkSmartPointer<vtkImageData> vtkImage(VolumetricDataSPtr<T> volume, const VolumeBounds &bounds)
+  vtkSmartPointer<vtkImageData> vtkImage(VolumetricDataSPtr<T> volume, const Bounds &bounds)
   {
-    typename T::Pointer image = volume->itkImage(bounds.bounds());
+    typename T::Pointer image = volume->itkImage(bounds);
     return vtkImage<T>(image, bounds);
   }
 
@@ -157,10 +161,10 @@ namespace EspINA
    *         volumetric data of the specified output.
    */
   template<class T>
-  vtkSmartPointer<vtkImageData> vtkImage(OutputSPtr output, const VolumeBounds &bounds)
+  vtkSmartPointer<vtkImageData> vtkImage(OutputSPtr output, const Bounds &bounds)
   {
     auto volume = volumetricData(output);
-    typename T::Pointer image = volume->itkImage(bounds.bounds());
+    typename T::Pointer image = volume->itkImage(bounds);
     return vtkImage<T>(image, bounds);
   }
 
