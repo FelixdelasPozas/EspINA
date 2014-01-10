@@ -42,6 +42,7 @@ Representation::Representation(RenderView *view)
 , m_view(view)
 , m_active(true)
 , m_visible(true)
+, m_lastUpdatedTime(0)
 {}
 
 //-----------------------------------------------------------------------------
@@ -54,17 +55,17 @@ void Representation::setActive(bool value, RenderView *view)
     updateVisibility(isVisible());
   }
 
-  foreach (RepresentationSPtr clone, m_clones)
-  {
+  for(auto clone: m_clones)
     clone->setActive(value, view);
-  }
 }
 
+//-----------------------------------------------------------------------------
 QString Representation::serializeSettings()
 {
   return isActive()?"On":"Off"; 
 }
 
+//-----------------------------------------------------------------------------
 void Representation::restoreSettings(QString settings)
 {
   if (settings == "On")

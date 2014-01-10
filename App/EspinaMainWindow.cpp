@@ -1048,13 +1048,13 @@ void EspinaMainWindow::showRawInformation()
 //------------------------------------------------------------------------
 void EspinaMainWindow::undoTextChanged(QString text)
 {
-  m_undoAction->setText(tr("Undo") + text);
+  m_undoAction->setText(tr("Undo ") + text);
 }
 
 //------------------------------------------------------------------------
 void EspinaMainWindow::redoTextChanged(QString text)
 {
-  m_redoAction->setText(tr("Redo") + text);
+  m_redoAction->setText(tr("Redo ") + text);
 }
 
 //------------------------------------------------------------------------
@@ -1074,6 +1074,7 @@ void EspinaMainWindow::undoAction(bool unused)
 {
   emit abortOperation();
   m_undoStack->undo();
+  m_viewManager->updateSegmentationRepresentations();
 }
 
 //------------------------------------------------------------------------
@@ -1081,4 +1082,5 @@ void EspinaMainWindow::redoAction(bool unused)
 {
   emit abortOperation();
   m_undoStack->redo();
+  m_viewManager->updateSegmentationRepresentations();
 }

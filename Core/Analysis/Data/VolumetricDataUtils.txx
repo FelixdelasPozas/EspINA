@@ -24,50 +24,57 @@
 namespace EspINA {
 
 //-----------------------------------------------------------------------------
-template<typename T>
-typename T::RegionType equivalentRegion(const T* image, const Bounds& bounds)
-{
-  typename T::SpacingType s = image->GetSpacing();
-  typename T::PointType   o = image->GetOrigin();
+  template<typename T>
+  typename T::RegionType equivalentRegion(const T* image, const Bounds& bounds)
+  {
+    typename T::SpacingType s = image->GetSpacing();
+    typename T::PointType o = image->GetOrigin();
 
-  typename T::PointType p0, p1;
-  for (int i = 0; i < 3; ++i) {
-    Axis dir = toAxis(i);
-
-    p0[i] = bounds[2*i];
-    p1[i] = bounds[2*i+1];
-
-    if (areEqual(p0[i], p1[i]) && !bounds.areUpperIncluded(dir) && !bounds.areLowerIncluded(dir))
+    typename T::PointType p0, p1;
+    for (int i = 0; i < 3; ++i)
     {
-      throw Invalid_Bounds_Exception();
-    }
+      Axis dir = toAxis(i);
 
-    if (isAligned(p0[i], o[i], s[i]))
-    {
-      p0[i] += s[i]/2.0;
-    }
+      p0[i] = bounds[2 * i];
+      p1[i] = bounds[2 * i + 1];
 
-    if (isAligned(p1[i], o[i], s[i]))
-    {
-      if (bounds.areUpperIncluded(dir)) {
-	p1[i] += s[i]/2.0;
-      } else
+      if (areEqual(p0[i], p1[i]) && !bounds.areUpperIncluded(dir) && !bounds.areLowerIncluded(dir))
       {
-	p1[i] -= s[i]/2.0;
+        throw Invalid_Bounds_Exception();
+      }
+
+      if (isAligned(p0[i], o[i], s[i]))
+      {
+        p0[i] += s[i] / 2.0;
+      }
+
+      if (isAligned(p1[i], o[i], s[i]))
+      {
+        if (bounds.areUpperIncluded(dir))
+        {
+          p1[i] += s[i] / 2.0;
+        }
+        else
+        {
+          p1[i] -= s[i] / 2.0;
+        }
       }
     }
+
+    typename T::IndexType i0, i1;
+    image->TransformPhysicalPointToIndex(p0, i0);
+    image->TransformPhysicalPointToIndex(p1, i1);
+
+    typename T::RegionType region;
+    region.SetIndex(i0);
+    region.SetUpperIndex(i1);
+
+    for (auto i: {0,1,2})
+      if (region.GetSize(i) == 0)
+        region.SetSize(i,1);
+
+    return region;
   }
-
-  typename T::IndexType i0, i1;
-  image->TransformPhysicalPointToIndex(p0, i0);
-  image->TransformPhysicalPointToIndex(p1, i1);
-
-  typename T::RegionType region;
-  region.SetIndex(i0);
-  region.SetUpperIndex(i1);
-
-  return region;
-}
 
 //-----------------------------------------------------------------------------
 template<typename T>

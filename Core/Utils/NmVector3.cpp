@@ -99,3 +99,10 @@ bool EspINA::operator!=(const NmVector3 &lhs, const NmVector3 &rhs)
 {
   return !(lhs == rhs);
 }
+
+//-----------------------------------------------------------------------------
+QDebug EspINA::operator<< (QDebug d, const NmVector3 &vector)
+{
+  d << "{" << vector[0] << "," << vector[1] << "," << vector[2] << "}";
+  return d;
+}

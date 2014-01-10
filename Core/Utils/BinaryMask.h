@@ -393,7 +393,8 @@ namespace EspINA
           {
             m_bounds = VolumeBounds(bounds, mask->m_spacing, mask->m_origin);
 
-            if (!contains(mask->bounds(), m_bounds)) throw Region_Not_Contained_In_Mask_Exception();
+            if (!contains(mask->bounds(), m_bounds))
+              throw Region_Not_Contained_In_Mask_Exception();
 
             itkVolumeType::RegionType region = equivalentRegion<itkVolumeType>(mask->m_origin, mask->m_spacing, bounds);
 
@@ -537,7 +538,26 @@ namespace EspINA
            */
           bool isSet()
           {
-            return (Get() == m_mask->m_foregroundValue);
+            NmVector3 point = {
+              m_mask->m_origin[0] + static_cast<Nm>(m_index.x)*m_mask->m_spacing[0],
+              m_mask->m_origin[1] + static_cast<Nm>(m_index.y)*m_mask->m_spacing[1],
+              m_mask->m_origin[2] + static_cast<Nm>(m_index.z)*m_mask->m_spacing[2]
+            };
+
+            if (!contains(m_bounds, point)) throw Out_Of_Bounds_Exception();
+
+            // we must adjust the index
+            IndexType newIndex;
+            newIndex.x = m_index.x - m_mask->m_indexOrigin.x;
+            newIndex.y = m_index.y - m_mask->m_indexOrigin.y;
+            newIndex.z = m_index.z - m_mask->m_indexOrigin.z;
+
+            unsigned long long valuePosition = newIndex.x + (newIndex.y * m_mask->m_size[0]) + (newIndex.z * m_mask->m_size[0]*m_mask->m_size[1]);
+            unsigned long long imageOffset   = valuePosition / m_mask->m_integerSize;
+            unsigned long long valueOffset   = valuePosition % m_mask->m_integerSize;
+
+            Q_ASSERT(imageOffset < m_mask->m_bufferSize);
+            return ((m_mask->m_image[imageOffset] & (1 << valueOffset)) == (1 << valueOffset));
           }
 
           /** \brief Sets the value of the pointed element of the mask to foreground value.
@@ -718,7 +738,6 @@ namespace EspINA
       throw Invalid_Bounds_Exception();
 
     m_bounds = VolumeBounds(bounds, m_spacing, m_origin);
-
     itkVolumeType::RegionType region = equivalentRegion<itkVolumeType>(m_origin, m_spacing, bounds);
 
     Q_ASSERT(isEquivalent(m_bounds, volumeBounds<itkVolumeType>(m_origin, m_spacing, region)));
@@ -735,9 +754,7 @@ namespace EspINA
     m_bufferSize = region.GetNumberOfPixels() / m_integerSize;
 
     if (region.GetNumberOfPixels() % m_integerSize != 0)
-    {
       m_bufferSize++;
-    }
 
     m_image = new int[m_bufferSize];
 
@@ -904,7 +921,7 @@ namespace EspINA
 
     ImageIterator iit(image, region);
 
-    MaskIterator mit(this, m_bounds.bounds());
+    MaskIterator mit(const_cast<BinaryMask<T>*>(this), m_bounds.bounds());
 
     ImageIndex imageIndex;
     IndexType maskIndex;

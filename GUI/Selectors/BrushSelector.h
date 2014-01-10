@@ -38,6 +38,7 @@ class vtkLookupTable;
 class vtkImageResliceToColors;
 class vtkImageActor;
 class vtkImplicitFunction;
+class vtkImageMapToColors;
 class ImplicitImageSource;
 class vtkImageData;
 class Channel;
@@ -46,6 +47,7 @@ class PickableItem;
 namespace EspINA
 {
   class CategorySelector;
+  class RenderView;
 
   class EspinaGUI_EXPORT BrushSelector
   : public Selector
@@ -84,13 +86,11 @@ namespace EspINA
       void setReferenceItem(ViewItemAdapterPtr item);
       Spacing referenceSpacing() const;
 
-      void DrawingOn(RenderView *view);
-      void DrawingOff(RenderView *view, SegmentationAdapterPtr segmentation);
-
       BinaryMaskSPtr<unsigned char> voxelSelectionMask() const;
 
       void initBrush();
 
+      void abortOperation();
     signals:
       void stroke(ViewItemAdapterPtr, double, double, double, Nm, Plane);
       void stroke(ViewItemAdapterPtr, Selector::WorldRegion, Nm, Plane);
@@ -101,6 +101,7 @@ namespace EspINA
                                           Nm radius,
                                           Plane plane) = 0;
       virtual void categoryChanged(CategoryAdapterSPtr category);
+      virtual void updateSliceChange();
 
     private:
       void buildCursor();
@@ -113,6 +114,7 @@ namespace EspINA
       void startPreview(RenderView *view);
       void updatePreview(NmVector3 center, RenderView *view);
       void stopPreview(RenderView *view);
+      bool CtrlKeyIsDown();
 
     private:
       ViewManagerSPtr m_viewManager;
@@ -126,26 +128,29 @@ namespace EspINA
       int     m_brushOpacity;
       QImage *m_brushImage;
 
-      bool m_tracking;
       QPoint m_lastDot;
       WorldRegion m_stroke;
 
-      Plane m_plane;
-      Nm m_radius;
-      Spacing m_spacing;
-      int m_viewSize[2];
-      double m_LL[3], m_UR[3];
-      Bounds m_pBounds;
-      double m_worldSize[2];
+      Plane     m_plane;
+      Nm        m_radius;
+      Spacing   m_spacing;
+      NmVector3 m_origin;
+      int       m_viewSize[2];
+      double    m_LL[3], m_UR[3];
+      Bounds    m_pBounds;
+      double    m_worldSize[2];
 
       vtkSmartPointer<vtkLookupTable> m_lut;
-      vtkSmartPointer<vtkImageData> m_preview;
-      vtkSmartPointer<vtkImageActor> m_actor;
-      bool m_drawing;
-      SegmentationAdapterPtr m_segmentation;
-      BrushShapeList m_brushes;
-      NmVector3 m_lastUdpdatePoint;
-      Bounds    m_lastUpdateBounds;
+      vtkSmartPointer<vtkImageData>   m_preview;
+      vtkSmartPointer<vtkImageMapToColors> m_mapToColors;
+      vtkSmartPointer<vtkImageActor>  m_actor;
+      Bounds                          m_previewBounds;
+      bool                            m_drawing;
+      BrushShapeList                  m_brushes;
+      NmVector3                       m_lastUdpdatePoint;
+      Bounds                          m_lastUpdateBounds;
+      bool                            m_tracking;
+      RenderView                     *m_previewView;
 
       static const int MAX_RADIUS = 32;
     };

@@ -88,5 +88,11 @@ namespace EspINA
     return actions;
   }
 
+  //------------------------------------------------------------------------
+  void SplitTool::abortOperation()
+  {
+    // TODO
+  }
+
 
 } // namespace EspINA

@@ -45,8 +45,7 @@ class QPushButton;
 
 namespace EspINA
 {
-
-class SliceWidget;
+  class SliceWidget;
   class Representation;
   class EspinaWidget;
 
@@ -197,6 +196,8 @@ class SliceWidget;
     bool pick(vtkPropPicker *picker, int x, int y, Nm pickPos[3]);
 
     virtual bool eventFilter(QObject* caller, QEvent* e);
+    void keyPressEvent(QKeyEvent *e);
+    void keyReleaseEvent(QKeyEvent *e);
 
     void centerCrosshairOnMousePosition();
 
@@ -295,6 +296,7 @@ class SliceWidget;
     bool  m_invertSliceOrder;
     bool  m_invertWheel;
     bool  m_rulerVisibility;
+    bool  m_inThumbnailClick;
 
     friend class Representation;
   };

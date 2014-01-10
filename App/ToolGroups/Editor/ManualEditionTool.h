@@ -62,6 +62,7 @@ namespace EspINA
 
       virtual FilterSPtr createFilter(OutputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception);
 
+      virtual void abortOperation();
     signals:
       void stopDrawing();
       void brushModeChanged(BrushSelector::BrushMode);

@@ -51,6 +51,7 @@ namespace EspINA
 
     public slots:
       void selectionChanged(SelectionSPtr);
+      void abortOperation();
 
     private:
       ManualEditionToolSPtr        m_manualEdition;
@@ -58,7 +59,6 @@ namespace EspINA
       MorphologicalEditionToolSPtr m_morphological;
 
       bool                         m_enabled;
-
   };
 
 } // namespace EspINA

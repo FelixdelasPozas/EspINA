@@ -105,6 +105,7 @@ View2D::View2D(Plane plane, QWidget* parent)
 , m_invertSliceOrder{false}
 , m_invertWheel{false}
 , m_rulerVisibility{true}
+, m_inThumbnailClick{true}
 {
   setupUI();
 
@@ -153,7 +154,7 @@ View2D::View2D(Plane plane, QWidget* parent)
   m_renderer->AddActor(m_ruler);
 
   View2DInteractor interactor = View2DInteractor::New();
-  interactor->AutoAdjustCameraClippingRangeOn();
+  interactor->AutoAdjustCameraClippingRangeOff();
   interactor->KeyPressActivationOff();
   renderWindow->AddRenderer(m_renderer);
   renderWindow->AddRenderer(m_thumbnail);
@@ -170,7 +171,9 @@ View2D::View2D(Plane plane, QWidget* parent)
   buildCrosshairs();
 
   this->setAutoFillBackground(true);
-  setLayout(m_mainLayout);
+  this->setLayout(m_mainLayout);
+
+  this->setFocusPolicy(Qt::WheelFocus);
 }
 
 //-----------------------------------------------------------------------------
@@ -413,7 +416,7 @@ void View2D::updateBorder(vtkPolyData* data, Nm left, Nm right, Nm upper, Nm low
 //-----------------------------------------------------------------------------
 Nm View2D::voxelBottom(int sliceIndex, Plane plane) const
 {
-  return  m_sceneBounds[2*m_normalCoord] + sliceIndex * m_slicingStep[m_normalCoord];
+  return m_sceneBounds[2*m_normalCoord] + sliceIndex * m_slicingStep[m_normalCoord];
 }
 
 //-----------------------------------------------------------------------------
@@ -642,7 +645,7 @@ void View2D::updateView()
     updateRuler();
     updateWidgetVisibility();
     updateThumbnail();
-//    m_renderer->ResetCameraClippingRange();
+    m_renderer->ResetCameraClippingRange();
     m_view->GetRenderWindow()->Render();
     m_view->update();
   }
@@ -745,31 +748,25 @@ Bounds View2D::previewBounds(bool cropToSceneBounds) const
   coords->SetValue(1, 1); //UR
   memcpy(UR, coords->GetComputedWorldValue(m_renderer),3*sizeof(double));
 
-//  int H = (Plane::YZ == m_plane)?2:0;
-//  int V = (Plane::XZ  == m_plane)?2:1;
+  int H = (Plane::YZ == m_plane)?2:0;
+  int V = (Plane::XZ  == m_plane)?2:1;
 
   Bounds bounds;
-  bounds[0] = std::min(LL[0], UR[0]);
-  bounds[1] = std::max(LL[0], UR[0]);
-  bounds[2] = std::min(LL[1], UR[1]);
-  bounds[3] = std::max(LL[1], UR[1]);
-  bounds[4] = bounds[5] = slicingPosition();
+  bounds[2*H]   = LL[H];
+  bounds[2*H+1] = UR[H];
+  bounds[2*V]   = UR[V];
+  bounds[2*V+1] = LL[V];
 
-//  bounds[2*H]   = LL[H];
-//  bounds[2*H+1] = UR[H];
-//  bounds[2*V]   = UR[V];
-//  bounds[2*V+1] = LL[V];
-//
-//  bounds[2*m_normalCoord]   = slicingPosition();
-//  bounds[2*m_normalCoord+1] = slicingPosition();
-//
-//  if (cropToSceneBounds)
-//  {
-//    bounds[2*H]   = std::max(LL[H], m_sceneBounds[2*H]);
-//    bounds[2*H+1] = std::min(UR[H], m_sceneBounds[2*H+1]);
-//    bounds[2*V]   = std::max(UR[V], m_sceneBounds[2*V]);
-//    bounds[2*V+1] = std::min(LL[V], m_sceneBounds[2*V+1]);
-//  }
+  bounds[2*m_normalCoord]   = slicingPosition();
+  bounds[2*m_normalCoord+1] = slicingPosition();
+
+  if (cropToSceneBounds)
+  {
+    bounds[2*H]   = std::max(LL[H], m_sceneBounds[2*H]);
+    bounds[2*H+1] = std::min(UR[H], m_sceneBounds[2*H+1]);
+    bounds[2*V]   = std::max(UR[V], m_sceneBounds[2*V]);
+    bounds[2*V+1] = std::min(LL[V], m_sceneBounds[2*V+1]);
+  }
   bounds.setUpperInclusion(true);
 
   return bounds;
@@ -835,159 +832,150 @@ void View2D::selectToSlice()
 //-----------------------------------------------------------------------------
 bool View2D::eventFilter(QObject* caller, QEvent* e)
 {
-  static bool inFocus = false;          // to prevent other widgets from stealing the focus
-  static bool inThumbnailClick = false; // to implement click+drag in the thumbnail
-
-  // prevent other widgets from stealing the focus while the mouse cursor over
-  // this widget
-  if (true == inFocus && QEvent::FocusOut == e->type())
+  switch (e->type())
   {
-    this->setFocus(Qt::OtherFocusReason);
-    QKeyEvent event(QEvent::KeyPress, Qt::Key_Tab, Qt::NoModifier);
-    qApp->sendEvent(this, &event);
-    return true;
+    case QEvent::Resize:
+      {
+        updateView();
+        e->accept();
+      }
+      break;
+    case QEvent::Wheel:
+      {
+        QWheelEvent *we = static_cast<QWheelEvent *>(e);
+        int numSteps = we->delta() / 8 / 15 * (m_invertWheel ? -1 : 1);  //Refer to QWheelEvent doc.
+        m_scrollBar->setValue(m_scrollBar->value() - numSteps);
+        e->ignore();
+        this->setFocus(Qt::OtherFocusReason);
+        return true;
+      }
+      break;
+    case QEvent::Enter:
+      {
+        QWidget::enterEvent(e);
+
+        // get the focus this very moment
+        this->setFocus(Qt::OtherFocusReason);
+
+        int x, y;
+        eventPosition(x, y);
+        m_inThumbnail = m_thumbnail->GetDraw() && (m_thumbnail->PickProp(x, y) != nullptr);
+
+        if (m_eventHandler && !m_inThumbnail)
+          m_view->setCursor(m_eventHandler->cursor());
+        else
+          m_view->setCursor(Qt::ArrowCursor);
+
+        e->accept();
+      }
+      break;
+    case QEvent::Leave:
+      {
+        m_inThumbnail = false;
+      }
+      break;
+    case QEvent::ContextMenu:
+      {
+        QContextMenuEvent *cme = dynamic_cast<QContextMenuEvent*>(e);
+        if (cme->modifiers() == Qt::CTRL && m_contextMenu.get() && selectionEnabled())
+        {
+          m_contextMenu->setSelection(currentSelection());
+          m_contextMenu->exec(mapToGlobal(cme->pos()));
+        }
+      }
+      break;
+    case QEvent::ToolTip:
+      {
+        int x, y;
+        eventPosition(x, y);
+        auto selection = pickSegmentations(x, y, m_renderer);
+        QString toopTip;
+
+        for (auto pick : selection)
+          toopTip = toopTip.append(pick->data(Qt::ToolTipRole).toString());
+
+        m_view->setToolTip(toopTip);
+      }
+      break;
+    case QEvent::MouseMove:
+    case QEvent::MouseButtonPress:
+    case QEvent::MouseButtonRelease:
+      {
+        int x, y;
+        eventPosition(x, y);
+        m_inThumbnail = m_thumbnail->GetDraw() && (m_thumbnail->PickProp(x, y) != nullptr);
+
+        QMouseEvent* me = static_cast<QMouseEvent*>(e);
+
+        if (m_inThumbnail)
+        {
+          m_view->setCursor(Qt::ArrowCursor);
+
+          if (((e->type() == QEvent::MouseButtonPress) && me->button() == Qt::LeftButton) || (e->type() == QEvent::MouseMove && m_inThumbnailClick))
+          {
+            m_inThumbnailClick = true;
+            centerViewOnMousePosition();
+          }
+          else
+            if ((e->type() == QEvent::MouseButtonRelease) && (me->button() == Qt::LeftButton))
+              m_inThumbnailClick = false;
+        }
+        else
+        {
+          // in case the cursor gets out of thumbnail during a click+move, usually an if goes here but we
+          // assign false directly and avoid conditional code. Getting out of the thumbnail while in a drag breaks
+          // the drag movement though.
+          m_inThumbnailClick = false;
+
+          // to avoid interfering with ctrl use in the event handler/selector
+          if (!m_eventHandler)
+          {
+            if ((e->type() == QEvent::MouseButtonPress) && (me->button() == Qt::LeftButton))
+            {
+              if (me->modifiers() == Qt::CTRL)
+                centerCrosshairOnMousePosition();
+              else
+                if (selectionEnabled() && !m_eventHandler)
+                  selectPickedItems(me->modifiers() == Qt::SHIFT);
+            }
+
+            m_view->setCursor(Qt::ArrowCursor);
+          }
+          else
+            m_view->setCursor(m_eventHandler->cursor());
+        }
+
+        updateRuler();
+        updateThumbnail();
+      }
+      break;
+    default:
+      break;
   }
 
-  if (QEvent::Resize == e->type())
-  {
-    updateView();
-    e->accept();
-  }
+  if (!m_inThumbnail && m_eventHandler)
+    m_eventHandler->filterEvent(e, this);
 
-  if (m_eventHandler && m_eventHandler->filterEvent(e, this))
-  {
-    QWidget::eventFilter(caller, e);
-
-    return true;
-  }
-
-  for(auto widget: m_widgets.keys())
+  for (auto widget : m_widgets.keys())
     if (widget->filterEvent(e, this))
       return true;
 
-  if (QEvent::Wheel == e->type())
-  {
-    QWheelEvent *we = static_cast<QWheelEvent *>(e);
-    if (we->buttons() != Qt::MidButton)
-    {
-      int numSteps = we->delta() / 8 / 15 * (m_invertWheel ? -1 : 1);  //Refer to QWheelEvent doc.
-      m_scrollBar->setValue(m_scrollBar->value() - numSteps);
-      e->ignore();
-      return true;
-    }
-  }
-  else if (QEvent::Enter == e->type())
-  {
-    QWidget::enterEvent(e);
-
-    // get the focus this very moment
-    inFocus = true;
-    this->setFocus(Qt::OtherFocusReason);
-    QKeyEvent event(QEvent::KeyPress, Qt::Key_Tab, Qt::NoModifier);
-    qApp->sendEvent(this, &event);
-
-    if (m_eventHandler)
-    {
-      m_view->setCursor(m_eventHandler->cursor());
-    }
-    else
-    {
-      m_view->setCursor(Qt::ArrowCursor);
-    }
-    e->accept();}
-   else if (QEvent::Leave == e->type())
-   {
-     inFocus = false;
-  }
-  else if (QEvent::MouseMove == e->type())
-  {
-    int x, y;
-    eventPosition(x, y);
-    m_inThumbnail = m_thumbnail->GetDraw() && (m_thumbnail->PickProp(x,y) != nullptr);
-  }
-  else if (QEvent::ContextMenu == e->type())
-  {
-    QContextMenuEvent *cme = dynamic_cast<QContextMenuEvent*>(e);
-    if (cme->modifiers() == Qt::CTRL && m_contextMenu.get() && selectionEnabled())
-    {
-      m_contextMenu->setSelection(currentSelection());
-      m_contextMenu->exec(mapToGlobal(cme->pos()));
-    }
-  }
-  else if (QEvent::ToolTip == e->type())
-  {
-    int x, y;
-    eventPosition(x, y);
-    auto selection = pickSegmentations(x, y, m_renderer);
-    QString toopTip;
-
-    for(auto pick: selection)
-      toopTip = toopTip.append(pick->data(Qt::ToolTipRole).toString());
-
-    m_view->setToolTip(toopTip);
-  }
-
-  if (QEvent::KeyPress == e->type())
-  {
-    QKeyEvent *ke = dynamic_cast<QKeyEvent *>(e);
-    if (ke->modifiers() != Qt::CTRL &&
-        ke->modifiers() != Qt::SHIFT &&
-        ke->key() != Qt::Key_Backspace)
-      return true;
-  }
-
-  if ( QEvent::MouseMove          == e->type()
-    || QEvent::MouseButtonPress   == e->type()
-    || QEvent::MouseButtonRelease == e->type()
-    || QEvent::KeyPress           == e->type()
-    || QEvent::KeyRelease         == e->type())
-  {
-    if (m_inThumbnail)
-    {
-      m_view->setCursor(Qt::ArrowCursor);
-      QMouseEvent* me = static_cast<QMouseEvent*>(e);
-      if (((e->type() == QEvent::MouseButtonPress) && me->button() == Qt::LeftButton) || (e->type() == QEvent::MouseMove && inThumbnailClick))
-      {
-        inThumbnailClick = true;
-        centerViewOnMousePosition();
-      }
-      else
-        if ((e->type() == QEvent::MouseButtonRelease) && (me->button() == Qt::LeftButton))
-        {
-          inThumbnailClick = false;
-        }
-
-    }
-    else if (m_eventHandler)
-    {
-      m_view->setCursor(m_eventHandler->cursor());
-    }
-
-    updateRuler();
-    updateThumbnail();
-  }
-
-  if (e->type() == QEvent::MouseButtonPress)
-  {
-    QMouseEvent* me = static_cast<QMouseEvent*>(e);
-    if (me->button() == Qt::LeftButton)
-    {
-      if (me->modifiers() == Qt::CTRL)
-        centerCrosshairOnMousePosition();
-      else
-        if (m_inThumbnail)
-        {
-          centerViewOnMousePosition();
-          updateThumbnail();
-          return true;
-        }
-        else if (selectionEnabled())
-          selectPickedItems(me->modifiers() == Qt::SHIFT);
-    }
-  }
-
   return QWidget::eventFilter(caller, e);
 }
+
+//-----------------------------------------------------------------------------
+void View2D::keyPressEvent(QKeyEvent *e)
+{
+  if (m_eventHandler != nullptr)
+    if (m_eventHandler->filterEvent(e, this))
+      updateView();
+};
+
+//-----------------------------------------------------------------------------
+void View2D::keyReleaseEvent(QKeyEvent *e)
+{
+  keyPressEvent(e);
+};
 
 //-----------------------------------------------------------------------------
 void View2D::centerCrosshairOnMousePosition()

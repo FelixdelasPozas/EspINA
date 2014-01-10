@@ -454,7 +454,7 @@ namespace EspINA
 
     if (!contains(m_bounds, expectedBounds)) throw Invalid_Image_Bounds_Exception();
 
-    auto image     = create_itkImage<T>(bounds, backgroundValue(), m_spacing, m_origin);
+    auto image     = create_itkImage<T>(bounds, this->backgroundValue(), m_spacing, m_origin);
     auto mask      = new BinaryMask<unsigned char>(bounds, m_spacing, m_origin);
     auto numVoxels = image->GetLargestPossibleRegion().GetNumberOfPixels();
 
@@ -516,6 +516,7 @@ namespace EspINA
     }
 
     addBlock(mask);
+    updateModificationTime();
   }
 
 
@@ -525,6 +526,7 @@ namespace EspINA
                              const typename T::ValueType value)
   {
     addBlock(mask);
+    updateModificationTime();
   }
 
   //-----------------------------------------------------------------------------
@@ -565,6 +567,7 @@ namespace EspINA
     block->DisconnectPipeline();
 
     setBlock(block);
+    updateModificationTime();
   }
 
   //-----------------------------------------------------------------------------
@@ -588,6 +591,7 @@ namespace EspINA
 //       it.Set();
 //
 //       addBlock(mask);
+    updateModificationTime();
   }
 
   //-----------------------------------------------------------------------------
@@ -702,9 +706,12 @@ namespace EspINA
   template<typename T>
   void SparseVolume<T>::updateBlocksBoundingBox(const VolumeBounds &bounds)
   {
-    if (m_blocks_bounding_box.areValid()) {
+    if (m_blocks_bounding_box.areValid())
+    {
       m_blocks_bounding_box = boundingBox(m_blocks_bounding_box, bounds);
-    } else {
+    }
+    else
+    {
       m_blocks_bounding_box = bounds;
     }
   }
@@ -722,6 +729,7 @@ namespace EspINA
       bounds = boundingBox(bounds, block->bounds());
 
     m_blocks_bounding_box = bounds;
+    updateModificationTime();
   }
 
   //-----------------------------------------------------------------------------

@@ -33,12 +33,14 @@ namespace EspINA
     m_morphological = MorphologicalEditionToolSPtr(new MorphologicalEditionTool(model, factory, viewManager, undoStack));
 
     connect(m_viewManager.get(), SIGNAL(selectionChanged(SelectionSPtr)), this, SLOT(selectionChanged(SelectionSPtr)));
+    connect(parent, SIGNAL(abortOperation()), this, SLOT(abortOperation()));
   }
 
   //-----------------------------------------------------------------------------
   EditionTools::~EditionTools()
   {
     disconnect(m_viewManager.get());
+    disconnect(this->parent());
   }
 
   //-----------------------------------------------------------------------------
@@ -77,6 +79,13 @@ namespace EspINA
     m_manualEdition->setEnabled(listSize == 1 || listSize == 0);
     m_split->setEnabled(listSize == 1);
     m_morphological->setEnabled(listSize != 0);
+  }
+
+  //-----------------------------------------------------------------------------
+  void EditionTools::abortOperation()
+  {
+    m_manualEdition->abortOperation();
+    m_split->abortOperation();
   }
 
 } /* namespace EspINA */

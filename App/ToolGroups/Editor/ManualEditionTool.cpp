@@ -133,7 +133,7 @@ namespace EspINA
     m_opacityWidget->setSpinBoxMaximum(100);
     m_opacityWidget->setValue(opacity);
     m_opacityWidget->setSuffix("%");
-    m_opacityWidget->setLabelText(tr("Stroke Opacity"));
+    m_opacityWidget->setLabelText(tr("Opacity"));
   }
   
   //------------------------------------------------------------------------
@@ -277,7 +277,7 @@ namespace EspINA
       case ViewItemAdapter::Type::SEGMENTATION:
       {
         segmentation = m_model->smartPointer(reinterpret_cast<SegmentationAdapterPtr>(item));
-        m_undoStack->beginMacro(tr("Add Segmentation"));
+        m_undoStack->beginMacro(tr("Modify Segmentation"));
         m_undoStack->push(new DrawUndoCommand(segmentation, mask));
         m_undoStack->endMacro();
       }
@@ -293,5 +293,10 @@ namespace EspINA
     m_viewManager->updateViews();
   }
 
+  //------------------------------------------------------------------------
+  void ManualEditionTool::abortOperation()
+  {
+    m_actualSelector->abortOperation();
+  }
 
 } // namespace EspINA

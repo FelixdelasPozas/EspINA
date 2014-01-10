@@ -32,6 +32,7 @@
 #include "Core/Utils/Spatial.h"
 
 #include <iostream>
+#include <QDebug>
 #include <QList>
 #include <QString>
 
@@ -69,6 +70,8 @@ namespace EspINA {
   private:
     Nm m_values[3];
   };
+
+  QDebug operator<< (QDebug d, const NmVector3 &vector);
 
   std::ostream& operator<<(std::ostream& os, const NmVector3& vector);
 

@@ -509,7 +509,7 @@ bool RenderView::updateRepresentation(SegmentationAdapterPtr seg, bool render)
   for(auto representation : state.representations)
   {
     bool crosshairChanged = representation->crosshairDependent() && representation->crosshairPoint() != crosshairPoint();
-    if (hasChanged || crosshairChanged)
+    if (hasChanged || crosshairChanged || representation->needUpdate())
     {
       if (colorChanged)      representation->setColor(m_colorEngine->color(seg));
       if (highlightChanged)  representation->setHighlighted(state.highlited);

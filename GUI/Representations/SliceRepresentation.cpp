@@ -197,6 +197,8 @@ void ChannelSliceRepresentation::initializePipeline()
   m_actor->SetDisplayExtent(m_exporter->GetOutput()->GetExtent());
   m_actor->SetVisibility(isVisible());
   m_actor->Update();
+
+  m_lastUpdatedTime = m_data->lastModified();
 }
 
 //-----------------------------------------------------------------------------
@@ -208,7 +210,7 @@ void ChannelSliceRepresentation::updateRepresentation()
 
   bool valid = imageBounds[2*m_planeIndex] <= m_crosshair[m_planeIndex] && m_crosshair[m_planeIndex] <= imageBounds[2*m_planeIndex+1];
 
-  if (m_actor != nullptr && (m_crosshair[m_planeIndex] != m_reslicePoint) && valid)
+  if (m_actor != nullptr && ((m_crosshair[m_planeIndex] != m_reslicePoint) || needUpdate()) && valid)
   {
     m_reslicePoint = m_crosshair[m_planeIndex];
 
@@ -232,6 +234,8 @@ void ChannelSliceRepresentation::updateRepresentation()
     m_actor->GetMapper()->SetInputConnection(m_mapToColors->GetOutputPort());
     m_actor->SetDisplayExtent(m_exporter->GetOutput()->GetExtent());
     m_actor->Update();
+
+    m_lastUpdatedTime = m_data->lastModified();
   }
 
   m_actor->SetVisibility(valid && isVisible());
@@ -419,6 +423,8 @@ void SegmentationSliceRepresentation::initializePipeline()
   m_actor->GetPosition(pos);
   pos[m_planeIndex] = view->segmentationDepth();
   m_actor->SetPosition(pos);
+
+  m_lastUpdatedTime = m_data->lastModified();
 }
 
 //-----------------------------------------------------------------------------
@@ -430,7 +436,7 @@ void SegmentationSliceRepresentation::updateRepresentation()
 
   bool valid = imageBounds[2*m_planeIndex] <= m_crosshair[m_planeIndex] && m_crosshair[m_planeIndex] <= imageBounds[2*m_planeIndex+1];
 
-  if (m_actor != nullptr && m_crosshair[m_planeIndex] != m_reslicePoint && valid)
+  if (m_actor != nullptr && ((m_crosshair[m_planeIndex] != m_reslicePoint) || needUpdate()) && valid)
   {
     m_reslicePoint = m_crosshair[m_planeIndex];
 
@@ -452,6 +458,8 @@ void SegmentationSliceRepresentation::updateRepresentation()
     m_mapToColors->Update();
     m_actor->SetDisplayExtent(m_exporter->GetOutput()->GetExtent());
     m_actor->Update();
+
+    m_lastUpdatedTime = m_data->lastModified();
   }
 
   m_actor->SetVisibility(valid && isVisible());

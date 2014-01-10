@@ -145,6 +145,9 @@ namespace EspINA
 
     virtual bool crosshairDependent() const = 0;
 
+    virtual bool needUpdate()
+    { return false; }
+
     void setCrosshairPoint(const NmVector3& point)
     { m_crosshair = point; }
 
@@ -160,7 +163,6 @@ namespace EspINA
     void setType(const Representation::Type &type)
     { m_type = type; }
 
-
   protected:
     double m_brightness;
     double m_contrast;
@@ -172,7 +174,7 @@ namespace EspINA
     NmVector3     m_crosshair;
 
     RepresentationSList m_clones;
-
+    TimeStamp     m_lastUpdatedTime;
   private:
     bool m_active;
     bool m_visible;

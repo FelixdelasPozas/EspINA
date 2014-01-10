@@ -49,6 +49,7 @@ namespace EspINA
 
       virtual QList<QAction *> actions() const;
 
+      virtual void abortOperation();
     private:
       ActionSelector *m_splitToolSelector;
       QMap<QAction *, ToolSPtr> m_splitTools;
