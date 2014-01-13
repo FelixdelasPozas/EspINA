@@ -162,7 +162,7 @@ namespace EspINA
 
   bool  EspinaCore_EXPORT contains(const Bounds& bounds, const NmVector3& point);
 
-  std::ostream& EspinaCore_EXPORT operator<<(std::ostream& os, const Bounds& bounds);
+  std::ostream&  operator<<(std::ostream& os, const Bounds& bounds);
 
   QDebug operator<< (QDebug d, const Bounds &bounds);
 

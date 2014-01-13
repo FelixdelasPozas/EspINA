@@ -20,15 +20,13 @@
 #include "CountingFrameColorEngine.h"
 #include "Extensions/StereologicalInclusion.h"
 
-#include <Core/Extensions/ModelItemExtension.h>
-#include <Core/Model/Segmentation.h>
-
 using namespace EspINA;
+using namespace EspINA::CF;
 
 //-----------------------------------------------------------------------------
 CountingFrameColorEngine::CountingFrameColorEngine()
 {
-  m_excludedLUT = LUTPtr::New();
+  m_excludedLUT = LUTSPtr::New();
   m_excludedLUT->Allocate();
   m_excludedLUT->SetNumberOfTableValues(2);
   m_excludedLUT->Build();
@@ -36,7 +34,7 @@ CountingFrameColorEngine::CountingFrameColorEngine()
   m_excludedLUT->SetTableValue(1, 1.0, 0.0, 0.0, 0.2);
   m_excludedLUT->Modified();
 
-  m_includedLUT = LUTPtr::New();
+  m_includedLUT = LUTSPtr::New();
   m_includedLUT->Allocate();
   m_includedLUT->SetNumberOfTableValues(2);
   m_includedLUT->Build();
@@ -47,51 +45,53 @@ CountingFrameColorEngine::CountingFrameColorEngine()
 
 
 //-----------------------------------------------------------------------------
-QColor CountingFrameColorEngine::color(SegmentationPtr seg)
+QColor CountingFrameColorEngine::color(SegmentationAdapterPtr segmentation)
 {
-  if (!seg->channel())
-    return QColor(0, 0, 0, 255);
+// TODO  if (!segmentation->channel())
+//     return QColor(0, 0, 0, 255);
+  int r = 0;
+  int g = 0;
+  int b = 0;
 
-  StereologicalInclusion *stereologicalExtentsion;
-  Segmentation::InformationExtension extension = seg->informationExtension(StereologicalInclusionID);
-  if (extension)
-  {
-    stereologicalExtentsion = stereologicalInclusionPtr(extension);
-  }
-  else
-  {
-    stereologicalExtentsion = new StereologicalInclusion();
-    seg->addExtension(stereologicalExtentsion);
-  }
-  Q_ASSERT(stereologicalExtentsion);
+  auto extension = stereologicalInclusionExtension(segmentation);
 
-  if (stereologicalExtentsion->isExcluded())
-    return QColor(255, 0, 0, 50);
-  else
-    return QColor(0, 255, 0, 255);
+  if (extension->isExcluded())
+  {
+    r = 255;
+  } else
+  {
+    g = 255;
+  }
+
+  return QColor(r, g, b, 256);
 }
 
 //-----------------------------------------------------------------------------
-LUTPtr CountingFrameColorEngine::lut(SegmentationPtr seg)
+LUTSPtr CountingFrameColorEngine::lut(SegmentationAdapterPtr segmentation)
 {
-  if (!seg->channel())
-    return m_includedLUT;
+//    if (!seg->channel()) //TODO Change to assert
+//     return m_includedLUT;
+  auto extension = stereologicalInclusionExtension(segmentation);
 
-  StereologicalInclusion *stereologicalExtentsion;
-  Segmentation::InformationExtension extension = seg->informationExtension(StereologicalInclusionID);
-  if (extension)
+  return extension->isExcluded()?m_excludedLUT:m_includedLUT;
+}
+
+//-----------------------------------------------------------------------------
+StereologicalInclusionSPtr CountingFrameColorEngine::stereologicalInclusionExtension(SegmentationAdapterPtr segmentation)
+{
+  StereologicalInclusionSPtr stereologicalExtentsion;
+
+  if (segmentation->hasExtension(StereologicalInclusion::TYPE))
   {
-    stereologicalExtentsion = stereologicalInclusionPtr(extension);
+    auto extension = segmentation->extension(StereologicalInclusion::TYPE);
+    stereologicalExtentsion = stereologicalInclusion(extension);
   }
   else
   {
-    stereologicalExtentsion = new StereologicalInclusion();
-    seg->addExtension(stereologicalExtentsion);
+    stereologicalExtentsion = StereologicalInclusionSPtr(new StereologicalInclusion());
+    segmentation->addExtension(stereologicalExtentsion);
   }
   Q_ASSERT(stereologicalExtentsion);
 
-  if (stereologicalExtentsion->isExcluded())
-    return m_excludedLUT;
-  else
-    return m_includedLUT;
+  return stereologicalExtentsion;
 }

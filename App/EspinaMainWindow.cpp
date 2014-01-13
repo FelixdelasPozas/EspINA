@@ -19,30 +19,32 @@
 #include "EspinaMainWindow.h"
 
 // EspINA
-#include "Dialogs/AboutDialog.h"
+#include "Dialogs/About/AboutDialog.h"
 #include "Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.h"
+#include "Dialogs/Settings/GeneralSettingsDialog.h"
+#include "Dialogs/TabularReport/RawInformationDialog.h"
 #include "Docks/ChannelExplorer/ChannelExplorer.h"
 #include "Docks/SegmentationExplorer/SegmentationExplorer.h"
 #include "IO/ChannelReader.h"
 #include "IO/SegFileReader.h"
 #include "Menus/ColorEngineMenu.h"
-#include "Settings/GeneralSettings.h"
 #include "ToolGroups/Editor/EditionTools.h"
 #include "ToolGroups/Segmentation/SegmentationTools.h"
 #include "ToolGroups/ViewState/ViewTools.h"
+#include "Settings/GeneralSettings/GeneralSettingsPanel.h"
 #include <Core/IO/ClassificationXML.h>
 #include <Core/IO/SegFile.h>
 #include <Core/MultiTasking/Scheduler.h>
 #include <Core/Utils/AnalysisUtils.h>
+#include <Extensions/EdgeDistances/AdaptiveEdges.h>
 #include <GUI/ColorEngines/CategoryColorEngine.h>
 #include <GUI/ColorEngines/NumberColorEngine.h>
 #include <GUI/ColorEngines/UserColorEngine.h>
 #include <GUI/Model/Utils/ModelAdapterUtils.h>
 #include <GUI/Representations/BasicRepresentationFactory.h>
-#include <Support/Settings/EspinaSettings.h>
+#include <GUI/Representations/Renderers/SliceRenderer.h>
 #include <Support/Plugin.h>
-#include <Extensions/EdgeDistances/AdaptiveEdges.h>
-
+#include <Support/Settings/EspinaSettings.h>
 
 // Std
 #include <sstream>
@@ -85,8 +87,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 , m_channelReader{new ChannelReader()}
 , m_segFileReader{new SegFileReader()}
 , m_settings     (new GeneralSettings())
-// , m_settingsPanel(new GeneralSettingsPanel(m_model, m_settings))
-, m_view{new DefaultView(m_model, m_viewManager, m_undoStack, this)}
+, m_view{new DefaultView(m_model, m_viewManager, m_undoStack, m_availableRenderers, this)}
 , m_schedulerProgress(new SchedulerProgress(m_scheduler, this))
 , m_busy(false)
 , m_undoStackSavedIndex(0)
@@ -109,18 +110,13 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   m_factory->registerChannelRepresentationFactory(RepresentationFactorySPtr{new BasicChannelRepresentationFactory()});
   m_factory->registerSegmentationRepresentationFactory(RepresentationFactorySPtr{new BasicSegmentationRepresentationFactory()});
 
-  // TODO Move to Default EspinaView
-//   m_defaultRenderers << IRendererSPtr(new CrosshairRenderer());
-//   m_defaultRenderers << IRendererSPtr(new VolumetricRenderer());
-//   m_defaultRenderers << IRendererSPtr(new VolumetricGPURenderer());
-//   m_defaultRenderers << IRendererSPtr(new MeshRenderer());
-//   m_defaultRenderers << IRendererSPtr(new SmoothedMeshRenderer());
-//   m_defaultRenderers << IRendererSPtr(new SliceRenderer());
-//   m_defaultRenderers << IRendererSPtr(new ContourRenderer());
-// 
-//   foreach(IRendererSPtr renderer, m_defaultRenderers)
-//     factory->registerRenderer(renderer.get());
-
+//   m_availableRenderers << RendererSPtr(new CrosshairRenderer());
+//   m_availableRenderers << RendererSPtr(new VolumetricRenderer());
+//   m_availableRenderers << RendererSPtr(new VolumetricGPURenderer());
+//   m_availableRenderers << RendererSPtr(new MeshRenderer());
+//   m_availableRenderers << RendererSPtr(new SmoothedMeshRenderer());
+  m_availableRenderers << RendererSPtr(new SliceRenderer());
+//   m_availableRenderers << RendererSPtr(new ContourRenderer());
 
   /*** FILE MENU ***/
   QMenu *fileMenu = new QMenu(tr("File"), this);
@@ -265,9 +261,6 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   m_contextualBar->setMaximumHeight(44);
   m_viewManager->setContextualBar(m_contextualBar);
 
-//   m_mainToolBar = new MainToolBar(m_model, m_undoStack, m_viewManager);
-//   registerToolBar(m_mainToolBar);
-
   auto defaultActiveTool = new ViewTools(m_viewManager, this);
   registerToolGroup(defaultActiveTool);
 // 
@@ -312,11 +305,8 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   statusBar()->clearMessage();
 
   m_view->createViewMenu(m_viewMenu);
-//   connect(m_mainToolBar, SIGNAL(showSegmentations(bool)),
-//           m_view.get(),  SLOT(showSegmentations(bool)));
 
   QSettings settings(CESVIMA, ESPINA);
-
   /**
    * Instead of ussing save/restoreGeometry resice+move
    * Works better in Unity when espina is closed while is maximized
@@ -352,8 +342,6 @@ EspinaMainWindow::~EspinaMainWindow()
 
 //   foreach(IRendererSPtr renderer, m_defaultRenderers)
 //     m_model->factory()->unregisterRenderer(renderer.get());
-
-  delete m_settings;
   delete m_undoStack;
   delete m_dynamicMenuRoot;
 }
@@ -368,10 +356,27 @@ void EspinaMainWindow::loadPlugins(QList<QObject *> &plugins)
     {
       validPlugin->init(m_model, m_viewManager, m_undoStack);
 
+      for (auto colorEngine : validPlugin->colorEngines())
+      {
+        m_colorEngines->addColorEngine(colorEngine.first,  colorEngine.second);
+      }
+
       for (auto dock : validPlugin->dockWidgets())
       {
         qDebug() << plugin << "- Dock " << dock->windowTitle() << " ...... OK";
         registerDockWidget(Qt::LeftDockWidgetArea, dock);
+      }
+
+      for (auto settings : validPlugin->settingsPanels())
+      {
+        qDebug() << plugin << "- Settings Panel " << settings->windowTitle() << " ...... OK";
+        m_availableSettingsPanels << settings;
+      }
+
+      for (auto renderer : validPlugin->renderers())
+      {
+        qDebug() << plugin << "- Renderers " << renderer->name() << " ...... OK";
+        m_availableRenderers << renderer;
       }
     }
 //     IFactoryExtension *factoryExtension = qobject_cast<IFactoryExtension *>(plugin);
@@ -436,7 +441,7 @@ void EspinaMainWindow::createActivityMenu()
   activityMenu->addAction(analyze);
   sigMapper->setMapping(analyze,QString("analyze"));
   connect(analyze,SIGNAL(triggered(bool)), sigMapper, SLOT(map()));
-  
+
   QAction *reload = new QAction(tr("Reload"),activityMenu);
   activityMenu->addAction(reload);
   sigMapper->setMapping(reload,QString("Reload"));
@@ -725,6 +730,11 @@ void EspinaMainWindow::openAnalysis(const QStringList files)
 
     m_model->emitChannelAdded(m_model->channels());
     m_model->emitSegmentationAdded(m_model->segmentations());
+
+    if (!m_model->channels().isEmpty())
+    {
+      m_viewManager->setActiveChannel(m_model->channels().first().get());
+    }
   }
 }
 
@@ -979,19 +989,18 @@ void EspinaMainWindow::updateTooltip(QAction* action)
 //------------------------------------------------------------------------
 void EspinaMainWindow::showPreferencesDialog()
 {
-  //TODO 2013-10-06
-//   GeneralSettingsDialog dialog;
-// 
-//   dialog.registerPanel(m_settingsPanel.get());
-//   dialog.registerPanel(m_view->settingsPanel());
-//   dialog.resize(800, 600);
+  GeneralSettingsDialog dialog;
 
-//   foreach(ISettingsPanelPtr panel, m_model->factory()->settingsPanels())
-//   {
-//     dialog.registerPanel(panel);
-//   }
-/*
-  dialog.exec(); */
+  dialog.registerPanel(SettingsPanelSPtr(new GeneralSettingsPanel(m_settings)));
+  dialog.registerPanel(m_view->settingsPanel());
+  dialog.resize(800, 600);
+
+  for(auto panel : m_availableSettingsPanels)
+  {
+    dialog.registerPanel(panel);
+  }
+
+  dialog.exec();
 }
 
 //------------------------------------------------------------------------
@@ -1032,17 +1041,17 @@ void EspinaMainWindow::showConnectomicsInformation()
 //------------------------------------------------------------------------
 void EspinaMainWindow::showRawInformation()
 {
-//   if (!m_model->segmentations().isEmpty())
-//   {
-//     RawInformationDialog *dialog = new RawInformationDialog(m_model, m_viewManager, this);
-//     connect(dialog, SIGNAL(finished(int)),
-//             dialog, SLOT(deleteLater()));
-//     dialog->show();
-//   }
-//   else
-//   {
-//     QMessageBox::warning(this, ESPINA, tr("Current analysis does not contain any segmentations"));
-//   }
+  if (!m_model->segmentations().isEmpty())
+  {
+    RawInformationDialog *dialog = new RawInformationDialog(m_model, m_viewManager, this);
+    connect(dialog, SIGNAL(finished(int)),
+            dialog, SLOT(deleteLater()));
+    dialog->show();
+  }
+  else
+  {
+    QMessageBox::warning(this, ESPINA, tr("Current analysis does not contain any segmentations"));
+  }
 }
 
 //------------------------------------------------------------------------

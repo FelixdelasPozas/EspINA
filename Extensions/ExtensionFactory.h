@@ -36,6 +36,9 @@ namespace EspINA
     virtual SegmentationExtensionSPtr createSegmentationExtension(SegmentationExtension::Type type) = 0;
   };
 
+  using ExtensionFactorySPtr  = std::shared_ptr<ExtensionFactory>;
+  using ExtensionFactorySList = QList<ExtensionFactorySPtr>;
+
 }// namespace EspINA
 
 #endif // ESPINA_EXTENSION_FACTORY_H

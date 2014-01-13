@@ -27,6 +27,7 @@
 #include <GUI/View/View2D.h>
 #include <GUI/View/View3D.h>
 #include <Support/ViewManager.h>
+#include <Support/Settings/SettingsPanel.h>
 
 // Forward-declaration
 class QMainWindow;
@@ -40,10 +41,11 @@ namespace EspINA
   {
     Q_OBJECT
   public:
-    explicit DefaultView(ModelAdapterSPtr model,
-                         ViewManagerSPtr  viewManager,
-                         QUndoStack      *undoStack,
-                         QMainWindow     *parent=0
+    explicit DefaultView(ModelAdapterSPtr    model,
+                         ViewManagerSPtr     viewManager,
+                         QUndoStack         *undoStack,
+                         const RendererSList &renderers,
+                         QMainWindow         *parent=0
     );
     virtual ~DefaultView();
 
@@ -60,6 +62,8 @@ namespace EspINA
     { return QRect(); }
 
     virtual void setModel(QAbstractItemModel *model);
+
+    SettingsPanelSPtr settingsPanel();
 
   protected:
     // AbstractItemView Interface
@@ -129,44 +133,17 @@ namespace EspINA
 
     QColor m_xLine, m_yLine, m_zLine;
 
-    View2D *viewXY, *viewYZ, *viewXZ;
-    View3D *view3D;
+    View2D *m_viewXY, *m_viewYZ, *m_viewXZ;
+    View3D *m_view3D;
+
+    const RendererSList &m_renderers;
+
     QDockWidget *dock3D, *dockYZ, *dockXZ;
     QAction     *m_showRuler, *m_showThumbnail;
 
     ContextualMenuSPtr m_contextMenu;
   };
 
-//   class DefaultView::SettingsPanel
-//   : public ISettingsPanel
-//   {
-//   public:
-//     explicit SettingsPanel(SliceView::SettingsSPtr xy,
-//                            SliceView::SettingsSPtr yz,
-//                            SliceView::SettingsSPtr xz,
-//                            VolumeView::SettingsPtr vol,
-//                            EspinaFactoryPtr factory);
-// 
-//     virtual const QString shortDescription() {return tr("View");}
-//     virtual const QString longDescription() {return tr("%1").arg(shortDescription());}
-//     virtual const QIcon icon() {return QIcon(":/espina/show_all.svg");}
-// 
-//     virtual void acceptChanges();
-//     virtual void rejectChanges();
-//     virtual bool modified() const;
-// 
-//     virtual ISettingsPanelPtr clone();
-// 
-//   private:
-//     SliceView::SettingsSPtr m_xy, m_yz, m_xz;
-//     EspinaFactory *m_factory;
-// 
-//     Nm m_slicingStep;
-// 
-//     SliceViewSettingsPanel *m_xyPanel, *m_yzPanel, *m_xzPanel;
-//     VolumeView::SettingsPtr m_vol;
-//     VolumeViewSettingsPanel *m_volPanel;
-//   };
 
   using DefaultViewSPtr = std::shared_ptr<DefaultView>;
 

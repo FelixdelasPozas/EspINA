@@ -35,6 +35,7 @@
 
 namespace EspINA
 {
+namespace CF {
   class CountingFrameExtension;
 
   class CountingFramePlugin_EXPORT CountingFrame
@@ -45,8 +46,8 @@ namespace EspINA
   {
     Q_OBJECT
   protected:
-    typedef CountingFrameInteractorAdapter<vtkCountingFrameSliceWidget> CountingFrame2DWidgetAdapter;
-    typedef CountingFrameInteractorAdapter<vtkCountingFrame3DWidget>    CountingFrame3DWidgetAdapter;
+    using CountingFrame2DWidgetAdapter = CountingFrameInteractorAdapter<vtkCountingFrameSliceWidget>;
+    using CountingFrame3DWidgetAdapter = CountingFrameInteractorAdapter<vtkCountingFrame3DWidget>;
 
     class CountingFrameSliceWidget
     : public SliceWidget
@@ -123,10 +124,10 @@ namespace EspINA
 
     Nm left()  const {return m_inclusion[0];}
     Nm top()   const {return m_inclusion[1];}
-    Nm upper() const {return m_inclusion[2];}
+    Nm front() const {return m_inclusion[2];}
     Nm right() const {return m_exclusion[0];}
     Nm bottom()const {return m_exclusion[1];}
-    Nm lower() const {return m_exclusion[2];}
+    Nm back() const {return m_exclusion[2];}
 
     void setCategoryConstraint(const CategorySPtr category);
 
@@ -166,7 +167,7 @@ namespace EspINA
   };
 
   using CountingFrameList = QList<CountingFrame *>;
-
+} // namsepace CF
 } // namespace EspINA
 
 #endif // BOUNDINGREGION_H

@@ -23,19 +23,27 @@ const double SELECTED_ALPHA   = 1.0;
 const double UNSELECTED_ALPHA = 0.6;
 
 //-----------------------------------------------------------------------------
-QColor NumberColorEngine::color(SegmentationAdapterPtr seg)
+QColor NumberColorEngine::color(SegmentationAdapterPtr segmentation)
 {
-  if (!seg)
-    return Qt::red;
-  else
-    return QColor((seg->number() * 25) % 255, (seg->number() * 73) % 255, (seg->number() * 53) % 255);
+  int r = 255;
+  int g = 0;
+  int b = 0;
+
+  if (segmentation)
+  {
+    r = (segmentation->number() * 25) % 255;
+    g = (segmentation->number() * 73) % 255;
+    b = (segmentation->number() * 53) % 255;
+  }
+
+  return QColor(r, g, b);
 }
 
 //-----------------------------------------------------------------------------
-LUTSPtr NumberColorEngine::lut(SegmentationAdapterPtr seg)
+LUTSPtr NumberColorEngine::lut(SegmentationAdapterPtr segmentation)
 {
   // Get (or create if it doesn't exit) the lut for the segmentations' images
-  QString lutName = QString::number(seg->number());
+  QString lutName = QString::number(segmentation->number());
 //   if (seg->isSelected())
 //     lutName.append("_selected");
 
@@ -43,8 +51,8 @@ LUTSPtr NumberColorEngine::lut(SegmentationAdapterPtr seg)
 
   if (!m_LUT.contains(lutName))
   {
-    double alpha = (seg->isSelected() ? SELECTED_ALPHA : UNSELECTED_ALPHA);
-    QColor c = color(seg);
+    double alpha = (segmentation->isSelected() ? SELECTED_ALPHA : UNSELECTED_ALPHA);
+    QColor c = color(segmentation);
 
     seg_lut = vtkLookupTable::New();
     seg_lut->Allocate();

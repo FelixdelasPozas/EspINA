@@ -1,8 +1,11 @@
 include (GenerateExportHeader)
 
+find_package(XLSLIB REQUIRED)
+
 include_directories(
   ${CMAKE_BINARY_DIR}         # Exports & Generated EspinaConfig.h
   ${CMAKE_CURRENT_BINARY_DIR} #For wrap/ui files
+  ${XLSLIB_INCLUDE_DIRS}
 )
 
 qt4_wrap_cpp(Support_MOC
@@ -20,8 +23,9 @@ set (Support_SOURCES
   ${Support_MOC}
   ${Support_UI}
   EventHandler.cpp
-  ViewManager.cpp
   ToolGroup.cpp
+  Utils/xlsUtils.cpp
+  ViewManager.cpp
   )
 
 set(Support_EXTERNAL_LIBS
@@ -30,6 +34,7 @@ set(Support_EXTERNAL_LIBS
   ${QT_LIBRARIES}
   ${VTK_LIBRARIES}
   ${ITK_LIBRARIES}
+  ${XLSLIB_LIBRARIES}
 )
 
 if(DEFINED MINGW OR DEFINED MSVC)

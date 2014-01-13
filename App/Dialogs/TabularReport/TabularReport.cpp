@@ -19,15 +19,11 @@
 
 #include "TabularReport.h"
 #include "TabularReportEntry.h"
+#include <GUI/Widgets/CheckableTableView.h>
+#include <GUI/Model/Proxies/InformationProxy.h>
 
 // Espina
-#include <Core/Model/EspinaModel.h>
-#include <Core/Model/Segmentation.h>
-#include <Core/Model/EspinaFactory.h>
-#include <Core/Model/QtModelUtils.h>
-#include <Core/Extensions/SegmentationExtension.h>
-#include <GUI/QtWidget/CheckableTableView.h>
-#include <GUI/Analysis/xlsUtils.h>
+#include <Support/Utils/xlsUtils.h>
 
 // Qt
 #include <QFileDialog>
@@ -36,6 +32,7 @@
 #include <QStandardItemModel>
 #include <QKeyEvent>
 #include <QMessageBox>
+#include <QTableView>
 
 
 
@@ -69,12 +66,11 @@ protected:
 
 
 //------------------------------------------------------------------------
-TabularReport::TabularReport(ViewManager    *viewmManager,
+TabularReport::TabularReport(ViewManagerSPtr viewmManager,
                              QWidget        *parent,
-                             Qt::WindowFlags f)
-: m_model(NULL)
-, m_factory(NULL)
-, m_viewManager(viewmManager)
+                             Qt::WindowFlags flags)
+//, m_factory(NULL)
+: m_viewManager(viewmManager)
 , m_tabs(new QTabWidget())
 , m_multiSelection(false)
 {
@@ -97,8 +93,8 @@ TabularReport::TabularReport(ViewManager    *viewmManager,
           this, SLOT(exportInformation()));
   m_tabs->setCornerWidget(exportButton);
 
-  connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection, bool)),
-          this, SLOT(updateSelection(ViewManager::Selection)));
+  connect(m_viewManager->selection().get(), SIGNAL(selectionStateChanged(SegmentationAdapterList)),
+          this, SLOT(updateSelection(SegmentationAdapterList)));
 }
 
 //------------------------------------------------------------------------
@@ -114,13 +110,13 @@ void TabularReport::dataChanged(const QModelIndex &topLeft, const QModelIndex &b
   QAbstractItemView::dataChanged(topLeft, bottomRight);
   if (topLeft.isValid())
   {
-    ModelItemPtr item = indexPtr(topLeft);
-    if (EspINA::SEGMENTATION == item->type())
+    auto item = itemAdapter(topLeft);
+    if (isSegmentation(item))
     {
-      SegmentationPtr segmentation = segmentationPtr(item);
+      auto segmentation = segmentationPtr(item);
 
       if (acceptSegmentation(segmentation))
-        createTaxonomyEntry(segmentation->taxonomy()->qualifiedName());
+        createCategoryEntry(segmentation->category()->classificationName());
     }
   }
 }
@@ -132,28 +128,28 @@ void TabularReport::rowsInserted(const QModelIndex &parent, int start, int end)
   {
     for (int row = start; row <= end; ++row)
     {
-      ModelItemPtr item = indexPtr(parent.child(row, 0));
+      auto item = itemAdapter(parent.child(row, 0));
 
-      SegmentationPtr segmentation = segmentationPtr(item);
+      auto segmentation = segmentationPtr(item);
       if (acceptSegmentation(segmentation))
       {
-        createTaxonomyEntry(segmentation->taxonomy()->qualifiedName());
+        createCategoryEntry(segmentation->category()->classificationName());
       }
     }
   }
 }
 
 //------------------------------------------------------------------------
-void TabularReport::setModel(EspinaModel *model)
+void TabularReport::setModel(ModelAdapterSPtr model)
 {
   m_model   = model;
-  m_factory = model->factory();
+  //m_factory = model->factory();
 
-  QAbstractItemView::setModel(model);
+  QAbstractItemView::setModel(model.get());
 }
 
 //------------------------------------------------------------------------
-void TabularReport::setFilter(SegmentationList segmentations)
+void TabularReport::setFilter(SegmentationAdapterList segmentations)
 {
   m_filter = segmentations;
 
@@ -186,7 +182,7 @@ void TabularReport::reset()
 
     if (!m_filter.isEmpty())
     {
-      QString tabText = m_filter.last()->taxonomy()->qualifiedName();
+      QString tabText = m_filter.last()->category()->classificationName();
       for (int i = 0; i < m_tabs->count(); ++i)
       {
         if (m_tabs->tabText(i) == tabText)
@@ -205,14 +201,14 @@ void TabularReport::indexDoubleClicked(QModelIndex index)
 {
   QModelIndex sourceIndex = mapToSource(index);
 
-  ModelItemPtr sItem = indexPtr(sourceIndex);
-  SegmentationPtr segmentation = segmentationPtr(sItem);
+  auto sItem = itemAdapter(sourceIndex);
+  auto segmentation = segmentationPtr(sItem);
 
-  SegmentationVolumeSPtr volume = segmentationVolume(segmentation->output());
+  auto volume = volumetricData(segmentation->output());
 
-  double bounds[6];
-  volume->bounds(bounds);
-  Nm center[3] = { (bounds[0] + bounds[1]) / 2.0, (bounds[2] + bounds[3]) / 2.0, (bounds[4] + bounds[5]) / 2.0 };
+  Bounds bounds = volume->bounds();
+
+  NmVector3 center{(bounds[0] + bounds[1]) / 2.0, (bounds[2] + bounds[3]) / 2.0, (bounds[4] + bounds[5]) / 2.0 };
   m_viewManager->focusViewsOn(center);
 
   emit doubleClicked(sourceIndex);
@@ -221,14 +217,14 @@ void TabularReport::indexDoubleClicked(QModelIndex index)
 //------------------------------------------------------------------------
 void TabularReport::updateRepresentation(const QModelIndex &index)
 {
-  ModelItemPtr sItem = indexPtr(mapToSource(index));
+  auto sItem = itemAdapter(mapToSource(index));
 
   m_viewManager->updateSegmentationRepresentations(segmentationPtr(sItem));
   m_viewManager->updateViews();
 }
 
 //------------------------------------------------------------------------
-void TabularReport::updateSelection(ViewManager::Selection selection)
+void TabularReport::updateSelection(SegmentationAdapterList selection)
 {
   if (!isVisible())
     return;
@@ -244,42 +240,38 @@ void TabularReport::updateSelection(ViewManager::Selection selection)
     tableView->setSelectionMode(QAbstractItemView::MultiSelection);
   }
 
-  foreach(PickableItemPtr item, selection)
+  for(auto segmentation : selection)
   {
-    if (EspINA::SEGMENTATION == item->type())
+    Entry *entry = NULL;
+    int i = 0;
+    for (i = 0; i < m_tabs->count(); ++i)
     {
-      SegmentationPtr segmentation = segmentationPtr(item);
-      Entry *entry = NULL;
-      int i = 0;
-      for (i = 0; i < m_tabs->count(); ++i)
+      if (m_tabs->tabText(i) == segmentation->category()->classificationName())
       {
-        if (m_tabs->tabText(i) == segmentation->taxonomy()->qualifiedName())
-        {
-          entry = dynamic_cast<Entry *>(m_tabs->widget(i));
-          break;
-        }
+        entry = dynamic_cast<Entry *>(m_tabs->widget(i));
+        break;
       }
+    }
 
-      if (entry)
+    if (entry)
+    {
+      QTableView *tableView = entry->tableView;
+      QAbstractItemModel *model = tableView->model();
+      QModelIndex rootIndex = tableView->rootIndex();
+
+      for (int row = 0; row < model->rowCount(rootIndex); ++row)
       {
-        QTableView *tableView = entry->tableView;
-        QAbstractItemModel *model = tableView->model();
-        QModelIndex rootIndex = tableView->rootIndex();
-
-        for (int row = 0; row < model->rowCount(rootIndex); ++row)
+        QModelIndex index = model->index(row, 0, rootIndex);
+        if (index.data().toString() == segmentation->data().toString())
         {
-          QModelIndex index = model->index(row, 0, rootIndex);
-          if (index.data().toString() == item->data().toString())
+          tableView->selectRow(row);
+          if (segmentation == selection.first())
           {
-            tableView->selectRow(row);
-            if (item == selection.first())
-            {
-              tableView->selectionModel()->setCurrentIndex(index, QItemSelectionModel::Select);
-              tableView->scrollTo(index);
-              m_tabs->setCurrentIndex(i);
-            }
-            break;
+            tableView->selectionModel()->setCurrentIndex(index, QItemSelectionModel::Select);
+            tableView->scrollTo(index);
+            m_tabs->setCurrentIndex(i);
           }
+          break;
         }
       }
     }
@@ -302,7 +294,7 @@ void TabularReport::updateSelection(ViewManager::Selection selection)
 //------------------------------------------------------------------------
 void TabularReport::updateSelection(QItemSelection selected, QItemSelection deselected)
 {
-  ViewManager::Selection selection;
+  ViewItemAdapterList selection;
 
   if (m_multiSelection)
   {
@@ -312,18 +304,21 @@ void TabularReport::updateSelection(QItemSelection selected, QItemSelection dese
       QTableView *tableView = entry->tableView;
 
       QSortFilterProxyModel *sortFilter = dynamic_cast<QSortFilterProxyModel *>(tableView->model());
-      foreach(QModelIndex index, tableView->selectionModel()->selectedRows())
+      for(auto index : tableView->selectionModel()->selectedRows())
       {
-        ModelItemPtr sItem = indexPtr(sortFilter->mapToSource(index));
-        if (EspINA::SEGMENTATION == sItem->type())
-          selection << pickableItemPtr(sItem);
+        auto sItem = itemAdapter(sortFilter->mapToSource(index));
+
+        if (ItemAdapter::Type::SEGMENTATION == sItem->type())
+        {
+          selection << segmentationPtr(sItem);
+        }
       }
     }
   } else
   {
     QItemSelectionModel *selectionModel = dynamic_cast<QItemSelectionModel *>(sender());
 
-    QTableView *tableView = NULL;
+    QTableView *tableView = nullptr;
     for (int i = 0; i < m_tabs->count(); ++i)
     {
       Entry *entry = dynamic_cast<Entry *>(m_tabs->widget(i));
@@ -335,11 +330,14 @@ void TabularReport::updateSelection(QItemSelection selected, QItemSelection dese
     }
 
     DataSortFiler *sortFilter = dynamic_cast<DataSortFiler *>(tableView->model());
-    foreach(QModelIndex index, tableView->selectionModel()->selectedRows())
+    for(auto index : tableView->selectionModel()->selectedRows())
     {
-      ModelItemPtr sItem = indexPtr(sortFilter->mapToSource(index));
-      if (EspINA::SEGMENTATION == sItem->type())
-        selection << pickableItemPtr(sItem);
+      auto sItem = itemAdapter(sortFilter->mapToSource(index));
+
+      if (ItemAdapter::Type::SEGMENTATION == sItem->type())
+      {
+        selection << segmentationPtr(sItem);
+      }
     }
   }
 
@@ -353,7 +351,7 @@ void TabularReport::rowsRemoved(const QModelIndex &parent, int start, int end)
 
   for (int i = 0; i < m_tabs->count(); ++i)
   {
-    if (m_tabs->tabText(i) == proxy->taxonomy() && proxy->rowCount() == 0)
+    if (m_tabs->tabText(i) == proxy->category() && proxy->rowCount() == 0)
     {
       QWidget *tab = m_tabs->widget(i);
       m_tabs->removeTab(i);
@@ -390,40 +388,41 @@ void TabularReport::exportInformation()
 }
 
 //------------------------------------------------------------------------
-bool TabularReport::acceptSegmentation(const SegmentationPtr segmentation)
+bool TabularReport::acceptSegmentation(const SegmentationAdapterPtr segmentation)
 {
   return m_filter.isEmpty() || m_filter.contains(segmentation);
 }
 
 //------------------------------------------------------------------------
-void TabularReport::createTaxonomyEntry(const QString &taxonomy)
+void TabularReport::createCategoryEntry(const QString &category)
 {
   bool found = false;
   int  i = 0;
   while (!found && i < m_tabs->count())
   {
-    if (m_tabs->tabText(i) >= taxonomy)
+    if (m_tabs->tabText(i) >= category)
       found = true;
     else
       i++;
   }
 
-  if (m_tabs->tabText(i) != taxonomy)
+  if (m_tabs->tabText(i) != category)
   {
-    Entry *entry = new Entry(taxonomy, m_factory);
+    Entry *entry = new Entry(category);
 
-    Segmentation::InfoTagList tags;
-    tags << tr("Name") << tr("Taxonomy");
-    foreach(Segmentation::InformationExtension extension, m_factory->segmentationExtensions())
-    {
-      if (extension->validTaxonomy(taxonomy))
-      {
-        tags << extension->availableInformations();
-      }
-    }
+    SegmentationExtension::InfoTagList tags;
+    tags << tr("Name") << tr("Category");
+    //TODO: Populate tags
+//     for(Segmentation::InformationExtension extension, m_factory->segmentationExtensions())
+//     {
+//       if (extension->validTaxonomy(taxonomy))
+//       {
+//         tags << extension->availableInformations();
+//       }
+//     }
 
     InformationProxy *infoProxy = new InformationProxy();
-    infoProxy->setTaxonomy(taxonomy);
+    infoProxy->setCategory(category);
     infoProxy->setFilter(&m_filter);
     infoProxy->setInformationTags(tags);
     infoProxy->setSourceModel(m_model);
@@ -448,7 +447,7 @@ void TabularReport::createTaxonomyEntry(const QString &taxonomy)
     connect(tableView, SIGNAL(doubleClicked(QModelIndex)),
             this, SLOT(indexDoubleClicked(QModelIndex)));
 
-    m_tabs->insertTab(i, entry, taxonomy);
+    m_tabs->insertTab(i, entry, category);
   }
 }
 
@@ -525,5 +524,7 @@ QModelIndex TabularReport::mapFromSource(const QModelIndex &index, QSortFilterPr
 void TabularReport::removeTabsAndWidgets()
 {
   while (m_tabs->count())
+  {
     delete m_tabs->widget(0);
+  }
 }

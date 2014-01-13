@@ -353,41 +353,41 @@ void ClassificationLayout::deleteSelectedItems()
 
 //------------------------------------------------------------------------
 void ClassificationLayout::showSelectedItemsInformation()
-{//TODO
-//   CategoryAdapterList  categories;
-//   SegmentationSet      segmentations;
-// 
-//   if (!selectedItems(categories, segmentations))
-//     return;
-// 
-//   if (!categories.empty())
-//   {
-//     QModelIndexList selectedIndexes = m_view->selectionModel()->selectedIndexes();
-//     QModelIndexList subIndexes;
-//     foreach(QModelIndex index, selectedIndexes)
-//     {
-//       ItemAdapterPtr item = ClassificationLayout::item(index);
-//       if (EspINA::TAXONOMY == item->type())
-//       {
-//         subIndexes << indices(index, true);
-//         foreach(QModelIndex subIndex, subIndexes)
-//         {
-//           ItemAdapterPtr subItem = ClassificationLayout::item(subIndex);
-//           if (EspINA::SEGMENTATION == subItem->type())
-//           {
-//             SegmentationPtr seg = segmentationPtr(subItem);
-//             if (!segmentations.contains(seg))
-//               segmentations << seg;
-//           }
-//         }
-//       }
-//     }
-//   }
-// 
-//   if (segmentations.empty())
-//     return;
-// 
-//   showSegmentationInformation(segmentations.toList());
+{
+  CategoryAdapterList    categories;
+  SegmentationAdapterSet segmentations;
+
+  if (!selectedItems(categories, segmentations))
+    return;
+
+  if (!categories.empty())
+  {
+    QModelIndexList selectedIndexes = m_view->selectionModel()->selectedIndexes();
+    QModelIndexList subIndexes;
+    for(QModelIndex index : selectedIndexes)
+    {
+      ItemAdapterPtr item = ClassificationLayout::item(index);
+      if (ItemAdapter::Type::CATEGORY == item->type())
+      {
+        subIndexes << indices(index, true);
+        for(QModelIndex subIndex : subIndexes)
+        {
+          ItemAdapterPtr subItem = ClassificationLayout::item(subIndex);
+          if (ItemAdapter::Type::SEGMENTATION == subItem->type())
+          {
+            auto seg = segmentationPtr(subItem);
+            if (!segmentations.contains(seg))
+              segmentations << seg;
+          }
+        }
+      }
+    }
+  }
+
+  if (segmentations.empty())
+    return;
+
+  showSegmentationInformation(segmentations.toList());
 }
 
 //------------------------------------------------------------------------

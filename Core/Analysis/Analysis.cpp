@@ -62,8 +62,11 @@ void Analysis::add(SampleSPtr sample)
   if (m_samples.contains(sample)) throw (Existing_Item_Exception());
 
   m_samples << sample;
+
   m_content->add(sample);
   m_relations->add(sample);
+
+  sample->setAnalysis(this);
 }
 
 //------------------------------------------------------------------------
@@ -93,6 +96,8 @@ void Analysis::add(ChannelSPtr channel)
   m_content->addRelation(filter, channel, relation);
 
   m_relations->add(channel);
+
+  channel->setAnalysis(this);
 }
 
 //------------------------------------------------------------------------
@@ -122,6 +127,8 @@ void Analysis::add(SegmentationSPtr segmentation)
   m_content->addRelation(filter, segmentation, relation);
   
   m_relations->add(segmentation);
+
+  segmentation->setAnalysis(this);
 }
 
 //------------------------------------------------------------------------
@@ -137,7 +144,7 @@ void Analysis::add(SegmentationSList segmentations)
 void Analysis::add(ExtensionProviderSPtr provider)
 {
   if (m_providers.contains(provider)) throw (Existing_Item_Exception());
-  
+
   m_providers << provider;
   m_content->add(provider);
 }

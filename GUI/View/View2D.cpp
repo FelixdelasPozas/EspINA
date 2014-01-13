@@ -204,8 +204,12 @@ void View2D::setInvertSliceOrder(bool value)
 void View2D::setRenderers(RendererSList renderers)
 {
   for(auto renderer: renderers)
+  {
     if (canRender(renderer, RendererType::RENDERER_VIEW2D))
+    {
       addRendererControls(renderer->clone());
+    }
+  }
 }
 
 //-----------------------------------------------------------------------------

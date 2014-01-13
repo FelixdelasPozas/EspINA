@@ -17,15 +17,17 @@
 */
 
 
-#ifndef INFORMATION_SELECTOR_H
-#define INFORMATION_SELECTOR_H
+#ifndef ESPINA_INFORMATION_SELECTOR_H
+#define ESPINA_INFORMATION_SELECTOR_H
 
 #include "EspinaGUI_Export.h"
+
+#include <Core/Analysis/Segmentation.h>
+#include <GUI/ModelFactory.h>
 
 #include <QDialog>
 
 #include <QStringListModel>
-#include <Core/Model/Segmentation.h>
 
 class QTreeWidgetItem;
 namespace EspINA
@@ -39,27 +41,29 @@ namespace EspINA
     Q_OBJECT
 
     class GUI;
-  public:
-    typedef QMap<QString, Segmentation::InfoTagList> TaxonomyInformation;
 
   public:
-    explicit InformationSelector(TaxonomyInformation &tags,
-                                 EspinaFactory   *factory,
-                                 QWidget         *parent = 0,
-                                 Qt::WindowFlags f = 0);
+    using InformationTagsByCategory = QMap<QString, SegmentationExtension::InfoTagList>;
+
+  public:
+    explicit InformationSelector(InformationTagsByCategory &tags,
+                                 ModelFactorySPtr           factory,
+                                 QWidget                   *parent = 0,
+                                 Qt::WindowFlags            flags = 0);
     virtual ~InformationSelector();
 
   protected slots:
     void accept();
+
     void updateCheckState(QTreeWidgetItem *item, int column, bool updateParent = true);
 
   private:
     GUI *m_gui;
 
-    EspinaFactory *m_factory;
+    ModelFactorySPtr m_factory;
 
-    TaxonomyInformation &m_tags;
+    InformationTagsByCategory &m_tags;
   };
 }
 
-#endif // INFORMATION_SELECTOR_H
+#endif // ESPINA_INFORMATION_SELECTOR_H

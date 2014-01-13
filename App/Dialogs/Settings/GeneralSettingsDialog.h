@@ -17,71 +17,43 @@
 */
 
 
-#ifndef GENERALSETTINGSDIALOG_H
-#define GENERALSETTINGSDIALOG_H
+#ifndef ESPINA_GENERAL_SETTINGS_DIALOG_H
+#define ESPINA_GENERAL_SETTINGS_DIALOG_H
 
 #include <QDialog>
 
-
-#include "ui_GeneralSettingsPanel.h"
 #include "ui_GeneralSettingsDialog.h"
 
 #include <Core/EspinaTypes.h>
-#include <Support/Settings/ISettingsPanel.h>
+#include <Support/Settings/SettingsPanel.h>
 
 namespace EspINA
 {
-  class ModelAdapter;
-  class GeneralSettings;
-
-  class GeneralSettingsPanel
-  : public ISettingsPanel
-  , Ui::GeneralSettingsPanel
-  {
-  public:
-    GeneralSettingsPanel(ModelAdapter *model, GeneralSettings *settings);
-    virtual ~GeneralSettingsPanel();
-
-    virtual const QString shortDescription() {return "Session";}
-    virtual const QString longDescription() {return "Session";}
-    virtual const QIcon icon() {return QIcon(":/espina/editor.ico");}
-
-    virtual void acceptChanges();
-    virtual void rejectChanges();
-    virtual bool modified() const;
-
-    virtual ISettingsPanelPtr clone();
-
-  private:
-    ModelAdapter     *m_model;
-    GeneralSettings *m_settings;
-  };
-
   class GeneralSettingsDialog
   : public QDialog
   , Ui::GeneralSettingsDialog
   {
     Q_OBJECT
   public:
-    explicit GeneralSettingsDialog(QWidget        *parent = 0,
-                            Qt::WindowFlags flags  = 0);
+    explicit GeneralSettingsDialog(QWidget *parent = 0,
+                                   Qt::WindowFlags flags  = 0);
 
     virtual void accept();
     virtual void reject();
 
-    void registerPanel(ISettingsPanelPtr panel);
+    void registerPanel(SettingsPanelSPtr panel);
 
   private:
-    ISettingsPanelPtr panel(const QString &shortDesc);
+    SettingsPanelSPtr panel(const QString &shortDesc);
 
   public slots:
     void changePreferencePanel(int panel);
 
   private:
-    ISettingsPanelPtr  m_activePanel;
-    ISettingsPanelList m_panels;
+    SettingsPanelPtr   m_activePanel;
+    SettingsPanelSList m_panels;
   };
 
 } // namespace EspINA
 
-#endif // GENERALSETTINGSDIALOG_H
+#endif // ESPINA_GENERAL_SETTINGS_DIALOG_H

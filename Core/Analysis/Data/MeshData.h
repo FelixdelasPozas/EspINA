@@ -41,26 +41,17 @@ namespace EspINA
   public:
     explicit MeshData();
 
-    Bounds bounds();
-
     virtual Data::Type type() const
     { return TYPE; }
 
     virtual DataProxySPtr createProxy() const;
 
-    virtual vtkSmartPointer<vtkPolyData> mesh()
-    { return m_mesh; };
+    virtual Bounds bounds() const;
 
-    virtual double memoryUsage() const = 0;
+    virtual vtkSmartPointer<vtkPolyData> mesh() const = 0;
 
-    virtual void fitToContent() = 0;
+    //virtual double memoryUsage() const = 0;
 
-    virtual void resize(const Bounds &bounds) = 0;
-
-    virtual void undo() = 0;
-
-  protected:
-    vtkSmartPointer<vtkPolyData> m_mesh;
   };
 
   using MeshDataSPtr = std::shared_ptr<MeshData>;

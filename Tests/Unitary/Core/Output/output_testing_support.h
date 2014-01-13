@@ -55,13 +55,15 @@ namespace EspINA {
   public:
     virtual Type type() const {return "DummyData";}
     virtual bool isValid() const {return true;}
-    virtual const Bounds bounds() const {}
+    virtual Bounds bounds() const {}
     virtual void setSpacing(const NmVector3& spacing){}
     virtual NmVector3 spacing() const {return NmVector3({1,1,1});}
     virtual bool fetchData(const TemporalStorageSPtr storage, const QString& prefix) { return false;}
     virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString& prefix) const{return Snapshot();}
     virtual Snapshot editedRegionsSnapshot() const {}
     virtual DataProxySPtr createProxy() const;
+    virtual size_t memoryUsage() const {return 0;}
+    virtual void undo() {};
   };
 
   using DummyDataSPtr = std::shared_ptr<DummyData>;

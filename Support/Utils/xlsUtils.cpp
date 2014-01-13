@@ -16,7 +16,7 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <GUI/Analysis/xlsUtils.h>
+#include <Support/Utils/xlsUtils.h>
 
 xlslib_core::cell_t *createCell(xlslib_core::worksheet *sheet, int row, int column, const QVariant &value)
 {

@@ -22,23 +22,25 @@
 #include "CountingFramePlugin_Export.h"
 
 #include "Plugins/CountingFrame/CountingFrames/CountingFrame.h"
+#include <Core/Utils/Bounds.h>
 
 namespace EspINA
 {
+  namespace CF {
   class CountingFrameExtension;
 
   const QString RECTANGULAR_CF = QObject::tr("Rectangular CF");
+
   class CountingFramePlugin_EXPORT RectangularCountingFrame
   : public CountingFrame
   {
   public:
     static RectangularCountingFrame *New(Id id,
-                                         CountingFrameExtension *channelExt,
-                                         Nm borders[6],
+                                         CountingFrameExtension *extension,
+                                         const Bounds &bounds,
                                          Nm inclusion[3],
-                                         Nm exclusion[3],
-                                         ViewManager *vm)
-    { return new RectangularCountingFrame(id, channelExt, borders, inclusion, exclusion,vm);}
+                                         Nm exclusion[3])
+    { return new RectangularCountingFrame(id, extension, bounds, inclusion, exclusion);}
 
     virtual ~RectangularCountingFrame();
 
@@ -47,35 +49,36 @@ namespace EspINA
     virtual QString name() const { return RECTANGULAR_CF; }
 
     // Implements EspinaWidget interface
-    virtual vtkAbstractWidget *create3DWidget(VolumeView *view);
+    virtual vtkAbstractWidget *create3DWidget(View3D *view);
 
-    virtual SliceWidget *createSliceWidget(SliceView *view);
+    virtual SliceWidget *createSliceWidget(View2D *view);
 
     virtual bool processEvent(vtkRenderWindowInteractor* iren,
                               long unsigned int event);
+
     virtual void setEnabled(bool enable);
 
     virtual void updateCountingFrameImplementation();
 
   protected:
     explicit RectangularCountingFrame(Id id,
-                                      CountingFrameExtension *channelExt,
-                                      Nm borders[6],
+                                      CountingFrameExtension *extension,
+                                      const Bounds &bounds,
                                       Nm inclusion[3],
-                                      Nm exclusion[3],
-                                      ViewManager *vm);
+                                      Nm exclusion[3]);
 
     vtkSmartPointer<vtkPolyData> createRectangularRegion(Nm left,
                                                          Nm top,
-                                                         Nm upper,
+                                                         Nm front,
                                                          Nm right,
                                                          Nm bottom,
-                                                         Nm lower);
+                                                         Nm back);
 
   private:
-    Nm m_borders[6];
+    Bounds m_bounds;
   };
 
+  } // namespace CF
 } // namespace EspINA
 
 #endif // RECTANGULARBOUNDINGFRAME_H

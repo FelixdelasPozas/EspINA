@@ -29,9 +29,9 @@ namespace EspINA
   : public ColorEngine
   {
   public:
-    virtual QColor  color(SegmentationAdapterPtr seg);
+    virtual QColor color(SegmentationAdapterPtr segmentation);
 
-    virtual LUTSPtr lut  (SegmentationAdapterPtr seg);
+    virtual LUTSPtr lut(SegmentationAdapterPtr segmentation);
 
     virtual ColorEngine::Composition supportedComposition() const
     { return ColorEngine::Color; }

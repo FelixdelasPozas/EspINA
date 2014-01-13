@@ -26,18 +26,20 @@
 */
 
 
-#ifndef TABULARREPORTENTRY_H
-#define TABULARREPORTENTRY_H
+#ifndef ESPINA_TABULAR_REPORT_ENTRY_H
+#define ESPINA_TABULAR_REPORT_ENTRY_H
 
 #include <App/Dialogs/TabularReport/TabularReport.h>
 #include <ui_TabularReport.h>
+
+#include <GUI/Model/Proxies/InformationProxy.h>
 
 #include <common/xlconfig.h>
 #include <xlslib.h>
 
 namespace EspINA
 {
-  typedef boost::shared_ptr<xlslib_core::workbook> ExcelWorkBook;
+  using ExcelWorkBook = std::shared_ptr<xlslib_core::workbook>;
 
   class TabularReport::Entry
   : public QWidget
@@ -45,30 +47,32 @@ namespace EspINA
   {
     Q_OBJECT
   public:
-    explicit Entry(QString taxonomy, EspinaFactory *factory);
+    explicit Entry(QString category);
     virtual ~Entry();
 
     InformationProxy *Proxy;
 
     int rowCount() const;
+
     int columnCount() const;
+
     QVariant value(int row, int column) const;
 
 
   protected slots:
     void changeDisplayedInformation();
+
     void extractInformation();
 
   private:
     bool exportToCSV(const QString &filename);
+
     bool exportToXLS(const QString &filename);
 
   private:
-    EspinaFactory *m_factory;
-
-    QString m_taxonomy;
+    QString m_category;
     QStringList m_tags;
   };
 } // namespace EspINA
 
-#endif // TABULARREPORTENTRY_H
+#endif // ESPINA_TABULAR_REPORT_ENTRY_H

@@ -39,6 +39,7 @@ namespace EspINA
 
   public:
     using itkImageSPtr = typename T::Pointer;
+
   public:
     explicit VolumetricDataProxy() {}
     virtual ~VolumetricDataProxy() {}
@@ -59,7 +60,7 @@ namespace EspINA
     virtual size_t memoryUsage() const
     { return m_data->memoryUsage(); }
 
-    virtual const Bounds bounds() const
+    virtual Bounds bounds() const
     { return m_data->bounds(); }
 
     virtual void setOrigin(const NmVector3& origin)

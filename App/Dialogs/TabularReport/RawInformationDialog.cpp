@@ -20,21 +20,19 @@
 #include "RawInformationDialog.h"
 
 #include "TabularReport.h"
-#include <Core/Model/Proxies/TaxonomyProxy.h>
-#include <Core/EspinaSettings.h>
+#include <Support/Settings/EspinaSettings.h>
+
 #include <QSettings>
 #include <QDialogButtonBox>
-
-#ifdef TEST_ESPINA_MODELS
-#include <Core/Model/ModelTest.h>
-#endif
+#include <QLayout>
 
 using namespace EspINA;
 
 //----------------------------------------------------------------------------
-RawInformationDialog::RawInformationDialog(EspinaModel *model,
-                             ViewManager *viewManager,
-                             QWidget     *parent)
+RawInformationDialog::RawInformationDialog(ModelAdapterSPtr model,
+                                           ViewManagerSPtr  viewManager,
+                                           QWidget         *parent)
+
 : QDialog(parent)
 {
   setObjectName("Raw Information Analysis");
@@ -54,8 +52,8 @@ RawInformationDialog::RawInformationDialog(EspinaModel *model,
   QSettings settings(CESVIMA, ESPINA);
 
   settings.beginGroup("Raw Information Analysis");
-  resize(settings.value("size", QSize(200, 200)).toSize());
-  move(settings.value("pos", QPoint(200, 200)).toPoint());
+  resize(settings.value("size", QSize (200, 200)).toSize());
+  move  (settings.value("pos",  QPoint(200, 200)).toPoint());
   settings.endGroup();
 }
 

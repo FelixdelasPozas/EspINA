@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>SliceViewSettingsPanel</class>
- <widget class="QWidget" name="SliceViewSettingsPanel">
+ <class>View2DSettingsPanel</class>
+ <widget class="QWidget" name="View2DSettingsPanel">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>142</width>
-    <height>90</height>
+    <width>162</width>
+    <height>91</height>
    </rect>
   </property>
   <property name="windowTitle">

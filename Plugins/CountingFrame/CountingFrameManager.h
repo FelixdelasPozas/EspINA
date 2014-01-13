@@ -23,16 +23,44 @@
 #include <Extensions/ExtensionFactory.h>
 
 #include <CountingFrames/CountingFrame.h>
+#include <GUI/Model/ChannelAdapter.h>
 
 namespace EspINA {
   namespace CF {
-    class CountingFrameManager
-    : public EspINA::ExtensionFactory
+
+    enum Type
     {
+      ADAPTIVE,
+      RECTANGULAR
+    };
+
+    class CountingFrameManager
+    : public QObject
+    , public ExtensionFactory
+    {
+      Q_OBJECT
+
     public:
       virtual ChannelExtensionSPtr createChannelExtension(ChannelExtension::Type type);
 
       virtual SegmentationExtensionSPtr createSegmentationExtension(SegmentationExtension::Type type);
+
+      void createAdaptiveCF(ChannelAdapterPtr channel,
+                            Nm inclusion[3],
+                            Nm exclusion[3]);
+
+      void createRectangularCF(ChannelAdapterPtr channel,
+                               Nm inclusion[3],
+                               Nm exclusion[3]);
+
+      void deleteCountingFrame(CountingFrame *cf);
+
+      CountingFrameList countingFrames() const
+      { return m_countingFrames; }
+
+    signals:
+      void countingFrameCreated(CountingFrame *);
+      void countingFrameDeleted(CountingFrame *);
 
     private:
       CountingFrameList m_countingFrames;

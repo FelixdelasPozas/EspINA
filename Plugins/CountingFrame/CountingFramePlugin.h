@@ -43,7 +43,13 @@ namespace EspINA
                         ViewManagerSPtr  viewManager,
                         QUndoStack      *undoStack);
 
-      virtual QList< DockWidget* > dockWidgets();
+      virtual NamedColorEngineSList colorEngines();
+
+      virtual QList<DockWidget *> dockWidgets();
+
+      virtual RendererSList renderers();
+
+      virtual SettingsPanelSList settingsPanels();
 
       //virtual EngineList colorEngines();
     private:

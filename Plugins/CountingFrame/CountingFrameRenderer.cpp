@@ -17,28 +17,27 @@
 */
 #include "CountingFrameRenderer.h"
 
-#include "CountingFramePanel.h"
 #include "CountingFrames/CountingFrame.h"
+#include <GUI/View/RenderView.h>
 
-#include <Core/Model/ModelItem.h>
 
 #include <vtkRenderWindowInteractor.h>
 #include <vtkRenderWindow.h>
 #include <vtkAbstractWidget.h>
 #include <vtkWidgetRepresentation.h>
-#include <GUI/QtWidget/EspinaRenderView.h>
 
 using namespace EspINA;
+using namespace EspINA::CF;
 
 //-----------------------------------------------------------------------------
-CountingFrameRenderer::CountingFrameRenderer(CountingFramePanel* plugin)
-: m_plugin(plugin)
+CountingFrameRenderer::CountingFrameRenderer(CountingFrameManager& cfManager)
+: m_cfManager(cfManager)
 , m_cfCount(0)
 {
-  connect(m_plugin, SIGNAL(countingFrameCreated(CountingFrame*)),
-          this, SLOT(countingFrameCreated(CountingFrame*)));
-  connect(m_plugin, SIGNAL(countingFrameDeleted(CountingFrame*)),
-          this, SLOT(countingFrameDeleted(CountingFrame*)));
+  connect(&m_cfManager, SIGNAL(countingFrameCreated(CountingFrame*)),
+          this, SLOT(onCountingFrameCreated(CountingFrame*)));
+  connect(&m_cfManager, SIGNAL(countingFrameDeleted(CountingFrame*)),
+          this, SLOT(onCountingFrameDeleted(CountingFrame*)));
 }
 
 //-----------------------------------------------------------------------------
@@ -54,7 +53,7 @@ void CountingFrameRenderer::hide()
 
   m_enable = false;
 
-  foreach(CountingFrame *cf, m_widgets.keys())
+  for(auto cf : m_widgets.keys())
   {
     m_widgets[cf]->GetRepresentation()->SetVisibility(false);
     m_widgets[cf]->Off();
@@ -71,17 +70,20 @@ void CountingFrameRenderer::show()
     return;
 
   m_enable = true;
-  vtkRenderWindow *rw = m_view->renderWindow();
-  vtkRenderWindowInteractor *interactor = rw->GetInteractor();
+  auto rw         = m_view->renderWindow();
+  auto interactor = rw->GetInteractor();
 
-  foreach(CountingFrame *cf, m_plugin->countingFrames())
+  for(auto cf : m_cfManager.countingFrames())
   {
     if (!m_widgets.contains(cf))
-      m_widgets[cf] = cf->create3DWidget(NULL);
+    {
+      m_widgets[cf] = cf->create3DWidget(nullptr);
+    }
     m_widgets[cf]->SetInteractor(interactor);
     m_widgets[cf]->GetRepresentation()->SetVisibility(true);
     m_widgets[cf]->On();
-    vtkCountingFrame3DWidget *cfWidget = dynamic_cast<vtkCountingFrame3DWidget *>(m_widgets[cf]);
+
+    auto cfWidget = dynamic_cast<vtkCountingFrame3DWidget *>(m_widgets[cf]);
     cfWidget->SetCountingFrameVisibility(true);
     cfWidget->SetEnabled(true);
   }
@@ -90,22 +92,21 @@ void CountingFrameRenderer::show()
 }
 
 //-----------------------------------------------------------------------------
-unsigned int CountingFrameRenderer::getNumberOfvtkActors()
+unsigned int CountingFrameRenderer::numberOfvtkActors()
 {
-  if (m_enable)
-    return m_plugin->countingFrames().size() * 2; // m_boundingRegion & m_representation vtkPolyDatas...
-
-  return 0;
+  return m_enable? m_cfManager.countingFrames().size() * 2 : 0; // m_boundingRegion & m_representation vtkPolyDatas...
 }
 
 //-----------------------------------------------------------------------------
-void CountingFrameRenderer::countingFrameCreated(CountingFrame* cf)
+void CountingFrameRenderer::onCountingFrameCreated(CountingFrame *cf)
 {
   m_cfCount++;
+
+  setEnable(m_cfCount > 0);
 }
 
 //-----------------------------------------------------------------------------
-void CountingFrameRenderer::countingFrameDeleted(CountingFrame* cf)
+void CountingFrameRenderer::onCountingFrameDeleted(CountingFrame *cf)
 {
   m_cfCount--;
 
@@ -116,12 +117,11 @@ void CountingFrameRenderer::countingFrameDeleted(CountingFrame* cf)
     m_widgets.remove(cf);
   }
 
-  if (0 == m_cfCount)
-    setEnable(false);
+  setEnable(m_cfCount > 0);
 }
 
 //-----------------------------------------------------------------------------
-IRendererSPtr CountingFrameRenderer::clone()
+RendererSPtr CountingFrameRenderer::clone()
 {
-  return IRendererSPtr(new CountingFrameRenderer(m_plugin));
+  return RendererSPtr(new CountingFrameRenderer(m_cfManager));
 }

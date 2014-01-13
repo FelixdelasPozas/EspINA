@@ -91,6 +91,9 @@ namespace EspINA
 
     void setRenderers(RendererSList renderers);
 
+    RendererSList renderers() const
+    { return m_renderers.values(); }
+
     Plane plane() const
     { return m_plane; }
 

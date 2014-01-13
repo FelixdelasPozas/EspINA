@@ -17,34 +17,32 @@
  */
 
 
-#ifndef DATAVIEWPANEL_H
-#define DATAVIEWPANEL_H
+#ifndef ESPINA_RAW_INFORMATION_DIALOG_H
+#define ESPINA_RAW_INFORMATION_DIALOG_H
 
 #include <QDialog>
 
 #include <Core/EspinaTypes.h>
 #include <EspinaConfig.h>
-#include <Core/Model/EspinaModel.h>
-#include <Core/Model/Proxies/TaxonomyProxy.h>
+#include <GUI/Model/ModelAdapter.h>
+#include <Support/ViewManager.h>
 
 namespace EspINA
 {
 
-class ViewManager;
-
-class RawInformationDialog
+  class RawInformationDialog
   : public QDialog
-{
-public:
-  explicit RawInformationDialog(EspinaModel *model,
-                         ViewManager *viewManager,
-                         QWidget     *parent = 0);
-  virtual ~RawInformationDialog();
+  {
+  public:
+    explicit RawInformationDialog(ModelAdapterSPtr model,
+                                  ViewManagerSPtr  viewManager,
+                                  QWidget         *parent = 0);
+    virtual ~RawInformationDialog();
 
-protected:
-  virtual void closeEvent(QCloseEvent *event);
-};
+  protected:
+    virtual void closeEvent(QCloseEvent *event);
+  };
 
 } // namespace EspINA
 
-#endif // DATAVIEWPANEL_H
+#endif // ESPINA_RAW_INFORMATION_DIALOG_H

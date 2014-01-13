@@ -55,6 +55,9 @@ namespace EspINA
 
     void setRenderers(RendererSList renderers);
 
+    RendererSList renderers() const
+    { return m_renderers.values(); }
+
     void setCameraFocus(const NmVector3& center);
 
     virtual void reset();
@@ -87,7 +90,6 @@ namespace EspINA
 
     void changePlanePosition(Plane, Nm);
 
-    void addRendererControls(RendererSPtr renderer);
 
     void removeRendererControls(const QString name);
 
@@ -121,12 +123,13 @@ namespace EspINA
   private:
     void setupUI();
 
+    void addRendererControls(RendererSPtr renderer);
+
     void buildControls();
 
     void updateRenderersControls();
 
     void updateScrollBarsLimits();
-
 
   private:
     // GUI

@@ -18,6 +18,7 @@
 #include "SeedGrowSegmentationFilter.h"
 #include <Core/Analysis/Data/VolumetricData.h>
 #include <Core/Analysis/Data/Volumetric/SparseVolume.h>
+#include <Core/Analysis/Data/Mesh/MarchingCubesMesh.hxx>
 #include <unistd.h>
 
 using namespace EspINA;
@@ -273,7 +274,10 @@ void SeedGrowSegmentationFilter::execute(Output::Id id)
   DefaultVolumetricDataSPtr volume{new SparseVolume<itkVolumeType>(bounds, spacing)};
   volume->draw(output, bounds);
 
+  MeshDataSPtr mesh{new MarchingCubesMesh<itkVolumeType>(volume)};
+
   m_outputs[0]->setData(volume);
+  m_outputs[0]->setData(mesh);
 
   m_outputs[0]->setSpacing(spacing);
 

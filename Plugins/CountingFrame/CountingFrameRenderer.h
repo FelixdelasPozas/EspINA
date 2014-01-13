@@ -15,70 +15,83 @@
  *    You should have received a copy of the GNU General Public License
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
-#ifndef FRAMERENDERER_H
-#define FRAMERENDERER_H
+#ifndef ESPINA_COUNTING_FRAME_RENDERER_H
+#define ESPINA_COUNTING_FRAME_RENDERER_H
 
 #include "CountingFramePlugin_Export.h"
+#include <GUI/Representations/Renderers/Renderer.h>
+
+#include "CountingFrameManager.h"
 
 #include <QMap>
-#include <GUI/Renderers/Renderer.h>
-#include <Core/Model/Output.h>
 
 class vtkAbstractWidget;
 
 namespace EspINA
 {
-  class CountingFrame;
-  class CountingFramePanel;
+  namespace CF {
 
-  class CountingFramePlugin_EXPORT CountingFrameRenderer
-  : public IRenderer
-  {
-    Q_OBJECT
-  public:
-    explicit CountingFrameRenderer(CountingFramePanel *plugin);
-    virtual ~CountingFrameRenderer();
+    class CountingFramePlugin_EXPORT CountingFrameRenderer
+    : public Renderer
+    {
+      Q_OBJECT
+    public:
+      explicit CountingFrameRenderer(CountingFrameManager &cfManager);
+      virtual ~CountingFrameRenderer();
 
-    virtual const QIcon icon() const
-    { return QIcon(":/apply.svg"); }
-    virtual const QString name() const
-    { return tr("Counting Frame");}
-    virtual const QString tooltip() const
-    { return tr("Stereological Counting Frame");}
+      virtual const QIcon icon() const
+      { return QIcon(":/apply.svg"); }
 
-    virtual void hide();
-    virtual void show();
-    virtual unsigned int getNumberOfvtkActors();
+      virtual const QString name() const
+      { return tr("Counting Frame");}
 
-    virtual void addRepresentation(PickableItemPtr item, GraphicalRepresentationSPtr rep) {};
-    virtual void removeRepresentation(GraphicalRepresentationSPtr rep) {};
-    virtual bool hasRepresentation(GraphicalRepresentationSPtr rep) { return false; };
-    virtual bool managesRepresentation(GraphicalRepresentationSPtr rep) { return false; };
+      virtual const QString tooltip() const
+      { return tr("Stereological Counting Frame");}
 
-    virtual IRendererSPtr clone();
+      virtual void hide();
 
-    virtual RendererType getRenderType() { return RendererType(RENDERER_VOLUMEVIEW); }
-    virtual int itemsBeenRendered() { return m_cfCount; }
+      virtual void show();
 
+      virtual void addRepresentation(ViewItemAdapterPtr item, RepresentationSPtr rep) {}
 
-    virtual ViewManager::Selection pick(int x, int y, Nm z, vtkSmartPointer<vtkRenderer> renderer, RenderabledItems itemType = RenderabledItems(), bool repeat = false)
-    { return ViewManager::Selection(); }
+      virtual void removeRepresentation(RepresentationSPtr rep) {}
 
-    virtual void getPickCoordinates(Nm *point) {};
+      virtual bool hasRepresentation(RepresentationSPtr rep)
+      { return false; }
 
-  public slots:
-    void countingFrameCreated(CountingFrame *cf);
-    void countingFrameDeleted(CountingFrame *cf);
+      virtual bool managesRepresentation(RepresentationSPtr rep)
+      { return false; }
 
-  private:
-    CountingFramePanel *m_plugin;
-    QMap<CountingFrame *, vtkAbstractWidget *> m_widgets;
+      virtual RendererSPtr clone();
 
-    unsigned int m_cfCount;
-  };
+      virtual RendererTypes renderType()
+      { return RendererType::RENDERER_VIEW3D; }
 
+      virtual int numberOfRenderedItems()
+      { return m_cfCount; }
+
+      virtual unsigned int numberOfvtkActors();
+
+      virtual ViewItemAdapterList pick(int x, int y, Nm z,
+                                       vtkSmartPointer<vtkRenderer> renderer,
+                                       RenderableItems itemType = RenderableItems(),
+                                       bool repeat = false)
+      { return ViewItemAdapterList(); }
+
+      virtual NmVector3 pickCoordinates() const
+      { return NmVector3(); }
+
+    private slots:
+      void onCountingFrameCreated(CountingFrame *cf);
+      void onCountingFrameDeleted(CountingFrame *cf);
+
+    private:
+      CountingFrameManager &m_cfManager;
+      QMap<CountingFrame *, vtkAbstractWidget *> m_widgets;
+
+      unsigned int m_cfCount;
+    };
+  } // namespace CF
 } // namespace EspINA
 
-#endif // FRAMERENDERER_H
+#endif // ESPINA_COUNTING_FRAME_RENDERER_H

@@ -27,8 +27,10 @@
 
 
 #include "TabularReportEntry.h"
-#include <GUI/Analysis/xlsUtils.h>
-#include <GUI/Analysis/InformationSelector.h>
+
+#include <Support/Utils/xlsUtils.h>
+#include <GUI/Widgets/InformationSelector.h>
+
 #include <QFileDialog>
 #include <QStandardItemModel>
 #include <QMessageBox>
@@ -37,10 +39,9 @@ using namespace EspINA;
 using namespace xlslib_core;
 
 //------------------------------------------------------------------------
-TabularReport::Entry::Entry(QString taxonomy, EspinaFactory *factory)
+TabularReport::Entry::Entry(QString category)
 : QWidget()
-, m_factory(factory)
-, m_taxonomy(taxonomy)
+, m_category(category)
 {
   setupUi(this);
 
@@ -93,23 +94,23 @@ QVariant TabularReport::Entry::value(int row, int column) const
 
 //------------------------------------------------------------------------
 void TabularReport::Entry::changeDisplayedInformation()
-{
-  InformationSelector::TaxonomyInformation tags;
-  tags[m_taxonomy] = Proxy->informationTags();
-
-  InformationSelector tagSelector(tags, m_factory, this);
-
-  if (tagSelector.exec() == QDialog::Accepted)
-  {
-    m_tags.clear();
-    m_tags << tr("Name") << tr("Taxonomy") << tags[m_taxonomy];
-
-    Proxy->setInformationTags(m_tags);
-
-    QStandardItemModel *header = new QStandardItemModel(1, m_tags.size(), this);
-    header->setHorizontalHeaderLabels(m_tags);
-    tableView->horizontalHeader()->setModel(header);
-  }
+{ //TODO: Decide how to pass tags to the widget to avoid using the factory
+//   InformationSelector::TaxonomyInformation tags;
+//   tags[m_category] = Proxy->informationTags();
+//
+//   InformationSelector tagSelector(tags, m_factory, this);
+//
+//   if (tagSelector.exec() == QDialog::Accepted)
+//   {
+//     m_tags.clear();
+//     m_tags << tr("Name") << tr("Taxonomy") << tags[m_category];
+//
+//     Proxy->setInformationTags(m_tags);
+//
+//     QStandardItemModel *header = new QStandardItemModel(1, m_tags.size(), this);
+//     header->setHorizontalHeaderLabels(m_tags);
+//     tableView->horizontalHeader()->setModel(header);
+//   }
 }
 
 //------------------------------------------------------------------------
@@ -117,8 +118,8 @@ void TabularReport::Entry::extractInformation()
 {
   QString filter = tr("Excel File (*.xls)") + ";;" + tr("CSV Text File (*.csv)");
   QString fileName = QFileDialog::getSaveFileName(this,
-                                                  tr("Export %1 Data").arg(m_taxonomy),
-                                                  QString("%1.xls").arg(m_taxonomy.replace("/","-")),
+                                                  tr("Export %1 Data").arg(m_category),
+                                                  QString("%1.xls").arg(m_category.replace("/","-")),
                                                   filter);
 
   if (fileName.isEmpty())
@@ -168,7 +169,7 @@ bool TabularReport::Entry::exportToXLS(const QString &filename)
 {
   workbook wb;
 
-  worksheet *ws = wb.sheet(m_taxonomy.toStdString());
+  worksheet *ws = wb.sheet(m_category.toStdString());
 
   for (int r = 0; r < rowCount(); ++r)
   {

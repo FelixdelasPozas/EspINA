@@ -21,28 +21,29 @@
 
 #include "Extensions/CountingFrameExtension.h"
 #include "CountingFrames/vtkCountingFrameSliceWidget.h"
+#include "CountingFrames/vtkCountingFrame3DWidget.h"
 
+#include <Core/Analysis/Channel.h>
+#include <GUI/View/View2D.h>
 #include <vtkCellArray.h>
 #include <vtkCellData.h>
 #include <vtkPolyData.h>
+
 #include <vtkSmartPointer.h>
-#include "vtkCountingFrame3DWidget.h"
-#include <Core/Model/Channel.h>
-#include <GUI/QtWidget/SliceView.h>
+
 
 using namespace EspINA;
+using namespace EspINA::CF;
 
 //-----------------------------------------------------------------------------
 RectangularCountingFrame::RectangularCountingFrame(Id id,
                                                    CountingFrameExtension *channelExt,
-                                                   Nm borders[6],
+                                                   const Bounds &bounds,
                                                    Nm inclusion[3],
-                                                   Nm exclusion[3],
-                                                   ViewManager *vm)
-: CountingFrame(id, channelExt, inclusion, exclusion, vm)
+                                                   Nm exclusion[3])
+: CountingFrame(id, channelExt, inclusion, exclusion)
+, m_bounds(bounds)
 {
-  memcpy(m_borders, borders, 6*sizeof(Nm));
-
   updateCountingFrameImplementation();
 }
 
@@ -71,14 +72,14 @@ QVariant RectangularCountingFrame::data(int role) const
 {
   if (role == Qt::DisplayRole)
     return tr("%1 - CF %2: Rectangular")
-             .arg(m_channelExt->channel()->data().toString())
+             .arg(m_extension->channel()->name())
              .arg(m_id);
 
   return CountingFrame::data(role);
 }
 
 //-----------------------------------------------------------------------------
-vtkAbstractWidget *RectangularCountingFrame::create3DWidget(VolumeView* view)
+vtkAbstractWidget *RectangularCountingFrame::create3DWidget(View3D *view)
 {
   CountingFrame3DWidgetAdapter *wa = new CountingFrame3DWidgetAdapter();
   Q_ASSERT(wa);
@@ -111,17 +112,13 @@ vtkAbstractWidget *RectangularCountingFrame::create3DWidget(VolumeView* view)
 // }
 
 //-----------------------------------------------------------------------------
-SliceWidget* RectangularCountingFrame::createSliceWidget(SliceView *view)
+SliceWidget* RectangularCountingFrame::createSliceWidget(View2D *view)
 {
-  Channel *channel = m_channelExt->channel();
-  double spacing[3];
-  channel->volume()->spacing(spacing);
-
   CountingFrame2DWidgetAdapter *wa = new CountingFrame2DWidgetAdapter();
   Q_ASSERT(wa);
   wa->AddObserver(vtkCommand::EndInteractionEvent, this);
   wa->SetPlane(view->plane());
-  wa->SetSlicingStep(spacing);
+  wa->SetSlicingStep(m_extension->channel()->output()->spacing());
   wa->SetCountingFrame(m_representation, m_inclusion, m_exclusion);
 
   m_widgets2D << wa;
@@ -160,86 +157,83 @@ void RectangularCountingFrame::setEnabled(bool enable)
 void RectangularCountingFrame::updateCountingFrameImplementation()
 {
 
-  Nm Left   = m_borders[0] + m_inclusion[0];
-  Nm Top    = m_borders[2] + m_inclusion[1];
-  Nm Upper  = m_borders[4] + m_inclusion[2];
-  Nm Right  = m_borders[1] - m_exclusion[0];
-  Nm Bottom = m_borders[3] - m_exclusion[1];
-  Nm Lower  = m_borders[5] - m_exclusion[2];
+  Nm Left   = m_bounds[0] + m_inclusion[0];
+  Nm Top    = m_bounds[2] + m_inclusion[1];
+  Nm Front  = m_bounds[4] + m_inclusion[2];
+  Nm Right  = m_bounds[1] - m_exclusion[0];
+  Nm Bottom = m_bounds[3] - m_exclusion[1];
+  Nm Back   = m_bounds[5] - m_exclusion[2];
 
-  m_countingFrame = createRectangularRegion(Left, Top, Upper,
-                                             Right, Bottom, Lower);
+  m_countingFrame = createRectangularRegion(Left, Top, Front,
+                                            Right, Bottom, Back);
 
-  m_representation = createRectangularRegion(m_borders[0], m_borders[2], m_borders[4],
-                                             m_borders[1], m_borders[3], m_borders[5]);
+  m_representation = createRectangularRegion(m_bounds[0], m_bounds[2], m_bounds[4],
+                                             m_bounds[1], m_bounds[3], m_bounds[5]);
 
-  m_totalVolume = (m_borders[1]-m_borders[0]+1)*
-                  (m_borders[3]-m_borders[2]+1)*
-                  (m_borders[5]-m_borders[4]+1);
-  m_inclusionVolume = (Right-Left)*(Top-Bottom)*(Upper-Lower);
+  m_totalVolume = (m_bounds[1]-m_bounds[0]+1)*
+                  (m_bounds[3]-m_bounds[2]+1)*
+                  (m_bounds[5]-m_bounds[4]+1);
+
+  m_inclusionVolume = (Right-Left)*(Top-Bottom)*(Front-Back);
 }
 
 //-----------------------------------------------------------------------------
-vtkSmartPointer<vtkPolyData> RectangularCountingFrame::createRectangularRegion(Nm left,
-                                                                                Nm top,
-                                                                                Nm upper,
-                                                                                Nm right,
-                                                                                Nm bottom,
-                                                                                Nm lower)
+vtkSmartPointer<vtkPolyData> RectangularCountingFrame::createRectangularRegion(Nm left,  Nm top,    Nm front,
+                                                                               Nm right, Nm bottom, Nm back)
 {
-  vtkSmartPointer<vtkPolyData> region = vtkSmartPointer<vtkPolyData>::New();
-  vtkSmartPointer<vtkPoints> vertex = vtkSmartPointer<vtkPoints>::New();
-  vtkSmartPointer<vtkCellArray> faces = vtkSmartPointer<vtkCellArray>::New();
-  vtkSmartPointer<vtkIntArray> faceData = vtkSmartPointer<vtkIntArray>::New();
+  vtkSmartPointer<vtkPolyData>  region   = vtkSmartPointer<vtkPolyData>::New();
+  vtkSmartPointer<vtkPoints>    vertex   = vtkSmartPointer<vtkPoints>::New();
+  vtkSmartPointer<vtkCellArray> faces    = vtkSmartPointer<vtkCellArray>::New();
+  vtkSmartPointer<vtkIntArray>  faceData = vtkSmartPointer<vtkIntArray>::New();
 
-  vtkIdType upperFace[4], leftFace[4], topFace[4];
-  vtkIdType lowerFace[4], rightFace[4], bottomFace[4];
+  vtkIdType frontFace[4], leftFace[4] , topFace[4];
+  vtkIdType backFace[4] , rightFace[4], bottomFace[4];
 
     // Upper Inclusion Face
-  upperFace[0] = vertex->InsertNextPoint(left,  bottom, upper);
-  upperFace[1] = vertex->InsertNextPoint(left,  top,    upper);
-  upperFace[2] = vertex->InsertNextPoint(right, top,    upper);
-  upperFace[3] = vertex->InsertNextPoint(right, bottom, upper);
-  faces->InsertNextCell(4, upperFace);
+  frontFace[0] = vertex->InsertNextPoint(left,  bottom, front );
+  frontFace[1] = vertex->InsertNextPoint(left,  top,    front );
+  frontFace[2] = vertex->InsertNextPoint(right, top,    front );
+  frontFace[3] = vertex->InsertNextPoint(right, bottom, front );
+  faces->InsertNextCell(4, frontFace);
   faceData->InsertNextValue(INCLUSION_FACE);
 
   // Lower Exclusion Face
-  lowerFace[0] = vertex->InsertNextPoint(left,  bottom, lower);
-  lowerFace[1] = vertex->InsertNextPoint(left,  top,    lower);
-  lowerFace[2] = vertex->InsertNextPoint(right, top,    lower);
-  lowerFace[3] = vertex->InsertNextPoint(right, bottom, lower);
-  faces->InsertNextCell(4, lowerFace);
+  backFace[0] = vertex->InsertNextPoint(left,  bottom, back);
+  backFace[1] = vertex->InsertNextPoint(left,  top,    back);
+  backFace[2] = vertex->InsertNextPoint(right, top,    back);
+  backFace[3] = vertex->InsertNextPoint(right, bottom, back);
+  faces->InsertNextCell(4, backFace);
   faceData->InsertNextValue(EXCLUSION_FACE);
 
   // Left Inclusion Face
-  leftFace[0] = upperFace[0];
-  leftFace[1] = upperFace[1];
-  leftFace[2] = lowerFace[1];
-  leftFace[3] = lowerFace[0];
+  leftFace[0] = frontFace[0];
+  leftFace[1] = frontFace[1];
+  leftFace[2] = backFace[1];
+  leftFace[3] = backFace[0];
   faces->InsertNextCell(4, leftFace);
   faceData->InsertNextValue(INCLUSION_FACE);
 
   // Right Exclusion Face
-  rightFace[0] = upperFace[2];
-  rightFace[1] = upperFace[3];
-  rightFace[2] = lowerFace[3];
-  rightFace[3] = lowerFace[2];
+  rightFace[0] = frontFace[2];
+  rightFace[1] = frontFace[3];
+  rightFace[2] = backFace[3];
+  rightFace[3] = backFace[2];
   faces->InsertNextCell(4, rightFace);
   faceData->InsertNextValue(EXCLUSION_FACE);
 
   // Top Inclusion Face
-  topFace[0] = upperFace[1];
-  topFace[1] = upperFace[2];
-  topFace[2] = lowerFace[2];
-  topFace[3] = lowerFace[1];
+  topFace[0] = frontFace[1];
+  topFace[1] = frontFace[2];
+  topFace[2] = backFace[2];
+  topFace[3] = backFace[1];
   faces->InsertNextCell(4, topFace);
   faceData->InsertNextValue(INCLUSION_FACE);
 
   // Bottom Exclusion Face
-  bottomFace[0] = upperFace[3];
-  bottomFace[1] = upperFace[0];
-  bottomFace[2] = lowerFace[0];
-  bottomFace[3] = lowerFace[3];
+  bottomFace[0] = frontFace[3];
+  bottomFace[1] = frontFace[0];
+  bottomFace[2] = backFace[0];
+  bottomFace[3] = backFace[3];
   faces->InsertNextCell(4, bottomFace);
   faceData->InsertNextValue(EXCLUSION_FACE);
 

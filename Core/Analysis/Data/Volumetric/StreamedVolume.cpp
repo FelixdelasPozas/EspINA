@@ -69,7 +69,7 @@ size_t StreamedVolume<T>::memoryUsage() const
 
 //-----------------------------------------------------------------------------
 template<typename T>
-const Bounds StreamedVolume<T>::bounds() const
+Bounds StreamedVolume<T>::bounds() const
 {
   if (!isValid()) throw File_Not_Found_Exception();
 

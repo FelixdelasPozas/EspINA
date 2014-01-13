@@ -1,10 +1,10 @@
-#find_package(XLSLIB REQUIRED)
+find_package(XLSLIB REQUIRED)
 
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_BINARY_DIR} # Generated EspinaConfig.h
   ${CMAKE_CURRENT_BINARY_DIR}  #For wrap/ui files
-#  ${XLSLIB_INCLUDE_DIRS}
+  ${XLSLIB_INCLUDE_DIRS}
   )
 
 #------------------------------------------------------------------------------
@@ -17,9 +17,9 @@ qt4_add_resources(ESPINA_RCC
 qt4_wrap_cpp (ESPINA_MOC
   EspinaMainWindow.h
 #   Dialogs/SegmentationInspector/SegmentationInspector.h
-#   Dialogs/TabularReport/TabularReport.h
-#   Dialogs/TabularReport/TabularReportEntry.h
-#   Dialogs/GeneralSettingsDialog.h
+  Dialogs/TabularReport/TabularReport.h
+  Dialogs/TabularReport/TabularReportEntry.h
+  Dialogs/Settings/GeneralSettingsDialog.h
   Docks/ChannelExplorer/ChannelExplorer.h
   Docks/SegmentationExplorer/SegmentationExplorer.h
   Docks/SegmentationExplorer/Layouts/ClassificationLayout.h
@@ -33,7 +33,7 @@ qt4_wrap_cpp (ESPINA_MOC
 #   Menus/SegmentationContextualMenu.h
 #   Settings/Editor/SettingsPanel.h
 #   Settings/SeedGrowSegmentation/SettingsPanel.h
-#   Settings/SliceView/SliceViewSettingsPanel.h
+  Settings/View2D/View2DSettingsPanel.h
 #   Settings/VOI/SettingsPanel.h
 #   Toolbars/Composition/CompositionToolBar.h
 #   Toolbars/Editor/EditorToolBar.h
@@ -65,6 +65,7 @@ qt4_wrap_cpp (ESPINA_MOC
 #   Dialogs/ChannelInspector/ChannelInspector.h
   Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.h
   Undo/BrushUndoCommand.h
+  Settings/View3D/View3DSettingsPanel.h
 #   Tools/TubularSegmentation/TubularTool.h
 #   FilterInspectors/TubularSegmentation/TubularFilterInspector.h
 #   FilterInspectors/TubularSegmentation/NodesInformationDialog.h
@@ -74,19 +75,18 @@ qt4_wrap_cpp (ESPINA_MOC
 # Create Interface files
 qt4_wrap_ui (ESPINA_UI
 #   Dialogs/SegmentationInspector/SegmentationInspector.ui
-#   Dialogs/TabularReport/TabularReport.ui
-  Dialogs/AboutDialog.ui
-#   Dialogs/GeneralSettingsDialog.ui
+  Dialogs/About/AboutDialog.ui
+  Dialogs/Settings/GeneralSettingsDialog.ui
+  Dialogs/TabularReport/TabularReport.ui
   Docks/ChannelExplorer/ChannelExplorer.ui
   Docks/SegmentationExplorer/SegmentationExplorer.ui
-#   Docks/TabularReport/TabularReport.ui
+  Settings/GeneralSettings/GeneralSettingsPanel.ui
 #   FilterInspectors/SeedGrowSegmentation/SGSFilterInspectorWidget.ui
-#   Settings/GeneralSettingsPanel.ui
 #   Settings/Editor/EditorSettingsPanel.ui
 #   Settings/SeedGrowSegmentation/SeedGrowSettingsPanel.ui
-#   Settings/SliceView/SliceViewSettingsPanel.ui
+  Settings/View2D/View2DSettingsPanel.ui
+  Settings/View3D/View3DSettingsPanel.ui
 #   Settings/VOI/RectangularVOISettings.ui
-#   Settings/VolumeView/VolumeViewSettingsPanel.ui
 #   Dialogs/Connectomics/ConnectomicsDialog.ui
 #   Dialogs/ChannelInspector/ChannelInspector.ui
   Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.ui
@@ -94,22 +94,22 @@ qt4_wrap_ui (ESPINA_UI
 #   FilterInspectors/TubularSegmentation/NodesInformationDialog.ui
   )
 
-set (ESPINA_SOURCES 
+set (ESPINA_SOURCES
   ${ESPINA_RCC}
   ${ESPINA_MOC}
   ${ESPINA_UI}
   main.cpp
-  EspinaErrorHandler.cpp 
+  EspinaErrorHandler.cpp
   EspinaMainWindow.cpp
   IO/ChannelReader.cpp
   IO/SegFileReader.cpp
   RecentDocuments.cpp
 #   Dialogs/SegmentationInspector/SegmentationInspector.cpp
-#   Dialogs/TabularReport/TabularReport.cpp
-#   Dialogs/TabularReport/RawInformationDialog.cpp
-#   Dialogs/TabularReport/TabularReportEntry.cpp 
-  Dialogs/AboutDialog.cpp
-#   Dialogs/GeneralSettingsDialog.cpp
+  Dialogs/TabularReport/TabularReport.cpp
+  Dialogs/TabularReport/RawInformationDialog.cpp
+  Dialogs/TabularReport/TabularReportEntry.cpp
+  Dialogs/About/AboutDialog.cpp
+  Dialogs/Settings/GeneralSettingsDialog.cpp
   Docks/ChannelExplorer/ChannelExplorer.cpp
   Docks/SegmentationExplorer/SegmentationExplorer.cpp
   Docks/SegmentationExplorer/Layouts/ClassificationLayout.cpp
@@ -121,12 +121,14 @@ set (ESPINA_SOURCES
 #   FilterInspectors/SeedGrowSegmentation/SGSFilterInspector.cpp
   Menus/ColorEngineMenu.cpp
 #   Menus/SegmentationContextualMenu.cpp
-  Settings/GeneralSettings.cpp
+  Settings/DefaultView/DefaultViewSettingsPanel.cpp
+  Settings/GeneralSettings/GeneralSettings.cpp
+  Settings/GeneralSettings/GeneralSettingsPanel.cpp
 #   Settings/Editor/SettingsPanel.cpp
 #   Settings/SeedGrowSegmentation/SettingsPanel.cpp
-#   Settings/SliceView/SliceViewSettingsPanel.cpp
+  Settings/View2D/View2DSettingsPanel.cpp
+  Settings/View3D/View3DSettingsPanel.cpp
 #   Settings/VOI/SettingsPanel.cpp
-#   Settings/VolumeView/VolumeViewSettingsPanel.cpp
 #   Toolbars/Composition/CompositionToolBar.cpp
 #   Toolbars/Editor/EditorToolBar.cpp
 #   Toolbars/Editor/Settings.cpp
@@ -188,7 +190,7 @@ set (ESPINA_LIBRARIES
 
 set (EXTERNAL_LIBRARIES
   ${XLSLIB_LIBRARIES}
-  )
+)
 
 if(DEFINED MINGW OR DEFINED MSVC)
   set (EXTERNAL_LIBRARIES ${EXTERNAL_LIBRARIES} ${QT_LIBRARIES} ${QT_QTTEST_LIBRARY})

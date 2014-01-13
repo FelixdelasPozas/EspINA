@@ -114,16 +114,26 @@ namespace EspINA
   public slots:
     virtual void setEnable(bool value)
     {
-      if (value)
-        show();
-      else
-        hide();
+      if (m_view)
+      {
+        if (value)
+        {
+          show();
+        }
+        else
+        {
+          hide();
+        }
 
-      m_enable = value;
+        m_enable = value;
+
+        emit enabled(m_enable);
+      }
     }
 
   signals:
     void renderRequested();
+    void enabled(bool);
 
   protected:
     explicit Renderer(QObject* parent = 0)

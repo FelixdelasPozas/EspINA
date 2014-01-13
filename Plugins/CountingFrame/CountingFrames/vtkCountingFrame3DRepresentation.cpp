@@ -57,7 +57,7 @@ vtkCountingFrame3DRepresentation::vtkCountingFrame3DRepresentation()
 {
   // The initial state
   this->InteractionState = vtkCountingFrame3DRepresentation::Outside;
-  this->CountingFrame = NULL;
+  this->CountingFrame = nullptr;
   memset(this->InclusionOffset, 0, 3*sizeof(double));
   memset(this->ExclusionOffset, 0, 3*sizeof(double));
 
@@ -82,14 +82,14 @@ vtkCountingFrame3DRepresentation::vtkCountingFrame3DRepresentation()
     this->MarginActor[i]    = vtkActor::New();
 
     this->MarginPolyData[i]->SetPoints(this->MarginPoints);
-    this->MarginMapper[i]->SetInput(this->MarginPolyData[i]);
+    this->MarginMapper[i]->SetInputData(this->MarginPolyData[i]);
     this->MarginMapper[i]->SetLookupTable(this->InclusionLUT);
     this->MarginActor[i]->SetMapper(this->MarginMapper[i]);
     this->MarginActor[i]->SetProperty(this->InclusionProperty);
   }
 
   this->VolumeMapper = vtkPolyDataMapper::New();
-  this->VolumeMapper->SetInput(this->VolumePolyData);
+  this->VolumeMapper->SetInputData(this->VolumePolyData);
   this->VolumeMapper->SetLookupTable(this->InclusionLUT);
   this->VolumeActor = vtkActor::New();
   this->VolumeActor->SetMapper(this->VolumeMapper);
@@ -113,7 +113,7 @@ vtkCountingFrame3DRepresentation::vtkCountingFrame3DRepresentation()
     this->VolumePicker->AddPickList(this->MarginActor[i]);
   this->VolumePicker->PickFromListOn();
 
-  this->CurrentHandle = NULL;
+  this->CurrentHandle = nullptr;
 }
 
 //----------------------------------------------------------------------------
@@ -641,7 +641,9 @@ void vtkCountingFrame3DRepresentation::CreateVolume()
 void vtkCountingFrame3DRepresentation::SetCountingFrame(vtkSmartPointer<vtkPolyData> region)
 {
   CountingFrame = region;
-  CountingFrame->Update();
+
+  //CountingFrame->Update(); NOTE: removed in vtk6, still need something similar?
+
   VolumePolyData->SetPoints(CountingFrame->GetPoints());
   VolumePolyData->SetPolys(CountingFrame->GetPolys());
   VolumePolyData->GetCellData()->SetScalars(CountingFrame->GetCellData()->GetScalars("Type"));
@@ -687,11 +689,11 @@ int vtkCountingFrame3DRepresentation::ComputeInteractionState(int X, int Y, int 
   
   vtkAssemblyPath *path;
   // Try and pick a handle first
-  this->LastPicker = NULL;
-  this->CurrentHandle = NULL;
+  this->LastPicker = nullptr;
+  this->CurrentHandle = nullptr;
   this->VolumePicker->Pick(X,Y,0.0,this->Renderer);
   path = this->VolumePicker->GetPath();
-  if ( path != NULL )
+  if ( path != nullptr )
   {
     this->LastPicker = this->VolumePicker;
     this->ValidPick = 1;
@@ -755,8 +757,8 @@ void vtkCountingFrame3DRepresentation::SetInteractionState(int state)
       break;
     default:
 //       this->HighlightOutline(0);
-      this->HighlightMargin(NULL);
-//       this->HighlightHandle(NULL);
+      this->HighlightMargin(nullptr);
+//       this->HighlightHandle(nullptr);
 //       this->HighlightFace(-1);
     }
 }

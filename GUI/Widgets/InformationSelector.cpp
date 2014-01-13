@@ -16,11 +16,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #include "InformationSelector.h"
-#include <Core/Model/Segmentation.h>
-#include <Core/Model/EspinaFactory.h>
-#include <Core/Extensions/SegmentationExtension.h>
 
 #include <ui_InformationSelector.h>
 
@@ -32,11 +28,11 @@ class InformationSelector::GUI
 };
 
 //----------------------------------------------------------------------------
-InformationSelector::InformationSelector(TaxonomyInformation &tags,
-                                         EspinaFactory  *factory,
-                                         QWidget        *parent, 
-                                         Qt::WindowFlags f)
-: QDialog(parent, f)
+InformationSelector::InformationSelector(InformationTagsByCategory &tags,
+                                         ModelFactorySPtr           factory,
+                                         QWidget                   *parent,
+                                         Qt::WindowFlags            flags)
+: QDialog(parent, flags)
 , m_gui(new GUI())
 , m_factory(factory)
 , m_tags(tags)
@@ -45,16 +41,16 @@ InformationSelector::InformationSelector(TaxonomyInformation &tags,
 
   setWindowTitle(tr("Select Analysis' Information"));
 
-  foreach(QString qualifiedName, tags.keys())
+  for(auto category : tags.keys())
   {
-    QTreeWidgetItem *taxonomyNode = new QTreeWidgetItem(m_gui->treeWidget);
-    taxonomyNode->setText(0, qualifiedName);
+    auto categoryNode = new QTreeWidgetItem(m_gui->treeWidget);
+    categoryNode->setText(0, category);
 
-    foreach(Segmentation::InformationExtension extension, m_factory->segmentationExtensions())
+    for(auto extension : m_factory->segsegmentationExtensions())
     {
       if (extension->validTaxonomy(qualifiedName))
       {
-        QTreeWidgetItem *extensionNode = new QTreeWidgetItem(taxonomyNode);
+        QTreeWidgetItem *extensionNode = new QTreeWidgetItem(categoryNode);
         extensionNode->setText(0, extension->id());
 
         bool hasCheckedChildren   = false;
@@ -63,7 +59,7 @@ InformationSelector::InformationSelector(TaxonomyInformation &tags,
         foreach(Segmentation::InfoTag tag, extension->availableInformations())
         {
           QTreeWidgetItem *tagNode = new QTreeWidgetItem(extensionNode);
-          bool selected = m_tags[qualifiedName].contains(tag);
+          bool selected = m_tags[category].contains(tag);
 
           hasCheckedChildren   |=  selected;
           hasUnCheckedChildren |= !selected;

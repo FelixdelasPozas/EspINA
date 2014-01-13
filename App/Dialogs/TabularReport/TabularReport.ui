@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>608</width>
-    <height>122</height>
+    <height>125</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -171,7 +171,7 @@ QTableView::indicator:unchecked {
   <customwidget>
    <class>CheckableTableView</class>
    <extends>QTableView</extends>
-   <header>GUI/QtWidget/CheckableTableView.h</header>
+   <header>GUI/Widgets/CheckableTableView.h</header>
   </customwidget>
  </customwidgets>
  <resources>

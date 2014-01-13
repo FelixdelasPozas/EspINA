@@ -42,7 +42,7 @@ typedef vtkCountingFrameSagittalSliceRepresentation SagittalSliceRepresentation;
 
 //----------------------------------------------------------------------------
 vtkCountingFrameSliceWidget::vtkCountingFrameSliceWidget()
-: Plane(EspINA::AXIAL)
+: Plane(EspINA::Plane::XY)
 , Slice(0)
 {
   this->WidgetState = vtkCountingFrameSliceWidget::Start;
@@ -270,9 +270,9 @@ void vtkCountingFrameSliceWidget::EndSelectAction(vtkAbstractWidget *w)
     {
       double shift = i < 2? 0.5: -0.5;
       self->InclusionOffset[i] =
-        (vtkMath::Round(self->InclusionOffset[i]/self->Resolution[i]-shift)+shift)*self->Resolution[i];
+        (vtkMath::Round(self->InclusionOffset[i]/self->SlicingStep[i]-shift)+shift)*self->SlicingStep[i];
       self->ExclusionOffset[i] =
-        (vtkMath::Round(self->ExclusionOffset[i]/self->Resolution[i]-shift)+shift)*self->Resolution[i];
+        (vtkMath::Round(self->ExclusionOffset[i]/self->SlicingStep[i]-shift)+shift)*self->SlicingStep[i];
     }
   }
 
@@ -284,7 +284,7 @@ void vtkCountingFrameSliceWidget::EndSelectAction(vtkAbstractWidget *w)
 }
 
 //----------------------------------------------------------------------
-void vtkCountingFrameSliceWidget::SetPlane(EspINA::PlaneType plane)
+void vtkCountingFrameSliceWidget::SetPlane(EspINA::Plane plane)
 {
   Plane = plane;
 
@@ -305,9 +305,9 @@ void vtkCountingFrameSliceWidget::SetSlice(EspINA::Nm pos)
 }
 
 //----------------------------------------------------------------------
-void vtkCountingFrameSliceWidget::SetSlicingStep(EspINA::Nm slicingStep[3])
+void vtkCountingFrameSliceWidget::SetSlicingStep(EspINA::NmVector3 slicingStep)
 {
-  memcpy(Resolution, slicingStep, 3*sizeof(EspINA::Nm));
+  SlicingStep = slicingStep;
 }
 
 //----------------------------------------------------------------------
@@ -322,7 +322,7 @@ void vtkCountingFrameSliceWidget::SetCountingFrame(vtkSmartPointer<vtkPolyData> 
   memcpy(ExclusionOffset, exclusionOffset, 3*sizeof(EspINA::Nm));
 
   SliceRepresentation *rep = reinterpret_cast<SliceRepresentation*>(this->WidgetRep);
-  rep->SetCountingFrame(region, inclusionOffset, exclusionOffset, Resolution);
+  rep->SetCountingFrame(region, inclusionOffset, exclusionOffset, SlicingStep);
   this->Render();
 }
 
@@ -333,18 +333,14 @@ void vtkCountingFrameSliceWidget::CreateDefaultRepresentation()
   {
     switch (Plane)
     {
-      case EspINA::AXIAL:
+      case EspINA::Plane::XY:
         this->WidgetRep = AxialSliceRepresentation::New();
         break;
-      case EspINA::CORONAL:
+      case EspINA::Plane::XZ:
         this->WidgetRep = CoronalSliceRepresentation::New();
         break;
-      case EspINA::SAGITTAL:
+      case EspINA::Plane::YZ:
         this->WidgetRep = SagittalSliceRepresentation::New();
-        break;
-      case EspINA::VOLUME:
-      default:
-        Q_ASSERT(false);
         break;
     }
   }

@@ -46,7 +46,11 @@ namespace EspINA {
     return i == 0?Axis::X:(i == 1?Axis::Y:Axis::Z);
   }
 
-  enum class Plane { XY, XZ, YZ };
+  enum class Plane {
+    XY, // AXIAL
+    XZ, // CORONAL
+    YZ  // SAGITTAL
+  };
 
   constexpr int idx(const Plane plane)
   {

@@ -19,17 +19,11 @@
 
 #include "InformationProxy.h"
 
-#include "Core/Model/EspinaFactory.h"
-#include <Core/Model/EspinaModel.h>
-#include <Core/Model/Segmentation.h>
-#include <Core/Extensions/SegmentationExtension.h>
-
 using namespace EspINA;
 
 //------------------------------------------------------------------------
 InformationProxy::InformationProxy()
 : QAbstractProxyModel()
-, m_model(NULL)
 {
 }
 
@@ -39,15 +33,15 @@ InformationProxy::~InformationProxy()
 }
 
 //------------------------------------------------------------------------
-void InformationProxy::setSourceModel(EspinaModel *sourceModel)
+void InformationProxy::setSourceModel(ModelAdapterSPtr sourceModel)
 {
   if (m_model)
   {
-    disconnect(sourceModel, SIGNAL(rowsInserted(const QModelIndex&, int, int)),
+    disconnect(m_model.get(), SIGNAL(rowsInserted(const QModelIndex&, int, int)),
                this, SLOT(sourceRowsInserted(const QModelIndex&, int, int)));
-    disconnect(sourceModel, SIGNAL(rowsAboutToBeRemoved(const QModelIndex&, int, int)),
+    disconnect(m_model.get(), SIGNAL(rowsAboutToBeRemoved(const QModelIndex&, int, int)),
                this, SLOT(sourceRowsAboutToBeRemoved(QModelIndex, int, int)));
-    disconnect(sourceModel, SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)),
+    disconnect(m_model.get(), SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)),
                this, SLOT(sourceDataChanged(const QModelIndex &,const QModelIndex &)));
   }
 
@@ -55,18 +49,20 @@ void InformationProxy::setSourceModel(EspinaModel *sourceModel)
   m_elements.clear();
 
   if (m_model)
-  connect(sourceModel, SIGNAL(rowsInserted(const QModelIndex&, int, int)),
-          this, SLOT(sourceRowsInserted(const QModelIndex&, int, int)));
-  connect(sourceModel, SIGNAL(rowsAboutToBeRemoved(const QModelIndex&, int, int)),
-          this, SLOT(sourceRowsAboutToBeRemoved(QModelIndex, int, int)));
-  connect(sourceModel, SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)),
-          this, SLOT(sourceDataChanged(const QModelIndex &,const QModelIndex &)));
-  connect(m_model, SIGNAL(modelAboutToBeReset()),
-          this, SLOT(sourceModelReset()));
+  {
+    connect(m_model.get(), SIGNAL(rowsInserted(const QModelIndex&, int, int)),
+            this, SLOT(sourceRowsInserted(const QModelIndex&, int, int)));
+    connect(m_model.get(), SIGNAL(rowsAboutToBeRemoved(const QModelIndex&, int, int)),
+            this, SLOT(sourceRowsAboutToBeRemoved(QModelIndex, int, int)));
+    connect(m_model.get(), SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)),
+            this, SLOT(sourceDataChanged(const QModelIndex &,const QModelIndex &)));
+    connect(m_model.get(), SIGNAL(modelAboutToBeReset()),
+            this, SLOT(sourceModelReset()));
 
-  sourceRowsInserted(m_model->segmentationRoot(), 0, m_model->segmentations().size()-1);
+    sourceRowsInserted(m_model->segmentationRoot(), 0, m_model->segmentations().size()-1);
+  }
 
-  QAbstractProxyModel::setSourceModel(sourceModel);
+  QAbstractProxyModel::setSourceModel(m_model.get());
 }
 
 //------------------------------------------------------------------------
@@ -78,15 +74,17 @@ QModelIndex InformationProxy::mapFromSource(const QModelIndex& sourceIndex) cons
   if ( sourceIndex == m_model->segmentationRoot()
     || sourceIndex == m_model->sampleRoot()
     || sourceIndex == m_model->channelRoot()
-    || sourceIndex == m_model->filterRoot()
     || sourceIndex == m_model->segmentationRoot())
     return QModelIndex();
 
-  ModelItemPtr sourceItem = indexPtr(sourceIndex);
+  auto sourceItem = itemAdapter(sourceIndex);
 
   QModelIndex proxyIndex;
-  if ( EspINA::SEGMENTATION == sourceItem->type() && acceptSegmentation(segmentationPtr(sourceItem)))
+
+  if (isSegmentation(sourceItem) && acceptSegmentation(segmentationPtr(sourceItem)))
+  {
     proxyIndex = createIndex(m_elements.indexOf(sourceItem), sourceIndex.column(), sourceItem);
+  }
 
   return proxyIndex;
 }
@@ -97,11 +95,14 @@ QModelIndex InformationProxy::mapToSource(const QModelIndex& proxyIndex) const
   if (!proxyIndex.isValid())
     return QModelIndex();
 
-  ModelItemPtr proxyItem = indexPtr(proxyIndex);
+  auto proxyItem = itemAdapter(proxyIndex);
 
   QModelIndex sourceIndex;
-  if (EspINA::SEGMENTATION == proxyItem->type())
+
+  if (isSegmentation(proxyItem))
+  {
     sourceIndex = m_model->index(proxyItem);
+  }
 
   return sourceIndex;
 }
@@ -135,8 +136,9 @@ QModelIndex InformationProxy::parent(const QModelIndex& child) const
   if (!child.isValid())
     return QModelIndex();
 
-  ModelItemPtr childItem = indexPtr(child);
-  Q_ASSERT(EspINA::SEGMENTATION == childItem->type());
+  auto childItem = itemAdapter(child);
+  Q_ASSERT(isSegmentation(childItem));
+
   return mapFromSource(m_model->segmentationRoot());
 }
 
@@ -176,24 +178,38 @@ QVariant InformationProxy::data(const QModelIndex& proxyIndex, int role) const
   if (!proxyIndex.isValid())
     return QVariant();
 
-  ModelItemPtr proxyItem = indexPtr(proxyIndex);
-  if (EspINA::SEGMENTATION != proxyItem->type())
+  auto proxyItem = itemAdapter(proxyIndex);
+  if (!isSegmentation(proxyItem))
     return QVariant();
 
-  SegmentationPtr segmentation = segmentationPtr(proxyItem);
+  auto segmentation = segmentationPtr(proxyItem);
 
   if (role == Qt::TextAlignmentRole)
     return Qt::AlignRight;
 
   if (role == Qt::DisplayRole && !m_tags.isEmpty())
   {
-    Segmentation::InfoTag tag = m_tags[proxyIndex.column()];
-    if (!segmentation->availableInformations().contains(tag))
+    auto tag = m_tags[proxyIndex.column()];
+
+    if (tr("Name") == tag)
     {
-      Segmentation::InformationExtension prototype = m_model->factory()->informationProvider(tag);
-      segmentation->addExtension(prototype->clone());
+      return segmentation->data(role);
     }
-    return segmentation->information(tag);
+
+    if (tr("Category") == tag)
+    {
+      return segmentation->category()->data(role);
+    }
+
+    if (segmentation->informationTags().contains(tag))
+    { //NOTE: Shall we add extension instead? or just return qvariant
+      //Segmentation::InformationExtension prototype = m_model->factory()->informationProvider(tag);
+      //segmentation->addExtension(prototype->clone());
+      return segmentation->information(tag);
+    } else
+    {
+      return tr("Unavailable");
+    }
   } else if (proxyIndex.column() > 0)
     return QVariant();//To avoid checkrole or other roles
 
@@ -202,15 +218,15 @@ QVariant InformationProxy::data(const QModelIndex& proxyIndex, int role) const
 
 
 //------------------------------------------------------------------------
-void InformationProxy::setTaxonomy(const QString &qualifiedName)
+void InformationProxy::setCategory(const QString &classificationName)
 {
   beginResetModel();
-  m_taxonomy = qualifiedName;
+  m_category = classificationName;
   endResetModel();
 }
 
 //------------------------------------------------------------------------
-void InformationProxy::setFilter(const SegmentationList *filter)
+void InformationProxy::setFilter(const SegmentationAdapterList *filter)
 {
   beginResetModel();
   m_filter = filter; 
@@ -218,7 +234,7 @@ void InformationProxy::setFilter(const SegmentationList *filter)
 }
 
 //------------------------------------------------------------------------
-void InformationProxy::setInformationTags(const Segmentation::InfoTagList tags)
+void InformationProxy::setInformationTags(const SegmentationExtension::InfoTagList tags)
 {
   beginResetModel();
   m_tags = tags;
@@ -243,14 +259,14 @@ void InformationProxy::sourceRowsInserted(const QModelIndex& sourceParent, int s
 {
   if (sourceParent == m_model->segmentationRoot())
   {
-    ModelItemList acceptedItems;
+    ItemAdapterList acceptedItems;
 
     // Filter items
     for (int row = start; row <= end; row++)
     {
-      ModelItemPtr item = indexPtr(sourceParent.child(row, 0));
+      auto item = itemAdapter(sourceParent.child(row, 0));
 
-      SegmentationPtr segmentation = segmentationPtr(item);
+      auto segmentation = segmentationPtr(item);
       if (acceptSegmentation(segmentation))
       {
         acceptedItems << item;
@@ -263,7 +279,7 @@ void InformationProxy::sourceRowsInserted(const QModelIndex& sourceParent, int s
     if (!m_tags.isEmpty())
       beginInsertRows(QModelIndex(), startRow, endRow);
 
-    foreach(ModelItemPtr acceptedItem, acceptedItems)
+    for(auto acceptedItem : acceptedItems)
     {
       m_elements << acceptedItem;
     }
@@ -291,10 +307,10 @@ void InformationProxy::sourceRowsAboutToBeRemoved(const QModelIndex& sourceParen
       // Avoid population the view if no query is selected
       if (!m_tags.isEmpty())
         beginRemoveRows(QModelIndex(), removedIndexes.first().row(), removedIndexes.last().row());
-      foreach (QModelIndex index, removedIndexes)
+      for(auto index : removedIndexes)
       {
         // We use start instead of row to avoid access to removed indices
-        ModelItemPtr removedItem = indexPtr(index);
+        auto removedItem = itemAdapter(index);
         m_elements.removeOne(removedItem);
       }
       if (!m_tags.isEmpty())
@@ -309,23 +325,29 @@ void InformationProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, const
   Q_ASSERT(sourceTopLeft == sourceBottomRight);
   if (sourceTopLeft.parent() == m_model->segmentationRoot())
   {
-    ModelItemPtr item = indexPtr(sourceTopLeft);
-    SegmentationPtr segmentation = segmentationPtr(item);
+    auto item = itemAdapter(sourceTopLeft);
+    auto segmentation = segmentationPtr(item);
 
     if (m_elements.contains(item) && !acceptSegmentation(segmentation))
     {
       int row = m_elements.indexOf(item);
+
       beginRemoveRows(QModelIndex(), row, row);
       m_elements.removeAt(row);
       endRemoveRows();
+
     } else if (!m_elements.contains(item) && acceptSegmentation(segmentation))
     {
       int row = m_elements.size();
+
       beginInsertRows(QModelIndex(), row, row);
       m_elements << item;
       endInsertRows();
+
     } else
+    {
       emit dataChanged(mapFromSource(sourceTopLeft), mapFromSource(sourceBottomRight));
+    }
   }
 }
 
@@ -340,8 +362,8 @@ void InformationProxy::sourceModelReset()
 }
 
 //------------------------------------------------------------------------
-bool InformationProxy::acceptSegmentation(const SegmentationPtr segmentation) const
+bool InformationProxy::acceptSegmentation(const SegmentationAdapterPtr segmentation) const
 {
-  return segmentation->taxonomy()->qualifiedName() == m_taxonomy
-     && (m_filter->isEmpty() || m_filter->contains(segmentation));
+  return segmentation->category()->classificationName() == m_category
+      && (m_filter->isEmpty() || m_filter->contains(segmentation));
 }

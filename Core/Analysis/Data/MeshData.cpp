@@ -33,15 +33,14 @@ const Data::Type MeshData::TYPE = "MeshData";
 
 //----------------------------------------------------------------------------
 MeshData::MeshData()
-: m_mesh(nullptr)
 {
 }
 
 //----------------------------------------------------------------------------
-Bounds MeshData::bounds()
+Bounds MeshData::bounds() const
 {
   Nm bounds[6];
-  m_mesh->GetBounds(bounds);
+  mesh()->GetBounds(bounds);
 
   return Bounds{ bounds[0], bounds[1], bounds[2], bounds[3], bounds[4], bounds[5] };
 }

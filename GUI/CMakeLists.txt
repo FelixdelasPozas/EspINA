@@ -13,6 +13,7 @@ qt4_wrap_cpp(GUI_MOC
   Model/ModelAdapter.h
   Model/Proxies/ChannelProxy.h
   Model/Proxies/ClassificationProxy.h
+  Model/Proxies/InformationProxy.h
   Representations/ContourRepresentationSettings.h
   Representations/CrosshairRepresentation.h
   Representations/MeshRepresentation.h
@@ -35,6 +36,7 @@ qt4_wrap_cpp(GUI_MOC
   Widgets/CheckableTableView.h
   Widgets/CheckableTreeView.h
   Widgets/HueSelector.h
+  #Widgets/InformationSelector.h
   Widgets/NoteEditor.h
   Widgets/QComboTreeView.h
   Widgets/TagSelector.h
@@ -48,6 +50,7 @@ qt4_wrap_ui (GUI_UI
   Representations/RepresentationEmptySettings.ui
   Representations/SliceRepresentationSettings.ui
   Representations/ContourRepresentationSettings.ui
+  #Widgets/InformationSelector.ui
   Widgets/NoteEditor.ui
   Widgets/TagSelector.ui
   Widgets/SchedulerProgress.ui
@@ -69,6 +72,7 @@ set (GUI_SOURCES
   Model/ModelAdapter.cpp
   Model/Proxies/ChannelProxy.cpp
   Model/Proxies/ClassificationProxy.cpp
+  Model/Proxies/InformationProxy.cpp
   Model/SampleAdapter.cpp
   Model/SegmentationAdapter.cpp
   Model/Utils/ModelAdapterUtils.cpp
@@ -113,6 +117,7 @@ set (GUI_SOURCES
   Widgets/CheckableTableView.cpp
   Widgets/CheckableTreeView.cpp
   Widgets/HueSelector.cpp
+  #Widgets/InformationSelector.cpp
   Widgets/NoteEditor.cpp 
   Widgets/QComboTreeView.cpp
   Widgets/TagSelector.cpp 

@@ -27,14 +27,17 @@
 #include "RecentDocuments.h"
 #include "Views/DefaultView.h"
 #include "IO/ChannelReader.h"
+#include "Settings/GeneralSettings/GeneralSettings.h"
 #include <Support/ViewManager.h>
 #include <Support/DynamicMenu.h>
 #include <Support/DockWidget.h>
+#include <Support/Settings/SettingsPanel.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/ModelFactory.h>
 #include <GUI/Widgets/SchedulerProgress.h>
 #include <Core/IO/ErrorHandler.h>
 #include <Core/Factory/FilterFactory.h>
+#include <Extensions/ExtensionFactory.h>
 
 #include <QTimer>
 
@@ -51,7 +54,6 @@ namespace EspINA
 class MainToolBar;
 
   class ColorEngineMenu;
-  class GeneralSettings;
 
   class EspinaMainWindow
   : public QMainWindow
@@ -161,7 +163,7 @@ class MainToolBar;
     ChannelReaderSPtr  m_channelReader;
     AnalysisReaderSPtr m_segFileReader;
 
-    GeneralSettings *m_settings;
+    GeneralSettingsSPtr m_settings;
 
     // GUI
     QMenu           *m_addMenu;
@@ -179,7 +181,9 @@ class MainToolBar;
     QAction         *m_undoAction;
     QAction         *m_redoAction;
 
- //   ISettingsPanelPrototype m_settingsPanel;
+    ExtensionFactorySList m_extensionFactories;
+    RendererSList         m_availableRenderers;
+    SettingsPanelSList    m_availableSettingsPanels;
 
     MainToolBar     *m_mainToolBar;
     DefaultViewSPtr  m_view;
@@ -194,8 +198,6 @@ class MainToolBar;
 
     bool m_busy;
     QShortcut *cancel;
-
-    //RendererSList m_defaultRenderers;
 
     struct DynamicMenuNode
     {
@@ -212,8 +214,6 @@ class MainToolBar;
     QFileInfo m_sessionFile;
 
     // Status Bar
-    //QLabel   *m_traceableStatus;
-
     EspinaErrorHandlerSPtr m_errorHandler;
   };
 

@@ -102,7 +102,7 @@ void View3D::setRenderers(RendererSList renderers)
 //   }
 
   // add controls for added renderers
-  foreach(RendererSPtr renderer, renderers)
+  for(auto renderer : renderers)
   {
     if (!canRender(renderer, RendererType::RENDERER_VIEW3D))
       continue;
@@ -155,34 +155,50 @@ void View3D::addRendererControls(RendererSPtr renderer)
 {
   QPushButton *button;
 
+  auto rendererPtr = renderer.get();
+
   button = new QPushButton(renderer->icon(), "");
   button->setFlat(true);
   button->setCheckable(true);
   button->setChecked(false);
   button->setIconSize(QSize(22, 22));
   button->setMaximumSize(QSize(32, 32));
-  button->setToolTip(renderer.get()->tooltip());
-  button->setObjectName(renderer.get()->name());
-  connect(button, SIGNAL(toggled(bool)), renderer.get(), SLOT(setEnable(bool)));
+  button->setToolTip(renderer->tooltip());
+  button->setObjectName(renderer->name());
+
+  connect(button, SIGNAL(toggled(bool)), rendererPtr, SLOT(setEnable(bool)));
   connect(button, SIGNAL(toggled(bool)), this, SLOT(updateEnabledRenderersCount(bool)));
-  connect(button, SIGNAL(destroyed(QObject*)), renderer.get(), SLOT(deleteLater()));
-  connect(renderer.get(), SIGNAL(renderRequested()), this, SLOT(updateView()));
+  connect(button, SIGNAL(destroyed(QObject*)), rendererPtr, SLOT(deleteLater()));
+
+  connect(rendererPtr, SIGNAL(enabled(bool)), button, SLOT(setEnabled(bool)));
+  connect(rendererPtr, SIGNAL(renderRequested()), this, SLOT(updateView()));
+
   m_controlLayout->addWidget(button);
   renderer->setView(this);
 
   // add representations to renderer
-  foreach(SegmentationAdapterPtr segmentation, m_segmentationStates.keys())
+  for(auto segmentation : m_segmentationStates.keys())
   {
     if (renderer->canRender(segmentation))
-      foreach(RepresentationSPtr rep, m_segmentationStates[segmentation].representations)
-         if (renderer->managesRepresentation(rep)) renderer->addRepresentation(segmentation, rep);
+    {
+      for(auto rep : m_segmentationStates[segmentation].representations)
+      {
+         if (renderer->managesRepresentation(rep))
+           renderer->addRepresentation(segmentation, rep);
+      }
+    }
   }
 
-  foreach(ChannelAdapterPtr channel, m_channelStates.keys())
+  for(auto channel : m_channelStates.keys())
   {
     if (renderer->canRender(channel))
-      foreach(RepresentationSPtr rep, m_channelStates[channel].representations)
-        if (renderer->managesRepresentation(rep)) renderer->addRepresentation(channel, rep);
+    {
+      for(auto rep : m_channelStates[channel].representations)
+      {
+        if (renderer->managesRepresentation(rep))
+          renderer->addRepresentation(channel, rep);
+      }
+    }
   }
 
   m_renderers[button] = renderer;
@@ -316,7 +332,7 @@ void View3D::buildControls()
   m_controlLayout->addWidget(&m_export);
   m_controlLayout->addItem(horizontalSpacer);
 
-  foreach(RendererSPtr renderer, m_renderers)
+  for(RendererSPtr renderer : m_renderers)
   {
     if (canRender(renderer, RendererType::RENDERER_VIEW3D))
     {

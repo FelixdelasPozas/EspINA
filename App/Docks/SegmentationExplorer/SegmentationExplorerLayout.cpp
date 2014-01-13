@@ -114,7 +114,7 @@ void SegmentationExplorer::Layout::deleteSegmentations(SegmentationAdapterList s
 
 //------------------------------------------------------------------------
 void SegmentationExplorer::Layout::showSegmentationInformation(SegmentationAdapterList segmentations)
-{ //TODO
+{
 //   SegmentationInspector *inspector = m_inspectors.value(toKey(segmentations));
 //   if (!inspector)
 //   {

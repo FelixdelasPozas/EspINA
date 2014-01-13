@@ -21,12 +21,13 @@
 #define ESPINA_VIEWITEM_H
 
 #include "Core/Analysis/Output.h"
+#include "Core/Analysis/NeuroItem.h"
 
 namespace EspINA {
 
   class ViewItem
   : public QObject
-  , public Persistent
+  , public NeuroItem
   {
     Q_OBJECT
   public:

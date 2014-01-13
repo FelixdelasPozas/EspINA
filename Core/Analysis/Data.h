@@ -34,7 +34,6 @@
 #include "Core/EspinaTypes.h"
 #include <Core/Utils/Bounds.h>
 #include "Persistent.h"
-#include <QDir>
 
 namespace EspINA
 {
@@ -76,15 +75,21 @@ namespace EspINA
     virtual void clearEditedRegions()
     { m_editedRegions.clear(); }
 
+    /** \brief Recover output data from Persistent Storage
+     *
+     */
     virtual bool fetchData(const TemporalStorageSPtr storage, const QString &prefix) = 0;
 
+    /** \brief Return the byte arrays needed to save this object between sessions
+     *
+     */
     virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &prefix) const = 0;
 
     virtual Snapshot editedRegionsSnapshot() const = 0;
 
     virtual bool isValid() const = 0;
 
-    virtual const Bounds bounds() const = 0;
+    virtual Bounds bounds() const = 0;
 
     virtual void setSpacing(const NmVector3& spacing) = 0;
 
@@ -93,7 +98,16 @@ namespace EspINA
     bool isEdited() const
     { return !editedRegions().isEmpty(); }
 
-//     virtual void restoreEditedRegions(const QDir &cacheDir, const QString &outputId) = 0;
+    /** \brief Undo last edition operation
+     *
+     */
+    virtual void undo() = 0;
+
+    /** \brief Return memory usage in bytes
+     *
+     * Returns the amount of memory allocated by the object
+     */
+    virtual size_t memoryUsage() const = 0;
 
   signals:
     void dataChanged();//former representationChanged
@@ -113,7 +127,7 @@ namespace EspINA
 
   private:
     TimeStamp m_timeStamp;
-    
+
     friend class Output;
   };
 

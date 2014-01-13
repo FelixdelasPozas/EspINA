@@ -23,6 +23,7 @@
 #include <QObject>
 #include <QString>
 #include <QDir>
+#include <memory>
 
 class QSettings;
 
@@ -47,13 +48,15 @@ namespace EspINA
     QDir autosavePath() const {return m_autosavePath;}
     void setAutosavePath(const QString path);
 
-private:
-  QSettings *m_settings;
+  private:
+    QSettings *m_settings;
 
-  QString m_userName;
-  int     m_autosaveInterval;
-  QDir    m_autosavePath;
-};
+    QString m_userName;
+    int     m_autosaveInterval;
+    QDir    m_autosavePath;
+  };
+
+  using GeneralSettingsSPtr = std::shared_ptr<GeneralSettings>;
 
 } // namespace EspINA
 

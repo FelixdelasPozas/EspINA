@@ -47,20 +47,15 @@ namespace EspINA
 
     virtual ~VolumetricData() {}
 
-    /* \brief Returns the bounds of the volume, adjusted for spacing
+    /** \brief Returns the bounds of the volume, adjusted for spacing
+     *
      */
-    virtual const Bounds bounds() const = 0;
+    virtual Bounds bounds() const = 0;
 
     virtual Data::Type type() const
     { return TYPE; }
 
     virtual DataProxySPtr createProxy() const;
-
-    /** \brief Return memory usage in bytes
-     *
-     * Returns the amount of memory allocated to hold the volume representation
-     */
-    virtual size_t memoryUsage() const = 0;
 
     virtual void setOrigin(const NmVector3& origin) = 0;
 
@@ -121,11 +116,6 @@ namespace EspINA
      *  New voxels will be set to background value
      */
     virtual void resize(const Bounds &bounds) = 0;
-
-    /** \brief Undo last edition operation
-     *
-     */
-    virtual void undo() = 0;
 
   private:
     typename T::ValueType m_bgValue;

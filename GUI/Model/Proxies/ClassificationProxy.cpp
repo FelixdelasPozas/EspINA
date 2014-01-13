@@ -149,7 +149,7 @@ bool ClassificationProxy::setData(const QModelIndex &index, const QVariant &valu
     ItemAdapterPtr item = itemAdapter(index);
     if (Qt::CheckStateRole == role)
     {
-      if (ItemAdapter::Type::CATEGORY == item->type())
+      if (isCategory(item))
       {
         CategoryAdapterPtr category = categoryPtr(item);
         m_categoryVisibility[category] = value.toBool()?Qt::Checked:Qt::Unchecked;
@@ -162,7 +162,7 @@ bool ClassificationProxy::setData(const QModelIndex &index, const QVariant &valu
         emit dataChanged(index, index);
 
         result = true;
-      } else if (ItemAdapter::Type::SEGMENTATION == item->type())
+      } else if (isSegmentation(item))
       {
         result = m_model->setData(mapToSource(index), value, role);
       }
@@ -214,7 +214,7 @@ int ClassificationProxy::rowCount(const QModelIndex& parent) const
   auto parentItem = itemAdapter(parent);
   int rows = 0;
 
-  if (ItemAdapter::Type::CATEGORY == parentItem->type())
+  if (isCategory(parentItem))
   {
     auto category = categoryPtr(parentItem);
     rows = numSubCategories(category) + numSegmentations(category);
@@ -233,7 +233,7 @@ QModelIndex ClassificationProxy::index(int row, int column, const QModelIndex& p
     return mapFromSource(m_model->index(row,column,m_model->classificationRoot()));
 
   auto parentItem = itemAdapter(parent);
-  Q_ASSERT(ItemAdapter::Type::CATEGORY == parentItem->type());
+  Q_ASSERT(isCategory(parentItem));
   auto parentCategory = categoryPtr(parentItem);
   Q_ASSERT(parentCategory);
 
@@ -378,9 +378,9 @@ Qt::ItemFlags ClassificationProxy::flags(const QModelIndex& index) const
   if (index.isValid())
   {
     ItemAdapterPtr sourceItem = itemAdapter(index);
-    if (ItemAdapter::Type::CATEGORY == sourceItem->type())
+    if (isCategory(sourceItem))
       f = f | Qt::ItemIsDragEnabled | Qt::ItemIsEditable | Qt::ItemIsUserCheckable;
-    else if (ItemAdapter::Type::SEGMENTATION == sourceItem->type())
+    else if (isSegmentation(sourceItem))
       f = f | Qt::ItemIsDragEnabled;
   }
 
@@ -439,11 +439,11 @@ bool ClassificationProxy::dropMimeData(const QMimeData *data, Qt::DropAction act
 
     CategoryAdapterPtr newCategory = nullptr;
 
-    if (ItemAdapter::Type::CATEGORY == parentItem->type())
+    if (isCategory(parentItem))
     {
       newCategory = categoryPtr(parentItem);
     }
-    else if (ItemAdapter::Type::SEGMENTATION == parentItem->type())
+    else if (isSegmentation(parentItem))
     {
       auto segmentation = segmentationPtr(parentItem);
       newCategory = segmentation->category().get();
@@ -454,7 +454,7 @@ bool ClassificationProxy::dropMimeData(const QMimeData *data, Qt::DropAction act
   }
 
   // Change category parent
-  else if (CategorySource == source && ItemAdapter::Type::CATEGORY == parentItem->type())
+  else if (CategorySource == source && isCategory(parentItem))
   {
     CategoryAdapterList sources;
     foreach(DraggedItem draggedItem , draggedItems)
@@ -474,7 +474,7 @@ bool ClassificationProxy::dropMimeData(const QMimeData *data, Qt::DropAction act
 int ClassificationProxy::numSegmentations(QModelIndex taxIndex, bool recursive) const
 {
   ItemAdapterPtr item = itemAdapter(taxIndex);
-  if (ItemAdapter::Type::CATEGORY != item->type())
+  if (!isCategory(item))
     return 0;
 
   auto category = categoryPtr(item);
@@ -494,7 +494,7 @@ int ClassificationProxy::numSegmentations(QModelIndex taxIndex, bool recursive) 
 int ClassificationProxy::numSubCategories(QModelIndex taxIndex) const
 {
   ItemAdapterPtr item = itemAdapter(taxIndex);
-  if (ItemAdapter::Type::CATEGORY != item->type())
+  if (!isCategory(item))
     return 0;
 
   auto category = categoryPtr(item);
@@ -637,7 +637,7 @@ void ClassificationProxy::sourceRowsInserted(const QModelIndex& sourceParent, in
   } else
   {
     ItemAdapterPtr parentItem = itemAdapter(sourceParent);
-    if (ItemAdapter::Type::CATEGORY == parentItem->type())
+    if (isCategory(parentItem))
     {
       beginInsertRows(mapFromSource(sourceParent), start, end);
       for (int row = start; row <= end; row++)

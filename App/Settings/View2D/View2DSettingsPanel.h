@@ -1,6 +1,6 @@
 /*
  *    <one line to give the program's name and a brief idea of what it does.>
- *    Copyright (C) 2012  Jorge PeÃ±a Pastor <email>
+ *    Copyright (C) 2012  Jorge Peña Pastor <email>
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -17,41 +17,43 @@
  */
 
 
-#ifndef VOLUMEVIEWSETTINGSPANEL_H
-#define VOLUMEVIEWSETTINGSPANEL_H
+#ifndef ESPINA_VIEW_2D_SETTINGS_PANEL_H
+#define ESPINA_VIEW_2D_SETTINGS_PANEL_H
 
-#include "ui_VolumeViewSettingsPanel.h"
-#include <Core/Model/EspinaFactory.h>
-#include <GUI/ISettingsPanel.h>
-#include <GUI/QtWidget/VolumeView.h>
+#include <Support/Settings/SettingsPanel.h>
+
+#include "ui_View2DSettingsPanel.h"
+#include <GUI/View/View2D.h>
 
 namespace EspINA
 {
-  class EspinaFactory;
-
-  class VolumeViewSettingsPanel
-  : public ISettingsPanel
-  , Ui::VolumeViewSettingsPanel
+  class View2DSettingsPanel
+  : public SettingsPanel
+  , Ui::View2DSettingsPanel
   {
+    Q_OBJECT
   public:
-    explicit VolumeViewSettingsPanel(const EspinaFactoryPtr factory,
-                                     VolumeView::SettingsPtr settings);
+    explicit View2DSettingsPanel(View2D *view);
 
-    virtual const QString shortDescription() {return tr("3D View");}
-    virtual const QString longDescription() {return tr("%1").arg(shortDescription());}
+    virtual const QString shortDescription();
+
+    virtual const QString longDescription()
+    {return tr("%1").arg(shortDescription());}
+
     virtual const QIcon icon() {return QIcon();}
 
     virtual void acceptChanges();
+
     virtual void rejectChanges();
+
     virtual bool modified() const;
 
-    virtual ISettingsPanelPtr clone();
+    virtual SettingsPanelPtr clone();
 
   private:
-    const EspinaFactoryPtr m_factory;
-    VolumeView::SettingsPtr m_settings;
+    View2D *m_view;
   };
 
 } // namespace EspINA
 
-#endif // VOLUMEVIEWSETTINGSPANEL_H
+#endif // ESPINA_VIEW_2D_SETTINGS_PANEL_H

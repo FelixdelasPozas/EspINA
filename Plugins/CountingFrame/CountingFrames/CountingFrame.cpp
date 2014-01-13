@@ -23,6 +23,7 @@
 #include <Core/Analysis/Channel.h>
 
 using namespace EspINA;
+using namespace EspINA::CF;
 
 //-----------------------------------------------------------------------------
 CountingFrame::CountingFrame(Id                      id,
@@ -36,7 +37,7 @@ CountingFrame::CountingFrame(Id                      id,
 , m_id(id)
 , m_totalVolume(0)
 , m_inclusionVolume(0)
-, m_categoryConstraint(NULL)
+, m_categoryConstraint(nullptr)
 {
   memcpy(m_inclusion, inclusion, 3*sizeof(Nm));
   memcpy(m_exclusion, exclusion, 3*sizeof(Nm));

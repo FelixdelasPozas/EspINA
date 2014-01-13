@@ -17,35 +17,35 @@
 */
 
 
-#include "SliceViewSettingsPanel.h"
+#include "View2DSettingsPanel.h"
 
 using namespace EspINA;
 
-SliceViewSettingsPanel::SliceViewSettingsPanel(SliceView::SettingsSPtr settings)
-: m_settings(settings)
+View2DSettingsPanel::View2DSettingsPanel(View2D *view)
+: m_view(view)
 {
   setupUi(this);
 
   invertSliceOrder->setVisible(false);
 
-  invertSliceOrder->setChecked(settings->invertSliceOrder());
-  invertWheel->setChecked(settings->invertWheel());
-  showAxis->setChecked(settings->showAxis());
+  invertSliceOrder->setChecked(view->invertSliceOrder());
+  invertWheel->setChecked(view->invertWheel());
+  //showAxis->setChecked(view->showAxis());
   showAxis->setVisible(false);
 }
 
 
 //------------------------------------------------------------------------
-const QString SliceViewSettingsPanel::shortDescription()
+const QString View2DSettingsPanel::shortDescription()
 {
-  switch (m_settings->plane())
+  switch (m_view->plane())
   {
-    case AXIAL:
+    case Plane::XY:
       return QString("XY Slice View");
-    case SAGITTAL:
-      return QString("YZ Slice View");
-    case CORONAL:
+    case Plane::XZ:
       return QString("XZ Slice View");
+    case Plane::YZ:
+      return QString("YZ Slice View");
     default:
       Q_ASSERT(false);
   }
@@ -53,30 +53,29 @@ const QString SliceViewSettingsPanel::shortDescription()
 }
 
 //------------------------------------------------------------------------
-void SliceViewSettingsPanel::acceptChanges()
+void View2DSettingsPanel::acceptChanges()
 {
-  m_settings->setInvertSliceOrder(invertSliceOrder->isChecked());
-  m_settings->setInvertWheel(invertWheel->isChecked());
-  m_settings->setShowAxis(showAxis->isChecked());
+  m_view->setInvertSliceOrder(invertSliceOrder->isChecked());
+  m_view->setInvertWheel(invertWheel->isChecked());
+  //m_view->setShowAxis(showAxis->isChecked());
 }
 
 //------------------------------------------------------------------------
-void SliceViewSettingsPanel::rejectChanges()
+void View2DSettingsPanel::rejectChanges()
 {
 
 }
 
 //------------------------------------------------------------------------
-bool SliceViewSettingsPanel::modified() const
+bool View2DSettingsPanel::modified() const
 {
-  return invertSliceOrder->isChecked() != m_settings->invertSliceOrder()
-      || invertWheel->isChecked()      != m_settings->invertWheel()
-      || showAxis->isChecked()         != m_settings->showAxis();
+  return invertSliceOrder->isChecked() != m_view->invertSliceOrder()
+      || invertWheel->isChecked()      != m_view->invertWheel();
+      //|| showAxis->isChecked()         != m_view->showAxis();
 }
 
 //------------------------------------------------------------------------
-ISettingsPanelPtr SliceViewSettingsPanel::clone()
+SettingsPanelPtr View2DSettingsPanel::clone()
 {
-  return ISettingsPanelPtr(new SliceViewSettingsPanel(m_settings));
+  return new View2DSettingsPanel(m_view);
 }
-

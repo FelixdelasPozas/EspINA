@@ -25,7 +25,7 @@
 
 #include "Core/Utils/Bounds.h"
 #include <Core/Utils/NmVector3.h>
-#include "Core/Analysis/Persistent.h"
+#include "Core/Analysis/NeuroItem.h"
 
 namespace EspINA
 {
@@ -35,7 +35,7 @@ namespace EspINA
    * 
    */
   class EspinaCore_EXPORT Sample
-  : public Persistent
+  : public NeuroItem
   {
   public:
     explicit Sample(const QString& name=QString());

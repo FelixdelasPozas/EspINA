@@ -84,7 +84,7 @@ namespace EspINA
 
     /** \brief Returns the bounds of the volume.
      */
-    virtual const Bounds bounds() const
+    virtual Bounds bounds() const
     { return m_bounds.bounds(); }
 
     /** \brief Set volume origin.

@@ -7,7 +7,7 @@
 #include <vtkSmartPointer.h>
 #include <vtkPolyData.h>
 
-#include <Core/EspinaTypes.h>
+#include <Core/Utils/NmVector3.h>
 
 class vtkLookupTable;
 class vtkPolyDataAlgorithm;
@@ -58,7 +58,7 @@ public:
   virtual void SetCountingFrame(vtkSmartPointer<vtkPolyData> region,
                                  EspINA::Nm inclusionOffset[3],
                                  EspINA::Nm exclusionOffset[3],
-                                 EspINA::Nm slicingStep[3]);
+                                 EspINA::NmVector3 slicingStep);
 
   // Description:
   // These are methods to communicate with the 3d_widget
@@ -156,7 +156,7 @@ protected:
 protected:
   vtkSmartPointer<vtkPolyData> Region;
   EspINA::Nm Slice;
-  EspINA::Nm Resolution[3];
+  EspINA::NmVector3 SlicingStep;
 
   bool Init;
   EspINA::Nm InclusionOffset[3];

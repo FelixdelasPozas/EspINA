@@ -39,7 +39,7 @@ class InvalidData
 {
 public:
   virtual DataProxySPtr createProxy() const;
-  virtual const Bounds bounds() const {}
+  virtual Bounds bounds() const {}
   virtual void setSpacing(const NmVector3& spacing){}
   virtual NmVector3 spacing() const {return NmVector3{1,1,1};}
   virtual Snapshot editedRegionsSnapshot() const {}
@@ -47,6 +47,8 @@ public:
   virtual bool fetchData(const TemporalStorageSPtr storage, const QString& prefix) {return false; }
   virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString& prefix) const{return Snapshot();}
   virtual Type type() const { return "InvalidData";}
+  virtual size_t memoryUsage() const { return 0; }
+  virtual void undo() {}
 };
 
 using InvalidDataSPtr = std::shared_ptr<InvalidData>;

@@ -18,18 +18,87 @@
  */
 
 #include "CountingFrameManager.h"
+#include "Extensions/CountingFrameExtension.h"
+#include "CountingFrames/RectangularCountingFrame.h"
 
 using namespace EspINA;
 using namespace EspINA::CF;
 
 //-----------------------------------------------------------------------------
-ChannelExtensionSPtr CF::CountingFrameManager::createChannelExtension(ChannelExtension::Type type)
+ChannelExtensionSPtr CountingFrameManager::createChannelExtension(ChannelExtension::Type type)
 {
-
 }
 
 //-----------------------------------------------------------------------------
-SegmentationExtensionSPtr CF::CountingFrameManager::createSegmentationExtension(SegmentationExtension::Type type)
+SegmentationExtensionSPtr CountingFrameManager::createSegmentationExtension(SegmentationExtension::Type type)
 {
+}
 
+//------------------------------------------------------------------------
+void CountingFrameManager::createAdaptiveCF(ChannelAdapterPtr channel,
+					    Nm inclusion[3],
+					    Nm exclusion[3])
+{
+//   Channel::ExtensionPtr extension = channel->extension(CountingFrameExtensionID);
+//   CountingFrameExtension *cfExtension;
+//   if (extension)
+//   {
+//     cfExtension = dynamic_cast<CountingFrameExtension *>(extension);
+//   }
+//   else
+//   {
+//     cfExtension = new CountingFrameExtension(this, m_viewManager);
+//     channel->addExtension(cfExtension);
+//   }
+//   Q_ASSERT(cfExtension);
+//
+//   AdaptiveCountingFrame *cf = AdaptiveCountingFrame::New(m_nextId++,
+//                                                          cfExtension,
+//                                                          inclusion,
+//                                                          exclusion,
+//                                                          m_viewManager);
+//   registerCF(cfExtension, cf);
+}
+
+//------------------------------------------------------------------------
+void CountingFrameManager::createRectangularCF(ChannelAdapterPtr channel,
+                                               Nm inclusion[3],
+                                               Nm exclusion[3])
+{
+  int id = 0;
+
+  CountingFrameExtension *extension = nullptr;
+  if (channel->hasExtension(CountingFrameExtension::TYPE))
+  {
+    extension = dynamic_cast<CountingFrameExtension *>(channel->extension(CountingFrameExtension::TYPE).get());
+  }
+  else
+  {
+    extension =  new CountingFrameExtension();
+    channel->addExtension(CountingFrameExtensionSPtr{extension});
+  }
+  Q_ASSERT(extension);
+
+  auto cf = RectangularCountingFrame::New(id, extension, channel->bounds(), inclusion, exclusion);
+
+  emit countingFrameCreated(cf);
+}
+
+//-----------------------------------------------------------------------------
+void CountingFrameManager::deleteCountingFrame ( CountingFrame* cf )
+{
+//   while (!cfExtension && i < m_countingFramesExtensions.size())
+//   {
+//     if (m_countingFramesExtensions[i]->countingFrames().contains(cf))
+//     {
+//       cfExtension = m_countingFramesExtensions[i];
+//       cfExtension->deleteCountingFrame(cf);
+//     }
+//     else
+//       ++i;
+//   }
+//   m_countingFramesExtensions.removeAt(i);
+//   m_countingFrames.removeOne(cf);
+
+  cf->Delete();
 }

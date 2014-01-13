@@ -184,6 +184,9 @@ bool Filter::fetchOutputData(Output::Id id)
             if ("VolumetricData" == xml.attributes().value("type"))
             {
               data = DataSPtr{new SparseVolume<itkVolumeType>()};
+            } else if ("MeshData" == xml.attributes().value("type"))
+            {
+              //data = DataSPtr(new RawMesh()); // TODO: Save mesh
             }
           }
         } else if (xml.isEndElement())

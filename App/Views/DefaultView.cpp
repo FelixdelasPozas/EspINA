@@ -17,6 +17,7 @@
  */
 
 #include "DefaultView.h"
+#include <Settings/DefaultView/DefaultViewSettingsPanel.h>
 
 // EspINA
 //#include <Menus/SegmentationContextualMenu.h>
@@ -44,15 +45,17 @@ const QString Y_LINE_COLOR = "CrosshairYLineColor";
 const QString Z_LINE_COLOR = "CrosshairZLineColor";
 
 //----------------------------------------------------------------------------
-DefaultView::DefaultView(ModelAdapterSPtr model,
-                         ViewManagerSPtr  viewManager,
-                         QUndoStack      *undoStack,
-                         QMainWindow     *parent)
+DefaultView::DefaultView(ModelAdapterSPtr     model,
+                         ViewManagerSPtr      viewManager,
+                         QUndoStack          *undoStack,
+                         const RendererSList &renderers,
+                         QMainWindow         *parent)
 : QAbstractItemView(parent)
 , m_model(model)
 , m_viewManager(viewManager)
 , m_showProcessing(false)
 , m_showSegmentations(true)
+, m_renderers(renderers)
 //, m_contextMenu(new DefaultContextualMenu(SegmentationList(), model, undoStack, viewManager))
 {
   QSettings settins(CESVIMA, ESPINA);
@@ -65,41 +68,41 @@ DefaultView::DefaultView(ModelAdapterSPtr model,
   settins.endGroup();
 
   //   qDebug() << "New Default EspinaView";
-  viewXY = new View2D(Plane::XY);
-  viewXZ = new View2D(Plane::XZ);
-  viewYZ = new View2D(Plane::YZ);
-  view3D = new View3D(false);
+  m_viewXY = new View2D(Plane::XY);
+  m_viewXZ = new View2D(Plane::XZ);
+  m_viewYZ = new View2D(Plane::YZ);
+  m_view3D = new View3D(false);
 
 
   setObjectName("viewXY");
-  viewXY->setCrosshairColors(m_xLine, m_yLine);
-  initView2D(viewXY);
+  m_viewXY->setCrosshairColors(m_xLine, m_yLine);
+  initView2D(m_viewXY);
   setLayout(new QVBoxLayout());
-  layout()->addWidget(viewXY);
+  layout()->addWidget(m_viewXY);
   layout()->setMargin(0);
 
   dockYZ = new QDockWidget(tr("ZY"), parent);
   dockYZ->setObjectName("DockZY");
-  viewYZ->setCrosshairColors(m_zLine, m_yLine);
-  initView2D(viewYZ);
-  dockYZ->setWidget(viewYZ);
+  m_viewYZ->setCrosshairColors(m_zLine, m_yLine);
+  initView2D(m_viewYZ);
+  dockYZ->setWidget(m_viewYZ);
 
   dockXZ = new QDockWidget(tr("XZ"), parent);
   dockXZ->setObjectName("xzDock");
-  viewXZ->setCrosshairColors(m_xLine, m_zLine);
-  initView2D(viewXZ);
-  dockXZ->setWidget(viewXZ);
+  m_viewXZ->setCrosshairColors(m_xLine, m_zLine);
+  initView2D(m_viewXZ);
+  dockXZ->setWidget(m_viewXZ);
 
   dock3D = new QDockWidget(tr("3D"), parent);
   dock3D->setObjectName("Dock3D");
-  dock3D->setWidget(view3D);
-  connect(view3D, SIGNAL(centerChanged(NmVector3)),
+  dock3D->setWidget(m_view3D);
+  connect(m_view3D, SIGNAL(centerChanged(NmVector3)),
           this, SLOT(setCrosshairPoint(NmVector3)));
 
-  m_viewManager->registerView(viewXY);
-  m_viewManager->registerView(viewXZ);
-  m_viewManager->registerView(viewYZ);
-  m_viewManager->registerView(view3D);
+  m_viewManager->registerView(m_viewXY);
+  m_viewManager->registerView(m_viewXZ);
+  m_viewManager->registerView(m_viewYZ);
+  m_viewManager->registerView(m_view3D);
 
   parent->addDockWidget(Qt::RightDockWidgetArea, dock3D);
   parent->addDockWidget(Qt::RightDockWidgetArea, dockYZ);
@@ -160,9 +163,9 @@ void DefaultView::setCrosshairColor(const Plane plane, const QColor& color)
   settings.endGroup();
   settings.sync();
 
-  viewXY->setCrosshairColors(m_xLine, m_yLine);
-  viewXZ->setCrosshairColors(m_xLine, m_zLine);
-  viewYZ->setCrosshairColors(m_zLine, m_yLine);
+  m_viewXY->setCrosshairColors(m_xLine, m_yLine);
+  m_viewXZ->setCrosshairColors(m_xLine, m_zLine);
+  m_viewYZ->setCrosshairColors(m_zLine, m_yLine);
 }
 
 //-----------------------------------------------------------------------------
@@ -211,7 +214,6 @@ void DefaultView::createViewMenu(QMenu* menu)
   showThumbnail(st);
 }
 
-
 //-----------------------------------------------------------------------------
 void DefaultView::setModel(QAbstractItemModel* model)
 {
@@ -221,50 +223,56 @@ void DefaultView::setModel(QAbstractItemModel* model)
 }
 
 //-----------------------------------------------------------------------------
+SettingsPanelSPtr DefaultView::settingsPanel()
+{
+  return SettingsPanelSPtr(new DefaultViewSettingsPanel(m_viewXY, m_viewXZ, m_viewYZ, m_view3D, m_renderers));
+}
+
+//-----------------------------------------------------------------------------
 void DefaultView::add(ChannelAdapterPtr channel)
 {
-  viewXY->add(channel);
-  viewYZ->add(channel);
-  viewXZ->add(channel);
-  view3D->add(channel);
+  m_viewXY->add(channel);
+  m_viewYZ->add(channel);
+  m_viewXZ->add(channel);
+  m_view3D->add(channel);
 }
 
 //-----------------------------------------------------------------------------
 void DefaultView::remove(ChannelAdapterPtr channel)
 {
-  viewXY->remove(channel);
-  viewYZ->remove(channel);
-  viewXZ->remove(channel);
-  view3D->remove(channel);
+  m_viewXY->remove(channel);
+  m_viewYZ->remove(channel);
+  m_viewXZ->remove(channel);
+  m_view3D->remove(channel);
 }
 
 //-----------------------------------------------------------------------------
 bool DefaultView::updateRepresentation(ChannelAdapterPtr channel)
 {
   bool modified = false;
-  modified |= viewXY->updateRepresentation(channel);
-  modified |= viewYZ->updateRepresentation(channel);
-  modified |= viewXZ->updateRepresentation(channel);
-  modified |= view3D->updateRepresentation(channel);
+  modified |= m_viewXY->updateRepresentation(channel);
+  modified |= m_viewYZ->updateRepresentation(channel);
+  modified |= m_viewXZ->updateRepresentation(channel);
+  modified |= m_view3D->updateRepresentation(channel);
   return modified;
 }
 
 //-----------------------------------------------------------------------------
 void DefaultView::add(SegmentationAdapterPtr seg)
 {
-  viewXY->add(seg);
-  viewYZ->add(seg);
-  viewXZ->add(seg);
-  view3D->add(seg);
+  m_viewXY->add(seg);
+  m_viewYZ->add(seg);
+  m_viewXZ->add(seg);
+  m_view3D->add(seg);
 }
 
 //-----------------------------------------------------------------------------
 void DefaultView::remove(SegmentationAdapterPtr seg)
 {
-  viewXY->remove(seg);
-  viewYZ->remove(seg);
-  viewXZ->remove(seg);
-  view3D->remove(seg);
+  m_viewXY->remove(seg);
+  m_viewYZ->remove(seg);
+  m_viewXZ->remove(seg);
+  m_view3D->remove(seg);
 
 }
 
@@ -272,10 +280,10 @@ void DefaultView::remove(SegmentationAdapterPtr seg)
 bool DefaultView::updateRepresentation(SegmentationAdapterPtr seg)
 {
   bool modified = false;
-  modified |= viewXY->updateRepresentation(seg);
-  modified |= viewYZ->updateRepresentation(seg);
-  modified |= viewXZ->updateRepresentation(seg);
-  modified |= view3D->updateRepresentation(seg);
+  modified |= m_viewXY->updateRepresentation(seg);
+  modified |= m_viewYZ->updateRepresentation(seg);
+  modified |= m_viewXZ->updateRepresentation(seg);
+  modified |= m_view3D->updateRepresentation(seg);
   return modified;
 }
 
@@ -348,18 +356,18 @@ void DefaultView::rowsAboutToBeRemoved(const QModelIndex& parent, int start, int
 //----------------------------------------------------------------------------
 void DefaultView::sourceModelReset()
 {
-  viewXY->reset();
-  viewYZ->reset();
-  viewXZ->reset();
-  view3D->reset();
+  m_viewXY->reset();
+  m_viewYZ->reset();
+  m_viewXZ->reset();
+  m_view3D->reset();
 }
 
 //----------------------------------------------------------------------------
 void DefaultView::showCrosshair(bool visible)
 {
-  viewXY->setCrosshairVisibility(visible);
-  viewYZ->setCrosshairVisibility(visible);
-  viewXZ->setCrosshairVisibility(visible);
+  m_viewXY->setCrosshairVisibility(visible);
+  m_viewYZ->setCrosshairVisibility(visible);
+  m_viewXZ->setCrosshairVisibility(visible);
 }
 
 //-----------------------------------------------------------------------------
@@ -370,17 +378,17 @@ void DefaultView::setRulerVisibility(bool visible)
   settings.setValue("ShowRuler", visible);
   settings.endGroup();
 
-  viewXY->setRulerVisibility(visible);
-  viewYZ->setRulerVisibility(visible);
-  viewXZ->setRulerVisibility(visible);
+  m_viewXY->setRulerVisibility(visible);
+  m_viewYZ->setRulerVisibility(visible);
+  m_viewXZ->setRulerVisibility(visible);
 }
 
 //----------------------------------------------------------------------------
 void DefaultView::showSegmentations(bool visible)
 {
-  viewXY->setSegmentationsVisibility(visible);
-  viewYZ->setSegmentationsVisibility(visible);
-  viewXZ->setSegmentationsVisibility(visible);
+  m_viewXY->setSegmentationsVisibility(visible);
+  m_viewYZ->setSegmentationsVisibility(visible);
+  m_viewXZ->setSegmentationsVisibility(visible);
 
   m_showSegmentations = visible;
 }
@@ -391,9 +399,9 @@ void DefaultView::showThumbnail(bool visible)
   settings.beginGroup(DEFAULT_VIEW_SETTINGS);
   settings.setValue("ShowThumbnail", visible);
   settings.endGroup();
-  viewXY->setThumbnailVisibility(visible);
-  viewYZ->setThumbnailVisibility(visible);
-  viewXZ->setThumbnailVisibility(visible);
+  m_viewXY->setThumbnailVisibility(visible);
+  m_viewYZ->setThumbnailVisibility(visible);
+  m_viewXZ->setThumbnailVisibility(visible);
 }
 
 //----------------------------------------------------------------------------
@@ -402,28 +410,28 @@ void DefaultView::switchPreprocessing()
   //Current implementation changes channel visibility and then
   //notifies it's been updated to other views
   m_showProcessing = !m_showProcessing;
-  viewXY->setShowPreprocessing(m_showProcessing);
-  viewYZ->setShowPreprocessing(m_showProcessing);
-  viewXZ->setShowPreprocessing(m_showProcessing);
+  m_viewXY->setShowPreprocessing(m_showProcessing);
+  m_viewYZ->setShowPreprocessing(m_showProcessing);
+  m_viewXZ->setShowPreprocessing(m_showProcessing);
 }
 
 //----------------------------------------------------------------------------
 void DefaultView::updateViews()
 {
- viewXY->updateView();
- viewYZ->updateView();
- viewXZ->updateView();
- view3D->updateView();
+ m_viewXY->updateView();
+ m_viewYZ->updateView();
+ m_viewXZ->updateView();
+ m_view3D->updateView();
 }
 
 //-----------------------------------------------------------------------------
 void DefaultView::setCrosshairPoint(const NmVector3& point, bool force)
 {
   //qDebug() << "Espina View Updating centers";
-  viewXY->centerViewOn(point, force);
-  viewYZ->centerViewOn(point, force);
-  viewXZ->centerViewOn(point, force);
-  view3D->centerViewOn(point, force);
+  m_viewXY->centerViewOn(point, force);
+  m_viewYZ->centerViewOn(point, force);
+  m_viewXZ->centerViewOn(point, force);
+  m_view3D->centerViewOn(point, force);
 }
 
 //-----------------------------------------------------------------------------
@@ -432,19 +440,19 @@ void DefaultView::changePlanePosition(Plane plane, Nm dist)
   switch(plane)
   {
     case Plane::XY:
-      this->viewYZ->updateCrosshairPoint(plane, dist);
-      this->viewXZ->updateCrosshairPoint(plane, dist);
+      this->m_viewYZ->updateCrosshairPoint(plane, dist);
+      this->m_viewXZ->updateCrosshairPoint(plane, dist);
       break;
     case Plane::XZ:
-      this->viewXY->updateCrosshairPoint(plane, dist);
-      this->viewYZ->updateCrosshairPoint(plane, dist);
+      this->m_viewXY->updateCrosshairPoint(plane, dist);
+      this->m_viewYZ->updateCrosshairPoint(plane, dist);
       break;
     case Plane::YZ:
-      this->viewXY->updateCrosshairPoint(plane, dist);
-      this->viewXZ->updateCrosshairPoint(plane, dist);
+      this->m_viewXY->updateCrosshairPoint(plane, dist);
+      this->m_viewXZ->updateCrosshairPoint(plane, dist);
       break;
   }
-  view3D->changePlanePosition(plane, dist);
+  m_view3D->changePlanePosition(plane, dist);
 }
 
 
@@ -466,11 +474,11 @@ void DefaultView::changePlanePosition(Plane plane, Nm dist)
 //-----------------------------------------------------------------------------
 void DefaultView::setFitToSlices(bool unused)
 {
-  NmVector3 step = viewXY->sceneResolution();
+  NmVector3 step = m_viewXY->sceneResolution();
 
-  viewXY->setSlicingStep(step);
-  viewYZ->setSlicingStep(step);
-  viewXZ->setSlicingStep(step);
+  m_viewXY->setSlicingStep(step);
+  m_viewYZ->setSlicingStep(step);
+  m_viewXZ->setSlicingStep(step);
 }
 
 // //-----------------------------------------------------------------------------
@@ -483,86 +491,4 @@ void DefaultView::setFitToSlices(bool unused)
 // void DefaultEspinaView::selectToSlice(double slice, PlaneType plane)
 // {
 //   emit selectedToSlice(slice, plane);
-// }
-
-// //-----------------------------------------------------------------------------
-// DefaultView::SettingsPanel::SettingsPanel(SliceView::SettingsSPtr xy,
-//                                                 SliceView::SettingsSPtr yz,
-//                                                 SliceView::SettingsSPtr xz,
-//                                                 VolumeView::SettingsPtr vol,
-//                                                 EspinaFactoryPtr factory)
-// : m_xy(xy)
-// , m_yz(yz)
-// , m_xz(xz)
-// , m_factory(factory)
-// , m_slicingStep(0)
-// , m_vol(vol)
-// {
-//   QVBoxLayout *layout = new QVBoxLayout();
-//   QGroupBox *group;
-//   QVBoxLayout *groupLayout;
-// 
-//   // Axial View
-//   m_xyPanel = new SliceViewSettingsPanel(xy);
-//   group = new QGroupBox(m_xyPanel->shortDescription());
-//   groupLayout = new QVBoxLayout();
-//   groupLayout->addWidget(m_xyPanel);
-//   group->setLayout(groupLayout);
-//   layout->addWidget(group);
-// 
-//   // Sagittal View
-//   m_yzPanel = new SliceViewSettingsPanel(yz);
-//   group = new QGroupBox(m_yzPanel->shortDescription());
-//   groupLayout = new QVBoxLayout();
-//   groupLayout->addWidget(m_yzPanel);
-//   group->setLayout(groupLayout);
-//   layout->addWidget(group);
-// 
-//   // Coronal View
-//   m_xzPanel = new SliceViewSettingsPanel(xz);
-//   group = new QGroupBox(m_xzPanel->shortDescription());
-//   groupLayout = new QVBoxLayout();
-//   groupLayout->addWidget(m_xzPanel);
-//   group->setLayout(groupLayout);
-//   layout->addWidget(group);
-// 
-//   // 3D View
-//   m_volPanel = new VolumeViewSettingsPanel(factory, vol);
-//   group = new QGroupBox(m_volPanel->shortDescription());
-//   groupLayout = new QVBoxLayout();
-//   groupLayout->addWidget(m_volPanel);
-//   group->setLayout(groupLayout);
-//   layout->addWidget(group);
-// 
-//   this->setLayout(layout);
-// }
-// 
-// //-----------------------------------------------------------------------------
-// void DefaultView::SettingsPanel::acceptChanges()
-// {
-//   m_xyPanel->acceptChanges();
-//   m_yzPanel->acceptChanges();
-//   m_xzPanel->acceptChanges();
-//   m_volPanel->acceptChanges();
-// }
-// 
-// //-----------------------------------------------------------------------------
-// void DefaultView::SettingsPanel::rejectChanges()
-// {
-// 
-// }
-// 
-// //-----------------------------------------------------------------------------
-// bool DefaultView::SettingsPanel::modified() const
-// {
-//   return m_xyPanel->modified()
-//       || m_yzPanel->modified()
-//       || m_xzPanel->modified()
-//       || m_volPanel->modified();
-// }
-// 
-// //-----------------------------------------------------------------------------
-// ISettingsPanelPtr DefaultView::SettingsPanel::clone()
-// {
-//   return ISettingsPanelPtr(new SettingsPanel(m_xy, m_yz, m_xz, m_vol, m_factory));
 // }

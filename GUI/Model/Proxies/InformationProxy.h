@@ -17,16 +17,14 @@
  */
 
 
-#ifndef INFORMATIONPROXY_H
-#define INFORMATIONPROXY_H
+#ifndef ESPINA_INFORMATION_PROXY_H
+#define ESPINA_INFORMATION_PROXY_H
 
 #include "EspinaCore_Export.h"
 
 #include <QAbstractProxyModel>
 
-#include <Core/EspinaTypes.h>
-#include <Core/Model/EspinaModel.h>
-#include <Core/Model/Segmentation.h>
+#include <GUI/Model/ModelAdapter.h>
 
 #include <QStringList>
 
@@ -41,47 +39,58 @@ namespace EspINA
     explicit InformationProxy();
     virtual ~InformationProxy();
 
-    virtual void setSourceModel(EspinaModel *sourceModel);
+    virtual void setSourceModel(ModelAdapterSPtr sourceModel);
 
     virtual QModelIndex mapFromSource(const QModelIndex& sourceIndex) const;
+
     virtual QModelIndex mapToSource(const QModelIndex& proxyIndex) const;
 
     virtual int columnCount(const QModelIndex& parent = QModelIndex()) const;
+
     virtual int rowCount(const QModelIndex& parent = QModelIndex()) const;
+
     virtual QModelIndex parent(const QModelIndex& child) const;
+
     virtual QModelIndex index(int row, int column, const QModelIndex& parent = QModelIndex()) const;
 
     virtual QVariant headerData(int section, Qt::Orientation orientation, int role) const;
+
     virtual QVariant data(const QModelIndex& proxyIndex, int role = Qt::DisplayRole) const;
 
-    void setTaxonomy(const QString &qualifiedName);
-    QString taxonomy() const { return m_taxonomy; }
+    void setCategory(const QString &classificationName);
 
-    void setFilter(const SegmentationList *filter);
+    QString category() const
+    { return m_category; }
 
-    void setInformationTags(const Segmentation::InfoTagList tags);
-    const QStringList informationTags() const {return m_tags;}
+    void setFilter(const SegmentationAdapterList *filter);
+
+    void setInformationTags(const SegmentationExtension::InfoTagList tags);
+
+    const QStringList informationTags() const
+    { return m_tags; }
     //const Segmentation::InfoTagList availableInformation() const;
 
   protected slots:
     void sourceRowsInserted(const QModelIndex & sourceParent, int start, int end);
+
     void sourceRowsAboutToBeRemoved(const QModelIndex & sourceParent, int start, int end);
+
     void sourceDataChanged(const QModelIndex& sourceTopLeft, const QModelIndex& sourceBottomRight);
+
     void sourceModelReset();
 
   private:
-    bool acceptSegmentation(const SegmentationPtr segmentation) const;
+    bool acceptSegmentation(const SegmentationAdapterPtr segmentation) const;
 
   private:
-    EspinaModel *m_model;
+    ModelAdapterSPtr m_model;
+    QString          m_category;
 
-    QString                   m_taxonomy;
-    const SegmentationList   *m_filter;
-    Segmentation::InfoTagList m_tags;
+    const SegmentationAdapterList     *m_filter;
+    SegmentationExtension::InfoTagList m_tags;
 
-    QList<ModelItemPtr> m_elements;
+    QList<ItemAdapterPtr> m_elements;
   };
-
 } // namespace EspINA
 
 #endif // INFORMATIONPROXY_H

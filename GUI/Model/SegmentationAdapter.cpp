@@ -39,15 +39,14 @@ SegmentationAdapter::~SegmentationAdapter()
 
 }
 
-
 void SegmentationAdapter::setNumber(unsigned int number)
 {
-
+  m_segmentation->setNumber(number);
 }
 
 unsigned int SegmentationAdapter::number() const
 {
-
+  return m_segmentation->number();
 }
 
 bool SegmentationAdapter::hasExtension(const SegmentationExtension::Type& type) const
@@ -57,12 +56,12 @@ bool SegmentationAdapter::hasExtension(const SegmentationExtension::Type& type) 
 
 SegmentationExtensionSPtr SegmentationAdapter::extension(const SegmentationExtension::Type& type) const
 {
-
+  return m_segmentation->extension(type);
 }
 
 void SegmentationAdapter::addExtension(SegmentationExtensionSPtr extension)
 {
-
+  m_segmentation->addExtension(extension);
 }
 
 CategoryAdapterSPtr SegmentationAdapter::category() const
@@ -177,17 +176,17 @@ QVariant SegmentationAdapter::data(int role) const
 
 QVariant SegmentationAdapter::information(const SegmentationExtension::InfoTag& tag) const
 {
-
+  return m_segmentation->information(tag);
 }
 
 SegmentationExtension::InfoTagList SegmentationAdapter::informationTags() const
 {
-
+  return m_segmentation->informationTags();
 }
 
 void SegmentationAdapter::modifiedByUser(const QString& user)
 {
-
+  m_segmentation->modifiedByUser(user);
 }
 
 void SegmentationAdapter::setCategory(CategoryAdapterSPtr category)
@@ -216,7 +215,7 @@ bool SegmentationAdapter::setData(const QVariant& value, int role)
 
 QStringList SegmentationAdapter::users() const
 {
-
+  return m_segmentation->users();
 }
 
 //------------------------------------------------------------------------

@@ -17,6 +17,7 @@
  */
 
 #include "Panel.h"
+#include "Dialogs/TypeDialog.h"
 
 #include "ui_Panel.h"
 
@@ -31,9 +32,6 @@
 
 using namespace EspINA;
 using namespace EspINA::CF;
-
-const int ADAPTIVE = 0;
-const int RECTANGULAR = 1;
 
 //------------------------------------------------------------------------
 class Panel::GUI
@@ -58,8 +56,8 @@ Panel::GUI::GUI()
   rightMargin ->installEventFilter(this);
   topMargin   ->installEventFilter(this);
   bottomMargin->installEventFilter(this);
-  lowerMargin ->installEventFilter(this);
-  upperMargin ->installEventFilter(this);
+  backMargin  ->installEventFilter(this);
+  frontMargin ->installEventFilter(this);
 }
 
 //------------------------------------------------------------------------
@@ -79,10 +77,10 @@ bool Panel::GUI::eventFilter(QObject* object, QEvent* event)
     else if (object == bottomMargin)
       preview->setPixmap(QPixmap(":/bottom.png"));
 
-    else if (object == upperMargin)
+    else if (object == frontMargin)
       preview->setPixmap(QPixmap(":/upper.png"));
 
-    else if (object == lowerMargin)
+    else if (object == backMargin)
       preview->setPixmap(QPixmap(":/lower.png"));
 
   }else if (event->type() == QEvent::FocusOut)
@@ -98,15 +96,15 @@ void Panel::GUI::setOffsetRanges(int min, int max)
   leftMargin->setMaximum(max);
   topMargin->setMinimum(min);
   topMargin->setMaximum(max);
-  upperMargin->setMinimum(min);
-  upperMargin->setMaximum(max);
+  frontMargin->setMinimum(min);
+  frontMargin->setMaximum(max);
 
   rightMargin->setMinimum(min);
   rightMargin->setMaximum(max);
   bottomMargin->setMinimum(min);
   bottomMargin->setMaximum(max);
-  lowerMargin->setMinimum(min);
-  lowerMargin->setMaximum(max);
+  backMargin->setMinimum(min);
+  backMargin->setMaximum(max);
 }
 
 const QString Panel::ID = "CountingFrameExtension";
@@ -117,6 +115,7 @@ Panel::Panel(CountingFrameManager *manager,
              ViewManagerSPtr       viewManager,
              QWidget              *parent = nullptr)
 : DockWidget(parent)
+, m_manager(manager)
 , m_model(model)
 , m_viewManager(viewManager)
 , m_gui(new GUI())
@@ -137,9 +136,6 @@ Panel::Panel(CountingFrameManager *manager,
   connect(m_gui->exportCF, SIGNAL(clicked(bool)),
           this, SLOT(saveActiveCountingFrameDescription()));
 
-  m_gui->countingFrames->addItem("Create Adaptive CF");
-  m_gui->countingFrames->addItem("Create Rectangular CF");
-
   connect(m_gui->createCF, SIGNAL(clicked()),
           this, SLOT(createCountingFrame()));
   connect(m_gui->deleteCF, SIGNAL(clicked()),
@@ -152,19 +148,22 @@ Panel::Panel(CountingFrameManager *manager,
           this, SLOT(updateActiveCountingFrameMargins()));
   connect(m_gui->topMargin, SIGNAL(valueChanged(int)),
           this, SLOT(updateActiveCountingFrameMargins()));
-  connect(m_gui->upperMargin, SIGNAL(valueChanged(int)),
+  connect(m_gui->frontMargin, SIGNAL(valueChanged(int)),
           this, SLOT(updateActiveCountingFrameMargins()));
   connect(m_gui->rightMargin, SIGNAL(valueChanged(int)),
           this, SLOT(updateActiveCountingFrameMargins()));
   connect(m_gui->bottomMargin, SIGNAL(valueChanged(int)),
           this, SLOT(updateActiveCountingFrameMargins()));
-  connect(m_gui->lowerMargin, SIGNAL(valueChanged(int)),
+  connect(m_gui->backMargin, SIGNAL(valueChanged(int)),
           this, SLOT(updateActiveCountingFrameMargins()));
 
-  connect(m_gui->useTaxonomicalConstraint, SIGNAL(toggled(bool)),
-          this, SLOT(enableTaxonomicalConstraints(bool)));
+  connect(m_gui->useCategoryConstraint, SIGNAL(toggled(bool)),
+          this, SLOT(enableCategoryConstraints(bool)));
   connect(m_gui->categorySelector, SIGNAL(activated(QModelIndex)),
           this, SLOT(applyCategoryConstraint()));
+
+  connect(m_manager, SIGNAL(countingFrameCreated(CountingFrame*)),
+          this, SLOT(onCountingFrameCreated(CountingFrame*)));
 }
 
 //------------------------------------------------------------------------
@@ -217,110 +216,31 @@ void Panel::reset()
 //   return engines;
 // }
 
-//------------------------------------------------------------------------
-void Panel::createAdaptiveCF(ChannelAdapterPtr channel,
-                                          Nm inclusion[3],
-                                          Nm exclusion[3])
-{
-//   Channel::ExtensionPtr extension = channel->extension(CountingFrameExtensionID);
-//   CountingFrameExtension *cfExtension;
-//   if (extension)
-//   {
-//     cfExtension = dynamic_cast<CountingFrameExtension *>(extension);
-//   }
-//   else
-//   {
-//     cfExtension = new CountingFrameExtension(this, m_viewManager);
-//     channel->addExtension(cfExtension);
-//   }
-//   Q_ASSERT(cfExtension);
-//
-//   AdaptiveCountingFrame *cf = AdaptiveCountingFrame::New(m_nextId++,
-//                                                          cfExtension,
-//                                                          inclusion,
-//                                                          exclusion,
-//                                                          m_viewManager);
-//   registerCF(cfExtension, cf);
-}
-
-//------------------------------------------------------------------------
-void Panel::createRectangularCF(ChannelAdapterPtr channel,
-                                             Nm inclusion[3],
-                                             Nm exclusion[3])
-{
-//   Channel::ExtensionPtr extension = channel->extension(CountingFrameExtensionID);
-//   CountingFrameExtension *cfExtension;
-//   if (extension)
-//   {
-//     cfExtension = dynamic_cast<CountingFrameExtension *>(extension);
-//   }
-//   else
-//   {
-//     cfExtension = new CountingFrameExtension(this, m_viewManager);
-//     channel->addExtension(cfExtension);
-//   }
-//   Q_ASSERT(cfExtension);
-//
-//   double borders[6];
-//   channel->volume()->bounds(borders);
-//
-//   RectangularCountingFrame *cf = RectangularCountingFrame::New(m_nextId++,
-//                                                                cfExtension,
-//                                                                borders,
-//                                                                inclusion,
-//                                                                exclusion,
-//                                                                m_viewManager);
-//   registerCF(cfExtension, cf);
-}
 
 //------------------------------------------------------------------------
 void Panel::deleteCountingFrame(CountingFrame *cf)
 {
-//   int i = 0;
-//   CountingFrameExtension *cfExtension = NULL;
-//   while (!cfExtension && i < m_countingFramesExtensions.size())
-//   {
-//     if (m_countingFramesExtensions[i]->countingFrames().contains(cf))
-//     {
-//       cfExtension = m_countingFramesExtensions[i];
-//       cfExtension->deleteCountingFrame(cf);
-//     }
-//     else
-//       ++i;
-//   }
-//   m_countingFramesExtensions.removeAt(i);
-//   m_countingFrames.removeOne(cf);
-//
-//   if (cf == m_activeCF)
-//     m_activeCF = NULL;
-//
-//   for(int i = 0; i < m_gui->countingFrames->model()->rowCount(); i++)
-//   {
-//     if (m_gui->countingFrames->model()->index(i,0).data(Qt::DisplayRole) == cf->data(Qt::DisplayRole))
-//     {
-//       m_gui->countingFrames->removeItem(i);
-//       break;
-//     }
-//   }
-//
-//   emit countingFrameDeleted(cf);
-//
-//   m_viewManager->removeWidget(cf);
-//   cf->Delete();
+  int i = 0;
+  CountingFrameExtension *cfExtension = nullptr;
+
+  m_manager->deleteCountingFrame(cf);
+
+  m_countingFrames.removeOne(cf);
+
+  if (cf == m_activeCF) m_activeCF = nullptr;
+
+  for(int i = 0; i < m_gui->countingFrames->model()->rowCount(); i++)
+  {
+    if (m_gui->countingFrames->model()->index(i,0).data(Qt::DisplayRole) == cf->data(Qt::DisplayRole))
+    {
+      m_gui->countingFrames->removeItem(i);
+      break;
+    }
+  }
+
+  m_viewManager->removeWidget(cf);
 }
 
-//------------------------------------------------------------------------
-CountingFrameList Panel::countingFrames() const
-{
-//   CountingFrameList cfs;
-//
-//   foreach(CountingFrameExtension *cfExtension, m_countingFramesExtensions)
-//   {
-//     cfs << cfExtension->countingFrames();
-//   }
-//
-//   return cfs;
-}
 
 
 //------------------------------------------------------------------------
@@ -359,7 +279,7 @@ void Panel::clearCountingFrames()
 }
 
 //------------------------------------------------------------------------
-void Panel::enableTaxonomicalConstraints(bool enable)
+void Panel::enableCategoryConstraints(bool enable)
 {
 //   m_gui->taxonomySelector->setEnabled(enable);
 //
@@ -369,75 +289,75 @@ void Panel::enableTaxonomicalConstraints(bool enable)
 //------------------------------------------------------------------------
 void Panel::updateUI(int row)
 {
-//   if (row > RECTANGULAR)
-//   {
-//     m_gui->createCF->setIcon(QIcon(":/update-cr.svg"));
-//     m_gui->createCF->setToolTip(tr("Update Counting Frame"));
-//     m_gui->deleteCF->setEnabled(true);
-//     m_gui->saveDescription->setEnabled(true);
-//
-//
-//     CountingFrame *cf = m_countingFrames.value(row-NUM_FIXED_ROWS, NULL);
-//     Q_ASSERT(cf);
-//
-//     showInfo(cf);
-//
-//   } else
-//   {
-//     m_activeCF = NULL;
-//
-//     m_gui->createCF->setIcon(QIcon(":/create-cr.svg"));
-//     m_gui->createCF->setToolTip(tr("Create Counting Frame"));
-//     m_gui->deleteCF->setEnabled(false);
-//     m_gui->saveDescription->setEnabled(false);
-//
-//     m_gui->leftMargin  ->setValue(0);
-//     m_gui->topMargin   ->setValue(0);
-//     m_gui->upperMargin ->setValue(0);
-//     m_gui->rightMargin ->setValue(0);
-//     m_gui->bottomMargin->setValue(0);
-//     m_gui->lowerMargin ->setValue(0);
-//
-//     m_gui->useTaxonomicalConstraint->setChecked(false);
-//
-//     m_gui->countingFrameDescription->clear();
-//
-//     m_gui->countingFrames->setFocus();
-//   }
-//
-//   m_gui->taxonomySelector->setEnabled(m_gui->useTaxonomicalConstraint->isChecked());
+  bool validCF = !m_countingFrames.isEmpty();
+
+  if (validCF)
+  {
+    m_gui->createCF->setIcon(QIcon(":/update-cr.svg"));
+    m_gui->createCF->setToolTip(tr("Update Counting Frame"));
+
+    CountingFrame *cf = m_countingFrames.value(row, nullptr);
+    Q_ASSERT(cf);
+
+    showInfo(cf);
+  } else
+  {
+    m_activeCF = nullptr;
+
+    m_gui->createCF->setIcon(QIcon(":/create-cr.svg"));
+    m_gui->createCF->setToolTip(tr("Create Counting Frame"));
+
+    m_gui->leftMargin  ->setValue(0);
+    m_gui->topMargin   ->setValue(0);
+    m_gui->frontMargin ->setValue(0);
+    m_gui->rightMargin ->setValue(0);
+    m_gui->bottomMargin->setValue(0);
+    m_gui->backMargin ->setValue(0);
+
+    m_gui->useCategoryConstraint->setChecked(validCF);
+
+    m_gui->countingFrameDescription->clear();
+
+    m_gui->countingFrames->setFocus();
+  }
+
+  m_gui->countingFrames->setEnabled(validCF);
+  m_gui->leftMargin->setEnabled(validCF);
+  m_gui->topMargin->setEnabled(validCF);
+  m_gui->frontMargin->setEnabled(validCF);
+  m_gui->rightMargin->setEnabled(validCF);
+  m_gui->bottomMargin->setEnabled(validCF);
+  m_gui->backMargin->setEnabled(validCF);
+  m_gui->countingFrameDescription->setEnabled(validCF);
+  m_gui->useCategoryConstraint->setEnabled(validCF);
+  m_gui->categorySelector->setEnabled(m_gui->useCategoryConstraint->isChecked());
+  m_gui->deleteCF->setEnabled(validCF);
+  m_gui->exportCF->setEnabled(validCF);
 }
 
 //------------------------------------------------------------------------
 void Panel::createCountingFrame()
 {
-//   Channel *channel = m_viewManager->activeChannel();
-//   Q_ASSERT(channel);
-//
-//   Nm inclusion[3];
-//   Nm exclusion[3];
-//
-//   QApplication::setOverrideCursor(Qt::WaitCursor);
-//
-//   computeOptimalMargins(channel, inclusion, exclusion);
-//   memset(exclusion, 0, 3*sizeof(Nm));
-//
-//   if (m_activeCF)
-//   {
-//     m_activeCF->setMargins(inclusion, exclusion);
-//   }else
-//   {
-//     if (ADAPTIVE == m_gui->countingFrames->currentIndex())
-//       createAdaptiveCF(channel, inclusion, exclusion);
-//     else if (RECTANGULAR == m_gui->countingFrames->currentIndex())
-//       createRectangularCF(channel, inclusion, exclusion);
-//     else
-//       Q_ASSERT(false);
-//   }
+  auto channel = m_viewManager->activeChannel();
+  Q_ASSERT(channel);
+
+  Nm inclusion[3];
+  Nm exclusion[3];
+
+  computeOptimalMargins(channel, inclusion, exclusion);
+  memset(exclusion, 0, 3*sizeof(Nm));
+
+  TypeDialog typeSelector(this);
+
+  if (typeSelector.exec())
+  {
+    if (ADAPTIVE == typeSelector.type())
+      m_manager->createAdaptiveCF(channel, inclusion, exclusion);
+    else
+      m_manager->createRectangularCF(channel, inclusion, exclusion);
+  }
 //
 //   updateSegmentations();
-//
-//   QApplication::restoreOverrideCursor();
 }
 
 //------------------------------------------------------------------------
@@ -503,10 +423,10 @@ void Panel::channelChanged(ChannelAdapterPtr channel)
 //
 //     m_gui->leftMargin  ->setMaximum(lenght[0]);
 //     m_gui->topMargin   ->setMaximum(lenght[1]);
-//     m_gui->upperMargin ->setMaximum(lenght[2]);
+//     m_gui->frontMargin ->setMaximum(lenght[2]);
 //     m_gui->rightMargin ->setMaximum(lenght[0]);
 //     m_gui->bottomMargin->setMaximum(lenght[1]);
-//     m_gui->lowerMargin ->setMaximum(lenght[2]);
+//     m_gui->backMargin ->setMaximum(lenght[2]);
 //   }
 //   else
 //     m_gui->setOffsetRanges(0,0);
@@ -515,47 +435,48 @@ void Panel::channelChanged(ChannelAdapterPtr channel)
 //------------------------------------------------------------------------
 void Panel::showInfo(CountingFrame* cf)
 {
-//   if (!cf || !m_viewManager->activeChannel())
-//     return;
-//
-//   m_activeCF = cf;
-//
-//   int cfIndex = 0; //FIXME NOW m_countingFrames.indexOf(cf);
-//
-//   m_gui->countingFrames->setCurrentIndex(cfIndex + NUM_FIXED_ROWS);
-//
-//   m_gui->leftMargin  ->blockSignals(true);
-//   m_gui->topMargin   ->blockSignals(true);
-//   m_gui->upperMargin ->blockSignals(true);
-//   m_gui->rightMargin ->blockSignals(true);
-//   m_gui->bottomMargin->blockSignals(true);
-//   m_gui->lowerMargin ->blockSignals(true);
-//
-//   double spacing[3] = {1., 1., 1.};
-//
+  if (!cf || !m_viewManager->activeChannel())
+    return;
+
+  m_activeCF = cf;
+
+  int cfIndex = 0; //FIXME NOW m_countingFrames.indexOf(cf);
+
+  m_gui->countingFrames->setCurrentIndex(cfIndex);
+
+  m_gui->leftMargin  ->blockSignals(true);
+  m_gui->topMargin   ->blockSignals(true);
+  m_gui->frontMargin ->blockSignals(true);
+  m_gui->rightMargin ->blockSignals(true);
+  m_gui->bottomMargin->blockSignals(true);
+  m_gui->backMargin ->blockSignals(true);
+
+  double spacing[3] = {1., 1., 1.};
+
+  //TODO Adjust spacing
 //   if (m_useSlices)
 //   {
-//     Channel *activeChannel = m_viewManager->activeChannel();
-//     activeChannel->volume()->spacing(spacing);
+//     auto activeChannel = m_viewManager->activeChannel();
+//     activeChannel->spacing(spacing);
 //   }
-//
-//   m_gui->leftMargin  ->setValue(cf->left());
-//   m_gui->topMargin   ->setValue(cf->top() );
-//   m_gui->upperMargin ->setValue(vtkMath::Round(cf->upper()/spacing[2]));
-//   m_gui->rightMargin ->setValue(cf->right() );
-//   m_gui->bottomMargin->setValue(cf->bottom());
-//   m_gui->lowerMargin ->setValue(vtkMath::Round(cf->lower()/spacing[2]));
-//
-//   m_gui->leftMargin  ->blockSignals(false);
-//   m_gui->topMargin   ->blockSignals(false);
-//   m_gui->upperMargin ->blockSignals(false);
-//   m_gui->rightMargin ->blockSignals(false);
-//   m_gui->bottomMargin->blockSignals(false);
-//   m_gui->lowerMargin ->blockSignals(false);
-//
-//   m_gui->useTaxonomicalConstraint->setChecked(NULL != cf->taxonomicalConstraint());
-//
-//   m_gui->countingFrameDescription->setText(cf->data(CountingFrame::DescriptionRole).toString());
+
+  m_gui->leftMargin  ->setValue(cf->left());
+  m_gui->topMargin   ->setValue(cf->top() );
+  m_gui->frontMargin ->setValue(vtkMath::Round(cf->front()/spacing[2]));
+  m_gui->rightMargin ->setValue(cf->right() );
+  m_gui->bottomMargin->setValue(cf->bottom());
+  m_gui->backMargin ->setValue(vtkMath::Round(cf->back()/spacing[2]));
+
+  m_gui->leftMargin  ->blockSignals(false);
+  m_gui->topMargin   ->blockSignals(false);
+  m_gui->frontMargin ->blockSignals(false);
+  m_gui->rightMargin ->blockSignals(false);
+  m_gui->bottomMargin->blockSignals(false);
+  m_gui->backMargin ->blockSignals(false);
+
+  m_gui->useCategoryConstraint->setChecked(nullptr != cf->categoyConstraint());
+
+  m_gui->countingFrameDescription->setText(cf->data(CountingFrame::DescriptionRole).toString());
 }
 
 //------------------------------------------------------------------------
@@ -590,12 +511,12 @@ void Panel::changeUnitMode(bool useSlices)
 
   if (useSlices)
   {
-    m_gui->upperMargin->setSuffix("");
-    m_gui->lowerMargin->setSuffix("");
+    m_gui->frontMargin->setSuffix("");
+    m_gui->backMargin->setSuffix("");
   } else
   {
-    m_gui->upperMargin->setSuffix(" nm");
-    m_gui->lowerMargin->setSuffix(" nm");
+    m_gui->frontMargin->setSuffix(" nm");
+    m_gui->backMargin->setSuffix(" nm");
   }
 
   showInfo(m_activeCF);
@@ -603,17 +524,17 @@ void Panel::changeUnitMode(bool useSlices)
 
 //------------------------------------------------------------------------
 void Panel::computeOptimalMargins(ChannelAdapterPtr channel,
-                                               Nm inclusion[3],
-                                               Nm exclusion[3])
+                                  Nm inclusion[3],
+                                  Nm exclusion[3])
 {
 //   double spacing[3];
 //   channel->volume()->spacing(spacing);
 //
 //   const Nm delta[3] = { 0.5*spacing[0], 0.5*spacing[1], 0.5*spacing[2] };
-//
-//   memset(inclusion, 0, 3*sizeof(Nm));
-//   memset(exclusion, 0, 3*sizeof(Nm));
-//
+
+  memset(inclusion, 0, 3*sizeof(Nm));
+  memset(exclusion, 0, 3*sizeof(Nm));
+
 //   ModelItemSList items = channel->relatedItems(EspINA::RELATION_OUT, Channel::LINK);
 //   SegmentationSList channelSegs;
 //   foreach(ModelItemSPtr item, items)
@@ -657,7 +578,7 @@ void Panel::inclusionMargins(double values[3])
 {
   values[0] = m_gui->leftMargin->value();
   values[1] = m_gui->topMargin->value();
-  values[2] = m_gui->upperMargin->value();
+  values[2] = m_gui->frontMargin->value();
 }
 
 //------------------------------------------------------------------------
@@ -665,7 +586,7 @@ void Panel::exclusionMargins(double values[3])
 {
   values[0] = m_gui->rightMargin->value();
   values[1] = m_gui->bottomMargin->value();
-  values[2] = m_gui->lowerMargin->value();
+  values[2] = m_gui->backMargin->value();
 }
 
 //------------------------------------------------------------------------
@@ -685,14 +606,23 @@ void Panel::registerCF(CountingFrameExtension* cfExtension,
 //   m_countingFrames << cf;
 //
 //   connect(cf, SIGNAL(modified(CountingFrame*)),
-//           this, SLOT(showInfo(CountingFrame*)));
-//   connect(cf, SIGNAL(modified(CountingFrame*)),
 //           this, SLOT(updateSegmentations()));
 //
-//   m_gui->countingFrames->addItem(cf->data(Qt::DisplayRole).toString());
-//
-//   m_activeCF = cf; // To make applyTaxonomicalConstraint work
 //   applyTaxonomicalConstraint();
 //
-//   showInfo(cf);
+}
+
+//------------------------------------------------------------------------
+void Panel::onCountingFrameCreated ( CountingFrame* cf )
+{
+  connect(cf,   SIGNAL(modified(CountingFrame*)),
+          this, SLOT(showInfo(CountingFrame*)));
+
+  m_countingFrames << cf;
+
+  m_gui->countingFrames->addItem(cf->data(Qt::DisplayRole).toString());
+
+  m_activeCF = cf; // To make applyTaxonomicalConstraint work
+
+  showInfo(cf);
 }

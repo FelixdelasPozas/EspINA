@@ -54,7 +54,7 @@ namespace EspINA
     void lutModified();
   };
 
-  using ColorEngineSPtr = std::shared_ptr<ColorEngine>;
+  using ColorEngineSPtr  = std::shared_ptr<ColorEngine>;
 
   Q_DECLARE_OPERATORS_FOR_FLAGS(ColorEngine::Composition)
 

@@ -17,32 +17,42 @@
  */
 
 
-#ifndef COUNTINGFRAMECOLORENGINE_H
-#define COUNTINGFRAMECOLORENGINE_H
+#ifndef ESPINA_COUNTING_FRAME_COLOR_ENGINE_H
+#define ESPINA_COUNTING_FRAME_COLOR_ENGINE_H
 
 #include "CountingFramePlugin_Export.h"
 
-#include <Core/ColorEngines/IColorEngine.h>
+#include <GUI/ColorEngines/ColorEngine.h>
+#include <Extensions/StereologicalInclusion.h>
 
 namespace EspINA
 {
-  class CountingFramePlugin_EXPORT CountingFrameColorEngine
-  : public ColorEngine
+  namespace CF
   {
 
-  public:
-    explicit CountingFrameColorEngine();
+    class CountingFramePlugin_EXPORT CountingFrameColorEngine
+    : public ColorEngine
+    {
 
-    virtual QColor color(SegmentationPtr seg);
-    virtual LUTPtr lut(SegmentationPtr seg);
-    virtual ColorEngine::Composition supportedComposition() const
-    { return ColorEngine::Transparency; }
+    public:
+      explicit CountingFrameColorEngine();
 
-  private:
-    LUTPtr m_excludedLUT;
-    LUTPtr m_includedLUT;
-  };
+      virtual QColor color(SegmentationAdapterPtr seg);
 
+      virtual LUTSPtr lut(SegmentationAdapterPtr seg);
+
+      virtual ColorEngine::Composition supportedComposition() const
+      { return ColorEngine::Transparency; }
+
+    private:
+      StereologicalInclusionSPtr stereologicalInclusionExtension(SegmentationAdapterPtr segmentation);
+
+    private:
+      LUTSPtr m_excludedLUT;
+      LUTSPtr m_includedLUT;
+    };
+
+  } // namespace CF
 } // namespace EspINA
 
-#endif // COUNTINGFRAMECOLORENGINE_H
+#endif // ESPINA_COUNTING_FRAME_COLOR_ENGINE_H

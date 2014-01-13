@@ -1,6 +1,6 @@
 /*
  *    <one line to give the program's name and a brief idea of what it does.>
- *    Copyright (C) 2012  Jorge Peña Pastor <email>
+ *    Copyright (C) 2012  Jorge PeÃ±a Pastor <email>
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -17,37 +17,53 @@
  */
 
 
-#ifndef SLICEVIEWSETTINGSPANEL_H
-#define SLICEVIEWSETTINGSPANEL_H
+#ifndef ESPINA_VIEW_3D_SETTINGS_PANEL_H
+#define ESPINA_VIEW_3D_SETTINGS_PANEL_H
 
-#include "ui_SliceViewSettingsPanel.h"
-#include <GUI/ISettingsPanel.h>
-#include <GUI/QtWidget/SliceView.h>
+#include <Support/Settings/SettingsPanel.h>
+#include "ui_View3DSettingsPanel.h"
+
+#include <GUI/View/View3D.h>
 
 namespace EspINA
 {
-  class SliceViewSettingsPanel
-  : public ISettingsPanel
-  , Ui::SliceViewSettingsPanel
+  class EspinaFactory;
+
+  class View3DSettingsPanel
+  : public SettingsPanel
+  , Ui::View3DSettingsPanel
   {
     Q_OBJECT
   public:
-    explicit SliceViewSettingsPanel(SliceView::SettingsSPtr settings);
+    explicit View3DSettingsPanel(View3D *view, const RendererSList &renderers);
 
-    virtual const QString shortDescription();
-    virtual const QString longDescription() {return tr("%1").arg(shortDescription());}
-    virtual const QIcon icon() {return QIcon();}
+    virtual const QString shortDescription()
+    {return tr("3D View");}
+
+    virtual const QString longDescription()
+    {return tr("%1").arg(shortDescription());}
+
+    virtual const QIcon icon()
+    {return QIcon();}
 
     virtual void acceptChanges();
     virtual void rejectChanges();
     virtual bool modified() const;
 
-    virtual ISettingsPanelPtr clone();
+    virtual SettingsPanelPtr clone();
+
+  private slots:
+    void onActivateRenderersDropped();
+    void onAvailableRenderersDropped();
 
   private:
-    SliceView::SettingsSPtr m_settings;
+    RendererSPtr renderer(const QString &name) const;
+
+  private:
+    const RendererSList &m_renderers;
+    View3D *m_view;
   };
 
 } // namespace EspINA
 
-#endif // SLICEVIEWSETTINGSPANEL_H
+#endif // ESPINA_VIEW_3D_SETTINGS_PANEL_H

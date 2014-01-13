@@ -62,8 +62,7 @@ namespace EspINA
       return Bounds{bounds[0], bounds[1], bounds[2], bounds[3], bounds[4], bounds[5]};
     }
 
-    virtual vtkSmartPointer<vtkPolyData> mesh()
-    { return m_mesh; }
+    virtual vtkSmartPointer<vtkPolyData> mesh() = 0;
 
   private:
     vtkSmartPointer<vtkPolyData> m_mesh;

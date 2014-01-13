@@ -55,24 +55,14 @@ namespace EspINA
 
     virtual void reset(); // slot
 
-    void createAdaptiveCF(ChannelAdapterPtr channel,
-                          Nm inclusion[3],
-                          Nm exclusion[3]);
-
-    void createRectangularCF(ChannelAdapterPtr channel,
-                             Nm inclusion[3],
-                             Nm exclusion[3]);
-
     void deleteCountingFrame(CountingFrame *cf);
 
-    CountingFrameList countingFrames() const;
-
-  protected slots:
+  private slots:
     void applyCategoryConstraint();
 
     void clearCountingFrames();
 
-    void enableTaxonomicalConstraints(bool enable);
+    void enableCategoryConstraints(bool enable);
 
     /// Update UI depending on selected row's counting frame
     void updateUI(int row);
@@ -95,6 +85,8 @@ namespace EspINA
 
     void changeUnitMode(bool useSlices);
 
+    void onCountingFrameCreated(CountingFrame *cf);
+
   private:
     /// Find margin values which discard all segmentations that
     /// touch the channel margins
@@ -111,11 +103,6 @@ namespace EspINA
     void registerCF(CountingFrameExtension *ext,
                     CountingFrame *cf);
 
-  signals:
-    void countingFrameCreated(CountingFrame *);
-
-    void countingFrameDeleted(CountingFrame *);
-
   private:
     CountingFrameManager *m_manager;
     ModelAdapterSPtr      m_model;
@@ -129,8 +116,6 @@ namespace EspINA
     CountingFrameList m_countingFrames;
     CountingFrame    *m_activeCF;
     CountingFrame::Id m_nextId;
-
-    static const int NUM_FIXED_ROWS = 2;
 
     friend class CountingFrameExtension;
   };

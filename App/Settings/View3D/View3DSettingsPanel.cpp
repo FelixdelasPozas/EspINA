@@ -15,18 +15,16 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "VolumeViewSettingsPanel.h"
-#include <Core/Model/EspinaFactory.h>
+#include "View3DSettingsPanel.h"
 
 #include <QStandardItemModel>
 
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
-VolumeViewSettingsPanel::VolumeViewSettingsPanel(const EspinaFactoryPtr factory,
-                                                 VolumeView::SettingsPtr settings)
-: m_factory(factory)
-, m_settings(settings)
+View3DSettingsPanel::View3DSettingsPanel(View3D* view, const RendererSList& renderers)
+: m_view(view)
+, m_renderers(renderers)
 {
   setupUi(this);
 
@@ -37,21 +35,22 @@ VolumeViewSettingsPanel::VolumeViewSettingsPanel(const EspinaFactoryPtr factory,
   active    = new QStandardItemModel(this);
   available = new QStandardItemModel(this);
 
-  foreach(IRenderer *renderer, m_factory->renderers())
+  for(auto renderer : m_renderers)
   {
-    if (!renderer->getRenderType().testFlag(IRenderer::RENDERER_VOLUMEVIEW))
+    if (!canRender(renderer, RendererType::RENDERER_VIEW3D))
       continue;
 
     QStandardItem *item = new QStandardItem(renderer->icon(), renderer->name());
     item->setDropEnabled(false);
     item->setDragEnabled(true);
     item->setToolTip(renderer->tooltip());
+
     bool isActive = false;
-    foreach(IRenderer *activeRenderer, m_settings->renderers())
+    for(auto activeRenderer : m_view->renderers())
     {
-      if (renderer->name() == activeRenderer->name())
-        isActive = true;
+      if (renderer->name() == activeRenderer->name()) isActive = true;
     }
+
     if (isActive)
       active->appendRow(item);
     else
@@ -60,47 +59,91 @@ VolumeViewSettingsPanel::VolumeViewSettingsPanel(const EspinaFactoryPtr factory,
 
   activeRenderers->setModel(active);
   availableRenderers->setModel(available);
+
+  connect(activeRenderers->model(), SIGNAL(dataChanged(QModelIndex,QModelIndex)),
+          this, SLOT(onActivateRenderersDropped()));
+  connect(availableRenderers->model(), SIGNAL(dataChanged(QModelIndex,QModelIndex)),
+          this, SLOT(onAvailableRenderersDropped()));
 }
 
 //-----------------------------------------------------------------------------
-void VolumeViewSettingsPanel::acceptChanges()
+void View3DSettingsPanel::acceptChanges()
 {
-  IRendererList renderers;
-  QMap<QString, IRenderer *> rendererFactory = m_factory->renderers();
+  RendererSList renderers;
 
   QAbstractItemModel *activeModel = activeRenderers->model();
   for(int i=0; i < activeModel->rowCount(); i++)
   {
-    renderers << rendererFactory[activeModel->index(i,0).data().toString()];
+    renderers << renderer(activeModel->index(i,0).data().toString());
   }
 
-  m_settings->setRenderers(renderers);
+  m_view->setRenderers(renderers);
 }
 
 //-----------------------------------------------------------------------------
-void VolumeViewSettingsPanel::rejectChanges()
+void View3DSettingsPanel::rejectChanges()
 {
 
 }
 
 //-----------------------------------------------------------------------------
-bool VolumeViewSettingsPanel::modified() const
+bool View3DSettingsPanel::modified() const
 {
   QSet<QString> current, previous;
 
   QAbstractItemModel *activeModel = activeRenderers->model();
   for(int i=0; i < activeModel->rowCount(); i++)
+  {
     current << activeModel->index(i,0).data().toString();
+  }
 
-  foreach(IRenderer *activeRenderer, m_settings->renderers())
+  for(auto activeRenderer : m_view->renderers())
+  {
     previous << activeRenderer->name();
+  }
 
   return current != previous;
 }
 
 
 //-----------------------------------------------------------------------------
-ISettingsPanelPtr VolumeViewSettingsPanel::clone()
+SettingsPanelPtr View3DSettingsPanel::clone()
 {
-  return ISettingsPanelPtr(new VolumeViewSettingsPanel(m_factory, m_settings));
+  return new View3DSettingsPanel(m_view, m_renderers);
+}
+
+//-----------------------------------------------------------------------------
+void View3DSettingsPanel::onActivateRenderersDropped()
+{
+  int activeRows    = activeRenderers->model()->rowCount();
+  int availableRows = availableRenderers->model()->rowCount();
+
+  activate  ->setEnabled((availableRows - activeRows) > 0);
+  deactivate->setEnabled(activeRows > 0);
+}
+
+void View3DSettingsPanel::onAvailableRenderersDropped()
+{
+  int activeRows    = activeRenderers->model()->rowCount();
+  int availableRows = availableRenderers->model()->rowCount();
+
+  activate  ->setEnabled(availableRows  > 0);
+  deactivate->setEnabled((activeRows - availableRows) > 0);
+}
+
+//-----------------------------------------------------------------------------
+RendererSPtr View3DSettingsPanel::renderer(const QString& name) const
+{
+  RendererSPtr result;
+
+  for(auto renderer : m_renderers)
+  {
+    if (renderer->name() == name)
+    {
+      result = renderer;
+      break;
+    }
+  }
+
+  return result;
 }

@@ -831,7 +831,7 @@ int ModelAdapter::rowCount(const QModelIndex& parent) const
   {
     // Cast to base type
     ItemAdapterPtr parentItem = itemAdapter(parent);
-    if (ItemAdapter::Type::CATEGORY == parentItem->type())
+    if (isCategory(parentItem))
     {
       CategoryAdapterPtr parentCategory = categoryPtr(parentItem);
       count = parentCategory->subCategories().size();
@@ -939,7 +939,7 @@ bool ModelAdapter::setData(const QModelIndex& index, const QVariant& value, int 
     if (result)
     {
       emit dataChanged(index,index);
-      if (ItemAdapter::Type::CATEGORY == indexItem->type())
+      if (isCategory(indexItem))
       {
         CategoryAdapterPtr category = categoryPtr(indexItem);
         foreach(SegmentationAdapterSPtr segmentation, m_segmentations)
@@ -962,11 +962,22 @@ void ModelAdapter::setSegmentationCategory(SegmentationAdapterSPtr segmentation,
 
 }
 
-
-// //------------------------------------------------------------------------
+//------------------------------------------------------------------------
 ItemAdapterPtr EspINA::itemAdapter(const QModelIndex& index)
 {
   return static_cast<ItemAdapterPtr>(index.internalPointer());
+}
+
+//------------------------------------------------------------------------
+bool EspINA::isCategory(ItemAdapterPtr item)
+{
+  return ItemAdapter::Type::CATEGORY == item->type();
+}
+
+//------------------------------------------------------------------------
+bool EspINA::isSegmentation(ItemAdapterPtr item)
+{
+  return ItemAdapter::Type::SEGMENTATION == item->type();
 }
 
 

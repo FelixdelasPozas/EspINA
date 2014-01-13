@@ -36,39 +36,42 @@ qt4_add_resources (RCC_BUILT_SOURCES
 # Create Interface files
 qt4_wrap_ui (UI_BUILT_SOURCES
   Panel.ui
+  Dialogs/TypeDialog.ui
   )
 
 # We need to wrap for Qt stuff such as signals/slots etc. to work correctly.
 qt4_wrap_cpp(MOC_SRCS
   Panel.h
+  Dialogs/TypeDialog.h
   CountingFramePlugin.h
-#   CountingFrameRenderer.h
-#   Extensions/CountingFrameExtension.h
-#   Extensions/StereologicalInclusion.h
-#   CountingFrames/CountingFrame.h
+  CountingFrames/CountingFrame.h
+  Extensions/CountingFrameExtension.h
+  Extensions/StereologicalInclusion.h
+  CountingFrameManager.h
+  CountingFrameRenderer.h
 
   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
   )
 
-
 set (LOCAL_SOURCES
   CountingFrameManager.cpp
   Panel.cpp
-#   CountingFrameRenderer.cpp
-#   Extensions/CountingFrameExtension.cpp
-#   Extensions/StereologicalInclusion.cpp
+  Dialogs/TypeDialog.cpp
+  CountingFrameRenderer.cpp
+  Extensions/CountingFrameExtension.cpp
+  Extensions/StereologicalInclusion.cpp
   CountingFramePlugin.cpp
 #   CountingFrames/vtkCountingFrameAxialSliceRepresentation.cpp
 #   CountingFrames/vtkCountingFrameCoronalSliceRepresentation.cpp
 #   CountingFrames/vtkCountingFrameSagittalSliceRepresentation.cpp
-#   ColorEngines/CountingFrameColorEngine.cpp
+  ColorEngines/CountingFrameColorEngine.cpp
 #   CountingFrames/AdaptiveCountingFrame.cpp
-#   CountingFrames/CountingFrame.cpp
-#   CountingFrames/RectangularCountingFrame.cpp
-#   CountingFrames/vtkCountingFrameSliceRepresentation.cpp
-#   CountingFrames/vtkCountingFrameSliceWidget.cpp
-#   CountingFrames/vtkCountingFrame3DRepresentation.cpp
-#   CountingFrames/vtkCountingFrame3DWidget.cpp
+  CountingFrames/CountingFrame.cpp
+  CountingFrames/RectangularCountingFrame.cpp
+  CountingFrames/vtkCountingFrameSliceRepresentation.cpp
+  CountingFrames/vtkCountingFrameSliceWidget.cpp
+  CountingFrames/vtkCountingFrame3DRepresentation.cpp
+  CountingFrames/vtkCountingFrame3DWidget.cpp
   )
 
 set (PLUGIN_SOURCES

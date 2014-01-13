@@ -46,8 +46,6 @@ vtkCountingFrameSliceRepresentation::vtkCountingFrameSliceRepresentation()
   // The initial state
   this->InteractionState = vtkCountingFrameSliceRepresentation::Outside;
 
-  Resolution[0] = Resolution[1] = Resolution[2] = 1;
-
   memset(this->InclusionOffset, 0, 3*sizeof(double));
   memset(this->ExclusionOffset, 0, 3*sizeof(double));
 
@@ -69,7 +67,7 @@ vtkCountingFrameSliceRepresentation::vtkCountingFrameSliceRepresentation()
 
     this->EdgePolyData[i]->SetPoints(this->Vertex);
     this->EdgePolyData[i]->SetLines(vtkCellArray::New());
-    this->EdgeMapper[i]->SetInput(this->EdgePolyData[i]);
+    this->EdgeMapper[i]->SetInputData(this->EdgePolyData[i]);
     this->EdgeActor[i]->SetMapper(this->EdgeMapper[i]);
     if (i < RIGHT)
       this->EdgeActor[i]->SetProperty(this->InclusionEdgeProperty);
@@ -299,14 +297,14 @@ void vtkCountingFrameSliceRepresentation::SetSlice(EspINA::Nm pos)
 void vtkCountingFrameSliceRepresentation::SetCountingFrame(vtkSmartPointer<vtkPolyData> region,
                                                              EspINA::Nm inclusionOffset[3],
                                                              EspINA::Nm exclusionOffset[3],
-                                                             EspINA::Nm slicingStep[3])
+                                                             EspINA::NmVector3 slicingStep)
 {
   Region = region;
   memcpy(InclusionOffset, inclusionOffset, 3*sizeof(EspINA::Nm));
   memcpy(ExclusionOffset, exclusionOffset, 3*sizeof(EspINA::Nm));
-  memcpy(Resolution, slicingStep, 3*sizeof(EspINA::Nm));
+  SlicingStep = slicingStep;
 
-  this->Region->Update();
+  // this->Region->Update(); NOTE: is still needed with vtk6?
   this->NumPoints = this->Region->GetPoints()->GetNumberOfPoints();
   this->NumSlices = this->NumPoints / 4;
   this->NumVertex = this->NumSlices * 2;
