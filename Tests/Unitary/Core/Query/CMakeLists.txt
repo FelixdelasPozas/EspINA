@@ -1,6 +1,7 @@
 # Analysis tests
 create_test_sourcelist(Query_Tests Query_Tests.cpp # this file is created by this command
   query_sample_channels.cpp
+  query_segmentation_sample.cpp
 )
 
 set(LIB_DEPENDECIES
@@ -43,4 +44,5 @@ add_executable(Query_Tests
   )
 target_link_libraries(Query_Tests ${LIB_DEPENDECIES} )
 
-add_test("\"Query: Sample Channels\"" Query_Tests query_sample_channels)
+add_test("\"Query: Sample Channels\""     Query_Tests query_sample_channels)
+add_test("\"Query: Segmentation Sample\"" Query_Tests query_segmentation_sample)

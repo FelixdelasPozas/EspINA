@@ -19,6 +19,9 @@
 
 #include "AddSegmentations.h"
 
+#include <Core/Analysis/Query.h>
+#include <GUI/Model/Utils/Query.h>
+
 using namespace EspINA;
 
 //----------------------------------------------------------------------------
@@ -29,6 +32,11 @@ AddSegmentations::AddSegmentations(SegmentationAdapterSPtr segmentation,
 , m_model(model)
 {
   m_segmentations << segmentation;
+
+  for(auto segmentation : m_segmentations)
+  {
+    m_samples[segmentation] = findSamplesUsingInputChannels(segmentation);
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -39,12 +47,28 @@ AddSegmentations::AddSegmentations(SegmentationAdapterSList segmentations,
 , m_model(model)
 {
   m_segmentations << segmentations;
+
+  for(auto segmentation : m_segmentations)
+  {
+    m_samples[segmentation] = findSamplesUsingInputChannels(segmentation);
+  }
 }
 
 //----------------------------------------------------------------------------
 void AddSegmentations::redo()
 {
   m_model->add(m_segmentations);
+
+  for(auto samples : m_samples)
+  {
+    Q_ASSERT(samples.size() == 1); // Tiling not supported yet
+
+    auto sample = samples[0];
+    for(auto segmentation : m_segmentations)
+    {
+      m_model->addRelation(sample, segmentation, Query::CONTAINS);
+    }
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -52,3 +76,20 @@ void AddSegmentations::undo()
 {
   m_model->remove(m_segmentations);
 }
+
+//----------------------------------------------------------------------------
+SampleAdapterSList AddSegmentations::findSamplesUsingInputChannels(SegmentationAdapterSPtr segmentation)
+{
+  SampleAdapterSList samples;
+
+  auto channels = Query::channels(segmentation);
+  Q_ASSERT(channels.size() == 1); // Tiling not supported yet
+
+  for(auto channel : channels)
+  {
+    samples << Query::samples(channel);
+  }
+
+  return samples;
+}
+

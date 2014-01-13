@@ -17,38 +17,25 @@
  *
  */
 
-#ifndef ESPINA_CORE_QUERY_H
-#define ESPINA_CORE_QUERY_H
+#ifndef ESPINA_QUERY_ADAPTER_H
+#define ESPINA_QUERY_ADAPTER_H
 
-#include <Core/EspinaTypes.h>
+#include <GUI/Model/SegmentationAdapter.h>
+#include <GUI/Model/SampleAdapter.h>
+#include <GUI/Model/ChannelAdapter.h>
 
 namespace EspINA {
 
   namespace Query
   {
-    const RelationName CONTAINS = "Contains";
+    ChannelAdapterSList channels(SegmentationAdapterPtr segmentation);
 
-    SampleSPtr sample(ChannelSPtr channel);
+    ChannelAdapterSList channels(SegmentationAdapterSPtr segmentation);
 
-    SampleSPtr sample(ChannelPtr channel);
+    SampleAdapterSList samples(ChannelAdapterPtr segmentation);
 
-    // Convenience function to use when no tiling is expected
-    SampleSPtr sample(SegmentationSPtr segmentation);
-
-    // Convenience function to use when no tiling is expected
-    SampleSPtr sample(SegmentationPtr segmentation);
-
-    SampleSList samples(SegmentationSPtr segmentation);
-
-    SampleSList samples(SegmentationPtr segmentation);
-
-    ChannelSList channels(SampleSPtr sample);
-
-    ChannelSPtr channel(SegmentationSPtr segmentation);
-
-    SegmentationSList segmentations(SampleSPtr sample);
-
+    SampleAdapterSList samples(ChannelAdapterSPtr segmentation);
   } // namespace Query
 } // namespace EspINA
 
-#endif // ESPINA_CORE_QUERY_H
+#endif // ESPINA_QUERY_ADAPTER_H

@@ -251,6 +251,12 @@ DirectedGraph::Vertices DirectedGraph::vertices() const
 //-----------------------------------------------------------------------------
 DirectedGraph::Vertices DirectedGraph::ancestors(Vertex vertex, const QString& filter) const
 {
+  return ancestors(vertex.get(), filter);
+}
+
+//-----------------------------------------------------------------------------
+DirectedGraph::Vertices DirectedGraph::ancestors(VertexPtr vertex, const QString& filter) const
+{
   Vertices result;
   InEdgeIterator iei, iei_end;
 
@@ -270,8 +276,15 @@ DirectedGraph::Vertices DirectedGraph::ancestors(Vertex vertex, const QString& f
   return result;
 }
 
+
 //-----------------------------------------------------------------------------
 DirectedGraph::Vertices DirectedGraph::succesors(Vertex vertex, const QString& filter) const
+{
+  return succesors(vertex.get(), filter);
+}
+
+//-----------------------------------------------------------------------------
+DirectedGraph::Vertices DirectedGraph::succesors(VertexPtr vertex, const QString& filter) const
 {
   Vertices result;
   OutEdgeIterator oei, oei_end;
@@ -300,10 +313,16 @@ DirectedGraph::Vertex DirectedGraph::vertex(VertexDescriptor descriptor) const
 //-----------------------------------------------------------------------------
 DirectedGraph::VertexDescriptor DirectedGraph::descriptor(Vertex vertex) const
 {
+  return descriptor(vertex.get());
+}
+
+//-----------------------------------------------------------------------------
+DirectedGraph::VertexDescriptor DirectedGraph::descriptor(VertexPtr vertex) const
+{
   VertexIterator vi, vi_end;
   for(tie(vi, vi_end) = boost::vertices(m_graph); vi != vi_end; ++vi)
   {
-    if (m_graph[*vi] == vertex) return *vi; 
+    if (m_graph[*vi].get() == vertex) return *vi;
   }
 
   throw (Item_Not_Found_Exception());

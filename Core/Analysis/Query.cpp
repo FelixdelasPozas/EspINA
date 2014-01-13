@@ -21,19 +21,70 @@
 #include "Sample.h"
 #include "Analysis.h"
 #include "Channel.h"
+#include "Segmentation.h"
 
 using namespace EspINA;
 using namespace EspINA::Query;
 
 //------------------------------------------------------------------------
-SampleSPtr EspINA::Query::sample(SegmentationPtr segmentation)
+SampleSPtr EspINA::Query::sample(ChannelSPtr channel)
 {
+  return sample(channel.get());
 }
 
 //------------------------------------------------------------------------
+SampleSPtr EspINA::Query::sample(ChannelPtr channel)
+{
+  SampleSPtr sample;
+
+  auto relationships = channel->analysis()->relationships();
+  auto samples = relationships->ancestors(channel, Channel::STAIN_LINK);
+
+  if (!samples.isEmpty())
+  {
+    Q_ASSERT(samples.size() == 1); // Even with tiling, channels can only have 1 sample
+    sample = std::dynamic_pointer_cast<Sample>(samples[0]);
+  }
+
+  return sample;
+}
+
+//------------------------------------------------------------------------
+
 SampleSPtr EspINA::Query::sample(SegmentationSPtr segmentation)
 {
   return sample(segmentation.get());
+}
+
+//------------------------------------------------------------------------
+SampleSPtr EspINA::Query::sample(SegmentationPtr segmentation)
+{
+  auto segmentationSamples = samples(segmentation);
+  Q_ASSERT(segmentationSamples.size() <= 1);
+
+  return segmentationSamples.first();
+}
+
+//------------------------------------------------------------------------
+SampleSList EspINA::Query::samples(SegmentationSPtr segmentation)
+{
+  return samples(segmentation.get());
+}
+
+//------------------------------------------------------------------------
+SampleSList EspINA::Query::samples(SegmentationPtr segmentation)
+{
+  SampleSList samples;
+
+  auto relationships = segmentation->analysis()->relationships();
+  auto relatedItems = relationships->ancestors(segmentation, Query::CONTAINS);
+
+  for(auto item : relatedItems)
+  {
+    samples << std::dynamic_pointer_cast<Sample>(item);
+  }
+
+  return samples;
 }
 
 //------------------------------------------------------------------------

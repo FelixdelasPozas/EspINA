@@ -44,7 +44,8 @@ namespace EspINA
     struct Relation_Not_Found_Exception {};
 
   public:
-    using Vertex = PersistentSPtr;
+    using Vertex    = PersistentSPtr;
+    using VertexPtr = PersistentPtr;
 
     struct EdgeProperty
     {
@@ -130,13 +131,16 @@ namespace EspINA
 
     /// Return all vertices whose outgoing edges end on v
     Vertices ancestors(Vertex vertex, const QString &filter = "") const;
+    Vertices ancestors(VertexPtr vertex, const QString &filter = "") const;
 
     /// Return all vertices whose incoming edges start on v
     Vertices succesors(Vertex vertex, const QString &filter = "") const;
+    Vertices succesors(VertexPtr vertex, const QString &filter = "") const;
 
   private:
     DirectedGraph::Vertex vertex(VertexDescriptor descriptor) const;
     DirectedGraph::VertexDescriptor descriptor(Vertex vertex) const;
+    DirectedGraph::VertexDescriptor descriptor(VertexPtr vertex) const;
 
     DirectedGraph::OutEdgeIterator findRelation(const VertexDescriptor source,
                                                 const VertexDescriptor destination,
