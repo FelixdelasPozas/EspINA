@@ -1,6 +1,6 @@
 /*
  <one line to give the program's name and a brief idea of what it does.>
- Copyright (C) 2013 Félix de las Pozas Álvarez <felixdelaspozas@gmail.com>
+ Copyright (C) 2014 Félix de las Pozas Álvarez <felixdelaspozas@gmail.com>
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -16,16 +16,16 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ESPINA_SPINBOX_ACTION_WIDGET_H_
-#define ESPINA_SPINBOX_ACTION_WIDGET_H_
+#ifndef ESPINA_SLIDER_ACTION_WIDGET_H_
+#define ESPINA_SLIDER_ACTION_WIDGET_H_
 
 #include <QWidgetAction>
 #include <QLabel>
-#include <QSpinBox>
+#include <QSlider>
 
 namespace EspINA
 {
-  class SpinBoxAction
+  class SliderAction
   : public QWidgetAction
   {
     Q_OBJECT
@@ -33,12 +33,12 @@ namespace EspINA
       /** \brief Class constructor.
        *
        */
-      explicit SpinBoxAction(QObject *parent = nullptr);
+      explicit SliderAction(QObject *parent = nullptr);
 
       /** \brief Class destructor.
        *
        */
-      virtual ~SpinBoxAction();
+      virtual ~SliderAction();
 
       /** \brief Superclass method to create widget.
        *
@@ -54,22 +54,17 @@ namespace EspINA
       /** \brief Set minimum value for widget's QSpinBox.
        *
        */
-      void setSpinBoxMinimum(int value);
+      void setSliderMinimum(int value);
 
       /** \brief Set maximum value for widget's QSpinBox.
        *
        */
-      void setSpinBoxMaximum(int value);
+      void setSliderMaximum(int value);
 
       /** \brief Set value for the widget's QLabel.
        *
        */
       void setLabelText(const QString &label);
-
-      /** \brief Set suffix of the spin box.
-       *
-       */
-      void setSuffix(const QString &suffix);
 
       /** \brief Set widget enabled/disabled.
        *
@@ -81,7 +76,7 @@ namespace EspINA
         if (nullptr != m_label)
         {
           m_label->setEnabled(value);
-          m_spinBox->setEnabled(value);
+          m_slider->setEnabled(value);
         }
       }
 
@@ -103,7 +98,7 @@ namespace EspINA
       void destroySignalEmmited()
       {
         m_label = nullptr;
-        m_spinBox = nullptr;
+        m_slider = nullptr;
       }
 
     signals:
@@ -113,17 +108,17 @@ namespace EspINA
       void valueChanged(int);
 
     private:
-      QLabel   *m_label;
-      QSpinBox *m_spinBox;
+      QLabel  *m_label;
+      QSlider *m_slider;
 
-      int       m_value;
-      QString   m_text;
-      QString   m_suffix;
-      bool      m_enabled;
-      int       m_maximumValue;
-      int       m_minimumValue;
+      int      m_value;
+      QString  m_text;
+      bool     m_enabled;
+      int      m_maximumValue;
+      int      m_minimumValue;
   };
+
 
 } // namespace EspINA
 
-#endif // ESPINA_SPINBOX_ACTION_WIDGET_H_
+#endif // ESPINA_SLIDER_ACTION_WIDGET_H_

@@ -1,6 +1,6 @@
 /*
  <one line to give the program's name and a brief idea of what it does.>
- Copyright (C) 2013 Félix de las Pozas Álvarez <felixdelaspozas@gmail.com>
+ Copyright (C) 2014 Félix de las Pozas Álvarez <felixdelaspozas@gmail.com>
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -16,20 +16,19 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "SpinBoxAction.h"
+#include "SliderAction.h"
 
 #include <QHBoxLayout>
 
 namespace EspINA
 {
   //------------------------------------------------------------------------
-  SpinBoxAction::SpinBoxAction(QObject *parent)
+  SliderAction::SliderAction(QObject *parent)
   : QWidgetAction(parent)
   , m_label(nullptr)
-  , m_spinBox(nullptr)
+  , m_slider(nullptr)
   , m_value(0)
   , m_text(QString())
-  , m_suffix(QString())
   , m_enabled(true)
   , m_maximumValue(30)
   , m_minimumValue(1)
@@ -37,103 +36,95 @@ namespace EspINA
   }
   
   //------------------------------------------------------------------------
-  SpinBoxAction::~SpinBoxAction()
+  SliderAction::~SliderAction()
   {
     if (m_label)
       delete m_label;
 
-    if (m_spinBox)
-      delete m_spinBox;
+    if (m_slider)
+      delete m_slider;
   }
 
   //------------------------------------------------------------------------
-  QWidget* SpinBoxAction::createWidget(QWidget* parent)
+  QWidget* SliderAction::createWidget(QWidget* parent)
   {
     QWidget *widget = new QWidget(parent);
     QHBoxLayout *layout = new QHBoxLayout();
     widget->setLayout(layout);
 
     m_label = new QLabel(m_text);
-    m_spinBox = new QSpinBox();
+    m_slider = new QSlider();
+    m_slider->setOrientation(Qt::Horizontal);
+    m_slider->setFixedWidth(100);
 
     // only catching one of them will suffice
-    connect(m_spinBox, SIGNAL(destroyed(QObject*)), this, SLOT(destroySignalEmmited()));
+    connect(m_slider, SIGNAL(destroyed(QObject*)), this, SLOT(destroySignalEmmited()));
 
-    m_spinBox->setValue(m_value);
-    m_spinBox->setMinimum(m_minimumValue);
-    m_spinBox->setMaximum(m_maximumValue);
-    m_spinBox->setSuffix(m_suffix);
+    m_slider->setValue(m_value);
+    m_slider->setMinimum(m_minimumValue);
+    m_slider->setMaximum(m_maximumValue);
+    m_slider->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Minimum);
 
-    connect(m_spinBox,SIGNAL(valueChanged(int)),
+    connect(m_slider,SIGNAL(valueChanged(int)),
             this, SLOT(setValue(int)));
 
     layout->addWidget(m_label);
-    layout->addWidget(m_spinBox);
+    layout->addWidget(m_slider);
 
     m_label->setEnabled(m_enabled);
-    m_spinBox->setEnabled(m_enabled);
+    m_slider->setEnabled(m_enabled);
 
     return widget;
   }
 
   //------------------------------------------------------------------------
-  void SpinBoxAction::setValue(int value)
+  void SliderAction::setValue(int value)
   {
     m_value = value;
-    if (m_spinBox != nullptr)
-      m_spinBox->setValue(value);
+    if (m_slider != nullptr)
+      m_slider->setValue(value);
     emit valueChanged(value);
   }
 
   //------------------------------------------------------------------------
-  void SpinBoxAction::setSpinBoxMinimum(int value)
+  void SliderAction::setSliderMinimum(int value)
   {
     m_minimumValue = value;
 
-    if (m_spinBox != nullptr)
+    if (m_slider != nullptr)
     {
-      m_spinBox->setMinimum(value);
+      m_slider->setMinimum(value);
       if (m_value < value)
       {
         m_value = value;
-        m_spinBox->setValue(m_value);
+        m_slider->setValue(m_value);
       }
     }
   }
 
   //------------------------------------------------------------------------
-  void SpinBoxAction::setSpinBoxMaximum(int value)
+  void SliderAction::setSliderMaximum(int value)
   {
     m_maximumValue = value;
 
-    if (m_spinBox != nullptr)
+    if (m_slider != nullptr)
     {
-      m_spinBox->setMaximum(value);
+      m_slider->setMaximum(value);
       if (m_value > value)
       {
         m_value = value;
-        m_spinBox->setValue(m_value);
+        m_slider->setValue(m_value);
       }
     }
   }
 
   //------------------------------------------------------------------------
-  void SpinBoxAction::setLabelText(const QString &label)
+  void SliderAction::setLabelText(const QString &label)
   {
     m_text = label;
 
     if (m_label != nullptr)
       m_label->setText(m_text);
   }
-
-  //------------------------------------------------------------------------
-  void SpinBoxAction::setSuffix(const QString &suffix)
-  {
-    m_suffix = suffix;
-
-    if (m_spinBox != nullptr)
-      m_spinBox->setSuffix(suffix);
-  }
-
 
 } /* namespace EspINA */

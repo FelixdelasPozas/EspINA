@@ -42,6 +42,7 @@ qt4_wrap_cpp(GUI_MOC
   Widgets/TagSelector.h
   Widgets/SchedulerProgress.h
   Widgets/SpinBoxAction.h
+  Widgets/SliderAction.h
   Widgets/TaskProgress.h
   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
   )
@@ -124,6 +125,7 @@ set (GUI_SOURCES
   Widgets/TagSelector.cpp 
   Widgets/SchedulerProgress.cpp
   Widgets/SpinBoxAction.cpp
+  Widgets/SliderAction.cpp
   Widgets/TaskProgress.cpp
   )
 

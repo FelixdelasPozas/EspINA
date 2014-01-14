@@ -761,8 +761,7 @@ Bounds View2D::previewBounds(bool cropToSceneBounds) const
   bounds[2*V]   = UR[V];
   bounds[2*V+1] = LL[V];
 
-  bounds[2*m_normalCoord]   = slicingPosition();
-  bounds[2*m_normalCoord+1] = slicingPosition();
+  bounds[2*m_normalCoord+1] = bounds[2*m_normalCoord] = slicingPosition();
 
   if (cropToSceneBounds)
   {
@@ -836,6 +835,16 @@ void View2D::selectToSlice()
 //-----------------------------------------------------------------------------
 bool View2D::eventFilter(QObject* caller, QEvent* e)
 {
+  int xPos, yPos;
+  eventPosition(xPos, yPos);
+  if (m_thumbnail != nullptr)
+    m_inThumbnail = m_thumbnail->GetDraw() && (m_thumbnail->PickProp(xPos, yPos) != nullptr);
+  else
+    m_inThumbnail = false;
+
+  if (!m_inThumbnail && m_eventHandler && m_eventHandler->filterEvent(e, this))
+    return true;
+
   switch (e->type())
   {
     case QEvent::Resize:
@@ -860,10 +869,6 @@ bool View2D::eventFilter(QObject* caller, QEvent* e)
 
         // get the focus this very moment
         this->setFocus(Qt::OtherFocusReason);
-
-        int x, y;
-        eventPosition(x, y);
-        m_inThumbnail = m_thumbnail->GetDraw() && (m_thumbnail->PickProp(x, y) != nullptr);
 
         if (m_eventHandler && !m_inThumbnail)
           m_view->setCursor(m_eventHandler->cursor());
@@ -890,9 +895,7 @@ bool View2D::eventFilter(QObject* caller, QEvent* e)
       break;
     case QEvent::ToolTip:
       {
-        int x, y;
-        eventPosition(x, y);
-        auto selection = pickSegmentations(x, y, m_renderer);
+        auto selection = pickSegmentations(xPos, yPos, m_renderer);
         QString toopTip;
 
         for (auto pick : selection)
@@ -905,10 +908,6 @@ bool View2D::eventFilter(QObject* caller, QEvent* e)
     case QEvent::MouseButtonPress:
     case QEvent::MouseButtonRelease:
       {
-        int x, y;
-        eventPosition(x, y);
-        m_inThumbnail = m_thumbnail->GetDraw() && (m_thumbnail->PickProp(x, y) != nullptr);
-
         QMouseEvent* me = static_cast<QMouseEvent*>(e);
 
         if (m_inThumbnail)
@@ -956,9 +955,6 @@ bool View2D::eventFilter(QObject* caller, QEvent* e)
     default:
       break;
   }
-
-  if (!m_inThumbnail && m_eventHandler)
-    m_eventHandler->filterEvent(e, this);
 
   for (auto widget : m_widgets.keys())
     if (widget->filterEvent(e, this))

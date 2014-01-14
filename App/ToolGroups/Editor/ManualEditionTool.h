@@ -38,7 +38,7 @@ class QAction;
 
 namespace EspINA
 {
-  class SpinBoxAction;
+  class SliderAction;
   
   class ManualEditionTool
   : public Tool
@@ -69,6 +69,8 @@ namespace EspINA
 
     public slots:
       void drawStroke(ViewItemAdapterPtr, Selector::WorldRegion, Nm, Plane);
+      void radiusChanged(int);
+      void drawingModeChanged(bool);
 
     private slots:
       void changeSelector(QAction *);
@@ -91,8 +93,11 @@ namespace EspINA
       CategorySelector *m_categorySelector;
       QMap<QAction *, SelectorSPtr> m_drawTools;
 
-      SpinBoxAction *m_radiusWidget;
-      SpinBoxAction *m_opacityWidget;
+      SliderAction *m_radiusWidget;
+      SliderAction *m_opacityWidget;
+
+      QAction *m_discTool;
+      QAction *m_sphereTool;
 
       bool m_enabled;
   };

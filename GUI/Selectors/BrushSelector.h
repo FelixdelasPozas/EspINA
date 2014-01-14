@@ -94,6 +94,8 @@ namespace EspINA
     signals:
       void stroke(ViewItemAdapterPtr, double, double, double, Nm, Plane);
       void stroke(ViewItemAdapterPtr, Selector::WorldRegion, Nm, Plane);
+      void radiusChanged(int);
+      void drawingModeChanged(bool);
 
     protected slots:
       virtual BrushShape createBrushShape(ViewItemAdapterPtr item,
@@ -106,7 +108,7 @@ namespace EspINA
     private:
       void buildCursor();
       Bounds buildBrushBounds(NmVector3 center);
-      void createBrush(NmVector3 &center, QPoint pos);
+      void getBrushPosition(NmVector3 &center, QPoint pos);
       bool validStroke(NmVector3 &center);
       void startStroke(QPoint pos, RenderView *view);
       void updateStroke(QPoint pos, RenderView *view);
@@ -114,7 +116,7 @@ namespace EspINA
       void startPreview(RenderView *view);
       void updatePreview(NmVector3 center, RenderView *view);
       void stopPreview(RenderView *view);
-      bool CtrlKeyIsDown();
+      bool ShiftKeyIsDown();
 
     private:
       ViewManagerSPtr m_viewManager;
@@ -152,7 +154,7 @@ namespace EspINA
       bool                            m_tracking;
       RenderView                     *m_previewView;
 
-      static const int MAX_RADIUS = 32;
+      static const int MAX_RADIUS = 30;
     };
 
   using BrushSelectorPtr  = BrushSelector *;

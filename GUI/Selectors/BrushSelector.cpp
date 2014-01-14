@@ -116,60 +116,60 @@ bool BrushSelector::filterEvent(QEvent* e, RenderView* view)
           stopStroke(view);
           m_tracking = false;
         }
+        m_drawing = true;
 
         if (m_previewView != nullptr)
           stopPreview(view);
 
-        return false;
+        emit drawingModeChanged(m_drawing);
       }
       break;
     case QEvent::Enter:
       {
-        m_drawing = !CtrlKeyIsDown();
+        m_drawing = !ShiftKeyIsDown();
         initBrush();
         view->setCursor(m_cursor);
 
         if (!m_drawing)
           startPreview(view);
 
-        return false;
+        emit drawingModeChanged(m_drawing);
       }
       break;
     case QEvent::KeyPress:
       {
         ke = static_cast<QKeyEvent *>(e);
-        if (ke->key() == Qt::Key_Control)
+        if ((ke->key() == Qt::Key_Shift) && !m_tracking && (m_referenceItem->type() == ViewItemAdapter::Type::SEGMENTATION))
         {
-          if (!m_tracking && (m_referenceItem->type() == ViewItemAdapter::Type::SEGMENTATION))
-          {
-            m_drawing = false;
-            initBrush();
-            view->setCursor(m_cursor);
-            startPreview(view);
-            return true;
-          }
+          m_drawing = false;
+          initBrush();
+          view->setCursor(m_cursor);
+          startPreview(view);
+
+          emit drawingModeChanged(m_drawing);
+          return true;
         }
       }
       break;
     case QEvent::KeyRelease:
       {
         ke = static_cast<QKeyEvent *>(e);
-        if (ke->key() == Qt::Key_Control)
+        if ((ke->key() == Qt::Key_Shift) && !m_tracking && !m_drawing)
         {
-          if (!m_tracking && !m_drawing)
-          {
-            stopPreview(view);
-            m_drawing = true;
-            initBrush();
-            view->setCursor(m_cursor);
-            return true;
-          }
+          stopPreview(view);
+          m_drawing = true;
+          initBrush();
+          view->setCursor(m_cursor);
+
+          emit drawingModeChanged(m_drawing);
+          return true;
         }
       }
       break;
     case QEvent::MouseButtonPress:
       {
-        if (!m_tracking)
+        // the crtl check is to avoid interference with View2D ctrl+click
+        if (!m_tracking && !QApplication::keyboardModifiers().testFlag(Qt::ControlModifier))
         {
           me = static_cast<QMouseEvent *>(e);
           if (me->button() == Qt::LeftButton)
@@ -201,11 +201,26 @@ bool BrushSelector::filterEvent(QEvent* e, RenderView* view)
         }
       }
       break;
+    case QEvent::Wheel:
+      {
+        if (QApplication::keyboardModifiers().testFlag(Qt::ControlModifier))
+        {
+          initBrush();
+          QWheelEvent *we = static_cast<QWheelEvent *>(e);
+          int numSteps = we->delta() / 8 / 15;  //Refer to QWheelEvent doc.
+          m_displayRadius -= numSteps;
+          setRadius(m_displayRadius);
+          emit radiusChanged(m_displayRadius);
+          view->setCursor(m_cursor);
+          return true;
+        }
+      }
+      break;
     default:
       break;
   }
 
-  return EventHandler::filterEvent(e, view);
+  return false;
 }
 
 //-----------------------------------------------------------------------------
@@ -287,7 +302,7 @@ void BrushSelector::buildCursor()
   if (m_displayRadius == -1)
   {
     // Selector cursor radius not initialized. Using default value 20.
-    m_displayRadius = 20;
+    m_displayRadius = 15;
   }
 
   int width = 2*m_displayRadius;
@@ -309,7 +324,7 @@ void BrushSelector::buildCursor()
 }
 
 //-----------------------------------------------------------------------------
-void BrushSelector::createBrush(NmVector3 &center, QPoint pos)
+void BrushSelector::getBrushPosition(NmVector3 &center, QPoint pos)
 {
   int H = (Plane::YZ == m_plane) ? 2 : 0;
   int V = (Plane::XZ == m_plane) ? 2 : 1;
@@ -364,7 +379,7 @@ void BrushSelector::startStroke(QPoint pos, RenderView* view)
   m_radius = m_displayRadius*m_worldSize[0]/m_viewSize[0];
 
   NmVector3 center;
-  createBrush(center, pos);
+  getBrushPosition(center, pos);
   startPreview(view);
   m_lastUdpdatePoint = center;
 
@@ -385,7 +400,7 @@ void BrushSelector::updateStroke(QPoint pos, RenderView* view)
     return;
 
   NmVector3 center;
-  createBrush(center, pos);
+  getBrushPosition(center, pos);
 
   if (validStroke(center))
   {
@@ -405,7 +420,7 @@ void BrushSelector::stopStroke(RenderView* view)
   if (m_stroke->GetNumberOfPoints() > 0)
     emit stroke(m_referenceItem, m_stroke, m_radius, m_plane);
 
-  m_drawing = !CtrlKeyIsDown();
+  m_drawing = !ShiftKeyIsDown();
   if (m_drawing)
   {
     stopPreview(view);
@@ -416,6 +431,7 @@ void BrushSelector::stopStroke(RenderView* view)
   m_stroke->Reset();
   m_brushes.clear();
 
+  emit drawingModeChanged(m_drawing);
   view->updateView();
 }
 
@@ -552,7 +568,8 @@ void BrushSelector::updatePreview(NmVector3 center, RenderView* view)
     else
       points << center;
 
-    double r2 = m_radius*m_radius;
+    int extent[6];
+    m_preview->GetExtent(extent);
     for (auto point: points)
     {
       Bounds brushBounds = buildBrushBounds(point);
@@ -562,6 +579,8 @@ void BrushSelector::updatePreview(NmVector3 center, RenderView* view)
       Bounds pointBounds = intersection(m_previewBounds,brushBounds);
       double pointCenter[3]{ point[0], point[1], point[2] };
       int depth;
+
+
       switch(m_plane)
       {
         case Plane::XY:
@@ -569,6 +588,11 @@ void BrushSelector::updatePreview(NmVector3 center, RenderView* view)
           for (int x = vtkMath::Round((pointBounds[0]+m_spacing[0]/2)/m_spacing[0]); x < vtkMath::Round((pointBounds[1]+m_spacing[0]/2)/m_spacing[0]); x++)
             for (int y = vtkMath::Round((pointBounds[2]+m_spacing[1]/2)/m_spacing[1]); y < vtkMath::Round((pointBounds[3]+m_spacing[1]/2)/m_spacing[1]); y++)
           {
+            if (x < extent[0] || x > extent[1])
+              continue;
+            if (y < extent[2] || y > extent[3])
+              continue;
+
             double pixel[3]{x*m_spacing[0], y*m_spacing[1], m_previewBounds[4]};
             if (vtkMath::Distance2BetweenPoints(pointCenter,pixel) < r2)
             {
@@ -582,6 +606,11 @@ void BrushSelector::updatePreview(NmVector3 center, RenderView* view)
           for (int x = vtkMath::Round((pointBounds[0]+m_spacing[0]/2)/m_spacing[0]); x < vtkMath::Round((pointBounds[1]+m_spacing[0]/2)/m_spacing[0]); x++)
             for (int z = vtkMath::Round((pointBounds[4]+m_spacing[2]/2)/m_spacing[2]); z < vtkMath::Round((pointBounds[5]+m_spacing[2]/2)/m_spacing[2]); z++)
           {
+            if (x < extent[0] || x > extent[1])
+              continue;
+            if (z < extent[4] || z > extent[5])
+              continue;
+
             double pixel[3] = {x*m_spacing[0], m_previewBounds[2], z*m_spacing[2]};
             if (vtkMath::Distance2BetweenPoints(pointCenter,pixel) < r2)
             {
@@ -595,6 +624,11 @@ void BrushSelector::updatePreview(NmVector3 center, RenderView* view)
           for (int y = vtkMath::Round((pointBounds[2]+m_spacing[1]/2)/m_spacing[1]); y < vtkMath::Round((pointBounds[3]+m_spacing[1]/2)/m_spacing[1]); y++)
             for (int z = vtkMath::Round((pointBounds[4]+m_spacing[2]/2)/m_spacing[2]); z < vtkMath::Round((pointBounds[5]+m_spacing[2]/2)/m_spacing[2]); z++)
           {
+            if (y < extent[2] || y > extent[3])
+              continue;
+            if (z < extent[4] || z > extent[5])
+              continue;
+
             double pixel[3] = {m_previewBounds[0], y*m_spacing[1], z*m_spacing[2]};
             if (vtkMath::Distance2BetweenPoints(pointCenter,pixel) < r2)
             {
@@ -757,13 +791,14 @@ void BrushSelector::updateSliceChange()
   stopPreview(view);
   initBrush();
   view->setCursor(m_cursor);
+  emit drawingModeChanged(m_drawing);
 }
 
 //-----------------------------------------------------------------------------
-bool BrushSelector::CtrlKeyIsDown()
+bool BrushSelector::ShiftKeyIsDown()
 {
-  // true if Ctrl button is down.
-  return QApplication::keyboardModifiers().testFlag(Qt::ControlModifier);
+  // true if Shift button is down.
+  return QApplication::keyboardModifiers().testFlag(Qt::ShiftModifier);
 }
 
 //-----------------------------------------------------------------------------
@@ -784,4 +819,5 @@ void BrushSelector::abortOperation()
   m_drawing = true;
   initBrush();
   view->setCursor(m_cursor);
+  emit drawingModeChanged(m_drawing);
 }

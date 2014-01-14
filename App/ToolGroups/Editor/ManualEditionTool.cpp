@@ -21,7 +21,7 @@
 #include <App/Tools/Brushes/CircularBrushSelector.h>
 #include <App/Tools/Brushes/SphericalBrushSelector.h>
 #include <Core/Analysis/Filter.h>
-#include <GUI/Widgets/SpinBoxAction.h>
+#include <GUI/Widgets/SliderAction.h>
 #include <Filters/FreeFormSource.h>
 #include <Support/Settings/EspinaSettings.h>
 #include <Undo/AddSegmentations.h>
@@ -50,8 +50,8 @@ namespace EspINA
   , m_undoStack(undoStack)
   , m_drawToolSelector(new ActionSelector())
   , m_categorySelector(new CategorySelector(model))
-  , m_radiusWidget(new SpinBoxAction())
-  , m_opacityWidget(new SpinBoxAction())
+  , m_radiusWidget(new SliderAction())
+  , m_opacityWidget(new SliderAction())
   , m_enabled(false)
   {
     m_factory->registerFilterFactory(this);
@@ -63,9 +63,9 @@ namespace EspINA
             this, SLOT(changeOpacity(int)));
 
     // draw with a disc
-    QAction *discTool = new QAction(QIcon(":/espina/pencil2D.png"),
-                                    tr("Modify segmentation drawing 2D discs"),
-                                    m_drawToolSelector);
+    m_discTool = new QAction(QIcon(":/espina/pencil2D.png"),
+                             tr("Modify segmentation drawing 2D discs"),
+                             m_drawToolSelector);
 
     m_circularBrushSelector = CircularBrushSelectorSPtr(new CircularBrushSelector(m_viewManager, m_categorySelector));
     connect(m_circularBrushSelector.get(), SIGNAL(stroke(ViewItemAdapterPtr, Selector::WorldRegion, Nm, Plane)),
@@ -74,15 +74,17 @@ namespace EspINA
             m_drawToolSelector, SLOT(setChecked(bool)));
     connect(m_circularBrushSelector.get(), SIGNAL(eventHandlerInUse(bool)),
             this, SLOT(selectorInUse(bool)));
+    connect(m_circularBrushSelector.get(), SIGNAL(radiusChanged(int)), this, SLOT(radiusChanged(int)));
+    connect(m_circularBrushSelector.get(), SIGNAL(drawingModeChanged(bool)), this, SLOT(drawingModeChanged(bool)));
 
-    m_drawTools[discTool] = m_circularBrushSelector;
-    m_drawToolSelector->addAction(discTool);
+    m_drawTools[m_discTool] = m_circularBrushSelector;
+    m_drawToolSelector->addAction(m_discTool);
 
 
     // draw with a sphere
-    QAction *sphereTool = new QAction(QIcon(":espina/pencil3D.png"),
-                                      tr("Modify segmentation drawing 3D spheres"),
-                                      m_drawToolSelector);
+    m_sphereTool = new QAction(QIcon(":espina/pencil3D.png"),
+                               tr("Modify segmentation drawing 3D spheres"),
+                               m_drawToolSelector);
 
     m_sphericalBrushSelector = SphericalBrushSelectorSPtr(new SphericalBrushSelector(m_viewManager, m_categorySelector));
     connect(m_sphericalBrushSelector.get(), SIGNAL(stroke(ViewItemAdapterPtr, Selector::WorldRegion, Nm, Plane)),
@@ -91,16 +93,18 @@ namespace EspINA
             this,  SLOT(drawStroke(ViewItemAdapterPtr, Selector::WorldRegion, Nm, Plane)));
     connect(m_sphericalBrushSelector.get(), SIGNAL(eventHandlerInUse(bool)),
             m_drawToolSelector, SLOT(setChecked(bool)));
+    connect(m_sphericalBrushSelector.get(), SIGNAL(radiusChanged(int)), this, SLOT(radiusChanged(int)));
+    connect(m_sphericalBrushSelector.get(), SIGNAL(drawingModeChanged(bool)), this, SLOT(drawingModeChanged(bool)));
 
-    m_drawTools[sphereTool] = m_sphericalBrushSelector;
-    m_drawToolSelector->addAction(sphereTool);
-
-    // draw with contour
-    QAction *contourTool = new QAction(QIcon(":espina/lasso.png"),
-                                       tr("Modify segmentation drawing contour"),
-                                       m_drawToolSelector);
+    m_drawTools[m_sphereTool] = m_sphericalBrushSelector;
+    m_drawToolSelector->addAction(m_sphereTool);
 
     // TODO: contour filter, tool y selector.
+
+    // draw with contour
+//    QAction *contourTool = new QAction(QIcon(":espina/lasso.png"),
+//                                       tr("Modify segmentation drawing contour"),
+//                                       m_drawToolSelector);
 //    FilledContourSPtr contour(new FilledContour(m_model,
 //                                                m_undoStack,
 //                                                m_viewManager));
@@ -114,9 +118,9 @@ namespace EspINA
 //
 //    m_drawTools[contourTool] = contour;
 //    m_drawTools[contourTool] = SelectorSPtr(this);
-    m_drawToolSelector->addAction(contourTool);
+//    m_drawToolSelector->addAction(contourTool);
 
-    m_drawToolSelector->setDefaultAction(discTool);
+    m_drawToolSelector->setDefaultAction(m_discTool);
     connect(m_drawToolSelector, SIGNAL(triggered(QAction*)),
             this, SLOT(changeSelector(QAction*)));
     connect(m_drawToolSelector, SIGNAL(actionCanceled()),
@@ -127,12 +131,11 @@ namespace EspINA
     int opacity = settings.value(BRUSH_OPACITY, 50).toInt();
 
     m_radiusWidget->setValue(radius);
-    m_radiusWidget->setLabelText(tr("Brush Radius"));
+    m_radiusWidget->setLabelText(tr("Radius Size"));
 
-    m_opacityWidget->setSpinBoxMinimum(1);
-    m_opacityWidget->setSpinBoxMaximum(100);
+    m_opacityWidget->setSliderMinimum(1);
+    m_opacityWidget->setSliderMaximum(100);
     m_opacityWidget->setValue(opacity);
-    m_opacityWidget->setSuffix("%");
     m_opacityWidget->setLabelText(tr("Opacity"));
   }
   
@@ -191,8 +194,6 @@ namespace EspINA
     }
     else
     {
-      SelectionSPtr selection = m_viewManager->selection();
-
       if (value && m_viewManager->activeCategory() && m_viewManager->activeChannel())
         m_actualSelector->initBrush();
     }
@@ -297,6 +298,41 @@ namespace EspINA
   void ManualEditionTool::abortOperation()
   {
     m_actualSelector->abortOperation();
+  }
+
+  //------------------------------------------------------------------------
+  void ManualEditionTool::radiusChanged(int value)
+  {
+    m_radiusWidget->blockSignals(true);
+    m_radiusWidget->setValue(value);
+    m_radiusWidget->blockSignals(false);
+  }
+
+  //------------------------------------------------------------------------
+  void ManualEditionTool::drawingModeChanged(bool isDrawing)
+  {
+    QAction *actualAction = m_drawToolSelector->getCurrentAction();
+    QIcon icon;
+
+    if (m_discTool == actualAction)
+    {
+      if (isDrawing)
+        icon = QIcon(":/espina/pencil2D.png");
+      else
+        icon = QIcon(":/espina/eraser2D.png");
+    }
+    else
+    {
+      if (m_sphereTool == actualAction)
+      {
+        if (isDrawing)
+          icon = QIcon(":/espina/pencil3D.png");
+        else
+          icon = QIcon(":/espina/eraser3D.png");
+      }
+    }
+
+    m_drawToolSelector->setIcon(icon);
   }
 
 } // namespace EspINA
