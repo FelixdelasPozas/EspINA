@@ -279,8 +279,12 @@ bool StereologicalInclusion::isExcluded() const
 //------------------------------------------------------------------------
 void StereologicalInclusion::evaluateCountingFrames()
 {
-  SampleSPtr sample = Query::sample(m_segmentation);
-  Q_ASSERT(sample);
+  auto samples = Query::samples(m_segmentation);
+  Q_ASSERT(!samples.isEmpty());
+  if (samples.size() > 1)
+  {
+    qWarning() << "Counting Frame<evaluateCountingFrames>: Tiling mode not suppoerted";
+  }
 
 //   CountingFrameList countingFrames;
 //   for(auto channel : Query::channels(sample))

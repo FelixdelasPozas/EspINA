@@ -104,9 +104,11 @@ namespace EspINA
 
     friend class ModelFactory;
     friend class ModelAdapter;
+    friend class QueryAdapter;
 
     friend bool operator==(SegmentationAdapterSPtr lhs, SegmentationSPtr        rhs);
     friend bool operator==(SegmentationSPtr        lhs, SegmentationAdapterSPtr rhs);
+
   };
 
   bool operator==(SegmentationAdapterSPtr lhs, SegmentationSPtr        rhs);

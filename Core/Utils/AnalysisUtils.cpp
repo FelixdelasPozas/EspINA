@@ -136,7 +136,7 @@ EspINA::AnalysisSPtr EspINA::merge(AnalysisSPtr& lhs, AnalysisSPtr& rhs)
         mergedFilters[filter] = mergedFilter;
         channel->changeOutput(mergedFilter, outputId);
 
-        for(auto vertex : analysis->content()->succesors(filter))
+        for(auto vertex : analysis->content()->successors(filter))
         {
           FilterSPtr succesor = std::dynamic_pointer_cast<Filter>(vertex);
           if (succesor)

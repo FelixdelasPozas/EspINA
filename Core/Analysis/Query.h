@@ -32,19 +32,13 @@ namespace EspINA {
 
     SampleSPtr sample(ChannelPtr channel);
 
-    // Convenience function to use when no tiling is expected
-    SampleSPtr sample(SegmentationSPtr segmentation);
-
-    // Convenience function to use when no tiling is expected
-    SampleSPtr sample(SegmentationPtr segmentation);
-
     SampleSList samples(SegmentationSPtr segmentation);
 
     SampleSList samples(SegmentationPtr segmentation);
 
     ChannelSList channels(SampleSPtr sample);
 
-    ChannelSPtr channel(SegmentationSPtr segmentation);
+    ChannelSList channels(SegmentationSPtr segmentation);
 
     SegmentationSList segmentations(SampleSPtr sample);
 

@@ -38,7 +38,7 @@ using namespace std;
 using namespace EspINA;
 using namespace EspINA::Testing;
 
-int query_segmentation_sample(int argc, char** argv )
+int query_sample_segmentations(int argc, char** argv )
 {
   bool error = false;
 
@@ -61,26 +61,25 @@ int query_segmentation_sample(int argc, char** argv )
   analysis.add(channel);
   analysis.add(segmentation);
 
-  auto segSamples = Query::samples(segmentation);
+  auto sampleSegmentations = Query::segmentations(sample);
 
-  if (!segSamples.isEmpty()) {
-    cerr << "Unexpected segmentation's sample" << endl;
+  if (!sampleSegmentations.isEmpty()) {
+    cerr << "Unexpected sample's segmentations" << endl;
     error = true;
   }
 
-  //analysis.addRelation(sample, channel, Channel::STAIN_LINK);
   analysis.addRelation(sample, segmentation, Query::CONTAINS);
 
-  segSamples = Query::samples(segmentation);
+  sampleSegmentations = Query::segmentations(sample);
 
-  if (segSamples.size() != 1) {
-    cerr << "Unexpected number of segmentation samples. Expected only 1 sample" << endl;
+  if (sampleSegmentations.size() != 1) {
+    cerr << "Unexpected number of sample segmentations. Expected only 1 segmentation" << endl;
     error = true;
   }
 
 
-  if (segSamples.first() != sample) {
-    cerr << "Unexpected segmentation sample" << endl;
+  if (sampleSegmentations.first() != segmentation) {
+    cerr << "Unexpected sample segmentation" << endl;
     error = true;
   }
 

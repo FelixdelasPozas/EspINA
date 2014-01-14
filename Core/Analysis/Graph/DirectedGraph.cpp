@@ -278,13 +278,13 @@ DirectedGraph::Vertices DirectedGraph::ancestors(VertexPtr vertex, const QString
 
 
 //-----------------------------------------------------------------------------
-DirectedGraph::Vertices DirectedGraph::succesors(Vertex vertex, const QString& filter) const
+DirectedGraph::Vertices DirectedGraph::successors(Vertex vertex, const QString& filter) const
 {
-  return succesors(vertex.get(), filter);
+  return successors(vertex.get(), filter);
 }
 
 //-----------------------------------------------------------------------------
-DirectedGraph::Vertices DirectedGraph::succesors(VertexPtr vertex, const QString& filter) const
+DirectedGraph::Vertices DirectedGraph::successors(VertexPtr vertex, const QString& filter) const
 {
   Vertices result;
   OutEdgeIterator oei, oei_end;
@@ -345,4 +345,39 @@ DirectedGraph::OutEdgeIterator DirectedGraph::findRelation(const VertexDescripto
 
   throw (Relation_Not_Found_Exception());
   return oei_end;
+}
+
+//-----------------------------------------------------------------------------
+DirectedGraph::Vertices EspINA::rootAncestors(DirectedGraph::Vertex vertex, DirectedGraphSPtr graph)
+{
+  return rootAncestors(vertex.get(), graph);
+}
+
+//-----------------------------------------------------------------------------
+DirectedGraph::Vertices EspINA::rootAncestors(DirectedGraph::VertexPtr vertex, DirectedGraphSPtr graph)
+{
+  DirectedGraph::Vertices rootAncestors;
+
+  auto ancestors = graph->ancestors(vertex);
+
+  while (!ancestors.isEmpty())
+  {
+    auto ancestor = ancestors.takeFirst();
+
+    auto grandAncestors = graph->ancestors(ancestor);
+
+    if (grandAncestors.isEmpty())
+    {
+      if (!rootAncestors.contains(ancestor))
+      {
+        rootAncestors << ancestor;
+      }
+    } else
+    {
+      ancestors << grandAncestors;
+    }
+  }
+
+
+  return rootAncestors;
 }

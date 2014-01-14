@@ -76,7 +76,7 @@ set (GUI_SOURCES
   Model/SampleAdapter.cpp
   Model/SegmentationAdapter.cpp
   Model/Utils/ModelAdapterUtils.cpp
-  Model/Utils/Query.cpp
+  Model/Utils/QueryAdapter.cpp
   Model/ViewItemAdapter.cpp
   ModelFactory.cpp
   Representations/BasicRepresentationFactory.cpp

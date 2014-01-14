@@ -26,16 +26,17 @@
 
 namespace EspINA {
 
-  namespace Query
+  class QueryAdapter
   {
-    ChannelAdapterSList channels(SegmentationAdapterPtr segmentation);
+  public:
+    static ChannelAdapterSList channels(SegmentationAdapterPtr segmentation);
 
-    ChannelAdapterSList channels(SegmentationAdapterSPtr segmentation);
+    static ChannelAdapterSList channels(SegmentationAdapterSPtr segmentation);
 
-    SampleAdapterSList samples(ChannelAdapterPtr segmentation);
+    static SampleAdapterSList samples(ChannelAdapterSPtr segmentation);
 
-    SampleAdapterSList samples(ChannelAdapterSPtr segmentation);
-  } // namespace Query
+    static SampleAdapterSList samples(ChannelAdapterPtr segmentation);
+  };
 } // namespace EspINA
 
 #endif // ESPINA_QUERY_ADAPTER_H

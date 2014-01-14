@@ -580,7 +580,7 @@ ItemAdapterSList ModelAdapter::relatedItems(ItemAdapterPtr item, RelationType ty
   }
 
   if (type == RELATION_OUT || type == RELATION_INOUT) {
-    for(auto successor : m_analysis->relationships()->succesors(item->m_analysisItem, filter)) {
+    for(auto successor : m_analysis->relationships()->successors(item->m_analysisItem, filter)) {
       items << find(successor);
     }
   }

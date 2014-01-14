@@ -20,7 +20,7 @@
 #include "AddSegmentations.h"
 
 #include <Core/Analysis/Query.h>
-#include <GUI/Model/Utils/Query.h>
+#include <GUI/Model/Utils/QueryAdapter.h>
 
 using namespace EspINA;
 
@@ -82,12 +82,12 @@ SampleAdapterSList AddSegmentations::findSamplesUsingInputChannels(SegmentationA
 {
   SampleAdapterSList samples;
 
-  auto channels = Query::channels(segmentation);
+  auto channels = QueryAdapter::channels(segmentation);
   Q_ASSERT(channels.size() == 1); // Tiling not supported yet
 
   for(auto channel : channels)
   {
-    samples << Query::samples(channel);
+    samples << QueryAdapter::samples(channel);
   }
 
   return samples;

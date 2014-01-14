@@ -17,39 +17,41 @@
  *
  */
 
-#include "Query.h"
+#include "QueryAdapter.h"
 
 #include <Core/Analysis/Query.h>
 
 using namespace EspINA;
-using namespace EspINA::Query;
 
 //------------------------------------------------------------------------
-ChannelAdapterSList EspINA::Query::channels(SegmentationAdapterPtr segmentation)
+ChannelAdapterSList QueryAdapter::channels(SegmentationAdapterSPtr segmentation)
 {
-
+  return channels(segmentation.get());
 }
 
 //------------------------------------------------------------------------
-ChannelAdapterSList EspINA::Query::channels(SegmentationAdapterSPtr segmentation)
+ChannelAdapterSList QueryAdapter::channels(SegmentationAdapterPtr segmentation)
 {
-
+  auto adaptedSegmentation = segmentation->m_segmentation;
+  return ChannelAdapterSList();
 }
 
 //------------------------------------------------------------------------
-SampleAdapterSList EspINA::Query::samples(ChannelAdapterPtr segmentation)
+SampleAdapterSList QueryAdapter::samples(ChannelAdapterSPtr segmentation)
+{
+  return samples(segmentation.get());
+}
+
+//------------------------------------------------------------------------
+SampleAdapterSList QueryAdapter::samples(ChannelAdapterPtr segmentation)
 {
   SampleAdapterSList channelSamples;
 
-  for(auto sample : Query::samples(segmentation))
-  {
-  }
+//   for(auto sample : Query::samples(segmentation))
+//   {
+//
+//   }
 
   return channelSamples;
 }
 
-//------------------------------------------------------------------------
-SampleAdapterSList EspINA::Query::samples(ChannelAdapterSPtr segmentation)
-{
-
-}

@@ -134,8 +134,8 @@ namespace EspINA
     Vertices ancestors(VertexPtr vertex, const QString &filter = "") const;
 
     /// Return all vertices whose incoming edges start on v
-    Vertices succesors(Vertex vertex, const QString &filter = "") const;
-    Vertices succesors(VertexPtr vertex, const QString &filter = "") const;
+    Vertices successors(Vertex vertex, const QString &filter = "") const;
+    Vertices successors(VertexPtr vertex, const QString &filter = "") const;
 
   private:
     DirectedGraph::Vertex vertex(VertexDescriptor descriptor) const;
@@ -154,6 +154,10 @@ namespace EspINA
   };
 
   using DirectedGraphSPtr = std::shared_ptr<DirectedGraph>;
-}
+
+  DirectedGraph::Vertices rootAncestors(DirectedGraph::Vertex vertex, DirectedGraphSPtr graph);
+  DirectedGraph::Vertices rootAncestors(DirectedGraph::VertexPtr vertex, DirectedGraphSPtr graph);
+
+} // namespace EspINA
 
 #endif // ESPINA_DIRECTED_GRAPH_H
