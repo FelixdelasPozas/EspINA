@@ -20,7 +20,7 @@
 #ifndef ESPINA_VIEW_ITEM_ADAPTER_H
 #define ESPINA_VIEW_ITEM_ADAPTER_H
 
-#include "GUI/Model/ItemAdapter.h"
+#include "GUI/Model/NeuroItemAdapter.h"
 #include "FilterAdapter.h"
 #include <GUI/Representations/Representation.h>
 
@@ -34,7 +34,7 @@ namespace EspINA {
   using FilterAdapterSPtr = std::shared_ptr<FilterAdapterInterface>;
 
   class EspinaGUI_EXPORT ViewItemAdapter
-  : public ItemAdapter
+  : public NeuroItemAdapter
   {
   public:
     virtual ~ViewItemAdapter(){}

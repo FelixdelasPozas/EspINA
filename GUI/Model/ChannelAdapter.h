@@ -146,6 +146,7 @@ namespace EspINA
 
     friend class ModelFactory;
     friend class ModelAdapter;
+    friend class QueryAdapter;
 
     friend bool operator==(ChannelAdapterSPtr lhs, ChannelSPtr        rhs);
     friend bool operator==(ChannelSPtr        lhs, ChannelAdapterSPtr rhs);

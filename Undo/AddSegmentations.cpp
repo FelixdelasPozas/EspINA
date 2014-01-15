@@ -32,11 +32,6 @@ AddSegmentations::AddSegmentations(SegmentationAdapterSPtr segmentation,
 , m_model(model)
 {
   m_segmentations << segmentation;
-
-  for(auto segmentation : m_segmentations)
-  {
-    m_samples[segmentation] = findSamplesUsingInputChannels(segmentation);
-  }
 }
 
 //----------------------------------------------------------------------------
@@ -47,11 +42,6 @@ AddSegmentations::AddSegmentations(SegmentationAdapterSList segmentations,
 , m_model(model)
 {
   m_segmentations << segmentations;
-
-  for(auto segmentation : m_segmentations)
-  {
-    m_samples[segmentation] = findSamplesUsingInputChannels(segmentation);
-  }
 }
 
 //----------------------------------------------------------------------------
@@ -59,12 +49,9 @@ void AddSegmentations::redo()
 {
   m_model->add(m_segmentations);
 
-  for(auto samples : m_samples)
+  for(auto segmentation : m_segmentations)
   {
-    Q_ASSERT(samples.size() == 1); // Tiling not supported yet
-
-    auto sample = samples[0];
-    for(auto segmentation : m_segmentations)
+    for(auto sample : findSamplesUsingInputChannels(segmentation))
     {
       m_model->addRelation(sample, segmentation, Query::CONTAINS);
     }
@@ -87,8 +74,10 @@ SampleAdapterSList AddSegmentations::findSamplesUsingInputChannels(SegmentationA
 
   for(auto channel : channels)
   {
-    samples << QueryAdapter::samples(channel);
+    samples << QueryAdapter::sample(channel);
   }
+
+  Q_ASSERT(samples.size() == 1); // Tiling not supported yet
 
   return samples;
 }

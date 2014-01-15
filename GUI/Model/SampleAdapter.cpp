@@ -25,7 +25,7 @@ using namespace EspINA;
 
 //------------------------------------------------------------------------
 SampleAdapter::SampleAdapter(SampleSPtr sample)
-: ItemAdapter(sample)
+: NeuroItemAdapter(sample)
 , m_sample(sample)
 {
 

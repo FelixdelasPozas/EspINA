@@ -62,7 +62,9 @@ void ModelAdapter::setAnalysis(AnalysisSPtr analysis, ModelFactorySPtr factory)
   beginInsertRows(sampleRoot(), 0, analysis->samples().size() - 1);
   for(auto sample : analysis->samples())
   {
-    m_samples << factory->adaptSample(sample);
+    auto adapted = factory->adaptSample(sample);
+    m_samples << adapted;
+    adapted->setModel(this);
   }
   endInsertRows();
 
@@ -76,7 +78,9 @@ void ModelAdapter::setAnalysis(AnalysisSPtr analysis, ModelFactorySPtr factory)
       filter = factory->adaptFilter(channel->filter());
     }
 
-    m_channels << factory->adaptChannel(filter, channel);
+    auto adapted = factory->adaptChannel(filter, channel);
+    m_channels << adapted;
+    adapted->setModel(this);
   }
   endInsertRows();
 
@@ -100,6 +104,7 @@ void ModelAdapter::setAnalysis(AnalysisSPtr analysis, ModelFactorySPtr factory)
     }
 
     m_segmentations << adapted;
+    adapted->setModel(this);
   }
   endInsertRows();
 }
@@ -111,6 +116,8 @@ void ModelAdapter::addImplementation(SampleAdapterSPtr sample)
 
   m_analysis->add(sample->m_sample);
   m_samples << sample;
+
+  sample->setModel(this);
 
   //   connect(sample.get(), SIGNAL(modified(ModelItemPtr)),
   //           this, SLOT(itemModified(ModelItemPtr)));
@@ -159,6 +166,8 @@ void ModelAdapter::addImplementation(ChannelAdapterSPtr channel)
   m_analysis->add(channel->m_channel);
   m_channels << channel;
 
+  channel->setModel(this);
+
 //   connect(channel.get(), SIGNAL(modified(ModelItemPtr)),
 //           this, SLOT(itemModified(ModelItemPtr)));
 }
@@ -204,6 +213,8 @@ void ModelAdapter::addImplementation(SegmentationAdapterSPtr segmentation)
 
   m_analysis->add(segmentation->m_segmentation);
   m_segmentations << segmentation;
+
+  segmentation->setModel(this);
 
 //   connect(segmentation.get(), SIGNAL(modified(ModelItemPtr)),
 //           this, SLOT(itemModified(ModelItemPtr)));

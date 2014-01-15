@@ -64,6 +64,11 @@ int model_adapter_add_segmentation( int argc, char** argv )
 
   modelAdapter.add(segmentation);
 
+  if (&modelAdapter != segmentation->model()) {
+    cerr << "Segmentation's model differs from modelAdapter" << endl;
+    error = true;
+  }
+
   if (analysis->segmentations().first() != segmentation) {
     cerr << "Unexpected segmentation retrieved from analysis" << endl;
     error = true;

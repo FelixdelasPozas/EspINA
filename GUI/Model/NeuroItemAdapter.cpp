@@ -1,6 +1,6 @@
 /*
  * <one line to give the program's name and a brief idea of what it does.>
- * Copyright (C) 2014  <copyright holder> <email>
+ * Copyright (C) 2013  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,26 +17,21 @@
  *
  */
 
-#ifndef ESPINA_QUERY_ADAPTER_H
-#define ESPINA_QUERY_ADAPTER_H
+#include "NeuroItemAdapter.h"
 
-#include <GUI/Model/SegmentationAdapter.h>
-#include <GUI/Model/SampleAdapter.h>
-#include <GUI/Model/ChannelAdapter.h>
+#include <Core/Analysis/NeuroItem.h>
+#include <GUI/Representations/RepresentationFactory.h>
 
-namespace EspINA {
+using namespace EspINA;
 
-  class QueryAdapter
-  {
-  public:
-    static ChannelAdapterSList channels(SegmentationAdapterPtr segmentation);
+//------------------------------------------------------------------------
+NeuroItemAdapter::NeuroItemAdapter(NeuroItemSPtr item)
+: ItemAdapter(item)
+{
+}
 
-    static ChannelAdapterSList channels(SegmentationAdapterSPtr segmentation);
-
-    static SampleAdapterSPtr sample(ChannelAdapterSPtr segmentation);
-
-    static SampleAdapterSPtr sample(ChannelAdapterPtr segmentation);
-  };
-} // namespace EspINA
-
-#endif // ESPINA_QUERY_ADAPTER_H
+//------------------------------------------------------------------------
+NeuroItemAdapterPtr EspINA::neuroItemAdapter(ItemAdapterPtr item)
+{
+  return static_cast<NeuroItemAdapterPtr>(item);
+}

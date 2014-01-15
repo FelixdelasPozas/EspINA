@@ -50,7 +50,6 @@ namespace EspINA
   private:
     ModelAdapterSPtr m_model;
 
-    QMap<SegmentationAdapterSPtr, SampleAdapterSList> m_samples;
     SegmentationAdapterSList m_segmentations;
   };
 } // namespace EspINA

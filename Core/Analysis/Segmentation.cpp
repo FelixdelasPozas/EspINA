@@ -89,7 +89,7 @@ SegmentationExtensionSPtr Segmentation::extension(const SegmentationExtension::T
 //    m_extensions.insert(type, m_provider->value(type).clone());
   }
 
-  return m_extensions.value(type);
+  return m_extensions.value(type, SegmentationExtensionSPtr());
 }
 
 //------------------------------------------------------------------------

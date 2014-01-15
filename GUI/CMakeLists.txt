@@ -79,6 +79,7 @@ set (GUI_SOURCES
   Model/Utils/ModelAdapterUtils.cpp
   Model/Utils/QueryAdapter.cpp
   Model/ViewItemAdapter.cpp
+  Model/NeuroItemAdapter.cpp
   ModelFactory.cpp
   Representations/BasicRepresentationFactory.cpp
   Representations/ContourRepresentation.cpp

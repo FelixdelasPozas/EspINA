@@ -19,7 +19,7 @@
 #ifndef ESPINA_SAMPLE_ADAPTER_H
 #define ESPINA_SAMPLE_ADAPTER_H
 
-#include "GUI/Model/ItemAdapter.h"
+#include "GUI/Model/NeuroItemAdapter.h"
 #include <Core/Utils/NmVector3.h>
 #include <Core/Utils/Bounds.h>
 
@@ -35,7 +35,7 @@ namespace EspINA
    * 
    */
   class EspinaGUI_EXPORT SampleAdapter
-  : public ItemAdapter
+  : public NeuroItemAdapter
   {
   public:
     virtual ~SampleAdapter();
@@ -71,6 +71,7 @@ namespace EspINA
 
     friend class ModelFactory;
     friend class ModelAdapter;
+    friend class QueryAdapter;
 
     friend bool operator==(SampleAdapterSPtr lhs, SampleSPtr        rhs);
     friend bool operator==(SampleSPtr        lhs, SampleAdapterSPtr rhs);

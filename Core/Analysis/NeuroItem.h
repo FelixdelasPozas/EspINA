@@ -54,7 +54,8 @@ namespace EspINA {
     AnalysisPtr m_analysis;
   };
 
-  using PersistentPtr = Persistent *;
+  using NeuroItemPtr  = NeuroItem *;
+  using NeuroItemSPtr = std::shared_ptr<NeuroItem>;
 }
 
 #endif // ESPINA_NEURO_ITEM_H

@@ -28,6 +28,7 @@
 
 #include <Core/Analysis/Analysis.h>
 #include <GUI/Model/ModelAdapter.h>
+#include <GUI/Model/SampleAdapter.h>
 #include <GUI/ModelFactory.h>
 #include "ModelTest.h"
 
@@ -52,6 +53,12 @@ int model_adapter_add_sample(int argc, char** argv )
 
   SampleAdapterSPtr sample = factory->createSample(name);
   modelAdapter.add(sample);
+
+  if (&modelAdapter != sample->model()) {
+    cerr << "Sample's model differs from modelAdapter" << endl;
+    error = true;
+  }
+
 
 //   if (!analysis->samples().contains(sample)) {
 //     cerr << "Unexpected sample retrieved from analysis" << endl;

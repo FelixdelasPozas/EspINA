@@ -19,14 +19,14 @@
 
 #include "ViewItemAdapter.h"
 
-#include <Core/Analysis/ViewItem.h>
+#include <Core/Analysis/NeuroItem.h>
 #include <GUI/Representations/RepresentationFactory.h>
 
 using namespace EspINA;
 
 //------------------------------------------------------------------------
 ViewItemAdapter::ViewItemAdapter(FilterAdapterSPtr filter, ViewItemSPtr item)
-: ItemAdapter(item)
+: NeuroItemAdapter(item)
 , m_filter{filter}
 , m_viewItem{item}
 , m_isSelected{false}

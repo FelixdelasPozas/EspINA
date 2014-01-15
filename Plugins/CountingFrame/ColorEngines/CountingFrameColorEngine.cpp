@@ -63,7 +63,7 @@ QColor CountingFrameColorEngine::color(SegmentationAdapterPtr segmentation)
     g = 255;
   }
 
-  return QColor(r, g, b, 256);
+  return QColor(r, g, b, 255);
 }
 
 //-----------------------------------------------------------------------------

@@ -64,6 +64,10 @@ int model_adapter_add_channel( int argc, char** argv )
 
   modelAdapter.add(channel);
 
+  if (&modelAdapter != channel->model()) {
+    cerr << "Channel's model differs from modelAdapter" << endl;
+    error = true;
+  }
 //   if (!analysis->channels().contains(channel)) {
 //     cerr << "Analysis doesn't contain addded channel" << endl;
 //     error = true;

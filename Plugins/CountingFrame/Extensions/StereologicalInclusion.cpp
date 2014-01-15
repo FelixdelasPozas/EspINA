@@ -279,11 +279,17 @@ bool StereologicalInclusion::isExcluded() const
 //------------------------------------------------------------------------
 void StereologicalInclusion::evaluateCountingFrames()
 {
+  if (!m_segmentation)
+    return;
+
   auto samples = Query::samples(m_segmentation);
-  Q_ASSERT(!samples.isEmpty());
+
   if (samples.size() > 1)
   {
     qWarning() << "Counting Frame<evaluateCountingFrames>: Tiling mode not suppoerted";
+  } else if (!samples.isEmpty())
+  {
+
   }
 
 //   CountingFrameList countingFrames;
@@ -448,6 +454,6 @@ bool StereologicalInclusion::isRealCollision(const Bounds& interscetion)
 //------------------------------------------------------------------------
 StereologicalInclusionSPtr EspINA::CF::stereologicalInclusion(SegmentationExtensionSPtr extension)
 {
-  //return dynamic_cast<StereologicalInclusionPtr>(extension);
+  return std::dynamic_pointer_cast<StereologicalInclusion>(extension);
 }
 

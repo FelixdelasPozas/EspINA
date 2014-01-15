@@ -51,7 +51,7 @@ unsigned int SegmentationAdapter::number() const
 
 bool SegmentationAdapter::hasExtension(const SegmentationExtension::Type& type) const
 {
-  return false;
+  return m_segmentation->hasExtension(type);
 }
 
 SegmentationExtensionSPtr SegmentationAdapter::extension(const SegmentationExtension::Type& type) const

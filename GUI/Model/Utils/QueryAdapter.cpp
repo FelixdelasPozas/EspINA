@@ -20,6 +20,7 @@
 #include "QueryAdapter.h"
 
 #include <Core/Analysis/Query.h>
+#include <GUI/Model/ModelAdapter.h>
 
 using namespace EspINA;
 
@@ -33,25 +34,45 @@ ChannelAdapterSList QueryAdapter::channels(SegmentationAdapterSPtr segmentation)
 ChannelAdapterSList QueryAdapter::channels(SegmentationAdapterPtr segmentation)
 {
   auto adaptedSegmentation = segmentation->m_segmentation;
-  return ChannelAdapterSList();
+  auto model = segmentation->model();
+
+  ChannelAdapterSList adaptedChannels;
+
+  for (auto adaptedChannel : Query::channels(adaptedSegmentation))
+  {
+    for (auto channel : model->channels())
+    {
+      if (channel->m_channel == adaptedChannel)
+      {
+        adaptedChannels << channel;
+      }
+    }
+  }
+
+  return adaptedChannels;
 }
 
 //------------------------------------------------------------------------
-SampleAdapterSList QueryAdapter::samples(ChannelAdapterSPtr segmentation)
+SampleAdapterSPtr QueryAdapter::sample(ChannelAdapterSPtr channel)
 {
-  return samples(segmentation.get());
+  return sample(channel.get());
 }
 
 //------------------------------------------------------------------------
-SampleAdapterSList QueryAdapter::samples(ChannelAdapterPtr segmentation)
+SampleAdapterSPtr QueryAdapter::sample(ChannelAdapterPtr channel)
 {
-  SampleAdapterSList channelSamples;
+  auto adaptedChannel = channel->m_channel;
+  auto model = channel->model();
 
-//   for(auto sample : Query::samples(segmentation))
-//   {
-//
-//   }
+  auto adaptedSample = Query::sample(adaptedChannel);
+  for (auto sample : model->samples())
+  {
+    if (sample->m_sample == adaptedSample)
+    {
+      return sample;
+    }
+  }
 
-  return channelSamples;
+  return SampleAdapterSPtr();
 }
 

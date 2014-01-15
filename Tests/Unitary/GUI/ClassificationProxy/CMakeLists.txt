@@ -84,6 +84,7 @@ add_executable(ClassificationProxy_Tests
   ${GUI_DIR}/Model/CategoryAdapter.cpp
   ${GUI_DIR}/Model/ChannelAdapter.cpp
   ${GUI_DIR}/Model/ClassificationAdapter.cpp
+  ${GUI_DIR}/Model/NeuroItemAdapter.cpp
   ${GUI_DIR}/Model/ModelAdapter.cpp
   ${GUI_DIR}/Model/Proxies/ClassificationProxy.cpp
   ${GUI_DIR}/Model/SampleAdapter.cpp

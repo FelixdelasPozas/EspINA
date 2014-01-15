@@ -82,6 +82,7 @@ add_executable(ModelAdapter_Tests
   ${GUI_DIR}/Model/ChannelAdapter.cpp
   ${GUI_DIR}/Model/ClassificationAdapter.cpp
   ${GUI_DIR}/Model/ModelAdapter.cpp
+  ${GUI_DIR}/Model/NeuroItemAdapter.cpp
   ${GUI_DIR}/Model/SampleAdapter.cpp
   ${GUI_DIR}/Model/SegmentationAdapter.cpp
   ${GUI_DIR}/Model/ViewItemAdapter.cpp
