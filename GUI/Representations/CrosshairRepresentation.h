@@ -33,7 +33,6 @@
 // ITK
 #include <itkImageToVTKImageFilter.h>
 
-
 class QColor;
 class vtkActor;
 class vtkImageActor;
@@ -41,6 +40,7 @@ class vtkPolyData;
 class vtkLookupTable;
 class vtkImageShiftScale;
 class vtkImageImport;
+class vtkImageMapToColors;
 
 namespace EspINA
 {
@@ -54,7 +54,9 @@ namespace EspINA
   class EspinaGUI_EXPORT CrosshairRepresentation
   :public Representation
   {
-    Q_OBJECT
+    public:
+      static const Representation::Type TYPE;
+
     public:
       explicit CrosshairRepresentation(VolumeSPtr data,
                                        RenderView *view);
@@ -109,25 +111,25 @@ namespace EspINA
 
       using ExporterType = itk::ImageToVTKImageFilter<itkVolumeType>;
 
-      ExporterType::Pointer               m_axialExporter;
-      ExporterType::Pointer               m_coronalExporter;
-      ExporterType::Pointer               m_sagittalExporter;
-      vtkSmartPointer<vtkImageImport>     m_axialImporter;
-      vtkSmartPointer<vtkImageImport>     m_coronalImporter;
-      vtkSmartPointer<vtkImageImport>     m_sagittalImporter;
-      vtkSmartPointer<vtkImageActor>      m_axial;
-      vtkSmartPointer<vtkImageActor>      m_coronal;
-      vtkSmartPointer<vtkImageActor>      m_sagittal;
-      vtkSmartPointer<vtkActor>           m_axialBorder;
-      vtkSmartPointer<vtkActor>           m_coronalBorder;
-      vtkSmartPointer<vtkActor>           m_sagittalBorder;
-      vtkSmartPointer<vtkPolyData>        m_axialSquare;
-      vtkSmartPointer<vtkPolyData>        m_coronalSquare;
-      vtkSmartPointer<vtkPolyData>        m_sagittalSquare;
-      vtkSmartPointer<vtkLookupTable>     m_lut;
-      vtkSmartPointer<vtkImageShiftScale> m_axialScaler;
-      vtkSmartPointer<vtkImageShiftScale> m_coronalScaler;
-      vtkSmartPointer<vtkImageShiftScale> m_sagittalScaler;
+      ExporterType::Pointer                m_axialExporter;
+      ExporterType::Pointer                m_coronalExporter;
+      ExporterType::Pointer                m_sagittalExporter;
+      vtkSmartPointer<vtkImageActor>       m_axial;
+      vtkSmartPointer<vtkImageActor>       m_coronal;
+      vtkSmartPointer<vtkImageActor>       m_sagittal;
+      vtkSmartPointer<vtkImageMapToColors> m_axialImageMapToColors;
+      vtkSmartPointer<vtkImageMapToColors> m_coronalImageMapToColors;
+      vtkSmartPointer<vtkImageMapToColors> m_sagittalImageMapToColors;
+      vtkSmartPointer<vtkActor>            m_axialBorder;
+      vtkSmartPointer<vtkActor>            m_coronalBorder;
+      vtkSmartPointer<vtkActor>            m_sagittalBorder;
+      vtkSmartPointer<vtkPolyData>         m_axialSquare;
+      vtkSmartPointer<vtkPolyData>         m_coronalSquare;
+      vtkSmartPointer<vtkPolyData>         m_sagittalSquare;
+      vtkSmartPointer<vtkLookupTable>      m_lut;
+      vtkSmartPointer<vtkImageShiftScale>  m_axialScaler;
+      vtkSmartPointer<vtkImageShiftScale>  m_coronalScaler;
+      vtkSmartPointer<vtkImageShiftScale>  m_sagittalScaler;
 
       Bounds m_bounds;
       NmVector3 m_point;

@@ -60,14 +60,9 @@ View3D::View3D(bool showCrosshairPlaneSelectors, QWidget* parent)
 : RenderView{parent}
 , m_mainLayout{new QVBoxLayout()}
 , m_controlLayout{new QHBoxLayout()}
-, m_showCrosshairPlaneSelectors(showCrosshairPlaneSelectors)
+, m_showCrosshairPlaneSelectors{showCrosshairPlaneSelectors}
 {
   setupUI();
-
-  setLayout(m_mainLayout);
-
-//TODO 2013-10-05   connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection, bool)),
-//           this, SLOT(updateSelection(ViewManager::Selection,bool)));
 }
 
 //-----------------------------------------------------------------------------
@@ -84,67 +79,49 @@ View3D::~View3D()
 
 void View3D::setRenderers(RendererSList renderers)
 {
-  QStringList   activeRenderersNames;
-  RendererSList activeRenderers = m_renderers.values();
+  QStringList oldRenderersNames, newRenderersNames;
 
-  // remove controls for unused renderers // TODO 2013-10-05
-//   foreach(RendererSPtr oldRenderer, m_renderers)
-//   {
-//     bool selected = false;
-//     int i = 0;
-//     while (!selected && i < values.size())
-//       selected = values[i++]->name() == oldRenderer->name();
-// 
-//     if (!selected)
-//       parent->removeRendererControls(oldRenderer->name());
-//     else
-//       activeRenderers << oldRenderer;
-//   }
+  for (auto renderer: m_renderers.values())
+    oldRenderersNames << renderer->name();
 
-  // add controls for added renderers
-  for(auto renderer : renderers)
+  for (auto renderer: renderers)
+    newRenderersNames << renderer->name();
+
+  // remove controls of unused renderers
+  for (auto renderer : m_renderers.values())
+    if (!newRenderersNames.contains(renderer->name()))
+      removeRendererControls(renderer->name());
+
+  // add controls for new renderers
+  for (auto renderer: renderers)
   {
     if (!canRender(renderer, RendererType::RENDERER_VIEW3D))
       continue;
 
-    activeRenderersNames << renderer->name();
-    if (!activeRenderers.contains(renderer))
-    {
-      activeRenderers << renderer;
+    if (!oldRenderersNames.contains(renderer->name()))
       addRendererControls(renderer->clone());
-    }
   }
 }
 
 //-----------------------------------------------------------------------------
 void View3D::reset()
 {
-  foreach(EspinaWidget *widget, m_widgets.keys())
-  {
+  for(auto widget: m_widgets.keys())
     removeWidget(widget);
-  }
 
-  foreach(SegmentationAdapterPtr segmentation, m_segmentationStates.keys())
-  {
+  for(auto segmentation: m_segmentationStates.keys())
     remove(segmentation);
-  }
 
   // After removing segmentations there should be only channels
-  foreach(ChannelAdapterPtr channel, m_channelStates.keys())
-  {
+  for(auto channel: m_channelStates.keys())
     remove(channel);
-  }
 
   Q_ASSERT(m_channelStates.isEmpty());
   Q_ASSERT(m_segmentationStates.isEmpty());
   Q_ASSERT(m_widgets.isEmpty());
 
-  QMap<QPushButton *, RendererSPtr>::iterator it = m_renderers.begin();
-  while (it != m_renderers.end())
-  {
+  for(auto it = m_renderers.begin(); it != m_renderers.end(); ++it)
     it.key()->setChecked(false);
-    ++it;
-  }
 
   m_numEnabledChannelRenders = 0;
   m_numEnabledSegmentationRenders = 0;
@@ -176,33 +153,23 @@ void View3D::addRendererControls(RendererSPtr renderer)
   m_controlLayout->addWidget(button);
   renderer->setView(this);
 
-  // add representations to renderer
+  // add segmentation representations to renderer
   for(auto segmentation : m_segmentationStates.keys())
-  {
     if (renderer->canRender(segmentation))
-    {
       for(auto rep : m_segmentationStates[segmentation].representations)
-      {
          if (renderer->managesRepresentation(rep))
            renderer->addRepresentation(segmentation, rep);
-      }
-    }
-  }
 
+  // add channel representations to renderer
   for(auto channel : m_channelStates.keys())
-  {
     if (renderer->canRender(channel))
-    {
       for(auto rep : m_channelStates[channel].representations)
-      {
         if (renderer->managesRepresentation(rep))
           renderer->addRepresentation(channel, rep);
-      }
-    }
-  }
 
   m_renderers[button] = renderer;
 
+  // update renderer counts
   if (!renderer->isHidden())
   {
     if (canRender(renderer, RenderableType::SEGMENTATION))
@@ -214,8 +181,7 @@ void View3D::addRendererControls(RendererSPtr renderer)
 
   if (0 != m_numEnabledSegmentationRenders)
   {
-    QMap<EspinaWidget *, vtkAbstractWidget *>::const_iterator it = m_widgets.begin();
-    for( ; it != m_widgets.end(); ++it)
+    for(auto it = m_widgets.begin(); it != m_widgets.end(); ++it)
     {
       if (it.key()->manipulatesSegmentations())
       {
@@ -245,30 +211,27 @@ void View3D::removeRendererControls(const QString name)
   }
 
   RendererSPtr removedRenderer;
-  foreach (RendererSPtr renderer, m_renderers)
-  {
+  for(auto renderer: m_renderers)
     if (renderer->name() == name)
     {
       removedRenderer = renderer;
       break;
     }
-  }
 
   if (removedRenderer)
   {
     if (!removedRenderer->isHidden())
       removedRenderer->hide();
 
-    if (!removedRenderer->isHidden() && canRender(removedRenderer, RenderableType::SEGMENTATION))
+    if (canRender(removedRenderer, RenderableType::SEGMENTATION))
       this->m_numEnabledSegmentationRenders--;
 
-    if (!removedRenderer->isHidden() && canRender(removedRenderer, RenderableType::CHANNEL))
+    if (canRender(removedRenderer, RenderableType::CHANNEL))
       this->m_numEnabledChannelRenders--;
 
     if (0 == m_numEnabledSegmentationRenders)
     {
-      QMap<EspinaWidget *, vtkAbstractWidget *>::const_iterator it = m_widgets.begin();
-      for( ; it != m_widgets.end(); ++it)
+      for (auto it = m_widgets.begin(); it != m_widgets.end(); ++it)
       {
         if (it.key()->manipulatesSegmentations())
         {
@@ -278,7 +241,7 @@ void View3D::removeRendererControls(const QString name)
       }
     }
 
-    QMap<QPushButton*, RendererSPtr>::iterator it = m_renderers.begin();
+    auto it = m_renderers.begin();
     bool erased = false;
     while(!erased && it != m_renderers.end())
     {
@@ -332,13 +295,9 @@ void View3D::buildControls()
   m_controlLayout->addWidget(&m_export);
   m_controlLayout->addItem(horizontalSpacer);
 
-  for(RendererSPtr renderer : m_renderers)
-  {
+  for(auto renderer : m_renderers.values())
     if (canRender(renderer, RendererType::RENDERER_VIEW3D))
-    {
       this->addRendererControls(renderer->clone());
-    }
-  }
 
   m_mainLayout->addLayout(m_controlLayout);
 }
@@ -355,17 +314,15 @@ void View3D::centerViewOn(const NmVector3& point, bool force)
   m_center = point;
 
   bool updated = false;
-  //TODO: 2013-10-05 Find another solution
-//   foreach(RendererSPtr ren, m_renderers)
-//   {
-//     if (QString("Crosshairs") == ren->name())
-//     {
-//       CrosshairRenderer *crossren = reinterpret_cast<CrosshairRenderer *>(ren.get());
-//       crossren->setCrosshair(center);
-//     }
-// 
-//     updated |= !ren->isHidden() && (ren->itemsBeenRendered() != 0);
-//   }
+
+  for(auto renderer: m_renderers.values())
+  {
+    auto channelRenderer = static_cast<ChannelRenderer *>(renderer.get());
+    if (canRender(renderer, RenderableType::CHANNEL) && channelRenderer)
+      channelRenderer->setCrosshair(m_center);
+
+    updated |= !renderer->isHidden() && (renderer->numberOfRenderedItems() != 0);
+  }
 
   if (m_showCrosshairPlaneSelectors && !m_channelStates.empty())
   {
@@ -509,7 +466,16 @@ void View3D::removeWidget(EspinaWidget* eWidget)
 //-----------------------------------------------------------------------------
 Bounds View3D::previewBounds(bool cropToSceneBounds) const
 {
+  Bounds resultBounds;
+  for (auto channel: m_channelStates.keys())
+  {
+    if (!resultBounds.areValid())
+      resultBounds = channel->bounds();
+    else
+      resultBounds = boundingBox(resultBounds, channel->bounds());
+  }
 
+  return resultBounds;
 }
 
 //-----------------------------------------------------------------------------
@@ -574,6 +540,8 @@ void View3D::setupUI()
   QPalette pal = this->palette();
   pal.setColor(QPalette::Base, pal.color(QPalette::Window));
   this->setPalette(pal);
+
+  setLayout(m_mainLayout);
 }
 
 //-----------------------------------------------------------------------------
@@ -589,13 +557,12 @@ void View3D::updateView()
 //-----------------------------------------------------------------------------
 void View3D::selectPickedItems(int vx, int vy, bool append)
 {
-
   ViewItemAdapterList selection, pickedItems;
   if (append)
     selection = currentSelection()->items();
 
   // If no append, segmentations have priority over channels
-  for(RendererSPtr renderer : m_renderers)
+  for(auto renderer : m_renderers.values())
   {
     if (!renderer->isHidden() && canRender(renderer, RenderableType::SEGMENTATION))
     {
@@ -613,7 +580,7 @@ void View3D::selectPickedItems(int vx, int vy, bool append)
 
   pickedItems.clear();
 
-  for(RendererSPtr renderer : m_renderers)
+  for(auto renderer : m_renderers)
   {
     if (!renderer->isHidden() && canRender(renderer, RenderableType::CHANNEL))
     {
@@ -657,11 +624,11 @@ bool View3D::eventFilter(QObject* caller, QEvent* e)
     {
       if (me->modifiers() == Qt::CTRL)
       {
-        foreach(RendererSPtr renderer, m_renderers)
+        for(auto renderer: m_renderers.values())
         {
           if (!renderer->isHidden())
           {
-            ViewItemAdapterList selection = renderer->pick(newX, newY, 0, m_renderer, RenderableItems(RenderableType::SEGMENTATION|RenderableType::CHANNEL), false);
+            auto selection = renderer->pick(newX, newY, 0, m_renderer, RenderableItems(RenderableType::SEGMENTATION|RenderableType::CHANNEL), false);
             if (!selection.empty())
             {
               NmVector3 point = renderer->pickCoordinates();
@@ -773,16 +740,16 @@ void View3D::onTakeSnapshot()
 void View3D::changePlanePosition(Plane plane, Nm dist)
 {
   bool needUpdate = false;
-  //TODO: 2013-10-05 More Find another method
-//   foreach(RendererSPtr ren, m_renderers)
-//   {
-//     if (QString("Crosshairs") == ren->name())
-//     {
-//       CrosshairRenderer *crossren = reinterpret_cast<CrosshairRenderer *>(ren.get());
-//       crossren->setPlanePosition(plane, dist);
-//       needUpdate = !crossren->isHidden() && (crossren->itemsBeenRendered() != 0);
-//     }
-//   }
+
+  for(auto renderer: m_renderers.values())
+  {
+    auto channelRenderer = static_cast<ChannelRenderer *>(renderer.get());
+    if (canRender(renderer, RenderableType::CHANNEL) && channelRenderer)
+    {
+      channelRenderer->setPlanePosition(plane, dist);
+      needUpdate = !renderer->isHidden() && (renderer->numberOfRenderedItems() != 0);
+    }
+  }
 
   if (needUpdate)
     updateView();
@@ -822,8 +789,7 @@ void View3D::updateEnabledRenderersCount(bool value)
     m_numEnabledSegmentationRenders += updateValue;
     if (0 != m_numEnabledSegmentationRenders)
     {
-      QMap<EspinaWidget *, vtkAbstractWidget *>::const_iterator it = m_widgets.begin();
-      for( ; it != m_widgets.end(); ++it)
+      for(auto it = m_widgets.begin(); it != m_widgets.end(); ++it)
       {
         if (it.key()->manipulatesSegmentations())
         {
@@ -842,8 +808,8 @@ void View3D::updateRenderersControls()
 {
   bool canTakeSnapshot = false;
   bool canBeExported = false;
-  QMap<QPushButton *, RendererSPtr>::iterator it;
-  for(it = m_renderers.begin(); it != m_renderers.end(); ++it)
+
+  for(auto it = m_renderers.begin(); it != m_renderers.end(); ++it)
   {
     bool canRenderItems = it.value()->numberOfRenderedItems() != 0;
 
@@ -867,35 +833,31 @@ void View3D::scrollBarMoved(int value)
   Q_ASSERT(!m_channelStates.isEmpty());
   NmVector3 minSpacing = m_channelStates.keys().first()->output()->spacing();
 
-  foreach(ChannelAdapterPtr channel, m_channelStates.keys())
+  for(auto channel: m_channelStates.keys())
   {
     NmVector3 spacing = channel->output()->spacing();
-    if (spacing[0] < minSpacing[0])
-      minSpacing[0] = spacing[0];
-
-    if (spacing[1] < minSpacing[1])
-      minSpacing[1] = spacing[1];
-
-    if (spacing[2] < minSpacing[2])
-      minSpacing[2] = spacing[2];
+    minSpacing[0] = std::min(minSpacing[0], spacing[0]);
+    minSpacing[1] = std::min(minSpacing[1], spacing[1]);
+    minSpacing[2] = std::min(minSpacing[2], spacing[2]);
   }
 
   point[0] = m_axialScrollBar   ->value() * minSpacing[0];
   point[1] = m_coronalScrollBar ->value() * minSpacing[1];
   point[2] = m_sagittalScrollBar->value() * minSpacing[2];
 
-  // TODO 2013-10-05 Find another method
-//   foreach(RendererSPtr renderer, m_renderers)
-//   {
-//     if (canRender(renderer, RenderableType::CHANNEL))
-//     {
-//       CrosshairRenderer *crossRender = dynamic_cast<CrosshairRenderer *>(renderer.get());
-//       if (crossRender != nullptr)
-//         crossRender->setCrosshair(point);
-//     }
-//   }
+  bool needUpdate = false;
+  for(auto renderer: m_renderers.values())
+  {
+    auto channelRenderer = static_cast<ChannelRenderer *>(renderer.get());
+    if (canRender(renderer, RenderableType::CHANNEL) && channelRenderer)
+    {
+      channelRenderer->setCrosshair(point);
+      needUpdate = !renderer->isHidden() && (renderer->numberOfRenderedItems() != 0);
+    }
+  }
 
-  m_view->update();
+  if (needUpdate)
+    m_view->update();
 }
 
 //-----------------------------------------------------------------------------
@@ -915,25 +877,23 @@ void View3D::updateScrollBarsLimits()
     return;
   }
 
-  // TODO: Review this, before it was extent
-  Bounds maxExtent = m_channelStates.keys().first()->bounds();
+  // scrollbars deals with ints for their limits, so we need to use 'extent'
+  Bounds maxBounds = previewBounds();
+  auto minSpacing = m_channelStates.keys().first()->output()->spacing();
 
-  foreach (ChannelAdapterPtr channel, m_channelStates.keys())
+  for(auto channel: m_channelStates.keys())
   {
-    Bounds extent = channel->bounds();
-    for (int i = 0, j = 1; i < 6; i += 2, j += 2)
-    {
-      maxExtent[i] = std::min(extent[i], maxExtent[i]);
-      maxExtent[j] = std::max(extent[j], maxExtent[j]);
-    }
+    auto spacing = channel->output()->spacing();
+    for(auto i: { 0,1,2 })
+      minSpacing[i] = std::min(minSpacing[i], spacing[i]);
   }
 
-  m_axialScrollBar   ->setMinimum(maxExtent[0]);
-  m_axialScrollBar   ->setMaximum(maxExtent[1]);
-  m_coronalScrollBar ->setMinimum(maxExtent[2]);
-  m_coronalScrollBar ->setMaximum(maxExtent[3]);
-  m_sagittalScrollBar->setMinimum(maxExtent[4]);
-  m_sagittalScrollBar->setMaximum(maxExtent[5]);
+  m_axialScrollBar   ->setMinimum(vtkMath::Round(maxBounds[0]/minSpacing[0]));
+  m_axialScrollBar   ->setMaximum(vtkMath::Round(maxBounds[1]/minSpacing[0]));
+  m_coronalScrollBar ->setMinimum(vtkMath::Round(maxBounds[2]/minSpacing[1]));
+  m_coronalScrollBar ->setMaximum(vtkMath::Round(maxBounds[3]/minSpacing[1]));
+  m_sagittalScrollBar->setMinimum(vtkMath::Round(maxBounds[4]/minSpacing[2]));
+  m_sagittalScrollBar->setMaximum(vtkMath::Round(maxBounds[5]/minSpacing[2]));
 }
 
 //-----------------------------------------------------------------------------

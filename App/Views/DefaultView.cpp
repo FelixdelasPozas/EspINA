@@ -73,7 +73,6 @@ DefaultView::DefaultView(ModelAdapterSPtr     model,
   m_viewYZ = new View2D(Plane::YZ);
   m_view3D = new View3D(false);
 
-
   setObjectName("viewXY");
   m_viewXY->setCrosshairColors(m_xLine, m_yLine);
   initView2D(m_viewXY);

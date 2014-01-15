@@ -19,7 +19,7 @@
 #ifndef ESPINA_VIEW_3D_H
 #define ESPINA_VIEW_3D_H
 
-#include "GUI/View/RenderView.h"
+#include <GUI/View/RenderView.h>
 
 // EspINA
 #include "GUI/Representations/Renderers/Renderer.h"

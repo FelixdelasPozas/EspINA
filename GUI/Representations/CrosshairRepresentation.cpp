@@ -36,12 +36,16 @@
 #include <vtkLookupTable.h>
 #include <vtkImageShiftScale.h>
 #include <vtkImageData.h>
+#include <vtkImageMapper3D.h>
+#include <vtkImageMapToColors.h>
 
 // Qt
 #include <QColor>
 #include <QDebug>
 
 using namespace EspINA;
+
+const Representation::Type CrosshairRepresentation::TYPE = "Crosshair";
 
 //------------------------------------------------------------------------
 CrosshairRepresentation::CrosshairRepresentation(VolumeSPtr data, RenderView *view)
@@ -50,12 +54,12 @@ CrosshairRepresentation::CrosshairRepresentation(VolumeSPtr data, RenderView *vi
 , m_axialExporter(nullptr)
 , m_coronalExporter(nullptr)
 , m_sagittalExporter(nullptr)
-, m_axialImporter(nullptr)
-, m_coronalImporter(nullptr)
-, m_sagittalImporter(nullptr)
 , m_axial(nullptr)
 , m_coronal(nullptr)
 , m_sagittal(nullptr)
+, m_axialImageMapToColors(nullptr)
+, m_coronalImageMapToColors(nullptr)
+, m_sagittalImageMapToColors(nullptr)
 , m_axialBorder(nullptr)
 , m_coronalBorder(nullptr)
 , m_sagittalBorder(nullptr)
@@ -159,53 +163,74 @@ void CrosshairRepresentation::updateRepresentation()
   if (m_axial == nullptr)
     return;
 
-  int reslicePoint = m_point[normalCoordinateIndex(Plane::XY)];
+  int coordIndex = normalCoordinateIndex(Plane::XY);
+  int reslicePoint = m_point[coordIndex];
 
   Bounds imageBounds = m_data->bounds();
-  imageBounds.setUpperInclusion(true);
-  imageBounds.setLowerInclusion(true);
-  imageBounds[2*normalCoordinateIndex(Plane::XY)] = reslicePoint;
-  imageBounds[(2*normalCoordinateIndex(Plane::XY))+1] = reslicePoint;
+  imageBounds[2*coordIndex] = imageBounds[(2*coordIndex)+1] = reslicePoint;
+  imageBounds.setUpperInclusion(toAxis(coordIndex), true);
 
+  m_axialExporter = ExporterType::New();
+  m_axialExporter->ReleaseDataFlagOn();
+  m_axialExporter->SetNumberOfThreads(1);
   m_axialExporter->SetInput(m_data->itkImage(imageBounds));
   m_axialExporter->Update();
-  m_axialImporter->Update();
 
-  reslicePoint = m_point[normalCoordinateIndex(Plane::XZ)];
-
-  imageBounds = m_data->bounds();
-  imageBounds.setUpperInclusion(true);
-  imageBounds.setLowerInclusion(true);
-  imageBounds[2*normalCoordinateIndex(Plane::XZ)] = reslicePoint;
-  imageBounds[(2*normalCoordinateIndex(Plane::XZ))+1] = reslicePoint;
-
-  m_coronalExporter->SetInput(m_data->itkImage(imageBounds));
-  m_coronalExporter->Update();
-  m_coronalImporter->Update();
-
-  reslicePoint = m_point[normalCoordinateIndex(Plane::YZ)];
-
-  imageBounds = m_data->bounds();
-  imageBounds.setUpperInclusion(true);
-  imageBounds.setLowerInclusion(true);
-  imageBounds[2*normalCoordinateIndex(Plane::YZ)] = reslicePoint;
-  imageBounds[(2*normalCoordinateIndex(Plane::YZ))+1] = reslicePoint;
-
-  m_sagittalExporter->SetInput(m_data->itkImage(imageBounds));
-  m_sagittalExporter->Update();
-  m_sagittalImporter->Update();
-
-  m_axialScaler->SetInputConnection(m_axialImporter->GetOutputPort());
-  m_axialScaler->SetOutputScalarType(m_axialImporter->GetOutput()->GetScalarType());
+  m_axialScaler->SetInputData(m_axialExporter->GetOutput());
   m_axialScaler->Update();
 
-  m_coronalScaler->SetInputConnection(m_axialImporter->GetOutputPort());
-  m_coronalScaler->SetOutputScalarType(m_axialImporter->GetOutput()->GetScalarType());
+  m_axialImageMapToColors->SetInputConnection(m_axialScaler->GetOutputPort());
+  m_axialImageMapToColors->Update();
+
+  m_axial->GetMapper()->SetInputConnection(m_axialImageMapToColors->GetOutputPort());
+  m_axial->SetDisplayExtent(m_axialExporter->GetOutput()->GetExtent());
+  m_axial->Update();
+
+  coordIndex = normalCoordinateIndex(Plane::XZ);
+  reslicePoint = m_point[coordIndex];
+
+  imageBounds = m_data->bounds();
+  imageBounds[2*coordIndex] = imageBounds[(2*coordIndex)+1] = reslicePoint;
+  imageBounds.setUpperInclusion(toAxis(coordIndex), true);
+
+  m_coronalExporter = ExporterType::New();
+  m_coronalExporter->ReleaseDataFlagOn();
+  m_coronalExporter->SetNumberOfThreads(1);
+  m_coronalExporter->SetInput(m_data->itkImage(imageBounds));
+  m_coronalExporter->Update();
+
+  m_coronalScaler->SetInputData(m_coronalExporter->GetOutput());
   m_coronalScaler->Update();
 
-  m_sagittalScaler->SetInputConnection(m_axialImporter->GetOutputPort());
-  m_sagittalScaler->SetOutputScalarType(m_axialImporter->GetOutput()->GetScalarType());
+  m_coronalImageMapToColors->SetInputConnection(m_coronalScaler->GetOutputPort());
+  m_coronalImageMapToColors->Update();
+
+  m_coronal->GetMapper()->SetInputConnection(m_coronalImageMapToColors->GetOutputPort());
+  m_coronal->SetDisplayExtent(m_coronalExporter->GetOutput()->GetExtent());
+  m_coronal->Update();
+
+  coordIndex = normalCoordinateIndex(Plane::YZ);
+  reslicePoint = m_point[coordIndex];
+
+  imageBounds = m_data->bounds();
+  imageBounds[2*coordIndex] = imageBounds[(2*coordIndex)+1] = reslicePoint;
+  imageBounds.setUpperInclusion(toAxis(coordIndex), true);
+
+  m_sagittalExporter = ExporterType::New();
+  m_sagittalExporter->ReleaseDataFlagOn();
+  m_sagittalExporter->SetNumberOfThreads(1);
+  m_sagittalExporter->SetInput(m_data->itkImage(imageBounds));
+  m_sagittalExporter->Update();
+
+  m_sagittalScaler->SetInputData(m_sagittalExporter->GetOutput());
   m_sagittalScaler->Update();
+
+  m_sagittalImageMapToColors->SetInputConnection(m_sagittalScaler->GetOutputPort());
+  m_sagittalImageMapToColors->Update();
+
+  m_sagittal->GetMapper()->SetInputConnection(m_sagittalImageMapToColors->GetOutputPort());
+  m_sagittal->SetDisplayExtent(m_sagittalExporter->GetOutput()->GetExtent());
+  m_sagittal->Update();
 
   m_bounds = m_data->bounds();
   double ap0[3] = { m_bounds[0], m_bounds[2], m_bounds[4] };
@@ -295,10 +320,6 @@ void CrosshairRepresentation::updateRepresentation()
   m_sagittalSquare->SetLines(sagittalLines);
   m_sagittalSquare->Modified();
 
-  m_axial->Update();
-  m_coronal->Update();
-  m_sagittal->Update();
-
   m_axialBorder->Modified();
   m_coronalBorder->Modified();
   m_sagittalBorder->Modified();
@@ -307,63 +328,6 @@ void CrosshairRepresentation::updateRepresentation()
 //-----------------------------------------------------------------------------
 void CrosshairRepresentation::initializePipeline()
 {
-  int reslicePoint = m_crosshair[normalCoordinateIndex(Plane::XY)];
-
-  Bounds imageBounds = m_data->bounds();
-  imageBounds.setUpperInclusion(true);
-  imageBounds.setLowerInclusion(true);
-  imageBounds[2*normalCoordinateIndex(Plane::XY)] = reslicePoint;
-  imageBounds[(2*normalCoordinateIndex(Plane::XY))+1] = reslicePoint;
-
-  m_axialExporter = ExporterType::New();
-  m_axialExporter->ReleaseDataFlagOn();
-  m_axialExporter->SetInput(m_data->itkImage(imageBounds));
-  m_axialExporter->UpdateLargestPossibleRegion();
-
-  m_axialImporter = vtkSmartPointer<vtkImageImport>::New();
-  m_axialImporter->SetInputData(m_axialExporter->GetOutput());
-  m_axialImporter->SetDataExtentToWholeExtent();
-  m_axialImporter->SetDataScalarTypeToUnsignedChar();
-  m_axialImporter->UpdateWholeExtent();
-
-  reslicePoint = m_crosshair[normalCoordinateIndex(Plane::XZ)];
-
-  imageBounds = m_data->bounds();
-  imageBounds.setUpperInclusion(true);
-  imageBounds.setLowerInclusion(true);
-  imageBounds[2*normalCoordinateIndex(Plane::XZ)] = reslicePoint;
-  imageBounds[(2*normalCoordinateIndex(Plane::XZ))+1] = reslicePoint;
-
-  m_coronalExporter = ExporterType::New();
-  m_coronalExporter->ReleaseDataFlagOn();
-  m_coronalExporter->SetInput(m_data->itkImage(imageBounds));
-  m_coronalExporter->UpdateLargestPossibleRegion();
-
-  m_coronalImporter = vtkSmartPointer<vtkImageImport>::New();
-  m_coronalImporter->SetInputData(m_coronalExporter->GetOutput());
-  m_coronalImporter->SetDataExtentToWholeExtent();
-  m_coronalImporter->SetDataScalarTypeToUnsignedChar();
-  m_coronalImporter->UpdateWholeExtent();
-
-  reslicePoint = m_crosshair[normalCoordinateIndex(Plane::YZ)];
-
-  imageBounds = m_data->bounds();
-  imageBounds.setUpperInclusion(true);
-  imageBounds.setLowerInclusion(true);
-  imageBounds[2*normalCoordinateIndex(Plane::YZ)] = reslicePoint;
-  imageBounds[(2*normalCoordinateIndex(Plane::YZ))+1] = reslicePoint;
-
-  m_sagittalExporter = ExporterType::New();
-  m_sagittalExporter->ReleaseDataFlagOn();
-  m_sagittalExporter->SetInput(m_data->itkImage(imageBounds));
-  m_sagittalExporter->UpdateLargestPossibleRegion();
-
-  m_sagittalImporter = vtkSmartPointer<vtkImageImport>::New();
-  m_sagittalImporter->SetInputData(m_sagittalExporter->GetOutput());
-  m_sagittalImporter->SetDataExtentToWholeExtent();
-  m_sagittalImporter->SetDataScalarTypeToUnsignedChar();
-  m_sagittalImporter->UpdateWholeExtent();
-
   m_lut = vtkSmartPointer<vtkLookupTable>::New();
   m_lut->Allocate();
   m_lut->SetVectorModeToRGBColors();
@@ -376,71 +340,109 @@ void CrosshairRepresentation::initializePipeline()
   m_lut->SetRampToLinear();
   m_lut->Build();
 
+  int coordIndex = normalCoordinateIndex(Plane::XY);
+  int reslicePoint = m_crosshair[coordIndex];
+
+  Bounds imageBounds = m_data->bounds();
+  imageBounds[2*coordIndex] = imageBounds[(2*coordIndex)+1] = reslicePoint;
+  imageBounds.setUpperInclusion(toAxis(coordIndex), true);
+
+  m_axialExporter = ExporterType::New();
+  m_axialExporter->ReleaseDataFlagOn();
+  m_axialExporter->SetNumberOfThreads(1);
+  m_axialExporter->SetInput(m_data->itkImage(imageBounds));
+  m_axialExporter->Update();
+
   m_axialScaler = vtkSmartPointer<vtkImageShiftScale>::New();
-  m_axialScaler->SetInputConnection(m_axialImporter->GetOutputPort());
+  m_axialScaler->SetInputData(m_axialExporter->GetOutput());
   m_axialScaler->SetShift(static_cast<int>(m_brightness * 255));
   m_axialScaler->SetScale(m_contrast);
   m_axialScaler->SetClampOverflow(true);
-  m_axialScaler->SetOutputScalarType(m_axialImporter->GetOutput()->GetScalarType());
+  m_axialScaler->SetOutputScalarType(m_axialExporter->GetOutput()->GetScalarType());
   m_axialScaler->Update();
 
-  vtkSmartPointer<vtkImageMapToColors> axialImagemap = vtkSmartPointer<vtkImageMapToColors>::New();
-  axialImagemap->SetLookupTable(m_lut);
-  axialImagemap->SetOutputFormatToRGBA();
-  axialImagemap->SetInputConnection(m_axialScaler->GetOutputPort());
+  m_axialImageMapToColors = vtkSmartPointer<vtkImageMapToColors>::New();
+  m_axialImageMapToColors->SetInputConnection(m_axialScaler->GetOutputPort());
+  m_axialImageMapToColors->SetLookupTable(m_lut);
+  m_axialImageMapToColors->SetNumberOfThreads(1);
+  m_axialImageMapToColors->Update();
+
+  m_axial = vtkSmartPointer<vtkImageActor>::New();
+  m_axial->SetInterpolate(false);
+  m_axial->GetMapper()->BorderOn();
+  m_axial->GetMapper()->SetInputConnection(m_axialImageMapToColors->GetOutputPort());
+  m_axial->SetDisplayExtent(m_axialImageMapToColors->GetOutput()->GetExtent());
+  m_axial->SetVisibility(isVisible());
+  m_axial->Update();
+
+  coordIndex = normalCoordinateIndex(Plane::XZ);
+  reslicePoint = m_crosshair[coordIndex];
+
+  imageBounds = m_data->bounds();
+  imageBounds[2 * coordIndex] = imageBounds[(2 * coordIndex) + 1] = reslicePoint;
+  imageBounds.setUpperInclusion(toAxis(coordIndex), true);
+
+  m_coronalExporter = ExporterType::New();
+  m_coronalExporter->ReleaseDataFlagOn();
+  m_coronalExporter->SetNumberOfThreads(1);
+  m_coronalExporter->SetInput(m_data->itkImage(imageBounds));
+  m_coronalExporter->Update();
 
   m_coronalScaler = vtkSmartPointer<vtkImageShiftScale>::New();
-  m_coronalScaler->SetInputConnection(m_coronalImporter->GetOutputPort());
+  m_coronalScaler->SetInputData(m_coronalExporter->GetOutput());
   m_coronalScaler->SetShift(static_cast<int>(m_brightness * 255));
   m_coronalScaler->SetScale(m_contrast);
   m_coronalScaler->SetClampOverflow(true);
-  m_coronalScaler->SetOutputScalarType(m_coronalImporter->GetOutput()->GetScalarType());
+  m_coronalScaler->SetOutputScalarType(m_coronalExporter->GetOutput()->GetScalarType());
   m_coronalScaler->Update();
 
-  vtkSmartPointer<vtkImageMapToColors> coronalImagemap = vtkSmartPointer<vtkImageMapToColors>::New();
-  coronalImagemap->SetLookupTable(m_lut);
-  coronalImagemap->SetOutputFormatToRGBA();
-  coronalImagemap->SetInputConnection(m_coronalScaler->GetOutputPort());
+  m_coronalImageMapToColors = vtkSmartPointer<vtkImageMapToColors>::New();
+  m_coronalImageMapToColors->SetInputConnection(m_coronalScaler->GetOutputPort());
+  m_coronalImageMapToColors->SetLookupTable(m_lut);
+  m_coronalImageMapToColors->SetNumberOfThreads(1);
+  m_coronalImageMapToColors->Update();
+
+  m_coronal = vtkSmartPointer<vtkImageActor>::New();
+  m_coronal->SetInterpolate(false);
+  m_coronal->GetMapper()->BorderOn();
+  m_coronal->GetMapper()->SetInputConnection(m_coronalImageMapToColors->GetOutputPort());
+  m_coronal->SetDisplayExtent(m_coronalImageMapToColors->GetOutput()->GetExtent());
+  m_coronal->SetVisibility(isVisible());
+  m_coronal->Update();
+
+  coordIndex = normalCoordinateIndex(Plane::YZ);
+  reslicePoint = m_crosshair[coordIndex];
+
+  imageBounds = m_data->bounds();
+  imageBounds[2 * coordIndex] = imageBounds[(2 * coordIndex) + 1] = reslicePoint;
+
+  m_sagittalExporter = ExporterType::New();
+  m_sagittalExporter->ReleaseDataFlagOn();
+  m_sagittalExporter->SetNumberOfThreads(1);
+  m_sagittalExporter->SetInput(m_data->itkImage(imageBounds));
+  m_sagittalExporter->UpdateLargestPossibleRegion();
 
   m_sagittalScaler = vtkSmartPointer<vtkImageShiftScale>::New();
-  m_sagittalScaler->SetInputConnection(m_sagittalImporter->GetOutputPort());
+  m_sagittalScaler->SetInputData(m_sagittalExporter->GetOutput());
   m_sagittalScaler->SetShift(static_cast<int>(m_brightness * 255));
   m_sagittalScaler->SetScale(m_contrast);
   m_sagittalScaler->SetClampOverflow(true);
-  m_sagittalScaler->SetOutputScalarType(m_sagittalImporter->GetOutput()->GetScalarType());
+  m_sagittalScaler->SetOutputScalarType(m_sagittalExporter->GetOutput()->GetScalarType());
   m_sagittalScaler->Update();
 
-  vtkSmartPointer<vtkImageMapToColors> sagittalImagemap = vtkSmartPointer<vtkImageMapToColors>::New();
-  sagittalImagemap->SetLookupTable(m_lut);
-  sagittalImagemap->SetOutputFormatToRGBA();
-  sagittalImagemap->SetInputConnection(m_sagittalScaler->GetOutputPort());
-
-  m_axial = vtkSmartPointer<vtkImageActor>::New();
-  m_axial->SetInputData(axialImagemap->GetOutput());
-  m_axial->SetInterpolate(false);
-
-  m_coronal = vtkSmartPointer<vtkImageActor>::New();
-  m_coronal->SetInputData(coronalImagemap->GetOutput());
-  m_coronal->SetInterpolate(false);
+  m_sagittalImageMapToColors = vtkSmartPointer<vtkImageMapToColors>::New();
+  m_sagittalImageMapToColors->SetInputConnection(m_sagittalScaler->GetOutputPort());
+  m_sagittalImageMapToColors->SetLookupTable(m_lut);
+  m_sagittalImageMapToColors->SetNumberOfThreads(1);
+  m_sagittalImageMapToColors->Update();
 
   m_sagittal = vtkSmartPointer<vtkImageActor>::New();
-  m_sagittal->SetInputData(sagittalImagemap->GetOutput());
   m_sagittal->SetInterpolate(false);
-
-  // rotate actors
-  double center[3], origin[3];
-  memcpy(origin, m_coronal->GetOrigin(), 3 * sizeof(double));
-  memcpy(center, m_coronal->GetCenter(), 3 * sizeof(double));
-  m_coronal->SetOrigin(center);
-  m_coronal->RotateX(90);
-  m_coronal->SetOrigin(origin);
-
-  memcpy(origin, m_sagittal->GetOrigin(), 3 * sizeof(double));
-  memcpy(center, m_sagittal->GetCenter(), 3 * sizeof(double));
-  m_sagittal->SetOrigin(center);
-  m_sagittal->RotateX(90);
-  m_sagittal->RotateY(90);
-  m_sagittal->SetOrigin(origin);
+  m_sagittal->GetMapper()->BorderOn();
+  m_sagittal->GetMapper()->SetInputConnection(m_sagittalImageMapToColors->GetOutputPort());
+  m_sagittal->SetDisplayExtent(m_sagittalImageMapToColors->GetOutput()->GetExtent());
+  m_sagittal->SetVisibility(isVisible());
+  m_sagittal->Update();
 
   m_bounds = m_data->bounds();
   double ap0[3] = { m_bounds[0], m_bounds[2], m_bounds[4] };
@@ -636,7 +638,6 @@ void CrosshairRepresentation::setCrosshair(NmVector3 point)
       double actorpos[3];
       m_sagittal->GetPosition(actorpos);
       actorpos[0] = m_point[0];
-      m_sagittal->SetPosition(actorpos);
       m_sagittalBorder->SetPosition(actorpos);
     }
   }
@@ -668,7 +669,6 @@ void CrosshairRepresentation::setCrosshair(NmVector3 point)
       double actorpos[3];
       m_coronal->GetPosition(actorpos);
       actorpos[1] = m_point[1];
-      m_coronal->SetPosition(actorpos);
       m_coronalBorder->SetPosition(actorpos);
     }
   }
@@ -700,7 +700,6 @@ void CrosshairRepresentation::setCrosshair(NmVector3 point)
       double actorpos[3];
       m_axial->GetPosition(actorpos);
       actorpos[2] = m_point[2];
-      m_axial->SetPosition(actorpos);
       m_axialBorder->SetPosition(actorpos);
     }
   }

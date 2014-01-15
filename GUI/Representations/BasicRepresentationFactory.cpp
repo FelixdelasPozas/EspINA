@@ -20,6 +20,7 @@
 #include "BasicRepresentationFactory.h"
 #include "SliceRepresentation.h"
 #include <Core/Analysis/Data/VolumetricData.h>
+#include "CrosshairRepresentation.h"
 
 // #include "SliceRepresentation.h"
 // #include "SimpleMeshRepresentation.h"
@@ -41,6 +42,7 @@ RepresentationTypeList BasicChannelRepresentationFactory::representations() cons
   RepresentationTypeList representations;
 
   representations << ChannelSliceRepresentation::TYPE;
+  representations << CrosshairRepresentation::TYPE;
 
   return representations;
 }
@@ -54,8 +56,13 @@ RepresentationSPtr BasicChannelRepresentationFactory::createRepresentation(Outpu
   if (type == ChannelSliceRepresentation::TYPE)
   {
     DefaultVolumetricDataSPtr volume = volumetricData(output);
-
     representation = RepresentationSPtr{new ChannelSliceRepresentation(volume, nullptr)};
+  }
+
+  if (type == CrosshairRepresentation::TYPE)
+  {
+    DefaultVolumetricDataSPtr volume = volumetricData(output);
+    representation = RepresentationSPtr { new CrosshairRepresentation(volume, nullptr) };
   }
 
   return representation;

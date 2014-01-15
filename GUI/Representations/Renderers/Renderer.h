@@ -147,6 +147,19 @@ namespace EspINA
     RenderView* m_view;
   };
 
+  class EspinaGUI_EXPORT ChannelRenderer
+  : public Renderer
+  {
+    public:
+      explicit ChannelRenderer(QObject* parent = 0): Renderer(parent) {}
+      virtual ~ChannelRenderer() {}
+
+      virtual void setCrosshairColors(double axialColor[3], double coronalColor[3], double sagittalColor[3]) = 0;
+      virtual void setCrosshair(NmVector3 point) = 0;
+      virtual void setPlanePosition(Plane plane, Nm dist) = 0;
+  };
+
+
   bool EspinaGUI_EXPORT canRender(RendererSPtr renderer, RendererType type);
   bool EspinaGUI_EXPORT canRender(RendererSPtr renderer, RenderableType type);
 

@@ -15,8 +15,8 @@
  *    You should have received a copy of the GNU General Public License
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef CROSSHAIRRENDERER_H
-#define CROSSHAIRRENDERER_H
+#ifndef ESPINA_CROSSHAIR_RENDERER_H
+#define ESPINA_CROSSHAIR_RENDERER_H
 
 #include "EspinaGUI_Export.h"
 
@@ -41,7 +41,7 @@ namespace EspINA
   class ViewManager;
 
   class EspinaGUI_EXPORT CrosshairRenderer
-  : public Renderer
+  : public ChannelRenderer
   {
   public:
     explicit CrosshairRenderer(QObject* parent = 0);
@@ -89,4 +89,4 @@ namespace EspINA
 
 } // namespace EspINA
 
-#endif // CROSSHAIRRENDERER_H
+#endif // ESPINA_CROSSHAIR_RENDERER_H
