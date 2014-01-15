@@ -23,10 +23,13 @@
 #include <Extensions/EdgeDistances/EdgeDistance.h>
 #include <GUI/Utils/Conditions.h>
 #include <Core/Analysis/Query.h>
+#include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Segmentation.h>
+#include <Core/Analysis/Data/VolumetricData.h>
 
 #include <vtkCellArray.h>
 #include <vtkCellData.h>
+#include <itkImageRegionIterator.h>
 
 #include <QDebug>
 #include <QApplication>
@@ -150,26 +153,25 @@ QString StereologicalInclusion::toolTipText() const
 void StereologicalInclusion::setCountingFrames(CountingFrameList countingFrames)
 {
   Q_ASSERT(m_segmentation);
-//   //   EXTENSION_DEBUG("Updating " << m_seg->id() << " bounding regions...");
-//   //   EXTENSION_DEBUG("\tNumber of regions applied:" << regions.size());
-//   QSet<CountingFrame *> prevCF = m_exclusionCFs.keys().toSet();
-//   QSet<CountingFrame *> newCF  = countingFrames.toSet();
-//
-//   ExtensionData &data = s_cache[m_segmentation].Data;
-//   data.IsExcluded = false;
-//   // Remove regions that doesn't exist anymore
-//   foreach(CountingFrame *cf, prevCF.subtract(newCF))
-//   {
-//     m_exclusionCFs.remove(cf);
-//     data.ExclusionCFs.remove(cf->id());
-//   }
-//
-//   foreach(CountingFrame *countingFrame, newCF.subtract(prevCF))
-//   {
-//     evaluateCountingFrame(countingFrame);
-//   }
+  //   EXTENSION_DEBUG("Updating " << m_seg->id() << " bounding regions...");
+  //   EXTENSION_DEBUG("\tNumber of regions applied:" << regions.size());
+  QSet<CountingFrame *> prevCF = m_exclusionCFs.keys().toSet();
+  QSet<CountingFrame *> newCF  = countingFrames.toSet();
 
-  //   EXTENSION_DEBUG("Counting Region Extension request Segmentation Update");
+  m_isExcluded = false;
+
+  // Remove regions that doesn't exist anymore
+  for(auto cf : prevCF.subtract(newCF))
+  {
+    m_exclusionCFs.remove(cf);
+    m_excludedByCF.remove(cf->id());
+  }
+
+  for(auto cf : newCF.subtract(prevCF))
+  {
+    evaluateCountingFrame(cf);
+  }
+//     EXTENSION_DEBUG("Counting Region Extension request Segmentation Update");
 }
 
 // //------------------------------------------------------------------------
@@ -279,6 +281,8 @@ bool StereologicalInclusion::isExcluded() const
 //------------------------------------------------------------------------
 void StereologicalInclusion::evaluateCountingFrames()
 {
+  m_isInitialized = false;
+
   if (!m_segmentation)
     return;
 
@@ -289,164 +293,177 @@ void StereologicalInclusion::evaluateCountingFrames()
     qWarning() << "Counting Frame<evaluateCountingFrames>: Tiling mode not suppoerted";
   } else if (!samples.isEmpty())
   {
+    auto sample = samples.first();
 
+    CountingFrameList countingFrames;
+    for(auto channel : Query::channels(sample))
+    {
+      if (channel->hasExtension(CountingFrameExtension::TYPE))
+      {
+        auto extension = channel->extension(CountingFrameExtension::TYPE);
+
+        auto cfExtension = std::dynamic_pointer_cast<CountingFrameExtension>(extension);
+        countingFrames << cfExtension->countingFrames();
+      }
+    }
+
+    if (countingFrames.isEmpty())
+    {
+      m_isExcluded = false;
+    } else
+    {
+      m_isOnEdge = isOnEdge();
+
+      setCountingFrames(countingFrames);
+    }
+
+    m_isInitialized = true;
+  }
+}
+
+//------------------------------------------------------------------------
+void StereologicalInclusion::evaluateCountingFrame(CountingFrame* cf)
+{
+  // Compute CF's exclusion value
+  bool excluded = m_isOnEdge || isExcludedByCountingFrame(cf);
+
+  m_exclusionCFs[cf] = excluded;
+
+  m_excludedByCF[cf->id()] = excluded;
+
+  // Update segmentation's exclusion value
+  excluded = true;
+
+  int i = 0;
+  CountingFrameList countingFrames = m_exclusionCFs.keys();
+  while (excluded && i < countingFrames.size())
+  {
+    excluded = excluded && m_exclusionCFs[countingFrames[i]];
+    i++;
+  }
+  m_isExcluded = excluded;
+}
+
+//------------------------------------------------------------------------
+bool StereologicalInclusion::isExcludedByCountingFrame(CountingFrame* cf)
+{
+  auto categoryConstraint = cf->categoryConstraint();
+
+  if (categoryConstraint && m_segmentation->category() != categoryConstraint)
+    return true;
+
+  Bounds inputBB = m_segmentation->output()->bounds();
+  qDebug() << "Input:" << inputBB.toString();
+
+  vtkPolyData  *region       = cf->region();
+  vtkPoints    *regionPoints = region->GetPoints();
+  vtkCellArray *regionFaces  = region->GetPolys();
+  vtkCellData  *faceData     = region->GetCellData();
+
+  auto pointBounds = [] (vtkPoints *points) {
+    Bounds bounds;
+    for (int i = 0; i < 6; ++i)
+      bounds[i] = points->GetBounds()[i];
+    return bounds;
+  };
+
+  Bounds regionBB = pointBounds(regionPoints);
+  qDebug() << "Region:" << regionBB.toString();
+
+  // If there is no intersection (nor is inside), then it is excluded
+  if (!intersect(inputBB, regionBB))
+    return true;
+
+  bool collisionDected = false;
+  // Otherwise, we have to test all faces collisions
+  int numOfCells = regionFaces->GetNumberOfCells();
+  regionFaces->InitTraversal();
+  for(int f=0; f < numOfCells; f++)
+  {
+    vtkIdType npts, *pts;
+    regionFaces->GetNextCell(npts, pts);
+
+    vtkSmartPointer<vtkPoints> facePoints = vtkSmartPointer<vtkPoints>::New();
+    for (int i=0; i < npts; i++)
+      facePoints->InsertNextPoint(regionPoints->GetPoint(pts[i]));
+
+    Bounds faceBB = pointBounds(facePoints);
+    qDebug() << "Face:" << faceBB.toString();
+    qDebug() << " - intersect:" << intersect(inputBB, faceBB);
+    qDebug() << " - interscetion:" << intersection(inputBB, faceBB).toString();
+    qDebug() << " - type:" << faceData->GetScalars()->GetComponent(f, 0);
+
+    if (intersect(inputBB, faceBB) && isRealCollision(intersection(inputBB, faceBB)))
+    {
+      if (faceData->GetScalars()->GetComponent(f,0) == cf->EXCLUSION_FACE)
+        return true;
+      collisionDected = true;
+    }
   }
 
-//   CountingFrameList countingFrames;
-//   for(auto channel : Query::channels(sample))
-//   {
-//     Channel::ExtensionPtr ext = channel->extension(CountingFrameExtensionID);
-//     if (ext)
-//     {
-//       CountingFrameExtension *channelExt = dynamic_cast<CountingFrameExtension *>(ext);
-//       countingFrames << channelExt->countingFrames();
-//     }
-//   }
-//
-//   if (!countingFrames.isEmpty())
-//   {
-//     m_isOnEdge = isOnEdge();
-//
-//     setCountingFrames(countingFrames);
-//   } else
-//   {
-//     s_cache[m_segmentation].Data.IsExcluded = false;
-//   }
-//   s_cache.markAsClean(m_segmentation);
-}
+  if (collisionDected)
+    return false;
 
-//------------------------------------------------------------------------
-void StereologicalInclusion::evaluateCountingFrame(CountingFrame* countingFrame)
-{
-//   // Compute CF's exclusion value
-//   bool excluded = m_isOnEdge || isExcludedFromCountingFrame(countingFrame);
-//
-//   m_exclusionCFs[countingFrame] = excluded;
-//
-//   ExtensionData &data = s_cache[m_segmentation].Data;
-//   data.ExclusionCFs[countingFrame->id()] = excluded;
-//
-//   // Update segmentation's exclusion value
-//   excluded = true;
-//
-//   int i = 0;
-//   CountingFrameList countingFrames = m_exclusionCFs.keys();
-//   while (excluded && i < countingFrames.size())
-//   {
-//     excluded = excluded && m_exclusionCFs[countingFrames[i]];
-//     i++;
-//   }
-//   data.IsExcluded = excluded;
-//
-//   s_cache.markAsClean(m_segmentation);
-}
+  // If no collision was detected we have to check for inclusion
+  for (int p=0; p + 7 < regionPoints->GetNumberOfPoints(); p +=4)
+  {
+    vtkSmartPointer<vtkPoints> slicePoints = vtkSmartPointer<vtkPoints>::New();
+    for (int i=0; i < 8; i++)
+      slicePoints->InsertNextPoint(regionPoints->GetPoint(p+i));
 
+    Bounds sliceBB = pointBounds(slicePoints);
+    if (intersect(inputBB, sliceBB) && isRealCollision(intersection(inputBB, sliceBB)))
+      return false;//;
+  }
 
-//------------------------------------------------------------------------
-bool StereologicalInclusion::isExcludedFromCountingFrame(CountingFrame* countingFrame)
-{
-//   const TaxonomyElement *taxonomicalConstraint = countingFrame->taxonomicalConstraint();
-//
-//   if (taxonomicalConstraint && m_segmentation->taxonomy().get() != taxonomicalConstraint)
-//     return true;
-//
-//   EspinaRegion inputBB = m_segmentation->output()->region();
-//
-//   vtkPolyData  *region       = countingFrame->region();
-//   vtkPoints    *regionPoints = region->GetPoints();
-//   vtkCellArray *regionFaces  = region->GetPolys();
-//   vtkCellData  *faceData     = region->GetCellData();
-//
-//   double bounds[6];
-//   regionPoints->GetBounds(bounds);
-//   EspinaRegion regionBB(bounds);
-//
-//   // If there is no intersection (nor is inside), then it is excluded
-//   if (!inputBB.intersect(regionBB))
-//     return true;
-//
-//   bool collisionDected = false;
-//   // Otherwise, we have to test all faces collisions
-//   int numOfCells = regionFaces->GetNumberOfCells();
-//   regionFaces->InitTraversal();
-//   for(int f=0; f < numOfCells; f++)
-//   {
-//     vtkIdType npts, *pts;
-//     regionFaces->GetNextCell(npts, pts);
-//
-//     vtkSmartPointer<vtkPoints> facePoints = vtkSmartPointer<vtkPoints>::New();
-//     for (int i=0; i < npts; i++)
-//       facePoints->InsertNextPoint(regionPoints->GetPoint(pts[i]));
-//
-//     facePoints->GetBounds(bounds);
-//     EspinaRegion faceBB(bounds);
-//     if (inputBB.intersect(faceBB) && isRealCollision(inputBB.intersection(faceBB)))
-//     {
-//       if (faceData->GetScalars()->GetComponent(f,0) == 0)
-//         return true;
-//       collisionDected = true;
-//     }
-//   }
-//
-//   if (collisionDected)
-//     return false;
-//
-//   // If no collision was detected we have to check for inclusion
-//   for (int p=0; p + 7 < regionPoints->GetNumberOfPoints(); p +=4)
-//   {
-//     vtkSmartPointer<vtkPoints> slicePoints = vtkSmartPointer<vtkPoints>::New();
-//     for (int i=0; i < 8; i++)
-//       slicePoints->InsertNextPoint(regionPoints->GetPoint(p+i));
-//
-//     slicePoints->GetBounds(bounds);
-//     EspinaRegion sliceBB(bounds);
-//     if (inputBB.intersect(sliceBB) && isRealCollision(inputBB.intersection(sliceBB)))
-//       return false;//;
-//   }
-//
-//   // If no internal collision was detected, then the input was indeed outside our
-//   // bounding region
-//   return true;
+  // If no internal collision was detected, then the input was indeed outside our
+  // bounding region
+  return true;
 }
 
 //------------------------------------------------------------------------
 bool StereologicalInclusion::isOnEdge()
 {
   bool excluded  = false;
-//   Nm   threshold = 1.0;
-//
-//   Segmentation::InformationExtension ext = m_segmentation->informationExtension(EdgeDistanceID);
-//   if (ext)
-//   {
-//     EdgeDistancePtr distanceExtension = dynamic_cast<EdgeDistancePtr>(ext);
-//     Segmentation::InfoTagList tags = distanceExtension->availableInformations();
-//     int i = 0;
-//     while (!excluded && i < tags.size())
-//     {
-//       bool ok = false;
-//       double dist = m_segmentation->information(tags[i++]).toDouble(&ok);
-//       excluded = ok && dist < threshold;
-//     }
-//   }
-//
+  Nm   threshold = 1.0;
+
+  if (m_segmentation->hasExtension(EdgeDistance::TYPE))
+  {
+    auto extension = m_segmentation->extension(EdgeDistance::TYPE);
+
+    auto distanceExtension = std::dynamic_pointer_cast<EdgeDistance>(extension);
+
+    auto tags = distanceExtension->availableInformations();
+
+    int i = 0;
+    while (!excluded && i < tags.size())
+    {
+      bool   ok   = false;
+      double dist = m_segmentation->information(tags[i++]).toDouble(&ok);
+
+      excluded = ok && dist < threshold;
+    }
+  }
+
   return excluded;
 }
 
 //------------------------------------------------------------------------
 bool StereologicalInclusion::isRealCollision(const Bounds& interscetion)
 {
-//   // TODO: esto tiene en cuenta el shift del origen de las imágenes de ITK?
-//   SegmentationVolumeSPtr volume = segmentationVolume(m_segmentation->output());
-//
-//   itkVolumeType::Pointer input = volume->toITK();
-//   for (int z = interscetion.zMin(); z <= interscetion.zMax(); z++)
-//     for (int y = interscetion.yMin(); y <= interscetion.yMax(); y++)
-//       for (int x = interscetion.xMin(); x <= interscetion.xMax(); x++)
-//       {
-//         itkVolumeType::IndexType index = volume->index(x, y, z);
-//         if (input->GetLargestPossibleRegion().IsInside(index) && input->GetPixel(index))
-//           return true;
-//       }
+  using ImageIterator = itk::ImageRegionIterator<itkVolumeType>;
+  // TODO?: add some
+  auto volume = volumetricData(m_segmentation->output());
+
+  auto image = volume->itkImage(interscetion);
+
+  ImageIterator it = ImageIterator(image, image->GetLargestPossibleRegion());
+  it.GoToBegin();
+  while (!it.IsAtEnd()) {
+    if (it.Get() != volume->backgroundValue())
+      return true;
+    ++it;
+  }
 
   return false;
 }

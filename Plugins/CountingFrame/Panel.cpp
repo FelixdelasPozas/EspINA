@@ -474,7 +474,7 @@ void Panel::showInfo(CountingFrame* cf)
   m_gui->bottomMargin->blockSignals(false);
   m_gui->backMargin ->blockSignals(false);
 
-  m_gui->useCategoryConstraint->setChecked(nullptr != cf->categoyConstraint());
+  m_gui->useCategoryConstraint->setChecked(nullptr != cf->categoryConstraint());
 
   m_gui->countingFrameDescription->setText(cf->data(CountingFrame::DescriptionRole).toString());
 }

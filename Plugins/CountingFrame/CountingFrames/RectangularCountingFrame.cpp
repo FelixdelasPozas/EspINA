@@ -189,7 +189,7 @@ vtkSmartPointer<vtkPolyData> RectangularCountingFrame::createRectangularRegion(N
   vtkIdType frontFace[4], leftFace[4] , topFace[4];
   vtkIdType backFace[4] , rightFace[4], bottomFace[4];
 
-    // Upper Inclusion Face
+    // Front Inclusion Face
   frontFace[0] = vertex->InsertNextPoint(left,  bottom, front );
   frontFace[1] = vertex->InsertNextPoint(left,  top,    front );
   frontFace[2] = vertex->InsertNextPoint(right, top,    front );
@@ -197,7 +197,7 @@ vtkSmartPointer<vtkPolyData> RectangularCountingFrame::createRectangularRegion(N
   faces->InsertNextCell(4, frontFace);
   faceData->InsertNextValue(INCLUSION_FACE);
 
-  // Lower Exclusion Face
+  // Back Exclusion Face
   backFace[0] = vertex->InsertNextPoint(left,  bottom, back);
   backFace[1] = vertex->InsertNextPoint(left,  top,    back);
   backFace[2] = vertex->InsertNextPoint(right, top,    back);

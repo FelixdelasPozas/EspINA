@@ -58,7 +58,7 @@ Segmentation::~Segmentation()
 //------------------------------------------------------------------------
 void Segmentation::addExtension(SegmentationExtensionSPtr extension) throw (SegmentationExtension::Existing_Extension)
 {
-  if (m_extensions.keys().contains(extension->type()))
+  if (m_extensions.contains(extension->type()))
     throw SegmentationExtension::Existing_Extension();
 
   extension->setSegmentation(this);
@@ -69,7 +69,7 @@ void Segmentation::addExtension(SegmentationExtensionSPtr extension) throw (Segm
 //------------------------------------------------------------------------
 void Segmentation::deleteExtension(SegmentationExtensionSPtr extension) throw (SegmentationExtension::Extension_Not_Found)
 {
-  if (!m_extensions.keys().contains(extension->type()))
+  if (!m_extensions.contains(extension->type()))
     throw SegmentationExtension::Extension_Not_Found();
 
   m_extensions.remove(extension->type());
@@ -78,15 +78,9 @@ void Segmentation::deleteExtension(SegmentationExtensionSPtr extension) throw (S
 //------------------------------------------------------------------------
 SegmentationExtensionSPtr Segmentation::extension(const SegmentationExtension::Type& type) const throw(SegmentationExtension::Extension_Not_Found)
 {
-  if (!m_extensions.keys().contains(type))
+  if (!m_extensions.contains(type))
   {
-    // TODO: no way to get extension provider
     throw SegmentationExtension::Extension_Not_Found();
-
-//    if (!m_provider.values().contains(type))
-//      throw SegmentationExtension::Extension_Not_Found();
-//
-//    m_extensions.insert(type, m_provider->value(type).clone());
   }
 
   return m_extensions.value(type, SegmentationExtensionSPtr());

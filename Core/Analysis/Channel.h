@@ -158,9 +158,9 @@ namespace EspINA
     double m_opacity;
     double m_saturation;
 
-    FilterSPtr            m_filter;
-    Output::Id            m_outputId;
-    ChannelExtensionSList m_extensions;
+    FilterSPtr           m_filter;
+    Output::Id           m_outputId;
+    ChannelExtensionSMap m_extensions;
   };
 
 }// namespace EspINA

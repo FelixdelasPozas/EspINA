@@ -83,7 +83,7 @@ namespace EspINA
     void evaluateCountingFrames();
 
   protected:
-    bool isExcludedFromCountingFrame(CountingFrame *cf);
+    bool isExcludedByCountingFrame(CountingFrame *cf);
     bool isRealCollision(const Bounds& interscetion);
     bool isOnEdge();
 

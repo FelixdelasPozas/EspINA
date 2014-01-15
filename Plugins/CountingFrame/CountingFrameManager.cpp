@@ -27,11 +27,13 @@ using namespace EspINA::CF;
 //-----------------------------------------------------------------------------
 ChannelExtensionSPtr CountingFrameManager::createChannelExtension(ChannelExtension::Type type)
 {
+  Q_ASSERT(false);//TODO
 }
 
 //-----------------------------------------------------------------------------
 SegmentationExtensionSPtr CountingFrameManager::createSegmentationExtension(SegmentationExtension::Type type)
 {
+  Q_ASSERT(false);//TODO
 }
 
 //------------------------------------------------------------------------
@@ -80,6 +82,8 @@ void CountingFrameManager::createRectangularCF(ChannelAdapterPtr channel,
   Q_ASSERT(extension);
 
   auto cf = RectangularCountingFrame::New(id, extension, channel->bounds(), inclusion, exclusion);
+
+  extension->addCountingFrame(cf);
 
   emit countingFrameCreated(cf);
 }

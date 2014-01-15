@@ -154,16 +154,18 @@ bool EspINA::intersect(const Bounds& b1, const Bounds& b2)
     auto lower = (b1.areLowerIncluded(dir) && b2.areUpperIncluded(dir))?lessEqualThan:lessThan;
     auto upper = (b1.areUpperIncluded(dir) && b2.areLowerIncluded(dir))?greaterEqualThan:greaterThan;
 
-    overlap &= lower(b1[i], b2[i+1]) && upper(b1[i+1], b2[i]);
+    overlap &= lessEqualThan(b1[i], b2[i+1]) && greaterEqualThan(b1[i+1], b2[i]);
 
     if (areEqual(b1[i],   b2[i+1]))
     {
-      overlap &= b1.areLowerIncluded(dir) && b2.areUpperIncluded(dir);
+      bool b2UpperIncluded = b2.areUpperIncluded(dir) || (areEqual(b2[i], b2[i+1]) && b2.areLowerIncluded(dir));
+      overlap &= b1.areLowerIncluded(dir) && b2UpperIncluded;
     }
 
     if (areEqual(b1[i+1], b2[i]))
     {
-      overlap &= b1.areUpperIncluded(dir) && b2.areLowerIncluded(dir);
+      bool b1UpperIncluded = b1.areUpperIncluded(dir) || (areEqual(b1[i], b1[i+1]) && b1.areLowerIncluded(dir));
+      overlap &= b1UpperIncluded && b2.areLowerIncluded(dir);
     }
 
     i += 2; 

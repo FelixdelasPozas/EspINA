@@ -68,6 +68,23 @@ int valid_intersection( int argc, char** argv )
     pass = false;
   }
 
+  // Corner case
+  Bounds b3{0,5,0,5,0,0};
+  if (!intersect(b1, b3))
+  {
+    cerr << b1 << " intersects " << b3 << endl;
+    pass = false;
+  }
+
+  // Corner case
+  b3.setLowerInclusion(Axis::Z, false);
+  b3.setUpperInclusion(Axis::Z, true);
+  if (!intersect(b1, b3))
+  {
+    cerr << b1 << " intersects " << b3 << endl;
+    pass = false;
+  }
+
   Bounds expectedIntersection{5,10,5,10,5,10};
   Bounds actualInteresction = intersection(b1, b2);
   if (expectedIntersection != actualInteresction) {
@@ -86,9 +103,6 @@ int valid_intersection( int argc, char** argv )
       for (double IUB : {']', ')'})
         for (double ELB : {'[', '('})
           for (double EUB : {']', ')'}) {
-            bool invalidTestOnSameBounds   = o == 2 && ((i%2 == 0 && ELB == '(' && ILB == '[') || (i%2 != 0 && EUB == ')' && IUB == ']'));
-            bool invalidTestOnIntersection = o == 4;
-            bool invalidTest = invalidTestOnSameBounds || invalidTestOnIntersection;
             Bounds internal{ILB,2,8,2,8,2,8,IUB};
             internal[i] += i % 2?o:-o;
             Bounds external{ELB,0,10,0,10,0,10,EUB};

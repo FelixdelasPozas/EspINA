@@ -23,6 +23,7 @@
 #include "EspinaCore_Export.h"
 
 #include "Core/EspinaTypes.h"
+#include <QMap>
 
 namespace EspINA
 {
@@ -62,6 +63,7 @@ namespace EspINA
   using ChannelExtensionList  = QList<ChannelExtensionPtr>;
   using ChannelExtensionSPtr  = std::shared_ptr<ChannelExtension>;
   using ChannelExtensionSList = QList<ChannelExtensionSPtr>;
+  using ChannelExtensionSMap  = QMap<QString, ChannelExtensionSPtr>;
 } // namespace EspINA
 
 #endif // ESPINA_CHANNEL_EXTENSION_H

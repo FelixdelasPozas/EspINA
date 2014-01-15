@@ -131,7 +131,7 @@ namespace CF {
 
     void setCategoryConstraint(const CategorySPtr category);
 
-    const CategorySPtr categoyConstraint() const { return m_categoryConstraint; }
+    const CategorySPtr categoryConstraint() const { return m_categoryConstraint; }
 
   signals:
     void modified(CountingFrame *);
