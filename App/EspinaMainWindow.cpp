@@ -90,7 +90,6 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 , m_channelReader{new ChannelReader()}
 , m_segFileReader{new SegFileReader()}
 , m_settings     (new GeneralSettings())
-, m_view{new DefaultView(m_model, m_viewManager, m_undoStack, m_availableRenderers, this)}
 , m_schedulerProgress(new SchedulerProgress(m_scheduler, this))
 , m_busy(false)
 , m_undoStackSavedIndex(0)
@@ -307,6 +306,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 
   statusBar()->clearMessage();
 
+  m_view = DefaultViewSPtr{new DefaultView(m_model, m_viewManager, m_undoStack, m_availableRenderers, this)};
   m_view->createViewMenu(m_viewMenu);
 
   QSettings settings(CESVIMA, ESPINA);
@@ -600,17 +600,19 @@ bool EspinaMainWindow::closeCurrentAnalysis()
   m_viewManager->selection()->clear();
   m_undoStack->clear();
   m_undoStackSavedIndex = m_undoStack->index();
-  m_model->reset();
+
+  m_model  ->reset();
   m_analysis.reset();
 
   // resets slice views matrices to avoid an esthetic bug
   NmVector3 origin;
   m_viewManager->focusViewsOn(origin);
 
-  m_addMenu->setEnabled(false);
-  m_saveAnalysis->setEnabled(false);
+  m_addMenu            ->setEnabled(false);
+  m_saveAnalysis       ->setEnabled(false);
   m_saveSessionAnalysis->setEnabled(false);
-  m_closeAnalysis->setEnabled(false);
+  m_closeAnalysis      ->setEnabled(false);
+
   m_sessionFile = QFileInfo();
 
   setWindowTitle(QString("EspINA Interactive Neuron Analyzer"));

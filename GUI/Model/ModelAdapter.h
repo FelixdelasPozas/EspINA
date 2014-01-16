@@ -44,7 +44,7 @@ namespace EspINA
   using AnalysisSPtr = std::shared_ptr<Analysis>;
 
   /**
-  *
+  *   \brief Adapt analysis to Qt Model framework
   * Model elements are arranged in the following way:
   * QModelIndex() (invalid index/model root index)
   * - ClassificationRoot

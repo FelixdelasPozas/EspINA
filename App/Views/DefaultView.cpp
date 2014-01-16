@@ -43,6 +43,7 @@ const QString DEFAULT_VIEW_SETTINGS = "DefaultView";
 const QString X_LINE_COLOR = "CrosshairXLineColor";
 const QString Y_LINE_COLOR = "CrosshairYLineColor";
 const QString Z_LINE_COLOR = "CrosshairZLineColor";
+const QString RENDERERS    = "View3D::renderers";
 
 //----------------------------------------------------------------------------
 DefaultView::DefaultView(ModelAdapterSPtr     model,
@@ -95,6 +96,29 @@ DefaultView::DefaultView(ModelAdapterSPtr     model,
   dock3D = new QDockWidget(tr("3D"), parent);
   dock3D->setObjectName("Dock3D");
   dock3D->setWidget(m_view3D);
+  QSettings settings(CESVIMA, ESPINA);
+
+  if (!settings.contains(RENDERERS)) {
+    QStringList defaultRenderers;
+
+    defaultRenderers << "Crosshairs"
+//                      << "Volumetric"
+//                      << "Volumetric GPU"
+                     << "Mesh"
+                     << "Smoothed Mesh";
+
+    settings.setValue(RENDERERS, defaultRenderers);
+  }
+
+  RendererSList activeRenderers;
+
+  for(auto name : settings.value(RENDERERS).toStringList())
+  {
+    activeRenderers << renderer(name);
+  }
+
+  m_view3D->setRenderers(activeRenderers);
+
   connect(m_view3D, SIGNAL(centerChanged(NmVector3)),
           this, SLOT(setCrosshairPoint(NmVector3)));
 
@@ -116,6 +140,15 @@ DefaultView::DefaultView(ModelAdapterSPtr     model,
 DefaultView::~DefaultView()
 {
 //   qDebug() << "Destroy Default EspINA View";
+  QSettings settings(CESVIMA, ESPINA);
+  QStringList activeRenderersNames;
+
+  for(auto renderer : m_view3D->renderers())
+  {
+    activeRenderersNames << renderer->name();
+  }
+  settings.setValue(RENDERERS, activeRenderersNames);
+  settings.sync();
 }
 
 //-----------------------------------------------------------------------------
@@ -137,6 +170,23 @@ void DefaultView::initView2D(View2D *view)
   view->setRenderers(renderers);
 //   view->setColorEngine(m_viewManager->colorEngine());
 //   view->setSelector(m_viewManager->selector());
+}
+
+//-----------------------------------------------------------------------------
+RendererSPtr DefaultView::renderer(const QString& name) const
+{
+  RendererSPtr result;
+
+  for(auto renderer : m_renderers)
+  {
+    if (renderer->name() == name)
+    {
+      result = renderer;
+      break;
+    }
+  }
+
+  return result;
 }
 
 //-----------------------------------------------------------------------------

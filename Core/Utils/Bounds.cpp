@@ -143,17 +143,14 @@ QString Bounds::toString() const
 //-----------------------------------------------------------------------------
 bool EspINA::intersect(const Bounds& b1, const Bounds& b2)
 {
-  auto lessThan         = [](double a, double b){return a <  b;};
+//   auto lessThan         = [](double a, double b){return a <  b;};
   auto lessEqualThan    = [](double a, double b){return a <= b;};
-  auto greaterThan      = [](double a, double b){return a >  b;};
+//   auto greaterThan      = [](double a, double b){return a >  b;};
   auto greaterEqualThan = [](double a, double b){return a >= b;};
 
   bool overlap = true;
   int  i = 0;
   for (auto dir : {Axis::X, Axis::Y, Axis::Z}) {
-    auto lower = (b1.areLowerIncluded(dir) && b2.areUpperIncluded(dir))?lessEqualThan:lessThan;
-    auto upper = (b1.areUpperIncluded(dir) && b2.areLowerIncluded(dir))?greaterEqualThan:greaterThan;
-
     overlap &= lessEqualThan(b1[i], b2[i+1]) && greaterEqualThan(b1[i+1], b2[i]);
 
     if (areEqual(b1[i],   b2[i+1]))

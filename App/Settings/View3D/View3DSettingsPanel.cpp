@@ -52,9 +52,15 @@ View3DSettingsPanel::View3DSettingsPanel(View3D* view, const RendererSList& rend
     }
 
     if (isActive)
+    {
       active->appendRow(item);
+      deactivate->setEnabled(true);
+    }
     else
+    {
       available->appendRow(item);
+      activate->setEnabled(true);
+    }
   }
 
   activeRenderers->setModel(active);
@@ -64,6 +70,11 @@ View3DSettingsPanel::View3DSettingsPanel(View3D* view, const RendererSList& rend
           this, SLOT(onActivateRenderersDropped()));
   connect(availableRenderers->model(), SIGNAL(dataChanged(QModelIndex,QModelIndex)),
           this, SLOT(onAvailableRenderersDropped()));
+
+  connect(activate, SIGNAL(clicked(bool)),
+          this, SLOT(activateRenderers()));
+  connect(deactivate, SIGNAL(clicked(bool)),
+          this, SLOT(deactivateRenderers()));
 }
 
 //-----------------------------------------------------------------------------
@@ -122,6 +133,7 @@ void View3DSettingsPanel::onActivateRenderersDropped()
   deactivate->setEnabled(activeRows > 0);
 }
 
+//-----------------------------------------------------------------------------
 void View3DSettingsPanel::onAvailableRenderersDropped()
 {
   int activeRows    = activeRenderers->model()->rowCount();
@@ -129,6 +141,35 @@ void View3DSettingsPanel::onAvailableRenderersDropped()
 
   activate  ->setEnabled(availableRows  > 0);
   deactivate->setEnabled((activeRows - availableRows) > 0);
+}
+
+//-----------------------------------------------------------------------------
+void View3DSettingsPanel::activateRenderers()
+{
+  moveSelection(availableRenderers, activeRenderers);
+  activate->setEnabled(availableRenderers->model()->rowCount() > 0);
+  deactivate->setEnabled(true);
+}
+
+//-----------------------------------------------------------------------------
+void View3DSettingsPanel::deactivateRenderers()
+{
+  moveSelection(activeRenderers, availableRenderers);
+  activate->setEnabled(true);
+  deactivate->setEnabled(activeRenderers->model()->rowCount() > 0);
+}
+
+//-----------------------------------------------------------------------------
+void View3DSettingsPanel::moveSelection(QListView *source, QListView *destination)
+{
+  auto sourceModel      = dynamic_cast<QStandardItemModel *>(source->model());
+  auto destinationModel = dynamic_cast<QStandardItemModel *>(destination->model());
+  for(auto index : source->selectionModel()->selectedIndexes())
+  {
+    auto item = sourceModel->item(index.row());
+    destinationModel->appendRow(item->clone());
+    sourceModel->removeRow(index.row());
+  }
 }
 
 //-----------------------------------------------------------------------------

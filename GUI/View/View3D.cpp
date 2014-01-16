@@ -24,7 +24,6 @@
 // Qt
 #include <QApplication>
 #include <QEvent>
-#include <QSettings>
 #include <QFileDialog>
 #include <QPushButton>
 #include <QMouseEvent>

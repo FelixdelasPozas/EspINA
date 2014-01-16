@@ -47,14 +47,23 @@ namespace EspINA
     {return QIcon();}
 
     virtual void acceptChanges();
+
     virtual void rejectChanges();
+
     virtual bool modified() const;
 
     virtual SettingsPanelPtr clone();
 
   private slots:
     void onActivateRenderersDropped();
+
     void onAvailableRenderersDropped();
+
+    void activateRenderers();
+
+    void deactivateRenderers();
+
+    void moveSelection(QListView *source, QListView *destination);
 
   private:
     RendererSPtr renderer(const QString &name) const;

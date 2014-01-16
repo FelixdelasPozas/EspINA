@@ -230,7 +230,6 @@ void SeedGrowSegmentationTool::launchTask(Selector::SelectionList selectedItems)
             this,   SLOT(createSegmentation()));
 
     adapter->submit();
-
   }
 }
 

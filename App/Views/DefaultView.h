@@ -122,6 +122,8 @@ namespace EspINA
 
     void initView2D(View2D *view);
 
+    RendererSPtr renderer(const QString& name) const;
+
   private:
     ModelAdapterSPtr m_model;
     ViewManagerSPtr  m_viewManager;
