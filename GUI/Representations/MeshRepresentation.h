@@ -33,6 +33,9 @@ namespace EspINA
   {
     Q_OBJECT
     public:
+      static const Representation::Type TYPE;
+
+    public:
       explicit MeshRepresentation(MeshDataSPtr data,
                                   RenderView *view);
       virtual ~MeshRepresentation() {};

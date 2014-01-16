@@ -44,6 +44,8 @@
 #include <GUI/Representations/BasicRepresentationFactory.h>
 #include <GUI/Representations/Renderers/SliceRenderer.h>
 #include <GUI/Representations/Renderers/CrosshairRenderer.h>
+#include <GUI/Representations/Renderers/MeshRenderer.h>
+#include <GUI/Representations/Renderers/SmoothedMeshRenderer.h>
 #include <Support/Plugin.h>
 #include <Support/Settings/EspinaSettings.h>
 
@@ -112,11 +114,11 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   m_factory->registerSegmentationRepresentationFactory(RepresentationFactorySPtr{new BasicSegmentationRepresentationFactory()});
 
   m_availableRenderers << RendererSPtr(new CrosshairRenderer());
+  m_availableRenderers << RendererSPtr(new MeshRenderer());
+  m_availableRenderers << RendererSPtr(new SmoothedMeshRenderer());
+  m_availableRenderers << RendererSPtr(new SliceRenderer());
 //   m_availableRenderers << RendererSPtr(new VolumetricRenderer());
 //   m_availableRenderers << RendererSPtr(new VolumetricGPURenderer());
-//   m_availableRenderers << RendererSPtr(new MeshRenderer());
-//   m_availableRenderers << RendererSPtr(new SmoothedMeshRenderer());
-  m_availableRenderers << RendererSPtr(new SliceRenderer());
 //   m_availableRenderers << RendererSPtr(new ContourRenderer());
 
   /*** FILE MENU ***/

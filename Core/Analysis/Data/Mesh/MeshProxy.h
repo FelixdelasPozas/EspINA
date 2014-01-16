@@ -49,7 +49,6 @@ namespace EspINA
       virtual DataSPtr get() const
       { return m_data; }
 
-
       virtual Bounds bounds() const
       { return m_data->bounds(); }
 

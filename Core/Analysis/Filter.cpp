@@ -21,6 +21,7 @@
 #include <Core/Utils/BinaryMask.h>
 #include <Core/Utils/TemporalStorage.h>
 #include "Data/Volumetric/SparseVolume.h"
+#include "Data/Mesh/RawMesh.h"
 
 // ITK
 #include <itkMetaImageIO.h>
@@ -164,7 +165,7 @@ bool Filter::fetchOutputData(Output::Id id)
 
       m_outputs.clear();
 
-      while(!xml.atEnd())
+      while (!xml.atEnd())
       {
         xml.readNextStartElement();
         if (xml.isStartElement())
@@ -172,38 +173,46 @@ bool Filter::fetchOutputData(Output::Id id)
           if ("Output" == xml.name())
           {
             int id = xml.attributes().value("id").toString().toInt();
-            output = OutputSPtr{new Output(this, id)};
+            output = OutputSPtr { new Output(this, id) };
 
             auto spacing = xml.attributes().value("spacing");
             if (!spacing.isEmpty())
             {
               output->setSpacing(NmVector3(spacing.toString()));
             }
-          } else if ("Data" == xml.name())
-          {
-            if ("VolumetricData" == xml.attributes().value("type"))
+          }
+          else
+            if ("Data" == xml.name())
             {
-              data = DataSPtr{new SparseVolume<itkVolumeType>()};
-            } else if ("MeshData" == xml.attributes().value("type"))
-            {
-              //data = DataSPtr(new RawMesh()); // TODO: Save mesh
+              if ("VolumetricData" == xml.attributes().value("type"))
+              {
+                data = DataSPtr { new SparseVolume<itkVolumeType>() };
+              }
+              else
+                if ("MeshData" == xml.attributes().value("type"))
+                {
+                  //data = DataSPtr { new RawMesh() };
+                }
             }
-          }
-        } else if (xml.isEndElement())
-        {
-          if ("Output" == xml.name())
-          {
-            output->markToSave(true);
-            m_outputs << output;
-          } else if ("Data" == xml.name())
-          {
-            data->setOutput(output.get());
-            if (data->fetchData(storage(), prefix()))
-            {
-              output->setData(data);
-            } 
-          }
         }
+        else
+          if (xml.isEndElement())
+          {
+            if ("Output" == xml.name())
+            {
+              output->markToSave(true);
+              m_outputs << output;
+            }
+            else
+              if ("Data" == xml.name())
+              {
+                data->setOutput(output.get());
+                if (data->fetchData(storage(), prefix()))
+                {
+                  output->setData(data);
+                }
+              }
+          }
       }
     }
   }

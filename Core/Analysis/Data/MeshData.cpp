@@ -28,7 +28,6 @@
 
 using namespace EspINA;
 
-//----------------------------------------------------------------------------
 const Data::Type MeshData::TYPE = "MeshData";
 
 //----------------------------------------------------------------------------
@@ -48,11 +47,11 @@ Bounds MeshData::bounds() const
 //----------------------------------------------------------------------------
 DataProxySPtr MeshData::createProxy() const
 {
-  return DataProxySPtr{new MeshProxy()};
+  return DataProxySPtr{ new MeshProxy() };
 }
 
 //----------------------------------------------------------------------------
-MeshDataSPtr meshRepresentation(OutputSPtr output)
+EspINA::MeshDataSPtr EspINA::meshData(OutputSPtr output)
 {
   MeshDataSPtr meshData = std::dynamic_pointer_cast<MeshData>(output->data(MeshData::TYPE));
   Q_ASSERT(meshData.get());

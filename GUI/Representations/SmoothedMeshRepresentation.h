@@ -33,6 +33,9 @@ namespace EspINA
   {
     Q_OBJECT
   public:
+    static const Representation::Type TYPE;
+
+  public:
     explicit SmoothedMeshRepresentation(MeshDataSPtr mesh,
                                         RenderView *view);
     virtual ~SmoothedMeshRepresentation() {};

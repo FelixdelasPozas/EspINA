@@ -32,22 +32,22 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  void SmoothedMeshRenderer::addRepresentation(PickableItemPtr item, GraphicalRepresentationSPtr rep)
+  void SmoothedMeshRenderer::addRepresentation(ViewItemAdapterPtr item, RepresentationSPtr rep)
   {
-    SmoothedMeshRepresentationSPtr mesh = boost::dynamic_pointer_cast<SmoothedMeshRepresentation>(rep);
-    if (mesh.get() != NULL)
+    auto mesh = std::dynamic_pointer_cast<SmoothedMeshRepresentation>(rep);
+    if (mesh.get() != nullptr)
     {
       if (m_representations.keys().contains(item))
         m_representations[item] << rep;
       else
       {
-        GraphicalRepresentationSList list;
+        RepresentationSList list;
         list << rep;
         m_representations.insert(item, list);
       }
 
       if (m_enable)
-        foreach(vtkProp *prop, rep->getActors())
+        for(auto prop: rep->getActors())
         {
           m_view->addActor(prop);
           m_picker->AddPickList(prop);
@@ -56,16 +56,16 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  void SmoothedMeshRenderer::removeRepresentation(GraphicalRepresentationSPtr rep)
+  void SmoothedMeshRenderer::removeRepresentation(RepresentationSPtr rep)
   {
-    SmoothedMeshRepresentationSPtr mesh = boost::dynamic_pointer_cast<SmoothedMeshRepresentation>(rep);
-    if (mesh.get() != NULL)
+    auto mesh = std::dynamic_pointer_cast<SmoothedMeshRepresentation>(rep);
+    if (mesh.get() != nullptr)
     {
-      foreach(PickableItemPtr item, m_representations.keys())
+      for(auto item: m_representations.keys())
         if (m_representations[item].contains(rep))
         {
           if (m_enable)
-            foreach(vtkProp *prop, rep->getActors())
+            for(auto prop: rep->getActors())
             {
               m_view->removeActor(prop);
               m_picker->DeletePickList(prop);
@@ -80,10 +80,10 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  bool SmoothedMeshRenderer::managesRepresentation(GraphicalRepresentationSPtr rep)
+  bool SmoothedMeshRenderer::managesRepresentation(RepresentationSPtr rep)
   {
-    SmoothedMeshRepresentationSPtr mesh = boost::dynamic_pointer_cast<SmoothedMeshRepresentation>(rep);
-    return (mesh.get() != NULL);
+    SmoothedMeshRepresentationSPtr mesh = std::dynamic_pointer_cast<SmoothedMeshRepresentation>(rep);
+    return (mesh.get() != nullptr);
   }
   
 } // namespace EspINA

@@ -136,6 +136,7 @@ namespace EspINA
     }
     else
       itkImage = volume;
+
     itkImage->DisconnectPipeline();
 
     auto transform = itk2vtkImageFilter::New();

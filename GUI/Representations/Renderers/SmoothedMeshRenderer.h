@@ -1,6 +1,6 @@
 /*
  <one line to give the program's name and a brief idea of what it does.>
- Copyright (C) 2013 Félix de las Pozas Álvarez <felixdelaspozas@gmail.com>
+ Copyright (C) 2013 Fï¿½lix de las Pozas ï¿½lvarez <felixdelaspozas@gmail.com>
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -16,8 +16,8 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SMOOTHEDMESHRENDERER_H_
-#define SMOOTHEDMESHRENDERER_H_
+#ifndef ESPINA_SMOOTHED_MESH_RENDERER_H_
+#define ESPINA_SMOOTHED_MESH_RENDERER_H_
 
 #include "EspinaGUI_Export.h"
 
@@ -38,13 +38,13 @@ namespace EspINA
       virtual const QString name()    const { return "Smoothed Mesh"; }
       virtual const QString tooltip() const { return "Segmentation's Smoothed Meshes"; }
 
-      virtual void addRepresentation(PickableItemPtr item, GraphicalRepresentationSPtr rep);
-      virtual void removeRepresentation(GraphicalRepresentationSPtr rep);
-      virtual bool managesRepresentation(GraphicalRepresentationSPtr rep);
+      virtual void addRepresentation(ViewItemAdapterPtr item, RepresentationSPtr rep);
+      virtual void removeRepresentation(RepresentationSPtr rep);
+      virtual bool managesRepresentation(RepresentationSPtr rep);
 
-      virtual IRendererSPtr clone()         { return IRendererSPtr(new SmoothedMeshRenderer()); }
+      virtual RendererSPtr clone()         { return RendererSPtr(new SmoothedMeshRenderer()); }
   };
 
 } /* namespace EspINA */
 
-#endif /* SMOOTHEDMESHRENDERER_H_ */
+#endif /* ESPINA_SMOOTHED_MESH_RENDERER_H_ */

@@ -89,6 +89,7 @@ set (GUI_SOURCES
   Representations/CrosshairRepresentation.cpp
   Representations/Renderers/ContourRenderer.cpp
   Representations/Renderers/MeshRenderer.cpp
+  Representations/Renderers/SmoothedMeshRenderer.cpp
   Representations/Renderers/Renderer.cpp
   Representations/Renderers/SliceRenderer.cpp
   Representations/Renderers/CrosshairRenderer.cpp

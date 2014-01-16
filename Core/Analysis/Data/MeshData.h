@@ -46,17 +46,15 @@ namespace EspINA
 
     virtual DataProxySPtr createProxy() const;
 
-    virtual Bounds bounds() const;
+    Bounds bounds() const;
 
     virtual vtkSmartPointer<vtkPolyData> mesh() const = 0;
-
-    //virtual double memoryUsage() const = 0;
 
   };
 
   using MeshDataSPtr = std::shared_ptr<MeshData>;
 
-  MeshDataSPtr EspinaCore_EXPORT meshRepresentation(OutputSPtr output);
+  MeshDataSPtr EspinaCore_EXPORT meshData(OutputSPtr output);
 
 } // namespace EspINA
 

@@ -22,6 +22,7 @@ set (CORE_SOURCES
   Analysis/Channel.cpp
   Analysis/Data.cpp
   Analysis/Data/MeshData.cpp
+  Analysis/Data/Mesh/RawMesh.cpp
   Analysis/Data/VolumetricData.cpp
   Analysis/Filter.cpp
   Analysis/Graph/DirectedGraph.cpp

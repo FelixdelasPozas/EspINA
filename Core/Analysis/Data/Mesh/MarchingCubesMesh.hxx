@@ -25,7 +25,6 @@
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-
 #ifndef ESPINA_MARCHING_CUBES_MESH_H
 #define ESPINA_MARCHING_CUBES_MESH_H
 
@@ -87,16 +86,12 @@ namespace EspINA
   MarchingCubesMesh<T>::MarchingCubesMesh(VolumetricDataSPtr<T> volume)
   : m_volume(volume)
   {
-//     connect(m_volume.get(), SIGNAL(dataChanged()),
-// 	    this, SLOT(updateMesh()));
   }
 
   //----------------------------------------------------------------------------
   template <typename T>
   MarchingCubesMesh<T>::~MarchingCubesMesh()
   {
-//     disconnect(m_volume.get(), SIGNAL(dataChanged()),
-// 	       this, SLOT(updateMesh()));
   }
 
   //----------------------------------------------------------------------------
@@ -124,7 +119,6 @@ namespace EspINA
   template <typename T>
   void MarchingCubesMesh<T>::setSpacing(const NmVector3& spacing)
   {
-
   }
 
   //----------------------------------------------------------------------------
@@ -138,14 +132,13 @@ namespace EspINA
   template <typename T>
   void MarchingCubesMesh<T>::undo()
   {
-
   }
 
   //----------------------------------------------------------------------------
   template <typename T>
   size_t MarchingCubesMesh<T>::memoryUsage() const
   {
-    return m_mesh->GetActualMemorySize()/1024;
+    return m_mesh->GetActualMemorySize()*1024;
   }
 
   //----------------------------------------------------------------------------
@@ -153,7 +146,10 @@ namespace EspINA
   vtkSmartPointer<vtkPolyData> MarchingCubesMesh<T>::mesh() const
   {
     if (!m_mesh)
+    {
+      m_mesh = vtkSmartPointer<vtkPolyData>::New();
       updateMesh();
+    }
 
     return m_mesh;
   }
@@ -162,7 +158,8 @@ namespace EspINA
   template <typename T>
   void MarchingCubesMesh<T>::updateMesh()
   {
-    vtkImageData *image;//TODO = vtkImage(m_volume, m_volume->bounds());
+    vtkSmartPointer<vtkImageData> image = vtkImage(m_volume, m_volume->bounds());
+    image->Print(std::cout);
 
     int extent[6];
     image->GetExtent(extent);
@@ -177,7 +174,6 @@ namespace EspINA
     // segmentation image need to be padded to avoid segmentation voxels from touching
     // the edges of the image (and create morphologically correct actors)
     auto padding = vtkSmartPointer<vtkImageConstantPad>::New();
-
     padding->SetInputData(image);
     padding->SetOutputWholeExtent(extent[0], extent[1], extent[2], extent[3], extent[4], extent[5]);
     padding->SetConstant(0);
@@ -187,18 +183,15 @@ namespace EspINA
 
     marchingCubes->ReleaseDataFlagOn();
     marchingCubes->SetNumberOfContours(1);
-    marchingCubes->GenerateValues(1, 255, 255);
+    marchingCubes->GenerateValues(1, SEG_VOXEL_VALUE, SEG_VOXEL_VALUE);
     marchingCubes->ComputeScalarsOff();
     marchingCubes->ComputeNormalsOff();
     marchingCubes->ComputeGradientsOff();
     marchingCubes->SetInputData(padding->GetOutput());
-
     marchingCubes->Update();
 
     m_mesh->DeepCopy(marchingCubes->GetOutput());
   }
-
-
 
 } // namespace EspINA
 

@@ -30,6 +30,8 @@
 
 using namespace EspINA;
 
+const Representation::Type MeshRepresentation::TYPE = "Mesh";
+
 //-----------------------------------------------------------------------------
 MeshRepresentation::MeshRepresentation(MeshDataSPtr mesh, RenderView *view)
 : MeshRepresentationBase(mesh, view)

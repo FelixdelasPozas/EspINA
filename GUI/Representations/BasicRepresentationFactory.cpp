@@ -18,13 +18,13 @@
  */
 
 #include "BasicRepresentationFactory.h"
-#include "SliceRepresentation.h"
 #include <Core/Analysis/Data/VolumetricData.h>
+#include <Core/Analysis/Data/MeshData.h>
 #include "CrosshairRepresentation.h"
+#include "SliceRepresentation.h"
+#include "MeshRepresentation.h"
+#include "SmoothedMeshRepresentation.h"
 
-// #include "SliceRepresentation.h"
-// #include "SimpleMeshRepresentation.h"
-// #include "SmoothedMeshRepresentation.h"
 // #include "VolumeRaycastRepresentation.h"
 // #include "CrosshairRepresentation.h"
 // #include "VolumeGPURepresentation.h"
@@ -74,6 +74,8 @@ RepresentationTypeList BasicSegmentationRepresentationFactory::representations()
   RepresentationTypeList representations;
 
   representations << SegmentationSliceRepresentation::TYPE;
+  representations << MeshRepresentation::TYPE;
+  representations << SmoothedMeshRepresentation::TYPE;
 
   return representations;
 }
@@ -88,6 +90,20 @@ RepresentationSPtr BasicSegmentationRepresentationFactory::createRepresentation(
     DefaultVolumetricDataSPtr volume = volumetricData(output);
 
     representation = RepresentationSPtr{new SegmentationSliceRepresentation(volume, nullptr)};
+  }
+
+  if (type == MeshRepresentation::TYPE)
+  {
+    MeshDataSPtr mesh = meshData(output);
+
+    representation = RepresentationSPtr{new MeshRepresentation(mesh, nullptr)};
+  }
+
+  if (type == SmoothedMeshRepresentation::TYPE)
+  {
+    MeshDataSPtr mesh = meshData(output);
+
+    representation = RepresentationSPtr{new SmoothedMeshRepresentation(mesh, nullptr)};
   }
 
   return representation;

@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef ESPINA_RAWMESH_H
-#define ESPINA_RAWMESH_H
+#ifndef ESPINA_RAW_MESH_H
+#define ESPINA_RAW_MESH_H
 
 #include "EspinaCore_Export.h"
 
@@ -42,12 +42,6 @@ namespace EspINA
     virtual bool isValid() const;
     virtual bool setInternalData(MeshDataSPtr rhs);
 
-    Data::Type type()
-    { return RawMesh::TYPE; }
-
-    virtual DataProxySPtr createProxy() const
-    { return DataProxySPtr{new MeshProxySPtr() }; }
-
     Snapshot snapshot() const
     { return Snapshot(); }
 
@@ -62,10 +56,31 @@ namespace EspINA
       return Bounds{bounds[0], bounds[1], bounds[2], bounds[3], bounds[4], bounds[5]};
     }
 
-    virtual vtkSmartPointer<vtkPolyData> mesh() = 0;
+    bool isEdited() const
+    { return false; }
+
+    void clearEditedRegions()
+    { /* TODO: not allowed */ };
+
+    virtual vtkSmartPointer<vtkPolyData> mesh() const;
+
+    virtual bool fetchData(const TemporalStorageSPtr storage, const QString& prefix);
+
+    Snapshot snapshot(TemporalStorageSPtr storage, const QString &prefix) const;
+
+    void setSpacing(const NmVector3&)
+    { /* TODO: not allowed */ };
+
+    NmVector3 spacing() const;
+
+    void undo()
+    { /* TODO: not allowed */ };
+
+    size_t memoryUsage() const;
 
   private:
     vtkSmartPointer<vtkPolyData> m_mesh;
+    NmVector3 m_spacing;
   };
 
   using RawMeshPtr = RawMesh *;
@@ -74,4 +89,4 @@ namespace EspINA
   RawMeshSPtr EspinaCore_EXPORT rawMesh(OutputSPtr output);
 }
 
-#endif // ESPINA_RAWMESH_H
+#endif // ESPINA_RAW_MESH_H
