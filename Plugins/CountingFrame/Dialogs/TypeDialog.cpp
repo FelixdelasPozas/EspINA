@@ -29,21 +29,21 @@ using namespace EspINA::CF;
 //-----------------------------------------------------------------------------
 TypeDialog::TypeDialog(QWidget *parent)
 : QDialog(parent)
-, m_type(CF::RECTANGULAR)
+, m_type(CF::ADAPTIVE)
 {
   setupUi(this);
 
   adaptiveRadio->setChecked(true);
   rectangularRadio->setChecked(false);
-  colorBox->setEnabled(false);
+  colorBox->setEnabled(true);
   colorLabel->setEnabled(false);
   thresholdBox->setEnabled(false);
   thresholdLabel->setEnabled(false);
 
   connect(adaptiveRadio,   SIGNAL(toggled(bool)),
-	  this,            SLOT(radioChanged(bool)));
+          this,            SLOT(radioChanged(bool)));
   connect(rectangularRadio,SIGNAL(toggled(bool)),
-	  this,            SLOT(radioChanged(bool)));
+          this,            SLOT(radioChanged(bool)));
 }
 
 //------------------------------------------------------------------------

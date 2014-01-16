@@ -134,7 +134,7 @@ void vtkCountingFrameAxialSliceRepresentation::MoveLeftEdge(double* p1, double* 
     {
       double sliceBounds[6];
       regionBounds(slice, sliceBounds);
-      collision = sliceBounds[0] + offset >= sliceBounds[1] - ExclusionOffset[0] - Resolution[0];
+      collision = sliceBounds[0] + offset >= sliceBounds[1] - ExclusionOffset[0] - SlicingStep[0];
       slice++;
     }
 
@@ -173,7 +173,7 @@ void vtkCountingFrameAxialSliceRepresentation::MoveRightEdge(double* p1, double*
     {
       double sliceBounds[6];
       regionBounds(slice, sliceBounds);
-      collision = sliceBounds[0] + InclusionOffset[0] >= sliceBounds[1] - offset - Resolution[0];
+      collision = sliceBounds[0] + InclusionOffset[0] >= sliceBounds[1] - offset - SlicingStep[0];
       slice++;
     }
 
@@ -211,7 +211,7 @@ void vtkCountingFrameAxialSliceRepresentation::MoveTopEdge(double* p1, double* p
     {
       double sliceBounds[6];
       regionBounds(slice, sliceBounds);
-      collision = sliceBounds[2] + offset >= sliceBounds[3] - ExclusionOffset[1] - Resolution[1];
+      collision = sliceBounds[2] + offset >= sliceBounds[3] - ExclusionOffset[1] - SlicingStep[1];
       slice++;
     }
 
@@ -250,7 +250,7 @@ void vtkCountingFrameAxialSliceRepresentation::MoveBottomEdge(double* p1, double
     {
       double sliceBounds[6];
       regionBounds(slice, sliceBounds);
-      collision = sliceBounds[2] + InclusionOffset[1] >= sliceBounds[3] - offset - Resolution[1];
+      collision = sliceBounds[2] + InclusionOffset[1] >= sliceBounds[3] - offset - SlicingStep[1];
       slice++;
     }
 

@@ -35,43 +35,42 @@ qt4_add_resources (RCC_BUILT_SOURCES
 
 # Create Interface files
 qt4_wrap_ui (UI_BUILT_SOURCES
-  Panel.ui
   Dialogs/TypeDialog.ui
+  Panel.ui
   )
 
 # We need to wrap for Qt stuff such as signals/slots etc. to work correctly.
 qt4_wrap_cpp(MOC_SRCS
-  Panel.h
-  Dialogs/TypeDialog.h
+  CountingFrameManager.h
   CountingFramePlugin.h
+  CountingFrameRenderer.h
   CountingFrames/CountingFrame.h
+  Dialogs/TypeDialog.h
   Extensions/CountingFrameExtension.h
   Extensions/StereologicalInclusion.h
-  CountingFrameManager.h
-  CountingFrameRenderer.h
-
+  Panel.h
   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
   )
 
 set (LOCAL_SOURCES
-  CountingFrameManager.cpp
-  Panel.cpp
-  Dialogs/TypeDialog.cpp
-  CountingFrameRenderer.cpp
-  Extensions/CountingFrameExtension.cpp
-  Extensions/StereologicalInclusion.cpp
-  CountingFramePlugin.cpp
-#   CountingFrames/vtkCountingFrameAxialSliceRepresentation.cpp
-#   CountingFrames/vtkCountingFrameCoronalSliceRepresentation.cpp
-#   CountingFrames/vtkCountingFrameSagittalSliceRepresentation.cpp
   ColorEngines/CountingFrameColorEngine.cpp
-#   CountingFrames/AdaptiveCountingFrame.cpp
+  CountingFrameManager.cpp
+  CountingFramePlugin.cpp
+  CountingFrameRenderer.cpp
+  CountingFrames/AdaptiveCountingFrame.cpp
   CountingFrames/CountingFrame.cpp
   CountingFrames/RectangularCountingFrame.cpp
-  CountingFrames/vtkCountingFrameSliceRepresentation.cpp
-  CountingFrames/vtkCountingFrameSliceWidget.cpp
   CountingFrames/vtkCountingFrame3DRepresentation.cpp
   CountingFrames/vtkCountingFrame3DWidget.cpp
+  CountingFrames/vtkCountingFrameAxialSliceRepresentation.cpp
+  CountingFrames/vtkCountingFrameCoronalSliceRepresentation.cpp
+  CountingFrames/vtkCountingFrameSagittalSliceRepresentation.cpp
+  CountingFrames/vtkCountingFrameSliceRepresentation.cpp
+  CountingFrames/vtkCountingFrameSliceWidget.cpp
+  Dialogs/TypeDialog.cpp
+  Extensions/CountingFrameExtension.cpp
+  Extensions/StereologicalInclusion.cpp
+  Panel.cpp
   )
 
 set (PLUGIN_SOURCES
@@ -85,7 +84,6 @@ set (PLUGIN_LIBRARIES
   EspinaCore
   EspinaGUI
   EspinaSupport
-#   EspinaUndo
   )
 
 if(DEFINED MINGW OR DEFINED MSVC)

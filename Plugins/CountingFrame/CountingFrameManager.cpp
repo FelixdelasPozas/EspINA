@@ -20,6 +20,7 @@
 #include "CountingFrameManager.h"
 #include "Extensions/CountingFrameExtension.h"
 #include "CountingFrames/RectangularCountingFrame.h"
+#include "CountingFrames/AdaptiveCountingFrame.h"
 
 using namespace EspINA;
 using namespace EspINA::CF;
@@ -38,28 +39,16 @@ SegmentationExtensionSPtr CountingFrameManager::createSegmentationExtension(Segm
 
 //------------------------------------------------------------------------
 void CountingFrameManager::createAdaptiveCF(ChannelAdapterPtr channel,
-					    Nm inclusion[3],
-					    Nm exclusion[3])
+                                            Nm inclusion[3],
+                                            Nm exclusion[3])
 {
-//   Channel::ExtensionPtr extension = channel->extension(CountingFrameExtensionID);
-//   CountingFrameExtension *cfExtension;
-//   if (extension)
-//   {
-//     cfExtension = dynamic_cast<CountingFrameExtension *>(extension);
-//   }
-//   else
-//   {
-//     cfExtension = new CountingFrameExtension(this, m_viewManager);
-//     channel->addExtension(cfExtension);
-//   }
-//   Q_ASSERT(cfExtension);
-//
-//   AdaptiveCountingFrame *cf = AdaptiveCountingFrame::New(m_nextId++,
-//                                                          cfExtension,
-//                                                          inclusion,
-//                                                          exclusion,
-//                                                          m_viewManager);
-//   registerCF(cfExtension, cf);
+  int id = 0;
+
+  auto extension = retrieveOrCreateCFExtension(channel);
+
+  auto cf = AdaptiveCountingFrame::New(id, extension, channel->bounds(), inclusion, exclusion);
+
+  registerCountingFrame(cf, extension);
 }
 
 //------------------------------------------------------------------------
@@ -69,23 +58,11 @@ void CountingFrameManager::createRectangularCF(ChannelAdapterPtr channel,
 {
   int id = 0;
 
-  CountingFrameExtension *extension = nullptr;
-  if (channel->hasExtension(CountingFrameExtension::TYPE))
-  {
-    extension = dynamic_cast<CountingFrameExtension *>(channel->extension(CountingFrameExtension::TYPE).get());
-  }
-  else
-  {
-    extension =  new CountingFrameExtension();
-    channel->addExtension(CountingFrameExtensionSPtr{extension});
-  }
-  Q_ASSERT(extension);
+  auto extension = retrieveOrCreateCFExtension(channel);
 
   auto cf = RectangularCountingFrame::New(id, extension, channel->bounds(), inclusion, exclusion);
 
-  extension->addCountingFrame(cf);
-
-  emit countingFrameCreated(cf);
+  registerCountingFrame(cf, extension);
 }
 
 //-----------------------------------------------------------------------------
@@ -105,4 +82,34 @@ void CountingFrameManager::deleteCountingFrame ( CountingFrame* cf )
 //   m_countingFrames.removeOne(cf);
 
   cf->Delete();
+}
+
+//-----------------------------------------------------------------------------
+CountingFrameExtension* CountingFrameManager::retrieveOrCreateCFExtension(ChannelAdapterPtr channel)
+{
+  CountingFrameExtension *extension = nullptr;
+
+  if (channel->hasExtension(CountingFrameExtension::TYPE))
+  {
+    extension = dynamic_cast<CountingFrameExtension *>(channel->extension(CountingFrameExtension::TYPE).get());
+  }
+  else
+  {
+    extension =  new CountingFrameExtension();
+    channel->addExtension(CountingFrameExtensionSPtr{extension});
+  }
+  Q_ASSERT(extension);
+
+  return extension;
+}
+
+
+//-----------------------------------------------------------------------------
+void CountingFrameManager::registerCountingFrame(CountingFrame* cf, CountingFrameExtension* extension)
+{
+  extension->addCountingFrame(cf);
+
+  m_countingFrames << cf;
+
+  emit countingFrameCreated(cf);
 }

@@ -58,6 +58,11 @@ namespace EspINA {
       CountingFrameList countingFrames() const
       { return m_countingFrames; }
 
+    private:
+      CountingFrameExtension* retrieveOrCreateCFExtension(ChannelAdapterPtr channel);
+
+      void registerCountingFrame(CountingFrame *cf, CountingFrameExtension *extension);
+
     signals:
       void countingFrameCreated(CountingFrame *);
       void countingFrameDeleted(CountingFrame *);

@@ -22,21 +22,26 @@
 #include "vtkCountingFrameSliceWidget.h"
 #include "Extensions/CountingFrameExtension.h"
 
+#include <Core/Analysis/Channel.h>
+
 #include <vtkPolyData.h>
 #include <vtkSmartPointer.h>
 #include <vtkCellArray.h>
 #include <vtkCellData.h>
 #include "vtkCountingFrame3DWidget.h"
+#include <GUI/View/View2D.h>
+#include <Extensions/EdgeDistances/AdaptiveEdges.h>
 
 using namespace EspINA;
+using namespace EspINA::CF;
 
 //-----------------------------------------------------------------------------
 AdaptiveCountingFrame::AdaptiveCountingFrame(Id id,
                                              CountingFrameExtension *channelExt,
+                                             const Bounds &bounds,
                                              Nm inclusion[3],
-                                             Nm exclusion[3],
-                                             ViewManager *vm)
-: CountingFrame(id, channelExt, inclusion, exclusion, vm)
+                                             Nm exclusion[3])
+: CountingFrame(id, channelExt, inclusion, exclusion)
 , m_channel(channelExt->channel())
 {
   updateCountingFrame();
@@ -64,14 +69,14 @@ QVariant AdaptiveCountingFrame::data(int role) const
 {
   if (role == Qt::DisplayRole)
     return tr("%1 - CF %2: Adaptive")
-             .arg(m_channelExt->channel()->data().toString())
+             .arg(m_channel->name())
              .arg(m_id);
 
   return CountingFrame::data(role);
 }
 
 //-----------------------------------------------------------------------------
-vtkAbstractWidget* AdaptiveCountingFrame::create3DWidget(VolumeView* view)
+vtkAbstractWidget* AdaptiveCountingFrame::create3DWidget(View3D *view)
 {
   CountingFrame3DWidgetAdapter *wa = new CountingFrame3DWidgetAdapter();
   Q_ASSERT(wa);
@@ -104,13 +109,11 @@ vtkAbstractWidget* AdaptiveCountingFrame::create3DWidget(VolumeView* view)
 // }
 
 //-----------------------------------------------------------------------------
-SliceWidget* AdaptiveCountingFrame::createSliceWidget(SliceView *view)
+SliceWidget* AdaptiveCountingFrame::createSliceWidget(View2D *view)
 {
-  Channel *channel = m_channelExt->channel();
-  double spacing[3];
-  channel->volume()->spacing(spacing);
+  NmVector3 spacing = m_channel->output()->spacing();
 
-  CountingFrame2DWidgetAdapter *wa = new CountingFrame2DWidgetAdapter();
+  auto wa = new CountingFrame2DWidgetAdapter();
   Q_ASSERT(wa);
   wa->AddObserver(vtkCommand::EndInteractionEvent, this);
   wa->SetPlane(view->plane());
@@ -152,22 +155,21 @@ void AdaptiveCountingFrame::setEnabled(bool enable)
 //-----------------------------------------------------------------------------
 void AdaptiveCountingFrame::updateCountingFrameImplementation()
 {
-  double spacing[3];
-  m_channel->volume()->spacing(spacing);
-  int extent[6];
-  m_channel->volume()->extent(extent);
+  NmVector3 spacing = m_channel->output()->spacing();
+//   int extent[6];
+//   m_channel->volume()->extent(extent);
 
   m_inclusionVolume = 0;
 
-  AdaptiveEdgesPtr edgesExtension = NULL;
-  Channel::ExtensionPtr extension = m_channel->extension(AdaptiveEdgesID);
+  AdaptiveEdgesSPtr edgesExtension;
+  auto extension = m_channel->extension(AdaptiveEdges::TYPE);
   if (extension)
   {
-    edgesExtension = dynamic_cast<AdaptiveEdgesPtr>(extension);
+    edgesExtension = std::dynamic_pointer_cast<AdaptiveEdges>(extension);
   }
   else
   {
-    edgesExtension = new AdaptiveEdges(true);
+    edgesExtension = AdaptiveEdgesSPtr(new AdaptiveEdges(true));
     m_channel->addExtension(edgesExtension);
   }
   Q_ASSERT(edgesExtension);
@@ -176,8 +178,14 @@ void AdaptiveCountingFrame::updateCountingFrameImplementation()
 
   m_totalVolume = edgesExtension->computedVolume();
 
-  int inSliceOffset = upperOffset() / spacing[2];
-  int exSliceOffset = lowerOffset() / spacing[2];
+  int inSliceOffset = frontOffset() / spacing[2];
+  int exSliceOffset = backOffset()  / spacing[2];
+
+  int    extent[6];
+  double bounds[6];
+  margins->GetBounds(bounds);
+  extent[4] = bounds[4] / spacing[2];
+  extent[5] = bounds[5] / spacing[2];
 
   int upperSlice = extent[4] + inSliceOffset;
   upperSlice = std::max(upperSlice, extent[4]);

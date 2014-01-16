@@ -60,8 +60,6 @@ namespace EspINA
   private slots:
     void applyCategoryConstraint();
 
-    void clearCountingFrames();
-
     void enableCategoryConstraints(bool enable);
 
     /// Update UI depending on selected row's counting frame
@@ -81,7 +79,7 @@ namespace EspINA
 
     void saveActiveCountingFrameDescription();
 
-    void channelChanged(ChannelAdapterPtr channel);
+    void onChannelChanged(ChannelAdapterPtr channel);
 
     void changeUnitMode(bool useSlices);
 

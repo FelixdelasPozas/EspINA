@@ -195,7 +195,7 @@ void vtkCountingFrameCoronalSliceRepresentation::MoveLeftEdge(double* p1, double
     {
       double sliceBounds[6];
       regionBounds(slice, sliceBounds);
-      collision = sliceBounds[0] + offset >= sliceBounds[1] - ExclusionOffset[0] - Resolution[0];
+      collision = sliceBounds[0] + offset >= sliceBounds[1] - ExclusionOffset[0] - SlicingStep[0];
       slice++;
     }
 
@@ -235,7 +235,7 @@ void vtkCountingFrameCoronalSliceRepresentation::MoveRightEdge(double* p1, doubl
     {
       double sliceBounds[6];
       regionBounds(slice, sliceBounds);
-      collision = sliceBounds[0] + InclusionOffset[0] >= sliceBounds[1] - offset - Resolution[0];
+      collision = sliceBounds[0] + InclusionOffset[0] >= sliceBounds[1] - offset - SlicingStep[0];
       slice++;
     }
 
@@ -259,7 +259,7 @@ void vtkCountingFrameCoronalSliceRepresentation::MoveTopEdge(double* p1, double*
   else
   {
     EspINA::Nm nextTopEdge = realTopEdge() + offset;
-    EspINA::Nm bottomEdgeLimit  = bottomEdge() - Resolution[2];
+    EspINA::Nm bottomEdgeLimit  = bottomEdge() - SlicingStep[2];
 
     if (nextTopEdge > bottomEdgeLimit)
       offset = bottomEdgeLimit - realTopEdge();
@@ -281,7 +281,7 @@ void vtkCountingFrameCoronalSliceRepresentation::MoveTopEdge(double* p1, double*
       {
         double sliceBounds[6];
         regionBounds(slice, sliceBounds);
-        collision = sliceBounds[0] + InclusionOffset[0] >= sliceBounds[1] - ExclusionOffset[0] - Resolution[0];
+        collision = sliceBounds[0] + InclusionOffset[0] >= sliceBounds[1] - ExclusionOffset[0] - SlicingStep[0];
         slice++;
       }
 
@@ -308,7 +308,7 @@ void vtkCountingFrameCoronalSliceRepresentation::MoveBottomEdge(double* p1, doub
   else
   {
     EspINA::Nm nextBottomEdge = realBottomEdge() - offset;
-    EspINA::Nm topEdgeLimit = topEdge() + Resolution[2];
+    EspINA::Nm topEdgeLimit = topEdge() + SlicingStep[2];
 
     if (topEdgeLimit > nextBottomEdge)
       offset = realBottomEdge() - topEdgeLimit;
@@ -330,7 +330,7 @@ void vtkCountingFrameCoronalSliceRepresentation::MoveBottomEdge(double* p1, doub
       {
         double sliceBounds[6];
         regionBounds(slice, sliceBounds);
-        collision = sliceBounds[0] + InclusionOffset[0] >= sliceBounds[1] - ExclusionOffset[0] - Resolution[0];
+        collision = sliceBounds[0] + InclusionOffset[0] >= sliceBounds[1] - ExclusionOffset[0] - SlicingStep[0];
         slice++;
       }
 

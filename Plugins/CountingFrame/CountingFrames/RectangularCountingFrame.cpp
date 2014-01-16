@@ -114,7 +114,7 @@ vtkAbstractWidget *RectangularCountingFrame::create3DWidget(View3D *view)
 //-----------------------------------------------------------------------------
 SliceWidget* RectangularCountingFrame::createSliceWidget(View2D *view)
 {
-  CountingFrame2DWidgetAdapter *wa = new CountingFrame2DWidgetAdapter();
+  auto wa = new CountingFrame2DWidgetAdapter();
   Q_ASSERT(wa);
   wa->AddObserver(vtkCommand::EndInteractionEvent, this);
   wa->SetPlane(view->plane());

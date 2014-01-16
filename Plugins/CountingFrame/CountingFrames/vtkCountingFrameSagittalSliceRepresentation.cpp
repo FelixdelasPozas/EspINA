@@ -180,7 +180,7 @@ void vtkCountingFrameSagittalSliceRepresentation::MoveLeftEdge(double* p1, doubl
   else
   {
     EspINA::Nm nextLeftEdge = realLeftEdge() + offset;
-    EspINA::Nm rightEdgeLimit  = rightEdge() - Resolution[2];
+    EspINA::Nm rightEdgeLimit  = rightEdge() - SlicingStep[2];
 
     if (nextLeftEdge > rightEdgeLimit)
       offset = rightEdgeLimit - realLeftEdge();
@@ -202,7 +202,7 @@ void vtkCountingFrameSagittalSliceRepresentation::MoveLeftEdge(double* p1, doubl
       {
         double sliceBounds[6];
         regionBounds(slice, sliceBounds);
-        collision = sliceBounds[2] + InclusionOffset[1] >= sliceBounds[3] - ExclusionOffset[1] - Resolution[1];
+        collision = sliceBounds[2] + InclusionOffset[1] >= sliceBounds[3] - ExclusionOffset[1] - SlicingStep[1];
         slice++;
       }
 
@@ -227,7 +227,7 @@ void vtkCountingFrameSagittalSliceRepresentation::MoveRightEdge(double* p1, doub
   else
   {
     EspINA::Nm nextRightEdge = realRightEdge() - offset;
-    EspINA::Nm leftEdgeLimit = leftEdge() + Resolution[2];
+    EspINA::Nm leftEdgeLimit = leftEdge() + SlicingStep[3];
 
     if (leftEdgeLimit > nextRightEdge)
       offset = realRightEdge() - leftEdgeLimit;
@@ -249,7 +249,7 @@ void vtkCountingFrameSagittalSliceRepresentation::MoveRightEdge(double* p1, doub
       {
         double sliceBounds[6];
         regionBounds(slice, sliceBounds);
-        collision = sliceBounds[2] + InclusionOffset[1] >= sliceBounds[3] - ExclusionOffset[1] - Resolution[1];
+        collision = sliceBounds[2] + InclusionOffset[1] >= sliceBounds[3] - ExclusionOffset[1] - SlicingStep[1];
         slice++;
       }
 
@@ -290,7 +290,7 @@ void vtkCountingFrameSagittalSliceRepresentation::MoveTopEdge(double* p1, double
     {
       double sliceBounds[6];
       regionBounds(slice, sliceBounds);
-      collision = sliceBounds[2] + offset >= sliceBounds[3] - ExclusionOffset[1] - Resolution[1];
+      collision = sliceBounds[2] + offset >= sliceBounds[3] - ExclusionOffset[1] - SlicingStep[1];
       slice++;
     }
 
@@ -330,7 +330,7 @@ void vtkCountingFrameSagittalSliceRepresentation::MoveBottomEdge(double* p1, dou
     {
       double sliceBounds[6];
       regionBounds(slice, sliceBounds);
-      collision = sliceBounds[2] + InclusionOffset[1] >= sliceBounds[3] - offset - Resolution[1];
+      collision = sliceBounds[2] + InclusionOffset[1] >= sliceBounds[3] - offset - SlicingStep[1];
       slice++;
     }
 

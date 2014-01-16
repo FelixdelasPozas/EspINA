@@ -22,61 +22,65 @@
 #include "CountingFramePlugin_Export.h"
 #include "CountingFrames/CountingFrame.h"
 
+#include <Core/Utils/Bounds.h>
+
 namespace EspINA
 {
-
-  const QString ADAPTIVE_CF = QObject::tr("Adaptive CF");
-
-  class CountingFramePlugin_EXPORT AdaptiveCountingFrame
-  : public CountingFrame
+  namespace CF
   {
-  public:
-    static AdaptiveCountingFrame *New(Id id,
-                                      CountingFrameExtension *channelExt,
-                                      Nm inclusion[3],
-                                      Nm exclusion[3],
-                                      ViewManager *vm)
-    { return new AdaptiveCountingFrame(id, channelExt, inclusion, exclusion, vm); }
+    const QString ADAPTIVE_CF = QObject::tr("Adaptive CF");
 
-    virtual ~AdaptiveCountingFrame();
+    class CountingFramePlugin_EXPORT AdaptiveCountingFrame
+    : public CountingFrame
+    {
+    public:
+      static AdaptiveCountingFrame *New(Id id,
+                                        CountingFrameExtension *extension,
+                                        const Bounds &bounds,
+                                        Nm inclusion[3],
+                                        Nm exclusion[3])
+      { return new AdaptiveCountingFrame(id, extension, bounds, inclusion, exclusion); }
 
-    // Implements QStandardItem interface
-    virtual QVariant data(int role = Qt::UserRole + 1) const;
-    virtual QString name() const { return ADAPTIVE_CF; }
+      virtual ~AdaptiveCountingFrame();
 
-    // Implements EspinaWidget itnerface
-    virtual vtkAbstractWidget *create3DWidget(VolumeView *view);
+      // Implements QStandardItem interface
+      virtual QVariant data(int role = Qt::UserRole + 1) const;
+      virtual QString name() const { return ADAPTIVE_CF; }
 
-    virtual SliceWidget *createSliceWidget(SliceView *view);
+      // Implements EspinaWidget itnerface
+      virtual vtkAbstractWidget *create3DWidget(View3D *view);
 
-    virtual bool processEvent(vtkRenderWindowInteractor* iren,
-                              long unsigned int event);
-    virtual void setEnabled(bool enable);
+      virtual SliceWidget *createSliceWidget(View2D *view);
 
-    virtual void updateCountingFrameImplementation();
+      virtual bool processEvent(vtkRenderWindowInteractor* iren,
+                                long unsigned int event);
 
-  protected:
+      virtual void setEnabled(bool enable);
 
-    explicit AdaptiveCountingFrame(Id id,
-                                   CountingFrameExtension *channelExt,
-                                   Nm inclusion[3],
-                                   Nm exclusion[3],
-                                   ViewManager *vm);
+      virtual void updateCountingFrameImplementation();
 
-  protected:
-    double leftOffset()   const {return  m_inclusion[0];}
-    double topOffset()    const {return  m_inclusion[1];}
-    double upperOffset()  const {return  m_inclusion[2];}
-    double rightOffset()  const {return -m_exclusion[0];}
-    double bottomOffset() const {return -m_exclusion[1];}
-    double lowerOffset()  const {return -m_exclusion[2];}
-    void applyOffset(double &var, double offset)
-    {var = floor(var + offset + 0.5);}
+    protected:
+      explicit AdaptiveCountingFrame(Id id,
+                                     CountingFrameExtension *extension,
+                                     const Bounds &bounds,
+                                     Nm inclusion[3],
+                                     Nm exclusion[3]);
 
-  private:
-    Channel *m_channel;
-  };
+    protected:
+      Nm leftOffset()   const {return  m_inclusion[0];}
+      Nm topOffset()    const {return  m_inclusion[1];}
+      Nm frontOffset()  const {return  m_inclusion[2];}
+      Nm rightOffset()  const {return -m_exclusion[0];}
+      Nm bottomOffset() const {return -m_exclusion[1];}
+      Nm backOffset()   const {return -m_exclusion[2];}
 
+      void applyOffset(double &var, double offset)
+      {var = floor(var + offset + 0.5);}
+
+    private:
+      Channel *m_channel;
+    };
+  } // namespace CF
 } // namespace EspINA
 
 #endif // ADAPTIVEBOUNDINGFRAME_H
