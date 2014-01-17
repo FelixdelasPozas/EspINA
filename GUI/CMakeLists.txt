@@ -93,15 +93,12 @@ set (GUI_SOURCES
   Representations/Renderers/Renderer.cpp
   Representations/Renderers/SliceRenderer.cpp
   Representations/Renderers/CrosshairRenderer.cpp
-  Representations/Renderers/VolumetricRenderer.cpp
   Representations/Representation.cpp
   Representations/RepresentationEmptySettings.cpp
   Representations/RepresentationFactoryGroup.cpp 
   Representations/SliceRepresentation.cpp
   Representations/SliceRepresentationSettings.cpp 
   Representations/SmoothedMeshRepresentation.cpp
-  Representations/VolumetricRepresentation.cpp
-  Representations/VolumetricGPURepresentation.cpp
   Selectors/BrushSelector.cpp
   Selectors/PixelSelector.cpp
   Selectors/Selector.cpp

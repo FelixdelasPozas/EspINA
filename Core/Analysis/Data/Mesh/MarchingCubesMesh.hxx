@@ -159,7 +159,6 @@ namespace EspINA
   void MarchingCubesMesh<T>::updateMesh()
   {
     vtkSmartPointer<vtkImageData> image = vtkImage(m_volume, m_volume->bounds());
-    image->Print(std::cout);
 
     int extent[6];
     image->GetExtent(extent);

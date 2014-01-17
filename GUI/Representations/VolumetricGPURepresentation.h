@@ -23,12 +23,23 @@
 
 // EspINA
 #include "Representation.h"
-#include "GUI/View/RenderView.h"
+#include "VolumetricGPURepresentation.h"
+#include "RepresentationEmptySettings.h"
 #include <Core/Analysis/Data/VolumetricData.h>
+#include <GUI/View/RenderView.h>
 #include <GUI/View/View3D.h>
+#include <GUI/ColorEngines/TransparencySelectionHighlighter.h>
 
 // VTK
 #include <vtkSmartPointer.h>
+#include <vtkGPUVolumeRayCastMapper.h>
+#include <vtkMath.h>
+#include <vtkVolumeRayCastCompositeFunction.h>
+#include <vtkColorTransferFunction.h>
+#include <vtkPiecewiseFunction.h>
+#include <vtkVolumeProperty.h>
+#include <vtkVolume.h>
+#include <vtkRenderWindow.h>
 
 // ITK
 #include <itkImageToVTKImageFilter.h>
@@ -45,6 +56,9 @@ namespace EspINA
   class EspinaGUI_EXPORT VolumetricGPURepresentation
   : public Representation
   {
+    public:
+      static const Representation::Type TYPE;
+
     public:
       explicit VolumetricGPURepresentation(VolumetricDataSPtr<T> data,
                                            RenderView *view);
@@ -66,6 +80,8 @@ namespace EspINA
       virtual void updateRepresentation();
 
       virtual QList<vtkProp*> getActors();
+
+      virtual bool crosshairDependent() const;
 
   protected:
       virtual RepresentationSPtr cloneImplementation(View2D *view)
@@ -95,6 +111,8 @@ namespace EspINA
   template<class T> using VolumetricGPURepresentationPtr  = VolumetricGPURepresentation<T> *;
   template<class T> using VolumetricGPURepresentationSPtr = std::shared_ptr<VolumetricGPURepresentation<T>>;
   template<class T> using VolumetricGPURepresentationSList = QList<VolumetricGPURepresentationSPtr<T>>;
-
 } /* namespace EspINA */
+
+#include "VolumetricGPURepresentation.txx"
+
 #endif /* VOLUMEGPUREPRESENTATION_H_ */

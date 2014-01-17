@@ -16,73 +16,77 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-//-----------------------------------------------------------------------------
-template<class T>
-VolumetricGPURenderer<T>::VolumetricGPURenderer(QObject* parent)
-: VolumetricRenderer<T>(parent)
+namespace EspINA
 {
-}
-
-//-----------------------------------------------------------------------------
-template<class T>
-VolumetricGPURenderer<T>::~VolumetricGPURenderer()
-{
-}
-
-//-----------------------------------------------------------------------------
-template<class T>
-void VolumetricGPURenderer<T>::addRepresentation(ViewItemAdapterPtr item, RepresentationSPtr rep)
-{
-  VolumetricGPURepresentationSPtr<T> volume = std::dynamic_pointer_cast<VolumetricGPURepresentationSPtr<T>>(rep);
-  if (volume.get() != nullptr)
+  //-----------------------------------------------------------------------------
+  template<class T>
+  VolumetricGPURenderer<T>::VolumetricGPURenderer(QObject* parent)
+      : VolumetricRenderer<T>(parent)
   {
-    if (m_representations.keys().contains(item))
-      m_representations[item] << rep;
-    else
+  }
+
+  //-----------------------------------------------------------------------------
+  template<class T>
+  VolumetricGPURenderer<T>::~VolumetricGPURenderer()
+  {
+  }
+
+  //-----------------------------------------------------------------------------
+  template<class T>
+  void VolumetricGPURenderer<T>::addRepresentation(ViewItemAdapterPtr item, RepresentationSPtr rep)
+  {
+    VolumetricGPURepresentationSPtr<T> volume = std::dynamic_pointer_cast < VolumetricGPURepresentation < T >> (rep);
+    if (volume.get() != nullptr)
     {
-      RepresentationSList list;
-      list << rep;
-      m_representations.insert(item, list);
+      if (this->m_representations.keys().contains(item))
+        this->m_representations[item] << rep;
+      else
+      {
+        RepresentationSList list;
+        list << rep;
+        this->m_representations.insert(item, list);
+      }
+
+      if (this->m_enable)
+        for (auto prop : rep->getActors())
+        {
+          this->m_view->addActor(prop);
+          this->m_picker->AddPickList(prop);
+        }
     }
-    
-    if (m_enable)
-      for(auto prop: rep->getActors())
-      {
-        m_view->addActor(prop);
-        m_picker->AddPickList(prop);
-      }
   }
-}
 
-//-----------------------------------------------------------------------------
-template<class T>
-void VolumetricGPURenderer<T>::removeRepresentation(RepresentationSPtr rep)
-{
-  VolumetricGPURepresentationSPtr<T> volume = std::dynamic_pointer_cast<VolumetricGPURepresentationSPtr<T>>(rep);
-  if (volume.get() != nullptr)
+  //-----------------------------------------------------------------------------
+  template<class T>
+  void VolumetricGPURenderer<T>::removeRepresentation(RepresentationSPtr rep)
   {
-    for(auto item: m_representations.keys())
-      if (m_representations[item].contains(rep))
-      {
-        if (m_enable)
-          for(auto prop: rep->getActors())
-          {
-            m_view->removeActor(prop);
-            m_picker->DeletePickList(prop);
-          }
+    VolumetricGPURepresentationSPtr<T> volume = std::dynamic_pointer_cast < VolumetricGPURepresentation < T >> (rep);
+    if (volume.get() != nullptr)
+    {
+      for (auto item : this->m_representations.keys())
+        if (this->m_representations[item].contains(rep))
+        {
+          if (this->m_enable)
+            for (auto prop : rep->getActors())
+            {
+              this->m_view->removeActor(prop);
+              this->m_picker->DeletePickList(prop);
+            }
           
-          m_representations[item].removeAll(rep);
-        
-        if (m_representations[item].isEmpty())
-          m_representations.remove(item);
-      }
-  }
-}
+          this->m_representations[item].removeAll(rep);
 
-//-----------------------------------------------------------------------------
-template<class T>
-bool VolumetricGPURenderer<T>::managesRepresentation(RepresentationSPtr rep)
-{
-  VolumetricGPURepresentationSPtr<T> volume = std::dynamic_pointer_cast<VolumetricGPURepresentationSPtr<T>>(rep);
-  return (volume.get() != nullptr);
+          if (this->m_representations[item].isEmpty())
+            this->m_representations.remove(item);
+        }
+    }
+  }
+
+  //-----------------------------------------------------------------------------
+  template<class T>
+  bool VolumetricGPURenderer<T>::managesRepresentation(RepresentationSPtr rep)
+  {
+    VolumetricGPURepresentationSPtr<T> volume = std::dynamic_pointer_cast < VolumetricGPURepresentation < T >> (rep);
+    return (volume.get() != nullptr);
+  }
+
 }

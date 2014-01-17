@@ -16,16 +16,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// EspINA
-#include "VolumetricRenderer.h"
-#include "GUI/View/RenderView.h"
-
-// VTK
-#include <vtkVolume.h>
-
-// Qt
-#include <QApplication>
-
 namespace EspINA
 {
   //-----------------------------------------------------------------------------
@@ -67,7 +57,7 @@ namespace EspINA
   template<class T>
   void VolumetricRenderer<T>::addRepresentation(ViewItemAdapterPtr item, RepresentationSPtr rep)
   {
-    VolumetricRepresentationSPtr<T> volume = std::dynamic_pointer_cast<VolumetricRepresentationSPtr<T>>(rep);
+    VolumetricRepresentationSPtr<T> volume = std::dynamic_pointer_cast<VolumetricRepresentation<T>>(rep);
     if (volume.get() != nullptr)
     {
       if (m_representations.keys().contains(item))
@@ -128,7 +118,7 @@ namespace EspINA
   template<class T>
   bool VolumetricRenderer<T>::managesRepresentation(RepresentationSPtr rep)
   {
-    VolumetricRepresentationSPtr<T> volume = std::dynamic_pointer_cast<VolumetricRepresentationSPtr<T>>(rep);
+    VolumetricRepresentationSPtr<T> volume = std::dynamic_pointer_cast<VolumetricRepresentation<T>>(rep);
     return (volume.get() != nullptr);
   }
 

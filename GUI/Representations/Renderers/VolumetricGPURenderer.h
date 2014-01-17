@@ -21,7 +21,16 @@
 
 #include "EspinaGUI_Export.h"
 
+// EspINA
 #include "VolumetricRenderer.h"
+#include "GUI/View/RenderView.h"
+#include <GUI/Representations/VolumetricGPURepresentation.h>
+
+// VTK
+#include <vtkVolume.h>
+
+// Qt
+#include <QApplication>
 
 namespace EspINA
 {
@@ -44,8 +53,9 @@ namespace EspINA
       virtual RendererSPtr clone() {return RendererSPtr(new VolumetricGPURenderer());}
   };
 
-#include "VolumetricGPURenderer.cpp"
 
 } // namespace EspINA
+
+#include "VolumetricGPURenderer.cpp"
 
 #endif // ESPINA_VOLUMETRIC_GPU_RENDERER_H

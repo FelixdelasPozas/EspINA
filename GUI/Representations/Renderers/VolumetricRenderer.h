@@ -22,13 +22,19 @@
 #include "EspinaGUI_Export.h"
 
 // EspINA
-#include "GUI/Representations/Renderers/Renderer.h"
-#include "GUI/Representations/VolumetricRepresentation.h"
+#include <GUI/Representations/Renderers/Renderer.h>
+#include <GUI/Representations/VolumetricRepresentation.h>
+#include <GUI/View/RenderView.h>
 #include <Core/EspinaTypes.h>
 #include <Support/ViewManager.h>
 
 // VTK
 #include <vtkVolumePicker.h>
+#include <vtkVolume.h>
+
+// Qt
+#include <QApplication>
+
 
 namespace EspINA
 {
@@ -77,6 +83,9 @@ namespace EspINA
     vtkSmartPointer<vtkVolumePicker> m_picker;
   };
 
+
 } // namespace EspINA
+
+#include "VolumetricRenderer.cpp"
 
 #endif // ESPINA_VOLUMETRIC_RENDERER_H

@@ -24,12 +24,11 @@
 #include "SliceRepresentation.h"
 #include "MeshRepresentation.h"
 #include "SmoothedMeshRepresentation.h"
+#include "VolumetricRepresentation.h"
+#include "VolumetricGPURepresentation.h"
 
-// #include "VolumeRaycastRepresentation.h"
-// #include "CrosshairRepresentation.h"
-// #include "VolumeGPURepresentation.h"
 // #include "ContourRepresentation.h"
-// 
+//
 // #include <Core/OutputRepresentations/MeshType.h>
 // #include <Core/OutputRepresentations/VolumeRepresentation.h>
 // #include <Core/Model/Filter.h>
@@ -76,6 +75,8 @@ RepresentationTypeList BasicSegmentationRepresentationFactory::representations()
   representations << SegmentationSliceRepresentation::TYPE;
   representations << MeshRepresentation::TYPE;
   representations << SmoothedMeshRepresentation::TYPE;
+  representations << VolumetricRepresentation<itkVolumeType>::TYPE;
+  representations << VolumetricGPURepresentation<itkVolumeType>::TYPE;
 
   return representations;
 }
@@ -104,6 +105,20 @@ RepresentationSPtr BasicSegmentationRepresentationFactory::createRepresentation(
     MeshDataSPtr mesh = meshData(output);
 
     representation = RepresentationSPtr{new SmoothedMeshRepresentation(mesh, nullptr)};
+  }
+
+  if (type == VolumetricRepresentation<itkVolumeType>::TYPE)
+  {
+    DefaultVolumetricDataSPtr volume = volumetricData(output);
+
+    representation = RepresentationSPtr{ new VolumetricRepresentation<itkVolumeType>(volume, nullptr)};
+  }
+
+  if (type == VolumetricGPURepresentation<itkVolumeType>::TYPE)
+  {
+    DefaultVolumetricDataSPtr volume = volumetricData(output);
+
+    representation = RepresentationSPtr{ new VolumetricGPURepresentation<itkVolumeType>(volume, nullptr)};
   }
 
   return representation;

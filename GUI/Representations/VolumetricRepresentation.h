@@ -16,19 +16,30 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef VOLUMERAYCASTREPRESENTATION_H_
-#define VOLUMERAYCASTREPRESENTATION_H_
+#ifndef ESPINA_VOLUMETRIC_REPRESENTATION_H_
+#define ESPINA_VOLUMETRIC_REPRESENTATION_H_
 
 #include "EspinaGUI_Export.h"
 
 // EspINA
+#include "VolumetricRepresentation.h"
 #include <Core/Analysis/Data/VolumetricData.h>
-#include <itkImageToVTKImageFilter.h>
+#include "RepresentationEmptySettings.h"
 #include "GUI/Representations/Representation.h"
+#include "GUI/View/RenderView.h"
 #include "GUI/View/View3D.h"
+#include "GUI/ColorEngines/ColorEngine.h"
+#include "GUI/ColorEngines/TransparencySelectionHighlighter.h"
 
 // VTK
 #include <vtkSmartPointer.h>
+#include <vtkVolumeRayCastMapper.h>
+#include <vtkVolumeRayCastCompositeFunction.h>
+#include <vtkColorTransferFunction.h>
+#include <vtkVolumeProperty.h>
+#include <vtkPiecewiseFunction.h>
+#include <vtkVolume.h>
+#include <vtkMath.h>
 
 // ITK
 #include <itkImageToVTKImageFilter.h>
@@ -45,6 +56,9 @@ namespace EspINA
   class EspinaGUI_EXPORT VolumetricRepresentation
   : public Representation
   {
+    public:
+      static const Representation::Type TYPE;
+
     public:
       explicit VolumetricRepresentation(VolumetricDataSPtr<T> data,
                                         RenderView *view);
@@ -67,13 +81,15 @@ namespace EspINA
 
       virtual QList<vtkProp*> getActors();
 
+      virtual bool crosshairDependent() const;
+
     protected:
       virtual RepresentationSPtr cloneImplementation(View2D *view)
       { return RepresentationSPtr(); }
 
       virtual RepresentationSPtr cloneImplementation(View3D *view);
 
-    virtual void updateVisibility(bool visible);
+      virtual void updateVisibility(bool visible);
 
     private:
       void setView(View3D *view) { m_view = view; }
@@ -96,5 +112,9 @@ namespace EspINA
   template<class T> using VolumetricRepresentationSPtr = std::shared_ptr<VolumetricRepresentation<T>>;
   template<class T> using VolumetricRepresentationSList = QList<VolumetricRepresentationSPtr<T>>;
 
+  template class VolumetricRepresentation<itkVolumeType>;
 } /* namespace EspINA */
-#endif /* VOLUMERAYCASTREPRESENTATION_H_ */
+
+#include "VolumetricRepresentation.txx"
+
+#endif /* ESPINA_VOLUMETRIC_REPRESENTATION_H_ */
