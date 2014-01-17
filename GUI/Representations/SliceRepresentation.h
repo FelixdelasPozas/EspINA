@@ -185,10 +185,6 @@ namespace EspINA
     DefaultVolumetricDataSPtr m_data;
     int m_planeIndex;
     Nm m_reslicePoint;
-
-    using ExporterType = itk::ImageToVTKImageFilter<itkVolumeType>;
-
-    ExporterType::Pointer                m_exporter;
     vtkSmartPointer<vtkImageMapToColors> m_mapToColors;
     vtkSmartPointer<vtkImageActor>       m_actor;
 

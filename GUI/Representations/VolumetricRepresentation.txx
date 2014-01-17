@@ -95,9 +95,9 @@ namespace EspINA
   {
     if (m_actor != nullptr)
     {
-      m_exporter->SetInput(m_data->itkImage());
-      m_exporter->Update();
-      m_mapper->UpdateWholeExtent();
+      auto volume = vtkImage(m_data, m_data->bounds());
+      m_mapper->SetInputData(volume);
+      m_mapper->Update();
       m_colorFunction->Modified();
       m_actor->Modified();
       m_actor->Update();
@@ -108,21 +108,15 @@ namespace EspINA
   template<class T>
   void VolumetricRepresentation<T>::initializePipeline()
   {
-    itkVolumeType::Pointer volume = m_data->itkImage();
-    m_exporter = ExporterType::New();
-    m_exporter->ReleaseDataFlagOn();
-    m_exporter->SetNumberOfThreads(1);
-    m_exporter->SetInput(volume);
-    m_exporter->Update();
+    auto volume = vtkImage(m_data, m_data->bounds());
 
-    vtkSmartPointer<vtkVolumeRayCastCompositeFunction> composite =
-        vtkSmartPointer<vtkVolumeRayCastCompositeFunction>::New();
+    vtkSmartPointer<vtkVolumeRayCastCompositeFunction> composite = vtkSmartPointer<vtkVolumeRayCastCompositeFunction>::New();
     m_mapper = vtkSmartPointer<vtkVolumeRayCastMapper>::New();
     m_mapper->ReleaseDataFlagOn();
     m_mapper->SetBlendModeToComposite();
     m_mapper->SetVolumeRayCastFunction(composite);
     m_mapper->IntermixIntersectingGeometryOff();
-    m_mapper->SetInputData(m_exporter->GetOutput());
+    m_mapper->SetInputData(volume);
     m_mapper->Update();
 
     // actor should be allocated first of the next call to setColor would do nothing
@@ -135,7 +129,7 @@ namespace EspINA
 
     vtkSmartPointer<vtkPiecewiseFunction> piecewise = vtkSmartPointer<vtkPiecewiseFunction>::New();
     piecewise->AddPoint(0, 0.0);
-    piecewise->AddPoint(255, 1.0);
+    piecewise->AddPoint(SEG_VOXEL_VALUE, 1.0);
     piecewise->Modified();
 
     vtkSmartPointer<vtkVolumeProperty> property = vtkSmartPointer<vtkVolumeProperty>::New();

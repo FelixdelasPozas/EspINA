@@ -41,9 +41,6 @@
 #include <vtkVolume.h>
 #include <vtkMath.h>
 
-// ITK
-#include <itkImageToVTKImageFilter.h>
-
 class vtkVolumeRayCastMapper;
 class vtkColorTransferFunction;
 class vtkVolume;
@@ -96,11 +93,7 @@ namespace EspINA
       void initializePipeline();
 
     private:
-      VolumetricDataSPtr<T> m_data;
-
-      using ExporterType = itk::ImageToVTKImageFilter<itkVolumeType>;
-
-      ExporterType::Pointer                     m_exporter;
+      VolumetricDataSPtr<T>                     m_data;
       vtkSmartPointer<vtkVolumeRayCastMapper>   m_mapper;
       vtkSmartPointer<vtkColorTransferFunction> m_colorFunction;
       vtkSmartPointer<vtkVolume>                m_actor;

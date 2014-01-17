@@ -271,7 +271,6 @@ SegmentationSliceRepresentation::SegmentationSliceRepresentation(DefaultVolumetr
 : Representation(view)
 , m_data(data)
 , m_planeIndex(-1)
-, m_exporter(nullptr)
 , m_mapToColors(nullptr)
 , m_actor(nullptr)
 {
@@ -377,37 +376,25 @@ void SegmentationSliceRepresentation::initializePipeline()
   if (m_planeIndex == -1)
     return;
 
-  auto reslicePoint = m_crosshair[m_planeIndex];
-  m_reslicePoint = reslicePoint + 1;
+  m_reslicePoint = m_crosshair[m_planeIndex] + 1; // trigger update
 
   View2D* view = reinterpret_cast<View2D *>(m_view);
-/*
-  Bounds imageBounds = m_data->bounds();
 
-  imageBounds.setLowerInclusion(true);
-  imageBounds.setUpperInclusion(toAxis(m_planeIndex), true);
+  vtkSmartPointer<vtkImageData> image = vtkSmartPointer<vtkImageData>::New();
+  image->SetExtent(0,1,0,1,0,1);
 
-  imageBounds[2*m_planeIndex]   = reslicePoint;
-  imageBounds[2*m_planeIndex+1] = reslicePoint; */
-
-  itkVolumeType::Pointer slice = itkVolumeType::New();
-  itkVolumeType::RegionType region;
-  slice->SetRegions(region);
-  slice->Allocate();
-
- // itkVolumeType::Pointer slice = ;//m_data->itkImage(imageBounds);
-
-  m_exporter = ExporterType::New();
-  m_exporter->ReleaseDataFlagOn();
-  m_exporter->SetNumberOfThreads(1);
-  m_exporter->SetInput(slice);
-  m_exporter->Update();
+  vtkInformation *info = image->GetInformation();
+  vtkImageData::SetScalarType(VTK_UNSIGNED_CHAR, info);
+  vtkImageData::SetNumberOfScalarComponents(1, info);
+  image->SetInformation(info);
+  image->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
+  image->Modified();
 
   // actor should be allocated first or the next call to setColor() would do nothing
   m_actor = vtkSmartPointer<vtkImageActor>::New();
 
   m_mapToColors = vtkSmartPointer<vtkImageMapToColors>::New();
-  m_mapToColors->SetInputData(m_exporter->GetOutput());
+  m_mapToColors->SetInputData(image);
   m_mapToColors->SetLookupTable(s_highlighter->lut(m_color));
   m_mapToColors->SetNumberOfThreads(1);
   m_mapToColors->Update();
@@ -415,13 +402,13 @@ void SegmentationSliceRepresentation::initializePipeline()
   m_actor->SetInterpolate(false);
   m_actor->GetMapper()->BorderOn();
   m_actor->GetMapper()->SetInputConnection(m_mapToColors->GetOutputPort());
-  m_actor->SetDisplayExtent(m_exporter->GetOutput()->GetExtent());
+  m_actor->SetDisplayExtent(image->GetExtent());
   m_actor->Update();
 
   // need to reposition the actor so it will always be over the channels actors'
   double pos[3];
   m_actor->GetPosition(pos);
-  pos[m_planeIndex] = view->segmentationDepth();
+  pos[m_planeIndex] += view->segmentationDepth();
   m_actor->SetPosition(pos);
 
   m_lastUpdatedTime = m_data->lastModified();
@@ -442,24 +429,22 @@ void SegmentationSliceRepresentation::updateRepresentation()
 
     imageBounds.setLowerInclusion(true);
     imageBounds.setUpperInclusion(toAxis(m_planeIndex), true);
+    imageBounds[2*m_planeIndex] = imageBounds[2*m_planeIndex+1] = m_reslicePoint;
 
-    imageBounds[2*m_planeIndex]   = m_reslicePoint;
-    imageBounds[2*m_planeIndex+1] = m_reslicePoint;
-
-    itkVolumeType::Pointer slice = m_data->itkImage(imageBounds);
-
-    m_exporter = ExporterType::New();
-    m_exporter->ReleaseDataFlagOn();
-    m_exporter->SetNumberOfThreads(1);
-    m_exporter->SetInput(slice);
-    m_exporter->Update();
-    m_mapToColors->SetInputData(m_exporter->GetOutput());
-    //m_mapToColors->SetLookupTable(s_highlighter->lut(m_color));
+    auto slice = vtkImage(m_data, imageBounds);
+    m_mapToColors->SetInputData(slice);
     m_mapToColors->Update();
-    m_actor->SetDisplayExtent(m_exporter->GetOutput()->GetExtent());
+    m_actor->SetDisplayExtent(slice->GetExtent());
     m_actor->Update();
 
     m_lastUpdatedTime = m_data->lastModified();
+
+    // need to reposition the actor so it will always be over the channels actors'
+    View2D* view = reinterpret_cast<View2D *>(m_view);
+    double pos[3];
+    m_actor->GetPosition(pos);
+    pos[m_planeIndex] += view->segmentationDepth();
+    m_actor->SetPosition(pos);
   }
 
   m_actor->SetVisibility(valid && isVisible());
