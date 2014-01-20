@@ -16,6 +16,7 @@ include (GenerateExportHeader)
 set (FILTERS_SOURCES
   ${FILTERS_MOC}
   ${FILTERS_UI}
+  FetchBehaviour/MarchingCubesFromFetchedVolumetricData.cpp
   FreeFormSource.cpp
   SeedGrowSegmentationFilter.cpp
   VolumetricStreamReader.cpp

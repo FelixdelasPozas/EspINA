@@ -21,6 +21,7 @@
 
 using namespace EspINA;
 
+//----------------------------------------------------------------------------
 EspINA::DefaultVolumetricDataSPtr EspINA::volumetricData(OutputSPtr output)
 {
   DefaultVolumetricDataSPtr volume = std::dynamic_pointer_cast<VolumetricData<itkVolumeType>>(output->data(VolumetricData<itkVolumeType>::TYPE));

@@ -86,6 +86,7 @@ namespace EspINA {
     SelectorSPtr m_currentSelector;
 
     QMap<FilterAdapterPtr, FilterAdapterSPtr> m_executingTasks;
+    FetchBehaviourSPtr m_fetchBehaviour;
   };
 
   using SeedGrowSegmentationToolSPtr = std::shared_ptr<SeedGrowSegmentationTool>;

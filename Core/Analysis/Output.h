@@ -91,6 +91,8 @@ namespace EspINA
 
     DataSPtr data(const Data::Type& type) const;
 
+    bool hasData(const Data::Type& type) const;
+
     /** \brief Request necessary pipeline execution to update this output
      *
      */

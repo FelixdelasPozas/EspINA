@@ -22,6 +22,7 @@
 #include <GUI/Selectors/PixelSelector.h>
 #include <GUI/Model/Utils/ModelAdapterUtils.h>
 #include <Filters/SeedGrowSegmentationFilter.h>
+#include <Filters/FetchBehaviour/MarchingCubesFromFetchedVolumetricData.h>
 #include <Undo/AddSegmentations.h>
 
 #include <QAction>
@@ -106,7 +107,15 @@ FilterSPtr SeedGrowSegmentationTool::createFilter(OutputSList         inputs,
 {
   if (filter != SGS_FILTER) throw Unknown_Filter_Exception();
 
-  return FilterSPtr{new SeedGrowSegmentationFilter(inputs, filter, scheduler)};
+  auto sgsFilter = FilterSPtr{new SeedGrowSegmentationFilter(inputs, filter, scheduler)};
+
+  if (!m_fetchBehaviour)
+  {
+    m_fetchBehaviour = FetchBehaviourSPtr{new MarchingCubesFromFetchedVolumetricData()};
+  }
+  sgsFilter->setFetchBehaviour(m_fetchBehaviour);
+
+  return sgsFilter;
 }
 
 //-----------------------------------------------------------------------------

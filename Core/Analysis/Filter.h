@@ -25,6 +25,7 @@
 #include "Core/EspinaTypes.h"
 #include "Core/Analysis/Output.h"
 #include "Core/Analysis/Persistent.h"
+#include "FetchBehaviour.h"
 #include "Core/MultiTasking/Task.h"
 #include <Core/IO/ErrorHandler.h>
 
@@ -59,6 +60,9 @@ namespace EspINA
 
     OutputSList inputs() const
     { return m_inputs; }
+
+    void setFetchBehaviour(FetchBehaviourSPtr behaviour)
+    { m_fetchBehaviour = behaviour; }
 
     void setErrorHandler(ErrorHandlerSPtr handler)
     { m_handler = handler; }
@@ -148,7 +152,8 @@ namespace EspINA
     OutputSList m_inputs;
     OutputSList m_outputs;
 
-    ErrorHandlerSPtr m_handler;
+    FetchBehaviourSPtr m_fetchBehaviour;
+    ErrorHandlerSPtr   m_handler;
   };
 } // namespace EspINA
 

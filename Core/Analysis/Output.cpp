@@ -92,7 +92,7 @@ Snapshot Output::snapshot(TemporalStorageSPtr storage,
       xml.writeAttribute("bounds", region.toString());
       xml.writeEndElement();
     }
-        xml.writeEndElement();
+    xml.writeEndElement();
 
     if (m_hasToBeSaved)
     {
@@ -197,6 +197,13 @@ Output::DataSPtr Output::data(const Data::Type& type) const
 
   return result;
 }
+
+//----------------------------------------------------------------------------
+bool Output::hasData(const Data::Type& type) const
+{
+  return m_data.contains(type);
+}
+
 
 //----------------------------------------------------------------------------
 void Output::update()

@@ -20,8 +20,6 @@
 #include "Filter.h"
 #include <Core/Utils/BinaryMask.h>
 #include <Core/Utils/TemporalStorage.h>
-#include "Data/Volumetric/SparseVolume.h"
-#include "Data/Mesh/RawMesh.h"
 
 // ITK
 #include <itkMetaImageIO.h>
@@ -152,7 +150,7 @@ Filter::Filter(OutputSList inputs, Filter::Type type, SchedulerSPtr scheduler)
 //----------------------------------------------------------------------------
 bool Filter::fetchOutputData(Output::Id id)
 {
-  if (!ignoreStorageContent() && storage())
+  if (!ignoreStorageContent() && storage() && m_fetchBehaviour)
   {
     QByteArray buffer = storage()->snapshot(outputFile());
 
@@ -181,38 +179,19 @@ bool Filter::fetchOutputData(Output::Id id)
               output->setSpacing(NmVector3(spacing.toString()));
             }
           }
-          else
-            if ("Data" == xml.name())
-            {
-              if ("VolumetricData" == xml.attributes().value("type"))
-              {
-                data = DataSPtr { new SparseVolume<itkVolumeType>() };
-              }
-              else
-                if ("MeshData" == xml.attributes().value("type"))
-                {
-                  //data = DataSPtr { new RawMesh() };
-                }
-            }
-        }
-        else
-          if (xml.isEndElement())
+          else if ("Data" == xml.name())
           {
-            if ("Output" == xml.name())
-            {
-              output->markToSave(true);
-              m_outputs << output;
-            }
-            else
-              if ("Data" == xml.name())
-              {
-                data->setOutput(output.get());
-                if (data->fetchData(storage(), prefix()))
-                {
-                  output->setData(data);
-                }
-              }
+            m_fetchBehaviour->fetchOutputData(output, storage(), prefix(), xml.attributes());
           }
+        }
+        else if (xml.isEndElement())
+        {
+          if ("Output" == xml.name())
+          {
+            output->markToSave(true);
+            m_outputs << output;
+          }
+        }
       }
     }
   }
