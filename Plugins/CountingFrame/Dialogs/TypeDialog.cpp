@@ -35,10 +35,13 @@ TypeDialog::TypeDialog(QWidget *parent)
 
   adaptiveRadio->setChecked(true);
   rectangularRadio->setChecked(false);
-  colorBox->setEnabled(true);
-  colorLabel->setEnabled(false);
-  thresholdBox->setEnabled(false);
-  thresholdLabel->setEnabled(false);
+
+  balckLabel->setEnabled(true);
+  colorBox  ->setEnabled(true);
+  whiteLabel->setEnabled(true);
+
+  thresholdBox  ->setEnabled(true);
+  thresholdLabel->setEnabled(true);
 
   connect(adaptiveRadio,   SIGNAL(toggled(bool)),
           this,            SLOT(radioChanged(bool)));
@@ -49,13 +52,20 @@ TypeDialog::TypeDialog(QWidget *parent)
 //------------------------------------------------------------------------
 void TypeDialog::radioChanged(bool value)
 {
-  if (sender() == adaptiveRadio)
+  bool adaptiveChecked = sender() == adaptiveRadio;
+  if (adaptiveChecked)
   {
     rectangularRadio->setChecked(!value);
   } else
   {
     adaptiveRadio->setChecked(!value);
   }
+  balckLabel->setEnabled(adaptiveChecked);
+  colorBox  ->setEnabled(adaptiveChecked);
+  whiteLabel->setEnabled(adaptiveChecked);
+
+  thresholdBox  ->setEnabled(adaptiveChecked);
+  thresholdLabel->setEnabled(adaptiveChecked);
 
   m_type = adaptiveRadio->isChecked()?ADAPTIVE:RECTANGULAR;
 }

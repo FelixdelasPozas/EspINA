@@ -50,8 +50,6 @@
 
 vtkStandardNewMacro(vtkCountingFrame3DRepresentation);
 
-enum View {XY=2,YZ=0,XZ=1,VOL=3};
-
 //----------------------------------------------------------------------------
 vtkCountingFrame3DRepresentation::vtkCountingFrame3DRepresentation()
 {

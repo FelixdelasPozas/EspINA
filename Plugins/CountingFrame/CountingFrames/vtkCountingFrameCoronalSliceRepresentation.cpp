@@ -18,6 +18,7 @@
 
 
 #include "vtkCountingFrameCoronalSliceRepresentation.h"
+#include <GUI/View/View2D.h>
 
 #include <vtkObjectFactory.h>
 #include <vtkCellArray.h>
@@ -75,14 +76,14 @@ void vtkCountingFrameCoronalSliceRepresentation::CreateRegion()
 
 //   std::cout << "LT: " << LT[2] << std::endl;
 //   std::cout << "LB: " << LB[2] << std::endl;
-  int UpperSlice = sliceNumber(LT[2] + InclusionOffset[2]);
-  int LowerSlice = sliceNumber(LB[2] - ExclusionOffset[2]);
-  if (UpperSlice == LowerSlice)
-    UpperSlice--;
+  int FrontSlice = sliceNumber(LT[2] + InclusionOffset[2]);
+  int BackSlice  = sliceNumber(LB[2] - ExclusionOffset[2]);
+  if (FrontSlice == BackSlice)
+    FrontSlice--;
 //   std::cout << "Upper Slice: " << UpperSlice << std::endl;
 //   std::cout << "Lower Slice: " << LowerSlice << std::endl;
 
-  int numRepSlices = LowerSlice - UpperSlice + 1;
+  int numRepSlices = BackSlice - FrontSlice + 1;
   if (numRepSlices == 0)
     return;
 
@@ -140,13 +141,13 @@ void vtkCountingFrameCoronalSliceRepresentation::CreateRegion()
 
   double point[3];
   /// Loop over slices and create Top/Bottom Edges
-  for ( int slice=UpperSlice; slice <= LowerSlice; slice++)
+  for ( int slice=FrontSlice; slice <= BackSlice; slice++)
   {
-    int interval = slice - UpperSlice;
+    int interval = slice - FrontSlice;
     // LEFT
-    Region->GetPoint(slice*4+1,point);
+    Region->GetPoint(slice*4+0,point);
     point[0] += InclusionOffset[0];
-    point[1] = 0.1;
+    point[1] = Slice + EspINA::View2D::WIDGET_SHIFT;
     if (slice == 0)
       point[2] += InclusionOffset[2];
     else if (slice == NumSlices -1)
@@ -155,7 +156,7 @@ void vtkCountingFrameCoronalSliceRepresentation::CreateRegion()
     //RIGHT
     Region->GetPoint(slice*4+3,point);
     point[0] -= ExclusionOffset[0];
-    point[1] = 0.1;
+    point[1] = Slice + EspINA::View2D::WIDGET_SHIFT;
     if (slice == 0)
       point[2] += InclusionOffset[2];
     else if (slice == NumSlices -1)

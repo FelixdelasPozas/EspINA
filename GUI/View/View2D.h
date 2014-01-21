@@ -62,6 +62,7 @@ namespace EspINA
 
   public:
     static const double SEGMENTATION_SHIFT;
+    static const double WIDGET_SHIFT;
 
     enum SliceSelector
     {

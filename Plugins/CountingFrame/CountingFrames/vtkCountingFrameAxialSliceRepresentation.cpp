@@ -18,6 +18,7 @@
 
 
 #include "vtkCountingFrameAxialSliceRepresentation.h"
+#include <GUI/View/View2D.h>
 
 #include <vtkObjectFactory.h>
 #include <vtkCellArray.h>
@@ -34,7 +35,7 @@ void vtkCountingFrameAxialSliceRepresentation::SetSlice(EspINA::Nm pos)
   double lastSliceBounds[6];
 
   regionBounds(0, firstSliceBounds);
-  regionBounds(NumSlices-1, lastSliceBounds);
+  regionBounds(NumSlices-1, lastSliceBounds); // there is one more extra for the cover
 
   if (Slice < firstSliceBounds[4] + InclusionOffset[2]
    || lastSliceBounds[5] - ExclusionOffset[2] < Slice)
@@ -74,7 +75,7 @@ void vtkCountingFrameAxialSliceRepresentation::CreateRegion()
 
   double LB[3], LT[3], RT[3], RB[3];
 
-  EspINA::Nm slice = sliceNumber(Slice);
+  int slice = sliceNumber(Slice);
   // Get original Region Points
   Region->GetPoint(slice*4+0, LB);
   Region->GetPoint(slice*4+1, LT);
@@ -83,7 +84,7 @@ void vtkCountingFrameAxialSliceRepresentation::CreateRegion()
 
   // Change its depth to be always on top of the XY plane
   // according to Espina's Camera
-  LB[2] = LT[2] = RT[2] = RB[2] = -0.1;
+  LB[2] = LT[2] = RT[2] = RB[2] = -EspINA::View2D::WIDGET_SHIFT;
 
   // Shift edges' points
   LB[0] += InclusionOffset[hCoord];

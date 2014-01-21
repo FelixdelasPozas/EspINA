@@ -191,7 +191,7 @@ void EdgeDetector::run()
     assert(face->GetNumberOfPoints() == 4);
 
     //NOTE: Espina's Counting Region Definition is used here.
-    // Upper slice is the first of the stack and lower the last one
+    // Front slice is the first of the stack and back the last one
     // Left Top Corner corresponds to pixel (0,0,0), Right Top to (N,0,0)
     // and so on
     double LB[3], LT[3], RT[3], RB[3];

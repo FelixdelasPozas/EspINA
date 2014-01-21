@@ -248,8 +248,9 @@ int vtkCountingFrameSliceRepresentation::sliceNumber(EspINA::Nm pos) const
 //     this->Region->GetOutput()->GetPoints()->GetPoint(4*(number+1), next);
 //     if (point[Plane] <= pos && pos < next[Plane])
     if (pos <= point[2])
-      return number;
+      return NumSlices == 2?number : number - 1;
   }
+
   return NumSlices-1;
 }
 

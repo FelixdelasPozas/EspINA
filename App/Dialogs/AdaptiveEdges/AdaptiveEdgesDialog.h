@@ -42,10 +42,12 @@ namespace EspINA
       int color()             { return m_backgroundColor; }
       bool useAdaptiveEdges() { return m_adaptiveEdgesEnabled; }
 
-    public slots:
+    private slots:
       void radioChanged(bool);
       void bgColorChanged(int value);
       void thresholdChanged(int value);
+      void setBlackBgColor();
+      void setWhiteBgColor();
 
     private:
       bool m_adaptiveEdgesEnabled;

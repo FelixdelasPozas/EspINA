@@ -33,6 +33,7 @@ set (CORE_SOURCES
   Analysis/ViewItem.cpp
   Factory/CoreFactory.cpp
   IO/ClassificationXML.cpp
+  IO/FetchRawData.cpp
   IO/GraphIO.cpp
   IO/SegFile.cpp
   IO/SegFileInterface.cpp

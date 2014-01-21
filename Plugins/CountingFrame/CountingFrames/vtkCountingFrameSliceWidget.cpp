@@ -54,12 +54,12 @@ vtkCountingFrameSliceWidget::vtkCountingFrameSliceWidget()
   // Define widget events
   this->CallbackMapper->SetCallbackMethod(vtkCommand::LeftButtonPressEvent,
                                           vtkEvent::NoModifier,
-                                          0, 0, NULL,
+                                          0, 0, nullptr,
                                           vtkWidgetEvent::Select,
                                           this, vtkCountingFrameSliceWidget::SelectAction);
   this->CallbackMapper->SetCallbackMethod(vtkCommand::LeftButtonReleaseEvent,
                                           vtkEvent::NoModifier,
-                                          0, 0, NULL,
+                                          0, 0, nullptr,
                                           vtkWidgetEvent::EndSelect,
                                           this, vtkCountingFrameSliceWidget::EndSelectAction);
   this->CallbackMapper->SetCallbackMethod(vtkCommand::MiddleButtonPressEvent,
@@ -70,22 +70,22 @@ vtkCountingFrameSliceWidget::vtkCountingFrameSliceWidget()
                                           this, vtkCountingFrameSliceWidget::EndSelectAction);
   this->CallbackMapper->SetCallbackMethod(vtkCommand::LeftButtonPressEvent,
                                           vtkEvent::ControlModifier,
-                                          0, 0, NULL,
+                                          0, 0, nullptr,
                                           vtkWidgetEvent::Translate,
                                           this, vtkCountingFrameSliceWidget::TranslateAction);
   this->CallbackMapper->SetCallbackMethod(vtkCommand::LeftButtonReleaseEvent,
                                             vtkEvent::ControlModifier,
-                                            0, 0, NULL,
+                                            0, 0, nullptr,
                                           vtkWidgetEvent::EndTranslate,
                                           this, vtkCountingFrameSliceWidget::EndSelectAction);
   this->CallbackMapper->SetCallbackMethod(vtkCommand::LeftButtonPressEvent,
                                           vtkEvent::ShiftModifier,
-                                          0, 0, NULL,
+                                          0, 0, nullptr,
                                           vtkWidgetEvent::Translate,
                                           this, vtkCountingFrameSliceWidget::TranslateAction);
   this->CallbackMapper->SetCallbackMethod(vtkCommand::LeftButtonReleaseEvent,
                                             vtkEvent::ShiftModifier,
-                                            0, 0, NULL,
+                                            0, 0, nullptr,
                                           vtkWidgetEvent::EndTranslate,
                                           this, vtkCountingFrameSliceWidget::EndSelectAction);
   this->CallbackMapper->SetCallbackMethod(vtkCommand::RightButtonReleaseEvent,
@@ -142,7 +142,7 @@ void vtkCountingFrameSliceWidget::SelectAction(vtkAbstractWidget *w)
   // start the interaction
   self->EventCallbackCommand->SetAbortFlag(1);
   self->StartInteraction();
-  self->InvokeEvent(vtkCommand::StartInteractionEvent,NULL);
+  self->InvokeEvent(vtkCommand::StartInteractionEvent,nullptr);
   self->Render();
 }
 
@@ -185,7 +185,7 @@ void vtkCountingFrameSliceWidget::TranslateAction(vtkAbstractWidget *w)
   // start the interaction
   self->EventCallbackCommand->SetAbortFlag(1);
   self->StartInteraction();
-  self->InvokeEvent(vtkCommand::StartInteractionEvent,NULL);
+  self->InvokeEvent(vtkCommand::StartInteractionEvent,nullptr);
   self->Render();
 }
 
@@ -217,7 +217,7 @@ void vtkCountingFrameSliceWidget::MoveAction(vtkAbstractWidget *w)
 
   // moving something
   self->EventCallbackCommand->SetAbortFlag(1);
-  self->InvokeEvent(vtkCommand::InteractionEvent,NULL);
+  self->InvokeEvent(vtkCommand::InteractionEvent,nullptr);
   self->Render();
 }
 
@@ -278,7 +278,7 @@ void vtkCountingFrameSliceWidget::EndSelectAction(vtkAbstractWidget *w)
 
   self->EventCallbackCommand->SetAbortFlag(1);
   self->EndInteraction();
-  self->InvokeEvent(vtkCommand::EndInteractionEvent,NULL);
+  self->InvokeEvent(vtkCommand::EndInteractionEvent,nullptr);
   self->Render();
   self->SetCursor(9999);
 }

@@ -102,7 +102,9 @@ namespace EspINA
   using AdaptiveEdgesPtr  = AdaptiveEdges *;
   using AdaptiveEdgesSPtr = std::shared_ptr<AdaptiveEdges>;
 
-  AdaptiveEdgesPtr EspinaExtensions_EXPORT adaptiveEdges(ChannelExtensionPtr extension);
+  AdaptiveEdgesPtr  EspinaExtensions_EXPORT adaptiveEdges(ChannelExtensionPtr extension);
+  AdaptiveEdgesSPtr EspinaExtensions_EXPORT adaptiveEdges(ChannelPtr channel);
+  AdaptiveEdgesSPtr EspinaExtensions_EXPORT createAdaptiveEdgesIfNotAvailable(ChannelPtr channel);
 
 }// namespace EspINA
 

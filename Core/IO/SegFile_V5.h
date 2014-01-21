@@ -23,6 +23,7 @@
 #include "Core/IO/SegFileInterface.h"
 #include <Core/Utils/TemporalStorage.h>
 #include <Core/Analysis/Output.h>
+#include <Core/Analysis/FetchBehaviour.h>
 
 namespace EspINA {
 
@@ -37,6 +38,8 @@ namespace EspINA {
         static const QString FORMAT_INFO_FILE;
 
       public:
+        virtual SegFile_V5();
+
         virtual AnalysisSPtr load(QuaZip&          zip,
                                   CoreFactorySPtr  factory = CoreFactorySPtr(),
                                   ErrorHandlerSPtr handler = ErrorHandlerSPtr());
@@ -99,6 +102,8 @@ namespace EspINA {
                            QuaZip&          zip,
                            ErrorHandlerSPtr handler = ErrorHandlerSPtr());
 
+      private:
+        FetchBehaviourSPtr m_fetchBehaviour;
       };
     }
   }

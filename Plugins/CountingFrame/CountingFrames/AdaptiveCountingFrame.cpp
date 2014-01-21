@@ -156,23 +156,11 @@ void AdaptiveCountingFrame::setEnabled(bool enable)
 void AdaptiveCountingFrame::updateCountingFrameImplementation()
 {
   NmVector3 spacing = m_channel->output()->spacing();
-//   int extent[6];
-//   m_channel->volume()->extent(extent);
 
   m_inclusionVolume = 0;
 
-  AdaptiveEdgesSPtr edgesExtension;
-  auto extension = m_channel->extension(AdaptiveEdges::TYPE);
-  if (extension)
-  {
-    edgesExtension = std::dynamic_pointer_cast<AdaptiveEdges>(extension);
-  }
-  else
-  {
-    edgesExtension = AdaptiveEdgesSPtr(new AdaptiveEdges(true));
-    m_channel->addExtension(edgesExtension);
-  }
-  Q_ASSERT(edgesExtension);
+  AdaptiveEdgesSPtr edgesExtension = createAdaptiveEdgesIfNotAvailable(m_channel);
+
   vtkSmartPointer<vtkPolyData> margins = edgesExtension->channelEdges();
   Q_ASSERT(margins.GetPointer());
 

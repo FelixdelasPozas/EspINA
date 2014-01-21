@@ -79,6 +79,7 @@
 using namespace EspINA;
 
 const double View2D::SEGMENTATION_SHIFT = 0.05;
+const double View2D::WIDGET_SHIFT = 0.15;
 
 //-----------------------------------------------------------------------------
 // SLICE VIEW

@@ -24,6 +24,7 @@
 #include "SegFile.h"
 #include "ClassificationXML.h"
 #include "ReadOnlyFilter.h"
+#include "FetchRawData.h"
 
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Extensions/ExtensionProvider.h>
@@ -58,6 +59,14 @@ QByteArray formatInfo()
   infoStream << QString("EspINA Version=%1").arg(ESPINA_VERSION) << endl;
 
   return info;
+}
+
+
+
+//-----------------------------------------------------------------------------
+SegFile_V5::SegFile_V5()
+: m_fetchBehaviour{new FetchRawData()}
+{
 }
 
 //-----------------------------------------------------------------------------
@@ -263,6 +272,7 @@ FilterSPtr SegFile_V5::createFilter(DirectedGraph::Vertex   roVertex,
   {
     filter = FilterSPtr{new ReadOnlyFilter(inputs, roVertex->name())};
   }
+  filter->setFetchBehaviour(m_fetchBehaviour);
   filter->setErrorHandler(handler);
   filter->setName(roVertex->name());
   filter->setUuid(roVertex->uuid());

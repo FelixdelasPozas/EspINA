@@ -353,7 +353,7 @@ bool StereologicalInclusion::isExcludedByCountingFrame(CountingFrame* cf)
     return true;
 
   Bounds inputBB = m_segmentation->output()->bounds();
-  qDebug() << "Input:" << inputBB.toString();
+  //qDebug() << "Input:" << inputBB.toString();
 
   vtkPolyData  *region       = cf->region();
   vtkPoints    *regionPoints = region->GetPoints();
@@ -368,7 +368,7 @@ bool StereologicalInclusion::isExcludedByCountingFrame(CountingFrame* cf)
   };
 
   Bounds regionBB = pointBounds(regionPoints);
-  qDebug() << "Region:" << regionBB.toString();
+  //qDebug() << "Region:" << regionBB.toString();
 
   // If there is no intersection (nor is inside), then it is excluded
   if (!intersect(inputBB, regionBB))
@@ -388,10 +388,10 @@ bool StereologicalInclusion::isExcludedByCountingFrame(CountingFrame* cf)
       facePoints->InsertNextPoint(regionPoints->GetPoint(pts[i]));
 
     Bounds faceBB = pointBounds(facePoints);
-    qDebug() << "Face:" << faceBB.toString();
-    qDebug() << " - intersect:" << intersect(inputBB, faceBB);
-    qDebug() << " - interscetion:" << intersection(inputBB, faceBB).toString();
-    qDebug() << " - type:" << faceData->GetScalars()->GetComponent(f, 0);
+    //qDebug() << "Face:" << faceBB.toString();
+    //qDebug() << " - intersect:" << intersect(inputBB, faceBB);
+    //qDebug() << " - interscetion:" << intersection(inputBB, faceBB).toString();
+    //qDebug() << " - type:" << faceData->GetScalars()->GetComponent(f, 0);
 
     if (intersect(inputBB, faceBB) && isRealCollision(intersection(inputBB, faceBB)))
     {

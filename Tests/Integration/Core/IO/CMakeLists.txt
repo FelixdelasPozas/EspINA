@@ -29,6 +29,9 @@ add_executable(IO_Tests
   ${CORE_DIR}/Analysis/Category.cpp
   ${CORE_DIR}/Analysis/Channel.cpp
   ${CORE_DIR}/Analysis/Data.cpp
+  ${CORE_DIR}/Analysis/Data/MeshData.cpp
+  ${CORE_DIR}/Analysis/Data/Mesh/RawMesh.cpp
+  ${CORE_DIR}/Analysis/Data/VolumetricData.cpp
   ${CORE_DIR}/Analysis/Filter.cpp
   ${CORE_DIR}/Analysis/Graph/DirectedGraph.cpp
   ${CORE_DIR}/Analysis/Output.cpp
@@ -37,6 +40,7 @@ add_executable(IO_Tests
   ${CORE_DIR}/Analysis/ViewItem.cpp
   ${CORE_DIR}/Factory/CoreFactory.cpp
   ${CORE_DIR}/IO/ClassificationXML.cpp
+  ${CORE_DIR}/IO/FetchRawData.cpp
   ${CORE_DIR}/IO/GraphIO.cpp
   ${CORE_DIR}/IO/SegFile.cpp
   ${CORE_DIR}/IO/SegFileInterface.cpp

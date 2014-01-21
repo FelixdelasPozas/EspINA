@@ -37,7 +37,7 @@ vtkStandardNewMacro(vtkCountingFrame3DWidget);
 
 //----------------------------------------------------------------------------
 vtkCountingFrame3DWidget::vtkCountingFrame3DWidget()
-: Volume(NULL)
+: Volume(nullptr)
 {
   this->WidgetState = vtkCountingFrame3DWidget::Start;
   this->ManagesCursor = 1;
@@ -48,12 +48,12 @@ vtkCountingFrame3DWidget::vtkCountingFrame3DWidget()
   // Define widget events
   this->CallbackMapper->SetCallbackMethod(vtkCommand::LeftButtonPressEvent,
                                           vtkEvent::NoModifier,
-                                          0, 0, NULL,
+                                          0, 0, nullptr,
                                           vtkWidgetEvent::Select,
                                           this, vtkCountingFrame3DWidget::SelectAction);
   this->CallbackMapper->SetCallbackMethod(vtkCommand::LeftButtonReleaseEvent,
                                           vtkEvent::NoModifier,
-                                          0, 0, NULL,
+                                          0, 0, nullptr,
                                           vtkWidgetEvent::EndSelect,
                                           this, vtkCountingFrame3DWidget::EndSelectAction);
   this->CallbackMapper->SetCallbackMethod(vtkCommand::MiddleButtonReleaseEvent,
@@ -61,12 +61,12 @@ vtkCountingFrame3DWidget::vtkCountingFrame3DWidget()
                                           this, vtkCountingFrame3DWidget::EndSelectAction);
   this->CallbackMapper->SetCallbackMethod(vtkCommand::LeftButtonReleaseEvent,
                                             vtkEvent::ControlModifier,
-                                            0, 0, NULL,
+                                            0, 0, nullptr,
                                           vtkWidgetEvent::EndTranslate,
                                           this, vtkCountingFrame3DWidget::EndSelectAction);
   this->CallbackMapper->SetCallbackMethod(vtkCommand::LeftButtonReleaseEvent,
                                             vtkEvent::ShiftModifier,
-                                            0, 0, NULL,
+                                            0, 0, nullptr,
                                           vtkWidgetEvent::EndTranslate,
                                           this, vtkCountingFrame3DWidget::EndSelectAction);
   this->CallbackMapper->SetCallbackMethod(vtkCommand::RightButtonReleaseEvent,
@@ -120,7 +120,7 @@ void vtkCountingFrame3DWidget::SelectAction(vtkAbstractWidget *w)
   // start the interaction
   self->EventCallbackCommand->SetAbortFlag(1);
   self->StartInteraction();
-  self->InvokeEvent(vtkCommand::StartInteractionEvent,NULL);
+  self->InvokeEvent(vtkCommand::StartInteractionEvent,nullptr);
   self->Render();
 }
 
@@ -167,7 +167,7 @@ void vtkCountingFrame3DWidget::EndSelectAction(vtkAbstractWidget *w)
 
   self->EventCallbackCommand->SetAbortFlag(1);
   self->EndInteraction();
-  self->InvokeEvent(vtkCommand::EndInteractionEvent,NULL);
+  self->InvokeEvent(vtkCommand::EndInteractionEvent,nullptr);
   self->Render();
   self->SetCursor(9999);
 }

@@ -26,75 +26,95 @@
 #include <qpaintengine.h>
 #include <qbitmap.h>
 
-namespace EspINA
+using namespace EspINA;
+
+//-----------------------------------------------------------------------------
+AdaptiveEdgesDialog::AdaptiveEdgesDialog(QWidget *parent)
+: QDialog(parent)
+, m_adaptiveEdgesEnabled(false)
+, m_backgroundColor(0)
+, m_threshold(50)
 {
-  //-----------------------------------------------------------------------------
-  AdaptiveEdgesDialog::AdaptiveEdgesDialog(QWidget *parent)
-  : QDialog(parent)
-  , m_adaptiveEdgesEnabled(false)
-  , m_backgroundColor(0)
-  , m_threshold(50)
-  {
-    setupUi(this);
+  setupUi(this);
 
-    m_adaptiveEdgesEnabled = false;
+  m_adaptiveEdgesEnabled = false;
 
-    radioStackEdges->setChecked(true);
-    radioImageEdges->setChecked(false);
-    colorBox->setEnabled(false);
-    colorLabel->setEnabled(false);
-    thresholdBox->setEnabled(false);
-    thresholdLabel->setEnabled(false);
+  radioStackEdges->setChecked(true);
+  radioImageEdges->setChecked(false);
 
-    connect(radioStackEdges, SIGNAL(toggled(bool)),
-            this,            SLOT(radioChanged(bool)));
-    connect(radioImageEdges, SIGNAL(toggled(bool)), 
-            this,            SLOT(radioChanged(bool)));
+  blackButton->setEnabled(false);
+  colorBox  ->setEnabled(false);
+  whiteButton->setEnabled(false);
 
-    colorBox->setValue(m_backgroundColor);
-    thresholdBox->setValue(m_threshold);
+  thresholdBox  ->setEnabled(false);
+  thresholdLabel->setEnabled(false);
 
-    connect(colorBox, SIGNAL(valueChanged(int)), 
-            this,     SLOT(bgColorChanged(int)));
-    connect(thresholdBox, SIGNAL(valueChanged(int)),
-            this,         SLOT(thresholdChanged(int)));
-  }
+  connect(radioStackEdges, SIGNAL(toggled(bool)),
+          this,            SLOT(radioChanged(bool)));
+  connect(radioImageEdges, SIGNAL(toggled(bool)),
+          this,            SLOT(radioChanged(bool)));
 
-  //------------------------------------------------------------------------
-  void AdaptiveEdgesDialog::radioChanged(bool value)
-  {
-    if (sender() == radioStackEdges)
-      radioImageEdges->setChecked(!value);
-    else
-      radioStackEdges->setChecked(!value);
+  colorBox->setValue(m_backgroundColor);
+  thresholdBox->setValue(m_threshold);
 
-    m_adaptiveEdgesEnabled = radioImageEdges->isChecked();
+  connect(colorBox, SIGNAL(valueChanged(int)),
+          this,     SLOT(bgColorChanged(int)));
+  connect(thresholdBox, SIGNAL(valueChanged(int)),
+          this,         SLOT(thresholdChanged(int)));
+  connect(blackButton, SIGNAL(clicked(bool)),
+          this, SLOT(setBlackBgColor()));
+  connect(whiteButton, SIGNAL(clicked(bool)),
+          this, SLOT(setWhiteBgColor()));
 
-    colorLabel->setEnabled(m_adaptiveEdgesEnabled);
-    colorBox->setEnabled(m_adaptiveEdgesEnabled);
-    thresholdLabel->setEnabled(m_adaptiveEdgesEnabled);
-    thresholdBox->setEnabled(m_adaptiveEdgesEnabled);
-  }
+}
 
-  //------------------------------------------------------------------------
-  void AdaptiveEdgesDialog::bgColorChanged(int value)
-  {
-    m_backgroundColor = value;
+//------------------------------------------------------------------------
+void AdaptiveEdgesDialog::radioChanged(bool value)
+{
+  if (sender() == radioStackEdges)
+    radioImageEdges->setChecked(!value);
+  else
+    radioStackEdges->setChecked(!value);
 
-    QPixmap image(":espina/edges-image.png");
-    QPixmap bg(image.size());
-    bg.fill(QColor(value, value, value));
-    image.setMask(image.createMaskFromColor(Qt::black, Qt::MaskInColor));
-    QPainter painter(&bg);
-    painter.drawPixmap(0,0, image);
+  m_adaptiveEdgesEnabled = radioImageEdges->isChecked();
 
-    adaptiveExample->setPixmap(bg);
-  }
+  blackButton->setEnabled(m_adaptiveEdgesEnabled);
+  colorBox  ->setEnabled(m_adaptiveEdgesEnabled);
+  whiteButton->setEnabled(m_adaptiveEdgesEnabled);
 
-  //------------------------------------------------------------------------
-  void AdaptiveEdgesDialog::thresholdChanged(int value)
-  {
-    m_threshold = thresholdBox->value();
-  }
+  thresholdLabel->setEnabled(m_adaptiveEdgesEnabled);
+  thresholdBox->setEnabled(m_adaptiveEdgesEnabled);
+}
 
-} /* namespace EspINA */
+//------------------------------------------------------------------------
+void AdaptiveEdgesDialog::bgColorChanged(int value)
+{
+  m_backgroundColor = value;
+
+  QPixmap image(":espina/edges-image.png");
+  QPixmap bg(image.size());
+  bg.fill(QColor(value, value, value));
+  image.setMask(image.createMaskFromColor(Qt::black, Qt::MaskInColor));
+  QPainter painter(&bg);
+  painter.drawPixmap(0,0, image);
+
+  adaptiveExample->setPixmap(bg);
+}
+
+//------------------------------------------------------------------------
+void AdaptiveEdgesDialog::thresholdChanged(int value)
+{
+  m_threshold = thresholdBox->value();
+}
+
+//------------------------------------------------------------------------
+void AdaptiveEdgesDialog::setBlackBgColor()
+{
+  colorBox->setValue(0);
+}
+
+//------------------------------------------------------------------------
+void AdaptiveEdgesDialog::setWhiteBgColor()
+{
+  colorBox->setValue(255);
+}

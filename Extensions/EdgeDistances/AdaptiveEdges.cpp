@@ -45,6 +45,7 @@
 #include <QApplication>
 #include <QDebug>
 #include <QMessageBox>
+#include <boost/iterator/iterator_concepts.hpp>
 
 using namespace EspINA;
 
@@ -385,4 +386,27 @@ void AdaptiveEdges::ComputeSurfaces()
 AdaptiveEdgesPtr EspINA::adaptiveEdges(ChannelExtensionPtr extension)
 {
   return dynamic_cast<AdaptiveEdgesPtr>(extension);
+}
+
+//-----------------------------------------------------------------------------
+AdaptiveEdgesSPtr EspINA::adaptiveEdges(ChannelPtr channel)
+{
+  auto extension = channel->extension(AdaptiveEdges::TYPE);
+
+  return std::dynamic_pointer_cast<AdaptiveEdges>(extension);
+}
+
+//-----------------------------------------------------------------------------
+AdaptiveEdgesSPtr createAdaptiveEdgesIfNotAvailable(ChannelPtr channel)
+{
+  auto edgesExtension = adaptiveEdges(channel);
+
+  if (!edgesExtension)
+  {
+    edgesExtension = AdaptiveEdgesSPtr(new AdaptiveEdges(true));
+    channel->addExtension(edgesExtension);
+  }
+  Q_ASSERT(edgesExtension);
+
+  return edgesExtension;
 }

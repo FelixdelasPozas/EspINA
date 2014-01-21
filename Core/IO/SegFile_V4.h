@@ -22,6 +22,7 @@
 
 #include "SegFileInterface.h"
 #include <Core/Analysis/Output.h>
+#include <Core/Analysis/FetchBehaviour.h>
 
 namespace EspINA {
 
@@ -38,6 +39,8 @@ namespace EspINA {
         static const QString FORMAT_INFO_FILE;
 
       public:
+        virtual SegFile_V4();
+
         virtual AnalysisSPtr load(QuaZip&          zip,
                                   CoreFactorySPtr  factory = CoreFactorySPtr(),
                                   ErrorHandlerSPtr handler = ErrorHandlerSPtr());
@@ -72,6 +75,7 @@ namespace EspINA {
         DirectedGraph::Vertices m_loadedVertices;
         DirectedGraphSPtr       m_trace;
         CoreFactorySPtr         m_factory;
+        FetchBehaviourSPtr      m_fetchBehaviour;
         ErrorHandlerSPtr        m_handler;
       };
     }

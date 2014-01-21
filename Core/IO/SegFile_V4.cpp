@@ -23,6 +23,7 @@
 #include "ReadOnlyFilter.h"
 #include <Core/Utils/TemporalStorage.h>
 #include "ClassificationXML.h"
+#include "FetchRawData.h"
 
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Filter.h>
@@ -42,6 +43,13 @@ const QString SegFile::SegFile_V4::FORMAT_INFO_FILE = "settings.ini";
 const QString TRACE_FILE          = "trace.dot";
 const QString CLASSIFICATION_FILE = "taxonomy.xml";
 const QString FILE_VERSION        = "version"; //backward compatibility
+
+//-----------------------------------------------------------------------------
+SegFile_V4::SegFile_V4()
+: m_fetchBehaviour{new FetchRawData()}
+{
+
+}
 
 //-----------------------------------------------------------------------------
 AnalysisSPtr SegFile_V4::load(QuaZip&          zip,
@@ -232,6 +240,7 @@ FilterSPtr SegFile_V4::createFilter(DirectedGraph::Vertex roVertex)
   {
     filter = FilterSPtr{new ReadOnlyFilter(inputs, roVertex->name())};
   }
+  filter->setFetchBehaviour(m_fetchBehaviour);
   filter->setErrorHandler(m_handler);
   filter->setName(roVertex->name());
   filter->restoreState(roVertex->state());
