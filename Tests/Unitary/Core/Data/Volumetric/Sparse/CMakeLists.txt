@@ -21,6 +21,7 @@ add_executable(SparseVolume_Tests
   ${SUBJECT_MOCS}
   ${CORE_DIR}/Analysis/Data.cpp
   ${CORE_DIR}/Analysis/Filter.cpp
+  ${CORE_DIR}/Analysis/Graph/DirectedGraph.cpp
   ${CORE_DIR}/Analysis/Output.cpp
   ${CORE_DIR}/MultiTasking/Scheduler.cpp
   ${CORE_DIR}/MultiTasking/Task.cpp
