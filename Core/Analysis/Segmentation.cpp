@@ -39,7 +39,6 @@ Segmentation::Segmentation(FilterSPtr filter, const Output::Id output)
 , m_users{QSet<QString>()}
 , m_category{nullptr}
 {
-  this->output()->markToSave(true);
 }
 
 //------------------------------------------------------------------------
@@ -47,7 +46,7 @@ Segmentation::~Segmentation()
 {
   m_category = nullptr;
 
-  this->output()->markToSave(false);
+//   this->output()->markToSave(false);
 
   for (auto extension: m_extensions)
     extension = nullptr;

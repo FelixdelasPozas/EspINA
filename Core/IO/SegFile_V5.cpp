@@ -271,8 +271,8 @@ FilterSPtr SegFile_V5::createFilter(DirectedGraph::Vertex   roVertex,
   } catch (CoreFactory::Unknown_Type_Exception e)
   {
     filter = FilterSPtr{new ReadOnlyFilter(inputs, roVertex->name())};
+    filter->setFetchBehaviour(m_fetchBehaviour);
   }
-  filter->setFetchBehaviour(m_fetchBehaviour);
   filter->setErrorHandler(handler);
   filter->setName(roVertex->name());
   filter->setUuid(roVertex->uuid());

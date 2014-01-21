@@ -98,11 +98,10 @@ namespace EspINA
      */
     void update();
 
-    bool hasToBeSaved() const//isCached() const
-    { return m_hasToBeSaved; }
+    bool hasToBeSaved() const;
 
-    void markToSave(bool value)
-    { m_hasToBeSaved = value; }
+//     void markToSave(bool value)
+//     { m_hasToBeSaved = value; }
 
     // TODO: Representation may have different bounds, in which case,
     // this function will be needed to represent the bounding box of all those regions
@@ -131,7 +130,7 @@ namespace EspINA
 
     TimeStamp m_timeStamp;
 
-    bool              m_hasToBeSaved;
+//     bool              m_hasToBeSaved;
     EditedRegionSList m_editedRegions;
 
     QMap<Data::Type, DataProxySPtr> m_data;

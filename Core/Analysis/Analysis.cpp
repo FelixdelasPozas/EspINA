@@ -154,6 +154,7 @@ void Analysis::remove(SampleSPtr sample)
 {
   if (!m_samples.contains(sample)) throw (Item_Not_Found_Exception());
 
+  sample->setAnalysis(nullptr);
   m_samples.removeOne(sample);
 
   m_content->remove(sample);
@@ -175,6 +176,7 @@ void Analysis::remove(ChannelSPtr channel)
 {
   if (!m_channels.contains(channel)) throw (Item_Not_Found_Exception());
 
+  channel->setAnalysis(nullptr);
   m_channels.removeOne(channel);
 
   m_content->remove(channel);
@@ -197,6 +199,7 @@ void Analysis::remove(SegmentationSPtr segmentation)
 {
   if (!m_segmentations.contains(segmentation)) throw (Item_Not_Found_Exception());
 
+  segmentation->setAnalysis(nullptr);
   m_segmentations.removeOne(segmentation);
 
   m_content->remove(segmentation);
@@ -268,6 +271,7 @@ void Analysis::addIfNotExists(FilterSPtr filter)
   // NOTE: We could use m_filters instead to check if there is a copy in the content
   if (!m_content->contains(filter)) 
   {
+    filter->setAnalysis(this);
     m_filters << filter;
     m_content->add(filter);
 
@@ -289,6 +293,7 @@ void Analysis::removeIfIsolated(FilterSPtr filter)
 {
   if (removeIfIsolated(m_content, filter))
   {
+    filter->setAnalysis(nullptr);
     m_filters.removeOne(filter);
   }
 }

@@ -30,6 +30,7 @@
 
 #include "Core/Analysis/Filter.h"
 #include "Core/Analysis/DataProxy.h"
+#include "Analysis.h"
 
 #include <vtkMath.h>
 
@@ -45,7 +46,7 @@ Output::Output(FilterPtr filter, const Output::Id& id)
 , m_id{id}
 //, m_spacing{1, 1, 1}
 , m_timeStamp{s_tick++}
-, m_hasToBeSaved{false}
+// , m_hasToBeSaved{false}
 {
 
 }
@@ -94,7 +95,7 @@ Snapshot Output::snapshot(TemporalStorageSPtr storage,
     }
     xml.writeEndElement();
 
-    if (m_hasToBeSaved)
+    if (hasToBeSaved())
     {
       snapshot << data->snapshot(storage, prefix);
     }
@@ -138,7 +139,7 @@ void Output::clearEditedRegions()
 //----------------------------------------------------------------------------
 bool Output::isEdited() const
 {
-  foreach(DataProxySPtr data, m_data) 
+  foreach(DataProxySPtr data, m_data)
   {
     if (!data->get()->isEdited()) return true;
   }
@@ -209,4 +210,19 @@ bool Output::hasData(const Data::Type& type) const
 void Output::update()
 {
   m_filter->update(m_id);
+}
+
+//----------------------------------------------------------------------------
+bool Output::hasToBeSaved() const
+{
+  bool res = false;
+
+  auto analysis = m_filter->analysis();
+  if (analysis)
+  {
+    auto content  = analysis->content();
+    res = !content->outEdges(m_filter, QString::number(m_id)).isEmpty();
+  }
+
+  return res;
 }

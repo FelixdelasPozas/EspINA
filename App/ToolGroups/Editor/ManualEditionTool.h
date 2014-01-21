@@ -85,6 +85,8 @@ namespace EspINA
       ViewManagerSPtr  m_viewManager;
       QUndoStack      *m_undoStack;
 
+      FetchBehaviourSPtr m_fetchBehaviour;
+
       CircularBrushSelectorSPtr  m_circularBrushSelector;
       SphericalBrushSelectorSPtr m_sphericalBrushSelector;
 

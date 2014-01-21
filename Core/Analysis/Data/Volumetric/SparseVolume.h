@@ -335,6 +335,11 @@ namespace EspINA
   private:
     BlockMaskSPtr createMask(const Bounds& bounds) const;
     void updateBlocksBoundingBox(const VolumeBounds& bounds);
+    QString singleBlockPath() const
+    { return this->type() + QString("_%1.mhd").arg(this->m_output->id()); }
+
+    QString multiBlockPath(int part) const
+    { return this->type() + QString("_%1_%2.mhd").arg(this->m_output->id()).arg(part); }
 
   private:
     NmVector3 m_origin;
@@ -621,7 +626,11 @@ namespace EspINA
     bool error       = false;
 
     int i = 0;
-    QFileInfo blockFile(storage->absoluteFilePath(prefix + QString("VolumetricData_%1.mhd").arg(i)));
+    QFileInfo blockFile(storage->absoluteFilePath(prefix + multiBlockPath(i)));
+    if (!blockFile.exists())
+    {
+      blockFile = QFileInfo(storage->absoluteFilePath(prefix + singleBlockPath()));
+    }
 
     m_spacing = this->m_output->spacing();
 
@@ -651,8 +660,7 @@ namespace EspINA
       setBlock(image);
 
       ++i;
-      QString path = prefix + this->type() + QString("_%1_%2.mhd").arg(this->m_output->id()).arg(i);
-      blockFile = storage->absoluteFilePath(path);
+      blockFile = storage->absoluteFilePath(prefix + multiBlockPath(i));
       dataFetched = true;
     }
 

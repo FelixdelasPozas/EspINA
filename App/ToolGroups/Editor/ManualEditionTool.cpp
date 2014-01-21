@@ -23,6 +23,7 @@
 #include <Core/Analysis/Filter.h>
 #include <GUI/Widgets/SliderAction.h>
 #include <Filters/FreeFormSource.h>
+#include <Filters/FetchBehaviour/MarchingCubesFromFetchedVolumetricData.h>
 #include <Support/Settings/EspinaSettings.h>
 #include <Undo/AddSegmentations.h>
 #include <App/Undo/BrushUndoCommand.h>
@@ -35,7 +36,8 @@ using EspINA::Filter;
 const QString BRUSH_RADIUS("ManualEditionTools::BrushRadius");
 const QString BRUSH_OPACITY("ManualEditionTools::BrushOpacity");
 
-const Filter::Type FREEFORM_FILTER = "FreeFormSource";
+const Filter::Type FREEFORM_FILTER    = "FreeFormSource";
+const Filter::Type FREEFORM_FILTER_V4 = "EditorToolBar::FreeFormSource";
 
 namespace EspINA
 {
@@ -204,7 +206,7 @@ namespace EspINA
   {
     FilterTypeList filters;
 
-    filters << FREEFORM_FILTER;
+    filters << FREEFORM_FILTER << FREEFORM_FILTER_V4;
 
     return filters;
   }
@@ -214,9 +216,16 @@ namespace EspINA
                                              const Filter::Type& filter,
                                              SchedulerSPtr       scheduler) const throw(Unknown_Filter_Exception)
   {
-    if (filter != FREEFORM_FILTER) throw Unknown_Filter_Exception();
+    if (FREEFORM_FILTER != filter && FREEFORM_FILTER_V4 != filter) throw Unknown_Filter_Exception();
 
-    return FilterSPtr{new FreeFormSource(inputs, filter, scheduler)};
+    auto ffsFilter = FilterSPtr{new FreeFormSource(inputs, FREEFORM_FILTER, scheduler)};
+    if (!m_fetchBehaviour)
+    {
+      m_fetchBehaviour = FetchBehaviourSPtr{new MarchingCubesFromFetchedVolumetricData()};
+    }
+    ffsFilter->setFetchBehaviour(m_fetchBehaviour);
+
+    return ffsFilter;
   }
 
   //------------------------------------------------------------------------

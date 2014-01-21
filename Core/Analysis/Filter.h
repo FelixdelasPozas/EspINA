@@ -33,6 +33,9 @@
 
 namespace EspINA
 {
+  class Analysis;
+  using AnalysisPtr = Analysis *;
+
   class EspinaFilters_EXPORT Filter
   : public Persistent
   , public Task
@@ -48,6 +51,12 @@ namespace EspINA
 //     typedef itk::ImageFileReader<itkVolumeType> EspinaVolumeReader;
   public:
     virtual ~Filter();
+
+    void setAnalysis(AnalysisPtr analysis)
+    { m_analysis = analysis; }
+
+    AnalysisPtr analysis() const
+    { return m_analysis; }
 
     virtual Snapshot snapshot() const;
 
@@ -148,6 +157,7 @@ namespace EspINA
     { return prefix() + "outputs.xml"; }
 
   protected:
+    AnalysisPtr m_analysis;
     Type        m_type;
     OutputSList m_inputs;
     OutputSList m_outputs;

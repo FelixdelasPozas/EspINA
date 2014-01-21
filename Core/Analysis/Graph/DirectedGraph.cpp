@@ -153,6 +153,12 @@ DirectedGraph::Edges DirectedGraph::edges(const QString &filter)
 //-----------------------------------------------------------------------------
 DirectedGraph::Edges DirectedGraph::inEdges(Vertex vertex, const QString& filter)
 {
+  return inEdges(vertex.get(), filter);
+}
+
+//-----------------------------------------------------------------------------
+DirectedGraph::Edges DirectedGraph::inEdges(VertexPtr vertex, const QString& filter)
+{
   Edges result;
 
   VertexDescriptor vd = descriptor(vertex);
@@ -174,6 +180,12 @@ DirectedGraph::Edges DirectedGraph::inEdges(Vertex vertex, const QString& filter
 
 //-----------------------------------------------------------------------------
 DirectedGraph::Edges DirectedGraph::outEdges(Vertex vertex, const QString& filter)
+{
+  return outEdges(vertex.get(), filter);
+}
+
+//-----------------------------------------------------------------------------
+DirectedGraph::Edges DirectedGraph::outEdges(VertexPtr vertex, const QString& filter)
 {
   Edges result;
 

@@ -116,9 +116,11 @@ namespace EspINA
 
     /// Return a list of edges whose destination vertex is v
     Edges inEdges(Vertex vertex, const QString &filter = "");
+    Edges inEdges(VertexPtr vertex, const QString &filter = "");
 
     /// Return a list of edges whose source vertex is v
     Edges outEdges(Vertex vertex, const QString &filter = "");
+    Edges outEdges(VertexPtr vertex, const QString &filter = "");
 
     /// Return a list of edges whose source or destination vertex is v
     Edges edges   (Vertex vertex, const QString &filter = "");

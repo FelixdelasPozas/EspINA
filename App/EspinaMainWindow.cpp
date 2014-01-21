@@ -674,7 +674,6 @@ void EspinaMainWindow::openAnalysis(const QStringList files)
       mergedAnalysis->setClassification(classification);
     }
 
-    //ModelAdapterUtils::setAnalysis(m_model, mergedAnalysis, m_factory);
     m_model->setAnalysis(mergedAnalysis, m_factory);
     m_analysis = mergedAnalysis;
 
@@ -701,9 +700,13 @@ void EspinaMainWindow::openAnalysis(const QStringList files)
     if (!m_model->channels().isEmpty())
     {
       auto activeChannel = m_model->channels().first().get();
+
       m_viewManager->setActiveChannel(activeChannel);
+
       if (m_viewManager->activeCategory() == nullptr)
+      {
         m_viewManager->setActiveCategory(m_model->classification()->categories().first().get());
+      }
 
       for (auto channel : m_model->channels())
       {

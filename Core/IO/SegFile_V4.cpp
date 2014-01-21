@@ -161,7 +161,12 @@ AnalysisSPtr SegFile_V4::load(QuaZip&          zip,
           xml.writeStartElement("Data");
           xml.writeAttribute("type", "VolumetricData");
           xml.writeEndElement();
-        } //TODO
+        } else if ("MeshOutputType" == lines[i])
+        {
+          xml.writeStartElement("Data");
+          xml.writeAttribute("type", "MeshData");
+          xml.writeEndElement();
+        }
       }
       xml.writeEndElement();
       id++;
@@ -239,8 +244,8 @@ FilterSPtr SegFile_V4::createFilter(DirectedGraph::Vertex roVertex)
   } catch (CoreFactory::Unknown_Type_Exception e)
   {
     filter = FilterSPtr{new ReadOnlyFilter(inputs, roVertex->name())};
+    filter->setFetchBehaviour(m_fetchBehaviour);
   }
-  filter->setFetchBehaviour(m_fetchBehaviour);
   filter->setErrorHandler(m_handler);
   filter->setName(roVertex->name());
   filter->restoreState(roVertex->state());

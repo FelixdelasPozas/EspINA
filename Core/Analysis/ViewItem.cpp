@@ -65,7 +65,7 @@ void ViewItem::changeOutput(FilterSPtr filter, Output::Id outputId)
   {
     disconnect(output().get(), SIGNAL(modified()),
                this, SLOT(onOutputModified()));
-    output()->markToSave(false);
+    //output()->markToSave(false);
   }
 
   m_filter   = filter;
@@ -73,7 +73,7 @@ void ViewItem::changeOutput(FilterSPtr filter, Output::Id outputId)
 
   if (m_filter)
   {
-    output()->markToSave(true);
+    //output()->markToSave(true);
     connect(output().get(), SIGNAL(modified()),
             this, SLOT(onOutputModified()));
   }

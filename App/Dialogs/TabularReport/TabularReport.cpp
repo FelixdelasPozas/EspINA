@@ -142,7 +142,7 @@ void TabularReport::rowsInserted(const QModelIndex &parent, int start, int end)
 //------------------------------------------------------------------------
 void TabularReport::setModel(ModelAdapterSPtr model)
 {
-  m_model   = model;
+  m_model = model;
   //m_factory = model->factory();
 
   QAbstractItemView::setModel(model.get());
