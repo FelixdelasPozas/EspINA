@@ -651,7 +651,8 @@ namespace EspINA
       setBlock(image);
 
       ++i;
-      blockFile = storage->absoluteFilePath(prefix + QString("VolumetricData_%1.mhd").arg(i));
+      QString path = prefix + this->type() + QString("_%1_%2.mhd").arg(this->m_output->id()).arg(i);
+      blockFile = storage->absoluteFilePath(path);
       dataFetched = true;
     }
 
@@ -676,7 +677,7 @@ namespace EspINA
       storage->makePath(prefix);
 
       QString name = prefix;
-      name += QString("%1_%2").arg(this->type()).arg(i);
+      name += QString("%1_%2_%3").arg(this->type()).arg(this->m_output->id()).arg(i);
 
       QString mhd = name + ".mhd";
       QString raw = name + ".raw";
