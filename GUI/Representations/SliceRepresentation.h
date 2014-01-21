@@ -36,9 +36,6 @@
 #include <GUI/Representations/Representation.h>
 #include <GUI/View/View2D.h>
 
-// ITK
-#include <itkImageToVTKImageFilter.h>
-
 // VTK
 #include <vtkSmartPointer.h>
 
@@ -114,9 +111,6 @@ namespace EspINA
     int m_planeIndex;
     Nm m_reslicePoint;
 
-    using ExporterType = itk::ImageToVTKImageFilter<itkVolumeType>;
-
-    ExporterType::Pointer                m_exporter;
     vtkSmartPointer<vtkImageMapToColors> m_mapToColors;
     vtkSmartPointer<vtkImageShiftScale>  m_shiftScaleFilter;
     vtkSmartPointer<vtkImageActor>       m_actor;

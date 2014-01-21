@@ -472,7 +472,8 @@ void BrushSelector::startPreview(RenderView* view)
     m_preview->SetInformation(info);
     m_preview->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
     m_preview->Modified();
-    memset(m_preview->GetScalarPointer(), 0, m_preview->GetNumberOfPoints());
+    unsigned char *imagePointer = reinterpret_cast<unsigned char *>(m_preview->GetScalarPointer());
+    memset(imagePointer, 0, m_preview->GetNumberOfPoints());
     m_previewBounds = previewBounds.bounds();
   }
   else

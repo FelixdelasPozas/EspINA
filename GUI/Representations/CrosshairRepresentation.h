@@ -39,7 +39,6 @@ class vtkImageActor;
 class vtkPolyData;
 class vtkLookupTable;
 class vtkImageShiftScale;
-class vtkImageImport;
 class vtkImageMapToColors;
 
 namespace EspINA

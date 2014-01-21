@@ -29,7 +29,7 @@ class vtkDecimatePro;
 namespace EspINA
 {
   class EspinaGUI_EXPORT SmoothedMeshRepresentation
-  : public MeshRepresentation
+  : public MeshRepresentationBase
   {
     Q_OBJECT
   public:

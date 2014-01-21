@@ -42,7 +42,6 @@
 #include <vtkImageActor.h>
 #include <vtkImageMapper3D.h>
 #include <vtkImageData.h>
-#include <vtkImageImport.h>
 
 #include <QList>
 
@@ -56,7 +55,6 @@ ChannelSliceRepresentation::ChannelSliceRepresentation(DefaultVolumetricDataSPtr
 : Representation(view)
 , m_data(data)
 , m_planeIndex(-1)
-, m_exporter(nullptr)
 , m_mapToColors(nullptr)
 , m_shiftScaleFilter(nullptr)
 , m_actor(nullptr)
@@ -153,24 +151,41 @@ void ChannelSliceRepresentation::initializePipeline()
   m_reslicePoint = m_crosshair[m_planeIndex];
 
   Bounds imageBounds = m_data->bounds();
-  imageBounds.setLowerInclusion(true);
-  imageBounds.setUpperInclusion(toAxis(m_planeIndex), true);
-  imageBounds[2*m_planeIndex] = m_reslicePoint;
-  imageBounds[(2*m_planeIndex)+1] = m_reslicePoint;
 
-  itkVolumeType::Pointer slice = m_data->itkImage(imageBounds);
-  m_exporter = ExporterType::New();
-  m_exporter->ReleaseDataFlagOn();
-  m_exporter->SetNumberOfThreads(1);
-  m_exporter->SetInput(slice);
-  m_exporter->Update();
+  bool valid = imageBounds[2*m_planeIndex] <= m_crosshair[m_planeIndex] && m_crosshair[m_planeIndex] <= imageBounds[2*m_planeIndex+1];
+  vtkSmartPointer<vtkImageData> slice = vtkSmartPointer<vtkImageData>::New();
+
+  if (valid)
+  {
+    imageBounds.setLowerInclusion(true);
+    imageBounds.setUpperInclusion(toAxis(m_planeIndex), true);
+    imageBounds[2*m_planeIndex] = m_reslicePoint;
+    imageBounds[(2*m_planeIndex)+1] = m_reslicePoint;
+
+    slice = vtkImage(m_data, imageBounds);
+  }
+  else
+  {
+    int extent[6] = { 0,1,0,1,0,1 };
+    extent[2*m_planeIndex + 1] = extent[2*m_planeIndex];
+    slice->SetExtent(extent);
+
+    vtkInformation *info = slice->GetInformation();
+    vtkImageData::SetScalarType(VTK_UNSIGNED_CHAR, info);
+    vtkImageData::SetNumberOfScalarComponents(1, info);
+    slice->SetInformation(info);
+    slice->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
+    slice->Modified();
+    unsigned char *imagePointer = reinterpret_cast<unsigned char*>(slice->GetScalarPointer());
+    memset(imagePointer, SEG_BG_VALUE, slice->GetNumberOfPoints());
+  }
 
   m_shiftScaleFilter = vtkSmartPointer<vtkImageShiftScale>::New();
-  m_shiftScaleFilter->SetInputData(m_exporter->GetOutput());
+  m_shiftScaleFilter->SetInputData(slice);
   m_shiftScaleFilter->SetShift(static_cast<int>(m_brightness*255));
   m_shiftScaleFilter->SetScale(m_contrast);
   m_shiftScaleFilter->SetClampOverflow(true);
-  m_shiftScaleFilter->SetOutputScalarType(m_exporter->GetOutput()->GetScalarType());
+  m_shiftScaleFilter->SetOutputScalarType(slice->GetScalarType());
   m_shiftScaleFilter->Update();
 
   m_lut = vtkSmartPointer<vtkLookupTable>::New();
@@ -194,7 +209,7 @@ void ChannelSliceRepresentation::initializePipeline()
   m_actor->SetInterpolate(false);
   m_actor->GetMapper()->BorderOn();
   m_actor->GetMapper()->SetInputConnection(m_mapToColors->GetOutputPort());
-  m_actor->SetDisplayExtent(m_exporter->GetOutput()->GetExtent());
+  m_actor->SetDisplayExtent(slice->GetExtent());
   m_actor->SetVisibility(isVisible());
   m_actor->Update();
 
@@ -220,25 +235,21 @@ void ChannelSliceRepresentation::updateRepresentation()
     imageBounds[2*m_planeIndex]   = m_reslicePoint;
     imageBounds[2*m_planeIndex+1] = m_reslicePoint;
 
-    itkVolumeType::Pointer slice = m_data->itkImage(imageBounds);
+    auto slice = vtkImage(m_data, imageBounds);
 
-    m_exporter = ExporterType::New();
-    m_exporter->ReleaseDataFlagOn();
-    m_exporter->SetNumberOfThreads(1);
-    m_exporter->SetInput(slice);
-    m_exporter->Update();
-    m_shiftScaleFilter->SetInputData(m_exporter->GetOutput());
+    m_shiftScaleFilter->SetInputData(slice);
     m_shiftScaleFilter->Update();
     m_mapToColors->SetInputConnection(m_shiftScaleFilter->GetOutputPort());
     m_mapToColors->Update();
     m_actor->GetMapper()->SetInputConnection(m_mapToColors->GetOutputPort());
-    m_actor->SetDisplayExtent(m_exporter->GetOutput()->GetExtent());
+    m_actor->SetDisplayExtent(slice->GetExtent());
     m_actor->Update();
 
     m_lastUpdatedTime = m_data->lastModified();
   }
 
-  m_actor->SetVisibility(valid && isVisible());
+  if (m_actor != nullptr)
+    m_actor->SetVisibility(valid && isVisible());
 }
 
 //-----------------------------------------------------------------------------
@@ -380,8 +391,10 @@ void SegmentationSliceRepresentation::initializePipeline()
 
   View2D* view = reinterpret_cast<View2D *>(m_view);
 
+  int extent[6] = { 0,1,0,1,0,1 };
+  extent[2*m_planeIndex] = extent[2*m_planeIndex +1];
   vtkSmartPointer<vtkImageData> image = vtkSmartPointer<vtkImageData>::New();
-  image->SetExtent(0,1,0,1,0,1);
+  image->SetExtent(extent);
 
   vtkInformation *info = image->GetInformation();
   vtkImageData::SetScalarType(VTK_UNSIGNED_CHAR, info);
@@ -389,6 +402,8 @@ void SegmentationSliceRepresentation::initializePipeline()
   image->SetInformation(info);
   image->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
   image->Modified();
+  unsigned char *imagePointer = reinterpret_cast<unsigned char *>(image->GetScalarPointer());
+  memset(imagePointer, SEG_BG_VALUE, image->GetNumberOfPoints());
 
   // actor should be allocated first or the next call to setColor() would do nothing
   m_actor = vtkSmartPointer<vtkImageActor>::New();

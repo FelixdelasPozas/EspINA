@@ -38,7 +38,7 @@ const Representation::Type SmoothedMeshRepresentation::TYPE = "Smoothed Mesh";
 
 //-----------------------------------------------------------------------------
 SmoothedMeshRepresentation::SmoothedMeshRepresentation(MeshDataSPtr mesh, RenderView *view)
-: MeshRepresentation(mesh, view)
+: MeshRepresentationBase(mesh, view)
 {
   setType(tr("Smoothed Mesh"));
 }
