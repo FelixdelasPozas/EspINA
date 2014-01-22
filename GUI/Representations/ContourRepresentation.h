@@ -27,11 +27,7 @@
 #include <Core/Analysis/Data/VolumetricData.h>
 #include <Core/Utils/NmVector3.h>
 
-// ITK
-#include <itkImageToVTKImageFilter.h>
-
 // VTK
-#include <vtkImageImport.h>
 #include <vtkSmartPointer.h>
 #include <vtkTubeFilter.h>
 
@@ -55,6 +51,8 @@ namespace EspINA
     public:
       typedef enum { tiny = 0, small, medium, large, huge } LineWidth;
       typedef enum { normal = 0, dotted, dashed } LinePattern;
+
+      static const Representation::Type TYPE;
 
       ContourRepresentation(DefaultVolumetricDataSPtr data,
                             RenderView      *view);
@@ -111,14 +109,9 @@ namespace EspINA
 
     private:
       void generateTexture();
-      DefaultVolumetricDataSPtr m_data;
       int m_planeIndex;
-      Nm m_reslicePoint;
-
-      using ExporterType = itk::ImageToVTKImageFilter<itkVolumeType>;
-
-      ExporterType::Pointer                    m_exporter;
-      vtkSmartPointer<vtkImageImport>          m_importer;
+      Nm  m_reslicePoint;
+      DefaultVolumetricDataSPtr                m_data;
       vtkSmartPointer<vtkVoxelContour2D>       m_voxelContour;
       vtkSmartPointer<vtkImageCanvasSource2D>  m_textureIcon;
       vtkSmartPointer<vtkTexture>              m_texture;

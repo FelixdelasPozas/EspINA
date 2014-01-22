@@ -62,11 +62,11 @@ int vtkVoxelContour2D::RequestData(vtkInformation *request,
     return 0;
   }
 
-  // handle only AXIAL 2D images
+  // handle only planar images
   if (vtkImageData::SafeDownCast(input))
   {
     int *uExt = inInfo->Get(vtkStreamingDemandDrivenPipeline::UPDATE_EXTENT());
-    if (uExt[4] != uExt[5])
+    if ((uExt[0] != uExt[1]) && (uExt[2] != uExt[3]) && (uExt[4] != uExt[5]))
     {
       return 0;
     }
@@ -93,69 +93,212 @@ int vtkVoxelContour2D::RequestData(vtkInformation *request,
   vtkImageData *image = vtkImageData::SafeDownCast(input);
   int extent[6];
   image->GetExtent(extent);
+
+  EspINA::Plane plane;
+  Q_ASSERT((extent[0] == extent[1]) || (extent[2] == extent[3]) || (extent[4] == extent[5]));
+  if (extent[0] == extent[1])
+    plane = EspINA::Plane::YZ;
+  else
+    if (extent[2] == extent[3])
+      plane = EspINA::Plane::XZ;
+    else
+      if (extent[4] == extent[5])
+        plane = EspINA::Plane::XY;
+
   EspINA::Nm spacing[3];
   image->GetSpacing(spacing);
+  m_minSpacing = std::min(spacing[0], std::min(spacing[1], spacing[2]));
+  Q_ASSERT(m_minSpacing != 0);
 
-  // reslice can change the origin of the result to something different from (0,0,0)
-  // depending on the reslice matrix direction.
   EspINA::Nm origin[3];
   image->GetOrigin(origin);
 
-  // apparently all our slices are in the axial plane, go figure...
-  if (extent[4] != extent[5])
-    Q_ASSERT(false);
-
-  m_minSpacing = std::min(spacing[0], spacing[1]);
-
   unsigned char previousValue;
   unsigned char *voxel = NULL;
-  int x, y;
+  int x, y, z;
+  double dx,dy,dz;
   vtkIdType cell[2];
 
-  for (y = extent[2]; y <= extent[3]; ++y)
+  switch (plane)
   {
-    previousValue = EspINA::SEG_BG_VALUE;
-    for (x = extent[0]; x <= extent[1]; ++x)
+    case EspINA::Plane::XY:
     {
-      voxel = reinterpret_cast<unsigned char *>(image->GetScalarPointer(x, y, extent[4]));
-      if (*voxel != previousValue)
+      dz = static_cast<double>(extent[5]);
+      for (y = extent[2]; y <= extent[3]; ++y)
       {
-        cell[0] = newPts->InsertNextPoint((((EspINA::Nm) x - 0.5) * spacing[0]) + origin[0], (((EspINA::Nm) y - 0.5) * spacing[1]) + origin[1], extent[4]*spacing[2] + origin[2]);
-        cell[1] = newPts->InsertNextPoint((((EspINA::Nm) x - 0.5) * spacing[0]) + origin[0], (((EspINA::Nm) y + 0.5) * spacing[1]) + origin[1], extent[4]*spacing[2] + origin[2]);
-        newLines->InsertNextCell(2, cell);
+        previousValue = EspINA::SEG_BG_VALUE;
+        for (x = extent[0]; x <= extent[1]; ++x)
+        {
+          voxel = reinterpret_cast<unsigned char *>(image->GetScalarPointer(x, y, extent[4]));
+          if (*voxel != previousValue)
+          {
+            dx = static_cast<double>(x);
+            dy = static_cast<double>(y);
+            cell[0] = newPts->InsertNextPoint(((dx - 0.5) * spacing[0]) + origin[0], ((dy - 0.5) * spacing[1]) + origin[1], ((dz - 0.5 ) * spacing[2]) + origin[2]);
+            cell[1] = newPts->InsertNextPoint(((dx - 0.5) * spacing[0]) + origin[0], ((dy + 0.5) * spacing[1]) + origin[1], ((dz - 0.5 ) * spacing[2]) + origin[2]);
+            newLines->InsertNextCell(2, cell);
+          }
+          previousValue = *voxel;
+        }
+
+        if (*voxel == EspINA::SEG_VOXEL_VALUE)
+        {
+          dx = static_cast<double>(x);
+          dy = static_cast<double>(y);
+          cell[0] = newPts->InsertNextPoint(((dx - 0.5) * spacing[0]) + origin[0], ((dy - 0.5) * spacing[1]) + origin[1], ((dz - 0.5 ) * spacing[2]) + origin[2]);
+          cell[1] = newPts->InsertNextPoint(((dx - 0.5) * spacing[0]) + origin[0], ((dy + 0.5) * spacing[1]) + origin[1], ((dz - 0.5 ) * spacing[2]) + origin[2]);
+          newLines->InsertNextCell(2, cell);
+        }
       }
-      previousValue = *voxel;
-    }
 
-    if (*voxel == EspINA::SEG_VOXEL_VALUE)
-    {
-      cell[0] = newPts->InsertNextPoint((((EspINA::Nm) x - 0.5) * spacing[0]) + origin[0], (((EspINA::Nm) y - 0.5) * spacing[1]) + origin[1], extent[4]*spacing[2] + origin[2]);
-      cell[1] = newPts->InsertNextPoint((((EspINA::Nm) x - 0.5) * spacing[0]) + origin[0], (((EspINA::Nm) y + 0.5) * spacing[1]) + origin[1], extent[4]*spacing[2] + origin[2]);
-      newLines->InsertNextCell(2, cell);
-    }
-  }
-
-  for (x = extent[0]; x <= extent[1]; ++x)
-  {
-    previousValue = EspINA::SEG_BG_VALUE;
-    for (y = extent[2]; y <= extent[3]; ++y)
-    {
-      voxel = reinterpret_cast<unsigned char *>(image->GetScalarPointer(x, y, extent[4]));
-      if (*voxel != previousValue)
+      for (x = extent[0]; x <= extent[1]; ++x)
       {
-        cell[0] = newPts->InsertNextPoint((((EspINA::Nm) x - 0.5) * spacing[0]) + origin[0], (((EspINA::Nm) y - 0.5) * spacing[1]) + origin[1], extent[4]*spacing[2] + origin[2]);
-        cell[1] = newPts->InsertNextPoint((((EspINA::Nm) x + 0.5) * spacing[0]) + origin[0], (((EspINA::Nm) y - 0.5) * spacing[1]) + origin[1], extent[4]*spacing[2] + origin[2]);
-        newLines->InsertNextCell(2, cell);
-      }
-      previousValue = *voxel;
-    }
+        previousValue = EspINA::SEG_BG_VALUE;
+        for (y = extent[2]; y <= extent[3]; ++y)
+        {
+          voxel = reinterpret_cast<unsigned char *>(image->GetScalarPointer(x, y, extent[4]));
+          if (*voxel != previousValue)
+          {
+            dx = static_cast<double>(x);
+            dy = static_cast<double>(y);
+            cell[0] = newPts->InsertNextPoint(((dx - 0.5) * spacing[0]) + origin[0], ((dy - 0.5) * spacing[1]) + origin[1], ((dz - 0.5 ) * spacing[2]) + origin[2]);
+            cell[1] = newPts->InsertNextPoint(((dx + 0.5) * spacing[0]) + origin[0], ((dy - 0.5) * spacing[1]) + origin[1], ((dz - 0.5 ) * spacing[2]) + origin[2]);
+            newLines->InsertNextCell(2, cell);
+          }
+          previousValue = *voxel;
+        }
 
-    if (*voxel == EspINA::SEG_VOXEL_VALUE)
-    {
-      cell[0] = newPts->InsertNextPoint((((EspINA::Nm) x - 0.5) * spacing[0]) + origin[0], (((EspINA::Nm) y - 0.5) * spacing[1]) + origin[1], extent[4] + origin[2]);
-      cell[1] = newPts->InsertNextPoint((((EspINA::Nm) x + 0.5) * spacing[0]) + origin[0], (((EspINA::Nm) y - 0.5) * spacing[1]) + origin[1], extent[4] + origin[2]);
-      newLines->InsertNextCell(2, cell);
+        if (*voxel == EspINA::SEG_VOXEL_VALUE)
+        {
+          dx = static_cast<double>(x);
+          dy = static_cast<double>(y);
+          cell[0] = newPts->InsertNextPoint(((dx - 0.5) * spacing[0]) + origin[0], ((dy - 0.5) * spacing[1]) + origin[1], ((dz - 0.5 ) * spacing[2]) + origin[2]);
+          cell[1] = newPts->InsertNextPoint(((dx + 0.5) * spacing[0]) + origin[0], ((dy - 0.5) * spacing[1]) + origin[1], ((dz - 0.5 ) * spacing[2]) + origin[2]);
+          newLines->InsertNextCell(2, cell);
+        }
+      }
     }
+      break;
+    case EspINA::Plane::XZ:
+    {
+      dy = static_cast<double>(extent[2]);
+      for (z = extent[4]; z <= extent[5]; ++z)
+      {
+        previousValue = EspINA::SEG_BG_VALUE;
+        for (x = extent[0]; x <= extent[1]; ++x)
+        {
+          voxel = reinterpret_cast<unsigned char *>(image->GetScalarPointer(x, extent[2], z));
+          if (*voxel != previousValue)
+          {
+            dx = static_cast<double>(x);
+            dz = static_cast<double>(z);
+            cell[0] = newPts->InsertNextPoint(((dx - 0.5) * spacing[0]) + origin[0], ((dy + 0.5) * spacing[1]) + origin[1], ((dz - 0.5) * spacing[2]) + origin[2]);
+            cell[1] = newPts->InsertNextPoint(((dx - 0.5) * spacing[0]) + origin[0], ((dy + 0.5) * spacing[1]) + origin[1], ((dz + 0.5) * spacing[2]) + origin[2]);
+            newLines->InsertNextCell(2, cell);
+          }
+          previousValue = *voxel;
+        }
+
+        if (*voxel == EspINA::SEG_VOXEL_VALUE)
+        {
+          dx = static_cast<double>(x);
+          dz = static_cast<double>(z);
+          cell[0] = newPts->InsertNextPoint(((dx - 0.5) * spacing[0]) + origin[0], ((dy + 0.5) * spacing[1]) + origin[1], ((dz - 0.5) * spacing[2]) + origin[2]);
+          cell[1] = newPts->InsertNextPoint(((dx - 0.5) * spacing[0]) + origin[0], ((dy + 0.5) * spacing[1]) + origin[1], ((dz + 0.5) * spacing[2]) + origin[2]);
+          newLines->InsertNextCell(2, cell);
+        }
+      }
+
+      for (x = extent[0]; x <= extent[1]; ++x)
+      {
+        previousValue = EspINA::SEG_BG_VALUE;
+        for (z = extent[4]; z <= extent[5]; ++z)
+        {
+          voxel = reinterpret_cast<unsigned char *>(image->GetScalarPointer(x, extent[2], z));
+          if (*voxel != previousValue)
+          {
+            dx = static_cast<double>(x);
+            dz = static_cast<double>(z);
+            cell[0] = newPts->InsertNextPoint(((dx - 0.5) * spacing[0]) + origin[0], ((dy + 0.5) * spacing[1]) + origin[1], ((dz - 0.5) * spacing[2]) + origin[2]);
+            cell[1] = newPts->InsertNextPoint(((dx + 0.5) * spacing[0]) + origin[0], ((dy + 0.5) * spacing[1]) + origin[1], ((dz - 0.5) * spacing[2]) + origin[2]);
+            newLines->InsertNextCell(2, cell);
+          }
+          previousValue = *voxel;
+        }
+
+        if (*voxel == EspINA::SEG_VOXEL_VALUE)
+        {
+          dx = static_cast<double>(x);
+          dz = static_cast<double>(z);
+          cell[0] = newPts->InsertNextPoint(((dx - 0.5) * spacing[0]) + origin[0], ((dy + 0.5) * spacing[1]) + origin[1], ((dz - 0.5) * spacing[2]) + origin[2]);
+          cell[1] = newPts->InsertNextPoint(((dx + 0.5) * spacing[0]) + origin[0], ((dy + 0.5) * spacing[1]) + origin[1], ((dz - 0.5) * spacing[2]) + origin[2]);
+          newLines->InsertNextCell(2, cell);
+        }
+      }
+
+    }
+      break;
+    case EspINA::Plane::YZ:
+    {
+      dx = static_cast<double>(extent[0]);
+      for (z = extent[4]; z <= extent[5]; ++z)
+      {
+        previousValue = EspINA::SEG_BG_VALUE;
+        for (y = extent[2]; y <= extent[3]; ++y)
+        {
+          voxel = reinterpret_cast<unsigned char *>(image->GetScalarPointer(extent[0], y, z));
+          if (*voxel != previousValue)
+          {
+            dy = static_cast<double>(y);
+            dz = static_cast<double>(z);
+            cell[0] = newPts->InsertNextPoint(((dx + 0.5) * spacing[0]) + origin[0], ((dy - 0.5) * spacing[1]) + origin[1], ((dz - 0.5) * spacing[2]) + origin[2]);
+            cell[1] = newPts->InsertNextPoint(((dx + 0.5) * spacing[0]) + origin[0], ((dy - 0.5) * spacing[1]) + origin[1], ((dz + 0.5) * spacing[2]) + origin[2]);
+            newLines->InsertNextCell(2, cell);
+          }
+          previousValue = *voxel;
+        }
+
+        if (*voxel == EspINA::SEG_VOXEL_VALUE)
+        {
+          dy = static_cast<double>(y);
+          dz = static_cast<double>(z);
+          cell[0] = newPts->InsertNextPoint(((dx + 0.5) * spacing[0]) + origin[0], ((dy - 0.5) * spacing[1]) + origin[1], ((dz - 0.5) * spacing[2]) + origin[2]);
+          cell[1] = newPts->InsertNextPoint(((dx + 0.5) * spacing[0]) + origin[0], ((dy - 0.5) * spacing[1]) + origin[1], ((dz + 0.5) * spacing[2]) + origin[2]);
+          newLines->InsertNextCell(2, cell);
+        }
+      }
+
+      for (y = extent[2]; y <= extent[3]; ++y)
+      {
+        previousValue = EspINA::SEG_BG_VALUE;
+        for (z = extent[4]; z <= extent[5]; ++z)
+        {
+          voxel = reinterpret_cast<unsigned char *>(image->GetScalarPointer(extent[0], y, z));
+          if (*voxel != previousValue)
+          {
+            dy = static_cast<double>(y);
+            dz = static_cast<double>(z);
+            cell[0] = newPts->InsertNextPoint(((dx + 0.5) * spacing[0]) + origin[0], ((dy - 0.5) * spacing[1]) + origin[1], ((dz - 0.5) * spacing[2]) + origin[2]);
+            cell[1] = newPts->InsertNextPoint(((dx + 0.5) * spacing[0]) + origin[0], ((dy + 0.5) * spacing[1]) + origin[1], ((dz - 0.5) * spacing[2]) + origin[2]);
+            newLines->InsertNextCell(2, cell);
+          }
+          previousValue = *voxel;
+        }
+
+        if (*voxel == EspINA::SEG_VOXEL_VALUE)
+        {
+          dy = static_cast<double>(y);
+          dz = static_cast<double>(z);
+          cell[0] = newPts->InsertNextPoint(((dx + 0.5) * spacing[0]) + origin[0], ((dy - 0.5) * spacing[1]) + origin[1], ((dz - 0.5) * spacing[2]) + origin[2]);
+          cell[1] = newPts->InsertNextPoint(((dx + 0.5) * spacing[0]) + origin[0], ((dy + 0.5) * spacing[1]) + origin[1], ((dz - 0.5) * spacing[2]) + origin[2]);
+          newLines->InsertNextCell(2, cell);
+        }
+      }
+    }
+      break;
+    default:
+      Q_ASSERT(false);
+      break;
   }
 
   vtkPolyData *temp = vtkPolyData::New();
@@ -165,7 +308,7 @@ int vtkVoxelContour2D::RequestData(vtkInformation *request,
   newLines->Delete();
 
   vtkSmartPointer<vtkCleanPolyData> cleaner = vtkSmartPointer<vtkCleanPolyData>::New();
-  //TODO 2013-10-08 cleaner->SetInput(temp);
+  cleaner->SetInputData(temp);
   cleaner->PointMergingOn();
   cleaner->SetTolerance(0.0);
   cleaner->Update();
@@ -263,13 +406,11 @@ int vtkVoxelContour2D::RequestDataObject(vtkInformation* vtkNotUsed(request),
   vtkInformation* outInfo = outputVector->GetInformationObject(0);
   vtkPolyData* output = vtkPolyData::SafeDownCast(outInfo->Get( vtkDataObject::DATA_OBJECT() ) );
 
-
   if (!output)
   {
     output = vtkPolyData::New();
     outInfo->Set(vtkDataObject::DATA_OBJECT(), output);
     output->FastDelete();
-    //TODO 2013-10-08 output->SetPipelineInformation(outInfo);
     this->GetOutputPortInformation(0)->Set(vtkDataObject::DATA_EXTENT_TYPE(), output->GetExtentType());
   }
 
@@ -287,10 +428,9 @@ int vtkVoxelContour2D::RequestInformation(vtkInformation* vtkNotUsed(request),
 }
 
 //----------------------------------------------------------------------------
-int vtkVoxelContour2D::RequestUpdateExtent(
-                                          vtkInformation* vtkNotUsed(request),
-    vtkInformationVector** inputVector,
-    vtkInformationVector* vtkNotUsed(outputVector))
+int vtkVoxelContour2D::RequestUpdateExtent(vtkInformation* vtkNotUsed(request),
+                                           vtkInformationVector** inputVector,
+                                           vtkInformationVector* vtkNotUsed(outputVector))
 {
   int numInputPorts = this->GetNumberOfInputPorts();
   for (int i=0; i<numInputPorts; i++)
@@ -316,7 +456,7 @@ void vtkVoxelContour2D::SetInput(int index, vtkDataObject* input)
 {
   if(input)
   {
-    //TODO 2013-10-08 this->SetInputConnection(index, input->GetProducerPort());
+    this->SetInputData(index, input);
   }
   else
   {
@@ -336,7 +476,7 @@ void vtkVoxelContour2D::AddInput(int index, vtkDataObject* input)
 {
   if(input)
   {
-    //TODO 2013-10-08 this->AddInputConnection(index, input->GetProducerPort());
+    this->AddInputData(index, input);
   }
 }
 

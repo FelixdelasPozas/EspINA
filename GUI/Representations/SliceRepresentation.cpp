@@ -153,14 +153,14 @@ void ChannelSliceRepresentation::initializePipeline()
   Bounds imageBounds = m_data->bounds();
 
   bool valid = imageBounds[2*m_planeIndex] <= m_crosshair[m_planeIndex] && m_crosshair[m_planeIndex] <= imageBounds[2*m_planeIndex+1];
+
   vtkSmartPointer<vtkImageData> slice = vtkSmartPointer<vtkImageData>::New();
 
   if (valid)
   {
     imageBounds.setLowerInclusion(true);
     imageBounds.setUpperInclusion(toAxis(m_planeIndex), true);
-    imageBounds[2*m_planeIndex] = m_reslicePoint;
-    imageBounds[(2*m_planeIndex)+1] = m_reslicePoint;
+    imageBounds[2*m_planeIndex] = imageBounds[(2*m_planeIndex)+1] = m_reslicePoint;
 
     slice = vtkImage(m_data, imageBounds);
   }
@@ -231,9 +231,7 @@ void ChannelSliceRepresentation::updateRepresentation()
 
     imageBounds.setLowerInclusion(true);
     imageBounds.setUpperInclusion(toAxis(m_planeIndex), true);
-
-    imageBounds[2*m_planeIndex]   = m_reslicePoint;
-    imageBounds[2*m_planeIndex+1] = m_reslicePoint;
+    imageBounds[2*m_planeIndex] = imageBounds[2*m_planeIndex+1] = m_reslicePoint;
 
     auto slice = vtkImage(m_data, imageBounds);
 

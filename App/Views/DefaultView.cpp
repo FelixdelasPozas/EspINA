@@ -23,6 +23,7 @@
 //#include <Menus/SegmentationContextualMenu.h>
 #include <Support/Settings/EspinaSettings.h>
 #include <GUI/Representations/Renderers/SliceRenderer.h>
+#include <GUI/Representations/Renderers/ContourRenderer.h>
 
 #include <QDebug>
 
@@ -98,12 +99,13 @@ DefaultView::DefaultView(ModelAdapterSPtr     model,
   dock3D->setWidget(m_view3D);
   QSettings settings(CESVIMA, ESPINA);
 
-  if (!settings.contains(RENDERERS)) {
+  if (!settings.contains(RENDERERS))
+  {
     QStringList defaultRenderers;
 
     defaultRenderers << "Crosshairs"
-//                      << "Volumetric"
-//                      << "Volumetric GPU"
+                     << "Volumetric"
+                     << "Volumetric GPU"
                      << "Mesh"
                      << "Smoothed Mesh";
 
@@ -167,6 +169,7 @@ void DefaultView::initView2D(View2D *view)
   view->setContextualMenu(m_contextMenu);
   RendererSList renderers;
   renderers << RendererSPtr(new SliceRenderer());
+  renderers << RendererSPtr(new ContourRenderer());
   view->setRenderers(renderers);
 //   view->setColorEngine(m_viewManager->colorEngine());
 //   view->setSelector(m_viewManager->selector());

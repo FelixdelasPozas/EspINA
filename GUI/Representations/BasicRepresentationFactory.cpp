@@ -22,16 +22,11 @@
 #include <Core/Analysis/Data/MeshData.h>
 #include "CrosshairRepresentation.h"
 #include "SliceRepresentation.h"
+#include "ContourRepresentation.h"
 #include "MeshRepresentation.h"
 #include "SmoothedMeshRepresentation.h"
 #include "VolumetricRepresentation.h"
 #include "VolumetricGPURepresentation.h"
-
-// #include "ContourRepresentation.h"
-//
-// #include <Core/OutputRepresentations/MeshType.h>
-// #include <Core/OutputRepresentations/VolumeRepresentation.h>
-// #include <Core/Model/Filter.h>
 
 using namespace EspINA;
 
@@ -73,6 +68,7 @@ RepresentationTypeList BasicSegmentationRepresentationFactory::representations()
   RepresentationTypeList representations;
 
   representations << SegmentationSliceRepresentation::TYPE;
+  representations << ContourRepresentation::TYPE;
   representations << MeshRepresentation::TYPE;
   representations << SmoothedMeshRepresentation::TYPE;
   representations << VolumetricRepresentation<itkVolumeType>::TYPE;
@@ -91,6 +87,13 @@ RepresentationSPtr BasicSegmentationRepresentationFactory::createRepresentation(
     DefaultVolumetricDataSPtr volume = volumetricData(output);
 
     representation = RepresentationSPtr{new SegmentationSliceRepresentation(volume, nullptr)};
+  }
+
+  if (type == ContourRepresentation::TYPE)
+  {
+    DefaultVolumetricDataSPtr volume = volumetricData(output);
+
+    representation = RepresentationSPtr{new ContourRepresentation(volume, nullptr)};
   }
 
   if (type == MeshRepresentation::TYPE)

@@ -44,6 +44,7 @@
 #include <GUI/Representations/BasicRepresentationFactory.h>
 #include <GUI/Representations/Renderers/SliceRenderer.h>
 #include <GUI/Representations/Renderers/CrosshairRenderer.h>
+#include <GUI/Representations/Renderers/ContourRenderer.h>
 #include <GUI/Representations/Renderers/MeshRenderer.h>
 #include <GUI/Representations/Renderers/SmoothedMeshRenderer.h>
 #include <GUI/Representations/Renderers/VolumetricRenderer.h>
@@ -120,7 +121,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   m_availableRenderers << RendererSPtr(new SliceRenderer());
   m_availableRenderers << RendererSPtr(new VolumetricRenderer<itkVolumeType>());
   m_availableRenderers << RendererSPtr(new VolumetricGPURenderer<itkVolumeType>());
-//   m_availableRenderers << RendererSPtr(new ContourRenderer());
+  m_availableRenderers << RendererSPtr(new ContourRenderer());
 
   /*** FILE MENU ***/
   QMenu *fileMenu = new QMenu(tr("File"), this);

@@ -131,6 +131,8 @@ View2D::View2D(Plane plane, QWidget* parent)
   // Init Renderers
   m_renderer = vtkSmartPointer<vtkRenderer>::New();
   m_renderer->GetActiveCamera()->ParallelProjectionOn();
+  m_renderer->GetActiveCamera()->SetThickness(2000);
+  m_renderer->SetNearClippingPlaneTolerance(0.001);
   m_renderer->LightFollowCameraOn();
   m_renderer->SetLayer(0);
   m_thumbnail = vtkSmartPointer<vtkRenderer>::New();
@@ -152,7 +154,7 @@ View2D::View2D(Plane plane, QWidget* parent)
   m_ruler->SetAdjustLabels(false);
   m_ruler->SetNumberOfLabels(2);
   m_ruler->SizeFontRelativeToAxisOff();
-  m_renderer->AddActor(m_ruler);
+  m_renderer->AddViewProp(m_ruler);
 
   View2DInteractor interactor = View2DInteractor::New();
   interactor->AutoAdjustCameraClippingRangeOff();
@@ -575,13 +577,13 @@ void View2D::setCrosshairVisibility(bool visible)
 {
   if (visible)
   {
-    m_renderer->AddActor(m_HCrossLine);
-    m_renderer->AddActor(m_VCrossLine);
+    m_renderer->AddViewProp(m_HCrossLine);
+    m_renderer->AddViewProp(m_VCrossLine);
   }
   else
   {
-    m_renderer->RemoveActor(m_HCrossLine);
-    m_renderer->RemoveActor(m_VCrossLine);
+    m_renderer->RemoveViewProp(m_HCrossLine);
+    m_renderer->RemoveViewProp(m_VCrossLine);
   }
 
   updateView();
@@ -652,7 +654,6 @@ void View2D::updateView()
     updateThumbnail();
     m_renderer->ResetCameraClippingRange();
     m_view->GetRenderWindow()->Render();
-    m_view->update();
   }
 }
 
@@ -664,14 +665,14 @@ void View2D::resetCamera()
   m_state->updateCamera(m_renderer ->GetActiveCamera(), origin);
   m_state->updateCamera(m_thumbnail->GetActiveCamera(), origin);
 
-  m_thumbnail->RemoveActor(m_channelBorder);
-  m_thumbnail->RemoveActor(m_viewportBorder);
+  m_thumbnail->RemoveViewProp(m_channelBorder);
+  m_thumbnail->RemoveViewProp(m_viewportBorder);
   updateSceneBounds();
   updateThumbnail();
   m_renderer->ResetCamera();
   m_thumbnail->ResetCamera();
-  m_thumbnail->AddActor(m_channelBorder);
-  m_thumbnail->AddActor(m_viewportBorder);
+  m_thumbnail->AddViewProp(m_channelBorder);
+  m_thumbnail->AddViewProp(m_viewportBorder);
 
   m_sceneReady = !m_channelStates.isEmpty();
 }
@@ -715,18 +716,18 @@ void View2D::removeWidget(EspinaWidget *eWidget)
 //-----------------------------------------------------------------------------
 void View2D::addActor(vtkProp* actor)
 {
-  m_renderer->AddActor(actor);
-  m_thumbnail->AddActor(actor);
+  m_renderer->AddViewProp(actor);
+  m_thumbnail->AddViewProp(actor);
 
-  m_thumbnail->RemoveActor(m_channelBorder);
-  m_thumbnail->RemoveActor(m_viewportBorder);
+  m_thumbnail->RemoveViewProp(m_channelBorder);
+  m_thumbnail->RemoveViewProp(m_viewportBorder);
 
   updateThumbnail();
   m_thumbnail->ResetCamera();
   updateThumbnail();
 
-  m_thumbnail->AddActor(m_channelBorder);
-  m_thumbnail->AddActor(m_viewportBorder);
+  m_thumbnail->AddViewProp(m_channelBorder);
+  m_thumbnail->AddViewProp(m_viewportBorder);
 }
 
 //-----------------------------------------------------------------------------
@@ -1360,7 +1361,7 @@ void View2D::centerViewOn(const NmVector3& point, bool force)
   m_spinBox->blockSignals(false);
   m_scrollBar->blockSignals(false);
 
-  updateRepresentations(); //m_state->setSlicingPosition(m_slicingMatrix, voxelBottom(m_scrollBar->value(), m_plane));
+  updateRepresentations();
   m_state->setCrossHairs(m_HCrossLineData, m_VCrossLineData,
                          m_crosshairPoint, m_sceneBounds, m_slicingStep);
 
@@ -1380,7 +1381,9 @@ void View2D::centerViewOn(const NmVector3& point, bool force)
                         || m_crosshairPoint[V] > ll[V] || m_crosshairPoint[V] < ur[V];// Vertically out
 
   if (centerOutOfCamera || force)
+  {
     m_state->updateCamera(m_renderer->GetActiveCamera(), m_crosshairPoint);
+  }
 
   updateView();
 }

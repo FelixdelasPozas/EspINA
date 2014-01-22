@@ -90,7 +90,11 @@ void View2D::SagittalState::setCrossHairs(vtkPolyData* hline,
 void View2D::SagittalState::updateCamera(vtkCamera* camera,
                                             const NmVector3& center)
 {
-  camera->SetPosition(center[0] + 1,center[1], center[2]);
+  double *camPos = camera->GetPosition();
+  if (camPos[0] == center[0])
+    ++camPos[0];
+
+  camera->SetPosition(camPos[0],center[1], center[2]);
   camera->SetFocalPoint(center[0], center[1], center[2]);
   camera->SetRoll(180);
 }
@@ -119,7 +123,11 @@ void View2D::CoronalState::setCrossHairs(vtkPolyData*     hline,
 void View2D::CoronalState::updateCamera(vtkCamera* camera,
                                            const NmVector3& center)
 {
-  camera->SetPosition(center[0], center[1]+1, center[2]);
+  double *camPos = camera->GetPosition();
+  if (camPos[1] == center[1])
+    ++camPos[1];
+
+  camera->SetPosition(center[0], camPos[1], center[2]);
   camera->SetFocalPoint(center[0], center[1], center[2]);
   camera->SetViewUp(0, 0, -1);
 }
