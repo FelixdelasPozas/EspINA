@@ -22,8 +22,8 @@
 #include "CountingFramePlugin_Export.h"
 
 #include <Core/Analysis/Extensions/ChannelExtension.h>
-
 #include <Plugins/CountingFrame/CountingFrames/CountingFrame.h>
+#include <Plugins/CountingFrame/Extensions/StereologicalInclusion.h>
 
 namespace EspINA
 {
@@ -51,6 +51,13 @@ namespace EspINA
     virtual Type type() const
     { return TYPE; }
 
+    virtual bool invalidateOnChange() const
+    { return true; }
+
+    virtual State state() const;
+
+    virtual Snapshot snapshot() const;
+
     virtual bool isCacheFile(const QString &file) const
     { return FILE == file; }
 
@@ -67,11 +74,9 @@ namespace EspINA
     void onCountingFrameUpdated(CountingFrame *countingFrame);
 
   private:
-    SegmentationList segmentations();
-
     /// Retrieves StereologicalInclusion extension from a segmentation
     /// If no extension is found, a new one is added to the segmentation
-    StereologicalInclusion *stereologicalInclusion(SegmentationPtr segmentation);
+    StereologicalInclusionSPtr stereologicalInclusionExtension(SegmentationSPtr segmentation);
 
   private:
 //     CountingFramePanel *m_plugin;

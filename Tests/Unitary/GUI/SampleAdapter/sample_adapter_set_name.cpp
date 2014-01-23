@@ -39,7 +39,8 @@ int sample_adapter_set_name( int argc, char** argv )
   QString name = "Sample";
 
   SchedulerSPtr sch;
-  ModelFactory factory(sch);
+  CoreFactorySPtr  coreFactory{new CoreFactory(sch)};
+  ModelFactory factory(coreFactory);
 
   SampleAdapterSPtr sample = factory.createSample(name);
 

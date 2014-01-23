@@ -49,6 +49,7 @@ const char SEP = ';';
 StereologicalInclusion::StereologicalInclusion()
 : m_isOnEdge(false)
 , m_isInitialized(false)
+, m_isUpdated(false)
 , m_isExcluded(false)
 {
 }
@@ -97,13 +98,6 @@ SegmentationExtension::InfoTagList StereologicalInclusion::availableInformations
 //------------------------------------------------------------------------
 void StereologicalInclusion::onSegmentationSet(SegmentationPtr segmentation)
 {
-//   connect(segmentation, SIGNAL(outputModified()),
-//           this,         SLOT(invalidate()));
-//
-//   if (m_segmentation->outputIsModified())
-//     invalidate();
-//   else
-//     initialize();
 }
 
 //------------------------------------------------------------------------
@@ -150,29 +144,60 @@ QString StereologicalInclusion::toolTipText() const
 }
 
 //------------------------------------------------------------------------
-void StereologicalInclusion::setCountingFrames(CountingFrameList countingFrames)
+void StereologicalInclusion::addCountingFrame(CountingFrame* cf)
 {
-  Q_ASSERT(m_segmentation);
-  //   EXTENSION_DEBUG("Updating " << m_seg->id() << " bounding regions...");
-  //   EXTENSION_DEBUG("\tNumber of regions applied:" << regions.size());
-  QSet<CountingFrame *> prevCF = m_exclusionCFs.keys().toSet();
-  QSet<CountingFrame *> newCF  = countingFrames.toSet();
-
-  m_isExcluded = false;
-
-  // Remove regions that doesn't exist anymore
-  for(auto cf : prevCF.subtract(newCF))
+  if (!m_excludedByCF.contains(cf))
   {
+    connect(cf, SIGNAL(modified(CountingFrame*)),
+            this, SLOT(evaluateCountingFrame(CountingFrame*)));
+    m_excludedByCF[cf->id()] = false; // Everybody is innocent until proven guilty
+    m_exclusionCFs[cf] = false;
+    m_isUpdated = false;
+    //evaluateCountingFrame(cf);
+  }
+}
+
+//------------------------------------------------------------------------
+void StereologicalInclusion::removeCountingFrame(CountingFrame* cf)
+{
+  if (m_excludedByCF.contains(cf))
+  {
+    disconnect(cf, SIGNAL(modified(CountingFrame*)),
+               this, SLOT(evaluateCountingFrame(CountingFrame*)));
     m_exclusionCFs.remove(cf);
     m_excludedByCF.remove(cf->id());
+    m_isUpdated = false;
   }
-
-  for(auto cf : newCF.subtract(prevCF))
-  {
-    evaluateCountingFrame(cf);
-  }
-//     EXTENSION_DEBUG("Counting Region Extension request Segmentation Update");
 }
+
+// //------------------------------------------------------------------------
+// void StereologicalInclusion::setCountingFrames(CountingFrameList countingFrames)
+// {
+//   Q_ASSERT(m_segmentation);
+//   //   EXTENSION_DEBUG("Updating " << m_seg->id() << " bounding regions...");
+//   //   EXTENSION_DEBUG("\tNumber of regions applied:" << regions.size());
+//   QSet<CountingFrame *> prevCF = m_exclusionCFs.keys().toSet();
+//   QSet<CountingFrame *> newCF  = countingFrames.toSet();
+//
+//   m_isExcluded = false;
+//
+//   // Remove regions that doesn't exist anymore
+//   for(auto cf : prevCF.subtract(newCF))
+//   {
+//     disconnect(cf, SIGNAL(modified(CountingFrame*)),
+//                this, SLOT(evaluateCountingFrame(CountingFrame*)));
+//     m_exclusionCFs.remove(cf);
+//     m_excludedByCF.remove(cf->id());
+//   }
+//
+//   for(auto cf : newCF.subtract(prevCF))
+//   {
+//     connect(cf, SIGNAL(modified(CountingFrame*)),
+//             this, SLOT(evaluateCountingFrame(CountingFrame*)));
+//     evaluateCountingFrame(cf);
+//   }
+// //     EXTENSION_DEBUG("Counting Region Extension request Segmentation Update");
+// }
 
 // //------------------------------------------------------------------------
 // void StereologicalInclusion::loadCache(QuaZipFile &file, const QDir &tmpDir, IEspinaModel *model)
@@ -281,43 +306,28 @@ bool StereologicalInclusion::isExcluded() const
 //------------------------------------------------------------------------
 void StereologicalInclusion::evaluateCountingFrames()
 {
-  m_isInitialized = false;
+  checkSampleCountingFrames();
 
-  if (!m_segmentation)
-    return;
-
-  auto samples = Query::samples(m_segmentation);
-
-  if (samples.size() > 1)
+  if (!m_isUpdated)
   {
-    qWarning() << "Counting Frame<evaluateCountingFrames>: Tiling mode not suppoerted";
-  } else if (!samples.isEmpty())
-  {
-    auto sample = samples.first();
+    if (!m_segmentation)
+      return;
 
-    CountingFrameList countingFrames;
-    for(auto channel : Query::channels(sample))
-    {
-      if (channel->hasExtension(CountingFrameExtension::TYPE))
-      {
-        auto extension = channel->extension(CountingFrameExtension::TYPE);
-
-        auto cfExtension = std::dynamic_pointer_cast<CountingFrameExtension>(extension);
-        countingFrames << cfExtension->countingFrames();
-      }
-    }
-
-    if (countingFrames.isEmpty())
+    if (m_excludedByCF.isEmpty())
     {
       m_isExcluded = false;
     } else
     {
       m_isOnEdge = isOnEdge();
 
-      setCountingFrames(countingFrames);
+      for (auto cf : m_excludedByCF.keys())
+      {
+        evaluateCountingFrame(cf);
+      }
     }
 
     m_isInitialized = true;
+    m_isUpdated = true;
   }
 }
 
@@ -469,8 +479,36 @@ bool StereologicalInclusion::isRealCollision(const Bounds& interscetion)
 }
 
 //------------------------------------------------------------------------
+void StereologicalInclusion::checkSampleCountingFrames()
+{
+  auto samples = Query::samples(m_segmentation);
+
+  if (samples.size() > 1)
+  {
+    qWarning() << "Counting Frame<evaluateCountingFrames>: Tiling mode not suppoerted";
+  } else if (!samples.isEmpty())
+  {
+    auto sample = samples.first();
+
+    for(auto channel : Query::channels(sample))
+    {
+      if (channel->hasExtension(CountingFrameExtension::TYPE))
+      {
+        auto extension = channel->extension(CountingFrameExtension::TYPE);
+        auto cfExtension = std::dynamic_pointer_cast<CountingFrameExtension>(extension);
+
+        for (auto cf : cfExtension->countingFrames())
+        {
+          addCountingFrame(cf);
+        }
+      }
+    }
+  }
+
+}
+
+//------------------------------------------------------------------------
 StereologicalInclusionSPtr EspINA::CF::stereologicalInclusion(SegmentationExtensionSPtr extension)
 {
   return std::dynamic_pointer_cast<StereologicalInclusion>(extension);
 }
-

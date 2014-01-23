@@ -73,22 +73,26 @@ namespace EspINA
 
     virtual QString toolTipText() const;
 
-    void setCountingFrames(CountingFrameList regions);
+    void addCountingFrame(CountingFrame *cf);
+    void removeCountingFrame(CountingFrame *cf);
+    //void setCountingFrames(CountingFrameList regions);
 
     bool isExcluded() const;
 
-    void evaluateCountingFrame(CountingFrame *cf);
 
   public slots:
+    void evaluateCountingFrame(CountingFrame *cf);
     void evaluateCountingFrames();
 
-  protected:
+  private:
     bool isExcludedByCountingFrame(CountingFrame *cf);
     bool isRealCollision(const Bounds& interscetion);
     bool isOnEdge();
+    void checkSampleCountingFrames();
 
   private:
     bool m_isInitialized;
+    bool m_isUpdated;
 
     bool m_isOnEdge;
     QMap<CountingFrame *, bool> m_exclusionCFs;

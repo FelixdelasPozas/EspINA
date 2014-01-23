@@ -142,25 +142,22 @@ QVariant SegmentationAdapter::data(int role) const
         tooltip      = tooltip.append(filterInfo);
         addBreakLine = true;
       }
-      
-//       // FIXME: Hack to ensure notes and tags extension are always loaded
-//       informationExtension(SegmentationTagsID);
-//       informationExtension(SegmentationNotesID);
-//       foreach (InformationExtension extension, m_informationExtensions)
-//       {
+
+      for(auto extension : m_segmentation->extensions())
+      {
 //         if (extension->isEnabled())
 //         {
-//           QString extToolTip = extension->toolTipText();
-//           if (!extToolTip.isEmpty())
-//           {
-//             if (addBreakLine && !extToolTip.contains("</table>")) tooltip = tooltip.append("<br>");
-//             
-//             tooltip = tooltip.append(extToolTip);
-//             
-//             addBreakLine = true;
+        QString extToolTip = extension->toolTipText();
+        if (!extToolTip.isEmpty())
+        {
+          if (addBreakLine && !extToolTip.contains("</table>")) tooltip = tooltip.append("<br>");
+
+          tooltip = tooltip.append(extToolTip);
+
+          addBreakLine = true;
 //           }
-//         }
-//       }
+        }
+      }
       return tooltip;
     }
     case Qt::CheckStateRole:

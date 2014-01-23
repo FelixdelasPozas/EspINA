@@ -33,9 +33,9 @@ namespace EspINA {
 
     static ChannelAdapterSList channels(SegmentationAdapterSPtr segmentation);
 
-    static SampleAdapterSPtr sample(ChannelAdapterSPtr segmentation);
+    static SampleAdapterSPtr sample(ChannelAdapterSPtr channel);
 
-    static SampleAdapterSPtr sample(ChannelAdapterPtr segmentation);
+    static SampleAdapterSPtr sample(ChannelAdapterPtr channel);
   };
 } // namespace EspINA
 

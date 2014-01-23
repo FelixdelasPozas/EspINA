@@ -86,12 +86,6 @@ namespace EspINA {
                                             CoreFactorySPtr         factory, 
                                             ErrorHandlerSPtr        handler = ErrorHandlerSPtr());
 
-        void createExtensionProvider(DirectedGraph::Vertex   roVertex,
-                                     AnalysisSPtr            analysis,
-                                     TemporalStorageSPtr     storage,
-                                     CoreFactorySPtr         factory, 
-                                     ErrorHandlerSPtr        handler = ErrorHandlerSPtr());
-
         void loadContent(AnalysisSPtr        analysis,
                          QuaZip&             zip,
                          TemporalStorageSPtr storage,
@@ -101,6 +95,12 @@ namespace EspINA {
         void loadRelations(AnalysisSPtr     analysis,
                            QuaZip&          zip,
                            ErrorHandlerSPtr handler = ErrorHandlerSPtr());
+
+        void loadExtensions(ChannelSPtr     channel,
+                            CoreFactorySPtr factory);
+
+        void loadExtensions(SegmentationSPtr segmentation,
+                            CoreFactorySPtr  factory);
 
       private:
         FetchBehaviourSPtr m_fetchBehaviour;

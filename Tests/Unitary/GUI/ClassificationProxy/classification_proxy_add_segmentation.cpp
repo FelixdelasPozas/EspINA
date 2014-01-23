@@ -69,7 +69,7 @@ int classification_proxy_add_segmentation( int argc, char** argv )
   }
 
   SchedulerSPtr sch;
-  ModelFactory factory(sch);
+  ModelFactory factory(CoreFactorySPtr{new CoreFactory(sch)});
 
   OutputSList inputs;
   Filter::Type type{"DummyFilter"};

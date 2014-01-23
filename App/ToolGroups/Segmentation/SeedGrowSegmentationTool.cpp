@@ -34,6 +34,34 @@ using namespace EspINA;
 const Filter::Type SGS_FILTER = "SeedGrowSegmentation";
 
 //-----------------------------------------------------------------------------
+FilterTypeList SeedGrowSegmentationTool::SGSFilterFactory::providedFilters() const
+{
+  FilterTypeList filters;
+
+  filters << SGS_FILTER;
+
+  return filters;
+}
+
+//-----------------------------------------------------------------------------
+FilterSPtr SeedGrowSegmentationTool::SGSFilterFactory::createFilter(OutputSList         inputs,
+                                                  const Filter::Type& filter,
+                                                  SchedulerSPtr       scheduler) const throw (Unknown_Filter_Exception)
+{
+  if (filter != SGS_FILTER) throw Unknown_Filter_Exception();
+
+  auto sgsFilter = FilterSPtr{new SeedGrowSegmentationFilter(inputs, filter, scheduler)};
+
+  if (!m_fetchBehaviour)
+  {
+    m_fetchBehaviour = FetchBehaviourSPtr{new MarchingCubesFromFetchedVolumetricData()};
+  }
+  sgsFilter->setFetchBehaviour(m_fetchBehaviour);
+
+  return sgsFilter;
+}
+
+//-----------------------------------------------------------------------------
 SeedGrowSegmentationTool::SeedGrowSegmentationTool(ModelAdapterSPtr model,
                                                    ModelFactorySPtr factory,
                                                    ViewManagerSPtr  viewManager,
@@ -47,8 +75,9 @@ SeedGrowSegmentationTool::SeedGrowSegmentationTool(ModelAdapterSPtr model,
 , m_selectorSwitch(new ActionSelector())
 , m_seedThreshold(new SeedThreshold())
 , m_applyROI(new ApplyROI())
+, m_filterFactory(new SGSFilterFactory())
 {
-  m_factory->registerFilterFactory(this);
+  m_factory->registerFilterFactory(m_filterFactory);
 
   { // Pixel Selector
     QAction *action = new QAction(QIcon(":/espina/pixelSelector.svg"),
@@ -89,34 +118,6 @@ SeedGrowSegmentationTool::~SeedGrowSegmentationTool()
   delete m_selectorSwitch;
   delete m_seedThreshold;
   delete m_applyROI;
-}
-
-//-----------------------------------------------------------------------------
-FilterTypeList SeedGrowSegmentationTool::providedFilters() const
-{
-  FilterTypeList filters;
-
-  filters << SGS_FILTER;
-
-  return filters;
-}
-
-//-----------------------------------------------------------------------------
-FilterSPtr SeedGrowSegmentationTool::createFilter(OutputSList         inputs,
-                                                  const Filter::Type& filter,
-                                                  SchedulerSPtr       scheduler) const throw (Unknown_Filter_Exception)
-{
-  if (filter != SGS_FILTER) throw Unknown_Filter_Exception();
-
-  auto sgsFilter = FilterSPtr{new SeedGrowSegmentationFilter(inputs, filter, scheduler)};
-
-  if (!m_fetchBehaviour)
-  {
-    m_fetchBehaviour = FetchBehaviourSPtr{new MarchingCubesFromFetchedVolumetricData()};
-  }
-  sgsFilter->setFetchBehaviour(m_fetchBehaviour);
-
-  return sgsFilter;
 }
 
 //-----------------------------------------------------------------------------

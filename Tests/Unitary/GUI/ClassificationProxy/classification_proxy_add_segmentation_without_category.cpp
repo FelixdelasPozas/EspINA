@@ -70,7 +70,8 @@ int classification_proxy_add_segmentation_without_category( int argc, char** arg
   }
 
   SchedulerSPtr sch;
-  ModelFactory factory(sch);
+  CoreFactorySPtr  coreFactory{new CoreFactory(sch)};
+  ModelFactory factory(coreFactory);
 
   OutputSList inputs;
   Filter::Type type{"DummyFilter"};

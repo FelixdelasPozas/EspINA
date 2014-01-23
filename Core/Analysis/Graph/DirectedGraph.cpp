@@ -18,7 +18,6 @@
     */
 
 #include "DirectedGraph.h"
-#include <Core/Analysis/Extensions/ExtensionProvider.h>
 
 #include <iostream>
 #undef foreach // Due to Qt-Boost incompatibility

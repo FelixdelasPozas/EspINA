@@ -58,7 +58,6 @@ int io_analysis_seg_file_io( int argc, char** argv )
   bool error = false;
 
   CoreFactorySPtr factory{new CoreFactory()};
-  factory->registerFilter(&dummyFactory);
 
   Analysis analysis;
 

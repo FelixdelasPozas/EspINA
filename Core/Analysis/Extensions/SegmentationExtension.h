@@ -57,8 +57,6 @@ namespace EspINA
 
     SegmentationPtr segmentation() {return m_segmentation;}
 
-    virtual void onSegmentationSet(SegmentationPtr seg) = 0;
-
     virtual bool validCategory(const QString &classificationName) const = 0;
 
     virtual InfoTagList availableInformations() const = 0;
@@ -74,16 +72,19 @@ namespace EspINA
     , m_enabled{false} 
     {}
 
+    virtual void onSegmentationSet(SegmentationPtr seg) = 0;
+
+  protected:
     SegmentationPtr m_segmentation;
     bool            m_enabled;
-
   };
 
-  using SegmentationExtensionPtr   = SegmentationExtension *;
-  using SegmentationExtensionList  = QList<SegmentationExtensionPtr>;
-  using SegmentationExtensionSPtr  = std::shared_ptr<SegmentationExtension>;
-  using SegmentationExtensionSList = QList<SegmentationExtensionSPtr>;
-  using SegmentationExtensionSMap  = QMap<QString,SegmentationExtensionSPtr>;
+  using SegmentationExtensionPtr      = SegmentationExtension *;
+  using SegmentationExtensionList     = QList<SegmentationExtensionPtr>;
+  using SegmentationExtensionSPtr     = std::shared_ptr<SegmentationExtension>;
+  using SegmentationExtensionSList    = QList<SegmentationExtensionSPtr>;
+  using SegmentationExtensionSMap     = QMap<QString,SegmentationExtensionSPtr>;
+  using SegmentationExtensionTypeList = QList<SegmentationExtension::Type>;
 } // namespace EspINA
 
 #endif // SEGMENTATIONEXTENSION_H

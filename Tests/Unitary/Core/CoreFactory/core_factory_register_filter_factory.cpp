@@ -37,11 +37,11 @@ int core_factory_register_filter_factory(int argc, char** argv)
 {
   bool error = false;
 
-  DummyFilterFactory filterFactory;
+  FilterFactorySPtr filterFactory{new DummyFilterFactory()};
 
   CoreFactory factory;
 
-  factory.registerFilter(&filterFactory);
+  factory.registerFilterFactory(filterFactory);
 
   FilterSPtr filter = factory.createFilter(OutputSList(), DummyFilterFactory::dummyType());
 

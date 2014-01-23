@@ -21,6 +21,7 @@
 #include "Extensions/CountingFrameExtension.h"
 #include "CountingFrames/RectangularCountingFrame.h"
 #include "CountingFrames/AdaptiveCountingFrame.h"
+#include <Core/Analysis/Channel.h>
 
 using namespace EspINA;
 using namespace EspINA::CF;
@@ -66,8 +67,25 @@ void CountingFrameManager::createRectangularCF(ChannelAdapterPtr channel,
 }
 
 //-----------------------------------------------------------------------------
-void CountingFrameManager::deleteCountingFrame ( CountingFrame* cf )
+void CountingFrameManager::deleteCountingFrame(CountingFrame* cf)
 {
+  Q_ASSERT(m_countingFrames.contains(cf));
+
+  auto channel   = m_countingFrames[cf];
+
+  Q_ASSERT(channel->hasExtension(CountingFrameExtension::TYPE));
+
+  auto extension   = channel->extension(CountingFrameExtension::TYPE);
+  auto cfExtension = std::dynamic_pointer_cast<CountingFrameExtension>(extension);
+
+  cfExtension->removeCountingFrame(cf);
+
+  if (cfExtension->countingFrames().isEmpty())
+  {
+    channel->deleteExtension(cfExtension);
+  }
+
+
 //   while (!cfExtension && i < m_countingFramesExtensions.size())
 //   {
 //     if (m_countingFramesExtensions[i]->countingFrames().contains(cf))
@@ -80,6 +98,9 @@ void CountingFrameManager::deleteCountingFrame ( CountingFrame* cf )
 //   }
 //   m_countingFramesExtensions.removeAt(i);
 //   m_countingFrames.removeOne(cf);
+
+  m_countingFrames.remove(cf);
+  Q_ASSERT(!m_countingFrames.contains(cf));
 
   cf->Delete();
 }
@@ -109,7 +130,7 @@ void CountingFrameManager::registerCountingFrame(CountingFrame* cf, CountingFram
 {
   extension->addCountingFrame(cf);
 
-  m_countingFrames << cf;
+  m_countingFrames[cf] = extension->channel();
 
   emit countingFrameCreated(cf);
 }

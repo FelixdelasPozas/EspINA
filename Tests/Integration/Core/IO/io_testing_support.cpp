@@ -50,12 +50,6 @@ bool operator!=(Analysis& lhs, Analysis& rhs)
     return true;
   }
 
-  if (lhs.extensionProviders().size() != rhs.extensionProviders().size())
-  {
-    cerr << "Extension Providers size missmatch" << endl;
-    return true;
-  }
-
   if (lhs.content()->vertices().size() != rhs.content()->vertices().size())
   {
     cerr << "Content vertices size missmatch" << endl;

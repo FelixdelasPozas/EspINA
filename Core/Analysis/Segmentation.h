@@ -36,77 +36,93 @@ namespace EspINA
   class EspinaCore_EXPORT Segmentation
   : public ViewItem
   {
-    public:
-      struct Existing_Extension{};
+  public:
+    struct Existing_Extension{};
 
-    public:
-      explicit Segmentation(FilterSPtr filter, const Output::Id output);
-      virtual ~Segmentation();
+  public:
+    explicit Segmentation(FilterSPtr filter, const Output::Id output);
+    virtual ~Segmentation();
 
-      virtual void restoreState(const State& state);
+    virtual void restoreState(const State& state);
 
-      virtual State state() const;
+    virtual State state() const;
 
-      virtual Snapshot snapshot() const;
+    virtual Snapshot snapshot() const;
 
-      virtual void unload();
+    virtual void unload();
 
-      void setAlias(const QString& alias)
-      { m_alias = alias; }
+    void setAlias(const QString& alias)
+    { m_alias = alias; }
 
-      QString alias() const
-      { return m_alias; }
+    QString alias() const
+    { return m_alias; }
 
-      void setNumber(unsigned int number)
-      { m_number = number; }
+    void setNumber(unsigned int number)
+    { m_number = number; }
 
-      unsigned int number() const
-      { return m_number; }
+    unsigned int number() const
+    { return m_number; }
 
-      void setCategory(CategorySPtr category);
+    void setCategory(CategorySPtr category);
 
-      CategorySPtr category() const
-      { return m_category; }
+    CategorySPtr category() const
+    { return m_category; }
 
-      void modifiedByUser(const QString& user)
-      { m_users << user; }
+    void modifiedByUser(const QString& user)
+    { m_users << user; }
 
-      QStringList users() const
-      { return m_users.toList(); }
+    QStringList users() const
+    { return m_users.toList(); }
 
-      /**
-       * Extesion won't be available until requirements are satisfied
-       */
-      void addExtension(SegmentationExtensionSPtr extension) throw(SegmentationExtension::Existing_Extension);
+    /**
+     * Extesion won't be available until requirements are satisfied
+     */
+    void addExtension(SegmentationExtensionSPtr extension)
+      throw(SegmentationExtension::Existing_Extension);
 
-      void deleteExtension(SegmentationExtensionSPtr extension) throw(SegmentationExtension::Extension_Not_Found);
+    void deleteExtension(SegmentationExtensionSPtr extension)
+      throw(SegmentationExtension::Extension_Not_Found);
 
-      /** \brief Check whether or not there is an extension with the given name
-       *
-       */
-      bool hasExtension(const SegmentationExtension::Type& type) const;
+    /** \brief Check whether or not there is an extension with the given name
+     *
+     */
+    bool hasExtension(const SegmentationExtension::Type& type) const;
 
-      /** \brief Return the extension with the especified name
-       *
-       *  Important: It the segmentation doesn't contain any extension with
-       *  the requested name, but there exist an extension prototype registered
-       *  in the factory, a new instance will be created and attached to the
-       *  segmentation.
-       *  If there is no extension with the given name registered in the factory
-       *  a Undefined_Extension exception will be thrown
-       */
-      SegmentationExtensionSPtr extension(const SegmentationExtension::Type& type) const throw(SegmentationExtension::Extension_Not_Found);
+    /** \brief Return the extension with the especified name
+     *
+     *  Important: It the segmentation doesn't contain any extension with
+     *  the requested name, but there exist an extension prototype registered
+     *  in the factory, a new instance will be created and attached to the
+     *  segmentation.
+     *  If there is no extension with the given name registered in the factory
+     *  a Undefined_Extension exception will be thrown
+     */
+    SegmentationExtensionSPtr extension(const SegmentationExtension::Type& type) const
+      throw(SegmentationExtension::Extension_Not_Found);
 
-      virtual SegmentationExtension::InfoTagList informationTags() const;
+    SegmentationExtensionSList extensions() const
+    { return m_extensions.values(); }
 
-      virtual QVariant information(const SegmentationExtension::InfoTag& tag) const;
+    virtual SegmentationExtension::InfoTagList informationTags() const;
 
-    private:
-      QString                   m_alias;
-      unsigned int              m_number;
-      QSet<QString>             m_users;
-      CategorySPtr              m_category;
-      SegmentationExtensionSMap m_extensions;
+    virtual QVariant information(const SegmentationExtension::InfoTag& tag) const;
+
+  private:
+    QString extensionsPath() const
+    { return "Extensions/"; }
+
+    QString extensionPath(const SegmentationExtensionSPtr extension) const
+    { return extensionsPath() + extension->type() + "/"; }
+
+    QString extensionDataPath(const SegmentationExtensionSPtr extension, QString path) const
+    { return extensionPath(extension) + QString("%1_%2").arg(uuid()).arg(path); }
+
+  private:
+    QString                   m_alias;
+    unsigned int              m_number;
+    QSet<QString>             m_users;
+    CategorySPtr              m_category;
+    SegmentationExtensionSMap m_extensions;
   };
 }
 #endif // ESPINA_SEGMENTATION_H

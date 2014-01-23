@@ -17,25 +17,28 @@
 */
 
 
-#ifndef ESPINA_EXTENSION_PROVIDER_FACTORY_H
-#define ESPINA_EXTENSION_PROVIDER_FACTORY_H
+#ifndef ESPINA_CHANNEL_EXTENSION_FACTORY_H
+#define ESPINA_CHANNEL_EXTENSION_FACTORY_H
 
 #include "EspinaCore_Export.h"
 
-#include "Core/Analysis/Extensions/ExtensionProvider.h"
+#include <Core/Analysis/Extensions/ChannelExtension.h>
 
 namespace EspINA
 {
-  class EspinaCore_EXPORT ExtensionProviderFactory
+  class EspinaCore_EXPORT ChannelExtensionFactory
   {
   public:
-    virtual ~ExtensionProviderFactory() {}
+    virtual ~ChannelExtensionFactory() {}
 
-    virtual ExtensionProviderSPtr createExtensionProvider(const ExtensionProvider::Type provider) const = 0;
+    virtual ChannelExtensionSPtr createChannelExtension(const ChannelExtension::Type type) const = 0;
+
+    virtual ChannelExtensionTypeList providedExtensions() const = 0 ;
   };
 
-  using ExtensionProviderFactoryPtr = ExtensionProviderFactory *;
+  using ChannelExtensionFactoryPtr  = ChannelExtensionFactory *;
+  using ChannelExtensionFactorySPtr = std::shared_ptr<ChannelExtensionFactory>;
 
 }// namespace EspINA
 
-#endif // ESPINA_EXTENSION_PROVIDER_FACTORY_H
+#endif // ESPINA_CHANNEL_EXTENSION_FACTORY_H

@@ -53,7 +53,8 @@ int channel_adapter_set_opacity(int argc, char** argv )
 
 
   SchedulerSPtr sch{new Scheduler(1e6)};
-  ModelFactory factory(sch);
+  CoreFactorySPtr  coreFactory{new CoreFactory(sch)};
+  ModelFactory factory(coreFactory);
 
   FilterAdapterSPtr filter   = factory.createFilter<DummyFilter>(OutputSList(), DummyFilter::TYPE);
   ChannelAdapterSPtr channel = factory.createChannel(filter, 0);

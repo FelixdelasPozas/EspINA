@@ -22,8 +22,9 @@
 
 #include "EspinaCore_Export.h"
 
-#include "Core/Factory/ExtensionProviderFactory.h"
 #include "Core/Factory/FilterFactory.h"
+#include "Core/Factory/ChannelExtensionFactory.h"
+#include "Core/Factory/SegmentationExtensionFactory.h"
 
 #include <QStringList>
 #include <QMap>
@@ -41,9 +42,7 @@ namespace EspINA
     explicit CoreFactory(SchedulerSPtr scheduler = SchedulerSPtr());
     ~CoreFactory();
 
-    void registerFilter(FilterFactoryPtr factory) throw (Factory_Already_Registered_Exception);
-
-    SampleSPtr createSample(const QString& name = QString()) const;
+    void registerFilterFactory(FilterFactorySPtr factory) throw (Factory_Already_Registered_Exception);
 
     FilterSPtr createFilter(OutputSList inputs, const Filter::Type& type) const throw (Unknown_Type_Exception);
 
@@ -55,9 +54,19 @@ namespace EspINA
       return filter;
     }
 
+    SampleSPtr createSample(const QString& name = QString()) const;
+
     ChannelSPtr createChannel(FilterSPtr filter, Output::Id output) const;
 
+    void registerExtensionFactory(ChannelExtensionFactorySPtr factory) throw (Factory_Already_Registered_Exception);
+
+    ChannelExtensionSPtr createChannelExtension(ChannelExtension::Type type);
+
     SegmentationSPtr createSegmentation(FilterSPtr filter, Output::Id output) const;
+
+    void registerExtensionFactory(SegmentationExtensionFactorySPtr factory) throw (Factory_Already_Registered_Exception);
+
+    SegmentationExtensionSPtr createSegmentationExtension(SegmentationExtension::Type type);
 
     void setPresistentStorage(TemporalStorageSPtr storage)
     { m_defaultStorage = storage; }
@@ -66,7 +75,14 @@ namespace EspINA
     SchedulerSPtr m_scheduler;
     TemporalStorageSPtr m_defaultStorage;
 
-    QMap<Filter::Type, FilterFactoryPtr> m_filterFactories;
+    QMap<Filter::Type,
+         FilterFactorySPtr>                m_filterFactories;
+
+    QMap<ChannelExtension::Type,
+         ChannelExtensionFactorySPtr>      m_channelExtensionFactories;
+
+    QMap<SegmentationExtension::Type,
+         SegmentationExtensionFactorySPtr> m_segmentationExtensionFactories;
   };
 
 }// namespace EspINA

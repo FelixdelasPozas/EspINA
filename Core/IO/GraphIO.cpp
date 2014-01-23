@@ -24,7 +24,6 @@
 #include "Core/Analysis/Channel.h"
 #include "Core/Analysis/Filter.h"
 #include "Core/Analysis/Segmentation.h"
-#include "Core/Analysis/Extensions/ExtensionProvider.h"
 
 using namespace EspINA::IO;
 using namespace EspINA::IO::Graph;
@@ -35,7 +34,6 @@ namespace EspINA {
   const std::string SEGMENTATION_TYPE       = "ellipse";
   const std::string FILTER_TYPE             = "box";
   const std::string SAMPLE_TYPE             = "invtriangle";
-  const std::string EXTENSION_PROVIDER_TYPE = "diamond";
 
 //------------------------------------------------------------------------
   std::string type(const PersistentSPtr item)
@@ -52,9 +50,6 @@ namespace EspINA {
     } else if (dynamic_cast<SegmentationPtr>(item.get()))
     {
       return SEGMENTATION_TYPE;
-    } else if (dynamic_cast<ExtensionProviderPtr>(item.get()))
-    {
-      return EXTENSION_PROVIDER_TYPE;
     } else {
       throw Unknown_Type_Found();
     }
@@ -86,9 +81,6 @@ namespace EspINA {
     } else if (shape == SEGMENTATION_TYPE)
     {
       return VertexType::SEGMENTATION;
-    } else if (shape == EXTENSION_PROVIDER_TYPE)
-    {
-      return VertexType::EXTENSION_PROVIDER;
     } else {
       throw Unknown_Type_Found();
     }

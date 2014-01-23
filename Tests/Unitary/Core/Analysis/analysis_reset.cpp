@@ -48,13 +48,10 @@ int analysis_reset( int argc, char** argv )
   ChannelSPtr channel(new Channel(filter, 0));
  
   SegmentationSPtr segmentation{new Segmentation(filter, 0)};
-  
-  ExtensionProviderSPtr provider{new Testing::DummyProvider()};
 
   analysis.add(sample);
   analysis.add(channel);
   analysis.add(segmentation);
-  analysis.add(provider);
   
   analysis.reset();
 
@@ -75,11 +72,6 @@ int analysis_reset( int argc, char** argv )
 
   if (!analysis.segmentations().isEmpty()) {
     cerr << "Unexpected number of segmentations in analysis" << endl;
-    error = true;
-  }
-
-  if (!analysis.extensionProviders().isEmpty()) {
-    cerr << "Unexpected number of extension providers in analysis" << endl;
     error = true;
   }
 

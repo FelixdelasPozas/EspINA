@@ -25,9 +25,10 @@
 #include "ClassificationXML.h"
 #include "ReadOnlyFilter.h"
 #include "FetchRawData.h"
+#include "ReadOnlyChannelExtension.h"
+#include "ReadOnlySegmentationExtension.h"
 
 #include <Core/Analysis/Channel.h>
-#include <Core/Analysis/Extensions/ExtensionProvider.h>
 #include <Core/Analysis/Filter.h>
 #include <Core/Analysis/Graph/DirectedGraph.h>
 #include <Core/Analysis/Persistent.h>
@@ -320,6 +321,8 @@ ChannelSPtr SegFile_V5::createChannel(DirectedGraph::Vertex   roVertex,
   channel->restoreState(roVertex->state());
   channel->setStorage(storage);
 
+  loadExtensions(channel, factory);
+
   analysis->add(channel);
 
   return channel;
@@ -367,18 +370,6 @@ SegmentationSPtr SegFile_V5::createSegmentation(DirectedGraph::Vertex   roVertex
 }
 
 //-----------------------------------------------------------------------------
-void SegFile_V5::createExtensionProvider(DirectedGraph::Vertex roVertex,
-                                         AnalysisSPtr          analysis,
-                                         TemporalStorageSPtr   storage,
-                                         CoreFactorySPtr       factory,
-                                         ErrorHandlerSPtr      handler)
-{
-//   ExtensionProviderSPtr provider = factory->createExtensionProvider(roVertex->name());
-// 
-//   analysis->add(provider);
-}
-
-//-----------------------------------------------------------------------------
 void SegFile_V5::loadContent(AnalysisSPtr        analysis,
                              QuaZip&             zip,
                              TemporalStorageSPtr storage,
@@ -421,9 +412,6 @@ void SegFile_V5::loadContent(AnalysisSPtr        analysis,
         vertex = createSegmentation(roVertex, analysis, content, loadedVertices, storage, factory, handler);
         break;
       }
-      case VertexType::EXTENSION_PROVIDER:
-        createExtensionProvider(roVertex, analysis, storage, factory, handler);
-        break;
       default:
         throw Graph::Unknown_Type_Found();
         break;
@@ -459,4 +447,62 @@ void SegFile_V5::loadRelations(AnalysisSPtr     analysis,
   }
 }
 
+//-----------------------------------------------------------------------------
+void SegFile_V5::loadExtensions(ChannelSPtr channel, CoreFactorySPtr factory)
+{
+  QString xmlFile = QString("Extensions/%1.xml").arg(channel->uuid());
+  QByteArray extenions = channel->storage()->snapshot(xmlFile);
 
+  QXmlStreamReader xml(extenions);
+
+  qDebug() << "Looking for" << channel->name() << "extensions:";
+  while (!xml.atEnd())
+  {
+    xml.readNextStartElement();
+    if (xml.isStartElement())
+    {
+      QString type = xml.name().toString();
+      qDebug() << " - " << type << " found";
+      ChannelExtensionSPtr extension;
+      try
+      {
+        extension = factory->createChannelExtension(type);
+      } catch (...)
+      {
+        extension = ChannelExtensionSPtr{new ReadOnlyChannelExtension(type)};
+      }
+      Q_ASSERT(extension);
+      channel->addExtension(extension);
+    }
+  }
+}
+
+//-----------------------------------------------------------------------------
+void SegFile_V5::loadExtensions(SegmentationSPtr segmentation, CoreFactorySPtr factory)
+{
+  QString xmlFile = QString("Extensions/%1.xml").arg(segmentation->uuid());
+  QByteArray extenions = segmentation->storage()->snapshot(xmlFile);
+
+  QXmlStreamReader xml(extenions);
+
+  qDebug() << "Looking for" << segmentation->name() << "extensions:";
+  while (!xml.atEnd())
+  {
+    xml.readNextStartElement();
+    if (xml.isStartElement())
+    {
+      QString type = xml.name().toString();
+      qDebug() << " - " << type << " found";
+      SegmentationExtensionSPtr extension;
+      try
+      {
+        extension = factory->createSegmentationExtension(type);
+      } catch (...)
+      {
+        extension = SegmentationExtensionSPtr{new ReadOnlySegmentationExtension(type)};
+      }
+      Q_ASSERT(extension);
+      segmentation->addExtension(extension);
+    }
+  }
+}

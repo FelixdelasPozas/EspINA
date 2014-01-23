@@ -54,10 +54,6 @@ namespace EspINA
   using OutputSPtr  = std::shared_ptr<Output>;
   using OutputSList = QList<OutputSPtr>;
 
-  class ExtensionProvider;
-  using ExtensionProviderSPtr  = std::shared_ptr<ExtensionProvider>;
-  using ExtensionProviderSList = QList<ExtensionProviderSPtr>;
-
   class CoreFactory;
   using CoreFactorySPtr = std::shared_ptr<CoreFactory>;
 

@@ -214,6 +214,12 @@ using VTKWriter = vtkSmartPointer<vtkGenericDataObjectWriter>;
 using ComputedSegmentation = std::pair<unsigned int, unsigned long int>;
 
 //-----------------------------------------------------------------------------
+Snapshot AdaptiveEdges::snapshot() const
+{
+  return Snapshot();//TODO
+}
+
+//-----------------------------------------------------------------------------
 void AdaptiveEdges::computeDistanceToEdge(SegmentationPtr segmentation)
 {
   SegmentationExtensionSPtr extension = segmentation->extension(EdgeDistance::TYPE);
@@ -397,7 +403,7 @@ AdaptiveEdgesSPtr EspINA::adaptiveEdges(ChannelPtr channel)
 }
 
 //-----------------------------------------------------------------------------
-AdaptiveEdgesSPtr createAdaptiveEdgesIfNotAvailable(ChannelPtr channel)
+AdaptiveEdgesSPtr EspINA::createAdaptiveEdgesIfNotAvailable(ChannelPtr channel)
 {
   auto edgesExtension = adaptiveEdges(channel);
 

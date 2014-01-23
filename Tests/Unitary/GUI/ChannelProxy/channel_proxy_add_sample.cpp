@@ -44,7 +44,8 @@ int channel_proxy_add_sample(int argc, char** argv )
   ModelTest        modelTester(&proxy);
 
   SchedulerSPtr sch;
-  ModelFactory factory(sch);
+  CoreFactorySPtr  coreFactory{new CoreFactory(sch)};
+  ModelFactory factory(coreFactory);
 
   QString name = "Sample";
 

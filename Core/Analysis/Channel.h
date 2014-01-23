@@ -152,6 +152,16 @@ namespace EspINA
     static const int AUTOMATIC_OPACITY = -1;
 
   private:
+    QString extensionsPath() const
+    { return "Extensions/"; }
+
+    QString extensionPath(const ChannelExtensionSPtr extension) const
+    { return extensionsPath() + extension->type() + "/"; }
+
+    QString extensionDataPath(const ChannelExtensionSPtr extension, QString path) const
+    { return extensionPath(extension) + QString("%1_%2").arg(uuid()).arg(path); }
+
+  private:
     double m_brightness;
     double m_contrast;
     double m_hue;

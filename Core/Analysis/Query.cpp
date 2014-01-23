@@ -158,3 +158,15 @@ SegmentationSList EspINA::Query::segmentations(SampleSPtr sample)
 
   return segmentations;
 }
+
+//------------------------------------------------------------------------
+SegmentationSList EspINA::Query::segmentationsOnChannelSample(ChannelSPtr channel)
+{
+  return segmentationsOnChannelSample(channel.get());
+}
+
+//------------------------------------------------------------------------
+SegmentationSList EspINA::Query::segmentationsOnChannelSample(ChannelPtr channel)
+{
+  return segmentations(sample(channel));
+}

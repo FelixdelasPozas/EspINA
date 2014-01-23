@@ -35,8 +35,18 @@ namespace EspINA {
 
   class SeedGrowSegmentationTool
   : public Tool
-  , public FilterFactory
   {
+    class SGSFilterFactory
+    : public FilterFactory
+    {
+      virtual FilterTypeList providedFilters() const;
+
+      virtual FilterSPtr createFilter(OutputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception);
+      
+    private:
+      FetchBehaviourSPtr m_fetchBehaviour;
+    };
+
     Q_OBJECT
   public:
     explicit SeedGrowSegmentationTool(ModelAdapterSPtr model,
@@ -44,10 +54,6 @@ namespace EspINA {
                                       ViewManagerSPtr  viewManager,
                                       QUndoStack      *undoStack);
     virtual ~SeedGrowSegmentationTool();
-
-    virtual FilterTypeList providedFilters() const;
-
-    virtual FilterSPtr createFilter(OutputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception);
 
     virtual void setEnabled(bool value);
 
@@ -85,8 +91,8 @@ namespace EspINA {
     QMap<QAction *, SelectorSPtr> m_voxelSelectors;
     SelectorSPtr m_currentSelector;
 
+    FilterFactorySPtr  m_filterFactory;
     QMap<FilterAdapterPtr, FilterAdapterSPtr> m_executingTasks;
-    FetchBehaviourSPtr m_fetchBehaviour;
   };
 
   using SeedGrowSegmentationToolSPtr = std::shared_ptr<SeedGrowSegmentationTool>;

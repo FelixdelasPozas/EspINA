@@ -42,6 +42,33 @@ const Filter::Type FREEFORM_FILTER_V4 = "EditorToolBar::FreeFormSource";
 
 namespace EspINA
 {
+  //-----------------------------------------------------------------------------
+  FilterTypeList ManualEditionTool::ManualFilterFactory::providedFilters() const
+  {
+    FilterTypeList filters;
+
+    filters << FREEFORM_FILTER << FREEFORM_FILTER_V4;
+
+    return filters;
+  }
+
+  //-----------------------------------------------------------------------------
+  FilterSPtr ManualEditionTool::ManualFilterFactory::createFilter(OutputSList         inputs,
+                                                                  const Filter::Type& filter,
+                                                                  SchedulerSPtr       scheduler) const throw(Unknown_Filter_Exception)
+  {
+    if (FREEFORM_FILTER != filter && FREEFORM_FILTER_V4 != filter) throw Unknown_Filter_Exception();
+
+    auto ffsFilter = FilterSPtr{new FreeFormSource(inputs, FREEFORM_FILTER, scheduler)};
+    if (!m_fetchBehaviour)
+    {
+      m_fetchBehaviour = FetchBehaviourSPtr{new MarchingCubesFromFetchedVolumetricData()};
+    }
+    ffsFilter->setFetchBehaviour(m_fetchBehaviour);
+
+    return ffsFilter;
+  }
+
   //------------------------------------------------------------------------
   ManualEditionTool::ManualEditionTool(ModelAdapterSPtr model,
                                        ModelFactorySPtr factory,
@@ -51,13 +78,14 @@ namespace EspINA
   , m_factory(factory)
   , m_viewManager(viewManager)
   , m_undoStack(undoStack)
+  , m_filterFactory(new ManualFilterFactory())
   , m_drawToolSelector(new ActionSelector())
   , m_categorySelector(new CategorySelector(model))
   , m_radiusWidget(new SliderAction())
   , m_opacityWidget(new SliderAction())
   , m_enabled(false)
   {
-    m_factory->registerFilterFactory(this);
+    m_factory->registerFilterFactory(m_filterFactory);
 
     connect(m_radiusWidget, SIGNAL(valueChanged(int)),
             this, SLOT(changeRadius(int)));
@@ -200,33 +228,6 @@ namespace EspINA
       if (value && m_viewManager->activeCategory() && m_viewManager->activeChannel())
         m_actualSelector->initBrush();
     }
-  }
-
-  //-----------------------------------------------------------------------------
-  FilterTypeList ManualEditionTool::providedFilters() const
-  {
-    FilterTypeList filters;
-
-    filters << FREEFORM_FILTER << FREEFORM_FILTER_V4;
-
-    return filters;
-  }
-
-  //-----------------------------------------------------------------------------
-  FilterSPtr ManualEditionTool::createFilter(OutputSList         inputs,
-                                             const Filter::Type& filter,
-                                             SchedulerSPtr       scheduler) const throw(Unknown_Filter_Exception)
-  {
-    if (FREEFORM_FILTER != filter && FREEFORM_FILTER_V4 != filter) throw Unknown_Filter_Exception();
-
-    auto ffsFilter = FilterSPtr{new FreeFormSource(inputs, FREEFORM_FILTER, scheduler)};
-    if (!m_fetchBehaviour)
-    {
-      m_fetchBehaviour = FetchBehaviourSPtr{new MarchingCubesFromFetchedVolumetricData()};
-    }
-    ffsFilter->setFetchBehaviour(m_fetchBehaviour);
-
-    return ffsFilter;
   }
 
   //------------------------------------------------------------------------

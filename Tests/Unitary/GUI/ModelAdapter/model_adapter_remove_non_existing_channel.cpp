@@ -52,7 +52,8 @@ int model_adapter_remove_non_existing_channel( int argc, char** argv )
   ModelTest    modelTester(&modelAdapter);
 
   SchedulerSPtr sch;
-  ModelFactorySPtr factory{new ModelFactory(sch)};
+  CoreFactorySPtr  coreFactory{new CoreFactory(sch)};
+  ModelFactorySPtr factory{new ModelFactory(coreFactory)};
 
   modelAdapter.setAnalysis(analysis, factory);
 
@@ -86,11 +87,6 @@ int model_adapter_remove_non_existing_channel( int argc, char** argv )
 
   if (!analysis->segmentations().isEmpty()) {
     cerr << "Unexpected number of segmentations in analysis" << endl;
-    error = true;
-  }
-
-  if (!analysis->extensionProviders().isEmpty()) {
-    cerr << "Unexpected number of extension providers in analysis" << endl;
     error = true;
   }
 

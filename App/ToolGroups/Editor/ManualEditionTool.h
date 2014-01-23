@@ -42,8 +42,16 @@ namespace EspINA
   
   class ManualEditionTool
   : public Tool
-  , public FilterFactory
   {
+    class ManualFilterFactory
+    : public FilterFactory
+    {
+      virtual FilterSPtr createFilter(OutputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception);
+
+      virtual FilterTypeList providedFilters() const;
+    private:
+      FetchBehaviourSPtr m_fetchBehaviour;
+    };
     Q_OBJECT
     public:
       ManualEditionTool(ModelAdapterSPtr model,
@@ -57,10 +65,6 @@ namespace EspINA
       virtual bool enabled() const;
 
       virtual QList<QAction *> actions() const;
-
-      virtual FilterTypeList providedFilters() const;
-
-      virtual FilterSPtr createFilter(OutputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception);
 
       virtual void abortOperation();
     signals:
@@ -85,7 +89,7 @@ namespace EspINA
       ViewManagerSPtr  m_viewManager;
       QUndoStack      *m_undoStack;
 
-      FetchBehaviourSPtr m_fetchBehaviour;
+      FilterFactorySPtr  m_filterFactory;
 
       CircularBrushSelectorSPtr  m_circularBrushSelector;
       SphericalBrushSelectorSPtr m_sphericalBrushSelector;

@@ -21,7 +21,6 @@
 #define TESTING_DUMMYFILTER_H
 
 #include <Core/Analysis/Filter.h>
-#include <Core/Analysis/Extensions/ExtensionProvider.h>
 #include <Core/MultiTasking/Scheduler.h>
 
 namespace EspINA {
@@ -64,19 +63,6 @@ namespace EspINA {
       virtual void execute(Output::Id id){}
       virtual bool ignoreStorageContent() const {return false;}
       virtual bool invalidateEditedRegions() {return false;}
-    };
-
-    class DummyProvider
-    : public ExtensionProvider
-    {
-    public:
-      virtual void restoreState(const State& state) {}
-    virtual State state() const {}
-      virtual Snapshot snapshot() const {return Snapshot();}
-      virtual void unload() {}
-      virtual Type type() const {}
-      virtual ChannelExtensionSPtr createChannelExtension(const ChannelExtension::Type& type) {}
-      virtual SegmentationExtensionSPtr createSegmentationExtension(const SegmentationExtension::Type& type) {}
     };
   }
 }

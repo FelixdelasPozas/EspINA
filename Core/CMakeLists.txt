@@ -35,6 +35,7 @@ set (CORE_SOURCES
   IO/ClassificationXML.cpp
   IO/FetchRawData.cpp
   IO/GraphIO.cpp
+  IO/ReadOnlyChannelExtension.cpp
   IO/SegFile.cpp
   IO/SegFileInterface.cpp
   IO/SegFile_V4.cpp

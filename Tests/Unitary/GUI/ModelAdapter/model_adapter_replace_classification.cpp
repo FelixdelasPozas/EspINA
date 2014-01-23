@@ -45,7 +45,8 @@ int model_adapter_replace_classification( int argc, char** argv )
   ModelTest    modelTester(&modelAdapter);
 
   SchedulerSPtr sch;
-  ModelFactorySPtr factory{new ModelFactory(sch)};
+  CoreFactorySPtr  coreFactory{new CoreFactory(sch)};
+  ModelFactorySPtr factory{new ModelFactory(coreFactory)};
 
   modelAdapter.setAnalysis(analysis, factory);
 

@@ -53,11 +53,11 @@ namespace EspINA
   class EspinaGUI_EXPORT ModelFactory
   {
   public:
-    explicit ModelFactory(SchedulerSPtr scheduler);
+    explicit ModelFactory(CoreFactorySPtr factory = CoreFactorySPtr());
     ~ModelFactory();
 
     void registerAnalysisReader(AnalysisReaderPtr reader);
-    void registerFilterFactory (FilterFactoryPtr  factory);
+    void registerFilterFactory (FilterFactorySPtr  factory);
     void registerChannelRepresentationFactory(RepresentationFactorySPtr factory);
     void registerSegmentationRepresentationFactory(RepresentationFactorySPtr factory);
 
@@ -96,7 +96,6 @@ namespace EspINA
     { return m_segmentationRepresentationFactory; }
 
   private:
-    SchedulerSPtr   m_scheduler;
     CoreFactorySPtr m_factory;
     RepresentationFactoryGroupSPtr m_channelRepresentationFactory;
     RepresentationFactoryGroupSPtr m_segmentationRepresentationFactory;

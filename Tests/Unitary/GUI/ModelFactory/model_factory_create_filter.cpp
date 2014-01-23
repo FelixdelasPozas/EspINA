@@ -42,7 +42,8 @@ int model_factory_create_filter(int argc, char** argv)
   bool error = false;
 
   SchedulerSPtr sch;
-  ModelFactory factory(sch);
+  CoreFactorySPtr  coreFactory{new CoreFactory(sch)};
+  ModelFactory factory(coreFactory);
 
   Filter::Type type{"Dummy"};
   auto filter = factory.createFilter<DummyFilter>(OutputSList(), type);

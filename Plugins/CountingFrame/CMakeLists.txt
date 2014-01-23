@@ -84,6 +84,7 @@ set (PLUGIN_LIBRARIES
   EspinaCore
   EspinaGUI
   EspinaSupport
+  EspinaExtensions
   )
 
 if(DEFINED MINGW OR DEFINED MSVC)

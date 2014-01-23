@@ -54,7 +54,8 @@ int channel_proxy_remove_non_existing_segmentation( int argc, char** argv )
   ModelTest        modelTester(&proxy);
 
   SchedulerSPtr sch;
-  ModelFactorySPtr factory{new ModelFactory(sch)};
+  CoreFactorySPtr  coreFactory{new CoreFactory(sch)};
+  ModelFactorySPtr factory{new ModelFactory(coreFactory)};
 
   modelAdapter->setAnalysis(analysis, factory);
 
@@ -88,11 +89,6 @@ int channel_proxy_remove_non_existing_segmentation( int argc, char** argv )
 
   if (!analysis->segmentations().isEmpty()) {
     cerr << "Unexpected number of segmentations in analysis" << endl;
-    error = true;
-  }
-
-  if (!analysis->extensionProviders().isEmpty()) {
-    cerr << "Unexpected number of extension providers in analysis" << endl;
     error = true;
   }
 

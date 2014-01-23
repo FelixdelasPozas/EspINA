@@ -37,7 +37,8 @@ int sample_adapter_set_bounds( int argc, char** argv )
   bool error = false;
 
   SchedulerSPtr sch;
-  ModelFactory factory(sch);
+  CoreFactorySPtr  coreFactory{new CoreFactory(sch)};
+  ModelFactory factory(coreFactory);
 
   SampleAdapterSPtr sample = factory.createSample();
   

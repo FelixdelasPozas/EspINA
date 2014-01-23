@@ -52,7 +52,6 @@ namespace EspINA
     void add(ChannelSList          channels);
     void add(SegmentationSPtr      segmentation);
     void add(SegmentationSList     segmentations);
-    void add(ExtensionProviderSPtr provider);
 
     void remove(SampleSPtr            sample);
     void remove(SampleSList           samples);
@@ -60,7 +59,6 @@ namespace EspINA
     void remove(ChannelSList          channels);
     void remove(SegmentationSPtr      segmentation);
     void remove(SegmentationSList     segmentations);
-    void remove(ExtensionProviderSPtr provider);
 
     SampleSList samples() const
     { return m_samples; }
@@ -84,9 +82,6 @@ namespace EspINA
 //                                      const QString &relName = "");
 //     virtual RelationList relations(ModelItemPtr   item,
 //                                    const QString &relName = "");
-    ExtensionProviderSList extensionProviders() const
-    { return m_providers; }
-
     const DirectedGraphSPtr relationships()
     { return m_relations; }
 
@@ -151,7 +146,6 @@ namespace EspINA
     FilterSList            m_filters; // NOTE: Could be removed
     SampleSList            m_samples;
     SegmentationSList      m_segmentations;
-    ExtensionProviderSList m_providers;
   };
 
   using AnalysisPtr  = Analysis *;

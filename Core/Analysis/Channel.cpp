@@ -172,7 +172,37 @@ bool Channel::hasExtension(const ChannelExtension::Type& type) const
 //------------------------------------------------------------------------
 Snapshot Channel::snapshot() const
 {
-  return Snapshot();
+  Snapshot snapshot;
+
+  if (!m_extensions.isEmpty())
+  {
+    QByteArray xml;
+
+    QXmlStreamWriter stream(&xml);
+
+    stream.setAutoFormatting(true);
+    stream.writeStartDocument();
+
+    for(auto extension : m_extensions)
+    {
+      stream.writeStartElement(extension->type());
+      stream.writeAttribute("InvalidateOnChange", QString("%1").arg(extension->invalidateOnChange()));
+      stream.writeCharacters(extension->state());
+      stream.writeEndElement();
+
+      for(auto data: extension->snapshot())
+      {
+        QString file = extensionDataPath(extension, data.first);
+        snapshot << SnapshotData(file, data.second);
+      }
+    }
+    stream.writeEndDocument();
+
+    QString file = extensionsPath() + QString("%1.xml").arg(uuid());
+    snapshot << SnapshotData(file, xml);
+  }
+
+  return snapshot;
 }
 
 //------------------------------------------------------------------------

@@ -19,10 +19,10 @@
 
 #include "CountingFrameExtension.h"
 
-#include "StereologicalInclusion.h"
 #include "CountingFrames/CountingFrame.h"
 #include "CountingFrames/RectangularCountingFrame.h"
 #include <Core/Analysis/Segmentation.h>
+#include <Core/Analysis/Query.h>
 
 #include <QDebug>
 #include <QApplication>
@@ -39,10 +39,7 @@ const std::string FILE_VERSION = CountingFrameExtension::TYPE.toStdString() + " 
 const char SEP = ';';
 
 //-----------------------------------------------------------------------------
-CountingFrameExtension::CountingFrameExtension()//CountingFramePanel *plugin,
-                                               //ViewManager        *viewManager)
-//: m_plugin(plugin)
-//, m_viewManager(viewManager)
+CountingFrameExtension::CountingFrameExtension()
 {
 }
 
@@ -50,8 +47,6 @@ CountingFrameExtension::CountingFrameExtension()//CountingFramePanel *plugin,
 CountingFrameExtension::~CountingFrameExtension()
 {
   //qDebug() << "Deleting Counting Frame Channel Extension";
-// TODO:   foreach(CountingFrame *cf, m_countingFrames)
-//     m_plugin->deleteCountingFrame(cf);
 }
 
 //-----------------------------------------------------------------------------
@@ -191,6 +186,36 @@ CountingFrameExtension::~CountingFrameExtension()
 //
 //   return true;
 // }
+//-----------------------------------------------------------------------------
+State CountingFrameExtension::state() const
+{
+  State state;
+
+  for(auto cf : m_countingFrames)
+  {
+    QString bl = "";
+    Nm inclusion[3], exclusion[3];
+    cf->margins(inclusion, exclusion);
+    // Type, Left, Top, Front, Right, Bottom, Back
+    state += QString("%1,%2,%3,%4,%5,%6,%7%8").arg(cf->type())
+                                            .arg(inclusion[0])
+                                            .arg(inclusion[1])
+                                            .arg(inclusion[2])
+                                            .arg(inclusion[0])
+                                            .arg(inclusion[1])
+                                            .arg(inclusion[2])
+                                            .arg(bl);
+    bl = '\n';
+  }
+
+  return state;
+}
+
+//-----------------------------------------------------------------------------
+Snapshot CountingFrameExtension::snapshot() const
+{
+  return Snapshot();
+}
 
 //-----------------------------------------------------------------------------
 void CountingFrameExtension::addCountingFrame(CountingFrame* countingFrame)
@@ -198,12 +223,12 @@ void CountingFrameExtension::addCountingFrame(CountingFrame* countingFrame)
   Q_ASSERT(!m_countingFrames.contains(countingFrame));
   m_countingFrames << countingFrame;
 
-//TODO   SampleSPtr sample = m_channel->sample();
-//   foreach(SegmentationPtr segmentation, sample->segmentations())
-//   {
-//     StereologicalInclusion *inclusionExtension = stereologicalInclusion(segmentation);
-//     inclusionExtension->setCountingFrames(m_countingFrames);
-//   }
+  for (auto segmentation : Query::segmentationsOnChannelSample(m_channel))
+  {
+    auto extension = stereologicalInclusionExtension(segmentation);
+    extension->addCountingFrame(countingFrame);
+  }
+
   connect(countingFrame, SIGNAL(modified(CountingFrame*)),
           this, SLOT(onCountingFrameUpdated(CountingFrame*)));
 }
@@ -214,12 +239,11 @@ void CountingFrameExtension::removeCountingFrame(CountingFrame* countingFrame)
   Q_ASSERT(m_countingFrames.contains(countingFrame));
   m_countingFrames.removeOne(countingFrame);
 
-// TODO   SampleSPtr sample = m_channel->sample();
-//   foreach(SegmentationPtr segmentation, sample->segmentations())
-//   {
-//     StereologicalInclusion *inclusionExtension = stereologicalInclusion(segmentation);
-//     inclusionExtension->setCountingFrames(m_countingFrames);
-//   }
+  for (auto segmentation : Query::segmentationsOnChannelSample(m_channel))
+  {
+    auto extension = stereologicalInclusionExtension(segmentation);
+    extension->removeCountingFrame(countingFrame);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -231,38 +255,30 @@ void CountingFrameExtension::onChannelSet(ChannelPtr channel)
 //-----------------------------------------------------------------------------
 void CountingFrameExtension::onCountingFrameUpdated(CountingFrame* countingFrame)
 {
-  foreach(SegmentationPtr segmentation, segmentations())
+  for(auto segmentation : Query::segmentationsOnChannelSample(m_channel))
   {
-    StereologicalInclusion *inclusionExtension = stereologicalInclusion(segmentation);
-    inclusionExtension->evaluateCountingFrame(countingFrame);
+    auto extension = stereologicalInclusionExtension(segmentation);
+    extension->evaluateCountingFrame(countingFrame);
   }
 }
 
 //-----------------------------------------------------------------------------
-SegmentationList CountingFrameExtension::segmentations()
+StereologicalInclusionSPtr CountingFrameExtension::stereologicalInclusionExtension(SegmentationSPtr segmentation)
 {
-  SegmentationList segmentations;
-
-  return segmentations;
-}
-
-//-----------------------------------------------------------------------------
-StereologicalInclusion *CountingFrameExtension::stereologicalInclusion(SegmentationPtr segmentation)
-{
-  StereologicalInclusion *inclusionExtension   = nullptr;
-  auto extension = segmentation->extension(StereologicalInclusion::TYPE).get();
-  if (extension)
+  StereologicalInclusionSPtr stereologicalExtension;
+  if (segmentation->hasExtension(StereologicalInclusion::TYPE))
   {
-    inclusionExtension = dynamic_cast<StereologicalInclusion *>(extension);
+    auto extension = segmentation->extension(StereologicalInclusion::TYPE);
+    stereologicalExtension = stereologicalInclusion(extension);
   }
   else
   {
-    inclusionExtension = new StereologicalInclusion();
-    segmentation->addExtension(SegmentationExtensionSPtr(inclusionExtension));
+    stereologicalExtension = StereologicalInclusionSPtr(new StereologicalInclusion());
+    segmentation->addExtension(stereologicalExtension);
   }
-  Q_ASSERT(inclusionExtension);
+  Q_ASSERT(stereologicalExtension);
 
-  return inclusionExtension;
+  return stereologicalExtension;
 }
 
 // //-----------------------------------------------------------------------------

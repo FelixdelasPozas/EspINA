@@ -22,7 +22,6 @@
 #include "Core/Analysis/Filter.h"
 #include "Core/Analysis/Channel.h"
 #include "Core/Analysis/Segmentation.h"
-#include "Core/Analysis/Extensions/ExtensionProvider.h"
 #include <Core/Utils/AnalysisUtils.h>
 
 using namespace EspINA;
@@ -42,12 +41,11 @@ void Analysis::reset()
   m_classification.reset();
   m_content   = DirectedGraphSPtr{new DirectedGraph()};
   m_relations = DirectedGraphSPtr{new DirectedGraph()};
-  
+
   m_samples.clear();
   m_channels.clear();
   m_segmentations.clear();
   m_filters.clear();
-  m_providers.clear();
 }
 
 //------------------------------------------------------------------------
@@ -141,15 +139,6 @@ void Analysis::add(SegmentationSList segmentations)
 }
 
 //------------------------------------------------------------------------
-void Analysis::add(ExtensionProviderSPtr provider)
-{
-  if (m_providers.contains(provider)) throw (Existing_Item_Exception());
-
-  m_providers << provider;
-  m_content->add(provider);
-}
-
-//------------------------------------------------------------------------
 void Analysis::remove(SampleSPtr sample)
 {
   if (!m_samples.contains(sample)) throw (Item_Not_Found_Exception());
@@ -215,16 +204,6 @@ void Analysis::remove(SegmentationSList segmentations)
   {
     remove(segmentation);
   }
-}
-
-//------------------------------------------------------------------------
-void Analysis::remove(ExtensionProviderSPtr provider)
-{
-  if (!m_providers.contains(provider)) throw (Item_Not_Found_Exception());
-
-  m_providers.removeOne(provider);
-
-  m_content->remove(provider);
 }
 
 //------------------------------------------------------------------------

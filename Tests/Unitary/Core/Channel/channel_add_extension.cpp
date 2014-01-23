@@ -44,6 +44,9 @@ int channel_add_extension(int argc, char** argv )
     explicit DummyExtension() 
     : Initialized{false}, ValidChannel{false} {}
 
+    virtual bool invalidateOnChange() const {return false;}
+    virtual Snapshot snapshot() const {return Snapshot();}
+    virtual State state() const {return State();}
     virtual void initialize() { Initialized = true; }
     virtual void invalidate() {}
     virtual Type type() const { return "Dummy"; }

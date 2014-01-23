@@ -28,12 +28,15 @@
 using namespace EspINA;
 
 //------------------------------------------------------------------------
-ModelFactory::ModelFactory(SchedulerSPtr scheduler)
-: m_scheduler(scheduler)
-, m_factory(new CoreFactory(m_scheduler))
+ModelFactory::ModelFactory(CoreFactorySPtr factory)
+: m_factory(factory)
 , m_channelRepresentationFactory(new RepresentationFactoryGroup())
 , m_segmentationRepresentationFactory(new RepresentationFactoryGroup())
 {
+  if (!m_factory)
+  {
+    m_factory = CoreFactorySPtr{new CoreFactory()};
+  }
 
 }
 
@@ -44,9 +47,9 @@ ModelFactory::~ModelFactory()
 }
 
 //------------------------------------------------------------------------
-void ModelFactory::registerFilterFactory(FilterFactoryPtr factory)
+void ModelFactory::registerFilterFactory(FilterFactorySPtr factory)
 {
-  m_factory->registerFilter(factory);
+  m_factory->registerFilterFactory(factory);
 }
 
 //------------------------------------------------------------------------

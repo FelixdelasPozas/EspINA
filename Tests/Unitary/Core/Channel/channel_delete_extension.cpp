@@ -45,6 +45,9 @@ int channel_delete_extension(int argc, char** argv )
     explicit DummyExtension() 
     : Initialized{false}, ValidChannel{false}, Invalidated{false} {}
 
+    virtual bool invalidateOnChange() const {return false;}
+    virtual Snapshot snapshot() const {return Snapshot();}
+    virtual State state() const {return State();}
     virtual void initialize() { Initialized = true; }
     virtual void invalidate() { Invalidated = true; }
     virtual Type type() const { return "Dummy"; }

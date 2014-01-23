@@ -47,8 +47,6 @@ CountingFrameColorEngine::CountingFrameColorEngine()
 //-----------------------------------------------------------------------------
 QColor CountingFrameColorEngine::color(SegmentationAdapterPtr segmentation)
 {
-// TODO  if (!segmentation->channel())
-//     return QColor(0, 0, 0, 255);
   int r = 0;
   int g = 0;
   int b = 0;

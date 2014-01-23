@@ -43,7 +43,7 @@ CoreFactory::~CoreFactory()
 }
 
 //-----------------------------------------------------------------------------
-void CoreFactory::registerFilter(FilterFactoryPtr factory)
+void CoreFactory::registerFilterFactory(FilterFactorySPtr factory)
 throw (Factory_Already_Registered_Exception)
 {
   for(auto filter : factory->providedFilters())
@@ -65,15 +65,18 @@ SampleSPtr CoreFactory::createSample(const QString& name) const
 FilterSPtr CoreFactory::createFilter(OutputSList inputs, const Filter::Type& type) const
 throw (Unknown_Type_Exception)
 {
+  FilterSPtr filter;
+
   if (m_filterFactories.contains(type))
   {
-    auto filter = m_filterFactories[type]->createFilter(inputs, type, m_scheduler);
+    filter = m_filterFactories[type]->createFilter(inputs, type, m_scheduler);
     filter->setStorage(m_defaultStorage);
-    return filter;
   } else
   {
     throw Unknown_Type_Exception();
   }
+
+  return filter;
 }
 
 
@@ -88,6 +91,34 @@ EspINA::ChannelSPtr CoreFactory::createChannel(FilterSPtr filter, Output::Id out
 }
 
 //-----------------------------------------------------------------------------
+void CoreFactory::registerExtensionFactory(ChannelExtensionFactorySPtr factory)
+throw (Factory_Already_Registered_Exception)
+{
+  for(auto extension : factory->providedExtensions())
+  {
+    if (m_channelExtensionFactories.contains(extension)) throw Factory_Already_Registered_Exception();
+
+    m_channelExtensionFactories[extension] = factory;
+  }
+}
+
+//-----------------------------------------------------------------------------
+EspINA::ChannelExtensionSPtr CoreFactory::createChannelExtension(ChannelExtension::Type type)
+{
+  ChannelExtensionSPtr extension;
+
+  if (m_channelExtensionFactories.contains(type))
+  {
+    extension = m_channelExtensionFactories[type]->createChannelExtension(type);
+  } else
+  {
+    throw Unknown_Type_Exception();
+  }
+
+  return extension;
+}
+
+//-----------------------------------------------------------------------------
 EspINA::SegmentationSPtr CoreFactory::createSegmentation(FilterSPtr filter, Output::Id output) const
 {
   SegmentationSPtr segmentation{new Segmentation(filter, output)};
@@ -97,129 +128,30 @@ EspINA::SegmentationSPtr CoreFactory::createSegmentation(FilterSPtr filter, Outp
   return segmentation;
 }
 
-// //------------------------------------------------------------------------
-// void EspinaFactory::registerChannelExtension(Channel::ExtensionPtr extension)
-// {
-//   Q_ASSERT(m_channelExtensions.contains(extension) == false);
-//   m_channelExtensions << extension;
-// }
-// 
-// //------------------------------------------------------------------------
-// void EspinaFactory::unregisterChannelExtension(Channel::ExtensionPtr extension)
-// {
-//   Q_ASSERT(m_channelExtensions.contains(extension));
-//   m_channelExtensions.removeOne(extension);
-// }
-// 
-// //------------------------------------------------------------------------
-// Channel::ExtensionPtr EspinaFactory::channelExtension(ModelItem::ExtId extensionId) const
-// {
-//   Channel::ExtensionPtr extension = NULL;
-// 
-//   int i = 0;
-//   while (!extension && i < m_channelExtensions.size())
-//   {
-//     Channel::ExtensionPtr tmp = m_channelExtensions[i];
-//     if (tmp->id() == extensionId)
-//       extension = tmp;
-//     ++i;
-//   }
-// 
-//   return extension;
-// }
-// 
-// //------------------------------------------------------------------------
-// void EspinaFactory::registerSegmentationExtension(Segmentation::InformationExtension extension)
-// {
-//   Q_ASSERT(m_segmentationExtensions.contains(extension) == false);
-//   m_segmentationExtensions << extension;
-// }
-// 
-// //------------------------------------------------------------------------
-// void EspinaFactory::unregisterSegmentationExtension(Segmentation::InformationExtension extension)
-// {
-//   Q_ASSERT(m_segmentationExtensions.contains(extension));
-//   m_segmentationExtensions.removeOne(extension);
-// }
-// 
-// //------------------------------------------------------------------------
-// Segmentation::InformationExtension EspinaFactory::segmentationExtension(ModelItem::ExtId extensionId) const
-// {
-//   Segmentation::InformationExtension extension = NULL;
-// 
-//   int i = 0;
-//   while (!extension && i < m_segmentationExtensions.size())
-//   {
-//     Segmentation::InformationExtension tmp = m_segmentationExtensions[i];
-//     if (tmp->id() == extensionId)
-//       extension = tmp;
-//     ++i;
-//   }
-// 
-//   return extension;
-// }
-// 
-// //------------------------------------------------------------------------
-// Segmentation::InformationExtension EspinaFactory::informationProvider(Segmentation::InfoTag tag) const
-// {
-//   Segmentation::InformationExtension extension = NULL;
-// 
-//   int i = 0;
-//   while (!extension && i < m_segmentationExtensions.size())
-//   {
-//     Segmentation::InformationExtension tmp = m_segmentationExtensions[i];
-//     if (tmp->availableInformations().contains(tag))
-//       extension = tmp;
-//     ++i;
-//   }
-// 
-//   return extension;
-// }
-// 
-// //------------------------------------------------------------------------
-// void EspinaFactory::registerRenderer(IRenderer *renderer)
-// {
-//   Q_ASSERT(!m_renderers.contains(renderer->name()));
-//   m_renderers[renderer->name()] = renderer;
-// }
-// 
-// //------------------------------------------------------------------------
-// void EspinaFactory::unregisterRenderer(IRenderer *renderer)
-// {
-//   Q_ASSERT(m_renderers.contains(renderer->name()));
-//   m_renderers.remove(renderer->name());
-// }
-// 
-// //------------------------------------------------------------------------
-// FilterSPtr EspinaFactory::createFilter(const QString              &filter,
-//                                       const Filter::NamedInputs  &inputs,
-//                                       const ModelItem::Arguments &args)
-// {
-//   Q_ASSERT(m_filterCreators.contains(filter));
-//   return m_filterCreators[filter]->createFilter(filter, inputs, args);
-// }
-// 
-// //------------------------------------------------------------------------
-// bool EspinaFactory::readFile(const QString &file, const QString &ext, IOErrorHandler *handler)
-// {
-//   bool success = false;
-//   if (m_fileReaders.contains(ext))
-//     success = m_fileReaders[ext]->readFile(file, handler);
-//   else if (handler)
-//     handler->error(QObject::tr("%1 file extension is not supported").arg(ext));
-// 
-//   return success;
-// }
-// 
-// //------------------------------------------------------------------------
-// SegmentationSPtr EspinaFactory::createSegmentation(FilterSPtr        filter,
-//                                                         const FilterOutputId &oId)
-// {
-// //   std::cout << "Factory is going to create a segmentation for vtkObject: " << vtkRef->id().toStdString() << std::endl;
-//   SegmentationSPtr seg(new Segmentation(filter, oId));
-// //   foreach(SegmentationExtensionPtr ext, m_segExtensions)
-// //     seg->addExtension(ext->clone());
-// 
-//   return seg;
-// }
-// 
+//-----------------------------------------------------------------------------
+void CoreFactory::registerExtensionFactory(SegmentationExtensionFactorySPtr factory)
+throw (Factory_Already_Registered_Exception)
+{
+  for(auto extension : factory->providedExtensions())
+  {
+    if (m_segmentationExtensionFactories.contains(extension)) throw Factory_Already_Registered_Exception();
+
+    m_segmentationExtensionFactories[extension] = factory;
+  }
+}
+
+//-----------------------------------------------------------------------------
+EspINA::SegmentationExtensionSPtr CoreFactory::createSegmentationExtension(SegmentationExtension::Type type)
+{
+  SegmentationExtensionSPtr extension;
+
+  if (m_segmentationExtensionFactories.contains(type))
+  {
+    extension = m_segmentationExtensionFactories[type]->createSegmentationExtension(type);
+  } else
+  {
+    throw Unknown_Type_Exception();
+  }
+
+  return extension;
+}

@@ -19,11 +19,13 @@ qt4_wrap_cpp(Support_MOC
 # qt4_wrap_ui (Support_UI
 #   )
 
-set (Support_SOURCES 
+set (Support_SOURCES
   ${Support_MOC}
   ${Support_UI}
   EventHandler.cpp
+  Factory/DefaultChannelExtensionFactory.cpp
   ToolGroup.cpp
+  Utils/FactoryUtils.cpp
   Utils/xlsUtils.cpp
   ViewManager.cpp
   )

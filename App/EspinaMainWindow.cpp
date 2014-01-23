@@ -42,15 +42,16 @@
 #include <GUI/ColorEngines/UserColorEngine.h>
 #include <GUI/Model/Utils/ModelAdapterUtils.h>
 #include <GUI/Representations/BasicRepresentationFactory.h>
-#include <GUI/Representations/Renderers/SliceRenderer.h>
 #include <GUI/Representations/Renderers/CrosshairRenderer.h>
 #include <GUI/Representations/Renderers/ContourRenderer.h>
 #include <GUI/Representations/Renderers/MeshRenderer.h>
+#include <GUI/Representations/Renderers/SliceRenderer.h>
 #include <GUI/Representations/Renderers/SmoothedMeshRenderer.h>
-#include <GUI/Representations/Renderers/VolumetricRenderer.h>
 #include <GUI/Representations/Renderers/VolumetricGPURenderer.h>
+#include <GUI/Representations/Renderers/VolumetricRenderer.h>
 #include <Support/Plugin.h>
 #include <Support/Settings/EspinaSettings.h>
+#include <Support/Utils/FactoryUtils.h>
 
 // Std
 #include <sstream>
@@ -84,7 +85,7 @@ const int PERIOD_NS = 1000000;
 EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 : QMainWindow()
 , m_scheduler(new Scheduler(PERIOD_NS))
-, m_factory(new ModelFactory(m_scheduler))
+, m_factory(new ModelFactory(espinaCoreFactory(m_scheduler)))
 , m_analysis(new Analysis())
 , m_model(new ModelAdapter())
 , m_viewManager(new ViewManager())
@@ -111,7 +112,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 
   m_factory->registerAnalysisReader(m_channelReader.get());
   m_factory->registerAnalysisReader(m_segFileReader.get());
-  m_factory->registerFilterFactory (m_channelReader.get());
+  m_factory->registerFilterFactory (m_channelReader);
   m_factory->registerChannelRepresentationFactory(RepresentationFactorySPtr{new BasicChannelRepresentationFactory()});
   m_factory->registerSegmentationRepresentationFactory(RepresentationFactorySPtr{new BasicSegmentationRepresentationFactory()});
 
@@ -715,14 +716,12 @@ void EspinaMainWindow::openAnalysis(const QStringList files)
         {
           AdaptiveEdgesDialog edgesDialog(this);
           edgesDialog.exec();
-          if (edgesDialog.useAdaptiveEdges())
-          {
-            int color     = edgesDialog.color();
-            int threshold = edgesDialog.threshold();
 
-            AdaptiveEdgesSPtr extension{new AdaptiveEdges(true, color, threshold, m_scheduler)};
-            channel->addExtension(extension);
-          }
+          int color     = edgesDialog.color();
+          int threshold = edgesDialog.threshold();
+
+          AdaptiveEdgesSPtr extension{new AdaptiveEdges(edgesDialog.useAdaptiveEdges(), color, threshold, m_scheduler)};
+          channel->addExtension(extension);
         }
       }
     }

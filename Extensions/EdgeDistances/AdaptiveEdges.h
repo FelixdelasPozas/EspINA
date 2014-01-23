@@ -55,6 +55,14 @@ namespace EspINA
     virtual Type type() const
     { return TYPE; }
 
+    virtual bool invalidateOnChange() const
+    { return true; }
+
+    virtual State state() const
+    { return QString("%1").arg(m_useAdaptiveEdges); }
+
+    virtual Snapshot snapshot() const;
+
     void computeDistanceToEdge(SegmentationPtr segmentation);
 
     vtkSmartPointer<vtkPolyData> channelEdges();

@@ -72,11 +72,6 @@ int analysis_add_segmentation( int argc, char** argv )
     error = true;
   }
 
-  if (!analysis.extensionProviders().isEmpty()) {
-    cerr << "Unexpected number of extension providers in analysis" << endl;
-    error = true;
-  }
-
   if (analysis.content()->vertices().size() != 2) {
     cerr << "Unexpected number of vertices in analysis content" << endl;
     error = true;

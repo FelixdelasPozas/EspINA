@@ -21,7 +21,6 @@
 #define TESTING_DUMMYFILTER_H
 
 #include <Core/Analysis/Filter.h>
-#include <Core/Analysis/Extensions/ExtensionProvider.h>
 #include <Core/MultiTasking/Scheduler.h>
 
 namespace EspINA {

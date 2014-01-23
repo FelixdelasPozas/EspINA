@@ -23,6 +23,7 @@
 #include "EspinaCore_Export.h"
 
 #include "Core/EspinaTypes.h"
+#include <Core/Analysis/Persistent.h>
 #include <QMap>
 
 namespace EspINA
@@ -40,30 +41,32 @@ namespace EspINA
 
     virtual Type type() const = 0;
 
+    virtual bool invalidateOnChange() const = 0;
+
+    virtual State state() const = 0;
+
+    virtual Snapshot snapshot() const = 0;
+
     void setChannel(ChannelPtr channel)
     { m_channel = channel; onChannelSet(channel); }
 
     ChannelPtr channel() const {return m_channel;}
-
-    virtual void onChannelSet(ChannelPtr channel) = 0;
-
-//     virtual void initialize() = 0;
-// 
-//     virtual void invalidate() = 0;
-
-
   protected:
     explicit ChannelExtension() 
     : m_channel{nullptr} {}
 
+    virtual void onChannelSet(ChannelPtr channel) = 0;
+
+  protected:
     ChannelPtr m_channel;
   };
 
-  using ChannelExtensionPtr   = ChannelExtension *;
-  using ChannelExtensionList  = QList<ChannelExtensionPtr>;
-  using ChannelExtensionSPtr  = std::shared_ptr<ChannelExtension>;
-  using ChannelExtensionSList = QList<ChannelExtensionSPtr>;
-  using ChannelExtensionSMap  = QMap<QString, ChannelExtensionSPtr>;
+  using ChannelExtensionPtr      = ChannelExtension *;
+  using ChannelExtensionList     = QList<ChannelExtensionPtr>;
+  using ChannelExtensionSPtr     = std::shared_ptr<ChannelExtension>;
+  using ChannelExtensionSList    = QList<ChannelExtensionSPtr>;
+  using ChannelExtensionSMap     = QMap<QString, ChannelExtensionSPtr>;
+  using ChannelExtensionTypeList = QList<ChannelExtension::Type>;
 } // namespace EspINA
 
 #endif // ESPINA_CHANNEL_EXTENSION_H

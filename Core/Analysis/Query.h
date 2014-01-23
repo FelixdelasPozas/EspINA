@@ -42,6 +42,9 @@ namespace EspINA {
 
     SegmentationSList segmentations(SampleSPtr sample);
 
+    SegmentationSList segmentationsOnChannelSample(ChannelSPtr channel);
+
+    SegmentationSList segmentationsOnChannelSample(ChannelPtr channel);
   } // namespace Query
 } // namespace EspINA
 

@@ -46,6 +46,7 @@ add_executable(IO_Tests
   ${CORE_DIR}/IO/SegFileInterface.cpp
   ${CORE_DIR}/IO/SegFile_V4.cpp
   ${CORE_DIR}/IO/SegFile_V5.cpp
+  ${CORE_DIR}/IO/ReadOnlyChannelExtension.cpp
   ${CORE_DIR}/MultiTasking/Scheduler.cpp
   ${CORE_DIR}/MultiTasking/Task.cpp
   ${CORE_DIR}/Utils/Bounds.cpp

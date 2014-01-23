@@ -42,7 +42,7 @@ namespace EspINA
 
       enum class VertexType
       {
-        SAMPLE, FILTER, CHANNEL, SEGMENTATION, EXTENSION_PROVIDER
+        SAMPLE, FILTER, CHANNEL, SEGMENTATION
       };
 
       class ReadOnlyVertex

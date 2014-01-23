@@ -121,8 +121,6 @@ Snapshot Segmentation::snapshot() const
 {
   Snapshot snapshot;
 
-  QString dir = QString("Segmentations/%1/").arg(uuid());
-
   if (!m_extensions.isEmpty())
   {
     QByteArray xml;
@@ -141,13 +139,13 @@ Snapshot Segmentation::snapshot() const
 
       for(auto data: extension->snapshot())
       {
-        QString file = dir + data.first;
+        QString file = extensionDataPath(extension, data.first);
         snapshot << SnapshotData(file, data.second);
       }
     }
     stream.writeEndDocument();
 
-    QString file = dir + "extensions.xml";
+    QString file = extensionsPath() + QString("%1.xml").arg(uuid());
     snapshot << SnapshotData(file, xml);
   }
 

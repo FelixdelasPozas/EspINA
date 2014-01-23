@@ -61,11 +61,6 @@ int analysis_set_classification( int argc, char** argv )
     error = true;
   }
 
-  if (!analysis.extensionProviders().isEmpty()) {
-    cerr << "Unexpected number of extension providers in analysis" << endl;
-    error = true;
-  }
-
   if (!analysis.content()->vertices().isEmpty()) {
     cerr << "Unexpected number of vertices in analysis content" << endl;
     error = true;

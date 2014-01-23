@@ -226,12 +226,9 @@ void Panel::deleteCountingFrame(CountingFrame *cf)
   int i = 0;
   CountingFrameExtension *cfExtension = nullptr;
 
-  m_manager->deleteCountingFrame(cf);
-
-  m_countingFrames.removeOne(cf);
-
   if (cf == m_activeCF) m_activeCF = nullptr;
 
+  m_countingFrames.removeOne(cf);
   for(int i = 0; i < m_gui->countingFrames->model()->rowCount(); i++)
   {
     if (m_gui->countingFrames->model()->index(i,0).data(Qt::DisplayRole) == cf->data(Qt::DisplayRole))
@@ -242,6 +239,8 @@ void Panel::deleteCountingFrame(CountingFrame *cf)
   }
 
   m_viewManager->removeWidget(cf);
+
+  m_manager->deleteCountingFrame(cf);
 }
 
 
@@ -275,7 +274,7 @@ void Panel::enableCategoryConstraints(bool enable)
 //------------------------------------------------------------------------
 void Panel::updateUI(int row)
 {
-  bool validCF = !m_countingFrames.isEmpty();
+  bool validCF = !m_countingFrames.isEmpty() && row >= 0;
 
   if (validCF)
   {

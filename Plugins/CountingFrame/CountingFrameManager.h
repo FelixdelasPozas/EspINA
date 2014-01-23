@@ -56,7 +56,7 @@ namespace EspINA {
       void deleteCountingFrame(CountingFrame *cf);
 
       CountingFrameList countingFrames() const
-      { return m_countingFrames; }
+      { return m_countingFrames.keys(); }
 
     private:
       CountingFrameExtension* retrieveOrCreateCFExtension(ChannelAdapterPtr channel);
@@ -68,7 +68,7 @@ namespace EspINA {
       void countingFrameDeleted(CountingFrame *);
 
     private:
-      CountingFrameList m_countingFrames;
+      QMap<CountingFrame *, ChannelPtr> m_countingFrames;
     };
   }
 }
