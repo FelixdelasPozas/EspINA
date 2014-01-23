@@ -48,6 +48,7 @@ set (CORE_SOURCES
   Utils/SparseBinaryVolume.cpp
   Utils/TemporalStorage.cpp
   Utils/VolumeBounds.cpp
+  Utils/vtkPolyDataUtils.cpp
   )
 
 set(CORE_EXTERNAL_LIBS

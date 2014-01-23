@@ -19,20 +19,18 @@
 
 #include "RawMesh.h"
 #include <Core/Analysis/Filter.h>
+#include <Core/Utils/vtkPolyDataUtils.h>
 
-#include <vtkGenericDataObjectReader.h>
-#include <vtkGenericDataObjectWriter.h>
-#include <vtkPolyData.h>
 #include <vtkPointData.h>
 #include <vtkDoubleArray.h>
+
 #include <QDir>
 
 using namespace EspINA;
 
 //----------------------------------------------------------------------------
 RawMesh::RawMesh(OutputSPtr output)
-: m_mesh{ vtkSmartPointer<vtkPolyData>::New() }
-, m_spacing{ NmVector3{1,1,1} }
+: m_mesh{nullptr}
 {
 }
 
@@ -41,7 +39,6 @@ RawMesh::RawMesh(vtkSmartPointer<vtkPolyData> mesh,
                  itkVolumeType::SpacingType spacing,
                  OutputSPtr output)
 : m_mesh{mesh}
-, m_spacing{ NmVector3{spacing[0], spacing[1], spacing[2]} }
 {
 }
 
@@ -51,26 +48,13 @@ bool RawMesh::fetchData(const TemporalStorageSPtr storage, const QString& prefix
   bool dataFetched = false;
   int  error = 0;
 
-  QString fileName = storage->absoluteFilePath(prefix + QString("MeshData.vtp"));
+  QString fileName = storage->absoluteFilePath(prefix + QString("MeshData_%1.vtp").arg(m_output->id()));
 
   QFileInfo meshFile(fileName);
 
   if(meshFile.exists())
   {
-    vtkSmartPointer<vtkGenericDataObjectReader> reader = vtkSmartPointer<vtkGenericDataObjectReader>::New();
-    reader->SetFileName(fileName.toStdString().c_str());
-    reader->SetReadAllFields(true);
-    reader->Update();
-
-    error = reader->GetErrorCode();
-
-    m_mesh = vtkSmartPointer<vtkPolyData>(reader->GetPolyDataOutput());
-
-    vtkDataArray   *dataArray    = m_mesh->GetPointData()->GetArray("Spacing");
-    vtkDoubleArray *spacingArray = dynamic_cast<vtkDoubleArray *>(dataArray);
-    for (int i = 0; i < 3; ++i)
-      m_spacing[i] = spacingArray->GetValue(i);
-
+    m_mesh = PolyDataUtils::readPolyDataFromFile(fileName);
     dataFetched = true;
   }
 
@@ -80,30 +64,14 @@ bool RawMesh::fetchData(const TemporalStorageSPtr storage, const QString& prefix
 //----------------------------------------------------------------------------
 Snapshot RawMesh::snapshot(TemporalStorageSPtr storage, const QString &prefix) const
 {
-  QString fileName = prefix + QString("MeshData.vtp");
+  QString fileName = prefix + QString("MeshData_%1.vtp").arg(m_output->id());
   Snapshot snapshot;
 
   storage->makePath(prefix);
 
   if (m_mesh)
   {
-    vtkSmartPointer<vtkDoubleArray> spacingArray = vtkSmartPointer<vtkDoubleArray>::New();
-    spacingArray->SetName("Spacing");
-    spacingArray->SetNumberOfValues(3);
-    for (int i = 0; i < 3; ++i)
-      spacingArray->SetValue(i, m_spacing[i]);
-
-    m_mesh->GetPointData()->AddArray(spacingArray);
-
-    vtkSmartPointer<vtkGenericDataObjectWriter> polyWriter = vtkSmartPointer<vtkGenericDataObjectWriter>::New();
-    polyWriter->SetInputData(m_mesh);
-    polyWriter->SetFileTypeToBinary();
-    polyWriter->SetWriteToOutputString(true);
-    polyWriter->Write();
-
-    QByteArray polyArray(polyWriter->GetOutputString(), polyWriter->GetOutputStringLength());
-
-    snapshot << SnapshotData(fileName, polyArray);
+    snapshot << SnapshotData(fileName, PolyDataUtils::savePolyDataToBuffer(m_mesh));
   }
 
   return snapshot;
@@ -121,9 +89,6 @@ vtkSmartPointer<vtkPolyData> RawMesh::mesh() const
 //----------------------------------------------------------------------------
 NmVector3 RawMesh::spacing() const
 {
-  if (m_mesh)
-    return m_spacing;
-
   return NmVector3();
 }
 
@@ -139,14 +104,13 @@ size_t RawMesh::memoryUsage() const
 //----------------------------------------------------------------------------
 bool RawMesh::isValid() const
 {
-  return true;
+  return (m_mesh.Get() != nullptr);
 }
 
 //----------------------------------------------------------------------------
 bool RawMesh::setInternalData(MeshDataSPtr rhs)
 {
   m_mesh = rhs->mesh();
-  m_spacing = rhs->spacing();
   return true;
 }
 
@@ -154,8 +118,7 @@ bool RawMesh::setInternalData(MeshDataSPtr rhs)
 //----------------------------------------------------------------------------
 RawMeshSPtr EspINA::rawMesh(OutputSPtr output)
 {
-  RawMeshSPtr meshData = std::dynamic_pointer_cast<RawMesh>(output->data(RawMesh::TYPE));
-
+  RawMeshSPtr meshData = std::dynamic_pointer_cast<RawMesh>(output->data(MeshData::TYPE));
   Q_ASSERT(meshData.get());
   return meshData;
 }

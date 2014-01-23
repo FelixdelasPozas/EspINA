@@ -42,6 +42,7 @@ void FetchRawData::fetchOutputData(OutputSPtr output, TemporalStorageSPtr storag
     if (!output->hasData(MeshData::TYPE))
     {
       auto data = DataSPtr { new RawMesh() };
+      data->setOutput(output.get());
       if (data->fetchData(storage, prefix))
       {
         output->setData(data);

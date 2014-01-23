@@ -35,10 +35,12 @@ namespace EspINA
   {
   public:
     explicit AddSegmentations(SegmentationAdapterSPtr segmentation,
+                              SampleAdapterSList      samples,
                               ModelAdapterSPtr        model,
                               QUndoCommand           *parent = nullptr);
 
     explicit AddSegmentations(SegmentationAdapterSList segmentations,
+                              SampleAdapterSList       samples,
                               ModelAdapterSPtr         model,
                               QUndoCommand            *parent = nullptr);
     virtual void redo();
@@ -48,6 +50,7 @@ namespace EspINA
     SampleAdapterSList findSamplesUsingInputChannels(SegmentationAdapterSPtr segmentation);
 
   private:
+    SampleAdapterSList m_samples;
     ModelAdapterSPtr m_model;
 
     SegmentationAdapterSList m_segmentations;

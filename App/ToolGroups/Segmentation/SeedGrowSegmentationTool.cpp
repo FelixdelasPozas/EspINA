@@ -21,6 +21,7 @@
 
 #include <GUI/Selectors/PixelSelector.h>
 #include <GUI/Model/Utils/ModelAdapterUtils.h>
+#include <GUI/Model/Utils/QueryAdapter.h>
 #include <Filters/SeedGrowSegmentationFilter.h>
 #include <Filters/FetchBehaviour/MarchingCubesFromFetchedVolumetricData.h>
 #include <Undo/AddSegmentations.h>
@@ -265,8 +266,12 @@ void SeedGrowSegmentationTool::createSegmentation()
 
     segmentation->setCategory(category);
 
+    SampleAdapterSList samples;
+    samples << QueryAdapter::sample(m_viewManager->activeChannel());
+    Q_ASSERT(samples.size() == 1);
+
     m_undoStack->beginMacro(tr("Add Segmentation"));
-    m_undoStack->push(new AddSegmentations(segmentation, m_model));
+    m_undoStack->push(new AddSegmentations(segmentation, samples, m_model));
     m_undoStack->endMacro();
 
     m_viewManager->updateSegmentationRepresentations(segmentation.get());

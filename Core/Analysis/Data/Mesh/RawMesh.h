@@ -80,7 +80,6 @@ namespace EspINA
 
   private:
     vtkSmartPointer<vtkPolyData> m_mesh;
-    NmVector3 m_spacing;
   };
 
   using RawMeshPtr = RawMesh *;

@@ -72,19 +72,18 @@ namespace EspINA
 
     virtual vtkSmartPointer<vtkPolyData> mesh() const;
 
-//   private slots://TODO
+  private:
     void updateMesh();
 
-  private:
     VolumetricDataSPtr<T> m_volume;
-
     vtkSmartPointer<vtkPolyData> m_mesh;
   };
 
   //----------------------------------------------------------------------------
   template <typename T>
   MarchingCubesMesh<T>::MarchingCubesMesh(VolumetricDataSPtr<T> volume)
-  : m_volume(volume)
+  : m_volume{volume}
+  , m_mesh{nullptr}
   {
   }
 
@@ -119,6 +118,7 @@ namespace EspINA
   template <typename T>
   void MarchingCubesMesh<T>::setSpacing(const NmVector3& spacing)
   {
+    // TODO: not allowed
   }
 
   //----------------------------------------------------------------------------
@@ -132,13 +132,17 @@ namespace EspINA
   template <typename T>
   void MarchingCubesMesh<T>::undo()
   {
+    // TODO: ways to modify a mesh have not been implemented, so this is not allowed
   }
 
   //----------------------------------------------------------------------------
   template <typename T>
   size_t MarchingCubesMesh<T>::memoryUsage() const
   {
-    return m_mesh->GetActualMemorySize()*1024;
+    if (m_mesh)
+      return m_mesh->GetActualMemorySize()*1024;
+
+    return 0;
   }
 
   //----------------------------------------------------------------------------

@@ -953,7 +953,7 @@ bool ModelAdapter::setData(const QModelIndex& index, const QVariant& value, int 
       if (isCategory(indexItem))
       {
         CategoryAdapterPtr category = categoryPtr(indexItem);
-        foreach(SegmentationAdapterSPtr segmentation, m_segmentations)
+        for(auto segmentation: m_segmentations)
         {
           if (segmentation->category().get() == category)
           {

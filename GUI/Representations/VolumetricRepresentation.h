@@ -80,6 +80,9 @@ namespace EspINA
 
       virtual bool crosshairDependent() const;
 
+      virtual bool needUpdate()
+      { return m_lastUpdatedTime != m_data->lastModified(); }
+
     protected:
       virtual RepresentationSPtr cloneImplementation(View2D *view)
       { return RepresentationSPtr(); }

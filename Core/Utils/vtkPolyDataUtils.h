@@ -1,8 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2011
-    Jorge Pe�a Pastor<jpena@cesvima.upm.es>,
-    Felix de las Pozas<fpozas@cesvima.upm.es>
+    Copyright (C) 2014 Félix de las Pozas Álvarez <felixdelaspozas@gmail.com>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -18,24 +16,26 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef ESPINA_MODEL_ADAPTER_UTILS_H
-#define ESPINA_MODEL_ADAPTER_UTILS_H
+#ifndef ESPINA_VTKPOLYDATAUTILS_H_
+#define ESPINA_VTKPOLYDATAUTILS_H_
 
-#include "GUI/EspinaGUI_Export.h"
+// VTK
+#include <vtkSmartPointer.h>
 
-#include <GUI/Model/ModelAdapter.h>
-#include <GUI/ModelFactory.h>
-#include <Core/Analysis/Data/VolumetricData.h>
+class vtkPolyData;
+class QByteArray;
+class QString;
 
 namespace EspINA
 {
-  namespace ModelAdapterUtils
+  namespace PolyDataUtils
   {
-    void setAnalysis(ModelAdapterSPtr model, AnalysisSPtr analysis, ModelFactorySPtr factory);
+    struct IO_Error_Exception{};
 
-    DefaultVolumetricDataSPtr volumetricData(OutputSPtr output);
+    QByteArray savePolyDataToBuffer(const vtkSmartPointer<vtkPolyData> polydata) throw (IO_Error_Exception);
 
-    unsigned int firstUnusedSegmentationNumber(const ModelAdapterSPtr model);
+    vtkSmartPointer<vtkPolyData> readPolyDataFromFile(QString fileName) throw (IO_Error_Exception);
   }
-} // namespace EspINA
-#endif // ESPINA_MODEL_ADAPTER_UTILS_H
+}
+
+#endif /* ESPINA_VTKPOLYDATAUTILS_H_ */

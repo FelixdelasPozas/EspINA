@@ -94,13 +94,15 @@ namespace EspINA
   template<class T>
   void VolumetricGPURepresentation<T>::updateRepresentation()
   {
-    if (m_actor != nullptr)
+    if ((m_actor != nullptr) && needUpdate())
     {
       auto volume = vtkImage(m_data, m_data->bounds());
       m_mapper->SetInputData(volume);
       m_mapper->Update();
       m_colorFunction->Modified();
       m_actor->Update();
+
+      m_lastUpdatedTime = m_data->lastModified();
     }
   }
 
@@ -150,6 +152,8 @@ namespace EspINA
     m_actor->SetProperty(property);
     m_actor->SetVisibility(isVisible());
     m_actor->Update();
+
+    m_lastUpdatedTime = m_data->lastModified();
   }
 
   //-----------------------------------------------------------------------------

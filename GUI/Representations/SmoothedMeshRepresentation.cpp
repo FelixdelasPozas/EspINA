@@ -87,6 +87,8 @@ void SmoothedMeshRepresentation::initializePipeline()
   m_actor->GetProperty()->SetOpacity(rgba[3]);
   m_actor->SetVisibility(isVisible());
   m_actor->Modified();
+
+  m_lastUpdatedTime = m_data->lastModified();
 }
 
 //-----------------------------------------------------------------------------
@@ -98,12 +100,14 @@ RepresentationSettings *SmoothedMeshRepresentation::settingsWidget()
 //-----------------------------------------------------------------------------
 void SmoothedMeshRepresentation::updateRepresentation()
 {
-  if (isVisible() && (m_actor != nullptr))
+  if (isVisible() && (m_actor != nullptr) && needUpdate())
   {
     m_decimate->UpdateWholeExtent();
     m_mapper->UpdateWholeExtent();
     m_actor->GetProperty()->Modified();
     m_actor->Modified();
+
+    m_lastUpdatedTime = m_data->lastModified();
   }
 }
 

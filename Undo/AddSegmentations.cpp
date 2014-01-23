@@ -21,14 +21,17 @@
 
 #include <Core/Analysis/Query.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
+#include <GUI/Model/Utils/ModelAdapterUtils.h>
 
 using namespace EspINA;
 
 //----------------------------------------------------------------------------
 AddSegmentations::AddSegmentations(SegmentationAdapterSPtr segmentation,
+                                   SampleAdapterSList      samples,
                                    ModelAdapterSPtr        model,
                                    QUndoCommand           *parent)
 : QUndoCommand(parent)
+, m_samples(samples)
 , m_model(model)
 {
   m_segmentations << segmentation;
@@ -36,9 +39,11 @@ AddSegmentations::AddSegmentations(SegmentationAdapterSPtr segmentation,
 
 //----------------------------------------------------------------------------
 AddSegmentations::AddSegmentations(SegmentationAdapterSList segmentations,
+                                   SampleAdapterSList       samples,
                                    ModelAdapterSPtr         model,
                                    QUndoCommand            *parent)
 : QUndoCommand(parent)
+, m_samples(samples)
 , m_model(model)
 {
   m_segmentations << segmentations;
@@ -47,14 +52,16 @@ AddSegmentations::AddSegmentations(SegmentationAdapterSList segmentations,
 //----------------------------------------------------------------------------
 void AddSegmentations::redo()
 {
+  unsigned int number = ModelAdapterUtils::firstUnusedSegmentationNumber(m_model);
+
   m_model->add(m_segmentations);
 
   for(auto segmentation : m_segmentations)
   {
-    for(auto sample : findSamplesUsingInputChannels(segmentation))
-    {
+    segmentation->setNumber(number++);
+
+    for(auto sample : m_samples)
       m_model->addRelation(sample, segmentation, Query::CONTAINS);
-    }
   }
 }
 
@@ -63,22 +70,3 @@ void AddSegmentations::undo()
 {
   m_model->remove(m_segmentations);
 }
-
-//----------------------------------------------------------------------------
-SampleAdapterSList AddSegmentations::findSamplesUsingInputChannels(SegmentationAdapterSPtr segmentation)
-{
-  SampleAdapterSList samples;
-
-  auto channels = QueryAdapter::channels(segmentation);
-  Q_ASSERT(channels.size() == 1); // Tiling not supported yet
-
-  for(auto channel : channels)
-  {
-    samples << QueryAdapter::sample(channel);
-  }
-
-  Q_ASSERT(samples.size() == 1); // Tiling not supported yet
-
-  return samples;
-}
-

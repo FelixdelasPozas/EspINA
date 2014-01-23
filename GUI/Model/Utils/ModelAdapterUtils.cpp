@@ -1,7 +1,7 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
     Copyright (C) 2011
-    Jorge Peña Pastor<jpena@cesvima.upm.es>,
+    Jorge Peï¿½a Pastor<jpena@cesvima.upm.es>,
     Felix de las Pozas<fpozas@cesvima.upm.es>
 
     This program is free software: you can redistribute it and/or modify
@@ -92,3 +92,16 @@ DefaultVolumetricDataSPtr EspINA::ModelAdapterUtils::volumetricData(OutputSPtr o
 {
   return std::dynamic_pointer_cast<VolumetricData<itkVolumeType>>(output->data(VolumetricData<itkVolumeType>::TYPE));
 }
+
+//------------------------------------------------------------------------
+unsigned int EspINA::ModelAdapterUtils::firstUnusedSegmentationNumber(const ModelAdapterSPtr model)
+{
+  unsigned int number = 0;
+
+  for (auto segmentation: model->segmentations())
+    if (segmentation->number() > number)
+      number = segmentation->number();
+
+  return ++number;
+}
+

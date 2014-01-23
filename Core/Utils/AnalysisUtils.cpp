@@ -219,3 +219,15 @@ ChannelSPtr EspINA::findChannel(ChannelSPtr channel, ChannelSList channels)
 
   return ChannelSPtr();
 }
+
+//-----------------------------------------------------------------------------
+unsigned int EspINA::firstUnusedSegmentationNumber(const AnalysisSPtr analysis)
+{
+  unsigned int number = 0;
+
+  for (auto segmentation: analysis->segmentations())
+    if (segmentation->number() > number)
+      number = segmentation->number();
+
+  return ++number;
+}

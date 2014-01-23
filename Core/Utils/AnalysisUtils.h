@@ -49,6 +49,8 @@ namespace EspINA {
 
     return std::shared_ptr<T>();
   }
+
+  unsigned int firstUnusedSegmentationNumber(const AnalysisSPtr analysis);
 }
 
 

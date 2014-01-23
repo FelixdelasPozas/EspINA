@@ -60,6 +60,8 @@ void MeshRepresentation::initializePipeline()
   m_actor->GetProperty()->SetOpacity(rgba[3]);
   m_actor->SetVisibility(isVisible());
   m_actor->Modified();
+
+  m_lastUpdatedTime = m_data->lastModified();
 }
 
 //-----------------------------------------------------------------------------
@@ -71,11 +73,13 @@ RepresentationSettings *MeshRepresentation::settingsWidget()
 //-----------------------------------------------------------------------------
 void MeshRepresentation::updateRepresentation()
 {
-  if (isVisible() && (m_actor != nullptr))
+  if (isVisible() && (m_actor != nullptr) && needUpdate())
   {
     m_mapper->UpdateWholeExtent();
     m_actor->GetProperty()->Modified();
     m_actor->Modified();
+
+    m_lastUpdatedTime = m_data->lastModified();
   }
 }
 

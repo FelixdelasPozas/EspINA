@@ -285,11 +285,6 @@ void SeedGrowSegmentationFilter::execute(Output::Id id)
   m_prevUpperTh = m_upperTh;
   m_prevSeed    = m_seed;
   m_prevRadius  = m_radius;
-
-
-//   repList << volumeRepresentation;
-//   repList << MeshRepresentationSPtr(new MarchingCubesMesh(volumeRepresentation));
-
 }
 
 //----------------------------------------------------------------------------

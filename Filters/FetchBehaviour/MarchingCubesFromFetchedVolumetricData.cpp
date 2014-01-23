@@ -33,6 +33,7 @@ void MarchingCubesFromFetchedVolumetricData::fetchOutputData(OutputSPtr output, 
   else if ("MeshData" == info.value("type"))
   {
     auto data = DataSPtr { new RawMesh() };
+    data->setOutput(output.get());
     if (data->fetchData(storage, prefix))
     {
       output->setData(data);

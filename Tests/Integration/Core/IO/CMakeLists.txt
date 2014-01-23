@@ -52,6 +52,7 @@ add_executable(IO_Tests
   ${CORE_DIR}/Utils/VolumeBounds.cpp
   ${CORE_DIR}/Utils/NmVector3.cpp
   ${CORE_DIR}/Utils/TemporalStorage.cpp
+  ${CORE_DIR}/Utils/vtkPolyDataUtils.cpp
   io_testing_support.cpp
   )
 target_link_libraries(IO_Tests ${LIB_DEPENDECIES} )

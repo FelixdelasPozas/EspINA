@@ -22,6 +22,7 @@
 #include <App/Tools/Brushes/SphericalBrushSelector.h>
 #include <Core/Analysis/Filter.h>
 #include <GUI/Widgets/SliderAction.h>
+#include <GUI/Model/Utils/QueryAdapter.h>
 #include <Filters/FreeFormSource.h>
 #include <Filters/FetchBehaviour/MarchingCubesFromFetchedVolumetricData.h>
 #include <Support/Settings/EspinaSettings.h>
@@ -275,8 +276,14 @@ namespace EspINA
         auto category = m_categorySelector->selectedCategory();
         segmentation->setCategory(category);
 
+        auto channelItem = static_cast<ChannelAdapterPtr>(item);
+
+        SampleAdapterSList samples;
+        samples << QueryAdapter::sample(channelItem);
+        Q_ASSERT(channelItem && (samples.size() == 1));
+
         m_undoStack->beginMacro(tr("Add Segmentation"));
-        m_undoStack->push(new AddSegmentations(segmentation, m_model));
+        m_undoStack->push(new AddSegmentations(segmentation, samples, m_model));
         m_undoStack->endMacro();
 
         SegmentationAdapterList list;

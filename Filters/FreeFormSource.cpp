@@ -20,6 +20,7 @@
 
 // EspINA
 #include <GUI/ModelFactory.h>
+#include <Core/Analysis/Data/Mesh/MarchingCubesMesh.hxx>
 #include <Core/Analysis/Data/Volumetric/SparseVolume.h>
 #include <Core/Analysis/Data/VolumetricDataUtils.h>
 
@@ -49,7 +50,6 @@ FreeFormSource::~FreeFormSource()
 //------------------------------------------------------------------------
 void FreeFormSource::restoreState(const State& state)
 {
-
 }
 
 //-----------------------------------------------------------------------------
@@ -87,13 +87,15 @@ void FreeFormSource::execute(Output::Id id)
   emit progress(50);
   if (!canExecute()) return;
 
-  SparseVolume<itkVolumeType> *volume{new SparseVolume<itkVolumeType>(m_mask->bounds().bounds(), m_mask->spacing(), m_mask->origin())};
-  volume->draw(m_mask);
+  DefaultVolumetricDataSPtr volume{new SparseVolume<itkVolumeType>(m_mask->bounds().bounds(), m_mask->spacing(), m_mask->origin())};
+  auto sparseVolume = std::dynamic_pointer_cast<SparseVolume<itkVolumeType>>(volume);
+  sparseVolume->draw(m_mask);
 
   emit progress(75);
   if (!canExecute()) return;
 
-  m_outputs[0]->setData(DefaultVolumetricDataSPtr(volume));
+  m_outputs[0]->setData(volume);
+  m_outputs[0]->setData(MeshDataSPtr{new MarchingCubesMesh<itkVolumeType>(volume)});
   m_outputs[0]->setSpacing(m_mask->spacing());
 
   emit progress(100);
