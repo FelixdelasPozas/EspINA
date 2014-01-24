@@ -11,9 +11,9 @@ add_definitions(
 set (Espina_DIR ${PROJECT_BINARY_DIR})
 
 # Version Number
-set (ESPINA_VERSION_MAJOR 1)
-set (ESPINA_VERSION_MINOR 3)
-set (ESPINA_VERSION_PATCH 2)
+set (ESPINA_VERSION_MAJOR 2)
+set (ESPINA_VERSION_MINOR 0)
+set (ESPINA_VERSION_PATCH 0)
 
 
 set (TEST_ESPINA_MODELS CACHE BOOL "Build EspINA Model Test wrappers")

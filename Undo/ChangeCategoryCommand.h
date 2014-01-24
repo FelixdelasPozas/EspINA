@@ -17,14 +17,16 @@
  */
 
 
-#ifndef CHANGETAXONOMYCOMMAND_H
-#define CHANGETAXONOMYCOMMAND_H
+#ifndef ESPINA_CHANGE_CATEGORY_COMMAND_H
+#define ESPINA_CHANGE_CATEGORY_COMMAND_H
 
 #include "EspinaUndo_Export.h"
 
 // EspINA
-#include <Core/Model/Taxonomy.h>
-#include <Core/Model/Segmentation.h>
+#include <GUI/Model/CategoryAdapter.h>
+#include <GUI/Model/SegmentationAdapter.h>
+#include <GUI/Model/ModelAdapter.h>
+#include <Support/ViewManager.h>
 
 // Qt
 #include <QUndoStack>
@@ -35,28 +37,27 @@ namespace EspINA
   class ModelAdapter;
   class ViewManager;
 
-  class EspinaUndo_EXPORT ChangeTaxonomyCommand
+  class EspinaUndo_EXPORT ChangeCategoryCommand
   : public QUndoCommand
   {
   public:
-    explicit ChangeTaxonomyCommand(SegmentationList   segmentations,
-                                   TaxonomyElementPtr taxonomy,
-                                   ModelAdapter       *model,
-                                   ViewManager       *viewManager,
-                                   QUndoCommand      *parent = NULL);
-    virtual ~ChangeTaxonomyCommand();
+    explicit ChangeCategoryCommand(SegmentationAdapterSList segmentations,
+                                   CategoryAdapterSPtr     category,
+                                   ModelAdapterSPtr        model,
+                                   ViewManagerSPtr         viewManager,
+                                   QUndoCommand           *parent = nullptr);
+    virtual ~ChangeCategoryCommand();
 
     virtual void redo();
     virtual void undo();
 
   private:
-    ModelAdapter *m_model;
-    ViewManager *m_viewManager;
-
-    TaxonomyElementSPtr m_taxonomy;
-    QMap<SegmentationSPtr, TaxonomyElementSPtr> m_oldTaxonomies;
+    ModelAdapterSPtr m_model;
+    ViewManagerSPtr  m_viewManager;
+    CategoryAdapterSPtr m_category;
+    QMap<SegmentationAdapterSPtr, CategoryAdapterSPtr> m_oldCategories;
   };
 
 } // namespace EspINA
 
-#endif // CHANGETAXONOMYCOMMAND_H
+#endif // ESPINA_CHANGE_CATEGORY_COMMAND_H

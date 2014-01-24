@@ -17,56 +17,52 @@
 */
 
 
-#include "ChangeTaxonomyCommand.h"
-#include <Core/Model/Segmentation.h>
-#include <Core/Model/EspinaModel.h>
-#include <GUI/ViewManager.h>
+#include "ChangeCategoryCommand.h"
+
+#include <GUI/Model/ModelAdapter.h>
+#include <Support/ViewManager.h>
 
 using namespace EspINA;
 
 //------------------------------------------------------------------------
-ChangeTaxonomyCommand::ChangeTaxonomyCommand(SegmentationList   segmentations,
-                                             TaxonomyElementPtr taxonomy,
-                                             ModelAdapter       *model,
-                                             ViewManager       *viewManager,
-                                             QUndoCommand      *parent)
+ChangeCategoryCommand::ChangeCategoryCommand(SegmentationAdapterSList segmentations,
+                                             CategoryAdapterSPtr      category,
+                                             ModelAdapterSPtr         model,
+                                             ViewManagerSPtr          viewManager,
+                                             QUndoCommand            *parent)
 : QUndoCommand(parent)
 , m_model(model)
 , m_viewManager(viewManager)
-, m_taxonomy(m_model->findTaxonomyElement(taxonomy))
+, m_category(category)
 {
-  foreach(SegmentationPtr segmentation, segmentations)
-  {
-    SegmentationSPtr key = m_model->findSegmentation(segmentation);
-    m_oldTaxonomies[key] = segmentation->taxonomy();
-  }
+  for(auto segmentation: segmentations)
+    m_oldCategories[segmentation] = segmentation->category();
 }
 
 //------------------------------------------------------------------------
-ChangeTaxonomyCommand::~ChangeTaxonomyCommand()
+ChangeCategoryCommand::~ChangeCategoryCommand()
 {
-
 }
 
 //------------------------------------------------------------------------
-void ChangeTaxonomyCommand::redo()
+void ChangeCategoryCommand::redo()
 {
-  SegmentationList segmentations;
-  foreach(SegmentationSPtr segmentation, m_oldTaxonomies.keys())
+  SegmentationAdapterList segmentations;
+  for(auto segmentation: m_oldCategories.keys())
   {
-    m_model->changeTaxonomy(segmentation, m_taxonomy);
+    m_model->setSegmentationCategory(segmentation, m_category);
     segmentations << segmentation.get();
   }
   m_viewManager->updateSegmentationRepresentations(segmentations);
 }
 
 //------------------------------------------------------------------------
-void ChangeTaxonomyCommand::undo()
+void ChangeCategoryCommand::undo()
 {
-  SegmentationList segmentations;
-  foreach(SegmentationSPtr segmentation, m_oldTaxonomies.keys())
+  SegmentationAdapterList segmentations;
+  for(auto segmentation: m_oldCategories.keys())
   {
-    m_model->changeTaxonomy(segmentation, m_oldTaxonomies[segmentation]);
+    m_model->setSegmentationCategory(segmentation, m_oldCategories[segmentation]);
     segmentations << segmentation.get();
   }
   m_viewManager->updateSegmentationRepresentations(segmentations);

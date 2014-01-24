@@ -241,7 +241,7 @@ void ChannelInspector::changeSpacing()
         }
         break;
       default:
-        Q_ASSERT(false);
+        continue;
         break;
     }
   }
@@ -429,7 +429,7 @@ void ChannelInspector::rejectedChanges()
           }
           break;
         default:
-          Q_ASSERT(false);
+          continue;
           break;
       }
     }

@@ -499,10 +499,22 @@ void ChannelExplorer::dialogClosed(QObject *dialog)
      if (it.value() == dialog)
      {
        it.key()->output()->update();
-       //it.key()->volume()->markAsModified(); //FIXME: It should be done by those methods that modifiy the volume
-       ChannelAdapterList list;
-       list.append(it.key());
-       m_viewManager->updateChannelRepresentations(list);
+
+       ChannelAdapterList channelList;
+       channelList.append(it.key());
+
+       SegmentationAdapterList segList;
+       auto relatedItems = m_model->relatedItems(it.key(), RelationType::RELATION_OUT);
+       for(auto item: relatedItems)
+         if (item->type() == ItemAdapter::Type::SEGMENTATION)
+         {
+           auto segItem = std::dynamic_pointer_cast<SegmentationAdapter>(item);
+           Q_ASSERT(segItem);
+           segList << segItem.get();
+         }
+
+       m_viewManager->updateChannelRepresentations(channelList);
+       m_viewManager->updateSegmentationRepresentations(segList);
        m_viewManager->updateViews();
        m_informationDialogs.erase(it);
        return;

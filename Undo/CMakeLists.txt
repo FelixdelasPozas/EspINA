@@ -12,7 +12,7 @@ set (UNDO_SOURCES
 #   AddRelation.cpp
 #   AddSample.cpp
   AddSegmentations.cpp
-#   ChangeTaxonomyCommand.cpp
+  ChangeCategoryCommand.cpp
 #   TaxonomiesCommand.cpp
 #   ChangeSegmentationNotes.cpp
 #   ChangeSegmentationTags.cpp
