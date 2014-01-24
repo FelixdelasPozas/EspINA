@@ -26,24 +26,12 @@
 using namespace EspINA;
 using namespace EspINA::CF;
 
-//-----------------------------------------------------------------------------
-ChannelExtensionSPtr CountingFrameManager::createChannelExtension(ChannelExtension::Type type)
-{
-  Q_ASSERT(false);//TODO
-}
-
-//-----------------------------------------------------------------------------
-SegmentationExtensionSPtr CountingFrameManager::createSegmentationExtension(SegmentationExtension::Type type)
-{
-  Q_ASSERT(false);//TODO
-}
-
 //------------------------------------------------------------------------
 void CountingFrameManager::createAdaptiveCF(ChannelAdapterPtr channel,
                                             Nm inclusion[3],
                                             Nm exclusion[3])
 {
-  int id = 0;
+  int id = nextId();
 
   auto extension = retrieveOrCreateCFExtension(channel);
 
@@ -57,7 +45,7 @@ void CountingFrameManager::createRectangularCF(ChannelAdapterPtr channel,
                                                Nm inclusion[3],
                                                Nm exclusion[3])
 {
-  int id = 0;
+  int id = nextId();
 
   auto extension = retrieveOrCreateCFExtension(channel);
 
@@ -116,7 +104,7 @@ CountingFrameExtension* CountingFrameManager::retrieveOrCreateCFExtension(Channe
   }
   else
   {
-    extension =  new CountingFrameExtension();
+    extension =  new CountingFrameExtension(this);
     channel->addExtension(CountingFrameExtensionSPtr{extension});
   }
   Q_ASSERT(extension);
@@ -134,3 +122,17 @@ void CountingFrameManager::registerCountingFrame(CountingFrame* cf, CountingFram
 
   emit countingFrameCreated(cf);
 }
+
+//-----------------------------------------------------------------------------
+int CountingFrameManager::nextId() const
+{
+  int lastId = -1;
+
+  for (auto cf :m_countingFrames.keys())
+  {
+    lastId = std::max(cf->id(), lastId);
+  }
+
+  return lastId + 1;
+}
+

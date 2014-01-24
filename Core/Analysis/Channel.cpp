@@ -182,7 +182,8 @@ Snapshot Channel::snapshot() const
 
     stream.setAutoFormatting(true);
     stream.writeStartDocument();
-
+    stream.writeStartElement("Channel");
+    stream.writeAttribute("Name", name());
     for(auto extension : m_extensions)
     {
       stream.writeStartElement(extension->type());
@@ -196,6 +197,7 @@ Snapshot Channel::snapshot() const
         snapshot << SnapshotData(file, data.second);
       }
     }
+    stream.writeEndElement();
     stream.writeEndDocument();
 
     QString file = extensionsPath() + QString("%1.xml").arg(uuid());

@@ -98,9 +98,6 @@ namespace EspINA
     /// Return exclusion margins definded by the UI
     void exclusionMargins(double values[3]);
 
-    void registerCF(CountingFrameExtension *ext,
-                    CountingFrame *cf);
-
   private:
     CountingFrameManager *m_manager;
     ModelAdapterSPtr      m_model;

@@ -360,13 +360,13 @@ void AdaptiveEdges::ComputeSurfaces()
       vtkIdType corners[4];
       switch(face)
       {
-        case 4: // UPPER
+        case 4: // Front
           corners[0] = facePoints->InsertNextPoint(borderPoints->GetPoint(0));
           corners[1] = facePoints->InsertNextPoint(borderPoints->GetPoint(1));
           corners[2] = facePoints->InsertNextPoint(borderPoints->GetPoint(2));
           corners[3] = facePoints->InsertNextPoint(borderPoints->GetPoint(3));
           break;
-        case 5: // LOWER
+        case 5: // Back
           corners[0] = facePoints->InsertNextPoint(borderPoints->GetPoint(borderPoints->GetNumberOfPoints()-4));
           corners[1] = facePoints->InsertNextPoint(borderPoints->GetPoint(borderPoints->GetNumberOfPoints()-3));
           corners[2] = facePoints->InsertNextPoint(borderPoints->GetPoint(borderPoints->GetNumberOfPoints()-2));

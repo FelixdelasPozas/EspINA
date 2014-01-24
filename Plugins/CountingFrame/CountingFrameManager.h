@@ -20,8 +20,6 @@
 #ifndef ESPINA_CF_EXTENSION_FACTORY_H
 #define ESPINA_CF_EXTENSION_FACTORY_H
 
-#include <Extensions/ExtensionFactory.h>
-
 #include <CountingFrames/CountingFrame.h>
 #include <GUI/Model/ChannelAdapter.h>
 
@@ -36,15 +34,10 @@ namespace EspINA {
 
     class CountingFrameManager
     : public QObject
-    , public ExtensionFactory
     {
       Q_OBJECT
 
     public:
-      virtual ChannelExtensionSPtr createChannelExtension(ChannelExtension::Type type);
-
-      virtual SegmentationExtensionSPtr createSegmentationExtension(SegmentationExtension::Type type);
-
       void createAdaptiveCF(ChannelAdapterPtr channel,
                             Nm inclusion[3],
                             Nm exclusion[3]);
@@ -62,6 +55,8 @@ namespace EspINA {
       CountingFrameExtension* retrieveOrCreateCFExtension(ChannelAdapterPtr channel);
 
       void registerCountingFrame(CountingFrame *cf, CountingFrameExtension *extension);
+
+      int nextId() const;
 
     signals:
       void countingFrameCreated(CountingFrame *);

@@ -23,6 +23,7 @@
 #include "CountingFrames/RectangularCountingFrame.h"
 #include <Core/Analysis/Segmentation.h>
 #include <Core/Analysis/Query.h>
+#include <Core/Analysis/Channel.h>
 
 #include <QDebug>
 #include <QApplication>
@@ -39,8 +40,13 @@ const std::string FILE_VERSION = CountingFrameExtension::TYPE.toStdString() + " 
 const char SEP = ';';
 
 //-----------------------------------------------------------------------------
-CountingFrameExtension::CountingFrameExtension()
+CountingFrameExtension::CountingFrameExtension(CountingFrameManager* manager, State state)
+: m_manager(manager)
 {
+  if (!state.isEmpty())
+  {
+    qDebug() << "Initialazing CF Extension with state:\n" << state;
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -249,7 +255,6 @@ void CountingFrameExtension::removeCountingFrame(CountingFrame* countingFrame)
 //-----------------------------------------------------------------------------
 void CountingFrameExtension::onChannelSet(ChannelPtr channel)
 {
-
 }
 
 //-----------------------------------------------------------------------------

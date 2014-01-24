@@ -103,13 +103,13 @@ throw (Factory_Already_Registered_Exception)
 }
 
 //-----------------------------------------------------------------------------
-EspINA::ChannelExtensionSPtr CoreFactory::createChannelExtension(ChannelExtension::Type type)
+ChannelExtensionSPtr CoreFactory::createChannelExtension(ChannelExtension::Type type, const State& state)
 {
   ChannelExtensionSPtr extension;
 
   if (m_channelExtensionFactories.contains(type))
   {
-    extension = m_channelExtensionFactories[type]->createChannelExtension(type);
+    extension = m_channelExtensionFactories[type]->createChannelExtension(type, state);
   } else
   {
     throw Unknown_Type_Exception();
@@ -119,7 +119,7 @@ EspINA::ChannelExtensionSPtr CoreFactory::createChannelExtension(ChannelExtensio
 }
 
 //-----------------------------------------------------------------------------
-EspINA::SegmentationSPtr CoreFactory::createSegmentation(FilterSPtr filter, Output::Id output) const
+SegmentationSPtr CoreFactory::createSegmentation(FilterSPtr filter, Output::Id output) const
 {
   SegmentationSPtr segmentation{new Segmentation(filter, output)};
 
@@ -141,13 +141,13 @@ throw (Factory_Already_Registered_Exception)
 }
 
 //-----------------------------------------------------------------------------
-EspINA::SegmentationExtensionSPtr CoreFactory::createSegmentationExtension(SegmentationExtension::Type type)
+SegmentationExtensionSPtr CoreFactory::createSegmentationExtension(SegmentationExtension::Type type, const State& state)
 {
   SegmentationExtensionSPtr extension;
 
   if (m_segmentationExtensionFactories.contains(type))
   {
-    extension = m_segmentationExtensionFactories[type]->createSegmentationExtension(type);
+    extension = m_segmentationExtensionFactories[type]->createSegmentationExtension(type, state);
   } else
   {
     throw Unknown_Type_Exception();

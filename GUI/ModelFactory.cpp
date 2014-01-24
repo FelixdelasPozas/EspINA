@@ -53,6 +53,18 @@ void ModelFactory::registerFilterFactory(FilterFactorySPtr factory)
 }
 
 //------------------------------------------------------------------------
+void ModelFactory::registerExtensionFactory(ChannelExtensionFactorySPtr factory)
+{
+  m_factory->registerExtensionFactory(factory);
+}
+
+//------------------------------------------------------------------------
+void ModelFactory::registerExtensionFactory(SegmentationExtensionFactorySPtr factory)
+{
+  m_factory->registerExtensionFactory(factory);
+}
+
+//------------------------------------------------------------------------
 void ModelFactory::registerAnalysisReader(AnalysisReaderPtr reader)
 {
   auto extensions = reader->supportedFileExtensions();

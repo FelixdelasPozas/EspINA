@@ -30,13 +30,14 @@ namespace EspINA
   public:
     virtual ~SegmentationExtensionFactory() {}
 
-    virtual SegmentationExtensionSPtr createSegmentationExtension(const SegmentationExtension::Type type) const = 0;
+    virtual SegmentationExtensionSPtr createSegmentationExtension(const SegmentationExtension::Type type, const State &state = State()) const = 0;
 
     virtual SegmentationExtensionTypeList providedExtensions() const = 0 ;
   };
 
-  using SegmentationExtensionFactoryPtr  = SegmentationExtensionFactory *;
-  using SegmentationExtensionFactorySPtr = std::shared_ptr<SegmentationExtensionFactory>;
+  using SegmentationExtensionFactoryPtr   = SegmentationExtensionFactory *;
+  using SegmentationExtensionFactorySPtr  = std::shared_ptr<SegmentationExtensionFactory>;
+  using SegmentationExtensionFactorySList = QList<SegmentationExtensionFactorySPtr>;
 
 }// namespace EspINA
 

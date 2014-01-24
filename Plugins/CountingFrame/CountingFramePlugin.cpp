@@ -3,6 +3,7 @@
 #include "Panel.h"
 #include "CountingFrameRenderer.h"
 #include "ColorEngines/CountingFrameColorEngine.h"
+#include "Extensions/CountingFrameFactory.h"
 
 using namespace EspINA;
 using namespace EspINA::CF;
@@ -47,6 +48,24 @@ QList<DockWidget *> CountingFramePlugin::dockWidgets()
   docks << new Panel(&m_manager, m_model, m_viewManager);
 
   return docks;
+}
+
+//------------------------------------------------------------------------
+ChannelExtensionFactorySList CountingFramePlugin::channelExtensionFactories() const
+{
+  ChannelExtensionFactorySList factories;
+
+  factories << ChannelExtensionFactorySPtr{new CountingFrameFactory(&m_manager)};
+
+  return factories;
+}
+
+//------------------------------------------------------------------------
+SegmentationExtensionFactorySList CountingFramePlugin::segmentationExtensionFactories() const
+{
+  SegmentationExtensionFactorySList factories;
+
+  return factories;
 }
 
 //------------------------------------------------------------------------

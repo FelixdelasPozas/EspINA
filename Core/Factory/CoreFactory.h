@@ -60,13 +60,13 @@ namespace EspINA
 
     void registerExtensionFactory(ChannelExtensionFactorySPtr factory) throw (Factory_Already_Registered_Exception);
 
-    ChannelExtensionSPtr createChannelExtension(ChannelExtension::Type type);
+    ChannelExtensionSPtr createChannelExtension(ChannelExtension::Type type, const State &state = State());
 
     SegmentationSPtr createSegmentation(FilterSPtr filter, Output::Id output) const;
 
     void registerExtensionFactory(SegmentationExtensionFactorySPtr factory) throw (Factory_Already_Registered_Exception);
 
-    SegmentationExtensionSPtr createSegmentationExtension(SegmentationExtension::Type type);
+    SegmentationExtensionSPtr createSegmentationExtension(SegmentationExtension::Type type, const State &state = State());
 
     void setPresistentStorage(TemporalStorageSPtr storage)
     { m_defaultStorage = storage; }

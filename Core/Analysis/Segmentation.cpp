@@ -129,13 +129,20 @@ Snapshot Segmentation::snapshot() const
 
     stream.setAutoFormatting(true);
     stream.writeStartDocument();
-
+    stream.writeStartElement("Segmentation");
+    stream.writeAttribute("Name", name());
     for(auto extension : m_extensions)
     {
       stream.writeStartElement(extension->type());
       stream.writeAttribute("InvalidateOnChange", QString("%1").arg(extension->invalidateOnChange()));
+      for(auto tag : extension->availableInformations())
+      {
+        stream.writeStartElement(tag);
+        stream.writeCharacters(extension->information(tag).toString());
+        stream.writeEndElement();
+      }
       stream.writeCharacters(extension->state());
-      stream.writeEndElement();
+      //stream.writeEndElement();
 
       for(auto data: extension->snapshot())
       {
@@ -143,6 +150,7 @@ Snapshot Segmentation::snapshot() const
         snapshot << SnapshotData(file, data.second);
       }
     }
+    stream.writeEndElement();
     stream.writeEndDocument();
 
     QString file = extensionsPath() + QString("%1.xml").arg(uuid());

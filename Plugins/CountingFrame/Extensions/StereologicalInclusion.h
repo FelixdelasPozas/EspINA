@@ -43,7 +43,8 @@ namespace EspINA
 
   public:
     static const Type    TYPE;
-    static const InfoTag EXCLUDED;
+
+    static InfoTag excluded(CountingFrame::Id id);
 
   public:
     explicit StereologicalInclusion();

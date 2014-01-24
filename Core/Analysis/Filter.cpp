@@ -55,7 +55,8 @@ Snapshot Filter::snapshot() const
 
     xml.setAutoFormatting(true);
     xml.writeStartDocument();
-
+    xml.writeStartElement("Filter");
+    xml.writeAttribute("Type", m_type);
     for(OutputSPtr output : m_outputs)
     {
       xml.writeStartElement("Output");
@@ -63,6 +64,7 @@ Snapshot Filter::snapshot() const
       xml.writeAttribute("bounds",  output->bounds().toString());
       xml.writeAttribute("spacing", output->spacing().toString());
       snapshot << output->snapshot(storage(), xml, prefix());
+      xml.writeEndElement();
     }
 
     xml.writeEndDocument();

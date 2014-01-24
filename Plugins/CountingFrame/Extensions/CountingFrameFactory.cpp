@@ -17,31 +17,34 @@
  *
  */
 
-#include "DefaultChannelExtensionFactory.h"
-
-#include <Extensions/EdgeDistances/AdaptiveEdges.h>
+#include "CountingFrameFactory.h"
+#include "CountingFrameExtension.h"
 
 using namespace EspINA;
+using namespace EspINA::CF;
 
 //-----------------------------------------------------------------------------
-ChannelExtensionSPtr DefaultChannelExtensionFactory::createChannelExtension(const ChannelExtension::Type type, const State& state) const
+CountingFrameFactory::CountingFrameFactory(CountingFrameManager* manager)
+: m_manager(manager)
 {
-  ChannelExtensionSPtr extension;
 
-  if (AdaptiveEdges::TYPE == type)
-  {
-    extension = ChannelExtensionSPtr{new AdaptiveEdges()};
-  }
-
-  return extension;
 }
 
 //-----------------------------------------------------------------------------
-ChannelExtensionTypeList DefaultChannelExtensionFactory::providedExtensions() const
+ChannelExtensionSPtr CountingFrameFactory::createChannelExtension(const ChannelExtension::Type type, const State& state) const
 {
-  ChannelExtensionTypeList extensionTypes;
+  if (type != CountingFrameExtension::TYPE)
+    throw (-1);
 
-  extensionTypes << AdaptiveEdges::TYPE;
+  return ChannelExtensionSPtr{new CountingFrameExtension(m_manager, state)};
+}
 
-  return extensionTypes;
+//-----------------------------------------------------------------------------
+ChannelExtensionTypeList CountingFrameFactory::providedExtensions() const
+{
+  ChannelExtensionTypeList extensions;
+
+  extensions << CountingFrameExtension::TYPE;
+
+  return extensions;
 }

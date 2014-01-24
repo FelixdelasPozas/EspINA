@@ -28,13 +28,13 @@ namespace EspINA {
   : public ChannelExtension
   {
   public:
-    explicit ReadOnlyChannelExtension(ChannelExtension::Type type);
+    explicit ReadOnlyChannelExtension(ChannelExtension::Type type, const State &state=State());
 
     virtual ChannelExtension::Type type() const
     { return m_type; }
 
     virtual State state() const
-    { return State(); }//TODO
+    { return m_state; }
 
     virtual Snapshot snapshot() const
     { return Snapshot(); } // TODO
@@ -46,6 +46,7 @@ namespace EspINA {
 
   private:
     ChannelExtension::Type m_type;
+    State m_state;
   };
 
 } // namespace EspINA

@@ -31,13 +31,14 @@ namespace EspINA
   public:
     virtual ~ChannelExtensionFactory() {}
 
-    virtual ChannelExtensionSPtr createChannelExtension(const ChannelExtension::Type type) const = 0;
+    virtual ChannelExtensionSPtr createChannelExtension(const ChannelExtension::Type type, const State &state = State()) const = 0;
 
     virtual ChannelExtensionTypeList providedExtensions() const = 0 ;
   };
 
-  using ChannelExtensionFactoryPtr  = ChannelExtensionFactory *;
-  using ChannelExtensionFactorySPtr = std::shared_ptr<ChannelExtensionFactory>;
+  using ChannelExtensionFactoryPtr   = ChannelExtensionFactory *;
+  using ChannelExtensionFactorySPtr  = std::shared_ptr<ChannelExtensionFactory>;
+  using ChannelExtensionFactorySList = QList<ChannelExtensionFactorySPtr>;
 
 }// namespace EspINA
 

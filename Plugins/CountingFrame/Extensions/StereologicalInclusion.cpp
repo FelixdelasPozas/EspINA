@@ -38,12 +38,24 @@ using namespace EspINA;
 using namespace EspINA::CF;
 
 const SegmentationExtension::Type    StereologicalInclusion::TYPE     = "StereologicalInclusion";
-const SegmentationExtension::InfoTag StereologicalInclusion::EXCLUDED = "Excluded from CF";
+//const SegmentationExtension::InfoTag StereologicalInclusion::EXCLUDED = "Excluded from CF";
 
 const QString StereologicalInclusion::FILE = StereologicalInclusion::TYPE + "/StereologicalInclusion.csv";
 
 const std::string FILE_VERSION = StereologicalInclusion::TYPE.toStdString() + " 1.0\n";
 const char SEP = ';';
+
+namespace EspINA {
+  namespace CF {
+    const QString TAG = "CF";
+  }
+}
+
+//------------------------------------------------------------------------
+SegmentationExtension::InfoTag StereologicalInclusion::excluded(CountingFrame::Id id)
+{
+  return QString("%1 %2").arg(CF::TAG).arg(id);
+}
 
 //------------------------------------------------------------------------
 StereologicalInclusion::StereologicalInclusion()
@@ -90,7 +102,10 @@ SegmentationExtension::InfoTagList StereologicalInclusion::availableInformations
 {
   InfoTagList tags;
 
-  tags << EXCLUDED;
+  for (auto cf : m_exclusionCFs.keys())
+  {
+    tags << excluded(cf->id());
+  }
 
   return tags;
 }
@@ -101,21 +116,29 @@ void StereologicalInclusion::onSegmentationSet(SegmentationPtr segmentation)
 }
 
 //------------------------------------------------------------------------
-QVariant StereologicalInclusion::information ( const SegmentationExtension::InfoTag& tag ) const
+QVariant StereologicalInclusion::information ( const SegmentationExtension::InfoTag& tag) const
 {
-  if (EXCLUDED == tag)
+  if (tag.startsWith(CF::TAG))
   {
     evaluateCountingFrames();
 
-    QStringList excludingCFs;
-    for(auto cf : m_excludedByCF.keys())
-    {
-      if (m_excludedByCF[cf])
-      {
-        excludingCFs << QString::number(cf);
-      }
-    }
-    return excludingCFs.join(", ");
+    CountingFrame::Id cf = tag.split(" ")[1].toInt();
+
+    QVariant a;
+    a.setValue<bool>(true);
+    a.setValue<QString>("Hola");
+    qDebug() << a.toBool() << a.toString();;
+
+    return m_excludedByCF[cf];
+//     QStringList excludingCFs;
+//     for(auto cf : m_excludedByCF.keys())
+//     {
+//       if (m_excludedByCF[cf])
+//       {
+//         excludingCFs << QString::number(cf);
+//       }
+//     }
+//     return excludingCFs.join(", ");
   }
 
   qWarning() << StereologicalInclusion::TYPE << ":"  << tag << " is not provided";
@@ -320,7 +343,7 @@ void StereologicalInclusion::evaluateCountingFrames()
     {
       m_isOnEdge = isOnEdge();
 
-      for (auto cf : m_excludedByCF.keys())
+      for (auto cf : m_exclusionCFs.keys())
       {
         evaluateCountingFrame(cf);
       }

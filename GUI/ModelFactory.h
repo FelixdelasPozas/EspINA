@@ -58,6 +58,8 @@ namespace EspINA
 
     void registerAnalysisReader(AnalysisReaderPtr reader);
     void registerFilterFactory (FilterFactorySPtr  factory);
+    void registerExtensionFactory(ChannelExtensionFactorySPtr factory);
+    void registerExtensionFactory(SegmentationExtensionFactorySPtr factory);
     void registerChannelRepresentationFactory(RepresentationFactorySPtr factory);
     void registerSegmentationRepresentationFactory(RepresentationFactorySPtr factory);
 

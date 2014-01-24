@@ -24,6 +24,7 @@
 #include <Core/Analysis/Extensions/ChannelExtension.h>
 #include <Plugins/CountingFrame/CountingFrames/CountingFrame.h>
 #include <Plugins/CountingFrame/Extensions/StereologicalInclusion.h>
+#include <CountingFrameManager.h>
 
 namespace EspINA
 {
@@ -44,7 +45,7 @@ namespace EspINA
     static Type TYPE;
 
   public:
-    explicit CountingFrameExtension();
+    explicit CountingFrameExtension(CountingFrameManager *manager, State state = State());
 
     virtual ~CountingFrameExtension();
 
@@ -79,8 +80,8 @@ namespace EspINA
     StereologicalInclusionSPtr stereologicalInclusionExtension(SegmentationSPtr segmentation);
 
   private:
-//     CountingFramePanel *m_plugin;
-//     ViewManager        *m_viewManager;
+    CountingFrameManager *m_manager;
+
     Nm     m_inclusion[3];
     Nm     m_exclusion[3];
 

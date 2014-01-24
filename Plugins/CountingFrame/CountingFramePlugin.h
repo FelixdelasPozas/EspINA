@@ -47,6 +47,10 @@ namespace EspINA
 
       virtual QList<DockWidget *> dockWidgets();
 
+      virtual ChannelExtensionFactorySList channelExtensionFactories() const;
+
+      virtual SegmentationExtensionFactorySList segmentationExtensionFactories() const;
+
       virtual RendererSList renderers();
 
       virtual SettingsPanelSList settingsPanels();

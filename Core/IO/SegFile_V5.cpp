@@ -450,6 +450,7 @@ void SegFile_V5::loadRelations(AnalysisSPtr     analysis,
 //-----------------------------------------------------------------------------
 void SegFile_V5::loadExtensions(ChannelSPtr channel, CoreFactorySPtr factory)
 {
+  //TODO create a function taking a channel and returning the extensions xml file
   QString xmlFile = QString("Extensions/%1.xml").arg(channel->uuid());
   QByteArray extenions = channel->storage()->snapshot(xmlFile);
 
@@ -459,17 +460,19 @@ void SegFile_V5::loadExtensions(ChannelSPtr channel, CoreFactorySPtr factory)
   while (!xml.atEnd())
   {
     xml.readNextStartElement();
-    if (xml.isStartElement())
+    if (xml.isStartElement() && xml.name() != "Channel")
     {
       QString type = xml.name().toString();
       qDebug() << " - " << type << " found";
+      State state = xml.readElementText();
+      qDebug() << " * State " << state << " found";
       ChannelExtensionSPtr extension;
       try
       {
-        extension = factory->createChannelExtension(type);
+        extension = factory->createChannelExtension(type, state);
       } catch (...)
       {
-        extension = ChannelExtensionSPtr{new ReadOnlyChannelExtension(type)};
+        extension = ChannelExtensionSPtr{new ReadOnlyChannelExtension(type, state)};
       }
       Q_ASSERT(extension);
       channel->addExtension(extension);

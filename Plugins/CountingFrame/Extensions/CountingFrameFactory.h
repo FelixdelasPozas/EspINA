@@ -17,20 +17,29 @@
  *
  */
 
-#include "ReadOnlyChannelExtension.h"
+#ifndef ESPINA_CF_COUNTING_FRAME_FACTORY_H
+#define ESPINA_CF_COUNTING_FRAME_FACTORY_H
 
-using namespace EspINA;
+#include <Core/Factory/ChannelExtensionFactory.h>
+#include <CountingFrameManager.h>
 
-//------------------------------------------------------------------------
-ReadOnlyChannelExtension::ReadOnlyChannelExtension(ChannelExtension::Type type, const State& state)
-: m_type(type)
-, m_state(state)
-{
-}
+namespace EspINA {
+  namespace CF {
 
+    class CountingFrameFactory
+    : public ChannelExtensionFactory
+    {
+    public:
+      CountingFrameFactory(CountingFrameManager *manager);
 
-//------------------------------------------------------------------------
-void ReadOnlyChannelExtension::onChannelSet(ChannelPtr channel)
-{
-  //TODO
-}
+    virtual ChannelExtensionSPtr createChannelExtension(const ChannelExtension::Type type, const State &state = State()) const;
+
+      virtual ChannelExtensionTypeList providedExtensions() const;
+
+    private:
+      CountingFrameManager *m_manager;
+    };
+  } // namespace CF
+} // namespace EspINA
+
+#endif // ESPINA_CF_COUNTING_FRAME_FACTORY_H

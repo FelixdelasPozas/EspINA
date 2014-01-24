@@ -48,11 +48,15 @@ namespace EspINA
                       ViewManagerSPtr  viewManager,
                       QUndoStack      *undoStack) = 0;
 
+    virtual ChannelExtensionFactorySList channelExtensionFactories() const = 0;
+
     virtual NamedColorEngineSList colorEngines() = 0;
 
     virtual QList<DockWidget *> dockWidgets() = 0;
 
     virtual RendererSList renderers() = 0;
+
+    virtual SegmentationExtensionFactorySList segmentationExtensionFactories() const = 0;
 
     virtual SettingsPanelSList settingsPanels() = 0;
   };

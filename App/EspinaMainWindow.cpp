@@ -365,13 +365,26 @@ void EspinaMainWindow::loadPlugins(QList<QObject *> &plugins)
 
       for (auto colorEngine : validPlugin->colorEngines())
       {
+        qDebug() << plugin << "- Color Engine " << colorEngine.first << " ...... OK";
         m_colorEngines->addColorEngine(colorEngine.first,  colorEngine.second);
+      }
+
+      for (auto extensionFactory : validPlugin->channelExtensionFactories())
+      {
+        qDebug() << plugin << "- Channel Extension Factory  ...... OK";
+        m_factory->registerExtensionFactory(extensionFactory);
       }
 
       for (auto dock : validPlugin->dockWidgets())
       {
         qDebug() << plugin << "- Dock " << dock->windowTitle() << " ...... OK";
         registerDockWidget(Qt::LeftDockWidgetArea, dock);
+      }
+
+      for (auto extensionFactory : validPlugin->segmentationExtensionFactories())
+      {
+        qDebug() << plugin << "- Segmentation Extension Factory  ...... OK";
+        m_factory->registerExtensionFactory(extensionFactory);
       }
 
       for (auto settings : validPlugin->settingsPanels())
@@ -386,23 +399,6 @@ void EspinaMainWindow::loadPlugins(QList<QObject *> &plugins)
         m_availableRenderers << renderer;
       }
     }
-//     IFactoryExtension *factoryExtension = qobject_cast<IFactoryExtension *>(plugin);
-//     if (factoryExtension)
-//     {
-//       qDebug() << plugin << "- Factory Extension...... OK";
-//       factoryExtension->initFactoryExtension(m_model->factory());
-//     }
-// 
-//     IToolBarFactory *toolbarFactory = qobject_cast<IToolBarFactory *>(plugin);
-//     if (toolbarFactory)
-//     {
-//       qDebug() << plugin << "- ToolBar ... OK";
-//       toolbarFactory->initToolBarFactory(m_model, m_undoStack, m_viewManager);
-//       foreach(IToolBar *toolbar, toolbarFactory->toolBars())
-//       {
-//         registerToolBar(toolbar);
-//       }
-//     }
 
 //     DynamicMenu *menu = qobject_cast<DynamicMenu *>(plugin);
 //     if (menu)
@@ -411,15 +407,6 @@ void EspinaMainWindow::loadPlugins(QList<QObject *> &plugins)
 //       foreach(MenuEntry entry, menu->menuEntries())
 //         createDynamicMenu(entry);
 //     }
-
-//     IColorEngineProvider *provider = qobject_cast<IColorEngineProvider *>(plugin);
-//     if (provider)
-//     {
-//       qDebug() << plugin << "- Color Engine Provider ..... OK";
-//       foreach(IColorEngineProvider::Engine engine, provider->colorEngines())
-//         m_colorEngines->addColorEngine(engine.first, engine.second);
-//     }
-
 
 //     IFileReader *fileReader = qobject_cast<IFileReader *>(plugin);
 //     if (fileReader)

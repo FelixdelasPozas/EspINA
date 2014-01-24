@@ -28,7 +28,7 @@ namespace EspINA {
   : public ChannelExtensionFactory
   {
   public:
-    virtual ChannelExtensionSPtr createChannelExtension(const EspINA::ChannelExtension::Type type) const;
+    virtual ChannelExtensionSPtr createChannelExtension(const ChannelExtension::Type type, const State &state = State()) const;
 
     virtual ChannelExtensionTypeList providedExtensions() const;
   };

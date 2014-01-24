@@ -69,6 +69,7 @@ set (LOCAL_SOURCES
   CountingFrames/vtkCountingFrameSliceWidget.cpp
   Dialogs/TypeDialog.cpp
   Extensions/CountingFrameExtension.cpp
+  Extensions/CountingFrameFactory.cpp
   Extensions/StereologicalInclusion.cpp
   Panel.cpp
   )
