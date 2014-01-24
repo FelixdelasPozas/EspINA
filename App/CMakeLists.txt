@@ -62,7 +62,7 @@ qt4_wrap_cpp (ESPINA_MOC
 #   Tools/VOI/RectangularVOI.h
   Views/DefaultView.h
 #   Dialogs/Connectomics/ConnectomicsDialog.h
-#   Dialogs/ChannelInspector/ChannelInspector.h
+  Dialogs/ChannelInspector/ChannelInspector.h
   Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.h
   Undo/BrushUndoCommand.h
   Settings/View3D/View3DSettingsPanel.h
@@ -88,7 +88,7 @@ qt4_wrap_ui (ESPINA_UI
   Settings/View3D/View3DSettingsPanel.ui
 #   Settings/VOI/RectangularVOISettings.ui
 #   Dialogs/Connectomics/ConnectomicsDialog.ui
-#   Dialogs/ChannelInspector/ChannelInspector.ui
+  Dialogs/ChannelInspector/ChannelInspector.ui
   Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.ui
 #   FilterInspectors/TubularSegmentation/TubularFilterInspector.ui
 #   FilterInspectors/TubularSegmentation/NodesInformationDialog.ui
@@ -172,7 +172,7 @@ set (ESPINA_SOURCES
 #   Undo/ContourUndoCommand.cpp
   Views/DefaultView.cpp
 #   Dialogs/Connectomics/ConnectomicsDialog.cpp
-#   Dialogs/ChannelInspector/ChannelInspector.cpp
+  Dialogs/ChannelInspector/ChannelInspector.cpp
 #   Tools/TubularSegmentation/TubularTool.cpp
 #   FilterInspectors/TubularSegmentation/TubularFilterInspector.cpp
 #   FilterInspectors/TubularSegmentation/NodesInformationDialog.cpp

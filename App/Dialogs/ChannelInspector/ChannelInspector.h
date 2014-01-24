@@ -5,12 +5,15 @@
  *      Author: Félix de las Pozas Álvarez
  */
 
-#ifndef CHANNELINSPECTOR_H_
-#define CHANNELINSPECTOR_H_
+#ifndef ESPINA_CHANNEL_INSPECTOR_H_
+#define ESPINA_CHANNEL_INSPECTOR_H_
 
 // EspINA
+#include <Core/EspinaTypes.h>
+#include <GUI/Model/ChannelAdapter.h>
+#include <GUI/Model/ModelAdapter.h>
 #include <ui_ChannelInspector.h>
-#include <GUI/QtWidget/HueSelector.h>
+#include <GUI/Widgets/HueSelector.h>
 
 // Qt
 #include <QDialog>
@@ -19,12 +22,9 @@ class QCloseEvent;
 
 namespace EspINA
 {
-  class Channel;
   class ViewManager;
   class View2D;
   class HueSelector;
-  class ModelAdapter;
-
 
   class ChannelInspector
   : public QDialog
@@ -32,7 +32,7 @@ namespace EspINA
   {
     Q_OBJECT
   public:
-    explicit ChannelInspector(Channel *, ModelAdapter *, QWidget *parent = 0);
+    explicit ChannelInspector(ChannelAdapterPtr channel, ModelAdapterSPtr model, SchedulerSPtr scheduler, QWidget *parent = 0);
     virtual ~ChannelInspector();
 
     // re-implemented from base class because we need to reset channel
@@ -64,30 +64,30 @@ namespace EspINA
     // helpher methods
     void applyModifications();
 
-    bool m_spacingModified;
-    bool m_edgesModified;
-    double m_range[2];
+    bool   m_spacingModified;
+    bool   m_edgesModified;
+//    double m_range[2];
 
-    Channel     *m_channel;
-    ViewManager *m_viewManager;
-    ModelAdapter *m_model;
-
-    View2D   *m_view;
-    HueSelector *m_hueSelector;
+    ChannelAdapterPtr m_channel;
+//    ViewManagerSPtr    m_viewManager;
+    ModelAdapterSPtr   m_model;
+    SchedulerSPtr      m_scheduler;
+    View2D            *m_view;
+    HueSelector       *m_hueSelector;
 
     bool m_adaptiveEdgesEnabled;
-    int m_backgroundColor;
-    int m_threshold;
+    int  m_backgroundColor;
+    int  m_threshold;
 
     // properties backup
-    double m_spacing[3];
-    double m_opacity;
-    double m_hue;
-    double m_saturation;
-    double m_brightness;
-    double m_contrast;
+    NmVector3 m_spacing;
+    double    m_opacity;
+    double    m_hue;
+    double    m_saturation;
+    double    m_brightness;
+    double    m_contrast;
   };
 
 } // namespace EspINA
 
-#endif /* CHANNELINSPECTOR_H_ */
+#endif /* ESPINA_CHANNEL_INSPECTOR_H_ */

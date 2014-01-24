@@ -6,17 +6,18 @@
  */
 
 // EspINA
-#include <GUI/QtWidget/SliceView.h>
-#include <GUI/ViewManager.h>
-#include <Core/Model/EspinaModel.h>
-#include <Core/Model/Channel.h>
-#include <Core/Model/Segmentation.h>
-#include <Core/EspinaTypes.h>
-#include <Core/Filters/ChannelReader.h>
-#include <Core/Extensions/EdgeDistances/AdaptiveEdges.h>
-#include <Core/Extensions/EdgeDistances/EdgeDistance.h>
-
 #include "ChannelInspector.h"
+#include <GUI/View/View2D.h>
+#include <Support/ViewManager.h>
+#include <GUI/Model/ModelAdapter.h>
+#include <GUI/Model/ChannelAdapter.h>
+#include <GUI/Model/SegmentationAdapter.h>
+#include <Core/EspinaTypes.h>
+#include <App/IO/ChannelReader.h>
+#include <Core/Utils/NmVector3.h>
+#include <Extensions/EdgeDistances/AdaptiveEdges.h>
+#include <Extensions/EdgeDistances/EdgeDistance.h>
+#include <GUI/Representations/Renderers/SliceRenderer.h>
 
 // Qt
 #include <QSizePolicy>
@@ -25,7 +26,7 @@
 #include <QDialog>
 #include <QLocale>
 #include <QColorDialog>
-#include <qbitmap.h>
+#include <QBitmap>
 #include <QPainter>
 
 // VTK
@@ -34,20 +35,21 @@
 
 // ITK
 #include <itkChangeInformationImageFilter.h>
+#include <itkStatisticsImageFilter.h>
 
 using namespace EspINA;
 
 typedef itk::ChangeInformationImageFilter<itkVolumeType> ChangeImageInformationFilter;
 
 //------------------------------------------------------------------------
-ChannelInspector::ChannelInspector(Channel *channel, ModelAdapter *model, QWidget *parent)
+ChannelInspector::ChannelInspector(ChannelAdapterPtr channel, ModelAdapterSPtr model, SchedulerSPtr scheduler, QWidget *parent)
 : QDialog(parent)
 , m_spacingModified(false)
 , m_edgesModified(false)
 , m_channel(channel)
-, m_viewManager(new ViewManager())
 , m_model(model)
-, m_view(new View2D(m_model->factory(), m_viewManager, AXIAL))
+, m_scheduler(scheduler)
+, m_view(new View2D(Plane::XY, this))
 {
   setupUi(this);
 
@@ -60,14 +62,17 @@ ChannelInspector::ChannelInspector(Channel *channel, ModelAdapter *model, QWidge
 
   connect(unitsBox, SIGNAL(currentIndexChanged(int)), this, SLOT(unitsChanged(int)));
 
-  m_view->addChannel(channel);
+  RendererSList renderers;
+  renderers << RendererSPtr{new SliceRenderer()};
+  m_view->setRenderers(renderers);
+  m_view->add(channel);
   m_view->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   m_view->setParent(this);
 
   mainLayout->insertWidget(0, m_view, 1);
 
-  double spacing[3];
-  channel->volume()->spacing(spacing);
+  auto volume = volumetricData(channel->output());
+  NmVector3 spacing = volume->spacing();
 
   // prefer dots instead of commas
   QLocale localeUSA = QLocale(QLocale::English, QLocale::UnitedStates);
@@ -75,7 +80,7 @@ ChannelInspector::ChannelInspector(Channel *channel, ModelAdapter *model, QWidge
   spacingYBox->setLocale(localeUSA);
   spacingZBox->setLocale(localeUSA);
 
-  memcpy(m_spacing, spacing, sizeof(double)*3);
+  m_spacing = spacing;
   spacingXBox->setValue(spacing[0]);
   spacingYBox->setValue(spacing[1]);
   spacingZBox->setValue(spacing[2]);
@@ -126,9 +131,6 @@ ChannelInspector::ChannelInspector(Channel *channel, ModelAdapter *model, QWidge
   connect(hueBox, SIGNAL(valueChanged(int)), this, SLOT(newHSV(int)));
   connect(saturationSlider, SIGNAL(valueChanged(int)), this, SLOT(saturationChanged(int)));
 
-  vtkImageData *image = vtkImageData::SafeDownCast(m_channel->volume()->toVTK()->GetProducer()->GetOutputDataObject(0));
-  image->GetScalarRange(m_range);
-
   m_brightness = m_channel->brightness();
   m_contrast = m_channel->contrast();
   brightnessSlider->setValue(vtkMath::Round(m_channel->brightness() * 255.));
@@ -146,12 +148,12 @@ ChannelInspector::ChannelInspector(Channel *channel, ModelAdapter *model, QWidge
   m_view->updateView();
 
   /// EDGES TAB
-  Channel::ExtensionPtr edgesExtension = channel->extension(EspINA::AdaptiveEdgesID);
-  AdaptiveEdges *adaptiveExtension = NULL;
+  auto edgesExtension = channel->extension(AdaptiveEdges::TYPE);
+  AdaptiveEdgesSPtr adaptiveExtension = nullptr;
   if (edgesExtension)
-    adaptiveExtension = reinterpret_cast<AdaptiveEdges*>(edgesExtension);
+    adaptiveExtension = std::dynamic_pointer_cast<AdaptiveEdges>(edgesExtension);
 
-  m_adaptiveEdgesEnabled = (edgesExtension != NULL) && adaptiveExtension->usesAdaptiveEdges();
+  m_adaptiveEdgesEnabled = (edgesExtension != nullptr) && adaptiveExtension->usesAdaptiveEdges();
 
   radioStackEdges->setChecked(!m_adaptiveEdgesEnabled);
   radioImageEdges->setChecked(m_adaptiveEdgesEnabled);
@@ -163,8 +165,8 @@ ChannelInspector::ChannelInspector(Channel *channel, ModelAdapter *model, QWidge
   connect(radioStackEdges, SIGNAL(toggled(bool)), this, SLOT(radioEdgesChanged(bool)));
   connect(radioImageEdges, SIGNAL(toggled(bool)), this, SLOT(radioEdgesChanged(bool)));
 
-  m_backgroundColor = (edgesExtension == NULL) ? 0 : adaptiveExtension->backgroundColor();
-  m_threshold = (edgesExtension == NULL) ? 50 : adaptiveExtension->threshold();
+  m_backgroundColor = (edgesExtension == nullptr) ? 0 : adaptiveExtension->backgroundColor();
+  m_threshold = (edgesExtension == nullptr) ? 50 : adaptiveExtension->threshold();
   colorBox->setValue(m_backgroundColor);
   thresholdBox->setValue(m_threshold);
 
@@ -181,7 +183,6 @@ ChannelInspector::ChannelInspector(Channel *channel, ModelAdapter *model, QWidge
 ChannelInspector::~ChannelInspector()
 {
   delete m_view;
-  delete m_viewManager;
 }
 
 //------------------------------------------------------------------------
@@ -218,44 +219,35 @@ void ChannelInspector::changeSpacing()
     return;
   }
 
-  itkVolumeType::SpacingType spacing;
+  NmVector3 spacing;
   spacing[0] = spacingXBox->value()*pow(1000,unitsBox->currentIndex());
   spacing[1] = spacingYBox->value()*pow(1000,unitsBox->currentIndex());
   spacing[2] = spacingZBox->value()*pow(1000,unitsBox->currentIndex());
 
   QApplication::setOverrideCursor(Qt::WaitCursor);
 
-  ChannelReader* reader = dynamic_cast<ChannelReader *>(m_channel->filter().get());
-  Q_ASSERT(reader);
-  reader->setSpacing(spacing);
+  m_channel->output()->setSpacing(spacing);
 
-  ChannelList channels;
-  channels << m_channel;
-
-  SegmentationList updatedSegmentations;
-  foreach(ModelItemSPtr item, m_channel->relatedItems(EspINA::RELATION_OUT, Channel::LINK))
+  auto relatedItems = m_model->relatedItems(m_channel, RelationType::RELATION_OUT);
+  for(auto item: relatedItems)
   {
-    if (EspINA::SEGMENTATION == item->type())
+    switch(item->type())
     {
-      SegmentationSPtr seg = segmentationPtr(item);
-      SegmentationVolumeSPtr segVolume = segmentationVolume(seg->output());
-
-      ChangeImageInformationFilter::Pointer changer = ChangeImageInformationFilter::New();
-      changer->SetInput(segVolume->toITK().GetPointer());
-      changer->ChangeSpacingOn();
-      changer->SetOutputSpacing(spacing);
-      changer->Update();
-
-      segVolume->setVolume(changer->GetOutput());
-      segVolume->toITK()->Update();
-      segVolume->markAsModified(true);
-      updatedSegmentations << seg.get();
+      case ItemAdapter::Type::SEGMENTATION:
+        {
+          auto segAdapter = std::dynamic_pointer_cast<ViewItemAdapter>(item);
+          Q_ASSERT(segAdapter);
+          segAdapter->output()->setSpacing(spacing);
+        }
+        break;
+      default:
+        Q_ASSERT(false);
+        break;
     }
   }
 
-  m_viewManager->updateSegmentationRepresentations(updatedSegmentations);
-  m_viewManager->updateChannelRepresentations(channels);
-
+  m_view->updateSceneBounds();
+  m_view->updateRepresentations();
   m_view->resetCamera();
   m_spacingModified = false;
   applyModifications();
@@ -341,24 +333,23 @@ void ChannelInspector::saturationChanged(int value)
 //------------------------------------------------------------------------
 void ChannelInspector::contrastChanged(int value)
 {
-  int rangediff = m_range[1]-m_range[0];
   double tick;
 
   if (QString("contrastSlider").compare(sender()->objectName()) == 0)
   {
-    tick = rangediff / 255.0;
+    tick = 1.0;
     contrastBox->blockSignals(true);
     contrastBox->setValue(vtkMath::Round(value*(100./255.)));
     contrastBox->blockSignals(false);
   }
   else
   {
-    tick = rangediff / 100.0;
+    tick = 255.0 / 100.0;
     contrastSlider->blockSignals(true);
     contrastSlider->setValue(vtkMath::Round(value*(255./100.)));
     contrastSlider->blockSignals(false);
   }
-  m_channel->setContrast(((value * tick)/rangediff)+1);
+  m_channel->setContrast(((value * tick)/255.0)+1);
 
   applyModifications();
 }
@@ -390,7 +381,9 @@ void ChannelInspector::applyModifications()
   if (!this->isVisible())
     return;
 
-  m_view->updateChannelRepresentation(m_channel);
+  ChannelAdapterList channels;
+  channels << m_channel;
+  m_view->updateRepresentations(channels);
   m_view->updateView();
 }
 
@@ -415,45 +408,31 @@ void ChannelInspector::rejectedChanges()
 {
   bool modified = false;
 
-  double spacing[3];
-  m_channel->volume()->spacing(spacing);
+  auto volume = volumetricData(m_channel->output());
+  NmVector3 spacing = volume->spacing();
 
   if (m_spacing[0] != spacing[0] || m_spacing[1] != spacing[1] || m_spacing[2] != spacing[2])
   {
     modified = true;
-    itkVolumeType::SpacingType newSpacing;
-    newSpacing[0] = m_spacing[0];
-    newSpacing[1] = m_spacing[1];
-    newSpacing[2] = m_spacing[2];
+    m_channel->output()->setSpacing(m_spacing);
 
-    /// WARNING: This won't work with preprocessing
-    ChannelReader *reader = dynamic_cast<ChannelReader *>(m_channel->filter().get());
-    Q_ASSERT(reader);
-    reader->setSpacing(newSpacing);
-    reader->update(0);
-
-    SegmentationList updatedSegmentations;
-    foreach(ModelItemSPtr item, m_channel->relatedItems(EspINA::RELATION_OUT, Channel::LINK))
+    auto relatedItems = m_model->relatedItems(m_channel, RelationType::RELATION_OUT);
+    for(auto item: relatedItems)
     {
-      if (EspINA::SEGMENTATION == item->type())
+      switch(item->type())
       {
-        SegmentationSPtr seg = segmentationPtr(item);
-        SegmentationVolumeSPtr segVolume = segmentationVolume(seg->output());
-        ChangeImageInformationFilter::Pointer changer = ChangeImageInformationFilter::New();
-        changer->SetInput(segVolume->toITK());
-        changer->ChangeSpacingOn();
-        changer->SetOutputSpacing(newSpacing);
-        changer->Update();
-
-        segVolume->setVolume(changer->GetOutput());
-        segVolume->toITK()->Update();
-        segVolume->markAsModified(true);
-        updatedSegmentations << seg.get();
+        case ItemAdapter::Type::SEGMENTATION:
+          {
+            auto segAdapter = std::dynamic_pointer_cast<ViewItemAdapter>(item);
+            Q_ASSERT(segAdapter);
+            segAdapter->output()->setSpacing(m_spacing);
+          }
+          break;
+        default:
+          Q_ASSERT(false);
+          break;
       }
     }
-
-    m_view->updateSceneBounds();  // needed to update thumbnail values without triggering volume()->markAsModified()
-    m_viewManager->updateSegmentationRepresentations(updatedSegmentations);
   }
 
   if (m_opacity != m_channel->opacity())
@@ -487,7 +466,10 @@ void ChannelInspector::rejectedChanges()
   }
 
   if (modified)
-    m_viewManager->updateChannelRepresentations();
+  {
+    m_view->updateSceneBounds();  // needed to update thumbnail values without triggering volume()->markAsModified()
+    m_view->updateRepresentations();
+  }
 }
 
 //------------------------------------------------------------------------
@@ -547,19 +529,21 @@ void ChannelInspector::changeEdgeDetectorThreshold(int value)
 //------------------------------------------------------------------------
 void ChannelInspector::applyEdgesChanges()
 {
-  Channel::ExtensionPtr extension = m_channel->extension(EspINA::AdaptiveEdgesID);
-  if (extension != NULL)
+  ChannelExtensionSPtr extension = m_channel->extension(AdaptiveEdges::TYPE);
+  if (extension != nullptr)
   {
-    AdaptiveEdges *adaptiveEdges = reinterpret_cast<AdaptiveEdges *>(extension);
-    adaptiveEdges->invalidate(m_channel);
+    AdaptiveEdgesSPtr adaptiveEdges = std::dynamic_pointer_cast<AdaptiveEdges>(extension);
 
-    foreach(SegmentationSPtr seg, m_model->segmentations())
-      if (seg->hasInformationExtension(EdgeDistanceID))
+    for (auto segmentation: m_model->segmentations())
+    {
+      if (segmentation->hasExtension(EdgeDistance::TYPE))
       {
-        Segmentation::InformationExtension ext = seg->informationExtension(EdgeDistanceID);
-        ext->invalidate(seg.get());
-
+        auto segExtension = segmentation->extension(EdgeDistance::TYPE);
+        Q_ASSERT(segExtension);
+        EdgeDistance *distanceExt = edgeDistance(segExtension.get());
+        distanceExt->invalidate();
       }
+    }
 
     m_channel->deleteExtension(extension);
   }
@@ -570,7 +554,7 @@ void ChannelInspector::applyEdgesChanges()
     m_backgroundColor = colorBox->value();
     m_threshold = thresholdBox->value();
 
-    m_channel->addExtension(new AdaptiveEdges(true, m_backgroundColor, m_threshold));
+    m_channel->addExtension(ChannelExtensionSPtr(new AdaptiveEdges(true, m_backgroundColor, m_threshold, m_scheduler)));
   }
   else
     m_adaptiveEdgesEnabled = false;

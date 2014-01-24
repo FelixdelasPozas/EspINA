@@ -24,6 +24,7 @@
 // File:    ChannelExplorer.h
 // Purpose: Dock widget to manage channels in the model
 //----------------------------------------------------------------------------
+#include <Core/EspinaTypes.h>
 #include <Support/DockWidget.h>
 
 // EspINA
@@ -47,6 +48,7 @@ namespace EspINA
   public:
     explicit ChannelExplorer(ModelAdapterSPtr model,
                              ViewManagerSPtr  viewManager,
+                             SchedulerSPtr    scheduler,
                              QUndoStack      *undoStack,
                              QWidget         *parent = 0);
     virtual ~ChannelExplorer();
@@ -76,13 +78,14 @@ namespace EspINA
   private:
     ModelAdapterSPtr m_model;
     ViewManagerSPtr  m_viewManager;
+    SchedulerSPtr    m_scheduler;
     QUndoStack      *m_undoStack;
 
     std::shared_ptr<ChannelProxy>          m_channelProxy;
     std::shared_ptr<QSortFilterProxyModel> m_sort;
 
     CentralWidget *m_gui;
-    QMap<Channel *, ChannelInspector *> m_informationDialogs;
+    QMap<ChannelAdapterPtr, ChannelInspector *> m_informationDialogs;
   };
 
 } // namespace EspINA

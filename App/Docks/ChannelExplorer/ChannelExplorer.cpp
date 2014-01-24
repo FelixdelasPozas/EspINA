@@ -21,7 +21,7 @@
 
 // EspINA
 #include "EspinaConfig.h"
-//#include "Dialogs/ChannelInspector/ChannelInspector.h"
+#include "Dialogs/ChannelInspector/ChannelInspector.h"
 // #include <Undo/UnloadChannelCommand.h>
 // #include <Undo/UnloadSampleCommand.h>
 
@@ -51,12 +51,14 @@ public:
 //------------------------------------------------------------------------
 ChannelExplorer::ChannelExplorer(ModelAdapterSPtr model,
                                  ViewManagerSPtr  viewManager,
+                                 SchedulerSPtr    scheduler,
                                  QUndoStack      *undoStack,
                                  QWidget         *parent)
 : DockWidget(parent)
 , m_model(model)
-, m_undoStack(undoStack)
 , m_viewManager(viewManager)
+, m_scheduler(scheduler)
+, m_undoStack(undoStack)
 , m_channelProxy(new ChannelProxy(model))
 , m_sort(new QSortFilterProxyModel())
 , m_gui(new CentralWidget())
@@ -449,28 +451,28 @@ void ChannelExplorer::focusOnChannel()
 //------------------------------------------------------------------------
 void ChannelExplorer::showInformation()
 {
-//   foreach(QModelIndex index, m_gui->view->selectionModel()->selectedIndexes())
-//   {
-//     QModelIndex currentIndex = m_sort->mapToSource(index);
-//     ModelItemPtr currentItem = indexPtr(currentIndex);
-//     Q_ASSERT(currentItem);
-// 
-//     if (EspINA::CHANNEL == currentItem->type())
-//     {
-//       ChannelPtr channel = channelPtr(currentItem);
-//       ChannelInspector *inspector = m_informationDialogs.value(channel, NULL);
-// 
-//       if (!inspector)
-//       {
-//         inspector = new ChannelInspector(channel, m_model);
-//         m_informationDialogs.insert(channel, inspector);
-//         connect(inspector, SIGNAL(destroyed(QObject *)), this, SLOT(dialogClosed(QObject *)));
-//         connect(inspector, SIGNAL(spacingUpdated()), this, SLOT(inspectorChangedSpacing()));
-//       }
-//       inspector->show();
-//       inspector->raise();
-//     }
-//   }
+   for(auto index: m_gui->view->selectionModel()->selectedIndexes())
+   {
+     QModelIndex currentIndex = m_sort->mapToSource(index);
+     ItemAdapterPtr currentItem = itemAdapter(currentIndex);
+     Q_ASSERT(currentItem);
+
+     if (ItemAdapter::Type::CHANNEL == currentItem->type())
+     {
+       ChannelAdapterPtr channel = channelPtr(currentItem);
+       ChannelInspector *inspector = m_informationDialogs.value(channel, nullptr);
+
+       if (!inspector)
+       {
+         inspector = new ChannelInspector(channel, m_model, m_scheduler);
+         m_informationDialogs.insert(channel, inspector);
+         connect(inspector, SIGNAL(destroyed(QObject *)), this, SLOT(dialogClosed(QObject *)));
+         connect(inspector, SIGNAL(spacingUpdated()), this, SLOT(inspectorChangedSpacing()));
+       }
+       inspector->show();
+       inspector->raise();
+     }
+   }
 }
 
 //------------------------------------------------------------------------
@@ -492,22 +494,21 @@ void ChannelExplorer::activateChannel()
 //------------------------------------------------------------------------
 void ChannelExplorer::dialogClosed(QObject *dialog)
 {
-//   QMap<Channel *, ChannelInspector*>::iterator it = m_informationDialogs.begin();
-//   while (it != m_informationDialogs.end())
-//   {
-//     if (it.value() == dialog)
-//     {
-//       it.key()->output()->update();
-//       //it.key()->volume()->markAsModified(); //FIXME: It should be done by those methods that modifiy the volume 
-//       ChannelList list;
-//       list.append(it.key());
-//       m_viewManager->updateChannelRepresentations(list);
-//       m_viewManager->updateViews();
-//       m_informationDialogs.erase(it);
-//       return;
-//     }
-//     ++it;
-//   }
+   for(auto it = m_informationDialogs.begin(); it != m_informationDialogs.end(); ++it)
+   {
+     if (it.value() == dialog)
+     {
+       it.key()->output()->update();
+       //it.key()->volume()->markAsModified(); //FIXME: It should be done by those methods that modifiy the volume
+       ChannelAdapterList list;
+       list.append(it.key());
+       m_viewManager->updateChannelRepresentations(list);
+       m_viewManager->updateViews();
+       m_informationDialogs.erase(it);
+       return;
+     }
+     ++it;
+   }
 }
 
 //------------------------------------------------------------------------
