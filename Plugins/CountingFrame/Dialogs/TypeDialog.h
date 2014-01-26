@@ -23,7 +23,7 @@
 #include "Dialogs/TypeDialog.h"
 #include "ui_TypeDialog.h"
 
-#include <CountingFrameManager.h>
+#include <CountingFrames/CountingFrame.h>
 
 // Qt
 #include <QDialog>
@@ -42,13 +42,13 @@ namespace EspINA
       TypeDialog(QWidget *parent);
       virtual ~TypeDialog() {};
 
-      Type type() const { return m_type; }
+      CFType type() const { return m_type; }
 
     public slots:
       void radioChanged(bool);
 
     private:
-      Type m_type;
+      CFType m_type;
     };
 
   }

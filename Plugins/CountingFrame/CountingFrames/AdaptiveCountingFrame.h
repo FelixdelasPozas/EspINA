@@ -34,17 +34,20 @@ namespace EspINA
     : public CountingFrame
     {
     public:
-      static AdaptiveCountingFrame *New(Id id,
-                                        CountingFrameExtension *extension,
+      static AdaptiveCountingFrame *New(CountingFrameExtension *extension,
                                         const Bounds &bounds,
                                         Nm inclusion[3],
                                         Nm exclusion[3])
-      { return new AdaptiveCountingFrame(id, extension, bounds, inclusion, exclusion); }
+      { return new AdaptiveCountingFrame(extension, bounds, inclusion, exclusion); }
 
       virtual ~AdaptiveCountingFrame();
 
+      virtual CFType cfType() const
+      { return CF::ADAPTIVE; }
+
       // Implements QStandardItem interface
       virtual QVariant data(int role = Qt::UserRole + 1) const;
+
       virtual QString name() const { return ADAPTIVE_CF; }
 
       // Implements EspinaWidget itnerface
@@ -60,8 +63,7 @@ namespace EspINA
       virtual void updateCountingFrameImplementation();
 
     protected:
-      explicit AdaptiveCountingFrame(Id id,
-                                     CountingFrameExtension *extension,
+      explicit AdaptiveCountingFrame(CountingFrameExtension *extension,
                                      const Bounds &bounds,
                                      Nm inclusion[3],
                                      Nm exclusion[3]);

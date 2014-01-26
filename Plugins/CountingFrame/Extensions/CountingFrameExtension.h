@@ -31,8 +31,6 @@ namespace EspINA
   namespace CF {
 
   class StereologicalInclusion;
-//   class CountingFramePanel;
-//   class ViewManager;
 
   class CountingFramePlugin_EXPORT CountingFrameExtension
   : public QObject
@@ -82,8 +80,10 @@ namespace EspINA
   private:
     CountingFrameManager *m_manager;
 
-    Nm     m_inclusion[3];
-    Nm     m_exclusion[3];
+    Nm    m_inclusion[3];
+    Nm    m_exclusion[3];
+
+    State m_prevState;
 
     CountingFrameList m_countingFrames;
   };

@@ -67,6 +67,9 @@ namespace EspINA
   using ChannelExtensionSList    = QList<ChannelExtensionSPtr>;
   using ChannelExtensionSMap     = QMap<QString, ChannelExtensionSPtr>;
   using ChannelExtensionTypeList = QList<ChannelExtension::Type>;
+
+  QString extensionFile(const ChannelSPtr &channel);
+
 } // namespace EspINA
 
 #endif // ESPINA_CHANNEL_EXTENSION_H

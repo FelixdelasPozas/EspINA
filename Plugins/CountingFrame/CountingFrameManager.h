@@ -26,12 +26,6 @@
 namespace EspINA {
   namespace CF {
 
-    enum Type
-    {
-      ADAPTIVE,
-      RECTANGULAR
-    };
-
     class CountingFrameManager
     : public QObject
     {
@@ -51,10 +45,10 @@ namespace EspINA {
       CountingFrameList countingFrames() const
       { return m_countingFrames.keys(); }
 
+      void registerCountingFrame(CountingFrame *cf, CountingFrameExtension *extension);
+
     private:
       CountingFrameExtension* retrieveOrCreateCFExtension(ChannelAdapterPtr channel);
-
-      void registerCountingFrame(CountingFrame *cf, CountingFrameExtension *extension);
 
       int nextId() const;
 

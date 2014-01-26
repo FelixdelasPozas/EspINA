@@ -107,7 +107,6 @@ namespace EspINA
 
     bool m_useSlices;
 
-    QList<CountingFrameExtension *> m_countingFramesExtensions;
     CountingFrameList m_countingFrames;
     CountingFrame    *m_activeCF;
     CountingFrame::Id m_nextId;

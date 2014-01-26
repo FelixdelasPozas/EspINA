@@ -26,15 +26,14 @@ using namespace EspINA;
 using namespace EspINA::CF;
 
 //-----------------------------------------------------------------------------
-CountingFrame::CountingFrame(Id                      id,
-                             CountingFrameExtension *extension,
+CountingFrame::CountingFrame(CountingFrameExtension *extension,
                              Nm                      inclusion[3],
                              Nm                      exclusion[3])
 : QStandardItem()
 , INCLUSION_FACE(255)
 , EXCLUSION_FACE(0)
 , m_extension(extension)
-, m_id(id)
+, m_id(0)
 , m_totalVolume(0)
 , m_inclusionVolume(0)
 , m_categoryConstraint(nullptr)

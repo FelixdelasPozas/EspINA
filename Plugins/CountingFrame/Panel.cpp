@@ -207,7 +207,9 @@ void Panel::reset()
   m_gui->resetCF ->setEnabled(false);
   m_gui->exportCF->setEnabled(false);
 
-  m_nextId = 1;
+  m_countingFrames.clear();
+
+  m_nextId = 0;
 }
 
 // //------------------------------------------------------------------------

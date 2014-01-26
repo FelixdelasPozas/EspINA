@@ -35,14 +35,16 @@ namespace EspINA
   : public CountingFrame
   {
   public:
-    static RectangularCountingFrame *New(Id id,
-                                         CountingFrameExtension *extension,
+    static RectangularCountingFrame *New(CountingFrameExtension *extension,
                                          const Bounds &bounds,
                                          Nm inclusion[3],
                                          Nm exclusion[3])
-    { return new RectangularCountingFrame(id, extension, bounds, inclusion, exclusion);}
+    { return new RectangularCountingFrame(extension, bounds, inclusion, exclusion);}
 
     virtual ~RectangularCountingFrame();
+
+    virtual CFType cfType() const
+    { return CF::RECTANGULAR; }
 
     // Implements QStandardItem interface
     virtual QVariant data(int role = Qt::UserRole + 1) const;
@@ -61,8 +63,7 @@ namespace EspINA
     virtual void updateCountingFrameImplementation();
 
   protected:
-    explicit RectangularCountingFrame(Id id,
-                                      CountingFrameExtension *extension,
+    explicit RectangularCountingFrame(CountingFrameExtension *extension,
                                       const Bounds &bounds,
                                       Nm inclusion[3],
                                       Nm exclusion[3]);

@@ -31,11 +31,9 @@ void CountingFrameManager::createAdaptiveCF(ChannelAdapterPtr channel,
                                             Nm inclusion[3],
                                             Nm exclusion[3])
 {
-  int id = nextId();
-
   auto extension = retrieveOrCreateCFExtension(channel);
 
-  auto cf = AdaptiveCountingFrame::New(id, extension, channel->bounds(), inclusion, exclusion);
+  auto cf = AdaptiveCountingFrame::New(extension, channel->bounds(), inclusion, exclusion);
 
   registerCountingFrame(cf, extension);
 }
@@ -45,11 +43,9 @@ void CountingFrameManager::createRectangularCF(ChannelAdapterPtr channel,
                                                Nm inclusion[3],
                                                Nm exclusion[3])
 {
-  int id = nextId();
-
   auto extension = retrieveOrCreateCFExtension(channel);
 
-  auto cf = RectangularCountingFrame::New(id, extension, channel->bounds(), inclusion, exclusion);
+  auto cf = RectangularCountingFrame::New(extension, channel->bounds(), inclusion, exclusion);
 
   registerCountingFrame(cf, extension);
 }
@@ -116,6 +112,8 @@ CountingFrameExtension* CountingFrameManager::retrieveOrCreateCFExtension(Channe
 //-----------------------------------------------------------------------------
 void CountingFrameManager::registerCountingFrame(CountingFrame* cf, CountingFrameExtension* extension)
 {
+  cf->setId(nextId());
+
   extension->addCountingFrame(cf);
 
   m_countingFrames[cf] = extension->channel();

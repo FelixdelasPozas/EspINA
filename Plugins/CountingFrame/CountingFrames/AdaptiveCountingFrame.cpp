@@ -36,12 +36,11 @@ using namespace EspINA;
 using namespace EspINA::CF;
 
 //-----------------------------------------------------------------------------
-AdaptiveCountingFrame::AdaptiveCountingFrame(Id id,
-                                             CountingFrameExtension *channelExt,
+AdaptiveCountingFrame::AdaptiveCountingFrame(CountingFrameExtension *channelExt,
                                              const Bounds &bounds,
                                              Nm inclusion[3],
                                              Nm exclusion[3])
-: CountingFrame(id, channelExt, inclusion, exclusion)
+: CountingFrame(channelExt, inclusion, exclusion)
 , m_channel(channelExt->channel())
 {
   updateCountingFrame();

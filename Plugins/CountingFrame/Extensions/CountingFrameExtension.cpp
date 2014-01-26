@@ -21,6 +21,7 @@
 
 #include "CountingFrames/CountingFrame.h"
 #include "CountingFrames/RectangularCountingFrame.h"
+#include <CountingFrames/AdaptiveCountingFrame.h>
 #include <Core/Analysis/Segmentation.h>
 #include <Core/Analysis/Query.h>
 #include <Core/Analysis/Channel.h>
@@ -42,11 +43,8 @@ const char SEP = ';';
 //-----------------------------------------------------------------------------
 CountingFrameExtension::CountingFrameExtension(CountingFrameManager* manager, State state)
 : m_manager(manager)
+, m_prevState(state)
 {
-  if (!state.isEmpty())
-  {
-    qDebug() << "Initialazing CF Extension with state:\n" << state;
-  }
 }
 
 //-----------------------------------------------------------------------------
@@ -197,20 +195,20 @@ State CountingFrameExtension::state() const
 {
   State state;
 
+  QString bl =  "";
   for(auto cf : m_countingFrames)
   {
-    QString bl = "";
     Nm inclusion[3], exclusion[3];
     cf->margins(inclusion, exclusion);
     // Type, Left, Top, Front, Right, Bottom, Back
-    state += QString("%1,%2,%3,%4,%5,%6,%7%8").arg(cf->type())
-                                            .arg(inclusion[0])
-                                            .arg(inclusion[1])
-                                            .arg(inclusion[2])
-                                            .arg(inclusion[0])
-                                            .arg(inclusion[1])
-                                            .arg(inclusion[2])
-                                            .arg(bl);
+    state += QString("%1%2,%3,%4,%5,%6,%7,%8").arg(bl)
+                                              .arg(cf->cfType())
+                                              .arg(inclusion[0])
+                                              .arg(inclusion[1])
+                                              .arg(inclusion[2])
+                                              .arg(exclusion[0])
+                                              .arg(exclusion[1])
+                                              .arg(exclusion[2]);
     bl = '\n';
   }
 
@@ -255,6 +253,48 @@ void CountingFrameExtension::removeCountingFrame(CountingFrame* countingFrame)
 //-----------------------------------------------------------------------------
 void CountingFrameExtension::onChannelSet(ChannelPtr channel)
 {
+  if (!m_prevState.isEmpty())
+  {
+
+    for (auto cfEntry : m_prevState.split("\n"))
+    {
+      const int numberOfFields = 7;
+
+      auto params = cfEntry.split(",");
+
+      if (params.size() % numberOfFields != 0)
+      {
+        qWarning() << "Invalid CF Extension state:\n" << m_prevState;
+      } else
+      {
+        CFType type = params[0].toInt();
+
+        Nm inclusion[3];
+        Nm exclusion[3];
+
+        for (int i = 0; i < 3; ++i)
+        {
+          inclusion[i] = params[i+1].toDouble();
+          exclusion[i] = params[i+4].toDouble();
+        }
+
+        CountingFrame *cf;
+        if (CFType::RECTANGULAR == type)
+        {
+          cf = AdaptiveCountingFrame::New(this, channel->bounds(), inclusion, exclusion);
+
+        } else if (CFType::ADAPTIVE == type)
+        {
+          cf = RectangularCountingFrame::New(this, channel->bounds(), inclusion, exclusion);
+        } else
+        {
+          Q_ASSERT(false);
+        }
+
+        m_manager->registerCountingFrame(cf, this);
+      }
+    }
+  }
 }
 
 //-----------------------------------------------------------------------------

@@ -36,6 +36,13 @@
 namespace EspINA
 {
 namespace CF {
+
+  enum CFType
+  {
+    ADAPTIVE,
+    RECTANGULAR
+  };
+
   class CountingFrameExtension;
 
   class CountingFramePlugin_EXPORT CountingFrame
@@ -83,6 +90,8 @@ namespace CF {
 
     virtual ~CountingFrame(){}
 
+    virtual CFType cfType() const = 0;
+
     CountingFrameExtension *extension()
     { return m_extension; }
 
@@ -95,6 +104,9 @@ namespace CF {
     virtual QString name() const = 0;
 
     Id id() const { return m_id; }
+
+    void setId(Id id)
+    { m_id = id; }
 
     /** \brief Return total volume in pixels
      *
@@ -137,8 +149,7 @@ namespace CF {
     void modified(CountingFrame *);
 
   protected:
-    explicit CountingFrame(Id id,
-                           CountingFrameExtension *extension,
+    explicit CountingFrame(CountingFrameExtension *extension,
                            Nm inclusion[3],
                            Nm exclusion[3]);
 

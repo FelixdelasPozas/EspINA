@@ -124,11 +124,6 @@ QVariant StereologicalInclusion::information ( const SegmentationExtension::Info
 
     CountingFrame::Id cf = tag.split(" ")[1].toInt();
 
-    QVariant a;
-    a.setValue<bool>(true);
-    a.setValue<QString>("Hola");
-    qDebug() << a.toBool() << a.toString();;
-
     return m_excludedByCF[cf];
 //     QStringList excludingCFs;
 //     for(auto cf : m_excludedByCF.keys())

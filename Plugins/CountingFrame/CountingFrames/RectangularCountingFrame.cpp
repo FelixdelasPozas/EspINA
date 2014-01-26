@@ -36,12 +36,11 @@ using namespace EspINA;
 using namespace EspINA::CF;
 
 //-----------------------------------------------------------------------------
-RectangularCountingFrame::RectangularCountingFrame(Id id,
-                                                   CountingFrameExtension *channelExt,
+RectangularCountingFrame::RectangularCountingFrame(CountingFrameExtension *channelExt,
                                                    const Bounds &bounds,
                                                    Nm inclusion[3],
                                                    Nm exclusion[3])
-: CountingFrame(id, channelExt, inclusion, exclusion)
+: CountingFrame(channelExt, inclusion, exclusion)
 , m_bounds(bounds)
 {
   updateCountingFrameImplementation();
