@@ -38,6 +38,7 @@ add_executable(IO_Tests
   ${CORE_DIR}/Analysis/Sample.cpp
   ${CORE_DIR}/Analysis/Segmentation.cpp
   ${CORE_DIR}/Analysis/ViewItem.cpp
+  ${CORE_DIR}/Analysis/Extensions/ChannelExtension.cpp
   ${CORE_DIR}/Factory/CoreFactory.cpp
   ${CORE_DIR}/IO/ClassificationXML.cpp
   ${CORE_DIR}/IO/FetchRawData.cpp

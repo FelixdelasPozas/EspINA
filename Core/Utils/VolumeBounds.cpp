@@ -178,12 +178,15 @@ bool EspINA::intersect(const VolumeBounds& lhs, const VolumeBounds& rhs)
   bool overlap = true;
 
   int lo = 0, up = 1;
-  for (auto dir : {Axis::X, Axis::Y, Axis::Z}) {
+  auto spacing = lhs.spacing();
+  Q_ASSERT(spacing == rhs.spacing());
+  for (auto dir : {Axis::X, Axis::Y, Axis::Z})
+  {
     overlap &= lessThan(lhs[lo], rhs[up]) && greaterThan(lhs[up], rhs[lo]);
 
-    overlap &= !areEqual(lhs[lo], rhs[up]);
+    overlap &= !areEqual(lhs[lo], rhs[up], spacing[idx(dir)]);
 
-    overlap &= !areEqual(lhs[up], rhs[lo]);
+    overlap &= !areEqual(lhs[up], rhs[lo], spacing[idx(dir)]);
 
     lo += 2;
     up += 2;
@@ -254,6 +257,14 @@ std::ostream &EspINA::operator<<(std::ostream &os, const VolumeBounds &bounds)
   os << bounds.toString().toStdString();
 
   return os;
+}
+
+//-----------------------------------------------------------------------------
+QDebug EspINA::operator<< (QDebug d, const VolumeBounds &bounds)
+{
+  d << QString(bounds.toString());
+
+  return d;
 }
 
 //-----------------------------------------------------------------------------

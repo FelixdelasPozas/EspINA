@@ -145,7 +145,7 @@ namespace EspINA
 
   std::ostream& EspinaCore_EXPORT operator<<(std::ostream& os, const VolumeBounds& bounds);
 
-//   QDebug operator<< (QDebug d, const Bounds &bounds);
+  QDebug operator<< (QDebug d, const VolumeBounds &bounds);
 
   /**
    *

@@ -67,9 +67,13 @@ namespace EspINA {
 
   using Nm = double;
 
-  inline bool areEqual(Nm lhs, Nm rhs)
+  // TODO: The spacing parameter is here to change the DELTA
+  // when checking VolumeBounds values, as their values should be
+  // in fixed points (like in a grid) but aren't.
+  // Solve the problem with VolumeBounds and remove this ASAP.
+  inline bool areEqual(Nm lhs, Nm rhs, Nm spacing = 1.0)
   {
-    const double DELTA = 0.01;
+    const double DELTA = 0.01 * spacing;
     return fabs(lhs - rhs) < DELTA;
   }
 
