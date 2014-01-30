@@ -19,7 +19,7 @@
 
 #include "DefaultChannelExtensionFactory.h"
 
-#include <Extensions/EdgeDistances/AdaptiveEdges.h>
+#include <Extensions/EdgeDistances/ChannelEdges.h>
 
 using namespace EspINA;
 
@@ -28,9 +28,9 @@ ChannelExtensionSPtr DefaultChannelExtensionFactory::createChannelExtension(cons
 {
   ChannelExtensionSPtr extension;
 
-  if (AdaptiveEdges::TYPE == type)
+  if (ChannelEdges::TYPE == type)
   {
-    extension = ChannelExtensionSPtr{new AdaptiveEdges()};
+    extension = ChannelExtensionSPtr{new ChannelEdges()};
   }
 
   return extension;
@@ -41,7 +41,7 @@ ChannelExtensionTypeList DefaultChannelExtensionFactory::providedExtensions() co
 {
   ChannelExtensionTypeList extensionTypes;
 
-  extensionTypes << AdaptiveEdges::TYPE;
+  extensionTypes << ChannelEdges::TYPE;
 
   return extensionTypes;
 }

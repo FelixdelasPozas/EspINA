@@ -22,7 +22,7 @@
 
 #include "GUI/Model/ViewItemAdapter.h"
 
-#include <Core/Analysis/Extensions/ChannelExtension.h>
+#include <Core/Analysis/Extension.h>
 
 namespace EspINA
 {

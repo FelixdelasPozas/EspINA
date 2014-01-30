@@ -19,9 +19,10 @@
 
 #include "CountingFrameManager.h"
 #include "Extensions/CountingFrameExtension.h"
-#include "CountingFrames/RectangularCountingFrame.h"
 #include "CountingFrames/AdaptiveCountingFrame.h"
+#include "CountingFrames/OrtogonalCountingFrame.h"
 #include <Core/Analysis/Channel.h>
+#include <Core/Analysis/Category.h>
 
 using namespace EspINA;
 using namespace EspINA::CF;
@@ -45,7 +46,7 @@ void CountingFrameManager::createRectangularCF(ChannelAdapterPtr channel,
 {
   auto extension = retrieveOrCreateCFExtension(channel);
 
-  auto cf = RectangularCountingFrame::New(extension, channel->bounds(), inclusion, exclusion);
+  auto cf = OrtogonalCountingFrame::New(extension, channel->bounds(), inclusion, exclusion);
 
   registerCountingFrame(cf, extension);
 }
@@ -112,25 +113,51 @@ CountingFrameExtension* CountingFrameManager::retrieveOrCreateCFExtension(Channe
 //-----------------------------------------------------------------------------
 void CountingFrameManager::registerCountingFrame(CountingFrame* cf, CountingFrameExtension* extension)
 {
-  cf->setId(nextId());
+  cf->setId(suggestedId(cf));
 
   extension->addCountingFrame(cf);
 
-  m_countingFrames[cf] = extension->channel();
+  m_countingFrames[cf] = extension->extendedItem();
 
   emit countingFrameCreated(cf);
 }
 
 //-----------------------------------------------------------------------------
-int CountingFrameManager::nextId() const
+CountingFrame::Id CountingFrameManager::suggestedId(CountingFrame *cf) const
 {
-  int lastId = -1;
-
-  for (auto cf :m_countingFrames.keys())
+  CountingFrame::Id id = cf->id();
+  if (id.isEmpty())
   {
-    lastId = std::max(cf->id(), lastId);
+    if (cf->categoryConstraint())
+    {
+      id = QString("%1 CF").arg(cf->categoryConstraint()->classificationName());
+    } else
+    {
+      id = "Global CF";
+    }
   }
 
-  return lastId + 1;
+  int n = similarIdsCount(id);
+  if (n > 0)
+  {
+    id.append(QString(" (%1)").arg(n));
+  }
+
+  return id;
 }
 
+//-----------------------------------------------------------------------------
+int CountingFrameManager::similarIdsCount(QString id) const
+{
+  int count = 0;
+
+  for (auto cf : m_countingFrames.keys())
+  {
+    if (cf->id().startsWith(id) || id.startsWith(cf->id()))
+    {
+      ++count;
+    }
+  }
+
+  return count;
+}

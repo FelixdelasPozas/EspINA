@@ -21,8 +21,7 @@
 #define ESPINA_EXTENSION_FACTORY_H
 
 #include "Extensions/EspinaExtensions_Export.h"
-#include <Core/Analysis/Extensions/ChannelExtension.h>
-#include <Core/Analysis/Extensions/SegmentationExtension.h>
+#include <Core/Analysis/Extension.h>
 
 namespace EspINA
 {

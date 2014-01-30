@@ -16,16 +16,15 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "AdaptiveEdges.h"
+#include "ChannelEdges.h"
 
-#include "EdgeDetector.h"
-#include "EdgeDistance.h"
-// #include "EdgeDistance.h"
+#include "AdaptiveEdgesCreator.h"
+#include "EdgesAnalyzer.h"
 #include <Core/Analysis/Channel.h>
-#include <Core/Analysis/Extensions/SegmentationExtension.h>
 #include <Core/Analysis/Segmentation.h>
 #include <Core/Analysis/Data/VolumetricData.h>
-
+#include <Core/Analysis/Data/MeshData.h>
+#include <Core/Utils/vtkPolyDataUtils.h>
 
 #include <vtkAppendPolyData.h>
 #include <vtkCellArray.h>
@@ -49,93 +48,102 @@
 
 using namespace EspINA;
 
-const ChannelExtension::Type AdaptiveEdges::TYPE = "AdaptiveEdges";
+const ChannelExtension::Type ChannelEdges::TYPE = "AdaptiveEdges";
 
-const QString AdaptiveEdges::EXTENSION_FILE = "AdaptiveEdges/AdaptiveEdges.ext";
-const QString AdaptiveEdges::EDGES_FILE     = "AdaptiveEdges/ChannelEdges";
-const QString AdaptiveEdges::FACES_FILE     = "AdaptiveEdges/ChannelFaces";
+const QString ChannelEdges::EDGES_FILE = "ChannelEdges.vtp";
+const QString ChannelEdges::FACES_FILE = "ChannelFaces_%1.vtp";
 
-
-const QString AdaptiveEdges::EDGETYPE = "MarginType";
-
-const std::string FILE_VERSION = AdaptiveEdges::TYPE.toStdString() + " 1.0\n";
+const std::string FILE_VERSION = ChannelEdges::TYPE.toStdString() + " 2.0\n";
 const char SEP = ',';
 
 //-----------------------------------------------------------------------------
-AdaptiveEdges::AdaptiveEdges(bool          useAdaptiveEdges,
-                             int           backgroundColor,
-                             int           threshold,
-                             SchedulerSPtr scheduler)
-: m_backgroundColor(backgroundColor)
+ChannelEdges::ChannelEdges(SchedulerSPtr                     scheduler,
+                           const State                       &state,
+                           const ChannelExtension::InfoCache &cache)
+: ChannelExtension(cache)
 , m_computedVolume(0)
-, m_threshold(threshold)
-, m_useAdaptiveEdges(useAdaptiveEdges)
-, m_edgeDetector(new EdgeDetector(this, scheduler))
+, m_edgesCreator (new AdaptiveEdgesCreator(this, scheduler))
+, m_edgesAnalyzer(new EdgesAnalyzer(this, scheduler))
+, m_backgroundColor(-1)
+, m_threshold(-1)
 {
+  if (!state.isEmpty())
+  {
+    //State: UseDistanceToBounds,BackgroundColor,Threshold
+    auto values = state.split(",");
+    m_useDistanceToBounds = values[0].toInt();
+    m_backgroundColor     = values[1].toInt();
+    m_threshold           = values[2].toInt();
+  }
 }
 
 //-----------------------------------------------------------------------------
-AdaptiveEdges::~AdaptiveEdges()
+ChannelEdges::~ChannelEdges()
 {
-  delete m_edgeDetector;
+  delete m_edgesAnalyzer;
+  delete m_edgesCreator;
 }
 
 //-----------------------------------------------------------------------------
-void AdaptiveEdges::computeAdaptiveEdges()
+void ChannelEdges::onExtendedItemSet(Channel *item)
 {
-  //qDebug() << "Computing Adaptive Edges" << m_channel->data().toString() << AdaptiveEdgesID;
+  if (m_threshold == -1)
+  {
+    analyzeChannel();
+  }
+}
+
+//-----------------------------------------------------------------------------
+void ChannelEdges::analyzeChannel()
+{
+  m_mutex.lock();
+  m_edgesAnalyzer->setDescription(QObject::tr("Analyzing Edges: %1").arg(m_extendedItem->name()));
+  m_edgesAnalyzer->submit();
+}
+
+//-----------------------------------------------------------------------------
+void ChannelEdges::computeAdaptiveEdges()
+{
+  //qDebug() << "Computing Adaptive Edges" << m_extendedItem->data().toString() << AdaptiveEdgesID;
   m_edges = vtkSmartPointer<vtkPolyData>::New();
-  m_useAdaptiveEdges = true;
-  m_backgroundColor  = m_backgroundColor;
-  m_threshold        = m_threshold;
 
-  m_edgeDetector->setDescription(QObject::tr("Computing Edges %1").arg(m_channel->name()));
-
-  m_edgeDetector->submit();
+  m_mutex.lock();
+  m_edgesCreator->setDescription(QObject::tr("Computing Edges %1").arg(m_extendedItem->name()));
+  m_edgesCreator->submit();
 }
 
 using VTKReader = vtkSmartPointer<vtkGenericDataObjectReader>;
 
 //-----------------------------------------------------------------------------
-void AdaptiveEdges::loadEdgesCache()
+void ChannelEdges::loadEdgesCache()
 {
   m_mutex.lock();
-  if (!m_edges.GetPointer() && !m_channel->isOutputModified())
+  if (!m_edges.GetPointer() && !m_extendedItem->isOutputModified())
   {
-    QString edgesFile = EDGES_FILE + ".vtp";
-    QFileInfo file(m_channel->storage()->absoluteFilePath(edgesFile));
+    QString   snapshot  = snapshotName(EDGES_FILE);
+    QFileInfo edgesFile = m_extendedItem->storage()->absoluteFilePath(snapshot);
 
-    if (file.exists())
+    if (edgesFile.exists())
     {
-      VTKReader reader = VTKReader::New();
-      reader->SetFileName(file.absoluteFilePath().toUtf8());
-      reader->SetReadAllFields(true);
-      reader->Update();
-
-      m_edges = vtkSmartPointer<vtkPolyData>(reader->GetPolyDataOutput());
+      m_edges = PolyDataUtils::readPolyDataFromFile(edgesFile.absoluteFilePath());
     }
   }
   m_mutex.unlock();
 }
 
 //-----------------------------------------------------------------------------
-void AdaptiveEdges::loadFacesCache()
+void ChannelEdges::loadFacesCache()
 {
-  if (!m_faces[0].GetPointer() && !m_channel->isOutputModified())
+  if (!m_faces[0].GetPointer() && !m_extendedItem->isOutputModified())
   {
     for (int i = 0; i < 6; ++i)
     {
-      QString edgesFile = QString(FACES_FILE + "-%1.vtp").arg(i);
-      QFileInfo file(m_channel->storage()->absoluteFilePath(edgesFile));
+      QString   snapshot  = snapshotName(FACES_FILE.arg(i));
+      QFileInfo facesFile = m_extendedItem->storage()->absoluteFilePath(snapshot);
 
-      if (file.exists())
+      if (facesFile.exists())
       {
-        VTKReader reader = VTKReader::New();
-        reader->SetFileName(file.absoluteFilePath().toUtf8());
-        reader->SetReadAllFields(true);
-        reader->Update();
-
-        m_faces[i] = vtkSmartPointer<vtkPolyData>(reader->GetPolyDataOutput());
+        m_faces[i] = PolyDataUtils::readPolyDataFromFile(facesFile.absoluteFilePath());
       }
     }
   }
@@ -214,55 +222,75 @@ using VTKWriter = vtkSmartPointer<vtkGenericDataObjectWriter>;
 using ComputedSegmentation = std::pair<unsigned int, unsigned long int>;
 
 //-----------------------------------------------------------------------------
-Snapshot AdaptiveEdges::snapshot() const
+State ChannelEdges::state() const
 {
-  return Snapshot();//TODO
+  return QString("%1,%2,%3").arg(m_useDistanceToBounds)
+                            .arg(m_backgroundColor)
+                            .arg(m_threshold);
 }
 
 //-----------------------------------------------------------------------------
-void AdaptiveEdges::computeDistanceToEdge(SegmentationPtr segmentation)
+Snapshot ChannelEdges::snapshot() const
 {
-  SegmentationExtensionSPtr extension = segmentation->extension(EdgeDistance::TYPE);
-  Q_ASSERT(extension);
-  EdgeDistance *distanceExt = edgeDistance(extension.get());
+  Snapshot snapshot;
 
-  auto volume = volumetricData(segmentation->output());
-  Nm distance[6];
-  Bounds segmentationBounds = segmentation->bounds();
-
-  if (m_useAdaptiveEdges)
+  if (m_edges)
   {
-    loadFacesCache();
+    auto name = snapshotName(EDGES_FILE);
+    auto data = PolyDataUtils::savePolyDataToBuffer(m_edges);
+    snapshot << SnapshotData(name, data);
+  }
 
-    if (!m_faces[0])
-      ComputeSurfaces();
-
-    for(int face = 0; face < 6; face++)
+  for (int i = 0; i < 6; ++i)
+  {
+    if (m_faces[i])
     {
-      vtkSmartPointer<vtkDistancePolyDataFilter> distanceFilter = vtkSmartPointer<vtkDistancePolyDataFilter>::New();
-      distanceFilter->SignedDistanceOff();
-      //TODO  distanceFilter->SetInputConnection( 0, meshRepresentation(segmentation->output())->mesh());
-      distanceFilter->SetInputData(1, m_faces[face]);
-      distanceFilter->Update();
-      distance[face] = distanceFilter->GetOutput()->GetPointData()->GetScalars()->GetRange()[0];
+      auto name = snapshotName(FACES_FILE.arg(i));
+      auto data = PolyDataUtils::savePolyDataToBuffer(m_faces[i]);
+      snapshot << SnapshotData(name, data);
     }
   }
-  else
-  {
-    Bounds channelBounds = m_channel->bounds();
 
-    for (int i = 0; i < 6; i+=2)
-      distance[i] = segmentationBounds[i] - channelBounds[i];
-
-    for (int i = 1; i < 6; i+=2)
-      distance[i] = channelBounds[i] - segmentationBounds[i];
-  }
-
-  distanceExt->setDistances(distance);
+  return snapshot;
 }
 
 //-----------------------------------------------------------------------------
-vtkSmartPointer<vtkPolyData> AdaptiveEdges::channelEdges()
+void ChannelEdges::distanceToBounds(SegmentationPtr segmentation, Nm distances[6]) const
+{
+  Bounds channelBounds      = m_extendedItem->bounds();
+  Bounds segmentationBounds = segmentation->bounds();
+
+  for (int i = 0; i < 6; i+=2)
+    distances[i] = segmentationBounds[i] - channelBounds[i];
+
+  for (int i = 1; i < 6; i+=2)
+    distances[i] = channelBounds[i] - segmentationBounds[i];
+}
+
+//-----------------------------------------------------------------------------
+void ChannelEdges::distanceToEdges(SegmentationPtr segmentation, Nm distances[6]) const
+{
+  Bounds segmentationBounds = segmentation->bounds();
+
+  loadFacesCache();
+
+  if (!m_faces[0])
+    ComputeSurfaces();
+
+  for(int face = 0; face < 6; ++face)
+  {
+    // BUG: fails when no mesh data is available
+    vtkSmartPointer<vtkDistancePolyDataFilter> distanceFilter = vtkSmartPointer<vtkDistancePolyDataFilter>::New();
+    distanceFilter->SignedDistanceOff();
+    distanceFilter->SetInputData(0, meshData(segmentation->output())->mesh());
+    distanceFilter->SetInputData(1, m_faces[face]);
+    distanceFilter->Update();
+    distances[face] = distanceFilter->GetOutput()->GetPointData()->GetScalars()->GetRange()[0];
+  }
+}
+
+//-----------------------------------------------------------------------------
+vtkSmartPointer<vtkPolyData> ChannelEdges::channelEdges()
 {
   loadEdgesCache();
 
@@ -277,7 +305,7 @@ vtkSmartPointer<vtkPolyData> AdaptiveEdges::channelEdges()
 }
 
 //-----------------------------------------------------------------------------
-Nm AdaptiveEdges::computedVolume()
+Nm ChannelEdges::computedVolume()
 {
   Nm volume = 0;
 
@@ -296,9 +324,29 @@ Nm AdaptiveEdges::computedVolume()
   return volume;
 }
 
+//-----------------------------------------------------------------------------
+void ChannelEdges::setBackgroundColor(int value)
+{
+  if (m_backgroundColor != value)
+  {
+    m_backgroundColor = value;
+    // TODO update edges
+  }
+}
 
 //-----------------------------------------------------------------------------
-void AdaptiveEdges::ComputeSurfaces()
+void ChannelEdges::setThreshold(int value)
+{
+  if (m_threshold != value)
+  {
+    m_threshold = value;
+    // TODO update edges
+  }
+}
+
+
+//-----------------------------------------------------------------------------
+void ChannelEdges::ComputeSurfaces()
 {
 
   loadEdgesCache();
@@ -389,27 +437,27 @@ void AdaptiveEdges::ComputeSurfaces()
 }
 
 //-----------------------------------------------------------------------------
-AdaptiveEdgesPtr EspINA::adaptiveEdges(ChannelExtensionPtr extension)
+ChannelEdgesPtr EspINA::adaptiveEdges(ChannelExtensionPtr extension)
 {
-  return dynamic_cast<AdaptiveEdgesPtr>(extension);
+  return dynamic_cast<ChannelEdgesPtr>(extension);
 }
 
 //-----------------------------------------------------------------------------
-AdaptiveEdgesSPtr EspINA::adaptiveEdges(ChannelPtr channel)
+ChannelEdgesSPtr EspINA::adaptiveEdges(ChannelPtr channel)
 {
-  auto extension = channel->extension(AdaptiveEdges::TYPE);
+  auto extension = channel->extension(ChannelEdges::TYPE);
 
-  return std::dynamic_pointer_cast<AdaptiveEdges>(extension);
+  return std::dynamic_pointer_cast<ChannelEdges>(extension);
 }
 
 //-----------------------------------------------------------------------------
-AdaptiveEdgesSPtr EspINA::createAdaptiveEdgesIfNotAvailable(ChannelPtr channel)
+ChannelEdgesSPtr EspINA::createAdaptiveEdgesIfNotAvailable(ChannelPtr channel)
 {
   auto edgesExtension = adaptiveEdges(channel);
 
   if (!edgesExtension)
   {
-    edgesExtension = AdaptiveEdgesSPtr(new AdaptiveEdges(true));
+    edgesExtension = ChannelEdgesSPtr(new ChannelEdges());
     channel->addExtension(edgesExtension);
   }
   Q_ASSERT(edgesExtension);

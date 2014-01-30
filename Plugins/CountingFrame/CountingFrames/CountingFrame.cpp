@@ -29,11 +29,9 @@ using namespace EspINA::CF;
 CountingFrame::CountingFrame(CountingFrameExtension *extension,
                              Nm                      inclusion[3],
                              Nm                      exclusion[3])
-: QStandardItem()
-, INCLUSION_FACE(255)
+: INCLUSION_FACE(255)
 , EXCLUSION_FACE(0)
 , m_extension(extension)
-, m_id(0)
 , m_totalVolume(0)
 , m_inclusionVolume(0)
 , m_categoryConstraint(nullptr)
@@ -59,37 +57,33 @@ void CountingFrame::margins(Nm inclusion[3], Nm exclusion[3])
 }
 
 //-----------------------------------------------------------------------------
-QVariant CountingFrame::data(int role) const
+QString CountingFrame::description() const
 {
-  if (role == DescriptionRole)
-  {
-    auto spacing              = m_extension->channel()->output()->spacing();
+  auto channel  = m_extension->extendedItem();
+  auto spacing  = channel->output()->spacing();
+  Nm   voxelVol = spacing[0]*spacing[1]*spacing[2];
 
-    Nm   voxelVol             = spacing[0]*spacing[1]*spacing[2];
+  int  totalVoxelVolume     = totalVolume()     / voxelVol;
+  int  inclusionVoxelVolume = inclusionVolume() / voxelVol;
+  int  exclusionVoxelVolume = exclusionVolume() / voxelVol;
 
-    int  totalVoxelVolume     = totalVolume()     / voxelVol;
-    int  inclusionVoxelVolume = inclusionVolume() / voxelVol;
-    int  exclusionVoxelVolume = exclusionVolume() / voxelVol;
+  QString cube = QString::fromUtf8("\u00b3");
+  QString br = "\n";
+  QString desc;
+  desc += tr("CF:   %1"            ).arg(m_id)                             + br;
+  desc += tr("Type: %1"            ).arg(name())                           + br;
+  desc += tr("Volume information:" )                                       + br;
+  desc += tr("  Total Volume:"     )                                       + br;
+  desc += tr("    %1 voxel"        ).arg(totalVoxelVolume)                 + br;
+  desc += tr("    %1 nm"           ).arg(totalVolume(),0,'f',2)     + cube + br;
+  desc += tr("  Inclusion Volume:" )                                       + br;
+  desc += tr("    %1 voxel"        ).arg(inclusionVoxelVolume)             + br;
+  desc += tr("    %1 nm"           ).arg(inclusionVolume(),0,'f',2) + cube + br;
+  desc += tr("  Exclusion Volume:" )                                       + br;
+  desc += tr("    %1 voxel"        ).arg(exclusionVoxelVolume)             + br;
+  desc += tr("    %1 nm"           ).arg(exclusionVolume(),0,'f',2) + cube + br;
 
-    QString cube = QString::fromUtf8("\u00b3");
-    QString br = "\n";
-    QString desc;
-    desc += tr("CF:   %1"            ).arg(m_id)                             + br;
-    desc += tr("Type: %1"            ).arg(name())                           + br;
-    desc += tr("Volume information:" )                                       + br;
-    desc += tr("  Total Volume:"     )                                       + br;
-    desc += tr("    %1 voxel"        ).arg(totalVoxelVolume)                 + br;
-    desc += tr("    %1 nm"           ).arg(totalVolume(),0,'f',2)     + cube + br;
-    desc += tr("  Inclusion Volume:" )                                       + br;
-    desc += tr("    %1 voxel"        ).arg(inclusionVoxelVolume)             + br;
-    desc += tr("    %1 nm"           ).arg(inclusionVolume(),0,'f',2) + cube + br;
-    desc += tr("  Exclusion Volume:" )                                       + br;
-    desc += tr("    %1 voxel"        ).arg(exclusionVoxelVolume)             + br;
-    desc += tr("    %1 nm"           ).arg(exclusionVolume(),0,'f',2) + cube + br;
-
-    return desc;
-  }
-  return QStandardItem::data(role);
+  return desc;
 }
 
 //-----------------------------------------------------------------------------
@@ -115,8 +109,7 @@ void CountingFrame::Execute(vtkObject* caller, long unsigned int eventId, void* 
 
     updateCountingFrame();
   }
-
-  emitDataChanged();
+  // TODO emitDataChanged
 }
 
 //-----------------------------------------------------------------------------

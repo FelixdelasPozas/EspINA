@@ -16,13 +16,41 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "ChannelExtension.h"
 
-#include "Core/Analysis/Channel.h"
+#ifndef ESPINA_EDGES_ANALYZER_H
+#define ESPINA_EDGES_ANALYZER_H
 
-using namespace EspINA;
+#include "Extensions/EspinaExtensions_Export.h"
 
-QString EspINA::extensionFile(const ChannelSPtr& channel)
+#include <Core/MultiTasking/Task.h>
+#include <Core/Utils/Bounds.h>
+#include <Core/Analysis/Data/VolumetricData.h>
+
+namespace EspINA
 {
-  return QString("Extensions/%1.xml").arg(channel->uuid());
-}
+  class ChannelEdges;
+
+  class EspinaExtensions_EXPORT EdgesAnalyzer
+  : public Task
+  {
+  public:
+    explicit EdgesAnalyzer(ChannelEdges *extension,
+                           SchedulerSPtr scheduler = SchedulerSPtr());
+    virtual ~EdgesAnalyzer();
+
+  protected:
+    virtual void run();
+
+  private:
+    void analyzeEdge(DefaultVolumetricDataSPtr volume, const Bounds &edgeBounds);
+
+  private:
+    int m_useDistanceToBounds;
+    int m_bgIntensity;
+
+    ChannelEdges *m_extension;
+};
+
+}// namespace EspINA
+
+#endif // ESPINA_EDGES_ANALYZER_H

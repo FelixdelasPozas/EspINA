@@ -20,7 +20,7 @@
 #ifndef ESPINA_READ_ONLY_CHANNEL_EXTENSION_H
 #define ESPINA_READ_ONLY_CHANNEL_EXTENSION_H
 
-#include "Core/Analysis/Extensions/ChannelExtension.h"
+#include "Core/Analysis/Extension.h"
 
 namespace EspINA {
 
@@ -28,10 +28,17 @@ namespace EspINA {
   : public ChannelExtension
   {
   public:
-    explicit ReadOnlyChannelExtension(ChannelExtension::Type type, const State &state=State());
+    explicit ReadOnlyChannelExtension(ChannelExtension::Type type,
+                                  const State               &state=State());
 
     virtual ChannelExtension::Type type() const
     { return m_type; }
+
+    void setInvalidateOnChange(bool value)
+    { m_invalidateOnChange = value; }
+
+    virtual bool invalidateOnChange() const
+    { return m_invalidateOnChange; }
 
     virtual State state() const
     { return m_state; }
@@ -39,13 +46,21 @@ namespace EspINA {
     virtual Snapshot snapshot() const
     { return Snapshot(); } // TODO
 
-    virtual bool invalidateOnChange() const
-    { return false; } // TODO
+    virtual TypeList dependencies() const
+    { return TypeList(); }
 
-    virtual void onChannelSet(ChannelPtr channel);
+    virtual InfoTagList availableInformations() const
+    { return InfoTagList(); } // TODO
+
+  protected:
+    virtual void onExtendedItemSet(Channel* item);
+
+    virtual QVariant cacheFail(const InfoTag &tag) const
+    { return QVariant(); } //TODO
 
   private:
     ChannelExtension::Type m_type;
+    bool  m_invalidateOnChange;
     State m_state;
   };
 

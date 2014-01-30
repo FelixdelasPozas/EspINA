@@ -30,7 +30,7 @@
 
 #include "Extensions/EspinaExtensions_Export.h"
 
-#include <Core/Analysis/Extensions/SegmentationExtension.h>
+#include <Core/Analysis/Extension.h>
 #include <GUI/Model/SegmentationAdapter.h>
 
 #include <QStringListModel>
@@ -68,14 +68,10 @@ namespace EspINA
     virtual TypeList dependencies() const
     { return TypeList(); }
 
-    virtual void onSegmentationSet(SegmentationPtr seg);
-
     virtual bool validCategory(const QString& classificationName) const
     { return true; }
 
     virtual InfoTagList availableInformations() const;
-
-    virtual QVariant information(const InfoTag& tag) const;
 
     virtual QString toolTipText() const;
 
@@ -89,6 +85,12 @@ namespace EspINA
 
     QStringList tags() const
     { return m_tags; }
+
+  protected:
+    virtual void onExtendedItemSet(Segmentation *item);
+
+    virtual QVariant cacheFail(const QString& tag) const
+    { return QVariant(); }
 
   private:
     void addTagImplementation(const QString &tag);

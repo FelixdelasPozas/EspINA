@@ -25,6 +25,7 @@ include_directories(
 qt4_wrap_cpp(SUBJECT_MOCS
   ${CORE_DIR}/Analysis/Data.h
   ${CORE_DIR}/Analysis/Output.h
+  ${CORE_DIR}/Analysis/Extension.h
   ${CORE_DIR}/Analysis/ViewItem.h
   ${CORE_DIR}/MultiTasking/Scheduler.h
   ${CORE_DIR}/MultiTasking/Task.h

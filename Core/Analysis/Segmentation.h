@@ -28,7 +28,7 @@
 #include "EspinaCore_Export.h"
 
 #include "Core/Analysis/ViewItem.h"
-#include "Core/Analysis/Extensions/SegmentationExtension.h"
+#include "Core/Analysis/Extension.h"
 #include "Core/Analysis/Output.h"
 
 namespace EspINA

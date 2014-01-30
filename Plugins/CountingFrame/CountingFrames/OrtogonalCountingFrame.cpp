@@ -17,7 +17,7 @@
 */
 
 
-#include "CountingFrames/RectangularCountingFrame.h"
+#include "CountingFrames/OrtogonalCountingFrame.h"
 
 #include "Extensions/CountingFrameExtension.h"
 #include "CountingFrames/vtkCountingFrameSliceWidget.h"
@@ -31,12 +31,11 @@
 
 #include <vtkSmartPointer.h>
 
-
 using namespace EspINA;
 using namespace EspINA::CF;
 
 //-----------------------------------------------------------------------------
-RectangularCountingFrame::RectangularCountingFrame(CountingFrameExtension *channelExt,
+OrtogonalCountingFrame::OrtogonalCountingFrame(CountingFrameExtension *channelExt,
                                                    const Bounds &bounds,
                                                    Nm inclusion[3],
                                                    Nm exclusion[3])
@@ -48,7 +47,7 @@ RectangularCountingFrame::RectangularCountingFrame(CountingFrameExtension *chann
 
 
 //-----------------------------------------------------------------------------
-RectangularCountingFrame::~RectangularCountingFrame()
+OrtogonalCountingFrame::~OrtogonalCountingFrame()
 {
   // 2D widgets have already been deleted by 2D Views
 //   foreach(vtkAbstractWidget *w, m_widgets2D)
@@ -67,18 +66,7 @@ RectangularCountingFrame::~RectangularCountingFrame()
 }
 
 //-----------------------------------------------------------------------------
-QVariant RectangularCountingFrame::data(int role) const
-{
-  if (role == Qt::DisplayRole)
-    return tr("%1 - CF %2: Rectangular")
-             .arg(m_extension->channel()->name())
-             .arg(m_id);
-
-  return CountingFrame::data(role);
-}
-
-//-----------------------------------------------------------------------------
-vtkAbstractWidget *RectangularCountingFrame::create3DWidget(View3D *view)
+vtkAbstractWidget *OrtogonalCountingFrame::create3DWidget(View3D *view)
 {
   CountingFrame3DWidgetAdapter *wa = new CountingFrame3DWidgetAdapter();
   Q_ASSERT(wa);
@@ -111,13 +99,13 @@ vtkAbstractWidget *RectangularCountingFrame::create3DWidget(View3D *view)
 // }
 
 //-----------------------------------------------------------------------------
-SliceWidget* RectangularCountingFrame::createSliceWidget(View2D *view)
+SliceWidget* OrtogonalCountingFrame::createSliceWidget(View2D *view)
 {
   auto wa = new CountingFrame2DWidgetAdapter();
   Q_ASSERT(wa);
   wa->AddObserver(vtkCommand::EndInteractionEvent, this);
   wa->SetPlane(view->plane());
-  wa->SetSlicingStep(m_extension->channel()->output()->spacing());
+  wa->SetSlicingStep(m_extension->extendedItem()->output()->spacing());
   wa->SetCountingFrame(m_representation, m_inclusion, m_exclusion);
 
   m_widgets2D << wa;
@@ -126,8 +114,8 @@ SliceWidget* RectangularCountingFrame::createSliceWidget(View2D *view)
 }
 
 //-----------------------------------------------------------------------------
-bool RectangularCountingFrame::processEvent(vtkRenderWindowInteractor* iren,
-                                             long unsigned int event)
+bool OrtogonalCountingFrame::processEvent(vtkRenderWindowInteractor* iren,
+                                          long unsigned int event)
 {
   foreach(CountingFrame2DWidgetAdapter *wa, m_widgets2D)
   {
@@ -144,7 +132,7 @@ bool RectangularCountingFrame::processEvent(vtkRenderWindowInteractor* iren,
 }
 
 //-----------------------------------------------------------------------------
-void RectangularCountingFrame::setEnabled(bool enable)
+void OrtogonalCountingFrame::setEnabled(bool enable)
 {
   Q_ASSERT(false);
 }
@@ -153,7 +141,7 @@ void RectangularCountingFrame::setEnabled(bool enable)
 #include <QDebug>
 
 //-----------------------------------------------------------------------------
-void RectangularCountingFrame::updateCountingFrameImplementation()
+void OrtogonalCountingFrame::updateCountingFrameImplementation()
 {
 
   Nm Left   = m_bounds[0] + m_inclusion[0];
@@ -177,7 +165,7 @@ void RectangularCountingFrame::updateCountingFrameImplementation()
 }
 
 //-----------------------------------------------------------------------------
-vtkSmartPointer<vtkPolyData> RectangularCountingFrame::createRectangularRegion(Nm left,  Nm top,    Nm front,
+vtkSmartPointer<vtkPolyData> OrtogonalCountingFrame::createRectangularRegion(Nm left,  Nm top,    Nm front,
                                                                                Nm right, Nm bottom, Nm back)
 {
   vtkSmartPointer<vtkPolyData>  region   = vtkSmartPointer<vtkPolyData>::New();

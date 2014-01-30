@@ -19,9 +19,10 @@
 
 #include "EdgeDistance.h"
 
-#include "AdaptiveEdges.h"
+#include "ChannelEdges.h"
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Segmentation.h>
+#include <Core/Analysis/Query.h>
 
 #include <QDebug>
 
@@ -35,14 +36,15 @@ const char SEP = ',';
 
 const SegmentationExtension::InfoTag EdgeDistance::LEFT_DISTANCE   = "Left Distance";
 const SegmentationExtension::InfoTag EdgeDistance::TOP_DISTANCE    = "Top Distance";
-const SegmentationExtension::InfoTag EdgeDistance::UPPER_DISTANCE  = "Upper Distance";
+const SegmentationExtension::InfoTag EdgeDistance::FRONT_DISTANCE  = "Upper Distance";
 const SegmentationExtension::InfoTag EdgeDistance::RIGHT_DISTANCE  = "Right Distance";
 const SegmentationExtension::InfoTag EdgeDistance::BOTTOM_DISTANCE = "Bottom Distance";
-const SegmentationExtension::InfoTag EdgeDistance::LOWER_DISTANCE  = "Lower Distance";
+const SegmentationExtension::InfoTag EdgeDistance::BACK_DISTANCE  = "Lower Distance";
 
 //-----------------------------------------------------------------------------
-EdgeDistance::EdgeDistance()
-: m_init(false)
+EdgeDistance::EdgeDistance(const State& state, const SegmentationExtension::InfoCache& cache)
+: SegmentationExtension(cache)
+, m_init(false)
 {
 }
 
@@ -77,29 +79,28 @@ SegmentationExtension::InfoTagList EdgeDistance::availableInformations() const
   tags << RIGHT_DISTANCE;
   tags << TOP_DISTANCE;
   tags << BOTTOM_DISTANCE;
-  tags << UPPER_DISTANCE;
-  tags << LOWER_DISTANCE;
+  tags << FRONT_DISTANCE;
+  tags << BACK_DISTANCE;
 
   return tags;
 }
 
 //------------------------------------------------------------------------
-void EdgeDistance::onSegmentationSet(SegmentationPtr segmentation)
+void EdgeDistance::onExtendedItemSet(Segmentation* segmentation)
 {
-//   connect(segmentation->modified()),
-//           this, SLOT(invalidate()));
-
-  if (m_segmentation->isOutputModified())
-    invalidate(); //TODO: Change to ignore storage data
 }
 
-//-----------------------------------------------------------------------------
-QVariant EdgeDistance::information(const InfoTag &tag) const
+//------------------------------------------------------------------------
+QVariant EdgeDistance::cacheFail(const QString& tag) const
 {
-  if (!m_init)
-  {
-    updateDistances();
-  }
+  updateDistances();
+
+  updateInfoCache(LEFT_DISTANCE  , m_distances[0]);
+  updateInfoCache(RIGHT_DISTANCE , m_distances[1]);
+  updateInfoCache(TOP_DISTANCE   , m_distances[2]);
+  updateInfoCache(BOTTOM_DISTANCE, m_distances[3]);
+  updateInfoCache(FRONT_DISTANCE , m_distances[4]);
+  updateInfoCache(BACK_DISTANCE  , m_distances[5]);
 
   if (LEFT_DISTANCE == tag)
     return m_distances[0];
@@ -109,16 +110,13 @@ QVariant EdgeDistance::information(const InfoTag &tag) const
     return m_distances[2];
   if (BOTTOM_DISTANCE == tag)
     return m_distances[3];
-  if (UPPER_DISTANCE == tag)
+  if (FRONT_DISTANCE == tag)
     return m_distances[4];
-  if (LOWER_DISTANCE == tag)
+  if (BACK_DISTANCE == tag)
     return m_distances[5];
 
-  qWarning() << TYPE << ":"  << tag << " is not provided";
-  Q_ASSERT(false);
   return QVariant();
 }
-
 
 //-----------------------------------------------------------------------------
 // void EdgeDistance::loadCache(QuaZipFile  &file,
@@ -165,35 +163,6 @@ QVariant EdgeDistance::information(const InfoTag &tag) const
 
 
 //-----------------------------------------------------------------------------
-// bool EdgeDistance::saveCache(Snapshot &cacheList)
-// {
-//   s_cache.purge(invalidData);
-// 
-//   if (s_cache.isEmpty())
-//     return false;
-// 
-//   std::ostringstream cache;
-//   cache << FILE_VERSION;
-// 
-//   foreach(SegmentationPtr segmentation, s_cache.keys())
-//   {
-//     ExtensionData &data = s_cache[segmentation].Data;
-// 
-//     cache << segmentation->filter()->id().toStdString();
-//     cache << SEP << segmentation->outputId();
-// 
-//     for(int i=0; i<6; i++)
-//       cache << SEP << data.Distances[i];
-// 
-//     cache << std::endl;
-//   }
-// 
-//   cacheList << SnapshotEntry(EXTENSION_FILE, cache.str().c_str());
-// 
-//   return true;
-// }
-
-//-----------------------------------------------------------------------------
 void EdgeDistance::edgeDistance(Nm distances[6]) const
 {
   if (!m_init) updateDistances();
@@ -202,26 +171,30 @@ void EdgeDistance::edgeDistance(Nm distances[6]) const
 }
 
 //-----------------------------------------------------------------------------
-void EdgeDistance::invalidate()
-{
-}
-
-//-----------------------------------------------------------------------------
 void EdgeDistance::updateDistances() const
 {
   //qDebug() << "Updating" << m_seg->data().toString() << EdgeDistanceID;
-  ChannelSPtr channel; // TODO = m_segmentation->channel();
-  if (channel)
+  auto channels = Query::channels(m_extendedItem);
+
+  if (channels.size() == 1)
   {
-    if (!channel->hasExtension(AdaptiveEdges::TYPE))
+    auto channel = channels.first();
+    if (!channel->hasExtension(ChannelEdges::TYPE))
     {
-      AdaptiveEdgesSPtr extension{new AdaptiveEdges()};
+      ChannelEdgesSPtr extension{new ChannelEdges()};
       channel->addExtension(extension);
     }
-    AdaptiveEdgesPtr edgesExtension = adaptiveEdges(channel->extension(AdaptiveEdges::TYPE).get());
+    ChannelEdgesPtr edgesExtension = adaptiveEdges(channel->extension(ChannelEdges::TYPE).get());
     Q_ASSERT(edgesExtension);
 
-    edgesExtension->computeDistanceToEdge(m_segmentation);
+    if (edgesExtension->useDistanceToBounds())
+    {
+      edgesExtension->distanceToBounds(m_extendedItem, m_distances);
+    }
+    else
+    {
+      edgesExtension->distanceToEdges(m_extendedItem, m_distances);
+    }
   }
 
   m_init = true;

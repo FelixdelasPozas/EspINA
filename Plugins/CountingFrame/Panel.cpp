@@ -18,10 +18,12 @@
 
 #include "Panel.h"
 #include "Dialogs/TypeDialog.h"
+#include "Extensions/CountingFrameExtension.h"
 
 #include "ui_Panel.h"
 
 #include <Support/ViewManager.h>
+#include <Core/Analysis/Channel.h>
 
 #include <QFileDialog>
 
@@ -37,9 +39,6 @@ public:
   explicit GUI();
 
   void setOffsetRanges(int min, int max);
-
-private:
-  bool eventFilter(QObject *object, QEvent *event);
 };
 
 //------------------------------------------------------------------------
@@ -51,57 +50,144 @@ Panel::GUI::GUI()
   rightMargin ->installEventFilter(this);
   topMargin   ->installEventFilter(this);
   bottomMargin->installEventFilter(this);
-  backMargin  ->installEventFilter(this);
   frontMargin ->installEventFilter(this);
-}
+  backMargin  ->installEventFilter(this);
 
-//------------------------------------------------------------------------
-bool Panel::GUI::eventFilter(QObject* object, QEvent* event)
-{
-  if (event->type() == QEvent::FocusIn)
-  {
-    if (object == leftMargin)
-      preview->setPixmap(QPixmap(":/left.png"));
-
-    else if (object == rightMargin)
-      preview->setPixmap(QPixmap(":/right.png"));
-
-    else if (object == topMargin)
-      preview->setPixmap(QPixmap(":/top.png"));
-
-    else if (object == bottomMargin)
-      preview->setPixmap(QPixmap(":/bottom.png"));
-
-    else if (object == frontMargin)
-      preview->setPixmap(QPixmap(":/upper.png"));
-
-    else if (object == backMargin)
-      preview->setPixmap(QPixmap(":/lower.png"));
-
-  }else if (event->type() == QEvent::FocusOut)
-    preview->setPixmap(QPixmap(":/allPlanes.png"));
-
-  return QObject::eventFilter(object, event);
+  QString tooltip("%1 Face: <br> &nbsp <img src=':/%1.png' width=125 height=94> &nbsp <br>");
+  leftMargin  ->setToolTip(tooltip.arg("left"));
+  rightMargin ->setToolTip(tooltip.arg("right"));
+  topMargin   ->setToolTip(tooltip.arg("top"));
+  bottomMargin->setToolTip(tooltip.arg("bottom"));
+  frontMargin ->setToolTip(tooltip.arg("front"));
+  backMargin  ->setToolTip(tooltip.arg("back"));
 }
 
 //------------------------------------------------------------------------
 void Panel::GUI::setOffsetRanges(int min, int max)
 {
-  leftMargin->setMinimum(min);
-  leftMargin->setMaximum(max);
-  topMargin->setMinimum(min);
-  topMargin->setMaximum(max);
+  leftMargin ->setMinimum(min);
+  leftMargin ->setMaximum(max);
+  topMargin  ->setMinimum(min);
+  topMargin  ->setMaximum(max);
   frontMargin->setMinimum(min);
   frontMargin->setMaximum(max);
 
-  rightMargin->setMinimum(min);
-  rightMargin->setMaximum(max);
+  rightMargin ->setMinimum(min);
+  rightMargin ->setMaximum(max);
   bottomMargin->setMinimum(min);
   bottomMargin->setMaximum(max);
-  backMargin->setMinimum(min);
-  backMargin->setMaximum(max);
+  backMargin  ->setMinimum(min);
+  backMargin  ->setMaximum(max);
 }
 
+//------------------------------------------------------------------------
+//------------------------------------------------------------------------
+class Panel::CFModel
+: public QAbstractTableModel
+{
+public:
+  CFModel(CountingFrameManager *manager)
+  : m_manager(manager)
+  {}
+
+  virtual int rowCount(const QModelIndex& parent = QModelIndex()) const
+  { return m_manager->countingFrames().size(); }
+
+  virtual int columnCount(const QModelIndex& parent = QModelIndex()) const
+  { return 3; }
+
+  virtual QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
+
+  virtual QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const;
+
+  virtual bool setData(const QModelIndex& index, const QVariant& value, int role = Qt::EditRole);
+
+  virtual Qt::ItemFlags flags(const QModelIndex& index) const;
+
+private:
+  CountingFrame *countingFrame(const QModelIndex &index) const
+  { return m_manager->countingFrames()[index.row()]; }
+
+private:
+  CountingFrameManager *m_manager;
+};
+
+//------------------------------------------------------------------------
+QVariant Panel::CFModel::headerData(int section, Qt::Orientation orientation, int role) const
+{
+  if (Qt::DisplayRole == role && Qt::Horizontal == orientation)
+  {
+    switch (section)
+    {
+      case 0:
+        return tr("Id"); break;
+      case 1:
+        return tr("Type"); break;
+      case 2:
+        return tr("Channel");
+    }
+  }
+
+  return QAbstractItemModel::headerData(section, orientation, role);
+}
+
+//------------------------------------------------------------------------
+QVariant Panel::CFModel::data(const QModelIndex& index, int role) const
+{
+  auto cf = countingFrame(index);
+  int  c  = index.column();
+
+  if (0 == c)
+  {
+    if (Qt::DisplayRole == role || Qt::EditRole == role)
+    {
+      return cf->id();
+    } else if (Qt::CheckStateRole == role)
+    {
+      return Qt::Checked;
+    }
+  } else if (1 == c && Qt::DisplayRole == role)
+  {
+      return cf->name();
+  } else if (2 == c && Qt::DisplayRole == role)
+  {
+      return cf->extension()->extendedItem()->name();
+  }
+
+  return QVariant();
+}
+
+//------------------------------------------------------------------------
+bool Panel::CFModel::setData(const QModelIndex& index, const QVariant& value, int role)
+{
+  if (Qt::EditRole == role)
+  {
+    auto cf = countingFrame(index);
+
+    cf->setId(value.toString());
+
+    return true;
+  }
+
+  return QAbstractItemModel::setData(index, value, role);
+}
+
+//------------------------------------------------------------------------
+Qt::ItemFlags Panel::CFModel::flags(const QModelIndex& index) const
+{
+  Qt::ItemFlags f = QAbstractItemModel::flags(index);
+
+  if (0 == index.column())
+  {
+    f = f | Qt::ItemIsSelectable | Qt::ItemIsEditable | Qt::ItemIsEnabled  | Qt::ItemIsUserCheckable;
+  }
+
+  return f;
+}
+
+
+//------------------------------------------------------------------------
+//------------------------------------------------------------------------
 const QString Panel::ID = "CountingFrameExtension";
 
 //------------------------------------------------------------------------
@@ -114,15 +200,17 @@ Panel::Panel(CountingFrameManager *manager,
 , m_model(model)
 , m_viewManager(viewManager)
 , m_gui(new GUI())
+, m_cfModel(new CFModel(m_manager))
 , m_useSlices(false)
 , m_activeCF(nullptr)
-, m_nextId(1)
 {
   setObjectName("CountingFrameDock");
 
   setWindowTitle(tr("Counting Frame"));
 
   setWidget(m_gui);
+
+  m_gui->countingFrames->setModel(m_cfModel);
 
   QIcon iconSave = qApp->style()->standardIcon(QStyle::SP_DialogSaveButton);
 
@@ -136,8 +224,8 @@ Panel::Panel(CountingFrameManager *manager,
   connect(m_gui->deleteCF, SIGNAL(clicked()),
           this, SLOT(deleteActiveCountingFrame()));
 
-  connect(m_gui->countingFrames,SIGNAL(currentIndexChanged(int)),
-          this, SLOT(updateUI(int)));
+  connect(m_gui->countingFrames, SIGNAL(activated(QModelIndex)),
+          this, SLOT(updateUI(QModelIndex)));
 
   connect(m_gui->leftMargin, SIGNAL(valueChanged(int)),
           this, SLOT(updateActiveCountingFrameMargins()));
@@ -167,6 +255,7 @@ Panel::Panel(CountingFrameManager *manager,
 //------------------------------------------------------------------------
 Panel::~Panel()
 {
+  delete m_cfModel;
 //   qDebug() << "********************************************************";
 //   qDebug() << "              Destroying Counting Frame Panel Plugin";
 //   qDebug() << "********************************************************";
@@ -198,9 +287,9 @@ Panel::~Panel()
 //------------------------------------------------------------------------
 void Panel::reset()
 {
-  m_gui->countingFrames->clear();
-
   m_gui->countingFrameDescription->clear();
+
+  m_gui->countingFrames->setModel(nullptr);
 
   m_gui->createCF->setEnabled(false);
   m_gui->deleteCF->setEnabled(false);
@@ -208,8 +297,6 @@ void Panel::reset()
   m_gui->exportCF->setEnabled(false);
 
   m_countingFrames.clear();
-
-  m_nextId = 0;
 }
 
 // //------------------------------------------------------------------------
@@ -231,14 +318,8 @@ void Panel::deleteCountingFrame(CountingFrame *cf)
   if (cf == m_activeCF) m_activeCF = nullptr;
 
   m_countingFrames.removeOne(cf);
-  for(int i = 0; i < m_gui->countingFrames->model()->rowCount(); i++)
-  {
-    if (m_gui->countingFrames->model()->index(i,0).data(Qt::DisplayRole) == cf->data(Qt::DisplayRole))
-    {
-      m_gui->countingFrames->removeItem(i);
-      break;
-    }
-  }
+
+  updateTable();
 
   m_viewManager->removeWidget(cf);
 
@@ -274,13 +355,13 @@ void Panel::enableCategoryConstraints(bool enable)
 }
 
 //------------------------------------------------------------------------
-void Panel::updateUI(int row)
+void Panel::updateUI(QModelIndex index)
 {
-  bool validCF = !m_countingFrames.isEmpty() && row >= 0;
+  bool validCF = !m_countingFrames.isEmpty() && index.isValid();
 
   if (validCF)
   {
-    CountingFrame *cf = m_countingFrames.value(row, nullptr);
+    CountingFrame *cf = m_countingFrames.value(index.row(), nullptr);
     Q_ASSERT(cf);
 
     showInfo(cf);
@@ -430,9 +511,13 @@ void Panel::showInfo(CountingFrame* cf)
 
   m_activeCF = cf;
 
-  int cfIndex = m_countingFrames.indexOf(cf);
+  int row = m_countingFrames.indexOf(cf);
 
-  m_gui->countingFrames->setCurrentIndex(cfIndex);
+  auto index = m_cfModel->index(row, 0);
+
+  auto selectionModel = m_gui->countingFrames->selectionModel();
+  selectionModel->clearSelection();
+  selectionModel->select(index, QItemSelectionModel::SelectCurrent);
 
   m_gui->leftMargin  ->blockSignals(true);
   m_gui->topMargin   ->blockSignals(true);
@@ -464,7 +549,7 @@ void Panel::showInfo(CountingFrame* cf)
 
   m_gui->useCategoryConstraint->setChecked(nullptr != cf->categoryConstraint());
 
-  m_gui->countingFrameDescription->setText(cf->data(CountingFrame::DescriptionRole).toString());
+  m_gui->countingFrameDescription->setText(cf->description());
 }
 
 //------------------------------------------------------------------------
@@ -585,11 +670,17 @@ void Panel::onCountingFrameCreated(CountingFrame* cf)
 
   m_countingFrames << cf;
 
-  m_gui->countingFrames->addItem(cf->data(Qt::DisplayRole).toString());
+  updateTable();
 
   m_viewManager->addWidget(cf);
 
   m_activeCF = cf; // To make applyCategoryConstraint work
 
-  showInfo(cf);
+  updateUI(m_cfModel->index(m_cfModel->rowCount() - 1, 0));
+}
+
+void Panel::updateTable()
+{
+  m_gui->countingFrames->setModel(nullptr);
+  m_gui->countingFrames->setModel(m_cfModel);
 }

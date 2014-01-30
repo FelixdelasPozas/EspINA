@@ -16,8 +16,9 @@ include (GenerateExportHeader)
 set (EXTENSIONS_SOURCES
   ${EXTENSIONS_MOC}
   ${EXTENSIONS_UI}
-  EdgeDistances/AdaptiveEdges.cpp
-  EdgeDistances/EdgeDetector.cpp
+  EdgeDistances/ChannelEdges.cpp
+  EdgeDistances/AdaptiveEdgesCreator.cpp
+  EdgeDistances/EdgesAnalyzer.cpp
   EdgeDistances/EdgeDistance.cpp
   Tags/TagExtension.cpp
   )

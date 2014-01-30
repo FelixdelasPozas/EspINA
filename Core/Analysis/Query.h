@@ -40,6 +40,8 @@ namespace EspINA {
 
     ChannelSList channels(SegmentationSPtr segmentation);
 
+    ChannelSList channels(SegmentationPtr segmentation);
+
     SegmentationSList segmentations(SampleSPtr sample);
 
     SegmentationSList segmentationsOnChannelSample(ChannelSPtr channel);

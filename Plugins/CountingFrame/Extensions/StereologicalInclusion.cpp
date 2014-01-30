@@ -92,7 +92,7 @@ SegmentationExtension::TypeList StereologicalInclusion::dependencies() const
 {
   TypeList dependencies;
 
-  dependencies << EdgeDistance::TYPE;
+  //dependencies << EdgeDistance::TYPE;
 
   return dependencies;
 }
@@ -111,34 +111,41 @@ SegmentationExtension::InfoTagList StereologicalInclusion::availableInformations
 }
 
 //------------------------------------------------------------------------
-void StereologicalInclusion::onSegmentationSet(SegmentationPtr segmentation)
+QVariant StereologicalInclusion::cacheFail(const QString& tag) const
 {
+
 }
 
 //------------------------------------------------------------------------
-QVariant StereologicalInclusion::information ( const SegmentationExtension::InfoTag& tag) const
+void StereologicalInclusion::onExtendedItemSet(Segmentation* segmentation)
 {
-  if (tag.startsWith(CF::TAG))
-  {
-    evaluateCountingFrames();
 
-    CountingFrame::Id cf = tag.split(" ")[1].toInt();
-
-    return m_excludedByCF[cf];
-//     QStringList excludingCFs;
-//     for(auto cf : m_excludedByCF.keys())
-//     {
-//       if (m_excludedByCF[cf])
-//       {
-//         excludingCFs << QString::number(cf);
-//       }
-//     }
-//     return excludingCFs.join(", ");
-  }
-
-  qWarning() << StereologicalInclusion::TYPE << ":"  << tag << " is not provided";
-  return QVariant();
 }
+
+// //------------------------------------------------------------------------
+// QVariant StereologicalInclusion::information ( const SegmentationExtension::InfoTag& tag) const
+// {
+//   if (tag.startsWith(CF::TAG))
+//   {
+//     evaluateCountingFrames();
+//
+//     CountingFrame::Id cf = tag.split(" ")[1].toInt();
+//
+//     return m_excludedByCF[cf];
+// //     QStringList excludingCFs;
+// //     for(auto cf : m_excludedByCF.keys())
+// //     {
+// //       if (m_excludedByCF[cf])
+// //       {
+// //         excludingCFs << QString::number(cf);
+// //       }
+// //     }
+// //     return excludingCFs.join(", ");
+//   }
+//
+//   qWarning() << StereologicalInclusion::TYPE << ":"  << tag << " is not provided";
+//   return QVariant();
+// }
 
 //------------------------------------------------------------------------
 QString StereologicalInclusion::toolTipText() const
@@ -164,7 +171,7 @@ QString StereologicalInclusion::toolTipText() const
 //------------------------------------------------------------------------
 void StereologicalInclusion::addCountingFrame(CountingFrame* cf)
 {
-  if (!m_excludedByCF.contains(cf))
+  if (!m_exclusionCFs.contains(cf))
   {
     connect(cf, SIGNAL(modified(CountingFrame*)),
             this, SLOT(evaluateCountingFrame(CountingFrame*)));
@@ -178,7 +185,7 @@ void StereologicalInclusion::addCountingFrame(CountingFrame* cf)
 //------------------------------------------------------------------------
 void StereologicalInclusion::removeCountingFrame(CountingFrame* cf)
 {
-  if (m_excludedByCF.contains(cf))
+  if (m_exclusionCFs.contains(cf))
   {
     disconnect(cf, SIGNAL(modified(CountingFrame*)),
                this, SLOT(evaluateCountingFrame(CountingFrame*)));
@@ -191,7 +198,7 @@ void StereologicalInclusion::removeCountingFrame(CountingFrame* cf)
 // //------------------------------------------------------------------------
 // void StereologicalInclusion::setCountingFrames(CountingFrameList countingFrames)
 // {
-//   Q_ASSERT(m_segmentation);
+//   Q_ASSERT(m_extendedItem);
 //   //   EXTENSION_DEBUG("Updating " << m_seg->id() << " bounding regions...");
 //   //   EXTENSION_DEBUG("\tNumber of regions applied:" << regions.size());
 //   QSet<CountingFrame *> prevCF = m_exclusionCFs.keys().toSet();
@@ -262,22 +269,6 @@ void StereologicalInclusion::removeCountingFrame(CountingFrame* cf)
 // }
 
 // //------------------------------------------------------------------------
-// // It's declared static to avoid collisions with other functions with same
-// // signature in different compilation units
-// static bool invalidData(SegmentationPtr seg)
-// {
-//   bool invalid = false;
-//   if (seg->hasInformationExtension(StereologicalInclusionID))
-//   {
-//     invalid = !seg->informationExtension(StereologicalInclusionID)->isEnabled();
-//   } else
-//   {
-//     invalid = seg->outputIsModified();
-//   }
-//   return invalid;
-// }
-//
-// //------------------------------------------------------------------------
 // bool StereologicalInclusion::saveCache(Snapshot &cacheList)
 // {
 //   s_cache.purge(invalidData);
@@ -328,7 +319,7 @@ void StereologicalInclusion::evaluateCountingFrames()
 
   if (!m_isUpdated)
   {
-    if (!m_segmentation)
+    if (!m_extendedItem)
       return;
 
     if (m_excludedByCF.isEmpty())
@@ -377,10 +368,10 @@ bool StereologicalInclusion::isExcludedByCountingFrame(CountingFrame* cf)
 {
   auto categoryConstraint = cf->categoryConstraint();
 
-  if (categoryConstraint && m_segmentation->category() != categoryConstraint)
+  if (categoryConstraint && m_extendedItem->category() != categoryConstraint)
     return true;
 
-  Bounds inputBB = m_segmentation->output()->bounds();
+  Bounds inputBB = m_extendedItem->output()->bounds();
   //qDebug() << "Input:" << inputBB.toString();
 
   vtkPolyData  *region       = cf->region();
@@ -455,9 +446,9 @@ bool StereologicalInclusion::isOnEdge()
   bool excluded  = false;
   Nm   threshold = 1.0;
 
-  if (m_segmentation->hasExtension(EdgeDistance::TYPE))
+  if (m_extendedItem->hasExtension(EdgeDistance::TYPE))
   {
-    auto extension = m_segmentation->extension(EdgeDistance::TYPE);
+    auto extension = m_extendedItem->extension(EdgeDistance::TYPE);
 
     auto distanceExtension = std::dynamic_pointer_cast<EdgeDistance>(extension);
 
@@ -467,7 +458,7 @@ bool StereologicalInclusion::isOnEdge()
     while (!excluded && i < tags.size())
     {
       bool   ok   = false;
-      double dist = m_segmentation->information(tags[i++]).toDouble(&ok);
+      double dist = m_extendedItem->information(tags[i++]).toDouble(&ok);
 
       excluded = ok && dist < threshold;
     }
@@ -481,7 +472,7 @@ bool StereologicalInclusion::isRealCollision(const Bounds& interscetion)
 {
   using ImageIterator = itk::ImageRegionIterator<itkVolumeType>;
   // TODO?: add some
-  auto volume = volumetricData(m_segmentation->output());
+  auto volume = volumetricData(m_extendedItem->output());
 
   auto image = volume->itkImage(interscetion);
 
@@ -499,7 +490,7 @@ bool StereologicalInclusion::isRealCollision(const Bounds& interscetion)
 //------------------------------------------------------------------------
 void StereologicalInclusion::checkSampleCountingFrames()
 {
-  auto samples = Query::samples(m_segmentation);
+  auto samples = Query::samples(m_extendedItem);
 
   if (samples.size() > 1)
   {

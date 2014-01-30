@@ -26,7 +26,7 @@
 #define ESPINA_SEGMENTATION_ADAPTER_H
 
 #include "GUI/Model/ViewItemAdapter.h"
-#include <Core/Analysis/Extensions/SegmentationExtension.h>
+#include <Core/Analysis/Extension.h>
 
 namespace EspINA
 {

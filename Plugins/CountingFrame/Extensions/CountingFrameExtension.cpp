@@ -20,7 +20,7 @@
 #include "CountingFrameExtension.h"
 
 #include "CountingFrames/CountingFrame.h"
-#include "CountingFrames/RectangularCountingFrame.h"
+#include "CountingFrames/OrtogonalCountingFrame.h"
 #include <CountingFrames/AdaptiveCountingFrame.h>
 #include <Core/Analysis/Segmentation.h>
 #include <Core/Analysis/Query.h>
@@ -41,7 +41,7 @@ const std::string FILE_VERSION = CountingFrameExtension::TYPE.toStdString() + " 
 const char SEP = ';';
 
 //-----------------------------------------------------------------------------
-CountingFrameExtension::CountingFrameExtension(CountingFrameManager* manager, State state)
+CountingFrameExtension::CountingFrameExtension(CountingFrameManager* manager, const State &state)
 : m_manager(manager)
 , m_prevState(state)
 {
@@ -51,6 +51,144 @@ CountingFrameExtension::CountingFrameExtension(CountingFrameManager* manager, St
 CountingFrameExtension::~CountingFrameExtension()
 {
   //qDebug() << "Deleting Counting Frame Channel Extension";
+}
+
+//-----------------------------------------------------------------------------
+State CountingFrameExtension::state() const
+{
+  State state;
+
+  QString br =  "";
+  for(auto cf : m_countingFrames)
+  {
+    Nm inclusion[3], exclusion[3];
+    cf->margins(inclusion, exclusion);
+    // Id,Type, Left, Top, Front, Right, Bottom, Back
+    state += QString("%1%2,%3,%4,%5,%6,%7,%8,%9").arg(br)
+                                                 .arg(cf->id())
+                                                 .arg(cf->cfType())
+                                                 .arg(inclusion[0])
+                                                 .arg(inclusion[1])
+                                                 .arg(inclusion[2])
+                                                 .arg(exclusion[0])
+                                                 .arg(exclusion[1])
+                                                 .arg(exclusion[2]);
+    br = '\n';
+  }
+
+  return state;
+}
+
+//-----------------------------------------------------------------------------
+Snapshot CountingFrameExtension::snapshot() const
+{
+  return Snapshot();
+}
+
+//-----------------------------------------------------------------------------
+void CountingFrameExtension::addCountingFrame(CountingFrame* countingFrame)
+{
+  Q_ASSERT(!m_countingFrames.contains(countingFrame));
+  m_countingFrames << countingFrame;
+
+  for (auto segmentation : Query::segmentationsOnChannelSample(m_extendedItem))
+  {
+    auto extension = stereologicalInclusionExtension(segmentation);
+    extension->addCountingFrame(countingFrame);
+  }
+
+  connect(countingFrame, SIGNAL(modified(CountingFrame*)),
+          this, SLOT(onCountingFrameUpdated(CountingFrame*)));
+}
+
+//-----------------------------------------------------------------------------
+void CountingFrameExtension::removeCountingFrame(CountingFrame* countingFrame)
+{
+  Q_ASSERT(m_countingFrames.contains(countingFrame));
+  m_countingFrames.removeOne(countingFrame);
+
+  for (auto segmentation : Query::segmentationsOnChannelSample(m_extendedItem))
+  {
+    auto extension = stereologicalInclusionExtension(segmentation);
+    extension->removeCountingFrame(countingFrame);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void CountingFrameExtension::onExtendedItemSet(Channel *channel)
+{
+  if (!m_prevState.isEmpty())
+  {
+    for (auto cfEntry : m_prevState.split("\n"))
+    {
+      const int NUM_FIELDS = 8;
+
+      auto params = cfEntry.split(",");
+
+      if (params.size() % NUM_FIELDS != 0)
+      {
+        qWarning() << "Invalid CF Extension state:\n" << m_prevState;
+      } else
+      {
+        CFType type = params[1].toInt();
+
+        Nm inclusion[3];
+        Nm exclusion[3];
+
+        for (int i = 0; i < 3; ++i)
+        {
+          inclusion[i] = params[i+2].toDouble();
+          exclusion[i] = params[i+5].toDouble();
+        }
+
+        CountingFrame *cf;
+        if (CFType::ORTOGONAL == type)
+        {
+          cf = AdaptiveCountingFrame::New(this, channel->bounds(), inclusion, exclusion);
+
+        } else if (CFType::ADAPTIVE == type)
+        {
+          cf = OrtogonalCountingFrame::New(this, channel->bounds(), inclusion, exclusion);
+        } else
+        {
+          Q_ASSERT(false);
+        }
+
+        cf->setId(params[0]);
+
+        m_manager->registerCountingFrame(cf, this);
+      }
+    }
+  }
+}
+
+//-----------------------------------------------------------------------------
+void CountingFrameExtension::onCountingFrameUpdated(CountingFrame* countingFrame)
+{
+  for(auto segmentation : Query::segmentationsOnChannelSample(m_extendedItem))
+  {
+    auto extension = stereologicalInclusionExtension(segmentation);
+    extension->evaluateCountingFrame(countingFrame);
+  }
+}
+
+//-----------------------------------------------------------------------------
+StereologicalInclusionSPtr CountingFrameExtension::stereologicalInclusionExtension(SegmentationSPtr segmentation)
+{
+  StereologicalInclusionSPtr stereologicalExtension;
+  if (segmentation->hasExtension(StereologicalInclusion::TYPE))
+  {
+    auto extension = segmentation->extension(StereologicalInclusion::TYPE);
+    stereologicalExtension = stereologicalInclusion(extension);
+  }
+  else
+  {
+    stereologicalExtension = StereologicalInclusionSPtr(new StereologicalInclusion());
+    segmentation->addExtension(stereologicalExtension);
+  }
+  Q_ASSERT(stereologicalExtension);
+
+  return stereologicalExtension;
 }
 
 //-----------------------------------------------------------------------------
@@ -190,142 +328,6 @@ CountingFrameExtension::~CountingFrameExtension()
 //
 //   return true;
 // }
-//-----------------------------------------------------------------------------
-State CountingFrameExtension::state() const
-{
-  State state;
-
-  QString bl =  "";
-  for(auto cf : m_countingFrames)
-  {
-    Nm inclusion[3], exclusion[3];
-    cf->margins(inclusion, exclusion);
-    // Type, Left, Top, Front, Right, Bottom, Back
-    state += QString("%1%2,%3,%4,%5,%6,%7,%8").arg(bl)
-                                              .arg(cf->cfType())
-                                              .arg(inclusion[0])
-                                              .arg(inclusion[1])
-                                              .arg(inclusion[2])
-                                              .arg(exclusion[0])
-                                              .arg(exclusion[1])
-                                              .arg(exclusion[2]);
-    bl = '\n';
-  }
-
-  return state;
-}
-
-//-----------------------------------------------------------------------------
-Snapshot CountingFrameExtension::snapshot() const
-{
-  return Snapshot();
-}
-
-//-----------------------------------------------------------------------------
-void CountingFrameExtension::addCountingFrame(CountingFrame* countingFrame)
-{
-  Q_ASSERT(!m_countingFrames.contains(countingFrame));
-  m_countingFrames << countingFrame;
-
-  for (auto segmentation : Query::segmentationsOnChannelSample(m_channel))
-  {
-    auto extension = stereologicalInclusionExtension(segmentation);
-    extension->addCountingFrame(countingFrame);
-  }
-
-  connect(countingFrame, SIGNAL(modified(CountingFrame*)),
-          this, SLOT(onCountingFrameUpdated(CountingFrame*)));
-}
-
-//-----------------------------------------------------------------------------
-void CountingFrameExtension::removeCountingFrame(CountingFrame* countingFrame)
-{
-  Q_ASSERT(m_countingFrames.contains(countingFrame));
-  m_countingFrames.removeOne(countingFrame);
-
-  for (auto segmentation : Query::segmentationsOnChannelSample(m_channel))
-  {
-    auto extension = stereologicalInclusionExtension(segmentation);
-    extension->removeCountingFrame(countingFrame);
-  }
-}
-
-//-----------------------------------------------------------------------------
-void CountingFrameExtension::onChannelSet(ChannelPtr channel)
-{
-  if (!m_prevState.isEmpty())
-  {
-
-    for (auto cfEntry : m_prevState.split("\n"))
-    {
-      const int numberOfFields = 7;
-
-      auto params = cfEntry.split(",");
-
-      if (params.size() % numberOfFields != 0)
-      {
-        qWarning() << "Invalid CF Extension state:\n" << m_prevState;
-      } else
-      {
-        CFType type = params[0].toInt();
-
-        Nm inclusion[3];
-        Nm exclusion[3];
-
-        for (int i = 0; i < 3; ++i)
-        {
-          inclusion[i] = params[i+1].toDouble();
-          exclusion[i] = params[i+4].toDouble();
-        }
-
-        CountingFrame *cf;
-        if (CFType::RECTANGULAR == type)
-        {
-          cf = AdaptiveCountingFrame::New(this, channel->bounds(), inclusion, exclusion);
-
-        } else if (CFType::ADAPTIVE == type)
-        {
-          cf = RectangularCountingFrame::New(this, channel->bounds(), inclusion, exclusion);
-        } else
-        {
-          Q_ASSERT(false);
-        }
-
-        m_manager->registerCountingFrame(cf, this);
-      }
-    }
-  }
-}
-
-//-----------------------------------------------------------------------------
-void CountingFrameExtension::onCountingFrameUpdated(CountingFrame* countingFrame)
-{
-  for(auto segmentation : Query::segmentationsOnChannelSample(m_channel))
-  {
-    auto extension = stereologicalInclusionExtension(segmentation);
-    extension->evaluateCountingFrame(countingFrame);
-  }
-}
-
-//-----------------------------------------------------------------------------
-StereologicalInclusionSPtr CountingFrameExtension::stereologicalInclusionExtension(SegmentationSPtr segmentation)
-{
-  StereologicalInclusionSPtr stereologicalExtension;
-  if (segmentation->hasExtension(StereologicalInclusion::TYPE))
-  {
-    auto extension = segmentation->extension(StereologicalInclusion::TYPE);
-    stereologicalExtension = stereologicalInclusion(extension);
-  }
-  else
-  {
-    stereologicalExtension = StereologicalInclusionSPtr(new StereologicalInclusion());
-    segmentation->addExtension(stereologicalExtension);
-  }
-  Q_ASSERT(stereologicalExtension);
-
-  return stereologicalExtension;
-}
-
 // //-----------------------------------------------------------------------------
 // CountingFrameExtensionPtr EspINA::CF::countingFrameExtensionPtr(ChannelExtensionSPtr extension)
 // {

@@ -23,7 +23,7 @@
 #include "EspinaGUI_Export.h"
 
 #include <Core/EspinaTypes.h>
-#include <Core/Analysis/Extensions/SegmentationExtension.h>
+#include <Core/Analysis/Extension.h>
 
 // ITK
 #include <itkLabelImageToShapeLabelMapFilter.h>

@@ -21,7 +21,7 @@
 
 #include "CountingFramePlugin_Export.h"
 
-#include <Core/Analysis/Extensions/ChannelExtension.h>
+#include <Core/Analysis/Extension.h>
 #include <Plugins/CountingFrame/CountingFrames/CountingFrame.h>
 #include <Plugins/CountingFrame/Extensions/StereologicalInclusion.h>
 #include <CountingFrameManager.h>
@@ -33,8 +33,7 @@ namespace EspINA
   class StereologicalInclusion;
 
   class CountingFramePlugin_EXPORT CountingFrameExtension
-  : public QObject
-  , public ChannelExtension
+  : public ChannelExtension
   {
     Q_OBJECT
     static const QString FILE;
@@ -43,7 +42,7 @@ namespace EspINA
     static Type TYPE;
 
   public:
-    explicit CountingFrameExtension(CountingFrameManager *manager, State state = State());
+    explicit CountingFrameExtension(CountingFrameManager *manager, const State &state = State());
 
     virtual ~CountingFrameExtension();
 
@@ -57,6 +56,12 @@ namespace EspINA
 
     virtual Snapshot snapshot() const;
 
+    virtual TypeList dependencies() const
+    { return TypeList(); }
+
+    virtual InfoTagList availableInformations() const
+    { return InfoTagList(); }
+
     virtual bool isCacheFile(const QString &file) const
     { return FILE == file; }
 
@@ -67,7 +72,11 @@ namespace EspINA
     CountingFrameList countingFrames() const
     { return m_countingFrames; }
 
-    virtual void onChannelSet(ChannelPtr channel);
+  protected:
+    virtual QVariant cacheFail(const QString& tag) const
+    {}
+
+    virtual void onExtendedItemSet(Channel *channel);
 
   protected slots:
     void onCountingFrameUpdated(CountingFrame *countingFrame);

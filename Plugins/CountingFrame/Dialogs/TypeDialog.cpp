@@ -34,7 +34,7 @@ TypeDialog::TypeDialog(QWidget *parent)
   setupUi(this);
 
   adaptiveRadio->setChecked(true);
-  rectangularRadio->setChecked(false);
+  ortogonalRadio->setChecked(false);
 
   balckLabel->setEnabled(true);
   colorBox  ->setEnabled(true);
@@ -45,7 +45,7 @@ TypeDialog::TypeDialog(QWidget *parent)
 
   connect(adaptiveRadio,   SIGNAL(toggled(bool)),
           this,            SLOT(radioChanged(bool)));
-  connect(rectangularRadio,SIGNAL(toggled(bool)),
+  connect(ortogonalRadio,SIGNAL(toggled(bool)),
           this,            SLOT(radioChanged(bool)));
 }
 
@@ -55,7 +55,7 @@ void TypeDialog::radioChanged(bool value)
   bool adaptiveChecked = sender() == adaptiveRadio;
   if (adaptiveChecked)
   {
-    rectangularRadio->setChecked(!value);
+    ortogonalRadio->setChecked(!value);
   } else
   {
     adaptiveRadio->setChecked(!value);
@@ -67,5 +67,5 @@ void TypeDialog::radioChanged(bool value)
   thresholdBox  ->setEnabled(adaptiveChecked);
   thresholdLabel->setEnabled(adaptiveChecked);
 
-  m_type = adaptiveRadio->isChecked()?ADAPTIVE:RECTANGULAR;
+  m_type = adaptiveRadio->isChecked()?ADAPTIVE:ORTOGONAL;
 }

@@ -50,7 +50,9 @@ namespace EspINA {
     private:
       CountingFrameExtension* retrieveOrCreateCFExtension(ChannelAdapterPtr channel);
 
-      int nextId() const;
+      CountingFrame::Id suggestedId(EspINA::CF::CountingFrame* cf) const;
+
+      int similarIdsCount(QString id) const;
 
     signals:
       void countingFrameCreated(CountingFrame *);

@@ -43,6 +43,8 @@ namespace EspINA
     Q_OBJECT
 
     class GUI;
+    class CFModel;
+
   public:
     static const QString ID;
 
@@ -63,7 +65,7 @@ namespace EspINA
     void enableCategoryConstraints(bool enable);
 
     /// Update UI depending on selected row's counting frame
-    void updateUI(int row);
+    void updateUI(QModelIndex index);
 
     void showInfo(CountingFrame *cf);
 
@@ -97,19 +99,21 @@ namespace EspINA
 
     /// Return exclusion margins definded by the UI
     void exclusionMargins(double values[3]);
+    
+    void updateTable();
 
   private:
     CountingFrameManager *m_manager;
     ModelAdapterSPtr      m_model;
     ViewManagerSPtr       m_viewManager;
 
-    GUI *m_gui;
+    GUI     *m_gui;
+    CFModel *m_cfModel;
 
     bool m_useSlices;
 
     CountingFrameList m_countingFrames;
     CountingFrame    *m_activeCF;
-    CountingFrame::Id m_nextId;
 
     friend class CountingFrameExtension;
   };

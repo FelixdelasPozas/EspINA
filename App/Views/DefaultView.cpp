@@ -116,7 +116,11 @@ DefaultView::DefaultView(ModelAdapterSPtr     model,
 
   for(auto name : settings.value(RENDERERS).toStringList())
   {
-    activeRenderers << renderer(name);
+    auto previousRenderer = renderer(name);
+    if (previousRenderer)
+    {
+      activeRenderers << previousRenderer;
+    }
   }
 
   m_view3D->setRenderers(activeRenderers);

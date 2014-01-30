@@ -79,6 +79,72 @@ namespace EspINA
   template<typename T>
   VolumeBounds volumeBounds(const NmVector3& origin, const NmVector3& spacing, const Bounds& bounds);
 
+  template<typename T>
+  Bounds leftSliceBounds(const  T &volume)
+  {
+    auto slice   = volume->bounds();
+    auto spacing = volume->spacing();
+
+    slice[1] = slice[0] + spacing[0]/2.0;
+
+    return slice;
+  }
+
+  template<typename T>
+  Bounds rightSliceBounds(const  T &volume)
+  {
+    auto slice   = volume->bounds();
+    auto spacing = volume->spacing();
+
+    slice[0] = slice[1] - spacing[0]/2.0;
+
+    return slice;
+  }
+
+  template<typename T>
+  Bounds topSliceBounds(const  T &volume)
+  {
+    auto slice   = volume->bounds();
+    auto spacing = volume->spacing();
+
+    slice[3] = slice[2] + spacing[1]/2.0;
+
+    return slice;
+  }
+
+  template<typename T>
+  Bounds bottomSliceBounds(const  T &volume)
+  {
+    auto slice   = volume->bounds();
+    auto spacing = volume->spacing();
+
+    slice[2] = slice[3] - spacing[1]/2.0;
+
+    return slice;
+  }
+
+
+  template<typename T>
+  Bounds frontSliceBounds(const  T &volume)
+  {
+    auto slice   = volume->bounds();
+    auto spacing = volume->spacing();
+
+    slice[5] = slice[4] + spacing[2]/2.0;
+
+    return slice;
+  }
+
+  template<typename T>
+  Bounds backSliceBounds(const  T &volume)
+  {
+    auto slice   = volume->bounds();
+    auto spacing = volume->spacing();
+
+    slice[4] = slice[5] - spacing[2]/2.0;
+
+    return slice;
+  }
 
   // NOTE: Probably move into an independent module
   static double memory_size_in_MB(int number_of_pixels)
@@ -177,9 +243,11 @@ namespace EspINA
   /** \brief Volume's voxel's index at given spatial position
    * 
    *  It doesn't check whether the index is valid or not
-   */   
+   */
   template<typename T>
   typename T::IndexType index( Nm x, Nm y, Nm z);
+
+
 
 //   /// Set voxels at coordinates (x,y,z) to value
 //   ///NOTE: Current implementation will expand the image

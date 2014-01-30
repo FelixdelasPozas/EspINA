@@ -20,7 +20,6 @@
 
 // EspINA
 #include "Dialogs/About/AboutDialog.h"
-#include "Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.h"
 #include "Dialogs/Settings/GeneralSettingsDialog.h"
 #include "Dialogs/TabularReport/RawInformationDialog.h"
 #include "Docks/ChannelExplorer/ChannelExplorer.h"
@@ -36,7 +35,7 @@
 #include <Core/IO/SegFile.h>
 #include <Core/MultiTasking/Scheduler.h>
 #include <Core/Utils/AnalysisUtils.h>
-#include <Extensions/EdgeDistances/AdaptiveEdges.h>
+#include <Extensions/EdgeDistances/ChannelEdges.h>
 #include <GUI/ColorEngines/CategoryColorEngine.h>
 #include <GUI/ColorEngines/NumberColorEngine.h>
 #include <GUI/ColorEngines/UserColorEngine.h>
@@ -699,16 +698,9 @@ void EspinaMainWindow::openAnalysis(const QStringList files)
 
       for (auto channel : m_model->channels())
       {
-        if (!channel->hasExtension(AdaptiveEdges::TYPE))
+        if (!channel->hasExtension(ChannelEdges::TYPE))
         {
-          AdaptiveEdgesDialog edgesDialog(this);
-          edgesDialog.exec();
-
-          int color     = edgesDialog.color();
-          int threshold = edgesDialog.threshold();
-
-          AdaptiveEdgesSPtr extension{new AdaptiveEdges(edgesDialog.useAdaptiveEdges(), color, threshold, m_scheduler)};
-          channel->addExtension(extension);
+          channel->addExtension(ChannelEdgesSPtr{new ChannelEdges(m_scheduler)});
         }
       }
     }

@@ -30,7 +30,7 @@
 #include <vtkCellData.h>
 #include "vtkCountingFrame3DWidget.h"
 #include <GUI/View/View2D.h>
-#include <Extensions/EdgeDistances/AdaptiveEdges.h>
+#include <Extensions/EdgeDistances/ChannelEdges.h>
 
 using namespace EspINA;
 using namespace EspINA::CF;
@@ -41,7 +41,7 @@ AdaptiveCountingFrame::AdaptiveCountingFrame(CountingFrameExtension *channelExt,
                                              Nm inclusion[3],
                                              Nm exclusion[3])
 : CountingFrame(channelExt, inclusion, exclusion)
-, m_channel(channelExt->channel())
+, m_channel(channelExt->extendedItem())
 {
   updateCountingFrame();
 }
@@ -61,17 +61,6 @@ AdaptiveCountingFrame::~AdaptiveCountingFrame()
   }
   m_widgets2D.clear();
   m_widgets3D.clear();
-}
-
-//-----------------------------------------------------------------------------
-QVariant AdaptiveCountingFrame::data(int role) const
-{
-  if (role == Qt::DisplayRole)
-    return tr("%1 - CF %2: Adaptive")
-             .arg(m_channel->name())
-             .arg(m_id);
-
-  return CountingFrame::data(role);
 }
 
 //-----------------------------------------------------------------------------
@@ -158,7 +147,7 @@ void AdaptiveCountingFrame::updateCountingFrameImplementation()
 
   m_inclusionVolume = 0;
 
-  AdaptiveEdgesSPtr edgesExtension = createAdaptiveEdgesIfNotAvailable(m_channel);
+  ChannelEdgesSPtr edgesExtension = createAdaptiveEdgesIfNotAvailable(m_channel);
 
   vtkSmartPointer<vtkPolyData> margins = edgesExtension->channelEdges();
   Q_ASSERT(margins.GetPointer());

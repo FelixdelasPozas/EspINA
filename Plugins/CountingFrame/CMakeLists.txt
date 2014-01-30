@@ -59,7 +59,7 @@ set (LOCAL_SOURCES
   CountingFrameRenderer.cpp
   CountingFrames/AdaptiveCountingFrame.cpp
   CountingFrames/CountingFrame.cpp
-  CountingFrames/RectangularCountingFrame.cpp
+  CountingFrames/OrtogonalCountingFrame.cpp
   CountingFrames/vtkCountingFrame3DRepresentation.cpp
   CountingFrames/vtkCountingFrame3DWidget.cpp
   CountingFrames/vtkCountingFrameAxialSliceRepresentation.cpp

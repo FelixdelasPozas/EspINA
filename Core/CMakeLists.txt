@@ -7,6 +7,7 @@ include (GenerateExportHeader)
 
 qt4_wrap_cpp(CORE_MOC
   Analysis/Data.h
+  Analysis/Extension.h
   Analysis/Output.h
   Analysis/ViewItem.h
   MultiTasking/Scheduler.h
@@ -24,7 +25,6 @@ set (CORE_SOURCES
   Analysis/Data/MeshData.cpp
   Analysis/Data/Mesh/RawMesh.cpp
   Analysis/Data/VolumetricData.cpp
-  Analysis/Extensions/ChannelExtension.cpp
   Analysis/Filter.cpp
   Analysis/Graph/DirectedGraph.cpp
   Analysis/Output.cpp

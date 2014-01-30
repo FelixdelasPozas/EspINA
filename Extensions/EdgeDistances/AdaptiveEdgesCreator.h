@@ -17,8 +17,8 @@
 */
 
 
-#ifndef ESPINA_EDGE_DETECTOR_H
-#define ESPINA_EDGE_DETECTOR_H
+#ifndef ESPINA_ADAPTIVE_EDGE_CREATOR_H
+#define ESPINA_ADAPTIVE_EDGE_CREATOR_H
 
 #include "Extensions/EspinaExtensions_Export.h"
 
@@ -26,23 +26,23 @@
 
 namespace EspINA
 {
-  class AdaptiveEdges;
+  class ChannelEdges;
 
-  class EspinaExtensions_EXPORT EdgeDetector
+  class EspinaExtensions_EXPORT AdaptiveEdgesCreator
   : public Task
   {
   public:
-    explicit EdgeDetector(AdaptiveEdges *extension,
-                          SchedulerSPtr scheduler = SchedulerSPtr());
-    virtual ~EdgeDetector();
+    explicit AdaptiveEdgesCreator(ChannelEdges *extension,
+                                  SchedulerSPtr scheduler = SchedulerSPtr());
+    virtual ~AdaptiveEdgesCreator();
 
   protected:
     virtual void run();
 
   private:
-    AdaptiveEdges *m_extension;
+    ChannelEdges *m_extension;
 };
 
 }// namespace EspINA
 
-#endif // ESPINA_EDGE_DETECTOR_H
+#endif // ESPINA_ADAPTIVE_EDGE_CREATOR_H

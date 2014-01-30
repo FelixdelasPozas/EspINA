@@ -20,7 +20,7 @@
 #ifndef ESPINA_READ_ONLY_SEGMENTATION_EXTENSION_H
 #define ESPINA_READ_ONLY_SEGMENTATION_EXTENSION_H
 
-#include "Core/Analysis/Extensions/SegmentationExtension.h"
+#include "Core/Analysis/Extension.h"
 
 namespace EspINA {
 
@@ -50,16 +50,15 @@ namespace EspINA {
     virtual TypeList dependencies() const
     { return TypeList(); }
 
-    virtual QVariant information(const InfoTag& tag) const
-    { return QVariant(); }
-
     virtual bool validCategory(const QString& classificationName) const
     { return true; }
 
   protected:
-    virtual void onSegmentationSet(SegmentationPtr channel)
-    {}
+    virtual void onExtendedItemSet(Segmentation* item)
+    {} //TODO
 
+    virtual QVariant cacheFail(const InfoTag &tag) const
+    { return QVariant(); } //TODO
 
   private:
     SegmentationExtension::Type m_type;

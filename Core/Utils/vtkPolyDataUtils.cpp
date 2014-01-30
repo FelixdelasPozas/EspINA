@@ -45,7 +45,8 @@ QByteArray EspINA::PolyDataUtils::savePolyDataToBuffer(const vtkSmartPointer<vtk
 vtkSmartPointer<vtkPolyData> EspINA::PolyDataUtils::readPolyDataFromFile(QString fileName) throw (IO_Error_Exception)
 {
   vtkSmartPointer<vtkGenericDataObjectReader> reader = vtkSmartPointer<vtkGenericDataObjectReader>::New();
-  reader->SetFileName(fileName.toStdString().c_str());
+  reader->SetFileName(fileName.toUtf8());
+  reader->SetReadAllFields(true);
   reader->Update();
 
   if (reader->GetErrorCode() != 0)

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>785</width>
-    <height>456</height>
+    <height>424</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -47,7 +47,7 @@
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_5">
           <item>
-           <widget class="QRadioButton" name="rectangularRadio">
+           <widget class="QRadioButton" name="ortogonalRadio">
             <property name="maximumSize">
              <size>
               <width>300</width>
@@ -55,7 +55,7 @@
              </size>
             </property>
             <property name="text">
-             <string>Rectangular Counting Frame</string>
+             <string>Ortogonal Counting Frame</string>
             </property>
             <property name="autoExclusive">
              <bool>true</bool>
@@ -189,13 +189,6 @@
             </property>
            </spacer>
           </item>
-          <item row="1" column="4">
-           <widget class="QLabel" name="whiteLabel">
-            <property name="text">
-             <string>White</string>
-            </property>
-           </widget>
-          </item>
           <item row="2" column="0">
            <spacer name="horizontalSpacer_2">
             <property name="orientation">
@@ -208,6 +201,13 @@
              </size>
             </property>
            </spacer>
+          </item>
+          <item row="1" column="4">
+           <widget class="QLabel" name="whiteLabel">
+            <property name="text">
+             <string>White</string>
+            </property>
+           </widget>
           </item>
          </layout>
         </item>
@@ -241,7 +241,7 @@
       </sizepolicy>
      </property>
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Note:&lt;/span&gt; &lt;br&gt;-  In case there is no outer frame, select the option to compute edges including outer frame. &lt;br&gt;- This option can be changed later in the Channel Inspector dialog.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Note:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
     </widget>
    </item>
@@ -251,7 +251,7 @@
       <enum>Qt::Horizontal</enum>
      </property>
      <property name="standardButtons">
-      <set>QDialogButtonBox::Ok</set>
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
      </property>
     </widget>
    </item>

@@ -129,7 +129,7 @@ void Channel::addExtension(ChannelExtensionSPtr extension)
   if (m_extensions.contains(extension->type()))
     throw (ChannelExtension::Existing_Extension());
 
-  extension->setChannel(this);
+  extension->setExtendedItem(this);
 
   m_extensions.insert(extension->type(), extension);
 }

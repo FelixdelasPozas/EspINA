@@ -21,7 +21,7 @@
 
 #include "CountingFramePlugin_Export.h"
 
-#include <Core/Analysis/Extensions/SegmentationExtension.h>
+#include <Core/Analysis/Extension.h>
 #include <Core/Utils/Bounds.h>
 
 #include <CountingFrames/CountingFrame.h>
@@ -34,8 +34,7 @@ namespace EspINA
 {
   namespace CF {
   class CountingFramePlugin_EXPORT StereologicalInclusion
-  : public QObject
-  , public SegmentationExtension
+  : public SegmentationExtension
   {
     Q_OBJECT
 
@@ -63,14 +62,12 @@ namespace EspINA
 
     virtual TypeList dependencies() const;
 
-    virtual void onSegmentationSet(SegmentationPtr segmentation);
-
     virtual bool validCategory(const QString& classificationName) const
     { return true; }
 
     virtual InfoTagList availableInformations() const;
 
-    virtual QVariant information(const InfoTag& tag) const;
+//     virtual QVariant information(const InfoTag& tag) const;
 
     virtual QString toolTipText() const;
 
@@ -80,6 +77,10 @@ namespace EspINA
 
     bool isExcluded() const;
 
+  protected:
+    virtual QVariant cacheFail(const QString& tag) const;
+
+    virtual void onExtendedItemSet(Segmentation *segmentation);
 
   public slots:
     void evaluateCountingFrame(CountingFrame *cf);
@@ -96,7 +97,7 @@ namespace EspINA
     bool m_isUpdated;
 
     bool m_isOnEdge;
-    QMap<CountingFrame *, bool> m_exclusionCFs;
+    QMap<CountingFrame *, bool>   m_exclusionCFs;
 
     bool m_isExcluded;
     QMap<CountingFrame::Id, bool> m_excludedByCF;

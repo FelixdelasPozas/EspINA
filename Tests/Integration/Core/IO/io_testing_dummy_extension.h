@@ -18,7 +18,7 @@
 #ifndef SEGMENTATIONEXTENSIONSUPPORT_H_
 #define SEGMENTATIONEXTENSIONSUPPORT_H_
 
-#include "Core/Analysis/Extensions/SegmentationExtension.h"
+#include "Core/Analysis/Extension.h"
 
 using namespace EspINA;
 
@@ -49,7 +49,8 @@ class DummySegmentationExtension
 
     virtual TypeList dependencies() const{ return TypeList(); }
 
-    void onSegmentationSet(SegmentationPtr seg) {};
+    virtual void onExtendedItemSet(Segmentation* item) {}
+    virtual QVariant cacheFail(const QString& tag) const {return QVariant();}
     bool validCategory(const QString &classificationName) const { return true; };
 
     InfoTagList availableInformations() const

@@ -40,14 +40,13 @@ namespace CF {
   enum CFType
   {
     ADAPTIVE,
-    RECTANGULAR
+    ORTOGONAL
   };
 
   class CountingFrameExtension;
 
   class CountingFramePlugin_EXPORT CountingFrame
   : public QObject
-  , public QStandardItem
   , public EspinaWidget
   , public vtkCommand
   {
@@ -83,7 +82,7 @@ namespace CF {
       DescriptionRole = Qt::UserRole + 1
     };
 
-    using Id = int;
+    using Id = QString;
 
   public:
     vtkTypeMacro(CountingFrame, vtkCommand);
@@ -99,9 +98,9 @@ namespace CF {
 
     void margins(Nm inclusion[3], Nm exclusion[3]);
 
-    virtual QVariant data(int role = Qt::UserRole + 1) const;
-
     virtual QString name() const = 0;
+
+    virtual QString description() const;
 
     Id id() const { return m_id; }
 

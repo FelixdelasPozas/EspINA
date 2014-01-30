@@ -15,8 +15,7 @@
 #include <Core/EspinaTypes.h>
 #include <App/IO/ChannelReader.h>
 #include <Core/Utils/NmVector3.h>
-#include <Extensions/EdgeDistances/AdaptiveEdges.h>
-#include <Extensions/EdgeDistances/EdgeDistance.h>
+#include <Extensions/EdgeDistances/ChannelEdges.h>
 #include <GUI/Representations/Renderers/SliceRenderer.h>
 
 // Qt
@@ -148,12 +147,12 @@ ChannelInspector::ChannelInspector(ChannelAdapterPtr channel, ModelAdapterSPtr m
   m_view->updateView();
 
   /// EDGES TAB
-  auto edgesExtension = channel->extension(AdaptiveEdges::TYPE);
-  AdaptiveEdgesSPtr adaptiveExtension = nullptr;
+  auto edgesExtension = channel->extension(ChannelEdges::TYPE);
+  ChannelEdgesSPtr channelEdgesExtension;
   if (edgesExtension)
-    adaptiveExtension = std::dynamic_pointer_cast<AdaptiveEdges>(edgesExtension);
+    channelEdgesExtension = std::dynamic_pointer_cast<ChannelEdges>(edgesExtension);
 
-  m_adaptiveEdgesEnabled = (edgesExtension != nullptr) && adaptiveExtension->usesAdaptiveEdges();
+  m_adaptiveEdgesEnabled = (edgesExtension != nullptr) && !channelEdgesExtension->useDistanceToBounds();
 
   radioStackEdges->setChecked(!m_adaptiveEdgesEnabled);
   radioImageEdges->setChecked(m_adaptiveEdgesEnabled);
@@ -165,8 +164,8 @@ ChannelInspector::ChannelInspector(ChannelAdapterPtr channel, ModelAdapterSPtr m
   connect(radioStackEdges, SIGNAL(toggled(bool)), this, SLOT(radioEdgesChanged(bool)));
   connect(radioImageEdges, SIGNAL(toggled(bool)), this, SLOT(radioEdgesChanged(bool)));
 
-  m_backgroundColor = (edgesExtension == nullptr) ? 0 : adaptiveExtension->backgroundColor();
-  m_threshold = (edgesExtension == nullptr) ? 50 : adaptiveExtension->threshold();
+  m_backgroundColor = (edgesExtension == nullptr) ? 0 : channelEdgesExtension->backgroundColor();
+  m_threshold = (edgesExtension == nullptr) ? 50 : channelEdgesExtension->threshold();
   colorBox->setValue(m_backgroundColor);
   thresholdBox->setValue(m_threshold);
 
@@ -529,35 +528,36 @@ void ChannelInspector::changeEdgeDetectorThreshold(int value)
 //------------------------------------------------------------------------
 void ChannelInspector::applyEdgesChanges()
 {
-  ChannelExtensionSPtr extension = m_channel->extension(AdaptiveEdges::TYPE);
-  if (extension != nullptr)
-  {
-    AdaptiveEdgesSPtr adaptiveEdges = std::dynamic_pointer_cast<AdaptiveEdges>(extension);
-
-    for (auto segmentation: m_model->segmentations())
-    {
-      if (segmentation->hasExtension(EdgeDistance::TYPE))
-      {
-        auto segExtension = segmentation->extension(EdgeDistance::TYPE);
-        Q_ASSERT(segExtension);
-        EdgeDistance *distanceExt = edgeDistance(segExtension.get());
-        distanceExt->invalidate();
-      }
-    }
-
-    m_channel->deleteExtension(extension);
-  }
-
-  if (radioImageEdges->isChecked())
-  {
-    m_adaptiveEdgesEnabled = true;
-    m_backgroundColor = colorBox->value();
-    m_threshold = thresholdBox->value();
-
-    m_channel->addExtension(ChannelExtensionSPtr(new AdaptiveEdges(true, m_backgroundColor, m_threshold, m_scheduler)));
-  }
-  else
-    m_adaptiveEdgesEnabled = false;
-
-  m_edgesModified = false;
+//   ChannelExtensionSPtr extension = m_channel->extension(ChannelEdges::TYPE);
+//   if (extension != nullptr)
+//   {
+//     ChannelEdgesSPtr adaptiveEdges = std::dynamic_pointer_cast<ChannelEdges>(extension);
+//
+//     for (auto segmentation: m_model->segmentations())
+//     {
+//       // TODO Invalidate distances if border has changed (it can be done inside EdgeDistance)
+// //       if (segmentation->hasExtension(EdgeDistance::TYPE))
+// //       {
+// //         auto segExtension = segmentation->extension(EdgeDistance::TYPE);
+// //         Q_ASSERT(segExtension);
+// //         EdgeDistance *distanceExt = edgeDistance(segExtension.get());
+// //         distanceExt->invalidate();
+// //       }
+//     }
+//
+//     m_channel->deleteExtension(extension);
+//   }
+//
+//   if (radioImageEdges->isChecked())
+//   {
+//     m_adaptiveEdgesEnabled = true;
+//     m_backgroundColor = colorBox->value();
+//     m_threshold = thresholdBox->value();
+//
+//     m_channel->addExtension(ChannelExtensionSPtr(new ChannelEdges(m_scheduler)));
+//   }
+//   else
+//     m_adaptiveEdgesEnabled = false;
+//
+//   m_edgesModified = false;
 }

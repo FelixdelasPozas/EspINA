@@ -58,7 +58,7 @@ SegmentationTags::~SegmentationTags()
 }
 
 //------------------------------------------------------------------------
-void SegmentationTags::onSegmentationSet(SegmentationPtr seg)
+void SegmentationTags::onExtendedItemSet(Segmentation* item)
 {
 
 }
@@ -71,15 +71,6 @@ SegmentationExtension::InfoTagList SegmentationTags::availableInformations() con
   tags << TAGS;
 
   return tags;
-}
-
-//------------------------------------------------------------------------
-QVariant SegmentationTags::information(const SegmentationExtension::InfoTag& tag) const
-{
-  if (TAGS == tag)
-    return m_tags;
-
-  return QVariant();
 }
 
 //------------------------------------------------------------------------

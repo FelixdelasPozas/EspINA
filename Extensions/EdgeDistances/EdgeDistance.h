@@ -22,7 +22,7 @@
 
 #include "Extensions/EspinaExtensions_Export.h"
 
-#include <Core/Analysis/Extensions/SegmentationExtension.h>
+#include <Core/Analysis/Extension.h>
 #include <Core/Utils/Spatial.h>
 
 namespace EspINA
@@ -32,17 +32,19 @@ namespace EspINA
   : public SegmentationExtension
   {
     static const QString EXTENSION_FILE;
+
   public:
     static const Type TYPE;
 
     static const InfoTag LEFT_DISTANCE;
     static const InfoTag TOP_DISTANCE;
-    static const InfoTag UPPER_DISTANCE;
+    static const InfoTag FRONT_DISTANCE;
     static const InfoTag RIGHT_DISTANCE;
     static const InfoTag BOTTOM_DISTANCE;
-    static const InfoTag LOWER_DISTANCE;
+    static const InfoTag BACK_DISTANCE;
 
-    explicit EdgeDistance();
+    explicit EdgeDistance(const State     &state = State(),
+                          const InfoCache &cache = InfoCache());
     virtual ~EdgeDistance();
 
     virtual Type type() const
@@ -63,14 +65,12 @@ namespace EspINA
     virtual bool validCategory(const QString& classificationName) const
     { return true; }
 
-    virtual QVariant information(const InfoTag& tag) const;
-
     void edgeDistance(Nm distances[6]) const;
 
-    virtual void invalidate();
-
   protected:
-    virtual void onSegmentationSet(SegmentationPtr segmentation);
+    virtual QVariant cacheFail(const QString& tag) const;
+
+    virtual void onExtendedItemSet(Segmentation* segmentation);
 
   private:
     void updateDistances() const;
@@ -81,7 +81,7 @@ namespace EspINA
     mutable bool m_init;
     mutable Nm   m_distances[6];
 
-    friend class AdaptiveEdges;
+    friend class ChannelEdges;
   };
 
   using EdgeDistancePtr  = EdgeDistance *;

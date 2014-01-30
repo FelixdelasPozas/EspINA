@@ -60,7 +60,7 @@ void Segmentation::addExtension(SegmentationExtensionSPtr extension) throw (Segm
   if (m_extensions.contains(extension->type()))
     throw SegmentationExtension::Existing_Extension();
 
-  extension->setSegmentation(this);
+  extension->setExtendedItem(this);
 
   m_extensions.insert(extension->type(), extension);
 }

@@ -44,6 +44,10 @@ int channel_add_extension(int argc, char** argv )
     explicit DummyExtension() 
     : Initialized{false}, ValidChannel{false} {}
 
+    virtual InfoTagList availableInformations() const { return InfoTagList(); }
+    virtual QVariant cacheFail(const QString& tag) const { return QVariant(); }
+    virtual TypeList dependencies() const {return TypeList(); }
+    virtual void onExtendedItemSet(Channel* item) {}
     virtual bool invalidateOnChange() const {return false;}
     virtual Snapshot snapshot() const {return Snapshot();}
     virtual State state() const {return State();}

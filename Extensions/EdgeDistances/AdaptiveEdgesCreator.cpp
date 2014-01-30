@@ -17,9 +17,9 @@
 */
 
 // EspINA
-#include "EdgeDetector.h"
+#include "AdaptiveEdgesCreator.h"
 
-#include "AdaptiveEdges.h"
+#include "ChannelEdges.h"
 #include <Core/Analysis/Data/VolumetricData.h>
 #include <Core/Analysis/Channel.h>
 
@@ -71,26 +71,24 @@ vtkSmartPointer<vtkPoints> plane(const double corner[3],
 
 
 //------------------------------------------------------------------------
-EdgeDetector::EdgeDetector(AdaptiveEdges *extension,
-                           SchedulerSPtr  scheduler)
+AdaptiveEdgesCreator::AdaptiveEdgesCreator(ChannelEdges *extension,
+                                           SchedulerSPtr  scheduler)
 : Task(scheduler)
 , m_extension(extension)
 {
 }
 
 //------------------------------------------------------------------------
-EdgeDetector::~EdgeDetector()
+AdaptiveEdgesCreator::~AdaptiveEdgesCreator()
 {
 }
 
 //------------------------------------------------------------------------
-void EdgeDetector::run()
+void AdaptiveEdgesCreator::run()
 {
   using Itk2VtkFilter = itk::ImageToVTKImageFilter<itkVolumeType>;
 
-  m_extension->m_mutex.lock();
-
-  auto channel = m_extension->channel();
+  auto channel = m_extension->extendedItem();
 
   itkVolumeType::Pointer volume = volumetricData(channel->output())->itkImage();
 

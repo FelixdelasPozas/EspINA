@@ -450,7 +450,7 @@ void SegFile_V5::loadRelations(AnalysisSPtr     analysis,
 //-----------------------------------------------------------------------------
 void SegFile_V5::loadExtensions(ChannelSPtr channel, CoreFactorySPtr factory)
 {
-  QString xmlFile = extensionFile(channel);
+  QString xmlFile = ChannelExtension::ExtensionFilePath(channel.get());
 
   QByteArray extenions = channel->storage()->snapshot(xmlFile);
 

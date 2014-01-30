@@ -24,7 +24,7 @@
 
 #include "Core/Analysis/Data.h"
 #include "Core/Analysis/ViewItem.h"
-#include "Core/Analysis/Extensions/ChannelExtension.h"
+#include "Core/Analysis/Extension.h"
 #include "Core/Analysis/Output.h"
 
 namespace EspINA

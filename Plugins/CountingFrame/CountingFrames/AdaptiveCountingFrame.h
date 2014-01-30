@@ -16,8 +16,8 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ADAPTIVEBOUNDINGFRAME_H
-#define ADAPTIVEBOUNDINGFRAME_H
+#ifndef ESPINA_CF_ADAPTIVE_COUNTING_FRAME_H
+#define ESPINA_CF_ADAPTIVE_COUNTING_FRAME_H
 
 #include "CountingFramePlugin_Export.h"
 #include "CountingFrames/CountingFrame.h"
@@ -44,9 +44,6 @@ namespace EspINA
 
       virtual CFType cfType() const
       { return CF::ADAPTIVE; }
-
-      // Implements QStandardItem interface
-      virtual QVariant data(int role = Qt::UserRole + 1) const;
 
       virtual QString name() const { return ADAPTIVE_CF; }
 
@@ -85,4 +82,4 @@ namespace EspINA
   } // namespace CF
 } // namespace EspINA
 
-#endif // ADAPTIVEBOUNDINGFRAME_H
+#endif // ESPINA_CF_ADAPTIVE_COUNTING_FRAME_H

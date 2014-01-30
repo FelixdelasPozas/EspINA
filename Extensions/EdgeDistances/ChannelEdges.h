@@ -16,12 +16,12 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef ESPINA_ADAPTIVE_EDGES_H
-#define ESPINA_ADAPTIVE_EDGES_H
+#ifndef ESPINA_CHANNEL_EDGES_H
+#define ESPINA_CHANNEL_EDGES_H
 
 #include "Extensions/EspinaExtensions_Export.h"
 
-#include <Core/Analysis/Extensions/ChannelExtension.h>
+#include <Core/Analysis/Extension.h>
 #include <Core/Utils/Spatial.h>
 
 #include <vtkSmartPointer.h>
@@ -31,26 +31,24 @@
 
 namespace EspINA
 {
-  class EdgeDetector;
 
-  class EspinaExtensions_EXPORT AdaptiveEdges
+  class AdaptiveEdgesCreator;
+  class EdgesAnalyzer;
+
+  class EspinaExtensions_EXPORT ChannelEdges
   : public ChannelExtension
   {
-    static const QString EXTENSION_FILE;
     static const QString EDGES_FILE;
     static const QString FACES_FILE;
 
   public:
-    static const QString EDGETYPE;
-
     static const Type TYPE;
 
   public:
-    explicit AdaptiveEdges(bool          useAdaptiveEdges = false,
-                           int           backgroundColor  = 0,
-                           int           threshold        = 50,
-                           SchedulerSPtr scheduler        = SchedulerSPtr());
-    virtual ~AdaptiveEdges();
+    explicit ChannelEdges(SchedulerSPtr   scheduler = SchedulerSPtr(),
+                          const State     &state    = State(),
+                          const InfoCache &cache    = InfoCache());
+    virtual ~ChannelEdges();
 
     virtual Type type() const
     { return TYPE; }
@@ -58,31 +56,49 @@ namespace EspINA
     virtual bool invalidateOnChange() const
     { return true; }
 
-    virtual State state() const
-    { return QString("%1").arg(m_useAdaptiveEdges); }
+    virtual State state() const;
 
     virtual Snapshot snapshot() const;
 
-    void computeDistanceToEdge(SegmentationPtr segmentation);
+    virtual TypeList dependencies() const
+    { return TypeList(); }
+
+    virtual InfoTagList availableInformations() const
+    { return InfoTagList(); }
+
+    void setUseDistanceToBounds(bool value)
+    { m_useDistanceToBounds = value; }
+
+    bool useDistanceToBounds() const
+    { return m_useDistanceToBounds; }
+
+    void distanceToBounds(SegmentationPtr segmentation, Nm distances[6]) const;
+
+    void distanceToEdges(SegmentationPtr segmentation, Nm distances[6]) const;
 
     vtkSmartPointer<vtkPolyData> channelEdges();
 
     Nm computedVolume();
 
-    bool usesAdaptiveEdges() const
-    { return m_useAdaptiveEdges; }
+    void setBackgroundColor(int value);
 
     int backgroundColor() const
     { return m_backgroundColor; }
+
+    void setThreshold(int value);
 
     int threshold() const
     { return m_threshold; }
 
   protected:
-    virtual void onChannelSet(ChannelPtr channel)
-    { if (usesAdaptiveEdges()) computeAdaptiveEdges(); }
+    virtual void onExtendedItemSet(Channel* item);
+
+    virtual QVariant cacheFail(const QString& tag) const
+    { QVariant(); }
 
   private:
+    void analyzeChannel();
+
     void computeAdaptiveEdges();
 
     void loadEdgesCache();
@@ -91,12 +107,14 @@ namespace EspINA
 
   private:
     QMutex m_mutex;
+
+    bool   m_useDistanceToBounds;
     int    m_backgroundColor;
     Nm     m_computedVolume;
     int    m_threshold;
-    bool   m_useAdaptiveEdges;
 
-    EdgeDetector *m_edgeDetector;
+    AdaptiveEdgesCreator *m_edgesCreator;
+    EdgesAnalyzer        *m_edgesAnalyzer;
 
     vtkSmartPointer<vtkPolyData> m_edges;
     vtkSmartPointer<vtkPolyData> m_faces[6];
@@ -104,16 +122,17 @@ namespace EspINA
     // build a surface for each face the first time they're needed
     void ComputeSurfaces();
 
-    friend class EdgeDetector;
+    friend class AdaptiveEdgesCreator;
+    friend class EdgesAnalyzer;
   };
 
-  using AdaptiveEdgesPtr  = AdaptiveEdges *;
-  using AdaptiveEdgesSPtr = std::shared_ptr<AdaptiveEdges>;
+  using ChannelEdgesPtr  = ChannelEdges *;
+  using ChannelEdgesSPtr = std::shared_ptr<ChannelEdges>;
 
-  AdaptiveEdgesPtr  EspinaExtensions_EXPORT adaptiveEdges(ChannelExtensionPtr extension);
-  AdaptiveEdgesSPtr EspinaExtensions_EXPORT adaptiveEdges(ChannelPtr channel);
-  AdaptiveEdgesSPtr EspinaExtensions_EXPORT createAdaptiveEdgesIfNotAvailable(ChannelPtr channel);
+  ChannelEdgesPtr  EspinaExtensions_EXPORT adaptiveEdges(ChannelExtensionPtr extension);
+  ChannelEdgesSPtr EspinaExtensions_EXPORT adaptiveEdges(ChannelPtr channel);
+  ChannelEdgesSPtr EspinaExtensions_EXPORT createAdaptiveEdgesIfNotAvailable(ChannelPtr channel);
 
 }// namespace EspINA
 
-#endif // ESPINA_ADAPTIVE_EDGES_H
+#endif // ESPINA_CHANNEL_EDGES_H

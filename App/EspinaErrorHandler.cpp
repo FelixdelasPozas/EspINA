@@ -38,9 +38,9 @@ QFileInfo EspinaErrorHandler::fileNotFound(const QFileInfo& file, QDir dir, cons
 
     QList<QUrl> urls;
     urls << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::DesktopLocation))
-    << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation))
-    << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::HomeLocation))
-    << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::DataLocation));
+         << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation))
+         << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::HomeLocation))
+         << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::DataLocation));
 
     QFileDialog fileDialog(m_parent);
     fileDialog.setFileMode(QFileDialog::ExistingFiles);

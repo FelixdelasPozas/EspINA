@@ -101,6 +101,12 @@ ChannelSList EspINA::Query::channels(SampleSPtr sample)
 //------------------------------------------------------------------------
 ChannelSList EspINA::Query::channels(SegmentationSPtr segmentation)
 {
+  return channels(segmentation.get());
+}
+
+//------------------------------------------------------------------------
+ChannelSList EspINA::Query::channels(SegmentationPtr segmentation)
+{
   ChannelSList channels;
 
   if (segmentation && segmentation->analysis())

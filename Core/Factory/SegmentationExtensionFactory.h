@@ -21,7 +21,7 @@
 #define ESPINA_SEGMENTATION_EXTENSION_FACTORY_H
 
 #include "EspinaCore_Export.h"
-#include <Core/Analysis/Extensions/SegmentationExtension.h>
+#include <Core/Analysis/Extension.h>
 
 namespace EspINA
 {

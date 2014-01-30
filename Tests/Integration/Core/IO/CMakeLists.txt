@@ -17,6 +17,7 @@ set(LIB_DEPENDECIES
 qt4_wrap_cpp(SUBJECT_MOCS
   ${CORE_DIR}/Analysis/Data.h
   ${CORE_DIR}/Analysis/Output.h
+  ${CORE_DIR}/Analysis/Extension.h
   ${CORE_DIR}/Analysis/ViewItem.h
   ${CORE_DIR}/MultiTasking/Scheduler.h
   ${CORE_DIR}/MultiTasking/Task.h
@@ -38,7 +39,6 @@ add_executable(IO_Tests
   ${CORE_DIR}/Analysis/Sample.cpp
   ${CORE_DIR}/Analysis/Segmentation.cpp
   ${CORE_DIR}/Analysis/ViewItem.cpp
-  ${CORE_DIR}/Analysis/Extensions/ChannelExtension.cpp
   ${CORE_DIR}/Factory/CoreFactory.cpp
   ${CORE_DIR}/IO/ClassificationXML.cpp
   ${CORE_DIR}/IO/FetchRawData.cpp

@@ -30,7 +30,7 @@ ReadOnlyChannelExtension::ReadOnlyChannelExtension(ChannelExtension::Type type, 
 
 
 //------------------------------------------------------------------------
-void ReadOnlyChannelExtension::onChannelSet(ChannelPtr channel)
+void ReadOnlyChannelExtension::onExtendedItemSet(Channel* item)
 {
-  //TODO
+// TODO
 }
