@@ -421,47 +421,49 @@ void View2D::updateBorder(vtkPolyData* data, Nm left, Nm right, Nm upper, Nm low
 }
 
 //-----------------------------------------------------------------------------
-Nm View2D::voxelBottom(int sliceIndex, Plane plane) const
+Nm View2D::voxelBottom(const int sliceIndex, const Plane plane) const
 {
-  return m_sceneBounds[2*m_normalCoord] + sliceIndex * m_slicingStep[m_normalCoord];
+  int index = normalCoordinateIndex(plane);
+  return m_sceneBounds[2*index] + sliceIndex * m_slicingStep[index];
 }
 
 //-----------------------------------------------------------------------------
-Nm View2D::voxelBottom(Nm position, Plane plane) const
+Nm View2D::voxelBottom(const Nm position, const Plane plane) const
 {
   return voxelBottom(voxelSlice(position, plane), plane);
 }
 
 //-----------------------------------------------------------------------------
-Nm View2D::voxelCenter(int sliceIndex, Plane plane) const
+Nm View2D::voxelCenter(const int sliceIndex, const Plane plane) const
 {
-  return m_sceneBounds[2*m_normalCoord] + (sliceIndex + 0.5) * m_slicingStep[m_normalCoord];
+  int index = normalCoordinateIndex(plane);
+  return m_sceneBounds[2*index] + ((static_cast<double>(sliceIndex) + 0.5)* m_slicingStep[index]);
 }
 
 //-----------------------------------------------------------------------------
-Nm View2D::voxelCenter(Nm position, Plane plane) const
+Nm View2D::voxelCenter(const Nm position, const Plane plane) const
 {
   return voxelCenter(voxelSlice(position, plane), plane);
 }
 
-
 //-----------------------------------------------------------------------------
-Nm View2D::voxelTop(int sliceIndex, Plane plane) const
+Nm View2D::voxelTop(const int sliceIndex, const Plane plane) const
 {
-  return m_sceneBounds[2*m_normalCoord] + (sliceIndex + 1.0) * m_slicingStep[m_normalCoord];
+  int index = normalCoordinateIndex(plane);
+  return m_sceneBounds[2*index] + (sliceIndex + 1.0) * m_slicingStep[index];
 }
 
 //-----------------------------------------------------------------------------
-Nm View2D::voxelTop(Nm position, Plane plane) const
+Nm View2D::voxelTop(const Nm position, const Plane plane) const
 {
   return voxelTop(voxelSlice(position, plane), plane);
 }
 
-
 //-----------------------------------------------------------------------------
-int View2D::voxelSlice(Nm position, Plane plane) const
+int View2D::voxelSlice(const Nm position, const Plane plane) const
 {
-  return int((position-m_sceneBounds[2*m_normalCoord])/m_slicingStep[m_normalCoord]);
+  int index = normalCoordinateIndex(plane);
+  return vtkMath::Floor((position-m_sceneBounds[2*index])/m_slicingStep[index]);
 }
 
 //-----------------------------------------------------------------------------
@@ -723,8 +725,8 @@ void View2D::addActor(vtkProp* actor)
   m_thumbnail->RemoveViewProp(m_viewportBorder);
 
   updateThumbnail();
-  m_thumbnail->ResetCamera();
-  updateThumbnail();
+//  m_thumbnail->ResetCamera();
+//  updateThumbnail();
 
   m_thumbnail->AddViewProp(m_channelBorder);
   m_thumbnail->AddViewProp(m_viewportBorder);
@@ -1549,11 +1551,9 @@ void View2D::removeRendererControls(QString name)
 }
 
 //-----------------------------------------------------------------------------
-void View2D::updateCrosshairPoint(Plane plane, Nm slicePos)
+void View2D::updateCrosshairPoint(const Plane plane, const Nm slicePos)
 {
-  int normalCoord = normalCoordinateIndex(plane);
-
-  m_crosshairPoint[normalCoord] = voxelCenter(slicePos, plane);
+  m_crosshairPoint[normalCoordinateIndex(plane)] = voxelCenter(slicePos, plane);
   m_state->setCrossHairs(m_HCrossLineData, m_VCrossLineData,
                          m_crosshairPoint, m_sceneBounds, m_slicingStep);
 

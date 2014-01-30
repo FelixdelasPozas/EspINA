@@ -507,7 +507,6 @@ void DefaultView::changePlanePosition(Plane plane, Nm dist)
   m_view3D->changePlanePosition(plane, dist);
 }
 
-
 // //-----------------------------------------------------------------------------
 // void DefaultEspinaView::setCameraFocus(const Nm focus[3])
 // {

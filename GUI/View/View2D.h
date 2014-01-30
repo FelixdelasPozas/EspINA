@@ -141,7 +141,7 @@ namespace EspINA
 
     virtual void setCrosshairVisibility(bool show);
 
-    void updateCrosshairPoint(Plane plane, Nm slicePos);
+    void updateCrosshairPoint(const Plane plane, const Nm slicePos);
 
     virtual RepresentationSPtr cloneRepresentation(EspINA::ViewItemAdapterPtr item, EspINA::Representation::Type representation);
 
@@ -230,19 +230,19 @@ namespace EspINA
                       double left, double right,
                       double upper, double lower);
 
-    Nm  voxelBottom(int sliceIndex, Plane plane) const;
+    Nm  voxelBottom(const int sliceIndex, const Plane plane) const;
 
-    Nm  voxelBottom(Nm  position,   Plane plane) const;
+    Nm  voxelBottom(const Nm  position,   const Plane plane) const;
 
-    Nm  voxelCenter(int sliceIndex, Plane plane) const;
+    Nm  voxelCenter(const int sliceIndex, const Plane plane) const;
 
-    Nm  voxelCenter(Nm  position,   Plane plane) const;
+    Nm  voxelCenter(const Nm  position,   const Plane plane) const;
 
-    Nm  voxelTop   (int sliceIndex, Plane plane) const;
+    Nm  voxelTop   (const int sliceIndex, const Plane plane) const;
 
-    Nm  voxelTop   (Nm  position,   Plane plane) const;
+    Nm  voxelTop   (const Nm  position,   const Plane plane) const;
 
-    int voxelSlice (Nm position,    Plane plane) const;
+    int voxelSlice (const Nm position,    const Plane plane) const;
 
     void buildCrosshairs();
 
