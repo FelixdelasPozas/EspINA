@@ -186,7 +186,8 @@ Snapshot Channel::snapshot() const
     stream.writeAttribute("Name", name());
     for(auto extension : m_extensions)
     {
-      stream.writeStartElement(extension->type());
+      stream.writeStartElement("Extension");
+      stream.writeAttribute("Type", extension->type());
       stream.writeAttribute("InvalidateOnChange", QString("%1").arg(extension->invalidateOnChange()));
       stream.writeCharacters(extension->state());
       stream.writeEndElement();

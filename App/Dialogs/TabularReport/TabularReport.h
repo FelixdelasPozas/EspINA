@@ -40,9 +40,10 @@ namespace EspINA
     class Entry;
 
   public:
-    explicit TabularReport(ViewManagerSPtr viewManager,
-                           QWidget        *parent = 0,
-                           Qt::WindowFlags f = 0);
+    explicit TabularReport(ModelFactorySPtr factory,
+                           ViewManagerSPtr  viewManager,
+                           QWidget         *parent = 0,
+                           Qt::WindowFlags  f = 0);
     virtual ~TabularReport();
 
     virtual int horizontalOffset() const
@@ -111,8 +112,8 @@ namespace EspINA
 
   private:
     ModelAdapterSPtr m_model;
-    //EspinaFactory *m_factory;
-    ViewManagerSPtr   m_viewManager;
+    ModelFactorySPtr m_factory;
+    ViewManagerSPtr  m_viewManager;
 
     SegmentationAdapterList m_filter;
     QTabWidget *m_tabs;

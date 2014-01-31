@@ -91,6 +91,8 @@ namespace EspINA
      */
      SegmentationExtensionSPtr extension(const SegmentationExtension::Type& type) const;
 
+     SegmentationExtensionSList extensions() const;
+
     virtual SegmentationExtension::InfoTagList informationTags() const;
 
     virtual QVariant information(const SegmentationExtension::InfoTag& tag) const;

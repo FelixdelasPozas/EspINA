@@ -30,6 +30,7 @@ using namespace EspINA;
 
 //----------------------------------------------------------------------------
 RawInformationDialog::RawInformationDialog(ModelAdapterSPtr model,
+                                           ModelFactorySPtr factory,
                                            ViewManagerSPtr  viewManager,
                                            QWidget         *parent)
 
@@ -39,7 +40,7 @@ RawInformationDialog::RawInformationDialog(ModelAdapterSPtr model,
 
   setWindowTitle(tr("Raw Information"));
 
-  TabularReport *report = new TabularReport(viewManager, this);
+  TabularReport *report = new TabularReport(factory, viewManager, this);
   report->setModel(model);
   setLayout(new QVBoxLayout());
   layout()->addWidget(report);

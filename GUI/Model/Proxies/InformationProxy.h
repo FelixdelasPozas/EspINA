@@ -70,6 +70,9 @@ namespace EspINA
     { return m_tags; }
     //const Segmentation::InfoTagList availableInformation() const;
 
+    ItemAdapterList displayedItems() const
+    { return m_elements; }
+
   protected slots:
     void sourceRowsInserted(const QModelIndex & sourceParent, int start, int end);
 
@@ -89,7 +92,7 @@ namespace EspINA
     const SegmentationAdapterList     *m_filter;
     SegmentationExtension::InfoTagList m_tags;
 
-    QList<ItemAdapterPtr> m_elements;
+    ItemAdapterList m_elements;
   };
 } // namespace EspINA
 

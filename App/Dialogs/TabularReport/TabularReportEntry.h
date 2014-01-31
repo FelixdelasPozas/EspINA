@@ -33,6 +33,7 @@
 #include <ui_TabularReport.h>
 
 #include <GUI/Model/Proxies/InformationProxy.h>
+#include <GUI/Widgets/InformationSelector.h>
 
 #include <common/xlconfig.h>
 #include <xlslib.h>
@@ -50,7 +51,7 @@ namespace EspINA
     explicit Entry(QString category);
     virtual ~Entry();
 
-    InformationProxy *Proxy;
+    void setProxy(InformationProxy *proxy);
 
     int rowCount() const;
 
@@ -69,9 +70,17 @@ namespace EspINA
 
     bool exportToXLS(const QString &filename);
 
+    InformationSelector::GroupedInfo availableInformation();
+
+    InformationSelector::GroupedInfo lastDisplayedInformation();
+
+    void setInformation(InformationSelector::GroupedInfo information);
+
+
   private:
-    QString m_category;
-    QStringList m_tags;
+    InformationProxy *m_proxy;
+    QString           m_category;
+    QStringList       m_tags;
   };
 } // namespace EspINA
 

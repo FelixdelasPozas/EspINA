@@ -43,7 +43,7 @@ namespace EspINA
   public:
     static const Type    TYPE;
 
-    static InfoTag excluded(CountingFrame::Id id);
+    static InfoTag cfTag(CountingFrame *cf);
 
   public:
     explicit StereologicalInclusion();
@@ -96,7 +96,6 @@ namespace EspINA
     bool m_isInitialized;
     bool m_isUpdated;
 
-    bool m_isOnEdge;
     QMap<CountingFrame *, bool>   m_exclusionCFs;
 
     bool m_isExcluded;

@@ -38,6 +38,8 @@
 using namespace EspINA;
 using namespace xlslib_core;
 
+const QString SEGMENTATION_GROUP = "Segmentation";
+
 //------------------------------------------------------------------------
 TabularReport::Entry::Entry(QString category)
 : QWidget()
@@ -60,7 +62,15 @@ TabularReport::Entry::Entry(QString category)
 //------------------------------------------------------------------------
 TabularReport::Entry::~Entry()
 {
-  if (Proxy) delete Proxy;
+  if (m_proxy) delete m_proxy;
+}
+
+//------------------------------------------------------------------------
+void TabularReport::Entry::setProxy(InformationProxy* proxy)
+{
+  m_proxy = proxy;
+
+  setInformation(lastDisplayedInformation());
 }
 
 //------------------------------------------------------------------------
@@ -72,7 +82,7 @@ int TabularReport::Entry::rowCount() const
 //------------------------------------------------------------------------
 int TabularReport::Entry::columnCount() const
 {
-  return Proxy->informationTags().size();
+  return m_proxy->informationTags().size();
 }
 
 //------------------------------------------------------------------------
@@ -83,7 +93,7 @@ QVariant TabularReport::Entry::value(int row, int column) const
   if (row < rowCount() && column < columnCount())
   {
     if (row == 0)
-      result = Proxy->informationTags()[column];
+      result = m_proxy->informationTags()[column];
     else
       result = tableView->model()->index(row - 1, column, tableView->rootIndex()).data();
   }
@@ -94,23 +104,17 @@ QVariant TabularReport::Entry::value(int row, int column) const
 
 //------------------------------------------------------------------------
 void TabularReport::Entry::changeDisplayedInformation()
-{ //TODO: Decide how to pass tags to the widget to avoid using the factory
-//   InformationSelector::TaxonomyInformation tags;
-//   tags[m_category] = Proxy->informationTags();
-//
-//   InformationSelector tagSelector(tags, m_factory, this);
-//
-//   if (tagSelector.exec() == QDialog::Accepted)
-//   {
-//     m_tags.clear();
-//     m_tags << tr("Name") << tr("Taxonomy") << tags[m_category];
-//
-//     Proxy->setInformationTags(m_tags);
-//
-//     QStandardItemModel *header = new QStandardItemModel(1, m_tags.size(), this);
-//     header->setHorizontalHeaderLabels(m_tags);
-//     tableView->horizontalHeader()->setModel(header);
-//   }
+{
+  auto available = availableInformation();
+
+  auto selection = lastDisplayedInformation();
+
+  InformationSelector tagSelector(available, selection, this);
+
+  if (tagSelector.exec() == QDialog::Accepted)
+  {
+    setInformation(selection);
+  }
 }
 
 //------------------------------------------------------------------------
@@ -182,4 +186,57 @@ bool TabularReport::Entry::exportToXLS(const QString &filename)
   wb.Dump(filename.toStdString());
 
   return true;
+}
+
+//------------------------------------------------------------------------
+InformationSelector::GroupedInfo TabularReport::Entry::availableInformation()
+{
+  InformationSelector::GroupedInfo info;
+
+  info[SEGMENTATION_GROUP] << tr("Name") << tr("Category");
+
+  for (auto item : m_proxy->displayedItems())
+  {
+    Q_ASSERT(isSegmentation(item));
+
+    auto segmentation = segmentationPtr(item);
+
+    for (auto extension : segmentation->extensions())
+    {
+      info[extension->type()] << extension->availableInformations();
+    }
+  }
+
+  for (auto tag : info.keys())
+  {
+    info[tag].removeDuplicates();
+  }
+
+  return info;
+}
+
+//------------------------------------------------------------------------
+InformationSelector::GroupedInfo TabularReport::Entry::lastDisplayedInformation()
+{
+  return availableInformation();
+}
+
+//------------------------------------------------------------------------
+void TabularReport::Entry::setInformation(InformationSelector::GroupedInfo information)
+{
+  m_tags.clear();
+
+  for(auto extension : information.keys())
+  {
+    //       if (segmentation.)
+    //       {
+    //       }
+    m_tags << information[extension];
+  }
+
+  m_proxy->setInformationTags(m_tags);
+
+  auto header = new QStandardItemModel(1, m_tags.size(), this);
+  header->setHorizontalHeaderLabels(m_tags);
+  tableView->horizontalHeader()->setModel(header);
 }

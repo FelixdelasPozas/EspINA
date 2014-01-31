@@ -1032,7 +1032,7 @@ void EspinaMainWindow::showRawInformation()
 {
   if (!m_model->segmentations().isEmpty())
   {
-    RawInformationDialog *dialog = new RawInformationDialog(m_model, m_viewManager, this);
+    RawInformationDialog *dialog = new RawInformationDialog(m_model, m_factory, m_viewManager, this);
     connect(dialog, SIGNAL(finished(int)),
             dialog, SLOT(deleteLater()));
     dialog->show();

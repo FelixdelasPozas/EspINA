@@ -35,6 +35,7 @@ namespace EspINA
   {
   public:
     explicit RawInformationDialog(ModelAdapterSPtr model,
+                                  ModelFactorySPtr factory,
                                   ViewManagerSPtr  viewManager,
                                   QWidget         *parent = 0);
     virtual ~RawInformationDialog();

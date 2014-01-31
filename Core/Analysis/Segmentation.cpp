@@ -133,11 +133,13 @@ Snapshot Segmentation::snapshot() const
     stream.writeAttribute("Name", name());
     for(auto extension : m_extensions)
     {
-      stream.writeStartElement(extension->type());
+      stream.writeStartElement("Extension");
+      stream.writeAttribute("Type", extension->type());
       stream.writeAttribute("InvalidateOnChange", QString("%1").arg(extension->invalidateOnChange()));
       for(auto tag : extension->availableInformations())
       {
-        stream.writeStartElement(tag);
+        stream.writeStartElement("Info");
+        stream.writeAttribute("Name", tag);
         stream.writeCharacters(extension->information(tag).toString());
         stream.writeEndElement();
       }

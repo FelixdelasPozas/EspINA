@@ -35,8 +35,6 @@
 #include <QTableView>
 
 
-
-
 using namespace EspINA;
 using namespace xlslib_core;
 
@@ -49,7 +47,6 @@ public:
   : QSortFilterProxyModel(parent) {}
 
 protected:
-  //------------------------------------------------------------------------
   virtual bool lessThan(const QModelIndex& left, const QModelIndex& right) const
   {
     int role = left.column()>0?Qt::DisplayRole:TypeRole+1;
@@ -66,11 +63,12 @@ protected:
 
 
 //------------------------------------------------------------------------
-TabularReport::TabularReport(ViewManagerSPtr viewmManager,
-                             QWidget        *parent,
-                             Qt::WindowFlags flags)
-//, m_factory(NULL)
-: m_viewManager(viewmManager)
+TabularReport::TabularReport(ModelFactorySPtr factory,
+                             ViewManagerSPtr  viewmManager,
+                             QWidget         *parent,
+                             Qt::WindowFlags  flags)
+: m_factory(factory)
+, m_viewManager(viewmManager)
 , m_tabs(new QTabWidget())
 , m_multiSelection(false)
 {
@@ -194,7 +192,6 @@ void TabularReport::reset()
     }
   }
 }
-
 
 //------------------------------------------------------------------------
 void TabularReport::indexDoubleClicked(QModelIndex index)
@@ -410,25 +407,13 @@ void TabularReport::createCategoryEntry(const QString &category)
   {
     Entry *entry = new Entry(category);
 
-    SegmentationExtension::InfoTagList tags;
-    tags << tr("Name") << tr("Category");
-    //TODO: Populate tags
-//     for(Segmentation::InformationExtension extension, m_factory->segmentationExtensions())
-//     {
-//       if (extension->validTaxonomy(taxonomy))
-//       {
-//         tags << extension->availableInformations();
-//       }
-//     }
-
     InformationProxy *infoProxy = new InformationProxy();
     infoProxy->setCategory(category);
     infoProxy->setFilter(&m_filter);
-    infoProxy->setInformationTags(tags);
     infoProxy->setSourceModel(m_model);
     connect (infoProxy, SIGNAL(rowsRemoved(const QModelIndex &, int, int)),
              this, SLOT(rowsRemoved(const QModelIndex &, int, int)));
-    entry->Proxy = infoProxy;
+    entry->setProxy(infoProxy);
 
     DataSortFiler *sortFilter = new DataSortFiler();
     sortFilter->setSourceModel(infoProxy);

@@ -33,6 +33,19 @@
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
        <item>
+        <widget class="QLabel" name="label_10">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>Counting Frames:</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QTableView" name="countingFrames">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
@@ -64,19 +77,6 @@ QTableView::indicator:unchecked {
          <attribute name="verticalHeaderHighlightSections">
           <bool>false</bool>
          </attribute>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLabel" name="label_10">
-         <property name="font">
-          <font>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>Counting Frame:</string>
-         </property>
         </widget>
        </item>
        <item>

@@ -117,6 +117,9 @@ namespace EspINA
 
     virtual QVariant cacheFail(const InfoTag &tag) const = 0;
 
+    QVariant cachedInfo(const InfoTag &tag)
+    { return m_infoCache.value(tag, QVariant()); }
+
     void updateInfoCache(const InfoTag &tag, QVariant value)
     { m_infoCache[tag] = value; }
 

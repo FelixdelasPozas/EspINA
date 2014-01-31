@@ -149,6 +149,9 @@ namespace EspINA
      */
     ChannelExtensionSPtr extension(const ChannelExtension::Type& type);
 
+    ChannelExtensionSList extensions() const
+    { return m_extensions.values(); }
+
     static const int AUTOMATIC_OPACITY = -1;
 
   private:

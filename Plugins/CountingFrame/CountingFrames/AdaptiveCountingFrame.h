@@ -28,7 +28,7 @@ namespace EspINA
 {
   namespace CF
   {
-    const QString ADAPTIVE_CF = QObject::tr("Adaptive CF");
+    const QString ADAPTIVE_CF = QObject::tr("Adaptive");
 
     class CountingFramePlugin_EXPORT AdaptiveCountingFrame
     : public CountingFrame

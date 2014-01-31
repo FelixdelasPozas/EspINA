@@ -20,7 +20,7 @@
 
 #include "CountingFrameExtension.h"
 #include "CountingFrames/CountingFrame.h"
-#include <Extensions/EdgeDistances/EdgeDistance.h>
+#include <Extensions/EdgeDistances/ChannelEdges.h>
 #include <GUI/Utils/Conditions.h>
 #include <Core/Analysis/Query.h>
 #include <Core/Analysis/Channel.h>
@@ -37,6 +37,8 @@
 using namespace EspINA;
 using namespace EspINA::CF;
 
+const SegmentationExtension::InfoTag EDGE_TAG = "Touch Edge";
+
 const SegmentationExtension::Type    StereologicalInclusion::TYPE     = "StereologicalInclusion";
 //const SegmentationExtension::InfoTag StereologicalInclusion::EXCLUDED = "Excluded from CF";
 
@@ -45,22 +47,15 @@ const QString StereologicalInclusion::FILE = StereologicalInclusion::TYPE + "/St
 const std::string FILE_VERSION = StereologicalInclusion::TYPE.toStdString() + " 1.0\n";
 const char SEP = ';';
 
-namespace EspINA {
-  namespace CF {
-    const QString TAG = "CF";
-  }
-}
-
 //------------------------------------------------------------------------
-SegmentationExtension::InfoTag StereologicalInclusion::excluded(CountingFrame::Id id)
+SegmentationExtension::InfoTag StereologicalInclusion::cfTag(CountingFrame *cf)
 {
-  return QString("%1 %2").arg(CF::TAG).arg(id);
+  return tr("Inc. %1 CF").arg(cf->id());
 }
 
 //------------------------------------------------------------------------
 StereologicalInclusion::StereologicalInclusion()
-: m_isOnEdge(false)
-, m_isInitialized(false)
+: m_isInitialized(false)
 , m_isUpdated(false)
 , m_isExcluded(false)
 {
@@ -102,9 +97,10 @@ SegmentationExtension::InfoTagList StereologicalInclusion::availableInformations
 {
   InfoTagList tags;
 
+  tags << EDGE_TAG;
   for (auto cf : m_exclusionCFs.keys())
   {
-    tags << excluded(cf->id());
+    tags << cfTag(cf);
   }
 
   return tags;
@@ -113,7 +109,9 @@ SegmentationExtension::InfoTagList StereologicalInclusion::availableInformations
 //------------------------------------------------------------------------
 QVariant StereologicalInclusion::cacheFail(const QString& tag) const
 {
+  evaluateCountingFrames();
 
+  return information(tag);
 }
 
 //------------------------------------------------------------------------
@@ -122,44 +120,19 @@ void StereologicalInclusion::onExtendedItemSet(Segmentation* segmentation)
 
 }
 
-// //------------------------------------------------------------------------
-// QVariant StereologicalInclusion::information ( const SegmentationExtension::InfoTag& tag) const
-// {
-//   if (tag.startsWith(CF::TAG))
-//   {
-//     evaluateCountingFrames();
-//
-//     CountingFrame::Id cf = tag.split(" ")[1].toInt();
-//
-//     return m_excludedByCF[cf];
-// //     QStringList excludingCFs;
-// //     for(auto cf : m_excludedByCF.keys())
-// //     {
-// //       if (m_excludedByCF[cf])
-// //       {
-// //         excludingCFs << QString::number(cf);
-// //       }
-// //     }
-// //     return excludingCFs.join(", ");
-//   }
-//
-//   qWarning() << StereologicalInclusion::TYPE << ":"  << tag << " is not provided";
-//   return QVariant();
-// }
-
 //------------------------------------------------------------------------
 QString StereologicalInclusion::toolTipText() const
 {
   QString tooltip;
 
   bool addBreakLine = false;
-  for(auto id : m_excludedByCF.keys())
+  for(auto cf : m_exclusionCFs.keys())
   {
     if (addBreakLine) tooltip = tooltip.append("<br>");
 
-    QString description = m_excludedByCF[id]?
-    "<font color=\"red\">"   + tr("Excluded from Counting Frame %1").arg(id) + "</font>":
-    "<font color=\"green\">" + tr("Included in Counting Frame %1"  ).arg(id) + "</font>";
+    QString description = information(cfTag(cf)).toBool()?
+    "<font color=\"green\">" + tr("Included in %1 Counting Frame"  ).arg(cf->id()) + "</font>":
+    "<font color=\"red\">"   + tr("Excluded from %1 Counting Frame").arg(cf->id()) + "</font>";
     tooltip = tooltip.append(condition(":/apply.svg", description));
 
     addBreakLine = true;
@@ -178,7 +151,6 @@ void StereologicalInclusion::addCountingFrame(CountingFrame* cf)
     m_excludedByCF[cf->id()] = false; // Everybody is innocent until proven guilty
     m_exclusionCFs[cf] = false;
     m_isUpdated = false;
-    //evaluateCountingFrame(cf);
   }
 }
 
@@ -194,112 +166,6 @@ void StereologicalInclusion::removeCountingFrame(CountingFrame* cf)
     m_isUpdated = false;
   }
 }
-
-// //------------------------------------------------------------------------
-// void StereologicalInclusion::setCountingFrames(CountingFrameList countingFrames)
-// {
-//   Q_ASSERT(m_extendedItem);
-//   //   EXTENSION_DEBUG("Updating " << m_seg->id() << " bounding regions...");
-//   //   EXTENSION_DEBUG("\tNumber of regions applied:" << regions.size());
-//   QSet<CountingFrame *> prevCF = m_exclusionCFs.keys().toSet();
-//   QSet<CountingFrame *> newCF  = countingFrames.toSet();
-//
-//   m_isExcluded = false;
-//
-//   // Remove regions that doesn't exist anymore
-//   for(auto cf : prevCF.subtract(newCF))
-//   {
-//     disconnect(cf, SIGNAL(modified(CountingFrame*)),
-//                this, SLOT(evaluateCountingFrame(CountingFrame*)));
-//     m_exclusionCFs.remove(cf);
-//     m_excludedByCF.remove(cf->id());
-//   }
-//
-//   for(auto cf : newCF.subtract(prevCF))
-//   {
-//     connect(cf, SIGNAL(modified(CountingFrame*)),
-//             this, SLOT(evaluateCountingFrame(CountingFrame*)));
-//     evaluateCountingFrame(cf);
-//   }
-// //     EXTENSION_DEBUG("Counting Region Extension request Segmentation Update");
-// }
-
-// //------------------------------------------------------------------------
-// void StereologicalInclusion::loadCache(QuaZipFile &file, const QDir &tmpDir, IEspinaModel *model)
-// {
-//   QString header(file.readLine());
-//   if (header.toStdString() == FILE_VERSION)
-//   {
-//     char buffer[1024];
-//     while (file.readLine(buffer, sizeof(buffer)) > 0)
-//     {
-//       QString line(buffer);
-//       QStringList fields = line.split(SEP);
-//
-//       SegmentationPtr extensionSegmentation = NULL;
-//       int i = 0;
-//       while (!extensionSegmentation && i < model->segmentations().size())
-//       {
-//         SegmentationSPtr segmentation = model->segmentations()[i];
-//         if ( segmentation->filter()->id()       == fields[0]
-//           && segmentation->outputId()           == fields[1].toInt()
-//           && segmentation->filter()->cacheDir() == tmpDir)
-//         {
-//           extensionSegmentation = segmentation.get();
-//         }
-//         i++;
-//       }
-//       if (extensionSegmentation)
-//       {
-//         ExtensionData &data = s_cache[extensionSegmentation].Data;
-//
-//         for (int f = 2; f < fields.size(); ++f)
-//         {
-//           CountingFrame::Id id  = fields[f].toInt();
-//           bool excluded = id < 0;
-//           data.ExclusionCFs[abs(id)] = excluded;
-//           data.IsExcluded = data.IsExcluded || excluded;
-//         }
-//       } else
-//       {
-//         qWarning() << StereologicalInclusionID << "Invalid Cache Entry:" << line;
-//       }
-//     };
-//   }
-// }
-
-// //------------------------------------------------------------------------
-// bool StereologicalInclusion::saveCache(Snapshot &cacheList)
-// {
-//   s_cache.purge(invalidData);
-//
-//   if (s_cache.isEmpty())
-//     return false;
-//
-//   std::ostringstream cache;
-//   cache << FILE_VERSION;
-//
-//   SegmentationPtr segmentation;
-//   foreach(segmentation, s_cache.keys())
-//   {
-//     ExtensionData &data = s_cache[segmentation].Data;
-//
-//     cache << segmentation->filter()->id().toStdString();
-//     cache << SEP << segmentation->outputId();
-//
-//     foreach(CountingFrame::Id id, data.ExclusionCFs.keys())
-//     {
-//       cache << SEP << (data.ExclusionCFs[id]?-id:id);
-//     }
-//
-//     cache << std::endl;
-//   }
-//
-//   cacheList << QPair<QString, QByteArray>(FILE, cache.str().c_str());
-//
-//   return true;
-// }
-
 
 //------------------------------------------------------------------------
 bool StereologicalInclusion::isExcluded() const
@@ -327,7 +193,7 @@ void StereologicalInclusion::evaluateCountingFrames()
       m_isExcluded = false;
     } else
     {
-      m_isOnEdge = isOnEdge();
+      isOnEdge();
 
       for (auto cf : m_exclusionCFs.keys())
       {
@@ -344,7 +210,21 @@ void StereologicalInclusion::evaluateCountingFrames()
 void StereologicalInclusion::evaluateCountingFrame(CountingFrame* cf)
 {
   // Compute CF's exclusion value
-  bool excluded = m_isOnEdge || isExcludedByCountingFrame(cf);
+  bool excluded = isOnEdge() || isExcludedByCountingFrame(cf);
+
+  QVariant info;
+  if (excluded)
+  {
+    info.setValue<QString>("Excluded");
+    info.setValue<int>(0);
+  }
+  else
+  {
+    info.setValue<QString>("Included");
+    info.setValue<int>(1);
+  }
+
+  updateInfoCache(cfTag(cf), info);
 
   m_exclusionCFs[cf] = excluded;
 
@@ -443,28 +323,48 @@ bool StereologicalInclusion::isExcludedByCountingFrame(CountingFrame* cf)
 //------------------------------------------------------------------------
 bool StereologicalInclusion::isOnEdge()
 {
-  bool excluded  = false;
-  Nm   threshold = 1.0;
+  bool isOnEdge  = false;
 
-  if (m_extendedItem->hasExtension(EdgeDistance::TYPE))
+  if (cachedInfo(EDGE_TAG).isValid())
   {
-    auto extension = m_extendedItem->extension(EdgeDistance::TYPE);
+    isOnEdge = cachedInfo(EDGE_TAG).toBool();
+  }
+  else
+  {
+    Nm   threshold = 1.0;
 
-    auto distanceExtension = std::dynamic_pointer_cast<EdgeDistance>(extension);
-
-    auto tags = distanceExtension->availableInformations();
-
-    int i = 0;
-    while (!excluded && i < tags.size())
+    auto channels = Query::channels(m_extendedItem);
+    if (channels.size() > 1)
     {
-      bool   ok   = false;
-      double dist = m_extendedItem->information(tags[i++]).toDouble(&ok);
-
-      excluded = ok && dist < threshold;
+      qWarning() << "Tailing not supported by Stereological Inclusion Extension";
     }
+    else if (channels.size() == 1)
+    {
+      auto channel   = channels.first();
+      auto extension = channel->extension(ChannelEdges::TYPE);
+
+      auto edgesExtension = std::dynamic_pointer_cast<ChannelEdges>(extension);
+
+      Nm distances[6];
+      if (edgesExtension->useDistanceToBounds())
+      {
+        edgesExtension->distanceToBounds(m_extendedItem, distances);
+      }
+      else
+      {
+        edgesExtension->distanceToEdges(m_extendedItem, distances);
+      }
+
+      for(int i = 0; i < 6; ++i)
+      {
+        isOnEdge |= distances[i] < threshold;
+      }
+    }
+
+    updateInfoCache(EDGE_TAG, isOnEdge);
   }
 
-  return excluded;
+  return isOnEdge;
 }
 
 //------------------------------------------------------------------------

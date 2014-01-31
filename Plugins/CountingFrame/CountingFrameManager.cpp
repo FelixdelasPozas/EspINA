@@ -130,10 +130,10 @@ CountingFrame::Id CountingFrameManager::suggestedId(CountingFrame *cf) const
   {
     if (cf->categoryConstraint())
     {
-      id = QString("%1 CF").arg(cf->categoryConstraint()->classificationName());
+      id = QString("%1").arg(cf->categoryConstraint()->classificationName());
     } else
     {
-      id = "Global CF";
+      id = "Global";
     }
   }
 

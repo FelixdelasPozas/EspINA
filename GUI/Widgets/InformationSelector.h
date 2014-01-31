@@ -43,13 +43,13 @@ namespace EspINA
     class GUI;
 
   public:
-    using InformationTagsByCategory = QMap<QString, SegmentationExtension::InfoTagList>;
+    using GroupedInfo = QMap<QString, QStringList>;
 
   public:
-    explicit InformationSelector(InformationTagsByCategory &tags,
-                                 ModelFactorySPtr           factory,
-                                 QWidget                   *parent = 0,
-                                 Qt::WindowFlags            flags = 0);
+    explicit InformationSelector(const GroupedInfo &availableGroups,
+                                 GroupedInfo       &selection,
+                                 QWidget         *parent = 0,
+                                 Qt::WindowFlags  flags = 0);
     virtual ~InformationSelector();
 
   protected slots:
@@ -62,7 +62,7 @@ namespace EspINA
 
     ModelFactorySPtr m_factory;
 
-    InformationTagsByCategory &m_tags;
+    GroupedInfo &m_selection;
   };
 }
 

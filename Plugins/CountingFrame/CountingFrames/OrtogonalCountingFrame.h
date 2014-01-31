@@ -29,7 +29,7 @@ namespace EspINA
   namespace CF {
   class CountingFrameExtension;
 
-  const QString ORTOGONAL_CF = QObject::tr("Ortogonal CF");
+  const QString ORTOGONAL_CF = QObject::tr("Ortogonal");
 
   class CountingFramePlugin_EXPORT OrtogonalCountingFrame
   : public CountingFrame

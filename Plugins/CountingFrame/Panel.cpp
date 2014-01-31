@@ -224,7 +224,7 @@ Panel::Panel(CountingFrameManager *manager,
   connect(m_gui->deleteCF, SIGNAL(clicked()),
           this, SLOT(deleteActiveCountingFrame()));
 
-  connect(m_gui->countingFrames, SIGNAL(activated(QModelIndex)),
+  connect(m_gui->countingFrames, SIGNAL(clicked(QModelIndex)),
           this, SLOT(updateUI(QModelIndex)));
 
   connect(m_gui->leftMargin, SIGNAL(valueChanged(int)),
@@ -312,18 +312,17 @@ void Panel::reset()
 //------------------------------------------------------------------------
 void Panel::deleteCountingFrame(CountingFrame *cf)
 {
-  int i = 0;
-  CountingFrameExtension *cfExtension = nullptr;
-
   if (cf == m_activeCF) m_activeCF = nullptr;
 
   m_countingFrames.removeOne(cf);
 
-  updateTable();
-
   m_viewManager->removeWidget(cf);
 
   m_manager->deleteCountingFrame(cf);
+
+  updateTable();
+
+  updateUI(m_gui->countingFrames->model()->index(0,0));
 }
 
 
@@ -513,11 +512,10 @@ void Panel::showInfo(CountingFrame* cf)
 
   int row = m_countingFrames.indexOf(cf);
 
-  auto index = m_cfModel->index(row, 0);
 
   auto selectionModel = m_gui->countingFrames->selectionModel();
-  selectionModel->clearSelection();
-  selectionModel->select(index, QItemSelectionModel::SelectCurrent);
+  auto index = m_cfModel->index(row, 0);
+  selectionModel->select(index, QItemSelectionModel::ClearAndSelect|QItemSelectionModel::Rows);
 
   m_gui->leftMargin  ->blockSignals(true);
   m_gui->topMargin   ->blockSignals(true);

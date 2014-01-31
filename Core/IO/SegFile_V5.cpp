@@ -462,10 +462,11 @@ void SegFile_V5::loadExtensions(ChannelSPtr channel, CoreFactorySPtr factory)
     xml.readNextStartElement();
     if (xml.isStartElement() && xml.name() != "Channel")
     {
-      QString type = xml.name().toString();
+      QString type = xml.attributes().value("Type").toString();
       qDebug() << " - " << type << " found";
       State state = xml.readElementText();
       qDebug() << " * State: \n" << state;
+      ChannelExtension::InfoCache cache;
       ChannelExtensionSPtr extension;
       try
       {
@@ -494,7 +495,7 @@ void SegFile_V5::loadExtensions(SegmentationSPtr segmentation, CoreFactorySPtr f
     xml.readNextStartElement();
     if (xml.isStartElement())
     {
-      QString type = xml.name().toString();
+      QString type = xml.attributes().value("Type").toString();
       qDebug() << " - " << type << " found";
       SegmentationExtensionSPtr extension;
       try

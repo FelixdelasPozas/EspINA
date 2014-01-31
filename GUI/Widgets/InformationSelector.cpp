@@ -28,59 +28,50 @@ class InformationSelector::GUI
 };
 
 //----------------------------------------------------------------------------
-InformationSelector::InformationSelector(InformationTagsByCategory &tags,
-                                         ModelFactorySPtr           factory,
-                                         QWidget                   *parent,
-                                         Qt::WindowFlags            flags)
+InformationSelector::InformationSelector(const InformationSelector::GroupedInfo &available,
+                                         InformationSelector::GroupedInfo       &selection,
+                                         QWidget                                *parent,
+                                         Qt::WindowFlags                         flags)
 : QDialog(parent, flags)
 , m_gui(new GUI())
-, m_factory(factory)
-, m_tags(tags)
+, m_selection(selection)
 {
   m_gui->setupUi(this);
 
   setWindowTitle(tr("Select Analysis' Information"));
 
-  for(auto category : tags.keys())
+  for(auto group : available.keys())
   {
-    auto categoryNode = new QTreeWidgetItem(m_gui->treeWidget);
-    categoryNode->setText(0, category);
+    auto groupNode = new QTreeWidgetItem(m_gui->treeWidget);
+    groupNode->setText(0, group);
 
-    for(auto extension : m_factory->segsegmentationExtensions())
+    bool hasCheckedChildren   = false;
+    bool hasUnCheckedChildren = false;
+
+    for(auto info : available[group])
     {
-      if (extension->validTaxonomy(qualifiedName))
-      {
-        QTreeWidgetItem *extensionNode = new QTreeWidgetItem(categoryNode);
-        extensionNode->setText(0, extension->id());
+      auto infoNode = new QTreeWidgetItem(groupNode);
+      bool selected = m_selection[group].contains(info);
 
-        bool hasCheckedChildren   = false;
-        bool hasUnCheckedChildren = false;
+      hasCheckedChildren   |=  selected;
+      hasUnCheckedChildren |= !selected;
 
-        foreach(Segmentation::InfoTag tag, extension->availableInformations())
-        {
-          QTreeWidgetItem *tagNode = new QTreeWidgetItem(extensionNode);
-          bool selected = m_tags[category].contains(tag);
-
-          hasCheckedChildren   |=  selected;
-          hasUnCheckedChildren |= !selected;
-
-          Qt::CheckState state = selected?Qt::Checked:Qt::Unchecked;
-          tagNode->setText(0, tag);
-          tagNode->setData(0, Qt::UserRole,       state);
-          tagNode->setData(0, Qt::CheckStateRole, state);
-        }
-        Qt::CheckState state;
-        if (hasCheckedChildren && hasUnCheckedChildren)
-          state = Qt::PartiallyChecked;
-        else if (hasCheckedChildren)
-          state = Qt::Checked;
-        else
-          state = Qt::Unchecked;
-
-        extensionNode->setData(0, Qt::UserRole,       state);
-        extensionNode->setData(0, Qt::CheckStateRole, state);
-      }
+      Qt::CheckState state = selected?Qt::Checked:Qt::Unchecked;
+      infoNode->setText(0, info);
+      infoNode->setData(0, Qt::UserRole,       state);
+      infoNode->setData(0, Qt::CheckStateRole, state);
     }
+
+    Qt::CheckState state;
+    if (hasCheckedChildren && hasUnCheckedChildren)
+      state = Qt::PartiallyChecked;
+    else if (hasCheckedChildren)
+      state = Qt::Checked;
+    else
+      state = Qt::Unchecked;
+
+    groupNode->setData(0, Qt::UserRole,       state);
+    groupNode->setData(0, Qt::CheckStateRole, state);
   }
 
   connect(m_gui->treeWidget, SIGNAL(itemClicked(QTreeWidgetItem*,int)),
@@ -101,15 +92,15 @@ InformationSelector::~InformationSelector()
 //----------------------------------------------------------------------------
 void InformationSelector::accept()
 {
-  m_tags.clear();
+  m_selection.clear();
 
   QTreeWidgetItemIterator it(m_gui->treeWidget, QTreeWidgetItemIterator::Checked);
   while (*it)
   {
     QTreeWidgetItem *node       = (*it);
     QTreeWidgetItem *parentNode = node->parent();
-    if (parentNode && parentNode->parent())
-      m_tags[parentNode->parent()->text(0)] << node->data(0,Qt::DisplayRole).toString();
+    if (parentNode)
+      m_selection[parentNode->text(0)] << node->data(0,Qt::DisplayRole).toString();
     ++it;
   }
 

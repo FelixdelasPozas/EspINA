@@ -202,9 +202,7 @@ QVariant InformationProxy::data(const QModelIndex& proxyIndex, int role) const
     }
 
     if (segmentation->informationTags().contains(tag))
-    { //NOTE: Shall we add extension instead? or just return qvariant
-      //Segmentation::InformationExtension prototype = m_model->factory()->informationProvider(tag);
-      //segmentation->addExtension(prototype->clone());
+    {
       return segmentation->information(tag);
     } else
     {
