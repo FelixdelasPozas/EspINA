@@ -4,16 +4,16 @@
     <file>adaptive-frame.png</file>
     <file>allPlanes.png</file>
     <file>apply.svg</file>
-    <file>bottom.png</file>
+    <file>Bottom.png</file>
     <file>create-cr.svg</file>
     <file>deactivate.png</file>
-    <file>left.png</file>
-    <file>lower.png</file>
+    <file>Left.png</file>
+    <file>Back.png</file>
     <file>rectangular-frame.png</file>
-    <file>right.png</file>
-    <file>top.png</file>
+    <file>Right.png</file>
+    <file>Top.png</file>
     <file>trash-full.svg</file>
     <file>update-cr.svg</file>
-    <file>upper.png</file>
+    <file>Front.png</file>
   </qresource>
 </RCC>

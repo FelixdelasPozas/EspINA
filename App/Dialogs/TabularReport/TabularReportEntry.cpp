@@ -29,6 +29,7 @@
 #include "TabularReportEntry.h"
 
 #include <Support/Utils/xlsUtils.h>
+#include <Support/Settings/EspinaSettings.h>
 #include <GUI/Widgets/InformationSelector.h>
 
 #include <QFileDialog>
@@ -218,7 +219,27 @@ InformationSelector::GroupedInfo TabularReport::Entry::availableInformation()
 //------------------------------------------------------------------------
 InformationSelector::GroupedInfo TabularReport::Entry::lastDisplayedInformation()
 {
-  return availableInformation();
+  InformationSelector::GroupedInfo info, available;
+
+  QSettings settings(CESVIMA, ESPINA);
+
+  available = availableInformation();
+
+  openCategorySettings(settings);
+  for(auto extention : settings.allKeys())
+  {
+    if (available.contains(extention))
+    {
+      for(auto tag : settings.value(extention).toStringList())
+      {
+        if (available[extention].contains(tag))
+          info[extention] << tag;
+      }
+    }
+  }
+  closeCategorySettings(settings);
+
+  return info;
 }
 
 //------------------------------------------------------------------------
@@ -226,17 +247,45 @@ void TabularReport::Entry::setInformation(InformationSelector::GroupedInfo infor
 {
   m_tags.clear();
 
+  QSettings settings(CESVIMA, ESPINA);
+
+  openCategorySettings(settings);
+
+  settings.remove(""); // clear all previous keys
+
   for(auto extension : information.keys())
   {
     //       if (segmentation.)
     //       {
     //       }
+
+    settings.setValue(extension, information[extension]);
+
     m_tags << information[extension];
   }
 
   m_proxy->setInformationTags(m_tags);
 
+  closeCategorySettings(settings);
+
+  settings.sync();
+
+
   auto header = new QStandardItemModel(1, m_tags.size(), this);
   header->setHorizontalHeaderLabels(m_tags);
   tableView->horizontalHeader()->setModel(header);
+}
+
+//------------------------------------------------------------------------
+void TabularReport::Entry::openCategorySettings(QSettings& settings)
+{
+  settings.beginGroup("TabularReport");
+  settings.beginGroup(m_category);
+}
+
+//------------------------------------------------------------------------
+void TabularReport::Entry::closeCategorySettings(QSettings& settings)
+{
+  settings.endGroup();
+  settings.endGroup();
 }

@@ -111,7 +111,7 @@ QVariant StereologicalInclusion::cacheFail(const QString& tag) const
 {
   evaluateCountingFrames();
 
-  return information(tag);
+  return cachedInfo(tag);
 }
 
 //------------------------------------------------------------------------

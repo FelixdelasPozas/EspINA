@@ -37,6 +37,7 @@
 
 #include <common/xlconfig.h>
 #include <xlslib.h>
+#include <QSettings>
 
 namespace EspINA
 {
@@ -75,6 +76,9 @@ namespace EspINA
     InformationSelector::GroupedInfo lastDisplayedInformation();
 
     void setInformation(InformationSelector::GroupedInfo information);
+
+    void openCategorySettings(QSettings &settings);
+    void closeCategorySettings(QSettings &settings);
 
 
   private:

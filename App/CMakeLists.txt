@@ -30,7 +30,7 @@ qt4_wrap_cpp (ESPINA_MOC
 #   FilterInspectors/CODE/CODEFilterInspector.h
 #   FilterInspectors/SeedGrowSegmentation/SGSFilterInspector.h
   Menus/ColorEngineMenu.h
-#   Menus/SegmentationContextualMenu.h
+  Menus/DefaultContextualMenu.h
 #   Settings/Editor/SettingsPanel.h
 #   Settings/SeedGrowSegmentation/SettingsPanel.h
   Settings/View2D/View2DSettingsPanel.h
@@ -120,7 +120,7 @@ set (ESPINA_SOURCES
 #   FilterInspectors/CODE/CODEFilterInspector.cpp
 #   FilterInspectors/SeedGrowSegmentation/SGSFilterInspector.cpp
   Menus/ColorEngineMenu.cpp
-#   Menus/SegmentationContextualMenu.cpp
+  Menus/DefaultContextualMenu.cpp
   Settings/DefaultView/DefaultViewSettingsPanel.cpp
   Settings/GeneralSettings/GeneralSettings.cpp
   Settings/GeneralSettings/GeneralSettingsPanel.cpp

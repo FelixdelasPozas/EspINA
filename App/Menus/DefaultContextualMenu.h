@@ -20,11 +20,11 @@
 #ifndef DEFAULTCONTEXTUALMENU_H
 #define DEFAULTCONTEXTUALMENU_H
 
-#include <GUI/QtWidget/SegmentationContextualMenu.h>
-
-#include <Core/Model/EspinaModel.h>
 
 #include <QModelIndex>
+#include <GUI/Widgets/ContextualMenu.h>
+#include <GUI/Model/ModelAdapter.h>
+#include <Support/ViewManager.h>
 
 class QTreeView;
 class QUndoStack;
@@ -34,16 +34,17 @@ namespace EspINA
   class ViewManager;
 
   class DefaultContextualMenu
-  : public SegmentationContextualMenu
+  : public ContextualMenu
   {
     Q_OBJECT
   public:
-    explicit DefaultContextualMenu(SegmentationList selection,
-                                   EspinaModel     *model,
-                                   QUndoStack      *undoStack,
-                                   ViewManager     *viewManager,
-                                   QWidget         *parent = 0);
-    virtual void setSelection(SegmentationList list);
+    explicit DefaultContextualMenu(SegmentationAdapterList selection,
+                                   ModelAdapterSPtr        model,
+                                   ViewManagerSPtr         viewManager,
+                                   QUndoStack             *undoStack,
+                                   QWidget                *parent = 0);
+
+    virtual void setSelection(SelectionSPtr selection);
 
   private slots:
     void addNote();
@@ -56,7 +57,7 @@ namespace EspINA
     void displayVisualizationSettings();
 
   signals:
-    void changeTaxonomy(TaxonomyElementPtr);
+    void changeCategory(CategoryAdapterPtr);
     void deleteSegmentations();
     void changeFinalNode(bool);
 
@@ -71,13 +72,13 @@ namespace EspINA
     QString dialogTitle() const;
 
   private:
-    EspinaModel *m_model;
-    QUndoStack  *m_undoStack;
-    ViewManager *m_viewManager;
+    ModelAdapterSPtr m_model;
+    ViewManagerSPtr  m_viewManager;
+    QUndoStack      *m_undoStack;
 
-    QTreeView       *m_taxonomyList;
+    QTreeView       *m_classifiaciton;
     QAction         *m_changeFinalNode;
-    SegmentationList m_segmentations;
+    SegmentationAdapterList m_segmentations;
   };
 } // namespace EspINA
 

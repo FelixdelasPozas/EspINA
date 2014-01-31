@@ -21,6 +21,7 @@
 
 #include "Support/EspinaSupport_Export.h"
 #include <QString>
+#include <QSettings>
 
 const QString CESVIMA = "CeSViMa";
 const QString ESPINA  = "EspINA";

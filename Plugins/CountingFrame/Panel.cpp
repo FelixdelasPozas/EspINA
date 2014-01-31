@@ -53,13 +53,13 @@ Panel::GUI::GUI()
   frontMargin ->installEventFilter(this);
   backMargin  ->installEventFilter(this);
 
-  QString tooltip("%1 Face: <br> &nbsp <img src=':/%1.png' width=125 height=94> &nbsp <br>");
-  leftMargin  ->setToolTip(tooltip.arg("left"));
-  rightMargin ->setToolTip(tooltip.arg("right"));
-  topMargin   ->setToolTip(tooltip.arg("top"));
-  bottomMargin->setToolTip(tooltip.arg("bottom"));
-  frontMargin ->setToolTip(tooltip.arg("front"));
-  backMargin  ->setToolTip(tooltip.arg("back"));
+  QString tooltip("%1 Face: <br><br> &nbsp; <img src=':/%1.png' width=125 height=94> &nbsp; <br>");
+  leftMargin  ->setToolTip(tooltip.arg("Left"));
+  rightMargin ->setToolTip(tooltip.arg("Right"));
+  topMargin   ->setToolTip(tooltip.arg("Top"));
+  bottomMargin->setToolTip(tooltip.arg("Bottom"));
+  frontMargin ->setToolTip(tooltip.arg("Front"));
+  backMargin  ->setToolTip(tooltip.arg("Back"));
 }
 
 //------------------------------------------------------------------------

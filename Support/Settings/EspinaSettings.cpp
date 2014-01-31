@@ -20,6 +20,7 @@
 
 #include <QSettings>
 
+//------------------------------------------------------------------------
 QString EspINA::userName()
 {
   QSettings settings(CESVIMA, ESPINA);
