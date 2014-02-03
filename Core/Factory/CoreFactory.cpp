@@ -103,6 +103,12 @@ throw (Factory_Already_Registered_Exception)
 }
 
 //-----------------------------------------------------------------------------
+ChannelExtensionTypeList CoreFactory::availableChannelExtensions() const
+{
+  return m_channelExtensionFactories.keys();
+}
+
+//-----------------------------------------------------------------------------
 ChannelExtensionSPtr CoreFactory::createChannelExtension(ChannelExtension::Type type, const State& state)
 {
   ChannelExtensionSPtr extension;
@@ -138,6 +144,12 @@ throw (Factory_Already_Registered_Exception)
 
     m_segmentationExtensionFactories[extension] = factory;
   }
+}
+
+//-----------------------------------------------------------------------------
+SegmentationExtensionTypeList CoreFactory::availableSegmentationExtensions() const
+{
+  return m_segmentationExtensionFactories.keys();
 }
 
 //-----------------------------------------------------------------------------

@@ -51,6 +51,7 @@
 #include <Support/Plugin.h>
 #include <Support/Settings/EspinaSettings.h>
 #include <Support/Utils/FactoryUtils.h>
+#include <Support/Factory/DefaultSegmentationExtensionFactory.h>
 
 // Std
 #include <sstream>
@@ -300,6 +301,9 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   QAction *rawInformationAction = m_dynamicMenuRoot->submenus[0]->menu->addAction(tr("Raw Information"));
   connect(rawInformationAction, SIGNAL(triggered(bool)),
           this, SLOT(showRawInformation()));
+
+  SegmentationExtensionFactorySPtr defaultExtensions{new DefaultSegmentationExtensionFactory()};
+  m_factory->registerExtensionFactory(defaultExtensions);
 
   loadPlugins(plugins);
 

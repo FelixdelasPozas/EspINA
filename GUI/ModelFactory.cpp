@@ -92,6 +92,18 @@ void ModelFactory::registerSegmentationRepresentationFactory(RepresentationFacto
 
 
 //------------------------------------------------------------------------
+ChannelExtensionTypeList ModelFactory::availableChannelExtensions() const
+{
+  return m_factory->availableChannelExtensions();
+}
+
+//------------------------------------------------------------------------
+SegmentationExtensionTypeList ModelFactory::availableSegmentationExtensions() const
+{
+  return m_factory->availableSegmentationExtensions();
+}
+
+//------------------------------------------------------------------------
 FileExtensions ModelFactory::supportedFileExtensions()
 {
   FileExtensions extensions;
@@ -135,11 +147,23 @@ ChannelAdapterSPtr ModelFactory::createChannel(FilterAdapterSPtr filter, Output:
 }
 
 //------------------------------------------------------------------------
+ChannelExtensionSPtr ModelFactory::createChannelExtension(QString type, const State& state)
+{
+  return m_factory->createChannelExtension(type, state);
+}
+
+//------------------------------------------------------------------------
 SegmentationAdapterSPtr ModelFactory::createSegmentation(FilterAdapterSPtr filter, Output::Id output) const
 {
   SegmentationSPtr segmentation{m_factory->createSegmentation(filter->adaptedFilter(), output)};
 
   return adaptSegmentation(filter, segmentation);
+}
+
+//------------------------------------------------------------------------
+SegmentationExtensionSPtr ModelFactory::createSegmentationExtension(QString type, const State& state)
+{
+  return m_factory->createSegmentationExtension(type, state);
 }
 
 //------------------------------------------------------------------------

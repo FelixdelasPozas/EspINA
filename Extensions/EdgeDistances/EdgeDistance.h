@@ -31,8 +31,6 @@ namespace EspINA
   class EspinaExtensions_EXPORT EdgeDistance
   : public SegmentationExtension
   {
-    static const QString EXTENSION_FILE;
-
   public:
     static const Type TYPE;
 

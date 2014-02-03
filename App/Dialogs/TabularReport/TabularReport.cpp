@@ -405,7 +405,7 @@ void TabularReport::createCategoryEntry(const QString &category)
 
   if (m_tabs->tabText(i) != category)
   {
-    Entry *entry = new Entry(category);
+    Entry *entry = new Entry(category, m_model, m_factory);
 
     InformationProxy *infoProxy = new InformationProxy();
     infoProxy->setCategory(category);

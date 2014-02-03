@@ -29,17 +29,13 @@
 using namespace EspINA;
 
 const SegmentationExtension::Type EdgeDistance::TYPE = "EdgeDistance";
-const QString EdgeDistance::EXTENSION_FILE = "EdgeDistances/EdgeDistance.csv";
-
-const std::string FILE_VERSION = EdgeDistance::TYPE.toStdString() + " 1.0\n";
-const char SEP = ',';
 
 const SegmentationExtension::InfoTag EdgeDistance::LEFT_DISTANCE   = "Left Distance";
 const SegmentationExtension::InfoTag EdgeDistance::TOP_DISTANCE    = "Top Distance";
-const SegmentationExtension::InfoTag EdgeDistance::FRONT_DISTANCE  = "Upper Distance";
+const SegmentationExtension::InfoTag EdgeDistance::FRONT_DISTANCE  = "Front Distance";
 const SegmentationExtension::InfoTag EdgeDistance::RIGHT_DISTANCE  = "Right Distance";
 const SegmentationExtension::InfoTag EdgeDistance::BOTTOM_DISTANCE = "Bottom Distance";
-const SegmentationExtension::InfoTag EdgeDistance::BACK_DISTANCE  = "Lower Distance";
+const SegmentationExtension::InfoTag EdgeDistance::BACK_DISTANCE   = "Back Distance";
 
 //-----------------------------------------------------------------------------
 EdgeDistance::EdgeDistance(const State& state, const SegmentationExtension::InfoCache& cache)

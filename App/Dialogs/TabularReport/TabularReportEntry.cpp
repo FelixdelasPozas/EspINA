@@ -42,11 +42,21 @@ using namespace xlslib_core;
 const QString SEGMENTATION_GROUP = "Segmentation";
 
 //------------------------------------------------------------------------
-TabularReport::Entry::Entry(QString category)
+TabularReport::Entry::Entry(const QString   &category,
+                            ModelAdapterSPtr model,
+                            ModelFactorySPtr factory)
 : QWidget()
 , m_category(category)
+, m_model(model)
+, m_factory(factory)
+, m_proxy(nullptr)
 {
   setupUi(this);
+
+  tableView->horizontalHeader()->setMovable(true);
+
+  connect(tableView->horizontalHeader(),SIGNAL(sectionMoved(int,int,int)),
+          this, SLOT(saveSelectedInformation()));
 
   setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
@@ -71,7 +81,7 @@ void TabularReport::Entry::setProxy(InformationProxy* proxy)
 {
   m_proxy = proxy;
 
-  setInformation(lastDisplayedInformation());
+  setInformation(lastDisplayedInformation(), lastInformationOrder());
 }
 
 //------------------------------------------------------------------------
@@ -114,8 +124,28 @@ void TabularReport::Entry::changeDisplayedInformation()
 
   if (tagSelector.exec() == QDialog::Accepted)
   {
-    setInformation(selection);
+    setInformation(selection, updateInformationOrder(selection));
   }
+  saveSelectedInformation();
+}
+
+//------------------------------------------------------------------------
+void TabularReport::Entry::saveSelectedInformation()
+{
+  QStringList informationOrder;
+
+  for (int i = 0; i < tableView->horizontalHeader()->count(); ++i)
+  {
+    int logicalIdx = tableView->horizontalHeader()->logicalIndex(i);
+    informationOrder << m_proxy->headerData(logicalIdx, Qt::Horizontal, Qt::DisplayRole).toString();
+  }
+
+  qDebug() << "New order: " << informationOrder;
+
+  QSettings settings(CESVIMA, ESPINA);
+  openCategorySettings(settings);
+  settings.setValue("InformationOrder", informationOrder);
+  closeCategorySettings(settings);
 }
 
 //------------------------------------------------------------------------
@@ -196,6 +226,12 @@ InformationSelector::GroupedInfo TabularReport::Entry::availableInformation()
 
   info[SEGMENTATION_GROUP] << tr("Name") << tr("Category");
 
+  for (auto type : m_factory->availableSegmentationExtensions())
+  {
+    auto extension = m_factory->createSegmentationExtension(type);
+    info[type] << extension->availableInformations();
+  }
+
   for (auto item : m_proxy->displayedItems())
   {
     Q_ASSERT(isSegmentation(item));
@@ -214,6 +250,33 @@ InformationSelector::GroupedInfo TabularReport::Entry::availableInformation()
   }
 
   return info;
+}
+
+//------------------------------------------------------------------------
+QStringList TabularReport::Entry::lastInformationOrder()
+{
+  QStringList informationTags, availableInformationTags;
+
+  QSettings settings(CESVIMA, ESPINA);
+
+  auto groupedInfo = availableInformation();
+  for (auto group : groupedInfo.keys())
+  {
+    availableInformationTags << groupedInfo[group];
+  }
+
+  openCategorySettings(settings);
+  for (auto tag : settings.value("InformationOrder", QStringList()).toStringList())
+  {
+    if (availableInformationTags.contains(tag))
+    {
+      informationTags << tag;
+    }
+  }
+
+  closeCategorySettings(settings);
+
+  return informationTags;
 }
 
 //------------------------------------------------------------------------
@@ -243,9 +306,8 @@ InformationSelector::GroupedInfo TabularReport::Entry::lastDisplayedInformation(
 }
 
 //------------------------------------------------------------------------
-void TabularReport::Entry::setInformation(InformationSelector::GroupedInfo information)
+void TabularReport::Entry::setInformation(InformationSelector::GroupedInfo extensionInformations, QStringList informationOrder)
 {
-  m_tags.clear();
 
   QSettings settings(CESVIMA, ESPINA);
 
@@ -253,27 +315,85 @@ void TabularReport::Entry::setInformation(InformationSelector::GroupedInfo infor
 
   settings.remove(""); // clear all previous keys
 
-  for(auto extension : information.keys())
+  for(auto extensionType : extensionInformations.keys())
   {
-    //       if (segmentation.)
-    //       {
-    //       }
+    for (auto segmentation : m_model->segmentations())
+    {
+      if (!segmentation->hasExtension(extensionType))
+      {
+        if (m_factory->availableSegmentationExtensions().contains(extensionType))
+        {
+          auto extension = m_factory->createSegmentationExtension(extensionType);
+          segmentation->addExtension(extension);
+        }
+        else if (extensionType != SEGMENTATION_GROUP)
+        {
+          qWarning() << extensionType << " is not available";
+        }
+      }
+    }
 
-    settings.setValue(extension, information[extension]);
-
-    m_tags << information[extension];
+    settings.setValue(extensionType, extensionInformations[extensionType]);
   }
 
-  m_proxy->setInformationTags(m_tags);
+  settings.setValue("InformationOrder", informationOrder);
+
+  m_proxy->setInformationTags(informationOrder);
 
   closeCategorySettings(settings);
 
   settings.sync();
 
-
-  auto header = new QStandardItemModel(1, m_tags.size(), this);
-  header->setHorizontalHeaderLabels(m_tags);
+  auto header = new QStandardItemModel(1, informationOrder.size(), this);
+  header->setHorizontalHeaderLabels(informationOrder);
   tableView->horizontalHeader()->setModel(header);
+}
+
+
+//------------------------------------------------------------------------
+QStringList TabularReport::Entry::updateInformationOrder(InformationSelector::GroupedInfo extensionInformation)
+{
+  QStringList oldInformationList     = lastInformationOrder();
+  QStringList orderedInformationList = oldInformationList;
+
+  QStringList newInformationList = information(extensionInformation);
+
+  for (auto oldInformation : oldInformationList)
+  {
+    if (!newInformationList.contains(oldInformation))
+    {
+      orderedInformationList.removeAll(oldInformation);
+    }
+  }
+
+  for (auto newInformation : newInformationList)
+  {
+    if (!orderedInformationList.contains(newInformation))
+    {
+      orderedInformationList << newInformation;
+    }
+  }
+
+  return orderedInformationList;
+}
+
+//------------------------------------------------------------------------
+QStringList TabularReport::Entry::information(InformationSelector::GroupedInfo extensionInformations)
+{
+  QStringList informations;
+
+  for (auto extension : extensionInformations)
+  {
+    for (auto information : extension)
+    {
+      if (!informations.contains(information))
+      {
+        informations << information;
+      }
+    }
+  }
+
+  return informations;
 }
 
 //------------------------------------------------------------------------

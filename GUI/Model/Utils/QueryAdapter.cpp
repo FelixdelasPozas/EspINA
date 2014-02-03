@@ -38,18 +38,7 @@ ChannelAdapterSList QueryAdapter::channels(SegmentationAdapterPtr segmentation)
 
   ChannelAdapterSList adaptedChannels;
 
-  for (auto adaptedChannel : Query::channels(adaptedSegmentation))
-  {
-    for (auto channel : model->channels())
-    {
-      if (channel->m_channel == adaptedChannel)
-      {
-        adaptedChannels << channel;
-      }
-    }
-  }
-
-  return adaptedChannels;
+  return smartPointer(model, Query::channels(adaptedSegmentation));
 }
 
 //------------------------------------------------------------------------
@@ -65,6 +54,30 @@ SampleAdapterSPtr QueryAdapter::sample(ChannelAdapterPtr channel)
   auto model = channel->model();
 
   auto adaptedSample = Query::sample(adaptedChannel);
+
+  return smartPointer(model, adaptedSample);
+}
+
+//------------------------------------------------------------------------
+SegmentationAdapterSList QueryAdapter::segmentationsOnChannelSample(ChannelAdapterSPtr channel)
+{
+  return segmentationsOnChannelSample(channel.get());
+}
+
+
+//------------------------------------------------------------------------
+SegmentationAdapterSList QueryAdapter::segmentationsOnChannelSample(ChannelAdapterPtr channel)
+{
+  auto adaptedChannel = channel->m_channel;
+  auto model = channel->model();
+
+  return smartPointer(model, Query::segmentationsOnChannelSample(adaptedChannel));
+}
+
+
+//------------------------------------------------------------------------
+SampleAdapterSPtr QueryAdapter::smartPointer(ModelAdapterPtr model, SampleSPtr adaptedSample)
+{
   for (auto sample : model->samples())
   {
     if (sample->m_sample == adaptedSample)
@@ -76,3 +89,62 @@ SampleAdapterSPtr QueryAdapter::sample(ChannelAdapterPtr channel)
   return SampleAdapterSPtr();
 }
 
+//------------------------------------------------------------------------
+ChannelAdapterSList QueryAdapter::smartPointer(ModelAdapterPtr model, ChannelSList adaptedChannels)
+{
+  ChannelAdapterSList channels;
+
+  for (auto channel : model->channels())
+  {
+    for (auto adaptedChannel : adaptedChannels)
+    {
+      if (channel->m_channel == adaptedChannel)
+      {
+        adaptedChannels.removeOne(adaptedChannel);
+        channels << channel;
+        break;
+      }
+    }
+
+    if (adaptedChannels.isEmpty()) break;
+  }
+
+  return channels;
+}
+
+//------------------------------------------------------------------------
+SegmentationAdapterSPtr QueryAdapter::smartPointer(ModelAdapterPtr model, SegmentationSPtr adaptedSegmentation)
+{
+  for (auto segmentation : model->segmentations())
+  {
+    if (segmentation->m_segmentation == adaptedSegmentation)
+    {
+      return segmentation;
+    }
+  }
+
+  return SegmentationAdapterSPtr();
+}
+
+//------------------------------------------------------------------------
+SegmentationAdapterSList QueryAdapter::smartPointer(ModelAdapterPtr model, SegmentationSList adaptedSegmentations)
+{
+  SegmentationAdapterSList segmentations;
+
+  for (auto segmentation : model->segmentations())
+  {
+    for (auto adaptedSegmentation : adaptedSegmentations)
+    {
+      if (segmentation->m_segmentation == adaptedSegmentation)
+      {
+        adaptedSegmentations.removeOne(adaptedSegmentation);
+        segmentations << segmentation;
+        break;
+      }
+    }
+
+    if (adaptedSegmentations.isEmpty()) break;
+  }
+
+  return segmentations;
+}

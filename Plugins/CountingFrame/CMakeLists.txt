@@ -70,6 +70,7 @@ set (LOCAL_SOURCES
   Dialogs/TypeDialog.cpp
   Extensions/CountingFrameExtension.cpp
   Extensions/CountingFrameFactory.cpp
+  Extensions/ExtensionUtils.cpp
   Extensions/StereologicalInclusion.cpp
   Panel.cpp
   )

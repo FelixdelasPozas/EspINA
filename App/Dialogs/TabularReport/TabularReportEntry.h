@@ -49,7 +49,9 @@ namespace EspINA
   {
     Q_OBJECT
   public:
-    explicit Entry(QString category);
+    explicit Entry(const QString   &category,
+                   ModelAdapterSPtr model,
+                   ModelFactorySPtr factory);
     virtual ~Entry();
 
     void setProxy(InformationProxy *proxy);
@@ -61,8 +63,10 @@ namespace EspINA
     QVariant value(int row, int column) const;
 
 
-  protected slots:
+  private slots:
     void changeDisplayedInformation();
+
+    void saveSelectedInformation();
 
     void extractInformation();
 
@@ -73,18 +77,27 @@ namespace EspINA
 
     InformationSelector::GroupedInfo availableInformation();
 
+    QStringList lastInformationOrder();
+
     InformationSelector::GroupedInfo lastDisplayedInformation();
 
-    void setInformation(InformationSelector::GroupedInfo information);
+    void setInformation(InformationSelector::GroupedInfo extensionInformation, QStringList informationOrder);
+
+    QStringList information(InformationSelector::GroupedInfo extensionInformation);
+
+    QStringList updateInformationOrder(InformationSelector::GroupedInfo extensionInformation);
 
     void openCategorySettings(QSettings &settings);
+
     void closeCategorySettings(QSettings &settings);
 
 
   private:
-    InformationProxy *m_proxy;
     QString           m_category;
-    QStringList       m_tags;
+    ModelAdapterSPtr  m_model;
+    ModelFactorySPtr  m_factory;
+
+    InformationProxy *m_proxy;
   };
 } // namespace EspINA
 

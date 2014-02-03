@@ -23,6 +23,7 @@
 #include <GUI/Model/SegmentationAdapter.h>
 #include <GUI/Model/SampleAdapter.h>
 #include <GUI/Model/ChannelAdapter.h>
+#include <GUI/Model/ModelAdapter.h>
 
 namespace EspINA {
 
@@ -36,6 +37,19 @@ namespace EspINA {
     static SampleAdapterSPtr sample(ChannelAdapterSPtr channel);
 
     static SampleAdapterSPtr sample(ChannelAdapterPtr channel);
+
+    static SegmentationAdapterSList segmentationsOnChannelSample(ChannelAdapterSPtr channel);
+
+    static SegmentationAdapterSList segmentationsOnChannelSample(ChannelAdapterPtr channel);
+
+  private:
+    static SampleAdapterSPtr        smartPointer(ModelAdapterPtr model, SampleSPtr adaptedSample);
+
+    static ChannelAdapterSList      smartPointer(ModelAdapterPtr model, ChannelSList adaptedChannels);
+
+    static SegmentationAdapterSPtr  smartPointer(ModelAdapterPtr model, SegmentationSPtr adaptedSegmentation);
+
+    static SegmentationAdapterSList smartPointer(ModelAdapterPtr model, SegmentationSList adaptedSegmentations);
   };
 } // namespace EspINA
 

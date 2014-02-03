@@ -19,11 +19,13 @@
 #include "Panel.h"
 #include "Dialogs/TypeDialog.h"
 #include "Extensions/CountingFrameExtension.h"
+#include "Extensions/ExtensionUtils.h"
 
 #include "ui_Panel.h"
 
 #include <Support/ViewManager.h>
 #include <Core/Analysis/Channel.h>
+#include <GUI/Model/Utils/QueryAdapter.h>
 
 #include <QFileDialog>
 
@@ -598,36 +600,20 @@ void Panel::computeOptimalMargins(ChannelAdapterPtr channel,
                                   Nm inclusion[3],
                                   Nm exclusion[3])
 {
-//   double spacing[3];
-//   channel->volume()->spacing(spacing);
-//
-//   const Nm delta[3] = { 0.5*spacing[0], 0.5*spacing[1], 0.5*spacing[2] };
+  auto spacing = channel->output()->spacing();
 
   memset(inclusion, 0, 3*sizeof(Nm));
   memset(exclusion, 0, 3*sizeof(Nm));
 
-//   ModelItemSList items = channel->relatedItems(EspINA::RELATION_OUT, Channel::LINK);
-//   SegmentationSList channelSegs;
-//   foreach(ModelItemSPtr item, items)
-//   {
-//     if (EspINA::SEGMENTATION == item->type())
-//       channelSegs << segmentationPtr(item);
-//   }
+  const NmVector3 delta{ 0.5*spacing[0], 0.5*spacing[1], 0.5*spacing[2] };
+
+  for (auto segmentation : QueryAdapter::segmentationsOnChannelSample(channel))
+  {
+//     auto extension = retrieveOrCreateStereologicalInclusion(segmentation);
 //
-//   foreach(SegmentationSPtr seg, channelSegs)
-//   {
-//     Segmentation::InformationExtension ext = seg->informationExtension(EdgeDistanceID);
-//     EdgeDistancePtr marginExt = dynamic_cast<EdgeDistancePtr>(ext);
-//     if (marginExt)
+//     if (extension->isOnEdge())
 //     {
-//       Nm dist2Margin[6];
-//       marginExt->edgeDistance(dist2Margin);
-//
-//       Nm segBounds[6];
-//       Nm segSpacing[3];
-//       SegmentationVolumeSPtr volume = segmentationVolume(seg->output());
-//       volume->spacing(segSpacing);
-//       volume->bounds(segBounds);
+//       Bounds bounds = segmentation->output()->bounds();
 //
 //       for (int i=0; i < 3; i++)
 //       {
@@ -635,13 +621,13 @@ void Panel::computeOptimalMargins(ChannelAdapterPtr channel,
 //         Nm length = segBounds[2*i+1] - segBounds[2*i];
 //         if (dist2Margin[2*i] < delta[i])
 //           inclusion[i] = (vtkMath::Round(std::max(length, inclusion[i])/spacing[i]-shift)+shift)*spacing[i];
-// //         if (dist2Margin[2*i+1] < delta[i])
-// //           exclusion[i] = std::max(length, exclusion[i]);
+//         //         if (dist2Margin[2*i+1] < delta[i])
+//         //           exclusion[i] = std::max(length, exclusion[i]);
 //       }
 //     }
-//   }
-// //   qDebug() << "Inclusion:" << inclusion[0] << inclusion[1] << inclusion[2];
-// //   qDebug() << "Exclusion:" << exclusion[0] << exclusion[1] << exclusion[2];
+  }
+//   qDebug() << "Inclusion:" << inclusion[0] << inclusion[1] << inclusion[2];
+//   qDebug() << "Exclusion:" << exclusion[0] << exclusion[1] << exclusion[2];
 }
 
 //------------------------------------------------------------------------

@@ -60,11 +60,15 @@ namespace EspINA
 
     void registerExtensionFactory(ChannelExtensionFactorySPtr factory) throw (Factory_Already_Registered_Exception);
 
+    ChannelExtensionTypeList availableChannelExtensions() const;
+
     ChannelExtensionSPtr createChannelExtension(ChannelExtension::Type type, const State &state = State());
 
     SegmentationSPtr createSegmentation(FilterSPtr filter, Output::Id output) const;
 
     void registerExtensionFactory(SegmentationExtensionFactorySPtr factory) throw (Factory_Already_Registered_Exception);
+
+    SegmentationExtensionTypeList availableSegmentationExtensions() const;
 
     SegmentationExtensionSPtr createSegmentationExtension(SegmentationExtension::Type type, const State &state = State());
 

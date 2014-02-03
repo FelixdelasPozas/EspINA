@@ -57,11 +57,20 @@ namespace EspINA
     ~ModelFactory();
 
     void registerAnalysisReader(AnalysisReaderPtr reader);
+
     void registerFilterFactory (FilterFactorySPtr  factory);
+
     void registerExtensionFactory(ChannelExtensionFactorySPtr factory);
+
     void registerExtensionFactory(SegmentationExtensionFactorySPtr factory);
+
     void registerChannelRepresentationFactory(RepresentationFactorySPtr factory);
+
     void registerSegmentationRepresentationFactory(RepresentationFactorySPtr factory);
+
+    ChannelExtensionTypeList availableChannelExtensions() const;
+
+    SegmentationExtensionTypeList availableSegmentationExtensions() const;
 
     FileExtensions supportedFileExtensions();
 
@@ -81,7 +90,11 @@ namespace EspINA
 
     ChannelAdapterSPtr createChannel(FilterAdapterSPtr filter, Output::Id output) const;
 
+    ChannelExtensionSPtr createChannelExtension(ChannelExtension::Type type, const State &state = State());
+
     SegmentationAdapterSPtr createSegmentation(FilterAdapterSPtr filter, Output::Id output) const;
+
+    SegmentationExtensionSPtr createSegmentationExtension(SegmentationExtension::Type type, const State &state = State());
 
     SampleAdapterSPtr adaptSample(SampleSPtr sample) const;
 

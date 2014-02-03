@@ -109,7 +109,13 @@ SegmentationExtension::InfoTagList StereologicalInclusion::availableInformations
 //------------------------------------------------------------------------
 QVariant StereologicalInclusion::cacheFail(const QString& tag) const
 {
-  evaluateCountingFrames();
+  if (EDGE_TAG == tag)
+  {
+    isOnEdge();
+  } else
+  {
+    evaluateCountingFrames();
+  }
 
   return cachedInfo(tag);
 }
@@ -193,8 +199,6 @@ void StereologicalInclusion::evaluateCountingFrames()
       m_isExcluded = false;
     } else
     {
-      isOnEdge();
-
       for (auto cf : m_exclusionCFs.keys())
       {
         evaluateCountingFrame(cf);
@@ -210,7 +214,7 @@ void StereologicalInclusion::evaluateCountingFrames()
 void StereologicalInclusion::evaluateCountingFrame(CountingFrame* cf)
 {
   // Compute CF's exclusion value
-  bool excluded = isOnEdge() || isExcludedByCountingFrame(cf);
+  bool excluded = isExcludedByCountingFrame(cf);
 
   QVariant info;
   if (excluded)
@@ -361,7 +365,7 @@ bool StereologicalInclusion::isOnEdge()
       }
     }
 
-    updateInfoCache(EDGE_TAG, isOnEdge);
+    updateInfoCache(EDGE_TAG, isOnEdge?1:0);
   }
 
   return isOnEdge;
@@ -371,9 +375,8 @@ bool StereologicalInclusion::isOnEdge()
 bool StereologicalInclusion::isRealCollision(const Bounds& interscetion)
 {
   using ImageIterator = itk::ImageRegionIterator<itkVolumeType>;
-  // TODO?: add some
-  auto volume = volumetricData(m_extendedItem->output());
 
+  auto volume = volumetricData(m_extendedItem->output());
   auto image = volume->itkImage(interscetion);
 
   ImageIterator it = ImageIterator(image, image->GetLargestPossibleRegion());

@@ -24,6 +24,7 @@ set (Support_SOURCES
   ${Support_UI}
   EventHandler.cpp
   Factory/DefaultChannelExtensionFactory.cpp
+  Factory/DefaultSegmentationExtensionFactory.cpp
   ToolGroup.cpp
   Utils/FactoryUtils.cpp
   Utils/xlsUtils.cpp

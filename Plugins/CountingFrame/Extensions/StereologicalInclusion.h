@@ -75,7 +75,10 @@ namespace EspINA
     void removeCountingFrame(CountingFrame *cf);
     //void setCountingFrames(CountingFrameList regions);
 
+    // The Segmentation is excluded at least by a CF
     bool isExcluded() const;
+
+    bool isOnEdge();
 
   protected:
     virtual QVariant cacheFail(const QString& tag) const;
@@ -89,7 +92,6 @@ namespace EspINA
   private:
     bool isExcludedByCountingFrame(CountingFrame *cf);
     bool isRealCollision(const Bounds& interscetion);
-    bool isOnEdge();
     void checkSampleCountingFrames();
 
   private:
