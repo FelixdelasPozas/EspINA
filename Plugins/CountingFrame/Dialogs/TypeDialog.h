@@ -42,6 +42,8 @@ namespace EspINA
       TypeDialog(QWidget *parent);
       virtual ~TypeDialog() {};
 
+      void setType(CFType type);
+
       CFType type() const { return m_type; }
 
     public slots:

@@ -143,7 +143,6 @@ void OrtogonalCountingFrame::setEnabled(bool enable)
 //-----------------------------------------------------------------------------
 void OrtogonalCountingFrame::updateCountingFrameImplementation()
 {
-
   Nm Left   = m_bounds[0] + m_inclusion[0];
   Nm Top    = m_bounds[2] + m_inclusion[1];
   Nm Front  = m_bounds[4] + m_inclusion[2];
@@ -157,11 +156,25 @@ void OrtogonalCountingFrame::updateCountingFrameImplementation()
   m_representation = createRectangularRegion(m_bounds[0], m_bounds[2], m_bounds[4],
                                              m_bounds[1], m_bounds[3], m_bounds[5]);
 
-  m_totalVolume = (m_bounds[1]-m_bounds[0]+1)*
-                  (m_bounds[3]-m_bounds[2]+1)*
-                  (m_bounds[5]-m_bounds[4]+1);
+  auto channel = m_extension->extendedItem();
+  auto spacing = channel->output()->spacing();
 
-  m_inclusionVolume = (Right-Left)*(Top-Bottom)*(Front-Back);
+  m_totalVolume = equivalentVolume(m_bounds);
+
+  // Extract bounds corresponding to excluded voxels
+  Bounds inclusionBounds{Left, Right-spacing[0], Top, Bottom-spacing[1], Front, Back-spacing[2]};
+  m_inclusionVolume = equivalentVolume(inclusionBounds);
+}
+
+//-----------------------------------------------------------------------------
+Nm OrtogonalCountingFrame::equivalentVolume(const Bounds& bounds)
+{
+  auto channel = m_extension->extendedItem();
+  auto volume  = volumetricData(channel->output());
+
+  VolumeBounds volumeBounds(bounds, volume->spacing(), volume->origin());
+
+  return (volumeBounds[1]-volumeBounds[0])*(volumeBounds[3]-volumeBounds[2])* (volumeBounds[5]-volumeBounds[4]);
 }
 
 //-----------------------------------------------------------------------------

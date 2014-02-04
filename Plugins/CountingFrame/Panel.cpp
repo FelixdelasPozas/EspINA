@@ -25,8 +25,12 @@
 
 #include <Support/ViewManager.h>
 #include <Core/Analysis/Channel.h>
+#include <Core/Analysis/Query.h>
+#include <Core/Analysis/Segmentation.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <Extensions/EdgeDistances/EdgeDistance.h>
+#include <Extensions/EdgeDistances/ChannelEdges.h>
+#include <Extensions/ExtensionUtils.h>
 #include <Extensions/ExtensionUtils.h>
 
 #include <QFileDialog>
@@ -148,7 +152,7 @@ QVariant Panel::CFModel::data(const QModelIndex& index, int role) const
       return cf->id();
     } else if (Qt::CheckStateRole == role)
     {
-      return Qt::Checked;
+      return cf->isVisible()?Qt::Checked:Qt::Unchecked;
     }
   } else if (1 == c && Qt::DisplayRole == role)
   {
@@ -169,6 +173,13 @@ bool Panel::CFModel::setData(const QModelIndex& index, const QVariant& value, in
     auto cf = countingFrame(index);
 
     cf->setId(value.toString());
+
+    return true;
+  } else if (Qt::CheckStateRole == role)
+  {
+    auto cf = countingFrame(index);
+
+    cf->setVisible(value.toBool());
 
     return true;
   }
@@ -225,23 +236,25 @@ Panel::Panel(CountingFrameManager *manager,
 
   connect(m_gui->createCF, SIGNAL(clicked()),
           this, SLOT(createCountingFrame()));
+  connect(m_gui->resetCF, SIGNAL(clicked(bool)),
+          this, SLOT(resetActiveCountingFrame()));
   connect(m_gui->deleteCF, SIGNAL(clicked()),
           this, SLOT(deleteActiveCountingFrame()));
 
   connect(m_gui->countingFrames, SIGNAL(clicked(QModelIndex)),
           this, SLOT(updateUI(QModelIndex)));
 
-  connect(m_gui->leftMargin, SIGNAL(valueChanged(int)),
+  connect(m_gui->leftMargin, SIGNAL(valueChanged(double)),
           this, SLOT(updateActiveCountingFrameMargins()));
-  connect(m_gui->topMargin, SIGNAL(valueChanged(int)),
+  connect(m_gui->topMargin, SIGNAL(valueChanged(double)),
           this, SLOT(updateActiveCountingFrameMargins()));
-  connect(m_gui->frontMargin, SIGNAL(valueChanged(int)),
+  connect(m_gui->frontMargin, SIGNAL(valueChanged(double)),
           this, SLOT(updateActiveCountingFrameMargins()));
-  connect(m_gui->rightMargin, SIGNAL(valueChanged(int)),
+  connect(m_gui->rightMargin, SIGNAL(valueChanged(double)),
           this, SLOT(updateActiveCountingFrameMargins()));
-  connect(m_gui->bottomMargin, SIGNAL(valueChanged(int)),
+  connect(m_gui->bottomMargin, SIGNAL(valueChanged(double)),
           this, SLOT(updateActiveCountingFrameMargins()));
-  connect(m_gui->backMargin, SIGNAL(valueChanged(int)),
+  connect(m_gui->backMargin, SIGNAL(valueChanged(double)),
           this, SLOT(updateActiveCountingFrameMargins()));
 
   connect(m_gui->useCategoryConstraint, SIGNAL(toggled(bool)),
@@ -419,6 +432,17 @@ void Panel::createCountingFrame()
 
   TypeDialog typeSelector(this);
 
+  auto edgesExtension = retrieveOrCreateExtension<ChannelEdges>(channel);
+
+  if (edgesExtension->useDistanceToBounds())
+  {
+    typeSelector.setType(ORTOGONAL);
+  }
+  else
+  {
+    typeSelector.setType(ADAPTIVE);
+  }
+
   if (typeSelector.exec())
   {
     if (ADAPTIVE == typeSelector.type())
@@ -440,7 +464,9 @@ void Panel::resetActiveCountingFrame()
 
     QApplication::setOverrideCursor(Qt::WaitCursor);
 
-    //computeOptimalMargins(m_activeCF->channel, inclusion, exclusion);
+    auto channel = m_activeCF->extension()->extendedItem();
+
+    computeOptimalMargins(channel, inclusion, exclusion);
     memset(exclusion, 0, 3*sizeof(Nm));
 
     m_activeCF->setMargins(inclusion, exclusion);
@@ -597,6 +623,7 @@ void Panel::changeUnitMode(bool useSlices)
 }
 
 //------------------------------------------------------------------------
+// WARNING: if further changes are needed unify implementation
 void Panel::computeOptimalMargins(ChannelAdapterPtr channel,
                                   Nm inclusion[3],
                                   Nm exclusion[3])
@@ -635,6 +662,48 @@ void Panel::computeOptimalMargins(ChannelAdapterPtr channel,
 //   qDebug() << "Inclusion:" << inclusion[0] << inclusion[1] << inclusion[2];
 //   qDebug() << "Exclusion:" << exclusion[0] << exclusion[1] << exclusion[2];
 }
+
+//------------------------------------------------------------------------
+// WARNING: if further changes are needed unify implementation
+void Panel::computeOptimalMargins(ChannelPtr channel,
+                                  Nm inclusion[3],
+                                  Nm exclusion[3])
+{
+  auto spacing = channel->output()->spacing();
+
+  memset(inclusion, 0, 3*sizeof(Nm));
+  memset(exclusion, 0, 3*sizeof(Nm));
+
+  const NmVector3 delta{ 0.5*spacing[0], 0.5*spacing[1], 0.5*spacing[2] };
+
+  QApplication::setOverrideCursor(Qt::WaitCursor);
+  for (auto segmentation : Query::segmentationsOnChannelSample(channel))
+  {
+    auto extension = retrieveOrCreateExtension<EdgeDistance>(segmentation);
+
+    Nm dist2Margin[6];
+    extension->edgeDistance(dist2Margin);
+
+    auto bounds  = segmentation->output()->bounds();
+    auto spacing = segmentation->output()->spacing();
+
+    for (int i=0; i < 3; i++)
+    {
+      Nm shift   = i < 2? 0.5:-0.5;
+      Nm length  = bounds[2*i+1] - bounds[2*i];
+      Nm length2 = bounds.lenght(toAxis(i));
+
+      if (dist2Margin[2*i] < delta[i])
+        inclusion[i] = (vtkMath::Round(std::max(length, inclusion[i])/spacing[i]-shift)+shift)*spacing[i];
+      //         if (dist2Margin[2*i+1] < delta[i])
+      //           exclusion[i] = std::max(length, exclusion[i]);
+    }
+  }
+  QApplication::restoreOverrideCursor();
+//   qDebug() << "Inclusion:" << inclusion[0] << inclusion[1] << inclusion[2];
+//   qDebug() << "Exclusion:" << exclusion[0] << exclusion[1] << exclusion[2];
+}
+
 
 //------------------------------------------------------------------------
 void Panel::inclusionMargins(double values[3])

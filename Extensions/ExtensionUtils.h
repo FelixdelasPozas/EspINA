@@ -24,19 +24,19 @@
 
 namespace EspINA {
 
-  template<typename T>
-  std::shared_ptr<T> retrieveOrCreateExtension(SegmentationAdapterSPtr segmentation)
+  template<typename Extension, typename Extendible>
+  std::shared_ptr<Extension> retrieveOrCreateExtension(Extendible item)
   {
-    std::shared_ptr<T> extension;
+    std::shared_ptr<Extension> extension;
 
-    if (!segmentation->hasExtension(T::TYPE))
+    if (!item->hasExtension(Extension::TYPE))
     {
-      extension = std::shared_ptr<T>{new T()};
-      segmentation->addExtension(extension);
+      extension = std::shared_ptr<Extension>{new Extension()};
+        item->addExtension(extension);
     } else
     {
-      auto base = segmentation->extension(T::TYPE);
-      extension = std::dynamic_pointer_cast<T>(base);
+      auto base = item->extension(Extension::TYPE);
+      extension = std::dynamic_pointer_cast<Extension>(base);
     }
 
     Q_ASSERT(extension);

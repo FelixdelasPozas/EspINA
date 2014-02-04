@@ -95,7 +95,7 @@ QTableView::indicator:unchecked {
        <item>
         <layout class="QGridLayout" name="gridLayout_2">
          <item row="4" column="0">
-          <widget class="QSpinBox" name="leftMargin">
+          <widget class="QDoubleSpinBox" name="leftMargin">
            <property name="enabled">
             <bool>false</bool>
            </property>
@@ -121,7 +121,7 @@ QTableView::indicator:unchecked {
           </widget>
          </item>
          <item row="4" column="2">
-          <widget class="QSpinBox" name="frontMargin">
+          <widget class="QDoubleSpinBox" name="frontMargin">
            <property name="enabled">
             <bool>false</bool>
            </property>
@@ -140,7 +140,7 @@ QTableView::indicator:unchecked {
           </widget>
          </item>
          <item row="6" column="2">
-          <widget class="QSpinBox" name="backMargin">
+          <widget class="QDoubleSpinBox" name="backMargin">
            <property name="enabled">
             <bool>false</bool>
            </property>
@@ -159,7 +159,7 @@ QTableView::indicator:unchecked {
           </widget>
          </item>
          <item row="6" column="1">
-          <widget class="QSpinBox" name="bottomMargin">
+          <widget class="QDoubleSpinBox" name="bottomMargin">
            <property name="enabled">
             <bool>false</bool>
            </property>
@@ -192,7 +192,7 @@ QTableView::indicator:unchecked {
           </widget>
          </item>
          <item row="4" column="1">
-          <widget class="QSpinBox" name="topMargin">
+          <widget class="QDoubleSpinBox" name="topMargin">
            <property name="enabled">
             <bool>false</bool>
            </property>
@@ -214,7 +214,7 @@ QTableView::indicator:unchecked {
           </widget>
          </item>
          <item row="6" column="0">
-          <widget class="QSpinBox" name="rightMargin">
+          <widget class="QDoubleSpinBox" name="rightMargin">
            <property name="enabled">
             <bool>false</bool>
            </property>

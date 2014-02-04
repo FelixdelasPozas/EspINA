@@ -302,6 +302,11 @@ InformationSelector::GroupedInfo TabularReport::Entry::lastDisplayedInformation(
   }
   closeCategorySettings(settings);
 
+  if (info.isEmpty())
+  {
+    info[SEGMENTATION_GROUP] << tr("Name") << tr("Category");
+  }
+
   return info;
 }
 

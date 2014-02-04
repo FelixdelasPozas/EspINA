@@ -94,12 +94,16 @@ namespace EspINA
                                Nm inclusion[3],
                                Nm exclusion[3]);
 
+    void computeOptimalMargins(ChannelPtr channel,
+                               Nm inclusion[3],
+                               Nm exclusion[3]);
+
     /// Return inclusion margins definded by the UI
     void inclusionMargins(double values[3]);
 
     /// Return exclusion margins definded by the UI
     void exclusionMargins(double values[3]);
-    
+
     void updateTable();
 
   private:

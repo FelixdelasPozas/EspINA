@@ -437,30 +437,30 @@ void ChannelEdges::ComputeSurfaces()
 }
 
 //-----------------------------------------------------------------------------
-ChannelEdgesPtr EspINA::adaptiveEdges(ChannelExtensionPtr extension)
+ChannelEdgesPtr EspINA::channelEdgesExtension(ChannelExtensionPtr extension)
 {
   return dynamic_cast<ChannelEdgesPtr>(extension);
 }
 
 //-----------------------------------------------------------------------------
-ChannelEdgesSPtr EspINA::adaptiveEdges(ChannelPtr channel)
+ChannelEdgesSPtr EspINA::channelEdgesExtension(ChannelPtr channel)
 {
   auto extension = channel->extension(ChannelEdges::TYPE);
 
   return std::dynamic_pointer_cast<ChannelEdges>(extension);
 }
 
-//-----------------------------------------------------------------------------
-ChannelEdgesSPtr EspINA::createAdaptiveEdgesIfNotAvailable(ChannelPtr channel)
-{
-  auto edgesExtension = adaptiveEdges(channel);
-
-  if (!edgesExtension)
-  {
-    edgesExtension = ChannelEdgesSPtr(new ChannelEdges());
-    channel->addExtension(edgesExtension);
-  }
-  Q_ASSERT(edgesExtension);
-
-  return edgesExtension;
-}
+// //-----------------------------------------------------------------------------
+// ChannelEdgesSPtr EspINA::createAdaptiveEdgesIfNotAvailable(ChannelPtr channel)
+// {
+//   auto edgesExtension = channelEdgesExtension(channel);
+//
+//   if (!edgesExtension)
+//   {
+//     edgesExtension = ChannelEdgesSPtr(new ChannelEdges());
+//     channel->addExtension(edgesExtension);
+//   }
+//   Q_ASSERT(edgesExtension);
+//
+//   return edgesExtension;
+// }

@@ -180,7 +180,7 @@ void EdgeDistance::updateDistances() const
       ChannelEdgesSPtr extension{new ChannelEdges()};
       channel->addExtension(extension);
     }
-    ChannelEdgesPtr edgesExtension = adaptiveEdges(channel->extension(ChannelEdges::TYPE).get());
+    ChannelEdgesPtr edgesExtension = channelEdgesExtension(channel->extension(ChannelEdges::TYPE).get());
     Q_ASSERT(edgesExtension);
 
     if (edgesExtension->useDistanceToBounds())

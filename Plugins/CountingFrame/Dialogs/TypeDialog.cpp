@@ -43,10 +43,30 @@ TypeDialog::TypeDialog(QWidget *parent)
   thresholdBox  ->setEnabled(true);
   thresholdLabel->setEnabled(true);
 
+  balckLabel->setVisible(false);
+  colorBox->setVisible(false);
+  whiteLabel->setVisible(false);
+
+  thresholdBox  ->setVisible(false);
+  thresholdLabel->setVisible(false);
+
   connect(adaptiveRadio,   SIGNAL(toggled(bool)),
           this,            SLOT(radioChanged(bool)));
   connect(ortogonalRadio,SIGNAL(toggled(bool)),
           this,            SLOT(radioChanged(bool)));
+}
+
+//------------------------------------------------------------------------
+void TypeDialog::setType(CFType type)
+{
+  if (ORTOGONAL == type)
+  {
+    ortogonalRadio->setChecked(true);
+  }
+  else
+  {
+    adaptiveRadio->setChecked(true);
+  }
 }
 
 //------------------------------------------------------------------------

@@ -31,6 +31,7 @@
 #include "vtkCountingFrame3DWidget.h"
 #include <GUI/View/View2D.h>
 #include <Extensions/EdgeDistances/ChannelEdges.h>
+#include <Extensions/ExtensionUtils.h>
 
 using namespace EspINA;
 using namespace EspINA::CF;
@@ -147,7 +148,7 @@ void AdaptiveCountingFrame::updateCountingFrameImplementation()
 
   m_inclusionVolume = 0;
 
-  ChannelEdgesSPtr edgesExtension = createAdaptiveEdgesIfNotAvailable(m_channel);
+  auto edgesExtension = retrieveOrCreateExtension<ChannelEdges>(m_channel);
 
   vtkSmartPointer<vtkPolyData> margins = edgesExtension->channelEdges();
   Q_ASSERT(margins.GetPointer());

@@ -31,6 +31,7 @@ CountingFrame::CountingFrame(CountingFrameExtension *extension,
                              Nm                      exclusion[3])
 : INCLUSION_FACE(255)
 , EXCLUSION_FACE(0)
+, m_visible(true)
 , m_extension(extension)
 , m_totalVolume(0)
 , m_inclusionVolume(0)
@@ -84,6 +85,22 @@ QString CountingFrame::description() const
   desc += tr("    %1 nm"           ).arg(exclusionVolume(),0,'f',2) + cube + br;
 
   return desc;
+}
+
+//-----------------------------------------------------------------------------
+void CountingFrame::setVisible(bool visible)
+{
+  m_visible = visible;
+
+  for (auto widget2D : m_widgets2D)
+  {
+    widget2D->SetEnabled(m_visible);
+  }
+
+  for (auto widget3D : m_widgets3D)
+  {
+    widget3D->SetEnabled(m_visible);
+  }
 }
 
 //-----------------------------------------------------------------------------

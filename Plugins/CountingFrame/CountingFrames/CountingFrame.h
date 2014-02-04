@@ -69,6 +69,7 @@ namespace CF {
         m_slicedWidget->SetSlice(pos);
         SliceWidget::setSlice(pos, plane);
       }
+
     private:
       vtkCountingFrameSliceWidget *m_slicedWidget;
     };
@@ -102,10 +103,16 @@ namespace CF {
 
     virtual QString description() const;
 
-    Id id() const { return m_id; }
+    Id id() const
+    { return m_id; }
 
     void setId(Id id)
     { m_id = id; }
+
+    void setVisible(bool visible);
+
+    bool isVisible() const
+    { return m_visible; }
 
     /** \brief Return total volume in pixels
      *
@@ -162,7 +169,8 @@ namespace CF {
 
     CountingFrameExtension *m_extension;
 
-    Id m_id;
+    Id   m_id;
+    bool m_visible;
 
     Nm m_inclusion[3];
     Nm m_exclusion[3];
