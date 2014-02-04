@@ -314,7 +314,8 @@ namespace EspINA
   //------------------------------------------------------------------------
   void ManualEditionTool::abortOperation()
   {
-    m_actualSelector->abortOperation();
+    if (m_actualSelector)
+      m_actualSelector->abortOperation();
   }
 
   //------------------------------------------------------------------------
