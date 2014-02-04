@@ -26,6 +26,8 @@
 #include <Support/ViewManager.h>
 #include <Core/Analysis/Channel.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
+#include <Extensions/EdgeDistances/EdgeDistance.h>
+#include <Extensions/ExtensionUtils.h>
 
 #include <QFileDialog>
 
@@ -438,8 +440,7 @@ void Panel::resetActiveCountingFrame()
 
     QApplication::setOverrideCursor(Qt::WaitCursor);
 
-    m_activeCF->setMargins(inclusion, exclusion);
-    //computeOptimalMargins(m_activeCF->extension()->channel(), inclusion, exclusion);
+    //computeOptimalMargins(m_activeCF->channel, inclusion, exclusion);
     memset(exclusion, 0, 3*sizeof(Nm));
 
     m_activeCF->setMargins(inclusion, exclusion);
@@ -607,25 +608,30 @@ void Panel::computeOptimalMargins(ChannelAdapterPtr channel,
 
   const NmVector3 delta{ 0.5*spacing[0], 0.5*spacing[1], 0.5*spacing[2] };
 
+  QApplication::setOverrideCursor(Qt::WaitCursor);
   for (auto segmentation : QueryAdapter::segmentationsOnChannelSample(channel))
   {
-//     auto extension = retrieveOrCreateStereologicalInclusion(segmentation);
-//
-//     if (extension->isOnEdge())
-//     {
-//       Bounds bounds = segmentation->output()->bounds();
-//
-//       for (int i=0; i < 3; i++)
-//       {
-//         double shift = i < 2? 0.5:-0.5;
-//         Nm length = segBounds[2*i+1] - segBounds[2*i];
-//         if (dist2Margin[2*i] < delta[i])
-//           inclusion[i] = (vtkMath::Round(std::max(length, inclusion[i])/spacing[i]-shift)+shift)*spacing[i];
-//         //         if (dist2Margin[2*i+1] < delta[i])
-//         //           exclusion[i] = std::max(length, exclusion[i]);
-//       }
-//     }
+    auto extension = retrieveOrCreateExtension<EdgeDistance>(segmentation);
+
+    Nm dist2Margin[6];
+    extension->edgeDistance(dist2Margin);
+
+    auto bounds  = segmentation->output()->bounds();
+    auto spacing = segmentation->output()->spacing();
+
+    for (int i=0; i < 3; i++)
+    {
+      Nm shift   = i < 2? 0.5:-0.5;
+      Nm length  = bounds[2*i+1] - bounds[2*i];
+      Nm length2 = bounds.lenght(toAxis(i));
+
+      if (dist2Margin[2*i] < delta[i])
+        inclusion[i] = (vtkMath::Round(std::max(length, inclusion[i])/spacing[i]-shift)+shift)*spacing[i];
+      //         if (dist2Margin[2*i+1] < delta[i])
+      //           exclusion[i] = std::max(length, exclusion[i]);
+    }
   }
+  QApplication::restoreOverrideCursor();
 //   qDebug() << "Inclusion:" << inclusion[0] << inclusion[1] << inclusion[2];
 //   qDebug() << "Exclusion:" << exclusion[0] << exclusion[1] << exclusion[2];
 }
