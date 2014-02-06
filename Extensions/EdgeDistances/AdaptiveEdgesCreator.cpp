@@ -90,25 +90,28 @@ void AdaptiveEdgesCreator::run()
 
   auto channel = m_extension->extendedItem();
 
-  itkVolumeType::Pointer volume = volumetricData(channel->output())->itkImage();
+  auto volume = volumetricData(channel->output());
+  auto bounds = volume->bounds();
+
+  itkVolumeType::Pointer itkImage = volume->itkImage();
 
   Itk2VtkFilter::Pointer itk2vtk = Itk2VtkFilter::New();
   itk2vtk->ReleaseDataFlagOn();
-  itk2vtk->SetInput(volume);
+  itk2vtk->SetInput(itkImage);
   itk2vtk->Update();
 
-  vtkImageData *image = itk2vtk->GetOutput();
+  vtkImageData *vtkImage = itk2vtk->GetOutput();
 
   vtkSmartPointer<vtkPoints> borderVertices = vtkSmartPointer<vtkPoints>::New();
   vtkSmartPointer<vtkCellArray> faces       = vtkSmartPointer<vtkCellArray>::New();
 
   int dim[3];
-  image->GetDimensions(dim);
+  vtkImage->GetDimensions(dim);
 
   double spacing[3];
-  image->GetSpacing(spacing);
+  vtkImage->GetSpacing(spacing);
   int extent[6];
-  image->GetExtent(extent);
+  vtkImage->GetExtent(extent);
 
   int backgroundColor = m_extension->m_backgroundColor;
   int threshold       = m_extension->m_threshold;
@@ -117,8 +120,8 @@ void AdaptiveEdgesCreator::run()
 
   //   vtkDebugMacro( << "Looking for borders");
 
-  int numComponets = image->GetNumberOfScalarComponents();
-  unsigned char *imagePtr = static_cast<unsigned char *>(image->GetScalarPointer());
+  int numComponets = vtkImage->GetNumberOfScalarComponents();
+  unsigned char *imagePtr = static_cast<unsigned char *>(vtkImage->GetScalarPointer());
 
   assert(extent[5] == dim[2]-1);
 
@@ -188,38 +191,56 @@ void AdaptiveEdgesCreator::run()
     vtkSmartPointer<vtkPoints> face = plane(corner,max,mid,min);
     assert(face->GetNumberOfPoints() == 4);
 
-    //NOTE: Espina's Counting Region Definition is used here.
+    //NOTE: Espina's Counting Frame Definition is used here.
     // Front slice is the first of the stack and back the last one
     // Left Top Corner corresponds to pixel (0,0,0), Right Top to (N,0,0)
     // and so on
     double LB[3], LT[3], RT[3], RB[3];
     vtkIdType cell[4];
 
-    // Left Bottom Corner
+    face->GetPoint(0, LT);
     face->GetPoint(1, LB);
-    LB[0] -= 0.5*spacing[0];
-    LB[1] += 0.5*spacing[1];
+    face->GetPoint(2, RT);
+    face->GetPoint(3, RB);
+
+    // Correct rotation
+    double correctedLeft  = std::max(LB[0], LT[0]);
+    correctedLeft = int((correctedLeft - bounds[0]) / spacing[0]);
+    correctedLeft = bounds[0] + (correctedLeft)*spacing[0];
+
+    double correctedRight = std::min(RB[0], RT[0]);
+    correctedRight = int((correctedRight - bounds[0]) / spacing[0]);
+    correctedRight = bounds[0] + (correctedRight + 1)*spacing[0]; // the edge ends at the end of the voxel
+
+    double correctedTop  = std::max(LT[1], RT[1]);
+    correctedTop = int((correctedTop - bounds[2]) / spacing[1]);
+    correctedTop = bounds[2] + (correctedTop)*spacing[1];
+
+    double correctedBottom  = std::min(LB[1], RB[1]);
+    correctedBottom = int((correctedBottom - bounds[2]) / spacing[1]);
+    correctedBottom = bounds[2] + (correctedBottom + 1)*spacing[1]; // the edge ends at the end of the voxel
+
+    // Left Bottom Corner
+    LB[0]  = correctedLeft;
+    LB[1]  = correctedBottom;
     LB[2] -= 0.5*spacing[2];
     cell[0] = borderVertices->InsertNextPoint(LB);
 
     // Left Top Corner
-    face->GetPoint(0, LT);
-    LT[0] -= 0.5*spacing[0];
-    LT[1] -= 0.5*spacing[1];
+    LT[0]  = correctedLeft;
+    LT[1]  = correctedTop;
     LT[2] -= 0.5*spacing[2];
     cell[1] = borderVertices->InsertNextPoint(LT);
 
     // Right Top Corner
-    face->GetPoint(2, RT);
-    RT[0] += 0.5*spacing[0];
-    RT[1] -= 0.5*spacing[1];
+    RT[0]  = correctedRight;
+    RT[1]  = correctedTop;
     RT[2] -= 0.5*spacing[2];
     cell[2] = borderVertices->InsertNextPoint(RT);
 
     // Right Bottom Corner
-    face->GetPoint(3, RB);
-    RB[0] += 0.5*spacing[0];
-    RB[1] += 0.5*spacing[1];
+    RB[0]  = correctedRight;
+    RB[1]  = correctedBottom;
     RB[2] -= 0.5*spacing[2];
     cell[3] = borderVertices->InsertNextPoint(RB);
 

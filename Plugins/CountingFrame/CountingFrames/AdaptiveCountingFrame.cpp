@@ -156,7 +156,7 @@ void AdaptiveCountingFrame::updateCountingFrameImplementation()
   m_totalVolume = 0;
 
   int inSliceOffset = frontOffset() / spacing[2];
-  int exSliceOffset = backOffset()  / spacing[2];
+  int exSliceOffset = -backOffset() / spacing[2];
 
   int    extent[6];
   double bounds[6];
@@ -178,9 +178,9 @@ void AdaptiveCountingFrame::updateCountingFrameImplementation()
   m_countingFrame = vtkSmartPointer<vtkPolyData>::New();
   m_representation = margins;
 
-  vtkSmartPointer<vtkPoints> regionVertex = vtkSmartPointer<vtkPoints>::New();
-  vtkSmartPointer<vtkCellArray> faces = vtkSmartPointer<vtkCellArray>::New();
-  vtkSmartPointer<vtkIntArray> faceData = vtkSmartPointer<vtkIntArray>::New();
+  vtkSmartPointer<vtkPoints>    regionVertex = vtkSmartPointer<vtkPoints>::New();
+  vtkSmartPointer<vtkCellArray> faces        = vtkSmartPointer<vtkCellArray>::New();
+  vtkSmartPointer<vtkIntArray>  faceData     = vtkSmartPointer<vtkIntArray>::New();
 
   for (int slice = extent[4]; slice < extent[5]; slice++)
   {
@@ -190,7 +190,7 @@ void AdaptiveCountingFrame::updateCountingFrameImplementation()
     margins->GetPoint(4*slice+2, RT);
     margins->GetPoint(4*slice+3, RB);
 
-    Bounds sliceBounds{LT[0], RT[0], LT[1], LB[1], origin[2]-spacing[2]/2, origin[2]+spacing[2]/2};
+    Bounds sliceBounds{LT[0], RT[0], LT[1], LB[1], 0, 0};
     m_totalVolume += equivalentVolume(sliceBounds);
   }
 
@@ -202,27 +202,23 @@ void AdaptiveCountingFrame::updateCountingFrameImplementation()
     double LB[3], LT[3], RT[3], RB[3];
 
     margins->GetPoint(4*slice+0, LB);
-    applyOffset(LB[0], leftOffset());
-    applyOffset(LB[1], bottomOffset());
-    applyOffset(LB[2], 0);
+    LB[0] += leftOffset();
+    LB[1] -= bottomOffset();
     cell[0] = regionVertex->InsertNextPoint(LB);
 
     margins->GetPoint(4*slice+1, LT);
-    applyOffset(LT[0], leftOffset());
-    applyOffset(LT[1], topOffset());
-    applyOffset(LT[2], 0);
+    LT[0] += leftOffset();
+    LT[1] += topOffset();
     cell[1] = regionVertex->InsertNextPoint(LT);
 
     margins->GetPoint(4*slice+2, RT);
-    applyOffset(RT[0], rightOffset());
-    applyOffset(RT[1], topOffset());
-    applyOffset(RT[2], 0);
+    RT[0] -= rightOffset();
+    RT[1] += topOffset();
     cell[2] = regionVertex->InsertNextPoint(RT);
 
     margins->GetPoint(4*slice+3, RB);
-    applyOffset(RB[0], rightOffset());
-    applyOffset(RB[1], bottomOffset());
-    applyOffset(RB[2], 0);
+    RB[0] -= rightOffset();
+    RB[1] -= bottomOffset();
     cell[3] = regionVertex->InsertNextPoint(RB);
     if (slice == upperSlice)
     {
@@ -280,7 +276,9 @@ void AdaptiveCountingFrame::updateCountingFrameImplementation()
     if (slice < lowerSlice - 1)
     {
       // We don't care about the actual Z values
-      Bounds sliceBounds{LT[0], RT[0]-spacing[0], LT[1], LB[1]-spacing[1], origin[2]-spacing[2]/2, origin[2]+spacing[2]/2};
+      Bounds sliceBounds{LT[0], RT[0]-spacing[0],
+                         LT[1], LB[1]-spacing[1],
+                         origin[2]-spacing[2]/2, origin[2]+spacing[2]/2};
       m_inclusionVolume += equivalentVolume(sliceBounds);
     }
   }
