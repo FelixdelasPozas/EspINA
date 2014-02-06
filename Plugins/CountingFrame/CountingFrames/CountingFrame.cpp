@@ -21,6 +21,8 @@
 #include "vtkCountingFrameSliceWidget.h"
 #include "Extensions/CountingFrameExtension.h"
 #include <Core/Analysis/Channel.h>
+#include <Core/Analysis/Data/VolumetricData.h>
+#include <Core/Utils/VolumeBounds.h>
 
 using namespace EspINA;
 using namespace EspINA::CF;
@@ -32,10 +34,10 @@ CountingFrame::CountingFrame(CountingFrameExtension *extension,
 : INCLUSION_FACE(255)
 , EXCLUSION_FACE(0)
 , m_visible(true)
+, m_highlight(false)
 , m_extension(extension)
 , m_totalVolume(0)
 , m_inclusionVolume(0)
-, m_categoryConstraint(nullptr)
 {
   memcpy(m_inclusion, inclusion, 3*sizeof(Nm));
   memcpy(m_exclusion, exclusion, 3*sizeof(Nm));
@@ -104,6 +106,24 @@ void CountingFrame::setVisible(bool visible)
 }
 
 //-----------------------------------------------------------------------------
+void CountingFrame::setHighlighted(bool highlight)
+{
+  m_highlight = highlight;
+
+  for (auto widget2D : m_widgets2D)
+  {
+    widget2D->SetHighlighted(m_highlight);
+  }
+
+//   for (auto widget3D : m_widgets3D)
+//   {
+//     widget3D->SetEnabled(m_highlight);
+//   }
+
+}
+
+
+//-----------------------------------------------------------------------------
 void CountingFrame::Execute(vtkObject* caller, long unsigned int eventId, void* callData)
 {
   vtkCountingFrameSliceWidget *widget = static_cast<vtkCountingFrameSliceWidget *>(caller);
@@ -130,7 +150,7 @@ void CountingFrame::Execute(vtkObject* caller, long unsigned int eventId, void* 
 }
 
 //-----------------------------------------------------------------------------
-void CountingFrame::setCategoryConstraint(const CategorySPtr category)
+void CountingFrame::setCategoryConstraint(const QString& category)
 {
   m_categoryConstraint = category;
 
@@ -153,4 +173,15 @@ void CountingFrame::updateCountingFrame()
   }
 
   emit modified(this);
+}
+
+//-----------------------------------------------------------------------------
+Nm CountingFrame::equivalentVolume(const Bounds& bounds)
+{
+  auto channel = m_extension->extendedItem();
+  auto volume  = volumetricData(channel->output());
+
+  VolumeBounds volumeBounds(bounds, volume->spacing(), volume->origin());
+
+  return (volumeBounds[1]-volumeBounds[0])*(volumeBounds[3]-volumeBounds[2])* (volumeBounds[5]-volumeBounds[4]);
 }

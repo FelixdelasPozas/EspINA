@@ -34,6 +34,7 @@
 #include <Extensions/ExtensionUtils.h>
 
 #include <QFileDialog>
+#include <qinputdialog.h>
 
 using namespace EspINA;
 using namespace EspINA::CF;
@@ -61,13 +62,15 @@ Panel::GUI::GUI()
   frontMargin ->installEventFilter(this);
   backMargin  ->installEventFilter(this);
 
-  QString tooltip("%1 Face: <br><br> &nbsp; <img src=':/%1.png' width=125 height=94> &nbsp; <br>");
+  QString tooltip("%1 Face: <br><br> &nbsp; <img src=':/%1.png'> &nbsp; <br>");
   leftMargin  ->setToolTip(tooltip.arg("Left"));
   rightMargin ->setToolTip(tooltip.arg("Right"));
   topMargin   ->setToolTip(tooltip.arg("Top"));
   bottomMargin->setToolTip(tooltip.arg("Bottom"));
   frontMargin ->setToolTip(tooltip.arg("Front"));
   backMargin  ->setToolTip(tooltip.arg("Back"));
+
+  countingFrames->setSortingEnabled(true);
 }
 
 //------------------------------------------------------------------------
@@ -115,6 +118,38 @@ public:
 private:
   CountingFrame *countingFrame(const QModelIndex &index) const
   { return m_manager->countingFrames()[index.row()]; }
+
+  bool changeId(CountingFrame *editedCF, QString requestedId)
+  {
+    bool alreadyUsed = false;
+    bool accepted    = true;
+
+    for (auto cf : m_manager->countingFrames())
+    {
+      if (cf != editedCF)
+        alreadyUsed |= cf->id() == requestedId;
+    }
+
+    if (alreadyUsed)
+    {
+      QString suggestedId = m_manager->suggestedId(requestedId);
+      while (accepted && suggestedId != requestedId)
+      {
+        requestedId = QInputDialog::getText(nullptr,
+                                            tr("Id already used"),
+                                            tr("Introduce new id (or accept suggested one)"),
+                                            QLineEdit::Normal,
+                                            suggestedId,
+                                            &accepted);
+        suggestedId = m_manager->suggestedId(requestedId);
+      }
+    }
+
+    if (accepted)
+      editedCF->setId(requestedId);
+
+    return accepted;
+  }
 
 private:
   CountingFrameManager *m_manager;
@@ -172,9 +207,8 @@ bool Panel::CFModel::setData(const QModelIndex& index, const QVariant& value, in
   {
     auto cf = countingFrame(index);
 
-    cf->setId(value.toString());
+    return changeId(cf, value.toString().trimmed());
 
-    return true;
   } else if (Qt::CheckStateRole == role)
   {
     auto cf = countingFrame(index);
@@ -355,9 +389,9 @@ void Panel::applyCategoryConstraint()
       auto item = itemAdapter(categoryyIndex);
       Q_ASSERT(isCategory(item));
 
-      // TODO
-//       auto category = m_model->smartPointer(categoryPtr(item));
-//       m_activeCF->setCategoryConstraint(category);
+      auto category = categoryPtr(item);
+
+      m_activeCF->setCategoryConstraint(category->classificationName());
     }
   }
 }
@@ -430,7 +464,7 @@ void Panel::createCountingFrame()
   computeOptimalMargins(channel, inclusion, exclusion);
   memset(exclusion, 0, 3*sizeof(Nm));
 
-  TypeDialog typeSelector(this);
+  TypeDialog typeSelector(m_model, this);
 
   auto edgesExtension = retrieveOrCreateExtension<ChannelEdges>(channel);
 
@@ -445,10 +479,11 @@ void Panel::createCountingFrame()
 
   if (typeSelector.exec())
   {
+    QString constraint = typeSelector.categoryConstraint();
     if (ADAPTIVE == typeSelector.type())
-      m_manager->createAdaptiveCF(channel, inclusion, exclusion);
+      m_manager->createAdaptiveCF(channel, inclusion, exclusion, constraint);
     else
-      m_manager->createRectangularCF(channel, inclusion, exclusion);
+      m_manager->createRectangularCF(channel, inclusion, exclusion, constraint);
   }
 //
 //   updateSegmentations();
@@ -532,14 +567,14 @@ void Panel::onChannelChanged(ChannelAdapterPtr channel)
 }
 
 //------------------------------------------------------------------------
-void Panel::showInfo(CountingFrame* cf)
+void Panel::showInfo(CountingFrame* activeCF)
 {
-  if (!cf || !m_viewManager->activeChannel())
+  if (!activeCF || !m_viewManager->activeChannel())
     return;
 
-  m_activeCF = cf;
+  m_activeCF = activeCF;
 
-  int row = m_countingFrames.indexOf(cf);
+  int row = m_countingFrames.indexOf(activeCF);
 
 
   auto selectionModel = m_gui->countingFrames->selectionModel();
@@ -560,12 +595,12 @@ void Panel::showInfo(CountingFrame* cf)
     spacing = activeChannel->output()->spacing();
   }
 
-  m_gui->leftMargin  ->setValue(cf->left());
-  m_gui->topMargin   ->setValue(cf->top() );
-  m_gui->frontMargin ->setValue(vtkMath::Round(cf->front()/spacing[2]));
-  m_gui->rightMargin ->setValue(cf->right() );
-  m_gui->bottomMargin->setValue(cf->bottom());
-  m_gui->backMargin ->setValue(vtkMath::Round(cf->back()/spacing[2]));
+  m_gui->leftMargin  ->setValue(activeCF->left());
+  m_gui->topMargin   ->setValue(activeCF->top() );
+  m_gui->frontMargin ->setValue(vtkMath::Round(activeCF->front()/spacing[2]));
+  m_gui->rightMargin ->setValue(activeCF->right() );
+  m_gui->bottomMargin->setValue(activeCF->bottom());
+  m_gui->backMargin ->setValue(vtkMath::Round(activeCF->back()/spacing[2]));
 
   m_gui->leftMargin  ->blockSignals(false);
   m_gui->topMargin   ->blockSignals(false);
@@ -574,9 +609,30 @@ void Panel::showInfo(CountingFrame* cf)
   m_gui->bottomMargin->blockSignals(false);
   m_gui->backMargin  ->blockSignals(false);
 
-  m_gui->useCategoryConstraint->setChecked(nullptr != cf->categoryConstraint());
+  auto applyCaregoryConstraint = !activeCF->categoryConstraint().isEmpty();
+  if (applyCaregoryConstraint)
+  {
+    m_gui->categorySelector->setCurrentModelIndex(findCategoryIndex(activeCF->categoryConstraint()));
+  }
+  m_gui->useCategoryConstraint->blockSignals(true);
+  m_gui->useCategoryConstraint->setChecked(applyCaregoryConstraint);
+  m_gui->useCategoryConstraint->blockSignals(false);
 
-  m_gui->countingFrameDescription->setText(cf->description());
+  m_gui->countingFrameDescription->setText(activeCF->description());
+
+  for (auto cf : m_countingFrames)
+  {
+    cf->setHighlighted(cf == activeCF);
+  }
+  m_viewManager->updateViews();
+}
+
+//------------------------------------------------------------------------
+QModelIndex Panel::findCategoryIndex(const QString& classificationName)
+{
+  auto category =  m_model->classification()->category(classificationName);
+
+  return m_model->categoryIndex(category);
 }
 
 //------------------------------------------------------------------------

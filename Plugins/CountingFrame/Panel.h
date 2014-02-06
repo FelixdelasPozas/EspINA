@@ -69,6 +69,8 @@ namespace EspINA
 
     void showInfo(CountingFrame *cf);
 
+    QModelIndex findCategoryIndex(const QString &classificationName);
+
     void updateSegmentations();
 
     void createCountingFrame();

@@ -17,17 +17,17 @@
 */
 
 
-#include "vtkCountingFrameAxialSliceRepresentation.h"
+#include "vtkCountingFrameRepresentationXY.h"
 #include <GUI/View/View2D.h>
 
 #include <vtkObjectFactory.h>
 #include <vtkCellArray.h>
 #include <vtkActor.h>
 
-vtkStandardNewMacro(vtkCountingFrameAxialSliceRepresentation);
+vtkStandardNewMacro(vtkCountingFrameRepresentationXY);
 
 //----------------------------------------------------------------------------
-void vtkCountingFrameAxialSliceRepresentation::SetSlice(EspINA::Nm pos)
+void vtkCountingFrameRepresentationXY::SetSlice(EspINA::Nm pos)
 {
   Slice = pos;
 
@@ -55,7 +55,7 @@ void vtkCountingFrameAxialSliceRepresentation::SetSlice(EspINA::Nm pos)
 }
 
 //----------------------------------------------------------------------------
-void vtkCountingFrameAxialSliceRepresentation::CreateRegion()
+void vtkCountingFrameRepresentationXY::CreateRegion()
 {
   if (Region.GetPointer() == NULL)
     return;
@@ -109,7 +109,7 @@ void vtkCountingFrameAxialSliceRepresentation::CreateRegion()
 }
 
 //----------------------------------------------------------------------------
-void vtkCountingFrameAxialSliceRepresentation::MoveLeftEdge(double* p1, double* p2)
+void vtkCountingFrameRepresentationXY::MoveLeftEdge(double* p1, double* p2)
 {
   double shift = p2[hCoord] - p1[hCoord];
 
@@ -148,7 +148,7 @@ void vtkCountingFrameAxialSliceRepresentation::MoveLeftEdge(double* p1, double* 
 }
 
 //----------------------------------------------------------------------------
-void vtkCountingFrameAxialSliceRepresentation::MoveRightEdge(double* p1, double* p2)
+void vtkCountingFrameRepresentationXY::MoveRightEdge(double* p1, double* p2)
 {
   double shift = p2[hCoord] - p1[hCoord];
 
@@ -187,7 +187,7 @@ void vtkCountingFrameAxialSliceRepresentation::MoveRightEdge(double* p1, double*
 }
 
 //----------------------------------------------------------------------------
-void vtkCountingFrameAxialSliceRepresentation::MoveTopEdge(double* p1, double* p2)
+void vtkCountingFrameRepresentationXY::MoveTopEdge(double* p1, double* p2)
 {
   double shift = p2[vCoord] - p1[vCoord];
   EspINA::Nm offset = InclusionOffset[vCoord] + shift;
@@ -225,7 +225,7 @@ void vtkCountingFrameAxialSliceRepresentation::MoveTopEdge(double* p1, double* p
 }
 
 //----------------------------------------------------------------------------
-void vtkCountingFrameAxialSliceRepresentation::MoveBottomEdge(double* p1, double* p2)
+void vtkCountingFrameRepresentationXY::MoveBottomEdge(double* p1, double* p2)
 {
   double shift = p2[vCoord] - p1[vCoord];
 

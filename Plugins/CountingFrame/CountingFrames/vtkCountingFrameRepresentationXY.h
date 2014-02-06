@@ -17,20 +17,20 @@
 */
 
 
-#ifndef VTKBOUNDINGFRAMEAXIALSLICEREPRESENTATION_H
-#define VTKBOUNDINGFRAMEAXIALSLICEREPRESENTATION_H
+#ifndef VTK_COUNTING_FRAME_REPRESENTATION_XY_H
+#define VTK_COUNTING_FRAME_REPRESENTATION_XY_H
 
 #include "CountingFramePlugin_Export.h"
 
 #include "CountingFrames/vtkCountingFrameSliceRepresentation.h"
 
-class CountingFramePlugin_EXPORT vtkCountingFrameAxialSliceRepresentation
+class CountingFramePlugin_EXPORT vtkCountingFrameRepresentationXY
 : public vtkCountingFrameSliceRepresentation
 {
 public:
-  static vtkCountingFrameAxialSliceRepresentation *New();
+  static vtkCountingFrameRepresentationXY *New();
 
-  vtkTypeMacro(vtkCountingFrameAxialSliceRepresentation,
+  vtkTypeMacro(vtkCountingFrameRepresentationXY,
                vtkCountingFrameSliceRepresentation);
 
   virtual void SetSlice(EspINA::Nm pos);
@@ -57,11 +57,11 @@ protected:
   virtual void MoveBottomEdge(double* p1, double* p2);
 
 protected:
-  explicit vtkCountingFrameAxialSliceRepresentation(){}
+  explicit vtkCountingFrameRepresentationXY(){}
 
 private:
-  vtkCountingFrameAxialSliceRepresentation(const vtkCountingFrameAxialSliceRepresentation&);  //Not implemented
-  void operator=(const vtkCountingFrameAxialSliceRepresentation&);  //Not implemented
+  vtkCountingFrameRepresentationXY(const vtkCountingFrameRepresentationXY&);  //Not implemented
+  void operator=(const vtkCountingFrameRepresentationXY&);  //Not implemented
 };
 
-#endif // VTKBOUNDINGFRAMEAXIALSLICEREPRESENTATION_H
+#endif // VTK_COUNTING_FRAME_REPRESENTATION_XY_H

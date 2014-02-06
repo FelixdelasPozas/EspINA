@@ -100,13 +100,11 @@ vtkAbstractWidget* AdaptiveCountingFrame::create3DWidget(View3D *view)
 //-----------------------------------------------------------------------------
 SliceWidget* AdaptiveCountingFrame::createSliceWidget(View2D *view)
 {
-  NmVector3 spacing = m_channel->output()->spacing();
-
   auto wa = new CountingFrame2DWidgetAdapter();
   Q_ASSERT(wa);
   wa->AddObserver(vtkCommand::EndInteractionEvent, this);
   wa->SetPlane(view->plane());
-  wa->SetSlicingStep(spacing);
+  wa->SetSlicingStep(m_channel->output()->spacing());
   wa->SetCountingFrame(m_representation, m_inclusion, m_exclusion);
 
   m_widgets2D << wa;
@@ -144,7 +142,9 @@ void AdaptiveCountingFrame::setEnabled(bool enable)
 //-----------------------------------------------------------------------------
 void AdaptiveCountingFrame::updateCountingFrameImplementation()
 {
-  NmVector3 spacing = m_channel->output()->spacing();
+  auto volume  = volumetricData(m_channel->output());
+  auto origin  = volume->origin();
+  auto spacing = volume->spacing();
 
   m_inclusionVolume = 0;
 
@@ -153,7 +153,7 @@ void AdaptiveCountingFrame::updateCountingFrameImplementation()
   vtkSmartPointer<vtkPolyData> margins = edgesExtension->channelEdges();
   Q_ASSERT(margins.GetPointer());
 
-  m_totalVolume = edgesExtension->computedVolume();
+  m_totalVolume = 0;
 
   int inSliceOffset = frontOffset() / spacing[2];
   int exSliceOffset = backOffset()  / spacing[2];
@@ -181,6 +181,18 @@ void AdaptiveCountingFrame::updateCountingFrameImplementation()
   vtkSmartPointer<vtkPoints> regionVertex = vtkSmartPointer<vtkPoints>::New();
   vtkSmartPointer<vtkCellArray> faces = vtkSmartPointer<vtkCellArray>::New();
   vtkSmartPointer<vtkIntArray> faceData = vtkSmartPointer<vtkIntArray>::New();
+
+  for (int slice = extent[4]; slice < extent[5]; slice++)
+  {
+    double LB[3], LT[3], RT[3], RB[3];
+    margins->GetPoint(4*slice+0, LB);
+    margins->GetPoint(4*slice+1, LT);
+    margins->GetPoint(4*slice+2, RT);
+    margins->GetPoint(4*slice+3, RB);
+
+    Bounds sliceBounds{LT[0], RT[0], LT[1], LB[1], origin[2]-spacing[2]/2, origin[2]+spacing[2]/2};
+    m_totalVolume += equivalentVolume(sliceBounds);
+  }
 
   for (int slice = upperSlice; slice <= lowerSlice; slice++)
   {
@@ -265,9 +277,11 @@ void AdaptiveCountingFrame::updateCountingFrameImplementation()
     memcpy(lastCell,cell,4*sizeof(vtkIdType));
 
     // Update Volumes
-    if (slice != lowerSlice)
+    if (slice < lowerSlice - 1)
     {
-      m_inclusionVolume += (RT[0] - LT[0])*(LB[1] - LT[1])*spacing[2];
+      // We don't care about the actual Z values
+      Bounds sliceBounds{LT[0], RT[0]-spacing[0], LT[1], LB[1]-spacing[1], origin[2]-spacing[2]/2, origin[2]+spacing[2]/2};
+      m_inclusionVolume += equivalentVolume(sliceBounds);
     }
   }
 

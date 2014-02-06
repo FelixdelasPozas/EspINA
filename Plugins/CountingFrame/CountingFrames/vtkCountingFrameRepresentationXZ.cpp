@@ -17,17 +17,17 @@
 */
 
 
-#include "vtkCountingFrameCoronalSliceRepresentation.h"
+#include "vtkCountingFrameRepresentationXZ.h"
 #include <GUI/View/View2D.h>
 
 #include <vtkObjectFactory.h>
 #include <vtkCellArray.h>
 #include <vtkActor.h>
 
-vtkStandardNewMacro(vtkCountingFrameCoronalSliceRepresentation);
+vtkStandardNewMacro(vtkCountingFrameRepresentationXZ);
 
 //----------------------------------------------------------------------------
-void vtkCountingFrameCoronalSliceRepresentation::SetSlice(EspINA::Nm pos)
+void vtkCountingFrameRepresentationXZ::SetSlice(EspINA::Nm pos)
 {
   Slice = pos;
 
@@ -68,7 +68,7 @@ void vtkCountingFrameCoronalSliceRepresentation::SetSlice(EspINA::Nm pos)
 }
 
 //----------------------------------------------------------------------------
-void vtkCountingFrameCoronalSliceRepresentation::CreateRegion()
+void vtkCountingFrameRepresentationXZ::CreateRegion()
 {
   double LT[3], LB[3];
   this->Region->GetPoint(0, LT);
@@ -111,6 +111,7 @@ void vtkCountingFrameCoronalSliceRepresentation::CreateRegion()
 
   this->EdgePolyData[LEFT]->GetLines()->Allocate(
     this->EdgePolyData[LEFT]->GetLines()->EstimateSize(numIntervals,2));
+
   for(unsigned int interval=0; interval < numIntervals; interval++)
   {
     this->EdgePolyData[LEFT]->GetLines()->InsertNextCell(2);
@@ -152,6 +153,9 @@ void vtkCountingFrameCoronalSliceRepresentation::CreateRegion()
       point[2] += InclusionOffset[2];
     else if (slice == NumSlices -1)
       point[2] -= ExclusionOffset[2];
+    else
+      point[2] += SlicingStep[2]/2;
+
     this->Vertex->SetPoint(2*interval+0, point);
     //RIGHT
     Region->GetPoint(slice*4+3,point);
@@ -161,6 +165,9 @@ void vtkCountingFrameCoronalSliceRepresentation::CreateRegion()
       point[2] += InclusionOffset[2];
     else if (slice == NumSlices -1)
       point[2] -= ExclusionOffset[2];
+    else
+      point[2] += SlicingStep[2]/2;
+
     this->Vertex->SetPoint(2*interval+1, point);
   }
 
@@ -170,7 +177,7 @@ void vtkCountingFrameCoronalSliceRepresentation::CreateRegion()
 
 
 //----------------------------------------------------------------------------
-void vtkCountingFrameCoronalSliceRepresentation::MoveLeftEdge(double* p1, double* p2)
+void vtkCountingFrameRepresentationXZ::MoveLeftEdge(double* p1, double* p2)
 {
   double shift = p2[0] - p1[0];
 
@@ -209,7 +216,7 @@ void vtkCountingFrameCoronalSliceRepresentation::MoveLeftEdge(double* p1, double
 }
 
 //----------------------------------------------------------------------------
-void vtkCountingFrameCoronalSliceRepresentation::MoveRightEdge(double* p1, double* p2)
+void vtkCountingFrameRepresentationXZ::MoveRightEdge(double* p1, double* p2)
 {
 
   double shift = p2[0] - p1[0];
@@ -249,7 +256,7 @@ void vtkCountingFrameCoronalSliceRepresentation::MoveRightEdge(double* p1, doubl
 }
 
 //----------------------------------------------------------------------------
-void vtkCountingFrameCoronalSliceRepresentation::MoveTopEdge(double* p1, double* p2)
+void vtkCountingFrameRepresentationXZ::MoveTopEdge(double* p1, double* p2)
 {
 
   double shift = p2[2] - p1[2];
@@ -297,7 +304,7 @@ void vtkCountingFrameCoronalSliceRepresentation::MoveTopEdge(double* p1, double*
 }
 
 //----------------------------------------------------------------------------
-void vtkCountingFrameCoronalSliceRepresentation::MoveBottomEdge(double* p1, double* p2)
+void vtkCountingFrameRepresentationXZ::MoveBottomEdge(double* p1, double* p2)
 {
 
   double shift = p2[2] - p1[2];

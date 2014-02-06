@@ -191,25 +191,25 @@ void vtkCountingFrameSliceRepresentation::CreateDefaultProperties()
   this->InclusionEdgeProperty->SetRepresentationToSurface();
   this->InclusionEdgeProperty->SetOpacity(1.0);
   this->InclusionEdgeProperty->SetColor(0.0,1.0,0.0);
-  this->InclusionEdgeProperty->SetLineWidth(1.0);
+  this->InclusionEdgeProperty->SetLineWidth(2.0);
 
   this->ExclusionEdgeProperty = vtkProperty::New();
   this->ExclusionEdgeProperty->SetRepresentationToSurface();
   this->ExclusionEdgeProperty->SetOpacity(1.0);
   this->ExclusionEdgeProperty->SetColor(1.0,0.0,0.0);
-  this->ExclusionEdgeProperty->SetLineWidth(1.0);
+  this->ExclusionEdgeProperty->SetLineWidth(2.0);
 
   // Selected Edge properties
   this->SelectedInclusionProperty = vtkProperty::New();
   this->SelectedInclusionProperty->SetRepresentationToSurface();
   this->SelectedInclusionProperty->SetOpacity(1.0);
   this->SelectedInclusionProperty->SetColor(0.0,1.0,0.0);
-  this->SelectedInclusionProperty->SetLineWidth(2.0);
+  this->SelectedInclusionProperty->SetLineWidth(3.0);
   this->SelectedExclusionProperty = vtkProperty::New();
   this->SelectedExclusionProperty->SetRepresentationToSurface();
   this->SelectedExclusionProperty->SetOpacity(1.0);
   this->SelectedExclusionProperty->SetColor(1.0,0.0,0.0);
-  this->SelectedExclusionProperty->SetLineWidth(2.0);
+  this->SelectedExclusionProperty->SetLineWidth(3.0);
 
   this->InvisibleProperty = vtkProperty::New();
   this->InvisibleProperty->SetRepresentationToWireframe();
@@ -248,7 +248,7 @@ int vtkCountingFrameSliceRepresentation::sliceNumber(EspINA::Nm pos) const
 //     this->Region->GetOutput()->GetPoints()->GetPoint(4*(number+1), next);
 //     if (point[Plane] <= pos && pos < next[Plane])
     if (pos <= point[2])
-      return NumSlices == 2?number : number - 1;
+      return (NumSlices == 2 || number == 0)?number : number - 1;
   }
 
   return NumSlices-1;
@@ -311,6 +311,26 @@ void vtkCountingFrameSliceRepresentation::SetCountingFrame(vtkSmartPointer<vtkPo
   this->NumVertex = this->NumSlices * 2;
 
   CreateRegion();
+}
+
+//----------------------------------------------------------------------------
+void vtkCountingFrameSliceRepresentation::SetHighlighted(bool highlight)
+{
+  if (highlight)
+  {
+    this->InclusionEdgeProperty->SetLineWidth(2.0);
+    this->ExclusionEdgeProperty->SetLineWidth(2.0);
+    this->SelectedInclusionProperty->SetLineWidth(3.0);
+    this->SelectedExclusionProperty->SetLineWidth(3.0);
+  }
+  else
+  {
+    this->InclusionEdgeProperty->SetLineWidth(0.5);
+    this->ExclusionEdgeProperty->SetLineWidth(0.5);
+    this->SelectedInclusionProperty->SetLineWidth(1.5);
+    this->SelectedExclusionProperty->SetLineWidth(1.5);
+  }
+
 }
 
 //----------------------------------------------------------------------------

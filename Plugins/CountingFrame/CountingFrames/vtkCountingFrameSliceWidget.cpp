@@ -15,9 +15,9 @@
 #include "vtkCountingFrameSliceWidget.h"
 
 #include "vtkCountingFrameSliceRepresentation.h"
-#include "vtkCountingFrameAxialSliceRepresentation.h"
-#include "vtkCountingFrameCoronalSliceRepresentation.h"
-#include "vtkCountingFrameSagittalSliceRepresentation.h"
+#include "vtkCountingFrameRepresentationXY.h"
+#include "vtkCountingFrameRepresentationXZ.h"
+#include "vtkCountingFrameRepresentationYZ.h"
 
 #include "vtkCommand.h"
 #include "vtkCallbackCommand.h"
@@ -35,10 +35,10 @@
 
 vtkStandardNewMacro(vtkCountingFrameSliceWidget);
 
-typedef vtkCountingFrameSliceRepresentation         SliceRepresentation;
-typedef vtkCountingFrameAxialSliceRepresentation    AxialSliceRepresentation;
-typedef vtkCountingFrameCoronalSliceRepresentation  CoronalSliceRepresentation;
-typedef vtkCountingFrameSagittalSliceRepresentation SagittalSliceRepresentation;
+using SliceRepresentation   = vtkCountingFrameSliceRepresentation;
+using SliceRepresentationXY = vtkCountingFrameRepresentationXY;
+using SliceRepresentationXZ = vtkCountingFrameRepresentationXZ;
+using SliceRepresentationYZ = vtkCountingFrameRepresentationYZ;
 
 //----------------------------------------------------------------------------
 vtkCountingFrameSliceWidget::vtkCountingFrameSliceWidget()
@@ -334,17 +334,28 @@ void vtkCountingFrameSliceWidget::CreateDefaultRepresentation()
     switch (Plane)
     {
       case EspINA::Plane::XY:
-        this->WidgetRep = AxialSliceRepresentation::New();
+        this->WidgetRep = SliceRepresentationXY::New();
         break;
       case EspINA::Plane::XZ:
-        this->WidgetRep = CoronalSliceRepresentation::New();
+        this->WidgetRep = SliceRepresentationXZ::New();
         break;
       case EspINA::Plane::YZ:
-        this->WidgetRep = SagittalSliceRepresentation::New();
+        this->WidgetRep = SliceRepresentationYZ::New();
         break;
     }
   }
 }
+
+//----------------------------------------------------------------------------
+void vtkCountingFrameSliceWidget::SetHighlighted(bool highlight)
+{
+  if (!this->WidgetRep)
+    CreateDefaultRepresentation();
+
+  SliceRepresentation *rep = reinterpret_cast<SliceRepresentation*>(this->WidgetRep);
+  rep->SetHighlighted(highlight);
+}
+
 
 //----------------------------------------------------------------------------
 void vtkCountingFrameSliceWidget::PrintSelf(ostream& os, vtkIndent indent)

@@ -26,6 +26,7 @@
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Segmentation.h>
 #include <Core/Analysis/Data/VolumetricData.h>
+#include <Core/Analysis/Category.h>
 
 #include <vtkCellArray.h>
 #include <vtkCellData.h>
@@ -250,9 +251,9 @@ void StereologicalInclusion::evaluateCountingFrame(CountingFrame* cf)
 //------------------------------------------------------------------------
 bool StereologicalInclusion::isExcludedByCountingFrame(CountingFrame* cf)
 {
-  auto categoryConstraint = cf->categoryConstraint();
+  auto segmentationCategory = m_extendedItem->category()->classificationName();
 
-  if (categoryConstraint && m_extendedItem->category() != categoryConstraint)
+  if (!segmentationCategory.startsWith(cf->categoryConstraint()))
     return true;
 
   Bounds inputBB = m_extendedItem->output()->bounds();

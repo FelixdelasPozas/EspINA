@@ -54,6 +54,8 @@ public:
   // this is an instance of the vtkRectangularCountingFrameRepresentation class.
   void CreateDefaultRepresentation();
 
+  void SetHighlighted(bool highlight);
+
 protected:
   vtkCountingFrameSliceWidget();
 

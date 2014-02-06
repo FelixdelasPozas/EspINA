@@ -64,6 +64,7 @@ Channel::Channel(FilterSPtr filter, const Output::Id output)
 //------------------------------------------------------------------------
 Channel::~Channel()
 {
+  qDebug() << "Destroying Channel" << name();
 }
 
 //------------------------------------------------------------------------

@@ -50,7 +50,7 @@ CountingFrameExtension::CountingFrameExtension(CountingFrameManager* manager, co
 //-----------------------------------------------------------------------------
 CountingFrameExtension::~CountingFrameExtension()
 {
-  //qDebug() << "Deleting Counting Frame Channel Extension";
+  qDebug() << "Deleting Counting Frame Channel Extension";
 }
 
 //-----------------------------------------------------------------------------

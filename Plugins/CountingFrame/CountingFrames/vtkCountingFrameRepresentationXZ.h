@@ -17,20 +17,20 @@
 */
 
 
-#ifndef VTKBOUNDINGFRAMECORONALSLICEREPRESENTATION_H
-#define VTKBOUNDINGFRAMECORONALSLICEREPRESENTATION_H
+#ifndef VTK_COUNTING_FRAME_REPRESENTATION_XZ_H
+#define VTK_COUNTING_FRAME_REPRESENTATION_XZ_H
 
 #include "CountingFramePlugin_Export.h"
 
 #include "CountingFrames/vtkCountingFrameSliceRepresentation.h"
 
-class CountingFramePlugin_EXPORT vtkCountingFrameCoronalSliceRepresentation
+class CountingFramePlugin_EXPORT vtkCountingFrameRepresentationXZ
 : public vtkCountingFrameSliceRepresentation
 {
 public:
-  static vtkCountingFrameCoronalSliceRepresentation *New();
+  static vtkCountingFrameRepresentationXZ *New();
 
-  vtkTypeMacro(vtkCountingFrameCoronalSliceRepresentation,
+  vtkTypeMacro(vtkCountingFrameRepresentationXZ,
                vtkCountingFrameSliceRepresentation);
 
   virtual void SetSlice(EspINA::Nm pos);
@@ -54,11 +54,11 @@ protected:
   virtual void MoveBottomEdge(double* p1, double* p2);
 
 protected:
-  explicit vtkCountingFrameCoronalSliceRepresentation(){}
+  explicit vtkCountingFrameRepresentationXZ(){}
 
 private:
-  vtkCountingFrameCoronalSliceRepresentation(const vtkCountingFrameCoronalSliceRepresentation&);  //Not implemented
-  void operator=(const vtkCountingFrameCoronalSliceRepresentation&);  //Not implemented
+  vtkCountingFrameRepresentationXZ(const vtkCountingFrameRepresentationXZ&);  //Not implemented
+  void operator=(const vtkCountingFrameRepresentationXZ&);  //Not implemented
 };
 
 #endif // VTKBOUNDINGFRAMECORONALSLICEREPRESENTATION_H

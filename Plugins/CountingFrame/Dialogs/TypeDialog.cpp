@@ -18,6 +18,7 @@
 
 // EspINA
 #include "Dialogs/TypeDialog.h"
+#include <GUI/Model/ModelAdapter.h>
 
 // Qt
 #include <QDialog>
@@ -27,7 +28,7 @@ using namespace EspINA;
 using namespace EspINA::CF;
 
 //-----------------------------------------------------------------------------
-TypeDialog::TypeDialog(QWidget *parent)
+TypeDialog::TypeDialog(ModelAdapterSPtr model, QWidget *parent)
 : QDialog(parent)
 , m_type(CF::ADAPTIVE)
 {
@@ -50,10 +51,17 @@ TypeDialog::TypeDialog(QWidget *parent)
   thresholdBox  ->setVisible(false);
   thresholdLabel->setVisible(false);
 
-  connect(adaptiveRadio,   SIGNAL(toggled(bool)),
-          this,            SLOT(radioChanged(bool)));
-  connect(ortogonalRadio,SIGNAL(toggled(bool)),
-          this,            SLOT(radioChanged(bool)));
+  connect(adaptiveRadio, SIGNAL(toggled(bool)),
+          this,          SLOT(radioChanged(bool)));
+
+  connect(ortogonalRadio, SIGNAL(toggled(bool)),
+          this,           SLOT(radioChanged(bool)));
+
+  connect(useCategoryConstraint, SIGNAL(toggled(bool)),
+          categorySelector,      SLOT(setEnabled(bool)));
+
+  categorySelector->setModel(model.get());
+  categorySelector->setRootModelIndex(model->classificationRoot());
 }
 
 //------------------------------------------------------------------------
@@ -67,6 +75,28 @@ void TypeDialog::setType(CFType type)
   {
     adaptiveRadio->setChecked(true);
   }
+}
+
+//------------------------------------------------------------------------
+QString TypeDialog::categoryConstraint() const
+{
+  QString constraint;
+
+  if (useCategoryConstraint->isChecked())
+  {
+    QModelIndex categoryyIndex = categorySelector->currentModelIndex();
+    if (categoryyIndex.isValid())
+    {
+      auto item = itemAdapter(categoryyIndex);
+      Q_ASSERT(isCategory(item));
+
+      auto category = categoryPtr(item);
+
+      constraint = category->classificationName();
+    }
+  }
+
+  return constraint;
 }
 
 //------------------------------------------------------------------------

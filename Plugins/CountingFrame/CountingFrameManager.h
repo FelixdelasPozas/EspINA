@@ -34,11 +34,13 @@ namespace EspINA {
     public:
       void createAdaptiveCF(ChannelAdapterPtr channel,
                             Nm inclusion[3],
-                            Nm exclusion[3]);
+                            Nm exclusion[3],
+                            const QString &constraint = QString());
 
       void createRectangularCF(ChannelAdapterPtr channel,
                                Nm inclusion[3],
-                               Nm exclusion[3]);
+                               Nm exclusion[3],
+                               const QString &constraint = QString());
 
       void deleteCountingFrame(CountingFrame *cf);
 
@@ -47,12 +49,12 @@ namespace EspINA {
 
       void registerCountingFrame(CountingFrame *cf, CountingFrameExtension *extension);
 
+      CountingFrame::Id suggestedId(CountingFrame* cf) const;
+
+      CountingFrame::Id suggestedId(const CountingFrame::Id id) const;
+
     private:
       CountingFrameExtension* retrieveOrCreateCFExtension(ChannelAdapterPtr channel);
-
-      CountingFrame::Id suggestedId(EspINA::CF::CountingFrame* cf) const;
-
-      int similarIdsCount(QString id) const;
 
     signals:
       void countingFrameCreated(CountingFrame *);

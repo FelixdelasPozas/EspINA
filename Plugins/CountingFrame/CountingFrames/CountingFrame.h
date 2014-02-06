@@ -28,6 +28,7 @@
 #include "vtkCountingFrame3DWidget.h"
 #include "CountingFrameInteractorAdapter.h"
 #include <GUI/View/Widgets/EspinaWidget.h>
+#include <Core/Utils/Bounds.h>
 
 #include <vtkCommand.h>
 #include <vtkSmartPointer.h>
@@ -114,6 +115,11 @@ namespace CF {
     bool isVisible() const
     { return m_visible; }
 
+    void setHighlighted(bool highlighted);
+
+    bool isHighlighted() const
+    { return m_highlight; }
+
     /** \brief Return total volume in pixels
      *
      */
@@ -147,9 +153,9 @@ namespace CF {
     Nm bottom()const {return m_exclusion[1];}
     Nm back() const {return m_exclusion[2];}
 
-    void setCategoryConstraint(const CategorySPtr category);
+    void setCategoryConstraint(const QString &category);
 
-    const CategorySPtr categoryConstraint() const { return m_categoryConstraint; }
+    QString categoryConstraint() const { return m_categoryConstraint; }
 
   signals:
     void modified(CountingFrame *);
@@ -163,6 +169,8 @@ namespace CF {
 
     virtual void updateCountingFrameImplementation() = 0;
 
+    Nm equivalentVolume(const Bounds &bounds);
+
   protected:
     vtkSmartPointer<vtkPolyData> m_countingFrame;
     vtkSmartPointer<vtkPolyData> m_representation;
@@ -171,6 +179,7 @@ namespace CF {
 
     Id   m_id;
     bool m_visible;
+    bool m_highlight;
 
     Nm m_inclusion[3];
     Nm m_exclusion[3];
@@ -178,7 +187,7 @@ namespace CF {
     Nm m_totalVolume;
     Nm m_inclusionVolume;
 
-    const CategorySPtr m_categoryConstraint;
+    const QString m_categoryConstraint;
 
     QList<CountingFrame2DWidgetAdapter *> m_widgets2D;
     QList<CountingFrame3DWidgetAdapter *> m_widgets3D;

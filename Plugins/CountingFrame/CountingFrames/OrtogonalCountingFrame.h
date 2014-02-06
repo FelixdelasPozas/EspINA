@@ -22,7 +22,6 @@
 #include "CountingFramePlugin_Export.h"
 
 #include "Plugins/CountingFrame/CountingFrames/CountingFrame.h"
-#include <Core/Utils/Bounds.h>
 
 namespace EspINA
 {
@@ -72,8 +71,6 @@ namespace EspINA
                                                          Nm right,
                                                          Nm bottom,
                                                          Nm back);
-  private:
-    Nm equivalentVolume(const Bounds &bounds);
 
   private:
     Bounds m_bounds;

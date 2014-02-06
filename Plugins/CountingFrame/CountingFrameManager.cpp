@@ -30,11 +30,14 @@ using namespace EspINA::CF;
 //------------------------------------------------------------------------
 void CountingFrameManager::createAdaptiveCF(ChannelAdapterPtr channel,
                                             Nm inclusion[3],
-                                            Nm exclusion[3])
+                                            Nm exclusion[3],
+                                            const QString &constraint)
 {
   auto extension = retrieveOrCreateCFExtension(channel);
 
   auto cf = AdaptiveCountingFrame::New(extension, channel->bounds(), inclusion, exclusion);
+
+  cf->setCategoryConstraint(constraint);
 
   registerCountingFrame(cf, extension);
 }
@@ -42,11 +45,14 @@ void CountingFrameManager::createAdaptiveCF(ChannelAdapterPtr channel,
 //------------------------------------------------------------------------
 void CountingFrameManager::createRectangularCF(ChannelAdapterPtr channel,
                                                Nm inclusion[3],
-                                               Nm exclusion[3])
+                                               Nm exclusion[3],
+                                            const QString &constraint)
 {
   auto extension = retrieveOrCreateCFExtension(channel);
 
   auto cf = OrtogonalCountingFrame::New(extension, channel->bounds(), inclusion, exclusion);
+
+  cf->setCategoryConstraint(constraint);
 
   registerCountingFrame(cf, extension);
 }
@@ -126,38 +132,54 @@ void CountingFrameManager::registerCountingFrame(CountingFrame* cf, CountingFram
 CountingFrame::Id CountingFrameManager::suggestedId(CountingFrame *cf) const
 {
   CountingFrame::Id id = cf->id();
+
   if (id.isEmpty())
   {
-    if (cf->categoryConstraint())
-    {
-      id = QString("%1").arg(cf->categoryConstraint()->classificationName());
-    } else
+    if (cf->categoryConstraint().isEmpty())
     {
       id = "Global";
+    } else
+    {
+      id = QString("%1").arg(cf->categoryConstraint());
     }
   }
 
-  int n = similarIdsCount(id);
-  if (n > 0)
-  {
-    id.append(QString(" (%1)").arg(n));
-  }
-
-  return id;
+  return suggestedId(id);
 }
 
 //-----------------------------------------------------------------------------
-int CountingFrameManager::similarIdsCount(QString id) const
+CountingFrame::Id CountingFrameManager::suggestedId(const CountingFrame::Id id) const
 {
-  int count = 0;
+  QRegExp cardinalityRegExp("\\([0-9]+\\)");
+  QString cardinalityStrippedId = id.replace(cardinalityRegExp, "").trimmed();
 
+  QString suggestedId = cardinalityStrippedId;
+
+  int count = 0;
   for (auto cf : m_countingFrames.keys())
   {
-    if (cf->id().startsWith(id) || id.startsWith(cf->id()))
+    if (cf->id().startsWith(cardinalityStrippedId))
     {
-      ++count;
+      int cardinalityIndex = cf->id().lastIndexOf(cardinalityRegExp);
+
+      if (cardinalityIndex == -1)
+      {
+        ++count;
+      }
+      else
+      {
+        auto cardinality = cf->id().mid(cardinalityIndex + 1);
+        cardinality = cardinality.left(cardinality.length()-1);
+
+        count = std::max(count, cardinality.toInt() + 1);
+      }
     }
   }
 
-  return count;
+  if (count > 0)
+  {
+    suggestedId.append(QString(" (%1)").arg(count));
+  }
+
+  return suggestedId;
 }

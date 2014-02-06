@@ -35,8 +35,14 @@ public:
   explicit QComboTreeView(QWidget* parent = 0);
 
   void setModel(QAbstractItemModel *model);
-  void setRootModelIndex( const QModelIndex & index);
+
+  void setRootModelIndex( const QModelIndex &index);
+
+  void setCurrentModelIndex(const QModelIndex &index);
+
   QModelIndex currentModelIndex() const {return m_currentModelIndex;}
+
+  virtual void mousePressEvent(QMouseEvent* e);
 
 protected:
   virtual void showPopup();
@@ -53,6 +59,7 @@ signals:
   void activated(const QModelIndex &index);
 
 private:
+  QModelIndex m_rootModelIndex;
   QModelIndex m_currentModelIndex;
   QTreeView   m_treeView;
 };

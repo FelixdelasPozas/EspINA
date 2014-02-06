@@ -167,17 +167,6 @@ void OrtogonalCountingFrame::updateCountingFrameImplementation()
 }
 
 //-----------------------------------------------------------------------------
-Nm OrtogonalCountingFrame::equivalentVolume(const Bounds& bounds)
-{
-  auto channel = m_extension->extendedItem();
-  auto volume  = volumetricData(channel->output());
-
-  VolumeBounds volumeBounds(bounds, volume->spacing(), volume->origin());
-
-  return (volumeBounds[1]-volumeBounds[0])*(volumeBounds[3]-volumeBounds[2])* (volumeBounds[5]-volumeBounds[4]);
-}
-
-//-----------------------------------------------------------------------------
 vtkSmartPointer<vtkPolyData> OrtogonalCountingFrame::createRectangularRegion(Nm left,  Nm top,    Nm front,
                                                                                Nm right, Nm bottom, Nm back)
 {

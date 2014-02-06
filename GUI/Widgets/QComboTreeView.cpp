@@ -20,6 +20,7 @@
 #include "QComboTreeView.h"
 
 #include <GUI/Utils/QtModelUtils.h>
+#include <QLineEdit>
 
 //----------------------------------------------------------------------------
 QComboTreeView::QComboTreeView(QWidget* parent)
@@ -36,6 +37,14 @@ QComboTreeView::QComboTreeView(QWidget* parent)
 
   connect(this, SIGNAL(currentIndexChanged(int)),
           this, SLOT(indexActivated()));
+}
+
+
+//----------------------------------------------------------------------------
+void QComboTreeView::mousePressEvent(QMouseEvent* e)
+{
+  QComboBox::setRootModelIndex(m_rootModelIndex);
+  QComboBox::mousePressEvent(e);
 }
 
 //----------------------------------------------------------------------------
@@ -60,9 +69,18 @@ void QComboTreeView::setRootModelIndex(const QModelIndex& index)
   if (count() > 0)
   {
     setCurrentIndex(0);
+    m_rootModelIndex    = index;
     m_currentModelIndex = index.child(0,0);
     indexActivated();
   }
+}
+
+//----------------------------------------------------------------------------
+void QComboTreeView::setCurrentModelIndex(const QModelIndex& index)
+{
+  QComboBox::setRootModelIndex(index.parent());
+  setCurrentIndex(index.row());
+  m_currentModelIndex = index;
 }
 
 //----------------------------------------------------------------------------

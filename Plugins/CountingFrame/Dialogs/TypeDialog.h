@@ -24,6 +24,7 @@
 #include "ui_TypeDialog.h"
 
 #include <CountingFrames/CountingFrame.h>
+#include <GUI/Model/ModelAdapter.h>
 
 // Qt
 #include <QDialog>
@@ -39,12 +40,14 @@ namespace EspINA
       Q_OBJECT
 
     public:
-      TypeDialog(QWidget *parent);
+      TypeDialog(ModelAdapterSPtr model, QWidget *parent);
       virtual ~TypeDialog() {};
 
       void setType(CFType type);
 
       CFType type() const { return m_type; }
+
+      QString categoryConstraint() const;
 
     public slots:
       void radioChanged(bool);

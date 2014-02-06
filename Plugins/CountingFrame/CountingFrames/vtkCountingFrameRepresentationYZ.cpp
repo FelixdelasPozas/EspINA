@@ -17,17 +17,17 @@
 */
 
 
-#include "vtkCountingFrameSagittalSliceRepresentation.h"
+#include "vtkCountingFrameRepresentationYZ.h"
 #include <GUI/View/View2D.h>
 
 #include <vtkObjectFactory.h>
 #include <vtkCellArray.h>
 #include <vtkActor.h>
 
-vtkStandardNewMacro(vtkCountingFrameSagittalSliceRepresentation);
+vtkStandardNewMacro(vtkCountingFrameRepresentationYZ);
 
 //----------------------------------------------------------------------------
-void vtkCountingFrameSagittalSliceRepresentation::SetSlice(EspINA::Nm pos)
+void vtkCountingFrameRepresentationYZ::SetSlice(EspINA::Nm pos)
 {
   Slice = pos;
 
@@ -68,7 +68,7 @@ void vtkCountingFrameSagittalSliceRepresentation::SetSlice(EspINA::Nm pos)
 }
 
 //----------------------------------------------------------------------------
-void vtkCountingFrameSagittalSliceRepresentation::CreateRegion()
+void vtkCountingFrameRepresentationYZ::CreateRegion()
 {
 //   std::cout << "Created YZ FACE" << std::endl;
   double LB[3], RB[3];
@@ -153,6 +153,9 @@ void vtkCountingFrameSagittalSliceRepresentation::CreateRegion()
       point[2] += InclusionOffset[2];
     else if (slice == NumSlices - 1)
       point[2] -= ExclusionOffset[2];
+    else
+      point[2] += SlicingStep[2]/2;
+
     this->Vertex->SetPoint(2*interval, point);
     // Top
     Region->GetPoint(slice*4+1,point);
@@ -162,6 +165,9 @@ void vtkCountingFrameSagittalSliceRepresentation::CreateRegion()
       point[2] += InclusionOffset[2];
     else if (slice == NumSlices - 1)
       point[2] -= ExclusionOffset[2];
+    else
+      point[2] += SlicingStep[2]/2;
+
     this->Vertex->SetPoint(2*interval+1, point);
   }
 
@@ -170,7 +176,7 @@ void vtkCountingFrameSagittalSliceRepresentation::CreateRegion()
 }
 
 //----------------------------------------------------------------------------
-void vtkCountingFrameSagittalSliceRepresentation::MoveLeftEdge(double* p1, double* p2)
+void vtkCountingFrameRepresentationYZ::MoveLeftEdge(double* p1, double* p2)
 {
   double shift = p2[2] - p1[2];
 
@@ -217,7 +223,7 @@ void vtkCountingFrameSagittalSliceRepresentation::MoveLeftEdge(double* p1, doubl
 }
 
 //----------------------------------------------------------------------------
-void vtkCountingFrameSagittalSliceRepresentation::MoveRightEdge(double* p1, double* p2)
+void vtkCountingFrameRepresentationYZ::MoveRightEdge(double* p1, double* p2)
 {
   double shift = p2[2] - p1[2];
 
@@ -265,7 +271,7 @@ void vtkCountingFrameSagittalSliceRepresentation::MoveRightEdge(double* p1, doub
 }
 
 //----------------------------------------------------------------------------
-void vtkCountingFrameSagittalSliceRepresentation::MoveTopEdge(double* p1, double* p2)
+void vtkCountingFrameRepresentationYZ::MoveTopEdge(double* p1, double* p2)
 {
 
   double shift = p2[1] - p1[1];
@@ -305,7 +311,7 @@ void vtkCountingFrameSagittalSliceRepresentation::MoveTopEdge(double* p1, double
 }
 
 //----------------------------------------------------------------------------
-void vtkCountingFrameSagittalSliceRepresentation::MoveBottomEdge(double* p1, double* p2)
+void vtkCountingFrameRepresentationYZ::MoveBottomEdge(double* p1, double* p2)
 {
   double shift = p2[1] - p1[1];
 

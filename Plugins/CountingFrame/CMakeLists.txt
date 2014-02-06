@@ -62,9 +62,9 @@ set (LOCAL_SOURCES
   CountingFrames/OrtogonalCountingFrame.cpp
   CountingFrames/vtkCountingFrame3DRepresentation.cpp
   CountingFrames/vtkCountingFrame3DWidget.cpp
-  CountingFrames/vtkCountingFrameAxialSliceRepresentation.cpp
-  CountingFrames/vtkCountingFrameCoronalSliceRepresentation.cpp
-  CountingFrames/vtkCountingFrameSagittalSliceRepresentation.cpp
+  CountingFrames/vtkCountingFrameRepresentationXY.cpp
+  CountingFrames/vtkCountingFrameRepresentationXZ.cpp
+  CountingFrames/vtkCountingFrameRepresentationYZ.cpp
   CountingFrames/vtkCountingFrameSliceRepresentation.cpp
   CountingFrames/vtkCountingFrameSliceWidget.cpp
   Dialogs/TypeDialog.cpp
