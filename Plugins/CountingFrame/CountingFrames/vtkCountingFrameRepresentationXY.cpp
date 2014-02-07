@@ -23,6 +23,7 @@
 #include <vtkObjectFactory.h>
 #include <vtkCellArray.h>
 #include <vtkActor.h>
+#include <Core/Utils/Spatial.h>
 
 vtkStandardNewMacro(vtkCountingFrameRepresentationXY);
 
@@ -37,8 +38,7 @@ void vtkCountingFrameRepresentationXY::SetSlice(EspINA::Nm pos)
   regionBounds(0, firstSliceBounds);
   regionBounds(NumSlices-1, lastSliceBounds); // there is one more extra for the cover
 
-  if (Slice < firstSliceBounds[4] + InclusionOffset[2]
-   || lastSliceBounds[5] - ExclusionOffset[2] < Slice)
+  if (Slice < frontSlice() || backSlice() < Slice)
   {
     for(EDGE i = LEFT; i <= BOTTOM; i = EDGE(i+1))
       this->EdgeActor[i]->SetProperty(InvisibleProperty);
@@ -46,7 +46,16 @@ void vtkCountingFrameRepresentationXY::SetSlice(EspINA::Nm pos)
   } else
   {
     for(EDGE i = LEFT; i <= TOP; i = EDGE(i+1))
-      this->EdgeActor[i]->SetProperty(InclusionEdgeProperty);
+    {
+      // Check if it is back slice
+      if (fabs(Slice - backSlice()) <= SlicingStep[2]/2)
+      {
+        this->EdgeActor[i]->SetProperty(ExclusionEdgeProperty);
+      } else
+      {
+        this->EdgeActor[i]->SetProperty(InclusionEdgeProperty);
+      }
+    }
     for(EDGE i = RIGHT; i <= BOTTOM; i = EDGE(i+1))
       this->EdgeActor[i]->SetProperty(ExclusionEdgeProperty);
 
@@ -261,4 +270,29 @@ void vtkCountingFrameRepresentationXY::MoveBottomEdge(double* p1, double* p2)
 
   ExclusionOffset[vCoord] = offset;
   CreateRegion();
+}
+
+
+//----------------------------------------------------------------------------
+EspINA::Nm vtkCountingFrameRepresentationXY::frontSlice() const
+{
+  double frontBounds[6];
+
+  regionBounds(0, frontBounds);
+
+  double shift = int(InclusionOffset[2]/SlicingStep[2])+0.5;
+
+  return frontBounds[4] + shift*SlicingStep[2];
+}
+
+//----------------------------------------------------------------------------
+EspINA::Nm vtkCountingFrameRepresentationXY::backSlice() const
+{
+  double backBounds[6];
+
+  regionBounds(NumSlices - 1, backBounds);
+
+  double shift = int(ExclusionOffset[2]/SlicingStep[2])+0.5;
+
+  return backBounds[5] - shift*SlicingStep[2];
 }

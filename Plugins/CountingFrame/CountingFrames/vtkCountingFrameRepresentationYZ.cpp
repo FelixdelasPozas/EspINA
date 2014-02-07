@@ -55,7 +55,16 @@ void vtkCountingFrameRepresentationYZ::SetSlice(EspINA::Nm pos)
   if (visible)
   {
     for(EDGE i = LEFT; i <= TOP; i = EDGE(i+1))
-      this->EdgeActor[i]->SetProperty(InclusionEdgeProperty);
+    {
+      // Check if it is back slice
+      if (fabs(Slice - (lastSliceBounds[1]-(SlicingStep[0]/2)-ExclusionOffset[0])) < SlicingStep[0])
+      {
+        this->EdgeActor[i]->SetProperty(ExclusionEdgeProperty);
+      } else
+      {
+        this->EdgeActor[i]->SetProperty(InclusionEdgeProperty);
+      }
+    }
     for(EDGE i = RIGHT; i <= BOTTOM; i = EDGE(i+1))
       this->EdgeActor[i]->SetProperty(ExclusionEdgeProperty);
 

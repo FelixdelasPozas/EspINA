@@ -318,17 +318,27 @@ void vtkCountingFrameSliceRepresentation::SetHighlighted(bool highlight)
 {
   if (highlight)
   {
-    this->InclusionEdgeProperty->SetLineWidth(2.0);
-    this->ExclusionEdgeProperty->SetLineWidth(2.0);
-    this->SelectedInclusionProperty->SetLineWidth(3.0);
-    this->SelectedExclusionProperty->SetLineWidth(3.0);
+    this->InclusionEdgeProperty->SetLineWidth(1.0);
+    this->ExclusionEdgeProperty->SetLineWidth(1.0);
+    this->SelectedInclusionProperty->SetLineWidth(2.0);
+    this->SelectedExclusionProperty->SetLineWidth(2.0);
+
+    this->InclusionEdgeProperty->SetLineStipplePattern(0xffff);
+    this->ExclusionEdgeProperty->SetLineStipplePattern(0xffff);
+    this->SelectedInclusionProperty->SetLineStipplePattern(0xffff);
+    this->SelectedExclusionProperty->SetLineStipplePattern(0xffff);
   }
   else
   {
-    this->InclusionEdgeProperty->SetLineWidth(0.5);
-    this->ExclusionEdgeProperty->SetLineWidth(0.5);
-    this->SelectedInclusionProperty->SetLineWidth(1.5);
-    this->SelectedExclusionProperty->SetLineWidth(1.5);
+//     this->InclusionEdgeProperty->SetLineWidth(0.5);
+//     this->ExclusionEdgeProperty->SetLineWidth(0.5);
+//     this->SelectedInclusionProperty->SetLineWidth(1.5);
+//     this->SelectedExclusionProperty->SetLineWidth(1.5);
+
+    this->InclusionEdgeProperty->SetLineStipplePattern(0x0ff0);
+    this->ExclusionEdgeProperty->SetLineStipplePattern(0x0ff0);
+    this->SelectedInclusionProperty->SetLineStipplePattern(0x0ff0);
+    this->SelectedExclusionProperty->SetLineStipplePattern(0x0ff0);
   }
 
 }

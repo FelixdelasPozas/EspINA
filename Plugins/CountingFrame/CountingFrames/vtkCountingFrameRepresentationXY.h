@@ -59,6 +59,10 @@ protected:
 protected:
   explicit vtkCountingFrameRepresentationXY(){}
 
+  EspINA::Nm frontSlice() const;
+  
+  EspINA::Nm backSlice() const;
+
 private:
   vtkCountingFrameRepresentationXY(const vtkCountingFrameRepresentationXY&);  //Not implemented
   void operator=(const vtkCountingFrameRepresentationXY&);  //Not implemented
