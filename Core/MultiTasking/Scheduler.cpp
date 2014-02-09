@@ -73,7 +73,8 @@ Scheduler::~Scheduler()
 }
 
 //-----------------------------------------------------------------------------
-void Scheduler::addTask(Task* task) {
+void Scheduler::addTask(Task* task)
+{
   task->setId(m_lastId++);
 
   QMutexLocker lock(&m_mutex);
@@ -103,6 +104,10 @@ void Scheduler::changePriority(Task* task, int prevPriority )
 {
   QMutexLocker lock(&m_mutex);
 
+  // if the task have not been submitted yet, it won't be in any list.
+  if (!m_runningTasks[prevPriority].contains(task))
+    return;
+
   //std::cout << "Changing priority of " << task->description().toStdString() << std::endl;
   m_runningTasks[prevPriority].removeOne(task);
   m_runningTasks[task->priority()].orderedInsert(task);
@@ -131,6 +136,12 @@ void Scheduler::scheduleTasks() {
 
       for(Task *task : m_runningTasks[priority])
       {
+        if (task == nullptr)
+        {
+          m_runningTasks[priority].removeOne(task);
+          continue;
+        }
+
         bool is_thread_attached = task->m_isThreadAttached;
 
         if (num_running_threads < m_maxNumRunningThreads && !(task->isPaused() || task->isAborted() || task->hasFinished() )) {
