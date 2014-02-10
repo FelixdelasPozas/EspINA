@@ -42,12 +42,14 @@ using namespace EspINA;
 Task::Task(SchedulerSPtr scheduler)
 : m_scheduler{scheduler}
 , m_hasFinished{false}
+, m_aborted{false}
 , m_priority{Priority::NORMAL}
 , m_pendingAbort{false}
 , m_pendingPause{false}
 , m_pendingUserPause{false}
 , m_id{0}
-, m_isThreadAttached(false)
+, m_isThreadAttached{false}
+, m_hidden{false}
 {
   if (m_scheduler != nullptr)
   {
@@ -156,6 +158,8 @@ void Task::runWrapper()
   run();
 
   m_hasFinished = !m_pendingAbort;
+  m_aborted = m_pendingAbort;
+  m_pendingAbort = false;
 
   emit finished();
 }

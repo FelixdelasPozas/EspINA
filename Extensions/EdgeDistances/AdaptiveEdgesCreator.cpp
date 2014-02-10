@@ -355,7 +355,8 @@ void AdaptiveEdgesCreator::run()
   if (isAborted())
   {
     m_extension->m_computedVolume = 0;
-  } else 
+  }
+  else
   {
     m_extension->m_edges->SetPoints(borderVertices);
     m_extension->m_edges->SetPolys(faces);

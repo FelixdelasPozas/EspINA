@@ -74,11 +74,17 @@ namespace EspINA {
 
     bool isRunning() const {return !isPaused();}
 
-    bool isAborted() const { return m_pendingAbort; }
+    bool isAborted() const { return m_aborted; }
+
+    bool isWaitingAbort() const { return m_pendingAbort; }
 
     bool hasFinished() const { return m_hasFinished; }
 
     int priority() const { return m_priority; }
+
+    void setHidden(bool hidden) { m_hidden = hidden; }
+
+    bool isHidden() const { return m_hidden; }
 
   public slots:
     void setPriority(const int value);
@@ -127,6 +133,7 @@ namespace EspINA {
     bool m_pendingAbort;
     bool m_pendingPause;
     bool m_pendingUserPause;
+    bool m_aborted;
 
     QMutex m_mutex;
     QWaitCondition m_paused;
@@ -134,6 +141,7 @@ namespace EspINA {
     QString  m_description;
     Id m_id;
     bool m_isThreadAttached;
+    bool m_hidden;
 
     friend class Scheduler;
   };

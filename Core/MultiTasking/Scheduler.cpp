@@ -80,7 +80,8 @@ void Scheduler::addTask(Task* task)
   QMutexLocker lock(&m_mutex);
   m_runningTasks[task->priority()].orderedInsert(task);
 
-  emit taskAdded(task);
+  if (!task->isHidden())
+    emit taskAdded(task);
 }
 
 //-----------------------------------------------------------------------------
@@ -89,7 +90,8 @@ void Scheduler::removeTask(Task* task)
   QMutexLocker lock(&m_mutex);
   m_runningTasks[task->priority()].removeOne(task);
 
-  emit taskRemoved(task);
+  if (!task->isHidden())
+    emit taskRemoved(task);
 }
 
 //-----------------------------------------------------------------------------
@@ -164,7 +166,8 @@ void Scheduler::scheduleTasks() {
             // std::cout << "- " << worker->description().toStdString() << " was aborted" << std::endl;
             // std::cout << "- " << worker->description().toStdString() << " has finished" << std::endl;
             m_runningTasks[task->priority()].removeOne(task);
-            emit taskRemoved(task);
+            if (!task->isHidden())
+              emit taskRemoved(task);
           } else if (is_thread_attached) {
             task->dispatcherPause();
             // std::cout << "- " << worker->description().toStdString() << " was paused by scheduler" << std::endl;

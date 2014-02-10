@@ -35,7 +35,6 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(OutputSList inputs, Filte
 , m_prevRadius(m_radius)
 , m_usesROI(false)
 {
-
 }
 
 //------------------------------------------------------------------------
@@ -202,7 +201,6 @@ void SeedGrowSegmentationFilter::execute(Output::Id id)
 //   voiFilter->Update();
 
   emit progress(25);
-
   if (!canExecute()) return;
 
   Q_ASSERT(contains(input->bounds(), m_seed));
