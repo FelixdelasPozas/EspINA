@@ -347,7 +347,7 @@ QColor SegmentationSliceRepresentation::color() const
   if (!m_clones.isEmpty())
     return m_clones.first()->color();
   else
-    return EspINA::Representation::color();
+    return Representation::color();
 }
 
 

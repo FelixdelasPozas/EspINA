@@ -122,11 +122,11 @@ namespace EspINA
     { return m_highlight; }
 
     /// Set representation visibility
-    /// Innactive representations are never visible, even visibility is set to true
+    /// Inactive representations are never visible, even visibility is set to true
     void setVisible(bool visible);
 
     /// Whether or not the representation is displayed
-    /// Innactive representations are never visible, even visibility is set to true
+    /// Inactive representations are never visible, even visibility is set to true
     bool isVisible() const
     { return m_visible && m_active; }
 
@@ -172,9 +172,10 @@ namespace EspINA
 
     RenderView*   m_view;
     NmVector3     m_crosshair;
+    TimeStamp     m_lastUpdatedTime;
 
     RepresentationSList m_clones;
-    TimeStamp     m_lastUpdatedTime;
+
   private:
     bool m_active;
     bool m_visible;

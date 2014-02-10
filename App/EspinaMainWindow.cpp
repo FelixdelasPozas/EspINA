@@ -79,13 +79,13 @@ EspinaMainWindow::DynamicMenuNode::~DynamicMenuNode()
   }
 }
 
-const int PERIOD_NS = 1000000;
+const int PERIOD_NS = 250000;
 
 //------------------------------------------------------------------------
 EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 : QMainWindow()
 , m_scheduler(new Scheduler(PERIOD_NS))
-, m_factory(new ModelFactory(espinaCoreFactory(m_scheduler)))
+, m_factory(new ModelFactory(espinaCoreFactory(m_scheduler), m_scheduler))
 , m_analysis(new Analysis())
 , m_model(new ModelAdapter())
 , m_viewManager(new ViewManager())
@@ -113,8 +113,8 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   m_factory->registerAnalysisReader(m_channelReader.get());
   m_factory->registerAnalysisReader(m_segFileReader.get());
   m_factory->registerFilterFactory (m_channelReader);
-  m_factory->registerChannelRepresentationFactory(RepresentationFactorySPtr{new BasicChannelRepresentationFactory()});
-  m_factory->registerSegmentationRepresentationFactory(RepresentationFactorySPtr{new BasicSegmentationRepresentationFactory()});
+  m_factory->registerChannelRepresentationFactory(RepresentationFactorySPtr{new BasicChannelRepresentationFactory(m_scheduler)});
+  m_factory->registerSegmentationRepresentationFactory(RepresentationFactorySPtr{new BasicSegmentationRepresentationFactory(m_scheduler)});
 
   m_availableRenderers << RendererSPtr(new CrosshairRenderer());
   m_availableRenderers << RendererSPtr(new MeshRenderer());

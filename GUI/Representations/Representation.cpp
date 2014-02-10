@@ -40,9 +40,9 @@ Representation::Representation(RenderView *view)
 , m_color(Qt::white)
 , m_highlight(false)
 , m_view(view)
+, m_lastUpdatedTime(0)
 , m_active(true)
 , m_visible(true)
-, m_lastUpdatedTime(0)
 {}
 
 //-----------------------------------------------------------------------------

@@ -29,6 +29,12 @@ namespace EspINA {
   : public RepresentationFactory
   {
   public:
+    explicit RepresentationFactoryGroup(SchedulerSPtr scheduler)
+    : RepresentationFactory(scheduler)
+    {};
+
+    virtual ~RepresentationFactoryGroup() {};
+
     struct Representation_Already_Provided_Exception{};
   public:
     void addRepresentationFactory(RepresentationFactorySPtr factory);

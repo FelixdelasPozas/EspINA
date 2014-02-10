@@ -27,6 +27,7 @@
 #include "SmoothedMeshRepresentation.h"
 #include "VolumetricRepresentation.h"
 #include "VolumetricGPURepresentation.h"
+#include "SliceCachedRepresentation.h"
 
 using namespace EspINA;
 
@@ -35,7 +36,8 @@ RepresentationTypeList BasicChannelRepresentationFactory::representations() cons
 {
   RepresentationTypeList representations;
 
-  representations << ChannelSliceRepresentation::TYPE;
+  //representations << ChannelSliceRepresentation::TYPE;
+  representations << ChannelSliceCachedRepresentation::TYPE;
   representations << CrosshairRepresentation::TYPE;
 
   return representations;
@@ -59,6 +61,12 @@ RepresentationSPtr BasicChannelRepresentationFactory::createRepresentation(Outpu
     representation = RepresentationSPtr { new CrosshairRepresentation(volume, nullptr) };
   }
 
+  if (type == ChannelSliceCachedRepresentation::TYPE)
+  {
+    DefaultVolumetricDataSPtr volume = volumetricData(output);
+    representation = RepresentationSPtr { new ChannelSliceCachedRepresentation(volume, nullptr, m_scheduler) };
+  }
+
   return representation;
 }
 
@@ -67,7 +75,8 @@ RepresentationTypeList BasicSegmentationRepresentationFactory::representations()
 {
   RepresentationTypeList representations;
 
-  representations << SegmentationSliceRepresentation::TYPE;
+  //representations << SegmentationSliceRepresentation::TYPE;
+  representations << SegmentationSliceCachedRepresentation::TYPE;
   representations << ContourRepresentation::TYPE;
   representations << MeshRepresentation::TYPE;
   representations << SmoothedMeshRepresentation::TYPE;
@@ -122,6 +131,12 @@ RepresentationSPtr BasicSegmentationRepresentationFactory::createRepresentation(
     DefaultVolumetricDataSPtr volume = volumetricData(output);
 
     representation = RepresentationSPtr{ new VolumetricGPURepresentation<itkVolumeType>(volume, nullptr)};
+  }
+
+  if (type == SegmentationSliceCachedRepresentation::TYPE)
+  {
+    DefaultVolumetricDataSPtr volume = volumetricData(output);
+    representation = RepresentationSPtr { new SegmentationSliceCachedRepresentation(volume, nullptr, m_scheduler) };
   }
 
   return representation;

@@ -53,7 +53,7 @@ namespace EspINA
   class EspinaGUI_EXPORT ModelFactory
   {
   public:
-    explicit ModelFactory(CoreFactorySPtr factory = CoreFactorySPtr());
+    explicit ModelFactory(CoreFactorySPtr factory = CoreFactorySPtr(), SchedulerSPtr scheduler = SchedulerSPtr());
     ~ModelFactory();
 
     void registerAnalysisReader(AnalysisReaderPtr reader);

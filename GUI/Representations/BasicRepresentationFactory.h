@@ -31,17 +31,26 @@ namespace EspINA
   : public RepresentationFactory
   {
   public:
+    explicit BasicChannelRepresentationFactory(SchedulerSPtr scheduler)
+    : RepresentationFactory(scheduler)
+    {};
+
     virtual ~BasicChannelRepresentationFactory() {};
 
     virtual RepresentationTypeList representations() const;
 
     virtual RepresentationSPtr createRepresentation(OutputSPtr output, Representation::Type type);
+
   };
 
   class EspinaGUI_EXPORT BasicSegmentationRepresentationFactory
   : public RepresentationFactory
   {
   public:
+    explicit BasicSegmentationRepresentationFactory(SchedulerSPtr scheduler)
+    : RepresentationFactory(scheduler)
+    {};
+
     virtual ~BasicSegmentationRepresentationFactory(){}
 
     virtual RepresentationTypeList representations() const;

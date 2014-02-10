@@ -23,6 +23,7 @@
 #include "EspinaGUI_Export.h"
 
 #include "GUI/Representations/Representation.h"
+#include <Core/MultiTasking/Scheduler.h>
 
 namespace EspINA
 {
@@ -31,11 +32,17 @@ namespace EspINA
   class EspinaGUI_EXPORT RepresentationFactory
   {
   public:
+    explicit RepresentationFactory(SchedulerSPtr scheduler)
+    { m_scheduler = scheduler; };
+
     virtual ~RepresentationFactory() {};
 
     virtual RepresentationTypeList representations() const = 0;
 
     virtual RepresentationSPtr createRepresentation(OutputSPtr output, Representation::Type representation) = 0;
+
+  protected:
+    SchedulerSPtr m_scheduler;
   };
 
   using RepresentationFactorySPtr = std::shared_ptr<RepresentationFactory>;

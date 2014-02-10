@@ -28,10 +28,10 @@
 using namespace EspINA;
 
 //------------------------------------------------------------------------
-ModelFactory::ModelFactory(CoreFactorySPtr factory)
+ModelFactory::ModelFactory(CoreFactorySPtr factory, SchedulerSPtr scheduler)
 : m_factory(factory)
-, m_channelRepresentationFactory(new RepresentationFactoryGroup())
-, m_segmentationRepresentationFactory(new RepresentationFactoryGroup())
+, m_channelRepresentationFactory(new RepresentationFactoryGroup(scheduler))
+, m_segmentationRepresentationFactory(new RepresentationFactoryGroup(scheduler))
 {
   if (!m_factory)
   {
