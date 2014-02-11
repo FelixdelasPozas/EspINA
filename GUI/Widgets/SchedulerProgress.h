@@ -41,8 +41,8 @@ namespace EspINA {
                                Qt::WindowFlags f = 0);
 
   private slots:
-    void onTaskAdded  (Task *task) throw (Duplicated_Task_Exception);
-    void onTaskRemoved(Task *task);
+    void onTaskAdded  (TaskSPtr task) throw (Duplicated_Task_Exception);
+    void onTaskRemoved(TaskSPtr task);
     void showTaskProgress(bool visible);
     void updateProgress();
 
@@ -52,7 +52,7 @@ namespace EspINA {
   private:
     SchedulerSPtr m_scheduler;
 
-    QMap<Task *, TaskProgressSPtr> m_tasks;
+    QMap<TaskSPtr, TaskProgressSPtr> m_tasks;
     std::shared_ptr<QWidget>       m_notification;
 
     int m_width;

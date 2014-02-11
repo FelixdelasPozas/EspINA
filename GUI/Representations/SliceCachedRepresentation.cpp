@@ -176,8 +176,8 @@ namespace EspINA
           if (node->worker)
           {
             node->worker->setDescription(QString("Creating actor for slice %1 in plane %2").arg(node->position).arg(m_planeIndex));
-            connect(node->worker, SIGNAL(finished()), this, SLOT(addActor()), Qt::QueuedConnection);
-            node->worker->submit();
+            connect(node->worker.get(), SIGNAL(finished()), this, SLOT(addActor()), Qt::QueuedConnection);
+            node->worker->submit(node->worker);
           }
         }
         node = node->next;
@@ -210,7 +210,7 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  CachedRepresentationTask *ChannelSliceCachedRepresentation::createTask(int position, Priority priority)
+  CachedRepresentationTaskSPtr ChannelSliceCachedRepresentation::createTask(int position, Priority priority)
   {
     Nm posNm = (static_cast<Nm>(position) - 0.5) * m_planeSpacing;
     if (!m_view || (m_min > posNm) || (m_max <= posNm))
@@ -222,7 +222,7 @@ namespace EspINA
     task->setDescription(QString("Creating actor for position %1 in plane %2").arg(position).arg(m_planeIndex));
     task->setInput(m_data, posNm, toPlane(m_planeIndex), brightness(), contrast(), color());
 
-    return task;
+    return CachedRepresentationTaskSPtr{task};
   }
 
   //-----------------------------------------------------------------------------
@@ -487,8 +487,8 @@ namespace EspINA
           if (node->worker)
           {
             node->worker->setDescription(QString("Creating actor for slice %1 in plane %2").arg(node->position).arg(m_planeIndex));
-            connect(node->worker, SIGNAL(finished()), this, SLOT(addActor()), Qt::QueuedConnection);
-            node->worker->submit();
+            connect(node->worker.get(), SIGNAL(finished()), this, SLOT(addActor()), Qt::QueuedConnection);
+            node->worker->submit(node->worker);
           }
         }
         node = node->next;
@@ -521,7 +521,7 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  CachedRepresentationTask *SegmentationSliceCachedRepresentation::createTask(int position, Priority priority)
+  CachedRepresentationTaskSPtr SegmentationSliceCachedRepresentation::createTask(int position, Priority priority)
   {
     Nm posNm = (static_cast<Nm>(position) - 0.5) * m_planeSpacing;
 
@@ -534,7 +534,7 @@ namespace EspINA
     task->setDescription(QString("Creating actor for slice %1 in plane %2").arg(position).arg(m_planeIndex));
     task->setInput(m_data, posNm, toPlane(m_planeIndex), 0.0, 0.0, color());
 
-    return task;
+    return CachedRepresentationTaskSPtr{task};
   }
 
   //-----------------------------------------------------------------------------

@@ -89,6 +89,7 @@ namespace EspINA
 
     vtkSmartPointer<vtkImageShiftScale> shiftScaleFilter = vtkSmartPointer<vtkImageShiftScale>::New();
     shiftScaleFilter->SetInputData(slice);
+    shiftScaleFilter->SetNumberOfThreads(1);
     shiftScaleFilter->SetShift(static_cast<int>(m_brightness*255));
     shiftScaleFilter->SetScale(m_contrast);
     shiftScaleFilter->SetClampOverflow(true);

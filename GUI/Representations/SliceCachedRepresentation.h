@@ -149,7 +149,7 @@ namespace EspINA
        * responsibility of this method to see if the position is valid for the data that it holds.
        * If not, it must return a nullptr.
        */
-      CachedRepresentationTask *createTask(int position, Priority priority = Priority::NORMAL);
+      CachedRepresentationTaskSPtr createTask(int position, Priority priority = Priority::NORMAL);
 
       /* \brief Sets the view this representation will be renderer on.
        *
@@ -291,7 +291,7 @@ namespace EspINA
        * responsibility of this method to see if the position is valid for the data that it holds.
        * If not, it must return a nullptr.
        */
-      CachedRepresentationTask *createTask(int position, Priority priority = Priority::NORMAL);
+      CachedRepresentationTaskSPtr createTask(int position, Priority priority = Priority::NORMAL);
 
       /* \brief Sets the view this representation will be renderer on.
        *

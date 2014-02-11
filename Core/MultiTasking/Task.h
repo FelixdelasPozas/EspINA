@@ -39,6 +39,10 @@ namespace EspINA {
 
   enum Priority { VERY_LOW, LOW, NORMAL, HIGH, VERY_HIGHT };
 
+  class Task;
+  using TaskPtr  = Task *;
+  using TaskSPtr = std::shared_ptr<Task>;
+
   class Task 
   : public QObject
   {
@@ -93,7 +97,7 @@ namespace EspINA {
      * 
      *  From this time, it is reponsability of the scheduler to active this task
      */
-    void submit();
+    static void submit(TaskSPtr task);
 
     /** \brief Abort task execution
      * 

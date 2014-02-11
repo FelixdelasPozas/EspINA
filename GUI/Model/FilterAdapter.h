@@ -94,7 +94,7 @@ namespace EspINA {
     { return m_filter->hasFinished(); }
 
     virtual void submit()
-    { m_filter->submit(); }
+    { m_filter->submit(m_filter); }
 
     virtual void update(Output::Id id)
     { m_filter->update(id); }

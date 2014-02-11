@@ -31,7 +31,7 @@
 
 using namespace EspINA;
 
-TaskProgress::TaskProgress(Task* task)
+TaskProgress::TaskProgress(TaskSPtr task)
 : QWidget()
 , m_task(task)
 {
@@ -41,7 +41,7 @@ TaskProgress::TaskProgress(Task* task)
 
   connect(m_cancelButton, SIGNAL(clicked(bool)),
           this, SLOT(onCancel()));
-  connect(m_task, SIGNAL(progress(int)),
+  connect(m_task.get(), SIGNAL(progress(int)),
           this, SLOT(updateProgress(int)));
 }
 

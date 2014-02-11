@@ -93,17 +93,6 @@ namespace EspINA
       node->actor = nullptr;
       delete node;
     }
-
-    // wait for all tasks (if any) to end processing
-    while(!m_deferredDeletionList.empty())
-      for (auto task: m_deferredDeletionList)
-        if (task->hasFinished() || task->isAborted())
-        {
-          m_deferredDeletionList.removeOne(task);
-          delete task;
-        }
-        else
-          task->abort();
   }
 
   //-----------------------------------------------------------------------------
@@ -112,21 +101,9 @@ namespace EspINA
     if (node->worker == nullptr)
       return;
 
-    node->worker->disconnect(node->worker, SIGNAL(finished()), this, SLOT(addActor()));
-
-    if (node->worker->hasFinished() || node->worker->isAborted())
-    {
-      delete node->worker;
-    }
-    else
-    {
-      node->worker->abort();
-      m_deferredDeletionList << node->worker;
-    }
-
+    node->worker->disconnect(node->worker.get(), SIGNAL(finished()), this, SLOT(addActor()));
+    node->worker->abort();
     node->worker = nullptr;
-
-    checkDeferredTaskList();
   }
 
   //-----------------------------------------------------------------------------
@@ -160,8 +137,8 @@ namespace EspINA
     m_actualPos->worker = createTask(m_actualPos->position, EspINA::Priority::VERY_HIGHT);
     if (m_actualPos->worker != nullptr)
     {
-      connect(m_actualPos->worker, SIGNAL(finished()), this, SLOT(addActor()), Qt::QueuedConnection);
-      m_actualPos->worker->submit();
+      connect(m_actualPos->worker.get(), SIGNAL(finished()), this, SLOT(addActor()), Qt::QueuedConnection);
+      m_actualPos->worker->submit(m_actualPos->worker);
     }
 
     CacheNode *node = m_edgePos = m_actualPos;
@@ -173,8 +150,8 @@ namespace EspINA
       m_edgePos->worker = createTask(m_edgePos->position);
       if (m_edgePos->worker != nullptr)
       {
-        connect(m_edgePos->worker, SIGNAL(finished()), this, SLOT(addActor()), Qt::QueuedConnection);
-        m_edgePos->worker->submit();
+        connect(m_edgePos->worker.get(), SIGNAL(finished()), this, SLOT(addActor()), Qt::QueuedConnection);
+        m_edgePos->worker->submit(m_edgePos->worker);
       }
 
       node = node->previous;
@@ -182,8 +159,8 @@ namespace EspINA
       node->worker = createTask(node->position);
       if (node->worker != nullptr)
       {
-        connect(node->worker, SIGNAL(finished()), this, SLOT(addActor()), Qt::QueuedConnection);
-        node->worker->submit();
+        connect(node->worker.get(), SIGNAL(finished()), this, SLOT(addActor()), Qt::QueuedConnection);
+        node->worker->submit(node->worker);
       }
     }
 
@@ -226,8 +203,8 @@ namespace EspINA
         m_edgePos->worker = createTask(m_edgePos->position);
         if (m_edgePos->worker != nullptr)
         {
-          connect(m_edgePos->worker, SIGNAL(finished()), this, SLOT(addActor()), Qt::QueuedConnection);
-          m_edgePos->worker->submit();
+          connect(m_edgePos->worker.get(), SIGNAL(finished()), this, SLOT(addActor()), Qt::QueuedConnection);
+          m_edgePos->worker->submit(m_edgePos->worker);
         }
 
         node->previous = new CacheNode();
@@ -237,8 +214,8 @@ namespace EspINA
         node->worker = createTask(node->position);
         if (node->worker != nullptr)
         {
-          connect(node->worker, SIGNAL(finished()), this, SLOT(addActor()), Qt::QueuedConnection);
-          node->worker->submit();
+          connect(node->worker.get(), SIGNAL(finished()), this, SLOT(addActor()), Qt::QueuedConnection);
+          node->worker->submit(node->worker);
         }
       }
     }
@@ -297,13 +274,13 @@ namespace EspINA
     CacheNode *node = m_actualPos;
     for (unsigned int i = 0; i < ((2*m_windowWidth) + 1); ++i)
     {
-      if (node->worker == task)
+      if (node->worker.get() == task)
         break;
 
       node = node->next;
     }
 
-    if (node->worker != task)
+    if (node->worker.get() != task)
     {
       task->disconnect(task, SIGNAL(finished()), this, SLOT(addActor()));
       delete task;
@@ -316,13 +293,11 @@ namespace EspINA
       return;
 
     node->creationTime = task->getCreationTime();
+    node->worker->disconnect(node->worker.get(), SIGNAL(finished()), this, SLOT(addActor()));
     node->worker = nullptr;
 
     m_time.usec += task->getExecutionTime();
     m_time.taskNum++;
-
-    task->disconnect(task, SIGNAL(finished()), this, SLOT(addActor()));
-    delete task;
 
     if (m_actualPos->position == node->position)
     {
@@ -358,20 +333,6 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  void CachedRepresentation::checkDeferredTaskList()
-  {
-    for(auto task: m_deferredDeletionList)
-    {
-      if ((task->hasFinished()) || task->isAborted())
-      {
-        m_deferredDeletionList.removeOne(task);
-
-        delete task;
-      }
-    }
-  }
-
-  //-----------------------------------------------------------------------------
   void CachedRepresentation::setPosition(int position)
   {
     if (m_actualPos->position == position)
@@ -404,8 +365,8 @@ namespace EspINA
         m_edgePos->worker = createTask(m_edgePos->position);
         if (m_edgePos->worker)
         {
-          connect(m_edgePos->worker, SIGNAL(finished()), this, SLOT(addActor()), Qt::QueuedConnection);
-          m_edgePos->worker->submit();
+          connect(m_edgePos->worker.get(), SIGNAL(finished()), this, SLOT(addActor()), Qt::QueuedConnection);
+          m_edgePos->worker->submit(m_edgePos->worker);
         }
         m_edgePos = m_edgePos->previous;
       }
@@ -425,8 +386,8 @@ namespace EspINA
         m_edgePos->worker = createTask(m_edgePos->position);
         if (m_edgePos->worker)
         {
-          connect(m_edgePos->worker, SIGNAL(finished()), this, SLOT(addActor()), Qt::QueuedConnection);
-          m_edgePos->worker->submit();
+          connect(m_edgePos->worker.get(), SIGNAL(finished()), this, SLOT(addActor()), Qt::QueuedConnection);
+          m_edgePos->worker->submit(m_edgePos->worker);
         }
       }
     }
@@ -451,9 +412,6 @@ namespace EspINA
     }
 
     m_actor->Modified();
-
-    // this is a good place to check for finished or aborted tasks and delete them
-    checkDeferredTaskList();
 //    printBufferInfo();
   }
 

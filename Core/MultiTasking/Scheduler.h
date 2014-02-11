@@ -34,9 +34,9 @@
 namespace EspINA {
 
   class TaskQueue 
-  : public QList<Task *> {
+  : public QList<TaskSPtr> {
   public:
-    void orderedInsert(Task *worker);
+    void orderedInsert(TaskSPtr worker);
   };
 
   class Scheduler 
@@ -48,20 +48,22 @@ namespace EspINA {
 
     virtual ~Scheduler();
 
-    void addTask(Task* task);
+    void addTask(TaskSPtr task);
 
-    void removeTask(Task* task);
+    void removeTask(TaskPtr task);
+    void removeTask(TaskSPtr task);
 
     void abortExecutingTasks();
 
-    void changePriority(Task* task, int prevPriority);
+    void changePriority(TaskPtr task, int prevPriority);
+    void changePriority(TaskSPtr task, int prevPriority);
 
   public slots:
     void scheduleTasks();
 
   signals:
-    void taskAdded(Task *);
-    void taskRemoved(Task *);
+    void taskAdded(TaskSPtr);
+    void taskRemoved(TaskSPtr);
 
   private:
     int m_period;

@@ -51,6 +51,9 @@ namespace EspINA
     ChannelEdges *m_extension;
 };
 
+  using EdgesAnalyzerPtr  = EdgesAnalyzer *;
+  using EdgesAnalyzerSPtr = std::shared_ptr<EdgesAnalyzer>;
+
 }// namespace EspINA
 
 #endif // ESPINA_EDGES_ANALYZER_H

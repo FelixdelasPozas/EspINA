@@ -42,11 +42,11 @@ using namespace EspINA;
 Task::Task(SchedulerSPtr scheduler)
 : m_scheduler{scheduler}
 , m_hasFinished{false}
-, m_aborted{false}
 , m_priority{Priority::NORMAL}
 , m_pendingAbort{false}
 , m_pendingPause{false}
 , m_pendingUserPause{false}
+, m_aborted{false}
 , m_id{0}
 , m_isThreadAttached{false}
 , m_hidden{false}
@@ -60,12 +60,7 @@ Task::Task(SchedulerSPtr scheduler)
 //-----------------------------------------------------------------------------
 Task::~Task()
 {
-  std::cout << "Destroying " << m_description.toStdString() << " in " << (m_isThreadAttached?"attached":"") << " thread " << QThread::currentThread() << std::endl;
-  if (m_scheduler != nullptr)
-  {
-    m_scheduler->removeTask(this);
-  }
-  
+  // std::cout << "Destroying " << m_description.toStdString() << " in " << (m_isThreadAttached?"attached":"") << " thread " << QThread::currentThread() << std::endl;
   m_mutex.lock();
   if (m_isThreadAttached) thread()->quit();
   m_mutex.unlock();
@@ -87,19 +82,19 @@ void Task::setPriority(const int value)
 }
 
 //-----------------------------------------------------------------------------
-void Task::submit() {
-  if (m_scheduler != nullptr)
+void Task::submit(TaskSPtr task) {
+  if (task->m_scheduler != nullptr)
   {
-    m_scheduler->addTask(this);
+    task->m_scheduler->addTask(task);
   } else {
-    runWrapper();
+    task->runWrapper();
   }
 }
 
 //-----------------------------------------------------------------------------
 void Task::pause() {
   m_mutex.lock();
-  std::cout << m_description.toStdString() << " has been paused by the user" << std::endl;
+//  std::cout << m_description.toStdString() << " has been paused by the user" << std::endl;
   m_pendingUserPause = true;
   m_mutex.unlock();
 
@@ -110,7 +105,7 @@ void Task::pause() {
 //-----------------------------------------------------------------------------
 void Task::resume() {
   m_mutex.lock();
-  std::cout << m_description.toStdString() << " has been resumed by the user" << std::endl;
+//  std::cout << m_description.toStdString() << " has been resumed by the user" << std::endl;
   m_pendingUserPause = false;
   m_mutex.unlock();
 
@@ -126,7 +121,7 @@ bool Task::isPaused() const
 //-----------------------------------------------------------------------------
 void Task::abort() {
   m_mutex.lock();
-  std::cout << m_description.toStdString() << " has been cancelled" << std::endl;
+//  std::cout << m_description.toStdString() << " has been cancelled" << std::endl;
   m_pendingAbort = true;
   m_mutex.unlock();
 }
@@ -194,7 +189,7 @@ class TestThread
 : public QThread {
 public:
     virtual ~TestThread() {
-      std::cout << "Destroying thread" << std::endl;
+//      std::cout << "Destroying thread" << std::endl;
     }
 };
 

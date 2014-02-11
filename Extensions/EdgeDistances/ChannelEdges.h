@@ -23,6 +23,8 @@
 
 #include <Core/Analysis/Extension.h>
 #include <Core/Utils/Spatial.h>
+#include "AdaptiveEdgesCreator.h"
+#include "EdgesAnalyzer.h"
 
 #include <vtkSmartPointer.h>
 #include <vtkPolyData.h>
@@ -94,7 +96,7 @@ namespace EspINA
     virtual void onExtendedItemSet(Channel* item);
 
     virtual QVariant cacheFail(const QString& tag) const
-    { QVariant(); }
+    { return QVariant(); }
 
   private:
     void analyzeChannel();
@@ -113,8 +115,8 @@ namespace EspINA
     Nm     m_computedVolume;
     int    m_threshold;
 
-    AdaptiveEdgesCreator *m_edgesCreator;
-    EdgesAnalyzer        *m_edgesAnalyzer;
+    AdaptiveEdgesCreatorSPtr m_edgesCreator;
+    EdgesAnalyzerSPtr        m_edgesAnalyzer;
 
     vtkSmartPointer<vtkPolyData> m_edges;
     vtkSmartPointer<vtkPolyData> m_faces[6];

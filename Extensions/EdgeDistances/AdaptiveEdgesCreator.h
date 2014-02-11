@@ -43,6 +43,9 @@ namespace EspINA
     ChannelEdges *m_extension;
 };
 
+  using AdaptiveEdgesCreatorPtr  = AdaptiveEdgesCreator *;
+  using AdaptiveEdgesCreatorSPtr = std::shared_ptr<AdaptiveEdgesCreator>;
+
 }// namespace EspINA
 
 #endif // ESPINA_ADAPTIVE_EDGE_CREATOR_H

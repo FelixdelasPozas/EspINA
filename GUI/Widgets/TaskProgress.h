@@ -29,10 +29,10 @@
 #ifndef ESPINA_TASK_PROGRESS_H
 #define ESPINA_TASK_PROGRESS_H
 
+#include <Core/MultiTasking/Task.h>
 #include <QWidget>
 #include <ui_TaskProgress.h>
 #include <memory>
-
 
 namespace EspINA {
 
@@ -44,7 +44,7 @@ namespace EspINA {
   {
     Q_OBJECT
   public:
-    explicit TaskProgress(Task *task);
+    explicit TaskProgress(TaskSPtr task);
     virtual ~TaskProgress();
 
     int progress()
@@ -55,7 +55,7 @@ namespace EspINA {
     void onCancel();
 
   private:
-    Task *m_task;
+    TaskSPtr m_task;
   };
 
   using TaskProgressSPtr = std::shared_ptr<TaskProgress>;

@@ -40,7 +40,7 @@
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
-void TaskQueue::orderedInsert(Task* worker)
+void TaskQueue::orderedInsert(TaskSPtr worker)
 {
   int  w = 0;
   bool found = false;
@@ -73,7 +73,7 @@ Scheduler::~Scheduler()
 }
 
 //-----------------------------------------------------------------------------
-void Scheduler::addTask(Task* task)
+void Scheduler::addTask(TaskSPtr task)
 {
   task->setId(m_lastId++);
 
@@ -85,13 +85,25 @@ void Scheduler::addTask(Task* task)
 }
 
 //-----------------------------------------------------------------------------
-void Scheduler::removeTask(Task* task)
+void Scheduler::removeTask(TaskPtr task)
 {
   QMutexLocker lock(&m_mutex);
-  m_runningTasks[task->priority()].removeOne(task);
 
-  if (!task->isHidden())
-    emit taskRemoved(task);
+  for(TaskSPtr otherTask: m_runningTasks[task->priority()])
+	if (otherTask.get() == task)
+	{
+	   m_runningTasks[task->priority()].removeOne(otherTask);
+	   if (!task->isHidden())
+	     emit taskRemoved(otherTask);
+
+	   break;
+	}
+}
+
+//-----------------------------------------------------------------------------
+void Scheduler::removeTask(TaskSPtr task)
+{
+  removeTask(task.get());
 }
 
 //-----------------------------------------------------------------------------
@@ -100,20 +112,25 @@ void Scheduler::abortExecutingTasks()
   m_abort = true;
 }
 
-
 //-----------------------------------------------------------------------------
-void Scheduler::changePriority(Task* task, int prevPriority )
+void Scheduler::changePriority(TaskPtr task, int prevPriority )
 {
   QMutexLocker lock(&m_mutex);
 
-  // if the task have not been submitted yet, it won't be in any list.
-  if (!m_runningTasks[prevPriority].contains(task))
-    return;
-
-  //std::cout << "Changing priority of " << task->description().toStdString() << std::endl;
-  m_runningTasks[prevPriority].removeOne(task);
-  m_runningTasks[task->priority()].orderedInsert(task);
+  for (auto otherTask: m_runningTasks[prevPriority])
+	if (otherTask.get() == task)
+	{
+	  m_runningTasks[prevPriority].removeOne(otherTask);
+	  m_runningTasks[task->priority()].orderedInsert(otherTask);
+	}
 }
+
+//-----------------------------------------------------------------------------
+void Scheduler::changePriority(TaskSPtr task, int prevPriority)
+{
+  changePriority(task.get(), prevPriority);
+}
+
 
 //-----------------------------------------------------------------------------
 void Scheduler::scheduleTasks() {
@@ -136,7 +153,7 @@ void Scheduler::scheduleTasks() {
     for (int priority = 4; priority >= 0; --priority) {
 //       std::cout << "Updating Priority " << priority << std::endl;
 
-      for(Task *task : m_runningTasks[priority])
+      for(TaskSPtr task : m_runningTasks[priority])
       {
         if (task == nullptr)
         {

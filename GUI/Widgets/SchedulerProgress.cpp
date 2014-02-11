@@ -25,7 +25,7 @@
 #include <QLayout>
 #include <QProgressBar>
 #include <QLabel>
-
+#include <QDebug>
 using namespace EspINA;
 
 //------------------------------------------------------------------------
@@ -45,16 +45,19 @@ SchedulerProgress::SchedulerProgress(SchedulerSPtr   scheduler,
   m_notification->setMinimumWidth(m_width);
   m_notification->setMaximumWidth(m_width);
 
-  connect(m_scheduler.get(), SIGNAL(taskAdded(Task*)),
-          this, SLOT(onTaskAdded(Task*)));
-  connect(m_scheduler.get(), SIGNAL(taskRemoved(Task*)),
-          this, SLOT(onTaskRemoved(Task*)));
+
+  qRegisterMetaType<TaskSPtr>("TaskSPtr");
+
+  connect(m_scheduler.get(), SIGNAL(taskAdded(TaskSPtr)),
+          this, SLOT(onTaskAdded(TaskSPtr)));
+  connect(m_scheduler.get(), SIGNAL(taskRemoved(TaskSPtr)),
+          this, SLOT(onTaskRemoved(TaskSPtr)));
   connect(m_showTasks, SIGNAL(toggled(bool)),
           this, SLOT(showTaskProgress(bool)));
 }
 
 //------------------------------------------------------------------------
-void SchedulerProgress::onTaskAdded(Task *task)
+void SchedulerProgress::onTaskAdded(TaskSPtr task)
 throw (Duplicated_Task_Exception)
 {
   if (m_tasks.contains(task)) throw Duplicated_Task_Exception();
@@ -63,18 +66,18 @@ throw (Duplicated_Task_Exception)
 
   m_notification->layout()->addWidget(m_tasks[task].get());
 
-  connect(task, SIGNAL(progress(int)),
+  connect(task.get(), SIGNAL(progress(int)),
           this, SLOT(updateProgress()));
 
   updateNotificationWidget();
 }
 
 //------------------------------------------------------------------------
-void SchedulerProgress::onTaskRemoved(Task *task)
+void SchedulerProgress::onTaskRemoved(TaskSPtr task)
 {
   if (m_tasks.contains(task))
   {
-    disconnect(task, SIGNAL(progress(int)),
+    disconnect(task.get(), SIGNAL(progress(int)),
                this, SLOT(updateProgress()));
 
     m_tasks[task]->setParent(0); // In case the notification are is open

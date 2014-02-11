@@ -61,11 +61,11 @@ ChannelEdges::ChannelEdges(SchedulerSPtr                     scheduler,
                            const State                       &state,
                            const ChannelExtension::InfoCache &cache)
 : ChannelExtension(cache)
-, m_computedVolume(0)
-, m_edgesCreator (new AdaptiveEdgesCreator(this, scheduler))
-, m_edgesAnalyzer(new EdgesAnalyzer(this, scheduler))
 , m_backgroundColor(-1)
+, m_computedVolume(0)
 , m_threshold(-1)
+, m_edgesCreator (AdaptiveEdgesCreatorSPtr{new AdaptiveEdgesCreator(this, scheduler)})
+, m_edgesAnalyzer(EdgesAnalyzerSPtr{new EdgesAnalyzer(this, scheduler)})
 {
   if (!state.isEmpty())
   {
@@ -80,8 +80,6 @@ ChannelEdges::ChannelEdges(SchedulerSPtr                     scheduler,
 //-----------------------------------------------------------------------------
 ChannelEdges::~ChannelEdges()
 {
-  delete m_edgesAnalyzer;
-  delete m_edgesCreator;
 }
 
 //-----------------------------------------------------------------------------
@@ -98,7 +96,7 @@ void ChannelEdges::analyzeChannel()
 {
   m_mutex.lock();
   m_edgesAnalyzer->setDescription(QObject::tr("Analyzing Edges: %1").arg(m_extendedItem->name()));
-  m_edgesAnalyzer->submit();
+  m_edgesAnalyzer->submit(m_edgesAnalyzer);
 }
 
 //-----------------------------------------------------------------------------
@@ -109,7 +107,7 @@ void ChannelEdges::computeAdaptiveEdges()
 
   m_mutex.lock();
   m_edgesCreator->setDescription(QObject::tr("Computing Edges %1").arg(m_extendedItem->name()));
-  m_edgesCreator->submit();
+  m_edgesCreator->submit(m_edgesCreator);
 }
 
 using VTKReader = vtkSmartPointer<vtkGenericDataObjectReader>;

@@ -21,6 +21,7 @@
 
 // EspINA
 #include "Representation.h"
+#include "CachedRepresentationTask.h"
 #include <Core/MultiTasking/Scheduler.h>
 
 // Qt
@@ -136,7 +137,7 @@ namespace EspINA
       struct CacheNode
       {
           int                            position;
-          CachedRepresentationTask      *worker;
+          CachedRepresentationTaskSPtr   worker;
           vtkSmartPointer<vtkImageActor> actor;
           unsigned long long             creationTime;
           CacheNode                     *next;
@@ -169,18 +170,13 @@ namespace EspINA
        * Virtual method to override by subclasses. Returns a task with the input set, ready to be executed. The parameters
        * specify the position (slice) of the needed actor and the priority of the task (NORMAL priority if omitted).
        */
-      virtual CachedRepresentationTask *createTask(int position, Priority priority = Priority::NORMAL) = 0;
+      virtual CachedRepresentationTaskSPtr createTask(int position, Priority priority = Priority::NORMAL) = 0;
 
       /* \brief Prints the cache window info.
        *
        * Prints the occupation of the cache nodes along with the memory consumption and average task execution time.
        */
       void printBufferInfo();
-
-      /* \brief Checks the status of every task in the deferred task list and removed the finished or aborted.
-       *
-       */
-      void checkDeferredTaskList();
 
 
       // Protected attributes.
@@ -191,11 +187,8 @@ namespace EspINA
                                        // actors from the ring as the "center" moves
       CacheTime      m_time;           // Time storage.
 
-      QList<CachedRepresentationTask *>  m_deferredDeletionList;  // List of tasks to be deleted once they finish or are aborted.
-
-      vtkSmartPointer<vtkAssembly> m_actor; // Global actor. Generated actors are inserted into this one or removed from it.
-
-      vtkSmartPointer<vtkActor> m_symbolicActor; // Actor that the user sees when the task hasn't finished yet (during a cache miss).
+      vtkSmartPointer<vtkAssembly> m_actor;         // Global actor. Generated actors are inserted into this one or removed from it.
+      vtkSmartPointer<vtkActor>    m_symbolicActor; // Actor that the user sees when the task hasn't finished yet (during a cache miss).
   };
 
   using CachedRepresentationPtr   = CachedRepresentation *;
