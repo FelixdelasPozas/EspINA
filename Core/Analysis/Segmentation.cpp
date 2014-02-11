@@ -194,11 +194,9 @@ State Segmentation::state() const
 //------------------------------------------------------------------------
 void Segmentation::restoreState(const State& state)
 {
-  QStringList strings = state.split(';');
-  QStringList::iterator it = strings.begin();
-  for (auto it = strings.begin(); it != strings.end(); ++it)
+  for (auto token : state.split(';'))
   {
-    QStringList tokens = (*it).split('=');
+    QStringList tokens = token.split('=');
     if (tokens.size() != 2)
       continue;
 

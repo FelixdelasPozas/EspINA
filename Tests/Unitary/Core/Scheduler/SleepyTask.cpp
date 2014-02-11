@@ -51,7 +51,7 @@ void SleepyTask::run()
     emit progress(i*10);
   }
 
-  if (!isAborted()) {
+  if (!isWaitingAbort()) {
     m_mutex.lock();
     Result = 1;
     m_mutex.unlock();

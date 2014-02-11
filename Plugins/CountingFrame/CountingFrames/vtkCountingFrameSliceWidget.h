@@ -85,6 +85,8 @@ protected:
 private:
   vtkCountingFrameSliceWidget(const vtkCountingFrameSliceWidget&);  //Not implemented
   void operator=(const vtkCountingFrameSliceWidget&);  //Not implemented
+
+  static void centerMarginsOnVoxelCenter(vtkCountingFrameSliceWidget* self);
 };
 
 #endif //VTKRBOUNDINGFRAMESLICEWIDGET_H

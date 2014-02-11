@@ -52,7 +52,7 @@ int scheduler_simple_task_pause( int argc, char** argv )
   QApplication app(argc, argv);
   
   SchedulerSPtr scheduler = SchedulerSPtr(new Scheduler(period)); //0.5sec
-  SleepyTask* sleepyTask = new SleepyTask(sleepTime, scheduler);  
+  std::shared_ptr<SleepyTask> sleepyTask{new SleepyTask(sleepTime, scheduler)};
   sleepyTask->setDescription("Simple Task");
   
   if (sleepyTask->Result != -1) {
@@ -60,7 +60,7 @@ int scheduler_simple_task_pause( int argc, char** argv )
     std::cerr << "Unexpected initial sleepy task value" << std::endl;
   }
   
-  sleepyTask->submit();
+  Task::submit(sleepyTask);
   
   usleep(taskTime/2);
   
@@ -85,7 +85,7 @@ int scheduler_simple_task_pause( int argc, char** argv )
   QObject::connect(sleepyTask->thread(), SIGNAL(destroyed(QObject*)),
                    &app, SLOT(quit()));
   
-  sleepyTask->deleteLater();
+  sleepyTask.reset();
   
   app.exec();
   

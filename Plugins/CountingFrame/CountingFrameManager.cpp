@@ -28,120 +28,90 @@ using namespace EspINA;
 using namespace EspINA::CF;
 
 //------------------------------------------------------------------------
-void CountingFrameManager::createAdaptiveCF(ChannelAdapterPtr channel,
-                                            Nm inclusion[3],
-                                            Nm exclusion[3],
-                                            const QString &constraint)
+CountingFrameExtensionSPtr CountingFrameManager::createExtension(const State& state) const
 {
-  auto extension = retrieveOrCreateCFExtension(channel);
-
-  auto cf = AdaptiveCountingFrame::New(extension, channel->bounds(), inclusion, exclusion);
-
-  cf->setCategoryConstraint(constraint);
-
-  registerCountingFrame(cf, extension);
+  return CountingFrameExtensionSPtr{new CountingFrameExtension(this, state)};
 }
 
-//------------------------------------------------------------------------
-void CountingFrameManager::createRectangularCF(ChannelAdapterPtr channel,
-                                               Nm inclusion[3],
-                                               Nm exclusion[3],
-                                            const QString &constraint)
-{
-  auto extension = retrieveOrCreateCFExtension(channel);
+// //------------------------------------------------------------------------
+// void CountingFrameManager::createAdaptiveCF(ChannelAdapterPtr channel,
+//                                             Nm inclusion[3],
+//                                             Nm exclusion[3],
+//                                             const QString &constraint)
+// {
+//   auto extension = retrieveOrCreateCFExtension(channel);
+//
+//   auto cf = AdaptiveCountingFrame::New(extension, channel->bounds(), inclusion, exclusion);
+//
+//   cf->setCategoryConstraint(constraint);
+//
+//   registerCountingFrame(cf, extension);
+// }
+//
+// //------------------------------------------------------------------------
+// void CountingFrameManager::createRectangularCF(ChannelAdapterPtr channel,
+//                                                Nm inclusion[3],
+//                                                Nm exclusion[3],
+//                                             const QString &constraint)
+// {
+//   auto extension = retrieveOrCreateCFExtension(channel);
+//
+//   auto cf = OrtogonalCountingFrame::New(extension, channel->bounds(), inclusion, exclusion);
+//
+//   cf->setCategoryConstraint(constraint);
+//
+//   registerCountingFrame(cf, extension);
+// }
 
-  auto cf = OrtogonalCountingFrame::New(extension, channel->bounds(), inclusion, exclusion);
-
-  cf->setCategoryConstraint(constraint);
-
-  registerCountingFrame(cf, extension);
-}
+// //-----------------------------------------------------------------------------
+// void CountingFrameManager::deleteCountingFrame(CountingFrame* cf)
+// {
+//   Q_ASSERT(m_countingFrames.contains(cf));
+//
+//
+//
+// //   while (!cfExtension && i < m_countingFramesExtensions.size())
+// //   {
+// //     if (m_countingFramesExtensions[i]->countingFrames().contains(cf))
+// //     {
+// //       cfExtension = m_countingFramesExtensions[i];
+// //       cfExtension->deleteCountingFrame(cf);
+// //     }
+// //     else
+// //       ++i;
+// //   }
+// //   m_countingFramesExtensions.removeAt(i);
+// //   m_countingFrames.removeOne(cf);
+//
+//   m_countingFrames.remove(cf);
+//   Q_ASSERT(!m_countingFrames.contains(cf));
+//
+//   cf->Delete();
+// }
 
 //-----------------------------------------------------------------------------
-void CountingFrameManager::deleteCountingFrame(CountingFrame* cf)
+void CountingFrameManager::registerCountingFrame(CountingFrame* cf)
 {
-  Q_ASSERT(m_countingFrames.contains(cf));
-
-  auto channel   = m_countingFrames[cf];
-
-  Q_ASSERT(channel->hasExtension(CountingFrameExtension::TYPE));
-
-  auto extension   = channel->extension(CountingFrameExtension::TYPE);
-  auto cfExtension = std::dynamic_pointer_cast<CountingFrameExtension>(extension);
-
-  cfExtension->removeCountingFrame(cf);
-
-  if (cfExtension->countingFrames().isEmpty())
-  {
-    channel->deleteExtension(cfExtension);
-  }
-
-
-//   while (!cfExtension && i < m_countingFramesExtensions.size())
-//   {
-//     if (m_countingFramesExtensions[i]->countingFrames().contains(cf))
-//     {
-//       cfExtension = m_countingFramesExtensions[i];
-//       cfExtension->deleteCountingFrame(cf);
-//     }
-//     else
-//       ++i;
-//   }
-//   m_countingFramesExtensions.removeAt(i);
-//   m_countingFrames.removeOne(cf);
-
-  m_countingFrames.remove(cf);
-  Q_ASSERT(!m_countingFrames.contains(cf));
-
-  cf->Delete();
-}
-
-//-----------------------------------------------------------------------------
-CountingFrameExtension* CountingFrameManager::retrieveOrCreateCFExtension(ChannelAdapterPtr channel)
-{
-  CountingFrameExtension *extension = nullptr;
-
-  if (channel->hasExtension(CountingFrameExtension::TYPE))
-  {
-    extension = dynamic_cast<CountingFrameExtension *>(channel->extension(CountingFrameExtension::TYPE).get());
-  }
-  else
-  {
-    extension =  new CountingFrameExtension(this);
-    channel->addExtension(CountingFrameExtensionSPtr{extension});
-  }
-  Q_ASSERT(extension);
-
-  return extension;
-}
-
-
-//-----------------------------------------------------------------------------
-void CountingFrameManager::registerCountingFrame(CountingFrame* cf, CountingFrameExtension* extension)
-{
-  cf->setId(suggestedId(cf));
-
-  extension->addCountingFrame(cf);
-
-  m_countingFrames[cf] = extension->extendedItem();
+  m_countingFrames[cf] = cf->extension()->extendedItem();
 
   emit countingFrameCreated(cf);
 }
 
 //-----------------------------------------------------------------------------
-CountingFrame::Id CountingFrameManager::suggestedId(CountingFrame *cf) const
+void CountingFrameManager::unregisterCountingFrame(CountingFrame* cf)
 {
-  CountingFrame::Id id = cf->id();
+  m_countingFrames.remove(cf);
+}
+
+
+//-----------------------------------------------------------------------------
+CountingFrame::Id CountingFrameManager::defaultCountingFrameId(const QString &constraint) const
+{
+  CountingFrame::Id id = constraint;
 
   if (id.isEmpty())
   {
-    if (cf->categoryConstraint().isEmpty())
-    {
-      id = "Global";
-    } else
-    {
-      id = QString("%1").arg(cf->categoryConstraint());
-    }
+    id = "Global";
   }
 
   return suggestedId(id);

@@ -266,14 +266,8 @@ void vtkCountingFrameSliceWidget::EndSelectAction(vtkAbstractWidget *w)
   {
     rep->GetInclusionOffset(self->InclusionOffset);
     rep->GetExclusionOffset(self->ExclusionOffset);
-    for (int i = 0; i < 3; i++)
-    {
-      double shift = i < 2? 0.5: -0.5;
-      self->InclusionOffset[i] =
-        (vtkMath::Round(self->InclusionOffset[i]/self->SlicingStep[i]-shift)+shift)*self->SlicingStep[i];
-      self->ExclusionOffset[i] =
-        (vtkMath::Round(self->ExclusionOffset[i]/self->SlicingStep[i]-shift)+shift)*self->SlicingStep[i];
-    }
+
+    centerMarginsOnVoxelCenter(self);
   }
 
   self->EventCallbackCommand->SetAbortFlag(1);
@@ -281,6 +275,20 @@ void vtkCountingFrameSliceWidget::EndSelectAction(vtkAbstractWidget *w)
   self->InvokeEvent(vtkCommand::EndInteractionEvent,nullptr);
   self->Render();
   self->SetCursor(9999);
+}
+
+//----------------------------------------------------------------------
+void vtkCountingFrameSliceWidget::centerMarginsOnVoxelCenter(vtkCountingFrameSliceWidget *self)
+{
+  auto voxelCenter = [](double offset, double spacing)
+  { return int(offset/spacing)*spacing + spacing/2; };
+
+  for (int i = 0; i < 3; i++)
+  {
+    double shift = i < 2? 0.5: -0.5;
+    self->InclusionOffset[i] = voxelCenter(self->InclusionOffset[i], self->SlicingStep[i]);
+    self->ExclusionOffset[i] = voxelCenter(self->ExclusionOffset[i], self->SlicingStep[i]);
+  }
 }
 
 //----------------------------------------------------------------------
@@ -321,8 +329,14 @@ void vtkCountingFrameSliceWidget::SetCountingFrame(vtkSmartPointer<vtkPolyData> 
   memcpy(InclusionOffset, inclusionOffset, 3*sizeof(EspINA::Nm));
   memcpy(ExclusionOffset, exclusionOffset, 3*sizeof(EspINA::Nm));
 
+  centerMarginsOnVoxelCenter(this);
+
+  // ensures consistency with the counting frame
+  memcpy(inclusionOffset, InclusionOffset, 3*sizeof(EspINA::Nm));
+  memcpy(exclusionOffset, ExclusionOffset, 3*sizeof(EspINA::Nm));
+
   SliceRepresentation *rep = reinterpret_cast<SliceRepresentation*>(this->WidgetRep);
-  rep->SetCountingFrame(region, inclusionOffset, exclusionOffset, SlicingStep);
+  rep->SetCountingFrame(region, InclusionOffset, ExclusionOffset, SlicingStep);
   this->Render();
 }
 

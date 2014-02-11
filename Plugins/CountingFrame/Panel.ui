@@ -109,7 +109,7 @@ QTableView::indicator:unchecked {
             <string>nm</string>
            </property>
            <property name="maximum">
-            <number>0</number>
+            <double>0.000000000000000</double>
            </property>
           </widget>
          </item>
@@ -132,10 +132,13 @@ QTableView::indicator:unchecked {
             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
            </property>
            <property name="suffix">
-            <string>nm</string>
+            <string>slice</string>
+           </property>
+           <property name="decimals">
+            <number>0</number>
            </property>
            <property name="maximum">
-            <number>0</number>
+            <double>0.000000000000000</double>
            </property>
           </widget>
          </item>
@@ -151,10 +154,13 @@ QTableView::indicator:unchecked {
             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
            </property>
            <property name="suffix">
-            <string>nm</string>
+            <string>slice</string>
+           </property>
+           <property name="decimals">
+            <number>0</number>
            </property>
            <property name="maximum">
-            <number>0</number>
+            <double>0.000000000000000</double>
            </property>
           </widget>
          </item>
@@ -173,7 +179,7 @@ QTableView::indicator:unchecked {
             <string>nm</string>
            </property>
            <property name="maximum">
-            <number>0</number>
+            <double>0.000000000000000</double>
            </property>
           </widget>
          </item>
@@ -209,7 +215,7 @@ QTableView::indicator:unchecked {
             <string>nm</string>
            </property>
            <property name="maximum">
-            <number>0</number>
+            <double>0.000000000000000</double>
            </property>
           </widget>
          </item>
@@ -228,7 +234,7 @@ QTableView::indicator:unchecked {
             <string>nm</string>
            </property>
            <property name="maximum">
-            <number>0</number>
+            <double>0.000000000000000</double>
            </property>
           </widget>
          </item>

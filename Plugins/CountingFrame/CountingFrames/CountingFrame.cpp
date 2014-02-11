@@ -44,6 +44,12 @@ CountingFrame::CountingFrame(CountingFrameExtension *extension,
 }
 
 //-----------------------------------------------------------------------------
+void CountingFrame::deleteFromExtension()
+{
+  m_extension->deleteCountingFrame(this);
+}
+
+//-----------------------------------------------------------------------------
 void CountingFrame::setMargins(Nm inclusion[3], Nm exclusion[3])
 {
   memcpy(m_inclusion, inclusion, 3*sizeof(Nm));
@@ -126,7 +132,7 @@ void CountingFrame::setHighlighted(bool highlight)
 //-----------------------------------------------------------------------------
 void CountingFrame::Execute(vtkObject* caller, long unsigned int eventId, void* callData)
 {
-  vtkCountingFrameSliceWidget *widget = static_cast<vtkCountingFrameSliceWidget *>(caller);
+  auto widget = static_cast<vtkCountingFrameSliceWidget *>(caller);
 
   if (widget)
   {
@@ -146,7 +152,6 @@ void CountingFrame::Execute(vtkObject* caller, long unsigned int eventId, void* 
 
     updateCountingFrame();
   }
-  // TODO emitDataChanged
 }
 
 //-----------------------------------------------------------------------------

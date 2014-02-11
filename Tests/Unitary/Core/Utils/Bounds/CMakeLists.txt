@@ -27,6 +27,7 @@ include_directories(
 add_executable(Bounds_Tests
   ${Bounds_Tests}
   ${SUBJECT_DIR}/Bounds.cpp
+  ${SUBJECT_DIR}/NmVector3.cpp
   )
 target_link_libraries(Bounds_Tests ${LIB_DEPENDECIES} )
 

@@ -31,7 +31,8 @@
 
 using namespace EspINA;
 
-const Filter::Type SGS_FILTER = "SeedGrowSegmentation";
+const Filter::Type SGS_FILTER    = "SeedGrowSegmentation";
+const Filter::Type SGS_FILTER_V4 = "SeedGrowSegmentation::SeedGrowSegmentationFilter";
 
 //-----------------------------------------------------------------------------
 FilterTypeList SeedGrowSegmentationTool::SGSFilterFactory::providedFilters() const
@@ -39,6 +40,7 @@ FilterTypeList SeedGrowSegmentationTool::SGSFilterFactory::providedFilters() con
   FilterTypeList filters;
 
   filters << SGS_FILTER;
+  filters << SGS_FILTER_V4;
 
   return filters;
 }
@@ -48,7 +50,7 @@ FilterSPtr SeedGrowSegmentationTool::SGSFilterFactory::createFilter(OutputSList 
                                                   const Filter::Type& filter,
                                                   SchedulerSPtr       scheduler) const throw (Unknown_Filter_Exception)
 {
-  if (filter != SGS_FILTER) throw Unknown_Filter_Exception();
+  if (!(filter == SGS_FILTER || filter == SGS_FILTER_V4)) throw Unknown_Filter_Exception();
 
   auto sgsFilter = FilterSPtr{new SeedGrowSegmentationFilter(inputs, filter, scheduler)};
 

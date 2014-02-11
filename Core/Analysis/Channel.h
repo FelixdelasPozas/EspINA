@@ -133,6 +133,8 @@ namespace EspINA
 
     void deleteExtension(ChannelExtensionSPtr extension);
 
+    void deleteExtension(const ChannelExtension::Type &type);
+
     /** \brief Check whether or not there is an extension with the given name
      *
      */

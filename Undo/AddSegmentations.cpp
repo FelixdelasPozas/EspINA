@@ -63,6 +63,8 @@ void AddSegmentations::redo()
     for(auto sample : m_samples)
       m_model->addRelation(sample, segmentation, Query::CONTAINS);
   }
+
+  m_model->emitSegmentationsAdded(m_segmentations);
 }
 
 //----------------------------------------------------------------------------

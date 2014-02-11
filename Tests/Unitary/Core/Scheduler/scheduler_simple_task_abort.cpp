@@ -35,7 +35,7 @@
 
 #include <QApplication>
 #include <QThread>
- 
+
 using namespace EspINA;
 using namespace std;
 
@@ -45,23 +45,23 @@ int scheduler_simple_task_abort( int argc, char** argv )
   int error = 0;
   
   int period = 50000;//0.05 sec
-  
+
   int tasksPerPeriod = 2;
   int sleepTime = period/tasksPerPeriod;
   int taskTime  = 10*sleepTime;
-    
+
   QApplication app(argc, argv);
   
   SchedulerSPtr scheduler = SchedulerSPtr(new Scheduler(period)); //0.5sec
-  SleepyTask* sleepyTask = new SleepyTask(sleepTime, scheduler);
+  std::shared_ptr<SleepyTask> sleepyTask{new SleepyTask(sleepTime, scheduler)};
   sleepyTask->setDescription("Simple Task");
   
   if (sleepyTask->Result != -1) {
     error = 1;
     std::cerr << "Unexpected initial sleepy task value" << std::endl;
   }    
-  
-  sleepyTask->submit();
+
+  Task::submit(sleepyTask);
   
   usleep(taskTime/2);
   
@@ -71,12 +71,12 @@ int scheduler_simple_task_abort( int argc, char** argv )
   
   if (sleepyTask->Result != 0) {
     error = 1;
-    std::cerr << "Unexpected final sleepy task value" << std::endl;
+    std::cerr << "Unexpected final sleepy task value" << sleepyTask->Result << std::endl;
   }
   QObject::connect(sleepyTask->thread(), SIGNAL(destroyed(QObject*)),
                    &app, SLOT(quit()));
   
-  sleepyTask->deleteLater();
+  sleepyTask.reset();
   
   app.exec();
   

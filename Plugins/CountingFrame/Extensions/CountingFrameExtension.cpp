@@ -22,9 +22,11 @@
 #include "CountingFrames/CountingFrame.h"
 #include "CountingFrames/OrtogonalCountingFrame.h"
 #include <CountingFrames/AdaptiveCountingFrame.h>
+#include <CountingFrameManager.h>
 #include <Core/Analysis/Segmentation.h>
 #include <Core/Analysis/Query.h>
 #include <Core/Analysis/Channel.h>
+#include <Extensions/ExtensionUtils.h>
 
 #include <QDebug>
 #include <QApplication>
@@ -50,7 +52,11 @@ CountingFrameExtension::CountingFrameExtension(CountingFrameManager* manager, co
 //-----------------------------------------------------------------------------
 CountingFrameExtension::~CountingFrameExtension()
 {
-  qDebug() << "Deleting Counting Frame Channel Extension";
+  //qDebug() << "Deleting Counting Frame Channel Extension";
+  for (auto cf : m_countingFrames)
+  {
+    m_manager->unregisterCountingFrame(cf);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -63,10 +69,11 @@ State CountingFrameExtension::state() const
   {
     Nm inclusion[3], exclusion[3];
     cf->margins(inclusion, exclusion);
-    // Id,Type, Left, Top, Front, Right, Bottom, Back
-    state += QString("%1%2,%3,%4,%5,%6,%7,%8,%9").arg(br)
+    // Id,Type,Constraint,Left, Top, Front, Right, Bottom, Back
+    state += QString("%1%2,%3,%4,%5,%6,%7,%8,%9,%10").arg(br)
                                                  .arg(cf->id())
                                                  .arg(cf->cfType())
+                                                 .arg(cf->categoryConstraint())
                                                  .arg(inclusion[0])
                                                  .arg(inclusion[1])
                                                  .arg(inclusion[2])
@@ -86,42 +93,55 @@ Snapshot CountingFrameExtension::snapshot() const
 }
 
 //-----------------------------------------------------------------------------
-void CountingFrameExtension::addCountingFrame(CountingFrame* countingFrame)
+void CountingFrameExtension::createCountingFrame(CFType type,
+                                                 Nm inclusion[3],
+                                                 Nm exclusion[3],
+                                                 const QString& constraint)
 {
-  Q_ASSERT(!m_countingFrames.contains(countingFrame));
-  m_countingFrames << countingFrame;
-
-  for (auto segmentation : Query::segmentationsOnChannelSample(m_extendedItem))
-  {
-    auto extension = stereologicalInclusionExtension(segmentation);
-    extension->addCountingFrame(countingFrame);
-  }
-
-  connect(countingFrame, SIGNAL(modified(CountingFrame*)),
-          this, SLOT(onCountingFrameUpdated(CountingFrame*)));
+  createCountingFrame(type,
+                      m_manager->defaultCountingFrameId(constraint),
+                      inclusion,
+                      exclusion,
+                      constraint);
 }
 
 //-----------------------------------------------------------------------------
-void CountingFrameExtension::removeCountingFrame(CountingFrame* countingFrame)
+void CountingFrameExtension::deleteCountingFrame(CountingFrame* countingFrame)
 {
   Q_ASSERT(m_countingFrames.contains(countingFrame));
-  m_countingFrames.removeOne(countingFrame);
-
   for (auto segmentation : Query::segmentationsOnChannelSample(m_extendedItem))
   {
-    auto extension = stereologicalInclusionExtension(segmentation);
+    auto extension = retrieveOrCreateExtension<StereologicalInclusion>(segmentation);
     extension->removeCountingFrame(countingFrame);
   }
+
+  m_countingFrames.removeOne(countingFrame);
+
+  m_manager->unregisterCountingFrame(countingFrame);
+
+  if (m_countingFrames.isEmpty())
+  {
+    m_extendedItem->deleteExtension(TYPE);
+  }
+
+
+  countingFrame->Delete();
 }
 
 //-----------------------------------------------------------------------------
 void CountingFrameExtension::onExtendedItemSet(Channel *channel)
 {
+  const int ID_POS              = 0;
+  const int TYPE_POS            = 1;
+  const int CONSTRAINT_POS      = 2;
+  const int INCLUSION_START_POS = 3;
+  const int EXCLUSION_START_POS = 6;
+  const int NUM_FIELDS          = 9;
+
   if (!m_prevState.isEmpty())
   {
     for (auto cfEntry : m_prevState.split("\n"))
     {
-      const int NUM_FIELDS = 8;
 
       auto params = cfEntry.split(",");
 
@@ -130,33 +150,18 @@ void CountingFrameExtension::onExtendedItemSet(Channel *channel)
         qWarning() << "Invalid CF Extension state:\n" << m_prevState;
       } else
       {
-        CFType type = params[1].toInt();
+        CFType type = params[TYPE_POS].toInt();
 
         Nm inclusion[3];
         Nm exclusion[3];
 
         for (int i = 0; i < 3; ++i)
         {
-          inclusion[i] = params[i+2].toDouble();
-          exclusion[i] = params[i+5].toDouble();
+          inclusion[i] = params[INCLUSION_START_POS + i].toDouble();
+          exclusion[i] = params[EXCLUSION_START_POS + i].toDouble();
         }
 
-        CountingFrame *cf;
-        if (CFType::ORTOGONAL == type)
-        {
-          cf = AdaptiveCountingFrame::New(this, channel->bounds(), inclusion, exclusion);
-
-        } else if (CFType::ADAPTIVE == type)
-        {
-          cf = OrtogonalCountingFrame::New(this, channel->bounds(), inclusion, exclusion);
-        } else
-        {
-          Q_ASSERT(false);
-        }
-
-        cf->setId(params[0]);
-
-        m_manager->registerCountingFrame(cf, this);
+        createCountingFrame(type, params[ID_POS], inclusion, exclusion, params[CONSTRAINT_POS]);
       }
     }
   }
@@ -167,28 +172,37 @@ void CountingFrameExtension::onCountingFrameUpdated(CountingFrame* countingFrame
 {
   for(auto segmentation : Query::segmentationsOnChannelSample(m_extendedItem))
   {
-    auto extension = stereologicalInclusionExtension(segmentation);
+    auto extension = retrieveOrCreateExtension<StereologicalInclusion>(segmentation);
     extension->evaluateCountingFrame(countingFrame);
   }
 }
 
 //-----------------------------------------------------------------------------
-StereologicalInclusionSPtr CountingFrameExtension::stereologicalInclusionExtension(SegmentationSPtr segmentation)
+void CountingFrameExtension::createCountingFrame(CFType type,
+                                                 CountingFrame::Id id,
+                                                 Nm inclusion[3],
+                                                 Nm exclusion[3],
+                                                 const QString& constraint)
 {
-  StereologicalInclusionSPtr stereologicalExtension;
-  if (segmentation->hasExtension(StereologicalInclusion::TYPE))
-  {
-    auto extension = segmentation->extension(StereologicalInclusion::TYPE);
-    stereologicalExtension = stereologicalInclusion(extension);
-  }
-  else
-  {
-    stereologicalExtension = StereologicalInclusionSPtr(new StereologicalInclusion());
-    segmentation->addExtension(stereologicalExtension);
-  }
-  Q_ASSERT(stereologicalExtension);
+  CountingFrame *cf;
 
-  return stereologicalExtension;
+  if (CFType::ORTOGONAL == type)
+  {
+    cf = OrtogonalCountingFrame::New(this, m_extendedItem->bounds(), inclusion, exclusion);
+  } else if (CFType::ADAPTIVE == type)
+  {
+    cf = AdaptiveCountingFrame::New(this, m_extendedItem->bounds(), inclusion, exclusion);
+  } else
+  {
+    Q_ASSERT(false);
+  }
+
+  cf->setId(id);
+  cf->setCategoryConstraint(constraint);
+
+  m_countingFrames << cf;
+
+  m_manager->registerCountingFrame(cf);
 }
 
 //-----------------------------------------------------------------------------
@@ -328,8 +342,8 @@ StereologicalInclusionSPtr CountingFrameExtension::stereologicalInclusionExtensi
 //
 //   return true;
 // }
-// //-----------------------------------------------------------------------------
-// CountingFrameExtensionPtr EspINA::CF::countingFrameExtensionPtr(ChannelExtensionSPtr extension)
-// {
-//   return dynamic_cast<CountingFrameExtensionPtr>(extension);
-// }
+//-----------------------------------------------------------------------------
+CountingFrameExtensionSPtr EspINA::CF::countingFrameExtensionPtr(ChannelExtensionSPtr extension)
+{
+  return std::dynamic_pointer_cast<CountingFrameExtension>(extension);
+}

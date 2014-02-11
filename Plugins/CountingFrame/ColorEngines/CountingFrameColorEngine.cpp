@@ -19,6 +19,7 @@
 
 #include "CountingFrameColorEngine.h"
 #include "Extensions/StereologicalInclusion.h"
+#include <Extensions/ExtensionUtils.h>
 
 using namespace EspINA;
 using namespace EspINA::CF;
@@ -50,46 +51,38 @@ QColor CountingFrameColorEngine::color(SegmentationAdapterPtr segmentation)
   int r = 0;
   int g = 0;
   int b = 0;
+  int a = 0;
 
-  auto extension = stereologicalInclusionExtension(segmentation);
+  if (segmentation->hasExtension(StereologicalInclusion::TYPE))
+  {
+    auto extension = retrieveExtension<StereologicalInclusion>(segmentation);
 
-  if (extension->isExcluded())
-  {
-    r = 255;
-  } else
-  {
-    g = 255;
+    if (extension->isExcluded())
+    {
+      r = 255;
+      a =  50;
+    } else
+    {
+      g = 255;
+      a = 255;
+    }
   }
 
-  return QColor(r, g, b, 255);
+  return QColor(r, g, b, a);
 }
 
 //-----------------------------------------------------------------------------
 LUTSPtr CountingFrameColorEngine::lut(SegmentationAdapterPtr segmentation)
 {
-//    if (!seg->channel()) //TODO Change to assert
-//     return m_includedLUT;
-  auto extension = stereologicalInclusionExtension(segmentation);
-
-  return extension->isExcluded()?m_excludedLUT:m_includedLUT;
-}
-
-//-----------------------------------------------------------------------------
-StereologicalInclusionSPtr CountingFrameColorEngine::stereologicalInclusionExtension(SegmentationAdapterPtr segmentation)
-{
-  StereologicalInclusionSPtr stereologicalExtentsion;
+  auto res = m_includedLUT;
 
   if (segmentation->hasExtension(StereologicalInclusion::TYPE))
   {
-    auto extension = segmentation->extension(StereologicalInclusion::TYPE);
-    stereologicalExtentsion = stereologicalInclusion(extension);
-  }
-  else
-  {
-    stereologicalExtentsion = StereologicalInclusionSPtr(new StereologicalInclusion());
-    segmentation->addExtension(stereologicalExtentsion);
-  }
-  Q_ASSERT(stereologicalExtentsion);
+    auto extension = retrieveExtension<StereologicalInclusion>(segmentation);
 
-  return stereologicalExtentsion;
+    if (extension->isExcluded())
+      res = m_excludedLUT;
+  }
+  return res;
 }
+

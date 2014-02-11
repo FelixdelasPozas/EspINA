@@ -21,7 +21,9 @@
 #define ESPINA_CF_EXTENSION_FACTORY_H
 
 #include <CountingFrames/CountingFrame.h>
+#include "Extensions/CountingFrameExtension.h"
 #include <GUI/Model/ChannelAdapter.h>
+#include <GUI/Model/SegmentationAdapter.h>
 
 namespace EspINA {
   namespace CF {
@@ -32,29 +34,30 @@ namespace EspINA {
       Q_OBJECT
 
     public:
-      void createAdaptiveCF(ChannelAdapterPtr channel,
-                            Nm inclusion[3],
-                            Nm exclusion[3],
-                            const QString &constraint = QString());
+      CountingFrameExtensionSPtr createExtension(const State& state = State()) const;
 
-      void createRectangularCF(ChannelAdapterPtr channel,
-                               Nm inclusion[3],
-                               Nm exclusion[3],
-                               const QString &constraint = QString());
+//       void createAdaptiveCF(ChannelAdapterPtr channel,
+//                             Nm inclusion[3],
+//                             Nm exclusion[3],
+//                             const QString &constraint = QString());
+//
+//       void createRectangularCF(ChannelAdapterPtr channel,
+//                                Nm inclusion[3],
+//                                Nm exclusion[3],
+//                                const QString &constraint = QString());
 
-      void deleteCountingFrame(CountingFrame *cf);
+//       void deleteCountingFrame(CountingFrame *cf);
 
       CountingFrameList countingFrames() const
       { return m_countingFrames.keys(); }
 
-      void registerCountingFrame(CountingFrame *cf, CountingFrameExtension *extension);
+      void registerCountingFrame(CountingFrame *cf);
 
-      CountingFrame::Id suggestedId(CountingFrame* cf) const;
+      void unregisterCountingFrame(CountingFrame *cf);
+
+      CountingFrame::Id defaultCountingFrameId(const QString& constraint) const;
 
       CountingFrame::Id suggestedId(const CountingFrame::Id id) const;
-
-    private:
-      CountingFrameExtension* retrieveOrCreateCFExtension(ChannelAdapterPtr channel);
 
     signals:
       void countingFrameCreated(CountingFrame *);

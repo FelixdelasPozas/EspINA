@@ -174,7 +174,8 @@ namespace EspINA
     RelationList relations(ItemAdapterPtr item, RelationType type, const RelationName& filter = QString());
 
     // signal emission methods, used by undo commands to signal finished operations.
-    void emitSegmentationAdded(SegmentationAdapterSList);
+    void emitSegmentationsAdded(SegmentationAdapterSPtr segmentation);
+    void emitSegmentationsAdded(SegmentationAdapterSList segmentations);
     void emitChannelAdded(ChannelAdapterSList);
 
     //---------------------------------------------------------------------------
@@ -208,8 +209,8 @@ namespace EspINA
     void channelAdded  (ChannelAdapterSPtr channel);
     void channelRemoved(ChannelAdapterSPtr channel);
 
-    void segmentationAdded  (SegmentationAdapterSPtr segmentations);
-    void segmentationRemoved(SegmentationAdapterSPtr segmentations);
+    void segmentationsAdded  (SegmentationAdapterSList segmentations);
+    void segmentationsRemoved(SegmentationAdapterSList segmentations);
 
   private slots:
     void itemModified(ItemAdapterSPtr item);

@@ -32,7 +32,7 @@
 
 #include <iostream>
 #include <unistd.h>
- 
+
 using namespace EspINA;
 using namespace std;
 
@@ -42,18 +42,18 @@ int scheduler_sleep_main_thread( int argc, char** argv )
 
   int period = 5000; //0.005 sec
   SchedulerSPtr scheduler = SchedulerSPtr(new Scheduler(period));
-  SleepyTask sleepyTask(period, scheduler);
+  std::shared_ptr<SleepyTask> sleepyTask{new SleepyTask(period, scheduler)};
 
-  if (sleepyTask.Result != -1) {
+  if (sleepyTask->Result != -1) {
     error = 1;
     std::cerr << "Unexpected initial sleepy task value" << std::endl;
   }
 
-  sleepyTask.submit();
+  Task::submit(sleepyTask);
 
   usleep(20*period);
 
-  if (sleepyTask.Result != 1) {
+  if (sleepyTask->Result != 1) {
     error = 1;
     std::cerr << "Unexpected final sleepy task value" << std::endl;
   }

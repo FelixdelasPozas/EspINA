@@ -501,6 +501,9 @@ void EspinaMainWindow::checkAutosave()
       QStringList files;
       files << autosavePath.absoluteFilePath(AUTOSAVE_FILE);
       openAnalysis(files);
+    } else
+    {
+      autosavePath.remove(AUTOSAVE_FILE);
     }
   }
 }
@@ -722,7 +725,7 @@ void EspinaMainWindow::openAnalysis(const QStringList files)
     m_viewManager->updateViews();
 
     m_model->emitChannelAdded(m_model->channels());
-    m_model->emitSegmentationAdded(m_model->segmentations());
+    m_model->emitSegmentationsAdded(m_model->segmentations());
 
     if (!m_model->channels().isEmpty())
     {

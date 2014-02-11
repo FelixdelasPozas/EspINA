@@ -120,7 +120,7 @@ namespace EspINA
     QVariant cachedInfo(const InfoTag &tag)
     { return m_infoCache.value(tag, QVariant()); }
 
-    void updateInfoCache(const InfoTag &tag, QVariant value)
+    void updateInfoCache(const InfoTag &tag, const QVariant &value)
     { m_infoCache[tag] = value; }
 
   protected:

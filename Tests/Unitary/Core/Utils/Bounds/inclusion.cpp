@@ -28,6 +28,8 @@
 
 #include "Bounds.h"
 
+#include "NmVector3.h"
+
 using namespace EspINA;
 using namespace std;
 

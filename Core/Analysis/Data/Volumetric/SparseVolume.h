@@ -459,7 +459,12 @@ namespace EspINA
     VolumeBounds expectedBounds(bounds, m_spacing, m_origin);
 
     if (!contains(m_bounds, expectedBounds))
+    {
+      qDebug() << m_bounds;
+      qDebug() << expectedBounds;
+      contains(m_bounds, expectedBounds);
       throw Invalid_Image_Bounds_Exception();
+    }
 
     auto image     = create_itkImage<T>(bounds, this->backgroundValue(), m_spacing, m_origin);
     auto mask      = new BinaryMask<unsigned char>(bounds, m_spacing, m_origin);

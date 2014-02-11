@@ -204,14 +204,10 @@ throw (Incompatible_Volume_Bounds_Exception)
 
   Bounds bounds;
 
-  int lo = 0, up = 1;
-  for (Axis dir : {Axis::X, Axis::Y, Axis::Z})
+  for (int lo = 0, up = 1; lo < 6; lo +=2, up +=2)
   {
     bounds[lo] = std::max(lhs[lo], rhs[lo]);
     bounds[up] = std::min(lhs[up], rhs[up]);
-
-    lo += 2;
-    up += 2;
   }
 
   return VolumeBounds(bounds, lhs.spacing(), rhs.origin());
@@ -232,7 +228,7 @@ bool EspINA::contains(const VolumeBounds &container, const VolumeBounds &contain
 {
   if (!isCompatible(container, contained)) return false;
 
-  return contains(container.bounds(), contained.bounds());
+  return contains(container.bounds(), contained.bounds(), container.spacing());
 }
 
 //-----------------------------------------------------------------------------

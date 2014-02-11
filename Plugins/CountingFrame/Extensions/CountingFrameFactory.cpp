@@ -36,7 +36,7 @@ ChannelExtensionSPtr CountingFrameFactory::createChannelExtension(const ChannelE
   if (type != CountingFrameExtension::TYPE)
     throw (-1);
 
-  return ChannelExtensionSPtr{new CountingFrameExtension(m_manager, state)};
+  return m_manager->createExtension(state);
 }
 
 //-----------------------------------------------------------------------------

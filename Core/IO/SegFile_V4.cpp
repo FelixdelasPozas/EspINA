@@ -412,10 +412,10 @@ void SegFile_V4::loadTrace(QuaZip& zip)
     {
       try
       {
-	m_analysis->addRelation(source, target, edge.relationship.c_str());
+        m_analysis->addRelation(source, target, edge.relationship.c_str());
       } catch (...)
       {
-	qWarning() << "Invalid Relationship: " << edge.relationship.c_str();
+        qWarning() << "Invalid Relationship: " << edge.relationship.c_str();
       }
     }
   }

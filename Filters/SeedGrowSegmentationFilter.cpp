@@ -40,27 +40,39 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(OutputSList inputs, Filte
 //------------------------------------------------------------------------
 void SeedGrowSegmentationFilter::restoreState(const State& state)
 {
-  if (!state.isEmpty())
+  for (auto token : state.split(';'))
   {
-    QStringList params = state.split(";");
+    QStringList tokens = token.split('=');
+    if (tokens.size() != 2)
+      continue;
 
-    QString     seedParam = params[0].split("=")[1];
-    QStringList seed      = seedParam.split(","); 
-    for(int i = 0; i < 3; ++i)
+    if ("Seed" == tokens[0])
     {
-      m_prevSeed[i] = m_seed[i] = seed[i].toDouble();
+      QStringList seed = tokens[1].split(",");
+      for(int i = 0; i < 3; ++i)
+      {
+        m_prevSeed[i] = m_seed[i] = seed[i].toDouble();
+      }
+    } else if ("LowerThreshold" == tokens[0])
+    {
+      m_prevLowerTh = m_lowerTh = tokens[1].toInt();
+    } else if ("UpperThreshold" == tokens[0])
+    {
+      m_prevUpperTh = m_upperTh = tokens[1].toInt();
+    } else if ("ClosingRadius" == tokens[0] || "Close" == tokens[0])
+    {
+      m_prevRadius  = m_radius  = tokens[1].toInt();
+    } else if ("ROI" == tokens[0])
+    {
+      m_usesROI = tokens[1].toInt();
     }
-    m_prevLowerTh = m_lowerTh = params[1].split("=")[1].toInt();
-    m_prevUpperTh = m_upperTh = params[2].split("=")[1].toInt();
-    m_prevRadius  = m_radius  = params[3].split("=")[1].toInt();
-    m_usesROI = params[4].split("=")[1].toInt();
   }
 }
 
 //------------------------------------------------------------------------
 State SeedGrowSegmentationFilter::state() const
 {
-  State state = QString("Seed=%1;LowerTh=%2;UpperTh=%3;ClosingRadius=%4;ROI=%5")
+  State state = QString("Seed=%1;LowerThreshold=%2;UpperThreshold=%3;ClosingRadius=%4;ROI=%5")
                 .arg(QString("%1,%2,%3").arg(m_seed[0]).arg(m_seed[1]).arg(m_seed[2]))
                 .arg(m_lowerTh)
                 .arg(m_upperTh)

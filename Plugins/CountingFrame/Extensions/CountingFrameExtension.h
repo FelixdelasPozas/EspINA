@@ -24,12 +24,12 @@
 #include <Core/Analysis/Extension.h>
 #include <Plugins/CountingFrame/CountingFrames/CountingFrame.h>
 #include <Plugins/CountingFrame/Extensions/StereologicalInclusion.h>
-#include <CountingFrameManager.h>
 
 namespace EspINA
 {
   namespace CF {
 
+  class CountingFrameManager;
   class StereologicalInclusion;
 
   class CountingFramePlugin_EXPORT CountingFrameExtension
@@ -65,16 +65,19 @@ namespace EspINA
     virtual bool isCacheFile(const QString &file) const
     { return FILE == file; }
 
-    void addCountingFrame   (CountingFrame *countingFrame);
+    void createCountingFrame(CFType type,
+                             Nm inclusion[3],
+                             Nm exclusion[3],
+                             const QString &constraint = QString());
 
-    void removeCountingFrame(CountingFrame *countingFrame);
+    void deleteCountingFrame(CountingFrame *countingFrame);
 
     CountingFrameList countingFrames() const
     { return m_countingFrames; }
 
   protected:
     virtual QVariant cacheFail(const QString& tag) const
-    {}
+    { return QVariant(); }
 
     virtual void onExtendedItemSet(Channel *channel);
 
@@ -82,15 +85,13 @@ namespace EspINA
     void onCountingFrameUpdated(CountingFrame *countingFrame);
 
   private:
-    /// Retrieves StereologicalInclusion extension from a segmentation
-    /// If no extension is found, a new one is added to the segmentation
-    StereologicalInclusionSPtr stereologicalInclusionExtension(SegmentationSPtr segmentation);
-
+    void createCountingFrame(CFType type,
+                             CountingFrame::Id id,
+                             Nm inclusion[3],
+                             Nm exclusion[3],
+                             const QString &constraint = QString());
   private:
     CountingFrameManager *m_manager;
-
-    Nm    m_inclusion[3];
-    Nm    m_exclusion[3];
 
     State m_prevState;
 
@@ -100,7 +101,7 @@ namespace EspINA
   using CountingFrameExtensionPtr  = CountingFrameExtension *;
   using CountingFrameExtensionSPtr = std::shared_ptr<CountingFrameExtension>;
 
-  //CountingFrameExtensionSPtr CountingFramePlugin_EXPORT countingFrameExtensionPtr(ChannelExtensionSPtr extension);
+  CountingFrameExtensionSPtr CountingFramePlugin_EXPORT countingFrameExtensionPtr(ChannelExtensionSPtr extension);
 
   } // namespace CF
 } // namespace EspINA

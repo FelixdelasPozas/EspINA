@@ -45,9 +45,6 @@ namespace EspINA
       { return ColorEngine::Transparency; }
 
     private:
-      StereologicalInclusionSPtr stereologicalInclusionExtension(SegmentationAdapterPtr segmentation);
-
-    private:
       LUTSPtr m_excludedLUT;
       LUTSPtr m_includedLUT;
     };

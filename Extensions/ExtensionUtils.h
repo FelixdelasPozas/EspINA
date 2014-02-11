@@ -25,6 +25,19 @@
 namespace EspINA {
 
   template<typename Extension, typename Extendible>
+  std::shared_ptr<Extension> retrieveExtension(Extendible item)
+  {
+    Q_ASSERT(item->hasExtension(Extension::TYPE));
+
+    auto base      = item->extension(Extension::TYPE);
+    auto extension = std::dynamic_pointer_cast<Extension>(base);
+
+    Q_ASSERT(extension);
+
+    return extension;
+  };
+
+  template<typename Extension, typename Extendible>
   std::shared_ptr<Extension> retrieveOrCreateExtension(Extendible item)
   {
     std::shared_ptr<Extension> extension;
@@ -32,7 +45,7 @@ namespace EspINA {
     if (!item->hasExtension(Extension::TYPE))
     {
       extension = std::shared_ptr<Extension>{new Extension()};
-        item->addExtension(extension);
+      item->addExtension(extension);
     } else
     {
       auto base = item->extension(Extension::TYPE);

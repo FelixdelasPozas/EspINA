@@ -46,7 +46,7 @@ int scheduler_simple_task_execution( int argc, char** argv )
 
   int period = 50000;
   SchedulerSPtr scheduler = SchedulerSPtr(new Scheduler(period)); //0.5sec
-  SleepyTask* sleepyTask = new SleepyTask(period/5, scheduler);
+  std::shared_ptr<SleepyTask> sleepyTask{new SleepyTask(period/5, scheduler)};
   sleepyTask->setDescription("Simple Task");
 
   if (sleepyTask->Result != -1) {
@@ -54,14 +54,14 @@ int scheduler_simple_task_execution( int argc, char** argv )
     std::cerr << "Unexpected initial sleepy task value" << std::endl;
   }
 
-  QObject::connect(sleepyTask, SIGNAL(finished()),
-                   sleepyTask, SLOT(deleteLater()));
-  sleepyTask->submit();
+  Task::submit(sleepyTask);
 
   usleep(period); // Guarantee task is started
 
   QObject::connect(sleepyTask->thread(), SIGNAL(destroyed(QObject*)),
                    &app, SLOT(quit()));
+
+  sleepyTask.reset(); // we don't care about the task
 
   app.exec();
 

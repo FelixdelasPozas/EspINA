@@ -152,8 +152,8 @@ void Task::runWrapper()
 {
   run();
 
-  m_hasFinished = !m_pendingAbort;
-  m_aborted = m_pendingAbort;
+  m_hasFinished  = !m_pendingAbort;
+  m_aborted      = m_pendingAbort;
   m_pendingAbort = false;
 
   emit finished();

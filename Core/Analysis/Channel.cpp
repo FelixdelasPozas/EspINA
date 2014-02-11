@@ -138,8 +138,12 @@ void Channel::addExtension(ChannelExtensionSPtr extension)
 //------------------------------------------------------------------------
 void Channel::deleteExtension(ChannelExtensionSPtr extension)
 {
-  auto type = extension->type();
+  deleteExtension(extension->type());
+}
 
+//------------------------------------------------------------------------
+void Channel::deleteExtension(const QString& type)
+{
   if (!m_extensions.contains(type))
     throw (ChannelExtension::Extension_Not_Found());
 
@@ -147,6 +151,7 @@ void Channel::deleteExtension(ChannelExtensionSPtr extension)
 
   Q_ASSERT(!m_extensions.contains(type));
 }
+
 
 //------------------------------------------------------------------------
 ChannelExtensionSPtr Channel::extension(const ChannelExtension::Type& type)

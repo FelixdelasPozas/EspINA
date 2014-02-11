@@ -158,9 +158,9 @@ namespace EspINA
    *  Boundaires are inside if and only if both boundaries
    *  are equally included
    */
-  bool EspinaCore_EXPORT contains(const Bounds& container, const Bounds& contained);
+  bool EspinaCore_EXPORT contains(const Bounds& container, const Bounds& contained, const NmVector3 &spacing=NmVector3{1,1,1});
 
-  bool  EspinaCore_EXPORT contains(const Bounds& bounds, const NmVector3& point);
+  bool  EspinaCore_EXPORT contains(const Bounds& bounds, const NmVector3& point, const NmVector3 &spacing=NmVector3{1,1,1});
 
   std::ostream&  operator<<(std::ostream& os, const Bounds& bounds);
 

@@ -272,13 +272,13 @@ QDebug EspINA::operator<< (QDebug d, const Bounds &bounds)
 
 
 //-----------------------------------------------------------------------------
-bool EspINA::contains(const Bounds &container, const Bounds &contained)
+bool EspINA::contains(const Bounds& container, const Bounds& contained, const NmVector3& spacing)
 {
   //return intersection(container, contained) == contained;
 
   int i = 0;
   for (Axis dir : {Axis::X, Axis::Y, Axis::Z}) {
-    if (areEqual(contained[i], container[i]))
+    if (areEqual(contained[i], container[i], spacing[i/2]))
     {
       if (!container.areLowerIncluded(dir) && contained.areLowerIncluded(dir))
       {
@@ -288,7 +288,7 @@ bool EspINA::contains(const Bounds &container, const Bounds &contained)
       return false;
     }
     ++i;
-    if (areEqual(contained[i], container[i]))
+    if (areEqual(contained[i], container[i], spacing[i/2]))
     {
       if (!container.areUpperIncluded(dir) && contained.areUpperIncluded(dir))
       {
@@ -304,7 +304,7 @@ bool EspINA::contains(const Bounds &container, const Bounds &contained)
 }
 
 //-----------------------------------------------------------------------------
-bool EspINA::contains(const Bounds& bounds, const NmVector3& point)
+bool EspINA::contains(const Bounds& bounds, const NmVector3& point, const NmVector3& spacing)
 {
   int i = 0;
   int j = 0;
@@ -312,13 +312,13 @@ bool EspINA::contains(const Bounds& bounds, const NmVector3& point)
   for (Axis dir : {Axis::X, Axis::Y, Axis::Z}) {
     if (point[j] < bounds[i]) {
       return false;
-    } else if (areEqual(point[j], bounds[i]) && !bounds.areLowerIncluded(dir)) {
+    } else if (areEqual(point[j], bounds[i], spacing[j]) && !bounds.areLowerIncluded(dir)) {
       return false;
     }
     ++i;
     if (bounds[i] < point[j]) {
       return false;
-    } else if (areEqual(point[j], bounds[i]) && !bounds.areUpperIncluded(dir)) {
+    } else if (areEqual(point[j], bounds[i], spacing[j]) && !bounds.areUpperIncluded(dir)) {
       return false;
     }
     ++i;

@@ -69,9 +69,9 @@ namespace EspINA
 
     void showInfo(CountingFrame *cf);
 
-    QModelIndex findCategoryIndex(const QString &classificationName);
+    void onCountingFrameCreated(CountingFrame *cf);
 
-    void updateSegmentations();
+    void onSegmentationsAdded(SegmentationAdapterSList segmentation);
 
     void createCountingFrame();
 
@@ -87,9 +87,11 @@ namespace EspINA
 
     void changeUnitMode(bool useSlices);
 
-    void onCountingFrameCreated(CountingFrame *cf);
-
   private:
+    QModelIndex findCategoryIndex(const QString &classificationName);
+
+    void updateSegmentations();
+
     /// Find margin values which discard all segmentations that
     /// touch the channel margins
     void computeOptimalMargins(ChannelAdapterPtr channel,

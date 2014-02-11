@@ -50,12 +50,12 @@ int scheduler_waiting_tasks( int argc, char** argv )
   int numThreads = QThreadPool::globalInstance()->maxThreadCount();
   int numTasks   = numThreads + 1;
   
-  std::vector<unique_ptr<SleepyTask>> tasks;
+  std::vector<std::shared_ptr<SleepyTask>> tasks;
   
   for (int i = 0; i < numTasks; ++i) {
-    tasks.push_back(unique_ptr<SleepyTask>(new SleepyTask(10000, scheduler)));
+    tasks.push_back(std::shared_ptr<SleepyTask>(new SleepyTask(10000, scheduler)));
     tasks.at(i)->setDescription(QString("Task %1").arg(i));
-    tasks.at(i)->submit();
+    Task::submit(tasks.at(i));
   }
   
   usleep(schedulerPeriod);
@@ -71,14 +71,13 @@ int scheduler_waiting_tasks( int argc, char** argv )
     error = 1;      
     std::cerr << "Last Task should be paused by the dispatcher" << std::endl;
   }
-  
-  
+
   usleep(numTasks * 100000);
-  
+
   for (int i = 0; i < numTasks; ++i) {
     if (tasks.at(i)->Result != 1) {
-      error = 1;      
-      std::cerr << "Task " << i << " should have finishd" << std::endl;
+      error = 1;
+      std::cerr << "Task " << i << " should have finished" << std::endl;
     }
   }
   

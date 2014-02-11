@@ -96,6 +96,8 @@ namespace CF {
     CountingFrameExtension *extension()
     { return m_extension; }
 
+    void deleteFromExtension();
+
     void setMargins(Nm inclusion[3], Nm exclusion[3]);
 
     void margins(Nm inclusion[3], Nm exclusion[3]);

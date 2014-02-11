@@ -424,9 +424,17 @@ void ModelAdapter::emitChannelAdded(ChannelAdapterSList )
 }
 
 //------------------------------------------------------------------------
-void ModelAdapter::emitSegmentationAdded(SegmentationAdapterSList )
+void ModelAdapter::emitSegmentationsAdded(SegmentationAdapterSPtr segmentation)
 {
+  SegmentationAdapterSList segmentations{segmentation};
 
+  emitSegmentationsAdded(segmentations);
+}
+
+//------------------------------------------------------------------------
+void ModelAdapter::emitSegmentationsAdded(SegmentationAdapterSList segmentations)
+{
+  emit segmentationsAdded(segmentations);
 }
 
 //------------------------------------------------------------------------

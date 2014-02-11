@@ -115,10 +115,10 @@ public:
 
   virtual Qt::ItemFlags flags(const QModelIndex& index) const;
 
-private:
   CountingFrame *countingFrame(const QModelIndex &index) const
   { return m_manager->countingFrames()[index.row()]; }
 
+private:
   bool changeId(CountingFrame *editedCF, QString requestedId)
   {
     bool alreadyUsed = false;
@@ -250,7 +250,7 @@ Panel::Panel(CountingFrameManager *manager,
 , m_viewManager(viewManager)
 , m_gui(new GUI())
 , m_cfModel(new CFModel(m_manager))
-, m_useSlices(false)
+, m_useSlices(true)
 , m_activeCF(nullptr)
 {
   setObjectName("CountingFrameDock");
@@ -298,6 +298,9 @@ Panel::Panel(CountingFrameManager *manager,
 
   connect(m_manager, SIGNAL(countingFrameCreated(CountingFrame*)),
           this, SLOT(onCountingFrameCreated(CountingFrame*)));
+
+  connect(m_model.get(), SIGNAL(segmentationsAdded(SegmentationAdapterSList)),
+          this, SLOT(onSegmentationsAdded(SegmentationAdapterSList)));
 
   connect(m_viewManager.get(), SIGNAL(activeChannelChanged(ChannelAdapterPtr)),
           this, SLOT(onChannelChanged(ChannelAdapterPtr)));
@@ -369,7 +372,7 @@ void Panel::deleteCountingFrame(CountingFrame *cf)
 
   m_viewManager->removeWidget(cf);
 
-  m_manager->deleteCountingFrame(cf);
+  cf->deleteFromExtension();
 
   updateTable();
 
@@ -411,7 +414,8 @@ void Panel::updateUI(QModelIndex index)
 
   if (validCF)
   {
-    CountingFrame *cf = m_countingFrames.value(index.row(), nullptr);
+    CountingFrame *cf;// = m_countingFrames.value(index.row(), nullptr);
+    cf = m_cfModel->countingFrame(index);
     Q_ASSERT(cf);
 
     showInfo(cf);
@@ -424,7 +428,7 @@ void Panel::updateUI(QModelIndex index)
     m_gui->frontMargin ->setValue(0);
     m_gui->rightMargin ->setValue(0);
     m_gui->bottomMargin->setValue(0);
-    m_gui->backMargin ->setValue(0);
+    m_gui->backMargin  ->setValue(0);
 
     m_gui->useCategoryConstraint->setChecked(validCF);
 
@@ -464,26 +468,30 @@ void Panel::createCountingFrame()
   computeOptimalMargins(channel, inclusion, exclusion);
   memset(exclusion, 0, 3*sizeof(Nm));
 
-  TypeDialog typeSelector(m_model, this);
+  TypeDialog cfSelector(m_model, this);
 
   auto edgesExtension = retrieveOrCreateExtension<ChannelEdges>(channel);
 
   if (edgesExtension->useDistanceToBounds())
   {
-    typeSelector.setType(ORTOGONAL);
+    cfSelector.setType(ORTOGONAL);
   }
   else
   {
-    typeSelector.setType(ADAPTIVE);
+    cfSelector.setType(ADAPTIVE);
   }
 
-  if (typeSelector.exec())
+  if (cfSelector.exec())
   {
-    QString constraint = typeSelector.categoryConstraint();
-    if (ADAPTIVE == typeSelector.type())
-      m_manager->createAdaptiveCF(channel, inclusion, exclusion, constraint);
-    else
-      m_manager->createRectangularCF(channel, inclusion, exclusion, constraint);
+    CFType type        = cfSelector.type();
+    QString constraint = cfSelector.categoryConstraint();
+
+    if (!channel->hasExtension(CountingFrameExtension::TYPE))
+    {
+      channel->addExtension(m_manager->createExtension());
+    }
+    auto extension = countingFrameExtensionPtr(channel->extension(CountingFrameExtension::TYPE));
+    extension->createCountingFrame(type, inclusion, exclusion, constraint);
   }
 //
 //   updateSegmentations();
@@ -576,7 +584,6 @@ void Panel::showInfo(CountingFrame* activeCF)
 
   int row = m_countingFrames.indexOf(activeCF);
 
-
   auto selectionModel = m_gui->countingFrames->selectionModel();
   auto index = m_cfModel->index(row, 0);
   selectionModel->select(index, QItemSelectionModel::ClearAndSelect|QItemSelectionModel::Rows);
@@ -588,19 +595,34 @@ void Panel::showInfo(CountingFrame* activeCF)
   m_gui->bottomMargin->blockSignals(true);
   m_gui->backMargin  ->blockSignals(true);
 
-  NmVector3 spacing{1., 1., 1.};
-  if (m_useSlices)
-  {
-    auto activeChannel = m_viewManager->activeChannel();
-    spacing = activeChannel->output()->spacing();
-  }
+  auto channel = activeCF->extension()->extendedItem();;
+  auto spacing = channel->output()->spacing();
+
+  m_gui->leftMargin  ->setSingleStep(spacing[0]);
+  m_gui->rightMargin ->setSingleStep(spacing[0]);
+  m_gui->topMargin   ->setSingleStep(spacing[1]);
+  m_gui->bottomMargin->setSingleStep(spacing[1]);
 
   m_gui->leftMargin  ->setValue(activeCF->left());
   m_gui->topMargin   ->setValue(activeCF->top() );
-  m_gui->frontMargin ->setValue(vtkMath::Round(activeCF->front()/spacing[2]));
   m_gui->rightMargin ->setValue(activeCF->right() );
   m_gui->bottomMargin->setValue(activeCF->bottom());
-  m_gui->backMargin ->setValue(vtkMath::Round(activeCF->back()/spacing[2]));
+  if (m_useSlices)
+  {
+    m_gui->frontMargin->setSingleStep(1);
+    m_gui->backMargin ->setSingleStep(1);
+
+    m_gui->frontMargin ->setValue(int(activeCF->front()/spacing[2]));
+    m_gui->backMargin  ->setValue(int(activeCF->back()/spacing[2]));
+  } else
+  {
+    m_gui->frontMargin->setSingleStep(spacing[2]);
+    m_gui->backMargin ->setSingleStep(spacing[2]);
+
+    m_gui->frontMargin ->setValue(activeCF->front());
+    m_gui->backMargin  ->setValue(activeCF->back());
+  }
+
 
   m_gui->leftMargin  ->blockSignals(false);
   m_gui->topMargin   ->blockSignals(false);
@@ -745,9 +767,8 @@ void Panel::computeOptimalMargins(ChannelPtr channel,
 
     for (int i=0; i < 3; i++)
     {
-      Nm shift   = i < 2? 0.5:-0.5;
-      Nm length  = bounds[2*i+1] - bounds[2*i];
-      Nm length2 = bounds.lenght(toAxis(i));
+      Nm shift  = i < 2? 0.5:-0.5;
+      Nm length = bounds.lenght(toAxis(i));
 
       if (dist2Margin[2*i] < delta[i])
         inclusion[i] = (vtkMath::Round(std::max(length, inclusion[i])/spacing[i]-shift)+shift)*spacing[i];
@@ -767,6 +788,14 @@ void Panel::inclusionMargins(double values[3])
   values[0] = m_gui->leftMargin ->value();
   values[1] = m_gui->topMargin  ->value();
   values[2] = m_gui->frontMargin->value();
+
+  if (m_useSlices)
+  {
+    auto channel = m_activeCF->extension()->extendedItem();;
+    auto spacing = channel->output()->spacing();
+
+    values[2] *= spacing[2];
+  }
 }
 
 //------------------------------------------------------------------------
@@ -775,6 +804,14 @@ void Panel::exclusionMargins(double values[3])
   values[0] = m_gui->rightMargin ->value();
   values[1] = m_gui->bottomMargin->value();
   values[2] = m_gui->backMargin  ->value();
+
+  if (m_useSlices)
+  {
+    auto channel = m_activeCF->extension()->extendedItem();;
+    auto spacing = channel->output()->spacing();
+
+    values[2] *= spacing[2];
+  }
 }
 
 //------------------------------------------------------------------------
@@ -794,6 +831,33 @@ void Panel::onCountingFrameCreated(CountingFrame* cf)
   updateUI(m_cfModel->index(m_cfModel->rowCount() - 1, 0));
 }
 
+//------------------------------------------------------------------------
+void Panel::onSegmentationsAdded(SegmentationAdapterSList segmentations)
+{
+  for (auto segmentation : segmentations)
+  {
+    if (!segmentation->hasExtension(StereologicalInclusion::TYPE))
+    {
+      auto sterologicalExtension = retrieveOrCreateExtension<StereologicalInclusion>(segmentation);
+
+      for (auto channel : QueryAdapter::channels(segmentation))
+      {
+        if (channel->hasExtension(CountingFrameExtension::TYPE))
+        {
+          auto cfExtension = retrieveExtension<CountingFrameExtension>(channel);
+
+          for (auto cf : cfExtension->countingFrames())
+          {
+            sterologicalExtension->addCountingFrame(cf);
+          }
+        }
+      }
+
+    }
+  }
+}
+
+//------------------------------------------------------------------------
 void Panel::updateTable()
 {
   m_gui->countingFrames->setModel(nullptr);
