@@ -55,9 +55,17 @@ namespace EspINA
     virtual QModelIndex mapFromSource(const QModelIndex& sourceIndex) const;
     virtual QModelIndex mapToSource(const QModelIndex& proxyIndex) const;
 
+    /// Drag & Drop support
+    virtual Qt::ItemFlags flags(const QModelIndex& index) const;
+    virtual Qt::DropActions supportedDropActions() const {return Qt::MoveAction;}
+    virtual bool dropMimeData(const QMimeData* data, Qt::DropAction action, int row, int column, const QModelIndex& parent);
+
     int numChannels(QModelIndex sampleIndex, bool recursive = false) const;
     int numSubSamples(QModelIndex sampleIndex) const;
     QModelIndexList channels(QModelIndex sampleIndex, bool recursive=false) const;
+
+  signals:
+    void channelsDragged(ChannelAdapterList sources, SampleAdapterPtr destination);
 
   protected slots:
     void sourceRowsInserted(const QModelIndex & sourceParent, int start, int end);

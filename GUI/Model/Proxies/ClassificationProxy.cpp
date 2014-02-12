@@ -387,11 +387,11 @@ Qt::ItemFlags ClassificationProxy::flags(const QModelIndex& index) const
   return f;
 }
 
-typedef QMap<int, QVariant> DraggedItem;
 
 //------------------------------------------------------------------------
 bool ClassificationProxy::dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex& parent)
 {
+  using  DraggedItem = QMap<int, QVariant>;
 
   CategoryAdapterPtr root = m_model->classification()->root().get();
 
@@ -431,7 +431,7 @@ bool ClassificationProxy::dropMimeData(const QMimeData *data, Qt::DropAction act
   if (SegmentationSource == source && parentItem != root)
   {
     SegmentationAdapterList sources;
-    foreach(DraggedItem draggedItem , draggedItems)
+    for(auto draggedItem : draggedItems)
     {
       auto item = reinterpret_cast<ItemAdapterPtr>(draggedItem[RawPointerRole].value<quintptr>());
       sources << segmentationPtr(item);

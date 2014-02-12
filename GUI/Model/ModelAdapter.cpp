@@ -545,7 +545,16 @@ QModelIndex ModelAdapter::index(ItemAdapterSPtr item) const
 //------------------------------------------------------------------------
 QMap< int, QVariant > ModelAdapter::itemData(const QModelIndex& index) const
 {
-    return QAbstractItemModel::itemData(index);
+  QMap<int, QVariant> data = QAbstractItemModel::itemData(index);
+
+  if (index.isValid() && index.parent().isValid())
+  {
+    data[RawPointerRole] = QVariant::fromValue(reinterpret_cast<quintptr>(itemAdapter(index)));
+  }
+
+  data[TypeRole] = index.data(TypeRole);
+
+  return data;
 }
 
 // //------------------------------------------------------------------------
@@ -994,24 +1003,23 @@ bool EspINA::isCategory(ItemAdapterPtr item)
 }
 
 //------------------------------------------------------------------------
+bool EspINA::isSample(ItemAdapterPtr item)
+{
+  return ItemAdapter::Type::SAMPLE == item->type();
+}
+
+//------------------------------------------------------------------------
+bool EspINA::isChannel(ItemAdapterPtr item)
+{
+  return ItemAdapter::Type::CHANNEL == item->type();
+}
+
+//------------------------------------------------------------------------
 bool EspINA::isSegmentation(ItemAdapterPtr item)
 {
   return ItemAdapter::Type::SEGMENTATION == item->type();
 }
 
-
-// //------------------------------------------------------------------------
-// QMap<int, QVariant> ModelAdapter::itemData(const QModelIndex &index) const
-// {
-//   QMap<int, QVariant> data = QAbstractItemModel::itemData(index);
-// 
-//   if (index.isValid() && index.parent().isValid())
-//     data[RawPointerRole] = QVariant::fromValue(reinterpret_cast<quintptr>(indexPtr(index)));
-//   data[TypeRole]       = index.data(TypeRole);
-// 
-//   return data;
-// }
-// 
 // //------------------------------------------------------------------------
 // Qt::ItemFlags ModelAdapter::flags(const QModelIndex& index) const
 // {

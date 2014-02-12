@@ -239,7 +239,8 @@ namespace EspINA
   ItemAdapterPtr EspinaGUI_EXPORT itemAdapter(const QModelIndex &index);
 
   bool isCategory(ItemAdapterPtr item);
-
+  bool isSample(ItemAdapterPtr item);
+  bool isChannel(ItemAdapterPtr item);
   bool isSegmentation(ItemAdapterPtr item);
 
 } // namespace EspINA

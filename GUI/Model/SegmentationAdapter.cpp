@@ -176,7 +176,7 @@ QVariant SegmentationAdapter::data(int role) const
     }
     case Qt::CheckStateRole:
       return isVisible() ? Qt::Checked : Qt::Unchecked;
-    case TypeRole: // TODO 2013-01-03 remove or add to others (now is only availabe for seg and tax)
+    case TypeRole:
       return typeId(Type::SEGMENTATION);
 //     case SegmentationNumberRole:
 //       return number();

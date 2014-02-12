@@ -26,11 +26,12 @@
 // Qt
 #include <QPixmap>
 #include <QSet>
+#include <QMimeData>
 #include <QFont>
 
 using namespace EspINA;
 
-typedef QSet<ItemAdapterPtr> ChannelSet;
+using ChannelSet = QSet<ItemAdapterPtr>;
 
 //------------------------------------------------------------------------
 ChannelProxy::ChannelProxy(ModelAdapterSPtr sourceModel, QObject* parent)
@@ -254,6 +255,65 @@ QModelIndex ChannelProxy::mapToSource(const QModelIndex& proxyIndex) const
   }
 
   return sourceIndex;
+}
+
+//------------------------------------------------------------------------
+Qt::ItemFlags ChannelProxy::flags(const QModelIndex& index) const
+{
+  Qt::ItemFlags f = QAbstractProxyModel::flags(index) | Qt::ItemIsDropEnabled;
+
+  if (index.isValid())
+  {
+    ItemAdapterPtr sourceItem = itemAdapter(index);
+    if (isChannel(sourceItem))
+    {
+      f = f | Qt::ItemIsDragEnabled;
+    }
+//     else if (isSegmentation(sourceItem))
+//       f = f | Qt::ItemIsDragEnabled | Qt::ItemIsEditable | Qt::ItemIsUserCheckable;
+  }
+
+  return f;
+}
+
+//------------------------------------------------------------------------
+bool ChannelProxy::dropMimeData(const QMimeData* data, Qt::DropAction action, int row, int column, const QModelIndex& parent)
+{
+  using  DraggedItem = QMap<int, QVariant>;
+
+  if (!parent.isValid())
+    return false;
+
+  auto parentItem = itemAdapter(parent);
+
+  // Recover dragged item information
+  QByteArray encoded = data->data("application/x-qabstractitemmodeldatalist");
+  QDataStream stream(&encoded, QIODevice::ReadOnly);
+
+  ChannelAdapterList draggedChannels;
+
+  while (!stream.atEnd())
+  {
+    DraggedItem itemData;
+    int row, col;
+    stream >> row >> col >> itemData;
+
+    ItemAdapterPtr draggedItem = reinterpret_cast<ItemAdapterPtr>(itemData[RawPointerRole].value<quintptr>());
+    Q_ASSERT(isChannel(draggedItem));
+
+    draggedChannels << channelPtr(draggedItem);
+  }
+
+  if (!isSample(parentItem))
+  {
+    parentItem = itemAdapter(parent.parent());
+  }
+
+  Q_ASSERT(isSample(parentItem));
+
+  emit channelsDragged(draggedChannels, samplePtr(parentItem));
+
+  return true;
 }
 
 //------------------------------------------------------------------------
