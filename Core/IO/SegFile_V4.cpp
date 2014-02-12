@@ -31,6 +31,7 @@
 #include <Core/Analysis/Persistent.h>
 #include <Core/Analysis/Sample.h>
 #include <Core/Analysis/Segmentation.h>
+#include <Core/Analysis/Query.h>
 #include <Core/Factory/CoreFactory.h>
 
 using namespace EspINA;
@@ -298,6 +299,8 @@ ChannelSPtr SegFile_V4::createChannel(DirectedGraph::Vertex   roVertex)
   ChannelSPtr channel = m_factory->createChannel(filter, 0);
 
 
+  qDebug() << roVertex->state();
+  qDebug() << vertex_v4->state();
   channel->setName(roVertex->name());
   channel->restoreState(roVertex->state() + vertex_v4->state());
   channel->setStorage(m_storage);
@@ -408,14 +411,19 @@ void SegFile_V4::loadTrace(QuaZip& zip)
     auto target_v4 = std::dynamic_pointer_cast<ReadOnlyVertex>(edge.target);
     PersistentSPtr target = findVertex(target_v4->vertexId());
 
-    if (source_v4->type() != VertexType::FILTER || target_v4->type() != VertexType::FILTER)
+    if (source_v4->type() != VertexType::FILTER && target_v4->type() != VertexType::FILTER)
     {
+      std::string relation = edge.relationship;
       try
       {
-        m_analysis->addRelation(source, target, edge.relationship.c_str());
+        if (source_v4->type() == VertexType::SAMPLE && target_v4->type() == VertexType::SEGMENTATION && relation == "where")
+        {
+          relation = Query::CONTAINS.toStdString();
+        }
+        m_analysis->addRelation(source, target, relation.c_str());
       } catch (...)
       {
-        qWarning() << "Invalid Relationship: " << edge.relationship.c_str();
+        qWarning() << "Invalid Relationship: " << relation.c_str();
       }
     }
   }

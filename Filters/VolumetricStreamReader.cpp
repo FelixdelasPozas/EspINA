@@ -40,8 +40,14 @@ VolumetricStreamReader::VolumetricStreamReader(OutputSList inputs, Type type, Sc
 //----------------------------------------------------------------------------
 void VolumetricStreamReader::restoreState(const State& state)
 {
-  QString file = state.split(";")[0];
-  m_fileName = QFileInfo(file.section("", 6).trimmed());
+  for(auto element : state.split(";"))
+  {
+    auto tokens = element.split("=");
+    if ("File" == tokens[0])
+    {
+      m_fileName = QFileInfo(tokens[1].trimmed());
+    }
+  }
 }
 
 //----------------------------------------------------------------------------

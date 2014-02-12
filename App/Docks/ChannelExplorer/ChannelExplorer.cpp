@@ -478,17 +478,18 @@ void ChannelExplorer::showInformation()
 //------------------------------------------------------------------------
 void ChannelExplorer::activateChannel()
 {
-//   QModelIndex currentIndex = m_gui->view->currentIndex();
-//   if (!currentIndex.parent().isValid())
-//     return;
-// 
-//   QModelIndex index = m_sort->mapToSource(currentIndex);
-//   ModelItemPtr currentItem = indexPtr(index);
-//   if (EspINA::CHANNEL == currentItem->type())
-//   {
-//     ChannelPtr currentChannel = channelPtr(currentItem);
-//     m_viewManager->setActiveChannel(currentChannel);
-//   }
+  QModelIndex currentIndex = m_gui->view->currentIndex();
+  if (!currentIndex.parent().isValid())
+    return;
+
+  auto index = m_sort->mapToSource(currentIndex);
+  auto currentItem = itemAdapter(index);
+
+  if (ItemAdapter::Type::CHANNEL == currentItem->type())
+  {
+    auto currentChannel = channelPtr(currentItem);
+    m_viewManager->setActiveChannel(currentChannel);
+  }
 }
 
 //------------------------------------------------------------------------
