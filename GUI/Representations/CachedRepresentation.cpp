@@ -103,7 +103,7 @@ namespace EspINA
 
     node->worker->disconnect(node->worker.get(), SIGNAL(finished()), this, SLOT(addActor()));
     node->worker->abort();
-    node->worker = nullptr;
+    node->worker.reset();
   }
 
   //-----------------------------------------------------------------------------

@@ -75,9 +75,9 @@ Scheduler::~Scheduler()
 //-----------------------------------------------------------------------------
 void Scheduler::addTask(TaskSPtr task)
 {
-  task->setId(m_lastId++);
-
   QMutexLocker lock(&m_mutex);
+
+  task->setId(m_lastId++);
   m_runningTasks[task->priority()].orderedInsert(task);
 
   if (!task->isHidden())
@@ -163,35 +163,71 @@ void Scheduler::scheduleTasks() {
 
         bool is_thread_attached = task->m_isThreadAttached;
 
-        if (num_running_threads < m_maxNumRunningThreads && !(task->isPaused() || task->isAborted() || task->hasFinished() )) {
-          if (is_thread_attached) {
-            if (task->isDispatcherPaused()) {
+        if (num_running_threads < m_maxNumRunningThreads && !(task->isPaused() || task->isAborted() || task->hasFinished() ))
+        {
+          if (is_thread_attached)
+          {
+            if (task->isDispatcherPaused())
+            {
               task->dispatcherResume();
-              // std::cout << "- " << worker->description().toStdString() << " resumed" << std::endl;
+//               std::cout << "- " << task->id() << ": " << task->description().toStdString() << " resumed" << std::endl;
             } else {
-              // std::cout << "- " << worker->description().toStdString() << " already running" << std::endl;
+//               std::cout << "- " << task->id() << ": " << task->description().toStdString() << " already running" << std::endl;
             }
-          } else {
+          } else
+          {
             task->start();
-            // std::cout << "- " << worker->description().toStdString() << " started" << std::endl;
+//             std::cout << "- " << task->id() << ": " << task->description().toStdString() << " started" << std::endl;
           }
           num_running_threads++;
-        } else {
-          if (task->isPaused()) {
-            // std::cout << "- " << worker->description().toStdString() << " was paused by the user" << std::endl;
-          } else if (task->hasFinished()) {
-            // std::cout << "- " << worker->description().toStdString() << " was aborted" << std::endl;
-            // std::cout << "- " << worker->description().toStdString() << " has finished" << std::endl;
+        } else
+        {
+//           std::cout << "- " << task->id() << ": " << task->description().toStdString() << " is " << (!task->isRunning()?"not ":"") << "running" << std::endl;
+          bool hasBeenAbortedWithoutRunning = task->isAborted() && !is_thread_attached;
+          if (task->hasFinished() || hasBeenAbortedWithoutRunning)
+          {
+//             { // DEBUG
+//               if (task->hasFinished())
+//               {
+//                 std::cout << "- " << task->id() << ": " << task->description().toStdString() << " has finished" << (task->isAborted()?" and was aborted":"") << std::endl;
+//               }
+//               else
+//               {
+//                 std::cout << "- " << task->id() << ": " << task->description().toStdString() << " was aboroted without running" << std::endl;
+//               }
+//             }
             m_runningTasks[task->priority()].removeOne(task);
+
             if (!task->isHidden())
+            {
               emit taskRemoved(task);
-          } else if (is_thread_attached) {
+            }
+          }
+          else if (!task->isPaused() && is_thread_attached)
+          {
             task->dispatcherPause();
-            // std::cout << "- " << worker->description().toStdString() << " was paused by scheduler" << std::endl;
-          } else {
-            // std::cout << "- " << worker->description().toStdString() << " is ready to start" << std::endl;
+//             std::cout << "- " << task->id() << ": " << task->description().toStdString() << " was paused by scheduler" << std::endl;
+          }
+          else if (task->isAborted() && task->isDispatcherPaused())
+          {
+            task->dispatcherResume();
           }
         }
+
+//         { // DEBUG
+//           if (task->isPaused())
+//           {
+//             std::cout << "- " << task->id() << ": " << task->description().toStdString() << " was paused by the user" << std::endl;
+//           }
+//           else if (task->isAborted())
+//           {
+//             std::cout << "- " << task->id() << ": " << task->description().toStdString() << " was aborted but hasn't finished yet" << std::endl;
+//           }
+//           else
+//           {
+//             std::cout << "- " << task->id() << ": " << task->description().toStdString() << " is ready to start" << std::endl;
+//           }
+//         }
       }
     }
     m_mutex.unlock();

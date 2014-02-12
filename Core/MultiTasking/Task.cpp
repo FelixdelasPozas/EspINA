@@ -59,7 +59,7 @@ Task::Task(SchedulerSPtr scheduler)
 //-----------------------------------------------------------------------------
 Task::~Task()
 {
-  // std::cout << "Destroying " << m_description.toStdString() << " in " << (m_isThreadAttached?"attached":"") << " thread " << QThread::currentThread() << std::endl;
+  //std::cout << m_id << ": Destroying " << m_description.toStdString() << " in " << (m_isThreadAttached?"attached":"") << " thread " << QThread::currentThread() << std::endl;
   m_mutex.lock();
   if (m_isThreadAttached) thread()->quit();
   m_mutex.unlock();

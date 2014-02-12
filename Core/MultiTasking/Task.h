@@ -76,7 +76,7 @@ namespace EspINA {
 
     virtual bool isPaused() const;
 
-    bool isRunning() const {return !isPaused();}
+    bool isRunning() const {return m_isThreadAttached && !isPaused();}
 
     bool isAborted() const { return m_isAborted; }
 
