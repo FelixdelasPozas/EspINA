@@ -51,14 +51,11 @@ void SleepyTask::run()
     emit progress(i*10);
   }
 
-  if (!isWaitingAbort()) {
+  if (!isAborted()) {
     m_mutex.lock();
     Result = 1;
     m_mutex.unlock();
   }
 
   std::cout << description().toStdString() << " ended" << std::endl;
-
-  m_hasFinished = true;
-  emit finished();
 }

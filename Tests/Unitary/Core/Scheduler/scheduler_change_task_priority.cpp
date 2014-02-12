@@ -95,7 +95,7 @@ int scheduler_change_task_priority( int argc, char** argv )
   for (int i = 0; i < numTasks; ++i) {
     if (tasks.at(i)->Result != 1) {
       error = 1;      
-      std::cerr << "Task " << i << " should have finishd" << std::endl;
+      std::cerr << "Task " << i << " should have finished" << std::endl;
     }
   }
   

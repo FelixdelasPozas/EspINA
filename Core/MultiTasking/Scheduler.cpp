@@ -179,7 +179,7 @@ void Scheduler::scheduleTasks() {
         } else {
           if (task->isPaused()) {
             // std::cout << "- " << worker->description().toStdString() << " was paused by the user" << std::endl;
-          } else if (task->isAborted() || task->hasFinished()) {
+          } else if (task->hasFinished()) {
             // std::cout << "- " << worker->description().toStdString() << " was aborted" << std::endl;
             // std::cout << "- " << worker->description().toStdString() << " has finished" << std::endl;
             m_runningTasks[task->priority()].removeOne(task);

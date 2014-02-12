@@ -78,9 +78,7 @@ namespace EspINA {
 
     bool isRunning() const {return !isPaused();}
 
-    bool isAborted() const { return m_aborted; }
-
-    bool isWaitingAbort() const { return m_pendingAbort; }
+    bool isAborted() const { return m_isAborted; }
 
     bool hasFinished() const { return m_hasFinished; }
 
@@ -129,15 +127,13 @@ namespace EspINA {
   protected:
     SchedulerSPtr m_scheduler;
 
-    bool m_hasFinished;
-  
   private:
     int m_priority;
 
-    bool m_pendingAbort;
     bool m_pendingPause;
     bool m_pendingUserPause;
-    bool m_aborted;
+    bool m_isAborted;
+    bool m_hasFinished;
 
     QMutex m_mutex;
     QWaitCondition m_paused;

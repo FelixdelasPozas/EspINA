@@ -43,10 +43,9 @@ Task::Task(SchedulerSPtr scheduler)
 : m_scheduler{scheduler}
 , m_hasFinished{false}
 , m_priority{Priority::NORMAL}
-, m_pendingAbort{false}
+, m_isAborted{false}
 , m_pendingPause{false}
 , m_pendingUserPause{false}
-, m_aborted{false}
 , m_id{0}
 , m_isThreadAttached{false}
 , m_hidden{false}
@@ -122,7 +121,7 @@ bool Task::isPaused() const
 void Task::abort() {
   m_mutex.lock();
 //  std::cout << m_description.toStdString() << " has been cancelled" << std::endl;
-  m_pendingAbort = true;
+  m_isAborted = true;
   m_mutex.unlock();
 }
 
@@ -144,7 +143,7 @@ bool Task::canExecute() {
   }
   m_mutex.unlock();
 
-  return !m_pendingAbort;
+  return !m_isAborted;
 }
 
 //-----------------------------------------------------------------------------
@@ -152,9 +151,7 @@ void Task::runWrapper()
 {
   run();
 
-  m_hasFinished  = !m_pendingAbort;
-  m_aborted      = m_pendingAbort;
-  m_pendingAbort = false;
+  m_hasFinished = true;
 
   emit finished();
 }
