@@ -37,16 +37,15 @@
 
 using namespace EspINA;
 
-
 //-----------------------------------------------------------------------------
 Task::Task(SchedulerSPtr scheduler)
 : m_scheduler{scheduler}
-, m_hasFinished{false}
 , m_priority{Priority::NORMAL}
-, m_isAborted{false}
 , m_pendingPause{false}
 , m_pendingUserPause{false}
-, m_id{0}
+, m_isAborted{false}
+, m_hasFinished{false}
+, m_id {0}
 , m_isThreadAttached{false}
 , m_hidden{false}
 {
@@ -61,7 +60,8 @@ Task::~Task()
 {
   //std::cout << m_id << ": Destroying " << m_description.toStdString() << " in " << (m_isThreadAttached?"attached":"") << " thread " << QThread::currentThread() << std::endl;
   m_mutex.lock();
-  if (m_isThreadAttached) thread()->quit();
+  if (m_isThreadAttached)
+    thread()->quit();
   m_mutex.unlock();
 }
 
@@ -70,28 +70,27 @@ void Task::setPriority(const int value)
 {
   int previous = m_priority;
 
-  if (previous != value) {
+  if (previous != value)
+  {
     m_priority = value;
 
     if (m_scheduler != nullptr)
-    {
       m_scheduler->changePriority(this, previous);
-    }
   }
 }
 
 //-----------------------------------------------------------------------------
-void Task::submit(TaskSPtr task) {
+void Task::submit(TaskSPtr task)
+{
   if (task->m_scheduler != nullptr)
-  {
     task->m_scheduler->addTask(task);
-  } else {
+  else
     task->runWrapper();
-  }
 }
 
 //-----------------------------------------------------------------------------
-void Task::pause() {
+void Task::pause()
+{
   m_mutex.lock();
 //  std::cout << m_description.toStdString() << " has been paused by the user" << std::endl;
   m_pendingUserPause = true;
@@ -102,7 +101,8 @@ void Task::pause() {
 }
 
 //-----------------------------------------------------------------------------
-void Task::resume() {
+void Task::resume()
+{
   m_mutex.lock();
 //  std::cout << m_description.toStdString() << " has been resumed by the user" << std::endl;
   m_pendingUserPause = false;
@@ -118,7 +118,8 @@ bool Task::isPaused() const
 }
 
 //-----------------------------------------------------------------------------
-void Task::abort() {
+void Task::abort()
+{
   m_mutex.lock();
 //  std::cout << m_description.toStdString() << " has been cancelled" << std::endl;
   m_isAborted = true;
@@ -126,20 +127,24 @@ void Task::abort() {
 }
 
 //-----------------------------------------------------------------------------
-bool Task::canExecute() {
+bool Task::canExecute()
+{
   // NOTE: Necessary to receive signals from other threads
   QCoreApplication::processEvents();
 
   m_mutex.lock();
-  if (m_pendingPause) {
+  if (m_pendingPause)
+  {
     bool notify = m_pendingUserPause;
 
-    if (notify) emit paused();
+    if (notify)
+      emit paused();
 
     m_paused.wait(&m_mutex);
     m_pendingPause = false;
 
-    if (notify) emit resumed();
+    if (notify)
+      emit resumed();
   }
   m_mutex.unlock();
 
@@ -152,6 +157,8 @@ void Task::runWrapper()
   run();
 
   m_hasFinished = true;
+  m_pendingPause = false;
+  m_pendingUserPause = false;
 
   emit finished();
 }
@@ -168,12 +175,11 @@ void Task::dispatcherPause()
 //-----------------------------------------------------------------------------
 void Task::dispatcherResume()
 {
-  m_mutex.lock();
-  if (!m_pendingUserPause) {
+  if (!m_pendingUserPause)
+  {
     //std::cout << m_description.toStdString() << " has been resumed" << std::endl;
     m_paused.wakeAll();
   }
-  m_mutex.unlock();
 }
 
 //-----------------------------------------------------------------------------
@@ -182,10 +188,11 @@ bool Task::isDispatcherPaused()
   return m_pendingPause;
 }
 
-class TestThread 
-: public QThread {
-public:
-    virtual ~TestThread() {
+class TestThread: public QThread
+{
+  public:
+    virtual ~TestThread()
+    {
 //      std::cout << "Destroying thread" << std::endl;
     }
 };
@@ -197,14 +204,15 @@ void Task::start()
 
   //std::cout << "Starting " << description().toStdString() << " inside thread " << thread() << std::endl;
 
-  if (!m_isThreadAttached) {
+  if (!m_isThreadAttached)
+  {
     TestThread *thread = new TestThread();
 
     m_isThreadAttached = true;
 
     moveToThread(thread);
 
-    connect(thread, SIGNAL(started()),  this,   SLOT(runWrapper()));
+    connect(thread, SIGNAL(started()), this, SLOT(runWrapper()));
     connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
 
     thread->start();

@@ -42,11 +42,13 @@ using namespace EspINA;
 //-----------------------------------------------------------------------------
 void TaskQueue::orderedInsert(TaskSPtr worker)
 {
-  int  w = 0;
+  int w = 0;
   bool found = false;
-  while (!found && w < size()) {
+  while (!found && w < size())
+  {
     found = at(w)->id() > worker->id();
-    if (!found) ++w;
+    if (!found)
+      ++w;
   }
   insert(w, worker);
 }
@@ -56,13 +58,12 @@ Scheduler::Scheduler(int period, QObject* parent)
 : QObject(parent)
 , m_period{period}
 , m_lastId{0}
-, m_maxNumRunningThreads{QThreadPool::globalInstance()->maxThreadCount()}
+, m_maxNumRunningThreads{QThreadPool::globalInstance()->maxThreadCount() }
 , m_abort{false}
 {
   QThread *thread = new QThread();
   moveToThread(thread);
-  connect(thread, SIGNAL(started()),
-          this, SLOT(scheduleTasks()));
+  connect(thread, SIGNAL(started()), this, SLOT(scheduleTasks()));
   thread->start();
 }
 
@@ -75,54 +76,69 @@ Scheduler::~Scheduler()
 //-----------------------------------------------------------------------------
 void Scheduler::addTask(TaskSPtr task)
 {
-  QMutexLocker lock(&m_mutex);
+  m_mutex.lock();
+  if (m_runningTasks[task->priority()].contains(task))
+  {
+    m_mutex.unlock();
+    return;
+  }
 
   task->setId(m_lastId++);
   m_runningTasks[task->priority()].orderedInsert(task);
-
+  m_mutex.unlock();
   if (!task->isHidden())
     emit taskAdded(task);
 }
 
 //-----------------------------------------------------------------------------
-void Scheduler::removeTask(TaskPtr task)
-{
-  QMutexLocker lock(&m_mutex);
-
-  for(TaskSPtr otherTask: m_runningTasks[task->priority()])
-	if (otherTask.get() == task)
-	{
-	   m_runningTasks[task->priority()].removeOne(otherTask);
-	   if (!task->isHidden())
-	     emit taskRemoved(otherTask);
-
-	   break;
-	}
-}
-
-//-----------------------------------------------------------------------------
 void Scheduler::removeTask(TaskSPtr task)
 {
-  removeTask(task.get());
+  // NOTE: not used actually, used to be in Task destructor, but now task
+  // are smartpointers, and deleting them from the list deletes them.
+  m_mutex.lock();
+  if (!m_runningTasks[task->priority()].contains(task))
+  {
+    m_mutex.unlock();
+    return;
+  }
+
+  m_runningTasks[task->priority()].removeOne(task);
+  m_mutex.unlock();
+  if (!task->isHidden())
+    emit taskRemoved(task);
 }
 
 //-----------------------------------------------------------------------------
 void Scheduler::abortExecutingTasks()
 {
   m_abort = true;
+  m_mutex.lock();
+  for (int priority = 4; priority >= 0; --priority)
+  {
+    for (TaskSPtr task : m_runningTasks[priority])
+    {
+      if (!task->hasFinished())
+      {
+        task->abort();
+        task->thread()->wait();
+      }
+    }
+    m_runningTasks[priority].clear();
+  }
+  m_mutex.unlock();
 }
 
 //-----------------------------------------------------------------------------
-void Scheduler::changePriority(TaskPtr task, int prevPriority )
+void Scheduler::changePriority(TaskPtr task, int prevPriority)
 {
   QMutexLocker lock(&m_mutex);
 
-  for (auto otherTask: m_runningTasks[prevPriority])
-	if (otherTask.get() == task)
-	{
-	  m_runningTasks[prevPriority].removeOne(otherTask);
-	  m_runningTasks[task->priority()].orderedInsert(otherTask);
-	}
+  for (auto otherTask : m_runningTasks[prevPriority])
+    if (otherTask.get() == task)
+    {
+      m_runningTasks[prevPriority].removeOne(otherTask);
+      m_runningTasks[task->priority()].orderedInsert(otherTask);
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -131,39 +147,47 @@ void Scheduler::changePriority(TaskSPtr task, int prevPriority)
   changePriority(task.get(), prevPriority);
 }
 
-
 //-----------------------------------------------------------------------------
-void Scheduler::scheduleTasks() {
+void Scheduler::scheduleTasks()
+{
 
-  while(!m_abort){
+  while (!m_abort)
+  {
     QApplication::processEvents();
 
     m_mutex.lock();
     //std::cout << "Start Scheduling on thread " << thread() << std::endl;
 
     int numTask = 0;
-    for (int priority = 4; priority >= 0; --priority) {
-      numTask += m_runningTasks[priority].size();
+    for (int priority = 4; priority >= 0; --priority)
+    {
+      int size = m_runningTasks[priority].size();
+      numTask += size;
+//      std::cout << "Priority " << priority << " has " << size << " tasks." << std::endl;
     }
 
     int num_running_threads = 0;
 
-//     std::cout << "Scheduler has "<< numTask << " tasks:" << std::endl;
+//    std::cout << "Scheduler has " << numTask << " tasks:" << std::endl;
 
-    for (int priority = 4; priority >= 0; --priority) {
+    for (int priority = 4; priority >= 0; --priority)
+    {
 //       std::cout << "Updating Priority " << priority << std::endl;
+      QList<TaskSPtr> deferredDeletionTaskList;
 
-      for(TaskSPtr task : m_runningTasks[priority])
+      for (TaskSPtr task : m_runningTasks[priority])
       {
+        // TODO: this if shouldn't be here
         if (task == nullptr)
         {
-          m_runningTasks[priority].removeOne(task);
+          deferredDeletionTaskList << task;
           continue;
         }
 
         bool is_thread_attached = task->m_isThreadAttached;
 
-        if (num_running_threads < m_maxNumRunningThreads && !(task->isPaused() || task->isAborted() || task->hasFinished() ))
+        if (num_running_threads < m_maxNumRunningThreads
+            && !(task->isPaused() || task->isAborted() || task->hasFinished()))
         {
           if (is_thread_attached)
           {
@@ -171,16 +195,20 @@ void Scheduler::scheduleTasks() {
             {
               task->dispatcherResume();
 //               std::cout << "- " << task->id() << ": " << task->description().toStdString() << " resumed" << std::endl;
-            } else {
+            }
+            else
+            {
 //               std::cout << "- " << task->id() << ": " << task->description().toStdString() << " already running" << std::endl;
             }
-          } else
+          }
+          else
           {
             task->start();
 //             std::cout << "- " << task->id() << ": " << task->description().toStdString() << " started" << std::endl;
           }
           num_running_threads++;
-        } else
+        }
+        else
         {
 //           std::cout << "- " << task->id() << ": " << task->description().toStdString() << " is " << (!task->isRunning()?"not ":"") << "running" << std::endl;
           bool hasBeenAbortedWithoutRunning = task->isAborted() && !is_thread_attached;
@@ -193,25 +221,27 @@ void Scheduler::scheduleTasks() {
 //               }
 //               else
 //               {
-//                 std::cout << "- " << task->id() << ": " << task->description().toStdString() << " was aboroted without running" << std::endl;
+//                 std::cout << "- " << task->id() << ": " << task->description().toStdString() << " was aborted without running" << std::endl;
 //               }
 //             }
-            m_runningTasks[task->priority()].removeOne(task);
+            deferredDeletionTaskList << task;
 
             if (!task->isHidden())
             {
               emit taskRemoved(task);
             }
           }
-          else if (!task->isPaused() && is_thread_attached)
-          {
-            task->dispatcherPause();
+          else
+            if (!task->isPaused() && is_thread_attached && !task->isDispatcherPaused())
+            {
+              task->dispatcherPause();
 //             std::cout << "- " << task->id() << ": " << task->description().toStdString() << " was paused by scheduler" << std::endl;
-          }
-          else if (task->isAborted() && task->isDispatcherPaused())
-          {
-            task->dispatcherResume();
-          }
+            }
+            else
+              if (task->isAborted() && task->isDispatcherPaused())
+              {
+                task->dispatcherResume();
+              }
         }
 
 //         { // DEBUG
@@ -229,6 +259,20 @@ void Scheduler::scheduleTasks() {
 //           }
 //         }
       }
+      for (auto task : deferredDeletionTaskList)
+        m_runningTasks[priority].removeOne(task);
+
+//      for (auto task : m_runningTasks[priority])
+//      {
+//        std::cout << task->id() << " - ";
+//        std::cout << (task->isPaused() ? "paused " : "");
+//        std::cout << (task->isAborted() ? "aborted " : "");
+//        std::cout << (task->isDispatcherPaused() ? " dispacherPaused " : "");
+//        std::cout << (task->hasFinished() ? "finished " : "");
+//        std::cout << (task->isRunning() ? "running " : "");
+//        std::cout << (task->isHidden() ? "hidden " : "");
+//        std::cout << std::endl;
+//      }
     }
     m_mutex.unlock();
 

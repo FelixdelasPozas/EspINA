@@ -50,7 +50,6 @@ namespace EspINA {
 
     void addTask(TaskSPtr task);
 
-    void removeTask(TaskPtr task);
     void removeTask(TaskSPtr task);
 
     void abortExecutingTasks();
