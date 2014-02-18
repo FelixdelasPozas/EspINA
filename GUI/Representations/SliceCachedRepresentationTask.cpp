@@ -17,6 +17,7 @@
  */
 
 // EspINA
+#include "CachedRepresentation.h"
 #include "SliceCachedRepresentationTask.h"
 #include <Core/Utils/Bounds.h>
 #include <Core/Analysis/Data/VolumetricDataUtils.h>
@@ -28,6 +29,10 @@
 #include <vtkImageActor.h>
 #include <vtkImageShiftScale.h>
 #include <vtkImageMapper3D.h>
+#include <vtkAssembly.h>
+
+// Qt
+#include <QMutexLocker>
 
 // C++
 #include <chrono>
@@ -47,14 +52,16 @@ namespace EspINA
   }
   
   //-----------------------------------------------------------------------------
-  void ChannelSliceCachedRepresentationTask::setInput(DefaultVolumetricDataSPtr data, Nm position, Plane plane, double brightness, double contrast, QColor color)
+  void ChannelSliceCachedRepresentationTask::setInput(DefaultVolumetricDataSPtr data, Nm position, Plane plane, double brightness, double contrast, QColor color, NmVector3 depth, CachedRepresentation::CacheNode* node)
   {
+    // depth ignored for channels
     m_data = data;
     m_position = position;
     m_plane = plane;
     m_brightness = brightness;
     m_contrast = contrast;
     m_color = color;
+    m_node = node;
   }
   
   //-----------------------------------------------------------------------------
@@ -68,7 +75,7 @@ namespace EspINA
     Bounds bounds = m_data->bounds();
 
     // check if we can create an actor for that position
-    if ((bounds[2*index] > m_position) || (bounds[2*index + 1] < m_position))
+    if ((bounds[2*index] > m_position) || (bounds[2*index + 1] <= m_position))
       return;
 
     emit progress(0);
@@ -140,12 +147,14 @@ namespace EspINA
     }
     emit progress(80);
 
-    m_actor = vtkSmartPointer<vtkImageActor>::New();
-    m_actor->SetInterpolate(false);
-    m_actor->GetMapper()->BorderOn();
-    m_actor->GetMapper()->SetInputConnection(mapToColors->GetOutputPort());
-    m_actor->SetDisplayExtent(slice->GetExtent());
-    m_actor->Update();
+    vtkSmartPointer<vtkImageActor> actor = vtkSmartPointer<vtkImageActor>::New();
+    actor->SetInterpolate(false);
+    actor->GetMapper()->BorderOn();
+    actor->GetMapper()->SetNumberOfThreads(1);
+    actor->GetMapper()->SetInputConnection(mapToColors->GetOutputPort());
+    actor->GetMapper()->Update();
+    actor->SetDisplayExtent(slice->GetExtent());
+    actor->Update();
 
     if (!canExecute())
     {
@@ -153,12 +162,29 @@ namespace EspINA
       shiftScaleFilter = nullptr;
       lut = nullptr;
       mapToColors = nullptr;
-      m_actor = nullptr;
+      actor = nullptr;
       return;
     }
     emit progress(100);
 
-    m_creationTime = m_data->lastModified();
+    m_node->mutex.lock();
+    if (m_node->worker.get() != this)
+    {
+      m_node->mutex.unlock();
+      slice = nullptr;
+      shiftScaleFilter = nullptr;
+      lut = nullptr;
+      mapToColors = nullptr;
+      actor = nullptr;
+      return;
+    }
+
+    m_node->actor = actor;
+    m_node->worker = nullptr;
+    m_node->creationTime = m_data->lastModified();
+    m_node->mutex.unlock();
+
+    emit render(m_node);
 
     auto end = std::chrono::high_resolution_clock::now();
     m_executionTime = std::chrono::duration_cast < std::chrono::milliseconds > (end - start).count();
@@ -175,13 +201,15 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  void SegmentationSliceCachedRepresentationTask::setInput(DefaultVolumetricDataSPtr data, Nm position, Plane plane, double brightness, double contrast, QColor color)
+  void SegmentationSliceCachedRepresentationTask::setInput(DefaultVolumetricDataSPtr data, Nm position, Plane plane, double brightness, double contrast, QColor color, NmVector3 depth, CachedRepresentation::CacheNode *node)
   {
     // brightness & contrast ignored for segmentations
     m_data = data;
     m_position = position;
     m_color = color;
+    m_depth = depth;
     m_plane = plane;
+    m_node = node;
   }
 
   //-----------------------------------------------------------------------------
@@ -227,23 +255,48 @@ namespace EspINA
     }
     emit progress(66);
 
-    m_actor = vtkSmartPointer<vtkImageActor>::New();
-    m_actor->SetInterpolate(false);
-    m_actor->GetMapper()->BorderOn();
-    m_actor->GetMapper()->SetInputConnection(mapToColors->GetOutputPort());
-    m_actor->SetDisplayExtent(slice->GetExtent());
-    m_actor->Update();
+    vtkSmartPointer<vtkImageActor> actor = vtkSmartPointer<vtkImageActor>::New();
+    actor->SetInterpolate(false);
+    actor->GetMapper()->BorderOn();
+    actor->GetMapper()->SetNumberOfThreads(1);
+    actor->GetMapper()->SetInputConnection(mapToColors->GetOutputPort());
+    actor->GetMapper()->Update();
+    actor->SetDisplayExtent(slice->GetExtent());
+    actor->Update();
+
+    Nm pos[3];
+    actor->GetPosition(pos);
+    pos[0] += m_depth[0];
+    pos[1] += m_depth[1];
+    pos[2] += m_depth[2];
+    actor->SetPosition(pos);
+    actor->Update();
 
     if (!canExecute())
     {
       slice = nullptr;
       mapToColors = nullptr;
-      m_actor = nullptr;
+      actor = nullptr;
       return;
     }
     emit progress(100);
 
-    m_creationTime = m_data->lastModified();
+    m_node->mutex.lock();
+    if (m_node->worker.get() != this)
+    {
+      m_node->mutex.unlock();
+      slice = nullptr;
+      mapToColors = nullptr;
+      actor = nullptr;
+      return;
+    }
+
+    m_node->actor = actor;
+    m_node->worker = nullptr;
+    m_node->creationTime = m_data->lastModified();
+    m_node->mutex.unlock();
+
+    emit render(m_node);
 
     auto end = std::chrono::high_resolution_clock::now();
     m_executionTime = std::chrono::duration_cast < std::chrono::milliseconds > (end - start).count();

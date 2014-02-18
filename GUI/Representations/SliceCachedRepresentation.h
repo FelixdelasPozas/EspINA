@@ -27,6 +27,9 @@
 namespace EspINA
 {
   class CachedRepresentationTask;
+  using CachedRepresentationTaskPtr  = CachedRepresentationTask *;
+  using CachedRepresentationTaskSPtr = std::shared_ptr<CachedRepresentationTask>;
+
   class TransparencySelectionHighlighter;
 
   //-----------------------------------------------------------------------------
@@ -35,6 +38,7 @@ namespace EspINA
   {
     public:
       static const Representation::Type TYPE;
+      using CachedRepresentation::needUpdate;
 
     public:
       /* \brief Default class constructor.
@@ -49,35 +53,6 @@ namespace EspINA
        */
       virtual ~ChannelSliceCachedRepresentation() {};
 
-      /* \brief Returns this representation settings widget.
-       *
-       */
-      virtual RepresentationSettings *settingsWidget();
-
-      /* \brief Sets the color of the channel.
-       *
-       * Sets the color of the channel, specified as a QColor.
-       */
-      virtual void setColor(const QColor &color);
-
-      /* \brief Sets the brightness of the channel representation.
-       *
-       * Sets the brightness of the channel representation. Brightness value belongs to [-1,1].
-       */
-      virtual void setBrightness(double value);
-
-      /* \brief Sets the channel representation constrat value.
-       *
-       * Sets the channel representation constrat value. Contrast value belongs to [0,2].
-       */
-      virtual void setContrast(double value);
-
-      /* brief Sets the channel representation opacity.
-       *
-       * Sets the channel representation opacity. Opacity value belongs to [0,1].
-       */
-      virtual void setOpacity(double value);
-
       /* \brief Returns true if the specified point is inside the channel.
        *
        * Returns true if the specified point is inside the channel. Right now only checks if it's
@@ -91,20 +66,10 @@ namespace EspINA
       virtual RenderableView canRenderOnView() const
       { return Representation::RENDERABLEVIEW_SLICE; }
 
-      /* \brief Returns true if the representation contains the actor.
-       *
-       */
-      virtual bool hasActor(vtkProp *actor) const;
-
       /* \brief Method that triggers the update of the actors of the representation.
        *
        */
       virtual void updateRepresentation();
-
-      /* \brief Returns the actors that comprise this representation.
-       *
-       */
-      virtual QList<vtkProp*> getActors();
 
       /* \brief Returns the plane this representation is on.
        *
@@ -120,12 +85,6 @@ namespace EspINA
       virtual bool crosshairDependent() const
       { return true; }
 
-      /* \brief Returns true if the representations needs to update at the moment of calling
-       * this method.
-       *
-       */
-      virtual bool needUpdate();
-
     protected:
       /* \brief Clone this representation for the specified 2D view.
        *
@@ -138,10 +97,11 @@ namespace EspINA
       virtual RepresentationSPtr cloneImplementation(View3D *view)
       { return RepresentationSPtr(); }
 
-      /* \brief Updates the representation visibility.
+      /* \brief Returns true if the representation in that node needs to update at the moment
+       * of calling this method.
        *
        */
-      virtual void updateVisibility(bool visible);
+      virtual bool needUpdate(CacheNode *node);
 
       /* \brief Returns a CachedRepresentationTask for the position and with the specified priority.
        *
@@ -149,7 +109,7 @@ namespace EspINA
        * responsibility of this method to see if the position is valid for the data that it holds.
        * If not, it must return a nullptr.
        */
-      CachedRepresentationTaskSPtr createTask(int position, Priority priority = Priority::NORMAL);
+      CachedRepresentationTaskSPtr createTask(CacheNode *node, Priority priority = Priority::NORMAL);
 
       /* \brief Sets the view this representation will be renderer on.
        *
@@ -163,8 +123,8 @@ namespace EspINA
       SchedulerSPtr             m_scheduler;    // scheduler for the CachedRepresentationTasks
       int                       m_planeIndex;   // plane index for the view.
       Nm                        m_planeSpacing; // spacing value in the movement of the view.
-      Nm                        m_min;          // minimal value in Nm of the bounds of movement for the data for this view.
-      Nm                        m_max;          // maximal value in Nm of the bounds of movement for the data for this view.
+
+      friend class ChannelSliceCachedRepresentationTask;
     };
 
   using ChannelSliceCachedRepresentationPtr  = ChannelSliceCachedRepresentation *;
@@ -177,6 +137,7 @@ namespace EspINA
     public:
       static const Representation::Type TYPE;
       static TransparencySelectionHighlighter *s_highlighter;
+      using CachedRepresentation::needUpdate;
 
     public:
       /* \brief Default class constructor.
@@ -191,11 +152,6 @@ namespace EspINA
        */
       virtual ~SegmentationSliceCachedRepresentation() {};
 
-      /* \brief Returns this representation settings widget.
-       *
-       */
-      virtual RepresentationSettings *settingsWidget();
-
       /* \brief Returns a serialization of this representation's settings.
        *
        */
@@ -205,6 +161,18 @@ namespace EspINA
        *
        */
       virtual void restoreSettings(QString settings);
+
+      /* \brief Empty, no use in segmentations
+       *
+       */
+      virtual void setBrightness(double value)
+      {};
+
+      /* \brief Empty, no use in segmentations
+       *
+       */
+      virtual void setContrast(double value)
+      {};
 
       /* \brief Sets the color of the segmentation.
        *
@@ -233,20 +201,10 @@ namespace EspINA
       virtual RenderableView canRenderOnView() const
       { return Representation::RENDERABLEVIEW_SLICE; }
 
-      /* \brief Returns true if the representation contains the actor.
-       *
-       */
-      virtual bool hasActor(vtkProp *actor) const;
-
       /* \brief Method that triggers the update of the actors of the representation.
        *
        */
       virtual void updateRepresentation();
-
-      /* \brief Returns the actors that comprise this representation.
-       *
-       */
-      virtual QList<vtkProp*> getActors();
 
       /* \brief Returns the plane this representation is on.
        *
@@ -262,12 +220,6 @@ namespace EspINA
       virtual bool crosshairDependent() const
       { return true; }
 
-      /* \brief Returns true if the representations needs to update at the moment of calling
-       * this method.
-       *
-       */
-      virtual bool needUpdate();
-
     protected:
       /* \brief Clone this representation for the specified 2D view.
        *
@@ -280,10 +232,11 @@ namespace EspINA
       virtual RepresentationSPtr cloneImplementation(View3D *view)
       { return RepresentationSPtr(); }
 
-      /* \brief Updates the representation visibility.
+      /* \brief Returns true if the representation in that node needs to update at the moment
+       * of calling this method.
        *
        */
-      virtual void updateVisibility(bool visible);
+      virtual bool needUpdate(CacheNode *node);
 
       /* \brief Returns a CachedRepresentationTask for the position and with the specified priority.
        *
@@ -291,7 +244,7 @@ namespace EspINA
        * responsibility of this method to see if the position is valid for the data that it holds.
        * If not, it must return a nullptr.
        */
-      CachedRepresentationTaskSPtr createTask(int position, Priority priority = Priority::NORMAL);
+      CachedRepresentationTaskSPtr createTask(CacheNode *node, Priority priority = Priority::NORMAL);
 
       /* \brief Sets the view this representation will be renderer on.
        *
@@ -305,8 +258,9 @@ namespace EspINA
       SchedulerSPtr             m_scheduler;    // scheduler for the CachedRepresentationTasks
       int                       m_planeIndex;   // plane index for the view.
       Nm                        m_planeSpacing; // spacing value in the movement of the view.
-      Nm                        m_min;          // minimal value in Nm of the bounds of movement for the data for this view.
-      Nm                        m_max;          // maximal value in Nm of the bounds of movement for the data for this view.
+      NmVector3                 m_depth;
+
+      friend class SegmentationSliceCachedRepresentationTask;
   };
 
   using SegmentationSliceCachedRepresentationPtr  = SegmentationSliceCachedRepresentation *;

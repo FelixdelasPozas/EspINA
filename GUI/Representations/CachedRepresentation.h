@@ -21,7 +21,6 @@
 
 // EspINA
 #include "Representation.h"
-#include "CachedRepresentationTask.h"
 #include <Core/MultiTasking/Scheduler.h>
 
 // Qt
@@ -38,7 +37,10 @@ class vtkActor;
 namespace EspINA
 {
   class RenderView;
+
   class CachedRepresentationTask;
+  using CachedRepresentationTaskPtr  = CachedRepresentationTask *;
+  using CachedRepresentationTaskSPtr = std::shared_ptr<CachedRepresentationTask>;
 
   class CachedRepresentation
   : public Representation
@@ -106,12 +108,6 @@ namespace EspINA
        */
       virtual unsigned long long getEstimatedMemoryUsed();
 
-      /* \brief Returns the average nanoseconds that it takes to generate an actor.
-       *
-       * Avegare time needed to finish a task, that is, average time to generate an actor.
-       */
-      virtual double getAverageTaskTime();
-
       /* \brief Set position of the cache.
        *
        * Sets the position of the cache. If the position is not cached the cache is emptied and
@@ -120,8 +116,54 @@ namespace EspINA
        */
       virtual void setPosition(int position);
 
-    protected slots:
-      void addActor();
+      /* \brief Returns true if the representation contains the actor.
+       *
+       */
+      virtual bool hasActor(vtkProp *actor) const;
+
+      /* \brief Sets the color of the channel.
+       *
+       * Sets the color of the channel, specified as a QColor.
+       */
+      virtual void setColor(const QColor &color);
+
+      /* \brief Sets the brightness of the channel representation.
+       *
+       * Sets the brightness of the channel representation. Brightness value belongs to [-1,1].
+       */
+      virtual void setBrightness(double value);
+
+      /* \brief Sets the channel representation constrat value.
+       *
+       * Sets the channel representation constrat value. Contrast value belongs to [0,2].
+       */
+      virtual void setContrast(double value);
+
+      /* \brief Returns the actors that comprise this representation.
+       *
+       */
+      virtual QList<vtkProp*> getActors();
+
+      /* \brief Returns this representation settings widget.
+       *
+       */
+      virtual RepresentationSettings *settingsWidget();
+
+      /* \brief Updates the representation visibility.
+       *
+       */
+      virtual void updateVisibility(bool visible);
+
+      /* \brief Returns true if the representations needs to update at the moment of calling
+       * this method.
+       *
+       */
+      virtual bool needUpdate();
+
+    protected:
+      struct CacheNode;
+    public slots:
+      void renderFrame(CachedRepresentation::CacheNode *node);
 
     protected:
 
@@ -142,35 +184,17 @@ namespace EspINA
           unsigned long long             creationTime;
           CacheNode                     *next;
           CacheNode                     *previous;
+          QMutex                         mutex;
 
           CacheNode(): position{0}, worker{nullptr}, actor{nullptr}, creationTime{0}, next{nullptr}, previous{nullptr} {};
       };
-
-      /* \brief Struct to store task execution times.
-       *
-       * Struct to store task execution times. The struct accumulates the time of execution of the tasks.
-       */
-      struct CacheTime
-      {
-          unsigned long long usec;
-          unsigned long long taskNum;
-
-          CacheTime() : usec(0), taskNum(0) {};
-      };
-
-      /* \brief Deletes a task from a node.
-       *
-       * Deletes a task from a node. The parameter can be nullptr. If the task has not finished then it enters the list of
-       * tasks to be deleted once they finish or are aborted.
-       */
-      void deleteTask(CacheNode *node);
 
       /* \brief Virtual method to override by subclasses.
        *
        * Virtual method to override by subclasses. Returns a task with the input set, ready to be executed. The parameters
        * specify the position (slice) of the needed actor and the priority of the task (NORMAL priority if omitted).
        */
-      virtual CachedRepresentationTaskSPtr createTask(int position, Priority priority = Priority::NORMAL) = 0;
+      virtual CachedRepresentationTaskSPtr createTask(CacheNode *node, Priority priority = Priority::NORMAL) = 0;
 
       /* \brief Prints the cache window info.
        *
@@ -178,6 +202,11 @@ namespace EspINA
        */
       void printBufferInfo();
 
+      /* \brief Returns true if the representation in that node needs to update at the moment
+       * of calling this method.
+       *
+       */
+      virtual bool needUpdate(CacheNode *node) = 0;
 
       // Protected attributes.
       unsigned int   m_windowWidth;    // Actual cache window width
@@ -185,10 +214,10 @@ namespace EspINA
       CacheNode     *m_actualPos;      // Node interpreted as the "center" of the circular buffer and actual actor on the view
       CacheNode     *m_edgePos;        // Node interpreted as a edge of the circular buffer and the one inserting/deleting
                                        // actors from the ring as the "center" moves
-      CacheTime      m_time;           // Time storage.
 
-      vtkSmartPointer<vtkAssembly> m_actor;         // Global actor. Generated actors are inserted into this one or removed from it.
-      vtkSmartPointer<vtkActor>    m_symbolicActor; // Actor that the user sees when the task hasn't finished yet (during a cache miss).
+      vtkSmartPointer<vtkActor> m_symbolicActor; // Actor that the user sees when the task hasn't finished yet (during a cache miss).
+
+      friend class CachedRepresentationTask;
   };
 
   using CachedRepresentationPtr   = CachedRepresentation *;

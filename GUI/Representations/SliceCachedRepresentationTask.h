@@ -20,6 +20,7 @@
 #define ESPINA_SLICE_CACHED_REPRESENTATION_TASK_H_
 
 // EspINA
+#include "SliceCachedRepresentation.h"
 #include "CachedRepresentationTask.h"
 
 // VTK
@@ -52,7 +53,7 @@ namespace EspINA
        *
        *  The values must be valid to guarantee that an actor will be generated.
        */
-      void setInput(DefaultVolumetricDataSPtr data, Nm position, Plane plane, double brightness, double contrast, QColor color);
+      void setInput(DefaultVolumetricDataSPtr data, Nm position, Plane plane, double brightness, double contrast, QColor color, NmVector3 depth, CachedRepresentation::CacheNode *node);
 
     protected:
       /* \brief Code to create the actor.
@@ -61,13 +62,17 @@ namespace EspINA
       void run();
 
     private:
-      double                    m_brightness;
-      double                    m_contrast;
-      QColor                    m_color;
-      DefaultVolumetricDataSPtr m_data;
-      Nm                        m_position;
-      Plane                     m_plane;
+      double                              m_brightness;
+      double                              m_contrast;
+      QColor                              m_color;
+      DefaultVolumetricDataSPtr           m_data;
+      Nm                                  m_position;
+      Plane                               m_plane;
+      CachedRepresentation::CacheNode    *m_node;
   };
+
+  using ChannelSliceCachedRepresentationTaskPtr  = ChannelSliceCachedRepresentationTask *;
+  using ChannelSliceCachedRepresentationTaskSPtr = std::shared_ptr<ChannelSliceCachedRepresentationTask>;
 
   //-----------------------------------------------------------------------------
   class SegmentationSliceCachedRepresentationTask
@@ -89,7 +94,7 @@ namespace EspINA
        *
        *  The values must be valid to guarantee that an actor will be generated.
        */
-      void setInput(DefaultVolumetricDataSPtr data, Nm position, Plane plane, double brightness, double contrast, QColor color);;
+      void setInput(DefaultVolumetricDataSPtr data, Nm position, Plane plane, double brightness, double contrast, QColor color, NmVector3 depth, CachedRepresentation::CacheNode *node);
 
     protected:
       /* \brief Code to create the actor.
@@ -98,11 +103,17 @@ namespace EspINA
       void run();
 
     private:
-      QColor                    m_color;
-      DefaultVolumetricDataSPtr m_data;
-      Nm                        m_position;
-      Plane                     m_plane;
+      QColor                           m_color;
+      NmVector3                        m_depth;
+      DefaultVolumetricDataSPtr        m_data;
+      Nm                               m_position;
+      Plane                            m_plane;
+      CachedRepresentation::CacheNode *m_node;
   };
+
+  using SegmentationSliceCachedRepresentationTaskPtr  = SegmentationSliceCachedRepresentationTask *;
+  using SegmentationSliceCachedRepresentationTaskSPtr = std::shared_ptr<SegmentationSliceCachedRepresentationTask>;
+
 
 } // namespace EspINA
 

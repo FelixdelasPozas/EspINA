@@ -25,6 +25,7 @@ qt4_wrap_cpp(GUI_MOC
   Representations/SliceRepresentationSettings.h
   Representations/SmoothedMeshRepresentation.h
   Representations/CachedRepresentation.h
+  Representations/CachedRepresentationTask.h
   Selectors/Selector.h
   Selectors/BrushSelector.h
   View/RenderView.h
