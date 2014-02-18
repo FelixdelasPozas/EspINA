@@ -17,7 +17,7 @@
  */
 
 #include "Panel.h"
-#include "Dialogs/TypeDialog.h"
+#include "Dialogs/CFTypeSelectorDialog.h"
 #include "Extensions/CountingFrameExtension.h"
 #include "Extensions/ExtensionUtils.h"
 
@@ -459,39 +459,31 @@ void Panel::updateUI(QModelIndex index)
 //------------------------------------------------------------------------
 void Panel::createCountingFrame()
 {
-  auto channel = m_viewManager->activeChannel();
-  Q_ASSERT(channel);
-
-  Nm inclusion[3];
-  Nm exclusion[3];
-
-  computeOptimalMargins(channel, inclusion, exclusion);
-  memset(exclusion, 0, 3*sizeof(Nm));
-
-  TypeDialog cfSelector(m_model, this);
-
-  auto edgesExtension = retrieveOrCreateExtension<ChannelEdges>(channel);
-
-  if (edgesExtension->useDistanceToBounds())
-  {
-    cfSelector.setType(ORTOGONAL);
-  }
-  else
-  {
-    cfSelector.setType(ADAPTIVE);
-  }
+  CFTypeSelectorDialog cfSelector(m_model, this);
 
   if (cfSelector.exec())
   {
     CFType type        = cfSelector.type();
     QString constraint = cfSelector.categoryConstraint();
 
+    auto channel = cfSelector.channel();
+    Q_ASSERT(channel);
+
     if (!channel->hasExtension(CountingFrameExtension::TYPE))
     {
       channel->addExtension(m_manager->createExtension());
     }
+
+    Nm inclusion[3];
+    Nm exclusion[3];
+
+    computeOptimalMargins(channel, inclusion, exclusion);
+    memset(exclusion, 0, 3*sizeof(Nm));
+
     auto extension = countingFrameExtensionPtr(channel->extension(CountingFrameExtension::TYPE));
     extension->createCountingFrame(type, inclusion, exclusion, constraint);
+
+    applyCountingFrames(QueryAdapter::segmentationsOnChannelSample(channel));
   }
 //
 //   updateSegmentations();
@@ -729,9 +721,8 @@ void Panel::computeOptimalMargins(ChannelAdapterPtr channel,
 
     for (int i=0; i < 3; i++)
     {
-      Nm shift   = i < 2? 0.5:-0.5;
-      Nm length  = bounds[2*i+1] - bounds[2*i];
-      Nm length2 = bounds.lenght(toAxis(i));
+      Nm shift  = i < 2? 0.5:-0.5;
+      Nm length = bounds.lenght(toAxis(i));
 
       if (dist2Margin[2*i] < delta[i])
         inclusion[i] = (vtkMath::Round(std::max(length, inclusion[i])/spacing[i]-shift)+shift)*spacing[i];
@@ -839,27 +830,7 @@ void Panel::onSegmentationsAdded(SegmentationAdapterSList segmentations)
 {
   if (!m_manager->countingFrames().isEmpty())
   {
-    for (auto segmentation : segmentations)
-    {
-      if (!segmentation->hasExtension(StereologicalInclusion::TYPE))
-      {
-        auto sterologicalExtension = retrieveOrCreateExtension<StereologicalInclusion>(segmentation);
-
-        for (auto channel : QueryAdapter::channels(segmentation))
-        {
-          if (channel->hasExtension(CountingFrameExtension::TYPE))
-          {
-            auto cfExtension = retrieveExtension<CountingFrameExtension>(channel);
-
-            for (auto cf : cfExtension->countingFrames())
-            {
-              sterologicalExtension->addCountingFrame(cf);
-            }
-          }
-        }
-
-      }
-    }
+    applyCountingFrames(segmentations);
   }
 }
 
@@ -886,4 +857,30 @@ void Panel::exportCountingFrameDescriptionAsText(const QString &filename)
 void Panel::exportCountingFrameDescriptionAsExcel(const QString& filename)
 {
 
+}
+
+//------------------------------------------------------------------------
+void Panel::applyCountingFrames(SegmentationAdapterSList segmentations)
+{
+  qDebug() << "Total Segmentations" << segmentations.size();
+  for (auto segmentation : segmentations)
+  {
+    auto sterologicalExtension = retrieveOrCreateExtension<StereologicalInclusion>(segmentation);
+
+    auto samples = QueryAdapter::samples(segmentation);
+    Q_ASSERT(samples.size() == 1);
+
+    for (auto channel : QueryAdapter::channels(samples[0]))
+    {
+      if (channel->hasExtension(CountingFrameExtension::TYPE))
+      {
+        auto cfExtension = retrieveExtension<CountingFrameExtension>(channel);
+
+        for (auto cf : cfExtension->countingFrames())
+        {
+          sterologicalExtension->addCountingFrame(cf);
+        }
+      }
+    }
+  }
 }

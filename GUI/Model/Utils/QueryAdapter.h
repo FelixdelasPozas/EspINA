@@ -30,6 +30,10 @@ namespace EspINA {
   class QueryAdapter
   {
   public:
+    static ChannelAdapterSList channels(SampleAdapterPtr sample);
+
+    static ChannelAdapterSList channels(SampleAdapterSPtr sample);
+
     static ChannelAdapterSList channels(SegmentationAdapterPtr segmentation);
 
     static ChannelAdapterSList channels(SegmentationAdapterSPtr segmentation);
@@ -38,12 +42,18 @@ namespace EspINA {
 
     static SampleAdapterSPtr sample(ChannelAdapterPtr channel);
 
+    static SampleAdapterSList samples(SegmentationAdapterSPtr segmentation);
+
+    static SampleAdapterSList samples(SegmentationAdapterPtr segmentation);
+
     static SegmentationAdapterSList segmentationsOnChannelSample(ChannelAdapterSPtr channel);
 
     static SegmentationAdapterSList segmentationsOnChannelSample(ChannelAdapterPtr channel);
 
   private:
     static SampleAdapterSPtr        smartPointer(ModelAdapterPtr model, SampleSPtr adaptedSample);
+
+    static SampleAdapterSList       smartPointer(ModelAdapterPtr model, SampleSList adaptedSamples);
 
     static ChannelAdapterSList      smartPointer(ModelAdapterPtr model, ChannelSList adaptedChannels);
 

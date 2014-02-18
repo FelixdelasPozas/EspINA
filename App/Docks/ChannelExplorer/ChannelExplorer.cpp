@@ -22,6 +22,8 @@
 // EspINA
 #include "EspinaConfig.h"
 #include "Dialogs/ChannelInspector/ChannelInspector.h"
+#include <GUI/Model/Utils/QueryAdapter.h>
+#include <Core/Analysis/Channel.h>
 // #include <Undo/UnloadChannelCommand.h>
 // #include <Undo/UnloadSampleCommand.h>
 
@@ -69,6 +71,10 @@ ChannelExplorer::ChannelExplorer(ModelAdapterSPtr model,
 
   m_sort->setSourceModel(m_channelProxy.get());
   m_gui->view->setModel(m_sort.get());
+
+  connect(m_channelProxy.get(), SIGNAL(channelsDragged(ChannelAdapterList, SampleAdapterPtr)),
+          this,                 SLOT  (channelsDragged(ChannelAdapterList,SampleAdapterPtr)));
+
 
   connect(m_gui->showInformation, SIGNAL(clicked(bool)),
           this, SLOT(showInformation()));
@@ -528,4 +534,18 @@ void ChannelExplorer::dialogClosed(QObject *dialog)
 void ChannelExplorer::inspectorChangedSpacing()
 {
   m_viewManager->resetViewCameras();
+}
+
+//------------------------------------------------------------------------
+void ChannelExplorer::channelsDragged(ChannelAdapterList channels, SampleAdapterPtr sample)
+{
+  auto smartSample  = m_model->smartPointer(sample);
+  for (auto channel : channels)
+  {
+    auto prevSample   = QueryAdapter::sample(channel);
+    auto smartChannel = m_model->smartPointer(channel);
+
+    m_model->deleteRelation(prevSample, smartChannel, Channel::STAIN_LINK);
+    m_model->addRelation   (smartSample, smartChannel, Channel::STAIN_LINK);
+  }
 }

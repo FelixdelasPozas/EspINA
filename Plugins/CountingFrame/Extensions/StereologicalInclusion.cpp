@@ -132,24 +132,18 @@ QString StereologicalInclusion::toolTipText() const
 {
   QString tooltip;
 
-  bool addBreakLine = false;
   if (isOnEdge())
   {
     QString description = "<font color=\"red\">"   + tr("Touches Stack Edge") + "</font>";
     tooltip = tooltip.append(condition(":/apply.svg", description));
-    addBreakLine = true;
   }
+
   for(auto cf : m_exclusionCFs.keys())
   {
-    if (addBreakLine) tooltip = tooltip.append("<br>");
-
-
     QString description = information(cfTag(cf)).toBool()?
     "<font color=\"green\">" + tr("Included in %1 Counting Frame"  ).arg(cf->id()) + "</font>":
     "<font color=\"red\">"   + tr("Excluded from %1 Counting Frame").arg(cf->id()) + "</font>";
     tooltip = tooltip.append(condition(":/apply.svg", description));
-
-    addBreakLine = true;
   }
 
   return tooltip;

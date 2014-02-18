@@ -25,6 +25,23 @@
 using namespace EspINA;
 
 //------------------------------------------------------------------------
+ChannelAdapterSList QueryAdapter::channels(SampleAdapterSPtr sample)
+{
+  return channels(sample.get());
+}
+
+//------------------------------------------------------------------------
+ChannelAdapterSList QueryAdapter::channels(SampleAdapterPtr sample)
+{
+  auto adaptedSample = sample->m_sample;
+  auto model = sample->model();
+
+  ChannelAdapterSList adaptedChannels;
+
+  return smartPointer(model, Query::channels(adaptedSample));
+}
+
+//------------------------------------------------------------------------
 ChannelAdapterSList QueryAdapter::channels(SegmentationAdapterSPtr segmentation)
 {
   return channels(segmentation.get());
@@ -59,6 +76,21 @@ SampleAdapterSPtr QueryAdapter::sample(ChannelAdapterPtr channel)
 }
 
 //------------------------------------------------------------------------
+SampleAdapterSList QueryAdapter::samples(SegmentationAdapterSPtr segmentation)
+{
+  return samples(segmentation.get());
+}
+
+//------------------------------------------------------------------------
+SampleAdapterSList QueryAdapter::samples(SegmentationAdapterPtr segmentation)
+{
+  auto adaptedSegmentation = segmentation->m_segmentation;
+  auto model = segmentation->model();
+
+  return smartPointer(model, Query::samples(adaptedSegmentation));
+}
+
+//------------------------------------------------------------------------
 SegmentationAdapterSList QueryAdapter::segmentationsOnChannelSample(ChannelAdapterSPtr channel)
 {
   return segmentationsOnChannelSample(channel.get());
@@ -87,6 +119,19 @@ SampleAdapterSPtr QueryAdapter::smartPointer(ModelAdapterPtr model, SampleSPtr a
   }
 
   return SampleAdapterSPtr();
+}
+
+//------------------------------------------------------------------------
+SampleAdapterSList QueryAdapter::smartPointer(ModelAdapterPtr model, SampleSList adaptedSamples)
+{
+  SampleAdapterSList samples;
+
+  for (auto adaptedSample : adaptedSamples)
+  {
+    samples << smartPointer(model, adaptedSample);
+  }
+
+  return samples;
 }
 
 //------------------------------------------------------------------------

@@ -187,10 +187,10 @@ namespace EspINA
     CategoryAdapterSPtr smartPointer(CategoryAdapterPtr category);
 // 
 //     virtual SampleAdapterSPtr findSampleAdapter(ModelItemPtr item  );
-//     virtual SampleAdapterSPtr findSampleAdapter(SampleAdapterPtr    sample);
+    virtual SampleAdapterSPtr smartPointer(SampleAdapterPtr    sample);
 // 
 //     virtual ChannelSPtr findChannel(ModelItemPtr item   );
-//     virtual ChannelSPtr findChannel(ChannelPtr   channel);
+    virtual ChannelAdapterSPtr smartPointer(ChannelAdapterPtr channel);
 // 
 //     virtual SegmentationAdapterSPtr findSegmentation(ModelItemPtr    item        );
     virtual SegmentationAdapterSPtr smartPointer(SegmentationAdapterPtr segmentation);

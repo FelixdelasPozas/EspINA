@@ -376,7 +376,7 @@ void ChannelProxy::sourceRowsInserted(const QModelIndex& sourceParent, int start
       {
         QModelIndex sampleIndex = m_model->index(row, 0, sourceParent);
         ItemAdapterPtr sourceRow = itemAdapter(sampleIndex);
-        Q_ASSERT(ItemAdapter::Type::SAMPLE == sourceRow->type());
+        Q_ASSERT(isSample(sourceRow));
         SampleAdapterPtr sample = samplePtr(sourceRow);
         m_samples << sample;
         auto channels = m_model->relatedItems(sample, EspINA::RELATION_OUT, Channel::STAIN_LINK);
@@ -401,7 +401,7 @@ void ChannelProxy::sourceRowsInserted(const QModelIndex& sourceParent, int start
     {
       auto channelIndex = m_model->index(row, 0, sourceParent);
       auto sourceRow = itemAdapter(channelIndex);
-      Q_ASSERT(ItemAdapter::Type::CHANNEL == sourceRow->type());
+      Q_ASSERT(isChannel(sourceRow));
       auto channel = channelPtr(sourceRow);
 
       auto samples = m_model->relatedItems(channel, EspINA::RELATION_IN, Channel::STAIN_LINK);
@@ -411,7 +411,7 @@ void ChannelProxy::sourceRowsInserted(const QModelIndex& sourceParent, int start
         auto sampleIndex = m_model->sampleIndex(sample);
         int channelStart = m_model->rowCount(sampleIndex);
         int channelEnd   = channelStart + end - start;
-        if (sample && channel && (!m_channels.contains(sample) || m_channels[sample].contains(channel)))
+        if (sample && channel && (!m_channels.contains(sample) || !m_channels[sample].contains(channel)))
         {
           beginInsertRows(sampleIndex, channelStart, channelEnd);
           {

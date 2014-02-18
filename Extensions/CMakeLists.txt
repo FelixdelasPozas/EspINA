@@ -20,6 +20,7 @@ set (EXTENSIONS_SOURCES
   EdgeDistances/AdaptiveEdgesCreator.cpp
   EdgeDistances/EdgesAnalyzer.cpp
   EdgeDistances/EdgeDistance.cpp
+  Morphological/MorphologicalInformation.cpp
   Tags/TagExtension.cpp
   )
 

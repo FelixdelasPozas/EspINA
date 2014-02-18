@@ -684,6 +684,38 @@ CategoryAdapterSPtr ModelAdapter::smartPointer(CategoryAdapterPtr category)
 }
 
 //------------------------------------------------------------------------
+SampleAdapterSPtr ModelAdapter::smartPointer(SampleAdapterPtr sample)
+{
+  SampleAdapterSPtr pointer;
+
+  int i=0;
+  while (!pointer && i < m_samples.size())
+  {
+    if (m_samples[i].get() == sample)
+      pointer = m_samples[i];
+    i++;
+  }
+
+  return pointer;
+}
+
+//------------------------------------------------------------------------
+ChannelAdapterSPtr ModelAdapter::smartPointer(ChannelAdapterPtr channel)
+{
+  ChannelAdapterSPtr pointer;
+
+  int i=0;
+  while (!pointer && i < m_channels.size())
+  {
+    if (m_channels[i].get() == channel)
+      pointer = m_channels[i];
+    i++;
+  }
+
+  return pointer;
+}
+
+//------------------------------------------------------------------------
 SegmentationAdapterSPtr ModelAdapter::smartPointer(SegmentationAdapterPtr segmentation)
 {
   SegmentationAdapterSPtr pointer;

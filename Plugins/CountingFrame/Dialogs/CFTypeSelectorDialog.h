@@ -16,15 +16,15 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ESPINA_CF_TYPE_DIALOG_H
-#define ESPINA_CF_TYPE_DIALOG_H
+#ifndef ESPINA_CF_CF_TYPE_SELECTOR_DIALOG_H
+#define ESPINA_CF_CF_TYPE_SELECTOR_DIALOG_H
 
 // EspINA
-#include "Dialogs/TypeDialog.h"
-#include "ui_TypeDialog.h"
+#include "ui_CFTypeSelectorDialog.h"
 
 #include <CountingFrames/CountingFrame.h>
 #include <GUI/Model/ModelAdapter.h>
+#include <GUI/Model/Proxies/ChannelProxy.h>
 
 // Qt
 #include <QDialog>
@@ -33,30 +33,41 @@ namespace EspINA
 {
   namespace CF
   {
-    class TypeDialog
+    class CFTypeSelectorDialog
     : public QDialog
-    , private Ui::TypeDialog
+    , private Ui::CFTypeSelectorDialog
     {
       Q_OBJECT
 
     public:
-      TypeDialog(ModelAdapterSPtr model, QWidget *parent);
-      virtual ~TypeDialog() {};
+      CFTypeSelectorDialog(ModelAdapterSPtr model, QWidget *parent);
+
+      virtual ~CFTypeSelectorDialog() {};
 
       void setType(CFType type);
 
       CFType type() const { return m_type; }
 
+      ChannelAdapterPtr channel()
+      { return m_channel; }
+
       QString categoryConstraint() const;
 
     public slots:
+      void channelSelected();
+
       void radioChanged(bool);
 
     private:
       CFType m_type;
+
+      std::shared_ptr<ChannelProxy> m_proxy;
+
+      QModelIndex       m_channelIndex;
+      ChannelAdapterPtr m_channel;
     };
 
   }
 } /* namespace EspINA */
 
-#endif // ESPINA_CF_TYPE_DIALOG_H
+#endif // ESPINA_CF_CF_TYPE_SELECTOR_DIALOG_H

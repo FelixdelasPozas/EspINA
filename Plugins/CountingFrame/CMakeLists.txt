@@ -35,7 +35,7 @@ qt4_add_resources (RCC_BUILT_SOURCES
 
 # Create Interface files
 qt4_wrap_ui (UI_BUILT_SOURCES
-  Dialogs/TypeDialog.ui
+  Dialogs/CFTypeSelectorDialog.ui
   Panel.ui
   )
 
@@ -45,7 +45,7 @@ qt4_wrap_cpp(MOC_SRCS
   CountingFramePlugin.h
   CountingFrameRenderer.h
   CountingFrames/CountingFrame.h
-  Dialogs/TypeDialog.h
+  Dialogs/CFTypeSelectorDialog.h
   Extensions/CountingFrameExtension.h
   Extensions/StereologicalInclusion.h
   Panel.h
@@ -67,7 +67,7 @@ set (LOCAL_SOURCES
   CountingFrames/vtkCountingFrameRepresentationYZ.cpp
   CountingFrames/vtkCountingFrameSliceRepresentation.cpp
   CountingFrames/vtkCountingFrameSliceWidget.cpp
-  Dialogs/TypeDialog.cpp
+  Dialogs/CFTypeSelectorDialog.cpp
   Extensions/CountingFrameExtension.cpp
   Extensions/CountingFrameFactory.cpp
   Extensions/StereologicalInclusion.cpp

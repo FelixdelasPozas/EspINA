@@ -75,6 +75,8 @@ namespace EspINA
     void dialogClosed(QObject *);
     void inspectorChangedSpacing();
 
+    void channelsDragged(ChannelAdapterList channel, SampleAdapterPtr sample);
+
   private:
     ModelAdapterSPtr m_model;
     ViewManagerSPtr  m_viewManager;

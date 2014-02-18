@@ -20,6 +20,7 @@
 #include "DefaultSegmentationExtensionFactory.h"
 
 #include <Extensions/EdgeDistances/EdgeDistance.h>
+#include <Extensions/Morphological/MorphologicalInformation.h>
 
 using namespace EspINA;
 
@@ -32,6 +33,10 @@ SegmentationExtensionSPtr DefaultSegmentationExtensionFactory::createSegmentatio
   {
     extension = SegmentationExtensionSPtr{new EdgeDistance()};
   }
+  else if (MorphologicalInformation::TYPE == type)
+  {
+    extension = SegmentationExtensionSPtr{new MorphologicalInformation()};
+  }
 
   return extension;
 }
@@ -42,6 +47,7 @@ SegmentationExtensionTypeList DefaultSegmentationExtensionFactory::providedExten
   SegmentationExtensionTypeList extensionTypes;
 
   extensionTypes << EdgeDistance::TYPE;
+  extensionTypes << MorphologicalInformation::TYPE;
 
   return extensionTypes;
 }

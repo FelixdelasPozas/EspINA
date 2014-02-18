@@ -216,6 +216,10 @@ void ChannelEdges::distanceToEdges(SegmentationPtr segmentation, Nm distances[6]
     distanceFilter->SetInputData(1, m_faces[face]);
     distanceFilter->Update();
     distances[face] = distanceFilter->GetOutput()->GetPointData()->GetScalars()->GetRange()[0];
+    if (distances[face] < 0)
+    {
+      qDebug() << distances[face];
+    }
   }
 }
 

@@ -17,8 +17,10 @@
  */
 
 // EspINA
-#include "Dialogs/TypeDialog.h"
+#include "Dialogs/CFTypeSelectorDialog.h"
 #include <GUI/Model/ModelAdapter.h>
+#include <Extensions/ExtensionUtils.h>
+#include <Extensions/EdgeDistances/ChannelEdges.h>
 
 // Qt
 #include <QDialog>
@@ -28,9 +30,11 @@ using namespace EspINA;
 using namespace EspINA::CF;
 
 //-----------------------------------------------------------------------------
-TypeDialog::TypeDialog(ModelAdapterSPtr model, QWidget *parent)
+CFTypeSelectorDialog::CFTypeSelectorDialog(ModelAdapterSPtr model, QWidget *parent)
 : QDialog(parent)
 , m_type(CF::ADAPTIVE)
+, m_proxy(new ChannelProxy(model))
+, m_channel(nullptr)
 {
   setupUi(this);
 
@@ -62,10 +66,25 @@ TypeDialog::TypeDialog(ModelAdapterSPtr model, QWidget *parent)
 
   categorySelector->setModel(model.get());
   categorySelector->setRootModelIndex(model->classificationRoot());
+
+  channelSelector->setModel(m_proxy.get());
+
+  connect(channelSelector, SIGNAL(activated(QModelIndex)),
+          this, SLOT(channelSelected()));
+
+  connect(channelSelector, SIGNAL(activated(int)),
+          this, SLOT(channelSelected()));
+
+  m_channelIndex = m_proxy->index(0, 0);
+  m_channelIndex = m_channelIndex.child(0,0);
+
+  channelSelector->setCurrentModelIndex(m_channelIndex);
+
+
 }
 
 //------------------------------------------------------------------------
-void TypeDialog::setType(CFType type)
+void CFTypeSelectorDialog::setType(CFType type)
 {
   if (ORTOGONAL == type)
   {
@@ -78,7 +97,7 @@ void TypeDialog::setType(CFType type)
 }
 
 //------------------------------------------------------------------------
-QString TypeDialog::categoryConstraint() const
+QString CFTypeSelectorDialog::categoryConstraint() const
 {
   QString constraint;
 
@@ -99,8 +118,39 @@ QString TypeDialog::categoryConstraint() const
   return constraint;
 }
 
+
 //------------------------------------------------------------------------
-void TypeDialog::radioChanged(bool value)
+void CFTypeSelectorDialog::channelSelected()
+{
+  auto currentIndex = channelSelector->currentModelIndex();
+
+  auto item = itemAdapter(currentIndex);
+
+  if (item && isChannel(item))
+  {
+    m_channelIndex = currentIndex;
+
+    m_channel = channelPtr(item);
+
+    auto edgesExtension = retrieveOrCreateExtension<ChannelEdges>(m_channel);
+
+    if (edgesExtension->useDistanceToBounds())
+    {
+      setType(CF::ORTOGONAL);
+    }
+    else
+    {
+      setType(CF::ADAPTIVE);
+    }
+  }
+  else
+  {
+    channelSelector->setCurrentModelIndex(m_channelIndex);
+  }
+}
+
+//------------------------------------------------------------------------
+void CFTypeSelectorDialog::radioChanged(bool value)
 {
   bool adaptiveChecked = sender() == adaptiveRadio;
   if (adaptiveChecked)

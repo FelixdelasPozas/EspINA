@@ -17,13 +17,12 @@
  */
 
 
-#ifndef MORPHOLOGICALINFORMATION_H
-#define MORPHOLOGICALINFORMATION_H
+#ifndef ESPINA_MORPHOLOGICAL_INFORMATION_H
+#define ESPINA_MORPHOLOGICAL_INFORMATION_H
 
 #include "EspinaCore_Export.h"
 
-#include "Core/Extensions/SegmentationExtension.h"
-#include "Core/EspinaTypes.h"
+#include <Core/Analysis/Extension.h>
 
 // ITK
 #include <itkLabelImageToShapeLabelMapFilter.h>
@@ -31,97 +30,64 @@
 
 namespace EspINA
 {
-  const ModelItem::ExtId MorphologicalInformationID = "MorphologicalExtension";
-
   class EspinaCore_EXPORT MorphologicalInformation
-  : public Segmentation::Information
+  : public SegmentationExtension
   {
-
-    typedef itk::StatisticsLabelObject<unsigned int, 3> LabelObjectType;
-    typedef itk::LabelMap<LabelObjectType> LabelMapType;
-    typedef itk::LabelImageToShapeLabelMapFilter<itkVolumeType, LabelMapType> Image2LabelFilterType;
-
-    struct EspinaCore_EXPORT ExtensionData
-    {
-      ExtensionData();
-
-	    bool operator==(const ExtensionData& other) const
-	    {
-		    bool retVal = (Size == other.Size);
-		    retVal |= (PhysicalSize == other.PhysicalSize);
-		    retVal |= (FeretDiameter == other.FeretDiameter);
-		    for (int i = 0; i < 3; ++i)
-		    {
-			    retVal |= (Centroid[i] == other.Centroid[i]);
-			    retVal |= (BinaryPrincipalMoments[i] == other.BinaryPrincipalMoments[i]);
-			    retVal |= (EquivalentEllipsoidSize[i] == other.EquivalentEllipsoidSize[i]);
-			    for (int j = 0; j < 3; ++j)
-				    retVal |= (BinaryPrincipalAxes[i][j] == other.BinaryPrincipalAxes[i][j]);
-		    }
-
-		    return retVal;
-	    }
-
-      double Size;
-      double PhysicalSize;
-      double Centroid[3];
-      //int    Region[3];
-      double BinaryPrincipalMoments[3];
-      double BinaryPrincipalAxes[3][3];
-      double FeretDiameter;
-      double EquivalentEllipsoidSize[3];
-    };
-
-    typedef Cache<SegmentationPtr, ExtensionData> ExtensionCache;
-
-    static ExtensionCache s_cache;
-
-    const static QString EXTENSION_FILE;
+    using LabelObjectType = itk::StatisticsLabelObject<unsigned int, 3>;
+    using LabelMapType    = itk::LabelMap<LabelObjectType>;
+    using Image2LabelFilterType = itk::LabelImageToShapeLabelMapFilter<itkVolumeType, LabelMapType>;
 
   public:
-    explicit MorphologicalInformation();
+    static const Type TYPE;
+
+  public:
+    explicit MorphologicalInformation(const State     &state = State(),
+                                      const InfoCache &cache = InfoCache());
+
     virtual ~MorphologicalInformation();
 
-    virtual ModelItem::ExtId id();
-    
-    virtual ModelItem::ExtIdList dependencies() const
-    { return Segmentation::Extension::dependencies(); }
+    virtual QString type() const
+    { return TYPE; }
 
-    virtual Segmentation::InfoTagList availableInformations() const;
+    virtual State state() const;
 
-    virtual bool validTaxonomy(const QString &qualifiedName) const 
+    virtual Snapshot snapshot() const;
+
+    virtual TypeList dependencies() const
+    { return TypeList(); }
+
+    virtual bool invalidateOnChange() const
+    { return true; }
+
+    virtual InfoTagList availableInformations() const;
+
+    virtual bool validCategory(const QString& classificationName) const
     { return true;}
 
-    virtual void setSegmentation(SegmentationPtr seg);
+  protected:
+    virtual QVariant cacheFail(const QString& tag) const;
 
-    virtual QVariant information(const Segmentation::InfoTag &tag);
-
-
-    virtual bool isCacheFile(const QString &file) const
-    { return EXTENSION_FILE == file; }
-
-    virtual void loadCache(QuaZipFile  &file,
-                           const QDir  &tmpDir,
-                           IEspinaModel *model);
-
-    virtual bool saveCache(Snapshot &snapshot);
-
-    virtual Segmentation::InformationExtension clone();
-
-    virtual void initialize();
-
-    virtual void invalidate(SegmentationPtr segmentation = NULL);
+    virtual void onExtendedItemSet(Segmentation* item);
 
   private:
-    void updateInformation();
+    void updateInformation() const;
 
   private:
     Image2LabelFilterType::Pointer m_labelMap;
     mutable LabelObjectType       *m_statistic;
 
     mutable bool m_validFeret;
+
+    double Size;
+    double PhysicalSize;
+    double Centroid[3];
+    //int    Region[3];
+    double BinaryPrincipalMoments[3];
+    double BinaryPrincipalAxes[3][3];
+    double FeretDiameter;
+    double EquivalentEllipsoidSize[3];
   };
 
 }// namespace EspINA
 
-#endif // MORPHOLOGICALINFORMATION_H
+#endif // ESPINA_MORPHOLOGICAL_INFORMATION_H

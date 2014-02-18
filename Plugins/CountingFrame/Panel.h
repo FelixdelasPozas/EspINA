@@ -114,6 +114,8 @@ namespace EspINA
 
     void exportCountingFrameDescriptionAsExcel(const QString& filename);
 
+    void applyCountingFrames(SegmentationAdapterSList segmentations);
+
   private:
     CountingFrameManager *m_manager;
     ModelAdapterSPtr      m_model;
