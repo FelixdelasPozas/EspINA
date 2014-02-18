@@ -57,7 +57,7 @@ int io_load_seg_file_analysis_without_registered_filters( int argc, char** argv 
   analysis.add(sample);
 
   FilterSPtr filter{new DummyFilter()};
-  ChannelSPtr channel(new Channel(filter, 0));
+  ChannelSPtr channel(new Channel(getInput(filter, 0)));
   channel->setName("channel");
 
   analysis.add(channel);
@@ -65,7 +65,7 @@ int io_load_seg_file_analysis_without_registered_filters( int argc, char** argv 
   analysis.addRelation(sample, channel, "Stain");
 
   FilterSPtr segFilter{new DummyFilter()};
-  SegmentationSPtr segmentation(new Segmentation(segFilter, 0));
+  SegmentationSPtr segmentation(new Segmentation(getInput(segFilter, 0)));
   segmentation->setNumber(1);
 
   SegmentationExtensionSPtr extension{new DummySegmentationExtension()};

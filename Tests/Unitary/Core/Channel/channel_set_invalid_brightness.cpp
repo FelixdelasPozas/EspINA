@@ -36,7 +36,7 @@ int channel_set_invalid_brightness(int argc, char** argv )
 {
   bool error = false;
 
-  ChannelSPtr channel{new Channel(FilterSPtr(),0)};
+  ChannelSPtr channel{new Channel(InputSPtr())};
   
   channel->setBrightness(-1.5);
   if (channel->brightness() != -1.0) {

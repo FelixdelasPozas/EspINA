@@ -29,9 +29,9 @@ namespace EspINA {
     : public Filter
     {
     public:
-      explicit DummyFilter(OutputSList inputs = OutputSList())
+      explicit DummyFilter(InputSList inputs = InputSList())
       : Filter(inputs, "Dummy", SchedulerSPtr())
-      { m_outputs << OutputSPtr{new Output(this, 0)};}
+      { m_outputs[0] = std::make_shared<Output>(this, 0);}
       virtual void restoreState(const State& state) {}
       virtual State state() const {return State();}
 
@@ -49,9 +49,9 @@ namespace EspINA {
     : public Filter
     {
     public:
-      explicit DummyFilterWithInputs(OutputSList inputs)
+      explicit DummyFilterWithInputs(InputSList inputs)
       : Filter(inputs, "DummyWithInputs", SchedulerSPtr())
-      { m_outputs << OutputSPtr{new Output(this, 0)};}
+      { m_outputs[0] = std::make_shared<Output>(this, 0);}
       virtual void restoreState(const State& state) {}
       virtual State state() const {return State();}
 

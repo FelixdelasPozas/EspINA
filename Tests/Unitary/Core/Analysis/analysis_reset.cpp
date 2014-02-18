@@ -44,10 +44,12 @@ int analysis_reset( int argc, char** argv )
   SampleSPtr sample{new Sample()};
   
   FilterSPtr filter{new Testing::DummyFilter()};
+  auto input = getInput(filter, 0);
 
-  ChannelSPtr channel(new Channel(filter, 0));
+  ChannelSPtr channel(new Channel(input));
+  auto input1 = getInput(filter, 0);
  
-  SegmentationSPtr segmentation{new Segmentation(filter, 0)};
+  SegmentationSPtr segmentation{new Segmentation(input)};
 
   analysis.add(sample);
   analysis.add(channel);

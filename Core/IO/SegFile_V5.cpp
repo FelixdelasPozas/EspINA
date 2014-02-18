@@ -250,11 +250,11 @@ FilterSPtr SegFile_V5::createFilter(DirectedGraph::Vertex   roVertex,
                                     DirectedGraph::Vertices loadedVertices,
                                     TemporalStorageSPtr storage,
                                     CoreFactorySPtr         factory,
-                                    ErrorHandlerSPtr         handler)
+                                    ErrorHandlerSPtr        handler)
 {
   DirectedGraph::Edges inputConections = content->inEdges(roVertex);
 
-  OutputSList inputs;
+  InputSList inputs;
   for(auto edge : inputConections)
   {
     DirectedGraph::Vertex input = findVertex(loadedVertices, edge.source->uuid());
@@ -262,14 +262,14 @@ FilterSPtr SegFile_V5::createFilter(DirectedGraph::Vertex   roVertex,
     FilterSPtr filter = std::dynamic_pointer_cast<Filter>(input);
     Output::Id id     = atoi(edge.relationship.c_str());
 
-    inputs << filter->output(id);
+    inputs << getInput(filter, id);
   }
 
   FilterSPtr filter;
   try
   {
     filter = factory->createFilter(inputs, roVertex->name());
-  } catch (CoreFactory::Unknown_Type_Exception e)
+  } catch (CoreFactory::Unknown_Type_Exception &e)
   {
     filter = FilterSPtr{new ReadOnlyFilter(inputs, roVertex->name())};
     filter->setFetchBehaviour(m_fetchBehaviour);
@@ -312,9 +312,14 @@ ChannelSPtr SegFile_V5::createChannel(DirectedGraph::Vertex   roVertex,
                                       CoreFactorySPtr         factory,
                                       ErrorHandlerSPtr        handler)
 {
-  auto output = findOutput(roVertex, content, loadedVertices);
+  auto roOutput = findOutput(roVertex, content, loadedVertices);
 
-  ChannelSPtr channel = factory->createChannel(output.first, output.second);
+  auto filter   = roOutput.first;
+  auto outputId = roOutput.second;
+
+  filter->update(outputId);
+
+  ChannelSPtr channel = factory->createChannel(filter, outputId);
 
   channel->setName(roVertex->name());
   channel->setUuid(roVertex->uuid());
@@ -345,9 +350,14 @@ SegmentationSPtr SegFile_V5::createSegmentation(DirectedGraph::Vertex   roVertex
                                                 CoreFactorySPtr         factory,
                                                 ErrorHandlerSPtr        handler)
 {
-  auto output = findOutput(roVertex, content, loadedVertices);
+  auto roOutput = findOutput(roVertex, content, loadedVertices);
 
-  SegmentationSPtr segmentation = factory->createSegmentation(output.first, output.second);
+  auto filter   = roOutput.first;
+  auto outputId = roOutput.second;
+
+  filter->update(outputId); // Existing outputs weren't stored in previous versions
+
+  auto segmentation = factory->createSegmentation(filter, outputId);
 
   State roState = roVertex->state();
   segmentation->setName(roVertex->name());
@@ -456,16 +466,18 @@ void SegFile_V5::loadExtensions(ChannelSPtr channel, CoreFactorySPtr factory)
 
   QXmlStreamReader xml(extenions);
 
-  qDebug() << "Looking for" << channel->name() << "extensions:";
+  //qDebug() << "Looking for" << channel->name() << "extensions:";
   while (!xml.atEnd())
   {
     xml.readNextStartElement();
     if (xml.isStartElement() && xml.name() != "Channel")
     {
-      QString type = xml.attributes().value("Type").toString();
-      qDebug() << " - " << type << " found";
-      State state = xml.readElementText();
-      qDebug() << " * State: \n" << state;
+      QString type  = xml.attributes().value("Type").toString();
+      State   state = xml.readElementText();
+
+      //qDebug() << " - " << type << " found";
+      //qDebug() << " * State: \n" << state;
+
       ChannelExtension::InfoCache cache;
       ChannelExtensionSPtr extension;
       try
@@ -489,14 +501,16 @@ void SegFile_V5::loadExtensions(SegmentationSPtr segmentation, CoreFactorySPtr f
 
   QXmlStreamReader xml(extenions);
 
-  qDebug() << "Looking for" << segmentation->name() << "extensions:";
+  //qDebug() << "Looking for" << segmentation->name() << "extensions:";
   while (!xml.atEnd())
   {
     xml.readNextStartElement();
     if (xml.isStartElement())
     {
       QString type = xml.attributes().value("Type").toString();
-      qDebug() << " - " << type << " found";
+
+      //qDebug() << " - " << type << " found";
+
       SegmentationExtensionSPtr extension;
       try
       {

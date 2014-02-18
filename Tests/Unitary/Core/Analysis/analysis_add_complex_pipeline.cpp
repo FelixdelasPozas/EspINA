@@ -37,26 +37,31 @@ using namespace EspINA::Testing;
 
 int analysis_add_complex_pipeline(int argc, char** argv )
 {
-  //TODO: Current analysis doesn't support filter chaining
   bool error = false;
 
   Analysis analysis;
 
   FilterSPtr filter{new DummyFilter()};
 
-  ChannelSPtr channel(new Channel(filter, 0));
+  auto filterOutput = getInput(filter, 0);
 
-  OutputSList inputs1;
-  inputs1 << filter->output(0);
+  ChannelSPtr channel(new Channel(filterOutput));
+
+  InputSList inputs1;
+  inputs1 << filterOutput;
 
   FilterSPtr filterWithInputs1{new DummyFilterWithInputs(inputs1)};
 
-  OutputSList inputs2;
-  inputs2 << filterWithInputs1->output(0);
+  auto filter1Output = getInput(filterWithInputs1, 0);
+
+  InputSList inputs2;
+  inputs2 << filter1Output;
 
   FilterSPtr filterWithInputs2{new DummyFilterWithInputs(inputs2)};
 
-  SegmentationSPtr segmentation(new Segmentation(filterWithInputs2, 0));
+  auto filter2Output = getInput(filterWithInputs2, 0);
+
+  SegmentationSPtr segmentation(new Segmentation(filter2Output));
 
   analysis.add(channel);
   analysis.add(segmentation);
@@ -81,12 +86,12 @@ int analysis_add_complex_pipeline(int argc, char** argv )
     error = true;
   }
 
-  if (analysis.content()->vertices().size() != 6) {
+  if (analysis.content()->vertices().size() != 5) {
     cerr << "Unexpected number of vertices in analysis content" << endl;
     error = true;
   }
 
-  if (analysis.content()->edges().size() != 5) {
+  if (analysis.content()->edges().size() != 4) {
     cerr << "Unexpected number of edges in analysis content" << endl;
     error = true;
   }

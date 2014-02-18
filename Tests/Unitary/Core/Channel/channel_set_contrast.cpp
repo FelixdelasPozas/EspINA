@@ -48,7 +48,7 @@ int channel_set_contrast(int argc, char** argv )
 {
   bool error = false;
 
-  ChannelSPtr channel{new Channel(FilterSPtr(),0)};
+  ChannelSPtr channel{new Channel(InputSPtr())};
   
   if (channel->contrast() != 1) {
     cerr << "Unexepected initial contrast value" << endl;

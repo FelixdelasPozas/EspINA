@@ -23,11 +23,12 @@
 #include "Filters/EspinaFilters_Export.h"
 
 #include "Core/EspinaTypes.h"
-#include "Core/Analysis/Output.h"
+#include "Core/Analysis/Input.h"
 #include "Core/Analysis/Persistent.h"
 #include "FetchBehaviour.h"
 #include "Core/MultiTasking/Task.h"
 #include <Core/IO/ErrorHandler.h>
+#include <Core/IO/SegFile_V4.h>
 
 #include <QDir>
 
@@ -47,7 +48,9 @@ namespace EspINA
     struct Invalid_Input_Data_Exception{};
     struct Undefined_Output_Exception{};
 
-//   protected:
+  private:
+    using OutputSMap = QMap<Output::Id, OutputSPtr>;
+
 //     typedef itk::ImageFileReader<itkVolumeType> EspinaVolumeReader;
   public:
     virtual ~Filter();
@@ -64,10 +67,10 @@ namespace EspINA
 
     Type type() { return m_type; }
 
-    void setInputs(OutputSList inputs)
+    void setInputs(InputSList inputs)
     { m_inputs = inputs;}
 
-    OutputSList inputs() const
+    InputSList inputs() const
     { return m_inputs; }
 
     void setFetchBehaviour(FetchBehaviourSPtr behaviour)
@@ -89,7 +92,7 @@ namespace EspINA
 
     unsigned int numberOfOutputs() const;
 
-    OutputSList outputs() const {return m_outputs;}
+    OutputSList outputs() const {return m_outputs.values();}
 
     /** \brief Return whether or not i is a valid output for the filter
      *
@@ -104,7 +107,7 @@ namespace EspINA
     OutputSPtr output(Output::Id id) const throw(Undefined_Output_Exception);
 
   protected:
-    explicit Filter(OutputSList inputs, Type  type, SchedulerSPtr scheduler);
+    explicit Filter(InputSList inputs, Type  type, SchedulerSPtr scheduler);
 
     virtual Snapshot saveFilterSnapshot() const = 0;
 
@@ -142,12 +145,30 @@ namespace EspINA
     /** \brief Determine whether or not data at persistent storage is still valid
      *
      *  Due to lazy execution some filters may change their state (i.e. parameters)
-     *  before actually accessing triggering an update. Fetching storage data in such
+     *  before actually triggering an update. Fetching storage data in such
      *  cases may lead to output inconsistencies
      */
     virtual bool ignoreStorageContent() const = 0;
 
     virtual bool invalidateEditedRegions() = 0;
+
+    /** \brief Destroy previous outputs and remove their snapshots if any
+     *
+     *  If existing segmentations used this filter data it won't get update
+     *  even if you create a new output with the same id after calling this
+     *  method
+     *  NOTE: Maybe we should change the behaviour and assume each execution
+     *  invalidate previous ones
+     */
+    void clearPreviousOutputs();
+
+  private:
+    bool validStoredInformation() const;
+
+    //  Check if output was created during this or previous executions
+    bool existOutput(Output::Id id);
+
+    bool createPreviousOutputs();
 
   private:
     QString prefix() const
@@ -159,11 +180,16 @@ namespace EspINA
   protected:
     AnalysisPtr m_analysis;
     Type        m_type;
-    OutputSList m_inputs;
-    OutputSList m_outputs;
+    InputSList  m_inputs;
+    OutputSMap  m_outputs;
+
+    bool m_invalidateSortoredOutputs;
 
     FetchBehaviourSPtr m_fetchBehaviour;
     ErrorHandlerSPtr   m_handler;
+
+    // TODO : Remove with EspINA 2.1
+    friend class IO::SegFile::SegFile_V4;
   };
 } // namespace EspINA
 

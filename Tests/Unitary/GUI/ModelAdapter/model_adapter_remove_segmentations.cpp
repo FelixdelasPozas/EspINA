@@ -57,7 +57,7 @@ int model_adapter_remove_segmentations( int argc, char** argv )
 
   modelAdapter.setAnalysis(analysis, factory);
 
-  OutputSList inputs;
+  InputSList inputs;
   Filter::Type type{"DummyFilter"};
 
   FilterAdapterSPtr filter = factory->createFilter<DummyFilter>(inputs, type);

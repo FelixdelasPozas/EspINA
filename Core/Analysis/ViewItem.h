@@ -20,8 +20,8 @@
 #ifndef ESPINA_VIEWITEM_H
 #define ESPINA_VIEWITEM_H
 
-#include "Core/Analysis/Output.h"
 #include "Core/Analysis/NeuroItem.h"
+#include "Input.h"
 
 namespace EspINA {
 
@@ -31,20 +31,23 @@ namespace EspINA {
   {
     Q_OBJECT
   public:
-    explicit ViewItem(FilterSPtr filter, const Output::Id output);
+    explicit ViewItem(InputSPtr input);
     virtual ~ViewItem();
 
+    InputSPtr asInput() const
+    { return m_input; }
+
     FilterSPtr filter()
-    { return m_filter; }
+    { return m_input->filter(); }
 
     const FilterSPtr filter() const
-    { return m_filter; }
+    { return m_input->filter(); }
 
-    OutputSPtr output();
+    OutputSPtr output(); //rename to input?
     const OutputSPtr output() const;
 
     Output::Id outputId() const
-    { return m_outputId; }
+    { return m_input->output()->id(); }
 
     DataSPtr data(Data::Type type);
     const DataSPtr data(Data::Type type) const;
@@ -68,9 +71,8 @@ namespace EspINA {
     void outputModified();
 
   private:
-    FilterSPtr m_filter;
-    Output::Id m_outputId;
-    bool       m_isOutputModified; // sticky bit
+    InputSPtr m_input;
+    bool      m_isOutputModified; // sticky bit
   };
 
   using ViewItemSPtr = std::shared_ptr<ViewItem>;

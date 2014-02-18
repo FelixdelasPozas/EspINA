@@ -36,7 +36,7 @@ int segmentation_request_extension_information(int argc, char** argv)
 
   SegmentationExtensionSPtr extension{ new DummySegmentationExtension() };
   Classification classification;
-  SegmentationSPtr segmentation{new Segmentation(FilterSPtr{new DummyFilter()}, 0)};
+  SegmentationSPtr segmentation{new Segmentation(InputSPtr())};
 
   segmentation->addExtension(extension);
 

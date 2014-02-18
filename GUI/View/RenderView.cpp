@@ -484,7 +484,7 @@ bool RenderView::updateRepresentation(SegmentationAdapterPtr seg, bool render)
     for(auto representationName : seg->representationTypes())
     {
       RepresentationSPtr representation = cloneRepresentation(seg, representationName);
-      if (representation.get() != nullptr)
+      if (representation)
       {
         for(auto renderer : m_renderers)
           if (renderer->canRender(seg) && renderer->managesRepresentation(representation))

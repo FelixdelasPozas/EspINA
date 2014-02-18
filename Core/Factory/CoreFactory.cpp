@@ -62,7 +62,7 @@ SampleSPtr CoreFactory::createSample(const QString& name) const
 }
 
 //-----------------------------------------------------------------------------
-FilterSPtr CoreFactory::createFilter(OutputSList inputs, const Filter::Type& type) const
+FilterSPtr CoreFactory::createFilter(InputSList inputs, const Filter::Type& type) const
 throw (Unknown_Type_Exception)
 {
   FilterSPtr filter;
@@ -74,7 +74,7 @@ throw (Unknown_Type_Exception)
   } else
   {
     qDebug() << "Unknown_Type_Exception" << type;
-    throw Unknown_Type_Exception();
+    throw CoreFactory::Unknown_Type_Exception();
   }
 
   return filter;
@@ -82,9 +82,11 @@ throw (Unknown_Type_Exception)
 
 
 //-----------------------------------------------------------------------------
-EspINA::ChannelSPtr CoreFactory::createChannel(FilterSPtr filter, Output::Id output) const
+EspINA::ChannelSPtr CoreFactory::createChannel(FilterSPtr filter, Output::Id id) const
 {
-  ChannelSPtr channel{new Channel(filter, output)};
+  auto input = getInput(filter, id);
+
+  ChannelSPtr channel{new Channel(input)};
 
   channel->setStorage(m_defaultStorage);
 
@@ -126,9 +128,11 @@ ChannelExtensionSPtr CoreFactory::createChannelExtension(ChannelExtension::Type 
 }
 
 //-----------------------------------------------------------------------------
-SegmentationSPtr CoreFactory::createSegmentation(FilterSPtr filter, Output::Id output) const
+SegmentationSPtr CoreFactory::createSegmentation(FilterSPtr filter, Output::Id id) const
 {
-  SegmentationSPtr segmentation{new Segmentation(filter, output)};
+  auto input = getInput(filter, id);
+
+  SegmentationSPtr segmentation{new Segmentation(input)};
 
   segmentation->setStorage(m_defaultStorage);
 

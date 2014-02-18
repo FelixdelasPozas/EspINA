@@ -44,10 +44,10 @@ namespace EspINA
 
     void registerFilterFactory(FilterFactorySPtr factory) throw (Factory_Already_Registered_Exception);
 
-    FilterSPtr createFilter(OutputSList inputs, const Filter::Type& type) const throw (Unknown_Type_Exception);
+    FilterSPtr createFilter(InputSList inputs, const Filter::Type& type) const throw (Unknown_Type_Exception);
 
     template<typename T>
-    std::shared_ptr<T> createFilter(OutputSList inputs, Filter::Type type) const
+    std::shared_ptr<T> createFilter(InputSList inputs, Filter::Type type) const
     {
       auto filter = std::shared_ptr<T>{new T(inputs, type, m_scheduler)};
       filter->setStorage(m_defaultStorage);
@@ -56,7 +56,7 @@ namespace EspINA
 
     SampleSPtr createSample(const QString& name = QString()) const;
 
-    ChannelSPtr createChannel(FilterSPtr filter, Output::Id output) const;
+    ChannelSPtr createChannel(FilterSPtr filter, Output::Id id) const;
 
     void registerExtensionFactory(ChannelExtensionFactorySPtr factory) throw (Factory_Already_Registered_Exception);
 
@@ -64,7 +64,7 @@ namespace EspINA
 
     ChannelExtensionSPtr createChannelExtension(ChannelExtension::Type type, const State &state = State());
 
-    SegmentationSPtr createSegmentation(FilterSPtr filter, Output::Id output) const;
+    SegmentationSPtr createSegmentation(FilterSPtr filter, Output::Id id) const;
 
     void registerExtensionFactory(SegmentationExtensionFactorySPtr factory) throw (Factory_Already_Registered_Exception);
 

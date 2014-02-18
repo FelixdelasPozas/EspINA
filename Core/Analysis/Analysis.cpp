@@ -258,7 +258,10 @@ void Analysis::addIfNotExists(FilterSPtr filter)
     {
       auto input       = filter->inputs()[i];
       auto inputFilter = input->filter();
-      auto ancestor    = find<Filter>(inputFilter, m_filters);
+
+      addIfNotExists(inputFilter);
+
+      auto ancestor    = find<Filter>(inputFilter.get(), m_filters);
       Q_ASSERT(ancestor);
 
       m_content->addRelation(ancestor, filter, QString("%1").arg(i));

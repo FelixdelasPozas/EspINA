@@ -73,7 +73,7 @@ int classification_proxy_add_segmentation_without_category( int argc, char** arg
   CoreFactorySPtr  coreFactory{new CoreFactory(sch)};
   ModelFactory factory(coreFactory);
 
-  OutputSList inputs;
+  InputSList inputs;
   Filter::Type type{"DummyFilter"};
 
   FilterAdapterSPtr       filter       = factory.createFilter<DummyFilter>(inputs, type);

@@ -55,6 +55,7 @@ add_executable(Analysis_Tests
   ${CORE_DIR}/Analysis/Data/MeshData.cpp
   ${CORE_DIR}/Analysis/Filter.cpp
   ${CORE_DIR}/Analysis/Graph/DirectedGraph.cpp
+  ${CORE_DIR}/Analysis/Input.cpp
   ${CORE_DIR}/Analysis/Output.cpp
   ${CORE_DIR}/Analysis/Sample.cpp
   ${CORE_DIR}/Analysis/Segmentation.cpp

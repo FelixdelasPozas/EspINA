@@ -19,13 +19,13 @@
 
 #include "ViewItem.h"
 #include "Core/Analysis/Filter.h"
+#include "Core/Analysis/Input.h"
 
 using namespace EspINA;
 
 //------------------------------------------------------------------------
-ViewItem::ViewItem(FilterSPtr filter, const Output::Id output)
-: m_filter{filter}
-, m_outputId{output}
+ViewItem::ViewItem(InputSPtr input)
+: m_input{input}
 {
 }
 
@@ -37,41 +37,40 @@ ViewItem::~ViewItem()
 //------------------------------------------------------------------------
 OutputSPtr ViewItem::output()
 {
-  return m_filter->output(m_outputId);
+  return m_input->output();
 }
 
 //------------------------------------------------------------------------
 const OutputSPtr ViewItem::output() const
 {
-  return m_filter->output(m_outputId);
+  return m_input->output();
 }
 
 //------------------------------------------------------------------------
 DataSPtr ViewItem::data(Data::Type type)
 {
-  return m_filter->output(m_outputId)->data(type);
+  return m_input->output()->data(type);
 }
 
 //------------------------------------------------------------------------
 const DataSPtr ViewItem::data(Data::Type type) const
 {
-  return m_filter->output(m_outputId)->data(type);
+  return m_input->output()->data(type);
 }
 
 //------------------------------------------------------------------------
 void ViewItem::changeOutput(FilterSPtr filter, Output::Id outputId)
 {
-  if (m_filter)
+  if (m_input->filter())
   {
     disconnect(output().get(), SIGNAL(modified()),
                this, SLOT(onOutputModified()));
     //output()->markToSave(false);
   }
 
-  m_filter   = filter;
-  m_outputId = outputId;
+  m_input = getInput(filter, outputId);
 
-  if (m_filter)
+  if (m_input->filter())
   {
     //output()->markToSave(true);
     connect(output().get(), SIGNAL(modified()),

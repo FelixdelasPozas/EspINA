@@ -62,7 +62,7 @@ int channel_proxy_reset( int argc, char** argv )
   SampleAdapterSPtr sample = factory->createSample("sample");
   modelAdapter->add(sample);
 
-  OutputSList inputs;
+  InputSList inputs;
   Filter::Type type{"DummyFilter"};
 
   FilterAdapterSPtr  filter  = factory->createFilter<DummyFilter>(inputs, type);

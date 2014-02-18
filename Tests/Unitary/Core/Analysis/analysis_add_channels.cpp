@@ -44,10 +44,12 @@ int analysis_add_channels(int argc, char** argv )
 
   FilterSPtr filter{new Testing::DummyFilter()};
 
+  auto input = getInput(filter, 0);
+
   ChannelSList channels;
-  channels << ChannelSPtr{new Channel(filter, 0)}
-           << ChannelSPtr{new Channel(filter, 0)}
-           << ChannelSPtr{new Channel(filter, 0)};
+  channels << ChannelSPtr{new Channel(input)}
+           << ChannelSPtr{new Channel(input)}
+           << ChannelSPtr{new Channel(input)};
 
   analysis.add(channels);
 

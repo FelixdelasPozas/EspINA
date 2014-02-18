@@ -43,7 +43,7 @@ int core_factory_register_filter_factory(int argc, char** argv)
 
   factory.registerFilterFactory(filterFactory);
 
-  FilterSPtr filter = factory.createFilter(OutputSList(), DummyFilterFactory::dummyType());
+  FilterSPtr filter = factory.createFilter(InputSList(), DummyFilterFactory::dummyType());
 
   if (filter == nullptr) {
     cerr << DummyFilterFactory::dummyType().toStdString() << " filter was not created" << endl;

@@ -47,7 +47,6 @@ int channel_add_extension(int argc, char** argv )
     virtual InfoTagList availableInformations() const { return InfoTagList(); }
     virtual QVariant cacheFail(const QString& tag) const { return QVariant(); }
     virtual TypeList dependencies() const {return TypeList(); }
-    virtual void onExtendedItemSet(Channel* item) {}
     virtual bool invalidateOnChange() const {return false;}
     virtual Snapshot snapshot() const {return Snapshot();}
     virtual State state() const {return State();}
@@ -55,12 +54,12 @@ int channel_add_extension(int argc, char** argv )
     virtual void invalidate() {}
     virtual Type type() const { return "Dummy"; }
   protected:
-    virtual void onChannelSet(ChannelPtr channel) { ValidChannel = true; }
+    virtual void onExtendedItemSet(Channel* item) {ValidChannel = true; }
   };
 
   bool error = false;
 
-  ChannelSPtr channel{new Channel(FilterSPtr(),0)};
+  ChannelSPtr channel{new Channel(InputSPtr())};
 
   DummyExtension *dummy = new DummyExtension();
   ChannelExtensionSPtr extension{dummy};

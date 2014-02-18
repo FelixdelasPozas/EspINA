@@ -95,48 +95,70 @@ RepresentationSPtr BasicSegmentationRepresentationFactory::createRepresentation(
   {
     DefaultVolumetricDataSPtr volume = volumetricData(output);
 
-    representation = RepresentationSPtr{new SegmentationSliceRepresentation(volume, nullptr)};
+    if (volume)
+    {
+      representation = RepresentationSPtr{new SegmentationSliceRepresentation(volume, nullptr)};
+    }
   }
 
   if (type == ContourRepresentation::TYPE)
   {
     DefaultVolumetricDataSPtr volume = volumetricData(output);
 
-    representation = RepresentationSPtr{new ContourRepresentation(volume, nullptr)};
+    if (volume)
+    {
+      representation = RepresentationSPtr{new ContourRepresentation(volume, nullptr)};
+    }
   }
 
   if (type == MeshRepresentation::TYPE)
   {
     MeshDataSPtr mesh = meshData(output);
 
-    representation = RepresentationSPtr{new MeshRepresentation(mesh, nullptr)};
+    if (mesh)
+    {
+      representation = RepresentationSPtr{new MeshRepresentation(mesh, nullptr)};
+    }
   }
 
   if (type == SmoothedMeshRepresentation::TYPE)
   {
     MeshDataSPtr mesh = meshData(output);
 
-    representation = RepresentationSPtr{new SmoothedMeshRepresentation(mesh, nullptr)};
+    if (mesh)
+    {
+      representation = RepresentationSPtr{new SmoothedMeshRepresentation(mesh, nullptr)};
+    }
   }
 
   if (type == VolumetricRepresentation<itkVolumeType>::TYPE)
   {
     DefaultVolumetricDataSPtr volume = volumetricData(output);
 
-    representation = RepresentationSPtr{ new VolumetricRepresentation<itkVolumeType>(volume, nullptr)};
+    if (volume)
+    {
+      representation = RepresentationSPtr{ new VolumetricRepresentation<itkVolumeType>(volume, nullptr)};
+    }
   }
 
   if (type == VolumetricGPURepresentation<itkVolumeType>::TYPE)
   {
     DefaultVolumetricDataSPtr volume = volumetricData(output);
 
-    representation = RepresentationSPtr{ new VolumetricGPURepresentation<itkVolumeType>(volume, nullptr)};
+    if (volume)
+    {
+      representation = RepresentationSPtr{ new VolumetricGPURepresentation<itkVolumeType>(volume, nullptr)};
+    }
   }
 
   if (type == SegmentationSliceCachedRepresentation::TYPE)
   {
     DefaultVolumetricDataSPtr volume = volumetricData(output);
-    representation = RepresentationSPtr { new SegmentationSliceCachedRepresentation(volume, nullptr, m_scheduler) };
+
+    if (volume)
+    {
+      representation = RepresentationSPtr { new SegmentationSliceCachedRepresentation(volume, nullptr, m_scheduler) };
+    }
   }
 
   return representation;

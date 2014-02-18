@@ -23,7 +23,7 @@
 
 using namespace EspINA;
 
-SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(OutputSList inputs, Filter::Type type, SchedulerSPtr scheduler)
+SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(InputSList inputs, Filter::Type type, SchedulerSPtr scheduler)
 : Filter(inputs, type, scheduler)
 , m_lowerTh(0)
 , m_prevLowerTh(m_lowerTh)
@@ -178,9 +178,10 @@ void SeedGrowSegmentationFilter::execute()
 //----------------------------------------------------------------------------
 void SeedGrowSegmentationFilter::execute(Output::Id id)
 {
+  qDebug() << "SGS Execute";
   if (m_inputs.size() != 1) throw Invalid_Number_Of_Inputs_Exception();
 
-  auto input = volumetricData(m_inputs[0]);
+  auto input = volumetricData(m_inputs[0]->output());
   if (!input) throw Invalid_Input_Data_Exception();
 
 //   int voi[6];
@@ -270,16 +271,16 @@ void SeedGrowSegmentationFilter::execute(Output::Id id)
   emit progress(100);
   if (!canExecute()) return;
 
-  if (m_outputs.isEmpty())
+  if (!m_outputs.contains(0))
   {
-    m_outputs << OutputSPtr(new Output(this, 0));
+    m_outputs[0] = OutputSPtr(new Output(this, 0));
   }
 
   itkVolumeType::Pointer output = connectedFilter->GetOutput();
 
   Bounds bounds = minimalBounds(output);
 
-  NmVector3 spacing = m_inputs[0]->spacing();
+  NmVector3 spacing = m_inputs[0]->output()->spacing();
 
   DefaultVolumetricDataSPtr volume{new SparseVolume<itkVolumeType>(bounds, spacing)};
   volume->draw(output, bounds);

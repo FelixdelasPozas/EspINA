@@ -38,7 +38,7 @@ namespace EspINA {
         static const QString FORMAT_INFO_FILE;
 
       public:
-        virtual SegFile_V5();
+        SegFile_V5();
 
         virtual AnalysisSPtr load(QuaZip&          zip,
                                   CoreFactorySPtr  factory = CoreFactorySPtr(),

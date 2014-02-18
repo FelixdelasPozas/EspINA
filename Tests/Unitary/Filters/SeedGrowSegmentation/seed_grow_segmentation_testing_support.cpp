@@ -26,14 +26,14 @@ using namespace EspINA::Testing;
 
 using ChannelVolume = SparseVolume<itkVolumeType>;
 
-OutputSPtr EspINA::Testing::inputChannel()
+InputSPtr EspINA::Testing::inputChannel()
 {
   class DummyFilter
   : public Filter
   {
   public:
     explicit DummyFilter()
-    : Filter(OutputSList(), "Dummy", SchedulerSPtr()){}
+    : Filter(InputSList(), "Dummy", SchedulerSPtr()){}
     virtual void restoreState(const State& state){}
     virtual State state() const{return State();}
   protected:
@@ -46,7 +46,9 @@ OutputSPtr EspINA::Testing::inputChannel()
     virtual bool invalidateEditedRegions() {return false;}
   };
 
-  OutputSPtr output{new Output(new DummyFilter(),0)};
+  std::shared_ptr<DummyFilter> filter{new DummyFilter()};
+
+  OutputSPtr output{new Output(filter.get(),0)};
   output->setSpacing({1,1,1});
 
   Bounds bounds{-0.5, 99.5, -0.5,99.5,-0.5,99.5};
@@ -56,5 +58,5 @@ OutputSPtr EspINA::Testing::inputChannel()
 
   output->setData(data);
 
-  return output;
+  return InputSPtr{new Input(filter, output)};
 }

@@ -33,7 +33,7 @@ using namespace EspINA::Testing;
 
 int segmentation_save_state(int argc, char** argv)
 {
-  SegmentationSPtr segmentation{new Segmentation(FilterSPtr{new DummyFilter()}, 0)};
+  SegmentationSPtr segmentation{new Segmentation(InputSPtr())};
 
   State forgedState;
 

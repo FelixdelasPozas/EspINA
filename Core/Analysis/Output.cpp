@@ -71,6 +71,12 @@ void Output::setSpacing(const NmVector3& spacing)
 }
 
 //----------------------------------------------------------------------------
+NmVector3 Output::spacing() const
+{
+  return m_spacing;
+}
+
+//----------------------------------------------------------------------------
 Snapshot Output::snapshot(TemporalStorageSPtr storage,
                           QXmlStreamWriter   &xml,
                           const QString      &prefix) const
@@ -191,6 +197,8 @@ void Output::removeData(const Data::Type& type)
 //----------------------------------------------------------------------------
 Output::DataSPtr Output::data(const Data::Type& type) const
 {
+  m_filter->update(m_id);
+
   DataSPtr result;
 
   if (m_data.contains(type))

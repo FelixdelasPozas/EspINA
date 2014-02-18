@@ -40,6 +40,12 @@ SegmentationAdapter::~SegmentationAdapter()
 }
 
 //------------------------------------------------------------------------
+InputSPtr SegmentationAdapter::asInput() const
+{
+  return m_segmentation->asInput();
+}
+
+//------------------------------------------------------------------------
 void SegmentationAdapter::setNumber(unsigned int number)
 {
   m_segmentation->setNumber(number);

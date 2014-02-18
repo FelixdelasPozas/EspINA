@@ -56,6 +56,8 @@ namespace EspINA
     virtual ItemAdapter::Type type() const
     { return Type::SEGMENTATION; }
 
+    virtual InputSPtr asInput() const;
+
     //virtual void changeOutput(OutputSPtr output);
 
     void setNumber(unsigned int number);

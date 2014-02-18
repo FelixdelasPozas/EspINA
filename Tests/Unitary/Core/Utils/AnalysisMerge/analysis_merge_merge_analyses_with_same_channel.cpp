@@ -46,16 +46,18 @@ int analysis_merge_merge_analyses_with_same_channel( int argc, char** argv )
   SampleSPtr sample1{new Sample("Sample")};
 
   FilterSPtr channelFilter1{new DummyFilter()};
+  auto inputC1 = getInput(channelFilter1, 0);
 
-  ChannelSPtr channel1(new Channel(channelFilter1, 0));
+  ChannelSPtr channel1(new Channel(inputC1));
   channel1->setName("Channel 1");
 
-  OutputSList inputs1;
-  inputs1 << channel1->output();
+  InputSList inputs1;
+  inputs1 << inputC1;
 
   FilterSPtr segmentationFilter1{new DummyFilter(inputs1)};
+  auto inputS1 = getInput(segmentationFilter1, 0);
 
-  SegmentationSPtr segmentation1{new Segmentation(segmentationFilter1, 0)};
+  SegmentationSPtr segmentation1{new Segmentation(inputS1)};
   segmentation1->setName("Segmentation 1");
 
   analysis1->add(sample1);
@@ -68,16 +70,18 @@ int analysis_merge_merge_analyses_with_same_channel( int argc, char** argv )
   SampleSPtr sample2{new Sample("Sample")};
 
   FilterSPtr channelFilter2{new DummyFilter()};
+  auto inputC2 = getInput(channelFilter2, 0);
 
-  ChannelSPtr channel2(new Channel(channelFilter2, 0));
+  ChannelSPtr channel2(new Channel(inputC2));
   channel2->setName("Channel 1");
 
-  OutputSList inputs2;
-  inputs2 << channel2->output();
+  InputSList inputs2;
+  inputs2 << inputC2;
 
   FilterSPtr segmentationFilter2{new DummyFilter(inputs2)};
+  auto inputS2 = getInput(segmentationFilter2, 0);
 
-  SegmentationSPtr segmentation2{new Segmentation(segmentationFilter2, 0)};
+  SegmentationSPtr segmentation2{new Segmentation(inputS2)};
   segmentation2->setName("Segmentation 2");
 
   analysis2->add(sample2);

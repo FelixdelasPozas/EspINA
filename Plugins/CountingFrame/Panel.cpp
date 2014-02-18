@@ -669,16 +669,19 @@ void Panel::updateSegmentations()
 void Panel::saveActiveCountingFrameDescription()
 {
   QString title    = tr("Save Counting Frame Description");
-  QString fileExt  = tr("Text File (*.txt)");
+  QString fileExt  = tr("Text File (*.txt); Excel Sheet (*.xls)");
   QString fileName = QFileDialog::getSaveFileName(this, title, "", fileExt);
 
   if (!fileName.isEmpty())
   {
-    QFile file(fileName);
-    file.open(QIODevice::WriteOnly |  QIODevice::Text);
-    QTextStream out(&file);
-    out << m_gui->countingFrameDescription->toPlainText();
-    file.close();
+    if (fileName.endsWith(".txt"))
+    {
+      exportCountingFrameDescriptionAsText(fileName);
+    }
+    else if (fileName.endsWith(".xls"))
+    {
+      exportCountingFrameDescriptionAsExcel(fileName);
+    }
   }
 }
 
@@ -834,25 +837,28 @@ void Panel::onCountingFrameCreated(CountingFrame* cf)
 //------------------------------------------------------------------------
 void Panel::onSegmentationsAdded(SegmentationAdapterSList segmentations)
 {
-  for (auto segmentation : segmentations)
+  if (!m_manager->countingFrames().isEmpty())
   {
-    if (!segmentation->hasExtension(StereologicalInclusion::TYPE))
+    for (auto segmentation : segmentations)
     {
-      auto sterologicalExtension = retrieveOrCreateExtension<StereologicalInclusion>(segmentation);
-
-      for (auto channel : QueryAdapter::channels(segmentation))
+      if (!segmentation->hasExtension(StereologicalInclusion::TYPE))
       {
-        if (channel->hasExtension(CountingFrameExtension::TYPE))
-        {
-          auto cfExtension = retrieveExtension<CountingFrameExtension>(channel);
+        auto sterologicalExtension = retrieveOrCreateExtension<StereologicalInclusion>(segmentation);
 
-          for (auto cf : cfExtension->countingFrames())
+        for (auto channel : QueryAdapter::channels(segmentation))
+        {
+          if (channel->hasExtension(CountingFrameExtension::TYPE))
           {
-            sterologicalExtension->addCountingFrame(cf);
+            auto cfExtension = retrieveExtension<CountingFrameExtension>(channel);
+
+            for (auto cf : cfExtension->countingFrames())
+            {
+              sterologicalExtension->addCountingFrame(cf);
+            }
           }
         }
-      }
 
+      }
     }
   }
 }
@@ -862,4 +868,22 @@ void Panel::updateTable()
 {
   m_gui->countingFrames->setModel(nullptr);
   m_gui->countingFrames->setModel(m_cfModel);
+}
+
+//------------------------------------------------------------------------
+void Panel::exportCountingFrameDescriptionAsText(const QString &filename)
+{
+  QFile file(filename);
+  file.open(QIODevice::WriteOnly |  QIODevice::Text);
+
+  QTextStream out(&file);
+  out << m_gui->countingFrameDescription->toPlainText();
+
+  file.close();
+}
+
+//------------------------------------------------------------------------
+void Panel::exportCountingFrameDescriptionAsExcel(const QString& filename)
+{
+
 }

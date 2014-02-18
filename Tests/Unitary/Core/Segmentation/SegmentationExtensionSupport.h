@@ -28,7 +28,10 @@ class DummySegmentationExtension
   public:
     const SegmentationExtension::Type TYPE = "DummySegmentationExtension";
   public:
-    DummySegmentationExtension() {};
+    DummySegmentationExtension() {
+      updateInfoCache("Tag1", "prueba1");
+      updateInfoCache("Tag2", "prueba2");
+    };
     virtual ~DummySegmentationExtension() {};
 
     virtual bool invalidateOnChange() const
@@ -59,17 +62,6 @@ class DummySegmentationExtension
       list << InfoTag("Tag1") << InfoTag("Tag2");
       return list;
     };
-
-    QVariant information(const InfoTag &tag) const
-    {
-      if (tag == InfoTag("Tag1"))
-          return QVariant("prueba1");
-
-      if (tag == InfoTag("Tag2"))
-        return QVariant("prueba2");
-
-      return QVariant();
-    }
 
     virtual QString toolTipText() const
     { return QString("ToolTip"); };

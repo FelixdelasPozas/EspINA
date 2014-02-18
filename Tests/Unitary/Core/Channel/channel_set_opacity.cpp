@@ -48,7 +48,7 @@ int channel_set_opacity(int argc, char** argv )
 {
   bool error = false;
 
-  ChannelSPtr channel(new Channel(FilterSPtr(), 0));
+  ChannelSPtr channel(new Channel(InputSPtr()));
   
   if (channel->opacity() != -1.0) {
     cerr << "Unexepected initial opacity value" << endl;

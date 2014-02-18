@@ -42,15 +42,17 @@ int analysis_remove_segmentation_from_basic_pipeline(int argc, char** argv )
   Analysis analysis;
 
   FilterSPtr filter{new DummyFilter()};
+  auto input = getInput(filter, 0);
 
-  ChannelSPtr channel(new Channel(filter, 0));
+  ChannelSPtr channel(new Channel(input));
 
-  OutputSList inputs;
-  inputs << filter->output(0);
+  InputSList inputs;
+  inputs << input;
 
   FilterSPtr filterWithInputs{new DummyFilterWithInputs(inputs)};
+  auto input1 = getInput(filter, 0);
 
-  SegmentationSPtr segmentation(new Segmentation(filterWithInputs, 0));
+  SegmentationSPtr segmentation(new Segmentation(input1));
 
   analysis.add(channel);
   analysis.add(segmentation);

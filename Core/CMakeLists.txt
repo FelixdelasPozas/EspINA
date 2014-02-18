@@ -27,6 +27,7 @@ set (CORE_SOURCES
   Analysis/Data/VolumetricData.cpp
   Analysis/Filter.cpp
   Analysis/Graph/DirectedGraph.cpp
+  Analysis/Input.cpp
   Analysis/Output.cpp
   Analysis/Query.cpp
   Analysis/Sample.cpp

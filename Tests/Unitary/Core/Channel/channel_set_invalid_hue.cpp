@@ -36,7 +36,7 @@ int channel_set_invalid_hue(int argc, char** argv )
 {
   bool error = false;
 
-  ChannelSPtr channel{new Channel(FilterSPtr(),0)};
+  ChannelSPtr channel{new Channel(InputSPtr())};
 
   channel->setHue(-0.5);
   if (channel->hue() != 0.0) {

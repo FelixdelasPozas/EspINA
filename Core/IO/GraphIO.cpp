@@ -82,6 +82,7 @@ namespace EspINA {
     {
       return VertexType::SEGMENTATION;
     } else {
+      qDebug() << "**** UNKOWN SHAPE" << shape.c_str();
       throw Unknown_Type_Found();
     }
   }

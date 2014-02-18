@@ -1,6 +1,6 @@
 /*
  * <one line to give the program's name and a brief idea of what it does.>
- * Copyright (C) 2013  Jorge Peña Pastor <jpena@cesvima.upm.es>
+ * Copyright (C) 2014  <copyright holder> <email>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,14 +17,34 @@
  *
  */
 
-#include <Core/Analysis/Data/VolumetricData.h>
+#include "Input.h"
+#include "Filter.h"
 
 using namespace EspINA;
 
 //----------------------------------------------------------------------------
-EspINA::DefaultVolumetricDataSPtr EspINA::volumetricData(OutputSPtr output)
+Input::Input(FilterSPtr filter, OutputSPtr output)
+: m_filter{filter}
+, m_output{output}
 {
-  DefaultVolumetricDataSPtr volume = std::dynamic_pointer_cast<VolumetricData<itkVolumeType>>(output->data(VolumetricData<itkVolumeType>::TYPE));
+  Q_ASSERT(filter.get() == output->filter());
+}
 
-  return volume;
+//----------------------------------------------------------------------------
+InputSPtr EspINA::getInput(FilterSPtr filter, Output::Id id)
+{
+  return InputSPtr{new Input(filter, filter->output(id))};
+}
+
+//----------------------------------------------------------------------------
+InputSList EspINA::getInputs(FilterSPtr filter)
+{
+  InputSList outputs;
+
+  for(auto output : filter->outputs())
+  {
+    outputs << InputSPtr{new Input(filter, output)};
+  }
+
+  return outputs;
 }

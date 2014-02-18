@@ -29,6 +29,7 @@
 #include <Core/Analysis/Analysis.h>
 #include <Core/Analysis/Segmentation.h>
 #include <Core/Analysis/Channel.h>
+#include <Core/Analysis/Input.h>
 #include "analysis_testing_support.h"
 
 using namespace std;
@@ -43,14 +44,18 @@ int analysis_add_basic_pipeline(int argc, char** argv )
 
   FilterSPtr filter{new DummyFilter()};
 
-  ChannelSPtr channel(new Channel(filter, 0));
+  auto channelInput = getInput(filter, 0);
 
-  OutputSList inputs;
-  inputs << filter->output(0);
+  ChannelSPtr channel(new Channel(channelInput));
+
+  InputSList inputs;
+  inputs << channelInput;
 
   FilterSPtr filterWithInputs{new DummyFilterWithInputs(inputs)};
 
-  SegmentationSPtr segmentation(new Segmentation(filterWithInputs, 0));
+  auto segmentationInput = getInput(filterWithInputs, 0);
+
+  SegmentationSPtr segmentation(new Segmentation(segmentationInput));
 
   analysis.add(channel);
   analysis.add(segmentation);

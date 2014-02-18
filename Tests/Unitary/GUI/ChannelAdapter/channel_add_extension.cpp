@@ -44,8 +44,6 @@ int channel_add_extension(int argc, char** argv )
     explicit DummyExtension() 
     : Initialized{false}, ValidChannel{false} {}
 
-    virtual void initialize() { Initialized = true; }
-    virtual void invalidate() {}
     virtual Type type() const { return "Dummy"; }
   protected:
     virtual void onChannelSet(ChannelPtr channel) { ValidChannel = true; }
@@ -70,7 +68,7 @@ int channel_add_extension(int argc, char** argv )
     error = true;
   }
 
-  if (!dummy->Initialized || !dummy->ValidChannel) {
+  if (!dummy->ValidChannel) {
     cerr << "Extension was not correctly initialized" << endl;
     error = true;
   }

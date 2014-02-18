@@ -38,7 +38,7 @@ int seed_grow_segmentation_simple_execution(int argc, char** argv)
 {
   bool error = false;
 
-  OutputSList   inputs;
+  InputSList   inputs;
   inputs << inputChannel();
 
   Filter::Type  type{"SGS"};
@@ -56,7 +56,7 @@ int seed_grow_segmentation_simple_execution(int argc, char** argv)
     error = true;
   }
 
-  Bounds inputBounds  = inputs[0]->bounds();
+  Bounds inputBounds  = inputs[0]->output()->bounds();
   Bounds outputBounds = sgsf.output(0)->bounds();
 
   if (inputBounds != outputBounds) {

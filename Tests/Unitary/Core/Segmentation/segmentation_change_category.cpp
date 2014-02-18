@@ -34,7 +34,7 @@ int segmentation_change_category(int argc, char** argv)
 {
   Classification classification;
 
-  SegmentationSPtr segmentation{new Segmentation(FilterSPtr{new DummyFilter()}, 0)};
+  SegmentationSPtr segmentation{new Segmentation(InputSPtr())};
   CategorySPtr category1 = segmentation->category();
 
   CategorySPtr category2 = classification.createNode(QString("Prueba"), classification.root());

@@ -51,6 +51,8 @@ namespace EspINA {
     bool isVisible() const
     { return m_isVisible; }
 
+    virtual InputSPtr asInput() const = 0;
+
     FilterAdapterSPtr filter()
     { return m_filter; }
     const FilterAdapterSPtr filter() const
@@ -114,6 +116,7 @@ namespace EspINA {
   using ViewItemAdapterSPtr = std::shared_ptr<ViewItemAdapter>;
 
   ViewItemAdapterPtr EspinaGUI_EXPORT viewItemAdapter(ItemAdapterPtr item);
+
 
 } // namespace EspINA
 

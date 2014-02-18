@@ -46,7 +46,7 @@ int model_factory_create_filter(int argc, char** argv)
   ModelFactory factory(coreFactory);
 
   Filter::Type type{"Dummy"};
-  auto filter = factory.createFilter<DummyFilter>(OutputSList(), type);
+  auto filter = factory.createFilter<DummyFilter>(InputSList(), type);
 
   filter->get()->dummyMethod();
   filter->setFilterInspector(FilterInspectorSPtr());

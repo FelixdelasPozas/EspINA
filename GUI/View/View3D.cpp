@@ -901,8 +901,10 @@ RepresentationSPtr View3D::cloneRepresentation(ViewItemAdapterPtr item, Represen
   RepresentationSPtr prototype = item->representation(representation);
   RepresentationSPtr rep;
 
-  if (prototype->canRenderOnView().testFlag(Representation::RENDERABLEVIEW_VOLUME))
+  if (prototype && prototype->canRenderOnView().testFlag(Representation::RENDERABLEVIEW_VOLUME))
+  {
     rep = prototype->clone(this);
+  }
 
   return rep;
 }

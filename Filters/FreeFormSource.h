@@ -33,7 +33,7 @@ namespace EspINA
   : public Filter
   {
     public:
-      explicit FreeFormSource(OutputSList inputs,
+      explicit FreeFormSource(InputSList inputs,
                               Filter::Type     type,
                               SchedulerSPtr    scheduler);
       virtual ~FreeFormSource();

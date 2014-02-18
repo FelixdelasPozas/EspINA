@@ -51,8 +51,8 @@ const double MAX_SATURATION = 1.0;
 const QString Channel::STAIN_LINK  = "Stain";
 
 //------------------------------------------------------------------------
-Channel::Channel(FilterSPtr filter, const Output::Id output) 
-: ViewItem(filter, output)
+Channel::Channel(InputSPtr input)
+: ViewItem(input)
 , m_brightness{0.0}
 , m_contrast{1.0}
 , m_hue{NO_HUE}
@@ -64,7 +64,7 @@ Channel::Channel(FilterSPtr filter, const Output::Id output)
 //------------------------------------------------------------------------
 Channel::~Channel()
 {
-  qDebug() << "Destroying Channel" << name();
+  //qDebug() << "Destroying Channel" << name();
 }
 
 //------------------------------------------------------------------------
@@ -224,7 +224,7 @@ void Channel::unload()
 //------------------------------------------------------------------------
 NmVector3 Channel::position() const
 {
-
+  return NmVector3{0,0,0};
 }
 
 //------------------------------------------------------------------------
@@ -244,7 +244,7 @@ void Channel::setHue(double hue)
     m_hue = MAX_HUE;
   } else 
   {
-    m_hue = hue;    
+    m_hue = hue;
   }
 }
 

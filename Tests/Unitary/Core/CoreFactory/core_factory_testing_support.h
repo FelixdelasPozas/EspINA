@@ -28,7 +28,7 @@ namespace EspINA {
     : public Filter
     {
     public:
-      explicit DummyFilter(OutputSList inputs, const Filter::Type& type, SchedulerSPtr scheduler)
+      explicit DummyFilter(InputSList inputs, const Filter::Type& type, SchedulerSPtr scheduler)
       : Filter(inputs, type, scheduler){}
 
       virtual OutputSPtr output(Output::Id id) const {return OutputSPtr();}
@@ -55,7 +55,7 @@ namespace EspINA {
       virtual FilterTypeList providedFilters() const
       { FilterTypeList list; list << dummyType(); return list; }
 
-      virtual FilterSPtr createFilter(OutputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception)
+      virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception)
       { return FilterSPtr(new DummyFilter(inputs, filter, scheduler));}
     };
 // 

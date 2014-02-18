@@ -66,6 +66,12 @@ bool ChannelAdapter::setData(const QVariant& value, int role)
 }
 
 //------------------------------------------------------------------------
+InputSPtr ChannelAdapter::asInput() const
+{
+  return m_channel->asInput();
+}
+
+//------------------------------------------------------------------------
 void ChannelAdapter::setPosition(const NmVector3& point)
 {
   m_channel->setPosition(point);

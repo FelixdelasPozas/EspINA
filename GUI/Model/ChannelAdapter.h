@@ -45,6 +45,8 @@ namespace EspINA
     virtual ItemAdapter::Type type() const
     { return Type::CHANNEL; }
 
+    virtual InputSPtr asInput() const;
+
     void setPosition(const NmVector3& point);
 
     NmVector3 position() const;

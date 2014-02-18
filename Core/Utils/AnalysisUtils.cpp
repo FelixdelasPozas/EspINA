@@ -141,13 +141,13 @@ EspINA::AnalysisSPtr EspINA::merge(AnalysisSPtr& lhs, AnalysisSPtr& rhs)
           FilterSPtr succesor = std::dynamic_pointer_cast<Filter>(vertex);
           if (succesor)
           {
-            OutputSList updatedInputs;
+            InputSList updatedInputs;
             for (auto input : succesor->inputs())
             {
-              if (input->filter() == filter.get())
+              if (input->filter() == filter)
               {
-                Q_ASSERT(input->id() < mergedFilter->numberOfOutputs());
-                updatedInputs << mergedFilter->output(input->id());
+                Q_ASSERT(mergedFilter->validOutput(input->output()->id()));
+                updatedInputs << getInput(mergedFilter, input->output()->id());
               }
               else 
                 updatedInputs << input;

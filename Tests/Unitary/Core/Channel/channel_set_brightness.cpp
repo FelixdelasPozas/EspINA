@@ -47,7 +47,7 @@ int channel_set_brightness(int argc, char** argv )
 {
   bool error = false;
 
-  ChannelSPtr channel{new Channel(FilterSPtr(),0)};
+  ChannelSPtr channel{new Channel(InputSPtr())};
   
   if (channel->brightness() != 0) {
     cerr << "Unexepected initial brightness value" << endl;

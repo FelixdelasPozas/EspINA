@@ -29,7 +29,7 @@ using namespace EspINA::Testing;
 
 int segmentation_user_modifications(int argc, char** argv)
 {
-  SegmentationSPtr segmentation{new Segmentation(FilterSPtr{new DummyFilter()}, 0)};
+  SegmentationSPtr segmentation{new Segmentation(InputSPtr())};
 
   QStringList oldList = segmentation->users();
   QString newUser{"Prueba"};

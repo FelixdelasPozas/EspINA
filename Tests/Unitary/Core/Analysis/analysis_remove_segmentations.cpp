@@ -40,15 +40,17 @@ int analysis_remove_segmentations( int argc, char** argv )
   Analysis analysis;
 
   FilterSPtr filter{new Testing::DummyFilter()};
+  auto input = getInput(filter, 0);
+
   SegmentationSList segmentations;
-  segmentations << SegmentationSPtr{new Segmentation(filter, 0)}
-                << SegmentationSPtr{new Segmentation(filter, 0)}
-                << SegmentationSPtr{new Segmentation(filter, 0)};
+  segmentations << SegmentationSPtr{new Segmentation(input)}
+                << SegmentationSPtr{new Segmentation(input)}
+                << SegmentationSPtr{new Segmentation(input)};
 
   analysis.add(segmentations);
   analysis.remove(segmentations);
 
-  foreach(SegmentationSPtr segmentation, segmentations) {
+  for(auto segmentation : segmentations) {
     if (analysis.segmentations().contains(segmentation)) {
       cerr << "Unexpected segmentation retrieved from analysis" << endl;
       error = true;
@@ -80,7 +82,7 @@ int analysis_remove_segmentations( int argc, char** argv )
     error = true;
   }
 
-  foreach(SegmentationSPtr segmentation, segmentations) {
+  for(auto segmentation : segmentations) {
     if (analysis.content()->contains(segmentation)) {
       cerr << "Unexpected segmentation retrieved from analysis content" << endl;
       error = true;

@@ -32,7 +32,7 @@ namespace EspINA {
       : public Filter
       {
       public:
-        explicit ReadOnlyFilter(OutputSList inputs, Type type)
+        explicit ReadOnlyFilter(InputSList inputs, Type type)
         : Filter(inputs, type, SchedulerSPtr()) {}
 
         virtual void restoreState(const State& state)
@@ -49,11 +49,7 @@ namespace EspINA {
 
         virtual bool needUpdate(Output::Id id) const
         {
-          for(unsigned int i = m_outputs.size(); i <= id; ++i)
-          {
-            m_outputs << OutputSPtr{new Output(this, i)};
-          }
-          return !m_outputs[id]->isValid(); 
+          return !m_outputs.contains(id) || !m_outputs[id]->isValid();
         }
 
         virtual void execute()

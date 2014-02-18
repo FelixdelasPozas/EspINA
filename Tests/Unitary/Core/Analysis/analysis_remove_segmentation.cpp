@@ -40,7 +40,9 @@ int analysis_remove_segmentation( int argc, char** argv )
   Analysis analysis;
 
   FilterSPtr filter{new Testing::DummyFilter()};
-  SegmentationSPtr segmentation(new Segmentation(filter, 0));
+  auto input = getInput(filter, 0);
+
+  SegmentationSPtr segmentation(new Segmentation(input));
 
   analysis.add(segmentation);
 

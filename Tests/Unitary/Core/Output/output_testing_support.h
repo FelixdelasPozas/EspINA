@@ -31,7 +31,7 @@ namespace EspINA {
     {
     public:
       explicit DummyFilter()
-      : Filter(OutputSList(), "DummyFilter", SchedulerSPtr(new Scheduler(10000000))){}
+      : Filter(InputSList(), "DummyFilter", SchedulerSPtr(new Scheduler(10000000))){}
       virtual OutputSPtr output(Output::Id id) const {return OutputSPtr{new Output(this, 0)};}
       virtual void restoreState(const State& state){}
       virtual State state() const{return State();}

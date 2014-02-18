@@ -71,7 +71,7 @@ int classification_proxy_add_segmentation( int argc, char** argv )
   SchedulerSPtr sch;
   ModelFactory factory(CoreFactorySPtr{new CoreFactory(sch)});
 
-  OutputSList inputs;
+  InputSList inputs;
   Filter::Type type{"DummyFilter"};
 
   FilterAdapterSPtr       filter       = factory.createFilter<DummyFilter>(inputs, type);

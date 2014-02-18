@@ -40,10 +40,11 @@ int analysis_add_segmentations( int argc, char** argv )
   Analysis analysis;
 
   FilterSPtr filter{new Testing::DummyFilter()};
+  auto input = getInput(filter, 0);
   SegmentationSList segmentations;
-  segmentations << SegmentationSPtr{new Segmentation(filter, 0)}
-                << SegmentationSPtr{new Segmentation(filter, 0)}
-                << SegmentationSPtr{new Segmentation(filter, 0)};
+  segmentations << SegmentationSPtr{new Segmentation(input)}
+                << SegmentationSPtr{new Segmentation(input)}
+                << SegmentationSPtr{new Segmentation(input)};
 
   analysis.add(segmentations);
 

@@ -110,6 +110,10 @@ namespace EspINA
 
     void updateTable();
 
+    void exportCountingFrameDescriptionAsText(const QString& filename);
+
+    void exportCountingFrameDescriptionAsExcel(const QString& filename);
+
   private:
     CountingFrameManager *m_manager;
     ModelAdapterSPtr      m_model;

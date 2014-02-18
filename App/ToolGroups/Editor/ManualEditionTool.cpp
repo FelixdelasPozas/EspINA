@@ -53,7 +53,7 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  FilterSPtr ManualEditionTool::ManualFilterFactory::createFilter(OutputSList         inputs,
+  FilterSPtr ManualEditionTool::ManualFilterFactory::createFilter(InputSList         inputs,
                                                                   const Filter::Type& filter,
                                                                   SchedulerSPtr       scheduler) const throw(Unknown_Filter_Exception)
   {
@@ -268,7 +268,7 @@ namespace EspINA
     {
       case ViewItemAdapter::Type::CHANNEL:
       {
-        auto adapter = m_factory->createFilter<FreeFormSource>(OutputSList(), FREEFORM_FILTER);
+        auto adapter = m_factory->createFilter<FreeFormSource>(InputSList(), FREEFORM_FILTER);
         auto filter = adapter->get();
         filter->setMask(mask);
 

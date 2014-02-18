@@ -34,7 +34,7 @@
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
-FreeFormSource::FreeFormSource(OutputSList   inputs,
+FreeFormSource::FreeFormSource(InputSList   inputs,
                                Filter::Type  type,
                                SchedulerSPtr scheduler)
 : Filter(inputs, type, scheduler)
@@ -81,8 +81,10 @@ void FreeFormSource::execute(Output::Id id)
 
   emit progress(25);
 
-  if (m_outputs.isEmpty())
-    m_outputs << OutputSPtr(new Output(this, 0));
+  if (!m_outputs.contains(0))
+  {
+    m_outputs[0] = OutputSPtr(new Output(this, 0));
+  }
 
   emit progress(50);
   if (!canExecute()) return;

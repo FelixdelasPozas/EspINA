@@ -69,8 +69,7 @@ namespace EspINA
 
     void setSpacing(const NmVector3& spacing);
 
-    NmVector3 spacing() const
-    { return m_spacing; }
+    NmVector3 spacing() const;
 
     Snapshot snapshot(TemporalStorageSPtr storage,
                       QXmlStreamWriter       &xml,

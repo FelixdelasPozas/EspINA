@@ -41,7 +41,7 @@ int volumetric_stream_reader_simple_execution(int argc, char** argv)
 
   Filter::Type  type{"VolumetricStreamReader"};
   SchedulerSPtr scheduler;
-  VolumetricStreamReader reader(OutputSList(), type, scheduler);
+  VolumetricStreamReader reader(InputSList(), type, scheduler);
 
   itkVolumeType::SizeType size;
   size.Fill(10);

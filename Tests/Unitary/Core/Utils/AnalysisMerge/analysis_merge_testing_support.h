@@ -21,6 +21,7 @@
 #define TESTING_DUMMYFILTER_H
 
 #include <Core/Analysis/Filter.h>
+#include <Core/Analysis/Data/Volumetric/SparseVolume.h>
 #include <Core/MultiTasking/Scheduler.h>
 
 namespace EspINA {
@@ -29,9 +30,12 @@ namespace EspINA {
     : public Filter
     {
     public:
-      explicit DummyFilter(OutputSList inputs = OutputSList())
+      explicit DummyFilter(InputSList inputs = InputSList())
       : Filter(inputs, "Dummy", SchedulerSPtr())
-      { m_outputs << OutputSPtr{new Output(this, 0)};}
+      {
+        m_outputs[0] = OutputSPtr{new Output(this, 0)};
+        m_outputs[0]->setData(DataSPtr{new SparseVolume<itkVolumeType>({0,10,0,10,0,10})});
+      }
       virtual void restoreState(const State& state) {}
       virtual State state() const {return State();}
 

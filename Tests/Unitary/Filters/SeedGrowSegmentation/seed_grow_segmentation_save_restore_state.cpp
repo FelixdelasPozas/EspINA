@@ -38,7 +38,7 @@ int seed_grow_segmentation_save_restore_state(int argc, char** argv)
 {
   bool error = false;
 
-  OutputSList   inputs;
+  InputSList   inputs;
   inputs << inputChannel();
 
   Filter::Type  type{"SGS"};

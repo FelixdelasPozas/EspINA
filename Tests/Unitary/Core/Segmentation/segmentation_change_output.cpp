@@ -30,7 +30,9 @@ using namespace EspINA::Testing;
 int segmentation_change_output(int argc, char** argv)
 {
   FilterSPtr filter{ new DummyFilter() };
-  SegmentationSPtr segmentation{new Segmentation(filter, 0)};
+  auto input = getInput(filter, 0);
+
+  SegmentationSPtr segmentation{new Segmentation(input)};
 
   OutputSPtr oldOutput = segmentation->output();
 

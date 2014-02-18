@@ -36,7 +36,7 @@ int channel_set_invalid_contrast(int argc, char** argv )
 {
   bool error = false;
 
-  ChannelSPtr channel{new Channel(FilterSPtr(),0)};
+  ChannelSPtr channel{new Channel(InputSPtr())};
 
   channel->setContrast(-0.5);
   if (channel->contrast() != 0.0) {

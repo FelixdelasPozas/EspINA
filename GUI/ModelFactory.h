@@ -82,7 +82,7 @@ namespace EspINA
     SampleAdapterSPtr createSample(const QString& name = QString()) const;
 
     template<typename T>
-    std::shared_ptr<FilterAdapter<T>> createFilter(OutputSList inputs, Filter::Type type) const
+    std::shared_ptr<FilterAdapter<T>> createFilter(InputSList inputs, Filter::Type type) const
     {
       std::shared_ptr<T> filter{m_factory->createFilter<T>(inputs, type)};
       return std::shared_ptr<FilterAdapter<T>>(new FilterAdapter<T>(filter));

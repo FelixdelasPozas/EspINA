@@ -57,7 +57,7 @@ int channel_proxy_remove_segmentation( int argc, char** argv )
   CoreFactorySPtr  coreFactory{new CoreFactory(sch)};
   ModelFactorySPtr factory{new ModelFactory(coreFactory)};
 
-  OutputSList inputs;
+  InputSList inputs;
   Filter::Type type{"DummyFilter"};
 
   FilterAdapterSPtr       filter       = factory->createFilter<DummyFilter>(inputs, type);

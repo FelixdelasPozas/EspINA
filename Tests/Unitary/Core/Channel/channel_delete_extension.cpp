@@ -61,7 +61,7 @@ int channel_delete_extension(int argc, char** argv )
   
   bool error = false;
 
-  ChannelSPtr channel(new Channel(FilterSPtr(), 0));
+  ChannelSPtr channel(new Channel(InputSPtr()));
 
   DummyExtension *dummy = new DummyExtension();
   ChannelExtensionSPtr extension{dummy};

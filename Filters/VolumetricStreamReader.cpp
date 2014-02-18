@@ -31,7 +31,7 @@ using namespace EspINA;
 
 
 //----------------------------------------------------------------------------
-VolumetricStreamReader::VolumetricStreamReader(OutputSList inputs, Type type, SchedulerSPtr scheduler)
+VolumetricStreamReader::VolumetricStreamReader(InputSList inputs, Type type, SchedulerSPtr scheduler)
 : Filter(inputs, type, scheduler)
 {
 
@@ -55,7 +55,7 @@ State VolumetricStreamReader::state() const
 {
   State state;
 
-  state += QString("FILE=%1").arg(m_fileName.absoluteFilePath());
+  state += QString("File=%1").arg(m_fileName.absoluteFilePath());
 
   return state;
 }
@@ -89,6 +89,7 @@ void VolumetricStreamReader::execute()
 //----------------------------------------------------------------------------
 void VolumetricStreamReader::execute(Output::Id id)
 {
+  Q_ASSERT(0 == id);
   if (!m_fileName.exists())
   {
     if (handler())
@@ -121,68 +122,21 @@ void VolumetricStreamReader::execute(Output::Id id)
     writer->Write();
   }
 
-  if (m_outputs.isEmpty()) 
+  if (!m_outputs.contains(0))
   {
-    m_outputs << OutputSPtr{new Output(this, 0)};
+    m_outputs[0] = OutputSPtr{new Output(this, 0)};
   }
 
   DefaultVolumetricDataSPtr volume{new StreamedVolume<itkVolumeType>(mhdFile)};
 
   m_outputs[0]->setData(volume);
 
-  m_outputs[0]->setSpacing(volume->spacing());
+  if (m_outputs[0]->spacing() == NmVector3())
+  {
+    m_outputs[0]->setSpacing(volume->spacing());
+  }
+  else
+  {
+    volume->setSpacing(m_outputs[0]->spacing());
+  }
 }
-
-// typedef itk::ChangeInformationImageFilter<itkVolumeType> ChangeInformationFilter;
-
-// //----------------------------------------------------------------------------
-// ChannelRepresentationSPtr VolumetricStreamReader::createRepresentationProxy(FilterOutputId id, const FilterOutput::OutputRepresentationName &type)
-// {
-//   ChannelRepresentationSPtr proxy;
-// 
-//   Q_ASSERT(m_outputs.contains(id));
-//   Q_ASSERT( NULL == m_outputs[id]->representation(type));
-// 
-//   if (ChannelVolume::TYPE == type)
-//     proxy  = ChannelVolumeProxySPtr(new ChannelVolumeProxy());
-//   else
-//     Q_ASSERT(false);
-// 
-//   m_outputs[id]->setRepresentation(type, proxy);
-// 
-//   return proxy;
-// }
-// 
-// //----------------------------------------------------------------------------
-// void VolumetricStreamReader::run(FilterOutputId oId)
-// {
-// }
-// 
-// //----------------------------------------------------------------------------
-// void VolumetricStreamReader::setSpacing(itkVolumeType::SpacingType spacing)
-// {
-//   Q_ASSERT(m_outputs.size() == 1);
-// 
-//   m_args[SPACING] = QString("%1,%2,%3").arg(spacing[0]).arg(spacing[1]).arg(spacing[2]);
-// 
-//   ChannelVolumeSPtr volume = channelVolume(m_outputs[0]);
-// 
-//   ChangeInformationFilter::Pointer changer = ChangeInformationFilter::New();
-//   changer->SetInput(volume->toITK());
-//   changer->SetChangeSpacing(true);
-//   changer->SetOutputSpacing(spacing);
-//   changer->Update();
-// 
-//   addOutputRepresentation(0, RawChannelVolumeSPtr(new RawChannelVolume(changer->GetOutput())));
-// }
-// 
-// //----------------------------------------------------------------------------
-// itkVolumeType::SpacingType VolumetricStreamReader::spacing()
-// {
-//   itkVolumeType::SpacingType res;
-//   QStringList values = m_args.value(SPACING, "-1,-1,-1").split(",");
-//   for(int i = 0; i < 3; i++)
-//     res[i] = values[i].toDouble();
-//   return res;
-// }
-// 

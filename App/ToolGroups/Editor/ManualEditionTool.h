@@ -46,7 +46,7 @@ namespace EspINA
     class ManualFilterFactory
     : public FilterFactory
     {
-      virtual FilterSPtr createFilter(OutputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception);
+      virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception);
 
       virtual FilterTypeList providedFilters() const;
     private:

@@ -49,7 +49,7 @@ namespace EspINA
     using StructuringElementType = itk::BinaryBallStructuringElement<itkVolumeType::PixelType, 3>;
     using ClosingFilterType = itk::BinaryMorphologicalClosingImageFilter<itkVolumeType, itkVolumeType, StructuringElementType>;
   public:
-    explicit SeedGrowSegmentationFilter(OutputSList inputs, Type type, SchedulerSPtr scheduler);
+    explicit SeedGrowSegmentationFilter(InputSList inputs, Type type, SchedulerSPtr scheduler);
 
     virtual void restoreState(const State& state);
 

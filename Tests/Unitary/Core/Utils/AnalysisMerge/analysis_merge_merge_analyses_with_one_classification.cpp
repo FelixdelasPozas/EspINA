@@ -49,11 +49,12 @@ int analysis_merge_merge_analyses_with_one_classification( int argc, char** argv
   SampleSPtr sample1{new Sample("Sample1")};
 
   FilterSPtr filter1{new DummyFilter()};
+  auto input1 = getInput(filter1, 0);
 
-  ChannelSPtr channel1(new Channel(filter1, 0));
+  ChannelSPtr channel1(new Channel(input1));
   channel1->setName("Channel 1");
 
-  SegmentationSPtr segmentation1{new Segmentation(filter1, 0)};
+  SegmentationSPtr segmentation1{new Segmentation(input1)};
   segmentation1->setName("Segmentation 1");
   segmentation1->setCategory(category);
 
@@ -67,11 +68,12 @@ int analysis_merge_merge_analyses_with_one_classification( int argc, char** argv
   SampleSPtr sample2{new Sample("Sample2")};
 
   FilterSPtr filter2{new DummyFilter()};
+  auto input2 = getInput(filter2, 0);
 
-  ChannelSPtr channel2(new Channel(filter2, 0));
+  ChannelSPtr channel2(new Channel(input2));
   channel2->setName("Channel 2");
 
-  SegmentationSPtr segmentation2{new Segmentation(filter2, 0)};
+  SegmentationSPtr segmentation2{new Segmentation(input2)};
   segmentation2->setName("Segmentation 2");
 
   analysis2->add(sample2);

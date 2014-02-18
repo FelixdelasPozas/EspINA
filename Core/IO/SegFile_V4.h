@@ -39,7 +39,7 @@ namespace EspINA {
         static const QString FORMAT_INFO_FILE;
 
       public:
-        virtual SegFile_V4();
+        SegFile_V4();
 
         virtual AnalysisSPtr load(QuaZip&          zip,
                                   CoreFactorySPtr  factory = CoreFactorySPtr(),
@@ -57,15 +57,23 @@ namespace EspINA {
 
         SampleSPtr createSample(DirectedGraph::Vertex roVertex);
 
-        FilterSPtr createFilter(DirectedGraph::Vertex roVertex);
+        FilterSPtr createFilter(DirectedGraph::Vertex roVertex, QuaZip &zip);
 
         ChannelSPtr createChannel(DirectedGraph::Vertex roVertex);
 
         QString parseCategoryName(const State& state);
 
+        int parseOutputId(const State& state);
+
         SegmentationSPtr createSegmentation(DirectedGraph::Vertex roVertex);
 
         void loadTrace(QuaZip& zip);
+
+        void createSegmentations();
+
+        void restoreRelations();
+
+        void createFilterOutputsFile(QuaZip& zip, QUuid uuid, int id);
 
       private:
         AnalysisSPtr            m_analysis;
@@ -77,6 +85,7 @@ namespace EspINA {
         CoreFactorySPtr         m_factory;
         FetchBehaviourSPtr      m_fetchBehaviour;
         ErrorHandlerSPtr        m_handler;
+        DirectedGraph::Vertices m_pendingSegmenationVertices;
       };
     }
   }

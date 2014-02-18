@@ -1,6 +1,6 @@
 /*
  * <one line to give the program's name and a brief idea of what it does.>
- * Copyright (C) 2013  Jorge Peña Pastor <jpena@cesvima.upm.es>
+ * Copyright (C) 2014  <copyright holder> <email>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,15 +17,34 @@
  *
  */
 
-#ifndef ESPINA_SEEDGROWSEGMENTATION_TESTINGSUPPORT_H
-#define ESPINA_SEEDGROWSEGMENTATION_TESTINGSUPPORT_H
+#ifndef ESPINA_INPUT_H
+#define ESPINA_INPUT_H
 
-#include <Core/Analysis/Input.h>
+#include "Output.h"
 
 namespace EspINA {
-  namespace Testing {
-    InputSPtr inputChannel();
-  }
+
+  class Input
+  {
+  public:
+    explicit Input(FilterSPtr filter, OutputSPtr output);
+
+    FilterSPtr filter()
+    { return m_filter; }
+
+    OutputSPtr output()
+    { return m_output; }
+
+  private:
+    FilterSPtr m_filter;
+    OutputSPtr m_output;
+  };
+
+  using InputSPtr  = std::shared_ptr<Input>;
+  using InputSList = QList<InputSPtr>;
+
+  InputSPtr   getInput(FilterSPtr filter, Output::Id id);
+  InputSList getInputs(FilterSPtr filter);
 }
 
-#endif // ESPINA_SEEDGROWSEGMENTATION_TESTINGSUPPORT_H
+#endif // ESPINA_INPUT_H

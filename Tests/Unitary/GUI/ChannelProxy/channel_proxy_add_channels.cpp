@@ -61,7 +61,7 @@ int channel_proxy_add_channels(int argc, char** argv )
 
   modelAdapter->add(sample);
 
-  OutputSList inputs;
+  InputSList inputs;
   Filter::Type type{"DummyFilter"};
 
   FilterAdapterSPtr filter = factory.createFilter<DummyFilter>(inputs, type);

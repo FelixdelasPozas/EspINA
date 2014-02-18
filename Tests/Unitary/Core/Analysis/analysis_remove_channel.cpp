@@ -43,7 +43,8 @@ int analysis_remove_channel( int argc, char** argv )
   Analysis analysis;
 
   FilterSPtr filter{new Testing::DummyFilter()};
-  ChannelSPtr channel(new Channel(filter, 0));
+  auto input = getInput(filter, 0);
+  ChannelSPtr channel(new Channel(input));
 
   analysis.add(channel);
 

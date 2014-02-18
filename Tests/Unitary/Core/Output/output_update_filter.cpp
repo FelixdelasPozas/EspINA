@@ -40,7 +40,7 @@ int output_update_filter( int argc, char** argv )
   {
   public:
     explicit DummyFilter()
-    : Filter(OutputSList(), "Dummy", SchedulerSPtr(new Scheduler(10000000)))
+    : Filter(InputSList(), "Dummy", SchedulerSPtr(new Scheduler(10000000)))
     , UpdatedOutput{-1}{}
     virtual void restoreState(const State& state) {}
     virtual State state() const{ return State();}

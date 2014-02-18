@@ -44,7 +44,7 @@ FilterTypeList ChannelReader::providedFilters() const
 }
 
 //------------------------------------------------------------------------
-FilterSPtr ChannelReader::createFilter(OutputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception)
+FilterSPtr ChannelReader::createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception)
 {
   if (filter != VOLUMETRIC_STREAM_READER 
    && filter != ESPINA_1_3_2_CHANNEL_READER) throw Unknown_Filter_Exception();
@@ -76,8 +76,7 @@ AnalysisSPtr ChannelReader::read(const QFileInfo& file,
 
   analysis->add(sample);
 
-  auto filter = factory->createFilter<VolumetricStreamReader>(OutputSList(), VOLUMETRIC_STREAM_READER);
-
+  auto filter = factory->createFilter<VolumetricStreamReader>(InputSList(), VOLUMETRIC_STREAM_READER);
 //   if (file.fileName().contains(".tif"))
 //   {
 //     using VolumeReader = itk::ImageFileReader<itkVolumeType>;
@@ -99,6 +98,8 @@ AnalysisSPtr ChannelReader::read(const QFileInfo& file,
 
   filter->setErrorHandler(handler);
   filter->setFileName(file);
+  filter->update();
+
   ChannelSPtr channel = factory->createChannel(filter, 0);
   channel->setName(file.fileName());
 

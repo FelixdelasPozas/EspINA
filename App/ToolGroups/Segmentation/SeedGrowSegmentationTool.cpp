@@ -46,7 +46,7 @@ FilterTypeList SeedGrowSegmentationTool::SGSFilterFactory::providedFilters() con
 }
 
 //-----------------------------------------------------------------------------
-FilterSPtr SeedGrowSegmentationTool::SGSFilterFactory::createFilter(OutputSList         inputs,
+FilterSPtr SeedGrowSegmentationTool::SGSFilterFactory::createFilter(InputSList         inputs,
                                                   const Filter::Type& filter,
                                                   SchedulerSPtr       scheduler) const throw (Unknown_Filter_Exception)
 {
@@ -223,9 +223,9 @@ void SeedGrowSegmentationTool::launchTask(Selector::SelectionList selectedItems)
   {
     //m_selectorSwitch->setEnabled(false);
 
-    OutputSList inputs;
+    InputSList inputs;
 
-    inputs << channel->output();
+    inputs << channel->asInput();
 
     auto adapter = m_factory->createFilter<SeedGrowSegmentationFilter>(inputs, SGS_FILTER);
     auto filter  = adapter->get();

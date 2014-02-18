@@ -83,7 +83,7 @@ AnalysisSPtr SegFile_V4::load(QuaZip&          zip,
   {
     auto classification = ClassificationXML::parse(readCurrentFileFromZip(zip, handler));
     m_analysis->setClassification(classification);
-  } catch (ClassificationXML::Parse_Exception e)
+  } catch (ClassificationXML::Parse_Exception &e)
   {
     if (handler)
       handler->error(QObject::tr("Error while loading classification"));
@@ -93,90 +93,24 @@ AnalysisSPtr SegFile_V4::load(QuaZip&          zip,
 
   loadTrace(zip);
 
-  QMap<QString, QList<QByteArray>> trcFiles;
-
   bool hasFile = zip.goToFirstFile();
   while (hasFile)
   {
     QString file = zip.getCurrentFileName();
 
-    if (file != FORMAT_INFO_FILE
-     && file != CLASSIFICATION_FILE
-     && file != TRACE_FILE)
+    if ( file != FORMAT_INFO_FILE
+      && file != CLASSIFICATION_FILE
+      && file != TRACE_FILE
+      && !file.contains("Outputs/")
+      && !file.contains("SegmentationVolume/"))
     {
-      // Translate filenames to expected format
-      if (file.contains("Outputs/"))
-      {
-        auto trcFile = file.remove(0, 8);
-        auto vertex  = trcFile.split("_")[0].toInt();
-        auto uuid    = m_filerUuids[vertex];
-        auto outputs = QString("Filters/%1/outputs.xml").arg(uuid.toString());
-
-        trcFiles[outputs].append(readCurrentFileFromZip(zip, handler));
-      } else if (file.contains("SegmentationVolume/"))
-      {
-        auto oldFile = file.remove(0, 19);
-        auto parts   = oldFile.split("_");
-        auto vertex  = parts[0].toInt();
-        auto uuid    = m_filerUuids[vertex];
-        auto newFile = QString("Filters/%1/").arg(uuid.toString());
-        if (parts[1].endsWith(".mhd"))
-        {
-          newFile += QString("VolumetricData_%1").arg(parts[1]);
-        } else if (parts[1].endsWith(".raw"))
-        {
-          newFile += oldFile; // mhd internal references to raw files are not modified
-        } else {
-          Q_ASSERT(false);
-        }
-
-        m_storage->saveSnapshot(SnapshotData(newFile, readCurrentFileFromZip(zip, handler)));
-      } else {
-        m_storage->saveSnapshot(SnapshotData(file, readCurrentFileFromZip(zip, handler)));
-      }
+      m_storage->saveSnapshot(SnapshotData(file, readCurrentFileFromZip(zip, handler)));
     }
 
     hasFile = zip.goToNextFile();
   }
 
-  for(auto filter : trcFiles.keys())
-  {
-    QByteArray buffer;
-    QXmlStreamWriter xml(&buffer);
-
-    xml.setAutoFormatting(true);
-    xml.writeStartDocument();
-    int id = 0;
-    for(auto trc : trcFiles[filter])
-    {
-      xml.writeStartElement("Output");
-      xml.writeAttribute("id", QString::number(id));
-
-      QString content(trc);
-
-      QStringList lines = content.split(QRegExp("[\r\n]"));
-      for(int i = 0; i < lines.size(); ++i)
-      {
-        if ("SegmentationVolume" == lines[i])
-        {
-          xml.writeStartElement("Data");
-          xml.writeAttribute("type", "VolumetricData");
-          xml.writeEndElement();
-        } else if ("MeshOutputType" == lines[i])
-        {
-          xml.writeStartElement("Data");
-          xml.writeAttribute("type", "MeshData");
-          xml.writeEndElement();
-        }
-      }
-      xml.writeEndElement();
-      id++;
-    }
-
-    xml.writeEndDocument();
-
-    m_storage->saveSnapshot(SnapshotData(filter, buffer));
-  }
+  restoreRelations();
 
   return m_analysis;
 }
@@ -219,22 +153,27 @@ SampleSPtr SegFile_V4::createSample(DirectedGraph::Vertex roVertex)
 }
 
 //-----------------------------------------------------------------------------
-FilterSPtr SegFile_V4::createFilter(DirectedGraph::Vertex roVertex)
+FilterSPtr SegFile_V4::createFilter(DirectedGraph::Vertex roVertex, QuaZip &zip)
 {
   DirectedGraph::Edges inputConections = m_trace->inEdges(roVertex);
 
-  OutputSList inputs;
+  InputSList inputs;
   for(auto edge : inputConections)
   {
     auto vertex_v4 = std::dynamic_pointer_cast<ReadOnlyVertex>(edge.source);
     auto input     = findVertex(vertex_v4->vertexId());
 
-    FilterSPtr filter = std::dynamic_pointer_cast<Filter>(input);
-    if (filter)
+    FilterSPtr inputFilter = std::dynamic_pointer_cast<Filter>(input);
+    if (inputFilter)
     {
       Output::Id id = atoi(edge.relationship.c_str());
 
-      inputs << filter->output(id);
+      // Here it is safe to create the outputs because they already existed
+      // In addition, it may be the case an update couldn't be executed if
+      // traceability was disabled
+      inputFilter->m_outputs[id] = OutputSPtr{new Output(inputFilter.get(), id)};
+
+      inputs << getInput(inputFilter, id);
     }
   }
 
@@ -242,7 +181,7 @@ FilterSPtr SegFile_V4::createFilter(DirectedGraph::Vertex roVertex)
   try
   {
     filter = m_factory->createFilter(inputs, roVertex->name());
-  } catch (CoreFactory::Unknown_Type_Exception e)
+  } catch (...)
   {
     filter = FilterSPtr{new ReadOnlyFilter(inputs, roVertex->name())};
     filter->setFetchBehaviour(m_fetchBehaviour);
@@ -258,7 +197,7 @@ FilterSPtr SegFile_V4::createFilter(DirectedGraph::Vertex roVertex)
     auto parts = arg.split("=");
     if ("ID" == parts[0])
     {
-      m_filerUuids[parts[1].toInt()] = filter->uuid();
+      createFilterOutputsFile(zip, filter->uuid(), parts[1].toInt());
     }
   }
 
@@ -280,7 +219,7 @@ QPair<FilterSPtr, Output::Id> SegFile_V4::findOutput(DirectedGraph::Vertex   roV
   auto input     = findVertex(vertex_v4->vertexId());
 
   output.first  = std::dynamic_pointer_cast<Filter>(input);
-  output.second = 0;//atoi(edge.relationship.c_str());
+  output.second = parseOutputId(roVertex->state());
 
   return output;
 }
@@ -294,13 +233,12 @@ ChannelSPtr SegFile_V4::createChannel(DirectedGraph::Vertex   roVertex)
   DirectedGraph::Edge edge = inputConections.first();
 
   auto vertex_v4 = std::dynamic_pointer_cast<ReadOnlyVertex>(edge.source);
-  auto filter = std::dynamic_pointer_cast<Filter>(findVertex(vertex_v4->vertexId()));
+  auto filter    = std::dynamic_pointer_cast<Filter>(findVertex(vertex_v4->vertexId()));
+
+  filter->update(0); // Existing outputs weren't stored in previous versions
 
   ChannelSPtr channel = m_factory->createChannel(filter, 0);
 
-
-  qDebug() << roVertex->state();
-  qDebug() << vertex_v4->state();
   channel->setName(roVertex->name());
   channel->restoreState(roVertex->state() + vertex_v4->state());
   channel->setStorage(m_storage);
@@ -328,11 +266,33 @@ QString SegFile_V4::parseCategoryName(const State& state)
 }
 
 //-----------------------------------------------------------------------------
+int SegFile_V4::parseOutputId(const State& state)
+{
+  int id = 0;
+
+  QStringList params = state.split(";");
+
+  for (auto param : params)
+  {
+    auto tokens = param.split("=");
+    if ("Output" == tokens[0])
+      id = tokens[1].toInt();
+  }
+
+  return id;
+}
+
+//-----------------------------------------------------------------------------
 SegmentationSPtr SegFile_V4::createSegmentation(DirectedGraph::Vertex   roVertex)
 {
-  auto output = findOutput(roVertex, "CreateSegmentation");
+  auto roOutput = findOutput(roVertex, "CreateSegmentation");
 
-  SegmentationSPtr segmentation = m_factory->createSegmentation(output.first, output.second);
+  auto filter   = roOutput.first;
+  auto outputId = roOutput.second;
+
+  filter->update(outputId); // Existing outputs weren't stored in previous versions
+
+  SegmentationSPtr segmentation = m_factory->createSegmentation(filter, outputId);
 
   State roState = roVertex->state();
   segmentation->setName(roVertex->name());
@@ -382,12 +342,18 @@ void SegFile_V4::loadTrace(QuaZip& zip)
       }
       case VertexType::FILTER:
       {
-        vertex = createFilter(roVertex);
+        vertex = createFilter(roVertex, zip);
         break;
       }
       case VertexType::SEGMENTATION:
       {
-        vertex = createSegmentation(roVertex);
+        try
+        {
+          vertex = createSegmentation(roVertex);
+        } catch (...)
+        {
+          qDebug() << "Failed to create segmentation: " << roVertex->name() << roVertex->state();
+        }
         break;
       }
       default:
@@ -403,6 +369,26 @@ void SegFile_V4::loadTrace(QuaZip& zip)
     }
   }
 
+}
+
+//-----------------------------------------------------------------------------
+void SegFile_V4::createSegmentations()
+{
+  for (auto roVertex : m_pendingSegmenationVertices)
+  {
+    auto vertex = createSegmentation(roVertex);
+
+    Q_ASSERT(vertex != nullptr);
+
+    auto vertex_v4 = std::dynamic_pointer_cast<ReadOnlyVertex>(roVertex);
+    m_loadedVertices << vertex;
+    m_vertexUuids[vertex_v4->vertexId()] = vertex->uuid();
+  }
+}
+
+//-----------------------------------------------------------------------------
+void SegFile_V4::restoreRelations()
+{
   for(auto edge : m_trace->edges())
   {
     auto source_v4 = std::dynamic_pointer_cast<ReadOnlyVertex>(edge.source);
@@ -426,5 +412,100 @@ void SegFile_V4::loadTrace(QuaZip& zip)
         qWarning() << "Invalid Relationship: " << relation.c_str();
       }
     }
+  }
+}
+
+//-----------------------------------------------------------------------------
+void SegFile_V4::createFilterOutputsFile(QuaZip &zip, QUuid uuid, int filter_vertex)
+{
+  QString           outputsFile;
+  QMap<int, QList<QByteArray>> trcFiles;
+
+  bool hasFile = zip.goToFirstFile();
+  while (hasFile)
+  {
+    QString file = zip.getCurrentFileName();
+
+    if (file != FORMAT_INFO_FILE
+      && file != CLASSIFICATION_FILE
+      && file != TRACE_FILE)
+    {
+      // Translate filenames to expected format
+      if (file.contains("Outputs/"))
+      {
+        auto trcFile = file.remove(0, 8);
+        auto tokens  = trcFile.split("_");
+        auto vertex  = tokens[0].toInt();
+        if (vertex == filter_vertex)
+        {
+          auto output = tokens[1].split(".")[0].toInt();
+          outputsFile = QString("Filters/%1/outputs.xml").arg(uuid.toString());
+          trcFiles[output].append(readCurrentFileFromZip(zip, m_handler));
+        }
+
+      } else if (file.contains("SegmentationVolume/"))
+      {
+        auto oldFile = file.remove(0, 19);
+        auto parts   = oldFile.split("_");
+        auto vertex  = parts[0].toInt();
+        if (vertex == filter_vertex)
+        {
+          auto newFile = QString("Filters/%1/").arg(uuid.toString());
+          if (parts[1].endsWith(".mhd"))
+          {
+            newFile += QString("VolumetricData_%1").arg(parts[1]);
+          } else if (parts[1].endsWith(".raw"))
+          {
+            newFile += oldFile; // mhd internal references to raw files are not modified
+          } else {
+            Q_ASSERT(false);
+          }
+
+          m_storage->saveSnapshot(SnapshotData(newFile, readCurrentFileFromZip(zip, m_handler)));
+        }
+      }
+    }
+
+    hasFile = zip.goToNextFile();
+  }
+
+  if (!trcFiles.isEmpty())
+  {
+    QByteArray buffer;
+    QXmlStreamWriter xml(&buffer);
+
+    xml.setAutoFormatting(true);
+    xml.writeStartDocument();
+    for(auto output : trcFiles.keys())
+    {
+      for (auto trc : trcFiles[output])
+      {
+        xml.writeStartElement("Output");
+        xml.writeAttribute("id", QString::number(output));
+
+        QString content(trc);
+
+        QStringList lines = content.split(QRegExp("[\r\n]"));
+        for(int i = 0; i < lines.size(); ++i)
+        {
+          if ("SegmentationVolume" == lines[i])
+          {
+            xml.writeStartElement("Data");
+            xml.writeAttribute("type", "VolumetricData");
+            xml.writeEndElement();
+          } else if ("MeshOutputType" == lines[i])
+          {
+            xml.writeStartElement("Data");
+            xml.writeAttribute("type", "MeshData");
+            xml.writeEndElement();
+          }
+        }
+        xml.writeEndElement();
+      }
+    }
+
+    xml.writeEndDocument();
+
+    m_storage->saveSnapshot(SnapshotData(outputsFile, buffer));
   }
 }

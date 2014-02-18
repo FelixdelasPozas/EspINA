@@ -836,8 +836,11 @@ namespace EspINA
       if (!empty) blockImages << itkImage(bounds);
     }
 
-    cout << "Sparse Volume Compression: " << 100-(blockImages.size()*100/blockBounds.size()) << "% - " << blockImages.size() << "/" << blockBounds.size() << endl;
-
+    if (!blockBounds.isEmpty())
+    {
+      cout << "Sparse Volume Compression: " << 100-(blockImages.size()*100/blockBounds.size()) << "% - " << blockImages.size() << "/" << blockBounds.size() << endl;
+    }
+   
     for (int i = 0; i < blockBounds.size(); ++i)
       for (int j = i+1; j < blockBounds.size(); ++j)
       {

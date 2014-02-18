@@ -38,6 +38,7 @@ set(SUBJECT_SOURCES
   ${CORE_DIR}/Analysis/Data.cpp
   ${CORE_DIR}/Analysis/Filter.cpp
   ${CORE_DIR}/Analysis/Graph/DirectedGraph.cpp
+  ${CORE_DIR}/Analysis/Input.cpp
   ${CORE_DIR}/Analysis/Output.cpp
   ${CORE_DIR}/Analysis/Segmentation.cpp
   ${CORE_DIR}/Analysis/ViewItem.cpp

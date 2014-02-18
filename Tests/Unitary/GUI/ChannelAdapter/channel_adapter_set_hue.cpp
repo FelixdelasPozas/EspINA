@@ -55,7 +55,7 @@ int channel_adapter_set_hue(int argc, char** argv )
   SchedulerSPtr sch{new Scheduler(1e6)};
   ModelFactory factory(CoreFactorySPtr{new CoreFactory(sch)});
 
-  FilterAdapterSPtr  filter  = factory.createFilter<DummyFilter>(OutputSList(), DummyFilter::TYPE);
+  FilterAdapterSPtr  filter  = factory.createFilter<DummyFilter>(InputSList(), DummyFilter::TYPE);
   ChannelAdapterSPtr channel = factory.createChannel(filter, 0);
 
   if (channel->hue() != -1) {

@@ -37,7 +37,7 @@ namespace EspINA
   public:
     virtual ~FilterFactory(){}
 
-    virtual FilterSPtr createFilter(OutputSList         inputs,
+    virtual FilterSPtr createFilter(InputSList          inputs,
                                     const Filter::Type& filter,
                                     SchedulerSPtr       scheduler) const throw (Unknown_Filter_Exception) = 0;
 

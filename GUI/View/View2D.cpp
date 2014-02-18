@@ -1445,7 +1445,7 @@ RepresentationSPtr View2D::cloneRepresentation(ViewItemAdapterPtr item, Represen
   RepresentationSPtr prototype = item->representation(representation);
   RepresentationSPtr rep;
 
-  if (prototype->canRenderOnView().testFlag(Representation::RENDERABLEVIEW_SLICE))
+  if (prototype && prototype->canRenderOnView().testFlag(Representation::RENDERABLEVIEW_SLICE))
   {
     rep = prototype->clone(this);
   }

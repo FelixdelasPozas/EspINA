@@ -29,7 +29,7 @@ using namespace EspINA::Testing;
 
 int segmentation_change_number(int argc, char** argv)
 {
-  SegmentationSPtr segmentation{new Segmentation(FilterSPtr{new DummyFilter()}, 0)};
+  SegmentationSPtr segmentation{new Segmentation(InputSPtr())};
 
   if (segmentation->number() != 0)
   {

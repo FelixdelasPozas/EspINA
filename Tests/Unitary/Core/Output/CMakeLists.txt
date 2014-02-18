@@ -16,6 +16,7 @@ set(LIB_DEPENDECIES
 
 qt4_wrap_cpp(SUBJECT_MOCS
   ${CORE_DIR}/Analysis/Data.h
+  ${CORE_DIR}/Analysis/Input.h
   ${CORE_DIR}/Analysis/Output.h
   ${CORE_DIR}/Analysis/ViewItem.h
   ${CORE_DIR}/MultiTasking/Scheduler.h
@@ -30,6 +31,7 @@ add_executable(Output_Tests
   ${CORE_DIR}/Analysis/Data.cpp
   ${CORE_DIR}/Analysis/Filter.cpp
   ${CORE_DIR}/Analysis/Graph/DirectedGraph.cpp
+  ${CORE_DIR}/Analysis/Input.cpp
   ${CORE_DIR}/Analysis/Output.cpp
   ${CORE_DIR}/Analysis/Sample.cpp
   ${CORE_DIR}/Analysis/Segmentation.cpp

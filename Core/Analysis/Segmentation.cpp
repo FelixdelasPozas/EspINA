@@ -33,8 +33,8 @@
 using namespace std;
 using namespace EspINA;
 
-Segmentation::Segmentation(FilterSPtr filter, const Output::Id output)
-: ViewItem(filter, output)
+Segmentation::Segmentation(InputSPtr input)
+: ViewItem(input)
 , m_number{0}
 , m_users{QSet<QString>()}
 , m_category{nullptr}

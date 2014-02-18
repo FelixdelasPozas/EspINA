@@ -59,7 +59,7 @@ int channel_proxy_remove_non_existing_channel( int argc, char** argv )
 
   modelAdapter->setAnalysis(analysis, factory);
 
-  OutputSList inputs;
+  InputSList inputs;
   Filter::Type type{"DummyFilter"};
 
   FilterAdapterSPtr  filter  = factory->createFilter<DummyFilter>(inputs, type);

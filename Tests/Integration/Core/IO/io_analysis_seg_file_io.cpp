@@ -49,7 +49,7 @@ int io_analysis_seg_file_io( int argc, char** argv )
   {
     virtual FilterTypeList providedFilters() const
     { FilterTypeList list; list << "DummyFilter"; return list; }
-    virtual FilterSPtr createFilter(OutputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception)
+    virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception)
     {
       return FilterSPtr{new DummyFilter()};
     }
@@ -68,7 +68,7 @@ int io_analysis_seg_file_io( int argc, char** argv )
   analysis.add(sample);
 
   FilterSPtr filter{new DummyFilter()};
-  ChannelSPtr channel(new Channel(filter, 0));
+  ChannelSPtr channel(new Channel(getInput(filter, 0)));
   channel->setName("channel");
 
   analysis.add(channel);
@@ -76,7 +76,7 @@ int io_analysis_seg_file_io( int argc, char** argv )
   analysis.addRelation(sample, channel, "Stain");
 
   FilterSPtr segFilter{new DummyFilter()};
-  SegmentationSPtr segmentation(new Segmentation(segFilter, 0));
+  SegmentationSPtr segmentation(new Segmentation(getInput(segFilter, 0)));
   segmentation->setNumber(1);
 
   SegmentationExtensionSPtr extension{new DummySegmentationExtension()};

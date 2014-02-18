@@ -39,7 +39,7 @@ namespace EspINA
     struct File_Not_Found_Exception{};
 
   public:
-    explicit VolumetricStreamReader(OutputSList inputs, Type type, SchedulerSPtr scheduler);
+    explicit VolumetricStreamReader(InputSList inputs, Type type, SchedulerSPtr scheduler);
 
     virtual void restoreState(const State& state);
 
