@@ -77,7 +77,7 @@ RepresentationTypeList BasicSegmentationRepresentationFactory::representations()
 
   representations << SegmentationSliceRepresentation::TYPE;
   //representations << SegmentationSliceCachedRepresentation::TYPE;
-  representations << ContourRepresentation::TYPE;
+  //representations << ContourRepresentation::TYPE;
   representations << MeshRepresentation::TYPE;
   representations << SmoothedMeshRepresentation::TYPE;
   representations << VolumetricRepresentation<itkVolumeType>::TYPE;

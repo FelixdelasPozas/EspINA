@@ -128,8 +128,9 @@ namespace EspINA
     { m_infoCache.clear(); }
 
   protected:
-    T        *m_extendedItem;
-    InfoCache m_infoCache;
+    T *m_extendedItem;
+
+    mutable InfoCache m_infoCache;
   };
 
   class ChannelExtension

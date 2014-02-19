@@ -126,6 +126,12 @@ void CFTypeSelectorDialog::channelSelected()
 
   auto item = itemAdapter(currentIndex);
 
+  if (!item || isSample(item))
+  {
+    currentIndex = currentIndex.child(0, 0);
+    item = itemAdapter(currentIndex);
+  }
+
   if (item && isChannel(item))
   {
     m_channelIndex = currentIndex;
@@ -143,10 +149,10 @@ void CFTypeSelectorDialog::channelSelected()
       setType(CF::ADAPTIVE);
     }
   }
-  else
-  {
-    channelSelector->setCurrentModelIndex(m_channelIndex);
-  }
+//   else
+//   {
+//     channelSelector->setCurrentModelIndex(m_channelIndex);
+//   }
 }
 
 //------------------------------------------------------------------------

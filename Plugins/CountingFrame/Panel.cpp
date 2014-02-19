@@ -862,7 +862,6 @@ void Panel::exportCountingFrameDescriptionAsExcel(const QString& filename)
 //------------------------------------------------------------------------
 void Panel::applyCountingFrames(SegmentationAdapterSList segmentations)
 {
-  qDebug() << "Total Segmentations" << segmentations.size();
   for (auto segmentation : segmentations)
   {
     auto sterologicalExtension = retrieveOrCreateExtension<StereologicalInclusion>(segmentation);
