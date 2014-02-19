@@ -84,7 +84,8 @@ namespace EspINA
       {
         node->worker->abort();
         node->mutex.unlock();
-        node->worker->thread()->wait();
+        if (!node->worker->thread()->wait(1000))
+          node->worker->thread()->terminate();
         node->worker = nullptr;
       }
       else
@@ -371,7 +372,10 @@ namespace EspINA
     {
       // connect to this task render signal
       if (m_actualPos->worker != nullptr)
+      {
+        m_actualPos->worker->setPriority(Priority::VERY_HIGHT);
         connect(m_actualPos->worker.get(), SIGNAL(render(CachedRepresentation::CacheNode *)), this, SLOT(renderFrame(CachedRepresentation::CacheNode *)), Qt::QueuedConnection);
+      }
       m_actualPos->mutex.unlock();
 
       // cache miss, make the window bigger. the actor will be added when the task finishes so for

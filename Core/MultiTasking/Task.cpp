@@ -112,7 +112,7 @@ void Task::resume()
 }
 
 //-----------------------------------------------------------------------------
-bool Task::isPaused() const
+bool Task::isPendingPause() const
 {
   return m_pendingUserPause;
 }
@@ -140,7 +140,9 @@ bool Task::canExecute()
     if (notify)
       emit paused();
 
-    m_paused.wait(&m_mutex);
+    m_isPaused = true;
+    m_pauseCondition.wait(&m_mutex);
+    m_isPaused = false;
     m_pendingPause = false;
 
     if (notify)
@@ -178,7 +180,7 @@ void Task::dispatcherResume()
   if (!m_pendingUserPause)
   {
     //std::cout << m_description.toStdString() << " has been resumed" << std::endl;
-    m_paused.wakeAll();
+    m_pauseCondition.wakeAll();
   }
 }
 

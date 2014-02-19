@@ -57,6 +57,8 @@ namespace EspINA {
     void changePriority(TaskPtr task, int prevPriority);
     void changePriority(TaskSPtr task, int prevPriority);
 
+    unsigned int numberOfTasks() const;
+
   public slots:
     void scheduleTasks();
 
@@ -72,7 +74,7 @@ namespace EspINA {
     Task::Id m_lastId;
 
     int    m_maxNumRunningThreads;
-    QMutex m_mutex;
+    mutable QMutex m_mutex;
     bool   m_abort;
   };
 }

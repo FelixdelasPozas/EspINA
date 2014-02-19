@@ -120,7 +120,8 @@ void Scheduler::abortExecutingTasks()
       if (!task->hasFinished())
       {
         task->abort();
-        task->thread()->wait();
+        if (!task->thread()->wait(1000))
+          task->thread()->terminate();
       }
     }
     m_runningTasks[priority].clear();
@@ -145,6 +146,18 @@ void Scheduler::changePriority(TaskPtr task, int prevPriority)
 void Scheduler::changePriority(TaskSPtr task, int prevPriority)
 {
   changePriority(task.get(), prevPriority);
+}
+
+//-----------------------------------------------------------------------------
+unsigned int Scheduler::numberOfTasks() const
+{
+  QMutexLocker lock(&m_mutex);
+
+  unsigned int result;
+  for(int priority = 4; priority >= 0; --priority)
+    result += m_runningTasks[priority].size();
+
+  return result;
 }
 
 //-----------------------------------------------------------------------------
@@ -177,7 +190,7 @@ void Scheduler::scheduleTasks()
 
       for (TaskSPtr task : m_runningTasks[priority])
       {
-        // TODO: this if shouldn't be here
+        // TODO: this shouldn't be here?
         if (task == nullptr)
         {
           deferredDeletionTaskList << task;
@@ -187,7 +200,7 @@ void Scheduler::scheduleTasks()
         bool is_thread_attached = task->m_isThreadAttached;
 
         if (num_running_threads < m_maxNumRunningThreads
-            && !(task->isPaused() || task->isAborted() || task->hasFinished()))
+            && !(task->isPendingPause() || task->isAborted() || task->hasFinished()))
         {
           if (is_thread_attached)
           {
@@ -232,7 +245,7 @@ void Scheduler::scheduleTasks()
             }
           }
           else
-            if (!task->isPaused() && is_thread_attached && !task->isDispatcherPaused())
+            if (!task->isPendingPause() && is_thread_attached && !task->isDispatcherPaused())
             {
               task->dispatcherPause();
 //             std::cout << "- " << task->id() << ": " << task->description().toStdString() << " was paused by scheduler" << std::endl;
@@ -266,6 +279,7 @@ void Scheduler::scheduleTasks()
 //      {
 //        std::cout << task->id() << " - ";
 //        std::cout << (task->isPaused() ? "paused " : "");
+//        std::cout << (task->isPendingPause() ? "paused " : "");
 //        std::cout << (task->isAborted() ? "aborted " : "");
 //        std::cout << (task->isDispatcherPaused() ? " dispacherPaused " : "");
 //        std::cout << (task->hasFinished() ? "finished " : "");

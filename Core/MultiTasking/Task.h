@@ -74,9 +74,9 @@ namespace EspINA {
      */
     virtual void resume();
 
-    virtual bool isPaused() const;
+    virtual bool isPendingPause() const;
 
-    bool isRunning() const {return m_isThreadAttached && !isPaused();}
+    bool isRunning() const {return m_isThreadAttached && !isPendingPause();}
 
     bool isAborted() const { return m_isAborted; }
 
@@ -87,6 +87,8 @@ namespace EspINA {
     void setHidden(bool hidden) { m_hidden = hidden; }
 
     bool isHidden() const { return m_hidden; }
+
+    bool isPaused() const { return m_isPaused; }
 
   public slots:
     void setPriority(const int value);
@@ -134,9 +136,10 @@ namespace EspINA {
     bool m_pendingUserPause;
     bool m_isAborted;
     bool m_hasFinished;
+    bool m_isPaused;
 
     QMutex m_mutex;
-    QWaitCondition m_paused;
+    QWaitCondition m_pauseCondition;
 
     QString  m_description;
     Id m_id;
