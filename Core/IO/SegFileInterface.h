@@ -44,16 +44,16 @@ namespace EspINA
                           ErrorHandlerSPtr handler = ErrorHandlerSPtr()) = 0;
 
       protected:
-        void addFileToZip(const QString&    fileName,
+        static void addFileToZip(const QString&    fileName,
                           const QByteArray& content,
                           QuaZip&           zip,
                           ErrorHandlerSPtr  handler = ErrorHandlerSPtr());
 
-        QByteArray readFileFromZip(const QString&  fileName,
+        static QByteArray readFileFromZip(const QString&  fileName,
                                    QuaZip&         zip,
                                    ErrorHandlerSPtr handler = ErrorHandlerSPtr());
 
-        QByteArray readCurrentFileFromZip(QuaZip&          zip,
+        static QByteArray readCurrentFileFromZip(QuaZip&          zip,
                                           ErrorHandlerSPtr handler = ErrorHandlerSPtr());
       };
     }

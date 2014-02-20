@@ -35,6 +35,59 @@ namespace EspINA {
       {
         using UuidMap = QMap<int, QUuid>;
 
+        class Loader
+        {
+        public:
+          Loader(QuaZip&          zip,
+                 CoreFactorySPtr  factory = CoreFactorySPtr(),
+                 ErrorHandlerSPtr handler = ErrorHandlerSPtr());
+
+          AnalysisSPtr load();
+
+      private:
+        DirectedGraph::Vertex findInflatedVertexByIdV4(int id) const;
+
+        QPair<FilterSPtr, Output::Id> findOutput(DirectedGraph::Vertex roVertex,
+                                                 const QString        &linkName);
+
+        SampleSPtr createSample(DirectedGraph::Vertex roVertex);
+
+        FilterSPtr createFilter(DirectedGraph::Vertex roVertex);
+
+        ChannelSPtr createChannel(DirectedGraph::Vertex roVertex);
+
+        QString parseCategoryName(const State& state);
+
+        int parseOutputId(const State& state);
+
+        SegmentationSPtr createSegmentation(DirectedGraph::Vertex roVertex);
+
+        void loadTrace();
+
+        DirectedGraph::Vertex inflateVertexV4(DirectedGraph::Vertex roVertex);
+
+        void createSegmentations();
+
+        void restoreRelations();
+
+        void createFilterOutputsFile(FilterSPtr filter, int filterVertex);
+
+        private:
+          QuaZip                 &m_zip;
+          CoreFactorySPtr         m_factory;
+          ErrorHandlerSPtr        m_handler;
+          FetchBehaviourSPtr      m_fetchBehaviour;
+
+          AnalysisSPtr            m_analysis;
+          TemporalStorageSPtr     m_storage;
+
+          QMap<int, QUuid>        m_vertexUuids;
+          QMap<int, QUuid>        m_filerUuids;
+          DirectedGraph::Vertices m_loadedVertices;
+          DirectedGraphSPtr       m_trace;
+          DirectedGraph::Vertices m_pendingSegmenationVertices;
+        };
+
       public:
         static const QString FORMAT_INFO_FILE;
 
@@ -49,43 +102,6 @@ namespace EspINA {
                           QuaZip&          zip,
                           ErrorHandlerSPtr handler = ErrorHandlerSPtr());
 
-      private:
-        PersistentSPtr findVertex(int id) const;
-
-        QPair<FilterSPtr, Output::Id> findOutput(DirectedGraph::Vertex   roVertex,
-                                                 const QString          &linkName);
-
-        SampleSPtr createSample(DirectedGraph::Vertex roVertex);
-
-        FilterSPtr createFilter(DirectedGraph::Vertex roVertex, QuaZip &zip);
-
-        ChannelSPtr createChannel(DirectedGraph::Vertex roVertex);
-
-        QString parseCategoryName(const State& state);
-
-        int parseOutputId(const State& state);
-
-        SegmentationSPtr createSegmentation(DirectedGraph::Vertex roVertex);
-
-        void loadTrace(QuaZip& zip);
-
-        void createSegmentations();
-
-        void restoreRelations();
-
-        void createFilterOutputsFile(QuaZip& zip, QUuid uuid, int id);
-
-      private:
-        AnalysisSPtr            m_analysis;
-        TemporalStorageSPtr     m_storage;
-        QMap<int, QUuid>        m_vertexUuids;
-        QMap<int, QUuid>        m_filerUuids;
-        DirectedGraph::Vertices m_loadedVertices;
-        DirectedGraphSPtr       m_trace;
-        CoreFactorySPtr         m_factory;
-        FetchBehaviourSPtr      m_fetchBehaviour;
-        ErrorHandlerSPtr        m_handler;
-        DirectedGraph::Vertices m_pendingSegmenationVertices;
       };
     }
   }

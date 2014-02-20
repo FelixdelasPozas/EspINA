@@ -38,6 +38,7 @@ set (CORE_SOURCES
   IO/FetchRawData.cpp
   IO/GraphIO.cpp
   IO/ReadOnlyChannelExtension.cpp
+  IO/ReadOnlySegmentationExtension.cpp
   IO/SegFile.cpp
   IO/SegFileInterface.cpp
   IO/SegFile_V4.cpp

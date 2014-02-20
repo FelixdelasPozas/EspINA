@@ -73,7 +73,6 @@ throw (Unknown_Type_Exception)
     filter->setStorage(m_defaultStorage);
   } else
   {
-    qDebug() << "Unknown_Type_Exception" << type;
     throw CoreFactory::Unknown_Type_Exception();
   }
 

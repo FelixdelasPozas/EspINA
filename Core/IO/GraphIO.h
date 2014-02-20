@@ -77,6 +77,18 @@ namespace EspINA
 
       void read (std::istream& stream, DirectedGraphSPtr graph, PrintFormat format = PrintFormat::BOOST);
       void write(const DirectedGraphSPtr graph, std::ostream& stream, PrintFormat format = PrintFormat::BOOST);
+
+      template<class T> bool isSample(const T &vertex)
+      { return vertex->type() == VertexType::SAMPLE; }
+
+      template<class T> bool isFilter(const T &vertex)
+      { return vertex->type() == VertexType::FILTER; }
+
+      template<class T> bool isChannel(const T &vertex)
+      { return vertex->type() == VertexType::CHANNEL; }
+
+      template<class T> bool isSegmentation(const T &vertex)
+      { return vertex->type() == VertexType::SEGMENTATION; }
     }
   }
 }

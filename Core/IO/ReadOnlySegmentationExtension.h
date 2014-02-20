@@ -21,6 +21,7 @@
 #define ESPINA_READ_ONLY_SEGMENTATION_EXTENSION_H
 
 #include "Core/Analysis/Extension.h"
+#include <boost/graph/graph_concepts.hpp>
 
 namespace EspINA {
 
@@ -28,40 +29,42 @@ namespace EspINA {
   : public SegmentationExtension
   {
   public:
-    explicit ReadOnlySegmentationExtension(SegmentationExtension::Type type)
-    : m_type(type)
-    {}
+    explicit ReadOnlySegmentationExtension(SegmentationExtension::Type type, const State &state = State());
 
     virtual SegmentationExtension::Type type() const
     { return m_type; }
 
+    void setInvalidateOnChange(bool value)
+    { m_invalidateOnChange = value; }
+
+    virtual bool invalidateOnChange() const
+    { return m_invalidateOnChange; }
+
     virtual State state() const
-    { return State(); }//TODO
+    { return m_state; }
 
     virtual Snapshot snapshot() const
     { return Snapshot(); } // TODO
 
-    virtual bool invalidateOnChange() const
-    { return false; } // TODO
-
-    virtual InfoTagList availableInformations() const
-    { return InfoTagList(); }
-
     virtual TypeList dependencies() const
     { return TypeList(); }
+
+    virtual InfoTagList availableInformations() const
+    { return InfoTagList(); } // TODO
 
     virtual bool validCategory(const QString& classificationName) const
     { return true; }
 
   protected:
-    virtual void onExtendedItemSet(Segmentation* item)
-    {} //TODO
+    virtual void onExtendedItemSet(Segmentation* item);
 
     virtual QVariant cacheFail(const InfoTag &tag) const
     { return QVariant(); } //TODO
 
   private:
     SegmentationExtension::Type m_type;
+    const State m_state;
+    bool m_invalidateOnChange;
   };
 
 } // namespace EspINA

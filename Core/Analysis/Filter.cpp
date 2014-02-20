@@ -171,7 +171,7 @@ bool Filter::fetchOutputData(Output::Id id)
         {
           if ("Output" == xml.name())
           {
-            if (id == xml.attributes().value("id").toString().toInt())
+            if (id == xml.attributes().value("id").toString().toUInt())
             {
               // Outputs can be already created while checking if an output exists
               output = m_outputs.value(id, OutputSPtr{new Output(this, id)});
@@ -213,7 +213,7 @@ bool Filter::validStoredInformation() const
 }
 
 //----------------------------------------------------------------------------
-bool Filter::existOutput(Output::Id id)
+bool Filter::existOutput(Output::Id id) const
 {
   if (m_outputs.isEmpty())
   {
@@ -222,42 +222,6 @@ bool Filter::existOutput(Output::Id id)
 
   return m_outputs.contains(id);
 }
-
-// bool Filter::existOutput(Output::Id id)
-// {
-//   bool exists = m_outputs.contains(id);
-//
-//   if (!exists && validStoredInformation())
-//   {
-//     QByteArray buffer = storage()->snapshot(outputFile());
-//
-//     if (!buffer.isEmpty())
-//     {
-//       QXmlStreamReader xml(buffer);
-//
-//       OutputSPtr output;
-//
-//       while (!exists && !xml.atEnd())
-//       {
-//         xml.readNextStartElement();
-//         if (xml.isStartElement())
-//         {
-//           if ("Output" == xml.name())
-//           {
-//             exists = (id == xml.attributes().value("id").toString().toInt());
-//
-//             if (exists)
-//             {
-//               m_outputs.insert(id, OutputSPtr{new Output(this, id)});
-//             }
-//           }
-//         }
-//       }
-//     }
-//   }
-//
-//   return exists;
-// }
 
 //----------------------------------------------------------------------------
 bool Filter::createPreviousOutputs()

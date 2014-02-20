@@ -166,7 +166,7 @@ namespace EspINA
     bool validStoredInformation() const;
 
     //  Check if output was created during this or previous executions
-    bool existOutput(Output::Id id);
+    bool existOutput(Output::Id id) const;
 
     bool createPreviousOutputs();
 
@@ -181,7 +181,8 @@ namespace EspINA
     AnalysisPtr m_analysis;
     Type        m_type;
     InputSList  m_inputs;
-    OutputSMap  m_outputs;
+
+    mutable OutputSMap m_outputs;
 
     bool m_invalidateSortoredOutputs;
 

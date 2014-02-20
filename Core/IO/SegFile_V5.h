@@ -34,6 +34,8 @@ namespace EspINA {
       class SegFile_V5
       : public SegFileInterface
       {
+        class Loader;
+
       public:
         static const QString FORMAT_INFO_FILE;
 
@@ -47,63 +49,6 @@ namespace EspINA {
         virtual void save(AnalysisPtr      analysis, 
                           QuaZip&          zip,
                           ErrorHandlerSPtr handler = ErrorHandlerSPtr());
-      private:
-        PersistentSPtr findVertex(DirectedGraph::Vertices vertices,
-                                  Persistent::Uuid uuid);
-
-        QPair<FilterSPtr, Output::Id> findOutput(DirectedGraph::Vertex   roVertex,
-                                                 DirectedGraphSPtr       content,
-                                                 DirectedGraph::Vertices loadedVertices);
-
-        SampleSPtr createSample(DirectedGraph::Vertex roVertex,
-                                AnalysisSPtr          analysis,
-                                TemporalStorageSPtr   storage,
-                                CoreFactorySPtr       factory, 
-                                ErrorHandlerSPtr      handler = ErrorHandlerSPtr());
-
-        FilterSPtr createFilter(DirectedGraph::Vertex   roVertex,
-                                DirectedGraphSPtr       content,
-                                DirectedGraph::Vertices loadedVertices,
-                                TemporalStorageSPtr     storage,
-                                CoreFactorySPtr         factory, 
-                                ErrorHandlerSPtr        handler = ErrorHandlerSPtr());
-
-        ChannelSPtr createChannel(DirectedGraph::Vertex   roVertex,
-                                  AnalysisSPtr            analysis,
-                                  DirectedGraphSPtr       content,
-                                  DirectedGraph::Vertices loadedVertices,
-                                  TemporalStorageSPtr     storage,
-                                  CoreFactorySPtr         factory, 
-                                  ErrorHandlerSPtr        handler = ErrorHandlerSPtr());
-
-        QString parseCategoryName(const State& state);
-
-        SegmentationSPtr createSegmentation(DirectedGraph::Vertex   roVertex,
-                                            AnalysisSPtr            analysis,
-                                            DirectedGraphSPtr       content,
-                                            DirectedGraph::Vertices loadedVertices,
-                                            TemporalStorageSPtr     storage,
-                                            CoreFactorySPtr         factory, 
-                                            ErrorHandlerSPtr        handler = ErrorHandlerSPtr());
-
-        void loadContent(AnalysisSPtr        analysis,
-                         QuaZip&             zip,
-                         TemporalStorageSPtr storage,
-                         CoreFactorySPtr     factory,
-                         ErrorHandlerSPtr    handler = ErrorHandlerSPtr());
-
-        void loadRelations(AnalysisSPtr     analysis,
-                           QuaZip&          zip,
-                           ErrorHandlerSPtr handler = ErrorHandlerSPtr());
-
-        void loadExtensions(ChannelSPtr     channel,
-                            CoreFactorySPtr factory);
-
-        void loadExtensions(SegmentationSPtr segmentation,
-                            CoreFactorySPtr  factory);
-
-      private:
-        FetchBehaviourSPtr m_fetchBehaviour;
       };
     }
   }
