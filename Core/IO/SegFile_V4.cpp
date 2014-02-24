@@ -19,20 +19,19 @@
 
 #include "SegFile_V4.h"
 
-#include "SegFile.h"
-#include "ReadOnlyFilter.h"
-#include <Core/Utils/TemporalStorage.h>
-#include "ClassificationXML.h"
-#include "FetchRawData.h"
-
-#include <Core/Analysis/Channel.h>
-#include <Core/Analysis/Filter.h>
-#include <Core/Analysis/Graph/DirectedGraph.h>
-#include <Core/Analysis/Persistent.h>
-#include <Core/Analysis/Sample.h>
-#include <Core/Analysis/Segmentation.h>
-#include <Core/Analysis/Query.h>
-#include <Core/Factory/CoreFactory.h>
+#include "Core/Analysis/Channel.h"
+#include "Core/Analysis/Filter.h"
+#include "Core/Analysis/Graph/DirectedGraph.h"
+#include "Core/Analysis/Persistent.h"
+#include "Core/Analysis/Sample.h"
+#include "Core/Analysis/Segmentation.h"
+#include "Core/Analysis/Query.h"
+#include "Core/Factory/CoreFactory.h"
+#include "Core/IO/SegFile.h"
+#include "Core/IO/FetchBehaviour/MarchingCubesFromFetchedVolumetricData.h"
+#include "Core/IO/ClassificationXML.h"
+#include "Core/IO/ReadOnlyFilter.h"
+#include "Core/Utils/TemporalStorage.h"
 
 using namespace EspINA;
 using namespace EspINA::IO;
@@ -50,7 +49,8 @@ SegFile_V4::Loader::Loader(QuaZip& zip, CoreFactorySPtr factory, ErrorHandlerSPt
 : m_zip(zip)
 , m_factory(factory)
 , m_handler(handler)
-, m_fetchBehaviour{new FetchRawData()}
+//, m_fetchBehaviour{new FetchRawData()}
+, m_fetchBehaviour{new MarchingCubesFromFetchedVolumetricData()}
 , m_analysis{new Analysis()}
 {
 }

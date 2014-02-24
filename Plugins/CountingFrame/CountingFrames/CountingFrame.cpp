@@ -30,7 +30,8 @@ using namespace EspINA::CF;
 //-----------------------------------------------------------------------------
 CountingFrame::CountingFrame(CountingFrameExtension *extension,
                              Nm                      inclusion[3],
-                             Nm                      exclusion[3])
+                             Nm                      exclusion[3],
+                             SchedulerSPtr           scheduler)
 : INCLUSION_FACE(255)
 , EXCLUSION_FACE(0)
 , m_visible(true)
@@ -38,9 +39,16 @@ CountingFrame::CountingFrame(CountingFrameExtension *extension,
 , m_extension(extension)
 , m_totalVolume(0)
 , m_inclusionVolume(0)
+, m_scheduler(scheduler)
 {
   memcpy(m_inclusion, inclusion, 3*sizeof(Nm));
   memcpy(m_exclusion, exclusion, 3*sizeof(Nm));
+}
+
+//-----------------------------------------------------------------------------
+ChannelPtr CountingFrame::channel() const
+{
+  return m_extension->extendedItem();
 }
 
 //-----------------------------------------------------------------------------
@@ -80,7 +88,7 @@ QString CountingFrame::description() const
   QString br = "\n";
   QString desc;
   desc += tr("CF:   %1"            ).arg(m_id)                             + br;
-  desc += tr("Type: %1"            ).arg(name())                           + br;
+  desc += tr("Type: %1"            ).arg(typeName())                       + br;
   desc += tr("Volume information:" )                                       + br;
   desc += tr("  Total Volume:"     )                                       + br;
   desc += tr("    %1 voxel"        ).arg(totalVoxelVolume)                 + br;
@@ -151,6 +159,8 @@ void CountingFrame::Execute(vtkObject* caller, long unsigned int eventId, void* 
     }
 
     updateCountingFrame();
+
+    apply();
   }
 }
 
@@ -178,6 +188,18 @@ void CountingFrame::updateCountingFrame()
   }
 
   emit modified(this);
+}
+
+//-----------------------------------------------------------------------------
+void CountingFrame::apply()
+{
+  if (m_applyCountingFrame)
+  {
+    m_applyCountingFrame->abort();
+  }
+
+  m_applyCountingFrame = ApplyCountingFrameSPtr{new ApplyCountingFrame(this, m_scheduler)};
+  Task::submit(m_applyCountingFrame);
 }
 
 //-----------------------------------------------------------------------------

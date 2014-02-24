@@ -36,10 +36,11 @@ using namespace EspINA::CF;
 
 //-----------------------------------------------------------------------------
 OrtogonalCountingFrame::OrtogonalCountingFrame(CountingFrameExtension *channelExt,
-                                                   const Bounds &bounds,
-                                                   Nm inclusion[3],
-                                                   Nm exclusion[3])
-: CountingFrame(channelExt, inclusion, exclusion)
+                                               const Bounds &bounds,
+                                               Nm inclusion[3],
+                                               Nm exclusion[3],
+                                               SchedulerSPtr scheduler)
+: CountingFrame(channelExt, inclusion, exclusion, scheduler)
 , m_bounds(bounds)
 {
   updateCountingFrameImplementation();

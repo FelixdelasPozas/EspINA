@@ -78,7 +78,7 @@ namespace EspINA
     // The Segmentation is excluded at least by a CF
     bool isExcluded() const;
 
-    bool isOnEdge();
+    bool isOnEdge() const;
 
   protected:
     virtual QVariant cacheFail(const QString& tag) const;
@@ -98,9 +98,9 @@ namespace EspINA
     bool m_isInitialized;
     bool m_isUpdated;
 
+    QMutex m_mutex;
+    bool   m_isExcluded;
     QMap<CountingFrame *, bool>   m_exclusionCFs;
-
-    bool m_isExcluded;
     QMap<CountingFrame::Id, bool> m_excludedByCF;
   };
 

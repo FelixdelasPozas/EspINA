@@ -40,8 +40,9 @@ using namespace EspINA::CF;
 AdaptiveCountingFrame::AdaptiveCountingFrame(CountingFrameExtension *channelExt,
                                              const Bounds &bounds,
                                              Nm inclusion[3],
-                                             Nm exclusion[3])
-: CountingFrame(channelExt, inclusion, exclusion)
+                                             Nm exclusion[3],
+                                             SchedulerSPtr scheduler)
+: CountingFrame(channelExt, inclusion, exclusion, scheduler)
 , m_channel(channelExt->extendedItem())
 {
   updateCountingFrame();

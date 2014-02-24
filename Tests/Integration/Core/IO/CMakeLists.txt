@@ -42,7 +42,8 @@ add_executable(IO_Tests
   ${CORE_DIR}/Analysis/ViewItem.cpp
   ${CORE_DIR}/Factory/CoreFactory.cpp
   ${CORE_DIR}/IO/ClassificationXML.cpp
-  ${CORE_DIR}/IO/FetchRawData.cpp
+  ${CORE_DIR}/IO/FetchBehaviour/FetchRawData.cpp
+  ${CORE_DIR}/IO/FetchBehaviour/MarchingCubesFromFetchedVolumetricData.cpp
   ${CORE_DIR}/IO/GraphIO.cpp
   ${CORE_DIR}/IO/SegFile.cpp
   ${CORE_DIR}/IO/SegFileInterface.cpp

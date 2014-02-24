@@ -24,10 +24,10 @@ using namespace EspINA;
 using namespace EspINA::CF;
 
 //-----------------------------------------------------------------------------
-CountingFrameFactory::CountingFrameFactory(CountingFrameManager* manager)
+CountingFrameFactory::CountingFrameFactory(CountingFrameManager* manager, SchedulerSPtr scheduler)
 : m_manager(manager)
+, m_scheduler(scheduler)
 {
-
 }
 
 //-----------------------------------------------------------------------------
@@ -36,7 +36,7 @@ ChannelExtensionSPtr CountingFrameFactory::createChannelExtension(const ChannelE
   if (type != CountingFrameExtension::TYPE)
     throw (-1);
 
-  return m_manager->createExtension(state);
+  return m_manager->createExtension(m_scheduler, state);
 }
 
 //-----------------------------------------------------------------------------

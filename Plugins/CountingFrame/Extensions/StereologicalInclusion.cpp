@@ -115,7 +115,7 @@ QVariant StereologicalInclusion::cacheFail(const QString& tag) const
     isOnEdge();
   } else
   {
-    evaluateCountingFrames();
+    //evaluateCountingFrames();
   }
 
   return cachedInfo(tag);
@@ -152,10 +152,12 @@ QString StereologicalInclusion::toolTipText() const
 //------------------------------------------------------------------------
 void StereologicalInclusion::addCountingFrame(CountingFrame* cf)
 {
+    QMutexLocker lock(&m_mutex);
+
   if (!m_exclusionCFs.contains(cf))
   {
-    connect(cf, SIGNAL(modified(CountingFrame*)),
-            this, SLOT(evaluateCountingFrame(CountingFrame*)));
+//     connect(cf, SIGNAL(modified(CountingFrame*)),
+//             this, SLOT(evaluateCountingFrame(CountingFrame*)));
     m_excludedByCF[cf->id()] = false; // Everybody is innocent until proven guilty
     m_exclusionCFs[cf] = false;
     m_isUpdated = false;
@@ -165,10 +167,12 @@ void StereologicalInclusion::addCountingFrame(CountingFrame* cf)
 //------------------------------------------------------------------------
 void StereologicalInclusion::removeCountingFrame(CountingFrame* cf)
 {
+    QMutexLocker lock(&m_mutex);
+
   if (m_exclusionCFs.contains(cf))
   {
-    disconnect(cf, SIGNAL(modified(CountingFrame*)),
-               this, SLOT(evaluateCountingFrame(CountingFrame*)));
+//     disconnect(cf, SIGNAL(modified(CountingFrame*)),
+//                this, SLOT(evaluateCountingFrame(CountingFrame*)));
     m_exclusionCFs.remove(cf);
     m_excludedByCF.remove(cf->id());
     m_isUpdated = false;
@@ -178,11 +182,11 @@ void StereologicalInclusion::removeCountingFrame(CountingFrame* cf)
 //------------------------------------------------------------------------
 bool StereologicalInclusion::isExcluded() const
 {
-  if (!m_isInitialized)
-  {
-    const_cast<StereologicalInclusion *>(this)->evaluateCountingFrames();
-  }
-
+//   if (!m_isInitialized)
+//   {
+//     const_cast<StereologicalInclusion *>(this)->evaluateCountingFrames();
+//   }
+//
   return m_isExcluded;
 }
 
@@ -221,33 +225,37 @@ void StereologicalInclusion::evaluateCountingFrame(CountingFrame* cf)
   QVariant info;
   if (excluded)
   {
-    info.setValue<QString>("Excluded");
+    //info.setValue<QString>("Excluded");
     info.setValue<int>(0);
   }
   else
   {
-    info.setValue<QString>("Included");
+    //info.setValue<QString>("Included");
     info.setValue<int>(1);
   }
 
-  updateInfoCache(cfTag(cf), info);
-
-  m_exclusionCFs[cf] = excluded;
-
-  m_excludedByCF[cf->id()] = excluded;
-
-  // Update segmentation's exclusion value
-  excluded = true;
-
-  int i = 0;
-  CountingFrameList countingFrames = m_exclusionCFs.keys();
-  while (excluded && i < countingFrames.size())
   {
-    excluded = excluded && m_exclusionCFs[countingFrames[i]];
-    i++;
-  }
+    QMutexLocker lock(&m_mutex);
 
-  m_isExcluded = excluded || isOnEdge();
+    updateInfoCache(cfTag(cf), info);
+
+    m_exclusionCFs[cf] = excluded;
+
+    m_excludedByCF[cf->id()] = excluded;
+
+    // Update segmentation's exclusion value
+    excluded = true;
+
+    int i = 0;
+    CountingFrameList countingFrames = m_exclusionCFs.keys();
+    while (excluded && i < countingFrames.size())
+    {
+      excluded = excluded && m_exclusionCFs[countingFrames[i]];
+      i++;
+    }
+
+    m_isExcluded = excluded || isOnEdge();
+  }
 }
 
 //------------------------------------------------------------------------
@@ -328,7 +336,7 @@ bool StereologicalInclusion::isExcludedByCountingFrame(CountingFrame* cf)
 }
 
 //------------------------------------------------------------------------
-bool StereologicalInclusion::isOnEdge()
+bool StereologicalInclusion::isOnEdge() const
 {
   bool isOnEdge  = false;
 

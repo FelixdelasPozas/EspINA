@@ -23,7 +23,7 @@
 #include <GUI/Model/Utils/ModelAdapterUtils.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <Filters/SeedGrowSegmentationFilter.h>
-#include <Filters/FetchBehaviour/MarchingCubesFromFetchedVolumetricData.h>
+#include <Core/IO/FetchBehaviour/MarchingCubesFromFetchedVolumetricData.h>
 #include <Undo/AddSegmentations.h>
 
 #include <QAction>

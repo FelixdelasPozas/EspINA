@@ -259,9 +259,8 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   m_mainBar = addToolBar("Main ToolBar");
   m_mainBar->setMovable(false);
   m_mainBar->setObjectName("Main ToolBar");
-  addToolBarBreak();
   m_contextualBar = addToolBar("Contextual ToolBar");
-  m_contextualBar->setMovable(true);
+  m_contextualBar->setMovable(false);
   m_contextualBar->setObjectName("Contextual ToolBar");
   m_contextualBar->setMinimumHeight(44);
   m_contextualBar->setMaximumHeight(44);
@@ -341,6 +340,9 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   closeCurrentAnalysis();
 
   statusBar()->addPermanentWidget(m_schedulerProgress.get());
+
+  // Add the break after restoring the previous state
+  insertToolBarBreak(m_contextualBar);
 }
 
 //------------------------------------------------------------------------
@@ -364,7 +366,7 @@ void EspinaMainWindow::loadPlugins(QList<QObject *> &plugins)
     Plugin *validPlugin = qobject_cast<Plugin*>(plugin);
     if (validPlugin)
     {
-      validPlugin->init(m_model, m_viewManager, m_undoStack);
+      validPlugin->init(m_model, m_viewManager, m_factory, m_scheduler, m_undoStack);
 
       for (auto colorEngine : validPlugin->colorEngines())
       {

@@ -35,7 +35,8 @@ set (CORE_SOURCES
   Analysis/ViewItem.cpp
   Factory/CoreFactory.cpp
   IO/ClassificationXML.cpp
-  IO/FetchRawData.cpp
+  IO/FetchBehaviour/FetchRawData.cpp
+  IO/FetchBehaviour/MarchingCubesFromFetchedVolumetricData.cpp
   IO/GraphIO.cpp
   IO/ReadOnlyChannelExtension.cpp
   IO/ReadOnlySegmentationExtension.cpp

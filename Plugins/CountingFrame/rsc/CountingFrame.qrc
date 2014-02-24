@@ -1,11 +1,11 @@
 <RCC>
   <qresource prefix="/">
+    <file>create-cf.svg</file>
     <file>activate.png</file>
     <file>adaptive-frame.png</file>
     <file>allPlanes.png</file>
     <file>apply.svg</file>
     <file>Bottom.png</file>
-    <file>create-cr.svg</file>
     <file>deactivate.png</file>
     <file>Left.png</file>
     <file>Back.png</file>

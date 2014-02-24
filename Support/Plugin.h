@@ -46,6 +46,8 @@ namespace EspINA
 
     virtual void init(ModelAdapterSPtr model,
                       ViewManagerSPtr  viewManager,
+                      ModelFactorySPtr factory,
+                      SchedulerSPtr    scheduler,
                       QUndoStack      *undoStack) = 0;
 
     virtual ChannelExtensionFactorySList channelExtensionFactories() const = 0;

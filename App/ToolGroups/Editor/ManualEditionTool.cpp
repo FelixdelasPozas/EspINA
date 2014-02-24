@@ -24,7 +24,7 @@
 #include <GUI/Widgets/SliderAction.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <Filters/FreeFormSource.h>
-#include <Filters/FetchBehaviour/MarchingCubesFromFetchedVolumetricData.h>
+#include <Core/IO/FetchBehaviour/MarchingCubesFromFetchedVolumetricData.h>
 #include <Support/Settings/EspinaSettings.h>
 #include <Undo/AddSegmentations.h>
 #include <App/Undo/BrushUndoCommand.h>

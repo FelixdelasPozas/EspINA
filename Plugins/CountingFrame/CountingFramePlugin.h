@@ -41,6 +41,8 @@ namespace EspINA
 
       virtual void init(ModelAdapterSPtr model,
                         ViewManagerSPtr  viewManager,
+                        ModelFactorySPtr factory,
+                        SchedulerSPtr    scheduler,
                         QUndoStack      *undoStack);
 
       virtual NamedColorEngineSList colorEngines();
@@ -60,6 +62,7 @@ namespace EspINA
       CountingFrameManager m_manager;
       ModelAdapterSPtr     m_model;
       ViewManagerSPtr      m_viewManager;
+      SchedulerSPtr        m_scheduler;
       QUndoStack          *m_undoStack;
     };
   }

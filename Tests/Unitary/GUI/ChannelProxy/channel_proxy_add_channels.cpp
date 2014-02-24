@@ -51,9 +51,9 @@ int channel_proxy_add_channels(int argc, char** argv )
   ChannelProxy     proxy(modelAdapter);
   ModelTest        modelTester(&proxy);
 
-  SchedulerSPtr sch;
-  CoreFactorySPtr  coreFactory{new CoreFactory(sch)};
-  ModelFactory factory(coreFactory);
+  SchedulerSPtr   sch;
+  CoreFactorySPtr coreFactory{new CoreFactory(sch)};
+  ModelFactory    factory(coreFactory);
 
   QString name = "Sample";
 

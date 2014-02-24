@@ -43,8 +43,11 @@ const std::string FILE_VERSION = CountingFrameExtension::TYPE.toStdString() + " 
 const char SEP = ';';
 
 //-----------------------------------------------------------------------------
-CountingFrameExtension::CountingFrameExtension(CountingFrameManager* manager, const State &state)
+CountingFrameExtension::CountingFrameExtension(CountingFrameManager* manager,
+                                               SchedulerSPtr         scheduler,
+                                               const State          &state)
 : m_manager(manager)
+, m_scheduler(scheduler)
 , m_prevState(state)
 {
 }
@@ -188,10 +191,10 @@ void CountingFrameExtension::createCountingFrame(CFType type,
 
   if (CFType::ORTOGONAL == type)
   {
-    cf = OrtogonalCountingFrame::New(this, m_extendedItem->bounds(), inclusion, exclusion);
+    cf = OrtogonalCountingFrame::New(this, m_extendedItem->bounds(), inclusion, exclusion, m_scheduler);
   } else if (CFType::ADAPTIVE == type)
   {
-    cf = AdaptiveCountingFrame::New(this, m_extendedItem->bounds(), inclusion, exclusion);
+    cf = AdaptiveCountingFrame::New(this, m_extendedItem->bounds(), inclusion, exclusion, m_scheduler);
   } else
   {
     Q_ASSERT(false);

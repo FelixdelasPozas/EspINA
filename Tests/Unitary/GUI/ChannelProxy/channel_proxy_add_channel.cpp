@@ -77,7 +77,7 @@ int channel_proxy_add_channel( int argc, char** argv )
   }
 
   QModelIndex sampleIndex = proxy.index(0,0);
-  QString sampleName = sampleIndex.data(Qt::DisplayRole).toString();
+  QString     sampleName  = sampleIndex.data(Qt::DisplayRole).toString();
   if (!sampleName.contains(name))
   {
     cerr << "Unexpected display role value: " << sampleName.toStdString() << endl;
@@ -90,9 +90,11 @@ int channel_proxy_add_channel( int argc, char** argv )
     error = true;
   }
 
-//   if (sampleIndex.child(0, 0).data(Qt::DisplayRole).toString() != name)
+//   QModelIndex channelIndex = proxy.index(0,0, sampleIndex);
+//   QString     channelName  = channelIndex.data(Qt::DisplayRole).toString();
+//   if (channelName != name)
 //   {
-//     cerr << "Unexpected display role value" << endl;
+//     cerr << "Unexpected display role value: " << channelName.toStdString() << endl;
 //     error = true;
 //   }
 

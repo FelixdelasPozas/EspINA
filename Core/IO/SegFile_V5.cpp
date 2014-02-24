@@ -24,7 +24,6 @@
 #include "SegFile.h"
 #include "ClassificationXML.h"
 #include "ReadOnlyFilter.h"
-#include "FetchRawData.h"
 #include "ReadOnlyChannelExtension.h"
 #include "ReadOnlySegmentationExtension.h"
 
@@ -36,6 +35,7 @@
 #include <Core/Analysis/Segmentation.h>
 #include <Core/Utils/TemporalStorage.h>
 #include <Core/Factory/CoreFactory.h>
+#include <Core/IO/FetchBehaviour/FetchRawData.h>
 
 using namespace EspINA;
 using namespace EspINA::IO;
@@ -50,6 +50,8 @@ const QString CLASSIFICATION_FILE = "classification.xml";
 const QString SEG_FILE_VERSION    = "5";
 
 struct Vertex_Not_Found_Exception{};
+
+struct Invalid_Input_Exception{};
 
 //-----------------------------------------------------------------------------
 QByteArray formatInfo()
@@ -242,10 +244,20 @@ private:
   //-----------------------------------------------------------------------------
   SegmentationSPtr createSegmentation(DirectedGraph::Vertex   roVertex)
   {
+    if (roVertex->name() == "Asymmetric 597")
+    {
+      qDebug() << "Te pille";
+    }
+
     auto roOutput = findOutput(roVertex);
 
     auto filter   = roOutput.first;
     auto outputId = roOutput.second;
+
+    if (!filter)
+    {
+      throw Invalid_Input_Exception();
+    }
 
     filter->update(outputId); // Existing outputs weren't stored in previous versions
 
@@ -295,7 +307,13 @@ private:
         }
         case VertexType::FILTER:
         {
-          vertex = createFilter(roVertex);
+          try
+          {
+            vertex = createFilter(roVertex);
+          } catch (...)
+          {
+            qDebug() << "Failed to create filter: " << roVertex->uuid() << roVertex->name() << roVertex->state();
+          }
           break;
         }
         case VertexType::SEGMENTATION:

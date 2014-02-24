@@ -38,19 +38,19 @@ int segmentation_save_state(int argc, char** argv)
   State forgedState;
 
   segmentation->setNumber(1);
-  forgedState = "NUMBER=1;";
+  forgedState = "Number=1;";
 
   segmentation->modifiedByUser("AUser");
-  forgedState += "USERS=AUser;";
+  forgedState += "Users=AUser;";
 
   Classification classification;
   classification.createNode("Prueba", classification.root());
 
   segmentation->setCategory(classification.node("Prueba"));
-  forgedState += "CATEGORY=Prueba;";
+  forgedState += "Category=Prueba;";
 
   segmentation->setAlias("HPD4");
-  forgedState += "ALIAS=HPD4;";
+  forgedState += "Alias=HPD4;";
 
   return (segmentation->state() != forgedState);
 }

@@ -45,7 +45,7 @@ using namespace Testing;
 
 int channel_proxy_remove_channels(int argc, char** argv )
 {
-  bool error = true;
+  bool error = false;
 
   AnalysisSPtr analysis{new Analysis()};
 
@@ -53,63 +53,44 @@ int channel_proxy_remove_channels(int argc, char** argv )
   ChannelProxy     proxy(modelAdapter);
   ModelTest        modelTester(&proxy);
 
-  SchedulerSPtr sch;
-  CoreFactorySPtr  coreFactory{new CoreFactory(sch)};
-  ModelFactorySPtr factory{new ModelFactory(coreFactory)};
+  SchedulerSPtr   sch;
+  CoreFactorySPtr coreFactory{new CoreFactory(sch)};
+  ModelFactory    factory(coreFactory);
 
-  modelAdapter->setAnalysis(analysis, factory);
+  QString name = "Sample";
+
+  SampleAdapterSPtr sample = factory.createSample(name);
+
+  modelAdapter->add(sample);
 
   InputSList inputs;
   Filter::Type type{"DummyFilter"};
 
-  FilterAdapterSPtr filter = factory->createFilter<DummyFilter>(inputs, type);
+  FilterAdapterSPtr filter = factory.createFilter<DummyFilter>(inputs, type);
 
   ChannelAdapterSList channels;
-  channels << factory->createChannel(filter, 0)
-           << factory->createChannel(filter, 0)
-           << factory->createChannel(filter, 0);
+  channels << factory.createChannel(filter, 0)
+           << factory.createChannel(filter, 0)
+           << factory.createChannel(filter, 0);
 
   modelAdapter->add(channels);
 
+  for(int i = 0; i < 3; ++i) {
+    modelAdapter->addRelation(sample, channels[i], Channel::STAIN_LINK);
+  }
+
   modelAdapter->remove(channels);
 
-  if (analysis->classification().get() != nullptr) {
-    cerr << "Unexpected classification in analysis" << endl;
+  if (proxy.rowCount() != 1)
+  {
+    cerr << "Unexpected number of items displayed" << endl;
     error = true;
   }
 
-  if (!analysis->samples().isEmpty()) {
-    cerr << "Unexpected number of samples in analysis" << endl;
-    error = true;
-  }
-
-  if (!analysis->channels().isEmpty()) {
-    cerr << "Unexpected number of channels in analysis" << endl;
-    error = true;
-  }
-
-  if (!analysis->segmentations().isEmpty()) {
-    cerr << "Unexpected number of segmentations in analysis" << endl;
-    error = true;
-  }
-
-  if (!analysis->content()->vertices().isEmpty()) {
-    cerr << "Unexpected number of vertices in analysis content" << endl;
-    error = true;
-  }
-
-  if (!analysis->content()->edges().isEmpty()) {
-    cerr << "Unexpected number of edges in analysis content" << endl;
-    error = true;
-  }
-
-  if (!analysis->relationships()->vertices().isEmpty()) {
-    cerr << "Unexpected number of vertices in analysis relationships" << endl;
-    error = true;
-  }
-
-  if (!analysis->relationships()->edges().isEmpty()) {
-    cerr << "Unexpected number of edges in analysis relationships" << endl;
+  QModelIndex sampleIndex = proxy.index(0,0);
+  if (proxy.rowCount(sampleIndex) != 0)
+  {
+    cerr << "Unexpected number of items displayed" << endl;
     error = true;
   }
 

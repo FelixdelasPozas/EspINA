@@ -346,7 +346,7 @@ QTableView::indicator:unchecked {
            </property>
            <property name="icon">
             <iconset resource="rsc/CountingFrame.qrc">
-             <normaloff>:/create-cr.svg</normaloff>:/create-cr.svg</iconset>
+             <normaloff>:/create-cf.svg</normaloff>:/create-cf.svg</iconset>
            </property>
            <property name="iconSize">
             <size>

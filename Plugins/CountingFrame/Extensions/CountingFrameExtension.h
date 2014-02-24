@@ -42,7 +42,9 @@ namespace EspINA
     static Type TYPE;
 
   public:
-    explicit CountingFrameExtension(CountingFrameManager *manager, const State &state = State());
+    explicit CountingFrameExtension(CountingFrameManager *manager,
+                                    SchedulerSPtr         scheduler,
+                                    const State          &state = State());
 
     virtual ~CountingFrameExtension();
 
@@ -92,6 +94,7 @@ namespace EspINA
                              const QString &constraint = QString());
   private:
     CountingFrameManager *m_manager;
+    SchedulerSPtr         m_scheduler;
 
     State m_prevState;
 

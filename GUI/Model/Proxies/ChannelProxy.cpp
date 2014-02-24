@@ -48,17 +48,39 @@ ChannelProxy::~ChannelProxy()
 //------------------------------------------------------------------------
 void ChannelProxy::setSourceModel(ModelAdapterSPtr sourceModel)
 {
+  if (m_model)
+  {
+    disconnect(m_model.get(), SIGNAL(rowsInserted(const QModelIndex&, int, int)),
+               this, SLOT(sourceRowsInserted(const QModelIndex&, int, int)));
+    disconnect(m_model.get(), SIGNAL(rowsRemoved(const QModelIndex&, int, int)),
+               this, SLOT(sourceRowsRemoved(QModelIndex, int, int)));
+    disconnect(m_model.get(), SIGNAL(rowsAboutToBeRemoved(const QModelIndex&, int, int)),
+               this, SLOT(sourceRowsAboutToBeRemoved(QModelIndex, int, int)));
+    disconnect(m_model.get(), SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)),
+               this, SLOT(sourceDataChanged(const QModelIndex &,const QModelIndex &)));
+    disconnect(m_model.get(), SIGNAL(rowsAboutToBeMoved(const QModelIndex &, int, int, const QModelIndex &, int)),
+               this, SLOT(sourceRowsAboutToBeMoved(QModelIndex,int,int,QModelIndex,int)));
+    disconnect(m_model.get(), SIGNAL(modelAboutToBeReset()),
+               this, SLOT(sourceModelReset()));
+  }
+
   m_model = sourceModel;
-  connect(sourceModel.get(), SIGNAL(rowsInserted(const QModelIndex&, int, int)),
-          this, SLOT(sourceRowsInserted(const QModelIndex&, int, int)));
-  connect(sourceModel.get(), SIGNAL(rowsRemoved(const QModelIndex&, int, int)),
-          this, SLOT(sourceRowsRemoved(QModelIndex, int, int)));
-  connect(sourceModel.get(), SIGNAL(rowsAboutToBeRemoved(const QModelIndex&, int, int)),
-          this, SLOT(sourceRowsAboutToBeRemoved(QModelIndex, int, int)));
-  connect(sourceModel.get(), SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)),
-          this, SLOT(sourceDataChanged(const QModelIndex &,const QModelIndex &)));
-  connect(sourceModel.get(), SIGNAL(modelAboutToBeReset()),
-          this, SLOT(sourceModelReset()));
+
+  if (m_model)
+  {
+    connect(m_model.get(), SIGNAL(rowsInserted(const QModelIndex&, int, int)),
+            this, SLOT(sourceRowsInserted(const QModelIndex&, int, int)));
+    connect(m_model.get(), SIGNAL(rowsRemoved(const QModelIndex&, int, int)),
+            this, SLOT(sourceRowsRemoved(QModelIndex, int, int)));
+    connect(m_model.get(), SIGNAL(rowsAboutToBeRemoved(const QModelIndex&, int, int)),
+            this, SLOT(sourceRowsAboutToBeRemoved(QModelIndex, int, int)));
+    connect(m_model.get(), SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)),
+            this, SLOT(sourceDataChanged(const QModelIndex &,const QModelIndex &)));
+    connect(m_model.get(), SIGNAL(rowsAboutToBeMoved(const QModelIndex &, int, int, const QModelIndex &, int)),
+            this, SLOT(sourceRowsAboutToBeMoved(QModelIndex,int,int,QModelIndex,int)));
+    connect(m_model.get(), SIGNAL(modelAboutToBeReset()),
+            this, SLOT(sourceModelReset()));
+  }
 
   QAbstractProxyModel::setSourceModel(sourceModel.get());
 
@@ -434,17 +456,38 @@ void ChannelProxy::sourceRowsAboutToBeRemoved(const QModelIndex& sourceParent, i
       sourceParent == m_model->segmentationRoot())
     return;
 
-  QModelIndex sourceIndex = m_model->index(start, 0, sourceParent);
-  QModelIndex proxyIndex = mapFromSource(sourceIndex);
-  ItemAdapterPtr item = itemAdapter(sourceIndex);
-
-  if (ItemAdapter::Type::SAMPLE == item->type())
+  if (sourceParent == m_model->sampleRoot())
   {
+    auto sourceIndex = m_model->index(start, 0, sourceParent);
+    auto proxyIndex  = mapFromSource(sourceIndex);
+    auto item        = itemAdapter(sourceIndex);
+
     beginRemoveRows(proxyIndex.parent(), start,end);
     SampleAdapterPtr sample = samplePtr(item);
     m_samples.removeOne(sample);
     m_channels.remove(sample);
     endRemoveRows();
+  }
+  else if (sourceParent == m_model->channelRoot())
+  {
+    for (int row = start; row <= end; row++)
+    {
+      auto sourceIndex = m_model->index(row, 0, sourceParent);
+      auto proxyIndex  = mapFromSource(sourceIndex);
+      auto item        = itemAdapter(sourceIndex);
+
+      auto channel = channelPtr(item);
+      auto parentSample = sample(channel);
+
+      int sampleRow  = m_samples.indexOf(parentSample);
+      int channelRow = m_channels[parentSample].indexOf(channel);
+
+      QModelIndex parent = index(sampleRow, 0);
+
+      beginRemoveRows(parent, channelRow, channelRow);
+      m_channels[parentSample].removeOne(channel);
+      endRemoveRows();
+    }
   }
 }
 
@@ -452,6 +495,55 @@ void ChannelProxy::sourceRowsAboutToBeRemoved(const QModelIndex& sourceParent, i
 //------------------------------------------------------------------------
 void ChannelProxy::sourceRowsRemoved(const QModelIndex& sourceParent, int start, int end)
 {
+}
+
+//------------------------------------------------------------------------
+void ChannelProxy::sourceRowsAboutToBeMoved(const QModelIndex& sourceParent, int sourceStart, int sourceEnd, const QModelIndex& destinationParent, int destinationRow)
+{
+  Q_ASSERT(sourceStart == sourceEnd);
+
+  QModelIndex proxySourceParent       = mapFromSource(sourceParent);
+  QModelIndex proxyDestionationParent = mapFromSource(destinationParent);
+
+  auto sourceItem   = itemAdapter(sourceParent);
+  auto sourceSample = samplePtr(sourceItem);
+
+  auto movingItem    = itemAdapter(sourceParent.child(sourceStart, 0));
+  auto movingChannel = channelPtr(sourceItem);
+
+  int prevChannelRow = m_channels[sourceSample].indexOf(movingChannel);
+
+  beginMoveRows(proxySourceParent, prevChannelRow, prevChannelRow,
+                proxyDestionationParent, destinationRow);
+
+
+//   m_channels[]
+//   if (proxySourceParent.isValid())
+//   {
+//     ItemAdapterPtr sourceItem = itemAdapter(proxySourceParent);
+//     CategoryAdapterPtr sourceCategory = categoryPtr(sourceItem);
+//     m_numCategories[sourceCategory] -=1;
+//   } else
+//   {
+//     m_rootCategories.removeOne(sourceSample);
+//   }
+//
+//   if (proxyDestionationParent.isValid())
+//   {
+//     ItemAdapterPtr destinationItem = itemAdapter(destinationParent);
+//     CategoryAdapterPtr destinationCategory = categoryPtr(destinationItem);
+//
+//     m_numCategories[destinationCategory] +=1;
+//   } else
+//   {
+//     m_rootCategories << sourceSample;
+//   }
+}
+
+//------------------------------------------------------------------------
+void ChannelProxy::sourceRowsMoved(const QModelIndex& sourceParent, int sourceStart, int sourceEnd, const QModelIndex& destinationParent, int destinationRow)
+{
+  endMoveRows();
 }
 
 //------------------------------------------------------------------------
@@ -581,3 +673,15 @@ int ChannelProxy::numSubSamples(SampleAdapterPtr sample) const
 {
   return m_model->rowCount(m_model->sampleIndex(sample));
 }
+
+//------------------------------------------------------------------------
+SampleAdapterPtr ChannelProxy::sample(ChannelAdapterPtr channel) const
+{
+  for (auto sample : m_channels.keys())
+  {
+    if (m_channels[sample].contains(channel)) return sample;
+  }
+
+  return nullptr;
+}
+

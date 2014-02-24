@@ -34,7 +34,7 @@ int segmentation_restore_state(int argc, char** argv)
 
   SegmentationSPtr segmentation{new Segmentation(InputSPtr())};
 
-  State forgedState = QString("NUMBER=2;USERS=FakeUser1,FakeUser2;CATEGORY=Prueba;ALIAS=HDP4");
+  State forgedState = QString("Number=2;Users=FakeUser1,FakeUser2;Category=Prueba;Alias=HDP4");
 
   segmentation->restoreState(forgedState);
 

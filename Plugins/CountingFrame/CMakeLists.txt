@@ -71,6 +71,7 @@ set (LOCAL_SOURCES
   Extensions/CountingFrameExtension.cpp
   Extensions/CountingFrameFactory.cpp
   Extensions/StereologicalInclusion.cpp
+  Tasks/ApplyCountingFrame.cpp
   Panel.cpp
   )
 

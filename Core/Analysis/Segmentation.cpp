@@ -33,6 +33,11 @@
 using namespace std;
 using namespace EspINA;
 
+const QString STATE_NUMBER   = "Number";
+const QString STATE_ALIAS    = "Alias";
+const QString STATE_USERS    = "Users";
+const QString STATE_CATEGORY = "Category";
+
 Segmentation::Segmentation(InputSPtr input)
 : ViewItem(input)
 , m_number{0}
@@ -165,11 +170,11 @@ Snapshot Segmentation::snapshot() const
 //------------------------------------------------------------------------
 State Segmentation::state() const
 {
-  State state = QString("NUMBER=") + QString::number(m_number) + QString(";");
+  State state = QString("%1=%2;").arg(STATE_NUMBER).arg(m_number);
   QStringList usersList = m_users.toList();
 
   QStringList::iterator it = usersList.begin();
-  state += QString("USERS=");
+  state += QString("%1=").arg(STATE_USERS);
   while (it != usersList.end())
   {
     state += (*it);
@@ -181,11 +186,11 @@ State Segmentation::state() const
 
 //   if (output())
 //     state += QString("OUTPUT=%1;").arg(output()->id());
-  state += QString("CATEGORY=%1;").arg(m_category?m_category->classificationName():"");
+  state += QString("%1=%2;").arg(STATE_CATEGORY).arg(m_category?m_category->classificationName():"");
 
   if (!m_alias.isEmpty())
   {
-    state += QString("ALIAS=%1;").arg(m_alias);
+    state += QString("%1=%2;").arg(STATE_ALIAS).arg(m_alias);
   }
 
   return state;
@@ -200,13 +205,13 @@ void Segmentation::restoreState(const State& state)
     if (tokens.size() != 2)
       continue;
 
-    if ("NUMBER" == tokens[0])
+    if (STATE_NUMBER == tokens[0])
     {
       m_number = tokens[1].toUInt();
-    } else if ("USERS" == tokens[0])
+    } else if (STATE_USERS == tokens[0])
     {
       m_users = tokens[1].split(',').toSet();
-    } else if ("ALIAS" == tokens[0])
+    } else if (STATE_ALIAS == tokens[0])
     {
       m_alias = tokens[1];
     }

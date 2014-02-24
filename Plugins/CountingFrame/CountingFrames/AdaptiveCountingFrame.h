@@ -37,15 +37,16 @@ namespace EspINA
       static AdaptiveCountingFrame *New(CountingFrameExtension *extension,
                                         const Bounds &bounds,
                                         Nm inclusion[3],
-                                        Nm exclusion[3])
-      { return new AdaptiveCountingFrame(extension, bounds, inclusion, exclusion); }
+                                        Nm exclusion[3],
+                                        SchedulerSPtr scheduler)
+      { return new AdaptiveCountingFrame(extension, bounds, inclusion, exclusion, scheduler); }
 
       virtual ~AdaptiveCountingFrame();
 
       virtual CFType cfType() const
       { return CF::ADAPTIVE; }
 
-      virtual QString name() const { return ADAPTIVE_CF; }
+      virtual QString typeName() const { return ADAPTIVE_CF; }
 
       // Implements EspinaWidget itnerface
       virtual vtkAbstractWidget *create3DWidget(View3D *view);
@@ -63,7 +64,8 @@ namespace EspINA
       explicit AdaptiveCountingFrame(CountingFrameExtension *extension,
                                      const Bounds &bounds,
                                      Nm inclusion[3],
-                                     Nm exclusion[3]);
+                                     Nm exclusion[3],
+                                     SchedulerSPtr scheduler);
 
     protected:
       Nm leftOffset()   const {return m_inclusion[0];}

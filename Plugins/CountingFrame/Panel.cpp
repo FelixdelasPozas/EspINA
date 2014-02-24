@@ -35,6 +35,7 @@
 
 #include <QFileDialog>
 #include <qinputdialog.h>
+#include <QPainter>
 
 using namespace EspINA;
 using namespace EspINA::CF;
@@ -191,7 +192,7 @@ QVariant Panel::CFModel::data(const QModelIndex& index, int role) const
     }
   } else if (1 == c && Qt::DisplayRole == role)
   {
-      return cf->name();
+      return cf->typeName();
   } else if (2 == c && Qt::DisplayRole == role)
   {
       return cf->extension()->extendedItem()->name();
@@ -243,11 +244,13 @@ const QString Panel::ID = "CountingFrameExtension";
 Panel::Panel(CountingFrameManager *manager,
              ModelAdapterSPtr      model,
              ViewManagerSPtr       viewManager,
+             SchedulerSPtr         scheduler,
              QWidget              *parent = nullptr)
 : DockWidget(parent)
 , m_manager(manager)
 , m_model(model)
 , m_viewManager(viewManager)
+, m_scheduler(scheduler)
 , m_gui(new GUI())
 , m_cfModel(new CFModel(m_manager))
 , m_useSlices(true)
@@ -471,19 +474,23 @@ void Panel::createCountingFrame()
 
     if (!channel->hasExtension(CountingFrameExtension::TYPE))
     {
-      channel->addExtension(m_manager->createExtension());
+      channel->addExtension(m_manager->createExtension(m_scheduler));
     }
 
-    Nm inclusion[3];
-    Nm exclusion[3];
+    auto segmentations = QueryAdapter::segmentationsOnChannelSample(channel);
 
-    computeOptimalMargins(channel, inclusion, exclusion);
-    memset(exclusion, 0, 3*sizeof(Nm));
+    ComputeOptimalMarginsSPtr task(new ComputeOptimalMargins<ChannelAdapterPtr>(channel, segmentations, m_scheduler));
 
-    auto extension = countingFrameExtensionPtr(channel->extension(CountingFrameExtension::TYPE));
-    extension->createCountingFrame(type, inclusion, exclusion, constraint);
+    connect(task.get(), SIGNAL(finished()),
+            this,       SLOT(onCreateCountingFrameFinished()));
+    connect(task.get(), SIGNAL(progress(int)),
+            this,       SLOT(reportProgess(int)));
 
-    applyCountingFrames(QueryAdapter::segmentationsOnChannelSample(channel));
+    m_pendingCFs << PendingCF(type, constraint, task);
+
+    Task::submit(task);
+
+    m_gui->createCF->setEnabled(false);
   }
 //
 //   updateSegmentations();
@@ -494,19 +501,19 @@ void Panel::resetActiveCountingFrame()
 {
   if (m_activeCF)
   {
-    Nm inclusion[3];
-    Nm exclusion[3];
-
-    QApplication::setOverrideCursor(Qt::WaitCursor);
-
-    auto channel = m_activeCF->extension()->extendedItem();
-
-    computeOptimalMargins(channel, inclusion, exclusion);
-    memset(exclusion, 0, 3*sizeof(Nm));
-
-    m_activeCF->setMargins(inclusion, exclusion);
-
-    QApplication::restoreOverrideCursor();
+//     Nm inclusion[3];
+//     Nm exclusion[3];
+//
+//     QApplication::setOverrideCursor(Qt::WaitCursor);
+//
+//     auto channel = m_activeCF->extension()->extendedItem();
+//
+//     computeOptimalMargins(channel, inclusion, exclusion);
+//     memset(exclusion, 0, 3*sizeof(Nm));
+//
+//     m_activeCF->setMargins(inclusion, exclusion);
+//
+//     QApplication::restoreOverrideCursor();
   }
 }
 
@@ -696,6 +703,41 @@ void Panel::changeUnitMode(bool useSlices)
 }
 
 //------------------------------------------------------------------------
+void Panel::reportProgess(int progress)
+{
+  QPixmap pixmap(":/create-cf.svg");
+
+//   QPainter painter(&pixmap);
+//   QRect rect = pixmap.rect();
+//   QLinearGradient gradient(rect.bottomLeft() - QPoint(0,progress), rect.topLeft());
+//   gradient.setColorAt(0, QColor(0,0,0,255));
+//   gradient.setColorAt(1, QColor(0,0,0,50));
+//   painter.fillRect(rect, gradient);
+//   painter.fillRect(rect, QColor(125,125,125,125));
+
+  QImage image = pixmap.toImage();
+  QRgb col;
+  int gray;
+  int width = pixmap.width();
+  int height = pixmap.height();
+  for (int i = 0; i < width; ++i)
+  {
+    for (int j = 0; j < (100-progress)*height/100; ++j)
+    {
+      if (image.alphaChannel().pixel(i,j) > 0)
+      {
+        col = image.pixel(i, j);
+        gray = qGray(col);
+        image.setPixel(i, j, qRgb(gray, gray, gray));
+      }
+    }
+  }
+  pixmap = pixmap.fromImage(image);
+
+  m_gui->createCF->setIcon(pixmap);
+}
+
+//------------------------------------------------------------------------
 // WARNING: if further changes are needed unify implementation
 void Panel::computeOptimalMargins(ChannelAdapterPtr channel,
                                   Nm inclusion[3],
@@ -735,45 +777,45 @@ void Panel::computeOptimalMargins(ChannelAdapterPtr channel,
 //   qDebug() << "Exclusion:" << exclusion[0] << exclusion[1] << exclusion[2];
 }
 
-//------------------------------------------------------------------------
-// WARNING: if further changes are needed unify implementation
-void Panel::computeOptimalMargins(ChannelPtr channel,
-                                  Nm inclusion[3],
-                                  Nm exclusion[3])
-{
-  auto spacing = channel->output()->spacing();
-
-  memset(inclusion, 0, 3*sizeof(Nm));
-  memset(exclusion, 0, 3*sizeof(Nm));
-
-  const NmVector3 delta{ 0.5*spacing[0], 0.5*spacing[1], 0.5*spacing[2] };
-
-  QApplication::setOverrideCursor(Qt::WaitCursor);
-  for (auto segmentation : Query::segmentationsOnChannelSample(channel))
-  {
-    auto extension = retrieveOrCreateExtension<EdgeDistance>(segmentation);
-
-    Nm dist2Margin[6];
-    extension->edgeDistance(dist2Margin);
-
-    auto bounds  = segmentation->output()->bounds();
-    auto spacing = segmentation->output()->spacing();
-
-    for (int i=0; i < 3; i++)
-    {
-      Nm shift  = i < 2? 0.5:-0.5;
-      Nm length = bounds.lenght(toAxis(i));
-
-      if (dist2Margin[2*i] < delta[i])
-        inclusion[i] = (vtkMath::Round(std::max(length, inclusion[i])/spacing[i]-shift)+shift)*spacing[i];
-      //         if (dist2Margin[2*i+1] < delta[i])
-      //           exclusion[i] = std::max(length, exclusion[i]);
-    }
-  }
-  QApplication::restoreOverrideCursor();
-//   qDebug() << "Inclusion:" << inclusion[0] << inclusion[1] << inclusion[2];
-//   qDebug() << "Exclusion:" << exclusion[0] << exclusion[1] << exclusion[2];
-}
+// //------------------------------------------------------------------------
+// // WARNING: if further changes are needed unify implementation
+// void Panel::computeOptimalMargins(ChannelPtr channel,
+//                                   Nm inclusion[3],
+//                                   Nm exclusion[3])
+// {
+//   auto spacing = channel->output()->spacing();
+//
+//   memset(inclusion, 0, 3*sizeof(Nm));
+//   memset(exclusion, 0, 3*sizeof(Nm));
+//
+//   const NmVector3 delta{ 0.5*spacing[0], 0.5*spacing[1], 0.5*spacing[2] };
+//
+//   QApplication::setOverrideCursor(Qt::WaitCursor);
+//   for (auto segmentation : Query::segmentationsOnChannelSample(channel))
+//   {
+//     auto extension = retrieveOrCreateExtension<EdgeDistance>(segmentation);
+//
+//     Nm dist2Margin[6];
+//     extension->edgeDistance(dist2Margin);
+//
+//     auto bounds  = segmentation->output()->bounds();
+//     auto spacing = segmentation->output()->spacing();
+//
+//     for (int i=0; i < 3; i++)
+//     {
+//       Nm shift  = i < 2? 0.5:-0.5;
+//       Nm length = bounds.lenght(toAxis(i));
+//
+//       if (dist2Margin[2*i] < delta[i])
+//         inclusion[i] = (vtkMath::Round(std::max(length, inclusion[i])/spacing[i]-shift)+shift)*spacing[i];
+//       //         if (dist2Margin[2*i+1] < delta[i])
+//       //           exclusion[i] = std::max(length, exclusion[i]);
+//     }
+//   }
+//   QApplication::restoreOverrideCursor();
+// //   qDebug() << "Inclusion:" << inclusion[0] << inclusion[1] << inclusion[2];
+// //   qDebug() << "Exclusion:" << exclusion[0] << exclusion[1] << exclusion[2];
+// }
 
 
 //------------------------------------------------------------------------
@@ -809,10 +851,49 @@ void Panel::exclusionMargins(double values[3])
 }
 
 //------------------------------------------------------------------------
+void Panel::onCreateCountingFrameFinished()
+{
+  TaskPtr task = dynamic_cast<TaskPtr>(sender());
+
+  PendingCF                 pendingCF;
+  ComputeOptimalMarginsSPtr optimalMargins;
+
+  for(auto cf : m_pendingCFs)
+  {
+    TaskPtr basePtr = cf.Task.get();
+    if (basePtr == task)
+    {
+      pendingCF      = cf;
+      optimalMargins = cf.Task;
+      break;
+    }
+  }
+
+  Q_ASSERT(pendingCF.Task);
+
+  m_pendingCFs.removeOne(pendingCF);
+
+  Nm inclusion[3];
+  Nm exclusion[3];
+
+  auto channel = optimalMargins->channel();
+  optimalMargins->inclusion(inclusion);
+  optimalMargins->exclusion(exclusion);
+
+  auto extension = countingFrameExtensionPtr(channel->extension(CountingFrameExtension::TYPE));
+  extension->createCountingFrame(pendingCF.Type, inclusion, exclusion, pendingCF.Constraint);
+
+  m_gui->createCF->setEnabled(m_pendingCFs.isEmpty());
+}
+
+
+//------------------------------------------------------------------------
 void Panel::onCountingFrameCreated(CountingFrame* cf)
 {
   connect(cf,   SIGNAL(modified(CountingFrame*)),
           this, SLOT(showInfo(CountingFrame*)));
+
+  cf->apply();
 
   m_countingFrames << cf;
 

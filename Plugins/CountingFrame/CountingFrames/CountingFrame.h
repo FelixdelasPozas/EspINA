@@ -27,6 +27,7 @@
 #include "vtkCountingFrameSliceWidget.h"
 #include "vtkCountingFrame3DWidget.h"
 #include "CountingFrameInteractorAdapter.h"
+#include <Tasks/ApplyCountingFrame.h>
 #include <GUI/View/Widgets/EspinaWidget.h>
 #include <Core/Utils/Bounds.h>
 
@@ -96,13 +97,15 @@ namespace CF {
     CountingFrameExtension *extension()
     { return m_extension; }
 
+    ChannelPtr channel() const;
+
     void deleteFromExtension();
 
     void setMargins(Nm inclusion[3], Nm exclusion[3]);
 
     void margins(Nm inclusion[3], Nm exclusion[3]);
 
-    virtual QString name() const = 0;
+    virtual QString typeName() const = 0;
 
     virtual QString description() const;
 
@@ -159,13 +162,16 @@ namespace CF {
 
     QString categoryConstraint() const { return m_categoryConstraint; }
 
+    void apply();
+
   signals:
     void modified(CountingFrame *);
 
   protected:
     explicit CountingFrame(CountingFrameExtension *extension,
                            Nm inclusion[3],
-                           Nm exclusion[3]);
+                           Nm exclusion[3],
+                           SchedulerSPtr scheduler);
 
     void updateCountingFrame();
 
@@ -174,6 +180,8 @@ namespace CF {
     Nm equivalentVolume(const Bounds &bounds);
 
   protected:
+    SchedulerSPtr m_scheduler;
+
     vtkSmartPointer<vtkPolyData> m_countingFrame;
     vtkSmartPointer<vtkPolyData> m_representation;
 
@@ -193,6 +201,8 @@ namespace CF {
 
     QList<CountingFrame2DWidgetAdapter *> m_widgets2D;
     QList<CountingFrame3DWidgetAdapter *> m_widgets3D;
+
+    ApplyCountingFrameSPtr m_applyCountingFrame;
   };
 
   using CountingFrameList = QList<CountingFrame *>;

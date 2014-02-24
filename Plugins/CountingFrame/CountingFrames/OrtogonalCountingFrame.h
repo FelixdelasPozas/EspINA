@@ -37,15 +37,16 @@ namespace EspINA
     static OrtogonalCountingFrame *New(CountingFrameExtension *extension,
                                          const Bounds &bounds,
                                          Nm inclusion[3],
-                                         Nm exclusion[3])
-    { return new OrtogonalCountingFrame(extension, bounds, inclusion, exclusion);}
+                                         Nm exclusion[3],
+                                         SchedulerSPtr scheduler)
+    { return new OrtogonalCountingFrame(extension, bounds, inclusion, exclusion, scheduler);}
 
     virtual ~OrtogonalCountingFrame();
 
     virtual CFType cfType() const
     { return CF::ORTOGONAL; }
 
-    virtual QString name() const { return ORTOGONAL_CF; }
+    virtual QString typeName() const { return ORTOGONAL_CF; }
 
     // Implements EspinaWidget interface
     virtual vtkAbstractWidget *create3DWidget(View3D *view);
@@ -61,9 +62,10 @@ namespace EspINA
 
   protected:
     explicit OrtogonalCountingFrame(CountingFrameExtension *extension,
-                                      const Bounds &bounds,
-                                      Nm inclusion[3],
-                                      Nm exclusion[3]);
+                                    const Bounds &bounds,
+                                    Nm inclusion[3],
+                                    Nm exclusion[3],
+                                    SchedulerSPtr scheduler);
 
     vtkSmartPointer<vtkPolyData> createRectangularRegion(Nm left,
                                                          Nm top,

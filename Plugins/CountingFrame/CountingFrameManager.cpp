@@ -28,9 +28,9 @@ using namespace EspINA;
 using namespace EspINA::CF;
 
 //------------------------------------------------------------------------
-CountingFrameExtensionSPtr CountingFrameManager::createExtension(const State& state) const
+CountingFrameExtensionSPtr CountingFrameManager::createExtension(SchedulerSPtr scheduler, const State& state) const
 {
-  return CountingFrameExtensionSPtr{new CountingFrameExtension(this, state)};
+  return CountingFrameExtensionSPtr{new CountingFrameExtension(this, scheduler, state)};
 }
 
 // //------------------------------------------------------------------------

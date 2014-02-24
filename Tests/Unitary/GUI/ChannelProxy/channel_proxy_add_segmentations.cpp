@@ -45,7 +45,7 @@ using namespace Testing;
 
 int channel_proxy_add_segmentations( int argc, char** argv )
 {
-  bool error = true;
+  bool error = false;
 
   AnalysisSPtr analysis{new Analysis()};
 
@@ -71,55 +71,9 @@ int channel_proxy_add_segmentations( int argc, char** argv )
 
   modelAdapter->add(segmentations);
 
-  for(auto segmentation : segmentations) {
-    bool found = false;
-    for (auto aSegmentation : analysis->segmentations())
-    {
-      found |= aSegmentation == segmentation;
-    }
-    if (!found) {
-      cerr << "Unexpected channel retrieved from analysis" << endl;
-      error = true;
-    }
-  }
-
-  if (analysis->classification().get() != nullptr) {
-    cerr << "Unexpected classification in analysis" << endl;
-    error = true;
-  }
-
-  if (!analysis->samples().isEmpty()) {
-    cerr << "Unexpected number of samples in analysis" << endl;
-    error = true;
-  }
-
-  if (!analysis->channels().isEmpty()) {
-    cerr << "Unexpected number of channels in analysis" << endl;
-    error = true;
-  }
-
-  if (analysis->segmentations().size() != segmentations.size()) {
-    cerr << "Unexpected number of segmentations in analysis" << endl;
-    error = true;
-  }
-
-  if (analysis->content()->vertices().size() != segmentations.size() + 1) { // They share filter
-    cerr << "Unexpected number of vertices in analysis content" << endl;
-    error = true;
-  }
-
-  if (analysis->content()->edges().size() != segmentations.size()) {
-    cerr << "Unexpected number of edges in analysis content" << endl;
-    error = true;
-  }
-
-  if (analysis->relationships()->vertices().size() != segmentations.size()) {
-    cerr << "Unexpected number of vertices in analysis relationships" << endl;
-    error = true;
-  }
-
-  if (!analysis->relationships()->edges().isEmpty()) {
-    cerr << "Unexpected number of edges in analysis relationships" << endl;
+  if (proxy.rowCount() != 0)
+  {
+    cerr << "Unexpected number of items displayed" << endl;
     error = true;
   }
 

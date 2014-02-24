@@ -710,7 +710,7 @@ void ClassificationProxy::sourceRowsRemoved(const QModelIndex& sourceParent, int
 
 //------------------------------------------------------------------------
 void ClassificationProxy::sourceRowsAboutToBeMoved(const QModelIndex &sourceParent, int sourceStart, int sourceEnd,
-                                             const QModelIndex &destinationParent, int destinationRow)
+                                                   const QModelIndex &destinationParent, int destinationRow)
 {
   Q_ASSERT(sourceStart == sourceEnd);
 

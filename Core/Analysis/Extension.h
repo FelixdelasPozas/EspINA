@@ -25,6 +25,7 @@
 #include "Core/EspinaTypes.h"
 #include <Core/Analysis/Persistent.h>
 #include <QVariant>
+#include <QMutex>
 
 namespace EspINA
 {
@@ -118,18 +119,28 @@ namespace EspINA
     virtual QVariant cacheFail(const InfoTag &tag) const = 0;
 
     QVariant cachedInfo(const InfoTag &tag)
-    { return m_infoCache.value(tag, QVariant()); }
+    {
+      QMutexLocker lock(&m_mutex);
+      return m_infoCache.value(tag, QVariant());
+    }
 
     void updateInfoCache(const InfoTag &tag, const QVariant &value)
-    { m_infoCache[tag] = value; }
+    {
+      QMutexLocker lock(&m_mutex);
+      m_infoCache[tag] = value;
+    }
 
   protected:
     virtual void invalidate()
-    { m_infoCache.clear(); }
+    {
+      QMutexLocker lock(&m_mutex);
+      m_infoCache.clear();
+    }
 
   protected:
     T *m_extendedItem;
 
+    QMutex  m_mutex;
     mutable InfoCache m_infoCache;
   };
 

@@ -30,7 +30,7 @@ namespace EspINA {
     : public ChannelExtensionFactory
     {
     public:
-      CountingFrameFactory(CountingFrameManager *manager);
+      CountingFrameFactory(CountingFrameManager *manager, SchedulerSPtr scheduler);
 
     virtual ChannelExtensionSPtr createChannelExtension(const ChannelExtension::Type type, const State &state = State()) const;
 
@@ -38,6 +38,7 @@ namespace EspINA {
 
     private:
       CountingFrameManager *m_manager;
+      SchedulerSPtr         m_scheduler;
     };
   } // namespace CF
 } // namespace EspINA

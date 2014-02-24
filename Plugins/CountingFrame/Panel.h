@@ -25,6 +25,7 @@
 
 #include "CountingFrames/CountingFrame.h"
 #include "CountingFrameManager.h"
+#include "Tasks/ComputeOptimalMargins.h"
 
 #include <QStandardItemModel>
 
@@ -52,6 +53,7 @@ namespace EspINA
     explicit Panel(CountingFrameManager *manager,
                    ModelAdapterSPtr      model,
                    ViewManagerSPtr       viewManager,
+                   SchedulerSPtr         scheduler,
                    QWidget              *parent = nullptr);
     virtual ~Panel();
 
@@ -68,6 +70,8 @@ namespace EspINA
     void updateUI(QModelIndex index);
 
     void showInfo(CountingFrame *cf);
+
+    void onCreateCountingFrameFinished();
 
     void onCountingFrameCreated(CountingFrame *cf);
 
@@ -87,6 +91,8 @@ namespace EspINA
 
     void changeUnitMode(bool useSlices);
 
+    void reportProgess(int progress);
+
   private:
     QModelIndex findCategoryIndex(const QString &classificationName);
 
@@ -98,9 +104,9 @@ namespace EspINA
                                Nm inclusion[3],
                                Nm exclusion[3]);
 
-    void computeOptimalMargins(ChannelPtr channel,
-                               Nm inclusion[3],
-                               Nm exclusion[3]);
+//     void computeOptimalMargins(ChannelPtr channel,
+//                                Nm inclusion[3],
+//                                Nm exclusion[3]);
 
     /// Return inclusion margins definded by the UI
     void inclusionMargins(double values[3]);
@@ -120,6 +126,7 @@ namespace EspINA
     CountingFrameManager *m_manager;
     ModelAdapterSPtr      m_model;
     ViewManagerSPtr       m_viewManager;
+    SchedulerSPtr         m_scheduler;
 
     GUI     *m_gui;
     CFModel *m_cfModel;
@@ -128,6 +135,29 @@ namespace EspINA
 
     CountingFrameList m_countingFrames;
     CountingFrame    *m_activeCF;
+
+    using ComputeOptimalMarginsSPtr = std::shared_ptr<ComputeOptimalMargins<ChannelAdapterPtr>>;
+
+    struct PendingCF
+    {
+      CFType  Type;
+      QString Constraint;
+      ComputeOptimalMarginsSPtr Task;
+
+      PendingCF(){}
+
+      PendingCF(CFType type, QString constraint, ComputeOptimalMarginsSPtr task)
+      : Type(type)
+      , Constraint(constraint)
+      , Task(task){}
+
+      bool operator==(const PendingCF &rhs)
+      {
+        return Type == rhs.Type && Constraint == rhs.Constraint && Task == rhs.Task;
+      }
+    };
+
+    QList<PendingCF> m_pendingCFs;
 
     friend class CountingFrameExtension;
   };

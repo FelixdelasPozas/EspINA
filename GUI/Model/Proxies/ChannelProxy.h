@@ -71,6 +71,8 @@ namespace EspINA
     void sourceRowsInserted(const QModelIndex & sourceParent, int start, int end);
     void sourceRowsAboutToBeRemoved(const QModelIndex & sourceParent, int start, int end);
     void sourceRowsRemoved(const QModelIndex & sourceParent, int start, int end);
+    void sourceRowsAboutToBeMoved(const QModelIndex &sourceParent, int sourceStart, int sourceEnd, const QModelIndex & destinationParent, int destinationRow);
+    void sourceRowsMoved(const QModelIndex &sourceParent, int sourceStart, int sourceEnd, const QModelIndex & destinationParent, int destinationRow);
     void sourceDataChanged(const QModelIndex& sourceTopLeft, const QModelIndex& sourceBottomRight);
     void sourceModelReset();
 
@@ -78,8 +80,12 @@ namespace EspINA
     bool indices(const QModelIndex &topLeft, const QModelIndex &bottomRight, QModelIndexList &result);
     //   QModelIndexList indices(const QModelIndex& parent, int start, int end);
     QModelIndexList proxyIndices(const QModelIndex& parent, int start, int end) const;
+
     int numChannels(SampleAdapterPtr sample) const;
+
     int numSubSamples(SampleAdapterPtr sample) const;
+
+    SampleAdapterPtr sample(ChannelAdapterPtr channel) const;
 
   private:
     ModelAdapterSPtr m_model;

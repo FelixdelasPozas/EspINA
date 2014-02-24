@@ -23,10 +23,13 @@ CountingFramePlugin::~CountingFramePlugin()
 //------------------------------------------------------------------------
 void CountingFramePlugin::init(ModelAdapterSPtr model,
                                ViewManagerSPtr  viewManager,
+                               ModelFactorySPtr factory,
+                               SchedulerSPtr    scheduler,
                                QUndoStack      *undoStack)
 {
   m_model       = model;
   m_viewManager = viewManager;
+  m_scheduler   = scheduler;
   m_undoStack   = undoStack;
 }
 
@@ -45,7 +48,7 @@ QList<DockWidget *> CountingFramePlugin::dockWidgets()
 {
   QList<DockWidget *> docks;
 
-  docks << new Panel(&m_manager, m_model, m_viewManager);
+  docks << new Panel(&m_manager, m_model, m_viewManager, m_scheduler);
 
   return docks;
 }
@@ -55,7 +58,7 @@ ChannelExtensionFactorySList CountingFramePlugin::channelExtensionFactories() co
 {
   ChannelExtensionFactorySList factories;
 
-  factories << ChannelExtensionFactorySPtr{new CountingFrameFactory(&m_manager)};
+  factories << ChannelExtensionFactorySPtr{new CountingFrameFactory(&m_manager, m_scheduler)};
 
   return factories;
 }
