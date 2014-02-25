@@ -351,3 +351,21 @@ bool EspINA::operator!=(const Bounds &lhs, const Bounds &rhs)
 {
   return !(lhs == rhs);
 }
+
+//-----------------------------------------------------------------------------
+bool EspINA::areAdjacent(const Bounds &lhs, const Bounds &rhs)
+{
+  int coincident = 0;
+  int adjacent = 0;
+
+  for(int i = 0; i < 3; ++i)
+  {
+    if (areEqual(lhs[2*i],rhs[2*i+1]) || areEqual(lhs[2*i+1],rhs[2*i]))
+      ++adjacent;
+    else
+      if (areEqual(lhs[2*i], rhs[2*i]) && areEqual(lhs[2*i+1], rhs[2*i+1]))
+        ++coincident;
+  }
+
+  return ((coincident == 2) && (adjacent == 1));
+}

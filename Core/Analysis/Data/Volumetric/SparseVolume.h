@@ -186,9 +186,11 @@ namespace EspINA
   protected:
     /** \brief Replace sparse volume voxels within data region with data voxels
      *
-     *  Sparse Volume will take ownership of the block
+     *  Sparse Volume will take ownership of the block.
+     *  The isLocked parameter signals if the block has been read from disk or is a
+     *  block originated from the session (a modification).
      */
-    void setBlock(typename T::Pointer image);
+    void setBlock(typename T::Pointer image, bool isLocked = false);
 
     /** \brief Set non background data voxels of sparse volume to data voxel values
      *
@@ -412,9 +414,9 @@ namespace EspINA
 
   //-----------------------------------------------------------------------------
   template<typename T>
-  void SparseVolume<T>::setBlock(typename T::Pointer image)
+  void SparseVolume<T>::setBlock(typename T::Pointer image, bool isLocked)
   {
-    BlockSPtr block(new ImageBlock(image, false));
+    BlockSPtr block(new ImageBlock(image, isLocked));
     m_blocks.push_back(block);
 
     //Bounds bounds = equivalentBounds<T>(image, image->GetLargestPossibleRegion());
@@ -664,7 +666,7 @@ namespace EspINA
         image->SetSpacing(itkSpacing);
       }
 
-      setBlock(image);
+      setBlock(image, true);
 
       ++i;
       blockFile = storage->absoluteFilePath(prefix + multiBlockPath(i));
@@ -752,18 +754,19 @@ namespace EspINA
   template<typename T>
   void SparseVolume<T>::compact()
   {
+    // if the last block hasn't been modified then return without doing the compact
+    // procedure because we assume the blocks have been compacted before.
+    m_blocks[m_blocks.size()-1]->isLocked();
+      return;
+
     using SplitBounds = QPair<VolumeBounds, int>;
 
-    int minSize[3] = {50, 50, 50};
-    for(int i = 0; i < 3; ++i)
-    {
-      minSize[i] *= m_spacing[i];
-    }
+    NmVector3 minSize{50*m_spacing[0], 50*m_spacing[1], 50*m_spacing[2]};
 
     QList<SplitBounds> remaining;
     remaining << SplitBounds(m_bounds, 0);
 
-    QList<Bounds> blockBounds;
+    VolumeBoundsList blockBounds;
 
     while(!remaining.isEmpty())
     {
@@ -813,17 +816,17 @@ namespace EspINA
           remaining << SplitBounds(b1, splitPlane) << SplitBounds(b2, splitPlane);
         } else
         {
-          blockBounds << bounds.bounds();
+          blockBounds << bounds;
         }
       }
     }
 
-    QList<typename T::Pointer> blockImages;
+    VolumeBoundsList nonEmptyBounds;
     int i = 0;
     for(auto bounds : blockBounds)
     {
-      cout << "Compacting Sparse Volume: " << ++i << "/" << blockBounds.size() << " - " << bounds << endl;
-      typename T::Pointer image = itkImage(bounds);
+//      cout << "Compacting Sparse Volume: " << ++i << "/" << blockBounds.size() << " - " << bounds << endl;
+      typename T::Pointer image = itkImage(bounds.bounds());
       bool empty = true;
       itk::ImageRegionIterator<T> it(image, image->GetLargestPossibleRegion());
       it.Begin();
@@ -833,25 +836,73 @@ namespace EspINA
         ++it;
       }
 
-      if (!empty) blockImages << itkImage(bounds);
+      if (!empty)
+        nonEmptyBounds << bounds;
+      // blockImages << itkImage(bounds);
     }
 
-    if (!blockBounds.isEmpty())
+    blockBounds.clear();
+    blockBounds = nonEmptyBounds;
+
+    // try to join adjacent blocks into a larger ones to reduce the number of blocks.
+    // For two blocks to be joinable two out of three coordinates must be the same, and the
+    // other one must be adjacent on either side of the direction.
+    bool joinable = true;
+    int initialSize = blockBounds.size();
+
+    int pass = 0;
+    while(joinable)
     {
-      cout << "Sparse Volume Compression: " << 100-(blockImages.size()*100/blockBounds.size()) << "% - " << blockImages.size() << "/" << blockBounds.size() << endl;
+      VolumeBoundsList joinedBlocks;
+      VolumeBoundsList joinedElements;
+      joinable = false;
+      for (int i = 0; i < blockBounds.size(); ++i)
+        for (int j = 0; j < blockBounds.size(); ++j)
+        {
+          if (i == j)
+            continue;
+
+          if (areAdjacent(blockBounds[i], blockBounds[j]))
+          {
+            joinable = true;
+            if (!joinedElements.contains(blockBounds[i]) && !joinedElements.contains(blockBounds[j]))
+            {
+              auto joinedBlock = boundingBox(blockBounds[i], blockBounds[j]);
+              joinedBlocks << joinedBlock;
+              joinedElements << blockBounds[i];
+              joinedElements << blockBounds[j];
+//              std::cout << "pass " << pass << ": join pair " << i << "-" << j << " -> " << joinedBlock << std::endl;
+            }
+          }
+        }
+
+      for(auto element: joinedElements)
+        blockBounds.removeOne(element);
+      for(auto joined: joinedBlocks)
+        blockBounds << joined;
+
+      joinedBlocks.clear();
+      joinedElements.clear();
+      ++pass;
     }
-   
+
+    int finalSize = blockBounds.size();
+    std::cout << initialSize << " initial blocks reduced to " << finalSize << " blocks -> " << 100 - (finalSize *100 / initialSize) << "% reduction." << std::endl;
     for (int i = 0; i < blockBounds.size(); ++i)
       for (int j = i+1; j < blockBounds.size(); ++j)
       {
         Q_ASSERT(!intersect(blockBounds[i], blockBounds[j]));
       }
 
+    QList<typename T::Pointer> blockImages;
+    for (auto block: blockBounds)
+      blockImages << itkImage(block.bounds());
+
     m_blocks.clear();
 
     for(auto image : blockImages)
     {
-      setBlock(image);
+      setBlock(image, true);
     }
   }
 

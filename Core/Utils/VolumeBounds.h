@@ -154,6 +154,12 @@ namespace EspINA
   bool EspinaCore_EXPORT operator==(const VolumeBounds& lhs, const VolumeBounds& rhs);
 
   bool EspinaCore_EXPORT operator!=(const VolumeBounds& lhs, const VolumeBounds& rhs);
+
+  /* \brief Returns true if the blocks are adjacent and the bounding box is the union of both.
+   * For that to happen the blocks must have equal sizes on two sides and be adjacent on the
+   * third side.
+   */
+  bool areAdjacent(const VolumeBounds &lhs, const VolumeBounds &rhs);
 }
 
 

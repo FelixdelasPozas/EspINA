@@ -284,3 +284,9 @@ bool EspINA::operator!=(const VolumeBounds &lhs, const VolumeBounds &rhs)
 {
   return !(lhs == rhs);
 }
+
+//-----------------------------------------------------------------------------
+bool EspINA::areAdjacent(const VolumeBounds &lhs, const VolumeBounds &rhs)
+{
+  return areAdjacent(lhs.bounds(), rhs.bounds());
+}
