@@ -269,7 +269,7 @@ bool StereologicalInclusion::isExcludedByCountingFrame(CountingFrame* cf)
   Bounds inputBB = m_extendedItem->output()->bounds();
   //qDebug() << "Input:" << inputBB.toString();
 
-  vtkPolyData  *region       = cf->region();
+  auto          region       = cf->region();
   vtkPoints    *regionPoints = region->GetPoints();
   vtkCellArray *regionFaces  = region->GetPolys();
   vtkCellData  *faceData     = region->GetCellData();

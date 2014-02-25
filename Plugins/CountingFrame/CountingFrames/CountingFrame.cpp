@@ -175,7 +175,9 @@ void CountingFrame::setCategoryConstraint(const QString& category)
 //-----------------------------------------------------------------------------
 void CountingFrame::updateCountingFrame()
 {
+  m_mutex.lock();
   updateCountingFrameImplementation();
+  m_mutex.unlock();
 
   for(vtkCountingFrameWidget *widget : m_widgets2D)
   {

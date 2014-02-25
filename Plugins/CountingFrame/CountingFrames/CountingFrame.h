@@ -147,7 +147,10 @@ namespace CF {
      *
      */
     virtual vtkSmartPointer<vtkPolyData> region() const
-    {return m_countingFrame;}
+    {
+      QMutexLocker lock(&m_mutex);
+      return m_countingFrame;
+    }
 
     virtual void Execute(vtkObject* caller, long unsigned int eventId, void* callData);
 
@@ -182,6 +185,7 @@ namespace CF {
   protected:
     SchedulerSPtr m_scheduler;
 
+    QMutex                       m_mutex;
     vtkSmartPointer<vtkPolyData> m_countingFrame;
     vtkSmartPointer<vtkPolyData> m_representation;
 

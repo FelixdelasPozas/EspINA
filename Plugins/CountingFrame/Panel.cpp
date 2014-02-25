@@ -462,6 +462,8 @@ void Panel::updateUI(QModelIndex index)
 //------------------------------------------------------------------------
 void Panel::createCountingFrame()
 {
+  if (!m_pendingCFs.isEmpty()) return;
+
   CFTypeSelectorDialog cfSelector(m_model, this);
 
   if (cfSelector.exec())
@@ -490,7 +492,9 @@ void Panel::createCountingFrame()
 
     Task::submit(task);
 
-    m_gui->createCF->setEnabled(false);
+    reportProgess(0);
+
+    //m_gui->createCF->setEnabled(false);
   }
 //
 //   updateSegmentations();
@@ -705,7 +709,11 @@ void Panel::changeUnitMode(bool useSlices)
 //------------------------------------------------------------------------
 void Panel::reportProgess(int progress)
 {
-  QPixmap pixmap(":/create-cf.svg");
+  QIcon icon(":/create-cf.svg");
+
+  auto size = m_gui->createCF->size();
+  QPixmap original = icon.pixmap(size);
+  QPixmap inverted = icon.pixmap(size, QIcon::Disabled);
 
 //   QPainter painter(&pixmap);
 //   QRect rect = pixmap.rect();
@@ -715,26 +723,22 @@ void Panel::reportProgess(int progress)
 //   painter.fillRect(rect, gradient);
 //   painter.fillRect(rect, QColor(125,125,125,125));
 
-  QImage image = pixmap.toImage();
-  QRgb col;
-  int gray;
-  int width = pixmap.width();
-  int height = pixmap.height();
+  QImage originalImage = original.toImage();
+  QImage invertedImage = inverted.toImage();
+
+  int width  = original.width();
+  int height = original.height();
+
   for (int i = 0; i < width; ++i)
   {
     for (int j = 0; j < (100-progress)*height/100; ++j)
     {
-      if (image.alphaChannel().pixel(i,j) > 0)
-      {
-        col = image.pixel(i, j);
-        gray = qGray(col);
-        image.setPixel(i, j, qRgb(gray, gray, gray));
-      }
+      originalImage.setPixel(i, j, invertedImage.pixel(i, j));
     }
   }
-  pixmap = pixmap.fromImage(image);
+  original = original.fromImage(originalImage);
 
-  m_gui->createCF->setIcon(pixmap);
+  m_gui->createCF->setIcon(original);
 }
 
 //------------------------------------------------------------------------
@@ -883,7 +887,7 @@ void Panel::onCreateCountingFrameFinished()
   auto extension = countingFrameExtensionPtr(channel->extension(CountingFrameExtension::TYPE));
   extension->createCountingFrame(pendingCF.Type, inclusion, exclusion, pendingCF.Constraint);
 
-  m_gui->createCF->setEnabled(m_pendingCFs.isEmpty());
+  //m_gui->createCF->setEnabled(m_pendingCFs.isEmpty());
 }
 
 
