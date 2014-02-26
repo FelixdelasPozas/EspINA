@@ -19,11 +19,10 @@
 #ifndef ESPINA_VIEW_2D_H
 #define ESPINA_VIEW_2D_H
 
+// EspINA
 #include "GUI/View/RenderView.h"
 #include <GUI/Model/ChannelAdapter.h>
 #include <GUI/Model/SegmentationAdapter.h>
-
-// EspINA
 
 // VTK
 #include <vtkSmartPointer.h>
@@ -48,6 +47,7 @@ namespace EspINA
   class SliceWidget;
   class Representation;
   class EspinaWidget;
+  class ViewRendererMenu;
 
   /// Slice View Widget
   /// Display channels and segmentations as slices
@@ -93,7 +93,7 @@ namespace EspINA
     void setRenderers(RendererSList renderers);
 
     RendererSList renderers() const
-    { return m_renderers.values(); }
+    { return m_renderers; }
 
     Plane plane() const
     { return m_plane; }
@@ -137,8 +137,6 @@ namespace EspINA
 
     virtual Selector::Selection select(Selector::SelectionFlags flags, Selector::SelectionMask mask){/*TODO*/}
 
-    virtual void updateView();
-
     virtual void setCrosshairVisibility(bool show);
 
     void updateCrosshairPoint(const Plane plane, const Nm slicePos);
@@ -162,6 +160,8 @@ namespace EspINA
     virtual void updateSceneBounds();
 
     virtual void updateSelection(){};
+
+    virtual void updateView();
 
   signals:
     void centerChanged(NmVector3);
@@ -262,6 +262,7 @@ namespace EspINA
     QDoubleSpinBox *m_spinBox;
     QPushButton    *m_zoomButton;
     QPushButton    *m_snapshot;
+    QPushButton    *m_renderConfig;
 
     // VTK View
     vtkSmartPointer<vtkRenderer>    m_thumbnail;

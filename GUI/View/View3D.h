@@ -56,7 +56,7 @@ namespace EspINA
     void setRenderers(RendererSList renderers);
 
     RendererSList renderers() const
-    { return m_renderers.values(); }
+    { return m_renderers; }
 
     void setCameraFocus(const NmVector3& center);
 
@@ -97,13 +97,10 @@ namespace EspINA
 
     virtual RepresentationSPtr cloneRepresentation(EspINA::ViewItemAdapterPtr item, EspINA::Representation::Type representation);
 
-  public slots: //Needed to interact with renderers
+  public slots:
     virtual void updateView();
 
     virtual void updateSelection(){};
-
-  public slots:
-    void updateEnabledRenderersCount(bool);
 
   signals:
     void centerChanged(NmVector3);
@@ -120,14 +117,14 @@ namespace EspINA
 
     void onTakeSnapshot();
 
+    void updateRenderersControls();
+
   private:
     void setupUI();
 
     void addRendererControls(RendererSPtr renderer);
 
     void buildControls();
-
-    void updateRenderersControls();
 
     void updateScrollBarsLimits();
 
@@ -138,6 +135,7 @@ namespace EspINA
     QPushButton m_snapshot;
     QPushButton m_export;
     QPushButton m_zoom;
+    QPushButton m_renderConfig;
 
     // GUI elements only visible in Segmentation Information dialog
     QHBoxLayout *m_additionalGUI;
@@ -149,6 +147,8 @@ namespace EspINA
 
     NmVector3 m_center;
     QMap<EspinaWidget *, vtkAbstractWidget *> m_widgets;
+
+    unsigned int m_numEnabledRenderers;
   };
 
 } // namespace EspINA

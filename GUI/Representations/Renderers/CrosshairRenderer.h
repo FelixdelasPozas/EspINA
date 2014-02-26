@@ -56,9 +56,6 @@ namespace EspINA
     virtual bool hasRepresentation(RepresentationSPtr rep);
     virtual bool managesRepresentation(RepresentationSPtr rep);
 
-    virtual void hide();
-    virtual void show();
-
     virtual RendererSPtr clone() { return RendererSPtr(new CrosshairRenderer()); }
 
     virtual unsigned int numberOfvtkActors();
@@ -84,6 +81,9 @@ namespace EspINA
     void setPlanePosition(Plane plane, Nm dist);
 
   private:
+    virtual void hide();
+    virtual void show();
+
     vtkSmartPointer<vtkPropPicker> m_picker;
   };
 

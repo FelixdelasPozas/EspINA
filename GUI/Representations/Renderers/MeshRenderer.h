@@ -47,9 +47,6 @@ namespace EspINA
       virtual bool hasRepresentation(RepresentationSPtr rep);
       virtual bool managesRepresentation(RepresentationSPtr rep);
 
-      virtual void hide();
-      virtual void show();
-
       virtual RendererSPtr clone()              { return RendererSPtr(new MeshRenderer()); }
 
       virtual unsigned int numberOfvtkActors();
@@ -68,6 +65,9 @@ namespace EspINA
       virtual NmVector3 pickCoordinates() const;
 
     protected:
+      virtual void hide();
+      virtual void show();
+
       vtkSmartPointer<vtkPropPicker> m_picker;
   };
 

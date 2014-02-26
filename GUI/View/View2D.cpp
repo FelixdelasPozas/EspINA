@@ -23,6 +23,7 @@
 #include "Widgets/EspinaWidget.h"
 #include <GUI/View/vtkInteractorStyleEspinaSlice.h>
 #include <Core/Analysis/Channel.h>
+#include "ViewRendererMenu.h"
 
 // Debug
 #include <QDebug>
@@ -94,6 +95,7 @@ View2D::View2D(Plane plane, QWidget* parent)
 , m_spinBox(new QDoubleSpinBox())
 , m_zoomButton(new QPushButton())
 , m_snapshot(new QPushButton())
+, m_renderConfig(new QPushButton())
 , m_ruler(vtkSmartPointer<vtkAxisActor2D>::New())
 , m_slicingStep{1, 1, 1}
 , m_showThumbnail(true)
@@ -544,6 +546,16 @@ void View2D::setupUI()
   m_spinBox->setAlignment(Qt::AlignRight);
   m_spinBox->setSingleStep(1);
 
+  m_renderConfig->setIcon(QIcon(":/espina/settings.png"));
+  m_renderConfig->setToolTip(tr("Configure this view's renderers"));
+  m_renderConfig->setFlat(true);
+  m_renderConfig->setIconSize(QSize(20,20));
+  m_renderConfig->setMaximumSize(QSize(22,22));
+  m_renderConfig->setEnabled(false);
+
+  // TODO
+  //connect(m_renderConfig,SIGNAL(clicked(bool)),this,SLOT(renderContextualMenu()));
+
   connect(m_spinBox, SIGNAL(valueChanged(double)), this, SLOT(spinValueChanged(double)));
   connect(m_scrollBar, SIGNAL(valueChanged(int)), this, SLOT(scrollValueChanged(int)));
 
@@ -551,6 +563,7 @@ void View2D::setupUI()
   m_controlLayout->addWidget(m_zoomButton);
   m_controlLayout->addWidget(m_snapshot);
   m_controlLayout->addWidget(m_scrollBar);
+  m_controlLayout->addWidget(m_renderConfig);
   m_controlLayout->addLayout(m_fromLayout);
   m_controlLayout->addWidget(m_spinBox);
   m_controlLayout->addLayout(m_toLayout);
@@ -1456,6 +1469,11 @@ RepresentationSPtr View2D::cloneRepresentation(ViewItemAdapterPtr item, Represen
 //-----------------------------------------------------------------------------
 void View2D::addRendererControls(RendererSPtr renderer)
 {
+  if(m_renderers.contains(renderer) || (renderer->renderType() != RendererTypes(RENDERER_VIEW2D)))
+    return;
+
+  m_renderers << renderer;
+
   renderer->setView(this);
   renderer->setEnable(true);
 
@@ -1474,19 +1492,7 @@ void View2D::addRendererControls(RendererSPtr renderer)
         if (renderer->managesRepresentation(rep)) renderer->addRepresentation(channel, rep);
   }
 
-  QPushButton *button = new QPushButton();
-  m_renderers[button] = renderer;
-
-  if (!renderer->isHidden())
-  {
-    if (canRender(renderer, RenderableType::SEGMENTATION))
-      this->m_numEnabledSegmentationRenders++;
-
-    if (canRender(renderer, RenderableType::CHANNEL))
-      this->m_numEnabledChannelRenders++;
-  }
-
-  if (0 != m_numEnabledSegmentationRenders)
+  if (0 != numEnabledRenderersForItem(RenderableType::SEGMENTATION))
   {
     QMap<EspinaWidget *, SliceWidget *>::const_iterator it = m_widgets.begin();
     for( ; it != m_widgets.end(); ++it)
@@ -1498,12 +1504,23 @@ void View2D::addRendererControls(RendererSPtr renderer)
       }
     }
   }
+
+  ViewRendererMenu *configMenu = qobject_cast<ViewRendererMenu*>(m_renderConfig->menu());
+  if (configMenu == nullptr)
+  {
+    configMenu = new ViewRendererMenu(m_renderConfig);
+    m_renderConfig->setMenu(configMenu);
+    m_renderConfig->setEnabled(true);
+  }
+  configMenu->add(renderer);
+
+  connect(renderer.get(), SIGNAL(renderRequested()), this, SLOT(updateView()), Qt::QueuedConnection);
 }
 
 //-----------------------------------------------------------------------------
 void View2D::removeRendererControls(QString name)
 {
-  RendererSPtr removedRenderer;
+  RendererSPtr removedRenderer = nullptr;
   for(auto renderer: m_renderers)
     if (renderer->name() == name)
     {
@@ -1511,43 +1528,39 @@ void View2D::removeRendererControls(QString name)
       break;
     }
 
-  if (removedRenderer)
-  {
+  if (removedRenderer == nullptr)
+    return;
+
+  m_renderers.removeOne(removedRenderer);
+
     if (!removedRenderer->isHidden())
-      removedRenderer->hide();
+      removedRenderer->setEnable(false);
 
-    if (!removedRenderer->isHidden() && (canRender(removedRenderer, RenderableType::SEGMENTATION)))
-      this->m_numEnabledSegmentationRenders--;
-
-    if (!removedRenderer->isHidden() && canRender(removedRenderer, RenderableType::CHANNEL))
-      this->m_numEnabledChannelRenders--;
-
-    if (0 == m_numEnabledSegmentationRenders)
+  if (0 == numEnabledRenderersForItem(RenderableType::SEGMENTATION))
+  {
+    QMap<EspinaWidget *, SliceWidget *>::const_iterator it = m_widgets.begin();
+    for (; it != m_widgets.end(); ++it)
     {
-      QMap<EspinaWidget *, SliceWidget *>::const_iterator it = m_widgets.begin();
-      for( ; it != m_widgets.end(); ++it)
+      if (it.key()->manipulatesSegmentations())
       {
-        if (it.key()->manipulatesSegmentations())
-        {
-          it.value()->SetEnabled(false);
-          it.value()->SetVisibility(false);
-        }
+        it.value()->SetEnabled(false);
+        it.value()->SetVisibility(false);
       }
-    }
-
-    QMap<QPushButton*, RendererSPtr>::iterator it = m_renderers.begin();
-    bool erased = false;
-    while(!erased && it != m_renderers.end())
-    {
-      if (it.value() == removedRenderer)
-      {
-        m_renderers.erase(it);
-        erased = true;
-      }
-      else
-        ++it;
     }
   }
+
+  ViewRendererMenu *configMenu = qobject_cast<ViewRendererMenu*>(m_renderConfig->menu());
+  if (configMenu != nullptr)
+  {
+    configMenu->remove(removedRenderer);
+    if (configMenu->actions().isEmpty())
+    {
+      m_renderConfig->setMenu(nullptr);
+      delete configMenu;
+      m_renderConfig->setEnabled(false);
+    }
+  }
+  disconnect(removedRenderer.get(), SIGNAL(renderRequested()), this, SLOT(updateView()));
 }
 
 //-----------------------------------------------------------------------------

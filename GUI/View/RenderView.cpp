@@ -46,8 +46,6 @@ RenderView::RenderView(QWidget* parent)
 , m_colorEngine{new NumberColorEngine()}
 , m_view{new QVTKWidget()}
 , m_sceneResolution{1, 1, 1}
-, m_numEnabledChannelRenders{0}
-, m_numEnabledSegmentationRenders{0}
 , m_sceneCameraInitialized(false)
 , m_showSegmentations(true)
 {
@@ -177,6 +175,7 @@ void RenderView::setSegmentationsVisibility(bool visible)
   updateRepresentations(SegmentationAdapterList());
 }
 
+//-----------------------------------------------------------------------------
 DefaultVolumetricDataSPtr volumetricData(ViewItemAdapterPtr item)
 {
   return std::dynamic_pointer_cast<VolumetricData<itkVolumeType>>(item->get(VolumetricData<itkVolumeType>::TYPE));
@@ -653,4 +652,15 @@ void RenderView::removeRepresentations(SegmentationState &state)
       renderer->removeRepresentation(rep);
 
   state.representations.clear();
+}
+
+//-----------------------------------------------------------------------------
+unsigned int RenderView::numEnabledRenderersForItem(RenderableType type)
+{
+  unsigned int count = 0;
+  for(auto renderer: m_renderers)
+    if (canRender(renderer, type) && !renderer->isHidden())
+      ++count;
+
+  return count;
 }

@@ -55,9 +55,6 @@ namespace EspINA
     bool hasRepresentation(RepresentationSPtr rep);
     bool managesRepresentation(RepresentationSPtr rep);
 
-    void hide();
-    void show();
-
     RendererSPtr clone() {return RendererSPtr(new VolumetricRenderer());}
 
     unsigned int numberOfvtkActors() { return 0; }
@@ -80,6 +77,9 @@ namespace EspINA
     NmVector3 pickCoordinates() const;
 
   protected:
+    void hide();
+    void show();
+
     vtkSmartPointer<vtkVolumePicker> m_picker;
   };
 

@@ -20,6 +20,7 @@
 
 // EspINA
 #include "GUI/View/Widgets/EspinaWidget.h"
+#include "ViewRendererMenu.h"
 
 // Qt
 #include <QApplication>
@@ -60,6 +61,7 @@ View3D::View3D(bool showCrosshairPlaneSelectors, QWidget* parent)
 , m_mainLayout{new QVBoxLayout()}
 , m_controlLayout{new QHBoxLayout()}
 , m_showCrosshairPlaneSelectors{showCrosshairPlaneSelectors}
+, m_numEnabledRenderers{0}
 {
   setupUI();
 }
@@ -76,18 +78,19 @@ View3D::~View3D()
   m_segmentationStates.clear();
 }
 
+//-----------------------------------------------------------------------------
 void View3D::setRenderers(RendererSList renderers)
 {
   QStringList oldRenderersNames, newRenderersNames;
 
-  for (auto renderer: m_renderers.values())
+  for (auto renderer: m_renderers)
     oldRenderersNames << renderer->name();
 
   for (auto renderer: renderers)
     newRenderersNames << renderer->name();
 
   // remove controls of unused renderers
-  for (auto renderer : m_renderers.values())
+  for (auto renderer : m_renderers)
     if (!newRenderersNames.contains(renderer->name()))
       removeRendererControls(renderer->name());
 
@@ -119,38 +122,20 @@ void View3D::reset()
   Q_ASSERT(m_segmentationStates.isEmpty());
   Q_ASSERT(m_widgets.isEmpty());
 
-  for(auto it = m_renderers.begin(); it != m_renderers.end(); ++it)
-    it.key()->setChecked(false);
-
-  m_numEnabledChannelRenders = 0;
-  m_numEnabledSegmentationRenders = 0;
+  updateRenderersControls();
 }
+
 
 //-----------------------------------------------------------------------------
 void View3D::addRendererControls(RendererSPtr renderer)
 {
-  QPushButton *button;
+  if (m_renderers.contains(renderer) || (renderer->renderType() != RendererTypes(RENDERER_VIEW3D)))
+    return;
 
-  auto rendererPtr = renderer.get();
+  m_renderers << renderer;
 
-  button = new QPushButton(renderer->icon(), "");
-  button->setFlat(true);
-  button->setCheckable(true);
-  button->setChecked(false);
-  button->setIconSize(QSize(22, 22));
-  button->setMaximumSize(QSize(32, 32));
-  button->setToolTip(renderer->tooltip());
-  button->setObjectName(renderer->name());
-
-  connect(button, SIGNAL(toggled(bool)), rendererPtr, SLOT(setEnable(bool)));
-  connect(button, SIGNAL(toggled(bool)), this, SLOT(updateEnabledRenderersCount(bool)));
-  connect(button, SIGNAL(destroyed(QObject*)), rendererPtr, SLOT(deleteLater()));
-
-  connect(rendererPtr, SIGNAL(enabled(bool)), button, SLOT(setEnabled(bool)));
-  connect(rendererPtr, SIGNAL(renderRequested()), this, SLOT(updateView()));
-
-  m_controlLayout->addWidget(button);
   renderer->setView(this);
+  renderer->setEnable(false);
 
   // add segmentation representations to renderer
   for(auto segmentation : m_segmentationStates.keys())
@@ -166,29 +151,17 @@ void View3D::addRendererControls(RendererSPtr renderer)
         if (renderer->managesRepresentation(rep))
           renderer->addRepresentation(channel, rep);
 
-  m_renderers[button] = renderer;
-
-  // update renderer counts
-  if (!renderer->isHidden())
+  ViewRendererMenu *configMenu = qobject_cast<ViewRendererMenu*>(m_renderConfig.menu());
+  if (configMenu == nullptr)
   {
-    if (canRender(renderer, RenderableType::SEGMENTATION))
-      this->m_numEnabledSegmentationRenders++;
-
-    if (canRender(renderer, RenderableType::CHANNEL))
-      this->m_numEnabledChannelRenders++;
+    configMenu = new ViewRendererMenu(&m_renderConfig);
+    m_renderConfig.setMenu(configMenu);
+    m_renderConfig.setEnabled(true);
   }
+  configMenu->add(renderer);
 
-  if (0 != m_numEnabledSegmentationRenders)
-  {
-    for(auto it = m_widgets.begin(); it != m_widgets.end(); ++it)
-    {
-      if (it.key()->manipulatesSegmentations())
-      {
-        it.value()->SetEnabled(true);
-        it.value()->GetRepresentation()->SetVisibility(true);
-      }
-    }
-  }
+  connect(renderer.get(), SIGNAL(renderRequested()), this, SLOT(updateRenderersControls()), Qt::QueuedConnection);
+  connect(renderer.get(), SIGNAL(renderRequested()), this, SLOT(updateView()), Qt::QueuedConnection);
 
   updateRenderersControls();
 }
@@ -196,19 +169,6 @@ void View3D::addRendererControls(RendererSPtr renderer)
 //-----------------------------------------------------------------------------
 void View3D::removeRendererControls(const QString name)
 {
-  for (int i = 0; i < m_controlLayout->count(); i++)
-  {
-    if (m_controlLayout->itemAt(i)->isEmpty())
-      continue;
-
-    if (m_controlLayout->itemAt(i)->widget()->objectName() == name)
-    {
-      QWidget *button = m_controlLayout->itemAt(i)->widget();
-      m_controlLayout->removeWidget(button);
-      delete button;
-    }
-  }
-
   RendererSPtr removedRenderer;
   for(auto renderer: m_renderers)
     if (renderer->name() == name)
@@ -217,42 +177,26 @@ void View3D::removeRendererControls(const QString name)
       break;
     }
 
-  if (removedRenderer)
+  if (!removedRenderer)
+    return;
+
+  m_renderers.removeOne(removedRenderer);
+
+  if (!removedRenderer->isHidden())
+    removedRenderer->setEnable(false);
+
+  ViewRendererMenu *configMenu = qobject_cast<ViewRendererMenu*>(m_renderConfig.menu());
+  if (configMenu != nullptr)
   {
-    if (!removedRenderer->isHidden())
-      removedRenderer->hide();
-
-    if (canRender(removedRenderer, RenderableType::SEGMENTATION))
-      this->m_numEnabledSegmentationRenders--;
-
-    if (canRender(removedRenderer, RenderableType::CHANNEL))
-      this->m_numEnabledChannelRenders--;
-
-    if (0 == m_numEnabledSegmentationRenders)
+    configMenu->remove(removedRenderer);
+    if (configMenu->actions().isEmpty())
     {
-      for (auto it = m_widgets.begin(); it != m_widgets.end(); ++it)
-      {
-        if (it.key()->manipulatesSegmentations())
-        {
-          it.value()->SetEnabled(false);
-          it.value()->GetRepresentation()->SetVisibility(false);
-        }
-      }
-    }
-
-    auto it = m_renderers.begin();
-    bool erased = false;
-    while(!erased && it != m_renderers.end())
-    {
-      if (it.value() == removedRenderer)
-      {
-        m_renderers.erase(it);
-        erased = true;
-      }
-      else
-        ++it;
+      m_renderConfig.setMenu(nullptr);
+      delete configMenu;
+      m_renderConfig.setEnabled(false);
     }
   }
+  disconnect(removedRenderer.get(), SIGNAL(renderRequested()), this, SLOT(updateView()));
 
   updateRenderersControls();
 }
@@ -287,14 +231,22 @@ void View3D::buildControls()
   m_export.setEnabled(false);
   connect(&m_export,SIGNAL(clicked(bool)),this,SLOT(exportScene()));
 
+  m_renderConfig.setIcon(QIcon(":/espina/settings.png"));
+  m_renderConfig.setToolTip(tr("Configure this view's renderers"));
+  m_renderConfig.setFlat(true);
+  m_renderConfig.setIconSize(QSize(22,22));
+  m_renderConfig.setMaximumSize(QSize(32,32));
+  m_renderConfig.setEnabled(false);
+
   QSpacerItem * horizontalSpacer = new QSpacerItem(4000, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
 
   m_controlLayout->addWidget(&m_zoom);
   m_controlLayout->addWidget(&m_snapshot);
   m_controlLayout->addWidget(&m_export);
   m_controlLayout->addItem(horizontalSpacer);
+  m_controlLayout->addWidget(&m_renderConfig);
 
-  for(auto renderer : m_renderers.values())
+  for(auto renderer : m_renderers)
     if (canRender(renderer, RendererType::RENDERER_VIEW3D))
       this->addRendererControls(renderer->clone());
 
@@ -314,7 +266,7 @@ void View3D::centerViewOn(const NmVector3& point, bool force)
 
   bool updated = false;
 
-  for(auto renderer: m_renderers.values())
+  for(auto renderer: m_renderers)
   {
     auto channelRenderer = static_cast<ChannelRenderer *>(renderer.get());
     if (canRender(renderer, RenderableType::CHANNEL) && channelRenderer)
@@ -427,7 +379,7 @@ void View3D::addWidget(EspinaWidget* eWidget)
   widget->SetCurrentRenderer(this->m_renderer);
   widget->SetInteractor(m_view->GetInteractor());
 
-  bool activate = (m_numEnabledSegmentationRenders != 0);
+  bool activate = (numEnabledRenderersForItem(RenderableType::SEGMENTATION) != 0);
   if (eWidget->manipulatesSegmentations())
   {
     widget->SetEnabled(activate);
@@ -561,7 +513,7 @@ void View3D::selectPickedItems(int vx, int vy, bool append)
     selection = currentSelection()->items();
 
   // If no append, segmentations have priority over channels
-  for(auto renderer : m_renderers.values())
+  for(auto renderer : m_renderers)
   {
     if (!renderer->isHidden() && canRender(renderer, RenderableType::SEGMENTATION))
     {
@@ -623,7 +575,7 @@ bool View3D::eventFilter(QObject* caller, QEvent* e)
     {
       if (me->modifiers() == Qt::CTRL)
       {
-        for(auto renderer: m_renderers.values())
+        for(auto renderer: m_renderers)
         {
           if (!renderer->isHidden())
           {
@@ -740,7 +692,7 @@ void View3D::changePlanePosition(Plane plane, Nm dist)
 {
   bool needUpdate = false;
 
-  for(auto renderer: m_renderers.values())
+  for(auto renderer: m_renderers)
   {
     auto channelRenderer = static_cast<ChannelRenderer *>(renderer.get());
     if (canRender(renderer, RenderableType::CHANNEL) && channelRenderer)
@@ -755,73 +707,38 @@ void View3D::changePlanePosition(Plane plane, Nm dist)
 }
 
 //-----------------------------------------------------------------------------
-void View3D::updateEnabledRenderersCount(bool value)
-{
-  int updateValue = (value ? +1 : -1);
-
-  // reset camera if is the first renderer the user activates
-  if ((true == value) && (0 == (m_numEnabledChannelRenders + m_numEnabledSegmentationRenders)))
-  {
-    m_renderer->ResetCamera();
-    updateView();
-  }
-
-  // get enabled/disabled renderer that triggered the signal
-  RendererSPtr renderer;
-  QPushButton *button = dynamic_cast<QPushButton*>(sender());
-  if (button)
-    renderer = m_renderers[button];
-
-  if (renderer && canRender(renderer, RenderableType::CHANNEL))
-  {
-    m_numEnabledChannelRenders += updateValue;
-    if (m_showCrosshairPlaneSelectors)
-    {
-      m_axialScrollBar->setEnabled(value);
-      m_coronalScrollBar->setEnabled(value);
-      m_sagittalScrollBar->setEnabled(value);
-    }
-  }
-
-  if (renderer && canRender(renderer, RenderableType::SEGMENTATION))
-  {
-    m_numEnabledSegmentationRenders += updateValue;
-    if (0 != m_numEnabledSegmentationRenders)
-    {
-      for(auto it = m_widgets.begin(); it != m_widgets.end(); ++it)
-      {
-        if (it.key()->manipulatesSegmentations())
-        {
-          it.value()->SetEnabled(value);
-          it.value()->GetRepresentation()->SetVisibility(value);
-        }
-      }
-    }
-  }
-
-  updateRenderersControls();
-}
-
-//-----------------------------------------------------------------------------
 void View3D::updateRenderersControls()
 {
   bool canTakeSnapshot = false;
   bool canBeExported = false;
 
-  for(auto it = m_renderers.begin(); it != m_renderers.end(); ++it)
+  for(auto renderer: m_renderers)
   {
-    bool canRenderItems = it.value()->numberOfRenderedItems() != 0;
+    bool canRenderItems = renderer->numberOfRenderedItems() != 0;
 
-    canTakeSnapshot |= (!it.value()->isHidden()) && canRenderItems;
-    canBeExported |= canTakeSnapshot && (it.value()->numberOfvtkActors() != 0);
-
-    it.key()->setEnabled(canRenderItems);
-    if (!canRenderItems)
-      it.key()->setChecked(false);
+    canTakeSnapshot |= (!renderer->isHidden()) && canRenderItems;
+    canBeExported |= canTakeSnapshot && (renderer->numberOfvtkActors() != 0);
   }
 
   m_snapshot.setEnabled(canTakeSnapshot);
   m_export.setEnabled(canBeExported);
+
+  if (0 != numEnabledRenderersForItem(RenderableType::SEGMENTATION))
+  {
+    for(auto it = m_widgets.begin(); it != m_widgets.end(); ++it)
+    {
+      if (it.key()->manipulatesSegmentations())
+      {
+        it.value()->SetEnabled(true);
+        it.value()->GetRepresentation()->SetVisibility(true);
+      }
+    }
+  }
+
+  if(m_numEnabledRenderers == 0)
+    resetCamera();
+
+  m_numEnabledRenderers = numEnabledRenderersForItem(RenderableType::CHANNEL) + numEnabledRenderersForItem(RenderableType::SEGMENTATION);
 }
 
 //-----------------------------------------------------------------------------
@@ -845,7 +762,7 @@ void View3D::scrollBarMoved(int value)
   point[2] = m_sagittalScrollBar->value() * minSpacing[2];
 
   bool needUpdate = false;
-  for(auto renderer: m_renderers.values())
+  for(auto renderer: m_renderers)
   {
     auto channelRenderer = static_cast<ChannelRenderer *>(renderer.get());
     if (canRender(renderer, RenderableType::CHANNEL) && channelRenderer)
@@ -902,9 +819,7 @@ RepresentationSPtr View3D::cloneRepresentation(ViewItemAdapterPtr item, Represen
   RepresentationSPtr rep;
 
   if (prototype && prototype->canRenderOnView().testFlag(Representation::RENDERABLEVIEW_VOLUME))
-  {
     rep = prototype->clone(this);
-  }
 
   return rep;
 }

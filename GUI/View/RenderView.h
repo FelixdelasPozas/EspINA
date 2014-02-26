@@ -131,7 +131,6 @@ namespace EspINA
     virtual vtkRenderWindow *renderWindow();
     virtual vtkRenderer     *mainRenderer();
 
-    virtual void updateView() = 0;
     virtual void resetCamera() = 0;
 
     const Bounds sceneBounds() const
@@ -159,6 +158,9 @@ namespace EspINA
 
     void setSegmentationsVisibility(bool visibility);
 
+  public slots:
+    virtual void updateView() = 0;
+
   protected slots:
     virtual void updateSceneBounds();
 
@@ -182,6 +184,8 @@ namespace EspINA
     void removeRepresentations(ChannelState      &state);
     void removeRepresentations(SegmentationState &state);
 
+    unsigned int numEnabledRenderersForItem(RenderableType);
+
   protected:
     EventHandlerSPtr m_eventHandler;
     ColorEngineSPtr  m_colorEngine;
@@ -193,15 +197,12 @@ namespace EspINA
     NmVector3 m_crosshairPoint;
     NmVector3 m_sceneResolution;// Min distance between 2 voxels in each axis
 
-    unsigned int m_numEnabledChannelRenders;
-    unsigned int m_numEnabledSegmentationRenders;
-
     ContextualMenuSPtr m_contextMenu;
 
     QMap<ChannelAdapterPtr,      ChannelState>      m_channelStates;
     QMap<SegmentationAdapterPtr, SegmentationState> m_segmentationStates;
 
-    QMap<QPushButton *, RendererSPtr> m_renderers;
+    RendererSList m_renderers;
 
     bool m_sceneCameraInitialized;
     bool m_showSegmentations;

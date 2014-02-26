@@ -85,10 +85,6 @@ namespace EspINA
     virtual bool hasRepresentation(RepresentationSPtr rep) = 0;
     virtual bool managesRepresentation(RepresentationSPtr rep) = 0;
 
-    // Hide/Show all items rendered by the Renderer
-    virtual void hide() = 0;
-    virtual void show() = 0;
-
     virtual RendererSPtr clone() = 0;
 
     // get number of vtkActors added to vtkRendered from this Renderer
@@ -110,6 +106,11 @@ namespace EspINA
     virtual ViewItemAdapterList pick(int x, int y, Nm z, vtkSmartPointer<vtkRenderer> renderer, RenderableItems itemType = RenderableItems(), bool repeat = false) = 0;
 
     virtual NmVector3 pickCoordinates() const = 0;
+
+  protected:
+    // Hide/Show all items rendered by the Renderer
+    virtual void hide() = 0;
+    virtual void show() = 0;
 
   public slots:
     virtual void setEnable(bool value)
