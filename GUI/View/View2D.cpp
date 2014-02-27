@@ -632,24 +632,32 @@ Selector::SelectionList View2D::pick(Selector::SelectionFlags    filter,
         if (Selector::CHANNEL == tag)
         {
           for(auto renderer : m_renderers)
-            if (canRender(renderer, RenderableType::CHANNEL))
-              for(auto item : renderer->pick(p.x(), p.y(), slicingPosition(), m_renderer, RenderableItems(RenderableType::CHANNEL), multiSelection))
-              {
-                Selector::WorldRegion wRegion = worldRegion(region, item);
-                selectedItems << Selector::SelectedItem(wRegion, item);
-              }
+            if(renderer->type() == Renderer::Type::Representation)
+            {
+              auto repRenderer = representationRenderer(renderer);
+              if (canRender(repRenderer, RenderableType::CHANNEL))
+                for(auto item : repRenderer->pick(p.x(), p.y(), slicingPosition(), m_renderer, RenderableItems(RenderableType::CHANNEL), multiSelection))
+                {
+                  Selector::WorldRegion wRegion = worldRegion(region, item);
+                  selectedItems << Selector::SelectedItem(wRegion, item);
+                }
+            }
         }
         else
         {
           if (Selector::SEGMENTATION == tag)
           {
             for(auto renderer : m_renderers)
-              if (canRender(renderer, RenderableType::SEGMENTATION))
-                for(auto item : renderer->pick(p.x(), p.y(), slicingPosition(), m_renderer, RenderableItems(RenderableType::SEGMENTATION), multiSelection))
-                {
-                  Selector::WorldRegion wRegion = worldRegion(region, item);
-                  selectedItems << Selector::SelectedItem(wRegion, item);
-                }
+              if(renderer->type() == Renderer::Type::Representation)
+              {
+                auto repRenderer = representationRenderer(renderer);
+                if (canRender(repRenderer, RenderableType::SEGMENTATION))
+                  for(auto item : repRenderer->pick(p.x(), p.y(), slicingPosition(), m_renderer, RenderableItems(RenderableType::SEGMENTATION), multiSelection))
+                  {
+                    Selector::WorldRegion wRegion = worldRegion(region, item);
+                    selectedItems << Selector::SelectedItem(wRegion, item);
+                  }
+              }
           }
         }
       }
@@ -1006,14 +1014,18 @@ void View2D::centerCrosshairOnMousePosition()
   {
     for(auto renderer: m_renderers)
     {
-      if (canRender(renderer, RenderableType::CHANNEL))
+      if(renderer->type() == Renderer::Type::Representation)
       {
-        auto selection = renderer->pick(xPos, yPos, slicingPosition(), m_thumbnail, RenderableItems(RenderableType::CHANNEL));
-        if (!selection.isEmpty())
+        auto repRenderer = representationRenderer(renderer);
+        if (canRender(repRenderer, RenderableType::CHANNEL))
         {
-          channelPicked = true;
-          center = renderer->pickCoordinates();
-          break;
+          auto selection = repRenderer->pick(xPos, yPos, slicingPosition(), m_thumbnail, RenderableItems(RenderableType::CHANNEL));
+          if (!selection.isEmpty())
+          {
+            channelPicked = true;
+            center = repRenderer->pickCoordinates();
+            break;
+          }
         }
       }
     }
@@ -1021,18 +1033,20 @@ void View2D::centerCrosshairOnMousePosition()
   else
   {
     for(auto renderer: m_renderers)
-    {
-      if (canRender(renderer, RenderableType::CHANNEL))
-      {
-        auto selection = renderer->pick(xPos, yPos, slicingPosition(), m_renderer, RenderableItems(RenderableType::CHANNEL));
-        if (!selection.isEmpty())
+      if(renderer->type() == Renderer::Type::Representation)
         {
-          channelPicked = true;
-          center = renderer->pickCoordinates();
-          break;
+          auto repRenderer = representationRenderer(renderer);
+          if (canRender(repRenderer, RenderableType::CHANNEL))
+          {
+          auto selection = repRenderer->pick(xPos, yPos, slicingPosition(), m_renderer, RenderableItems(RenderableType::CHANNEL));
+          if (!selection.isEmpty())
+          {
+            channelPicked = true;
+            center = repRenderer->pickCoordinates();
+            break;
+          }
         }
       }
-    }
   }
 
   if (channelPicked)
@@ -1050,13 +1064,18 @@ void View2D::centerViewOnMousePosition()
   eventPosition(xPos, yPos);
 
   for(auto renderer: m_renderers)
-    if (canRender(renderer, RenderableType::CHANNEL))
+    if(renderer->type() == Renderer::Type::Representation)
     {
-      auto selection = renderer->pick(xPos, yPos, slicingPosition(), m_thumbnail, RenderableItems(RenderableType::CHANNEL), false);
-      if (!selection.isEmpty())
+      auto repRenderer = representationRenderer(renderer);
+      if (canRender(repRenderer, RenderableType::CHANNEL))
       {
-        // TODO 2013-10-04: Check if it is needed inside the loop
-        centerViewOnPosition(renderer->pickCoordinates());
+        auto selection = repRenderer->pick(xPos, yPos, slicingPosition(), m_thumbnail, RenderableItems(RenderableType::CHANNEL), false);
+        if (!selection.isEmpty())
+        {
+          // TODO 2013-10-04: Check if it is needed inside the loop
+          centerViewOnPosition(repRenderer->pickCoordinates());
+          return;
+        }
       }
     }
 }
@@ -1068,12 +1087,16 @@ ViewItemAdapterList View2D::pickChannels(double vx, double vy,
   ViewItemAdapterList selection;
 
   for(auto renderer: m_renderers)
-    if (canRender(renderer, RenderableType::CHANNEL))
-      for(auto item: renderer->pick(vx,vy, slicingPosition(), m_renderer, RenderableItems(RenderableType::CHANNEL), repeatable))
-      {
-        if (!selection.contains(item))
-          selection << item;
-      }
+    if(renderer->type() == Renderer::Type::Representation)
+    {
+      auto repRenderer = representationRenderer(renderer);
+      if (canRender(repRenderer, RenderableType::CHANNEL))
+        for(auto item: repRenderer->pick(vx,vy, slicingPosition(), m_renderer, RenderableItems(RenderableType::CHANNEL), repeatable))
+        {
+          if (!selection.contains(item))
+            selection << item;
+        }
+    }
 
   return selection;
 }
@@ -1085,10 +1108,14 @@ ViewItemAdapterList View2D::pickSegmentations(double vx, double vy,
   ViewItemAdapterList selection;
 
   for(auto renderer: m_renderers)
-    if (canRender(renderer, RenderableType::SEGMENTATION))
-      for(auto item: renderer->pick(vx,vy, slicingPosition(), m_renderer, RenderableItems(RenderableType::SEGMENTATION), repeatable))
-        if (!selection.contains(item))
-          selection << item;
+    if(renderer->type() == Renderer::Type::Representation)
+    {
+      auto repRenderer = representationRenderer(renderer);
+      if (canRender(repRenderer, RenderableType::SEGMENTATION))
+        for(auto item: repRenderer->pick(vx,vy, slicingPosition(), m_renderer, RenderableItems(RenderableType::SEGMENTATION), repeatable))
+          if (!selection.contains(item))
+            selection << item;
+    }
 
   return selection;
 }
@@ -1426,25 +1453,33 @@ Selector::WorldRegion View2D::worldRegion(const Selector::DisplayRegion& region,
     if (ItemAdapter::Type::CHANNEL == item->type())
     {
       for(auto renderer: m_renderers)
-        if (canRender(renderer, RenderableType::CHANNEL) &&
-            !renderer->pick(point.x(), point.y(), slicingPosition(), m_renderer, RenderableItems(RenderableType::CHANNEL), false).isEmpty())
+        if(renderer->type() == Renderer::Type::Representation)
         {
-          auto pc = renderer->pickCoordinates();
-          for(int i = 0; i < 3; ++i) pickPos[i] = pc[i];
-          pickPos[m_normalCoord] = slicingPosition();
-          wRegion->InsertNextPoint(pickPos);
+          auto repRenderer = representationRenderer(renderer);
+          if (canRender(repRenderer, RenderableType::CHANNEL) &&
+              !repRenderer->pick(point.x(), point.y(), slicingPosition(), m_renderer, RenderableItems(RenderableType::CHANNEL), false).isEmpty())
+          {
+            auto pc = repRenderer->pickCoordinates();
+            for(int i = 0; i < 3; ++i) pickPos[i] = pc[i];
+            pickPos[m_normalCoord] = slicingPosition();
+            wRegion->InsertNextPoint(pickPos);
+          }
         }
     }
     else
     {
       for(auto renderer: m_renderers)
-        if (canRender(renderer, RenderableType::SEGMENTATION) &&
-            !renderer->pick(point.x(), point.y(), slicingPosition(), m_renderer, RenderableItems(RenderableType::SEGMENTATION), false).isEmpty())
+        if(renderer->type() == Renderer::Type::Representation)
         {
-          auto pc = renderer->pickCoordinates();
-          for(int i = 0; i < 3; ++i) pickPos[i] = pc[i];
-          pickPos[m_normalCoord] = slicingPosition();
-          wRegion->InsertNextPoint(pickPos);
+          auto repRenderer = representationRenderer(renderer);
+          if (canRender(repRenderer, RenderableType::SEGMENTATION) &&
+              !repRenderer->pick(point.x(), point.y(), slicingPosition(), m_renderer, RenderableItems(RenderableType::SEGMENTATION), false).isEmpty())
+          {
+            auto pc = repRenderer->pickCoordinates();
+            for(int i = 0; i < 3; ++i) pickPos[i] = pc[i];
+            pickPos[m_normalCoord] = slicingPosition();
+            wRegion->InsertNextPoint(pickPos);
+          }
         }
     }
   }
@@ -1480,19 +1515,29 @@ void View2D::addRendererControls(RendererSPtr renderer)
   // add representations to renderer
   for(auto segmentation: m_segmentationStates.keys())
   {
-    if (renderer->canRender(segmentation))
-      for(auto rep: m_segmentationStates[segmentation].representations)
-         if (renderer->managesRepresentation(rep)) renderer->addRepresentation(segmentation, rep);
+    if(renderer->type() == Renderer::Type::Representation)
+    {
+      auto repRenderer = representationRenderer(renderer);
+      if (repRenderer->canRender(segmentation))
+        for(auto rep: m_segmentationStates[segmentation].representations)
+           if (repRenderer->managesRepresentation(rep))
+             repRenderer->addRepresentation(segmentation, rep);
+    }
   }
 
   for(auto channel: m_channelStates.keys())
   {
-    if (renderer->canRender(channel))
-      for(auto rep: m_channelStates[channel].representations)
-        if (renderer->managesRepresentation(rep)) renderer->addRepresentation(channel, rep);
+    if(renderer->type() == Renderer::Type::Representation)
+    {
+      auto repRenderer = representationRenderer(renderer);
+      if (repRenderer->canRender(channel))
+        for(auto rep: m_channelStates[channel].representations)
+          if (repRenderer->managesRepresentation(rep))
+            repRenderer->addRepresentation(channel, rep);
+    }
   }
 
-  if (0 != numEnabledRenderersForItem(RenderableType::SEGMENTATION))
+  if (0 != numEnabledRenderersForViewItem(RenderableType::SEGMENTATION))
   {
     QMap<EspinaWidget *, SliceWidget *>::const_iterator it = m_widgets.begin();
     for( ; it != m_widgets.end(); ++it)
@@ -1536,7 +1581,7 @@ void View2D::removeRendererControls(QString name)
     if (!removedRenderer->isHidden())
       removedRenderer->setEnable(false);
 
-  if (0 == numEnabledRenderersForItem(RenderableType::SEGMENTATION))
+  if (0 == numEnabledRenderersForViewItem(RenderableType::SEGMENTATION))
   {
     QMap<EspinaWidget *, SliceWidget *>::const_iterator it = m_widgets.begin();
     for (; it != m_widgets.end(); ++it)
@@ -1573,4 +1618,14 @@ void View2D::updateCrosshairPoint(const Plane plane, const Nm slicePos)
   // render if present
   if (this->m_renderer->HasViewProp(this->m_HCrossLine))
     updateView();
+}
+
+//-----------------------------------------------------------------------------
+RendererSList View2D::renderers() const
+{
+  RendererSList genericRenderers;
+  for (auto renderer: m_renderers)
+    genericRenderers << renderer;
+
+  return genericRenderers;
 }

@@ -22,7 +22,7 @@
 #include "EspinaGUI_Export.h"
 
 // EspINA
-#include "Renderer.h"
+#include "RepresentationRenderer.h"
 #include "GUI/Representations/Representation.h"
 
 class vtkPropPicker;
@@ -32,7 +32,7 @@ namespace EspINA
   class ViewManager;
 
   class EspinaGUI_EXPORT MeshRenderer
-  : public Renderer
+  : public RepresentationRenderer
   {
     public:
       explicit MeshRenderer(QObject* parent = 0);

@@ -21,7 +21,7 @@
 #include "EspinaGUI_Export.h"
 
 // EspINA
-#include "Renderer.h"
+#include "RepresentationRenderer.h"
 #include <GUI/Representations/CrosshairRepresentation.h>
 #include <Core/EspinaTypes.h>
 

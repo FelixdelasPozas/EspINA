@@ -139,17 +139,25 @@ void View3D::addRendererControls(RendererSPtr renderer)
 
   // add segmentation representations to renderer
   for(auto segmentation : m_segmentationStates.keys())
-    if (renderer->canRender(segmentation))
-      for(auto rep : m_segmentationStates[segmentation].representations)
-         if (renderer->managesRepresentation(rep))
-           renderer->addRepresentation(segmentation, rep);
+    if(renderer->type() == Renderer::Type::Representation)
+    {
+      auto repRenderer = representationRenderer(renderer);
+      if (repRenderer->canRender(segmentation))
+        for(auto rep : m_segmentationStates[segmentation].representations)
+           if (repRenderer->managesRepresentation(rep))
+             repRenderer->addRepresentation(segmentation, rep);
+    }
 
   // add channel representations to renderer
   for(auto channel : m_channelStates.keys())
-    if (renderer->canRender(channel))
-      for(auto rep : m_channelStates[channel].representations)
-        if (renderer->managesRepresentation(rep))
-          renderer->addRepresentation(channel, rep);
+    if(renderer->type() == Renderer::Type::Representation)
+    {
+      auto repRenderer = representationRenderer(renderer);
+      if (repRenderer->canRender(channel))
+        for(auto rep : m_channelStates[channel].representations)
+          if (repRenderer->managesRepresentation(rep))
+            repRenderer->addRepresentation(channel, rep);
+    }
 
   ViewRendererMenu *configMenu = qobject_cast<ViewRendererMenu*>(m_renderConfig.menu());
   if (configMenu == nullptr)
@@ -268,8 +276,8 @@ void View3D::centerViewOn(const NmVector3& point, bool force)
 
   for(auto renderer: m_renderers)
   {
-    auto channelRenderer = static_cast<ChannelRenderer *>(renderer.get());
-    if (canRender(renderer, RenderableType::CHANNEL) && channelRenderer)
+    auto channelRenderer = dynamic_cast<ChannelRenderer *>(renderer.get());
+    if (channelRenderer)
       channelRenderer->setCrosshair(m_center);
 
     updated |= !renderer->isHidden() && (renderer->numberOfRenderedItems() != 0);
@@ -379,7 +387,7 @@ void View3D::addWidget(EspinaWidget* eWidget)
   widget->SetCurrentRenderer(this->m_renderer);
   widget->SetInteractor(m_view->GetInteractor());
 
-  bool activate = (numEnabledRenderersForItem(RenderableType::SEGMENTATION) != 0);
+  bool activate = (numEnabledRenderersForViewItem(RenderableType::SEGMENTATION) != 0);
   if (eWidget->manipulatesSegmentations())
   {
     widget->SetEnabled(activate);
@@ -515,16 +523,20 @@ void View3D::selectPickedItems(int vx, int vy, bool append)
   // If no append, segmentations have priority over channels
   for(auto renderer : m_renderers)
   {
-    if (!renderer->isHidden() && canRender(renderer, RenderableType::SEGMENTATION))
+    if(renderer->type() == Renderer::Type::Representation)
     {
-      pickedItems = renderer->pick(vx, vy, 0, m_renderer, RenderableItems(RenderableType::SEGMENTATION), append);
-      if (!pickedItems.empty())
+      auto repRenderer = representationRenderer(renderer);
+      if (!repRenderer->isHidden() && canRender(repRenderer, RenderableType::SEGMENTATION))
       {
-        for(ViewItemAdapterPtr item : pickedItems)
-          if (!selection.contains(item))
-            selection << item;
-          else
-            selection.removeAll(item);
+        pickedItems = repRenderer->pick(vx, vy, 0, m_renderer, RenderableItems(RenderableType::SEGMENTATION), append);
+        if (!pickedItems.empty())
+        {
+          for(ViewItemAdapterPtr item : pickedItems)
+            if (!selection.contains(item))
+              selection << item;
+            else
+              selection.removeAll(item);
+        }
       }
     }
   }
@@ -533,16 +545,20 @@ void View3D::selectPickedItems(int vx, int vy, bool append)
 
   for(auto renderer : m_renderers)
   {
-    if (!renderer->isHidden() && canRender(renderer, RenderableType::CHANNEL))
+    if(renderer->type() == Renderer::Type::Representation)
     {
-      pickedItems = renderer->pick(vx, vy, 0, m_renderer, RenderableItems(RenderableType::CHANNEL), append);
-      if (!pickedItems.empty())
+      auto repRenderer = representationRenderer(renderer);
+      if (!repRenderer->isHidden() && canRender(repRenderer, RenderableType::CHANNEL))
       {
-        for(ViewItemAdapterPtr item : pickedItems)
-          if (!selection.contains(item))
-            selection << item;
-          else
-            selection.removeAll(item);
+        pickedItems = repRenderer->pick(vx, vy, 0, m_renderer, RenderableItems(RenderableType::CHANNEL), append);
+        if (!pickedItems.empty())
+        {
+          for(ViewItemAdapterPtr item : pickedItems)
+            if (!selection.contains(item))
+              selection << item;
+            else
+              selection.removeAll(item);
+        }
       }
     }
   }
@@ -577,15 +593,19 @@ bool View3D::eventFilter(QObject* caller, QEvent* e)
       {
         for(auto renderer: m_renderers)
         {
-          if (!renderer->isHidden())
+          if(renderer->type() == Renderer::Type::Representation)
           {
-            auto selection = renderer->pick(newX, newY, 0, m_renderer, RenderableItems(RenderableType::SEGMENTATION|RenderableType::CHANNEL), false);
-            if (!selection.empty())
+            auto repRenderer = representationRenderer(renderer);
+            if (!repRenderer->isHidden())
             {
-              NmVector3 point = renderer->pickCoordinates();
+              auto selection = repRenderer->pick(newX, newY, 0, m_renderer, RenderableItems(RenderableType::SEGMENTATION|RenderableType::CHANNEL), false);
+              if (!selection.empty())
+              {
+                NmVector3 point = repRenderer->pickCoordinates();
 
-              emit centerChanged(point);
-              break;
+                emit centerChanged(point);
+                break;
+              }
             }
           }
         }
@@ -694,8 +714,8 @@ void View3D::changePlanePosition(Plane plane, Nm dist)
 
   for(auto renderer: m_renderers)
   {
-    auto channelRenderer = static_cast<ChannelRenderer *>(renderer.get());
-    if (canRender(renderer, RenderableType::CHANNEL) && channelRenderer)
+    auto channelRenderer = dynamic_cast<ChannelRenderer *>(renderer.get());
+    if (channelRenderer)
     {
       channelRenderer->setPlanePosition(plane, dist);
       needUpdate = !renderer->isHidden() && (renderer->numberOfRenderedItems() != 0);
@@ -723,7 +743,7 @@ void View3D::updateRenderersControls()
   m_snapshot.setEnabled(canTakeSnapshot);
   m_export.setEnabled(canBeExported);
 
-  if (0 != numEnabledRenderersForItem(RenderableType::SEGMENTATION))
+  if (0 != numEnabledRenderersForViewItem(RenderableType::SEGMENTATION))
   {
     for(auto it = m_widgets.begin(); it != m_widgets.end(); ++it)
     {
@@ -738,7 +758,8 @@ void View3D::updateRenderersControls()
   if(m_numEnabledRenderers == 0)
     resetCamera();
 
-  m_numEnabledRenderers = numEnabledRenderersForItem(RenderableType::CHANNEL) + numEnabledRenderersForItem(RenderableType::SEGMENTATION);
+  m_numEnabledRenderers = numEnabledRenderersForViewItem(RenderableType::CHANNEL) +
+                          numEnabledRenderersForViewItem(RenderableType::SEGMENTATION);
 }
 
 //-----------------------------------------------------------------------------
@@ -764,8 +785,8 @@ void View3D::scrollBarMoved(int value)
   bool needUpdate = false;
   for(auto renderer: m_renderers)
   {
-    auto channelRenderer = static_cast<ChannelRenderer *>(renderer.get());
-    if (canRender(renderer, RenderableType::CHANNEL) && channelRenderer)
+    auto channelRenderer = dynamic_cast<ChannelRenderer *>(renderer.get());
+    if (channelRenderer)
     {
       channelRenderer->setCrosshair(point);
       needUpdate = !renderer->isHidden() && (renderer->numberOfRenderedItems() != 0);
@@ -822,4 +843,10 @@ RepresentationSPtr View3D::cloneRepresentation(ViewItemAdapterPtr item, Represen
     rep = prototype->clone(this);
 
   return rep;
+}
+
+//-----------------------------------------------------------------------------
+RendererSList View3D::renderers() const
+{
+  return m_renderers;
 }

@@ -25,8 +25,9 @@
 
 // EspINA
 #include <Core/EspinaTypes.h>
+#include <GUI/Representations/Renderers/RepresentationRenderer.h>
 #include <GUI/Representations/Representation.h>
-#include <GUI/Representations/Renderers/Renderer.h>
+#include <GUI/Representations/Renderers/RepresentationRenderer.h>
 #include <GUI/Widgets/ContextualMenu.h>
 #include <GUI/ColorEngines/ColorEngine.h>
 #include <GUI/Selectors/Selector.h>
@@ -184,7 +185,7 @@ namespace EspINA
     void removeRepresentations(ChannelState      &state);
     void removeRepresentations(SegmentationState &state);
 
-    unsigned int numEnabledRenderersForItem(RenderableType);
+    unsigned int numEnabledRenderersForViewItem(RenderableType);
 
   protected:
     EventHandlerSPtr m_eventHandler;

@@ -22,7 +22,7 @@
 #include "EspinaGUI_Export.h"
 
 // EspINA
-#include <GUI/Representations/Renderers/Renderer.h>
+#include "RepresentationRenderer.h"
 #include <GUI/Representations/VolumetricRepresentation.h>
 #include <GUI/View/RenderView.h>
 #include <Core/EspinaTypes.h>
@@ -35,12 +35,11 @@
 // Qt
 #include <QApplication>
 
-
 namespace EspINA
 {
   template<class T>
   class EspinaGUI_EXPORT VolumetricRenderer
-  : public Renderer
+  : public RepresentationRenderer
   {
   public:
     explicit VolumetricRenderer(QObject* parent = 0);

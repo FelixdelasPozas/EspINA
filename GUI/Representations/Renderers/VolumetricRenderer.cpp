@@ -21,7 +21,7 @@ namespace EspINA
   //-----------------------------------------------------------------------------
   template<class T>
   VolumetricRenderer<T>::VolumetricRenderer(QObject* parent)
-  : Renderer(parent)
+  : RepresentationRenderer(parent)
   , m_picker(vtkSmartPointer<vtkVolumePicker>::New())
   {
     m_picker->PickFromListOn();

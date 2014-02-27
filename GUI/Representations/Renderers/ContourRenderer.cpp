@@ -150,10 +150,4 @@ namespace EspINA
     return selection;
   }
 
-  //-----------------------------------------------------------------------------
-  void ContourRenderer::setView(RenderView* view)
-  {
-    m_view = view;
-  }
-
 } /* namespace EspINA */

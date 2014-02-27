@@ -48,8 +48,6 @@ namespace EspINA
                                        vtkSmartPointer<vtkRenderer> renderer,
                                        RenderableItems itemType = RenderableItems(),
                                        bool repeat = false);
-
-      virtual void setView(RenderView* view);
   };
 
 } // namespace EspINA

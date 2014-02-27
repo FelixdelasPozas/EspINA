@@ -265,8 +265,12 @@ void RenderView::remove(SegmentationAdapterPtr seg)
 
   for(auto rep: m_segmentationStates[seg].representations)
     for(auto renderer: m_renderers)
-      if (renderer->hasRepresentation(rep))
-        renderer->removeRepresentation(rep);
+      if (renderer->type() == Renderer::Type::Representation)
+      {
+        auto repRenderer = representationRenderer(renderer);
+        if (repRenderer->hasRepresentation(rep))
+          repRenderer->removeRepresentation(rep);
+      }
 
   m_segmentationStates.remove(seg);
 }
@@ -278,8 +282,12 @@ void RenderView::remove(ChannelAdapterPtr channel)
 
   for(auto representation: m_channelStates[channel].representations)
     for(auto renderer: m_renderers)
-      if (renderer->hasRepresentation(representation))
-        renderer->removeRepresentation(representation);
+      if (renderer->type() == Renderer::Type::Representation)
+      {
+        auto repRenderer = representationRenderer(renderer);
+        if (repRenderer->hasRepresentation(representation))
+          repRenderer->removeRepresentation(representation);
+      }
 
   m_channelStates.remove(channel);
 
@@ -358,10 +366,14 @@ bool RenderView::updateRepresentation(ChannelAdapterPtr channel, bool render)
       if (representation.get() != nullptr)
       {
         for(auto renderer : m_renderers)
-          if (renderer->canRender(channel) && renderer->managesRepresentation(representation))
+          if(renderer->type() == Renderer::Type::Representation)
           {
-            representation->setVisible(requestedVisibility);
-            renderer->addRepresentation(channel, representation);
+            auto repRenderer = representationRenderer(renderer);
+            if (repRenderer->canRender(channel) && repRenderer->managesRepresentation(representation))
+            {
+              representation->setVisible(requestedVisibility);
+              repRenderer->addRepresentation(channel, representation);
+            }
           }
 
         state.representations << representation;
@@ -486,10 +498,14 @@ bool RenderView::updateRepresentation(SegmentationAdapterPtr seg, bool render)
       if (representation)
       {
         for(auto renderer : m_renderers)
-          if (renderer->canRender(seg) && renderer->managesRepresentation(representation))
+          if(renderer->type() == Renderer::Type::Representation)
           {
-            representation->setVisible(requestedVisibility);
-            renderer->addRepresentation(seg, representation);
+            auto repRenderer = representationRenderer(renderer);
+            if (repRenderer->canRender(seg) && repRenderer->managesRepresentation(representation))
+            {
+              representation->setVisible(requestedVisibility);
+              repRenderer->addRepresentation(seg, representation);
+            }
           }
 
         state.representations << representation;
@@ -639,7 +655,11 @@ void RenderView::removeRepresentations(ChannelState &state)
 {
   for(auto rep: state.representations)
     for(auto renderer: m_renderers)
-      renderer->removeRepresentation(rep);
+      if(renderer->type() == Renderer::Type::Representation)
+      {
+        auto repRenderer = representationRenderer(renderer);
+        repRenderer->removeRepresentation(rep);
+      }
 
   state.representations.clear();
 }
@@ -649,18 +669,26 @@ void RenderView::removeRepresentations(SegmentationState &state)
 {
   for(auto rep: state.representations)
     for(auto renderer: m_renderers)
-      renderer->removeRepresentation(rep);
+      if(renderer->type() == Renderer::Type::Representation)
+      {
+        auto repRenderer = representationRenderer(renderer);
+        repRenderer->removeRepresentation(rep);
+      }
 
   state.representations.clear();
 }
 
 //-----------------------------------------------------------------------------
-unsigned int RenderView::numEnabledRenderersForItem(RenderableType type)
+unsigned int RenderView::numEnabledRenderersForViewItem(RenderableType type)
 {
   unsigned int count = 0;
   for(auto renderer: m_renderers)
-    if (canRender(renderer, type) && !renderer->isHidden())
+    if(renderer->type() == Renderer::Type::Representation)
+    {
+      auto repRenderer = representationRenderer(renderer);
+      if (canRender(repRenderer, type) && !renderer->isHidden())
       ++count;
+    }
 
   return count;
 }

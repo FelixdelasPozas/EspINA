@@ -30,7 +30,7 @@ namespace EspINA
 {
   //-----------------------------------------------------------------------------
   MeshRenderer::MeshRenderer(QObject *parent)
-  : Renderer(parent)
+  : RepresentationRenderer(parent)
   , m_picker(vtkSmartPointer<vtkPropPicker>::New())
   {
     m_picker->PickFromListOn();

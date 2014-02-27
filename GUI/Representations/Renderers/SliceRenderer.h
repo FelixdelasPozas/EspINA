@@ -22,7 +22,7 @@
 #include "EspinaGUI_Export.h"
 
 // EspINA
-#include "Renderer.h"
+#include "RepresentationRenderer.h"
 #include <GUI/View/SelectableView.h>
 #include <QFlags>
 
@@ -33,7 +33,7 @@ namespace EspINA
   class ViewManager;
   
   class EspinaGUI_EXPORT SliceRenderer
-  : public Renderer
+  : public RepresentationRenderer
   {
     public:
       explicit SliceRenderer(QObject* parent = 0);

@@ -55,8 +55,7 @@ namespace EspINA
 
     void setRenderers(RendererSList renderers);
 
-    RendererSList renderers() const
-    { return m_renderers; }
+    RendererSList renderers() const;
 
     void setCameraFocus(const NmVector3& center);
 
