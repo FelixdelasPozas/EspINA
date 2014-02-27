@@ -48,38 +48,22 @@ namespace EspINA
       virtual const QString tooltip() const
       { return tr("Stereological Counting Frame");}
 
-      virtual void hide();
-
-      virtual void show();
-
-      virtual void addRepresentation(ViewItemAdapterPtr item, RepresentationSPtr rep) {}
-
-      virtual void removeRepresentation(RepresentationSPtr rep) {}
-
-      virtual bool hasRepresentation(RepresentationSPtr rep)
-      { return false; }
-
-      virtual bool managesRepresentation(RepresentationSPtr rep)
-      { return false; }
-
       virtual RendererSPtr clone();
 
       virtual RendererTypes renderType()
       { return RendererType::RENDERER_VIEW3D; }
 
       virtual int numberOfRenderedItems()
-      { return m_cfCount; }
+      { return m_widgets.size(); }
 
       virtual unsigned int numberOfvtkActors();
 
-      virtual ViewItemAdapterList pick(int x, int y, Nm z,
-                                       vtkSmartPointer<vtkRenderer> renderer,
-                                       RenderableItems itemType = RenderableItems(),
-                                       bool repeat = false)
-      { return ViewItemAdapterList(); }
+      public slots:
+        void visibilityChanged();
 
-      virtual NmVector3 pickCoordinates() const
-      { return NmVector3(); }
+    protected:
+      virtual void hide();
+      virtual void show();
 
     private slots:
       void onCountingFrameCreated(CountingFrame *cf);
@@ -88,8 +72,6 @@ namespace EspINA
     private:
       CountingFrameManager &m_cfManager;
       QMap<CountingFrame *, vtkAbstractWidget *> m_widgets;
-
-      unsigned int m_cfCount;
     };
   } // namespace CF
 } // namespace EspINA

@@ -18,7 +18,7 @@
 #include "CountingFrameRenderer.h"
 
 #include "CountingFrames/CountingFrame.h"
-#include <GUI/View/RenderView.h>
+#include <GUI/View/View3D.h>
 
 
 #include <vtkRenderWindowInteractor.h>
@@ -32,7 +32,6 @@ using namespace EspINA::CF;
 //-----------------------------------------------------------------------------
 CountingFrameRenderer::CountingFrameRenderer(CountingFrameManager& cfManager)
 : m_cfManager(cfManager)
-, m_cfCount(0)
 {
   connect(&m_cfManager, SIGNAL(countingFrameCreated(CountingFrame*)),
           this, SLOT(onCountingFrameCreated(CountingFrame*)));
@@ -51,16 +50,21 @@ void CountingFrameRenderer::hide()
   if (!m_enable)
     return;
 
-  m_enable = false;
-
+  bool updated = false;
   for(auto cf : m_widgets.keys())
   {
-    m_widgets[cf]->GetRepresentation()->SetVisibility(false);
-    m_widgets[cf]->Off();
-    //m_widgets[cf]->Delete();
+    if (m_widgets[cf] == nullptr)
+      continue;
+
+    bool visible = cf->isVisible();
+    if (visible)
+      m_widgets[cf]->SetEnabled(false);
+
+    updated |= visible;
   }
 
-  emit renderRequested();
+  if (updated)
+    emit renderRequested();
 }
 
 //-----------------------------------------------------------------------------
@@ -69,26 +73,31 @@ void CountingFrameRenderer::show()
   if (m_enable)
     return;
 
-  m_enable = true;
-  auto rw         = m_view->renderWindow();
-  auto interactor = rw->GetInteractor();
-
-  for(auto cf : m_cfManager.countingFrames())
+  bool updated = false;
+  auto volView = dynamic_cast<View3D *>(m_view);
+  for(auto cf : m_widgets.keys())
   {
-    if (!m_widgets.contains(cf))
+    if (m_widgets[cf] == nullptr)
     {
-      m_widgets[cf] = cf->create3DWidget(nullptr);
-    }
-    m_widgets[cf]->SetInteractor(interactor);
-    m_widgets[cf]->GetRepresentation()->SetVisibility(true);
-    m_widgets[cf]->On();
+      auto rw         = m_view->renderWindow();
+      auto interactor = rw->GetInteractor();
 
-    auto cfWidget = dynamic_cast<vtkCountingFrame3DWidget *>(m_widgets[cf]);
-    cfWidget->SetCountingFrameVisibility(true);
-    cfWidget->SetEnabled(true);
+      m_widgets[cf] = cf->createWidget(volView);
+      m_widgets[cf]->SetInteractor(interactor);
+    }
+
+    bool visible = cf->isVisible();
+    if (visible)
+    {
+      m_widgets[cf]->SetEnabled(true);
+      volView->addActor(m_widgets[cf]->GetRepresentation());
+    }
+
+    updated |= visible;
   }
 
-  emit renderRequested();
+  if (updated)
+    emit renderRequested();
 }
 
 //-----------------------------------------------------------------------------
@@ -100,28 +109,91 @@ unsigned int CountingFrameRenderer::numberOfvtkActors()
 //-----------------------------------------------------------------------------
 void CountingFrameRenderer::onCountingFrameCreated(CountingFrame *cf)
 {
-  m_cfCount++;
+  if (!m_view)
+    return;
 
-  setEnable(m_cfCount > 0);
+  if (m_enable)
+  {
+    auto rw         = m_view->renderWindow();
+    auto interactor = rw->GetInteractor();
+    auto volView = dynamic_cast<View3D *>(m_view);
+
+    m_widgets[cf] = cf->createWidget(volView);
+    m_widgets[cf]->SetInteractor(interactor);
+
+    m_widgets[cf]->SetEnabled(true);
+    volView->addActor(m_widgets[cf]->GetRepresentation());
+    emit renderRequested();
+  }
+  else
+  {
+    // lazy creation of the widget
+    m_widgets[cf] = nullptr;
+  }
+  connect(cf, SIGNAL(changedVisibility()), this, SLOT(visibilityChanged()), Qt::QueuedConnection);
 }
 
 //-----------------------------------------------------------------------------
 void CountingFrameRenderer::onCountingFrameDeleted(CountingFrame *cf)
 {
-  m_cfCount--;
-
   if (m_widgets.contains(cf))
   {
-    m_widgets[cf]->GetRepresentation()->SetVisibility(false);
-    m_widgets[cf]->Off();
+    if (m_widgets[cf] != nullptr)
+    {
+      bool visible = cf->isVisible();
+      if (visible && m_enable)
+      {
+        auto volView = dynamic_cast<View3D *>(m_view);
+        volView->removeActor(m_widgets[cf]->GetRepresentation());
+        m_widgets[cf]->SetEnabled(false);
+        emit renderRequested();
+      }
+    }
     m_widgets.remove(cf);
+    disconnect(cf, SIGNAL(changedVisibility()), this, SLOT(visibilityChanged()));
   }
-
-  setEnable(m_cfCount > 0);
 }
 
 //-----------------------------------------------------------------------------
 RendererSPtr CountingFrameRenderer::clone()
 {
   return RendererSPtr(new CountingFrameRenderer(m_cfManager));
+}
+
+//-----------------------------------------------------------------------------
+void CountingFrameRenderer::visibilityChanged()
+{
+  if (!m_enable)
+    return;
+
+  auto cf = dynamic_cast<CountingFrame *>(sender());
+  if (!m_widgets.keys().contains(cf) || !m_enable)
+    return;
+
+  bool visible = cf->isVisible();
+  if (m_widgets[cf] != nullptr)
+  {
+    auto volView = dynamic_cast<View3D *>(m_view);
+    if (visible)
+      volView->addActor(m_widgets[cf]->GetRepresentation());
+    else
+      volView->removeActor(m_widgets[cf]->GetRepresentation());
+    m_widgets[cf]->SetEnabled(visible);
+  }
+  else
+  {
+    if (visible)
+    {
+      auto rw         = m_view->renderWindow();
+      auto interactor = rw->GetInteractor();
+      auto volView = dynamic_cast<View3D *>(m_view);
+
+      m_widgets[cf] = cf->createWidget(volView);
+      m_widgets[cf]->SetInteractor(interactor);
+      m_widgets[cf]->SetEnabled(true);
+      volView->addActor(m_widgets[cf]->GetRepresentation());
+    }
+  }
+
+  emit renderRequested();
 }

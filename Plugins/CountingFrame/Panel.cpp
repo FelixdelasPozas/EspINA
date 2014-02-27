@@ -382,8 +382,6 @@ void Panel::deleteCountingFrame(CountingFrame *cf)
   updateUI(m_gui->countingFrames->model()->index(0,0));
 }
 
-
-
 //------------------------------------------------------------------------
 void Panel::applyCategoryConstraint()
 {

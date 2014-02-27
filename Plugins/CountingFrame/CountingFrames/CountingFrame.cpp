@@ -113,10 +113,7 @@ void CountingFrame::setVisible(bool visible)
     widget2D->SetEnabled(m_visible);
   }
 
-  for (auto widget3D : m_widgets3D)
-  {
-    widget3D->SetEnabled(m_visible);
-  }
+  emit changedVisibility();
 }
 
 //-----------------------------------------------------------------------------
@@ -128,12 +125,6 @@ void CountingFrame::setHighlighted(bool highlight)
   {
     widget2D->SetHighlighted(m_highlight);
   }
-
-//   for (auto widget3D : m_widgets3D)
-//   {
-//     widget3D->SetEnabled(m_highlight);
-//   }
-
 }
 
 

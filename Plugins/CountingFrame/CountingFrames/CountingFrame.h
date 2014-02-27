@@ -165,10 +165,13 @@ namespace CF {
 
     QString categoryConstraint() const { return m_categoryConstraint; }
 
+    virtual vtkAbstractWidget *createWidget(View3D *view) = 0;
+
     void apply();
 
   signals:
     void modified(CountingFrame *);
+    void changedVisibility();
 
   protected:
     explicit CountingFrame(CountingFrameExtension *extension,

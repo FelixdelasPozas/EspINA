@@ -184,12 +184,6 @@ void vtkCountingFrame3DWidget::SetCountingFrame(vtkSmartPointer< vtkPolyData > r
 }
 
 //----------------------------------------------------------------------
-void vtkCountingFrame3DWidget::SetEnabled(int enabled)
-{
-  vtkAbstractWidget::SetEnabled(m_visible && enabled);
-}
-
-//----------------------------------------------------------------------
 void vtkCountingFrame3DWidget::CreateDefaultRepresentation()
 {
   if ( ! this->WidgetRep )

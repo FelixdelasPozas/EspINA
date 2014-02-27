@@ -66,7 +66,7 @@ AdaptiveCountingFrame::~AdaptiveCountingFrame()
 }
 
 //-----------------------------------------------------------------------------
-vtkAbstractWidget* AdaptiveCountingFrame::create3DWidget(View3D *view)
+vtkAbstractWidget* AdaptiveCountingFrame::createWidget(View3D *view)
 {
   CountingFrame3DWidgetAdapter *wa = new CountingFrame3DWidgetAdapter();
   Q_ASSERT(wa);
