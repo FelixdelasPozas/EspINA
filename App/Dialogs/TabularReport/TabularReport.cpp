@@ -114,7 +114,9 @@ void TabularReport::dataChanged(const QModelIndex &topLeft, const QModelIndex &b
       auto segmentation = segmentationPtr(item);
 
       if (acceptSegmentation(segmentation))
+      {
         createCategoryEntry(segmentation->category()->classificationName());
+      }
     }
   }
 }
@@ -475,7 +477,7 @@ bool TabularReport::exportToXLS(const QString &filename)
   for (int i = 0; i < m_tabs->count(); ++i)
   {
     Entry *entry = dynamic_cast<Entry *>(m_tabs->widget(i));
-    worksheet *sheet = wb.sheet(m_tabs->tabText(i).toStdString());
+    worksheet *sheet = wb.sheet(m_tabs->tabText(i).replace("/",">").toStdString());
 
     for (int r = 0; r < entry->rowCount(); ++r)
     {

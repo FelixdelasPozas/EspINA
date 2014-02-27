@@ -204,7 +204,7 @@ bool TabularReport::Entry::exportToXLS(const QString &filename)
 {
   workbook wb;
 
-  worksheet *ws = wb.sheet(m_category.toStdString());
+  worksheet *ws = wb.sheet(m_category.replace("/",">").toStdString());
 
   for (int r = 0; r < rowCount(); ++r)
   {
